@@ -11,8 +11,12 @@ class Service {
 
 		if (!_.isObject(schema)) 
 			throw new Error("Must pass a service schema in constructor!");
+
+		if (!schema.name) 
+			throw new Error("Service name can't be empty!");
 		
 		this.name = schema.name;
+		this.$settings = schema.settings || {};
 		this.$schema = schema;
 		this.$node = node;
 		this.$broker = broker;
@@ -28,13 +32,14 @@ class Service {
 						handler: action
 					};
 				}
-				action.name = name;
+				action.name = this.name + "." + name;
+				action.service = this;
 				action.handler = action.handler.bind(this);
 
 				if (!_.isFunction(action.handler)) 
 					throw new Error(`Missing action handler on '${name}' action in '${this.name}' service!`);
 
-				broker.registerAction(this.$node, this, action, action.handler);
+				broker.registerAction(this.$node, this, action);
 			});
 
 		}

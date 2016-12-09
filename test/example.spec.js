@@ -9,10 +9,8 @@ let broker = new ServiceBroker();
 describe("Create demo service", () => {
 
 	let PostSchema = {
+		name: "posts",
 		settings: {
-			name: "posts",
-			version: 1,
-			namespace: "posts"
 		},
 
 		actions: {
@@ -85,6 +83,8 @@ describe("Create demo service", () => {
 		//expect(broker.registerAction).toHaveBeenCalledWith(broker.internalNode, service, schema.actions.find);
 		expect(broker.actions.size).toBe(1);
 		expect(handlerRegisterAction).toHaveBeenCalledTimes(1);
+		expect(broker.hasActionHandler("find")).toBeFalsy();		
+		expect(broker.hasActionHandler("posts.find")).toBeTruthy();		
 
 		expect(broker.subscribeEvent).toHaveBeenCalledTimes(1);
 		//expect(broker.registerAction).toHaveBeenCalledWith(broker.internalNode, service, schema.actions.find);
