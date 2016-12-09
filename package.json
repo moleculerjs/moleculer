@@ -12,6 +12,7 @@
   "author": "Icebob",
   "license": "MIT",
   "devDependencies": {
+    "eslint": "3.12.0",
     "jest": "17.0.3"
   },
   "jest": {
@@ -22,6 +23,6 @@
     ]
   },
   "dependencies": {
-    "eslint": "3.12.0"
+    "eventemitter2": "2.2.1"
   }
 }
