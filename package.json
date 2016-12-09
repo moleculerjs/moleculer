@@ -19,8 +19,8 @@
   },
   "jest": {
     "testEnvironment": "node",
-    "rootDir": "./src",
-    "testPathDirs": [
+    "__rootDir": "./src",
+    "__testPathDirs": [
       "../test"
     ]
   },

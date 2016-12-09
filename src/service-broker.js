@@ -34,11 +34,18 @@ class ServiceBroker {
 	}
 
 	registerAction(node, service, action) {
-
+		// Append service by name
+		let item = this.actions.get(action.name) || [];
+		item.push(action);
+		this.actions.set(action.name, action);
 	}
 
-	subscribeEvent(node, service, eventName, handler) {
-
+	subscribeEvent(node, service, event) {
+		// Append event subscriptions
+		let item = this.subscriptions.get(event.name) || [];
+		item.push(event);
+		this.subscriptions.set(event.name, event);
+		bus.on(event.name, event.handler.bind(service));
 	}
 
 	getService(serviceName) {
@@ -49,7 +56,7 @@ class ServiceBroker {
 
 	}
 
-	action(actionName, opts, ctx) {
+	action(actionName, params, ctx) {
 
 	}
 

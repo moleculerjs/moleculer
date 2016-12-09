@@ -18,6 +18,46 @@ class Service {
 		this.$broker = broker;
 
 		this.$broker.registerService(this.$node, this);
+
+		// Register actions
+		if (_.isObject(schema.actions)) {
+
+			_.forIn(schema.actions, (action, name) => {
+				if (_.isFunction(action)) {
+					action = {
+						handler: action
+					};
+				}
+				action.name = name;
+
+				if (!_.isFunction(action.handler)) 
+					throw new Error(`Missing action handler on '${name}' action in '${this.name}' service!`);
+
+				broker.registerAction(this.$node, this, action, action.handler);
+			});
+
+		}
+
+		// Event subscriptions
+		if (_.isObject(schema.events)) {
+
+			_.forIn(schema.events, (event, name) => {
+				if (_.isFunction(event)) {
+					event = {
+						handler: event
+					};
+				}
+				event.name = name;
+
+				if (!_.isFunction(event.handler)) 
+					throw new Error(`Missing event handler on '${name}' event in '${this.name}' service!`);
+
+				broker.subscribeEvent(this.$node, this, event);
+			});
+
+		}
+
+
 	}
 
 }
