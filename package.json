@@ -1,0 +1,27 @@
+{
+  "name": "ice-services",
+  "version": "0.1.0",
+  "description": "Microservices framework for Node.JS",
+  "main": "index.js",
+  "scripts": {
+    "ci": "jest --watch",
+    "test": "jest --coverage",
+    "lint": "eslint --ext=.js src test"
+  },
+  "keywords": [],
+  "author": "Icebob",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "17.0.3"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "rootDir": "./src",
+    "testPathDirs": [
+      "../test"
+    ]
+  },
+  "dependencies": {
+    "eslint": "3.12.0"
+  }
+}
