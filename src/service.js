@@ -29,6 +29,7 @@ class Service {
 					};
 				}
 				action.name = name;
+				action.handler = action.handler.bind(this);
 
 				if (!_.isFunction(action.handler)) 
 					throw new Error(`Missing action handler on '${name}' action in '${this.name}' service!`);
@@ -48,6 +49,7 @@ class Service {
 					};
 				}
 				event.name = name;
+				event.handler = event.handler.bind(this);
 
 				if (!_.isFunction(event.handler)) 
 					throw new Error(`Missing event handler on '${name}' event in '${this.name}' service!`);

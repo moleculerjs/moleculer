@@ -1805,6 +1805,10 @@ node-notifier@^4.6.1:
     shellwords "^0.1.0"
     which "^1.0.5"
 
+node-uuid@^1.4.7:
+  version "1.4.7"
+  resolved "https://registry.yarnpkg.com/node-uuid/-/node-uuid-1.4.7.tgz#6da5a17668c4b3dd59623bda11cf7fa4c1f60a6f"
+
 nopt@3.x:
   version "3.0.6"
   resolved "https://registry.yarnpkg.com/nopt/-/nopt-3.0.6.tgz#c6465dbf08abcd4db359317f79ac68a646b28ff9"
@@ -2403,6 +2407,12 @@ user-home@^2.0.0:
 util-deprecate@~1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/util-deprecate/-/util-deprecate-1.0.2.tgz#450d4dc9fa70de732762fbd2d4a28981419a0ccf"
+
+uuid-token-generator:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/uuid-token-generator/-/uuid-token-generator-0.5.0.tgz#6459609dceb4da0cb0f29260c7ce293a03c1e67c"
+  dependencies:
+    node-uuid "^1.4.7"
 
 uuid@^3.0.0:
   version "3.0.1"

@@ -15,7 +15,8 @@
     "eslint": "3.12.0",
     "jest": "17.0.3",
     "lodash": "4.17.2",
-    "moment": "2.17.1"
+    "moment": "2.17.1",
+    "uuid-token-generator": "0.5.0"
   },
   "jest": {
     "testEnvironment": "node",

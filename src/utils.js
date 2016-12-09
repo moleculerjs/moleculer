@@ -1,4 +1,12 @@
+"use strict";
+
+let TokenGenerator = require("uuid-token-generator");
+let tokgen256 = new TokenGenerator(256, TokenGenerator.BASE62);
+
 module.exports = {
-	add: (a, b) => a + b,
-	sub: (a,b ) => a - b
+
+	generateToken() {
+		return tokgen256.generate();
+	}
+	
 };

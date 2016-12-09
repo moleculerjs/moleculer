@@ -53,6 +53,15 @@ describe("Create demo service", () => {
 	});
 
 	it("test service create", () => {
+		let handlerRegisterNode = jest.fn();
+		bus.on("register.node", handlerRegisterNode);
+
+		let handlerRegisterService = jest.fn();
+		bus.on("register.service", handlerRegisterService);
+
+		let handlerRegisterAction = jest.fn();
+		bus.on("register.action", handlerRegisterAction);
+
 		broker.registerService = jest.fn(broker.registerService);
 		broker.registerAction = jest.fn(broker.registerAction);
 		broker.subscribeEvent = jest.fn(broker.subscribeEvent);
@@ -64,13 +73,18 @@ describe("Create demo service", () => {
 		let service = new Service(broker, broker.internalNode, schema);
 
 		expect(service).toBeDefined();
+
+		expect(handlerRegisterNode).toHaveBeenCalledTimes(0);
+
 		expect(broker.registerService).toHaveBeenCalledTimes(1);
 		expect(broker.registerService).toHaveBeenCalledWith(broker.internalNode, service);
 		expect(broker.services.size).toBe(1);
+		expect(handlerRegisterService).toHaveBeenCalledTimes(1);
 
 		expect(broker.registerAction).toHaveBeenCalledTimes(1);
 		//expect(broker.registerAction).toHaveBeenCalledWith(broker.internalNode, service, schema.actions.find);
 		expect(broker.actions.size).toBe(1);
+		expect(handlerRegisterAction).toHaveBeenCalledTimes(1);
 
 		expect(broker.subscribeEvent).toHaveBeenCalledTimes(1);
 		//expect(broker.registerAction).toHaveBeenCalledWith(broker.internalNode, service, schema.actions.find);
