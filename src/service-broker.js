@@ -23,8 +23,9 @@ class ServiceBroker {
 		this.nodes.set(this.internalNode.id, this.internalNode);
 	}
 
-	registerService(node, service) {
+	registerService(service) {
 		// Add node if not exists
+		let node = service.$node;
 		if (node && !this.nodes.has(node.id)) {
 			this.nodes.set(node.id, node);
 			bus.emit("register.node", node);
@@ -33,7 +34,7 @@ class ServiceBroker {
 		// Append service by name
 		let item = this.services.get(service.name) || [];
 		item.push(service);
-		this.services.set(service.name, service);
+		this.services.set(service.name, item);
 
 		bus.emit("register.service", service);
 	}

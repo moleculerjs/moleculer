@@ -6,7 +6,7 @@ let Service = require("../src/service");
 let ServiceBroker = require("../src/service-broker");
 let broker = new ServiceBroker();
 
-describe("Create demo service", () => {
+describe("Test Service", () => {
 
 	let PostSchema = {
 		name: "posts",
@@ -28,27 +28,6 @@ describe("Create demo service", () => {
 		}
 
 	};
-
-	it("test ServiceBroker properties", () => {
-		expect(broker.services).toBeDefined();
-		expect(broker.services).toBeInstanceOf(Map);
-
-		expect(broker.actions).toBeDefined();
-		expect(broker.actions).toBeInstanceOf(Map);
-
-		expect(broker.subscriptions).toBeDefined();
-		expect(broker.subscriptions).toBeInstanceOf(Map);
-
-		expect(broker.nodes).toBeDefined();
-		expect(broker.nodes).toBeInstanceOf(Map);
-		expect(broker.nodes.size).toBe(1);
-	});
-
-	it("test broker internal node", () => {
-		expect(broker.internalNode).toBeDefined();
-		expect(broker.internalNode.id).toBe("internal");
-		expect(broker.internalNode.name).toBe("Internal Service Node");
-	});
 
 	it("test service create", () => {
 		let handlerRegisterNode = jest.fn();
