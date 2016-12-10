@@ -85,7 +85,10 @@ class ServiceBroker {
 		if (!actions)
 			throw new Error(`Missing action '${actionName}'!`);
 		
-		let action = this.getBalancedItem(actions);
+		let action = actions.get();
+		if (!action)
+			throw new Error(`Missing action handler '${actionName}'!`);
+
 		if (ctx == null) {
 			// Create a new context
 			ctx = new Context({
@@ -94,6 +97,7 @@ class ServiceBroker {
 				params: params
 			});
 		} else {
+			ctx.level += 1;
 			ctx.setParams(params);
 		}
 		

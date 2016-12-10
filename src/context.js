@@ -11,7 +11,7 @@ class Context {
 		this.id = opts.id || utils.generateToken();
 		this.service = opts.service;
 		this.action = opts.action;
-		this.broker = opts.service.broker;
+		this.broker = opts.service && opts.service.$broker;
 		this.level = (opts.level || 0) + 1;
 		this.params = Object.freeze(Object.assign({}, opts.params || {}));
 

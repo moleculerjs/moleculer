@@ -1,7 +1,7 @@
 "use strict";
 
 const ServiceBroker = require("../src/service-broker");
-const Service = require("../src/service");
+const Context = require("../src/context");
 const bus = require("../src/service-bus");
 
 describe("Test ServiceBroker", () => {
@@ -69,6 +69,66 @@ describe("Test ServiceBroker", () => {
 	});
 
 
+	it("test register action", () => {
+		let mockNode = {
+			id: "test"
+		};
 
+		let mockService = {
+			name: "test-service",
+			$node: mockNode,
+			$broker: broker
+		};
+
+		let mockAction = {
+			name: "test.action",
+			service: mockService,
+			handler: jest.fn(ctx => ctx)
+		};
+
+		let registerActionCB = jest.fn();
+		bus.on("register.action", registerActionCB);
+
+		broker.registerAction(mockNode, mockService, mockAction);
+		expect(broker.actions.size).toBe(1);
+		expect(registerActionCB).toHaveBeenCalledWith(mockService, mockAction);
+		expect(registerActionCB).toHaveBeenCalledTimes(1);
+
+		expect(broker.hasAction("noaction")).toBeFalsy();
+		expect(broker.hasAction("test.action")).toBeTruthy();
+
+		// Test action call
+		expect(() => broker.action("noaction")).toThrow();
+		
+		let ctx = broker.action("test.action");
+		expect(ctx.id).toBeDefined();
+		expect(ctx.service).toBe(mockService);
+		expect(ctx.action).toBe(mockAction);
+		expect(ctx.params).toBeDefined();
+		expect(mockAction.handler).toHaveBeenCalledTimes(1);
+		expect(mockAction.handler).toHaveBeenCalledWith(ctx);
+		mockAction.handler.mockClear();
+		
+		let params = { a: 1 };
+		ctx = broker.action("test.action", params);
+		expect(ctx.params).not.toBe(params);
+		expect(ctx.params.a).toBe(params.a);
+		expect(ctx.level).toBe(1);
+
+		let prevCtx = new Context({
+			params: {
+				a: 5,
+				b: 2
+			}
+		});		
+
+		ctx = broker.action("test.action", params, prevCtx);
+		expect(ctx.params).not.toBe(params);
+		expect(ctx.params.a).toBe(1);
+		expect(ctx.params.b).not.toBeDefined();
+		expect(ctx.level).toBe(2);
+		
+
+	});
 
 });
