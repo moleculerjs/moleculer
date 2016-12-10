@@ -2,6 +2,7 @@
 
 let bus = require("./service-bus");
 let ServiceNode = require("./service-node");
+let BalancedList = require("./balanced-list");
 let Context = require("./context");
 
 class ServiceBroker {
@@ -32,34 +33,50 @@ class ServiceBroker {
 		}
 
 		// Append service by name
-		let item = this.services.get(service.name) || [];
-		item.push(service);
-		this.services.set(service.name, item);
+		let item = this.services.get(service.name);
+		if (!item) {
+			item = new BalancedList();
+			this.services.set(service.name, item);
+		}
+		item.add(service);
 
 		bus.emit("register.service", service);
 	}
 
 	registerAction(node, service, action) {
-		// Append service by name
-		let item = this.actions.get(action.name) || [];
-		item.push(action);
-		this.actions.set(action.name, action);
+		// Append action by name
+		let item = this.actions.get(action.name);
+		if (!item) {
+			item = new BalancedList();
+			this.actions.set(action.name, item);
+		}
+		item.add(action);
 		bus.emit("register.action", service, action);
 	}
 
 	subscribeEvent(node, service, event) {
 		// Append event subscriptions
-		let item = this.subscriptions.get(event.name) || [];
-		item.push(event);
-		this.subscriptions.set(event.name, event);
+		let item = this.subscriptions.get(event.name);
+		if (!item) {
+			item = new BalancedList();
+			this.subscriptions.set(event.name, item);
+		}
+		item.add(event);
 		bus.on(event.name, event.handler.bind(service));
 	}
 
 	getService(serviceName) {
-
+		let service = this.services.get(serviceName);
+		if (service) {
+			return service.get();
+		}
 	}
 
-	hasActionHandler(actionName) {
+	hasService(serviceName) {
+		return this.services.has(serviceName);
+	}
+
+	hasAction(actionName) {
 		return this.actions.has(actionName);
 	}
 

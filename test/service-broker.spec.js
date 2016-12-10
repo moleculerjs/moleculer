@@ -34,7 +34,7 @@ describe("Test ServiceBroker", () => {
 		expect(broker.nodes.get("internal")).toBe(broker.internalNode);
 	});
 	
-	it("test broker internal node", () => {
+	it("test register service", () => {
 		let mockNode = {
 			id: "test"
 		};
@@ -56,11 +56,19 @@ describe("Test ServiceBroker", () => {
 		expect(registerNodeCB).toHaveBeenCalledTimes(1);
 		expect(registerNodeCB).toHaveBeenCalledWith(mockNode);
 
-		console.log(broker.services.get("test-service"));
 		expect(broker.services.size).toBe(1);
-		expect(broker.services.get("test-service")[0]).toBe(mockService);
 		expect(registerServiceCB).toHaveBeenCalledWith(mockService);
 		expect(registerServiceCB).toHaveBeenCalledTimes(1);
 
+		expect(broker.hasService("noservice")).toBeFalsy();
+		expect(broker.hasService("test-service")).toBeTruthy();
+
+		expect(broker.getService("noservice")).toBeUndefined();
+		expect(broker.getService("test-service")).toBe(mockService);
+		
 	});
+
+
+
+
 });
