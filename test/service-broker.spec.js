@@ -106,9 +106,9 @@ describe("Test ServiceBroker", () => {
 		expect(broker.hasAction("test.action")).toBeTruthy();
 
 		// Test action call
-		expect(() => broker.action("noaction")).toThrow();
+		expect(() => broker.call("noaction")).toThrow();
 		
-		let ctx = broker.action("test.action");
+		let ctx = broker.call("test.action");
 		expect(ctx.id).toBeDefined();
 		expect(ctx.service).toBe(mockService);
 		expect(ctx.action).toBe(mockAction);
@@ -118,7 +118,7 @@ describe("Test ServiceBroker", () => {
 		mockAction.handler.mockClear();
 		
 		let params = { a: 1 };
-		ctx = broker.action("test.action", params);
+		ctx = broker.call("test.action", params);
 		expect(ctx.params).not.toBe(params);
 		expect(ctx.params.a).toBe(params.a);
 		expect(ctx.level).toBe(1);
@@ -130,7 +130,7 @@ describe("Test ServiceBroker", () => {
 			}
 		});		
 
-		ctx = broker.action("test.action", params, prevCtx);
+		ctx = broker.call("test.action", params, prevCtx);
 		expect(ctx.params).not.toBe(params);
 		expect(ctx.params.a).toBe(1);
 		expect(ctx.params.b).not.toBeDefined();

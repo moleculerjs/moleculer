@@ -83,12 +83,13 @@ class ServiceBroker {
 		return this.actions.has(actionName);
 	}
 
-	action(actionName, params, ctx) {
+	call(actionName, params, ctx) {
 		let actions = this.actions.get(actionName);
 		if (!actions)
 			throw new Error(`Missing action '${actionName}'!`);
 		
 		let action = actions.get();
+		/* istanbul ignore next */
 		if (!action)
 			throw new Error(`Missing action handler '${actionName}'!`);
 

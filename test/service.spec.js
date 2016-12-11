@@ -102,7 +102,7 @@ describe("Test Service", () => {
 		expect(handlerRegisterService).toHaveBeenCalledTimes(1);
 
 		expect(broker.registerAction).toHaveBeenCalledTimes(2);
-		//expect(broker.registerAction).toHaveBeenCalledWith(broker.internalNode, service, schema.actions.find);
+		expect(broker.registerAction).toHaveBeenCalledWith(broker.internalNode, service, schema.actions.find);
 		expect(broker.actions.size).toBe(2);
 		expect(handlerRegisterAction).toHaveBeenCalledTimes(2);
 		expect(broker.hasAction("find")).toBeFalsy();		
@@ -110,10 +110,10 @@ describe("Test Service", () => {
 		expect(broker.hasAction("posts.find")).toBeTruthy();		
 		expect(broker.hasAction("posts.get")).toBeTruthy();
 
-		broker.action("posts.find");
+		broker.call("posts.find");
 		expect(findHandlerMock).toHaveBeenCalledTimes(1);		
 
-		broker.action("posts.get");
+		broker.call("posts.get");
 		expect(getHandlerMock).toHaveBeenCalledTimes(1);
 
 		let action = broker.actions.get("posts.get").get();
@@ -122,7 +122,7 @@ describe("Test Service", () => {
 		expect(action.service).toBe(service);				
 
 		expect(broker.subscribeEvent).toHaveBeenCalledTimes(1);
-		//expect(broker.registerAction).toHaveBeenCalledWith(broker.internalNode, service, schema.actions.find);
+		//expect(broker.subscribeEvent).toHaveBeenCalledWith(broker.internalNode, service, schema.events["request.rest.**"]);
 		expect(broker.subscriptions.size).toBe(1);
 		expect(bus.listeners("request.rest.**")).toHaveLength(1);
 

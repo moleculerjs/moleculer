@@ -1,5 +1,6 @@
 "use strict";
 
+let _ = require("lodash");
 let bus = require("./service-bus");
 let utils = require("./utils");
 
@@ -24,7 +25,13 @@ class Context {
 	}
 
 	emit(eventName, data) {
-		return bus.emit(eventName, data);
+		let d;
+		if (_.isObject(data))
+			d = Object.freeze(Object.assign({}, data));
+		else
+			d = data;
+
+		return bus.emit(eventName, d);
 	}
 
 	result(data) {
@@ -35,8 +42,12 @@ class Context {
 		//
 	}
 
-	action(actionName, params) {
-		return this.broker.action(actionName, params, this);
+	call(actionName, params) {
+		let p;
+		if (_.isObject(params))
+			p = Object.freeze(Object.assign({}, params));
+
+		return this.broker.call(actionName, p, this);
 	}	
 }
 
