@@ -50,6 +50,8 @@ class Context {
 		let line = [];
 		_.times(this.level - 1, () => line.push("  "));
 		line.push(str);
+		line.push(" params: ");
+		line.push(JSON.stringify(this.params));
 
 		console.log(line.join(""));
 	}
