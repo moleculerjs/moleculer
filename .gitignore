@@ -3,3 +3,4 @@ node_modules/
 coverage/
 npm-debug.log
 stats.json
+yarn-error.log
