@@ -34,6 +34,22 @@ describe("Test ServiceBroker", () => {
 		expect(broker.nodes.get("internal")).toBe(broker.internalNode);
 	});
 	
+	it("test register node", () => {
+		let mockNode = {
+			id: "test"
+		};
+
+		let registerNodeCB = jest.fn();
+		bus.on("register.node", registerNodeCB);
+
+		broker.registerNode(mockNode);
+		expect(broker.nodes.size).toBe(2);
+		expect(broker.nodes.get("test")).toBe(mockNode);
+		expect(registerNodeCB).toHaveBeenCalledTimes(1);
+		expect(registerNodeCB).toHaveBeenCalledWith(mockNode);
+
+	});
+
 	it("test register service", () => {
 		let mockNode = {
 			id: "test"
@@ -44,18 +60,10 @@ describe("Test ServiceBroker", () => {
 			$node: mockNode
 		};
 
-		let registerNodeCB = jest.fn();
-		bus.on("register.node", registerNodeCB);
-
 		let registerServiceCB = jest.fn();
 		bus.on("register.service", registerServiceCB);
 
 		broker.registerService(mockService);
-		expect(broker.nodes.size).toBe(2);
-		expect(broker.nodes.get("test")).toBe(mockNode);
-		expect(registerNodeCB).toHaveBeenCalledTimes(1);
-		expect(registerNodeCB).toHaveBeenCalledWith(mockNode);
-
 		expect(broker.services.size).toBe(1);
 		expect(registerServiceCB).toHaveBeenCalledWith(mockService);
 		expect(registerServiceCB).toHaveBeenCalledTimes(1);

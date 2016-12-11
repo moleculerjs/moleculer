@@ -20,17 +20,20 @@ class ServiceBroker {
 			name: "Internal Service Node",
 			type: "internal"
 		});
+		this.registerNode(this.internalNode);
+	}
 
-		this.nodes.set(this.internalNode.id, this.internalNode);
+	registerNode(node) {
+		if (node && !this.nodes.has(node.id)) {
+			this.nodes.set(node.id, node);
+			bus.emit("register.node", node);
+		}
 	}
 
 	registerService(service) {
 		// Add node if not exists
 		let node = service.$node;
-		if (node && !this.nodes.has(node.id)) {
-			this.nodes.set(node.id, node);
-			bus.emit("register.node", node);
-		}
+		this.registerNode(node);
 
 		// Append service by name
 		let item = this.services.get(service.name);

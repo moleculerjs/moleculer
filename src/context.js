@@ -8,7 +8,7 @@ class Context {
 	constructor(opts) {
 		opts = Object.assign({}, opts || {});
 
-		this.id = opts.id || utils.generateToken();
+		this.id = opts.id || utils.generateToken256();
 		this.service = opts.service;
 		this.action = opts.action;
 		this.broker = opts.service && opts.service.$broker;

@@ -1,9 +1,11 @@
-const ServiceBus = require("../src/service-bus");
+const bus = require("../src/service-bus");
 
 describe("Test ServiceBus", () => {
 
 	it("some", () => {
-		expect(ServiceBus).toBeDefined();
+		expect(bus).toBeDefined();
+		expect(bus.emit).toBeDefined();
+		expect(bus.on).toBeDefined();
 	});
 
 });
