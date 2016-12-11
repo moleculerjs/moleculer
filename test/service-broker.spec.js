@@ -6,8 +6,7 @@ const bus = require("../src/service-bus");
 
 describe("Test ServiceBroker", () => {
 
-	let opts = {};
-	let broker= new ServiceBroker(opts);
+	let broker= new ServiceBroker();
 
 	it("test ServiceBroker constructor", () => {
 		expect(broker).toBeDefined();
@@ -23,7 +22,7 @@ describe("Test ServiceBroker", () => {
 		expect(broker.nodes).toBeDefined();
 		expect(broker.nodes).toBeInstanceOf(Map);
 
-		expect(broker.options).toBe(opts);
+		expect(broker.options).toEqual({});
 	});
 
 	it("test internal node", () => {

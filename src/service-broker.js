@@ -8,7 +8,7 @@ let Context = require("./context");
 class ServiceBroker {
 
 	constructor(options) {
-		this.options = options;
+		this.options = options || {};
 		this.nodes = new Map();
 		this.services = new Map();
 		this.actions = new Map();
@@ -102,7 +102,8 @@ class ServiceBroker {
 			});
 		} else {
 			ctx.level += 1;
-			ctx.setParams(params);
+			if (params)
+				ctx.setParams(params);
 		}
 		
 		return action.handler(ctx);

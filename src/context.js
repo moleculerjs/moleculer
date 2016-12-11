@@ -35,20 +35,24 @@ class Context {
 	}
 
 	result(data) {
-		//
+		return Promise.resolve(data);
 	}
 
-	error(data) {
-		//
+	error(err) {
+		return Promise.reject(err);
 	}
 
 	call(actionName, params) {
-		let p;
-		if (_.isObject(params))
-			p = Object.freeze(Object.assign({}, params));
-
-		return this.broker.call(actionName, p, this);
+		return this.broker.call(actionName, params, this);
 	}	
+
+	log(str) {
+		let line = [];
+		_.times(this.level - 1, () => line.push("  "));
+		line.push(str);
+
+		console.log(line.join(""));
+	}
 }
 
 module.exports = Context;
