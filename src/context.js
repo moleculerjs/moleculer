@@ -17,12 +17,23 @@ class Context {
 		this.service = opts.service;
 		this.action = opts.action;
 		this.broker = opts.service && opts.service.$broker;
-		this.level = (opts.level || 0) + 1;
+		this.level = (opts.level || 1);
 		this.params = Object.freeze(Object.assign({}, opts.params || {}));
 
 		this.startTime = Date.now();
 		this.stopTime = null;
 		this.duration = 0;
+	}
+
+	createSubContext(service, action, params) {
+		return new Context({
+			id: this.id,
+			level: this.level + 1,
+			parent: this,
+			service: service || this.service,
+			action: action || this.action,
+			params: params
+		});
 	}
 
 	setParams(newParams) {

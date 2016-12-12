@@ -104,15 +104,13 @@ class ServiceBroker {
 		if (!action)
 			throw new Error(`Missing action handler '${actionName}'!`);
 
+		let service = action.service;
 		// Create a new context
-		let ctx = new Context({
-			id: parentCtx ? parentCtx.id : null,
-			level: parentCtx ? parentCtx.level : null,
-			parent: parentCtx,
-			service: action.service,
-			action: action,
-			params: params
-		});
+		let ctx;
+		if (parentCtx) 
+			ctx = parentCtx.createSubContext(service, action, params);
+		else
+			ctx = new Context({ service, action, params });
 		
 		return action.handler(ctx);
 	}
