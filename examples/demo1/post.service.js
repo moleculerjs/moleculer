@@ -30,6 +30,11 @@ module.exports = function(broker) {
 					return ctx.call("users.get", { id: post.author });
 				});
 			}
+		},
+
+		created() {
+			console.log("Posts service created!");
 		}
+	
 	});
 };

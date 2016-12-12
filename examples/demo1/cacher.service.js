@@ -1,5 +1,4 @@
 let _ = require("lodash");
-let fakerator = require("fakerator")();
 
 let Service = require("../../src/service");
 
@@ -34,6 +33,10 @@ module.exports = function(broker) {
 				console.log(`[Cache] SET ${key}`);
 				return Promise.resolve(ctx.params.data);
 			}
-		}
+		},
+
+		created() {
+			console.log("Cache service created!");
+		}		
 	});
 };

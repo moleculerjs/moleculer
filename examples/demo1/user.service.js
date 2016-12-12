@@ -35,6 +35,10 @@ module.exports = function(broker) {
 					return _.find(users, user => user.id == id);
 				});
 			}
+		},
+
+		created() {
+			console.log("Users service created!");
 		}
 	});
 };

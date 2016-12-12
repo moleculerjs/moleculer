@@ -81,6 +81,11 @@ class Service {
 
 		}
 
+		// Call `created` function from schema
+		if (_.isFunction(this.$schema.created)) {
+			this.$schema.created.call(this);
+		}
+
 	}
 
 	_createActionHandler(action, handler, name) {
