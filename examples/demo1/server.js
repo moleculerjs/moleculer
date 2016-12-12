@@ -32,23 +32,42 @@ console.log("---------------------------------------\n");
 // Call actions
 broker.call("users.find").then(data => {
 	console.log("users.find response length:", data.length);
-}).catch((err) => {
+})
+.catch((err) => {
 	console.error("users.find error!", err);
-});
+})
 
-broker.call("users.get", { id: 5}).then(data => {
+.then(() => {
+	return broker.call("users.get", { id: 5});
+})
+.then(data => {
 	console.log("users.get(5) response user email:", data.email);
-}).catch((err) => {
+})
+.catch((err) => {
 	console.error("users.get error!", err);
-});
+})
 
-broker.call("posts.find").then(data => {
+.then(() => {
+	return broker.call("posts.find");
+})
+.then(data => {
 	console.log("posts.find response length:", data.length);
 
-	broker.call("posts.author", { id: data[4].id }).then((author) => {
+	return broker.call("posts.author", { id: data[4].id }).then((author) => {
 		console.log("posts[4].author email:", author.email);
 	});
 
 }).catch((err) => {
 	console.error("posts.find error!", err);
+})
+
+.then(() => {
+// Get from cache
+	return broker.call("users.get", { id: 5});
+})
+.then(data => {
+	console.log("users.get(5) response user email:", data.email);
+})
+.catch((err) => {
+	console.error("users.get error!", err);
 });

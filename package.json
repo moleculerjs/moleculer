@@ -35,6 +35,7 @@
   },
   "dependencies": {
     "eventemitter2": "2.2.1",
+    "object-hash": "^1.1.5",
     "uuid": "^3.0.1"
   }
 }
