@@ -83,7 +83,7 @@ class ServiceBroker {
 		return this.actions.has(actionName);
 	}
 
-	call(actionName, params, ctx) {
+	call(actionName, params, parentCtx) {
 		let actions = this.actions.get(actionName);
 		if (!actions)
 			throw new Error(`Missing action '${actionName}'!`);
@@ -93,18 +93,15 @@ class ServiceBroker {
 		if (!action)
 			throw new Error(`Missing action handler '${actionName}'!`);
 
-		if (ctx == null) {
-			// Create a new context
-			ctx = new Context({
-				service: action.service,
-				action: action,
-				params: params
-			});
-		} else {
-			ctx.level += 1;
-			if (params)
-				ctx.setParams(params);
-		}
+		// Create a new context
+		let ctx = new Context({
+			id: parentCtx ? parentCtx.id : null,
+			level: parentCtx ? parentCtx.level : null,
+			parent: parentCtx,
+			service: action.service,
+			action: action,
+			params: params
+		});
 		
 		return action.handler(ctx);
 	}

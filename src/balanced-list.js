@@ -4,8 +4,17 @@ let _ = require("lodash");
 
 class BalancedList {
 
-	constructor(mode = 0) {
-		this.mode = mode;
+	/**
+	 * Creates an instance of BalancedList.
+	 * 
+	 * @param {any} opts
+	 * 		opts.model - type of balancing (round-robin, weighted) (defaults: round-robin)
+	 * 		opts.preferLocal - call a local service if available (defaults: true)
+	 * 
+	 * @memberOf BalancedList
+	 */
+	constructor(opts) {
+		this.opts = opts || {};
 		this.list = [];
 		this.counter = 0;
 	}

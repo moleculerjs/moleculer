@@ -14,6 +14,7 @@
   "author": "Icebob",
   "license": "MIT",
   "devDependencies": {
+    "chalk": "1.1.3",
     "coveralls": "2.11.15",
     "eslint": "3.12.0",
     "fakerator": "0.3.0",

@@ -109,6 +109,7 @@ describe("Test ServiceBroker", () => {
 		
 		let ctx = broker.call("test.action");
 		expect(ctx.id).toBeDefined();
+		expect(ctx.level).toBe(1);
 		expect(ctx.service).toBe(mockService);
 		expect(ctx.action).toBe(mockAction);
 		expect(ctx.params).toBeDefined();
@@ -134,7 +135,7 @@ describe("Test ServiceBroker", () => {
 		expect(ctx.params.a).toBe(1);
 		expect(ctx.params.b).not.toBeDefined();
 		expect(ctx.level).toBe(2);
-		
+		expect(ctx.parent).toBe(prevCtx);
 
 	});
 

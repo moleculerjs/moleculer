@@ -1,6 +1,7 @@
 let _ = require("lodash");
 let path = require("path");
 let glob = require("glob");
+let chalk = require("chalk");
 
 let bus = require("../../src/service-bus");
 let ServiceBroker = require("../../src/service-broker");
@@ -8,7 +9,7 @@ let ServiceBroker = require("../../src/service-broker");
 
 // Add debug messages to bus
 bus.onAny((event, value) => {
-	console.log("[Event]", event);
+	console.log(chalk.yellow("[Event]", event));
 });
 
 // Create broker
@@ -24,7 +25,7 @@ if (serviceFiles) {
 		require(path.resolve(servicePath))(broker);
 	});
 }
-console.log(""); 
+console.log("---------------------------------------\n"); 
 
 // Call actions
 broker.call("users.find").then(data => {

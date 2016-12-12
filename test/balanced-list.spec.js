@@ -5,10 +5,14 @@ const BalancedList = require("../src/balanced-list");
 describe("Test BalancedList", () => {
 
 	it("test constructor", () => {
-		let list = new BalancedList(1);
+		let opts = {
+			mode: 1,
+			preferLocal: false
+		};
+		let list = new BalancedList(opts);
 		expect(list).toBeDefined();
 		expect(list.list).toBeDefined();
-		expect(list.mode).toBe(1);
+		expect(list.opts).toBe(opts);
 		expect(list.counter).toBe(0);
 
 		expect(list.get()).toBeNull();
