@@ -5,7 +5,7 @@ let Context = require("./context");
 
 class Service {
 
-	constructor(broker, node, schema) {
+	constructor(broker, schema) {
 
 		if (!_.isObject(broker)) 
 			throw new Error("Must to set a ServiceBroker instance!");

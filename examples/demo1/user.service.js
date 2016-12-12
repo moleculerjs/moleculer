@@ -8,7 +8,7 @@ module.exports = function(broker) {
 
 	_.each(users, (user, i) => user.id = i);
 
-	new Service(broker, null, {
+	new Service(broker, {
 		name: "users",
 		actions: {
 			find(ctx) {

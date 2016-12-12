@@ -11,7 +11,7 @@ module.exports = function(broker) {
 		post.author = i;
 	});
 
-	new Service(broker, null, {
+	new Service(broker, {
 		name: "posts",
 		actions: {
 			find(ctx) {

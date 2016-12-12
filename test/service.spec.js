@@ -18,7 +18,7 @@ describe("Test Service", () => {
 		}).toThrowError("Must pass a service schema in constructor!");
 
 		expect(() => {
-			new Service({}, null, {});
+			new Service({}, {});
 		}).toThrowError("Service name can't be empty!");
 		
 	});
@@ -63,7 +63,7 @@ describe("Test Service", () => {
 		}).toThrowError("Must pass a service schema in constructor!");
 
 		expect(() => {
-			new Service({}, null, {});
+			new Service({}, {});
 		}).toThrowError("Service name can't be empty!");
 		
 	});
@@ -90,7 +90,7 @@ describe("Test Service", () => {
 
 		schema.events["request.rest.**"] = jest.fn();
 
-		let service = new Service(broker, broker.internalNode, schema);
+		let service = new Service(broker, schema);
 
 		expect(service).toBeDefined();
 
@@ -159,7 +159,7 @@ describe("Test Service", () => {
 
 	it("test empty service creation", () => {
 
-		let service = new Service(broker, null, MailerSchema);
+		let service = new Service(broker, MailerSchema);
 
 		expect(service).toBeDefined();
 		
@@ -192,14 +192,14 @@ describe("Test Service without action & event handlers", () => {
 	it("should throw error because no handler to action", () => {
 
 		expect(() => {
-			new Service(broker, null, schemaWithoutActionHandler);
+			new Service(broker, schemaWithoutActionHandler);
 		}).toThrowError("Missing action handler on 'find' action in 'test' service!");
 	});
 
 	it("should throw error because no handler to event", () => {
 
 		expect(() => {
-			new Service(broker, null, schemaWithoutEventHandler);
+			new Service(broker, schemaWithoutEventHandler);
 		}).toThrowError("Missing event handler on 'request' event in 'test' service!");
 	});
 
