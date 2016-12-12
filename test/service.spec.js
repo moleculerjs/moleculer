@@ -36,7 +36,7 @@ describe("Test Service", () => {
 
 		actions: {
 			find: {
-				cache: true,
+				cache: false,
 				rest: true,
 				ws: true,
 				graphql: true,
