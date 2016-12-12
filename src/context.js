@@ -12,12 +12,12 @@ class Context {
 		opts = Object.assign({}, opts || {});
 	
 		this.opts = opts;
-		this.id = opts.id || utils.generateToken256();
+		this.id = opts.id || utils.generateToken();
 		this.parent = opts.parent;
 		this.service = opts.service;
 		this.action = opts.action;
 		this.broker = opts.service && opts.service.$broker;
-		this.level = (opts.level || 1);
+		this.level = opts.parent && opts.parent.level ? opts.parent.level + 1 : 1;
 		this.params = Object.freeze(Object.assign({}, opts.params || {}));
 
 		this.startTime = Date.now();
@@ -28,7 +28,6 @@ class Context {
 	createSubContext(service, action, params) {
 		return new Context({
 			id: this.id,
-			level: this.level + 1,
 			parent: this,
 			service: service || this.service,
 			action: action || this.action,
@@ -75,7 +74,7 @@ class Context {
 	}	
 
 	log(str, params) {
-		let line = [];
+		/*let line = [];
 		_.times(this.level - 1, () => line.push("  "));
 		line.push(str);
 		if (params) {
@@ -83,7 +82,7 @@ class Context {
 			line.push(chalk.yellow(JSON.stringify(this.params)));
 		}
 
-		console.log(line.join(""));
+		console.log(line.join(""));*/
 	}
 }
 

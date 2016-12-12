@@ -13,6 +13,13 @@
 		},
 		{
 			"type": "node",
+			"request": "launch",
+			"name": "Launch benchmark",
+			"program": "${workspaceRoot}\\examples\\benchmark\\index.js",
+			"cwd": "${workspaceRoot}\\examples\\benchmark"
+		},
+		{
+			"type": "node",
 			"request": "attach",
 			"name": "Attach to Process",
 			"port": 5858

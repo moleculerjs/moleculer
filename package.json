@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "demo1": "nodemon examples/demo1/server.js",
+    "bench": "node examples/benchmark/index.js",
     "ci": "jest --watch",
     "test": "jest --coverage",
     "lint": "eslint --ext=.js src test",
@@ -33,6 +34,7 @@
     ]
   },
   "dependencies": {
-    "eventemitter2": "2.2.1"
+    "eventemitter2": "2.2.1",
+    "uuid": "^3.0.1"
   }
 }

@@ -43,7 +43,6 @@ describe("Test Context", () => {
 				$broker: broker
 			},
 			action: {},
-			level: 3,
 			params: {
 				b: 5
 			}
@@ -56,7 +55,7 @@ describe("Test Context", () => {
 		expect(context.service).toBeDefined();
 		expect(context.action).toBeDefined();
 		expect(context.broker).toBe(broker);
-		expect(context.level).toBe(4);
+		expect(context.level).toBe(1);
 		expect(context.params).toEqual({ b: 5 });
 
 		// Test call method

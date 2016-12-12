@@ -1,6 +1,7 @@
 "use strict";
 
 let _ = require("lodash");
+let Context = require("./context");
 
 class Service {
 
@@ -20,6 +21,8 @@ class Service {
 		this.$schema = schema;
 		this.$broker = broker;
 
+		this.actions = {}; // external access to actions
+
 		this.$broker.registerService(this);
 
 		// Register actions
@@ -32,7 +35,14 @@ class Service {
 					};
 				}
 
-				broker.registerAction(this, this._createActionHandler(action, name));
+				let innerAction = this._createActionHandler(action, name);
+
+				this.actions[name] = (params) => {
+					let ctx = new Context({ service: this, action: innerAction, params });
+					return action.handler(ctx);
+				};
+
+				broker.registerAction(this, innerAction);
 			});
 
 		}

@@ -2433,6 +2433,10 @@ util-deprecate@~1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/util-deprecate/-/util-deprecate-1.0.2.tgz#450d4dc9fa70de732762fbd2d4a28981419a0ccf"
 
+uuid:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.0.1.tgz#6544bba2dfda8c1cf17e629a3a305e2bb1fee6c1"
+
 uuid-token-generator:
   version "0.5.0"
   resolved "https://registry.yarnpkg.com/uuid-token-generator/-/uuid-token-generator-0.5.0.tgz#6459609dceb4da0cb0f29260c7ce293a03c1e67c"
