@@ -96,7 +96,7 @@ describe("Test ServiceBroker", () => {
 		let registerActionCB = jest.fn();
 		bus.on("register.action", registerActionCB);
 
-		broker.registerAction(mockNode, mockService, mockAction);
+		broker.registerAction(mockService, mockAction);
 		expect(broker.actions.size).toBe(1);
 		expect(registerActionCB).toHaveBeenCalledWith(mockService, mockAction);
 		expect(registerActionCB).toHaveBeenCalledTimes(1);

@@ -97,12 +97,12 @@ describe("Test Service", () => {
 		expect(handlerRegisterNode).toHaveBeenCalledTimes(0);
 
 		expect(broker.registerService).toHaveBeenCalledTimes(1);
-		expect(broker.registerService).toHaveBeenCalledWith(broker.internalNode, service);
+		expect(broker.registerService).toHaveBeenCalledWith(service);
 		expect(broker.services.size).toBe(1);
 		expect(handlerRegisterService).toHaveBeenCalledTimes(1);
 
 		expect(broker.registerAction).toHaveBeenCalledTimes(2);
-		expect(broker.registerAction).toHaveBeenCalledWith(broker.internalNode, service, schema.actions.find);
+		expect(broker.registerAction).toHaveBeenCalledWith(service, schema.actions.find);
 		expect(broker.actions.size).toBe(2);
 		expect(handlerRegisterAction).toHaveBeenCalledTimes(2);
 		expect(broker.hasAction("find")).toBeFalsy();		

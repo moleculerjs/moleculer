@@ -11,6 +11,7 @@ class Context {
 	constructor(opts) {
 		opts = Object.assign({}, opts || {});
 	
+		this.opts = opts;
 		this.id = opts.id || utils.generateToken256();
 		this.parent = opts.parent;
 		this.service = opts.service;

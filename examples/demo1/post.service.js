@@ -26,7 +26,7 @@ module.exports = function(broker) {
 
 			author(ctx) {
 				ctx.log("get post's author");
-				return ctx.call("posts.get").then((post) => {
+				return ctx.call("posts.get", ctx.params).then((post) => {
 					return ctx.call("users.get", { id: post.author });
 				});
 			}

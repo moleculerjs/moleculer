@@ -12,6 +12,7 @@ describe("Test Context", () => {
 		let context = new Context();
 
 		expect(context.id).toBeDefined();
+		expect(context.opts).toBeDefined();
 		expect(context.parent).not.toBeDefined();
 		expect(context.service).not.toBeDefined();
 		expect(context.action).not.toBeDefined();
@@ -35,7 +36,7 @@ describe("Test Context", () => {
 
 		let broker = new ServiceBroker();
 
-		let context = new Context({
+		let opts = {
 			id: 123,
 			parent: {},
 			service: {
@@ -46,9 +47,11 @@ describe("Test Context", () => {
 			params: {
 				b: 5
 			}
-		});
+		};
+		let context = new Context(opts);
 
 		expect(context.id).toBeDefined();
+		expect(context.opts).toEqual(opts);
 		expect(context.parent).toBeDefined();
 		expect(context.service).toBeDefined();
 		expect(context.action).toBeDefined();

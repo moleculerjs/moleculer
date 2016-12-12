@@ -30,11 +30,14 @@ class ServiceBroker {
 		}
 	}
 
+	/**
+	 * Register a local service
+	 * 
+	 * @param {any} service
+	 * 
+	 * @memberOf ServiceBroker
+	 */
 	registerService(service) {
-		// Add node if not exists
-		let node = service.$node;
-		this.registerNode(node);
-
 		// Append service by name
 		let item = this.services.get(service.name);
 		if (!item) {
@@ -46,7 +49,15 @@ class ServiceBroker {
 		bus.emit("register.service", service);
 	}
 
-	registerAction(node, service, action) {
+	/**
+	 * Register an action in a local server
+	 * 
+	 * @param {any} service
+	 * @param {any} action
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	registerAction(service, action) {
 		// Append action by name
 		let item = this.actions.get(action.name);
 		if (!item) {
@@ -57,7 +68,7 @@ class ServiceBroker {
 		bus.emit("register.action", service, action);
 	}
 
-	subscribeEvent(node, service, event) {
+	subscribeEvent(service, event) {
 		// Append event subscriptions
 		let item = this.subscriptions.get(event.name);
 		if (!item) {

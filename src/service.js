@@ -18,10 +18,9 @@ class Service {
 		this.name = schema.name;
 		this.$settings = schema.settings || {};
 		this.$schema = schema;
-		this.$node = node || broker.internalNode;
 		this.$broker = broker;
 
-		this.$broker.registerService(this.$node, this);
+		this.$broker.registerService(this);
 
 		// Register actions
 		if (_.isObject(schema.actions)) {
@@ -33,14 +32,7 @@ class Service {
 					};
 				}
 
-				if (!_.isFunction(action.handler)) 
-					throw new Error(`Missing action handler on '${name}' action in '${this.name}' service!`);
-
-				action.name = this.name + "." + name;
-				action.service = this;
-				action.handler = action.handler.bind(this);
-
-				broker.registerAction(this.$node, this, action);
+				broker.registerAction(this, this._createActionHandler(action, name));
 			});
 
 		}
@@ -55,19 +47,34 @@ class Service {
 					};
 				}
 
-				if (!_.isFunction(event.handler)) 
-					throw new Error(`Missing event handler on '${name}' event in '${this.name}' service!`);
-
-				event.name = name;
-				event.service = this;
-				event.handler = event.handler.bind(this);
-
-				broker.subscribeEvent(this.$node, this, event);
+				broker.subscribeEvent(this, this._createEventHandler(event, name));
 			});
 
 		}
 
 
+	}
+
+	_createActionHandler(action, name) {
+		if (!_.isFunction(action.handler)) 
+			throw new Error(`Missing action handler on '${name}' action in '${this.name}' service!`);
+
+		action.name = this.name + "." + name;
+		action.service = this;
+		action.handler = action.handler.bind(this);
+
+		return action;
+	}
+
+	_createEventHandler(event, name) {
+		if (!_.isFunction(event.handler)) 
+			throw new Error(`Missing event handler on '${name}' event in '${this.name}' service!`);
+
+		event.name = name;
+		event.service = this;
+		event.handler = event.handler.bind(this);
+
+		return event;
 	}
 
 }
