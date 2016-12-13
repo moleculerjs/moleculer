@@ -58,16 +58,13 @@ class Context {
 	}
 
 	result(data) {
-		//return Promise.resolve(data);
-		return Promise.resolve()
-			.then(() => data)
+		return Promise.resolve(data)
 			.then((res) => {
 				this.closeContext();
 				this.log(chalk.green(`[${this.duration}ms] result:`), this.params);
 
 				return res;
 			});
-		
 	}
 
 	error(err) {
