@@ -31,9 +31,9 @@ module.exports = function(broker) {
 
 		methods: {
 			findByID(id) {
-				return Promise.resolve().then(timeout(_.random(50, 150))).then(() => {
+				//return Promise.resolve().then(timeout(_.random(50, 150))).then(() => {
 					return _.find(users, user => user.id == id);
-				});
+				//});
 			}
 		},
 

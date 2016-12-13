@@ -5,6 +5,8 @@ let path = require("path");
 let glob = require("glob");
 let chalk = require("chalk");
 
+let heapdump = require("heapdump");
+
 let bus = require("../../src/service-bus");
 let ServiceBroker = require("../../src/service-broker");
 
@@ -24,6 +26,7 @@ let userService = require("./user.service")(broker);
 
 console.log("---------------------------------------\n"); 
 
+
 console.log(chalk.white.bold("Benchmark #1: Call actions via service methods\n"));
 
 let c = ITERATIONS;
@@ -37,7 +40,12 @@ while (c--) {
 
 console.log(chalk.green.bold(`Done. Time: ${Date.now() - startTime}ms\n\n`));
 
+heapdump.writeSnapshot(function(err, filename) {  
+  console.log('dump written to', filename);
+});
 
+
+/*
 console.log(chalk.white.bold("Benchmark #1: Call actions via local broker\n"));
 
 c = ITERATIONS;
@@ -50,3 +58,4 @@ while (c--) {
 }
 
 console.log(chalk.green.bold(`Done. Time: ${Date.now() - startTime}ms\n\n`));
+*/
