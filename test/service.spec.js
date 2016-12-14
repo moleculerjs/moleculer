@@ -5,10 +5,30 @@ let bus = require("../src/service-bus");
 let Service = require("../src/service");
 let ServiceBroker = require("../src/service-broker");
 
-describe("Test Service", () => {
+let PostSchema = {
+	name: "posts",
+	settings: {},
 
-	it("test service creation exceptions", () => {
+	actions: {
+		find: {
+			cache: false,
+			rest: true,
+			ws: true,
+			graphql: true,
+			handler() {}
+		},
 
+		get() {
+
+		}
+	},
+
+	events: {}
+
+};
+
+describe("Test Service creation exceptions", () => {
+	it("should throw exceptions", () => {
 		expect(() => {
 			new Service();
 		}).toThrowError("Must to set a ServiceBroker instance!");
@@ -20,77 +40,37 @@ describe("Test Service", () => {
 		expect(() => {
 			new Service({}, {});
 		}).toThrowError("Service name can't be empty!");
-		
 	});
-
 });
 
-describe("Test Service", () => {
-	
+describe("Local service registration", () => {
+
 	let broker = new ServiceBroker();
+	let service;
 
-	let PostSchema = {
-		name: "posts",
-		settings: {
-		},
+	let schema = _.cloneDeep(PostSchema);
 
-		actions: {
-			find: {
-				cache: false,
-				rest: true,
-				ws: true,
-				graphql: true,
-				handler() {}
-			},
+	let findHandlerMock = schema.actions.find.handler = jest.fn();
+	let getHandlerMock = schema.actions.get = jest.fn();
 
-			get() {
+	schema.events["request.rest.**"] = jest.fn();
 
-			}
-		},
-
-		events: {}
-
-	};
-
-	it("test service create exceptions", () => {
-
-		expect(() => {
-			new Service();
-		}).toThrowError("Must to set a ServiceBroker instance!");
-
-		expect(() => {
-			new Service({});
-		}).toThrowError("Must pass a service schema in constructor!");
-
-		expect(() => {
-			new Service({}, {});
-		}).toThrowError("Service name can't be empty!");
-		
-	});
-
-	it("test service registration", () => {
+	it("test posts service registration", () => {
 		// Spy events
 		let handlerRegisterNode = jest.fn();
 		bus.on("register.node", handlerRegisterNode);
 
 		let handlerRegisterService = jest.fn();
-		bus.on("register.service", handlerRegisterService);
+		bus.on("register.service.posts", handlerRegisterService);
 
 		let handlerRegisterAction = jest.fn();
-		bus.on("register.action", handlerRegisterAction);
+		bus.on("register.action.posts.*", handlerRegisterAction);
 
 		broker.registerService = jest.fn(broker.registerService);
 		broker.registerAction = jest.fn(broker.registerAction);
 		broker.subscribeEvent = jest.fn(broker.subscribeEvent);
 
-		let schema = _.cloneDeep(PostSchema);
-
-		let findHandlerMock = schema.actions.find.handler = jest.fn();
-		let getHandlerMock = schema.actions.get = jest.fn();
-
-		schema.events["request.rest.**"] = jest.fn();
-
-		let service = new Service(broker, schema);
+		service = new Service(broker, schema);
 
 		expect(service).toBeDefined();
 
@@ -105,21 +85,25 @@ describe("Test Service", () => {
 		expect(broker.registerAction).toHaveBeenCalledWith(service, schema.actions.find);
 		expect(broker.actions.size).toBe(2);
 		expect(handlerRegisterAction).toHaveBeenCalledTimes(2);
-		expect(broker.hasAction("find")).toBeFalsy();		
-		expect(broker.hasAction("get")).toBeFalsy();		
-		expect(broker.hasAction("posts.find")).toBeTruthy();		
+	});
+
+	it("check actions can be call via broker", () => {
+		
+		expect(broker.hasAction("find")).toBeFalsy();
+		expect(broker.hasAction("get")).toBeFalsy();
+		expect(broker.hasAction("posts.find")).toBeTruthy();
 		expect(broker.hasAction("posts.get")).toBeTruthy();
 
 		broker.call("posts.find");
-		expect(findHandlerMock).toHaveBeenCalledTimes(1);		
+		expect(findHandlerMock).toHaveBeenCalledTimes(1);
 
 		broker.call("posts.get");
 		expect(getHandlerMock).toHaveBeenCalledTimes(1);
 
 		let action = broker.actions.get("posts.get").get();
-		expect(action.handler).toBeDefined();				
-		expect(action.name).toBe("posts.get");				
-		expect(action.service).toBe(service);				
+		expect(action.handler).toBeDefined();
+		expect(action.name).toBe("posts.get");
+		expect(action.service).toBe(service);
 
 		expect(broker.subscribeEvent).toHaveBeenCalledTimes(1);
 		//expect(broker.subscribeEvent).toHaveBeenCalledWith(broker.internalNode, service, schema.events["request.rest.**"]);
@@ -127,9 +111,9 @@ describe("Test Service", () => {
 		expect(bus.listeners("request.rest.**")).toHaveLength(1);
 
 		let event = broker.subscriptions.get("request.rest.**").get();
-		expect(event.handler).toBeDefined();				
-		expect(event.name).toBe("request.rest.**");				
-		expect(event.service).toBe(service);				
+		expect(event.handler).toBeDefined();
+		expect(event.name).toBe("request.rest.**");
+		expect(event.service).toBe(service);
 
 		let handler = schema.events["request.rest.**"];
 
@@ -137,8 +121,11 @@ describe("Test Service", () => {
 		expect(handler).toHaveBeenCalledTimes(1);
 		expect(handler).toHaveBeenCalledWith("Hello");
 
-		let o = { id: 5, name: 10};
-		bus.emit("request.rest.posts",  o);
+		let o = {
+			id: 5,
+			name: 10
+		};
+		bus.emit("request.rest.posts", o);
 		expect(handler).toHaveBeenCalledTimes(2);
 		expect(handler).toHaveBeenCalledWith(o);
 
@@ -147,57 +134,64 @@ describe("Test Service", () => {
 		expect(handler).toHaveBeenCalledWith("Hello");
 	});
 
+	it("check actions can be call directly", () => {
+		// TODO
+	});
+
+	it("check methods can be call", () => {
+		// TODO
+	});
+
+	it("check created handler called after creation", () => {
+		// TODO
+	});
+
+
 });
 
-describe("Test Service", () => {
-	
+describe("Test empty service without actions & methods", () => {
+
 	let broker = new ServiceBroker();
 
 	let MailerSchema = {
 		name: "mailer",
 	};
 
-	it("test empty service creation", () => {
+	it("should create the service", () => {
 
 		let service = new Service(broker, MailerSchema);
 
 		expect(service).toBeDefined();
-		
+
 	});
 
 });
 
-describe("Test Service without action & event handlers", () => {
+describe("Test Service without handlers", () => {
 
 	let broker = new ServiceBroker();
 
 	let schemaWithoutActionHandler = {
 		name: "test",
 		actions: {
-			find: {
-
-			}
+			find: {}
 		}
 	};
 
 	let schemaWithoutEventHandler = {
 		name: "test",
 		events: {
-			"request": {
-
-			}
+			"request": {}
 		}
 	};
 
-	it("should throw error because no handler to action", () => {
-
+	it("should throw error because no handler of action", () => {
 		expect(() => {
 			new Service(broker, schemaWithoutActionHandler);
 		}).toThrowError("Missing action handler on 'find' action in 'test' service!");
 	});
 
-	it("should throw error because no handler to event", () => {
-
+	it("should throw error because no handler of event", () => {
 		expect(() => {
 			new Service(broker, schemaWithoutEventHandler);
 		}).toThrowError("Missing event handler on 'request' event in 'test' service!");
