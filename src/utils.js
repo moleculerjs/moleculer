@@ -30,7 +30,7 @@ let utils = {
 			let cacheKey = utils.getCacheKey(action.name, ctx.params);
 
 			return broker.call("cache.get", { key: cacheKey })
-			.catch(() => null) // silent error
+			.catch(() => null) // silent error, skip
 			.then((cachedJSON) => {
 				if (cachedJSON != null) {
 					// Found in the cache!
@@ -43,6 +43,10 @@ let utils = {
 				});					
 			});
 		};
+	},
+
+	isPromise(p) {
+		return (p && typeof p.then === "function" && typeof p.catch === "function");
 	}
 };
 

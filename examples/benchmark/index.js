@@ -1,25 +1,13 @@
 "use strict";
 
 let _ = require("lodash");
-let path = require("path");
-let glob = require("glob");
 let chalk = require("chalk");
 let Benchmark = require("benchmark");
 
 //let heapdump = require("heapdump");
 
-let bus = require("../../src/service-bus");
 let ServiceBroker = require("../../src/service-broker");
 
-/*
-// Add debug messages to bus
-bus.onAny((event, value) => {
-	console.log(chalk.yellow("[Event]", event));
-});
-*/
-
-
-const ITERATIONS = 300 * 1000;
 
 // Create broker
 let broker = new ServiceBroker();

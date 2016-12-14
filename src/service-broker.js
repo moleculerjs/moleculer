@@ -4,6 +4,7 @@ let bus = require("./service-bus");
 let ServiceNode = require("./service-node");
 let BalancedList = require("./balanced-list");
 let Context = require("./context");
+let errors = require("./errors");
 
 class ServiceBroker {
 
@@ -46,7 +47,7 @@ class ServiceBroker {
 		}
 		item.add(service);
 
-		bus.emit("register.service", service);
+		bus.emit(`register.service.${service.name}`, service);
 	}
 
 	/**
@@ -65,7 +66,7 @@ class ServiceBroker {
 			this.actions.set(action.name, item);
 		}
 		item.add(action);
-		bus.emit("register.action", service, action);
+		bus.emit(`register.action.${action.name}`, service, action);
 	}
 
 	subscribeEvent(service, event) {
@@ -97,7 +98,7 @@ class ServiceBroker {
 	call(actionName, params, parentCtx) {
 		let actions = this.actions.get(actionName);
 		if (!actions)
-			throw new Error(`Missing action '${actionName}'!`);
+			throw new errors.ServiceNotFoundError(`Missing action '${actionName}'!`);
 		
 		let action = actions.get();
 		/* istanbul ignore next */

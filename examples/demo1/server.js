@@ -24,6 +24,7 @@ let serviceFiles = glob.sync(path.join(__dirname, "*.service.js"));
 if (serviceFiles) {
 	serviceFiles.forEach(function(servicePath) {
 		console.log("  Load service", path.basename(servicePath));
+		if (path.basename(servicePath) == "post.service.js") return;
 		require(path.resolve(servicePath))(broker);
 	});
 }
@@ -33,18 +34,12 @@ console.log("---------------------------------------\n");
 broker.call("users.find").then(data => {
 	console.log("users.find response length:", data.length);
 })
-.catch((err) => {
-	console.error("users.find error!", err);
-})
 
 .then(() => {
 	return broker.call("users.get", { id: 5});
 })
 .then(data => {
 	console.log("users.get(5) response user email:", data.email);
-})
-.catch((err) => {
-	console.error("users.get error!", err);
 })
 
 .then(() => {
@@ -56,9 +51,6 @@ broker.call("users.find").then(data => {
 	return broker.call("posts.author", { id: data[4].id }).then((author) => {
 		console.log("posts[4].author email:", author.email);
 	});
-
-}).catch((err) => {
-	console.error("posts.find error!", err);
 })
 
 .then(() => {
@@ -69,5 +61,5 @@ broker.call("users.find").then(data => {
 	console.log("users.get(5) response user email:", data.email);
 })
 .catch((err) => {
-	console.error("users.get error!", err);
+	console.error("Error!", err);
 });
