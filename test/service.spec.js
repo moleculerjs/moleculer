@@ -2,6 +2,7 @@
 
 let _ = require("lodash");
 let bus = require("../src/service-bus");
+let utils = require("../src/utils");
 let Service = require("../src/service");
 let ServiceBroker = require("../src/service-broker");
 
@@ -23,7 +24,17 @@ let PostSchema = {
 		}
 	},
 
-	events: {}
+	methods: {
+		doSomething() {
+
+		}
+	},
+
+	events: {},
+
+	created() {
+
+	}
 
 };
 
@@ -50,8 +61,10 @@ describe("Local service registration", () => {
 
 	let schema = _.cloneDeep(PostSchema);
 
-	let findHandlerMock = schema.actions.find.handler = jest.fn();
-	let getHandlerMock = schema.actions.get = jest.fn();
+	let findHandlerMock = schema.actions.find.handler = jest.fn(ctx => ctx);
+	let getHandlerMock = schema.actions.get = jest.fn(ctx => ctx);
+	let methodHandlerMock = schema.methods.doSomething = jest.fn(params => params);
+	let createdHandlerMock = schema.created = jest.fn();
 
 	schema.events["request.rest.**"] = jest.fn();
 
@@ -73,6 +86,7 @@ describe("Local service registration", () => {
 		service = new Service(broker, schema);
 
 		expect(service).toBeDefined();
+		expect(createdHandlerMock).toHaveBeenCalledTimes(1);
 
 		expect(handlerRegisterNode).toHaveBeenCalledTimes(0);
 
@@ -131,21 +145,22 @@ describe("Local service registration", () => {
 
 		bus.emit("request.rest.posts.find");
 		expect(handler).toHaveBeenCalledTimes(3);
-		expect(handler).toHaveBeenCalledWith("Hello");
 	});
 
 	it("check actions can be call directly", () => {
-		// TODO
+		findHandlerMock.mockClear();
+		let p = { a: 3 };
+		let ctx = service.actions.find(p);
+		expect(findHandlerMock).toHaveBeenCalledTimes(1);
+		expect(ctx.service).toBe(service);
+		expect(ctx.action).toBeDefined();
+		expect(ctx.params).toEqual(p);
 	});
 
 	it("check methods can be call", () => {
-		// TODO
+		service.doSomething();
+		expect(methodHandlerMock).toHaveBeenCalledTimes(1);
 	});
-
-	it("check created handler called after creation", () => {
-		// TODO
-	});
-
 
 });
 
@@ -197,4 +212,110 @@ describe("Test Service without handlers", () => {
 		}).toThrowError("Missing event handler on 'request' event in 'test' service!");
 	});
 
+});
+
+
+describe("Test cached actions", () => {
+
+	let broker = new ServiceBroker();
+
+	utils.cachingWrapper = jest.fn((broker, action, handler) => [broker, action, handler]);
+
+	it("don't wrap, if schema cache is UNDEFINED and action cache is UNDEFINED", () => {
+		let schema = {
+			name: "cache-test",
+			actions: {
+				find: {
+					handler() {}
+				}
+			}
+		};
+		
+		utils.cachingWrapper.mockClear();
+		new Service(broker, schema);
+		expect(utils.cachingWrapper).toHaveBeenCalledTimes(0);
+	});
+
+	it("wrap, if schema cache is true and action cache UNDEFINED", () => {
+		let schema = {
+			name: "cache-test",
+			settings: { cache: true },
+			actions: {
+				find: {
+					handler() {}
+				}
+			}
+		};
+		
+		utils.cachingWrapper.mockClear();
+		new Service(broker, schema);
+		expect(utils.cachingWrapper).toHaveBeenCalledTimes(1);
+	});
+
+	it("don't wrap, if schema cache is TRUE and action cache is FALSE", () => {
+		let schema = {
+			name: "cache-test",
+			settings: { cache: true },
+			actions: {
+				find: {
+					cache: false,
+					handler() {}
+				}
+			}
+		};
+		
+		utils.cachingWrapper.mockClear();
+		new Service(broker, schema);
+		expect(utils.cachingWrapper).toHaveBeenCalledTimes(0);
+	});
+
+	it("wrap, if schema cache is UNDEFINED and action cache is TRUE", () => {
+		let schema = {
+			name: "cache-test",
+			actions: {
+				find: {
+					cache: true,
+					handler() {}
+				}
+			}
+		};
+		
+		utils.cachingWrapper.mockClear();
+		new Service(broker, schema);
+		expect(utils.cachingWrapper).toHaveBeenCalledTimes(1);
+	});
+
+	it("wrap, if schema cache is FALSE and action cache is TRUE", () => {
+		let schema = {
+			name: "cache-test",
+			settings: { cache: false },
+			actions: {
+				find: {
+					cache: true,
+					handler() {}
+				}
+			}
+		};
+		
+		utils.cachingWrapper.mockClear();
+		new Service(broker, schema);
+		expect(utils.cachingWrapper).toHaveBeenCalledTimes(1);
+	});
+
+	it("wrap, if schema cache is TRUE and action cache is TRUE", () => {
+		let schema = {
+			name: "cache-test",
+			settings: { cache: true },
+			actions: {
+				find: {
+					cache: true,
+					handler() {}
+				}
+			}
+		};
+		
+		utils.cachingWrapper.mockClear();
+		new Service(broker, schema);
+		expect(utils.cachingWrapper).toHaveBeenCalledTimes(1);
+	});
 });

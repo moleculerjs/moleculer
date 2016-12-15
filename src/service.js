@@ -68,6 +68,7 @@ class Service {
 		if (_.isObject(schema.methods)) {
 
 			_.forIn(schema.methods, (method, name) => {
+				/* istanbul ignore next */
 				if (["name", "version", "actions"].indexOf(name) != -1) {
 					console.warn(`Invalid method name '${name}' in '${this.name}' service! Skipping...`);
 					return;
@@ -97,7 +98,7 @@ class Service {
 		action.handler = handler.bind(this);
 
 		// Cache
-		if (action.cache === true || (action.cahe === undefined && this.$settings.cache === true)) {
+		if (action.cache === true || (action.cache === undefined && this.$settings.cache === true)) {
 			action.handler = utils.cachingWrapper(this.$broker, action, action.handler);
 		}
 
