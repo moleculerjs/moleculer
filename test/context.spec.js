@@ -23,12 +23,14 @@ describe("Test Context", () => {
 
 		expect(context.startTime).toBeDefined();
 		expect(context.stopTime).toBeNull();
+		expect(context.duration).toBe(0);
 
 		let params = {
 			a: 1
 		};
 
 		context.setParams(params);
+		expect(context.params).not.toBe(params); // Cloned
 		expect(context.params).toEqual(params);		
 	});
 
@@ -111,6 +113,88 @@ describe("Test Child Context", () => {
 			
 		});
 
+	});
+
+});
+
+
+describe("Test createSubContext", () => {
+
+	let broker = new ServiceBroker();
+
+	let opts = {
+		id: 123,
+		parent: {},
+		service: {
+			$broker: broker
+		},
+		action: {},
+		params: {
+			b: 5
+		}
+	};
+	let ctx = new Context(opts);
+
+	it("test with empty params", () => {
+		let subCtx = ctx.createSubContext();
+		expect(subCtx).not.toBe(ctx);
+		expect(subCtx.id).toBe(ctx.id);
+		expect(subCtx.parent).toBe(ctx);
+		expect(subCtx.service).toBe(ctx.service);
+		expect(subCtx.action).toBe(ctx.action);
+		expect(subCtx.params).toBeNull;
+	});
+
+	it("test with params", () => {
+		let service2 = {
+			$broker: broker
+		};
+		let action2 = {};
+		let params2 = { a: 11 };
+
+		let subCtx = ctx.createSubContext(service2, action2, params2);
+		expect(subCtx).not.toBe(ctx);
+		expect(subCtx.id).toBe(ctx.id);
+		expect(subCtx.parent).toBe(ctx);
+		expect(subCtx.service).toBe(service2);
+		expect(subCtx.action).toBe(action2);
+		expect(subCtx.params).toEqual(params2);
+	});
+
+});
+
+describe("Test result method", () => {
+	let ctx = new Context();
+	ctx.log =  jest.fn();
+	ctx.closeContext =  jest.fn();
+
+	it("should call closeContext method and call then", () => {
+		let response = { id: 5 };
+		let p = ctx.result(response);
+		expect(p).toBeDefined();
+		expect(p.then).toBeDefined();
+		return p.then((data) => {
+			expect(ctx.closeContext).toHaveBeenCalledTimes(1);
+			expect(data).toBe(response);
+		});
+	});
+
+});
+
+describe("Test error method", () => {
+	let ctx = new Context();
+	ctx.log =  jest.fn();
+	ctx.closeContext = jest.fn();
+
+	it("should call closeContext method and call the catch", () => {
+		let error = new Error("Wrong things!");
+		let p = ctx.error(error);
+		expect(p).toBeDefined();
+		expect(p.catch).toBeDefined();
+		return p.catch((err) => {
+			expect(ctx.closeContext).toHaveBeenCalledTimes(1);
+			expect(err).toBe(error);
+		});
 	});
 
 });

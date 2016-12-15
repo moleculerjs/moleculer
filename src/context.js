@@ -69,7 +69,7 @@ class Context {
 
 	error(err) {
 		this.closeContext();
-		console.log(chalk.red.bold(`[${this.duration}ms] error:`), err);
+		this.log(chalk.red.bold(`[${this.duration}ms] error:`), err);
 		return Promise.reject(err);
 	}
 
