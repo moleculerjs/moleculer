@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "demo1": "nodemon examples/demo1/server.js",
-    "bench": "node examples/benchmark/index.js",
+    "bench": "node benchmark/index.js",
     "ci": "jest --watch",
     "test": "jest --coverage",
     "lint": "eslint --ext=.js src test",
@@ -46,6 +46,8 @@
   "dependencies": {
     "chalk": "1.1.3",
     "eventemitter2": "2.2.1",
+    "fast-json-parse": "1.0.2",
+    "fast-safe-stringify": "1.1.3",
     "lodash": "4.17.2",
     "object-hash": "1.1.5",
     "uuid": "3.0.1"

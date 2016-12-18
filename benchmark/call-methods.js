@@ -6,7 +6,7 @@ let Benchmark = require("benchmark");
 
 //let heapdump = require("heapdump");
 
-let ServiceBroker = require("../../src/service-broker");
+let ServiceBroker = require("../src/service-broker");
 
 
 // Create broker
