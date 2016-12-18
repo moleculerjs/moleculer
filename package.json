@@ -51,5 +51,6 @@
     "lodash": "4.17.2",
     "object-hash": "1.1.5",
     "uuid": "3.0.1"
-  }
+  },
+  "typings": "./index.d.ts"
 }
