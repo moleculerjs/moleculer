@@ -26,7 +26,7 @@ class ServiceBroker {
 		this.registerNode(this.internalNode);
 
 		if (this.transporter) {
-			this.transporter.init(this);
+			this.transporter.init(this, this.internalNode.id);
 			this.transporter.connect();
 		}
 	}

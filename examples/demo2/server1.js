@@ -18,4 +18,17 @@ let broker = new ServiceBroker({
 	transporter: new NatsTransporter()
 });
 
-broker.emit("test", { a: 1, b: "String"});
+require("../demo1/post.service")(broker);
+
+let c = 1;
+setInterval(() => {
+	broker.emit("test.data" + c++, { a: 1, b: "String", c});	
+}, 200);
+
+
+let reqID = 123456;
+setInterval(() => {
+	broker.transporter.request(broker.internalNode, reqID++, "posts.find").then(response => {
+		console.log("Response: ", response.length);
+	});
+}, 400);
