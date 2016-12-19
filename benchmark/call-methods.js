@@ -12,11 +12,16 @@ let ServiceBroker = require("../src/service-broker");
 // Create broker
 let broker = new ServiceBroker();
 
+// Load broker actions map with fake keys
+for(let i = 0; i < 500; i++) 
+	broker.actions.set("users." + (Math.random()*1e32).toString(36), {});
+
+// Load user service
 let userService = require("./user.service")(broker);
 
 console.log("---------------------------------------\n");
 
-function bench1ViaService() {
+function benchViaService() {
 	return userService.actions.find()
 		/*.then(() => {
 			return userService.actions.get({
@@ -41,7 +46,7 @@ function bench1ViaService() {
 });*/
 
 
-function bench1ViaBroker() {
+function benchViaBroker() {
 	return broker.call("users.find")
 		/*.then(() => {
 			return broker.call("users.get", {
@@ -67,13 +72,13 @@ suite
 	.add("Call via service methods", {
 		defer: true,
 		fn(deferred) {
-			return bench1ViaService().then(() => deferred.resolve());
+			return benchViaService().then(() => deferred.resolve());
 		}
 	})
 	.add("Call via local broker", {
 		defer: true,
 		fn(deferred) {
-			return bench1ViaBroker().then(() => deferred.resolve());
+			return benchViaBroker().then(() => deferred.resolve());
 		}
 	})
 	.on("cycle", function (event) {

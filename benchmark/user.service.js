@@ -1,7 +1,7 @@
 let _ = require("lodash");
 let fakerator = require("fakerator")();
 
-let Service = require("../../src/service");
+let Service = require("../src/service");
 
 module.exports = function(broker) {
 	let users = fakerator.times(fakerator.entity.user, 10);
