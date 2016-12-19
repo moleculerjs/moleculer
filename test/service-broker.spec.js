@@ -126,4 +126,21 @@ describe("Test ServiceBroker", () => {
 
 	});
 
+	it("test emit", () => {
+		// Test emit method
+		bus.emit = jest.fn();
+
+		let data = { id: 5 };
+		broker.emit("request.rest", data);
+
+		expect(bus.emit).toHaveBeenCalledTimes(1);
+		expect(bus.emit).toHaveBeenCalledWith("request.rest", data);
+
+		bus.emit.mockClear();
+		broker.emit("request.rest", "string-data");
+		expect(bus.emit).toHaveBeenCalledTimes(1);
+		expect(bus.emit).toHaveBeenCalledWith("request.rest", "string-data");
+		
+	});
+
 });

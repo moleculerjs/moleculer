@@ -3,7 +3,6 @@
 let _ = require("lodash");
 let chalk = require("chalk");
 
-let bus = require("./service-bus");
 let utils = require("./utils");
 
 class Context {
@@ -40,13 +39,7 @@ class Context {
 	}
 
 	emit(eventName, data) {
-		let d;
-		if (_.isObject(data))
-			d = Object.freeze(Object.assign({}, data));
-		else
-			d = data;
-
-		return bus.emit(eventName, d);
+		return this.broker.emit(eventName, data);
 	}
 
 	closeContext() {

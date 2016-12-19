@@ -70,18 +70,18 @@ describe("Test Context", () => {
 		expect(broker.call).toHaveBeenCalledWith("posts.find", p, context);
 
 		// Test emit method
-		bus.emit = jest.fn();
+		broker.emit = jest.fn();
 
 		let data = { id: 5 };
 		context.emit("request.rest", data);
 
-		expect(bus.emit).toHaveBeenCalledTimes(1);
-		expect(bus.emit).toHaveBeenCalledWith("request.rest", data);
+		expect(broker.emit).toHaveBeenCalledTimes(1);
+		expect(broker.emit).toHaveBeenCalledWith("request.rest", data);
 
-		bus.emit.mockClear();
+		broker.emit.mockClear();
 		context.emit("request.rest", "string-data");
-		expect(bus.emit).toHaveBeenCalledTimes(1);
-		expect(bus.emit).toHaveBeenCalledWith("request.rest", "string-data");
+		expect(broker.emit).toHaveBeenCalledTimes(1);
+		expect(broker.emit).toHaveBeenCalledWith("request.rest", "string-data");
 		
 	});
 });

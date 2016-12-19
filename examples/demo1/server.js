@@ -24,7 +24,7 @@ let serviceFiles = glob.sync(path.join(__dirname, "*.service.js"));
 if (serviceFiles) {
 	serviceFiles.forEach(function(servicePath) {
 		console.log("  Load service", path.basename(servicePath));
-		if (path.basename(servicePath) == "post.service.js") return;
+		//if (path.basename(servicePath) == "post.service.js") return;
 		require(path.resolve(servicePath))(broker);
 	});
 }

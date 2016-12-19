@@ -5,6 +5,7 @@ let ServiceNode = require("./service-node");
 let BalancedList = require("./balanced-list");
 let Context = require("./context");
 let errors = require("./errors");
+let _ = require("lodash");
 
 class ServiceBroker {
 
@@ -116,6 +117,15 @@ class ServiceBroker {
 		return action.handler(ctx);
 	}
 
+	emit(eventName, data) {
+		let d;
+		if (_.isObject(data))
+			d = Object.freeze(Object.assign({}, data));
+		else
+			d = data;
+
+		return bus.emit(eventName, d);
+	}
 }
 
 module.exports = ServiceBroker;
