@@ -15,6 +15,7 @@ class ServiceBroker {
 		this.services = new Map();
 		this.actions = new Map();
 		this.subscriptions = new Map();
+		this.transporter = options.transporter;
 
 		// Add self node
 		this.internalNode = new ServiceNode({
@@ -23,6 +24,11 @@ class ServiceBroker {
 			type: "internal"
 		});
 		this.registerNode(this.internalNode);
+
+		if (this.transporter) {
+			this.transporter.init(this);
+			this.transporter.connect();
+		}
 	}
 
 	registerNode(node) {
@@ -118,6 +124,12 @@ class ServiceBroker {
 	}
 
 	emit(eventName, data) {
+		if (this.transporter)
+			this.transporter.emit(eventName, data);
+		return this.emitLocal(eventName, data);
+	}
+
+	emitLocal(eventName, data) {
 		let d;
 		if (_.isObject(data))
 			d = Object.freeze(Object.assign({}, data));

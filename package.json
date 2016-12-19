@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "demo1": "nodemon examples/demo1/server.js",
+    "demo2": "nodemon examples/demo2/server1.js",
     "bench": "node benchmark/index.js",
     "ci": "jest --watch",
     "test": "jest --coverage",
@@ -49,6 +50,7 @@
     "fast-json-parse": "1.0.2",
     "fast-safe-stringify": "1.1.3",
     "lodash": "4.17.2",
+    "nats": "0.6.8",
     "object-hash": "1.1.5",
     "uuid": "3.0.1"
   },

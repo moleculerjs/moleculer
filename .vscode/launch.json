@@ -14,6 +14,13 @@
 		{
 			"type": "node",
 			"request": "launch",
+			"name": "Launch demo2",
+			"program": "${workspaceRoot}\\examples\\demo2\\server1.js",
+			"cwd": "${workspaceRoot}\\examples\\demo2"
+		},
+		{
+			"type": "node",
+			"request": "launch",
 			"name": "Launch benchmark",
 			"program": "${workspaceRoot}\\examples\\benchmark\\index.js",
 			"cwd": "${workspaceRoot}\\examples\\benchmark"
