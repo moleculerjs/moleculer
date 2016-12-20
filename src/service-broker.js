@@ -15,7 +15,7 @@ class ServiceBroker {
 		this.services = new Map();
 		this.actions = new Map();
 		this.subscriptions = new Map();
-		this.transporter = options.transporter;
+		this.transporter = this.options.transporter;
 
 		// Add self node
 		this.internalNode = new ServiceNode({
