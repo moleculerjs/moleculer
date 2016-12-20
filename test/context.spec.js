@@ -42,7 +42,7 @@ describe("Test Context", () => {
 			id: 123,
 			parent: {},
 			service: {
-				$broker: broker
+				broker: broker
 			},
 			action: {},
 			params: {
@@ -126,7 +126,7 @@ describe("Test createSubContext", () => {
 		id: 123,
 		parent: {},
 		service: {
-			$broker: broker
+			broker: broker
 		},
 		action: {},
 		params: {
@@ -147,7 +147,7 @@ describe("Test createSubContext", () => {
 
 	it("test with params", () => {
 		let service2 = {
-			$broker: broker
+			broker: broker
 		};
 		let action2 = {};
 		let params2 = { a: 11 };

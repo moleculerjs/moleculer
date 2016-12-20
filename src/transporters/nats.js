@@ -13,16 +13,16 @@ class NatsTransporter extends Transporter {
 		this.client = null;
 	}
 
-	init(broker, nodeID) {
+	init(broker) {
 		super.init(broker);
-		this.nodeID = nodeID;
+		this.nodeID = broker.nodeID;
 	}
 
 	connect() {
 		this.client = Nats.connect(this.opts);
 
 		this.client.on("connect", () => {
-			console.log("NATS connected!");
+			console.log(`[${this.nodeID}] NATS connected!`);
 
 			// Subscribe to broadcast events
 			let eventSubject = [PREFIX, "EVENT", ">"].join(".");
@@ -42,6 +42,14 @@ class NatsTransporter extends Transporter {
 					let payload = JSON.stringify(res);
 					this.client.publish(reply, payload);
 				});
+			});
+
+			this.publishActionList();
+
+			// Subscribe to remote actionList
+			let ralSubject = [PREFIX, "ACTIONS"].join(".");
+			this.client.subscribe(ralSubject, (msg) => {
+				this.processRemoteActionList(JSON.parse(msg));
 			});
 		});
 
@@ -88,6 +96,22 @@ class NatsTransporter extends Transporter {
 		});
 	}
 
+	publishActionList() {
+		let actionList = this.broker.getLocalActionList();
+		// Send actionList
+		let ackSubject = [PREFIX, "ACTIONS"].join(".");
+		let payload = JSON.stringify({
+			nodeID: this.broker.nodeID,
+			actions: actionList
+		});
+		//console.log(payload);
+		this.client.publish(ackSubject, payload);		
+	}
+
+	processRemoteActionList(actionList) {
+		if (actionList.nodeID != this.nodeID)
+			console.log(`[${this.nodeID}] Incoming action list!`, actionList);
+	}
 }
 
 module.exports = NatsTransporter;

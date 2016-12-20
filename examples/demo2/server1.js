@@ -15,17 +15,21 @@ bus.onAny((event, value) => {
 
 // Create broker
 let broker = new ServiceBroker({
+	nodeID: "server-1",
 	transporter: new NatsTransporter()
 });
 
-require("../demo1/post.service")(broker);
-/*
-let c = 1;
-setInterval(() => {
-	broker.emit("test.data" + c++, { a: 1, b: "String", c});	
-}, 200);
-*/
+require("../post.service")(broker);
 
+broker.start();
+
+setTimeout(() => {
+	broker.call("posts.find").then((posts) => {
+		console.log("[server-1] Posts: ", posts.length);
+	});	
+}, 1000);
+
+/*
 let reqID = 123456;
 setTimeout(() => {
 	broker.transporter.request(broker.internalNode, reqID++, "posts.find").then(response => {
@@ -38,3 +42,4 @@ setInterval(() => {
 		console.log("Response: ", response ? response.title : "<Not found>");
 	});
 }, 1000);
+*/

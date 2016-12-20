@@ -15,7 +15,7 @@ class Context {
 		this.parent = opts.parent;
 		this.service = opts.service;
 		this.action = opts.action;
-		this.broker = opts.service && opts.service.$broker;
+		this.broker = opts.service && opts.service.broker;
 		this.level = opts.parent && opts.parent.level ? opts.parent.level + 1 : 1;
 		this.params = Object.freeze(Object.assign({}, opts.params || {}));
 

@@ -19,10 +19,11 @@ class BalancedList {
 		this.counter = 0;
 	}
 
-	add(data, weight = 0) {
+	add(data, weight = 0, local = true) {
 		this.list.push({
 			data,
-			weight
+			weight,
+			local
 		});
 	}
 
@@ -37,6 +38,10 @@ class BalancedList {
 		let item = this.list[this.counter++];
 		if (item)
 			return item.data;
+	}
+
+	hasLocal() {
+		return _.find(this.list, (el) => el.local === true) != null;
 	}
 
 	remove(data) {

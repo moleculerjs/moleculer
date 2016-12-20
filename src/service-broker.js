@@ -21,6 +21,11 @@ class ServiceBroker {
 
 		if (this.transporter) {
 			this.transporter.init(this);
+		}
+	}
+
+	start() {
+		if (this.transporter) {
 			this.transporter.connect();
 		}
 	}
@@ -125,6 +130,21 @@ class ServiceBroker {
 
 		return bus.emit(eventName, d);
 	}
+
+	getLocalActionList() {
+		let res = [];
+		for (let entry of this.actions.entries()) {
+			if (entry[1].hasLocal())
+				res.push(entry[0]);
+		}
+		return res;
+	}
+	/*
+	publishActionList() {
+		if (this.transporter) {
+			this.transporter.publishActionList();
+		}
+	}*/
 }
 
 module.exports = ServiceBroker;

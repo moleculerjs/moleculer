@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "demo1": "nodemon examples/demo1/server.js",
-    "demo2": "nodemon examples/demo2/server1.js",
+    "demo2": "nodemon examples/demo2/index.js",
     "bench": "node benchmark/index.js",
     "ci": "jest --watch",
     "test": "jest --coverage",

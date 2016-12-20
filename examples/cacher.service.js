@@ -1,6 +1,6 @@
 let _ = require("lodash");
 
-let Service = require("../../src/service");
+let Service = require("../src/service");
 
 module.exports = function(broker) {
 	let cache = {};

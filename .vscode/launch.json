@@ -15,7 +15,7 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch demo2",
-			"program": "${workspaceRoot}\\examples\\demo2\\server1.js",
+			"program": "${workspaceRoot}\\examples\\demo2\\index.js",
 			"cwd": "${workspaceRoot}\\examples\\demo2"
 		},
 		{
