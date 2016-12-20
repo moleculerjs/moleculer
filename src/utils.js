@@ -52,6 +52,25 @@ let utils = {
 
 	isPromise(p) {
 		return (p && typeof p.then === "function" && typeof p.catch === "function");
+	},
+
+	String2Json(str) {
+		try {
+			if (str != "")
+				return JSON.parse(str);				
+		} catch (err) {
+			console.warn(err);
+		}
+	},
+
+	Json2String(json) {
+		try {
+			if (json != null) 
+				return JSON.stringify(json);
+		} catch (err) {
+			console.warn(err);
+		}
+		return "";
 	}
 };
 
