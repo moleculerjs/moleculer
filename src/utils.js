@@ -6,6 +6,7 @@ let tokgen128 = new TokenGenerator(128, TokenGenerator.BASE62);
 */
 const uuidV4 = require("uuid/v4");
 const hash	 = require("object-hash");
+const os 	 = require("os");
 
 let utils = {
 
@@ -43,6 +44,10 @@ let utils = {
 				});					
 			});
 		};
+	},
+
+	getNodeID() {
+		return os.hostname().toLowerCase();
 	},
 
 	isPromise(p) {

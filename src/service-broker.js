@@ -1,10 +1,10 @@
 "use strict";
 
 let bus = require("./service-bus");
-let ServiceNode = require("./service-node");
 let BalancedList = require("./balanced-list");
 let Context = require("./context");
 let errors = require("./errors");
+let utils = require("./utils");
 let _ = require("lodash");
 
 class ServiceBroker {
@@ -17,13 +17,7 @@ class ServiceBroker {
 		this.subscriptions = new Map();
 		this.transporter = this.options.transporter;
 
-		// Add self node
-		this.internalNode = new ServiceNode({
-			id: "internal",
-			name: "Internal Service Node",
-			type: "internal"
-		});
-		this.registerNode(this.internalNode);
+		this.nodeID = this.options.nodeID || utils.getNodeID();
 
 		if (this.transporter) {
 			this.transporter.init(this, this.internalNode.id);

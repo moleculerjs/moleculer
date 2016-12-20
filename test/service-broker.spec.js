@@ -8,9 +8,6 @@ describe("Test ServiceBroker", () => {
 
 	let broker= new ServiceBroker();
 
-	let mockNode = {
-		id: "test"
-	};
 	let mockService = {
 		name: "posts",
 		$broker: broker
@@ -29,25 +26,7 @@ describe("Test ServiceBroker", () => {
 		expect(broker.services).toBeInstanceOf(Map);
 		expect(broker.actions).toBeInstanceOf(Map);
 		expect(broker.subscriptions).toBeInstanceOf(Map);
-	});
-
-	it("test internal node", () => {
-		expect(broker.internalNode).toBeDefined();
-		expect(broker.internalNode.id).toBe("internal");
-		expect(broker.internalNode.name).toBe("Internal Service Node");
-		expect(broker.nodes.size).toBe(1);
-		expect(broker.nodes.get("internal")).toBe(broker.internalNode);
-	});
-	
-	it("test register node", () => {
-		let registerNodeCB = jest.fn();
-		bus.on("register.node", registerNodeCB);
-
-		broker.registerNode(mockNode);
-		expect(broker.nodes.size).toBe(2);
-		expect(broker.nodes.get("test")).toBe(mockNode);
-		expect(registerNodeCB).toHaveBeenCalledTimes(1);
-		expect(registerNodeCB).toHaveBeenCalledWith(mockNode);
+		expect(broker.nodeID).toBe(require("os").hostname().toLowerCase());
 	});
 
 	it("test register service", () => {
