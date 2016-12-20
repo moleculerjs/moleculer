@@ -57,14 +57,14 @@ class ServiceBroker {
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	registerAction(service, action) {
+	registerAction(service, action, nodeID) {
 		// Append action by name
 		let item = this.actions.get(action.name);
 		if (!item) {
 			item = new BalancedList();
 			this.actions.set(action.name, item);
 		}
-		item.add(action);
+		item.add(action, 0, nodeID);
 		this.emitLocal(`register.action.${action.name}`, { service, action });
 	}
 
@@ -99,25 +99,37 @@ class ServiceBroker {
 		if (!actions)
 			throw new errors.ServiceNotFoundError(`Missing action '${actionName}'!`);
 		
-		let action = actions.get();
+		let actionItem = actions.get();
 		/* istanbul ignore next */
-		if (!action)
+		if (!actionItem)
 			throw new Error(`Missing action handler '${actionName}'!`);
 
-		let service = action.service;
-		// Create a new context
-		let ctx;
-		if (parentCtx) 
-			ctx = parentCtx.createSubContext(service, action, params);
-		else
-			ctx = new Context({ service, action, params });
-		
-		return action.handler(ctx);
+		if (actionItem.local) {
+			// Local action call
+			let action = actionItem.data;
+			let service = action.service;
+			// Create a new context
+			let ctx;
+			if (parentCtx) 
+				ctx = parentCtx.createSubContext(service, action, params);
+			else
+				ctx = new Context({ service, action, params });
+			
+			return action.handler(ctx);
+
+		} else if (actionItem.nodeID && this.transporter) {
+			let requestID = parentCtx ? parentCtx.id : utils.generateToken();
+			return this.transporter.request(actionItem.nodeID, requestID, actionName, params);
+
+		} else {
+			throw new Error(`No action handler for '${actionName}'!`);
+		}
 	}
 
 	emit(eventName, data) {
 		if (this.transporter)
 			this.transporter.emit(eventName, data);
+
 		return this.emitLocal(eventName, data);
 	}
 
@@ -133,12 +145,18 @@ class ServiceBroker {
 		}
 		return res;
 	}
-	/*
-	publishActionList() {
-		if (this.transporter) {
-			this.transporter.publishActionList();
+	
+	processNodeInfo(info) {
+		if (info.actions) {
+			info.actions.forEach(name => {
+				let action = {
+					name
+				};
+
+				this.registerAction(null, action, info.nodeID);
+			});
 		}
-	}*/
+	}
 }
 
 module.exports = ServiceBroker;

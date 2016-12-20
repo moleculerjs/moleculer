@@ -3,6 +3,8 @@
 let _ = require("lodash");
 let chalk = require("chalk");
 
+let { delay } = require("../../src/utils");
+
 let bus = require("../../src/service-bus");
 let ServiceBroker = require("../../src/service-broker");
 let NatsTransporter = require("../../src/transporters/nats");
@@ -10,7 +12,7 @@ let NatsTransporter = require("../../src/transporters/nats");
 
 // Add debug messages to bus
 bus.onAny((event, value) => {
-	console.log(chalk.yellow("[Event]", event));
+	console.log(chalk.yellow("[server-2] EVENT", event));
 });
 
 // Create broker
@@ -21,18 +23,24 @@ let broker = new ServiceBroker({
 
 // require("../user.service")(broker);
 
-setTimeout(() => {
-
+Promise.resolve()
+.then(delay(1000))
+.then(() => {
 	broker.start();
-
-	/*
-	setTimeout(() => {
-		broker.call("posts.find")
-			.then((posts) => {
-				console.log("[Service2] Posts: ", posts.length);
-			})
-			.catch(err => console.error(err));	
-
-	}, 2000);*/
-	
-}, 1000);
+})
+.then(delay(1000))
+.then(() => {
+	let startTime = Date.now();
+	broker.call("posts.find").then((posts) => {
+		console.log("[server-2] Posts: ", posts.length, ", Time: ", Date.now() - startTime, "ms");
+	})
+	.catch(err => console.error(err));	
+})
+.then(delay(1000))
+.then(() => {
+	let startTime = Date.now();
+	broker.call("posts.get", { id: 3 }).then((post) => {
+		console.log("[server-2] Post[3]: ", post.title, ", Time: ", Date.now() - startTime, "ms");
+	})
+	.catch(err => console.error(err));	
+});

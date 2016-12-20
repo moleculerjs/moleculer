@@ -3,6 +3,8 @@
 let _ = require("lodash");
 let chalk = require("chalk");
 
+let { delay } = require("../../src/utils");
+
 let bus = require("../../src/service-bus");
 let ServiceBroker = require("../../src/service-broker");
 let NatsTransporter = require("../../src/transporters/nats");
@@ -10,7 +12,7 @@ let NatsTransporter = require("../../src/transporters/nats");
 
 // Add debug messages to bus
 bus.onAny((event, value) => {
-	console.log(chalk.yellow("[Event]", event));
+	console.log(chalk.yellow("[server-1] EVENT", event));
 });
 
 // Create broker
@@ -22,13 +24,15 @@ let broker = new ServiceBroker({
 require("../post.service")(broker);
 
 broker.start();
-
-setTimeout(() => {
+/*
+Promise.resolve()
+.then(delay(1000))
+.then(() => {
 	broker.call("posts.find").then((posts) => {
 		console.log("[server-1] Posts: ", posts.length);
 	});	
-}, 1000);
-
+});
+*/
 /*
 let reqID = 123456;
 setTimeout(() => {

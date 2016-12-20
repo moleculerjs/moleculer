@@ -2,10 +2,6 @@ let _ = require("lodash");
 let fakerator = require("fakerator")();
 
 let Service = require("../src/service");
-/*
-function timeout(ms) {
-	return () => new Promise(resolve => setTimeout(resolve, ms));
-}*/
 
 module.exports = function(broker) {
 	let users = fakerator.times(fakerator.entity.user, 10);

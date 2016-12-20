@@ -50,6 +50,11 @@ let utils = {
 		return os.hostname().toLowerCase();
 	},
 
+
+	delay(ms) {
+		return () => new Promise(resolve => setTimeout(resolve, ms));
+	},
+
 	isPromise(p) {
 		return (p && typeof p.then === "function" && typeof p.catch === "function");
 	},

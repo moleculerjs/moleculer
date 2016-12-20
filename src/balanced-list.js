@@ -19,11 +19,12 @@ class BalancedList {
 		this.counter = 0;
 	}
 
-	add(data, weight = 0, local = true) {
+	add(data, weight = 0, nodeID) {
 		this.list.push({
 			data,
 			weight,
-			local
+			local: nodeID == null,
+			nodeID
 		});
 	}
 
@@ -36,8 +37,7 @@ class BalancedList {
 		// TODO: implement load-balance modes
 
 		let item = this.list[this.counter++];
-		if (item)
-			return item.data;
+		return item;
 	}
 
 	hasLocal() {

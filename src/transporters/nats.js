@@ -50,7 +50,7 @@ class NatsTransporter extends Transporter {
 			this.client.subscribe([PREFIX, "DISCOVER"].join("."), (msg, reply, subject) => {
 				let nodeInfo = utils.String2Json(msg);
 				if (nodeInfo.nodeID !== this.nodeID) {
-					this.processNodeInfos(nodeInfo);
+					this.broker.processNodeInfo(nodeInfo);
 
 					this.sendNodeInfoPackage(reply);
 				}					
@@ -59,7 +59,7 @@ class NatsTransporter extends Transporter {
 			this.client.subscribe([PREFIX, "INFO", this.nodeID].join("."), (msg) => {
 				let nodeInfo = utils.String2Json(msg);
 				if (nodeInfo.nodeID !== this.nodeID)
-					this.processNodeInfos(nodeInfo);
+					this.broker.processNodeInfo(nodeInfo);
 			});
 
 			this.discoverNodes();
@@ -88,7 +88,7 @@ class NatsTransporter extends Transporter {
 		this.client.subscribe(PREFIX + eventName, handler);
 	}
 
-	request(node, requestID, actionName, params) {
+	request(nodeID, requestID, actionName, params) {
 		return new Promise((resolve) => {
 			let replySubject = [PREFIX, "RESP", requestID].join(".");
 			let sid = this.client.subscribe(replySubject, (response) => {
@@ -100,10 +100,9 @@ class NatsTransporter extends Transporter {
 				this.client.unsubscribe(sid);
 			});
 
-			let pubSubject = [PREFIX, node.id, actionName].join(".");
-			//let payload = utils.Json2String(Object.assign({}, params, { $requestID: requestID }));
+			let subj = [PREFIX, "REQ", nodeID, actionName].join(".");
 			let payload = utils.Json2String(params);
-			this.client.publish(pubSubject, payload, replySubject);
+			this.client.publish(subj, payload, replySubject);
 		});
 	}
 
@@ -113,19 +112,11 @@ class NatsTransporter extends Transporter {
 
 	sendNodeInfoPackage(subject, replySubject) {
 		let actionList = this.broker.getLocalActionList();
-		// Send actionList
 		let payload = utils.Json2String({
 			nodeID: this.broker.nodeID,
 			actions: actionList
 		});
-
-		//console.log(payload);
 		this.client.publish(subject, payload, replySubject);
-	}
-
-	processNodeInfos(actionList) {
-		if (actionList.nodeID != this.nodeID)
-			console.log(`[${this.nodeID}] Incoming action list!`, actionList);
 	}
 }
 
