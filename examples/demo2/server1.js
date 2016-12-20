@@ -24,15 +24,16 @@ let broker = new ServiceBroker({
 require("../post.service")(broker);
 
 broker.start();
-/*
+
 Promise.resolve()
-.then(delay(1000))
+.then(delay(100))
 .then(() => {
+	let startTime = Date.now();
 	broker.call("posts.find").then((posts) => {
-		console.log("[server-1] Posts: ", posts.length);
+		console.log("[server-1] Posts: ", posts.length, ", Time:", Date.now() - startTime, "ms");
 	});	
 });
-*/
+
 /*
 let reqID = 123456;
 setTimeout(() => {
