@@ -2,6 +2,7 @@
 
 const ServiceBroker = require("../src/service-broker");
 const Context = require("../src/context");
+const Transporter = require("../src/transporters/transporter");
 const bus = require("../src/service-bus");
 
 describe("Test ServiceBroker", () => {
@@ -26,6 +27,7 @@ describe("Test ServiceBroker", () => {
 		expect(broker.services).toBeInstanceOf(Map);
 		expect(broker.actions).toBeInstanceOf(Map);
 		expect(broker.subscriptions).toBeInstanceOf(Map);
+		expect(broker.transporter).toBeUndefined();
 		expect(broker.nodeID).toBe(require("os").hostname().toLowerCase());
 	});
 
@@ -122,4 +124,35 @@ describe("Test ServiceBroker", () => {
 		
 	});
 
+});
+
+describe("Test ServiceBroker with Transporter", () => {
+
+	let transporter = new Transporter();
+	transporter.init = jest.fn(); 
+	transporter.connect = jest.fn(); 
+	transporter.emit = jest.fn(); 
+
+	let broker= new ServiceBroker({
+		transporter,
+		nodeID: "12345"
+	});
+
+	it("test constructor", () => {
+		expect(broker).toBeDefined();
+		expect(broker.transporter).toBeDefined();
+		expect(broker.nodeID).toBe("12345");
+
+		expect(transporter.init).toHaveBeenCalledTimes(1);
+		expect(transporter.init).toHaveBeenCalledWith(broker);
+
+		expect(transporter.connect).toHaveBeenCalledTimes(1);
+	});
+
+	it("test ServiceBroker.emit method", () => {
+		let p = { a: 1 };
+		broker.emit("posts.find", p);
+		expect(transporter.emit).toHaveBeenCalledTimes(1);
+		expect(transporter.emit).toHaveBeenCalledWith("posts.find", p);
+	});
 });

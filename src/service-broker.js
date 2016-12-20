@@ -20,15 +20,8 @@ class ServiceBroker {
 		this.nodeID = this.options.nodeID || utils.getNodeID();
 
 		if (this.transporter) {
-			this.transporter.init(this, this.internalNode.id);
+			this.transporter.init(this);
 			this.transporter.connect();
-		}
-	}
-
-	registerNode(node) {
-		if (node && !this.nodes.has(node.id)) {
-			this.nodes.set(node.id, node);
-			bus.emit("register.node", node);
 		}
 	}
 

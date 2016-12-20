@@ -3,7 +3,7 @@
 class Transporter {
 
 	constructor(opts) {
-		this.opts = opts;
+		this.opts = opts || {};
 	}
 
 	init(broker) {
@@ -19,14 +19,17 @@ class Transporter {
 	}
 
 	emit(eventName, data) {
+		/* istanbul ignore next */
 		throw new Error("Not implemented!");
 	}
 
 	subscribe(eventName, handler) {
+		/* istanbul ignore next */
 		throw new Error("Not implemented!");
 	}
 
 	request(actionName, params) {
+		/* istanbul ignore next */
 		return new Promise((resolve, reject) => {
 			reject("Not implemented");
 		});
