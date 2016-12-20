@@ -38,7 +38,8 @@ let PostSchema = {
 
 };
 
-describe("Test Service creation exceptions", () => {
+describe("Test Service creation", () => {
+
 	it("should throw exceptions", () => {
 		expect(() => {
 			new Service();
@@ -52,7 +53,29 @@ describe("Test Service creation exceptions", () => {
 			new Service({}, {});
 		}).toThrowError("Service name can't be empty!");
 	});
+
+	let broker = new ServiceBroker();
+	
+	let schema = {
+		name: "users",
+		version: 2,
+		settings: {
+			a: 1,
+			cache: true
+		}
+	};
+
+	it("check local properties", () => {
+		let service = new Service(broker, schema);
+		expect(service.name).toBe("users");
+		expect(service.version).toBe(2);
+		expect(service.settings).toBe(schema.settings);
+		expect(service.schema).toBe(schema);
+		expect(service.broker).toBe(broker);
+	});
+	
 });
+
 
 describe("Local service registration", () => {
 

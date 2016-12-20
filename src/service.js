@@ -19,13 +19,13 @@ class Service {
 		
 		this.name = schema.name;
 		this.version = schema.version;
-		this.$settings = schema.settings || {};
-		this.$schema = schema;
-		this.$broker = broker;
+		this.settings = schema.settings || {};
+		this.schema = schema;
+		this.broker = broker;
 
 		this.actions = {}; // external access to actions
 
-		this.$broker.registerService(this);
+		this.broker.registerService(this);
 
 		// Register actions
 		if (_.isObject(schema.actions)) {
@@ -69,22 +69,18 @@ class Service {
 
 			_.forIn(schema.methods, (method, name) => {
 				/* istanbul ignore next */
-				if (["name", "version", "actions"].indexOf(name) != -1) {
+				if (["name", "version", "settings", "schema", "broker", "actions"].indexOf(name) != -1) {
 					console.warn(`Invalid method name '${name}' in '${this.name}' service! Skipping...`);
 					return;
 				}
-				/*if (["toJSON", "getByID", "modelResolver"].indexOf(name) != -1) {
-					console.warn(`This method name '${name}' is prohibited under 'methods' object. If you want to override the built-in method, please declare in the root of service schema! Skipping...`);
-					return;
-				}*/
 				this[name] = method.bind(this);
 			});
 
 		}
 
 		// Call `created` function from schema
-		if (_.isFunction(this.$schema.created)) {
-			this.$schema.created.call(this);
+		if (_.isFunction(this.schema.created)) {
+			this.schema.created.call(this);
 		}
 
 	}
@@ -98,8 +94,8 @@ class Service {
 		action.handler = handler.bind(this);
 
 		// Cache
-		if (action.cache === true || (action.cache === undefined && this.$settings.cache === true)) {
-			action.handler = utils.cachingWrapper(this.$broker, action, action.handler);
+		if (action.cache === true || (action.cache === undefined && this.settings.cache === true)) {
+			action.handler = utils.cachingWrapper(this.broker, action, action.handler);
 		}
 
 		return action;
