@@ -46,7 +46,7 @@ class ServiceBroker {
 		}
 		item.add(service);
 
-		bus.emit(`register.service.${service.name}`, service);
+		this.emitLocal(`register.service.${service.name}`, { service });
 	}
 
 	/**
@@ -65,7 +65,7 @@ class ServiceBroker {
 			this.actions.set(action.name, item);
 		}
 		item.add(action);
-		bus.emit(`register.action.${action.name}`, service, action);
+		this.emitLocal(`register.action.${action.name}`, { service, action });
 	}
 
 	subscribeEvent(service, event) {
@@ -122,13 +122,7 @@ class ServiceBroker {
 	}
 
 	emitLocal(eventName, data) {
-		let d;
-		if (_.isObject(data))
-			d = Object.freeze(Object.assign({}, data));
-		else
-			d = data;
-
-		return bus.emit(eventName, d);
+		return bus.emit(eventName, data);
 	}
 
 	getLocalActionList() {
