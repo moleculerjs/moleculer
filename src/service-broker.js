@@ -64,7 +64,7 @@ class ServiceBroker {
 		}
 		item.add(service);
 
-		this.emitLocal(`register.service.${service.name}`, { service });
+		this.emitLocal(`register.service.${service.name}`, service);
 	}
 
 	/**
@@ -84,7 +84,7 @@ class ServiceBroker {
 			this.actions.set(action.name, item);
 		}
 		item.add(action, 0, nodeID);
-		this.emitLocal(`register.action.${action.name}`, { service, action });
+		this.emitLocal(`register.action.${action.name}`, service, action);
 	}
 
 	on(name, handler) {

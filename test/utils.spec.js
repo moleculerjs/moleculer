@@ -1,5 +1,6 @@
 const utils = require("../src/utils");
 const Context = require("../src/context");
+let ServiceBroker = require("../src/service-broker");
 
 describe("Test utils", () => {
 
@@ -51,9 +52,12 @@ describe("Test utils", () => {
 describe("Test utils.cachingWrapper", () => {
 	let cachedData = { num: 5 };
 
-	let mockBroker = {
-		call: jest.fn( () => Promise.resolve(cachedData))
+	let broker = new ServiceBroker();
+	broker.cacher = {
+		get: jest.fn(() => Promise.resolve(cachedData)),
+		set: jest.fn()
 	};
+
 	let mockAction = {
 		name: "posts.find",
 		handler: jest.fn()
@@ -61,16 +65,16 @@ describe("Test utils.cachingWrapper", () => {
 	let params = { id: 3, name: "Antsa" };
 
 	it("should give back the cached data and not called the handler", () => {
-		let cachedHandler = utils.cachingWrapper(mockBroker, mockAction, mockAction.handler);
+		let cachedHandler = utils.cachingWrapper(broker, mockAction, mockAction.handler);
 		expect(typeof cachedHandler).toBe("function");
 
-		let ctx = new Context({ params });
+		let ctx = new Context({ params, service: { broker } });
 		let p = cachedHandler(ctx);
 
 		expect(utils.isPromise(p)).toBeTruthy();
 		return p.then((response) => {
-			expect(mockBroker.call).toHaveBeenCalledTimes(1);
-			expect(mockBroker.call).toHaveBeenCalledWith("cache.get", {"key": "posts.find:e263ebd5ec9c63793ee3316efb8bfbe9f761f7ba"});
+			expect(broker.cacher.get).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.get).toHaveBeenCalledWith("posts.find:e263ebd5ec9c63793ee3316efb8bfbe9f761f7ba");
 			expect(mockAction.handler).toHaveBeenCalledTimes(0);
 			expect(response).toBe(cachedData);
 		});
@@ -79,42 +83,25 @@ describe("Test utils.cachingWrapper", () => {
 	it("should not give back cached data and should call the handler and call the 'cache.put' action", () => {
 		let resData = [1,3,5];
 		let cacheKey = utils.getCacheKey(mockAction.name, params);
-		mockBroker.call = jest.fn(() => Promise.resolve(null));
+		broker.cacher.get = jest.fn(() => Promise.resolve(null));
 		mockAction.handler = jest.fn(() => Promise.resolve(resData));
 
-		let cachedHandler = utils.cachingWrapper(mockBroker, mockAction, mockAction.handler);
+		let cachedHandler = utils.cachingWrapper(broker, mockAction, mockAction.handler);
 
-		let ctx = new Context({ params });
+		let ctx = new Context({ params, service: { broker } });
 		let p = cachedHandler(ctx);
 
 		expect(utils.isPromise(p)).toBeTruthy();
 		return p.then((response) => {
 			expect(response).toBe(resData);
 			expect(mockAction.handler).toHaveBeenCalledTimes(1);
-			expect(mockBroker.call).toHaveBeenCalledTimes(2);
-			expect(mockBroker.call).toHaveBeenCalledWith("cache.get", {key: cacheKey});
-			expect(mockBroker.call).toHaveBeenCalledWith("cache.put", { data: resData, key: cacheKey});
+
+			expect(broker.cacher.get).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.get).toHaveBeenCalledWith(cacheKey);
+
+			expect(broker.cacher.set).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.set).toHaveBeenCalledWith(cacheKey, resData);
 		});
 	});
 
-	it("should call the handler and call the 'cache.put' action if throw exception 'cache.get' action", () => {
-		let cacheKey = utils.getCacheKey(mockAction.name, params);
-		mockBroker.call = jest.fn()
-			.mockImplementationOnce(() => Promise.reject(new Error("Missing action!")))
-			.mockImplementationOnce(() => Promise.resolve(null));
-
-		mockAction.handler = jest.fn( () => Promise.resolve(null));
-
-		let cachedHandler = utils.cachingWrapper(mockBroker, mockAction, mockAction.handler);
-
-		let ctx = new Context({ params });
-		let p = cachedHandler(ctx);
-
-		return p.then((response) => {
-			expect(response).toBeNull();
-			expect(mockBroker.call).toHaveBeenCalledTimes(2);
-			expect(mockBroker.call).toHaveBeenCalledWith("cache.get", {key: cacheKey});
-			expect(mockAction.handler).toHaveBeenCalledTimes(1);
-		});
-	});	
 });

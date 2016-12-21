@@ -61,7 +61,10 @@ class Service {
 					};
 				}
 
-				broker.subscribeEvent(this, this._createEventHandler(event, event.handler, name));
+				if (!_.isFunction(event.handler)) 
+					throw new Error(`Missing event handler on '${name}' event in '${this.name}' service!`);
+
+				broker.on(name, event.handler.bind(this));
 			});
 
 		}
@@ -101,17 +104,6 @@ class Service {
 				action.handler = utils.cachingWrapper(this.broker, action, action.handler);
 
 		return action;
-	}
-
-	_createEventHandler(event, handler, name) {
-		if (!_.isFunction(handler)) 
-			throw new Error(`Missing event handler on '${name}' event in '${this.name}' service!`);
-
-		event.name = name;
-		event.service = this;
-		event.handler = handler.bind(this);
-
-		return event;
 	}
 
 }

@@ -1,7 +1,6 @@
 "use strict";
 
 let _ = require("lodash");
-let bus = require("../src/service-bus");
 let Context = require("../src/context");
 let ServiceBroker = require("../src/service-broker");
 
@@ -17,6 +16,7 @@ describe("Test Context", () => {
 		expect(context.service).not.toBeDefined();
 		expect(context.action).not.toBeDefined();
 		expect(context.broker).not.toBeDefined();
+		expect(context.logger).not.toBeDefined();
 		expect(context.level).toBe(1);
 		expect(context.params).toBeDefined();
 		expect(context.params).toEqual({});

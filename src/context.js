@@ -15,8 +15,10 @@ class Context {
 		this.parent = opts.parent;
 		this.service = opts.service;
 		this.action = opts.action;
-		this.broker = opts.service.broker;
-		this.logger = this.broker.getLogger("CTX");
+		this.broker = opts.service && opts.service.broker;
+		if (this.broker)
+			this.logger = this.broker.getLogger("CTX");
+
 		this.level = opts.parent && opts.parent.level ? opts.parent.level + 1 : 1;
 		this.params = Object.freeze(Object.assign({}, opts.params || {}));
 
@@ -55,7 +57,7 @@ class Context {
 		return Promise.resolve(data)
 			.then((res) => {
 				this.closeContext();
-				this.logger.debug(chalk.green(`Context for '${this.action.name}': [${this.duration}ms] result:`), this.params);
+				//this.logger.debug(chalk.green(`Context for '${this.action.name}': [${this.duration}ms] result:`), this.params);
 
 				return res;
 			});
@@ -63,7 +65,7 @@ class Context {
 
 	error(err) {
 		this.closeContext();
-		this.logger.error(chalk.red.bold(`[${this.duration}ms] error:`), err);
+		//this.logger.error(chalk.red.bold(`[${this.duration}ms] error:`), err);
 		return Promise.reject(err);
 	}
 

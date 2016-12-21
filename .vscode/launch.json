@@ -27,6 +27,17 @@
 		},
 		{
 			"type": "node",
+			"request": "launch",
+			"name": "Jest",
+			"program": "${workspaceRoot}\\node_modules\\jest-cli\\bin\\jest.js",
+			"args": ["--runInBand"],
+			"cwd": "${workspaceRoot}",
+			"runtimeArgs": [
+                "--nolazy"
+            ]
+		},
+		{
+			"type": "node",
 			"request": "attach",
 			"name": "Attach to Process",
 			"port": 5858

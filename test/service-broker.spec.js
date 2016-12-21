@@ -2,8 +2,7 @@
 
 const ServiceBroker = require("../src/service-broker");
 const Context = require("../src/context");
-const Transporter = require("../src/transporters/transporter");
-const bus = require("../src/service-bus");
+const Transporter = require("../src/transporters/base");
 
 describe("Test ServiceBroker", () => {
 
@@ -23,17 +22,15 @@ describe("Test ServiceBroker", () => {
 	it("test ServiceBroker constructor", () => {
 		expect(broker).toBeDefined();
 		expect(broker.options).toEqual({});
-		expect(broker.nodes).toBeInstanceOf(Map);
 		expect(broker.services).toBeInstanceOf(Map);
 		expect(broker.actions).toBeInstanceOf(Map);
-		expect(broker.subscriptions).toBeInstanceOf(Map);
 		expect(broker.transporter).toBeUndefined();
 		expect(broker.nodeID).toBe(require("os").hostname().toLowerCase());
 	});
 
 	it("test register service", () => {
 		let registerServiceCB = jest.fn();
-		bus.on("register.service.posts", registerServiceCB);
+		broker.on("register.service.posts", registerServiceCB);
 
 		expect(broker.services.size).toBe(0);
 		broker.registerService(mockService);
@@ -52,7 +49,7 @@ describe("Test ServiceBroker", () => {
 
 	it("test register action", () => {
 		let registerActionCB = jest.fn();
-		bus.on("register.action.posts.find", registerActionCB);
+		broker.on("register.action.posts.find", registerActionCB);
 
 		broker.registerAction(mockService, mockAction);
 		expect(broker.actions.size).toBe(1);
@@ -107,20 +104,20 @@ describe("Test ServiceBroker", () => {
 
 	});
 
-	it("test emit", () => {
+	it("test emitLocal", () => {
 		// Test emit method
-		bus.emit = jest.fn();
+		broker.emitLocal = jest.fn();
 
 		let data = { id: 5 };
-		broker.emit("request.rest", data);
+		broker.emitLocal("request.rest", data);
 
-		expect(bus.emit).toHaveBeenCalledTimes(1);
-		expect(bus.emit).toHaveBeenCalledWith("request.rest", data);
+		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
+		expect(broker.emitLocal).toHaveBeenCalledWith("request.rest", data);
 
-		bus.emit.mockClear();
-		broker.emit("request.rest", "string-data");
-		expect(bus.emit).toHaveBeenCalledTimes(1);
-		expect(bus.emit).toHaveBeenCalledWith("request.rest", "string-data");
+		broker.emitLocal.mockClear();
+		broker.emitLocal("request.rest", "string-data");
+		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
+		expect(broker.emitLocal).toHaveBeenCalledWith("request.rest", "string-data");
 		
 	});
 

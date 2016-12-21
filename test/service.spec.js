@@ -1,10 +1,10 @@
 "use strict";
 
 let _ = require("lodash");
-let bus = require("../src/service-bus");
 let utils = require("../src/utils");
 let Service = require("../src/service");
 let ServiceBroker = require("../src/service-broker");
+let MemoryCacher = require("../src/cachers").Memory;
 
 let PostSchema = {
 	name: "posts",
@@ -94,17 +94,17 @@ describe("Local service registration", () => {
 	it("test posts service registration", () => {
 		// Spy events
 		let handlerRegisterNode = jest.fn();
-		bus.on("register.node", handlerRegisterNode);
+		broker.on("register.node", handlerRegisterNode);
 
 		let handlerRegisterService = jest.fn();
-		bus.on("register.service.posts", handlerRegisterService);
+		broker.on("register.service.posts", handlerRegisterService);
 
 		let handlerRegisterAction = jest.fn();
-		bus.on("register.action.posts.*", handlerRegisterAction);
+		broker.on("register.action.posts.*", handlerRegisterAction);
 
 		broker.registerService = jest.fn(broker.registerService);
 		broker.registerAction = jest.fn(broker.registerAction);
-		broker.subscribeEvent = jest.fn(broker.subscribeEvent);
+		broker.on = jest.fn(broker.on);
 
 		service = new Service(broker, schema);
 
@@ -143,32 +143,23 @@ describe("Local service registration", () => {
 		expect(action.name).toBe("posts.get");
 		expect(action.service).toBe(service);
 
-		expect(broker.subscribeEvent).toHaveBeenCalledTimes(1);
-		//expect(broker.subscribeEvent).toHaveBeenCalledWith(broker.internalNode, service, schema.events["request.rest.**"]);
-		expect(broker.subscriptions.size).toBe(1);
-		expect(bus.listeners("request.rest.**")).toHaveLength(1);
-
-		let eventItem = broker.subscriptions.get("request.rest.**").get();
-		let event = eventItem.data;
-		expect(event.handler).toBeDefined();
-		expect(event.name).toBe("request.rest.**");
-		expect(event.service).toBe(service);
+		expect(broker.on).toHaveBeenCalledTimes(1);
 
 		let handler = schema.events["request.rest.**"];
 
-		bus.emit("request.rest", "Hello");
+		broker.emitLocal("request.rest", "Hello", { a: 1 });
 		expect(handler).toHaveBeenCalledTimes(1);
-		expect(handler).toHaveBeenCalledWith("Hello");
+		expect(handler).toHaveBeenCalledWith("Hello", { a: 1 });
 
 		let o = {
 			id: 5,
 			name: 10
 		};
-		bus.emit("request.rest.posts", o);
+		broker.emit("request.rest.posts", o);
 		expect(handler).toHaveBeenCalledTimes(2);
 		expect(handler).toHaveBeenCalledWith(o);
 
-		bus.emit("request.rest.posts.find");
+		broker.emit("request.rest.posts.find");
 		expect(handler).toHaveBeenCalledTimes(3);
 	});
 
@@ -242,7 +233,9 @@ describe("Test Service without handlers", () => {
 
 describe("Test cached actions", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({
+		cacher: new MemoryCacher()
+	});
 
 	utils.cachingWrapper = jest.fn((broker, action, handler) => [broker, action, handler]);
 
