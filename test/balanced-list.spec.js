@@ -18,25 +18,45 @@ describe("Test BalancedList", () => {
 		expect(list.get()).toBeNull();
 	});
 
-	it("test add & get & remove", () => {
+	it("test get with remote", () => {
+		let obj1 = {};
+		let obj2 = {};
+		let list = new BalancedList();
+		list.add(obj1, 0, "node");
+		list.add(obj2, 20, "node");
+		expect(list.counter).toBe(0);
+		expect(list.get().data).toBe(obj1);
+		expect(list.counter).toBe(1);
+		expect(list.get().data).toBe(obj2);
+		expect(list.counter).toBe(2);
+		expect(list.get().data).toBe(obj1);
+		expect(list.counter).toBe(1);
+		
+		list.remove(obj1);
+		expect(list.get().data).toBe(obj2);
+		expect(list.counter).toBe(1);
+		expect(list.get().data).toBe(obj2);
+		expect(list.counter).toBe(1);
+	
+	});
+
+	it("test add & get with local", () => {
 		let obj1 = {};
 		let obj2 = {};
 		let list = new BalancedList();
 		list.add(obj1);
 		list.add(obj2, 20);
 		expect(list.counter).toBe(0);
-		expect(list.get()).toBe(obj1);
-		expect(list.counter).toBe(1);
-		expect(list.get()).toBe(obj2);
-		expect(list.counter).toBe(2);
-		expect(list.get()).toBe(obj1);
-		expect(list.counter).toBe(1);
+		expect(list.get().data).toBe(obj1);
+		expect(list.counter).toBe(0);
+		expect(list.get().data).toBe(obj1);
+		expect(list.counter).toBe(0);
 		
 		list.remove(obj1);
-		expect(list.get()).toBe(obj2);
-		expect(list.counter).toBe(1);
-		expect(list.get()).toBe(obj2);
-		expect(list.counter).toBe(1);
+		expect(list.get().data).toBe(obj2);
+		expect(list.counter).toBe(0);
+		expect(list.get().data).toBe(obj2);
+		expect(list.counter).toBe(0);
 	
 	});
 

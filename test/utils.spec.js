@@ -68,11 +68,10 @@ describe("Test utils.cachingWrapper", () => {
 		let p = cachedHandler(ctx);
 
 		expect(utils.isPromise(p)).toBeTruthy();
-		expect(mockBroker.call).toHaveBeenCalledTimes(1);
-		expect(mockBroker.call).toHaveBeenCalledWith("cache.get", {"key": "posts.find:e263ebd5ec9c63793ee3316efb8bfbe9f761f7ba"});
-		expect(mockAction.handler).toHaveBeenCalledTimes(0);
-
 		return p.then((response) => {
+			expect(mockBroker.call).toHaveBeenCalledTimes(1);
+			expect(mockBroker.call).toHaveBeenCalledWith("cache.get", {"key": "posts.find:e263ebd5ec9c63793ee3316efb8bfbe9f761f7ba"});
+			expect(mockAction.handler).toHaveBeenCalledTimes(0);
 			expect(response).toBe(cachedData);
 		});
 	});
@@ -89,18 +88,16 @@ describe("Test utils.cachingWrapper", () => {
 		let p = cachedHandler(ctx);
 
 		expect(utils.isPromise(p)).toBeTruthy();
-		expect(mockBroker.call).toHaveBeenCalledTimes(1);
-		expect(mockBroker.call).toHaveBeenCalledWith("cache.get", {key: cacheKey});
-
 		return p.then((response) => {
 			expect(response).toBe(resData);
 			expect(mockAction.handler).toHaveBeenCalledTimes(1);
 			expect(mockBroker.call).toHaveBeenCalledTimes(2);
+			expect(mockBroker.call).toHaveBeenCalledWith("cache.get", {key: cacheKey});
 			expect(mockBroker.call).toHaveBeenCalledWith("cache.put", { data: resData, key: cacheKey});
 		});
 	});
 
-	it("should call the handler and call the 'cache.put' action if throw exception 'cache.put' action", () => {
+	it("should call the handler and call the 'cache.put' action if throw exception 'cache.get' action", () => {
 		let cacheKey = utils.getCacheKey(mockAction.name, params);
 		mockBroker.call = jest.fn()
 			.mockImplementationOnce(() => Promise.reject(new Error("Missing action!")))
@@ -113,11 +110,10 @@ describe("Test utils.cachingWrapper", () => {
 		let ctx = new Context({ params });
 		let p = cachedHandler(ctx);
 
-		expect(mockBroker.call).toHaveBeenCalledTimes(1);
-		expect(mockBroker.call).toHaveBeenCalledWith("cache.get", {key: cacheKey});
-
 		return p.then((response) => {
 			expect(response).toBeNull();
+			expect(mockBroker.call).toHaveBeenCalledTimes(2);
+			expect(mockBroker.call).toHaveBeenCalledWith("cache.get", {key: cacheKey});
 			expect(mockAction.handler).toHaveBeenCalledTimes(1);
 		});
 	});	

@@ -38,7 +38,7 @@ describe("Test ServiceBroker", () => {
 		expect(broker.services.size).toBe(0);
 		broker.registerService(mockService);
 		expect(broker.services.size).toBe(1);
-		expect(registerServiceCB).toHaveBeenCalledWith(mockService);
+		expect(registerServiceCB).toHaveBeenCalledWith({service: mockService});
 		expect(registerServiceCB).toHaveBeenCalledTimes(1);
 	});
 
@@ -47,7 +47,7 @@ describe("Test ServiceBroker", () => {
 		expect(broker.hasService("posts")).toBeTruthy();
 
 		expect(broker.getService("noservice")).toBeUndefined();
-		expect(broker.getService("posts")).toBe(mockService);		
+		expect(broker.getService("posts").data).toBe(mockService);		
 	});
 
 	it("test register action", () => {
@@ -56,7 +56,7 @@ describe("Test ServiceBroker", () => {
 
 		broker.registerAction(mockService, mockAction);
 		expect(broker.actions.size).toBe(1);
-		expect(registerActionCB).toHaveBeenCalledWith(mockService, mockAction);
+		expect(registerActionCB).toHaveBeenCalledWith({ service: mockService, action: mockAction });
 		expect(registerActionCB).toHaveBeenCalledTimes(1);
 	});
 
@@ -146,6 +146,11 @@ describe("Test ServiceBroker with Transporter", () => {
 		expect(transporter.init).toHaveBeenCalledTimes(1);
 		expect(transporter.init).toHaveBeenCalledWith(broker);
 
+		expect(transporter.connect).toHaveBeenCalledTimes(0);
+	});
+
+	it("test start", () => {
+		broker.start();
 		expect(transporter.connect).toHaveBeenCalledTimes(1);
 	});
 

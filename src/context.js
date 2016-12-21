@@ -54,7 +54,7 @@ class Context {
 		return Promise.resolve(data)
 			.then((res) => {
 				this.closeContext();
-				this.log(chalk.green(`Context for '${this.action.name}': [${this.duration}ms] result:`), this.params);
+				//this.log(chalk.green(`Context for '${this.action.name}': [${this.duration}ms] result:`), this.params);
 
 				return res;
 			});
@@ -62,7 +62,7 @@ class Context {
 
 	error(err) {
 		this.closeContext();
-		this.log(chalk.red.bold(`[${this.duration}ms] error:`), err);
+		//this.log(chalk.red.bold(`[${this.duration}ms] error:`), err);
 		return Promise.reject(err);
 	}
 

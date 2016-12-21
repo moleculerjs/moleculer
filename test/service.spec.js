@@ -137,7 +137,8 @@ describe("Local service registration", () => {
 		broker.call("posts.get");
 		expect(getHandlerMock).toHaveBeenCalledTimes(1);
 
-		let action = broker.actions.get("posts.get").get();
+		let actionItem = broker.actions.get("posts.get").get();
+		let action = actionItem.data;
 		expect(action.handler).toBeDefined();
 		expect(action.name).toBe("posts.get");
 		expect(action.service).toBe(service);
@@ -147,7 +148,8 @@ describe("Local service registration", () => {
 		expect(broker.subscriptions.size).toBe(1);
 		expect(bus.listeners("request.rest.**")).toHaveLength(1);
 
-		let event = broker.subscriptions.get("request.rest.**").get();
+		let eventItem = broker.subscriptions.get("request.rest.**").get();
+		let event = eventItem.data;
 		expect(event.handler).toBeDefined();
 		expect(event.name).toBe("request.rest.**");
 		expect(event.service).toBe(service);
