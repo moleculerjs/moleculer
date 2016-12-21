@@ -13,14 +13,14 @@ module.exports = function(broker) {
 		name: "users",
 		actions: {
 			find(ctx) {
-				//ctx.log("find users");
+				this.logger.debug("Find users...");
 				return ctx.result(users);
 			},
 
 			get: {
 				cache: true,
 				handler(ctx) {
-					//ctx.log("get user");
+					this.logger.debug("Get user...", ctx.params);
 					return ctx.result(this.findByID(ctx.params.id));
 				}
 			}
@@ -33,7 +33,7 @@ module.exports = function(broker) {
 		},
 
 		created() {
-			console.log("Users service created!");
+			this.logger.info("Users service created!");
 		}
 	});
 };

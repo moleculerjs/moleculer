@@ -7,7 +7,7 @@ let chalk = require("chalk");
 
 let bus = require("../../src/service-bus");
 let ServiceBroker = require("../../src/service-broker");
-
+let MemoryCacher = require("../../src/cachers").Memory;
 
 // Add debug messages to bus
 bus.onAny((event, value) => {
@@ -15,7 +15,10 @@ bus.onAny((event, value) => {
 });
 
 // Create broker
-let broker = new ServiceBroker();
+let broker = new ServiceBroker({
+	cacher: new MemoryCacher(),
+	logger: console
+});
 
 // Load services
 console.log(""); 
@@ -30,7 +33,6 @@ if (serviceFiles) {
 	});
 }
 */
-require("../cacher.service")(broker);
 require("../post.service")(broker);
 require("../user.service")(broker);
 console.log("---------------------------------------\n"); 

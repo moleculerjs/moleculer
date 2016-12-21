@@ -24,25 +24,27 @@ class NatsTransporter extends Transporter {
 		this.client = Nats.connect(this.opts);
 
 		this.client.on("connect", () => {
-			this.logger.info(`NATS connected!`);
+			this.logger.info(`NATS client connected!`);
 
 			// Subscribe to broadcast events
 			let eventSubject = [PREFIX, "EVENT", ">"].join(".");
 			this.client.subscribe(eventSubject, (msg, reply, subject) => {
+				this.logger.debug("Event received", subject);
 				this.broker.emitLocal(subject.slice(eventSubject.length - 1), utils.String2Json(msg));
 			});
 
 			// Subscribe to node requests
 			let reqSubject = [PREFIX, "REQ", this.nodeID, ">"].join(".");
 			this.client.subscribe(reqSubject, (msg, reply, subject) => {
+				let actionName = subject.slice(reqSubject.length - 1);
+				this.logger.debug("Request received", actionName);
 				let params;
 				if (msg != "")
 					params = utils.String2Json(msg);
 
-				let actionName = subject.slice(reqSubject.length - 1);
 				this.broker.call(actionName, params).then(res => {
 					let payload = utils.Json2String(res);
-					this.logger.info(`REQUEST`, actionName, params, "RESP:", payload.length, "bytes");
+					this.logger.debug("Response", actionName, params, "Length: ", payload.length, "bytes");
 					this.client.publish(reply, payload);
 				});
 			});
@@ -51,6 +53,7 @@ class NatsTransporter extends Transporter {
 			this.client.subscribe([PREFIX, "DISCOVER"].join("."), (msg, reply, subject) => {
 				let nodeInfo = utils.String2Json(msg);
 				if (nodeInfo.nodeID !== this.nodeID) {
+					this.logger.debug("Discovery received from " + nodeInfo.nodeID);
 					this.broker.processNodeInfo(nodeInfo);
 
 					this.sendNodeInfoPackage(reply);
@@ -59,19 +62,21 @@ class NatsTransporter extends Transporter {
 
 			this.client.subscribe([PREFIX, "INFO", this.nodeID].join("."), (msg) => {
 				let nodeInfo = utils.String2Json(msg);
-				if (nodeInfo.nodeID !== this.nodeID)
+				if (nodeInfo.nodeID !== this.nodeID) {
+					this.logger.debug("Node info received from " + nodeInfo.nodeID);
 					this.broker.processNodeInfo(nodeInfo);
+				}
 			});
 
 			this.discoverNodes();
 		});
 
 		this.client.on("error", (e) => {
-			this.logger.error("NATS error", e);
+			this.logger.error("NATS client error", e);
 		});
 
 		this.client.on("close", () => {
-			this.logger.warn("NATS connection closed!");
+			this.logger.warn("NATS disconnected!");
 		});
 	}
 

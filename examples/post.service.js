@@ -20,7 +20,7 @@ module.exports = function(broker) {
 			find: {
 				cache: true,
 				handler(ctx) {
-					//ctx.log("find posts");
+					this.logger.debug("Find posts...");
 					let result = _.cloneDeep(posts);
 
 					// Resolve authors
@@ -35,7 +35,7 @@ module.exports = function(broker) {
 			},
 
 			get(ctx) {
-				//ctx.log("get post");
+				this.logger.debug("Get post...", ctx.params);
 				return ctx.result(_.find(posts, post => post.id == ctx.params.id));
 			},
 
@@ -48,7 +48,7 @@ module.exports = function(broker) {
 		},
 
 		created() {
-			console.log("Posts service created!");
+			this.logger.info("Posts service created!");
 		}
 	
 	});

@@ -23,6 +23,8 @@ class Service {
 		this.schema = schema;
 		this.broker = broker;
 
+		this.logger = this.broker.getLogger(this.name.toUpperCase() + "-SVC");
+
 		this.actions = {}; // external access to actions
 
 		this.broker.registerService(this);
@@ -94,9 +96,9 @@ class Service {
 		action.handler = handler.bind(this);
 
 		// Cache
-		if (action.cache === true || (action.cache === undefined && this.settings.cache === true)) {
-			action.handler = utils.cachingWrapper(this.broker, action, action.handler);
-		}
+		if (this.broker.cacher)
+			if (action.cache === true || (action.cache === undefined && this.settings.cache === true))
+				action.handler = utils.cachingWrapper(this.broker, action, action.handler);
 
 		return action;
 	}

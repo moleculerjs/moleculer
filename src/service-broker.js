@@ -20,6 +20,11 @@ class ServiceBroker {
 		this.actions = new Map();
 		this.subscriptions = new Map();
 		this.transporter = this.options.transporter;
+		this.cacher = this.options.cacher;
+
+		if (this.cacher) {
+			this.cacher.init(this);
+		}
 
 		if (this.transporter) {
 			this.transporter.init(this);
@@ -30,12 +35,6 @@ class ServiceBroker {
 		if (this.transporter) {
 			this.transporter.connect();
 		}
-
-		this.logger.log("Log message");
-		this.logger.error("error message");
-		this.logger.warn("warn message");
-		this.logger.info("info message");
-		this.logger.debug("debug message");
 	}
 
 	getLogger(module) {

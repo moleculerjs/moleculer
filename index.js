@@ -7,5 +7,8 @@ module.exports = {
 	ServiceBroker: require("./src/service-broker"),
 	ServiceBus: require("./src/service-bus"),
 
+	Transporters: require("./src/transporters"),
+	Cachers: require("./src/cachers"),
+
 	Errors: require("./src/errors")
 };
