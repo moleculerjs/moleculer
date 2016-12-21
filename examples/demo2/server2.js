@@ -9,11 +9,11 @@ let bus = require("../../src/service-bus");
 let ServiceBroker = require("../../src/service-broker");
 let NatsTransporter = require("../../src/transporters/nats");
 
-
+/*
 // Add debug messages to bus
 bus.onAny((event, value) => {
 	console.log(chalk.yellow("[server-2] EVENT", event));
-});
+});*/
 
 // Create broker
 let broker = new ServiceBroker({
@@ -21,21 +21,24 @@ let broker = new ServiceBroker({
 	transporter: new NatsTransporter()
 });
 
-// require("../user.service")(broker);
+require("../user.service")(broker);
+//require("../cacher.service")(broker);
 
 Promise.resolve()
-.then(delay(1000))
+.then(delay(100))
 .then(() => {
 	broker.start();
 })
 .then(delay(1000))
 .then(() => {
 	let startTime = Date.now();
+	
 	broker.call("posts.find").then((posts) => {
-		console.log("[server-2] Posts: ", posts.length, ", Time: ", Date.now() - startTime, "ms");
+		console.log("[server-2] Posts: ", posts.length, ", Time:", Date.now() - startTime, "ms");
 	})
-	.catch(err => console.error(err));	
-})
+	.catch(err => console.error(err));
+});
+/*
 .then(delay(1000))
 .then(() => {
 	let startTime = Date.now();
@@ -44,3 +47,4 @@ Promise.resolve()
 	})
 	.catch(err => console.error(err));	
 });
+*/

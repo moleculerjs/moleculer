@@ -54,7 +54,7 @@ class Context {
 		return Promise.resolve(data)
 			.then((res) => {
 				this.closeContext();
-				this.log(chalk.green(`[${this.duration}ms] result:`), this.params);
+				this.log(chalk.green(`Context for '${this.action.name}': [${this.duration}ms] result:`), this.params);
 
 				return res;
 			});
@@ -71,7 +71,7 @@ class Context {
 	}	
 
 	log(str, params) {
-		/*let line = [];
+		let line = [];
 		_.times(this.level - 1, () => line.push("  "));
 		line.push(str);
 		if (params) {
@@ -79,7 +79,7 @@ class Context {
 			line.push(chalk.yellow(JSON.stringify(this.params)));
 		}
 
-		console.log(line.join(""));*/
+		console.log(line.join(""));
 	}
 }
 

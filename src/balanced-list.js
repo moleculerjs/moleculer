@@ -14,7 +14,9 @@ class BalancedList {
 	 * @memberOf BalancedList
 	 */
 	constructor(opts) {
-		this.opts = opts || {};
+		this.opts = opts || {
+			preferLocale: true
+		};
 		this.list = [];
 		this.counter = 0;
 	}
@@ -34,14 +36,24 @@ class BalancedList {
 		if (this.counter >= this.list.length)
 			this.counter = 0;
 
+		let item;
+		if (this.opts.preferLocale) {
+			item = this.getLocalItem();
+			if (item)
+				return item;
+		}
 		// TODO: implement load-balance modes
 
-		let item = this.list[this.counter++];
+		item = this.list[this.counter++];
 		return item;
 	}
 
+	getLocalItem() {
+		return _.find(this.list, (el) => el.local === true);
+	}
+
 	hasLocal() {
-		return _.find(this.list, (el) => el.local === true) != null;
+		return this.getLocalItem() != null;
 	}
 
 	remove(data) {

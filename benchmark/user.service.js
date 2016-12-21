@@ -6,7 +6,7 @@ let Service = require("../src/service");
 module.exports = function(broker) {
 	let users = fakerator.times(fakerator.entity.user, 10);
 
-	_.each(users, (user, i) => user.id = i);
+	_.each(users, (user, i) => user.id = i + 1);
 
 	return new Service(broker, {
 		name: "users",

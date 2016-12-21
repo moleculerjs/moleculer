@@ -9,11 +9,11 @@ let bus = require("../../src/service-bus");
 let ServiceBroker = require("../../src/service-broker");
 let NatsTransporter = require("../../src/transporters/nats");
 
-
+/*
 // Add debug messages to bus
 bus.onAny((event, value) => {
 	console.log(chalk.yellow("[server-1] EVENT", event));
-});
+});*/
 
 // Create broker
 let broker = new ServiceBroker({
@@ -22,29 +22,26 @@ let broker = new ServiceBroker({
 });
 
 require("../post.service")(broker);
+//require("../user.service")(broker);
+//require("../cacher.service")(broker);
 
 broker.start();
 
 Promise.resolve()
-.then(delay(100))
+.then(delay(1000))
 .then(() => {
+	setInterval(() => {
 	let startTime = Date.now();
 	broker.call("posts.find").then((posts) => {
 		console.log("[server-1] Posts: ", posts.length, ", Time:", Date.now() - startTime, "ms");
 	});	
+
+	}, 5000);
 });
-
-/*
-let reqID = 123456;
-setTimeout(() => {
-	broker.transporter.request(broker.internalNode, reqID++, "posts.find").then(response => {
-		console.log("Response: ", response.length);
-	});
-}, 400);
-
-setInterval(() => {
-	broker.transporter.request(broker.internalNode, reqID++, "posts.get", { id: _.random(10) }).then(response => {
-		console.log("Response: ", response ? response.title : "<Not found>");
-	});
-}, 1000);
-*/
+/*.then(delay(3000))
+.then(() => {
+	let startTime = Date.now();
+	broker.call("users.get", { id: 5 }).then((user) => {
+		console.log("[server-1] User(5): ", user.email, ", Time:", Date.now() - startTime, "ms");
+	});	
+});*/

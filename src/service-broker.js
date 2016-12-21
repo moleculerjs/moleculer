@@ -119,8 +119,7 @@ class ServiceBroker {
 
 		} else if (actionItem.nodeID && this.transporter) {
 			let requestID = parentCtx ? parentCtx.id : utils.generateToken();
-			return this.transporter.request(actionItem.nodeID, requestID, actionName, params);
-
+			return this.transporter.request(actionItem.nodeID, requestID, actionName, params)
 		} else {
 			throw new Error(`No action handler for '${actionName}'!`);
 		}
@@ -156,6 +155,7 @@ class ServiceBroker {
 				this.registerAction(null, action, info.nodeID);
 			});
 		}
+		//console.log(`[${this.nodeID}] `, this.actions);
 	}
 }
 

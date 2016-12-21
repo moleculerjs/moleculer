@@ -40,8 +40,8 @@ class NatsTransporter extends Transporter {
 
 				let actionName = subject.slice(reqSubject.length - 1);
 				this.broker.call(actionName, params).then(res => {
-					console.log("REQUEST RECEIVED", actionName, params);
 					let payload = utils.Json2String(res);
+					console.log(`[${this.nodeID}] REQUEST`, actionName, params, "RESP:", payload.length, "bytes");
 					this.client.publish(reply, payload);
 				});
 			});

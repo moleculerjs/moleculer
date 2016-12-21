@@ -30,8 +30,11 @@ let utils = {
 		return function(ctx) {
 			let cacheKey = utils.getCacheKey(action.name, ctx.params);
 
-			return broker.call("cache.get", { key: cacheKey })
-			.catch(() => null) // silent error, skip
+			return Promise.resolve()
+			.then(() => {
+				return broker.call("cache.get", { key: cacheKey });
+			})
+			.catch(() => null) // silent error, no cache module
 			.then((cachedJSON) => {
 				if (cachedJSON != null) {
 					// Found in the cache!
@@ -39,7 +42,12 @@ let utils = {
 				}
 
 				return handler(ctx).then((result) => {
-					broker.call("cache.put", { key: cacheKey, data: result });
+					try {
+						broker.call("cache.put", { key: cacheKey, data: result });
+					} catch(err) {
+						// Ignored. No cache module
+					}
+
 					return result;
 				});					
 			});
