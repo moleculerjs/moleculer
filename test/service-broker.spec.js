@@ -38,7 +38,7 @@ describe("Test ServiceBroker", () => {
 		expect(broker.services.size).toBe(0);
 		broker.registerService(mockService);
 		expect(broker.services.size).toBe(1);
-		expect(registerServiceCB).toHaveBeenCalledWith({service: mockService});
+		expect(registerServiceCB).toHaveBeenCalledWith(mockService);
 		expect(registerServiceCB).toHaveBeenCalledTimes(1);
 	});
 
@@ -56,7 +56,7 @@ describe("Test ServiceBroker", () => {
 
 		broker.registerAction(mockService, mockAction);
 		expect(broker.actions.size).toBe(1);
-		expect(registerActionCB).toHaveBeenCalledWith({ service: mockService, action: mockAction });
+		expect(registerActionCB).toHaveBeenCalledWith(mockService, mockAction);
 		expect(registerActionCB).toHaveBeenCalledTimes(1);
 	});
 

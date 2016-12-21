@@ -1,11 +1,12 @@
 "use strict";
 
-let bus = require("./service-bus");
+let EventEmitter2 = require("eventemitter2").EventEmitter2;
 let BalancedList = require("./balanced-list");
 let Context = require("./context");
 let errors = require("./errors");
 let utils = require("./utils");
 let _ = require("lodash");
+
 
 class ServiceBroker {
 
@@ -14,6 +15,13 @@ class ServiceBroker {
 		this.nodeID = this.options.nodeID || utils.getNodeID();
 
 		this.logger = this.getLogger(this.nodeID);
+		this.bus = new EventEmitter2({
+			wildcard: true,
+			maxListeners: 100,
+		});
+		this.bus.onAny((event, value) => {
+			this.logger.debug("Local event", event, value);
+		});		
 
 		this.nodes = new Map();
 		this.services = new Map();
@@ -41,6 +49,8 @@ class ServiceBroker {
 		let noop = function() {};
 		let extLogger = this.options.logger;
 
+		let prefix = "[" + this.nodeID + (module ? "-" + module : "") + "] ";
+
 		let logger = {};
 		["log", "error", "warn", "info", "debug"].forEach(type => logger[type] = noop);
 
@@ -49,7 +59,7 @@ class ServiceBroker {
 				let externalMethod = extLogger[type] || extLogger.info || extLogger.log;
 				if (externalMethod) {
 					logger[type] = function(msg, ...args) {
-						externalMethod((module ? `[${module}] ` : "") + msg, ...args);
+						externalMethod(prefix + msg, ...args);
 					}.bind(extLogger);
 				}
 			});
@@ -96,15 +106,8 @@ class ServiceBroker {
 		this.emitLocal(`register.action.${action.name}`, { service, action });
 	}
 
-	subscribeEvent(service, event) {
-		// Append event subscriptions
-		let item = this.subscriptions.get(event.name);
-		if (!item) {
-			item = new BalancedList();
-			this.subscriptions.set(event.name, item);
-		}
-		item.add(event);
-		bus.on(event.name, event.handler.bind(service));
+	on(name, handler) {
+		this.bus.on(name, handler);
 	}
 
 	getService(serviceName) {
@@ -147,21 +150,21 @@ class ServiceBroker {
 
 		} else if (actionItem.nodeID && this.transporter) {
 			let requestID = parentCtx ? parentCtx.id : utils.generateToken();
-			return this.transporter.request(actionItem.nodeID, requestID, actionName, params)
+			return this.transporter.request(actionItem.nodeID, requestID, actionName, params);
 		} else {
 			throw new Error(`No action handler for '${actionName}'!`);
 		}
 	}
 
-	emit(eventName, data) {
+	emit(eventName, ...args) {
 		if (this.transporter)
-			this.transporter.emit(eventName, data);
+			this.transporter.emit(eventName, ...args);
 
-		return this.emitLocal(eventName, data);
+		return this.emitLocal(eventName, ...args);
 	}
 
-	emitLocal(eventName, data) {
-		return bus.emit(eventName, data);
+	emitLocal(eventName, ...args) {
+		return this.bus.emit(eventName, ...args);
 	}
 
 	getLocalActionList() {

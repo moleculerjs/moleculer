@@ -18,7 +18,7 @@ class Transporter {
 
 	}
 
-	emit(eventName, data) {
+	emit(eventName, ...args) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented!");
 	}

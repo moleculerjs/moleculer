@@ -5,15 +5,8 @@ let chalk = require("chalk");
 
 let { delay } = require("../../src/utils");
 
-let bus = require("../../src/service-bus");
 let ServiceBroker = require("../../src/service-broker");
 let NatsTransporter = require("../../src/transporters/nats");
-
-/*
-// Add debug messages to bus
-bus.onAny((event, value) => {
-	console.log(chalk.yellow("[server-2] EVENT", event));
-});*/
 
 // Create broker
 let broker = new ServiceBroker({
@@ -23,7 +16,6 @@ let broker = new ServiceBroker({
 });
 
 require("../user.service")(broker);
-//require("../cacher.service")(broker);
 
 Promise.resolve()
 .then(delay(100))

@@ -24,13 +24,16 @@ class NatsTransporter extends Transporter {
 		this.client = Nats.connect(this.opts);
 
 		this.client.on("connect", () => {
-			this.logger.info(`NATS client connected!`);
+			this.logger.info("NATS client connected!");
 
 			// Subscribe to broadcast events
 			let eventSubject = [PREFIX, "EVENT", ">"].join(".");
 			this.client.subscribe(eventSubject, (msg, reply, subject) => {
-				this.logger.debug("Event received", subject);
-				this.broker.emitLocal(subject.slice(eventSubject.length - 1), utils.String2Json(msg));
+				let event = utils.String2Json(msg);
+				if (event.nodeID !== this.nodeID) {
+					this.logger.debug("Event received", event);
+					this.broker.emitLocal(subject.slice(eventSubject.length - 1), ...event.args);
+				}
 			});
 
 			// Subscribe to node requests
@@ -85,9 +88,15 @@ class NatsTransporter extends Transporter {
 			this.client.close();
 	}
 
-	emit(eventName, data) {
+	emit(eventName, ...args) {
 		let subject = [PREFIX, "EVENT", eventName].join(".");
-		this.client.publish(subject, utils.Json2String(data));
+		let event = {
+			nodeID: this.nodeID,
+			args
+		};
+		let payload = utils.Json2String(event);
+		this.logger.debug("Emit Event", event);
+		this.client.publish(subject, payload);
 	}
 
 	subscribe(eventName, handler) {

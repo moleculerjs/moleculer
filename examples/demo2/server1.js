@@ -5,15 +5,8 @@ let chalk = require("chalk");
 
 let { delay } = require("../../src/utils");
 
-let bus = require("../../src/service-bus");
 let ServiceBroker = require("../../src/service-broker");
 let NatsTransporter = require("../../src/transporters/nats");
-
-/*
-// Add debug messages to bus
-bus.onAny((event, value) => {
-	console.log(chalk.yellow("[server-1] EVENT", event));
-});*/
 
 // Create broker
 let broker = new ServiceBroker({
@@ -24,7 +17,6 @@ let broker = new ServiceBroker({
 
 require("../post.service")(broker);
 //require("../user.service")(broker);
-//require("../cacher.service")(broker);
 
 broker.start();
 
@@ -38,11 +30,9 @@ Promise.resolve()
 	});	
 
 	//}, 5000);
-});
-/*.then(delay(3000))
+})
 .then(() => {
-	let startTime = Date.now();
-	broker.call("users.get", { id: 5 }).then((user) => {
-		console.log("[server-1] User(5): ", user.email, ", Time:", Date.now() - startTime, "ms");
-	});	
-});*/
+	setInterval(() => {
+		broker.emit("TEST", { a: 1 });
+	}, 5000);
+});
