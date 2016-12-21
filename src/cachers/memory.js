@@ -14,13 +14,12 @@ class MemoryCacher extends BaseCacher {
 	/**
 	 * Creates an instance of Cacher.
 	 * 
-	 * @param {ServiceBroker} broker
 	 * @param {object} opts
 	 * 
 	 * @memberOf Cacher
 	 */
-	constructor(broker, opts) {
-		super(broker, opts);
+	constructor(opts) {
+		super(opts);
 		
 		// Cache container
 		this.cache = {};

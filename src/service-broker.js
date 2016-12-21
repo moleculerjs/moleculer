@@ -133,6 +133,7 @@ class ServiceBroker {
 			let requestID = parentCtx ? parentCtx.id : utils.generateToken();
 			return this.transporter.request(actionItem.nodeID, requestID, actionName, params);
 		} else {
+			/* istanbul ignore next */
 			throw new Error(`No action handler for '${actionName}'!`);
 		}
 	}

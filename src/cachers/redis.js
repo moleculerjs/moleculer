@@ -13,13 +13,12 @@ class RedisCacher extends BaseCacher {
 	/**
 	 * Creates an instance of Cacher.
 	 * 
-	 * @param {ServiceBroker} broker
 	 * @param {object} opts
 	 * 
 	 * @memberOf Cacher
 	 */
-	constructor(broker, opts) {
-		super(broker, opts);
+	constructor(opts) {
+		super(opts);
 		
 		let Redis = require("ioredis");
 		this.client = new Redis(this.opts.redis);

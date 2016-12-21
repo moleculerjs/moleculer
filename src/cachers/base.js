@@ -11,12 +11,11 @@ class Cacher {
 	/**
 	 * Creates an instance of Cacher.
 	 * 
-	 * @param {ServiceBroker} broker
 	 * @param {object} opts
 	 * 
 	 * @memberOf Cacher
 	 */
-	constructor(broker, opts) {
+	constructor(opts) {
 		this.opts = opts || {
 			prefix: "",
 			ttl: null
@@ -27,22 +26,27 @@ class Cacher {
 
 	init(broker) {
 		this.broker = broker;
-		this.logger = broker.getLogger("CACHER");
+		if (this.broker)
+			this.logger = broker.getLogger("CACHER");
 	}
 
 	get(key) {
+		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
 	}
 
 	set(key, data) {
+		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
 	}
 
 	del(key) {
+		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
 	}
 
 	clean(match) {
+		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
 	}
 }

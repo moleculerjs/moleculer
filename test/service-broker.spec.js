@@ -104,6 +104,34 @@ describe("Test ServiceBroker", () => {
 
 	});
 
+	it("test getLocalActionList", () => {
+		let list = broker.getLocalActionList();
+		expect(list.length).toBe(1);
+		expect(list[0]).toBe("posts.find");
+
+		let actionRemote = {
+			name: "users.get",
+			service: mockService,
+			handler: jest.fn()
+		};
+
+		broker.registerAction(mockService, actionRemote, "node");
+		list = broker.getLocalActionList();
+		expect(list.length).toBe(1);
+
+		let actionLocal = {
+			name: "device.find",
+			service: mockService,
+			handler: jest.fn()
+		};
+
+		broker.registerAction(mockService, actionLocal);
+		list = broker.getLocalActionList();
+		expect(list.length).toBe(2);
+		expect(list[1]).toBe("device.find");
+	});
+	
+
 	it("test emitLocal", () => {
 		// Test emit method
 		broker.emitLocal = jest.fn();
@@ -121,6 +149,27 @@ describe("Test ServiceBroker", () => {
 		
 	});
 
+	it("test processNodeInfo", () => {
+		let info = {
+			nodeID: "server-2",
+			actions: [
+				"other.find",
+				"other.get"
+			]
+		};
+
+		broker.processNodeInfo(info);
+
+		let findItem = broker.actions.get("other.find").get();
+		expect(findItem).toBeDefined();
+		expect(findItem.local).toBeFalsy();
+		expect(findItem.nodeID).toBe("server-2");
+
+		let getItem = broker.actions.get("other.get").get();
+		expect(getItem).toBeDefined();
+		expect(getItem.local).toBeFalsy();
+		expect(getItem.nodeID).toBe("server-2");
+	});
 });
 
 describe("Test ServiceBroker with Transporter", () => {
