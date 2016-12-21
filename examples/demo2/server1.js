@@ -18,7 +18,8 @@ bus.onAny((event, value) => {
 // Create broker
 let broker = new ServiceBroker({
 	nodeID: "server-1",
-	transporter: new NatsTransporter()
+	transporter: new NatsTransporter(),
+	logger: console
 });
 
 require("../post.service")(broker);
@@ -30,13 +31,13 @@ broker.start();
 Promise.resolve()
 .then(delay(1000))
 .then(() => {
-	setInterval(() => {
+	//setInterval(() => {
 	let startTime = Date.now();
 	broker.call("posts.find").then((posts) => {
 		console.log("[server-1] Posts: ", posts.length, ", Time:", Date.now() - startTime, "ms");
 	});	
 
-	}, 5000);
+	//}, 5000);
 });
 /*.then(delay(3000))
 .then(() => {

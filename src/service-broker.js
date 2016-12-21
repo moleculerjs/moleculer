@@ -11,13 +11,15 @@ class ServiceBroker {
 
 	constructor(options) {
 		this.options = options || {};
+		this.nodeID = this.options.nodeID || utils.getNodeID();
+
+		this.logger = this.getLogger(this.nodeID);
+
 		this.nodes = new Map();
 		this.services = new Map();
 		this.actions = new Map();
 		this.subscriptions = new Map();
 		this.transporter = this.options.transporter;
-
-		this.nodeID = this.options.nodeID || utils.getNodeID();
 
 		if (this.transporter) {
 			this.transporter.init(this);
@@ -28,6 +30,33 @@ class ServiceBroker {
 		if (this.transporter) {
 			this.transporter.connect();
 		}
+
+		this.logger.log("Log message");
+		this.logger.error("error message");
+		this.logger.warn("warn message");
+		this.logger.info("info message");
+		this.logger.debug("debug message");
+	}
+
+	getLogger(module) {
+		let noop = function() {};
+		let extLogger = this.options.logger;
+
+		let logger = {};
+		["log", "error", "warn", "info", "debug"].forEach(type => logger[type] = noop);
+
+		if (extLogger) {
+			["log", "error", "warn", "info", "debug"].forEach(type => {
+				let externalMethod = extLogger[type] || extLogger.info || extLogger.log;
+				if (externalMethod) {
+					logger[type] = function(msg, ...args) {
+						externalMethod((module ? `[${module}] ` : "") + msg, ...args);
+					}.bind(extLogger);
+				}
+			});
+		}
+
+		return logger;
 	}
 
 	/**

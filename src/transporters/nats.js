@@ -17,13 +17,14 @@ class NatsTransporter extends Transporter {
 	init(broker) {
 		super.init(broker);
 		this.nodeID = broker.nodeID;
+		this.logger = broker.getLogger("NATS");
 	}
 
 	connect() {
 		this.client = Nats.connect(this.opts);
 
 		this.client.on("connect", () => {
-			console.log(`[${this.nodeID}] NATS connected!`);
+			this.logger.info(`NATS connected!`);
 
 			// Subscribe to broadcast events
 			let eventSubject = [PREFIX, "EVENT", ">"].join(".");
@@ -41,7 +42,7 @@ class NatsTransporter extends Transporter {
 				let actionName = subject.slice(reqSubject.length - 1);
 				this.broker.call(actionName, params).then(res => {
 					let payload = utils.Json2String(res);
-					console.log(`[${this.nodeID}] REQUEST`, actionName, params, "RESP:", payload.length, "bytes");
+					this.logger.info(`REQUEST`, actionName, params, "RESP:", payload.length, "bytes");
 					this.client.publish(reply, payload);
 				});
 			});
@@ -66,11 +67,11 @@ class NatsTransporter extends Transporter {
 		});
 
 		this.client.on("error", (e) => {
-			console.log("NATS error", e);
+			this.logger.error("NATS error", e);
 		});
 
 		this.client.on("close", () => {
-			console.log("NATS connection closed!");
+			this.logger.warn("NATS connection closed!");
 		});
 	}
 

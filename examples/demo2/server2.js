@@ -18,7 +18,8 @@ bus.onAny((event, value) => {
 // Create broker
 let broker = new ServiceBroker({
 	nodeID: "server-2",
-	transporter: new NatsTransporter()
+	transporter: new NatsTransporter(),
+	logger: console
 });
 
 require("../user.service")(broker);
