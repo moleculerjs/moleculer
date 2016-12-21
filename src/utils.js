@@ -52,7 +52,7 @@ let utils = {
 	wrapLogger(extLogger, moduleName) {
 		let noop = function() {};
 
-		let prefix = "[" + moduleName + "] ";
+		let prefix = moduleName? "[" + moduleName + "] " : "";
 
 		let logger = {};
 		["log", "error", "warn", "info", "debug"].forEach(type => logger[type] = noop);
@@ -75,8 +75,8 @@ let utils = {
 		return os.hostname().toLowerCase();
 	},
 
-
 	delay(ms) {
+		/* istanbul ignore next */
 		return () => new Promise(resolve => setTimeout(resolve, ms));
 	},
 
@@ -86,9 +86,10 @@ let utils = {
 
 	String2Json(str) {
 		try {
-			if (str != "")
+			if (str)
 				return JSON.parse(str);				
 		} catch (err) {
+			/* istanbul ignore next */
 			console.warn(err);
 		}
 	},
@@ -98,6 +99,7 @@ let utils = {
 			if (json != null) 
 				return JSON.stringify(json);
 		} catch (err) {
+			/* istanbul ignore next */
 			console.warn(err);
 		}
 		return "";

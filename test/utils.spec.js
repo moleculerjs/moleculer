@@ -105,3 +105,114 @@ describe("Test utils.cachingWrapper", () => {
 	});
 
 });
+
+
+describe("Test utils.getNodeID", () => {
+	let os = require("os");
+	it("should give the computer hostname", () => {
+		expect(utils.getNodeID()).toBe(os.hostname().toLowerCase());
+	});
+});
+
+describe("Test utils.String2Json", () => {
+	let str = '{"a": 1, "b": [1,5,8], "c": "Test" }';
+	it("should give JS object", () => {
+		expect(utils.String2Json()).toBeUndefined();
+		expect(utils.String2Json("")).toBeUndefined();
+		expect(utils.String2Json(str)).toEqual({
+			a: 1, 
+			b: [1,5,8],
+			c: "Test"
+		});
+	});
+});
+
+describe("Test utils.Json2String", () => {
+	let str = '{"a":1,"b":[1,5,8],"c":"Test"}';
+	let obj = {
+		a: 1, 
+		b: [1,5,8],
+		c: "Test"
+	};
+
+	it("should give JSON string", () => {
+		expect(utils.Json2String()).toBe("");
+		expect(utils.Json2String(null)).toBe("");
+		expect(utils.Json2String(obj)).toBe(str);
+	});
+});
+
+describe("Test utils.wrapLogger", () => {
+	let con = {
+		log: jest.fn(),
+		error: jest.fn(),
+		warn: jest.fn()
+	};
+
+	it("should create a full logger without moduleName", () => {
+		let logger = utils.wrapLogger(con);
+		expect(typeof logger.log).toBe("function");
+		expect(typeof logger.error).toBe("function");
+		expect(typeof logger.warn).toBe("function");
+		expect(typeof logger.info).toBe("function");
+		expect(typeof logger.debug).toBe("function");
+
+		logger.log("log level");
+		expect(con.log).toHaveBeenCalledTimes(1);
+		expect(con.log).toHaveBeenCalledWith("log level");
+
+		logger.warn("warn level");
+		expect(con.warn).toHaveBeenCalledTimes(1);
+		expect(con.warn).toHaveBeenCalledWith("warn level");
+
+		logger.error("error level");
+		expect(con.error).toHaveBeenCalledTimes(1);
+		expect(con.error).toHaveBeenCalledWith("error level");
+
+		logger.info("info level");
+		expect(con.log).toHaveBeenCalledTimes(2);
+		expect(con.log).toHaveBeenCalledWith("info level");
+
+		logger.debug("debug level");
+		expect(con.log).toHaveBeenCalledTimes(3);
+		expect(con.log).toHaveBeenCalledWith("debug level");
+	});
+});
+
+describe("Test utils.wrapLogger", () => {
+	let con = {
+		info: jest.fn(),
+		error: jest.fn(),
+		warn: jest.fn()
+	};
+
+	it("should create a full logger without moduleName", () => {
+		let logger = utils.wrapLogger(con, "Module");
+		expect(typeof logger.log).toBe("function");
+		expect(typeof logger.error).toBe("function");
+		expect(typeof logger.warn).toBe("function");
+		expect(typeof logger.info).toBe("function");
+		expect(typeof logger.debug).toBe("function");
+
+		logger.log("log level");
+		expect(con.info).toHaveBeenCalledTimes(1);
+		expect(con.info).toHaveBeenCalledWith("[Module] log level");
+
+		logger.warn("warn level");
+		expect(con.warn).toHaveBeenCalledTimes(1);
+		expect(con.warn).toHaveBeenCalledWith("[Module] warn level");
+
+		logger.error("error level");
+		expect(con.error).toHaveBeenCalledTimes(1);
+		expect(con.error).toHaveBeenCalledWith("[Module] error level");
+
+		logger.info("info level");
+		expect(con.info).toHaveBeenCalledTimes(2);
+		expect(con.info).toHaveBeenCalledWith("[Module] info level");
+
+		logger.debug("debug level");
+		expect(con.info).toHaveBeenCalledTimes(3);
+		expect(con.info).toHaveBeenCalledWith("[Module] debug level");
+
+	});
+});
