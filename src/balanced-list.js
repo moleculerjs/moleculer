@@ -58,6 +58,7 @@ class BalancedList {
 
 	remove(data) {
 		_.remove(this.list, (el) => el.data == data);
+		this.counter = 0;
 	}
 
 }
