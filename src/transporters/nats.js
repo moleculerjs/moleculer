@@ -1,17 +1,18 @@
 "use strict";
 
-let Transporter = require("./transporter");
+let Transporter = require("./base");
 let utils = require("../utils");
 
-let Nats = require("nats");
-
-const PREFIX = "ICE";
+let PREFIX = "ICE";
 
 class NatsTransporter extends Transporter {
 
 	constructor(opts) {
 		super(opts);
 		this.client = null;
+		
+		if (this.opts.prefix)
+			PREFIX = this.opts.prefix;
 	}
 
 	init(broker) {
@@ -21,6 +22,7 @@ class NatsTransporter extends Transporter {
 	}
 
 	connect() {
+		let Nats = require("nats");
 		this.client = Nats.connect(this.opts);
 
 		this.client.on("connect", () => {

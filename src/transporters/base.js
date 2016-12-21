@@ -1,6 +1,6 @@
 "use strict";
 
-class Transporter {
+class BaseTransporter {
 
 	constructor(opts) {
 		this.opts = opts || {};
@@ -37,4 +37,4 @@ class Transporter {
 
 }
 
-module.exports = Transporter;
+module.exports = BaseTransporter;

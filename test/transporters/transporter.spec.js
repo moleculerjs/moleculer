@@ -1,4 +1,4 @@
-const Transporter = require("../../src/transporters/transporter");
+const Transporter = require("../../src/transporters/base");
 
 describe("Test Transporter", () => {
 

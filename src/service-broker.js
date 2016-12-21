@@ -19,21 +19,20 @@ class ServiceBroker {
 			wildcard: true,
 			maxListeners: 100,
 		});
+		// TODO debug
 		this.bus.onAny((event, value) => {
 			this.logger.debug("Local event", event, value);
 		});		
 
-		this.nodes = new Map();
 		this.services = new Map();
 		this.actions = new Map();
-		this.subscriptions = new Map();
-		this.transporter = this.options.transporter;
-		this.cacher = this.options.cacher;
 
+		this.cacher = this.options.cacher;
 		if (this.cacher) {
 			this.cacher.init(this);
 		}
 
+		this.transporter = this.options.transporter;
 		if (this.transporter) {
 			this.transporter.init(this);
 		}
@@ -45,27 +44,8 @@ class ServiceBroker {
 		}
 	}
 
-	getLogger(module) {
-		let noop = function() {};
-		let extLogger = this.options.logger;
-
-		let prefix = "[" + this.nodeID + (module ? "-" + module : "") + "] ";
-
-		let logger = {};
-		["log", "error", "warn", "info", "debug"].forEach(type => logger[type] = noop);
-
-		if (extLogger) {
-			["log", "error", "warn", "info", "debug"].forEach(type => {
-				let externalMethod = extLogger[type] || extLogger.info || extLogger.log;
-				if (externalMethod) {
-					logger[type] = function(msg, ...args) {
-						externalMethod(prefix + msg, ...args);
-					}.bind(extLogger);
-				}
-			});
-		}
-
-		return logger;
+	getLogger(name) {
+		return utils.wrapLogger(this.options.logger, this.nodeID + (name ? "-" + name : ""));
 	}
 
 	/**
@@ -92,6 +72,7 @@ class ServiceBroker {
 	 * 
 	 * @param {any} service
 	 * @param {any} action
+	 * @param {any} nodeID
 	 * 
 	 * @memberOf ServiceBroker
 	 */
@@ -178,6 +159,7 @@ class ServiceBroker {
 	
 	processNodeInfo(info) {
 		if (info.actions) {
+			// Add external actions
 			info.actions.forEach(name => {
 				let action = {
 					name
@@ -186,7 +168,6 @@ class ServiceBroker {
 				this.registerAction(null, action, info.nodeID);
 			});
 		}
-		//console.log(`[${this.nodeID}] `, this.actions);
 	}
 }
 

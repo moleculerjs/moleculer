@@ -1,8 +1,7 @@
 "use strict";
 
-let _ 			= require("lodash");
-let redis 		= require("../redis");
-let BaseCacher  = require("./base");
+let _ = require("lodash");
+let BaseCacher = require("./base");
 
 /**
  * Cacher factory for Redis
@@ -21,6 +20,26 @@ class RedisCacher extends BaseCacher {
 	 */
 	constructor(broker, opts) {
 		super(broker, opts);
+		
+		let Redis = require("ioredis");
+		this.client = new Redis(this.opts.redis);
+
+		this.client.on("connect", (err) => {
+			this.logger.info("Redis cacher connected!");
+		});
+
+		this.client.on("error", (err) => {
+			this.logger.error(err);
+		});
+
+		if (this.opts.monitor) {
+			this.client.monitor((err, monitor) => {
+				this.logger.debug("Redis cacher entering monitoring mode...");
+				monitor.on("monitor", (time, args, source, database) => {
+					this.logger.debug(args);
+				});
+			});
+		}
 	}
 
 	init(broker) {
@@ -37,13 +56,13 @@ class RedisCacher extends BaseCacher {
 	 * @memberOf Cacher
 	 */
 	get(key) {
-		return redis.get(this.prefix + key).then((data) => {
+		return this.client.get(this.prefix + key).then((data) => {
 			if (data) {
 				try {
-					return JSON.parse(data);						
+					return JSON.parse(data);
 				} catch (err) {
 					this.logger.error("Redis result parse error!", err);
-				}				
+				}
 			}
 			return data;
 		});
@@ -63,12 +82,12 @@ class RedisCacher extends BaseCacher {
 			data = JSON.stringify(data);
 
 		if (this.ttl) {
-			return redis.setex(this.prefix + key, this.opts.ttl, data);/*, (err) => {
+			return this.client.setex(this.prefix + key, this.opts.ttl, data);/*, (err) => {
 				if (err)
 					this.logger.error("Redis `setex` error!", err);
 			});*/
 		} else {
-			return redis.set(this.prefix + key, data);/*, (err) => {
+			return this.client.set(this.prefix + key, data);/*, (err) => {
 				if (err)
 					this.logger.error("Redis `set` error!", err);
 			});*/
@@ -84,7 +103,7 @@ class RedisCacher extends BaseCacher {
 	 * @memberOf Cacher
 	 */
 	del(key) {
-		redis.del(this.prefix + key, (err) => {
+		this.client.del(this.prefix + key, (err) => {
 			if (err)
 				this.logger.error("Redis `del` error!", err);
 		});
@@ -104,14 +123,14 @@ class RedisCacher extends BaseCacher {
 	clean(match) {
 		let self = this;
 		let scanDel = function (cursor, cb) {
-			redis.scan(cursor, "MATCH", self.prefix + (match || "*"), "COUNT", 100, function(err, resp) {
+			this.client.scan(cursor, "MATCH", self.prefix + (match || "*"), "COUNT", 100, function (err, resp) {
 				if (err) return cb(err);
 				let nextCursor = parseInt(resp[0]);
 				let keys = resp[1];
 				// no next cursor and no keys to delete
 				if (!nextCursor && !keys.length) return cb(null);
 
-				redis.del(keys, function(err) {
+				this.client.del(keys, function (err) {
 					if (err) return cb(err);
 					if (!nextCursor) return cb(null);
 					scanDel(nextCursor, cb);
@@ -124,7 +143,7 @@ class RedisCacher extends BaseCacher {
 			if (err)
 				//return reject(err);
 				this.logger.error("Redis `scanDel` error!", err);
-			
+
 			//resolve();
 		});
 

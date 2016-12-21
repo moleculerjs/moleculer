@@ -49,6 +49,28 @@ let utils = {
 		};
 	},
 
+	wrapLogger(extLogger, moduleName) {
+		let noop = function() {};
+
+		let prefix = "[" + moduleName + "] ";
+
+		let logger = {};
+		["log", "error", "warn", "info", "debug"].forEach(type => logger[type] = noop);
+
+		if (extLogger) {
+			["log", "error", "warn", "info", "debug"].forEach(type => {
+				let externalMethod = extLogger[type] || extLogger.info || extLogger.log;
+				if (externalMethod) {
+					logger[type] = function(msg, ...args) {
+						externalMethod(prefix + msg, ...args);
+					}.bind(extLogger);
+				}
+			});
+		}
+
+		return logger;		
+	},
+
 	getNodeID() {
 		return os.hostname().toLowerCase();
 	},
