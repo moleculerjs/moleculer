@@ -20,12 +20,12 @@ describe("Test BalancedList", () => {
 	});
 
 	it("test get with remote & preferLocal", () => {
-		let obj1 = {};
-		let obj2 = {};
-		let obj3 = {};
+		let obj1 = { a: 1};
+		let obj2 = { b: 2};
+		let obj3 = { c: 3};
 		let list = new BalancedList();
-		list.add(obj1, 0, "node"); // remote
-		list.add(obj2, 20, "node"); // remote
+		list.add(obj1, 0, "node1"); // remote
+		list.add(obj2, 20, "node2"); // remote
 		list.add(obj3, 0); // local
 
 		expect(list.hasLocal()).toBeTruthy();
@@ -50,19 +50,19 @@ describe("Test BalancedList", () => {
 	});
 
 	it("test get with remote & NOT preferLocal", () => {
-		let obj1 = {};
-		let obj2 = {};
-		let obj3 = {};
+		let obj1 = { a: 1};
+		let obj2 = { b: 2};
+		let obj3 = { c: 3};
 		let list = new BalancedList({ preferLocal: false});
-		list.add(obj1, 0, "node");
-		list.add(obj2, 20, "node");
+		list.add(obj1, 0, "node1");
+		list.add(obj2, 20, "node2");
 		list.add(obj3, 0); // local
 		expect(list.hasLocal()).toBeTruthy();
 
 		expect(list.counter).toBe(0);
 		let item = list.get();
 		expect(item.local).toBeFalsy();
-		expect(item.nodeID).toBe("node");
+		expect(item.nodeID).toBe("node1");
 		expect(item.data).toBe(obj1);
 		expect(list.counter).toBe(1);
 		expect(list.get().data).toBe(obj2);

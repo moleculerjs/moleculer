@@ -25,7 +25,9 @@ let memCacher = new MemoryCacher({
 memCacher.init(broker);
 
 let redisCacher = new RedisCacher({
-	uri: "localhost:6379",
+	redis: {
+		uri: "localhost:6379"
+	},
 	prefix: "BENCH-"
 });
 redisCacher.init(broker);
