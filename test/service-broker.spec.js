@@ -4,22 +4,11 @@ const ServiceBroker = require("../src/service-broker");
 const Context = require("../src/context");
 const Transporter = require("../src/transporters/base");
 
-describe("Test ServiceBroker", () => {
+describe("Test ServiceBroker constructor", () => {
 
-	let broker= new ServiceBroker();
+	let broker = new ServiceBroker();
 
-	let mockService = {
-		name: "posts",
-		broker: broker
-	};
-
-	let mockAction = {
-		name: "posts.find",
-		service: mockService,
-		handler: jest.fn(ctx => ctx)
-	};	
-
-	it("test ServiceBroker constructor", () => {
+	it("should set properties", () => {
 		expect(broker).toBeDefined();
 		expect(broker.options).toEqual({});
 		expect(broker.services).toBeInstanceOf(Map);
@@ -27,6 +16,16 @@ describe("Test ServiceBroker", () => {
 		expect(broker.transporter).toBeUndefined();
 		expect(broker.nodeID).toBe(require("os").hostname().toLowerCase());
 	});
+});
+
+describe("Test service registration", () => {
+
+	let broker = new ServiceBroker();
+
+	let mockService = {
+		name: "posts",
+		broker: broker
+	};	
 
 	it("test register service", () => {
 		let registerServiceCB = jest.fn();
@@ -47,7 +46,24 @@ describe("Test ServiceBroker", () => {
 		expect(broker.getService("posts").data).toBe(mockService);		
 	});
 
-	it("test register action", () => {
+});
+
+describe("Test action registration", () => {
+
+	let broker = new ServiceBroker();
+
+	let mockService = {
+		name: "posts",
+		broker: broker
+	};
+
+	let mockAction = {
+		name: "posts.find",
+		service: mockService,
+		handler: jest.fn(ctx => ctx)
+	};	
+
+	it("should call a register event", () => {
 		let registerActionCB = jest.fn();
 		broker.on("register.action.posts.find", registerActionCB);
 
@@ -57,12 +73,12 @@ describe("Test ServiceBroker", () => {
 		expect(registerActionCB).toHaveBeenCalledTimes(1);
 	});
 
-	it("test register action", () => {
+	it("should return the action", () => {
 		expect(broker.hasAction("noaction")).toBeFalsy();
 		expect(broker.hasAction("posts.find")).toBeTruthy();
 	});
 		
-	it("test call action", () => {
+	it("should return context & call the action handler", () => {
 
 		expect(() => broker.call("noaction")).toThrowError();
 
@@ -78,7 +94,7 @@ describe("Test ServiceBroker", () => {
 		mockAction.handler.mockClear();
 	});
 		
-	it("test call action with param", () => {
+	it("should set params to context", () => {
 		let params = { a: 1 };
 		let ctx = broker.call("posts.find", params);
 		expect(ctx.params).not.toBe(params);
@@ -86,7 +102,7 @@ describe("Test ServiceBroker", () => {
 		expect(ctx.level).toBe(1);
 	});
 
-	it("test call action with parent context", () => {
+	it("should create a sub context of parent context", () => {
 		let prevCtx = new Context({
 			params: {
 				a: 5,
@@ -103,11 +119,32 @@ describe("Test ServiceBroker", () => {
 		expect(ctx.parent).toBe(prevCtx);
 
 	});
+});
 
-	it("test getLocalActionList", () => {
+describe("Test getLocalActionList", () => {
+
+	let broker = new ServiceBroker();
+
+	let mockService = {
+		name: "posts",
+		broker: broker
+	};
+
+	let mockAction = {
+		name: "posts.find",
+		service: mockService,
+		handler: jest.fn(ctx => ctx)
+	};	
+
+	broker.registerAction(mockService, mockAction);
+
+	it("should contain the local registered action", () => {
 		let list = broker.getLocalActionList();
 		expect(list.length).toBe(1);
 		expect(list[0]).toBe("posts.find");
+	});
+
+	it("should not contain the remote registered action", () => {
 
 		let actionRemote = {
 			name: "users.get",
@@ -116,8 +153,11 @@ describe("Test ServiceBroker", () => {
 		};
 
 		broker.registerAction(mockService, actionRemote, "node");
-		list = broker.getLocalActionList();
+		let list = broker.getLocalActionList();
 		expect(list.length).toBe(1);
+	});
+
+	it("should contain both registered local action", () => {
 
 		let actionLocal = {
 			name: "device.find",
@@ -126,13 +166,17 @@ describe("Test ServiceBroker", () => {
 		};
 
 		broker.registerAction(mockService, actionLocal);
-		list = broker.getLocalActionList();
+		let list = broker.getLocalActionList();
 		expect(list.length).toBe(2);
 		expect(list[1]).toBe("device.find");
 	});
+});
 	
+describe("Test emitLocal", () => {
 
-	it("test emitLocal", () => {
+	let broker = new ServiceBroker();
+
+	it("should call the event handler locally with object param", () => {
 		// Test emit method
 		broker.emitLocal = jest.fn();
 
@@ -141,25 +185,31 @@ describe("Test ServiceBroker", () => {
 
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
 		expect(broker.emitLocal).toHaveBeenCalledWith("request.rest", data);
+	});
 
+	it("should call the event handler locally with string param", () => {
 		broker.emitLocal.mockClear();
 		broker.emitLocal("request.rest", "string-data");
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
 		expect(broker.emitLocal).toHaveBeenCalledWith("request.rest", "string-data");
-		
 	});
+});
 
-	it("test processNodeInfo", () => {
-		let info = {
-			nodeID: "server-2",
-			actions: [
-				"other.find",
-				"other.get"
-			]
-		};
+describe("Test processNodeInfo", () => {
 
-		broker.processNodeInfo(info);
+	let broker = new ServiceBroker();
 
+	let info = {
+		nodeID: "server-2",
+		actions: [
+			"other.find",
+			"other.get"
+		]
+	};
+
+	broker.processNodeInfo(info);
+
+	it("should find the remote action after processNodeInfo", () => {
 		let findItem = broker.actions.get("other.find").get();
 		expect(findItem).toBeDefined();
 		expect(findItem.local).toBeFalsy();
@@ -170,6 +220,13 @@ describe("Test ServiceBroker", () => {
 		expect(getItem.local).toBeFalsy();
 		expect(getItem.nodeID).toBe("server-2");
 	});
+
+	broker.processNodeInfo(info);
+
+	it("should not contain duplicate actions", () => {
+		// TODO
+	});
+	
 });
 
 describe("Test ServiceBroker with Transporter", () => {
@@ -178,13 +235,14 @@ describe("Test ServiceBroker with Transporter", () => {
 	transporter.init = jest.fn(); 
 	transporter.connect = jest.fn(); 
 	transporter.emit = jest.fn(); 
+	transporter.request = jest.fn((nodeID, ctx) => ctx); 
 
 	let broker= new ServiceBroker({
 		transporter,
 		nodeID: "12345"
 	});
 
-	it("test constructor", () => {
+	it("should call transporter.init", () => {
 		expect(broker).toBeDefined();
 		expect(broker.transporter).toBeDefined();
 		expect(broker.nodeID).toBe("12345");
@@ -195,20 +253,51 @@ describe("Test ServiceBroker with Transporter", () => {
 		expect(transporter.connect).toHaveBeenCalledTimes(0);
 	});
 
-	it("test start", () => {
+	it("should call transporter.connect", () => {
 		broker.start();
 		expect(transporter.connect).toHaveBeenCalledTimes(1);
 	});
 
-	it("test ServiceBroker.emit method", () => {
+	it("should call transporter emit", () => {
 		let p = { a: 1 };
 		broker.emit("posts.find", p);
 		expect(transporter.emit).toHaveBeenCalledTimes(1);
 		expect(transporter.emit).toHaveBeenCalledWith("posts.find", p);
 	});
 
-	it("test ServiceBroker.call methd", () => {
+	let mockService = {
+		name: "posts",
+		broker: broker
+	};
+
+	let mockAction = {
+		name: "posts.find",
+		service: mockService,
+		handler: jest.fn(ctx => ctx)
+	};
+
+	it("should call transporter.request wqith new context", () => {
 		let p = { abc: 100 };
+
+		broker.registerAction(mockService, mockAction, "99999");
+		let ctx = broker.call("posts.find", p);
+
+		expect(transporter.request).toHaveBeenCalledTimes(1);
+		expect(transporter.request).toHaveBeenCalledWith("99999", ctx);
+		expect(ctx.params).toEqual(p);
 		
 	});
+
+	it("should call transporter.request wqith new context", () => {
+		let p = { abc: 100 };
+		let parentCtx = new Context(p);
+		transporter.request.mockClear();
+
+		let ctx = broker.call("posts.find", p, parentCtx);
+
+		expect(transporter.request).toHaveBeenCalledTimes(1);
+		expect(transporter.request).toHaveBeenCalledWith("99999", ctx);
+		expect(ctx.parent).toBe(parentCtx);		
+	});
+	
 });

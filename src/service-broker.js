@@ -187,28 +187,24 @@ class ServiceBroker {
 		}
 
 		let action = actionItem.data;
+		let service = action.service;
 
+		// Create a new context
+		let ctx;
+		if (parentCtx) {
+			ctx = parentCtx.createSubContext(service, action, params);
+		} else {
+			ctx = new Context({ service, action, params });
+		}
+			
 		if (actionItem.local) {
 			// Local action call
-			let service = action.service;
-			// Create a new context
-			let ctx;
-			if (parentCtx) {
-				ctx = parentCtx.createSubContext(service, action, params);
-			} else {
-				ctx = new Context({ service, action, params });
-			}
-			
 			return action.handler(ctx);
 
 		} else if (actionItem.nodeID && this.transporter) {
-			let ctx;
-			if (parentCtx)
-				ctx = parentCtx.createSubContext(null, action, params);
-			else	
-				ctx = new Context({ action, params });
-
+			// Remote action call
 			return this.transporter.request(actionItem.nodeID, ctx);
+
 		} else {
 			/* istanbul ignore next */
 			throw new Error(`No action handler for '${actionName}'!`);

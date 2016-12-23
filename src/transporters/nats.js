@@ -154,22 +154,21 @@ class NatsTransporter extends Transporter {
 	}
 
 	/**
+	 * Send a request to a remote service. It returns a Promise
+	 * what will be resolved when the response received.
 	 * 
+	 * TODO: request timeout
 	 * 
-	 * @param {any} nodeID
-	 * @param {any} ctx
-	 * @returns
+	 * @param {any} nodeID	Remote Node ID
+	 * @param {any} ctx		Context of request
+	 * @returns	{Promise}
 	 * 
 	 * @memberOf NatsTransporter
 	 */
 	request(nodeID, ctx) {
 		return new Promise((resolve) => {
 			let replySubject = [PREFIX, "RESP", ctx.id].join(".");
-			/**
-			 * 
-			 * 
-			 * @param {any} response
-			 */
+
 			let sid = this.client.subscribe(replySubject, (response) => {
 				if (response != "")
 					resolve(utils.string2Json(response));
