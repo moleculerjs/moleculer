@@ -8,8 +8,20 @@ let utils = require("./utils");
 let _ = require("lodash");
 
 
+/**
+ * 
+ * 
+ * @class ServiceBroker
+ */
 class ServiceBroker {
 
+	/**
+	 * Creates an instance of ServiceBroker.
+	 * 
+	 * @param {any} options
+	 * 
+	 * @memberOf ServiceBroker
+	 */
 	constructor(options) {
 		this.options = options || {};
 		this.nodeID = this.options.nodeID || utils.getNodeID();
@@ -38,12 +50,26 @@ class ServiceBroker {
 		}
 	}
 
+	/**
+	 * 
+	 * 
+	 * 
+	 * @memberOf ServiceBroker
+	 */
 	start() {
 		if (this.transporter) {
 			this.transporter.connect();
 		}
 	}
 
+	/**
+	 * 
+	 * 
+	 * @param {any} name
+	 * @returns
+	 * 
+	 * @memberOf ServiceBroker
+	 */
 	getLogger(name) {
 		return utils.wrapLogger(this.options.logger, this.nodeID + (name ? "-" + name : ""));
 	}
@@ -87,10 +113,26 @@ class ServiceBroker {
 		this.emitLocal(`register.action.${action.name}`, service, action);
 	}
 
+	/**
+	 * 
+	 * 
+	 * @param {any} name
+	 * @param {any} handler
+	 * 
+	 * @memberOf ServiceBroker
+	 */
 	on(name, handler) {
 		this.bus.on(name, handler);
 	}
 
+	/**
+	 * 
+	 * 
+	 * @param {any} serviceName
+	 * @returns
+	 * 
+	 * @memberOf ServiceBroker
+	 */
 	getService(serviceName) {
 		let service = this.services.get(serviceName);
 		if (service) {
@@ -98,14 +140,40 @@ class ServiceBroker {
 		}
 	}
 
+	/**
+	 * 
+	 * 
+	 * @param {any} serviceName
+	 * @returns
+	 * 
+	 * @memberOf ServiceBroker
+	 */
 	hasService(serviceName) {
 		return this.services.has(serviceName);
 	}
 
+	/**
+	 * 
+	 * 
+	 * @param {any} actionName
+	 * @returns
+	 * 
+	 * @memberOf ServiceBroker
+	 */
 	hasAction(actionName) {
 		return this.actions.has(actionName);
 	}
 
+	/**
+	 * 
+	 * 
+	 * @param {any} actionName
+	 * @param {any} params
+	 * @param {any} parentCtx
+	 * @returns
+	 * 
+	 * @memberOf ServiceBroker
+	 */
 	call(actionName, params, parentCtx) {
 		let actions = this.actions.get(actionName);
 		if (!actions) {
@@ -118,9 +186,10 @@ class ServiceBroker {
 			throw new Error(`Missing action handler '${actionName}'!`);
 		}
 
+		let action = actionItem.data;
+
 		if (actionItem.local) {
 			// Local action call
-			let action = actionItem.data;
 			let service = action.service;
 			// Create a new context
 			let ctx;
@@ -133,14 +202,28 @@ class ServiceBroker {
 			return action.handler(ctx);
 
 		} else if (actionItem.nodeID && this.transporter) {
-			let requestID = parentCtx ? parentCtx.id : utils.generateToken();
-			return this.transporter.request(actionItem.nodeID, requestID, actionName, params);
+			let ctx;
+			if (parentCtx)
+				ctx = parentCtx.createSubContext(null, action, params);
+			else	
+				ctx = new Context({ action, params });
+
+			return this.transporter.request(actionItem.nodeID, ctx);
 		} else {
 			/* istanbul ignore next */
 			throw new Error(`No action handler for '${actionName}'!`);
 		}
 	}
 
+	/**
+	 * 
+	 * 
+	 * @param {any} eventName
+	 * @param {any} args
+	 * @returns
+	 * 
+	 * @memberOf ServiceBroker
+	 */
 	emit(eventName, ...args) {
 		if (this.transporter) {
 			this.transporter.emit(eventName, ...args);
@@ -149,10 +232,26 @@ class ServiceBroker {
 		return this.emitLocal(eventName, ...args);
 	}
 
+	/**
+	 * 
+	 * 
+	 * @param {any} eventName
+	 * @param {any} args
+	 * @returns
+	 * 
+	 * @memberOf ServiceBroker
+	 */
 	emitLocal(eventName, ...args) {
 		return this.bus.emit(eventName, ...args);
 	}
 
+	/**
+	 * 
+	 * 
+	 * @returns
+	 * 
+	 * @memberOf ServiceBroker
+	 */
 	getLocalActionList() {
 		let res = [];
 		for (let entry of this.actions.entries()) {
@@ -163,6 +262,13 @@ class ServiceBroker {
 		return res;
 	}
 	
+	/**
+	 * 
+	 * 
+	 * @param {any} info
+	 * 
+	 * @memberOf ServiceBroker
+	 */
 	processNodeInfo(info) {
 		if (info.actions) {
 			// Add external actions

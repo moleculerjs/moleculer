@@ -10,7 +10,7 @@ describe("Test ServiceBroker", () => {
 
 	let mockService = {
 		name: "posts",
-		$broker: broker
+		broker: broker
 	};
 
 	let mockAction = {
@@ -205,5 +205,10 @@ describe("Test ServiceBroker with Transporter", () => {
 		broker.emit("posts.find", p);
 		expect(transporter.emit).toHaveBeenCalledTimes(1);
 		expect(transporter.emit).toHaveBeenCalledWith("posts.find", p);
+	});
+
+	it("test ServiceBroker.call methd", () => {
+		let p = { abc: 100 };
+		
 	});
 });

@@ -4,8 +4,21 @@ let _ = require("lodash");
 let Context = require("./context");
 let utils = require("./utils");
 
+/**
+ * 
+ * 
+ * @class Service
+ */
 class Service {
 
+	/**
+	 * Creates an instance of Service.
+	 * 
+	 * @param {any} broker
+	 * @param {any} schema
+	 * 
+	 * @memberOf Service
+	 */
 	constructor(broker, schema) {
 
 		if (!_.isObject(broker)) {
@@ -44,6 +57,12 @@ class Service {
 
 				let innerAction = this._createActionHandler(action, action.handler, name);
 
+				/**
+				 * 
+				 * 
+				 * @param {any} params
+				 * @returns
+				 */
 				this.actions[name] = (params) => {
 					let ctx = new Context({ service: this, action: innerAction, params });
 					return action.handler(ctx);
@@ -94,6 +113,16 @@ class Service {
 
 	}
 
+	/**
+	 * 
+	 * 
+	 * @param {any} action
+	 * @param {any} handler
+	 * @param {any} name
+	 * @returns
+	 * 
+	 * @memberOf Service
+	 */
 	_createActionHandler(action, handler, name) {
 		if (!_.isFunction(handler)) {
 			throw new Error(`Missing action handler on '${name}' action in '${this.name}' service!`);

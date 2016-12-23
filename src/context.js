@@ -5,8 +5,20 @@ let chalk = require("chalk");
 
 let utils = require("./utils");
 
+/**
+ * 
+ * 
+ * @class Context
+ */
 class Context {
 
+	/**
+	 * Creates an instance of Context.
+	 * 
+	 * @param {any} opts
+	 * 
+	 * @memberOf Context
+	 */
 	constructor(opts) {
 		opts = Object.assign({}, opts || {});
 	
@@ -27,6 +39,16 @@ class Context {
 		this.duration = 0;
 	}
 
+	/**
+	 * 
+	 * 
+	 * @param {any} service
+	 * @param {any} action
+	 * @param {any} params
+	 * @returns
+	 * 
+	 * @memberOf Context
+	 */
 	createSubContext(service, action, params) {
 		return new Context({
 			id: this.id,
@@ -37,14 +59,36 @@ class Context {
 		});
 	}
 
+	/**
+	 * 
+	 * 
+	 * @param {any} newParams
+	 * 
+	 * @memberOf Context
+	 */
 	setParams(newParams) {
 		this.params = Object.freeze(Object.assign({}, newParams));
 	}
 
+	/**
+	 * 
+	 * 
+	 * @param {any} eventName
+	 * @param {any} data
+	 * @returns
+	 * 
+	 * @memberOf Context
+	 */
 	emit(eventName, data) {
 		return this.broker.emit(eventName, data);
 	}
 
+	/**
+	 * 
+	 * 
+	 * 
+	 * @memberOf Context
+	 */
 	closeContext() {
 		this.stopTime = Date.now();
 		this.duration = this.stopTime - this.startTime;
@@ -53,6 +97,14 @@ class Context {
 		}
 	}
 
+	/**
+	 * 
+	 * 
+	 * @param {any} data
+	 * @returns
+	 * 
+	 * @memberOf Context
+	 */
 	result(data) {
 		return Promise.resolve(data)
 			.then((res) => {
@@ -63,12 +115,29 @@ class Context {
 			});
 	}
 
+	/**
+	 * 
+	 * 
+	 * @param {any} err
+	 * @returns
+	 * 
+	 * @memberOf Context
+	 */
 	error(err) {
 		this.closeContext();
 		//this.logger.error(chalk.red.bold(`[${this.duration}ms] error:`), err);
 		return Promise.reject(err);
 	}
 
+	/**
+	 * 
+	 * 
+	 * @param {any} actionName
+	 * @param {any} params
+	 * @returns
+	 * 
+	 * @memberOf Context
+	 */
 	call(actionName, params) {
 		return this.broker.call(actionName, params, this);
 	}	

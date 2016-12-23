@@ -5,8 +5,21 @@ let utils = require("../utils");
 
 let PREFIX = "ICE";
 
+/**
+ * 
+ * 
+ * @class NatsTransporter
+ * @extends {Transporter}
+ */
 class NatsTransporter extends Transporter {
 
+	/**
+	 * Creates an instance of NatsTransporter.
+	 * 
+	 * @param {any} opts
+	 * 
+	 * @memberOf NatsTransporter
+	 */
 	constructor(opts) {
 		super(opts);
 		this.client = null;
@@ -15,12 +28,25 @@ class NatsTransporter extends Transporter {
 			PREFIX = this.opts.prefix;
 	}
 
+	/**
+	 * 
+	 * 
+	 * @param {any} broker
+	 * 
+	 * @memberOf NatsTransporter
+	 */
 	init(broker) {
 		super.init(broker);
 		this.nodeID = broker.nodeID;
 		this.logger = broker.getLogger("NATS");
 	}
 
+	/**
+	 * 
+	 * 
+	 * 
+	 * @memberOf NatsTransporter
+	 */
 	connect() {
 		let Nats = require("nats");
 		this.client = Nats.connect(this.opts);
@@ -85,11 +111,25 @@ class NatsTransporter extends Transporter {
 		});
 	}
 
+	/**
+	 * 
+	 * 
+	 * 
+	 * @memberOf NatsTransporter
+	 */
 	disconnect() {
 		if (this.client)
 			this.client.close();
 	}
 
+	/**
+	 * 
+	 * 
+	 * @param {any} eventName
+	 * @param {any} args
+	 * 
+	 * @memberOf NatsTransporter
+	 */
 	emit(eventName, ...args) {
 		let subject = [PREFIX, "EVENT", eventName].join(".");
 		let event = {
@@ -101,13 +141,35 @@ class NatsTransporter extends Transporter {
 		this.client.publish(subject, payload);
 	}
 
+	/**
+	 * 
+	 * 
+	 * @param {any} eventName
+	 * @param {any} handler
+	 * 
+	 * @memberOf NatsTransporter
+	 */
 	subscribe(eventName, handler) {
 		this.client.subscribe(PREFIX + eventName, handler);
 	}
 
-	request(nodeID, requestID, actionName, params) {
+	/**
+	 * 
+	 * 
+	 * @param {any} nodeID
+	 * @param {any} ctx
+	 * @returns
+	 * 
+	 * @memberOf NatsTransporter
+	 */
+	request(nodeID, ctx) {
 		return new Promise((resolve) => {
-			let replySubject = [PREFIX, "RESP", requestID].join(".");
+			let replySubject = [PREFIX, "RESP", ctx.id].join(".");
+			/**
+			 * 
+			 * 
+			 * @param {any} response
+			 */
 			let sid = this.client.subscribe(replySubject, (response) => {
 				if (response != "")
 					resolve(utils.string2Json(response));
@@ -117,16 +179,31 @@ class NatsTransporter extends Transporter {
 				this.client.unsubscribe(sid);
 			});
 
-			let subj = [PREFIX, "REQ", nodeID, actionName].join(".");
-			let payload = utils.json2String(params);
+			let subj = [PREFIX, "REQ", nodeID, ctx.action.name].join(".");
+			let payload = utils.json2String(ctx.params);
 			this.client.publish(subj, payload, replySubject);
 		});
 	}
 
+	/**
+	 * 
+	 * 
+	 * @returns
+	 * 
+	 * @memberOf NatsTransporter
+	 */
 	discoverNodes() {
 		return this.sendNodeInfoPackage([PREFIX, "DISCOVER"].join("."), [PREFIX, "INFO", this.nodeID].join("."));
 	}
 
+	/**
+	 * 
+	 * 
+	 * @param {any} subject
+	 * @param {any} replySubject
+	 * 
+	 * @memberOf NatsTransporter
+	 */
 	sendNodeInfoPackage(subject, replySubject) {
 		let actionList = this.broker.getLocalActionList();
 		let payload = utils.json2String({
