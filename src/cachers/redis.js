@@ -23,7 +23,7 @@ class RedisCacher extends BaseCacher {
 		let Redis = require("ioredis");
 		this.client = new Redis(this.opts.redis);
 
-		this.client.on("connect", (err) => {
+		this.client.on("connect", () => {
 			this.logger.info("Redis cacher connected!");
 		});
 

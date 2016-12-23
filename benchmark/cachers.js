@@ -9,23 +9,24 @@ let MemoryCacher = require("../src/cachers/memory");
 let RedisCacher = require("../src/cachers/redis");
 
 let key = "TESTKEY-12345";
-//let data = fs.readFileSync(__dirname + "/data.json", "utf8");
-let data = {
+let data = fs.readFileSync(__dirname + "/data.json", "utf8");
+/*let data = {
 	a: 5,
 	b: false,
 	c: "Test string"
 };
+*/
 
 let broker = new ServiceBroker();
 
 let memCacher = new MemoryCacher({
-	prefix: "bench"
+	prefix: "BENCH-"
 });
 memCacher.init(broker);
 
 let redisCacher = new RedisCacher({
 	uri: "localhost:6379",
-	prefix: "bench"
+	prefix: "BENCH-"
 });
 redisCacher.init(broker);
 
