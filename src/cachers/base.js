@@ -30,6 +30,9 @@ class Cacher {
 			this.logger = broker.getLogger("CACHER");
 	}
 
+	close() {
+	}
+
 	get(key) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented method!");

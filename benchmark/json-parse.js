@@ -10,7 +10,10 @@ let parse = require("fast-json-parse");
 let data = fs.readFileSync(__dirname + "/data.json", "utf8");
 
 function benchBuiltInParse() {
-	return JSON.parse(data);
+	try {
+		return JSON.parse(data);
+	} catch (e) {
+	}
 }
 
 function benchFastJsonParse() {

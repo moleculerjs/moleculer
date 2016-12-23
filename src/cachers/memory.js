@@ -28,6 +28,8 @@ class MemoryCacher extends BaseCacher {
 			this.timer = setInterval(() => {
 				this.checkTTL();
 			}, 30 * 1000);
+
+			this.timer.unref();
 		}
 	}
 

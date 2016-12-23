@@ -33,6 +33,7 @@
     "eslint": "3.12.0",
     "fakerator": "0.3.0",
     "glob": "7.1.1",
+    "ioredis": "2.4.3",
     "jest": "17.0.3",
     "moment": "2.17.1",
     "uuid-token-generator": "0.5.0"

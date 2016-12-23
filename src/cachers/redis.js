@@ -46,6 +46,10 @@ class RedisCacher extends BaseCacher {
 		this.logger.debug("Redis Cacher created. Prefix: " + this.prefix);
 	}
 
+	close() {
+		this.client.quit();
+	}
+
 	/**
 	 * Get data from cache by key
 	 * 

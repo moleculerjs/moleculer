@@ -104,6 +104,12 @@ class NatsTransporter extends Transporter {
 
 		this.client.on("error", (e) => {
 			this.logger.error("NATS client error", e);
+			if (e.toString().indexOf("ECONNREFUSED") != -1) {
+				this.logger.info("Reconnecting after 5 sec...");
+				setTimeout(() => {
+					this.connect();
+				}, 5 * 1000);
+			}
 		});
 
 		this.client.on("close", () => {
