@@ -22,12 +22,21 @@ class BalancedList {
 	}
 
 	add(data, weight = 0, nodeID) {
+		if (nodeID != null) {
+			let found = _.find(this.list, item => item.nodeID == nodeID);
+			if (found) {
+				found.data = data;
+				return false;
+			}
+		}
 		this.list.push({
 			data,
 			weight,
 			local: nodeID == null,
 			nodeID
 		});
+		
+		return true;
 	}
 
 	get() {

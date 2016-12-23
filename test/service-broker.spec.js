@@ -206,10 +206,13 @@ describe("Test processNodeInfo", () => {
 			"other.get"
 		]
 	};
+	broker.emitLocal = jest.fn();
 
 	broker.processNodeInfo(info);
 
 	it("should find the remote action after processNodeInfo", () => {
+		expect(broker.emitLocal).toHaveBeenCalledTimes(2);
+		
 		let findItem = broker.actions.get("other.find").get();
 		expect(findItem).toBeDefined();
 		expect(findItem.local).toBeFalsy();
@@ -224,7 +227,10 @@ describe("Test processNodeInfo", () => {
 	broker.processNodeInfo(info);
 
 	it("should not contain duplicate actions", () => {
-		// TODO
+		broker.emitLocal = jest.fn();
+		let findItem = broker.actions.get("other.find");
+		expect(findItem.list.length).toBe(1);
+		expect(broker.emitLocal).toHaveBeenCalledTimes(0);
 	});
 	
 });
@@ -288,7 +294,7 @@ describe("Test ServiceBroker with Transporter", () => {
 		
 	});
 
-	it("should call transporter.request wqith new context", () => {
+	it("should call transporter.request with new context", () => {
 		let p = { abc: 100 };
 		let parentCtx = new Context(p);
 		transporter.request.mockClear();
