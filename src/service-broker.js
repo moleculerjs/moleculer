@@ -108,13 +108,15 @@ class ServiceBroker {
 
 	call(actionName, params, parentCtx) {
 		let actions = this.actions.get(actionName);
-		if (!actions)
+		if (!actions) {
 			throw new errors.ServiceNotFoundError(`Missing action '${actionName}'!`);
+		}
 		
 		let actionItem = actions.get();
 		/* istanbul ignore next */
-		if (!actionItem)
+		if (!actionItem) {
 			throw new Error(`Missing action handler '${actionName}'!`);
+		}
 
 		if (actionItem.local) {
 			// Local action call
@@ -122,10 +124,11 @@ class ServiceBroker {
 			let service = action.service;
 			// Create a new context
 			let ctx;
-			if (parentCtx) 
+			if (parentCtx) {
 				ctx = parentCtx.createSubContext(service, action, params);
-			else
+			} else {
 				ctx = new Context({ service, action, params });
+			}
 			
 			return action.handler(ctx);
 
@@ -139,8 +142,9 @@ class ServiceBroker {
 	}
 
 	emit(eventName, ...args) {
-		if (this.transporter)
+		if (this.transporter) {
 			this.transporter.emit(eventName, ...args);
+		}
 
 		return this.emitLocal(eventName, ...args);
 	}
@@ -152,8 +156,9 @@ class ServiceBroker {
 	getLocalActionList() {
 		let res = [];
 		for (let entry of this.actions.entries()) {
-			if (entry[1].hasLocal())
+			if (entry[1].hasLocal()) {
 				res.push(entry[0]);
+			}
 		}
 		return res;
 	}

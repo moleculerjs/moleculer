@@ -55,10 +55,10 @@ let utils = {
 		let prefix = moduleName? "[" + moduleName + "] " : "";
 
 		let logger = {};
-		["log", "error", "warn", "info", "debug"].forEach(type => logger[type] = noop);
+		["log", "error", "warn", "info", "debug"].forEach((type) => logger[type] = noop);
 
 		if (extLogger) {
-			["log", "error", "warn", "info", "debug"].forEach(type => {
+			["log", "error", "warn", "info", "debug"].forEach((type) => {
 				let externalMethod = extLogger[type] || extLogger.info || extLogger.log;
 				if (externalMethod) {
 					logger[type] = function(msg, ...args) {
@@ -77,14 +77,14 @@ let utils = {
 
 	delay(ms) {
 		/* istanbul ignore next */
-		return () => new Promise(resolve => setTimeout(resolve, ms));
+		return () => new Promise((resolve) => setTimeout(resolve, ms));
 	},
 
 	isPromise(p) {
 		return (p && typeof p.then === "function" && typeof p.catch === "function");
 	},
 
-	String2Json(str) {
+	string2Json(str) {
 		try {
 			if (str)
 				return JSON.parse(str);				
@@ -94,7 +94,7 @@ let utils = {
 		}
 	},
 
-	Json2String(json) {
+	json2String(json) {
 		try {
 			if (json != null) 
 				return JSON.stringify(json);

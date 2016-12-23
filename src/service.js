@@ -8,14 +8,17 @@ class Service {
 
 	constructor(broker, schema) {
 
-		if (!_.isObject(broker)) 
+		if (!_.isObject(broker)) {
 			throw new Error("Must to set a ServiceBroker instance!");
+		}
 
-		if (!_.isObject(schema)) 
+		if (!_.isObject(schema)) {
 			throw new Error("Must pass a service schema in constructor!");
+		}
 
-		if (!schema.name) 
+		if (!schema.name) {
 			throw new Error("Service name can't be empty!");
+		}
 		
 		this.name = schema.name;
 		this.version = schema.version;
@@ -61,8 +64,9 @@ class Service {
 					};
 				}
 
-				if (!_.isFunction(event.handler)) 
+				if (!_.isFunction(event.handler)) {
 					throw new Error(`Missing event handler on '${name}' event in '${this.name}' service!`);
+				}
 
 				broker.on(name, event.handler.bind(this));
 			});
@@ -91,17 +95,20 @@ class Service {
 	}
 
 	_createActionHandler(action, handler, name) {
-		if (!_.isFunction(handler)) 
+		if (!_.isFunction(handler)) {
 			throw new Error(`Missing action handler on '${name}' action in '${this.name}' service!`);
+		}
 
 		action.name = this.name + "." + name;
 		action.service = this;
 		action.handler = handler.bind(this);
 
 		// Cache
-		if (this.broker.cacher)
-			if (action.cache === true || (action.cache === undefined && this.settings.cache === true))
+		if (this.broker.cacher) {
+			if (action.cache === true || (action.cache === undefined && this.settings.cache === true)) {
 				action.handler = utils.cachingWrapper(this.broker, action, action.handler);
+			}
+		}
 
 		return action;
 	}

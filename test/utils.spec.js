@@ -114,12 +114,12 @@ describe("Test utils.getNodeID", () => {
 	});
 });
 
-describe("Test utils.String2Json", () => {
+describe("Test utils.string2Json", () => {
 	let str = '{"a": 1, "b": [1,5,8], "c": "Test" }';
 	it("should give JS object", () => {
-		expect(utils.String2Json()).toBeUndefined();
-		expect(utils.String2Json("")).toBeUndefined();
-		expect(utils.String2Json(str)).toEqual({
+		expect(utils.string2Json()).toBeUndefined();
+		expect(utils.string2Json("")).toBeUndefined();
+		expect(utils.string2Json(str)).toEqual({
 			a: 1, 
 			b: [1,5,8],
 			c: "Test"
@@ -127,7 +127,7 @@ describe("Test utils.String2Json", () => {
 	});
 });
 
-describe("Test utils.Json2String", () => {
+describe("Test utils.json2String", () => {
 	let str = '{"a":1,"b":[1,5,8],"c":"Test"}';
 	let obj = {
 		a: 1, 
@@ -136,9 +136,9 @@ describe("Test utils.Json2String", () => {
 	};
 
 	it("should give JSON string", () => {
-		expect(utils.Json2String()).toBe("");
-		expect(utils.Json2String(null)).toBe("");
-		expect(utils.Json2String(obj)).toBe(str);
+		expect(utils.json2String()).toBe("");
+		expect(utils.json2String(null)).toBe("");
+		expect(utils.json2String(obj)).toBe(str);
 	});
 });
 
