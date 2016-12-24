@@ -16,10 +16,10 @@ class Cacher {
 	 * @memberOf Cacher
 	 */
 	constructor(opts) {
-		this.opts = opts || {
+		this.opts = _.defaultsDeep(opts, {
 			prefix: "",
 			ttl: null
-		};
+		});
 
 		this.prefix = this.opts.prefix;
 	}

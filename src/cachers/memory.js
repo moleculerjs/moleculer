@@ -1,6 +1,7 @@
 "use strict";
 
 let _ 			= require("lodash");
+let minimatch   = require("minimatch");
 let BaseCacher  = require("./base");
 /**
  * Cacher factory for memory cache
@@ -89,15 +90,23 @@ class MemoryCacher extends BaseCacher {
 
 	/**
 	 * Clean cache. Remove every key by prefix
-	 * @param {any} match Match string for SCAN. Default is "*"
+	 * @param {any} match string. Default is "**"
 	 * @returns {Promise}
 	 * 
 	 * @memberOf Cacher
 	 */
-	clean(match) {
+	clean(match = "**") {
 		// TODO: match not supported yet
-		this.logger.debug(`CLEAR ${this.prefix}*`);
-		this.cache = {};
+		this.logger.debug(`CLEAN ${this.prefix}${match}`);
+
+		let keys = Object.keys(this.cache);
+		keys.forEach((key) => {
+			if (minimatch(key, this.prefix + match)) {
+				this.logger.debug(`REMOVE ${key}`);
+				delete this.cache[key];
+			}
+		});
+
 		return Promise.resolve();
 	}
 

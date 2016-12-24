@@ -16,6 +16,14 @@ describe("Test BaseCacher", () => {
 		expect(cacher.clean).toBeDefined();
 	});
 
+	it("check constructor with empty opts", () => {
+		let opts = {};
+		let cacher = new Cacher(opts);
+		expect(cacher.opts).toBeDefined();
+		expect(cacher.prefix).toBe("");
+		expect(cacher.opts.ttl).toBeNull();
+	});
+
 	it("check constructor with options", () => {
 		let opts = { prefix: "TEST", ttl: 500 };
 		let cacher = new Cacher(opts);

@@ -56,13 +56,6 @@ class Service {
 				}
 
 				let innerAction = this._createActionHandler(action, action.handler, name);
-
-				/**
-				 * 
-				 * 
-				 * @param {any} params
-				 * @returns
-				 */
 				this.actions[name] = (params) => {
 					let ctx = new Context({ service: this, action: innerAction, params });
 					return action.handler(ctx);
