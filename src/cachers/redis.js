@@ -106,11 +106,9 @@ class RedisCacher extends BaseCacher {
 	 * @memberOf Cacher
 	 */
 	del(key) {
-		this.client.del(this.prefix + key, (err) => {
-			if (err)
-				this.logger.error("Redis `del` error!", err);
+		return this.client.del(this.prefix + key).catch((err) => {
+			this.logger.error("Redis `del` error!", err);
 		});
-		return Promise.resolve();
 	}
 
 	/**
@@ -123,17 +121,17 @@ class RedisCacher extends BaseCacher {
 	 * 
 	 * @memberOf Cacher
 	 */
-	clean(match) {
+	clean(match = "*") {
 		let self = this;
 		let scanDel = function (cursor, cb) {
-			this.client.scan(cursor, "MATCH", self.prefix + (match || "*"), "COUNT", 100, function (err, resp) {
+			self.client.scan(cursor, "MATCH", self.prefix + match, "COUNT", 100, function (err, resp) {
 				if (err) return cb(err);
 				let nextCursor = parseInt(resp[0]);
 				let keys = resp[1];
 				// no next cursor and no keys to delete
 				if (!nextCursor && !keys.length) return cb(null);
 
-				this.client.del(keys, function (err) {
+				self.client.del(keys, function (err) {
 					if (err) return cb(err);
 					if (!nextCursor) return cb(null);
 					scanDel(nextCursor, cb);

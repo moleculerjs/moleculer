@@ -27,6 +27,7 @@ class MemoryCacher extends BaseCacher {
 
 		if (this.opts.ttl) {
 			this.timer = setInterval(() => {
+				/* istanbul ignore next */
 				this.checkTTL();
 			}, 30 * 1000);
 
