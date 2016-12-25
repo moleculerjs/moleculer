@@ -24,14 +24,17 @@ class RedisCacher extends BaseCacher {
 		this.client = new Redis(this.opts.redis);
 
 		this.client.on("connect", () => {
+			/* istanbul ignore next */
 			this.logger.info("Redis cacher connected!");
 		});
 
 		this.client.on("error", (err) => {
+			/* istanbul ignore next */
 			this.logger.error(err);
 		});
 
 		if (this.opts.monitor) {
+			/* istanbul ignore next */
 			this.client.monitor((err, monitor) => {
 				this.logger.debug("Redis cacher entering monitoring mode...");
 				monitor.on("monitor", (time, args, source, database) => {
@@ -67,7 +70,7 @@ class RedisCacher extends BaseCacher {
 					this.logger.error("Redis result parse error!", err);
 				}
 			}
-			return data;
+			return null;
 		});
 	}
 
@@ -84,7 +87,7 @@ class RedisCacher extends BaseCacher {
 		if (_.isObject(data))
 			data = JSON.stringify(data);
 
-		if (this.ttl) {
+		if (this.opts.ttl) {
 			return this.client.setex(this.prefix + key, this.opts.ttl, data);/*, (err) => {
 				if (err)
 					this.logger.error("Redis `setex` error!", err);
@@ -107,6 +110,7 @@ class RedisCacher extends BaseCacher {
 	 */
 	del(key) {
 		return this.client.del(this.prefix + key).catch((err) => {
+			/* istanbul ignore next */
 			this.logger.error("Redis `del` error!", err);
 		});
 	}

@@ -31,9 +31,6 @@ describe("Test RedisCacher set & get without prefix", () => {
 	let cacher = new RedisCacher();
 	cacher.init(broker); // for empty logger
 
-	cacher.client.get = jest.fn(() => Promise.resolve());
-	cacher.client.del = jest.fn(() => Promise.resolve());
-
 	let key = "tst123";
 	let data1 = {
 		a: 1,
@@ -44,17 +41,34 @@ describe("Test RedisCacher set & get without prefix", () => {
 		}
 	};
 
+	cacher.client.get = jest.fn(() => Promise.resolve(JSON.stringify(data1)));
+	cacher.client.del = jest.fn(() => Promise.resolve());
+
 	it("should call client.set with key & data", () => {
 		cacher.set(key, data1);
 		expect(cacher.client.set).toHaveBeenCalledTimes(1);
 		expect(cacher.client.set).toHaveBeenCalledWith(key, JSON.stringify(data1));
 	});
 	
-	it("should call client.get with key", () => {
-		cacher.get(key);
+	it("should call client.get with key & return with data1", () => {
+		let p = cacher.get(key);
 		expect(cacher.client.get).toHaveBeenCalledTimes(1);
 		expect(cacher.client.get).toHaveBeenCalledWith(key);
+		return p.then((d) => {
+			expect(d).toEqual(data1);
+		});
 	});
+
+	it("should give null if response is not a valid JSON", () => {
+		cacher.client.get = jest.fn(() => Promise.resolve("{ 'asd' 5}")); // Invalid JSON
+
+		let p = cacher.get(key);
+		expect(cacher.client.get).toHaveBeenCalledTimes(1);
+		expect(cacher.client.get).toHaveBeenCalledWith(key);
+		return p.then((d) => {
+			expect(d).toBeNull();
+		});
+	});	
 
 	it("should call client.del with key", () => {
 		cacher.del(key);
@@ -70,12 +84,13 @@ describe("Test RedisCacher set & get without prefix", () => {
 
 });
 
-describe("Test RedisCacher set & get with prefix", () => {
+describe("Test RedisCacher set & get with prefix & ttl", () => {
 	let prefix = "devices:get:";
 
 	let broker = new ServiceBroker();
 	let cacher = new RedisCacher({
-		prefix
+		prefix,
+		ttl: 60
 	});
 	cacher.init(broker); // for empty logger
 
@@ -92,10 +107,10 @@ describe("Test RedisCacher set & get with prefix", () => {
 		}
 	};
 
-	it("should call client.set with key & data", () => {
+	it("should call client.setex with key & data", () => {
 		cacher.set(key, data1);
-		expect(cacher.client.set).toHaveBeenCalledTimes(1);
-		expect(cacher.client.set).toHaveBeenCalledWith(prefix + key, JSON.stringify(data1));
+		expect(cacher.client.setex).toHaveBeenCalledTimes(1);
+		expect(cacher.client.setex).toHaveBeenCalledWith(prefix + key, 60, JSON.stringify(data1));
 	});
 	
 	it("should give back the data by key", () => {
