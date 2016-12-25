@@ -76,12 +76,18 @@ describe("Test RedisCacher set & get without prefix", () => {
 		expect(cacher.client.del).toHaveBeenCalledWith(key);
 	});
 
-	it("should call client.scan", () => {
+	it("should call client.scan & del", () => {
+		cacher.client.del.mockClear();
+		cacher.client.scan = jest.fn((cursor, cmd, match, count, n, cb) => cb(null, [0, ["key1", "key2"]]));
+
 		cacher.clean();
 		expect(cacher.client.scan).toHaveBeenCalledTimes(1);
 		expect(cacher.client.scan).toHaveBeenCalledWith(0, "MATCH", "*", "COUNT", 100, jasmine.any(Function));
-	});
 
+		expect(cacher.client.del).toHaveBeenCalledTimes(1);
+		expect(cacher.client.del).toHaveBeenCalledWith(["key1", "key2"], jasmine.any(Function));
+	});
+	
 });
 
 describe("Test RedisCacher set & get with prefix & ttl", () => {

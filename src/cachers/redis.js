@@ -135,6 +135,7 @@ class RedisCacher extends BaseCacher {
 				// no next cursor and no keys to delete
 				if (!nextCursor && !keys.length) return cb(null);
 
+				/* istanbul ignore next */
 				self.client.del(keys, function (err) {
 					if (err) return cb(err);
 					if (!nextCursor) return cb(null);
@@ -143,13 +144,11 @@ class RedisCacher extends BaseCacher {
 			});
 		};
 
-		//return Promise((resolve, reject) => {
 		scanDel(0, (err) => {
-			if (err)
-				//return reject(err);
+			/* istanbul ignore next */
+			if (err) {
 				this.logger.error("Redis `scanDel` error!", err);
-
-			//resolve();
+			}
 		});
 
 		return Promise.resolve();
