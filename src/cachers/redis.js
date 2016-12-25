@@ -19,7 +19,18 @@ class RedisCacher extends BaseCacher {
 	 */
 	constructor(opts) {
 		super(opts);
-		
+	}
+
+	/**
+	 * Initialize cacher. Connect to Redis server
+	 * 
+	 * @param {any} broker
+	 * 
+	 * @memberOf RedisCacher
+	 */
+	init(broker) {
+		super.init(broker);
+
 		let Redis = require("ioredis");
 		this.client = new Redis(this.opts.redis);
 
@@ -42,13 +53,15 @@ class RedisCacher extends BaseCacher {
 				});
 			});
 		}
-	}
-
-	init(broker) {
-		super.init(broker);
+		
 		this.logger.debug("Redis Cacher created. Prefix: " + this.prefix);
 	}
 
+	/**
+	 * Close Redis client connection
+	 * 
+	 * @memberOf RedisCacher
+	 */
 	close() {
 		this.client.quit();
 	}

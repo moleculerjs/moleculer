@@ -111,6 +111,11 @@ class MemoryCacher extends BaseCacher {
 		return Promise.resolve();
 	}
 
+	/**
+	 * Check & remove the expired cache items
+	 * 
+	 * @memberOf MemoryCacher
+	 */
 	checkTTL() {
 		let self = this;
 		let now = Date.now();

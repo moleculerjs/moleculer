@@ -6,7 +6,9 @@ let utils = require("../utils");
 let PREFIX = "ICE";
 
 /**
+ * Internal transporter via NATS
  * 
+ * More info: http://nats.io/
  * 
  * @class NatsTransporter
  * @extends {Transporter}
@@ -29,7 +31,7 @@ class NatsTransporter extends Transporter {
 	}
 
 	/**
-	 * 
+	 * Initialize transporter
 	 * 
 	 * @param {any} broker
 	 * 
@@ -42,8 +44,7 @@ class NatsTransporter extends Transporter {
 	}
 
 	/**
-	 * 
-	 * 
+	 * Connect to a NATS server
 	 * 
 	 * @memberOf NatsTransporter
 	 */
@@ -77,8 +78,7 @@ class NatsTransporter extends Transporter {
 	}
 
 	/**
-	 * 
-	 * 
+	 * Disconnect from a NATS server
 	 * 
 	 * @memberOf NatsTransporter
 	 */
@@ -88,8 +88,7 @@ class NatsTransporter extends Transporter {
 	}
 
 	/**
-	 * 
-	 * 
+	 * Register transporter event handlers
 	 * 
 	 * @memberOf NatsTransporter
 	 */
@@ -146,7 +145,7 @@ class NatsTransporter extends Transporter {
 	}
 
 	/**
-	 * 
+	 * Send an event to remote nodes
 	 * 
 	 * @param {any} eventName
 	 * @param {any} args
@@ -166,7 +165,7 @@ class NatsTransporter extends Transporter {
 	}
 
 	/**
-	 * 
+	 * Subscribe to an event
 	 * 
 	 * @param {any} eventName
 	 * @param {any} handler
@@ -181,7 +180,7 @@ class NatsTransporter extends Transporter {
 	 * Send a request to a remote service. It returns a Promise
 	 * what will be resolved when the response received.
 	 * 
-	 * TODO: request timeout
+	 * TODO: request timeout, with reject
 	 * 
 	 * @param {any} targetNodeID	Remote Node ID
 	 * @param {any} ctx				Context of request
@@ -218,7 +217,7 @@ class NatsTransporter extends Transporter {
 	}
 
 	/**
-	 * 
+	 * Discover other nodes. It will be called internally after success connect.
 	 * 
 	 * @returns
 	 * 
@@ -229,7 +228,7 @@ class NatsTransporter extends Transporter {
 	}
 
 	/**
-	 * 
+	 * Send node info package to other nodes
 	 * 
 	 * @param {any} subject
 	 * @param {any} replySubject

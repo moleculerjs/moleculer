@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * 
+ * Abstract/Base transporter class
  * 
  * @class BaseTransporter
  */
@@ -19,7 +19,7 @@ class BaseTransporter {
 	}
 
 	/**
-	 * 
+	 * Init transporter
 	 * 
 	 * @param {any} broker
 	 * 
@@ -30,8 +30,7 @@ class BaseTransporter {
 	}
 
 	/**
-	 * 
-	 * 
+	 * Connect to transporter server
 	 * 
 	 * @memberOf BaseTransporter
 	 */
@@ -40,8 +39,7 @@ class BaseTransporter {
 	}
 
 	/**
-	 * 
-	 * 
+	 * Disconnect from transporter server
 	 * 
 	 * @memberOf BaseTransporter
 	 */
@@ -50,7 +48,7 @@ class BaseTransporter {
 	}
 
 	/**
-	 * 
+	 * Send an event to remote nodes
 	 * 
 	 * @param {any} eventName
 	 * @param {any} args
@@ -63,7 +61,7 @@ class BaseTransporter {
 	}
 
 	/**
-	 * 
+	 * Subscribe to an event
 	 * 
 	 * @param {any} eventName
 	 * @param {any} handler
@@ -76,7 +74,7 @@ class BaseTransporter {
 	}
 
 	/**
-	 * 
+	 * Send a request to a remote node
 	 * 
 	 * @param {any} nodeID
 	 * @param {any} ctx
