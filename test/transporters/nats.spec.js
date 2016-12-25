@@ -112,7 +112,7 @@ describe("Test Transporter.registerEventHandlers", () => {
 	});
 
 	it("should call broker.emitLocal if event command received", () => {
-		let payload = { nodeID: "node2", name: "posts.find", args: [{ a: 100 }, "TestString"] };
+		let payload = { nodeID: "node2", event: "posts.find", args: [{ a: 100 }, "TestString"] };
 		callbacks["IS-TEST.EVENT.>"](JSON.stringify(payload));
 
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);

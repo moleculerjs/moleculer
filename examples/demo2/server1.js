@@ -19,6 +19,7 @@ require("../post.service")(broker);
 //require("../user.service")(broker);
 
 broker.start();
+let c = 1;
 
 Promise.resolve()
 .then(delay(1000))
@@ -33,6 +34,6 @@ Promise.resolve()
 })
 .then(() => {
 	setInterval(() => {
-		broker.emit("TEST", { a: 1 });
+		broker.emit("TEST", { a: c++ });
 	}, 5000);
 });

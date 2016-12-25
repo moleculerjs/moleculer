@@ -99,10 +99,10 @@ class NatsTransporter extends Transporter {
 		// Subscribe to broadcast events
 		let eventSubject = [PREFIX, "EVENT", ">"].join(".");
 		this.client.subscribe(eventSubject, (msg) => {
-			let event = utils.string2Json(msg);
-			if (event.nodeID !== this.nodeID) {
-				this.logger.debug("Event received", event);
-				this.broker.emitLocal(event.name, ...event.args);
+			let message = utils.string2Json(msg);
+			if (message.nodeID !== this.nodeID) {
+				this.logger.debug("Event received", message);
+				this.broker.emitLocal(message.event, ...message.args);
 			}
 		});
 

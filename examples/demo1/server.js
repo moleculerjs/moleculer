@@ -3,20 +3,14 @@
 let _ = require("lodash");
 let path = require("path");
 let glob = require("glob");
-let chalk = require("chalk");
 
-let bus = require("../../src/service-bus");
 let ServiceBroker = require("../../src/service-broker");
 let MemoryCacher = require("../../src/cachers").Memory;
-
-// Add debug messages to bus
-bus.onAny((event, value) => {
-	console.log(chalk.yellow("[Event]", event));
-});
 
 // Create broker
 let broker = new ServiceBroker({
 	cacher: new MemoryCacher(),
+	nodeID: "server1",
 	logger: console
 });
 
