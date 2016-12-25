@@ -167,7 +167,7 @@ class NatsTransporter extends Transporter {
 	 * @memberOf NatsTransporter
 	 */
 	subscribe(eventName, handler) {
-		this.client.subscribe(PREFIX + eventName, handler);
+		this.client.subscribe([PREFIX, eventName].join("."), handler);
 	}
 
 	/**
@@ -176,13 +176,13 @@ class NatsTransporter extends Transporter {
 	 * 
 	 * TODO: request timeout
 	 * 
-	 * @param {any} nodeID	Remote Node ID
-	 * @param {any} ctx		Context of request
+	 * @param {any} targetNodeID	Remote Node ID
+	 * @param {any} ctx				Context of request
 	 * @returns	{Promise}
 	 * 
 	 * @memberOf NatsTransporter
 	 */
-	request(nodeID, ctx) {
+	request(targetNodeID, ctx) {
 		return new Promise((resolve) => {
 			let replySubject = [PREFIX, "RESP", ctx.id].join(".");
 
@@ -195,7 +195,7 @@ class NatsTransporter extends Transporter {
 				this.client.unsubscribe(sid);
 			});
 
-			let subj = [PREFIX, "REQ", nodeID, ctx.action.name].join(".");
+			let subj = [PREFIX, "REQ", targetNodeID, ctx.action.name].join(".");
 			let payload = utils.json2String(ctx.params);
 			this.client.publish(subj, payload, replySubject);
 		});
