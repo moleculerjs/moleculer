@@ -59,6 +59,7 @@ class NatsTransporter extends Transporter {
 			this.discoverNodes();
 		});
 
+		/* istanbul ignore next */
 		this.client.on("error", (e) => {
 			this.logger.error("NATS client error", e);
 			if (e.toString().indexOf("ECONNREFUSED") != -1) {
@@ -69,6 +70,7 @@ class NatsTransporter extends Transporter {
 			}
 		});
 
+		/* istanbul ignore next */
 		this.client.on("close", () => {
 			this.logger.warn("NATS disconnected!");
 		});
@@ -95,26 +97,30 @@ class NatsTransporter extends Transporter {
 
 		// Subscribe to broadcast events
 		let eventSubject = [PREFIX, "EVENT", ">"].join(".");
-		this.client.subscribe(eventSubject, (msg, reply, subject) => {
+		this.client.subscribe(eventSubject, (msg) => {
 			let event = utils.string2Json(msg);
 			if (event.nodeID !== this.nodeID) {
 				this.logger.debug("Event received", event);
-				this.broker.emitLocal(subject.slice(eventSubject.length - 1), ...event.args);
+				this.broker.emitLocal(event.name, ...event.args);
 			}
 		});
 
 		// Subscribe to node requests
 		let reqSubject = [PREFIX, "REQ", this.nodeID, ">"].join(".");
-		this.client.subscribe(reqSubject, (msg, reply, subject) => {
-			let actionName = subject.slice(reqSubject.length - 1);
-			this.logger.debug("Request received", actionName);
-			let params;
+		this.client.subscribe(reqSubject, (msg, reply) => {
+			let message;
 			if (msg != "")
-				params = utils.string2Json(msg);
+				message = utils.string2Json(msg);
 
-			this.broker.call(actionName, params).then(res => {
+			/* istanbul ignore next */
+			if (!message) {
+				return Promise.reject("Invalid request!");
+			}
+			this.logger.debug(`Request received from ${message.nodeID}. Action: ${message.action}`);
+
+			return this.broker.call(message.action, message.params).then(res => {
 				let payload = utils.json2String(res);
-				this.logger.debug("Response", actionName, params, "Length: ", payload.length, "bytes");
+				this.logger.debug("Response", message.action, message.params, "Length: ", payload.length, "bytes");
 				this.client.publish(reply, payload);
 			});
 		});
@@ -151,10 +157,11 @@ class NatsTransporter extends Transporter {
 		let subject = [PREFIX, "EVENT", eventName].join(".");
 		let event = {
 			nodeID: this.nodeID,
+			event: eventName,
 			args
 		};
-		let payload = utils.json2String(event);
 		this.logger.debug("Emit Event", event);
+		let payload = utils.json2String(event);
 		this.client.publish(subject, payload);
 	}
 
@@ -189,14 +196,23 @@ class NatsTransporter extends Transporter {
 			let sid = this.client.subscribe(replySubject, (response) => {
 				if (response != "")
 					resolve(utils.string2Json(response));
+				/* istanbul ignore next */
 				else
 					resolve(null);
 					
 				this.client.unsubscribe(sid);
 			});
 
-			let subj = [PREFIX, "REQ", targetNodeID, ctx.action.name].join(".");
-			let payload = utils.json2String(ctx.params);
+			let message = {
+				nodeID: this.nodeID,
+				requestID: ctx.id,
+				action: ctx.action.name,
+				params: ctx.params
+			};
+			this.logger.debug("Request action", message);
+			let payload = utils.json2String(message);
+
+			let subj = [PREFIX, "REQ", targetNodeID, message.action].join(".");
 			this.client.publish(subj, payload, replySubject);
 		});
 	}

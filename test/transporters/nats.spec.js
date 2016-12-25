@@ -5,13 +5,18 @@ const ServiceBroker = require("../../src/service-broker");
 jest.mock("nats");
 
 let Nats = require("nats");
-Nats.connect = jest.fn(() => ({
-	on: jest.fn(),
-	close: jest.fn(),
-	subscribe: jest.fn(),
-	unsubscribe: jest.fn(),
-	publish: jest.fn()
-}));
+Nats.connect = jest.fn(() => {
+	let onCallbacks = {};
+	return {
+		on: jest.fn((event, cb) => onCallbacks[event] = cb),
+		close: jest.fn(),
+		subscribe: jest.fn(),
+		unsubscribe: jest.fn(),
+		publish: jest.fn(),
+
+		onCallbacks
+	};
+});
 
 const NatsTransporter = require("../../src/transporters/nats");
 
@@ -46,17 +51,26 @@ describe("Test Transporter.init", () => {
 
 describe("Test Transporter.connect", () => {
 
-	it("should set event listeners", () => {
-		let broker = new ServiceBroker();
-		let trans = new NatsTransporter();
+	let broker = new ServiceBroker();
+	let trans = new NatsTransporter();
+	trans.init(broker);
 
-		trans.init(broker);
+	it("should set event listeners", () => {
 		trans.connect();
 		expect(trans.client).toBeDefined();
 		expect(trans.client.on).toHaveBeenCalledTimes(3);
 		expect(trans.client.on).toHaveBeenCalledWith("connect", jasmine.any(Function));
 		expect(trans.client.on).toHaveBeenCalledWith("error", jasmine.any(Function));
 		expect(trans.client.on).toHaveBeenCalledWith("close", jasmine.any(Function));
+	});
+
+	it("should call registerEventHandlers & discoverNodes after connect event", () => {
+		trans.registerEventHandlers = jest.fn();
+		trans.discoverNodes = jest.fn();
+		trans.client.onCallbacks["connect"]();
+
+		expect(trans.registerEventHandlers).toHaveBeenCalledTimes(1);
+		expect(trans.discoverNodes).toHaveBeenCalledTimes(1);
 	});
 });
 
@@ -75,12 +89,18 @@ describe("Test Transporter.registerEventHandlers", () => {
 	let broker = new ServiceBroker({
 		nodeID: "node1"
 	});
+	broker.processNodeInfo = jest.fn();
+	broker.emitLocal = jest.fn();
 
 	let trans = new NatsTransporter();
 	trans.init(broker);
 	trans.connect();
 
-	it("should subscribe to commands", () => {
+	let callbacks = {};
+
+	trans.client.subscribe = jest.fn((subject, cb) => callbacks[subject] = cb);
+
+	it("should subscribe to 4 commands", () => {
 		trans.registerEventHandlers();
 
 		expect(trans.client.subscribe).toHaveBeenCalledTimes(4);
@@ -89,6 +109,55 @@ describe("Test Transporter.registerEventHandlers", () => {
 		expect(trans.client.subscribe).toHaveBeenCalledWith("IS-TEST.INFO.node1", jasmine.any(Function));
 		expect(trans.client.subscribe).toHaveBeenCalledWith("IS-TEST.REQ.node1.>", jasmine.any(Function));
 		expect(trans.client.subscribe).toHaveBeenCalledWith("IS-TEST.DISCOVER", jasmine.any(Function));
+	});
+
+	it("should call broker.emitLocal if event command received", () => {
+		let payload = { nodeID: "node2", name: "posts.find", args: [{ a: 100 }, "TestString"] };
+		callbacks["IS-TEST.EVENT.>"](JSON.stringify(payload));
+
+		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
+		expect(broker.emitLocal).toHaveBeenCalledWith("posts.find", { a: 100 }, "TestString");
+	});
+
+	it("should call broker.call if request command received", () => {
+		let result = [ { a: 1}, { a: 2}];
+		broker.call = jest.fn((actionName, params) => {
+			expect(actionName).toBe("posts.find");
+			expect(params).toEqual([{ a: 100 }, "TestString"]);
+			return Promise.resolve(result);
+		});
+		let payload = { nodeID: "node2", action: "posts.find", params: [{ a: 100 }, "TestString"] };
+		let p = callbacks["IS-TEST.REQ.node1.>"](JSON.stringify(payload), "response.subject");
+
+		expect(broker.call).toHaveBeenCalledTimes(1);
+		expect(broker.call).toHaveBeenCalledWith("posts.find", [{ a: 100 }, "TestString"]);
+
+		return p.then(() => {
+			expect(trans.client.publish).toHaveBeenCalledTimes(1);
+			expect(trans.client.publish).toHaveBeenCalledWith("response.subject", "[{\"a\":1},{\"a\":2}]");
+		});
+	});
+
+	it("should call broker.processNodeInfo and sendNodeInfoPackage if DISCOVER command received", () => {
+		trans.sendNodeInfoPackage = jest.fn();
+		let payload = { nodeID: "node2", actions: ["users.get", "users.create"] };
+		callbacks["IS-TEST.DISCOVER"](JSON.stringify(payload), "reply_command");
+
+		expect(broker.processNodeInfo).toHaveBeenCalledTimes(1);
+		expect(broker.processNodeInfo).toHaveBeenCalledWith(payload);
+
+		expect(trans.sendNodeInfoPackage).toHaveBeenCalledTimes(1);
+		expect(trans.sendNodeInfoPackage).toHaveBeenCalledWith("reply_command");
+	});
+
+	it("should call broker.processNodeInfo if INFO command received", () => {
+		broker.processNodeInfo.mockClear();
+		trans.sendNodeInfoPackage = jest.fn();
+		let payload = { nodeID: "node2", actions: ["users.get", "users.create"] };
+		callbacks["IS-TEST.INFO.node1"](JSON.stringify(payload));
+
+		expect(broker.processNodeInfo).toHaveBeenCalledTimes(1);
+		expect(broker.processNodeInfo).toHaveBeenCalledWith(payload);
 	});
 });
 
@@ -106,35 +175,61 @@ describe("Test Transporter emit, subscribe and request methods", () => {
 		trans.emit("test.custom.event", { a: 1}, "testParam", true, 100);
 
 		expect(trans.client.publish).toHaveBeenCalledTimes(1);
-		expect(trans.client.publish).toHaveBeenCalledWith("IS-TEST.EVENT.test.custom.event", "{\"nodeID\":\"node1\",\"args\":[{\"a\":1},\"testParam\",true,100]}");
+		expect(trans.client.publish).toHaveBeenCalledWith("IS-TEST.EVENT.test.custom.event", "{\"nodeID\":\"node1\",\"event\":\"test.custom.event\",\"args\":[{\"a\":1},\"testParam\",true,100]}");
 	});
 
-	it("should subscibe to eventname", () => {
+	it("should subscribe to eventname", () => {
 		trans.subscribe("custom.node.event", jest.fn());
 
 		expect(trans.client.subscribe).toHaveBeenCalledTimes(1);
 		expect(trans.client.subscribe).toHaveBeenCalledWith("IS-TEST.custom.node.event", jasmine.any(Function));
 	});
 
-	it("should subscribe not response and call publish", () => {
-		trans.client.subscribe.mockClear();
-		trans.client.publish.mockClear();
-
-		let ctx = new Context({
-			action: { name: "posts.find" },
-			params: { 
-				a: 1
+	describe("check response of request", () => {
+		let data1 = {
+			a: 1,
+			b: false,
+			c: "Test",
+			d: {
+				e: 55
 			}
+		};
+		let responseCb;
+		trans.client.subscribe = jest.fn((reply, cb) => {
+			responseCb = cb;
+			return 55;
 		});
-		let p = trans.request("node2", ctx);
-		expect(utils.isPromise(p)).toBeTruthy();
 
-		expect(trans.client.subscribe).toHaveBeenCalledTimes(1);
-		expect(trans.client.subscribe).toHaveBeenCalledWith("IS-TEST.RESP." + ctx.id, jasmine.any(Function));
+		it("should subscribe to response and call publish with response as JSON", () => {
+			trans.client.subscribe.mockClear();
+			trans.client.publish.mockClear();
 
-		expect(trans.client.publish).toHaveBeenCalledTimes(1);
-		expect(trans.client.publish).toHaveBeenCalledWith("IS-TEST.REQ.node2.posts.find", "{\"a\":1}", "IS-TEST.RESP." + ctx.id);
+			let ctx = new Context({
+				action: { name: "posts.find" },
+				params: { 
+					a: 1
+				}
+			});
+			let p = trans.request("node2", ctx);
+			expect(utils.isPromise(p)).toBeTruthy();
+
+			expect(trans.client.subscribe).toHaveBeenCalledTimes(1);
+			expect(trans.client.subscribe).toHaveBeenCalledWith("IS-TEST.RESP." + ctx.id, jasmine.any(Function));
+
+			expect(trans.client.publish).toHaveBeenCalledTimes(1);
+			expect(trans.client.publish).toHaveBeenCalledWith("IS-TEST.REQ.node2.posts.find", `{\"nodeID\":\"node1\",\"requestID\":\"${ctx.id}\",\"action\":\"posts.find\",\"params\":{\"a\":1}}`, "IS-TEST.RESP." + ctx.id);
+
+			responseCb(JSON.stringify(data1));
+
+			return p.then(response => {
+				expect(response).toEqual(data1);
+				expect(trans.client.unsubscribe).toHaveBeenCalledTimes(1);
+				expect(trans.client.unsubscribe).toHaveBeenCalledWith(55);
+			});
+		});
+
 	});
+
 });
 
 describe("Test Transporter.sendNodeInfoPackage", () => {
