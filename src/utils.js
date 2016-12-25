@@ -133,8 +133,9 @@ let utils = {
 	 */
 	string2Json(str) {
 		try {
-			if (str)
+			if (str) {
 				return JSON.parse(str);				
+			}
 		} catch (err) {
 			/* istanbul ignore next */
 			console.warn(err);
@@ -150,8 +151,9 @@ let utils = {
 	 */
 	json2String(json) {
 		try {
-			if (json != null) 
+			if (json != null) {
 				return JSON.stringify(json);
+			}
 		} catch (err) {
 			/* istanbul ignore next */
 			console.warn(err);

@@ -97,8 +97,9 @@ class RedisCacher extends BaseCacher {
 	 * @memberOf Cacher
 	 */
 	set(key, data) {
-		if (_.isObject(data))
+		if (_.isObject(data)) {
 			data = JSON.stringify(data);
+		}
 
 		if (this.opts.ttl) {
 			return this.client.setex(this.prefix + key, this.opts.ttl, data);/*, (err) => {
@@ -143,15 +144,23 @@ class RedisCacher extends BaseCacher {
 		let scanDel = function (cursor, cb) {
 			/* istanbul ignore next */
 			self.client.scan(cursor, "MATCH", self.prefix + match, "COUNT", 100, function (err, resp) {
-				if (err) return cb(err);
+				if (err) {
+					return cb(err);
+				}
 				let nextCursor = parseInt(resp[0]);
 				let keys = resp[1];
 				// no next cursor and no keys to delete
-				if (!nextCursor && !keys.length) return cb(null);
+				if (!nextCursor && !keys.length) {
+					return cb(null);
+				}
 
 				self.client.del(keys, function (err) {
-					if (err) return cb(err);
-					if (!nextCursor) return cb(null);
+					if (err) {
+						return cb(err);
+					}
+					if (!nextCursor) {
+						return cb(null);
+					}
 					scanDel(nextCursor, cb);
 				});
 			});

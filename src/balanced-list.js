@@ -40,16 +40,20 @@ class BalancedList {
 	}
 
 	get() {
-		if (this.list.length == 0) return null;
+		if (this.list.length == 0) {
+			return null;
+		}
 
-		if (this.counter >= this.list.length)
+		if (this.counter >= this.list.length) {
 			this.counter = 0;
+		}
 
 		let item;
 		if (this.opts.preferLocale) {
 			item = this.getLocalItem();
-			if (item)
+			if (item) {
 				return item;
+			}
 		}
 		// TODO: implement load-balance modes
 

@@ -18,8 +18,9 @@ class ServiceNotFoundError extends Error {
 		Error.captureStackTrace(this, this.constructor);
 		this.name = "ServiceNotFoundError";
 		this.message = message;
-		if (data) 
+		if (data) {
 			this.data = data;
+		}
 	}
 }
 

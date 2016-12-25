@@ -26,8 +26,9 @@ class NatsTransporter extends Transporter {
 		super(opts);
 		this.client = null;
 		
-		if (this.opts.prefix)
+		if (this.opts.prefix) {
 			PREFIX = this.opts.prefix;
+		}
 	}
 
 	/**
@@ -83,8 +84,9 @@ class NatsTransporter extends Transporter {
 	 * @memberOf NatsTransporter
 	 */
 	disconnect() {
-		if (this.client)
+		if (this.client) {
 			this.client.close();
+		}
 	}
 
 	/**
@@ -108,8 +110,9 @@ class NatsTransporter extends Transporter {
 		let reqSubject = [PREFIX, "REQ", this.nodeID, ">"].join(".");
 		this.client.subscribe(reqSubject, (msg, reply) => {
 			let message;
-			if (msg != "")
+			if (msg != "") {
 				message = utils.string2Json(msg);
+			}
 
 			/* istanbul ignore next */
 			if (!message) {
@@ -193,11 +196,13 @@ class NatsTransporter extends Transporter {
 			let replySubject = [PREFIX, "RESP", ctx.id].join(".");
 
 			let sid = this.client.subscribe(replySubject, (response) => {
-				if (response != "")
+				if (response != "") {
 					resolve(utils.string2Json(response));
+				}
 				/* istanbul ignore next */
-				else
+				else {
 					resolve(null);
+				}
 					
 				this.client.unsubscribe(sid);
 			});

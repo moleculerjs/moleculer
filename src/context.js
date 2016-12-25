@@ -28,8 +28,9 @@ class Context {
 		this.service = opts.service;
 		this.action = opts.action;
 		this.broker = opts.service && opts.service.broker;
-		if (this.broker)
+		if (this.broker) {
 			this.logger = this.broker.getLogger("CTX");
+		}
 
 		this.level = opts.parent && opts.parent.level ? opts.parent.level + 1 : 1;
 		this.params = Object.freeze(Object.assign({}, opts.params || {}));
@@ -55,7 +56,7 @@ class Context {
 			parent: this,
 			service: service || this.service,
 			action: action || this.action,
-			params: params
+			params
 		});
 	}
 
