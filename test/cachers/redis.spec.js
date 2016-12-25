@@ -1,4 +1,3 @@
-const utils = require("../../src/utils");
 const ServiceBroker = require("../../src/service-broker");
 
 jest.mock("ioredis");

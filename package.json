@@ -56,5 +56,8 @@
     "object-hash": "1.1.5",
     "uuid": "3.0.1"
   },
+  "engines": {
+    "node": ">= 6.x.x"
+  },
   "typings": "./index.d.ts"
 }

@@ -54,50 +54,7 @@ class NatsTransporter extends Transporter {
 		this.client.on("connect", () => {
 			this.logger.info("NATS client connected!");
 
-			// Subscribe to broadcast events
-			let eventSubject = [PREFIX, "EVENT", ">"].join(".");
-			this.client.subscribe(eventSubject, (msg, reply, subject) => {
-				let event = utils.string2Json(msg);
-				if (event.nodeID !== this.nodeID) {
-					this.logger.debug("Event received", event);
-					this.broker.emitLocal(subject.slice(eventSubject.length - 1), ...event.args);
-				}
-			});
-
-			// Subscribe to node requests
-			let reqSubject = [PREFIX, "REQ", this.nodeID, ">"].join(".");
-			this.client.subscribe(reqSubject, (msg, reply, subject) => {
-				let actionName = subject.slice(reqSubject.length - 1);
-				this.logger.debug("Request received", actionName);
-				let params;
-				if (msg != "")
-					params = utils.string2Json(msg);
-
-				this.broker.call(actionName, params).then(res => {
-					let payload = utils.json2String(res);
-					this.logger.debug("Response", actionName, params, "Length: ", payload.length, "bytes");
-					this.client.publish(reply, payload);
-				});
-			});
-
-			// Discover handlers
-			this.client.subscribe([PREFIX, "DISCOVER"].join("."), (msg, reply, subject) => {
-				let nodeInfo = utils.string2Json(msg);
-				if (nodeInfo.nodeID !== this.nodeID) {
-					this.logger.debug("Discovery received from " + nodeInfo.nodeID);
-					this.broker.processNodeInfo(nodeInfo);
-
-					this.sendNodeInfoPackage(reply);
-				}					
-			});
-
-			this.client.subscribe([PREFIX, "INFO", this.nodeID].join("."), (msg) => {
-				let nodeInfo = utils.string2Json(msg);
-				if (nodeInfo.nodeID !== this.nodeID) {
-					this.logger.debug("Node info received from " + nodeInfo.nodeID);
-					this.broker.processNodeInfo(nodeInfo);
-				}
-			});
+			this.registerEventHandlers();
 
 			this.discoverNodes();
 		});
@@ -126,6 +83,60 @@ class NatsTransporter extends Transporter {
 	disconnect() {
 		if (this.client)
 			this.client.close();
+	}
+
+	/**
+	 * 
+	 * 
+	 * 
+	 * @memberOf NatsTransporter
+	 */
+	registerEventHandlers() {
+
+		// Subscribe to broadcast events
+		let eventSubject = [PREFIX, "EVENT", ">"].join(".");
+		this.client.subscribe(eventSubject, (msg, reply, subject) => {
+			let event = utils.string2Json(msg);
+			if (event.nodeID !== this.nodeID) {
+				this.logger.debug("Event received", event);
+				this.broker.emitLocal(subject.slice(eventSubject.length - 1), ...event.args);
+			}
+		});
+
+		// Subscribe to node requests
+		let reqSubject = [PREFIX, "REQ", this.nodeID, ">"].join(".");
+		this.client.subscribe(reqSubject, (msg, reply, subject) => {
+			let actionName = subject.slice(reqSubject.length - 1);
+			this.logger.debug("Request received", actionName);
+			let params;
+			if (msg != "")
+				params = utils.string2Json(msg);
+
+			this.broker.call(actionName, params).then(res => {
+				let payload = utils.json2String(res);
+				this.logger.debug("Response", actionName, params, "Length: ", payload.length, "bytes");
+				this.client.publish(reply, payload);
+			});
+		});
+
+		// Discover handlers
+		this.client.subscribe([PREFIX, "DISCOVER"].join("."), (msg, reply, subject) => {
+			let nodeInfo = utils.string2Json(msg);
+			if (nodeInfo.nodeID !== this.nodeID) {
+				this.logger.debug("Discovery received from " + nodeInfo.nodeID);
+				this.broker.processNodeInfo(nodeInfo);
+
+				this.sendNodeInfoPackage(reply);
+			}					
+		});
+
+		this.client.subscribe([PREFIX, "INFO", this.nodeID].join("."), (msg) => {
+			let nodeInfo = utils.string2Json(msg);
+			if (nodeInfo.nodeID !== this.nodeID) {
+				this.logger.debug("Node info received from " + nodeInfo.nodeID);
+				this.broker.processNodeInfo(nodeInfo);
+			}
+		});		
 	}
 
 	/**

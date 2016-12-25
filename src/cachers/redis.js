@@ -128,6 +128,7 @@ class RedisCacher extends BaseCacher {
 	clean(match = "*") {
 		let self = this;
 		let scanDel = function (cursor, cb) {
+			/* istanbul ignore next */
 			self.client.scan(cursor, "MATCH", self.prefix + match, "COUNT", 100, function (err, resp) {
 				if (err) return cb(err);
 				let nextCursor = parseInt(resp[0]);
@@ -135,7 +136,6 @@ class RedisCacher extends BaseCacher {
 				// no next cursor and no keys to delete
 				if (!nextCursor && !keys.length) return cb(null);
 
-				/* istanbul ignore next */
 				self.client.del(keys, function (err) {
 					if (err) return cb(err);
 					if (!nextCursor) return cb(null);
