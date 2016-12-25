@@ -6,7 +6,7 @@ let chalk = require("chalk");
 let utils = require("./utils");
 
 /**
- * 
+ * Context class for action calls
  * 
  * @class Context
  */
@@ -40,7 +40,7 @@ class Context {
 	}
 
 	/**
-	 * 
+	 * Create a sub-context from this context
 	 * 
 	 * @param {any} service
 	 * @param {any} action
@@ -60,7 +60,7 @@ class Context {
 	}
 
 	/**
-	 * 
+	 * Set params of context
 	 * 
 	 * @param {any} newParams
 	 * 
@@ -71,7 +71,7 @@ class Context {
 	}
 
 	/**
-	 * 
+	 * Call a global event (with broker.emit)
 	 * 
 	 * @param {any} eventName
 	 * @param {any} data
@@ -84,8 +84,7 @@ class Context {
 	}
 
 	/**
-	 * 
-	 * 
+	 * Close this context
 	 * 
 	 * @memberOf Context
 	 */
@@ -98,7 +97,7 @@ class Context {
 	}
 
 	/**
-	 * 
+	 * Close this context successfully with response data
 	 * 
 	 * @param {any} data
 	 * @returns
@@ -116,7 +115,7 @@ class Context {
 	}
 
 	/**
-	 * 
+	 * Close this context with error
 	 * 
 	 * @param {any} err
 	 * @returns
@@ -130,7 +129,7 @@ class Context {
 	}
 
 	/**
-	 * 
+	 * Call an other action. It will be create a sub-context.
 	 * 
 	 * @param {any} actionName
 	 * @param {any} params

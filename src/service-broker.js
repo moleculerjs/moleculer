@@ -9,7 +9,7 @@ let _ = require("lodash");
 
 
 /**
- * 
+ * Service broker class
  * 
  * @class ServiceBroker
  */
@@ -51,8 +51,7 @@ class ServiceBroker {
 	}
 
 	/**
-	 * 
-	 * 
+	 * Start broker. If set transport, transport.connect will be called.
 	 * 
 	 * @memberOf ServiceBroker
 	 */
@@ -63,9 +62,9 @@ class ServiceBroker {
 	}
 
 	/**
+	 * Get a custom logger for sub-modules (service, transporter, cacher, context...etc)
 	 * 
-	 * 
-	 * @param {any} name
+	 * @param {String} name	name of module
 	 * @returns
 	 * 
 	 * @memberOf ServiceBroker
@@ -96,9 +95,9 @@ class ServiceBroker {
 	/**
 	 * Register an action in a local server
 	 * 
-	 * @param {any} service
-	 * @param {any} action
-	 * @param {any} nodeID
+	 * @param {any} service		service of action
+	 * @param {any} action		action schema
+	 * @param {any} nodeID		NodeID if it is on a remote server/node
 	 * 
 	 * @memberOf ServiceBroker
 	 */
@@ -115,7 +114,7 @@ class ServiceBroker {
 	}
 
 	/**
-	 * 
+	 * Subscribe to an event
 	 * 
 	 * @param {any} name
 	 * @param {any} handler
@@ -127,7 +126,7 @@ class ServiceBroker {
 	}
 
 	/**
-	 * 
+	 * Get a local service by name
 	 * 
 	 * @param {any} serviceName
 	 * @returns
@@ -142,7 +141,7 @@ class ServiceBroker {
 	}
 
 	/**
-	 * 
+	 * Has a local service by name
 	 * 
 	 * @param {any} serviceName
 	 * @returns
@@ -154,7 +153,7 @@ class ServiceBroker {
 	}
 
 	/**
-	 * 
+	 * Has an action by name
 	 * 
 	 * @param {any} actionName
 	 * @returns
@@ -166,11 +165,11 @@ class ServiceBroker {
 	}
 
 	/**
+	 * Call an action (local or global)
 	 * 
-	 * 
-	 * @param {any} actionName
-	 * @param {any} params
-	 * @param {any} parentCtx
+	 * @param {any} actionName	name of action
+	 * @param {any} params		params of action
+	 * @param {any} parentCtx	parent context (optional)
 	 * @returns
 	 * 
 	 * @memberOf ServiceBroker
@@ -213,7 +212,7 @@ class ServiceBroker {
 	}
 
 	/**
-	 * 
+	 * Emit an event (global & local)
 	 * 
 	 * @param {any} eventName
 	 * @param {any} args
@@ -230,7 +229,7 @@ class ServiceBroker {
 	}
 
 	/**
-	 * 
+	 * Emit an event only local
 	 * 
 	 * @param {any} eventName
 	 * @param {any} args
@@ -243,7 +242,7 @@ class ServiceBroker {
 	}
 
 	/**
-	 * 
+	 * Get a list of names of local actions
 	 * 
 	 * @returns
 	 * 
@@ -260,7 +259,7 @@ class ServiceBroker {
 	}
 	
 	/**
-	 * 
+	 * Process remote node info (list of actions)
 	 * 
 	 * @param {any} info
 	 * 

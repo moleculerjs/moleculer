@@ -5,17 +5,17 @@ let Context = require("./context");
 let utils = require("./utils");
 
 /**
- * 
+ * Main Service class
  * 
  * @class Service
  */
 class Service {
 
 	/**
-	 * Creates an instance of Service.
+	 * Creates an instance of Service by schema.
 	 * 
-	 * @param {any} broker
-	 * @param {any} schema
+	 * @param {ServiceBroker} 	broker	broker of service
+	 * @param {Object} 			schema	schema of service
 	 * 
 	 * @memberOf Service
 	 */
@@ -107,7 +107,7 @@ class Service {
 	}
 
 	/**
-	 * 
+	 * Create an external action handler for broker (internal command!)
 	 * 
 	 * @param {any} action
 	 * @param {any} handler
