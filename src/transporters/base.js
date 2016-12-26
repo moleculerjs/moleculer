@@ -89,6 +89,16 @@ class BaseTransporter {
 		});
 	}
 
+	/**
+	 * Send a hearthbeat to remote nodes
+	 * 
+	 * @memberOf BaseTransporter
+	 */
+	sendHeartbeat() {
+		/* istanbul ignore next */
+		throw new Error("Not implemented!");
+	}
+
 }
 
 module.exports = BaseTransporter;

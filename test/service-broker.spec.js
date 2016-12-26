@@ -10,7 +10,7 @@ describe("Test ServiceBroker constructor", () => {
 
 	it("should set properties", () => {
 		expect(broker).toBeDefined();
-		expect(broker.options).toEqual({});
+		expect(broker.options).toEqual({ nodeHeartbeatTimeout : 30, sendHeartbeatTime: 10});
 		expect(broker.services).toBeInstanceOf(Map);
 		expect(broker.actions).toBeInstanceOf(Map);
 		expect(broker.transporter).toBeUndefined();
@@ -69,7 +69,7 @@ describe("Test action registration", () => {
 
 		broker.registerAction(mockService, mockAction);
 		expect(broker.actions.size).toBe(1);
-		expect(registerActionCB).toHaveBeenCalledWith(mockService, mockAction);
+		expect(registerActionCB).toHaveBeenCalledWith(mockService, mockAction, undefined);
 		expect(registerActionCB).toHaveBeenCalledTimes(1);
 	});
 
@@ -208,10 +208,10 @@ describe("Test processNodeInfo", () => {
 	};
 	broker.emitLocal = jest.fn();
 
-	broker.processNodeInfo(info);
+	broker.processNodeInfo(info.nodeID, info);
 
 	it("should find the remote action after processNodeInfo", () => {
-		expect(broker.emitLocal).toHaveBeenCalledTimes(2);
+		expect(broker.emitLocal).toHaveBeenCalledTimes(3);
 		
 		let findItem = broker.actions.get("other.find").get();
 		expect(findItem).toBeDefined();
@@ -224,7 +224,7 @@ describe("Test processNodeInfo", () => {
 		expect(getItem.nodeID).toBe("server-2");
 	});
 
-	broker.processNodeInfo(info);
+	broker.processNodeInfo(info.nodeID, info);
 
 	it("should not contain duplicate actions", () => {
 		broker.emitLocal = jest.fn();
@@ -240,6 +240,7 @@ describe("Test ServiceBroker with Transporter", () => {
 	let transporter = new Transporter();
 	transporter.init = jest.fn(); 
 	transporter.connect = jest.fn(); 
+	transporter.sendHeartbeat = jest.fn(); 
 	transporter.emit = jest.fn(); 
 	transporter.request = jest.fn((nodeID, ctx) => ctx); 
 

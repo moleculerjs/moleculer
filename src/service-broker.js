@@ -60,6 +60,7 @@ class ServiceBroker {
 
 		process.on("beforeExit", this._closeFn);
 		process.on("exit", this._closeFn);
+		process.on("SIGINT", this._closeFn);
 	}
 
 	/**
@@ -95,6 +96,7 @@ class ServiceBroker {
 
 		process.removeListener("beforeExit", this._closeFn);
 		process.removeListener("exit", this._closeFn);
+		process.removeListener("SIGINT", this._closeFn);
 	}
 
 	/**
