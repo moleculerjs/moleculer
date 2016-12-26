@@ -61,6 +61,10 @@ class BalancedList {
 		return item;
 	}
 
+	count() {
+		return this.list.length;
+	}
+
 	getLocalItem() {
 		return _.find(this.list, (el) => el.local === true);
 	}
@@ -74,6 +78,10 @@ class BalancedList {
 		this.counter = 0;
 	}
 
+	removeByNode(nodeID) {
+		_.remove(this.list, item => item.nodeID == nodeID);
+		this.counter = 0;
+	}
 }
 
 module.exports = BalancedList;

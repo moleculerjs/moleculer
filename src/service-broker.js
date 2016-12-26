@@ -23,7 +23,11 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	constructor(options) {
-		this.options = options || {};
+		this.options = _.defaultsDeep(options, {
+			sendHeartbeatTime: 10,
+			nodeHeartbeatTimeout: 30
+		});
+
 		this.nodeID = this.options.nodeID || utils.getNodeID();
 
 		this.logger = this.getLogger("BKR");
@@ -36,6 +40,7 @@ class ServiceBroker {
 			this.logger.debug("Local event", event, value);
 		});		
 
+		this.nodes = new Map();
 		this.services = new Map();
 		this.actions = new Map();
 
@@ -48,6 +53,13 @@ class ServiceBroker {
 		if (this.transporter) {
 			this.transporter.init(this);
 		}
+
+		this._closeFn = () => {
+			this.stop();
+		};
+
+		process.on("beforeExit", this._closeFn);
+		process.on("exit", this._closeFn);
 	}
 
 	/**
@@ -58,7 +70,31 @@ class ServiceBroker {
 	start() {
 		if (this.transporter) {
 			this.transporter.connect();
+
+			// TODO promise, send only connection was success
+			this.heartBeatTimer = setInterval(() => {
+				this.transporter.sendHeartbeat();
+			}, this.options.sendHeartbeatTime * 1000);
+
+			this.checkNodesTimer = setInterval(() => {
+				this.checkRemoteNodes();
+			}, this.options.nodeHeartbeatTimeout * 1000);
 		}
+	}
+
+	/**
+	 * Stop broker. If set transport, transport.disconnect will be called.
+	 * 
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	stop() {
+		if (this.transporter) {
+			this.transporter.disconnect();
+		}
+
+		process.removeListener("beforeExit", this._closeFn);
+		process.removeListener("exit", this._closeFn);
 	}
 
 	/**
@@ -109,8 +145,29 @@ class ServiceBroker {
 			this.actions.set(action.name, item);
 		}
 		if (item.add(action, 0, nodeID)) {
-			this.emitLocal(`register.action.${action.name}`, service, action);
+			this.emitLocal(`register.action.${action.name}`, service, action, nodeID);
 		}
+	}
+
+	/**
+	 * Unregister an action on a local server. 
+	 * It will be called when a remote node disconnected. 
+	 * 
+	 * @param {any} service		service of action
+	 * @param {any} action		action schema
+	 * @param {any} nodeID		NodeID if it is on a remote server/node
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	unregisterAction(service, action, nodeID) {
+		let item = this.actions.get(action.name);
+		if (item) {
+			item.removeByNode(nodeID);
+			if (item.count() == 0) {
+				this.actions.delete(action.name);
+			}
+			this.emitLocal(`unregister.action.${action.name}`, service, action, nodeID);
+		}		
 	}
 
 	/**
@@ -123,6 +180,18 @@ class ServiceBroker {
 	 */
 	on(name, handler) {
 		this.bus.on(name, handler);
+	}
+
+	/**
+	 * Unsubscribe from an event
+	 * 
+	 * @param {any} name
+	 * @param {any} handler
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	off(name, handler) {
+		this.bus.off(name, handler);
 	}
 
 	/**
@@ -265,16 +334,74 @@ class ServiceBroker {
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	processNodeInfo(info) {
+	processNodeInfo(nodeID, info) {
+		let isNewNode = !this.nodes.has(nodeID);
+		info.lastHeartbeatTime = Date.now();
+		this.nodes.set(info.nodeID, info);
+
+		if (isNewNode) {
+			this.emitLocal(`register.node.${nodeID}`, info);
+		}
+
 		if (info.actions) {
 			// Add external actions
 			info.actions.forEach(name => {
-				let action = {
-					name
-				};
+				let action = { name };
 
 				this.registerAction(null, action, info.nodeID);
 			});
+		}
+	}
+
+	/**
+	 * Save a heart-beat time from a remote node
+	 * 
+	 * @param {any} nodeID
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	nodeHeartbeat(nodeID) {
+		if (this.nodes.has(nodeID)) {
+			let info = this.nodes.get(nodeID);
+			info.lastHeartbeatTime = Date.now();
+		}
+	}
+
+	/**
+	 * Node disconnected. Remove from nodes map and remove remote actions
+	 * 
+	 * @param {any} nodeID
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	nodeDisconnected(nodeID) {
+		if (this.nodes.has(nodeID)) {
+			let info = this.nodes.get(nodeID);
+
+			if (info.actions) {
+				// Add external actions
+				info.actions.forEach(name => {
+					let action = { name };
+					this.unregisterAction(null, action, info.nodeID);
+				});
+			}
+
+			this.emitLocal(`unregister.node.${nodeID}`, info);
+			this.nodes.delete(nodeID);
+		}
+	}
+
+	/**
+	 * Check all registered remote nodes is live.
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	checkRemoteNodes() {
+		let now = Date.now();
+		for (let entry of this.nodes.entries()) {
+			if (now - (entry[1].lastHeartbeatTime || 0) > this.options.nodeHeartbeatTimeout * 1000) {
+				this.nodeDisconnected(entry[0]);
+			}
 		}
 	}
 }

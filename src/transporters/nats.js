@@ -85,7 +85,16 @@ class NatsTransporter extends Transporter {
 	 */
 	disconnect() {
 		if (this.client) {
-			this.client.close();
+			// Send a disconnect message to remote nodes
+			let message = {
+				nodeID: this.nodeID
+			};
+			this.logger.debug("Send DISCONNECT message", message);
+			let payload = utils.json2String(message);
+			this.client.publish([PREFIX, "DISCONNECT"].join("."), payload, () => {
+				this.client.close();
+				this.client = null;
+			});
 		}
 	}
 
@@ -127,22 +136,45 @@ class NatsTransporter extends Transporter {
 			});
 		});
 
-		// Discover handlers
+		// Discover handler
 		this.client.subscribe([PREFIX, "DISCOVER"].join("."), (msg, reply, subject) => {
 			let nodeInfo = utils.string2Json(msg);
-			if (nodeInfo.nodeID !== this.nodeID) {
-				this.logger.debug("Discovery received from " + nodeInfo.nodeID);
-				this.broker.processNodeInfo(nodeInfo);
+			let nodeID = nodeInfo.nodeID;
+			if (nodeID !== this.nodeID) {
+				this.logger.debug("Discovery received from " + nodeID);
+				this.broker.processNodeInfo(nodeID, nodeInfo);
 
 				this.sendNodeInfoPackage(reply);
 			}					
 		});
 
+		// NodeInfo handler
 		this.client.subscribe([PREFIX, "INFO", this.nodeID].join("."), (msg) => {
 			let nodeInfo = utils.string2Json(msg);
-			if (nodeInfo.nodeID !== this.nodeID) {
-				this.logger.debug("Node info received from " + nodeInfo.nodeID);
-				this.broker.processNodeInfo(nodeInfo);
+			let nodeID = nodeInfo.nodeID;
+			if (nodeID !== this.nodeID) {
+				this.logger.debug("Node info received from " + nodeID);
+				this.broker.processNodeInfo(nodeID, nodeInfo);
+			}
+		});		
+
+		// Disconnect handler
+		this.client.subscribe([PREFIX, "DISCONNECT"].join("."), (msg) => {
+			let message = utils.string2Json(msg);
+			let nodeID = message.nodeID;
+			if (nodeID !== this.nodeID) {
+				this.logger.debug("Node disconnect event received from " + nodeID);
+				this.broker.nodeDisconnected(nodeID, message);
+			}
+		});	
+
+		// Heart-beat handler
+		this.client.subscribe([PREFIX, "HEARTBEAT"].join("."), (msg) => {
+			let message = utils.string2Json(msg);
+			let nodeID = message.nodeID;
+			if (nodeID !== this.nodeID) {
+				this.logger.debug("Node heart-beat received from " + nodeID);
+				this.broker.nodeHeartbeat(nodeID, message);
 			}
 		});		
 	}
@@ -247,6 +279,13 @@ class NatsTransporter extends Transporter {
 			actions: actionList
 		});
 		this.client.publish(subject, payload, replySubject);
+	}
+
+	sendHeartbeat() {
+		let payload = utils.json2String({
+			nodeID: this.broker.nodeID
+		});
+		this.client.publish([PREFIX, "HEARTBEAT"].join("."), payload);
 	}
 }
 

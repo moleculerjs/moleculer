@@ -17,12 +17,11 @@ let broker = new ServiceBroker({
 
 require("../user.service")(broker);
 
+broker.start();
+let c = 1;
+
 Promise.resolve()
-.then(delay(100))
-.then(() => {
-	broker.start();
-})
-.then(delay(1000))
+/*.then(delay(1000))
 .then(() => {
 	let startTime = Date.now();
 	
@@ -30,14 +29,13 @@ Promise.resolve()
 		console.log("[server-2] Posts: ", posts.length, ", Time:", Date.now() - startTime, "ms");
 	})
 	.catch(err => console.error(err));
-});
-/*
-.then(delay(1000))
+})*/
 .then(() => {
-	let startTime = Date.now();
-	broker.call("posts.get", { id: 3 }).then((post) => {
-		console.log("[server-2] Post[3]: ", post.title, ", Time: ", Date.now() - startTime, "ms");
-	})
-	.catch(err => console.error(err));	
+	setInterval(() => {
+		broker.emit("TEST2", { a: c++ });
+		if (c >= 5) {
+			//process.exit();
+		}
+
+	}, 5000);
 });
-*/
