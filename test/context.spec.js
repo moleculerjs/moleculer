@@ -8,30 +8,31 @@ describe("Test Context", () => {
 
 	it("test with empty opts", () => {
 
-		let context = new Context();
+		let ctx = new Context();
 
-		expect(context.id).toBeDefined();
-		expect(context.opts).toBeDefined();
-		expect(context.parent).not.toBeDefined();
-		expect(context.service).not.toBeDefined();
-		expect(context.action).not.toBeDefined();
-		expect(context.broker).not.toBeDefined();
-		expect(context.logger).not.toBeDefined();
-		expect(context.level).toBe(1);
-		expect(context.params).toBeDefined();
-		expect(context.params).toEqual({});
+		expect(ctx.id).toBeDefined();
+		expect(ctx.requestID).toBeDefined();
+		expect(ctx.requestID).toBe(ctx.id);
+		expect(ctx.opts).toBeDefined();
+		expect(ctx.parent).not.toBeDefined();
+		expect(ctx.broker).not.toBeDefined();
+		expect(ctx.action).not.toBeDefined();
+		expect(ctx.logger).not.toBeDefined();
+		expect(ctx.level).toBe(1);
+		expect(ctx.params).toBeDefined();
+		expect(ctx.params).toEqual({});
 
-		expect(context.startTime).toBeDefined();
-		expect(context.stopTime).toBeNull();
-		expect(context.duration).toBe(0);
+		expect(ctx.startTime).toBeDefined();
+		expect(ctx.stopTime).toBeNull();
+		expect(ctx.duration).toBe(0);
 
 		let params = {
 			a: 1
 		};
 
-		context.setParams(params);
-		expect(context.params).not.toBe(params); // Cloned
-		expect(context.params).toEqual(params);		
+		ctx.setParams(params);
+		expect(ctx.params).not.toBe(params); // Cloned
+		expect(ctx.params).toEqual(params);		
 	});
 
 	it("test with options", () => {
@@ -39,47 +40,45 @@ describe("Test Context", () => {
 		let broker = new ServiceBroker();
 
 		let opts = {
-			id: 123,
+			requestID: 123,
 			parent: {},
-			service: {
-				broker: broker
-			},
+			broker,
 			action: {},
 			params: {
 				b: 5
 			}
 		};
-		let context = new Context(opts);
+		let ctx = new Context(opts);
 
-		expect(context.id).toBeDefined();
-		expect(context.opts).toEqual(opts);
-		expect(context.parent).toBeDefined();
-		expect(context.service).toBeDefined();
-		expect(context.action).toBeDefined();
-		expect(context.broker).toBe(broker);
-		expect(context.level).toBe(1);
-		expect(context.params).toEqual({ b: 5 });
+		expect(ctx.id).toBeDefined();
+		expect(ctx.requestID).toBe(opts.requestID);
+		expect(ctx.opts).toEqual(opts);
+		expect(ctx.parent).toBeDefined();
+		expect(ctx.broker).toBe(broker);
+		expect(ctx.action).toBeDefined();
+		expect(ctx.level).toBe(1);
+		expect(ctx.params).toEqual({ b: 5 });
 
 		// Test call method
 		broker.call = jest.fn();
 
 		let p = { id: 5 };
-		context.call("posts.find", p);
+		ctx.call("posts.find", p);
 
 		expect(broker.call).toHaveBeenCalledTimes(1);
-		expect(broker.call).toHaveBeenCalledWith("posts.find", p, context);
+		expect(broker.call).toHaveBeenCalledWith("posts.find", p, ctx);
 
 		// Test emit method
 		broker.emit = jest.fn();
 
 		let data = { id: 5 };
-		context.emit("request.rest", data);
+		ctx.emit("request.rest", data);
 
 		expect(broker.emit).toHaveBeenCalledTimes(1);
 		expect(broker.emit).toHaveBeenCalledWith("request.rest", data);
 
 		broker.emit.mockClear();
-		context.emit("request.rest", "string-data");
+		ctx.emit("request.rest", "string-data");
 		expect(broker.emit).toHaveBeenCalledTimes(1);
 		expect(broker.emit).toHaveBeenCalledWith("request.rest", "string-data");
 		
@@ -125,9 +124,7 @@ describe("Test createSubContext", () => {
 	let opts = {
 		id: 123,
 		parent: {},
-		service: {
-			broker: broker
-		},
+		broker,
 		action: {},
 		params: {
 			b: 5
@@ -138,25 +135,24 @@ describe("Test createSubContext", () => {
 	it("test with empty params", () => {
 		let subCtx = ctx.createSubContext();
 		expect(subCtx).not.toBe(ctx);
-		expect(subCtx.id).toBe(ctx.id);
+		expect(subCtx.id).not.toBe(ctx.id);
+		expect(subCtx.requestID).toBe(ctx.requestID);
 		expect(subCtx.parent).toBe(ctx);
-		expect(subCtx.service).toBe(ctx.service);
+		expect(subCtx.broker).toBe(ctx.broker);
 		expect(subCtx.action).toBe(ctx.action);
 		expect(subCtx.params).toBeNull;
 	});
 
 	it("test with params", () => {
-		let service2 = {
-			broker: broker
-		};
 		let action2 = {};
 		let params2 = { a: 11 };
 
-		let subCtx = ctx.createSubContext(service2, action2, params2);
+		let subCtx = ctx.createSubContext(action2, params2);
 		expect(subCtx).not.toBe(ctx);
-		expect(subCtx.id).toBe(ctx.id);
+		expect(subCtx.id).not.toBe(ctx.id);
+		expect(subCtx.requestID).toBe(ctx.requestID);
 		expect(subCtx.parent).toBe(ctx);
-		expect(subCtx.service).toBe(service2);
+		expect(subCtx.broker).toBe(ctx.broker);
 		expect(subCtx.action).toBe(action2);
 		expect(subCtx.params).toEqual(params2);
 	});

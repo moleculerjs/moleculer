@@ -1,7 +1,7 @@
 "use strict";
 
 let _ = require("lodash");
-let chalk = require("chalk");
+//let chalk = require("chalk");
 
 let utils = require("./utils");
 
@@ -15,9 +15,6 @@ class Context {
 	/**
 	 * Creates an instance of Context.
 	 * 
-	 * TODO: rename id -> requestID
-	 * create id which is always auto generated
-	 * 
 	 * @param {any} opts
 	 * 
 	 * @memberOf Context
@@ -26,11 +23,11 @@ class Context {
 		opts = Object.assign({}, opts || {});
 	
 		this.opts = opts;
-		this.id = opts.id || utils.generateToken();
+		this.id = utils.generateToken();
+		this.requestID = opts.requestID || this.id;
 		this.parent = opts.parent;
-		this.service = opts.service;
+		this.broker = opts.broker;
 		this.action = opts.action;
-		this.broker = opts.service && opts.service.broker;
 		if (this.broker) {
 			this.logger = this.broker.getLogger("CTX");
 		}
@@ -46,18 +43,17 @@ class Context {
 	/**
 	 * Create a sub-context from this context
 	 * 
-	 * @param {any} service
 	 * @param {any} action
 	 * @param {any} params
 	 * @returns
 	 * 
 	 * @memberOf Context
 	 */
-	createSubContext(service, action, params) {
+	createSubContext(action, params) {
 		return new Context({
-			id: this.id,
 			parent: this,
-			service: service || this.service,
+			requestID: this.requestID,
+			broker: this.broker,
 			action: action || this.action,
 			params
 		});

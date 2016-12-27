@@ -168,7 +168,7 @@ describe("Local service registration", () => {
 		let p = { a: 3 };
 		let ctx = service.actions.find(p);
 		expect(findHandlerMock).toHaveBeenCalledTimes(1);
-		expect(ctx.service).toBe(service);
+		expect(ctx.broker).toBe(broker);
 		expect(ctx.action).toBeDefined();
 		expect(ctx.params).toEqual(p);
 	});

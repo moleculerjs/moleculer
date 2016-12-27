@@ -269,14 +269,13 @@ class ServiceBroker {
 		}
 
 		let action = actionItem.data;
-		let service = action.service;
 
 		// Create a new context
 		let ctx;
 		if (parentCtx) {
-			ctx = parentCtx.createSubContext(service, action, params);
+			ctx = parentCtx.createSubContext(action, params);
 		} else {
-			ctx = new Context({ service, action, params });
+			ctx = new Context({ broker: this, action, params });
 		}
 			
 		if (actionItem.local) {

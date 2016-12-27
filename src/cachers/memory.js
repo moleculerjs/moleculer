@@ -96,7 +96,6 @@ class MemoryCacher extends BaseCacher {
 	 * @memberOf Cacher
 	 */
 	clean(match = "**") {
-		// TODO: match not supported yet
 		this.logger.debug(`CLEAN ${this.prefix}${match}`);
 
 		let keys = Object.keys(this.cache);

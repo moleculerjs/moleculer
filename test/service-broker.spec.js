@@ -126,7 +126,7 @@ describe("Test action registration", () => {
 		expect(ctx).toBeDefined();
 		expect(ctx.id).toBeDefined();
 		expect(ctx.level).toBe(1);
-		expect(ctx.service).toBe(mockService);
+		expect(ctx.broker).toBe(broker);
 		expect(ctx.action).toBe(mockAction);
 		expect(ctx.params).toBeDefined();
 		expect(mockAction.handler).toHaveBeenCalledTimes(1);

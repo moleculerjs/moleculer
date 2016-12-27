@@ -57,7 +57,7 @@ class Service {
 
 				let innerAction = this._createActionHandler(action, action.handler, name);
 				this.actions[name] = (params) => {
-					let ctx = new Context({ service: this, action: innerAction, params });
+					let ctx = new Context({ broker, action: innerAction, params });
 					return action.handler(ctx);
 				};
 
