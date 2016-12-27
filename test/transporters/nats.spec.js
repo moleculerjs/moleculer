@@ -74,14 +74,16 @@ describe("Test Transporter.connect", () => {
 	});
 });
 
-describe.skip("Test Transporter.disconnect", () => {
+describe("Test Transporter.disconnect", () => {
 	let broker = new ServiceBroker();
 	it("should call client.close", () => {
 		let trans = new NatsTransporter();
 		trans.init(broker);
 		trans.connect();
 		trans.disconnect();
-		expect(trans.client.close).toHaveBeenCalledTimes(1);
+		expect(trans.client.publish).toHaveBeenCalledTimes(1);
+		expect(trans.client.publish).toHaveBeenCalledWith("IS-TEST.DISCONNECT", `{\"nodeID\":\"${trans.nodeID}\"}`, jasmine.any(Function));
+		// expect(trans.client.close).toHaveBeenCalledTimes(1);
 	});
 });
 
@@ -101,7 +103,7 @@ describe("Test Transporter.registerEventHandlers", () => {
 
 	trans.client.subscribe = jest.fn((subject, cb) => callbacks[subject] = cb);
 
-	it("should subscribe to 4 commands", () => {
+	it("should subscribe to 6 commands", () => {
 		trans.registerEventHandlers();
 
 		expect(trans.client.subscribe).toHaveBeenCalledTimes(6);
@@ -161,6 +163,26 @@ describe("Test Transporter.registerEventHandlers", () => {
 
 		expect(broker.processNodeInfo).toHaveBeenCalledTimes(1);
 		expect(broker.processNodeInfo).toHaveBeenCalledWith("node2", payload);
+	});
+
+	it("should call broker.nodeDisconnected if DISCONNECT command received", () => {
+		broker.nodeDisconnected = jest.fn();
+		trans.sendNodeInfoPackage = jest.fn();
+		let payload = { nodeID: "node2", actions: ["users.get", "users.create"] };
+		callbacks["IS-TEST.DISCONNECT"](JSON.stringify(payload));
+
+		expect(broker.nodeDisconnected).toHaveBeenCalledTimes(1);
+		expect(broker.nodeDisconnected).toHaveBeenCalledWith("node2", payload);
+	});
+
+	it("should call broker.nodeHeartbeat if HEARTBEAT command received", () => {
+		broker.nodeHeartbeat = jest.fn();
+		trans.sendNodeInfoPackage = jest.fn();
+		let payload = { nodeID: "node2" };
+		callbacks["IS-TEST.HEARTBEAT"](JSON.stringify(payload));
+
+		expect(broker.nodeHeartbeat).toHaveBeenCalledTimes(1);
+		expect(broker.nodeHeartbeat).toHaveBeenCalledWith("node2", payload);
 	});
 });
 
@@ -273,6 +295,25 @@ describe("Test Transporter.discoverNodes", () => {
 
 		expect(trans.sendNodeInfoPackage).toHaveBeenCalledTimes(1);
 		expect(trans.sendNodeInfoPackage).toHaveBeenCalledWith("IS-TEST.DISCOVER", "IS-TEST.INFO.node11");
+	});
+
+});
+
+describe("Test Transporter.sendHeartbeat", () => {
+
+	let broker = new ServiceBroker({
+		nodeID: "node11"
+	});
+
+	let trans = new NatsTransporter();
+	trans.init(broker);
+	trans.connect();
+
+	it("should call client.publish method with subjects", () => {
+		trans.sendHeartbeat();
+
+		expect(trans.client.publish).toHaveBeenCalledTimes(1);
+		expect(trans.client.publish).toHaveBeenCalledWith("IS-TEST.HEARTBEAT", "{\"nodeID\":\"node11\"}");
 	});
 
 });

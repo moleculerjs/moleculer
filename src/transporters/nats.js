@@ -92,7 +92,9 @@ class NatsTransporter extends Transporter {
 			this.logger.debug("Send DISCONNECT message", message);
 			let payload = utils.json2String(message);
 			this.client.publish([PREFIX, "DISCONNECT"].join("."), payload, () => {
+				/* istanbul ignore next */
 				this.client.close();
+				/* istanbul ignore next */
 				this.client = null;
 			});
 		}
