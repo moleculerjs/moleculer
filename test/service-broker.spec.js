@@ -6,9 +6,8 @@ const Transporter = require("../src/transporters/base");
 
 describe("Test ServiceBroker constructor", () => {
 
-	let broker = new ServiceBroker();
-
-	it("should set properties", () => {
+	it("should set default options", () => {
+		let broker = new ServiceBroker();
 		expect(broker).toBeDefined();
 		expect(broker.options).toEqual({ nodeHeartbeatTimeout : 30, sendHeartbeatTime: 10});
 		expect(broker.services).toBeInstanceOf(Map);
@@ -16,6 +15,47 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.transporter).toBeUndefined();
 		expect(broker.nodeID).toBe(require("os").hostname().toLowerCase());
 	});
+
+	it("should merge options", () => {
+		let broker = new ServiceBroker( { nodeHeartbeatTimeout: 20 });
+		expect(broker).toBeDefined();
+		expect(broker.options).toEqual({ nodeHeartbeatTimeout : 20, sendHeartbeatTime: 10});
+		expect(broker.services).toBeInstanceOf(Map);
+		expect(broker.actions).toBeInstanceOf(Map);
+		expect(broker.transporter).toBeUndefined();
+		expect(broker.nodeID).toBe(require("os").hostname().toLowerCase());
+	});
+
+});
+
+describe("Test on/off event emitter", () => {
+
+	let broker = new ServiceBroker();
+	let handler = jest.fn();
+
+	it("register event handler", () => {
+		broker.on("test.event.**", handler);
+
+		broker.emitLocal("test");
+		expect(handler).toHaveBeenCalledTimes(0);
+
+		broker.emitLocal("test.event");
+		expect(handler).toHaveBeenCalledTimes(1);
+
+		broker.emitLocal("test.event.demo");
+		expect(handler).toHaveBeenCalledTimes(2);
+	});
+
+	it("unregister event handler", () => {
+		handler.mockClear();
+		broker.off("test.event.**", handler);
+
+		broker.emitLocal("test");
+		broker.emitLocal("test.event");
+		broker.emitLocal("test.event.demo");
+		expect(handler).toHaveBeenCalledTimes(0);
+	});
+
 });
 
 describe("Test service registration", () => {
@@ -148,11 +188,10 @@ describe("Test getLocalActionList", () => {
 
 		let actionRemote = {
 			name: "users.get",
-			service: mockService,
 			handler: jest.fn()
 		};
 
-		broker.registerAction(mockService, actionRemote, "node");
+		broker.registerAction(null, actionRemote, "node");
 		let list = broker.getLocalActionList();
 		expect(list.length).toBe(1);
 	});
@@ -175,27 +214,63 @@ describe("Test getLocalActionList", () => {
 describe("Test emitLocal", () => {
 
 	let broker = new ServiceBroker();
+	broker.bus.emit = jest.fn();
 
-	it("should call the event handler locally with object param", () => {
+	it("should call the bus.emit params", () => {
+		broker.emitLocal("request.rest", "string-data");
+		expect(broker.bus.emit).toHaveBeenCalledTimes(1);
+		expect(broker.bus.emit).toHaveBeenCalledWith("request.rest", "string-data");
+	});
+
+	it("should call the event handler locally with params", () => {
 		// Test emit method
-		broker.emitLocal = jest.fn();
+		broker.bus.emit.mockClear();
 
 		let data = { id: 5 };
-		broker.emitLocal("request.rest", data);
+		broker.emit("request.rest", data);
 
-		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("request.rest", data);
+		expect(broker.bus.emit).toHaveBeenCalledTimes(1);
+		expect(broker.bus.emit).toHaveBeenCalledWith("request.rest", data);
 	});
 
-	it("should call the event handler locally with string param", () => {
-		broker.emitLocal.mockClear();
-		broker.emitLocal("request.rest", "string-data");
-		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("request.rest", "string-data");
-	});
 });
 
-describe("Test processNodeInfo", () => {
+describe("Test registerAction & unregisterAction with nodeID", () => {
+
+	let broker = new ServiceBroker();
+	broker.emitLocal = jest.fn();
+
+	let action = {
+		name: "users.get",
+		handler: jest.fn()
+	};
+
+	it("should register as a remote action", () => {
+		broker.registerAction(null, action, "server-2");
+
+		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
+		expect(broker.emitLocal).toHaveBeenCalledWith("register.action.users.get", null, {"handler": jasmine.any(Function), "name": "users.get"}, "server-2");
+		
+		let findItem = broker.actions.get("users.get").get();
+		expect(findItem).toBeDefined();
+		expect(findItem.local).toBeFalsy();
+		expect(findItem.nodeID).toBe("server-2");
+		broker.emitLocal.mockClear();
+	});
+
+	it("should unregister the remote action", () => {
+		broker.unregisterAction(null, action, "server-2");
+
+		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
+		expect(broker.emitLocal).toHaveBeenCalledWith("unregister.action.users.get", null, {"handler": jasmine.any(Function), "name": "users.get"}, "server-2");
+		
+		let findItem = broker.actions.get("users.get");
+		expect(findItem).toBeUndefined();
+	});
+	
+});
+
+describe("Test nodes methods", () => {
 
 	let broker = new ServiceBroker();
 
@@ -207,12 +282,21 @@ describe("Test processNodeInfo", () => {
 		]
 	};
 	broker.emitLocal = jest.fn();
+	let oldBrokerNodeDisconnected = broker.nodeDisconnected;
 
-	broker.processNodeInfo(info.nodeID, info);
+	it("should register node", () => {
+		broker.processNodeInfo(info.nodeID, info);
 
-	it("should find the remote action after processNodeInfo", () => {
+		let node = broker.nodes.get("server-2");
+		expect(node).toBeDefined();
+		expect(node).toBe(info);
+		expect(node.lastHeartbeatTime).toBeDefined();
+
 		expect(broker.emitLocal).toHaveBeenCalledTimes(3);
-		
+		expect(broker.emitLocal).toHaveBeenCalledWith("register.node.server-2", node);
+	});
+
+	it("should find the remote actions", () => {
 		let findItem = broker.actions.get("other.find").get();
 		expect(findItem).toBeDefined();
 		expect(findItem.local).toBeFalsy();
@@ -224,15 +308,47 @@ describe("Test processNodeInfo", () => {
 		expect(getItem.nodeID).toBe("server-2");
 	});
 
-	broker.processNodeInfo(info.nodeID, info);
-
 	it("should not contain duplicate actions", () => {
-		broker.emitLocal = jest.fn();
+		broker.emitLocal.mockClear();
+
+		broker.processNodeInfo(info.nodeID, info);
+
 		let findItem = broker.actions.get("other.find");
 		expect(findItem.list.length).toBe(1);
 		expect(broker.emitLocal).toHaveBeenCalledTimes(0);
 	});
 	
+	it("should update last heartbeat time", () => {
+		let node = broker.nodes.get("server-2");
+		node.lastHeartbeatTime = 1000;
+		broker.nodeHeartbeat("server-2");
+		expect(node.lastHeartbeatTime).not.toBe(1000);
+	});	
+
+	it("should call 'nodeDisconnected' if the heartbeat time is too old", () => {
+		let node = broker.nodes.get("server-2");
+		broker.nodeDisconnected = jest.fn();
+		broker.nodeHeartbeat("server-2");
+		broker.checkRemoteNodes();
+		expect(broker.nodeDisconnected).toHaveBeenCalledTimes(0);
+
+		node.lastHeartbeatTime -= broker.options.nodeHeartbeatTimeout * 1.5 * 1000;
+		broker.checkRemoteNodes();
+		expect(broker.nodeDisconnected).toHaveBeenCalledTimes(1);
+	});	
+
+	it("should remove node from nodes map", () => {
+		broker.nodeDisconnected = oldBrokerNodeDisconnected;
+		broker.emitLocal.mockClear();
+		let node = broker.nodes.get("server-2");
+		broker.nodeDisconnected("server-2");
+		let notfound = broker.nodes.get("server-2");
+		expect(notfound).toBeUndefined();
+		expect(broker.emitLocal).toHaveBeenCalledTimes(3);
+		expect(broker.emitLocal).toHaveBeenCalledWith("unregister.node.server-2", node);
+		expect(broker.emitLocal).toHaveBeenCalledWith("unregister.action.other.get", null, {"name": "other.get"}, "server-2");
+		expect(broker.emitLocal).toHaveBeenCalledWith("unregister.action.other.find", null, {"name": "other.find"}, "server-2");
+	});	
 });
 
 describe("Test ServiceBroker with Transporter", () => {
@@ -240,6 +356,7 @@ describe("Test ServiceBroker with Transporter", () => {
 	let transporter = new Transporter();
 	transporter.init = jest.fn(); 
 	transporter.connect = jest.fn(); 
+	transporter.disconnect = jest.fn(); 
 	transporter.sendHeartbeat = jest.fn(); 
 	transporter.emit = jest.fn(); 
 	transporter.request = jest.fn((nodeID, ctx) => ctx); 
@@ -263,6 +380,8 @@ describe("Test ServiceBroker with Transporter", () => {
 	it("should call transporter.connect", () => {
 		broker.start();
 		expect(transporter.connect).toHaveBeenCalledTimes(1);
+		expect(broker.heartBeatTimer).toBeDefined();
+		expect(broker.checkNodesTimer).toBeDefined();
 	});
 
 	it("should call transporter emit", () => {
@@ -305,6 +424,19 @@ describe("Test ServiceBroker with Transporter", () => {
 		expect(transporter.request).toHaveBeenCalledTimes(1);
 		expect(transporter.request).toHaveBeenCalledWith("99999", ctx);
 		expect(ctx.parent).toBe(parentCtx);		
+	});
+	
+	it("should call transporter.disconnect", () => {
+		broker.stop();
+		expect(transporter.disconnect).toHaveBeenCalledTimes(1);
+		expect(broker.heartBeatTimer).toBeNull();
+		expect(broker.checkNodesTimer).toBeNull();
+	});
+
+	it("should call stop", () => {
+		broker.stop = jest.fn();
+		broker._closeFn();
+		expect(broker.stop).toHaveBeenCalledTimes(1);
 	});
 	
 });

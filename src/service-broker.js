@@ -35,10 +35,6 @@ class ServiceBroker {
 			wildcard: true,
 			maxListeners: 100
 		});
-		// TODO debug
-		this.bus.onAny((event, value) => {
-			this.logger.debug("Local event", event, value);
-		});		
 
 		this.nodes = new Map();
 		this.services = new Map();
@@ -75,11 +71,13 @@ class ServiceBroker {
 
 			// TODO promise, send only connection was success
 			this.heartBeatTimer = setInterval(() => {
+				/* istanbul ignore next */
 				this.transporter.sendHeartbeat();
 			}, this.options.sendHeartbeatTime * 1000);
 			this.heartBeatTimer.unref();
 
 			this.checkNodesTimer = setInterval(() => {
+				/* istanbul ignore next */
 				this.checkRemoteNodes();
 			}, this.options.nodeHeartbeatTimeout * 1000);
 			this.checkNodesTimer.unref();
@@ -95,19 +93,21 @@ class ServiceBroker {
 	stop() {
 		if (this.transporter) {
 			this.transporter.disconnect();
+
+			if (this.heartBeatTimer) {
+				clearInterval(this.heartBeatTimer);
+				this.heartBeatTimer = null;
+			}
+
+			if (this.checkNodesTimer) {
+				clearInterval(this.checkNodesTimer);
+				this.checkNodesTimer = null;
+			}
 		}
 
 		process.removeListener("beforeExit", this._closeFn);
 		process.removeListener("exit", this._closeFn);
 		process.removeListener("SIGINT", this._closeFn);
-
-		if (this.heartBeatTimer) {
-			clearInterval(this.heartBeatTimer);
-		}
-
-		if (this.checkNodesTimer) {
-			clearInterval(this.checkNodesTimer);
-		}
 	}
 
 	/**
@@ -306,6 +306,8 @@ class ServiceBroker {
 		if (this.transporter) {
 			this.transporter.emit(eventName, ...args);
 		}
+
+		this.logger.debug("Local event", eventName, ...args);		
 
 		return this.emitLocal(eventName, ...args);
 	}
