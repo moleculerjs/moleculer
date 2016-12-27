@@ -38,10 +38,13 @@ describe("Test Context", () => {
 	it("test with options", () => {
 
 		let broker = new ServiceBroker();
+		broker.emit = jest.fn();
 
 		let opts = {
 			requestID: 123,
-			parent: {},
+			parent: {
+				id: "parent123"
+			},
 			broker,
 			action: {},
 			params: {
@@ -59,6 +62,10 @@ describe("Test Context", () => {
 		expect(ctx.level).toBe(1);
 		expect(ctx.params).toEqual({ b: 5 });
 
+		expect(broker.emit).toHaveBeenCalledTimes(1);
+		expect(broker.emit).toHaveBeenCalledWith("metrics.context.start", {"action": {"name": undefined}, "id": ctx.id, "parent": ctx.parent.id, "requestID": ctx.requestID, "time": ctx.startTime});
+		broker.emit.mockClear();
+
 		// Test call method
 		broker.call = jest.fn();
 
@@ -69,7 +76,6 @@ describe("Test Context", () => {
 		expect(broker.call).toHaveBeenCalledWith("posts.find", p, ctx);
 
 		// Test emit method
-		broker.emit = jest.fn();
 
 		let data = { id: 5 };
 		ctx.emit("request.rest", data);
@@ -80,8 +86,7 @@ describe("Test Context", () => {
 		broker.emit.mockClear();
 		ctx.emit("request.rest", "string-data");
 		expect(broker.emit).toHaveBeenCalledTimes(1);
-		expect(broker.emit).toHaveBeenCalledWith("request.rest", "string-data");
-		
+		expect(broker.emit).toHaveBeenCalledWith("request.rest", "string-data");		
 	});
 });
 
@@ -94,7 +99,6 @@ describe("Test Child Context", () => {
 	});
 
 	it("test duration", () => {
-
 		expect(ctx.parent).toBe(parentCtx);
 		expect(parentCtx.duration).toBe(0);
 		expect(ctx.duration).toBe(0);
@@ -111,9 +115,7 @@ describe("Test Child Context", () => {
 			}, 100);
 			
 		});
-
 	});
-
 });
 
 
@@ -156,13 +158,12 @@ describe("Test createSubContext", () => {
 		expect(subCtx.action).toBe(action2);
 		expect(subCtx.params).toEqual(params2);
 	});
-
 });
 
 describe("Test result method", () => {
 	let ctx = new Context();
 	ctx.log =  jest.fn();
-	ctx.closeContext =  jest.fn();
+	ctx.closeContext = jest.fn();
 
 	it("should call closeContext method and call then", () => {
 		let response = { id: 5 };
@@ -174,7 +175,6 @@ describe("Test result method", () => {
 			expect(data).toBe(response);
 		});
 	});
-
 });
 
 describe("Test error method", () => {
@@ -192,5 +192,18 @@ describe("Test error method", () => {
 			expect(err).toBe(error);
 		});
 	});
+});
 
+describe("Test closeContext", () => {
+
+	let broker = new ServiceBroker();
+	let ctx = new Context({ broker, parent: { id: 123 }, action: { name: "users.get" } });
+	broker.emit = jest.fn();
+
+	it("should call _metricFinish method", () => {		
+		ctx.closeContext();
+
+		expect(broker.emit).toHaveBeenCalledTimes(1);
+		expect(broker.emit).toHaveBeenCalledWith("metrics.context.finish", {"action": {"name": "users.get"}, "duration": ctx.duration, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "time": ctx.stopTime});
+	});
 });

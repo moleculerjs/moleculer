@@ -38,6 +38,8 @@ class Context {
 		this.startTime = Date.now();
 		this.stopTime = null;
 		this.duration = 0;
+
+		this._metricStart();
 	}
 
 	/**
@@ -94,6 +96,7 @@ class Context {
 		if (this.parent) {
 			this.parent.duration += this.duration;
 		}
+		this._metricFinish();
 	}
 
 	/**
@@ -140,6 +143,45 @@ class Context {
 	call(actionName, params) {
 		return this.broker.call(actionName, params, this);
 	}	
+
+	_metricStart() {
+		if (this.broker) {
+			let payload = {
+				id: this.id,
+				requestID: this.requestID,
+				time: this.startTime
+			};
+			if (this.parent) {
+				payload.parent = this.parent.id;
+			}
+			if (this.action) {
+				payload.action = {
+					name: this.action.name
+				};
+			}
+			this.broker.emit("metrics.context.start", payload);
+		}
+	}
+
+	_metricFinish() {
+		if (this.broker) {
+			let payload = {
+				id: this.id,
+				requestID: this.requestID,
+				time: this.stopTime,
+				duration: this.duration
+			};
+			if (this.parent) {
+				payload.parent = this.parent.id;
+			}
+			if (this.action) {
+				payload.action = {
+					name: this.action.name
+				};
+			}			
+			this.broker.emit("metrics.context.finish", payload);
+		}
+	}
 }
 
 module.exports = Context;
