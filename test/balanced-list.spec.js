@@ -14,6 +14,7 @@ describe("Test BalancedList", () => {
 		expect(list.list).toBeDefined();
 		expect(list.opts).toBe(opts);
 		expect(list.counter).toBe(0);
+		expect(list.count()).toBe(0);
 
 		expect(list.get()).toBeNull();
 		expect(list.hasLocal()).toBeFalsy();
@@ -28,6 +29,7 @@ describe("Test BalancedList", () => {
 		list.add(obj2, 20, "node2"); // remote
 		list.add(obj3, 0); // local
 
+		expect(list.count()).toBe(3);
 		expect(list.hasLocal()).toBeTruthy();
 		expect(list.counter).toBe(0);
 		let item = list.get();
@@ -37,8 +39,15 @@ describe("Test BalancedList", () => {
 		expect(list.counter).toBe(0);
 		expect(list.get().data).toBe(obj3);
 		expect(list.counter).toBe(0);
+
+		item = list.getLocalItem();
+		expect(item.local).toBeTruthy();
+		expect(item.nodeID).toBeUndefined();
+		expect(item.data).toBe(obj3);
+		
 		
 		list.remove(obj3);
+		expect(list.count()).toBe(2);
 		expect(list.get().data).toBe(obj1);
 		expect(list.counter).toBe(1);
 		expect(list.get().data).toBe(obj2);
@@ -46,6 +55,15 @@ describe("Test BalancedList", () => {
 		expect(list.get().data).toBe(obj1);
 		expect(list.counter).toBe(1);
 		expect(list.hasLocal()).toBeFalsy();
+	
+		item = list.getLocalItem();
+		expect(item).toBeUndefined();
+
+		list.removeByNode("no-id");
+		expect(list.count()).toBe(2);
+
+		list.removeByNode("node1");
+		expect(list.count()).toBe(1);
 	
 	});
 
