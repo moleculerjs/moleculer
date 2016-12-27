@@ -1,6 +1,5 @@
 "use strict";
 
-let _ 			= require("lodash");
 let minimatch   = require("minimatch");
 let BaseCacher  = require("./base");
 /**

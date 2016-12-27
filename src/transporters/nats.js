@@ -137,7 +137,7 @@ class NatsTransporter extends Transporter {
 		});
 
 		// Discover handler
-		this.client.subscribe([PREFIX, "DISCOVER"].join("."), (msg, reply, subject) => {
+		this.client.subscribe([PREFIX, "DISCOVER"].join("."), (msg, reply) => {
 			let nodeInfo = utils.string2Json(msg);
 			let nodeID = nodeInfo.nodeID;
 			if (nodeID !== this.nodeID) {

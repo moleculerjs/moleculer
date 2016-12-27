@@ -33,7 +33,7 @@ class ServiceBroker {
 		this.logger = this.getLogger("BKR");
 		this.bus = new EventEmitter2({
 			wildcard: true,
-			maxListeners: 100,
+			maxListeners: 100
 		});
 		// TODO debug
 		this.bus.onAny((event, value) => {
@@ -58,6 +58,7 @@ class ServiceBroker {
 			this.stop();
 		};
 
+		process.setMaxListeners(0);
 		process.on("beforeExit", this._closeFn);
 		process.on("exit", this._closeFn);
 		process.on("SIGINT", this._closeFn);
