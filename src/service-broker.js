@@ -100,6 +100,14 @@ class ServiceBroker {
 		process.removeListener("beforeExit", this._closeFn);
 		process.removeListener("exit", this._closeFn);
 		process.removeListener("SIGINT", this._closeFn);
+
+		if (this.heartBeatTimer) {
+			clearInterval(this.heartBeatTimer);
+		}
+
+		if (this.checkNodesTimer) {
+			clearInterval(this.checkNodesTimer);
+		}
 	}
 
 	/**
@@ -373,7 +381,8 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Node disconnected. Remove from nodes map and remove remote actions
+	 * Node disconnected event handler. 
+	 * Remove node and remove remote actions of node
 	 * 
 	 * @param {any} nodeID
 	 * 

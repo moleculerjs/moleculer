@@ -12,13 +12,11 @@ module.exports = function(broker) {
 		name: "users",
 		actions: {
 			find(ctx) {
-				ctx.service.counter += 1;
 				ctx.log("find users");
 				return ctx.result(users);
 			},
 
 			get(ctx) {
-				ctx.service.counter += 1;
 				ctx.log("get user");
 				return ctx.result(_.find(users, user => user.id == ctx.params.id));
 			}

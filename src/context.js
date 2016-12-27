@@ -15,6 +15,9 @@ class Context {
 	/**
 	 * Creates an instance of Context.
 	 * 
+	 * TODO: rename id -> requestID
+	 * create id which is always auto generated
+	 * 
 	 * @param {any} opts
 	 * 
 	 * @memberOf Context
