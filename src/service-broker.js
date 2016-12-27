@@ -77,10 +77,12 @@ class ServiceBroker {
 			this.heartBeatTimer = setInterval(() => {
 				this.transporter.sendHeartbeat();
 			}, this.options.sendHeartbeatTime * 1000);
+			this.heartBeatTimer.unref();
 
 			this.checkNodesTimer = setInterval(() => {
 				this.checkRemoteNodes();
 			}, this.options.nodeHeartbeatTimeout * 1000);
+			this.checkNodesTimer.unref();
 		}
 	}
 
