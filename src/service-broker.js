@@ -6,6 +6,8 @@ let Context = require("./context");
 let errors = require("./errors");
 let utils = require("./utils");
 let _ = require("lodash");
+let glob = require("glob");
+let path = require("path");
 
 
 /**
@@ -120,6 +122,28 @@ class ServiceBroker {
 	 */
 	getLogger(name) {
 		return utils.wrapLogger(this.options.logger, this.nodeID + (name ? "-" + name : ""));
+	}
+
+	/**
+	 * Load services from a folder
+	 * 
+	 * @param {string} [folder="./services"]		Folder of services
+	 * @param {string} [fileMask="*.service.js"]	Service filename mask
+	 * @returns	{Number}							Number of found services
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	loadServices(folder = "./services", fileMask = "*.service.js") {
+		this.logger.debug(`Load services from ${fileMask}...`); 
+		
+		let serviceFiles = glob.sync(path.join(folder, fileMask));
+		if (serviceFiles) {
+			serviceFiles.forEach(servicePath => {
+				this.logger.debug("  Load service from", path.basename(servicePath));
+				require(path.resolve(servicePath))(this);
+			});
+		}	
+		return serviceFiles.length;	
 	}
 
 	/**

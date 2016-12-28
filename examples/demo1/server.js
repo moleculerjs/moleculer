@@ -16,19 +16,9 @@ let broker = new ServiceBroker({
 
 // Load services
 console.log(""); 
-console.log("Load services..."); 
-/*
-let serviceFiles = glob.sync(path.join(__dirname, "..", "*.service.js"));
-if (serviceFiles) {
-	serviceFiles.forEach(function(servicePath) {
-		console.log("  Load service", path.basename(servicePath));
-		//if (path.basename(servicePath) == "post.service.js") return;
-		require(path.resolve(servicePath))(broker);
-	});
-}
-*/
-require("../post.service")(broker);
-require("../user.service")(broker);
+broker.loadServices(path.join(__dirname, ".."));
+//require("../post.service")(broker);
+//require("../user.service")(broker);
 console.log("---------------------------------------\n"); 
 
 // Call actions

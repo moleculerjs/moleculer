@@ -5,3 +5,58 @@
 [![David](https://img.shields.io/david/icebob/ice-services.svg)](https://david-dm.org/icebob/ice-services)
 
 # UNDER DEVELOPMENT
+
+# Info
+
+# Features
+
+# Installation
+```
+$ npm install ice-services
+```
+
+or
+
+```
+$ yarn add ice-services
+```
+
+# Usage
+
+# Service
+
+# Service broker
+
+# Context
+
+# Cachers
+
+## Memory cacher
+
+## Redis cacher
+
+## Custom cacher
+
+# Transporters
+
+# NATS Transporter
+
+# Custom transporter
+
+# Nodes
+
+# Test
+```
+npm test
+```
+
+# Contribution
+Please send pull requests improving the usage and fixing bugs, improving documentation and providing better examples, or providing some testing, because these things are important.
+
+# License
+ice-services is available under the [MIT license](https://tldrlegal.com/license/mit-license).
+
+# Contact
+Copyright (C) 2016 Icebob
+
+[![@icebob](https://img.shields.io/badge/github-icebob-green.svg)](https://github.com/icebob) [![@icebob](https://img.shields.io/badge/twitter-Icebobcsi-blue.svg)](https://twitter.com/Icebobcsi)

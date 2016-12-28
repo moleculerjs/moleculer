@@ -22,8 +22,9 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch benchmark",
-			"program": "${workspaceRoot}\\examples\\benchmark\\index.js",
-			"cwd": "${workspaceRoot}\\examples\\benchmark"
+			"program": "${workspaceRoot}\\benchmark\\index.js",
+			"args": ["transports"],
+			"cwd": "${workspaceRoot}\\benchmark"
 		},
 		{
 			"type": "node",
