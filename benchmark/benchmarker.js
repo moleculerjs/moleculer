@@ -44,9 +44,9 @@ class Benchmarker {
 					self.logger.log("››", String(bench));
 			})
 			.on("complete", function() {
-				self.logger.log(chalk.yellow.bold("\n-----[ Result ]----"));
-				self.logger.log(chalk.green.bold("  Fastest: " + this.filter("fastest").map("name").join(", ")));
-				self.logger.log("\n");
+				//self.logger.log(chalk.yellow.bold("\n-----[ Result ]----"));
+				self.logger.log(chalk.green.bold("\n  Fastest: " + this.filter("fastest").map("name").join(", ")));
+				self.logger.log("----------------------------------------\n");
 				//self.logger.log(chalk.red("  Slowest: " + this.filter("slowest").map("name").join(", ")));
 
 				resolve();
@@ -60,6 +60,17 @@ class Benchmarker {
 			});
 			
 		});
+	}
+
+	static printHeader(name, logger) {
+		logger = logger || console;
+
+		let title = "  " + name + "  ";
+		let lines = "=".repeat(title.length);
+		logger.log(chalk.yellow.bold(lines));
+		logger.log(chalk.yellow.bold(title));
+		logger.log(chalk.yellow.bold(lines));
+		logger.log("");	
 	}
 }
 

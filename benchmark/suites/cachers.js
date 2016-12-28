@@ -4,18 +4,17 @@ let fs = require("fs");
 let _ = require("lodash");
 let chalk = require("chalk");
 let Benchmark = require("benchmark");
-let ServiceBroker = require("../src/service-broker");
-let MemoryCacher = require("../src/cachers/memory");
-let RedisCacher = require("../src/cachers/redis");
+let ServiceBroker = require("../../src/service-broker");
+let MemoryCacher = require("../../src/cachers/memory");
+let RedisCacher = require("../../src/cachers/redis");
+
+let Benchmarker = require("../benchmarker");
+Benchmarker.printHeader("Cachers benchmark");
 
 let key = "TESTKEY-12345";
-let data = fs.readFileSync(__dirname + "/data.json", "utf8");
-/*let data = {
-	a: 5,
-	b: false,
-	c: "Test string"
-};
-*/
+
+let bench = new Benchmarker({ async: true, name: "Set & get 50k data with cacher"});
+let data = bench.getDataFile("50k.json");
 
 let broker = new ServiceBroker();
 
@@ -33,44 +32,14 @@ let redisCacher = new RedisCacher({
 redisCacher.init(broker);
 
 // ----
-function benchMemoryCacher() {
+bench.add("Memory", () => {
 	return memCacher.set(key, data).then(() => memCacher.get(key));	
-}
+});
 
-function benchRedisCacher() {
+bench.add("Redis", () => {
 	return redisCacher.set(key, data).then(() => redisCacher.get(key));	
-}
+});
 
-let suite = new Benchmark.Suite;
-
-suite
-	.add("Memory cacher", {
-		defer: true,
-		fn(deferred) {
-			return benchMemoryCacher().then(() => deferred.resolve());
-		}
-	})
-	.add("Redis cacher", {
-		defer: true,
-		fn(deferred) {
-			return benchRedisCacher().then(() => deferred.resolve());
-		}
-	})
-	.on("cycle", function (event) {
-		let bench = event.target;
-		if (bench.error)
-			console.error(chalk.red.bold(String(bench), bench.error.message, "\n", bench.error.stack || ""));
-		else
-			console.log("››", String(bench));
-	})
-	.on("complete", function () {
-		console.log("---", "\nFastest:", this.filter("fastest").map("name").join(", "), "\nSlowest:", this.filter("slowest").map("name").join(", "));
-		memCacher.close();
-		redisCacher.close();
-	});
-
-console.log(chalk.yellow.bold("Benchmark Cachers"));
-suite.run({
-	defer: true,
-	async: true
+bench.run().then(() => {
+	redisCacher.close();
 });

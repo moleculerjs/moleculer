@@ -5,11 +5,7 @@ let chalk = require("chalk");
 let uuid = require("uuid");
 
 let Benchmarker = require("../benchmarker");
-
-console.log(chalk.yellow.bold("========================="));
-console.log(chalk.yellow.bold("|  Transport benchmark  |"));
-console.log(chalk.yellow.bold("========================="));
-console.log("");
+Benchmarker.printHeader("Transport benchmark");
 
 let dataFiles = ["150", "1k", "10k", "50k", "100k", "1M"];
 
