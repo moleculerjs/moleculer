@@ -64,6 +64,8 @@ describe("Test loadServices", () => {
 	
 	it("should found 0 services", () => {
 		expect(broker.loadServices("./examples")).toBe(3);
+		expect(broker.hasService("math")).toBeTruthy();
+		expect(broker.hasAction("math.add")).toBeTruthy();
 	});
 
 });
