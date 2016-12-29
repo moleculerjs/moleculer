@@ -37,7 +37,7 @@ describe("Test Context", () => {
 
 	it("test with options", () => {
 
-		let broker = new ServiceBroker();
+		let broker = new ServiceBroker({ metrics: true });
 		broker.emit = jest.fn();
 
 		let opts = {
@@ -190,13 +190,24 @@ describe("Test error method", () => {
 		return p.catch((err) => {
 			expect(ctx.closeContext).toHaveBeenCalledTimes(1);
 			expect(err).toBe(error);
+			expect(err.ctx).toBe(ctx);
 		});
 	});
+
+	it("should create Error if pass a string param", () => {
+		let p = ctx.error("Something went wrong!");
+		expect(p).toBeDefined();
+		expect(p.catch).toBeDefined();
+		return p.catch((err) => {
+			expect(err).toBeInstanceOf(Error);
+			expect(err.ctx).toBe(ctx);
+		});
+	});	
 });
 
 describe("Test closeContext", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ metrics: true });
 	let ctx = new Context({ broker, parent: { id: 123 }, action: { name: "users.get" } });
 	broker.emit = jest.fn();
 

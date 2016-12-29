@@ -9,7 +9,7 @@ describe("Test ServiceBroker constructor", () => {
 	it("should set default options", () => {
 		let broker = new ServiceBroker();
 		expect(broker).toBeDefined();
-		expect(broker.options).toEqual({ nodeHeartbeatTimeout : 30, sendHeartbeatTime: 10});
+		expect(broker.options).toEqual({ metrics: false, nodeHeartbeatTimeout : 30, sendHeartbeatTime: 10});
 		expect(broker.services).toBeInstanceOf(Map);
 		expect(broker.actions).toBeInstanceOf(Map);
 		expect(broker.transporter).toBeUndefined();
@@ -17,9 +17,9 @@ describe("Test ServiceBroker constructor", () => {
 	});
 
 	it("should merge options", () => {
-		let broker = new ServiceBroker( { nodeHeartbeatTimeout: 20 });
+		let broker = new ServiceBroker( { nodeHeartbeatTimeout: 20, metrics: true });
 		expect(broker).toBeDefined();
-		expect(broker.options).toEqual({ nodeHeartbeatTimeout : 20, sendHeartbeatTime: 10});
+		expect(broker.options).toEqual({ metrics: true, nodeHeartbeatTimeout : 20, sendHeartbeatTime: 10});
 		expect(broker.services).toBeInstanceOf(Map);
 		expect(broker.actions).toBeInstanceOf(Map);
 		expect(broker.transporter).toBeUndefined();
@@ -63,7 +63,20 @@ describe("Test loadServices", () => {
 	let broker = new ServiceBroker();
 	
 	it("should found 0 services", () => {
-		expect(broker.loadServices()).toBe(0);
+		expect(broker.loadServices("./examples")).toBe(3);
+	});
+
+});
+
+describe("Test loadService", () => {
+
+	let broker = new ServiceBroker();
+	
+	it("should found 0 services", () => {
+		let service = broker.loadService("./examples/math.service.js");
+		expect(service).toBeDefined();
+		expect(broker.hasService("math")).toBeTruthy();
+		expect(broker.hasAction("math.add")).toBeTruthy();
 	});
 
 });

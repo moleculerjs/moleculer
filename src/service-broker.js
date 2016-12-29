@@ -145,7 +145,6 @@ class ServiceBroker {
 		
 		let serviceFiles = glob.sync(path.join(folder, fileMask));
 		if (serviceFiles) {
-			/* istanbul ignore next */
 			serviceFiles.forEach(servicePath => {
 				this.loadService(servicePath);
 			});
