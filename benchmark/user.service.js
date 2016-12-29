@@ -12,12 +12,12 @@ module.exports = function(broker) {
 		name: "users",
 		actions: {
 			find(ctx) {
-				ctx.log("find users");
+				//ctx.log("find users");
 				return ctx.result(users);
 			},
 
 			get(ctx) {
-				ctx.log("get user");
+				//ctx.log("get user");
 				return ctx.result(_.find(users, user => user.id == ctx.params.id));
 			}
 		}

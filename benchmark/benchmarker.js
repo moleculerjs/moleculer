@@ -48,6 +48,7 @@ class Benchmarker {
 				self.logger.log(chalk.green.bold("\n  Fastest: " + this.filter("fastest").map("name").join(", ")));
 				self.logger.log("----------------------------------------\n");
 				//self.logger.log(chalk.red("  Slowest: " + this.filter("slowest").map("name").join(", ")));
+				//self.logger.log(this);
 
 				resolve();
 			});

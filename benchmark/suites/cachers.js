@@ -1,15 +1,13 @@
 "use strict";
 
-let fs = require("fs");
 let _ = require("lodash");
-let chalk = require("chalk");
-let Benchmark = require("benchmark");
-let ServiceBroker = require("../../src/service-broker");
-let MemoryCacher = require("../../src/cachers/memory");
-let RedisCacher = require("../../src/cachers/redis");
 
 let Benchmarker = require("../benchmarker");
 Benchmarker.printHeader("Cachers benchmark");
+
+let ServiceBroker = require("../../src/service-broker");
+let MemoryCacher = require("../../src/cachers/memory");
+let RedisCacher = require("../../src/cachers/redis");
 
 let key = "TESTKEY-12345";
 
