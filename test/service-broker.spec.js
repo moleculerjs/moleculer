@@ -58,6 +58,16 @@ describe("Test on/off event emitter", () => {
 
 });
 
+describe("Test loadServices", () => {
+
+	let broker = new ServiceBroker();
+	
+	it("should found 0 services", () => {
+		expect(broker.loadServices()).toBe(0);
+	});
+
+});
+
 describe("Test service registration", () => {
 
 	let broker = new ServiceBroker();

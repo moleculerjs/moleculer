@@ -17,7 +17,7 @@ class Benchmarker {
 	}
 
 	getDataFile(filename, encoding = "utf8") {
-		return fs.readFileSync(__dirname + "/data/" + filename, encoding);
+		return fs.readFileSync(path.join(__dirname, "data", filename), encoding);
 	}
 
 	add(name, fn) {

@@ -138,6 +138,7 @@ class ServiceBroker {
 		
 		let serviceFiles = glob.sync(path.join(folder, fileMask));
 		if (serviceFiles) {
+			/* istanbul ignore next */
 			serviceFiles.forEach(servicePath => {
 				this.logger.debug("  Load service from", path.basename(servicePath));
 				require(path.resolve(servicePath))(this);
