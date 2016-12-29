@@ -133,6 +133,10 @@ class Context {
 	 */
 	error(err) {
 		this.closeContext();
+		if (!(err instanceof Error)) {
+			err = new Error(err);
+		}
+		err.ctx = this;
 		//this.logger.error(chalk.red.bold(`[${this.duration}ms] error:`), err);
 		return Promise.reject(err);
 	}
@@ -151,7 +155,7 @@ class Context {
 	}	
 
 	_metricStart() {
-		if (this.broker) {
+		if (this.broker && this.broker.metricsEnabled()) {
 			let payload = {
 				id: this.id,
 				requestID: this.requestID,
@@ -170,7 +174,7 @@ class Context {
 	}
 
 	_metricFinish() {
-		if (this.broker) {
+		if (this.broker && this.broker.metricsEnabled()) {
 			let payload = {
 				id: this.id,
 				requestID: this.requestID,

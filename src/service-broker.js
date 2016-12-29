@@ -33,7 +33,8 @@ class ServiceBroker {
 	constructor(options) {
 		this.options = _.defaultsDeep(options, {
 			sendHeartbeatTime: 10,
-			nodeHeartbeatTimeout: 30
+			nodeHeartbeatTimeout: 30,
+			metrics: false
 		});
 
 		this.nodeID = this.options.nodeID || utils.getNodeID();
@@ -146,11 +147,24 @@ class ServiceBroker {
 		if (serviceFiles) {
 			/* istanbul ignore next */
 			serviceFiles.forEach(servicePath => {
-				this.logger.debug("  Load service from", path.basename(servicePath));
-				require(path.resolve(servicePath))(this);
+				this.loadService(servicePath);
 			});
 		}	
 		return serviceFiles.length;	
+	}
+
+	/**
+	 * Load a service from file
+	 * 
+	 * @param {string} 		Path of service
+	 * @returns	{Service}	Loaded service
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	loadService(filePath) {
+		let fName = path.resolve(filePath);
+		this.logger.debug("Load service from", path.basename(fName));
+		return require(fName)(this);
 	}
 
 	/**
@@ -308,13 +322,17 @@ class ServiceBroker {
 		} else {
 			ctx = new Context({ broker: this, action, params });
 		}
-			
+
 		if (actionItem.local) {
 			// Local action call
+			this.logger.debug(`Call local '${action.name}' action...`);
+
 			return action.handler(ctx);
 
 		} else if (actionItem.nodeID && this.transporter) {
 			// Remote action call
+			this.logger.debug(`Call remote '${action.name}' action in node '${actionItem.nodeID}'...`);
+
 			return this.transporter.request(actionItem.nodeID, ctx);
 
 		} else {
@@ -449,6 +467,10 @@ class ServiceBroker {
 				this.nodeDisconnected(entry[0]);
 			}
 		}
+	}
+
+	metricsEnabled() {
+		return this.options.metrics;
 	}
 }
 
