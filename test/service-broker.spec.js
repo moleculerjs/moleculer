@@ -62,7 +62,7 @@ describe("Test loadServices", () => {
 
 	let broker = new ServiceBroker();
 	
-	it("should found 0 services", () => {
+	it("should found 3 services", () => {
 		expect(broker.loadServices("./examples")).toBe(3);
 		expect(broker.hasService("math")).toBeTruthy();
 		expect(broker.hasAction("math.add")).toBeTruthy();
@@ -74,7 +74,7 @@ describe("Test loadService", () => {
 
 	let broker = new ServiceBroker();
 	
-	it("should found 0 services", () => {
+	it("should load math service", () => {
 		let service = broker.loadService("./examples/math.service.js");
 		expect(service).toBeDefined();
 		expect(broker.hasService("math")).toBeTruthy();
