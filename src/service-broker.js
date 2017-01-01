@@ -165,8 +165,11 @@ class ServiceBroker {
 		let fName = path.resolve(filePath);
 		this.logger.debug("Load service from", path.basename(fName));
 		let schema = require(fName);
-		let service = new Service(this, schema);
-		return service;
+		if (_.isFunction(schema)) {
+			return schema(this);
+		} else {
+			return new Service(this, schema);
+		}
 	}
 
 	/**
