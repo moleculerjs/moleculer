@@ -3,7 +3,7 @@
 ## Common
 - multi params for call & return array
 - create d.ts file
-- use parambulator in actions
+- use parambulator in actions (validator.js, joi, ajv, validatorjs, validate.js make benchmark)
 	```js
 	add: {
 		cache: true,
@@ -23,5 +23,6 @@
 - add gzip support
 
 ## Cachers
+- add lru features t Memory and Redis
 
 ## Context
