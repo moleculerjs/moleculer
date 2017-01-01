@@ -18,7 +18,6 @@
 	```
 
 ## Services
-- started(), stopped() event handlers. It will called by broker.start and stop
 
 ## Transporters
 - add gzip support
