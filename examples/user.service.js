@@ -1,39 +1,35 @@
 let _ = require("lodash");
 let fakerator = require("fakerator")();
 
-let Service = require("../src/service");
+let users = fakerator.times(fakerator.entity.user, 10);
 
-module.exports = function(broker) {
-	let users = fakerator.times(fakerator.entity.user, 10);
+_.each(users, (user, i) => user.id = i + 1);
+//console.log(users);
 
-	_.each(users, (user, i) => user.id = i + 1);
-	//console.log(users);
-
-	new Service(broker, {
-		name: "users",
-		actions: {
-			find(ctx) {
-				this.logger.debug("Find users...");
-				return ctx.result(users);
-			},
-
-			get: {
-				cache: true,
-				handler(ctx) {
-					this.logger.debug("Get user...", ctx.params);
-					return ctx.result(this.findByID(ctx.params.id));
-				}
-			}
+module.exports = {
+	name: "users",
+	actions: {
+		find(ctx) {
+			this.logger.debug("Find users...");
+			return ctx.result(users);
 		},
 
-		methods: {
-			findByID(id) {
-				return _.find(users, user => user.id == id);
+		get: {
+			cache: true,
+			handler(ctx) {
+				this.logger.debug("Get user...", ctx.params);
+				return ctx.result(this.findByID(ctx.params.id));
 			}
-		},
-
-		created() {
-			this.logger.info("Users service created!");
 		}
-	});
+	},
+
+	methods: {
+		findByID(id) {
+			return _.find(users, user => user.id == id);
+		}
+	},
+
+	created() {
+		this.logger.info("Users service created!");
+	}
 };

@@ -15,7 +15,9 @@ let broker = new ServiceBroker({
 	logger: console
 });
 
-require("../user.service")(broker);
+//broker.loadService(__dirname + "/../post.service");
+broker.loadService(__dirname + "/../user.service");
+
 
 broker.start();
 let c = 1;

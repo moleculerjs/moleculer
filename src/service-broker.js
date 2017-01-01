@@ -161,9 +161,12 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	loadService(filePath) {
+		let Service = require("./service");		
 		let fName = path.resolve(filePath);
 		this.logger.debug("Load service from", path.basename(fName));
-		return require(fName)(this);
+		let schema = require(fName);
+		let service = new Service(this, schema);
+		return service;
 	}
 
 	/**
