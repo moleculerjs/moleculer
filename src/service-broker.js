@@ -75,6 +75,14 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	start() {
+		// Call service `started` handlers
+		this.services.forEach(item => {
+			let service = item.get().data;
+			if (service && service.schema && _.isFunction(service.schema.started)) {
+				service.schema.started.call(service);
+			}
+		});
+
 		if (this.transporter) {
 			this.transporter.connect();
 
@@ -100,6 +108,14 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	stop() {
+		// Call service `started` handlers
+		this.services.forEach(item => {
+			let service = item.get().data;
+			if (service && service.schema && _.isFunction(service.schema.stopped)) {
+				service.schema.stopped.call(service);
+			}
+		});
+		
 		if (this.transporter) {
 			this.transporter.disconnect();
 

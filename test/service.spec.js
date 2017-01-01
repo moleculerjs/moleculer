@@ -180,6 +180,28 @@ describe("Local service registration", () => {
 
 });
 
+describe("Test service started & stopped handlers", () => {
+
+	let broker = new ServiceBroker();
+
+	let service = new Service(broker, {
+		name: "svc",
+		started: jest.fn(),
+		stopped: jest.fn()
+	});
+
+	it("should call the service.started", () => {
+		broker.start();
+		expect(service.schema.started).toHaveBeenCalledTimes(1);
+	});
+
+	it("should call the service.stopped", () => {
+		broker.stop();
+		expect(service.schema.stopped).toHaveBeenCalledTimes(1);
+	});
+
+});
+
 describe("Test empty service without actions & methods", () => {
 
 	let broker = new ServiceBroker();
@@ -189,11 +211,8 @@ describe("Test empty service without actions & methods", () => {
 	};
 
 	it("should create the service", () => {
-
 		let service = new Service(broker, MailerSchema);
-
 		expect(service).toBeDefined();
-
 	});
 
 });

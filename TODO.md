@@ -1,7 +1,8 @@
 # TODO
 
 ## Common
-- multi params for call
+- multi params for call & return array
+- create d.ts file
 - use parambulator in actions
 	```js
 	add: {
@@ -15,6 +16,9 @@
 		}
 	}
 	```
+
+## Services
+- started(), stopped() event handlers. It will called by broker.start and stop
 
 ## Transporters
 - add gzip support
