@@ -24,9 +24,29 @@ $ yarn add ice-services
 
 # Usage
 
+## Create a service
+
+## Create a broker
+
+## Call the actions of service
+
 # Service
 
+## Schema
+
+## Actions
+
+## Events
+
+## Methods
+
 # Service broker
+
+## Options
+
+## Call action
+
+## Emit events
 
 # Context
 
