@@ -144,7 +144,8 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	getLogger(name) {
-		return utils.wrapLogger(this.options.logger, this.nodeID + (name ? "-" + name : ""));
+		// return utils.wrapLogger(this.options.logger, this.nodeID + (name ? "-" + name : ""));
+		return utils.wrapLogger(this.options.logger, name);
 	}
 
 	/**
