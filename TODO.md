@@ -18,6 +18,7 @@
 	```
 
 ## Services
+- service factory & context factory for broker options
 
 ## Transporters
 - add gzip support
