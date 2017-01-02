@@ -61,12 +61,15 @@ class Service {
 					};
 				}
 
-				let innerAction = this._createActionHandler(action, action.handler, name);
+				let innerAction = this._createActionHandler(_.cloneDeep(action), action.handler, name);
+
+				// Expose to call `service.actions.find({ ...params })`
 				this.actions[name] = (params) => {
 					let ctx = new Context({ broker, action: innerAction, params });
 					return action.handler(ctx);
 				};
 
+				// Register to broker
 				broker.registerAction(this, innerAction);
 			});
 
@@ -127,7 +130,7 @@ class Service {
 			throw new Error(`Missing action handler on '${name}' action in '${this.name}' service!`);
 		}
 
-		action.name = this.name + "." + name;
+		action.name = this.name + "." + (action.name || name);
 		action.service = this;
 		action.handler = handler.bind(this);
 
