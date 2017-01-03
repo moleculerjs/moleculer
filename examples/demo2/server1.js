@@ -24,12 +24,12 @@ let c = 1;
 Promise.resolve()
 .then(delay(1000))
 .then(() => {
-	/*
+	
 	let startTime = Date.now();
 	broker.call("posts.find").then((posts) => {
 		console.log("[server-1] Posts: ", posts.length, ", Time:", Date.now() - startTime, "ms");
 	});	
-	*/
+	
 })
 .then(() => {
 	setInterval(() => {
