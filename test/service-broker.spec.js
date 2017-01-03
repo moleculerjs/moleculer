@@ -150,6 +150,7 @@ describe("Test action registration", () => {
 		let ctx = broker.call("posts.find");		
 		expect(ctx).toBeDefined();
 		expect(ctx.id).toBeDefined();
+		expect(ctx.requestID).toBeDefined();
 		expect(ctx.level).toBe(1);
 		expect(ctx.broker).toBe(broker);
 		expect(ctx.action).toBe(mockAction);
@@ -166,6 +167,11 @@ describe("Test action registration", () => {
 		expect(ctx.params.a).toBe(params.a);
 		expect(ctx.level).toBe(1);
 	});
+
+	it("should set requestID to context", () => {
+		let ctx = broker.call("posts.find", null, null, "req123");
+		expect(ctx.requestID).toBe("req123");
+	});	
 
 	it("should create a sub context of parent context", () => {
 		let prevCtx = new Context({

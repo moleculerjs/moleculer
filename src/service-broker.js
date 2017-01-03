@@ -319,11 +319,12 @@ class ServiceBroker {
 	 * @param {any} actionName	name of action
 	 * @param {any} params		params of action
 	 * @param {any} parentCtx	parent context (optional)
+	 * @param {any} requestID	requestID (optional)
 	 * @returns
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	call(actionName, params, parentCtx) {
+	call(actionName, params, parentCtx, requestID) {
 		let actions = this.actions.get(actionName);
 		if (!actions) {
 			throw new errors.ServiceNotFoundError(`Missing action '${actionName}'!`);
@@ -342,7 +343,7 @@ class ServiceBroker {
 		if (parentCtx) {
 			ctx = parentCtx.createSubContext(action, params);
 		} else {
-			ctx = new Context({ broker: this, action, params });
+			ctx = new Context({ broker: this, action, params, requestID });
 		}
 
 		if (actionItem.local) {
