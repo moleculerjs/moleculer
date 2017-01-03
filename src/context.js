@@ -95,8 +95,10 @@ class Context {
 			})
 			.catch(err => {
 				this.closeContext();
-				if (!(err instanceof Error))
+				if (!(err instanceof Error)) {
+					/* istanbul ignore next */
 					err = new Error(err);
+				}
 				
 				err.ctx = this;
 				return Promise.reject(err);				
