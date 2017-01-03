@@ -41,11 +41,9 @@ class Context {
 		this.level = opts.parent && opts.parent.level ? opts.parent.level + 1 : 1;
 		this.params = Object.freeze(Object.assign({}, opts.params || {}));
 
-		this.startTime = Date.now();
+		this.startTime = null;
 		this.stopTime = null;
-		this.duration = 0;
-
-		this._metricStart();
+		this.duration = 0;		
 	}
 
 	/**
@@ -88,13 +86,17 @@ class Context {
 	 */
 	invoke(handler) {
 		return Promise.resolve(this)
+			.then(ctx => {
+				ctx._startInvoke();
+				return ctx;
+			})
 			.then(ctx => handler(ctx))
 			.then(res => {
-				this.closeContext();
+				this._finishInvoke();
 				return res;
 			})
 			.catch(err => {
-				this.closeContext();
+				this._finishInvoke();
 				if (!(err instanceof Error)) {
 					/* istanbul ignore next */
 					err = new Error(err);
@@ -119,11 +121,24 @@ class Context {
 	}
 
 	/**
-	 * Close this context
+	 * Start invoke
 	 * 
 	 * @memberOf Context
 	 */
-	closeContext() {
+	_startInvoke() {
+		this.startTime = Date.now();
+		this.stopTime = null;
+		this.duration = 0;
+
+		this._metricStart();
+	}
+
+	/**
+	 * Finish invoke
+	 * 
+	 * @memberOf Context
+	 */
+	_finishInvoke() {
 		this.stopTime = Date.now();
 		this.duration = this.stopTime - this.startTime;
 		if (this.parent) {

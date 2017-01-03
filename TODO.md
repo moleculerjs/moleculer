@@ -24,6 +24,6 @@
 - add gzip support
 
 ## Cachers
-- add lru features t Memory and Redis
+- add lru features to Memory and Redis
 
 ## Context

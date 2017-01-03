@@ -22,10 +22,6 @@ describe("Test Context", () => {
 		expect(ctx.params).toBeDefined();
 		expect(ctx.params).toEqual({});
 
-		expect(ctx.startTime).toBeDefined();
-		expect(ctx.stopTime).toBeNull();
-		expect(ctx.duration).toBe(0);
-
 		let params = {
 			a: 1
 		};
@@ -62,10 +58,6 @@ describe("Test Context", () => {
 		expect(ctx.level).toBe(1);
 		expect(ctx.params).toEqual({ b: 5 });
 
-		expect(broker.emit).toHaveBeenCalledTimes(1);
-		expect(broker.emit).toHaveBeenCalledWith("metrics.context.start", {"action": {"name": undefined}, "id": ctx.id, "parent": ctx.parent.id, "requestID": ctx.requestID, "time": ctx.startTime});
-		broker.emit.mockClear();
-
 		// Test call method
 		broker.call = jest.fn();
 
@@ -89,35 +81,6 @@ describe("Test Context", () => {
 		expect(broker.emit).toHaveBeenCalledWith("request.rest", "string-data");		
 	});
 });
-
-describe("Test Child Context", () => {
-
-	let parentCtx = new Context();
-
-	let ctx = new Context({
-		parent: parentCtx
-	});
-
-	it("test duration", () => {
-		expect(ctx.parent).toBe(parentCtx);
-		expect(parentCtx.duration).toBe(0);
-		expect(ctx.duration).toBe(0);
-
-		return new Promise((resolve) => {
-			setTimeout(() => {
-				ctx.closeContext();
-
-				expect(ctx.stopTime).toBeGreaterThan(0);
-				expect(ctx.duration).toBeGreaterThan(0);
-				expect(parentCtx.duration).toBe(ctx.duration);
-
-				resolve();
-			}, 100);
-			
-		});
-	});
-});
-
 
 describe("Test createSubContext", () => {
 
@@ -162,9 +125,10 @@ describe("Test createSubContext", () => {
 
 describe("Test invoke method", () => {
 	let ctx = new Context();
-	ctx.closeContext = jest.fn();
+	ctx._startInvoke = jest.fn();
+	ctx._finishInvoke = jest.fn();
 
-	it("should call closeContext method", () => {
+	it("should call start & finishInvoke method", () => {
 		let response = { id: 5 };
 		let handler = jest.fn(() => response);
 
@@ -172,35 +136,65 @@ describe("Test invoke method", () => {
 		expect(p).toBeDefined();
 		expect(p.then).toBeDefined();
 		return p.then((data) => {
-			expect(ctx.closeContext).toHaveBeenCalledTimes(1);
+			expect(ctx._startInvoke).toHaveBeenCalledTimes(1);
+			expect(ctx._finishInvoke).toHaveBeenCalledTimes(1);
 			expect(data).toBe(response);
 		});
 	});
 
 	it("should call closeContext method", () => {
-		ctx.closeContext.mockClear();
+		ctx._startInvoke.mockClear();
+		ctx._finishInvoke.mockClear();
 		let handler = jest.fn(() => Promise.reject(new Error("Something happened")));
 
 		let p = ctx.invoke(handler);
 		expect(p).toBeDefined();
 		expect(p.then).toBeDefined();
 		return p.catch((err) => {
-			expect(ctx.closeContext).toHaveBeenCalledTimes(1);
+			expect(ctx._startInvoke).toHaveBeenCalledTimes(1);
+			expect(ctx._finishInvoke).toHaveBeenCalledTimes(1);
 			expect(err).toBeDefined();
 			expect(err.ctx).toBe(ctx);
 		});
 	});	
 });
 
-describe("Test closeContext", () => {
+describe("Test startInvoke", () => {
 	let broker = new ServiceBroker({ metrics: true });
 	let ctx = new Context({ broker, parent: { id: 123 }, action: { name: "users.get" } });
 	broker.emit = jest.fn();
 
 	it("should call _metricFinish method", () => {		
-		ctx.closeContext();
+		ctx._startInvoke();
+
+		expect(ctx.startTime).toBeDefined();
+		expect(ctx.stopTime).toBeNull();
+		expect(ctx.duration).toBe(0);
 
 		expect(broker.emit).toHaveBeenCalledTimes(1);
-		expect(broker.emit).toHaveBeenCalledWith("metrics.context.finish", {"action": {"name": "users.get"}, "duration": ctx.duration, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "time": ctx.stopTime});
+		expect(broker.emit).toHaveBeenCalledWith("metrics.context.start", {"action": {"name": "users.get"}, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "time": ctx.startTime});
+	});
+});
+
+describe("Test finishInvoke", () => {
+	let broker = new ServiceBroker({ metrics: true });
+	let ctx = new Context({ broker, parent: { id: 123, duration: 0 }, action: { name: "users.get" } });
+	broker.emit = jest.fn();
+
+	it("should call _metricFinish method", () => {		
+		return new Promise((resolve) => {
+			setTimeout(() => {
+				ctx._finishInvoke();
+
+				expect(ctx.stopTime).toBeGreaterThan(0);
+				expect(ctx.duration).toBeGreaterThan(0);
+				expect(ctx.parent.duration).toBe(ctx.duration);
+
+				expect(broker.emit).toHaveBeenCalledTimes(1);
+				expect(broker.emit).toHaveBeenCalledWith("metrics.context.finish", {"action": {"name": "users.get"}, "duration": ctx.duration, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "time": ctx.stopTime});
+
+				resolve();
+			}, 100);
+		});
 	});
 });
