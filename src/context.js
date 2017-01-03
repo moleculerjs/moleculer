@@ -79,6 +79,31 @@ class Context {
 	}
 
 	/**
+	 * Invoke an action handler. Wrap in a Promise & handle response & errors
+	 * 
+	 * @param {any} handler
+	 * @returns
+	 * 
+	 * @memberOf Context
+	 */
+	invoke(handler) {
+		return Promise.resolve(this)
+			.then(ctx => handler(ctx))
+			.then(res => {
+				this.closeContext();
+				return res;
+			})
+			.catch(err => {
+				this.closeContext();
+				if (!(err instanceof Error))
+					err = new Error(err);
+				
+				err.ctx = this;
+				return Promise.reject(err);				
+			});
+	}
+
+	/**
 	 * Call a global event (with broker.emit)
 	 * 
 	 * @param {any} eventName
@@ -103,42 +128,6 @@ class Context {
 			this.parent.duration += this.duration;
 		}
 		this._metricFinish();
-	}
-
-	/**
-	 * Close this context successfully with response data
-	 * 
-	 * @param {any} data
-	 * @returns
-	 * 
-	 * @memberOf Context
-	 */
-	result(data) {
-		return Promise.resolve(data)
-			.then((res) => {
-				this.closeContext();
-				//this.logger.debug(chalk.green(`Context for '${this.action.name}': [${this.duration}ms] result:`), this.params);
-
-				return res;
-			});
-	}
-
-	/**
-	 * Close this context with error
-	 * 
-	 * @param {any} err
-	 * @returns
-	 * 
-	 * @memberOf Context
-	 */
-	error(err) {
-		this.closeContext();
-		if (!(err instanceof Error)) {
-			err = new Error(err);
-		}
-		err.ctx = this;
-		//this.logger.error(chalk.red.bold(`[${this.duration}ms] error:`), err);
-		return Promise.reject(err);
 	}
 
 	/**

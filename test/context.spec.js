@@ -160,14 +160,15 @@ describe("Test createSubContext", () => {
 	});
 });
 
-describe("Test result method", () => {
+describe("Test invoke method", () => {
 	let ctx = new Context();
-	ctx.log =  jest.fn();
 	ctx.closeContext = jest.fn();
 
-	it("should call closeContext method and call then", () => {
+	it("should call closeContext method", () => {
 		let response = { id: 5 };
-		let p = ctx.result(response);
+		let handler = jest.fn(() => response);
+
+		let p = ctx.invoke(handler);
 		expect(p).toBeDefined();
 		expect(p.then).toBeDefined();
 		return p.then((data) => {
@@ -175,38 +176,23 @@ describe("Test result method", () => {
 			expect(data).toBe(response);
 		});
 	});
-});
 
-describe("Test error method", () => {
-	let ctx = new Context();
-	ctx.log =  jest.fn();
-	ctx.closeContext = jest.fn();
+	it("should call closeContext method", () => {
+		ctx.closeContext.mockClear();
+		let handler = jest.fn(() => Promise.reject(new Error("Something happened")));
 
-	it("should call closeContext method and call the catch", () => {
-		let error = new Error("Wrong things!");
-		let p = ctx.error(error);
+		let p = ctx.invoke(handler);
 		expect(p).toBeDefined();
-		expect(p.catch).toBeDefined();
+		expect(p.then).toBeDefined();
 		return p.catch((err) => {
 			expect(ctx.closeContext).toHaveBeenCalledTimes(1);
-			expect(err).toBe(error);
-			expect(err.ctx).toBe(ctx);
-		});
-	});
-
-	it("should create Error if pass a string param", () => {
-		let p = ctx.error("Something went wrong!");
-		expect(p).toBeDefined();
-		expect(p.catch).toBeDefined();
-		return p.catch((err) => {
-			expect(err).toBeInstanceOf(Error);
+			expect(err).toBeDefined();
 			expect(err.ctx).toBe(ctx);
 		});
 	});	
 });
 
 describe("Test closeContext", () => {
-
 	let broker = new ServiceBroker({ metrics: true });
 	let ctx = new Context({ broker, parent: { id: 123 }, action: { name: "users.get" } });
 	broker.emit = jest.fn();

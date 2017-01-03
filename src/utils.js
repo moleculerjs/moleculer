@@ -58,11 +58,11 @@ let utils = {
 			})
 			.then((cachedJSON) => {
 				if (cachedJSON != null) {
-					// Found in the cache!
-					return ctx.result(cachedJSON);
+					// Found in the cache! 
+					return ctx.invoke(() => cachedJSON); // (?)
 				}
 
-				return handler(ctx).then((result) => {
+				return ctx.invoke(handler).then((result) => {
 					broker.cacher.set(cacheKey, result);
 
 					return result;
