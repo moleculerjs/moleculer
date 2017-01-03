@@ -143,34 +143,40 @@ describe("Test action registration", () => {
 		expect(broker.hasAction("posts.find")).toBeTruthy();
 	});
 		
+	it("should reject if no action", () => {
+		return broker.call("noaction").catch(err => {
+			expect(err).toBeDefined();
+		});
+	});
+
 	it("should return context & call the action handler", () => {
-
-		expect(() => broker.call("noaction")).toThrowError();
-
-		let ctx = broker.call("posts.find");		
-		expect(ctx).toBeDefined();
-		expect(ctx.id).toBeDefined();
-		expect(ctx.requestID).toBeDefined();
-		expect(ctx.level).toBe(1);
-		expect(ctx.broker).toBe(broker);
-		expect(ctx.action).toBe(mockAction);
-		expect(ctx.params).toBeDefined();
-		expect(mockAction.handler).toHaveBeenCalledTimes(1);
-		expect(mockAction.handler).toHaveBeenCalledWith(ctx);
-		mockAction.handler.mockClear();
+		return broker.call("posts.find").then(ctx => {
+			expect(ctx).toBeDefined();
+			expect(ctx.id).toBeDefined();
+			expect(ctx.requestID).toBeDefined();
+			expect(ctx.level).toBe(1);
+			expect(ctx.broker).toBe(broker);
+			expect(ctx.action).toBe(mockAction);
+			expect(ctx.params).toBeDefined();
+			expect(mockAction.handler).toHaveBeenCalledTimes(1);
+			expect(mockAction.handler).toHaveBeenCalledWith(ctx);
+			mockAction.handler.mockClear();
+		});
 	});
 		
 	it("should set params to context", () => {
 		let params = { a: 1 };
-		let ctx = broker.call("posts.find", params);
-		expect(ctx.params).not.toBe(params);
-		expect(ctx.params.a).toBe(params.a);
-		expect(ctx.level).toBe(1);
+		return broker.call("posts.find", params).then(ctx => {
+			expect(ctx.params).not.toBe(params);
+			expect(ctx.params.a).toBe(params.a);
+			expect(ctx.level).toBe(1);
+		});
 	});
 
 	it("should set requestID to context", () => {
-		let ctx = broker.call("posts.find", null, null, "req123");
-		expect(ctx.requestID).toBe("req123");
+		return broker.call("posts.find", null, null, "req123").then(ctx => {
+			expect(ctx.requestID).toBe("req123");
+		});
 	});	
 
 	it("should create a sub context of parent context", () => {
@@ -182,12 +188,13 @@ describe("Test action registration", () => {
 		});		
 		let params = { a: 1 };
 
-		let ctx = broker.call("posts.find", params, prevCtx);
-		expect(ctx.params).not.toBe(params);
-		expect(ctx.params.a).toBe(1);
-		expect(ctx.params.b).not.toBeDefined();
-		expect(ctx.level).toBe(2);
-		expect(ctx.parent).toBe(prevCtx);
+		return broker.call("posts.find", params, prevCtx).then(ctx => {
+			expect(ctx.params).not.toBe(params);
+			expect(ctx.params.a).toBe(1);
+			expect(ctx.params.b).not.toBeDefined();
+			expect(ctx.level).toBe(2);
+			expect(ctx.parent).toBe(prevCtx);
+		});
 
 	});
 });
@@ -437,12 +444,11 @@ describe("Test ServiceBroker with Transporter", () => {
 		let p = { abc: 100 };
 
 		broker.registerAction(mockService, mockAction, "99999");
-		let ctx = broker.call("posts.find", p);
-
-		expect(transporter.request).toHaveBeenCalledTimes(1);
-		expect(transporter.request).toHaveBeenCalledWith("99999", ctx);
-		expect(ctx.params).toEqual(p);
-		
+		return broker.call("posts.find", p).then(ctx => {
+			expect(transporter.request).toHaveBeenCalledTimes(1);
+			expect(transporter.request).toHaveBeenCalledWith("99999", ctx);
+			expect(ctx.params).toEqual(p);
+		});
 	});
 
 	it("should call transporter.request with new context", () => {
@@ -450,11 +456,11 @@ describe("Test ServiceBroker with Transporter", () => {
 		let parentCtx = new Context(p);
 		transporter.request.mockClear();
 
-		let ctx = broker.call("posts.find", p, parentCtx);
-
-		expect(transporter.request).toHaveBeenCalledTimes(1);
-		expect(transporter.request).toHaveBeenCalledWith("99999", ctx);
-		expect(ctx.parent).toBe(parentCtx);		
+		return broker.call("posts.find", p, parentCtx).then(ctx => {
+			expect(transporter.request).toHaveBeenCalledTimes(1);
+			expect(transporter.request).toHaveBeenCalledWith("99999", ctx);
+			expect(ctx.parent).toBe(parentCtx);		
+		});
 	});
 	
 	it("should call transporter.disconnect", () => {

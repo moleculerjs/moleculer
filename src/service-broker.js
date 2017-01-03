@@ -325,43 +325,47 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	call(actionName, params, parentCtx, requestID) {
-		let actions = this.actions.get(actionName);
-		if (!actions) {
-			throw new errors.ServiceNotFoundError(`Missing action '${actionName}'!`);
-		}
-		
-		let actionItem = actions.get();
-		/* istanbul ignore next */
-		if (!actionItem) {
-			throw new Error(`Missing action handler '${actionName}'!`);
-		}
+		return Promise.resolve().then(() => {
 
-		let action = actionItem.data;
-
-		// Create a new context
-		let ctx;
-		if (parentCtx) {
-			ctx = parentCtx.createSubContext(action, params);
-		} else {
-			ctx = new Context({ broker: this, action, params, requestID });
-		}
-
-		if (actionItem.local) {
-			// Local action call
-			this.logger.debug(`Call local '${action.name}' action...`);
-
-			return action.handler(ctx);
-
-		} else if (actionItem.nodeID && this.transporter) {
-			// Remote action call
-			this.logger.debug(`Call remote '${action.name}' action in node '${actionItem.nodeID}'...`);
-
-			return this.transporter.request(actionItem.nodeID, ctx);
-
-		} else {
+			let actions = this.actions.get(actionName);
+			if (!actions) {
+				throw new errors.ServiceNotFoundError(`Missing action '${actionName}'!`);
+			}
+			
+			let actionItem = actions.get();
 			/* istanbul ignore next */
-			throw new Error(`No action handler for '${actionName}'!`);
-		}
+			if (!actionItem) {
+				throw new Error(`Missing action handler '${actionName}'!`);
+			}
+
+			let action = actionItem.data;
+
+			// Create a new context
+			let ctx;
+			if (parentCtx) {
+				ctx = parentCtx.createSubContext(action, params);
+			} else {
+				ctx = new Context({ broker: this, action, params, requestID });
+			}
+
+			if (actionItem.local) {
+				// Local action call
+				this.logger.debug(`Call local '${action.name}' action...`);
+
+				return ctx.invoke(action.handler);
+
+			} else if (actionItem.nodeID && this.transporter) {
+				// Remote action call
+				this.logger.debug(`Call remote '${action.name}' action in node '${actionItem.nodeID}'...`);
+
+				return this.transporter.request(actionItem.nodeID, ctx);
+
+			} else {
+				/* istanbul ignore next */
+				throw new Error(`No action handler for '${actionName}'!`);
+			}
+
+		});
 	}
 
 	/**

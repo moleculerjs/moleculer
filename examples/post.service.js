@@ -26,14 +26,14 @@ module.exports = {
 				});
 
 				return Promise.all(promises).then(() => {
-					return ctx.result(result);
+					return result;
 				});	
 			}			
 		},
 
 		get(ctx) {
 			this.logger.debug("Get post...", ctx.params);
-			return ctx.result(_.find(posts, post => post.id == ctx.params.id));
+			return _.find(posts, post => post.id == ctx.params.id);
 		},
 
 		author(ctx) {

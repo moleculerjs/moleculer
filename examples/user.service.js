@@ -13,14 +13,14 @@ module.exports = function(broker) {
 		actions: {
 			find(ctx) {
 				this.logger.debug("Find users...");
-				return ctx.result(users);
+				return users;
 			},
 
 			get: {
 				cache: true,
 				handler(ctx) {
 					this.logger.debug("Get user...", ctx.params);
-					return ctx.result(this.findByID(ctx.params.id));
+					return this.findByID(ctx.params.id);
 				}
 			}
 		},

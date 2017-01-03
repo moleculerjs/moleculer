@@ -27,10 +27,3 @@
 - add lru features t Memory and Redis
 
 ## Context
-- wrap the whole calling to the context:
-	ctx.invoke(handler) {
-		retun Promise.resolve().
-			.then(ctx => handler(ctx))
-			.then(res => this.resolve(res))
-			.catch(err => this.error(err));
-	}

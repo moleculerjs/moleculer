@@ -124,19 +124,26 @@ describe("Local service registration", () => {
 		expect(handlerRegisterAction).toHaveBeenCalledTimes(2);
 	});
 
-	it("check actions can be call via broker", () => {
-		
+	it("check actions is exist", () => {	
 		expect(broker.hasAction("find")).toBeFalsy();
 		expect(broker.hasAction("get")).toBeFalsy();
 		expect(broker.hasAction("posts.find")).toBeTruthy();
 		expect(broker.hasAction("posts.get")).toBeTruthy();
+	});
 
-		broker.call("posts.find");
-		expect(findHandlerMock).toHaveBeenCalledTimes(1);
+	it("check broker.call call the action handler", () => {
+		return broker.call("posts.find").then(() => {
+			expect(findHandlerMock).toHaveBeenCalledTimes(1);
+		});
+	});
 
-		broker.call("posts.get");
-		expect(getHandlerMock).toHaveBeenCalledTimes(1);
+	it("check actions can be call via broker", () => {
+		return broker.call("posts.get").then(() => {
+			expect(getHandlerMock).toHaveBeenCalledTimes(1);
+		});
+	});
 
+	it("check actions can be call via broker", () => {
 		let actionItem = broker.actions.get("posts.get").get();
 		let action = actionItem.data;
 		expect(action.handler).toBeDefined();
