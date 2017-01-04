@@ -7,22 +7,26 @@ Benchmarker.printHeader("Map vs. Object benchmark");
 
 let bench = new Benchmarker({ async: false, name: "Set Map vs. Add props to object"});
 
-let map = new Map();
-let obj = {};
-
-let objCounter = 1;
-let mapCounter = 1;
 let data = {
 	a: 1, 
 	b: "String"
 };
+const cycle = 10 * 1000;
 
 bench.add("Map.set", () => {
-	map.set("test-" + mapCounter++, data);
+	let map = new Map();
+	let c = 0;
+	while (++c < cycle) {
+		map.set("test-" + c, data);
+	}
 });
 
 bench.add("Object[]", () => {
-	obj["test-" + objCounter++] = data;
+	let obj = {};
+	let c = 0;
+	while (++c < cycle) {
+		obj["test-" + c] = data;
+	}
 });
 
 bench.run();
