@@ -39,7 +39,7 @@ class ServiceBroker {
 
 		this.nodeID = this.options.nodeID || utils.getNodeID();
 
-		this.logger = this.getLogger("BKR");
+		this.logger = this.getLogger("BROKER");
 		this.bus = new EventEmitter2({
 			wildcard: true,
 			maxListeners: 100
