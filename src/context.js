@@ -214,7 +214,7 @@ class Context {
 	*/
 	printMeasuredTimes() {
 		if (!this.logger) return;
-		
+
 		let w = 75;
 		let r = _.repeat;
 		let gw = 30;
@@ -226,17 +226,15 @@ class Context {
 			let maxActionName = maxTitle - (ctx.level-1) * 2 - ctx.duration.toString().length - 3;
 			let actionName = ctx.action ? ctx.action.name : "";
 			if (actionName.length > maxActionName) 
-				actionName = _.truncate(ctx.action.name, { length: maxActionName }); // substract "..."
+				actionName = _.truncate(ctx.action.name, { length: maxActionName });
 
 			let strAction = [
 				r("  ", ctx.level - 1),
-				//ctx.parent ? "+- " : "",
 				actionName,
 				r(" ", maxActionName - actionName.length + 1),
 				ctx.duration,
 				"ms "
 			].join("");
-			//strAction += r(" ", Math.max(maxTitle - strAction.length, 0) + 1);
 
 			let gstart = (ctx.startTime - this.startTime) / (this.stopTime - this.startTime) * 100;
 			let gstop = (ctx.stopTime - this.startTime) / (this.stopTime - this.startTime) * 100;
