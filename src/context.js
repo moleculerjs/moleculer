@@ -219,7 +219,7 @@ class Context {
 		let gw = 30;
 		let maxTitle = w - 2 - 2 - gw - 2 - 1;
 
-		this.logger.debug(["|", r("-", w-2), "|"].join(""));
+		this.logger.debug(["┌", r("─", w-2), "┐"].join(""));
 
 		let printCtxTime = (ctx) => {
 			let maxActionName = maxTitle - (ctx.level-1) * 2 - ctx.duration.toString().length - 3;
@@ -251,20 +251,20 @@ class Context {
 
 			let gauge = [
 				"[",
-				r("-", p1),
-				r("=", p2),
-				r("-", p3),
+				r(".", p1),
+				r("■", p2),
+				r(".", p3),
 				"]"
 			].join("");
 
-			this.logger.debug("| " + strAction + gauge + " |");
+			this.logger.debug("│ " + strAction + gauge + " │");
 
 			if (ctx.subContexts.length > 0)
 				ctx.subContexts.forEach(subCtx => printCtxTime(subCtx));
 		};
 
 		printCtxTime(this);
-		this.logger.debug(["|", r("-", w-2), "|"].join(""));
+		this.logger.debug(["└", r("─", w-2), "┘"].join(""));
 	}
 }
 
