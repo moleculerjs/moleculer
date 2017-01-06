@@ -266,6 +266,29 @@ class NatsTransporter extends Transporter {
 			this.client.publish(subj, payload, replySubject);
 		});
 	}
+	/*request(targetNodeID, ctx) {
+		return new Promise((resolve) => {
+			let message = {
+				nodeID: this.nodeID,
+				requestID: ctx.id,
+				action: ctx.action.name,
+				params: ctx.params
+			};
+			this.logger.debug("Request action", message);
+			let payload = utils.json2String(message);
+
+			let subj = [PREFIX, "REQ", targetNodeID, message.action].join(".");
+			this.client.request(subj, payload, { max: 1}, (response) => {
+				if (response != "") {
+					resolve(utils.string2Json(response));
+				}
+				//* istanbul ignore next *
+				else {
+					resolve(null);
+				}
+			});
+		});
+	}*/
 
 	/**
 	 * Discover other nodes. It will be called internally after success connect.
