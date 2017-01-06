@@ -18,7 +18,7 @@ module.exports = function() {
 			find: {
 				cache: true,
 				handler(ctx) {
-					this.logger.debug("Find posts...");
+					//this.logger.debug("Find posts...");
 					let result = _.cloneDeep(posts);
 
 					// Resolve authors
@@ -33,8 +33,12 @@ module.exports = function() {
 			},
 
 			get(ctx) {
-				this.logger.debug("Get post...", ctx.params);
-				return _.find(posts, post => post.id == ctx.params.id);
+				// this.logger.debug("Get post...", ctx.params);
+				let post = _.find(posts, post => post.id == ctx.params.id);
+				return ctx.call("users.get", { id: post.author }).then(user => {
+					post.author = _.pick(user, ["userName", "email", "id", "firstName", "lastName"]);
+					return post;
+				});
 			},
 
 			author(ctx) {
@@ -43,10 +47,6 @@ module.exports = function() {
 					return ctx.call("users.get", { id: post.author });
 				});
 			}
-		},
-
-		created() {
-			this.logger.info("Posts service created!");
 		}
 	};
 };

@@ -29,10 +29,6 @@ module.exports = function(broker) {
 			findByID(id) {
 				return _.find(users, user => user.id == id);
 			}
-		},
-
-		created() {
-			this.logger.info("Users service created!");
 		}
 	});
 };

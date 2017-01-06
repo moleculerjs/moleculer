@@ -2,20 +2,22 @@ module.exports = {
 	name: "math",
 	actions: {
 		add(ctx) {
-			return ctx.params.a + ctx.params.b;
+			return Number(ctx.params.a) + Number(ctx.params.b);
 		},
 
 		sub(ctx) {
-			return ctx.params.a - ctx.params.b;
+			return Number(ctx.params.a) - Number(ctx.params.b);
 		},
 
 		mult(ctx) {
-			return ctx.params.a * ctx.params.b;
+			return Number(ctx.params.a) * Number(ctx.params.b);
 		},
 
 		div(ctx) {
-			if (ctx.params.b != 0)
-				return ctx.params.a / ctx.params.b;
+			let a = Number(ctx.params.a);
+			let b = Number(ctx.params.b);
+			if (b != 0)
+				return a / b;
 			else
 				throw new Error("Divide by zero!");
 		}

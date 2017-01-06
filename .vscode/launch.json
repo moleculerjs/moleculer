@@ -21,6 +21,13 @@
 		{
 			"type": "node",
 			"request": "launch",
+			"name": "Launch rest",
+			"program": "${workspaceRoot}\\examples\\rest\\index.js",
+			"cwd": "${workspaceRoot}\\examples\\rest"
+		},
+		{
+			"type": "node",
+			"request": "launch",
 			"name": "Launch benchmark",
 			"program": "${workspaceRoot}\\benchmark\\index.js",
 			"args": ["transports"],
