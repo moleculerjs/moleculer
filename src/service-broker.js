@@ -59,6 +59,7 @@ class ServiceBroker {
 			this.transporter.init(this);
 		}
 
+		this._callCount = 0;
 		this.plugins = [];		
 
 		this._closeFn = () => {
@@ -388,6 +389,8 @@ class ServiceBroker {
 			} else {
 				ctx = new Context({ broker: this, action, params, requestID });
 			}
+
+			this._callCount++;
 
 			if (actionItem.local) {
 				// Local action call
