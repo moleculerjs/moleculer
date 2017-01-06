@@ -59,6 +59,8 @@ class ServiceBroker {
 			this.transporter.init(this);
 		}
 
+		this.plugins = [];		
+
 		this._closeFn = () => {
 			this.stop();
 		};
@@ -70,35 +72,61 @@ class ServiceBroker {
 	}
 
 	/**
+	 * Call a method in every registered plugin
+	 * 
+	 * @param {any} target		Target of call (value of this)
+	 * @param {any} method		Method name
+	 * @param {any} args		Arguments to method
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	_callPluginMethod(target, method, ...args) {
+		if (this.plugins.length == 0) return;
+
+		this.plugins.forEach(plugin => {
+			if (_.isFunction(plugin[method])) {
+				plugin[method].call(target, ...args);
+			}
+		});
+	}
+
+	/**
 	 * Start broker. If set transport, transport.connect will be called.
 	 * 
 	 * @memberOf ServiceBroker
 	 */
 	start() {
+		this._callPluginMethod(this, "starting");
+
 		// Call service `started` handlers
 		this.services.forEach(item => {
 			let service = item.get().data;
+			this._callPluginMethod(service, "serviceStarted");
+
 			if (service && service.schema && _.isFunction(service.schema.started)) {
 				service.schema.started.call(service);
 			}
 		});
 
 		if (this.transporter) {
-			this.transporter.connect();
+			this.transporter.connect().then(() => {
+				
+				// Start timers
+				this.heartBeatTimer = setInterval(() => {
+					/* istanbul ignore next */
+					this.transporter.sendHeartbeat();
+				}, this.options.sendHeartbeatTime * 1000);
+				this.heartBeatTimer.unref();
 
-			// TODO promise, send only connection was success
-			this.heartBeatTimer = setInterval(() => {
-				/* istanbul ignore next */
-				this.transporter.sendHeartbeat();
-			}, this.options.sendHeartbeatTime * 1000);
-			this.heartBeatTimer.unref();
-
-			this.checkNodesTimer = setInterval(() => {
-				/* istanbul ignore next */
-				this.checkRemoteNodes();
-			}, this.options.nodeHeartbeatTimeout * 1000);
-			this.checkNodesTimer.unref();
+				this.checkNodesTimer = setInterval(() => {
+					/* istanbul ignore next */
+					this.checkRemoteNodes();
+				}, this.options.nodeHeartbeatTimeout * 1000);
+				this.checkNodesTimer.unref();			
+			});
 		}
+
+		this._callPluginMethod(this, "started");
 	}
 
 	/**
@@ -108,9 +136,13 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	stop() {
+		this._callPluginMethod(this, "stopping");
+
 		// Call service `started` handlers
 		this.services.forEach(item => {
 			let service = item.get().data;
+			this._callPluginMethod(service, "serviceStopped");
+
 			if (service && service.schema && _.isFunction(service.schema.stopped)) {
 				service.schema.stopped.call(service);
 			}
@@ -133,6 +165,8 @@ class ServiceBroker {
 		process.removeListener("beforeExit", this._closeFn);
 		process.removeListener("exit", this._closeFn);
 		process.removeListener("SIGINT", this._closeFn);
+
+		this._callPluginMethod(this, "stopped");
 	}
 
 	/**
@@ -183,7 +217,12 @@ class ServiceBroker {
 		this.logger.debug("Load service from", path.basename(fName));
 		let schema = require(fName);
 		if (_.isFunction(schema)) {
-			return schema(this);
+			let svc = schema(this);
+			if (svc instanceof Service)
+				return svc;
+			else
+				return new Service(this, svc);
+
 		} else {
 			return new Service(this, schema);
 		}
