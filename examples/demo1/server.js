@@ -11,7 +11,8 @@ let MemoryCacher = require("../../src/cachers").Memory;
 let broker = new ServiceBroker({
 	cacher: new MemoryCacher(),
 	nodeID: "server1",
-	logger: console
+	logger: console,
+	metrics: false
 });
 
 // Load services

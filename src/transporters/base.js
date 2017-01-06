@@ -41,6 +41,7 @@ class BaseTransporter {
 	 * @memberOf BaseTransporter
 	 */
 	connect() {
+		/* istanbul ignore next */
 		return Promise.resolve();
 	}
 
