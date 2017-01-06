@@ -1,0 +1,19 @@
+"use strict";
+
+let _ = require("lodash");
+
+let { delay } = require("../../src/utils");
+
+let ServiceBroker = require("../../src/service-broker");
+let NatsTransporter = require("../../src/transporters/nats");
+
+// Create broker
+let broker = new ServiceBroker({
+	nodeID: "server-1",
+	transporter: new NatsTransporter(),
+	logger: console
+});
+
+broker.loadService(__dirname + "/../math.service");
+
+broker.start();
