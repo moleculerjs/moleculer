@@ -110,6 +110,7 @@ class Service {
 
 		// Call `created` function from schema
 		if (_.isFunction(this.schema.created)) {
+			this.broker.callPluginMethod(this, "serviceCreated", this.broker, this);
 			this.schema.created.call(this);
 		}
 
@@ -133,6 +134,9 @@ class Service {
 		action.name = this.name + "." + (action.name || name);
 		action.service = this;
 		action.handler = handler.bind(this);
+
+		// Call plugin
+		this.broker.callPluginMethod(this, "createActionHandler", this.broker, this, action);
 
 		// Cache
 		if (this.broker.cacher) {

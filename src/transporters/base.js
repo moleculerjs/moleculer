@@ -41,7 +41,7 @@ class BaseTransporter {
 	 * @memberOf BaseTransporter
 	 */
 	connect() {
-
+		return Promise.resolve();
 	}
 
 	/**

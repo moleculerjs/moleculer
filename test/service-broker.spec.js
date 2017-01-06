@@ -393,7 +393,7 @@ describe("Test ServiceBroker with Transporter", () => {
 
 	let transporter = new Transporter();
 	transporter.init = jest.fn(); 
-	transporter.connect = jest.fn(); 
+	transporter.connect = jest.fn(() => Promise.resolve()); 
 	transporter.disconnect = jest.fn(); 
 	transporter.sendHeartbeat = jest.fn(); 
 	transporter.emit = jest.fn(); 
@@ -416,10 +416,11 @@ describe("Test ServiceBroker with Transporter", () => {
 	});
 
 	it("should call transporter.connect", () => {
-		broker.start();
-		expect(transporter.connect).toHaveBeenCalledTimes(1);
-		expect(broker.heartBeatTimer).toBeDefined();
-		expect(broker.checkNodesTimer).toBeDefined();
+		broker.start().then(() => {
+			expect(transporter.connect).toHaveBeenCalledTimes(1);
+			expect(broker.heartBeatTimer).toBeDefined();
+			expect(broker.checkNodesTimer).toBeDefined();
+		});
 	});
 
 	it("should call transporter emit", () => {
