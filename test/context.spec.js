@@ -174,21 +174,15 @@ describe("Test startInvoke", () => {
 		expect(broker.emit).toHaveBeenCalledTimes(1);
 		expect(broker.emit).toHaveBeenCalledWith("metrics.context.start", {"action": {"name": "users.get"}, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "time": ctx.startTime});
 	});
-});
-
-describe("Test finishInvoke", () => {
-	let broker = new ServiceBroker({ metrics: true });
-	let ctx = new Context({ broker, parent: { id: 123, duration: 0 }, action: { name: "users.get" } });
-	broker.emit = jest.fn();
 
 	it("should call _metricFinish method", () => {		
+		broker.emit.mockClear();
 		return new Promise((resolve) => {
 			setTimeout(() => {
 				ctx._finishInvoke();
 
 				expect(ctx.stopTime).toBeGreaterThan(0);
 				expect(ctx.duration).toBeGreaterThan(0);
-				expect(ctx.parent.duration).toBe(ctx.duration);
 
 				expect(broker.emit).toHaveBeenCalledTimes(1);
 				expect(broker.emit).toHaveBeenCalledWith("metrics.context.finish", {"action": {"name": "users.get"}, "duration": ctx.duration, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "time": ctx.stopTime});

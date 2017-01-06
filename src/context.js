@@ -141,9 +141,7 @@ class Context {
 	_finishInvoke() {
 		this.stopTime = Date.now();
 		this.duration = this.stopTime - this.startTime;
-		if (this.parent) {
-			this.parent.duration += this.duration;
-		}
+
 		this._metricFinish();
 	}
 
@@ -167,13 +165,13 @@ class Context {
 				requestID: this.requestID,
 				time: this.startTime
 			};
-			if (this.parent) {
-				payload.parent = this.parent.id;
-			}
 			if (this.action) {
 				payload.action = {
 					name: this.action.name
 				};
+			}
+			if (this.parent) {
+				payload.parent = this.parent.id;
 			}
 			this.broker.emit("metrics.context.start", payload);
 		}
@@ -187,14 +185,14 @@ class Context {
 				time: this.stopTime,
 				duration: this.duration
 			};
-			if (this.parent) {
-				payload.parent = this.parent.id;
-			}
 			if (this.action) {
 				payload.action = {
 					name: this.action.name
 				};
 			}			
+			if (this.parent) {
+				payload.parent = this.parent.id;
+			}
 			this.broker.emit("metrics.context.finish", payload);
 		}
 	}
