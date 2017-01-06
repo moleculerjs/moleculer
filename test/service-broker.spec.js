@@ -62,8 +62,8 @@ describe("Test loadServices", () => {
 
 	let broker = new ServiceBroker();
 	
-	it("should found 3 services", () => {
-		expect(broker.loadServices("./examples")).toBe(3);
+	it("should found 4 services", () => {
+		expect(broker.loadServices("./examples")).toBe(4);
 		expect(broker.hasService("math")).toBeTruthy();
 		expect(broker.hasAction("math.add")).toBeTruthy();
 	});
