@@ -215,9 +215,9 @@ class Context {
 	printMeasuredTimes() {
 		if (!this.logger) return;
 
-		let w = 75;
+		let w = 73;
 		let r = _.repeat;
-		let gw = 30;
+		let gw = 35;
 		let maxTitle = w - 2 - 2 - gw - 2 - 1;
 
 		this.logger.debug(["┌", r("─", w-2), "┐"].join(""));
