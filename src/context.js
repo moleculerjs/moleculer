@@ -45,6 +45,8 @@ class Context {
 		this.startTime = null;
 		this.stopTime = null;
 		this.duration = 0;		
+
+		this.cachedResult = false;
 	}
 
 	/**
@@ -223,7 +225,7 @@ class Context {
 		this.logger.debug(["┌", r("─", w-2), "┐"].join(""));
 
 		let printCtxTime = (ctx) => {
-			let maxActionName = maxTitle - (ctx.level-1) * 2 - ctx.duration.toString().length - 3;
+			let maxActionName = maxTitle - (ctx.level-1) * 2 - ctx.duration.toString().length - 3 - (ctx.cachedResult ? 2 : 0);
 			let actionName = ctx.action ? ctx.action.name : "";
 			if (actionName.length > maxActionName) 
 				actionName = _.truncate(ctx.action.name, { length: maxActionName });
@@ -232,6 +234,7 @@ class Context {
 				r("  ", ctx.level - 1),
 				actionName,
 				r(" ", maxActionName - actionName.length + 1),
+				ctx.cachedResult ? "* " : "",
 				ctx.duration,
 				"ms "
 			].join("");

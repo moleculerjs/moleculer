@@ -5,21 +5,20 @@ let Service = require("../src/service");
 let users = fakerator.times(fakerator.entity.user, 10);
 
 _.each(users, (user, i) => user.id = i + 1);
-//console.log(users);
 
 module.exports = function(broker) {
 	return new Service(broker, {
 		name: "users",
 		actions: {
 			find(ctx) {
-				this.logger.debug("Find users...");
+				//this.logger.debug("Find users...");
 				return users;
 			},
 
 			get: {
 				cache: true,
 				handler(ctx) {
-					this.logger.debug("Get user...", ctx.params);
+					//this.logger.debug("Get user...", ctx.params);
 					return this.findByID(ctx.params.id);
 				}
 			}

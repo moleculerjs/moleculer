@@ -59,14 +59,20 @@ let utils = {
 			.then((cachedJSON) => {
 				if (cachedJSON != null) {
 					// Found in the cache! 
-					return ctx.invoke(() => cachedJSON); // (?)
+					ctx.cachedResult = true;
+					return cachedJSON;
 				}
 
-				return ctx.invoke(handler).then((result) => {
+				let result = handler(ctx);
+				if (utils.isPromise(result)) {
+					return result.then((data) => {
+						broker.cacher.set(cacheKey, data);
+						return data;
+					});
+				} else {
 					broker.cacher.set(cacheKey, result);
-
 					return result;
-				});					
+				}
 			});
 		};
 	},

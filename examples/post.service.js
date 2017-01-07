@@ -7,10 +7,7 @@ module.exports = function() {
 	_.each(posts, (post, i) => {
 		post.id = i + 1;
 		post.author = _.random(1, 5);
-		//delete post.content;
-		//delete post.keywords;
 	});
-	//console.log(posts);
 
 	return {
 		name: "posts",
