@@ -9,7 +9,7 @@ describe("Test ServiceBroker constructor", () => {
 	it("should set default options", () => {
 		let broker = new ServiceBroker();
 		expect(broker).toBeDefined();
-		expect(broker.options).toEqual({ metrics: false, nodeHeartbeatTimeout : 30, sendHeartbeatTime: 10});
+		expect(broker.options).toEqual({ logLevel: "info", metrics: false, nodeHeartbeatTimeout : 30, sendHeartbeatTime: 10});
 		expect(broker.services).toBeInstanceOf(Map);
 		expect(broker.actions).toBeInstanceOf(Map);
 		expect(broker.transporter).toBeUndefined();
@@ -17,9 +17,9 @@ describe("Test ServiceBroker constructor", () => {
 	});
 
 	it("should merge options", () => {
-		let broker = new ServiceBroker( { nodeHeartbeatTimeout: 20, metrics: true });
+		let broker = new ServiceBroker( { nodeHeartbeatTimeout: 20, metrics: true, logLevel: "debug" });
 		expect(broker).toBeDefined();
-		expect(broker.options).toEqual({ metrics: true, nodeHeartbeatTimeout : 20, sendHeartbeatTime: 10});
+		expect(broker.options).toEqual({ logLevel: "debug", metrics: true, nodeHeartbeatTimeout : 20, sendHeartbeatTime: 10});
 		expect(broker.services).toBeInstanceOf(Map);
 		expect(broker.actions).toBeInstanceOf(Map);
 		expect(broker.transporter).toBeUndefined();

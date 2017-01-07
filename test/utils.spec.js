@@ -169,13 +169,13 @@ describe("Test utils.json2String", () => {
 
 describe("Test utils.wrapLogger", () => {
 	let con = {
-		log: jest.fn(),
+		info: jest.fn(),
 		error: jest.fn(),
 		warn: jest.fn()
 	};
 
 	it("should create a full logger without moduleName", () => {
-		let logger = utils.wrapLogger(con);
+		let logger = utils.wrapLogger(con, null, "debug");
 		expect(typeof logger.log).toBe("function");
 		expect(typeof logger.error).toBe("function");
 		expect(typeof logger.warn).toBe("function");
@@ -183,8 +183,8 @@ describe("Test utils.wrapLogger", () => {
 		expect(typeof logger.debug).toBe("function");
 
 		logger.log("log level");
-		expect(con.log).toHaveBeenCalledTimes(1);
-		expect(con.log).toHaveBeenCalledWith("log level");
+		expect(con.info).toHaveBeenCalledTimes(1);
+		expect(con.info).toHaveBeenCalledWith("log level");
 
 		logger.warn("warn level");
 		expect(con.warn).toHaveBeenCalledTimes(1);
@@ -195,12 +195,12 @@ describe("Test utils.wrapLogger", () => {
 		expect(con.error).toHaveBeenCalledWith("error level");
 
 		logger.info("info level");
-		expect(con.log).toHaveBeenCalledTimes(2);
-		expect(con.log).toHaveBeenCalledWith("info level");
+		expect(con.info).toHaveBeenCalledTimes(2);
+		expect(con.info).toHaveBeenCalledWith("info level");
 
 		logger.debug("debug level");
-		expect(con.log).toHaveBeenCalledTimes(3);
-		expect(con.log).toHaveBeenCalledWith("debug level");
+		expect(con.info).toHaveBeenCalledTimes(3);
+		expect(con.info).toHaveBeenCalledWith("debug level");
 	});
 });
 
@@ -212,7 +212,7 @@ describe("Test utils.wrapLogger", () => {
 	};
 
 	it("should create a full logger without moduleName", () => {
-		let logger = utils.wrapLogger(con, "Module");
+		let logger = utils.wrapLogger(con, "Module", "debug");
 		expect(typeof logger.log).toBe("function");
 		expect(typeof logger.error).toBe("function");
 		expect(typeof logger.warn).toBe("function");
