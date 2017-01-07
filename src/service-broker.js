@@ -50,6 +50,8 @@ class ServiceBroker {
 		this.services = new Map();
 		this.actions = new Map();
 
+		this.middlewares = [];
+
 		this.cacher = this.options.cacher;
 		if (this.cacher) {
 			this.cacher.init(this);
@@ -357,6 +359,39 @@ class ServiceBroker {
 	}
 
 	/**
+	 * Add a middleware to the broker
+	 * 
+	 * @param {any} mw
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	use(mw) {
+		this.middlewares.push(mw);
+	}
+
+	/**
+	 * Call middlewares with param
+	 * 
+	 * @param {any} param
+	 * @returns {Promise}
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	callMiddlewares(ctx, masterNext) {
+		let mws = Array.from(this.middlewares);
+		let next = () => {
+			return Promise.resolve().then(() => {
+				let mw = mws.shift();
+				if (mw)
+					return mw(ctx, next());
+				else
+					return masterNext();
+			});
+		};
+		return next();
+	}
+
+	/**
 	 * Call an action (local or global)
 	 * 
 	 * @param {any} actionName	name of action
@@ -397,7 +432,11 @@ class ServiceBroker {
 				// Local action call
 				this.logger.debug(`Call local '${action.name}' action...`);
 
-				return ctx.invoke(action.handler);
+				return ctx.invoke(ctx => {
+					return this.callMiddlewares(ctx, () => {
+						return action.handler(ctx);
+					});
+				});
 
 			} else if (actionItem.nodeID && this.transporter) {
 				// Remote action call
@@ -411,7 +450,6 @@ class ServiceBroker {
 				/* istanbul ignore next */
 				throw new Error(`No action handler for '${actionName}'!`);
 			}
-
 		});
 	}
 

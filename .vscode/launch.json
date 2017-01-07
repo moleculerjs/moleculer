@@ -21,6 +21,13 @@
 		{
 			"type": "node",
 			"request": "launch",
+			"name": "Launch mw",
+			"program": "${workspaceRoot}\\examples\\demo-mw\\index.js",
+			"cwd": "${workspaceRoot}\\examples\\demo-mw"
+		},
+		{
+			"type": "node",
+			"request": "launch",
 			"name": "Launch rest",
 			"program": "${workspaceRoot}\\examples\\rest\\index.js",
 			"cwd": "${workspaceRoot}\\examples\\rest"
