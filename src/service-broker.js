@@ -402,8 +402,10 @@ class ServiceBroker {
 			} else if (actionItem.nodeID && this.transporter) {
 				// Remote action call
 				this.logger.debug(`Call remote '${action.name}' action in node '${actionItem.nodeID}'...`);
-
-				return this.transporter.request(actionItem.nodeID, ctx);
+				ctx.remoteCall = true;
+				return ctx.invoke(() => {
+					return this.transporter.request(actionItem.nodeID, ctx);
+				});
 
 			} else {
 				/* istanbul ignore next */

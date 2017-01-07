@@ -47,6 +47,7 @@ class Context {
 		this.duration = 0;		
 
 		this.cachedResult = false;
+		this.remoteCall = false; 
 	}
 
 	/**
@@ -210,8 +211,8 @@ class Context {
 	/*
 		┌─────────────────────────────────────────────────────────────────────────┐
 		│ request.rest                      27ms [■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■] │
-		│   session.me                      25ms [.■■■■■■■■■■■■■■■■■■■■■■■■■■■■.] │
-		│     profile.get                   24ms [..■■■■■■■■■■■■■■■■■■■■■■■■■■■.] │
+		│   session.me                    » 25ms [.■■■■■■■■■■■■■■■■■■■■■■■■■■■■.] │
+		│     profile.get                 * 24ms [..■■■■■■■■■■■■■■■■■■■■■■■■■■■.] │
 		└─────────────────────────────────────────────────────────────────────────┘
 	*/
 	/* istanbul ignore next */
@@ -226,7 +227,7 @@ class Context {
 		this.logger.debug(["┌", r("─", w-2), "┐"].join(""));
 
 		let printCtxTime = (ctx) => {
-			let maxActionName = maxTitle - (ctx.level-1) * 2 - ctx.duration.toString().length - 3 - (ctx.cachedResult ? 2 : 0);
+			let maxActionName = maxTitle - (ctx.level-1) * 2 - ctx.duration.toString().length - 3 - (ctx.cachedResult ? 2 : 0) - (ctx.remoteCall ? 2 : 0);
 			let actionName = ctx.action ? ctx.action.name : "";
 			if (actionName.length > maxActionName) 
 				actionName = _.truncate(ctx.action.name, { length: maxActionName });
@@ -236,9 +237,15 @@ class Context {
 				actionName,
 				r(" ", maxActionName - actionName.length + 1),
 				ctx.cachedResult ? "* " : "",
+				ctx.remoteCall ? "» " : "",
 				ctx.duration,
 				"ms "
 			].join("");
+
+			if (ctx.startTime == null || ctx.stopTime == null) {
+				this.logger.debug(strAction + "! Missing invoke !");
+				return;
+			}
 
 			let gstart = (ctx.startTime - this.startTime) / (this.stopTime - this.startTime) * 100;
 			let gstop = (ctx.stopTime - this.startTime) / (this.stopTime - this.startTime) * 100;
