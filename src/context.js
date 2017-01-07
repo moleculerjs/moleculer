@@ -214,6 +214,7 @@ class Context {
 		│     profile.get                   24ms [..■■■■■■■■■■■■■■■■■■■■■■■■■■■.] │
 		└─────────────────────────────────────────────────────────────────────────┘
 	*/
+	/* istanbul ignore next */
 	printMeasuredTimes() {
 		if (!this.logger) return;
 

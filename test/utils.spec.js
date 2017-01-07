@@ -80,11 +80,36 @@ describe("Test utils.cachingWrapper", () => {
 		});
 	});
 
-	it("should not give back cached data and should call the handler and call the 'cache.put' action", () => {
+	it("should not give back cached data and should call the handler and call the 'cache.put' action with promise", () => {
 		let resData = [1,3,5];
 		let cacheKey = utils.getCacheKey(mockAction.name, params);
 		broker.cacher.get = jest.fn(() => Promise.resolve(null));
 		mockAction.handler = jest.fn(() => Promise.resolve(resData));
+
+		let cachedHandler = utils.cachingWrapper(broker, mockAction, mockAction.handler);
+
+		let ctx = new Context({ params, service: { broker } });
+		let p = cachedHandler(ctx);
+
+		expect(utils.isPromise(p)).toBeTruthy();
+		return p.then((response) => {
+			expect(response).toBe(resData);
+			expect(mockAction.handler).toHaveBeenCalledTimes(1);
+
+			expect(broker.cacher.get).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.get).toHaveBeenCalledWith(cacheKey);
+
+			expect(broker.cacher.set).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.set).toHaveBeenCalledWith(cacheKey, resData);
+		});
+	});
+
+	it("should not give back cached data and should call the handler and call the 'cache.put' action with sync res", () => {
+		let resData = [1,3,5];
+		let cacheKey = utils.getCacheKey(mockAction.name, params);
+		broker.cacher.get = jest.fn(() => Promise.resolve(null));
+		broker.cacher.set.mockClear();
+		mockAction.handler = jest.fn(() => resData); // no Promise
 
 		let cachedHandler = utils.cachingWrapper(broker, mockAction, mockAction.handler);
 
