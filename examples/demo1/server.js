@@ -12,6 +12,10 @@ let broker = new ServiceBroker({
 	cacher: new MemoryCacher(),
 	nodeID: "server1",
 	logger: console,
+	logLevel: {
+		"*": "warn",
+		"CTX": "debug"
+	},
 	metrics: false
 });
 
@@ -40,8 +44,8 @@ broker.call("users.find").then(data => {
 .then(data => {
 	console.log("posts.find response length:", data.length, "\n");
 
-	return broker.call("posts.author", { id: data[4].id }).then((author) => {
-		console.log("posts[4].author email:", author.email, "\n");
+	return broker.call("posts.get", { id: data[4].id }).then((post) => {
+		console.log("posts[4].author email:", post.author.email, "\n");
 	});
 })
 

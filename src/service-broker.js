@@ -34,7 +34,8 @@ class ServiceBroker {
 		this.options = _.defaultsDeep(options, {
 			sendHeartbeatTime: 10,
 			nodeHeartbeatTimeout: 30,
-			metrics: false
+			metrics: false,
+			logLevel: "info"
 		});
 
 		this.nodeID = this.options.nodeID || utils.getNodeID();
@@ -73,7 +74,7 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Call a method in every registered plugin
+	 * Call a method in every registered plugins
 	 * 
 	 * @param {any} target		Target of call (value of this)
 	 * @param {any} method		Method name
@@ -182,7 +183,7 @@ class ServiceBroker {
 	 */
 	getLogger(name) {
 		// return utils.wrapLogger(this.options.logger, this.nodeID + (name ? "-" + name : ""));
-		return utils.wrapLogger(this.options.logger, name);
+		return utils.wrapLogger(this.options.logger, name, this.options.logLevel);
 	}
 
 	/**

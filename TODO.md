@@ -7,7 +7,7 @@
 - log level settings in broker. Can set minimum log level ("debug", "info", "warn", "error). 
 	- or it can be obj:
 		logLevel: {
-			INFO: "debug",
+			BROKER: "debug",
 			CTX: "debug",
 			NATS: "warn",
 			"POSTS-SVC": false
