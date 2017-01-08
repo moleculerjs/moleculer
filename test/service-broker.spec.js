@@ -560,6 +560,7 @@ describe("Test ServiceBroker with Transporter", () => {
 describe("Test middleware system", () => {
 	let middleware1 = jest.fn((ctx, next) => next);
 	let middleware2 = jest.fn((ctx, next) => next);
+	let middleware3 = null;
 
 	let broker = new ServiceBroker();
 	let service = broker.loadService("./examples/math.service");
@@ -567,6 +568,7 @@ describe("Test middleware system", () => {
 	it("should register plugins", () => {
 		broker.use(middleware1);
 		broker.use(middleware2);
+		broker.use(middleware3);
 
 		expect(broker.middlewares.length).toBe(2);
 	});

@@ -39,8 +39,13 @@ class Cacher {
 	 */
 	init(broker) {
 		this.broker = broker;
-		if (this.broker)
+		if (this.broker) {
 			this.logger = broker.getLogger("CACHER");
+
+			this.broker.on("cache.clear", (match) => {
+				this.clean(match);
+			});
+		}
 	}
 
 	/**

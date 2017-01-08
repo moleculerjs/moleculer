@@ -389,7 +389,8 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	use(mw) {
-		this.middlewares.push(mw);
+		if (mw)
+			this.middlewares.push(mw);
 	}
 
 	/**
@@ -402,18 +403,26 @@ class ServiceBroker {
 	 */
 	callMiddlewares(ctx, masterNext) {
 		if (this.middlewares.length == 0) return masterNext();
-		
+
 		let mws = Array.from(this.middlewares);
-		let next = () => {
-			return Promise.resolve().then(() => {
-				let mw = mws.shift();
-				if (mw)
-					return mw(ctx, next());
-				else
-					return masterNext();
+		let after = Promise.resolve();
+
+		function work() {
+			if (mws.length == 0) return masterNext();
+
+			let mw = mws.shift();
+			console.warn("CYCLE", mw.name);
+			let p = mw(ctx, () => {
+				return after;
 			});
-		};
-		return next();
+
+			if (utils.isPromise(p))
+				return p.then(work);
+			else
+				return work();
+		}
+
+		return work();
 	}
 
 	/**
@@ -458,7 +467,11 @@ class ServiceBroker {
 				// Local action call
 				this.logger.debug(`Call local '${action.name}' action...`);
 				return ctx.invoke(ctx => {
-					return this.callMiddlewares(ctx, () => {
+					return this.callMiddlewares(ctx, result => {
+						this.logger.debug("AFTER MIDDLEWARES", result);
+						if (result)
+							return Promise.resolve(result);
+						
 						return action.handler(ctx);
 					});
 				});
