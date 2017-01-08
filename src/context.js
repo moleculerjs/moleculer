@@ -11,6 +11,8 @@ let _ = require("lodash");
 
 let utils = require("./utils");
 
+const LOGGER_PREFIX = "CTX";
+
 /**
  * Context class for action calls
  * 
@@ -25,30 +27,27 @@ class Context {
 	 * 
 	 * @memberOf Context
 	 */
-	constructor(opts) {
-		opts = Object.assign({}, opts || {});
-	
+	constructor(opts = {}) {
 		this.opts = opts;
 		this.id = utils.generateToken();
 		this.requestID = opts.requestID || this.id;
 		this.broker = opts.broker;
 		this.action = opts.action;
 		if (this.broker) {
-			this.logger = this.broker.getLogger("CTX");
+			this.logger = this.broker.getLogger(LOGGER_PREFIX);
 		}
+		this.nodeID = opts.nodeID;
 		this.parent = opts.parent;
 		this.subContexts = [];
 
 		this.level = opts.parent && opts.parent.level ? opts.parent.level + 1 : 1;
-		this.params = Object.freeze(Object.assign({}, opts.params || {}));
+		this.params = Object.assign({}, opts.params || {});
 
 		this.startTime = null;
 		this.stopTime = null;
 		this.duration = 0;		
 
 		this.cachedResult = false;
-		this.remoteCall = false; 
-		this.nodeID = null;
 	}
 
 	/**
@@ -60,12 +59,13 @@ class Context {
 	 * 
 	 * @memberOf Context
 	 */
-	createSubContext(action, params) {
+	createSubContext(action, params, nodeID) {
 		let ctx = new Context({
 			parent: this,
 			requestID: this.requestID,
 			broker: this.broker,
 			action: action || this.action,
+			nodeID,
 			params
 		});
 		this.subContexts.push(ctx);
@@ -81,7 +81,7 @@ class Context {
 	 * @memberOf Context
 	 */
 	setParams(newParams) {
-		this.params = Object.freeze(Object.assign({}, newParams));
+		this.params = Object.assign({}, newParams);
 	}
 
 	/**

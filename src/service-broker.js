@@ -409,21 +409,22 @@ class ServiceBroker {
 
 			let actions = this.actions.get(actionName);
 			if (!actions) {
-				throw new errors.ServiceNotFoundError(`Missing action '${actionName}'!`);
+				throw new errors.ServiceNotFoundError(`Missing '${actionName}' action!`);
 			}
 			
 			let actionItem = actions.get();
 			/* istanbul ignore next */
 			if (!actionItem) {
-				throw new Error(`Missing action handler '${actionName}'!`);
+				throw new Error(`Missing '${actionName}' action handler!`);
 			}
 
 			let action = actionItem.data;
+			let nodeID = actionItem.nodeID;
 
 			// Create a new context
 			let ctx;
 			if (parentCtx) {
-				ctx = parentCtx.createSubContext(action, params);
+				ctx = parentCtx.createSubContext(action, params, nodeID);
 			} else {
 				ctx = new Context({ broker: this, action, params, requestID });
 			}
@@ -433,27 +434,20 @@ class ServiceBroker {
 			if (actionItem.local) {
 				// Local action call
 				this.logger.debug(`Call local '${action.name}' action...`);
-
 				return ctx.invoke(ctx => {
 					return this.callMiddlewares(ctx, () => {
 						return action.handler(ctx);
 					});
 				});
 
-			} else if (actionItem.nodeID && this.transporter) {
+			} else if (nodeID) {
 				// Remote action call
-				this.logger.debug(`Call remote '${action.name}' action in node '${actionItem.nodeID}'...`);
-				ctx.remoteCall = true;
-				ctx.nodeID = actionItem.nodeID;
+				this.logger.debug(`Call remote '${action.name}' action in node '${nodeID}'...`);
 				return ctx.invoke(() => {
 					return this.callMiddlewares(ctx, () => {
-						return this.transporter.request(actionItem.nodeID, ctx);
+						return this.transporter.request(nodeID, ctx);
 					});
 				});
-
-			} else {
-				/* istanbul ignore next */
-				throw new Error(`No action handler for '${actionName}'!`);
 			}
 		});
 	}
