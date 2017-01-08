@@ -319,6 +319,18 @@ class ServiceBroker {
 	}
 
 	/**
+	 * Subscribe to an event once
+	 * 
+	 * @param {any} name
+	 * @param {any} handler
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	once(name, handler) {
+		this.bus.once(name, handler);
+	}
+
+	/**
 	 * Unsubscribe from an event
 	 * 
 	 * @param {any} name
@@ -451,7 +463,7 @@ class ServiceBroker {
 					});
 				});
 
-			} else if (nodeID) {
+			} else {
 				// Remote action call
 				this.logger.debug(`Call remote '${action.name}' action in node '${nodeID}'...`);
 				return ctx.invoke(() => {

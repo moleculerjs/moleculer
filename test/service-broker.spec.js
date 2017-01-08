@@ -1,5 +1,6 @@
 "use strict";
 
+const utils = require("../src/utils");
 const ServiceBroker = require("../src/service-broker");
 const Context = require("../src/context");
 const Transporter = require("../src/transporters/base");
@@ -28,7 +29,7 @@ describe("Test ServiceBroker constructor", () => {
 
 });
 
-describe("Test on/off event emitter", () => {
+describe("Test on/once/off event emitter", () => {
 
 	let broker = new ServiceBroker();
 	let handler = jest.fn();
@@ -58,6 +59,17 @@ describe("Test on/off event emitter", () => {
 		broker.emitLocal("test.event.demo");
 		expect(handler).toHaveBeenCalledTimes(0);
 	});
+
+	it("register once event handler", () => {
+		handler.mockClear();
+		broker.once("request", handler);
+
+		broker.emitLocal("request");
+		expect(handler).toHaveBeenCalledTimes(1);
+
+		broker.emitLocal("request");
+		expect(handler).toHaveBeenCalledTimes(1);
+	});	
 
 });
 
@@ -222,6 +234,7 @@ describe("Test action registration", () => {
 			expect(ctx.level).toBe(1);
 			expect(ctx.broker).toBe(broker);
 			expect(ctx.action).toBe(mockAction);
+			expect(ctx.nodeID).toBeUndefined();
 			expect(ctx.params).toBeDefined();
 			expect(mockAction.handler).toHaveBeenCalledTimes(1);
 			expect(mockAction.handler).toHaveBeenCalledWith(ctx);
@@ -314,7 +327,7 @@ describe("Test getLocalActionList", () => {
 	});
 });
 	
-describe("Test emitLocal", () => {
+describe("Test emit & emitLocal", () => {
 
 	let broker = new ServiceBroker();
 	broker.bus.emit = jest.fn();
@@ -542,4 +555,44 @@ describe("Test ServiceBroker with Transporter", () => {
 		expect(broker.stop).toHaveBeenCalledTimes(1);
 	});
 	
+});
+
+describe("Test middleware system", () => {
+	let middleware1 = jest.fn((ctx, next) => next);
+	let middleware2 = jest.fn((ctx, next) => next);
+
+	let broker = new ServiceBroker();
+	let service = broker.loadService("./examples/math.service");
+	
+	it("should register plugins", () => {
+		broker.use(middleware1);
+		broker.use(middleware2);
+
+		expect(broker.middlewares.length).toBe(2);
+	});
+
+	it("should call middleware functions", () => {
+		let master = jest.fn();
+		let ctx = new Context();
+		let p = broker.callMiddlewares(ctx, master);		
+		expect(utils.isPromise(p)).toBeTruthy();
+		return p.then(() => {
+			expect(middleware1).toHaveBeenCalledTimes(1);
+			expect(middleware1).toHaveBeenCalledWith(ctx, jasmine.any(Promise));
+
+			expect(middleware2).toHaveBeenCalledTimes(1);
+			expect(middleware2).toHaveBeenCalledWith(ctx, jasmine.any(Promise));
+
+			expect(master).toHaveBeenCalledTimes(1);
+		});
+	});
+
+	it("should call callMiddlewares if has registered middlewares", () => {
+		broker.callMiddlewares = jest.fn(ctx => ctx);
+		return broker.call("math.add").then(ctx => {
+			expect(broker.callMiddlewares).toHaveBeenCalledTimes(1);
+			expect(broker.callMiddlewares).toHaveBeenCalledWith(ctx, jasmine.any(Function));
+
+		});
+	});	
 });
