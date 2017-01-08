@@ -80,6 +80,6 @@ Please send pull requests improving the usage and fixing bugs, improving documen
 ice-services is available under the [MIT license](https://tldrlegal.com/license/mit-license).
 
 # Contact
-Copyright (C) 2016 Icebob
+Copyright (c) 2017 Icebob
 
 [![@icebob](https://img.shields.io/badge/github-icebob-green.svg)](https://github.com/icebob) [![@icebob](https://img.shields.io/badge/twitter-Icebobcsi-blue.svg)](https://twitter.com/Icebobcsi)

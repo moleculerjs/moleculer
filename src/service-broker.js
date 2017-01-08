@@ -1,6 +1,6 @@
 /*
  * ice-services
- * Copyright (c) 2016 Norbert Mereg (https://github.com/icebob/ice-services)
+ * Copyright (c) 2017 Norbert Mereg (https://github.com/icebob/ice-services)
  * MIT Licensed
  */
 
@@ -378,6 +378,8 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	callMiddlewares(ctx, masterNext) {
+		if (this.middlewares.length == 0) return masterNext();
+		
 		let mws = Array.from(this.middlewares);
 		let next = () => {
 			return Promise.resolve().then(() => {
@@ -442,8 +444,11 @@ class ServiceBroker {
 				// Remote action call
 				this.logger.debug(`Call remote '${action.name}' action in node '${actionItem.nodeID}'...`);
 				ctx.remoteCall = true;
+				ctx.nodeID = actionItem.nodeID;
 				return ctx.invoke(() => {
-					return this.transporter.request(actionItem.nodeID, ctx);
+					return this.callMiddlewares(ctx, () => {
+						return this.transporter.request(actionItem.nodeID, ctx);
+					});
 				});
 
 			} else {
