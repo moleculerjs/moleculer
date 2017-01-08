@@ -95,12 +95,12 @@ class ServiceBroker {
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	callPluginMethod(target, method, ...args) {
+	callPluginMethod(method, ...args) {
 		if (this.plugins.length == 0) return;
 
 		this.plugins.forEach(plugin => {
 			if (_.isFunction(plugin[method])) {
-				plugin[method].call(target, ...args);
+				plugin[method].call(plugin, ...args);
 			}
 		});
 	}
@@ -111,19 +111,19 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	start() {
-		this.callPluginMethod(this, "starting", this);
+		this.callPluginMethod("starting", this);
 
 		// Call service `started` handlers
 		this.services.forEach(item => {
 			let service = item.get().data;
-			this.callPluginMethod(service, "serviceStarted", this, service);
+			this.callPluginMethod("serviceStarted", this, service);
 
 			if (service && service.schema && _.isFunction(service.schema.started)) {
 				service.schema.started.call(service);
 			}
 		});
 
-		this.callPluginMethod(this, "started", this);
+		this.callPluginMethod("started", this);
 
 		if (this.transporter) {
 			return this.transporter.connect().then(() => {
@@ -153,12 +153,12 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	stop() {
-		this.callPluginMethod(this, "stopping", this);
+		this.callPluginMethod("stopping", this);
 
 		// Call service `started` handlers
 		this.services.forEach(item => {
 			let service = item.get().data;
-			this.callPluginMethod(service, "serviceStopped", this, service);
+			this.callPluginMethod("serviceStopped", this, service);
 
 			if (service && service.schema && _.isFunction(service.schema.stopped)) {
 				service.schema.stopped.call(service);
@@ -183,7 +183,7 @@ class ServiceBroker {
 		process.removeListener("exit", this._closeFn);
 		process.removeListener("SIGINT", this._closeFn);
 
-		this.callPluginMethod(this, "stopped", this);
+		this.callPluginMethod("stopped", this);
 	}
 
 	/**
