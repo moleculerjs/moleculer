@@ -4,6 +4,7 @@
 - request timeout (30s default)
 - multi params for multi-call & return array
 - plugins (broker.plugin(SomePlugin));
+- extract caching to middleware (check performance w & w/o middlewares)
 - log level settings in broker. Can set minimum log level ("debug", "info", "warn", "error). 
 	- or it can be obj:
 		logLevel: {
@@ -34,6 +35,7 @@
 
 ## Transporters
 - Redis transporter
+- websocket
 - add gzip support
 
 ## Cachers
