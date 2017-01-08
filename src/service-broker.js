@@ -76,6 +76,17 @@ class ServiceBroker {
 	}
 
 	/**
+	 * Register a new plugin
+	 * 
+	 * @param {any} plugin
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	plugin(plugin) {
+		this.plugins.push(plugin);
+	}
+
+	/**
 	 * Call a method in every registered plugins
 	 * 
 	 * @param {any} target		Target of call (value of this)
@@ -105,7 +116,7 @@ class ServiceBroker {
 		// Call service `started` handlers
 		this.services.forEach(item => {
 			let service = item.get().data;
-			this.callPluginMethod(service, "serviceStarted", this);
+			this.callPluginMethod(service, "serviceStarted", this, service);
 
 			if (service && service.schema && _.isFunction(service.schema.started)) {
 				service.schema.started.call(service);
@@ -147,7 +158,7 @@ class ServiceBroker {
 		// Call service `started` handlers
 		this.services.forEach(item => {
 			let service = item.get().data;
-			this.callPluginMethod(service, "serviceStopped");
+			this.callPluginMethod(service, "serviceStopped", this, service);
 
 			if (service && service.schema && _.isFunction(service.schema.stopped)) {
 				service.schema.stopped.call(service);

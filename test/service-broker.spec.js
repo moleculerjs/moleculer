@@ -39,11 +39,14 @@ describe("Test on/off event emitter", () => {
 		broker.emitLocal("test");
 		expect(handler).toHaveBeenCalledTimes(0);
 
-		broker.emitLocal("test.event");
+		let p = { a: 5 };
+		broker.emitLocal("test.event", p, "other", true);
 		expect(handler).toHaveBeenCalledTimes(1);
+		expect(handler).toHaveBeenCalledWith(p, "other", true);
 
-		broker.emitLocal("test.event.demo");
+		broker.emitLocal("test.event.demo", "data");
 		expect(handler).toHaveBeenCalledTimes(2);
+		expect(handler).toHaveBeenCalledWith("data");
 	});
 
 	it("unregister event handler", () => {
@@ -56,6 +59,68 @@ describe("Test on/off event emitter", () => {
 		expect(handler).toHaveBeenCalledTimes(0);
 	});
 
+});
+
+describe("Test plugin system", () => {
+	let plugin1 = {
+	};
+
+	let plugin2 = {
+		started: jest.fn(),
+		stopped: jest.fn()
+	};
+
+	let plugin3 = {
+		starting: jest.fn(),
+		started: jest.fn(),
+		serviceStarted: jest.fn(),
+		serviceStopped: jest.fn(),
+		stopping: jest.fn(),
+		stopped: jest.fn()
+	};
+
+	let broker = new ServiceBroker();
+	let service = broker.loadService("./examples/math.service");
+	
+	it("should register plugins", () => {
+		broker.plugin(plugin1);
+		broker.plugin(plugin2);
+		broker.plugin(plugin3);
+
+		expect(broker.plugins.length).toBe(3);
+	});
+
+	it("should call plugin 'starting' & 'started' methods", () => {
+		broker.start();
+
+		expect(plugin3.starting).toHaveBeenCalledTimes(1);
+		expect(plugin3.starting).toHaveBeenCalledWith(broker);
+
+		expect(plugin3.serviceStarted).toHaveBeenCalledTimes(1);
+		expect(plugin3.serviceStarted).toHaveBeenCalledWith(broker, service);
+
+		expect(plugin2.started).toHaveBeenCalledTimes(1);
+		expect(plugin2.started).toHaveBeenCalledWith(broker);
+		
+		expect(plugin3.started).toHaveBeenCalledTimes(1);
+		expect(plugin3.started).toHaveBeenCalledWith(broker);
+	});
+
+	it("should call plugin 'stopping' & 'stopped' methods", () => {
+		broker.stop();
+
+		expect(plugin3.stopping).toHaveBeenCalledTimes(1);
+		expect(plugin3.stopping).toHaveBeenCalledWith(broker);
+
+		expect(plugin3.serviceStopped).toHaveBeenCalledTimes(1);
+		expect(plugin3.serviceStopped).toHaveBeenCalledWith(broker, service);
+
+		expect(plugin2.stopped).toHaveBeenCalledTimes(1);
+		expect(plugin2.stopped).toHaveBeenCalledWith(broker);
+
+		expect(plugin3.stopped).toHaveBeenCalledTimes(1);
+		expect(plugin3.stopped).toHaveBeenCalledWith(broker);
+	});
 });
 
 describe("Test loadServices", () => {
