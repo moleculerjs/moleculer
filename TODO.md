@@ -30,6 +30,15 @@
 	}
 	```
 
+- cli tool for generate project & Services
+	- https://github.com/sboudrias/Inquirer.js
+	- https://github.com/tj/consolidate.js
+
+	- `ices init` - generate an ice-services based project
+	- `ices add service` - generate an empty service
+	- `ices add middleware` - generate an empty middleware
+	- `ices add plugin` - generate an empty plugin
+
 ## Services
 - service factory & context factory for broker options
 

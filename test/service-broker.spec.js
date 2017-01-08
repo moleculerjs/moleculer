@@ -203,7 +203,7 @@ describe("Test action registration", () => {
 		expect(registerActionCB).toHaveBeenCalledTimes(1);
 	});
 
-	it("should return the action", () => {
+	it("should return with the action", () => {
 		expect(broker.hasAction("noaction")).toBeFalsy();
 		expect(broker.hasAction("posts.find")).toBeTruthy();
 	});
