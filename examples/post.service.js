@@ -31,7 +31,7 @@ module.exports = function() {
 
 			get(ctx) {
 				// this.logger.debug("Get post...", ctx.params);
-				let post = _.find(posts, post => post.id == ctx.params.id);
+				let post = _.cloneDeep(_.find(posts, post => post.id == ctx.params.id));
 				return ctx.call("users.get", { id: post.author }).then(user => {
 					post.author = _.pick(user, ["userName", "email", "id", "firstName", "lastName"]);
 					return post;

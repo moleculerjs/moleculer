@@ -26,7 +26,7 @@ module.exports = function(broker) {
 
 		methods: {
 			findByID(id) {
-				return _.find(users, user => user.id == id);
+				return _.cloneDeep(_.find(users, user => user.id == id));
 			}
 		}
 	});

@@ -11,7 +11,6 @@ let tokgen256 = new TokenGenerator(256, TokenGenerator.BASE62);
 let tokgen128 = new TokenGenerator(128, TokenGenerator.BASE62);
 */
 const uuidV4 = require("uuid/v4");
-const hash	 = require("object-hash");
 const os 	 = require("os");
 const _ 	 = require("lodash");
 
@@ -28,55 +27,6 @@ let utils = {
 		// return "1"; 
 	}
 	*/
-
-	/**
-	 * Get a cache key by name and params. 
-	 * Concatenate the name and the hashed params object
-	 * 
-	 * @param {any} name
-	 * @param {any} params
-	 * @returns
-	 */
-	getCacheKey(name, params) {
-		return (name ? name + ":" : "") + (params ? hash(params) : "");
-	},
-
-	/**
-	 * Create a wrapped action handler which handle caching functions
-	 * 
-	 * @param {any} broker
-	 * @param {any} action
-	 * @param {any} handler
-	 * @returns
-	 */
-	cachingWrapper(broker, action, handler) {
-		return function(ctx) {
-			let cacheKey = utils.getCacheKey(action.name, ctx.params);
-
-			return Promise.resolve()
-			.then(() => {
-				return broker.cacher.get(cacheKey);
-			})
-			.then((cachedJSON) => {
-				if (cachedJSON != null) {
-					// Found in the cache! 
-					ctx.cachedResult = true;
-					return cachedJSON;
-				}
-
-				let result = handler(ctx);
-				if (utils.isPromise(result)) {
-					return result.then((data) => {
-						broker.cacher.set(cacheKey, data);
-						return data;
-					});
-				} else {
-					broker.cacher.set(cacheKey, result);
-					return result;
-				}
-			});
-		};
-	},
 
 	/**
 	 * Create a sub-logger by external logger.

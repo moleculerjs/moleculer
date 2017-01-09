@@ -8,39 +8,14 @@ let utils = require("../../src/utils");
 let ServiceBroker = require("../../src/service-broker");
 let MemoryCacher = require("../../src/cachers").Memory;
 
+let cache = require("../../src/middlewares/cache");
+
 // Create broker
 let broker = new ServiceBroker({
 	nodeID: "server",
 	logger: console,
 	logLevel: "debug"
 });
-
-function cachingMiddleware(cacher) {
-	cacher.init(broker);
-	return function cacheWrapper(ctx, next) {
-
-		let cacheKey = utils.getCacheKey(ctx.action.name, ctx.params);
-		let p = Promise.resolve()
-		.then(() => {
-			return cacher.get(cacheKey);
-		})
-		.then((cachedJSON) => {
-			if (cachedJSON != null) {
-				ctx.logger.log("Found in the cache!", ctx.action.name);
-				// Found in the cache! 
-				ctx.cachedResult = true;
-				//return next.then(() => cachedJSON);
-				return cachedJSON;
-			}
-			ctx.logger.log("NOT Found in the cache!", ctx.action.name);
-		});	
-
-		return next(p).then((data) => {
-			cacher.set(cacheKey, data);
-			return data;
-		});
-	};
-}
 
 function middleware1() {
 	return function mw1(ctx, next) {
@@ -95,7 +70,7 @@ function middleware3() {
 
 
 
-broker.use(cachingMiddleware(new MemoryCacher()));
+broker.use(cache(broker, new MemoryCacher()));
 broker.use(middleware1());
 broker.use(middleware2());
 broker.use(middleware3());
@@ -105,15 +80,23 @@ broker.loadService(path.join(__dirname, "..", "post.service.js"));
 broker.loadService(path.join(__dirname, "..", "user.service.js"));
 broker.start();
 
-/*
+
 broker.call("posts.get", { id: 3 }).then(console.log)
 .then(() => {
 	console.log("NEXT CALL FROM CACHE");
 	return broker.call("posts.get", { id: 3 }).then(console.log);
+})
+.then(() => {
+	console.log("CLEAR CACHE");
+	return broker.emit("cache.clean", { match: "posts.*" });
+})
+.then(utils.delay(200))
+.then(() => {
+	console.log("NEXT CALL WITHOUT CACHE");
+	return broker.call("posts.get", { id: 3 }).then(console.log);
 });
 
-*/
-
+/*
 let ctx = { action: { name: "test" }, duration: 0, logger: broker.logger };
 let mainAction = () => {
 	return new Promise((resolve) => {
@@ -127,3 +110,5 @@ let mainAction = () => {
 broker.callMiddlewares(ctx, mainAction).then(res => {
 	console.log("Invoke", res);
 });
+
+*/

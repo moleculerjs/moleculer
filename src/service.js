@@ -141,9 +141,12 @@ class Service {
 		// Cache
 		if (this.broker.cacher) {
 			if (action.cache === true || (action.cache === undefined && this.settings.cache === true)) {
-				action.handler = utils.cachingWrapper(this.broker, action, action.handler);
-			}
+				action.cache = true;
+				action.handler = this.broker.cacher.wrapHandler(action);
+			} else
+				action.cache = false;
 		}
+		
 
 		return action;
 	}
