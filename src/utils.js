@@ -1,6 +1,6 @@
 /*
  * ice-services
- * Copyright (c) 2016 Norbert Mereg (https://github.com/icebob/ice-services)
+ * Copyright (c) 2017 Norbert Mereg (https://github.com/icebob/ice-services)
  * MIT Licensed
  */
 
@@ -11,7 +11,6 @@ let tokgen256 = new TokenGenerator(256, TokenGenerator.BASE62);
 let tokgen128 = new TokenGenerator(128, TokenGenerator.BASE62);
 */
 const uuidV4 = require("uuid/v4");
-const hash	 = require("object-hash");
 const os 	 = require("os");
 
 let utils = {
@@ -27,78 +26,6 @@ let utils = {
 		// return "1"; 
 	}
 	*/
-
-	/**
-	 * Get a cache key by name and params. 
-	 * Concatenate the name and the hashed params object
-	 * 
-	 * @param {any} name
-	 * @param {any} params
-	 * @returns
-	 */
-	getCacheKey(name, params) {
-		return (name ? name + ":" : "") + (params ? hash(params) : "");
-	},
-
-	/**
-	 * Create a wrapped action handler which handle caching functions
-	 * 
-	 * @param {any} broker
-	 * @param {any} action
-	 * @param {any} handler
-	 * @returns
-	 */
-	cachingWrapper(broker, action, handler) {
-		return function(ctx) {
-			let cacheKey = utils.getCacheKey(action.name, ctx.params);
-
-			return Promise.resolve()
-			.then(() => {
-				return broker.cacher.get(cacheKey);
-			})
-			.then((cachedJSON) => {
-				if (cachedJSON != null) {
-					// Found in the cache! 
-					return ctx.invoke(() => cachedJSON); // (?)
-				}
-
-				return ctx.invoke(handler).then((result) => {
-					broker.cacher.set(cacheKey, result);
-
-					return result;
-				});					
-			});
-		};
-	},
-
-	/**
-	 * Create a sub-logger by external logger.
-	 * 
-	 * @param {any} extLogger
-	 * @param {any} moduleName
-	 * @returns
-	 */
-	wrapLogger(extLogger, moduleName) {
-		let noop = function() {};
-
-		let prefix = moduleName? "[" + moduleName + "] " : "";
-
-		let logger = {};
-		["log", "error", "warn", "info", "debug"].forEach((type) => logger[type] = noop);
-
-		if (extLogger) {
-			["log", "error", "warn", "info", "debug"].forEach((type) => {
-				let externalMethod = extLogger[type] || extLogger.info || extLogger.log;
-				if (externalMethod) {
-					logger[type] = function(msg, ...args) {
-						externalMethod(prefix + msg, ...args);
-					}.bind(extLogger);
-				}
-			});
-		}
-
-		return logger;		
-	},
 
 	/**
 	 * Get default NodeID (computerName)
