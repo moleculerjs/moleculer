@@ -11,9 +11,12 @@ let BalancedList = require("./balanced-list");
 let Context = require("./context");
 let errors = require("./errors");
 let utils = require("./utils");
+let Logger = require("./logger");
+
 let _ = require("lodash");
 let glob = require("glob");
 let path = require("path");
+
 
 
 /**
@@ -196,7 +199,7 @@ class ServiceBroker {
 	 */
 	getLogger(name) {
 		// return utils.wrapLogger(this.options.logger, this.nodeID + (name ? "-" + name : ""));
-		return utils.wrapLogger(this.options.logger, name, this.options.logLevel);
+		return Logger.wrap(this.options.logger, name, this.options.logLevel);
 	}
 
 	/**
