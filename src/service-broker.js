@@ -412,36 +412,30 @@ class ServiceBroker {
 		// A következő middleware hívását generáló függvény. Ezt hívják meg a middleware-ből
 		// ha végeztek a dolgukkal. Ez egy Promise-t ad vissza, amihez .then-t írhatnak
 		// ami pedig akkor hívódik meg, ha a masterNext lefutott.
-		function next() {
-			// a next függvény magja. Ha egy middleware átad neki egy változót ami
-			// ami egy Promise, akkor az azt jelenti, hogy aszinkron kódot futtat.
-			// Így csak ezután a Promise után hívható csak meg a következő middleware
-			return (p) => {
+		function next(p) {
+			// Függvény ami a middleware lefutása után meghívunk
+			let fn = () => {
+				// Ha már nincs következő middleware, akkor a masterNext függvényt hívjuk
+				if (mws.length == 0)
+					return masterNext();
 
-				// Függvény ami a middleware lefutása után meghívunk
-				let fn = () => {
-					// Ha már nincs következő middleware, akkor a masterNext függvényt hívjuk
-					if (mws.length == 0)
-						return masterNext();
-
-					// Következő middleware lekérése
-					let mw = mws.shift();
-					
-					// Middleware kód meghívása és next függvény generálása a folytatáshoz.
-					return mw(ctx, next());
-				};
-
-				// Ha Promise-t adott a middleware akkor csak azután hívjuk meg a kódot
-				if (p && utils.isPromise(p))
-					return p.then(fn);
-				else 
-					// Ha nem, akkor közvetlenül
-					return fn();
+				// Következő middleware lekérése
+				let mw = mws.shift();
+				
+				// Middleware kód meghívása és next függvény generálása a folytatáshoz.
+				return mw(ctx, next);
 			};
+
+			// Ha Promise-t adott a middleware akkor csak azután hívjuk meg a kódot
+			if (p && utils.isPromise(p))
+				return p.then(fn);
+			else 
+				// Ha nem, akkor közvetlenül
+				return fn();
 		}
 
 		// Első middleware meghívása
-		return next()();
+		return next();
 	}
 
 	/**
