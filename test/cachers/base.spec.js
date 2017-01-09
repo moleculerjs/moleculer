@@ -161,3 +161,25 @@ describe("Test utils.wrapHandler", () => {
 	});
 
 });
+
+describe("Test utils.wrapHandler", () => {
+	let cacher = new Cacher();
+	let broker = new ServiceBroker({
+		cacher
+	});
+
+	cacher.clean = jest.fn(),
+	cacher.del = jest.fn();
+
+	it("should call clean method", () => {
+		broker.emit("cache.clean", { match: "users.*" });
+		expect(cacher.clean).toHaveBeenCalledTimes(1);
+		expect(cacher.clean).toHaveBeenCalledWith("users.*");
+	});
+
+	it("should call del method", () => {
+		broker.emit("cache.del", { key: "users.model.123" });
+		expect(cacher.del).toHaveBeenCalledTimes(1);
+		expect(cacher.del).toHaveBeenCalledWith("users.model.123");
+	});
+});
