@@ -173,11 +173,13 @@ describe("Local service registration", () => {
 	it("check actions can be call directly", () => {
 		findHandlerMock.mockClear();
 		let p = { a: 3 };
-		let ctx = service.actions.find(p);
-		expect(findHandlerMock).toHaveBeenCalledTimes(1);
-		expect(ctx.broker).toBe(broker);
-		expect(ctx.action).toBeDefined();
-		expect(ctx.params).toEqual(p);
+		let prom = service.actions.find(p);
+		prom.then(ctx => {
+			expect(findHandlerMock).toHaveBeenCalledTimes(1);
+			expect(ctx.broker).toBe(broker);
+			expect(ctx.action).toBeDefined();
+			expect(ctx.params).toEqual(p);
+		});
 	});
 
 	it("check methods can be call", () => {

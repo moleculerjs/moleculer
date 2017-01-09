@@ -93,12 +93,11 @@ class Context {
 	 * @memberOf Context
 	 */
 	invoke(handler) {
-		return Promise.resolve(this)
-			.then(ctx => {
-				ctx._startInvoke();
-				return ctx;
+		return Promise.resolve()
+			.then(() => {
+				this._startInvoke();
 			})
-			.then(ctx => handler(ctx))
+			.then(() => handler(this))
 			.then(res => {
 				this._finishInvoke();
 				return res;
@@ -114,6 +113,7 @@ class Context {
 				return Promise.reject(err);				
 			});
 	}
+
 
 	/**
 	 * Call a global event (with broker.emit)
@@ -152,8 +152,8 @@ class Context {
 
 		this._metricFinish();
 
-		if (!this.parent)
-			this.printMeasuredTimes();
+		//if (!this.parent)
+		//	this.printMeasuredTimes();
 		
 	}
 

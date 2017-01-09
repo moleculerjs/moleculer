@@ -33,6 +33,10 @@ class Benchmarker {
 		}
 	}
 
+	skip() {
+		// No-op
+	}
+
 	run() {
 		let self = this;
 		return new Promise((resolve, reject) => {

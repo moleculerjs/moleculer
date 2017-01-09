@@ -26,7 +26,7 @@ module.exports = {
 
 		let logger = {};
 		levels.forEach((type) => logger[type] = noop);
-
+		
 		if (extLogger) {
 
 			let levelIdx = -1;
