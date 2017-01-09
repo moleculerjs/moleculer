@@ -425,7 +425,11 @@ class ServiceBroker {
 				let mw = mws.shift();
 				
 				// Middleware kód meghívása és next függvény generálása a folytatáshoz.
-				return mw(ctx, next);
+				try {
+					return mw(ctx, next);
+				} catch(err) {
+					return Promise.reject(err);
+				}
 			};
 
 			// Ha Promise-t adott a middleware akkor csak azután hívjuk meg a kódot

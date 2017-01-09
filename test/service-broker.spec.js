@@ -653,7 +653,7 @@ describe("Test middleware system with SYNC break", () => {
 	});	
 
 	let master = jest.fn(() => {
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve) => {
 			flow.push("MASTER");
 			resolve({ user: "icebob" });
 		});
@@ -714,7 +714,7 @@ describe("Test middleware system with ASYNC break", () => {
 	});	
 
 	let master = jest.fn(() => {
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve) => {
 			flow.push("MASTER");
 			resolve({ user: "icebob" });
 		});
@@ -742,6 +742,43 @@ describe("Test middleware system with ASYNC break", () => {
 			expect(master).toHaveBeenCalledTimes(0);
 
 			expect(flow.join("-")).toBe("B1-B2-B2P-A1");
+		});
+	});
+});
+
+describe("Test middleware system Exception", () => {
+	let flow = [];
+	let mw1 = jest.fn((ctx, next) => {
+		flow.push("B1");
+		return next().then((res) => {
+			flow.push("A1");
+			return res;		
+		});
+	});
+
+	let mw2 = jest.fn((ctx, next) => {
+		flow.push("B2");
+		throw new Error("Something happened in mw2");
+	});	
+
+	let master = jest.fn(() => {
+		return new Promise((resolve) => {
+			flow.push("MASTER");
+			resolve({ user: "icebob" });
+		});
+	});
+
+	let broker = new ServiceBroker();
+	broker.loadService("./examples/math.service");
+	broker.use(mw1, mw2);
+
+	it("should throw mw2 an exception", () => {
+		let ctx = new Context();
+		let p = broker.callMiddlewares(ctx, master);		
+		expect(utils.isPromise(p)).toBeTruthy();
+		return p.catch(err => {
+			expect(err.message).toEqual("Something happened in mw2");
+			expect(flow.join("-")).toBe("B1-B2");
 		});
 	});
 });
