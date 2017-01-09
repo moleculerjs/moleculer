@@ -1,6 +1,6 @@
 /*
  * ice-services
- * Copyright (c) 2016 Norbert Mereg (https://github.com/icebob/ice-services)
+ * Copyright (c) 2017 Norbert Mereg (https://github.com/icebob/ice-services)
  * MIT Licensed
  */
 
@@ -110,6 +110,7 @@ class Service {
 
 		// Call `created` function from schema
 		if (_.isFunction(this.schema.created)) {
+			this.broker.callPluginMethod(this, "serviceCreated", this.broker, this);
 			this.schema.created.call(this);
 		}
 
@@ -134,12 +135,18 @@ class Service {
 		action.service = this;
 		action.handler = handler.bind(this);
 
+		// Call plugin
+		this.broker.callPluginMethod(this, "createActionHandler", this.broker, this, action);
+
 		// Cache
 		if (this.broker.cacher) {
 			if (action.cache === true || (action.cache === undefined && this.settings.cache === true)) {
-				action.handler = utils.cachingWrapper(this.broker, action, action.handler);
-			}
+				action.cache = true;
+				action.handler = this.broker.cacher.wrapHandler(action);
+			} else
+				action.cache = false;
 		}
+		
 
 		return action;
 	}

@@ -1,6 +1,6 @@
 /*
  * ice-services
- * Copyright (c) 2016 Norbert Mereg (https://github.com/icebob/ice-services)
+ * Copyright (c) 2017 Norbert Mereg (https://github.com/icebob/ice-services)
  * MIT Licensed
  */
 
@@ -11,9 +11,12 @@ let BalancedList = require("./balanced-list");
 let Context = require("./context");
 let errors = require("./errors");
 let utils = require("./utils");
+let Logger = require("./logger");
+
 let _ = require("lodash");
 let glob = require("glob");
 let path = require("path");
+
 
 
 /**
@@ -34,7 +37,8 @@ class ServiceBroker {
 		this.options = _.defaultsDeep(options, {
 			sendHeartbeatTime: 10,
 			nodeHeartbeatTimeout: 30,
-			metrics: false
+			metrics: false,
+			logLevel: "info"
 		});
 
 		this.nodeID = this.options.nodeID || utils.getNodeID();
@@ -49,6 +53,8 @@ class ServiceBroker {
 		this.services = new Map();
 		this.actions = new Map();
 
+		this.middlewares = [];
+
 		this.cacher = this.options.cacher;
 		if (this.cacher) {
 			this.cacher.init(this);
@@ -58,6 +64,9 @@ class ServiceBroker {
 		if (this.transporter) {
 			this.transporter.init(this);
 		}
+
+		this._callCount = 0;
+		this.plugins = [];		
 
 		this._closeFn = () => {
 			this.stop();
@@ -70,35 +79,74 @@ class ServiceBroker {
 	}
 
 	/**
+	 * Register a new plugin
+	 * 
+	 * @param {any} plugin
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	plugin(plugin) {
+		this.plugins.push(plugin);
+	}
+
+	/**
+	 * Call a method in every registered plugins
+	 * 
+	 * @param {any} target		Target of call (value of this)
+	 * @param {any} method		Method name
+	 * @param {any} args		Arguments to method
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	callPluginMethod(method, ...args) {
+		if (this.plugins.length == 0) return;
+
+		this.plugins.forEach(plugin => {
+			if (_.isFunction(plugin[method])) {
+				plugin[method].call(plugin, ...args);
+			}
+		});
+	}
+
+	/**
 	 * Start broker. If set transport, transport.connect will be called.
 	 * 
 	 * @memberOf ServiceBroker
 	 */
 	start() {
+		this.callPluginMethod("starting", this);
+
 		// Call service `started` handlers
 		this.services.forEach(item => {
 			let service = item.get().data;
+			this.callPluginMethod("serviceStarted", this, service);
+
 			if (service && service.schema && _.isFunction(service.schema.started)) {
 				service.schema.started.call(service);
 			}
 		});
 
+		this.callPluginMethod("started", this);
+
 		if (this.transporter) {
-			this.transporter.connect();
+			return this.transporter.connect().then(() => {
+				
+				// Start timers
+				this.heartBeatTimer = setInterval(() => {
+					/* istanbul ignore next */
+					this.transporter.sendHeartbeat();
+				}, this.options.sendHeartbeatTime * 1000);
+				this.heartBeatTimer.unref();
 
-			// TODO promise, send only connection was success
-			this.heartBeatTimer = setInterval(() => {
-				/* istanbul ignore next */
-				this.transporter.sendHeartbeat();
-			}, this.options.sendHeartbeatTime * 1000);
-			this.heartBeatTimer.unref();
-
-			this.checkNodesTimer = setInterval(() => {
-				/* istanbul ignore next */
-				this.checkRemoteNodes();
-			}, this.options.nodeHeartbeatTimeout * 1000);
-			this.checkNodesTimer.unref();
+				this.checkNodesTimer = setInterval(() => {
+					/* istanbul ignore next */
+					this.checkRemoteNodes();
+				}, this.options.nodeHeartbeatTimeout * 1000);
+				this.checkNodesTimer.unref();			
+			});
 		}
+		else
+			return Promise.resolve();
 	}
 
 	/**
@@ -108,9 +156,13 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	stop() {
+		this.callPluginMethod("stopping", this);
+
 		// Call service `started` handlers
 		this.services.forEach(item => {
 			let service = item.get().data;
+			this.callPluginMethod("serviceStopped", this, service);
+
 			if (service && service.schema && _.isFunction(service.schema.stopped)) {
 				service.schema.stopped.call(service);
 			}
@@ -133,6 +185,8 @@ class ServiceBroker {
 		process.removeListener("beforeExit", this._closeFn);
 		process.removeListener("exit", this._closeFn);
 		process.removeListener("SIGINT", this._closeFn);
+
+		this.callPluginMethod("stopped", this);
 	}
 
 	/**
@@ -145,7 +199,7 @@ class ServiceBroker {
 	 */
 	getLogger(name) {
 		// return utils.wrapLogger(this.options.logger, this.nodeID + (name ? "-" + name : ""));
-		return utils.wrapLogger(this.options.logger, name);
+		return Logger.wrap(this.options.logger, name, this.options.logLevel);
 	}
 
 	/**
@@ -183,7 +237,12 @@ class ServiceBroker {
 		this.logger.debug("Load service from", path.basename(fName));
 		let schema = require(fName);
 		if (_.isFunction(schema)) {
-			return schema(this);
+			let svc = schema(this);
+			if (svc instanceof Service)
+				return svc;
+			else
+				return new Service(this, svc);
+
 		} else {
 			return new Service(this, schema);
 		}
@@ -263,6 +322,18 @@ class ServiceBroker {
 	}
 
 	/**
+	 * Subscribe to an event once
+	 * 
+	 * @param {any} name
+	 * @param {any} handler
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	once(name, handler) {
+		this.bus.once(name, handler);
+	}
+
+	/**
 	 * Unsubscribe from an event
 	 * 
 	 * @param {any} name
@@ -311,6 +382,78 @@ class ServiceBroker {
 	 */
 	hasAction(actionName) {
 		return this.actions.has(actionName);
+	}	
+
+	/**
+	 * Add a middleware to the broker
+	 * 
+	 * @param {any} mw
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	use(...mws) {
+		mws.forEach(mw => {
+			if (mw)
+				this.middlewares.push(mw);
+		});
+	}
+
+	/**
+	 * Call middlewares with context
+	 * 
+	 * @param {Context} 	ctx			Context
+	 * @param {Function} 	masterNext	Master function after invoked middlewares
+	 * @returns {Promise}
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	callMiddlewares(ctx, masterNext) {
+		// Ha nincs regisztrált middleware egyből meghívjuk a master kódot
+		if (this.middlewares.length == 0) return masterNext();
+
+		// Lemásoljuk a tömböt
+		let mws = Array.from(this.middlewares);
+
+		// A következő middleware hívásához használt függvény. Ezt hívják meg a middleware-ből
+		// ha végeztek a dolgukkal. Ez egy Promise-t ad vissza, amihez .then-t írhatnak
+		// ami pedig akkor hívódik meg, ha a masterNext lefutott.
+		function next(p) {
+			// Függvény ami a middleware lefutása után meghívunk
+			let runNextMiddleware = () => {
+				// Ha már nincs következő middleware, akkor a masterNext függvényt hívjuk
+				if (mws.length == 0)
+					return masterNext();
+
+				// Következő middleware lekérése
+				let mw = mws.shift();
+				
+				// Middleware kód meghívása és next függvény generálása a folytatáshoz.
+				try {
+					return mw(ctx, next);
+				} catch(err) {
+					return Promise.reject(err);
+				}
+			};
+
+			// Ha Promise-t adott a middleware akkor csak azután hívjuk meg a kódot
+			if (p && utils.isPromise(p)) {
+				return p.then(res => {
+					// Ha eredménnyel tért vissza, akkor azt jelenti, hogy 
+					// nem kell több middleware-t hívni, egyből visszaadjuk az eredményt
+					// Pl: cache-ben megvolt az adat.
+					if (res)
+						return res;
+
+					return runNextMiddleware();
+				});
+			} else {
+				// Ha nem, akkor közvetlenül
+				return runNextMiddleware();
+			}
+		}
+
+		// Első middleware meghívása
+		return Promise.resolve(next());
 	}
 
 	/**
@@ -329,42 +472,48 @@ class ServiceBroker {
 
 			let actions = this.actions.get(actionName);
 			if (!actions) {
-				throw new errors.ServiceNotFoundError(`Missing action '${actionName}'!`);
+				throw new errors.ServiceNotFoundError(`Missing '${actionName}' action!`);
 			}
 			
 			let actionItem = actions.get();
 			/* istanbul ignore next */
 			if (!actionItem) {
-				throw new Error(`Missing action handler '${actionName}'!`);
+				throw new Error(`Missing '${actionName}' action handler!`);
 			}
 
 			let action = actionItem.data;
+			let nodeID = actionItem.nodeID;
 
 			// Create a new context
 			let ctx;
 			if (parentCtx) {
-				ctx = parentCtx.createSubContext(action, params);
+				ctx = parentCtx.createSubContext(action, params, nodeID);
 			} else {
 				ctx = new Context({ broker: this, action, params, requestID });
 			}
 
+			this._callCount++;
+
 			if (actionItem.local) {
 				// Local action call
 				this.logger.debug(`Call local '${action.name}' action...`);
-
-				return ctx.invoke(action.handler);
-
-			} else if (actionItem.nodeID && this.transporter) {
-				// Remote action call
-				this.logger.debug(`Call remote '${action.name}' action in node '${actionItem.nodeID}'...`);
-
-				return this.transporter.request(actionItem.nodeID, ctx);
+				return ctx.invoke(ctx => {
+					return this.callMiddlewares(ctx, () => {
+						return Promise.resolve().then(() => {
+							return action.handler(ctx);
+						});
+					});
+				});
 
 			} else {
-				/* istanbul ignore next */
-				throw new Error(`No action handler for '${actionName}'!`);
+				// Remote action call
+				this.logger.debug(`Call remote '${action.name}' action in node '${nodeID}'...`);
+				return ctx.invoke(() => {
+					return this.callMiddlewares(ctx, () => {
+						return this.transporter.request(nodeID, ctx);
+					});
+				});
 			}
-
 		});
 	}
 

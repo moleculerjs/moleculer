@@ -24,5 +24,5 @@ Promise.resolve()
 		.then(res => {
 			console.info(`${payload.a} + ${payload.b} = ${res}`);
 		});
-	}, 1000);
+	}, 100);
 });

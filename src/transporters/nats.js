@@ -1,6 +1,6 @@
 /*
  * ice-services
- * Copyright (c) 2016 Norbert Mereg (https://github.com/icebob/ice-services)
+ * Copyright (c) 2017 Norbert Mereg (https://github.com/icebob/ice-services)
  * MIT Licensed
  */
 
@@ -56,31 +56,37 @@ class NatsTransporter extends Transporter {
 	 * @memberOf NatsTransporter
 	 */
 	connect() {
-		let Nats = require("nats");
-		this.client = Nats.connect(this.opts);
+		return new Promise((resolve, reject) => {
+			let Nats = require("nats");
+			this.client = Nats.connect(this.opts);
 
-		this.client.on("connect", () => {
-			this.logger.info("NATS client connected!");
+			this.client.on("connect", () => {
+				this.logger.info("NATS connected!");
 
-			this.registerEventHandlers();
+				this.registerEventHandlers();
+				this.discoverNodes();
 
-			this.discoverNodes();
-		});
+				resolve();
+			});
 
-		/* istanbul ignore next */
-		this.client.on("error", (e) => {
-			this.logger.error("NATS client error", e);
-			if (e.toString().indexOf("ECONNREFUSED") != -1) {
-				this.logger.info("Reconnecting after 5 sec...");
-				setTimeout(() => {
-					this.connect();
-				}, 5 * 1000);
-			}
-		});
+			/* istanbul ignore next */
+			this.client.on("error", (e) => {
+				this.logger.error("NATS error", e);
+				if (e.toString().indexOf("ECONNREFUSED") != -1) {
+					this.logger.info("Reconnecting after 5 sec...");
+					setTimeout(() => {
+						this.connect();
+					}, 5 * 1000);
+				}
+				else {
+					reject(e);
+				}
+			});
 
-		/* istanbul ignore next */
-		this.client.on("close", () => {
-			this.logger.warn("NATS disconnected!");
+			/* istanbul ignore next */
+			this.client.on("close", () => {
+				this.logger.warn("NATS disconnected!");
+			});			
 		});
 	}
 
@@ -260,6 +266,29 @@ class NatsTransporter extends Transporter {
 			this.client.publish(subj, payload, replySubject);
 		});
 	}
+	/*request(targetNodeID, ctx) {
+		return new Promise((resolve) => {
+			let message = {
+				nodeID: this.nodeID,
+				requestID: ctx.id,
+				action: ctx.action.name,
+				params: ctx.params
+			};
+			this.logger.debug("Request action", message);
+			let payload = utils.json2String(message);
+
+			let subj = [PREFIX, "REQ", targetNodeID, message.action].join(".");
+			this.client.request(subj, payload, { max: 1}, (response) => {
+				if (response != "") {
+					resolve(utils.string2Json(response));
+				}
+				//* istanbul ignore next *
+				else {
+					resolve(null);
+				}
+			});
+		});
+	}*/
 
 	/**
 	 * Discover other nodes. It will be called internally after success connect.

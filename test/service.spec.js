@@ -263,7 +263,7 @@ describe("Test cached actions", () => {
 		cacher: new MemoryCacher()
 	});
 
-	utils.cachingWrapper = jest.fn((broker, action, handler) => [broker, action, handler]);
+	broker.cacher.wrapHandler = jest.fn(action => action);
 
 	it("don't wrap, if schema cache is UNDEFINED and action cache is UNDEFINED", () => {
 		let schema = {
@@ -275,9 +275,9 @@ describe("Test cached actions", () => {
 			}
 		};
 		
-		utils.cachingWrapper.mockClear();
+		broker.cacher.wrapHandler.mockClear();
 		new Service(broker, schema);
-		expect(utils.cachingWrapper).toHaveBeenCalledTimes(0);
+		expect(broker.cacher.wrapHandler).toHaveBeenCalledTimes(0);
 	});
 
 	it("wrap, if schema cache is true and action cache UNDEFINED", () => {
@@ -291,9 +291,9 @@ describe("Test cached actions", () => {
 			}
 		};
 		
-		utils.cachingWrapper.mockClear();
+		broker.cacher.wrapHandler.mockClear();
 		new Service(broker, schema);
-		expect(utils.cachingWrapper).toHaveBeenCalledTimes(1);
+		expect(broker.cacher.wrapHandler).toHaveBeenCalledTimes(1);
 	});
 
 	it("don't wrap, if schema cache is TRUE and action cache is FALSE", () => {
@@ -308,9 +308,9 @@ describe("Test cached actions", () => {
 			}
 		};
 		
-		utils.cachingWrapper.mockClear();
+		broker.cacher.wrapHandler.mockClear();
 		new Service(broker, schema);
-		expect(utils.cachingWrapper).toHaveBeenCalledTimes(0);
+		expect(broker.cacher.wrapHandler).toHaveBeenCalledTimes(0);
 	});
 
 	it("wrap, if schema cache is UNDEFINED and action cache is TRUE", () => {
@@ -324,9 +324,9 @@ describe("Test cached actions", () => {
 			}
 		};
 		
-		utils.cachingWrapper.mockClear();
+		broker.cacher.wrapHandler.mockClear();
 		new Service(broker, schema);
-		expect(utils.cachingWrapper).toHaveBeenCalledTimes(1);
+		expect(broker.cacher.wrapHandler).toHaveBeenCalledTimes(1);
 	});
 
 	it("wrap, if schema cache is FALSE and action cache is TRUE", () => {
@@ -341,9 +341,9 @@ describe("Test cached actions", () => {
 			}
 		};
 		
-		utils.cachingWrapper.mockClear();
+		broker.cacher.wrapHandler.mockClear();
 		new Service(broker, schema);
-		expect(utils.cachingWrapper).toHaveBeenCalledTimes(1);
+		expect(broker.cacher.wrapHandler).toHaveBeenCalledTimes(1);
 	});
 
 	it("wrap, if schema cache is TRUE and action cache is TRUE", () => {
@@ -358,8 +358,8 @@ describe("Test cached actions", () => {
 			}
 		};
 		
-		utils.cachingWrapper.mockClear();
+		broker.cacher.wrapHandler.mockClear();
 		new Service(broker, schema);
-		expect(utils.cachingWrapper).toHaveBeenCalledTimes(1);
+		expect(broker.cacher.wrapHandler).toHaveBeenCalledTimes(1);
 	});
 });

@@ -12,7 +12,8 @@ let NatsTransporter = require("../../src/transporters/nats");
 let broker = new ServiceBroker({
 	nodeID: "server-2",
 	transporter: new NatsTransporter(),
-	logger: console
+	logger: console,
+	logLevel: "debug"
 });
 
 //broker.loadService(__dirname + "/../post.service");

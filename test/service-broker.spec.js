@@ -1,5 +1,6 @@
 "use strict";
 
+const utils = require("../src/utils");
 const ServiceBroker = require("../src/service-broker");
 const Context = require("../src/context");
 const Transporter = require("../src/transporters/base");
@@ -9,7 +10,7 @@ describe("Test ServiceBroker constructor", () => {
 	it("should set default options", () => {
 		let broker = new ServiceBroker();
 		expect(broker).toBeDefined();
-		expect(broker.options).toEqual({ metrics: false, nodeHeartbeatTimeout : 30, sendHeartbeatTime: 10});
+		expect(broker.options).toEqual({ logLevel: "info", metrics: false, nodeHeartbeatTimeout : 30, sendHeartbeatTime: 10});
 		expect(broker.services).toBeInstanceOf(Map);
 		expect(broker.actions).toBeInstanceOf(Map);
 		expect(broker.transporter).toBeUndefined();
@@ -17,9 +18,9 @@ describe("Test ServiceBroker constructor", () => {
 	});
 
 	it("should merge options", () => {
-		let broker = new ServiceBroker( { nodeHeartbeatTimeout: 20, metrics: true });
+		let broker = new ServiceBroker( { nodeHeartbeatTimeout: 20, metrics: true, logLevel: "debug" });
 		expect(broker).toBeDefined();
-		expect(broker.options).toEqual({ metrics: true, nodeHeartbeatTimeout : 20, sendHeartbeatTime: 10});
+		expect(broker.options).toEqual({ logLevel: "debug", metrics: true, nodeHeartbeatTimeout : 20, sendHeartbeatTime: 10});
 		expect(broker.services).toBeInstanceOf(Map);
 		expect(broker.actions).toBeInstanceOf(Map);
 		expect(broker.transporter).toBeUndefined();
@@ -28,7 +29,7 @@ describe("Test ServiceBroker constructor", () => {
 
 });
 
-describe("Test on/off event emitter", () => {
+describe("Test on/once/off event emitter", () => {
 
 	let broker = new ServiceBroker();
 	let handler = jest.fn();
@@ -39,11 +40,14 @@ describe("Test on/off event emitter", () => {
 		broker.emitLocal("test");
 		expect(handler).toHaveBeenCalledTimes(0);
 
-		broker.emitLocal("test.event");
+		let p = { a: 5 };
+		broker.emitLocal("test.event", p, "other", true);
 		expect(handler).toHaveBeenCalledTimes(1);
+		expect(handler).toHaveBeenCalledWith(p, "other", true);
 
-		broker.emitLocal("test.event.demo");
+		broker.emitLocal("test.event.demo", "data");
 		expect(handler).toHaveBeenCalledTimes(2);
+		expect(handler).toHaveBeenCalledWith("data");
 	});
 
 	it("unregister event handler", () => {
@@ -56,14 +60,87 @@ describe("Test on/off event emitter", () => {
 		expect(handler).toHaveBeenCalledTimes(0);
 	});
 
+	it("register once event handler", () => {
+		handler.mockClear();
+		broker.once("request", handler);
+
+		broker.emitLocal("request");
+		expect(handler).toHaveBeenCalledTimes(1);
+
+		broker.emitLocal("request");
+		expect(handler).toHaveBeenCalledTimes(1);
+	});	
+
+});
+
+describe("Test plugin system", () => {
+	let plugin1 = {
+	};
+
+	let plugin2 = {
+		started: jest.fn(),
+		stopped: jest.fn()
+	};
+
+	let plugin3 = {
+		starting: jest.fn(),
+		started: jest.fn(),
+		serviceStarted: jest.fn(),
+		serviceStopped: jest.fn(),
+		stopping: jest.fn(),
+		stopped: jest.fn()
+	};
+
+	let broker = new ServiceBroker();
+	let service = broker.loadService("./examples/math.service");
+	
+	it("should register plugins", () => {
+		broker.plugin(plugin1);
+		broker.plugin(plugin2);
+		broker.plugin(plugin3);
+
+		expect(broker.plugins.length).toBe(3);
+	});
+
+	it("should call plugin 'starting' & 'started' methods", () => {
+		broker.start();
+
+		expect(plugin3.starting).toHaveBeenCalledTimes(1);
+		expect(plugin3.starting).toHaveBeenCalledWith(broker);
+
+		expect(plugin3.serviceStarted).toHaveBeenCalledTimes(1);
+		expect(plugin3.serviceStarted).toHaveBeenCalledWith(broker, service);
+
+		expect(plugin2.started).toHaveBeenCalledTimes(1);
+		expect(plugin2.started).toHaveBeenCalledWith(broker);
+		
+		expect(plugin3.started).toHaveBeenCalledTimes(1);
+		expect(plugin3.started).toHaveBeenCalledWith(broker);
+	});
+
+	it("should call plugin 'stopping' & 'stopped' methods", () => {
+		broker.stop();
+
+		expect(plugin3.stopping).toHaveBeenCalledTimes(1);
+		expect(plugin3.stopping).toHaveBeenCalledWith(broker);
+
+		expect(plugin3.serviceStopped).toHaveBeenCalledTimes(1);
+		expect(plugin3.serviceStopped).toHaveBeenCalledWith(broker, service);
+
+		expect(plugin2.stopped).toHaveBeenCalledTimes(1);
+		expect(plugin2.stopped).toHaveBeenCalledWith(broker);
+
+		expect(plugin3.stopped).toHaveBeenCalledTimes(1);
+		expect(plugin3.stopped).toHaveBeenCalledWith(broker);
+	});
 });
 
 describe("Test loadServices", () => {
 
 	let broker = new ServiceBroker();
 	
-	it("should found 3 services", () => {
-		expect(broker.loadServices("./examples")).toBe(3);
+	it("should found 4 services", () => {
+		expect(broker.loadServices("./examples")).toBe(4);
 		expect(broker.hasService("math")).toBeTruthy();
 		expect(broker.hasAction("math.add")).toBeTruthy();
 	});
@@ -138,7 +215,7 @@ describe("Test action registration", () => {
 		expect(registerActionCB).toHaveBeenCalledTimes(1);
 	});
 
-	it("should return the action", () => {
+	it("should return with the action", () => {
 		expect(broker.hasAction("noaction")).toBeFalsy();
 		expect(broker.hasAction("posts.find")).toBeTruthy();
 	});
@@ -157,6 +234,7 @@ describe("Test action registration", () => {
 			expect(ctx.level).toBe(1);
 			expect(ctx.broker).toBe(broker);
 			expect(ctx.action).toBe(mockAction);
+			expect(ctx.nodeID).toBeUndefined();
 			expect(ctx.params).toBeDefined();
 			expect(mockAction.handler).toHaveBeenCalledTimes(1);
 			expect(mockAction.handler).toHaveBeenCalledWith(ctx);
@@ -249,7 +327,7 @@ describe("Test getLocalActionList", () => {
 	});
 });
 	
-describe("Test emitLocal", () => {
+describe("Test emit & emitLocal", () => {
 
 	let broker = new ServiceBroker();
 	broker.bus.emit = jest.fn();
@@ -393,7 +471,7 @@ describe("Test ServiceBroker with Transporter", () => {
 
 	let transporter = new Transporter();
 	transporter.init = jest.fn(); 
-	transporter.connect = jest.fn(); 
+	transporter.connect = jest.fn(() => Promise.resolve()); 
 	transporter.disconnect = jest.fn(); 
 	transporter.sendHeartbeat = jest.fn(); 
 	transporter.emit = jest.fn(); 
@@ -416,10 +494,11 @@ describe("Test ServiceBroker with Transporter", () => {
 	});
 
 	it("should call transporter.connect", () => {
-		broker.start();
-		expect(transporter.connect).toHaveBeenCalledTimes(1);
-		expect(broker.heartBeatTimer).toBeDefined();
-		expect(broker.checkNodesTimer).toBeDefined();
+		broker.start().then(() => {
+			expect(transporter.connect).toHaveBeenCalledTimes(1);
+			expect(broker.heartBeatTimer).toBeDefined();
+			expect(broker.checkNodesTimer).toBeDefined();
+		});
 	});
 
 	it("should call transporter emit", () => {
@@ -476,4 +555,230 @@ describe("Test ServiceBroker with Transporter", () => {
 		expect(broker.stop).toHaveBeenCalledTimes(1);
 	});
 	
+});
+
+describe("Test middleware system with sync & async modes", () => {
+	let flow = [];
+	let mw1Sync = jest.fn((ctx, next) => {
+		flow.push("B1");
+		return next().then((res) => {
+			flow.push("A1");
+			return res;		
+		});
+	});
+
+	let mw2Async = jest.fn((ctx, next) => {
+		flow.push("B2");
+		return next(new Promise((resolve) => {
+			setTimeout(() => {
+				flow.push("B2P");
+				resolve();
+			}, 10);
+		})).then(res => {
+			flow.push("A2");
+			return res;		
+		});
+	});
+
+	let mw3Empty = null;
+
+	let master = jest.fn(() => {
+		return new Promise((resolve, reject) => {
+			flow.push("MASTER");
+			resolve({ user: "icebob" });
+		});
+	});
+
+	let broker = new ServiceBroker();
+	broker.loadService("./examples/math.service");
+	
+	it("should register plugins", () => {
+		broker.use(mw1Sync);
+		broker.use(mw2Async);
+		broker.use(mw3Empty);
+
+		expect(broker.middlewares.length).toBe(2);
+	});
+
+	it("should call all middlewares functions & master", () => {
+		let ctx = new Context();
+		let p = broker.callMiddlewares(ctx, master);		
+		expect(utils.isPromise(p)).toBeTruthy();
+		return p.then(res => {
+			expect(res).toEqual({ user: "icebob" });
+			expect(mw1Sync).toHaveBeenCalledTimes(1);
+			expect(mw1Sync).toHaveBeenCalledWith(ctx, jasmine.any(Function));
+
+			expect(mw2Async).toHaveBeenCalledTimes(1);
+			expect(mw2Async).toHaveBeenCalledWith(ctx, jasmine.any(Function));
+
+			expect(master).toHaveBeenCalledTimes(1);
+
+			expect(flow.join("-")).toBe("B1-B2-B2P-MASTER-A2-A1");
+		});
+	});
+
+	it("should call callMiddlewares if has registered middlewares", () => {
+		broker.callMiddlewares = jest.fn(ctx => ctx);
+		return broker.call("math.add").then(ctx => {
+			expect(broker.callMiddlewares).toHaveBeenCalledTimes(1);
+			expect(broker.callMiddlewares).toHaveBeenCalledWith(ctx, jasmine.any(Function));
+
+		});
+	});	
+});
+
+describe("Test middleware system with SYNC break", () => {
+	let flow = [];
+	let mw1 = jest.fn((ctx, next) => {
+		flow.push("B1");
+		return next().then((res) => {
+			flow.push("A1");
+			return res;		
+		});
+	});
+
+	let mw2 = jest.fn((ctx, next) => {
+		flow.push("B2");
+		// Return the result (sync)
+		return Promise.resolve({ user: "bobcsi" });
+	});
+
+	let mw3 = jest.fn((ctx, next) => {
+		flow.push("B3");
+		return next().then((res) => {
+			flow.push("A3");
+			return res;		
+		});
+	});	
+
+	let master = jest.fn(() => {
+		return new Promise((resolve) => {
+			flow.push("MASTER");
+			resolve({ user: "icebob" });
+		});
+	});
+
+	let broker = new ServiceBroker();
+	broker.loadService("./examples/math.service");
+
+	
+	it("should register plugins", () => {
+		broker.use(mw1, mw2, mw3);
+		expect(broker.middlewares.length).toBe(3);
+	});	
+
+	it("should call only mw1 & mw2 middlewares functions", () => {
+		let ctx = new Context();
+		let p = broker.callMiddlewares(ctx, master);		
+		expect(utils.isPromise(p)).toBeTruthy();
+		return p.then(res => {
+			expect(res).toEqual({ user: "bobcsi" });
+			expect(mw1).toHaveBeenCalledTimes(1);
+			expect(mw2).toHaveBeenCalledTimes(1);
+
+			expect(mw3).toHaveBeenCalledTimes(0);
+			expect(master).toHaveBeenCalledTimes(0);
+
+			expect(flow.join("-")).toBe("B1-B2-A1");
+		});
+	});
+});
+
+describe("Test middleware system with ASYNC break", () => {
+	let flow = [];
+	let mw1 = jest.fn((ctx, next) => {
+		flow.push("B1");
+		return next().then((res) => {
+			flow.push("A1");
+			return res;		
+		});
+	});
+
+	let mw2 = jest.fn((ctx, next) => {
+		flow.push("B2");
+		return next(new Promise((resolve) => {
+			setTimeout(() => {
+				flow.push("B2P");
+				resolve({ user: "bobcsi" });
+			}, 10);
+		}));
+	});
+
+	let mw3 = jest.fn((ctx, next) => {
+		flow.push("B3");
+		return next().then((res) => {
+			flow.push("A3");
+			return res;		
+		});
+	});	
+
+	let master = jest.fn(() => {
+		return new Promise((resolve) => {
+			flow.push("MASTER");
+			resolve({ user: "icebob" });
+		});
+	});
+
+	let broker = new ServiceBroker();
+	broker.loadService("./examples/math.service");
+
+	
+	it("should register plugins", () => {
+		broker.use(mw1, mw2, mw3);
+		expect(broker.middlewares.length).toBe(3);
+	});	
+
+	it("should call only mw1 & mw2 middlewares functions", () => {
+		let ctx = new Context();
+		let p = broker.callMiddlewares(ctx, master);		
+		expect(utils.isPromise(p)).toBeTruthy();
+		return p.then(res => {
+			expect(res).toEqual({ user: "bobcsi" });
+			expect(mw1).toHaveBeenCalledTimes(1);
+			expect(mw2).toHaveBeenCalledTimes(1);
+
+			expect(mw3).toHaveBeenCalledTimes(0);
+			expect(master).toHaveBeenCalledTimes(0);
+
+			expect(flow.join("-")).toBe("B1-B2-B2P-A1");
+		});
+	});
+});
+
+describe("Test middleware system Exception", () => {
+	let flow = [];
+	let mw1 = jest.fn((ctx, next) => {
+		flow.push("B1");
+		return next().then((res) => {
+			flow.push("A1");
+			return res;		
+		});
+	});
+
+	let mw2 = jest.fn((ctx, next) => {
+		flow.push("B2");
+		throw new Error("Something happened in mw2");
+	});	
+
+	let master = jest.fn(() => {
+		return new Promise((resolve) => {
+			flow.push("MASTER");
+			resolve({ user: "icebob" });
+		});
+	});
+
+	let broker = new ServiceBroker();
+	broker.loadService("./examples/math.service");
+	broker.use(mw1, mw2);
+
+	it("should throw mw2 an exception", () => {
+		let ctx = new Context();
+		let p = broker.callMiddlewares(ctx, master);		
+		expect(utils.isPromise(p)).toBeTruthy();
+		return p.catch(err => {
+			expect(err.message).toEqual("Something happened in mw2");
+			expect(flow.join("-")).toBe("B1-B2");
+		});
+	});
 });

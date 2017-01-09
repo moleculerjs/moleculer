@@ -1,6 +1,6 @@
 /*
  * ice-services
- * Copyright (c) 2016 Norbert Mereg (https://github.com/icebob/ice-services)
+ * Copyright (c) 2017 Norbert Mereg (https://github.com/icebob/ice-services)
  * MIT Licensed
  */
 
@@ -10,6 +10,8 @@ let _ = require("lodash");
 //let chalk = require("chalk");
 
 let utils = require("./utils");
+
+const LOGGER_PREFIX = "CTX";
 
 /**
  * Context class for action calls
@@ -25,25 +27,27 @@ class Context {
 	 * 
 	 * @memberOf Context
 	 */
-	constructor(opts) {
-		opts = Object.assign({}, opts || {});
-	
+	constructor(opts = {}) {
 		this.opts = opts;
 		this.id = utils.generateToken();
 		this.requestID = opts.requestID || this.id;
-		this.parent = opts.parent;
 		this.broker = opts.broker;
 		this.action = opts.action;
 		if (this.broker) {
-			this.logger = this.broker.getLogger("CTX");
+			this.logger = this.broker.getLogger(LOGGER_PREFIX);
 		}
+		this.nodeID = opts.nodeID;
+		this.parent = opts.parent;
+		this.subContexts = [];
 
 		this.level = opts.parent && opts.parent.level ? opts.parent.level + 1 : 1;
-		this.params = Object.freeze(Object.assign({}, opts.params || {}));
+		this.params = Object.assign({}, opts.params || {});
 
 		this.startTime = null;
 		this.stopTime = null;
 		this.duration = 0;		
+
+		this.cachedResult = false;
 	}
 
 	/**
@@ -55,14 +59,18 @@ class Context {
 	 * 
 	 * @memberOf Context
 	 */
-	createSubContext(action, params) {
-		return new Context({
+	createSubContext(action, params, nodeID) {
+		let ctx = new Context({
 			parent: this,
 			requestID: this.requestID,
 			broker: this.broker,
 			action: action || this.action,
+			nodeID,
 			params
 		});
+		this.subContexts.push(ctx);
+
+		return ctx;
 	}
 
 	/**
@@ -73,7 +81,7 @@ class Context {
 	 * @memberOf Context
 	 */
 	setParams(newParams) {
-		this.params = Object.freeze(Object.assign({}, newParams));
+		this.params = Object.assign({}, newParams);
 	}
 
 	/**
@@ -141,10 +149,12 @@ class Context {
 	_finishInvoke() {
 		this.stopTime = Date.now();
 		this.duration = this.stopTime - this.startTime;
-		if (this.parent) {
-			this.parent.duration += this.duration;
-		}
+
 		this._metricFinish();
+
+		if (!this.parent)
+			this.printMeasuredTimes();
+		
 	}
 
 	/**
@@ -167,13 +177,13 @@ class Context {
 				requestID: this.requestID,
 				time: this.startTime
 			};
-			if (this.parent) {
-				payload.parent = this.parent.id;
-			}
 			if (this.action) {
 				payload.action = {
 					name: this.action.name
 				};
+			}
+			if (this.parent) {
+				payload.parent = this.parent.id;
 			}
 			this.broker.emit("metrics.context.start", payload);
 		}
@@ -187,16 +197,85 @@ class Context {
 				time: this.stopTime,
 				duration: this.duration
 			};
-			if (this.parent) {
-				payload.parent = this.parent.id;
-			}
 			if (this.action) {
 				payload.action = {
 					name: this.action.name
 				};
 			}			
+			if (this.parent) {
+				payload.parent = this.parent.id;
+			}
 			this.broker.emit("metrics.context.finish", payload);
 		}
+	}
+
+	/*
+		┌─────────────────────────────────────────────────────────────────────────┐
+		│ request.rest                      27ms [■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■] │
+		│   session.me                    » 25ms [.■■■■■■■■■■■■■■■■■■■■■■■■■■■■.] │
+		│     profile.get                 * 24ms [..■■■■■■■■■■■■■■■■■■■■■■■■■■■.] │
+		└─────────────────────────────────────────────────────────────────────────┘
+	*/
+	/* istanbul ignore next */
+	printMeasuredTimes() {
+		if (!this.logger) return;
+
+		let w = 73;
+		let r = _.repeat;
+		let gw = 35;
+		let maxTitle = w - 2 - 2 - gw - 2 - 1;
+
+		this.logger.debug(["┌", r("─", w-2), "┐"].join(""));
+
+		let printCtxTime = (ctx) => {
+			let maxActionName = maxTitle - (ctx.level-1) * 2 - ctx.duration.toString().length - 3 - (ctx.cachedResult ? 2 : 0) - (ctx.remoteCall ? 2 : 0);
+			let actionName = ctx.action ? ctx.action.name : "";
+			if (actionName.length > maxActionName) 
+				actionName = _.truncate(ctx.action.name, { length: maxActionName });
+
+			let strAction = [
+				r("  ", ctx.level - 1),
+				actionName,
+				r(" ", maxActionName - actionName.length + 1),
+				ctx.cachedResult ? "* " : "",
+				ctx.remoteCall ? "» " : "",
+				ctx.duration,
+				"ms "
+			].join("");
+
+			if (ctx.startTime == null || ctx.stopTime == null) {
+				this.logger.debug(strAction + "! Missing invoke !");
+				return;
+			}
+
+			let gstart = (ctx.startTime - this.startTime) / (this.stopTime - this.startTime) * 100;
+			let gstop = (ctx.stopTime - this.startTime) / (this.stopTime - this.startTime) * 100;
+
+			if (_.isNaN(gstart) && _.isNaN(gstop)) {
+				gstart = 0;
+				gstop = 100;
+			}
+
+			let p1 = Math.round(gw * gstart / 100);
+			let p2 = Math.round(gw * gstop / 100) - p1;
+			let p3 = Math.max(gw - (p1 + p2), 0);
+
+			let gauge = [
+				"[",
+				r(".", p1),
+				r("■", p2),
+				r(".", p3),
+				"]"
+			].join("");
+
+			this.logger.debug("│ " + strAction + gauge + " │");
+
+			if (ctx.subContexts.length > 0)
+				ctx.subContexts.forEach(subCtx => printCtxTime(subCtx));
+		};
+
+		printCtxTime(this);
+		this.logger.debug(["└", r("─", w-2), "┘"].join(""));
 	}
 }
 
