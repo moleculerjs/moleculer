@@ -46,8 +46,8 @@ function middleware1() {
 	return function mw1(ctx, next) {
 
 		ctx.logger.info("mw1 before", ctx.action.name);
-		//return "data from mw1";
-		next().then(res => {
+		// return Promise.resolve("data from mw1");
+		return next().then(res => {
 			ctx.logger.info("mw1 after", ctx.action.name);
 			return res;
 		});
@@ -59,15 +59,16 @@ function middleware2() {
 	return function mw2(ctx, next) {
 
 		ctx.logger.info("mw2 before-promise", ctx.action.name);
-		return new Promise((resolve, reject) => {
+		let p = new Promise((resolve, reject) => {
 			setTimeout(() => {
 				ctx.logger.info("mw2 before", ctx.action.name);
 				resolve();
-				next().then(res => {
-					ctx.logger.info("mw2 after", ctx.action.name);
-					return res;
-				});
 			}, 300);
+		});
+
+		return next(p).then(res => {
+			ctx.logger.info("mw2 after", ctx.action.name);
+			return res;
 		});
 
 	};
@@ -76,7 +77,8 @@ function middleware2() {
 function middleware3() {
 	return function mw3(ctx, next) {
 		ctx.logger.info("mw3 before", ctx.action.name);
-		next().then(res => {
+		//return Promise.resolve("data from mw3");
+		return next().then(res => {
 			ctx.logger.info("mw3 after", ctx.action.name);
 			if (res)
 				delete res.content;
@@ -84,6 +86,9 @@ function middleware3() {
 		});
 	};
 }
+
+
+
 
 //broker.use(cachingMiddleware(new MemoryCacher()));
 broker.use(middleware1());

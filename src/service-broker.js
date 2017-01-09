@@ -379,7 +379,7 @@ class ServiceBroker {
 	 */
 	hasAction(actionName) {
 		return this.actions.has(actionName);
-	}
+	}	
 
 	/**
 	 * Add a middleware to the broker
@@ -405,24 +405,23 @@ class ServiceBroker {
 		if (this.middlewares.length == 0) return masterNext();
 
 		let mws = Array.from(this.middlewares);
-		let after = Promise.resolve();
 
-		function work() {
-			if (mws.length == 0) return masterNext();
+		let mw = mws.shift();
+		console.warn("CYCLE", mw.name);
 
+		return mw(ctx, () => {				
 			let mw = mws.shift();
 			console.warn("CYCLE", mw.name);
-			let p = mw(ctx, () => {
-				return after;
+			return mw(ctx, (p) => {
+				return p.then(() => {
+					let mw = mws.shift();
+					console.warn("CYCLE", mw.name);
+					return mw(ctx, () => {
+						return masterNext();
+					});
+				});
 			});
-
-			if (utils.isPromise(p))
-				return p.then(work);
-			else
-				return work();
-		}
-
-		return work();
+		});
 	}
 
 	/**
@@ -468,11 +467,13 @@ class ServiceBroker {
 				this.logger.debug(`Call local '${action.name}' action...`);
 				return ctx.invoke(ctx => {
 					return this.callMiddlewares(ctx, result => {
-						this.logger.debug("AFTER MIDDLEWARES", result);
-						if (result)
-							return Promise.resolve(result);
-						
-						return action.handler(ctx);
+						return Promise.resolve().then(() => {
+							this.logger.debug("AFTER MIDDLEWARES", result);
+							if (result)
+								return Promise.resolve(result);
+							
+							return action.handler(ctx);
+						});
 					});
 				});
 
