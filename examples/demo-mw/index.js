@@ -34,7 +34,7 @@ function cachingMiddleware(cacher) {
 			}
 			ctx.logger.log("NOT Found in the cache!", ctx.action.name);
 
-			return next.then((data) => {
+			return next().then((data) => {
 				cacher.set(cacheKey, data);
 				return data;
 			});
@@ -64,6 +64,7 @@ function middleware2() {
 		let p = new Promise((resolve, reject) => {
 			setTimeout(() => {
 				ctx.logger.info("mw2 before", ctx.action.name);
+				//resolve("data from mw2");
 				resolve();
 			}, 300);
 		});
@@ -96,7 +97,7 @@ function middleware3() {
 
 
 
-//broker.use(cachingMiddleware(new MemoryCacher()));
+broker.use(cachingMiddleware(new MemoryCacher()));
 broker.use(middleware1());
 broker.use(middleware2());
 broker.use(middleware3());
@@ -107,12 +108,12 @@ broker.loadService(path.join(__dirname, "..", "user.service.js"));
 broker.start();
 
 
-broker.call("users.get", { id: 3 }).then(console.log);
-/*.then(() => {
+broker.call("posts.get", { id: 3 }).then(console.log)
+.then(() => {
 	console.log("NEXT CALL FROM CACHE");
 	return broker.call("posts.get", { id: 3 }).then(console.log);
 });
-*/
+
 
 /*
 let ctx = { action: { name: "test" }, duration: 0, logger: broker.logger };
