@@ -35,6 +35,7 @@ class Context {
 		this.action = opts.action;
 		if (this.broker) {
 			this.logger = this.broker.getLogger(LOGGER_PREFIX);
+			this.needMetrics = this.broker.metricsEnabled();
 		}
 		this.nodeID = opts.nodeID;
 		this.parent = opts.parent;
@@ -92,7 +93,7 @@ class Context {
 	 * 
 	 * @memberOf Context
 	 */
-	invoke(handler) {
+	invokeOld(handler) {
 		return Promise.resolve()
 			.then(() => {
 				this._startInvoke();
@@ -112,6 +113,29 @@ class Context {
 				err.ctx = this;
 				return Promise.reject(err);				
 			});
+	}
+
+	invoke(handler) {
+		this._startInvoke();
+		let res = handler(this);
+		if (utils.isPromise(res)) {
+			return res.then(data => {
+				this._finishInvoke();
+				return data;
+			})
+			.catch(err => {
+				this._finishInvoke();
+				if (!(err instanceof Error)) {
+					err = new Error(err);
+				}
+				
+				err.ctx = this;
+				return Promise.reject(err);				
+			});
+		} else {
+			this._finishInvoke();
+			return Promise.resolve(res);
+		}
 	}
 
 
@@ -171,7 +195,7 @@ class Context {
 	}	
 
 	_metricStart() {
-		if (this.broker && this.broker.metricsEnabled()) {
+		if (this.needMetrics) {
 			let payload = {
 				id: this.id,
 				requestID: this.requestID,
@@ -190,7 +214,7 @@ class Context {
 	}
 
 	_metricFinish() {
-		if (this.broker && this.broker.metricsEnabled()) {
+		if (this.needMetrics) {
 			let payload = {
 				id: this.id,
 				requestID: this.requestID,

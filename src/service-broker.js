@@ -17,6 +17,7 @@ let _ = require("lodash");
 let glob = require("glob");
 let path = require("path");
 
+// global.Promise = require("bluebird");
 
 
 /**
@@ -468,53 +469,48 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	call(actionName, params, parentCtx, requestID) {
-		return Promise.resolve().then(() => {
+		let actions = this.actions.get(actionName);
+		if (!actions) {
+			throw new errors.ServiceNotFoundError(`Missing '${actionName}' action!`);
+		}
+		
+		let actionItem = actions.get();
+		/* istanbul ignore next */
+		if (!actionItem) {
+			throw new Error(`Missing '${actionName}' action handler!`);
+		}
 
-			let actions = this.actions.get(actionName);
-			if (!actions) {
-				throw new errors.ServiceNotFoundError(`Missing '${actionName}' action!`);
-			}
-			
-			let actionItem = actions.get();
-			/* istanbul ignore next */
-			if (!actionItem) {
-				throw new Error(`Missing '${actionName}' action handler!`);
-			}
+		let action = actionItem.data;
+		let nodeID = actionItem.nodeID;
 
-			let action = actionItem.data;
-			let nodeID = actionItem.nodeID;
+		// Create a new context
+		let ctx;
+		if (parentCtx) {
+			ctx = parentCtx.createSubContext(action, params, nodeID);
+		} else {
+			ctx = new Context({ broker: this, action, params, requestID });
+		}
 
-			// Create a new context
-			let ctx;
-			if (parentCtx) {
-				ctx = parentCtx.createSubContext(action, params, nodeID);
-			} else {
-				ctx = new Context({ broker: this, action, params, requestID });
-			}
+		this._callCount++;
 
-			this._callCount++;
-
-			if (actionItem.local) {
-				// Local action call
-				this.logger.debug(`Call local '${action.name}' action...`);
-				return ctx.invoke(ctx => {
-					return this.callMiddlewares(ctx, () => {
-						return Promise.resolve().then(() => {
-							return action.handler(ctx);
-						});
-					});
+		if (actionItem.local) {
+			// Local action call
+			this.logger.debug(`Call local '${action.name}' action...`);
+			return ctx.invoke(ctx => {
+				return this.callMiddlewares(ctx, () => {
+					return Promise.resolve(action.handler(ctx));
 				});
+			});
 
-			} else {
-				// Remote action call
-				this.logger.debug(`Call remote '${action.name}' action in node '${nodeID}'...`);
-				return ctx.invoke(() => {
-					return this.callMiddlewares(ctx, () => {
-						return this.transporter.request(nodeID, ctx);
-					});
+		} else {
+			// Remote action call
+			this.logger.debug(`Call remote '${action.name}' action in node '${nodeID}'...`);
+			return ctx.invoke(() => {
+				return this.callMiddlewares(ctx, () => {
+					return this.transporter.request(nodeID, ctx);
 				});
-			}
-		});
+			});
+		}
 	}
 
 	/**

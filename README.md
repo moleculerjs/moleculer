@@ -48,6 +48,10 @@ $ yarn add ice-services
 
 ## Emit events
 
+## Middlewares
+
+## Plugins
+
 # Context
 
 # Cachers

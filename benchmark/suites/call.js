@@ -18,30 +18,30 @@ for(let i = 0; i < 500; i++)
 // Load user service
 let userService = broker.loadService(__dirname + "/../user.service");
 
+broker.start();
+
 let bench = new Benchmarker({ async: true, name: "Call methods"});
 
 bench.add("Direct service call", () => {
-	return userService.actions.find()
-		.catch(console.warn);
+	return userService.actions.find();
 });
 
-bench.skip("Manually call action via ctx.invoke", () => {
+bench.add("Manually call action via ctx.invoke", () => {
 	let actions = broker.actions.get("users.find");
 	let action = actions.get().data;
 	let ctx = new Context({ broker, action});
-	return ctx.invoke(() => action.handler(ctx));
+	return ctx.invoke(action.handler);
 });
 
-bench.skip("Manually call action", () => {
+bench.add("Manually call action", () => {
 	let actions = broker.actions.get("users.find");
 	let action = actions.get().data;
 	let ctx = new Context({ broker, action});
 	return Promise.resolve(action.handler(ctx));
 });
 
-bench.add("Broker action call", () => {
-	return broker.call("users.find")
-		.catch(console.warn);
+bench.add("Broker action call orig", () => {
+	return broker.call("users.find");
 });
 
 bench.run();
