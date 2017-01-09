@@ -388,9 +388,11 @@ class ServiceBroker {
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	use(mw) {
-		if (mw)
-			this.middlewares.push(mw);
+	use(...mws) {
+		mws.forEach(mw => {
+			if (mw)
+				this.middlewares.push(mw);
+		});
 	}
 
 	/**
@@ -444,7 +446,7 @@ class ServiceBroker {
 		}
 
 		// Első middleware meghívása
-		return next();
+		return Promise.resolve(next());
 	}
 
 	/**

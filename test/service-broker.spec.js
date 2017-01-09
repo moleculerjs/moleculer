@@ -557,35 +557,64 @@ describe("Test ServiceBroker with Transporter", () => {
 	
 });
 
-describe("Test middleware system", () => {
-	let middleware1 = jest.fn((ctx, next) => next);
-	let middleware2 = jest.fn((ctx, next) => next);
-	let middleware3 = null;
+describe("Test middleware system with sync & async modes", () => {
+	let flow = [];
+	let mw1Sync = jest.fn((ctx, next) => {
+		flow.push("B1");
+		return next().then((res) => {
+			flow.push("A1");
+			return res;		
+		});
+	});
+
+	let mw2Async = jest.fn((ctx, next) => {
+		flow.push("B2");
+		return next(new Promise((resolve) => {
+			setTimeout(() => {
+				flow.push("B2P");
+				resolve();
+			}, 10);
+		})).then(res => {
+			flow.push("A2");
+			return res;		
+		});
+	});
+
+	let mw3Empty = null;
+
+	let master = jest.fn(() => {
+		return new Promise((resolve, reject) => {
+			flow.push("MASTER");
+			resolve({ user: "icebob" });
+		});
+	});
 
 	let broker = new ServiceBroker();
-	let service = broker.loadService("./examples/math.service");
+	broker.loadService("./examples/math.service");
 	
 	it("should register plugins", () => {
-		broker.use(middleware1);
-		broker.use(middleware2);
-		broker.use(middleware3);
+		broker.use(mw1Sync);
+		broker.use(mw2Async);
+		broker.use(mw3Empty);
 
 		expect(broker.middlewares.length).toBe(2);
 	});
 
-	it("should call middleware functions", () => {
-		let master = jest.fn();
+	it("should call all middlewares functions & master", () => {
 		let ctx = new Context();
 		let p = broker.callMiddlewares(ctx, master);		
 		expect(utils.isPromise(p)).toBeTruthy();
-		return p.then(() => {
-			expect(middleware1).toHaveBeenCalledTimes(1);
-			expect(middleware1).toHaveBeenCalledWith(ctx, jasmine.any(Promise));
+		return p.then(res => {
+			expect(res).toEqual({ user: "icebob" });
+			expect(mw1Sync).toHaveBeenCalledTimes(1);
+			expect(mw1Sync).toHaveBeenCalledWith(ctx, jasmine.any(Function));
 
-			expect(middleware2).toHaveBeenCalledTimes(1);
-			expect(middleware2).toHaveBeenCalledWith(ctx, jasmine.any(Promise));
+			expect(mw2Async).toHaveBeenCalledTimes(1);
+			expect(mw2Async).toHaveBeenCalledWith(ctx, jasmine.any(Function));
 
 			expect(master).toHaveBeenCalledTimes(1);
+
+			expect(flow.join("-")).toBe("B1-B2-B2P-MASTER-A2-A1");
 		});
 	});
 
@@ -597,4 +626,122 @@ describe("Test middleware system", () => {
 
 		});
 	});	
+});
+
+describe("Test middleware system with SYNC break", () => {
+	let flow = [];
+	let mw1 = jest.fn((ctx, next) => {
+		flow.push("B1");
+		return next().then((res) => {
+			flow.push("A1");
+			return res;		
+		});
+	});
+
+	let mw2 = jest.fn((ctx, next) => {
+		flow.push("B2");
+		// Return the result (sync)
+		return Promise.resolve({ user: "bobcsi" });
+	});
+
+	let mw3 = jest.fn((ctx, next) => {
+		flow.push("B3");
+		return next().then((res) => {
+			flow.push("A3");
+			return res;		
+		});
+	});	
+
+	let master = jest.fn(() => {
+		return new Promise((resolve, reject) => {
+			flow.push("MASTER");
+			resolve({ user: "icebob" });
+		});
+	});
+
+	let broker = new ServiceBroker();
+	broker.loadService("./examples/math.service");
+
+	
+	it("should register plugins", () => {
+		broker.use(mw1, mw2, mw3);
+		expect(broker.middlewares.length).toBe(3);
+	});	
+
+	it("should call only mw1 & mw2 middlewares functions", () => {
+		let ctx = new Context();
+		let p = broker.callMiddlewares(ctx, master);		
+		expect(utils.isPromise(p)).toBeTruthy();
+		return p.then(res => {
+			expect(res).toEqual({ user: "bobcsi" });
+			expect(mw1).toHaveBeenCalledTimes(1);
+			expect(mw2).toHaveBeenCalledTimes(1);
+
+			expect(mw3).toHaveBeenCalledTimes(0);
+			expect(master).toHaveBeenCalledTimes(0);
+
+			expect(flow.join("-")).toBe("B1-B2-A1");
+		});
+	});
+});
+
+describe("Test middleware system with ASYNC break", () => {
+	let flow = [];
+	let mw1 = jest.fn((ctx, next) => {
+		flow.push("B1");
+		return next().then((res) => {
+			flow.push("A1");
+			return res;		
+		});
+	});
+
+	let mw2 = jest.fn((ctx, next) => {
+		flow.push("B2");
+		return next(new Promise((resolve) => {
+			setTimeout(() => {
+				flow.push("B2P");
+				resolve({ user: "bobcsi" });
+			}, 10);
+		}));
+	});
+
+	let mw3 = jest.fn((ctx, next) => {
+		flow.push("B3");
+		return next().then((res) => {
+			flow.push("A3");
+			return res;		
+		});
+	});	
+
+	let master = jest.fn(() => {
+		return new Promise((resolve, reject) => {
+			flow.push("MASTER");
+			resolve({ user: "icebob" });
+		});
+	});
+
+	let broker = new ServiceBroker();
+	broker.loadService("./examples/math.service");
+
+	
+	it("should register plugins", () => {
+		broker.use(mw1, mw2, mw3);
+		expect(broker.middlewares.length).toBe(3);
+	});	
+
+	it("should call only mw1 & mw2 middlewares functions", () => {
+		let ctx = new Context();
+		let p = broker.callMiddlewares(ctx, master);		
+		expect(utils.isPromise(p)).toBeTruthy();
+		return p.then(res => {
+			expect(res).toEqual({ user: "bobcsi" });
+			expect(mw1).toHaveBeenCalledTimes(1);
+			expect(mw2).toHaveBeenCalledTimes(1);
+
+			expect(mw3).toHaveBeenCalledTimes(0);
+			expect(master).toHaveBeenCalledTimes(0);
+
+			expect(flow.join("-")).toBe("B1-B2-B2P-A1");
+		});
+	});
 });

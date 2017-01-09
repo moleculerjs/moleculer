@@ -33,14 +33,12 @@ function cachingMiddleware(cacher) {
 				return cachedJSON;
 			}
 			ctx.logger.log("NOT Found in the cache!", ctx.action.name);
-
-			return next().then((data) => {
-				cacher.set(cacheKey, data);
-				return data;
-			});
 		});	
 
-		return next(p);
+		return next(p).then((data) => {
+			cacher.set(cacheKey, data);
+			return data;
+		});
 	};
 }
 
@@ -61,7 +59,7 @@ function middleware2() {
 	return function mw2(ctx, next) {
 
 		ctx.logger.info("mw2 before-promise", ctx.action.name);
-		let p = new Promise((resolve, reject) => {
+		let p = new Promise((resolve) => {
 			setTimeout(() => {
 				ctx.logger.info("mw2 before", ctx.action.name);
 				//resolve("data from mw2");
@@ -107,15 +105,15 @@ broker.loadService(path.join(__dirname, "..", "post.service.js"));
 broker.loadService(path.join(__dirname, "..", "user.service.js"));
 broker.start();
 
-
+/*
 broker.call("posts.get", { id: 3 }).then(console.log)
 .then(() => {
 	console.log("NEXT CALL FROM CACHE");
 	return broker.call("posts.get", { id: 3 }).then(console.log);
 });
 
+*/
 
-/*
 let ctx = { action: { name: "test" }, duration: 0, logger: broker.logger };
 let mainAction = () => {
 	return new Promise((resolve) => {
@@ -129,4 +127,3 @@ let mainAction = () => {
 broker.callMiddlewares(ctx, mainAction).then(res => {
 	console.log("Invoke", res);
 });
-*/
