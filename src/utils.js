@@ -12,7 +12,6 @@ let tokgen128 = new TokenGenerator(128, TokenGenerator.BASE62);
 */
 const uuidV4 = require("uuid/v4");
 const os 	 = require("os");
-const _ 	 = require("lodash");
 
 let utils = {
 
@@ -27,56 +26,6 @@ let utils = {
 		// return "1"; 
 	}
 	*/
-
-	/**
-	 * Create a sub-logger by external logger.
-	 * 
-	 * @param {any} extLogger
-	 * @param {any} moduleName
-	 * @param {any} logLevel
-	 * @returns
-	 */
-	wrapLogger(extLogger, moduleName, logLevel) {
-		let noop = function() {};
-
-		const levels = ["error", "warn", "info", "debug"];
-		let prefix = moduleName? "[" + moduleName + "] " : "";
-
-		let logger = {};
-		levels.forEach((type) => logger[type] = noop);
-
-		if (extLogger) {
-
-			let levelIdx = -1;
-			if (_.isString(logLevel))
-				levelIdx = levels.indexOf(logLevel);
-			else if (_.isObject(logLevel)) {
-				let customLevel = logLevel[moduleName];
-				if (customLevel == null)
-					customLevel = logLevel["*"];
-
-				if (customLevel == null || customLevel === false)
-					levelIdx = -1;
-				else
-					levelIdx = levels.indexOf(customLevel);
-			}
-
-			levels.forEach((type, i) => {
-				if (i > levelIdx) return;
-
-				let externalMethod = extLogger[type] || extLogger.info || extLogger.log;
-				if (externalMethod) {
-					logger[type] = function(msg, ...args) {
-						externalMethod(prefix + msg, ...args);
-					}.bind(extLogger);
-				}
-			});
-		}
-
-		logger.log = logger.info;
-
-		return logger;		
-	},
 
 	/**
 	 * Get default NodeID (computerName)
