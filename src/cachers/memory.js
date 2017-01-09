@@ -6,7 +6,7 @@
 
 "use strict";
 
-let minimatch   = require("minimatch");
+let micromatch   = require("micromatch");
 let BaseCacher  = require("./base");
 /**
  * Cacher factory for memory cache
@@ -106,7 +106,7 @@ class MemoryCacher extends BaseCacher {
 
 		let keys = Object.keys(this.cache);
 		keys.forEach((key) => {
-			if (minimatch(key, this.prefix + match)) {
+			if (micromatch.isMatch(key, this.prefix + match)) {
 				this.logger.debug(`REMOVE ${key}`);
 				delete this.cache[key];
 			}

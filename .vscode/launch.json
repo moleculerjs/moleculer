@@ -22,8 +22,8 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch mw",
-			"program": "${workspaceRoot}\\examples\\demo-mw\\index.js",
-			"cwd": "${workspaceRoot}\\examples\\demo-mw"
+			"program": "${workspaceRoot}\\examples\\middlewares\\index.js",
+			"cwd": "${workspaceRoot}\\examples\\middlewares"
 		},
 		{
 			"type": "node",
