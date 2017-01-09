@@ -18,9 +18,9 @@ let broker = new ServiceBroker({
 function cachingMiddleware(cacher) {
 	cacher.init(broker);
 	return function cacheWrapper(ctx, next) {
-		let cacheKey = utils.getCacheKey(ctx.action.name, ctx.params);
 
-		return Promise.resolve()
+		let cacheKey = utils.getCacheKey(ctx.action.name, ctx.params);
+		let p = Promise.resolve()
 		.then(() => {
 			return cacher.get(cacheKey);
 		})
@@ -38,7 +38,9 @@ function cachingMiddleware(cacher) {
 				cacher.set(cacheKey, data);
 				return data;
 			});
-		});		
+		});	
+
+		return next(p);
 	};
 }
 
@@ -80,8 +82,12 @@ function middleware3() {
 		//return Promise.resolve("data from mw3");
 		return next().then(res => {
 			ctx.logger.info("mw3 after", ctx.action.name);
-			if (res)
-				delete res.content;
+			if (res) {
+				if (ctx.action.name == "users.get")
+					delete res.gravatar;
+				if (ctx.action.name == "posts.get")
+					delete res.content;
+			}
 			return res;
 		});
 	};
@@ -100,12 +106,15 @@ broker.loadService(path.join(__dirname, "..", "post.service.js"));
 broker.loadService(path.join(__dirname, "..", "user.service.js"));
 broker.start();
 
-/*
-broker.call("users.get", { id: 3 });//.then(console.log)
-.then(() => {
+
+broker.call("users.get", { id: 3 }).then(console.log);
+/*.then(() => {
 	console.log("NEXT CALL FROM CACHE");
 	return broker.call("posts.get", { id: 3 }).then(console.log);
-});*/
+});
+*/
+
+/*
 let ctx = { action: { name: "test" }, duration: 0, logger: broker.logger };
 let mainAction = () => {
 	return new Promise((resolve) => {
@@ -119,3 +128,4 @@ let mainAction = () => {
 broker.callMiddlewares(ctx, mainAction).then(res => {
 	console.log("Invoke", res);
 });
+*/
