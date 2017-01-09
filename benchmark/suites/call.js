@@ -20,7 +20,7 @@ let userService = broker.loadService(__dirname + "/../user.service");
 
 let bench = new Benchmarker({ async: true, name: "Call methods"});
 
-bench.skip("Direct service call", () => {
+bench.add("Direct service call", () => {
 	return userService.actions.find()
 		.catch(console.warn);
 });
