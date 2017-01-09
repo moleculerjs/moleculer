@@ -66,7 +66,7 @@ class Service {
 				// Expose to call `service.actions.find({ ...params })`
 				this.actions[name] = (params) => {
 					let ctx = new Context({ broker, action: innerAction, params });
-					return action.handler(ctx);
+					return Promise.resolve(action.handler(ctx));
 				};
 
 				// Register to broker

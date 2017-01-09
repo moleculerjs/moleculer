@@ -13,12 +13,12 @@ module.exports = function(broker) {
 		actions: {
 			find(ctx) {
 				//ctx.log("find users");
-				return ctx.result(users);
+				return users;
 			},
 
 			get(ctx) {
 				//ctx.log("get user");
-				return ctx.result(_.find(users, user => user.id == ctx.params.id));
+				return _.find(users, user => user.id == ctx.params.id);
 			}
 		}
 	});
