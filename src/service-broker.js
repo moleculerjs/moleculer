@@ -471,13 +471,13 @@ class ServiceBroker {
 	call(actionName, params, parentCtx, requestID) {
 		let actions = this.actions.get(actionName);
 		if (!actions) {
-			throw new errors.ServiceNotFoundError(`Missing '${actionName}' action!`);
+			return Promise.reject(new errors.ServiceNotFoundError(`Missing '${actionName}' action!`));
 		}
 		
 		let actionItem = actions.get();
 		/* istanbul ignore next */
 		if (!actionItem) {
-			throw new Error(`Missing '${actionName}' action handler!`);
+			return Promise.reject(new Error(`Missing '${actionName}' action handler!`));
 		}
 
 		let action = actionItem.data;
