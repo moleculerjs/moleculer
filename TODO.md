@@ -19,6 +19,7 @@
 		}
 	}
 	```
+	- Factory for broker what is resolve the params schema. Built-in resolver is validatorjs (it is the fastest)
 
 - cli tool for generate project & Services
 	- https://github.com/sboudrias/Inquirer.js
