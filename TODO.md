@@ -27,6 +27,7 @@
 	- `ices add service` - generate an empty service
 	- `ices add middleware` - generate an empty middleware
 	- `ices add plugin` - generate an empty plugin
+	https://github.com/tj/ngen 
 
 ## Services
 - service factory & context factory for broker options
