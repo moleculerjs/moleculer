@@ -6,8 +6,9 @@
 
 "use strict";
 
-let micromatch   = require("micromatch");
-let BaseCacher  = require("./base");
+const Promise		= require("bluebird");
+const micromatch  	= require("micromatch");
+const BaseCacher  	= require("./base");
 /**
  * Cacher factory for memory cache
  * 

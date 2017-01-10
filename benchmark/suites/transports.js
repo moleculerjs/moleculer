@@ -3,6 +3,7 @@
 let _ = require("lodash");
 let chalk = require("chalk");
 let uuid = require("uuid");
+let Promise	= require("bluebird");
 
 let Benchmarker = require("../benchmarker");
 Benchmarker.printHeader("Transport benchmark");

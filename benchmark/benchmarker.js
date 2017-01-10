@@ -1,4 +1,5 @@
 let _ = require("lodash");
+let Promise	= require("bluebird");
 let fs = require("fs");
 let path = require("path");
 

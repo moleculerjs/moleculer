@@ -1,5 +1,7 @@
 "use strict";
 
+let Promise	= require("bluebird");
+
 let Benchmarker = require("../benchmarker");
 Benchmarker.printHeader("Context benchmark");
 
@@ -9,27 +11,28 @@ let Context = require("../../src/context");
 let broker = new ServiceBroker();
 broker.loadService(__dirname + "/../user.service");
 
+let bench1 = new Benchmarker({ async: false, name: "Create context benchmark"});
 (function() {
 	let action = {
 		name: "users.find",
 		handler: () => {},
 	};
-	let bench = new Benchmarker({ async: false, name: "Create context benchmark"});
-	let params = bench.getDataFile("150.json");
+	//let params = bench1.getDataFile("150.json");
+	let params = { limit: 100, offset: 50, sort: "name created" };
 
 	// ----
-	bench.add("create without settings", () => {
+	bench1.add("create without settings", () => {
 		return new Context();
 	});
 
-	bench.add("create with settings", () => {
+	bench1.add("create with settings", () => {
 		return new Context({
 			broker,
 			action
 		});
 	});
 
-	bench.add("create with params", () => {
+	bench1.add("create with params", () => {
 		return new Context({
 			broker,
 			action,
@@ -38,17 +41,15 @@ broker.loadService(__dirname + "/../user.service");
 	});
 
 	let ctx = new Context();
-	bench.add("create subContext", () => {
+	bench1.add("create subContext", () => {
 		return ctx.createSubContext(action, params);
 	});
-
-	// bench.run();
 })();
 
 // ----------------------------
+let bench2 = new Benchmarker({ async: true, name: "Context.invoke sync benchmark"});
 (function() {
 
-	let bench = new Benchmarker({ async: true, name: "Context.invoke sync benchmark"});
 
 	let actions = broker.actions.get("users.find");
 	let action = actions.get().data;
@@ -59,26 +60,20 @@ broker.loadService(__dirname + "/../user.service");
 	let ctx = new Context({ broker, action });
 	// ----
 
-	bench.add("call direct without invoke", () => {
+	bench2.add("call direct without invoke", () => {
 		return Promise.resolve(handler(ctx));
 	});
 
-	bench.add("call invoke", () => {
+	bench2.add("call invoke", () => {
 		return ctx.invoke(() => handler(ctx));
 	});
-
-	bench.add("call invokeOld", () => {
-		return ctx.invokeOld(handler);
-	});
-
-	bench.run();
 
 })();
 
 // ----------------------------
+let bench3 = new Benchmarker({ async: true, name: "Context.invoke async benchmark"});
 (function() {
 
-	let bench = new Benchmarker({ async: true, name: "Context.invoke async benchmark"});
 
 	let actions = broker.actions.get("users.find");
 	let action = actions.get().data;
@@ -91,18 +86,20 @@ broker.loadService(__dirname + "/../user.service");
 	let ctx = new Context({ broker, action });
 	// ----
 
-	bench.add("call direct without invoke", () => {
+	bench3.add("call direct without invoke", () => {
 		return handler(ctx);
 	});
 
-	bench.add("call invoke", () => {
+	bench3.add("call invoke", () => {
 		return ctx.invoke(() => handler(ctx));
 	});
 
-	bench.add("call invokeOld", () => {
+	bench3.add("call invokeOld", () => {
 		return ctx.invokeOld(() => handler(ctx));
 	});
 
-	// bench.run();
-
 })();
+
+bench1.run();
+// bench2.run();
+// bench3.run();

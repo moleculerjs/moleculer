@@ -1,5 +1,7 @@
 "use strict";
 
+let Promise	= require("bluebird");
+
 let Benchmarker = require("../benchmarker");
 Benchmarker.printHeader("JSON parser benchmark");
 

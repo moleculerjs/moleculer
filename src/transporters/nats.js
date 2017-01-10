@@ -6,8 +6,9 @@
 
 "use strict";
 
-let Transporter = require("./base");
-let utils = require("../utils");
+const Promise		= require("bluebird");
+const Transporter 	= require("./base");
+const utils 		= require("../utils");
 
 let PREFIX = "ICE";
 

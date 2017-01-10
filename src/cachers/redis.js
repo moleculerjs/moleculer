@@ -6,8 +6,9 @@
 
 "use strict";
 
-let _ = require("lodash");
-let BaseCacher = require("./base");
+const Promise		= require("bluebird");
+const _ 			= require("lodash");
+const BaseCacher 	= require("./base");
 
 /**
  * Cacher factory for Redis

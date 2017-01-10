@@ -1,6 +1,7 @@
 "use strict";
 
 let _ = require("lodash");
+let Promise	= require("bluebird");
 
 let Benchmarker = require("../benchmarker");
 Benchmarker.printHeader("Call method benchmark");
@@ -23,25 +24,25 @@ broker.start();
 let bench = new Benchmarker({ async: true, name: "Call methods"});
 
 bench.add("Direct service call", () => {
-	return userService.actions.find();
+	return userService.actions.empty();
 });
 
-bench.add("Manually call action via ctx.invoke", () => {
-	let actions = broker.actions.get("users.find");
+bench.skip("Manually call action via ctx.invoke", () => {
+	let actions = broker.actions.get("users.empty");
 	let action = actions.get().data;
 	let ctx = new Context({ broker, action});
 	return ctx.invoke(action.handler);
 });
 
-bench.add("Manually call action", () => {
-	let actions = broker.actions.get("users.find");
+bench.skip("Manually call action.handler", () => {
+	let actions = broker.actions.get("users.empty");
 	let action = actions.get().data;
 	let ctx = new Context({ broker, action});
 	return Promise.resolve(action.handler(ctx));
 });
 
 bench.add("Broker action call orig", () => {
-	return broker.call("users.find");
+	return broker.call("users.empty");
 });
 
 bench.run();

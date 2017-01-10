@@ -6,16 +6,17 @@
 
 "use strict";
 
-let EventEmitter2 = require("eventemitter2").EventEmitter2;
-let BalancedList = require("./balanced-list");
-let Context = require("./context");
-let errors = require("./errors");
-let utils = require("./utils");
-let Logger = require("./logger");
+const Promise = require("bluebird");
+const EventEmitter2 = require("eventemitter2").EventEmitter2;
+const BalancedList = require("./balanced-list");
+const Context = require("./context");
+const errors = require("./errors");
+const utils = require("./utils");
+const Logger = require("./logger");
 
-let _ = require("lodash");
-let glob = require("glob");
-let path = require("path");
+const _ = require("lodash");
+const glob = require("glob");
+const path = require("path");
 
 // global.Promise = require("bluebird");
 
@@ -44,7 +45,9 @@ class ServiceBroker {
 
 		this.nodeID = this.options.nodeID || utils.getNodeID();
 
+		this._loggerCache = {};
 		this.logger = this.getLogger("BROKER");
+		
 		this.bus = new EventEmitter2({
 			wildcard: true,
 			maxListeners: 100
@@ -199,8 +202,15 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	getLogger(name) {
+		let logger = this._loggerCache[name];
+		if (logger)
+			return logger;
+
 		// return utils.wrapLogger(this.options.logger, this.nodeID + (name ? "-" + name : ""));
-		return Logger.wrap(this.options.logger, name, this.options.logLevel);
+		logger = Logger.wrap(this.options.logger, name, this.options.logLevel);
+		this._loggerCache[name] = logger;
+
+		return logger;
 	}
 
 	/**
@@ -410,7 +420,7 @@ class ServiceBroker {
 	 */
 	callMiddlewares(ctx, masterNext) {
 		// Ha nincs regisztrált middleware egyből meghívjuk a master kódot
-		if (this.middlewares.length == 0) return masterNext();
+		if (this.middlewares.length == 0) return masterNext(ctx);
 
 		// Lemásoljuk a tömböt
 		let mws = Array.from(this.middlewares);
@@ -423,7 +433,7 @@ class ServiceBroker {
 			let runNextMiddleware = () => {
 				// Ha már nincs következő middleware, akkor a masterNext függvényt hívjuk
 				if (mws.length == 0)
-					return masterNext();
+					return masterNext(ctx);
 
 				// Következő middleware lekérése
 				let mw = mws.shift();
@@ -490,16 +500,13 @@ class ServiceBroker {
 		} else {
 			ctx = new Context({ broker: this, action, params, requestID });
 		}
-
 		this._callCount++;
 
 		if (actionItem.local) {
 			// Local action call
 			this.logger.debug(`Call local '${action.name}' action...`);
-			return ctx.invoke(ctx => {
-				return this.callMiddlewares(ctx, () => {
-					return Promise.resolve(action.handler(ctx));
-				});
+			return ctx.invoke(() => {
+				return this.callMiddlewares(ctx, action.handler);
 			});
 
 		} else {

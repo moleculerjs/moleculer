@@ -6,6 +6,7 @@
 
 "use strict";
 
+const Promise		= require("bluebird");
 const _ 			= require("lodash");
 const hash	 		= require("object-hash");
 const { isPromise} 	= require("../utils");

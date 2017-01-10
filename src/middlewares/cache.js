@@ -6,7 +6,8 @@
 
 "use strict";
 
-let utils = require("../utils");
+const Promise	= require("bluebird");
+const utils 	= require("../utils");
 
 module.exports = function cachingMiddleware(broker, cacher) {
 	cacher.init(broker);

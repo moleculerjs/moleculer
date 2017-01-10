@@ -6,9 +6,10 @@
 
 "use strict";
 
-let _ = require("lodash");
-let Context = require("./context");
-let utils = require("./utils");
+const _ = require("lodash");
+const Promise = require("bluebird");
+const Context = require("./context");
+const utils = require("./utils");
 
 /**
  * Main Service class

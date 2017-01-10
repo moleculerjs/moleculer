@@ -6,10 +6,10 @@
 
 "use strict";
 
-let _ = require("lodash");
-//let chalk = require("chalk");
+const _ = require("lodash");
+const Promise = require("bluebird");
 
-let utils = require("./utils");
+const utils = require("./utils");
 
 const LOGGER_PREFIX = "CTX";
 
@@ -42,7 +42,7 @@ class Context {
 		this.subContexts = [];
 
 		this.level = opts.parent && opts.parent.level ? opts.parent.level + 1 : 1;
-		this.params = opts.params ? _.cloneDeep(opts.params) : {};
+		this.params = opts.params ? Object.assign({}, opts.params) : {};
 
 		this.startTime = null;
 		this.stopTime = null;
@@ -93,28 +93,6 @@ class Context {
 	 * 
 	 * @memberOf Context
 	 */
-	invokeOld(handler) {
-		return Promise.resolve()
-			.then(() => {
-				this._startInvoke();
-			})
-			.then(() => handler(this))
-			.then(res => {
-				this._finishInvoke();
-				return res;
-			})
-			.catch(err => {
-				this._finishInvoke();
-				if (!(err instanceof Error)) {
-					/* istanbul ignore next */
-					err = new Error(err);
-				}
-				
-				err.ctx = this;
-				return Promise.reject(err);				
-			});
-	}
-
 	invoke(handler) {
 		this._startInvoke();
 		let res = handler(this);
