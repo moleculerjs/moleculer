@@ -78,7 +78,7 @@ describe("Test BaseCacher", () => {
 	});	
 });
 
-describe("Test utils.wrapHandler", () => {
+describe("Test wrapHandler", () => {
 	let cachedData = { num: 5 };
 
 	let cacher = new Cacher();
@@ -96,7 +96,7 @@ describe("Test utils.wrapHandler", () => {
 	let params = { id: 3, name: "Antsa" };
 
 	it("should give back the cached data and not called the handler", () => {
-		let cachedHandler = cacher.wrapHandler(mockAction);
+		let cachedHandler = cacher.wrapHandler(mockAction, mockAction.handler);
 		expect(typeof cachedHandler).toBe("function");
 
 		let ctx = new Context({ params, service: { broker } });
@@ -117,7 +117,7 @@ describe("Test utils.wrapHandler", () => {
 		broker.cacher.get = jest.fn(() => Promise.resolve(null));
 		mockAction.handler = jest.fn(() => Promise.resolve(resData));
 
-		let cachedHandler = cacher.wrapHandler(mockAction);
+		let cachedHandler = cacher.wrapHandler(mockAction, mockAction.handler);
 
 		let ctx = new Context({ params, service: { broker } });
 		let p = cachedHandler(ctx);
@@ -142,7 +142,7 @@ describe("Test utils.wrapHandler", () => {
 		broker.cacher.set.mockClear();
 		mockAction.handler = jest.fn(() => resData); // no Promise
 
-		let cachedHandler = cacher.wrapHandler(mockAction);
+		let cachedHandler = cacher.wrapHandler(mockAction, mockAction.handler);
 
 		let ctx = new Context({ params, service: { broker } });
 		let p = cachedHandler(ctx);
@@ -162,7 +162,7 @@ describe("Test utils.wrapHandler", () => {
 
 });
 
-describe("Test utils.wrapHandler", () => {
+describe("Test wrapHandler", () => {
 	let cacher = new Cacher();
 	let broker = new ServiceBroker({
 		cacher

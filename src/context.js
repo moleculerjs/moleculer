@@ -94,26 +94,34 @@ class Context {
 	 * @memberOf Context
 	 */
 	invoke(handler) {
+		let res;
 		this._startInvoke();
-		let res = handler(this);
+
+		try {
+			res = handler(this);
+		} catch(err) {
+			return this.invokeCatch(err);
+		}
+
 		if (utils.isPromise(res)) {
 			return res.then(data => {
 				this._finishInvoke();
 				return data;
-			})
-			.catch(err => {
-				this._finishInvoke();
-				if (!(err instanceof Error)) {
-					err = new Error(err);
-				}
-				
-				err.ctx = this;
-				return Promise.reject(err);				
-			});
+			}).catch(err => this.invokeCatch(err));
 		} else {
 			this._finishInvoke();
 			return Promise.resolve(res);
 		}
+	}
+
+	invokeCatch(err) {
+		this._finishInvoke();
+		if (!(err instanceof Error)) {
+			err = new Error(err);
+		}
+		
+		err.ctx = this;
+		return Promise.reject(err);				
 	}
 
 
@@ -154,8 +162,8 @@ class Context {
 
 		this._metricFinish();
 
-		//if (!this.parent)
-		//	this.printMeasuredTimes();
+		if (!this.parent)
+			this.printMeasuredTimes();
 		
 	}
 

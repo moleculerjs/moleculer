@@ -131,7 +131,7 @@ class Cacher {
 	 * @param {any} action
 	 * @returns
 	 */
-	wrapHandler(action) {
+	wrapHandler(action, handler) {
 		return (ctx) => {
 			const cacheKey = this.getCacheKey(action.name, ctx.params);
 
@@ -146,7 +146,7 @@ class Cacher {
 					return cachedJSON;
 				}
 
-				const result = action.handler(ctx);
+				const result = handler(ctx);
 				if (isPromise(result)) {
 					return result.then((data) => {
 						this.set(cacheKey, data);

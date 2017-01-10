@@ -7,14 +7,18 @@
 "use strict";
 
 const Promise	= require("bluebird");
-const utils 	= require("../utils");
+const hash	 	= require("object-hash");
+
+function getCacheKey(name, params) {
+	return (name ? name + ":" : "") + (params ? hash(params) : "");
+}
 
 module.exports = function cachingMiddleware(broker, cacher) {
 	cacher.init(broker);
 
 	return function cacheWrapper(ctx, next) {
 
-		let cacheKey = utils.getCacheKey(ctx.action.name, ctx.params);
+		let cacheKey = getCacheKey(ctx.action.name, ctx.params);
 		let p = Promise.resolve()
 		.then(() => {
 			if (ctx.action.cache === true)

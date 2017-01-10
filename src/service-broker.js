@@ -433,8 +433,10 @@ class ServiceBroker {
 			// Függvény ami a middleware lefutása után meghívunk
 			let runNextMiddleware = () => {
 				// Ha már nincs következő middleware, akkor a masterNext függvényt hívjuk
-				if (mws.length == 0)
-					return masterNext(ctx);
+				if (mws.length == 0) {
+					let res = masterNext(ctx);
+					return !utils.isPromise(res) ? Promise.resolve(res) : res;
+				}
 
 				// Következő middleware lekérése
 				let mw = mws.shift();

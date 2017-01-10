@@ -3,6 +3,7 @@
 ## Common
 - request timeout (30s default)
 - multi params for multi-call & return array
+- features
 
 - create d.ts file
 - use parambulator in actions (validator.js, joi, ajv, validatorjs, validate.js make benchmark)
@@ -30,7 +31,6 @@
 	https://github.com/tj/ngen 
 
 ## Services
-- service factory & context factory for broker options
 
 ## Transporters
 - Redis transporter

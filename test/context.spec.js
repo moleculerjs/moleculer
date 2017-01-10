@@ -224,6 +224,23 @@ describe("Test invoke method", () => {
 			expect(err.ctx).toBe(ctx);
 		});
 	});	
+
+	it("should return Error if handler throw exception", () => {
+		ctx._startInvoke.mockClear();
+		ctx._finishInvoke.mockClear();
+		let handler = jest.fn(() => { throw new Error("Exception"); });
+
+		let p = ctx.invoke(handler);
+		expect(p).toBeDefined();
+		expect(p.then).toBeDefined();
+		return p.catch((err) => {
+			expect(ctx._startInvoke).toHaveBeenCalledTimes(1);
+			expect(ctx._finishInvoke).toHaveBeenCalledTimes(1);
+			expect(err).toBeDefined();
+			expect(err).toBeInstanceOf(Error);
+			expect(err.ctx).toBe(ctx);
+		});
+	});		
 });
 
 describe("Test startInvoke", () => {
