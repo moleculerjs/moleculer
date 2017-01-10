@@ -161,9 +161,9 @@ describe("Test invoke method", () => {
 	let ctx = new Context();
 	ctx._startInvoke = jest.fn();
 	ctx._finishInvoke = jest.fn();
+	let response = { id: 5 };
 
 	it("should call start & finishInvoke method", () => {
-		let response = { id: 5 };
 		let handler = jest.fn(() => response);
 
 		let p = ctx.invoke(handler);
@@ -175,6 +175,21 @@ describe("Test invoke method", () => {
 			expect(data).toBe(response);
 		});
 	});
+
+	it("should call start & finishInvoke method if handler return Promise", () => {
+		ctx._startInvoke.mockClear();
+		ctx._finishInvoke.mockClear();
+		let handler = jest.fn(() => Promise.resolve(response));
+
+		let p = ctx.invoke(handler);
+		expect(p).toBeDefined();
+		expect(p.then).toBeDefined();
+		return p.then((data) => {
+			expect(ctx._startInvoke).toHaveBeenCalledTimes(1);
+			expect(ctx._finishInvoke).toHaveBeenCalledTimes(1);
+			expect(data).toBe(response);
+		});
+	});	
 
 	it("should call closeContext method if error catched", () => {
 		ctx._startInvoke.mockClear();
@@ -188,6 +203,24 @@ describe("Test invoke method", () => {
 			expect(ctx._startInvoke).toHaveBeenCalledTimes(1);
 			expect(ctx._finishInvoke).toHaveBeenCalledTimes(1);
 			expect(err).toBeDefined();
+			expect(err).toBeInstanceOf(Error);
+			expect(err.ctx).toBe(ctx);
+		});
+	});
+
+	it("should return Error if handler reject a string", () => {
+		ctx._startInvoke.mockClear();
+		ctx._finishInvoke.mockClear();
+		let handler = jest.fn(() => Promise.reject("Some error message"));
+
+		let p = ctx.invoke(handler);
+		expect(p).toBeDefined();
+		expect(p.then).toBeDefined();
+		return p.catch((err) => {
+			expect(ctx._startInvoke).toHaveBeenCalledTimes(1);
+			expect(ctx._finishInvoke).toHaveBeenCalledTimes(1);
+			expect(err).toBeDefined();
+			expect(err).toBeInstanceOf(Error);
 			expect(err.ctx).toBe(ctx);
 		});
 	});	
