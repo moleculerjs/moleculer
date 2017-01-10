@@ -27,14 +27,14 @@ bench.add("Direct service call", () => {
 	return userService.actions.empty();
 });
 
-bench.skip("Manually call action via ctx.invoke", () => {
+bench.add("Manually call action via ctx.invoke", () => {
 	let actions = broker.actions.get("users.empty");
 	let action = actions.get().data;
 	let ctx = new Context({ broker, action});
 	return ctx.invoke(action.handler);
 });
 
-bench.skip("Manually call action.handler", () => {
+bench.add("Manually call action.handler", () => {
 	let actions = broker.actions.get("users.empty");
 	let action = actions.get().data;
 	let ctx = new Context({ broker, action});
