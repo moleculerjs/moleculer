@@ -8,8 +8,6 @@
 
 const _ = require("lodash");
 const Promise = require("bluebird");
-const Context = require("./context");
-const utils = require("./utils");
 
 /**
  * Main Service class
@@ -66,7 +64,7 @@ class Service {
 
 				// Expose to call `service.actions.find({ ...params })`
 				this.actions[name] = (params) => {
-					let ctx = new Context({ broker, action: innerAction, params });
+					let ctx = new broker.ContextFactory({ broker, action: innerAction, params });
 					return ctx.invoke(action.handler);
 					//return Promise.resolve(action.handler(ctx));
 				};

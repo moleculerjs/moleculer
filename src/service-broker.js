@@ -9,7 +9,6 @@
 const Promise = require("bluebird");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const BalancedList = require("./balanced-list");
-const Context = require("./context");
 const errors = require("./errors");
 const utils = require("./utils");
 const Logger = require("./logger");
@@ -42,6 +41,9 @@ class ServiceBroker {
 			metrics: false,
 			logLevel: "info"
 		});
+
+		this.ServiceFactory = this.options.ServiceFactory ? this.options.ServiceFactory : require("./service");
+		this.ContextFactory = this.options.ContextFactory ? this.options.ContextFactory : require("./context");
 
 		this.nodeID = this.options.nodeID || utils.getNodeID();
 
@@ -243,19 +245,18 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	loadService(filePath) {
-		let Service = require("./service");		
 		let fName = path.resolve(filePath);
 		this.logger.debug("Load service from", path.basename(fName));
 		let schema = require(fName);
 		if (_.isFunction(schema)) {
 			let svc = schema(this);
-			if (svc instanceof Service)
+			if (svc instanceof this.ServiceFactory)
 				return svc;
 			else
-				return new Service(this, svc);
+				return new this.ServiceFactory(this, svc);
 
 		} else {
-			return new Service(this, schema);
+			return new this.ServiceFactory(this, schema);
 		}
 	}
 
@@ -498,7 +499,7 @@ class ServiceBroker {
 		if (parentCtx) {
 			ctx = parentCtx.createSubContext(action, params, nodeID);
 		} else {
-			ctx = new Context({ broker: this, action, params, requestID });
+			ctx = new this.ContextFactory({ broker: this, action, params, requestID });
 		}
 		this._callCount++;
 

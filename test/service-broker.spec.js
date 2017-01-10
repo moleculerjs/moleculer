@@ -1,6 +1,7 @@
 "use strict";
 
 const utils = require("../src/utils");
+const Service = require("../src/service");
 const ServiceBroker = require("../src/service-broker");
 const Context = require("../src/context");
 const Transporter = require("../src/transporters/base");
@@ -28,6 +29,45 @@ describe("Test ServiceBroker constructor", () => {
 	});
 
 });
+
+describe("Test Factories", () => {
+
+	it("should register a ServiceFactory", () => {
+		let broker = new ServiceBroker({
+			ServiceFactory: require("./__factories/my-service-factory")
+		});
+		let service = broker.loadService(__dirname + "/__factories/my.service");
+
+		expect(service).toBeInstanceOf(broker.ServiceFactory);
+		expect(service.myProp).toBe(123);
+	});
+
+	it("should register a ContextFactory", () => {
+		let broker = new ServiceBroker({
+			ContextFactory: require("./__factories/my-context-factory")
+		});
+		
+		let mockService = {
+			name: "posts",
+			broker: broker
+		};
+
+		let mockAction = {
+			name: "posts.find",
+			service: mockService,
+			handler: jest.fn(ctx => ctx)
+		};	
+
+		broker.registerAction(mockService, mockAction);		
+
+		return broker.call("posts.find").then(ctx => {
+			expect(ctx).toBeInstanceOf(broker.ContextFactory);
+			expect(ctx.myProp).toBe("a");
+		});
+	});
+
+});
+
 
 describe("Test on/once/off event emitter", () => {
 
