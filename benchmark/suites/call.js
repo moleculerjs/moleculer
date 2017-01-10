@@ -41,8 +41,19 @@ bench.add("Manually call action.handler", () => {
 	return Promise.resolve(action.handler(ctx));
 });
 
-bench.add("Broker action call orig", () => {
+bench.add("Broker action call (normal)", () => {
 	return broker.call("users.empty");
 });
+
+/*let mw1 = (ctx, next) => {
+	return next();
+};
+
+broker.use(mw1);
+
+bench.add("Broker action call (normal)", () => {
+	return broker.call("users.empty");
+});
+*/
 
 bench.run();
