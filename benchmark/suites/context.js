@@ -11,7 +11,7 @@ let Context = require("../../src/context");
 let broker = new ServiceBroker();
 broker.loadService(__dirname + "/../user.service");
 
-let bench1 = new Benchmarker({ async: false, name: "Create context benchmark"});
+let bench1 = new Benchmarker({ async: false, name: "Context constructor"});
 (function() {
 	let action = {
 		name: "users.find",
@@ -47,7 +47,7 @@ let bench1 = new Benchmarker({ async: false, name: "Create context benchmark"});
 })();
 
 // ----------------------------
-let bench2 = new Benchmarker({ async: true, name: "Context.invoke sync benchmark"});
+let bench2 = new Benchmarker({ async: true, name: "Context.invoke with sync handler"});
 (function() {
 
 
@@ -71,7 +71,7 @@ let bench2 = new Benchmarker({ async: true, name: "Context.invoke sync benchmark
 })();
 
 // ----------------------------
-let bench3 = new Benchmarker({ async: true, name: "Context.invoke async benchmark"});
+let bench3 = new Benchmarker({ async: true, name: "Context.invoke with async handler"});
 (function() {
 
 
@@ -94,12 +94,8 @@ let bench3 = new Benchmarker({ async: true, name: "Context.invoke async benchmar
 		return ctx.invoke(() => handler(ctx));
 	});
 
-	bench3.add("call invokeOld", () => {
-		return ctx.invokeOld(() => handler(ctx));
-	});
-
 })();
 
-bench1.run();
-// bench2.run();
-// bench3.run();
+bench1.run()
+.then(() => bench2.run())
+.then(() => bench3.run());
