@@ -57,7 +57,7 @@
     "ioredis": "2.5.0",
     "lodash": "4.17.4",
     "micromatch": "2.3.11",
-    "nats": "0.6.8",
+    "nats": "0.7.2",
     "object-hash": "1.1.5",
     "uuid": "3.0.1",
     "uuid-token-generator": "0.5.0"
