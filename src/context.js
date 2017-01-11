@@ -162,8 +162,8 @@ class Context {
 
 		this._metricFinish();
 
-		if (!this.parent)
-			this.printMeasuredTimes();
+		//if (!this.parent)
+		//	this.printMeasuredTimes();
 		
 	}
 
