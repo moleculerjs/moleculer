@@ -28,25 +28,25 @@ let bench1 = new Benchmarker({ async: true, name: "Call methods"});
 		return userService.actions.empty();
 	});
 
-	bench1.add("Manually call action via ctx.invoke", () => {
+	bench1.add("ctx.invoke", () => {
 		let actions = broker.actions.get("users.empty");
 		let action = actions.get().data;
 		let ctx = new Context({ broker, action});
 		return ctx.invoke(action.handler);
 	});
 
-	bench1.add("Manually call action.handler", () => {
+	bench1.add("action.handler", () => {
 		let actions = broker.actions.get("users.empty");
 		let action = actions.get().data;
 		let ctx = new Context({ broker, action});
 		return Promise.resolve(action.handler(ctx));
 	});
 
-	bench1.add("Broker action call (normal)", () => {
+	bench1.add("broker.call (normal)", () => {
 		return broker.call("users.empty");
 	});
 
-	bench1.add("Broker action call (with params)", () => {
+	bench1.add("broker.call (with params)", () => {
 		return broker.call("users.empty", { id: 5, sort: "name created", limit: 10 });
 	});
 
