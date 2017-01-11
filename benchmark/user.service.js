@@ -12,14 +12,27 @@ module.exports = function(broker) {
 	return new Service(broker, {
 		name: "users",
 		actions: {
-			find(ctx) {
-				return users;
+			find: {
+				cache: true,
+				handler(ctx) {
+					return users;
+				}
 			},
 
-			get(ctx) {
-				return _.find(users, user => user.id == ctx.params.id);
+			get: {
+				cache: true,
+				handler(ctx) {
+					return _.find(users, user => user.id == ctx.params.id);
+				}
 			},
 
+			nocache: {
+				cache: false,
+				handler(ctx) {
+					return _.find(users, user => user.id == ctx.params.id);
+				}
+			},
+			
 			empty(ctx) {
 				return [];
 			}

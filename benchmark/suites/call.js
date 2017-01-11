@@ -10,13 +10,9 @@ let ServiceBroker = require("../../src/service-broker");
 let Context = require("../../src/context");
 let userService;
 
-function createBroker() {
+function createBroker(opts) {
 	// Create broker
-	let broker = new ServiceBroker();
-
-	// Load broker actions map with fake keys
-	//for(let i = 0; i < 500; i++) 
-	//	broker.actions.set("users." + (Math.random()*1e32).toString(36), {});
+	let broker = new ServiceBroker(opts);
 
 	// Load user service
 	userService = broker.loadService(__dirname + "/../user.service");
@@ -53,6 +49,7 @@ let bench1 = new Benchmarker({ async: true, name: "Call methods"});
 	bench1.add("Broker action call (with params)", () => {
 		return broker.call("users.empty", { id: 5, sort: "name created", limit: 10 });
 	});
+
 })();
 
 // ----------------------------------------------------------------
@@ -87,5 +84,35 @@ let bench2 = new Benchmarker({ async: true, name: "Call with middlewares"});
 	});
 })();
 
+// ----------------------------------------------------------------
+let bench3 = new Benchmarker({ async: true, name: "Call with cachers"});
+
+let MemoryCacher = require("../../src/cachers").Memory;
+let cache = require("../../src/middlewares/cache");
+
+(function() {
+	let broker = createBroker();
+	bench3.add("No cacher", () => {
+		return broker.call("users.get", { id: 5 });
+	});
+})();
+
+(function() {
+	let broker = createBroker({ cacher: new MemoryCacher() });
+	bench3.add("Built-in cacher", () => {
+		return broker.call("users.get", { id: 5 });
+	});
+})();
+
+(function() {
+	let broker = createBroker();
+	broker.use(cache(broker, new MemoryCacher()));
+
+	bench3.add("Middleware cacher", () => {
+		return broker.call("users.get", { id: 5 });
+	});
+})();
+
 bench1.run()
-.then(() => bench2.run());
+.then(() => bench2.run())
+.then(() => bench3.run());

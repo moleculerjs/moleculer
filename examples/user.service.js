@@ -10,9 +10,13 @@ module.exports = function(broker) {
 	return new Service(broker, {
 		name: "users",
 		actions: {
-			find(ctx) {
-				//this.logger.debug("Find users...");
-				return users;
+			find: {
+				cache: false,
+				handler(ctx) {
+					//this.logger.debug("Find users...");
+					return users;
+					//return _.cloneDeep(users);
+				}
 			},
 
 			get: {
