@@ -21,7 +21,7 @@ module.exports = function(broker) {
 			},
 
 			empty(ctx) {
-				
+				return [];
 			}
 		}
 	});

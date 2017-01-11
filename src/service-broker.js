@@ -411,19 +411,11 @@ class ServiceBroker {
 	}
 
 	// Függvény ami a meghívja a következő middleware-t
-	__runNextMiddleware(ctx, next, masterNext, mwIndex) {
-		// Ha már nincs következő middleware, akkor a masterNext függvényt hívjuk
-		if (this.middlewares.length == mwIndex) {
-			let res = masterNext(ctx);
-			return !utils.isPromise(res) ? Promise.resolve(res) : res;
-		}
-
-		// Következő middleware lekérése
-		let mw = this.middlewares[mwIndex++];
-		
+	__runNextMiddleware(ctx, middleware, next) {
 		// Middleware kód meghívása és next függvény generálása a folytatáshoz.
 		try {
-			return mw(ctx, next);
+			let res = middleware(ctx, next);
+			return utils.isPromise(res) ? res: Promise.resolve(res);
 		} catch(err) {
 			return Promise.reject(err);
 		}
@@ -439,20 +431,18 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	callMiddlewares(ctx, masterNext) {
-		let self = this;
-
 		// Ha nincs regisztrált middleware egyből meghívjuk a master kódot
 		if (this.middlewares.length == 0) return masterNext(ctx);
 
-		// Beállítjuk az indexet
-		let mwIndex = 0;
+		let self = this;
+		let idx = 0;
 
 		// A következő middleware hívásához használt függvény. Ezt hívják meg a middleware-ből
 		// ha végeztek a dolgukkal. Ez egy Promise-t ad vissza, amihez .then-t írhatnak
 		// ami pedig akkor hívódik meg, ha a masterNext lefutott.
 		function next(p) {
 			// Ha Promise-t adott vissza a middleware hívás akkor csak ha 'resolved' lesz, akkor hívjuk meg a következőt
-			if (p && utils.isPromise(p)) {
+			if (utils.isPromise(p)) {
 				return p.then(res => {
 					// Ha eredménnyel tért vissza, akkor azt jelenti, hogy 
 					// nem kell több middleware-t hívni, egyből visszaadjuk az eredményt
@@ -460,11 +450,11 @@ class ServiceBroker {
 					if (res)
 						return res;
 
-					return self.__runNextMiddleware(ctx, next, masterNext, mwIndex++);
+					return self.__runNextMiddleware(ctx, idx < self.middlewares.length ? self.middlewares[idx++] : masterNext, next);
 				});
 			} else {
 				// Ha nem, akkor közvetlenül
-				return self.__runNextMiddleware(ctx, next, masterNext, mwIndex++);
+				return self.__runNextMiddleware(ctx, idx < self.middlewares.length ? self.middlewares[idx++] : masterNext, next);
 			}
 		}
 

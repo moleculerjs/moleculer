@@ -35,7 +35,7 @@ class Benchmarker {
 	}
 
 	skip() {
-		// No-op
+		return Promise.resolve();
 	}
 
 	run() {
