@@ -49,11 +49,25 @@ class Benchmarker {
 					self.logger.log("››", String(bench));
 			})
 			.on("complete", function() {
-				//self.logger.log(chalk.yellow.bold("\n-----[ Result ]----"));
-				self.logger.log(chalk.green.bold("\n  Fastest: " + this.filter("fastest").map("name").join(", ")));
-				self.logger.log("----------------------------------------\n");
-				//self.logger.log(chalk.red("  Slowest: " + this.filter("slowest").map("name").join(", ")));
-				//self.logger.log(this);
+				self.logger.log("");
+				let tests = this.filter("successful");
+				let maxTitle = tests.reduce((a, b) => a.name.length > b.name.length ? a : b).name;				
+				let fastest = this.filter("fastest")[0];
+				let pe = _.padEnd;
+				let ps = _.padStart;
+
+				tests.forEach(bench => {
+					const c = bench == fastest ? chalk.green : chalk.cyan;
+					let diff = ((bench.hz / fastest.hz) * 100) - 100;
+					let line = [
+						"  ", 
+						pe(bench.name, maxTitle.length + 1), 
+						ps(Number(diff).toFixed(2) + "%", 8), 
+						ps("  (" + Benchmark.formatNumber(bench.hz.toFixed(0)) + " ops/sec)", 20)
+					];
+					self.logger.log(c.bold(...line));
+				});
+				self.logger.log("-----------------------------------------------------------------------\n");
 
 				resolve();
 			});
