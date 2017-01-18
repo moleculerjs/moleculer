@@ -100,8 +100,7 @@ class Service {
 			_.forIn(schema.methods, (method, name) => {
 				/* istanbul ignore next */
 				if (["name", "version", "settings", "schema", "broker", "actions"].indexOf(name) != -1) {
-					this.logger.warn(`Invalid method name '${name}' in '${this.name}' service! Skipping...`);
-					return;
+					throw new Error(`Invalid method name '${name}' in '${this.name}' service! Skipping...`);
 				}
 				this[name] = method.bind(this);
 			});

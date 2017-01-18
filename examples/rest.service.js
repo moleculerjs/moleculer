@@ -11,7 +11,7 @@ module.exports = function() {
 		
 		events: {
 			"register.action"(service, action, nodeID) {
-				this.logger("Action registered!");
+				//this.logger("Action registered!");
 			}
 		},
 
@@ -42,7 +42,7 @@ module.exports = function() {
 			this.logger.debug("--------------------------------------------------\n");
 
 			this.app.listen(this.settings.port, () => {
-				this.logger.info("REST server listening on port", this.settings.port);
+				this.logger.info("REST server listening on http://localhost:" + this.settings.port);
 			});
 		}
 	};

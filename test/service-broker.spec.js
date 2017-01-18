@@ -66,6 +66,17 @@ describe("Test Factories", () => {
 		});
 	});
 
+	it("should create a sub-ContextFactory", () => {
+		let broker = new ServiceBroker({
+			ContextFactory: require("./__factories/my-context-factory")
+		});
+
+		let ctx = new broker.ContextFactory({ broker });
+		expect(ctx).toBeInstanceOf(broker.ContextFactory);
+		let subCtx = ctx.createSubContext();
+		expect(subCtx).toBeInstanceOf(broker.ContextFactory);
+	});
+
 });
 
 

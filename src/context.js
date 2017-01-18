@@ -61,7 +61,8 @@ class Context {
 	 * @memberOf Context
 	 */
 	createSubContext(action, params, nodeID) {
-		let ctx = new Context({
+		let ContextClass = this.broker ? this.broker.ContextFactory : Context;
+		let ctx = new ContextClass({
 			parent: this,
 			requestID: this.requestID,
 			broker: this.broker,

@@ -3,7 +3,9 @@
 ## Common
 - request timeout (30s default)
 - multi params for multi-call & return array
-- features
+- features (?)
+- add version to registered action name too. Because if there is v1 & v2, broker call both because the action name is same
+	"v1.posts.find", "v2.posts.find"
 
 - create d.ts file
 - use parambulator in actions (validator.js, joi, ajv, validatorjs, validate.js make benchmark)
