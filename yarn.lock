@@ -340,11 +340,11 @@ bl@~1.1.2:
   dependencies:
     readable-stream "~2.0.5"
 
-bluebird@3.4.1, bluebird@^3.3.4:
+bluebird@3.4.1:
   version "3.4.1"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.4.1.tgz#b731ddf48e2dd3bedac2e75e1215a11bcb91fa07"
 
-bluebird@3.4.7:
+bluebird@3.4.7, bluebird@^3.3.4:
   version "3.4.7"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.4.7.tgz#f72d760be09b7f76d08ed8fae98b289a8d05fab3"
 
@@ -2382,9 +2382,9 @@ mute-stream@0.0.6:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/mute-stream/-/mute-stream-0.0.6.tgz#48962b19e169fd1dfc240b3f1e7317627bbc47db"
 
-nats@0.6.8:
-  version "0.6.8"
-  resolved "https://registry.yarnpkg.com/nats/-/nats-0.6.8.tgz#0032daad447cafb732be772c919e8dcde584d1e4"
+nats@0.7.2:
+  version "0.7.2"
+  resolved "https://registry.yarnpkg.com/nats/-/nats-0.7.2.tgz#2ea28e85158330aa36287860359cab79b97360ec"
   dependencies:
     nuid ">=0.6.8"
 
