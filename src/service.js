@@ -67,8 +67,8 @@ class Service {
 				// Expose to call `service.actions.find({ ...params })`
 				this.actions[name] = (params) => {
 					let ctx = new broker.ContextFactory({ broker, action: innerAction, params });
-					return ctx.invoke(action.handler);
-					//return Promise.resolve(action.handler(ctx));
+					return ctx.invoke(innerAction.handler);
+					//return Promise.resolve(innerAction.handler(ctx));
 				};
 
 				// Register to broker
