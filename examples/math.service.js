@@ -9,8 +9,14 @@ module.exports = {
 			return Number(ctx.params.a) - Number(ctx.params.b);
 		},
 
-		mult(ctx) {
-			return Number(ctx.params.a) * Number(ctx.params.b);
+		mult: {
+			params: {
+				a: "required|numeric",
+				b: "required|numeric"
+			},
+			handler(ctx) {
+				return Number(ctx.params.a) * Number(ctx.params.b);
+			}
 		},
 
 		div(ctx) {

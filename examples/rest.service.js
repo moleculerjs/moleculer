@@ -33,6 +33,7 @@ module.exports = function() {
 						res.json(data);
 					})
 					.catch(err => {
+						this.logger.error(err);
 						res.status(500).send("Error: " + err.message);
 					});
 				});

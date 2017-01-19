@@ -27,8 +27,11 @@
 	add: {
 		cache: true,
 		params: {
-			a: {type$:'number'},
-			b: {type$:'number', gt$:0}
+			name: "required|min:4|max:25",
+			email: "required|email",
+			firstName: "required",
+			phone: "required",
+			age: "required|integer|min:18"
 		},
 		handler(ctx) {
 

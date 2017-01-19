@@ -8,6 +8,7 @@
 
 const _ = require("lodash");
 const Promise = require("bluebird");
+const ParamValidator = require("./param-validator");
 
 /**
  * Main Service class
@@ -45,6 +46,7 @@ class Service {
 		this.broker = broker;
 
 		this.logger = this.broker.getLogger(this.name.toUpperCase() + "-SVC");
+		this.validator = new ParamValidator(this);
 
 		this.actions = {}; // external access to actions
 
@@ -136,6 +138,15 @@ class Service {
 
 		// Call plugin
 		this.broker.callPluginMethod(this, "createActionHandler", this.broker, this, action);
+
+		// Wrap a param validator
+		if (_.isObject(action.params)) {
+			const oldHandler = action.handler;
+			action.handler = ctx => {
+				this.validator.validate(action.params, ctx.params);
+				return oldHandler(ctx);
+			};
+		}
 
 		// Cache
 		if (this.broker.cacher) {

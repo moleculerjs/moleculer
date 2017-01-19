@@ -28,18 +28,18 @@ let bench1 = new Benchmarker({ async: true, name: "Call methods"});
 		return userService.actions.empty();
 	});
 
-	bench1.add("ctx.invoke", () => {
-		let actions = broker.actions.get("users.empty");
-		let action = actions.get().data;
-		let ctx = new Context({ broker, action});
-		return ctx.invoke(action.handler);
-	});
-
 	bench1.add("action.handler", () => {
 		let actions = broker.actions.get("users.empty");
 		let action = actions.get().data;
 		let ctx = new Context({ broker, action});
 		return Promise.resolve(action.handler(ctx));
+	});
+
+	bench1.add("ctx.invoke", () => {
+		let actions = broker.actions.get("users.empty");
+		let action = actions.get().data;
+		let ctx = new Context({ broker, action});
+		return ctx.invoke(action.handler);
 	});
 
 	bench1.add("broker.call (normal)", () => {
@@ -113,6 +113,32 @@ let cache = require("../../src/middlewares/cache");
 	});
 })();
 
+// ----------------------------------------------------------------
+let bench4 = new Benchmarker({ async: true, name: "Call with param validator"});
+
+(function() {
+	let broker = createBroker();
+	bench4.add("No validator", () => {
+		return broker.call("users.get", { id: 5 });
+	});
+})();
+
+(function() {
+	let broker = createBroker();
+	bench4.add("With validator passes", () => {
+		return broker.call("users.validate", { id: 5 });
+	});
+})();
+
+(function() {
+	let broker = createBroker();
+	bench4.add("With validator fail", () => {
+		return broker.call("users.validate", { id: "a5" })
+			.catch(err => null);
+	});
+})();
+
 bench1.run()
-.then(() => bench2.run())
-.then(() => bench3.run());
+.then(() => bench2.skip())
+.then(() => bench3.skip())
+.then(() => bench4.run());

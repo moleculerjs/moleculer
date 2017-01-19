@@ -32,6 +32,33 @@ class ServiceNotFoundError extends Error {
 	}
 }
 
+/**
+ * 'Parameters of action call validation error
+ * 
+ * @class ValidationError
+ * @extends {Error}
+ */
+class ValidationError extends Error {
+	/**
+	 * Creates an instance of ValidationError.
+	 * 
+	 * @param {any} message
+	 * @param {any} data
+	 * 
+	 * @memberOf ValidationError
+	 */
+	constructor(message, data) {
+		super(message);
+		Error.captureStackTrace(this, this.constructor);
+		this.name = "ValidationError";
+		this.message = message;
+		if (data) {
+			this.data = data;
+		}
+	}
+}
+
 module.exports = {
-	ServiceNotFoundError
+	ServiceNotFoundError,
+	ValidationError
 };

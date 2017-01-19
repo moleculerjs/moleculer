@@ -3445,6 +3445,10 @@ validate-npm-package-license@^3.0.1:
     spdx-correct "~1.0.0"
     spdx-expression-parse "~1.0.0"
 
+validatorjs@3.11.0:
+  version "3.11.0"
+  resolved "https://registry.yarnpkg.com/validatorjs/-/validatorjs-3.11.0.tgz#d8177e62e663e4e06a6517540dfe1beabba2dfe5"
+
 vary@~1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/vary/-/vary-1.1.0.tgz#e1e5affbbd16ae768dd2674394b9ad3022653140"
