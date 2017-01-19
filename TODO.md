@@ -8,7 +8,21 @@
 	"v1.posts.find", "v2.posts.find"
 
 - create d.ts file
-- use parambulator in actions (validator.js, joi, ajv, validatorjs, validate.js make benchmark)
+
+- cli tool for generate project & Services
+	- https://github.com/sboudrias/Inquirer.js
+	- https://github.com/tj/consolidate.js
+
+	- `ices init` - generate an ice-services based project
+	- `ices add service` - generate an empty service
+	- `ices add middleware` - generate an empty middleware
+	- `ices add plugin` - generate an empty plugin
+	https://github.com/tj/ngen 
+
+- circuit breaker: https://github.com/awolden/brakes
+
+## Services
+- use param validator in actions
 	```js
 	add: {
 		cache: true,
@@ -21,19 +35,7 @@
 		}
 	}
 	```
-	- Factory for broker what is resolve the params schema. Built-in resolver is validatorjs (it is the fastest)
-
-- cli tool for generate project & Services
-	- https://github.com/sboudrias/Inquirer.js
-	- https://github.com/tj/consolidate.js
-
-	- `ices init` - generate an ice-services based project
-	- `ices add service` - generate an empty service
-	- `ices add middleware` - generate an empty middleware
-	- `ices add plugin` - generate an empty plugin
-	https://github.com/tj/ngen 
-
-## Services
+	- Validator Factory for service what is resolve the params schema. Built-in resolver is validatorjs (it is the fastest)
 
 ## Transporters
 - Redis transporter
