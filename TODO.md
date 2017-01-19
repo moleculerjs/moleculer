@@ -22,23 +22,7 @@
 - circuit breaker: https://github.com/awolden/brakes
 
 ## Services
-- use param validator in actions
-	```js
-	add: {
-		cache: true,
-		params: {
-			name: "required|min:4|max:25",
-			email: "required|email",
-			firstName: "required",
-			phone: "required",
-			age: "required|integer|min:18"
-		},
-		handler(ctx) {
-
-		}
-	}
-	```
-	- Validator Factory for service what is resolve the params schema. Built-in resolver is validatorjs (it is the fastest)
+- Validator Factory for service what is resolve the params schema. Built-in resolver is validatorjs (it is the fastest)
 
 ## Transporters
 - Redis transporter

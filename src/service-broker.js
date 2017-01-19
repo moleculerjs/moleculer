@@ -17,9 +17,6 @@ const _ = require("lodash");
 const glob = require("glob");
 const path = require("path");
 
-// global.Promise = require("bluebird");
-
-
 /**
  * Service broker class
  * 

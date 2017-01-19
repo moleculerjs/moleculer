@@ -148,7 +148,7 @@ class Cacher {
 
 				const result = handler(ctx);
 				if (isPromise(result)) {
-					return result.then((data) => {
+					return result.then(data => {
 						this.set(cacheKey, data);
 						return data;
 					});

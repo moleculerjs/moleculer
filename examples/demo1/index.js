@@ -19,7 +19,7 @@ let broker = new ServiceBroker({
 		//"CACHER": "debug",
 		"CTX": "debug"
 	},
-	metrics: false
+	metrics: true
 });
 
 broker.use(cache(broker, new MemoryCacher()));
