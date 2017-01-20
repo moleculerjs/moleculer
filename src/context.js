@@ -128,20 +128,6 @@ class Context {
 		return Promise.reject(err);				
 	}
 
-
-	/**
-	 * Call a global event (with broker.emit)
-	 * 
-	 * @param {any} eventName
-	 * @param {any} data
-	 * @returns
-	 * 
-	 * @memberOf Context
-	 */
-	emit(eventName, data) {
-		return this.broker.emit(eventName, data);
-	}
-
 	/**
 	 * Start invoke
 	 * 
@@ -184,6 +170,24 @@ class Context {
 		return this.broker.call(actionName, params, this);
 	}	
 
+	/**
+	 * Call a global event (with broker.emit)
+	 * 
+	 * @param {any} eventName
+	 * @param {any} data
+	 * @returns
+	 * 
+	 * @memberOf Context
+	 */
+	emit(eventName, data) {
+		return this.broker.emit(eventName, data);
+	}
+
+	/**
+	 * Send start event to metrics system
+	 * 
+	 * @memberOf Context
+	 */
 	_metricStart() {
 		if (this.needMetrics) {
 			let payload = {
@@ -203,6 +207,11 @@ class Context {
 		}
 	}
 
+	/**
+ 	 * Send finish event to metrics system
+	 * 
+	 * @memberOf Context
+	 */
 	_metricFinish() {
 		if (this.needMetrics) {
 			let payload = {
