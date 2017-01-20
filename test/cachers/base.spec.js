@@ -52,7 +52,7 @@ describe("Test BaseCacher", () => {
 		cacher.init(broker);
 		// Check result
 		let res = cacher.getCacheKey("posts.find.model", { id: 1, name: "Bob" });
-		expect(res).toBe("posts.find.model:bab3f6e5c7672d1d642523157711b8b745b1bc9b");
+		expect(res).toBe("posts.find.model:db2f5d71b3715e65c4f31a1cc510a90ed93b4f99abc4579da7f34cd4976ab79e");
 
 		// Same result, with same params
 		let res2 = cacher.getCacheKey("posts.find.model", { id: 1, name: "Bob" });
@@ -61,7 +61,7 @@ describe("Test BaseCacher", () => {
 		// Different result, with different params
 		let res3 = cacher.getCacheKey("posts.find.model", { id: 2, name: "Bob" });
 		expect(res3).not.toEqual(res); 
-		expect(res3).toBe("posts.find.model:01738894945c7c885d275a0ec2ced133e2d9d6ed");
+		expect(res3).toBe("posts.find.model:f67b30a6ce5a28452217cb3b63a28d9db412e70de5ec1938ad373b36fa98073f");
 
 		res = cacher.getCacheKey();
 		expect(res).toBe("");
@@ -70,10 +70,10 @@ describe("Test BaseCacher", () => {
 		expect(res).toBe("posts.find:");
 		
 		res = cacher.getCacheKey(null, {});
-		expect(res).toBe("323217f643c3e3f1fe7532e72ac01bb0748c97be");
+		expect(res).toBe("44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a");
 		
 		res = cacher.getCacheKey(null, {a: 5});
-		expect(res).toBe("4a811383176bf8c7bf15a2cec8f91d4e9636383f");
+		expect(res).toBe("b0a7093990109d1355dc833dcddecae4de9624d2226b9499d459b8ef94353942");
 		
 	});	
 });
@@ -105,7 +105,7 @@ describe("Test wrapHandler", () => {
 		expect(utils.isPromise(p)).toBeTruthy();
 		return p.then((response) => {
 			expect(broker.cacher.get).toHaveBeenCalledTimes(1);
-			expect(broker.cacher.get).toHaveBeenCalledWith("posts.find:e263ebd5ec9c63793ee3316efb8bfbe9f761f7ba");
+			expect(broker.cacher.get).toHaveBeenCalledWith("posts.find:60b51087180be386e8a4917dd118a422b72faf4bc5bb58c0628c8382356595b2");
 			expect(mockAction.handler).toHaveBeenCalledTimes(0);
 			expect(response).toBe(cachedData);
 		});
