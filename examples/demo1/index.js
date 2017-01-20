@@ -16,7 +16,7 @@ let broker = new ServiceBroker({
 	logger: console,
 	logLevel: {
 		"*": "warn",
-		"CACHER": "debug",
+		//"CACHER": "debug",
 		"CTX": "debug"
 	},
 	metrics: true

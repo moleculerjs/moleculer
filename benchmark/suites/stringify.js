@@ -6,20 +6,38 @@ let Benchmarker = require("../benchmarker");
 Benchmarker.printHeader("JSON stringify benchmark");
 
 let safeStringify = require("fast-safe-stringify");
+let fastStringify = require("fast-json-stringify");
 
-let bench = new Benchmarker({ async: false, name: "Stringify JS object to JSON (10k)"});
-let data = JSON.parse(bench.getDataFile("10k.json"));
+let dataFiles = ["150", "1k", "10k", "50k", "100k", "1M"];
 
-// ----
-bench.add("Built-in JSON.stringify", () => {
-	try {
-		return JSON.stringify(data);
-	} catch (e) {
-	}	
-});
+function runTest(dataName) {
 
-bench.add("fast-safe-stringify", () => {
-	return safeStringify(data);
-});
+	let bench = new Benchmarker({ async: false, name: `Stringify JS object to JSON (${dataName})`});
+	let data = JSON.parse(bench.getDataFile(dataName + ".json"));
 
-bench.run();
+	// ----
+	bench.add("Built-in JSON.stringify", () => {
+		try {
+			return JSON.stringify(data);
+		} catch (e) {
+		}	
+	});
+
+	bench.add("fast-safe-stringify", () => {
+		return safeStringify(data);
+	});
+
+	bench.add("fast-json-stringify", () => {
+		try {
+			return fastStringify(data);
+		} catch (e) {
+		}	
+	});
+
+	bench.run().then(() => {
+		if (dataFiles.length > 0)
+			runTest(dataFiles.shift());
+	});
+}
+
+runTest(dataFiles.shift());	
