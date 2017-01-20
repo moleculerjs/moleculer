@@ -262,7 +262,7 @@ describe("Test startInvoke", () => {
 		expect(ctx.duration).toBe(0);
 
 		expect(broker.emit).toHaveBeenCalledTimes(1);
-		expect(broker.emit).toHaveBeenCalledWith("metrics.context.start", {"action": {"name": "users.get"}, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "time": ctx.startTime});
+		expect(broker.emit).toHaveBeenCalledWith("metrics.context.start", {"action": {"name": "users.get"}, "id": ctx.id, "level": 1, "parent": 123, "remoteCall": undefined, "requestID": ctx.requestID, "startTime": ctx.startTime});
 	});
 
 	it("should call _metricFinish method", () => {		
@@ -275,7 +275,7 @@ describe("Test startInvoke", () => {
 				expect(ctx.duration).toBeGreaterThan(0);
 
 				expect(broker.emit).toHaveBeenCalledTimes(1);
-				expect(broker.emit).toHaveBeenCalledWith("metrics.context.finish", {"action": {"name": "users.get"}, "duration": ctx.duration, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "time": ctx.stopTime});
+				expect(broker.emit).toHaveBeenCalledWith("metrics.context.finish", {"action": {"name": "users.get"}, "duration": ctx.duration, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "endTime": ctx.stopTime, "fromCache": false, "level": 1, "remoteCall": undefined});
 
 				resolve();
 			}, 100);
@@ -288,10 +288,9 @@ describe("Test startInvoke", () => {
 			ctx.invokeCatch(new ServiceNotFoundError("Something happened")).catch(err => err);
 
 			expect(ctx.stopTime).toBeGreaterThan(0);
-			expect(ctx.duration).toBeGreaterThan(0);
 
 			expect(broker.emit).toHaveBeenCalledTimes(1);
-			expect(broker.emit).toHaveBeenCalledWith("metrics.context.finish", {"action": {"name": "users.get"}, "duration": ctx.duration, "error": { "message": "Something happened", "type": "ServiceNotFoundError" }, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "time": ctx.stopTime});
+			expect(broker.emit).toHaveBeenCalledWith("metrics.context.finish", {"action": {"name": "users.get"}, "duration": ctx.duration, "error": { "message": "Something happened", "type": "ServiceNotFoundError" }, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "endTime": ctx.stopTime, "fromCache": false, "level": 1, "remoteCall": undefined });
 
 			resolve();
 		});
