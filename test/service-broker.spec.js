@@ -191,7 +191,7 @@ describe("Test loadServices", () => {
 	let broker = new ServiceBroker();
 	
 	it("should found 4 services", () => {
-		expect(broker.loadServices("./examples")).toBe(4);
+		expect(broker.loadServices("./examples")).toBe(5);
 		expect(broker.hasService("math")).toBeTruthy();
 		expect(broker.hasAction("math.add")).toBeTruthy();
 	});
@@ -379,7 +379,7 @@ describe("Test versioned action registration", () => {
 		expect(broker.hasAction("posts.find")).toBeTruthy();
 		expect(broker.hasAction("v1.posts.find")).toBeTruthy();
 		expect(broker.hasAction("v2.posts.find")).toBeTruthy();
-		
+
 		expect(broker.hasAction("v3.posts.find")).toBeFalsy();
 	});
 

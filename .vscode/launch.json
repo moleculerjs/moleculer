@@ -7,28 +7,28 @@
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Launch demo1",
-			"program": "${workspaceRoot}\\examples\\demo1\\index.js",
-			"cwd": "${workspaceRoot}\\examples\\demo1"
+			"name": "Launch demo:caching",
+			"program": "${workspaceRoot}\\examples\\caching\\index.js",
+			"cwd": "${workspaceRoot}\\examples\\caching"
 		},
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Launch demo2",
-			"program": "${workspaceRoot}\\examples\\demo2\\index.js",
-			"cwd": "${workspaceRoot}\\examples\\demo2"
+			"name": "Launch demo:transporter",
+			"program": "${workspaceRoot}\\examples\\transporter\\index.js",
+			"cwd": "${workspaceRoot}\\examples\\transporter"
 		},
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Launch mw",
+			"name": "Launch demo:mw",
 			"program": "${workspaceRoot}\\examples\\middlewares\\index.js",
 			"cwd": "${workspaceRoot}\\examples\\middlewares"
 		},
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Launch rest",
+			"name": "Launch demo:rest",
 			"program": "${workspaceRoot}\\examples\\rest\\index.js",
 			"cwd": "${workspaceRoot}\\examples\\rest"
 		},

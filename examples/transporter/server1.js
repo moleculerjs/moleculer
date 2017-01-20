@@ -1,8 +1,5 @@
 "use strict";
 
-let _ = require("lodash");
-let chalk = require("chalk");
-
 let { delay } = require("../../src/utils");
 
 let ServiceBroker = require("../../src/service-broker");
