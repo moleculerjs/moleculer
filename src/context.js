@@ -48,6 +48,7 @@ class Context {
 		this.stopTime = null;
 		this.duration = 0;		
 
+		this.error = null;
 		this.cachedResult = false;
 	}
 
@@ -116,12 +117,14 @@ class Context {
 	}
 
 	invokeCatch(err) {
-		this._finishInvoke();
 		if (!(err instanceof Error)) {
 			err = new Error(err);
 		}
-		
+		this.error = err;
 		err.ctx = this;
+
+		this._finishInvoke();
+
 		return Promise.reject(err);				
 	}
 
@@ -163,8 +166,8 @@ class Context {
 
 		this._metricFinish();
 
-		//if (!this.parent)
-		//	this.printMeasuredTimes();
+		if (!this.parent)
+			this.printMeasuredTimes();
 		
 	}
 
@@ -216,6 +219,12 @@ class Context {
 			if (this.parent) {
 				payload.parent = this.parent.id;
 			}
+			if (this.error) {
+				payload.error = {
+					type: this.error.name,
+					message: this.error.message
+				};
+			}
 			this.broker.emit("metrics.context.finish", payload);
 		}
 	}
@@ -239,7 +248,7 @@ class Context {
 		this.logger.debug(["┌", r("─", w-2), "┐"].join(""));
 
 		let printCtxTime = (ctx) => {
-			let maxActionName = maxTitle - (ctx.level-1) * 2 - ctx.duration.toString().length - 3 - (ctx.cachedResult ? 2 : 0) - (ctx.remoteCall ? 2 : 0);
+			let maxActionName = maxTitle - (ctx.level-1) * 2 - ctx.duration.toString().length - 3 - (ctx.cachedResult ? 2 : 0) - (ctx.remoteCall ? 2 : 0) - (ctx.error ? 2 : 0);
 			let actionName = ctx.action ? ctx.action.name : "";
 			if (actionName.length > maxActionName) 
 				actionName = _.truncate(ctx.action.name, { length: maxActionName });
@@ -250,6 +259,7 @@ class Context {
 				r(" ", maxActionName - actionName.length + 1),
 				ctx.cachedResult ? "* " : "",
 				ctx.remoteCall ? "» " : "",
+				ctx.error ? "× " : "",
 				ctx.duration,
 				"ms "
 			].join("");

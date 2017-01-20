@@ -20,6 +20,10 @@ broker.loadService(__dirname + "/../user.service");
 broker.start();
 let c = 1;
 
+broker.on("TEST1", a => {
+	console.log("TEST1 event received:", a);
+});
+
 Promise.resolve()
 /*.then(delay(1000))
 .then(() => {
@@ -37,5 +41,5 @@ Promise.resolve()
 			//process.exit();
 		}
 
-	}, 5000);
+	}, 10 * 1000);
 });

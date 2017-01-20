@@ -19,18 +19,27 @@ broker.loadService(__dirname + "/../post.service");
 broker.start();
 let c = 1;
 
+broker.on("TEST2", a => {
+	console.log("TEST2 event received:", a);
+});
+
+
 Promise.resolve()
-.then(delay(1000))
+//.then(delay(1000))
 .then(() => {
 	
-	let startTime = Date.now();
-	broker.call("posts.find").then((posts) => {
-		console.log("[server-1] Posts: ", posts.length, ", Time:", Date.now() - startTime, "ms");
-	});	
+	setInterval(() => {
+		let startTime = Date.now();
+		broker.call("posts.find").then((posts) => {
+			console.log("[server-1] Posts: ", posts.length, ", Time:", Date.now() - startTime, "ms");
+		}).catch(err => {
+			console.error("[server-1] Error!", err.message);
+		});	
+	}, 5000);
 	
 })
 .then(() => {
 	setInterval(() => {
 		broker.emit("TEST1", { a: c++ });
-	}, 5000);
+	}, 10 * 1000);
 });

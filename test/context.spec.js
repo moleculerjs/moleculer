@@ -3,6 +3,7 @@
 let _ = require("lodash");
 let Context = require("../src/context");
 let ServiceBroker = require("../src/service-broker");
+let { ServiceNotFoundError } = require("../src/errors");
 
 describe("Test Context", () => {
 
@@ -22,6 +23,7 @@ describe("Test Context", () => {
 		expect(ctx.level).toBe(1);
 		expect(ctx.params).toBeDefined();
 		expect(ctx.params).toEqual({});
+		expect(ctx.error).toBeNull();
 		expect(ctx.cachedResult).toBe(false);
 		expect(ctx.nodeID).toBeNull;
 	});
@@ -194,7 +196,7 @@ describe("Test invoke method", () => {
 	it("should call closeContext method if error catched", () => {
 		ctx._startInvoke.mockClear();
 		ctx._finishInvoke.mockClear();
-		let handler = jest.fn(() => Promise.reject(new Error("Something happened")));
+		let handler = jest.fn(() => Promise.reject(new ServiceNotFoundError("Something happened")));
 
 		let p = ctx.invoke(handler);
 		expect(p).toBeDefined();
@@ -202,8 +204,10 @@ describe("Test invoke method", () => {
 		return p.catch((err) => {
 			expect(ctx._startInvoke).toHaveBeenCalledTimes(1);
 			expect(ctx._finishInvoke).toHaveBeenCalledTimes(1);
+			expect(ctx.error).toBe(err);
 			expect(err).toBeDefined();
 			expect(err).toBeInstanceOf(Error);
+			expect(err).toBeInstanceOf(ServiceNotFoundError);
 			expect(err.ctx).toBe(ctx);
 		});
 	});
@@ -219,6 +223,7 @@ describe("Test invoke method", () => {
 		return p.catch((err) => {
 			expect(ctx._startInvoke).toHaveBeenCalledTimes(1);
 			expect(ctx._finishInvoke).toHaveBeenCalledTimes(1);
+			expect(ctx.error).toBe(err);
 			expect(err).toBeDefined();
 			expect(err).toBeInstanceOf(Error);
 			expect(err.ctx).toBe(ctx);
@@ -236,6 +241,7 @@ describe("Test invoke method", () => {
 		return p.catch((err) => {
 			expect(ctx._startInvoke).toHaveBeenCalledTimes(1);
 			expect(ctx._finishInvoke).toHaveBeenCalledTimes(1);
+			expect(ctx.error).toBe(err);
 			expect(err).toBeDefined();
 			expect(err).toBeInstanceOf(Error);
 			expect(err.ctx).toBe(ctx);
@@ -273,6 +279,21 @@ describe("Test startInvoke", () => {
 
 				resolve();
 			}, 100);
+		});
+	});
+
+	it("should call _metricFinish method with error", () => {		
+		broker.emit.mockClear();
+		return new Promise((resolve) => {
+			ctx.invokeCatch(new ServiceNotFoundError("Something happened")).catch(err => err);
+
+			expect(ctx.stopTime).toBeGreaterThan(0);
+			expect(ctx.duration).toBeGreaterThan(0);
+
+			expect(broker.emit).toHaveBeenCalledTimes(1);
+			expect(broker.emit).toHaveBeenCalledWith("metrics.context.finish", {"action": {"name": "users.get"}, "duration": ctx.duration, "error": { "message": "Something happened", "type": "ServiceNotFoundError" }, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "time": ctx.stopTime});
+
+			resolve();
 		});
 	});
 });
