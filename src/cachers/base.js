@@ -134,7 +134,6 @@ class Cacher {
 	wrapHandler(action, handler) {
 		return (ctx) => {
 			const cacheKey = this.getCacheKey(action.name, ctx.params);
-			//const cacheKey = "a";
 
 			return Promise.resolve()
 			.then(() => {

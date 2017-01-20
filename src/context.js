@@ -151,10 +151,6 @@ class Context {
 		this.duration = this.stopTime - this.startTime;
 
 		this._metricFinish();
-
-		if (!this.parent)
-			this.printMeasuredTimes();
-		
 	}
 
 	/**
@@ -193,7 +189,9 @@ class Context {
 			let payload = {
 				id: this.id,
 				requestID: this.requestID,
-				time: this.startTime
+				startTime: this.startTime,
+				level: this.level,
+				remoteCall: this.remoteCall
 			};
 			if (this.action) {
 				payload.action = {
@@ -217,8 +215,11 @@ class Context {
 			let payload = {
 				id: this.id,
 				requestID: this.requestID,
-				time: this.stopTime,
-				duration: this.duration
+				level: this.level,
+				endTime: this.stopTime,
+				duration: this.duration,
+				remoteCall: this.remoteCall,
+				fromCache: this.cachedResult
 			};
 			if (this.action) {
 				payload.action = {
@@ -236,76 +237,6 @@ class Context {
 			}
 			this.broker.emit("metrics.context.finish", payload);
 		}
-	}
-
-	/*
-		┌─────────────────────────────────────────────────────────────────────────┐
-		│ request.rest                      27ms [■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■] │
-		│   session.me                    » 25ms [.■■■■■■■■■■■■■■■■■■■■■■■■■■■■.] │
-		│     profile.get                 * 24ms [..■■■■■■■■■■■■■■■■■■■■■■■■■■■.] │
-		└─────────────────────────────────────────────────────────────────────────┘
-	*/
-	/* istanbul ignore next */
-	printMeasuredTimes() {
-		if (!this.logger) return;
-
-		let w = 73;
-		let r = _.repeat;
-		let gw = 35;
-		let maxTitle = w - 2 - 2 - gw - 2 - 1;
-
-		this.logger.debug(["┌", r("─", w-2), "┐"].join(""));
-
-		let printCtxTime = (ctx) => {
-			let maxActionName = maxTitle - (ctx.level-1) * 2 - ctx.duration.toString().length - 3 - (ctx.cachedResult ? 2 : 0) - (ctx.remoteCall ? 2 : 0) - (ctx.error ? 2 : 0);
-			let actionName = ctx.action ? ctx.action.name : "";
-			if (actionName.length > maxActionName) 
-				actionName = _.truncate(ctx.action.name, { length: maxActionName });
-
-			let strAction = [
-				r("  ", ctx.level - 1),
-				actionName,
-				r(" ", maxActionName - actionName.length + 1),
-				ctx.cachedResult ? "* " : "",
-				ctx.remoteCall ? "» " : "",
-				ctx.error ? "× " : "",
-				ctx.duration,
-				"ms "
-			].join("");
-
-			if (ctx.startTime == null || ctx.stopTime == null) {
-				this.logger.debug(strAction + "! Missing invoke !");
-				return;
-			}
-
-			let gstart = (ctx.startTime - this.startTime) / (this.stopTime - this.startTime) * 100;
-			let gstop = (ctx.stopTime - this.startTime) / (this.stopTime - this.startTime) * 100;
-
-			if (_.isNaN(gstart) && _.isNaN(gstop)) {
-				gstart = 0;
-				gstop = 100;
-			}
-
-			let p1 = Math.round(gw * gstart / 100);
-			let p2 = Math.round(gw * gstop / 100) - p1;
-			let p3 = Math.max(gw - (p1 + p2), 0);
-
-			let gauge = [
-				"[",
-				r(".", p1),
-				r("■", p2),
-				r(".", p3),
-				"]"
-			].join("");
-
-			this.logger.debug("│ " + strAction + gauge + " │");
-
-			if (ctx.subContexts.length > 0)
-				ctx.subContexts.forEach(subCtx => printCtxTime(subCtx));
-		};
-
-		printCtxTime(this);
-		this.logger.debug(["└", r("─", w-2), "┘"].join(""));
 	}
 }
 
