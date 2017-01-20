@@ -7,7 +7,7 @@
 "use strict";
 
 const Promise	= require("bluebird");
-const hash	 	= require("object-hash");
+const { hash } 	= require("node-object-hash")({ sort: false, coerce: false});
 
 function getCacheKey(name, params) {
 	return (name ? name + ":" : "") + (params ? hash(params) : "");

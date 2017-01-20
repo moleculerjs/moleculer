@@ -8,8 +8,8 @@
 
 const Promise		= require("bluebird");
 const _ 			= require("lodash");
-const hash	 		= require("object-hash");
-const { isPromise} 	= require("../utils");
+const { hash } 		= require("node-object-hash")({ sort: false, coerce: false});
+const { isPromise }	= require("../utils");
 
 /**
  * Abstract cacher class
@@ -134,6 +134,7 @@ class Cacher {
 	wrapHandler(action, handler) {
 		return (ctx) => {
 			const cacheKey = this.getCacheKey(action.name, ctx.params);
+			//const cacheKey = "a";
 
 			return Promise.resolve()
 			.then(() => {

@@ -8,7 +8,7 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch demo1",
-			"program": "${workspaceRoot}\\examples\\demo1\\server.js",
+			"program": "${workspaceRoot}\\examples\\demo1\\index.js",
 			"cwd": "${workspaceRoot}\\examples\\demo1"
 		},
 		{

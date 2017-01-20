@@ -138,7 +138,7 @@ let bench4 = new Benchmarker({ async: true, name: "Call with param validator"});
 	});
 })();
 
-bench1.run()
-.then(() => bench2.run())
+bench1.skip()
+.then(() => bench2.skip())
 .then(() => bench3.run())
-.then(() => bench4.run());
+.then(() => bench4.skip());
