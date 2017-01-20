@@ -4,14 +4,20 @@ let Service = require("../src/service");
 
 let users = fakerator.times(fakerator.entity.user, 10);
 
-_.each(users, (user, i) => user.id = i + 1);
+_.each(users, (user, i) => {
+	user.id = i + 1;
+	delete user.avatar;
+	delete user.gravatar;
+	delete user.dob;
+	delete user.website;
+	delete user.address;
+	delete user.ip;
+});
 
 module.exports = function(broker) {
 	return new Service(broker, {
 		name: "users",
-		version: 2,
-		latestVersion: true,
-		
+		version: 1,
 		actions: {
 			find: {
 				cache: false,

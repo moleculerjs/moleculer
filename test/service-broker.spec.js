@@ -328,6 +328,82 @@ describe("Test action registration", () => {
 	});
 });
 
+describe("Test versioned action registration", () => {
+
+	let broker = new ServiceBroker();
+
+	let registerAction = jest.fn();
+	broker.on("register.action.posts.find", registerAction);
+
+	let registerActionv1 = jest.fn();
+	broker.on("register.action.v1.posts.find", registerActionv1);
+
+	let registerActionv2 = jest.fn();
+	broker.on("register.action.v2.posts.find", registerActionv2);
+
+	let findV1 = jest.fn(ctx => ctx);
+	let findV2 = jest.fn(ctx => ctx);
+
+	let serviceV1 = new Service(broker, {
+		name: "posts",
+		version: 1,
+
+		actions: {
+			find: findV1
+		}
+	});
+
+	let serviceV2 = new Service(broker, {
+		name: "posts",
+		version: 2,
+		latestVersion: true,
+
+		actions: {
+			find: findV2
+		}
+	});	
+
+	it("should registered both versioned service", () => {
+		expect(broker.actions.size).toBe(3);
+		expect(registerAction).toHaveBeenCalledWith(serviceV2, jasmine.any(Object), undefined);
+		expect(registerAction).toHaveBeenCalledTimes(1);
+
+		expect(registerActionv1).toHaveBeenCalledWith(serviceV1, jasmine.any(Object), undefined);
+		expect(registerActionv1).toHaveBeenCalledTimes(1);
+
+		expect(registerActionv2).toHaveBeenCalledWith(serviceV2, jasmine.any(Object), undefined);
+		expect(registerActionv2).toHaveBeenCalledTimes(1);
+	});
+	
+	it("should return with the correct action", () => {
+		expect(broker.hasAction("posts.find")).toBeTruthy();
+		expect(broker.hasAction("v1.posts.find")).toBeTruthy();
+		expect(broker.hasAction("v2.posts.find")).toBeTruthy();
+		
+		expect(broker.hasAction("v3.posts.find")).toBeFalsy();
+	});
+
+	it("should call the v1 handler", () => {
+		return broker.call("v1.posts.find").then(ctx => {
+			expect(findV1).toHaveBeenCalledTimes(1);
+		});
+	});
+
+	it("should call the v2 handler", () => {
+		return broker.call("v2.posts.find").then(ctx => {
+			expect(findV2).toHaveBeenCalledTimes(1);
+		});
+	});
+
+	it("should call the unversioned v2 handler", () => {
+		findV2.mockClear();
+		return broker.call("posts.find").then(ctx => {
+			expect(findV2).toHaveBeenCalledTimes(1);
+		});
+	});
+		
+});
+
 describe("Test getLocalActionList", () => {
 
 	let broker = new ServiceBroker();

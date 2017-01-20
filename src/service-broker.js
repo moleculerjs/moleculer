@@ -286,14 +286,30 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	registerAction(service, action, nodeID) {
+		if (service && service.version) {
+			// Register action with version prefix: 'v1.posts.find'
+			let name = `v${service.version}.${action.name}`;
+			this._addAction(service, action, name, nodeID);
+
+			// The latest version register without version prefix too: 'posts.find'
+			if (service.schema.latestVersion)
+				this._addAction(service, action, action.name, nodeID);
+
+		} else {
+			// Register action without version prefix
+			this._addAction(service, action, action.name, nodeID);
+		}
+	}
+
+	_addAction(service, action, actionName, nodeID) {
 		// Append action by name
-		let item = this.actions.get(action.name);
+		let item = this.actions.get(actionName);
 		if (!item) {
 			item = new BalancedList();
-			this.actions.set(action.name, item);
+			this.actions.set(actionName, item);
 		}
 		if (item.add(action, 0, nodeID)) {
-			this.emitLocal(`register.action.${action.name}`, service, action, nodeID);
+			this.emitLocal(`register.action.${actionName}`, service, action, nodeID);
 		}
 	}
 
