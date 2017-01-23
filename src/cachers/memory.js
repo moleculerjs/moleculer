@@ -50,17 +50,15 @@ class MemoryCacher extends BaseCacher {
 	 * @memberOf Cacher
 	 */
 	get(key) {
-		return new Promise((resolve, reject) => {
-			let item = this.cache[this.prefix + key];
-			if (item) { 
-				this.logger.debug(`GET ${this.prefix}${key}`);
-				resolve(item.data);
-				// Update expire time (hold in the cache if we are using it)
-				item.expire = Date.now() + this.opts.ttl * 1000;
-			}
-			else 
-				resolve(null);
-		});
+		let item = this.cache[this.prefix + key];
+		if (item) { 
+			this.logger.debug(`GET ${this.prefix}${key}`);
+			// Update expire time (hold in the cache if we are using it)
+			item.expire = Date.now() + this.opts.ttl * 1000;
+
+			return Promise.resolve(item.data);
+		}
+		return Promise.resolve(null);
 	}
 
 	/**
