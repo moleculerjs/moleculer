@@ -18,6 +18,16 @@ describe("Test Errors", () => {
 		expect(err.data).toBe(data);
 	});
 
+	it("test RequestTimeoutError", () => {
+		let data = {};
+		let err = new errors.RequestTimeoutError("Something went wrong!", data);
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(Error);
+		expect(err.name).toBe("RequestTimeoutError");
+		expect(err.message).toBe("Something went wrong!");
+		expect(err.data).toBe(data);
+	});
+
 	it("test ValidationError", () => {
 		let data = {};
 		let err = new errors.ValidationError("Param is not correct!", data);
