@@ -98,7 +98,7 @@ class NatsTransporter extends Transporter {
 	 * @memberOf NatsTransporter
 	 */
 	disconnect() {
-		if (false && this.client) {
+		if (this.client) {
 			// Send a disconnect message to remote nodes
 			let message = {
 				nodeID: this.nodeID

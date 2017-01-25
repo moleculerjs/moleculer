@@ -22,7 +22,7 @@ class BaseTransporter {
 	 */
 	constructor(opts) {
 		this.opts = opts || {
-			requestTimeout: 30 * 1000
+			requestTimeout: 15 * 1000
 		};
 	}
 
