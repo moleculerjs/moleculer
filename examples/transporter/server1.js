@@ -8,9 +8,11 @@ let NatsTransporter = require("../../src/transporters/nats");
 // Create broker
 let broker = new ServiceBroker({
 	nodeID: "server-1",
-	transporter: new NatsTransporter(),
+	transporter: new NatsTransporter({
+		requestTimeout: 5 * 1000
+	}),
 	logger: console,
-	logLevel: "debug"
+	logLevel: "info"	
 });
 
 broker.loadService(__dirname + "/../post.service");
@@ -35,7 +37,7 @@ Promise.resolve()
 		}).catch(err => {
 			console.error("[server-1] Error!", err.message);
 		});	
-	}, 5000);
+	}, 8000);
 	
 })
 .then(() => {

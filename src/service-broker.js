@@ -327,10 +327,14 @@ class ServiceBroker {
 		let item = this.actions.get(action.name);
 		if (item) {
 			item.removeByNode(nodeID);
+			/* Nem töröljük, mert valószínűleg csak leszakadt a node és majd vissza fog jönni.
+			   Tehát az action létezik, csak pillanatnyilag nem elérhető
+			
 			if (item.count() == 0) {
 				this.actions.delete(action.name);
 			}
 			this.emitLocal(`unregister.action.${action.name}`, service, action, nodeID);
+			*/
 		}		
 	}
 
@@ -407,6 +411,19 @@ class ServiceBroker {
 	 */
 	hasAction(actionName) {
 		return this.actions.has(actionName);
+	}	
+
+	/**
+	 * Check has available action handler
+	 * 
+	 * @param {any} actionName
+	 * @returns
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	isActionAvailable(actionName) {
+		let action = this.actions.has(actionName);
+		return action && action.count > 0;
 	}	
 
 	/**
@@ -489,13 +506,17 @@ class ServiceBroker {
 	call(actionName, params, parentCtx, requestID) {
 		let actions = this.actions.get(actionName);
 		if (!actions) {
-			return Promise.reject(new errors.ServiceNotFoundError(`Missing '${actionName}' action!`));
+			const errMsg = `Action '${actionName}' is not registered!`;
+			this.logger.warn(errMsg);
+			return Promise.reject(new errors.ServiceNotFoundError(errMsg));
 		}
 		
 		let actionItem = actions.get();
 		/* istanbul ignore next */
 		if (!actionItem) {
-			return Promise.reject(new Error(`Missing '${actionName}' action handler!`));
+			const errMsg = `Not available '${actionName}' action handler!`;
+			this.logger.warn(errMsg);
+			return Promise.reject(new errors.ServiceNotFoundError(errMsg));
 		}
 
 		let action = actionItem.data;
@@ -518,10 +539,13 @@ class ServiceBroker {
 			});
 		} else {
 			// Remote action call
-			this.logger.debug(`Call remote '${action.name}' action in node '${nodeID}'...`);
+			this.logger.debug(`Call remote '${action.name}' action on '${nodeID}' node...`);
 			return ctx.invoke(() => {
 				return this.callMiddlewares(ctx, () => {
-					return this.transporter.request(nodeID, ctx);
+					return this.transporter.request(nodeID, ctx).catch(err => {
+						this.nodeUnavailable(nodeID);
+						return Promise.reject(err);
+					});
 				});
 			});
 		}
@@ -541,7 +565,7 @@ class ServiceBroker {
 			this.transporter.emit(eventName, ...args);
 		}
 
-		this.logger.debug("Local event", eventName, ...args);		
+		this.logger.debug("Event emitted", eventName, ...args);		
 
 		return this.emitLocal(eventName, ...args);
 	}
@@ -583,23 +607,54 @@ class ServiceBroker {
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	processNodeInfo(nodeID, info) {
+	processNodeInfo(nodeID, node) {
 		let isNewNode = !this.nodes.has(nodeID);
-		info.lastHeartbeatTime = Date.now();
-		this.nodes.set(info.nodeID, info);
+		node.lastHeartbeatTime = Date.now();
+		node.available = true;
+		this.nodes.set(node.nodeID, node);
 
 		if (isNewNode) {
-			this.emitLocal(`register.node.${nodeID}`, info);
+			this.emitLocal("node.connected", node);
+			this.logger.info(`Node '${nodeID}' connected!`);
 		}
 
-		if (info.actions) {
+		if (node.actions) {
 			// Add external actions
-			info.actions.forEach(name => {
+			node.actions.forEach(name => {
 				let action = { name };
 
-				this.registerAction(null, action, info.nodeID);
+				this.registerAction(null, action, node.nodeID);
 			});
 		}
+	}
+
+	/**
+	 * Set node to unavailable. 
+	 * It will be called when a remote call is thrown a RequestTimeoutError exception.
+	 * 
+	 * @param {any} nodeID	Node ID
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	nodeUnavailable(nodeID) {
+		let node = this.nodes.get(nodeID);
+		if (node) {
+			this.nodeDisconnected(nodeID);
+		}
+	}
+
+	/**
+	 * Check the given nodeID is available
+	 * 
+	 * @param {any} nodeID	Node ID
+	 * @returns {boolean}
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	isNodeAvailable(nodeID) {
+		let info = this.nodes.get(nodeID);
+		if (info) 
+			return info.available;
 	}
 
 	/**
@@ -611,8 +666,9 @@ class ServiceBroker {
 	 */
 	nodeHeartbeat(nodeID) {
 		if (this.nodes.has(nodeID)) {
-			let info = this.nodes.get(nodeID);
-			info.lastHeartbeatTime = Date.now();
+			let node = this.nodes.get(nodeID);
+			node.lastHeartbeatTime = Date.now();
+			node.available = true;
 		}
 	}
 
@@ -626,18 +682,21 @@ class ServiceBroker {
 	 */
 	nodeDisconnected(nodeID) {
 		if (this.nodes.has(nodeID)) {
-			let info = this.nodes.get(nodeID);
+			let node = this.nodes.get(nodeID);
+			if (node.available) {
+				node.available = false;
+				if (node.actions) {
+					// Add external actions
+					node.actions.forEach(name => {
+						let action = { name };
+						this.unregisterAction(null, action, node.nodeID);
+					});
+				}
 
-			if (info.actions) {
-				// Add external actions
-				info.actions.forEach(name => {
-					let action = { name };
-					this.unregisterAction(null, action, info.nodeID);
-				});
+				this.emitLocal("node.disconnected", node);
+				//this.nodes.delete(nodeID);			
+				this.logger.warn(`Node '${nodeID}' disconnected!`);
 			}
-
-			this.emitLocal(`unregister.node.${nodeID}`, info);
-			this.nodes.delete(nodeID);
 		}
 	}
 
@@ -647,12 +706,15 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	checkRemoteNodes() {
+		return; 
+		// SKIP
+		/*
 		let now = Date.now();
 		for (let entry of this.nodes.entries()) {
 			if (now - (entry[1].lastHeartbeatTime || 0) > this.options.nodeHeartbeatTimeout * 1000) {
 				this.nodeDisconnected(entry[0]);
 			}
-		}
+		}*/
 	}
 
 	metricsEnabled() {

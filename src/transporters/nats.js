@@ -9,6 +9,7 @@
 const Promise		= require("bluebird");
 const Transporter 	= require("./base");
 const utils 		= require("../utils");
+const { RequestTimeoutError } = require("../errors");
 
 let PREFIX = "ICE";
 
@@ -97,7 +98,7 @@ class NatsTransporter extends Transporter {
 	 * @memberOf NatsTransporter
 	 */
 	disconnect() {
-		if (this.client) {
+		if (false && this.client) {
 			// Send a disconnect message to remote nodes
 			let message = {
 				nodeID: this.nodeID
@@ -239,10 +240,21 @@ class NatsTransporter extends Transporter {
 	 * @memberOf NatsTransporter
 	 */
 	request(targetNodeID, ctx) {
-		return new Promise((resolve) => {
+		return new Promise((resolve, reject) => {
+			let timer = null;
+			let timedOut = false;
 			let replySubject = [PREFIX, "RESP", ctx.id].join(".");
 
 			let sid = this.client.subscribe(replySubject, (response) => {
+				// If timed out, we skip to process the response
+				if (timedOut) return;
+
+				// Stop timeout timer
+				if (timer) {
+					clearTimeout(timer);
+				}
+
+				// Convert response to object
 				if (response != "") {
 					resolve(utils.string2Json(response));
 				}
@@ -251,6 +263,7 @@ class NatsTransporter extends Transporter {
 					resolve(null);
 				}
 					
+				// Unsubscribe from reply topic
 				this.client.unsubscribe(sid);
 			});
 
@@ -260,36 +273,23 @@ class NatsTransporter extends Transporter {
 				action: ctx.action.name,
 				params: ctx.params
 			};
-			this.logger.debug("Request action", message);
+			this.logger.debug(`Send request '${message.action}' action to '${targetNodeID}' node...`, message);
 			let payload = utils.json2String(message);
+
+			// Handle request timeout
+			if (this.opts.requestTimeout > 0) {
+				timer = setTimeout(() => {
+					timedOut = true;
+					this.logger.warn(`Request timed out when call '${message.action}' action on '${targetNodeID}' node! (timeout: ${this.opts.requestTimeout / 1000} sec)`, message);
+					reject(new RequestTimeoutError(`Request timed out when call '${message.action}' action on '${targetNodeID}' node!`, message));
+				}, this.opts.requestTimeout);
+				timer.unref();
+			}
 
 			let subj = [PREFIX, "REQ", targetNodeID, message.action].join(".");
 			this.client.publish(subj, payload, replySubject);
 		});
 	}
-	/*request(targetNodeID, ctx) {
-		return new Promise((resolve) => {
-			let message = {
-				nodeID: this.nodeID,
-				requestID: ctx.id,
-				action: ctx.action.name,
-				params: ctx.params
-			};
-			this.logger.debug("Request action", message);
-			let payload = utils.json2String(message);
-
-			let subj = [PREFIX, "REQ", targetNodeID, message.action].join(".");
-			this.client.request(subj, payload, { max: 1}, (response) => {
-				if (response != "") {
-					resolve(utils.string2Json(response));
-				}
-				//* istanbul ignore next *
-				else {
-					resolve(null);
-				}
-			});
-		});
-	}*/
 
 	/**
 	 * Discover other nodes. It will be called internally after success connect.

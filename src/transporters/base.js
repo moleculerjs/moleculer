@@ -21,7 +21,9 @@ class BaseTransporter {
 	 * @memberOf BaseTransporter
 	 */
 	constructor(opts) {
-		this.opts = opts || {};
+		this.opts = opts || {
+			requestTimeout: 30 * 1000
+		};
 	}
 
 	/**

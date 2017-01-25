@@ -81,12 +81,10 @@ class BalancedList {
 
 	remove(data) {
 		_.remove(this.list, (el) => el.data == data);
-		this.counter = 0;
 	}
 
 	removeByNode(nodeID) {
 		_.remove(this.list, item => item.nodeID == nodeID);
-		this.counter = 0;
 	}
 }
 

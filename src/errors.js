@@ -33,6 +33,32 @@ class ServiceNotFoundError extends Error {
 }
 
 /**
+ * 'Service not found' Error message
+ * 
+ * @class RequestTimeoutError
+ * @extends {Error}
+ */
+class RequestTimeoutError extends Error {
+	/**
+	 * Creates an instance of RequestTimeoutError.
+	 * 
+	 * @param {any} message
+	 * @param {any} data
+	 * 
+	 * @memberOf RequestTimeoutError
+	 */
+	constructor(message, data) {
+		super(message);
+		Error.captureStackTrace(this, this.constructor);
+		this.name = "RequestTimeoutError";
+		this.message = message;
+		if (data) {
+			this.data = data;
+		}
+	}
+}
+
+/**
  * 'Parameters of action call validation error
  * 
  * @class ValidationError
@@ -60,5 +86,6 @@ class ValidationError extends Error {
 
 module.exports = {
 	ServiceNotFoundError,
-	ValidationError
+	ValidationError,
+	RequestTimeoutError
 };
