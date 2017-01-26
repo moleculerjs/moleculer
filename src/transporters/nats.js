@@ -281,7 +281,7 @@ class NatsTransporter extends Transporter {
 				timer = setTimeout(() => {
 					timedOut = true;
 					this.logger.warn(`Request timed out when call '${message.action}' action on '${targetNodeID}' node! (timeout: ${this.opts.requestTimeout / 1000} sec)`, message);
-					reject(new RequestTimeoutError(`Request timed out when call '${message.action}' action on '${targetNodeID}' node!`, message));
+					reject(new RequestTimeoutError(message, targetNodeID));
 				}, this.opts.requestTimeout);
 				timer.unref();
 			}

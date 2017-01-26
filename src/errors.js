@@ -6,29 +6,24 @@
 
 "use strict";
 
+const ExtendableError = require("es6-error");
+
 /**
  * 'Service not found' Error message
  * 
  * @class ServiceNotFoundError
  * @extends {Error}
  */
-class ServiceNotFoundError extends Error {
+class ServiceNotFoundError extends ExtendableError {
 	/**
 	 * Creates an instance of ServiceNotFoundError.
 	 * 
 	 * @param {any} message
-	 * @param {any} data
 	 * 
 	 * @memberOf ServiceNotFoundError
 	 */
-	constructor(message, data) {
+	constructor(message) {
 		super(message);
-		Error.captureStackTrace(this, this.constructor);
-		this.name = "ServiceNotFoundError";
-		this.message = message;
-		if (data) {
-			this.data = data;
-		}
 	}
 }
 
@@ -38,23 +33,19 @@ class ServiceNotFoundError extends Error {
  * @class RequestTimeoutError
  * @extends {Error}
  */
-class RequestTimeoutError extends Error {
+class RequestTimeoutError extends ExtendableError {
 	/**
 	 * Creates an instance of RequestTimeoutError.
 	 * 
-	 * @param {any} message
 	 * @param {any} data
+	 * @param {any} nodeID
 	 * 
 	 * @memberOf RequestTimeoutError
 	 */
-	constructor(message, data) {
-		super(message);
-		Error.captureStackTrace(this, this.constructor);
-		this.name = "RequestTimeoutError";
-		this.message = message;
-		if (data) {
+	constructor(data, nodeID) {
+		super(`Request timed out when call '${data.action}' action on '${nodeID}' node!`);
+		if (data)
 			this.data = data;
-		}
 	}
 }
 
@@ -64,7 +55,7 @@ class RequestTimeoutError extends Error {
  * @class ValidationError
  * @extends {Error}
  */
-class ValidationError extends Error {
+class ValidationError extends ExtendableError {
 	/**
 	 * Creates an instance of ValidationError.
 	 * 
@@ -75,12 +66,8 @@ class ValidationError extends Error {
 	 */
 	constructor(message, data) {
 		super(message);
-		Error.captureStackTrace(this, this.constructor);
-		this.name = "ValidationError";
-		this.message = message;
-		if (data) {
+		if (data)
 			this.data = data;
-		}
 	}
 }
 

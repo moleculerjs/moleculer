@@ -9,22 +9,22 @@ describe("Test Errors", () => {
 	});
 
 	it("test ServiceNotFoundError", () => {
-		let data = {};
-		let err = new errors.ServiceNotFoundError("Something went wrong!", data);
+		let err = new errors.ServiceNotFoundError("Something went wrong!");
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err.name).toBe("ServiceNotFoundError");
 		expect(err.message).toBe("Something went wrong!");
-		expect(err.data).toBe(data);
 	});
 
 	it("test RequestTimeoutError", () => {
-		let data = {};
-		let err = new errors.RequestTimeoutError("Something went wrong!", data);
+		let data = {
+			action: "posts.find"
+		};
+		let err = new errors.RequestTimeoutError(data, "server-2");
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err.name).toBe("RequestTimeoutError");
-		expect(err.message).toBe("Something went wrong!");
+		expect(err.message).toBe("Request timed out when call 'posts.find' action on 'server-2' node!");
 		expect(err.data).toBe(data);
 	});
 

@@ -867,6 +867,10 @@ es5-ext@^0.10.7, es5-ext@^0.10.8, es5-ext@~0.10.11, es5-ext@~0.10.2, es5-ext@~0.
     es6-iterator "2"
     es6-symbol "~3.1"
 
+es6-error@4.0.1:
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/es6-error/-/es6-error-4.0.1.tgz#eeb3e280f57e2ec48d72a9fccaf6247d3c1f5719"
+
 es6-iterator@2:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/es6-iterator/-/es6-iterator-2.0.0.tgz#bd968567d61635e33c0b80727613c9cb4b096bac"
@@ -2018,14 +2022,14 @@ js-tokens@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-2.0.0.tgz#79903f5563ee778cc1162e6dcf1a0027c97f9cb5"
 
-js-yaml@3.6.1:
+js-yaml@3.6.1, js-yaml@^3.5.1:
   version "3.6.1"
   resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.6.1.tgz#6e5fe67d8b205ce4d22fad05b7781e8dadcc4b30"
   dependencies:
     argparse "^1.0.7"
     esprima "^2.6.0"
 
-js-yaml@^3.5.1, js-yaml@^3.7.0:
+js-yaml@^3.7.0:
   version "3.7.0"
   resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.7.0.tgz#5c967ddd837a9bfdca5f2de84253abe8a1c03b80"
   dependencies:
