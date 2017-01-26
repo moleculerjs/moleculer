@@ -408,23 +408,25 @@ describe("Test getLocalActionList", () => {
 
 	let broker = new ServiceBroker();
 
-	let mockService = {
+	let service = new Service(broker, {
 		name: "posts",
-		broker: broker
-	};
-
-	let mockAction = {
-		name: "posts.find",
-		service: mockService,
-		handler: jest.fn(ctx => ctx)
-	};	
-
-	broker.registerAction(mockService, mockAction);
+		actions: {
+			find: {
+				cache: true,
+				publish: false,
+				handler: jest.fn(ctx => ctx)
+			}
+		}
+	});
 
 	it("should contain the local registered action", () => {
 		let list = broker.getLocalActionList();
-		expect(list.length).toBe(1);
-		expect(list[0]).toBe("posts.find");
+		expect(Object.keys(list).length).toBe(1);
+		expect(list["posts.find"]).toEqual({
+			name: "posts.find",
+			cache: true,
+			publish: false
+		});
 	});
 
 	it("should not contain the remote registered action", () => {
@@ -436,21 +438,29 @@ describe("Test getLocalActionList", () => {
 
 		broker.registerAction(null, actionRemote, "node");
 		let list = broker.getLocalActionList();
-		expect(list.length).toBe(1);
+		expect(Object.keys(list).length).toBe(1);
 	});
 
 	it("should contain both registered local action", () => {
 
 		let actionLocal = {
 			name: "device.find",
-			service: mockService,
+			params: {
+				a: "required|number"
+			},
+			service: service,
 			handler: jest.fn()
 		};
 
-		broker.registerAction(mockService, actionLocal);
+		broker.registerAction(service, actionLocal);
 		let list = broker.getLocalActionList();
-		expect(list.length).toBe(2);
-		expect(list[1]).toBe("device.find");
+		expect(Object.keys(list).length).toBe(2);
+		expect(list["device.find"]).toEqual({
+			name: "device.find",
+			params: {
+				a: "required|number"
+			}
+		});
 	});
 });
 	
@@ -520,17 +530,27 @@ describe("Test nodes methods", () => {
 
 	let info = {
 		nodeID: "server-2",
-		actions: [
-			"other.find",
-			"other.get"
-		]
+		actions: {
+			"other.find": {
+				name: "other.find",
+				cache: true,
+				publish: false,
+			},
+			"other.get": {
+				name: "other.get",
+				cache: true,
+				params: {
+					id: "required|number"
+				}
+			}
+		}
 	};
 	broker.emitLocal = jest.fn();
 	let oldBrokerNodeDisconnected = broker.nodeDisconnected;
 
-	it("should register node", () => {
-		broker.processNodeInfo(info.nodeID, info);
+	broker.processNodeInfo(info.nodeID, info);
 
+	it("should register node", () => {
 		let node = broker.nodes.get("server-2");
 		expect(node).toBeDefined();
 		expect(node).toBe(info);
@@ -545,11 +565,23 @@ describe("Test nodes methods", () => {
 		expect(findItem).toBeDefined();
 		expect(findItem.local).toBeFalsy();
 		expect(findItem.nodeID).toBe("server-2");
+		expect(findItem.data).toEqual({
+			name: "other.find", 
+			cache: true, 
+			publish: false
+		});
 
 		let getItem = broker.actions.get("other.get").get();
 		expect(getItem).toBeDefined();
 		expect(getItem.local).toBeFalsy();
 		expect(getItem.nodeID).toBe("server-2");
+		expect(getItem.data).toEqual({
+			name: "other.get", 
+			cache: true,
+			params: {
+				id: "required|number"
+			}
+		});
 	});
 
 	it("should not contain duplicate actions", () => {

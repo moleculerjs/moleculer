@@ -591,12 +591,12 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	getLocalActionList() {
-		let res = [];
-		for (let entry of this.actions.entries()) {
-			if (entry[1].hasLocal()) {
-				res.push(entry[0]);
-			}
-		}
+		let res = {};
+		this.actions.forEach((entry, key) => {
+			let item = entry.getLocalItem();
+			if (item)
+				res[key] = _.omit(item.data, ["handler", "service"]);
+		});
 		return res;
 	}
 	
@@ -620,9 +620,8 @@ class ServiceBroker {
 
 		if (node.actions) {
 			// Add external actions
-			node.actions.forEach(name => {
-				let action = { name };
-
+			Object.keys(node.actions).forEach(key => {
+				let action = node.actions[key];
 				this.registerAction(null, action, node.nodeID);
 			});
 		}
@@ -687,8 +686,8 @@ class ServiceBroker {
 				node.available = false;
 				if (node.actions) {
 					// Add external actions
-					node.actions.forEach(name => {
-						let action = { name };
+					Object.keys(node.actions).forEach(key => {
+						let action = node.actions[key];
 						this.unregisterAction(null, action, node.nodeID);
 					});
 				}
