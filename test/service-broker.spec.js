@@ -532,7 +532,7 @@ describe("Test nodes methods", () => {
 		nodeID: "server-2",
 		actions: {
 			"other.find": {
-				name: "other.find",
+				name: "v2.other.find",
 				cache: true,
 				publish: false,
 			},

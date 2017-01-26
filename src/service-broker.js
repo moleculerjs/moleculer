@@ -620,8 +620,9 @@ class ServiceBroker {
 
 		if (node.actions) {
 			// Add external actions
-			Object.keys(node.actions).forEach(key => {
-				let action = node.actions[key];
+			Object.keys(node.actions).forEach(name => {
+				// Need to override the name cause of versioned action name;
+				let action = Object.assign({}, node.actions[name], { name });
 				this.registerAction(null, action, node.nodeID);
 			});
 		}
@@ -686,8 +687,8 @@ class ServiceBroker {
 				node.available = false;
 				if (node.actions) {
 					// Add external actions
-					Object.keys(node.actions).forEach(key => {
-						let action = node.actions[key];
+					Object.keys(node.actions).forEach(name => {
+						let action = Object.assign({}, node.actions[name], { name });
 						this.unregisterAction(null, action, node.nodeID);
 					});
 				}
