@@ -1,9 +1,16 @@
 # TODO
 
 ## Common
-- request timeout (30s default)
 - multi params for multi-call & return array
 - features (?)
+- transport actions with config in Node INFO:
+	```js
+	"posts.find": {
+		cache: true,
+		params: { ... },
+		publish: false
+	}
+	```
 
 - create d.ts file
 
