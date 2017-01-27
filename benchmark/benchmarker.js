@@ -91,6 +91,9 @@ class Benchmarker {
 		logger.log(chalk.yellow.bold(title));
 		logger.log(chalk.yellow.bold(lines));
 		logger.log("");	
+
+		require("./platform")(logger);
+		logger.log("");	
 	}
 }
 
