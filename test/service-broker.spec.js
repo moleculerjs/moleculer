@@ -624,6 +624,17 @@ describe("Test nodes methods", () => {
 		//expect(broker.emitLocal).toHaveBeenCalledWith("unregister.action.other.get", null, {"name": "other.get"}, "server-2");
 		//expect(broker.emitLocal).toHaveBeenCalledWith("unregister.action.other.find", null, {"name": "other.find"}, "server-2");
 	});	
+
+	it("should call node.broker event if disconnected unexpectedly", () => {
+		broker.processNodeInfo(info.nodeID, info);
+		broker.emitLocal.mockClear();
+
+		let node = broker.nodes.get("server-2");
+		broker.nodeDisconnected("server-2", true);
+		expect(node.available).toBeFalsy();
+		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
+		expect(broker.emitLocal).toHaveBeenCalledWith("node.broken", node);
+	});	
 });
 
 describe("Test ServiceBroker with Transporter", () => {

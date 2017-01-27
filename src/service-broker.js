@@ -639,7 +639,7 @@ class ServiceBroker {
 	nodeUnavailable(nodeID) {
 		let node = this.nodes.get(nodeID);
 		if (node) {
-			this.nodeDisconnected(nodeID);
+			this.nodeDisconnected(nodeID, true);
 		}
 	}
 
@@ -677,10 +677,11 @@ class ServiceBroker {
 	 * Remove node and remove remote actions of node
 	 * 
 	 * @param {any} nodeID
+	 * @param {Boolean} isUnexpected
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	nodeDisconnected(nodeID) {
+	nodeDisconnected(nodeID, isUnexpected) {
 		if (this.nodes.has(nodeID)) {
 			let node = this.nodes.get(nodeID);
 			if (node.available) {
@@ -693,7 +694,7 @@ class ServiceBroker {
 					});
 				}
 
-				this.emitLocal("node.disconnected", node);
+				this.emitLocal(isUnexpected ? "node.broken" : "node.disconnected", node);
 				//this.nodes.delete(nodeID);			
 				this.logger.warn(`Node '${nodeID}' disconnected!`);
 			}
