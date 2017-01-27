@@ -17,6 +17,13 @@
 	https://github.com/tj/ngen 
 
 - circuit breaker: https://github.com/awolden/brakes
+- https://github.com/aldeed/meteor-simple-schema
+
+- Docs: https://github.com/segmentio/metalsmith
+
+## Broker
+- handleExceptions: true option
+	Catch unhandled exceptions and send an event with details. Can be catch in metrics, alert or logger services
 
 ## Services
 - Validator Factory for service what is resolve the params schema. Built-in resolver is validatorjs (it is the fastest)
