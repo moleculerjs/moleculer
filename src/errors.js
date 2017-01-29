@@ -44,8 +44,7 @@ class RequestTimeoutError extends ExtendableError {
 	 */
 	constructor(data, nodeID) {
 		super(`Request timed out when call '${data.action}' action on '${nodeID}' node!`);
-		if (data)
-			this.data = data;
+		this.data = data;
 	}
 }
 

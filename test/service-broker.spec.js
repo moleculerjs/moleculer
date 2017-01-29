@@ -5,6 +5,7 @@ const Service = require("../src/service");
 const ServiceBroker = require("../src/service-broker");
 const Context = require("../src/context");
 const Transporter = require("../src/transporters/base");
+const { RequestTimeoutError } = require("../src/errors");
 
 describe("Test ServiceBroker constructor", () => {
 
@@ -194,6 +195,7 @@ describe("Test loadServices", () => {
 		expect(broker.loadServices("./examples")).toBe(6);
 		expect(broker.hasService("math")).toBeTruthy();
 		expect(broker.hasAction("math.add")).toBeTruthy();
+		expect(broker.isActionAvailable("math.add")).toBeTruthy();
 	});
 
 });
@@ -207,6 +209,7 @@ describe("Test loadService", () => {
 		expect(service).toBeDefined();
 		expect(broker.hasService("math")).toBeTruthy();
 		expect(broker.hasAction("math.add")).toBeTruthy();
+		expect(broker.isActionAvailable("math.add")).toBeTruthy();
 	});
 
 });
@@ -558,6 +561,8 @@ describe("Test nodes methods", () => {
 
 		expect(broker.emitLocal).toHaveBeenCalledTimes(3);
 		expect(broker.emitLocal).toHaveBeenCalledWith("node.connected", node);
+
+		expect(broker.isNodeAvailable("server-2")).toBeTruthy();
 	});
 
 	it("should find the remote actions", () => {
@@ -582,6 +587,10 @@ describe("Test nodes methods", () => {
 				id: "required|number"
 			}
 		});
+
+		expect(broker.isActionAvailable("other.find")).toBeTruthy();
+		expect(broker.isActionAvailable("other.get")).toBeTruthy();
+		
 	});
 
 	it("should not contain duplicate actions", () => {
@@ -600,8 +609,8 @@ describe("Test nodes methods", () => {
 		broker.nodeHeartbeat("server-2");
 		expect(node.lastHeartbeatTime).not.toBe(1000);
 	});	
-
-	it.skip("should call 'nodeDisconnected' if the heartbeat time is too old", () => {
+	/*
+	it("should call 'nodeDisconnected' if the heartbeat time is too old", () => {
 		let node = broker.nodes.get("server-2");
 		broker.nodeDisconnected = jest.fn();
 		broker.nodeHeartbeat("server-2");
@@ -612,6 +621,7 @@ describe("Test nodes methods", () => {
 		broker.checkRemoteNodes();
 		expect(broker.nodeDisconnected).toHaveBeenCalledTimes(1);
 	});	
+	*/
 
 	it("should remove node from nodes map", () => {
 		broker.nodeDisconnected = oldBrokerNodeDisconnected;
@@ -619,10 +629,13 @@ describe("Test nodes methods", () => {
 		let node = broker.nodes.get("server-2");
 		broker.nodeDisconnected("server-2");
 		expect(node.available).toBeFalsy();
+		expect(broker.isNodeAvailable("server-2")).toBeFalsy();		
+
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
 		expect(broker.emitLocal).toHaveBeenCalledWith("node.disconnected", node);
-		//expect(broker.emitLocal).toHaveBeenCalledWith("unregister.action.other.get", null, {"name": "other.get"}, "server-2");
-		//expect(broker.emitLocal).toHaveBeenCalledWith("unregister.action.other.find", null, {"name": "other.find"}, "server-2");
+
+		expect(broker.isActionAvailable("other.find")).toBeFalsy();
+		expect(broker.isActionAvailable("other.get")).toBeFalsy();
 	});	
 
 	it("should call node.broker event if disconnected unexpectedly", () => {
@@ -632,8 +645,22 @@ describe("Test nodes methods", () => {
 		let node = broker.nodes.get("server-2");
 		broker.nodeDisconnected("server-2", true);
 		expect(node.available).toBeFalsy();
+		expect(broker.isNodeAvailable("server-2")).toBeFalsy();		
+
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
 		expect(broker.emitLocal).toHaveBeenCalledWith("node.broken", node);
+
+		expect(broker.isActionAvailable("other.find")).toBeFalsy();
+		expect(broker.isActionAvailable("other.get")).toBeFalsy();
+	});	
+
+	it("should call nodeDisconnected if nodeUnavailable", () => {
+		broker.processNodeInfo(info.nodeID, info);
+		broker.nodeDisconnected = jest.fn();
+
+		broker.nodeUnavailable("server-2");
+		expect(broker.nodeDisconnected).toHaveBeenCalledTimes(1);
+		expect(broker.nodeDisconnected).toHaveBeenCalledWith("server-2", true);
 	});	
 });
 
@@ -689,7 +716,7 @@ describe("Test ServiceBroker with Transporter", () => {
 		handler: jest.fn(ctx => ctx)
 	};
 
-	it("should call transporter.request wqith new context", () => {
+	it("should call transporter.request with new context", () => {
 		let p = { abc: 100 };
 
 		broker.registerAction(mockService, mockAction, "99999");
@@ -709,6 +736,17 @@ describe("Test ServiceBroker with Transporter", () => {
 			expect(transporter.request).toHaveBeenCalledTimes(1);
 			expect(transporter.request).toHaveBeenCalledWith("99999", ctx);
 			expect(ctx.parent).toBe(parentCtx);		
+		});
+	});
+
+	it("should call broker.nodeUnavailable if transporter.request throw RequestTimeoutError", () => {
+		let p = { abc: 100 };
+		let parentCtx = new Context(p);
+		transporter.request = jest.fn(() => Promise.reject(new RequestTimeoutError({ action: "posts.find" }, "server-2")));
+
+		return broker.call("posts.find", p).catch(err => {
+			expect(err).toBeInstanceOf(RequestTimeoutError);
+			expect(err.data.action).toBe("posts.find");
 		});
 	});
 	

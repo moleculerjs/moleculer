@@ -422,8 +422,8 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	isActionAvailable(actionName) {
-		let action = this.actions.has(actionName);
-		return action && action.count > 0;
+		let action = this.actions.get(actionName);
+		return action && action.count() > 0;
 	}	
 
 	/**
@@ -543,7 +543,9 @@ class ServiceBroker {
 			return ctx.invoke(() => {
 				return this.callMiddlewares(ctx, () => {
 					return this.transporter.request(nodeID, ctx).catch(err => {
-						this.nodeUnavailable(nodeID);
+						if (err instanceof errors.RequestTimeoutError)
+							this.nodeUnavailable(nodeID);
+
 						return Promise.reject(err);
 					});
 				});
@@ -706,6 +708,7 @@ class ServiceBroker {
 	 * 
 	 * @memberOf ServiceBroker
 	 */
+	/* istanbul ignore next */
 	checkRemoteNodes() {
 		return; 
 		// SKIP
