@@ -7,28 +7,38 @@
 "use strict";
 
 const Promise		= require("bluebird");
+const micromatch  	= require("micromatch");
 const BaseCacher  	= require("./base");
 /**
  * Cacher factory for memory cache
  * 
  * 		Similar: https://github.com/mpneuried/nodecache/blob/master/_src/lib/node_cache.coffee
  * 
- * @class Cacher
+ * @class MemoryCacher
  */
 class MemoryCacher extends BaseCacher {
 
 	/**
-	 * Creates an instance of Cacher.
+	 * Creates an instance of MemoryCacher.
 	 * 
 	 * @param {object} opts
 	 * 
-	 * @memberOf Cacher
+	 * @memberOf MemoryCacher
 	 */
 	constructor(opts) {
 		super(opts);
 		
 		// Cache container
 		this.cache = {};
+
+		if (this.opts.ttl) {
+			this.timer = setInterval(() => {
+				/* istanbul ignore next */
+				this.checkTTL();
+			}, 30 * 1000);
+
+			this.timer.unref();
+		}
 
 		if (this.opts.ttl) {
 			this.timer = setInterval(() => {
@@ -49,12 +59,15 @@ class MemoryCacher extends BaseCacher {
 	 * @memberOf Cacher
 	 */
 	get(key) {
-		let item = this.cache[this.prefix + key];
+		this.logger.debug(`Get ${key}`);
+		let item = this.cache[key];
 		if (item) { 
-			this.logger.debug(`GET ${this.prefix}${key}`);
-			// Update expire time (hold in the cache if we are using it)
-			item.expire = Date.now() + this.opts.ttl * 1000;
+			this.logger.debug(`Found ${key}`);
 
+			if (this.opts.ttl) {
+				// Update expire time (hold in the cache if we are using it)
+				item.expire = Date.now() + this.opts.ttl * 1000;
+			}
 			return Promise.resolve(item.data);
 		}
 		return Promise.resolve(null);
@@ -70,11 +83,11 @@ class MemoryCacher extends BaseCacher {
 	 * @memberOf Cacher
 	 */
 	set(key, data) {
-		this.cache[this.prefix + key] = {
-			data: data,
-			expire: Date.now() + this.opts.ttl * 1000
+		this.cache[key] = {
+			data,
+			expire: this.opts.ttl ? Date.now() + this.opts.ttl * 1000 : null
 		};
-		this.logger.debug(`SET ${this.prefix}${key}`);
+		this.logger.debug(`Set ${key}`);
 		return Promise.resolve(data);
 	}
 
@@ -87,11 +100,51 @@ class MemoryCacher extends BaseCacher {
 	 * @memberOf Cacher
 	 */
 	del(key) {
-		delete this.cache[this.prefix + key];
-		this.logger.debug(`DEL ${this.prefix}${key}`);
+		delete this.cache[key];
+		this.logger.debug(`Delete ${key}`);
 		return Promise.resolve();
 	}
 
+	/**
+	 * Clean cache. Remove every key by match
+	 * @param {any} match string. Default is "**"
+	 * @returns {Promise}
+	 * 
+	 * @memberOf Cacher
+	 */
+	clean(match = "**") {
+		this.logger.debug(`CLEAN ${this.prefix}${match}`);
+
+		let keys = Object.keys(this.cache);
+		keys.forEach((key) => {
+			if (micromatch.isMatch(key, this.prefix + match)) {
+				this.logger.debug(`REMOVE ${key}`);
+				delete this.cache[key];
+			}
+		});
+
+		return Promise.resolve();
+	}
+
+
+	/**
+	 * Check & remove the expired cache items
+	 * 
+	 * @memberOf MemoryMapCacher
+	 */
+	checkTTL() {
+		let self = this;
+		let now = Date.now();
+		let keys = Object.keys(this.cache);
+		keys.forEach((key) => {
+			let item = this.cache[key];
+
+			if (item.expire && item.expire < now) {
+				this.logger.debug(`EXPIRED ${key}`);
+				delete self.cache[key];
+			}
+		});
+	}	
 }
 
 module.exports = MemoryCacher;

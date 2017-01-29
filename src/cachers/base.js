@@ -8,7 +8,6 @@
 
 const Promise		= require("bluebird");
 const _ 			= require("lodash");
-const micromatch  	= require("micromatch");
 const { hash } 		= require("node-object-hash")({ sort: false, coerce: false});
 const { isPromise }	= require("../utils");
 
@@ -33,16 +32,6 @@ class Cacher {
 		});
 
 		this.prefix = this.opts.prefix;
-
-		if (this.opts.ttl) {
-			this.timer = setInterval(() => {
-				/* istanbul ignore next */
-				this.checkTTL();
-			}, 30 * 1000);
-
-			this.timer.unref();
-		}
-		
 	}
 
 	/**
@@ -121,14 +110,8 @@ class Cacher {
 	 * @memberOf Cacher
 	 */
 	clean(match = "**") {
-		this.logger.debug(`CLEAN ${match}`);
-
-		this.cache.keys.forEach((key) => {
-			if (micromatch.isMatch(key, match))
-				this.del(key);
-		});
-
-		return Promise.resolve();
+		/* istanbul ignore next */
+		throw new Error("Not implemented method!");
 	}
 
 	/**
@@ -177,26 +160,6 @@ class Cacher {
 			});
 		};
 	}
-
-	/**
-	 * Check & remove the expired cache items
-	 * 
-	 * @memberOf MemoryMapCacher
-	 */
-	checkTTL() {
-		let self = this;
-		let now = Date.now();
-		this.cache.keys.forEach((key) => {
-			let item = this.cache.get(key);
-
-			if (item.expire && item.expire < now) {
-				this.logger.debug(`EXPIRED ${key}`);
-				self.cache.delete(key);
-			}
-		});
-	}
-
-
 		
 }
 

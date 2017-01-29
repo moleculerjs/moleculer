@@ -7,6 +7,7 @@
 "use strict";
 
 const Promise		= require("bluebird");
+const micromatch  	= require("micromatch");
 const BaseCacher  	= require("./base");
 /**
  * Cacher factory for memory cache
@@ -29,6 +30,15 @@ class MemoryMapCacher extends BaseCacher {
 		
 		// Cache container
 		this.cache = new Map();
+
+		if (this.opts.ttl) {
+			this.timer = setInterval(() => {
+				/* istanbul ignore next */
+				this.checkTTL();
+			}, 30 * 1000);
+
+			this.timer.unref();
+		}		
 	}
 
 	/**
@@ -40,8 +50,10 @@ class MemoryMapCacher extends BaseCacher {
 	 * @memberOf MemoryMapCacher
 	 */
 	get(key) {
+		this.logger.debug(`Get ${key}`);
+
 		if (this.cache.has(key)) { 
-			this.logger.debug(`GET ${key}`);
+			this.logger.debug(`Found ${key}`);
 
 			let item = this.cache.get(key);
 
@@ -51,7 +63,7 @@ class MemoryMapCacher extends BaseCacher {
 			}
 			return Promise.resolve(item.data);
 		}
-		return Promise.resolve();
+		return Promise.resolve(null);
 	}
 
 	/**
@@ -68,7 +80,7 @@ class MemoryMapCacher extends BaseCacher {
 			data,
 			expire: this.opts.ttl ? Date.now() + this.opts.ttl * 1000 : null
 		});
-		this.logger.debug(`SET ${key}`);
+		this.logger.debug(`Set ${key}`);
 		return Promise.resolve(data);
 	}
 
@@ -82,9 +94,44 @@ class MemoryMapCacher extends BaseCacher {
 	 */
 	del(key) {
 		this.cache.delete(key);
-		this.logger.debug(`DEL ${key}`);
+		this.logger.debug(`Delete ${key}`);
 		return Promise.resolve();
 	}
 
+	/**
+	 * Clean cache. Remove every key by match
+	 * @param {any} match string. Default is "**"
+	 * @returns {Promise}
+	 * 
+	 * @memberOf Cacher
+	 */
+	clean(match = "**") {
+		this.logger.debug(`Clean ${match}`);
+
+		this.cache.keys.forEach((key) => {
+			if (micromatch.isMatch(key, match))
+				this.del(key);
+		});
+
+		return Promise.resolve();
+	}
+
+	/**
+	 * Check & remove the expired cache items
+	 * 
+	 * @memberOf MemoryMapCacher
+	 */
+	checkTTL() {
+		let self = this;
+		let now = Date.now();
+		this.cache.keys.forEach((key) => {
+			let item = this.cache.get(key);
+
+			if (item.expire && item.expire < now) {
+				this.logger.debug(`Expired ${key}`);
+				self.cache.delete(key);
+			}
+		});
+	}
 }
 module.exports = MemoryMapCacher;

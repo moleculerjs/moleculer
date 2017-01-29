@@ -99,7 +99,7 @@ describe("Test MemoryCacher delete", () => {
 
 });
 
-describe("Test MemoryCacher clean without prefix", () => {
+describe("Test MemoryCacher clean", () => {
 
 	let broker = new ServiceBroker();
 	let cacher = new MemoryCacher({});
@@ -126,76 +126,6 @@ describe("Test MemoryCacher clean without prefix", () => {
 	it("should give item in cache for keys", () => {
 		expect(cacher.cache[key1]).toBeDefined();
 		expect(cacher.cache[key2]).toBeDefined();
-	});	
-
-	it("should clean test* keys", () => {
-		let p = cacher.clean("tst*");
-		expect(utils.isPromise(p)).toBeTruthy();
-		return p;
-	});
-
-	it("should give null for key1", () => {
-		let p = cacher.get(key1);
-		expect(utils.isPromise(p)).toBeTruthy();
-		return p.then((obj) => {
-			expect(obj).toBeNull();
-		});
-	});
-
-	it("should give back data 2 for key2", () => {
-		let p = cacher.get(key2);
-		expect(utils.isPromise(p)).toBeTruthy();
-		return p.then((obj) => {
-			expect(obj).toEqual(data2);
-		});
-	});
-
-	it("should clean all keys", () => {
-		let p = cacher.clean();
-		expect(utils.isPromise(p)).toBeTruthy();
-		return p;
-	});
-
-	it("should give null for key2 too", () => {
-		let p = cacher.get(key1);
-		expect(utils.isPromise(p)).toBeTruthy();
-		return p.then((obj) => {
-			expect(obj).toBeNull();
-		});
-	});
-
-});
-
-describe("Test MemoryCacher clean wit prefix", () => {
-	let prefix = "devices:get:";
-
-	let broker = new ServiceBroker();
-	let cacher = new MemoryCacher({
-		prefix
-	});
-	cacher.init(broker); // for empty logger
-
-	let key1 = "tst123";
-	let key2 = "posts123";
-	let data1 = {
-		a: 1,
-		b: false,
-		c: "Test",
-		d: {
-			e: 55
-		}
-	};
-	let data2 = "Data2";
-
-	it("should save the data with key", () => {
-		return cacher.set(key1, data1).then(() => {
-			return cacher.set(key2, data2);
-		});
-	});
-
-	it("should give item in cache for keys", () => {
-		expect(cacher.cache[prefix + key1]).toBeDefined();
-		expect(cacher.cache[prefix + key2]).toBeDefined();
 	});	
 
 	it("should clean test* keys", () => {

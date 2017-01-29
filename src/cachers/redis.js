@@ -13,16 +13,16 @@ const BaseCacher 	= require("./base");
 /**
  * Cacher factory for Redis
  * 
- * @class Cacher
+ * @class RedisCacher
  */
 class RedisCacher extends BaseCacher {
 
 	/**
-	 * Creates an instance of Cacher.
+	 * Creates an instance of RedisCacher.
 	 * 
 	 * @param {object} opts
 	 * 
-	 * @memberOf Cacher
+	 * @memberOf RedisCacher
 	 */
 	constructor(opts) {
 		super(opts);
@@ -82,8 +82,10 @@ class RedisCacher extends BaseCacher {
 	 * @memberOf Cacher
 	 */
 	get(key) {
+		this.logger.debug(`Get ${key}`);
 		return this.client.get(this.prefix + key).then((data) => {
 			if (data) {
+				this.logger.debug(`Found ${key}`);
 				try {
 					return JSON.parse(data);
 				} catch (err) {
@@ -107,6 +109,7 @@ class RedisCacher extends BaseCacher {
 		if (_.isObject(data)) {
 			data = JSON.stringify(data);
 		}
+		this.logger.debug(`Set ${key}`);
 
 		if (this.opts.ttl) {
 			return this.client.setex(this.prefix + key, this.opts.ttl, data);/*, (err) => {
@@ -130,6 +133,7 @@ class RedisCacher extends BaseCacher {
 	 * @memberOf Cacher
 	 */
 	del(key) {
+		this.logger.debug(`Delete ${key}`);
 		return this.client.del(this.prefix + key).catch((err) => {
 			/* istanbul ignore next */
 			this.logger.error("Redis `del` error!", err);
