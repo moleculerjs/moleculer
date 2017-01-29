@@ -13,31 +13,22 @@ const BaseCacher  	= require("./base");
  * 
  * 		Similar: https://github.com/mpneuried/nodecache/blob/master/_src/lib/node_cache.coffee
  * 
- * @class Cacher
+ * @class MemoryMapCacher
  */
-class MemoryCacher extends BaseCacher {
+class MemoryMapCacher extends BaseCacher {
 
 	/**
-	 * Creates an instance of Cacher.
+	 * Creates an instance of MemoryMapCacher.
 	 * 
 	 * @param {object} opts
 	 * 
-	 * @memberOf Cacher
+	 * @memberOf MemoryMapCacher
 	 */
 	constructor(opts) {
 		super(opts);
 		
 		// Cache container
-		this.cache = {};
-
-		if (this.opts.ttl) {
-			this.timer = setInterval(() => {
-				/* istanbul ignore next */
-				this.checkTTL();
-			}, 30 * 1000);
-
-			this.timer.unref();
-		}
+		this.cache = new Map();
 	}
 
 	/**
@@ -46,18 +37,21 @@ class MemoryCacher extends BaseCacher {
 	 * @param {any} key
 	 * @returns {Promise}
 	 *  
-	 * @memberOf Cacher
+	 * @memberOf MemoryMapCacher
 	 */
 	get(key) {
-		let item = this.cache[this.prefix + key];
-		if (item) { 
-			this.logger.debug(`GET ${this.prefix}${key}`);
-			// Update expire time (hold in the cache if we are using it)
-			item.expire = Date.now() + this.opts.ttl * 1000;
+		if (this.cache.has(key)) { 
+			this.logger.debug(`GET ${key}`);
 
+			let item = this.cache.get(key);
+
+			if (this.opts.ttl) {
+				// Update expire time (hold in the cache if we are using it)
+				item.expire = Date.now() + this.opts.ttl * 1000;
+			}
 			return Promise.resolve(item.data);
 		}
-		return Promise.resolve(null);
+		return Promise.resolve();
 	}
 
 	/**
@@ -67,14 +61,14 @@ class MemoryCacher extends BaseCacher {
 	 * @param {any} data JSON object
 	 * @returns {Promise}
 	 * 
-	 * @memberOf Cacher
+	 * @memberOf MemoryMapCacher
 	 */
 	set(key, data) {
-		this.cache[this.prefix + key] = {
-			data: data,
-			expire: Date.now() + this.opts.ttl * 1000
-		};
-		this.logger.debug(`SET ${this.prefix}${key}`);
+		this.cache.set(key, {
+			data,
+			expire: this.opts.ttl ? Date.now() + this.opts.ttl * 1000 : null
+		});
+		this.logger.debug(`SET ${key}`);
 		return Promise.resolve(data);
 	}
 
@@ -84,14 +78,13 @@ class MemoryCacher extends BaseCacher {
 	 * @param {any} key
 	 * @returns {Promise}
 	 * 
-	 * @memberOf Cacher
+	 * @memberOf MemoryMapCacher
 	 */
 	del(key) {
-		delete this.cache[this.prefix + key];
-		this.logger.debug(`DEL ${this.prefix}${key}`);
+		this.cache.delete(key);
+		this.logger.debug(`DEL ${key}`);
 		return Promise.resolve();
 	}
 
 }
-
-module.exports = MemoryCacher;
+module.exports = MemoryMapCacher;

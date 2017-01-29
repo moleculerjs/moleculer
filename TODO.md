@@ -6,6 +6,15 @@
 
 - create d.ts file
 
+- cache: Meg lehessen adni hogy a cacheKey-hez mely paramétereket vegye figyelembe.
+	Így pl egy get-nél csal elég megadni, hogy "id" és akkor nem kell meghívni
+	a "drága" object-hash-et. Illetve, ha tovább van adva a user, akkor azt
+	is hagyja ki belőle. 
+
+- Context-nél legyen egy ctx.user, amit a requester állít be. Pl Express
+	Ez nem a params-ba megy, hogy cache-elést ne zavarja meg.	
+
+
 - cli tool for generate project & Services
 	- https://github.com/sboudrias/Inquirer.js
 	- https://github.com/tj/consolidate.js
@@ -34,6 +43,7 @@
 - add gzip support
 
 ## Cachers
+- change memory cacher to Map.
 - add lru features to Memory and Redis
 
 ## Context
