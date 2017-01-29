@@ -150,8 +150,8 @@ class Service {
 
 		// Cache
 		if (this.broker.cacher) {
-			if (action.cache === true || (action.cache === undefined && this.settings.cache === true)) {
-				action.cache = true;
+			if (action.cache || (action.cache === undefined && this.settings.cache === true)) {
+				action.cache = action.cache || true;
 				action.handler = this.broker.cacher.wrapHandler(action, action.handler);
 			} else
 				action.cache = false;

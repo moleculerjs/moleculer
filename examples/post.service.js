@@ -30,7 +30,9 @@ module.exports = function() {
 			},
 
 			get: {
-				cache: true,
+				cache: {
+					keys: ["id"]
+				},
 				handler(ctx) {
 					// this.logger.debug("Get post...", ctx.params);
 					let post = _.cloneDeep(_.find(posts, post => post.id == ctx.params.id));

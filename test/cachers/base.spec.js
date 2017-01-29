@@ -70,10 +70,23 @@ describe("Test BaseCacher", () => {
 		expect(res).toBe("posts.find:");
 		
 		res = cacher.getCacheKey(null, {});
-		expect(res).toBe("44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a");
+		expect(res).toBe("");
 		
 		res = cacher.getCacheKey(null, {a: 5});
 		expect(res).toBe("b0a7093990109d1355dc833dcddecae4de9624d2226b9499d459b8ef94353942");
+
+		res = cacher.getCacheKey(null, {a: 5}, ["a"]);
+		expect(res).toBe("5");
+		
+		res = cacher.getCacheKey(null, {a: 5, b: 3, c: 5}, ["a"]);
+		expect(res).toBe("5");
+		
+		res = cacher.getCacheKey(null, {a: 5, b: { id: 3 }}, ["a", "c", "b"]);
+		// FIXME
+		expect(res).toBe("5--[object Object]");
+		
+		res = cacher.getCacheKey(null, {a: 5, b: 3}, []);
+		expect(res).toBe("279761c41681ae34e83975977d829b11a278edce47f4704cd82bb94b6f054b1e");
 		
 	});	
 });
@@ -91,6 +104,7 @@ describe("Test wrapHandler", () => {
 
 	let mockAction = {
 		name: "posts.find",
+		cache: true,
 		handler: jest.fn()
 	};
 	let params = { id: 3, name: "Antsa" };

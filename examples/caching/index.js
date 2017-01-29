@@ -16,13 +16,15 @@ let broker = new ServiceBroker({
 	logger: console,
 	logLevel: {
 		"*": "warn",
-		//"CACHER": "debug",
-		"CTX": "debug"
+		"CACHER": "debug",
+		//"CTX": "debug",
+		"METRICS-SVC": "debug"
 	},
-	metrics: true
+	metrics: true,
+	cacher: new MemoryCacher()
 });
 
-broker.use(cache(broker, new MemoryCacher()));
+//broker.use(cache(broker, new MemoryCacher()));
 
 // Load services
 console.log(""); 

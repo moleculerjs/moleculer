@@ -23,7 +23,9 @@ module.exports = function(broker) {
 			},
 
 			get: {
-				cache: true,
+				cache: {
+					keys: ["id"]
+				},
 				handler(ctx) {
 					//this.logger.debug("Get user...", ctx.params);
 					return this.findByID(ctx.params.id);

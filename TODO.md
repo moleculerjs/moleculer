@@ -11,6 +11,17 @@
 	a "drága" object-hash-et. Illetve, ha tovább van adva a user, akkor azt
 	is hagyja ki belőle. 
 
+Suite: Call with cachers
+›› No cacher x 344,946 ops/sec ±0.22% (86 runs sampled)
+›› Built-in cacher x 128,925 ops/sec ±0.39% (85 runs sampled)
+›› Middleware cacher x 115,360 ops/sec ±1.06% (86 runs sampled)
+
+   No cacher             0.00%    (344,946 ops/sec)
+   Built-in cacher     -62.62%    (128,925 ops/sec)
+   Middleware cacher   -66.56%    (115,360 ops/sec)
+-----------------------------------------------------------------------
+	
+
 - Context-nél legyen egy ctx.user, amit a requester állít be. Pl Express
 	Ez nem a params-ba megy, hogy cache-elést ne zavarja meg.	
 
@@ -43,7 +54,6 @@
 - add gzip support
 
 ## Cachers
-- change memory cacher to Map.
 - add lru features to Memory and Redis
 
 ## Context

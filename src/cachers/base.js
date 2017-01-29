@@ -120,10 +120,18 @@ class Cacher {
 	 * 
 	 * @param {any} name
 	 * @param {any} params
+	 * @param {any} keys
 	 * @returns
 	 */
-	getCacheKey(name, params) {
-		return (name ? name + ":" : "") + (params ? hash(params) : "");
+	getCacheKey(name, params, keys) {
+		let hashKey = "";
+		if (params && Object.keys(params).length > 0) {
+			if (keys && keys.length > 0)
+				hashKey = keys.map(key => params[key]).join("-");
+			else
+				hashKey = hash(params);
+		}
+		return (name ? name + ":" : "") + hashKey;
 	}
 
 	/**
@@ -134,7 +142,7 @@ class Cacher {
 	 */
 	wrapHandler(action, handler) {
 		return (ctx) => {
-			const cacheKey = this.getCacheKey(action.name, ctx.params);
+			const cacheKey = this.getCacheKey(action.name, ctx.params, action.cache.keys);
 
 			return Promise.resolve()
 			.then(() => {
