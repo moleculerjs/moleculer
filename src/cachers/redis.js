@@ -151,10 +151,11 @@ class RedisCacher extends BaseCacher {
 	 * @memberOf Cacher
 	 */
 	clean(match = "*") {
+		this.logger.debug(`CLEAN ${this.prefix}${match}`);
 		let self = this;
 		let scanDel = function (cursor, cb) {
 			/* istanbul ignore next */
-			self.client.scan(cursor, "MATCH", self.prefix + match, "COUNT", 100, function (err, resp) {
+			self.client.scan(cursor, "MATCH", self.prefix + match.replace(/\*\*/g, "*"), "COUNT", 100, function (err, resp) {
 				if (err) {
 					return cb(err);
 				}

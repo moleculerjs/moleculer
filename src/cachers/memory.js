@@ -113,11 +113,11 @@ class MemoryCacher extends BaseCacher {
 	 * @memberOf Cacher
 	 */
 	clean(match = "**") {
-		this.logger.debug(`CLEAN ${this.prefix}${match}`);
+		this.logger.debug(`CLEAN ${match}`);
 
 		let keys = Object.keys(this.cache);
 		keys.forEach((key) => {
-			if (micromatch.isMatch(key, this.prefix + match)) {
+			if (micromatch.isMatch(key, match)) {
 				this.logger.debug(`REMOVE ${key}`);
 				delete this.cache[key];
 			}
