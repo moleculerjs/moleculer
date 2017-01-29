@@ -333,6 +333,22 @@ describe("Test cached actions", () => {
 		expect(broker.cacher.wrapHandler).toHaveBeenCalledTimes(1);
 	});
 
+	it("wrap, if schema cache is UNDEFINED and action cache is Object", () => {
+		let schema = {
+			name: "cache-test",
+			actions: {
+				find: {
+					cache: {},
+					handler() {}
+				}
+			}
+		};
+		
+		broker.cacher.wrapHandler.mockClear();
+		new Service(broker, schema);
+		expect(broker.cacher.wrapHandler).toHaveBeenCalledTimes(1);
+	});
+
 	it("wrap, if schema cache is FALSE and action cache is TRUE", () => {
 		let schema = {
 			name: "cache-test",
@@ -357,6 +373,25 @@ describe("Test cached actions", () => {
 			actions: {
 				find: {
 					cache: true,
+					handler() {}
+				}
+			}
+		};
+		
+		broker.cacher.wrapHandler.mockClear();
+		new Service(broker, schema);
+		expect(broker.cacher.wrapHandler).toHaveBeenCalledTimes(1);
+	});
+
+	it("wrap, if schema cache is TRUE and action cache is Object", () => {
+		let schema = {
+			name: "cache-test",
+			settings: { cache: true },
+			actions: {
+				find: {
+					cache: {
+						keys: ["id"]
+					},
 					handler() {}
 				}
 			}

@@ -105,11 +105,27 @@ let cache = require("../../src/middlewares/cache");
 })();
 
 (function() {
+	let broker = createBroker({ cacher: new MemoryCacher() });
+	bench3.add("Built-in cacher (keys filter)", () => {
+		return broker.call("users.get2", { id: 5 });
+	});
+})();
+
+(function() {
 	let broker = createBroker();
 	broker.use(cache(broker, new MemoryCacher()));
 
 	bench3.add("Middleware cacher", () => {
 		return broker.call("users.get", { id: 5 });
+	});
+})();
+
+(function() {
+	let broker = createBroker();
+	broker.use(cache(broker, new MemoryCacher()));
+
+	bench3.add("Middleware cacher (keys filter)", () => {
+		return broker.call("users.get2", { id: 5 });
 	});
 })();
 

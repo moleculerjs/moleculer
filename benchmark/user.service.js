@@ -26,6 +26,15 @@ module.exports = function(broker) {
 				}
 			},
 
+			get2: {
+				cache: {
+					keys: ["id"]
+				},
+				handler(ctx) {
+					return _.find(users, user => user.id == ctx.params.id);
+				}
+			},
+
 			nocache: {
 				cache: false,
 				handler(ctx) {

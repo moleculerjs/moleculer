@@ -9,8 +9,15 @@
 const Promise	= require("bluebird");
 const { hash } 	= require("node-object-hash")({ sort: false, coerce: false});
 
-function getCacheKey(name, params) {
-	return (name ? name + ":" : "") + (params ? hash(params) : "");
+function getCacheKey(name, params, keys) {
+	let hashKey = "";
+	if (params && Object.keys(params).length > 0) {
+		if (keys && keys.length > 0)
+			hashKey = keys.map(key => params[key]).join("-");
+		else
+			hashKey = hash(params);
+	}
+	return (name ? name + ":" : "") + hashKey;
 }
 
 module.exports = function cachingMiddleware(broker, cacher) {
@@ -18,7 +25,7 @@ module.exports = function cachingMiddleware(broker, cacher) {
 
 	return function cacheWrapper(ctx, next) {
 
-		let cacheKey = getCacheKey(ctx.action.name, ctx.params);
+		let cacheKey = getCacheKey(ctx.action.name, ctx.params, ctx.action.cache.keys);
 		let p = Promise.resolve()
 		.then(() => {
 			if (ctx.action.cache === true)
