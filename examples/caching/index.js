@@ -3,12 +3,20 @@
 let _ = require("lodash");
 let path = require("path");
 let glob = require("glob");
+let Promise = require("bluebird");
 
 let utils = require("../../src/utils");
 let ServiceBroker = require("../../src/service-broker");
 
 let MemoryCacher = require("../../src/cachers").Memory;
 let cache = require("../../src/middlewares/cache");
+
+/*
+process.on("promiseCreated", promise => console.log("New promise created!", promise));
+process.on("promiseChained", promise => console.log("New promise created!"));
+Promise.config({
+	monitoring: true
+});*/
 
 // Create broker
 let broker = new ServiceBroker({

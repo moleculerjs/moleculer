@@ -21,12 +21,16 @@ class Benchmarker {
 		return fs.readFileSync(path.join(__dirname, "data", filename), encoding);
 	}
 
-	add(name, fn) {
-		if (this.async) {
+	add(name, fn, async = this.async) {
+		if (async) {
 			this.suite.add(name, {
 				defer: true,
 				fn(deferred) {
-					return fn().then(() => deferred.resolve());
+					const res = fn();
+					if (res.then)
+						return fn().then(() => deferred.resolve());
+					else
+						return deferred.resolve();
 				}
 			});
 		} else {
