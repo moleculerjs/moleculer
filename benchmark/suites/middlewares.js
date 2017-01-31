@@ -3,12 +3,12 @@
 let _ = require("lodash");
 let Promise	= require("bluebird");
 
-let Benchmarker = require("../benchmarker");
-Benchmarker.printHeader("Middleware benchmark");
+let Benchmarkify = require("benchmarkify");
+Benchmarkify.printHeader("Middleware benchmark");
 
 let ServiceBroker = require("../../src/service-broker");
 
-let bench = new Benchmarker({ async: true, name: "Middleware test"});
+let bench = new Benchmarkify({ async: true, name: "Middleware test"});
 
 (function() {
 	let broker = new ServiceBroker();

@@ -1,11 +1,11 @@
 "use strict";
 
-let Benchmarker = require("../benchmarker");
-Benchmarker.printHeader("Event benchmark");
+let Benchmarkify = require("benchmarkify");
+Benchmarkify.printHeader("Event benchmark");
 
 let ServiceBroker = require("../../src/service-broker");
 
-let bench = new Benchmarker({ async: false, name: "Emit event"});
+let bench = new Benchmarkify({ async: false, name: "Emit event"});
 
 (function() {
 	// Create broker

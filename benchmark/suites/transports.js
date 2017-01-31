@@ -1,12 +1,12 @@
 "use strict";
 
 let _ = require("lodash");
-let chalk = require("chalk");
-let uuid = require("uuid");
+let { generateToken } = require("../../src/utils");
 let Promise	= require("bluebird");
+let { getDataFile } = require("../utils");
 
-let Benchmarker = require("../benchmarker");
-Benchmarker.printHeader("Transport benchmark");
+let Benchmarkify = require("benchmarkify");
+Benchmarkify.printHeader("Transport benchmark");
 
 let dataFiles = ["150", "1k", "10k", "50k", "100k", "1M"];
 
@@ -20,10 +20,10 @@ function runTest(dataName) {
 	let redisPub = new Redis();
 
 
-	let bench = new Benchmarker({ async: true, name: `Transport with ${dataName}bytes`});
-	let data = bench.getDataFile(dataName + ".json");
+	let bench = new Benchmarkify({ async: true, name: `Transport with ${dataName}bytes`});
+	let data = getDataFile(dataName + ".json");
 
-	let subject = uuid.v4();
+	let subject = generateToken();
 
 	bench.add("NATS", function() {
 		return new Promise((resolve, reject) => {

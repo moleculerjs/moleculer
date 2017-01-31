@@ -2,8 +2,8 @@
 
 let Promise	= require("bluebird");
 
-let Benchmarker = require("../benchmarker");
-Benchmarker.printHeader("Context benchmark");
+let Benchmarkify = require("benchmarkify");
+Benchmarkify.printHeader("Context benchmark");
 
 let ServiceBroker = require("../../src/service-broker");
 let Context = require("../../src/context");
@@ -11,7 +11,7 @@ let Context = require("../../src/context");
 let broker = new ServiceBroker();
 broker.loadService(__dirname + "/../user.service");
 
-let bench1 = new Benchmarker({ async: false, name: "Context constructor"});
+let bench1 = new Benchmarkify({ async: false, name: "Context constructor"});
 (function() {
 	let action = {
 		name: "users.find",
@@ -47,7 +47,7 @@ let bench1 = new Benchmarker({ async: false, name: "Context constructor"});
 })();
 
 // ----------------------------
-let bench2 = new Benchmarker({ async: true, name: "Context.invoke with sync handler"});
+let bench2 = new Benchmarkify({ async: true, name: "Context.invoke with sync handler"});
 (function() {
 
 
@@ -71,7 +71,7 @@ let bench2 = new Benchmarker({ async: true, name: "Context.invoke with sync hand
 })();
 
 // ----------------------------
-let bench3 = new Benchmarker({ async: true, name: "Context.invoke with async handler"});
+let bench3 = new Benchmarkify({ async: true, name: "Context.invoke with async handler"});
 (function() {
 
 

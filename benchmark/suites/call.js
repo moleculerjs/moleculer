@@ -3,8 +3,8 @@
 let _ = require("lodash");
 let Promise	= require("bluebird");
 
-let Benchmarker = require("../benchmarker");
-Benchmarker.printHeader("Broker call benchmarks");
+let Benchmarkify = require("benchmarkify");
+Benchmarkify.printHeader("Broker call benchmarks");
 
 let ServiceBroker = require("../../src/service-broker");
 let Context = require("../../src/context");
@@ -21,7 +21,7 @@ function createBroker(opts) {
 	return broker;
 }
 
-let bench1 = new Benchmarker({ async: true, name: "Call methods"});
+let bench1 = new Benchmarkify({ async: true, name: "Call methods"});
 (function() {
 	let broker = createBroker();
 	bench1.add("Direct service call", () => {
@@ -53,7 +53,7 @@ let bench1 = new Benchmarker({ async: true, name: "Call methods"});
 })();
 
 // ----------------------------------------------------------------
-let bench2 = new Benchmarker({ async: true, name: "Call with middlewares"});
+let bench2 = new Benchmarkify({ async: true, name: "Call with middlewares"});
 
 (function() {
 	let broker = createBroker();
@@ -85,7 +85,7 @@ let bench2 = new Benchmarker({ async: true, name: "Call with middlewares"});
 })();
 
 // ----------------------------------------------------------------
-let bench3 = new Benchmarker({ async: true, name: "Call with cachers"});
+let bench3 = new Benchmarkify({ async: true, name: "Call with cachers"});
 
 let MemoryCacher = require("../../src/cachers").Memory;
 let cache = require("../../src/middlewares/cache");
@@ -130,7 +130,7 @@ let cache = require("../../src/middlewares/cache");
 })();
 
 // ----------------------------------------------------------------
-let bench4 = new Benchmarker({ async: true, name: "Call with param validator"});
+let bench4 = new Benchmarkify({ async: true, name: "Call with param validator"});
 
 (function() {
 	let broker = createBroker();

@@ -3,9 +3,10 @@
 let _ = require("lodash");
 
 let Promise	= require("bluebird");
+let { getDataFile } = require("../utils");
 
-let Benchmarker = require("../benchmarker");
-Benchmarker.printHeader("Cachers benchmark");
+let Benchmarkify = require("benchmarkify");
+Benchmarkify.printHeader("Cachers benchmark");
 
 let ServiceBroker = require("../../src/service-broker");
 let MemoryCacher = require("../../src/cachers/memory");
@@ -14,8 +15,8 @@ let RedisCacher = require("../../src/cachers/redis");
 
 let key = "TESTKEY-12345";
 
-let bench = new Benchmarker({ async: true, name: "Set & get 1k data with cacher"});
-let data = JSON.parse(bench.getDataFile("1k.json"));
+let bench = new Benchmarkify({ async: true, name: "Set & get 1k data with cacher"});
+let data = JSON.parse(getDataFile("1k.json"));
 
 let broker = new ServiceBroker();
 

@@ -6,13 +6,8 @@
 
 "use strict";
 
-/*let TokenGenerator = require("uuid-token-generator");
-let tokgen256 = new TokenGenerator(256, TokenGenerator.BASE62);
-let tokgen128 = new TokenGenerator(128, TokenGenerator.BASE62);
-*/
-const Promise = require("bluebird");
-//const uuidV4 = require("uuid/v4");
-const os 	 = require("os");
+const Promise 	= require("bluebird");
+const os 	 	= require("os");
 
 const lut = []; 
 for (let i=0; i<256; i++) { lut[i] = (i<16?"0":"")+(i).toString(16); }
@@ -21,8 +16,6 @@ let utils = {
 
 	// Fast UUID generator: e7 https://jsperf.com/uuid-generator-opt/18
 	generateToken() {
-		// return tokgen128.generate();
-		// return uuidV4();
 		const d0 = Math.random()*0xffffffff|0;
 		const d1 = Math.random()*0xffffffff|0;
 		const d2 = Math.random()*0xffffffff|0;
@@ -32,13 +25,6 @@ let utils = {
 			lut[d2&0x3f|0x80]+lut[d2>>8&0xff]+"-"+lut[d2>>16&0xff]+lut[d2>>24&0xff]+
 			lut[d3&0xff]+lut[d3>>8&0xff]+lut[d3>>16&0xff]+lut[d3>>24&0xff];		
 	},
-/*
-	generateToken256() {
-		//return tokgen256.generate();
-		return uuidV4();
-		// return "1"; 
-	}
-	*/
 
 	/**
 	 * Get default NodeID (computerName)
