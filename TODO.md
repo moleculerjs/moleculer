@@ -41,6 +41,40 @@ Suite: Call with cachers
 
 - Docs: https://github.com/segmentio/metalsmith
 
+- Own fast validator
+```js
+	const v = require("...");
+	get: {
+		params: v.required().object({
+			id: v.required().number().min(0).max(100),
+			name: v.string().minLength(0).maxLength(128),
+			settings: v.object({
+				notify: v.boolean().object() // 2 accepted type: Boolean or Object
+			}),
+			roles: v.array().enum(["admin", "user"]),
+			email: v.required().email(),
+			homepage: v.regex(//gi)
+		}
+	}
+```
+
+```js
+	const v = require("...");
+	get: {
+		params: v({
+			id: { type: "number", req: true, min: 0, max: 100 },
+			name: { type: "string", min: 0, max: 128 }
+			settings: { type: "object", props: {
+				notify: { type: ["boolean", "object" ] } // 2 accepted type: Boolean or Object
+			}},
+			roles: { type: "array", items: { type: "enum", enums: ["admin", "user"]),
+			email: { type: "email", req: true },
+			homepage: { type: "regex", pattern:/asd/gi }
+		}
+	}
+```
+
+
 ## Broker
 - handleExceptions: true option
 	Catch unhandled exceptions and send an event with details. Can be catch in metrics, alert or logger services
