@@ -80,7 +80,7 @@ Suite: Call with cachers
 	Catch unhandled exceptions and send an event with details. Can be catch in metrics, alert or logger services
 
 ## Services
-- Validator Factory for service what is resolve the params schema. Built-in resolver is validatorjs (it is the fastest)
+- Validator Factory for service what is resolve the params schema. Built-in resolver is validatorjs (it is the fastest...yet)
 
 ## Transporters
 - Redis transporter
