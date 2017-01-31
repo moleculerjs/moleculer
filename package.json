@@ -1,7 +1,7 @@
 {
   "name": "ice-services",
   "version": "0.3.0",
-  "description": "Microservices framework for Node.JS",
+  "description": "Fast & powerful microservices framework for Node.JS",
   "main": "index.js",
   "scripts": {
     "demo": "node examples/index.js",
