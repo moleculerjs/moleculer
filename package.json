@@ -36,6 +36,7 @@
   "author": "Icebob",
   "license": "MIT",
   "devDependencies": {
+    "benchmarkify": "1.0.0",
     "coveralls": "2.11.15",
     "eslint": "3.14.1",
     "express": "4.14.0",
