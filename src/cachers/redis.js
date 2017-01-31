@@ -1,6 +1,6 @@
 /*
- * ice-services
- * Copyright (c) 2017 Norbert Mereg (https://github.com/icebob/ice-services)
+ * servicer
+ * Copyright (c) 2017 Icebob (https://github.com/icebob/servicer)
  * MIT Licensed
  */
 
