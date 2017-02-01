@@ -6,22 +6,6 @@
 
 - create d.ts file
 
-- cache: Meg lehessen adni hogy a cacheKey-hez mely paramétereket vegye figyelembe.
-	Így pl egy get-nél csal elég megadni, hogy "id" és akkor nem kell meghívni
-	a "drága" object-hash-et. Illetve, ha tovább van adva a user, akkor azt
-	is hagyja ki belőle. 
-
-Suite: Call with cachers
-›› No cacher x 344,946 ops/sec ±0.22% (86 runs sampled)
-›› Built-in cacher x 128,925 ops/sec ±0.39% (85 runs sampled)
-›› Middleware cacher x 115,360 ops/sec ±1.06% (86 runs sampled)
-
-   No cacher             0.00%    (344,946 ops/sec)
-   Built-in cacher     -62.62%    (128,925 ops/sec)
-   Middleware cacher   -66.56%    (115,360 ops/sec)
------------------------------------------------------------------------
-	
-
 - Context-nél legyen egy ctx.user, amit a requester állít be. Pl Express
 	Ez nem a params-ba megy, hogy cache-elést ne zavarja meg.	
 
@@ -42,6 +26,7 @@ Suite: Call with cachers
 - Docs: https://github.com/segmentio/metalsmith
 
 - Own fast validator
+	- similar: https://github.com/semisleep/simple-vue-validator/blob/master/src/rule.js
 ```js
 	const v = require("...");
 	get: {

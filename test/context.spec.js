@@ -20,6 +20,7 @@ describe("Test Context", () => {
 		expect(ctx.broker).not.toBeDefined();
 		expect(ctx.action).not.toBeDefined();
 		expect(ctx.logger).not.toBeDefined();
+		expect(ctx.user).not.toBeDefined();
 		expect(ctx.level).toBe(1);
 		expect(ctx.params).toBeDefined();
 		expect(ctx.params).toEqual({});
@@ -43,7 +44,10 @@ describe("Test Context", () => {
 			params: {
 				b: 5
 			},
-			nodeID: "node-1"
+			nodeID: "node-1",
+			user: {
+				id: 1
+			}
 		};
 		let ctx = new Context(opts);
 
@@ -56,6 +60,7 @@ describe("Test Context", () => {
 		expect(ctx.nodeID).toBe("node-1");
 		expect(ctx.level).toBe(1);
 		expect(ctx.params).toEqual({ b: 5 });	
+		expect(ctx.user).toEqual({ id: 1 });	
 	});
 });
 
@@ -89,6 +94,7 @@ describe("Test createSubContext", () => {
 		parent: {},
 		broker,
 		action: {},
+		user: { id: 5 },
 		params: {
 			b: 5
 		}
@@ -105,6 +111,7 @@ describe("Test createSubContext", () => {
 		expect(subCtx.action).toBe(ctx.action);
 		expect(subCtx.nodeID).toBeUndefined();
 		expect(subCtx.params).toEqual({});
+		expect(subCtx.user).toEqual({ id: 5 });
 	});
 
 	it("test with params", () => {

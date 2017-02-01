@@ -38,6 +38,7 @@ class Context {
 			this.needMetrics = this.broker.metricsEnabled();
 		}
 		this.nodeID = opts.nodeID;
+		this.user = opts.user;
 		this.parent = opts.parent;
 		this.subContexts = [];
 
@@ -69,6 +70,7 @@ class Context {
 			broker: this.broker,
 			action: action || this.action,
 			nodeID,
+			user: this.user,
 			params
 		});
 		this.subContexts.push(ctx);
