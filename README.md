@@ -5,15 +5,30 @@
 [![David](https://img.shields.io/david/icebob/servicer.svg)](https://david-dm.org/icebob/servicer)
 [![Known Vulnerabilities](https://snyk.io/test/github/icebob/servicer/badge.svg)](https://snyk.io/test/github/icebob/servicer)
 
-# UNDER DEVELOPMENT
+# servicer
+`servicer` is a fast & powerful microservices framework for NodeJS.
 
-# Info
+**Under heavy development! Please don't use in production environment!**
 
 # Features
+- local mode (no need transporter)
+- built-in caching solution (memory, redis)
+- multiple services on a node/server
+- support middlewares
+- support plugins
+- request-reply concept
+- event system
+- parameter validation
+- cluster mode (if running 2 or more instances from a service)
+- customizable logger & log levels
+- Promise based methods
+- Service & Context factories
+- support versioned services (you can run different versions of the same service at the same time)
+
 
 # Installation
 ```
-$ npm install servicer
+$ npm install servicer --save
 ```
 
 or
@@ -24,9 +39,47 @@ $ yarn add servicer
 
 # Usage
 
-## Create a service
+### Simple service with actions & call actions locally
+```js
+"use strict";
+
+const { ServiceBroker, Service } = require("servicer");
+
+// Create broker
+let broker = new ServiceBroker({ 
+	logger: console 
+});
+
+// Create service
+new Service(broker, {
+	name: "math",
+	actions: {
+		// You can call it as broker.call("math.add")
+		add(ctx) {
+			return Number(ctx.params.a) + Number(ctx.params.b);
+		},
+
+		// You can call it as broker.call("math.sub")
+		sub(ctx) {
+			return Number(ctx.params.a) - Number(ctx.params.b);
+		}
+	}
+});
+
+broker.start();
+
+// Call actions
+broker.call("math.add", { a: 5, b: 3 })
+	.then(res => console.log("5 + 3 =", res));
+
+broker.call("math.sub", { a: 9, b: 2 })
+	.then(res => console.log("9 - 2 =", res));
+	.catch(err => console.error(`Error occured! ${err.message}`));
+```
 
 ## Create a broker
+
+## Create a service
 
 ## Call the actions of service
 
@@ -44,7 +97,7 @@ $ yarn add servicer
 
 ## Options
 
-## Call action
+## Call actions
 
 ## Emit events
 
@@ -72,7 +125,13 @@ $ yarn add servicer
 
 # Test
 ```
-npm test
+$ npm test
+```
+
+or in development
+
+```
+$ npm run ci
 ```
 
 # Benchmarks

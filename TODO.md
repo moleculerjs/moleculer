@@ -3,6 +3,7 @@
 ## Common
 - multi params for multi-call & return array
 - features (?)
+- transport exceptions
 
 - create d.ts file
 
