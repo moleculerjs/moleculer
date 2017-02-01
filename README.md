@@ -19,7 +19,9 @@
 - request-reply concept
 - event system
 - parameter validation
-- cluster mode (if running 2 or more instances from a service)
+- load balanced calls (if running 2 or more instances from a service)
+- every nodes are equal, no master/leader node
+- auto discovery services
 - customizable logger & log levels
 - Promise based methods
 - Service & Context factories
@@ -66,6 +68,7 @@ new Service(broker, {
 	}
 });
 
+// Start broker
 broker.start();
 
 // Call actions
