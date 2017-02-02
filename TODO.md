@@ -4,11 +4,17 @@
 - multi params for multi-call & return array
 - features (?)
 - transport exceptions
+- config for service 
+
+- broker.createService({}); // for testing & examples
+
+- wrapper in plugins. 
+	- wrapAction method. So cacher can be a plugin too.
+	- rateLimit plugin can wrap the action calls
+	- chainable, must be return with the action
+
 
 - create d.ts file
-
-- Context-nél legyen egy ctx.user, amit a requester állít be. Pl Express
-	Ez nem a params-ba megy, hogy cache-elést ne zavarja meg.	
 
 
 - cli tool for generate project & Services
@@ -25,6 +31,25 @@
 - https://github.com/aldeed/meteor-simple-schema
 
 - Docs: https://github.com/segmentio/metalsmith
+
+- service register implementation (e.g. consul, etcd)
+
+- easier transporter code (only implement connect, disconnect, publish, subscribe methods) e.g. 
+
+-internal actions:
+	- $node.services
+	- $node.actions
+	- $node.health
+	- $node.stats
+
+- ha egy kérés timeout-ra ut, akkor x-szer próbálja újra, de kérjen hozzá új node-ot. 
+- Dynamic timeout: ctx-be legyen timeout érték. Ha subcall van, akkor adja át, de csökkentve az eltelt idővel. Ha ez nulla vagy kisebb, akkor ne is hívja meg, mert felesleges, mert a request már "elszállt timeout-al", felesleges meghívni.
+- Sidecar - HTTP kliens, amivel más cuccok illeszthetőek (registerAction, registerService, call, ...etc). [Example](https://github.com/micro/micro/tree/master/car)
+- általános webes kliens fejlesztéshez [example](https://github.com/micro/micro/tree/master/web)
+
+- broker node kezelést kirakni Registry class-ba, ami lehet NATS, consul...etc
+
+- Service dependencies: fel lehet sorolni milyen egyéb szolgáltatásoktól függ. Broker ellenőrzni, warning-ol event-et küld, ha hiányzik egy függőség [example](http://www.slideshare.net/adriancockcroft/microservices-whats-missing-oreilly-software-architecture-new-york#24)
 
 - Own fast validator
 	- similar: https://github.com/semisleep/simple-vue-validator/blob/master/src/rule.js
