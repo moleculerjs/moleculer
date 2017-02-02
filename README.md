@@ -1,3 +1,5 @@
+![Servicer logo](docs/assets/logo-servicer.png)
+
 [![Build Status](https://travis-ci.org/icebob/servicer.svg?branch=master)](https://travis-ci.org/icebob/servicer)
 [![Coverage Status](https://coveralls.io/repos/github/icebob/ice-services/badge.svg?branch=master)](https://coveralls.io/github/icebob/ice-services?branch=master)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/d6b80db8619348e79210d6a725dfe2aa)](https://www.codacy.com/app/mereg-norbert/servicer?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=icebob/servicer&amp;utm_campaign=Badge_Grade)
@@ -8,9 +10,10 @@
 # servicer
 `servicer` is a fast & powerful microservices framework for NodeJS.
 
-**Under heavy development! Please don't use in production environment!**
+**Under heavy development! Please don't use in production environment currently!**
 
-# Features
+# What's included
+
 - local mode (no need transporter)
 - built-in caching solution (memory, redis)
 - multiple services on a node/server
@@ -22,9 +25,7 @@
 - load balanced calls (if running 2 or more instances from a service)
 - every nodes are equal, no master/leader node
 - auto discovery services
-- customizable logger & log levels
 - Promise based methods
-- Service & Context factories
 - support versioned services (you can run different versions of the same service at the same time)
 
 
