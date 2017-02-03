@@ -8,6 +8,21 @@
 
 - broker.createService({}); // for testing & examples
 
+-broker.stats
+	-totals
+	-actions
+		- reqcount
+		- req/sec
+		- error count
+			- 4xx
+			- 5xx
+		- req latency
+			- mean
+			- median
+			- 90th
+			- 99th
+			- 99.5th
+
 - wrapper in plugins. 
 	- wrapAction method. So cacher can be a plugin too.
 	- rateLimit plugin can wrap the action calls
