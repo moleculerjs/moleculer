@@ -24,6 +24,7 @@ class ServiceNotFoundError extends ExtendableError {
 	 */
 	constructor(message) {
 		super(message);
+		this.code = 503;
 	}
 }
 
@@ -44,6 +45,7 @@ class RequestTimeoutError extends ExtendableError {
 	 */
 	constructor(data, nodeID) {
 		super(`Request timed out when call '${data.action}' action on '${nodeID}' node!`);
+		this.code = 408;
 		this.data = data;
 	}
 }
@@ -65,6 +67,7 @@ class ValidationError extends ExtendableError {
 	 */
 	constructor(message, data) {
 		super(message);
+		this.code = 422;
 		if (data)
 			this.data = data;
 	}
