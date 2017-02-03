@@ -146,8 +146,27 @@ class NatsTransporter extends Transporter {
 			this.logger.debug(`Request received from ${message.nodeID}. Action: ${message.action}`);
 
 			return this.broker.call(message.action, message.params).then(res => {
-				let payload = utils.json2String(res);
-				this.logger.debug("Response", message.action, message.params, "Length: ", payload.length, "bytes");
+				let msg = {
+					success: true,
+					nodeID: this.nodeID,
+					data: res
+				};
+				let payload = utils.json2String(msg);
+				this.logger.debug("Response data", message.action, message.params, "Length: ", payload.length, "bytes");
+				this.client.publish(reply, payload);
+			}).catch(err => {
+				let msg = {
+					success: false,
+					nodeID: this.nodeID,
+					error: {
+						name: err.name,
+						message: err.message,
+						code: err.code,
+						data: err.data
+					}
+				};
+				let payload = utils.json2String(msg);
+				this.logger.debug("Response error", message.action, message.params, "Length: ", payload.length, "bytes");
 				this.client.publish(reply, payload);
 			});
 		});
@@ -246,6 +265,9 @@ class NatsTransporter extends Transporter {
 			let replySubject = [PREFIX, "RESP", ctx.id].join(".");
 
 			let sid = this.client.subscribe(replySubject, (response) => {
+				// Unsubscribe from reply topic
+				this.client.unsubscribe(sid);
+
 				// If timed out, we skip to process the response
 				if (timedOut) return;
 
@@ -255,16 +277,25 @@ class NatsTransporter extends Transporter {
 				}
 
 				// Convert response to object
-				if (response != "") {
-					resolve(utils.string2Json(response));
-				}
-				/* istanbul ignore next */
-				else {
-					resolve(null);
+				if (response == "")
+					/* istanbul ignore next */
+					return reject(new Error("Missing response payload!"));
+				
+				let msg = utils.string2Json(response);
+
+				if (msg.success) {
+					return resolve(msg.data);
+				} else {
+					// Recreate exception object
+					let err = new Error(msg.error.message + ` (NodeID: ${msg.nodeID})`);
+					err.name = msg.error.name;
+					err.code = msg.error.code;
+					err.nodeID = msg.nodeID;
+					err.data = msg.error.data;
+
+					return reject(err);
 				}
 					
-				// Unsubscribe from reply topic
-				this.client.unsubscribe(sid);
 			});
 
 			let message = {

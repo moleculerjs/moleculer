@@ -167,7 +167,10 @@ describe("Test emit method", () => {
 });
 
 describe("Test invoke method", () => {
+	let broker = new ServiceBroker();
 	let ctx = new Context();
+	ctx.logger = broker.getLogger();
+	
 	ctx._startInvoke = jest.fn();
 	ctx._finishInvoke = jest.fn();
 	let response = { id: 5 };

@@ -34,6 +34,7 @@ Promise.resolve()
 	})
 	.catch(err => console.error(err));
 })*/
+/*
 .then(() => {
 	setInterval(() => {
 		broker.emit("TEST2", { a: c++ });
@@ -42,4 +43,4 @@ Promise.resolve()
 		}
 
 	}, 10 * 1000);
-});
+});*/

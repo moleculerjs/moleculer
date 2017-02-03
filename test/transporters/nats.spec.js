@@ -139,7 +139,7 @@ describe("Test Transporter.registerEventHandlers", () => {
 
 		return p.then(() => {
 			expect(trans.client.publish).toHaveBeenCalledTimes(1);
-			expect(trans.client.publish).toHaveBeenCalledWith("response.subject", "[{\"a\":1},{\"a\":2}]");
+			expect(trans.client.publish).toHaveBeenCalledWith("response.subject", "{\"success\":true,\"nodeID\":\"node1\",\"data\":[{\"a\":1},{\"a\":2}]}");
 		});
 	});
 
@@ -192,33 +192,102 @@ describe("Test Transporter emit, subscribe and request methods", () => {
 		nodeID: "node1"
 	});
 
-	let trans = new NatsTransporter();
-	trans.init(broker);
-	trans.connect();
+	describe("check event publish & subscribe", () => {
 
-	it("should publish the message if call emit", () => {
-		trans.emit("test.custom.event", { a: 1}, "testParam", true, 100);
+		let trans = new NatsTransporter();
+		trans.init(broker);
+		trans.connect();
 
-		expect(trans.client.publish).toHaveBeenCalledTimes(1);
-		expect(trans.client.publish).toHaveBeenCalledWith("IS-TEST.EVENT.test.custom.event", "{\"nodeID\":\"node1\",\"event\":\"test.custom.event\",\"args\":[{\"a\":1},\"testParam\",true,100]}");
+		it("should publish the message if call emit", () => {
+			trans.emit("test.custom.event", { a: 1}, "testParam", true, 100);
+
+			expect(trans.client.publish).toHaveBeenCalledTimes(1);
+			expect(trans.client.publish).toHaveBeenCalledWith("IS-TEST.EVENT.test.custom.event", "{\"nodeID\":\"node1\",\"event\":\"test.custom.event\",\"args\":[{\"a\":1},\"testParam\",true,100]}");
+		});
+
+		it("should subscribe to eventname", () => {
+			trans.subscribe("custom.node.event", jest.fn());
+
+			expect(trans.client.subscribe).toHaveBeenCalledTimes(1);
+			expect(trans.client.subscribe).toHaveBeenCalledWith("IS-TEST.custom.node.event", jasmine.any(Function));
+		});
 	});
 
-	it("should subscribe to eventname", () => {
-		trans.subscribe("custom.node.event", jest.fn());
-
-		expect(trans.client.subscribe).toHaveBeenCalledTimes(1);
-		expect(trans.client.subscribe).toHaveBeenCalledWith("IS-TEST.custom.node.event", jasmine.any(Function));
-	});
-
-	describe("check response of request", () => {
+	describe("check success response of request", () => {
 		let data1 = {
-			a: 1,
-			b: false,
-			c: "Test",
-			d: {
-				e: 55
+			success: true,
+			data: {
+				a: 1,
+				b: false,
+				c: "Test",
+				d: {
+					e: 55
+				}
 			}
 		};
+
+		let trans = new NatsTransporter();
+		trans.init(broker);
+		trans.connect();
+
+		let responseCb;
+		trans.client.subscribe = jest.fn((reply, cb) => {
+			responseCb = cb;
+			return 55;
+		});
+
+		it("should subscribe to response and call publish with response as JSON", () => {
+			trans.client.subscribe.mockClear();
+			trans.client.publish.mockClear();
+
+			let ctx = new Context({
+				action: { name: "posts.find" },
+				params: { 
+					a: 1
+				}
+			});
+			let p = trans.request("node2", ctx);
+			expect(utils.isPromise(p)).toBeTruthy();
+
+			expect(trans.client.subscribe).toHaveBeenCalledTimes(1);
+			expect(trans.client.subscribe).toHaveBeenCalledWith("IS-TEST.RESP." + ctx.id, jasmine.any(Function));
+
+			expect(trans.client.publish).toHaveBeenCalledTimes(1);
+			expect(trans.client.publish).toHaveBeenCalledWith("IS-TEST.REQ.node2.posts.find", `{\"nodeID\":\"node1\",\"requestID\":\"${ctx.id}\",\"action\":\"posts.find\",\"params\":{\"a\":1}}`, "IS-TEST.RESP." + ctx.id);
+
+			return Promise.resolve()
+			.then(utils.delay(50))
+			.then(() => {
+				responseCb(JSON.stringify(data1));
+			})
+			.then(() => {
+				return p.then(response => {
+					expect(response).toEqual(data1.data);
+					expect(trans.client.unsubscribe).toHaveBeenCalledTimes(1);
+					expect(trans.client.unsubscribe).toHaveBeenCalledWith(55);
+				});
+
+			});
+		});
+
+	});
+
+	describe("check error response of request", () => {
+		let data1 = {
+			success: false,
+			nodeID: "node2",
+			error: {
+				name: "CustomError",
+				message: "Something went wrong",
+				code: 123,
+				data: { a: 1 }
+			}
+		};
+
+		let trans = new NatsTransporter();
+		trans.init(broker);
+		trans.connect();
+		
 		let responseCb;
 		trans.client.subscribe = jest.fn((reply, cb) => {
 			responseCb = cb;
@@ -246,8 +315,14 @@ describe("Test Transporter emit, subscribe and request methods", () => {
 
 			responseCb(JSON.stringify(data1));
 
-			return p.then(response => {
-				expect(response).toEqual(data1);
+			return p.catch(err => {
+				expect(err).toBeInstanceOf(Error);
+				expect(err.name).toBe("CustomError");
+				expect(err.message).toBe("Something went wrong (NodeID: node2)");
+				expect(err.code).toBe(123);
+				expect(err.nodeID).toBe("node2");
+				expect(err.data).toEqual({ a: 1});
+
 				expect(trans.client.unsubscribe).toHaveBeenCalledTimes(1);
 				expect(trans.client.unsubscribe).toHaveBeenCalledWith(55);
 			});

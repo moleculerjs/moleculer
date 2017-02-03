@@ -122,6 +122,9 @@ class Context {
 		if (!(err instanceof Error)) {
 			err = new Error(err);
 		}
+
+		this.logger.error("", err);
+
 		this.error = err;
 		err.ctx = this;
 

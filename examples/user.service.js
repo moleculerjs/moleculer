@@ -1,6 +1,7 @@
 let _ = require("lodash");
 let fakerator = require("fakerator")();
 let Service = require("../src/service");
+let { ValidationError } = require("../src/errors");
 
 let users = fakerator.times(fakerator.entity.user, 10);
 
@@ -30,6 +31,11 @@ module.exports = function(broker) {
 					//this.logger.debug("Get user...", ctx.params);
 					return this.findByID(ctx.params.id);
 				}
+			},
+
+			dangerous() {
+				//return Promise.reject(new Error("Something went wrong!"));
+				return Promise.reject(new ValidationError("Wrong params!"));
 			}
 		},
 

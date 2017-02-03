@@ -27,7 +27,8 @@ broker.on("TEST2", a => {
 
 
 Promise.resolve()
-//.then(delay(1000))
+.then(delay(1000))
+
 .then(() => {
 	
 	setInterval(() => {
@@ -40,8 +41,13 @@ Promise.resolve()
 	}, 8000);
 	
 })
+
+.then(() => {
+	//broker.call("users.dangerous").catch(err => console.error(err));
+});
+/*
 .then(() => {
 	setInterval(() => {
 		broker.emit("TEST1", { a: c++ });
 	}, 10 * 1000);
-});
+});*/
