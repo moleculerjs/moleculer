@@ -12,7 +12,7 @@ describe("Test Errors", () => {
 		let err = new errors.ServiceNotFoundError("Something went wrong!", "posts.find");
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
-		expect(err.code).toBe(503);
+		expect(err.code).toBe(410);
 		expect(err.name).toBe("ServiceNotFoundError");
 		expect(err.message).toBe("Something went wrong!");
 		expect(err.action).toBe("posts.find");

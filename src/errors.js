@@ -24,7 +24,7 @@ class ServiceNotFoundError extends ExtendableError {
 	 */
 	constructor(message, name) {
 		super(message);
-		this.code = 503;
+		this.code = 410;
 		this.action = name;
 	}
 }
