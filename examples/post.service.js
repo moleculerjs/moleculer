@@ -1,6 +1,8 @@
 let _ = require("lodash");
 let fakerator = require("fakerator")();
 
+let { delay } = require("../src/utils");
+
 module.exports = function() {
 	let posts = fakerator.times(fakerator.entity.post, 10);
 
@@ -27,6 +29,14 @@ module.exports = function() {
 						return result;
 					});	
 				}			
+			},
+
+			delayed(ctx) {
+				return Promise.resolve()
+					.then(delay(6000))
+					.then(() => {
+						return this.actions.find();
+					});
 			},
 
 			get: {

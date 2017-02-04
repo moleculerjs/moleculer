@@ -3,9 +3,12 @@ let fakerator = require("fakerator")();
 let Service = require("../src/service");
 let { ValidationError } = require("../src/errors");
 
+let { delay } = require("../src/utils");
+
 let users = fakerator.times(fakerator.entity.user, 10);
 
 _.each(users, (user, i) => user.id = i + 1);
+let c = 0;
 
 module.exports = function(broker) {
 	return new Service(broker, {
@@ -36,7 +39,16 @@ module.exports = function(broker) {
 			dangerous() {
 				//return Promise.reject(new Error("Something went wrong!"));
 				return Promise.reject(new ValidationError("Wrong params!"));
-			}
+			},
+
+			delayed(ctx) {
+				c++;
+				return Promise.resolve()
+					.then(delay(c < 3 ? 6000 : 1000))
+					.then(() => {
+						return users;
+					});
+			}			
 		},
 
 		methods: {

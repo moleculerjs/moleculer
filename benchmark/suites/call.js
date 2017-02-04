@@ -155,6 +155,72 @@ let bench4 = new Benchmarkify({ async: true, name: "Call with param validator"})
 })();
 
 bench1.run()
-.then(() => bench2.run())
-.then(() => bench3.run())
-.then(() => bench4.run());
+.then(() => bench2.skip())
+.then(() => bench3.skip())
+.then(() => bench4.skip());
+
+
+/*
+	Reference values
+
+==========================
+  Broker call benchmarks
+==========================
+
+Platform info:
+==============
+   Windows_NT 6.1.7601 x64
+   Node.JS: 6.9.2
+   V8: 5.1.281.88
+   Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
+
+Suite: Call methods
+√ Direct service call x 583,679 ops/sec ±0.84% (87 runs sampled)
+√ action.handler x 342,408 ops/sec ±0.35% (86 runs sampled)
+√ ctx.invoke x 299,400 ops/sec ±0.25% (87 runs sampled)
+√ broker.call (normal) x 262,532 ops/sec ±0.91% (85 runs sampled)
+√ broker.call (with params) x 203,288 ops/sec ±1.49% (86 runs sampled)
+
+   Direct service call           0.00%    (583,679 ops/sec)
+   action.handler              -41.34%    (342,408 ops/sec)
+   ctx.invoke                  -48.70%    (299,400 ops/sec)
+   broker.call (normal)        -55.02%    (262,532 ops/sec)
+   broker.call (with params)   -65.17%    (203,288 ops/sec)
+-----------------------------------------------------------------------
+
+Suite: Call with middlewares
+√ Call without middlewares x 296,245 ops/sec ±1.00% (87 runs sampled)
+√ Call with 1 middleware x 205,757 ops/sec ±0.84% (84 runs sampled)
+√ Call with 5 middlewares x 175,706 ops/sec ±0.77% (86 runs sampled)
+
+   Call without middlewares     0.00%    (296,245 ops/sec)
+   Call with 1 middleware     -30.54%    (205,757 ops/sec)
+   Call with 5 middlewares    -40.69%    (175,706 ops/sec)
+-----------------------------------------------------------------------
+
+Suite: Call with cachers
+√ No cacher x 181,782 ops/sec ±1.13% (89 runs sampled)
+√ Built-in cacher x 65,153 ops/sec ±0.74% (87 runs sampled)
+√ Built-in cacher (keys filter) x 89,413 ops/sec ±0.83% (86 runs sampled)
+√ Middleware cacher x 55,845 ops/sec ±1.35% (89 runs sampled)
+√ Middleware cacher (keys filter) x 73,917 ops/sec ±0.72% (88 runs sampled)
+
+   No cacher                           0.00%    (181,782 ops/sec)
+   Built-in cacher                   -64.16%     (65,153 ops/sec)
+   Built-in cacher (keys filter)     -50.81%     (89,413 ops/sec)
+   Middleware cacher                 -69.28%     (55,845 ops/sec)
+   Middleware cacher (keys filter)   -59.34%     (73,917 ops/sec)
+-----------------------------------------------------------------------
+
+Suite: Call with param validator
+√ No validator x 181,817 ops/sec ±1.00% (88 runs sampled)
+√ With validator passes x 59,041 ops/sec ±1.21% (83 runs sampled)
+√ With validator fail x 15,344 ops/sec ±1.09% (87 runs sampled)
+
+   No validator              0.00%    (181,817 ops/sec)
+   With validator passes   -67.53%     (59,041 ops/sec)
+   With validator fail     -91.56%     (15,344 ops/sec)
+-----------------------------------------------------------------------	
+
+
+ */

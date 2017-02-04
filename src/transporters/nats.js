@@ -253,12 +253,13 @@ class NatsTransporter extends Transporter {
 	 * TODO: request timeout, with reject
 	 * 
 	 * @param {any} targetNodeID	Remote Node ID
-	 * @param {any} ctx				Context of request
+	 * @param {Context} ctx			Context of request
+	 * @param {any} opts			Options of request
 	 * @returns	{Promise}
 	 * 
 	 * @memberOf NatsTransporter
 	 */
-	request(targetNodeID, ctx) {
+	request(targetNodeID, ctx, opts = {}) {
 		return new Promise((resolve, reject) => {
 			let timer = null;
 			let timedOut = false;
@@ -308,12 +309,12 @@ class NatsTransporter extends Transporter {
 			let payload = utils.json2String(message);
 
 			// Handle request timeout
-			if (this.opts.requestTimeout > 0) {
+			if (opts.timeout > 0) {
 				timer = setTimeout(() => {
 					timedOut = true;
-					this.logger.warn(`Request timed out when call '${message.action}' action on '${targetNodeID}' node! (timeout: ${this.opts.requestTimeout / 1000} sec)`, message);
+					this.logger.warn(`Request timed out when call '${message.action}' action on '${targetNodeID}' node! (timeout: ${opts.timeout / 1000} sec)`, message);
 					reject(new RequestTimeoutError(message, targetNodeID));
-				}, this.opts.requestTimeout);
+				}, opts.timeout);
 				timer.unref();
 			}
 

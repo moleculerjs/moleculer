@@ -36,7 +36,9 @@ class ServiceBroker {
 			sendHeartbeatTime: 10,
 			nodeHeartbeatTimeout: 30,
 			metrics: false,
-			logLevel: "info"
+			logLevel: "info",
+			requestTimeout: 15 * 1000,
+			requestRetry: 0
 		});
 
 		this.ServiceFactory = this.options.ServiceFactory ? this.options.ServiceFactory : require("./service");
@@ -250,11 +252,24 @@ class ServiceBroker {
 			if (svc instanceof this.ServiceFactory)
 				return svc;
 			else
-				return new this.ServiceFactory(this, svc);
+				return this.createService(svc);
 
 		} else {
-			return new this.ServiceFactory(this, schema);
+			return this.createService(schema);
 		}
+	}
+
+	/**
+	 * Create a new service by schema
+	 * 
+	 * @param {any} schema	Schema of service
+	 * @returns {Service}
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	createService(schema) {
+		let service = new this.ServiceFactory(this, schema);
+		return service;
 	}
 
 	/**
@@ -274,6 +289,8 @@ class ServiceBroker {
 		item.add(service);
 
 		this.emitLocal(`register.service.${service.name}`, service);
+
+		this.logger.info(`${service.name} service registered!`);
 	}
 
 	/**
@@ -497,13 +514,12 @@ class ServiceBroker {
 	 * 
 	 * @param {any} actionName	name of action
 	 * @param {any} params		params of action
-	 * @param {any} parentCtx	parent context (optional)
-	 * @param {any} requestID	requestID (optional)
+	 * @param {any} opts		options of call (optional)
 	 * @returns
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	call(actionName, params, parentCtx, requestID) {
+	call(actionName, params, opts = {}) {
 		let actions = this.actions.get(actionName);
 		if (!actions) {
 			const errMsg = `Action '${actionName}' is not registered!`;
@@ -524,33 +540,54 @@ class ServiceBroker {
 
 		// Create a new context
 		let ctx;
-		if (parentCtx) {
-			ctx = parentCtx.createSubContext(action, params, nodeID);
+		if (opts.parentCtx) {
+			ctx = opts.parentCtx.createSubContext(action, params, nodeID);
 		} else {
-			ctx = new this.ContextFactory({ broker: this, action, params, requestID });
+			ctx = new this.ContextFactory({ broker: this, action, params, requestID: opts.requestID });
 		}
 		this._callCount++;
 
 		if (actionItem.local) {
 			// Local action call
-			this.logger.debug(`Call local '${action.name}' action...`);
-			return ctx.invoke(() => {
-				return this.callMiddlewares(ctx, action.handler);
-			});
+			return this._localCall(ctx, action);
 		} else {
-			// Remote action call
-			this.logger.debug(`Call remote '${action.name}' action on '${nodeID}' node...`);
-			return ctx.invoke(() => {
-				return this.callMiddlewares(ctx, () => {
-					return this.transporter.request(nodeID, ctx).catch(err => {
-						if (err instanceof errors.RequestTimeoutError)
-							this.nodeUnavailable(nodeID);
+			return this._remoteCall(ctx, action, nodeID, actionName, params, opts);
+		}
+	}
 
-						return Promise.reject(err);
-					});
+	_localCall(ctx, action) {
+		this.logger.debug(`Call local '${action.name}' action...`);
+		return ctx.invoke(() => {
+			return this.callMiddlewares(ctx, action.handler);
+		});
+	}
+
+	_remoteCall(ctx, action, nodeID, actionName, params, opts) {
+		// Remote action call
+		this.logger.debug(`Call remote '${action.name}' action on '${nodeID}' node...`);
+
+		if (opts.timeout == null)
+			opts.timeout = this.options.requestTimeout;
+
+		if (opts.retryCount == null)
+			opts.retryCount = this.options.requestRetry || 0;
+
+		return ctx.invoke(() => {
+			return this.callMiddlewares(ctx, () => {
+				return this.transporter.request(nodeID, ctx, opts).catch(err => {
+					if (err instanceof errors.RequestTimeoutError) {
+						// Retry request
+						if (opts.retryCount-- > 0) {
+							this.logger.warn(`Retry call '${action.name}' action on '${nodeID}' (retry: ${opts.retryCount + 1})...`);
+							return this.call(actionName, params, opts);
+						}
+
+						this.nodeUnavailable(nodeID);
+					}
+					return Promise.reject(err);
 				});
 			});
-		}
+		});
 	}
 
 	/**

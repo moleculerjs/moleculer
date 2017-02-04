@@ -7,12 +7,12 @@ let NatsTransporter = require("../../src/transporters/nats");
 
 // Create broker
 let broker = new ServiceBroker({
-	nodeID: "server-1",
-	transporter: new NatsTransporter({
-		requestTimeout: 5 * 1000
-	}),
+	nodeID: process.argv[2] || "server-1",
+	transporter: new NatsTransporter(),
 	logger: console,
-	logLevel: "info"	
+	logLevel: "info",
+	requestTimeout: 5 * 1000,
+	//requestRetry: 3
 });
 
 broker.loadService(__dirname + "/../post.service");
@@ -30,6 +30,15 @@ Promise.resolve()
 .then(delay(1000))
 
 .then(() => {
+	broker.call("users.delayed").then(res => {
+		console.log("[server-1] Success!", res.length);
+	}).catch(err => {
+		console.error("[server-1] Error!", err.message);
+	});	
+
+})
+/*
+.then(() => {
 	
 	setInterval(() => {
 		let startTime = Date.now();
@@ -41,7 +50,7 @@ Promise.resolve()
 	}, 8000);
 	
 })
-
+*/
 .then(() => {
 	//broker.call("users.dangerous").catch(err => console.error(err));
 });

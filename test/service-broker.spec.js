@@ -12,7 +12,7 @@ describe("Test ServiceBroker constructor", () => {
 	it("should set default options", () => {
 		let broker = new ServiceBroker();
 		expect(broker).toBeDefined();
-		expect(broker.options).toEqual({ logLevel: "info", metrics: false, nodeHeartbeatTimeout : 30, sendHeartbeatTime: 10});
+		expect(broker.options).toEqual({ logLevel: "info", metrics: false, nodeHeartbeatTimeout : 30, sendHeartbeatTime: 10, requestRetry: 0, requestTimeout: 15000 });
 		expect(broker.services).toBeInstanceOf(Map);
 		expect(broker.actions).toBeInstanceOf(Map);
 		expect(broker.transporter).toBeUndefined();
@@ -20,9 +20,9 @@ describe("Test ServiceBroker constructor", () => {
 	});
 
 	it("should merge options", () => {
-		let broker = new ServiceBroker( { nodeHeartbeatTimeout: 20, metrics: true, logLevel: "debug" });
+		let broker = new ServiceBroker( { nodeHeartbeatTimeout: 20, metrics: true, logLevel: "debug", requestRetry: 3, requestTimeout: 5000 });
 		expect(broker).toBeDefined();
-		expect(broker.options).toEqual({ logLevel: "debug", metrics: true, nodeHeartbeatTimeout : 20, sendHeartbeatTime: 10});
+		expect(broker.options).toEqual({ logLevel: "debug", metrics: true, nodeHeartbeatTimeout : 20, sendHeartbeatTime: 10, requestRetry: 3, requestTimeout: 5000 });
 		expect(broker.services).toBeInstanceOf(Map);
 		expect(broker.actions).toBeInstanceOf(Map);
 		expect(broker.transporter).toBeUndefined();
@@ -214,6 +214,25 @@ describe("Test loadService", () => {
 
 });
 
+describe("Test createService", () => {
+
+	let broker = new ServiceBroker();
+	
+	it("should load math service", () => {
+		let service = broker.createService({
+			name: "test",
+			actions: {
+				empty() {}
+			}
+		});
+		expect(service).toBeDefined();
+		expect(broker.hasService("test")).toBeTruthy();
+		expect(broker.hasAction("test.empty")).toBeTruthy();
+		expect(broker.isActionAvailable("test.empty")).toBeTruthy();
+	});
+
+});
+
 describe("Test service registration", () => {
 
 	let broker = new ServiceBroker();
@@ -306,13 +325,13 @@ describe("Test action registration", () => {
 	});
 
 	it("should set requestID to context", () => {
-		return broker.call("posts.find", null, null, "req123").then(ctx => {
+		return broker.call("posts.find", null, { requestID: "req123" }).then(ctx => {
 			expect(ctx.requestID).toBe("req123");
 		});
 	});	
 
 	it("should create a sub context of parent context", () => {
-		let prevCtx = new Context({
+		let parentCtx = new Context({
 			params: {
 				a: 5,
 				b: 2
@@ -320,12 +339,12 @@ describe("Test action registration", () => {
 		});		
 		let params = { a: 1 };
 
-		return broker.call("posts.find", params, prevCtx).then(ctx => {
+		return broker.call("posts.find", params, { parentCtx }).then(ctx => {
 			expect(ctx.params).not.toBe(params);
 			expect(ctx.params.a).toBe(1);
 			expect(ctx.params.b).not.toBeDefined();
 			expect(ctx.level).toBe(2);
-			expect(ctx.parent).toBe(prevCtx);
+			expect(ctx.parent).toBe(parentCtx);
 		});
 
 	});
@@ -722,7 +741,7 @@ describe("Test ServiceBroker with Transporter", () => {
 		broker.registerAction(mockService, mockAction, "99999");
 		return broker.call("posts.find", p).then(ctx => {
 			expect(transporter.request).toHaveBeenCalledTimes(1);
-			expect(transporter.request).toHaveBeenCalledWith("99999", ctx);
+			expect(transporter.request).toHaveBeenCalledWith("99999", ctx, { retryCount: 0, timeout: 15000});
 			expect(ctx.params).toEqual(p);
 		});
 	});
@@ -732,9 +751,9 @@ describe("Test ServiceBroker with Transporter", () => {
 		let parentCtx = new Context(p);
 		transporter.request.mockClear();
 
-		return broker.call("posts.find", p, parentCtx).then(ctx => {
+		return broker.call("posts.find", p, { parentCtx, timeout: 5000 }).then(ctx => {
 			expect(transporter.request).toHaveBeenCalledTimes(1);
-			expect(transporter.request).toHaveBeenCalledWith("99999", ctx);
+			expect(transporter.request).toHaveBeenCalledWith("99999", ctx, { parentCtx, retryCount: 0, timeout: 5000});
 			expect(ctx.parent).toBe(parentCtx);		
 		});
 	});
