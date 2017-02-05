@@ -56,7 +56,6 @@
 
 
 
-- ha egy kérés timeout-ra fut, akkor x-szer próbálja újra, de kérjen hozzá új node-ot. 
 - Dynamic timeout: ctx-be legyen timeout érték. Ha subcall van, akkor adja át, de csökkentve az eltelt idővel. Ha ez nulla vagy kisebb, akkor ne is hívja meg, mert felesleges, mert a request már "elszállt timeout-al", felesleges meghívni.
 - Sidecar - HTTP kliens, amivel más cuccok illeszthetőek (registerAction, registerService, call, ...etc). [Example](https://github.com/micro/micro/tree/master/car)
 - általános webes kliens fejlesztéshez [example](https://github.com/micro/micro/tree/master/web)

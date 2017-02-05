@@ -67,5 +67,6 @@
   "engines": {
     "node": ">= 6.x.x"
   },
+  "tonicExampleFilename": "docs/runkit/simple.js",
   "typings": "./index.d.ts"
 }
