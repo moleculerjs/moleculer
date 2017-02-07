@@ -142,7 +142,7 @@ describe("Test call method", () => {
 		ctx.call("posts.find", p);
 
 		expect(broker.call).toHaveBeenCalledTimes(1);
-		expect(broker.call).toHaveBeenCalledWith("posts.find", p, ctx);
+		expect(broker.call).toHaveBeenCalledWith("posts.find", p, { parentCtx: ctx });
 	});
 });
 

@@ -225,18 +225,48 @@ Platform info:
    Intel(R) Core(TM) i5-2400 CPU @ 3.10GHz × 4
 
 Suite: Call methods
-√ Direct service call x 381,000 ops/sec ±0.89% (79 runs sampled)
-√ action.handler x 208,166 ops/sec ±0.72% (81 runs sampled)
-√ ctx.invoke x 151,512 ops/sec ±3.34% (83 runs sampled)
-√ broker.call (normal) x 135,941 ops/sec ±1.06% (86 runs sampled)
-√ broker.call (with params) x 98,039 ops/sec ±1.30% (86 runs sampled)
+√ Direct service call x 351,729 ops/sec ±0.57% (84 runs sampled)
+√ action.handler x 206,823 ops/sec ±0.36% (87 runs sampled)
+√ ctx.invoke x 150,417 ops/sec ±0.36% (85 runs sampled)
+√ broker.call (normal) x 137,177 ops/sec ±1.12% (83 runs sampled)
+√ broker.call (with params) x 104,004 ops/sec ±1.65% (82 runs sampled)
 
-   Direct service call           0.00%    (381,000 ops/sec)
-   action.handler              -45.36%    (208,166 ops/sec)
-   ctx.invoke                  -60.23%    (151,512 ops/sec)
-   broker.call (normal)        -64.32%    (135,941 ops/sec)
-   broker.call (with params)   -74.27%     (98,039 ops/sec)
------------------------------------------------------------------------	
+   Direct service call           0.00%    (351,729 ops/sec)
+   action.handler              -41.20%    (206,823 ops/sec)
+   ctx.invoke                  -57.23%    (150,417 ops/sec)
+   broker.call (normal)        -61.00%    (137,177 ops/sec)
+   broker.call (with params)   -70.43%    (104,004 ops/sec)
+-----------------------------------------------------------------------
+
+Suite: Call with middlewares
+√ Call without middlewares x 141,971 ops/sec ±1.45% (82 runs sampled)
+√ Call with 1 middleware x 142,161 ops/sec ±0.96% (88 runs sampled)
+√ Call with 5 middlewares x 142,705 ops/sec ±0.91% (88 runs sampled)
+
+   Call without middlewares    -0.51%    (141,971 ops/sec)
+   Call with 1 middleware      -0.38%    (142,161 ops/sec)
+   Call with 5 middlewares      0.00%    (142,705 ops/sec)
+-----------------------------------------------------------------------
+
+Suite: Call with cachers
+√ No cacher x 85,734 ops/sec ±2.04% (84 runs sampled)
+√ Built-in cacher x 35,597 ops/sec ±0.87% (86 runs sampled)
+√ Built-in cacher (keys filter) x 56,894 ops/sec ±1.05% (86 runs sampled)
+
+   No cacher                         0.00%     (85,734 ops/sec)
+   Built-in cacher                 -58.48%     (35,597 ops/sec)
+   Built-in cacher (keys filter)   -33.64%     (56,894 ops/sec)
+-----------------------------------------------------------------------
+
+Suite: Call with param validator
+√ No validator x 86,558 ops/sec ±1.24% (83 runs sampled)
+√ With validator passes x 29,074 ops/sec ±1.11% (85 runs sampled)
+√ With validator fail x 10,056 ops/sec ±1.14% (85 runs sampled)
+
+   No validator              0.00%     (86,558 ops/sec)
+   With validator passes   -66.41%     (29,074 ops/sec)
+   With validator fail     -88.38%     (10,056 ops/sec)
+-----------------------------------------------------------------------
 
 
 */

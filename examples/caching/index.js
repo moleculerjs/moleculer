@@ -2,14 +2,12 @@
 
 let _ = require("lodash");
 let path = require("path");
-let glob = require("glob");
 let Promise = require("bluebird");
 
 let utils = require("../../src/utils");
 let ServiceBroker = require("../../src/service-broker");
 
 let MemoryCacher = require("../../src/cachers").Memory;
-let cache = require("../../src/middlewares/cache");
 
 /*
 process.on("promiseCreated", promise => console.log("New promise created!", promise));
@@ -31,8 +29,6 @@ let broker = new ServiceBroker({
 	metrics: true,
 	cacher: new MemoryCacher()
 });
-
-//broker.use(cache(broker, new MemoryCacher()));
 
 // Load services
 console.log(""); 

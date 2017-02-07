@@ -186,7 +186,7 @@ class Context {
 	 * @memberOf Context
 	 */
 	call(actionName, params) {
-		return this.broker.call(actionName, params, this);
+		return this.broker.call(actionName, params, { parentCtx: this });
 	}	
 
 	/**
