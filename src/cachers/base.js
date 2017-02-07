@@ -46,6 +46,8 @@ class Cacher {
 		if (this.broker) {
 			this.logger = broker.getLogger("CACHER");
 
+			broker.use(this.middleware());
+
 			this.broker.on("cache.clean", ({ match }) => {
 				this.clean(match);
 			});
@@ -135,37 +137,27 @@ class Cacher {
 	}
 
 	/**
-	 * Create a wrapped action handler which handle caching functions
+	 * Register cacher as a middleware
 	 * 
-	 * @param {any} action
-	 * @returns
+	 * @memberOf Cacher
 	 */
-	wrapHandler(action, handler) {
-		return (ctx) => {
-			const cacheKey = this.getCacheKey(action.name, ctx.params, action.cache.keys);
-
-			return Promise.resolve()
-			.then(() => {
-				return this.get(cacheKey);
-			})
-			.then((cachedJSON) => {
-				if (cachedJSON != null) {
+	middleware() {
+		return (handler, action) => {
+			return function cacherMiddleware(ctx) {
+				const cacheKey = this.getCacheKey(action.name, ctx.params, action.cache.keys);
+				const content = this.get(cacheKey);
+				if (content != null) {
 					// Found in the cache! 
 					ctx.cachedResult = true;
-					return cachedJSON;
+					return content;
 				}
 
-				const result = handler(ctx);
-				if (isPromise(result)) {
-					return result.then(data => {
-						this.set(cacheKey, data);
-						return data;
-					});
-				} else {
+				return ctx.after(handler(ctx), result => {
 					this.set(cacheKey, result);
+
 					return result;
-				}
-			});
+				});
+			}.bind(this);
 		};
 	}
 		

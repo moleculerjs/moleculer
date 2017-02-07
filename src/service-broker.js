@@ -331,6 +331,24 @@ class ServiceBroker {
 	}
 
 	/**
+	 * Wrap action handler by middlewares
+	 * 
+	 * @param {any} action
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	wrapAction(action) {
+		let mws = Array.from(this.middlewares);
+		let handler = mws.reduce((handler, mw) => {
+			return mw(handler, action);
+		}, action.handler);
+
+		action.handler = handler;
+
+		return action;
+	}
+
+	/**
 	 * Unregister an action on a local server. 
 	 * It will be called when a remote node disconnected. 
 	 * 
@@ -457,6 +475,7 @@ class ServiceBroker {
 		});
 	}
 
+	/*
 	// Függvény ami a meghívja a következő middleware-t
 	__runNextMiddleware(ctx, middleware, next) {
 		// Middleware kód meghívása és next függvény generálása a folytatáshoz.
@@ -466,7 +485,7 @@ class ServiceBroker {
 		} catch(err) {
 			return Promise.reject(err);
 		}
-	}	
+	}	*/
 
 	/**
 	 * Call middlewares with context
@@ -477,6 +496,7 @@ class ServiceBroker {
 	 * 
 	 * @memberOf ServiceBroker
 	 */
+	/*
 	callMiddlewares(ctx, masterNext) {
 		// Ha nincs regisztrált middleware egyből meghívjuk a master kódot
 		if (this.middlewares.length == 0) return masterNext(ctx);
@@ -507,7 +527,7 @@ class ServiceBroker {
 
 		// Első middleware meghívása
 		return Promise.resolve(next());
-	}
+	}*/
 
 	/**
 	 * Call an action (local or global)
@@ -557,9 +577,7 @@ class ServiceBroker {
 
 	_localCall(ctx, action) {
 		this.logger.debug(`Call local '${action.name}' action...`);
-		return ctx.invoke(() => {
-			return this.callMiddlewares(ctx, action.handler);
-		});
+		return ctx.invoke(action.handler);
 	}
 
 	_remoteCall(ctx, action, nodeID, actionName, params, opts) {
@@ -572,20 +590,18 @@ class ServiceBroker {
 		if (opts.retryCount == null)
 			opts.retryCount = this.options.requestRetry || 0;
 
-		return ctx.invoke(() => {
-			return this.callMiddlewares(ctx, () => {
-				return this.transporter.request(nodeID, ctx, opts).catch(err => {
-					if (err instanceof errors.RequestTimeoutError) {
-						// Retry request
-						if (opts.retryCount-- > 0) {
-							this.logger.warn(`Retry call '${action.name}' action on '${nodeID}' (retry: ${opts.retryCount + 1})...`);
-							return this.call(actionName, params, opts);
-						}
-
-						this.nodeUnavailable(nodeID);
+		return ctx.invoke(ctx => {
+			return this.transporter.request(nodeID, ctx, opts).catch(err => {
+				if (err instanceof errors.RequestTimeoutError) {
+					// Retry request
+					if (opts.retryCount-- > 0) {
+						this.logger.warn(`Retry call '${action.name}' action on '${nodeID}' (retry: ${opts.retryCount + 1})...`);
+						return this.call(actionName, params, opts);
 					}
-					return Promise.reject(err);
-				});
+
+					this.nodeUnavailable(nodeID);
+				}
+				return Promise.reject(err);
 			});
 		});
 	}

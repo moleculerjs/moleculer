@@ -188,5 +188,38 @@ class RedisCacher extends BaseCacher {
 		return Promise.resolve();
 	}
 
+	/**
+	 * Register cacher as a middleware (async)
+	 * 
+	 * @memberOf Cacher
+	 */
+	middleware() {
+		return (handler, action) => {
+			return function cacherMiddleware(ctx) {
+
+				const cacheKey = this.getCacheKey(action.name, ctx.params, action.cache.keys);
+
+				return Promise.resolve()
+				.then(() => {
+					return this.get(cacheKey);
+				})
+				.then((cachedJSON) => {
+					if (cachedJSON != null) {
+						// Found in the cache! 
+						ctx.cachedResult = true;
+						return cachedJSON;
+					}
+
+					return ctx.after(handler(ctx), result => {
+						this.set(cacheKey, result);
+
+						return result;
+					});
+				});
+
+			}.bind(this);
+		};
+	}
+
 }
 module.exports = RedisCacher;

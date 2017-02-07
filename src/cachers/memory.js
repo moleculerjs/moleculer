@@ -6,7 +6,6 @@
 
 "use strict";
 
-const Promise		= require("bluebird");
 const micromatch  	= require("micromatch");
 const BaseCacher  	= require("./base");
 /**
@@ -68,9 +67,9 @@ class MemoryCacher extends BaseCacher {
 				// Update expire time (hold in the cache if we are using it)
 				item.expire = Date.now() + this.opts.ttl * 1000;
 			}
-			return Promise.resolve(item.data);
+			return item.data;
 		}
-		return Promise.resolve(null);
+		return null;
 	}
 
 	/**
@@ -88,7 +87,7 @@ class MemoryCacher extends BaseCacher {
 			expire: this.opts.ttl ? Date.now() + this.opts.ttl * 1000 : null
 		};
 		this.logger.debug(`Set ${key}`);
-		return Promise.resolve(data);
+		return data;
 	}
 
 	/**
@@ -102,7 +101,7 @@ class MemoryCacher extends BaseCacher {
 	del(key) {
 		delete this.cache[key];
 		this.logger.debug(`Delete ${key}`);
-		return Promise.resolve();
+		return ;
 	}
 
 	/**
@@ -123,7 +122,7 @@ class MemoryCacher extends BaseCacher {
 			}
 		});
 
-		return Promise.resolve();
+		return ;
 	}
 
 

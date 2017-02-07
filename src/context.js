@@ -133,6 +133,24 @@ class Context {
 		return Promise.reject(err);				
 	}
 
+	
+	/**
+	 * Call a function after the `res`. If `res` is a promise, use `.then`. Otherwise call the `fn` synchroniously.
+	 * 
+	 * @param {any} res	- Result object or a Promise
+	 * @param {any} fn	- Function what we will be call
+	 * @returns
+	 * 
+	 * @memberOf Context
+	 */
+	after(res, fn) {
+		if (utils.isPromise(res)) {
+			return res.then(res => fn(res));
+		} else {
+			return fn(res);
+		}
+	}	
+
 	/**
 	 * Start invoke
 	 * 

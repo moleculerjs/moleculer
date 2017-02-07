@@ -8,69 +8,71 @@ let utils = require("../../src/utils");
 let ServiceBroker = require("../../src/service-broker");
 let MemoryCacher = require("../../src/cachers").Memory;
 
-let cache = require("../../src/middlewares/cache");
-
 // Create broker
 let broker = new ServiceBroker({
 	nodeID: "server",
 	logger: console,
-	logLevel: "debug"
+	logLevel: "debug",
+	cacher: new MemoryCacher()
 });
 
 function middleware1() {
-	return function mw1(ctx, next) {
+	return function(handler) {
 
-		ctx.logger.info("mw1 before", ctx.action.name);
-		// return Promise.resolve("data from mw1");
-		return next().then(res => {
-			ctx.logger.info("mw1 after", ctx.action.name);
-			return res;
-		});
+		return function mw1(ctx) {
+			ctx.logger.info("mw1 before", ctx.action.name);
+			return ctx.after(handler(ctx), res => {
+				ctx.logger.info("mw1 after", ctx.action.name);
+				return res;
+			});
+		};
 
 	};
 }
 
 function middleware2() {
-	return function mw2(ctx, next) {
+	return function(handler) {
 
-		ctx.logger.info("mw2 before-promise", ctx.action.name);
-		let p = new Promise((resolve) => {
-			setTimeout(() => {
-				ctx.logger.info("mw2 before", ctx.action.name);
-				//resolve("data from mw2");
-				resolve();
-			}, 300);
-		});
-
-		return next(p).then(res => {
-			ctx.logger.info("mw2 after", ctx.action.name);
-			return res;
-		});
-
+		return function mw2(ctx) {
+			ctx.logger.info("mw2 before-promise", ctx.action.name);
+			return new Promise(resolve => {
+				setTimeout(() => {
+					ctx.logger.info("mw2 before", ctx.action.name);
+					//resolve("data from mw2");
+					resolve();
+				}, 300);
+			}).then(() => {
+				return handler(ctx);
+			}).then(res => {
+				ctx.logger.info("mw2 after", ctx.action.name);
+				return res;
+			});
+		};
 	};
 }
 
 function middleware3() {
-	return function mw3(ctx, next) {
-		ctx.logger.info("mw3 before", ctx.action.name);
-		//return Promise.resolve("data from mw3");
-		return next().then(res => {
-			ctx.logger.info("mw3 after", ctx.action.name);
-			if (res) {
-				if (ctx.action.name == "users.get")
-					delete res.gravatar;
-				if (ctx.action.name == "posts.get")
-					delete res.content;
-			}
-			return res;
-		});
+	return function mw3(handler) {
+
+		return function mw3(ctx) {
+			ctx.logger.info("mw3 before", ctx.action.name);
+			//return Promise.resolve("data from mw3");
+			return ctx.after(handler(ctx), res => {
+				ctx.logger.info("mw3 after", ctx.action.name);
+				if (res) {
+					if (ctx.action.name == "users.get")
+						delete res.gravatar;
+					if (ctx.action.name == "posts.get")
+						delete res.content;
+				}
+				return res;
+			});
+		};
 	};
 }
 
 
-
-
-broker.use(cache(broker, new MemoryCacher()));
+//broker.use(cache(broker, new MemoryCacher()));
 broker.use(middleware1());
 broker.use(middleware2());
 broker.use(middleware3());

@@ -224,3 +224,34 @@ Suite: Call with param validator
 
 
  */
+
+/*
+	Benti gépen
+
+==========================
+  Broker call benchmarks
+==========================
+
+Platform info:
+==============
+   Windows_NT 6.1.7601 x64
+   Node.JS: 6.9.5
+   V8: 5.1.281.89
+   Intel(R) Core(TM) i5-2400 CPU @ 3.10GHz × 4
+
+Suite: Call methods
+√ Direct service call x 381,000 ops/sec ±0.89% (79 runs sampled)
+√ action.handler x 208,166 ops/sec ±0.72% (81 runs sampled)
+√ ctx.invoke x 151,512 ops/sec ±3.34% (83 runs sampled)
+√ broker.call (normal) x 135,941 ops/sec ±1.06% (86 runs sampled)
+√ broker.call (with params) x 98,039 ops/sec ±1.30% (86 runs sampled)
+
+   Direct service call           0.00%    (381,000 ops/sec)
+   action.handler              -45.36%    (208,166 ops/sec)
+   ctx.invoke                  -60.23%    (151,512 ops/sec)
+   broker.call (normal)        -64.32%    (135,941 ops/sec)
+   broker.call (with params)   -74.27%     (98,039 ops/sec)
+-----------------------------------------------------------------------	
+
+
+*/

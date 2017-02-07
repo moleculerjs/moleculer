@@ -148,15 +148,14 @@ class Service {
 			};
 		}
 
-		// Cache
-		if (this.broker.cacher) {
-			if (action.cache || (action.cache === undefined && this.settings.cache === true)) {
-				action.cache = action.cache || true;
-				action.handler = this.broker.cacher.wrapHandler(action, action.handler);
-			} else
-				action.cache = false;
-		}
+		// Cache prop
+		if (action.cache || (action.cache === undefined && this.settings.cache === true)) {
+			action.cache = action.cache || true;
+		} else
+			action.cache = false;
 		
+		// Wrap middlewares
+		this.broker.wrapAction(action);
 
 		return action;
 	}
