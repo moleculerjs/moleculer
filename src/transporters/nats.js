@@ -310,6 +310,7 @@ class NatsTransporter extends Transporter {
 
 			// Handle request timeout
 			if (opts.timeout > 0) {
+				// Jest mock: http://facebook.github.io/jest/docs/timer-mocks.html#run-all-timers
 				timer = setTimeout(() => {
 					timedOut = true;
 					this.logger.warn(`Request timed out when call '${message.action}' action on '${targetNodeID}' node! (timeout: ${opts.timeout / 1000} sec)`, message);
