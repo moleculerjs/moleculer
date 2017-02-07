@@ -8,6 +8,6 @@
 
 module.exports = {
 	Memory: require("./memory"),
-	MemoryMap: require("./memory-map"),
+	//MemoryMap: require("./memory-map"),
 	Redis: require("./redis")
 };

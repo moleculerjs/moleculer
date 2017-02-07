@@ -1,4 +1,5 @@
 const ServiceBroker = require("../../src/service-broker");
+const Context = require("../../src/context");
 
 jest.mock("ioredis");
 
@@ -146,4 +147,60 @@ describe("Test RedisCacher close", () => {
 		cacher.close();
 		expect(cacher.client.quit).toHaveBeenCalledTimes(1);
 	});
+});
+
+describe("Test middleware", () => {
+	let cachedData = { num: 5 };
+
+	let cacher = new RedisCacher();
+	let broker = new ServiceBroker({
+		cacher
+	});
+
+	cacher.get = jest.fn(() => cachedData),
+	cacher.set = jest.fn();
+
+	let mockAction = {
+		name: "posts.find",
+		cache: true,
+		handler: jest.fn()
+	};
+	let params = { id: 3, name: "Antsa" };
+
+	it("should give back the cached data and not called the handler", () => {
+		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+		expect(typeof cachedHandler).toBe("function");
+
+		let ctx = new Context({ params, service: { broker } });
+		let p = cachedHandler(ctx);
+		return p.then(response => {
+			expect(broker.cacher.get).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.get).toHaveBeenCalledWith("posts.find:60b51087180be386e8a4917dd118a422b72faf4bc5bb58c0628c8382356595b2");
+			expect(mockAction.handler).toHaveBeenCalledTimes(0);
+			expect(response).toBe(cachedData);
+		});
+	});
+
+	it("should not give back cached data and should call the handler and call the 'cache.put' action with promise", () => {
+		let resData = [1,3,5];
+		let cacheKey = cacher.getCacheKey(mockAction.name, params);
+		broker.cacher.get = jest.fn(() => null);
+		mockAction.handler = jest.fn(() => resData);
+
+		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+
+		let ctx = new Context({ params, service: { broker } });
+		let p = cachedHandler(ctx);
+		return p.then(response => {
+			expect(response).toBe(resData);
+			expect(mockAction.handler).toHaveBeenCalledTimes(1);
+
+			expect(broker.cacher.get).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.get).toHaveBeenCalledWith(cacheKey);
+
+			expect(broker.cacher.set).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.set).toHaveBeenCalledWith(cacheKey, resData);
+		});
+	});
+
 });

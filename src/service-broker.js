@@ -12,7 +12,7 @@ const BalancedList = require("./balanced-list");
 const errors = require("./errors");
 const utils = require("./utils");
 const Logger = require("./logger");
-const ParamValidator = require("./param-validator");
+const Validator = require("./validator");
 
 const _ = require("lodash");
 const glob = require("glob");
@@ -68,7 +68,7 @@ class ServiceBroker {
 		}
 
 		if (this.options.validation !== false) {
-			this.validator = new ParamValidator();
+			this.validator = new Validator();
 			if (this.validator) {
 				this.validator.init(this);
 			}

@@ -1,7 +1,6 @@
 const ServiceBroker = require("../../src/service-broker");
 const Cacher = require("../../src/cachers/base");
 const Context = require("../../src/context");
-const utils = require("../../src/utils");
 
 describe("Test BaseCacher", () => {
 
@@ -91,7 +90,7 @@ describe("Test BaseCacher", () => {
 	});	
 });
 
-describe("Test wrapHandler", () => {
+describe("Test middleware", () => {
 	let cachedData = { num: 5 };
 
 	let cacher = new Cacher();

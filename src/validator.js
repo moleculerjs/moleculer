@@ -13,7 +13,6 @@ const { ValidationError } = require("./errors");
 class ParamValidator {
 
 	constructor() {
-		
 	}
 
 	init(broker) {
