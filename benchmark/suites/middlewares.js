@@ -21,10 +21,13 @@ let bench = new Benchmarkify({ async: true, name: "Middleware test"});
 
 (function() {
 	let broker = new ServiceBroker();
-	broker.loadService(__dirname + "/../user.service");
 
 	// Add middlewares
-	broker.use((ctx, next) => next().then(res => res));
+	broker.use(handler => {
+		return ctx => ctx.after(handler(ctx), res => res);
+	});
+
+	broker.loadService(__dirname + "/../user.service");
 
 	bench.add("With 1 middlewares", () => {
 		return broker.call("users.find");
@@ -37,7 +40,9 @@ let bench = new Benchmarkify({ async: true, name: "Middleware test"});
 
 	// Add 10 middlewares
 	_.times(10, () => {
-		broker.use((ctx, next) => next().then(res => res));
+		broker.use(handler => {
+			return ctx => ctx.after(handler(ctx), res => Promise.resolve(res));
+		});
 	});
 
 	bench.add("With 10 middlewares", () => {

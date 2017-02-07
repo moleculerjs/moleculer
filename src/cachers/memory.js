@@ -58,10 +58,10 @@ class MemoryCacher extends BaseCacher {
 	 * @memberOf Cacher
 	 */
 	get(key) {
-		this.logger.debug(`Get ${key}`);
+		//this.logger.debug(`Get ${key}`);
 		let item = this.cache[key];
 		if (item) { 
-			this.logger.debug(`Found ${key}`);
+			//this.logger.debug(`Found ${key}`);
 
 			if (this.opts.ttl) {
 				// Update expire time (hold in the cache if we are using it)

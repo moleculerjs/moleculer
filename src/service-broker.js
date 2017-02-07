@@ -12,6 +12,7 @@ const BalancedList = require("./balanced-list");
 const errors = require("./errors");
 const utils = require("./utils");
 const Logger = require("./logger");
+const ParamValidator = require("./param-validator");
 
 const _ = require("lodash");
 const glob = require("glob");
@@ -48,7 +49,7 @@ class ServiceBroker {
 
 		this._loggerCache = {};
 		this.logger = this.getLogger("BROKER");
-		
+
 		this.bus = new EventEmitter2({
 			wildcard: true,
 			maxListeners: 100
@@ -63,6 +64,11 @@ class ServiceBroker {
 		this.cacher = this.options.cacher;
 		if (this.cacher) {
 			this.cacher.init(this);
+		}
+
+		this.validator = new ParamValidator();
+		if (this.validator) {
+			this.validator.init(this);
 		}
 
 		this.transporter = this.options.transporter;
@@ -338,6 +344,8 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	wrapAction(action) {
+		if (this.middlewares.length == 0) return action;
+
 		let mws = Array.from(this.middlewares);
 		let handler = mws.reduce((handler, mw) => {
 			return mw(handler, action);

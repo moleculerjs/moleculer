@@ -65,7 +65,9 @@ let bench2 = new Benchmarkify({ async: true, name: "Call with middlewares"});
 (function() {
 	let broker = createBroker();
 
-	let mw1 = (ctx, next) => next();
+	let mw1 = handler => {
+		return ctx => ctx.after(handler(ctx), res => res);
+	};
 	broker.use(mw1);
 
 	bench2.add("Call with 1 middleware", () => {
@@ -76,7 +78,9 @@ let bench2 = new Benchmarkify({ async: true, name: "Call with middlewares"});
 (function() {
 	let broker = createBroker();
 
-	let mw1 = (ctx, next) => next();
+	let mw1 = handler => {
+		return ctx => ctx.after(handler(ctx), res => res);
+	};
 	broker.use(mw1, mw1, mw1, mw1, mw1);
 
 	bench2.add("Call with 5 middlewares", () => {
@@ -88,7 +92,6 @@ let bench2 = new Benchmarkify({ async: true, name: "Call with middlewares"});
 let bench3 = new Benchmarkify({ async: true, name: "Call with cachers"});
 
 let MemoryCacher = require("../../src/cachers").Memory;
-let cache = require("../../src/middlewares/cache");
 
 (function() {
 	let broker = createBroker();
@@ -107,24 +110,6 @@ let cache = require("../../src/middlewares/cache");
 (function() {
 	let broker = createBroker({ cacher: new MemoryCacher() });
 	bench3.add("Built-in cacher (keys filter)", () => {
-		return broker.call("users.get2", { id: 5 });
-	});
-})();
-
-(function() {
-	let broker = createBroker();
-	broker.use(cache(broker, new MemoryCacher()));
-
-	bench3.add("Middleware cacher", () => {
-		return broker.call("users.get", { id: 5 });
-	});
-})();
-
-(function() {
-	let broker = createBroker();
-	broker.use(cache(broker, new MemoryCacher()));
-
-	bench3.add("Middleware cacher (keys filter)", () => {
 		return broker.call("users.get2", { id: 5 });
 	});
 })();
@@ -155,9 +140,9 @@ let bench4 = new Benchmarkify({ async: true, name: "Call with param validator"})
 })();
 
 bench1.run()
-.then(() => bench2.skip())
-.then(() => bench3.skip())
-.then(() => bench4.skip());
+.then(() => bench2.run())
+.then(() => bench3.run())
+.then(() => bench4.run());
 
 
 /*
