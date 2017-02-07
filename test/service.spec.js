@@ -73,7 +73,6 @@ describe("Test Service creation", () => {
 		expect(service.settings).toBe(schema.settings);
 		expect(service.schema).toBe(schema);
 		expect(service.broker).toBe(broker);
-		expect(service.validator).toBeDefined();
 	});
 	
 });
@@ -263,46 +262,41 @@ describe("Test Service without handlers", () => {
 
 describe("Test cached actions", () => {
 
-	let broker = new ServiceBroker({
-		cacher: new MemoryCacher()
-	});
-
-	broker.cacher.wrapHandler = jest.fn(action => action);
+	let cacher = new MemoryCacher();
 
 	it("don't wrap, if schema cache is UNDEFINED and action cache is UNDEFINED", () => {
-		let schema = {
-			name: "cache-test",
+		let broker = new ServiceBroker();
+		broker.createService({
+			name: "test",
 			actions: {
 				find: {
 					handler() {}
 				}
 			}
-		};
+		});
 		
-		broker.cacher.wrapHandler.mockClear();
-		new Service(broker, schema);
-		expect(broker.cacher.wrapHandler).toHaveBeenCalledTimes(0);
+		expect(broker.actions.get("test.find").get().data.cache).toBe(false);
 	});
 
 	it("wrap, if schema cache is true and action cache UNDEFINED", () => {
-		let schema = {
-			name: "cache-test",
+		let broker = new ServiceBroker();
+		broker.createService({
+			name: "test",
 			settings: { cache: true },
 			actions: {
 				find: {
 					handler() {}
 				}
 			}
-		};
+		});
 		
-		broker.cacher.wrapHandler.mockClear();
-		new Service(broker, schema);
-		expect(broker.cacher.wrapHandler).toHaveBeenCalledTimes(1);
+		expect(broker.actions.get("test.find").get().data.cache).toBe(true);
 	});
 
 	it("don't wrap, if schema cache is TRUE and action cache is FALSE", () => {
-		let schema = {
-			name: "cache-test",
+		let broker = new ServiceBroker();
+		broker.createService({
+			name: "test",
 			settings: { cache: true },
 			actions: {
 				find: {
@@ -310,48 +304,45 @@ describe("Test cached actions", () => {
 					handler() {}
 				}
 			}
-		};
+		});
 		
-		broker.cacher.wrapHandler.mockClear();
-		new Service(broker, schema);
-		expect(broker.cacher.wrapHandler).toHaveBeenCalledTimes(0);
+		expect(broker.actions.get("test.find").get().data.cache).toBe(false);
 	});
 
 	it("wrap, if schema cache is UNDEFINED and action cache is TRUE", () => {
-		let schema = {
-			name: "cache-test",
+		let broker = new ServiceBroker();
+		broker.createService({
+			name: "test",
 			actions: {
 				find: {
 					cache: true,
 					handler() {}
 				}
 			}
-		};
+		});
 		
-		broker.cacher.wrapHandler.mockClear();
-		new Service(broker, schema);
-		expect(broker.cacher.wrapHandler).toHaveBeenCalledTimes(1);
+		expect(broker.actions.get("test.find").get().data.cache).toBe(true);
 	});
 
 	it("wrap, if schema cache is UNDEFINED and action cache is Object", () => {
-		let schema = {
-			name: "cache-test",
+		let broker = new ServiceBroker();
+		broker.createService({
+			name: "test",
 			actions: {
 				find: {
 					cache: {},
 					handler() {}
 				}
 			}
-		};
+		});
 		
-		broker.cacher.wrapHandler.mockClear();
-		new Service(broker, schema);
-		expect(broker.cacher.wrapHandler).toHaveBeenCalledTimes(1);
+		expect(broker.actions.get("test.find").get().data.cache).toEqual({});
 	});
 
 	it("wrap, if schema cache is FALSE and action cache is TRUE", () => {
-		let schema = {
-			name: "cache-test",
+		let broker = new ServiceBroker();
+		broker.createService({
+			name: "test",
 			settings: { cache: false },
 			actions: {
 				find: {
@@ -359,16 +350,15 @@ describe("Test cached actions", () => {
 					handler() {}
 				}
 			}
-		};
+		});
 		
-		broker.cacher.wrapHandler.mockClear();
-		new Service(broker, schema);
-		expect(broker.cacher.wrapHandler).toHaveBeenCalledTimes(1);
+		expect(broker.actions.get("test.find").get().data.cache).toBe(true);
 	});
 
 	it("wrap, if schema cache is TRUE and action cache is TRUE", () => {
-		let schema = {
-			name: "cache-test",
+		let broker = new ServiceBroker();
+		broker.createService({
+			name: "test",
 			settings: { cache: true },
 			actions: {
 				find: {
@@ -376,16 +366,15 @@ describe("Test cached actions", () => {
 					handler() {}
 				}
 			}
-		};
+		});
 		
-		broker.cacher.wrapHandler.mockClear();
-		new Service(broker, schema);
-		expect(broker.cacher.wrapHandler).toHaveBeenCalledTimes(1);
+		expect(broker.actions.get("test.find").get().data.cache).toBe(true);
 	});
 
 	it("wrap, if schema cache is TRUE and action cache is Object", () => {
-		let schema = {
-			name: "cache-test",
+		let broker = new ServiceBroker();
+		broker.createService({
+			name: "test",
 			settings: { cache: true },
 			actions: {
 				find: {
@@ -395,11 +384,11 @@ describe("Test cached actions", () => {
 					handler() {}
 				}
 			}
-		};
+		});
 		
-		broker.cacher.wrapHandler.mockClear();
-		new Service(broker, schema);
-		expect(broker.cacher.wrapHandler).toHaveBeenCalledTimes(1);
+		expect(broker.actions.get("test.find").get().data.cache).toEqual({
+			keys: ["id"]
+		});
 	});
 });
 
@@ -422,33 +411,30 @@ describe("Test param validator", () => {
 		}
 	};
 
+	const broker = new ServiceBroker();
+	const service = broker.createService(schema);
+	broker.validator.validate = jest.fn();
+
 	it("shouldn't wrap validation, if action can't contain params settings", () => {
-		let broker = new ServiceBroker();
-		let service = new Service(broker, schema);
-		service.validator.validate = jest.fn();
 		return broker.call("test.withoutValidation")
 		.then(res => {
-			expect(service.validator.validate).toHaveBeenCalledTimes(0);
+			expect(broker.validator.validate).toHaveBeenCalledTimes(0);
 		});
 	});
 
 	it("should wrap validation, if action contains params settings", () => {
-		let broker = new ServiceBroker();
-		let service = new Service(broker, schema);
-		service.validator.validate = jest.fn();
+		broker.validator.validate.mockClear();
 		let p = { a: 5, b: 10 };
 		return broker.call("test.withValidation", p)
 		.then(res => {
-			expect(service.validator.validate).toHaveBeenCalledTimes(1);
-			expect(service.validator.validate).toHaveBeenCalledWith(schema.actions.withValidation.params, p);
+			expect(broker.validator.validate).toHaveBeenCalledTimes(1);
+			expect(broker.validator.validate).toHaveBeenCalledWith(schema.actions.withValidation.params, p);
 			expect(schema.actions.withValidation.handler).toHaveBeenCalledTimes(1);
 		});
 	});
 
 	it("should call handler, if params are correct", () => {
 		schema.actions.withValidation.handler.mockClear();
-		let broker = new ServiceBroker();
-		let service = new Service(broker, schema);
 		let p = { a: 5, b: 10 };
 		return broker.call("test.withValidation", p)
 		.then(res => {
@@ -459,9 +445,6 @@ describe("Test param validator", () => {
 
 	it("should throw ValidationError, if params is not correct", () => {
 		schema.actions.withValidation.handler.mockClear();
-		let broker = new ServiceBroker();
-		let service = new Service(broker, schema);
-		//service.validator.validate = jest.fn();
 		let p = { a: 5, b: "asd" };
 		return broker.call("test.withValidation", p)
 		.catch(err => {
@@ -471,14 +454,12 @@ describe("Test param validator", () => {
 	});
 
 	it("should wrap validation, if call action directly", () => {
-		let broker = new ServiceBroker();
-		let service = new Service(broker, schema);
-		service.validator.validate = jest.fn();
+		broker.validator.validate.mockClear();
 		let p = { a: 5, b: 10 };
 		return service.actions.withValidation(p)
 		.then(res => {
-			expect(service.validator.validate).toHaveBeenCalledTimes(1);
-			expect(service.validator.validate).toHaveBeenCalledWith(schema.actions.withValidation.params, p);
+			expect(broker.validator.validate).toHaveBeenCalledTimes(1);
+			expect(broker.validator.validate).toHaveBeenCalledWith(schema.actions.withValidation.params, p);
 		});
 	});
 });

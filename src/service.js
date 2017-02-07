@@ -138,10 +138,13 @@ class Service {
 		this.broker.callPluginMethod(this, "createActionHandler", this.broker, this, action);
 
 		// Cache prop
+		/*
 		if (action.cache || (action.cache === undefined && this.settings.cache === true)) {
 			action.cache = action.cache || true;
 		} else
 			action.cache = false;
+		*/
+		action.cache = action.cache !== undefined ? action.cache : (this.settings.cache || false);
 		
 		// Wrap middlewares
 		this.broker.wrapAction(action);
