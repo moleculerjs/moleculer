@@ -5,7 +5,7 @@ const Service = require("../src/service");
 const ServiceBroker = require("../src/service-broker");
 const Context = require("../src/context");
 const Transporter = require("../src/transporters/base");
-const { RequestTimeoutError } = require("../src/errors");
+const { ServiceNotFoundError, RequestTimeoutError } = require("../src/errors");
 
 describe("Test ServiceBroker constructor", () => {
 
@@ -296,6 +296,7 @@ describe("Test action registration", () => {
 	it("should reject if no action", () => {
 		return broker.call("noaction").catch(err => {
 			expect(err).toBeDefined();
+			expect(err).toBeInstanceOf(ServiceNotFoundError);
 		});
 	});
 
@@ -539,10 +540,7 @@ describe("Test registerAction & unregisterAction with nodeID", () => {
 
 	it("should unregister the remote action", () => {
 		broker.unregisterAction(null, action, "server-2");
-
-		//expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		//expect(broker.emitLocal).toHaveBeenCalledWith("unregister.action.users.get", null, {"handler": jasmine.any(Function), "name": "users.get"}, "server-2");
-		
+	
 		let findItem = broker.actions.get("users.get");
 		expect(findItem).toBeDefined();
 		expect(findItem.count()).toBe(0);
@@ -699,7 +697,8 @@ describe("Test ServiceBroker with Transporter", () => {
 
 	let broker= new ServiceBroker({
 		transporter,
-		nodeID: "12345"
+		nodeID: "12345",
+		requestRetry: 2
 	});
 
 	it("should call transporter.init", () => {
@@ -745,7 +744,7 @@ describe("Test ServiceBroker with Transporter", () => {
 		broker.registerAction(mockService, mockAction, "99999");
 		return broker.call("posts.find", p).then(ctx => {
 			expect(transporter.request).toHaveBeenCalledTimes(1);
-			expect(transporter.request).toHaveBeenCalledWith("99999", ctx, { retryCount: 0, timeout: 15000});
+			expect(transporter.request).toHaveBeenCalledWith("99999", ctx, { retryCount: 2, timeout: 15000});
 			expect(ctx.params).toEqual(p);
 		});
 	});
@@ -757,19 +756,20 @@ describe("Test ServiceBroker with Transporter", () => {
 
 		return broker.call("posts.find", p, { parentCtx, timeout: 5000 }).then(ctx => {
 			expect(transporter.request).toHaveBeenCalledTimes(1);
-			expect(transporter.request).toHaveBeenCalledWith("99999", ctx, { parentCtx, retryCount: 0, timeout: 5000});
+			expect(transporter.request).toHaveBeenCalledWith("99999", ctx, { parentCtx, retryCount: 2, timeout: 5000});
 			expect(ctx.parent).toBe(parentCtx);		
 		});
 	});
 
 	it("should call broker.nodeUnavailable if transporter.request throw RequestTimeoutError", () => {
 		let p = { abc: 100 };
-		let parentCtx = new Context(p);
 		transporter.request = jest.fn(() => Promise.reject(new RequestTimeoutError({ action: "posts.find" }, "server-2")));
+		broker._callCount = 0;
 
 		return broker.call("posts.find", p).catch(err => {
 			expect(err).toBeInstanceOf(RequestTimeoutError);
 			expect(err.data.action).toBe("posts.find");
+			expect(broker._callCount).toBe(3); // requestRetry = 2
 		});
 	});
 	

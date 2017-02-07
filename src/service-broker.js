@@ -43,30 +43,38 @@ class ServiceBroker {
 			validation: true
 		});
 
-		this.ServiceFactory = this.options.ServiceFactory ? this.options.ServiceFactory : require("./service");
-		this.ContextFactory = this.options.ContextFactory ? this.options.ContextFactory : require("./context");
+		// Class factories
+		this.ServiceFactory = this.options.ServiceFactory || require("./service");
+		this.ContextFactory = this.options.ContextFactory || require("./context");
 
+		// Self nodeID
 		this.nodeID = this.options.nodeID || utils.getNodeID();
 
+		// Logger
 		this._loggerCache = {};
 		this.logger = this.getLogger("BROKER");
 
+		// Local event bus
 		this.bus = new EventEmitter2({
 			wildcard: true,
 			maxListeners: 100
 		});
 
+		// Internal maps
 		this.nodes = new Map();
 		this.services = new Map();
 		this.actions = new Map();
 
+		// Middlewares
 		this.middlewares = [];
 
+		// Cacher
 		this.cacher = this.options.cacher;
 		if (this.cacher) {
 			this.cacher.init(this);
 		}
 
+		// Validation
 		if (this.options.validation !== false) {
 			this.validator = new Validator();
 			if (this.validator) {
@@ -74,14 +82,19 @@ class ServiceBroker {
 			}
 		}
 
+		// Transporter
 		this.transporter = this.options.transporter;
 		if (this.transporter) {
 			this.transporter.init(this);
 		}
 
+		// TODO remove to stats
 		this._callCount = 0;
+
+		// Plugin container
 		this.plugins = [];		
 
+		// Graceful exit
 		this._closeFn = () => {
 			this.stop();
 		};
