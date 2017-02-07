@@ -39,7 +39,8 @@ class ServiceBroker {
 			metrics: false,
 			logLevel: "info",
 			requestTimeout: 15 * 1000,
-			requestRetry: 0
+			requestRetry: 0,
+			validation: true
 		});
 
 		this.ServiceFactory = this.options.ServiceFactory ? this.options.ServiceFactory : require("./service");
@@ -66,9 +67,11 @@ class ServiceBroker {
 			this.cacher.init(this);
 		}
 
-		this.validator = new ParamValidator();
-		if (this.validator) {
-			this.validator.init(this);
+		if (this.options.validation !== false) {
+			this.validator = new ParamValidator();
+			if (this.validator) {
+				this.validator.init(this);
+			}
 		}
 
 		this.transporter = this.options.transporter;

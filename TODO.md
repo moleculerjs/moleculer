@@ -28,14 +28,7 @@
 	- $node.health
 	- $node.stats
 
-- wrapper in plugins. 
-	- wrapAction method. So cacher can be a plugin too.
-	- rateLimit plugin can wrap the action calls
-	- chainable, must be return with the action
-
-
 - create d.ts file
-
 
 - cli tool for generate project & Services
 	- https://github.com/sboudrias/Inquirer.js
@@ -103,7 +96,6 @@
 	Catch unhandled exceptions and send an event with details. Can be catch in metrics, alert or logger services
 
 ## Services
-- Validator Factory for service what is resolve the params schema. Built-in resolver is validatorjs (it is the fastest...yet)
 
 ## Transporters
 - Redis transporter
