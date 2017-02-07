@@ -40,25 +40,19 @@ describe("Test MemoryCacher set & get", () => {
 	};
 
 	it("should save the data with key", () => {
-		let p = cacher.set(key, data1);
-		expect(utils.isPromise(p)).toBeTruthy();
+		cacher.set(key, data1);
+		expect(cacher.cache[key]).toBeDefined();
 	});
 
 	it("should give back the data by key", () => {
-		let p = cacher.get(key);
-		expect(utils.isPromise(p)).toBeTruthy();
-		return p.then((obj) => {
-			expect(obj).toBeDefined();
-			expect(obj).toEqual(data1);
-		});
+		let obj = cacher.get(key);
+		expect(obj).toBeDefined();
+		expect(obj).toEqual(data1);
 	});
 
 	it("should give null if key not exist", () => {
-		let p = cacher.get("123123");
-		expect(utils.isPromise(p)).toBeTruthy();
-		return p.then((obj) => {
-			expect(obj).toBeNull();
-		});
+		let obj = cacher.get("123123");
+		expect(obj).toBeNull();
 	});
 
 });
@@ -80,21 +74,17 @@ describe("Test MemoryCacher delete", () => {
 	};
 
 	it("should save the data with key", () => {
-		return cacher.set(key, data1);
+		cacher.set(key, data1);
 	});
 
 	it("should delete the key", () => {
-		let p = cacher.del(key);
-		expect(utils.isPromise(p)).toBeTruthy();
-		return p;
+		cacher.del(key);
+		expect(cacher.cache[key]).toBeUndefined();
 	});
 
 	it("should give null", () => {
-		let p = cacher.get(key);
-		expect(utils.isPromise(p)).toBeTruthy();
-		return p.then((obj) => {
-			expect(obj).toBeNull();
-		});
+		let obj = cacher.get(key);
+		expect(obj).toBeNull();
 	});
 
 });
@@ -118,9 +108,8 @@ describe("Test MemoryCacher clean", () => {
 	let data2 = "Data2";
 
 	it("should save the data with key", () => {
-		return cacher.set(key1, data1).then(() => {
-			return cacher.set(key2, data2);
-		});
+		cacher.set(key1, data1);
+		cacher.set(key2, data2);
 	});
 
 	it("should give item in cache for keys", () => {
@@ -129,39 +118,27 @@ describe("Test MemoryCacher clean", () => {
 	});	
 
 	it("should clean test* keys", () => {
-		let p = cacher.clean("tst*");
-		expect(utils.isPromise(p)).toBeTruthy();
-		return p;
+		cacher.clean("tst*");
 	});
 
 	it("should give null for key1", () => {
-		let p = cacher.get(key1);
-		expect(utils.isPromise(p)).toBeTruthy();
-		return p.then((obj) => {
-			expect(obj).toBeNull();
-		});
+		let obj = cacher.get(key1);
+		expect(obj).toBeNull();
 	});
 
 	it("should give back data 2 for key2", () => {
-		let p = cacher.get(key2);
-		expect(utils.isPromise(p)).toBeTruthy();
-		return p.then((obj) => {
-			expect(obj).toEqual(data2);
-		});
+		let obj = cacher.get(key2);
+		expect(obj).toEqual(data2);
 	});
 
 	it("should clean all keys", () => {
-		let p = cacher.clean();
-		expect(utils.isPromise(p)).toBeTruthy();
-		return p;
+		cacher.clean();
+		expect(Object.keys(cacher.cache).length).toBe(0);
 	});
 
 	it("should give null for key2 too", () => {
-		let p = cacher.get(key1);
-		expect(utils.isPromise(p)).toBeTruthy();
-		return p.then((obj) => {
-			expect(obj).toBeNull();
-		});
+		let obj = cacher.get(key1);
+		expect(obj).toBeNull();
 	});
 
 });
@@ -187,9 +164,8 @@ describe("Test MemoryCacher expired method", () => {
 	let data2 = "Data2";
 
 	it("should save the data with key", () => {
-		return cacher.set(key1, data1).then(() => {
-			return cacher.set(key2, data2);
-		});
+		cacher.set(key1, data1);
+		cacher.set(key2, data2);
 	});
 
 	it("should set expire to item", () => {
@@ -201,19 +177,13 @@ describe("Test MemoryCacher expired method", () => {
 	});
 
 	it("should give null for key1", () => {
-		let p = cacher.get(key1);
-		expect(utils.isPromise(p)).toBeTruthy();
-		return p.then((obj) => {
-			expect(obj).toBeNull();
-		});
+		let obj = cacher.get(key1);
+		expect(obj).toBeNull();
 	});
 
 	it("should give back data 2 for key2", () => {
-		let p = cacher.get(key2);
-		expect(utils.isPromise(p)).toBeTruthy();
-		return p.then((obj) => {
-			expect(obj).toEqual(data2);
-		});
+		let obj = cacher.get(key2);
+		expect(obj).toEqual(data2);
 	});
 
 });

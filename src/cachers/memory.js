@@ -101,7 +101,7 @@ class MemoryCacher extends BaseCacher {
 	del(key) {
 		delete this.cache[key];
 		this.logger.debug(`Delete ${key}`);
-		return ;
+		return;
 	}
 
 	/**
