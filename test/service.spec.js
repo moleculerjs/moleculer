@@ -80,7 +80,7 @@ describe("Test Service creation", () => {
 
 describe("Local service registration", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ internalActions: false });
 	let service;
 
 	let schema = _.cloneDeep(PostSchema);

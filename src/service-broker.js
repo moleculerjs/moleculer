@@ -41,7 +41,8 @@ class ServiceBroker {
 			logLevel: "info",
 			requestTimeout: 15 * 1000,
 			requestRetry: 0,
-			validation: true
+			validation: true,
+			internalActions: true
 		});
 
 		// Class factories
@@ -90,10 +91,32 @@ class ServiceBroker {
 		}
 
 		// Register internal actions
-		this.registerInternalActions();
+		if (this.options.internalActions)
+			this.registerInternalActions();
 
 		// TODO remove to stats
 		this._callCount = 0;
+
+		this._statistics = {
+			total: {
+				reqCount: 0,
+				rps: 0,
+				errors: {
+					"4xx": 0,
+					"5xx": 0
+				},
+				latency: {
+					mean: 0,
+					median: 0,
+					"90th": 0,
+					"99th": 0,
+					"99.5th": 0
+				}
+			},
+			actions: {
+
+			}
+		};
 
 		// Plugin container
 		this.plugins = [];		
@@ -526,6 +549,10 @@ class ServiceBroker {
 				// TODO: event loop & GC info
 				// https://github.com/RisingStack/trace-nodejs/blob/master/lib/agent/metrics/apm/index.js
 		});
+
+		addAction("$node.stats", ctx => {
+			return this._statistics;
+		});		
 	}
 
 	/**

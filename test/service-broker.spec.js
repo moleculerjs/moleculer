@@ -12,7 +12,7 @@ describe("Test ServiceBroker constructor", () => {
 	it("should set default options", () => {
 		let broker = new ServiceBroker();
 		expect(broker).toBeDefined();
-		expect(broker.options).toEqual({ logLevel: "info", metrics: false, nodeHeartbeatTimeout : 30, sendHeartbeatTime: 10, requestRetry: 0, requestTimeout: 15000, validation: true });
+		expect(broker.options).toEqual({ logLevel: "info", metrics: false, nodeHeartbeatTimeout : 30, sendHeartbeatTime: 10, requestRetry: 0, requestTimeout: 15000, validation: true, internalActions: true });
 		expect(broker.services).toBeInstanceOf(Map);
 		expect(broker.actions).toBeInstanceOf(Map);
 		expect(broker.transporter).toBeUndefined();
@@ -20,9 +20,9 @@ describe("Test ServiceBroker constructor", () => {
 	});
 
 	it("should merge options", () => {
-		let broker = new ServiceBroker( { nodeHeartbeatTimeout: 20, metrics: true, logLevel: "debug", requestRetry: 3, requestTimeout: 5000, validation: false });
+		let broker = new ServiceBroker( { nodeHeartbeatTimeout: 20, metrics: true, logLevel: "debug", requestRetry: 3, requestTimeout: 5000, validation: false, internalActions: false });
 		expect(broker).toBeDefined();
-		expect(broker.options).toEqual({ logLevel: "debug", metrics: true, nodeHeartbeatTimeout : 20, sendHeartbeatTime: 10, requestRetry: 3, requestTimeout: 5000, validation: false });
+		expect(broker.options).toEqual({ logLevel: "debug", metrics: true, nodeHeartbeatTimeout : 20, sendHeartbeatTime: 10, requestRetry: 3, requestTimeout: 5000, validation: false, internalActions: false });
 		expect(broker.services).toBeInstanceOf(Map);
 		expect(broker.actions).toBeInstanceOf(Map);
 		expect(broker.transporter).toBeUndefined();
@@ -265,7 +265,7 @@ describe("Test service registration", () => {
 
 describe("Test action registration", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ internalActions: false });
 
 	let mockService = {
 		name: "posts",
@@ -353,7 +353,7 @@ describe("Test action registration", () => {
 
 describe("Test versioned action registration", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ internalActions: false });
 
 	let registerAction = jest.fn();
 	broker.on("register.action.posts.find", registerAction);
@@ -433,7 +433,7 @@ describe("Test versioned action registration", () => {
 
 describe("Test getLocalActionList", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ internalActions: false });
 
 	let service = new Service(broker, {
 		name: "posts",
