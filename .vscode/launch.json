@@ -37,7 +37,7 @@
 			"request": "launch",
 			"name": "Launch benchmark",
 			"program": "${workspaceRoot}\\benchmark\\index.js",
-			"args": ["middlewares"],
+			"args": ["call"],
 			"cwd": "${workspaceRoot}\\benchmark"
 		},
 		{

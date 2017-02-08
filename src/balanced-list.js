@@ -29,7 +29,7 @@ class BalancedList {
 
 	add(data, weight = 0, nodeID) {
 		if (nodeID != null) {
-			let found = _.find(this.list, item => item.nodeID == nodeID);
+			let found = _.find(this.list, { nodeID });
 			if (found) {
 				found.data = data;
 				return false;
@@ -67,12 +67,17 @@ class BalancedList {
 		return item;
 	}
 
+	getData() {
+		const item = this.get();
+		return item ? item.data : null;
+	}
+
 	count() {
 		return this.list.length;
 	}
 
 	getLocalItem() {
-		return _.find(this.list, (el) => el.local === true);
+		return _.find(this.list, { local: true });
 	}
 
 	hasLocal() {

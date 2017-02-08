@@ -1,3 +1,6 @@
 "use strict";
 
-require("./" + process.argv[2]);
+const moduleName = process.argv[2];
+process.argv.splice(2, 1);
+
+require("./" + moduleName);

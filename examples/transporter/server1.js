@@ -10,7 +10,7 @@ let broker = new ServiceBroker({
 	nodeID: process.argv[2] || "server-1",
 	transporter: new NatsTransporter(),
 	logger: console,
-	logLevel: "info",
+	logLevel: "debug",
 	requestTimeout: 5 * 1000,
 	//requestRetry: 3
 });
@@ -25,12 +25,11 @@ broker.on("TEST2", a => {
 	console.log("TEST2 event received:", a);
 });
 
-
 Promise.resolve()
 .then(delay(1000))
 
 .then(() => {
-	broker.call("users.delayed").then(res => {
+	broker.call("users.find").then(res => {
 		console.log("[server-1] Success!", res.length);
 	}).catch(err => {
 		console.error("[server-1] Error!", err.message);
