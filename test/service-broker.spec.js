@@ -19,6 +19,7 @@ describe("Test ServiceBroker constructor", () => {
 			cacher: null,
 			transporter: null, 
 			metrics: false, 
+			statistics: false,
 			nodeHeartbeatTimeout : 30, 
 			sendHeartbeatTime: 10, 
 			requestRetry: 0, 
@@ -30,6 +31,7 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.actions).toBeInstanceOf(Map);
 		expect(broker.transporter).toBeNull();
 		expect(broker.cacher).toBeNull();
+		expect(broker.statistics).toBeUndefined();
 		expect(broker.nodeID).toBe(require("os").hostname().toLowerCase());
 	});
 
@@ -37,6 +39,7 @@ describe("Test ServiceBroker constructor", () => {
 		let broker = new ServiceBroker( { 
 			nodeHeartbeatTimeout: 20, 
 			metrics: true, 
+			statistics: true,
 			logLevel: "debug", 
 			requestRetry: 3, 
 			requestTimeout: 5000, 
@@ -50,6 +53,7 @@ describe("Test ServiceBroker constructor", () => {
 			cacher: null,
 			transporter: null,
 			metrics: true, 
+			statistics: true,
 			nodeHeartbeatTimeout : 20, 
 			sendHeartbeatTime: 10, 
 			requestRetry: 3, 
@@ -59,6 +63,7 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.services).toBeInstanceOf(Map);
 		expect(broker.actions).toBeInstanceOf(Map);
 		expect(broker.transporter).toBeNull();
+		expect(broker.statistics).toBeDefined();
 		expect(broker.nodeID).toBe(require("os").hostname().toLowerCase());
 	});
 

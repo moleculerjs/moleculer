@@ -13,6 +13,7 @@ const errors = require("./errors");
 const utils = require("./utils");
 const Logger = require("./logger");
 const Validator = require("./validator");
+const BrokerStatistics = require("./statistics");
 
 const _ = require("lodash");
 const glob = require("glob");
@@ -49,6 +50,7 @@ class ServiceBroker {
 			cacher: null,
 
 			metrics: false,
+			statistics: false,
 			validation: true,
 			internalActions: true
 			
@@ -60,6 +62,9 @@ class ServiceBroker {
 		this.ServiceFactory = this.options.ServiceFactory || require("./service");
 		this.ContextFactory = this.options.ContextFactory || require("./context");
 
+		// Self nodeID
+		this.nodeID = this.options.nodeID || utils.getNodeID();
+
 		// Logger
 		this._loggerCache = {};
 		this.logger = this.getLogger("BROKER");
@@ -69,9 +74,6 @@ class ServiceBroker {
 			wildcard: true,
 			maxListeners: 100
 		});
-
-		// Self nodeID
-		this.nodeID = this.options.nodeID || utils.getNodeID();
 
 		// Internal maps
 		this.nodes = new Map();
@@ -108,26 +110,8 @@ class ServiceBroker {
 		// TODO remove to stats
 		this._callCount = 0;
 
-		this._statistics = {
-			total: {
-				reqCount: 0,
-				rps: 0,
-				errors: {
-					"4xx": 0,
-					"5xx": 0
-				},
-				latency: {
-					mean: 0,
-					median: 0,
-					"90th": 0,
-					"99th": 0,
-					"99.5th": 0
-				}
-			},
-			actions: {
-
-			}
-		};
+		if (this.options.statistics)
+			this.statistics = new BrokerStatistics();
 
 		// Plugin container
 		this.plugins = [];		
