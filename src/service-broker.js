@@ -35,22 +35,30 @@ class ServiceBroker {
 	 */
 	constructor(options) {
 		this.options = _.defaultsDeep(options, {
-			sendHeartbeatTime: 10,
-			nodeHeartbeatTimeout: 30,
-			metrics: false,
+			nodeID: null,
+
+			logger: null,
 			logLevel: "info",
+
+			transporter: null,
 			requestTimeout: 15 * 1000,
 			requestRetry: 0,
+			sendHeartbeatTime: 10,
+			nodeHeartbeatTimeout: 30,
+
+			cacher: null,
+
+			metrics: false,
 			validation: true,
 			internalActions: true
+			
+			// ServiceFactory: null,
+			// ContextFactory: null
 		});
 
 		// Class factories
 		this.ServiceFactory = this.options.ServiceFactory || require("./service");
 		this.ContextFactory = this.options.ContextFactory || require("./context");
-
-		// Self nodeID
-		this.nodeID = this.options.nodeID || utils.getNodeID();
 
 		// Logger
 		this._loggerCache = {};
@@ -61,6 +69,9 @@ class ServiceBroker {
 			wildcard: true,
 			maxListeners: 100
 		});
+
+		// Self nodeID
+		this.nodeID = this.options.nodeID || utils.getNodeID();
 
 		// Internal maps
 		this.nodes = new Map();

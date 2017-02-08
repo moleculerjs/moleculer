@@ -12,20 +12,53 @@ describe("Test ServiceBroker constructor", () => {
 	it("should set default options", () => {
 		let broker = new ServiceBroker();
 		expect(broker).toBeDefined();
-		expect(broker.options).toEqual({ logLevel: "info", metrics: false, nodeHeartbeatTimeout : 30, sendHeartbeatTime: 10, requestRetry: 0, requestTimeout: 15000, validation: true, internalActions: true });
+		expect(broker.options).toEqual({ 
+			nodeID: null,
+			logger: null,
+			logLevel: "info",
+			cacher: null,
+			transporter: null, 
+			metrics: false, 
+			nodeHeartbeatTimeout : 30, 
+			sendHeartbeatTime: 10, 
+			requestRetry: 0, 
+			requestTimeout: 15000, 
+			validation: true, 
+			internalActions: true 
+		});
 		expect(broker.services).toBeInstanceOf(Map);
 		expect(broker.actions).toBeInstanceOf(Map);
-		expect(broker.transporter).toBeUndefined();
+		expect(broker.transporter).toBeNull();
+		expect(broker.cacher).toBeNull();
 		expect(broker.nodeID).toBe(require("os").hostname().toLowerCase());
 	});
 
 	it("should merge options", () => {
-		let broker = new ServiceBroker( { nodeHeartbeatTimeout: 20, metrics: true, logLevel: "debug", requestRetry: 3, requestTimeout: 5000, validation: false, internalActions: false });
+		let broker = new ServiceBroker( { 
+			nodeHeartbeatTimeout: 20, 
+			metrics: true, 
+			logLevel: "debug", 
+			requestRetry: 3, 
+			requestTimeout: 5000, 
+			validation: false, 
+			internalActions: false });
 		expect(broker).toBeDefined();
-		expect(broker.options).toEqual({ logLevel: "debug", metrics: true, nodeHeartbeatTimeout : 20, sendHeartbeatTime: 10, requestRetry: 3, requestTimeout: 5000, validation: false, internalActions: false });
+		expect(broker.options).toEqual({ 
+			nodeID: null,
+			logger: null,
+			logLevel: "debug", 
+			cacher: null,
+			transporter: null,
+			metrics: true, 
+			nodeHeartbeatTimeout : 20, 
+			sendHeartbeatTime: 10, 
+			requestRetry: 3, 
+			requestTimeout: 5000, 
+			validation: false, 
+			internalActions: false });
 		expect(broker.services).toBeInstanceOf(Map);
 		expect(broker.actions).toBeInstanceOf(Map);
-		expect(broker.transporter).toBeUndefined();
+		expect(broker.transporter).toBeNull();
 		expect(broker.nodeID).toBe(require("os").hostname().toLowerCase());
 	});
 
