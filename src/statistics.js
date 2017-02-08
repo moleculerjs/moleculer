@@ -1,7 +1,16 @@
 "use strict";
 
+/*
+
+https://github.com/awolden/brakes/blob/master/lib/Stats.js
+
+https://github.com/RisingStack/trace-nodejs/blob/master/lib/agent/metrics/rpm/index.js
+*/
+
 class BrokerStatistics {
-	constructor() {
+	constructor(opts) {
+		this.dirty = true;
+
 		this.stat = {
 			total: {
 				reqCount: 0,
@@ -22,9 +31,16 @@ class BrokerStatistics {
 
 			}
 		};
+
+		this.calcTimer = setInterval(() => {
+			if (this.dirty)
+				this.calculate();
+
+		}, opts.interval || 5 * 1000);
 	}
 
 	addRequest(latency, errCode) {
+		this.dirty = true;
 
 	}
 
