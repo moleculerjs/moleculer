@@ -1,5 +1,6 @@
 let _ = require("lodash");
 let fakerator = require("fakerator")();
+const Promise = require("bluebird");
 
 let { delay } = require("../src/utils");
 

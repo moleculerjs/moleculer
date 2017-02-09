@@ -103,15 +103,15 @@ class ServiceBroker {
 			this.transporter.init(this);
 		}
 
-		// Register internal actions
-		if (this.options.internalActions)
-			this.registerInternalActions();
-
 		// TODO remove to stats
 		this._callCount = 0;
 
 		if (this.options.statistics)
-			this.statistics = new BrokerStatistics();
+			this.statistics = new BrokerStatistics(this);
+
+		// Register internal actions
+		if (this.options.internalActions)
+			this.registerInternalActions();
 
 		// Plugin container
 		this.plugins = [];		
@@ -545,9 +545,11 @@ class ServiceBroker {
 				// https://github.com/RisingStack/trace-nodejs/blob/master/lib/agent/metrics/apm/index.js
 		});
 
-		addAction("$node.stats", ctx => {
-			return this._statistics;
-		});		
+		if (this.statistics) {
+			addAction("$node.stats", ctx => {
+				return this.statistics.snapshot();
+			});		
+		}
 	}
 
 	/**
@@ -754,7 +756,10 @@ class ServiceBroker {
 
 	_localCall(ctx, action) {
 		this.logger.debug(`Call local '${action.name}' action...`);
-		return ctx.invoke(action.handler);
+		return ctx.invoke(action.handler);/*.finally(() => {
+			if (this.statistics)
+				this.statistics.addRequest(ctx.action.name, ctx.duration, ctx.error? ctx.error.code || 500 : null);
+		});*/
 	}
 
 	_remoteCall(ctx, action, nodeID, actionName, params, opts) {

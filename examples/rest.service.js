@@ -1,6 +1,7 @@
 let _ = require("lodash");
 let express = require("express");
 let Context = require("../src/context");
+const Promise = require("bluebird");
 
 module.exports = function() {
 	return {

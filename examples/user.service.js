@@ -2,6 +2,7 @@ let _ = require("lodash");
 let fakerator = require("fakerator")();
 let Service = require("../src/service");
 let { ValidationError } = require("../src/errors");
+const Promise = require("bluebird");
 
 let { delay } = require("../src/utils");
 

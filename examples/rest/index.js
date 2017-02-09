@@ -9,11 +9,12 @@ let MemoryCacher = require("../../src/cachers").Memory;
 
 // Create broker
 let broker = new ServiceBroker({
-	cacher: new MemoryCacher(),
+	//cacher: new MemoryCacher(),
 	nodeID: "server",
 	logger: console,
-	logLevel: "debug",
-	metrics: true
+	logLevel: "info",
+	metrics: false,
+	statistics: true
 });
 
 broker.loadServices(path.join(__dirname, ".."));
