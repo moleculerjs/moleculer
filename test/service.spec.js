@@ -155,9 +155,9 @@ describe("Local service registration", () => {
 
 		let handler = schema.events["request.rest.**"];
 
-		broker.emitLocal("request.rest", "Hello", { a: 1 });
+		broker.emitLocal("request.rest", { a: 1, b: "Hello" });
 		expect(handler).toHaveBeenCalledTimes(1);
-		expect(handler).toHaveBeenCalledWith("Hello", { a: 1 });
+		expect(handler).toHaveBeenCalledWith({ a: 1, b: "Hello" });
 
 		let o = {
 			id: 5,

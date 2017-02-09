@@ -121,7 +121,7 @@ describe("Test Transporter.registerEventHandlers", () => {
 		callbacks["IS-TEST.EVENT.>"](JSON.stringify(payload));
 
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("posts.find", { a: 100 }, "TestString");
+		expect(broker.emitLocal).toHaveBeenCalledWith("posts.find", [{ a: 100 }, "TestString"]);
 	});
 
 	it("should call broker.call if request command received", () => {
@@ -199,10 +199,10 @@ describe("Test Transporter emit, subscribe and request methods", () => {
 		trans.connect();
 
 		it("should publish the message if call emit", () => {
-			trans.emit("test.custom.event", { a: 1}, "testParam", true, 100);
+			trans.emit("test.custom.event", { a: 1 });
 
 			expect(trans.client.publish).toHaveBeenCalledTimes(1);
-			expect(trans.client.publish).toHaveBeenCalledWith("IS-TEST.EVENT.test.custom.event", "{\"nodeID\":\"node1\",\"event\":\"test.custom.event\",\"args\":[{\"a\":1},\"testParam\",true,100]}");
+			expect(trans.client.publish).toHaveBeenCalledWith("IS-TEST.EVENT.test.custom.event", "{\"nodeID\":\"node1\",\"event\":\"test.custom.event\",\"param\":{\"a\":1}}");
 		});
 
 		it("should subscribe to eventname", () => {

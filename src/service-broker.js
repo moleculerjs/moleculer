@@ -370,7 +370,7 @@ class ServiceBroker {
 			this.actions.set(actionName, item);
 		}
 		if (item.add(action, 0, nodeID)) {
-			this.emitLocal(`register.action.${actionName}`, service, action, nodeID);
+			this.emitLocal(`register.action.${actionName}`, { service, action, nodeID });
 		}
 	}
 
@@ -414,7 +414,7 @@ class ServiceBroker {
 			if (item.count() == 0) {
 				this.actions.delete(action.name);
 			}
-			this.emitLocal(`unregister.action.${action.name}`, service, action, nodeID);
+			this.emitLocal(`unregister.action.${action.name}`, { service, action, nodeID });
 			*/
 		}		
 	}

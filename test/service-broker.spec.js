@@ -131,9 +131,9 @@ describe("Test on/once/off event emitter", () => {
 		expect(handler).toHaveBeenCalledTimes(0);
 
 		let p = { a: 5 };
-		broker.emitLocal("test.event", p, "other", true);
+		broker.emitLocal("test.event", p);
 		expect(handler).toHaveBeenCalledTimes(1);
-		expect(handler).toHaveBeenCalledWith(p, "other", true);
+		expect(handler).toHaveBeenCalledWith(p);
 
 		broker.emitLocal("test.event.demo", "data");
 		expect(handler).toHaveBeenCalledTimes(2);
@@ -322,7 +322,7 @@ describe("Test action registration", () => {
 
 		broker.registerAction(mockService, mockAction);
 		expect(broker.actions.size).toBe(1);
-		expect(registerActionCB).toHaveBeenCalledWith(mockService, mockAction, undefined);
+		expect(registerActionCB).toHaveBeenCalledWith({ service: mockService, action: mockAction, nodeID: undefined });
 		expect(registerActionCB).toHaveBeenCalledTimes(1);
 	});
 
@@ -428,13 +428,13 @@ describe("Test versioned action registration", () => {
 
 	it("should registered both versioned service", () => {
 		expect(broker.actions.size).toBe(3);
-		expect(registerAction).toHaveBeenCalledWith(serviceV2, jasmine.any(Object), undefined);
+		expect(registerAction).toHaveBeenCalledWith({ service: serviceV2, action: jasmine.any(Object), nodeID: undefined });
 		expect(registerAction).toHaveBeenCalledTimes(1);
 
-		expect(registerActionv1).toHaveBeenCalledWith(serviceV1, jasmine.any(Object), undefined);
+		expect(registerActionv1).toHaveBeenCalledWith({ service: serviceV1, action: jasmine.any(Object), nodeID: undefined });
 		expect(registerActionv1).toHaveBeenCalledTimes(1);
 
-		expect(registerActionv2).toHaveBeenCalledWith(serviceV2, jasmine.any(Object), undefined);
+		expect(registerActionv2).toHaveBeenCalledWith({ service: serviceV2, action: jasmine.any(Object), nodeID: undefined });
 		expect(registerActionv2).toHaveBeenCalledTimes(1);
 
 		expect(broker.wrapAction).toHaveBeenCalledTimes(2);		
@@ -567,7 +567,7 @@ describe("Test registerAction & unregisterAction with nodeID", () => {
 		broker.registerAction(null, action, "server-2");
 
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("register.action.users.get", null, {"handler": jasmine.any(Function), "name": "users.get"}, "server-2");
+		expect(broker.emitLocal).toHaveBeenCalledWith("register.action.users.get", { service: null, action: {"handler": jasmine.any(Function), "name": "users.get"}, nodeID: "server-2"});
 		
 		let findItem = broker.actions.get("users.get").get();
 		expect(findItem).toBeDefined();
