@@ -11,9 +11,11 @@ let broker = new ServiceBroker({
 	nodeID: process.argv[2] || hostname + "-server",
 	transporter: new NatsTransporter(process.argv[3]),
 	//logger: console
+	statistics: true
 });
 
 broker.loadService(__dirname + "/../math.service");
+broker.loadService(__dirname + "/../rest.service");
 
 broker.start();
 

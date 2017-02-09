@@ -504,7 +504,8 @@ class ServiceBroker {
 				.then(res => {
 					res.process = {
 						pid: process.pid,
-						memory: process.memoryUsage()
+						memory: process.memoryUsage(),
+						uptime: process.uptime()
 					};
 
 					return res;
