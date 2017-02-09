@@ -756,10 +756,19 @@ class ServiceBroker {
 
 	_localCall(ctx, action) {
 		this.logger.debug(`Call local '${action.name}' action...`);
-		return ctx.invoke(action.handler);/*.finally(() => {
-			if (this.statistics)
-				this.statistics.addRequest(ctx.action.name, ctx.duration, ctx.error? ctx.error.code || 500 : null);
-		});*/
+		let p = ctx.invoke(action.handler);
+
+		if (this.statistics) {
+			// Because ES6 Promise doesn't support .finally()
+			p = p.then(data => {
+				this.statistics.addRequest(ctx.action.name, ctx.duration, null);
+				return data;
+			}).catch(err => {
+				this.statistics.addRequest(ctx.action.name, ctx.duration, ctx.error.code || 500);
+				return Promise.reject(err);
+			});
+		}
+		return p;
 	}
 
 	_remoteCall(ctx, action, nodeID, actionName, params, opts) {
