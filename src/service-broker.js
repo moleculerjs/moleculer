@@ -801,32 +801,32 @@ class ServiceBroker {
 	 * Emit an event (global & local)
 	 * 
 	 * @param {any} eventName
-	 * @param {any} args
+	 * @param {any} payload
 	 * @returns
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	emit(eventName, ...args) {
+	emit(eventName, payload) {
 		if (this.transporter) {
-			this.transporter.emit(eventName, ...args);
+			this.transporter.emit(eventName, payload);
 		}
 
-		this.logger.debug("Event emitted", eventName, ...args);		
+		this.logger.debug("Event emitted", eventName, payload);		
 
-		return this.emitLocal(eventName, ...args);
+		return this.emitLocal(eventName, payload);
 	}
 
 	/**
 	 * Emit an event only local
 	 * 
 	 * @param {any} eventName
-	 * @param {any} args
+	 * @param {any} payload
 	 * @returns
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	emitLocal(eventName, ...args) {
-		return this.bus.emit(eventName, ...args);
+	emitLocal(eventName, payload) {
+		return this.bus.emit(eventName, payload);
 	}
 
 	/**

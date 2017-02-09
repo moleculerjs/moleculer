@@ -139,10 +139,42 @@ let bench4 = new Benchmarkify({ async: true, name: "Call with param validator"})
 	});
 })();
 
-bench1.run()
+// ----------------------------------------------------------------
+let bench5 = new Benchmarkify({ async: true, name: "Call with statistics & metrics"});
+
+(function() {
+	let broker = createBroker();
+	bench5.add("No statistics", () => {
+		return broker.call("users.empty");
+	});
+})();
+
+(function() {
+	let broker = createBroker({ metrics: true });
+	bench5.add("With metrics", () => {
+		return broker.call("users.empty");
+	});
+})();
+
+(function() {
+	let broker = createBroker({ statistics: true });
+	bench5.add("With statistics", () => {
+		return broker.call("users.empty");
+	});
+})();
+
+(function() {
+	let broker = createBroker({ metrics: true, statistics: true });
+	bench5.add("With metrics & statistics", () => {
+		return broker.call("users.empty");
+	});
+})();
+
+bench1.skip()
 .then(() => bench2.skip())
 .then(() => bench3.skip())
-.then(() => bench4.skip());
+.then(() => bench4.skip())
+.then(() => bench5.run());
 
 
 /*

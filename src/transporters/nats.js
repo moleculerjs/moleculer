@@ -127,7 +127,7 @@ class NatsTransporter extends Transporter {
 			let message = utils.string2Json(msg);
 			if (message.nodeID !== this.nodeID) {
 				this.logger.debug("Event received", message);
-				this.broker.emitLocal(message.event, ...message.args);
+				this.broker.emitLocal(message.event, message.args);
 			}
 		});
 
@@ -218,16 +218,16 @@ class NatsTransporter extends Transporter {
 	 * Send an event to remote nodes
 	 * 
 	 * @param {any} eventName
-	 * @param {any} args
+	 * @param {any} param
 	 * 
 	 * @memberOf NatsTransporter
 	 */
-	emit(eventName, ...args) {
+	emit(eventName, param) {
 		let subject = [PREFIX, "EVENT", eventName].join(".");
 		let event = {
 			nodeID: this.nodeID,
 			event: eventName,
-			args
+			param
 		};
 		this.logger.debug("Emit Event", event);
 		let payload = utils.json2String(event);
