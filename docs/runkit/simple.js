@@ -1,10 +1,10 @@
-let { ServiceBroker, Service} = require("servicer");
+let { ServiceBroker} = require("servicer");
 
 // Create a broker
 let broker = new ServiceBroker();
 
-// Create a service
-new Service(broker, {
+// Create a new service
+broker.createService({
     name: "math",    
     actions: {
         add(ctx) {
