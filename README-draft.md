@@ -10,6 +10,11 @@
 # servicer
 `servicer` is a fast & powerful microservices framework for NodeJS.
 
+![](https://img.shields.io/badge/performance-%2B50%25-brightgreen.svg)
+![](https://img.shields.io/badge/performance-%2B5%25-green.svg)
+![](https://img.shields.io/badge/performance---10%25-yellow.svg)
+![](https://img.shields.io/badge/performance---42%25-red.svg)
+
 **Under heavy development! Please don't use in production environment currently!**
 
 # What's included
