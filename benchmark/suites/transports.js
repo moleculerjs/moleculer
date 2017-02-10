@@ -8,12 +8,13 @@ let { getDataFile } = require("../utils");
 let Benchmarkify = require("benchmarkify");
 Benchmarkify.printHeader("Transport benchmark");
 
-let dataFiles = ["150", "1k", "10k", "50k", "100k", "1M"];
+let dataFiles = ["150"];//, "1k", "10k", "50k", "100k", "1M"];
 
 function runTest(dataName) {
 
 	let Nats = require("nats");
 	let nats = Nats.connect();
+	let nats2 = Nats.connect();
 
 	let Redis = require("ioredis");
 	let redisSub = new Redis();
@@ -24,6 +25,7 @@ function runTest(dataName) {
 	let data = getDataFile(dataName + ".json");
 
 	let subject = generateToken();
+	let subject2 = generateToken();
 
 	bench.add("NATS", function() {
 		return new Promise((resolve, reject) => {
@@ -38,6 +40,33 @@ function runTest(dataName) {
 			nats.publish(subject, data);		
 		});
 	});
+
+	bench.skip("NATS (send 10k msgs)", function() {
+
+		return new Promise((resolve, reject) => {
+			let MAX = 1 * 1000;
+			let c = 0;
+			let sid = nats.subscribe(subject2, (msg) => {
+				if (msg.length != data.length) {
+					reject(new Error("Invalid message!"));
+				}
+				c++;
+
+				if (c == MAX) {
+					nats.unsubscribe(sid);
+					resolve();
+				}
+				//console.log("<-", c);
+			});
+
+			nats.flush(() => {
+				for(let i = 0; i < MAX; i++) {
+					nats.publish(subject2, data);
+					//console.log("->", i);
+				}
+			});
+		});
+	});	
 
 	let __resolve;
 
@@ -66,6 +95,7 @@ function runTest(dataName) {
 	nats.on("connect", () => {
 		bench.run().then(() => {
 			nats.close();
+			nats2.close();
 			redisPub.disconnect();
 			redisSub.disconnect();
 

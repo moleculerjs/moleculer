@@ -37,7 +37,7 @@
 			"request": "launch",
 			"name": "Launch benchmark",
 			"program": "${workspaceRoot}\\benchmark\\index.js",
-			"args": ["call"],
+			"args": ["transports"],
 			"cwd": "${workspaceRoot}\\benchmark"
 		},
 		{
