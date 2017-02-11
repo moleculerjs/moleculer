@@ -28,12 +28,20 @@ module.exports = function() {
 			this.server = http.createServer(this.httpHandler);
 			this.logger.info("WWW service created!");
 			this.io = IO(this.server);
+
+			this.io.on("connection", socket => {
+				socket.onevent = packet => {
+					const [event, payload] = packet.data;
+					this.logger.debug("Incoming event from websocket", packet.data);
+					this.broker.emit(event, payload);
+				};
+			});
 		},
 
 		events: {
 			"**"(data, event) {
 				if (this.io) {
-					console.log(`Send '${event}' event to client`);
+					this.logger.debug(`Send '${event}' event to client`);
 					this.io.emit("event", event, data);
 				}
 			}
@@ -49,11 +57,11 @@ module.exports = function() {
 					params = queryString.parse(query);
 				}
 
-				const actionRe = /\/api\/([\w\.\~]+)/g;
+				const actionRe = /\/api\/([\w\.\~\/]+)/g;
 				const match = actionRe.exec(pathname);
 
 				if (match) {
-					const actionName = match[1].replace(/~/, "$");
+					const actionName = match[1].replace(/~/, "$").replace(/\//g, ".");
 
 					this.logger.info(`Call '${actionName}' action with params:`, params);
 
