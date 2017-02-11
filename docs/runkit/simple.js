@@ -5,12 +5,12 @@ let broker = new ServiceBroker();
 
 // Create a new service
 broker.createService({
-    name: "math",    
-    actions: {
-        add(ctx) {
-            return ctx.params.a + ctx.params.b
-        }
-    }
+	name: "math",    
+	actions: {
+		add(ctx) {
+			return ctx.params.a + ctx.params.b
+		}
+	}
 });
 
 // Call the service action
