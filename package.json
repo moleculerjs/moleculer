@@ -42,7 +42,8 @@
     "express": "4.14.0",
     "fakerator": "0.3.0",
     "jest": "18.1.0",
-    "next-update": "1.5.1"
+    "next-update": "1.5.1",
+    "socket.io": "1.7.2"
   },
   "jest": {
     "testEnvironment": "node",

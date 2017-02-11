@@ -89,7 +89,12 @@ class Service {
 					throw new Error(`Missing event handler on '${name}' event in '${this.name}' service!`);
 				}
 
-				broker.on(name, event.handler.bind(this));
+				const self = this;
+				const handler = function(payload) {
+					return event.handler.apply(self, [payload, this.event]);
+				};
+
+				broker.on(name, handler);
 			});
 
 		}

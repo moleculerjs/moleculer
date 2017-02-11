@@ -19,6 +19,7 @@ describe("Test ServiceBroker constructor", () => {
 			cacher: null,
 			transporter: null, 
 			metrics: false, 
+			metricsNodeTime: 5 * 1000,
 			statistics: false,
 			nodeHeartbeatTimeout : 30, 
 			sendHeartbeatTime: 10, 
@@ -39,6 +40,7 @@ describe("Test ServiceBroker constructor", () => {
 		let broker = new ServiceBroker( { 
 			nodeHeartbeatTimeout: 20, 
 			metrics: true, 
+			metricsNodeTime: 10 * 1000,
 			statistics: true,
 			logLevel: "debug", 
 			requestRetry: 3, 
@@ -53,6 +55,7 @@ describe("Test ServiceBroker constructor", () => {
 			cacher: null,
 			transporter: null,
 			metrics: true, 
+			metricsNodeTime: 10 * 1000,
 			statistics: true,
 			nodeHeartbeatTimeout : 20, 
 			sendHeartbeatTime: 10, 
@@ -229,8 +232,8 @@ describe("Test loadServices", () => {
 
 	let broker = new ServiceBroker();
 	
-	it("should found 6 services", () => {
-		expect(broker.loadServices("./examples")).toBe(6);
+	it("should found 7 services", () => {
+		expect(broker.loadServices("./examples")).toBe(7);
 		expect(broker.hasService("math")).toBeTruthy();
 		expect(broker.hasAction("math.add")).toBeTruthy();
 		expect(broker.isActionAvailable("math.add")).toBeTruthy();

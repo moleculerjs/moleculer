@@ -95,6 +95,8 @@
 - handleExceptions: true option
 	Catch unhandled exceptions and send an event with details. Can be catch in metrics, alert or logger services
 
+- direct remote call to a specified node (for monitoring every node)
+
 ## Services
 
 ## Transporters

@@ -28,9 +28,9 @@
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Launch demo:rest",
-			"program": "${workspaceRoot}\\examples\\rest\\index.js",
-			"cwd": "${workspaceRoot}\\examples\\rest"
+			"name": "Launch demo:www",
+			"program": "${workspaceRoot}\\examples\\www\\index.js",
+			"cwd": "${workspaceRoot}\\examples\\www"
 		},
 		{
 			"type": "node",

@@ -157,7 +157,7 @@ describe("Local service registration", () => {
 
 		broker.emitLocal("request.rest", { a: 1, b: "Hello" });
 		expect(handler).toHaveBeenCalledTimes(1);
-		expect(handler).toHaveBeenCalledWith({ a: 1, b: "Hello" });
+		expect(handler).toHaveBeenCalledWith({ a: 1, b: "Hello" }, "request.rest");
 
 		let o = {
 			id: 5,
@@ -165,7 +165,7 @@ describe("Local service registration", () => {
 		};
 		broker.emit("request.rest.posts", o);
 		expect(handler).toHaveBeenCalledTimes(2);
-		expect(handler).toHaveBeenCalledWith(o);
+		expect(handler).toHaveBeenCalledWith(o, "request.rest.posts");
 
 		broker.emit("request.rest.posts.find");
 		expect(handler).toHaveBeenCalledTimes(3);
