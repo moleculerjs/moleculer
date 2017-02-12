@@ -773,15 +773,15 @@ class ServiceBroker {
 
 		if (actionItem.local) {
 			// Local action call
-			return this._localCall(ctx, action);
+			return this._localCall(ctx, opts);
 		} else {
-			return this._remoteCall(ctx, action, nodeID, actionName, params, opts);
+			return this._remoteCall(ctx, opts);
 		}
 	}
 
-	_localCall(ctx, action) {
-		this.logger.debug(`Call local '${action.name}' action...`);
-		let p = ctx.invoke(action.handler);
+	_localCall(ctx, opts) {
+		this.logger.debug(`Call local '${ctx.action.name}' action...`);
+		let p = ctx.invoke(ctx.action.handler);
 
 		if (this.statistics) {
 			// Because ES6 Promise doesn't support .finally()
@@ -796,10 +796,9 @@ class ServiceBroker {
 		return p;
 	}
 
-	// TODO reduce params, use ctx
-	_remoteCall(ctx, action, nodeID, actionName, params, opts) {
+	_remoteCall(ctx, opts) {
 		// Remote action call
-		this.logger.debug(`Call remote '${action.name}' action on '${nodeID}' node...`);
+		this.logger.debug(`Call remote '${ctx.action.name}' action on '${ctx.nodeID}' node...`);
 
 		if (opts.timeout == null)
 			opts.timeout = this.options.requestTimeout;
@@ -808,22 +807,22 @@ class ServiceBroker {
 			opts.retryCount = this.options.requestRetry || 0;
 
 		return ctx.invoke(ctx => {
-			return this.transporter.request(nodeID, ctx, opts).catch(err => {
+			return this.transporter.request(ctx.nodeID, ctx, opts).catch(err => {
 				if (err instanceof errors.RequestTimeoutError) {
 					// Retry request
 					if (opts.retryCount-- > 0) {
-						this.logger.warn(`Retry call '${action.name}' action on '${nodeID}' (retry: ${opts.retryCount + 1})...`);
+						this.logger.warn(`Retry call '${ctx.action.name}' action on '${ctx.nodeID}' (retry: ${opts.retryCount + 1})...`);
 
-						return this.call(actionName, params, opts);
+						return this.call(ctx.action.name, ctx.params, opts);
 					}
 
-					this.nodeUnavailable(nodeID);
+					this.nodeUnavailable(ctx.nodeID);
 				}
 				// Handle fallback response
 				if (opts.fallbackResponse) {
-					this.logger.warn(`Action '${actionName}' returns fallback response!`);
+					this.logger.warn(`Action '${ctx.action.name}' returns fallback response!`);
 					if (_.isFunction(opts.fallbackResponse))
-						return opts.fallbackResponse(ctx, nodeID);
+						return opts.fallbackResponse(ctx, ctx.nodeID);
 					else
 						return Promise.resolve(opts.fallbackResponse);
 				}

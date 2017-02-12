@@ -580,29 +580,27 @@ describe("Test broker.call", () => {
 		name: "posts.find"
 	}, "server-2");
 
-	broker._localCall = jest.fn((ctx, action) => ({ ctx, action }));
-	broker._remoteCall = jest.fn((ctx, action, nodeID, actionName, params, opts) => ({ ctx, action, nodeID, actionName, params, opts }));
+	broker._localCall = jest.fn((ctx, opts) => ({ ctx, opts }));
+	broker._remoteCall = jest.fn((ctx, opts) => ({ ctx, opts }));
 
 	it("should call the localCall method", () => {
 		let res = broker.call("math.add");
 		expect(res.ctx).toBeDefined();
-		expect(res.action).toBeDefined();
-		expect(res.action.name).toBe("math.add");
+		expect(res.ctx.action.name).toBe("math.add");
 
 		expect(broker._localCall).toHaveBeenCalledTimes(1);
-		expect(broker._localCall).toHaveBeenCalledWith(res.ctx, res.action);
+		expect(broker._localCall).toHaveBeenCalledWith(res.ctx, res.opts);
 	});
 
 	it("should call the remoteCall method", () => {
 		let res = broker.call("posts.find", { a: 5 });
 		expect(res.ctx).toBeDefined();
-		expect(res.action).toBeDefined();
-		expect(res.action.name).toBe("posts.find");
-		expect(res.nodeID).toBe("server-2");
-		expect(res.params).toEqual({ a: 5});
+		expect(res.ctx.action.name).toBe("posts.find");
+		expect(res.ctx.nodeID).toBe("server-2");
+		expect(res.ctx.params).toEqual({ a: 5});
 
 		expect(broker._remoteCall).toHaveBeenCalledTimes(1);
-		expect(broker._remoteCall).toHaveBeenCalledWith(res.ctx, res.action, res.nodeID, res.actionName, res.params, res.opts);
+		expect(broker._remoteCall).toHaveBeenCalledWith(res.ctx, res.opts);
 	});
 });
 
@@ -655,7 +653,7 @@ describe("Test remoteCall", () => {
 		//transporter: 
 	});
 
-	// TODO: test remoteCall
+	// TODO: test remoteCall, retry, timeout & fallbackResponse
 });
 
 describe("Test getLocalActionList", () => {
