@@ -28,12 +28,18 @@ describe("Test ServiceBroker constructor", () => {
 			validation: true, 
 			internalActions: true 
 		});
-		expect(broker.services).toBeInstanceOf(Map);
+		expect(broker.services).toBeInstanceOf(Array);
 		expect(broker.actions).toBeInstanceOf(Map);
 		expect(broker.transporter).toBeNull();
 		expect(broker.cacher).toBeNull();
+		expect(broker.validator).toBeDefined();
 		expect(broker.statistics).toBeUndefined();
 		expect(broker.nodeID).toBe(require("os").hostname().toLowerCase());
+
+		expect(broker.hasAction("$node.list")).toBeTruthy();
+		expect(broker.hasAction("$node.services")).toBeTruthy();
+		expect(broker.hasAction("$node.actions")).toBeTruthy();
+		expect(broker.hasAction("$node.health")).toBeTruthy();
 	});
 
 	it("should merge options", () => {
@@ -47,6 +53,7 @@ describe("Test ServiceBroker constructor", () => {
 			requestTimeout: 5000, 
 			validation: false, 
 			internalActions: false });
+
 		expect(broker).toBeDefined();
 		expect(broker.options).toEqual({ 
 			nodeID: null,
@@ -63,11 +70,101 @@ describe("Test ServiceBroker constructor", () => {
 			requestTimeout: 5000, 
 			validation: false, 
 			internalActions: false });
-		expect(broker.services).toBeInstanceOf(Map);
+		expect(broker.services).toBeInstanceOf(Array);
 		expect(broker.actions).toBeInstanceOf(Map);
 		expect(broker.transporter).toBeNull();
 		expect(broker.statistics).toBeDefined();
+		expect(broker.validator).toBeUndefined();
 		expect(broker.nodeID).toBe(require("os").hostname().toLowerCase());
+
+		expect(broker.hasAction("$node.list")).toBeFalsy();
+		expect(broker.hasAction("$node.services")).toBeFalsy();
+		expect(broker.hasAction("$node.actions")).toBeFalsy();
+		expect(broker.hasAction("$node.health")).toBeFalsy();		
+	});
+
+});
+
+describe("Test internal actions", () => {
+	let broker = new ServiceBroker({
+		statistics: true,
+		internalActions: true 			
+	});
+
+	broker.loadService("./examples/math.service");
+	broker.loadService("./examples/post.service");
+
+	it("should register $node.stats internal action", () => {
+		expect(broker.hasAction("$node.list")).toBeTruthy();
+		expect(broker.hasAction("$node.services")).toBeTruthy();
+		expect(broker.hasAction("$node.actions")).toBeTruthy();
+		expect(broker.hasAction("$node.health")).toBeTruthy();
+		expect(broker.hasAction("$node.stats")).toBeTruthy();
+	});
+
+	it("should return list of services", () => {
+		return broker.call("$node.services").then(res => {
+			expect(res).toEqual([
+				{"name": "math", "version": undefined}, 
+				{"name": "posts", "version": undefined}
+			]);
+		});
+	});
+
+	it("should return list of actions", () => {
+		return broker.call("$node.actions").then(res => {
+			expect(res).toEqual([
+				{"name": "$node.list"}, 
+				{"name": "$node.services"}, 
+				{"name": "$node.actions"}, 
+				{"name": "$node.health"}, 
+				{"name": "$node.stats"}, 
+
+				{"name": "math.add"}, 
+				{"name": "math.sub"}, 
+				{"name": "math.mult"}, 
+				{"name": "math.div"}, 
+				
+				{"name": "posts.find"}, 
+				{"name": "posts.delayed"}, 
+				{"name": "posts.get"}, 
+				{"name": "posts.author"}
+			]);
+		});
+	});
+
+	it("should return health of node", () => {
+		return broker.call("$node.health").then(res => {
+			expect(res).toBeDefined();
+			expect(res.cpu).toBeDefined();
+			expect(res.mem).toBeDefined();
+			expect(res.net).toBeDefined();
+			expect(res.os).toBeDefined();
+			expect(res.process).toBeDefined();
+			expect(res.time).toBeDefined();
+		});
+	});
+
+	it("should return statistics of node", () => {
+		return broker.call("$node.stats").then(res => {
+			expect(res).toBeDefined();
+			expect(res.requests).toBeDefined();
+		});
+	});
+
+	it("should return list of remote nodes", () => {
+		let info = {
+			nodeID: "server-2",
+			actions: {}
+		};
+		broker.processNodeInfo(info.nodeID, info);
+
+		return broker.call("$node.list").then(res => {
+			expect(res).toBeDefined();
+			expect(res).toEqual([
+				{"available": true, "nodeID": "server-2"}
+			]);
+		});
 	});
 
 });
@@ -278,19 +375,21 @@ describe("Test service registration", () => {
 
 	let broker = new ServiceBroker();
 
-	let mockService = {
-		name: "posts",
-		broker: broker
-	};	
+	let service;
+
+	let registerServiceCB = jest.fn();
+	broker.on("register.service.posts", registerServiceCB);
+
+	it("no service yet", () => {
+		expect(broker.services.length).toBe(0);
+	});
 
 	it("test register service", () => {
-		let registerServiceCB = jest.fn();
-		broker.on("register.service.posts", registerServiceCB);
-
-		expect(broker.services.size).toBe(0);
-		broker.registerService(mockService);
-		expect(broker.services.size).toBe(1);
-		expect(registerServiceCB).toHaveBeenCalledWith(mockService);
+		service = broker.createService({
+			name: "posts"
+		});
+		expect(broker.services.length).toBe(1);
+		expect(registerServiceCB).toHaveBeenCalledWith(service);
 		expect(registerServiceCB).toHaveBeenCalledTimes(1);
 	});
 
@@ -299,7 +398,7 @@ describe("Test service registration", () => {
 		expect(broker.hasService("posts")).toBeTruthy();
 
 		expect(broker.getService("noservice")).toBeUndefined();
-		expect(broker.getService("posts").data).toBe(mockService);		
+		expect(broker.getService("posts")).toBe(service);		
 	});
 
 });

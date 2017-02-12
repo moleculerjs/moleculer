@@ -80,6 +80,7 @@
 - add version to action obj and skip service in registerAction
 - appendServiceName - default true "posts.find"
 
+
 ## Transporters
 - Redis transporter
 - websocket

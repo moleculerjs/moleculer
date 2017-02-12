@@ -78,7 +78,7 @@ class ServiceBroker {
 
 		// Internal maps
 		this.nodes = new Map();
-		this.services = new Map();
+		this.services = [];
 		this.actions = new Map();
 
 		// Middlewares
@@ -167,8 +167,7 @@ class ServiceBroker {
 		this.callPluginMethod("starting", this);
 
 		// Call service `started` handlers
-		this.services.forEach(item => {
-			let service = item.get().data;
+		this.services.forEach(service => {
 			this.callPluginMethod("serviceStarted", this, service);
 
 			if (service && service.schema && _.isFunction(service.schema.started)) {
@@ -221,8 +220,7 @@ class ServiceBroker {
 		this.callPluginMethod("stopping", this);
 
 		// Call service `started` handlers
-		this.services.forEach(item => {
-			let service = item.get().data;
+		this.services.forEach(service => {
 			this.callPluginMethod("serviceStopped", this, service);
 
 			if (service && service.schema && _.isFunction(service.schema.stopped)) {
@@ -341,16 +339,9 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	registerService(service) {
-		// Append service by name
-		let item = this.services.get(service.name);
-		if (!item) {
-			item = new BalancedList();
-			this.services.set(service.name, item);
-		}
-		item.add(service);
-
+		// Append service
+		this.services.push(service);
 		this.emitLocal(`register.service.${service.name}`, service);
-
 		this.logger.info(`${service.name} service registered!`);
 	}
 
@@ -461,8 +452,7 @@ class ServiceBroker {
 
 		addAction("$node.services", ctx => {
 			let res = [];
-			this.services.forEach((o, name) => {
-				let service = o.getData();
+			this.services.forEach(service => {
 				res.push(_.pick(service, ["name", "version"]));
 			});
 
@@ -635,10 +625,7 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	getService(serviceName) {
-		let service = this.services.get(serviceName);
-		if (service) {
-			return service.get();
-		}
+		return _.find(this.services, service => service.name == serviceName);
 	}
 
 	/**
@@ -650,7 +637,7 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	hasService(serviceName) {
-		return this.services.has(serviceName);
+		return _.find(this.services, service => service.name == serviceName) != null;
 	}
 
 	/**
