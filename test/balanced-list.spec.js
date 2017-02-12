@@ -121,4 +121,17 @@ describe("Test BalancedList", () => {
 	
 	});
 
+	it("test getData", () => {
+		let obj1 = { a: 1};
+		let obj2 = { b: 5};
+		let list = new BalancedList({ preferLocal: false });
+		list.add(obj1);
+		list.add(obj2);
+		let o = list.getData();
+		expect(o).toBe(obj1);
+
+		o = list.getData();
+		expect(o).toBe(obj2);
+	});
+
 });
