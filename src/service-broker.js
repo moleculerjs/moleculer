@@ -780,7 +780,7 @@ class ServiceBroker {
 		if (opts.parentCtx) {
 			ctx = opts.parentCtx.createSubContext(action, params, nodeID);
 		} else {
-			ctx = new this.ContextFactory({ broker: this, action, params, requestID: opts.requestID });
+			ctx = new this.ContextFactory({ broker: this, action, params, nodeID, requestID: opts.requestID });
 		}
 		this._callCount++;
 
@@ -809,6 +809,7 @@ class ServiceBroker {
 		return p;
 	}
 
+	// TODO reduce params, use ctx
 	_remoteCall(ctx, action, nodeID, actionName, params, opts) {
 		// Remote action call
 		this.logger.debug(`Call remote '${action.name}' action on '${nodeID}' node...`);
@@ -825,11 +826,21 @@ class ServiceBroker {
 					// Retry request
 					if (opts.retryCount-- > 0) {
 						this.logger.warn(`Retry call '${action.name}' action on '${nodeID}' (retry: ${opts.retryCount + 1})...`);
+
 						return this.call(actionName, params, opts);
 					}
 
 					this.nodeUnavailable(nodeID);
 				}
+				// Handle fallback response
+				if (opts.fallbackResponse) {
+					this.logger.warn(`Action '${actionName}' returns fallback response!`);
+					if (_.isFunction(opts.fallbackResponse))
+						return opts.fallbackResponse(ctx, nodeID);
+					else
+						return Promise.resolve(opts.fallbackResponse);
+				}
+
 				return Promise.reject(err);
 			});
 		});

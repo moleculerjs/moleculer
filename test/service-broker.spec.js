@@ -956,15 +956,6 @@ describe("Test middleware system with SYNC break", () => {
 	});
 });
 
-	let mw2 = jest.fn((ctx, next) => {
-		flow.push("B2");
-		return next(new Promise((resolve) => {
-			setTimeout(() => {
-				flow.push("B2P");
-				resolve({ user: "bobcsi" });
-			}, 10);
-		}));
-	});
 describe("Test middleware system with ASYNC break", () => {
 	let flow = [];
 	let mw1 = handler => {

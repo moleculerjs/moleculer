@@ -3,30 +3,9 @@
 ## Common
 - multi params for multi-call & return array
 - features (?)
-- config for service 
+- global config for services 
 - broker node kezelést kirakni Registry class-ba, ami lehet NATS, consul...etc
 - easier transporter code (only implement connect, disconnect, publish, subscribe methods) e.g. 
-
-- broker.stats
-	- totals
-	- actions
-		- reqcount
-		- req/sec
-		- error count
-			- 4xx
-			- 5xx
-		- req latency
-			- mean
-			- median
-			- 90th
-			- 99th
-			- 99.5th
-
-- internal actions:
-	- $node.services
-	- $node.actions
-	- $node.health
-	- $node.stats
 
 - create d.ts file
 
@@ -99,6 +78,7 @@
 
 ## Services
 - add version to action obj and skip service in registerAction
+- appendServiceName - default true "posts.find"
 
 ## Transporters
 - Redis transporter
