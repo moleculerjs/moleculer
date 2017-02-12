@@ -116,7 +116,7 @@ describe("Local service registration", () => {
 
 		expect(broker.registerService).toHaveBeenCalledTimes(1);
 		expect(broker.registerService).toHaveBeenCalledWith(service);
-		expect(broker.services.size).toBe(1);
+		expect(broker.services.length).toBe(1);
 		expect(handlerRegisterService).toHaveBeenCalledTimes(1);
 
 		expect(broker.registerAction).toHaveBeenCalledTimes(2);

@@ -789,7 +789,7 @@ class ServiceBroker {
 				this.statistics.addRequest(ctx.action.name, ctx.duration, null);
 				return data;
 			}).catch(err => {
-				this.statistics.addRequest(ctx.action.name, ctx.duration, ctx.error.code || 500);
+				this.statistics.addRequest(ctx.action.name, ctx.duration, err.code || 500);
 				return Promise.reject(err);
 			});
 		}
@@ -876,7 +876,7 @@ class ServiceBroker {
 		let res = {};
 		this.actions.forEach((entry, key) => {
 			let item = entry.getLocalItem();
-			if (item)
+			if (item && !/^\$node/.test(key)) // Skip internal actions
 				res[key] = _.omit(item.data, ["handler", "service"]);
 		});
 		return res;

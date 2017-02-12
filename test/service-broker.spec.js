@@ -5,7 +5,7 @@ const Service = require("../src/service");
 const ServiceBroker = require("../src/service-broker");
 const Context = require("../src/context");
 const Transporter = require("../src/transporters/base");
-const { ServiceNotFoundError, RequestTimeoutError } = require("../src/errors");
+const { ServiceNotFoundError, RequestTimeoutError, ValidationError } = require("../src/errors");
 
 describe("Test ServiceBroker constructor", () => {
 
@@ -571,9 +571,96 @@ describe("Test versioned action registration", () => {
 		
 });
 
+describe("Test broker.call", () => {
+	let broker = new ServiceBroker();
+
+	broker.loadService("./examples/math.service.js");
+
+	broker.registerAction(null, {
+		name: "posts.find"
+	}, "server-2");
+
+	broker._localCall = jest.fn((ctx, action) => ({ ctx, action }));
+	broker._remoteCall = jest.fn((ctx, action, nodeID, actionName, params, opts) => ({ ctx, action, nodeID, actionName, params, opts }));
+
+	it("should call the localCall method", () => {
+		let res = broker.call("math.add");
+		expect(res.ctx).toBeDefined();
+		expect(res.action).toBeDefined();
+		expect(res.action.name).toBe("math.add");
+
+		expect(broker._localCall).toHaveBeenCalledTimes(1);
+		expect(broker._localCall).toHaveBeenCalledWith(res.ctx, res.action);
+	});
+
+	it("should call the remoteCall method", () => {
+		let res = broker.call("posts.find", { a: 5 });
+		expect(res.ctx).toBeDefined();
+		expect(res.action).toBeDefined();
+		expect(res.action.name).toBe("posts.find");
+		expect(res.nodeID).toBe("server-2");
+		expect(res.params).toEqual({ a: 5});
+
+		expect(broker._remoteCall).toHaveBeenCalledTimes(1);
+		expect(broker._remoteCall).toHaveBeenCalledWith(res.ctx, res.action, res.nodeID, res.actionName, res.params, res.opts);
+	});
+});
+
+describe("Test localCall", () => {
+	let broker = new ServiceBroker({
+		statistics: true
+	});
+
+	let handler1 = jest.fn(ctx => Promise.resolve(ctx));
+	let handler2 = jest.fn(ctx => Promise.reject(new ValidationError("Ohh, no")));
+
+	let actionSuccess = {
+		name: "posts.success",
+		handler: handler1
+	};
+
+	let actionError = {
+		name: "posts.dangerous",
+		handler: handler2
+	};
+
+	broker.statistics.addRequest = jest.fn();
+
+	it("should call statistics.addRequest if success", () => {
+		let ctx = new Context({ broker, action: actionSuccess });
+		return broker._localCall(ctx, actionSuccess).then(() => {
+			expect(handler1).toHaveBeenCalledTimes(1);
+			expect(handler1).toHaveBeenCalledWith(ctx);
+
+			expect(broker.statistics.addRequest).toHaveBeenCalledTimes(1);
+			expect(broker.statistics.addRequest).toHaveBeenCalledWith("posts.success", ctx.duration, null);
+		});
+	});
+
+	it("should call statistics.addRequest if error", () => {
+		broker.statistics.addRequest.mockClear();
+		let ctx = new Context({ broker, action: actionError });
+		return broker._localCall(ctx, actionError).catch(() => {
+			expect(handler2).toHaveBeenCalledTimes(1);
+			expect(handler2).toHaveBeenCalledWith(ctx);
+
+			expect(broker.statistics.addRequest).toHaveBeenCalledTimes(1);
+			expect(broker.statistics.addRequest).toHaveBeenCalledWith("posts.dangerous", ctx.duration, 422);
+		});
+	});
+});
+
+describe("Test remoteCall", () => {
+	let broker = new ServiceBroker({
+		//transporter: 
+	});
+
+	// TODO: test remoteCall
+});
+
 describe("Test getLocalActionList", () => {
 
-	let broker = new ServiceBroker({ internalActions: false });
+	let broker = new ServiceBroker({ internalActions: true });
 
 	let service = new Service(broker, {
 		name: "posts",
