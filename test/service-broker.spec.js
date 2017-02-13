@@ -6,6 +6,8 @@ const ServiceBroker = require("../src/service-broker");
 const Context = require("../src/context");
 const Transporter = require("../src/transporters/base");
 const { ServiceNotFoundError, RequestTimeoutError, ValidationError } = require("../src/errors");
+const lolex = require("lolex");
+const _ = require("lodash");
 
 describe("Test ServiceBroker constructor", () => {
 
@@ -648,12 +650,124 @@ describe("Test localCall", () => {
 	});
 });
 
-describe("Test remoteCall", () => {
-	let broker = new ServiceBroker({
-		//transporter: 
+describe.only("Test remoteCall", () => {
+
+	function createTransporter() {
+		let transporter = new Transporter();
+		transporter.init = jest.fn(); 
+		transporter.connect = jest.fn(() => Promise.resolve()); 
+		transporter.disconnect = jest.fn(); 
+		transporter.sendHeartbeat = jest.fn(); 
+		transporter.emit = jest.fn(); 
+
+		return transporter;
+	}
+
+	function createBroker(opts) {
+		return new ServiceBroker(_.defaults(opts, {
+			requestTimeout: 5 * 1000,
+			requestRetry: 0
+		}));
+	}
+
+	let clock;
+	beforeAll(() => {
+		clock = lolex.install();
 	});
 
-	// TODO: test remoteCall, retry, timeout & fallbackResponse
+	afterAll(() => {
+		clock.uninstall();
+	});
+
+	describe("with normal call", () => {
+		let transporter = createTransporter();
+		transporter.request = jest.fn((nodeID, ctx) => Promise.resolve(ctx)); 
+		let broker = createBroker({ transporter });
+		let ctx = new Context({ broker, action: { name: "posts.find" }, nodeID: "server-1"});
+
+		it("should call transporter.request", () => {
+			return broker._remoteCall(ctx).then(ctx => {
+				expect(ctx).toBeDefined();
+				expect(transporter.request).toHaveBeenCalledTimes(1);
+				expect(transporter.request).toHaveBeenCalledWith(ctx.nodeID, ctx, { timeout: 5000, retryCount: 0});
+			});
+		});
+	});
+
+	describe("with timeout", () => {
+		let transporter = createTransporter();
+		transporter.request = jest.fn(() => Promise.reject(new RequestTimeoutError("Timeout!", "server-1"))); 
+		let broker = createBroker({ transporter });
+		broker.nodeUnavailable = jest.fn();
+		let ctx = new Context({ broker, action: { name: "posts.find" }, nodeID: "server-1"});
+
+		it("should throw RequestTimeout exception", () => {
+			return broker._remoteCall(ctx).catch(err => {
+				expect(err).toBeDefined();
+				expect(err).toBeInstanceOf(RequestTimeoutError);
+				expect(transporter.request).toHaveBeenCalledTimes(1);
+				expect(transporter.request).toHaveBeenCalledWith(ctx.nodeID, ctx, { timeout: 5000, retryCount: -1});
+				expect(broker.nodeUnavailable).toHaveBeenCalledWith(ctx.nodeID);
+			});
+		});
+	});
+
+	describe("with timeout & requestRetry", () => {
+		let transporter = createTransporter();
+		transporter.request = jest.fn(() => Promise.reject(new RequestTimeoutError("Timeout!", "server-1"))); 
+		let broker = createBroker({ transporter });
+		broker.call = jest.fn((actionName, ctx, opts) => ({ actionName, ctx, opts }));
+		broker.nodeUnavailable = jest.fn();
+		let ctx = new Context({ broker, action: { name: "posts.find" }, nodeID: "server-1"});
+
+		it("should throw RequestTimeout exception", () => {
+			return broker._remoteCall(ctx, { retryCount: 2 }).then(res => {
+				expect(res.opts.retryCount).toBe(1);
+				expect(transporter.request).toHaveBeenCalledTimes(1);
+				expect(transporter.request).toHaveBeenCalledWith(ctx.nodeID, ctx, { timeout: 5000, retryCount: 1});
+				expect(broker.nodeUnavailable).toHaveBeenCalledTimes(0);
+				expect(broker.call).toHaveBeenCalledTimes(1);
+				expect(broker.call).toHaveBeenCalledWith("posts.find", ctx.params, res.opts);
+			});
+		});
+	});
+
+	describe("with fallbackResponse as object", () => {
+		let fallbackResponse = { a: 8 };
+		let transporter = createTransporter();
+		transporter.request = jest.fn(() => Promise.reject(new RequestTimeoutError("Timeout!", "server-1"))); 
+		let broker = createBroker({ transporter });
+		broker.nodeUnavailable = jest.fn();
+		let ctx = new Context({ broker, action: { name: "posts.find" }, nodeID: "server-1"});
+
+		it("should throw RequestTimeout exception", () => {
+			return broker._remoteCall(ctx, { fallbackResponse }).then(res => {
+				expect(res).toBeDefined();
+				expect(res).toBe(fallbackResponse);
+				expect(transporter.request).toHaveBeenCalledTimes(1);
+				expect(broker.nodeUnavailable).toHaveBeenCalledWith(ctx.nodeID);
+			});
+		});
+	});
+
+	describe("with fallbackResponse as Promise", () => {
+		let fallbackResponse = () => Promise.resolve({ a: 10 });
+		let transporter = createTransporter();
+		transporter.request = jest.fn(() => Promise.reject(new RequestTimeoutError("Timeout!", "server-1"))); 
+		let broker = createBroker({ transporter });
+		broker.nodeUnavailable = jest.fn();
+		let ctx = new Context({ broker, action: { name: "posts.find" }, nodeID: "server-1"});
+
+		it("should throw RequestTimeout exception", () => {
+			return broker._remoteCall(ctx, { fallbackResponse }).then(res => {
+				expect(res).toBeDefined();
+				expect(res).toEqual({ a: 10 });
+				expect(transporter.request).toHaveBeenCalledTimes(1);
+				expect(broker.nodeUnavailable).toHaveBeenCalledWith(ctx.nodeID);
+			});
+		});
+	});
+
 });
 
 describe("Test getLocalActionList", () => {
@@ -907,6 +1021,44 @@ describe("Test nodes methods", () => {
 		broker.nodeUnavailable("server-2");
 		expect(broker.nodeDisconnected).toHaveBeenCalledTimes(1);
 		expect(broker.nodeDisconnected).toHaveBeenCalledWith("server-2", true);
+	});	
+});
+
+describe("Test with metrics timer", () => {
+	let clock;
+	beforeAll(() => {
+		clock = lolex.install();
+	});
+
+	afterAll(() => {
+		clock.uninstall();
+	});
+
+	let broker= new ServiceBroker({
+		metrics: true,
+		statistics: true,
+		metricsNodeTime: 5 * 1000
+	});
+
+	broker.getNodeHealthInfo = jest.fn(() => Promise.resolve());
+	broker.emit = jest.fn();
+
+	it("should create metrics timer", () => {
+		return broker.start().then(() => {
+			expect(broker.metricsTimer).toBeDefined();
+		});
+	});
+
+	it("should send metrics events", () => {
+		clock.tick(6000);
+
+		expect(broker.emit).toHaveBeenCalledTimes(1); // node.health is async
+		expect(broker.getNodeHealthInfo).toHaveBeenCalledTimes(1);
+	});
+
+	it("should destroy metrics timer", () => {
+		broker.stop();
+		expect(broker.metricsTimer).toBeNull();
 	});	
 });
 

@@ -230,6 +230,7 @@ class ServiceBroker {
 
 		if (this.metricsTimer) {
 			clearInterval(this.metricsTimer);
+			this.metricsTimer = null;
 		}
 		
 		if (this.transporter) {
@@ -266,7 +267,6 @@ class ServiceBroker {
 		if (logger)
 			return logger;
 
-		// return utils.wrapLogger(this.options.logger, this.nodeID + (name ? "-" + name : ""));
 		logger = Logger.wrap(this.options.logger, name, this.options.logLevel);
 		this._loggerCache[name] = logger;
 
@@ -796,7 +796,7 @@ class ServiceBroker {
 		return p;
 	}
 
-	_remoteCall(ctx, opts) {
+	_remoteCall(ctx, opts = {}) {
 		// Remote action call
 		this.logger.debug(`Call remote '${ctx.action.name}' action on '${ctx.nodeID}' node...`);
 
@@ -805,6 +805,7 @@ class ServiceBroker {
 
 		if (opts.retryCount == null)
 			opts.retryCount = this.options.requestRetry || 0;
+		
 
 		return ctx.invoke(ctx => {
 			return this.transporter.request(ctx.nodeID, ctx, opts).catch(err => {
