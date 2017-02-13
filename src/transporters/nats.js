@@ -270,6 +270,7 @@ class NatsTransporter extends Transporter {
 
 				// Stop timeout timer
 				if (timer) {
+					/* istanbul ignore next */
 					clearTimeout(timer);
 				}
 

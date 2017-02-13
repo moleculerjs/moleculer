@@ -96,11 +96,15 @@ class StatRequestStore {
 				bucket.rps = bucket.times.length / ((endTime - bucket.time) / 1000);
 			}
 			if (bucket.rps != null)
-				values.push(bucket.rps.toFixed(2));
+				values.push(bucket.rps);
 		});
 
+		let current;
+		if (now - this.firstBucketTime > 0)
+			current = (totalCount / ((now - this.firstBucketTime) / 1000));
+
 		return {
-			current: (totalCount / ((now - this.firstBucketTime) / 1000)).toFixed(2),
+			current,
 			values
 		};
 	}
@@ -174,7 +178,7 @@ class RequestStatistics {
 	 * @memberOf RequestStatistics
 	 */
 	constructor(options) {
-		this.options = _.defaultsDeep(options, {
+		this.options = _.defaultsDeep({}, options, {
 			cycleTime: 5 * 1000,
 			bucketCount: 12
 		});
@@ -254,7 +258,7 @@ class BrokerStatistics {
 	 */
 	constructor(broker, options) {
 		this.broker = broker;
-		this.options = _.defaultsDeep(options, {});
+		this.options = _.defaultsDeep({}, options);
 
 		this.requests = new RequestStatistics(this.options);
 	}
