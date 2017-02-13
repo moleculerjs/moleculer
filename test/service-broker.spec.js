@@ -650,7 +650,7 @@ describe("Test localCall", () => {
 	});
 });
 
-describe.only("Test remoteCall", () => {
+describe("Test remoteCall", () => {
 
 	function createTransporter() {
 		let transporter = new Transporter();
@@ -681,7 +681,7 @@ describe.only("Test remoteCall", () => {
 
 	describe("with normal call", () => {
 		let transporter = createTransporter();
-		transporter.request = jest.fn((nodeID, ctx) => Promise.resolve(ctx)); 
+		transporter.request = jest.fn(ctx => Promise.resolve(ctx)); 
 		let broker = createBroker({ transporter });
 		let ctx = new Context({ broker, action: { name: "posts.find" }, nodeID: "server-1"});
 
@@ -689,7 +689,7 @@ describe.only("Test remoteCall", () => {
 			return broker._remoteCall(ctx).then(ctx => {
 				expect(ctx).toBeDefined();
 				expect(transporter.request).toHaveBeenCalledTimes(1);
-				expect(transporter.request).toHaveBeenCalledWith(ctx.nodeID, ctx, { timeout: 5000, retryCount: 0});
+				expect(transporter.request).toHaveBeenCalledWith(ctx, { timeout: 5000, retryCount: 0});
 			});
 		});
 	});
@@ -706,7 +706,7 @@ describe.only("Test remoteCall", () => {
 				expect(err).toBeDefined();
 				expect(err).toBeInstanceOf(RequestTimeoutError);
 				expect(transporter.request).toHaveBeenCalledTimes(1);
-				expect(transporter.request).toHaveBeenCalledWith(ctx.nodeID, ctx, { timeout: 5000, retryCount: -1});
+				expect(transporter.request).toHaveBeenCalledWith(ctx, { timeout: 5000, retryCount: -1});
 				expect(broker.nodeUnavailable).toHaveBeenCalledWith(ctx.nodeID);
 			});
 		});
@@ -724,7 +724,7 @@ describe.only("Test remoteCall", () => {
 			return broker._remoteCall(ctx, { retryCount: 2 }).then(res => {
 				expect(res.opts.retryCount).toBe(1);
 				expect(transporter.request).toHaveBeenCalledTimes(1);
-				expect(transporter.request).toHaveBeenCalledWith(ctx.nodeID, ctx, { timeout: 5000, retryCount: 1});
+				expect(transporter.request).toHaveBeenCalledWith(ctx, { timeout: 5000, retryCount: 1});
 				expect(broker.nodeUnavailable).toHaveBeenCalledTimes(0);
 				expect(broker.call).toHaveBeenCalledTimes(1);
 				expect(broker.call).toHaveBeenCalledWith("posts.find", ctx.params, res.opts);
@@ -1070,7 +1070,7 @@ describe("Test ServiceBroker with Transporter", () => {
 	transporter.disconnect = jest.fn(); 
 	transporter.sendHeartbeat = jest.fn(); 
 	transporter.emit = jest.fn(); 
-	transporter.request = jest.fn((nodeID, ctx) => Promise.resolve(ctx)); 
+	transporter.request = jest.fn(ctx => Promise.resolve(ctx)); 
 
 	let broker= new ServiceBroker({
 		transporter,
@@ -1121,7 +1121,7 @@ describe("Test ServiceBroker with Transporter", () => {
 		broker.registerAction(mockService, mockAction, "99999");
 		return broker.call("posts.find", p).then(ctx => {
 			expect(transporter.request).toHaveBeenCalledTimes(1);
-			expect(transporter.request).toHaveBeenCalledWith("99999", ctx, { retryCount: 2, timeout: 15000});
+			expect(transporter.request).toHaveBeenCalledWith(ctx, { retryCount: 2, timeout: 15000});
 			expect(ctx.params).toEqual(p);
 		});
 	});
@@ -1133,7 +1133,7 @@ describe("Test ServiceBroker with Transporter", () => {
 
 		return broker.call("posts.find", p, { parentCtx, timeout: 5000 }).then(ctx => {
 			expect(transporter.request).toHaveBeenCalledTimes(1);
-			expect(transporter.request).toHaveBeenCalledWith("99999", ctx, { parentCtx, retryCount: 2, timeout: 5000});
+			expect(transporter.request).toHaveBeenCalledWith(ctx, { parentCtx, retryCount: 2, timeout: 5000});
 			expect(ctx.parent).toBe(parentCtx);		
 		});
 	});

@@ -390,6 +390,7 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	wrapAction(action) {
+		/* istanbul ignore next */
 		if (this.middlewares.length == 0) return action;
 
 		let mws = Array.from(this.middlewares);
@@ -805,10 +806,10 @@ class ServiceBroker {
 
 		if (opts.retryCount == null)
 			opts.retryCount = this.options.requestRetry || 0;
-		
+	
 
 		return ctx.invoke(ctx => {
-			return this.transporter.request(ctx.nodeID, ctx, opts).catch(err => {
+			return this.transporter.request(ctx, opts).catch(err => {
 				if (err instanceof errors.RequestTimeoutError) {
 					// Retry request
 					if (opts.retryCount-- > 0) {

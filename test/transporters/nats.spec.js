@@ -242,11 +242,12 @@ describe("Test Transporter emit, subscribe and request methods", () => {
 
 			let ctx = new Context({
 				action: { name: "posts.find" },
+				nodeID: "node2",
 				params: { 
 					a: 1
 				}
 			});
-			let p = trans.request("node2", ctx);
+			let p = trans.request(ctx);
 			expect(utils.isPromise(p)).toBeTruthy();
 
 			expect(trans.client.subscribe).toHaveBeenCalledTimes(1);
@@ -300,11 +301,12 @@ describe("Test Transporter emit, subscribe and request methods", () => {
 
 			let ctx = new Context({
 				action: { name: "posts.find" },
+				nodeID: "node2",
 				params: { 
 					a: 1
 				}
 			});
-			let p = trans.request("node2", ctx);
+			let p = trans.request(ctx);
 			expect(utils.isPromise(p)).toBeTruthy();
 
 			expect(trans.client.subscribe).toHaveBeenCalledTimes(1);

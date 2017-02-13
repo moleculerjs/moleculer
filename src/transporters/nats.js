@@ -250,16 +250,13 @@ class NatsTransporter extends Transporter {
 	 * Send a request to a remote service. It returns a Promise
 	 * what will be resolved when the response received.
 	 * 
-	 * TODO: request timeout, with reject
-	 * 
-	 * @param {any} targetNodeID	Remote Node ID
 	 * @param {Context} ctx			Context of request
 	 * @param {any} opts			Options of request
 	 * @returns	{Promise}
 	 * 
 	 * @memberOf NatsTransporter
 	 */
-	request(targetNodeID, ctx, opts = {}) {
+	request(ctx, opts = {}) {
 		return new Promise((resolve, reject) => {
 			let timer = null;
 			let timedOut = false;
@@ -305,7 +302,7 @@ class NatsTransporter extends Transporter {
 				action: ctx.action.name,
 				params: ctx.params
 			};
-			this.logger.debug(`Send request '${message.action}' action to '${targetNodeID}' node...`, message);
+			this.logger.debug(`Send request '${message.action}' action to '${ctx.nodeID}' node...`, message);
 			let payload = utils.json2String(message);
 
 			// Handle request timeout
@@ -316,14 +313,14 @@ class NatsTransporter extends Transporter {
 					// Unsubscribe from response
 					this.client.unsubscribe(sid); 
 
-					this.logger.warn(`Request timed out when call '${message.action}' action on '${targetNodeID}' node! (timeout: ${opts.timeout / 1000} sec)`, message);
+					this.logger.warn(`Request timed out when call '${message.action}' action on '${ctx.nodeID}' node! (timeout: ${opts.timeout / 1000} sec)`, message);
 					
-					reject(new RequestTimeoutError(message, targetNodeID));
+					reject(new RequestTimeoutError(message, ctx.nodeID));
 				}, opts.timeout);
 				timer.unref();
 			}
 
-			let subj = [PREFIX, "REQ", targetNodeID, message.action].join(".");
+			let subj = [PREFIX, "REQ", ctx.nodeID, message.action].join(".");
 			this.client.publish(subj, payload, replySubject);
 		});
 	}
