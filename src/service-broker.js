@@ -14,11 +14,12 @@ const utils = require("./utils");
 const Logger = require("./logger");
 const Validator = require("./validator");
 const BrokerStatistics = require("./statistics");
+const healthInfo = require("./health");
 
 const _ = require("lodash");
 const glob = require("glob");
 const path = require("path");
-const os = require("os");
+
 
 /**
  * Service broker class
@@ -379,7 +380,7 @@ class ServiceBroker {
 			});
 		};
 
-		addAction("$node.list", ctx => {
+		addAction("$node.list", () => {
 			let res = [];
 			this.nodes.forEach(node => {
 				res.push(_.pick(node, ["nodeID", "available"]));
@@ -388,7 +389,7 @@ class ServiceBroker {
 			return res;
 		});
 
-		addAction("$node.services", ctx => {
+		addAction("$node.services", () => {
 			let res = [];
 			this.services.forEach(service => {
 				res.push(_.pick(service, ["name", "version"]));
@@ -397,7 +398,7 @@ class ServiceBroker {
 			return res;
 		});
 
-		addAction("$node.actions", ctx => {
+		addAction("$node.actions", () => {
 			let res = [];
 			this.actions.forEach((o, name) => {
 				let item = o.getLocalItem();
@@ -411,111 +412,14 @@ class ServiceBroker {
 			return res;
 		});
 
-		addAction("$node.health", ctx => this.getNodeHealthInfo());
+		addAction("$node.health", () => healthInfo());
 
 		if (this.statistics) {
-			addAction("$node.stats", ctx => {
+			addAction("$node.stats", () => {
 				return this.statistics.snapshot();
 			});		
 			
 		}
-	}
-
-	/**
-	 * Get health info of node
-	 * 
-	 * @returns Promise
-	 * 
-	 * @memberOf ServiceBroker
-	 */
-	getNodeHealthInfo() {
-		return Promise.resolve({})
-
-			// CPU
-			.then(res => {
-				const load = os.loadavg();
-				res.cpu = {
-					load1: load[0],
-					load5: load[1],
-					load15: load[2],
-					cores: os.cpus().length,
-				};
-				res.cpu.utilization = Math.floor(load[0] * 100 / res.cpu.cores);
-
-				return res;
-			})
-
-			// Memory
-			.then(res => {
-				res.mem = {
-					free: os.freemem(),
-					total: os.totalmem(),
-				};
-				res.mem.percent = (res.mem.free * 100 / res.mem.total);
-
-				return res;
-			})
-
-			// OS 
-			.then(res => {
-				res.os = {
-					uptime: os.uptime(),
-					type: os.type(),
-					release: os.release(),
-					hostname: os.hostname(),
-					arch: os.arch(),
-					platform: os.platform(),
-					user: os.userInfo()
-				};
-
-				return res;
-			})
-
-			// Process 
-			.then(res => {
-				res.process = {
-					pid: process.pid,
-					memory: process.memoryUsage(),
-					uptime: process.uptime()
-				};
-
-				return res;
-			})
-
-			// Network interfaces
-			.then(res => {
-				res.net = {
-					ip: []
-				};
-				res.mem.percent = (res.mem.free * 100 / res.mem.total);
-
-				const interfaces = os.networkInterfaces();
-				for (let iface in interfaces) {
-					for (let i in interfaces[iface]) {
-						const f = interfaces[iface][i];
-						if (f.family === "IPv4" && !f.internal) {
-							res.net.ip.push(f.address);
-							break;
-						}
-					}
-				}					
-
-				return res;
-			})
-
-			// Date & time
-			.then(res => {
-				res.time = {
-					now: Date.now(),
-					iso: new Date().toISOString(),
-					utc: new Date().toUTCString()
-				};
-				return res;
-			});
-
-			// TODO: event loop & GC info
-			// https://github.com/RisingStack/trace-nodejs/blob/master/lib/agent/metrics/apm/index.js
-
 	}
 
 	/**

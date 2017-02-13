@@ -71,6 +71,7 @@
 
 
 ## Broker
+- metricsRate: don't measure every request
 - handleExceptions: true option
 	Catch unhandled exceptions and send an event with details. Can be catch in metrics, alert or logger services
 
