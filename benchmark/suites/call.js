@@ -239,15 +239,15 @@ Suite: Call with param validator
 -----------------------------------------------------------------------
 
 Suite: Call with statistics & metrics
-√ No statistics x 258,502 ops/sec ±0.80% (88 runs sampled)
-√ With metrics x 158,207 ops/sec ±1.49% (85 runs sampled)
-√ With statistics x 165,644 ops/sec ±26.67% (79 runs sampled)
-√ With metrics & statistics x 137,280 ops/sec ±0.52% (69 runs sampled)
+√ No statistics x 239,024 ops/sec ±1.12% (86 runs sampled)
+√ With metrics x 162,024 ops/sec ±1.52% (82 runs sampled)
+√ With statistics x 171,917 ops/sec ±1.30% (77 runs sampled)
+√ With metrics & statistics x 128,078 ops/sec ±0.52% (70 runs sampled)
 
-   No statistics                 0.00%    (258,502 ops/sec)
-   With metrics                -38.80%    (158,207 ops/sec)
-   With statistics             -35.92%    (165,644 ops/sec)
-   With metrics & statistics   -46.89%    (137,280 ops/sec)
+   No statistics                 0.00%    (239,024 ops/sec)
+   With metrics                -32.21%    (162,024 ops/sec)
+   With statistics             -28.08%    (171,917 ops/sec)
+   With metrics & statistics   -46.42%    (128,078 ops/sec)
 -----------------------------------------------------------------------
 
 

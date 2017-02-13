@@ -142,7 +142,7 @@ class ServiceBroker {
 		if (this.options.metrics && this.options.metricsNodeTime > 0) {
 			this.metricsTimer = setInterval(() => {
 				// Send event with node health info
-				this.getNodeHealthInfo().then(data => this.emit("metrics.node.health", data));
+				healthInfo().then(data => this.emit("metrics.node.health", data));
 
 				// Send event with node statistics
 				if (this.statistics)
