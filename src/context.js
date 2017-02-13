@@ -43,7 +43,10 @@ class Context {
 		this.subContexts = [];
 
 		this.level = opts.parent && opts.parent.level ? opts.parent.level + 1 : 1;
-		this.params = opts.params ? Object.assign({}, opts.params) : {};
+		if (this.opts.cloneParams && opts.params)
+			this.params = Object.assign({}, opts.params);
+		else
+			this.params = opts.params ||  {};
 
 		this.startTime = null;
 		this.stopTime = null;
@@ -86,7 +89,10 @@ class Context {
 	 * @memberOf Context
 	 */
 	setParams(newParams) {
-		this.params = _.cloneDeep(newParams);
+		if (this.opts.cloneParams && newParams)
+			this.params = Object.assign({}, newParams);
+		else
+			this.params = newParams;
 	}
 
 	/**
