@@ -1,7 +1,7 @@
 const utils = require("../../src/utils");
 const Context = require("../../src/context");
 const ServiceBroker = require("../../src/service-broker");
-const { RequestTimeoutError } = require("../../src/errors");
+const { RequestTimeoutError, ValidationError } = require("../../src/errors");
 const lolex = require("lolex");
 
 jest.mock("nats");
@@ -128,7 +128,7 @@ describe("Test Transporter.registerEventHandlers", () => {
 		expect(broker.emitLocal).toHaveBeenCalledWith("posts.find", [{ a: 100 }, "TestString"]);
 	});
 
-	it("should call broker.call if request command received", () => {
+	it("should call broker.call & return the result if request command received", () => {
 		let result = [ { a: 1}, { a: 2}];
 		broker.call = jest.fn((actionName, params) => {
 			expect(actionName).toBe("posts.find");
@@ -144,6 +144,24 @@ describe("Test Transporter.registerEventHandlers", () => {
 		return p.then(() => {
 			expect(trans.client.publish).toHaveBeenCalledTimes(1);
 			expect(trans.client.publish).toHaveBeenCalledWith("response.subject", "{\"success\":true,\"nodeID\":\"node1\",\"data\":[{\"a\":1},{\"a\":2}]}");
+		});
+	});
+
+	it("should call broker.call & return the error if request command received", () => {
+		trans.client.publish.mockClear();
+		broker.call = jest.fn(() => {
+			return Promise.reject(new ValidationError("Not valid params", { a: "Too small" }));
+		});
+
+		let payload = { nodeID: "node2", action: "posts.find", params: [{ a: 100 }, "TestString"] };
+		let p = callbacks["SVC.REQ.node1.>"](JSON.stringify(payload), "response.subject");
+
+		expect(broker.call).toHaveBeenCalledTimes(1);
+		expect(broker.call).toHaveBeenCalledWith("posts.find", [{ a: 100 }, "TestString"]);
+
+		return p.then(() => {
+			expect(trans.client.publish).toHaveBeenCalledTimes(1);
+			expect(trans.client.publish).toHaveBeenCalledWith("response.subject", "{\"success\":false,\"nodeID\":\"node1\",\"error\":{\"name\":\"ValidationError\",\"message\":\"Not valid params\",\"code\":422,\"data\":{\"a\":\"Too small\"}}}");
 		});
 	});
 
