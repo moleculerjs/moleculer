@@ -28,6 +28,7 @@ describe("Test Errors", () => {
 		expect(err.code).toBe(408);
 		expect(err.name).toBe("RequestTimeoutError");
 		expect(err.message).toBe("Request timed out when call 'posts.find' action on 'server-2' node!");
+		expect(err.nodeID).toBe("server-2");
 		expect(err.data).toBe(data);
 	});
 

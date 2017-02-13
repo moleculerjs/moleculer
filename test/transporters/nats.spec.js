@@ -1,6 +1,8 @@
 const utils = require("../../src/utils");
 const Context = require("../../src/context");
 const ServiceBroker = require("../../src/service-broker");
+const { RequestTimeoutError } = require("../../src/errors");
+const lolex = require("lolex");
 
 jest.mock("nats");
 
@@ -333,6 +335,58 @@ describe("Test Transporter emit, subscribe and request methods", () => {
 		});
 
 	});
+
+	describe("check request timeout", () => {
+		let clock;
+		beforeAll(() => {
+			clock = lolex.install();
+		});
+
+		afterAll(() => {
+			clock.uninstall();
+		});
+
+		let trans = new NatsTransporter();
+		trans.init(broker);
+		trans.connect();
+		
+		trans.client.publish = jest.fn();
+		trans.client.subscribe = jest.fn(() => 44);
+		trans.client.unsubscribe = jest.fn();
+
+		it("should reject a RequestTimeoutError error", () => {
+			trans.client.subscribe.mockClear();
+			trans.client.publish.mockClear();
+
+			let ctx = new Context({
+				action: { name: "posts.find" },
+				nodeID: "node2"
+			});
+			let p = trans.request(ctx, { timeout: 5000 });
+			expect(utils.isPromise(p)).toBeTruthy();
+
+			expect(trans.client.subscribe).toHaveBeenCalledTimes(1);
+			expect(trans.client.subscribe).toHaveBeenCalledWith("SVC.RESP." + ctx.id, jasmine.any(Function));
+
+			expect(trans.client.publish).toHaveBeenCalledTimes(1);
+			expect(trans.client.publish).toHaveBeenCalledWith("SVC.REQ.node2.posts.find", `{\"nodeID\":\"node1\",\"requestID\":\"${ctx.id}\",\"action\":\"posts.find\",\"params\":{}}`, "SVC.RESP." + ctx.id);
+
+			clock.tick(6000);
+
+			return p.catch(err => {
+				expect(err).toBeInstanceOf(RequestTimeoutError);
+				expect(err.name).toBe("RequestTimeoutError");
+				expect(err.message).toBe("Request timed out when call 'posts.find' action on 'node2' node!");
+				expect(err.code).toBe(408);
+				expect(err.nodeID).toBe("node2");
+				expect(err.data).toEqual({ action: "posts.find", nodeID: "node1", params: {}, requestID: ctx.requestID });
+
+				expect(trans.client.unsubscribe).toHaveBeenCalledTimes(1);
+				expect(trans.client.unsubscribe).toHaveBeenCalledWith(44);
+			});
+		});
+
+	});	
 
 });
 

@@ -670,15 +670,6 @@ describe("Test remoteCall", () => {
 		}));
 	}
 
-	let clock;
-	beforeAll(() => {
-		clock = lolex.install();
-	});
-
-	afterAll(() => {
-		clock.uninstall();
-	});
-
 	describe("with normal call", () => {
 		let transporter = createTransporter();
 		transporter.request = jest.fn(ctx => Promise.resolve(ctx)); 
