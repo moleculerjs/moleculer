@@ -100,7 +100,7 @@ describe("Local service registration", () => {
 		broker.registerAction = jest.fn(broker.registerAction);
 		broker.on = jest.fn(broker.on);
 
-		service = new Service(broker, schema);
+		service = new Service(broker, schema); 
 
 		expect(service).toBeDefined();
 		expect(createdHandlerMock).toHaveBeenCalledTimes(1);

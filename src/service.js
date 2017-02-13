@@ -71,7 +71,7 @@ class Service {
 				};
 
 				// Register to broker
-				broker.registerAction(this, innerAction);
+				broker.registerAction(innerAction);
 			});
 
 		}
@@ -139,6 +139,9 @@ class Service {
 			action.name = this.name + "." + (action.name || name);
 		else
 			action.name = action.name || name;
+
+		if (this.version) 
+			action.name = `v${this.version}.${action.name}`;
 
 		action.version = this.version;
 		action.service = this;

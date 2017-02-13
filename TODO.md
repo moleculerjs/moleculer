@@ -77,9 +77,6 @@
 - direct remote call to a specified node (for monitoring every node)
 
 ## Services
-- add version to action obj and skip service in registerAction
-- appendServiceName - default true "posts.find"
-
 
 ## Transporters
 - Redis transporter

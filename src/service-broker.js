@@ -303,37 +303,20 @@ class ServiceBroker {
 	/**
 	 * Register an action in a local server
 	 * 
-	 * @param {any} service		service of action
 	 * @param {any} action		action schema
 	 * @param {any} nodeID		NodeID if it is on a remote server/node
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	registerAction(service, action, nodeID) {
-		if (service && service.version) {
-			// Register action with version prefix: 'v1.posts.find'
-			let name = `v${service.version}.${action.name}`;
-			this._addAction(service, action, name, nodeID);
-
-			// The latest version register without version prefix too: 'posts.find'
-			if (service.schema.latestVersion)
-				this._addAction(service, action, action.name, nodeID);
-
-		} else {
-			// Register action without version prefix
-			this._addAction(service, action, action.name, nodeID);
-		}
-	}
-
-	_addAction(service, action, actionName, nodeID) {
+	registerAction(action, nodeID) {
 		// Append action by name
-		let item = this.actions.get(actionName);
+		let item = this.actions.get(action.name);
 		if (!item) {
 			item = new BalancedList();
-			this.actions.set(actionName, item);
+			this.actions.set(action.name, item);
 		}
 		if (item.add(action, 0, nodeID)) {
-			this.emitLocal(`register.action.${actionName}`, { service, action, nodeID });
+			this.emitLocal(`register.action.${action.name}`, { action, nodeID });
 		}
 	}
 
@@ -362,13 +345,12 @@ class ServiceBroker {
 	 * Unregister an action on a local server. 
 	 * It will be called when a remote node disconnected. 
 	 * 
-	 * @param {any} service		service of action
 	 * @param {any} action		action schema
 	 * @param {any} nodeID		NodeID if it is on a remote server/node
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	unregisterAction(service, action, nodeID) {
+	unregisterAction(action, nodeID) {
 		let item = this.actions.get(action.name);
 		if (item) {
 			item.removeByNode(nodeID);
@@ -390,7 +372,7 @@ class ServiceBroker {
 	 */
 	registerInternalActions() {
 		const addAction = (name, handler) => {
-			this.registerAction(null, {
+			this.registerAction({
 				name,
 				cache: false,
 				handler
@@ -861,7 +843,7 @@ class ServiceBroker {
 			Object.keys(node.actions).forEach(name => {
 				// Need to override the name cause of versioned action name;
 				let action = Object.assign({}, node.actions[name], { name });
-				this.registerAction(null, action, node.nodeID);
+				this.registerAction(action, node.nodeID);
 			});
 		}
 	}
@@ -928,7 +910,7 @@ class ServiceBroker {
 					// Add external actions
 					Object.keys(node.actions).forEach(name => {
 						let action = Object.assign({}, node.actions[name], { name });
-						this.unregisterAction(null, action, node.nodeID);
+						this.unregisterAction(action, node.nodeID);
 					});
 				}
 

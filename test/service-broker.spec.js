@@ -199,7 +199,7 @@ describe("Test Factories", () => {
 			handler: jest.fn(ctx => ctx)
 		};	
 
-		broker.registerAction(mockService, mockAction);		
+		broker.registerAction(mockAction);		
 
 		return broker.call("posts.find").then(ctx => {
 			expect(ctx).toBeInstanceOf(broker.ContextFactory);
@@ -362,9 +362,9 @@ describe("Test action registration", () => {
 		let registerActionCB = jest.fn();
 		broker.on("register.action.posts.find", registerActionCB);
 
-		broker.registerAction(mockService, mockAction);
+		broker.registerAction(mockAction);
 		expect(broker.actions.size).toBe(1);
-		expect(registerActionCB).toHaveBeenCalledWith({ service: mockService, action: mockAction, nodeID: undefined });
+		expect(registerActionCB).toHaveBeenCalledWith({ action: mockAction, nodeID: undefined });
 		expect(registerActionCB).toHaveBeenCalledTimes(1);
 	});
 
@@ -435,9 +435,6 @@ describe("Test versioned action registration", () => {
 
 	let broker = new ServiceBroker({ internalActions: false });
 
-	let registerAction = jest.fn();
-	broker.on("register.action.posts.find", registerAction);
-
 	let registerActionv1 = jest.fn();
 	broker.on("register.action.v1.posts.find", registerActionv1);
 
@@ -469,21 +466,18 @@ describe("Test versioned action registration", () => {
 	});	
 
 	it("should registered both versioned service", () => {
-		expect(broker.actions.size).toBe(3);
-		expect(registerAction).toHaveBeenCalledWith({ service: serviceV2, action: jasmine.any(Object), nodeID: undefined });
-		expect(registerAction).toHaveBeenCalledTimes(1);
+		expect(broker.actions.size).toBe(2);
 
-		expect(registerActionv1).toHaveBeenCalledWith({ service: serviceV1, action: jasmine.any(Object), nodeID: undefined });
+		expect(registerActionv1).toHaveBeenCalledWith({ action: jasmine.any(Object), nodeID: undefined });
 		expect(registerActionv1).toHaveBeenCalledTimes(1);
 
-		expect(registerActionv2).toHaveBeenCalledWith({ service: serviceV2, action: jasmine.any(Object), nodeID: undefined });
+		expect(registerActionv2).toHaveBeenCalledWith({ action: jasmine.any(Object), nodeID: undefined });
 		expect(registerActionv2).toHaveBeenCalledTimes(1);
 
 		expect(broker.wrapAction).toHaveBeenCalledTimes(2);		
 	});
 	
 	it("should return with the correct action", () => {
-		expect(broker.hasAction("posts.find")).toBeTruthy();
 		expect(broker.hasAction("v1.posts.find")).toBeTruthy();
 		expect(broker.hasAction("v2.posts.find")).toBeTruthy();
 
@@ -501,13 +495,6 @@ describe("Test versioned action registration", () => {
 			expect(findV2).toHaveBeenCalledTimes(1);
 		});
 	});
-
-	it("should call the unversioned v2 handler", () => {
-		findV2.mockClear();
-		return broker.call("posts.find").then(ctx => {
-			expect(findV2).toHaveBeenCalledTimes(1);
-		});
-	});
 		
 });
 
@@ -516,7 +503,7 @@ describe("Test broker.call", () => {
 
 	broker.loadService("./examples/math.service.js");
 
-	broker.registerAction(null, {
+	broker.registerAction({
 		name: "posts.find"
 	}, "server-2");
 
@@ -731,7 +718,7 @@ describe("Test getLocalActionList", () => {
 			handler: jest.fn()
 		};
 
-		broker.registerAction(null, actionRemote, "node");
+		broker.registerAction(actionRemote, "node");
 		let list = broker.getLocalActionList();
 		expect(Object.keys(list).length).toBe(1);
 	});
@@ -747,7 +734,7 @@ describe("Test getLocalActionList", () => {
 			handler: jest.fn()
 		};
 
-		broker.registerAction(service, actionLocal);
+		broker.registerAction(actionLocal);
 		let list = broker.getLocalActionList();
 		expect(Object.keys(list).length).toBe(2);
 		expect(list["device.find"]).toEqual({
@@ -794,10 +781,10 @@ describe("Test registerAction & unregisterAction with nodeID", () => {
 	};
 
 	it("should register as a remote action", () => {
-		broker.registerAction(null, action, "server-2");
+		broker.registerAction(action, "server-2");
 
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("register.action.users.get", { service: null, action: {"handler": jasmine.any(Function), "name": "users.get"}, nodeID: "server-2"});
+		expect(broker.emitLocal).toHaveBeenCalledWith("register.action.users.get", { action: {"handler": jasmine.any(Function), "name": "users.get"}, nodeID: "server-2"});
 		
 		let findItem = broker.actions.get("users.get").get();
 		expect(findItem).toBeDefined();
@@ -807,7 +794,7 @@ describe("Test registerAction & unregisterAction with nodeID", () => {
 	});
 
 	it("should unregister the remote action", () => {
-		broker.unregisterAction(null, action, "server-2");
+		broker.unregisterAction(action, "server-2");
 	
 		let findItem = broker.actions.get("users.get");
 		expect(findItem).toBeDefined();
@@ -1033,21 +1020,16 @@ describe("Test ServiceBroker with Transporter", () => {
 		expect(transporter.emit).toHaveBeenCalledWith("posts.find", p);
 	});
 
-	let mockService = {
-		name: "posts",
-		broker: broker
-	};
-
 	let mockAction = {
 		name: "posts.find",
-		service: mockService,
+		service: { broker },
 		handler: jest.fn(ctx => ctx)
 	};
 
 	it("should call transporter.request with new context", () => {
 		let p = { abc: 100 };
 
-		broker.registerAction(mockService, mockAction, "99999");
+		broker.registerAction(mockAction, "99999");
 		return broker.call("posts.find", p).then(ctx => {
 			expect(transporter.request).toHaveBeenCalledTimes(1);
 			expect(transporter.request).toHaveBeenCalledWith(ctx, { retryCount: 2, timeout: 15000});
