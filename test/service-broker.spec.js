@@ -265,68 +265,6 @@ describe("Test on/once/off event emitter", () => {
 
 });
 
-describe("Test plugin system", () => {
-	let plugin1 = {
-	};
-
-	let plugin2 = {
-		started: jest.fn(),
-		stopped: jest.fn()
-	};
-
-	let plugin3 = {
-		starting: jest.fn(),
-		started: jest.fn(),
-		serviceStarted: jest.fn(),
-		serviceStopped: jest.fn(),
-		stopping: jest.fn(),
-		stopped: jest.fn()
-	};
-
-	let broker = new ServiceBroker();
-	let service = broker.loadService("./examples/math.service");
-	
-	it("should register plugins", () => {
-		broker.plugin(plugin1);
-		broker.plugin(plugin2);
-		broker.plugin(plugin3);
-
-		expect(broker.plugins.length).toBe(3);
-	});
-
-	it("should call plugin 'starting' & 'started' methods", () => {
-		broker.start();
-
-		expect(plugin3.starting).toHaveBeenCalledTimes(1);
-		expect(plugin3.starting).toHaveBeenCalledWith(broker);
-
-		expect(plugin3.serviceStarted).toHaveBeenCalledTimes(1);
-		expect(plugin3.serviceStarted).toHaveBeenCalledWith(broker, service);
-
-		expect(plugin2.started).toHaveBeenCalledTimes(1);
-		expect(plugin2.started).toHaveBeenCalledWith(broker);
-		
-		expect(plugin3.started).toHaveBeenCalledTimes(1);
-		expect(plugin3.started).toHaveBeenCalledWith(broker);
-	});
-
-	it("should call plugin 'stopping' & 'stopped' methods", () => {
-		broker.stop();
-
-		expect(plugin3.stopping).toHaveBeenCalledTimes(1);
-		expect(plugin3.stopping).toHaveBeenCalledWith(broker);
-
-		expect(plugin3.serviceStopped).toHaveBeenCalledTimes(1);
-		expect(plugin3.serviceStopped).toHaveBeenCalledWith(broker, service);
-
-		expect(plugin2.stopped).toHaveBeenCalledTimes(1);
-		expect(plugin2.stopped).toHaveBeenCalledWith(broker);
-
-		expect(plugin3.stopped).toHaveBeenCalledTimes(1);
-		expect(plugin3.stopped).toHaveBeenCalledWith(broker);
-	});
-});
-
 describe("Test loadServices", () => {
 
 	let broker = new ServiceBroker();
@@ -461,7 +399,7 @@ describe("Test action registration", () => {
 	it("should set params to context", () => {
 		let params = { a: 1 };
 		return broker.call("posts.find", params).then(ctx => {
-			expect(ctx.params).not.toBe(params);
+			expect(ctx.params).toBe(params);
 			expect(ctx.params.a).toBe(params.a);
 			expect(ctx.level).toBe(1);
 		});
@@ -483,7 +421,7 @@ describe("Test action registration", () => {
 		let params = { a: 1 };
 
 		return broker.call("posts.find", params, { parentCtx }).then(ctx => {
-			expect(ctx.params).not.toBe(params);
+			expect(ctx.params).toBe(params);
 			expect(ctx.params.a).toBe(1);
 			expect(ctx.params.b).not.toBeDefined();
 			expect(ctx.level).toBe(2);

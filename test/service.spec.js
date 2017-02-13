@@ -20,23 +20,16 @@ let PostSchema = {
 			handler() {}
 		},
 
-		get() {
-
-		}
+		get() {}
 	},
 
 	methods: {
-		doSomething() {
-
-		}
+		doSomething() {}
 	},
 
 	events: {},
 
-	created() {
-
-	}
-
+	created() {}
 };
 
 describe("Test Service creation", () => {
@@ -190,6 +183,45 @@ describe("Local service registration", () => {
 
 });
 
+describe("Test action registration", () => {
+	
+	it("should register action on different name", () => {
+		let broker = new ServiceBroker();
+
+		broker.createService({
+			name: "posts",
+			actions: {
+				find: {
+					name: "other",
+					handler() {}
+				}
+			}
+		});
+
+		expect(broker.hasAction("posts.find")).toBeFalsy();
+		expect(broker.hasAction("posts.other")).toBeTruthy();
+	});
+	
+	it("should register action without service name", () => {
+		let broker = new ServiceBroker();
+
+		broker.createService({
+			name: "posts",
+			settings: {
+				appendServiceName: false
+			},
+			actions: {
+				"other.get"() {}
+			}
+		});
+
+		expect(broker.hasAction("posts.other.get")).toBeFalsy();
+		expect(broker.hasAction("other.get")).toBeTruthy();
+	});
+
+
+});
+
 describe("Test service started & stopped handlers", () => {
 
 	let broker = new ServiceBroker();
@@ -198,6 +230,11 @@ describe("Test service started & stopped handlers", () => {
 		name: "svc",
 		started: jest.fn(),
 		stopped: jest.fn()
+	});
+
+	it("shouldn't call the service.started & stopped", () => {
+		expect(service.schema.started).toHaveBeenCalledTimes(0);
+		expect(service.schema.stopped).toHaveBeenCalledTimes(0);
 	});
 
 	it("should call the service.started", () => {
@@ -261,8 +298,6 @@ describe("Test Service without handlers", () => {
 
 
 describe("Test cached actions", () => {
-
-	let cacher = new MemoryCacher();
 
 	it("don't wrap, if schema cache is UNDEFINED and action cache is UNDEFINED", () => {
 		let broker = new ServiceBroker();

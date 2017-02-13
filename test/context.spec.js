@@ -80,9 +80,29 @@ describe("Test setParams", () => {
 		};
 
 		ctx.setParams(params2);
-		expect(ctx.params).not.toEqual(params1);
-		expect(ctx.params).toEqual(params2);
+		expect(ctx.params).not.toBe(params1);
+		expect(ctx.params).toBe(params2);
 	});
+
+	it("should clone the params", () => {
+
+		let params1 = {
+			a: 1
+		};
+
+		let ctx = new Context({
+			params: params1,
+			cloneParams: true
+		});
+
+		let params2 = {
+			b: 5
+		};
+
+		ctx.setParams(params2);
+		expect(ctx.params).not.toBe(params2);
+		expect(ctx.params).toEqual(params2);
+	});	
 });
 
 describe("Test createSubContext", () => {

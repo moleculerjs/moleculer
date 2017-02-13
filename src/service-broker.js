@@ -114,9 +114,6 @@ class ServiceBroker {
 		if (this.options.internalActions)
 			this.registerInternalActions();
 
-		// Plugin container
-		this.plugins = [];		
-
 		// Graceful exit
 		this._closeFn = () => {
 			this.stop();
@@ -129,53 +126,17 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Register a new plugin
-	 * 
-	 * @param {any} plugin
-	 * 
-	 * @memberOf ServiceBroker
-	 */
-	plugin(plugin) {
-		this.plugins.push(plugin);
-	}
-
-	/**
-	 * Call a method in every registered plugins
-	 * 
-	 * @param {any} target		Target of call (value of this)
-	 * @param {any} method		Method name
-	 * @param {any} args		Arguments to method
-	 * 
-	 * @memberOf ServiceBroker
-	 */
-	callPluginMethod(method, ...args) {
-		if (this.plugins.length == 0) return;
-
-		this.plugins.forEach(plugin => {
-			if (_.isFunction(plugin[method])) {
-				plugin[method].call(plugin, ...args);
-			}
-		});
-	}
-
-	/**
 	 * Start broker. If set transport, transport.connect will be called.
 	 * 
 	 * @memberOf ServiceBroker
 	 */
 	start() {
-		this.callPluginMethod("starting", this);
-
 		// Call service `started` handlers
 		this.services.forEach(service => {
-			this.callPluginMethod("serviceStarted", this, service);
-
 			if (service && service.schema && _.isFunction(service.schema.started)) {
 				service.schema.started.call(service);
 			}
 		});
-
-		this.callPluginMethod("started", this);
 
 		if (this.options.metrics && this.options.metricsNodeTime > 0) {
 			this.metricsTimer = setInterval(() => {
@@ -217,12 +178,8 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	stop() {
-		this.callPluginMethod("stopping", this);
-
 		// Call service `started` handlers
 		this.services.forEach(service => {
-			this.callPluginMethod("serviceStopped", this, service);
-
 			if (service && service.schema && _.isFunction(service.schema.stopped)) {
 				service.schema.stopped.call(service);
 			}
@@ -250,8 +207,6 @@ class ServiceBroker {
 		process.removeListener("beforeExit", this._closeFn);
 		process.removeListener("exit", this._closeFn);
 		process.removeListener("SIGINT", this._closeFn);
-
-		this.callPluginMethod("stopped", this);
 	}
 
 	/**

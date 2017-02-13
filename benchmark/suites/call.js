@@ -174,10 +174,10 @@ let bench5 = new Benchmarkify({ async: true, name: "Call with statistics & metri
 })();
 
 bench1.run()
-.then(() => bench2.skip())
-.then(() => bench3.skip())
-.then(() => bench4.skip())
-.then(() => bench5.skip());
+.then(() => bench2.run())
+.then(() => bench3.run())
+.then(() => bench4.run())
+.then(() => bench5.run());
 
 
 /*
@@ -195,52 +195,60 @@ Platform info:
    Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
 
 Suite: Call methods
-√ Direct service call x 583,679 ops/sec ±0.84% (87 runs sampled)
-√ action.handler x 342,408 ops/sec ±0.35% (86 runs sampled)
-√ ctx.invoke x 299,400 ops/sec ±0.25% (87 runs sampled)
-√ broker.call (normal) x 262,532 ops/sec ±0.91% (85 runs sampled)
-√ broker.call (with params) x 203,288 ops/sec ±1.49% (86 runs sampled)
+√ Direct service call x 533,294 ops/sec ±0.60% (84 runs sampled)
+√ action.handler x 304,191 ops/sec ±0.48% (84 runs sampled)
+√ ctx.invoke x 251,879 ops/sec ±0.39% (89 runs sampled)
+√ broker.call (normal) x 242,855 ops/sec ±0.87% (86 runs sampled)
+√ broker.call (with params) x 246,815 ops/sec ±1.04% (85 runs sampled)
 
-   Direct service call           0.00%    (583,679 ops/sec)
-   action.handler              -41.34%    (342,408 ops/sec)
-   ctx.invoke                  -48.70%    (299,400 ops/sec)
-   broker.call (normal)        -55.02%    (262,532 ops/sec)
-   broker.call (with params)   -65.17%    (203,288 ops/sec)
+   Direct service call           0.00%    (533,294 ops/sec)
+   action.handler              -42.96%    (304,191 ops/sec)
+   ctx.invoke                  -52.77%    (251,879 ops/sec)
+   broker.call (normal)        -54.46%    (242,855 ops/sec)
+   broker.call (with params)   -53.72%    (246,815 ops/sec)
 -----------------------------------------------------------------------
 
 Suite: Call with middlewares
-√ Call without middlewares x 296,245 ops/sec ±1.00% (87 runs sampled)
-√ Call with 1 middleware x 205,757 ops/sec ±0.84% (84 runs sampled)
-√ Call with 5 middlewares x 175,706 ops/sec ±0.77% (86 runs sampled)
+√ Call without middlewares x 248,081 ops/sec ±1.02% (87 runs sampled)
+√ Call with 1 middleware x 248,740 ops/sec ±0.68% (89 runs sampled)
+√ Call with 5 middlewares x 248,674 ops/sec ±0.75% (84 runs sampled)
 
-   Call without middlewares     0.00%    (296,245 ops/sec)
-   Call with 1 middleware     -30.54%    (205,757 ops/sec)
-   Call with 5 middlewares    -40.69%    (175,706 ops/sec)
+   Call without middlewares    -0.26%    (248,081 ops/sec)
+   Call with 1 middleware       0.00%    (248,740 ops/sec)
+   Call with 5 middlewares     -0.03%    (248,674 ops/sec)
 -----------------------------------------------------------------------
 
 Suite: Call with cachers
-√ No cacher x 181,782 ops/sec ±1.13% (89 runs sampled)
-√ Built-in cacher x 65,153 ops/sec ±0.74% (87 runs sampled)
-√ Built-in cacher (keys filter) x 89,413 ops/sec ±0.83% (86 runs sampled)
-√ Middleware cacher x 55,845 ops/sec ±1.35% (89 runs sampled)
-√ Middleware cacher (keys filter) x 73,917 ops/sec ±0.72% (88 runs sampled)
+√ No cacher x 192,651 ops/sec ±1.17% (86 runs sampled)
+√ Built-in cacher x 85,731 ops/sec ±0.79% (85 runs sampled)
+√ Built-in cacher (keys filter) x 144,097 ops/sec ±0.78% (89 runs sampled)
 
-   No cacher                           0.00%    (181,782 ops/sec)
-   Built-in cacher                   -64.16%     (65,153 ops/sec)
-   Built-in cacher (keys filter)     -50.81%     (89,413 ops/sec)
-   Middleware cacher                 -69.28%     (55,845 ops/sec)
-   Middleware cacher (keys filter)   -59.34%     (73,917 ops/sec)
+   No cacher                         0.00%    (192,651 ops/sec)
+   Built-in cacher                 -55.50%     (85,731 ops/sec)
+   Built-in cacher (keys filter)   -25.20%    (144,097 ops/sec)
 -----------------------------------------------------------------------
 
 Suite: Call with param validator
-√ No validator x 181,817 ops/sec ±1.00% (88 runs sampled)
-√ With validator passes x 59,041 ops/sec ±1.21% (83 runs sampled)
-√ With validator fail x 15,344 ops/sec ±1.09% (87 runs sampled)
+√ No validator x 193,193 ops/sec ±1.16% (89 runs sampled)
+√ With validator passes x 66,976 ops/sec ±0.92% (86 runs sampled)
+√ With validator fail x 15,421 ops/sec ±1.41% (85 runs sampled)
 
-   No validator              0.00%    (181,817 ops/sec)
-   With validator passes   -67.53%     (59,041 ops/sec)
-   With validator fail     -91.56%     (15,344 ops/sec)
------------------------------------------------------------------------	
+   No validator              0.00%    (193,193 ops/sec)
+   With validator passes   -65.33%     (66,976 ops/sec)
+   With validator fail     -92.02%     (15,421 ops/sec)
+-----------------------------------------------------------------------
+
+Suite: Call with statistics & metrics
+√ No statistics x 258,502 ops/sec ±0.80% (88 runs sampled)
+√ With metrics x 158,207 ops/sec ±1.49% (85 runs sampled)
+√ With statistics x 165,644 ops/sec ±26.67% (79 runs sampled)
+√ With metrics & statistics x 137,280 ops/sec ±0.52% (69 runs sampled)
+
+   No statistics                 0.00%    (258,502 ops/sec)
+   With metrics                -38.80%    (158,207 ops/sec)
+   With statistics             -35.92%    (165,644 ops/sec)
+   With metrics & statistics   -46.89%    (137,280 ops/sec)
+-----------------------------------------------------------------------
 
 
  */

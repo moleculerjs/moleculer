@@ -55,6 +55,7 @@ class Service {
 
 			_.forIn(schema.actions, (action, name) => {
 				if (_.isFunction(action)) {
+					// Wrap to an object
 					action = {
 						handler: action
 					};
@@ -114,7 +115,6 @@ class Service {
 
 		// Call `created` function from schema
 		if (_.isFunction(this.schema.created)) {
-			this.broker.callPluginMethod(this, "serviceCreated", this.broker, this);
 			this.schema.created.call(this);
 		}
 
@@ -135,15 +135,15 @@ class Service {
 			throw new Error(`Missing action handler on '${name}' action in '${this.name}' service!`);
 		}
 
-		action.name = this.name + "." + (action.name || name);
+		if (this.settings.appendServiceName !== false)
+			action.name = this.name + "." + (action.name || name);
+		else
+			action.name = action.name || name;
+
+		action.version = this.version;
 		action.service = this;
-		action.handler = handler.bind(this);
-
-		// Call plugin
-		this.broker.callPluginMethod(this, "createActionHandler", this.broker, this, action);
-
-		// Cache prop
 		action.cache = action.cache !== undefined ? action.cache : (this.settings.cache || false);
+		action.handler = handler.bind(this);
 		
 		// Wrap middlewares
 		this.broker.wrapAction(action);
