@@ -26,6 +26,7 @@ describe("Test Transporter constructor", () => {
 		let trans = new NatsTransporter();
 		expect(trans).toBeDefined();
 		expect(trans.opts).toBeDefined();
+		expect(trans.prefix).toBe("SVC");
 	});
 
 	it("should set options", () => {
@@ -33,6 +34,7 @@ describe("Test Transporter constructor", () => {
 		let trans = new NatsTransporter(opts);
 		expect(trans).toBeDefined();
 		expect(trans.opts).toBe(opts);
+		expect(trans.prefix).toBe("IS-TEST");
 	});
 });
 
@@ -82,7 +84,7 @@ describe("Test Transporter.disconnect", () => {
 		trans.connect();
 		trans.disconnect();
 		expect(trans.client.publish).toHaveBeenCalledTimes(1);
-		expect(trans.client.publish).toHaveBeenCalledWith("IS-TEST.DISCONNECT", `{\"nodeID\":\"${trans.nodeID}\"}`, jasmine.any(Function));
+		expect(trans.client.publish).toHaveBeenCalledWith("SVC.DISCONNECT", `{\"nodeID\":\"${trans.nodeID}\"}`, jasmine.any(Function));
 		// expect(trans.client.close).toHaveBeenCalledTimes(1);
 	});
 });
@@ -108,17 +110,17 @@ describe("Test Transporter.registerEventHandlers", () => {
 
 		expect(trans.client.subscribe).toHaveBeenCalledTimes(6);
 
-		expect(trans.client.subscribe).toHaveBeenCalledWith("IS-TEST.EVENT.>", jasmine.any(Function));
-		expect(trans.client.subscribe).toHaveBeenCalledWith("IS-TEST.INFO.node1", jasmine.any(Function));
-		expect(trans.client.subscribe).toHaveBeenCalledWith("IS-TEST.REQ.node1.>", jasmine.any(Function));
-		expect(trans.client.subscribe).toHaveBeenCalledWith("IS-TEST.DISCOVER", jasmine.any(Function));
-		expect(trans.client.subscribe).toHaveBeenCalledWith("IS-TEST.HEARTBEAT", jasmine.any(Function));
-		expect(trans.client.subscribe).toHaveBeenCalledWith("IS-TEST.DISCONNECT", jasmine.any(Function));
+		expect(trans.client.subscribe).toHaveBeenCalledWith("SVC.EVENT.>", jasmine.any(Function));
+		expect(trans.client.subscribe).toHaveBeenCalledWith("SVC.INFO.node1", jasmine.any(Function));
+		expect(trans.client.subscribe).toHaveBeenCalledWith("SVC.REQ.node1.>", jasmine.any(Function));
+		expect(trans.client.subscribe).toHaveBeenCalledWith("SVC.DISCOVER", jasmine.any(Function));
+		expect(trans.client.subscribe).toHaveBeenCalledWith("SVC.HEARTBEAT", jasmine.any(Function));
+		expect(trans.client.subscribe).toHaveBeenCalledWith("SVC.DISCONNECT", jasmine.any(Function));
 	});
 
 	it("should call broker.emitLocal if event command received", () => {
 		let payload = { nodeID: "node2", event: "posts.find", args: [{ a: 100 }, "TestString"] };
-		callbacks["IS-TEST.EVENT.>"](JSON.stringify(payload));
+		callbacks["SVC.EVENT.>"](JSON.stringify(payload));
 
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
 		expect(broker.emitLocal).toHaveBeenCalledWith("posts.find", [{ a: 100 }, "TestString"]);
@@ -132,7 +134,7 @@ describe("Test Transporter.registerEventHandlers", () => {
 			return Promise.resolve(result);
 		});
 		let payload = { nodeID: "node2", action: "posts.find", params: [{ a: 100 }, "TestString"] };
-		let p = callbacks["IS-TEST.REQ.node1.>"](JSON.stringify(payload), "response.subject");
+		let p = callbacks["SVC.REQ.node1.>"](JSON.stringify(payload), "response.subject");
 
 		expect(broker.call).toHaveBeenCalledTimes(1);
 		expect(broker.call).toHaveBeenCalledWith("posts.find", [{ a: 100 }, "TestString"]);
@@ -146,7 +148,7 @@ describe("Test Transporter.registerEventHandlers", () => {
 	it("should call broker.processNodeInfo and sendNodeInfoPackage if DISCOVER command received", () => {
 		trans.sendNodeInfoPackage = jest.fn();
 		let payload = { nodeID: "node2", actions: ["users.get", "users.create"] };
-		callbacks["IS-TEST.DISCOVER"](JSON.stringify(payload), "reply_command");
+		callbacks["SVC.DISCOVER"](JSON.stringify(payload), "reply_command");
 
 		expect(broker.processNodeInfo).toHaveBeenCalledTimes(1);
 		expect(broker.processNodeInfo).toHaveBeenCalledWith("node2", payload);
@@ -159,7 +161,7 @@ describe("Test Transporter.registerEventHandlers", () => {
 		broker.processNodeInfo.mockClear();
 		trans.sendNodeInfoPackage = jest.fn();
 		let payload = { nodeID: "node2", actions: ["users.get", "users.create"] };
-		callbacks["IS-TEST.INFO.node1"](JSON.stringify(payload));
+		callbacks["SVC.INFO.node1"](JSON.stringify(payload));
 
 		expect(broker.processNodeInfo).toHaveBeenCalledTimes(1);
 		expect(broker.processNodeInfo).toHaveBeenCalledWith("node2", payload);
@@ -169,7 +171,7 @@ describe("Test Transporter.registerEventHandlers", () => {
 		broker.nodeDisconnected = jest.fn();
 		trans.sendNodeInfoPackage = jest.fn();
 		let payload = { nodeID: "node2", actions: ["users.get", "users.create"] };
-		callbacks["IS-TEST.DISCONNECT"](JSON.stringify(payload));
+		callbacks["SVC.DISCONNECT"](JSON.stringify(payload));
 
 		expect(broker.nodeDisconnected).toHaveBeenCalledTimes(1);
 		expect(broker.nodeDisconnected).toHaveBeenCalledWith("node2", payload);
@@ -179,7 +181,7 @@ describe("Test Transporter.registerEventHandlers", () => {
 		broker.nodeHeartbeat = jest.fn();
 		trans.sendNodeInfoPackage = jest.fn();
 		let payload = { nodeID: "node2" };
-		callbacks["IS-TEST.HEARTBEAT"](JSON.stringify(payload));
+		callbacks["SVC.HEARTBEAT"](JSON.stringify(payload));
 
 		expect(broker.nodeHeartbeat).toHaveBeenCalledTimes(1);
 		expect(broker.nodeHeartbeat).toHaveBeenCalledWith("node2", payload);
@@ -202,14 +204,14 @@ describe("Test Transporter emit, subscribe and request methods", () => {
 			trans.emit("test.custom.event", { a: 1 });
 
 			expect(trans.client.publish).toHaveBeenCalledTimes(1);
-			expect(trans.client.publish).toHaveBeenCalledWith("IS-TEST.EVENT.test.custom.event", "{\"nodeID\":\"node1\",\"event\":\"test.custom.event\",\"param\":{\"a\":1}}");
+			expect(trans.client.publish).toHaveBeenCalledWith("SVC.EVENT.test.custom.event", "{\"nodeID\":\"node1\",\"event\":\"test.custom.event\",\"param\":{\"a\":1}}");
 		});
 
 		it("should subscribe to eventname", () => {
 			trans.subscribe("custom.node.event", jest.fn());
 
 			expect(trans.client.subscribe).toHaveBeenCalledTimes(1);
-			expect(trans.client.subscribe).toHaveBeenCalledWith("IS-TEST.custom.node.event", jasmine.any(Function));
+			expect(trans.client.subscribe).toHaveBeenCalledWith("SVC.custom.node.event", jasmine.any(Function));
 		});
 	});
 
@@ -251,10 +253,10 @@ describe("Test Transporter emit, subscribe and request methods", () => {
 			expect(utils.isPromise(p)).toBeTruthy();
 
 			expect(trans.client.subscribe).toHaveBeenCalledTimes(1);
-			expect(trans.client.subscribe).toHaveBeenCalledWith("IS-TEST.RESP." + ctx.id, jasmine.any(Function));
+			expect(trans.client.subscribe).toHaveBeenCalledWith("SVC.RESP." + ctx.id, jasmine.any(Function));
 
 			expect(trans.client.publish).toHaveBeenCalledTimes(1);
-			expect(trans.client.publish).toHaveBeenCalledWith("IS-TEST.REQ.node2.posts.find", `{\"nodeID\":\"node1\",\"requestID\":\"${ctx.id}\",\"action\":\"posts.find\",\"params\":{\"a\":1}}`, "IS-TEST.RESP." + ctx.id);
+			expect(trans.client.publish).toHaveBeenCalledWith("SVC.REQ.node2.posts.find", `{\"nodeID\":\"node1\",\"requestID\":\"${ctx.id}\",\"action\":\"posts.find\",\"params\":{\"a\":1}}`, "SVC.RESP." + ctx.id);
 
 			return Promise.resolve()
 			.then(utils.delay(50))
@@ -310,10 +312,10 @@ describe("Test Transporter emit, subscribe and request methods", () => {
 			expect(utils.isPromise(p)).toBeTruthy();
 
 			expect(trans.client.subscribe).toHaveBeenCalledTimes(1);
-			expect(trans.client.subscribe).toHaveBeenCalledWith("IS-TEST.RESP." + ctx.id, jasmine.any(Function));
+			expect(trans.client.subscribe).toHaveBeenCalledWith("SVC.RESP." + ctx.id, jasmine.any(Function));
 
 			expect(trans.client.publish).toHaveBeenCalledTimes(1);
-			expect(trans.client.publish).toHaveBeenCalledWith("IS-TEST.REQ.node2.posts.find", `{\"nodeID\":\"node1\",\"requestID\":\"${ctx.id}\",\"action\":\"posts.find\",\"params\":{\"a\":1}}`, "IS-TEST.RESP." + ctx.id);
+			expect(trans.client.publish).toHaveBeenCalledWith("SVC.REQ.node2.posts.find", `{\"nodeID\":\"node1\",\"requestID\":\"${ctx.id}\",\"action\":\"posts.find\",\"params\":{\"a\":1}}`, "SVC.RESP." + ctx.id);
 
 			responseCb(JSON.stringify(data1));
 
@@ -371,7 +373,7 @@ describe("Test Transporter.discoverNodes", () => {
 		trans.discoverNodes();
 
 		expect(trans.sendNodeInfoPackage).toHaveBeenCalledTimes(1);
-		expect(trans.sendNodeInfoPackage).toHaveBeenCalledWith("IS-TEST.DISCOVER", "IS-TEST.INFO.node11");
+		expect(trans.sendNodeInfoPackage).toHaveBeenCalledWith("SVC.DISCOVER", "SVC.INFO.node11");
 	});
 
 });
@@ -390,7 +392,7 @@ describe("Test Transporter.sendHeartbeat", () => {
 		trans.sendHeartbeat();
 
 		expect(trans.client.publish).toHaveBeenCalledTimes(1);
-		expect(trans.client.publish).toHaveBeenCalledWith("IS-TEST.HEARTBEAT", "{\"nodeID\":\"node11\"}");
+		expect(trans.client.publish).toHaveBeenCalledWith("SVC.HEARTBEAT", "{\"nodeID\":\"node11\"}");
 	});
 
 });

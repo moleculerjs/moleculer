@@ -11,8 +11,6 @@ const Transporter 	= require("./base");
 const utils 		= require("../utils");
 const { RequestTimeoutError } = require("../errors");
 
-let PREFIX = "ICE";
-
 /**
  * Internal transporter via NATS
  * 
@@ -33,9 +31,10 @@ class NatsTransporter extends Transporter {
 	constructor(opts) {
 		super(opts);
 		this.client = null;
+		this.prefix = "SVC";
 		
 		if (this.opts.prefix) {
-			PREFIX = this.opts.prefix;
+			this.prefix = this.opts.prefix;
 		}
 	}
 
@@ -105,7 +104,7 @@ class NatsTransporter extends Transporter {
 			};
 			this.logger.debug("Send DISCONNECT message", message);
 			let payload = utils.json2String(message);
-			this.client.publish([PREFIX, "DISCONNECT"].join("."), payload, () => {
+			this.client.publish([this.prefix, "DISCONNECT"].join("."), payload, () => {
 				/* istanbul ignore next */
 				this.client.close();
 				/* istanbul ignore next */
@@ -122,7 +121,7 @@ class NatsTransporter extends Transporter {
 	registerEventHandlers() {
 
 		// Subscribe to broadcast events
-		let eventSubject = [PREFIX, "EVENT", ">"].join(".");
+		let eventSubject = [this.prefix, "EVENT", ">"].join(".");
 		this.client.subscribe(eventSubject, (msg) => {
 			let message = utils.string2Json(msg);
 			if (message.nodeID !== this.nodeID) {
@@ -132,7 +131,7 @@ class NatsTransporter extends Transporter {
 		});
 
 		// Subscribe to node requests
-		let reqSubject = [PREFIX, "REQ", this.nodeID, ">"].join(".");
+		let reqSubject = [this.prefix, "REQ", this.nodeID, ">"].join(".");
 		this.client.subscribe(reqSubject, (msg, reply) => {
 			let message;
 			if (msg != "") {
@@ -172,7 +171,7 @@ class NatsTransporter extends Transporter {
 		});
 
 		// Discover handler
-		this.client.subscribe([PREFIX, "DISCOVER"].join("."), (msg, reply) => {
+		this.client.subscribe([this.prefix, "DISCOVER"].join("."), (msg, reply) => {
 			let nodeInfo = utils.string2Json(msg);
 			let nodeID = nodeInfo.nodeID;
 			if (nodeID !== this.nodeID) {
@@ -184,7 +183,7 @@ class NatsTransporter extends Transporter {
 		});
 
 		// NodeInfo handler
-		this.client.subscribe([PREFIX, "INFO", this.nodeID].join("."), (msg) => {
+		this.client.subscribe([this.prefix, "INFO", this.nodeID].join("."), (msg) => {
 			let nodeInfo = utils.string2Json(msg);
 			let nodeID = nodeInfo.nodeID;
 			if (nodeID !== this.nodeID) {
@@ -194,7 +193,7 @@ class NatsTransporter extends Transporter {
 		});		
 
 		// Disconnect handler
-		this.client.subscribe([PREFIX, "DISCONNECT"].join("."), (msg) => {
+		this.client.subscribe([this.prefix, "DISCONNECT"].join("."), (msg) => {
 			let message = utils.string2Json(msg);
 			let nodeID = message.nodeID;
 			if (nodeID !== this.nodeID) {
@@ -204,7 +203,7 @@ class NatsTransporter extends Transporter {
 		});	
 
 		// Heart-beat handler
-		this.client.subscribe([PREFIX, "HEARTBEAT"].join("."), (msg) => {
+		this.client.subscribe([this.prefix, "HEARTBEAT"].join("."), (msg) => {
 			let message = utils.string2Json(msg);
 			let nodeID = message.nodeID;
 			if (nodeID !== this.nodeID) {
@@ -223,7 +222,7 @@ class NatsTransporter extends Transporter {
 	 * @memberOf NatsTransporter
 	 */
 	emit(eventName, param) {
-		let subject = [PREFIX, "EVENT", eventName].join(".");
+		let subject = [this.prefix, "EVENT", eventName].join(".");
 		let event = {
 			nodeID: this.nodeID,
 			event: eventName,
@@ -243,7 +242,7 @@ class NatsTransporter extends Transporter {
 	 * @memberOf NatsTransporter
 	 */
 	subscribe(eventName, handler) {
-		this.client.subscribe([PREFIX, eventName].join("."), handler);
+		this.client.subscribe([this.prefix, eventName].join("."), handler);
 	}
 
 	/**
@@ -260,7 +259,7 @@ class NatsTransporter extends Transporter {
 		return new Promise((resolve, reject) => {
 			let timer = null;
 			let timedOut = false;
-			let replySubject = [PREFIX, "RESP", ctx.id].join(".");
+			let replySubject = [this.prefix, "RESP", ctx.id].join(".");
 
 			let sid = this.client.subscribe(replySubject, (response) => {
 				// Unsubscribe from reply topic
@@ -320,7 +319,7 @@ class NatsTransporter extends Transporter {
 				timer.unref();
 			}
 
-			let subj = [PREFIX, "REQ", ctx.nodeID, message.action].join(".");
+			let subj = [this.prefix, "REQ", ctx.nodeID, message.action].join(".");
 			this.client.publish(subj, payload, replySubject);
 		});
 	}
@@ -333,7 +332,7 @@ class NatsTransporter extends Transporter {
 	 * @memberOf NatsTransporter
 	 */
 	discoverNodes() {
-		return this.sendNodeInfoPackage([PREFIX, "DISCOVER"].join("."), [PREFIX, "INFO", this.nodeID].join("."));
+		return this.sendNodeInfoPackage([this.prefix, "DISCOVER"].join("."), [this.prefix, "INFO", this.nodeID].join("."));
 	}
 
 	/**
@@ -357,7 +356,7 @@ class NatsTransporter extends Transporter {
 		let payload = utils.json2String({
 			nodeID: this.broker.nodeID
 		});
-		this.client.publish([PREFIX, "HEARTBEAT"].join("."), payload);
+		this.client.publish([this.prefix, "HEARTBEAT"].join("."), payload);
 	}
 }
 
