@@ -1,0 +1,8 @@
+{
+  "resolution": "main",
+  "tree": {
+    "src": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/c2a54db3e9247d3881668c3ca80e5b5284961db6/socket.io/index.d.ts",
+    "raw": "registry:dt/socket.io#1.4.4+20160915014424",
+    "typings": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/c2a54db3e9247d3881668c3ca80e5b5284961db6/socket.io/index.d.ts"
+  }
+}
