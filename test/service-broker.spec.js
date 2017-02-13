@@ -187,15 +187,10 @@ describe("Test Factories", () => {
 		let broker = new ServiceBroker({
 			ContextFactory: require("./__factories/my-context-factory")
 		});
-		
-		let mockService = {
-			name: "posts",
-			broker: broker
-		};
 
 		let mockAction = {
 			name: "posts.find",
-			service: mockService,
+			service: { broker },
 			handler: jest.fn(ctx => ctx)
 		};	
 
@@ -347,14 +342,9 @@ describe("Test action registration", () => {
 
 	let broker = new ServiceBroker({ internalActions: false });
 
-	let mockService = {
-		name: "posts",
-		broker: broker
-	};
-
 	let mockAction = {
 		name: "posts.find",
-		service: mockService,
+		service: { broker },
 		handler: jest.fn(ctx => ctx)
 	};	
 
@@ -372,6 +362,20 @@ describe("Test action registration", () => {
 		expect(broker.hasAction("noaction")).toBeFalsy();
 		expect(broker.hasAction("posts.find")).toBeTruthy();
 	});
+});
+
+describe("Test broker.call context", () => {
+
+	let broker = new ServiceBroker({ internalActions: false });
+
+	let actionHandler = jest.fn(ctx => ctx);
+
+	broker.createService({
+		name: "posts",
+		actions: {
+			find: actionHandler
+		}
+	});
 		
 	it("should reject if no action", () => {
 		return broker.call("noaction").catch(err => {
@@ -387,12 +391,11 @@ describe("Test action registration", () => {
 			expect(ctx.requestID).toBeDefined();
 			expect(ctx.level).toBe(1);
 			expect(ctx.broker).toBe(broker);
-			expect(ctx.action).toBe(mockAction);
+			expect(ctx.action.name).toBe("posts.find");
 			expect(ctx.nodeID).toBeUndefined();
 			expect(ctx.params).toBeDefined();
-			expect(mockAction.handler).toHaveBeenCalledTimes(1);
-			expect(mockAction.handler).toHaveBeenCalledWith(ctx);
-			mockAction.handler.mockClear();
+			expect(actionHandler).toHaveBeenCalledTimes(1);
+			expect(actionHandler).toHaveBeenCalledWith(ctx);
 		});
 	});
 		
@@ -446,7 +449,7 @@ describe("Test versioned action registration", () => {
 
 	broker.wrapAction = jest.fn(handler => handler);
 
-	let serviceV1 = new Service(broker, {
+	broker.createService({
 		name: "posts",
 		version: 1,
 
@@ -455,7 +458,7 @@ describe("Test versioned action registration", () => {
 		}
 	});
 
-	let serviceV2 = new Service(broker, {
+	broker.createService({
 		name: "posts",
 		version: 2,
 		latestVersion: true,
@@ -690,7 +693,7 @@ describe("Test getLocalActionList", () => {
 
 	let broker = new ServiceBroker({ internalActions: true });
 
-	let service = new Service(broker, {
+	broker.createService({
 		name: "posts",
 		actions: {
 			find: {
@@ -730,7 +733,6 @@ describe("Test getLocalActionList", () => {
 			params: {
 				a: "required|number"
 			},
-			service: service,
 			handler: jest.fn()
 		};
 
