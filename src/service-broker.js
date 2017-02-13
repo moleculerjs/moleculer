@@ -111,6 +111,8 @@ class ServiceBroker {
 		if (this.options.statistics)
 			this.statistics = new BrokerStatistics(this);
 
+		this.getNodeHealthInfo = healthInfo;
+
 		// Register internal actions
 		if (this.options.internalActions)
 			this.registerInternalActions();
@@ -142,7 +144,7 @@ class ServiceBroker {
 		if (this.options.metrics && this.options.metricsNodeTime > 0) {
 			this.metricsTimer = setInterval(() => {
 				// Send event with node health info
-				healthInfo().then(data => this.emit("metrics.node.health", data));
+				this.getNodeHealthInfo().then(data => this.emit("metrics.node.health", data));
 
 				// Send event with node statistics
 				if (this.statistics)
@@ -412,7 +414,7 @@ class ServiceBroker {
 			return res;
 		});
 
-		addAction("$node.health", () => healthInfo());
+		addAction("$node.health", () => this.getNodeHealthInfo());
 
 		if (this.statistics) {
 			addAction("$node.stats", () => {
