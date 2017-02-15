@@ -85,6 +85,8 @@ class Service {
 						handler: event
 					};
 				}
+				if (!event.name)
+					event.name = event;
 
 				if (!_.isFunction(event.handler)) {
 					throw new Error(`Missing event handler on '${name}' event in '${this.name}' service!`);

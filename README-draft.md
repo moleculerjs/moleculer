@@ -87,47 +87,46 @@ broker.call("math.sub", { a: 9, b: 2 })
     .catch(err => console.error(`Error occured! ${err.message}`));
 ```
 
-# Servicer main modules
+# Main modules
 
 ## ServiceBroker
 The `ServiceBroker` is the main component of Servicer. It handles services & events, calls actions and communicates with remote nodes. You need to create an instance of `ServiceBroker` on every node.
 
 ### Create broker
 ```js
-    // Create broker with default settings
-    let broker = new ServiceBroker();
+// Create broker with default settings
+let broker = new ServiceBroker();
 
-    // Create broker with custom settings
-    let broker = new ServiceBroker({
-        logger: console,
-        logLevel: "info"
-    });
+// Create broker with custom settings
+let broker = new ServiceBroker({
+    logger: console,
+    logLevel: "info"
+});
 
-    // Create with transporter
-    let { NatsTransporter } = require("servicer");
-    let broker = new ServiceBroker({
-        nodeID: "node-1",
-        transporter: new NatsTransporter(),
-        logger: console,
-        logLevel: "debug",
-        requestTimeout: 5 * 1000,
-        requestRetry: 3
-    });
+// Create with transporter
+let { NatsTransporter } = require("servicer");
+let broker = new ServiceBroker({
+    nodeID: "node-1",
+    transporter: new NatsTransporter(),
+    logger: console,
+    logLevel: "debug",
+    requestTimeout: 5 * 1000,
+    requestRetry: 3
+});
 
-    // Create with cacher
-    let MemoryCacher = require("servicer").Cachers.Memory;
-    let broker = new ServiceBroker({
-        cacher: new MemoryCacher(),
-        logger: console,
-        logLevel: {
-            "*": "warn", // global log level for every modules
-            "CAHER": "debug" // custom log level for cacher modules
-        }
-    });
-    
+// Create with cacher
+let MemoryCacher = require("servicer").Cachers.Memory;
+let broker = new ServiceBroker({
+    cacher: new MemoryCacher(),
+    logger: console,
+    logLevel: {
+        "*": "warn", // global log level for every modules
+        "CAHER": "debug" // custom log level for cacher modules
+    }
+});    
 ```
 
-### Broker options
+### Constructor options
 All available options:
 ```js
 {
@@ -198,20 +197,20 @@ Available options:
 
 ### Usage
 ```js
-    // Call without params
-    broker.call("user.list").then(res => console.log("User list: ", res));
+// Call without params
+broker.call("user.list").then(res => console.log("User list: ", res));
 
-    // Call with params
-    broker.call("user.get", { id: 3 }).then(res => console.log("User: ", res));
+// Call with params
+broker.call("user.get", { id: 3 }).then(res => console.log("User: ", res));
 
-    // Call with options
-    broker.call("recommendation", { limit: 5 }, { timeout: 500, fallbackResponse: defaultRecommendation })
-        .then(res => console.log("Result: ", res));
+// Call with options
+broker.call("recommendation", { limit: 5 }, { timeout: 500, fallbackResponse: defaultRecommendation })
+    .then(res => console.log("Result: ", res));
 
-    // Call with error handling
-    broker.call("posts.update", { id: 2, name: "New post" })
-        .then(res => console.log("Post updated!"))
-        .catch(err => console.error("Unable to update Post!", err));    
+// Call with error handling
+broker.call("posts.update", { id: 2, name: "New post" })
+    .then(res => console.log("Post updated!"))
+    .catch(err => console.error("Unable to update Post!", err));    
 ```
 
 ### Request timeout & fallback response
@@ -226,12 +225,12 @@ Broker has an internal event bus. You can send events to local & global.
 You can send event with `emit` and `emitLocal` functions. First parameter is the name of event. Second parameter is the payload. 
 
 ```js
-    // Emit a local event. Only receive the local services
-    broker.emitLocal("service.started", { service: service, version: 1 });
+// Emit a local event. Only receive the local services
+broker.emitLocal("service.started", { service: service, version: 1 });
 
-    // Emit a global event. It will be send to all nodes via transporter. 
-    // The `user` will be serialized with JSON.stringify
-    broker.emit("user.created", user);
+// Emit a global event. It will be send to all nodes via transporter. 
+// The `user` will be serialized with JSON.stringify
+broker.emit("user.created", user);
 ```
 
 ### Subscribe to events
@@ -239,14 +238,14 @@ For subscribe for events use the `on`, `once` methods. Or in [Service](#service)
 In event names you can use wildcards too.
 
 ```js
-    // Subscribe to `user.created` event
-    broker.on("user.created", user => console.log("User created:", user));
+// Subscribe to `user.created` event
+broker.on("user.created", user => console.log("User created:", user));
 
-    // Subscribe to `user` events
-    broker.on("user.*", user => console.log("User event:", user));
+// Subscribe to `user` events
+broker.on("user.*", user => console.log("User event:", user));
 
-    // Subscribe to all events
-    broker.on("**", payload => console.log("Event:", payload));    
+// Subscribe to all events
+broker.on("**", payload => console.log("Event:", payload));    
 ```
 
 For unsubscribe use the `off` method.
@@ -256,16 +255,16 @@ Broker supports middlewares. You can add your custom middleware, and it'll be ca
 
 Example middleware from validators modules:
 ```js
-    return function validatorMiddleware(handler, action) {
-        // Wrap a param validator
-        if (_.isObject(action.params)) {
-            return ctx => {
-                this.validate(action.params, ctx.params);
-                return handler(ctx);
-            };
-        }
-        return handler;
-    }.bind(this);
+return function validatorMiddleware(handler, action) {
+    // Wrap a param validator
+    if (_.isObject(action.params)) {
+        return ctx => {
+            this.validate(action.params, ctx.params);
+            return handler(ctx);
+        };
+    }
+    return handler;
+}.bind(this);
 ```
 
 The `handler` is the handler of action, what is defined in Service schema. The `action` is the action object from Service schema. The middleware should return with the `handler` or a new wrapped handler. In this example above, we check the action has a `params` props. If yes, we wrap the handler. Create a new handler, what calls the validator function and calls the original `handler`. 
@@ -277,43 +276,205 @@ If you would like to do something with response after the success request, use t
 
 Example code from cacher middleware:
 ```js
-    return (handler, action) => {
-        return function cacherMiddleware(ctx) {
-            const cacheKey = this.getCacheKey(action.name, ctx.params, action.cache.keys);
-            const content = this.get(cacheKey);
-            if (content != null) {
-                // Found in the cache! Don't call handler, return with the context
-                ctx.cachedResult = true;
-                return content;
-            }
+return (handler, action) => {
+    return function cacherMiddleware(ctx) {
+        const cacheKey = this.getCacheKey(action.name, ctx.params, action.cache.keys);
+        const content = this.get(cacheKey);
+        if (content != null) {
+            // Found in the cache! Don't call handler, return with the context
+            ctx.cachedResult = true;
+            return content;
+        }
 
-            // Call the handler
-            return ctx.after(handler(ctx), result => {
-                // Save the response to the cache
-                this.set(cacheKey, result);
+        // Call the handler
+        return ctx.after(handler(ctx), result => {
+            // Save the response to the cache
+            this.set(cacheKey, result);
 
-                return result;
-            });
-        }.bind(this);
-    };
+            return result;
+        });
+    }.bind(this);
+};
 ```
 
-
 # Service
+The Service is the other main module in the Servicer. With this you can define actions.
 
 ## Schema
+You need to create a schema to define a service. The schema has some fix parts (name, version, settings, actions, methods, events).
+You can reach the whole schema in service functions as `this.schema`.
+
+### Example service schema
+```js
+{
+	name: "math",
+	actions: {
+		add(ctx) {
+			return Number(ctx.params.a) + Number(ctx.params.b);
+		},
+
+		sub(ctx) {
+			return Number(ctx.params.a) - Number(ctx.params.b);
+		}
+	}
+}
+```
+
+## Main params
+The Service has some main parameters in the schema.
+```js
+{
+    name: "posts",
+    version: 1
+}
+```
+The `name` is a required property. It must define. It was the first part of action name when you call an action with `broker.call`.
+
+The `version` is an optional property. If you running multiple version of a service, it needs to set. It will be a prefix in the action name. For example:
+```js
+{
+    name: "posts",
+    version: 2,
+    actions: {
+        find() {...}
+    }
+}
+```
+You can call the `find` action as
+```js
+broker.call("v1.posts.find");
+```
+
+## Settings
+You can add settings to your service under `settings` property in schema. You can reach it in service with `this.settings`
+
+```js
+{
+    name: "mailer",
+    settings: {
+        transport: "mailgun"
+    },
+
+    action: {
+        send(ctx) {
+            if (this.settings.transport == "mailgun) {
+                ...
+            }
+        }
+    }
+}
+```
 
 ## Actions
+The actions are the callable/published methods of service. They can be called with `broker.call`.
+The action can be a function (handler) or an object with some properties and with handler.
+The actions have to place to under `actions` key in the service schema.
+
+```js
+{
+	name: "math",
+	actions: {
+        // Simple action, only define a handler
+		add(ctx) {
+			return Number(ctx.params.a) + Number(ctx.params.b);
+		},
+
+        // Complex action, they set other properties. In this case
+        // the `handler` property is required!
+		mult: {
+            cache: false,
+			params: {
+				a: "required|numeric",
+				b: "required|numeric"
+			},
+			handler(ctx) {
+				return Number(ctx.params.a) * Number(ctx.params.b);
+			}
+		}
+	}
+}
+```
+You can call this actions as
+```js
+broker.call("math.add", { a: 5, b: 7 }).then(res => console.log(res));
+broker.call("math.mult", { a: 10, b: 31 }).then(res => console.log(res));
+```
+
+Inside the action you can call other actions with `ctx.call`.
+```js
+{
+    name: "posts",
+    actions: {
+        get(ctx) => {
+            let post = posts[ctx.params.id];
+            // Resolve post.author from users service
+            // Call the "users.get" action with user ID
+            return ctx.call("users.get", { id: post.author }).then(user => {
+                post.author = user;
+                return post;
+            })
+        }
+    }
+}
+```
 
 ## Events
+You can subscribe events and can define event handlers in the schema under `events` key.
+
+```js
+{
+    name: "users",
+    actions: {
+        ...
+    },
+
+    events: {
+        "user.create": function(payload) {
+            this.logger.info("Create user...");
+            // Do something
+        },
+
+        "user.*": function(payload, eventName) {
+            // Do something with payload. The `eventName` contains the original event name.
+        }
+    }
+
+}
+```
 
 ## Methods
+You can create private functions in service. They are called as methods. These functions are private, can't be call with `broker.call`. But you can call it in service actions with `this`.
+
+```js
+{
+    name: "mailer",
+    actions: {
+        send(ctx) {
+            // Call my method
+            return this.sendMail(ctx.params.recipients, ctx.params.subject, ctx.params.body);
+        }
+    },
+
+    methods: {
+        sendMail(recipients, subject, body) {
+            return new Promise((resolve, reject) => {
+                ...
+            });
+        }
+    }
+}
+```
+> The name of method can't be `name`, `version`, `settings`, `schema`, `broker`, `actions`, `logger`, `validator`, because these words are reserved.
+
+## Lifecycle events
+
+## Properties of `this`
 
 ## Create a service
 
-# Service broker
-
 # Context
+
+# Logging
 
 # Cachers
 
@@ -334,6 +495,8 @@ Example code from cacher middleware:
 # Statistics
 
 # Nodes
+
+# Best practices
 
 # Test
 ```

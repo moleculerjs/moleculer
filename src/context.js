@@ -187,12 +187,14 @@ class Context {
 	 * 
 	 * @param {any} actionName
 	 * @param {any} params
+	 * @param {any} opts
 	 * @returns
 	 * 
 	 * @memberOf Context
 	 */
-	call(actionName, params) {
-		return this.broker.call(actionName, params, { parentCtx: this });
+	call(actionName, params, opts = {}) {
+		opts.parentCtx = this;
+		return this.broker.call(actionName, params, opts);
 	}	
 
 	/**
