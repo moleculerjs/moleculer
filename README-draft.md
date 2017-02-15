@@ -82,9 +82,15 @@ broker.start();
 broker.call("math.add", { a: 5, b: 3 })
     .then(res => console.log("5 + 3 =", res));
 
+// Call actions with error handling
 broker.call("math.sub", { a: 9, b: 2 })
     .then(res => console.log("9 - 2 =", res));
     .catch(err => console.error(`Error occured! ${err.message}`));
+
+// Chain calls
+broker.call("math.add", { a: 3, b: 5})
+    .then(res => broker.call("math.sub", { a: res, b: 2 }));
+    .then(res => console.log("3 + 5 - 2 =", res));
 ```
 
 # Main modules
@@ -302,7 +308,6 @@ The Service is the other main module in the Servicer. With this you can define a
 
 ## Schema
 You need to create a schema to define a service. The schema has some fix parts (name, version, settings, actions, methods, events).
-You can reach the whole schema in service functions as `this.schema`.
 
 ### Example service schema
 ```js
@@ -328,9 +333,9 @@ The Service has some main parameters in the schema.
     version: 1
 }
 ```
-The `name` is a required property. It must define. It was the first part of action name when you call an action with `broker.call`.
+The `name` is a required property. It must define. It's the first part of actionName when you call with `broker.call`.
 
-The `version` is an optional property. If you running multiple version of a service, it needs to set. It will be a prefix in the action name. For example:
+The `version` is an optional property. If you running multiple version of a service, it needs to set. It will be a prefix in the actionName. For example:
 ```js
 {
     name: "posts",
@@ -342,11 +347,11 @@ The `version` is an optional property. If you running multiple version of a serv
 ```
 You can call the `find` action as
 ```js
-broker.call("v1.posts.find");
+broker.call("v2.posts.find");
 ```
 
 ## Settings
-You can add settings to your service under `settings` property in schema. You can reach it in service with `this.settings`
+You can add custom settings to your service under `settings` property in schema. You can reach it in service via `this.settings`.
 
 ```js
 {
@@ -357,7 +362,7 @@ You can add settings to your service under `settings` property in schema. You ca
 
     action: {
         send(ctx) {
-            if (this.settings.transport == "mailgun) {
+            if (this.settings.transport == "mailgun") {
                 ...
             }
         }
@@ -367,8 +372,8 @@ You can add settings to your service under `settings` property in schema. You ca
 
 ## Actions
 The actions are the callable/published methods of service. They can be called with `broker.call`.
-The action can be a function (handler) or an object with some properties and with handler.
-The actions have to place to under `actions` key in the service schema.
+The action could be a function (handler) or an object with some properties and with handler.
+The actions should be placed under `actions` key in the service schema.
 
 ```js
 {
@@ -388,7 +393,9 @@ The actions have to place to under `actions` key in the service schema.
 				b: "required|numeric"
 			},
 			handler(ctx) {
-				return Number(ctx.params.a) * Number(ctx.params.b);
+                // You can reach action params with `ctx.action.*`
+                if (ctx.action.cache)
+				    return Number(ctx.params.a) * Number(ctx.params.b);
 			}
 		}
 	}
@@ -407,10 +414,12 @@ Inside the action you can call other actions with `ctx.call`.
     actions: {
         get(ctx) => {
             let post = posts[ctx.params.id];
-            // Resolve post.author from users service
-            // Call the "users.get" action with user ID
+            // Populate the post.author field through "users" service
+            // Call the "users.get" action with author ID
             return ctx.call("users.get", { id: post.author }).then(user => {
-                post.author = user;
+                if (user)
+                    post.author = user;
+
                 return post;
             })
         }
@@ -429,11 +438,13 @@ You can subscribe events and can define event handlers in the schema under `even
     },
 
     events: {
+        // Subscribe to "user.create" event
         "user.create": function(payload) {
             this.logger.info("Create user...");
             // Do something
         },
 
+        // Subscribe to all "user.*" event
         "user.*": function(payload, eventName) {
             // Do something with payload. The `eventName` contains the original event name.
         }
@@ -443,7 +454,7 @@ You can subscribe events and can define event handlers in the schema under `even
 ```
 
 ## Methods
-You can create private functions in service. They are called as methods. These functions are private, can't be call with `broker.call`. But you can call it in service actions with `this`.
+You can create also private functions in service. They are called as `methods`. These functions are private, can't be call with `broker.call`. But you can call it inside service.
 
 ```js
 {
@@ -456,6 +467,7 @@ You can create private functions in service. They are called as methods. These f
     },
 
     methods: {
+        // Send an email to recipients
         sendMail(recipients, subject, body) {
             return new Promise((resolve, reject) => {
                 ...
@@ -467,7 +479,6 @@ You can create private functions in service. They are called as methods. These f
 > The name of method can't be `name`, `version`, `settings`, `schema`, `broker`, `actions`, `logger`, because these words are reserved.
 
 ## Lifecycle events
-
 There are some lifecycle service events, what will be triggered by ServiceBroker.
 
 ```js
@@ -482,23 +493,23 @@ There are some lifecycle service events, what will be triggered by ServiceBroker
     },
 
     started() {
-        // Fired when `broker.start` called.
+        // Fired when `broker.start()` called.
     }
 
     stopped() {
-        // Fired when `broker.stop` called.
+        // Fired when `broker.stop()` called.
     }
 }
 ```
 
 ## Properties of `this`
-In service functions the `this` is always the instance of service. It is has some properties & methods what you can use in your codes.
+In service functions the `this` is always binded to the instance of service. It is has some properties & methods what you can use.
 
 | Name | Type |  Description |
 | ------- | ----- | ------- |
 | `this.name` | `String` | Name of service from schema |
 | `this.version` | `Number` | Version of service from schema |
-| `this.settings` | `Object` | `settings` from schema |
+| `this.settings` | `Object` | Settings of service from schema |
 | `this.schema` | `Object` | Schema of service |
 | `this.broker` | `ServiceBroker` | Instance of broker |
 | `this.logger` | `Logger` | Logger module |
@@ -507,11 +518,11 @@ In service functions the `this` is always the instance of service. It is has som
 > All methods of service can be reach under `this`.
 
 ## Create a service
-There are several way to create a service.
+There are several ways to create/load a service.
 
 ### broker.createService
 You can use this method when developing or testing.
-Call the `broker.createService` methods with schema of service as argument.
+Call the `broker.createService` methods with the schema of service as argument.
 
 ```js
 broker.createService({
@@ -594,6 +605,13 @@ module.exports = function() {
         }
     };
 }
+```
+
+or load manually with `require`
+```js
+let userSchema = require("./user.service");
+
+broker.createService(userSchema);
 ```
 
 ### Load multiple services from a folder
