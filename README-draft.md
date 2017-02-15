@@ -597,7 +597,24 @@ module.exports = function() {
 ```
 
 ### Load multiple services from a folder
+You can load multiple services from a folder.
 
+**Syntax**
+```js
+broker.loadServices(folder = "./services", fileMask = "*.service.js");
+```
+
+**Example**
+```js
+// Load every *.service.js file from "./services" folder
+broker.loadServices();
+
+// Load every *.service.js file from current folder
+broker.loadServices("./");
+
+// Load every user*.js file from the "./svc" folder
+broker.loadServices("./svc", "user*.js");
+```
 
 ## Private properties
 If you would like to create private properties in service, we recommend to declare them in the `created` handler.
