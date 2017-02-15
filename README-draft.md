@@ -450,7 +450,7 @@ You can create private functions in service. They are called as methods. These f
     name: "mailer",
     actions: {
         send(ctx) {
-            // Call my method
+            // Call my `sendMail` method
             return this.sendMail(ctx.params.recipients, ctx.params.subject, ctx.params.body);
         }
     },
@@ -464,13 +464,175 @@ You can create private functions in service. They are called as methods. These f
     }
 }
 ```
-> The name of method can't be `name`, `version`, `settings`, `schema`, `broker`, `actions`, `logger`, `validator`, because these words are reserved.
+> The name of method can't be `name`, `version`, `settings`, `schema`, `broker`, `actions`, `logger`, because these words are reserved.
 
 ## Lifecycle events
 
+There are some lifecycle service events, what will be triggered by ServiceBroker.
+
+```js
+{
+    name: "www",
+    actions: {...},
+    events: {...},
+    methods: {...},
+
+    created() {
+        // Fired when the service instance created.
+    },
+
+    started() {
+        // Fired when `broker.start` called.
+    }
+
+    stopped() {
+        // Fired when `broker.stop` called.
+    }
+}
+```
+
 ## Properties of `this`
+In service functions the `this` is always the instance of service. It is has some properties & methods what you can use in your codes.
+
+| Name | Type |  Description |
+| ------- | ----- | ------- |
+| `this.name` | `String` | Name of service from schema |
+| `this.version` | `Number` | Version of service from schema |
+| `this.settings` | `Object` | `settings` from schema |
+| `this.schema` | `Object` | Schema of service |
+| `this.broker` | `ServiceBroker` | Instance of broker |
+| `this.logger` | `Logger` | Logger module |
+| `this.actions` | `Object` | Actions of service |
+
+> All methods of service can be reach under `this`.
 
 ## Create a service
+There are several way to create a service.
+
+### broker.createService
+You can use this method when developing or testing.
+Call the `broker.createService` methods with schema of service as argument.
+
+```js
+broker.createService({
+    name: "math",
+    actions: {
+        // You can call it as broker.call("math.add")
+        add(ctx) {
+            return Number(ctx.params.a) + Number(ctx.params.b);
+        },
+
+        // You can call it as broker.call("math.sub")
+        sub(ctx) {
+            return Number(ctx.params.a) - Number(ctx.params.b);
+        }
+    }
+});
+```
+
+### Load service
+You can place your service code to an individual file and load this file with broker.
+
+**math.service.js**
+```js
+// Export the schema of service
+module.exports = {
+    name: "math",
+    actions: {
+        add(ctx) {
+            return Number(ctx.params.a) + Number(ctx.params.b);
+        },
+        sub(ctx) {
+            return Number(ctx.params.a) - Number(ctx.params.b);
+        }
+    }
+}
+```
+
+**main.js**
+```js
+// Create broker
+let broker = new ServiceBroker();
+
+// Load service
+broker.loadService("./math.service");
+
+// Start broker
+broker.start();
+```
+
+In the individual files you can create the Service instance. In this case you need to export a function.
+```js
+// Export a function, what the `loadService` will be call with the instance of ServiceBroker
+module.exports = function(broker) {
+    return new Service(broker, {
+        name: "math",
+        actions: {
+            add(ctx) {
+                return Number(ctx.params.a) + Number(ctx.params.b);
+            },
+            sub(ctx) {
+                return Number(ctx.params.a) - Number(ctx.params.b);
+            }
+        }
+    });
+}
+```
+
+Or create a function which returns only with the schema of service
+```js
+// Export a function, what the `loadService` will be call with the instance of ServiceBroker
+module.exports = function() {
+    let users = [....];
+
+    return {
+        name: "math",
+        actions: {
+            create(ctx) {
+                users.push(ctx.params);
+            }
+        }
+    };
+}
+```
+
+### Load multiple services from a folder
+
+
+## Private properties
+If you would like to create private properties in service, we recommend to declare them in the `created` handler.
+
+```js
+const http = require("http");
+
+// Simple HTTP server service
+module.exports = {
+    name: "www",
+
+    settings: {
+        port: 3000
+    },
+
+    created() {
+        this.server = http.createServer(this.httpHandler);
+    },
+
+    started() {
+        this.server.listen(this.settings.port);
+    },
+
+    stopped() {
+        this.server.close();
+    },
+
+    methods() {
+        // HTTP handler
+        httpHandler(req, res) {
+            res.end("Hello Servicer!");
+        }
+    }
+}
+```
 
 # Context
 
