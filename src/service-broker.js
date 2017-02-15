@@ -687,11 +687,8 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	emit(eventName, payload) {
-		if (this.transporter) {
+		if (this.transporter)
 			this.transporter.emit(eventName, payload);
-		}
-
-		this.logger.debug("Event emitted", eventName, payload);		
 
 		return this.emitLocal(eventName, payload);
 	}
@@ -706,6 +703,8 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	emitLocal(eventName, payload) {
+		this.logger.debug("Event emitted", eventName, payload);		
+
 		return this.bus.emit(eventName, payload);
 	}
 

@@ -37,7 +37,7 @@ class ParamValidator {
 	 * @memberOf ParamValidator
 	 */
 	middleware() {
-		return function(handler, action) {
+		return function validatorMiddleware(handler, action) {
 			// Wrap a param validator
 			if (_.isObject(action.params)) {
 				return ctx => {

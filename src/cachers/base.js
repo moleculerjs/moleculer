@@ -147,14 +147,16 @@ class Cacher {
 				const cacheKey = this.getCacheKey(action.name, ctx.params, action.cache.keys);
 				const content = this.get(cacheKey);
 				if (content != null) {
-					// Found in the cache! 
+					// Found in the cache! Don't call handler, return with the context
 					ctx.cachedResult = true;
 					return content;
 				}
 
+				// Call the handler
 				return ctx.after(handler(ctx), result => {
+					// Save the response to the cache
 					this.set(cacheKey, result);
-
+					
 					return result;
 				});
 			}.bind(this);

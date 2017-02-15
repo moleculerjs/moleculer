@@ -191,7 +191,7 @@ Available options:
 | ------- | ----- | ------- | ------- |
 | `timeout` | `Number` | `requestTimeout of broker` | Timeout of request in milliseconds. If the request is timed out and don't define `fallbackResponse`, broker will throw a `RequestTimeout` error. Disable: 0 |
 | `retryCount` | `Number` | `requestRetry of broker` | Count of retry of request. If the request timed out, broker will try to call again. |
-| `fallbackResponse` | `Any` | `null` | If you define it and the request timed out, broker won't throw error, instead return with this value. It can be an `Object`, `Array`...etc. If it is a `Function`, it should return a `Promise` |
+| `fallbackResponse` | `Any` | `null` | Return with it, if the request timed out. [More info](#request-timeout-fallback-response) |
 
 
 ### Usage
@@ -203,14 +203,97 @@ Available options:
     broker.call("user.get", { id: 3 }).then(res => console.log("User: ", res));
 
     // Call with options
-    broker.call("recommendation", { limit: 5 }, { timeout: 500, fallbackResponse: defaultRecommendation }).then(res => console.log("User: ", res));
+    broker.call("recommendation", { limit: 5 }, { timeout: 500, fallbackResponse: defaultRecommendation }).then(res => console.log("Result: ", res));
+
+    // Call with error handling
+    broker.call("posts.update", { id: 2, name: "New post" })
+        .then(res => console.log("Post updated!"))
+        .catch(err => console.error("Unable to update Post!", err));    
 ```
 
 ### Request timeout & fallback response
+If you call action with timeout and the request timed out, broker throw a `RequestTimeoutError` error.
+But if you set `fallbackResponse` in calling options, broker won't throw error, instead return with this value. It can be an `Object`, `Array`...etc. 
+This can be also a `Function`, which returns a `Promise`. The broker will pass the current `Context` to the function as argument.
 
 ## Emit events
+Broker has an internal event bus. You can send events to local & global.
+
+### Send event
+You can send event with `emit` and `emitLocal` functions. First parameter is the name of event. Second parameter is the payload. 
+
+```js
+    // Emit a local event. 
+    broker.emitLocal("service.started", { service: service, version: 1 });
+
+    // Emit a global event. It will be send to all nodes via transporter. 
+    // The `user` will be serialized with JSON.stringify
+    broker.emit("user.created", user);
+```
+
+### Subscribe to events
+For subscribe for events use the `on`, `once` methods. Or in [Service](#service) use the `events` prop.
+For event names you can use wildcards too.
+
+```js
+    // Subscribe to `user.created`˛event
+    broker.on("user.created", user => console.log("User created:", user));
+
+    // Subscribe to `user` events
+    broker.on("user.*", user => console.log("User event:", user));
+
+    // Subscribe to all events
+    broker.on("**", payload => console.log("Event:", payload));    
+```
+
+For unsubscribe use the `off` method.
 
 ## Middlewares
+Broker supports middlewares. You can add your custom middlewares, and they will be called on every local request. The middleware is a `Function` what returns a wrapped action handler. 
+
+Example middleware from validators modules
+```js
+    return function validatorMiddleware(handler, action) {
+        // Wrap a param validator
+        if (_.isObject(action.params)) {
+            return ctx => {
+                this.validate(action.params, ctx.params);
+                return handler(ctx);
+            };
+        }
+        return handler;
+    }.bind(this);
+```
+
+The `handler` is the handler of action, what is defined in Service schema. The `action` is the action object from Service schema. The middleware should return with the `handler` or a new wrapped handler. In this example we check the action has a `params` props. If yes, we wrap the handler. Create a new handler, what calls the validator function and calls the original `handler`. 
+If no `params` prop, we return the original `handler`.
+
+If you don't call the original `handler`, it will break the request. You can use it in cachers. If you find the data in cache, don't call the handler, instead return the cached data.
+
+If you would like to do something with response after the success request, use the `ctx.after` function.
+
+Example code from cacher middleware:
+```js
+    return (handler, action) => {
+        return function cacherMiddleware(ctx) {
+            const cacheKey = this.getCacheKey(action.name, ctx.params, action.cache.keys);
+            const content = this.get(cacheKey);
+            if (content != null) {
+                // Found in the cache! Don't call handler, return with the context
+                ctx.cachedResult = true;
+                return content;
+            }
+
+            // Call the handler
+            return ctx.after(handler(ctx), result => {
+                // Save the response to the cache
+                this.set(cacheKey, result);
+
+                return result;
+            });
+        }.bind(this);
+    };
+```
 
 
 # Service
