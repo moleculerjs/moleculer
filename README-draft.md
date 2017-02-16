@@ -303,6 +303,39 @@ return (handler, action) => {
 };
 ```
 
+## Internal actions
+The broker register some internal actions to check health of node or get request statistics.
+
+### List of local services
+This action lists name of local services.
+```js
+broker.call("$node.services").then(res => console.log(res));
+```
+
+### List of local actions
+This action lists name of local actions
+```js
+broker.call("$node.actions").then(res => console.log(res));
+```
+
+### List of nodes
+This actions lists all connected nodes.
+```js
+broker.call("$node.list").then(res => console.log(res));
+```
+
+### Health of node
+This action returns the health info of process & OS.
+```js
+broker.call("$node.health").then(res => console.log(res));
+```
+
+### Statistics
+This action returns the request statistics if the `statistics` is enabled in options.
+```js
+broker.call("$node.stats").then(res => console.log(res));
+```
+
 # Service
 The Service is the other main module in the Servicer. With this you can define actions.
 
@@ -866,12 +899,51 @@ new NatsTransporter({
 You can also create your custom transporter module. We recommend to you that copy the source of [`NatsTransporter`](src/transporters/nats.js) and implement the `connect`, `disconnect`, `emit`, `subscribe`, `request` and `sendHeartbeat` methods.
 
 # Metrics
+Servicer has a metrics function. You can turn on in broker options with `metrics: true` property.
+If enabled, the broker sends metrics events in every `metricsNodeTime`.
+
+## Metrics events
+
+### Health info
+Broker emit a global event as `metrics.node.health` with health info of node.
+
+Example health info:
+```js
+TODO
+```
+
+### Statistics
+Broker emit a global event as `metrics.node.stats` with statistics.
 
 # Statistics
+Servicer has a statistics module, what collects and aggregates the count & latency info of requests.
+You can enable in boker options with `statistics: true` property. You need to enable metrics functions too!
+
+Broker emit a global event with `metrics.node.stats` name. The payload contains the statistics.
+
+Example statistics:
+```json
+```
 
 # Nodes
+TODO: 
+Architecture
+    Kép:
+    - monolith architectures ( minden service 1 node-on )
+    - microservices (minden service külön node-on)
+    - mixed (összetartozó service-ek egy node-on scale-ezve)
+
+# Docker
+TODO:
+- docker fájlok, scriptek, compose example-k
 
 # Best practices
+- service files
+- configuration
+- benchmark
+
+# Benchmarks
+TODO: az eredményeket kirakni, grafikonnal
 
 # Test
 ```
@@ -884,13 +956,11 @@ or in development
 $ npm run ci
 ```
 
-# Benchmarks
-
 # Contribution
 Please send pull requests improving the usage and fixing bugs, improving documentation and providing better examples, or providing some testing, because these things are important.
 
 # License
-servicer is available under the [MIT license](https://tldrlegal.com/license/mit-license).
+Servicer is available under the [MIT license](https://tldrlegal.com/license/mit-license).
 
 # Contact
 Copyright (c) 2017 Icebob

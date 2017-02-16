@@ -26,6 +26,7 @@
 
 - service register implementation (e.g. consul, etcd)
 
+- fő beállítások környezeti változóból, hogy megvalósítható legyen az 1 repo-ból futtatás több node-on. ENV-ből jönne a service-ek listája is, hogy miket töltsön be a broker.
 
 
 - Dynamic timeout: ctx-be legyen timeout érték. Ha subcall van, akkor adja át, de csökkentve az eltelt idővel. Ha ez nulla vagy kisebb, akkor ne is hívja meg, mert felesleges, mert a request már "elszállt timeout-al", felesleges meghívni.
