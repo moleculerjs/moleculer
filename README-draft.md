@@ -670,8 +670,78 @@ module.exports = {
 ```
 
 # Context
+When you call an action, the broker creates a `Context` instance. Load many request information into instance and pass to the action handler as argument.
+
+Available properties & methods of `Context`:
+
+| Name | Type |  Description |
+| ------- | ----- | ------- |
+| `ctx.id` | `String` | Context ID |
+| `ctx.requestID` | `String` | ID of request. If you make sub-calls in a request, it will be same ID |
+| `ctx.parent` | `Context` | Parent context instance if it's a sub-call |
+| `ctx.broker` | `ServiceBroker` | Instance of broker |
+| `ctx.action` | `Object` | Instance of action |
+| `ctx.params` | `Any` | Params of request |
+| `ctx.nodeID` | `String` | Node ID |
+| `ctx.logger` | `Logger` | Logger module |
+| `ctx.level` | `Number` | Level of request |
+| `ctx.call()` | `Function` | You can make a sub-call. Same arguments like `broker.call` |
+| `ctx.emit()` | `Function` | Emit an event, like `broker.emit` |
 
 # Logging
+In Services every modules have a custom logger instance. They inherited from broker logger instance, what you can set in options of broker.
+Every modules add a prefix to the log messages, that you can identify the sender of message.
+
+```js
+let { ServiceBroker } = require("servicer");
+let broker = new ServiceBroker({
+    logger: console,
+    logLevel: "info"
+});
+
+broker.createService({
+    name: "posts",
+    actions: {
+        get(ctx) {
+            ctx.logger.info("Log message via Context logger");
+        }
+    },
+    created() {
+        this.logger.info("Log message via Service logger");
+    }
+});
+
+broker.call("posts.get").then(() => broker.logger.info("Log message via Broker logger"));
+```
+Results in console:
+```
+[POSTS-SVC] Log message via Service logger
+[CTX] Log message via Context logger
+[BROKER] Log message via Broker logger
+```
+
+## Custom log levels
+If you want to change log level you need to set `logLevel` in broker options.
+```js
+let broker = new ServiceBroker({
+    logger: console,
+    logLevel: "warn"
+});
+```
+You can set custom log levels to every module.
+```js
+let broker = new ServiceBroker({
+    logger: console,
+    logLevel: {
+        "*": "warn", // global settings
+        "BROKER": "info",
+        "CTX": "debug",
+        "POSTS-SVC": "error",
+        "NATS": "info"
+    }
+});
+```
+
 
 # Cachers
 
