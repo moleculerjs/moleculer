@@ -9,7 +9,7 @@ let hostname = os.hostname();
 // Create broker
 let broker = new ServiceBroker({
 	nodeID: process.argv[2] || hostname + "-server",
-	transporter: new NatsTransporter(process.argv[3]),
+	transporter: new NatsTransporter(process.env.NATS_SERVER),
 	//logger: console
 	statistics: true
 });

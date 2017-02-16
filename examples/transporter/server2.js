@@ -10,7 +10,7 @@ let broker = new ServiceBroker({
 	nodeID: process.argv[2] || "server-2",
 	transporter: new NatsTransporter(),
 	logger: console,
-	logLevel: "debug"
+	logLevel: "info"
 });
 
 //broker.loadService(__dirname + "/../post.service");
