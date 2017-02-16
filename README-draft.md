@@ -9,7 +9,7 @@
 [![Known Vulnerabilities](https://snyk.io/test/github/icebob/servicer/badge.svg)](https://snyk.io/test/github/icebob/servicer)
 -->
 # servicer
-Servicer is a fast & powerful microservices framework for NodeJS (>= 6.x).
+Servicer is a fast & powerful microservices framework for NodeJS (>= v6.x).
 <!--
 ![](https://img.shields.io/badge/performance-%2B50%25-brightgreen.svg)
 ![](https://img.shields.io/badge/performance-%2B5%25-green.svg)
@@ -358,8 +358,8 @@ You need to create a schema to define a service. The schema has some fix parts (
 }
 ```
 
-## Main params
-The Service has some main parameters in the schema.
+## Main properties
+The Service has some main properties in the schema.
 ```js
 {
     name: "posts",
@@ -440,7 +440,7 @@ broker.call("math.add", { a: 5, b: 7 }).then(res => console.log(res));
 broker.call("math.mult", { a: 10, b: 31 }).then(res => console.log(res));
 ```
 
-Inside the action you can call other actions with `ctx.call`.
+Inside the action you can call other sub-actions with `ctx.call`.
 ```js
 {
     name: "posts",
@@ -487,7 +487,7 @@ You can subscribe events and can define event handlers in the schema under `even
 ```
 
 ## Methods
-You can create also private functions in service. They are called as `methods`. These functions are private, can't be call with `broker.call`. But you can call it inside service.
+You can create also private functions in service. They are called as `methods`. These functions are private, can't be invoke with `broker.call`. But you can execute it inside service.
 
 ```js
 {
@@ -536,7 +536,7 @@ There are some lifecycle service events, what will be triggered by ServiceBroker
 ```
 
 ## Properties of `this`
-In service functions the `this` is always binded to the instance of service. It is has some properties & methods what you can use.
+In service functions the `this` is always binded to the instance of service. It has some properties & methods what you can use in functions.
 
 | Name | Type |  Description |
 | ------- | ----- | ------- |
@@ -546,7 +546,7 @@ In service functions the `this` is always binded to the instance of service. It 
 | `this.schema` | `Object` | Schema of service |
 | `this.broker` | `ServiceBroker` | Instance of broker |
 | `this.logger` | `Logger` | Logger module |
-| `this.actions` | `Object` | Actions of service |
+| `this.actions` | `Object` | Actions of service. *Service can call its own actions directly.* |
 
 > All methods of service can be reach under `this`.
 
@@ -605,7 +605,7 @@ broker.loadService("./math.service");
 broker.start();
 ```
 
-In the individual files you can create the Service instance. In this case you need to export a function.
+In the individual files also you can create the Service instance. In this case you need to export a function.
 ```js
 // Export a function, what the `loadService` will be call with the instance of ServiceBroker
 module.exports = function(broker) {
@@ -703,18 +703,18 @@ module.exports = {
 ```
 
 # Context
-When you call an action, the broker creates a `Context` instance. Load many request information into instance and pass to the action handler as argument.
+When you call an action, the broker creates a `Context` instance. Load request informations and pass to the action handler as argument.
 
 Available properties & methods of `Context`:
 
 | Name | Type |  Description |
 | ------- | ----- | ------- |
 | `ctx.id` | `String` | Context ID |
-| `ctx.requestID` | `String` | ID of request. If you make sub-calls in a request, it will be same ID |
-| `ctx.parent` | `Context` | Parent context instance if it's a sub-call |
+| `ctx.requestID` | `String` | Request ID. If you make sub-calls in a request, it will be the same ID |
+| `ctx.parent` | `Context` | Parent context, if it's a sub-call |
 | `ctx.broker` | `ServiceBroker` | Instance of broker |
 | `ctx.action` | `Object` | Instance of action |
-| `ctx.params` | `Any` | Params of request |
+| `ctx.params` | `Any` | Params of request. *Second argument of `broker.call`* |
 | `ctx.nodeID` | `String` | Node ID |
 | `ctx.logger` | `Logger` | Logger module |
 | `ctx.level` | `Number` | Level of request |
@@ -722,7 +722,7 @@ Available properties & methods of `Context`:
 | `ctx.emit()` | `Function` | Emit an event, like `broker.emit` |
 
 # Logging
-In Services every modules have a custom logger instance. They inherited from broker logger instance, what you can set in options of broker.
+In Services every modules have a custom logger instance. It is inherited from the broker logger instance, what you can set in options of broker.
 Every modules add a prefix to the log messages, that you can identify the sender of message.
 
 ```js
@@ -758,7 +758,7 @@ If you want to change log level you need to set `logLevel` in broker options.
 ```js
 let broker = new ServiceBroker({
     logger: console,
-    logLevel: "warn"
+    logLevel: "warn" // only print the 'warn' & 'error' logs
 });
 ```
 You can set custom log levels to every module.
@@ -777,8 +777,9 @@ let broker = new ServiceBroker({
 
 # Cachers
 Servicer has built-in cache solution. You have to do two things to enable it.
-1. Give a transporter instance to the broker in options
-2. Set `cache: true` in action definition.
+
+1. Set a transporter instance to the broker in options
+2. Set the `cache: true` in action definition.
 
 ```js
 let { ServiceBroker } = require("servicer");
@@ -792,7 +793,7 @@ broker.createService({
     name: "users",
     actions: {
         list: {
-            cache: true,
+            cache: true, // Cache this action
             handler(ctx) {
                 this.logger.info("Handler called!");
                 return [
@@ -823,6 +824,8 @@ Users count: 2
 ```
 
 ### Cache keys
+The cacher creates keys by service name, action name, and hash of params of context.
+TODO:
 
 ### Clear cache
 
