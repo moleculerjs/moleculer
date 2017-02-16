@@ -713,7 +713,7 @@ broker.createService({
 
 broker.call("posts.get").then(() => broker.logger.info("Log message via Broker logger"));
 ```
-Results in console:
+Console messages:
 ```
 [POSTS-SVC] Log message via Service logger
 [CTX] Log message via Context logger
@@ -742,20 +742,128 @@ let broker = new ServiceBroker({
 });
 ```
 
-
 # Cachers
+Servicer has built-in cache solution. You have to do two things to enable it.
+1. Give a transporter instance to the broker in options
+2. Set `cache: true` in action definition.
+
+```js
+let { ServiceBroker } = require("servicer");
+let MemoryCacher = require("servicer").Cachers.Memory;
+
+let broker = new ServiceBroker({
+    cacher: new MemoryCacher()
+});
+
+broker.createService({
+    name: "users",
+    actions: {
+        list: {
+            cache: true,
+            handler(ctx) {
+                this.logger.info("Handler called!");
+                return [
+                    { id: 1, name: "John" },
+                    { id: 2, name: "Jane" }
+                ]
+            }
+        }
+    }
+});
+
+Promise.resolve()
+.then(() => {
+    // Call the handler, because the cache is empty
+    return broker.call("users.list").then(res => console.log("Users count:", res.count));
+})
+.then(() => {
+    // Return from cache, handler was not called
+    return broker.call("users.list").then(res => console.log("Users count:", res.count));
+});
+```
+Console messages:
+```
+[BROKER] users service registered!
+[USERS-SVC] Handler called!
+Users count: 2
+Users count: 2
+```
+
+### Cache keys
+
+### Clear cache
 
 ## Memory cacher
+`MemoryCacher` is a built-in memory cache module.
+
+```js
+let MemoryCacher = require("servicer").Cachers.Memory;
+
+let broker = new ServiceBroker({
+    cacher: new MemoryCacher({
+        ttl: 30 // Time-to-live is 30sec. Disabled: 0 or null
+    })
+});
+```
 
 ## Redis cacher
+`RedisCacher` is a built-in [Redis](https://redis.io/) based cache module.
+
+```js
+let RedisCacher = require("servicer").Cachers.Redis;
+
+let broker = new ServiceBroker({
+    cacher: new RedisCacher({
+        ttl: 30, // Time-to-live is 30sec. Disabled: 0 or null
+        prefix: "SERVICER" // Prefix for cache keys
+        monitor: false // Turn on/off Redis client monitoring. Will be logged (on debug level) every client operations.
+    })
+});
+```
 
 ## Custom cacher
+You can also create your custom cache module. We recommend to you that copy the source of [`MemoryCacher`](src/cachers/memory.js) and implement the `get`, `set`, `del` and `clean` methods.
 
 # Transporters
+Transporter is an important module if you are running services on more nodes. Transporter communicates every node. Send events, call requests...etc.
 
 ## NATS Transporter
+Servicer has a built-in transporter for [NATS](http://nats.io/).
+> NATS Server is a simple, high performance open source messaging system for cloud native applications, IoT messaging, and microservices architectures.
 
+```js
+let { ServiceBroker} = require("servicer");
+let NatsTransporter = require("servicer").Transporters.NATS;
+
+let broker = new ServiceBroker({
+	nodeID: "server-1",
+	transporter: new NatsTransporter(),
+	requestTimeout: 5 * 1000
+});
+```
+
+### Transporter options
+Every transporter options pass to `nats.connect()` method.
+
+```js
+// Connect to 'nats://localhost:4222'
+new NatsTransporter(); 
+
+// Connect to remote server and change the prefix
+new NatsTransporter({
+    url: "nats://nats-server:4222",
+    prefix: "SERVICER" // Use for channel names at subscribe & publish. Default: "SVC"
+});
+
+// Connect to remote server with user & pass
+new NatsTransporter({
+    url: "nats://nats-server:4222",
+    user: "admin",
+    pass: "1234"
+});
+```
 ## Custom transporter
+You can also create your custom transporter module. We recommend to you that copy the source of [`NatsTransporter`](src/transporters/nats.js) and implement the `connect`, `disconnect`, `emit`, `subscribe`, `request` and `sendHeartbeat` methods.
 
 # Metrics
 
