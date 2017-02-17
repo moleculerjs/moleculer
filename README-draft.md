@@ -1,15 +1,15 @@
 <!--
- ![Servicer logo](docs/assets/logo-servicer.png)
+ ![Moleculer logo](docs/assets/logo-moleculer.png)
 
-[![Build Status](https://travis-ci.org/icebob/servicer.svg?branch=master)](https://travis-ci.org/icebob/servicer)
+[![Build Status](https://travis-ci.org/icebob/moleculer.svg?branch=master)](https://travis-ci.org/icebob/moleculer)
 [![Coverage Status](https://coveralls.io/repos/github/icebob/ice-services/badge.svg?branch=master)](https://coveralls.io/github/icebob/ice-services?branch=master)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/1b087e280c784a48afe91cb388879786)](https://www.codacy.com/app/mereg-norbert/servicer?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=icebob/servicer&amp;utm_campaign=Badge_Grade)
-[![Code Climate](https://codeclimate.com/github/icebob/servicer/badges/gpa.svg)](https://codeclimate.com/github/icebob/servicer)
-[![David](https://img.shields.io/david/icebob/servicer.svg)](https://david-dm.org/icebob/servicer)
-[![Known Vulnerabilities](https://snyk.io/test/github/icebob/servicer/badge.svg)](https://snyk.io/test/github/icebob/servicer)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/1b087e280c784a48afe91cb388879786)](https://www.codacy.com/app/mereg-norbert/moleculer?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=icebob/moleculer&amp;utm_campaign=Badge_Grade)
+[![Code Climate](https://codeclimate.com/github/icebob/moleculer/badges/gpa.svg)](https://codeclimate.com/github/icebob/moleculer)
+[![David](https://img.shields.io/david/icebob/moleculer.svg)](https://david-dm.org/icebob/moleculer)
+[![Known Vulnerabilities](https://snyk.io/test/github/icebob/moleculer/badge.svg)](https://snyk.io/test/github/icebob/moleculer)
 -->
-# servicer
-Servicer is a fast & powerful microservices framework for NodeJS (>= v6.x).
+# Moleculer
+Moleculer is a fast & powerful microservices framework for NodeJS (>= v6.x).
 <!--
 ![](https://img.shields.io/badge/performance-%2B50%25-brightgreen.svg)
 ![](https://img.shields.io/badge/performance-%2B5%25-green.svg)
@@ -20,30 +20,30 @@ Servicer is a fast & powerful microservices framework for NodeJS (>= v6.x).
 
 # What's included
 
-- multiple services on a node/server
-- built-in caching solution (memory, redis)
+- Promise based methods
 - request-reply concept
 - event bus system
 - support middlewares
-- load balanced calls (round-robin, random)
+- multiple services on a node/server
+- built-in caching solution (memory, redis)
+- load balanced requests (round-robin, random)
 - every nodes are equal, no master/leader node
 - auto discovery services
 - parameter validation
 - request timeout handling with fallback response
-- Promise based methods
 - health monitoring & statistics
-- support versioned services (you can run different versions of the same service at the same time)
+- support versioned services (run different versions of the service)
 
 
 # Installation
 ```
-$ npm install servicer --save
+$ npm install moleculer --save
 ```
 
 or
 
 ```
-$ yarn add servicer
+$ yarn add moleculer
 ```
 
 # Usage
@@ -52,7 +52,7 @@ $ yarn add servicer
 ```js
 "use strict";
 
-const { ServiceBroker, Service } = require("servicer");
+const { ServiceBroker, Service } = require("moleculer");
 
 // Create broker
 let broker = new ServiceBroker({ 
@@ -96,7 +96,7 @@ broker.call("math.add", { a: 3, b: 5})
 # Main modules
 
 ## ServiceBroker
-The `ServiceBroker` is the main component of Servicer. It handles services & events, calls actions and communicates with remote nodes. You need to create an instance of `ServiceBroker` on every node.
+The `ServiceBroker` is the main component of Moleculer. It handles services & events, calls actions and communicates with remote nodes. You need to create an instance of `ServiceBroker` on every node.
 
 ### Create broker
 ```js
@@ -110,7 +110,7 @@ let broker = new ServiceBroker({
 });
 
 // Create with transporter
-let { NatsTransporter } = require("servicer");
+let { NatsTransporter } = require("moleculer");
 let broker = new ServiceBroker({
     nodeID: "node-1",
     transporter: new NatsTransporter(),
@@ -121,7 +121,7 @@ let broker = new ServiceBroker({
 });
 
 // Create with cacher
-let MemoryCacher = require("servicer").Cachers.Memory;
+let MemoryCacher = require("moleculer").Cachers.Memory;
 let broker = new ServiceBroker({
     cacher: new MemoryCacher(),
     logger: console,
@@ -337,7 +337,7 @@ broker.call("$node.stats").then(res => console.log(res));
 ```
 
 # Service
-The Service is the other main module in the Servicer. With this you can define actions.
+The Service is the other main module in the Moleculer. With this you can define actions.
 
 ## Schema
 You need to create a schema to define a service. The schema has some fix parts (name, version, settings, actions, methods, events).
@@ -696,7 +696,7 @@ module.exports = {
     methods() {
         // HTTP handler
         httpHandler(req, res) {
-            res.end("Hello Servicer!");
+            res.end("Hello Moleculer!");
         }
     }
 }
@@ -726,7 +726,7 @@ In Services every modules have a custom logger instance. It is inherited from th
 Every modules add a prefix to the log messages, that you can identify the sender of message.
 
 ```js
-let { ServiceBroker } = require("servicer");
+let { ServiceBroker } = require("moleculer");
 let broker = new ServiceBroker({
     logger: console,
     logLevel: "info"
@@ -776,14 +776,14 @@ let broker = new ServiceBroker({
 ```
 
 # Cachers
-Servicer has built-in cache solution. You have to do two things to enable it.
+Moleculer has built-in cache solution. You have to do two things to enable it.
 
 1. Set a transporter instance to the broker in options
 2. Set the `cache: true` in action definition.
 
 ```js
-let { ServiceBroker } = require("servicer");
-let MemoryCacher = require("servicer").Cachers.Memory;
+let { ServiceBroker } = require("moleculer");
+let MemoryCacher = require("moleculer").Cachers.Memory;
 
 let broker = new ServiceBroker({
     cacher: new MemoryCacher()
@@ -833,7 +833,7 @@ TODO:
 `MemoryCacher` is a built-in memory cache module.
 
 ```js
-let MemoryCacher = require("servicer").Cachers.Memory;
+let MemoryCacher = require("moleculer").Cachers.Memory;
 
 let broker = new ServiceBroker({
     cacher: new MemoryCacher({
@@ -846,7 +846,7 @@ let broker = new ServiceBroker({
 `RedisCacher` is a built-in [Redis](https://redis.io/) based cache module.
 
 ```js
-let RedisCacher = require("servicer").Cachers.Redis;
+let RedisCacher = require("moleculer").Cachers.Redis;
 
 let broker = new ServiceBroker({
     cacher: new RedisCacher({
@@ -864,12 +864,12 @@ You can also create your custom cache module. We recommend to you that copy the 
 Transporter is an important module if you are running services on more nodes. Transporter communicates every node. Send events, call requests...etc.
 
 ## NATS Transporter
-Servicer has a built-in transporter for [NATS](http://nats.io/).
+Moleculer has a built-in transporter for [NATS](http://nats.io/).
 > NATS Server is a simple, high performance open source messaging system for cloud native applications, IoT messaging, and microservices architectures.
 
 ```js
-let { ServiceBroker} = require("servicer");
-let NatsTransporter = require("servicer").Transporters.NATS;
+let { ServiceBroker} = require("moleculer");
+let NatsTransporter = require("moleculer").Transporters.NATS;
 
 let broker = new ServiceBroker({
 	nodeID: "server-1",
@@ -902,7 +902,7 @@ new NatsTransporter({
 You can also create your custom transporter module. We recommend to you that copy the source of [`NatsTransporter`](src/transporters/nats.js) and implement the `connect`, `disconnect`, `emit`, `subscribe`, `request` and `sendHeartbeat` methods.
 
 # Metrics
-Servicer has a metrics function. You can turn on in broker options with `metrics: true` property.
+Moleculer has a metrics function. You can turn on in broker options with `metrics: true` property.
 If enabled, the broker sends metrics events in every `metricsNodeTime`.
 
 ## Metrics events
@@ -919,7 +919,7 @@ TODO
 Broker emit a global event as `metrics.node.stats` with statistics.
 
 # Statistics
-Servicer has a statistics module, what collects and aggregates the count & latency info of requests.
+Moleculer has a statistics module, what collects and aggregates the count & latency info of requests.
 You can enable in boker options with `statistics: true` property. You need to enable metrics functions too!
 
 Broker emit a global event with `metrics.node.stats` name. The payload contains the statistics.
@@ -963,7 +963,7 @@ $ npm run ci
 Please send pull requests improving the usage and fixing bugs, improving documentation and providing better examples, or providing some testing, because these things are important.
 
 # License
-Servicer is available under the [MIT license](https://tldrlegal.com/license/mit-license).
+Moleculer is available under the [MIT license](https://tldrlegal.com/license/mit-license).
 
 # Contact
 Copyright (c) 2017 Icebob

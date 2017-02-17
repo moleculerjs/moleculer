@@ -1,6 +1,6 @@
 /*
- * servicer
- * Copyright (c) 2017 Icebob (https://github.com/icebob/servicer)
+ * moleculer
+ * Copyright (c) 2017 Icebob (https://github.com/icebob/moleculer)
  * MIT Licensed
  */
 

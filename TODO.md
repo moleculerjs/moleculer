@@ -13,7 +13,7 @@
 	- https://github.com/sboudrias/Inquirer.js
 	- https://github.com/tj/consolidate.js
 
-	- `ices init` - generate an servicer based project
+	- `ices init` - generate an moleculer based project
 	- `ices add service` - generate an empty service
 	- `ices add middleware` - generate an empty middleware
 	- `ices add plugin` - generate an empty plugin
