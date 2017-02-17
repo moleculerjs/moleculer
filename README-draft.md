@@ -23,7 +23,7 @@ Moleculer is a fast & powerful microservices framework for NodeJS (>= v6.x).
 - Promise based methods
 - request-reply concept
 - event bus system
-- support middlewares
+- supports middlewares
 - multiple services on a node/server
 - built-in caching solution (memory, redis)
 - load balanced requests (round-robin, random)
@@ -32,7 +32,7 @@ Moleculer is a fast & powerful microservices framework for NodeJS (>= v6.x).
 - parameter validation
 - request timeout handling with fallback response
 - health monitoring & statistics
-- support versioned services (run different versions of the service)
+- supports versioned services (run different versions of the service)
 
 
 # Installation
@@ -1100,12 +1100,22 @@ Example statistics:
 ```
 
 # Nodes
-TODO: 
-Architecture
-    Kép:
-    - monolith architectures ( minden service 1 node-on )
-    - microservices (minden service külön node-on)
-    - mixed (összetartozó service-ek egy node-on scale-ezve)
+Moleculer supports many architectures.
+## Monolith architecture
+In this version you are running every services on one node in one broker. In this case every service can call other services locally. So there is no network latency and no transporter.
+
+![](docs/assets/monolith-architecture.png)
+
+## Microservices architecture
+This is the well-known microservices architecture when every service running on individual nodes and communicates others via transporter.
+
+![](docs/assets/microservices-architecture.png)
+
+## Mixed architecture
+In this case we are running coherent services on the same node. For example, if the `posts` service calls many times the `users` service, we put them together, that we cut down the network latency. If this node is overloaded, we will create replicas.
+
+
+![](docs/assets/mixed-architecture.png)
 
 # Docker
 TODO:
