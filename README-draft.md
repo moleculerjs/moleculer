@@ -240,7 +240,7 @@ broker.emit("user.created", user);
 ```
 
 ### Subscribe to events
-For subscribe for events use the `on`, `once` methods. Or in [Service](#service) use the `events` property.
+To subscribe for events use the `on`, `once` methods. Or in [Service](#service) use the `events` property.
 In event names you can use wildcards too.
 
 ```js
@@ -254,7 +254,7 @@ broker.on("user.*", user => console.log("User event:", user));
 broker.on("**", payload => console.log("Event:", payload));    
 ```
 
-For unsubscribe use the `off` method.
+To unsubscribe use the `off` method.
 
 ## Middlewares
 Broker supports middlewares. You can add your custom middleware, and it'll be called on every local request. The middleware is a `Function` what returns a wrapped action handler. 
@@ -273,7 +273,7 @@ return function validatorMiddleware(handler, action) {
 }.bind(this);
 ```
 
-The `handler` is the handler of action, what is defined in Service schema. The `action` is the action object from Service schema. The middleware should return with the `handler` or a new wrapped handler. In this example above, we check the action has a `params` props. If yes, we wrap the handler. Create a new handler, what calls the validator function and calls the original `handler`. 
+The `handler` is the handler of action, what is defined in [Service](#service) schema. The `action` is the action object from Service schema. The middleware should return with the `handler` or a new wrapped handler. In this example above, we check the action has a `params` props. If yes, we wrap the handler. Create a new handler, what calls the validator function and calls the original `handler`. 
 If no `params` prop, we return the original `handler`.
 
 If you don't call the original `handler`, it will break the request. You can use it in cachers. If you find the data in cache, don't call the handler, instead return the cached data.
@@ -340,7 +340,7 @@ broker.call("$node.stats").then(res => console.log(res));
 The Service is the other main module in the Moleculer. With this you can define actions.
 
 ## Schema
-You need to create a schema to define a service. The schema has some fix parts (name, version, settings, actions, methods, events).
+You need to create a schema to define a service. The schema has some fix parts (`name`, `version`, `settings`, `actions`, `methods`, `events`).
 
 ### Example service schema
 ```js
@@ -358,17 +358,17 @@ You need to create a schema to define a service. The schema has some fix parts (
 }
 ```
 
-## Main properties
-The Service has some main properties in the schema.
+## Base properties
+The Service has some base properties in the schema.
 ```js
 {
     name: "posts",
     version: 1
 }
 ```
-The `name` is a required property. It must define. It's the first part of actionName when you call with `broker.call`.
+The `name` is a required property. It must define. It's the first part of actionName when you call it with `broker.call`.
 
-The `version` is an optional property. If you running multiple version of a service, it needs to set. It will be a prefix in the actionName. For example:
+The `version` is an optional property. If you running multiple version of a service, it needs to set. It will be a prefix in the actionName.
 ```js
 {
     name: "posts",
@@ -404,7 +404,7 @@ You can add custom settings to your service under `settings` property in schema.
 ```
 
 ## Actions
-The actions are the callable/published methods of service. They can be called with `broker.call`.
+The actions are the callable/public methods of service. They can be called with `broker.call`.
 The action could be a function (handler) or an object with some properties and with handler.
 The actions should be placed under `actions` key in the service schema.
 
@@ -418,7 +418,7 @@ The actions should be placed under `actions` key in the service schema.
 		},
 
         // Complex action, they set other properties. In this case
-        // the `handler` property is required!
+        // the `handler` is required!
 		mult: {
             cache: false,
 			params: {
@@ -440,7 +440,7 @@ broker.call("math.add", { a: 5, b: 7 }).then(res => console.log(res));
 broker.call("math.mult", { a: 10, b: 31 }).then(res => console.log(res));
 ```
 
-Inside the action you can call other sub-actions with `ctx.call`.
+Inside the action you can sub-call other actions in other services with `ctx.call`.
 ```js
 {
     name: "posts",
@@ -461,7 +461,7 @@ Inside the action you can call other sub-actions with `ctx.call`.
 ```
 
 ## Events
-You can subscribe events and can define event handlers in the schema under `events` key.
+You can subscribe to events and can define event handlers in the schema under `events` key.
 
 ```js
 {
@@ -487,7 +487,7 @@ You can subscribe events and can define event handlers in the schema under `even
 ```
 
 ## Methods
-You can create also private functions in service. They are called as `methods`. These functions are private, can't be invoke with `broker.call`. But you can execute it inside service.
+You can create also private functions in Service. They are called as `methods`. These functions are private, can't be call with `broker.call`. But you can call it inside service.
 
 ```js
 {
@@ -548,14 +548,12 @@ In service functions the `this` is always binded to the instance of service. It 
 | `this.logger` | `Logger` | Logger module |
 | `this.actions` | `Object` | Actions of service. *Service can call its own actions directly.* |
 
-> All methods of service can be reach under `this`.
-
 ## Create a service
 There are several ways to create/load a service.
 
-### broker.createService
+### broker.createService()
 You can use this method when developing or testing.
-Call the `broker.createService` methods with the schema of service as argument.
+Call the `broker.createService` method with the schema of service as argument.
 
 ```js
 broker.createService({
@@ -593,7 +591,7 @@ module.exports = {
 }
 ```
 
-**main.js**
+**index.js**
 ```js
 // Create broker
 let broker = new ServiceBroker();
@@ -605,7 +603,7 @@ broker.loadService("./math.service");
 broker.start();
 ```
 
-In the individual files also you can create the Service instance. In this case you need to export a function.
+In the individual files also you can create the [Service](#service) instance. In this case you need to export a function, what returns the instance of [Service](#service).
 ```js
 // Export a function, what the `loadService` will be call with the instance of ServiceBroker
 module.exports = function(broker) {
@@ -623,7 +621,7 @@ module.exports = function(broker) {
 }
 ```
 
-Or create a function which returns only with the schema of service
+Or create a function, what returns with the schema of service
 ```js
 // Export a function, what the `loadService` will be call with the instance of ServiceBroker
 module.exports = function() {
@@ -682,14 +680,17 @@ module.exports = {
     },
 
     created() {
+        // Create HTTP server
         this.server = http.createServer(this.httpHandler);
     },
 
     started() {
+        // Listening...
         this.server.listen(this.settings.port);
     },
 
     stopped() {
+        // Stop server
         this.server.close();
     },
 
@@ -703,7 +704,7 @@ module.exports = {
 ```
 
 # Context
-When you call an action, the broker creates a `Context` instance. Load request informations and pass to the action handler as argument.
+When you call an action, the broker creates a `Context` instance, which contains all request informations and pass to the action handler as argument.
 
 Available properties & methods of `Context`:
 
