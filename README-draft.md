@@ -16,7 +16,7 @@ Moleculer is a fast & powerful microservices framework for NodeJS (>= v6.x).
 ![](https://img.shields.io/badge/performance---10%25-yellow.svg)
 ![](https://img.shields.io/badge/performance---42%25-red.svg)
 -->
-**Under heavy development! Please don't use in production environment currently!**
+**Please do not use this in production since it's still under heavy development!**
 
 # What's included
 
@@ -162,7 +162,7 @@ All available options:
 
 | Name | Type | Default | Description |
 | ------- | ----- | ------- | ------- |
-| `nodeID` | `String` | Computer name | This is the ID of node. It's important to communication when you have 2 or more nodes. |
+| `nodeID` | `String` | Computer name | This is the ID of node. It's related to communication when you have 2 or more nodes. |
 | `logger` | `Object` | `null` | Logger class. Under development or test you can set to `console`. In production you can set an external logger e.g. `winston` |
 | `logLevel` | `String` or `Object` | `info` | Level of logging (debug, info, warn, error) |
 | `transporter` | `Object` | `null` | Instance of transporter. Need if you have 2 or more nodes. Internal transporters: [NatsTransporter](#nats-transporter)  |
@@ -170,7 +170,7 @@ All available options:
 | `requestRetry` | `Number` | `0` | Count of retry of request. If the request is timed out, broker will try to call again. |
 | `cacher` | `Object` | `null` | Instance of cacher. Built-in cachers: [MemoryCacher](#memory-cacher) or [RedisCacher](#redis-cacher) |
 | `metrics` | `Boolean` | `false` | Enable [metrics](#metrics) function. |
-| `metricsNodeTime` | `Number` | `5000` | Metrics event send period in milliseconds |
+| `metricsNodeTime` | `Number` | `5000` | Metrics event sends period in milliseconds |
 | `statistics` | `Boolean` | `false` | Enable broker [statistics](). Measure the requests count & latencies |
 | `validation` | `Boolean` | `false` | Enable action [parameters validation](). |
 | `internalActions` | `Boolean` | `true` | Register internal actions for metrics & statistics functions |
@@ -180,13 +180,13 @@ All available options:
 | `ContextFactory` | `Class` | `null` | Custom Context class. Broker will use it when create a context at call |
 
 ## Call actions
-You can call an action with the `broker.call` method. Broker will search which service (and which node) has the action and call it. The function returns with a Promise.
+You can call an action with the `broker.call` method. Broker will search which service (and which node) has the action and calls it. The function returns with a Promise.
 
 ### Syntax
 ```js
     let promise = broker.call(actionName, params, opts);
 ```
-The `actionName` is a dot-separated string. First part is the name of service. Seconds part is the name of action. So if you have a `posts` service which contains a `create` action, you need to use `posts.create` string as first parameter.
+The `actionName` is a dot-separated string. The first part of it is the name of service. The seconds part of it is the name of action. So if you have a `posts` service which contains a `create` action, you need to use `posts.create` string as first parameter.
 
 The `params` is an object, which pass to the action in a [Context](#context)
 
@@ -196,7 +196,7 @@ Available options:
 
 | Name | Type | Default | Description |
 | ------- | ----- | ------- | ------- |
-| `timeout` | `Number` | `requestTimeout of broker` | Timeout of request in milliseconds. If the request is timed out and don't define `fallbackResponse`, broker will throw a `RequestTimeout` error. Disable: 0 |
+| `timeout` | `Number` | `requestTimeout of broker` | Timeout of request in milliseconds. If the request is timed out and you don't define `fallbackResponse`, broker will throw a `RequestTimeout` error. Disable: 0 |
 | `retryCount` | `Number` | `requestRetry of broker` | Count of retry of request. If the request timed out, broker will try to call again. |
 | `fallbackResponse` | `Any` | `null` | Return with it, if the request is timed out. [More info](#request-timeout-fallback-response) |
 
@@ -221,8 +221,8 @@ broker.call("posts.update", { id: 2, name: "New post" })
 
 ### Request timeout & fallback response
 If you call action with timeout and the request is timed out, broker throws a `RequestTimeoutError` error.
-But if you set `fallbackResponse` in calling options, broker won't throw error, instead return with this value. It can be an `Object`, `Array`...etc. 
-This can be also a `Function`, which returns a `Promise`. The broker will pass the current `Context` to this function as argument.
+But if you set `fallbackResponse` in calling options, broker won't throw error, instead returns with this value. It can be an `Object`, `Array`...etc. 
+This can be also a `Function`, which returns a `Promise`. The broker will pass the current `Context` to this function as an argument.
 
 ## Emit events
 Broker has an internal event bus. You can send events to local & global.
@@ -366,7 +366,7 @@ The Service has some base properties in the schema.
     version: 1
 }
 ```
-The `name` is a required property. It must define. It's the first part of actionName when you call it with `broker.call`.
+The `name` is a mandatory property so it must be defined. It's the first part of actionName when you call it with `broker.call`.
 
 The `version` is an optional property. If you running multiple version of a service, it needs to set. It will be a prefix in the actionName.
 ```js
@@ -487,7 +487,7 @@ You can subscribe to events and can define event handlers in the schema under `e
 ```
 
 ## Methods
-You can create also private functions in Service. They are called as `methods`. These functions are private, can't be call with `broker.call`. But you can call it inside service.
+You can create also private functions in Service. They are called as `methods`. These functions are private, can't be called with `broker.call`. But you can call it inside service.
 
 ```js
 {
@@ -603,7 +603,7 @@ broker.loadService("./math.service");
 broker.start();
 ```
 
-In the individual files also you can create the [Service](#service) instance. In this case you need to export a function, what returns the instance of [Service](#service).
+In the individual files also you can create the [Service](#service) instance. In this case you need to export a function that returns the instance of [Service](#service).
 ```js
 // Export a function, what the `loadService` will be call with the instance of ServiceBroker
 module.exports = function(broker) {
@@ -621,7 +621,7 @@ module.exports = function(broker) {
 }
 ```
 
-Or create a function, what returns with the schema of service
+Or create a function that returns with the schema of service
 ```js
 // Export a function, what the `loadService` will be call with the instance of ServiceBroker
 module.exports = function() {
@@ -723,8 +723,8 @@ Available properties & methods of `Context`:
 | `ctx.emit()` | `Function` | Emit an event, like `broker.emit` |
 
 # Logging
-In Services every modules have a custom logger instance. It is inherited from the broker logger instance, what you can set in options of broker.
-Every modules add a prefix to the log messages, that you can identify the sender of message.
+In Services every modules have a custom logger instance. It is inherited from the broker logger instance and you can set in options of broker.
+Every modules add a prefix to the log messages. Using that prefix you can identify the sender of message.
 
 ```js
 let { ServiceBroker } = require("moleculer");
@@ -837,7 +837,7 @@ So if you call the `posts.list` action with params `{ limit: 5, offset: 20 }`, t
 posts.find:0d6bcb785d1ae84c8c20203401460341b84eb8b968cffcf919a9904bb1fbc29a
 ```
 
-However the hash calculation is expensive operation. So other solution is that specify which parameters want to use for caching. In this case you need to set an object for `cache` property of action, what contains the list of parameter.
+However the hash calculation is an expensive operation. So other solution is that specify which parameters want to use for caching. In this case you need to set an object for `cache` property of action, what contains the list of parameter.
 ```js
 {
     name: "posts",
@@ -876,7 +876,7 @@ broker.cacher.clean();
 ```
 
 ### Clear cache
-When you create a new model in your service, sometimes you have to clear the cache entries. For this, there is an internal event what the cacher of broker listens.
+When you create a new model in your service, sometimes you have to clear the cache entries. For this purpose there is an internal event which the cacher listens.
 
 ```js
 {
@@ -936,7 +936,7 @@ let broker = new ServiceBroker({
 ```
 
 ## Custom cacher
-You can also create your custom cache module. We recommend to you that copy the source of [`MemoryCacher`](src/cachers/memory.js) or [`RedisCacher`](src/cachers/redis.js) and implement the `get`, `set`, `del` and `clean` methods.
+You can also create your custom cache module. We recommend to you to copy the source of [`MemoryCacher`](src/cachers/memory.js) or [`RedisCacher`](src/cachers/redis.js) and implement the `get`, `set`, `del` and `clean` methods.
 
 # Transporters
 Transporter is an important module if you are running services on more nodes. Transporter communicates with every nodes. Send events, call requests...etc.
@@ -1045,8 +1045,8 @@ Example health info:
 ```
 
 # Statistics
-Moleculer has a statistics module, what collects and aggregates the count & latency info of requests.
-You can enable in boker options with `statistics: true` property. You need to enable [metrics](#metrics) functions too!
+Moleculer has a statistics module that collects and aggregates the count & latency info of the requests.
+You can enable it in boker options with `statistics: true` property. You need to enable [metrics](#metrics) functions too!
 
 Broker emits global events as `metrics.node.stats`. The payload contains the statistics.
 
