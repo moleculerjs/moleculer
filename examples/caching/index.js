@@ -40,21 +40,21 @@ console.log("---------------------------------------\n");
 console.log(">> Get all users");
 
 // Call actions
-broker.call("users.find").then(data => {
-	console.log("users.find response length:", data.length, "\n");
+broker.call("v2.users.find").then(data => {
+	console.log("v2.users.find response length:", data.length, "\n");
 })
 
 .then(() => {
 	console.log(">> Get user.5 (found in the cache)");
-	return broker.call("users.get", { id: 5});
+	return broker.call("v2.users.get", { id: 5});
 })
 .then(data => {
-	console.log("users.get(5) response user email:", data.email, "\n");
+	console.log("v2.users.get(5) response user email:", data.email, "\n");
 })
 
 .then(() => {
 	console.log(">> Get all posts");
-	return broker.call("posts.find");
+	return broker.call("posts.find", { limit: 10 });
 })
 .then(data => {
 	console.log("posts.find response length:", data.length, "\n");
@@ -69,25 +69,25 @@ broker.call("users.find").then(data => {
 .then(() => {
 	// Get from cache
 	console.log(">> Get user.5 again (found in the cache)");
-	return broker.call("users.get", { id: 5});
+	return broker.call("v2.users.get", { id: 5});
 })
 .then(data => {
-	console.log("users.get(5) (cache) user email:", data.email, "\n");
+	console.log("v2.users.get(5) (cache) user email:", data.email, "\n");
 })
 
 .then(() => {
-	console.log("CLEAN CACHE: users.*\n");
+	console.log("CLEAN CACHE: v2.users.*\n");
 	// Clear the cache
-	return broker.emit("cache.clean", { match: "users.*" });
+	return broker.emit("cache.clean", { match: "v2.users.*" });
 })
 .then(utils.delay(100))
 .then(() => {
 	console.log(">> Get user.5 again (not found in the cache, after clean)");
 	// Not found in the cache
-	return broker.call("users.get", { id: 5});
+	return broker.call("v2.users.get", { id: 5});
 })
 .then(data => {
-	console.log("users.get(5) response user email:", data.email, "\n");
+	console.log("v2.users.get(5) response user email:", data.email, "\n");
 })
 
 .catch((err) => {

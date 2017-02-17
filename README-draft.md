@@ -759,10 +759,10 @@ If you want to change log level you need to set `logLevel` in broker options.
 ```js
 let broker = new ServiceBroker({
     logger: console,
-    logLevel: "warn" // only print the 'warn' & 'error' logs
+    logLevel: "warn" // only print the 'warn' & 'error' log entries
 });
 ```
-You can set custom log levels to every module.
+You can set custom log levels to every module by prefix.
 ```js
 let broker = new ServiceBroker({
     logger: console,
@@ -777,9 +777,9 @@ let broker = new ServiceBroker({
 ```
 
 # Cachers
-Moleculer has built-in cache solution. You have to do two things to enable it.
+Moleculer has built-in cache solutions. You have to do two things to enable it:
 
-1. Set a transporter instance to the broker in options
+1. Set a cacher instance to the broker in constructor options
 2. Set the `cache: true` in action definition.
 
 ```js
@@ -792,6 +792,7 @@ let broker = new ServiceBroker({
 
 broker.createService({
     name: "users",
+    // cache: true, // If you enable here, all actions will be cached!
     actions: {
         list: {
             cache: true, // Cache this action
@@ -808,11 +809,11 @@ broker.createService({
 
 Promise.resolve()
 .then(() => {
-    // Call the handler, because the cache is empty
+    // Will be called the handler, because the cache is empty
     return broker.call("users.list").then(res => console.log("Users count:", res.count));
 })
 .then(() => {
-    // Return from cache, handler was not called
+    // Return from cache, handler won't be called
     return broker.call("users.list").then(res => console.log("Users count:", res.count));
 });
 ```
@@ -826,9 +827,77 @@ Users count: 2
 
 ### Cache keys
 The cacher creates keys by service name, action name, and hash of params of context.
-TODO:
+The key syntax is
+```
+    <actionName>:<parameters or hash of parameters>
+```
+So if you call the `posts.list` action with params `{ limit: 5, offset: 20 }`, the cacher calculate a hash from the params. So next time if you call this action with the same params, it will find in the cache by key. 
+```
+// Hashed cache key for "posts.find" actionName
+posts.find:0d6bcb785d1ae84c8c20203401460341b84eb8b968cffcf919a9904bb1fbc29a
+```
+
+However the hash calculation is expensive operation. So other solution is that specify which parameters want to use for caching. In this case you need to set an object for `cache` property of action, what contains the list of parameter.
+```js
+{
+    name: "posts",
+    actions: {
+        list: {
+            cache: {
+                keys: ["limit", "offset"]
+            },
+            handler(ctx) {
+                return this.getList(ctx.params.limit, ctx.params.offset);
+            }
+        }
+    }
+}
+
+// If params is { limit: 10, offset: 30 }, the cache will be:
+//   posts.list:10-30
+```
+> This second solution is faster, so we recommend to use it in production environment.
+
+### Manual caching
+You can also use the cacher manually. Just call the `get`, `set`, `del` methods of `broker.cacher`.
+
+```js
+// Save to cache
+broker.cacher.set("mykey", { a: 5 });
+
+// Get from cache (some cacher maybe returns with Promise)
+let obj = broker.cacher.get("mykey", { a: 5 });
+
+// Remove from cache
+broker.cacher.del("mykey");
+
+// Clean the cache
+broker.cacher.clean();
+```
 
 ### Clear cache
+When you create a new model in your service, sometimes you have to clear the cache entries. For this, there is an internal event what the cacher of broker listens.
+
+```js
+{
+    name: "users",
+    actions: {
+        create(ctx) {
+            // Create new user
+            let user = new User(ctx.params);
+
+            // Clear all cache entries
+            ctx.emit("cache.clean");
+
+            // Clear all cache entries which keys start with `users.`
+            ctx.emit("cache.clean", "users.*");
+
+            // Delete only one entry
+            ctx.emit("cache.del", "users.list");
+        }
+    }
+}
+```
 
 ## Memory cacher
 `MemoryCacher` is a built-in memory cache module.
@@ -844,7 +913,7 @@ let broker = new ServiceBroker({
 ```
 
 ## Redis cacher
-`RedisCacher` is a built-in [Redis](https://redis.io/) based cache module.
+`RedisCacher` is a built-in [Redis](https://redis.io/) based cache module. It uses [`ioredis`](https://github.com/luin/ioredis) cleint.
 
 ```js
 let RedisCacher = require("moleculer").Cachers.Redis;
@@ -854,15 +923,23 @@ let broker = new ServiceBroker({
         ttl: 30, // Time-to-live is 30sec. Disabled: 0 or null
         prefix: "SERVICER" // Prefix for cache keys
         monitor: false // Turn on/off Redis client monitoring. Will be logged (on debug level) every client operations.
+
+        // Redis settings, pass to `new Redis()`
+        redis: { 
+            host: "redis",
+            port: 6379,
+            password: "1234",
+            db: 0
+        }
     })
 });
 ```
 
 ## Custom cacher
-You can also create your custom cache module. We recommend to you that copy the source of [`MemoryCacher`](src/cachers/memory.js) and implement the `get`, `set`, `del` and `clean` methods.
+You can also create your custom cache module. We recommend to you that copy the source of [`MemoryCacher`](src/cachers/memory.js) or [`RedisCacher`](src/cachers/redis.js) and implement the `get`, `set`, `del` and `clean` methods.
 
 # Transporters
-Transporter is an important module if you are running services on more nodes. Transporter communicates every node. Send events, call requests...etc.
+Transporter is an important module if you are running services on more nodes. Transporter communicates with every nodes. Send events, call requests...etc.
 
 ## NATS Transporter
 Moleculer has a built-in transporter for [NATS](http://nats.io/).
@@ -909,24 +986,117 @@ If enabled, the broker sends metrics events in every `metricsNodeTime`.
 ## Metrics events
 
 ### Health info
-Broker emit a global event as `metrics.node.health` with health info of node.
+Broker emits a global event as `metrics.node.health` with health info of node.
 
 Example health info:
-```js
-TODO
+```json
+{
+    "cpu": {
+        "load1": 0,
+        "load5": 0,
+        "load15": 0,
+        "cores": 4,
+        "utilization": 0
+    },
+    "mem": {
+        "free": 1217519616,
+        "total": 17161699328,
+        "percent": 7.094400109979598
+    },
+    "os": {
+        "uptime": 366733.2786046,
+        "type": "Windows_NT",
+        "release": "6.1.7601",
+        "hostname": "Developer-PC",
+        "arch": "x64",
+        "platform": "win32",
+        "user": {
+            "uid": -1,
+            "gid": -1,
+            "username": "Developer",
+            "homedir": "C:\\Users\\Developer",
+            "shell": null
+        }
+    },
+    "process": {
+        "pid": 13096,
+        "memory": {
+            "rss": 47173632,
+            "heapTotal": 31006720,
+            "heapUsed": 22112024
+        },
+        "uptime": 25.447
+    },
+    "net": {
+        "ip": [
+            "192.168.2.100",
+            "192.168.232.1",
+            "192.168.130.1",
+            "192.168.56.1",
+            "192.168.99.1"
+        ]
+    },
+    "time": {
+        "now": 1487338958409,
+        "iso": "2017-02-17T13:42:38.409Z",
+        "utc": "Fri, 17 Feb 2017 13:42:38 GMT"
+    }
+}
 ```
-
-### Statistics
-Broker emit a global event as `metrics.node.stats` with statistics.
 
 # Statistics
 Moleculer has a statistics module, what collects and aggregates the count & latency info of requests.
-You can enable in boker options with `statistics: true` property. You need to enable metrics functions too!
+You can enable in boker options with `statistics: true` property. You need to enable [metrics](#metrics) functions too!
 
-Broker emit a global event with `metrics.node.stats` name. The payload contains the statistics.
+Broker emits global events as `metrics.node.stats`. The payload contains the statistics.
 
 Example statistics:
 ```json
+{
+  "requests": {
+    "total": {
+      "count": 45,
+      "errors": {},
+      "rps": {
+        "current": 0.7999854548099126,
+        "values": [
+          0,
+          6.59868026394721,
+          2.200440088017604
+        ]
+      },
+      "latency": {
+        "mean": 0.8863636363636364,
+        "median": 0,
+        "90th": 1,
+        "95th": 5,
+        "99th": 12,
+        "99.5th": 12
+      }
+    },
+    "actions": {
+      "posts.find": {
+        "count": 4,
+        "errors": {},
+        "rps": {
+          "current": 0.599970001499925,
+          "values": [
+            1.7985611510791368,
+            0.20004000800160032
+          ]
+        },
+        "latency": {
+          "mean": 7.5,
+          "median": 5,
+          "90th": 12,
+          "95th": 12,
+          "99th": 12,
+          "99.5th": 12
+        }
+      }
+    }
+  }
+}
 ```
 
 # Nodes

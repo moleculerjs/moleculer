@@ -23,7 +23,7 @@ module.exports = function() {
 
 					// Resolve authors
 					let promises = result.map(post => {
-						return ctx.call("users.get", { id: post.author}).then(user => post.author = _.pick(user, ["userName", "email", "id", "firstName", "lastName"]));
+						return ctx.call("v2.users.get", { id: post.author}).then(user => post.author = _.pick(user, ["userName", "email", "id", "firstName", "lastName"]));
 					});
 
 					return Promise.all(promises).then(() => {
@@ -47,7 +47,7 @@ module.exports = function() {
 				handler(ctx) {
 					// this.logger.debug("Get post...", ctx.params);
 					let post = _.cloneDeep(_.find(posts, post => post.id == ctx.params.id));
-					return ctx.call("users.get", { id: post.author }).then(user => {
+					return ctx.call("v2.users.get", { id: post.author }).then(user => {
 						post.author = _.pick(user, ["userName", "email", "id", "firstName", "lastName"]);
 						return post;
 					});
@@ -57,7 +57,7 @@ module.exports = function() {
 			author(ctx) {
 				//ctx.log("get post's author");
 				return ctx.call("posts.get", ctx.params).then((post) => {
-					return ctx.call("users.get", { id: post.author });
+					return ctx.call("v2.users.get", { id: post.author });
 				});
 			}
 		}
