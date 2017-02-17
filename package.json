@@ -14,11 +14,12 @@
     "coverall": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
   },
   "keywords": [
+    "microservices",
+    "moleculer",
     "service",
     "services",
     "micro",
     "microservice",
-    "microservices",
     "micro-services",
     "micro services",
     "worker",
@@ -31,9 +32,9 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/icebob/moleculer.git"
+    "url": "https://github.com/ice-services/moleculer.git"
   },
-  "author": "Icebob",
+  "author": "Ice Services",
   "license": "MIT",
   "devDependencies": {
     "benchmarkify": "1.0.0",
