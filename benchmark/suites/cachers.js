@@ -36,12 +36,14 @@ redisCacher.init(broker);
 
 // ----
 bench.add("Memory", () => {
-	return memCacher.set(key, data).then(() => memCacher.get(key));	
-});
+	memCacher.set(key, data);
+	return memCacher.get(key);	
+}, false);
 
 bench.add("MemoryMap", () => {
-	return memMapCacher.set(key, data).then(() => memMapCacher.get(key));	
-});
+	memMapCacher.set(key, data);
+	return memMapCacher.get(key);	
+}, false);
 
 bench.add("Redis", () => {
 	return redisCacher.set(key, data).then(() => redisCacher.get(key));	
@@ -50,3 +52,27 @@ bench.add("Redis", () => {
 bench.run().then(() => {
 	redisCacher.close();
 });
+
+/*
+=====================
+  Cachers benchmark
+=====================
+
+Platform info:
+==============
+   Windows_NT 6.1.7601 x64
+   Node.JS: 6.9.2
+   V8: 5.1.281.88
+   Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
+
+Suite: Set & get 1k data with cacher
+√ Memory x 30,479,178 ops/sec ±0.47% (95 runs sampled)
+√ MemoryMap x 10,633,889 ops/sec ±0.29% (95 runs sampled)
+√ Redis x 7,621 ops/sec ±1.54% (83 runs sampled)
+
+   Memory        0.00%   (30,479,178 ops/sec)
+   MemoryMap   -65.11%   (10,633,889 ops/sec)
+   Redis       -99.97%      (7,621 ops/sec)
+-----------------------------------------------------------------------
+
+*/

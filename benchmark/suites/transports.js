@@ -36,8 +36,7 @@ function runTest(dataName) {
 				nats.unsubscribe(sid);
 				resolve();
 			});
-
-			nats.publish(subject, data);		
+			nats2.publish(subject, data);		
 		});
 	});
 
@@ -107,3 +106,25 @@ function runTest(dataName) {
 }
 
 runTest(dataFiles.shift());
+
+/*
+=======================
+  Transport benchmark
+=======================
+
+Platform info:
+==============
+   Windows_NT 6.1.7601 x64
+   Node.JS: 6.9.2
+   V8: 5.1.281.88
+   Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
+
+Suite: Transport with 150bytes
+√ NATS x 7,093 ops/sec ±0.75% (81 runs sampled)
+√ Redis x 8,214 ops/sec ±0.84% (80 runs sampled)
+
+   NATS    -13.64%      (7,093 ops/sec)
+   Redis     0.00%      (8,214 ops/sec)
+-----------------------------------------------------------------------
+
+*/

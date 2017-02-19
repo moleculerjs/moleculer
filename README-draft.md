@@ -20,7 +20,7 @@ Moleculer is a fast & powerful microservices framework for NodeJS (>= v6.x).
 
 # What's included
 
-- Promise based methods
+- Promise-based functions
 - request-reply concept
 - event bus system
 - supports middlewares
@@ -46,9 +46,9 @@ or
 $ yarn add moleculer
 ```
 
-# Usage
+# Quick start
 
-### Simple service with actions & call actions locally
+### Simple service & call actions locally
 ```js
 "use strict";
 
@@ -127,7 +127,7 @@ let broker = new ServiceBroker({
     logger: console,
     logLevel: {
         "*": "warn", // global log level for every modules
-        "CAHER": "debug" // custom log level for cacher modules
+        "CACHER": "debug" // custom log level for cacher modules
     }
 });    
 ```
@@ -184,7 +184,7 @@ You can call an action with the `broker.call` method. Broker will search which s
 
 ### Syntax
 ```js
-    let promise = broker.call(actionName, params, opts);
+let promise = broker.call(actionName, params, opts);
 ```
 The `actionName` is a dot-separated string. The first part of it is the name of service. The seconds part of it is the name of action. So if you have a `posts` service which contains a `create` action, you need to use `posts.create` string as first parameter.
 
@@ -304,7 +304,7 @@ return (handler, action) => {
 ```
 
 ## Internal actions
-The broker register some internal actions to check health of node or get request statistics.
+The broker registers some internal actions to check health of node or get request statistics.
 
 ### List of local services
 This action lists name of local services.
@@ -342,7 +342,7 @@ The Service is the other main module in the Moleculer. With this you can define 
 ## Schema
 You need to create a schema to define a service. The schema has some fix parts (`name`, `version`, `settings`, `actions`, `methods`, `events`).
 
-### Example service schema
+### Simple service schema
 ```js
 {
 	name: "math",
@@ -384,7 +384,7 @@ broker.call("v2.posts.find");
 ```
 
 ## Settings
-You can add custom settings to your service under `settings` property in schema. You can reach it in service via `this.settings`.
+You can add custom settings to your service under `settings` property in schema. You can reach it in the service via `this.settings`.
 
 ```js
 {
@@ -404,7 +404,7 @@ You can add custom settings to your service under `settings` property in schema.
 ```
 
 ## Actions
-The actions are the callable/public methods of service. They can be called with `broker.call`.
+The actions are the callable/public methods of the service. They can be called with `broker.call`.
 The action could be a function (handler) or an object with some properties and with handler.
 The actions should be placed under `actions` key in the service schema.
 

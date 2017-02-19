@@ -78,6 +78,25 @@
 
 - direct remote call to a specified node (for monitoring every node)
 
+- configuráció kezelés. Betölti és a service-ek tőle tudják elkérni amibe merge-li a property-ket
+```js
+{
+	common: {
+		db: {
+			uri: "mongo://localhost"
+		}
+	},
+
+	services: {
+		posts: {
+			db: {
+				uri: "couchdb://localhost"
+			}
+		}
+	}
+}
+```
+
 ## Services
 
 ## Transporters

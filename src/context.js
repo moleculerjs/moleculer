@@ -40,7 +40,6 @@ class Context {
 		this.nodeID = opts.nodeID;
 		this.user = opts.user;
 		this.parent = opts.parent;
-		this.subContexts = [];
 
 		this.level = opts.parent && opts.parent.level ? opts.parent.level + 1 : 1;
 		if (this.opts.cloneParams && opts.params)
@@ -76,7 +75,6 @@ class Context {
 			user: this.user,
 			params
 		});
-		this.subContexts.push(ctx);
 
 		return ctx;
 	}
