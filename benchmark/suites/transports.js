@@ -20,6 +20,12 @@ function runTest(dataName) {
 	let redisSub = new Redis();
 	let redisPub = new Redis();
 
+	let MQTT= require("mqtt");
+	//let mqtt = MQTT.connect("mqtt://nas");
+	let mqtt = MQTT.connect("mqtt://192.168.0.207:1883", {
+		protocolId: 'MQTT',
+		protocolVersion: 4
+	});
 
 	let bench = new Benchmarkify({ async: true, name: `Transport with ${dataName}bytes`});
 	let data = getDataFile(dataName + ".json");
@@ -27,7 +33,7 @@ function runTest(dataName) {
 	let subject = generateToken();
 	let subject2 = generateToken();
 
-	bench.add("NATS", function() {
+	bench.skip("NATS", function() {
 		return new Promise((resolve, reject) => {
 			let sid = nats.subscribe(subject, (msg) => {
 				if (msg.length != data.length) {
@@ -80,7 +86,7 @@ function runTest(dataName) {
 		__resolve();
 	});
 
-	bench.add("Redis", function() {
+	bench.skip("Redis", function() {
 		return new Promise((resolve, reject) => {
 			redisSub.subscribe(subject).then(() => {
 				redisPub.publish(subject, data);
@@ -89,18 +95,42 @@ function runTest(dataName) {
 		});
 	});
 
-	// TODO: MQTT, AMQP, Websocket
+	mqtt.on("message", (topic, msg) => {
+		if (topic == subject) {
+			if (msg.length != data.length) {
+				throw new Error("Invalid message!");
+			}
+			__resolve();
+		}
+	});
 
-	nats.on("connect", () => {
-		bench.run().then(() => {
-			nats.close();
-			nats2.close();
-			redisPub.disconnect();
-			redisSub.disconnect();
-
-			if (dataFiles.length > 0)
-				runTest(dataFiles.shift());
+	bench.add("MQTT with mosquito", function() {
+		return new Promise((resolve, reject) => {
+			mqtt.publish(subject, data);
+			__resolve = resolve;
 		});
+	});	
+
+	// TODO: MQTT, AMQP, Websocket
+	nats.on("connect", () => {
+		//mqtt.on("connect", () => {
+			mqtt.subscribe(subject);
+
+			setTimeout(() => {
+				bench.run().then(() => {
+					nats.close();
+					nats2.close();
+					redisPub.disconnect();
+					redisSub.disconnect();
+
+					mqtt.end();
+
+					if (dataFiles.length > 0)
+						runTest(dataFiles.shift());
+				});
+			}, 1000);
+
+		//});
 	});
 
 }
