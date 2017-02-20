@@ -77,6 +77,7 @@
 	Catch unhandled exceptions and send an event with details. Can be catch in metrics, alert or logger services
 
 - direct remote call to a specified node (for monitoring every node)
+- heartBeat kezelést átrakni a transit-ba teljesen
 
 - configuráció kezelés. Betölti és a service-ek tőle tudják elkérni amibe merge-li a property-ket
 ```js

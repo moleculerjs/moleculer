@@ -78,31 +78,6 @@ class BaseTransporter {
 		throw new Error("Not implemented!");
 	}
 
-	/**
-	 * Return the topic name from array of parts.
-	 * The default is to join parts with dot "."
-	 * 
-	 * @param {Array} parts Parts of topic
-	 * @returns {String}
-	 * 
-	 * @memberOf BaseTransporter
-	 */
-	getTopicName(parts) {
-		return parts.join(".");
-	}	
-
-	/**
-	 * Split topic name to parts
-	 * 
-	 * @param {String} topic 
-	 * @returns {Array}
-	 * 
-	 * @memberOf BaseTransporter
-	 */
-	splitTopicName(topic) {
-		return topic.split(".");
-	}	
-
 }
 
 module.exports = BaseTransporter;

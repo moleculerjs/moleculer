@@ -35,6 +35,13 @@
 		{
 			"type": "node",
 			"request": "launch",
+			"name": "Launch sandbox",
+			"program": "${workspaceRoot}\\examples\\sandbox\\transit.js",
+			"cwd": "${workspaceRoot}\\examples\\sandbox"
+		},		
+		{
+			"type": "node",
+			"request": "launch",
 			"name": "Launch benchmark",
 			"program": "${workspaceRoot}\\benchmark\\index.js",
 			"args": ["transports"],

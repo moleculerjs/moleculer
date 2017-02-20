@@ -7,8 +7,8 @@
 "use strict";
 
 const Promise		= require("bluebird");
-const utils 		= require("../utils");
-const { RequestTimeoutError } = require("../errors");
+const utils 		= require("./utils");
+const { RequestTimeoutError } = require("./errors");
 
 class Transit {
 
@@ -21,9 +21,12 @@ class Transit {
 	 */
 	constructor(broker, transporter, opts) {
 		this.broker = broker;
+		this.logger = broker.getLogger("TRANSIT");
 		this.nodeID = broker.nodeID;		
 		this.tx = transporter;
 		this.opts = opts;
+
+		this.tx.init(broker, this.messageHandler.bind(this));
 
 		this.pendingRequests = new Map();
 	}
@@ -51,18 +54,6 @@ class Transit {
 		}
 	}
 
-	/**
-	 * Reconnect to server after x seconds
-	 * 
-	 * @memberOf BaseTransporter
-	 */
-	reconnectAfterTime() {
-		//this.logger.info("Reconnecting after 5 sec...");
-		setTimeout(() => {
-			this.connect();
-		}, 5 * 1000);
-	}	
-
 	sendDisconnectPacket() {
 		let message = {
 			nodeID: this.nodeID
@@ -71,7 +62,7 @@ class Transit {
 		let payload = utils.json2String(message);
 
 		return Promise(resolve => {
-			this.tx.publish(this.tx.getTopicName(["DISCONNECT"]), payload, resolve);
+			this.tx.publish(["DISCONNECT"] , payload, resolve);
 		});
 	}
 
@@ -86,10 +77,10 @@ class Transit {
 		this.tx.subscribe(["EVENT"]);
 
 		// Subscribe to requests
-		this.tx.subscribe(["REQ", this.nodeID, "*"]);
+		this.tx.subscribe(["REQ", this.nodeID]);
 
 		// Subscribe to node responses of requests
-		this.tx.subscribe(["RES", this.nodeID, "*"]);
+		this.tx.subscribe(["RES", this.nodeID]);
 
 		// Discover handler
 		this.tx.subscribe(["DISCOVER"]);
@@ -109,14 +100,12 @@ class Transit {
 		if (packet)
 			msg = utils.string2Json(packet);
 
-		let topics = this.tx.splitTopicName(topic);
-
 		if (msg.nodeID == this.nodeID) return; 
 
-		switch(topics[0]) {
+		switch(topic[0]) {
 		case "EVENT": {
 			this.logger.debug("Event received", msg);
-			this.broker.emitLocal(msg.event, msg.args);
+			this.broker.emitLocal(msg.event, msg.param);
 				
 			break;
 		}
@@ -127,14 +116,14 @@ class Transit {
 			this.logger.debug(`Request from ${msg.nodeID}.`, msg.action, msg.params);
 
 			this.broker.call(msg.action, msg.params)
-				.then(res => this.sendResponse(msg.nodeID, null, res))
-				.catch(err => this.sendResponse(msg.nodeID, err, null));
+				.then(res => this.sendResponse(msg.nodeID, msg.requestID,  null, res))
+				.catch(err => this.sendResponse(msg.nodeID, msg.requestID, err, null));
 			
 			break;
 		}
 
 		case "RES": {
-			let req = this.pendingRequests.get(topics[2]);
+			let req = this.pendingRequests.get(msg.requestID);
 
 			// If not exists (timed out), we skip to process the response
 			if (!req) break;
@@ -173,7 +162,7 @@ class Transit {
 			this.logger.debug("Discovery received from " + msg.nodeID);
 			this.broker.processNodeInfo(msg.nodeID, msg);
 
-			if (topics[0] == "DISCOVER")
+			if (topic[0] == "DISCOVER")
 				this.sendNodeInfo();
 
 			break;
@@ -212,7 +201,7 @@ class Transit {
 		};
 		this.logger.debug("Emit Event", event);
 		let payload = utils.json2String(event);
-		this.tx.publish(this.tx.getTopicName(["EVENT", eventName]), payload);
+		this.tx.publish(["EVENT"], payload);
 	}
 
 	/**
@@ -263,14 +252,15 @@ class Transit {
 
 			this.pendingRequests.set(ctx.id, req);
 
-			this.tx.publish(this.tx.getTopicName(["REQ", ctx.id]), payload);
+			this.tx.publish(["REQ", ctx.nodeID], payload);
 		});
 	}
 
-	sendResponse(nodeID, err, data) {
+	sendResponse(nodeID, requestID, err, data) {
 		let msg = {
 			success: !err,
 			nodeID: this.nodeID,
+			requestID,
 			data
 		};
 		if (err) {
@@ -283,7 +273,7 @@ class Transit {
 		}
 		let payload = utils.json2String(msg);
 		this.logger.debug(`Response to ${nodeID}`, /*message.action, message.params,*/ "Length: ", payload.length, "bytes");
-		this.tx.publish(this.tx.getTopicName(["RES", nodeID]), payload);
+		this.tx.publish(["RES", nodeID], payload);
 	}	
 
 	/**
@@ -299,7 +289,7 @@ class Transit {
 			nodeID: this.broker.nodeID,
 			actions: actionList
 		});
-		return this.tx.publish(this.tx.getTopicName(["DISCOVER"]), payload);
+		return this.tx.publish(["DISCOVER"] , payload);
 	}
 
 	/**
@@ -313,7 +303,7 @@ class Transit {
 			nodeID: this.broker.nodeID,
 			actions: actionList
 		});
-		return this.tx.publish(this.tx.getTopicName(["INFO"]), payload);
+		return this.tx.publish(["INFO"] , payload);
 	}
 
 	/**
@@ -325,7 +315,7 @@ class Transit {
 		let payload = utils.json2String({
 			nodeID: this.broker.nodeID
 		});
-		this.tx.publish(this.tx.getTopicName(["HEARTBEAT"]), payload);
+		this.tx.publish(["HEARTBEAT"] , payload);
 	}
 
 }
