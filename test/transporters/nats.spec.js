@@ -1,4 +1,9 @@
-const utils = require("../../src/utils");
+describe("empty", () => {
+	it("empty", () => {
+
+	});
+});
+/*const utils = require("../../src/utils");
 const Context = require("../../src/context");
 const ServiceBroker = require("../../src/service-broker");
 const { RequestTimeoutError, ValidationError } = require("../../src/errors");
@@ -468,3 +473,4 @@ describe("Test Transporter.sendHeartbeat", () => {
 	});
 
 });
+*/

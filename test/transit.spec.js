@@ -1,4 +1,5 @@
 const ServiceBroker = require("../src/service-broker");
+const Context = require("../src/context");
 const Transit = require("../src/transit");
 const FakeTransporter = require("../src/transporters/fake");
 const { RequestTimeoutError, ValidationError } = require("../src/errors");
@@ -313,11 +314,51 @@ describe("Test Transit.request", () => {
 	const transporter = new FakeTransporter();
 	const transit = new Transit(broker, transporter);
 
-	// transit.subscribe = jest.fn();
-
 	it("should call subscribe with all topics", () => {
+		let ctx = new Context({
+			nodeID: "remote",
+			action: { name: "users.find" },
+			params: { a: 5 }
+		});
+		ctx.id = "12345";
+
+		transit.publish = jest.fn(() => {
+			let req = transit.pendingRequests.get("12345");
+			return req.resolve(req);
+		});
+
+		return transit.request(ctx).then(req => {
+			expect(transit.pendingRequests.size).toBe(1);
+			expect(transit.publish).toHaveBeenCalledTimes(1);
+			expect(transit.publish).toHaveBeenCalledWith(["REQ", "remote"], "{\"nodeID\":\"node1\",\"requestID\":\"12345\",\"action\":\"users.find\",\"params\":{\"a\":5}}");
+
+			expect(req.nodeID).toBe("remote");
+			expect(req.ctx).toBe(ctx);
+			expect(req.resolve).toBeInstanceOf(Function);
+			expect(req.reject).toBeInstanceOf(Function);
+			expect(req.timer).toBeNull();
+		});
+
 	});
 
+	it("should create timer & reject if has timeout", () => {
+		let ctx = new Context({
+			nodeID: "remote",
+			action: { name: "users.find" },
+			params: { a: 5 }
+		});
+		ctx.id = "12345";
+
+		return transit.request(ctx, { timeout: 100 }).catch(err => {
+			expect(transit.pendingRequests.size).toBe(0); // Removed after timeout
+			expect(transit.publish).toHaveBeenCalledTimes(1);
+			expect(transit.publish).toHaveBeenCalledWith(["REQ", "remote"], "{\"nodeID\":\"node1\",\"requestID\":\"12345\",\"action\":\"users.find\",\"params\":{\"a\":5}}");
+
+			expect(err).toBeInstanceOf(RequestTimeoutError);
+			expect(err.nodeID).toBeInstanceOf("remote");
+		});
+
+	});
 });
 
 describe("Test Transit.sendResponse", () => {

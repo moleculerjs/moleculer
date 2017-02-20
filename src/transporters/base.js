@@ -77,11 +77,6 @@ class BaseTransporter {
 		throw new Error("Not implemented!");
 	}
 
-	incomingPacket(topic, packet) {
-		/* istanbul ignore next */
-		throw new Error("Not implemented!");
-	}
-
 }
 
 module.exports = BaseTransporter;
