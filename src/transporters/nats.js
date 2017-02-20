@@ -30,25 +30,8 @@ class NatsTransporter extends Transporter {
 	 */
 	constructor(opts) {
 		super(opts);
-		this.client = null;
-		this.prefix = "SVC";
 		
-		if (this.opts.prefix) {
-			this.prefix = this.opts.prefix;
-		}
-	}
-
-	/**
-	 * Initialize transporter
-	 * 
-	 * @param {any} broker
-	 * 
-	 * @memberOf NatsTransporter
-	 */
-	init(broker) {
-		super.init(broker);
-		this.nodeID = broker.nodeID;
-		this.logger = broker.getLogger("NATS");
+		this.client = null;
 	}
 
 	/**
@@ -74,10 +57,7 @@ class NatsTransporter extends Transporter {
 			this.client.on("error", (e) => {
 				this.logger.error("NATS error", e);
 				if (e.toString().indexOf("ECONNREFUSED") != -1) {
-					this.logger.info("Reconnecting after 5 sec...");
-					setTimeout(() => {
-						this.connect();
-					}, 5 * 1000);
+					this.reconnectAfterTime();
 				}
 				else {
 					reject(e);
@@ -359,6 +339,24 @@ class NatsTransporter extends Transporter {
 		});
 		this.client.publish([this.prefix, "HEARTBEAT"].join("."), payload);
 	}
+
+
+	subscribe(topic) {
+
+	}
+
+	publish(topic, packet) {
+
+	}
+
+	incomingPacket(topic, packet) {
+
+	}
+
+	getTopicName(parts) {
+		
+	}
+
 }
 
 module.exports = NatsTransporter;

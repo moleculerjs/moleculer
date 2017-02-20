@@ -7,7 +7,7 @@
 "use strict";
 
 /**
- * Abstract/Base transporter class
+ * Base Transporter class
  * 
  * @class BaseTransporter
  */
@@ -22,6 +22,12 @@ class BaseTransporter {
 	 */
 	constructor(opts) {
 		this.opts = opts || {};
+
+		this.prefix = "SVC";
+		
+		if (this.opts.prefix) {
+			this.prefix = this.opts.prefix;
+		}
 	}
 
 	/**
@@ -31,12 +37,15 @@ class BaseTransporter {
 	 * 
 	 * @memberOf BaseTransporter
 	 */
-	init(broker) {
+	init(broker, messageHandler) {
 		this.broker = broker;
+		this.nodeID = broker.nodeID;
+		this.logger = broker.getLogger("TX");
+		this.messageHandler = messageHandler;
 	}
 
 	/**
-	 * Connect to transporter server
+	 * Connect to the transporter server
 	 * 
 	 * @memberOf BaseTransporter
 	 */
@@ -46,65 +55,53 @@ class BaseTransporter {
 	}
 
 	/**
-	 * Disconnect from transporter server
+	 * Disconnect from the transporter server
 	 * 
 	 * @memberOf BaseTransporter
 	 */
 	disconnect() {
-
+		return Promise.resolve();
 	}
 
-	/**
-	 * Send an event to remote nodes
-	 * 
-	 * @param {any} eventName
-	 * @param {any} args
-	 * 
-	 * @memberOf BaseTransporter
-	 */
-	emit(eventName, ...args) {
+	subscribe(topic) {
+		/* istanbul ignore next */
+		throw new Error("Not implemented!");
+	}
+
+	publish(topic, packet) {
+		/* istanbul ignore next */
+		throw new Error("Not implemented!");
+	}
+
+	incomingPacket(topic, packet) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented!");
 	}
 
 	/**
-	 * Subscribe to an event
+	 * Return the topic name from array of parts.
+	 * The default is to join parts with dot "."
 	 * 
-	 * @param {any} eventName
-	 * @param {any} handler
+	 * @param {Array} parts Parts of topic
+	 * @returns {String}
 	 * 
 	 * @memberOf BaseTransporter
 	 */
-	subscribe(eventName, handler) {
-		/* istanbul ignore next */
-		throw new Error("Not implemented!");
-	}
+	getTopicName(parts) {
+		return parts.join(".");
+	}	
 
 	/**
-	 * Send a request to a remote node
+	 * Split topic name to parts
 	 * 
-	 * @param {any} nodeID
-	 * @param {any} ctx
-	 * @returns
-	 * 
-	 * @memberOf BaseTransporter
-	 */
-	request(nodeID, ctx) {
-		/* istanbul ignore next */
-		return new Promise((resolve, reject) => {
-			reject("Not implemented");
-		});
-	}
-
-	/**
-	 * Send a hearthbeat to remote nodes
+	 * @param {String} topic 
+	 * @returns {Array}
 	 * 
 	 * @memberOf BaseTransporter
 	 */
-	sendHeartbeat() {
-		/* istanbul ignore next */
-		throw new Error("Not implemented!");
-	}
+	splitTopicName(topic) {
+		return topic.split(".");
+	}	
 
 }
 
