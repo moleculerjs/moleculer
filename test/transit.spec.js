@@ -79,7 +79,7 @@ describe("Test Transit.disconnect", () => {
 
 describe("Test Transit.sendDisconnectPacket", () => {
 
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ nodeID: "node1" });
 	const transporter = new FakeTransporter();
 	const transit = new Transit(broker, transporter);
 
@@ -88,7 +88,7 @@ describe("Test Transit.sendDisconnectPacket", () => {
 	it("should call publish iwth correct params", () => {
 		return transit.sendDisconnectPacket().then(() => {
 			expect(transit.publish).toHaveBeenCalledTimes(1);
-			expect(transit.publish).toHaveBeenCalledWith(["DISCONNECT"], "{\"nodeID\":\"bobcsi-pc\"}");
+			expect(transit.publish).toHaveBeenCalledWith(["DISCONNECT"], "{\"nodeID\":\"node1\"}");
 		});
 	});
 
