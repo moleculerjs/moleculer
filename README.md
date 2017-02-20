@@ -1117,8 +1117,7 @@ In this case we are running coherent services on the same node. For example, if 
 ![](docs/assets/mixed-architecture.png)
 
 # Docker
-TODO:
-- docker fájlok, scriptek, compose example-k
+TODO
 
 # Best practices
 - service files
@@ -1126,7 +1125,7 @@ TODO:
 - benchmark
 
 # Benchmarks
-TODO: az eredményeket kirakni, grafikonnal
+TODO
 
 # Test
 ```
