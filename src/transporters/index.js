@@ -7,5 +7,6 @@
 "use strict";
 
 module.exports = {
-	NATS: require("./nats")
+	NATS: require("./nats"),
+	MQTT: require("./mqtt")
 };

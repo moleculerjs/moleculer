@@ -98,7 +98,6 @@ class NatsTransporter extends Transporter {
 	 * @memberOf NatsTransporter
 	 */
 	subscribe(topic) {
-		topic.unshift(this.prefix);
 		this.client.subscribe(topic, msg => {
 			this.messageHandler(topic.slice(1), msg);
 		});
