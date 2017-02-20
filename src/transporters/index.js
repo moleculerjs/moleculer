@@ -7,6 +7,7 @@
 "use strict";
 
 module.exports = {
+	Fake: require("./fake"),
 	NATS: require("./nats"),
 	MQTT: require("./mqtt"),
 	Redis: require("./redis")
