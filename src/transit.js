@@ -116,6 +116,25 @@ class Transit {
 	}
 
 	/**
+	 * Emit an event to remote nodes
+	 * 
+	 * @param {any} eventName
+	 * @param {any} param
+	 * 
+	 * @memberOf Transit
+	 */
+	emit(eventName, param) {
+		let event = {
+			nodeID: this.nodeID,
+			event: eventName,
+			param
+		};
+		this.logger.debug("Emit Event", event);
+		let payload = utils.json2String(event);
+		this.publish([TOPIC_EVENT], payload);
+	}
+
+	/**
 	 * Message handler for incoming packets
 	 * 
 	 * @param {Array} topic 
@@ -149,8 +168,8 @@ class Transit {
 			this.logger.debug(`Request from ${msg.nodeID}.`, msg.action, msg.params);
 
 			this.broker.call(msg.action, msg.params)
-				.then(res => this.sendResponse(msg.nodeID, msg.requestID,  null, res))
-				.catch(err => this.sendResponse(msg.nodeID, msg.requestID, err, null));
+				.then(res => this.sendResponse(msg.nodeID, msg.requestID,  res))
+				.catch(err => this.sendResponse(msg.nodeID, msg.requestID, null, err));
 			
 			break;
 		}
@@ -221,26 +240,6 @@ class Transit {
 		}
 	}
 
-
-	/**
-	 * Emit an event to remote nodes
-	 * 
-	 * @param {any} eventName
-	 * @param {any} param
-	 * 
-	 * @memberOf Transit
-	 */
-	emit(eventName, param) {
-		let event = {
-			nodeID: this.nodeID,
-			event: eventName,
-			param
-		};
-		this.logger.debug("Emit Event", event);
-		let payload = utils.json2String(event);
-		this.publish([TOPIC_EVENT], payload);
-	}
-
 	/**
 	 * Send a request to a remote service. It returns a Promise
 	 * what will be resolved when the response received.
@@ -299,12 +298,12 @@ class Transit {
 	 * 
 	 * @param {String} nodeID 
 	 * @param {String} requestID 
-	 * @param {Error} err 
 	 * @param {any} data 
+	 * @param {Error} err 
 	 * 
 	 * @memberOf Transit
 	 */
-	sendResponse(nodeID, requestID, err, data) {
+	sendResponse(nodeID, requestID, data, err) {
 		let msg = {
 			success: !err,
 			nodeID: this.nodeID,
