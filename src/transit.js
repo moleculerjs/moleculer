@@ -10,6 +10,16 @@ const Promise		= require("bluebird");
 const utils 		= require("./utils");
 const { RequestTimeoutError } = require("./errors");
 
+const LOG_PREFIX = "TRANSIT";
+
+const TOPIC_EVENT = "EVENT";
+const TOPIC_REQ = "REQ";
+const TOPIC_RES = "RES";
+const TOPIC_DISCOVER = "DISCOVER";
+const TOPIC_INFO = "INFO";
+const TOPIC_DISCONNECT = "DISCONNECT";
+const TOPIC_HEARTBEAT = "HEARTBEAT";
+
 class Transit {
 
 	/**
@@ -23,7 +33,7 @@ class Transit {
 	 */
 	constructor(broker, transporter, opts) {
 		this.broker = broker;
-		this.logger = broker.getLogger("TRANSIT");
+		this.logger = broker.getLogger(LOG_PREFIX);
 		this.nodeID = broker.nodeID;		
 		this.tx = transporter;
 		this.opts = opts;
@@ -71,7 +81,7 @@ class Transit {
 		let payload = utils.json2String(message);
 
 		return new Promise(resolve => {
-			this.publish(["DISCONNECT"] , payload, resolve);
+			this.publish([TOPIC_DISCONNECT] , payload, resolve);
 		});
 	}
 
@@ -83,25 +93,25 @@ class Transit {
 	makeSubscriptions() {
 
 		// Subscribe to broadcast events
-		this.subscribe(["EVENT"]);
+		this.subscribe([TOPIC_EVENT]);
 
 		// Subscribe to requests
-		this.subscribe(["REQ", this.nodeID]);
+		this.subscribe([TOPIC_REQ, this.nodeID]);
 
 		// Subscribe to node responses of requests
-		this.subscribe(["RES", this.nodeID]);
+		this.subscribe([TOPIC_RES, this.nodeID]);
 
 		// Discover handler
-		this.subscribe(["DISCOVER"]);
+		this.subscribe([TOPIC_DISCOVER]);
 
 		// NodeInfo handler
-		this.subscribe(["INFO", this.nodeID]);
+		this.subscribe([TOPIC_INFO, this.nodeID]);
 
 		// Disconnect handler
-		this.subscribe(["DISCONNECT"]);
+		this.subscribe([TOPIC_DISCONNECT]);
 
 		// Heart-beat handler
-		this.subscribe(["HEARTBEAT"]);
+		this.subscribe([TOPIC_HEARTBEAT]);
 	}
 
 	/**
@@ -123,7 +133,7 @@ class Transit {
 		switch(topic[0]) {
 
 		// Event
-		case "EVENT": {
+		case TOPIC_EVENT: {
 			this.logger.debug("Event received", msg);
 			this.broker.emitLocal(msg.event, msg.param);
 				
@@ -131,7 +141,7 @@ class Transit {
 		}
 
 		// Request
-		case "REQ": {
+		case TOPIC_REQ: {
 			if (!msg) {
 				return Promise.reject("Invalid request!");
 			}
@@ -145,7 +155,7 @@ class Transit {
 		}
 
 		// Response
-		case "RES": {
+		case TOPIC_RES: {
 			let req = this.pendingRequests.get(msg.requestID);
 
 			// If not exists (timed out), we skip to process the response
@@ -181,8 +191,8 @@ class Transit {
 		}
 
 		// Node info
-		case "INFO":
-		case "DISCOVER": {
+		case TOPIC_INFO:
+		case TOPIC_DISCOVER: {
 			this.logger.debug("Discovery received from " + msg.nodeID);
 			this.broker.processNodeInfo(msg.nodeID, msg);
 
@@ -193,7 +203,7 @@ class Transit {
 		}
 
 		// Disconnect
-		case "DISCONNECT": {
+		case TOPIC_DISCONNECT: {
 			this.logger.debug(`Node '${msg.nodeID}' disconnected`);
 			this.broker.nodeDisconnected(msg.nodeID, msg);
 
@@ -201,7 +211,7 @@ class Transit {
 		}
 
 		// Heartbeat
-		case "HEARTBEAT": {
+		case TOPIC_HEARTBEAT: {
 			this.logger.debug("Node heart-beat received from " + msg.nodeID);
 			this.broker.nodeHeartbeat(msg.nodeID, msg);
 
@@ -227,7 +237,7 @@ class Transit {
 		};
 		this.logger.debug("Emit Event", event);
 		let payload = utils.json2String(event);
-		this.publish(["EVENT"], payload);
+		this.publish([TOPIC_EVENT], payload);
 	}
 
 	/**
@@ -279,7 +289,7 @@ class Transit {
 			this.pendingRequests.set(ctx.id, req);
 
 			// Publish request
-			this.publish(["REQ", ctx.nodeID], payload);
+			this.publish([TOPIC_REQ, ctx.nodeID], payload);
 		});
 	}
 
@@ -312,7 +322,7 @@ class Transit {
 		this.logger.debug(`Response to ${nodeID}`, "Length: ", payload.length, "bytes");
 
 		// Publish the response
-		return this.publish(["RES", nodeID], payload);
+		return this.publish([TOPIC_RES, nodeID], payload);
 	}	
 
 	/**
@@ -326,7 +336,7 @@ class Transit {
 			nodeID: this.broker.nodeID,
 			actions: actionList
 		});
-		return this.publish(["DISCOVER"], payload);
+		return this.publish([TOPIC_DISCOVER], payload);
 	}
 
 	/**
@@ -340,7 +350,7 @@ class Transit {
 			nodeID: this.broker.nodeID,
 			actions: actionList
 		});
-		return this.publish(["INFO"], payload);
+		return this.publish([TOPIC_INFO], payload);
 	}
 
 	/**
@@ -352,7 +362,7 @@ class Transit {
 		let payload = utils.json2String({
 			nodeID: this.broker.nodeID
 		});
-		this.publish(["HEARTBEAT"], payload);
+		this.publish([TOPIC_HEARTBEAT], payload);
 	}
 
 	/**
