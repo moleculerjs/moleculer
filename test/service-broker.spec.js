@@ -1,10 +1,10 @@
 "use strict";
 
 const utils = require("../src/utils");
-const Service = require("../src/service");
 const ServiceBroker = require("../src/service-broker");
 const Context = require("../src/context");
-const Transporter = require("../src/transporters/base");
+const Transit = require("../src/transit");
+const FakeTransporter = require("../src/transporters/fake");
 const { ServiceNotFoundError, RequestTimeoutError, ValidationError } = require("../src/errors");
 const lolex = require("lolex");
 const _ = require("lodash");
@@ -32,7 +32,7 @@ describe("Test ServiceBroker constructor", () => {
 		});
 		expect(broker.services).toBeInstanceOf(Array);
 		expect(broker.actions).toBeInstanceOf(Map);
-		expect(broker.transporter).toBeNull();
+		expect(broker.transit).toBeUndefined();
 		expect(broker.cacher).toBeNull();
 		expect(broker.validator).toBeDefined();
 		expect(broker.statistics).toBeUndefined();
@@ -74,7 +74,7 @@ describe("Test ServiceBroker constructor", () => {
 			internalActions: false });
 		expect(broker.services).toBeInstanceOf(Array);
 		expect(broker.actions).toBeInstanceOf(Map);
-		expect(broker.transporter).toBeNull();
+		expect(broker.transit).toBeUndefined();
 		expect(broker.statistics).toBeDefined();
 		expect(broker.validator).toBeUndefined();
 		expect(broker.nodeID).toBe(require("os").hostname().toLowerCase());
@@ -85,6 +85,15 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.hasAction("$node.health")).toBeFalsy();		
 	});
 
+	it("should create transit if transporter into options", () => {
+		let broker = new ServiceBroker( { 
+			transporter: new FakeTransporter()
+		});
+
+		expect(broker).toBeDefined();
+		expect(broker.transit).toBeInstanceOf(Transit);
+		expect(broker.nodeID).toBe(require("os").hostname().toLowerCase());
+	});
 });
 
 describe("Test internal actions", () => {
@@ -580,43 +589,31 @@ describe("Test localCall", () => {
 
 describe("Test remoteCall", () => {
 
-	function createTransporter() {
-		let transporter = new Transporter();
-		transporter.init = jest.fn(); 
-		transporter.connect = jest.fn(() => Promise.resolve()); 
-		transporter.disconnect = jest.fn(); 
-		transporter.sendHeartbeat = jest.fn(); 
-		transporter.emit = jest.fn(); 
-
-		return transporter;
-	}
-
 	function createBroker(opts) {
 		return new ServiceBroker(_.defaults(opts, {
+			transporter: new FakeTransporter(),
 			requestTimeout: 5 * 1000,
 			requestRetry: 0
 		}));
 	}
 
 	describe("with normal call", () => {
-		let transporter = createTransporter();
-		transporter.request = jest.fn(ctx => Promise.resolve(ctx)); 
-		let broker = createBroker({ transporter });
+		let broker = createBroker();
+		broker.transit.request = jest.fn(ctx => Promise.resolve(ctx)); 
 		let ctx = new Context({ broker, action: { name: "posts.find" }, nodeID: "server-1"});
 
 		it("should call transporter.request", () => {
 			return broker._remoteCall(ctx).then(ctx => {
 				expect(ctx).toBeDefined();
-				expect(transporter.request).toHaveBeenCalledTimes(1);
-				expect(transporter.request).toHaveBeenCalledWith(ctx, { timeout: 5000, retryCount: 0});
+				expect(broker.transit.request).toHaveBeenCalledTimes(1);
+				expect(broker.transit.request).toHaveBeenCalledWith(ctx, { timeout: 5000, retryCount: 0});
 			});
 		});
 	});
 
 	describe("with timeout", () => {
-		let transporter = createTransporter();
-		transporter.request = jest.fn(() => Promise.reject(new RequestTimeoutError("Timeout!", "server-1"))); 
-		let broker = createBroker({ transporter });
+		let broker = createBroker();
+		broker.transit.request = jest.fn(() => Promise.reject(new RequestTimeoutError("Timeout!", "server-1"))); 
 		broker.nodeUnavailable = jest.fn();
 		let ctx = new Context({ broker, action: { name: "posts.find" }, nodeID: "server-1"});
 
@@ -624,17 +621,16 @@ describe("Test remoteCall", () => {
 			return broker._remoteCall(ctx).catch(err => {
 				expect(err).toBeDefined();
 				expect(err).toBeInstanceOf(RequestTimeoutError);
-				expect(transporter.request).toHaveBeenCalledTimes(1);
-				expect(transporter.request).toHaveBeenCalledWith(ctx, { timeout: 5000, retryCount: -1});
+				expect(broker.transit.request).toHaveBeenCalledTimes(1);
+				expect(broker.transit.request).toHaveBeenCalledWith(ctx, { timeout: 5000, retryCount: -1});
 				expect(broker.nodeUnavailable).toHaveBeenCalledWith(ctx.nodeID);
 			});
 		});
 	});
 
 	describe("with timeout & requestRetry", () => {
-		let transporter = createTransporter();
-		transporter.request = jest.fn(() => Promise.reject(new RequestTimeoutError("Timeout!", "server-1"))); 
-		let broker = createBroker({ transporter });
+		let broker = createBroker();
+		broker.transit.request = jest.fn(() => Promise.reject(new RequestTimeoutError("Timeout!", "server-1"))); 
 		broker.call = jest.fn((actionName, ctx, opts) => ({ actionName, ctx, opts }));
 		broker.nodeUnavailable = jest.fn();
 		let ctx = new Context({ broker, action: { name: "posts.find" }, nodeID: "server-1"});
@@ -642,8 +638,8 @@ describe("Test remoteCall", () => {
 		it("should throw RequestTimeout exception", () => {
 			return broker._remoteCall(ctx, { retryCount: 2 }).then(res => {
 				expect(res.opts.retryCount).toBe(1);
-				expect(transporter.request).toHaveBeenCalledTimes(1);
-				expect(transporter.request).toHaveBeenCalledWith(ctx, { timeout: 5000, retryCount: 1});
+				expect(broker.transit.request).toHaveBeenCalledTimes(1);
+				expect(broker.transit.request).toHaveBeenCalledWith(ctx, { timeout: 5000, retryCount: 1});
 				expect(broker.nodeUnavailable).toHaveBeenCalledTimes(0);
 				expect(broker.call).toHaveBeenCalledTimes(1);
 				expect(broker.call).toHaveBeenCalledWith("posts.find", ctx.params, res.opts);
@@ -653,9 +649,8 @@ describe("Test remoteCall", () => {
 
 	describe("with fallbackResponse as object", () => {
 		let fallbackResponse = { a: 8 };
-		let transporter = createTransporter();
-		transporter.request = jest.fn(() => Promise.reject(new RequestTimeoutError("Timeout!", "server-1"))); 
-		let broker = createBroker({ transporter });
+		let broker = createBroker();
+		broker.transit.request = jest.fn(() => Promise.reject(new RequestTimeoutError("Timeout!", "server-1"))); 
 		broker.nodeUnavailable = jest.fn();
 		let ctx = new Context({ broker, action: { name: "posts.find" }, nodeID: "server-1"});
 
@@ -663,7 +658,7 @@ describe("Test remoteCall", () => {
 			return broker._remoteCall(ctx, { fallbackResponse }).then(res => {
 				expect(res).toBeDefined();
 				expect(res).toBe(fallbackResponse);
-				expect(transporter.request).toHaveBeenCalledTimes(1);
+				expect(broker.transit.request).toHaveBeenCalledTimes(1);
 				expect(broker.nodeUnavailable).toHaveBeenCalledWith(ctx.nodeID);
 			});
 		});
@@ -671,9 +666,8 @@ describe("Test remoteCall", () => {
 
 	describe("with fallbackResponse as Promise", () => {
 		let fallbackResponse = () => Promise.resolve({ a: 10 });
-		let transporter = createTransporter();
-		transporter.request = jest.fn(() => Promise.reject(new RequestTimeoutError("Timeout!", "server-1"))); 
-		let broker = createBroker({ transporter });
+		let broker = createBroker();
+		broker.transit.request = jest.fn(() => Promise.reject(new RequestTimeoutError("Timeout!", "server-1"))); 
 		broker.nodeUnavailable = jest.fn();
 		let ctx = new Context({ broker, action: { name: "posts.find" }, nodeID: "server-1"});
 
@@ -681,7 +675,7 @@ describe("Test remoteCall", () => {
 			return broker._remoteCall(ctx, { fallbackResponse }).then(res => {
 				expect(res).toBeDefined();
 				expect(res).toEqual({ a: 10 });
-				expect(transporter.request).toHaveBeenCalledTimes(1);
+				expect(broker.transit.request).toHaveBeenCalledTimes(1);
 				expect(broker.nodeUnavailable).toHaveBeenCalledWith(ctx.nodeID);
 			});
 		});
@@ -980,46 +974,40 @@ describe("Test with metrics timer", () => {
 	});	
 });
 
-describe("Test ServiceBroker with Transporter", () => {
-
-	let transporter = new Transporter();
-	transporter.init = jest.fn(); 
-	transporter.connect = jest.fn(() => Promise.resolve()); 
-	transporter.disconnect = jest.fn(); 
-	transporter.sendHeartbeat = jest.fn(); 
-	transporter.emit = jest.fn(); 
-	transporter.request = jest.fn(ctx => Promise.resolve(ctx)); 
-
+describe("Test ServiceBroker.Transit", () => {
 	let broker= new ServiceBroker({
-		transporter,
+		transporter: new FakeTransporter(),
 		nodeID: "12345",
 		requestRetry: 2
 	});
 
-	it("should call transporter.init", () => {
+	broker.transit.connect = jest.fn(() => Promise.resolve()); 
+	broker.transit.disconnect = jest.fn(); 
+	broker.transit.sendHeartbeat = jest.fn(); 
+	broker.transit.emit = jest.fn(); 
+	broker.transit.request = jest.fn(ctx => Promise.resolve(ctx)); 
+
+
+	it("should create transit instance", () => {
 		expect(broker).toBeDefined();
-		expect(broker.transporter).toBeDefined();
+		expect(broker.transit).toBeDefined();
 		expect(broker.nodeID).toBe("12345");
-
-		expect(transporter.init).toHaveBeenCalledTimes(1);
-		expect(transporter.init).toHaveBeenCalledWith(broker);
-
-		expect(transporter.connect).toHaveBeenCalledTimes(0);
+		expect(broker.transit.connect).toHaveBeenCalledTimes(0);
 	});
 
 	it("should call transporter.connect", () => {
 		broker.start().then(() => {
-			expect(transporter.connect).toHaveBeenCalledTimes(1);
+			expect(broker.transit.connect).toHaveBeenCalledTimes(1);
 			expect(broker.heartBeatTimer).toBeDefined();
 			expect(broker.checkNodesTimer).toBeDefined();
 		});
 	});
 
-	it("should call transporter emit", () => {
+	it("should call broker.transit emit", () => {
 		let p = { a: 1 };
 		broker.emit("posts.find", p);
-		expect(transporter.emit).toHaveBeenCalledTimes(1);
-		expect(transporter.emit).toHaveBeenCalledWith("posts.find", p);
+		expect(broker.transit.emit).toHaveBeenCalledTimes(1);
+		expect(broker.transit.emit).toHaveBeenCalledWith("posts.find", p);
 	});
 
 	let mockAction = {
@@ -1028,32 +1016,32 @@ describe("Test ServiceBroker with Transporter", () => {
 		handler: jest.fn(ctx => ctx)
 	};
 
-	it("should call transporter.request with new context", () => {
+	it("should call broker.transit.request with new context", () => {
 		let p = { abc: 100 };
 
 		broker.registerAction(mockAction, "99999");
 		return broker.call("posts.find", p).then(ctx => {
-			expect(transporter.request).toHaveBeenCalledTimes(1);
-			expect(transporter.request).toHaveBeenCalledWith(ctx, { retryCount: 2, timeout: 15000});
+			expect(broker.transit.request).toHaveBeenCalledTimes(1);
+			expect(broker.transit.request).toHaveBeenCalledWith(ctx, { retryCount: 2, timeout: 15000});
 			expect(ctx.params).toEqual(p);
 		});
 	});
 
-	it("should call transporter.request with new context", () => {
+	it("should call broker.transit.request with new context", () => {
 		let p = { abc: 100 };
 		let parentCtx = new Context(p);
-		transporter.request.mockClear();
+		broker.transit.request.mockClear();
 
 		return broker.call("posts.find", p, { parentCtx, timeout: 5000 }).then(ctx => {
-			expect(transporter.request).toHaveBeenCalledTimes(1);
-			expect(transporter.request).toHaveBeenCalledWith(ctx, { parentCtx, retryCount: 2, timeout: 5000});
+			expect(broker.transit.request).toHaveBeenCalledTimes(1);
+			expect(broker.transit.request).toHaveBeenCalledWith(ctx, { parentCtx, retryCount: 2, timeout: 5000});
 			expect(ctx.parent).toBe(parentCtx);		
 		});
 	});
 
-	it("should call broker.nodeUnavailable if transporter.request throw RequestTimeoutError", () => {
+	it("should call broker.nodeUnavailable if broker.transit.request throw RequestTimeoutError", () => {
 		let p = { abc: 100 };
-		transporter.request = jest.fn(() => Promise.reject(new RequestTimeoutError({ action: "posts.find" }, "server-2")));
+		broker.transit.request = jest.fn(() => Promise.reject(new RequestTimeoutError({ action: "posts.find" }, "server-2")));
 		broker._callCount = 0;
 
 		return broker.call("posts.find", p).catch(err => {
@@ -1063,9 +1051,9 @@ describe("Test ServiceBroker with Transporter", () => {
 		});
 	});
 	
-	it("should call transporter.disconnect", () => {
+	it("should call broker.transit.disconnect", () => {
 		broker.stop();
-		expect(transporter.disconnect).toHaveBeenCalledTimes(1);
+		expect(broker.transit.disconnect).toHaveBeenCalledTimes(1);
 		expect(broker.heartBeatTimer).toBeNull();
 		expect(broker.checkNodesTimer).toBeNull();
 	});
