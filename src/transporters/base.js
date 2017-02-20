@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2017 Icebob (https://github.com/icebob/moleculer)
+ * Copyright (c) 2017 Icebob (https://github.com/ice-services/moleculer)
  * MIT Licensed
  */
 
