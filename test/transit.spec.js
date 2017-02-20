@@ -147,6 +147,12 @@ describe("Test Transit.messageHandler", () => {
 		transit = new Transit(broker, transporter);
 	});
 
+	it("should throw Error if msg not valid", () => {
+		expect(() => {
+			transit.messageHandler(["EVENT"]);
+		}).toThrow();
+	});
+
 	it("should call broker.emitLocal if topic is 'EVENT' ", () => {
 		broker.emitLocal = jest.fn();
 
@@ -348,6 +354,7 @@ describe("Test Transit.request", () => {
 			params: { a: 5 }
 		});
 		ctx.id = "12345";
+		transit.publish = jest.fn();
 
 		return transit.request(ctx, { timeout: 100 }).catch(err => {
 			expect(transit.pendingRequests.size).toBe(0); // Removed after timeout
@@ -355,7 +362,7 @@ describe("Test Transit.request", () => {
 			expect(transit.publish).toHaveBeenCalledWith(["REQ", "remote"], "{\"nodeID\":\"node1\",\"requestID\":\"12345\",\"action\":\"users.find\",\"params\":{\"a\":5}}");
 
 			expect(err).toBeInstanceOf(RequestTimeoutError);
-			expect(err.nodeID).toBeInstanceOf("remote");
+			expect(err.nodeID).toBe("remote");
 		});
 
 	});

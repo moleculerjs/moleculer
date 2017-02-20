@@ -167,9 +167,6 @@ class Transit {
 
 		// Request
 		case TOPIC_REQ: {
-			if (!msg) {
-				return Promise.reject("Invalid request!");
-			}
 			this.logger.debug(`Request from ${msg.nodeID}.`, msg.action, msg.params);
 
 			return this.broker.call(msg.action, msg.params)

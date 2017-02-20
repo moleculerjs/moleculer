@@ -64,6 +64,7 @@ class BaseTransporter {
 	 * @memberOf BaseTransporter
 	 */
 	disconnect() {
+		/* istanbul ignore next */
 		throw new Error("Not implemented!");
 	}
 
