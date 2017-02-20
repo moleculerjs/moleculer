@@ -10,7 +10,7 @@ const Promise		= require("bluebird");
 const Transporter 	= require("./base");
 
 /**
- * Internal transporter via NATS
+ * Transporter for NATS
  * 
  * More info: http://nats.io/
  * 
@@ -93,24 +93,27 @@ class NatsTransporter extends Transporter {
 	/**
 	 * Subscribe to a topic
 	 * 
-	 * @param {String} topic 
+	 * @param {Array} topic 
 	 * 
 	 * @memberOf NatsTransporter
 	 */
 	subscribe(topic) {
-		this.client.subscribe(topic, msg => this.messageHandler(topic, msg));
+		topic.unshift(this.prefix);
+		this.client.subscribe(topic, msg => {
+			this.messageHandler(topic.slice(1), msg);
+		});
 	}
 
 	/**
 	 * Publish a message on the topic
 	 * 
-	 * @param {String} topic 
+	 * @param {Array} topic 
 	 * @param {String} packet 
 	 * 
 	 * @memberOf NatsTransporter
 	 */
 	publish(topic, packet) {
-		this.client.publish(topic, packet);
+		this.client.publish([this.prefix].concat(topic), packet);
 	}
 
 }

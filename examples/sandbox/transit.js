@@ -52,7 +52,7 @@ b2.on("TEST1", a => {
 
 Promise.resolve()
 .then(delay(1000))
-/*
+
 .then(() => {
 	b1.call("v2.users.find").then(res => {
 		console.log("[server-1] Success!", res.length);
@@ -61,7 +61,7 @@ Promise.resolve()
 	});	
 
 })
-*/
+
 
 /*
 .then(() => {

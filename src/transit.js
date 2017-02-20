@@ -15,6 +15,8 @@ class Transit {
 	/**
 	 * Creates an instance of Transit.
 	 * 
+	 * @param {ServiceBroker} Broker instance
+	 * @param {Transporter} Transporter instance
 	 * @param {any} opts
 	 * 
 	 * @memberOf Transit
@@ -26,9 +28,9 @@ class Transit {
 		this.tx = transporter;
 		this.opts = opts;
 
-		this.tx.init(broker, this.messageHandler.bind(this));
-
 		this.pendingRequests = new Map();
+
+		this.tx.init(broker, this.messageHandler.bind(this));
 	}
 
 	/**
@@ -54,6 +56,13 @@ class Transit {
 		}
 	}
 
+	/**
+	 * Send DISCONNECT to remote nodes
+	 * 
+	 * @returns {Promise}
+	 * 
+	 * @memberOf Transit
+	 */
 	sendDisconnectPacket() {
 		let message = {
 			nodeID: this.nodeID
@@ -61,8 +70,8 @@ class Transit {
 		this.logger.debug("Send DISCONNECT to nodes", message);
 		let payload = utils.json2String(message);
 
-		return Promise(resolve => {
-			this.tx.publish(["DISCONNECT"] , payload, resolve);
+		return new Promise(resolve => {
+			this.publish(["DISCONNECT"] , payload, resolve);
 		});
 	}
 
@@ -74,27 +83,36 @@ class Transit {
 	makeSubscriptions() {
 
 		// Subscribe to broadcast events
-		this.tx.subscribe(["EVENT"]);
+		this.subscribe(["EVENT"]);
 
 		// Subscribe to requests
-		this.tx.subscribe(["REQ", this.nodeID]);
+		this.subscribe(["REQ", this.nodeID]);
 
 		// Subscribe to node responses of requests
-		this.tx.subscribe(["RES", this.nodeID]);
+		this.subscribe(["RES", this.nodeID]);
 
 		// Discover handler
-		this.tx.subscribe(["DISCOVER"]);
+		this.subscribe(["DISCOVER"]);
 
 		// NodeInfo handler
-		this.tx.subscribe(["INFO", this.nodeID]);
+		this.subscribe(["INFO", this.nodeID]);
 
 		// Disconnect handler
-		this.tx.subscribe(["DISCONNECT"]);
+		this.subscribe(["DISCONNECT"]);
 
 		// Heart-beat handler
-		this.tx.subscribe(["HEARTBEAT"]);
+		this.subscribe(["HEARTBEAT"]);
 	}
 
+	/**
+	 * Message handler for incoming packets
+	 * 
+	 * @param {Array} topic 
+	 * @param {String} packet 
+	 * @returns 
+	 * 
+	 * @memberOf Transit
+	 */
 	messageHandler(topic, packet) {
 		let msg;
 		if (packet)
@@ -103,12 +121,16 @@ class Transit {
 		if (msg.nodeID == this.nodeID) return; 
 
 		switch(topic[0]) {
+
+		// Event
 		case "EVENT": {
 			this.logger.debug("Event received", msg);
 			this.broker.emitLocal(msg.event, msg.param);
 				
 			break;
 		}
+
+		// Request
 		case "REQ": {
 			if (!msg) {
 				return Promise.reject("Invalid request!");
@@ -122,6 +144,7 @@ class Transit {
 			break;
 		}
 
+		// Response
 		case "RES": {
 			let req = this.pendingRequests.get(msg.requestID);
 
@@ -157,6 +180,7 @@ class Transit {
 			break;
 		}
 
+		// Node info
 		case "INFO":
 		case "DISCOVER": {
 			this.logger.debug("Discovery received from " + msg.nodeID);
@@ -168,6 +192,7 @@ class Transit {
 			break;
 		}
 
+		// Disconnect
 		case "DISCONNECT": {
 			this.logger.debug(`Node '${msg.nodeID}' disconnected`);
 			this.broker.nodeDisconnected(msg.nodeID, msg);
@@ -175,6 +200,7 @@ class Transit {
 			break;
 		}
 
+		// Heartbeat
 		case "HEARTBEAT": {
 			this.logger.debug("Node heart-beat received from " + msg.nodeID);
 			this.broker.nodeHeartbeat(msg.nodeID, msg);
@@ -201,7 +227,7 @@ class Transit {
 		};
 		this.logger.debug("Emit Event", event);
 		let payload = utils.json2String(event);
-		this.tx.publish(["EVENT"], payload);
+		this.publish(["EVENT"], payload);
 	}
 
 	/**
@@ -232,17 +258,16 @@ class Transit {
 				action: ctx.action.name,
 				params: ctx.params
 			};
-			this.logger.debug(`Send request '${message.action}' action to '${ctx.nodeID}' node...`, message);
+			this.logger.debug(`Send request '${ctx.action.name}' action to '${ctx.nodeID}' node...`, message);
 			let payload = utils.json2String(message);
 
 			// Handle request timeout
 			if (opts.timeout > 0) {
-				// Jest mock: http://facebook.github.io/jest/docs/timer-mocks.html#run-all-timers
 				req.timer = setTimeout(() => {
 					// Remove from pending requests
 					this.pendingRequests.delete(ctx.id);
 
-					this.logger.warn(`Request timed out when call '${message.action}' action on '${ctx.nodeID}' node! (timeout: ${opts.timeout / 1000} sec)`, message);
+					this.logger.warn(`Request timed out when call '${ctx.action.name}' action on '${ctx.nodeID}' node! (timeout: ${opts.timeout / 1000} sec)`, message);
 					
 					reject(new RequestTimeoutError(message, ctx.nodeID));
 				}, opts.timeout);
@@ -250,12 +275,24 @@ class Transit {
 				req.timer.unref();
 			}
 
+			// Add to pendings
 			this.pendingRequests.set(ctx.id, req);
 
-			this.tx.publish(["REQ", ctx.nodeID], payload);
+			// Publish request
+			this.publish(["REQ", ctx.nodeID], payload);
 		});
 	}
 
+	/**
+	 * Send back the response of request
+	 * 
+	 * @param {String} nodeID 
+	 * @param {String} requestID 
+	 * @param {Error} err 
+	 * @param {any} data 
+	 * 
+	 * @memberOf Transit
+	 */
 	sendResponse(nodeID, requestID, err, data) {
 		let msg = {
 			success: !err,
@@ -272,14 +309,14 @@ class Transit {
 			};
 		}
 		let payload = utils.json2String(msg);
-		this.logger.debug(`Response to ${nodeID}`, /*message.action, message.params,*/ "Length: ", payload.length, "bytes");
-		this.tx.publish(["RES", nodeID], payload);
+		this.logger.debug(`Response to ${nodeID}`, "Length: ", payload.length, "bytes");
+
+		// Publish the response
+		return this.publish(["RES", nodeID], payload);
 	}	
 
 	/**
 	 * Discover other nodes. It will be called after success connect.
-	 * 
-	 * @returns
 	 * 
 	 * @memberOf Transit
 	 */
@@ -289,7 +326,7 @@ class Transit {
 			nodeID: this.broker.nodeID,
 			actions: actionList
 		});
-		return this.tx.publish(["DISCOVER"] , payload);
+		return this.publish(["DISCOVER"], payload);
 	}
 
 	/**
@@ -303,7 +340,7 @@ class Transit {
 			nodeID: this.broker.nodeID,
 			actions: actionList
 		});
-		return this.tx.publish(["INFO"] , payload);
+		return this.publish(["INFO"], payload);
 	}
 
 	/**
@@ -315,9 +352,31 @@ class Transit {
 		let payload = utils.json2String({
 			nodeID: this.broker.nodeID
 		});
-		this.tx.publish(["HEARTBEAT"] , payload);
+		this.publish(["HEARTBEAT"], payload);
 	}
 
+	/**
+	 * Subscribe via transporter
+	 * 
+	 * @param {Array} topic 
+	 * 
+	 * @memberOf NatsTransporter
+	 */
+	subscribe(topic) {
+		return this.tx.subscribe(topic);
+	}
+
+	/**
+	 * Publish via transporter
+	 * 
+	 * @param {Array} topic 
+	 * @param {String} packet 
+	 * 
+	 * @memberOf NatsTransporter
+	 */
+	publish(topic, packet) {
+		return this.tx.publish(topic, packet);
+	}
 }
 
 module.exports = Transit;
