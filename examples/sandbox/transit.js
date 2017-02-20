@@ -5,6 +5,7 @@ let { delay } = require("../../src/utils");
 let ServiceBroker = require("../../src/service-broker");
 let NatsTransporter = require("../../src/transporters/nats");
 let MqttTransporter = require("../../src/transporters/mqtt");
+let RedisTransporter = require("../../src/transporters/redis");
 
 // --- NODE 1 ---
 
@@ -12,7 +13,8 @@ let MqttTransporter = require("../../src/transporters/mqtt");
 let b1 = new ServiceBroker({
 	nodeID: "node-1",
 	//transporter: new NatsTransporter(),
-	transporter: new MqttTransporter("mqtt://192.168.51.49"),
+	//transporter: new MqttTransporter("mqtt://192.168.51.49"),
+	transporter: new RedisTransporter("redis://192.168.51.49"),
 	logger: console,
 	logLevel: "debug",
 	//requestTimeout: 5 * 1000,
@@ -35,7 +37,8 @@ b1.on("TEST2", a => {
 let b2 = new ServiceBroker({
 	nodeID: "node-2",
 //	transporter: new NatsTransporter(),
-	transporter: new MqttTransporter("mqtt://192.168.51.49"),
+//	transporter: new MqttTransporter("mqtt://192.168.51.49"),
+	transporter: new RedisTransporter("redis://192.168.51.49"),
 	logger: console,
 	logLevel: "debug",
 	//requestTimeout: 5 * 1000,

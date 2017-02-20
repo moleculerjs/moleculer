@@ -8,5 +8,6 @@
 
 module.exports = {
 	NATS: require("./nats"),
-	MQTT: require("./mqtt")
+	MQTT: require("./mqtt"),
+	Redis: require("./redis")
 };
