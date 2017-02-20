@@ -1,5 +1,5 @@
 <!--
- ![Moleculer logo](docs/assets/logo-moleculer.png)
+ ![Moleculer logo](docs/assets/logo.png)
 
 [![Build Status](https://travis-ci.org/ice-services/moleculer.svg?branch=master)](https://travis-ci.org/ice-services/moleculer)
 [![Coverage Status](https://coveralls.io/repos/github/ice-services/ice-services/badge.svg?branch=master)](https://coveralls.io/github/ice-services/ice-services?branch=master)
