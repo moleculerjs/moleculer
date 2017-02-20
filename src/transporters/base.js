@@ -25,6 +25,7 @@ class BaseTransporter {
 	 */
 	constructor(opts) {
 		this.opts = opts || {};
+		this.connected = false;
 
 		this.prefix = "MOL";
 		
@@ -54,7 +55,7 @@ class BaseTransporter {
 	 */
 	connect() {
 		/* istanbul ignore next */
-		return Promise.resolve();
+		throw new Error("Not implemented!");
 	}
 
 	/**
@@ -63,7 +64,7 @@ class BaseTransporter {
 	 * @memberOf BaseTransporter
 	 */
 	disconnect() {
-		return Promise.resolve();
+		throw new Error("Not implemented!");
 	}
 
 	subscribe(topic) {

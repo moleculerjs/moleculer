@@ -37,6 +37,7 @@ class FakeTransporter extends Transporter {
 		
 		// Local event bus
 		this.bus = global.bus;
+		this.connected = true;
 	}
 
 	/**

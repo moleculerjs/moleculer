@@ -82,9 +82,8 @@ class Transit {
 		this.logger.debug("Send DISCONNECT to nodes", message);
 		let payload = utils.json2String(message);
 
-		return new Promise(resolve => {
-			this.publish([TOPIC_DISCONNECT] , payload, resolve);
-		});
+		this.publish([TOPIC_DISCONNECT], payload);
+		return Promise.resolve();
 	}
 
 	/**
