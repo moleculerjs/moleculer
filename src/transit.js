@@ -148,7 +148,12 @@ class Transit {
 		if (packet)
 			msg = utils.string2Json(packet);
 
-		if (msg.nodeID == this.nodeID) return; 
+		// Check payload
+		if (!msg) {
+			throw new Error("Missing response payload!");
+		}
+
+		if (msg.nodeID == this.nodeID) return Promise.resolve(); 
 
 		switch(topic[0]) {
 
@@ -157,7 +162,7 @@ class Transit {
 			this.logger.debug("Event received", msg);
 			this.broker.emitLocal(msg.event, msg.param);
 				
-			break;
+			return;
 		}
 
 		// Request
@@ -167,11 +172,9 @@ class Transit {
 			}
 			this.logger.debug(`Request from ${msg.nodeID}.`, msg.action, msg.params);
 
-			this.broker.call(msg.action, msg.params)
+			return this.broker.call(msg.action, msg.params)
 				.then(res => this.sendResponse(msg.nodeID, msg.requestID,  res))
 				.catch(err => this.sendResponse(msg.nodeID, msg.requestID, null, err));
-			
-			break;
 		}
 
 		// Response
@@ -179,7 +182,10 @@ class Transit {
 			let req = this.pendingRequests.get(msg.requestID);
 
 			// If not exists (timed out), we skip to process the response
-			if (!req) break;
+			if (!req) return Promise.resolve();
+
+			// Remove pending request
+			this.pendingRequests.delete(msg.requestID);
 
 			// Stop timeout timer
 			if (req.timer) {
@@ -187,16 +193,7 @@ class Transit {
 				clearTimeout(req.timer);
 			}
 
-			// Check payload
-			if (!msg) {
-				/* istanbul ignore next */
-				req.reject(new Error("Missing response payload!"));
-				break;
-			}
-			
-			if (msg.success) {
-				req.resolve(msg.data);
-			} else {
+			if (!msg.success) {
 				// Recreate exception object
 				let err = new Error(msg.error.message + ` (NodeID: ${msg.nodeID})`);
 				err.name = msg.error.name;
@@ -204,10 +201,10 @@ class Transit {
 				err.nodeID = msg.nodeID;
 				err.data = msg.error.data;
 
-				req.reject(err);
+				return req.reject(err);
 			}
 
-			break;
+			return req.resolve(msg.data);
 		}
 
 		// Node info
@@ -219,7 +216,7 @@ class Transit {
 			if (topic[0] == "DISCOVER")
 				this.sendNodeInfo();
 
-			break;
+			return;
 		}
 
 		// Disconnect
@@ -227,7 +224,7 @@ class Transit {
 			this.logger.debug(`Node '${msg.nodeID}' disconnected`);
 			this.broker.nodeDisconnected(msg.nodeID, msg);
 
-			break;
+			return;
 		}
 
 		// Heartbeat
@@ -235,7 +232,7 @@ class Transit {
 			this.logger.debug("Node heart-beat received from " + msg.nodeID);
 			this.broker.nodeHeartbeat(msg.nodeID, msg);
 
-			break;
+			return;
 		}
 		}
 	}
