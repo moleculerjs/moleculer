@@ -6,6 +6,9 @@
 
 "use strict";
 
+// Prefix for logger
+const LOG_PREFIX = "TX";
+
 /**
  * Base Transporter class
  * 
@@ -23,7 +26,7 @@ class BaseTransporter {
 	constructor(opts) {
 		this.opts = opts || {};
 
-		this.prefix = "SVC";
+		this.prefix = "MOL";
 		
 		if (this.opts.prefix) {
 			this.prefix = this.opts.prefix;
@@ -40,7 +43,7 @@ class BaseTransporter {
 	init(broker, messageHandler) {
 		this.broker = broker;
 		this.nodeID = broker.nodeID;
-		this.logger = broker.getLogger("TX");
+		this.logger = broker.getLogger("LOG_PREFIX");
 		this.messageHandler = messageHandler;
 	}
 

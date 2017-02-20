@@ -10,8 +10,10 @@ const Promise		= require("bluebird");
 const utils 		= require("./utils");
 const { RequestTimeoutError } = require("./errors");
 
+// Prefix for logger
 const LOG_PREFIX = "TRANSIT";
 
+// Topic names
 const TOPIC_EVENT = "EVENT";
 const TOPIC_REQ = "REQ";
 const TOPIC_RES = "RES";
