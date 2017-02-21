@@ -1,6 +1,8 @@
 const ServiceBroker = require("../../src/service-broker");
 const FakeTransporter = require("../../src/transporters/fake");
 
+const { isPromise } = require("../../src/utils");
+
 describe("Test FakeTransporter", () => {
 
 	it("check constructor", () => {
@@ -9,6 +11,13 @@ describe("Test FakeTransporter", () => {
 		expect(trans.connected).toBeTruthy();
 		expect(trans.bus).toBeDefined();
 	});
+
+	it("check connect", () => {
+		let trans = new FakeTransporter();
+		let p = trans.connect();
+		expect(isPromise(p)).toBeTruthy();
+		return p;
+	});	
 
 	it("check subscribe", () => {
 		let opts = { prefix: "TEST" };
