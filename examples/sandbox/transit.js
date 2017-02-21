@@ -13,8 +13,8 @@ let FakeTransporter = require("../../src/transporters/fake");
 // Create broker
 let b1 = new ServiceBroker({
 	nodeID: "node-1",
-	//transporter: new NatsTransporter({ nats: "nats://127.0.0.1:4222"}),
-	transporter: new MqttTransporter(),
+	transporter: new NatsTransporter({ nats: "nats://127.0.0.1:4222"}),
+	//transporter: new MqttTransporter(),
 	//transporter: new RedisTransporter(),
 	//transporter: new FakeTransporter(),
 	logger: console,
@@ -38,8 +38,8 @@ b1.on("TEST2", a => {
 // Create broker
 let b2 = new ServiceBroker({
 	nodeID: "node-2",
-	//transporter: new NatsTransporter("nats://localhost:4222"),
-	transporter: new MqttTransporter(),
+	transporter: new NatsTransporter("nats://localhost:4222"),
+	//transporter: new MqttTransporter(),
 	//transporter: new RedisTransporter("redis://127.0.0.1"),
 	//transporter: new FakeTransporter(),
 	logger: console,
