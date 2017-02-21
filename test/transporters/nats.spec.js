@@ -1,5 +1,3 @@
-const utils = require("../../src/utils");
-const Context = require("../../src/context");
 const ServiceBroker = require("../../src/service-broker");
 
 jest.mock("nats");
