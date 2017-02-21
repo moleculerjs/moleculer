@@ -102,7 +102,8 @@ class NatsTransporter extends Transporter {
 	 */
 	subscribe(topic) {
 		this.client.subscribe([this.prefix].concat(topic), (msg, reply, subject) => {
-			this.messageHandler(subject.slice(1), msg);
+			let t = subject.split(",").slice(1);
+			this.messageHandler(t, msg);
 		});
 	}
 

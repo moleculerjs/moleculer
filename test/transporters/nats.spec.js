@@ -75,7 +75,7 @@ describe("Test NatsTransporter subscribe & publish", () => {
 		expect(trans.client.subscribe).toHaveBeenCalledWith(["TEST", "REQ", "node"], jasmine.any(Function));
 
 		// Test subscribe callback
-		subCb("incoming data", null, ["prefix", "test", "name"]);
+		subCb("incoming data", null, "prefix,test,name");
 		expect(msgHandler).toHaveBeenCalledTimes(1);
 		expect(msgHandler).toHaveBeenCalledWith(["test", "name"], "incoming data");
 	});
