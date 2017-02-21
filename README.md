@@ -51,7 +51,7 @@ $ yarn add moleculer
 ```js
 "use strict";
 
-const { ServiceBroker, Service } = require("moleculer");
+const { ServiceBroker } = require("moleculer");
 
 // Create broker
 let broker = new ServiceBroker({ 
@@ -83,12 +83,12 @@ broker.call("math.add", { a: 5, b: 3 })
 
 // Call actions with error handling
 broker.call("math.sub", { a: 9, b: 2 })
-    .then(res => console.log("9 - 2 =", res));
+    .then(res => console.log("9 - 2 =", res))
     .catch(err => console.error(`Error occured! ${err.message}`));
 
 // Chain calls
 broker.call("math.add", { a: 3, b: 5})
-    .then(res => broker.call("math.sub", { a: res, b: 2 }));
+    .then(res => broker.call("math.sub", { a: res, b: 2 }))
     .then(res => console.log("3 + 5 - 2 =", res));
 ```
 
