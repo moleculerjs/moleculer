@@ -27,6 +27,9 @@ class RedisTransporter extends Transporter {
 	constructor(opts) {
 		super(opts);
 		
+		if (typeof this.opts == "string")
+			this.opts = { redis: this.opts };
+		
 		this.clientPub = null;
 		this.clientSub = null;
 	}
@@ -39,8 +42,8 @@ class RedisTransporter extends Transporter {
 	connect() {
 		return new Promise((resolve, reject) => {
 			let Redis = require("ioredis");
-			this.clientSub = new Redis(this.opts);
-			this.clientPub = new Redis(this.opts);
+			this.clientSub = new Redis(this.opts.redis);
+			this.clientPub = new Redis(this.opts.redis);
 
 			this.clientSub.on("connect", () => {
 				this.logger.info("Redis-sub connected!");

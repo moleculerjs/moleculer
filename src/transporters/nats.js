@@ -29,6 +29,9 @@ class NatsTransporter extends Transporter {
 	constructor(opts) {
 		super(opts);
 		
+		if (typeof this.opts == "string")
+			this.opts = { nats: this.opts };
+		
 		this.client = null;
 	}
 
@@ -40,7 +43,7 @@ class NatsTransporter extends Transporter {
 	connect() {
 		return new Promise((resolve, reject) => {
 			let Nats = require("nats");
-			this.client = Nats.connect(this.opts);
+			this.client = Nats.connect(this.opts.nats);
 
 			this.client.on("connect", () => {
 				this.logger.info("NATS connected!");

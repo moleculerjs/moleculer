@@ -26,6 +26,9 @@ class MqttTransporter extends Transporter {
 	 */
 	constructor(opts) {
 		super(opts);
+
+		if (typeof this.opts == "string")
+			this.opts = { mqtt: this.opts };
 		
 		this.client = null;
 	}
@@ -38,7 +41,7 @@ class MqttTransporter extends Transporter {
 	connect() {
 		return new Promise((resolve, reject) => {
 			let mqtt = require("mqtt");
-			this.client = mqtt.connect(this.opts);
+			this.client = mqtt.connect(this.opts.mqtt);
 
 			this.client.on("connect", () => {
 				this.logger.info("MQTT connected!");
