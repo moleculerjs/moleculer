@@ -44,7 +44,7 @@ describe("Test RedisTransporter connect & disconnect", () => {
 			expect(trans.clientPub.on).toHaveBeenCalledTimes(3);
 			expect(trans.clientPub.on).toHaveBeenCalledWith("connect", jasmine.any(Function));
 			expect(trans.clientPub.on).toHaveBeenCalledWith("error", jasmine.any(Function));
-			expect(trans.clientSub.on).toHaveBeenCalledWith("close", jasmine.any(Function));
+			expect(trans.clientPub.on).toHaveBeenCalledWith("close", jasmine.any(Function));
 		});
 
 		trans.clientSub.onCallbacks.connect();
