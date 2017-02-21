@@ -92,6 +92,22 @@ broker.call("math.add", { a: 3, b: 5})
     .then(res => console.log("3 + 5 - 2 =", res));
 ```
 
+# How fast?
+We [tested](https://github.com/icebob/microservices-benchmark) some other frameworks and measured the local request times. The result is:
+```
+Suite: Call local actions
+√ Seneca x 5,342 ops/sec ±2.64% (72 runs sampled)
+√ Hemera x 1,643 ops/sec ±3.80% (76 runs sampled)
+√ Nanoservices x 31,902 ops/sec ±0.56% (83 runs sampled)
+√ Moleculer x 239,099 ops/sec ±2.69% (81 runs sampled)
+
+   Seneca         -97.77%      (5,342 ops/sec)
+   Hemera         -99.31%      (1,643 ops/sec)
+   Nanoservices   -86.66%     (31,902 ops/sec)
+   Moleculer        0.00%    (239,099 ops/sec)
+```
+[![Result chart](https://cloud.highcharts.com/images/utideti/800.png)](http://cloud.highcharts.com/show/utideti)
+
 # Main modules
 
 ## ServiceBroker
