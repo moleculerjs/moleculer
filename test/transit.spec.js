@@ -417,9 +417,9 @@ describe("Test Transit.sendNodeInfo", () => {
 	transit.publish = jest.fn();
 
 	it("should call publish with correct params", () => {
-		transit.sendNodeInfo();
+		transit.sendNodeInfo("node2");
 		expect(transit.publish).toHaveBeenCalledTimes(1);
-		expect(transit.publish).toHaveBeenCalledWith(["INFO"], "{\"nodeID\":\"node1\",\"actions\":{}}");
+		expect(transit.publish).toHaveBeenCalledWith(["INFO", "node2"], "{\"nodeID\":\"node1\",\"actions\":{}}");
 	});
 
 });

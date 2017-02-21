@@ -211,7 +211,7 @@ class Transit {
 			this.broker.processNodeInfo(msg.nodeID, msg);
 
 			if (topic[0] == "DISCOVER")
-				this.sendNodeInfo();
+				this.sendNodeInfo(msg.nodeID);
 
 			return;
 		}
@@ -338,13 +338,13 @@ class Transit {
 	 * 
 	 * @memberOf Transit
 	 */
-	sendNodeInfo() {
+	sendNodeInfo(targetNodeID) {
 		let actionList = this.broker.getLocalActionList();
 		let payload = utils.json2String({
 			nodeID: this.broker.nodeID,
 			actions: actionList
 		});
-		return this.publish([TOPIC_INFO], payload);
+		return this.publish([TOPIC_INFO, targetNodeID], payload);
 	}
 
 	/**
