@@ -1,4 +1,4 @@
-let { ServiceBroker} = require("moleculer");
+let { ServiceBroker } = require("moleculer");
 
 // Create a broker
 let broker = new ServiceBroker();

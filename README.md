@@ -90,6 +90,7 @@ broker.call("math.add", { a: 3, b: 5})
     .then(res => broker.call("math.sub", { a: res, b: 2 }))
     .then(res => console.log("3 + 5 - 2 =", res));
 ```
+[Try it on Runkit](https://runkit.com/icebob/moleculer-quick-start)
 
 # How fast?
 We [tested](https://github.com/icebob/microservices-benchmark) some other frameworks and measured the local request times. The result is:
