@@ -177,10 +177,10 @@ All available options:
 
 | Name | Type | Default | Description |
 | ------- | ----- | ------- | ------- |
-| `nodeID` | `String` | Computer name | This is the ID of node. It's related to communication when you have 2 or more nodes. |
-| `logger` | `Object` | `null` | Logger class. Under development or test you can set to `console`. In production you can set an external logger e.g. `winston` |
+| `nodeID` | `String` | Computer name | This is the ID of node. It identifies a node in the cluster when there are many nodes. |
+| `logger` | `Object` | `null` | Logger class. During development you can set to `console`. In production you can set an external logger e.g. [winston](https://github.com/winstonjs/winston) or [pino](https://github.com/pinojs/pino) |
 | `logLevel` | `String` or `Object` | `info` | Level of logging (debug, info, warn, error) |
-| `transporter` | `Object` | `null` | Instance of transporter. Need if you have 2 or more nodes. Internal transporters: [NatsTransporter](#nats-transporter)  |
+| `transporter` | `Object` | `null` | Instance of transporter. Required if you have 2 or more nodes. Internal transporters: [NatsTransporter](#nats-transporter)  |
 | `requestTimeout` | `Number` | `15000` | Timeout of request in milliseconds. If the request is timed out, broker will throw a `RequestTimeout` error. Disable: 0 |
 | `requestRetry` | `Number` | `0` | Count of retry of request. If the request is timed out, broker will try to call again. |
 | `cacher` | `Object` | `null` | Instance of cacher. Built-in cachers: [MemoryCacher](#memory-cacher) or [RedisCacher](#redis-cacher) |
@@ -191,21 +191,21 @@ All available options:
 | `internalActions` | `Boolean` | `true` | Register internal actions for metrics & statistics functions |
 | `sendHeartbeatTime` | `Number` | `10` | ??? |
 | `nodeHeartbeatTimeout` | `Number` | `30` | ??? |
-| `ServiceFactory` | `Class` | `null` | Custom Service class. Broker will use it when create a service |
-| `ContextFactory` | `Class` | `null` | Custom Context class. Broker will use it when create a context at call |
+| `ServiceFactory` | `Class` | `null` | Custom Service class. Broker will use it when creating a service |
+| `ContextFactory` | `Class` | `null` | Custom Context class. Broker will use it when creating a context at call |
 
 ## Call actions
-You can call an action with the `broker.call` method. Broker will search which service (and which node) has the action and calls it. The function returns with a Promise.
+You can call an action by calling the `broker.call` method. Broker will search the service (and the node) that has the given action and it will call it. The function returns with a `Promise`.
 
 ### Syntax
 ```js
 let promise = broker.call(actionName, params, opts);
 ```
-The `actionName` is a dot-separated string. The first part of it is the name of service. The seconds part of it is the name of action. So if you have a `posts` service which contains a `create` action, you need to use `posts.create` string as first parameter.
+The `actionName` is a dot-separated string. The first part of it is service name. The seconds part of it is action name. So if you have a `posts` service which contains a `create` action, you need to use `posts.create` string as first parameter.
 
-The `params` is an object, which pass to the action in a [Context](#context)
+The `params` is an object that will be passed to the action as part of the [Context](#context).
 
-The `opts` is an object. With this, you can set/override some request parameters, e.g.: `timeout`, `retryCount`
+The `opts` is an object. With this, you can set/override some request parameters, e.g.: `timeout`, `retryCount`.
 
 Available options:
 
@@ -240,16 +240,16 @@ But if you set `fallbackResponse` in calling options, broker won't throw error, 
 This can be also a `Function`, which returns a `Promise`. The broker will pass the current `Context` to this function as an argument.
 
 ## Emit events
-Broker has an internal event bus. You can send events to local & global.
+Broker has an internal event bus. You can send events locally & globally.
 
 ### Send event
 You can send event with `emit` and `emitLocal` functions. First parameter is the name of event. Second parameter is the payload. 
 
 ```js
-// Emit a local event. Only receive the local services
+// Emit a local event that will be received only by local services
 broker.emitLocal("service.started", { service: service, version: 1 });
 
-// Emit a global event. It will be send to all nodes via transporter. 
+// Emit a global event that will be received by all nodes. 
 // The `user` will be serialized with JSON.stringify
 broker.emit("user.created", user);
 ```
@@ -288,10 +288,10 @@ return function validatorMiddleware(handler, action) {
 }.bind(this);
 ```
 
-The `handler` is the handler of action, what is defined in [Service](#service) schema. The `action` is the action object from Service schema. The middleware should return with the `handler` or a new wrapped handler. In this example above, we check the action has a `params` props. If yes, we wrap the handler. Create a new handler, what calls the validator function and calls the original `handler`. 
-If no `params` prop, we return the original `handler`.
+The `handler` is the handler of action, what is defined in [Service](#service) schema. The `action` is the action object from Service schema. The middleware should return with the `handler` or a new wrapped handler. In this example above, we check whether the action has a `params` props. If yes we return a wrapped handler that calls the validator before calling the original `handler`. 
+If there is no `params` property we return the original `handler`.
 
-If you don't call the original `handler`, it will break the request. You can use it in cachers. If you find the data in cache, don't call the handler, instead return the cached data.
+If you don't call the original `handler` it will break the request. You can use it in cachers. If you find the data in cache, don't call the handler, instead return the cached data.
 
 If you would like to do something with response after the success request, use the `ctx.after` function.
 
@@ -319,7 +319,7 @@ return (handler, action) => {
 ```
 
 ## Internal actions
-The broker registers some internal actions to check health of node or get request statistics.
+The broker registers some internal actions to check the health of node or get request statistics.
 
 ### List of local services
 This action lists name of local services.
@@ -1208,19 +1208,19 @@ Example statistics:
 Moleculer supports many architectures.
 
 ## Monolith architecture
-In this version you are running every services on one node in one broker. In this case every service can call other services locally. So there is no network latency and no transporter.
+In this version you are running every services on one node with one broker. In this case every service can call other services locally. So there is no network latency and no transporter.
 
-![](docs/assets/monolith-architecture.png)
+![Monolith architecture](docs/assets/monolith-architecture.png)
 
 ## Microservices architecture
 This is the well-known microservices architecture when every service running on individual nodes and communicates others via transporter.
 
-![](docs/assets/microservices-architecture.png)
+![Microservices architecture](docs/assets/microservices-architecture.png)
 
 ## Mixed architecture
 In this case we are running coherent services on the same node. For example, if the `posts` service calls many times the `users` service, we put them together, that we cut down the network latency. If this node is overloaded, we will create replicas.
 
-![](docs/assets/mixed-architecture.png)
+![Mixed architecture](docs/assets/mixed-architecture.png)
 
 # Best practices
 - service files
