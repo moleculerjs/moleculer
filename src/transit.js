@@ -169,11 +169,9 @@ class Transit {
 		case TOPIC_REQ: {
 			this.logger.debug(`Request from ${msg.nodeID}.`, msg.action, msg.params);
 
-			this.broker.call(msg.action, msg.params)
+			return this.broker.call(msg.action, msg.params)
 				.then(res => this.sendResponse(msg.nodeID, msg.requestID,  res))
 				.catch(err => this.sendResponse(msg.nodeID, msg.requestID, null, err));
-			
-			return;
 		}
 
 		// Response
@@ -181,7 +179,7 @@ class Transit {
 			let req = this.pendingRequests.get(msg.requestID);
 
 			// If not exists (timed out), we skip to process the response
-			if (!req) return;
+			if (!req) return Promise.resolve();
 
 			// Remove pending request
 			this.pendingRequests.delete(msg.requestID);
