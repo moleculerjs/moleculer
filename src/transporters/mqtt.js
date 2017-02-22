@@ -45,6 +45,7 @@ class MqttTransporter extends Transporter {
 
 			this.client.on("connect", () => {
 				this.logger.info("MQTT connected!");
+				this.connected = true;
 
 				resolve();
 			});

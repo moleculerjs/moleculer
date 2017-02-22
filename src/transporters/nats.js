@@ -47,6 +47,7 @@ class NatsTransporter extends Transporter {
 
 			this.client.on("connect", () => {
 				this.logger.info("NATS connected!");
+				this.connected = true;
 
 				resolve();
 			});

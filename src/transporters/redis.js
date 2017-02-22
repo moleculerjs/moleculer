@@ -51,6 +51,8 @@ class RedisTransporter extends Transporter {
 				this.clientPub.on("connect", () => {
 					this.logger.info("Redis-pub connected!");
 
+					this.connected = true;
+
 					resolve();
 				});
 			});
