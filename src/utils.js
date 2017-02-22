@@ -72,6 +72,7 @@ let utils = {
 			/* istanbul ignore next */
 			console.warn(err);
 		}
+		return null;
 	},
 
 	/**

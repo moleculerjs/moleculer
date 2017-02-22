@@ -31,8 +31,8 @@ describe("Test utils.getNodeID", () => {
 describe("Test utils.string2Json", () => {
 	let str = '{"a": 1, "b": [1,5,8], "c": "Test" }';
 	it("should give JS object", () => {
-		expect(utils.string2Json()).toBeUndefined();
-		expect(utils.string2Json("")).toBeUndefined();
+		expect(utils.string2Json()).toBeNull();
+		expect(utils.string2Json("")).toBeNull();
 		expect(utils.string2Json(str)).toEqual({
 			a: 1, 
 			b: [1,5,8],
