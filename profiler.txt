@@ -1,0 +1,498 @@
+Statistical profiling result from isolate-0000000000359600-v8.log, (8888 ticks, 350 unaccounted, 0 excluded).
+
+ [Shared libraries]:
+   ticks  total  nonlib   name
+   3677   41.4%          C:\Windows\SYSTEM32\ntdll.dll
+   3334   37.5%          c:\Program Files\nodejs\node.exe
+     36    0.4%          C:\Windows\system32\kernel32.dll
+     31    0.3%          C:\Windows\system32\KERNELBASE.dll
+      5    0.1%          C:\Windows\system32\WINMM.dll
+
+ [JavaScript]:
+   ticks  total  nonlib   name
+     47    0.5%    2.6%  Builtin: CallFunction_ReceiverIsNotNullOrUndefined
+     41    0.5%    2.3%  LazyCompile: *generateToken d:\Work\JS\moleculer\src\utils.js:18:15
+     39    0.4%    2.2%  LazyCompile: *<anonymous> d:\Work\JS\moleculer\node_modules\lodash\lodash.js:5117:22
+     37    0.4%    2.0%  LazyCompile: ~Promise d:\Work\JS\moleculer\src\transit.js:248:22
+     32    0.4%    1.8%  LazyCompile: invoke d:\Work\JS\moleculer\src\context.js:104:8
+     30    0.3%    1.7%  Stub: StringAddStub_CheckNone_NotTenured
+     30    0.3%    1.7%  KeyedLoadIC: A keyed load IC from the snapshot
+     29    0.3%    1.6%  Stub: CEntryStub
+     29    0.3%    1.6%  LazyCompile: *searchListenerTree d:\Work\JS\moleculer\node_modules\eventemitter2\lib\eventemitter2.js:70:30
+     28    0.3%    1.6%  LazyCompile: *EventEmitter.emit d:\Work\JS\moleculer\node_modules\eventemitter2\lib\eventemitter2.js:274:41
+     27    0.3%    1.5%  LazyCompile: *messageHandler d:\Work\JS\moleculer\src\transit.js:146:16
+     26    0.3%    1.4%  LazyCompile: *get native collection.js:239:16
+     24    0.3%    1.3%  LazyCompile: *call d:\Work\JS\moleculer\src\service-broker.js:590:6
+     23    0.3%    1.3%  LazyCompile: Join native array.js:172:14
+     23    0.3%    1.3%  LazyCompile: *baseMatches d:\Work\JS\moleculer\node_modules\lodash\lodash.js:3591:25
+     19    0.2%    1.1%  Builtin: CallFunction_ReceiverIsAny
+     18    0.2%    1.0%  LazyCompile: *sendResponse d:\Work\JS\moleculer\src\transit.js:299:14
+     18    0.2%    1.0%  LazyCompile: *Promise._settlePromise d:\Work\JS\moleculer\node_modules\bluebird\js\release\promise.js:540:44
+     18    0.2%    1.0%  LazyCompile: *Context d:\Work\JS\moleculer\src\context.js:30:13
+     16    0.2%    0.9%  LazyCompile: ~Promise.caught.Promise.catch d:\Work\JS\moleculer\node_modules\bluebird\js\release\promise.js:87:66
+     16    0.2%    0.9%  LazyCompile: *Timeout.unref timers.js:483:35
+     15    0.2%    0.8%  Builtin: ArgumentsAdaptorTrampoline
+     14    0.2%    0.8%  Stub: CompareICStub {5}
+     13    0.1%    0.7%  Stub: FastNewContextStub {1}
+     13    0.1%    0.7%  LazyCompile: *Promise._then d:\Work\JS\moleculer\node_modules\bluebird\js\release\promise.js:218:36
+     12    0.1%    0.7%  Stub: LoadICStub
+     12    0.1%    0.7%  LazyCompile: *DoJoin native array.js:129:16
+     12    0.1%    0.7%  Builtin: Call_ReceiverIsNotNullOrUndefined
+     11    0.1%    0.6%  Stub: StringEqualStub
+     11    0.1%    0.6%  Stub: FastNewClosureStub
+     11    0.1%    0.6%  LazyCompile: ~broker.call.then.res d:\Work\JS\moleculer\src\transit.js:173:11
+     11    0.1%    0.6%  LazyCompile: *publish d:\Work\JS\moleculer\src\transit.js:380:9
+     11    0.1%    0.6%  LazyCompile: *insert timers.js:119:16
+     11    0.1%    0.6%  LazyCompile: *Promise._settlePromiseFromHandler d:\Work\JS\moleculer\node_modules\bluebird\js\release\promise.js:494:56
+     10    0.1%    0.6%  LazyCompile: Promise._execute d:\Work\JS\moleculer\node_modules\bluebird\js\release\debuggability.js:298:38
+     10    0.1%    0.6%  LazyCompile: *delete native collection.js:300:19
+      9    0.1%    0.5%  Stub: InternalArraySingleArgumentConstructorStub
+      9    0.1%    0.5%  Stub: FastNewStrictArgumentsStub
+      9    0.1%    0.5%  Stub: FastNewContextStub
+      9    0.1%    0.5%  LazyCompile: string2Json d:\Work\JS\moleculer\src\utils.js:66:13
+      9    0.1%    0.5%  LazyCompile: *resolve d:\Work\JS\moleculer\node_modules\benchmark\benchmark.js:716:21
+      9    0.1%    0.5%  LazyCompile: *Promise._resolveCallback d:\Work\JS\moleculer\node_modules\bluebird\js\release\promise.js:426:46
+      9    0.1%    0.5%  LazyCompile: *Async._drainQueue d:\Work\JS\moleculer\node_modules\bluebird\js\release\async.js:129:39
+      9    0.1%    0.5%  Handler: process
+      8    0.1%    0.4%  Stub: InstanceOfStub
+      8    0.1%    0.4%  Stub: FastNewObjectStub
+      8    0.1%    0.4%  Stub: FastNewClosureStub {2}
+      8    0.1%    0.4%  LazyCompile: *_finishInvoke d:\Work\JS\moleculer\src\context.js:176:15
+      8    0.1%    0.4%  LazyCompile: *Object native v8natives.js:612:27
+      8    0.1%    0.4%  Function: <anonymous> :1:10
+      8    0.1%    0.4%  Builtin: Call_ReceiverIsNullOrUndefined
+      8    0.1%    0.4%  Builtin: CallFunction_ReceiverIsNullOrUndefined
+      7    0.1%    0.4%  Stub: LoadConstantStub
+      7    0.1%    0.4%  LazyCompile: ~createTimersList timers.js:138:26
+      7    0.1%    0.4%  LazyCompile: ~checkForgottenReturns d:\Work\JS\moleculer\node_modules\bluebird\js\release\debuggability.js:417:31
+      7    0.1%    0.4%  LazyCompile: ~<anonymous> d:\Work\JS\moleculer\node_modules\lodash\lodash.js:6406:22
+      7    0.1%    0.4%  LazyCompile: *split native string.js:280:23
+      7    0.1%    0.4%  LazyCompile: *_remoteCall d:\Work\JS\moleculer\src\service-broker.js:643:13
+      7    0.1%    0.4%  LazyCompile: *Promise._addCallbacks d:\Work\JS\moleculer\node_modules\bluebird\js\release\promise.js:380:44
+      7    0.1%    0.4%  Handler: An IC handler from the snapshot {1}
+      6    0.1%    0.3%  Stub: LoadConstantStub {4}
+      6    0.1%    0.3%  Stub: FastCloneShallowArrayStub
+      6    0.1%    0.3%  Stub: BinaryOpWithAllocationSiteStub
+      6    0.1%    0.3%  LazyCompile: ~stringify native json.js:176:23
+      6    0.1%    0.3%  LazyCompile: ~cycle d:\Work\JS\moleculer\node_modules\benchmark\benchmark.js:1984:19
+      6    0.1%    0.3%  LazyCompile: ~createSingleTimeout timers.js:346:29
+      6    0.1%    0.3%  LazyCompile: tryCatcher d:\Work\JS\moleculer\node_modules\bluebird\js\release\util.js:12:20
+      6    0.1%    0.3%  LazyCompile: *tryConvertToPromise d:\Work\JS\moleculer\node_modules\bluebird\js\release\thenables.js:7:29
+      6    0.1%    0.3%  LazyCompile: *request d:\Work\JS\moleculer\src\transit.js:247:9
+      6    0.1%    0.3%  LazyCompile: *fn d:\Work\JS\moleculer\node_modules\benchmarkify\index.js:45:7
+      6    0.1%    0.3%  Handler: An IC handler from the snapshot {2}
+      5    0.1%    0.3%  Stub: VectorKeyedStoreICStub
+      5    0.1%    0.3%  Stub: TypeofStub
+      5    0.1%    0.3%  Stub: ToStringStub
+      5    0.1%    0.3%  Stub: ToBooleanICStub
+      5    0.1%    0.3%  Stub: RecordWriteStub
+      5    0.1%    0.3%  Stub: LoadFieldStub {4}
+      5    0.1%    0.3%  Stub: LoadConstantStub {5}
+      5    0.1%    0.3%  Stub: GrowArrayElementsStub
+      5    0.1%    0.3%  Stub: FastNewClosureStub {1}
+      5    0.1%    0.3%  Stub: CompareICStub {4}
+      5    0.1%    0.3%  LazyCompile: *warnings d:\Work\JS\moleculer\node_modules\bluebird\js\release\debuggability.js:893:23
+      5    0.1%    0.3%  LazyCompile: *exports.setTimeout timers.js:325:30
+      5    0.1%    0.3%  LazyCompile: *_startInvoke d:\Work\JS\moleculer\src\context.js:163:14
+      5    0.1%    0.3%  LazyCompile: *_localCall d:\Work\JS\moleculer\src\service-broker.js:626:12
+      5    0.1%    0.3%  LazyCompile: *Timeout timers.js:456:17
+      5    0.1%    0.3%  KeyedLoadIC: A keyed load IC from the snapshot {1}
+      5    0.1%    0.3%  Handler: _startInvoke
+      5    0.1%    0.3%  Handler: _list
+      4    0.0%    0.2%  Stub: LoadConstantStub {3}
+      4    0.0%    0.2%  Stub: InternalArrayConstructorStub
+      4    0.0%    0.2%  Stub: EqualStub
+      4    0.0%    0.2%  Stub: CallConstructStub
+      4    0.0%    0.2%  Stub: CallApiCallbackStub {1}
+      4    0.0%    0.2%  Stub: CallApiCallbackStub
+      4    0.0%    0.2%  LazyCompile: ~EventEmitter.emit d:\Work\JS\moleculer\node_modules\eventemitter2\lib\eventemitter2.js:274:41
+      4    0.0%    0.2%  LazyCompile: ~<anonymous> d:\Work\JS\moleculer\node_modules\bluebird\js\release\promise.js:481:45
+      4    0.0%    0.2%  LazyCompile: getThen d:\Work\JS\moleculer\node_modules\bluebird\js\release\thenables.js:38:17
+      4    0.0%    0.2%  LazyCompile: *set native collection.js:252:16
+      4    0.0%    0.2%  LazyCompile: *join native array.js:347:19
+      4    0.0%    0.2%  LazyCompile: *has d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:13146:17
+      4    0.0%    0.2%  LazyCompile: *Promise.cast d:\Work\JS\moleculer\node_modules\bluebird\js\release\promise.js:191:25
+      4    0.0%    0.2%  Handler: undefined
+      4    0.0%    0.2%  Handler: then
+      4    0.0%    0.2%  Handler: _finishInvoke
+      4    0.0%    0.2%  Handler: JSON
+      4    0.0%    0.2%  Handler: An IC handler from the snapshot {6}
+      4    0.0%    0.2%  Builtin: Call_ReceiverIsAny
+      4    0.0%    0.2%  Builtin: ArrayConcat
+      3    0.0%    0.2%  Stub: StoreFieldStub {1}
+      3    0.0%    0.2%  Stub: LoadFieldStub {5}
+      3    0.0%    0.2%  Stub: LoadFieldStub {2}
+      3    0.0%    0.2%  Stub: FastCloneShallowObjectStub
+      3    0.0%    0.2%  Stub: CompareICStub {7}
+      3    0.0%    0.2%  Stub: CompareICStub {3}
+      3    0.0%    0.2%  LazyCompile: ~on d:\Work\JS\moleculer\node_modules\benchmark\benchmark.js:1307:16
+      3    0.0%    0.2%  LazyCompile: ~exports.active timers.js:103:41
+      3    0.0%    0.2%  LazyCompile: ~<anonymous> d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:2761:33
+      3    0.0%    0.2%  LazyCompile: ~<anonymous> :4:16
+      3    0.0%    0.2%  LazyCompile: tryOnTimeout timers.js:233:22
+      3    0.0%    0.2%  LazyCompile: *TimersList timers.js:153:20
+      3    0.0%    0.2%  LazyCompile: *Promise._settlePromiseCtx d:\Work\JS\moleculer\node_modules\bluebird\js\release\promise.js:603:47
+      3    0.0%    0.2%  LazyCompile: *InnerArrayJoin native array.js:334:24
+      3    0.0%    0.2%  KeyedStoreIC: A keyed store IC from the snapshot {1}
+      3    0.0%    0.2%  KeyedStoreIC: A keyed store IC from the snapshot
+      3    0.0%    0.2%  Handler: setTimeout {1}
+      3    0.0%    0.2%  Handler: request
+      3    0.0%    0.2%  Handler: publish
+      3    0.0%    0.2%  Handler: complete {1}
+      3    0.0%    0.2%  Handler: An IC handler from the snapshot {9}
+      3    0.0%    0.2%  Handler: An IC handler from the snapshot {7}
+      3    0.0%    0.2%  Handler: An IC handler from the snapshot {5}
+      3    0.0%    0.2%  Handler: An IC handler from the snapshot {11}
+      3    0.0%    0.2%  Builtin: JSConstructStubGeneric
+      3    0.0%    0.2%  Builtin: DateNow
+      3    0.0%    0.2%  Builtin: ConstructFunction
+      3    0.0%    0.2%  Builtin: Construct
+      3    0.0%    0.2%  Builtin: Apply
+      2    0.0%    0.1%  Stub: ToBooleanICStub(String)
+      2    0.0%    0.1%  Stub: ToBooleanICStub(Null)
+      2    0.0%    0.1%  Stub: StoreFieldStub {3}
+      2    0.0%    0.1%  Stub: StoreFieldStub {2}
+      2    0.0%    0.1%  Stub: RecordWriteStub {7}
+      2    0.0%    0.1%  Stub: RecordWriteStub {6}
+      2    0.0%    0.1%  Stub: RecordWriteStub {2}
+      2    0.0%    0.1%  Stub: LoadFieldStub {6}
+      2    0.0%    0.1%  Stub: LoadConstantStub {8}
+      2    0.0%    0.1%  Stub: LoadConstantStub {6}
+      2    0.0%    0.1%  Stub: FastNewContextStub {3}
+      2    0.0%    0.1%  Stub: CompareICStub {10}
+      2    0.0%    0.1%  Stub: CompareICStub
+      2    0.0%    0.1%  Stub: BinaryOpICStub {2}
+      2    0.0%    0.1%  RegExp: <%-([\\s\\S]+?)%>|<%=([\\s\\S]+?)%>|\\$\\{([^\\\\}]*(?:\\\\.[^\\\\}]*)*)\\}|<%([\\s\\S]+?)%>|$
+      2    0.0%    0.1%  LazyCompile: ~tryConvertToPromise d:\Work\JS\moleculer\node_modules\bluebird\js\release\thenables.js:7:29
+      2    0.0%    0.1%  LazyCompile: ~res.then.data d:\Work\JS\moleculer\src\context.js:115:20
+      2    0.0%    0.1%  LazyCompile: ~realpathSync fs.js:1592:40
+      2    0.0%    0.1%  LazyCompile: ~insert timers.js:119:16
+      2    0.0%    0.1%  LazyCompile: ~fn.then d:\Work\JS\moleculer\node_modules\benchmarkify\index.js:48:24
+      2    0.0%    0.1%  LazyCompile: ~dirname path.js:694:28
+      2    0.0%    0.1%  LazyCompile: ~ctx.invoke.ctx d:\Work\JS\moleculer\src\service-broker.js:654:21
+      2    0.0%    0.1%  LazyCompile: ~Promise._resolveCallback d:\Work\JS\moleculer\node_modules\bluebird\js\release\promise.js:426:46
+      2    0.0%    0.1%  LazyCompile: ~DoJoin native array.js:129:16
+      2    0.0%    0.1%  LazyCompile: ~<anonymous> d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:6585:22
+      2    0.0%    0.1%  LazyCompile: *toString native array.js:306:23
+      2    0.0%    0.1%  LazyCompile: *isPromise d:\Work\JS\moleculer\src\utils.js:55:11
+      2    0.0%    0.1%  LazyCompile: *Promise.then d:\Work\JS\moleculer\node_modules\bluebird\js\release\promise.js:113:35
+      2    0.0%    0.1%  Handler: start
+      2    0.0%    0.1%  Handler: set
+      2    0.0%    0.1%  Handler: params
+      2    0.0%    0.1%  Handler: constructor {NaN}
+      2    0.0%    0.1%  Handler: apply
+      2    0.0%    0.1%  Handler: An IC handler from the snapshot {4}
+      2    0.0%    0.1%  Handler: An IC handler from the snapshot {12}
+      2    0.0%    0.1%  Handler: An IC handler from the snapshot
+      2    0.0%    0.1%  Builtin: ObjectProtoToString
+      1    0.0%    0.1%  Stub: VectorKeyedStoreICStub {1}
+      1    0.0%    0.1%  Stub: ToObjectStub
+      1    0.0%    0.1%  Stub: ToLengthStub
+      1    0.0%    0.1%  Stub: ToBooleanICStub {2}
+      1    0.0%    0.1%  Stub: ToBooleanICStub {1}
+      1    0.0%    0.1%  Stub: StoreFieldStub {4}
+      1    0.0%    0.1%  Stub: StoreFieldStub
+      1    0.0%    0.1%  Stub: RegExpExecStub
+      1    0.0%    0.1%  Stub: RecordWriteStub {9}
+      1    0.0%    0.1%  Stub: RecordWriteStub {8}
+      1    0.0%    0.1%  Stub: RecordWriteStub {5}
+      1    0.0%    0.1%  Stub: RecordWriteStub {4}
+      1    0.0%    0.1%  Stub: RecordWriteStub {3}
+      1    0.0%    0.1%  Stub: RecordWriteStub {1}
+      1    0.0%    0.1%  Stub: LoadFieldStub {9}
+      1    0.0%    0.1%  Stub: LoadFieldStub {8}
+      1    0.0%    0.1%  Stub: LoadFieldStub {3}
+      1    0.0%    0.1%  Stub: LoadFieldStub {1}
+      1    0.0%    0.1%  Stub: LoadFieldStub
+      1    0.0%    0.1%  Stub: LoadFastElementStub
+      1    0.0%    0.1%  Stub: LoadConstantStub {9}
+      1    0.0%    0.1%  Stub: LoadConstantStub {7}
+      1    0.0%    0.1%  Stub: LoadConstantStub {2}
+      1    0.0%    0.1%  Stub: LoadConstantStub {1}
+      1    0.0%    0.1%  Stub: FastNewSloppyArgumentsStub
+      1    0.0%    0.1%  Stub: FastNewContextStub {2}
+      1    0.0%    0.1%  Stub: ElementsTransitionAndStoreStub
+      1    0.0%    0.1%  Stub: CompareICStub {9}
+      1    0.0%    0.1%  Stub: CompareICStub {8}
+      1    0.0%    0.1%  Stub: CompareICStub {6}
+      1    0.0%    0.1%  Stub: CompareICStub {2}
+      1    0.0%    0.1%  Stub: CompareICStub {1}
+      1    0.0%    0.1%  Stub: CallICTrampolineStub
+      1    0.0%    0.1%  Stub: CallICStub(args(2), NULL_OR_UNDEFINED, 
+      1    0.0%    0.1%  Stub: CallApiGetterStub
+      1    0.0%    0.1%  Stub: CEntryStub {1}
+      1    0.0%    0.1%  Stub: BinaryOpICStub {4}
+      1    0.0%    0.1%  Stub: BinaryOpICStub {3}
+      1    0.0%    0.1%  Stub: BinaryOpICStub {1}
+      1    0.0%    0.1%  Stub: BinaryOpICStub
+      1    0.0%    0.1%  RegExp: ^\\w*$
+      1    0.0%    0.1%  RegExp: (__e\\(.*?\\)|\\b__t\\)) \\+\\n'';
+      1    0.0%    0.1%  LazyCompile: ~validChunk _stream_writable.js:204:20
+      1    0.0%    0.1%  LazyCompile: ~toString native array.js:306:23
+      1    0.0%    0.1%  LazyCompile: ~template d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:14748:22
+      1    0.0%    0.1%  LazyCompile: ~startsWith native string.js:449:26
+      1    0.0%    0.1%  LazyCompile: ~resolve path.js:158:28
+      1    0.0%    0.1%  LazyCompile: ~replace native string.js:132:23
+      1    0.0%    0.1%  LazyCompile: ~ontimeout timers.js:361:19
+      1    0.0%    0.1%  LazyCompile: ~now d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:9977:33
+      1    0.0%    0.1%  LazyCompile: ~noop d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:15733:18
+      1    0.0%    0.1%  LazyCompile: ~isAsync d:\Work\JS\moleculer\node_modules\benchmark\benchmark.js:915:23
+      1    0.0%    0.1%  LazyCompile: ~initCloneObject d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:6206:29
+      1    0.0%    0.1%  LazyCompile: ~indexOf d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:7467:21
+      1    0.0%    0.1%  LazyCompile: ~getRes d:\Work\JS\moleculer\node_modules\benchmark\benchmark.js:1735:22
+      1    0.0%    0.1%  LazyCompile: ~get source native regexp.js:839:25
+      1    0.0%    0.1%  LazyCompile: ~copyObject d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:4799:24
+      1    0.0%    0.1%  LazyCompile: ~basePullAt d:\Work\JS\moleculer\node_modules\lodash\lodash.js:3874:24
+      1    0.0%    0.1%  LazyCompile: ~[Symbol.replace] native regexp.js:659:31
+      1    0.0%    0.1%  LazyCompile: ~UseSparseVariant native array.js:95:26
+      1    0.0%    0.1%  LazyCompile: ~StringReplaceGlobalRegExpWithFunction native regexp.js:460:47
+      1    0.0%    0.1%  LazyCompile: ~Socket._write net.js:730:35
+      1    0.0%    0.1%  LazyCompile: ~Promise._then d:\Work\JS\moleculer\node_modules\bluebird\js\release\promise.js:218:36
+      1    0.0%    0.1%  LazyCompile: ~Object native v8natives.js:612:27
+      1    0.0%    0.1%  LazyCompile: ~<anonymous> d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:14785:44
+      1    0.0%    0.1%  LazyCompile: ~<anonymous> d:\Work\JS\moleculer\node_modules\benchmark\benchmark.js:733:30
+      1    0.0%    0.1%  LazyCompile: ~<anonymous> d:\Work\JS\moleculer\node_modules\benchmark\benchmark.js:1214:43
+      1    0.0%    0.1%  LazyCompile: json2String d:\Work\JS\moleculer\src\utils.js:84:13
+      1    0.0%    0.1%  LazyCompile: d148775378765843.fn :4:286
+      1    0.0%    0.1%  LazyCompile: d148775378765815.fn :4:286
+      1    0.0%    0.1%  LazyCompile: clock d:\Work\JS\moleculer\node_modules\benchmark\benchmark.js:1569:23
+      1    0.0%    0.1%  LazyCompile: *test native regexp.js:260:28
+      1    0.0%    0.1%  LazyCompile: *slice native string.js:246:21
+      1    0.0%    0.1%  LazyCompile: *parse native json.js:61:19
+      1    0.0%    0.1%  LazyCompile: *init internal/linkedlist.js:3:14
+      1    0.0%    0.1%  LazyCompile: *doGetThen d:\Work\JS\moleculer\node_modules\bluebird\js\release\thenables.js:34:19
+      1    0.0%    0.1%  LazyCompile: *baseClone d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:2641:23
+      1    0.0%    0.1%  LazyCompile: *assignValue d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:2492:25
+      1    0.0%    0.1%  LazyCompile: *apply d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:492:17
+      1    0.0%    0.1%  LazyCompile: *UseSparseVariant native array.js:95:26
+      1    0.0%    0.1%  LazyCompile: *StackPush native array.js:114:19
+      1    0.0%    0.1%  LazyCompile: *StackHas native array.js:120:18
+      1    0.0%    0.1%  LazyCompile: *Promise._resolveFromExecutor d:\Work\JS\moleculer\node_modules\bluebird\js\release\promise.js:476:51
+      1    0.0%    0.1%  LazyCompile: *<anonymous> d:\Work\JS\moleculer\src\transporters\fake.js:70:26
+      1    0.0%    0.1%  LazyCompile: *<anonymous> d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:14785:44
+      1    0.0%    0.1%  LazyCompile: *<anonymous> d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:12685:47
+      1    0.0%    0.1%  Handler: teardown
+      1    0.0%    0.1%  Handler: target
+      1    0.0%    0.1%  Handler: symbol("nonexistent_symbol" hash 1db7469) {1}
+      1    0.0%    0.1%  Handler: symbol("nonexistent_symbol" hash 1db7469)
+      1    0.0%    0.1%  Handler: split
+      1    0.0%    0.1%  Handler: source {1}
+      1    0.0%    0.1%  Handler: source
+      1    0.0%    0.1%  Handler: setup
+      1    0.0%    0.1%  Handler: setTimeout
+      1    0.0%    0.1%  Handler: sendResponse
+      1    0.0%    0.1%  Handler: run
+      1    0.0%    0.1%  Handler: push
+      1    0.0%    0.1%  Handler: length
+      1    0.0%    0.1%  Handler: error
+      1    0.0%    0.1%  Handler: delete
+      1    0.0%    0.1%  Handler: data
+      1    0.0%    0.1%  Handler: complete
+      1    0.0%    0.1%  Handler: aborted {1}
+      1    0.0%    0.1%  Handler: aborted
+      1    0.0%    0.1%  Handler: _fulfill
+      1    0.0%    0.1%  Handler: _drainQueue
+      1    0.0%    0.1%  Handler: _
+      1    0.0%    0.1%  Handler: Date
+      1    0.0%    0.1%  Handler: An IC handler from the snapshot {8}
+      1    0.0%    0.1%  Handler: An IC handler from the snapshot {3}
+      1    0.0%    0.1%  Handler: An IC handler from the snapshot {13}
+      1    0.0%    0.1%  Function: ~<anonymous> :1:10
+      1    0.0%    0.1%  Eval: ~<anonymous>
+      1    0.0%    0.1%  Builtin: ObjectHasOwnProperty
+      1    0.0%    0.1%  Builtin: MathMax
+      1    0.0%    0.1%  Builtin: HandleApiCallConstruct
+      1    0.0%    0.1%  Builtin: DateConstructor_ConstructStub
+      1    0.0%    0.1%  Builtin: CallBoundFunction
+
+ [C++]:
+   ticks  total  nonlib   name
+
+ [Summary]:
+   ticks  total  nonlib   name
+   1455   16.4%   80.6%  JavaScript
+      0    0.0%    0.0%  C++
+     48    0.5%    2.7%  GC
+   7083   79.7%          Shared libraries
+    350    3.9%          Unaccounted
+
+ [C++ entry points]:
+   ticks    cpp   total   name
+
+ [Bottom up (heavy) profile]:
+  Note: percentage shows a share of a particular caller in the total
+  amount of its parent calls.
+  Callers occupying less than 2.0% are not shown.
+
+   ticks parent  name
+   3677   41.4%  C:\Windows\SYSTEM32\ntdll.dll
+    743   20.2%    c:\Program Files\nodejs\node.exe
+    298   40.1%      LazyCompile: *_startInvoke d:\Work\JS\moleculer\src\context.js:163:14
+    298  100.0%        LazyCompile: invoke d:\Work\JS\moleculer\src\context.js:104:8
+    186   62.4%          LazyCompile: *_localCall d:\Work\JS\moleculer\src\service-broker.js:626:12
+    186  100.0%            LazyCompile: *call d:\Work\JS\moleculer\src\service-broker.js:590:6
+    112   37.6%          LazyCompile: *_remoteCall d:\Work\JS\moleculer\src\service-broker.js:643:13
+    112  100.0%            LazyCompile: *call d:\Work\JS\moleculer\src\service-broker.js:590:6
+    247   33.2%      LazyCompile: *_finishInvoke d:\Work\JS\moleculer\src\context.js:176:15
+    150   60.7%        LazyCompile: ~res.then.data d:\Work\JS\moleculer\src\context.js:115:20
+    150  100.0%          LazyCompile: tryCatcher d:\Work\JS\moleculer\node_modules\bluebird\js\release\util.js:12:20
+    150  100.0%            LazyCompile: *Promise._settlePromiseFromHandler d:\Work\JS\moleculer\node_modules\bluebird\js\release\promise.js:494:56
+     97   39.3%        LazyCompile: invoke d:\Work\JS\moleculer\src\context.js:104:8
+     97  100.0%          LazyCompile: *_localCall d:\Work\JS\moleculer\src\service-broker.js:626:12
+     97  100.0%            LazyCompile: *call d:\Work\JS\moleculer\src\service-broker.js:590:6
+     41    5.5%      LazyCompile: *parse native json.js:61:19
+     41  100.0%        LazyCompile: string2Json d:\Work\JS\moleculer\src\utils.js:66:13
+     41  100.0%          LazyCompile: *messageHandler d:\Work\JS\moleculer\src\transit.js:146:16
+     41  100.0%            LazyCompile: *<anonymous> d:\Work\JS\moleculer\src\transporters\fake.js:70:26
+     21    2.8%      LazyCompile: ~createTimersList timers.js:138:26
+     19   90.5%        LazyCompile: *insert timers.js:119:16
+     19  100.0%          LazyCompile: ~exports.active timers.js:103:41
+     19  100.0%            LazyCompile: ~createSingleTimeout timers.js:346:29
+      2    9.5%        LazyCompile: ~insert timers.js:119:16
+      2  100.0%          LazyCompile: ~exports.active timers.js:103:41
+      2  100.0%            LazyCompile: ~createSingleTimeout timers.js:346:29
+     21    2.8%      LazyCompile: ~<anonymous> d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:14842:36
+     21  100.0%        LazyCompile: *apply d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:492:17
+     21  100.0%          LazyCompile: <anonymous> d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:15225:36
+     18   85.7%            LazyCompile: *apply d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:492:17
+      3   14.3%            LazyCompile: *<anonymous> d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:6585:22
+     17    2.3%      LazyCompile: ~getRes d:\Work\JS\moleculer\node_modules\benchmark\benchmark.js:1735:22
+     17  100.0%        LazyCompile: clock d:\Work\JS\moleculer\node_modules\benchmark\benchmark.js:1563:19
+     17  100.0%          LazyCompile: ~Deferred d:\Work\JS\moleculer\node_modules\benchmark\benchmark.js:399:22
+     17  100.0%            LazyCompile: ~Deferred d:\Work\JS\moleculer\node_modules\benchmark\benchmark.js:399:22
+     17    2.3%      LazyCompile: *interpolate d:\Work\JS\moleculer\node_modules\benchmark\benchmark.js:1784:27
+     17  100.0%        LazyCompile: ~createCompiled d:\Work\JS\moleculer\node_modules\benchmark\benchmark.js:1668:30
+     17  100.0%          LazyCompile: clock d:\Work\JS\moleculer\node_modules\benchmark\benchmark.js:1569:23
+     14   82.4%            LazyCompile: ~Deferred d:\Work\JS\moleculer\node_modules\benchmark\benchmark.js:399:22
+      3   17.6%            LazyCompile: *Deferred d:\Work\JS\moleculer\node_modules\benchmark\benchmark.js:399:22
+
+   3334   37.5%  c:\Program Files\nodejs\node.exe
+   3169   95.1%    c:\Program Files\nodejs\node.exe
+    330   10.4%      LazyCompile: ~stringify native json.js:176:23
+    329   99.7%        LazyCompile: json2String d:\Work\JS\moleculer\src\utils.js:84:13
+    179   54.4%          LazyCompile: ~Promise d:\Work\JS\moleculer\src\transit.js:248:22
+    179  100.0%            LazyCompile: Promise._execute d:\Work\JS\moleculer\node_modules\bluebird\js\release\debuggability.js:298:38
+    149   45.3%          LazyCompile: *sendResponse d:\Work\JS\moleculer\src\transit.js:299:14
+    149  100.0%            LazyCompile: ~broker.call.then.res d:\Work\JS\moleculer\src\transit.js:173:11
+    314    9.9%      LazyCompile: *parse native json.js:61:19
+    314  100.0%        LazyCompile: string2Json d:\Work\JS\moleculer\src\utils.js:66:13
+    313   99.7%          LazyCompile: *messageHandler d:\Work\JS\moleculer\src\transit.js:146:16
+    313  100.0%            LazyCompile: *<anonymous> d:\Work\JS\moleculer\src\transporters\fake.js:70:26
+    304    9.6%      LazyCompile: *searchListenerTree d:\Work\JS\moleculer\node_modules\eventemitter2\lib\eventemitter2.js:70:30
+    166   54.6%        LazyCompile: *searchListenerTree d:\Work\JS\moleculer\node_modules\eventemitter2\lib\eventemitter2.js:70:30
+    104   62.7%          LazyCompile: *searchListenerTree d:\Work\JS\moleculer\node_modules\eventemitter2\lib\eventemitter2.js:70:30
+     98   94.2%            LazyCompile: *EventEmitter.emit d:\Work\JS\moleculer\node_modules\eventemitter2\lib\eventemitter2.js:274:41
+      6    5.8%            LazyCompile: ~EventEmitter.emit d:\Work\JS\moleculer\node_modules\eventemitter2\lib\eventemitter2.js:274:41
+     62   37.3%          LazyCompile: *EventEmitter.emit d:\Work\JS\moleculer\node_modules\eventemitter2\lib\eventemitter2.js:274:41
+     34   54.8%            LazyCompile: *sendResponse d:\Work\JS\moleculer\src\transit.js:299:14
+     28   45.2%            LazyCompile: *publish d:\Work\JS\moleculer\src\transit.js:380:9
+    129   42.4%        LazyCompile: *EventEmitter.emit d:\Work\JS\moleculer\node_modules\eventemitter2\lib\eventemitter2.js:274:41
+     69   53.5%          LazyCompile: *publish d:\Work\JS\moleculer\src\transit.js:380:9
+     69  100.0%            LazyCompile: ~Promise d:\Work\JS\moleculer\src\transit.js:248:22
+     60   46.5%          LazyCompile: *sendResponse d:\Work\JS\moleculer\src\transit.js:299:14
+     60  100.0%            LazyCompile: ~broker.call.then.res d:\Work\JS\moleculer\src\transit.js:173:11
+      9    3.0%        LazyCompile: ~EventEmitter.emit d:\Work\JS\moleculer\node_modules\eventemitter2\lib\eventemitter2.js:274:41
+      5   55.6%          LazyCompile: *sendResponse d:\Work\JS\moleculer\src\transit.js:299:14
+      5  100.0%            LazyCompile: ~broker.call.then.res d:\Work\JS\moleculer\src\transit.js:173:11
+      4   44.4%          LazyCompile: *publish d:\Work\JS\moleculer\src\transit.js:380:9
+      4  100.0%            LazyCompile: ~Promise d:\Work\JS\moleculer\src\transit.js:248:22
+    192    6.1%      LazyCompile: *_startInvoke d:\Work\JS\moleculer\src\context.js:163:14
+    192  100.0%        LazyCompile: invoke d:\Work\JS\moleculer\src\context.js:104:8
+    120   62.5%          LazyCompile: *_localCall d:\Work\JS\moleculer\src\service-broker.js:626:12
+    120  100.0%            LazyCompile: *call d:\Work\JS\moleculer\src\service-broker.js:590:6
+     72   37.5%          LazyCompile: *_remoteCall d:\Work\JS\moleculer\src\service-broker.js:643:13
+     72  100.0%            LazyCompile: *call d:\Work\JS\moleculer\src\service-broker.js:590:6
+    146    4.6%      LazyCompile: *_finishInvoke d:\Work\JS\moleculer\src\context.js:176:15
+     81   55.5%        LazyCompile: ~res.then.data d:\Work\JS\moleculer\src\context.js:115:20
+     81  100.0%          LazyCompile: tryCatcher d:\Work\JS\moleculer\node_modules\bluebird\js\release\util.js:12:20
+     81  100.0%            LazyCompile: *Promise._settlePromiseFromHandler d:\Work\JS\moleculer\node_modules\bluebird\js\release\promise.js:494:56
+     65   44.5%        LazyCompile: invoke d:\Work\JS\moleculer\src\context.js:104:8
+     65  100.0%          LazyCompile: *_localCall d:\Work\JS\moleculer\src\service-broker.js:626:12
+     65  100.0%            LazyCompile: *call d:\Work\JS\moleculer\src\service-broker.js:590:6
+    146    4.6%      LazyCompile: *<anonymous> d:\Work\JS\moleculer\node_modules\lodash\lodash.js:5117:22
+    146  100.0%        LazyCompile: *call d:\Work\JS\moleculer\src\service-broker.js:590:6
+     78   53.4%          LazyCompile: *fn d:\Work\JS\moleculer\node_modules\benchmarkify\index.js:45:7
+      6    7.7%            LazyCompile: d14877537876585.fn :4:274
+      5    6.4%            LazyCompile: d14877537876583.fn :4:274
+      3    3.8%            LazyCompile: d148775378765851.fn :4:286
+      3    3.8%            LazyCompile: d148775378765819.fn :4:286
+      2    2.6%            LazyCompile: d148775378765893.fn :4:286
+      2    2.6%            LazyCompile: d148775378765891.fn :4:286
+      2    2.6%            LazyCompile: d148775378765885.fn :4:286
+      2    2.6%            LazyCompile: d148775378765879.fn :4:286
+      2    2.6%            LazyCompile: d148775378765865.fn :4:286
+      2    2.6%            LazyCompile: d148775378765859.fn :4:286
+      2    2.6%            LazyCompile: d148775378765827.fn :4:286
+      2    2.6%            LazyCompile: d148775378765823.fn :4:286
+      2    2.6%            LazyCompile: d148775378765821.fn :4:286
+      2    2.6%            LazyCompile: d1487753787658141.fn :4:298
+      2    2.6%            LazyCompile: d1487753787658129.fn :4:298
+      2    2.6%            LazyCompile: d1487753787658125.fn :4:298
+      2    2.6%            LazyCompile: d1487753787658121.fn :4:298
+      2    2.6%            Handler: times
+      2    2.6%            Eval: ~<anonymous>
+     67   45.9%          LazyCompile: *messageHandler d:\Work\JS\moleculer\src\transit.js:146:16
+     67  100.0%            LazyCompile: *<anonymous> d:\Work\JS\moleculer\src\transporters\fake.js:70:26
+    124    3.9%      LazyCompile: *split native string.js:280:23
+     71   57.3%        LazyCompile: *EventEmitter.emit d:\Work\JS\moleculer\node_modules\eventemitter2\lib\eventemitter2.js:274:41
+     39   54.9%          LazyCompile: *publish d:\Work\JS\moleculer\src\transit.js:380:9
+     39  100.0%            LazyCompile: ~Promise d:\Work\JS\moleculer\src\transit.js:248:22
+     32   45.1%          LazyCompile: *sendResponse d:\Work\JS\moleculer\src\transit.js:299:14
+     32  100.0%            LazyCompile: ~broker.call.then.res d:\Work\JS\moleculer\src\transit.js:173:11
+     46   37.1%        LazyCompile: *<anonymous> d:\Work\JS\moleculer\src\transporters\fake.js:70:26
+     46  100.0%          LazyCompile: *EventEmitter.emit d:\Work\JS\moleculer\node_modules\eventemitter2\lib\eventemitter2.js:274:41
+     24   52.2%            LazyCompile: *sendResponse d:\Work\JS\moleculer\src\transit.js:299:14
+     22   47.8%            LazyCompile: *publish d:\Work\JS\moleculer\src\transit.js:380:9
+      5    4.0%        LazyCompile: ~EventEmitter.emit d:\Work\JS\moleculer\node_modules\eventemitter2\lib\eventemitter2.js:274:41
+      3   60.0%          LazyCompile: *publish d:\Work\JS\moleculer\src\transit.js:380:9
+      3  100.0%            LazyCompile: ~Promise d:\Work\JS\moleculer\src\transit.js:248:22
+      2   40.0%          LazyCompile: *sendResponse d:\Work\JS\moleculer\src\transit.js:299:14
+      2  100.0%            LazyCompile: ~broker.call.then.res d:\Work\JS\moleculer\src\transit.js:173:11
+    111    3.5%      LazyCompile: ~<anonymous> d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:14842:36
+    108   97.3%        LazyCompile: *apply d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:492:17
+    108  100.0%          LazyCompile: <anonymous> d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:15225:36
+     99   91.7%            LazyCompile: *apply d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:492:17
+      9    8.3%            LazyCompile: *<anonymous> d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:6585:22
+      3    2.7%        LazyCompile: ~apply d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:492:17
+      3  100.0%          LazyCompile: <anonymous> d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:15225:36
+      3  100.0%            LazyCompile: ~apply d:\Work\JS\moleculer\node_modules\benchmark\node_modules\lodash\lodash.js:492:17
+    107    3.4%      LazyCompile: *TimersList timers.js:153:20
+    107  100.0%        LazyCompile: ~createTimersList timers.js:138:26
+    105   98.1%          LazyCompile: *insert timers.js:119:16
+    105  100.0%            LazyCompile: ~exports.active timers.js:103:41
+     99    3.1%      LazyCompile: ~exports.runInThisContext vm.js:75:36
+     99  100.0%        LazyCompile: ~Module._compile module.js:510:37
+     99  100.0%          LazyCompile: ~Module._extensions..js module.js:577:37
+     99  100.0%            LazyCompile: ~Module.load module.js:478:33
+     95    3.0%      LazyCompile: ~createTimersList timers.js:138:26
+     92   96.8%        LazyCompile: *insert timers.js:119:16
+     92  100.0%          LazyCompile: ~exports.active timers.js:103:41
+     92  100.0%            LazyCompile: ~createSingleTimeout timers.js:346:29
+      3    3.2%        LazyCompile: ~insert timers.js:119:16
+      3  100.0%          LazyCompile: ~exports.active timers.js:103:41
+      3  100.0%            LazyCompile: ~createSingleTimeout timers.js:346:29
+     68    2.1%      LazyCompile: *interpolate d:\Work\JS\moleculer\node_modules\benchmark\benchmark.js:1784:27
+     68  100.0%        LazyCompile: ~createCompiled d:\Work\JS\moleculer\node_modules\benchmark\benchmark.js:1668:30
+     68  100.0%          LazyCompile: clock d:\Work\JS\moleculer\node_modules\benchmark\benchmark.js:1569:23
+     55   80.9%            LazyCompile: ~Deferred d:\Work\JS\moleculer\node_modules\benchmark\benchmark.js:399:22
+     13   19.1%            LazyCompile: *Deferred d:\Work\JS\moleculer\node_modules\benchmark\benchmark.js:399:22
+     66    2.1%      LazyCompile: *messageHandler d:\Work\JS\moleculer\src\transit.js:146:16
+     66  100.0%        LazyCompile: *<anonymous> d:\Work\JS\moleculer\src\transporters\fake.js:70:26
+     62   93.9%          LazyCompile: *EventEmitter.emit d:\Work\JS\moleculer\node_modules\eventemitter2\lib\eventemitter2.js:274:41
+     49   79.0%            LazyCompile: *sendResponse d:\Work\JS\moleculer\src\transit.js:299:14
+     13   21.0%            LazyCompile: *publish d:\Work\JS\moleculer\src\transit.js:380:9
+      4    6.1%          LazyCompile: ~EventEmitter.emit d:\Work\JS\moleculer\node_modules\eventemitter2\lib\eventemitter2.js:274:41
+      2   50.0%            LazyCompile: *sendResponse d:\Work\JS\moleculer\src\transit.js:299:14
+      2   50.0%            LazyCompile: *publish d:\Work\JS\moleculer\src\transit.js:380:9
+
+    350    3.9%  UNKNOWN
+      7    2.0%    LazyCompile: ~createTimersList timers.js:138:26
+      5   71.4%      LazyCompile: *insert timers.js:119:16
+      5  100.0%        LazyCompile: ~exports.active timers.js:103:41
+      5  100.0%          LazyCompile: ~createSingleTimeout timers.js:346:29
+      5  100.0%            LazyCompile: *exports.setTimeout timers.js:325:30
+      1   14.3%      LazyCompile: ~insert timers.js:119:16
+      1  100.0%        LazyCompile: ~exports.active timers.js:103:41
+      1  100.0%          LazyCompile: ~createSingleTimeout timers.js:346:29
+      1  100.0%            LazyCompile: ~exports.setTimeout timers.js:325:30
+

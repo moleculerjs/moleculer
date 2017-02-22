@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2017 Icebob (https://github.com/icebob/moleculer)
+ * Copyright (c) 2017 Icebob (https://github.com/ice-services/moleculer)
  * MIT Licensed
  */
 
@@ -8,6 +8,7 @@
 
 const Promise = require("bluebird");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
+const Transit = require("./transit");
 const BalancedList = require("./balanced-list");
 const errors = require("./errors");
 const utils = require("./utils");
@@ -99,10 +100,9 @@ class ServiceBroker {
 			}
 		}
 
-		// Transporter
-		this.transporter = this.options.transporter;
-		if (this.transporter) {
-			this.transporter.init(this);
+		// Transit
+		if (this.options.transporter) {
+			this.transit = new Transit(this, this.options.transporter);
 		}
 
 		// TODO remove to stats
@@ -153,13 +153,13 @@ class ServiceBroker {
 			this.metricsTimer.unref();
 		}
 
-		if (this.transporter) {
-			return this.transporter.connect().then(() => {
+		if (this.transit) {
+			return this.transit.connect().then(() => {
 				
 				// Start timers
 				this.heartBeatTimer = setInterval(() => {
 					/* istanbul ignore next */
-					this.transporter.sendHeartbeat();
+					this.transit.sendHeartbeat();
 				}, this.options.sendHeartbeatTime * 1000);
 				this.heartBeatTimer.unref();
 
@@ -193,8 +193,8 @@ class ServiceBroker {
 			this.metricsTimer = null;
 		}
 		
-		if (this.transporter) {
-			this.transporter.disconnect();
+		if (this.transit) {
+			this.transit.disconnect();
 
 			if (this.heartBeatTimer) {
 				clearInterval(this.heartBeatTimer);
@@ -652,7 +652,7 @@ class ServiceBroker {
 	
 
 		return ctx.invoke(ctx => {
-			return this.transporter.request(ctx, opts).catch(err => {
+			return this.transit.request(ctx, opts).catch(err => {
 				if (err instanceof errors.RequestTimeoutError) {
 					// Retry request
 					if (opts.retryCount-- > 0) {
@@ -687,8 +687,8 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	emit(eventName, payload) {
-		if (this.transporter)
-			this.transporter.emit(eventName, payload);
+		if (this.transit)
+			this.transit.emit(eventName, payload);
 
 		return this.emitLocal(eventName, payload);
 	}

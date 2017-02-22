@@ -1,13 +1,16 @@
 /*
  * moleculer
- * Copyright (c) 2017 Icebob (https://github.com/icebob/moleculer)
+ * Copyright (c) 2017 Icebob (https://github.com/ice-services/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
+// Prefix for logger
+const LOG_PREFIX = "TX";
+
 /**
- * Abstract/Base transporter class
+ * Base Transporter class
  * 
  * @class BaseTransporter
  */
@@ -22,6 +25,13 @@ class BaseTransporter {
 	 */
 	constructor(opts) {
 		this.opts = opts || {};
+		this.connected = false;
+
+		this.prefix = "MOL";
+		
+		if (this.opts.prefix) {
+			this.prefix = this.opts.prefix;
+		}
 	}
 
 	/**
@@ -31,77 +41,39 @@ class BaseTransporter {
 	 * 
 	 * @memberOf BaseTransporter
 	 */
-	init(broker) {
+	init(broker, messageHandler) {
 		this.broker = broker;
+		this.nodeID = broker.nodeID;
+		this.logger = broker.getLogger(LOG_PREFIX);
+		this.messageHandler = messageHandler;
 	}
 
 	/**
-	 * Connect to transporter server
+	 * Connect to the transporter server
 	 * 
 	 * @memberOf BaseTransporter
 	 */
 	connect() {
 		/* istanbul ignore next */
-		return Promise.resolve();
+		throw new Error("Not implemented!");
 	}
 
 	/**
-	 * Disconnect from transporter server
+	 * Disconnect from the transporter server
 	 * 
 	 * @memberOf BaseTransporter
 	 */
 	disconnect() {
-
-	}
-
-	/**
-	 * Send an event to remote nodes
-	 * 
-	 * @param {any} eventName
-	 * @param {any} args
-	 * 
-	 * @memberOf BaseTransporter
-	 */
-	emit(eventName, ...args) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented!");
 	}
 
-	/**
-	 * Subscribe to an event
-	 * 
-	 * @param {any} eventName
-	 * @param {any} handler
-	 * 
-	 * @memberOf BaseTransporter
-	 */
-	subscribe(eventName, handler) {
+	subscribe(topic) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented!");
 	}
 
-	/**
-	 * Send a request to a remote node
-	 * 
-	 * @param {any} nodeID
-	 * @param {any} ctx
-	 * @returns
-	 * 
-	 * @memberOf BaseTransporter
-	 */
-	request(nodeID, ctx) {
-		/* istanbul ignore next */
-		return new Promise((resolve, reject) => {
-			reject("Not implemented");
-		});
-	}
-
-	/**
-	 * Send a hearthbeat to remote nodes
-	 * 
-	 * @memberOf BaseTransporter
-	 */
-	sendHeartbeat() {
+	publish(topic, packet) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented!");
 	}

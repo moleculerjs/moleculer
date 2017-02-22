@@ -5,7 +5,6 @@
 - features (?)
 - global config for services 
 - broker node kezelést kirakni Registry class-ba, ami lehet NATS, consul...etc
-- easier transporter code (only implement connect, disconnect, publish, subscribe methods) e.g. 
 
 - create d.ts file
 
@@ -25,8 +24,6 @@
 - Docs: https://github.com/segmentio/metalsmith
 
 - service register implementation (e.g. consul, etcd)
-
-- fő beállítások környezeti változóból, hogy megvalósítható legyen az 1 repo-ból futtatás több node-on. ENV-ből jönne a service-ek listája is, hogy miket töltsön be a broker.
 
 
 - Dynamic timeout: ctx-be legyen timeout érték. Ha subcall van, akkor adja át, de csökkentve az eltelt idővel. Ha ez nulla vagy kisebb, akkor ne is hívja meg, mert felesleges, mert a request már "elszállt timeout-al", felesleges meghívni.
@@ -77,6 +74,7 @@
 	Catch unhandled exceptions and send an event with details. Can be catch in metrics, alert or logger services
 
 - direct remote call to a specified node (for monitoring every node)
+- heartBeat kezelést átrakni a transit-ba teljesen
 
 - configuráció kezelés. Betölti és a service-ek tőle tudják elkérni amibe merge-li a property-ket
 ```js
@@ -100,7 +98,6 @@
 ## Services
 
 ## Transporters
-- Redis transporter
 - websocket
 - [AutobahnJS](http://autobahn.ws/js/) [server](https://github.com/Orange-OpenSource/wamp.rt) or [server in go](https://github.com/jcelliott/turnpike)
 - add gzip support
@@ -109,3 +106,6 @@
 - add lru features to Memory and Redis
 
 ## Context
+
+## Example
+- fő beállítások környezeti változóból, hogy megvalósítható legyen az 1 repo-ból futtatás több node-on. ENV-ből jönne a service-ek listája is, hogy miket töltsön be a broker.
