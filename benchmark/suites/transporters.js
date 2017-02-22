@@ -16,6 +16,7 @@ let dataFiles = ["8"];//, "150", "1k", "10k", "50k", "100k", "1M"];
 function createBrokers(Transporter, opts) {
 	let b1 = new ServiceBroker({
 		transporter: new Transporter(opts),
+		//requestTimeout: 0,
 		//logger: console,
 		//logLevel: "debug",
 		nodeID: "node-1"
@@ -23,6 +24,7 @@ function createBrokers(Transporter, opts) {
 
 	let b2 = new ServiceBroker({
 		transporter: new Transporter(opts),
+		//requestTimeout: 0,
 		//logger: console,
 		//logLevel: "debug",
 		nodeID: "node-2"
@@ -37,7 +39,7 @@ function createBrokers(Transporter, opts) {
 		}
 	});
 
-	b2.start().then(() => b1.start());
+	b1.start().then(() => b2.start());
 
 	return [b1, b2];
 }
@@ -49,15 +51,15 @@ function runTest(dataName) {
 	let payload = JSON.parse(data);
 
 	let [fake1, fake2] = createBrokers(Transporters.Fake);
-	let [nats1, nats2] = createBrokers(Transporters.NATS);
-	let [redis1, redis2] = createBrokers(Transporters.Redis);
-	let [mqtt1, mqtt2] = createBrokers(Transporters.MQTT);
+	// let [nats1, nats2] = createBrokers(Transporters.NATS);
+	// let [redis1, redis2] = createBrokers(Transporters.Redis);
+	// let [mqtt1, mqtt2] = createBrokers(Transporters.MQTT);
 
 	bench.add("Fake", function() {
 		return fake1.call("echo.reply", payload);
 	});
 
-	bench.add("NATS", function() {
+	/*bench.add("NATS", function() {
 		return nats1.call("echo.reply", payload);
 	});
 
@@ -67,21 +69,21 @@ function runTest(dataName) {
 
 	bench.add("MQTT", function() {
 		return mqtt1.call("echo.reply", payload);
-	});
+	});*/
 	
 	setTimeout(() => {
 		bench.run().then(() => {
 			fake1.stop();
 			fake2.stop();
 
-			nats1.stop();
-			nats2.stop();
+			// nats1.stop();
+			// nats2.stop();
 
-			redis1.stop();
-			redis2.stop();
+			// redis1.stop();
+			// redis2.stop();
 
-			mqtt1.stop();
-			mqtt2.stop();
+			// mqtt1.stop();
+			// mqtt2.stop();
 
 			if (dataFiles.length > 0)
 				runTest(dataFiles.shift());

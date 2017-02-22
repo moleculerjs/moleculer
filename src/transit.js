@@ -169,9 +169,11 @@ class Transit {
 		case TOPIC_REQ: {
 			this.logger.debug(`Request from ${msg.nodeID}.`, msg.action, msg.params);
 
-			return this.broker.call(msg.action, msg.params)
+			this.broker.call(msg.action, msg.params)
 				.then(res => this.sendResponse(msg.nodeID, msg.requestID,  res))
 				.catch(err => this.sendResponse(msg.nodeID, msg.requestID, null, err));
+			
+			return;
 		}
 
 		// Response
@@ -179,7 +181,7 @@ class Transit {
 			let req = this.pendingRequests.get(msg.requestID);
 
 			// If not exists (timed out), we skip to process the response
-			if (!req) return Promise.resolve();
+			if (!req) return;
 
 			// Remove pending request
 			this.pendingRequests.delete(msg.requestID);
@@ -246,7 +248,6 @@ class Transit {
 	 */
 	request(ctx, opts = {}) {
 		return new Promise((resolve, reject) => {
-
 			let req = {
 				nodeID: ctx.nodeID,
 				ctx,
@@ -262,9 +263,9 @@ class Transit {
 				action: ctx.action.name,
 				params: ctx.params
 			};
-			this.logger.debug(`Send request '${ctx.action.name}' action to '${ctx.nodeID}' node...`, message);
+			this.logger.debug(`Send request '${ctx.action.name}' action to '${ctx.nodeID}' node...`/*, message*/);
 			let payload = utils.json2String(message);
-
+			
 			// Handle request timeout
 			if (opts.timeout > 0) {
 				req.timer = setTimeout(() => {
@@ -278,7 +279,7 @@ class Transit {
 
 				req.timer.unref();
 			}
-
+			
 			// Add to pendings
 			this.pendingRequests.set(ctx.id, req);
 
