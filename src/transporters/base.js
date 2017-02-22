@@ -44,7 +44,7 @@ class BaseTransporter {
 	init(broker, messageHandler) {
 		this.broker = broker;
 		this.nodeID = broker.nodeID;
-		this.logger = broker.getLogger("LOG_PREFIX");
+		this.logger = broker.getLogger(LOG_PREFIX);
 		this.messageHandler = messageHandler;
 	}
 
