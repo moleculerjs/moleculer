@@ -272,7 +272,7 @@ broker.on("**", payload => console.log("Event:", payload));
 To unsubscribe use the `off` method.
 
 ## Middlewares
-Broker supports middlewares. You can add your custom middleware, and it'll be called on every local request. The middleware is a `Function` what returns a wrapped action handler. 
+Broker supports middlewares. You can add your custom middleware, and it'll be called on every local request. The middleware is a `Function` that returns a wrapped action handler. 
 
 Example middleware from validators modules:
 ```js
@@ -352,10 +352,10 @@ broker.call("$node.stats").then(res => console.log(res));
 ```
 
 # Service
-The Service is the other main module in the Moleculer. With this you can define actions.
+The Service is the other main module in the Moleculer. With the help of this you can define actions.
 
 ## Schema
-You need to create a schema to define a service. The schema has some fix parts (`name`, `version`, `settings`, `actions`, `methods`, `events`).
+You need to create a schema to define a service. The schema has some main parts (`name`, `version`, `settings`, `actions`, `methods`, `events`).
 
 ### Simple service schema
 ```js
@@ -383,7 +383,7 @@ The Service has some base properties in the schema.
 ```
 The `name` is a mandatory property so it must be defined. It's the first part of actionName when you call it with `broker.call`.
 
-The `version` is an optional property. If you running multiple version of a service, it needs to set. It will be a prefix in the actionName.
+The `version` is an optional property. If you are running multiple version of the same service this needs to be set. It will be a prefix in the actionName.
 ```js
 {
     name: "posts",
@@ -393,7 +393,7 @@ The `version` is an optional property. If you running multiple version of a serv
     }
 }
 ```
-You can call the `find` action as
+You need to call the `find` action as
 ```js
 broker.call("v2.posts.find");
 ```
@@ -502,7 +502,7 @@ You can subscribe to events and can define event handlers in the schema under `e
 ```
 
 ## Methods
-You can create also private functions in Service. They are called as `methods`. These functions are private, can't be called with `broker.call`. But you can call it inside service.
+You can also create private functions in Service. They are called as `methods`. These functions are private, can't be called with `broker.call`. But you can call it inside service.
 
 ```js
 {
@@ -527,7 +527,7 @@ You can create also private functions in Service. They are called as `methods`. 
 > The name of method can't be `name`, `version`, `settings`, `schema`, `broker`, `actions`, `logger`, because these words are reserved.
 
 ## Lifecycle events
-There are some lifecycle service events, what will be triggered by ServiceBroker.
+There are some lifecycle service events, that will be triggered by ServiceBroker.
 
 ```js
 {
@@ -551,7 +551,7 @@ There are some lifecycle service events, what will be triggered by ServiceBroker
 ```
 
 ## Properties of `this`
-In service functions the `this` is always binded to the instance of service. It has some properties & methods what you can use in functions.
+In service functions the `this` is always binded to the instance of service. It has some properties & methods that you can use in functions.
 
 | Name | Type |  Description |
 | ------- | ----- | ------- |
@@ -618,9 +618,9 @@ broker.loadService("./math.service");
 broker.start();
 ```
 
-In the individual files also you can create the [Service](#service) instance. In this case you need to export a function that returns the instance of [Service](#service).
+A service can also be created in single files. In this case you need to export a function that returns the instance of [Service](#service).
 ```js
-// Export a function, what the `loadService` will be call with the instance of ServiceBroker
+// Export a function, that the `loadService` will be call with the instance of ServiceBroker
 module.exports = function(broker) {
     return new Service(broker, {
         name: "math",
@@ -638,7 +638,7 @@ module.exports = function(broker) {
 
 Or create a function that returns with the schema of service
 ```js
-// Export a function, what the `loadService` will be call with the instance of ServiceBroker
+// Export a function, that the `loadService` will be call with the instance of ServiceBroker
 module.exports = function() {
     let users = [....];
 
@@ -719,7 +719,7 @@ module.exports = {
 ```
 
 # Context
-When you call an action, the broker creates a `Context` instance, which contains all request informations and pass to the action handler as argument.
+When you call an action, the broker creates a `Context` instance which contains all request informations and pass to the action handler as argument.
 
 Available properties & methods of `Context`:
 
@@ -739,7 +739,7 @@ Available properties & methods of `Context`:
 
 # Logging
 In Services every modules have a custom logger instance. It is inherited from the broker logger instance and you can set in options of broker.
-Every modules add a prefix to the log messages. Using that prefix you can identify the sender of message.
+Every modules add a prefix to the log messages. Using that prefix you can identify the module.
 
 ```js
 let { ServiceBroker } = require("moleculer");
@@ -852,7 +852,7 @@ So if you call the `posts.list` action with params `{ limit: 5, offset: 20 }`, t
 posts.find:0d6bcb785d1ae84c8c20203401460341b84eb8b968cffcf919a9904bb1fbc29a
 ```
 
-However the hash calculation is an expensive operation. So other solution is that specify which parameters want to use for caching. In this case you need to set an object for `cache` property of action, what contains the list of parameter.
+However the hash calculation is an expensive operation. So other solution is that specify which parameters you want to use for caching. In this case you need to set an object for `cache` property of action that contains the list of parameters.
 ```js
 {
     name: "posts",
@@ -891,7 +891,7 @@ broker.cacher.clean();
 ```
 
 ### Clear cache
-When you create a new model in your service, sometimes you have to clear the cache entries. For this purpose there is an internal event which the cacher listens.
+When you create a new model in your service, sometimes you have to clear the cache entries. For this purpose there are internal events. When an event like this is fired, the cacher will clean the cache.
 
 ```js
 {
@@ -928,7 +928,7 @@ let broker = new ServiceBroker({
 ```
 
 ## Redis cacher
-`RedisCacher` is a built-in [Redis](https://redis.io/) based cache module. It uses [`ioredis`](https://github.com/luin/ioredis) cleint.
+`RedisCacher` is a built-in [Redis](https://redis.io/) based cache module. It uses [`ioredis`](https://github.com/luin/ioredis) client.
 
 ```js
 let RedisCacher = require("moleculer").Cachers.Redis;
@@ -951,7 +951,7 @@ let broker = new ServiceBroker({
 ```
 
 ## Custom cacher
-You can also create your custom cache module. We recommend to you to copy the source of [`MemoryCacher`](src/cachers/memory.js) or [`RedisCacher`](src/cachers/redis.js) and implement the `get`, `set`, `del` and `clean` methods.
+You can also create your custom cache module. We recommend you to copy the source of [`MemoryCacher`](src/cachers/memory.js) or [`RedisCacher`](src/cachers/redis.js) and implement the `get`, `set`, `del` and `clean` methods.
 
 # Transporters
 Transporter is an important module if you are running services on more nodes. Transporter communicates with every nodes. Send events, call requests...etc.
@@ -1084,7 +1084,7 @@ new MqttTransporter({
 ```
 
 ## Custom transporter
-You can also create your custom transporter module. We recommend to you that copy the source of [`NatsTransporter`](src/transporters/nats.js) and implement the `connect`, `disconnect`,  `subscribe` and `publish` methods.
+You can also create your custom transporter module. We recommend you that copy the source of [`NatsTransporter`](src/transporters/nats.js) and implement the `connect`, `disconnect`,  `subscribe` and `publish` methods.
 
 # Metrics
 Moleculer has a metrics function. You can turn on in broker options with `metrics: true` property.
