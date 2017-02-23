@@ -523,60 +523,6 @@ class ServiceBroker {
 		});
 	}
 
-	/*
-	// Függvény ami a meghívja a következő middleware-t
-	__runNextMiddleware(ctx, middleware, next) {
-		// Middleware kód meghívása és next függvény generálása a folytatáshoz.
-		try {
-			let res = middleware(ctx, next);
-			return utils.isPromise(res) ? res: Promise.resolve(res);
-		} catch(err) {
-			return Promise.reject(err);
-		}
-	}	*/
-
-	/**
-	 * Call middlewares with context
-	 * 
-	 * @param {Context} 	ctx			Context
-	 * @param {Function} 	masterNext	Master function after invoked middlewares
-	 * @returns {Promise}
-	 * 
-	 * @memberOf ServiceBroker
-	 */
-	/*
-	callMiddlewares(ctx, masterNext) {
-		// Ha nincs regisztrált middleware egyből meghívjuk a master kódot
-		if (this.middlewares.length == 0) return masterNext(ctx);
-
-		let self = this;
-		let idx = 0;
-
-		// A következő middleware hívásához használt függvény. Ezt hívják meg a middleware-ből
-		// ha végeztek a dolgukkal. Ez egy Promise-t ad vissza, amihez .then-t írhatnak
-		// ami pedig akkor hívódik meg, ha a masterNext lefutott.
-		function next(p) {
-			// Ha Promise-t adott vissza a middleware hívás akkor csak ha 'resolved' lesz, akkor hívjuk meg a következőt
-			if (utils.isPromise(p)) {
-				return p.then(res => {
-					// Ha eredménnyel tért vissza, akkor azt jelenti, hogy 
-					// nem kell több middleware-t hívni, egyből visszaadjuk az eredményt
-					// Pl: cache-ben megvolt az adat.
-					if (res)
-						return res;
-
-					return self.__runNextMiddleware(ctx, idx < self.middlewares.length ? self.middlewares[idx++] : masterNext, next);
-				});
-			} else {
-				// Ha nem, akkor közvetlenül
-				return self.__runNextMiddleware(ctx, idx < self.middlewares.length ? self.middlewares[idx++] : masterNext, next);
-			}
-		}
-
-		// Első middleware meghívása
-		return Promise.resolve(next());
-	}*/
-
 	/**
 	 * Call an action (local or global)
 	 * 

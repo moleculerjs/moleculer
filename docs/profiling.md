@@ -11,3 +11,16 @@
 	```
 
 [More info](https://nodejs.org/en/docs/guides/simple-profiling/)
+
+## Print optimizing
+
+```
+$ node --trace-opt index.js > trace.txt
+```
+
+With de-optimizing
+```
+$ node --trace-opt --trace-deopt index.js > trace.txt
+```
+
+More info: https://community.risingstack.com/how-to-find-node-js-performance-optimization-killers/

@@ -246,45 +246,51 @@ class Transit {
 	 */
 	request(ctx, opts = {}) {
 		return new Promise((resolve, reject) => {
-			return resolve(ctx.params);
-			let req = {
-				nodeID: ctx.nodeID,
-				ctx,
-				//opts,
-				resolve,
-				reject,
-				timer: null
-			};
-
-			let message = {
-				nodeID: this.nodeID,
-				requestID: ctx.id,
-				action: ctx.action.name,
-				params: ctx.params
-			};
-			this.logger.debug(`Send request '${ctx.action.name}' action to '${ctx.nodeID}' node...`/*, message*/);
-			let payload = utils.json2String(message);
-			
-			// Handle request timeout
-			if (opts.timeout > 0) {
-				req.timer = setTimeout(() => {
-					// Remove from pending requests
-					this.pendingRequests.delete(ctx.id);
-
-					this.logger.warn(`Request timed out when call '${ctx.action.name}' action on '${ctx.nodeID}' node! (timeout: ${opts.timeout / 1000} sec)`, message);
-					
-					reject(new RequestTimeoutError(message, ctx.nodeID));
-				}, opts.timeout);
-
-				req.timer.unref();
-			}	
-
-			// Add to pendings
-			this.pendingRequests.set(ctx.id, req);
-
-			// Publish request
-			this.publish([TOPIC_REQ, ctx.nodeID], payload);
+			// Expanded the code that v8 can optimize it.  (TryCatchStatement disable optimizing)
+			this._doRequest(ctx, opts, resolve, reject);
 		});
+	}
+
+	_doRequest(ctx, opts, resolve, reject) {
+		let req = {
+			nodeID: ctx.nodeID,
+			ctx,
+			//opts,
+			resolve,
+			reject,
+			timer: null
+		};
+
+		let message = {
+			nodeID: this.nodeID,
+			requestID: ctx.id,
+			action: ctx.action.name,
+			params: ctx.params
+		};
+		this.logger.debug(`Send request '${ctx.action.name}' action to '${ctx.nodeID}' node...`);
+		let payload = utils.json2String(message);
+		
+		
+		// Handle request timeout
+		if (opts.timeout > 0) {
+			req.timer = setTimeout(() => {
+				// Remove from pending requests
+				this.pendingRequests.delete(ctx.id);
+
+				this.logger.warn(`Request timed out when call '${ctx.action.name}' action on '${ctx.nodeID}' node! (timeout: ${opts.timeout / 1000} sec)`, message);
+				
+				reject(new RequestTimeoutError(message, ctx.nodeID));
+			}, opts.timeout);
+
+			req.timer.unref();
+		}	
+		// Add to pendings
+		this.pendingRequests.set(ctx.id, req);
+
+		// Publish request
+		this.publish([TOPIC_REQ, ctx.nodeID], payload);
+		
+		//resolve(ctx.params);
 	}
 
 	/**
