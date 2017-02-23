@@ -24,3 +24,18 @@ $ node --trace-opt --trace-deopt index.js > trace.txt
 ```
 
 More info: https://community.risingstack.com/how-to-find-node-js-performance-optimization-killers/
+
+
+## IR Hydra
+
+http://mrale.ph/irhydra/2/
+
+```
+$ node --trace-hydrogen --trace-phase=Z --trace-deopt --code-comments --hydrogen-track-positions --redirect-code-traces --redirect-code-traces-to=code.asm index.js
+```
+
+## Flame graph
+
+http://www.brendangregg.com/blog/2014-09-17/node-flame-graphs-on-linux.html
+
+http://mrale.ph/blog/2011/12/18/v8-optimization-checklist.html 

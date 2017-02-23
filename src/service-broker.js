@@ -598,7 +598,7 @@ class ServiceBroker {
 			opts.retryCount = this.options.requestRetry || 0;
 		
 		return ctx.invoke(ctx => {
-			return this.transit.request(ctx, opts).catch(err => {
+			return this.transit.request(ctx, opts)/*.catch(err => {
 				if (err instanceof errors.RequestTimeoutError) {
 					// Retry request
 					if (opts.retryCount-- > 0) {
@@ -619,7 +619,7 @@ class ServiceBroker {
 				}
 
 				return Promise.reject(err);
-			});
+			});*/
 		});
 	}
 

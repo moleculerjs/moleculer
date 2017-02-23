@@ -56,8 +56,19 @@ function runTest(dataName) {
 	// let [redis1, redis2] = createBrokers(Transporters.Redis);
 	// let [mqtt1, mqtt2] = createBrokers(Transporters.MQTT);
 
-	bench.add("Ref", function() {
-		return fake2.call("echo.reply", {a: json2String(payload)});
+	bench.skip("Ref", function() {
+		return fake2.call("echo.reply", payload);
+	});
+
+	bench.skip("stringify", function() {
+		return json2String({"nodeID":"node-1","requestID":"0dfecb75-c6bd-45d0-baa5-21168bef0a8e","action":"echo.reply","params":{"id":5}});
+	}, false);
+
+	bench.skip("stringify2", function() {
+		return new Promise(resolve => {
+			return resolve(JSON.stringify({"nodeID":"node-1","requestID":"0dfecb75-c6bd-45d0-baa5-21168bef0a8e","action":"echo.reply","params":{"id":5}}));
+
+		});
 	});
 
 	bench.add("Fake", function() {

@@ -168,10 +168,10 @@ class Transit {
 		// Request
 		case TOPIC_REQ: {
 			this.logger.debug(`Request from ${msg.nodeID}.`, msg.action, msg.params);
-
 			return this.broker.call(msg.action, msg.params)
 				.then(res => this.sendResponse(msg.nodeID, msg.requestID,  res))
 				.catch(err => this.sendResponse(msg.nodeID, msg.requestID, null, err));
+			
 		}
 
 		// Response
@@ -186,7 +186,7 @@ class Transit {
 
 			// Stop timeout timer
 			if (req.timer) {
-				/* istanbul ignore next */
+				// istanbul ignore next //
 				clearTimeout(req.timer);
 			}
 
@@ -268,11 +268,12 @@ class Transit {
 			params: ctx.params
 		};
 		this.logger.debug(`Send request '${ctx.action.name}' action to '${ctx.nodeID}' node...`);
-		let payload = utils.json2String(message);
-		
-		
+
 		// Handle request timeout
 		if (opts.timeout > 0) {
+			// Globális timer 100ms-ekkel és az nézi lejárt-e valamelyik.
+			// a req-be egy expiration prop amibe az az érték van, ami azt jelenti lejárt.
+			/*
 			req.timer = setTimeout(() => {
 				// Remove from pending requests
 				this.pendingRequests.delete(ctx.id);
@@ -281,16 +282,21 @@ class Transit {
 				
 				reject(new RequestTimeoutError(message, ctx.nodeID));
 			}, opts.timeout);
-
-			req.timer.unref();
+			
+			req.timer.unref();			
+			*/
 		}	
+
+	
 		// Add to pendings
 		this.pendingRequests.set(ctx.id, req);
 
+		let payload = JSON.stringify(message);
+
+		//return resolve(ctx.params);
+		
 		// Publish request
 		this.publish([TOPIC_REQ, ctx.nodeID], payload);
-		
-		//resolve(ctx.params);
 	}
 
 	/**

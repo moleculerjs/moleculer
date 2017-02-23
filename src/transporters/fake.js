@@ -67,7 +67,7 @@ class FakeTransporter extends Transporter {
 	subscribe(topic) {
 		const self = this;
 		const t = [this.prefix].concat(topic).join(".");
-		this.bus.on(t, function(msg) {
+		this.bus.on(t, function subscriptionHandler(msg) {
 			const event = this.event.split(".").slice(1);
 			self.messageHandler(event, msg);
 		});
