@@ -115,7 +115,7 @@ class Context {
 			return res.then(data => {
 				this._finishInvoke();
 				return data;
-			}).catch(this.invokeCatch);
+			}).catch(this.invokeCatch.bind(this));
 		} else {
 			this._finishInvoke();
 			return Promise.resolve(res);
