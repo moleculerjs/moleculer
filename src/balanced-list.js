@@ -29,7 +29,7 @@ class BalancedList {
 
 	add(data, weight = 0, nodeID) {
 		if (nodeID != null) {
-			let found = _.find(this.list, { nodeID });
+			let found = this.list.find(item => item.nodeID == nodeID);
 			if (found) {
 				found.data = data;
 				return false;
@@ -50,21 +50,25 @@ class BalancedList {
 			return null;
 		}
 
+		if (this.list.length == 1) {
+			// No need to select a node, return the only one
+			return this.list[0];
+		}
+
 		if (this.counter >= this.list.length) {
 			this.counter = 0;
 		}
 
-		let item;
+		
 		if (this.opts.preferLocale) {
-			item = this.getLocalItem();
+			let item = this.getLocalItem();
 			if (item) {
 				return item;
 			}
 		}
 		// TODO: implement load-balance modes
 
-		item = this.list[this.counter++];
-		return item;
+		return this.list[this.counter++];
 	}
 
 	getData() {
@@ -77,7 +81,7 @@ class BalancedList {
 	}
 
 	getLocalItem() {
-		return _.find(this.list, { local: true });
+		return this.list.find(item => item.local);
 	}
 
 	hasLocal() {

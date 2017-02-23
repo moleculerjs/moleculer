@@ -2,6 +2,7 @@
 
 let _ = require("lodash");
 let ServiceBroker = require("../../src/service-broker");
+let Context = require("../../src/context");
 let Transporters = require("../../src/transporters");
 
 let { generateToken } = require("../../src/utils");
@@ -55,9 +56,50 @@ function runTest(dataName) {
 	// let [redis1, redis2] = createBrokers(Transporters.Redis);
 	// let [mqtt1, mqtt2] = createBrokers(Transporters.MQTT);
 
+	bench.skip("Ref", function() {
+		return fake2.call("echo.reply", payload);
+	});
+
+	bench.add("remoteCall", function() {
+		let actions = fake1.actions.get("echo.reply");
+		let actionItem = actions.get();
+		//let action = actionItem.data;
+		let ctx = new Context({
+			broker: fake1,
+			action: {
+				name: "echo.reply"
+			},
+			nodeID: fake2.nodeID,
+			params: payload
+		});
+		return fake1._remoteCall(ctx);
+		//return fake1.transit.request(ctx);
+	});
+
 	bench.add("Fake", function() {
 		return fake1.call("echo.reply", payload);
 	});
+
+	/*
+	bench.add("Bluebird new Promise", () => {
+		return new Promise((resolve, reject) => {
+			let req = {
+				nodeID: "123",
+				id: "456",
+				//ctx,
+				//opts,
+				//resolve,
+				//reject,
+				timer: null
+			};
+
+			// Add to pendings
+			//this.pendingRequests.push();
+
+			resolve(req);
+		});
+	});
+	*/
 
 	/*bench.add("NATS", function() {
 		return nats1.call("echo.reply", payload);

@@ -469,7 +469,7 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	getService(serviceName) {
-		return _.find(this.services, service => service.name == serviceName);
+		return this.services.find(service => service.name == serviceName);
 	}
 
 	/**
@@ -481,7 +481,7 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	hasService(serviceName) {
-		return _.find(this.services, service => service.name == serviceName) != null;
+		return this.services.find(service => service.name == serviceName) != null;
 	}
 
 	/**
@@ -641,6 +641,7 @@ class ServiceBroker {
 	}
 
 	_remoteCall(ctx, opts = {}) {
+		
 		// Remote action call
 		this.logger.debug(`Call remote '${ctx.action.name}' action on '${ctx.nodeID}' node...`);
 
@@ -649,8 +650,7 @@ class ServiceBroker {
 
 		if (opts.retryCount == null)
 			opts.retryCount = this.options.requestRetry || 0;
-	
-
+		
 		return ctx.invoke(ctx => {
 			return this.transit.request(ctx, opts).catch(err => {
 				if (err instanceof errors.RequestTimeoutError) {

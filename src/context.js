@@ -115,7 +115,7 @@ class Context {
 			return res.then(data => {
 				this._finishInvoke();
 				return data;
-			}).catch(err => this.invokeCatch(err));
+			}).catch(this.invokeCatch);
 		} else {
 			this._finishInvoke();
 			return Promise.resolve(res);
@@ -165,7 +165,8 @@ class Context {
 		this.stopTime = null;
 		this.duration = 0;
 
-		this._metricStart();
+		if (this.needMetrics)
+			this._metricStart();
 	}
 
 	/**
@@ -177,7 +178,8 @@ class Context {
 		this.stopTime = Date.now();
 		this.duration = this.stopTime - this.startTime;
 
-		this._metricFinish();
+		if (this.needMetrics)
+			this._metricFinish();
 	}
 
 	/**
@@ -214,24 +216,22 @@ class Context {
 	 * @memberOf Context
 	 */
 	_metricStart() {
-		if (this.needMetrics) {
-			let payload = {
-				id: this.id,
-				requestID: this.requestID,
-				startTime: this.startTime,
-				level: this.level,
-				remoteCall: this.remoteCall
+		let payload = {
+			id: this.id,
+			requestID: this.requestID,
+			startTime: this.startTime,
+			level: this.level,
+			remoteCall: this.remoteCall
+		};
+		if (this.action) {
+			payload.action = {
+				name: this.action.name
 			};
-			if (this.action) {
-				payload.action = {
-					name: this.action.name
-				};
-			}
-			if (this.parent) {
-				payload.parent = this.parent.id;
-			}
-			this.broker.emit("metrics.context.start", payload);
 		}
+		if (this.parent) {
+			payload.parent = this.parent.id;
+		}
+		this.broker.emit("metrics.context.start", payload);
 	}
 
 	/**
@@ -240,32 +240,30 @@ class Context {
 	 * @memberOf Context
 	 */
 	_metricFinish() {
-		if (this.needMetrics) {
-			let payload = {
-				id: this.id,
-				requestID: this.requestID,
-				level: this.level,
-				endTime: this.stopTime,
-				duration: this.duration,
-				remoteCall: this.remoteCall,
-				fromCache: this.cachedResult
+		let payload = {
+			id: this.id,
+			requestID: this.requestID,
+			level: this.level,
+			endTime: this.stopTime,
+			duration: this.duration,
+			remoteCall: this.remoteCall,
+			fromCache: this.cachedResult
+		};
+		if (this.action) {
+			payload.action = {
+				name: this.action.name
 			};
-			if (this.action) {
-				payload.action = {
-					name: this.action.name
-				};
-			}			
-			if (this.parent) {
-				payload.parent = this.parent.id;
-			}
-			if (this.error) {
-				payload.error = {
-					type: this.error.name,
-					message: this.error.message
-				};
-			}
-			this.broker.emit("metrics.context.finish", payload);
+		}			
+		if (this.parent) {
+			payload.parent = this.parent.id;
 		}
+		if (this.error) {
+			payload.error = {
+				type: this.error.name,
+				message: this.error.message
+			};
+		}
+		this.broker.emit("metrics.context.finish", payload);
 	}
 }
 

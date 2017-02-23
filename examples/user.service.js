@@ -54,7 +54,7 @@ module.exports = function(broker) {
 
 		methods: {
 			findByID(id) {
-				return _.cloneDeep(_.find(users, user => user.id == id));
+				return _.cloneDeep(users.find(user => user.id == id));
 			}
 		}
 	});

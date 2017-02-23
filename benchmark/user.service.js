@@ -22,7 +22,7 @@ module.exports = function(broker) {
 			get: {
 				cache: true,
 				handler(ctx) {
-					return _.find(users, user => user.id == ctx.params.id);
+					return users.find(user => user.id == ctx.params.id);
 				}
 			},
 
@@ -31,14 +31,14 @@ module.exports = function(broker) {
 					keys: ["id"]
 				},
 				handler(ctx) {
-					return _.find(users, user => user.id == ctx.params.id);
+					return users.find(user => user.id == ctx.params.id);
 				}
 			},
 
 			nocache: {
 				cache: false,
 				handler(ctx) {
-					return _.find(users, user => user.id == ctx.params.id);
+					return users.find(user => user.id == ctx.params.id);
 				}
 			},
 
@@ -48,7 +48,7 @@ module.exports = function(broker) {
 					id: "required|integer|min:1"
 				},
 				handler(ctx) {
-					return _.find(users, user => user.id == ctx.params.id);
+					return users.find(user => user.id == ctx.params.id);
 				}
 			},			
 			

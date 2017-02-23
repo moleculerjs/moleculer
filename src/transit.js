@@ -246,6 +246,7 @@ class Transit {
 	 */
 	request(ctx, opts = {}) {
 		return new Promise((resolve, reject) => {
+			return resolve(ctx.params);
 			let req = {
 				nodeID: ctx.nodeID,
 				ctx,
@@ -276,8 +277,8 @@ class Transit {
 				}, opts.timeout);
 
 				req.timer.unref();
-			}
-			
+			}	
+
 			// Add to pendings
 			this.pendingRequests.set(ctx.id, req);
 
