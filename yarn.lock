@@ -3903,6 +3903,10 @@ uuid@^2.0.1:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-2.0.3.tgz#67e2e863797215530dff318e5bf9dcebfd47b21a"
 
+v8-natives@0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/v8-natives/-/v8-natives-0.0.3.tgz#2b7706dfc6e2e3abf805cdfe9c74fafcdbb630d4"
+
 validate-npm-package-license@^3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/validate-npm-package-license/-/validate-npm-package-license-3.0.1.tgz#2804babe712ad3379459acfbe24746ab2c303fbc"
