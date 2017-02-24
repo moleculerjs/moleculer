@@ -110,7 +110,7 @@ setTimeout(() => {
 		count = 0;
 		startTime = Date.now();
 
-		//v8.helpers.printStatus(json2String);
+		//v8.helpers.printStatus(b1.transit.messageHandler);
 	}, 1000);
 
 }, 500);

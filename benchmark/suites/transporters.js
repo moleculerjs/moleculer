@@ -52,7 +52,7 @@ function runTest(dataName) {
 	let payload = JSON.parse(data);
 
 	let [fake1, fake2] = createBrokers(Transporters.Fake);
-	// let [nats1, nats2] = createBrokers(Transporters.NATS);
+	let [nats1, nats2] = createBrokers(Transporters.NATS);
 	// let [redis1, redis2] = createBrokers(Transporters.Redis);
 	// let [mqtt1, mqtt2] = createBrokers(Transporters.MQTT);
 
@@ -79,10 +79,10 @@ function runTest(dataName) {
 		return fake1.transit.request({ params: payload });
 	});
 
-	/*bench.add("NATS", function() {
+	bench.add("NATS", function() {
 		return nats1.call("echo.reply", payload);
 	});
-
+	/*
 	bench.add("Redis", function() {
 		return redis1.call("echo.reply", payload);
 	});
@@ -96,8 +96,8 @@ function runTest(dataName) {
 			fake1.stop();
 			fake2.stop();
 
-			// nats1.stop();
-			// nats2.stop();
+			nats1.stop();
+			nats2.stop();
 
 			// redis1.stop();
 			// redis2.stop();

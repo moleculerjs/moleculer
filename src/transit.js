@@ -143,7 +143,7 @@ class Transit {
 	 * 
 	 * @memberOf Transit
 	 */
-	messageHandler(topic, packet) {
+	messageHandler(topics, packet) {
 		let msg;
 		if (packet)
 			msg = utils.string2Json(packet);
@@ -155,10 +155,10 @@ class Transit {
 
 		if (msg.nodeID == this.nodeID) return Promise.resolve(); 
 
-		switch(topic[0]) {
+		const topic = topics[0];
 
 		// Event
-		case TOPIC_EVENT: {
+		if (topic === TOPIC_EVENT) {
 			this.logger.debug("Event received", msg);
 			this.broker.emitLocal(msg.event, msg.param);
 				
@@ -166,7 +166,7 @@ class Transit {
 		}
 
 		// Request
-		case TOPIC_REQ: {
+		else if (topic === TOPIC_REQ) {
 			this.logger.debug(`Request from ${msg.nodeID}.`, msg.action, msg.params);
 			return this.broker.call(msg.action, msg.params, {}) // {} opts to avoid deoptimizing
 				.then(res => this.sendResponse(msg.nodeID, msg.requestID,  res))
@@ -175,7 +175,7 @@ class Transit {
 		}
 
 		// Response
-		case TOPIC_RES: {
+		else if (topic === TOPIC_RES) {
 			let req = this.pendingRequests.get(msg.requestID);
 
 			// If not exists (timed out), we skip to process the response
@@ -205,19 +205,19 @@ class Transit {
 		}
 
 		// Node info
-		case TOPIC_INFO:
-		case TOPIC_DISCOVER: {
-			this.logger.debug("Discovery received from " + msg.nodeID);
+		else if (topic === TOPIC_INFO || topic === TOPIC_DISCOVER) {
 			this.broker.processNodeInfo(msg.nodeID, msg);
 
-			if (topic[0] == "DISCOVER")
+			if (topic == "DISCOVER") {
+				this.logger.debug("Discover received from " + msg.nodeID);
 				this.sendNodeInfo(msg.nodeID);
+			}
 
 			return;
 		}
 
 		// Disconnect
-		case TOPIC_DISCONNECT: {
+		else if (topic === TOPIC_DISCONNECT) {
 			this.logger.debug(`Node '${msg.nodeID}' disconnected`);
 			this.broker.nodeDisconnected(msg.nodeID, msg);
 
@@ -225,12 +225,11 @@ class Transit {
 		}
 
 		// Heartbeat
-		case TOPIC_HEARTBEAT: {
+		else if (topic === TOPIC_HEARTBEAT) {
 			this.logger.debug("Node heart-beat received from " + msg.nodeID);
 			this.broker.nodeHeartbeat(msg.nodeID, msg);
 
 			return;
-		}
 		}
 	}
 
