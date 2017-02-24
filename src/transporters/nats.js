@@ -65,6 +65,7 @@ class NatsTransporter extends Transporter {
 
 			/* istanbul ignore next */
 			this.client.on("close", () => {
+				this.connected = false;
 				this.logger.warn("NATS disconnected!");
 			});			
 		});

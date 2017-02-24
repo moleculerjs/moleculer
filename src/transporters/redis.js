@@ -77,11 +77,13 @@ class RedisTransporter extends Transporter {
 
 			/* istanbul ignore next */
 			this.clientSub.on("close", () => {
+				this.connected = true;
 				this.logger.warn("Redis-sub disconnected!");
 			});		
 
 			/* istanbul ignore next */
 			this.clientPub.on("close", () => {
+				this.connected = true;
 				this.logger.warn("Redis-pub disconnected!");
 			});			
 		});
