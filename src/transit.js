@@ -78,11 +78,10 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendDisconnectPacket() {
-		let message = {
+		let payload = {
 			nodeID: this.nodeID
 		};
-		this.logger.debug("Send DISCONNECT to nodes", message);
-		let payload = utils.json2String(message);
+		this.logger.debug("Send DISCONNECT to nodes", payload);
 
 		this.publish([TOPIC_DISCONNECT], payload);
 		return Promise.resolve();
@@ -132,8 +131,7 @@ class Transit {
 			param
 		};
 		this.logger.debug("Emit Event", event);
-		let payload = utils.json2String(event);
-		this.publish([TOPIC_EVENT], payload);
+		this.publish([TOPIC_EVENT], event);
 	}
 
 	/**
@@ -261,14 +259,14 @@ class Transit {
 			timer: null
 		};
 
-		const message = {
+		const payload = {
 			nodeID: this.nodeID,
 			requestID: ctx.id,
 			action: ctx.action.name,
 			params: ctx.params
 		};
 
-		this.logger.debug(`Send request '${ctx.action.name}' action to '${ctx.nodeID}' node...`, message);
+		this.logger.debug(`Send request '${ctx.action.name}' action to '${ctx.nodeID}' node...`, payload);
 
 
 		// Handle request timeout
@@ -280,9 +278,9 @@ class Transit {
 				// Remove from pending requests
 				this.pendingRequests.delete(ctx.id);
 
-				this.logger.warn(`Request timed out when call '${ctx.action.name}' action on '${ctx.nodeID}' node! (timeout: ${opts.timeout / 1000} sec)`, message);
+				this.logger.warn(`Request timed out when call '${ctx.action.name}' action on '${ctx.nodeID}' node! (timeout: ${opts.timeout / 1000} sec)`, payload);
 				
-				reject(new RequestTimeoutError(message, ctx.nodeID));
+				reject(new RequestTimeoutError(payload, ctx.nodeID));
 			}, opts.timeout);
 			
 			req.timer.unref();			
@@ -291,8 +289,6 @@ class Transit {
 
 		// Add to pendings
 		this.pendingRequests.set(ctx.id, req);
-
-		const payload = this.json2String(message);
 
 		//return resolve(ctx.params);
 		
@@ -311,22 +307,21 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendResponse(nodeID, requestID, data, err) {
-		let msg = {
+		let payload = {
 			success: !err,
 			nodeID: this.nodeID,
 			requestID,
 			data
 		};
 		if (err) {
-			msg.error = {
+			payload.error = {
 				name: err.name,
 				message: err.message,
 				code: err.code,
 				data: err.data
 			};
 		}
-		let payload = utils.json2String(msg);
-		this.logger.debug(`Response to ${nodeID}`, "Length: ", payload.length, "bytes");
+		this.logger.debug(`Response to ${nodeID}`);
 
 		// Publish the response
 		return this.publish([TOPIC_RES, nodeID], payload);
@@ -339,10 +334,10 @@ class Transit {
 	 */
 	discoverNodes() {
 		let actionList = this.broker.getLocalActionList();
-		let payload = utils.json2String({
+		let payload = {
 			nodeID: this.broker.nodeID,
 			actions: actionList
-		});
+		};
 		return this.publish([TOPIC_DISCOVER], payload);
 	}
 
@@ -353,10 +348,10 @@ class Transit {
 	 */
 	sendNodeInfo(targetNodeID) {
 		let actionList = this.broker.getLocalActionList();
-		let payload = utils.json2String({
+		let payload = {
 			nodeID: this.broker.nodeID,
 			actions: actionList
-		});
+		};
 		return this.publish([TOPIC_INFO, targetNodeID], payload);
 	}
 
@@ -366,9 +361,9 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendHeartbeat() {
-		let payload = utils.json2String({
+		let payload = {
 			nodeID: this.broker.nodeID
-		});
+		};
 		this.publish([TOPIC_HEARTBEAT], payload);
 	}
 
@@ -387,11 +382,12 @@ class Transit {
 	 * Publish via transporter
 	 * 
 	 * @param {Array} topic 
-	 * @param {String} packet 
+	 * @param {String} message 
 	 * 
 	 * @memberOf NatsTransporter
 	 */
-	publish(topic, packet) {
+	publish(topic, message) {
+		const packet = utils.json2String(message);
 		return this.tx.publish(topic, packet);
 	}
 }
