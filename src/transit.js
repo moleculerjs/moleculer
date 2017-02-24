@@ -273,7 +273,7 @@ class Transit {
 		if (opts.timeout > 0) {
 			// Globális timer 100ms-ekkel és az nézi lejárt-e valamelyik.
 			// a req-be egy expiration prop amibe az az érték van, ami azt jelenti lejárt.
-			/*
+			
 			req.timer = setTimeout(() => {
 				// Remove from pending requests
 				this.pendingRequests.delete(ctx.id);
@@ -284,7 +284,7 @@ class Transit {
 			}, opts.timeout);
 			
 			req.timer.unref();			
-			*/
+			
 		}	
 
 		// Add to pendings

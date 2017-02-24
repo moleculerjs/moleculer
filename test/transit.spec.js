@@ -88,7 +88,7 @@ describe("Test Transit.sendDisconnectPacket", () => {
 	it("should call publish iwth correct params", () => {
 		return transit.sendDisconnectPacket().then(() => {
 			expect(transit.publish).toHaveBeenCalledTimes(1);
-			expect(transit.publish).toHaveBeenCalledWith(["DISCONNECT"], "{\"nodeID\":\"node1\"}");
+			expect(transit.publish).toHaveBeenCalledWith(["DISCONNECT"], { nodeID: "node1" });
 		});
 	});
 
@@ -128,7 +128,7 @@ describe("Test Transit.emit", () => {
 		const user = { id: 5, name: "Jameson" };
 		transit.emit("user.created", user);
 		expect(transit.publish).toHaveBeenCalledTimes(1);
-		expect(transit.publish).toHaveBeenCalledWith(["EVENT"], "{\"nodeID\":\"node1\",\"event\":\"user.created\",\"param\":{\"id\":5,\"name\":\"Jameson\"}}");
+		expect(transit.publish).toHaveBeenCalledWith(["EVENT"], {"event": "user.created", "nodeID": "node1", "param": {"id": 5, "name": "Jameson"}});
 	});
 
 });
@@ -160,7 +160,7 @@ describe("Test Transit.messageHandler", () => {
 		transit.messageHandler(["EVENT"], JSON.stringify(msg));
 
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith(msg.event, msg.param);
+		expect(broker.emitLocal).toHaveBeenCalledWith(msg.event, "John Doe");
 	});
 
 	describe("Test 'REQ'", () => {
@@ -173,10 +173,10 @@ describe("Test Transit.messageHandler", () => {
 			let response = [1, 5, 8];
 			broker.call = jest.fn(() => Promise.resolve(response));
 
-			let msg = { nodeID: "remote", action: "posts.find", requestID: "123", param: { limit: 5 } };
+			let msg = { nodeID: "remote", action: "posts.find", requestID: "123", params: { limit: 5 } };
 			return transit.messageHandler(["REQ"], JSON.stringify(msg)).then(() => {
 				expect(broker.call).toHaveBeenCalledTimes(1);
-				expect(broker.call).toHaveBeenCalledWith(msg.action, msg.params);
+				expect(broker.call).toHaveBeenCalledWith(msg.action, { limit: 5 }, {});
 
 				expect(transit.sendResponse).toHaveBeenCalledTimes(1);
 				expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", [1, 5, 8]);
@@ -189,10 +189,10 @@ describe("Test Transit.messageHandler", () => {
 			transit.sendResponse.mockClear();
 			broker.call = jest.fn(() => Promise.reject(new ValidationError("Not valid params")));
 
-			let msg = { nodeID: "remote", action: "posts.create", requestID: "123", param: { title: "Hello" } };
+			let msg = { nodeID: "remote", action: "posts.create", requestID: "123", params: { title: "Hello" } };
 			return transit.messageHandler(["REQ"], JSON.stringify(msg)).then(() => {
 				expect(broker.call).toHaveBeenCalledTimes(1);
-				expect(broker.call).toHaveBeenCalledWith(msg.action, msg.params);
+				expect(broker.call).toHaveBeenCalledWith(msg.action, { title: "Hello" }, {});
 
 				expect(transit.sendResponse).toHaveBeenCalledTimes(1);
 				expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", null, jasmine.any(ValidationError));
@@ -336,7 +336,7 @@ describe("Test Transit.request", () => {
 		return transit.request(ctx).then(req => {
 			expect(transit.pendingRequests.size).toBe(1);
 			expect(transit.publish).toHaveBeenCalledTimes(1);
-			expect(transit.publish).toHaveBeenCalledWith(["REQ", "remote"], "{\"nodeID\":\"node1\",\"requestID\":\"12345\",\"action\":\"users.find\",\"params\":{\"a\":5}}");
+			expect(transit.publish).toHaveBeenCalledWith(["REQ", "remote"], {"action": "users.find", "nodeID": "node1", "params": {"a": 5}, "requestID": "12345"});
 
 			expect(req.nodeID).toBe("remote");
 			expect(req.ctx).toBe(ctx);
@@ -359,7 +359,7 @@ describe("Test Transit.request", () => {
 		return transit.request(ctx, { timeout: 100 }).catch(err => {
 			expect(transit.pendingRequests.size).toBe(0); // Removed after timeout
 			expect(transit.publish).toHaveBeenCalledTimes(1);
-			expect(transit.publish).toHaveBeenCalledWith(["REQ", "remote"], "{\"nodeID\":\"node1\",\"requestID\":\"12345\",\"action\":\"users.find\",\"params\":{\"a\":5}}");
+			expect(transit.publish).toHaveBeenCalledWith(["REQ", "remote"], {"action": "users.find", "nodeID": "node1", "params": {"a": 5}, "requestID": "12345"});
 
 			expect(err).toBeInstanceOf(RequestTimeoutError);
 			expect(err.nodeID).toBe("remote");
@@ -380,14 +380,14 @@ describe("Test Transit.sendResponse", () => {
 		const data = { id: 1, name: "John Doe" };
 		transit.sendResponse("node2", "12345", data);
 		expect(transit.publish).toHaveBeenCalledTimes(1);
-		expect(transit.publish).toHaveBeenCalledWith(["RES", "node2"],  "{\"success\":true,\"nodeID\":\"node1\",\"requestID\":\"12345\",\"data\":{\"id\":1,\"name\":\"John Doe\"}}");
+		expect(transit.publish).toHaveBeenCalledWith(["RES", "node2"],  {"data": {"id": 1, "name": "John Doe"}, "nodeID": "node1", "requestID": "12345", "success": true});
 	});
 
 	it("should call publish with the error", () => {
 		transit.publish.mockClear();
 		transit.sendResponse("node2", "12345", null, new ValidationError("Not valid params", { a: "Too small" }));
 		expect(transit.publish).toHaveBeenCalledTimes(1);
-		expect(transit.publish).toHaveBeenCalledWith(["RES", "node2"],   "{\"success\":false,\"nodeID\":\"node1\",\"requestID\":\"12345\",\"data\":null,\"error\":{\"name\":\"ValidationError\",\"message\":\"Not valid params\",\"code\":422,\"data\":{\"a\":\"Too small\"}}}");
+		expect(transit.publish).toHaveBeenCalledWith(["RES", "node2"], {"data": null, "error": {"code": 422, "data": {"a": "Too small"}, "message": "Not valid params", "name": "ValidationError"}, "nodeID": "node1", "requestID": "12345", "success": false});
 	});
 
 });
@@ -403,7 +403,7 @@ describe("Test Transit.discoverNodes", () => {
 	it("should call publish with correct params", () => {
 		transit.discoverNodes();
 		expect(transit.publish).toHaveBeenCalledTimes(1);
-		expect(transit.publish).toHaveBeenCalledWith(["DISCOVER"], "{\"nodeID\":\"node1\",\"actions\":{}}");
+		expect(transit.publish).toHaveBeenCalledWith(["DISCOVER"], {"actions": {}, "nodeID": "node1"});
 	});
 
 });
@@ -419,7 +419,7 @@ describe("Test Transit.sendNodeInfo", () => {
 	it("should call publish with correct params", () => {
 		transit.sendNodeInfo("node2");
 		expect(transit.publish).toHaveBeenCalledTimes(1);
-		expect(transit.publish).toHaveBeenCalledWith(["INFO", "node2"], "{\"nodeID\":\"node1\",\"actions\":{}}");
+		expect(transit.publish).toHaveBeenCalledWith(["INFO", "node2"], {"actions": {}, "nodeID": "node1"});
 	});
 
 });
@@ -435,7 +435,7 @@ describe("Test Transit.sendHeartbeat", () => {
 	it("should call publish with correct params", () => {
 		transit.sendHeartbeat();
 		expect(transit.publish).toHaveBeenCalledTimes(1);
-		expect(transit.publish).toHaveBeenCalledWith(["HEARTBEAT"], "{\"nodeID\":\"node1\"}");
+		expect(transit.publish).toHaveBeenCalledWith(["HEARTBEAT"], {"nodeID": "node1"});
 	});
 
 });
@@ -465,10 +465,10 @@ describe("Test Transit.publish", () => {
 	transporter.publish = jest.fn();
 
 	it("should call transporter.publish", () => {
-		let payload = "John Doe";
+		let payload = { a: "John Doe" };
 		transit.publish(["RES", "node-2"], payload);
 		expect(transporter.publish).toHaveBeenCalledTimes(1);
-		expect(transporter.publish).toHaveBeenCalledWith(["RES", "node-2"], payload);
+		expect(transporter.publish).toHaveBeenCalledWith(["RES", "node-2"], "{\"a\":\"John Doe\"}");
 	});
 
 });
