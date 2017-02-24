@@ -94,7 +94,7 @@ function doStringify() {
 
 setTimeout(() => {
 	let startTime = Date.now();
-
+	
 	doRequest();
 	//doStringify();
 
@@ -104,8 +104,9 @@ setTimeout(() => {
 		count = 0;
 		startTime = Date.now();
 
-		console.log(translateStatus(v8.getOptimizationStatus(json2String)));		
+		//v8.helpers.printStatus(b1.transit._doRequest);
 	}, 1000);
 
 }, 500);
 
+console.log(v8.getV8Version());

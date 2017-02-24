@@ -96,7 +96,7 @@ class StatRequestStore {
 		let totalCount = 0;
 		let values = [];
 		this.timeBuckets.forEach((bucket, i) => {
-			totalCount += bucket.times.length;
+			totalCount = totalCount + bucket.times.length;
 			if (bucket.rps == null && i < this.timeBuckets.length - 1 ) {
 				const endTime = this.timeBuckets[i + 1].time; // Next bucket start time
 				bucket.rps = bucket.times.length / ((endTime - bucket.time) / 1000);

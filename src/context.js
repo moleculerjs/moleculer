@@ -115,12 +115,28 @@ class Context {
 			return res.then(data => {
 				this._finishInvoke();
 				return data;
-			}).catch(this.invokeCatch.bind(this));
+			}).catch(err => this.invokeCatch(err));
 		} else {
 			this._finishInvoke();
 			return Promise.resolve(res);
 		}
 	}
+
+	/**
+	 * Invoke a remote action call via `Transit`.
+	 * 
+	 * @param {any} opts Options of request
+	 * @returns {Promise}
+	 * 
+	 * @memberOf Context
+	 */
+	invokeRemote(opts) {
+		this._startInvoke();
+		return this.broker.transit.request(this, opts).then(data => {
+			this._finishInvoke();
+			return data;
+		}).catch(err => this.invokeCatch(err));
+	}	
 
 	invokeCatch(err) {
 		if (!(err instanceof Error)) {

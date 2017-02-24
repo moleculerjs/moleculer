@@ -586,8 +586,7 @@ class ServiceBroker {
 		return p;
 	}
 
-	_remoteCall(ctx, opts = {}) {
-		
+	_remoteCall(ctx, opts = {}) {		
 		// Remote action call
 		this.logger.debug(`Call remote '${ctx.action.name}' action on '${ctx.nodeID}' node...`);
 
@@ -596,31 +595,32 @@ class ServiceBroker {
 
 		if (opts.retryCount == null)
 			opts.retryCount = this.options.requestRetry || 0;
-		
-		return ctx.invoke(ctx => {
-			return this.transit.request(ctx, opts)/*.catch(err => {
-				if (err instanceof errors.RequestTimeoutError) {
-					// Retry request
-					if (opts.retryCount-- > 0) {
-						this.logger.warn(`Retry call '${ctx.action.name}' action on '${ctx.nodeID}' (retry: ${opts.retryCount + 1})...`);
 
-						return this.call(ctx.action.name, ctx.params, opts);
-					}
+		return this.transit.request(ctx, opts).catch(err => this._remoteCallCather(err, ctx, opts));
+		//return ctx.invokeRemote(opts).catch(err => this._remoteCallCather(err, ctx, opts));
+	}
 
-					this.nodeUnavailable(ctx.nodeID);
-				}
-				// Handle fallback response
-				if (opts.fallbackResponse) {
-					this.logger.warn(`Action '${ctx.action.name}' returns fallback response!`);
-					if (_.isFunction(opts.fallbackResponse))
-						return opts.fallbackResponse(ctx, ctx.nodeID);
-					else
-						return Promise.resolve(opts.fallbackResponse);
-				}
+	_remoteCallCather(err, ctx, opts) {
+		if (err instanceof errors.RequestTimeoutError) {
+			// Retry request
+			if (opts.retryCount-- > 0) {
+				this.logger.warn(`Retry call '${ctx.action.name}' action on '${ctx.nodeID}' (retry: ${opts.retryCount + 1})...`);
 
-				return Promise.reject(err);
-			});*/
-		});
+				return this.call(ctx.action.name, ctx.params, opts);
+			}
+
+			this.nodeUnavailable(ctx.nodeID);
+		}
+		// Handle fallback response
+		if (opts.fallbackResponse) {
+			this.logger.warn(`Action '${ctx.action.name}' returns fallback response!`);
+			if (_.isFunction(opts.fallbackResponse))
+				return opts.fallbackResponse(ctx, ctx.nodeID);
+			else
+				return Promise.resolve(opts.fallbackResponse);
+		}
+
+		return Promise.reject(err);
 	}
 
 	/**

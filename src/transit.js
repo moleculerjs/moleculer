@@ -245,14 +245,12 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	request(ctx, opts = {}) {
-		return new Promise((resolve, reject) => {
-			// Expanded the code that v8 can optimize it.  (TryCatchStatement disable optimizing)
-			this._doRequest(ctx, opts, resolve, reject);
-		});
+		// Expanded the code that v8 can optimize it.  (TryCatchStatement disable optimizing)
+		return new Promise((resolve, reject) => this._doRequest(ctx, opts, resolve, reject));
 	}
 
 	_doRequest(ctx, opts, resolve, reject) {
-		let req = {
+		const req = {
 			nodeID: ctx.nodeID,
 			ctx,
 			//opts,
@@ -261,7 +259,7 @@ class Transit {
 			timer: null
 		};
 
-		let message = {
+		const message = {
 			nodeID: this.nodeID,
 			requestID: ctx.id,
 			action: ctx.action.name,
@@ -289,19 +287,17 @@ class Transit {
 			*/
 		}	
 
-	
 		// Add to pendings
 		//this.pendingRequests.set(ctx.id, req);
 
-		
 		const payload = utils.json2String(message);
 
 		return resolve(ctx.params);
 		
 		// Publish request
 		this.publish([TOPIC_REQ, ctx.nodeID], payload);
+		
 	}
-	
 
 	/**
 	 * Send back the response of request

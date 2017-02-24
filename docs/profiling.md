@@ -43,3 +43,7 @@ Others:
 http://mrale.ph/blog/2011/12/18/v8-optimization-checklist.html 
 
 http://stackoverflow.com/a/31549736/129346
+
+https://github.com/petkaantonov/bluebird/wiki/Optimization-killers#52-the-object-being-iterated-is-not-a-simple-enumerable
+
+https://jsperf.com/let-compound-assignment
