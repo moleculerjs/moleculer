@@ -37,8 +37,11 @@ $ node --trace-hydrogen --trace-phase=Z --trace-deopt --code-comments --hydrogen
 ## Flame graph
 
 http://www.brendangregg.com/blog/2014-09-17/node-flame-graphs-on-linux.html
+https://www.slideshare.net/brendangregg/blazing-performance-with-flame-graphs
 
-Others:
+For Windows: https://github.com/google/UIforETW/releases
+
+## Others
 
 http://mrale.ph/blog/2011/12/18/v8-optimization-checklist.html 
 
@@ -47,3 +50,5 @@ http://stackoverflow.com/a/31549736/129346
 https://github.com/petkaantonov/bluebird/wiki/Optimization-killers#52-the-object-being-iterated-is-not-a-simple-enumerable
 
 https://jsperf.com/let-compound-assignment
+
+https://gist.github.com/trevnorris/f0907b010c9d5e24ea97

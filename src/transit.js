@@ -267,7 +267,6 @@ class Transit {
 
 		this.logger.debug(`Send request '${ctx.action.name}' action to '${ctx.nodeID}' node...`, payload);
 
-
 		// Handle request timeout
 		if (opts.timeout > 0) {
 			// Globális timer 100ms-ekkel és az nézi lejárt-e valamelyik.
@@ -284,7 +283,7 @@ class Transit {
 			
 			req.timer.unref();			
 			
-		}	
+		}
 
 		// Add to pendings
 		this.pendingRequests.set(ctx.id, req);
