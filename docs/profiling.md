@@ -38,4 +38,8 @@ $ node --trace-hydrogen --trace-phase=Z --trace-deopt --code-comments --hydrogen
 
 http://www.brendangregg.com/blog/2014-09-17/node-flame-graphs-on-linux.html
 
+Others:
+
 http://mrale.ph/blog/2011/12/18/v8-optimization-checklist.html 
+
+http://stackoverflow.com/a/31549736/129346

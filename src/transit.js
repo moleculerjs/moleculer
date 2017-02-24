@@ -168,7 +168,7 @@ class Transit {
 		// Request
 		case TOPIC_REQ: {
 			this.logger.debug(`Request from ${msg.nodeID}.`, msg.action, msg.params);
-			return this.broker.call(msg.action, msg.params)
+			return this.broker.call(msg.action, msg.params, {}) // {} opts to avoid deoptimizing
 				.then(res => this.sendResponse(msg.nodeID, msg.requestID,  res))
 				.catch(err => this.sendResponse(msg.nodeID, msg.requestID, null, err));
 			
@@ -267,7 +267,9 @@ class Transit {
 			action: ctx.action.name,
 			params: ctx.params
 		};
-		this.logger.debug(`Send request '${ctx.action.name}' action to '${ctx.nodeID}' node...`);
+
+		this.logger.debug(`Send request '${ctx.action.name}' action to '${ctx.nodeID}' node...`, message);
+
 
 		// Handle request timeout
 		if (opts.timeout > 0) {
@@ -289,15 +291,17 @@ class Transit {
 
 	
 		// Add to pendings
-		this.pendingRequests.set(ctx.id, req);
+		//this.pendingRequests.set(ctx.id, req);
 
-		let payload = JSON.stringify(message);
+		
+		const payload = utils.json2String(message);
 
-		//return resolve(ctx.params);
+		return resolve(ctx.params);
 		
 		// Publish request
 		this.publish([TOPIC_REQ, ctx.nodeID], payload);
 	}
+	
 
 	/**
 	 * Send back the response of request
