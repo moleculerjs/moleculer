@@ -41,7 +41,7 @@ function createBrokers(Transporter, opts) {
 	return [b1, b2];
 }
 
-let [b1, b2] = createBrokers(Transporters.NATS);
+let [b1, b2] = createBrokers(Transporters.Fake);
 
 function translateStatus(status) {
 	const texts = [
