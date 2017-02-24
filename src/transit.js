@@ -43,6 +43,8 @@ class Transit {
 		this.pendingRequests = new Map();
 
 		this.tx.init(broker, this.messageHandler.bind(this));
+
+		this.json2String = utils.json2String;
 	}
 
 	/**
@@ -288,15 +290,14 @@ class Transit {
 		}	
 
 		// Add to pendings
-		//this.pendingRequests.set(ctx.id, req);
+		this.pendingRequests.set(ctx.id, req);
 
-		const payload = utils.json2String(message);
+		const payload = this.json2String(message);
 
-		return resolve(ctx.params);
+		//return resolve(ctx.params);
 		
 		// Publish request
-		this.publish([TOPIC_REQ, ctx.nodeID], payload);
-		
+		this.publish([TOPIC_REQ, ctx.nodeID], payload);		
 	}
 
 	/**

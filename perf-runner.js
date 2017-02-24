@@ -73,9 +73,8 @@ function doRequest() {
 		throw err;
 	});
 }
-
 /*
-let msg = {
+const globalMsg = {
 	nodeID: "server-2",
 	requestID: generateToken(),
 	action: "posts.empty",
@@ -83,10 +82,17 @@ let msg = {
 };
 
 function doStringify() {
+	const msg = {
+		nodeID: "server-2",
+		requestID: generateToken(),
+		action: "posts.empty",
+		params: { a: 5 }
+	};
+
 	count++;
 	let res = json2String(msg);
 
-	if (count % 10000) 
+	if (count % 1000) 
 		doStringify();
 	else
 		setImmediate(() => doStringify());
@@ -104,7 +110,7 @@ setTimeout(() => {
 		count = 0;
 		startTime = Date.now();
 
-		//v8.helpers.printStatus(b1.transit._doRequest);
+		//v8.helpers.printStatus(json2String);
 	}, 1000);
 
 }, 500);
