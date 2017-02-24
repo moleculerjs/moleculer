@@ -68,6 +68,7 @@ function doRequest() {
 			// Slow cycle
 			setImmediate(() => doRequest());
 		}
+		return res;
 
 	}).catch(err => {
 		throw err;
@@ -90,12 +91,15 @@ function doStringify() {
 	};
 
 	count++;
-	let res = json2String(msg);
+	Promise.resolve(json2String(msg)).then(res => {
+		if (count % 1000) 
+			doStringify();
+		else
+			setImmediate(() => doStringify());
 
-	if (count % 1000) 
-		doStringify();
-	else
-		setImmediate(() => doStringify());
+		return res;
+	});
+
 }*/
 
 setTimeout(() => {
