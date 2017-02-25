@@ -20,14 +20,22 @@ broker.start();
 
 console.log("Server started. nodeID: ", broker.nodeID, ", PID:", process.pid);
 
-function next(res) {
-	//console.info(`${payload.a} + ${payload.b} = ${res}`);
-	process.nextTick(work);
-}
-
 let payload = { a: random(0, 100), b: random(0, 100) };
+
 function work() {
-	broker.call("math.add", payload).then(next);		
+	broker.call("math.add", payload).then(res => {
+		if (broker._callCount % 10000) {
+			// Fast cycle
+			work();
+		} else {
+			// Slow cycle
+			setImmediate(() => work());
+		}
+		return res;
+
+	}).catch(err => {
+		throw err;
+	});
 }
 
 setTimeout(() => { 

@@ -4,7 +4,7 @@ const http = require("http");
 
 const Promise = require("bluebird");
 const url = require("url");
-const queryString = require('querystring');
+const queryString = require("querystring");
 const IO = require("socket.io");
 
 const mimetypes = {
@@ -59,6 +59,7 @@ module.exports = function() {
 				const match = actionRe.exec(pathname);
 
 				if (match) {
+					// Call action with broker
 					const actionName = match[1].replace(/~/, "$").replace(/\//g, ".");
 
 					this.logger.info(`Call '${actionName}' action with params:`, params);
