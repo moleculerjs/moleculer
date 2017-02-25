@@ -102,43 +102,43 @@ bench1.run()
 
 /*
 
-=====================                                                             
-  Context benchmark                                                               
-=====================                                                             
-                                                                                  
-Platform info:                                                                    
-==============                                                                    
-   Windows_NT 6.1.7601 x64                                                        
-   Node.JS: 6.9.2                                                                 
-   V8: 5.1.281.88                                                                 
-   Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8                                   
-                                                                                  
-Suite: Context constructor                                                        
-√ create without settings x 3,773,543 ops/sec ±0.33% (92 runs sampled)            
-√ create with settings x 3,681,655 ops/sec ±0.32% (93 runs sampled)               
-√ create with params x 3,680,822 ops/sec ±1.01% (91 runs sampled)                 
-√ create subContext x 3,621,209 ops/sec ±0.77% (94 runs sampled)                  
-                                                                                  
-   create without settings     0.00%   (3,773,543 ops/sec)                        
-   create with settings       -2.44%   (3,681,655 ops/sec)                        
-   create with params         -2.46%   (3,680,822 ops/sec)                        
-   create subContext          -4.04%   (3,621,209 ops/sec)                        
------------------------------------------------------------------------           
-                                                                                  
-Suite: Context.invoke with sync handler                                           
-√ call direct without invoke x 2,357,674 ops/sec ±1.01% (86 runs sampled)         
-√ call invoke x 925,284 ops/sec ±0.82% (89 runs sampled)                          
-                                                                                  
-   call direct without invoke     0.00%   (2,357,674 ops/sec)                     
-   call invoke                  -60.75%    (925,284 ops/sec)                      
------------------------------------------------------------------------           
-                                                                                  
-Suite: Context.invoke with async handler                                          
-√ call direct without invoke x 1,167,473 ops/sec ±0.99% (87 runs sampled)         
-√ call invoke x 433,536 ops/sec ±0.76% (90 runs sampled)                          
-                                                                                  
-   call direct without invoke     0.00%   (1,167,473 ops/sec)                     
-   call invoke                  -62.87%    (433,536 ops/sec)                      
+=====================
+  Context benchmark
+=====================
+
+Platform info:
+==============
+   Windows_NT 6.1.7601 x64
+   Node.JS: 6.10.0
+   V8: 5.1.281.93
+   Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
+
+Suite: Context constructor
+√ create without settings x 3,808,816 ops/sec ±0.21% (95 runs sampled)
+√ create with settings x 3,738,465 ops/sec ±0.71% (95 runs sampled)
+√ create with params x 3,712,849 ops/sec ±0.96% (94 runs sampled)
+√ create subContext x 3,653,483 ops/sec ±0.72% (92 runs sampled)
+
+   create without settings     0.00%   (3,808,816 ops/sec)
+   create with settings       -1.85%   (3,738,465 ops/sec)
+   create with params         -2.52%   (3,712,849 ops/sec)
+   create subContext          -4.08%   (3,653,483 ops/sec)
+-----------------------------------------------------------------------
+
+Suite: Context.invoke with sync handler
+√ call direct without invoke x 2,379,255 ops/sec ±1.05% (86 runs sampled)
+√ call invoke x 939,990 ops/sec ±0.99% (86 runs sampled)
+
+   call direct without invoke     0.00%   (2,379,255 ops/sec)
+   call invoke                  -60.49%    (939,990 ops/sec)
+-----------------------------------------------------------------------
+
+Suite: Context.invoke with async handler
+√ call direct without invoke x 1,225,058 ops/sec ±0.99% (88 runs sampled)
+√ call invoke x 436,501 ops/sec ±0.83% (86 runs sampled)
+
+   call direct without invoke     0.00%   (1,225,058 ops/sec)
+   call invoke                  -64.37%    (436,501 ops/sec)
 -----------------------------------------------------------------------           
                                                                                   
 

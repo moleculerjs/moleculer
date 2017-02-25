@@ -1,6 +1,6 @@
 "use strict";
 
-//let _ = require("lodash");
+let _ = require("lodash");
 let Promise	= require("bluebird");
 
 let Benchmarkify = require("benchmarkify");
@@ -61,18 +61,18 @@ bench.run();
 Platform info:
 ==============
    Windows_NT 6.1.7601 x64
-   Node.JS: 6.9.2
-   V8: 5.1.281.88
+   Node.JS: 6.10.0
+   V8: 5.1.281.93
    Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
 
 Suite: Middleware test
-√ Without middlewares x 235,430 ops/sec ±0.56% (83 runs sampled)
-√ With 1 middlewares x 232,654 ops/sec ±0.34% (84 runs sampled)
-√ With 10 middlewares x 238,120 ops/sec ±0.29% (89 runs sampled)
+√ Without middlewares x 519,015 ops/sec ±0.46% (85 runs sampled)
+√ With 1 middlewares x 493,663 ops/sec ±0.32% (88 runs sampled)
+√ With 10 middlewares x 518,211 ops/sec ±0.34% (89 runs sampled)
 
-   Without middlewares    -1.13%    (235,430 ops/sec)
-   With 1 middlewares     -2.30%    (232,654 ops/sec)
-   With 10 middlewares     0.00%    (238,120 ops/sec)
+   Without middlewares     0.00%    (519,015 ops/sec)
+   With 1 middlewares     -4.88%    (493,663 ops/sec)
+   With 10 middlewares    -0.15%    (518,211 ops/sec)
 -----------------------------------------------------------------------
 
 
