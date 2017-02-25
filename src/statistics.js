@@ -13,7 +13,7 @@ https://github.com/awolden/brakes/blob/master/lib/Stats.js
 https://github.com/RisingStack/trace-nodejs/blob/master/lib/agent/metrics/rpm/index.js
 */
 
-const _ = require("lodash");
+const defaultsDeep = require("lodash/defaultsDeep");
 
 /**
  * 
@@ -184,7 +184,7 @@ class RequestStatistics {
 	 * @memberOf RequestStatistics
 	 */
 	constructor(options) {
-		this.options = _.defaultsDeep({}, options, {
+		this.options = defaultsDeep({}, options, {
 			cycleTime: 5 * 1000,
 			bucketCount: 12
 		});
@@ -264,7 +264,7 @@ class BrokerStatistics {
 	 */
 	constructor(broker, options) {
 		this.broker = broker;
-		this.options = _.defaultsDeep({}, options);
+		this.options = defaultsDeep({}, options);
 
 		this.requests = new RequestStatistics(this.options);
 	}

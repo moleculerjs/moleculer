@@ -1,6 +1,6 @@
 "use strict";
 
-let _ = require("lodash");
+//let _ = require("lodash");
 let ServiceBroker = require("../../src/service-broker");
 let Context = require("../../src/context");
 let Transporters = require("../../src/transporters");

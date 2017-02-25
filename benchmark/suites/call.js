@@ -1,6 +1,6 @@
 "use strict";
 
-let _ = require("lodash");
+//let _ = require("lodash");
 let Promise	= require("bluebird");
 
 let Benchmarkify = require("benchmarkify");

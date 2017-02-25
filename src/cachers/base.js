@@ -6,10 +6,8 @@
 
 "use strict";
 
-const Promise		= require("bluebird");
-const _ 			= require("lodash");
+const defaultsDeep 	= require("lodash/defaultsDeep");
 const { hash } 		= require("node-object-hash")({ sort: false, coerce: false});
-const { isPromise }	= require("../utils");
 
 /**
  * Abstract cacher class
@@ -26,7 +24,7 @@ class Cacher {
 	 * @memberOf Cacher
 	 */
 	constructor(opts) {
-		this.opts = _.defaultsDeep(opts, {
+		this.opts = defaultsDeep(opts, {
 			prefix: "",
 			ttl: null
 		});

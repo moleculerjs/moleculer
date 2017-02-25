@@ -1,6 +1,6 @@
 "use strict";
 
-let _ = require("lodash");
+let random = require("lodash/random");
 let os = require("os");
 let hostname = os.hostname();
 
@@ -25,7 +25,7 @@ function next(res) {
 	process.nextTick(work);
 }
 
-let payload = { a: _.random(0, 100), b: _.random(0, 100) };
+let payload = { a: random(0, 100), b: random(0, 100) };
 function work() {
 	broker.call("math.add", payload).then(next);		
 }

@@ -6,7 +6,12 @@
 
 "use strict";
 
-const _ = require("lodash");
+//const _ = require("lodash");
+const isFunction = require("lodash/isFunction");
+const forIn = require("lodash/forIn");
+const isObject = require("lodash/isObject");
+const cloneDeep = require("lodash/cloneDeep");
+
 const Promise = require("bluebird");
 
 /**
@@ -26,11 +31,11 @@ class Service {
 	 */
 	constructor(broker, schema) {
 
-		if (!_.isObject(broker)) {
+		if (!isObject(broker)) {
 			throw new Error("Must to set a ServiceBroker instance!");
 		}
 
-		if (!_.isObject(schema)) {
+		if (!isObject(schema)) {
 			throw new Error("Must pass a service schema in constructor!");
 		}
 
@@ -51,17 +56,17 @@ class Service {
 		this.broker.registerService(this);
 
 		// Register actions
-		if (_.isObject(schema.actions)) {
+		if (isObject(schema.actions)) {
 
-			_.forIn(schema.actions, (action, name) => {
-				if (_.isFunction(action)) {
+			forIn(schema.actions, (action, name) => {
+				if (isFunction(action)) {
 					// Wrap to an object
 					action = {
 						handler: action
 					};
 				}
 
-				let innerAction = this._createActionHandler(_.cloneDeep(action), action.handler, name);
+				let innerAction = this._createActionHandler(cloneDeep(action), action.handler, name);
 
 				// Expose to call `service.actions.find({ ...params })`
 				this.actions[name] = (params) => {
@@ -77,10 +82,10 @@ class Service {
 		}
 
 		// Event subscriptions
-		if (_.isObject(schema.events)) {
+		if (isObject(schema.events)) {
 
-			_.forIn(schema.events, (event, name) => {
-				if (_.isFunction(event)) {
+			forIn(schema.events, (event, name) => {
+				if (isFunction(event)) {
 					event = {
 						handler: event
 					};
@@ -88,7 +93,7 @@ class Service {
 				if (!event.name)
 					event.name = event;
 
-				if (!_.isFunction(event.handler)) {
+				if (!isFunction(event.handler)) {
 					throw new Error(`Missing event handler on '${name}' event in '${this.name}' service!`);
 				}
 
@@ -103,9 +108,9 @@ class Service {
 		}
 
 		// Register methods
-		if (_.isObject(schema.methods)) {
+		if (isObject(schema.methods)) {
 
-			_.forIn(schema.methods, (method, name) => {
+			forIn(schema.methods, (method, name) => {
 				/* istanbul ignore next */
 				if (["name", "version", "settings", "schema", "broker", "actions", "logger"].indexOf(name) != -1) {
 					throw new Error(`Invalid method name '${name}' in '${this.name}' service! Skipping...`);
@@ -116,7 +121,7 @@ class Service {
 		}
 
 		// Call `created` function from schema
-		if (_.isFunction(this.schema.created)) {
+		if (isFunction(this.schema.created)) {
 			this.schema.created.call(this);
 		}
 
@@ -133,7 +138,7 @@ class Service {
 	 * @memberOf Service
 	 */
 	_createActionHandler(action, handler, name) {
-		if (!_.isFunction(handler)) {
+		if (!isFunction(handler)) {
 			throw new Error(`Missing action handler on '${name}' action in '${this.name}' service!`);
 		}
 

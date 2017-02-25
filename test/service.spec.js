@@ -1,13 +1,11 @@
 "use strict";
 
-let _ = require("lodash");
-let utils = require("../src/utils");
-let Service = require("../src/service");
-let ServiceBroker = require("../src/service-broker");
-let MemoryCacher = require("../src/cachers").Memory;
+const cloneDeep = require("lodash/cloneDeep");
+const Service = require("../src/service");
+const ServiceBroker = require("../src/service-broker");
 const { ValidationError } = require("../src/errors");
 
-let PostSchema = {
+const PostSchema = {
 	name: "posts",
 	settings: {},
 
@@ -76,7 +74,7 @@ describe("Local service registration", () => {
 	let broker = new ServiceBroker({ internalActions: false });
 	let service;
 
-	let schema = _.cloneDeep(PostSchema);
+	let schema = cloneDeep(PostSchema);
 
 	let findHandlerMock = schema.actions.find.handler = jest.fn(ctx => ctx);
 	let getHandlerMock = schema.actions.get = jest.fn(ctx => ctx);

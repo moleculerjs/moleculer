@@ -17,7 +17,12 @@ const Validator = require("./validator");
 const BrokerStatistics = require("./statistics");
 const healthInfo = require("./health");
 
-const _ = require("lodash");
+//const _ = require("lodash");
+const isFunction = require("lodash/isFunction");
+const defaultsDeep = require("lodash/defaultsDeep");
+const pick = require("lodash/pick");
+const omit = require("lodash/omit");
+
 const glob = require("glob");
 const path = require("path");
 
@@ -37,7 +42,7 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	constructor(options) {
-		this.options = _.defaultsDeep(options, {
+		this.options = defaultsDeep(options, {
 			nodeID: null,
 
 			logger: null,
@@ -136,7 +141,7 @@ class ServiceBroker {
 	start() {
 		// Call service `started` handlers
 		this.services.forEach(service => {
-			if (service && service.schema && _.isFunction(service.schema.started)) {
+			if (service && service.schema && isFunction(service.schema.started)) {
 				service.schema.started.call(service);
 			}
 		});
@@ -183,7 +188,7 @@ class ServiceBroker {
 	stop() {
 		// Call service `started` handlers
 		this.services.forEach(service => {
-			if (service && service.schema && _.isFunction(service.schema.stopped)) {
+			if (service && service.schema && isFunction(service.schema.stopped)) {
 				service.schema.stopped.call(service);
 			}
 		});
@@ -264,7 +269,7 @@ class ServiceBroker {
 		let fName = path.resolve(filePath);
 		this.logger.debug("Load service from", path.basename(fName));
 		let schema = require(fName);
-		if (_.isFunction(schema)) {
+		if (isFunction(schema)) {
 			let svc = schema(this);
 			if (svc instanceof this.ServiceFactory)
 				return svc;
@@ -385,7 +390,7 @@ class ServiceBroker {
 		addAction("$node.list", () => {
 			let res = [];
 			this.nodes.forEach(node => {
-				res.push(_.pick(node, ["nodeID", "available"]));
+				res.push(pick(node, ["nodeID", "available"]));
 			});
 
 			return res;
@@ -394,7 +399,7 @@ class ServiceBroker {
 		addAction("$node.services", () => {
 			let res = [];
 			this.services.forEach(service => {
-				res.push(_.pick(service, ["name", "version"]));
+				res.push(pick(service, ["name", "version"]));
 			});
 
 			return res;
@@ -614,7 +619,7 @@ class ServiceBroker {
 		// Handle fallback response
 		if (opts.fallbackResponse) {
 			this.logger.warn(`Action '${ctx.action.name}' returns fallback response!`);
-			if (_.isFunction(opts.fallbackResponse))
+			if (isFunction(opts.fallbackResponse))
 				return opts.fallbackResponse(ctx, ctx.nodeID);
 			else
 				return Promise.resolve(opts.fallbackResponse);
@@ -666,7 +671,7 @@ class ServiceBroker {
 		this.actions.forEach((entry, key) => {
 			let item = entry.getLocalItem();
 			if (item && !/^\$node/.test(key)) // Skip internal actions
-				res[key] = _.omit(item.data, ["handler", "service"]);
+				res[key] = omit(item.data, ["handler", "service"]);
 		});
 		return res;
 	}

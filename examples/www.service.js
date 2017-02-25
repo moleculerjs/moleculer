@@ -2,8 +2,6 @@ const fs = require("fs");
 const path = require("path");
 const http = require("http");
 
-const _ = require("lodash");
-const Context = require("../src/context");
 const Promise = require("bluebird");
 const url = require("url");
 const queryString = require('querystring');

@@ -7,7 +7,7 @@ const Transit = require("../src/transit");
 const FakeTransporter = require("../src/transporters/fake");
 const { ServiceNotFoundError, RequestTimeoutError, ValidationError } = require("../src/errors");
 const lolex = require("lolex");
-const _ = require("lodash");
+const defaults = require("lodash/defaults");
 
 describe("Test ServiceBroker constructor", () => {
 
@@ -590,7 +590,7 @@ describe("Test localCall", () => {
 describe("Test remoteCall", () => {
 
 	function createBroker(opts) {
-		return new ServiceBroker(_.defaults(opts, {
+		return new ServiceBroker(defaults(opts, {
 			transporter: new FakeTransporter(),
 			requestTimeout: 5 * 1000,
 			requestRetry: 0

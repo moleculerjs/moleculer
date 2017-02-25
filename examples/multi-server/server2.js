@@ -1,8 +1,6 @@
 "use strict";
 
-let _ = require("lodash");
-
-let { delay } = require("../../src/utils");
+let random = require("lodash/random");
 
 let ServiceBroker = require("../../src/service-broker");
 let NatsTransporter = require("../../src/transporters/nats");
@@ -19,7 +17,7 @@ broker.start();
 Promise.resolve()
 .then(() => {
 	setInterval(() => {
-		let payload = { a: _.random(0, 100), b: _.random(0, 100) };
+		let payload = { a: random(0, 100), b: random(0, 100) };
 		broker.call("math.add", payload)
 		.then(res => {
 			console.info(`${payload.a} + ${payload.b} = ${res}`);

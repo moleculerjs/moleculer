@@ -1,9 +1,5 @@
 "use strict";
 
-let _ = require("lodash");
-
-let { delay } = require("../../src/utils");
-
 let ServiceBroker = require("../../src/service-broker");
 let NatsTransporter = require("../../src/transporters/nats");
 

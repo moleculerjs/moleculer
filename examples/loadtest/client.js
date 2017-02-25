@@ -1,6 +1,6 @@
 "use strict";
 
-let _ = require("lodash");
+let random = require("lodash/random");
 
 let ServiceBroker = require("../../src/service-broker");
 let NatsTransporter = require("../../src/transporters/nats");
@@ -19,7 +19,7 @@ broker.start();
 console.log("Client started. nodeID:", broker.nodeID, " PID:", process.pid);
 
 function work() {
-	let payload = { a: _.random(0, 100), b: _.random(0, 100) };
+	let payload = { a: random(0, 100), b: random(0, 100) };
 	broker.call("math.add", payload)
 	.then(res => {
 		//console.info(`${payload.a} + ${payload.b} = ${res}`);

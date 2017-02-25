@@ -6,7 +6,6 @@
 
 "use strict";
 
-const _  = require("lodash");
 const Validator = require("validatorjs");
 const { ValidationError } = require("./errors");
 
@@ -39,7 +38,7 @@ class ParamValidator {
 	middleware() {
 		return function validatorMiddleware(handler, action) {
 			// Wrap a param validator
-			if (_.isObject(action.params)) {
+			if (typeof action.params == "object") {
 				return ctx => {
 					this.validate(action.params, ctx.params);
 					return handler(ctx);

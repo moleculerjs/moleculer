@@ -6,9 +6,7 @@
 
 "use strict";
 
-//const _ = require("lodash");
 const Promise = require("bluebird");
-
 const utils = require("./utils");
 
 const LOGGER_PREFIX = "CTX";
