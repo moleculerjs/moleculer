@@ -33,6 +33,10 @@ http://mrale.ph/irhydra/2/
 ```
 $ node --trace-hydrogen --trace-phase=Z --trace-deopt --code-comments --hydrogen-track-positions --redirect-code-traces --redirect-code-traces-to=code.asm index.js
 ```
+## JSON parse/stringify
+
+https://github.com/douglascrockford/JSON-js
+
 
 ## Flame graph
 

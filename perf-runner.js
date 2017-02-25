@@ -105,17 +105,18 @@ function doStringify() {
 setTimeout(() => {
 	let startTime = Date.now();
 	
-	doRequest();
-	//doStringify();
-
 	setInterval(() => {
 		let rps = count / ((Date.now() - startTime) / 1000);
 		console.log("RPS:", rps.toLocaleString("hu-HU", {maximumFractionDigits: 0}), "req/s");
 		count = 0;
 		startTime = Date.now();
 
+		console.log("Pending:", b1.transit.pendingRequests.size);
 		//v8.helpers.printStatus(b1.transit.messageHandler);
 	}, 1000);
+
+	doRequest();
+	//doStringify();
 
 }, 500);
 

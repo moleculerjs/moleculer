@@ -41,6 +41,7 @@ class Transit {
 		this.opts = opts;
 
 		this.pendingRequests = new Map();
+		this.reqs = new Array(10);
 
 		this.tx.init(broker, this.messageHandler.bind(this));
 
@@ -146,7 +147,8 @@ class Transit {
 	messageHandler(topics, packet) {
 		let msg;
 		if (packet)
-			msg = utils.string2Json(packet);
+			//msg = utils.string2Json(packet);
+			msg = packet;
 
 		// Check payload
 		if (!msg) {
@@ -176,7 +178,8 @@ class Transit {
 
 		// Response
 		else if (topic === TOPIC_RES) {
-			let req = this.pendingRequests.get(msg.requestID);
+			//let req = this.pendingRequests.get(msg.requestID);
+			let req = this.reqs.pop();
 
 			// If not exists (timed out), we skip to process the response
 			if (!req) return Promise.resolve();
@@ -262,7 +265,7 @@ class Transit {
 			nodeID: this.nodeID,
 			requestID: ctx.id,
 			action: ctx.action.name,
-			params: ctx.params
+			params: ctx.params,
 		};
 
 		this.logger.debug(`Send request '${ctx.action.name}' action to '${ctx.nodeID}' node...`, payload);
@@ -286,7 +289,9 @@ class Transit {
 		}
 
 		// Add to pendings
-		this.pendingRequests.set(ctx.id, req);
+		//this.pendingRequests.set(ctx.id, req);
+
+		this.reqs.push(req);
 
 		//return resolve(ctx.params);
 		
@@ -385,7 +390,8 @@ class Transit {
 	 * @memberOf NatsTransporter
 	 */
 	publish(topic, message) {
-		const packet = utils.json2String(message);
+		//const packet = utils.json2String(message);
+		const packet = message;
 		return this.tx.publish(topic, packet);
 	}
 }

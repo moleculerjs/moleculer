@@ -50,6 +50,13 @@
 		{
 			"type": "node",
 			"request": "launch",
+			"name": "Launch perf",
+			"program": "${workspaceRoot}\\perf-runner.js",
+			"cwd": "${workspaceRoot}"
+		},
+		{
+			"type": "node",
+			"request": "launch",
 			"name": "Jest",
 			"program": "${workspaceRoot}\\node_modules\\jest-cli\\bin\\jest.js",
 			"args": ["--runInBand"],
