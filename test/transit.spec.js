@@ -179,7 +179,7 @@ describe("Test Transit.messageHandler", () => {
 				expect(broker.call).toHaveBeenCalledWith(msg.action, { limit: 5 }, {});
 
 				expect(transit.sendResponse).toHaveBeenCalledTimes(1);
-				expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", [1, 5, 8]);
+				expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", [1, 5, 8], null);
 
 			});
 
