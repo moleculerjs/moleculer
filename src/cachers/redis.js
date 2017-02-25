@@ -7,7 +7,7 @@
 "use strict";
 
 const Promise		= require("bluebird");
-const _ 			= require("lodash");
+const isObject 		= require("lodash/isObject");
 const BaseCacher 	= require("./base");
 
 /**
@@ -106,7 +106,7 @@ class RedisCacher extends BaseCacher {
 	 * @memberOf Cacher
 	 */
 	set(key, data) {
-		if (_.isObject(data)) {
+		if (isObject(data)) {
 			data = JSON.stringify(data);
 		}
 		this.logger.debug(`Set ${key}`);

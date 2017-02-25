@@ -70,6 +70,7 @@ class MqttTransporter extends Transporter {
 
 			/* istanbul ignore next */
 			this.client.on("close", () => {
+				this.connected = true;
 				this.logger.warn("MQTT disconnected!");
 			});			
 		});

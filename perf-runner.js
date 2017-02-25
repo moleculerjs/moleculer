@@ -13,7 +13,7 @@ let Promise	= require("bluebird");
 function createBrokers(Transporter, opts) {
 	let b1 = new ServiceBroker({
 		transporter: new Transporter(opts),
-		//requestTimeout: 0,
+		requestTimeout: 0,
 		//logger: console,
 		//logLevel: "debug",
 		nodeID: "node-1"
@@ -68,6 +68,7 @@ function doRequest() {
 			// Slow cycle
 			setImmediate(() => doRequest());
 		}
+		return res;
 
 	}).catch(err => {
 		throw err;
@@ -90,29 +91,33 @@ function doStringify() {
 	};
 
 	count++;
-	let res = json2String(msg);
+	Promise.resolve(json2String(msg)).then(res => {
+		if (count % 1000) 
+			doStringify();
+		else
+			setImmediate(() => doStringify());
 
-	if (count % 1000) 
-		doStringify();
-	else
-		setImmediate(() => doStringify());
+		return res;
+	});
+
 }*/
 
 setTimeout(() => {
 	let startTime = Date.now();
 	
-	doRequest();
-	//doStringify();
-
 	setInterval(() => {
 		let rps = count / ((Date.now() - startTime) / 1000);
 		console.log("RPS:", rps.toLocaleString("hu-HU", {maximumFractionDigits: 0}), "req/s");
 		count = 0;
 		startTime = Date.now();
 
-		//v8.helpers.printStatus(b1.transit.messageHandler);
+		//console.log("Pending:", b1.transit.pendingRequests.size);
+		v8.helpers.printStatus(b1.transit.messageHandler);
 	}, 1000);
+
+	doRequest();
+	//doStringify();
 
 }, 500);
 
-console.log(v8.getV8Version());
+//console.log(v8.getV8Version());

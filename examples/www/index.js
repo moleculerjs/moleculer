@@ -1,8 +1,6 @@
 "use strict";
 
-let _ = require("lodash");
 let path = require("path");
-let glob = require("glob");
 
 let ServiceBroker = require("../../src/service-broker");
 let MemoryCacher = require("../../src/cachers").Memory;

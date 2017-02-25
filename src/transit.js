@@ -160,48 +160,18 @@ class Transit {
 		// Event
 		if (topic === TOPIC_EVENT) {
 			this.logger.debug("Event received", msg);
-			this.broker.emitLocal(msg.event, msg.param);
-				
+			this.broker.emitLocal(msg.event, msg.param);				
 			return;
 		}
 
 		// Request
 		else if (topic === TOPIC_REQ) {
-			this.logger.debug(`Request from ${msg.nodeID}.`, msg.action, msg.params);
-			return this.broker.call(msg.action, msg.params, {}) // {} opts to avoid deoptimizing
-				.then(res => this.sendResponse(msg.nodeID, msg.requestID,  res))
-				.catch(err => this.sendResponse(msg.nodeID, msg.requestID, null, err));
-			
+			return this._requestHandler(msg);
 		}
 
 		// Response
 		else if (topic === TOPIC_RES) {
-			let req = this.pendingRequests.get(msg.requestID);
-
-			// If not exists (timed out), we skip to process the response
-			if (!req) return Promise.resolve();
-
-			// Remove pending request
-			this.pendingRequests.delete(msg.requestID);
-
-			// Stop timeout timer
-			if (req.timer) {
-				// istanbul ignore next //
-				clearTimeout(req.timer);
-			}
-
-			if (!msg.success) {
-				// Recreate exception object
-				let err = new Error(msg.error.message + ` (NodeID: ${msg.nodeID})`);
-				err.name = msg.error.name;
-				err.code = msg.error.code;
-				err.nodeID = msg.nodeID;
-				err.data = msg.error.data;
-
-				return req.reject(err);
-			}
-
-			return req.resolve(msg.data);
+			return this._responseHandler(msg);
 		}
 
 		// Node info
@@ -212,7 +182,6 @@ class Transit {
 				this.logger.debug("Discover received from " + msg.nodeID);
 				this.sendNodeInfo(msg.nodeID);
 			}
-
 			return;
 		}
 
@@ -220,7 +189,6 @@ class Transit {
 		else if (topic === TOPIC_DISCONNECT) {
 			this.logger.debug(`Node '${msg.nodeID}' disconnected`);
 			this.broker.nodeDisconnected(msg.nodeID, msg);
-
 			return;
 		}
 
@@ -228,10 +196,46 @@ class Transit {
 		else if (topic === TOPIC_HEARTBEAT) {
 			this.logger.debug("Node heart-beat received from " + msg.nodeID);
 			this.broker.nodeHeartbeat(msg.nodeID, msg);
-
 			return;
 		}
 	}
+
+	_requestHandler(msg) {
+		this.logger.debug(`Request from ${msg.nodeID}.`, msg.action, msg.params);
+		return this.broker.call(msg.action, msg.params, {}) // empty {} opts to avoid deoptimizing
+			.then(res => this.sendResponse(msg.nodeID, msg.requestID,  res, null))
+			.catch(err => this.sendResponse(msg.nodeID, msg.requestID, null, err));
+	}
+
+	_responseHandler(msg) {
+		const requestID = msg.requestID;
+		const req = this.pendingRequests.get(requestID);
+
+		// If not exists (timed out), we skip to process the response
+		if (req == null) return Promise.resolve();
+
+		// Remove pending request
+		this.pendingRequests.delete(requestID);
+
+		// Stop timeout timer
+		if (req.timer) {
+			// istanbul ignore next //
+			clearTimeout(req.timer);
+		}
+
+		if (!msg.success) {
+			// Recreate exception object
+			let err = new Error(msg.error.message + ` (NodeID: ${msg.nodeID})`);
+			err.name = msg.error.name;
+			err.code = msg.error.code;
+			err.nodeID = msg.nodeID;
+			err.data = msg.error.data;
+
+			return req.reject(err);
+		}
+
+		return req.resolve(msg.data);
+	}	
 
 	/**
 	 * Send a request to a remote service. It returns a Promise
@@ -262,11 +266,10 @@ class Transit {
 			nodeID: this.nodeID,
 			requestID: ctx.id,
 			action: ctx.action.name,
-			params: ctx.params
+			params: ctx.params,
 		};
 
 		this.logger.debug(`Send request '${ctx.action.name}' action to '${ctx.nodeID}' node...`, payload);
-
 
 		// Handle request timeout
 		if (opts.timeout > 0) {
@@ -284,7 +287,7 @@ class Transit {
 			
 			req.timer.unref();			
 			
-		}	
+		}
 
 		// Add to pendings
 		this.pendingRequests.set(ctx.id, req);
@@ -307,12 +310,12 @@ class Transit {
 	 */
 	sendResponse(nodeID, requestID, data, err) {
 		let payload = {
-			success: !err,
+			success: err == null,
 			nodeID: this.nodeID,
 			requestID,
 			data
 		};
-		if (err) {
+		if (err != null) {
 			payload.error = {
 				name: err.name,
 				message: err.message,

@@ -6,7 +6,7 @@
 
 "use strict";
 
-let _ = require("lodash");
+const remove = require("lodash/remove");
 
 class BalancedList {
 
@@ -89,11 +89,11 @@ class BalancedList {
 	}
 
 	remove(data) {
-		_.remove(this.list, (el) => el.data == data);
+		remove(this.list, (el) => el.data == data);
 	}
 
 	removeByNode(nodeID) {
-		_.remove(this.list, item => item.nodeID == nodeID);
+		remove(this.list, item => item.nodeID == nodeID);
 	}
 }
 

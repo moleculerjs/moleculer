@@ -1,6 +1,6 @@
 "use strict";
 
-let _ = require("lodash");
+//let _ = require("lodash");
 
 let Promise	= require("bluebird");
 let { getDataFile } = require("../utils");
@@ -61,18 +61,18 @@ bench.run().then(() => {
 Platform info:
 ==============
    Windows_NT 6.1.7601 x64
-   Node.JS: 6.9.2
-   V8: 5.1.281.88
+   Node.JS: 6.10.0
+   V8: 5.1.281.93
    Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
 
 Suite: Set & get 1k data with cacher
-√ Memory x 30,479,178 ops/sec ±0.47% (95 runs sampled)
-√ MemoryMap x 10,633,889 ops/sec ±0.29% (95 runs sampled)
-√ Redis x 7,621 ops/sec ±1.54% (83 runs sampled)
+√ Memory x 31,168,462 ops/sec ±0.30% (94 runs sampled)
+√ MemoryMap x 10,502,479 ops/sec ±1.19% (94 runs sampled)
+√ Redis x 7,568 ops/sec ±1.52% (83 runs sampled)
 
-   Memory        0.00%   (30,479,178 ops/sec)
-   MemoryMap   -65.11%   (10,633,889 ops/sec)
-   Redis       -99.97%      (7,621 ops/sec)
+   Memory        0.00%   (31,168,462 ops/sec)
+   MemoryMap   -66.30%   (10,502,479 ops/sec)
+   Redis       -99.98%      (7,568 ops/sec)
 -----------------------------------------------------------------------
 
 */

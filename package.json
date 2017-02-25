@@ -68,6 +68,7 @@
     "mqtt": "2.4.0",
     "nats": "0.7.6",
     "node-object-hash": "1.1.6",
+    "v8-natives": "0.0.3",
     "validatorjs": "3.11.0"
   },
   "engines": {

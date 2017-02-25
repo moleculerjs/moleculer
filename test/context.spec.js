@@ -1,6 +1,5 @@
 "use strict";
 
-let _ = require("lodash");
 let Context = require("../src/context");
 let ServiceBroker = require("../src/service-broker");
 let { ServiceNotFoundError } = require("../src/errors");

@@ -6,7 +6,8 @@
 
 "use strict";
 
-const _  = require("lodash");
+const isString  = require("lodash/isString");
+const isObject  = require("lodash/isObject");
 
 module.exports = {
 	
@@ -30,9 +31,9 @@ module.exports = {
 		if (extLogger) {
 
 			let levelIdx = -1;
-			if (_.isString(logLevel))
+			if (isString(logLevel))
 				levelIdx = levels.indexOf(logLevel);
-			else if (_.isObject(logLevel)) {
+			else if (isObject(logLevel)) {
 				let customLevel = logLevel[moduleName];
 				if (customLevel == null)
 					customLevel = logLevel["*"];

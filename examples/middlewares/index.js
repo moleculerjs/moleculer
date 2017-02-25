@@ -1,8 +1,6 @@
 "use strict";
 
-let _ = require("lodash");
 let path = require("path");
-let glob = require("glob");
 
 let utils = require("../../src/utils");
 let ServiceBroker = require("../../src/service-broker");
