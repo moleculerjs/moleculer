@@ -24,7 +24,7 @@ Moleculer is a fast & powerful microservices framework for NodeJS (>= v6.x).
 - event bus system
 - supports middlewares
 - multiple services on a node/server
-- built-in caching solution (memory, redis)
+- built-in caching solution (memory, Redis)
 - multiple transporters (NATS, MQTT, Redis)
 - load balanced requests (round-robin, random)
 - every nodes are equal, no master/leader node
@@ -48,8 +48,6 @@ $ yarn add moleculer
 
 ### Simple service & call actions locally
 ```js
-"use strict";
-
 const { ServiceBroker } = require("moleculer");
 
 // Create broker
@@ -225,22 +223,22 @@ broker.call("user.list").then(res => console.log("User list: ", res));
 broker.call("user.get", { id: 3 }).then(res => console.log("User: ", res));
 
 // Call with options
-broker.call("recommendation", { limit: 5 }, { timeout: 500, fallbackResponse: defaultRecommendation })
+broker.call("user.recommendation", { limit: 5 }, { timeout: 500, fallbackResponse: defaultRecommendation })
     .then(res => console.log("Result: ", res));
 
 // Call with error handling
-broker.call("posts.update", { id: 2, name: "New post" })
+broker.call("posts.update", { id: 2, title: "Modified post title" })
     .then(res => console.log("Post updated!"))
     .catch(err => console.error("Unable to update Post!", err));    
 ```
 
 ### Request timeout & fallback response
-If you call action with timeout and the request is timed out, broker throws a `RequestTimeoutError` error.
-But if you set `fallbackResponse` in calling options, broker won't throw error, instead returns with this value. It can be an `Object`, `Array`...etc. 
-This can be also a `Function`, which returns a `Promise`. The broker will pass the current `Context` to this function as an argument.
+If you call action with `timeout` and the request is timed out, broker throws a `RequestTimeoutError` error.
+But if you set `fallbackResponse` in calling options, broker won't throw error, instead returns with this given value. It can be an `Object`, `Array`...etc. 
+This can be also a `Function`, which returns a `Promise`. In this case the broker will pass the current `Context` to this function as an argument.
 
 ## Emit events
-Broker has an internal event bus. You can send events locally & globally.
+Broker has an internal event bus. You can send events locally & globally. The local event will be received only by local services of broker. The global event that will be received by all services on all nodes.
 
 ### Send event
 You can send event with `emit` and `emitLocal` functions. First parameter is the name of event. Second parameter is the payload. 
@@ -250,12 +248,12 @@ You can send event with `emit` and `emitLocal` functions. First parameter is the
 broker.emitLocal("service.started", { service: service, version: 1 });
 
 // Emit a global event that will be received by all nodes. 
-// The `user` will be serialized with JSON.stringify
+// The `user` will be serialized to transportation.
 broker.emit("user.created", user);
 ```
 
 ### Subscribe to events
-To subscribe for events use the `on`, `once` methods. Or in [Service](#service) use the `events` property.
+To subscribe for events use the `on` or `once` methods. Or in [Service](#service) use the `events` property.
 In event names you can use wildcards too.
 
 ```js
@@ -269,7 +267,7 @@ broker.on("user.*", user => console.log("User event:", user));
 broker.on("**", payload => console.log("Event:", payload));    
 ```
 
-To unsubscribe use the `off` method.
+To unsubscribe call the `off` method.
 
 ## Middlewares
 Broker supports middlewares. You can add your custom middleware, and it'll be called on every local request. The middleware is a `Function` that returns a wrapped action handler. 
@@ -285,17 +283,18 @@ return function validatorMiddleware(handler, action) {
         };
     }
     return handler;
+
 }.bind(this);
 ```
 
-The `handler` is the handler of action, what is defined in [Service](#service) schema. The `action` is the action object from Service schema. The middleware should return with the `handler` or a new wrapped handler. In this example above, we check whether the action has a `params` props. If yes we return a wrapped handler that calls the validator before calling the original `handler`. 
-If there is no `params` property we return the original `handler`.
+The `handler` is the request handler of action, what is defined in [Service](#service) schema. The `action` is the action object from Service schema. The middleware should return with the `handler` or a new wrapped handler. In this example above, we check whether the action has a `params` props. If yes we return a wrapped handler that calls the validator before calling the original `handler`. 
+If there is no `params` property we return the original `handler` (skip wrapping).
 
-If you don't call the original `handler` it will break the request. You can use it in cachers. If you find the data in cache, don't call the handler, instead return the cached data.
+_If you don't call the original `handler` it will break the request. You can use it in cachers. If you find the data in cache, don't call the handler, instead return the cached data._
 
 If you would like to do something with response after the success request, use the `ctx.after` function.
 
-Example code from cacher middleware:
+Example code from cacher middleware how to use the `ctx.after` method:
 ```js
 return (handler, action) => {
     return function cacherMiddleware(ctx) {
@@ -309,7 +308,7 @@ return (handler, action) => {
 
         // Call the handler
         return ctx.after(handler(ctx), result => {
-            // Save the response to the cache
+            // Afterwards save the response to the cache
             this.set(cacheKey, result);
 
             return result;
@@ -322,13 +321,13 @@ return (handler, action) => {
 The broker registers some internal actions to check the health of node or get request statistics.
 
 ### List of local services
-This action lists name of local services.
+This action lists local services.
 ```js
 broker.call("$node.services").then(res => console.log(res));
 ```
 
 ### List of local actions
-This action lists name of local actions
+This action lists local actions
 ```js
 broker.call("$node.actions").then(res => console.log(res));
 ```
@@ -346,7 +345,7 @@ broker.call("$node.health").then(res => console.log(res));
 ```
 
 ### Statistics
-This action returns the request statistics if the `statistics` is enabled in options.
+This action returns the request statistics if the `statistics` is enabled in [options](#constructor-options).
 ```js
 broker.call("$node.stats").then(res => console.log(res));
 ```
@@ -419,21 +418,21 @@ You can add custom settings to your service under `settings` property in schema.
 ```
 
 ## Actions
-The actions are the callable/public methods of the service. They can be called with `broker.call`.
-The action could be a function (handler) or an object with some properties and with handler.
+The actions are the callable/public methods of the service. They can be called with `broker.call` method.
+The action could be a function (handler) or an object with some properties and with `handler`.
 The actions should be placed under `actions` key in the service schema.
 
 ```js
 {
 	name: "math",
 	actions: {
-        // Simple action, only define a handler
+        // Simple definition, only the handler function
 		add(ctx) {
 			return Number(ctx.params.a) + Number(ctx.params.b);
 		},
 
-        // Complex action, they set other properties. In this case
-        // the `handler` is required!
+        // Complex definition, set other properties. In this case
+        // the `handler` function is required!
 		mult: {
             cache: false,
 			params: {
@@ -449,24 +448,29 @@ The actions should be placed under `actions` key in the service schema.
 	}
 }
 ```
-You can call this actions as
+You can call these actions as
 ```js
 broker.call("math.add", { a: 5, b: 7 }).then(res => console.log(res));
+
 broker.call("math.mult", { a: 10, b: 31 }).then(res => console.log(res));
 ```
 
-Inside the action you can sub-call other actions in other services with `ctx.call`.
+Inside the action you can sub-call other actions in other services with `ctx.call` method. It is an alias to `broker.call`, just set itself as parent context.
 ```js
 {
     name: "posts",
     actions: {
         get(ctx) => {
+            // Find a post by ID
             let post = posts[ctx.params.id];
+
             // Populate the post.author field through "users" service
             // Call the "users.get" action with author ID
             return ctx.call("users.get", { id: post.author }).then(user => {
-                if (user)
+                if (user) {
+                    // Replace the author ID with the received user object
                     post.author = user;
+                }
 
                 return post;
             })
@@ -487,6 +491,7 @@ You can subscribe to events and can define event handlers in the schema under `e
 
     events: {
         // Subscribe to "user.create" event
+        // Same as you subscribe with `broker.on("user.create", ...)` in the `created()` method
         "user.create": function(payload) {
             this.logger.info("Create user...");
             // Do something
@@ -494,7 +499,7 @@ You can subscribe to events and can define event handlers in the schema under `e
 
         // Subscribe to all "user.*" event
         "user.*": function(payload, eventName) {
-            // Do something with payload. The `eventName` contains the original event name.
+            // Do something with payload. The `eventName` contains the original event name. E.g. `user.modified`
         }
     }
 
@@ -502,14 +507,14 @@ You can subscribe to events and can define event handlers in the schema under `e
 ```
 
 ## Methods
-You can also create private functions in Service. They are called as `methods`. These functions are private, can't be called with `broker.call`. But you can call it inside service.
+You can also create private functions in the Service. They are called as `methods`. These functions are private, can't be called with `broker.call`. But you can call it inside service actions.
 
 ```js
 {
     name: "mailer",
     actions: {
         send(ctx) {
-            // Call my `sendMail` method
+            // Call the `sendMail` method
             return this.sendMail(ctx.params.recipients, ctx.params.subject, ctx.params.body);
         }
     },
@@ -551,14 +556,14 @@ There are some lifecycle service events, that will be triggered by ServiceBroker
 ```
 
 ## Properties of `this`
-In service functions the `this` is always binded to the instance of service. It has some properties & methods that you can use in functions.
+In service functions the `this` is always binded to the instance of service. It has some properties & methods that you can use in service functions.
 
 | Name | Type |  Description |
 | ------- | ----- | ------- |
 | `this.name` | `String` | Name of service from schema |
 | `this.version` | `Number` | Version of service from schema |
 | `this.settings` | `Object` | Settings of service from schema |
-| `this.schema` | `Object` | Schema of service |
+| `this.schema` | `Object` | Schema definition of service |
 | `this.broker` | `ServiceBroker` | Instance of broker |
 | `this.logger` | `Logger` | Logger module |
 | `this.actions` | `Object` | Actions of service. *Service can call its own actions directly.* |
@@ -567,19 +572,16 @@ In service functions the `this` is always binded to the instance of service. It 
 There are several ways to create/load a service.
 
 ### broker.createService()
-You can use this method when developing or testing.
-Call the `broker.createService` method with the schema of service as argument.
+Call the `broker.createService` method with the schema of service as argument. You can use this method when developing or testing.
 
 ```js
 broker.createService({
     name: "math",
     actions: {
-        // You can call it as broker.call("math.add")
         add(ctx) {
             return Number(ctx.params.a) + Number(ctx.params.b);
         },
 
-        // You can call it as broker.call("math.sub")
         sub(ctx) {
             return Number(ctx.params.a) - Number(ctx.params.b);
         }
@@ -588,7 +590,7 @@ broker.createService({
 ```
 
 ### Load service
-You can place your service code to an individual file and load this file with broker.
+You can place your service code to a single file and load this file with broker.
 
 **math.service.js**
 ```js
@@ -618,9 +620,9 @@ broker.loadService("./math.service");
 broker.start();
 ```
 
-A service can also be created in single files. In this case you need to export a function that returns the instance of [Service](#service).
+In the service file you can also be create the instance of Service. In this case you need to export a function that returns the instance of [Service](#service).
 ```js
-// Export a function, that the `loadService` will be call with the instance of ServiceBroker
+// Export a function, that the `loadService` will be call it with the instance of ServiceBroker
 module.exports = function(broker) {
     return new Service(broker, {
         name: "math",
@@ -653,13 +655,6 @@ module.exports = function() {
 }
 ```
 
-or load manually with `require`
-```js
-let userSchema = require("./user.service");
-
-broker.createService(userSchema);
-```
-
 ### Load multiple services from a folder
 You can load multiple services from a folder.
 
@@ -670,19 +665,20 @@ broker.loadServices(folder = "./services", fileMask = "*.service.js");
 
 **Example**
 ```js
-// Load every *.service.js file from "./services" folder
+// Load every *.service.js file from the "./services" folder
 broker.loadServices();
 
-// Load every *.service.js file from current folder
+// Load every *.service.js file from the current folder
 broker.loadServices("./");
 
-// Load every user*.js file from the "./svc" folder
-broker.loadServices("./svc", "user*.js");
+// Load every user*.service.js file from the "./svc" folder
+broker.loadServices("./svc", "user*.service.js");
 ```
 
-## Private properties
+## Local/Private properties
 If you would like to create private properties in service, we recommend to declare them in the `created` handler.
 
+**Example for local properties**
 ```js
 const http = require("http");
 
@@ -721,7 +717,7 @@ module.exports = {
 # Context
 When you call an action, the broker creates a `Context` instance which contains all request informations and pass to the action handler as argument.
 
-Available properties & methods of `Context`:
+**Available properties & methods of `Context`:**
 
 | Name | Type |  Description |
 | ------- | ----- | ------- |
@@ -738,7 +734,7 @@ Available properties & methods of `Context`:
 | `ctx.emit()` | `Function` | Emit an event, like `broker.emit` |
 
 # Logging
-In Services every modules have a custom logger instance. It is inherited from the broker logger instance and you can set in options of broker.
+In Services every modules have a custom logger instance. It is inherited from the broker logger instance and you can set in [options of broker](#constructor-options).
 Every modules add a prefix to the log messages. Using that prefix you can identify the module.
 
 ```js
@@ -764,29 +760,34 @@ broker.call("posts.get").then(() => broker.logger.info("Log message via Broker l
 ```
 Console messages:
 ```
+[BROKER] posts service registered!
 [POSTS-SVC] Log message via Service logger
 [CTX] Log message via Context logger
 [BROKER] Log message via Broker logger
 ```
+[Try it on Runkit](https://runkit.com/icebob/58b1f93be302c300142e2aae)
 
 ## Custom log levels
 If you want to change log level you need to set `logLevel` in broker options.
+
 ```js
 let broker = new ServiceBroker({
     logger: console,
     logLevel: "warn" // only print the 'warn' & 'error' log entries
 });
 ```
+
 You can set custom log levels to every module by prefix.
 ```js
 let broker = new ServiceBroker({
     logger: console,
     logLevel: {
         "*": "warn", // global settings
-        "BROKER": "info",
-        "CTX": "debug",
-        "POSTS-SVC": "error",
-        "NATS": "info"
+        "BROKER": "info",       // Broker logger
+        "CTX": "debug",         // Context logger
+        "CACHER": "warn",       // Cacher logger
+        "TX": "info",           // Transporter logger
+        "POSTS-SVC": "error"    // Service logger. Generated from name of service
     }
 });
 ```
@@ -794,14 +795,15 @@ let broker = new ServiceBroker({
 # Cachers
 Moleculer has built-in cache solutions. You have to do two things to enable it:
 
-1. Set a cacher instance to the broker in constructor options
-2. Set the `cache: true` in action definition.
+1. Set a cacher instance to the broker in [constructor options](#constructor-options)
+2. Set the `cache: true` in [action definition](#actions).
 
 ```js
 let { ServiceBroker } = require("moleculer");
 let MemoryCacher = require("moleculer").Cachers.Memory;
 
 let broker = new ServiceBroker({
+    logger: console,
     cacher: new MemoryCacher()
 });
 
@@ -825,11 +827,11 @@ broker.createService({
 Promise.resolve()
 .then(() => {
     // Will be called the handler, because the cache is empty
-    return broker.call("users.list").then(res => console.log("Users count:", res.count));
+    return broker.call("users.list").then(res => console.log("Users count: " + res.length));
 })
 .then(() => {
     // Return from cache, handler won't be called
-    return broker.call("users.list").then(res => console.log("Users count:", res.count));
+    return broker.call("users.list").then(res => console.log("Users count from cache: " + res.length));
 });
 ```
 Console messages:
@@ -837,8 +839,9 @@ Console messages:
 [BROKER] users service registered!
 [USERS-SVC] Handler called!
 Users count: 2
-Users count: 2
+Users count from cache: 2
 ```
+[Try it on Runkit](https://runkit.com/icebob/58b1fa48215e1500140b8fa7)
 
 ### Cache keys
 The cacher creates keys by service name, action name, and hash of params of context.
