@@ -851,17 +851,18 @@ The key syntax is
 ```
 So if you call the `posts.list` action with params `{ limit: 5, offset: 20 }`, the cacher calculate a hash from the params. So next time if you call this action with the same params, it will find in the cache by key. 
 ```
-// Hashed cache key for "posts.find" actionName
+// Hashed cache key for "posts.find" action
 posts.find:0d6bcb785d1ae84c8c20203401460341b84eb8b968cffcf919a9904bb1fbc29a
 ```
 
-However the hash calculation is an expensive operation. So other solution is that specify which parameters you want to use for caching. In this case you need to set an object for `cache` property of action that contains the list of parameters.
+However the hash calculation is an expensive operation. But you can specify which parameters you want to use for caching. In this case you need to set an object for `cache` property that contains the list of parameters.
 ```js
 {
     name: "posts",
     actions: {
         list: {
             cache: {
+                // Only generate cache by from "limit" and "offset" param values
                 keys: ["limit", "offset"]
             },
             handler(ctx) {
@@ -874,7 +875,7 @@ However the hash calculation is an expensive operation. So other solution is tha
 // If params is { limit: 10, offset: 30 }, the cache will be:
 //   posts.list:10-30
 ```
-> This second solution is faster, so we recommend to use it in production environment.
+> This solution is faster, so we recommend to use it in production environment. ![](https://img.shields.io/badge/performance-%2B20%25-brightgreen.svg)
 
 ### Manual caching
 You can also use the cacher manually. Just call the `get`, `set`, `del` methods of `broker.cacher`.
@@ -883,18 +884,18 @@ You can also use the cacher manually. Just call the `get`, `set`, `del` methods 
 // Save to cache
 broker.cacher.set("mykey", { a: 5 });
 
-// Get from cache (some cacher maybe returns with Promise)
+// Get from cache (Please note! Some cacher maybe returns with Promise)
 let obj = broker.cacher.get("mykey", { a: 5 });
 
-// Remove from cache
+// Remove entry from cache
 broker.cacher.del("mykey");
 
-// Clean the cache
+// Clean all entries
 broker.cacher.clean();
 ```
 
 ### Clear cache
-When you create a new model in your service, sometimes you have to clear the cache entries. For this purpose there are internal events. When an event like this is fired, the cacher will clean the cache.
+When you create a new model in your service, sometimes you have to clear the old cache entries. For this purpose there are internal events. When an event like this is fired, the cacher will clean the cache.
 
 ```js
 {
@@ -942,7 +943,7 @@ let broker = new ServiceBroker({
         prefix: "SERVICER" // Prefix for cache keys
         monitor: false // Turn on/off Redis client monitoring. Will be logged (on debug level) every client operations.
 
-        // Redis settings, pass to `new Redis()`
+        // Redis settings, pass to the `new Redis()` constructor
         redis: { 
             host: "redis",
             port: 6379,
@@ -1090,8 +1091,8 @@ new MqttTransporter({
 You can also create your custom transporter module. We recommend you that copy the source of [`NatsTransporter`](src/transporters/nats.js) and implement the `connect`, `disconnect`,  `subscribe` and `publish` methods.
 
 # Metrics
-Moleculer has a metrics function. You can turn on in broker options with `metrics: true` property.
-If enabled, the broker sends metrics events in every `metricsNodeTime`.
+Moleculer has a metrics function. You can turn on in [broker options](#constructor-options) with `metrics: true` property.
+If enabled, the broker emits metrics events in every `metricsNodeTime`.
 
 ##  Health info
 Broker emits a global event as `metrics.node.health` with health info of node.
@@ -1151,28 +1152,39 @@ Example health info:
     }
 }
 ```
+**You can subscribe to it in your custom monitoring service.**
 
 ## Statistics
 Moleculer has a statistics module that collects and aggregates the count & latency info of the requests.
-You can enable it in boker options with `statistics: true` property. You need to enable [metrics](#metrics) functions too!
+You can enable it in [broker options](#constructor-options) with `statistics: true` property.
 
-Broker emits global events as `metrics.node.stats`. The payload contains the statistics.
+Broker emits global events as `metrics.node.stats`. The payload contains the statistics. You need to enable [metrics](#metrics) functions too!
 
 Example statistics:
 ```json
 {
   "requests": {
+    // Total statistics
     "total": {
+
+      // Count of requests
       "count": 45,
+
+      // Count of error by code
       "errors": {},
+
+      // Req/sec values
       "rps": {
         "current": 0.7999854548099126,
+        // Last x values
         "values": [
           0,
           6.59868026394721,
           2.200440088017604
         ]
       },
+
+      // Request latency values
       "latency": {
         "mean": 0.8863636363636364,
         "median": 0,
@@ -1182,6 +1194,8 @@ Example statistics:
         "99.5th": 12
       }
     },
+
+    // Action-based statistics
     "actions": {
       "posts.find": {
         "count": 4,
@@ -1208,10 +1222,10 @@ Example statistics:
 ```
 
 # Nodes
-Moleculer supports many architectures.
+Moleculer supports several architectures.
 
 ## Monolith architecture
-In this version you are running every services on one node with one broker. In this case every service can call other services locally. So there is no network latency and no transporter.
+In this version you are running every services on one node with one broker. In this case every service can call other services locally. So there is no network latency and no transporter. The local call is the fastest.
 
 ![Monolith architecture](docs/assets/monolith-architecture.png)
 
@@ -1221,11 +1235,12 @@ This is the well-known microservices architecture when every service running on 
 ![Microservices architecture](docs/assets/microservices-architecture.png)
 
 ## Mixed architecture
-In this case we are running coherent services on the same node. For example, if the `posts` service calls many times the `users` service, we put them together, that we cut down the network latency. If this node is overloaded, we will create replicas.
+In this case we are running coherent services on the same node. It is combine the advantages of monolith and microservices architectures.
+For example, if the `posts` service calls a lot of times the `users` service, we put them together, that we cut down the network latency between services. If this node is overloaded, we will add replicas.
 
 ![Mixed architecture](docs/assets/mixed-architecture.png)
 
-# Best practices
+# Best practices (TODO)
 - service files
 - configuration
 - benchmark
