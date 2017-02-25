@@ -112,7 +112,7 @@ setTimeout(() => {
 		startTime = Date.now();
 
 		//console.log("Pending:", b1.transit.pendingRequests.size);
-		//v8.helpers.printStatus(b1.transit.messageHandler);
+		v8.helpers.printStatus(b1.transit.messageHandler);
 	}, 1000);
 
 	doRequest();
@@ -120,4 +120,4 @@ setTimeout(() => {
 
 }, 500);
 
-console.log(v8.getV8Version());
+//console.log(v8.getV8Version());

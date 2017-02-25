@@ -41,7 +41,6 @@ class Transit {
 		this.opts = opts;
 
 		this.pendingRequests = new Map();
-		this.reqs = new Array(10);
 
 		this.tx.init(broker, this.messageHandler.bind(this));
 
@@ -147,8 +146,7 @@ class Transit {
 	messageHandler(topics, packet) {
 		let msg;
 		if (packet)
-			//msg = utils.string2Json(packet);
-			msg = packet;
+			msg = utils.string2Json(packet);
 
 		// Check payload
 		if (!msg) {
@@ -162,49 +160,18 @@ class Transit {
 		// Event
 		if (topic === TOPIC_EVENT) {
 			this.logger.debug("Event received", msg);
-			this.broker.emitLocal(msg.event, msg.param);
-				
+			this.broker.emitLocal(msg.event, msg.param);				
 			return;
 		}
 
 		// Request
 		else if (topic === TOPIC_REQ) {
-			this.logger.debug(`Request from ${msg.nodeID}.`, msg.action, msg.params);
-			return this.broker.call(msg.action, msg.params, {}) // {} opts to avoid deoptimizing
-				.then(res => this.sendResponse(msg.nodeID, msg.requestID,  res))
-				.catch(err => this.sendResponse(msg.nodeID, msg.requestID, null, err));
-			
+			return this._requestHandler(msg);
 		}
 
 		// Response
 		else if (topic === TOPIC_RES) {
-			//let req = this.pendingRequests.get(msg.requestID);
-			let req = this.reqs.pop();
-
-			// If not exists (timed out), we skip to process the response
-			if (!req) return Promise.resolve();
-
-			// Remove pending request
-			this.pendingRequests.delete(msg.requestID);
-
-			// Stop timeout timer
-			if (req.timer) {
-				// istanbul ignore next //
-				clearTimeout(req.timer);
-			}
-
-			if (!msg.success) {
-				// Recreate exception object
-				let err = new Error(msg.error.message + ` (NodeID: ${msg.nodeID})`);
-				err.name = msg.error.name;
-				err.code = msg.error.code;
-				err.nodeID = msg.nodeID;
-				err.data = msg.error.data;
-
-				return req.reject(err);
-			}
-
-			return req.resolve(msg.data);
+			return this._responseHandler(msg);
 		}
 
 		// Node info
@@ -215,7 +182,6 @@ class Transit {
 				this.logger.debug("Discover received from " + msg.nodeID);
 				this.sendNodeInfo(msg.nodeID);
 			}
-
 			return;
 		}
 
@@ -223,7 +189,6 @@ class Transit {
 		else if (topic === TOPIC_DISCONNECT) {
 			this.logger.debug(`Node '${msg.nodeID}' disconnected`);
 			this.broker.nodeDisconnected(msg.nodeID, msg);
-
 			return;
 		}
 
@@ -231,10 +196,46 @@ class Transit {
 		else if (topic === TOPIC_HEARTBEAT) {
 			this.logger.debug("Node heart-beat received from " + msg.nodeID);
 			this.broker.nodeHeartbeat(msg.nodeID, msg);
-
 			return;
 		}
 	}
+
+	_requestHandler(msg) {
+		this.logger.debug(`Request from ${msg.nodeID}.`, msg.action, msg.params);
+		return this.broker.call(msg.action, msg.params, {}) // empty {} opts to avoid deoptimizing
+			.then(res => this.sendResponse(msg.nodeID, msg.requestID,  res, null))
+			.catch(err => this.sendResponse(msg.nodeID, msg.requestID, null, err));
+	}
+
+	_responseHandler(msg) {
+		const requestID = msg.requestID;
+		const req = this.pendingRequests.get(requestID);
+
+		// If not exists (timed out), we skip to process the response
+		if (req == null) return Promise.resolve();
+
+		// Remove pending request
+		this.pendingRequests.delete(requestID);
+
+		// Stop timeout timer
+		if (req.timer) {
+			// istanbul ignore next //
+			clearTimeout(req.timer);
+		}
+
+		if (!msg.success) {
+			// Recreate exception object
+			let err = new Error(msg.error.message + ` (NodeID: ${msg.nodeID})`);
+			err.name = msg.error.name;
+			err.code = msg.error.code;
+			err.nodeID = msg.nodeID;
+			err.data = msg.error.data;
+
+			return req.reject(err);
+		}
+
+		return req.resolve(msg.data);
+	}	
 
 	/**
 	 * Send a request to a remote service. It returns a Promise
@@ -289,14 +290,12 @@ class Transit {
 		}
 
 		// Add to pendings
-		//this.pendingRequests.set(ctx.id, req);
+		this.pendingRequests.set(ctx.id, req);
 
-		//this.reqs.push(req);
-
-		return resolve(ctx.params);
+		//return resolve(ctx.params);
 		
 		// Publish request
-		//this.publish([TOPIC_REQ, ctx.nodeID], payload);		
+		this.publish([TOPIC_REQ, ctx.nodeID], payload);		
 	}
 
 	/**
@@ -311,12 +310,12 @@ class Transit {
 	 */
 	sendResponse(nodeID, requestID, data, err) {
 		let payload = {
-			success: !err,
+			success: err == null,
 			nodeID: this.nodeID,
 			requestID,
 			data
 		};
-		if (err) {
+		if (err != null) {
 			payload.error = {
 				name: err.name,
 				message: err.message,
@@ -390,8 +389,7 @@ class Transit {
 	 * @memberOf NatsTransporter
 	 */
 	publish(topic, message) {
-		//const packet = utils.json2String(message);
-		const packet = message;
+		const packet = utils.json2String(message);
 		return this.tx.publish(topic, packet);
 	}
 }
