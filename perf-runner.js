@@ -13,7 +13,7 @@ let Promise	= require("bluebird");
 function createBrokers(Transporter, opts) {
 	let b1 = new ServiceBroker({
 		transporter: new Transporter(opts),
-		//requestTimeout: 0,
+		requestTimeout: 0,
 		//logger: console,
 		//logLevel: "debug",
 		nodeID: "node-1"
@@ -111,7 +111,7 @@ setTimeout(() => {
 		count = 0;
 		startTime = Date.now();
 
-		console.log("Pending:", b1.transit.pendingRequests.size);
+		//console.log("Pending:", b1.transit.pendingRequests.size);
 		//v8.helpers.printStatus(b1.transit.messageHandler);
 	}, 1000);
 

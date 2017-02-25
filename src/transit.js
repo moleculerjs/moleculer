@@ -291,12 +291,12 @@ class Transit {
 		// Add to pendings
 		//this.pendingRequests.set(ctx.id, req);
 
-		this.reqs.push(req);
+		//this.reqs.push(req);
 
-		//return resolve(ctx.params);
+		return resolve(ctx.params);
 		
 		// Publish request
-		this.publish([TOPIC_REQ, ctx.nodeID], payload);		
+		//this.publish([TOPIC_REQ, ctx.nodeID], payload);		
 	}
 
 	/**
