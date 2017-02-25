@@ -7,7 +7,7 @@
 [![David](https://img.shields.io/david/ice-services/moleculer.svg)](https://david-dm.org/ice-services/moleculer)
 [![Known Vulnerabilities](https://snyk.io/test/github/ice-services/moleculer/badge.svg)](https://snyk.io/test/github/ice-services/moleculer)
 
-# Moleculer
+# Moleculer [![NPM version](https://img.shields.io/npm/v/moleculer.svg)](https://www.npmjs.com/package/moleculer)
 Moleculer is a fast & powerful microservices framework for NodeJS (>= v6.x).
 <!--
 ![](https://img.shields.io/badge/performance-%2B50%25-brightgreen.svg)
