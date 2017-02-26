@@ -153,10 +153,8 @@ class Service {
 		action.version = this.version;
 		action.service = this;
 		action.cache = action.cache !== undefined ? action.cache : (this.settings.cache || false);
-		action.handler = handler.bind(this);
-		
-		// Wrap middlewares
-		this.broker.wrapAction(action);
+		action.handler = Promise.method(handler.bind(this));
+		//action.handler = handler.bind(this);
 		
 		return action;
 	}

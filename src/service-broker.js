@@ -56,10 +56,10 @@ class ServiceBroker {
 
 			cacher: null,
 
+			validation: false,
 			metrics: false,
 			metricsNodeTime: 5 * 1000,
 			statistics: false,
-			validation: true,
 			internalActions: true
 			
 			// ServiceFactory: null,
@@ -317,6 +317,11 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	registerAction(action, nodeID) {
+
+		// Wrap middlewares
+		if (!nodeID)
+			this.wrapAction(action);
+		
 		// Append action by name
 		let item = this.actions.get(action.name);
 		if (!item) {
@@ -344,7 +349,37 @@ class ServiceBroker {
 			return mw(handler, action);
 		}, action.handler);
 
-		action.handler = handler;
+		// Wrap context invoke
+		let after = (ctx, err) => {
+			if (this.options.metrics)
+				ctx._metricFinish();
+
+			if (this.statistics)
+				this.statistics.addRequest(ctx.action.name, ctx.duration, err ? err.code || 500 : null);
+		};
+
+		action.handler = (ctx) => {
+			if (this.options.metrics)
+				ctx._metricStart();
+
+			return handler(ctx).then(res => {
+				after(ctx, null);
+				return res;
+			}).catch(err => {
+				if (!(err instanceof Error)) {
+					err = new Error(err);
+				}
+
+				this.logger.error("Action request error!", err);
+
+				ctx.error = err;
+				err.ctx = ctx;
+
+				after(ctx, null);
+
+				return Promise.reject(err);
+			});
+		};
 
 		return action;
 	}
@@ -562,33 +597,17 @@ class ServiceBroker {
 		if (opts.parentCtx) {
 			ctx = opts.parentCtx.createSubContext(action, params, nodeID);
 		} else {
-			ctx = new this.ContextFactory({ broker: this, action, params, nodeID, requestID: opts.requestID });
+			ctx = new this.ContextFactory({ broker: this, action, params, nodeID, requestID: opts.requestID, metrics: !!this.options.metrics });
 		}
 		this._callCount++;
 
 		if (actionItem.local) {
 			// Local action call
-			return this._localCall(ctx, opts);
+			this.logger.debug(`Call local '${action.name}' action...`);
+			return action.handler(ctx);
 		} else {
 			return this._remoteCall(ctx, opts);
 		}
-	}
-
-	_localCall(ctx, opts) {
-		this.logger.debug(`Call local '${ctx.action.name}' action...`);
-		let p = ctx.invoke(ctx.action.handler);
-
-		if (this.statistics) {
-			// Because ES6 Promise doesn't support .finally()
-			p = p.then(data => {
-				this.statistics.addRequest(ctx.action.name, ctx.duration, null);
-				return data;
-			}).catch(err => {
-				this.statistics.addRequest(ctx.action.name, ctx.duration, err.code || 500);
-				return Promise.reject(err);
-			});
-		}
-		return p;
 	}
 
 	_remoteCall(ctx, opts = {}) {		
@@ -602,7 +621,6 @@ class ServiceBroker {
 			opts.retryCount = this.options.requestRetry || 0;
 
 		return this.transit.request(ctx, opts).catch(err => this._remoteCallCather(err, ctx, opts));
-		//return ctx.invokeRemote(opts).catch(err => this._remoteCallCather(err, ctx, opts));
 	}
 
 	_remoteCallCather(err, ctx, opts) {
@@ -793,10 +811,6 @@ class ServiceBroker {
 				this.nodeDisconnected(entry[0]);
 			}
 		}*/
-	}
-
-	metricsEnabled() {
-		return this.options.metrics;
 	}
 }
 

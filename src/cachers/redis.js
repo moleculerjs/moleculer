@@ -210,7 +210,7 @@ class RedisCacher extends BaseCacher {
 						return cachedJSON;
 					}
 
-					return ctx.after(handler(ctx), result => {
+					return handler(ctx).then(result => {
 						this.set(cacheKey, result);
 
 						return result;

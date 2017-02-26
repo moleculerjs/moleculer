@@ -43,24 +43,10 @@ function createBrokers(Transporter, opts) {
 
 let [b1, b2] = createBrokers(Transporters.Fake);
 
-function translateStatus(status) {
-	const texts = [
-		"-",
-		"Optimized",
-		"Un-optimized",
-		"Always Optimized",
-		"Never Optimized",
-		"?",
-		"Maybe Optimized",
-	];
-	return texts[status];
-}
-
-
 let count = 0;
 function doRequest() {
 	count++;
-	return b1.call("echo.reply", { a: count }).then(res => {
+	return b2.call("echo.reply", { a: count }).then(res => {
 		if (count % 10000) {
 			// Fast cycle
 			doRequest();
@@ -112,7 +98,7 @@ setTimeout(() => {
 		startTime = Date.now();
 
 		//console.log("Pending:", b1.transit.pendingRequests.size);
-		v8.helpers.printStatus(b1.transit.messageHandler);
+		//v8.helpers.printStatus(b1.transit.messageHandler);
 	}, 1000);
 
 	doRequest();

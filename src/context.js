@@ -27,27 +27,25 @@ class Context {
 	 */
 	constructor(opts = {}) {
 		this.opts = opts;
-		this.id = utils.generateToken();
-		this.requestID = opts.requestID || this.id;
 		this.broker = opts.broker;
 		this.action = opts.action;
-		if (this.broker) {
-			this.logger = this.broker.getLogger(LOGGER_PREFIX);
-			this.needMetrics = this.broker.metricsEnabled();
-		}
 		this.nodeID = opts.nodeID;
 		this.user = opts.user;
 		this.parent = opts.parent;
 
-		this.level = opts.parent && opts.parent.level ? opts.parent.level + 1 : 1;
-		if (this.opts.cloneParams && opts.params)
-			this.params = Object.assign({}, opts.params);
-		else
-			this.params = opts.params ||  {};
+		this.setParams(opts.params);
 
-		this.startTime = null;
-		this.stopTime = null;
-		this.duration = 0;		
+		if (opts.metrics) {
+			this.id = utils.generateToken();
+			this.requestID = opts.requestID || this.id;
+
+			this.level = opts.parent && opts.parent.level ? opts.parent.level + 1 : 1;
+			
+			this.startTime = null;
+			this.startHrTime = null;
+			this.stopTime = null;
+			this.duration = 0;
+		}		
 
 		this.error = null;
 		this.cachedResult = false;
@@ -88,112 +86,7 @@ class Context {
 		if (this.opts.cloneParams && newParams)
 			this.params = Object.assign({}, newParams);
 		else
-			this.params = newParams;
-	}
-
-	/**
-	 * Invoke an action handler. Wrap in a Promise & handle response & errors
-	 * 
-	 * @param {any} handler
-	 * @returns
-	 * 
-	 * @memberOf Context
-	 */
-	invoke(handler) {
-		let res;
-		this._startInvoke();
-
-		try {
-			res = handler(this);
-		} catch(err) {
-			return this.invokeCatch(err);
-		}
-
-		if (utils.isPromise(res)) {
-			return res.then(data => {
-				this._finishInvoke();
-				return data;
-			}).catch(err => this.invokeCatch(err));
-		} else {
-			this._finishInvoke();
-			return Promise.resolve(res);
-		}
-	}
-
-	/**
-	 * Invoke a remote action call via `Transit`.
-	 * 
-	 * @param {any} opts Options of request
-	 * @returns {Promise}
-	 * 
-	 * @memberOf Context
-	 */
-	invokeRemote(opts) {
-		this._startInvoke();
-		return this.broker.transit.request(this, opts).then(data => {
-			this._finishInvoke();
-			return data;
-		}).catch(err => this.invokeCatch(err));
-	}	
-
-	invokeCatch(err) {
-		if (!(err instanceof Error)) {
-			err = new Error(err);
-		}
-
-		this.logger.error("", err);
-
-		this.error = err;
-		err.ctx = this;
-
-		this._finishInvoke();
-
-		return Promise.reject(err);				
-	}
-
-	
-	/**
-	 * Call a function after the `res`. If `res` is a promise, use `.then`. Otherwise call the `fn` synchroniously.
-	 * 
-	 * @param {any} res	- Result object or a Promise
-	 * @param {any} fn	- Function what we will be call
-	 * @returns
-	 * 
-	 * @memberOf Context
-	 */
-	after(res, fn) {
-		if (utils.isPromise(res)) {
-			return res.then(res => fn(res));
-		} else {
-			return fn(res);
-		}
-	}	
-
-	/**
-	 * Start invoke
-	 * 
-	 * @memberOf Context
-	 */
-	_startInvoke() {
-		this.startTime = Date.now();
-		this.stopTime = null;
-		this.duration = 0;
-
-		if (this.needMetrics)
-			this._metricStart();
-	}
-
-	/**
-	 * Finish invoke
-	 * 
-	 * @memberOf Context
-	 */
-	_finishInvoke() {
-		this.stopTime = Date.now();
-		this.duration = this.stopTime - this.startTime;
-
-		if (this.needMetrics)
-			this._metricFinish();
+			this.params = newParams || {};
 	}
 
 	/**
@@ -230,6 +123,10 @@ class Context {
 	 * @memberOf Context
 	 */
 	_metricStart() {
+		this.startTime = Date.now();
+		this.startHrTime = process.hrtime();
+		this.duration = 0;
+		
 		let payload = {
 			id: this.id,
 			requestID: this.requestID,
@@ -254,6 +151,10 @@ class Context {
 	 * @memberOf Context
 	 */
 	_metricFinish() {
+		let diff = process.hrtime(this.startHrTime);
+		this.duration = (diff[0] * 1e3) + (diff[1] / 1e6); // milliseconds
+		this.stopTime = this.startTime + this.duration;
+
 		let payload = {
 			id: this.id,
 			requestID: this.requestID,

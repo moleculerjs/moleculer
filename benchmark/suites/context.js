@@ -77,27 +77,25 @@ let bench3 = new Benchmarkify({ async: true, name: "Context.invoke with async ha
 
 	let actions = broker.actions.get("users.find");
 	let action = actions.get().data;
-	let handler = () => {
-		return new Promise((resolve) => {
-			resolve([1, 2, 3]);
-		});
-	};
+	let handler = () => Promise.resolve([1, 2, 3]);
 
-	let ctx = new Context({ broker, action });
+	//let ctx = new Context({ broker, action });
 	// ----
 
 	bench3.add("call direct without invoke", () => {
+		let ctx = new Context({ broker, action });
 		return handler(ctx);
 	});
 
 	bench3.add("call invoke", () => {
+		let ctx = new Context({ broker, action });
 		return ctx.invoke(() => handler(ctx));
 	});
 
 })();
 
-bench1.run()
-.then(() => bench2.run())
+bench1.skip()
+.then(() => bench2.skip())
 .then(() => bench3.run());
 
 /*

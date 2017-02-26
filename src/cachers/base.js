@@ -151,7 +151,7 @@ class Cacher {
 				}
 
 				// Call the handler
-				return ctx.after(handler(ctx), result => {
+				return handler(ctx).then(result => {
 					// Save the response to the cache
 					this.set(cacheKey, result);
 					

@@ -38,7 +38,7 @@ class ParamValidator {
 	middleware() {
 		return function validatorMiddleware(handler, action) {
 			// Wrap a param validator
-			if (typeof action.params == "object") {
+			if (action.params && typeof action.params == "object") {
 				return ctx => {
 					this.validate(action.params, ctx.params);
 					return handler(ctx);

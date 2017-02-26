@@ -27,14 +27,20 @@ function createBroker(opts) {
 let bench1 = new Benchmarkify({ async: true, name: "Call methods"});
 (function() {
 	let broker = createBroker();
-	bench1.add("Direct service call", () => {
+	/*bench1.add("Direct service call", () => {
 		return userService.actions.empty();
 	});
 
+	let action = null;
+	let ctx = null;
 	bench1.add("action.handler", () => {
-		let actions = broker.actions.get("users.empty");
-		let action = actions.get().data;
-		let ctx = new Context({ broker, action});
+		//if (action == null) {
+			let actions = broker.actions.get("users.empty");
+			action = actions.getData();
+		//}
+		if (ctx == null) 
+			ctx = new Context({ broker, action});
+
 		return Promise.resolve(action.handler(ctx));
 	});
 
@@ -43,7 +49,7 @@ let bench1 = new Benchmarkify({ async: true, name: "Call methods"});
 		let action = actions.get().data;
 		let ctx = new Context({ broker, action});
 		return ctx.invoke(action.handler);
-	});
+	});*/
 
 	bench1.add("broker.call (normal)", () => {
 		return broker.call("users.empty");
@@ -174,10 +180,10 @@ let bench5 = new Benchmarkify({ async: true, name: "Call with statistics & metri
 })();
 
 bench1.run()
-.then(() => bench2.run())
-.then(() => bench3.run())
-.then(() => bench4.run())
-.then(() => bench5.run());
+.then(() => bench2.skip())
+.then(() => bench3.skip())
+.then(() => bench4.skip())
+.then(() => bench5.skip());
 
 
 /*

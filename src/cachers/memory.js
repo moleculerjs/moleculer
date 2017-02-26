@@ -58,7 +58,7 @@ class MemoryCacher extends BaseCacher {
 				// Update expire time (hold in the cache if we are using it)
 				item.expire = Date.now() + this.opts.ttl * 1000;
 			}
-			return item.data;
+			return Promise.resolve(item.data);
 		}
 		return null;
 	}
