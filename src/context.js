@@ -33,6 +33,7 @@ class Context {
 		this.user = opts.user;
 		this.parent = opts.parent;
 
+		this.metrics = opts.metrics || false;
 		this.level = opts.parent && opts.parent.level ? opts.parent.level + 1 : 1;
 
 		this.setParams(opts.params);
@@ -42,8 +43,7 @@ class Context {
 			this.id = utils.generateToken();
 
 		// Initialize metrics properties
-		if (opts.metrics) {
-			this.metrics = true;
+		if (this.metrics) {
 			this.requestID = opts.requestID || this.id;
 
 			this.startTime = null;
@@ -136,7 +136,7 @@ class Context {
 			requestID: this.requestID,
 			startTime: this.startTime,
 			level: this.level,
-			remoteCall: this.remoteCall
+			remoteCall: !!this.nodeID
 		};
 		if (this.action) {
 			payload.action = {
@@ -168,7 +168,7 @@ class Context {
 			level: this.level,
 			endTime: this.stopTime,
 			duration: this.duration,
-			remoteCall: this.remoteCall,
+			remoteCall: !!this.nodeID,
 			fromCache: this.cachedResult
 		};
 		if (this.action) {

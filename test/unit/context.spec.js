@@ -4,25 +4,35 @@ let Context = require("../../src/context");
 let ServiceBroker = require("../../src/service-broker");
 let { ServiceNotFoundError } = require("../../src/errors");
 
+// Unit: OK
 describe("Test Context", () => {
 
 	it("test with empty opts", () => {
 
 		let ctx = new Context();
 
-		expect(ctx.id).not.toBeDefined();
-		expect(ctx.requestID).not.toBeDefined();
 		expect(ctx.opts).toBeDefined();
 		expect(ctx.opts).toEqual({});
-		expect(ctx.parent).not.toBeDefined();
 		expect(ctx.broker).not.toBeDefined();
 		expect(ctx.action).not.toBeDefined();
-		expect(ctx.logger).not.toBeDefined();
+		expect(ctx.nodeID).not.toBeDefined();
 		expect(ctx.user).not.toBeDefined();
+		expect(ctx.parent).not.toBeDefined();
 		expect(ctx.level).toBe(1);
+
 		expect(ctx.params).toEqual({});
+
+		expect(ctx.id).not.toBeDefined();
+
+		expect(ctx.metrics).toBe(false);
+		expect(ctx.requestID).not.toBeDefined();
+
+		expect(ctx.startTime).not.toBeDefined();
+		expect(ctx.startHrTime).not.toBeDefined();
+		expect(ctx.stopTime).not.toBeDefined();
+		expect(ctx.duration).not.toBeDefined();
+
 		expect(ctx.cachedResult).toBe(false);
-		expect(ctx.nodeID).toBeNull;
 	});
 
 	it("test with options", () => {
@@ -32,7 +42,8 @@ describe("Test Context", () => {
 		let opts = {
 			requestID: 123,
 			parent: {
-				id: "parent123"
+				id: "parent123",
+				level: 1
 			},
 			broker,
 			action: {},
@@ -46,14 +57,28 @@ describe("Test Context", () => {
 		};
 		let ctx = new Context(opts);
 
-		expect(ctx.id).toBeDefined();
 		expect(ctx.opts).toEqual(opts);
-		expect(ctx.parent).toBeDefined();
-		expect(ctx.broker).toBe(broker);
+		expect(ctx.broker).toBeDefined();
 		expect(ctx.action).toBeDefined();
-		expect(ctx.nodeID).toBe("node-1");
-		expect(ctx.params).toEqual({ b: 5 });	
-		expect(ctx.user).toEqual({ id: 1 });	
+		expect(ctx.nodeID).toBeDefined();
+		expect(ctx.user).toEqual({ id: 1 });
+		expect(ctx.parent).toBeDefined();
+		expect(ctx.level).toBe(2);
+
+		expect(ctx.params).toEqual({ b: 5 });
+
+		expect(ctx.id).toBeDefined();
+
+		expect(ctx.metrics).toBe(false);
+		expect(ctx.requestID).not.toBeDefined();
+
+		expect(ctx.startTime).not.toBeDefined();
+		expect(ctx.startHrTime).not.toBeDefined();
+		expect(ctx.stopTime).not.toBeDefined();
+		expect(ctx.duration).not.toBeDefined();
+
+		expect(ctx.cachedResult).toBe(false);		
+		
 	});
 
 	it("test with metrics", () => {
@@ -66,68 +91,28 @@ describe("Test Context", () => {
 			},
 			broker,
 			action: {},
-			params: {
-				b: 5
-			},
-			user: {
-				id: 1
-			},
+			requestID: "123",
 			metrics: true
 		};
 		let ctx = new Context(opts);
 
-		expect(ctx.id).toBeDefined();
-		expect(ctx.requestID).toBe(ctx.id);
 		expect(ctx.opts).toEqual(opts);
-		expect(ctx.parent).toBeDefined();
-		expect(ctx.broker).toBe(broker);
-		expect(ctx.action).toBeDefined();
-		expect(ctx.level).toBe(1);
-		expect(ctx.params).toEqual({ b: 5 });	
-		expect(ctx.user).toEqual({ id: 1 });	
+		expect(ctx.nodeID).not.toBeDefined();
+
+		expect(ctx.id).toBeDefined();
+
+		expect(ctx.metrics).toBe(true);
+		expect(ctx.requestID).toBe("123");
+
+		expect(ctx.startTime).toBeNull();
+		expect(ctx.startHrTime).toBeNull();
+		expect(ctx.stopTime).toBeNull();
+		expect(ctx.duration).toBe(0);
+
+		expect(ctx.cachedResult).toBe(false);
 	});
 });
 
-describe("Test setParams", () => {
-	it("should override the params", () => {
-
-		let params1 = {
-			a: 1
-		};
-
-		let ctx = new Context({
-			params: params1
-		});
-
-		let params2 = {
-			b: 5
-		};
-
-		ctx.setParams(params2);
-		expect(ctx.params).not.toBe(params1);
-		expect(ctx.params).toBe(params2);
-	});
-
-	it("should clone the params", () => {
-
-		let params1 = {
-			a: 1
-		};
-
-		let ctx = new Context({
-			params: params1,
-			cloneParams: true
-		});
-
-		let params2 = {
-			b: 5
-		};
-
-		ctx.setParams(params2);
-		expect(ctx.params).not.toBe(params2);
-		expect(ctx.params).toEqual(params2);
-	});	
-});
 
 describe("Test createSubContext", () => {
 
@@ -176,6 +161,45 @@ describe("Test createSubContext", () => {
 	});
 });
 
+describe("Test setParams", () => {
+	it("should override the params", () => {
+
+		let params1 = {	a: 1 };
+		let params2 = {	b: 5 };
+
+		let ctx = new Context({
+			params: params1
+		});
+		expect(ctx.params).toBe(params1);
+
+		ctx.setParams(params2);
+
+		expect(ctx.params).not.toBe(params1);
+		expect(ctx.params).toBe(params2);
+	});
+
+	it("should clone the params", () => {
+
+		let params1 = {
+			a: 1
+		};
+
+		let ctx = new Context({
+			params: params1,
+			cloneParams: true
+		});
+
+		let params2 = {
+			b: 5
+		};
+
+		ctx.setParams(params2);
+		expect(ctx.params).not.toBe(params2);
+		expect(ctx.params).toEqual(params2);
+	});	
+});
+
+
 describe("Test call method", () => {
 	let broker = new ServiceBroker();
 	broker.call = jest.fn();
@@ -195,15 +219,17 @@ describe("Test emit method", () => {
 	let broker = new ServiceBroker();
 	broker.emit = jest.fn();
 
-	it("should call broker.emit method with params", () => {
-		let ctx = new Context({ broker });
+	let ctx = new Context({ broker });
 
+	it("should call broker.emit method with object param", () => {
 		let data = { id: 5 };
 		ctx.emit("request.rest", data);
 
 		expect(broker.emit).toHaveBeenCalledTimes(1);
 		expect(broker.emit).toHaveBeenCalledWith("request.rest", data);
+	});
 
+	it("should call broker.emit method with string param", () => {
 		broker.emit.mockClear();
 		ctx.emit("request.rest", "string-data");
 		expect(broker.emit).toHaveBeenCalledTimes(1);
@@ -305,9 +331,9 @@ describe("Test invoke method", () => {
 });
 */
 
-describe("Test metrics methods", () => {
+describe("Test _metricStart method", () => {
 	let broker = new ServiceBroker({ metrics: true });
-	let ctx = new Context({ broker, parent: { id: 123 }, action: { name: "users.get" }, metrics: true });
+	let ctx = new Context({ broker, requestID: "abcdef", parent: { id: 123 }, action: { name: "users.get" }, metrics: true });
 	broker.emit = jest.fn();
 
 	it("should emit start event", () => {		
@@ -318,12 +344,19 @@ describe("Test metrics methods", () => {
 		expect(ctx.duration).toBe(0);
 
 		expect(broker.emit).toHaveBeenCalledTimes(1);
-		expect(broker.emit).toHaveBeenCalledWith("metrics.context.start", {"action": {"name": "users.get"}, "id": ctx.id, "level": 1, "parent": 123, "remoteCall": undefined, "requestID": ctx.requestID, "startTime": ctx.startTime});
+		expect(broker.emit).toHaveBeenCalledWith("metrics.context.start", {"action": {"name": "users.get"}, "id": ctx.id, "level": 1, "parent": 123, "remoteCall": false, "requestID": "abcdef", "startTime": ctx.startTime});
 	});
+});
+
+describe("Test _metricFinish method", () => {
+	let broker = new ServiceBroker({ metrics: true });
+	let ctx = new Context({ broker, nodeID: "server-2", parent: { id: 123 }, action: { name: "users.get" }, metrics: true });
+	broker.emit = jest.fn();
+	ctx._metricStart();
 
 	it("should emit finish event", () => {		
 		broker.emit.mockClear();
-		return new Promise((resolve) => {
+		return new Promise(resolve => {
 			setTimeout(() => {
 				ctx._metricFinish();
 
@@ -331,7 +364,7 @@ describe("Test metrics methods", () => {
 				expect(ctx.duration).toBeGreaterThan(0);
 
 				expect(broker.emit).toHaveBeenCalledTimes(1);
-				expect(broker.emit).toHaveBeenCalledWith("metrics.context.finish", {"action": {"name": "users.get"}, "duration": ctx.duration, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "endTime": ctx.stopTime, "fromCache": false, "level": 1, "remoteCall": undefined});
+				expect(broker.emit).toHaveBeenCalledWith("metrics.context.finish", {"action": {"name": "users.get"}, "duration": ctx.duration, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "endTime": ctx.stopTime, "fromCache": false, "level": 1, "remoteCall": true});
 
 				resolve();
 			}, 100);
@@ -340,13 +373,13 @@ describe("Test metrics methods", () => {
 
 	it("should emit finish event with error", () => {		
 		broker.emit.mockClear();
-		return new Promise((resolve) => {
+		return new Promise(resolve => {
 			ctx._metricFinish(new ServiceNotFoundError("Something happened"));
 
 			expect(ctx.stopTime).toBeGreaterThan(0);
 
 			expect(broker.emit).toHaveBeenCalledTimes(1);
-			expect(broker.emit).toHaveBeenCalledWith("metrics.context.finish", {"action": {"name": "users.get"}, "duration": ctx.duration, "error": { "message": "Something happened", "type": "ServiceNotFoundError" }, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "endTime": ctx.stopTime, "fromCache": false, "level": 1, "remoteCall": undefined });
+			expect(broker.emit).toHaveBeenCalledWith("metrics.context.finish", {"action": {"name": "users.get"}, "duration": ctx.duration, "error": { "message": "Something happened", "type": "ServiceNotFoundError" }, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "endTime": ctx.stopTime, "fromCache": false, "level": 1, "remoteCall": true });
 
 			resolve();
 		});
