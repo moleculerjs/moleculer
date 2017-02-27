@@ -5,14 +5,26 @@ const BalancedList = require("../../src/balanced-list");
 describe("Test BalancedList", () => {
 
 	it("test constructor", () => {
+		let list = new BalancedList();
+		expect(list).toBeDefined();
+		expect(list.list).toBeDefined();
+		expect(list.opts).toEqual({"preferLocal": true, "strategy": BalancedList.STRATEGY_ROUND_ROBIN});
+		expect(list.counter).toBe(0);
+		expect(list.count()).toBe(0);
+
+		expect(list.get()).toBeNull();
+		expect(list.hasLocal()).toBeFalsy();
+	});
+
+	it("test constructor with options", () => {
 		let opts = {
-			mode: 1,
-			preferLocal: false
+			preferLocal: false,
+			strategy: BalancedList.STRATEGY_RANDOM
 		};
 		let list = new BalancedList(opts);
 		expect(list).toBeDefined();
 		expect(list.list).toBeDefined();
-		expect(list.opts).toBe(opts);
+		expect(list.opts).toEqual({"preferLocal": false, "strategy": BalancedList.STRATEGY_RANDOM});
 		expect(list.counter).toBe(0);
 		expect(list.count()).toBe(0);
 
@@ -21,13 +33,13 @@ describe("Test BalancedList", () => {
 	});
 
 	it("test get with remote & preferLocal", () => {
-		let obj1 = { a: 1};
-		let obj2 = { b: 2};
-		let obj3 = { c: 3};
+		let obj1 = { a: 1 };
+		let obj2 = { b: 2 };
+		let obj3 = { c: 3 };
 		let list = new BalancedList();
-		list.add(obj1, 0, "node1"); // remote
-		list.add(obj2, 20, "node2"); // remote
-		list.add(obj3, 0); // local
+		list.add(obj1, "node1"); // remote
+		list.add(obj2, "node2"); // remote
+		list.add(obj3); // local
 
 		expect(list.count()).toBe(3);
 		expect(list.hasLocal()).toBeTruthy();
@@ -72,9 +84,9 @@ describe("Test BalancedList", () => {
 		let obj2 = { b: 2};
 		let obj3 = { c: 3};
 		let list = new BalancedList({ preferLocal: false});
-		list.add(obj1, 0, "node1");
-		list.add(obj2, 20, "node2");
-		list.add(obj3, 0); // local
+		list.add(obj1, "node1");
+		list.add(obj2, "node2");
+		list.add(obj3); // local
 		expect(list.hasLocal()).toBeTruthy();
 
 		expect(list.counter).toBe(0);
@@ -102,7 +114,7 @@ describe("Test BalancedList", () => {
 		let obj2 = {};
 		let list = new BalancedList();
 		list.add(obj1);
-		list.add(obj2, 20);
+		list.add(obj2);
 		expect(list.counter).toBe(0);
 		let item = list.get();
 		expect(item.local).toBeTruthy();

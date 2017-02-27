@@ -7,6 +7,11 @@
 "use strict";
 
 const remove = require("lodash/remove");
+const random = require("lodash/random");
+const defaultsDeep = require("lodash/defaultsDeep");
+
+const STRATEGY_ROUND_ROBIN = 1;
+const STRATEGY_RANDOM = 2;
 
 class BalancedList {
 
@@ -20,14 +25,17 @@ class BalancedList {
 	 * @memberOf BalancedList
 	 */
 	constructor(opts) {
-		this.opts = opts || {
-			preferLocale: true
-		};
+		this.opts = defaultsDeep(opts, {
+			strategy: STRATEGY_ROUND_ROBIN,
+			preferLocal: true
+		});
 		this.list = [];
 		this.counter = 0;
+
+		this.strategy = this.opts.strategy;
 	}
 
-	add(data, weight = 0, nodeID) {
+	add(data, nodeID) {
 		if (nodeID != null) {
 			let found = this.list.find(item => item.nodeID == nodeID);
 			if (found) {
@@ -37,7 +45,6 @@ class BalancedList {
 		}
 		this.list.push({
 			data,
-			weight,
 			local: nodeID == null,
 			nodeID
 		});
@@ -55,20 +62,25 @@ class BalancedList {
 			return this.list[0];
 		}
 
+		// Reset counter
 		if (this.counter >= this.list.length) {
 			this.counter = 0;
 		}
 
-		
-		if (this.opts.preferLocale) {
+		// Search local item
+		if (this.opts.preferLocal) {
 			let item = this.getLocalItem();
 			if (item) {
 				return item;
 			}
 		}
-		// TODO: implement load-balance modes
 
-		return this.list[this.counter++];
+		if (this.strategy == STRATEGY_RANDOM) {
+			return this.list[random(0, this.list.length - 1)];
+		} else {
+			// Round-robin
+			return this.list[this.counter++];
+		}
 	}
 
 	getData() {
@@ -96,5 +108,8 @@ class BalancedList {
 		remove(this.list, item => item.nodeID == nodeID);
 	}
 }
+
+BalancedList.STRATEGY_ROUND_ROBIN = 1;
+BalancedList.STRATEGY_RANDOM = 2;
 
 module.exports = BalancedList;
