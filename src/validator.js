@@ -6,6 +6,7 @@
 
 "use strict";
 
+const Promise = require("bluebird");
 const Validator = require("validatorjs");
 const { ValidationError } = require("./errors");
 
@@ -36,13 +37,11 @@ class ParamValidator {
 	 * @memberOf ParamValidator
 	 */
 	middleware() {
+		let validate = Promise.method(this.validate);
 		return function validatorMiddleware(handler, action) {
 			// Wrap a param validator
 			if (action.params && typeof action.params == "object") {
-				return ctx => {
-					this.validate(action.params, ctx.params);
-					return handler(ctx);
-				};
+				return ctx => validate(action.params, ctx.params).then(() => handler(ctx));
 			}
 			return handler;
 		}.bind(this);

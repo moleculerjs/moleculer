@@ -180,10 +180,10 @@ let bench5 = new Benchmarkify({ async: true, name: "Call with statistics & metri
 })();
 
 bench1.run()
-.then(() => bench2.skip())
-.then(() => bench3.skip())
-.then(() => bench4.skip())
-.then(() => bench5.skip());
+.then(() => bench2.run())
+.then(() => bench3.run())
+.then(() => bench4.run())
+.then(() => bench5.run());
 
 
 /*

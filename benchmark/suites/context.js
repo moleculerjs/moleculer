@@ -32,11 +32,28 @@ let bench1 = new Benchmarkify({ async: false, name: "Context constructor"});
 		});
 	});
 
+	bench1.add("create with nodeID", () => {
+		return new Context({
+			broker,
+			action,
+			nodeID: "server-2"
+		});
+	});
+
 	bench1.add("create with params", () => {
 		return new Context({
 			broker,
 			action,
 			params
+		});
+	});
+
+	bench1.add("create with metrics", () => {
+		return new Context({
+			broker,
+			action,
+			params,
+			metrics: true
 		});
 	});
 
@@ -94,9 +111,9 @@ let bench3 = new Benchmarkify({ async: true, name: "Context.invoke with async ha
 
 })();
 
-bench1.skip()
+bench1.run()
 .then(() => bench2.skip())
-.then(() => bench3.run());
+.then(() => bench3.skip());
 
 /*
 
