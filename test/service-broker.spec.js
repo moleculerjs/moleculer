@@ -1071,7 +1071,7 @@ describe("Test middleware system with sync & async modes", () => {
 	let mw1Sync = handler => {
 		return ctx => {
 			flow.push("B1");
-			return ctx.after(handler(ctx), res => {
+			return handler(ctx).then(res => {
 				flow.push("A1");
 				return res;		
 			});
@@ -1137,7 +1137,7 @@ describe("Test middleware system with SYNC break", () => {
 	let mw1 = handler => {
 		return ctx => {
 			flow.push("B1");
-			return ctx.after(handler(ctx), res => {
+			return handler(ctx).then(res => {
 				flow.push("A1");
 				return res;		
 			});
@@ -1154,7 +1154,7 @@ describe("Test middleware system with SYNC break", () => {
 	let mw3 = handler => {
 		return ctx => {
 			flow.push("B3");
-			return ctx.after(handler(ctx), res => {
+			return handler(ctx).then(res => {
 				flow.push("A3");
 				return res;		
 			});
@@ -1198,7 +1198,7 @@ describe("Test middleware system with ASYNC break", () => {
 	let mw1 = handler => {
 		return ctx => {
 			flow.push("B1");
-			return ctx.after(handler(ctx), res => {
+			return handler(ctx).then(res => {
 				flow.push("A1");
 				return res;		
 			});
@@ -1220,7 +1220,7 @@ describe("Test middleware system with ASYNC break", () => {
 	let mw3 = handler => {
 		return ctx => {
 			flow.push("B3");
-			return ctx.after(handler(ctx), res => {
+			return handler(ctx).then(res => {
 				flow.push("A3");
 				return res;		
 			});
@@ -1264,7 +1264,7 @@ describe("Test middleware system Exception", () => {
 	let mw1 = handler => {
 		return ctx => {
 			flow.push("B1");
-			return ctx.after(handler(ctx), res => {
+			return handler(ctx).then(res => {
 				flow.push("A1");
 				return res;		
 			});

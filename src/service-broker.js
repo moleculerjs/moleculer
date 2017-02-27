@@ -56,7 +56,7 @@ class ServiceBroker {
 
 			cacher: null,
 
-			validation: false,
+			validation: true,
 			metrics: false,
 			metricsNodeTime: 5 * 1000,
 			statistics: false,
@@ -342,14 +342,20 @@ class ServiceBroker {
 	 */
 	wrapAction(action) {
 		/* istanbul ignore next */
-		if (this.middlewares.length == 0) return action;
+		
+		let handler = action.handler;
+		if (this.middlewares.length !== 0) {
+			let mws = Array.from(this.middlewares);
+			handler = mws.reduce((handler, mw) => {
+				return mw(handler, action);
+			}, handler);
+		}
 
-		let mws = Array.from(this.middlewares);
-		let handler = mws.reduce((handler, mw) => {
-			return mw(handler, action);
-		}, action.handler);
+		return this.wrapInvoke(action, handler);
+	}
 
-		// Wrap context invoke
+	wrapInvoke(action, handler) {
+		// Finally logic
 		let after = (ctx, err) => {
 			if (this.options.metrics)
 				ctx._metricFinish();
@@ -358,14 +364,21 @@ class ServiceBroker {
 				this.statistics.addRequest(ctx.action.name, ctx.duration, err ? err.code || 500 : null);
 		};
 
+		// Add the main wrapper
 		action.handler = (ctx) => {
 			if (this.options.metrics)
 				ctx._metricStart();
 
-			return handler(ctx).then(res => {
-				after(ctx, null);
-				return res;
-			}).catch(err => {
+			// Call the prev handler
+			let p = handler(ctx);
+			
+			if (this.options.metrics || this.statistics) {
+				p = p.then(res => {
+					after(ctx, null);
+					return res;
+				});
+			}
+			return p.catch(err => {
 				if (!(err instanceof Error)) {
 					err = new Error(err);
 				}

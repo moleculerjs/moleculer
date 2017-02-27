@@ -292,9 +292,7 @@ If there is no `params` property we return the original `handler` (skip wrapping
 
 _If you don't call the original `handler` it will break the request. You can use it in cachers. If you find the data in cache, don't call the handler, instead return the cached data._
 
-If you would like to do something with response after the success request, use the `ctx.after` function.
-
-Example code from cacher middleware how to use the `ctx.after` method:
+Example code from cacher middleware:
 ```js
 return (handler, action) => {
     return function cacherMiddleware(ctx) {
@@ -303,11 +301,11 @@ return (handler, action) => {
         if (content != null) {
             // Found in the cache! Don't call handler, return with the context
             ctx.cachedResult = true;
-            return content;
+            return Promise.resolve(content);
         }
 
         // Call the handler
-        return ctx.after(handler(ctx), result => {
+        return handler(ctx).then(result => {
             // Afterwards save the response to the cache
             this.set(cacheKey, result);
 

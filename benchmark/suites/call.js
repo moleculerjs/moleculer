@@ -75,7 +75,7 @@ let bench2 = new Benchmarkify({ async: true, name: "Call with middlewares"});
 	let broker = createBroker();
 
 	let mw1 = handler => {
-		return ctx => ctx.after(handler(ctx), res => res);
+		return ctx => handler(ctx).then(res => res);
 	};
 	broker.use(mw1);
 
@@ -88,7 +88,7 @@ let bench2 = new Benchmarkify({ async: true, name: "Call with middlewares"});
 	let broker = createBroker();
 
 	let mw1 = handler => {
-		return ctx => ctx.after(handler(ctx), res => res);
+		return ctx => handler(ctx).then(res => res);
 	};
 	broker.use(mw1, mw1, mw1, mw1, mw1);
 

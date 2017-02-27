@@ -24,7 +24,8 @@ function createBrokers(Transporter, opts) {
 		//requestTimeout: 0,
 		//logger: console,
 		//logLevel: "debug",
-		nodeID: "node-2"
+		nodeID: "node-2",
+		validation: true
 	});
 
 	b2.createService({
