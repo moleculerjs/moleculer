@@ -60,7 +60,7 @@ class MemoryCacher extends BaseCacher {
 			}
 			return Promise.resolve(item.data);
 		}
-		return null;
+		return Promise.resolve(null);
 	}
 
 	/**
@@ -78,7 +78,7 @@ class MemoryCacher extends BaseCacher {
 			expire: this.opts.ttl ? Date.now() + this.opts.ttl * 1000 : null
 		};
 		this.logger.debug(`Set ${key}`);
-		return data;
+		return Promise.resolve(data);
 	}
 
 	/**
@@ -92,7 +92,7 @@ class MemoryCacher extends BaseCacher {
 	del(key) {
 		delete this.cache[key];
 		this.logger.debug(`Delete ${key}`);
-		return;
+		return Promise.resolve();
 	}
 
 	/**
@@ -113,7 +113,7 @@ class MemoryCacher extends BaseCacher {
 			}
 		});
 
-		return ;
+		return Promise.resolve();
 	}
 
 

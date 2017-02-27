@@ -36,6 +36,7 @@ class Context {
 		this.setParams(opts.params);
 
 		if (opts.metrics) {
+			this.metrics = true;
 			this.id = utils.generateToken();
 			this.requestID = opts.requestID || this.id;
 
@@ -69,6 +70,7 @@ class Context {
 			action: action || this.action,
 			nodeID,
 			user: this.user,
+			metrics: this.metrics,
 			params
 		});
 
