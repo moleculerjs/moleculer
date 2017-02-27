@@ -349,10 +349,10 @@ class ServiceBroker {
 			}, handler);
 		}
 
-		return this.wrapInvoke(action, handler);
+		return this.wrapContextInvoke(action, handler);
 	}
 
-	wrapInvoke(action, handler) {
+	wrapContextInvoke(action, handler) {
 		// Finally logic
 		let after = (ctx, err) => {
 			if (this.options.metrics)
