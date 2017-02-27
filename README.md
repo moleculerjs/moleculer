@@ -90,6 +90,7 @@ broker.call("math.add", { a: 3, b: 5})
 ```
 [Try it on Runkit](https://runkit.com/icebob/moleculer-quick-start)
 
+<!--
 # How fast?
 We [tested](https://github.com/icebob/microservices-benchmark) some other frameworks and measured the local request times. The result is:
 ```
@@ -105,6 +106,7 @@ Suite: Call local actions
    Moleculer        0.00%    (239,099 ops/sec)
 ```
 [![Result chart](https://cloud.highcharts.com/images/utideti/800.png)](http://cloud.highcharts.com/show/utideti)
+-->
 
 # Main modules
 

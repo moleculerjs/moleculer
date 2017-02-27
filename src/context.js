@@ -35,9 +35,13 @@ class Context {
 
 		this.setParams(opts.params);
 
+		// Generate ID for context
+		if (this.nodeID || opts.metrics)
+			this.id = utils.generateToken();
+
+		// Initialize metrics properties
 		if (opts.metrics) {
 			this.metrics = true;
-			this.id = utils.generateToken();
 			this.requestID = opts.requestID || this.id;
 
 			this.level = opts.parent && opts.parent.level ? opts.parent.level + 1 : 1;
@@ -48,7 +52,7 @@ class Context {
 			this.duration = 0;
 		}		
 
-		this.error = null;
+		//this.error = null;
 		this.cachedResult = false;
 	}
 
@@ -126,8 +130,6 @@ class Context {
 	 */
 	_metricStart() {
 		this.startTime = Date.now();
-		this.startHrTime = process.hrtime();
-		this.duration = 0;
 		
 		let payload = {
 			id: this.id,
@@ -141,10 +143,13 @@ class Context {
 				name: this.action.name
 			};
 		}
-		if (this.parent) {
+		if (this.parent)
 			payload.parent = this.parent.id;
-		}
+		
 		this.broker.emit("metrics.context.start", payload);
+
+		this.startHrTime = process.hrtime();
+		this.duration = 0;
 	}
 
 	/**
@@ -152,7 +157,7 @@ class Context {
 	 * 
 	 * @memberOf Context
 	 */
-	_metricFinish() {
+	_metricFinish(error) {
 		let diff = process.hrtime(this.startHrTime);
 		this.duration = (diff[0] * 1e3) + (diff[1] / 1e6); // milliseconds
 		this.stopTime = this.startTime + this.duration;
@@ -171,13 +176,13 @@ class Context {
 				name: this.action.name
 			};
 		}			
-		if (this.parent) {
+		if (this.parent) 
 			payload.parent = this.parent.id;
-		}
-		if (this.error) {
+		
+		if (error) {
 			payload.error = {
-				type: this.error.name,
-				message: this.error.message
+				type: error.name,
+				message: error.message
 			};
 		}
 		this.broker.emit("metrics.context.finish", payload);

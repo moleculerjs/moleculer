@@ -356,7 +356,7 @@ class ServiceBroker {
 		// Finally logic
 		let after = (ctx, err) => {
 			if (this.options.metrics)
-				ctx._metricFinish();
+				ctx._metricFinish(err);
 
 			if (this.statistics)
 				this.statistics.addRequest(ctx.action.name, ctx.duration, err ? err.code || 500 : null);
@@ -387,7 +387,7 @@ class ServiceBroker {
 
 				this.logger.error("Action request error!", err);
 
-				ctx.error = err;
+				//ctx.error = err;
 				err.ctx = ctx;
 
 				after(ctx, null);
