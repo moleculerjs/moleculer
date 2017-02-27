@@ -103,8 +103,8 @@ describe("Test internal actions", () => {
 		internalActions: true 			
 	});
 
-	broker.loadService("./examples/math.service");
-	broker.loadService("./examples/post.service");
+	broker.loadService("./test/services/math.service");
+	broker.loadService("./test/services/post.service");
 
 	it("should register $node.stats internal action", () => {
 		expect(broker.hasAction("$node.list")).toBeTruthy();
@@ -274,8 +274,8 @@ describe("Test loadServices", () => {
 
 	let broker = new ServiceBroker();
 	
-	it("should found 7 services", () => {
-		expect(broker.loadServices("./examples")).toBe(7);
+	it("should found 3 services", () => {
+		expect(broker.loadServices("./test/services")).toBe(3);
 		expect(broker.hasService("math")).toBeTruthy();
 		expect(broker.hasAction("math.add")).toBeTruthy();
 		expect(broker.isActionAvailable("math.add")).toBeTruthy();
@@ -288,7 +288,7 @@ describe("Test loadService", () => {
 	let broker = new ServiceBroker();
 	
 	it("should load math service", () => {
-		let service = broker.loadService("./examples/math.service.js");
+		let service = broker.loadService("./test/services/math.service.js");
 		expect(service).toBeDefined();
 		expect(broker.hasService("math")).toBeTruthy();
 		expect(broker.hasAction("math.add")).toBeTruthy();
@@ -509,7 +509,7 @@ describe("Test versioned action registration", () => {
 describe("Test broker.call", () => {
 	let broker = new ServiceBroker();
 
-	broker.loadService("./examples/math.service.js");
+	broker.loadService("./test/services/math.service.js");
 
 	broker.registerAction({
 		name: "posts.find"
