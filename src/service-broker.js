@@ -341,10 +341,8 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	wrapAction(action) {
-		/* istanbul ignore next */
-		
 		let handler = action.handler;
-		if (this.middlewares.length !== 0) {
+		if (this.middlewares.length) {
 			let mws = Array.from(this.middlewares);
 			handler = mws.reduce((handler, mw) => {
 				return mw(handler, action);
@@ -366,18 +364,22 @@ class ServiceBroker {
 
 		// Add the main wrapper
 		action.handler = (ctx) => {
+			// Add metrics start
 			if (this.options.metrics)
 				ctx._metricStart();
 
-			// Call the prev handler
+			// Call the handler
 			let p = handler(ctx);
 			
 			if (this.options.metrics || this.statistics) {
+				// Add after to metrics & statistics
 				p = p.then(res => {
 					after(ctx, null);
 					return res;
 				});
 			}
+
+			// Handle errors
 			return p.catch(err => {
 				if (!(err instanceof Error)) {
 					err = new Error(err);

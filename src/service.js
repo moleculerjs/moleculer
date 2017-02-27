@@ -68,15 +68,15 @@ class Service {
 
 				let innerAction = this._createActionHandler(cloneDeep(action), action.handler, name);
 
+				// Register to broker
+				broker.registerAction(innerAction);
+
 				// Expose to call `service.actions.find({ ...params })`
 				this.actions[name] = (params) => {
 					let ctx = new broker.ContextFactory({ broker, action: innerAction, params });
-					return ctx.invoke(innerAction.handler);
-					//return Promise.resolve(innerAction.handler(ctx));
+					return innerAction.handler(ctx);
 				};
-
-				// Register to broker
-				broker.registerAction(innerAction);
+				
 			});
 
 		}
