@@ -1,6 +1,6 @@
-const ServiceBroker = require("../../src/service-broker");
-const Cacher = require("../../src/cachers/base");
-const Context = require("../../src/context");
+const ServiceBroker = require("../../../src/service-broker");
+const Cacher = require("../../../src/cachers/base");
+const Context = require("../../../src/context");
 
 describe("Test BaseCacher", () => {
 

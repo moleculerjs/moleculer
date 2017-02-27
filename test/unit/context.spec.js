@@ -1,8 +1,8 @@
 "use strict";
 
-let Context = require("../src/context");
-let ServiceBroker = require("../src/service-broker");
-let { ServiceNotFoundError } = require("../src/errors");
+let Context = require("../../src/context");
+let ServiceBroker = require("../../src/service-broker");
+let { ServiceNotFoundError } = require("../../src/errors");
 
 describe("Test Context", () => {
 

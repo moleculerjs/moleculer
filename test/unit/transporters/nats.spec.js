@@ -1,4 +1,4 @@
-const ServiceBroker = require("../../src/service-broker");
+const ServiceBroker = require("../../../src/service-broker");
 
 jest.mock("nats");
 
@@ -15,7 +15,7 @@ Nats.connect = jest.fn(() => {
 	};
 });
 
-const NatsTransporter = require("../../src/transporters/nats");
+const NatsTransporter = require("../../../src/transporters/nats");
 
 describe("Test NatsTransporter connect & disconnect", () => {
 	let broker = new ServiceBroker();

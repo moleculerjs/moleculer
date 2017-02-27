@@ -1,6 +1,6 @@
 "use strict";
 
-const BalancedList = require("../src/balanced-list");
+const BalancedList = require("../../src/balanced-list");
 
 describe("Test BalancedList", () => {
 

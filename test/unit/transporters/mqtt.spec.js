@@ -1,5 +1,5 @@
-const ServiceBroker = require("../../src/service-broker");
-const MqttTransporter = require("../../src/transporters/mqtt");
+const ServiceBroker = require("../../../src/service-broker");
+const MqttTransporter = require("../../../src/transporters/mqtt");
 
 jest.mock("mqtt");
 

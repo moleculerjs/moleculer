@@ -1,6 +1,6 @@
 "use strict";
 
-let errors = require("../src/errors");
+let errors = require("../../src/errors");
 
 describe("Test Errors", () => {
 

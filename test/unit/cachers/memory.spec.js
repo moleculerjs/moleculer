@@ -1,6 +1,6 @@
-const utils = require("../../src/utils");
-const ServiceBroker = require("../../src/service-broker");
-const MemoryCacher = require("../../src/cachers/memory");
+const utils = require("../../../src/utils");
+const ServiceBroker = require("../../../src/service-broker");
+const MemoryCacher = require("../../../src/cachers/memory");
 
 describe("Test MemoryCacher constructor", () => {
 

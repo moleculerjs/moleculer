@@ -1,7 +1,7 @@
-const ServiceBroker = require("../../src/service-broker");
-const FakeTransporter = require("../../src/transporters/fake");
+const ServiceBroker = require("../../../src/service-broker");
+const FakeTransporter = require("../../../src/transporters/fake");
 
-const { isPromise } = require("../../src/utils");
+const { isPromise } = require("../../../src/utils");
 
 describe("Test FakeTransporter", () => {
 

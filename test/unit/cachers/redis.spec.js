@@ -1,9 +1,9 @@
-const ServiceBroker = require("../../src/service-broker");
-const Context = require("../../src/context");
+const ServiceBroker = require("../../../src/service-broker");
+const Context = require("../../../src/context");
 
 jest.mock("ioredis");
 
-const RedisCacher = require("../../src/cachers/redis");
+const RedisCacher = require("../../../src/cachers/redis");
 
 describe("Test RedisCacher constructor", () => {
 

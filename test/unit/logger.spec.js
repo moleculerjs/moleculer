@@ -1,4 +1,4 @@
-const { wrap } = require("../src/logger");
+const { wrap } = require("../../src/logger");
 
 function callLogMethods(logger) {
 	logger.log("log level");

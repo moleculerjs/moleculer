@@ -1,5 +1,5 @@
-const ServiceBroker = require("../../src/service-broker");
-const BaseTransporter = require("../../src/transporters/base");
+const ServiceBroker = require("../../../src/service-broker");
+const BaseTransporter = require("../../../src/transporters/base");
 
 describe("Test BaseTransporter", () => {
 

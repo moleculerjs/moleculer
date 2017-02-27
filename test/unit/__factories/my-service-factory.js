@@ -1,4 +1,4 @@
-const Service = require("../../src/service");
+const Service = require("../../../src/service");
 
 class MyService extends Service {
 	constructor(broker, schema) {

@@ -1,8 +1,8 @@
-const ServiceBroker = require("../src/service-broker");
-const Context = require("../src/context");
-const Transit = require("../src/transit");
-const FakeTransporter = require("../src/transporters/fake");
-const { RequestTimeoutError, ValidationError } = require("../src/errors");
+const ServiceBroker = require("../../src/service-broker");
+const Context = require("../../src/context");
+const Transit = require("../../src/transit");
+const FakeTransporter = require("../../src/transporters/fake");
+const { RequestTimeoutError, ValidationError } = require("../../src/errors");
 
 describe("Test Transporter constructor", () => {
 

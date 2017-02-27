@@ -1,5 +1,5 @@
-const ServiceBroker = require("../../src/service-broker");
-const RedisTransporter = require("../../src/transporters/redis");
+const ServiceBroker = require("../../../src/service-broker");
+const RedisTransporter = require("../../../src/transporters/redis");
 
 jest.mock("ioredis");
 

@@ -1,7 +1,7 @@
 "use strict";
 
-let BrokerStatistics = require("../src/statistics");
-let ServiceBroker = require("../src/service-broker");
+let BrokerStatistics = require("../../src/statistics");
+let ServiceBroker = require("../../src/service-broker");
 const lolex = require("lolex");
 
 describe("Test Statistics constructor", () => {
