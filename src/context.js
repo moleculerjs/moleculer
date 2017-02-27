@@ -33,6 +33,8 @@ class Context {
 		this.user = opts.user;
 		this.parent = opts.parent;
 
+		this.level = opts.parent && opts.parent.level ? opts.parent.level + 1 : 1;
+
 		this.setParams(opts.params);
 
 		// Generate ID for context
@@ -44,8 +46,6 @@ class Context {
 			this.metrics = true;
 			this.requestID = opts.requestID || this.id;
 
-			this.level = opts.parent && opts.parent.level ? opts.parent.level + 1 : 1;
-			
 			this.startTime = null;
 			this.startHrTime = null;
 			this.stopTime = null;

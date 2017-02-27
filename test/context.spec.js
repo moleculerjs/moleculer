@@ -19,7 +19,7 @@ describe("Test Context", () => {
 		expect(ctx.action).not.toBeDefined();
 		expect(ctx.logger).not.toBeDefined();
 		expect(ctx.user).not.toBeDefined();
-		expect(ctx.level).not.toBeDefined();
+		expect(ctx.level).toBe(1);
 		expect(ctx.params).toEqual({});
 		expect(ctx.cachedResult).toBe(false);
 		expect(ctx.nodeID).toBeNull;
@@ -154,6 +154,7 @@ describe("Test createSubContext", () => {
 		expect(subCtx.broker).toBe(ctx.broker);
 		expect(subCtx.action).toBe(ctx.action);
 		expect(subCtx.nodeID).toBeUndefined();
+		expect(subCtx.level).toBe(2);
 		expect(subCtx.params).toEqual({});
 		expect(subCtx.user).toEqual({ id: 5 });
 	});

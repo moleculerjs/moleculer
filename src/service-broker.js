@@ -433,7 +433,7 @@ class ServiceBroker {
 			this.registerAction({
 				name,
 				cache: false,
-				handler
+				handler: Promise.method(handler)
 			});
 		};
 
