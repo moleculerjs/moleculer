@@ -7,7 +7,7 @@ const { ValidationError } = require("../src/errors");
 
 const PostSchema = {
 	name: "posts",
-	settings: {},
+	settings: {}, 
 
 	actions: {
 		find: {

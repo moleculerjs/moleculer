@@ -10,9 +10,8 @@ describe("Test Context", () => {
 
 		let ctx = new Context();
 
-		expect(ctx.id).toBeDefined();
-		expect(ctx.requestID).toBeDefined();
-		expect(ctx.requestID).toBe(ctx.id);
+		expect(ctx.id).not.toBeDefined();
+		expect(ctx.requestID).not.toBeDefined();
 		expect(ctx.opts).toBeDefined();
 		expect(ctx.opts).toEqual({});
 		expect(ctx.parent).not.toBeDefined();
@@ -20,18 +19,15 @@ describe("Test Context", () => {
 		expect(ctx.action).not.toBeDefined();
 		expect(ctx.logger).not.toBeDefined();
 		expect(ctx.user).not.toBeDefined();
-		expect(ctx.level).toBe(1);
-		expect(ctx.params).toBeDefined();
+		expect(ctx.level).not.toBeDefined();
 		expect(ctx.params).toEqual({});
-		expect(ctx.error).toBeNull();
 		expect(ctx.cachedResult).toBe(false);
 		expect(ctx.nodeID).toBeNull;
 	});
 
 	it("test with options", () => {
 
-		let broker = new ServiceBroker({ metrics: true });
-		broker.emit = jest.fn();
+		let broker = new ServiceBroker();
 
 		let opts = {
 			requestID: 123,
@@ -51,12 +47,41 @@ describe("Test Context", () => {
 		let ctx = new Context(opts);
 
 		expect(ctx.id).toBeDefined();
-		expect(ctx.requestID).toBe(opts.requestID);
 		expect(ctx.opts).toEqual(opts);
 		expect(ctx.parent).toBeDefined();
 		expect(ctx.broker).toBe(broker);
 		expect(ctx.action).toBeDefined();
 		expect(ctx.nodeID).toBe("node-1");
+		expect(ctx.params).toEqual({ b: 5 });	
+		expect(ctx.user).toEqual({ id: 1 });	
+	});
+
+	it("test with metrics", () => {
+
+		let broker = new ServiceBroker({ metrics: true });
+
+		let opts = {
+			parent: {
+				id: "parent123"
+			},
+			broker,
+			action: {},
+			params: {
+				b: 5
+			},
+			user: {
+				id: 1
+			},
+			metrics: true
+		};
+		let ctx = new Context(opts);
+
+		expect(ctx.id).toBeDefined();
+		expect(ctx.requestID).toBe(ctx.id);
+		expect(ctx.opts).toEqual(opts);
+		expect(ctx.parent).toBeDefined();
+		expect(ctx.broker).toBe(broker);
+		expect(ctx.action).toBeDefined();
 		expect(ctx.level).toBe(1);
 		expect(ctx.params).toEqual({ b: 5 });	
 		expect(ctx.user).toEqual({ id: 1 });	
@@ -123,7 +148,7 @@ describe("Test createSubContext", () => {
 	it("test with empty params", () => {
 		let subCtx = ctx.createSubContext();
 		expect(subCtx).not.toBe(ctx);
-		expect(subCtx.id).not.toBe(ctx.id);
+		expect(subCtx.id).not.toBeDefined();
 		expect(subCtx.requestID).toBe(ctx.requestID);
 		expect(subCtx.parent).toBe(ctx);
 		expect(subCtx.broker).toBe(ctx.broker);
@@ -184,7 +209,7 @@ describe("Test emit method", () => {
 		expect(broker.emit).toHaveBeenCalledWith("request.rest", "string-data");		
 	});
 });
-
+/*
 describe("Test invoke method", () => {
 	let broker = new ServiceBroker();
 	let ctx = new Context();
@@ -277,14 +302,15 @@ describe("Test invoke method", () => {
 		});
 	});		
 });
+*/
 
-describe("Test startInvoke", () => {
+describe("Test metrics methods", () => {
 	let broker = new ServiceBroker({ metrics: true });
-	let ctx = new Context({ broker, parent: { id: 123 }, action: { name: "users.get" } });
+	let ctx = new Context({ broker, parent: { id: 123 }, action: { name: "users.get" }, metrics: true });
 	broker.emit = jest.fn();
 
-	it("should call _metricStart method", () => {		
-		ctx._startInvoke();
+	it("should emit start event", () => {		
+		ctx._metricStart();
 
 		expect(ctx.startTime).toBeDefined();
 		expect(ctx.stopTime).toBeNull();
@@ -294,11 +320,11 @@ describe("Test startInvoke", () => {
 		expect(broker.emit).toHaveBeenCalledWith("metrics.context.start", {"action": {"name": "users.get"}, "id": ctx.id, "level": 1, "parent": 123, "remoteCall": undefined, "requestID": ctx.requestID, "startTime": ctx.startTime});
 	});
 
-	it("should call _metricFinish method", () => {		
+	it("should emit finish event", () => {		
 		broker.emit.mockClear();
 		return new Promise((resolve) => {
 			setTimeout(() => {
-				ctx._finishInvoke();
+				ctx._metricFinish();
 
 				expect(ctx.stopTime).toBeGreaterThan(0);
 				expect(ctx.duration).toBeGreaterThan(0);
@@ -311,10 +337,10 @@ describe("Test startInvoke", () => {
 		});
 	});
 
-	it("should call _metricFinish method with error", () => {		
+	it("should emit finish event with error", () => {		
 		broker.emit.mockClear();
 		return new Promise((resolve) => {
-			ctx.invokeCatch(new ServiceNotFoundError("Something happened")).catch(err => err);
+			ctx._metricFinish(new ServiceNotFoundError("Something happened"));
 
 			expect(ctx.stopTime).toBeGreaterThan(0);
 

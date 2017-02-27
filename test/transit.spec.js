@@ -22,7 +22,7 @@ describe("Test Transporter constructor", () => {
 		expect(transit.tx).toBe(transporter);
 		expect(transit.pendingRequests).toBeInstanceOf(Map);
 	});
-
+ 
 	it("create instance with options", () => {
 		let opts = { id: 5 };
 		let transit = new Transit(broker, transporter, opts);
