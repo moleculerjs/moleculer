@@ -328,7 +328,7 @@ class ServiceBroker {
 			item = new BalancedList();
 			this.actions.set(action.name, item);
 		}
-		if (item.add(action, 0, nodeID)) {
+		if (item.add(action, nodeID)) {
 			this.emitLocal(`register.action.${action.name}`, { action, nodeID });
 		}
 	}

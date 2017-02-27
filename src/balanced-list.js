@@ -19,7 +19,7 @@ class BalancedList {
 	 * Creates an instance of BalancedList.
 	 * 
 	 * @param {any} opts
-	 * 		opts.model - type of balancing (round-robin, random) (defaults: round-robin)
+	 * 		opts.strategy - type of balancing (STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM) (defaults: STRATEGY_ROUND_ROBIN)
 	 * 		opts.preferLocal - call a local service if available (defaults: true)
 	 * 
 	 * @memberOf BalancedList
