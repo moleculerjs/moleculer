@@ -12,7 +12,7 @@ describe("Test RedisCacher constructor", () => {
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toBeDefined();
 		expect(cacher.opts.ttl).toBeNull();
-	});
+	}); 
 
 	it("should create a timer if set ttl option", () => {
 		let opts = { prefix: "TEST", ttl: 500 };
@@ -157,7 +157,7 @@ describe("Test middleware", () => {
 		cacher
 	});
 
-	cacher.get = jest.fn(() => cachedData),
+	cacher.get = jest.fn(() => Promise.resolve(cachedData)),
 	cacher.set = jest.fn();
 
 	let mockAction = {
@@ -184,8 +184,8 @@ describe("Test middleware", () => {
 	it("should not give back cached data and should call the handler and call the 'cache.put' action with promise", () => {
 		let resData = [1,3,5];
 		let cacheKey = cacher.getCacheKey(mockAction.name, params);
-		broker.cacher.get = jest.fn(() => null);
-		mockAction.handler = jest.fn(() => resData);
+		broker.cacher.get = jest.fn(() => Promise.resolve(null));
+		mockAction.handler = jest.fn(() => Promise.resolve(resData));
 
 		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
 

@@ -45,14 +45,16 @@ describe("Test MemoryCacher set & get", () => {
 	});
 
 	it("should give back the data by key", () => {
-		let obj = cacher.get(key);
-		expect(obj).toBeDefined();
-		expect(obj).toEqual(data1);
+		return cacher.get(key).then(obj => {
+			expect(obj).toBeDefined();
+			expect(obj).toEqual(data1);
+		});
 	});
 
 	it("should give null if key not exist", () => {
-		let obj = cacher.get("123123");
-		expect(obj).toBeNull();
+		return cacher.get("123123").then(obj => {
+			expect(obj).toBeNull();
+		});
 	});
 
 });
@@ -74,7 +76,7 @@ describe("Test MemoryCacher delete", () => {
 	};
 
 	it("should save the data with key", () => {
-		cacher.set(key, data1);
+		return cacher.set(key, data1);
 	});
 
 	it("should delete the key", () => {
@@ -83,8 +85,9 @@ describe("Test MemoryCacher delete", () => {
 	});
 
 	it("should give null", () => {
-		let obj = cacher.get(key);
-		expect(obj).toBeNull();
+		return cacher.get(key).then(obj => {
+			expect(obj).toBeNull();
+		});
 	});
 
 });
@@ -122,13 +125,15 @@ describe("Test MemoryCacher clean", () => {
 	});
 
 	it("should give null for key1", () => {
-		let obj = cacher.get(key1);
-		expect(obj).toBeNull();
+		return cacher.get(key1).then(obj => {
+			expect(obj).toBeNull();
+		});
 	});
 
 	it("should give back data 2 for key2", () => {
-		let obj = cacher.get(key2);
-		expect(obj).toEqual(data2);
+		return cacher.get(key2).then(obj => {
+			expect(obj).toEqual(data2);
+		});
 	});
 
 	it("should clean all keys", () => {
@@ -137,8 +142,9 @@ describe("Test MemoryCacher clean", () => {
 	});
 
 	it("should give null for key2 too", () => {
-		let obj = cacher.get(key1);
-		expect(obj).toBeNull();
+		return cacher.get(key1).then(obj => {
+			expect(obj).toBeNull();
+		});
 	});
 
 });
@@ -177,13 +183,15 @@ describe("Test MemoryCacher expired method", () => {
 	});
 
 	it("should give null for key1", () => {
-		let obj = cacher.get(key1);
-		expect(obj).toBeNull();
+		return cacher.get(key1).then(obj => {
+			expect(obj).toBeNull();
+		});
 	});
 
 	it("should give back data 2 for key2", () => {
-		let obj = cacher.get(key2);
-		expect(obj).toEqual(data2);
+		return cacher.get(key2).then(obj => {
+			expect(obj).toEqual(data2);
+		});
 	});
 
 });
