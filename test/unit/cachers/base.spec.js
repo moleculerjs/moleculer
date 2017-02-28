@@ -2,6 +2,7 @@ const ServiceBroker = require("../../../src/service-broker");
 const Cacher = require("../../../src/cachers/base");
 const Context = require("../../../src/context");
 
+// Unit: OK
 describe("Test BaseCacher", () => {
 
 	it("check constructor", () => {
@@ -11,10 +12,13 @@ describe("Test BaseCacher", () => {
 		expect(cacher.prefix).toBe("");
 		expect(cacher.opts.ttl).toBeNull();
 		expect(cacher.init).toBeDefined();
+		expect(cacher.close).toBeDefined();
 		expect(cacher.get).toBeDefined();
 		expect(cacher.set).toBeDefined();
 		expect(cacher.del).toBeDefined();
 		expect(cacher.clean).toBeDefined();
+		expect(cacher.getCacheKey).toBeDefined();
+		expect(cacher.middleware).toBeDefined();
 	});
 
 	it("check constructor with empty opts", () => {
@@ -36,11 +40,19 @@ describe("Test BaseCacher", () => {
 
 	it("check init", () => {
 		let broker = new ServiceBroker();
+		broker.on = jest.fn();
+		broker.use = jest.fn();
 		let cacher = new Cacher();
 
 		cacher.init(broker);
 		expect(cacher.broker).toBe(broker);
 		expect(cacher.logger).toBeDefined();
+
+		expect(broker.use).toHaveBeenCalledTimes(1);
+
+		expect(broker.on).toHaveBeenCalledTimes(2);
+		expect(broker.on).toHaveBeenCalledWith("cache.clean", jasmine.any(Function));
+		expect(broker.on).toHaveBeenCalledWith("cache.del", jasmine.any(Function));
 	});
 
 
@@ -66,7 +78,7 @@ describe("Test BaseCacher", () => {
 		expect(res).toBe("");
 		
 		res = cacher.getCacheKey("posts.find");
-		expect(res).toBe("posts.find:");
+		expect(res).toBe("posts.find");
 		
 		res = cacher.getCacheKey(null, {});
 		expect(res).toBe("");
@@ -82,7 +94,11 @@ describe("Test BaseCacher", () => {
 		
 		res = cacher.getCacheKey(null, {a: 5, b: { id: 3 }}, ["a", "c", "b"]);
 		// FIXME
-		expect(res).toBe("5--[object Object]");
+		//expect(res).toBe("5--<hashed object>");
+
+		res = cacher.getCacheKey(null, {a: 5, b: { id: 3 }}, ["a", "c", "b.id"]);
+		// FIXME
+		//expect(res).toBe("5--3");
 		
 		res = cacher.getCacheKey(null, {a: 5, b: 3}, []);
 		expect(res).toBe("279761c41681ae34e83975977d829b11a278edce47f4704cd82bb94b6f054b1e");
@@ -109,28 +125,29 @@ describe("Test middleware", () => {
 	let params = { id: 3, name: "Antsa" };
 
 	it("should give back the cached data and not called the handler", () => {
+		let ctx = new Context({ params, service: { broker } });
 		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
 		expect(typeof cachedHandler).toBe("function");
 
-		let ctx = new Context({ params, service: { broker } });
 		return cachedHandler(ctx).then(response => {
 			expect(broker.cacher.get).toHaveBeenCalledTimes(1);
 			expect(broker.cacher.get).toHaveBeenCalledWith("posts.find:60b51087180be386e8a4917dd118a422b72faf4bc5bb58c0628c8382356595b2");
 			expect(mockAction.handler).toHaveBeenCalledTimes(0);
+			expect(broker.cacher.set).toHaveBeenCalledTimes(0);
 			expect(response).toBe(cachedData);
 		});
 
 	});
 
-	it("should not give back cached data and should call the handler and call the 'cache.put' action with promise", () => {
+	it("should not give back cached data and should call the handler and call the 'cache.set' action with promise", () => {
 		let resData = [1,3,5];
 		let cacheKey = cacher.getCacheKey(mockAction.name, params);
 		broker.cacher.get = jest.fn(() => Promise.resolve(null));
 		mockAction.handler = jest.fn(() => Promise.resolve(resData));
 
+		let ctx = new Context({ params, service: { broker } });
 		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
 
-		let ctx = new Context({ params, service: { broker } });
 		return cachedHandler(ctx).then(response => {
 			expect(response).toBe(resData);
 			expect(mockAction.handler).toHaveBeenCalledTimes(1);
@@ -140,36 +157,12 @@ describe("Test middleware", () => {
 
 			expect(broker.cacher.set).toHaveBeenCalledTimes(1);
 			expect(broker.cacher.set).toHaveBeenCalledWith(cacheKey, resData);
-
-		});
-	});
-
-	it("should not give back cached data and should call the handler and call the 'cache.put' action with sync res", () => {
-		let resData = [1,3,5];
-		let cacheKey = cacher.getCacheKey(mockAction.name, params);
-		broker.cacher.get = jest.fn(() => Promise.resolve(null));
-		broker.cacher.set.mockClear();
-		mockAction.handler = jest.fn(() => Promise.resolve(resData)); // no Promise
-
-		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
-
-		let ctx = new Context({ params, service: { broker } });
-		return cachedHandler(ctx).then(response => {
-			expect(response).toBe(resData);
-			expect(mockAction.handler).toHaveBeenCalledTimes(1);
-
-			expect(broker.cacher.get).toHaveBeenCalledTimes(1);
-			expect(broker.cacher.get).toHaveBeenCalledWith(cacheKey);
-
-			expect(broker.cacher.set).toHaveBeenCalledTimes(1);
-			expect(broker.cacher.set).toHaveBeenCalledWith(cacheKey, resData);
-
 		});
 	});
 
 });
 
-describe("Test clean & del", () => {
+describe("Test cache.clean & cache.del events", () => {
 	let cacher = new Cacher();
 	let broker = new ServiceBroker({
 		cacher

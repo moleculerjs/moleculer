@@ -124,14 +124,17 @@ class Cacher {
 	 * @returns
 	 */
 	getCacheKey(name, params, keys) {
-		let hashKey = "";
+		let parts = [];
+		if (name)
+			parts.push(name);
+
 		if (params && Object.keys(params).length > 0) {
 			if (keys && keys.length > 0)
-				hashKey = keys.map(key => params[key]).join("-");
+				parts.push(keys.map(key => params[key]).join("-"));
 			else
-				hashKey = hash(params);
+				parts.push(hash(params));
 		}
-		return (name ? name + ":" : "") + hashKey;
+		return parts.join(":");
 	}
 
 	/**
