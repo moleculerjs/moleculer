@@ -66,7 +66,7 @@ class Service {
 					};
 				}
 
-				let innerAction = this._createActionHandler(cloneDeep(action), action.handler, name);
+				let innerAction = this._createActionHandler(cloneDeep(action), name);
 
 				// Register to broker
 				broker.registerAction(innerAction);
@@ -113,7 +113,7 @@ class Service {
 			forIn(schema.methods, (method, name) => {
 				/* istanbul ignore next */
 				if (["name", "version", "settings", "schema", "broker", "actions", "logger"].indexOf(name) != -1) {
-					throw new Error(`Invalid method name '${name}' in '${this.name}' service! Skipping...`);
+					throw new Error(`Invalid method name '${name}' in '${this.name}' service!`);
 				}
 				this[name] = method.bind(this);
 			});
@@ -131,13 +131,13 @@ class Service {
 	 * Create an external action handler for broker (internal command!)
 	 * 
 	 * @param {any} action
-	 * @param {any} handler
 	 * @param {any} name
 	 * @returns
 	 * 
 	 * @memberOf Service
 	 */
-	_createActionHandler(action, handler, name) {
+	_createActionHandler(action, name) {
+		let handler = action.handler;
 		if (!isFunction(handler)) {
 			throw new Error(`Missing action handler on '${name}' action in '${this.name}' service!`);
 		}
