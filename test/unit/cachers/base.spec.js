@@ -2,7 +2,7 @@ const ServiceBroker = require("../../../src/service-broker");
 const Cacher = require("../../../src/cachers/base");
 const Context = require("../../../src/context");
 
-// Unit: OK
+// Unit: OK!
 describe("Test BaseCacher", () => {
 
 	it("check constructor", () => {
