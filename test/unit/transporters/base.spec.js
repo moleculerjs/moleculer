@@ -8,7 +8,7 @@ describe("Test BaseTransporter", () => {
 		let trans = new BaseTransporter();
 		expect(trans).toBeDefined();
 		expect(trans.opts).toBeDefined();
-		expect(trans.connected).toBeFalsy();
+		expect(trans.connected).toBe(false);
 		expect(trans.prefix).toBe("MOL");
 
 		expect(trans.init).toBeDefined();

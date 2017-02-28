@@ -8,6 +8,7 @@ function callLogMethods(logger) {
 	logger.error("error level");	
 }
 
+// Unit: OK!
 describe("Test wrap", () => {
 
 	it("should create a full logger without moduleName", () => {
@@ -18,11 +19,11 @@ describe("Test wrap", () => {
 		};
 		
 		let logger = wrap(con, null, "debug");
-		expect(typeof logger.log).toBe("function");
-		expect(typeof logger.error).toBe("function");
-		expect(typeof logger.warn).toBe("function");
-		expect(typeof logger.info).toBe("function");
-		expect(typeof logger.debug).toBe("function");
+		expect(logger.log).toBeInstanceOf(Function);
+		expect(logger.error).toBeInstanceOf(Function);
+		expect(logger.warn).toBeInstanceOf(Function);
+		expect(logger.info).toBeInstanceOf(Function);
+		expect(logger.debug).toBeInstanceOf(Function);
 
 		callLogMethods(logger);
 		expect(con.warn).toHaveBeenCalledTimes(1);
@@ -39,16 +40,17 @@ describe("Test wrap", () => {
 
 	it("should create a full logger with moduleName", () => {
 		let con = {
+			debug: jest.fn(),
 			info: jest.fn(),
 			error: jest.fn(),
 			warn: jest.fn()
 		};
 		let logger = wrap(con, "Module", "debug");
-		expect(typeof logger.log).toBe("function");
-		expect(typeof logger.error).toBe("function");
-		expect(typeof logger.warn).toBe("function");
-		expect(typeof logger.info).toBe("function");
-		expect(typeof logger.debug).toBe("function");
+		expect(logger.log).toBeInstanceOf(Function);
+		expect(logger.error).toBeInstanceOf(Function);
+		expect(logger.warn).toBeInstanceOf(Function);
+		expect(logger.info).toBeInstanceOf(Function);
+		expect(logger.debug).toBeInstanceOf(Function);
 
 		callLogMethods(logger);
 
@@ -58,10 +60,12 @@ describe("Test wrap", () => {
 		expect(con.error).toHaveBeenCalledTimes(1);
 		expect(con.error).toHaveBeenCalledWith("[Module] error level");
 
-		expect(con.info).toHaveBeenCalledTimes(3);
+		expect(con.info).toHaveBeenCalledTimes(2);
 		expect(con.info).toHaveBeenCalledWith("[Module] info level");
 		expect(con.info).toHaveBeenCalledWith("[Module] log level");
-		expect(con.info).toHaveBeenCalledWith("[Module] debug level");
+
+		expect(con.debug).toHaveBeenCalledTimes(1);
+		expect(con.debug).toHaveBeenCalledWith("[Module] debug level");
 	});
 });
 
@@ -75,11 +79,11 @@ describe("Test wrap with logLevels", () => {
 			warn: jest.fn()
 		};
 		let logger = wrap(con, "Module", "warn");
-		expect(typeof logger.log).toBe("function");
-		expect(typeof logger.error).toBe("function");
-		expect(typeof logger.warn).toBe("function");
-		expect(typeof logger.info).toBe("function");
-		expect(typeof logger.debug).toBe("function");
+		expect(logger.log).toBeInstanceOf(Function);
+		expect(logger.error).toBeInstanceOf(Function);
+		expect(logger.warn).toBeInstanceOf(Function);
+		expect(logger.info).toBeInstanceOf(Function);
+		expect(logger.debug).toBeInstanceOf(Function);
 
 		callLogMethods(logger);
 		expect(con.debug).toHaveBeenCalledTimes(0);

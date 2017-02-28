@@ -53,7 +53,7 @@ let utils = {
 	 * @returns
 	 */
 	isPromise(p) {
-		return (p && typeof p.then === "function");
+		return (p != null && typeof p.then === "function");
 	},
 
 	/**

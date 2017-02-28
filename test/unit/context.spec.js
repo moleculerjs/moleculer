@@ -4,7 +4,7 @@ let Context = require("../../src/context");
 let ServiceBroker = require("../../src/service-broker");
 let { ServiceNotFoundError } = require("../../src/errors");
 
-// Unit: OK
+// Unit: OK!
 describe("Test Context", () => {
 
 	it("test with empty opts", () => {

@@ -788,6 +788,7 @@ let broker = new ServiceBroker({
         "CACHER": "warn",       // Cacher logger
         "TX": "info",           // Transporter logger
         "POSTS-SVC": "error"    // Service logger. Generated from name of service
+        "USERS-SVC": false      // No logger
     }
 });
 ```

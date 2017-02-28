@@ -39,10 +39,10 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.statistics).toBeUndefined();
 		expect(broker.nodeID).toBe(require("os").hostname().toLowerCase());
 
-		expect(broker.hasAction("$node.list")).toBeTruthy();
-		expect(broker.hasAction("$node.services")).toBeTruthy();
-		expect(broker.hasAction("$node.actions")).toBeTruthy();
-		expect(broker.hasAction("$node.health")).toBeTruthy();
+		expect(broker.hasAction("$node.list")).toBe(true);
+		expect(broker.hasAction("$node.services")).toBe(true);
+		expect(broker.hasAction("$node.actions")).toBe(true);
+		expect(broker.hasAction("$node.health")).toBe(true);
 	});
 
 	it("should merge options", () => {
@@ -80,10 +80,10 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.validator).toBeUndefined();
 		expect(broker.nodeID).toBe(require("os").hostname().toLowerCase());
 
-		expect(broker.hasAction("$node.list")).toBeFalsy();
-		expect(broker.hasAction("$node.services")).toBeFalsy();
-		expect(broker.hasAction("$node.actions")).toBeFalsy();
-		expect(broker.hasAction("$node.health")).toBeFalsy();		
+		expect(broker.hasAction("$node.list")).toBe(false);
+		expect(broker.hasAction("$node.services")).toBe(false);
+		expect(broker.hasAction("$node.actions")).toBe(false);
+		expect(broker.hasAction("$node.health")).toBe(false);		
 	});
 
 	it("should create transit if transporter into options", () => {
@@ -107,11 +107,11 @@ describe("Test internal actions", () => {
 	broker.loadService("./test/services/post.service");
 
 	it("should register $node.stats internal action", () => {
-		expect(broker.hasAction("$node.list")).toBeTruthy();
-		expect(broker.hasAction("$node.services")).toBeTruthy();
-		expect(broker.hasAction("$node.actions")).toBeTruthy();
-		expect(broker.hasAction("$node.health")).toBeTruthy();
-		expect(broker.hasAction("$node.stats")).toBeTruthy();
+		expect(broker.hasAction("$node.list")).toBe(true);
+		expect(broker.hasAction("$node.services")).toBe(true);
+		expect(broker.hasAction("$node.actions")).toBe(true);
+		expect(broker.hasAction("$node.health")).toBe(true);
+		expect(broker.hasAction("$node.stats")).toBe(true);
 	});
 
 	it("should return list of services", () => {
@@ -276,9 +276,9 @@ describe("Test loadServices", () => {
 	
 	it("should found 3 services", () => {
 		expect(broker.loadServices("./test/services")).toBe(3);
-		expect(broker.hasService("math")).toBeTruthy();
-		expect(broker.hasAction("math.add")).toBeTruthy();
-		expect(broker.isActionAvailable("math.add")).toBeTruthy();
+		expect(broker.hasService("math")).toBe(true);
+		expect(broker.hasAction("math.add")).toBe(true);
+		expect(broker.isActionAvailable("math.add")).toBe(true);
 	});
 
 });
@@ -290,9 +290,9 @@ describe("Test loadService", () => {
 	it("should load math service", () => {
 		let service = broker.loadService("./test/services/math.service.js");
 		expect(service).toBeDefined();
-		expect(broker.hasService("math")).toBeTruthy();
-		expect(broker.hasAction("math.add")).toBeTruthy();
-		expect(broker.isActionAvailable("math.add")).toBeTruthy();
+		expect(broker.hasService("math")).toBe(true);
+		expect(broker.hasAction("math.add")).toBe(true);
+		expect(broker.isActionAvailable("math.add")).toBe(true);
 	});
 
 });
@@ -309,9 +309,9 @@ describe("Test createService", () => {
 			}
 		});
 		expect(service).toBeDefined();
-		expect(broker.hasService("test")).toBeTruthy();
-		expect(broker.hasAction("test.empty")).toBeTruthy();
-		expect(broker.isActionAvailable("test.empty")).toBeTruthy();
+		expect(broker.hasService("test")).toBe(true);
+		expect(broker.hasAction("test.empty")).toBe(true);
+		expect(broker.isActionAvailable("test.empty")).toBe(true);
 	});
 
 });
@@ -339,8 +339,8 @@ describe("Test service registration", () => {
 	});
 
 	it("test has & get service", () => {
-		expect(broker.hasService("noservice")).toBeFalsy();
-		expect(broker.hasService("posts")).toBeTruthy();
+		expect(broker.hasService("noservice")).toBe(false);
+		expect(broker.hasService("posts")).toBe(true);
 
 		expect(broker.getService("noservice")).toBeUndefined();
 		expect(broker.getService("posts")).toBe(service);		
@@ -374,8 +374,8 @@ describe("Test action registration", () => {
 	});
 
 	it("should return with the action", () => {
-		expect(broker.hasAction("noaction")).toBeFalsy();
-		expect(broker.hasAction("posts.find")).toBeTruthy();
+		expect(broker.hasAction("noaction")).toBe(false);
+		expect(broker.hasAction("posts.find")).toBe(true);
 	});
 });
 
@@ -486,10 +486,10 @@ describe("Test versioned action registration", () => {
 	});
 	
 	it("should return with the correct action", () => {
-		expect(broker.hasAction("v1.posts.find")).toBeTruthy();
-		expect(broker.hasAction("v2.posts.find")).toBeTruthy();
+		expect(broker.hasAction("v1.posts.find")).toBe(true);
+		expect(broker.hasAction("v2.posts.find")).toBe(true);
 
-		expect(broker.hasAction("v3.posts.find")).toBeFalsy();
+		expect(broker.hasAction("v3.posts.find")).toBe(false);
 	});
 
 	it("should call the v1 handler", () => {
@@ -781,7 +781,7 @@ describe("Test registerAction & unregisterAction with nodeID", () => {
 		
 		let findItem = broker.actions.get("users.get").get();
 		expect(findItem).toBeDefined();
-		expect(findItem.local).toBeFalsy();
+		expect(findItem.local).toBe(false);
 		expect(findItem.nodeID).toBe("server-2");
 		broker.emitLocal.mockClear();
 	});
@@ -831,13 +831,13 @@ describe("Test nodes methods", () => {
 		expect(broker.emitLocal).toHaveBeenCalledTimes(3);
 		expect(broker.emitLocal).toHaveBeenCalledWith("node.connected", node);
 
-		expect(broker.isNodeAvailable("server-2")).toBeTruthy();
+		expect(broker.isNodeAvailable("server-2")).toBe(true);
 	});
 
 	it("should find the remote actions", () => {
 		let findItem = broker.actions.get("other.find").get();
 		expect(findItem).toBeDefined();
-		expect(findItem.local).toBeFalsy();
+		expect(findItem.local).toBe(false);
 		expect(findItem.nodeID).toBe("server-2");
 		expect(findItem.data).toEqual({
 			name: "other.find", 
@@ -847,7 +847,7 @@ describe("Test nodes methods", () => {
 
 		let getItem = broker.actions.get("other.get").get();
 		expect(getItem).toBeDefined();
-		expect(getItem.local).toBeFalsy();
+		expect(getItem.local).toBe(false);
 		expect(getItem.nodeID).toBe("server-2");
 		expect(getItem.data).toEqual({
 			name: "other.get", 
@@ -857,8 +857,8 @@ describe("Test nodes methods", () => {
 			}
 		});
 
-		expect(broker.isActionAvailable("other.find")).toBeTruthy();
-		expect(broker.isActionAvailable("other.get")).toBeTruthy();
+		expect(broker.isActionAvailable("other.find")).toBe(true);
+		expect(broker.isActionAvailable("other.get")).toBe(true);
 		
 	});
 
@@ -897,14 +897,14 @@ describe("Test nodes methods", () => {
 		broker.emitLocal.mockClear();
 		let node = broker.nodes.get("server-2");
 		broker.nodeDisconnected("server-2");
-		expect(node.available).toBeFalsy();
-		expect(broker.isNodeAvailable("server-2")).toBeFalsy();		
+		expect(node.available).toBe(false);
+		expect(broker.isNodeAvailable("server-2")).toBe(false);		
 
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
 		expect(broker.emitLocal).toHaveBeenCalledWith("node.disconnected", node);
 
-		expect(broker.isActionAvailable("other.find")).toBeFalsy();
-		expect(broker.isActionAvailable("other.get")).toBeFalsy();
+		expect(broker.isActionAvailable("other.find")).toBe(false);
+		expect(broker.isActionAvailable("other.get")).toBe(false);
 	});	
 
 	it("should call node.broker event if disconnected unexpectedly", () => {
@@ -913,14 +913,14 @@ describe("Test nodes methods", () => {
 
 		let node = broker.nodes.get("server-2");
 		broker.nodeDisconnected("server-2", true);
-		expect(node.available).toBeFalsy();
-		expect(broker.isNodeAvailable("server-2")).toBeFalsy();		
+		expect(node.available).toBe(false);
+		expect(broker.isNodeAvailable("server-2")).toBe(false);		
 
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
 		expect(broker.emitLocal).toHaveBeenCalledWith("node.broken", node);
 
-		expect(broker.isActionAvailable("other.find")).toBeFalsy();
-		expect(broker.isActionAvailable("other.get")).toBeFalsy();
+		expect(broker.isActionAvailable("other.find")).toBe(false);
+		expect(broker.isActionAvailable("other.get")).toBe(false);
 	});	
 
 	it("should call nodeDisconnected if nodeUnavailable", () => {
@@ -1119,7 +1119,7 @@ describe("Test middleware system with sync & async modes", () => {
 
 	it("should call all middlewares functions & master", () => {
 		let p = broker.call("test.foo");		
-		expect(utils.isPromise(p)).toBeTruthy();
+		expect(utils.isPromise(p)).toBe(true);
 		return p.then(res => {
 			expect(res).toEqual({ user: "icebob" });
 			expect(master).toHaveBeenCalledTimes(1);
@@ -1181,7 +1181,7 @@ describe("Test middleware system with SYNC break", () => {
 
 	it("should call only mw1 & mw2 middlewares functions", () => {
 		let p = broker.call("test.foo");		
-		expect(utils.isPromise(p)).toBeTruthy();
+		expect(utils.isPromise(p)).toBe(true);
 		return p.then(res => {
 			expect(res).toEqual({ user: "bobcsi" });
 			expect(master).toHaveBeenCalledTimes(0);
@@ -1247,7 +1247,7 @@ describe("Test middleware system with ASYNC break", () => {
 
 	it("should call only mw1 & mw2 middlewares functions", () => {
 		let p = broker.call("test.foo");		
-		expect(utils.isPromise(p)).toBeTruthy();
+		expect(utils.isPromise(p)).toBe(true);
 		return p.then(res => {
 			expect(res).toEqual({ user: "bobcsi" });
 			expect(master).toHaveBeenCalledTimes(0);
@@ -1294,7 +1294,7 @@ describe("Test middleware system Exception", () => {
 
 	it("should call only mw1 & mw2 middlewares functions", () => {
 		let p = broker.call("test.foo");		
-		expect(utils.isPromise(p)).toBeTruthy();
+		expect(utils.isPromise(p)).toBe(true);
 		return p.catch(err => {
 			expect(err.message).toEqual("Something happened in mw2");
 			expect(flow.join("-")).toBe("B1-B2");

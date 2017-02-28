@@ -2,11 +2,8 @@
 
 let errors = require("../../src/errors");
 
+// Unit: OK!
 describe("Test Errors", () => {
-
-	it("test error types", () => {
-		expect(errors.ServiceNotFoundError).toBeDefined();
-	});
 
 	it("test ServiceNotFoundError", () => {
 		let err = new errors.ServiceNotFoundError("Something went wrong!", "posts.find");

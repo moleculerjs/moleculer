@@ -1,16 +1,28 @@
 const ServiceBroker = require("../../src/service-broker");
-const Context = require("../../src/context");
 const Validator = require("../../src/validator");
 const { ValidationError } = require("../../src/errors");
 
-describe("Test Validator", () => {
+jest.mock("validatorjs");
 
-	it("check constructor", () => {
+let ValidatorJS = require("validatorjs");
+ValidatorJS.mockImplementation((obj, schema) => {
+	return {
+		passes: jest.fn(() => schema != null),
+		errors: {
+			all: jest.fn(() => "Not valid!")
+		}
+	};
+});
+
+// Unit: OK!
+describe("Test constructor", () => {
+
+	it("should create instance", () => {
 		let v = new Validator();
 		expect(v).toBeDefined();
 	});
 
-	it("check init", () => {
+	it("should register itself as middleware", () => {
 		let broker = new ServiceBroker();
 		broker.use = jest.fn();
 		let v = new Validator();
@@ -24,32 +36,15 @@ describe("Test Validator", () => {
 describe("Test Validator.validate", () => {
 
 	it("should return true if object is valid", () => {
-		let schema = {
-			id: "required|numeric",
-			name: "required|string"
-		};
-
 		let v = new Validator();
-		let res = v.validate(schema, {
-			id: 5,
-			name: "Bob"
-		});
-
+		let res = v.validate({}, {});
 		expect(res).toBe(true);
 	});
 
 	it("should throw ValidationError if object is NOT valid", () => {
-		let schema = {
-			id: "required|numeric",
-			name: "required|string"
-		};
-
 		expect(() => {
 			let v = new Validator();
-			v.validate(schema, {
-				id: "aa",
-				name: "Bob"
-			});
+			v.validate(null, {});
 
 		}).toThrow(ValidationError);
 	});	
@@ -57,13 +52,17 @@ describe("Test Validator.validate", () => {
 });
 
 describe("Test middleware", () => {
-	let broker = new ServiceBroker();
 	let v = new Validator();
 	v.validate = jest.fn();
 
-	let params = { id: 3, name: "Antsa" };
+	it("should return a middleware function", () => {
+		let mw = v.middleware();
+		expect(mw).toBeInstanceOf(Function);
+	});
 
-	it("should call validate & handler because the params is valid", () => {
+	it("should return a middleware function", () => {
+		let mw = v.middleware();
+
 		let mockAction = {
 			name: "posts.find",
 			params: {
@@ -73,16 +72,19 @@ describe("Test middleware", () => {
 			handler: jest.fn()
 		};
 		
-		let wrapped = v.middleware()(mockAction.handler, mockAction);
+		// Create wrapped handler
+		let wrapped = mw(mockAction.handler, mockAction);
 		expect(typeof wrapped).toBe("function");
 
-		let ctx = new Context({ params, service: { broker } });
-		wrapped(ctx);
+		// Create fake context
+		let ctx = { params: { id: 5, name: "John" } };
 
-		expect(v.validate).toHaveBeenCalledTimes(1);
-		expect(v.validate).toHaveBeenCalledWith({"id": "required|numeric", "name": "required|string"}, {"id": 3, "name": "Antsa"});
-		//expect(mockAction.handler).toHaveBeenCalledTimes(1);
-		
+		// Call wrapped function
+		return wrapped(ctx).then(() => {
+			expect(v.validate).toHaveBeenCalledTimes(1);
+			expect(v.validate).toHaveBeenCalledWith({"id": "required|numeric", "name": "required|string"}, {"id": 5, "name": "John"});
+			expect(mockAction.handler).toHaveBeenCalledTimes(1);		
+		});
 	});
 
 	it("should call handler because the params is NOT exist", () => {
@@ -95,11 +97,11 @@ describe("Test middleware", () => {
 		let wrapped = v.middleware()(mockAction.handler, mockAction);
 		expect(typeof wrapped).toBe("function");
 
-		let ctx = new Context({ params, service: { broker } });
+		let ctx = { params: { id: 5, name: "John" } };
 		wrapped(ctx);
 
 		expect(v.validate).toHaveBeenCalledTimes(0);
-		//expect(mockAction.handler).toHaveBeenCalledTimes(1);		
+		expect(mockAction.handler).toHaveBeenCalledTimes(1);		
 	});
 
 });

@@ -70,8 +70,7 @@ class ValidationError extends ExtendableError {
 	constructor(message, data) {
 		super(message);
 		this.code = 422;
-		if (data)
-			this.data = data;
+		this.data = data;
 	}
 }
 

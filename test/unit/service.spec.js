@@ -117,10 +117,10 @@ describe("Local service registration", () => {
 	});
 
 	it("check actions is exist", () => {	
-		expect(broker.hasAction("find")).toBeFalsy();
-		expect(broker.hasAction("get")).toBeFalsy();
-		expect(broker.hasAction("posts.find")).toBeTruthy();
-		expect(broker.hasAction("posts.get")).toBeTruthy();
+		expect(broker.hasAction("find")).toBe(false);
+		expect(broker.hasAction("get")).toBe(false);
+		expect(broker.hasAction("posts.find")).toBe(true);
+		expect(broker.hasAction("posts.get")).toBe(true);
 	});
 
 	it("check broker.call call the action handler", () => {
@@ -196,8 +196,8 @@ describe("Test action registration", () => {
 			}
 		});
 
-		expect(broker.hasAction("posts.find")).toBeFalsy();
-		expect(broker.hasAction("posts.other")).toBeTruthy();
+		expect(broker.hasAction("posts.find")).toBe(false);
+		expect(broker.hasAction("posts.other")).toBe(true);
 	});
 	
 	it("should register action without service name", () => {
@@ -213,8 +213,8 @@ describe("Test action registration", () => {
 			}
 		});
 
-		expect(broker.hasAction("posts.other.get")).toBeFalsy();
-		expect(broker.hasAction("other.get")).toBeTruthy();
+		expect(broker.hasAction("posts.other.get")).toBe(false);
+		expect(broker.hasAction("other.get")).toBe(true);
 	});
 
 
