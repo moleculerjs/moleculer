@@ -1,6 +1,7 @@
 const ServiceBroker = require("../../../src/service-broker");
 const BaseTransporter = require("../../../src/transporters/base");
 
+// Unit: OK!
 describe("Test BaseTransporter", () => {
 
 	it("check constructor", () => {
@@ -22,14 +23,7 @@ describe("Test BaseTransporter", () => {
 		let trans = new BaseTransporter(opts);
 		expect(trans).toBeDefined();
 		expect(trans.opts).toBe(opts);
-		expect(trans.connected).toBeFalsy();
 		expect(trans.prefix).toBe("TEST");
-
-		expect(trans.init).toBeDefined();
-		expect(trans.connect).toBeDefined();
-		expect(trans.disconnect).toBeDefined();
-		expect(trans.subscribe).toBeDefined();
-		expect(trans.publish).toBeDefined();
 	});
 
 	it("check init", () => {

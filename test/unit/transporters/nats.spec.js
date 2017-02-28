@@ -17,6 +17,29 @@ Nats.connect = jest.fn(() => {
 
 const NatsTransporter = require("../../../src/transporters/nats");
 
+// Unit: OK!
+describe("Test NatsTransporter constructor", () => {
+
+	it("check constructor", () => {
+		let trans = new NatsTransporter();
+		expect(trans).toBeDefined();
+		expect(trans.opts).toEqual({});
+		expect(trans.connected).toBe(false);
+		expect(trans.client).toBeNull();
+	});
+
+	it("check constructor with string param", () => {
+		let trans = new NatsTransporter("nats://localhost");
+		expect(trans.opts).toEqual({ nats: "nats://localhost"});
+	});
+
+	it("check constructor with options", () => {
+		let opts = { nats: { host: "localhost", port: 1234} };
+		let trans = new NatsTransporter(opts);
+		expect(trans.opts).toBe(opts);
+	});
+});
+
 describe("Test NatsTransporter connect & disconnect", () => {
 	let broker = new ServiceBroker();
 	let msgHandler = jest.fn();
@@ -25,11 +48,6 @@ describe("Test NatsTransporter connect & disconnect", () => {
 	beforeEach(() => {
 		trans = new NatsTransporter();
 		trans.init(broker, msgHandler);
-	});
-
-	it("check constructor", () => {
-		expect(trans).toBeDefined();
-		expect(trans.connected).toBeFalsy();
 	});
 
 	it("check connect", () => {
@@ -57,15 +75,18 @@ describe("Test NatsTransporter connect & disconnect", () => {
 });
 
 describe("Test NatsTransporter subscribe & publish", () => {
+	let trans;
+	let msgHandler;
 
-	it("check subscribe", () => {
-		let opts = { prefix: "TEST" };
-		let msgHandler = jest.fn();
-		let trans = new NatsTransporter(opts);
+	beforeEach(() => {
+		trans = new NatsTransporter({ prefix: "TEST" });
 		let broker = new ServiceBroker();
+		msgHandler = jest.fn();
 		trans.init(broker, msgHandler);
 		trans.connect();
+	});
 
+	it("check subscribe", () => {
 		let subCb;
 		trans.client.subscribe = jest.fn((name, cb) => subCb = cb);
 
@@ -81,14 +102,9 @@ describe("Test NatsTransporter subscribe & publish", () => {
 	});
 
 	it("check publish", () => {
-		let msgHandler = jest.fn();
-		let trans = new NatsTransporter();
-		trans.init(new ServiceBroker(), msgHandler);
-		trans.connect();
-
 		trans.publish(["REQ", "node"], "data");
 
 		expect(trans.client.publish).toHaveBeenCalledTimes(1);
-		expect(trans.client.publish).toHaveBeenCalledWith(["MOL", "REQ", "node"], "data");
+		expect(trans.client.publish).toHaveBeenCalledWith(["TEST", "REQ", "node"], "data");
 	});
 });

@@ -16,6 +16,29 @@ MQTT.connect = jest.fn(() => {
 	};
 });
 
+// Unit: OK!
+describe("Test NatsTransporter constructor", () => {
+
+	it("check constructor", () => {
+		let trans = new MqttTransporter();
+		expect(trans).toBeDefined();
+		expect(trans.opts).toEqual({});
+		expect(trans.connected).toBe(false);
+		expect(trans.client).toBeNull();
+	});
+
+	it("check constructor with string param", () => {
+		let trans = new MqttTransporter("mqtt://localhost");
+		expect(trans.opts).toEqual({ mqtt: "mqtt://localhost"});
+	});
+
+	it("check constructor with options", () => {
+		let opts = { mqtt: { host: "localhost", port: 1234} };
+		let trans = new MqttTransporter(opts);
+		expect(trans.opts).toBe(opts);
+	});
+});
+
 describe("Test MqttTransporter connect & disconnect", () => {
 	let broker = new ServiceBroker();
 	let msgHandler = jest.fn();
@@ -24,11 +47,6 @@ describe("Test MqttTransporter connect & disconnect", () => {
 	beforeEach(() => {
 		trans = new MqttTransporter();
 		trans.init(broker, msgHandler);
-	});
-
-	it("check constructor", () => {
-		expect(trans).toBeDefined();
-		expect(trans.connected).toBeFalsy();
 	});
 
 	it("check connect", () => {
@@ -42,7 +60,7 @@ describe("Test MqttTransporter connect & disconnect", () => {
 			expect(trans.client.on).toHaveBeenCalledWith("message", jasmine.any(Function));
 		});
 
-		trans.client.onCallbacks.connect();
+		trans.client.onCallbacks.connect(); // Trigger the `resolve`
 
 		return p;
 	});
@@ -60,15 +78,18 @@ describe("Test MqttTransporter connect & disconnect", () => {
 
 
 describe("Test NatsTransporter subscribe & publish", () => {
+	let trans;
+	let msgHandler;
 
-	it("check subscribe", () => {
-		let opts = { prefix: "TEST" };
-		let msgHandler = jest.fn();
-		let trans = new MqttTransporter(opts);
+	beforeEach(() => {
+		trans = new MqttTransporter({ prefix: "TEST" });
 		let broker = new ServiceBroker();
+		msgHandler = jest.fn();
 		trans.init(broker, msgHandler);
 		trans.connect();
+	});
 
+	it("check subscribe", () => {
 		trans.subscribe(["REQ", "node"]);
 
 		expect(trans.client.subscribe).toHaveBeenCalledTimes(1);
@@ -76,13 +97,6 @@ describe("Test NatsTransporter subscribe & publish", () => {
 	});
 
 	it("check incoming message handler", () => {
-		let opts = { prefix: "TEST" };
-		let msgHandler = jest.fn();
-		let trans = new MqttTransporter(opts);
-		let broker = new ServiceBroker();
-		trans.init(broker, msgHandler);
-		trans.connect();
-
 		// Test subscribe callback
 		trans.client.onCallbacks.message("prefix.event.name", "incoming data");
 		expect(msgHandler).toHaveBeenCalledTimes(1);
@@ -90,15 +104,9 @@ describe("Test NatsTransporter subscribe & publish", () => {
 	});
 
 	it("check publish", () => {
-		let msgHandler = jest.fn();
-		let trans = new MqttTransporter();
-		let broker = new ServiceBroker();
-		trans.init(broker, msgHandler);
-		trans.connect();
-
 		trans.publish(["REQ", "node"], "data");
 
 		expect(trans.client.publish).toHaveBeenCalledTimes(1);
-		expect(trans.client.publish).toHaveBeenCalledWith("MOL.REQ.node", "data");
+		expect(trans.client.publish).toHaveBeenCalledWith("TEST.REQ.node", "data");
 	});
 });
