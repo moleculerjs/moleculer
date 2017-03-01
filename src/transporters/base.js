@@ -68,11 +68,26 @@ class BaseTransporter {
 		throw new Error("Not implemented!");
 	}
 
+	/**
+	 * Subscribe to event
+	 * 
+	 * @param {String} topic 
+	 * 
+	 * @memberOf BaseTransporter
+	 */
 	subscribe(topic) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented!");
 	}
 
+	/**
+	 * Publish an event
+	 * 
+	 * @param {String} topic 
+	 * @param {String} packet 
+	 * 
+	 * @memberOf BaseTransporter
+	 */
 	publish(topic, packet) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented!");

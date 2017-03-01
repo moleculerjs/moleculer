@@ -27,14 +27,20 @@ function createBroker(opts) {
 let bench1 = new Benchmarkify({ async: true, name: "Call methods"});
 (function() {
 	let broker = createBroker();
-	bench1.add("Direct service call", () => {
+	/*bench1.add("Direct service call", () => {
 		return userService.actions.empty();
 	});
 
+	let action = null;
+	let ctx = null;
 	bench1.add("action.handler", () => {
-		let actions = broker.actions.get("users.empty");
-		let action = actions.get().data;
-		let ctx = new Context({ broker, action});
+		//if (action == null) {
+			let actions = broker.actions.get("users.empty");
+			action = actions.getData();
+		//}
+		if (ctx == null) 
+			ctx = new Context({ broker, action});
+
 		return Promise.resolve(action.handler(ctx));
 	});
 
@@ -43,7 +49,7 @@ let bench1 = new Benchmarkify({ async: true, name: "Call methods"});
 		let action = actions.get().data;
 		let ctx = new Context({ broker, action});
 		return ctx.invoke(action.handler);
-	});
+	});*/
 
 	bench1.add("broker.call (normal)", () => {
 		return broker.call("users.empty");
@@ -69,7 +75,7 @@ let bench2 = new Benchmarkify({ async: true, name: "Call with middlewares"});
 	let broker = createBroker();
 
 	let mw1 = handler => {
-		return ctx => ctx.after(handler(ctx), res => res);
+		return ctx => handler(ctx).then(res => res);
 	};
 	broker.use(mw1);
 
@@ -82,7 +88,7 @@ let bench2 = new Benchmarkify({ async: true, name: "Call with middlewares"});
 	let broker = createBroker();
 
 	let mw1 = handler => {
-		return ctx => ctx.after(handler(ctx), res => res);
+		return ctx => handler(ctx).then(res => res);
 	};
 	broker.use(mw1, mw1, mw1, mw1, mw1);
 

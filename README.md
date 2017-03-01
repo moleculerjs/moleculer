@@ -1,7 +1,7 @@
 ![Moleculer logo](docs/assets/logo.png)
 
 [![Build Status](https://travis-ci.org/ice-services/moleculer.svg?branch=master)](https://travis-ci.org/ice-services/moleculer)
-<!-- [![Coverage Status](https://coveralls.io/repos/github/ice-services/moleculer/badge.svg?branch=master)](https://coveralls.io/github/moleculer/ice-services?branch=master) -->
+[![Coverage Status](https://coveralls.io/repos/github/ice-services/moleculer/badge.svg?branch=master)](https://coveralls.io/github/ice-services/moleculer?branch=master)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/b108c12cbf554fca9c66dd1925d11cd0)](https://www.codacy.com/app/mereg-norbert/moleculer?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ice-services/moleculer&amp;utm_campaign=Badge_Grade)
 [![Code Climate](https://codeclimate.com/github/ice-services/moleculer/badges/gpa.svg)](https://codeclimate.com/github/ice-services/moleculer)
 [![David](https://img.shields.io/david/ice-services/moleculer.svg)](https://david-dm.org/ice-services/moleculer)
@@ -90,6 +90,7 @@ broker.call("math.add", { a: 3, b: 5})
 ```
 [Try it on Runkit](https://runkit.com/icebob/moleculer-quick-start)
 
+<!--
 # How fast?
 We [tested](https://github.com/icebob/microservices-benchmark) some other frameworks and measured the local request times. The result is:
 ```
@@ -105,6 +106,7 @@ Suite: Call local actions
    Moleculer        0.00%    (239,099 ops/sec)
 ```
 [![Result chart](https://cloud.highcharts.com/images/utideti/800.png)](http://cloud.highcharts.com/show/utideti)
+-->
 
 # Main modules
 
@@ -292,9 +294,7 @@ If there is no `params` property we return the original `handler` (skip wrapping
 
 _If you don't call the original `handler` it will break the request. You can use it in cachers. If you find the data in cache, don't call the handler, instead return the cached data._
 
-If you would like to do something with response after the success request, use the `ctx.after` function.
-
-Example code from cacher middleware how to use the `ctx.after` method:
+Example code from cacher middleware:
 ```js
 return (handler, action) => {
     return function cacherMiddleware(ctx) {
@@ -303,11 +303,11 @@ return (handler, action) => {
         if (content != null) {
             // Found in the cache! Don't call handler, return with the context
             ctx.cachedResult = true;
-            return content;
+            return Promise.resolve(content);
         }
 
         // Call the handler
-        return ctx.after(handler(ctx), result => {
+        return handler(ctx).then(result => {
             // Afterwards save the response to the cache
             this.set(cacheKey, result);
 
@@ -788,6 +788,7 @@ let broker = new ServiceBroker({
         "CACHER": "warn",       // Cacher logger
         "TX": "info",           // Transporter logger
         "POSTS-SVC": "error"    // Service logger. Generated from name of service
+        "USERS-SVC": false      // No logger
     }
 });
 ```
@@ -911,8 +912,14 @@ When you create a new model in your service, sometimes you have to clear the old
             // Clear all cache entries which keys start with `users.`
             ctx.emit("cache.clean", "users.*");
 
+            // Clear multiple cache entries
+            ctx.emit("cache.clean", [ "users.*", "posts.*" ]);
+
             // Delete only one entry
             ctx.emit("cache.del", "users.list");
+
+            // Delete multiple entries
+            ctx.emit("cache.del", [ "users.model:5", "users.model:8" ]);
         }
     }
 }

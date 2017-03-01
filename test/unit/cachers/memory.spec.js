@@ -1,7 +1,7 @@
-const utils = require("../../src/utils");
-const ServiceBroker = require("../../src/service-broker");
-const MemoryCacher = require("../../src/cachers/memory");
+const ServiceBroker = require("../../../src/service-broker");
+const MemoryCacher = require("../../../src/cachers/memory");
 
+// Unit: OK!
 describe("Test MemoryCacher constructor", () => {
 
 	it("should create an empty options", () => {
@@ -27,7 +27,7 @@ describe("Test MemoryCacher set & get", () => {
 
 	let broker = new ServiceBroker();
 	let cacher = new MemoryCacher();
-	cacher.init(broker); // for empty logger
+	cacher.init(broker);
 
 	let key = "tst123";
 	let data1 = {
@@ -42,17 +42,21 @@ describe("Test MemoryCacher set & get", () => {
 	it("should save the data with key", () => {
 		cacher.set(key, data1);
 		expect(cacher.cache[key]).toBeDefined();
+		expect(cacher.cache[key].data).toBe(data1);
+		expect(cacher.cache[key].expire).toBeNull();
 	});
 
 	it("should give back the data by key", () => {
-		let obj = cacher.get(key);
-		expect(obj).toBeDefined();
-		expect(obj).toEqual(data1);
+		return cacher.get(key).then(obj => {
+			expect(obj).toBeDefined();
+			expect(obj).toEqual(data1);
+		});
 	});
 
 	it("should give null if key not exist", () => {
-		let obj = cacher.get("123123");
-		expect(obj).toBeNull();
+		return cacher.get("123123").then(obj => {
+			expect(obj).toBeNull();
+		});
 	});
 
 });
@@ -61,7 +65,7 @@ describe("Test MemoryCacher delete", () => {
 
 	let broker = new ServiceBroker();
 	let cacher = new MemoryCacher();
-	cacher.init(broker); // for empty logger
+	cacher.init(broker);
 
 	let key = "tst123";
 	let data1 = {
@@ -74,17 +78,19 @@ describe("Test MemoryCacher delete", () => {
 	};
 
 	it("should save the data with key", () => {
-		cacher.set(key, data1);
+		return cacher.set(key, data1);
 	});
 
 	it("should delete the key", () => {
+		expect(cacher.cache[key]).toBeDefined();
 		cacher.del(key);
 		expect(cacher.cache[key]).toBeUndefined();
 	});
 
 	it("should give null", () => {
-		let obj = cacher.get(key);
-		expect(obj).toBeNull();
+		return cacher.get(key).then(obj => {
+			expect(obj).toBeNull();
+		});
 	});
 
 });
@@ -93,7 +99,7 @@ describe("Test MemoryCacher clean", () => {
 
 	let broker = new ServiceBroker();
 	let cacher = new MemoryCacher({});
-	cacher.init(broker); // for empty logger
+	cacher.init(broker);
 
 	let key1 = "tst123";
 	let key2 = "posts123";
@@ -122,13 +128,15 @@ describe("Test MemoryCacher clean", () => {
 	});
 
 	it("should give null for key1", () => {
-		let obj = cacher.get(key1);
-		expect(obj).toBeNull();
+		return cacher.get(key1).then(obj => {
+			expect(obj).toBeNull();
+		});
 	});
 
 	it("should give back data 2 for key2", () => {
-		let obj = cacher.get(key2);
-		expect(obj).toEqual(data2);
+		return cacher.get(key2).then(obj => {
+			expect(obj).toEqual(data2);
+		});
 	});
 
 	it("should clean all keys", () => {
@@ -137,8 +145,9 @@ describe("Test MemoryCacher clean", () => {
 	});
 
 	it("should give null for key2 too", () => {
-		let obj = cacher.get(key1);
-		expect(obj).toBeNull();
+		return cacher.get(key1).then(obj => {
+			expect(obj).toBeNull();
+		});
 	});
 
 });
@@ -172,18 +181,20 @@ describe("Test MemoryCacher expired method", () => {
 		expect(cacher.cache[key1].expire).toBeDefined();
 		expect(cacher.cache[key1].expire).toBeGreaterThan(Date.now());
 
-		cacher.cache[key1].expire = Date.now() - 10 * 1000;
+		cacher.cache[key1].expire = Date.now() - 10 * 1000; // Hach the expire time
 		cacher.checkTTL();
 	});
 
 	it("should give null for key1", () => {
-		let obj = cacher.get(key1);
-		expect(obj).toBeNull();
+		return cacher.get(key1).then(obj => {
+			expect(obj).toBeNull();
+		});
 	});
 
 	it("should give back data 2 for key2", () => {
-		let obj = cacher.get(key2);
-		expect(obj).toEqual(data2);
+		return cacher.get(key2).then(obj => {
+			expect(obj).toEqual(data2);
+		});
 	});
 
 });

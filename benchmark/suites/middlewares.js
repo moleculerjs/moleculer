@@ -24,7 +24,7 @@ let bench = new Benchmarkify({ async: true, name: "Middleware test"});
 
 	// Add middlewares
 	broker.use(handler => {
-		return ctx => ctx.after(handler(ctx), res => res);
+		return ctx => handler(ctx).then(res => res);
 	});
 
 	broker.loadService(__dirname + "/../user.service");
@@ -41,7 +41,7 @@ let bench = new Benchmarkify({ async: true, name: "Middleware test"});
 	// Add 10 middlewares
 	_.times(10, () => {
 		broker.use(handler => {
-			return ctx => ctx.after(handler(ctx), res => Promise.resolve(res));
+			return ctx => handler(ctx).then(res => res);
 		});
 	});
 

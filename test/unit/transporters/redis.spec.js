@@ -1,5 +1,5 @@
-const ServiceBroker = require("../../src/service-broker");
-const RedisTransporter = require("../../src/transporters/redis");
+const ServiceBroker = require("../../../src/service-broker");
+const RedisTransporter = require("../../../src/transporters/redis");
 
 jest.mock("ioredis");
 
@@ -16,6 +16,30 @@ Redis.mockImplementation(() => {
 	};
 });
 
+// Unit: OK!
+describe("Test NatsTransporter constructor", () => {
+
+	it("check constructor", () => {
+		let trans = new RedisTransporter();
+		expect(trans).toBeDefined();
+		expect(trans.opts).toEqual({});
+		expect(trans.connected).toBe(false);
+		expect(trans.clientPub).toBeNull();
+		expect(trans.clientSub).toBeNull();
+	});
+
+	it("check constructor with string param", () => {
+		let trans = new RedisTransporter("redis://localhost");
+		expect(trans.opts).toEqual({ redis: "redis://localhost"});
+	});
+
+	it("check constructor with options", () => {
+		let opts = { redis: { host: "localhost", port: 1234} };
+		let trans = new RedisTransporter(opts);
+		expect(trans.opts).toBe(opts);
+	});
+});
+
 describe("Test RedisTransporter connect & disconnect", () => {
 	let broker = new ServiceBroker();
 	let msgHandler = jest.fn();
@@ -24,11 +48,6 @@ describe("Test RedisTransporter connect & disconnect", () => {
 	beforeEach(() => {
 		trans = new RedisTransporter();
 		trans.init(broker, msgHandler);
-	});
-
-	it("check constructor", () => {
-		expect(trans).toBeDefined();
-		expect(trans.connected).toBeFalsy();
 	});
 
 	it("check connect", () => {
@@ -69,15 +88,18 @@ describe("Test RedisTransporter connect & disconnect", () => {
 
 
 describe("Test NatsTransporter subscribe & publish", () => {
+	let trans;
+	let msgHandler;
 
-	it("check subscribe", () => {
-		let opts = { prefix: "TEST" };
-		let msgHandler = jest.fn();
-		let trans = new RedisTransporter(opts);
+	beforeEach(() => {
+		trans = new RedisTransporter({ prefix: "TEST" });
 		let broker = new ServiceBroker();
+		msgHandler = jest.fn();
 		trans.init(broker, msgHandler);
 		trans.connect();
+	});
 
+	it("check subscribe", () => {
 		trans.subscribe(["REQ", "node"]);
 
 		expect(trans.clientSub.subscribe).toHaveBeenCalledTimes(1);
@@ -85,13 +107,6 @@ describe("Test NatsTransporter subscribe & publish", () => {
 	});
 
 	it("check incoming message handler", () => {
-		let opts = { prefix: "TEST" };
-		let msgHandler = jest.fn();
-		let trans = new RedisTransporter(opts);
-		let broker = new ServiceBroker();
-		trans.init(broker, msgHandler);
-		trans.connect();
-
 		// Test subscribe callback
 		trans.clientSub.onCallbacks.message("prefix.event.name", "incoming data");
 		expect(msgHandler).toHaveBeenCalledTimes(1);
@@ -99,15 +114,9 @@ describe("Test NatsTransporter subscribe & publish", () => {
 	});
 
 	it("check publish", () => {
-		let msgHandler = jest.fn();
-		let trans = new RedisTransporter();
-		let broker = new ServiceBroker();
-		trans.init(broker, msgHandler);
-		trans.connect();
-
 		trans.publish(["REQ", "node"], "data");
 
 		expect(trans.clientPub.publish).toHaveBeenCalledTimes(1);
-		expect(trans.clientPub.publish).toHaveBeenCalledWith("MOL.REQ.node", "data");
+		expect(trans.clientPub.publish).toHaveBeenCalledWith("TEST.REQ.node", "data");
 	});
 });

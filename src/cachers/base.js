@@ -7,6 +7,7 @@
 "use strict";
 
 const defaultsDeep 	= require("lodash/defaultsDeep");
+const isArray 		= require("lodash/isArray");
 const { hash } 		= require("node-object-hash")({ sort: false, coerce: false});
 
 /**
@@ -46,12 +47,18 @@ class Cacher {
 
 			broker.use(this.middleware());
 
-			this.broker.on("cache.clean", ({ match }) => {
-				this.clean(match);
+			this.broker.on("cache.clean", payload => {
+				if (isArray(payload))
+					payload.forEach(match => this.clean(match));
+				else
+					this.clean(payload);
 			});
 
-			this.broker.on("cache.del", ({ key }) => {
-				this.del(key);
+			this.broker.on("cache.del", payload => {
+				if (isArray(payload))
+					payload.forEach(key => this.del(key));
+				else
+					this.del(payload);
 			});
 		}
 	}
@@ -124,14 +131,17 @@ class Cacher {
 	 * @returns
 	 */
 	getCacheKey(name, params, keys) {
-		let hashKey = "";
+		let parts = [];
+		if (name)
+			parts.push(name);
+
 		if (params && Object.keys(params).length > 0) {
 			if (keys && keys.length > 0)
-				hashKey = keys.map(key => params[key]).join("-");
+				parts.push(keys.map(key => params[key]).join("-"));
 			else
-				hashKey = hash(params);
+				parts.push(hash(params));
 		}
-		return (name ? name + ":" : "") + hashKey;
+		return parts.join(":");
 	}
 
 	/**
@@ -143,19 +153,20 @@ class Cacher {
 		return (handler, action) => {
 			return function cacherMiddleware(ctx) {
 				const cacheKey = this.getCacheKey(action.name, ctx.params, action.cache.keys);
-				const content = this.get(cacheKey);
-				if (content != null) {
-					// Found in the cache! Don't call handler, return with the context
-					ctx.cachedResult = true;
-					return content;
-				}
+				return this.get(cacheKey).then(content => {
+					if (content != null) {
+						// Found in the cache! Don't call handler, return with the context
+						ctx.cachedResult = true;
+						return content;
+					}
 
-				// Call the handler
-				return ctx.after(handler(ctx), result => {
-					// Save the response to the cache
-					this.set(cacheKey, result);
-					
-					return result;
+					// Call the handler
+					return handler(ctx).then(result => {
+						// Save the response to the cache
+						this.set(cacheKey, result);
+						
+						return result;
+					});
 				});
 			}.bind(this);
 		};

@@ -1,22 +1,29 @@
-const ServiceBroker = require("../../src/service-broker");
-const FakeTransporter = require("../../src/transporters/fake");
+const ServiceBroker = require("../../../src/service-broker");
+const FakeTransporter = require("../../../src/transporters/fake");
 
-const { isPromise } = require("../../src/utils");
+const { isPromise } = require("../../../src/utils");
 
+// Unit: OK!
 describe("Test FakeTransporter", () => {
 
 	it("check constructor", () => {
 		let trans = new FakeTransporter();
 		expect(trans).toBeDefined();
-		expect(trans.connected).toBeTruthy();
+		expect(trans.connected).toBe(true);
 		expect(trans.bus).toBeDefined();
 	});
 
 	it("check connect", () => {
 		let trans = new FakeTransporter();
 		let p = trans.connect();
-		expect(isPromise(p)).toBeTruthy();
+		expect(isPromise(p)).toBe(true);
 		return p;
+	});	
+
+	it("check disconnect", () => {
+		let trans = new FakeTransporter();
+		trans.disconnect();
+		expect(trans.connected).toBe(false);
 	});	
 
 	it("check subscribe", () => {
@@ -49,4 +56,5 @@ describe("Test FakeTransporter", () => {
 		expect(trans.bus.emit).toHaveBeenCalledTimes(1);
 		expect(trans.bus.emit).toHaveBeenCalledWith("MOL.REQ.node", "data");
 	});
+
 });

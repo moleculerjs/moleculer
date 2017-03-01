@@ -1,11 +1,18 @@
 "use strict";
 
-let errors = require("../src/errors");
+let errors = require("../../src/errors");
 
+// Unit: OK!
 describe("Test Errors", () => {
 
-	it("test error types", () => {
-		expect(errors.ServiceNotFoundError).toBeDefined();
+	it("test CustomError", () => {
+		let err = new errors.CustomError("Something went wrong!", 401, { a: 5 });
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(Error);
+		expect(err.code).toBe(401);
+		expect(err.name).toBe("CustomError");
+		expect(err.message).toBe("Something went wrong!");
+		expect(err.data).toEqual({ a: 5});
 	});
 
 	it("test ServiceNotFoundError", () => {

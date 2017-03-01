@@ -19,7 +19,7 @@ function middleware1() {
 
 		return function mw1(ctx) {
 			ctx.logger.info("mw1 before", ctx.action.name);
-			return ctx.after(handler(ctx), res => {
+			return handler(ctx).then(res => {
 				ctx.logger.info("mw1 after", ctx.action.name);
 				return res;
 			});
@@ -55,7 +55,7 @@ function middleware3() {
 		return function mw3(ctx) {
 			ctx.logger.info("mw3 before", ctx.action.name);
 			//return Promise.resolve("data from mw3");
-			return ctx.after(handler(ctx), res => {
+			return handler(ctx).then(res => {
 				ctx.logger.info("mw3 after", ctx.action.name);
 				if (res) {
 					if (ctx.action.name == "users.get")

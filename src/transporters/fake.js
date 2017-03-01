@@ -55,7 +55,7 @@ class FakeTransporter extends Transporter {
 	 * @memberOf FakeTransporter
 	 */
 	disconnect() {
-		this.connected = true;
+		this.connected = false;
 	}
 
 	/**

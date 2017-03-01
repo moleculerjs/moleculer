@@ -1,24 +1,31 @@
-const utils = require("../src/utils");
+const utils = require("../../src/utils");
 
-describe("Test utils", () => {
+// Unit: OK!
+describe("Test utils.generateToken", () => {
 
-	it("utils.generateToken", () => {
+	it("should generate unique token", () => {
 		let res1 = utils.generateToken();
 		expect(res1).toBeDefined();
+		expect(res1.length).toBe(36);
 
 		let res2 = utils.generateToken();
 		expect(res2).toBeDefined();
 		expect(res1).not.toEqual(res2);
 	});
 
+});
 
-	it("utils.isPromise", () => {
-		expect(utils.isPromise()).toBeFalsy();
-		expect(utils.isPromise({})).toBeFalsy();
-		expect(utils.isPromise(new Promise(() => {}))).toBeTruthy();
-		expect(utils.isPromise(Promise.resolve())).toBeTruthy();
-		//expect(utils.isPromise(Promise.reject())).toBeTruthy(); // node gives warning
+
+describe("Test utils.isPromise", () => {
+	
+	it("should check the param", () => {
+		expect(utils.isPromise()).toBe(false);
+		expect(utils.isPromise({})).toBe(false);
+		expect(utils.isPromise(new Promise(() => {}))).toBe(true);
+		expect(utils.isPromise(Promise.resolve())).toBe(true);
+		//expect(utils.isPromise(Promise.reject())).toBe(true); // node gives warning
 	});
+
 });
 
 describe("Test utils.getNodeID", () => {

@@ -40,7 +40,9 @@ module.exports = function() {
 				this.logger.debug(["┌", r("─", w-2), "┐"].join(""));
 
 				let printSpanTime = (span) => {
-					let maxActionName = maxTitle - (span.level-1) * 2 - span.duration.toString().length - 3 - (span.fromCache ? 2 : 0) - (span.remoteCall ? 2 : 0) - (span.error ? 2 : 0);
+					let time = span.duration.toFixed(2);
+
+					let maxActionName = maxTitle - (span.level-1) * 2 - time.length - 3 - (span.fromCache ? 2 : 0) - (span.remoteCall ? 2 : 0) - (span.error ? 2 : 0);
 					let actionName = span.action ? span.action.name : "";
 					if (actionName.length > maxActionName) 
 						actionName = _.truncate(span.action.name, { length: maxActionName });
@@ -52,7 +54,7 @@ module.exports = function() {
 						span.fromCache ? "* " : "",
 						span.remoteCall ? "» " : "",
 						span.error ? "× " : "",
-						span.duration,
+						time,
 						"ms "
 					].join("");
 

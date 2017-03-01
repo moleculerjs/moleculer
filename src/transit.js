@@ -285,8 +285,7 @@ class Transit {
 				reject(new RequestTimeoutError(payload, ctx.nodeID));
 			}, opts.timeout);
 			
-			req.timer.unref();			
-			
+			req.timer.unref();
 		}
 
 		// Add to pendings

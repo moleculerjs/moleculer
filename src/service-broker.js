@@ -56,10 +56,10 @@ class ServiceBroker {
 
 			cacher: null,
 
+			validation: true,
 			metrics: false,
 			metricsNodeTime: 5 * 1000,
 			statistics: false,
-			validation: true,
 			internalActions: true
 			
 			// ServiceFactory: null,
@@ -124,6 +124,7 @@ class ServiceBroker {
 
 		// Graceful exit
 		this._closeFn = () => {
+			/* istanbul ignore next */
 			this.stop();
 		};
 
@@ -317,13 +318,18 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	registerAction(action, nodeID) {
+
+		// Wrap middlewares
+		if (!nodeID)
+			this.wrapAction(action);
+		
 		// Append action by name
 		let item = this.actions.get(action.name);
 		if (!item) {
 			item = new BalancedList();
 			this.actions.set(action.name, item);
 		}
-		if (item.add(action, 0, nodeID)) {
+		if (item.add(action, nodeID)) {
 			this.emitLocal(`register.action.${action.name}`, { action, nodeID });
 		}
 	}
@@ -336,15 +342,60 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	wrapAction(action) {
-		/* istanbul ignore next */
-		if (this.middlewares.length == 0) return action;
+		let handler = action.handler;
+		if (this.middlewares.length) {
+			let mws = Array.from(this.middlewares);
+			handler = mws.reduce((handler, mw) => {
+				return mw(handler, action);
+			}, handler);
+		}
 
-		let mws = Array.from(this.middlewares);
-		let handler = mws.reduce((handler, mw) => {
-			return mw(handler, action);
-		}, action.handler);
+		return this.wrapContextInvoke(action, handler);
+	}
 
-		action.handler = handler;
+	wrapContextInvoke(action, handler) {
+		// Finally logic
+		let after = (ctx, err) => {
+			if (this.options.metrics)
+				ctx._metricFinish(err);
+
+			if (this.statistics)
+				this.statistics.addRequest(ctx.action.name, ctx.duration, err ? err.code || 500 : null);
+		};
+
+		// Add the main wrapper
+		action.handler = (ctx) => {
+			// Add metrics start
+			if (this.options.metrics)
+				ctx._metricStart();
+
+			// Call the handler
+			let p = handler(ctx);
+			
+			if (this.options.metrics || this.statistics) {
+				// Add after to metrics & statistics
+				p = p.then(res => {
+					after(ctx, null);
+					return res;
+				});
+			}
+
+			// Handle errors
+			return p.catch(err => {
+				if (!(err instanceof Error)) {
+					err = new errors.CustomError(err);
+				}
+
+				this.logger.error("Action request error!", err);
+
+				//ctx.error = err;
+				err.ctx = ctx;
+
+				after(ctx, err);
+
+				return Promise.reject(err);
+			});
+		};
 
 		return action;
 	}
@@ -383,7 +434,7 @@ class ServiceBroker {
 			this.registerAction({
 				name,
 				cache: false,
-				handler
+				handler: Promise.method(handler)
 			});
 		};
 
@@ -547,7 +598,6 @@ class ServiceBroker {
 		}
 		
 		let actionItem = actions.get();
-		/* istanbul ignore next */
 		if (!actionItem) {
 			const errMsg = `Not available '${actionName}' action handler!`;
 			this.logger.warn(errMsg);
@@ -562,33 +612,18 @@ class ServiceBroker {
 		if (opts.parentCtx) {
 			ctx = opts.parentCtx.createSubContext(action, params, nodeID);
 		} else {
-			ctx = new this.ContextFactory({ broker: this, action, params, nodeID, requestID: opts.requestID });
+			ctx = new this.ContextFactory({ broker: this, action, params, nodeID, requestID: opts.requestID, metrics: !!this.options.metrics });
 		}
-		this._callCount++;
+
+		this._callCount++; // Need to remove
 
 		if (actionItem.local) {
 			// Local action call
-			return this._localCall(ctx, opts);
+			this.logger.debug(`Call local '${action.name}' action...`);
+			return action.handler(ctx);
 		} else {
 			return this._remoteCall(ctx, opts);
 		}
-	}
-
-	_localCall(ctx, opts) {
-		this.logger.debug(`Call local '${ctx.action.name}' action...`);
-		let p = ctx.invoke(ctx.action.handler);
-
-		if (this.statistics) {
-			// Because ES6 Promise doesn't support .finally()
-			p = p.then(data => {
-				this.statistics.addRequest(ctx.action.name, ctx.duration, null);
-				return data;
-			}).catch(err => {
-				this.statistics.addRequest(ctx.action.name, ctx.duration, err.code || 500);
-				return Promise.reject(err);
-			});
-		}
-		return p;
 	}
 
 	_remoteCall(ctx, opts = {}) {		
@@ -602,7 +637,6 @@ class ServiceBroker {
 			opts.retryCount = this.options.requestRetry || 0;
 
 		return this.transit.request(ctx, opts).catch(err => this._remoteCallCather(err, ctx, opts));
-		//return ctx.invokeRemote(opts).catch(err => this._remoteCallCather(err, ctx, opts));
 	}
 
 	_remoteCallCather(err, ctx, opts) {
@@ -731,6 +765,8 @@ class ServiceBroker {
 		let info = this.nodes.get(nodeID);
 		if (info) 
 			return info.available;
+
+		return false;
 	}
 
 	/**
@@ -763,7 +799,7 @@ class ServiceBroker {
 			if (node.available) {
 				node.available = false;
 				if (node.actions) {
-					// Add external actions
+					// Remove remote actions of node
 					Object.keys(node.actions).forEach(name => {
 						let action = Object.assign({}, node.actions[name], { name });
 						this.unregisterAction(action, node.nodeID);
@@ -793,10 +829,6 @@ class ServiceBroker {
 				this.nodeDisconnected(entry[0]);
 			}
 		}*/
-	}
-
-	metricsEnabled() {
-		return this.options.metrics;
 	}
 }
 

@@ -70,12 +70,33 @@ class ValidationError extends ExtendableError {
 	constructor(message, data) {
 		super(message);
 		this.code = 422;
-		if (data)
-			this.data = data;
+		this.data = data;
+	}
+}
+
+/**
+ * Custom Error class
+ * 
+ * @class CustomError
+ * @extends {Error}
+ */
+class CustomError extends ExtendableError {
+	/**
+	 * Creates an instance of CustomError.
+	 * 
+	 * @param {any} message
+	 * 
+	 * @memberOf CustomError
+	 */
+	constructor(message, code, data) {
+		super(message);
+		this.code = code || 500;
+		this.data = data;
 	}
 }
 
 module.exports = {
+	CustomError,
 	ServiceNotFoundError,
 	ValidationError,
 	RequestTimeoutError
