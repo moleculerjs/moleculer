@@ -802,47 +802,47 @@ describe("Test broker.call method", () => {
 			});
 		});
 
-		
+	});
+	describe("Test remote call", () => {
 
-		/*
-		it("should return context & call the action handler", () => {
-			return broker.call("posts.find").then(ctx => {
+		let broker = new ServiceBroker({ internalActions: false, metrics: true });
+		broker.registerAction({	name: "user.create" }, "server-2");
+		broker._remoteCall = jest.fn((ctx, opts) => Promise.resolve({ ctx, opts }));
+			
+		it("should call remoteCall with new Context without params", () => {
+			return broker.call("user.create").then(({ ctx, opts}) => {
 				expect(ctx).toBeDefined();
 				expect(ctx.broker).toBe(broker);
-				expect(ctx.action.name).toBe("posts.find");
-				expect(ctx.nodeID).toBeUndefined();
-				expect(ctx.params).toBeDefined();
-				expect(actionHandler).toHaveBeenCalledTimes(1);
-				expect(actionHandler).toHaveBeenCalledWith(ctx);
+				expect(ctx.nodeID).toBe("server-2");
+				expect(ctx.level).toBe(1);
+				expect(ctx.parent).toBeUndefined();
+				expect(ctx.requestID).toBe(ctx.id);
+				expect(ctx.action.name).toBe("user.create");
+				expect(ctx.params).toEqual({});
+				expect(ctx.metrics).toBe(true);
+				
+				expect(opts).toEqual({});
+
+				expect(broker._remoteCall).toHaveBeenCalledTimes(1);
+				expect(broker._remoteCall).toHaveBeenCalledWith(ctx, opts);
 			});
 		});
-			
-		it("should set params to context", () => {
-			let params = { a: 1 };
-			return broker.call("posts.find", params).then(ctx => {
-				expect(ctx.params).toBe(params);
-				expect(ctx.params.a).toBe(params.a);
+		
+		it("should call handler with new Context with params & opts", () => {
+			broker._remoteCall.mockClear();
+			let params = { limit: 5, search: "John" };
+			return broker.call("user.create", params, { timeout: 5000 }).then(({ ctx, opts}) => {
+				expect(ctx).toBeDefined();
+				expect(ctx.action.name).toBe("user.create");
+				expect(ctx.params).toEqual(params);
+
+				expect(opts).toEqual({ timeout: 5000 });
+
+				expect(broker._remoteCall).toHaveBeenCalledTimes(1);
+				expect(broker._remoteCall).toHaveBeenCalledWith(ctx, opts);
 			});
 		});
 
-		it("should create a sub context of parent context", () => {
-			let parentCtx = new Context({
-				params: {
-					a: 5,
-					b: 2
-				}
-			});		
-			let params = { a: 1 };
-
-			return broker.call("posts.find", params, { parentCtx }).then(ctx => {
-				expect(ctx.params).toBe(params);
-				expect(ctx.params.a).toBe(1);
-				expect(ctx.params.b).not.toBeDefined();
-				expect(ctx.level).toBe(2);
-				expect(ctx.parent).toBe(parentCtx);
-			});
-
-		});*/
 	});
 });
 
