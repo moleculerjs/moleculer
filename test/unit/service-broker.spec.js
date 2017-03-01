@@ -1,16 +1,13 @@
 "use strict";
 
 const Promise = require("bluebird");
-const utils = require("../../src/utils");
 const ServiceBroker = require("../../src/service-broker");
 const Service = require("../../src/service");
 const Context = require("../../src/context");
 const Transit = require("../../src/transit");
 const MemoryCacher = require("../../src/cachers/memory");
 const FakeTransporter = require("../../src/transporters/fake");
-const { CustomError, ServiceNotFoundError, RequestTimeoutError, ValidationError } = require("../../src/errors");
-const lolex = require("lolex");
-const defaults = require("lodash/defaults");
+const { CustomError, ServiceNotFoundError, RequestTimeoutError } = require("../../src/errors");
 
 describe("Test ServiceBroker constructor", () => {
 

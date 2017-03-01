@@ -46,11 +46,13 @@ class Cacher {
 
 			broker.use(this.middleware());
 
-			this.broker.on("cache.clean", ({ match }) => {
+			this.broker.on("cache.clean", payload => {
+				let match = payload && payload.match;
 				this.clean(match);
 			});
 
-			this.broker.on("cache.del", ({ key }) => {
+			this.broker.on("cache.del", payload => {
+				let key = payload && payload.key;
 				this.del(key);
 			});
 		}
