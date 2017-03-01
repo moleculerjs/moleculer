@@ -846,6 +846,169 @@ describe("Test broker.call method", () => {
 	});
 });
 
+describe("Test broker._remoteCall", () => {
+
+	let broker = new ServiceBroker({ transporter: new FakeTransporter() });
+	broker.transit.request = jest.fn((ctx, opts) => Promise.resolve({ ctx, opts }));
+		
+	it("should call transit.request without opts", () => {
+		let origCtx = new Context({ broker, action: { name: "test" }, nodeID: "server-2" });
+		return broker._remoteCall(origCtx).then(({ ctx, opts }) => {
+			expect(ctx).toBe(origCtx);
+			expect(opts).toEqual({ retryCount: 0, timeout: 15000 }); // default values
+
+			expect(broker.transit.request).toHaveBeenCalledTimes(1);
+			expect(broker.transit.request).toHaveBeenCalledWith(ctx, opts);
+		});
+	});
+		
+	it("should call transit.request with opts", () => {
+		broker.transit.request.mockClear();
+		let origCtx = new Context({ broker, action: { name: "test" }, nodeID: "server-2" });
+		let origOpts = { timeout: 1000, retryCount: 5};
+		return broker._remoteCall(origCtx, origOpts).then(({ ctx, opts }) => {
+			expect(ctx).toBe(origCtx);
+			expect(opts).toEqual(origOpts);
+
+			expect(broker.transit.request).toHaveBeenCalledTimes(1);
+			expect(broker.transit.request).toHaveBeenCalledWith(ctx, opts);
+		});
+	});
+
+	it("should transit.request throw error", () => {
+		broker._remoteCallCather = jest.fn();
+		broker.transit.request = jest.fn(() => Promise.reject(new CustomError("Transport error!")));
+
+		let ctx = new Context({ broker, action: { name: "test" }, nodeID: "server-2" });
+		return broker._remoteCall(ctx).catch(err => {
+			expect(err).toBeInstanceOf(CustomError);
+			expect(err.message).toBeInstanceOf("Transport error!");
+
+			expect(broker._remoteCallCather).toHaveBeenCalledTimes(1);
+			expect(broker._remoteCallCather).toHaveBeenCalledWith(err, ctx, {});
+		});
+	});
+});
+
+describe("Test broker._remoteCallCather", () => {
+
+	let broker = new ServiceBroker({ transporter: new FakeTransporter() });
+	broker.nodeUnavailable = jest.fn();
+	broker.call = jest.fn(() => Promise.resolve());
+	
+	let ctx = new Context({ broker, nodeID: "server-2", action: { name: "user.create" }});
+	let customErr = new CustomError("Error");
+	let timeoutErr = new RequestTimeoutError({ action: "user.create" }, "server-2");
+
+	it("should return error without retryCount & fallbackResponse", () => {
+		return broker._remoteCallCather(customErr, null, {}).catch(err => {
+			expect(err).toBe(customErr);
+			expect(broker.nodeUnavailable).toHaveBeenCalledTimes(0);
+			expect(broker.call).toHaveBeenCalledTimes(0);
+		});
+	});
+
+	it("should call nodeUnavailable if error is RequestTimeoutError", () => {
+		return broker._remoteCallCather(timeoutErr, ctx, {}).catch(err => {
+			expect(err).toBe(timeoutErr);
+			expect(broker.nodeUnavailable).toHaveBeenCalledTimes(1);
+			expect(broker.nodeUnavailable).toHaveBeenCalledWith("server-2");
+			expect(broker.call).toHaveBeenCalledTimes(0);
+		});
+	});
+
+	it("should retry call", () => {
+		return broker._remoteCallCather(timeoutErr, ctx, { retryCount: 1}).then(() => {
+			expect(broker.call).toHaveBeenCalledTimes(1);
+			expect(broker.call).toHaveBeenCalledWith("user.create", {}, { retryCount: 0 });
+			expect(broker.nodeUnavailable).toHaveBeenCalledTimes(1);
+			expect(broker.nodeUnavailable).toHaveBeenCalledWith("server-2");
+		});
+	});
+
+	it("should return with the fallbackResponse data", () => {
+		broker.nodeUnavailable.mockClear();
+		broker.call.mockClear();
+
+		let otherRes = {};
+		return broker._remoteCallCather(customErr, ctx, { fallbackResponse: otherRes }).then(res => {
+			expect(res).toBe(otherRes);
+			expect(broker.nodeUnavailable).toHaveBeenCalledTimes(0);
+			expect(broker.call).toHaveBeenCalledTimes(0);
+		});
+	});
+
+	it("should return with the fallbackResponse function returned data", () => {
+		broker.nodeUnavailable.mockClear();
+		broker.call.mockClear();
+
+		let otherRes = { a: 5 };
+		let otherFn = jest.fn(() => Promise.resolve(otherRes));
+		return broker._remoteCallCather(customErr, ctx, { fallbackResponse: otherFn }).then(res => {
+			expect(res).toBe(otherRes);
+			expect(otherFn).toHaveBeenCalledTimes(1);
+			expect(broker.nodeUnavailable).toHaveBeenCalledTimes(0);
+			expect(broker.call).toHaveBeenCalledTimes(0);
+		});
+	});
+});
+
+describe("Test broker.emit", () => {
+	let broker = new ServiceBroker();
+	broker.emitLocal = jest.fn();
+
+	it("should call emitLocal without payload", () => {
+		broker.emit("test.event");
+		
+		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
+		expect(broker.emitLocal).toHaveBeenCalledWith("test.event", undefined);
+	});
+
+	it("should call emitLocal with object payload", () => {
+		broker.emitLocal.mockClear();
+		broker.emit("user.event", { name: "John" });
+		
+		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
+		expect(broker.emitLocal).toHaveBeenCalledWith("user.event", { name: "John" });
+	});
+});
+
+describe("Test broker.emit with transporter", () => {
+	let broker = new ServiceBroker({ transporter: new FakeTransporter });
+	broker.transit.emit = jest.fn();
+	broker.emitLocal = jest.fn();
+
+	it("should call transit.emit with object payload", () => {
+		broker.transit.emit.mockClear();
+		broker.emit("user.event", { name: "John" });
+		
+		expect(broker.transit.emit).toHaveBeenCalledTimes(1);
+		expect(broker.transit.emit).toHaveBeenCalledWith("user.event", { name: "John" });
+		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
+		expect(broker.emitLocal).toHaveBeenCalledWith("user.event", { name: "John" });
+	});
+});
+
+describe("Test broker.emitLocal", () => {
+	let broker = new ServiceBroker();
+	broker.bus.emit = jest.fn();
+
+	it("should call bus.emit without payload", () => {
+		broker.emit("test.event");
+		
+		expect(broker.bus.emit).toHaveBeenCalledTimes(1);
+		expect(broker.bus.emit).toHaveBeenCalledWith("test.event", undefined);
+	});
+
+	it("should call bus.emit with object payload", () => {
+		broker.bus.emit.mockClear();
+		broker.emit("user.event", { name: "John" });
+		
+		expect(broker.bus.emit).toHaveBeenCalledTimes(1);
+		expect(broker.bus.emit).toHaveBeenCalledWith("user.event", { name: "John" });
+	});
+});
+
 /*
 describe("Test broker.registerInternalActions", () => {
 	let broker = new ServiceBroker({
