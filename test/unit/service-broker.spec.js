@@ -8,7 +8,7 @@ const Context = require("../../src/context");
 const Transit = require("../../src/transit");
 const MemoryCacher = require("../../src/cachers/memory");
 const FakeTransporter = require("../../src/transporters/fake");
-const { ServiceNotFoundError, RequestTimeoutError, ValidationError } = require("../../src/errors");
+const { CustomError, ServiceNotFoundError, RequestTimeoutError, ValidationError } = require("../../src/errors");
 const lolex = require("lolex");
 const defaults = require("lodash/defaults");
 
@@ -355,15 +355,503 @@ describe("Test broker.registerAction", () => {
 
 });
 
+describe("Test broker.wrapAction", () => {
+
+	let broker = new ServiceBroker();
+	broker.wrapContextInvoke = jest.fn();
+	
+	it("should run middlewares & call wrapContextInvoke method", () => {
+		let action = {
+			name: "list",
+			handler: jest.fn()
+		};
+
+		let mw1 = jest.fn(handler => handler);
+		let mw2 = jest.fn(handler => handler);
+
+		broker.use(mw1);
+		broker.use(mw2);
+
+		broker.wrapAction(action);
+		expect(mw1).toHaveBeenCalledTimes(1);
+		expect(mw1).toHaveBeenCalledWith(action.handler, action);
+
+		expect(mw2).toHaveBeenCalledTimes(1);
+		expect(mw2).toHaveBeenCalledWith(action.handler, action);
+
+		expect(broker.wrapContextInvoke).toHaveBeenCalledTimes(1);
+		expect(broker.wrapContextInvoke).toHaveBeenCalledWith(action, action.handler);
+	});
+
+});
+
+describe("Test broker.wrapContextInvoke", () => {
+
+	describe("Test wrapping", () => {
+		let broker = new ServiceBroker();
+
+		let origHandler = jest.fn(() => Promise.resolve());
+		let action = {
+			name: "list",
+			handler: origHandler
+		};
+		
+		it("should wrap the handler and set to the action", () => {
+			broker.wrapContextInvoke(action, origHandler);
+			expect(action.handler).not.toBe(origHandler);
+		});
+	});
+
+	describe("Test with success response", () => {
+
+		let broker = new ServiceBroker();
+
+		let origHandler = jest.fn(() => Promise.resolve());
+		let action = {
+			name: "list",
+			handler: origHandler
+		};
+		broker.wrapContextInvoke(action, origHandler);
+
+		it("should call only origHandler", () => {
+			let ctx = new Context({ broker, action });
+			ctx._metricStart = jest.fn();
+			ctx._metricFinish = jest.fn();
+			
+			return action.handler(ctx).then(() => {
+				expect(ctx._metricStart).toHaveBeenCalledTimes(0);
+				expect(ctx._metricFinish).toHaveBeenCalledTimes(0);
+
+				expect(origHandler).toHaveBeenCalledTimes(1);
+				expect(origHandler).toHaveBeenCalledWith(ctx);
+			});
+		});
+
+	});
+
+	describe("Test with success resolve & statistics & metrics", () => {
+
+		let broker = new ServiceBroker({
+			metrics: true,
+			statistics: true
+		});
+		broker.statistics.addRequest = jest.fn();
+
+		let origHandler = jest.fn(() => Promise.resolve());
+		let action = {
+			name: "list",
+			handler: origHandler
+		};
+		broker.wrapContextInvoke(action, origHandler);
+		
+		it("should call only origHandler", () => {
+			let ctx = new Context({ broker, action });
+			ctx._metricStart = jest.fn();
+			ctx._metricFinish = jest.fn();
+
+			return action.handler(ctx).then(() => {
+				expect(ctx._metricStart).toHaveBeenCalledTimes(1);
+				expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
+				expect(broker.statistics.addRequest).toHaveBeenCalledTimes(1);
+				expect(broker.statistics.addRequest).toHaveBeenCalledWith("list", undefined, null);
+
+				expect(origHandler).toHaveBeenCalledTimes(1);
+				expect(origHandler).toHaveBeenCalledWith(ctx);
+			});
+		});
+
+	});
+
+	describe("Test with error reject & statistics & metrics", () => {
+
+		let broker = new ServiceBroker({
+			metrics: true,
+			statistics: true
+		});
+		broker.statistics.addRequest = jest.fn();
+
+		let origHandler = jest.fn(() => Promise.reject(new CustomError("Something went wrong!", 402)));
+		let action = {
+			name: "list",
+			handler: origHandler
+		};
+		broker.wrapContextInvoke(action, origHandler);
+		
+		it("should call metrics & statistics methods & origHandler", () => {
+			let ctx = new Context({ broker, action });
+			ctx._metricStart = jest.fn();
+			ctx._metricFinish = jest.fn();
+
+			return action.handler(ctx).catch(err => {
+				expect(err).toBeInstanceOf(CustomError);
+				expect(err.message).toBe("Something went wrong!");
+				expect(err.ctx).toBe(ctx);
+				expect(ctx._metricStart).toHaveBeenCalledTimes(1);
+				expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
+				expect(ctx._metricFinish).toHaveBeenCalledWith(err);
+				expect(broker.statistics.addRequest).toHaveBeenCalledTimes(1);
+				expect(broker.statistics.addRequest).toHaveBeenCalledWith("list", undefined, 402);
+
+				expect(origHandler).toHaveBeenCalledTimes(1);
+				expect(origHandler).toHaveBeenCalledWith(ctx);
+			});
+		});
+
+	});
+
+	describe("Test with rejected error message", () => {
+
+		let broker = new ServiceBroker();
+
+		let origHandler = jest.fn(() => Promise.reject("My custom error message"));
+		let action = {
+			name: "list",
+			handler: origHandler
+		};
+		broker.wrapContextInvoke(action, origHandler);
+		
+		it("should convert error message to CustomError", () => {
+			let ctx = new Context({ broker, action });
+
+			return action.handler(ctx).catch(err => {
+				expect(err).toBeInstanceOf(CustomError);
+				expect(err.message).toBe("My custom error message");
+				expect(err.code).toBe(500);
+				expect(err.ctx).toBe(ctx);
+			});
+		});
+
+	});
+
+});
+
+describe("Test broker.unregisterAction", () => {
+
+	let broker = new ServiceBroker();
+
+	let action = {
+		name: "list"
+	};
+
+	broker.registerAction(action);
+	broker.registerAction(action, "server-2");
+	
+	it("should contains 2 items", () => {
+		let item = broker.actions.get("list");
+		expect(item).toBeDefined();
+		expect(item.list.length).toBe(2);
+	});
+
+	it("should remove action from list by nodeID", () => {
+		broker.unregisterAction(action);
+		let item = broker.actions.get("list");
+		expect(item).toBeDefined();
+		expect(item.list.length).toBe(1);
+		expect(item.get().nodeID).toBe("server-2");
+	});
+
+	it("should remove last item from list", () => {
+		broker.unregisterAction(action, "server-2");
+		let item = broker.actions.get("list");
+		expect(item).toBeDefined();
+		expect(item.list.length).toBe(0);
+	});
+});
+
+describe("Test broker.registerInternalActions", () => {
+
+	it("should register internal action without statistics", () => {
+		let broker = new ServiceBroker({
+			statistics: false,
+			internalActions: false
+		});
+		broker.registerAction = jest.fn();
+		broker.registerInternalActions();
+		
+		expect(broker.registerAction).toHaveBeenCalledTimes(4);
+		expect(broker.registerAction).toHaveBeenCalledWith({ name: "$node.list", cache: false, handler: jasmine.any(Function) });
+		expect(broker.registerAction).toHaveBeenCalledWith({ name: "$node.services", cache: false, handler: jasmine.any(Function) });
+		expect(broker.registerAction).toHaveBeenCalledWith({ name: "$node.actions", cache: false, handler: jasmine.any(Function) });
+		expect(broker.registerAction).toHaveBeenCalledWith({ name: "$node.health", cache: false, handler: jasmine.any(Function) });
+	});
+
+	it("should register internal action with statistics", () => {
+		let broker = new ServiceBroker({
+			statistics: true,
+			internalActions: false
+		});
+		broker.registerAction = jest.fn();
+		broker.registerInternalActions();
+		
+		expect(broker.registerAction).toHaveBeenCalledTimes(5);
+		expect(broker.registerAction).toHaveBeenCalledWith({ name: "$node.stats", cache: false, handler: jasmine.any(Function) });
+	});
+});
+
+describe("Test broker.on", () => {
+	let broker = new ServiceBroker();
+	broker.bus.on = jest.fn();
+
+	it("should register handler on this.bus", () => {
+		broker.on("test.event", jest.fn());
+		
+		expect(broker.bus.on).toHaveBeenCalledTimes(1);
+		expect(broker.bus.on).toHaveBeenCalledWith("test.event", jasmine.any(Function));
+	});
+});
+
+describe("Test broker.once", () => {
+	let broker = new ServiceBroker();
+	broker.bus.once = jest.fn();
+
+	it("should register handler once on this.bus", () => {
+		broker.once("test.event", jest.fn());
+		
+		expect(broker.bus.once).toHaveBeenCalledTimes(1);
+		expect(broker.bus.once).toHaveBeenCalledWith("test.event", jasmine.any(Function));
+	});
+});
+
+describe("Test broker.off", () => {
+	let broker = new ServiceBroker();
+	broker.bus.off = jest.fn();
+
+	it("should unregister handler on this.bus", () => {
+		broker.off("test.event", jest.fn());
+		
+		expect(broker.bus.off).toHaveBeenCalledTimes(1);
+		expect(broker.bus.off).toHaveBeenCalledWith("test.event", jasmine.any(Function));
+	});
+});
+
+describe("Test broker.getService & hasService", () => {
+	let broker = new ServiceBroker();
+	let service = broker.createService({
+		name: "posts"
+	});
+
+	it("should find the service by name", () => {
+		let found = broker.getService("posts");
+		expect(found).toBeDefined();
+		expect(found).toBe(service);
+		expect(broker.hasService("posts")).toBe(true);
+	});
+
+	it("should not find the service by name", () => {
+		let found = broker.getService("other");
+		expect(found).not.toBeDefined();
+		expect(broker.hasService("other")).toBe(false);
+	});
+});
+
+describe("Test broker.hasAction", () => {
+	let broker = new ServiceBroker();
+	broker.createService({
+		name: "posts",
+		actions: {
+			list: jest.fn()
+		}
+	});
+
+	it("should find the action by name", () => {
+		expect(broker.hasAction("posts.list")).toBe(true);
+	});
+
+	it("should not find the action by name", () => {
+		expect(broker.hasAction("posts.create")).toBe(false);
+	});
+});
+
+describe("Test broker.isActionAvailable", () => {
+	let broker = new ServiceBroker();
+	broker.createService({
+		name: "posts",
+		actions: {
+			list: jest.fn()
+		}
+	});
+
+	it("should find handler for action by name", () => {
+		expect(broker.hasAction("posts.list")).toBe(true);
+		expect(broker.isActionAvailable("posts.list")).toBe(true);
+	});
+
+	it("should not find handler for action by name", () => {
+		broker.unregisterAction({ name: "posts.list" });
+		expect(broker.hasAction("posts.list")).toBe(true);
+		expect(broker.isActionAvailable("posts.list")).toBe(false);
+	});
+});
+
+describe("Test broker.use (middleware)", () => {
+	let broker = new ServiceBroker({
+		validation: false
+	});
+
+	it("should be empty middlewares", () => {
+		expect(broker.middlewares.length).toBe(0);
+	});
+
+	it("should be contains 2 middlewares", () => {
+		broker.use(jest.fn());
+		broker.use();
+		broker.use(jest.fn());
+
+		expect(broker.middlewares.length).toBe(2);
+	});
+
+	it("should be contains plus 2 middlewares", () => {
+		broker.use(jest.fn(), jest.fn(), null);
+
+		expect(broker.middlewares.length).toBe(4);
+	});	
+});
+
+describe("Test broker.call method", () => {
+
+	describe("Test local call", () => {
+
+		let broker = new ServiceBroker({ internalActions: false, metrics: true });
+
+		let actionHandler = jest.fn(ctx => ctx);
+		broker.createService({
+			name: "posts",
+			actions: {
+				find: actionHandler,
+				noHandler: jest.fn()
+			}
+		});
+			
+		it("should reject if no action", () => {
+			return broker.call("posts.noaction").catch(err => {
+				expect(err).toBeDefined();
+				expect(err).toBeInstanceOf(ServiceNotFoundError);
+				expect(err.message).toBe("Action 'posts.noaction' is not registered!");
+			});
+		});
+
+		it("should reject if no handler", () => {
+			broker.unregisterAction({ name: "posts.noHandler" });
+			return broker.call("posts.noHandler").catch(err => {
+				expect(err).toBeDefined();
+				expect(err).toBeInstanceOf(ServiceNotFoundError);
+				expect(err.message).toBe("Not available 'posts.noHandler' action handler!");
+			});
+		});
+
+		it("should call handler with new Context without params", () => {
+			return broker.call("posts.find").then(ctx => {
+				expect(ctx).toBeDefined();
+				expect(ctx.broker).toBe(broker);
+				expect(ctx.nodeID).toBeUndefined();
+				expect(ctx.level).toBe(1);
+				expect(ctx.parent).toBeUndefined();
+				expect(ctx.requestID).toBe(ctx.id);
+				expect(ctx.action.name).toBe("posts.find");
+				expect(ctx.params).toEqual({});
+				expect(ctx.metrics).toBe(true);
+
+				expect(actionHandler).toHaveBeenCalledTimes(1);
+				expect(actionHandler).toHaveBeenCalledWith(ctx);
+			});
+		});
+
+		it("should call handler with new Context with params", () => {
+			actionHandler.mockClear();
+			let params = { limit: 5, search: "John" };
+			return broker.call("posts.find", params).then(ctx => {
+				expect(ctx).toBeDefined();
+				expect(ctx.action.name).toBe("posts.find");
+				expect(ctx.params).toEqual(params);
+
+				expect(actionHandler).toHaveBeenCalledTimes(1);
+				expect(actionHandler).toHaveBeenCalledWith(ctx);
+			});
+		});
+
+		it("should call handler with new Context with requestID", () => {
+			actionHandler.mockClear();
+			let params = { limit: 5, search: "John" };
+			let opts = { requestID: "123" };
+			return broker.call("posts.find", params, opts).then(ctx => {
+				expect(ctx).toBeDefined();
+				expect(ctx.action.name).toBe("posts.find");
+				expect(ctx.requestID).toBe("123"); // need enabled `metrics`
+
+				expect(actionHandler).toHaveBeenCalledTimes(1);
+				expect(actionHandler).toHaveBeenCalledWith(ctx);
+			});
+		});
+
+		it("should call handler with a sub Context", () => {
+			actionHandler.mockClear();
+			let parentCtx = new Context({ broker, params: { a: 5 }, requestID: "555", metrics: true });
+			return broker.call("posts.find", { b: 10 }, { parentCtx }).then(ctx => {
+				expect(ctx).toBeDefined();
+				expect(ctx.broker).toBe(broker);
+				expect(ctx.nodeID).toBeUndefined();
+				expect(ctx.level).toBe(2);
+				expect(ctx.parent).toBe(parentCtx);
+				expect(ctx.requestID).toBe("555");
+				expect(ctx.action.name).toBe("posts.find");
+				expect(ctx.params).toEqual({ b: 10 });
+				expect(ctx.metrics).toBe(true);
+
+				expect(actionHandler).toHaveBeenCalledTimes(1);
+				expect(actionHandler).toHaveBeenCalledWith(ctx);
+			});
+		});
+
+		
+
+		/*
+		it("should return context & call the action handler", () => {
+			return broker.call("posts.find").then(ctx => {
+				expect(ctx).toBeDefined();
+				expect(ctx.broker).toBe(broker);
+				expect(ctx.action.name).toBe("posts.find");
+				expect(ctx.nodeID).toBeUndefined();
+				expect(ctx.params).toBeDefined();
+				expect(actionHandler).toHaveBeenCalledTimes(1);
+				expect(actionHandler).toHaveBeenCalledWith(ctx);
+			});
+		});
+			
+		it("should set params to context", () => {
+			let params = { a: 1 };
+			return broker.call("posts.find", params).then(ctx => {
+				expect(ctx.params).toBe(params);
+				expect(ctx.params.a).toBe(params.a);
+			});
+		});
+
+		it("should create a sub context of parent context", () => {
+			let parentCtx = new Context({
+				params: {
+					a: 5,
+					b: 2
+				}
+			});		
+			let params = { a: 1 };
+
+			return broker.call("posts.find", params, { parentCtx }).then(ctx => {
+				expect(ctx.params).toBe(params);
+				expect(ctx.params.a).toBe(1);
+				expect(ctx.params.b).not.toBeDefined();
+				expect(ctx.level).toBe(2);
+				expect(ctx.parent).toBe(parentCtx);
+			});
+
+		});*/
+	});
+});
+
 /*
-describe("Test internal actions", () => {
+describe("Test broker.registerInternalActions", () => {
 	let broker = new ServiceBroker({
 		statistics: true,
 		internalActions: true 			
 	});
-
-	broker.loadService("./test/services/math.service");
-	broker.loadService("./test/services/post.service");
 
 	it("should register $node.stats internal action", () => {
 		expect(broker.hasAction("$node.list")).toBe(true);
@@ -372,6 +860,9 @@ describe("Test internal actions", () => {
 		expect(broker.hasAction("$node.health")).toBe(true);
 		expect(broker.hasAction("$node.stats")).toBe(true);
 	});
+
+	broker.loadService("./test/services/math.service");
+	broker.loadService("./test/services/post.service");
 
 	it("should return list of services", () => {
 		return broker.call("$node.services").then(res => {

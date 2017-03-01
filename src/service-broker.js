@@ -382,7 +382,7 @@ class ServiceBroker {
 			// Handle errors
 			return p.catch(err => {
 				if (!(err instanceof Error)) {
-					err = new Error(err);
+					err = new errors.CustomError(err);
 				}
 
 				this.logger.error("Action request error!", err);
@@ -390,7 +390,7 @@ class ServiceBroker {
 				//ctx.error = err;
 				err.ctx = ctx;
 
-				after(ctx, null);
+				after(ctx, err);
 
 				return Promise.reject(err);
 			});
@@ -597,7 +597,6 @@ class ServiceBroker {
 		}
 		
 		let actionItem = actions.get();
-		/* istanbul ignore next */
 		if (!actionItem) {
 			const errMsg = `Not available '${actionName}' action handler!`;
 			this.logger.warn(errMsg);
@@ -614,7 +613,8 @@ class ServiceBroker {
 		} else {
 			ctx = new this.ContextFactory({ broker: this, action, params, nodeID, requestID: opts.requestID, metrics: !!this.options.metrics });
 		}
-		this._callCount++;
+		
+		this._callCount++; // Need to remove
 
 		if (actionItem.local) {
 			// Local action call
