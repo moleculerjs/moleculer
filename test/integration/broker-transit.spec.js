@@ -84,13 +84,17 @@ describe("Test RPC", () => {
 		return b1.call("echo.slow", null, { timeout: 100 }).catch(err => {
 			expect(err).toBeInstanceOf(RequestTimeoutError);
 			expect(err.nodeID).toBe("node-2");
+
+			expect(b1.nodeUnavailable).toHaveBeenCalledTimes(1);
 		});
 	});	
 
 	it("should return with fallbackResponse", () => {
+		b1.nodeUnavailable.mockClear();
 		let fallbackResponse = "MAYBE";
 		return b1.call("echo.slow", null, { timeout: 100, fallbackResponse }).then(res => {
 			expect(res).toBe("MAYBE");
+			expect(b1.nodeUnavailable).toHaveBeenCalledTimes(1);
 		});
 	});
 });

@@ -124,6 +124,7 @@ class ServiceBroker {
 
 		// Graceful exit
 		this._closeFn = () => {
+			/* istanbul ignore next */
 			this.stop();
 		};
 

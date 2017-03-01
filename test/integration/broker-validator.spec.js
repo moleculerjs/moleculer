@@ -1,87 +1,73 @@
 const ServiceBroker = require("../../src/service-broker");
-const Context = require("../../src/context");
-const Validator = require("../../src/validator");
 const { ValidationError } = require("../../src/errors");
 
-describe("Test Broker validator", () => {
+describe("Test broker validator with actions", () => {
 
-	it("should return true if object is valid", () => {
-		let schema = {
-			id: "required|numeric",
-			name: "required|string"
-		};
-
-		let v = new Validator();
-		let res = v.validate(schema, {
-			id: 5,
-			name: "Bob"
-		});
-
-		expect(res).toBe(true);
-	});
-
-	it("should throw ValidationError if object is NOT valid", () => {
-		let schema = {
-			id: "required|numeric",
-			name: "required|string"
-		};
-
-		expect(() => {
-			let v = new Validator();
-			v.validate(schema, {
-				id: "aa",
-				name: "Bob"
-			});
-
-		}).toThrow(ValidationError);
-	});	
-
-});
-
-describe("Test middleware", () => {
-	let broker = new ServiceBroker();
-	let v = new Validator();
-	v.validate = jest.fn();
-
-	let params = { id: 3, name: "Antsa" };
-
-	it("should call validate & handler because the params is valid", () => {
-		let mockAction = {
-			name: "posts.find",
-			params: {
-				id: "required|numeric",
-				name: "required|string"
+	let schema = {
+		name: "test",
+		actions: {
+			withValidation: {
+				params: {
+					a: "required|numeric",
+					b: "required|numeric"
+				},
+				handler: jest.fn(ctx => 123)
 			},
-			handler: jest.fn()
-		};
-		
-		let wrapped = v.middleware()(mockAction.handler, mockAction);
-		expect(typeof wrapped).toBe("function");
+			withoutValidation: {
+				handler() {}
+			}
+		}
+	};
 
-		let ctx = new Context({ params, service: { broker } });
-		wrapped(ctx);
+	const broker = new ServiceBroker();
+	const service = broker.createService(schema);
+	broker.validator.validate = jest.fn();
 
-		expect(v.validate).toHaveBeenCalledTimes(1);
-		expect(v.validate).toHaveBeenCalledWith({"id": "required|numeric", "name": "required|string"}, {"id": 3, "name": "Antsa"});
-		//expect(mockAction.handler).toHaveBeenCalledTimes(1);
-		
+	it("shouldn't wrap validation, if action can't contain params settings", () => {
+		return broker.call("test.withoutValidation")
+		.then(res => {
+			expect(broker.validator.validate).toHaveBeenCalledTimes(0);
+		});
 	});
 
-	it("should call handler because the params is NOT exist", () => {
-		v.validate.mockClear();
-		let mockAction = {
-			name: "posts.find",
-			handler: jest.fn()
-		};
-		
-		let wrapped = v.middleware()(mockAction.handler, mockAction);
-		expect(typeof wrapped).toBe("function");
-
-		let ctx = new Context({ params, service: { broker } });
-		wrapped(ctx);
-
-		expect(v.validate).toHaveBeenCalledTimes(0);
-		//expect(mockAction.handler).toHaveBeenCalledTimes(1);		
+	it.skip("should wrap validation, if action contains params settings", () => {
+		broker.validator.validate.mockClear();
+		let p = { a: 5, b: 10 };
+		return broker.call("test.withValidation", p)
+		.then(res => {
+			expect(broker.validator.validate).toHaveBeenCalledTimes(1);
+			expect(broker.validator.validate).toHaveBeenCalledWith(schema.actions.withValidation.params, p);
+			expect(schema.actions.withValidation.handler).toHaveBeenCalledTimes(1);
+		});
 	});
 
+	it("should call handler, if params are correct", () => {
+		schema.actions.withValidation.handler.mockClear();
+		let p = { a: 5, b: 10 };
+		return broker.call("test.withValidation", p)
+		.then(res => {
+			expect(res).toBe(123);
+			expect(schema.actions.withValidation.handler).toHaveBeenCalledTimes(1);
+		});
+	});
+
+	it("should throw ValidationError, if params is not correct", () => {
+		schema.actions.withValidation.handler.mockClear();
+		let p = { a: 5, b: "asd" };
+		return broker.call("test.withValidation", p)
+		.catch(err => {
+			expect(err).toBeInstanceOf(ValidationError);
+			expect(schema.actions.withValidation.handler).toHaveBeenCalledTimes(0);
+		});
+	});
+
+	it.skip("should wrap validation, if call action directly", () => {
+		broker.validator.validate.mockClear();
+		let p = { a: 5, b: 10 };
+		return service.actions.withValidation(p)
+		.then(res => {
+			expect(broker.validator.validate).toHaveBeenCalledTimes(1);
+			expect(broker.validator.validate).toHaveBeenCalledWith(schema.actions.withValidation.params, p);
+		});
+	});
 });
