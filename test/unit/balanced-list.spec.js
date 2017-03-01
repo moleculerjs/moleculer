@@ -94,6 +94,16 @@ describe("Test Add & get methods with preferLocal = true", () => {
 		list.removeByNode("node1");
 		expect(list.count()).toBe(1);
 	});
+
+	it("should not add again the exist data just replace", () => {
+		let list = new BalancedList();
+
+		list.add(obj1, "node1");
+		list.add(obj2, "node1");
+
+		expect(list.count()).toBe(1);
+		expect(list.get().data).toBe(obj2);
+	});	
 });
 
 describe("Test Add & get methods with preferLocal = true", () => {

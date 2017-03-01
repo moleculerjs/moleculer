@@ -76,6 +76,7 @@ class BalancedList {
 		}
 
 		if (this.strategy == STRATEGY_RANDOM) {
+			/* istanbul ignore next */
 			return this.list[random(0, this.list.length - 1)];
 		} else {
 			// Round-robin
