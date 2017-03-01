@@ -10,12 +10,18 @@ describe("Test RPC", () => {
 		nodeID: "node-1"
 	});
 
+	let eventHandler = jest.fn();
+
 	b1.createService({
 		name: "greeter",
 		actions: {
 			hello(ctx) {
 				return `Hello ${ctx.params.name}`;
 			}
+		},
+
+		events: {
+			"emitter.**": eventHandler
 		}
 	});
 
@@ -32,6 +38,10 @@ describe("Test RPC", () => {
 
 			helloProxy(ctx) {
 				return ctx.call("greeter.hello", ctx.params).then(res => res + " (proxied)");
+			},
+
+			emitter(ctx) {
+				ctx.emit("emitter.hello.event", ctx.params);
 			},
 
 			slow() {
@@ -57,9 +67,16 @@ describe("Test RPC", () => {
 		});
 	});		
 
-	it("should call double RPC (b1 -> b2 -> b1 -> b2 -> b1", () => {
+	it("should call double RPC (b1 -> b2 -> b1 -> b2 -> b1) & emit an event to b1", () => {
 		return b1.call("echo.helloProxy", { name: "Icebob" }).then(res => {
 			expect(res).toEqual("Hello Icebob (proxied)");
+		});
+	});	
+
+	it("should emit & receive an event via transporter", () => {
+		return b1.call("echo.emitter", { a: 5 }).then(() => {
+			expect(eventHandler).toHaveBeenCalledTimes(1);
+			expect(eventHandler).toHaveBeenCalledWith({ a: 5 }, "emitter.hello.event");
 		});
 	});	
 
