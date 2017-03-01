@@ -613,7 +613,7 @@ class ServiceBroker {
 		} else {
 			ctx = new this.ContextFactory({ broker: this, action, params, nodeID, requestID: opts.requestID, metrics: !!this.options.metrics });
 		}
-		
+
 		this._callCount++; // Need to remove
 
 		if (actionItem.local) {
@@ -764,6 +764,8 @@ class ServiceBroker {
 		let info = this.nodes.get(nodeID);
 		if (info) 
 			return info.available;
+
+		return false;
 	}
 
 	/**
@@ -796,7 +798,7 @@ class ServiceBroker {
 			if (node.available) {
 				node.available = false;
 				if (node.actions) {
-					// Add external actions
+					// Remove remote actions of node
 					Object.keys(node.actions).forEach(name => {
 						let action = Object.assign({}, node.actions[name], { name });
 						this.unregisterAction(action, node.nodeID);
