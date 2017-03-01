@@ -912,8 +912,14 @@ When you create a new model in your service, sometimes you have to clear the old
             // Clear all cache entries which keys start with `users.`
             ctx.emit("cache.clean", "users.*");
 
+            // Clear multiple cache entries
+            ctx.emit("cache.clean", [ "users.*", "posts.*" ]);
+
             // Delete only one entry
             ctx.emit("cache.del", "users.list");
+
+            // Delete multiple entries
+            ctx.emit("cache.del", [ "users.model:5", "users.model:8" ]);
         }
     }
 }

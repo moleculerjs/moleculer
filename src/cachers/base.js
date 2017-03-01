@@ -7,6 +7,7 @@
 "use strict";
 
 const defaultsDeep 	= require("lodash/defaultsDeep");
+const isArray 		= require("lodash/isArray");
 const { hash } 		= require("node-object-hash")({ sort: false, coerce: false});
 
 /**
@@ -47,13 +48,17 @@ class Cacher {
 			broker.use(this.middleware());
 
 			this.broker.on("cache.clean", payload => {
-				let match = payload && payload.match;
-				this.clean(match);
+				if (isArray(payload))
+					payload.forEach(match => this.clean(match));
+				else
+					this.clean(payload);
 			});
 
 			this.broker.on("cache.del", payload => {
-				let key = payload && payload.key;
-				this.del(key);
+				if (isArray(payload))
+					payload.forEach(key => this.del(key));
+				else
+					this.del(payload);
 			});
 		}
 	}

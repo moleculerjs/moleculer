@@ -172,14 +172,30 @@ describe("Test cache.clean & cache.del events", () => {
 	cacher.del = jest.fn();
 
 	it("should call clean method", () => {
-		broker.emit("cache.clean", { match: "users.*" });
+		broker.emit("cache.clean", "users.*");
 		expect(cacher.clean).toHaveBeenCalledTimes(1);
 		expect(cacher.clean).toHaveBeenCalledWith("users.*");
 	});
 
 	it("should call del method", () => {
-		broker.emit("cache.del", { key: "users.model.123" });
+		broker.emit("cache.del", "users.model.123");
 		expect(cacher.del).toHaveBeenCalledTimes(1);
 		expect(cacher.del).toHaveBeenCalledWith("users.model.123");
+	});
+
+	it("should call clean method multiple times", () => {
+		cacher.clean.mockClear();
+		broker.emit("cache.clean", ["users.*", "posts.*"]);
+		expect(cacher.clean).toHaveBeenCalledTimes(2);
+		expect(cacher.clean).toHaveBeenCalledWith("users.*");
+		expect(cacher.clean).toHaveBeenCalledWith("posts.*");
+	});
+
+	it("should call del method multiple times", () => {
+		cacher.del.mockClear();
+		broker.emit("cache.del", ["users.model.123", "users.model.222"]);
+		expect(cacher.del).toHaveBeenCalledTimes(2);
+		expect(cacher.del).toHaveBeenCalledWith("users.model.123");
+		expect(cacher.del).toHaveBeenCalledWith("users.model.222");
 	});
 });
