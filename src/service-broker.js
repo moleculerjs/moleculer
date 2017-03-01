@@ -159,6 +159,8 @@ class ServiceBroker {
 			this.metricsTimer.unref();
 		}
 
+		this.logger.info("Broker started.");
+
 		if (this.transit) {
 			return this.transit.connect().then(() => {
 				
@@ -212,6 +214,8 @@ class ServiceBroker {
 				this.checkNodesTimer = null;
 			}
 		}
+
+		this.logger.info("Broker stopped.");
 
 		process.removeListener("beforeExit", this._closeFn);
 		process.removeListener("exit", this._closeFn);
