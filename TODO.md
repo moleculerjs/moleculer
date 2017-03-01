@@ -11,6 +11,7 @@
 - cli tool for generate project & Services
 	- https://github.com/sboudrias/Inquirer.js
 	- https://github.com/tj/consolidate.js
+	- https://github.com/mattallty/Caporal.js
 
 	- `ices init` - generate an moleculer based project
 	- `ices add service` - generate an empty service
