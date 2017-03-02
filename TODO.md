@@ -96,6 +96,11 @@
 }
 ```
 
+## Serializer
+- [PSON](https://github.com/dcodeIO/PSON)
+- [Avro](https://github.com/mtth/avsc)
+
+
 ## Services
 
 ## Transporters
