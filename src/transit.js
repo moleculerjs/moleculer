@@ -322,7 +322,7 @@ class Transit {
 				data: err.data
 			};
 		}
-		//this.logger.debug(`Response to ${nodeID}`);
+		this.logger.debug(`Send response back to '${nodeID}'`);
 
 		// Publish the response
 		return this.publish([TOPIC_RES, nodeID], payload);
