@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2017 Icebob (https://github.com/ice-services/moleculer)
+ * Copyright (c) 2017 Ice Services (https://github.com/ice-services/moleculer)
  * MIT Licensed
  */
 
@@ -22,6 +22,7 @@ const isFunction = require("lodash/isFunction");
 const defaultsDeep = require("lodash/defaultsDeep");
 const pick = require("lodash/pick");
 const omit = require("lodash/omit");
+const isArray = require("lodash/isArray");
 
 const glob = require("glob");
 const path = require("path");
@@ -251,9 +252,15 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	loadServices(folder = "./services", fileMask = "*.service.js") {
-		this.logger.debug(`Load services from ${fileMask}...`); 
+		this.logger.info(`Search services in '${folder}/${fileMask}'...`); 
 		
-		let serviceFiles = glob.sync(path.join(folder, fileMask));
+		let serviceFiles;
+
+		if (isArray(fileMask))
+			serviceFiles = fileMask.map(f => path.join(folder, f));
+		else
+			serviceFiles = glob.sync(path.join(folder, fileMask));
+
 		if (serviceFiles) {
 			serviceFiles.forEach(servicePath => {
 				this.loadService(servicePath);
@@ -272,7 +279,7 @@ class ServiceBroker {
 	 */
 	loadService(filePath) {
 		let fName = path.resolve(filePath);
-		this.logger.debug("Load service from", path.basename(fName));
+		this.logger.debug(`Load service from '${path.basename(fName)}'...`);
 		let schema = require(fName);
 		if (isFunction(schema)) {
 			let svc = schema(this);
@@ -310,7 +317,7 @@ class ServiceBroker {
 		// Append service
 		this.services.push(service);
 		this.emitLocal(`register.service.${service.name}`, service);
-		this.logger.info(`${service.name} service registered!`);
+		this.logger.info(`'${service.name}' service is registered!`);
 	}
 
 	/**
