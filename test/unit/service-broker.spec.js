@@ -1,5 +1,6 @@
 "use strict";
 
+const path = require("path");
 const Promise = require("bluebird");
 const ServiceBroker = require("../../src/service-broker");
 const Service = require("../../src/service");
@@ -224,7 +225,7 @@ describe("Test loadServices", () => {
 	let broker = new ServiceBroker();
 	broker.loadService = jest.fn();
 	
-	it("should found 3 services", () => {
+	it("should load 3 services", () => {
 		let count = broker.loadServices("./test/services");
 		expect(count).toBe(3);
 		expect(broker.loadService).toHaveBeenCalledTimes(3);
@@ -233,7 +234,7 @@ describe("Test loadServices", () => {
 		expect(broker.loadService).toHaveBeenCalledWith("test/services/math.service.js");
 	});
 
-	it("should found 3 services", () => {
+	it("should load 1 services", () => {
 		broker.loadService.mockClear();
 		let count = broker.loadServices("./test/services", "user.*.js");
 		expect(count).toBe(1);
@@ -241,12 +242,22 @@ describe("Test loadServices", () => {
 		expect(broker.loadService).toHaveBeenCalledWith("test/services/user.service.js");
 	});
 
-	it("should found 3 services", () => {
+	it("should load 0 services", () => {
 		broker.loadService.mockClear();
 		let count = broker.loadServices();
 		expect(count).toBe(0);
 		expect(broker.loadService).toHaveBeenCalledTimes(0);
 	});
+
+	it("should load selected services", () => {
+		broker.loadService.mockClear();
+		let count = broker.loadServices("./test/services", ["user.service", "math.service"]);
+		expect(count).toBe(2);
+		expect(broker.loadService).toHaveBeenCalledTimes(2);
+		expect(broker.loadService).toHaveBeenCalledWith(path.join("test", "services", "user.service"));
+		expect(broker.loadService).toHaveBeenCalledWith(path.join("test", "services", "math.service"));
+	});
+
 });
 
 describe("Test broker.loadService", () => {
