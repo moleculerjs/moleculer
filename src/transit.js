@@ -130,7 +130,7 @@ class Transit {
 			event: eventName,
 			param
 		};
-		this.logger.debug("Emit Event", event);
+		// this.logger.debug("Emit Event", event);
 		this.publish([TOPIC_EVENT], event);
 	}
 
@@ -179,7 +179,7 @@ class Transit {
 			this.broker.processNodeInfo(msg.nodeID, msg);
 
 			if (topic == "DISCOVER") {
-				this.logger.debug("Discover received from " + msg.nodeID);
+				//this.logger.debug("Discover received from " + msg.nodeID);
 				this.sendNodeInfo(msg.nodeID);
 			}
 			return;
@@ -187,21 +187,21 @@ class Transit {
 
 		// Disconnect
 		else if (topic === TOPIC_DISCONNECT) {
-			this.logger.debug(`Node '${msg.nodeID}' disconnected`);
+			this.logger.warn(`Node '${msg.nodeID}' disconnected`);
 			this.broker.nodeDisconnected(msg.nodeID, msg);
 			return;
 		}
 
 		// Heartbeat
 		else if (topic === TOPIC_HEARTBEAT) {
-			this.logger.debug("Node heart-beat received from " + msg.nodeID);
+			//this.logger.debug("Node heart-beat received from " + msg.nodeID);
 			this.broker.nodeHeartbeat(msg.nodeID, msg);
 			return;
 		}
 	}
 
 	_requestHandler(msg) {
-		this.logger.debug(`Request from ${msg.nodeID}.`, msg.action, msg.params);
+		this.logger.info(`Request from ${msg.nodeID}.`, msg.action, msg.params);
 		return this.broker.call(msg.action, msg.params, {}) // empty {} opts to avoid deoptimizing
 			.then(res => this.sendResponse(msg.nodeID, msg.requestID,  res, null))
 			.catch(err => this.sendResponse(msg.nodeID, msg.requestID, null, err));
@@ -269,7 +269,7 @@ class Transit {
 			params: ctx.params,
 		};
 
-		this.logger.debug(`Send request '${ctx.action.name}' action to '${ctx.nodeID}' node...`, payload);
+		this.logger.info(`Send request '${ctx.action.name}' action to '${ctx.nodeID}' node...`/*, payload*/);
 
 		// Handle request timeout
 		if (opts.timeout > 0) {
@@ -322,7 +322,7 @@ class Transit {
 				data: err.data
 			};
 		}
-		this.logger.debug(`Response to ${nodeID}`);
+		//this.logger.debug(`Response to ${nodeID}`);
 
 		// Publish the response
 		return this.publish([TOPIC_RES, nodeID], payload);

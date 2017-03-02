@@ -630,7 +630,7 @@ class ServiceBroker {
 
 		if (actionItem.local) {
 			// Local action call
-			this.logger.debug(`Call local '${action.name}' action...`);
+			this.logger.info(`Call local '${action.name}' action...`);
 			return action.handler(ctx);
 		} else {
 			return this._remoteCall(ctx, opts);
@@ -639,7 +639,7 @@ class ServiceBroker {
 
 	_remoteCall(ctx, opts = {}) {		
 		// Remote action call
-		this.logger.debug(`Call remote '${ctx.action.name}' action on '${ctx.nodeID}' node...`);
+		this.logger.info(`Call remote '${ctx.action.name}' action on '${ctx.nodeID}' node...`);
 
 		if (opts.timeout == null)
 			opts.timeout = this.options.requestTimeout;
