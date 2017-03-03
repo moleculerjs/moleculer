@@ -24,14 +24,14 @@ describe("Test ServiceBroker constructor", () => {
 			transporter: null, 
 			requestTimeout: 15000, 
 			requestRetry: 0, 
-			sendHeartbeatTime: 10, 
-			nodeHeartbeatTimeout : 30, 
+			heartbeatInterval: 10, 
+			heartbeatTimeout : 30, 
 			
 			cacher: null,
 			
 			validation: true, 
 			metrics: false, 
-			metricsNodeTime: 5 * 1000,
+			metricsSendInterval: 5 * 1000,
 			statistics: false,
 			internalActions: true 
 		});
@@ -64,9 +64,9 @@ describe("Test ServiceBroker constructor", () => {
 
 	it("should merge options", () => {
 		let broker = new ServiceBroker( { 
-			nodeHeartbeatTimeout: 20, 
+			heartbeatTimeout: 20, 
 			metrics: true, 
-			metricsNodeTime: 10 * 1000,
+			metricsSendInterval: 10 * 1000,
 			statistics: true,
 			logLevel: "debug", 
 			requestRetry: 3, 
@@ -82,10 +82,10 @@ describe("Test ServiceBroker constructor", () => {
 			cacher: null,
 			transporter: null,
 			metrics: true, 
-			metricsNodeTime: 10 * 1000,
+			metricsSendInterval: 10 * 1000,
 			statistics: true,
-			nodeHeartbeatTimeout : 20, 
-			sendHeartbeatTime: 10, 
+			heartbeatTimeout : 20, 
+			heartbeatInterval: 10, 
 			requestRetry: 3, 
 			requestTimeout: 5000, 
 			validation: false, 

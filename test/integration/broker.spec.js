@@ -280,7 +280,7 @@ describe("Test with metrics timer", () => {
 	let broker= new ServiceBroker({
 		metrics: true,
 		statistics: true,
-		metricsNodeTime: 5 * 1000
+		metricsSendInterval: 5 * 1000
 	});
 
 	broker.getNodeHealthInfo = jest.fn(() => Promise.resolve());

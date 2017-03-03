@@ -159,13 +159,13 @@ All available options:
     transporter: null,
     requestTimeout: 15 * 1000,
     requestRetry: 0,
-    sendHeartbeatTime: 10,
-    nodeHeartbeatTimeout: 30,
+    heartbeatInterval: 10,
+    heartbeatTimeout: 30,
 
     cacher: null,
 
     metrics: false,
-    metricsNodeTime: 5 * 1000,
+    metricsSendInterval: 5 * 1000,
     statistics: false,
     validation: true,
     internalActions: true
@@ -185,12 +185,12 @@ All available options:
 | `requestRetry` | `Number` | `0` | Count of retry of request. If the request is timed out, broker will try to call again. |
 | `cacher` | `Object` | `null` | Instance of cacher. Built-in cachers: [MemoryCacher](#memory-cacher) or [RedisCacher](#redis-cacher) |
 | `metrics` | `Boolean` | `false` | Enable [metrics](#metrics) function. |
-| `metricsNodeTime` | `Number` | `5000` | Metrics event sends period in milliseconds |
+| `metricsSendInterval` | `Number` | `5000` | Metrics event sends period in milliseconds |
 | `statistics` | `Boolean` | `false` | Enable broker [statistics](). Measure the requests count & latencies |
 | `validation` | `Boolean` | `false` | Enable action [parameters validation](). |
 | `internalActions` | `Boolean` | `true` | Register internal actions for metrics & statistics functions |
-| `sendHeartbeatTime` | `Number` | `10` | ??? |
-| `nodeHeartbeatTimeout` | `Number` | `30` | ??? |
+| `heartbeatInterval` | `Number` | `10` | ??? |
+| `heartbeatTimeout` | `Number` | `30` | ??? |
 | `ServiceFactory` | `Class` | `null` | Custom Service class. Broker will use it when creating a service |
 | `ContextFactory` | `Class` | `null` | Custom Context class. Broker will use it when creating a context at call |
 
@@ -1099,7 +1099,7 @@ You can also create your custom transporter module. We recommend you that copy t
 
 # Metrics
 Moleculer has a metrics function. You can turn on in [broker options](#constructor-options) with `metrics: true` property.
-If enabled, the broker emits metrics events in every `metricsNodeTime`.
+If enabled, the broker emits metrics events in every `metricsSendInterval`.
 
 ##  Health info
 Broker emits a global event as `metrics.node.health` with health info of node.

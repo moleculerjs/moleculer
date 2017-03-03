@@ -52,14 +52,14 @@ class ServiceBroker {
 			transporter: null,
 			requestTimeout: 15 * 1000,
 			requestRetry: 0,
-			sendHeartbeatTime: 10,
-			nodeHeartbeatTimeout: 30,
+			heartbeatInterval: 10,
+			heartbeatTimeout: 30,
 
 			cacher: null,
 
 			validation: true,
 			metrics: false,
-			metricsNodeTime: 5 * 1000,
+			metricsSendInterval: 5 * 1000,
 			statistics: false,
 			internalActions: true
 			
@@ -148,7 +148,7 @@ class ServiceBroker {
 			}
 		});
 
-		if (this.options.metrics && this.options.metricsNodeTime > 0) {
+		if (this.options.metrics && this.options.metricsSendInterval > 0) {
 			this.metricsTimer = setInterval(() => {
 				// Send event with node health info
 				this.getNodeHealthInfo().then(data => this.emit("metrics.node.health", data));
@@ -156,7 +156,7 @@ class ServiceBroker {
 				// Send event with node statistics
 				if (this.statistics)
 					this.emit("metrics.node.stats", this.statistics.snapshot());
-			}, this.options.metricsNodeTime);
+			}, this.options.metricsSendInterval);
 			this.metricsTimer.unref();
 		}
 
@@ -169,13 +169,13 @@ class ServiceBroker {
 				this.heartBeatTimer = setInterval(() => {
 					/* istanbul ignore next */
 					this.transit.sendHeartbeat();
-				}, this.options.sendHeartbeatTime * 1000);
+				}, this.options.heartbeatInterval * 1000);
 				this.heartBeatTimer.unref();
 
 				this.checkNodesTimer = setInterval(() => {
 					/* istanbul ignore next */
 					this.checkRemoteNodes();
-				}, this.options.nodeHeartbeatTimeout * 1000);
+				}, this.options.heartbeatTimeout * 1000);
 				this.checkNodesTimer.unref();			
 			});
 		}
@@ -829,17 +829,13 @@ class ServiceBroker {
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	/* istanbul ignore next */
 	checkRemoteNodes() {
-		return; 
-		// SKIP
-		/*
 		let now = Date.now();
 		for (let entry of this.nodes.entries()) {
-			if (now - (entry[1].lastHeartbeatTime || 0) > this.options.nodeHeartbeatTimeout * 1000) {
+			if (now - (entry[1].lastHeartbeatTime || 0) > this.options.heartbeatTimeout * 1000) {
 				this.nodeDisconnected(entry[0]);
 			}
-		}*/
+		}
 	}
 }
 
