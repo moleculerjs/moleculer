@@ -831,11 +831,11 @@ class ServiceBroker {
 	 */
 	checkRemoteNodes() {
 		let now = Date.now();
-		for (let entry of this.nodes.entries()) {
-			if (now - (entry[1].lastHeartbeatTime || 0) > this.options.heartbeatTimeout * 1000) {
-				this.nodeDisconnected(entry[0]);
+		this.nodes.forEach(node => {
+			if (now - (node.lastHeartbeatTime || 0) > this.options.heartbeatTimeout * 1000) {
+				this.nodeDisconnected(node.nodeID);
 			}
-		}
+		});
 	}
 }
 

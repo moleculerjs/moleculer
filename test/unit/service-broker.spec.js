@@ -1205,3 +1205,23 @@ describe("Test broker.nodeDisconnected", () => {
 	});
 });
 
+describe("Test broker.nodeDisconnected", () => {
+	let broker = new ServiceBroker();
+	broker.nodeDisconnected = jest.fn();
+
+	broker.nodes.set("server-2", { nodeID: "server-2", available: true });
+
+	it("should call 'nodeDisconnected' if the heartbeat time is too old", () => {
+		let node = broker.nodes.get("server-2");
+		broker.nodeDisconnected = jest.fn();
+		broker.nodeHeartbeat("server-2");
+		broker.checkRemoteNodes();
+		expect(broker.nodeDisconnected).toHaveBeenCalledTimes(0);
+		node.lastHeartbeatTime -= broker.options.heartbeatTimeout * 1.5 * 1000;
+		broker.checkRemoteNodes();
+		expect(broker.nodeDisconnected).toHaveBeenCalledTimes(1);
+		expect(broker.nodeDisconnected).toHaveBeenCalledWith("server-2");
+	});
+
+});
+
