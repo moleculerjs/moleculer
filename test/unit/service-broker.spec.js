@@ -22,7 +22,7 @@ describe("Test ServiceBroker constructor", () => {
 			logLevel: "info",
 
 			transporter: null, 
-			requestTimeout: 15000, 
+			requestTimeout: 5000, 
 			requestRetry: 0, 
 			heartbeatInterval: 10, 
 			heartbeatTimeout : 30, 
@@ -863,7 +863,7 @@ describe("Test broker._remoteCall", () => {
 		let origCtx = new Context({ broker, action: { name: "test" }, nodeID: "server-2" });
 		return broker._remoteCall(origCtx).then(({ ctx, opts }) => {
 			expect(ctx).toBe(origCtx);
-			expect(opts).toEqual({ retryCount: 0, timeout: 15000 }); // default values
+			expect(opts).toEqual({ retryCount: 0, timeout: 5000 }); // default values
 
 			expect(broker.transit.request).toHaveBeenCalledTimes(1);
 			expect(broker.transit.request).toHaveBeenCalledWith(ctx, opts);

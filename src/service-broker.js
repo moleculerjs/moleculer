@@ -50,7 +50,7 @@ class ServiceBroker {
 			logLevel: "info",
 
 			transporter: null,
-			requestTimeout: 15 * 1000,
+			requestTimeout: 5 * 1000,
 			requestRetry: 0,
 			heartbeatInterval: 10,
 			heartbeatTimeout: 30,
