@@ -201,7 +201,7 @@ class Transit {
 	}
 
 	_requestHandler(msg) {
-		this.logger.info(`Request from ${msg.nodeID}.`, msg.action, msg.params);
+		this.logger.info(`Request '${msg.action}' from '${msg.nodeID}'. Params:`, msg.params);
 		return this.broker.call(msg.action, msg.params, {}) // empty {} opts to avoid deoptimizing
 			.then(res => this.sendResponse(msg.nodeID, msg.requestID,  res, null))
 			.catch(err => this.sendResponse(msg.nodeID, msg.requestID, null, err));
