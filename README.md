@@ -157,7 +157,7 @@ All available options:
     logLevel: "info",
 
     transporter: null,
-    requestTimeout: 15 * 1000,
+    requestTimeout: 5 * 1000,
     requestRetry: 0,
     heartbeatInterval: 10,
     heartbeatTimeout: 30,
@@ -181,7 +181,7 @@ All available options:
 | `logger` | `Object` | `null` | Logger class. During development you can set to `console`. In production you can set an external logger e.g. [winston](https://github.com/winstonjs/winston) or [pino](https://github.com/pinojs/pino) |
 | `logLevel` | `String` or `Object` | `info` | Level of logging (debug, info, warn, error) |
 | `transporter` | `Object` | `null` | Instance of transporter. Required if you have 2 or more nodes. Internal transporters: [NatsTransporter](#nats-transporter)  |
-| `requestTimeout` | `Number` | `15000` | Timeout of request in milliseconds. If the request is timed out, broker will throw a `RequestTimeout` error. Disable: 0 |
+| `requestTimeout` | `Number` | `5000` | Timeout of request in milliseconds. If the request is timed out, broker will throw a `RequestTimeout` error. Disable: 0 |
 | `requestRetry` | `Number` | `0` | Count of retry of request. If the request is timed out, broker will try to call again. |
 | `cacher` | `Object` | `null` | Instance of cacher. Built-in cachers: [MemoryCacher](#memory-cacher) or [RedisCacher](#redis-cacher) |
 | `metrics` | `Boolean` | `false` | Enable [metrics](#metrics) function. |
@@ -189,8 +189,8 @@ All available options:
 | `statistics` | `Boolean` | `false` | Enable broker [statistics](). Measure the requests count & latencies |
 | `validation` | `Boolean` | `false` | Enable action [parameters validation](). |
 | `internalActions` | `Boolean` | `true` | Register internal actions for metrics & statistics functions |
-| `heartbeatInterval` | `Number` | `10` | ??? |
-| `heartbeatTimeout` | `Number` | `30` | ??? |
+| `heartbeatInterval` | `Number` | `10` | Interval (seconds) of sending heartbeat |
+| `heartbeatTimeout` | `Number` | `30` | Timeout (seconds) of heartbeat |
 | `ServiceFactory` | `Class` | `null` | Custom Service class. Broker will use it when creating a service |
 | `ContextFactory` | `Class` | `null` | Custom Context class. Broker will use it when creating a context at call |
 
