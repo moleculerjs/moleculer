@@ -132,20 +132,23 @@ Suite: Call local actions
 The `ServiceBroker` is the main component of Moleculer. It handles services & events, calls actions and communicates with remote nodes. You need to create an instance of `ServiceBroker` on every node.
 
 ### Create broker
+Create broker with default settings
 ```js
-// Create broker with default settings
 let { ServiceBroker } = require("moleculer");
 let broker = new ServiceBroker();
+```
 
-// Create broker with custom settings
+Create broker with custom settings
+```js
+let { ServiceBroker } = require("moleculer");
 let broker = new ServiceBroker({
     logger: console,
     logLevel: "info"
 });
 ```
 
+Create with transporter
 ```js
-// Create with transporter
 let { ServiceBroker, NatsTransporter } = require("moleculer");
 let broker = new ServiceBroker({
     nodeID: "node-1",
@@ -157,8 +160,8 @@ let broker = new ServiceBroker({
 });
 ```
 
+Create with cacher
 ```js
-// Create with cacher
 let ServiceBroker = require("moleculer").ServiceBroker;
 let MemoryCacher = require("moleculer").Cachers.Memory;
 let broker = new ServiceBroker({
