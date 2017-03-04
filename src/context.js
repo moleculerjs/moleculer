@@ -146,7 +146,7 @@ class Context {
 		if (this.parent)
 			payload.parent = this.parent.id;
 		
-		this.broker.emit("metrics.context.start", payload);
+		this.broker.emit("metrics.trace.span.start", payload);
 
 		this.startHrTime = process.hrtime();
 		this.duration = 0;
@@ -185,7 +185,7 @@ class Context {
 				message: error.message
 			};
 		}
-		this.broker.emit("metrics.context.finish", payload);
+		this.broker.emit("metrics.trace.span.finish", payload);
 	}
 }
 

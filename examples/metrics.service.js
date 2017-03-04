@@ -6,7 +6,7 @@ module.exports = function() {
 		
 		events: {
 
-			"metrics.context.start"(payload) {
+			"metrics.trace.span.start"(payload) {
 				this.requests[payload.id] = payload;
 				payload.spans = [];
 
@@ -17,7 +17,7 @@ module.exports = function() {
 				}
 			},
 
-			"metrics.context.finish"(payload) {
+			"metrics.trace.span.finish"(payload) {
 				let item = this.requests[payload.id];
 				_.assign(item, payload);
 
