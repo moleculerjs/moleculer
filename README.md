@@ -134,6 +134,7 @@ The `ServiceBroker` is the main component of Moleculer. It handles services & ev
 ### Create broker
 ```js
 // Create broker with default settings
+let { ServiceBroker } = require("moleculer");
 let broker = new ServiceBroker();
 
 // Create broker with custom settings
@@ -141,9 +142,11 @@ let broker = new ServiceBroker({
     logger: console,
     logLevel: "info"
 });
+```
 
+```js
 // Create with transporter
-let { NatsTransporter } = require("moleculer");
+let { ServiceBroker, NatsTransporter } = require("moleculer");
 let broker = new ServiceBroker({
     nodeID: "node-1",
     transporter: new NatsTransporter(),
@@ -152,8 +155,11 @@ let broker = new ServiceBroker({
     requestTimeout: 5 * 1000,
     requestRetry: 3
 });
+```
 
+```js
 // Create with cacher
+let ServiceBroker = require("moleculer").ServiceBroker;
 let MemoryCacher = require("moleculer").Cachers.Memory;
 let broker = new ServiceBroker({
     cacher: new MemoryCacher(),
@@ -1123,7 +1129,7 @@ If enabled, the broker emits metrics events in every `metricsSendInterval`.
 Broker emits a global event as `metrics.node.health` with health info of node.
 
 Example health info:
-```json
+```js
 {
     "cpu": {
         "load1": 0,
@@ -1186,7 +1192,7 @@ You can enable it in [broker options](#constructor-options) with `statistics: tr
 Broker emits global events as `metrics.node.stats`. The payload contains the statistics. You need to enable [metrics](#metrics) functions too!
 
 Example statistics:
-```json
+```js
 {
   "requests": {
     // Total statistics
