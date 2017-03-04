@@ -34,6 +34,24 @@ Moleculer is a fast & powerful microservices framework for NodeJS (>= v6.x).
 - health monitoring & statistics
 - supports versioned services (run different versions of the service)
 
+# Table of content
+
+- [Installation](#installation)
+- [Quick start](#quick-start)
+- [Main modules](#main-modules)
+    - [ServiceBroker](#servicebroker)
+    - [Service](#service)
+    - [Context](#context)
+    - [Logging](#logging)
+    - [Cachers](#cachers)
+    - [Transporters](#transporters)
+    - [Metrics](#metrics)
+    - [Statistics](#statistics)
+- [Nodes](#nodes)
+- [Best practices](#best-practices)
+- [Benchmarks](#benchmarks)
+- [Test](#test)
+- [Contribution](#contribution)
 
 # Installation
 ```
