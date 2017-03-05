@@ -269,7 +269,7 @@ class Transit {
 			params: ctx.params,
 		};
 
-		this.logger.info(`Send request '${ctx.action.name}' action to '${ctx.nodeID}' node...`/*, payload*/);
+		this.logger.info(`Call '${ctx.action.name}' action on '${ctx.nodeID}' node...`/*, payload*/);
 
 		// Handle request timeout
 		if (opts.timeout > 0) {
