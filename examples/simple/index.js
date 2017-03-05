@@ -24,6 +24,5 @@ broker.call("math.add", { a: 5, b: 3 }).then(res => broker.logger.log("  5 + 3 =
 	return broker.call("math.div", { a: 5, b: 0 }).then(res => broker.logger.log("  5 / 0 =", res));
 })
 .catch(err => {
-	broker.logger.error(`Error occured when '${err.ctx.action.name}' action called! Message:`, err.message);
-	broker.logger.error("  Params:", err.ctx.params);
+	broker.logger.error(`Error occured when '${err.ctx.action.name}' action called! Message:`, err.message, " Params:", err.ctx.params);
 });

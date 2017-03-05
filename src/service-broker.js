@@ -397,7 +397,7 @@ class ServiceBroker {
 					err = new errors.CustomError(err);
 				}
 
-				this.logger.error("Action request error!", err);
+				// Need it? this.logger.error("Action request error!", err);
 
 				//ctx.error = err;
 				err.ctx = ctx;
