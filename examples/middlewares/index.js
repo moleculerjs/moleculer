@@ -18,9 +18,9 @@ function middleware1() {
 	return function(handler) {
 
 		return function mw1(ctx) {
-			ctx.logger.info("mw1 before", ctx.action.name);
+			broker.logger.info("mw1 before", ctx.action.name);
 			return handler(ctx).then(res => {
-				ctx.logger.info("mw1 after", ctx.action.name);
+				broker.logger.info("mw1 after", ctx.action.name);
 				return res;
 			});
 		};
@@ -32,17 +32,17 @@ function middleware2() {
 	return function(handler) {
 
 		return function mw2(ctx) {
-			ctx.logger.info("mw2 before-promise", ctx.action.name);
+			broker.logger.info("mw2 before-promise", ctx.action.name);
 			return new Promise(resolve => {
 				setTimeout(() => {
-					ctx.logger.info("mw2 before", ctx.action.name);
+					broker.logger.info("mw2 before", ctx.action.name);
 					//resolve("data from mw2");
 					resolve();
 				}, 300);
 			}).then(() => {
 				return handler(ctx);
 			}).then(res => {
-				ctx.logger.info("mw2 after", ctx.action.name);
+				broker.logger.info("mw2 after", ctx.action.name);
 				return res;
 			});
 		};
@@ -53,10 +53,10 @@ function middleware3() {
 	return function mw3(handler) {
 
 		return function mw3(ctx) {
-			ctx.logger.info("mw3 before", ctx.action.name);
+			broker.logger.info("mw3 before", ctx.action.name);
 			//return Promise.resolve("data from mw3");
 			return handler(ctx).then(res => {
-				ctx.logger.info("mw3 after", ctx.action.name);
+				broker.logger.info("mw3 after", ctx.action.name);
 				if (res) {
 					if (ctx.action.name == "users.get")
 						delete res.gravatar;
