@@ -26,7 +26,7 @@
 * add lru features to Memory and Redis cachers
 
 ## v1.0.x
-It will be the first stable release. From it we follow semver versioning.
+It will be the first stable release. Afterwards the version numbers should follow semver versioning.
 
 ## Others in the future
 
@@ -87,8 +87,8 @@ Wait for all dependent service will be available. After it, call the `started` e
 	}
 ```
 
-	- https://github.com/aldeed/meteor-simple-schema
-	- https://github.com/semisleep/simple-vue-validator/blob/master/src/rule.js
+- https://github.com/aldeed/meteor-simple-schema
+- https://github.com/semisleep/simple-vue-validator/blob/master/src/rule.js
 
 ### CLI helper tool
 Create a command line tool to generate Moleculer project & modules.
