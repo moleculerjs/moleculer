@@ -68,6 +68,7 @@ In this case, if `posts` service asks the config, it'll get
 
 ### Service dependency
 Wait for all dependent service will be available. After it, call the `started` event handler of service.
+[example](http://www.slideshare.net/adriancockcroft/microservices-whats-missing-oreilly-software-architecture-new-york#24)
 
 ### Custom fast validator
 ```js
@@ -86,6 +87,9 @@ Wait for all dependent service will be available. After it, call the `started` e
 	}
 ```
 
+	- https://github.com/aldeed/meteor-simple-schema
+	- https://github.com/semisleep/simple-vue-validator/blob/master/src/rule.js
+
 ### CLI helper tool
 Create a command line tool to generate Moleculer project & modules.
 
@@ -94,3 +98,8 @@ Create a command line tool to generate Moleculer project & modules.
 * `moleculer add service` - create a new empty service. Ask name and version of service, action names.
 
 * `moleculer add middleware` - create a new empty middleware.
+
+	- https://github.com/sboudrias/Inquirer.js
+	- https://github.com/tj/consolidate.js
+	- https://github.com/mattallty/Caporal.js
+	- https://github.com/tj/ngen 
