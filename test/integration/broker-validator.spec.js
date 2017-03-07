@@ -8,8 +8,8 @@ describe("Test broker validator with actions", () => {
 		actions: {
 			withValidation: {
 				params: {
-					a: "required|numeric",
-					b: "required|numeric"
+					a: { type: "number" },
+					b: { type: "number" }
 				},
 				handler: jest.fn(ctx => 123)
 			},

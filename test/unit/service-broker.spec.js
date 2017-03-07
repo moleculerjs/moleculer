@@ -1026,7 +1026,7 @@ describe("Test broker.getLocalActionList", () => {
 		actions: {
 			list: {
 				cache: true,
-				params: { limit: "required|numeric" },
+				params: { limit: "number" },
 				handler: jest.fn()
 			}
 		}
@@ -1043,7 +1043,7 @@ describe("Test broker.getLocalActionList", () => {
 		expect(res["v2.posts.list"].name).toBe("v2.posts.list");
 		expect(res["v2.posts.list"].version).toBe(2);
 		expect(res["v2.posts.list"].cache).toBe(true);
-		expect(res["v2.posts.list"].params).toEqual({ limit: "required|numeric" });
+		expect(res["v2.posts.list"].params).toEqual({ limit: "number" });
 		expect(res["v2.posts.list"].handler).toBeUndefined();
 		expect(res["v2.posts.list"].service).toBeUndefined();
 		

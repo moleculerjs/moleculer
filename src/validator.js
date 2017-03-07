@@ -27,7 +27,7 @@ class ParamValidator {
 		return this.validator.compile(schema);
 	}
 
-	validate(schema, params) {
+	validate(params, schema) {
 		const res = this.validator.validate(params, schema);
 		if (res !== true)
 			throw new ValidationError("Parameters validation error!", res);

@@ -2,24 +2,15 @@ const ServiceBroker = require("../../src/service-broker");
 const Validator = require("../../src/validator");
 const { ValidationError } = require("../../src/errors");
 
-jest.mock("validatorjs");
-
-let ValidatorJS = require("validatorjs");
-ValidatorJS.mockImplementation((obj, schema) => {
-	return {
-		passes: jest.fn(() => schema != null),
-		errors: {
-			all: jest.fn(() => "Not valid!")
-		}
-	};
-});
-
 // Unit: OK!
 describe("Test constructor", () => {
 
 	it("should create instance", () => {
 		let v = new Validator();
 		expect(v).toBeDefined();
+		expect(v.compile).toBeInstanceOf(Function);
+		expect(v.validate).toBeInstanceOf(Function);
+		expect(v.middleware).toBeDefined();
 	});
 
 	it("should register itself as middleware", () => {
@@ -33,26 +24,44 @@ describe("Test constructor", () => {
 	});
 });
 
+describe("Test Validator.compile", () => {
+
+	let v = new Validator();
+	v.validator.compile = jest.fn(() => true);
+
+	it("should call parent compile", () => {
+		v.compile({});
+
+		expect(v.validator.compile).toHaveBeenCalledTimes(1);
+	});
+});
+
 describe("Test Validator.validate", () => {
 
-	it("should return true if object is valid", () => {
-		let v = new Validator();
-		let res = v.validate({}, {});
-		expect(res).toBe(true);
+	let v = new Validator();
+	v.validator.validate = jest.fn(() => true);
+
+	it("should call parent validate", () => {
+		v.validate({}, {});
+
+		expect(v.validator.validate).toHaveBeenCalledTimes(1);
 	});
 
 	it("should throw ValidationError if object is NOT valid", () => {
+		let v = new Validator();
+		v.validator.validate = jest.fn(() => []);
 		expect(() => {
-			let v = new Validator();
-			v.validate(null, {});
+			v.validate({}, {});
 
 		}).toThrow(ValidationError);
-	});	
-
+	});		
 });
 
 describe("Test middleware", () => {
 	let v = new Validator();
+	let __checkGood = jest.fn(() => true);
+	let __checkBad = jest.fn(() => []);
+	v.compile = jest.fn().mockImplementationOnce(() => __checkGood).mockImplementationOnce(() => __checkBad);
 	v.validate = jest.fn();
 
 	it("should return a middleware function", () => {
@@ -60,30 +69,59 @@ describe("Test middleware", () => {
 		expect(mw).toBeInstanceOf(Function);
 	});
 
-	it("should return a middleware function", () => {
+	it("should call validator & handler", () => {
 		let mw = v.middleware();
 
 		let mockAction = {
 			name: "posts.find",
 			params: {
-				id: "required|numeric",
-				name: "required|string"
+				id: "number",
+				name: "string"
 			},
-			handler: jest.fn()
+			handler: jest.fn(() => Promise.resolve())
 		};
 		
 		// Create wrapped handler
 		let wrapped = mw(mockAction.handler, mockAction);
 		expect(typeof wrapped).toBe("function");
 
+		expect(v.compile).toHaveBeenCalledTimes(1);
+		expect(v.compile).toHaveBeenCalledWith({"id": "number", "name": "string"});
+		
+
 		// Create fake context
 		let ctx = { params: { id: 5, name: "John" } };
 
 		// Call wrapped function
 		return wrapped(ctx).then(() => {
-			expect(v.validate).toHaveBeenCalledTimes(1);
-			expect(v.validate).toHaveBeenCalledWith({"id": "required|numeric", "name": "required|string"}, {"id": 5, "name": "John"});
+			expect(__checkGood).toHaveBeenCalledTimes(1);
+			expect(__checkGood).toHaveBeenCalledWith({"id": 5, "name": "John"});
 			expect(mockAction.handler).toHaveBeenCalledTimes(1);		
+		});
+	});
+
+	it("should call validator & throw error & not call handler", () => {
+		let mw = v.middleware();
+
+		let mockAction = {
+			name: "posts.find",
+			params: {
+				id: "number",
+				name: "string"
+			},
+			handler: jest.fn(() => Promise.resolve())
+		};
+		
+		// Create wrapped handler
+		let wrapped = mw(mockAction.handler, mockAction);
+		expect(typeof wrapped).toBe("function");
+		// Create fake context with wrong params
+		let ctx = { params: { id: 5, fullName: "John" } };
+
+		// Call wrapped function
+		return wrapped(ctx).catch(err => {
+			expect(err).toBeInstanceOf(ValidationError);
+			expect(mockAction.handler).toHaveBeenCalledTimes(0);		
 		});
 	});
 
