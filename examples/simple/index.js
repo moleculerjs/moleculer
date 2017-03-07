@@ -25,4 +25,6 @@ broker.call("math.add", { a: 5, b: 3 }).then(res => broker.logger.log("  5 + 3 =
 })
 .catch(err => {
 	broker.logger.error(`Error occured when '${err.ctx.action.name}' action called! Message:`, err.message, " Params:", err.ctx.params);
+	if (err.data)
+		broker.logger.error("Data:", err.data);
 });
