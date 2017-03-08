@@ -1497,16 +1497,16 @@ fakerator:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/fakerator/-/fakerator-0.3.0.tgz#4635d9c345d367ecf69a6892b525d5b7fda7a080"
 
-fast-jsvalidator@icebob/fast-jsvalidator:
-  version "0.1.0"
-  resolved "https://codeload.github.com/icebob/fast-jsvalidator/tar.gz/a1aed8d5ea7f60b24ccfcd17aebf935fc5c9a44f"
-  dependencies:
-    glob "^7.1.1"
-    lodash "^4.17.4"
-
 fast-levenshtein@~2.0.4:
   version "2.0.5"
   resolved "https://registry.yarnpkg.com/fast-levenshtein/-/fast-levenshtein-2.0.5.tgz#bd33145744519ab1c36c3ee9f31f08e9079b67f2"
+
+fastest-validator@0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/fastest-validator/-/fastest-validator-0.2.0.tgz#7f23180f35be2af08468dbd5ce72099f6a600e3f"
+  dependencies:
+    glob "^7.1.1"
+    lodash "^4.17.4"
 
 fb-watchman@^1.8.0:
   version "1.9.0"

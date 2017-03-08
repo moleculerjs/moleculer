@@ -7,7 +7,7 @@
 "use strict";
 
 const Promise = require("bluebird");
-const Validator = require("fast-jsvalidator");
+const Validator = require("fastest-validator");
 const { ValidationError } = require("./errors");
 
 class ParamValidator {
