@@ -45,7 +45,7 @@ module.exports = function(broker) {
 			validate: {
 				cache: false,
 				params: {
-					id: "required|integer|min:1"
+					id: { type: "number", integer: true, min: 1 }
 				},
 				handler(ctx) {
 					return users.find(user => user.id == ctx.params.id);

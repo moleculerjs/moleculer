@@ -7,12 +7,13 @@
 "use strict";
 
 const Promise = require("bluebird");
-const Validator = require("validatorjs");
+const Validator = require("fast-jsvalidator");
 const { ValidationError } = require("./errors");
 
 class ParamValidator {
 
 	constructor() {
+		this.validator = new Validator();
 	}
 
 	init(broker) {
@@ -22,11 +23,14 @@ class ParamValidator {
 		}
 	}
 
-	validate(schema, params) {
-		let validation = new Validator(params, schema);
-		const res = validation.passes();
-		if (!res)
-			throw new ValidationError("Parameters validation error!", validation.errors.all());
+	compile(schema) {
+		return this.validator.compile(schema);
+	}
+
+	validate(params, schema) {
+		const res = this.validator.validate(params, schema);
+		if (res !== true)
+			throw new ValidationError("Parameters validation error!", res);
 		
 		return true;
 	}
@@ -37,11 +41,17 @@ class ParamValidator {
 	 * @memberOf ParamValidator
 	 */
 	middleware() {
-		let validate = Promise.method(this.validate);
 		return function validatorMiddleware(handler, action) {
 			// Wrap a param validator
-			if (action.params && typeof action.params == "object") {
-				return ctx => validate(action.params, ctx.params).then(() => handler(ctx));
+			if (action.params && typeof action.params === "object") {
+				const check = this.compile(action.params);
+				return ctx => {
+					const res = check(ctx.params);
+					if (res === true)
+						return handler(ctx);
+					else
+						return Promise.reject(new ValidationError("Parameters validation error!", res));
+				};
 			}
 			return handler;
 		}.bind(this);

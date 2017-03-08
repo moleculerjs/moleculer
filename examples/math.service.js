@@ -11,8 +11,8 @@ module.exports = {
 
 		mult: {
 			params: {
-				a: "required|numeric",
-				b: "required|numeric"
+				a: "number",
+				b: "number"
 			},
 			handler(ctx) {
 				return Number(ctx.params.a) * Number(ctx.params.b);

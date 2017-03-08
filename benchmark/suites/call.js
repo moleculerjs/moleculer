@@ -200,59 +200,53 @@ Platform info:
    Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
 
 Suite: Call methods
-√ Direct service call x 598,287 ops/sec ±0.72% (83 runs sampled)
-√ action.handler x 857,459 ops/sec ±0.42% (86 runs sampled)
-√ ctx.invoke x 563,193 ops/sec ±0.82% (87 runs sampled)
-√ broker.call (normal) x 530,562 ops/sec ±1.15% (83 runs sampled)
-√ broker.call (with params) x 533,886 ops/sec ±0.67% (87 runs sampled)
+√ broker.call (normal) x 818,115 ops/sec ±0.38% (87 runs sampled)
+√ broker.call (with params) x 790,488 ops/sec ±1.35% (86 runs sampled)
 
-   Direct service call         -30.23%    (598,287 ops/sec)
-   action.handler                0.00%    (857,459 ops/sec)
-   ctx.invoke                  -34.32%    (563,193 ops/sec)
-   broker.call (normal)        -38.12%    (530,562 ops/sec)
-   broker.call (with params)   -37.74%    (533,886 ops/sec)
+   broker.call (normal)          0.00%    (818,115 ops/sec)
+   broker.call (with params)    -3.38%    (790,488 ops/sec)
 -----------------------------------------------------------------------
 
 Suite: Call with middlewares
-√ Call without middlewares x 531,402 ops/sec ±0.91% (88 runs sampled)
-√ Call with 1 middleware x 531,329 ops/sec ±2.01% (87 runs sampled)
-√ Call with 5 middlewares x 537,754 ops/sec ±0.98% (90 runs sampled)
+√ Call without middlewares x 762,770 ops/sec ±1.03% (87 runs sampled)
+√ Call with 1 middleware x 769,515 ops/sec ±0.73% (88 runs sampled)
+√ Call with 5 middlewares x 769,607 ops/sec ±0.96% (87 runs sampled)
 
-   Call without middlewares    -1.18%    (531,402 ops/sec)
-   Call with 1 middleware      -1.19%    (531,329 ops/sec)
-   Call with 5 middlewares      0.00%    (537,754 ops/sec)
+   Call without middlewares    -0.88%    (762,770 ops/sec)
+   Call with 1 middleware       0.00%    (769,515 ops/sec)
+   Call with 5 middlewares      0.01%    (769,607 ops/sec)
 -----------------------------------------------------------------------
 
 Suite: Call with cachers
-√ No cacher x 441,422 ops/sec ±1.39% (87 runs sampled)
-√ Built-in cacher x 105,621 ops/sec ±0.99% (83 runs sampled)
-√ Built-in cacher (keys filter) x 202,384 ops/sec ±0.78% (88 runs sampled)
+√ No cacher x 598,163 ops/sec ±0.86% (85 runs sampled)
+√ Built-in cacher x 64,271 ops/sec ±0.99% (84 runs sampled)
+√ Built-in cacher (keys filter) x 88,719 ops/sec ±0.93% (86 runs sampled)
 
-   No cacher                         0.00%    (441,422 ops/sec)
-   Built-in cacher                 -76.07%    (105,621 ops/sec)
-   Built-in cacher (keys filter)   -54.15%    (202,384 ops/sec)
+   No cacher                         0.00%    (598,163 ops/sec)
+   Built-in cacher                 -89.26%     (64,271 ops/sec)
+   Built-in cacher (keys filter)   -85.17%     (88,719 ops/sec)
 -----------------------------------------------------------------------
 
 Suite: Call with param validator
-√ No validator x 435,510 ops/sec ±1.47% (87 runs sampled)
-√ With validator passes x 93,460 ops/sec ±0.96% (87 runs sampled)
-√ With validator fail x 18,570 ops/sec ±1.35% (85 runs sampled)
+√ No validator x 588,463 ops/sec ±1.11% (84 runs sampled)
+√ With validator passes x 541,903 ops/sec ±1.41% (84 runs sampled)
+√ With validator fail x 25,648 ops/sec ±1.62% (85 runs sampled)
 
-   No validator              0.00%    (435,510 ops/sec)
-   With validator passes   -78.54%     (93,460 ops/sec)
-   With validator fail     -95.74%     (18,570 ops/sec)
+   No validator              0.00%    (588,463 ops/sec)
+   With validator passes    -7.91%    (541,903 ops/sec)
+   With validator fail     -95.64%     (25,648 ops/sec)
 -----------------------------------------------------------------------
 
 Suite: Call with statistics & metrics
-√ No statistics x 524,523 ops/sec ±0.90% (81 runs sampled)
-√ With metrics x 280,352 ops/sec ±1.41% (86 runs sampled)
-√ With statistics x 319,233 ops/sec ±1.95% (81 runs sampled)
-√ With metrics & statistics x 192,269 ops/sec ±3.09% (61 runs sampled)
+√ No statistics x 735,371 ops/sec ±1.16% (88 runs sampled)
+√ With metrics x 180,635 ops/sec ±1.49% (82 runs sampled)
+√ With statistics x 493,453 ops/sec ±1.06% (86 runs sampled)
+√ With metrics & statistics x 178,360 ops/sec ±0.96% (85 runs sampled)
 
-   No statistics                 0.00%    (524,523 ops/sec)
-   With metrics                -46.55%    (280,352 ops/sec)
-   With statistics             -39.14%    (319,233 ops/sec)
-   With metrics & statistics   -63.34%    (192,269 ops/sec)
+   No statistics                 0.00%    (735,371 ops/sec)
+   With metrics                -75.44%    (180,635 ops/sec)
+   With statistics             -32.90%    (493,453 ops/sec)
+   With metrics & statistics   -75.75%    (178,360 ops/sec)
 -----------------------------------------------------------------------
 
 */

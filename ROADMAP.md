@@ -70,26 +70,6 @@ In this case, if `posts` service asks the config, it'll get
 Wait for all dependent service will be available. After it, call the `started` event handler of service.
 [example](http://www.slideshare.net/adriancockcroft/microservices-whats-missing-oreilly-software-architecture-new-york#24)
 
-### Custom fast validator
-```js
-	const v = require("...");
-	get: {
-		params: v({
-			id: { type: "number", req: true, min: 0, max: 100 },
-			name: { type: "string", min: 0, max: 128 }
-			settings: { type: "object", props: {
-				notify: { type: ["boolean", "object" ] } // 2 accepted type: Boolean or Object
-			}},
-			roles: { type: "array", items: { type: "enum", enums: ["admin", "user"]),
-			email: { type: "email", req: true },
-			homepage: { type: "regex", pattern:/asd/gi }
-		}
-	}
-```
-
-- https://github.com/aldeed/meteor-simple-schema
-- https://github.com/semisleep/simple-vue-validator/blob/master/src/rule.js
-
 ### CLI helper tool
 Create a command line tool to generate Moleculer project & modules.
 

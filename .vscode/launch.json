@@ -14,6 +14,13 @@
 		{
 			"type": "node",
 			"request": "launch",
+			"name": "Launch demo:simple",
+			"program": "${workspaceRoot}\\examples\\simple\\index.js",
+			"cwd": "${workspaceRoot}\\examples\\simple"
+		},
+		{
+			"type": "node",
+			"request": "launch",
 			"name": "Launch demo:transporter",
 			"program": "${workspaceRoot}\\examples\\transporter\\index.js",
 			"cwd": "${workspaceRoot}\\examples\\transporter"

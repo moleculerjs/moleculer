@@ -1,6 +1,6 @@
 {
   "name": "moleculer",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Fast & powerful microservices framework for Node.JS",
   "main": "index.js",
   "scripts": {
@@ -64,6 +64,7 @@
     "conventional-changelog-cli": "1.2.0",
     "es6-error": "4.0.2",
     "eventemitter2": "3.0.1",
+    "fast-jsvalidator": "icebob/fast-jsvalidator",
     "glob": "7.1.1",
     "ioredis": "2.5.0",
     "lodash": "4.17.4",
