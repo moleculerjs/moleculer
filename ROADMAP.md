@@ -9,6 +9,7 @@
 * handleExceptions: true option
 	Catch unhandled exceptions and send an event with details. Can be catch in metrics, alert or logger services
 * move heart-beat handling to `Transit` class.
+* improve logger with `trace` & `fatal` levels. ([log4js](https://github.com/nomiddlename/log4js-node))
 * pluggable serializer for transport
 	- JSON parse/stringify
 	- [PSON](https://github.com/dcodeIO/PSON)
