@@ -22,7 +22,7 @@ module.exports = {
 	wrap(extLogger, moduleName, logLevel) {
 		let noop = function() {};
 
-		const levels = ["error", "warn", "info", "debug"];
+		const levels = ["fatal", "error", "warn", "info", "debug", "trace"];
 		let prefix = moduleName? "[" + moduleName + "] " : "";
 
 		let logger = {};
@@ -47,7 +47,17 @@ module.exports = {
 			levels.forEach((type, i) => {
 				if (i > levelIdx) return;
 
-				let externalMethod = extLogger[type] || extLogger.info || extLogger.log;
+				let externalMethod = extLogger[type];
+				if (!externalMethod) {
+					switch(type) {
+					case "fatal":
+					case "warn": externalMethod = extLogger["error"] || extLogger["info"]; break;
+					case "debug": externalMethod = extLogger["info"]; break;
+					case "trace": externalMethod = extLogger["debug"] || extLogger["info"]; break;
+					default: externalMethod = extLogger["info"];
+					}
+				}
+
 				if (externalMethod) {
 					logger[type] = function(msg, ...args) {
 						externalMethod(prefix + msg, ...args);
@@ -55,8 +65,6 @@ module.exports = {
 				}
 			});
 		}
-
-		logger.log = logger.info;
 
 		return logger;		
 	}

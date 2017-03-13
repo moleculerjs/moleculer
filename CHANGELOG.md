@@ -39,6 +39,29 @@ mult: {
 } ]
 ```
 
+# Changes
+## Added & removed log levels
+* Added 2 new log levels (`fatal` and `trace`);
+* Removed unused `log` level. Use `info` level instead.
+
+**Available levels:**
+```js
+logger.trace("trace level");
+logger.debug("debug level");
+logger.info("info level");
+logger.warn("warn level");
+logger.error("error level");	
+logger.fatal("fatal level");
+```
+
+**Logger fallback levels:**
+* `trace` -> `debug` -> `info`
+* `debug` -> `info`
+* `info`: main level, no fallback
+* `warn` -> `error` -> `info`
+* `error` -> `info`
+* `fatal` -> `error` -> `info`
+
 
 <a name="0.5.0"></a>
 # 0.5.0 (2017-02-26)
