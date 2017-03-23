@@ -56,3 +56,8 @@ https://github.com/petkaantonov/bluebird/wiki/Optimization-killers#52-the-object
 https://jsperf.com/let-compound-assignment
 
 https://gist.github.com/trevnorris/f0907b010c9d5e24ea97
+
+## Memory leak 
+
+https://www.youtube.com/watch?v=taADm6ndvVo&list=PLz6xH_GrBpquZgdVzEX4Bix0oxHQlZfwm&index=8
+
