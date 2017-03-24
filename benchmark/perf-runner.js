@@ -46,7 +46,7 @@ let [b1, b2] = createBrokers(Transporters.Fake);
 let count = 0;
 function doRequest() {
 	count++;
-	return b2.call("echo.reply", { a: count }).then(res => {
+	return b1.call("echo.reply", { a: count }).then(res => {
 		if (count % 10000) {
 			// Fast cycle
 			doRequest();
