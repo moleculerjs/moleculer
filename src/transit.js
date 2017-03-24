@@ -149,8 +149,8 @@ class Transit {
 	messageHandler(topics, packet) {
 		let msg;
 		if (packet)
-			//msg = utils.string2Json(packet);
-			msg = packet;
+			msg = utils.string2Json(packet);
+			//msg = packet;
 
 		// Check payload
 		if (!msg) {
@@ -418,8 +418,8 @@ class Transit {
 	 * @memberOf NatsTransporter
 	 */
 	publish(topic, message) {
-		//const packet = utils.json2String(message);
-		const packet = message;
+		const packet = utils.json2String(message);
+		//const packet = message;
 		return this.tx.publish(topic, packet);
 	}
 }

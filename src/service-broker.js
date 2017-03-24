@@ -640,7 +640,7 @@ class ServiceBroker {
 		}
 	}
 
-	_remoteCall(ctx, opts = {}) {		
+	_remoteCall(ctx, opts) {		
 		// Remote action call
 		this.logger.info(`Call remote '${ctx.action.name}' action on '${ctx.nodeID}' node...`);
 
