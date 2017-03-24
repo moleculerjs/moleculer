@@ -14,14 +14,19 @@ const { RequestTimeoutError } = require("./errors");
 const LOG_PREFIX = "TRANSIT";
 
 // Topic names
-const TOPIC_EVENT = "EVENT";
-const TOPIC_REQ = "REQ";
-const TOPIC_RES = "RES";
-const TOPIC_DISCOVER = "DISCOVER";
-const TOPIC_INFO = "INFO";
-const TOPIC_DISCONNECT = "DISCONNECT";
-const TOPIC_HEARTBEAT = "HEARTBEAT";
+const TOPIC_EVENT 		= "EVENT";
+const TOPIC_REQ 		= "REQ";
+const TOPIC_RES 		= "RES";
+const TOPIC_DISCOVER 	= "DISCOVER";
+const TOPIC_INFO 		= "INFO";
+const TOPIC_DISCONNECT 	= "DISCONNECT";
+const TOPIC_HEARTBEAT 	= "HEARTBEAT";
 
+/**
+ * Transit class
+ * 
+ * @class Transit
+ */
 class Transit {
 
 	/**
@@ -43,8 +48,6 @@ class Transit {
 		this.pendingRequests = new Map();
 
 		this.tx.init(broker, this.messageHandler.bind(this));
-
-		this.json2String = utils.json2String;
 	}
 
 	/**
@@ -66,7 +69,7 @@ class Transit {
 	disconnect() {
 		if (this.tx.connected) {
 			return this.sendDisconnectPacket()
-			.then(() => this.tx.disconnect());
+				.then(() => this.tx.disconnect());
 		}
 	}
 
@@ -146,7 +149,8 @@ class Transit {
 	messageHandler(topics, packet) {
 		let msg;
 		if (packet)
-			msg = utils.string2Json(packet);
+			//msg = utils.string2Json(packet);
+			msg = packet;
 
 		// Check payload
 		if (!msg) {
@@ -155,30 +159,30 @@ class Transit {
 
 		if (msg.nodeID == this.nodeID) return Promise.resolve(); 
 
-		const topic = topics[0];
+		const cmd = topics[0];
 
 		// Event
-		if (topic === TOPIC_EVENT) {
+		if (cmd === TOPIC_EVENT) {
 			this.logger.debug("Event received", msg);
 			this.broker.emitLocal(msg.event, msg.param);				
 			return;
 		}
 
 		// Request
-		else if (topic === TOPIC_REQ) {
+		else if (cmd === TOPIC_REQ) {
 			return this._requestHandler(msg);
 		}
 
 		// Response
-		else if (topic === TOPIC_RES) {
+		else if (cmd === TOPIC_RES) {
 			return this._responseHandler(msg);
 		}
 
 		// Node info
-		else if (topic === TOPIC_INFO || topic === TOPIC_DISCOVER) {
+		else if (cmd === TOPIC_INFO || cmd === TOPIC_DISCOVER) {
 			this.broker.processNodeInfo(msg.nodeID, msg);
 
-			if (topic == "DISCOVER") {
+			if (cmd == "DISCOVER") {
 				//this.logger.debug("Discover received from " + msg.nodeID);
 				this.sendNodeInfo(msg.nodeID);
 			}
@@ -186,20 +190,28 @@ class Transit {
 		}
 
 		// Disconnect
-		else if (topic === TOPIC_DISCONNECT) {
+		else if (cmd === TOPIC_DISCONNECT) {
 			this.logger.warn(`Node '${msg.nodeID}' disconnected`);
 			this.broker.nodeDisconnected(msg.nodeID, msg);
 			return;
 		}
 
 		// Heartbeat
-		else if (topic === TOPIC_HEARTBEAT) {
+		else if (cmd === TOPIC_HEARTBEAT) {
 			//this.logger.debug("Node heart-beat received from " + msg.nodeID);
 			this.broker.nodeHeartbeat(msg.nodeID, msg);
 			return;
 		}
 	}
 
+	/**
+	 * Handle incoming request
+	 * 
+	 * @param {Object} msg 
+	 * @returns {Promise}
+	 * 
+	 * @memberOf Transit
+	 */
 	_requestHandler(msg) {
 		this.logger.info(`Request '${msg.action}' from '${msg.nodeID}'. Params:`, msg.params);
 		return this.broker.call(msg.action, msg.params, {}) // empty {} opts to avoid deoptimizing
@@ -207,6 +219,14 @@ class Transit {
 			.catch(err => this.sendResponse(msg.nodeID, msg.requestID, null, err));
 	}
 
+	/**
+	 * Process incoming response of request
+	 * 
+	 * @param {Object} msg 
+	 * @returns {Promise}
+	 * 
+	 * @memberOf Transit
+	 */
 	_responseHandler(msg) {
 		const requestID = msg.requestID;
 		const req = this.pendingRequests.get(requestID);
@@ -219,7 +239,7 @@ class Transit {
 
 		// Stop timeout timer
 		if (req.timer) {
-			// istanbul ignore next //
+			// istanbul ignore next
 			clearTimeout(req.timer);
 		}
 
@@ -252,6 +272,16 @@ class Transit {
 		return new Promise((resolve, reject) => this._doRequest(ctx, opts, resolve, reject));
 	}
 
+	/**
+	 * Do a remote request
+	 * 
+	 * @param {Context} ctx 		Context of request
+	 * @param {any} opts 			Options of request
+	 * @param {Function} resolve 	Resolve of Promise
+	 * @param {Function} reject 	Reject of Promise
+	 * 
+	 * @memberOf Transit
+	 */
 	_doRequest(ctx, opts, resolve, reject) {
 		const req = {
 			nodeID: ctx.nodeID,
@@ -273,7 +303,7 @@ class Transit {
 
 		// Handle request timeout
 		if (opts.timeout > 0) {
-			// Globális timer 100ms-ekkel és az nézi lejárt-e valamelyik.
+			// TODO: Globális timer 100ms-ekkel és azt nézi lejárt-e valamelyik.
 			// a req-be egy expiration prop amibe az az érték van, ami azt jelenti lejárt.
 			
 			req.timer = setTimeout(() => {
@@ -291,7 +321,7 @@ class Transit {
 		// Add to pendings
 		this.pendingRequests.set(ctx.id, req);
 
-		//return resolve(ctx.params);
+		// return resolve(ctx.params);
 		
 		// Publish request
 		this.publish([TOPIC_REQ, ctx.nodeID], payload);		
@@ -388,7 +418,8 @@ class Transit {
 	 * @memberOf NatsTransporter
 	 */
 	publish(topic, message) {
-		const packet = utils.json2String(message);
+		//const packet = utils.json2String(message);
+		const packet = message;
 		return this.tx.publish(topic, packet);
 	}
 }

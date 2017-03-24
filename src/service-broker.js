@@ -427,8 +427,8 @@ class ServiceBroker {
 		let item = this.actions.get(action.name);
 		if (item) {
 			item.removeByNode(nodeID);
-			/* Nem töröljük, mert valószínűleg csak leszakadt a node és majd vissza fog jönni.
-			   Tehát az action létezik, csak pillanatnyilag nem elérhető
+			/* Don't delete because maybe node only disconnected and will come back.
+			   So the action is exists, just now it is not available.
 			
 			if (item.count() == 0) {
 				this.actions.delete(action.name);
@@ -489,8 +489,7 @@ class ServiceBroker {
 		if (this.statistics) {
 			addAction("$node.stats", () => {
 				return this.statistics.snapshot();
-			});		
-			
+			});				
 		}
 	}
 
@@ -629,11 +628,12 @@ class ServiceBroker {
 			ctx = new this.ContextFactory({ broker: this, action, params, nodeID, requestID: opts.requestID, metrics: !!this.options.metrics });
 		}
 
-		this._callCount++; // Need to remove
+		this._callCount++; // TODO: Need to remove
 
 		if (actionItem.local) {
 			// Local action call
 			this.logger.info(`Call local '${action.name}' action...`);
+
 			return action.handler(ctx);
 		} else {
 			return this._remoteCall(ctx, opts);
@@ -657,16 +657,19 @@ class ServiceBroker {
 		if (err instanceof errors.RequestTimeoutError) {
 			// Retry request
 			if (opts.retryCount-- > 0) {
-				this.logger.warn(`Retry call '${ctx.action.name}' action on '${ctx.nodeID}' (retry: ${opts.retryCount + 1})...`);
+				this.logger.warn(`Action '${ctx.action.name}' call timed out on '${ctx.nodeID}'!`);
+				this.logger.warn(`Recall '${ctx.action.name}' action (retry: ${opts.retryCount + 1})...`);
 
 				return this.call(ctx.action.name, ctx.params, opts);
 			}
 
+			// Set node status to unavailable
 			this.nodeUnavailable(ctx.nodeID);
 		}
+
 		// Handle fallback response
 		if (opts.fallbackResponse) {
-			this.logger.warn(`Action '${ctx.action.name}' returns fallback response!`);
+			this.logger.info(`Action '${ctx.action.name}' returns fallback response!`);
 			if (isFunction(opts.fallbackResponse))
 				return opts.fallbackResponse(ctx, ctx.nodeID);
 			else
