@@ -36,6 +36,8 @@ describe("Test ServiceBroker constructor", () => {
 			internalActions: true 
 		});
 
+		expect(broker.Promise).toBe(Promise);
+
 		expect(broker.ServiceFactory).toBe(Service);
 		expect(broker.ContextFactory).toBe(Context);
 

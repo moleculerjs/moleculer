@@ -67,6 +67,9 @@ class ServiceBroker {
 			// ContextFactory: null
 		});
 
+		// Promise constructor
+		this.Promise = Promise;
+
 		// Class factories
 		this.ServiceFactory = this.options.ServiceFactory || require("./service");
 		this.ContextFactory = this.options.ContextFactory || require("./context");
