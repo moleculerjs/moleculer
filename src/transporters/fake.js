@@ -38,7 +38,6 @@ class FakeTransporter extends Transporter {
 		
 		// Local event bus
 		this.bus = global.bus;
-		this.connected = true;
 	}
 
 	/**
@@ -47,6 +46,7 @@ class FakeTransporter extends Transporter {
 	 * @memberOf FakeTransporter
 	 */
 	connect() {
+		this.connected = true;
 		return Promise.resolve();
 	}
 
@@ -57,6 +57,7 @@ class FakeTransporter extends Transporter {
 	 */
 	disconnect() {
 		this.connected = false;
+		return Promise.resolve();
 	}
 
 	/**
@@ -88,7 +89,7 @@ class FakeTransporter extends Transporter {
 	 * @memberOf FakeTransporter
 	 */
 	publish(topic, packet) {
-		const t = this.prefix + "." + topic.join(".");
+		const t = this.prefix + "." + topic.join("."); // Faster than [].concat
 		this.bus.emit(t, packet);
 	}
 

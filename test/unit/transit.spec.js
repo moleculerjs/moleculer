@@ -68,6 +68,8 @@ describe("Test Transit.disconnect", () => {
 	transporter.disconnect = jest.fn(() => Promise.resolve());
 	transit.sendDisconnectPacket = jest.fn(() => Promise.resolve());
 
+	transit.connect();
+	
 	it("should call transporter disconnect & sendDisconnectPacket", () => {
 		return transit.disconnect().then(() => {
 			expect(transporter.disconnect).toHaveBeenCalledTimes(1);
