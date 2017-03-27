@@ -8,6 +8,7 @@
     "demow": "nodemon examples/index.js",
     "bench": "node benchmark/index.js",
     "perf": "nodemon --allow-natives-syntax benchmark/perf-runner.js",
+    "pperf": "node --inspect --expose-gc benchmark/perf-runner.js",
     "ci": "jest --watch",
     "test": "jest --coverage",
     "lint": "eslint --ext=.js src test",

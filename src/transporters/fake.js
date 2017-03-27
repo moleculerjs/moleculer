@@ -9,10 +9,11 @@
 const Promise		= require("bluebird");
 const Transporter 	= require("./base");
 
-const EventEmitter2 = require("eventemitter2").EventEmitter2;
+//const EventEmitter2 = require("eventemitter2").EventEmitter2;
+const EventEmitter = require("events").EventEmitter;
 
 // Put to global to transfer messages between brokers in the process
-global.bus = new EventEmitter2({
+global.bus = new EventEmitter({
 	wildcard: true,
 	maxListeners: 100
 });
@@ -37,7 +38,6 @@ class FakeTransporter extends Transporter {
 		
 		// Local event bus
 		this.bus = global.bus;
-		this.connected = true;
 	}
 
 	/**
@@ -46,6 +46,7 @@ class FakeTransporter extends Transporter {
 	 * @memberOf FakeTransporter
 	 */
 	connect() {
+		this.connected = true;
 		return Promise.resolve();
 	}
 
@@ -56,6 +57,7 @@ class FakeTransporter extends Transporter {
 	 */
 	disconnect() {
 		this.connected = false;
+		return Promise.resolve();
 	}
 
 	/**
@@ -66,12 +68,16 @@ class FakeTransporter extends Transporter {
 	 * @memberOf FakeTransporter
 	 */
 	subscribe(topic) {
-		const self = this;
 		const t = [this.prefix].concat(topic).join(".");
+		/*
+		const self = this;
 		this.bus.on(t, function subscriptionHandler(msg) {
-			const event = this.event.split(".").slice(1);
-			self.messageHandler(event, msg);
+			//const event = this.event.split(".").slice(1);
+			self.messageHandler(topic, msg);
 		});
+		*/
+
+		this.bus.on(t, msg => this.messageHandler(topic, msg));
 	}
 
 	/**
@@ -83,7 +89,7 @@ class FakeTransporter extends Transporter {
 	 * @memberOf FakeTransporter
 	 */
 	publish(topic, packet) {
-		const t = [this.prefix].concat(topic).join(".");
+		const t = this.prefix + "." + topic.join("."); // Faster than [].concat
 		this.bus.emit(t, packet);
 	}
 

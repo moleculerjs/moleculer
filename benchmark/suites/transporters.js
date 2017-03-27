@@ -123,15 +123,15 @@ Platform info:
    Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
 
 Suite: Transport with 10bytes
-√ Fake x 17,563 ops/sec ±1.39% (82 runs sampled)
-√ NATS x 4,655 ops/sec ±1.18% (87 runs sampled)
-√ Redis x 4,865 ops/sec ±1.34% (83 runs sampled)
-√ MQTT x 4,427 ops/sec ±1.16% (84 runs sampled)
+√ Fake x 26,667 ops/sec ±2.16% (85 runs sampled)
+√ NATS x 5,011 ops/sec ±1.40% (84 runs sampled)
+√ Redis x 5,001 ops/sec ±1.31% (83 runs sampled)
+√ MQTT x 4,581 ops/sec ±1.12% (87 runs sampled)
 
-   Fake      0.00%     (17,563 ops/sec)
-   NATS    -73.49%      (4,655 ops/sec)
-   Redis   -72.30%      (4,865 ops/sec)
-   MQTT    -74.79%      (4,427 ops/sec)
------------------------------------------------------------------------
+   Fake      0.00%     (26,667 ops/sec)
+   NATS    -81.21%      (5,011 ops/sec)
+   Redis   -81.25%      (5,001 ops/sec)
+   MQTT    -82.82%      (4,581 ops/sec)
+-------------------------------------------------------------------------
 
 */

@@ -863,7 +863,7 @@ describe("Test broker._remoteCall", () => {
 		
 	it("should call transit.request without opts", () => {
 		let origCtx = new Context({ broker, action: { name: "test" }, nodeID: "server-2" });
-		return broker._remoteCall(origCtx).then(({ ctx, opts }) => {
+		return broker._remoteCall(origCtx, {}).then(({ ctx, opts }) => {
 			expect(ctx).toBe(origCtx);
 			expect(opts).toEqual({ retryCount: 0, timeout: 5000 }); // default values
 
@@ -890,7 +890,7 @@ describe("Test broker._remoteCall", () => {
 		broker.transit.request = jest.fn(() => Promise.reject(new CustomError("Transport error!")));
 
 		let ctx = new Context({ broker, action: { name: "test" }, nodeID: "server-2" });
-		return broker._remoteCall(ctx).catch(err => {
+		return broker._remoteCall(ctx, {}).catch(err => {
 			expect(err).toBeInstanceOf(CustomError);
 			expect(err.message).toBeInstanceOf("Transport error!");
 

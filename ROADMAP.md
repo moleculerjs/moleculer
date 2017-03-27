@@ -1,29 +1,35 @@
 # Roadmap
 
 ## v0.7.x
-* Dynamic & reduced request timeout. Reduce the original time in subcalls.
-* official API gateway service (Native, Express, [Aero](https://github.com/aerojs/aero), [uWebsocket HTTP](https://github.com/uWebSockets/uWebSockets/blob/master/nodejs/http_sillybenchmark.js), [benchmark](https://github.com/blitzprog/webserver-benchmarks))
-* improve remote call performance
+- [ ] Dynamic & reduced request timeout. Reduce the original time in subcalls.
+- [ ] official API gateway service (Native, Express, [Aero](https://github.com/aerojs/aero), [uWebsocket HTTP](https://github.com/uWebSockets/uWebSockets/blob/master/nodejs/http_sillybenchmark.js), [benchmark](https://github.com/blitzprog/webserver-benchmarks))
 
-* metricsRate: doesn't measure every request
-* handleExceptions: true option
+- [ ] metricsRate: doesn't measure every request
+
+- [ ] handleExceptions: true option
 	Catch unhandled exceptions and send an event with details. Can be catch in metrics, alert or logger services
-* move heart-beat handling to `Transit` class.
-* pluggable serializer for transport
-	- JSON parse/stringify
-	- [PSON](https://github.com/dcodeIO/PSON)
-	- [Avro](https://github.com/mtth/avsc)
-* more [offical examples](https://github.com/ice-services/moleculer-examples)
+
+- [ ] move heart-beat handling to `Transit` class.
+
+- [ ] meta in context which will be transported. (for user, session, state...etc)
+	- [ ] other meta for response, that need to be transported back to caller (for contentType, pagination...etc)
+
+- [ ] pluggable serializer for transport
+	- [ ] JSON parse/stringify
+	- [ ] [PSON](https://github.com/dcodeIO/PSON)
+	- [ ] [Avro](https://github.com/mtth/avsc)
+
+- [ ] more [offical examples](https://github.com/ice-services/moleculer-examples)
 
 ## v0.8.x
-* direct remote call to a specified node (for monitoring every node)
-* multi broker.call (array params & returns with array result )
-* official Zipkin tracer service
-* RabbitMQ transporter
-* create a multi-pages docs & generate a static site from it.
-	* https://github.com/segmentio/metalsmith
-* create d.ts file
-* add lru features to Memory and Redis cachers
+- [ ] direct remote call to a specified node (for monitoring every node)
+- [ ] multi broker.call (array params & returns with array result )
+- [ ] official Zipkin tracer service
+- [ ] RabbitMQ transporter
+- [ ] create a multi-pages docs & generate a static site from it.
+	- [ ] https://github.com/segmentio/metalsmith
+- [ ] create d.ts file
+- [ ] add lru features to Memory and Redis cachers
 
 ## v1.0.x
 It will be the first stable release. Afterwards the version numbers should follow semver versioning.

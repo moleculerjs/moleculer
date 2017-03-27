@@ -160,6 +160,28 @@ describe("Test middleware", () => {
 		});
 	});
 
+	it("should not call cacher.get & set if cache = false", () => {
+		let action = {
+			name: "posts.get",
+			cache: false,
+			handler: jest.fn(() => Promise.resolve(cachedData))
+		};
+		cacher.get.mockClear();
+		cacher.set.mockClear();
+
+		let ctx = new Context({ params, service: { broker } });
+		let cachedHandler = cacher.middleware()(action.handler, action);
+		expect(typeof cachedHandler).toBe("function");
+
+		return cachedHandler(ctx).then(() => {
+			expect(cachedHandler).toBe(action.handler);
+			expect(broker.cacher.get).toHaveBeenCalledTimes(0);
+			expect(action.handler).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.set).toHaveBeenCalledTimes(0);
+		});
+
+	});	
+
 });
 
 describe("Test cache.clean & cache.del events", () => {

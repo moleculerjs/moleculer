@@ -9,7 +9,6 @@ describe("Test FakeTransporter", () => {
 	it("check constructor", () => {
 		let trans = new FakeTransporter();
 		expect(trans).toBeDefined();
-		expect(trans.connected).toBe(true);
 		expect(trans.bus).toBeDefined();
 	});
 
@@ -17,6 +16,7 @@ describe("Test FakeTransporter", () => {
 		let trans = new FakeTransporter();
 		let p = trans.connect();
 		expect(isPromise(p)).toBe(true);
+		expect(trans.connected).toBe(true);
 		return p;
 	});	
 
@@ -42,9 +42,11 @@ describe("Test FakeTransporter", () => {
 		expect(trans.bus.on).toHaveBeenCalledWith("TEST.REQ.node", jasmine.any(Function));
 
 		// Test subscribe callback
-		subCb.call({ event: "event.test.name" }, "incoming data");
+		//subCb.call({ event: "event.test.name" }, "incoming data");
+		subCb("incoming data");
 		expect(msgHandler).toHaveBeenCalledTimes(1);
-		expect(msgHandler).toHaveBeenCalledWith(["test", "name"], "incoming data");
+		//expect(msgHandler).toHaveBeenCalledWith(["test", "name"], "incoming data");
+		expect(msgHandler).toHaveBeenCalledWith(["REQ", "node"], "incoming data");
 	});
 
 	it("check publish", () => {

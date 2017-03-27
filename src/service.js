@@ -49,6 +49,10 @@ class Service {
 		this.schema = schema;
 		this.broker = broker;
 
+		if (broker) {
+			this.Promise = broker.Promise;
+		}
+
 		this.logger = this.broker.getLogger(this.name.toUpperCase() + "-SVC");
 
 		this.actions = {}; // external access to actions

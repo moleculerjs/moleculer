@@ -25,6 +25,9 @@ $ node --trace-opt --trace-deopt index.js > trace.txt
 
 More info: https://community.risingstack.com/how-to-find-node-js-performance-optimization-killers/
 
+## Inspecting & Profiling in Chrome
+
+`node --inspect --expose-gc benchmark/perf-runner.js`
 
 ## IR Hydra
 
