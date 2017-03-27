@@ -22,44 +22,6 @@ const TOPIC_INFO 		= "INFO";
 const TOPIC_DISCONNECT 	= "DISCONNECT";
 const TOPIC_HEARTBEAT 	= "HEARTBEAT";
 
-class Request {
-	constructor(nodeID, requestID, action, params) {
-		this.nodeID = nodeID;
-		this.requestID = requestID;
-		this.action = action;
-		this.params = params;
-	}
-
-	toString() {
-		//return `{"nodeID":"${this.nodeID}", "requestID":"${this.requestID}", "action":"${this.action}", "params": ${utils.json2String(this.params)} }`;
-		//return `{"nodeID":"${this.nodeID}", "requestID":"${this.requestID}", "action":"${this.action}", "params": { "a": 1 } }`;
-		return utils.json2String(this);
-	}
-}
-
-class Response {
-	constructor(nodeID, requestID, data, err) {
-		this.nodeID = nodeID;
-		this.requestID = requestID;
-		this.data = data;
-		if (err) {
-			this.error = {
-				name: err.name,
-				message: err.message,
-				code: err.code,
-				data: err.data				
-			};
-		}
-		this.success = err == null;
-	}
-
-	toString() {
-		//return `{"nodeID":"${this.nodeID}", "requestID":"${this.requestID}", "success":"${this.success}", "data": ${utils.json2String(this.data)} }`;
-		//return `{"nodeID":"${this.nodeID}", "requestID":"${this.requestID}", "success":"${this.success}", "data": { "a": 1 } }`;
-		return utils.json2String(this);
-	}
-}
-
 /**
  * Transit class
  * 
@@ -185,10 +147,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	messageHandler(topics, packet) {
-		let msg;
-		if (packet)
-			msg = utils.string2Json(packet);
-			//msg = packet;
+		const msg = this.deserialize(packet);
 
 		// Check payload
 		if (!msg) {
@@ -330,13 +289,12 @@ class Transit {
 			timer: null
 		};
 
-		const payload = new Request(this.nodeID, ctx.id, ctx.action.name, ctx.params);
-		/*const payload = {
+		const payload = {
 			nodeID: this.nodeID,
 			requestID: ctx.id,
 			action: ctx.action.name,
 			params: ctx.params,
-		};*/
+		};
 
 		this.logger.info(`Call '${ctx.action.name}' action on '${ctx.nodeID}' node...`/*, payload*/);
 
@@ -377,11 +335,25 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendResponse(nodeID, requestID, data, err) {
-		const packet = new Response(this.nodeID, requestID, data, err);
+		const payload = {
+			nodeID: this.nodeID,
+			requestID: requestID,
+			success: err == null,
+			data: data
+		};
+		if (err) {
+			payload.error = {
+				name: err.name,
+				message: err.message,
+				code: err.code,
+				data: err.data				
+			};
+		}
+
 		this.logger.debug(`Send response back to '${nodeID}'`);
 
 		// Publish the response
-		return this.publish([TOPIC_RES, nodeID], packet);
+		return this.publish([TOPIC_RES, nodeID], payload);
 	}	
 
 	/**
@@ -439,19 +411,36 @@ class Transit {
 	 * Publish via transporter
 	 * 
 	 * @param {Array} topic 
-	 * @param {String} message 
+	 * @param {Object} payload
 	 * 
 	 * @memberOf NatsTransporter
 	 */
-	publish(topic, message) {
-		let packet;
-		if (message instanceof Response || message instanceof Request)
-			packet = message.toString();
-		else
-			packet = utils.json2String(message);
-		
-		//const packet = message;
-		return this.tx.publish(topic, packet);
+	publish(topic, payload) {
+		return this.tx.publish(topic, this.serialize(payload));
+	}
+
+	/**
+	 * Serialize the payload object
+	 * 
+	 * @param {any} payload 
+	 * @returns {String}
+	 * 
+	 * @memberOf Transit
+	 */
+	serialize(payload) {
+		return utils.json2String(payload);
+	}
+
+	/**
+	 * Deserialize the incoming string to object
+	 * 
+	 * @param {String} message 
+	 * @returns {any}
+	 * 
+	 * @memberOf Transit
+	 */
+	deserialize(message) {
+		return utils.string2Json(message);
 	}
 }
 
