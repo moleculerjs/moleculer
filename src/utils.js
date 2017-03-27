@@ -62,6 +62,7 @@ let utils = {
 	 * 
 	 * @param {any} str
 	 * @returns
+	 * @deprecated
 	 */
 	string2Json(str) {
 		try {
@@ -81,6 +82,7 @@ let utils = {
 	 * 
 	 * @param {any} json
 	 * @returns
+	 * @deprecated
 	 */
 	json2String(json) {
 		try {
