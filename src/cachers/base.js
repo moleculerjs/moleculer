@@ -151,24 +151,28 @@ class Cacher {
 	 */
 	middleware() {
 		return (handler, action) => {
-			return function cacherMiddleware(ctx) {
-				const cacheKey = this.getCacheKey(action.name, ctx.params, action.cache.keys);
-				return this.get(cacheKey).then(content => {
-					if (content != null) {
-						// Found in the cache! Don't call handler, return with the context
-						ctx.cachedResult = true;
-						return content;
-					}
+			if (action.cache) {
+				return function cacherMiddleware(ctx) {
+					const cacheKey = this.getCacheKey(action.name, ctx.params, action.cache.keys);
+					return this.get(cacheKey).then(content => {
+						if (content != null) {
+							// Found in the cache! Don't call handler, return with the context
+							ctx.cachedResult = true;
+							return content;
+						}
 
-					// Call the handler
-					return handler(ctx).then(result => {
-						// Save the response to the cache
-						this.set(cacheKey, result);
-						
-						return result;
+						// Call the handler
+						return handler(ctx).then(result => {
+							// Save the response to the cache
+							this.set(cacheKey, result);
+							
+							return result;
+						});
 					});
-				});
-			}.bind(this);
+				}.bind(this);
+			}
+
+			return handler;
 		};
 	}
 		
