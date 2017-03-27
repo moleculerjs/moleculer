@@ -33,8 +33,6 @@ let broker = new ServiceBroker({
 // Load services
 console.log(""); 
 broker.loadServices(path.join(__dirname, ".."));
-//require("../post.service")(broker);
-//require("../user.service")(broker);
 console.log("---------------------------------------\n"); 
 
 console.log(">> Get all users");
@@ -53,13 +51,13 @@ broker.call("v2.users.find").then(data => {
 })
 
 .then(() => {
-	console.log(">> Get all posts");
+	console.log(">> Get all posts (populate authors from users");
 	return broker.call("posts.find", { limit: 10 });
 })
 .then(data => {
 	console.log("posts.find response length:", data.length, "\n");
 
-	console.log(">> Get posts.4");	
+	console.log(">> Get posts.4 (populate author from cache)");	
 
 	return broker.call("posts.get", { id: data[4].id }).then((post) => {
 		console.log("posts[4].author email:", post.author.email, "\n");
