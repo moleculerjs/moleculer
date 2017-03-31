@@ -5,6 +5,7 @@
 - [ ] official API gateway service (Native, Express, [Aero](https://github.com/aerojs/aero), [uWebsocket HTTP](https://github.com/uWebSockets/uWebSockets/blob/master/nodejs/http_sillybenchmark.js), [benchmark](https://github.com/blitzprog/webserver-benchmarks))
 
 - [ ] metricsRate: doesn't measure every request
+- [ ] add nodeID to EVENT package and it will be the 3rd param in event handlers
 
 - [ ] handleExceptions: true option
 	Catch unhandled exceptions and send an event with details. Can be catch in metrics, alert or logger services

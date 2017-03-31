@@ -25,7 +25,7 @@ broker.on("TEST1", a => {
 });
 
 Promise.resolve()
-/*.then(delay(1000))
+.then(delay(1000))
 .then(() => {
 	let startTime = Date.now();
 	
@@ -33,8 +33,8 @@ Promise.resolve()
 		console.log("[server-2] Posts: ", posts.length, ", Time:", Date.now() - startTime, "ms");
 	})
 	.catch(err => console.error(err));
-})*/
-/*
+})
+
 .then(() => {
 	setInterval(() => {
 		broker.emit("TEST2", { a: c++ });
@@ -43,4 +43,4 @@ Promise.resolve()
 		}
 
 	}, 10 * 1000);
-});*/
+});
