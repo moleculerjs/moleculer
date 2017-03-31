@@ -1,7 +1,5 @@
 # TODO
 
-* change nodeID in packets to sender & target
-
 ## API gateway
 
 * user authentication/authorization (with auth.service)
