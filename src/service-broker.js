@@ -735,10 +735,15 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	processNodeInfo(nodeID, node) {
+		if (nodeID == null) {
+			this.logger.error("Missing nodeID from node info package!");
+			return;
+		}
 		let isNewNode = !this.nodes.has(nodeID);
 		node.lastHeartbeatTime = Date.now();
 		node.available = true;
-		this.nodes.set(node.nodeID, node);
+		node.id = nodeID;
+		this.nodes.set(nodeID, node);
 
 		if (isNewNode) {
 			this.emitLocal("node.connected", node);
@@ -750,7 +755,7 @@ class ServiceBroker {
 			Object.keys(node.actions).forEach(name => {
 				// Need to override the name cause of versioned action name;
 				let action = Object.assign({}, node.actions[name], { name });
-				this.registerAction(action, node.nodeID);
+				this.registerAction(action, nodeID);
 			});
 		}
 	}

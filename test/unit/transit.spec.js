@@ -90,7 +90,7 @@ describe("Test Transit.sendDisconnectPacket", () => {
 	it("should call publish iwth correct params", () => {
 		return transit.sendDisconnectPacket().then(() => {
 			expect(transit.publish).toHaveBeenCalledTimes(1);
-			expect(transit.publish).toHaveBeenCalledWith(["DISCONNECT"], { nodeID: "node1" });
+			expect(transit.publish).toHaveBeenCalledWith(["DISCONNECT"], {});
 		});
 	});
 
@@ -130,7 +130,7 @@ describe("Test Transit.emit", () => {
 		const user = { id: 5, name: "Jameson" };
 		transit.emit("user.created", user);
 		expect(transit.publish).toHaveBeenCalledTimes(1);
-		expect(transit.publish).toHaveBeenCalledWith(["EVENT"], {"event": "user.created", "nodeID": "node1", "param": {"id": 5, "name": "Jameson"}});
+		expect(transit.publish).toHaveBeenCalledWith(["EVENT"], {"event": "user.created", "data": {"id": 5, "name": "Jameson"}});
 	});
 
 });
@@ -158,7 +158,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call broker.emitLocal if topic is 'EVENT' ", () => {
 		broker.emitLocal = jest.fn();
 
-		let msg = { nodeID: "remote", event: "user.created", param: "John Doe" };
+		let msg = { sender: "remote", event: "user.created", data: "John Doe" };
 		transit.messageHandler(["EVENT"], JSON.stringify(msg));
 
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
@@ -175,7 +175,7 @@ describe("Test Transit.messageHandler", () => {
 			let response = [1, 5, 8];
 			broker.call = jest.fn(() => Promise.resolve(response));
 
-			let msg = { nodeID: "remote", action: "posts.find", requestID: "123", params: { limit: 5 } };
+			let msg = { sender: "remote", action: "posts.find", requestID: "123", params: { limit: 5 } };
 			return transit.messageHandler(["REQ"], JSON.stringify(msg)).then(() => {
 				expect(broker.call).toHaveBeenCalledTimes(1);
 				expect(broker.call).toHaveBeenCalledWith(msg.action, { limit: 5 }, {});
@@ -191,7 +191,7 @@ describe("Test Transit.messageHandler", () => {
 			transit.sendResponse.mockClear();
 			broker.call = jest.fn(() => Promise.reject(new ValidationError("Not valid params")));
 
-			let msg = { nodeID: "remote", action: "posts.create", requestID: "123", params: { title: "Hello" } };
+			let msg = { sender: "remote", action: "posts.create", requestID: "123", params: { title: "Hello" } };
 			return transit.messageHandler(["REQ"], JSON.stringify(msg)).then(() => {
 				expect(broker.call).toHaveBeenCalledTimes(1);
 				expect(broker.call).toHaveBeenCalledWith(msg.action, { title: "Hello" }, {});
@@ -213,7 +213,7 @@ describe("Test Transit.messageHandler", () => {
 
 		it("should not call resolve or reject if prending req is not exists", () => {
 			let req = { resolve: jest.fn(), reject: jest.fn() };
-			let msg = { nodeID: "remote", requestID };
+			let msg = { sender: "remote", requestID };
 			
 			return transit.messageHandler(["RES"], JSON.stringify(msg)).then(() => {
 				expect(req.resolve).toHaveBeenCalledTimes(0);
@@ -230,7 +230,7 @@ describe("Test Transit.messageHandler", () => {
 			};
 			transit.pendingRequests.set(requestID, req);
 
-			let msg = { nodeID: "remote", requestID, success: true, data };			
+			let msg = { sender: "remote", requestID, success: true, data };			
 			return transit.messageHandler(["RES"], JSON.stringify(msg)).then(() => {
 				expect(req.resolve).toHaveBeenCalledTimes(1);
 				expect(req.resolve).toHaveBeenCalledWith(data);
@@ -248,7 +248,7 @@ describe("Test Transit.messageHandler", () => {
 			};
 			transit.pendingRequests.set(requestID, req);
 
-			let msg = { nodeID: "remote", requestID, success: false, error: {
+			let msg = { sender: "remote", requestID, success: false, error: {
 				name: "ValidationError",
 				code: 422,
 				data: { a: 5 }
@@ -274,22 +274,22 @@ describe("Test Transit.messageHandler", () => {
 	it("should call broker.processNodeInfo if topic is 'INFO' ", () => {
 		broker.processNodeInfo = jest.fn();
 
-		let msg = { nodeID: "remote", actions: [] };
+		let msg = { sender: "remote", actions: [] };
 		transit.messageHandler(["INFO"], JSON.stringify(msg));
 
 		expect(broker.processNodeInfo).toHaveBeenCalledTimes(1);
-		expect(broker.processNodeInfo).toHaveBeenCalledWith(msg.nodeID, msg);
+		expect(broker.processNodeInfo).toHaveBeenCalledWith(msg.sender, msg);
 	});	
 
 	it("should call broker.processNodeInfo & sendNodeInfo if topic is 'DISCOVER' ", () => {
 		broker.processNodeInfo = jest.fn();
 		transit.sendNodeInfo = jest.fn();
 
-		let msg = { nodeID: "remote", actions: [] };
+		let msg = { sender: "remote", actions: [] };
 		transit.messageHandler(["DISCOVER"], JSON.stringify(msg));
 
 		expect(broker.processNodeInfo).toHaveBeenCalledTimes(1);
-		expect(broker.processNodeInfo).toHaveBeenCalledWith(msg.nodeID, msg);
+		expect(broker.processNodeInfo).toHaveBeenCalledWith(msg.sender, msg);
 
 		expect(transit.sendNodeInfo).toHaveBeenCalledTimes(1);
 	});	
@@ -297,21 +297,21 @@ describe("Test Transit.messageHandler", () => {
 	it("should call broker.nodeDisconnected if topic is 'DISCONNECT' ", () => {
 		broker.nodeDisconnected = jest.fn();
 
-		let msg = { nodeID: "remote" };
+		let msg = { sender: "remote" };
 		transit.messageHandler(["DISCONNECT"], JSON.stringify(msg));
 
 		expect(broker.nodeDisconnected).toHaveBeenCalledTimes(1);
-		expect(broker.nodeDisconnected).toHaveBeenCalledWith(msg.nodeID, msg);
+		expect(broker.nodeDisconnected).toHaveBeenCalledWith(msg.sender, msg);
 	});	
 
 	it("should call broker.nodeHeartbeat if topic is 'HEARTBEAT' ", () => {
 		broker.nodeHeartbeat = jest.fn();
 
-		let msg = { nodeID: "remote" };
+		let msg = { sender: "remote" };
 		transit.messageHandler(["HEARTBEAT"], JSON.stringify(msg));
 
 		expect(broker.nodeHeartbeat).toHaveBeenCalledTimes(1);
-		expect(broker.nodeHeartbeat).toHaveBeenCalledWith(msg.nodeID, msg);
+		expect(broker.nodeHeartbeat).toHaveBeenCalledWith(msg.sender, msg);
 	});	
 
 });
@@ -338,7 +338,7 @@ describe("Test Transit.request", () => {
 		return transit.request(ctx).then(req => {
 			expect(transit.pendingRequests.size).toBe(1);
 			expect(transit.publish).toHaveBeenCalledTimes(1);
-			expect(transit.publish).toHaveBeenCalledWith(["REQ", "remote"], {"action": "users.find", "nodeID": "node1", "params": {"a": 5}, "requestID": "12345"});
+			expect(transit.publish).toHaveBeenCalledWith(["REQ", "remote"], {"action": "users.find", "params": {"a": 5}, "requestID": "12345"});
 
 			expect(req.nodeID).toBe("remote");
 			//expect(req.ctx).toBe(ctx);
@@ -361,7 +361,7 @@ describe("Test Transit.request", () => {
 		return transit.request(ctx, { timeout: 100 }).catch(err => {
 			expect(transit.pendingRequests.size).toBe(0); // Removed after timeout
 			expect(transit.publish).toHaveBeenCalledTimes(1);
-			expect(transit.publish).toHaveBeenCalledWith(["REQ", "remote"], {"action": "users.find", "nodeID": "node1", "params": {"a": 5}, "requestID": "12345"});
+			expect(transit.publish).toHaveBeenCalledWith(["REQ", "remote"], {"action": "users.find", "params": {"a": 5}, "requestID": "12345"});
 
 			expect(err).toBeInstanceOf(RequestTimeoutError);
 			expect(err.nodeID).toBe("remote");
@@ -382,14 +382,14 @@ describe("Test Transit.sendResponse", () => {
 		const data = { id: 1, name: "John Doe" };
 		transit.sendResponse("node2", "12345", data);
 		expect(transit.publish).toHaveBeenCalledTimes(1);
-		expect(transit.publish).toHaveBeenCalledWith(["RES", "node2"],  {"data": {"id": 1, "name": "John Doe"}, "nodeID": "node1", "requestID": "12345", "success": true});
+		expect(transit.publish).toHaveBeenCalledWith(["RES", "node2"],  {"data": {"id": 1, "name": "John Doe"}, "requestID": "12345", "success": true});
 	});
 
 	it("should call publish with the error", () => {
 		transit.publish.mockClear();
 		transit.sendResponse("node2", "12345", null, new ValidationError("Not valid params", { a: "Too small" }));
 		expect(transit.publish).toHaveBeenCalledTimes(1);
-		expect(transit.publish).toHaveBeenCalledWith(["RES", "node2"], {"data": null, "error": {"code": 422, "data": {"a": "Too small"}, "message": "Not valid params", "name": "ValidationError"}, "nodeID": "node1", "requestID": "12345", "success": false});
+		expect(transit.publish).toHaveBeenCalledWith(["RES", "node2"], {"data": null, "error": {"code": 422, "data": {"a": "Too small"}, "message": "Not valid params", "name": "ValidationError"}, "requestID": "12345", "success": false});
 	});
 
 });
@@ -405,7 +405,7 @@ describe("Test Transit.discoverNodes", () => {
 	it("should call publish with correct params", () => {
 		transit.discoverNodes();
 		expect(transit.publish).toHaveBeenCalledTimes(1);
-		expect(transit.publish).toHaveBeenCalledWith(["DISCOVER"], {"actions": {}, "nodeID": "node1"});
+		expect(transit.publish).toHaveBeenCalledWith(["DISCOVER"], {"actions": {}});
 	});
 
 });
@@ -421,7 +421,7 @@ describe("Test Transit.sendNodeInfo", () => {
 	it("should call publish with correct params", () => {
 		transit.sendNodeInfo("node2");
 		expect(transit.publish).toHaveBeenCalledTimes(1);
-		expect(transit.publish).toHaveBeenCalledWith(["INFO", "node2"], {"actions": {}, "nodeID": "node1"});
+		expect(transit.publish).toHaveBeenCalledWith(["INFO", "node2"], {"actions": {}});
 	});
 
 });
@@ -437,7 +437,7 @@ describe("Test Transit.sendHeartbeat", () => {
 	it("should call publish with correct params", () => {
 		transit.sendHeartbeat();
 		expect(transit.publish).toHaveBeenCalledTimes(1);
-		expect(transit.publish).toHaveBeenCalledWith(["HEARTBEAT"], {"nodeID": "node1"});
+		expect(transit.publish).toHaveBeenCalledWith(["HEARTBEAT"], {});
 	});
 
 });
@@ -470,7 +470,7 @@ describe("Test Transit.publish", () => {
 		let payload = { a: "John Doe" };
 		transit.publish(["RES", "node-2"], payload);
 		expect(transporter.publish).toHaveBeenCalledTimes(1);
-		expect(transporter.publish).toHaveBeenCalledWith(["RES", "node-2"], "{\"a\":\"John Doe\"}");
+		expect(transporter.publish).toHaveBeenCalledWith(["RES", "node-2"], "{\"a\":\"John Doe\",\"sender\":\"node1\"}");
 	});
 
 });

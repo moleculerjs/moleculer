@@ -81,12 +81,9 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendDisconnectPacket() {
-		const payload = {
-			nodeID: this.nodeID
-		};
-		this.logger.debug("Send DISCONNECT to nodes", payload);
+		this.logger.debug("Send DISCONNECT to nodes");
 
-		this.publish([TOPIC_DISCONNECT], payload);
+		this.publish([TOPIC_DISCONNECT], {});
 		return Promise.resolve();
 	}
 
@@ -123,15 +120,14 @@ class Transit {
 	 * Emit an event to remote nodes
 	 * 
 	 * @param {any} eventName
-	 * @param {any} param
+	 * @param {any} data
 	 * 
 	 * @memberOf Transit
 	 */
-	emit(eventName, param) {
+	emit(eventName, data) {
 		const event = {
-			nodeID: this.nodeID,
 			event: eventName,
-			param
+			data
 		};
 		// this.logger.debug("Emit Event", event);
 		this.publish([TOPIC_EVENT], event);
@@ -154,7 +150,7 @@ class Transit {
 			throw new Error("Missing response payload!");
 		}
 
-		if (packet.nodeID == this.nodeID) 
+		if (packet.sender == this.nodeID) 
 			return Promise.resolve(); 
 
 		const cmd = topics[0];
@@ -172,32 +168,32 @@ class Transit {
 		// Event
 		else if (cmd === TOPIC_EVENT) {
 			//this.logger.debug("Event received", packet);
-			this.broker.emitLocal(packet.event, packet.param);				
+			this.broker.emitLocal(packet.event, packet.data);				
 			return;
 		}
 
 		// Node info
 		else if (cmd === TOPIC_INFO || cmd === TOPIC_DISCOVER) {
-			this.broker.processNodeInfo(packet.nodeID, packet);
+			this.broker.processNodeInfo(packet.sender, packet);
 
 			if (cmd == "DISCOVER") {
-				//this.logger.debug("Discover received from " + packet.nodeID);
-				this.sendNodeInfo(packet.nodeID);
+				//this.logger.debug("Discover received from " + packet.sender);
+				this.sendNodeInfo(packet.sender);
 			}
 			return;
 		}
 
 		// Disconnect
 		else if (cmd === TOPIC_DISCONNECT) {
-			this.logger.warn(`Node '${packet.nodeID}' disconnected`);
-			this.broker.nodeDisconnected(packet.nodeID, packet);
+			this.logger.warn(`Node '${packet.sender}' disconnected`);
+			this.broker.nodeDisconnected(packet.sender, packet);
 			return;
 		}
 
 		// Heartbeat
 		else if (cmd === TOPIC_HEARTBEAT) {
-			//this.logger.debug("Node heart-beat received from " + packet.nodeID);
-			this.broker.nodeHeartbeat(packet.nodeID, packet);
+			//this.logger.debug("Node heart-beat received from " + packet.sender);
+			this.broker.nodeHeartbeat(packet.sender, packet);
 			return;
 		}
 	}
@@ -210,11 +206,11 @@ class Transit {
 	 * 
 	 * @memberOf Transit
 	 */
-	_requestHandler({ nodeID, action, requestID, params }) {
-		this.logger.info(`Request '${action}' from '${nodeID}'. Params:`, params);
+	_requestHandler({ sender, action, requestID, params }) {
+		this.logger.info(`Request '${action}' from '${sender}'. Params:`, params);
 		return this.broker.call(action, params, {}) // empty {} opts to avoid deoptimizing
-			.then(res => this.sendResponse(nodeID, requestID,  res, null))
-			.catch(err => this.sendResponse(nodeID, requestID, null, err));
+			.then(res => this.sendResponse(sender, requestID,  res, null))
+			.catch(err => this.sendResponse(sender, requestID, null, err));
 	}
 
 	/**
@@ -243,10 +239,10 @@ class Transit {
 
 		if (!packet.success) {
 			// Recreate exception object
-			let err = new Error(packet.error.message + ` (NodeID: ${packet.nodeID})`);
+			let err = new Error(packet.error.message + ` (NodeID: ${packet.sender})`);
 			err.name = packet.error.name;
 			err.code = packet.error.code;
-			err.nodeID = packet.nodeID;
+			err.nodeID = packet.sender;
 			err.data = packet.error.data;
 
 			return req.reject(err);
@@ -291,7 +287,6 @@ class Transit {
 		};
 
 		const payload = {
-			nodeID: this.nodeID,
 			requestID: ctx.id,
 			action: ctx.action.name,
 			params: ctx.params,
@@ -337,7 +332,6 @@ class Transit {
 	 */
 	sendResponse(nodeID, requestID, data, err) {
 		const payload = {
-			nodeID: this.nodeID,
 			requestID,
 			success: err == null,
 			data
@@ -365,7 +359,6 @@ class Transit {
 	discoverNodes() {
 		const actionList = this.broker.getLocalActionList();
 		const payload = {
-			nodeID: this.broker.nodeID,
 			actions: actionList
 		};
 		return this.publish([TOPIC_DISCOVER], payload);
@@ -376,13 +369,12 @@ class Transit {
 	 * 
 	 * @memberOf Transit
 	 */
-	sendNodeInfo(targetNodeID) {
+	sendNodeInfo(nodeID) {
 		const actionList = this.broker.getLocalActionList();
 		const payload = {
-			nodeID: this.broker.nodeID,
 			actions: actionList
 		};
-		return this.publish([TOPIC_INFO, targetNodeID], payload);
+		return this.publish([TOPIC_INFO, nodeID], payload);
 	}
 
 	/**
@@ -391,10 +383,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendHeartbeat() {
-		const payload = {
-			nodeID: this.broker.nodeID
-		};
-		this.publish([TOPIC_HEARTBEAT], payload);
+		this.publish([TOPIC_HEARTBEAT], {});
 	}
 
 	/**
@@ -417,6 +406,7 @@ class Transit {
 	 * @memberOf NatsTransporter
 	 */
 	publish(topic, payload) {
+		payload.sender = this.nodeID;
 		return this.tx.publish(topic, this.serialize(payload));
 	}
 

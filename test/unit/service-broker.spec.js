@@ -1062,7 +1062,7 @@ describe("Test broker.processNodeInfo", () => {
 		cache: false
 	};
 	let nodeInfo = { 
-		nodeID: "server-1", 
+		sender: "server-1", 
 		actions: {
 			"user.create": remoteAction
 		} 
@@ -1073,7 +1073,7 @@ describe("Test broker.processNodeInfo", () => {
 
 		let node = broker.nodes.get("server-1");
 
-		expect(node.nodeID).toBe("server-1");
+		expect(node.id).toBe("server-1");
 		expect(node.available).toBe(true);
 		expect(node.lastHeartbeatTime).toBeDefined();
 
@@ -1092,12 +1092,22 @@ describe("Test broker.processNodeInfo", () => {
 
 		let node = broker.nodes.get("server-1");
 
-		expect(node.nodeID).toBe("server-1");
+		expect(node.id).toBe("server-1");
 
 		expect(broker.emitLocal).toHaveBeenCalledTimes(0);
 		
 		expect(broker.registerAction).toHaveBeenCalledTimes(1);
 		expect(broker.registerAction).toHaveBeenCalledWith(remoteAction, "server-1");
+	});
+
+	it("should not process info if nodeID is null", () => {
+		broker.emitLocal.mockClear();
+		broker.registerAction.mockClear();
+
+		broker.processNodeInfo(null, nodeInfo);
+
+		expect(broker.emitLocal).toHaveBeenCalledTimes(0);
+		expect(broker.registerAction).toHaveBeenCalledTimes(0);
 	});
 });
 
