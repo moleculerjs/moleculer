@@ -101,7 +101,7 @@ describe("Test BaseCacher", () => {
 		//expect(res).toBe("5--3");
 		
 		res = cacher.getCacheKey(null, {a: 5, b: 3}, []);
-		expect(res).toBe("279761c41681ae34e83975977d829b11a278edce47f4704cd82bb94b6f054b1e");
+		expect(res).toBe("");
 		
 	});	
 });
