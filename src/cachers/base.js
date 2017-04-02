@@ -136,8 +136,10 @@ class Cacher {
 			parts.push(name);
 
 		if (params && Object.keys(params).length > 0) {
-			if (keys && keys.length > 0)
-				parts.push(keys.map(key => params[key]).join("-"));
+			if (isArray(keys)) {
+				if (keys.length > 0)
+					parts.push(keys.map(key => params[key]).join("-"));
+			}
 			else
 				parts.push(hash(params));
 		}
