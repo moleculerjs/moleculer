@@ -2,7 +2,7 @@ const ServiceBroker = require("../../src/service-broker");
 const Validator = require("../../src/validator");
 const { ValidationError } = require("../../src/errors");
 
-// Unit: OK!
+
 describe("Test constructor", () => {
 
 	it("should create instance", () => {

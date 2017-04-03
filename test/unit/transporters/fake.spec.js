@@ -3,7 +3,7 @@ const FakeTransporter = require("../../../src/transporters/fake");
 
 const { isPromise } = require("../../../src/utils");
 
-// Unit: OK!
+
 describe("Test FakeTransporter", () => {
 
 	it("check constructor", () => {

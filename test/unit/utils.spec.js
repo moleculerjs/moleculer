@@ -1,6 +1,6 @@
 const utils = require("../../src/utils");
 
-// Unit: OK!
+
 describe("Test utils.generateToken", () => {
 
 	it("should generate unique token", () => {

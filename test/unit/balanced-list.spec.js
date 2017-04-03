@@ -2,7 +2,7 @@
 
 const BalancedList = require("../../src/balanced-list");
 
-// Unit: OK!
+
 describe("Test constructor", () => {
 
 	it("should create instance with default options", () => {

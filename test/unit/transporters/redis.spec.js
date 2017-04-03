@@ -16,7 +16,7 @@ Redis.mockImplementation(() => {
 	};
 });
 
-// Unit: OK!
+
 describe("Test NatsTransporter constructor", () => {
 
 	it("check constructor", () => {

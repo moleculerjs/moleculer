@@ -17,7 +17,7 @@ Nats.connect = jest.fn(() => {
 
 const NatsTransporter = require("../../../src/transporters/nats");
 
-// Unit: OK!
+
 describe("Test NatsTransporter constructor", () => {
 
 	it("check constructor", () => {

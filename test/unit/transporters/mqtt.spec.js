@@ -16,7 +16,7 @@ MQTT.connect = jest.fn(() => {
 	};
 });
 
-// Unit: OK!
+
 describe("Test NatsTransporter constructor", () => {
 
 	it("check constructor", () => {

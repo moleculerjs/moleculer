@@ -1,7 +1,7 @@
 const ServiceBroker = require("../../../src/service-broker");
 const BaseTransporter = require("../../../src/transporters/base");
 
-// Unit: OK!
+
 describe("Test BaseTransporter", () => {
 
 	it("check constructor", () => {

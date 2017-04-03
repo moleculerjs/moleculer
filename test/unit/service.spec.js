@@ -3,7 +3,7 @@
 const Service = require("../../src/service");
 const ServiceBroker = require("../../src/service-broker");
 
-// Unit: OK!
+
 describe("Test Service constructor", () => {
 
 	let broker = new ServiceBroker();

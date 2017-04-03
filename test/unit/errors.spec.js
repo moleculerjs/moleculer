@@ -2,7 +2,7 @@
 
 let errors = require("../../src/errors");
 
-// Unit: OK!
+
 describe("Test Errors", () => {
 
 	it("test CustomError", () => {
