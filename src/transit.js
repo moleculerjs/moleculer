@@ -419,7 +419,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	serialize(payload) {
-		return JSON.stringify(payload);
+		return this.broker.serializer.serialize(payload);
 		//return payload;
 	}
 
@@ -434,7 +434,7 @@ class Transit {
 	deserialize(str) {
 		if (str == null) return null;
 		
-		return JSON.parse(str);
+		return this.broker.serializer.deserialize(str);
 		//return str;
 	}
 }

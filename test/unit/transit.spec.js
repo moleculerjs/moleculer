@@ -468,12 +468,50 @@ describe("Test Transit.publish", () => {
 	const transit = new Transit(broker, transporter);
 
 	transporter.publish = jest.fn();
+	broker.serializer.serialize = jest.fn(o => JSON.stringify(o));
 
 	it("should call transporter.publish", () => {
 		let payload = { a: "John Doe" };
 		transit.publish(["RES", "node-2"], payload);
 		expect(transporter.publish).toHaveBeenCalledTimes(1);
 		expect(transporter.publish).toHaveBeenCalledWith(["RES", "node-2"], "{\"a\":\"John Doe\",\"sender\":\"node1\"}");
+
+		expect(broker.serializer.serialize).toHaveBeenCalledTimes(1);
+		expect(broker.serializer.serialize).toHaveBeenCalledWith(payload);
+	});
+
+});
+
+describe("Test Transit.serialize", () => {
+
+	const broker = new ServiceBroker({ nodeID: "node1" });
+	const transporter = new FakeTransporter();
+	const transit = new Transit(broker, transporter);
+
+	broker.serializer.serialize = jest.fn();
+
+	it("should call broker.serializer.serialize", () => {
+		let payload = { a: "John Doe" };
+		transit.serialize(payload);
+		expect(broker.serializer.serialize).toHaveBeenCalledTimes(1);
+		expect(broker.serializer.serialize).toHaveBeenCalledWith(payload);
+	});
+
+});
+
+describe("Test Transit.deserialize", () => {
+
+	const broker = new ServiceBroker({ nodeID: "node1" });
+	const transporter = new FakeTransporter();
+	const transit = new Transit(broker, transporter);
+
+	broker.serializer.deserialize = jest.fn();
+
+	it("should call broker.serializer.deserialize", () => {
+		let payload = { a: "John Doe" };
+		transit.deserialize(payload);
+		expect(broker.serializer.deserialize).toHaveBeenCalledTimes(1);
+		expect(broker.serializer.deserialize).toHaveBeenCalledWith(payload);
 	});
 
 });
