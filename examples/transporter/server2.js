@@ -4,13 +4,15 @@ let { delay } = require("../../src/utils");
 
 let ServiceBroker = require("../../src/service-broker");
 let NatsTransporter = require("../../src/transporters/nats");
+let MsgPackSerializer = require("../../src/serializers/msgpack");
 
 // Create broker
 let broker = new ServiceBroker({
 	nodeID: process.argv[2] || "server-2",
 	transporter: new NatsTransporter(),
 	logger: console,
-	logLevel: "info"
+	logLevel: "info",
+	serializer: new MsgPackSerializer()
 });
 
 //broker.loadService(__dirname + "/../post.service");
