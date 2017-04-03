@@ -432,6 +432,8 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	deserialize(str) {
+		if (str == null) return null;
+		
 		return JSON.parse(str);
 		//return str;
 	}

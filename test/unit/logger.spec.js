@@ -68,6 +68,30 @@ describe("Test wrap", () => {
 		expect(con.info).toHaveBeenCalledWith("trace level");
 	});	
 
+	it("should create a full logger from one-method logger", () => {
+		let con = {
+			info: jest.fn()
+		};
+		
+		let logger = wrap(con, null, "trace");
+		expect(logger.fatal).toBeInstanceOf(Function);
+		expect(logger.error).toBeInstanceOf(Function);
+		expect(logger.warn).toBeInstanceOf(Function);
+		expect(logger.info).toBeInstanceOf(Function);
+		expect(logger.debug).toBeInstanceOf(Function);
+		expect(logger.trace).toBeInstanceOf(Function);
+
+		callLogMethods(logger);
+
+		expect(con.info).toHaveBeenCalledTimes(6);
+		expect(con.info).toHaveBeenCalledWith("fatal level");
+		expect(con.info).toHaveBeenCalledWith("error level");
+		expect(con.info).toHaveBeenCalledWith("warn level");
+		expect(con.info).toHaveBeenCalledWith("debug level");
+		expect(con.info).toHaveBeenCalledWith("info level");
+		expect(con.info).toHaveBeenCalledWith("trace level");
+	});
+
 	it("should create a full logger with moduleName", () => {
 		let con = {
 			trace: jest.fn(),

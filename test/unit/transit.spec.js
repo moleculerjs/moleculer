@@ -150,9 +150,12 @@ describe("Test Transit.messageHandler", () => {
 	});
 
 	it("should throw Error if msg not valid", () => {
+		transit.deserialize = jest.fn(() => null);
 		expect(() => {
 			transit.messageHandler(["EVENT"]);
-		}).toThrow();
+		}).toThrow("Missing response payload!");
+
+		transit.deserialize.mockReset();
 	});
 
 	it("should call broker.emitLocal if topic is 'EVENT' ", () => {
