@@ -69,15 +69,7 @@ class FakeTransporter extends Transporter {
 	 * @memberOf FakeTransporter
 	 */
 	subscribe(cmd, nodeID) {
-		const t = this.prefix + "." + cmd + (nodeID ? "." + nodeID : "");
-		/*
-		const self = this;
-		this.bus.on(t, function subscriptionHandler(msg) {
-			//const event = this.event.split(".").slice(1);
-			self.messageHandler(cmd, msg);
-		});
-		*/
-
+		const t = this.getTopicName(cmd, nodeID);
 		this.bus.on(t, msg => this.messageHandler(cmd, msg));
 	}
 
@@ -89,9 +81,8 @@ class FakeTransporter extends Transporter {
 	 * @memberOf FakeTransporter
 	 */
 	publish(packet) {
-		const cmd = this.prefix + "." + packet.type + (packet.target ? "." + packet.target : "");
 		const data = packet.serialize();
-		this.bus.emit(cmd, data);
+		this.bus.emit(this.getTopicName(packet.type, packet.target), data);
 	}
 
 }

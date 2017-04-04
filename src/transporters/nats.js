@@ -104,7 +104,7 @@ class NatsTransporter extends Transporter {
 	 * @memberOf NatsTransporter
 	 */
 	subscribe(cmd, nodeID) {
-		const t = this.prefix + "." + cmd + (nodeID ? "." + nodeID : "");
+		const t = this.getTopicName(cmd, nodeID);
 		this.client.subscribe(t, (msg) => this.messageHandler(cmd, msg));
 	}
 
@@ -116,9 +116,8 @@ class NatsTransporter extends Transporter {
 	 * @memberOf NatsTransporter
 	 */
 	publish(packet) {
-		const cmd = this.prefix + "." + packet.type + (packet.target ? "." + packet.target : "");
 		const data = packet.serialize();
-		this.client.publish(cmd, data);
+		this.client.publish(this.getTopicName(packet.type, packet.target), data);
 	}
 
 }

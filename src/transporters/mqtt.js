@@ -97,8 +97,7 @@ class MqttTransporter extends Transporter {
 	 * @memberOf MqttTransporter
 	 */
 	subscribe(cmd, nodeID) {
-		const t = this.prefix + "." + cmd + (nodeID ? "." + nodeID : "");
-		this.client.subscribe(t);
+		this.client.subscribe(this.getTopicName(cmd, nodeID));
 	}
 
 	/**
@@ -109,10 +108,8 @@ class MqttTransporter extends Transporter {
 	 * @memberOf MqttTransporter
 	 */
 	publish(packet) {
-		const cmd = this.prefix + "." + packet.type + (packet.target ? "." + packet.target : "");
-		const data = packet.serialize();
-		
-		this.client.publish(cmd, data);
+		const data = packet.serialize();		
+		this.client.publish(this.getTopicName(packet.type, packet.target), data);
 	}
 
 }

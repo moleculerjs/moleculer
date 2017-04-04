@@ -115,8 +115,7 @@ class RedisTransporter extends Transporter {
 	 * @memberOf RedisTransporter
 	 */
 	subscribe(cmd, nodeID) {
-		const t = this.prefix + "." + cmd + (nodeID ? "." + nodeID : "");
-		this.clientSub.subscribe(t);
+		this.clientSub.subscribe(this.getTopicName(cmd, nodeID));
 	}
 
 	/**
@@ -127,9 +126,8 @@ class RedisTransporter extends Transporter {
 	 * @memberOf RedisTransporter
 	 */
 	publish(packet) {
-		const cmd = this.prefix + "." + packet.type + (packet.target ? "." + packet.target : "");
 		const data = packet.serialize();
-		this.clientPub.publish(cmd, data);
+		this.clientPub.publish(this.getTopicName(packet.type, packet.target), data);
 	}
 
 }

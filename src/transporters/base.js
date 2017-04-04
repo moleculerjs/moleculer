@@ -75,7 +75,7 @@ class BaseTransporter {
 	 * 
 	 * @memberOf BaseTransporter
 	 */
-	subscribe(topic) {
+	subscribe(cmd, nodeID) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented!");
 	}
@@ -90,6 +90,18 @@ class BaseTransporter {
 	publish(packet) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented!");
+	}
+
+	/**
+	 * Get topic name from command & target nodeID
+	 * 
+	 * @param {any} cmd 
+	 * @param {any} nodeID 
+	 * 
+	 * @memberOf BaseTransporter
+	 */
+	getTopicName(cmd, nodeID) {
+		return this.prefix + "." + cmd + (nodeID ? "." + nodeID : "");
 	}
 
 }
