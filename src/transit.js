@@ -138,6 +138,7 @@ class Transit {
 
 		// Check payload
 		if (!payload) {
+			/* istanbul ignore next */
 			throw new Error("Missing response payload!");
 		}
 
