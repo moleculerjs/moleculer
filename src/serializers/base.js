@@ -39,11 +39,12 @@ class Serializer {
 	 * Serializer a JS object to string or Buffer
 	 * 
 	 * @param {Object} obj
+	 * @param {String} type of packet
 	 * @returns {String|Buffer}
 	 * 
 	 * @memberOf Serializer
 	 */
-	serialize(obj) {
+	serialize(obj, type) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
 	}
@@ -52,11 +53,12 @@ class Serializer {
 	 * Deserialize string/Buffer to JS object
 	 * 
 	 * @param {String|Buffer} str
+	 * @param {String} type of packet
 	 * @returns {Object}
 	 * 
 	 * @memberOf Serializer
 	 */
-	deserialize(str) {
+	deserialize(str, type) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
 	}

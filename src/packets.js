@@ -47,6 +47,15 @@ function getPacketClassByType(type) {
  * @class Packet
  */
 class Packet {
+	/**
+	 * Creates an instance of Packet.
+	 * 
+	 * @param {any} transit 
+	 * @param {any} type 
+	 * @param {any} target 
+	 * 
+	 * @memberOf Packet
+	 */
 	constructor(transit, type, target) {
 		this.transit = transit;
 		this.type = type || PACKET_UNKNOW;
@@ -57,6 +66,13 @@ class Packet {
 		};
 	}
 
+	/**
+	 * Get topic name by packet
+	 * 
+	 * @returns 
+	 * 
+	 * @memberOf Packet
+	 */
 	getTopic() {
 		if (this.target)
 			return [this.type, this.target];
@@ -64,10 +80,28 @@ class Packet {
 			return [this.type];
 	}
 
+	/**
+	 * Serialize a packet
+	 * 
+	 * @returns 
+	 * 
+	 * @memberOf Packet
+	 */
 	serialize() {
 		return this.transit.serialize(this.payload);
 	}
 
+	/**
+	 * Deserialize message to packet
+	 * 
+	 * @static
+	 * @param {any} transit 
+	 * @param {any} type 
+	 * @param {any} msg 
+	 * @returns {Packet}
+	 * 
+	 * @memberOf Packet
+	 */
 	static deserialize(transit, type, msg) {
 		const payload = transit.deserialize(msg);
 		const packetClass = getPacketClassByType(type);
@@ -78,25 +112,17 @@ class Packet {
 		return packet;
 	}
 
+	/**
+	 * Deserialize custom data in payload
+	 * 
+	 * @param {any} payload 
+	 * 
+	 * @memberOf Packet
+	 */
 	deserializePayload(payload) {
 		this.payload = payload;
 	}
 } 
-
-/**
- * Packet for events
- * 
- * @class PacketEvent
- * @extends {Packet}
- */
-class PacketEvent extends Packet {
-	constructor(transit, eventName, data) {
-		super(transit, PACKET_EVENT);
-
-		this.payload.event = eventName;
-		this.payload.data = data;
-	}
-}
 
 /**
  * Packet for node disconnect
@@ -149,6 +175,26 @@ class PacketInfo extends Packet {
 }
 
 /**
+ * Packet for events
+ * 
+ * @class PacketEvent
+ * @extends {Packet}
+ */
+class PacketEvent extends Packet {
+	constructor(transit, eventName, data) {
+		super(transit, PACKET_EVENT);
+
+		this.payload.event = eventName;
+		this.payload.data = JSON.stringify(data);
+	}
+
+	deserializePayload(payload) {
+		super.deserializePayload(payload);
+		payload.data = JSON.parse(payload.data);
+	}	
+}
+
+/**
  * Packet for request
  * 
  * @class PacketRequest
@@ -160,8 +206,13 @@ class PacketRequest extends Packet {
 
 		this.payload.requestID = requestID;
 		this.payload.action = action;
-		this.payload.params = params;
+		this.payload.params = JSON.stringify(params);
 	}
+
+	deserializePayload(payload) {
+		super.deserializePayload(payload);
+		payload.params = JSON.parse(payload.params);
+	}	
 }
 
 /**
@@ -176,16 +227,23 @@ class PacketResponse extends Packet {
 
 		this.payload.requestID = requestID;
 		this.payload.success = err == null;
-		this.payload.data = data;
+		this.payload.data = JSON.stringify(data);
 
 		if (err) {
 			this.payload.error = {
 				name: err.name,
 				message: err.message,
 				code: err.code,
-				data: err.data				
+				data: JSON.stringify(err.data)
 			};
 		}
+	}
+
+	deserializePayload(payload) {
+		super.deserializePayload(payload);
+		payload.data = JSON.parse(payload.data);
+		if (payload.error && payload.error.data)
+			payload.error.data = JSON.parse(payload.error.data);
 	}
 }
 

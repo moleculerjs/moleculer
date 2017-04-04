@@ -299,7 +299,7 @@ class Transit {
 
 				this.logger.warn(`Request timed out when call '${ctx.action.name}' action on '${ctx.nodeID}' node! (timeout: ${opts.timeout / 1000} sec)`/*, payload*/);
 				
-				reject(new RequestTimeoutError(packet, ctx.nodeID));
+				reject(new RequestTimeoutError(packet.payload, ctx.nodeID));
 			}, opts.timeout);
 			
 			request.timer.unref();
@@ -390,8 +390,8 @@ class Transit {
 	 * 
 	 * @memberOf Transit
 	 */
-	serialize(payload) {
-		return this.broker.serializer.serialize(payload);
+	serialize(payload, type) {
+		return this.broker.serializer.serialize(payload, type);
 		//return payload;
 	}
 
@@ -403,10 +403,10 @@ class Transit {
 	 * 
 	 * @memberOf Transit
 	 */
-	deserialize(str) {
+	deserialize(str, type) {
 		if (str == null) return null;
 		
-		return this.broker.serializer.deserialize(str);
+		return this.broker.serializer.deserialize(str, type);
 		//return str;
 	}
 }

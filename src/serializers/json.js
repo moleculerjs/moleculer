@@ -27,11 +27,12 @@ class JSONSerializer extends BaseSerializer {
 	 * Serializer a JS object to string or Buffer
 	 * 
 	 * @param {Object} obj
+	 * @param {String} type of packet
 	 * @returns {String|Buffer}
 	 * 
 	 * @memberOf Serializer
 	 */
-	serialize(obj) {
+	serialize(obj, type) {
 		return JSON.stringify(obj);
 	}
 
@@ -39,11 +40,12 @@ class JSONSerializer extends BaseSerializer {
 	 * Deserialize string/Buffer to JS object
 	 * 
 	 * @param {String|Buffer} str
+	 * @param {String} type of packet
 	 * @returns {Object}
 	 * 
 	 * @memberOf Serializer
 	 */
-	deserialize(str) {
+	deserialize(str, type) {
 		return JSON.parse(str);
 	}
 }
