@@ -223,7 +223,7 @@ class PacketResponse extends Packet {
 
 		this.payload.requestID = requestID;
 		this.payload.success = err == null;
-		this.payload.data = JSON.stringify(data);
+		this.payload.data = data != null ? JSON.stringify(data) : null;
 
 		if (err) {
 			this.payload.error = {
@@ -237,9 +237,9 @@ class PacketResponse extends Packet {
 
 	transformPayload(payload) {
 		super.transformPayload(payload);
-		payload.data = JSON.parse(payload.data);
+		this.payload.data = payload.data ? JSON.parse(payload.data) : null;
 		if (payload.error && payload.error.data)
-			payload.error.data = JSON.parse(payload.error.data);
+			this.payload.error.data = JSON.parse(payload.error.data);
 	}
 }
 

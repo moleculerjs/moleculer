@@ -1,5 +1,6 @@
 const ServiceBroker = require("../../../src/service-broker");
 const MqttTransporter = require("../../../src/transporters/mqtt");
+const { PacketInfo } = require("../../../src/packets");
 
 jest.mock("mqtt");
 
@@ -81,6 +82,11 @@ describe("Test NatsTransporter subscribe & publish", () => {
 	let trans;
 	let msgHandler;
 
+	const fakeTransit = {
+		nodeID: "node1",
+		serialize: jest.fn(msg => JSON.stringify(msg))
+	};	
+
 	beforeEach(() => {
 		trans = new MqttTransporter({ prefix: "TEST" });
 		let broker = new ServiceBroker();
@@ -90,7 +96,7 @@ describe("Test NatsTransporter subscribe & publish", () => {
 	});
 
 	it("check subscribe", () => {
-		trans.subscribe(["REQ", "node"]);
+		trans.subscribe("REQ", "node");
 
 		expect(trans.client.subscribe).toHaveBeenCalledTimes(1);
 		expect(trans.client.subscribe).toHaveBeenCalledWith("TEST.REQ.node");
@@ -100,13 +106,13 @@ describe("Test NatsTransporter subscribe & publish", () => {
 		// Test subscribe callback
 		trans.client.onCallbacks.message("prefix.event.name", "incoming data");
 		expect(msgHandler).toHaveBeenCalledTimes(1);
-		expect(msgHandler).toHaveBeenCalledWith(["event", "name"], "incoming data");
+		expect(msgHandler).toHaveBeenCalledWith("event", "incoming data");
 	});
 
 	it("check publish", () => {
-		trans.publish(["REQ", "node"], "data");
+		trans.publish(new PacketInfo(fakeTransit, "node2", {}));
 
 		expect(trans.client.publish).toHaveBeenCalledTimes(1);
-		expect(trans.client.publish).toHaveBeenCalledWith("TEST.REQ.node", "data");
+		expect(trans.client.publish).toHaveBeenCalledWith("TEST.INFO.node2", "{\"sender\":\"node1\",\"actions\":\"{}\"}");
 	});
 });

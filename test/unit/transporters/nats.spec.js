@@ -1,4 +1,5 @@
 const ServiceBroker = require("../../../src/service-broker");
+const { PacketInfo } = require("../../../src/packets");
 
 jest.mock("nats");
 
@@ -78,6 +79,11 @@ describe("Test NatsTransporter subscribe & publish", () => {
 	let trans;
 	let msgHandler;
 
+	const fakeTransit = {
+		nodeID: "node1",
+		serialize: jest.fn(msg => JSON.stringify(msg))
+	};	
+
 	beforeEach(() => {
 		trans = new NatsTransporter({ prefix: "TEST" });
 		let broker = new ServiceBroker();
@@ -90,21 +96,21 @@ describe("Test NatsTransporter subscribe & publish", () => {
 		let subCb;
 		trans.client.subscribe = jest.fn((name, cb) => subCb = cb);
 
-		trans.subscribe(["REQ", "node"]);
+		trans.subscribe("REQ", "node");
 
 		expect(trans.client.subscribe).toHaveBeenCalledTimes(1);
-		expect(trans.client.subscribe).toHaveBeenCalledWith(["TEST", "REQ", "node"], jasmine.any(Function));
+		expect(trans.client.subscribe).toHaveBeenCalledWith("TEST.REQ.node", jasmine.any(Function));
 
 		// Test subscribe callback
 		subCb("incoming data", null, "prefix,test,name");
 		expect(msgHandler).toHaveBeenCalledTimes(1);
-		expect(msgHandler).toHaveBeenCalledWith(["test", "name"], "incoming data");
+		expect(msgHandler).toHaveBeenCalledWith("REQ", "incoming data");
 	});
 
 	it("check publish", () => {
-		trans.publish(["REQ", "node"], "data");
+		trans.publish(new PacketInfo(fakeTransit, "node2", {}));
 
 		expect(trans.client.publish).toHaveBeenCalledTimes(1);
-		expect(trans.client.publish).toHaveBeenCalledWith(["TEST", "REQ", "node"], "data");
+		expect(trans.client.publish).toHaveBeenCalledWith("TEST.INFO.node2", "{\"sender\":\"node1\",\"actions\":\"{}\"}");
 	});
 });

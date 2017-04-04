@@ -106,6 +106,16 @@ describe("Test PacketDiscover", () => {
 		expect(packet.payload.actions).toBe("{\"posts.find\":{}}");
 	});
 
+	it("should transform payload", () => {
+		let payload = {
+			actions: "{\"posts.find\":{}}"
+		};
+		let packet = new P.PacketDiscover(transit, {});
+		packet.transformPayload(payload);
+
+		expect(packet.payload.actions).toEqual({ "posts.find": {} });
+	});
+
 });
 
 describe("Test PacketInfo", () => {
@@ -123,6 +133,15 @@ describe("Test PacketInfo", () => {
 		expect(packet.payload.actions).toBe("{\"posts.find\":{}}");
 	});
 
+	it("should transform payload", () => {
+		let payload = {
+			actions: "{\"posts.find\":{}}"
+		};
+		let packet = new P.PacketInfo(transit, "server-2", {});
+		packet.transformPayload(payload);
+
+		expect(packet.payload.actions).toEqual({ "posts.find": {} });
+	});
 });
 
 describe("Test PacketEvent", () => {
@@ -141,6 +160,15 @@ describe("Test PacketEvent", () => {
 		expect(packet.payload.data).toBe("{\"id\":5}");
 	});
 
+	it("should transform payload", () => {
+		let payload = {
+			data: "{\"a\":5}"
+		};
+		let packet = new P.PacketEvent(transit, "user.created", {});
+		packet.transformPayload(payload);
+
+		expect(packet.payload.data).toEqual({ a: 5 });
+	});
 });
 
 describe("Test PacketRequest", () => {
@@ -158,6 +186,16 @@ describe("Test PacketRequest", () => {
 		expect(packet.payload.requestID).toBe("12345");
 		expect(packet.payload.action).toBe("posts.find");
 		expect(packet.payload.params).toBe("{\"id\":5}");
+	});
+
+	it("should transform payload", () => {
+		let payload = {
+			params: "{\"a\":5}"
+		};
+		let packet = new P.PacketRequest(transit, "server-2", "12345", "", {});
+		packet.transformPayload(payload);
+
+		expect(packet.payload.params).toEqual({ a: 5 });
 	});
 
 });
@@ -190,12 +228,44 @@ describe("Test PacketResponse", () => {
 		expect(packet.payload.sender).toBe("node-1");
 		expect(packet.payload.requestID).toBe("12345");
 		expect(packet.payload.success).toBe(false);
-		//expect(packet.payload.data).toBeNull();
+		expect(packet.payload.data).toBeNull();
 		expect(packet.payload.error).toBeDefined();
 		expect(packet.payload.error.name).toBe("ValidationError");
 		expect(packet.payload.error.message).toBe("Validation error");
 		expect(packet.payload.error.code).toBe(422);
 		expect(packet.payload.error.data).toBe("{\"a\":5}");
+	});
+
+	it("should transform payload without error", () => {
+		let payload = {
+			data: "{\"a\":5}"
+		};
+		let packet = new P.PacketResponse(transit, "server-2", "12345", {});
+		packet.transformPayload(payload);
+
+		expect(packet.payload.data).toEqual({ a: 5 });
+		expect(packet.payload.error).toBeUndefined();		
+	});
+
+	it("should transform payload with error", () => {
+		let payload = {
+			data: null,
+			error: {
+				name: "CustomError",
+				message: "Something happened",
+				code: 500,
+				data: "{\"a\":5}"
+			}
+		};
+		let packet = new P.PacketResponse(transit, "server-2", "12345", {});
+		packet.transformPayload(payload);
+
+		expect(packet.payload.data).toBeNull();
+		expect(packet.payload.error).toBeDefined();
+		expect(packet.payload.error.name).toBe("CustomError");
+		expect(packet.payload.error.message).toBe("Something happened");
+		expect(packet.payload.error.code).toBe(500);
+		expect(packet.payload.error.data).toEqual({ a: 5 });	
 	});
 
 });
