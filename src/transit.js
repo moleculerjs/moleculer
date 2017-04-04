@@ -6,23 +6,12 @@
 
 "use strict";
 
-const Promise		= require("bluebird");
-const utils 		= require("./utils");
-const { RequestTimeoutError } = require("./errors");
-const P 			= require("./packets");
+const Promise					= require("bluebird");
+const { RequestTimeoutError } 	= require("./errors");
+const P 						= require("./packets");
 
 // Prefix for logger
-const LOG_PREFIX 		= "TRANSIT";
-/*
-// Topic names
-const TOPIC_EVENT 		= "EVENT";
-const TOPIC_REQ 		= "REQ";
-const TOPIC_RES 		= "RES";
-const TOPIC_DISCOVER 	= "DISCOVER";
-const TOPIC_INFO 		= "INFO";
-const TOPIC_DISCONNECT 	= "DISCONNECT";
-const TOPIC_HEARTBEAT 	= "HEARTBEAT";
-*/
+const LOG_PREFIX 				= "TRANSIT";
 
 /**
  * Transit class
@@ -140,6 +129,10 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	messageHandler(cmd, msg) {
+		if (msg == null) {
+			throw new Error("Missing packet!");
+		}
+
 		const packet = P.Packet.deserialize(this, cmd, msg);
 		const payload = packet.payload;
 
