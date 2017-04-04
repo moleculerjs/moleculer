@@ -75,7 +75,8 @@
     "mqtt": "2.5.2",
     "msgpack5": "3.4.1",
     "nats": "0.7.16",
-    "node-object-hash": "1.2.0"
+    "node-object-hash": "1.2.0",
+    "pson": "2.0.0"
   },
   "engines": {
     "node": ">= 6.x.x"
