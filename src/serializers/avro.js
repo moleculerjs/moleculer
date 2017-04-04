@@ -115,8 +115,9 @@ class AvroSerializer extends BaseSerializer {
 	 * @memberOf Serializer
 	 */
 	serialize(obj, type) {
-		const t = schemas[type].toBuffer(obj);
-		return t.toString("binary");
+		//const t = schemas[type].toBuffer(obj);
+		const t = schemas[type].toBuffer(obj).toString("binary");
+		return t;
 	}
 
 	/**
@@ -129,6 +130,7 @@ class AvroSerializer extends BaseSerializer {
 	 * @memberOf Serializer
 	 */
 	deserialize(str, type) {
+		//const res = schemas[type].fromBuffer(str);
 		const res = schemas[type].fromBuffer(Buffer.from(str, "binary"));
 		return res;
 	}
