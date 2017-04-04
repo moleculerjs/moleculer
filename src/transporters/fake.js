@@ -63,21 +63,22 @@ class FakeTransporter extends Transporter {
 	/**
 	 * Subscribe to a topic
 	 * 
-	 * @param {Array} topic 
+	 * @param {String} cmd 
+	 * @param {String} nodeID 
 	 * 
 	 * @memberOf FakeTransporter
 	 */
-	subscribe(topic) {
-		const t = [this.prefix].concat(topic).join(".");
+	subscribe(cmd, nodeID) {
+		const t = this.prefix + "." + cmd + (nodeID ? "." + nodeID : "");
 		/*
 		const self = this;
 		this.bus.on(t, function subscriptionHandler(msg) {
 			//const event = this.event.split(".").slice(1);
-			self.messageHandler(topic, msg);
+			self.messageHandler(cmd, msg);
 		});
 		*/
 
-		this.bus.on(t, msg => this.messageHandler(topic, msg));
+		this.bus.on(t, msg => this.messageHandler(cmd, msg));
 	}
 
 	/**
@@ -88,9 +89,9 @@ class FakeTransporter extends Transporter {
 	 * @memberOf FakeTransporter
 	 */
 	publish(packet) {
-		const t = this.prefix + "." + packet.getTopic().join("."); // Faster than [].concat
+		const cmd = this.prefix + "." + packet.type + (packet.target ? "." + packet.target : "");
 		const data = packet.serialize();
-		this.bus.emit(t, data);
+		this.bus.emit(cmd, data);
 	}
 
 }

@@ -98,27 +98,27 @@ class NatsTransporter extends Transporter {
 	/**
 	 * Subscribe to a topic
 	 * 
-	 * @param {Array} topic 
+	 * @param {String} cmd 
+	 * @param {String} nodeID 
 	 * 
 	 * @memberOf NatsTransporter
 	 */
-	subscribe(topic) {
-		this.client.subscribe([this.prefix].concat(topic), (msg, reply, subject) => {
-			let t = subject.split(",").slice(1);
-			this.messageHandler(t, msg);
-		});
+	subscribe(cmd, nodeID) {
+		const t = this.prefix + "." + cmd + (nodeID ? "." + nodeID : "");
+		this.client.subscribe(t, (msg) => this.messageHandler(cmd, msg));
 	}
 
 	/**
 	 * Publish a message on the topic
 	 * 
-	 * @param {Array} topic 
-	 * @param {String} packet 
+	 * @param {Packet} packet 
 	 * 
 	 * @memberOf NatsTransporter
 	 */
-	publish(topic, packet) {
-		this.client.publish([this.prefix].concat(topic), packet);
+	publish(packet) {
+		const cmd = this.prefix + "." + packet.type + (packet.target ? "." + packet.target : "");
+		const data = packet.serialize();
+		this.client.publish(cmd, data);
 	}
 
 }

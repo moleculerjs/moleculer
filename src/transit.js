@@ -97,25 +97,25 @@ class Transit {
 	makeSubscriptions() {
 
 		// Subscribe to broadcast events
-		this.subscribe([P.PACKET_EVENT]);
+		this.subscribe(P.PACKET_EVENT);
 
 		// Subscribe to requests
-		this.subscribe([P.PACKET_REQUEST, this.nodeID]);
+		this.subscribe(P.PACKET_REQUEST, this.nodeID);
 
 		// Subscribe to node responses of requests
-		this.subscribe([P.PACKET_RESPONSE, this.nodeID]);
+		this.subscribe(P.PACKET_RESPONSE, this.nodeID);
 
 		// Discover handler
-		this.subscribe([P.PACKET_DISCOVER]);
+		this.subscribe(P.PACKET_DISCOVER);
 
 		// NodeInfo handler
-		this.subscribe([P.PACKET_INFO, this.nodeID]);
+		this.subscribe(P.PACKET_INFO, this.nodeID);
 
 		// Disconnect handler
-		this.subscribe([P.PACKET_DISCONNECT]);
+		this.subscribe(P.PACKET_DISCONNECT);
 
 		// Heart-beat handler
-		this.subscribe([P.PACKET_HEARTBEAT]);
+		this.subscribe(P.PACKET_HEARTBEAT);
 	}
 
 	/**
@@ -139,9 +139,7 @@ class Transit {
 	 * 
 	 * @memberOf Transit
 	 */
-	messageHandler(topics, msg) {
-		const cmd = topics[0];
-
+	messageHandler(cmd, msg) {
 		const packet = P.Packet.deserialize(this, cmd, msg);
 		const payload = packet.payload;
 
@@ -363,12 +361,13 @@ class Transit {
 	/**
 	 * Subscribe via transporter
 	 * 
-	 * @param {Array} topic 
+	 * @param {String} topic 
+	 * @param {String} nodeID
 	 * 
 	 * @memberOf Transit
 	 */
-	subscribe(topic) {
-		return this.tx.subscribe(topic);
+	subscribe(topic, nodeID) {
+		return this.tx.subscribe(topic, nodeID);
 	}
 
 	/**

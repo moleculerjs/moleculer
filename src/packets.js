@@ -67,20 +67,6 @@ class Packet {
 	}
 
 	/**
-	 * Get topic name by packet
-	 * 
-	 * @returns 
-	 * 
-	 * @memberOf Packet
-	 */
-	getTopic() {
-		if (this.target)
-			return [this.type, this.target];
-		else
-			return [this.type];
-	}
-
-	/**
 	 * Serialize a packet
 	 * 
 	 * @returns 
