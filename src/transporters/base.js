@@ -69,9 +69,10 @@ class BaseTransporter {
 	}
 
 	/**
-	 * Subscribe to event
+	 * Subscribe to a command
 	 * 
-	 * @param {String} topic 
+	 * @param {String} cmd 
+	 * @param {String} nodeID 
 	 * 
 	 * @memberOf BaseTransporter
 	 */
@@ -81,7 +82,7 @@ class BaseTransporter {
 	}
 
 	/**
-	 * Publish an event
+	 * Publish a packet
 	 * 
 	 * @param {Packet} packet
 	 * 

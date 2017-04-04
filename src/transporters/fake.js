@@ -61,7 +61,7 @@ class FakeTransporter extends Transporter {
 	}
 
 	/**
-	 * Subscribe to a topic
+	 * Subscribe to a command
 	 * 
 	 * @param {String} cmd 
 	 * @param {String} nodeID 
@@ -74,7 +74,7 @@ class FakeTransporter extends Transporter {
 	}
 
 	/**
-	 * Publish a message on the topic
+	 * Publish a packet
 	 * 
 	 * @param {Packet} packet
 	 * 

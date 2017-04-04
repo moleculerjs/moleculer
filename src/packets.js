@@ -143,7 +143,12 @@ class PacketHeartbeat extends Packet {
 class PacketDiscover extends Packet {
 	constructor(transit, actions) {
 		super(transit, PACKET_DISCOVER);
-		this.payload.actions = actions;
+		this.payload.actions = JSON.stringify(actions);
+	}
+
+	deserializePayload(payload) {
+		super.deserializePayload(payload);
+		payload.actions = JSON.parse(payload.actions);
 	}
 }
 
@@ -156,7 +161,12 @@ class PacketDiscover extends Packet {
 class PacketInfo extends Packet {
 	constructor(transit, target, actions) {
 		super(transit, PACKET_INFO, target);
-		this.payload.actions = actions;
+		this.payload.actions = JSON.stringify(actions);
+	}
+
+	deserializePayload(payload) {
+		super.deserializePayload(payload);
+		payload.actions = JSON.parse(payload.actions);
 	}
 }
 

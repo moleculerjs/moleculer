@@ -4,7 +4,7 @@ let { delay } = require("../../src/utils");
 
 let ServiceBroker = require("../../src/service-broker");
 let NatsTransporter = require("../../src/transporters/nats");
-let Serializer = require("../../src/serializers/msgpack");
+let Serializer = require("../../src/serializers/avro");
 
 // Create broker
 let broker = new ServiceBroker({
@@ -12,7 +12,7 @@ let broker = new ServiceBroker({
 	transporter: new NatsTransporter(),
 	logger: console,
 	logLevel: "info",
-	//serializer: new Serializer()
+	serializer: new Serializer()
 });
 
 //broker.loadService(__dirname + "/../post.service");
