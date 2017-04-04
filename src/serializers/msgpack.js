@@ -50,7 +50,7 @@ class MsgPackSerializer extends BaseSerializer {
 	 * @memberOf Serializer
 	 */
 	deserialize(str) {
-		const res = this.msgpack.decode(Buffer.from(str));
+		const res = this.msgpack.decode(str);
 		return res;
 	}
 }

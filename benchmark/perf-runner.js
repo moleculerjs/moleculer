@@ -5,7 +5,7 @@ const v8 = require('v8-natives');
 let ServiceBroker = require("../src/service-broker");
 let Context = require("../src/context");
 let Transporters = require("../src/transporters");
-let Serializer = require("../src/serializers/json");
+let Serializer = require("../src/serializers/msgpack");
 
 let { generateToken, json2String } = require("../src/utils");
 let Promise	= require("bluebird");

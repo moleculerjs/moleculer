@@ -10,6 +10,52 @@ const BaseSerializer = require("./base");
 
 const PSON = require("pson");
 
+const P = require("../packets");
+
+const schemas = {};
+
+schemas[P.PACKET_EVENT] = new PSON.ProgressivePair([
+	"sender",
+	"event",
+	"data"
+]);
+
+schemas[P.PACKET_REQUEST] = new PSON.ProgressivePair([
+	"sender",
+	"requestID",
+	"action",
+	"params"
+]);
+
+schemas[P.PACKET_RESPONSE] = new PSON.ProgressivePair([
+	"sender",
+	"requestID",
+	"success",
+	"data",
+	"error",
+	"name",
+	"message",
+	"code"
+]);
+
+schemas[P.PACKET_DISCOVER] = new PSON.ProgressivePair([
+	"sender",
+	"actions"
+]);
+
+schemas[P.PACKET_INFO] = new PSON.ProgressivePair([
+	"sender",
+	"actions"
+]);
+
+schemas[P.PACKET_DISCONNECT] = new PSON.ProgressivePair([
+	"sender"
+]);
+
+schemas[P.PACKET_HEARTBEAT] = new PSON.ProgressivePair([
+	"sender"
+]);
+
 /**
  * MessagePack serializer for Moleculer
  * 
@@ -26,20 +72,19 @@ class PsonSerializer extends BaseSerializer {
 	 */
 	constructor() {
 		super();
-
-		this.pson = new PSON.ProgressivePair();
 	}
 
 	/**
 	 * Serializer a JS object to string or Buffer
 	 * 
 	 * @param {Object} obj
+	 * @param {String} type of packet
 	 * @returns {String|Buffer}
 	 * 
 	 * @memberOf Serializer
 	 */
-	serialize(obj) {
-		const res = this.pson.encode(obj).compact();
+	serialize(obj, type) {
+		const res = schemas[type].encode(obj);
 		return res;
 	}
 
@@ -47,12 +92,13 @@ class PsonSerializer extends BaseSerializer {
 	 * Deserialize string/Buffer to JS object
 	 * 
 	 * @param {String|Buffer} str
+	 * @param {String} type of packet
 	 * @returns {Object}
 	 * 
 	 * @memberOf Serializer
 	 */
-	deserialize(str) {
-		const res = this.pson.decode(str);
+	deserialize(str, type) {
+		const res = schemas[type].decode(str);
 		return res;
 	}
 }
