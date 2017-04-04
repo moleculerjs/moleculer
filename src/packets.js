@@ -93,7 +93,7 @@ class Packet {
 		const packetClass = getPacketClassByType(type);
 
 		const packet = new packetClass(transit);
-		packet.deserializePayload(payload);
+		packet.transformPayload(payload);
 
 		return packet;
 	}
@@ -105,7 +105,7 @@ class Packet {
 	 * 
 	 * @memberOf Packet
 	 */
-	deserializePayload(payload) {
+	transformPayload(payload) {
 		this.payload = payload;
 	}
 } 
@@ -146,8 +146,8 @@ class PacketDiscover extends Packet {
 		this.payload.actions = JSON.stringify(actions);
 	}
 
-	deserializePayload(payload) {
-		super.deserializePayload(payload);
+	transformPayload(payload) {
+		super.transformPayload(payload);
 		payload.actions = JSON.parse(payload.actions);
 	}
 }
@@ -164,8 +164,8 @@ class PacketInfo extends Packet {
 		this.payload.actions = JSON.stringify(actions);
 	}
 
-	deserializePayload(payload) {
-		super.deserializePayload(payload);
+	transformPayload(payload) {
+		super.transformPayload(payload);
 		payload.actions = JSON.parse(payload.actions);
 	}
 }
@@ -184,8 +184,8 @@ class PacketEvent extends Packet {
 		this.payload.data = JSON.stringify(data);
 	}
 
-	deserializePayload(payload) {
-		super.deserializePayload(payload);
+	transformPayload(payload) {
+		super.transformPayload(payload);
 		payload.data = JSON.parse(payload.data);
 	}	
 }
@@ -205,8 +205,8 @@ class PacketRequest extends Packet {
 		this.payload.params = JSON.stringify(params);
 	}
 
-	deserializePayload(payload) {
-		super.deserializePayload(payload);
+	transformPayload(payload) {
+		super.transformPayload(payload);
 		payload.params = JSON.parse(payload.params);
 	}	
 }
@@ -235,8 +235,8 @@ class PacketResponse extends Packet {
 		}
 	}
 
-	deserializePayload(payload) {
-		super.deserializePayload(payload);
+	transformPayload(payload) {
+		super.transformPayload(payload);
 		payload.data = JSON.parse(payload.data);
 		if (payload.error && payload.error.data)
 			payload.error.data = JSON.parse(payload.error.data);
