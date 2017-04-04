@@ -121,14 +121,14 @@ class RedisTransporter extends Transporter {
 	/**
 	 * Publish a message on the topic
 	 * 
-	 * @param {Array} topic 
-	 * @param {String} packet 
+	 * @param {String} type of packet
 	 * 
 	 * @memberOf RedisTransporter
 	 */
-	publish(topic, packet) {
-		const t = [this.prefix].concat(topic).join(".");
-		this.clientPub.publish(t, packet);
+	publish(packet) {
+		const t = this.prefix + "." + packet.getTopic().join("."); // Faster than [].concat
+		const data = packet.serialize();
+		this.clientPub.publish(t, data);
 	}
 
 }

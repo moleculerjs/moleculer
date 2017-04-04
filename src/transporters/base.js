@@ -83,12 +83,11 @@ class BaseTransporter {
 	/**
 	 * Publish an event
 	 * 
-	 * @param {String} topic 
-	 * @param {String} packet 
+	 * @param {Packet} packet
 	 * 
 	 * @memberOf BaseTransporter
 	 */
-	publish(topic, packet) {
+	publish(packet) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented!");
 	}

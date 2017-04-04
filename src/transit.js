@@ -379,19 +379,19 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	publish(packet) {
-		return this.tx.publish(packet.getTopic(), packet.serialize());
+		return this.tx.publish(packet);
 	}
 
 	/**
-	 * Serialize the payload object
+	 * Serialize the object
 	 * 
-	 * @param {any} payload 
+	 * @param {Object} obj 
 	 * @returns {String}
 	 * 
 	 * @memberOf Transit
 	 */
-	serialize(payload, type) {
-		return this.broker.serializer.serialize(payload, type);
+	serialize(obj, type) {
+		return this.broker.serializer.serialize(obj, type);
 		//return payload;
 	}
 

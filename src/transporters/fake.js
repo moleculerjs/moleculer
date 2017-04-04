@@ -83,14 +83,14 @@ class FakeTransporter extends Transporter {
 	/**
 	 * Publish a message on the topic
 	 * 
-	 * @param {Array} topic 
-	 * @param {String} packet 
+	 * @param {Packet} packet
 	 * 
 	 * @memberOf FakeTransporter
 	 */
-	publish(topic, packet) {
-		const t = this.prefix + "." + topic.join("."); // Faster than [].concat
-		this.bus.emit(t, packet);
+	publish(packet) {
+		const t = this.prefix + "." + packet.getTopic().join("."); // Faster than [].concat
+		const data = packet.serialize();
+		this.bus.emit(t, data);
 	}
 
 }

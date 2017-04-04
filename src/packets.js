@@ -88,7 +88,7 @@ class Packet {
 	 * @memberOf Packet
 	 */
 	serialize() {
-		return this.transit.serialize(this.payload);
+		return this.transit.serialize(this.payload, this.type);
 	}
 
 	/**
@@ -103,7 +103,7 @@ class Packet {
 	 * @memberOf Packet
 	 */
 	static deserialize(transit, type, msg) {
-		const payload = transit.deserialize(msg);
+		const payload = transit.deserialize(msg, type);
 		const packetClass = getPacketClassByType(type);
 
 		const packet = new packetClass(transit);
