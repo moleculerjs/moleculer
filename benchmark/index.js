@@ -1,3 +1,3 @@
 "use strict";
 
-require("./suites/" + process.argv[2]);
+require("./suites/" + (process.argv[2] || "common"));
