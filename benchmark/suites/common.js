@@ -56,89 +56,38 @@ let bench2 = new Benchmarkify({ async: true, name: "Call with middlewares"});
 })();
 
 // ----------------------------------------------------------------
-let bench3 = new Benchmarkify({ async: true, name: "Call with cachers"});
-
-let MemoryCacher = require("../../src/cachers").Memory;
+let bench3 = new Benchmarkify({ async: true, name: "Call with statistics & metrics"});
 
 (function() {
 	let broker = createBroker();
-	bench3.add("No cacher", () => {
-		return broker.call("users.get", { id: 5 });
-	});
-})();
-
-(function() {
-	let broker = createBroker({ cacher: new MemoryCacher() });
-	bench3.add("Built-in cacher", () => {
-		return broker.call("users.get", { id: 5 });
-	});
-})();
-
-(function() {
-	let broker = createBroker({ cacher: new MemoryCacher() });
-	bench3.add("Built-in cacher (keys filter)", () => {
-		return broker.call("users.get2", { id: 5 });
-	});
-})();
-
-// ----------------------------------------------------------------
-let bench4 = new Benchmarkify({ async: true, name: "Call with param validator"});
-
-(function() {
-	let broker = createBroker();
-	bench4.add("No validator", () => {
-		return broker.call("users.get", { id: 5 });
-	});
-})();
-
-(function() {
-	let broker = createBroker();
-	bench4.add("With validator passes", () => {
-		return broker.call("users.validate", { id: 5 });
-	});
-})();
-
-(function() {
-	let broker = createBroker();
-	bench4.add("With validator fail", () => {
-		return broker.call("users.validate", { id: "a5" })
-			.catch(err => null);
-	});
-})();
-
-// ----------------------------------------------------------------
-let bench5 = new Benchmarkify({ async: true, name: "Call with statistics & metrics"});
-
-(function() {
-	let broker = createBroker();
-	bench5.add("No statistics", () => {
+	bench3.add("No statistics", () => {
 		return broker.call("users.empty");
 	});
 })();
 
 (function() {
 	let broker = createBroker({ metrics: true });
-	bench5.add("With metrics", () => {
+	bench3.add("With metrics", () => {
 		return broker.call("users.empty");
 	});
 })();
 
 (function() {
 	let broker = createBroker({ statistics: true });
-	bench5.add("With statistics", () => {
+	bench3.add("With statistics", () => {
 		return broker.call("users.empty");
 	});
 })();
 
 (function() {
 	let broker = createBroker({ metrics: true, statistics: true });
-	bench5.add("With metrics & statistics", () => {
+	bench3.add("With metrics & statistics", () => {
 		return broker.call("users.empty");
 	});
 })();
 
 // ----------------------------------------------------------------
-let bench6 = new Benchmarkify({ async: true, name: "Remote call with FakeTransporter"});
+let bench4 = new Benchmarkify({ async: true, name: "Remote call with FakeTransporter"});
 
 (function() {
 
@@ -172,24 +121,22 @@ let bench6 = new Benchmarkify({ async: true, name: "Remote call with FakeTranspo
 	b1.start().then(() => b2.start());
 
 	let c = 0;
-	bench6.add("Remote call echo.reply", () => {
+	bench4.add("Remote call echo.reply", () => {
 		return b1.call("echo.reply", { a: c++ });
 	});
 })();
 
 bench1.run()
-.then(() => bench2.skip())
-.then(() => bench3.skip())
-.then(() => bench4.skip())
-.then(() => bench5.skip())
-.then(() => bench6.run());
+.then(() => bench2.run())
+.then(() => bench3.run())
+.then(() => bench4.run());
 
 
 /*
 
-==========================
-  Broker call benchmarks
-==========================
+===============================
+  Moleculer common benchmarks
+===============================
 
 Platform info:
 ==============
@@ -198,54 +145,38 @@ Platform info:
    V8: 5.1.281.93
    Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
 
-Suite: Call methods
-√ broker.call (normal) x 818,115 ops/sec ±0.38% (87 runs sampled)
-√ broker.call (with params) x 790,488 ops/sec ±1.35% (86 runs sampled)
+Suite: Local call
+√ broker.call (normal) x 856,356 ops/sec ±0.33% (86 runs sampled)
+√ broker.call (with params) x 816,742 ops/sec ±1.36% (85 runs sampled)
 
-   broker.call (normal)          0.00%    (818,115 ops/sec)
-   broker.call (with params)    -3.38%    (790,488 ops/sec)
+   broker.call (normal)          0.00%    (856,356 ops/sec)
+   broker.call (with params)    -4.63%    (816,742 ops/sec)
 -----------------------------------------------------------------------
 
 Suite: Call with middlewares
-√ Call without middlewares x 762,770 ops/sec ±1.03% (87 runs sampled)
-√ Call with 1 middleware x 769,515 ops/sec ±0.73% (88 runs sampled)
-√ Call with 5 middlewares x 769,607 ops/sec ±0.96% (87 runs sampled)
+√ No middlewares x 803,110 ops/sec ±1.02% (84 runs sampled)
+√ 5 middlewares x 808,488 ops/sec ±1.03% (88 runs sampled)
 
-   Call without middlewares    -0.88%    (762,770 ops/sec)
-   Call with 1 middleware       0.00%    (769,515 ops/sec)
-   Call with 5 middlewares      0.01%    (769,607 ops/sec)
------------------------------------------------------------------------
-
-Suite: Call with cachers
-√ No cacher x 598,163 ops/sec ±0.86% (85 runs sampled)
-√ Built-in cacher x 64,271 ops/sec ±0.99% (84 runs sampled)
-√ Built-in cacher (keys filter) x 88,719 ops/sec ±0.93% (86 runs sampled)
-
-   No cacher                         0.00%    (598,163 ops/sec)
-   Built-in cacher                 -89.26%     (64,271 ops/sec)
-   Built-in cacher (keys filter)   -85.17%     (88,719 ops/sec)
------------------------------------------------------------------------
-
-Suite: Call with param validator
-√ No validator x 588,463 ops/sec ±1.11% (84 runs sampled)
-√ With validator passes x 541,903 ops/sec ±1.41% (84 runs sampled)
-√ With validator fail x 25,648 ops/sec ±1.62% (85 runs sampled)
-
-   No validator              0.00%    (588,463 ops/sec)
-   With validator passes    -7.91%    (541,903 ops/sec)
-   With validator fail     -95.64%     (25,648 ops/sec)
+   No middlewares    -0.67%    (803,110 ops/sec)
+   5 middlewares      0.00%    (808,488 ops/sec)
 -----------------------------------------------------------------------
 
 Suite: Call with statistics & metrics
-√ No statistics x 735,371 ops/sec ±1.16% (88 runs sampled)
-√ With metrics x 180,635 ops/sec ±1.49% (82 runs sampled)
-√ With statistics x 493,453 ops/sec ±1.06% (86 runs sampled)
-√ With metrics & statistics x 178,360 ops/sec ±0.96% (85 runs sampled)
+√ No statistics x 812,022 ops/sec ±0.77% (87 runs sampled)
+√ With metrics x 199,014 ops/sec ±1.49% (85 runs sampled)
+√ With statistics x 522,074 ops/sec ±1.06% (88 runs sampled)
+√ With metrics & statistics x 191,070 ops/sec ±1.45% (77 runs sampled)
 
-   No statistics                 0.00%    (735,371 ops/sec)
-   With metrics                -75.44%    (180,635 ops/sec)
-   With statistics             -32.90%    (493,453 ops/sec)
-   With metrics & statistics   -75.75%    (178,360 ops/sec)
+   No statistics                 0.00%    (812,022 ops/sec)
+   With metrics                -75.49%    (199,014 ops/sec)
+   With statistics             -35.71%    (522,074 ops/sec)
+   With metrics & statistics   -76.47%    (191,070 ops/sec)
+-----------------------------------------------------------------------
+
+Suite: Remote call with FakeTransporter
+√ Remote call echo.reply x 45,211 ops/sec ±1.00% (79 runs sampled)
+
+   Remote call echo.reply     0.00%     (45,211 ops/sec)
 -----------------------------------------------------------------------
 
 */
