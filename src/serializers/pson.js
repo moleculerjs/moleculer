@@ -8,24 +8,26 @@
 
 const BaseSerializer = require("./base");
 
+const PSON = require("pson");
+
 /**
  * MessagePack serializer for Moleculer
  * 
- * https://github.com/mcollina/msgpack5
+ * https://github.com/dcodeIO/PSON
  * 
- * @class MsgPackSerializer
+ * @class PsonSerializer
  */
-class MsgPackSerializer extends BaseSerializer {
+class PsonSerializer extends BaseSerializer {
 
 	/**
-	 * Creates an instance of MsgPackSerializer.
+	 * Creates an instance of PsonSerializer.
 	 * 
-	 * @memberOf MsgPackSerializer
+	 * @memberOf PsonSerializer
 	 */
 	constructor() {
 		super();
 
-		this.msgpack = require("msgpack5")();
+		this.pson = new PSON.ProgressivePair();
 	}
 
 	/**
@@ -37,7 +39,7 @@ class MsgPackSerializer extends BaseSerializer {
 	 * @memberOf Serializer
 	 */
 	serialize(obj) {
-		const res = this.msgpack.encode(obj);
+		const res = this.pson.encode(obj).compact();
 		return res;
 	}
 
@@ -50,9 +52,9 @@ class MsgPackSerializer extends BaseSerializer {
 	 * @memberOf Serializer
 	 */
 	deserialize(str) {
-		const res = this.msgpack.decode(Buffer.from(str));
+		const res = this.pson.decode(str);
 		return res;
 	}
 }
 
-module.exports = MsgPackSerializer;
+module.exports = PsonSerializer;

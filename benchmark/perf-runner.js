@@ -5,7 +5,7 @@ const v8 = require('v8-natives');
 let ServiceBroker = require("../src/service-broker");
 let Context = require("../src/context");
 let Transporters = require("../src/transporters");
-let MsgPackSerializer = require("../src/serializers/msgpack");
+let Serializer = require("../src/serializers/pson");
 
 let { generateToken, json2String } = require("../src/utils");
 let Promise	= require("bluebird");
@@ -17,7 +17,7 @@ function createBrokers(Transporter, opts) {
 		requestTimeout: 0,
 		//logger: console,
 		//logLevel: "debug",
-		serializer: new MsgPackSerializer(),
+		serializer: new Serializer(),
 		nodeID: "node-1",
 		
 	});
@@ -27,7 +27,7 @@ function createBrokers(Transporter, opts) {
 		//requestTimeout: 0,
 		//logger: console,
 		//logLevel: "debug",
-		serializer: new MsgPackSerializer(),
+		serializer: new Serializer(),
 		nodeID: "node-2"
 	});
 

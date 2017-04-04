@@ -4,7 +4,7 @@ let { delay } = require("../../src/utils");
 
 let ServiceBroker = require("../../src/service-broker");
 let NatsTransporter = require("../../src/transporters/nats");
-let MsgPackSerializer = require("../../src/serializers/msgpack");
+let Serializer = require("../../src/serializers/msgpack");
 
 // Create broker
 let broker = new ServiceBroker({
@@ -13,7 +13,7 @@ let broker = new ServiceBroker({
 	logger: console,
 	logLevel: "info",
 	requestTimeout: 5 * 1000,
-	serializer: new MsgPackSerializer()
+	serializer: new Serializer()
 	//requestRetry: 3
 });
 
