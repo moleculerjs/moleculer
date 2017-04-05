@@ -19,7 +19,7 @@ function createBroker(opts) {
 	return broker;
 }
 
-let bench1 = new Benchmarkify({ async: true, name: "Local call"});
+let bench1 = new Benchmarkify({ async: true, name: "Local call", resultFile: "./benchmark/results/common-suite.json"});
 (function() {
 	let broker = createBroker();
 	bench1.add("broker.call (normal)", () => {
@@ -33,7 +33,7 @@ let bench1 = new Benchmarkify({ async: true, name: "Local call"});
 })();
 
 // ----------------------------------------------------------------
-let bench2 = new Benchmarkify({ async: true, name: "Call with middlewares"});
+let bench2 = new Benchmarkify({ async: true, name: "Call with middlewares", resultFile: "./benchmark/results/common-suite.json"});
 
 (function() {
 	let broker = createBroker();
@@ -56,7 +56,7 @@ let bench2 = new Benchmarkify({ async: true, name: "Call with middlewares"});
 })();
 
 // ----------------------------------------------------------------
-let bench3 = new Benchmarkify({ async: true, name: "Call with statistics & metrics"});
+let bench3 = new Benchmarkify({ async: true, name: "Call with statistics & metrics", resultFile: "./benchmark/results/common-suite.json"});
 
 (function() {
 	let broker = createBroker();
@@ -87,7 +87,7 @@ let bench3 = new Benchmarkify({ async: true, name: "Call with statistics & metri
 })();
 
 // ----------------------------------------------------------------
-let bench4 = new Benchmarkify({ async: true, name: "Remote call with FakeTransporter"});
+let bench4 = new Benchmarkify({ async: true, name: "Remote call with FakeTransporter", resultFile: "./benchmark/results/common-suite.json"});
 
 (function() {
 
