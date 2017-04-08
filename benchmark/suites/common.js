@@ -7,8 +7,6 @@ let Benchmarkify = require("benchmarkify");
 let benchmark = new Benchmarkify("Moleculer common benchmarks").printHeader();
 
 let ServiceBroker = require("../../src/service-broker");
-let Context = require("../../src/context");
-let userService;
 
 function createBroker(opts) {
 	// Create broker

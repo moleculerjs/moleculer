@@ -1,15 +1,8 @@
 "use strict";
 
-const v8 = require('v8-natives');   
-
 let ServiceBroker = require("../src/service-broker");
-let Context = require("../src/context");
 let Transporters = require("../src/transporters");
 let Serializer = require("../src/serializers/json");
-
-let { generateToken, json2String } = require("../src/utils");
-let Promise	= require("bluebird");
-
 
 function createBrokers(Transporter, opts) {
 	let b1 = new ServiceBroker({
@@ -64,33 +57,6 @@ function doRequest() {
 		throw err;
 	});
 }
-/*
-const globalMsg = {
-	nodeID: "server-2",
-	requestID: generateToken(),
-	action: "posts.empty",
-	params: { a: 5 }
-};
-
-function doStringify() {
-	const msg = {
-		nodeID: "server-2",
-		requestID: generateToken(),
-		action: "posts.empty",
-		params: { a: 5 }
-	};
-
-	count++;
-	Promise.resolve(json2String(msg)).then(res => {
-		if (count % 1000) 
-			doStringify();
-		else
-			setImmediate(() => doStringify());
-
-		return res;
-	});
-
-}*/
 
 setTimeout(() => {
 	let startTime = Date.now();
@@ -100,14 +66,8 @@ setTimeout(() => {
 		console.log("RPS:", rps.toLocaleString("hu-HU", {maximumFractionDigits: 0}), "req/s");
 		count = 0;
 		startTime = Date.now();
-
-		//console.log("Pending:", b1.transit.pendingRequests.size);
-		//v8.helpers.printStatus(b1.transit.messageHandler);
 	}, 1000);
 
 	doRequest();
-	//doStringify();
 
 }, 500);
-
-//console.log(v8.getV8Version());
