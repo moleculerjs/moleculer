@@ -15,7 +15,7 @@ declare interface Action {
 	cache: Boolean;
 }
 
-export class Context {
+declare class Context {
 	constructor(opts: Object);
 	id: String;
 	broker: ServiceBroker;
@@ -30,7 +30,7 @@ export class Context {
 	emit(eventName: string, data: any);
 }
 
-export class Service {
+declare class Service {
 	constructor(broker: ServiceBroker, schema: Object);
 
 	name: String;
@@ -67,7 +67,7 @@ declare interface BrokerOptions {
 	ContextFactory?: Context;
 }
 
-export class ServiceBroker {
+declare class ServiceBroker {
 	constructor(options?: BrokerOptions);
 	Promise: typeof Promise;
 	nodeID?: string;
@@ -88,6 +88,16 @@ export class ServiceBroker {
 
 	use(...mws: Array<Function>);
 
+	/**
+	 * Call an action (local or global)
+	 * 
+	 * @param {any} actionName	name of action
+	 * @param {any} params		params of action
+	 * @param {any} opts		options of call (optional)
+	 * @returns
+	 * 
+	 * @memberOf ServiceBroker
+	 */
 	call(actionName: String, params?: Object, opts?: Object): Promise<any>;
 	emit(eventName: String, payload?: any);
 	emitLocal(eventName: String, payload?: any);
