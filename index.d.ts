@@ -132,7 +132,7 @@ declare class Validator {
 	validate(params: Object, schema: Object): Boolean;
 }
 
-export default {
+export = {
 	Context: Context,
 	Service: Service,
 	ServiceBroker: ServiceBroker,

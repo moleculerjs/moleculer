@@ -15,7 +15,7 @@ module.exports = {
 	Cachers: require("./src/cachers"),
 	Serializers: require("./src/serializers"),
 
-	Validator: require("./validator"),
+	Validator: require("./src/validator"),
 
 	Errors: require("./src/errors")
 };
