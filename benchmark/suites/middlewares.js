@@ -4,18 +4,18 @@ let _ = require("lodash");
 let Promise	= require("bluebird");
 
 let Benchmarkify = require("benchmarkify");
-Benchmarkify.printHeader("Middleware benchmark");
+let benchmark = new Benchmarkify("Middleware benchmark").printHeader();
 
 let ServiceBroker = require("../../src/service-broker");
 
-let bench = new Benchmarkify({ async: true, name: "Middleware test"});
+let bench = benchmark.createSuite("Middleware test");
 
 (function() {
 	let broker = new ServiceBroker();
 	broker.loadService(__dirname + "/../user.service");
 
-	bench.add("Without middlewares", () => {
-		return broker.call("users.find");
+	bench.ref("Without middlewares", done => {
+		return broker.call("users.find").then(done);
 	});
 })();
 
@@ -29,8 +29,8 @@ let bench = new Benchmarkify({ async: true, name: "Middleware test"});
 
 	broker.loadService(__dirname + "/../user.service");
 
-	bench.add("With 1 middlewares", () => {
-		return broker.call("users.find");
+	bench.add("With 1 middlewares", done => {
+		return broker.call("users.find").then(done);
 	});
 })();
 
@@ -45,8 +45,8 @@ let bench = new Benchmarkify({ async: true, name: "Middleware test"});
 		});
 	});
 
-	bench.add("With 10 middlewares", () => {
-		return broker.call("users.find");
+	bench.add("With 10 middlewares", done => {
+		return broker.call("users.find").then(done);
 	});
 })();
 

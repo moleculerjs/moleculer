@@ -10,7 +10,7 @@ let Promise	= require("bluebird");
 let { getDataFile } = require("../utils");
 
 let Benchmarkify = require("benchmarkify");
-Benchmarkify.printHeader("Transporters benchmark");
+let benchmark = new Benchmarkify("Transporters benchmark").printHeader();
 
 let dataFiles = ["10"];//, "150", "1k", "10k", "50k", "100k", "1M"];
 
@@ -47,7 +47,7 @@ function createBrokers(Transporter, opts) {
 
 function runTest(dataName) {
 
-	let bench = new Benchmarkify({ async: true, name: `Transport with ${dataName}bytes`});
+	let bench = benchmark.createSuite(`Transport with ${dataName}bytes`);
 	let data = getDataFile(dataName + ".json");
 	let payload = JSON.parse(data);
 
@@ -71,20 +71,20 @@ function runTest(dataName) {
 		});
 	});
 
-	bench.add("Fake", function() {
-		return fake1.call("echo.reply", payload);
+	bench.ref("Fake", done => {
+		return fake1.call("echo.reply", payload).then(done);
 	});
 
-	bench.add("NATS", function() {
-		return nats1.call("echo.reply", payload);
+	bench.add("NATS", done => {
+		return nats1.call("echo.reply", payload).then(done);
 	});
 	
-	bench.add("Redis", function() {
-		return redis1.call("echo.reply", payload);
+	bench.add("Redis", done => {
+		return redis1.call("echo.reply", payload).then(done);
 	});
 
-	bench.add("MQTT", function() {
-		return mqtt1.call("echo.reply", payload);
+	bench.add("MQTT", done => {
+		return mqtt1.call("echo.reply", payload).then(done);
 	});
 	
 	setTimeout(() => {
