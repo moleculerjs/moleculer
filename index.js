@@ -13,6 +13,9 @@ module.exports = {
 
 	Transporters: require("./src/transporters"),
 	Cachers: require("./src/cachers"),
+	Serializers: require("./src/serializers"),
+
+	Validator: require("./validator"),
 
 	Errors: require("./src/errors")
 };
