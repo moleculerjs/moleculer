@@ -8,8 +8,7 @@
 
 module.exports = {
 	JSON: require("./json"),
-	Avro: require("./avro")
-	/*MsgPack: require("./msgpack"),
-	PSON: require("./pson")
-	*/
+	Avro: require("./avro"),
+	MsgPack: require("./msgpack"),
+	//PSON: require("./pson")	
 };

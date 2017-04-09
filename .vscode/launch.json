@@ -51,7 +51,7 @@
 			"request": "launch",
 			"name": "Launch benchmark",
 			"program": "${workspaceRoot}\\benchmark\\index.js",
-			"args": ["call"],
+			"args": ["serializers"],
 			"cwd": "${workspaceRoot}\\benchmark"
 		},
 		{
