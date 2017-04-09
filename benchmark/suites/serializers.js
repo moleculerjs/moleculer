@@ -34,29 +34,29 @@ function runTest(dataName) {
 	let bench1 = benchmark.createSuite(`Serialize event packet with ${dataName}bytes`);
 
 	bench1.ref("JSON", () => {
-		return new P.PacketEvent(brokerJSON.transit, "user.created", data);
+		return new P.PacketEvent(brokerJSON.transit, "user.created", payload);
 	});
 
 	bench1.add("Avro", () => {
-		return new P.PacketEvent(brokerAvro.transit, "user.created", data);
+		return new P.PacketEvent(brokerAvro.transit, "user.created", payload);
 	});
 	
 	bench1.add("MsgPack", () => {
-		return new P.PacketEvent(brokerMsgPack.transit, "user.created", data);
+		return new P.PacketEvent(brokerMsgPack.transit, "user.created", payload);
 	});
 
 	let bench2 = benchmark.createSuite(`Serialize request packet with ${dataName}bytes`);
 
 	bench2.ref("JSON", () => {
-		return new P.PacketRequest(brokerJSON.transit, "node-2-12345", "dcfef88f-7dbe-4eed-87f1-aba340279f4f", "post.update", data);
+		return new P.PacketRequest(brokerJSON.transit, "node-2-12345", "dcfef88f-7dbe-4eed-87f1-aba340279f4f", "post.update", payload);
 	});
 
 	bench2.add("Avro", () => {
-		return new P.PacketRequest(brokerAvro.transit, "node-2-12345", "dcfef88f-7dbe-4eed-87f1-aba340279f4f", "post.update", data);
+		return new P.PacketRequest(brokerAvro.transit, "node-2-12345", "dcfef88f-7dbe-4eed-87f1-aba340279f4f", "post.update", payload);
 	});
 	
 	bench2.add("MsgPack", () => {
-		return new P.PacketRequest(brokerMsgPack.transit, "node-2-12345", "dcfef88f-7dbe-4eed-87f1-aba340279f4f", "post.update", data);
+		return new P.PacketRequest(brokerMsgPack.transit, "node-2-12345", "dcfef88f-7dbe-4eed-87f1-aba340279f4f", "post.update", payload);
 	});
 
 	bench1.run()
