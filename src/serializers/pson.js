@@ -4,6 +4,10 @@
  * MIT Licensed
  */
 
+/* ****************************************
+				UNSTABLE
+******************************************/
+
 "use strict";
 
 const BaseSerializer = require("./base");
