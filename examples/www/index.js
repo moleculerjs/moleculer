@@ -12,6 +12,7 @@ let broker = new ServiceBroker({
 	logger: console,
 	logLevel: "info",
 	metrics: true,
+	metricsRate: 1,
 	statistics: true
 });
 

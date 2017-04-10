@@ -62,6 +62,7 @@ class ServiceBroker {
 
 			validation: true,
 			metrics: false,
+			metricsRate: 1,
 			metricsSendInterval: 5 * 1000,
 			statistics: false,
 			internalActions: true
@@ -123,8 +124,8 @@ class ServiceBroker {
 			this.transit = new Transit(this, this.options.transporter);
 		}
 
-		// TODO remove to stats
-		this._callCount = 0;
+		// Counter for metricsRate
+		this.sampleCount = 0;
 
 		if (this.options.statistics)
 			this.statistics = new BrokerStatistics(this);
@@ -379,23 +380,24 @@ class ServiceBroker {
 	wrapContextInvoke(action, handler) {
 		// Finally logic
 		let after = (ctx, err) => {
-			if (this.options.metrics)
+			if (ctx.metrics) {
 				ctx._metricFinish(err);
 
-			if (this.statistics)
-				this.statistics.addRequest(ctx.action.name, ctx.duration, err ? err.code || 500 : null);
+				if (this.statistics)
+					this.statistics.addRequest(ctx.action.name, ctx.duration, err ? err.code || 500 : null);
+			}
 		};
 
 		// Add the main wrapper
 		action.handler = (ctx) => {
 			// Add metrics start
-			if (this.options.metrics)
+			if (ctx.metrics)
 				ctx._metricStart();
 
 			// Call the handler
 			let p = handler(ctx);
 			
-			if (this.options.metrics || this.statistics) {
+			if (ctx.metrics || this.statistics) {
 				// Add after to metrics & statistics
 				p = p.then(res => {
 					after(ctx, null);
@@ -634,10 +636,8 @@ class ServiceBroker {
 		if (opts.parentCtx) {
 			ctx = opts.parentCtx.createSubContext(action, params, nodeID);
 		} else {
-			ctx = new this.ContextFactory({ broker: this, action, params, nodeID, requestID: opts.requestID, metrics: !!this.options.metrics });
+			ctx = new this.ContextFactory({ broker: this, action, params, nodeID, requestID: opts.requestID, metrics: this.shouldMetric() });
 		}
-
-		this._callCount++; // TODO: Need to remove
 
 		if (actionItem.local) {
 			// Local action call
@@ -686,6 +686,25 @@ class ServiceBroker {
 		}
 
 		return Promise.reject(err);
+	}
+
+	/**
+	 * Check should metric the current call
+	 * 
+	 * @returns 
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	shouldMetric() {
+		if (this.options.metrics) {
+			this.sampleCount++;
+			if (this.sampleCount * this.options.metricsRate >= 1) {
+				this.sampleCount = 0;
+				return true;
+			}
+			
+		}
+		return false;
 	}
 
 	/**
