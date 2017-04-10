@@ -47,6 +47,7 @@ Moleculer is a fast & powerful microservices framework for NodeJS (>= v6.x).
     - [Logging](#logging)
     - [Cachers](#cachers)
     - [Transporters](#transporters)
+    - [Serializers](#serializers)
     - [Metrics](#metrics)
     - [Statistics](#statistics)
 - [Nodes](#nodes)
@@ -192,11 +193,13 @@ All available options:
     heartbeatTimeout: 30,
 
     cacher: null,
+    serializer: null,
 
+    validation: true,
     metrics: false,
+    metricsRate: 1,
     metricsSendInterval: 5 * 1000,
     statistics: false,
-    validation: true,
     internalActions: true
     
     ServiceFactory: null,
@@ -209,14 +212,16 @@ All available options:
 | `nodeID` | `String` | Computer name | This is the ID of node. It identifies a node in the cluster when there are many nodes. |
 | `logger` | `Object` | `null` | Logger class. During development you can set to `console`. In production you can set an external logger e.g. [winston](https://github.com/winstonjs/winston) or [pino](https://github.com/pinojs/pino) |
 | `logLevel` | `String` or `Object` | `info` | Level of logging (debug, info, warn, error) |
-| `transporter` | `Object` | `null` | Instance of transporter. Required if you have 2 or more nodes. Internal transporters: [NatsTransporter](#nats-transporter)  |
+| `transporter` | `Transporter` | `null` | Instance of transporter. Required if you have 2 or more nodes. Internal transporters: [NatsTransporter](#nats-transporter)  |
 | `requestTimeout` | `Number` | `5000` | Timeout of request in milliseconds. If the request is timed out, broker will throw a `RequestTimeout` error. Disable: 0 |
 | `requestRetry` | `Number` | `0` | Count of retry of request. If the request is timed out, broker will try to call again. |
-| `cacher` | `Object` | `null` | Instance of cacher. Built-in cachers: [MemoryCacher](#memory-cacher) or [RedisCacher](#redis-cacher) |
+| `cacher` | `Cacher` | `null` | Instance of cacher. Built-in cachers: [MemoryCacher](#memory-cacher) or [RedisCacher](#redis-cacher) |
+| `serializer` | `Serializer` | `JSONSerializer` | Instance of serializer. Built-in serializers: [JSON](#json-serializer), [Avro](#avro-serializer) or [MsgPack](#msgpack-serializer) |
+| `validation` | `Boolean` | `false` | Enable action [parameters validation](). |
 | `metrics` | `Boolean` | `false` | Enable [metrics](#metrics) function. |
+| `metricsRate` | `Number` | `1` | Rate of metrics calls. |
 | `metricsSendInterval` | `Number` | `5000` | Metrics event sends period in milliseconds |
 | `statistics` | `Boolean` | `false` | Enable broker [statistics](). Measure the requests count & latencies |
-| `validation` | `Boolean` | `false` | Enable action [parameters validation](). |
 | `internalActions` | `Boolean` | `true` | Register internal actions for metrics & statistics functions |
 | `heartbeatInterval` | `Number` | `10` | Interval (seconds) of sending heartbeat |
 | `heartbeatTimeout` | `Number` | `30` | Timeout (seconds) of heartbeat |
@@ -1125,6 +1130,59 @@ new MqttTransporter({
 
 ## Custom transporter
 You can also create your custom transporter module. We recommend you that copy the source of [`NatsTransporter`](src/transporters/nats.js) and implement the `connect`, `disconnect`,  `subscribe` and `publish` methods.
+
+# Serializers
+For transportation needs a serializer module which serialize & deserialize the transfered packets. If you don't set serializer, the default is the JSON serializer.
+
+```js
+let { ServiceBroker } = require("moleculer");
+let NatsTransporter = require("moleculer").Transporters.NATS;
+let AvroSerializer = require("moleculer").Serializers.Avro;
+
+let broker = new ServiceBroker({
+    nodeID: "server-1",
+    transporter: new NatsTransporter(),
+    serializer: new AvroSerializer()
+});
+```
+
+## JSON serializer
+This is the default serializer. Serialize the packets to JSON string and deserialize the received data to packet.
+
+```js
+let broker = new ServiceBroker({
+    nodeID: "server-1",
+    transporter: new NatsTransporter(),
+    // serializer: new JSONSerializer() // not set, because it is the default
+});
+```
+
+## Avro serializer
+This is an [Avro](https://github.com/mtth/avsc) serializer.
+
+```js
+let AvroSerializer = require("moleculer").Serializers.Avro;
+
+let broker = new ServiceBroker({
+    ...
+    serializer: new AvroSerializer()
+});
+```
+
+## MsgPack serializer
+This is an [MsgPack](https://github.com/mcollina/msgpack5) serializer.
+
+```js
+let MsgPackSerializer = require("moleculer").Serializers.MsgPack;
+
+let broker = new ServiceBroker({
+    ...
+    serializer: new MsgPackSerializer()
+});
+```
+
+## Custom serializer
+You can also create your custom serializer module. We recommend you that copy the source of [JSONSerializer](src/serializers/json.js) and implement the `serialize` and `deserialize` methods.
 
 # Metrics
 Moleculer has a metrics function. You can turn on in [broker options](#constructor-options) with `metrics: true` property.
