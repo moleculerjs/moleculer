@@ -64,8 +64,8 @@ class MqttTransporter extends Transporter {
 			});			
 
 			this.client.on("message", (topic, msg) => {
-				const t = topic.split(".").slice(1);
-				this.messageHandler(t, msg);
+				const cmd = topic.split(".")[1];
+				this.messageHandler(cmd, msg);
 			});
 
 			/* istanbul ignore next */
@@ -89,28 +89,27 @@ class MqttTransporter extends Transporter {
 	}
 
 	/**
-	 * Subscribe to a topic
+	 * Subscribe to a command
 	 * 
-	 * @param {Array} topic 
+	 * @param {String} cmd 
+	 * @param {String} nodeID 
 	 * 
 	 * @memberOf MqttTransporter
 	 */
-	subscribe(topic) {
-		const t = [this.prefix].concat(topic).join(".");
-		this.client.subscribe(t);
+	subscribe(cmd, nodeID) {
+		this.client.subscribe(this.getTopicName(cmd, nodeID));
 	}
 
 	/**
-	 * Publish a message on the topic
+	 * Publish a packet
 	 * 
-	 * @param {Array} topic 
-	 * @param {String} packet 
+	 * @param {Packet} packet
 	 * 
 	 * @memberOf MqttTransporter
 	 */
-	publish(topic, packet) {
-		const t = [this.prefix].concat(topic).join(".");
-		this.client.publish(t, packet);
+	publish(packet) {
+		const data = packet.serialize();		
+		this.client.publish(this.getTopicName(packet.type, packet.target), data);
 	}
 
 }

@@ -1,7 +1,7 @@
 const ServiceBroker = require("../../../src/service-broker");
 const MemoryCacher = require("../../../src/cachers/memory");
 
-// Unit: OK!
+
 describe("Test MemoryCacher constructor", () => {
 
 	it("should create an empty options", () => {

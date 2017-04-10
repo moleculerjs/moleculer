@@ -6,27 +6,25 @@ let Promise	= require("bluebird");
 let { getDataFile } = require("../utils");
 
 let Benchmarkify = require("benchmarkify");
-Benchmarkify.printHeader("Cachers benchmark");
+let benchmark = new Benchmarkify("Cachers benchmark").printHeader();
 
-let ServiceBroker = require("../../src/service-broker");
-let MemoryCacher = require("../../src/cachers/memory");
+let Moleculer = require("../../");
 let MemoryMapCacher = require("../../src/cachers/memory-map");
-let RedisCacher = require("../../src/cachers/redis");
 
 let key = "TESTKEY-12345";
 
-let bench = new Benchmarkify({ async: true, name: "Set & get 1k data with cacher"});
+let bench = benchmark.createSuite("Set & get 1k data with cacher");
 let data = JSON.parse(getDataFile("1k.json"));
 
-let broker = new ServiceBroker();
+let broker = new Moleculer.ServiceBroker();
 
-let memCacher = new MemoryCacher();
+let memCacher = new Moleculer.Cachers.Memory();
 memCacher.init(broker);
 
 let memMapCacher = new MemoryMapCacher();
 memMapCacher.init(broker);
 
-let redisCacher = new RedisCacher({
+let redisCacher = new Moleculer.Cachers.Redis({
 	redis: {
 		uri: "localhost:6379"
 	},
@@ -35,18 +33,18 @@ let redisCacher = new RedisCacher({
 redisCacher.init(broker);
 
 // ----
-bench.add("Memory", () => {
+bench.add("Memory", done => {
 	memCacher.set(key, data);
-	return memCacher.get(key);	
-}, false);
+	memCacher.get(key).then(done);
+});
 
 bench.add("MemoryMap", () => {
 	memMapCacher.set(key, data);
 	return memMapCacher.get(key);	
-}, false);
+});
 
-bench.add("Redis", () => {
-	return redisCacher.set(key, data).then(() => redisCacher.get(key));	
+bench.add("Redis", done => {
+	redisCacher.set(key, data).then(() => redisCacher.get(key)).then(done);
 });
 
 bench.run().then(() => {

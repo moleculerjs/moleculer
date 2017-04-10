@@ -61,36 +61,28 @@ class FakeTransporter extends Transporter {
 	}
 
 	/**
-	 * Subscribe to a topic
+	 * Subscribe to a command
 	 * 
-	 * @param {Array} topic 
+	 * @param {String} cmd 
+	 * @param {String} nodeID 
 	 * 
 	 * @memberOf FakeTransporter
 	 */
-	subscribe(topic) {
-		const t = [this.prefix].concat(topic).join(".");
-		/*
-		const self = this;
-		this.bus.on(t, function subscriptionHandler(msg) {
-			//const event = this.event.split(".").slice(1);
-			self.messageHandler(topic, msg);
-		});
-		*/
-
-		this.bus.on(t, msg => this.messageHandler(topic, msg));
+	subscribe(cmd, nodeID) {
+		const t = this.getTopicName(cmd, nodeID);
+		this.bus.on(t, msg => this.messageHandler(cmd, msg));
 	}
 
 	/**
-	 * Publish a message on the topic
+	 * Publish a packet
 	 * 
-	 * @param {Array} topic 
-	 * @param {String} packet 
+	 * @param {Packet} packet
 	 * 
 	 * @memberOf FakeTransporter
 	 */
-	publish(topic, packet) {
-		const t = this.prefix + "." + topic.join("."); // Faster than [].concat
-		this.bus.emit(t, packet);
+	publish(packet) {
+		const data = packet.serialize();
+		this.bus.emit(this.getTopicName(packet.type, packet.target), data);
 	}
 
 }

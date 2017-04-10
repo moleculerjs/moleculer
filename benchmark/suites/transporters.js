@@ -10,7 +10,7 @@ let Promise	= require("bluebird");
 let { getDataFile } = require("../utils");
 
 let Benchmarkify = require("benchmarkify");
-Benchmarkify.printHeader("Transporters benchmark");
+let benchmark = new Benchmarkify("Transporters benchmark").printHeader();
 
 let dataFiles = ["10"];//, "150", "1k", "10k", "50k", "100k", "1M"];
 
@@ -47,7 +47,7 @@ function createBrokers(Transporter, opts) {
 
 function runTest(dataName) {
 
-	let bench = new Benchmarkify({ async: true, name: `Transport with ${dataName}bytes`});
+	let bench = benchmark.createSuite(`Transport with ${dataName}bytes`);
 	let data = getDataFile(dataName + ".json");
 	let payload = JSON.parse(data);
 
@@ -56,35 +56,20 @@ function runTest(dataName) {
 	let [redis1, redis2] = createBrokers(Transporters.Redis);
 	let [mqtt1, mqtt2] = createBrokers(Transporters.MQTT);
 
-	bench.skip("Ref", function() {
-		return fake2.call("echo.reply", payload);
+	bench.ref("Fake", done => {
+		return fake1.call("echo.reply", payload).then(done);
 	});
 
-	bench.skip("stringify", function() {
-		return json2String({"nodeID":"node-1","requestID":"0dfecb75-c6bd-45d0-baa5-21168bef0a8e","action":"echo.reply","params":{"id":5}});
-	}, false);
-
-	bench.skip("stringify2", function() {
-		return new Promise(resolve => {
-			return resolve(JSON.stringify({"nodeID":"node-1","requestID":"0dfecb75-c6bd-45d0-baa5-21168bef0a8e","action":"echo.reply","params":{"id":5}}));
-
-		});
-	});
-
-	bench.add("Fake", function() {
-		return fake1.call("echo.reply", payload);
-	});
-
-	bench.add("NATS", function() {
-		return nats1.call("echo.reply", payload);
+	bench.add("NATS", done => {
+		return nats1.call("echo.reply", payload).then(done);
 	});
 	
-	bench.add("Redis", function() {
-		return redis1.call("echo.reply", payload);
+	bench.add("Redis", done => {
+		return redis1.call("echo.reply", payload).then(done);
 	});
 
-	bench.add("MQTT", function() {
-		return mqtt1.call("echo.reply", payload);
+	bench.add("MQTT", done => {
+		return mqtt1.call("echo.reply", payload).then(done);
 	});
 	
 	setTimeout(() => {

@@ -3,6 +3,7 @@ const Context = require("../../src/context");
 const Transit = require("../../src/transit");
 const FakeTransporter = require("../../src/transporters/fake");
 const { RequestTimeoutError, ValidationError } = require("../../src/errors");
+const P = require("../../src/packets");
 
 describe("Test Transporter constructor", () => {
 
@@ -90,7 +91,7 @@ describe("Test Transit.sendDisconnectPacket", () => {
 	it("should call publish iwth correct params", () => {
 		return transit.sendDisconnectPacket().then(() => {
 			expect(transit.publish).toHaveBeenCalledTimes(1);
-			expect(transit.publish).toHaveBeenCalledWith(["DISCONNECT"], {});
+			expect(transit.publish).toHaveBeenCalledWith(jasmine.any(P.PacketDisconnect));
 		});
 	});
 
@@ -107,13 +108,13 @@ describe("Test Transit.makeSubscriptions", () => {
 	it("should call subscribe with all topics", () => {
 		transit.makeSubscriptions();
 		expect(transit.subscribe).toHaveBeenCalledTimes(7);
-		expect(transit.subscribe).toHaveBeenCalledWith(["EVENT"]);
-		expect(transit.subscribe).toHaveBeenCalledWith(["REQ", "node1"]);
-		expect(transit.subscribe).toHaveBeenCalledWith(["RES", "node1"]);
-		expect(transit.subscribe).toHaveBeenCalledWith(["DISCOVER"]);
-		expect(transit.subscribe).toHaveBeenCalledWith(["INFO", "node1"]);
-		expect(transit.subscribe).toHaveBeenCalledWith(["DISCONNECT"]);
-		expect(transit.subscribe).toHaveBeenCalledWith(["HEARTBEAT"]);
+		expect(transit.subscribe).toHaveBeenCalledWith("EVENT");
+		expect(transit.subscribe).toHaveBeenCalledWith("REQ", "node1");
+		expect(transit.subscribe).toHaveBeenCalledWith("RES", "node1");
+		expect(transit.subscribe).toHaveBeenCalledWith("DISCOVER");
+		expect(transit.subscribe).toHaveBeenCalledWith("INFO", "node1");
+		expect(transit.subscribe).toHaveBeenCalledWith("DISCONNECT");
+		expect(transit.subscribe).toHaveBeenCalledWith("HEARTBEAT");
 	});
 
 });
@@ -130,7 +131,10 @@ describe("Test Transit.emit", () => {
 		const user = { id: 5, name: "Jameson" };
 		transit.emit("user.created", user);
 		expect(transit.publish).toHaveBeenCalledTimes(1);
-		expect(transit.publish).toHaveBeenCalledWith(["EVENT"], {"event": "user.created", "data": {"id": 5, "name": "Jameson"}});
+		const packet = transit.publish.mock.calls[0][0];
+		expect(packet).toBeInstanceOf(P.PacketEvent);
+		expect(packet.payload.event).toBe("user.created");
+		expect(packet.payload.data).toBe("{\"id\":5,\"name\":\"Jameson\"}");
 	});
 
 });
@@ -150,19 +154,19 @@ describe("Test Transit.messageHandler", () => {
 	});
 
 	it("should throw Error if msg not valid", () => {
-		transit.deserialize = jest.fn(() => null);
+		//transit.deserialize = jest.fn(() => null);
 		expect(() => {
-			transit.messageHandler(["EVENT"]);
-		}).toThrow("Missing response payload!");
+			transit.messageHandler("EVENT");
+		}).toThrow("Missing packet!");
 
-		transit.deserialize.mockReset();
+		//transit.deserialize.mockReset();
 	});
 
 	it("should call broker.emitLocal if topic is 'EVENT' ", () => {
 		broker.emitLocal = jest.fn();
 
-		let msg = { sender: "remote", event: "user.created", data: "John Doe" };
-		transit.messageHandler(["EVENT"], JSON.stringify(msg));
+		let msg = { sender: "remote", event: "user.created", data: JSON.stringify("John Doe") };
+		transit.messageHandler("EVENT", JSON.stringify(msg));
 
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
 		expect(broker.emitLocal).toHaveBeenCalledWith(msg.event, "John Doe");
@@ -178,8 +182,8 @@ describe("Test Transit.messageHandler", () => {
 			let response = [1, 5, 8];
 			broker.call = jest.fn(() => Promise.resolve(response));
 
-			let msg = { sender: "remote", action: "posts.find", requestID: "123", params: { limit: 5 } };
-			return transit.messageHandler(["REQ"], JSON.stringify(msg)).then(() => {
+			let msg = { sender: "remote", action: "posts.find", requestID: "123", params: JSON.stringify({ limit: 5 }) };
+			return transit.messageHandler("REQ", JSON.stringify(msg)).then(() => {
 				expect(broker.call).toHaveBeenCalledTimes(1);
 				expect(broker.call).toHaveBeenCalledWith(msg.action, { limit: 5 }, {});
 
@@ -194,8 +198,8 @@ describe("Test Transit.messageHandler", () => {
 			transit.sendResponse.mockClear();
 			broker.call = jest.fn(() => Promise.reject(new ValidationError("Not valid params")));
 
-			let msg = { sender: "remote", action: "posts.create", requestID: "123", params: { title: "Hello" } };
-			return transit.messageHandler(["REQ"], JSON.stringify(msg)).then(() => {
+			let msg = { sender: "remote", action: "posts.create", requestID: "123", params: JSON.stringify({ title: "Hello" }) };
+			return transit.messageHandler("REQ", JSON.stringify(msg)).then(() => {
 				expect(broker.call).toHaveBeenCalledTimes(1);
 				expect(broker.call).toHaveBeenCalledWith(msg.action, { title: "Hello" }, {});
 
@@ -218,7 +222,7 @@ describe("Test Transit.messageHandler", () => {
 			let req = { resolve: jest.fn(), reject: jest.fn() };
 			let msg = { sender: "remote", requestID };
 			
-			return transit.messageHandler(["RES"], JSON.stringify(msg)).then(() => {
+			return transit.messageHandler("RES", JSON.stringify(msg)).then(() => {
 				expect(req.resolve).toHaveBeenCalledTimes(0);
 				expect(req.reject).toHaveBeenCalledTimes(0);
 			});
@@ -233,8 +237,8 @@ describe("Test Transit.messageHandler", () => {
 			};
 			transit.pendingRequests.set(requestID, req);
 
-			let msg = { sender: "remote", requestID, success: true, data };			
-			return transit.messageHandler(["RES"], JSON.stringify(msg)).then(() => {
+			let msg = { sender: "remote", requestID, success: true, data: JSON.stringify(data) };			
+			return transit.messageHandler("RES", JSON.stringify(msg)).then(() => {
 				expect(req.resolve).toHaveBeenCalledTimes(1);
 				expect(req.resolve).toHaveBeenCalledWith(data);
 				expect(req.reject).toHaveBeenCalledTimes(0);
@@ -254,17 +258,17 @@ describe("Test Transit.messageHandler", () => {
 			let msg = { sender: "remote", requestID, success: false, error: {
 				name: "ValidationError",
 				code: 422,
-				data: { a: 5 }
+				data: JSON.stringify({ a: 5 })
 			}};	
 
-			return transit.messageHandler(["RES"], JSON.stringify(msg)).catch(err => {
+			return transit.messageHandler("RES", JSON.stringify(msg)).catch(err => {
 				expect(req.reject).toHaveBeenCalledTimes(1);
 				expect(req.reject).toHaveBeenCalledWith(err);
 				expect(req.resolve).toHaveBeenCalledTimes(0);
 
 				expect(err.name).toBe("ValidationError");
 				expect(err.code).toBe(422);
-				expect(err.data).toEqual(msg.error.data);
+				expect(err.data).toEqual({ a: 5 });
 				expect(err.nodeID).toBe("remote");
 
 				expect(transit.pendingRequests.size).toBe(0);
@@ -277,22 +281,22 @@ describe("Test Transit.messageHandler", () => {
 	it("should call broker.processNodeInfo if topic is 'INFO' ", () => {
 		broker.processNodeInfo = jest.fn();
 
-		let msg = { sender: "remote", actions: [] };
-		transit.messageHandler(["INFO"], JSON.stringify(msg));
+		let msg = { sender: "remote", actions: JSON.stringify({}) };
+		transit.messageHandler("INFO", JSON.stringify(msg));
 
 		expect(broker.processNodeInfo).toHaveBeenCalledTimes(1);
-		expect(broker.processNodeInfo).toHaveBeenCalledWith(msg.sender, msg);
+		expect(broker.processNodeInfo).toHaveBeenCalledWith("remote", {"actions": {}, "sender": "remote"});
 	});	
 
 	it("should call broker.processNodeInfo & sendNodeInfo if topic is 'DISCOVER' ", () => {
 		broker.processNodeInfo = jest.fn();
 		transit.sendNodeInfo = jest.fn();
 
-		let msg = { sender: "remote", actions: [] };
-		transit.messageHandler(["DISCOVER"], JSON.stringify(msg));
+		let msg = { sender: "remote", actions: JSON.stringify({}) };
+		transit.messageHandler("DISCOVER", JSON.stringify(msg));
 
 		expect(broker.processNodeInfo).toHaveBeenCalledTimes(1);
-		expect(broker.processNodeInfo).toHaveBeenCalledWith(msg.sender, msg);
+		expect(broker.processNodeInfo).toHaveBeenCalledWith("remote", {"actions": {}, "sender": "remote"});
 
 		expect(transit.sendNodeInfo).toHaveBeenCalledTimes(1);
 	});	
@@ -301,7 +305,7 @@ describe("Test Transit.messageHandler", () => {
 		broker.nodeDisconnected = jest.fn();
 
 		let msg = { sender: "remote" };
-		transit.messageHandler(["DISCONNECT"], JSON.stringify(msg));
+		transit.messageHandler("DISCONNECT", JSON.stringify(msg));
 
 		expect(broker.nodeDisconnected).toHaveBeenCalledTimes(1);
 		expect(broker.nodeDisconnected).toHaveBeenCalledWith(msg.sender, msg);
@@ -311,7 +315,7 @@ describe("Test Transit.messageHandler", () => {
 		broker.nodeHeartbeat = jest.fn();
 
 		let msg = { sender: "remote" };
-		transit.messageHandler(["HEARTBEAT"], JSON.stringify(msg));
+		transit.messageHandler("HEARTBEAT", JSON.stringify(msg));
 
 		expect(broker.nodeHeartbeat).toHaveBeenCalledTimes(1);
 		expect(broker.nodeHeartbeat).toHaveBeenCalledWith(msg.sender, msg);
@@ -341,7 +345,11 @@ describe("Test Transit.request", () => {
 		return transit.request(ctx).then(req => {
 			expect(transit.pendingRequests.size).toBe(1);
 			expect(transit.publish).toHaveBeenCalledTimes(1);
-			expect(transit.publish).toHaveBeenCalledWith(["REQ", "remote"], {"action": "users.find", "params": {"a": 5}, "requestID": "12345"});
+			const packet = transit.publish.mock.calls[0][0];
+			expect(packet).toBeInstanceOf(P.PacketRequest);
+			expect(packet.payload.requestID).toBe("12345");
+			expect(packet.payload.action).toBe("users.find");
+			expect(packet.payload.params).toBe("{\"a\":5}");
 
 			expect(req.nodeID).toBe("remote");
 			//expect(req.ctx).toBe(ctx);
@@ -364,7 +372,11 @@ describe("Test Transit.request", () => {
 		return transit.request(ctx, { timeout: 100 }).catch(err => {
 			expect(transit.pendingRequests.size).toBe(0); // Removed after timeout
 			expect(transit.publish).toHaveBeenCalledTimes(1);
-			expect(transit.publish).toHaveBeenCalledWith(["REQ", "remote"], {"action": "users.find", "params": {"a": 5}, "requestID": "12345"});
+			const packet = transit.publish.mock.calls[0][0];
+			expect(packet).toBeInstanceOf(P.PacketRequest);
+			expect(packet.payload.requestID).toBe("12345");
+			expect(packet.payload.action).toBe("users.find");
+			expect(packet.payload.params).toBe("{\"a\":5}");
 
 			expect(err).toBeInstanceOf(RequestTimeoutError);
 			expect(err.nodeID).toBe("remote");
@@ -385,14 +397,29 @@ describe("Test Transit.sendResponse", () => {
 		const data = { id: 1, name: "John Doe" };
 		transit.sendResponse("node2", "12345", data);
 		expect(transit.publish).toHaveBeenCalledTimes(1);
-		expect(transit.publish).toHaveBeenCalledWith(["RES", "node2"],  {"data": {"id": 1, "name": "John Doe"}, "requestID": "12345", "success": true});
+		const packet = transit.publish.mock.calls[0][0];
+		expect(packet).toBeInstanceOf(P.PacketResponse);
+		expect(packet.target).toBe("node2");
+		expect(packet.payload.requestID).toBe("12345");
+		expect(packet.payload.success).toBe(true);
+		expect(packet.payload.data).toBe("{\"id\":1,\"name\":\"John Doe\"}");
 	});
 
 	it("should call publish with the error", () => {
 		transit.publish.mockClear();
 		transit.sendResponse("node2", "12345", null, new ValidationError("Not valid params", { a: "Too small" }));
 		expect(transit.publish).toHaveBeenCalledTimes(1);
-		expect(transit.publish).toHaveBeenCalledWith(["RES", "node2"], {"data": null, "error": {"code": 422, "data": {"a": "Too small"}, "message": "Not valid params", "name": "ValidationError"}, "requestID": "12345", "success": false});
+		const packet = transit.publish.mock.calls[0][0];
+		expect(packet).toBeInstanceOf(P.PacketResponse);
+		expect(packet.target).toBe("node2");
+		expect(packet.payload.requestID).toBe("12345");
+		expect(packet.payload.success).toBe(false);
+		expect(packet.payload.data).toBeNull();
+		expect(packet.payload.error).toBeDefined();
+		expect(packet.payload.error.name).toBe("ValidationError");
+		expect(packet.payload.error.message).toBe("Not valid params");
+		expect(packet.payload.error.code).toBe(422);
+		expect(packet.payload.error.data).toBe("{\"a\":\"Too small\"}");
 	});
 
 });
@@ -408,7 +435,9 @@ describe("Test Transit.discoverNodes", () => {
 	it("should call publish with correct params", () => {
 		transit.discoverNodes();
 		expect(transit.publish).toHaveBeenCalledTimes(1);
-		expect(transit.publish).toHaveBeenCalledWith(["DISCOVER"], {"actions": {}});
+		const packet = transit.publish.mock.calls[0][0];
+		expect(packet).toBeInstanceOf(P.PacketDiscover);
+		expect(packet.payload.actions).toBe("{}");
 	});
 
 });
@@ -424,7 +453,10 @@ describe("Test Transit.sendNodeInfo", () => {
 	it("should call publish with correct params", () => {
 		transit.sendNodeInfo("node2");
 		expect(transit.publish).toHaveBeenCalledTimes(1);
-		expect(transit.publish).toHaveBeenCalledWith(["INFO", "node2"], {"actions": {}});
+		const packet = transit.publish.mock.calls[0][0];
+		expect(packet).toBeInstanceOf(P.PacketInfo);
+		expect(packet.target).toBe("node2");
+		expect(packet.payload.actions).toBe("{}");
 	});
 
 });
@@ -440,7 +472,8 @@ describe("Test Transit.sendHeartbeat", () => {
 	it("should call publish with correct params", () => {
 		transit.sendHeartbeat();
 		expect(transit.publish).toHaveBeenCalledTimes(1);
-		expect(transit.publish).toHaveBeenCalledWith(["HEARTBEAT"], {});
+		const packet = transit.publish.mock.calls[0][0];
+		expect(packet).toBeInstanceOf(P.PacketHeartbeat);
 	});
 
 });
@@ -454,9 +487,9 @@ describe("Test Transit.subscribe", () => {
 	transporter.subscribe = jest.fn();
 
 	it("should call transporter.subscribe", () => {
-		transit.subscribe(["REQ", "node-2"]);
+		transit.subscribe("REQ", "node-2");
 		expect(transporter.subscribe).toHaveBeenCalledTimes(1);
-		expect(transporter.subscribe).toHaveBeenCalledWith(["REQ", "node-2"]);
+		expect(transporter.subscribe).toHaveBeenCalledWith("REQ", "node-2");
 	});
 
 });
@@ -468,12 +501,48 @@ describe("Test Transit.publish", () => {
 	const transit = new Transit(broker, transporter);
 
 	transporter.publish = jest.fn();
+	broker.serializer.serialize = jest.fn(o => JSON.stringify(o));
 
 	it("should call transporter.publish", () => {
-		let payload = { a: "John Doe" };
-		transit.publish(["RES", "node-2"], payload);
+		let packet = new P.PacketEvent("user.created", { a: "John Doe" });
+		transit.publish(packet);
 		expect(transporter.publish).toHaveBeenCalledTimes(1);
-		expect(transporter.publish).toHaveBeenCalledWith(["RES", "node-2"], "{\"a\":\"John Doe\",\"sender\":\"node1\"}");
+		const p = transporter.publish.mock.calls[0][0];
+		expect(p).toBe(packet);
+	});
+
+});
+
+describe("Test Transit.serialize", () => {
+
+	const broker = new ServiceBroker({ nodeID: "node1" });
+	const transporter = new FakeTransporter();
+	const transit = new Transit(broker, transporter);
+
+	broker.serializer.serialize = jest.fn();
+
+	it("should call broker.serializer.serialize", () => {
+		let payload = { a: "John Doe" };
+		transit.serialize(payload, P.PACKET_DISCOVER);
+		expect(broker.serializer.serialize).toHaveBeenCalledTimes(1);
+		expect(broker.serializer.serialize).toHaveBeenCalledWith(payload, P.PACKET_DISCOVER);
+	});
+
+});
+
+describe("Test Transit.deserialize", () => {
+
+	const broker = new ServiceBroker({ nodeID: "node1" });
+	const transporter = new FakeTransporter();
+	const transit = new Transit(broker, transporter);
+
+	broker.serializer.deserialize = jest.fn();
+
+	it("should call broker.serializer.deserialize", () => {
+		let payload = { a: "John Doe" };
+		transit.deserialize(payload, P.PACKET_DISCOVER);
+		expect(broker.serializer.deserialize).toHaveBeenCalledTimes(1);
+		expect(broker.serializer.deserialize).toHaveBeenCalledWith(payload, P.PACKET_DISCOVER);
 	});
 
 });

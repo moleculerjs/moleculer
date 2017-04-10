@@ -9,7 +9,7 @@ function callLogMethods(logger) {
 	logger.fatal("fatal level");
 }
 
-// Unit: OK!
+
 describe("Test wrap", () => {
 
 	it("should create a full logger without moduleName", () => {

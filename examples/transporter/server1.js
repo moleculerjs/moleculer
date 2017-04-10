@@ -4,6 +4,7 @@ let { delay } = require("../../src/utils");
 
 let ServiceBroker = require("../../src/service-broker");
 let NatsTransporter = require("../../src/transporters/nats");
+let Serializer = require("../../src/serializers/avro");
 
 // Create broker
 let broker = new ServiceBroker({
@@ -12,6 +13,7 @@ let broker = new ServiceBroker({
 	logger: console,
 	logLevel: "info",
 	requestTimeout: 5 * 1000,
+	serializer: new Serializer()
 	//requestRetry: 3
 });
 

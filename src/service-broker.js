@@ -17,6 +17,8 @@ const Validator = require("./validator");
 const BrokerStatistics = require("./statistics");
 const healthInfo = require("./health");
 
+const JSONSerializer = require("./serializers/json");
+
 //const _ = require("lodash");
 const isFunction = require("lodash/isFunction");
 const defaultsDeep = require("lodash/defaultsDeep");
@@ -56,6 +58,7 @@ class ServiceBroker {
 			heartbeatTimeout: 30,
 
 			cacher: null,
+			serializer: null,
 
 			validation: true,
 			metrics: false,
@@ -100,6 +103,12 @@ class ServiceBroker {
 		if (this.cacher) {
 			this.cacher.init(this);
 		}
+
+		// Serializer
+		this.serializer = this.options.serializer;
+		if (!this.serializer)
+			this.serializer = new JSONSerializer();
+		this.serializer.init(this);
 
 		// Validation
 		if (this.options.validation !== false) {

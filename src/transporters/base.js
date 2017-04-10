@@ -69,28 +69,40 @@ class BaseTransporter {
 	}
 
 	/**
-	 * Subscribe to event
+	 * Subscribe to a command
 	 * 
-	 * @param {String} topic 
+	 * @param {String} cmd 
+	 * @param {String} nodeID 
 	 * 
 	 * @memberOf BaseTransporter
 	 */
-	subscribe(topic) {
+	subscribe(cmd, nodeID) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented!");
 	}
 
 	/**
-	 * Publish an event
+	 * Publish a packet
 	 * 
-	 * @param {String} topic 
-	 * @param {String} packet 
+	 * @param {Packet} packet
 	 * 
 	 * @memberOf BaseTransporter
 	 */
-	publish(topic, packet) {
+	publish(packet) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented!");
+	}
+
+	/**
+	 * Get topic name from command & target nodeID
+	 * 
+	 * @param {any} cmd 
+	 * @param {any} nodeID 
+	 * 
+	 * @memberOf BaseTransporter
+	 */
+	getTopicName(cmd, nodeID) {
+		return this.prefix + "." + cmd + (nodeID ? "." + nodeID : "");
 	}
 
 }

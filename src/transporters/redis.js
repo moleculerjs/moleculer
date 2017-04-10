@@ -58,8 +58,8 @@ class RedisTransporter extends Transporter {
 			});
 
 			this.clientSub.on("message", (topic, msg) => {
-				const t = topic.split(".").slice(1);
-				this.messageHandler(t, msg);
+				const cmd = topic.split(".")[1];
+				this.messageHandler(cmd, msg);
 			});
 
 			/* istanbul ignore next */
@@ -107,28 +107,27 @@ class RedisTransporter extends Transporter {
 	}
 
 	/**
-	 * Subscribe to a topic
+	 * Subscribe to a command
 	 * 
-	 * @param {Array} topic 
+	 * @param {String} cmd 
+	 * @param {String} nodeID 
 	 * 
 	 * @memberOf RedisTransporter
 	 */
-	subscribe(topic) {
-		const t = [this.prefix].concat(topic).join(".");
-		this.clientSub.subscribe(t);
+	subscribe(cmd, nodeID) {
+		this.clientSub.subscribe(this.getTopicName(cmd, nodeID));
 	}
 
 	/**
-	 * Publish a message on the topic
+	 * Publish a packet
 	 * 
-	 * @param {Array} topic 
-	 * @param {String} packet 
+	 * @param {Packet} packet
 	 * 
 	 * @memberOf RedisTransporter
 	 */
-	publish(topic, packet) {
-		const t = [this.prefix].concat(topic).join(".");
-		this.clientPub.publish(t, packet);
+	publish(packet) {
+		const data = packet.serialize();
+		this.clientPub.publish(this.getTopicName(packet.type, packet.target), data);
 	}
 
 }

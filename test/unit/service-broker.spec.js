@@ -7,6 +7,7 @@ const Service = require("../../src/service");
 const Context = require("../../src/context");
 const Transit = require("../../src/transit");
 const MemoryCacher = require("../../src/cachers/memory");
+const JSONSerializer = require("../../src/serializers/json");
 const FakeTransporter = require("../../src/transporters/fake");
 const { CustomError, ServiceNotFoundError, RequestTimeoutError } = require("../../src/errors");
 
@@ -28,6 +29,7 @@ describe("Test ServiceBroker constructor", () => {
 			heartbeatTimeout : 30, 
 			
 			cacher: null,
+			serializer: null,
 			
 			validation: true, 
 			metrics: false, 
@@ -54,6 +56,7 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.middlewares).toBeInstanceOf(Array);
 
 		expect(broker.cacher).toBeNull();
+		expect(broker.serializer).toBeInstanceOf(JSONSerializer);
 		expect(broker.validator).toBeDefined();
 		expect(broker.transit).toBeUndefined();
 		expect(broker.statistics).toBeUndefined();
@@ -82,6 +85,7 @@ describe("Test ServiceBroker constructor", () => {
 			logger: null,
 			logLevel: "debug", 
 			cacher: null,
+			serializer: null,
 			transporter: null,
 			metrics: true, 
 			metricsSendInterval: 10 * 1000,
@@ -97,6 +101,7 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.transit).toBeUndefined();
 		expect(broker.statistics).toBeDefined();
 		expect(broker.validator).toBeUndefined();
+		expect(broker.serializer).toBeInstanceOf(JSONSerializer);
 		expect(broker.nodeID).toBe(require("os").hostname().toLowerCase());
 
 		expect(broker.hasAction("$node.list")).toBe(false);
@@ -126,6 +131,19 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.cacher).toBe(cacher);
 		expect(cacher.init).toHaveBeenCalledTimes(1);
 		expect(cacher.init).toHaveBeenCalledWith(broker);
+	});
+
+	it("should set serializer and call init", () => {
+		let serializer = new JSONSerializer();
+		serializer.init = jest.fn();
+		let broker = new ServiceBroker( { 
+			serializer
+		});
+
+		expect(broker).toBeDefined();
+		expect(broker.serializer).toBe(serializer);
+		expect(serializer.init).toHaveBeenCalledTimes(1);
+		expect(serializer.init).toHaveBeenCalledWith(broker);
 	});
 });
 

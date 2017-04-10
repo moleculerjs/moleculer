@@ -15,8 +15,8 @@
 - [ ] meta in context which will be transported. (for user, session, state...etc)
 	- [ ] other meta for response, that need to be transported back to caller (for contentType, pagination...etc)
 
-- [ ] pluggable serializer for transport
-	- [ ] JSON parse/stringify
+- [x] pluggable serializer for transport
+	- [x] JSON parse/stringify
 	- [ ] [PSON](https://github.com/dcodeIO/PSON)
 	- [ ] [Avro](https://github.com/mtth/avsc)
 

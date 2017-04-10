@@ -4,7 +4,7 @@ jest.mock("ioredis");
 
 const RedisCacher = require("../../../src/cachers/redis");
 
-// Unit: OK!
+
 describe("Test RedisCacher constructor", () => {
 
 	it("should create an empty options", () => {
