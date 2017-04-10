@@ -32,7 +32,7 @@ class JSONSerializer extends BaseSerializer {
 	 * 
 	 * @memberOf Serializer
 	 */
-	serialize(obj, type) {
+	serialize(obj) {
 		return JSON.stringify(obj);
 	}
 
@@ -45,7 +45,7 @@ class JSONSerializer extends BaseSerializer {
 	 * 
 	 * @memberOf Serializer
 	 */
-	deserialize(str, type) {
+	deserialize(str) {
 		return JSON.parse(str);
 	}
 }
