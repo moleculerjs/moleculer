@@ -2,13 +2,14 @@
 # 0.x.0 (2017-xx-xx)
 
 # New
-## Serializers for transporters
-Implemented pluggable serializers. 
+## Serializers for transporters #10
+Implemented pluggable serializers.
 Built-in serializers:
-* JSON (default)
-* Avro
+- JSON (default)
+- [x] [Avro](https://github.com/mtth/avsc)
+- [x] [MsgPack](https://github.com/mcollina/msgpack5)
 
-## Typescript definition file
+## Typescript definition file #5
 Created an index.d.ts file. I'm not familiar in Typescript, so if you found error please help me and open a PR with fix. Thank you!
 
 **Usage**
@@ -23,6 +24,7 @@ let broker = new ServiceBroker({
 ```
 
 # Changes
+
 ## Update benchmarkify
 Benchmarkify updated & created continuous benchmarking with [bench-bot](https://github.com/icebob/bench-bot). 
 Bench-bot is a benchmark runner. If a new Pull Request opened, bench-bot will run benchmarks against the `master` branch and it will post the results to the PR conversation.

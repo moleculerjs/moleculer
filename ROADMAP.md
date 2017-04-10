@@ -15,12 +15,12 @@
 - [ ] meta in context which will be transported. (for user, session, state...etc)
 	- [ ] other meta for response, that need to be transported back to caller (for contentType, pagination...etc)
 
+- [x] create d.ts file
+
 - [x] pluggable serializer for transport
 	- [x] JSON parse/stringify
-	- [ ] [PSON](https://github.com/dcodeIO/PSON)
-	- [ ] [Avro](https://github.com/mtth/avsc)
-
-- [ ] more [offical examples](https://github.com/ice-services/moleculer-examples)
+	- [x] [Avro](https://github.com/mtth/avsc)
+    - [x] [MsgPack](https://github.com/mcollina/msgpack5)
 
 ## v0.8.x
 - [ ] direct remote call to a specified node (for monitoring every node)
@@ -29,11 +29,12 @@
 - [ ] RabbitMQ transporter
 - [ ] create a multi-pages docs & generate a static site from it.
 	- [ ] https://github.com/segmentio/metalsmith
-- [ ] create d.ts file
 - [ ] add lru features to Memory and Redis cachers
 
 ## v1.0.x
 It will be the first stable release. Afterwards the version numbers should follow semver versioning.
+
+- [ ] more [offical examples](https://github.com/ice-services/moleculer-examples)
 
 ## Others in the future
 
