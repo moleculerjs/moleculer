@@ -59,6 +59,7 @@ declare interface BrokerOptions {
 
 	validation?: Boolean;
 	metrics?: Boolean;
+	metricsRate?: Number;
 	metricsSendInterval?: Number;
 	statistics?: Boolean;
 	internalActions?: Boolean;
