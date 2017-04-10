@@ -23,6 +23,12 @@ let broker = new ServiceBroker({
 });
 ```
 
+## Metrics rate option
+Added `metricsRate` options to broker. This property sets the rate of sampled calls. 
+- `1` means to metric all calls
+- `0.5` means to metric 50% of calls
+- `0.1` means to metric 10% of calls
+
 # Changes
 
 ## Update benchmarkify
