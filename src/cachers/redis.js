@@ -55,7 +55,7 @@ class RedisCacher extends BaseCacher {
 			/* istanbul ignore next */
 			this.client.monitor((err, monitor) => {
 				this.logger.debug("Redis cacher entering monitoring mode...");
-				monitor.on("monitor", (time, args, source, database) => {
+				monitor.on("monitor", (time, args/*, source, database*/) => {
 					this.logger.debug(args);
 				});
 			});

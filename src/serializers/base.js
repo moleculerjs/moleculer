@@ -44,7 +44,7 @@ class Serializer {
 	 * 
 	 * @memberOf Serializer
 	 */
-	serialize(obj, type) {
+	serialize(/*obj, type*/) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
 	}
@@ -58,7 +58,7 @@ class Serializer {
 	 * 
 	 * @memberOf Serializer
 	 */
-	deserialize(str, type) {
+	deserialize(/*str, type*/) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
 	}

@@ -78,7 +78,7 @@ class Cacher {
 	 * 
 	 * @memberOf Cacher
 	 */
-	get(key) {
+	get(/*key*/) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
 	}
@@ -91,7 +91,7 @@ class Cacher {
 	 * 
 	 * @memberOf Cacher
 	 */
-	set(key, data) {
+	set(/*key, data*/) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
 	}
@@ -103,7 +103,7 @@ class Cacher {
 	 * 
 	 * @memberOf Cacher
 	 */
-	del(key) {
+	del(/*key*/) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
 	}
@@ -116,7 +116,7 @@ class Cacher {
 	 * 
 	 * @memberOf Cacher
 	 */
-	clean(match = "**") {
+	clean(/*match = "**"*/) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
 	}

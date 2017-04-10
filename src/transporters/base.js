@@ -76,7 +76,7 @@ class BaseTransporter {
 	 * 
 	 * @memberOf BaseTransporter
 	 */
-	subscribe(cmd, nodeID) {
+	subscribe(/*cmd, nodeID*/) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented!");
 	}
@@ -88,7 +88,7 @@ class BaseTransporter {
 	 * 
 	 * @memberOf BaseTransporter
 	 */
-	publish(packet) {
+	publish(/*packet*/) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented!");
 	}
