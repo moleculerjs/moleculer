@@ -1,17 +1,17 @@
 "use strict";
 
 let Benchmarkify = require("benchmarkify");
-Benchmarkify.printHeader("Event benchmark");
+let benchmark = new Benchmarkify("Event benchmark").printHeader();
 
 let ServiceBroker = require("../../src/service-broker");
 
-let bench = new Benchmarkify({ async: false, name: "Emit event"});
+let bench = benchmark.createSuite("Emit event");
 
 (function() {
 	// Create broker
 	let broker = new ServiceBroker();
 
-	bench.add("Emit event without subscribers", () => {
+	bench.ref("Emit event without subscribers", () => {
 		return broker.emit("event", ["param1", { a: 1, b: "Teszt"}, 500]);
 	});
 

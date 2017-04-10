@@ -7,9 +7,7 @@
 "use strict";
 
 module.exports = {
-	JSON: require("./json")/*,
+	JSON: require("./json"),
 	Avro: require("./avro"),
-	MsgPack: require("./msgpack"),
-	PSON: require("./pson")
-	*/
+	MsgPack: require("./msgpack")	
 };

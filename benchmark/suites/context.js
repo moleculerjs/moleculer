@@ -3,7 +3,7 @@
 let Promise	= require("bluebird");
 
 let Benchmarkify = require("benchmarkify");
-Benchmarkify.printHeader("Context benchmark");
+let benchmark = new Benchmarkify("Context benchmark").printHeader();
 
 let ServiceBroker = require("../../src/service-broker");
 let Context = require("../../src/context");
@@ -11,7 +11,7 @@ let Context = require("../../src/context");
 let broker = new ServiceBroker();
 broker.loadService(__dirname + "/../user.service");
 
-let bench1 = new Benchmarkify({ async: false, name: "Context constructor"});
+let bench1 = benchmark.createSuite("Context constructor");
 (function() {
 	let action = {
 		name: "users.find",
@@ -63,57 +63,7 @@ let bench1 = new Benchmarkify({ async: false, name: "Context constructor"});
 	});
 })();
 
-// ----------------------------
-let bench2 = new Benchmarkify({ async: true, name: "Context.invoke with sync handler"});
-(function() {
-
-
-	let actions = broker.actions.get("users.find");
-	let action = actions.get().data;
-	let handler = () => {
-		return [1,2,3];
-	};
-
-	let ctx = new Context({ broker, action });
-	// ----
-
-	bench2.add("call direct without invoke", () => {
-		return Promise.resolve(handler(ctx));
-	});
-
-	bench2.add("call invoke", () => {
-		return ctx.invoke(() => handler(ctx));
-	});
-
-})();
-
-// ----------------------------
-let bench3 = new Benchmarkify({ async: true, name: "Context.invoke with async handler"});
-(function() {
-
-
-	let actions = broker.actions.get("users.find");
-	let action = actions.get().data;
-	let handler = () => Promise.resolve([1, 2, 3]);
-
-	//let ctx = new Context({ broker, action });
-	// ----
-
-	bench3.add("call direct without invoke", () => {
-		let ctx = new Context({ broker, action });
-		return handler(ctx);
-	});
-
-	bench3.add("call invoke", () => {
-		let ctx = new Context({ broker, action });
-		return ctx.invoke(() => handler(ctx));
-	});
-
-})();
-
-bench1.run()
-.then(() => bench2.skip())
-.then(() => bench3.skip());
+bench1.run();
 
 /*
 

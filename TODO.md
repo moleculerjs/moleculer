@@ -1,5 +1,12 @@
 # TODO
 
+* dynamicTypeSerializer, 
+	* default JSON
+	* built-in which use validator schema
+		* concat strings with \n
+* add gzip & encryption to transit
+
+
 ## API gateway
 
 * user authentication/authorization (with auth.service)

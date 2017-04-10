@@ -40,16 +40,16 @@ schemas[P.PACKET_RESPONSE] = avro.Type.forSchema({
 		{ name: "sender", type: "string" },
 		{ name: "requestID", type: "string" },
 		{ name: "success", type: "boolean" },
-		{ name: "data", type: "string" },
-		/*{ name: "error", type: {
+		{ name: "data", type: [ "null", "string"] },
+		{ name: "error", type: [ "null", {
 			type: "record",
 			fields: [
 				{ name: "name", type: "string" },
 				{ name: "message", type: "string" },
-				{ name: "code", type: "string" },
+				{ name: "code", type: "int" },
 				{ name: "data", type: "string" }
 			]
-		} }*/
+		} ], default: null }
 	]
 });
 

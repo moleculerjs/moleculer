@@ -2,9 +2,30 @@
 # 0.x.0 (2017-xx-xx)
 
 # New
+## Serializers for transporters
+Implemented pluggable serializers. 
+Built-in serializers:
+* JSON (default)
+* Avro
+
+## Typescript definition file
+Created an index.d.ts file. I'm not familiar in Typescript, so if you found error please help me and open a PR with fix. Thank you!
+
+**Usage**
+```js
+let JSONSerializer = require("moleculer").Serializers.JSON;
+
+let broker = new ServiceBroker({
+	serializer: new JSONSerializer(),
+	transporter: new Transporter(),
+	nodeID: "node-1"	
+});
+```
 
 # Changes
-
+## Update benchmarkify
+Benchmarkify updated & created continuous benchmarking with [bench-bot](https://github.com/icebob/bench-bot). 
+Bench-bot is a benchmark runner. If a new Pull Request opened, bench-bot will run benchmarks against the `master` branch and it will post the results to the PR conversation.
 
 
 

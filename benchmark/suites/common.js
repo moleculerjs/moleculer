@@ -4,11 +4,9 @@
 let Promise	= require("bluebird");
 
 let Benchmarkify = require("benchmarkify");
-Benchmarkify.printHeader("Moleculer common benchmarks");
+let benchmark = new Benchmarkify("Moleculer common benchmarks").printHeader();
 
 let ServiceBroker = require("../../src/service-broker");
-let Context = require("../../src/context");
-let userService;
 
 function createBroker(opts) {
 	// Create broker
@@ -19,26 +17,26 @@ function createBroker(opts) {
 	return broker;
 }
 
-let bench1 = new Benchmarkify({ async: true, name: "Local call", resultFile: "./benchmark/results/common-suite.json"});
+let bench1 = benchmark.createSuite("Local call");
 (function() {
 	let broker = createBroker();
-	bench1.add("broker.call (normal)", () => {
-		return broker.call("users.empty");
+	bench1.ref("broker.call (normal)", done => {
+		return broker.call("users.empty").then(done);
 	});
 
-	bench1.add("broker.call (with params)", () => {
-		return broker.call("users.empty", { id: 5, sort: "name created", limit: 10 });
+	bench1.add("broker.call (with params)", done => {
+		return broker.call("users.empty", { id: 5, sort: "name created", limit: 10 }).then(done);
 	});
 
 })();
 
 // ----------------------------------------------------------------
-let bench2 = new Benchmarkify({ async: true, name: "Call with middlewares", resultFile: "./benchmark/results/common-suite.json"});
+let bench2 = benchmark.createSuite("Call with middlewares");
 
 (function() {
 	let broker = createBroker();
-	bench2.add("No middlewares", () => {
-		return broker.call("users.empty");
+	bench2.ref("No middlewares", done => {
+		return broker.call("users.empty").then(done);
 	});
 })();
 
@@ -50,44 +48,44 @@ let bench2 = new Benchmarkify({ async: true, name: "Call with middlewares", resu
 	};
 	broker.use(mw1, mw1, mw1, mw1, mw1);
 
-	bench2.add("5 middlewares", () => {
-		return broker.call("users.empty");
+	bench2.add("5 middlewares", done => {
+		return broker.call("users.empty").then(done);
 	});
 })();
 
 // ----------------------------------------------------------------
-let bench3 = new Benchmarkify({ async: true, name: "Call with statistics & metrics", resultFile: "./benchmark/results/common-suite.json"});
+let bench3 = benchmark.createSuite("Call with statistics & metrics");
 
 (function() {
 	let broker = createBroker();
-	bench3.add("No statistics", () => {
-		return broker.call("users.empty");
+	bench3.ref("No statistics", done => {
+		return broker.call("users.empty").then(done);
 	});
 })();
 
 (function() {
 	let broker = createBroker({ metrics: true });
-	bench3.add("With metrics", () => {
-		return broker.call("users.empty");
+	bench3.add("With metrics", done => {
+		return broker.call("users.empty").then(done);
 	});
 })();
 
 (function() {
 	let broker = createBroker({ statistics: true });
-	bench3.add("With statistics", () => {
-		return broker.call("users.empty");
+	bench3.add("With statistics", done => {
+		return broker.call("users.empty").then(done);
 	});
 })();
 
 (function() {
 	let broker = createBroker({ metrics: true, statistics: true });
-	bench3.add("With metrics & statistics", () => {
-		return broker.call("users.empty");
+	bench3.add("With metrics & statistics", done => {
+		return broker.call("users.empty").then(done);
 	});
 })();
 
 // ----------------------------------------------------------------
-let bench4 = new Benchmarkify({ async: true, name: "Remote call with FakeTransporter", resultFile: "./benchmark/results/common-suite.json"});
+let bench4 = benchmark.createSuite("Remote call with FakeTransporter");
 
 (function() {
 
@@ -121,15 +119,12 @@ let bench4 = new Benchmarkify({ async: true, name: "Remote call with FakeTranspo
 	b1.start().then(() => b2.start());
 
 	let c = 0;
-	bench4.add("Remote call echo.reply", () => {
-		return b1.call("echo.reply", { a: c++ });
+	bench4.add("Remote call echo.reply", done => {
+		return b1.call("echo.reply", { a: c++ }).then(done);
 	});
 })();
 
-bench1.run()
-.then(() => bench2.run())
-.then(() => bench3.run())
-.then(() => bench4.run());
+module.exports = benchmark.run([bench1, bench2, bench3, bench4]);
 
 
 /*
