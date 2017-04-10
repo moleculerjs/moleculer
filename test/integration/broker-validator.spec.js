@@ -20,24 +20,13 @@ describe("Test broker validator with actions", () => {
 	};
 
 	const broker = new ServiceBroker();
-	const service = broker.createService(schema);
 	broker.validator.validate = jest.fn();
+	broker.createService(schema);
 
 	it("shouldn't wrap validation, if action can't contain params settings", () => {
 		return broker.call("test.withoutValidation")
-		.then(res => {
+		.then(() => {
 			expect(broker.validator.validate).toHaveBeenCalledTimes(0);
-		});
-	});
-
-	it.skip("should wrap validation, if action contains params settings", () => {
-		broker.validator.validate.mockClear();
-		let p = { a: 5, b: 10 };
-		return broker.call("test.withValidation", p)
-		.then(res => {
-			expect(broker.validator.validate).toHaveBeenCalledTimes(1);
-			expect(broker.validator.validate).toHaveBeenCalledWith(schema.actions.withValidation.params, p);
-			expect(schema.actions.withValidation.handler).toHaveBeenCalledTimes(1);
 		});
 	});
 
@@ -61,13 +50,4 @@ describe("Test broker validator with actions", () => {
 		});
 	});
 
-	it.skip("should wrap validation, if call action directly", () => {
-		broker.validator.validate.mockClear();
-		let p = { a: 5, b: 10 };
-		return service.actions.withValidation(p)
-		.then(res => {
-			expect(broker.validator.validate).toHaveBeenCalledTimes(1);
-			expect(broker.validator.validate).toHaveBeenCalledWith(schema.actions.withValidation.params, p);
-		});
-	});
 });

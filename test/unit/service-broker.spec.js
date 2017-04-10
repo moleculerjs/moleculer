@@ -33,6 +33,7 @@ describe("Test ServiceBroker constructor", () => {
 			
 			validation: true, 
 			metrics: false, 
+			metricsRate: 1, 
 			metricsSendInterval: 5 * 1000,
 			statistics: false,
 			internalActions: true 
@@ -71,6 +72,7 @@ describe("Test ServiceBroker constructor", () => {
 		let broker = new ServiceBroker( { 
 			heartbeatTimeout: 20, 
 			metrics: true, 
+			metricsRate: 0.5,
 			metricsSendInterval: 10 * 1000,
 			statistics: true,
 			logLevel: "debug", 
@@ -88,6 +90,7 @@ describe("Test ServiceBroker constructor", () => {
 			serializer: null,
 			transporter: null,
 			metrics: true, 
+			metricsRate: 0.5,
 			metricsSendInterval: 10 * 1000,
 			statistics: true,
 			heartbeatTimeout : 20, 
@@ -473,7 +476,7 @@ describe("Test broker.wrapContextInvoke", () => {
 		broker.wrapContextInvoke(action, origHandler);
 		
 		it("should call only origHandler", () => {
-			let ctx = new Context({ broker, action });
+			let ctx = new Context({ broker, action, metrics: true });
 			ctx._metricStart = jest.fn();
 			ctx._metricFinish = jest.fn();
 
@@ -481,7 +484,7 @@ describe("Test broker.wrapContextInvoke", () => {
 				expect(ctx._metricStart).toHaveBeenCalledTimes(1);
 				expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
 				expect(broker.statistics.addRequest).toHaveBeenCalledTimes(1);
-				expect(broker.statistics.addRequest).toHaveBeenCalledWith("list", undefined, null);
+				expect(broker.statistics.addRequest).toHaveBeenCalledWith("list", 0, null);
 
 				expect(origHandler).toHaveBeenCalledTimes(1);
 				expect(origHandler).toHaveBeenCalledWith(ctx);
@@ -506,7 +509,7 @@ describe("Test broker.wrapContextInvoke", () => {
 		broker.wrapContextInvoke(action, origHandler);
 		
 		it("should call metrics & statistics methods & origHandler", () => {
-			let ctx = new Context({ broker, action });
+			let ctx = new Context({ broker, action, metrics: true });
 			ctx._metricStart = jest.fn();
 			ctx._metricFinish = jest.fn();
 
@@ -518,7 +521,7 @@ describe("Test broker.wrapContextInvoke", () => {
 				expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
 				expect(ctx._metricFinish).toHaveBeenCalledWith(err);
 				expect(broker.statistics.addRequest).toHaveBeenCalledTimes(1);
-				expect(broker.statistics.addRequest).toHaveBeenCalledWith("list", undefined, 402);
+				expect(broker.statistics.addRequest).toHaveBeenCalledWith("list", 0, 402);
 
 				expect(origHandler).toHaveBeenCalledTimes(1);
 				expect(origHandler).toHaveBeenCalledWith(ctx);
@@ -1014,6 +1017,49 @@ describe("Test broker.emit with transporter", () => {
 		expect(broker.transit.emit).toHaveBeenCalledWith("user.event", { name: "John" });
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
 		expect(broker.emitLocal).toHaveBeenCalledWith("user.event", { name: "John" });
+	});
+});
+
+describe("Test broker.shouldMetric", () => {
+
+	describe("Test broker.shouldMetric with 0.25", () => {
+		let broker = new ServiceBroker({ transporter: new FakeTransporter, metrics: true, metricsRate: 0.25 });
+
+		it("should return true only all 1/4 calls", () => {
+			expect(broker.shouldMetric()).toBe(false);
+			expect(broker.shouldMetric()).toBe(false);
+			expect(broker.shouldMetric()).toBe(false);
+			expect(broker.shouldMetric()).toBe(true);
+
+			expect(broker.shouldMetric()).toBe(false);
+			expect(broker.shouldMetric()).toBe(false);
+			expect(broker.shouldMetric()).toBe(false);
+			expect(broker.shouldMetric()).toBe(true);
+		});
+	});
+
+	describe("Test broker.shouldMetric with 1", () => {
+		let broker = new ServiceBroker({ transporter: new FakeTransporter, metrics: true, metricsRate: 1 });
+
+		it("should return true all calls", () => {
+			expect(broker.shouldMetric()).toBe(true);
+			expect(broker.shouldMetric()).toBe(true);
+			expect(broker.shouldMetric()).toBe(true);
+			expect(broker.shouldMetric()).toBe(true);
+			expect(broker.shouldMetric()).toBe(true);
+		});
+	});
+
+	describe("Test broker.shouldMetric with 0", () => {
+		let broker = new ServiceBroker({ transporter: new FakeTransporter, metrics: true, metricsRate: 0 });
+
+		it("should return false all calls", () => {
+			expect(broker.shouldMetric()).toBe(false);
+			expect(broker.shouldMetric()).toBe(false);
+			expect(broker.shouldMetric()).toBe(false);
+			expect(broker.shouldMetric()).toBe(false);
+			expect(broker.shouldMetric()).toBe(false);
+		});
 	});
 });
 

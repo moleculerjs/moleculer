@@ -37,7 +37,7 @@ module.exports = function() {
 				let gw = 35;
 				let maxTitle = w - 2 - 2 - gw - 2 - 1;
 
-				this.logger.debug(["┌", r("─", w-2), "┐"].join(""));
+				this.logger.info(["┌", r("─", w-2), "┐"].join(""));
 
 				let printSpanTime = (span) => {
 					let time = span.duration.toFixed(2);
@@ -59,7 +59,7 @@ module.exports = function() {
 					].join("");
 
 					if (span.startTime == null || span.endTime == null) {
-						this.logger.debug(strAction + "! Missing invoke !");
+						this.logger.info(strAction + "! Missing invoke !");
 						return;
 					}
 
@@ -70,6 +70,8 @@ module.exports = function() {
 						gstart = 0;
 						gstop = 100;
 					}
+					if (gstop > 100)
+						gstop = 100;
 
 					let p1 = Math.round(gw * gstart / 100);
 					let p2 = Math.round(gw * gstop / 100) - p1;
@@ -83,14 +85,14 @@ module.exports = function() {
 						"]"
 					].join("");
 
-					this.logger.debug("│ " + strAction + gauge + " │");
+					this.logger.info("│ " + strAction + gauge + " │");
 
 					if (span.spans.length > 0)
 						span.spans.forEach(spanID => printSpanTime(this.requests[spanID]));
 				};
 
 				printSpanTime(main);
-				this.logger.debug(["└", r("─", w-2), "┘"].join(""));			
+				this.logger.info(["└", r("─", w-2), "┘"].join(""));			
 			}
 		},
 

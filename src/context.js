@@ -130,6 +130,7 @@ class Context {
 	 */
 	_metricStart() {
 		this.startTime = Date.now();
+		this.startHrTime = process.hrtime();
 		
 		let payload = {
 			id: this.id,
@@ -148,7 +149,6 @@ class Context {
 		
 		this.broker.emit("metrics.trace.span.start", payload);
 
-		this.startHrTime = process.hrtime();
 		this.duration = 0;
 	}
 
