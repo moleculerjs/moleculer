@@ -29,6 +29,14 @@ Added `metricsRate` options to broker. This property sets the rate of sampled ca
 - `0.5` means to metric 50% of calls
 - `0.1` means to metric 10% of calls
 
+**Usage**
+```js
+let broker = new ServiceBroker({
+    metrics: true,
+    metricsRate: 0.1
+});
+```
+
 # Changes
 
 ## Update benchmarkify
