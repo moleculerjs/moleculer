@@ -6,10 +6,8 @@
 
 "use strict";
 
-const Promise = require("bluebird");
+//const Promise = require("bluebird");
 const utils = require("./utils");
-
-const LOGGER_PREFIX = "CTX";
 
 /**
  * Context class for action calls

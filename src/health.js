@@ -18,7 +18,7 @@ module.exports = function() {
 				load1: load[0],
 				load5: load[1],
 				load15: load[2],
-				cores: os.cpus().length,
+				cores: os.cpus().length
 			};
 			res.cpu.utilization = Math.floor(load[0] * 100 / res.cpu.cores);
 
@@ -29,7 +29,7 @@ module.exports = function() {
 		.then(res => {
 			res.mem = {
 				free: os.freemem(),
-				total: os.totalmem(),
+				total: os.totalmem()
 			};
 			res.mem.percent = (res.mem.free * 100 / res.mem.total);
 
