@@ -10,7 +10,7 @@ const Promise = require("bluebird");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const Transit = require("./transit");
 const BalancedList = require("./balanced-list");
-const errors = require("./errors");
+const E = require("./errors");
 const utils = require("./utils");
 const Logger = require("./logger");
 const Validator = require("./validator");
@@ -374,9 +374,12 @@ class ServiceBroker {
 			}, handler);
 		}
 
-		return this.wrapContextInvoke(action, handler);
-	}
+		//return this.wrapContextInvoke(action, handler);
+		action.handler = handler;
 
+		return action;
+	}
+	/*
 	wrapContextInvoke(action, handler) {
 		// Finally logic
 		let after = (ctx, err) => {
@@ -408,7 +411,7 @@ class ServiceBroker {
 			// Handle errors
 			return p.catch(err => {
 				if (!(err instanceof Error)) {
-					err = new errors.CustomError(err);
+					err = new E.CustomError(err);
 				}
 
 				// Need it? this.logger.error("Action request error!", err);
@@ -424,6 +427,7 @@ class ServiceBroker {
 
 		return action;
 	}
+	*/
 
 	/**
 	 * Unregister an action on a local server. 
@@ -603,6 +607,7 @@ class ServiceBroker {
 		});
 	}
 
+
 	/**
 	 * Call an action (local or global)
 	 * 
@@ -614,90 +619,115 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	call(actionName, params, opts = {}) {
+		const self = this;
+		// Find action by name
 		let actions = this.actions.get(actionName);
 		if (!actions) {
 			const errMsg = `Action '${actionName}' is not registered!`;
 			this.logger.warn(errMsg);
-			return Promise.reject(new errors.ServiceNotFoundError(errMsg));
+			return Promise.reject(new E.ServiceNotFoundError(errMsg));
 		}
 		
+		// Get an action handler item
 		let actionItem = actions.get();
 		if (!actionItem) {
 			const errMsg = `Not available '${actionName}' action handler!`;
 			this.logger.warn(errMsg);
-			return Promise.reject(new errors.ServiceNotFoundError(errMsg));
+			return Promise.reject(new E.ServiceNotFoundError(errMsg));
 		}
 
+		// Expose action info
 		let action = actionItem.data;
 		let nodeID = actionItem.nodeID;
-
-		// Create a new context
+		
+		// Create context
 		let ctx;
-		if (opts.parentCtx) {
+		let reusedCtx = false;
+		if (opts.ctx) {
+			// Reused context
+			ctx = opts.ctx; 
+			ctx.nodeID = nodeID;
+			reusedCtx = true;
+		} else if (opts.parentCtx) {
+			// Sub context
 			ctx = opts.parentCtx.createSubContext(action, params, nodeID);
 		} else {
+			// New root context
 			ctx = new this.ContextFactory({ broker: this, action, params, nodeID, requestID: opts.requestID, metrics: this.shouldMetric() });
 		}
 
-		if (actionItem.local) {
-			// Local action call
-			this.logger.info(`Call local '${action.name}' action...`);
-
-			return action.handler(ctx);
-		} else {
-			return this._remoteCall(ctx, opts);
-		}
-	}
-
-	_remoteCall(ctx, opts) {		
-		// Remote action call
-		this.logger.info(`Call remote '${ctx.action.name}' action on '${ctx.nodeID}' node...`);
-
-		if (opts.timeout == null)
-			opts.timeout = this.options.requestTimeout;
-
-		if (opts.retryCount == null)
-			opts.retryCount = this.options.requestRetry || 0;
-
-		if (ctx.metrics)
+		// Add metrics start
+		if (!reusedCtx && ctx.metrics)
 			ctx._metricStart();
-		return this.transit.request(ctx, opts)
-			.then(data => {
-				if (ctx.metrics)
-					ctx._metricFinish();
 
-				return data;
-			})
-			.catch(err => this._remoteCallCather(err, ctx, opts));
-	}
+		// Call handler or transfer request
+		let p;
+		if (actionItem.local) {
+			p = action.handler(ctx);
+		} else {
+			p = this._remoteCall(ctx, opts);
+		}
 
-	_remoteCallCather(err, ctx, opts) {
-		if (ctx.metrics)
-			ctx._metricFinish(err);
+		if (ctx.metrics || this.statistics) {
+			// Add after to metrics & statistics
+			p = p.then(res => {
+				after(ctx, null);
+				return res;
+			});
+		}
 
-		if (err instanceof errors.RequestTimeoutError) {
-			// Retry request
-			if (opts.retryCount-- > 0) {
-				this.logger.warn(`Action '${ctx.action.name}' call timed out on '${ctx.nodeID}'!`);
-				this.logger.warn(`Recall '${ctx.action.name}' action (retry: ${opts.retryCount + 1})...`);
+		if (opts.timeout > 0)
+			p = p.timeout(opts.timeout);
 
-				return this.call(ctx.action.name, ctx.params, opts);
+		return p.catch(Promise.TimeoutError, () => {
+			// Convert timeout error
+			throw new E.RequestTimeoutError(actionName, nodeID);
+		}).catch(err => {
+			if (!(err instanceof Error)) {
+				err = new E.CustomError(err);
 			}
 
-			// Set node status to unavailable
-			this.nodeUnavailable(ctx.nodeID);
-		}
+			err.ctx = ctx;
 
-		// Handle fallback response
-		if (opts.fallbackResponse) {
-			this.logger.info(`Action '${ctx.action.name}' returns fallback response!`);
-			if (isFunction(opts.fallbackResponse))
-				return opts.fallbackResponse(ctx, ctx.nodeID);
-			else
-				return Promise.resolve(opts.fallbackResponse);
-		}
+			if (err instanceof E.RequestTimeoutError) {
+				// Retry request
+				if (opts.retryCount-- > 0) {
+					this.logger.warn(`Action '${actionName}' call timed out on '${nodeID}'!`);
+					this.logger.warn(`Recall '${actionName}' action (retry: ${opts.retryCount + 1})...`);
 
-		return Promise.reject(err);
+					opts.ctx = ctx; // Reuse this context
+					return this.call(actionName, params, opts);
+				}
+
+				// Set node status to unavailable
+				this.nodeUnavailable(nodeID);
+			}
+
+			// Need it? this.logger.error("Action request error!", err);
+
+			after(ctx, err);
+
+			// Handle fallback response
+			if (opts.fallbackResponse) {
+				this.logger.warn(`Action '${actionName}' returns fallback response!`);
+				if (isFunction(opts.fallbackResponse))
+					return opts.fallbackResponse(ctx, ctx.nodeID);
+				else
+					return Promise.resolve(opts.fallbackResponse);
+			}
+
+			return Promise.reject(err);			
+		});
+
+		// Finally logic
+		function after(ctx, err) {
+			if (ctx.metrics) {
+				ctx._metricFinish(err);
+
+				if (self.statistics)
+					self.statistics.addRequest(ctx.action.name, ctx.duration, err ? err.code || 500 : null);
+			}
+		}
 	}
 
 	/**
