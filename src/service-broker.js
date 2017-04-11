@@ -638,6 +638,7 @@ class ServiceBroker {
 		// Expose action info
 		let action = actionItem.data;
 		let nodeID = actionItem.nodeID;
+		const isRemoteCall = !actionItem.local;
 		
 		// Create context
 		let ctx;
@@ -661,7 +662,7 @@ class ServiceBroker {
 
 		// Call handler or transfer request
 		let p;
-		if (actionItem.local) {
+		if (!isRemoteCall) {
 			p = action.handler(ctx);
 		} else {
 			p = this.transit.request(ctx, opts);
@@ -688,7 +689,7 @@ class ServiceBroker {
 
 			err.ctx = ctx;
 
-			if (nodeID) {
+			if (isRemoteCall) {
 				// Remove pending request
 				this.transit.removePendingRequest(ctx.id);
 			}
@@ -702,7 +703,6 @@ class ServiceBroker {
 					opts.ctx = ctx; // Reuse this context
 					return this.call(actionName, params, opts);
 				}
-
 			}
 
 			// Set node status to unavailable

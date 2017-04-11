@@ -196,11 +196,11 @@ class Transit {
 	 * 
 	 * @memberOf Transit
 	 */
-	_requestHandler({ sender, action, requestID, params }) {
+	_requestHandler({ sender, action, id, params }) {
 		this.logger.info(`Request '${action}' from '${sender}'. Params:`, params);
 		return this.broker.call(action, params, {}) // empty {} opts to avoid deoptimizing
-			.then(res => this.sendResponse(sender, requestID,  res, null))
-			.catch(err => this.sendResponse(sender, requestID, null, err));
+			.then(res => this.sendResponse(sender, id,  res, null))
+			.catch(err => this.sendResponse(sender, id, null, err));
 	}
 
 	/**
@@ -212,14 +212,14 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	_responseHandler(packet) {
-		const requestID = packet.requestID;
-		const req = this.pendingRequests.get(requestID);
+		const id = packet.id;
+		const req = this.pendingRequests.get(id);
 
 		// If not exists (timed out), we skip to process the response
 		if (req == null) return Promise.resolve();
 
 		// Remove pending request
-		this.removePendingRequest(requestID);
+		this.removePendingRequest(id);
 
 		if (!packet.success) {
 			// Recreate exception object
@@ -296,17 +296,17 @@ class Transit {
 	 * Send back the response of request
 	 * 
 	 * @param {String} nodeID 
-	 * @param {String} requestID 
+	 * @param {String} id
 	 * @param {any} data 
 	 * @param {Error} err 
 	 * 
 	 * @memberOf Transit
 	 */
-	sendResponse(nodeID, requestID, data, err) {
+	sendResponse(nodeID, id, data, err) {
 		this.logger.debug(`Send response back to '${nodeID}'`);
 
 		// Publish the response
-		return this.publish(new P.PacketResponse(this, nodeID, requestID, data, err));
+		return this.publish(new P.PacketResponse(this, nodeID, id, data, err));
 	}	
 
 	/**
