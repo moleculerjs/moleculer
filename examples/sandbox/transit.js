@@ -3,27 +3,35 @@
 let { delay } = require("../../src/utils");
 
 let ServiceBroker = require("../../src/service-broker");
-let NatsTransporter = require("../../src/transporters/nats");
-let MqttTransporter = require("../../src/transporters/mqtt");
-let RedisTransporter = require("../../src/transporters/redis");
 let FakeTransporter = require("../../src/transporters/fake");
+// let NatsTransporter = require("../../src/transporters/nats");
+// let MqttTransporter = require("../../src/transporters/mqtt");
+// let RedisTransporter = require("../../src/transporters/redis");
+// let FakeTransporter = require("../../src/transporters/fake");
 
 // --- NODE 1 ---
 
 // Create broker
 let b1 = new ServiceBroker({
 	nodeID: "node-1",
-	transporter: new NatsTransporter({ nats: "nats://127.0.0.1:4222"}),
+	transporter: new FakeTransporter(),
+	//transporter: new NatsTransporter({ nats: "nats://127.0.0.1:4222"}),
 	//transporter: new MqttTransporter(),
 	//transporter: new RedisTransporter(),
 	//transporter: new FakeTransporter(),
 	logger: console,
-	logLevel: "debug",
-	//requestTimeout: 5 * 1000,
+	//logLevel: "debug",
+	logLevel: {
+		"*": "error",
+		"METRICS-SVC": "debug"
+	},
+	metrics: true,
+	requestTimeout: 60 * 1000,
 	//requestRetry: 3
 });
 
 b1.loadService(__dirname + "/../post.service");
+b1.loadService(__dirname + "/../metrics.service");
 //b1.loadService(__dirname + "/../user.service");
 
 b1.start();
@@ -38,12 +46,14 @@ b1.on("TEST2", a => {
 // Create broker
 let b2 = new ServiceBroker({
 	nodeID: "node-2",
-	transporter: new NatsTransporter("nats://localhost:4222"),
+	transporter: new FakeTransporter(),
+	//transporter: new NatsTransporter({ nats: "nats://127.0.0.1:4222"}),
 	//transporter: new MqttTransporter(),
 	//transporter: new RedisTransporter("redis://127.0.0.1"),
 	//transporter: new FakeTransporter(),
 	logger: console,
-	logLevel: "debug",
+	logLevel: "warn",
+	metrics: false,
 	//requestTimeout: 5 * 1000,
 	//requestRetry: 3
 });
@@ -63,10 +73,10 @@ Promise.resolve()
 .then(delay(1000))
 
 .then(() => {
-	b1.call("v2.users.find").then(res => {
-		console.log("[server-1] Success!", res.length);
+	b1.call("posts.get", { id: 1 }).then(res => {
+		console.log("[server-1] Success!", res);
 	}).catch(err => {
-		console.error("[server-1] Error!", err.message);
+		console.error("[server-1] Error!", err);
 	});	
 
 })
@@ -78,10 +88,11 @@ Promise.resolve()
 });
 */
 
-
+/*
 .then(() => {
 	let c = 1;
 	setInterval(() => {
 		b2.emit("TEST2", { a: c++ });
 	}, 5 * 1000);
 });
+*/

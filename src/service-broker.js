@@ -10,7 +10,7 @@ const Promise = require("bluebird");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const Transit = require("./transit");
 const BalancedList = require("./balanced-list");
-const errors = require("./errors");
+const E = require("./errors");
 const utils = require("./utils");
 const Logger = require("./logger");
 const Validator = require("./validator");
@@ -52,7 +52,7 @@ class ServiceBroker {
 			logLevel: "info",
 
 			transporter: null,
-			requestTimeout: 5 * 1000,
+			requestTimeout: 0 * 1000,
 			requestRetry: 0,
 			heartbeatInterval: 10,
 			heartbeatTimeout: 30,
@@ -374,9 +374,12 @@ class ServiceBroker {
 			}, handler);
 		}
 
-		return this.wrapContextInvoke(action, handler);
-	}
+		//return this.wrapContextInvoke(action, handler);
+		action.handler = handler;
 
+		return action;
+	}
+	/*
 	wrapContextInvoke(action, handler) {
 		// Finally logic
 		let after = (ctx, err) => {
@@ -408,7 +411,7 @@ class ServiceBroker {
 			// Handle errors
 			return p.catch(err => {
 				if (!(err instanceof Error)) {
-					err = new errors.CustomError(err);
+					err = new E.CustomError(err);
 				}
 
 				// Need it? this.logger.error("Action request error!", err);
@@ -424,6 +427,7 @@ class ServiceBroker {
 
 		return action;
 	}
+	*/
 
 	/**
 	 * Unregister an action on a local server. 
@@ -603,8 +607,9 @@ class ServiceBroker {
 		});
 	}
 
+
 	/**
-	 * Call an action (local or global)
+	 * Call an action (local or remote)
 	 * 
 	 * @param {any} actionName	name of action
 	 * @param {any} params		params of action
@@ -614,79 +619,136 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	call(actionName, params, opts = {}) {
+		if (opts.timeout == null)
+			opts.timeout = this.options.requestTimeout || 0;
+
+		if (opts.retryCount == null)
+			opts.retryCount = this.options.requestRetry || 0;		
+
+		// Find action by name
 		let actions = this.actions.get(actionName);
 		if (!actions) {
 			const errMsg = `Action '${actionName}' is not registered!`;
 			this.logger.warn(errMsg);
-			return Promise.reject(new errors.ServiceNotFoundError(errMsg));
+			return Promise.reject(new E.ServiceNotFoundError(errMsg, actionName));
 		}
 		
+		// Get an action handler item
 		let actionItem = actions.get();
 		if (!actionItem) {
 			const errMsg = `Not available '${actionName}' action handler!`;
 			this.logger.warn(errMsg);
-			return Promise.reject(new errors.ServiceNotFoundError(errMsg));
+			return Promise.reject(new E.ServiceNotFoundError(errMsg, actionName));
 		}
 
+		// Expose action info
 		let action = actionItem.data;
 		let nodeID = actionItem.nodeID;
-
-		// Create a new context
+		const isRemoteCall = !actionItem.local;
+		
+		// Create context
 		let ctx;
-		if (opts.parentCtx) {
+		let reusedCtx = false;
+		if (opts.ctx) {
+			// Reused context
+			ctx = opts.ctx; 
+			ctx.nodeID = nodeID;
+			reusedCtx = true;
+		} else if (opts.parentCtx) {
+			// Sub context
 			ctx = opts.parentCtx.createSubContext(action, params, nodeID);
 		} else {
+			// New root context
 			ctx = new this.ContextFactory({ broker: this, action, params, nodeID, requestID: opts.requestID, metrics: this.shouldMetric() });
 		}
 
-		if (actionItem.local) {
-			// Local action call
-			this.logger.info(`Call local '${action.name}' action...`);
+		// Add metrics start
+		if (/*!reusedCtx && */ctx.metrics)
+			ctx._metricStart();
 
-			return action.handler(ctx);
+		// Call handler or transfer request
+		let p;
+		if (!isRemoteCall) {
+			p = action.handler(ctx);
 		} else {
-			return this._remoteCall(ctx, opts);
+			p = this.transit.request(ctx, opts);
 		}
+
+		if (ctx.metrics || this.statistics) {
+			// Add metrics & statistics
+			p = p.then(res => {
+				this._finishCall(ctx, null);
+				return res;
+			});
+		}
+
+		// Timeout handler
+		if (opts.timeout > 0)
+			p = p.timeout(opts.timeout);
+
+		// Error handler
+		return p.catch(err => this._callErrorHandler(err, ctx, opts));
 	}
 
-	_remoteCall(ctx, opts) {		
-		// Remote action call
-		this.logger.info(`Call remote '${ctx.action.name}' action on '${ctx.nodeID}' node...`);
+	_callErrorHandler(err, ctx, opts) {
+		const actionName = ctx.action.name;
+		const nodeID = ctx.nodeID;
 
-		if (opts.timeout == null)
-			opts.timeout = this.options.requestTimeout;
+		if (!(err instanceof Error)) {
+			err = new E.CustomError(err);
+		}
+		if (err instanceof Promise.TimeoutError)
+			err = new E.RequestTimeoutError(actionName, nodeID);
 
-		if (opts.retryCount == null)
-			opts.retryCount = this.options.requestRetry || 0;
+		err.ctx = ctx;
 
-		return this.transit.request(ctx, opts).catch(err => this._remoteCallCather(err, ctx, opts));
-	}
+		if (nodeID) {
+			// Remove pending request
+			this.transit.removePendingRequest(ctx.id);
+		}
 
-	_remoteCallCather(err, ctx, opts) {
-		if (err instanceof errors.RequestTimeoutError) {
+		if (err instanceof E.RequestTimeoutError) {
 			// Retry request
 			if (opts.retryCount-- > 0) {
-				this.logger.warn(`Action '${ctx.action.name}' call timed out on '${ctx.nodeID}'!`);
-				this.logger.warn(`Recall '${ctx.action.name}' action (retry: ${opts.retryCount + 1})...`);
+				this.logger.warn(`Action '${actionName}' call timed out on '${nodeID}'!`);
+				this.logger.warn(`Recall '${actionName}' action (retry: ${opts.retryCount + 1})...`);
 
-				return this.call(ctx.action.name, ctx.params, opts);
+				opts.ctx = ctx; // Reuse this context
+				return this.call(actionName, ctx.params, opts);
 			}
-
-			// Set node status to unavailable
-			this.nodeUnavailable(ctx.nodeID);
 		}
+
+		// Set node status to unavailable
+		if (err.code >= 500) {
+			const affectedNodeID = err.nodeID || nodeID;
+			if (affectedNodeID != this.nodeID)
+				this.nodeUnavailable(affectedNodeID);
+		}
+
+		// Need it? this.logger.error("Action request error!", err);
+
+		this._finishCall(ctx, err);
 
 		// Handle fallback response
 		if (opts.fallbackResponse) {
-			this.logger.info(`Action '${ctx.action.name}' returns fallback response!`);
+			this.logger.warn(`Action '${actionName}' returns fallback response!`);
 			if (isFunction(opts.fallbackResponse))
-				return opts.fallbackResponse(ctx, ctx.nodeID);
+				return opts.fallbackResponse(ctx);
 			else
 				return Promise.resolve(opts.fallbackResponse);
 		}
 
-		return Promise.reject(err);
+		return Promise.reject(err);	
 	}
+
+	_finishCall(ctx, err) {
+		if (ctx.metrics) {
+			ctx._metricFinish(err);
+
+			if (this.statistics)
+				this.statistics.addRequest(ctx.action.name, ctx.duration, err ? err.code || 500 : null);
+		}
+	}	
 
 	/**
 	 * Check should metric the current call

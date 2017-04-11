@@ -18,14 +18,15 @@ class ServiceNotFoundError extends ExtendableError {
 	/**
 	 * Creates an instance of ServiceNotFoundError.
 	 * 
-	 * @param {any} message
+	 * @param {String} message
+	 * @param {String} action
 	 * 
 	 * @memberOf ServiceNotFoundError
 	 */
-	constructor(message, name) {
+	constructor(message, action) {
 		super(message);
-		this.code = 410;
-		this.action = name;
+		this.code = 501;
+		this.action = action;
 	}
 }
 
@@ -39,16 +40,17 @@ class RequestTimeoutError extends ExtendableError {
 	/**
 	 * Creates an instance of RequestTimeoutError.
 	 * 
-	 * @param {any} data
-	 * @param {any} nodeID
+	 * @param {String} action
+	 * @param {String} nodeID
 	 * 
 	 * @memberOf RequestTimeoutError
 	 */
-	constructor(data, nodeID) {
-		super(`Request timed out when call '${data.action}' action on '${nodeID}' node!`);
-		this.code = 408;
+	constructor(action, nodeID) {
+		super(`Request timed out when call '${action}' action on '${nodeID}' node!`);
+		this.code = 504;
 		this.nodeID = nodeID;
-		this.data = data;
+		this.action = action;
+		//this.data = data;
 	}
 }
 

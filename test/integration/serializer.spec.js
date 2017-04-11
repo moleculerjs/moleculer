@@ -79,11 +79,11 @@ describe("Test JSON serializer", () => {
 		};
 		const packet = new P.PacketRequest(broker.transit, "test-2", "12345", "user.update", params);
 		const s = packet.serialize();
-		expect(s).toBe("{\"sender\":\"test-1\",\"requestID\":\"12345\",\"action\":\"user.update\",\"params\":\"{\\\"a\\\":5,\\\"b\\\":\\\"Test\\\"}\"}");
+		expect(s).toBe("{\"sender\":\"test-1\",\"id\":\"12345\",\"action\":\"user.update\",\"params\":\"{\\\"a\\\":5,\\\"b\\\":\\\"Test\\\"}\"}");
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_REQUEST, s);
 		expect(res).toBeInstanceOf(P.PacketRequest);
-		expect(res.payload.requestID).toBe("12345");
+		expect(res.payload.id).toBe("12345");
 		expect(res.payload.action).toBe("user.update");
 		expect(res.payload.params).toEqual(params);
 	});		
@@ -95,11 +95,11 @@ describe("Test JSON serializer", () => {
 		];
 		const packet = new P.PacketResponse(broker.transit, "test-2", "12345", data);
 		const s = packet.serialize();
-		expect(s).toBe("{\"sender\":\"test-1\",\"requestID\":\"12345\",\"success\":true,\"data\":\"[{\\\"id\\\":1,\\\"name\\\":\\\"John\\\"},{\\\"id\\\":2,\\\"name\\\":\\\"Jane\\\"}]\"}");
+		expect(s).toBe("{\"sender\":\"test-1\",\"id\":\"12345\",\"success\":true,\"data\":\"[{\\\"id\\\":1,\\\"name\\\":\\\"John\\\"},{\\\"id\\\":2,\\\"name\\\":\\\"Jane\\\"}]\"}");
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_RESPONSE, s);
 		expect(res).toBeInstanceOf(P.PacketResponse);
-		expect(res.payload.requestID).toBe("12345");
+		expect(res.payload.id).toBe("12345");
 		expect(res.payload.data).toEqual(data);
 	});		
 
@@ -108,15 +108,16 @@ describe("Test JSON serializer", () => {
 
 		const packet = new P.PacketResponse(broker.transit, "test-2", "12345", null, err);
 		const s = packet.serialize();
-		expect(s).toBe("{\"sender\":\"test-1\",\"requestID\":\"12345\",\"success\":false,\"data\":null,\"error\":{\"name\":\"ValidationError\",\"message\":\"Invalid email!\",\"code\":422,\"data\":\"{\\\"a\\\":5}\"}}");
+		expect(s).toBe("{\"sender\":\"test-1\",\"id\":\"12345\",\"success\":false,\"data\":null,\"error\":{\"name\":\"ValidationError\",\"message\":\"Invalid email!\",\"nodeID\":\"test-1\",\"code\":422,\"data\":\"{\\\"a\\\":5}\"}}");
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_RESPONSE, s);
 		expect(res).toBeInstanceOf(P.PacketResponse);
-		expect(res.payload.requestID).toBe("12345");
+		expect(res.payload.id).toBe("12345");
 		expect(res.payload.error).toEqual({
 			name: "ValidationError",
 			message: "Invalid email!",
 			code: 422,
+			nodeID: "test-1",
 			data: {
 				a: 5
 			}
@@ -204,7 +205,7 @@ describe("Test Avro serializer", () => {
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_REQUEST, s);
 		expect(res).toBeInstanceOf(P.PacketRequest);
-		expect(res.payload.requestID).toBe("12345");
+		expect(res.payload.id).toBe("12345");
 		expect(res.payload.action).toBe("user.update");
 		expect(res.payload.params).toEqual(params);
 	});		
@@ -220,7 +221,7 @@ describe("Test Avro serializer", () => {
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_RESPONSE, s);
 		expect(res).toBeInstanceOf(P.PacketResponse);
-		expect(res.payload.requestID).toBe("12345");
+		expect(res.payload.id).toBe("12345");
 		expect(res.payload.data).toEqual(data);
 	});		
 
@@ -233,7 +234,7 @@ describe("Test Avro serializer", () => {
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_RESPONSE, s);
 		expect(res).toBeInstanceOf(P.PacketResponse);
-		expect(res.payload.requestID).toBe("12345");
+		expect(res.payload.id).toBe("12345");
 		expect(res.payload.error).toEqual({
 			name: "ValidationError",
 			message: "Invalid email!",
@@ -323,11 +324,11 @@ describe("Test MsgPack serializer", () => {
 		};
 		const packet = new P.PacketRequest(broker.transit, "test-2", "12345", "user.update", params);
 		const s = packet.serialize();
-		expect(Buffer.byteLength(s, "binary")).toBe(76);
+		expect(Buffer.byteLength(s, "binary")).toBe(69);
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_REQUEST, s);
 		expect(res).toBeInstanceOf(P.PacketRequest);
-		expect(res.payload.requestID).toBe("12345");
+		expect(res.payload.id).toBe("12345");
 		expect(res.payload.action).toBe("user.update");
 		expect(res.payload.params).toEqual(params);
 	});		
@@ -339,11 +340,11 @@ describe("Test MsgPack serializer", () => {
 		];
 		const packet = new P.PacketResponse(broker.transit, "test-2", "12345", data);
 		const s = packet.serialize();
-		expect(Buffer.byteLength(s, "binary")).toBe(94);
+		expect(Buffer.byteLength(s, "binary")).toBe(87);
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_RESPONSE, s);
 		expect(res).toBeInstanceOf(P.PacketResponse);
-		expect(res.payload.requestID).toBe("12345");
+		expect(res.payload.id).toBe("12345");
 		expect(res.payload.data).toEqual(data);
 	});		
 
@@ -352,15 +353,16 @@ describe("Test MsgPack serializer", () => {
 
 		const packet = new P.PacketResponse(broker.transit, "test-2", "12345", null, err);
 		const s = packet.serialize();
-		expect(Buffer.byteLength(s, "binary")).toBe(118);
+		expect(Buffer.byteLength(s, "binary")).toBe(125);
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_RESPONSE, s);
 		expect(res).toBeInstanceOf(P.PacketResponse);
-		expect(res.payload.requestID).toBe("12345");
+		expect(res.payload.id).toBe("12345");
 		expect(res.payload.error).toEqual({
 			name: "ValidationError",
 			message: "Invalid email!",
 			code: 422,
+			nodeID: "test-1",
 			data: {
 				a: 5
 			}

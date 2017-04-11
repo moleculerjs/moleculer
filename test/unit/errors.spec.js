@@ -6,10 +6,10 @@ let errors = require("../../src/errors");
 describe("Test Errors", () => {
 
 	it("test CustomError", () => {
-		let err = new errors.CustomError("Something went wrong!", 401, { a: 5 });
+		let err = new errors.CustomError("Something went wrong!", 555, { a: 5 });
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
-		expect(err.code).toBe(401);
+		expect(err.code).toBe(555);
 		expect(err.name).toBe("CustomError");
 		expect(err.message).toBe("Something went wrong!");
 		expect(err.data).toEqual({ a: 5});
@@ -19,24 +19,24 @@ describe("Test Errors", () => {
 		let err = new errors.ServiceNotFoundError("Something went wrong!", "posts.find");
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
-		expect(err.code).toBe(410);
+		expect(err.code).toBe(501);
 		expect(err.name).toBe("ServiceNotFoundError");
 		expect(err.message).toBe("Something went wrong!");
 		expect(err.action).toBe("posts.find");
 	});
 
 	it("test RequestTimeoutError", () => {
-		let data = {
-			action: "posts.find"
-		};
-		let err = new errors.RequestTimeoutError(data, "server-2");
+		// let data = {
+		// 	action: "posts.find"
+		// };
+		let err = new errors.RequestTimeoutError("posts.find", "server-2");
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
-		expect(err.code).toBe(408);
+		expect(err.code).toBe(504);
 		expect(err.name).toBe("RequestTimeoutError");
 		expect(err.message).toBe("Request timed out when call 'posts.find' action on 'server-2' node!");
 		expect(err.nodeID).toBe("server-2");
-		expect(err.data).toBe(data);
+		//expect(err.data).toBe(data);
 	});
 
 	it("test ValidationError", () => {

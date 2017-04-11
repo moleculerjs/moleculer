@@ -29,11 +29,18 @@ module.exports = function(broker) {
 
 			get: {
 				cache: {
-					keys: ["id"]
+					keys: ["id", "withPostCount"]
 				},
 				handler(ctx) {
 					//this.logger.debug("Get user...", ctx.params);
-					return this.findByID(ctx.params.id);
+					const user = _.cloneDeep(this.findByID(ctx.params.id));
+					if (user && ctx.params.withPostCount)
+						return ctx.call("posts.count", { id: user.id }, { timeout: 1000, /*fallbackResponse: 999*/ }).then(count => {
+							user.postsCount = count;
+							return user;
+						});
+					else
+						return user;
 				}
 			},
 

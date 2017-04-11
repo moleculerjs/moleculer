@@ -6,6 +6,7 @@
 
 "use strict";
 
+const Promise 		= require("bluebird");
 const micromatch  	= require("micromatch");
 const BaseCacher  	= require("./base");
 /**

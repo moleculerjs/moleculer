@@ -197,10 +197,10 @@ class PacketEvent extends Packet {
  * @extends {Packet}
  */
 class PacketRequest extends Packet {
-	constructor(transit, target, requestID, action, params) {
+	constructor(transit, target, id, action, params) {
 		super(transit, PACKET_REQUEST, target);
 
-		this.payload.requestID = requestID;
+		this.payload.id = id;
 		this.payload.action = action;
 		this.payload.params = JSON.stringify(params);
 	}
@@ -218,10 +218,10 @@ class PacketRequest extends Packet {
  * @extends {Packet}
  */
 class PacketResponse extends Packet {
-	constructor(transit, target, requestID, data, err) {
+	constructor(transit, target, id, data, err) {
 		super(transit, PACKET_RESPONSE, target);
 
-		this.payload.requestID = requestID;
+		this.payload.id = id;
 		this.payload.success = err == null;
 		this.payload.data = data != null ? JSON.stringify(data) : null;
 
@@ -229,6 +229,7 @@ class PacketResponse extends Packet {
 			this.payload.error = {
 				name: err.name,
 				message: err.message,
+				nodeID: err.nodeID || this.payload.sender,
 				code: err.code,
 				data: JSON.stringify(err.data)
 			};

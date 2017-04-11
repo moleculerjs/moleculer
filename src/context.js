@@ -42,7 +42,7 @@ class Context {
 
 		// Initialize metrics properties
 		if (this.metrics) {
-			this.requestID = opts.requestID || this.id;
+			this.requestID = opts.requestID;
 
 			this.startTime = null;
 			this.startHrTime = null;
