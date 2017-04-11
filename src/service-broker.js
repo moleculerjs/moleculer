@@ -619,12 +619,18 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	call(actionName, params, opts = {}) {
+		if (opts.timeout == null)
+			opts.timeout = this.options.requestTimeout || 0;
+
+		if (opts.retryCount == null)
+			opts.retryCount = this.options.requestRetry || 0;		
+
 		// Find action by name
 		let actions = this.actions.get(actionName);
 		if (!actions) {
 			const errMsg = `Action '${actionName}' is not registered!`;
 			this.logger.warn(errMsg);
-			return Promise.reject(new E.ServiceNotFoundError(errMsg));
+			return Promise.reject(new E.ServiceNotFoundError(errMsg, actionName));
 		}
 		
 		// Get an action handler item
@@ -632,7 +638,7 @@ class ServiceBroker {
 		if (!actionItem) {
 			const errMsg = `Not available '${actionName}' action handler!`;
 			this.logger.warn(errMsg);
-			return Promise.reject(new E.ServiceNotFoundError(errMsg));
+			return Promise.reject(new E.ServiceNotFoundError(errMsg, actionName));
 		}
 
 		// Expose action info
@@ -657,7 +663,7 @@ class ServiceBroker {
 		}
 
 		// Add metrics start
-		if (!reusedCtx && ctx.metrics)
+		if (/*!reusedCtx && */ctx.metrics)
 			ctx._metricStart();
 
 		// Call handler or transfer request

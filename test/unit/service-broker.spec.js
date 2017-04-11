@@ -738,7 +738,7 @@ describe("Test broker.use (middleware)", () => {
 	});	
 });
 
-describe.skip("Test broker.call method", () => {
+describe("Test broker.call method", () => {
 
 	describe("Test local call", () => {
 
@@ -758,6 +758,7 @@ describe.skip("Test broker.call method", () => {
 				expect(err).toBeDefined();
 				expect(err).toBeInstanceOf(ServiceNotFoundError);
 				expect(err.message).toBe("Action 'posts.noaction' is not registered!");
+				expect(err.action).toBe("posts.noaction");
 			});
 		});
 
@@ -767,6 +768,7 @@ describe.skip("Test broker.call method", () => {
 				expect(err).toBeDefined();
 				expect(err).toBeInstanceOf(ServiceNotFoundError);
 				expect(err.message).toBe("Not available 'posts.noHandler' action handler!");
+				expect(err.action).toBe("posts.noHandler");
 			});
 		});
 
@@ -777,7 +779,7 @@ describe.skip("Test broker.call method", () => {
 				expect(ctx.nodeID).toBeUndefined();
 				expect(ctx.level).toBe(1);
 				expect(ctx.parent).toBeUndefined();
-				expect(ctx.requestID).toBe(ctx.id);
+				expect(ctx.requestID).toBeUndefined();
 				expect(ctx.action.name).toBe("posts.find");
 				expect(ctx.params).toEqual({});
 				expect(ctx.metrics).toBe(true);
@@ -833,44 +835,70 @@ describe.skip("Test broker.call method", () => {
 			});
 		});
 
+		it("should call handler with a reused Context", () => {
+			actionHandler.mockClear();
+			let preCtx = new Context({ broker, action: { name: "posts.find" }, params: { a: 5 }, requestID: "555", metrics: true });
+			return broker.call("posts.find", { b: 10 }, { ctx: preCtx }).then(ctx => {
+				expect(ctx).toBe(preCtx);
+				expect(ctx.broker).toBe(broker);
+				expect(ctx.nodeID).toBeUndefined();
+				expect(ctx.level).toBe(1);
+				expect(ctx.parent).toBeUndefined;
+				expect(ctx.requestID).toBe("555");
+				expect(ctx.action.name).toBe("posts.find");
+				expect(ctx.params).toEqual({ a: 5 }); // params from reused context
+				expect(ctx.metrics).toBe(true);
+
+				expect(actionHandler).toHaveBeenCalledTimes(1);
+				expect(actionHandler).toHaveBeenCalledWith(ctx);
+			});
+		});
+
 	});
+
+
+
 	describe("Test remote call", () => {
 
-		let broker = new ServiceBroker({ internalActions: false, metrics: true });
+		let broker = new ServiceBroker({ 
+			transporter: new FakeTransporter(), 
+			internalActions: false, 
+			metrics: true
+		});
 		broker.registerAction({	name: "user.create" }, "server-2");
-		broker._remoteCall = jest.fn((ctx, opts) => Promise.resolve({ ctx, opts }));
+		broker.transit.request = jest.fn((ctx, opts) => Promise.resolve({ ctx, opts }));
 			
-		it("should call remoteCall with new Context without params", () => {
+		it("should call transit.request with new Context without params", () => {
 			return broker.call("user.create").then(({ ctx, opts}) => {
 				expect(ctx).toBeDefined();
 				expect(ctx.broker).toBe(broker);
 				expect(ctx.nodeID).toBe("server-2");
 				expect(ctx.level).toBe(1);
 				expect(ctx.parent).toBeUndefined();
-				expect(ctx.requestID).toBe(ctx.id);
+				expect(ctx.requestID).toBeUndefined();
 				expect(ctx.action.name).toBe("user.create");
 				expect(ctx.params).toEqual({});
 				expect(ctx.metrics).toBe(true);
 				
-				expect(opts).toEqual({});
+				expect(opts).toEqual({"retryCount": 0, "timeout": 5000});
 
-				expect(broker._remoteCall).toHaveBeenCalledTimes(1);
-				expect(broker._remoteCall).toHaveBeenCalledWith(ctx, opts);
+				expect(broker.transit.request).toHaveBeenCalledTimes(1);
+				expect(broker.transit.request).toHaveBeenCalledWith(ctx, opts);
 			});
 		});
 		
-		it("should call handler with new Context with params & opts", () => {
-			broker._remoteCall.mockClear();
+		it("should call transit.request with new Context with params & opts", () => {
+			broker.transit.request.mockClear();
 			let params = { limit: 5, search: "John" };
-			return broker.call("user.create", params, { timeout: 5000 }).then(({ ctx, opts}) => {
+			return broker.call("user.create", params, { timeout: 1000 }).then(({ ctx, opts}) => {
 				expect(ctx).toBeDefined();
 				expect(ctx.action.name).toBe("user.create");
 				expect(ctx.params).toEqual(params);
 
-				expect(opts).toEqual({ timeout: 5000 });
+				expect(opts).toEqual({"retryCount": 0, "timeout": 1000});
 
-				expect(broker._remoteCall).toHaveBeenCalledTimes(1);
-				expect(broker._remoteCall).toHaveBeenCalledWith(ctx, opts);
+				expect(broker.transit.request).toHaveBeenCalledTimes(1);
+				expect(broker.transit.request).toHaveBeenCalledWith(ctx, opts);
 			});
 		});
 

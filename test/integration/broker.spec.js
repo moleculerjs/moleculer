@@ -1,3 +1,4 @@
+const Promise = require("bluebird");
 const ServiceBroker = require("../../src/service-broker");
 const MemoryCacher = require("../../src/cachers/memory");
 const Context = require("../../src/context");

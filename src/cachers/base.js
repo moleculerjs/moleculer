@@ -6,6 +6,7 @@
 
 "use strict";
 
+//const Promise 	= require("bluebird");
 const defaultsDeep 	= require("lodash/defaultsDeep");
 const isArray 		= require("lodash/isArray");
 const { hash } 		= require("node-object-hash")({ sort: false, coerce: false});
