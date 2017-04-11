@@ -675,16 +675,18 @@ class ServiceBroker {
 		}
 
 		if (ctx.metrics || this.statistics) {
-			// Add after to metrics & statistics
+			// Add metrics & statistics
 			p = p.then(res => {
-				this._metricsCall(ctx, null);
+				this._finishCall(ctx, null);
 				return res;
 			});
 		}
 
+		// Timeout handler
 		if (opts.timeout > 0)
 			p = p.timeout(opts.timeout);
 
+		// Error handler
 		return p.catch(err => this._callErrorHandler(err, ctx, opts));
 	}
 
@@ -725,13 +727,13 @@ class ServiceBroker {
 
 		// Need it? this.logger.error("Action request error!", err);
 
-		this._metricsCall(ctx, err);
+		this._finishCall(ctx, err);
 
 		// Handle fallback response
 		if (opts.fallbackResponse) {
 			this.logger.warn(`Action '${actionName}' returns fallback response!`);
 			if (isFunction(opts.fallbackResponse))
-				return opts.fallbackResponse(ctx, ctx.nodeID);
+				return opts.fallbackResponse(ctx);
 			else
 				return Promise.resolve(opts.fallbackResponse);
 		}
@@ -739,7 +741,7 @@ class ServiceBroker {
 		return Promise.reject(err);	
 	}
 
-	_metricsCall(ctx, err) {
+	_finishCall(ctx, err) {
 		if (ctx.metrics) {
 			ctx._metricFinish(err);
 
