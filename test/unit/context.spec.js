@@ -17,7 +17,7 @@ describe("Test Context", () => {
 		expect(ctx.action).not.toBeDefined();
 		expect(ctx.nodeID).not.toBeDefined();
 		expect(ctx.user).not.toBeDefined();
-		expect(ctx.parent).not.toBeDefined();
+		expect(ctx.parentID).toBeNull();
 		expect(ctx.level).toBe(1);
 
 		expect(ctx.params).toEqual({});
@@ -51,8 +51,8 @@ describe("Test Context", () => {
 				b: 5
 			},
 			nodeID: "node-1",
-			user: {
-				id: 1
+			meta: {
+				user: 1
 			}
 		};
 		let ctx = new Context(opts);
@@ -61,8 +61,8 @@ describe("Test Context", () => {
 		expect(ctx.broker).toBeDefined();
 		expect(ctx.action).toBeDefined();
 		expect(ctx.nodeID).toBeDefined();
-		expect(ctx.user).toEqual({ id: 1 });
-		expect(ctx.parent).toBeDefined();
+		expect(ctx.meta).toEqual({ user: 1 });
+		expect(ctx.parentID).toBeDefined();
 		expect(ctx.level).toBe(2);
 
 		expect(ctx.params).toEqual({ b: 5 });
@@ -87,11 +87,14 @@ describe("Test Context", () => {
 
 		let opts = {
 			parent: {
-				id: "parent123"
+				id: "parent123",
+				level: 1,
+				requestID: "111"
 			},
 			broker,
 			action: {},
 			requestID: "123",
+			level: 3,
 			metrics: true
 		};
 		let ctx = new Context(opts);
@@ -101,6 +104,7 @@ describe("Test Context", () => {
 
 		expect(ctx.id).toBeDefined();
 
+		expect(ctx.level).toBe(3);
 		expect(ctx.metrics).toBe(true);
 		expect(ctx.requestID).toBe("123");
 
@@ -111,53 +115,33 @@ describe("Test Context", () => {
 
 		expect(ctx.cachedResult).toBe(false);
 	});
-});
 
+	it("test with metas", () => {
 
-describe("Test createSubContext", () => {
+		let broker = new ServiceBroker({ metrics: true });
 
-	let broker = new ServiceBroker();
+		let opts = {
+			parent: {
+				id: "parent123",
+				meta: {
+					a: 5,
+					b: "Hello"
+				}
+			},
+			broker,
+			action: {},
+			meta: {
+				b: "Hi",
+				c: 100
+			}
+		};
+		let ctx = new Context(opts);
 
-	let opts = {
-		id: 123,
-		parent: {},
-		broker,
-		action: {},
-		user: { id: 5 },
-		params: {
-			b: 5
-		}
-	};
-	let ctx = new Context(opts);
-
-	it("test with empty params", () => {
-		let subCtx = ctx.createSubContext();
-		expect(subCtx).not.toBe(ctx);
-		expect(subCtx.id).not.toBeDefined();
-		expect(subCtx.requestID).toBe(ctx.requestID);
-		expect(subCtx.parent).toBe(ctx);
-		expect(subCtx.broker).toBe(ctx.broker);
-		expect(subCtx.action).toBe(ctx.action);
-		expect(subCtx.nodeID).toBeUndefined();
-		expect(subCtx.level).toBe(2);
-		expect(subCtx.params).toEqual({});
-		expect(subCtx.user).toEqual({ id: 5 });
-	});
-
-	it("test with params", () => {
-		let action2 = {};
-		let params2 = { a: 11 };
-		let node2 = "node-2";
-
-		let subCtx = ctx.createSubContext(action2, params2, node2);
-		expect(subCtx).not.toBe(ctx);
-		expect(subCtx.id).not.toBe(ctx.id);
-		expect(subCtx.requestID).toBe(ctx.requestID);
-		expect(subCtx.parent).toBe(ctx);
-		expect(subCtx.broker).toBe(ctx.broker);
-		expect(subCtx.action).toBe(action2);
-		expect(subCtx.nodeID).toBe(node2);
-		expect(subCtx.params).toEqual(params2);
+		expect(ctx.meta).toEqual({
+			a: 5,
+			b: "Hi",
+			c: 100
+		});
 	});
 });
 

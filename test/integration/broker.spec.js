@@ -206,16 +206,23 @@ describe("Test local call", () => {
 			params: {
 				a: 5,
 				b: 2
+			},
+			meta: {
+				user: "John",
+				roles: ["user"]
 			}
 		});		
 		let params = { a: 1 };
+		let meta = {
+			user: "Jane",
+			roles: ["admin"]
+		};
 
-		return broker.call("posts.find", params, { parentCtx }).then(ctx => {
+		return broker.call("posts.find", params, { parentCtx, meta }).then(ctx => {
 			expect(ctx.params).toBe(params);
-			expect(ctx.params.a).toBe(1);
-			expect(ctx.params.b).not.toBeDefined();
+			expect(ctx.meta).toEqual({ user: "Jane", roles: ["admin"] });
 			expect(ctx.level).toBe(2);
-			expect(ctx.parent).toBe(parentCtx);
+			expect(ctx.parentID).toBe(parentCtx.id);
 		});
 
 	});

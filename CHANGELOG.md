@@ -37,6 +37,39 @@ let broker = new ServiceBroker({
 });
 ```
 
+## Context meta data
+Added `meta` prop to `Context`. The `meta` will be merged if has parent context.
+In case of remote call the metadata will be transfered to target node.
+
+**Usage**
+```js
+// Create new context with params & meta
+let ctx = new Context({
+    broker,
+    action,
+    params: {
+        a: 5
+    },
+    meta: {
+        user: "John"
+    }
+})
+```
+
+```js
+// Broker call with meta data
+broker.call("user.create", { name: "Adam", status: true}, {
+    timeout: 1000,
+    meta: {
+        // Send logged in user data with request to the service
+        loggedInUser: {
+            userID: 45,
+            roles: [ "admin" ]
+        }
+    }
+})
+```
+
 # Changes
 
 ## Update benchmarkify
@@ -48,6 +81,14 @@ Bench-bot is a benchmark runner. If a new Pull Request opened, bench-bot will ru
 - Timeout handling move from `Transit` to `ServiceBroker`
 - Remove `wrapContentAction`
 - In case of call error, Node will be unavailable, if the error code >= `500`
+
+## Context changes
+- Removed `createSubContext`
+- Removed `ctx.parent` and added `ctx.parentID`
+
+
+
+
 
 
 <a name="0.6.0"></a>

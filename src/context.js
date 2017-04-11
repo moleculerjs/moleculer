@@ -7,6 +7,7 @@
 "use strict";
 
 //const Promise = require("bluebird");
+const _ = require("lodash");
 const utils = require("./utils");
 
 /**
@@ -28,13 +29,19 @@ class Context {
 		this.broker = opts.broker;
 		this.action = opts.action;
 		this.nodeID = opts.nodeID;
-		this.user = opts.user;
-		this.parent = opts.parent;
+		this.parentID = opts.parent ? opts.parent.id : null;
 
 		this.metrics = opts.metrics || false;
-		this.level = opts.parent && opts.parent.level ? opts.parent.level + 1 : 1;
+		this.level = opts.level || (opts.parent && opts.parent.level ? opts.parent.level + 1 : 1);
 
 		this.setParams(opts.params);
+
+		if (opts.parent && opts.parent.meta) {
+			// Merge metadata
+			this.meta = _.assign({}, opts.parent.meta, opts.meta);
+		} else {
+			this.meta = opts.meta || {};
+		}
 
 		// Generate ID for context
 		if (this.nodeID || opts.metrics)
@@ -42,7 +49,7 @@ class Context {
 
 		// Initialize metrics properties
 		if (this.metrics) {
-			this.requestID = opts.requestID;
+			this.requestID = opts.requestID || (opts.parent && opts.parent.requestID ? opts.parent.requestID : undefined);
 
 			this.startTime = null;
 			this.startHrTime = null;
@@ -52,31 +59,6 @@ class Context {
 
 		//this.error = null;
 		this.cachedResult = false;
-	}
-
-	/**
-	 * Create a sub-context from this context
-	 * 
-	 * @param {any} action
-	 * @param {any} params
-	 * @returns
-	 * 
-	 * @memberOf Context
-	 */
-	createSubContext(action, params, nodeID) {
-		let ContextClass = this.broker ? this.broker.ContextFactory : Context;
-		let ctx = new ContextClass({
-			parent: this,
-			requestID: this.requestID,
-			broker: this.broker,
-			action: action || this.action,
-			nodeID,
-			user: this.user,
-			metrics: this.metrics,
-			params
-		});
-
-		return ctx;
 	}
 
 	/**
@@ -142,8 +124,8 @@ class Context {
 				name: this.action.name
 			};
 		}
-		if (this.parent)
-			payload.parent = this.parent.id;
+		if (this.parentID)
+			payload.parent = this.parentID;
 		
 		this.broker.emit("metrics.trace.span.start", payload);
 
@@ -174,8 +156,8 @@ class Context {
 				name: this.action.name
 			};
 		}			
-		if (this.parent) 
-			payload.parent = this.parent.id;
+		if (this.parentID) 
+			payload.parent = this.parentID;
 		
 		if (error) {
 			payload.error = {

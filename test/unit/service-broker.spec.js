@@ -805,11 +805,12 @@ describe("Test broker.call method", () => {
 		it("should call handler with new Context with requestID", () => {
 			actionHandler.mockClear();
 			let params = { limit: 5, search: "John" };
-			let opts = { requestID: "123" };
+			let opts = { requestID: "123", meta: { a: 5 } };
 			return broker.call("posts.find", params, opts).then(ctx => {
 				expect(ctx).toBeDefined();
 				expect(ctx.action.name).toBe("posts.find");
 				expect(ctx.requestID).toBe("123"); // need enabled `metrics`
+				expect(ctx.meta).toEqual({ a: 5 });
 
 				expect(actionHandler).toHaveBeenCalledTimes(1);
 				expect(actionHandler).toHaveBeenCalledWith(ctx);
@@ -818,16 +819,17 @@ describe("Test broker.call method", () => {
 
 		it("should call handler with a sub Context", () => {
 			actionHandler.mockClear();
-			let parentCtx = new Context({ broker, params: { a: 5 }, requestID: "555", metrics: true });
-			return broker.call("posts.find", { b: 10 }, { parentCtx }).then(ctx => {
+			let parentCtx = new Context({ broker, params: { a: 5 }, requestID: "555", metrics: true, meta: { a: 5 } });
+			return broker.call("posts.find", { b: 10 }, { parentCtx, meta: { b: "Adam" } }).then(ctx => {
 				expect(ctx).toBeDefined();
 				expect(ctx.broker).toBe(broker);
 				expect(ctx.nodeID).toBeUndefined();
 				expect(ctx.level).toBe(2);
-				expect(ctx.parent).toBe(parentCtx);
+				expect(ctx.parentID).toBe(parentCtx.id);
 				expect(ctx.requestID).toBe("555");
 				expect(ctx.action.name).toBe("posts.find");
 				expect(ctx.params).toEqual({ b: 10 });
+				expect(ctx.meta).toEqual({ a: 5, b: "Adam" });
 				expect(ctx.metrics).toBe(true);
 
 				expect(actionHandler).toHaveBeenCalledTimes(1);
@@ -837,7 +839,7 @@ describe("Test broker.call method", () => {
 
 		it("should call handler with a reused Context", () => {
 			actionHandler.mockClear();
-			let preCtx = new Context({ broker, action: { name: "posts.find" }, params: { a: 5 }, requestID: "555", metrics: true });
+			let preCtx = new Context({ broker, action: { name: "posts.find" }, params: { a: 5 }, requestID: "555", meta: { a: 123 }, metrics: true });
 			preCtx._metricStart = jest.fn();
 			preCtx._metricFinish = jest.fn();
 						
@@ -850,6 +852,7 @@ describe("Test broker.call method", () => {
 				expect(ctx.requestID).toBe("555");
 				expect(ctx.action.name).toBe("posts.find");
 				expect(ctx.params).toEqual({ a: 5 }); // params from reused context
+				expect(ctx.meta).toEqual({ a: 123 });
 				expect(ctx.metrics).toBe(true);
 
 				expect(actionHandler).toHaveBeenCalledTimes(1);

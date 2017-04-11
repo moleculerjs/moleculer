@@ -648,22 +648,26 @@ class ServiceBroker {
 		
 		// Create context
 		let ctx;
-		let reusedCtx = false;
 		if (opts.ctx) {
 			// Reused context
 			ctx = opts.ctx; 
 			ctx.nodeID = nodeID;
-			reusedCtx = true;
-		} else if (opts.parentCtx) {
-			// Sub context
-			ctx = opts.parentCtx.createSubContext(action, params, nodeID);
 		} else {
 			// New root context
-			ctx = new this.ContextFactory({ broker: this, action, params, nodeID, requestID: opts.requestID, metrics: this.shouldMetric() });
+			ctx = new this.ContextFactory({ 
+				broker: this, 
+				action, 
+				params, 
+				nodeID, 
+				requestID: opts.requestID, 
+				metrics: this.shouldMetric(), 
+				parent: opts.parentCtx,
+				meta: opts.meta
+			});
 		}
 
 		// Add metrics start
-		if (/*!reusedCtx && */ctx.metrics)
+		if (ctx.metrics)
 			ctx._metricStart();
 
 		// Call handler or transfer request
