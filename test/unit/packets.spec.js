@@ -183,7 +183,7 @@ describe("Test PacketRequest", () => {
 		expect(packet.target).toBe("server-2");
 		expect(packet.payload).toBeDefined();
 		expect(packet.payload.sender).toBe("node-1");
-		expect(packet.payload.requestID).toBe("12345");
+		expect(packet.payload.id).toBe("12345");
 		expect(packet.payload.action).toBe("posts.find");
 		expect(packet.payload.params).toBe("{\"id\":5}");
 	});
@@ -212,7 +212,7 @@ describe("Test PacketResponse", () => {
 		expect(packet.target).toBe("server-2");
 		expect(packet.payload).toBeDefined();
 		expect(packet.payload.sender).toBe("node-1");
-		expect(packet.payload.requestID).toBe("12345");
+		expect(packet.payload.id).toBe("12345");
 		expect(packet.payload.success).toBe(true);
 		expect(packet.payload.data).toBe("{\"id\":5}");
 		expect(packet.payload.error).toBeUndefined();
@@ -226,7 +226,7 @@ describe("Test PacketResponse", () => {
 		expect(packet.target).toBe("server-2");
 		expect(packet.payload).toBeDefined();
 		expect(packet.payload.sender).toBe("node-1");
-		expect(packet.payload.requestID).toBe("12345");
+		expect(packet.payload.id).toBe("12345");
 		expect(packet.payload.success).toBe(false);
 		expect(packet.payload.data).toBeNull();
 		expect(packet.payload.error).toBeDefined();

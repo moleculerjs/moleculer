@@ -27,7 +27,7 @@ schemas[P.PACKET_REQUEST] = avro.Type.forSchema({
 	type: "record",
 	fields: [
 		{ name: "sender", type: "string" },
-		{ name: "requestID", type: "string" },
+		{ name: "id", type: "string" },
 		{ name: "action", type: "string" },
 		{ name: "params", type: "string" }
 	]
@@ -38,7 +38,7 @@ schemas[P.PACKET_RESPONSE] = avro.Type.forSchema({
 	type: "record",
 	fields: [
 		{ name: "sender", type: "string" },
-		{ name: "requestID", type: "string" },
+		{ name: "id", type: "string" },
 		{ name: "success", type: "boolean" },
 		{ name: "data", type: [ "null", "string"] },
 		{ name: "error", type: [ "null", {
