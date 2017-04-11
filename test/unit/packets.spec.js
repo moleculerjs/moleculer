@@ -233,6 +233,7 @@ describe("Test PacketResponse", () => {
 		expect(packet.payload.error.name).toBe("ValidationError");
 		expect(packet.payload.error.message).toBe("Validation error");
 		expect(packet.payload.error.code).toBe(422);
+		expect(packet.payload.error.nodeID).toBe("node-1");
 		expect(packet.payload.error.data).toBe("{\"a\":5}");
 	});
 
@@ -254,6 +255,7 @@ describe("Test PacketResponse", () => {
 				name: "CustomError",
 				message: "Something happened",
 				code: 500,
+				nodeID: "far-far-node",
 				data: "{\"a\":5}"
 			}
 		};
@@ -265,6 +267,7 @@ describe("Test PacketResponse", () => {
 		expect(packet.payload.error.name).toBe("CustomError");
 		expect(packet.payload.error.message).toBe("Something happened");
 		expect(packet.payload.error.code).toBe(500);
+		expect(packet.payload.error.nodeID).toBe("far-far-node");
 		expect(packet.payload.error.data).toEqual({ a: 5 });	
 	});
 
