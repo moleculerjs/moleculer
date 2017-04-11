@@ -29,7 +29,12 @@ schemas[P.PACKET_REQUEST] = avro.Type.forSchema({
 		{ name: "sender", type: "string" },
 		{ name: "id", type: "string" },
 		{ name: "action", type: "string" },
-		{ name: "params", type: "string" }
+		{ name: "params", type: "string" },
+		{ name: "meta", type: "string" },
+		{ name: "timeout", type: "int" },
+		{ name: "level", type: "int" },
+		{ name: "metrics", type: "boolean" },
+		{ name: "parentID", type: "string" }
 	]
 });
 

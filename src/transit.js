@@ -196,11 +196,11 @@ class Transit {
 	 * 
 	 * @memberOf Transit
 	 */
-	_requestHandler({ sender, action, id, params }) {
-		this.logger.info(`Request '${action}' from '${sender}'. Params:`, params);
-		return this.broker.call(action, params, {}) // empty {} opts to avoid deoptimizing
-			.then(res => this.sendResponse(sender, id,  res, null))
-			.catch(err => this.sendResponse(sender, id, null, err));
+	_requestHandler(payload) {
+		this.logger.info(`Request '${payload.action}' from '${payload.sender}'. Params:`, payload.params);
+		return this.broker.call(payload.action, payload.params, {}) // empty {} opts to avoid deoptimizing
+			.then(res => this.sendResponse(payload.sender, payload.id,  res, null))
+			.catch(err => this.sendResponse(payload.sender, payload.id, null, err));
 	}
 
 	/**
@@ -266,7 +266,7 @@ class Transit {
 			reject
 		};
 
-		const packet = new P.PacketRequest(this, ctx.nodeID, ctx.id, ctx.action.name, ctx.params);
+		const packet = new P.PacketRequest(this, ctx.nodeID, ctx);
 
 		// Add to pendings
 		this.pendingRequests.set(ctx.id, request);

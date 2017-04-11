@@ -176,7 +176,7 @@ describe("Test Transit.messageHandler", () => {
 			let response = [1, 5, 8];
 			broker.call = jest.fn(() => Promise.resolve(response));
 
-			let msg = { sender: "remote", action: "posts.find", id: "123", params: JSON.stringify({ limit: 5 }) };
+			let msg = { sender: "remote", action: "posts.find", id: "123", params: JSON.stringify({ limit: 5 }), meta: "{}" };
 			return transit.messageHandler("REQ", JSON.stringify(msg)).then(() => {
 				expect(broker.call).toHaveBeenCalledTimes(1);
 				expect(broker.call).toHaveBeenCalledWith(msg.action, { limit: 5 }, {});
@@ -192,7 +192,7 @@ describe("Test Transit.messageHandler", () => {
 			transit.sendResponse.mockClear();
 			broker.call = jest.fn(() => Promise.reject(new ValidationError("Not valid params")));
 
-			let msg = { sender: "remote", action: "posts.create", id: "123", params: JSON.stringify({ title: "Hello" }) };
+			let msg = { sender: "remote", action: "posts.create", id: "123", params: JSON.stringify({ title: "Hello" }), meta: "{}" };
 			return transit.messageHandler("REQ", JSON.stringify(msg)).then(() => {
 				expect(broker.call).toHaveBeenCalledTimes(1);
 				expect(broker.call).toHaveBeenCalledWith(msg.action, { title: "Hello" }, {});
@@ -325,7 +325,14 @@ describe("Test Transit.request", () => {
 		let ctx = new Context({
 			nodeID: "remote",
 			action: { name: "users.find" },
-			params: { a: 5 }
+			params: { a: 5 },
+			meta: {
+				user: {
+					id: 5,
+					roles: [ "user" ]
+				}
+			},
+			timeout: 500
 		});
 		ctx.id = "12345";
 
@@ -337,11 +344,14 @@ describe("Test Transit.request", () => {
 		return transit.request(ctx).then(req => {
 			expect(transit.pendingRequests.size).toBe(1);
 			expect(transit.publish).toHaveBeenCalledTimes(1);
+			
 			const packet = transit.publish.mock.calls[0][0];
 			expect(packet).toBeInstanceOf(P.PacketRequest);
 			expect(packet.payload.id).toBe("12345");
 			expect(packet.payload.action).toBe("users.find");
 			expect(packet.payload.params).toBe("{\"a\":5}");
+			expect(packet.payload.meta).toBe("{\"user\":{\"id\":5,\"roles\":[\"user\"]}}");
+			expect(packet.payload.timeout).toBe(500);
 
 			expect(req.nodeID).toBe("remote");
 			//expect(req.ctx).toBe(ctx);

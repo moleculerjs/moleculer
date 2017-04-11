@@ -1,8 +1,30 @@
 const ServiceBroker = require("../../src/service-broker");
 const FakeTransporter = require("../../src/transporters/fake");
 const Serializers = require("../../src/serializers");
+const Context = require("../../src/context");
 const { ValidationError } = require("../../src/errors");
 const P = require("../../src/packets");
+
+const ctx = new Context({
+	id: "100",
+	action: {
+		name: "posts.find"
+	},
+	// requestID: "12345",
+	params: { id: 5 },
+	meta: {
+		user: {
+			id: 1,
+			roles: [ "admin" ]
+		}
+	},
+	level: 4,
+	timeout: 1500,
+	metrics: true,
+	parent: {
+		id: "999"
+	}
+});
 
 describe("Test JSON serializer", () => {
 
@@ -73,19 +95,19 @@ describe("Test JSON serializer", () => {
 	});		
 
 	it("should serialize the request packet", () => {
-		const params = {
-			a: 5,
-			b: "Test"
-		};
-		const packet = new P.PacketRequest(broker.transit, "test-2", "12345", "user.update", params);
+		const packet = new P.PacketRequest(broker.transit, "test-2", ctx);
 		const s = packet.serialize();
-		expect(s).toBe("{\"sender\":\"test-1\",\"id\":\"12345\",\"action\":\"user.update\",\"params\":\"{\\\"a\\\":5,\\\"b\\\":\\\"Test\\\"}\"}");
+		expect(s).toBe("{\"sender\":\"test-1\",\"id\":\"100\",\"action\":\"posts.find\",\"params\":\"{\\\"id\\\":5}\",\"meta\":\"{\\\"user\\\":{\\\"id\\\":1,\\\"roles\\\":[\\\"admin\\\"]}}\",\"timeout\":1500,\"level\":4,\"metrics\":true,\"parentID\":\"999\"}");
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_REQUEST, s);
 		expect(res).toBeInstanceOf(P.PacketRequest);
-		expect(res.payload.id).toBe("12345");
-		expect(res.payload.action).toBe("user.update");
-		expect(res.payload.params).toEqual(params);
+		expect(res.payload.id).toBe("100");
+		expect(res.payload.action).toBe("posts.find");
+		expect(res.payload.params).toEqual(ctx.params);
+		expect(res.payload.meta).toEqual(ctx.meta);
+		expect(res.payload.timeout).toBe(1500);
+		expect(res.payload.metrics).toBe(true);
+		expect(res.payload.parentID).toBe("999");
 	});		
 
 	it("should serialize the response packet with data", () => {
@@ -195,19 +217,19 @@ describe("Test Avro serializer", () => {
 	});		
 
 	it("should serialize the request packet", () => {
-		const params = {
-			a: 5,
-			b: "Test"
-		};
-		const packet = new P.PacketRequest(broker.transit, "test-2", "12345", "user.update", params);
+		const packet = new P.PacketRequest(broker.transit, "test-2", ctx);
 		const s = packet.serialize();
-		expect(s.length).toBe(44);
+		expect(s.length).toBe(75);
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_REQUEST, s);
 		expect(res).toBeInstanceOf(P.PacketRequest);
-		expect(res.payload.id).toBe("12345");
-		expect(res.payload.action).toBe("user.update");
-		expect(res.payload.params).toEqual(params);
+		expect(res.payload.id).toBe("100");
+		expect(res.payload.action).toBe("posts.find");
+		expect(res.payload.params).toEqual(ctx.params);
+		expect(res.payload.meta).toEqual(ctx.meta);
+		expect(res.payload.timeout).toBe(1500);
+		expect(res.payload.metrics).toBe(true);
+		expect(res.payload.parentID).toBe("999");
 	});		
 
 	it("should serialize the response packet with data", () => {
@@ -322,15 +344,19 @@ describe("Test MsgPack serializer", () => {
 			a: 5,
 			b: "Test"
 		};
-		const packet = new P.PacketRequest(broker.transit, "test-2", "12345", "user.update", params);
+		const packet = new P.PacketRequest(broker.transit, "test-2", ctx);
 		const s = packet.serialize();
-		expect(Buffer.byteLength(s, "binary")).toBe(69);
+		expect(Buffer.byteLength(s, "binary")).toBe(138);
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_REQUEST, s);
 		expect(res).toBeInstanceOf(P.PacketRequest);
-		expect(res.payload.id).toBe("12345");
-		expect(res.payload.action).toBe("user.update");
-		expect(res.payload.params).toEqual(params);
+		expect(res.payload.id).toBe("100");
+		expect(res.payload.action).toBe("posts.find");
+		expect(res.payload.params).toEqual(ctx.params);
+		expect(res.payload.meta).toEqual(ctx.meta);
+		expect(res.payload.timeout).toBe(1500);
+		expect(res.payload.metrics).toBe(true);
+		expect(res.payload.parentID).toBe("999");
 	});		
 
 	it("should serialize the response packet with data", () => {
