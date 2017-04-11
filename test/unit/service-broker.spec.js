@@ -875,10 +875,10 @@ describe("Test broker.call method", () => {
 			metrics: true
 		});
 		broker.registerAction({	name: "user.create" }, "server-2");
-		broker.transit.request = jest.fn((ctx, opts) => Promise.resolve({ ctx, opts }));
+		broker.transit.request = jest.fn((ctx) => Promise.resolve({ ctx }));
 			
 		it("should call transit.request with new Context without params", () => {
-			return broker.call("user.create").then(({ ctx, opts}) => {
+			return broker.call("user.create").then(({ ctx }) => {
 				expect(ctx).toBeDefined();
 				expect(ctx.broker).toBe(broker);
 				expect(ctx.nodeID).toBe("server-2");
@@ -889,25 +889,27 @@ describe("Test broker.call method", () => {
 				expect(ctx.params).toEqual({});
 				expect(ctx.metrics).toBe(true);
 				
-				expect(opts).toEqual({"retryCount": 0, "timeout": 0});
+				expect(ctx.timeout).toBe(0);
+				expect(ctx.retryCount).toBe(0);
 
 				expect(broker.transit.request).toHaveBeenCalledTimes(1);
-				expect(broker.transit.request).toHaveBeenCalledWith(ctx, opts);
+				expect(broker.transit.request).toHaveBeenCalledWith(ctx);
 			});
 		});
 		
 		it("should call transit.request with new Context with params & opts", () => {
 			broker.transit.request.mockClear();
 			let params = { limit: 5, search: "John" };
-			return broker.call("user.create", params, { timeout: 1000 }).then(({ ctx, opts}) => {
+			return broker.call("user.create", params, { timeout: 1000 }).then(({ ctx }) => {
 				expect(ctx).toBeDefined();
 				expect(ctx.action.name).toBe("user.create");
 				expect(ctx.params).toEqual(params);
 
-				expect(opts).toEqual({"retryCount": 0, "timeout": 1000});
+				expect(ctx.timeout).toBe(1000);
+				expect(ctx.retryCount).toBe(0);
 
 				expect(broker.transit.request).toHaveBeenCalledTimes(1);
-				expect(broker.transit.request).toHaveBeenCalledWith(ctx, opts);
+				expect(broker.transit.request).toHaveBeenCalledWith(ctx);
 
 				// expect(ctx._metricStart).toHaveBeenCalledTimes(1);
 				// expect(ctx._metricFinish).toHaveBeenCalledTimes(1);				
@@ -926,7 +928,7 @@ describe("Test broker._callErrorHandler", () => {
 	
 	let ctx = new Context({ broker, nodeID: "server-2", action: { name: "user.create" }, metrics: true});
 	let customErr = new CustomError("Error", 400);
-	let timeoutErr = new RequestTimeoutError({ action: "user.create" }, "server-2");
+	let timeoutErr = new RequestTimeoutError("user.create", "server-2");
 	ctx._metricFinish = jest.fn();
 	transit.removePendingRequest = jest.fn();
 
@@ -977,12 +979,14 @@ describe("Test broker._callErrorHandler", () => {
 	it("should retry call if retryCount > 0", () => {
 		ctx._metricFinish.mockClear();
 		broker.nodeUnavailable.mockClear();
+		ctx.retryCount = 2;
 
-		return broker._callErrorHandler(timeoutErr, ctx, { retryCount: 1}).then(() => {
+		return broker._callErrorHandler(timeoutErr, ctx, {}).then(() => {
 			expect(broker.call).toHaveBeenCalledTimes(1);
-			expect(broker.call).toHaveBeenCalledWith("user.create", {}, { retryCount: 0, ctx });
+			expect(broker.call).toHaveBeenCalledWith("user.create", {}, { ctx });
 			expect(broker.nodeUnavailable).toHaveBeenCalledTimes(0);
 
+			expect(ctx.retryCount).toBe(1);
 			expect(ctx._metricFinish).toHaveBeenCalledTimes(0);
 		});
 	});

@@ -240,31 +240,28 @@ class Transit {
 	 * what will be resolved when the response received.
 	 * 
 	 * @param {Context} ctx			Context of request
-	 * @param {any} opts			Options of request
 	 * @returns	{Promise}
 	 * 
 	 * @memberOf Transit
 	 */
-	request(ctx, opts = {}) {
+	request(ctx) {
 		// Expanded the code that v8 can optimize it.  (TryCatchStatement disable optimizing)
-		return new Promise((resolve, reject) => this._doRequest(ctx, opts, resolve, reject));
+		return new Promise((resolve, reject) => this._doRequest(ctx, resolve, reject));
 	}
 
 	/**
 	 * Do a remote request
 	 * 
 	 * @param {Context} ctx 		Context of request
-	 * @param {any} opts 			Options of request
 	 * @param {Function} resolve 	Resolve of Promise
 	 * @param {Function} reject 	Reject of Promise
 	 * 
 	 * @memberOf Transit
 	 */
-	_doRequest(ctx, opts, resolve, reject) {
+	_doRequest(ctx, resolve, reject) {
 		const request = {
 			nodeID: ctx.nodeID,
 			//ctx,
-			//opts,
 			resolve,
 			reject
 		};

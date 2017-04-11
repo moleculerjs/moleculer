@@ -36,6 +36,9 @@ class Context {
 
 		this.setParams(opts.params);
 
+		this.timeout = opts.timeout || 0;
+		this.retryCount = opts.retryCount || 0;
+
 		if (opts.parent && opts.parent.meta) {
 			// Merge metadata
 			this.meta = _.assign({}, opts.parent.meta, opts.meta);
@@ -45,7 +48,7 @@ class Context {
 
 		// Generate ID for context
 		if (this.nodeID || opts.metrics)
-			this.id = utils.generateToken();
+			this.id = opts.id || utils.generateToken();
 
 		// Initialize metrics properties
 		if (this.metrics) {

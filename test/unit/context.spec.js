@@ -19,8 +19,13 @@ describe("Test Context", () => {
 		expect(ctx.user).not.toBeDefined();
 		expect(ctx.parentID).toBeNull();
 		expect(ctx.level).toBe(1);
+		
+		expect(ctx.timeout).toBe(0);
+		expect(ctx.retryCount).toBe(0);
 
 		expect(ctx.params).toEqual({});
+
+		expect(ctx.meta).toEqual({});
 
 		expect(ctx.id).not.toBeDefined();
 
@@ -53,7 +58,9 @@ describe("Test Context", () => {
 			nodeID: "node-1",
 			meta: {
 				user: 1
-			}
+			},
+			timeout: 2000,
+			retryCount: 2
 		};
 		let ctx = new Context(opts);
 
@@ -64,6 +71,9 @@ describe("Test Context", () => {
 		expect(ctx.meta).toEqual({ user: 1 });
 		expect(ctx.parentID).toBeDefined();
 		expect(ctx.level).toBe(2);
+
+		expect(ctx.timeout).toBe(2000);
+		expect(ctx.retryCount).toBe(2);
 
 		expect(ctx.params).toEqual({ b: 5 });
 
@@ -121,6 +131,7 @@ describe("Test Context", () => {
 		let broker = new ServiceBroker({ metrics: true });
 
 		let opts = {
+			id: "12345",
 			parent: {
 				id: "parent123",
 				meta: {
@@ -133,10 +144,12 @@ describe("Test Context", () => {
 			meta: {
 				b: "Hi",
 				c: 100
-			}
+			},
+			metrics: true
 		};
 		let ctx = new Context(opts);
 
+		expect(ctx.id).toBe("12345");
 		expect(ctx.meta).toEqual({
 			a: 5,
 			b: "Hi",
@@ -197,6 +210,18 @@ describe("Test call method", () => {
 		expect(broker.call).toHaveBeenCalledTimes(1);
 		expect(broker.call).toHaveBeenCalledWith("posts.find", p, { parentCtx: ctx });
 	});
+
+	it("should call broker.call method with options", () => {
+		broker.call.mockClear();
+
+		let ctx = new Context({ broker });
+
+		let p = { id: 5 };
+		ctx.call("posts.find", p, { timeout: 2500 });
+
+		expect(broker.call).toHaveBeenCalledTimes(1);
+		expect(broker.call).toHaveBeenCalledWith("posts.find", p, { parentCtx: ctx, timeout: 2500 });
+	});
 });
 
 describe("Test emit method", () => {
@@ -220,100 +245,6 @@ describe("Test emit method", () => {
 		expect(broker.emit).toHaveBeenCalledWith("request.rest", "string-data");		
 	});
 });
-/*
-describe("Test invoke method", () => {
-	let broker = new ServiceBroker();
-	let ctx = new Context();
-	ctx.logger = broker.getLogger();
-	
-	ctx._startInvoke = jest.fn();
-	ctx._finishInvoke = jest.fn();
-	let response = { id: 5 };
-
-	it("should call start & finishInvoke method", () => {
-		let handler = jest.fn(() => response);
-
-		let p = ctx.invoke(handler);
-		expect(p).toBeDefined();
-		expect(p.then).toBeDefined();
-		return p.then((data) => {
-			expect(ctx._startInvoke).toHaveBeenCalledTimes(1);
-			expect(ctx._finishInvoke).toHaveBeenCalledTimes(1);
-			expect(data).toBe(response);
-		});
-	});
-
-	it("should call start & finishInvoke method if handler return Promise", () => {
-		ctx._startInvoke.mockClear();
-		ctx._finishInvoke.mockClear();
-		let handler = jest.fn(() => Promise.resolve(response));
-
-		let p = ctx.invoke(handler);
-		expect(p).toBeDefined();
-		expect(p.then).toBeDefined();
-		return p.then((data) => {
-			expect(ctx._startInvoke).toHaveBeenCalledTimes(1);
-			expect(ctx._finishInvoke).toHaveBeenCalledTimes(1);
-			expect(data).toBe(response);
-		});
-	});	
-
-	it("should call closeContext method if error catched", () => {
-		ctx._startInvoke.mockClear();
-		ctx._finishInvoke.mockClear();
-		let handler = jest.fn(() => Promise.reject(new ServiceNotFoundError("Something happened")));
-
-		let p = ctx.invoke(handler);
-		expect(p).toBeDefined();
-		expect(p.then).toBeDefined();
-		return p.catch((err) => {
-			expect(ctx._startInvoke).toHaveBeenCalledTimes(1);
-			expect(ctx._finishInvoke).toHaveBeenCalledTimes(1);
-			expect(ctx.error).toBe(err);
-			expect(err).toBeDefined();
-			expect(err).toBeInstanceOf(Error);
-			expect(err).toBeInstanceOf(ServiceNotFoundError);
-			expect(err.ctx).toBe(ctx);
-		});
-	});
-
-	it("should return Error if handler reject a string", () => {
-		ctx._startInvoke.mockClear();
-		ctx._finishInvoke.mockClear();
-		let handler = jest.fn(() => Promise.reject("Some error message"));
-
-		let p = ctx.invoke(handler);
-		expect(p).toBeDefined();
-		expect(p.then).toBeDefined();
-		return p.catch((err) => {
-			expect(ctx._startInvoke).toHaveBeenCalledTimes(1);
-			expect(ctx._finishInvoke).toHaveBeenCalledTimes(1);
-			expect(ctx.error).toBe(err);
-			expect(err).toBeDefined();
-			expect(err).toBeInstanceOf(Error);
-			expect(err.ctx).toBe(ctx);
-		});
-	});	
-
-	it("should return Error if handler throw exception", () => {
-		ctx._startInvoke.mockClear();
-		ctx._finishInvoke.mockClear();
-		let handler = jest.fn(() => { throw new Error("Exception"); });
-
-		let p = ctx.invoke(handler);
-		expect(p).toBeDefined();
-		expect(p.then).toBeDefined();
-		return p.catch((err) => {
-			expect(ctx._startInvoke).toHaveBeenCalledTimes(1);
-			expect(ctx._finishInvoke).toHaveBeenCalledTimes(1);
-			expect(ctx.error).toBe(err);
-			expect(err).toBeDefined();
-			expect(err).toBeInstanceOf(Error);
-			expect(err.ctx).toBe(ctx);
-		});
-	});		
-});
-*/
 
 describe("Test _metricStart method", () => {
 	let broker = new ServiceBroker({ metrics: true });

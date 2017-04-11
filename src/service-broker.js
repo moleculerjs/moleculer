@@ -624,7 +624,7 @@ class ServiceBroker {
 
 		if (opts.retryCount == null)
 			opts.retryCount = this.options.requestRetry || 0;		
-
+		
 		// Find action by name
 		let actions = this.actions.get(actionName);
 		if (!actions) {
@@ -662,7 +662,10 @@ class ServiceBroker {
 				requestID: opts.requestID, 
 				metrics: this.shouldMetric(), 
 				parent: opts.parentCtx,
-				meta: opts.meta
+				meta: opts.meta,
+
+				timeout: opts.timeout,
+				retryCount: opts.retryCount 
 			});
 		}
 
@@ -675,7 +678,7 @@ class ServiceBroker {
 		if (!isRemoteCall) {
 			p = action.handler(ctx);
 		} else {
-			p = this.transit.request(ctx, opts);
+			p = this.transit.request(ctx);
 		}
 
 		if (ctx.metrics || this.statistics) {
@@ -687,8 +690,8 @@ class ServiceBroker {
 		}
 
 		// Timeout handler
-		if (opts.timeout > 0)
-			p = p.timeout(opts.timeout);
+		if (ctx.timeout > 0)
+			p = p.timeout(ctx.timeout);
 
 		// Error handler
 		return p.catch(err => this._callErrorHandler(err, ctx, opts));
@@ -713,9 +716,9 @@ class ServiceBroker {
 
 		if (err instanceof E.RequestTimeoutError) {
 			// Retry request
-			if (opts.retryCount-- > 0) {
+			if (ctx.retryCount-- > 0) {
 				this.logger.warn(`Action '${actionName}' call timed out on '${nodeID}'!`);
-				this.logger.warn(`Recall '${actionName}' action (retry: ${opts.retryCount + 1})...`);
+				this.logger.warn(`Recall '${actionName}' action (retry: ${ctx.retryCount + 1})...`);
 
 				opts.ctx = ctx; // Reuse this context
 				return this.call(actionName, ctx.params, opts);
