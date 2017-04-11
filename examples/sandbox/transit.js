@@ -73,7 +73,7 @@ Promise.resolve()
 .then(delay(1000))
 
 .then(() => {
-	b1.call("posts.get", { id: 1 }).then(res => {
+	b1.call("posts.get", { id: 1 }, { meta: { user: "John" }}).then(res => {
 		console.log("[server-1] Success!", res);
 	}).catch(err => {
 		console.error("[server-1] Error!", err);

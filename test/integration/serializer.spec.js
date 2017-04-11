@@ -340,10 +340,6 @@ describe("Test MsgPack serializer", () => {
 	});		
 
 	it("should serialize the request packet", () => {
-		const params = {
-			a: 5,
-			b: "Test"
-		};
 		const packet = new P.PacketRequest(broker.transit, "test-2", ctx);
 		const s = packet.serialize();
 		expect(Buffer.byteLength(s, "binary")).toBe(138);

@@ -179,7 +179,8 @@ describe("Test Transit.messageHandler", () => {
 			let msg = { sender: "remote", action: "posts.find", id: "123", params: JSON.stringify({ limit: 5 }), meta: "{}" };
 			return transit.messageHandler("REQ", JSON.stringify(msg)).then(() => {
 				expect(broker.call).toHaveBeenCalledTimes(1);
-				expect(broker.call).toHaveBeenCalledWith(msg.action, { limit: 5 }, {});
+				expect(broker.call).toHaveBeenCalledWith(msg.action, { limit: 5 }, { parentCtx: jasmine.any(Context) });
+				// TODO: check context props
 
 				expect(transit.sendResponse).toHaveBeenCalledTimes(1);
 				expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", [1, 5, 8], null);
@@ -195,7 +196,8 @@ describe("Test Transit.messageHandler", () => {
 			let msg = { sender: "remote", action: "posts.create", id: "123", params: JSON.stringify({ title: "Hello" }), meta: "{}" };
 			return transit.messageHandler("REQ", JSON.stringify(msg)).then(() => {
 				expect(broker.call).toHaveBeenCalledTimes(1);
-				expect(broker.call).toHaveBeenCalledWith(msg.action, { title: "Hello" }, {});
+				expect(broker.call).toHaveBeenCalledWith(msg.action, { title: "Hello" }, { parentCtx: jasmine.any(Context) });
+				// TODO: check context props
 
 				expect(transit.sendResponse).toHaveBeenCalledTimes(1);
 				expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", null, jasmine.any(ValidationError));
@@ -344,7 +346,7 @@ describe("Test Transit.request", () => {
 		return transit.request(ctx).then(req => {
 			expect(transit.pendingRequests.size).toBe(1);
 			expect(transit.publish).toHaveBeenCalledTimes(1);
-			
+
 			const packet = transit.publish.mock.calls[0][0];
 			expect(packet).toBeInstanceOf(P.PacketRequest);
 			expect(packet.payload.id).toBe("12345");

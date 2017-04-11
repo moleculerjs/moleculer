@@ -7,7 +7,7 @@
 "use strict";
 
 const Promise					= require("bluebird");
-const { RequestTimeoutError } 	= require("./errors");
+const Context					= require("./context");
 const P 						= require("./packets");
 
 // Prefix for logger
@@ -198,7 +198,17 @@ class Transit {
 	 */
 	_requestHandler(payload) {
 		this.logger.info(`Request '${payload.action}' from '${payload.sender}'. Params:`, payload.params);
-		return this.broker.call(payload.action, payload.params, {}) // empty {} opts to avoid deoptimizing
+		const ctx = new Context({			
+			broker: this.broker,
+			id: payload.id,
+			parent: {
+				id: payload.parentID,
+			},
+			level: payload.level + 1,
+			metrics: payload.metrics,
+			meta: payload.meta
+		});
+		return this.broker.call(payload.action, payload.params, { parentCtx: ctx })
 			.then(res => this.sendResponse(payload.sender, payload.id,  res, null))
 			.catch(err => this.sendResponse(payload.sender, payload.id, null, err));
 	}
