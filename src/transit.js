@@ -226,7 +226,7 @@ class Transit {
 			let err = new Error(packet.error.message + ` (NodeID: ${packet.sender})`);
 			err.name = packet.error.name;
 			err.code = packet.error.code;
-			err.nodeID = packet.sender;
+			err.nodeID = packet.error.nodeID || packet.sender;
 			err.data = packet.error.data;
 
 			return req.reject(err);

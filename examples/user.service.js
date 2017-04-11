@@ -35,7 +35,7 @@ module.exports = function(broker) {
 					//this.logger.debug("Get user...", ctx.params);
 					const user = _.cloneDeep(this.findByID(ctx.params.id));
 					if (user && ctx.params.withPostCount)
-						return ctx.call("posts.count", { id: user.id }, { timeout: 1000, fallbackResponse: 999 }).then(count => {
+						return ctx.call("posts.count", { id: user.id }, { timeout: 1000, /*fallbackResponse: 999*/ }).then(count => {
 							user.postsCount = count;
 							return user;
 						});

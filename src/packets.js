@@ -229,6 +229,7 @@ class PacketResponse extends Packet {
 			this.payload.error = {
 				name: err.name,
 				message: err.message,
+				nodeID: err.nodeID || this.sender,
 				code: err.code,
 				data: JSON.stringify(err.data)
 			};
