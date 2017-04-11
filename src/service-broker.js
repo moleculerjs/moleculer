@@ -665,13 +665,13 @@ class ServiceBroker {
 		if (actionItem.local) {
 			p = action.handler(ctx);
 		} else {
-			p = this._remoteCall(ctx, opts);
+			p = this.transit.request(ctx, opts);
 		}
 
 		if (ctx.metrics || this.statistics) {
 			// Add after to metrics & statistics
 			p = p.then(res => {
-				after(ctx, null);
+				this.finishCall(ctx, null);
 				return res;
 			});
 		}
@@ -705,7 +705,7 @@ class ServiceBroker {
 
 			// Need it? this.logger.error("Action request error!", err);
 
-			after(ctx, err);
+			this.finishCall(ctx, err);
 
 			// Handle fallback response
 			if (opts.fallbackResponse) {
@@ -718,17 +718,16 @@ class ServiceBroker {
 
 			return Promise.reject(err);			
 		});
-
-		// Finally logic
-		function after(ctx, err) {
-			if (ctx.metrics) {
-				ctx._metricFinish(err);
-
-				if (self.statistics)
-					self.statistics.addRequest(ctx.action.name, ctx.duration, err ? err.code || 500 : null);
-			}
-		}
 	}
+
+	finishCall(ctx, err) {
+		if (ctx.metrics) {
+			ctx._metricFinish(err);
+
+			if (this.statistics)
+				this.statistics.addRequest(ctx.action.name, ctx.duration, err ? err.code || 500 : null);
+		}
+	}	
 
 	/**
 	 * Check should metric the current call
