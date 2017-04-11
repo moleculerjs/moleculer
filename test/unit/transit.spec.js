@@ -182,7 +182,7 @@ describe("Test Transit.messageHandler", () => {
 			let response = [1, 5, 8];
 			broker.call = jest.fn(() => Promise.resolve(response));
 
-			let msg = { sender: "remote", action: "posts.find", requestID: "123", params: JSON.stringify({ limit: 5 }) };
+			let msg = { sender: "remote", action: "posts.find", id: "123", params: JSON.stringify({ limit: 5 }) };
 			return transit.messageHandler("REQ", JSON.stringify(msg)).then(() => {
 				expect(broker.call).toHaveBeenCalledTimes(1);
 				expect(broker.call).toHaveBeenCalledWith(msg.action, { limit: 5 }, {});
@@ -198,7 +198,7 @@ describe("Test Transit.messageHandler", () => {
 			transit.sendResponse.mockClear();
 			broker.call = jest.fn(() => Promise.reject(new ValidationError("Not valid params")));
 
-			let msg = { sender: "remote", action: "posts.create", requestID: "123", params: JSON.stringify({ title: "Hello" }) };
+			let msg = { sender: "remote", action: "posts.create", id: "123", params: JSON.stringify({ title: "Hello" }) };
 			return transit.messageHandler("REQ", JSON.stringify(msg)).then(() => {
 				expect(broker.call).toHaveBeenCalledTimes(1);
 				expect(broker.call).toHaveBeenCalledWith(msg.action, { title: "Hello" }, {});
@@ -216,11 +216,11 @@ describe("Test Transit.messageHandler", () => {
 		let transporter = new FakeTransporter();
 		let transit = new Transit(broker, transporter);
 
-		let requestID = "12345";
+		let id = "12345";
 
 		it("should not call resolve or reject if prending req is not exists", () => {
 			let req = { resolve: jest.fn(), reject: jest.fn() };
-			let msg = { sender: "remote", requestID };
+			let msg = { sender: "remote", id };
 			
 			return transit.messageHandler("RES", JSON.stringify(msg)).then(() => {
 				expect(req.resolve).toHaveBeenCalledTimes(0);
@@ -235,9 +235,9 @@ describe("Test Transit.messageHandler", () => {
 				resolve: jest.fn(() => Promise.resolve()), 
 				reject: jest.fn(() => Promise.resolve()) 
 			};
-			transit.pendingRequests.set(requestID, req);
+			transit.pendingRequests.set(id, req);
 
-			let msg = { sender: "remote", requestID, success: true, data: JSON.stringify(data) };			
+			let msg = { sender: "remote", id, success: true, data: JSON.stringify(data) };			
 			return transit.messageHandler("RES", JSON.stringify(msg)).then(() => {
 				expect(req.resolve).toHaveBeenCalledTimes(1);
 				expect(req.resolve).toHaveBeenCalledWith(data);
@@ -253,9 +253,9 @@ describe("Test Transit.messageHandler", () => {
 				resolve: jest.fn(), 
 				reject: jest.fn(err => Promise.reject(err)) 
 			};
-			transit.pendingRequests.set(requestID, req);
+			transit.pendingRequests.set(id, req);
 
-			let msg = { sender: "remote", requestID, success: false, error: {
+			let msg = { sender: "remote", id, success: false, error: {
 				name: "ValidationError",
 				code: 422,
 				data: JSON.stringify({ a: 5 })
@@ -329,7 +329,7 @@ describe("Test Transit.request", () => {
 	const transporter = new FakeTransporter();
 	const transit = new Transit(broker, transporter);
 
-	it("should call subscribe with all topics", () => {
+	it("should create packet", () => {
 		let ctx = new Context({
 			nodeID: "remote",
 			action: { name: "users.find" },
@@ -347,7 +347,7 @@ describe("Test Transit.request", () => {
 			expect(transit.publish).toHaveBeenCalledTimes(1);
 			const packet = transit.publish.mock.calls[0][0];
 			expect(packet).toBeInstanceOf(P.PacketRequest);
-			expect(packet.payload.requestID).toBe("12345");
+			expect(packet.payload.id).toBe("12345");
 			expect(packet.payload.action).toBe("users.find");
 			expect(packet.payload.params).toBe("{\"a\":5}");
 
@@ -355,34 +355,10 @@ describe("Test Transit.request", () => {
 			//expect(req.ctx).toBe(ctx);
 			expect(req.resolve).toBeInstanceOf(Function);
 			expect(req.reject).toBeInstanceOf(Function);
-			expect(req.timer).toBeNull();
 		});
 
 	});
 
-	it("should create timer & reject if has timeout", () => {
-		let ctx = new Context({
-			nodeID: "remote",
-			action: { name: "users.find" },
-			params: { a: 5 }
-		});
-		ctx.id = "12345";
-		transit.publish = jest.fn();
-
-		return transit.request(ctx, { timeout: 100 }).catch(err => {
-			expect(transit.pendingRequests.size).toBe(0); // Removed after timeout
-			expect(transit.publish).toHaveBeenCalledTimes(1);
-			const packet = transit.publish.mock.calls[0][0];
-			expect(packet).toBeInstanceOf(P.PacketRequest);
-			expect(packet.payload.requestID).toBe("12345");
-			expect(packet.payload.action).toBe("users.find");
-			expect(packet.payload.params).toBe("{\"a\":5}");
-
-			expect(err).toBeInstanceOf(RequestTimeoutError);
-			expect(err.nodeID).toBe("remote");
-		});
-
-	});
 });
 
 describe("Test Transit.sendResponse", () => {
@@ -400,7 +376,7 @@ describe("Test Transit.sendResponse", () => {
 		const packet = transit.publish.mock.calls[0][0];
 		expect(packet).toBeInstanceOf(P.PacketResponse);
 		expect(packet.target).toBe("node2");
-		expect(packet.payload.requestID).toBe("12345");
+		expect(packet.payload.id).toBe("12345");
 		expect(packet.payload.success).toBe(true);
 		expect(packet.payload.data).toBe("{\"id\":1,\"name\":\"John Doe\"}");
 	});
@@ -412,7 +388,7 @@ describe("Test Transit.sendResponse", () => {
 		const packet = transit.publish.mock.calls[0][0];
 		expect(packet).toBeInstanceOf(P.PacketResponse);
 		expect(packet.target).toBe("node2");
-		expect(packet.payload.requestID).toBe("12345");
+		expect(packet.payload.id).toBe("12345");
 		expect(packet.payload.success).toBe(false);
 		expect(packet.payload.data).toBeNull();
 		expect(packet.payload.error).toBeDefined();
