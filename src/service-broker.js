@@ -619,7 +619,6 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	call(actionName, params, opts = {}) {
-		const self = this;
 		// Find action by name
 		let actions = this.actions.get(actionName);
 		if (!actions) {
@@ -689,6 +688,11 @@ class ServiceBroker {
 
 			err.ctx = ctx;
 
+			if (nodeID) {
+				// Remove pending request
+				this.transit.removePendingRequest(ctx.id);
+			}
+
 			if (err instanceof E.RequestTimeoutError) {
 				// Retry request
 				if (opts.retryCount-- > 0) {
@@ -700,6 +704,8 @@ class ServiceBroker {
 				}
 
 				// Set node status to unavailable
+				// TODO: check are there any other node for this action. If not, don't set unavailable
+				// TODO: don't use this nodeID, because not guaranteed that this node broken. It might call other nodes. Get the thrown nodeID from error.
 				this.nodeUnavailable(nodeID);
 			}
 

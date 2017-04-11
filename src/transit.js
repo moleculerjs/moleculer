@@ -219,13 +219,7 @@ class Transit {
 		if (req == null) return Promise.resolve();
 
 		// Remove pending request
-		this.pendingRequests.delete(requestID);
-
-		// Stop timeout timer
-		if (req.timer) {
-			// istanbul ignore next
-			clearTimeout(req.timer);
-		}
+		this.removePendingRequest(requestID);
 
 		if (!packet.success) {
 			// Recreate exception object
@@ -272,30 +266,10 @@ class Transit {
 			//ctx,
 			//opts,
 			resolve,
-			reject,
-			timer: null
+			reject
 		};
 
 		const packet = new P.PacketRequest(this, ctx.nodeID, ctx.id, ctx.action.name, ctx.params);
-
-		this.logger.info(`Call '${ctx.action.name}' action on '${ctx.nodeID}' node...`/*, payload*/);
-
-		// Handle request timeout
-		if (opts.timeout > 0) {
-			// TODO: Globális timer 100ms-ekkel és azt nézi lejárt-e valamelyik.
-			// a req-be egy expiration prop amibe az az érték van, ami azt jelenti lejárt.
-			
-			request.timer = setTimeout(() => {
-				// Remove from pending requests
-				this.pendingRequests.delete(ctx.id);
-
-				this.logger.warn(`Request timed out when call '${ctx.action.name}' action on '${ctx.nodeID}' node! (timeout: ${opts.timeout / 1000} sec)`/*, payload*/);
-				
-				reject(new RequestTimeoutError(packet.payload, ctx.nodeID));
-			}, opts.timeout);
-			
-			request.timer.unref();
-		}
 
 		// Add to pendings
 		this.pendingRequests.set(ctx.id, request);
@@ -304,6 +278,18 @@ class Transit {
 		
 		// Publish request
 		this.publish(packet);		
+	}
+
+
+	/**
+	 * Remove a pending request
+	 * 
+	 * @param {any} id 
+	 * 
+	 * @memberOf Transit
+	 */
+	removePendingRequest(id) {
+		this.pendingRequests.delete(id);
 	}
 
 	/**

@@ -64,9 +64,9 @@ module.exports = function() {
 			},
 
 			count(ctx) {
-				throw new CustomError("Hibás adatok!", 410, ctx.params);
+				//throw new CustomError("Hibás adatok!", 410, ctx.params);
 				let count = posts.filter(post => post.author == ctx.params.id).length;
-				return count;
+				return Promise.delay(1500).then(() => count);
 			}
 		}
 	};
