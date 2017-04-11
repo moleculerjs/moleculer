@@ -43,8 +43,11 @@ let broker = new ServiceBroker({
 Benchmarkify updated & created continuous benchmarking with [bench-bot](https://github.com/icebob/bench-bot). 
 Bench-bot is a benchmark runner. If a new Pull Request opened, bench-bot will run benchmarks against the `master` branch and it will post the results to the PR conversation.
 
-
-
+## Timeout & fallback response handling in local calls too
+- Can be use timeout & fallback response in local calls.
+- Timeout handling move from `Transit` to `ServiceBroker`
+- Remove `wrapContentAction`
+- In case of call error, Node will be unavailable, if the error code >= `500`
 
 
 <a name="0.6.0"></a>
