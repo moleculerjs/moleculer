@@ -703,11 +703,13 @@ class ServiceBroker {
 					return this.call(actionName, params, opts);
 				}
 
-				// Set node status to unavailable
-				// TODO: check are there any other node for this action. If not, don't set unavailable
-				// TODO: don't use this nodeID, because not guaranteed that this node broken. It might call other nodes. Get the thrown nodeID from error.
-				this.nodeUnavailable(nodeID);
 			}
+
+			// Set node status to unavailable
+			// TODO: check there are any other nodes to this action. If not, don't set unavailable
+			// TODO: don't use this nodeID, because not guaranteed that this node broken. It might call other nodes. Get the thrown nodeID from error.
+			if (err.code >= 500)
+				this.nodeUnavailable(nodeID);
 
 			// Need it? this.logger.error("Action request error!", err);
 
