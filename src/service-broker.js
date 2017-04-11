@@ -52,7 +52,7 @@ class ServiceBroker {
 			logLevel: "info",
 
 			transporter: null,
-			requestTimeout: 5 * 1000,
+			requestTimeout: 0 * 1000,
 			requestRetry: 0,
 			heartbeatInterval: 10,
 			heartbeatTimeout: 30,
@@ -609,7 +609,7 @@ class ServiceBroker {
 
 
 	/**
-	 * Call an action (local or global)
+	 * Call an action (local or remote)
 	 * 
 	 * @param {any} actionName	name of action
 	 * @param {any} params		params of action
@@ -677,7 +677,7 @@ class ServiceBroker {
 		if (ctx.metrics || this.statistics) {
 			// Add after to metrics & statistics
 			p = p.then(res => {
-				this.finishCall(ctx, null);
+				this._metricsCall(ctx, null);
 				return res;
 			});
 		}
@@ -685,57 +685,61 @@ class ServiceBroker {
 		if (opts.timeout > 0)
 			p = p.timeout(opts.timeout);
 
-		return p.catch(Promise.TimeoutError, () => {
-			// Convert timeout error
-			throw new E.RequestTimeoutError(actionName, nodeID);
-		}).catch(err => {
-			if (!(err instanceof Error)) {
-				err = new E.CustomError(err);
-			}
-
-			err.ctx = ctx;
-
-			if (isRemoteCall) {
-				// Remove pending request
-				this.transit.removePendingRequest(ctx.id);
-			}
-
-			if (err instanceof E.RequestTimeoutError) {
-				// Retry request
-				if (opts.retryCount-- > 0) {
-					this.logger.warn(`Action '${actionName}' call timed out on '${nodeID}'!`);
-					this.logger.warn(`Recall '${actionName}' action (retry: ${opts.retryCount + 1})...`);
-
-					opts.ctx = ctx; // Reuse this context
-					return this.call(actionName, params, opts);
-				}
-			}
-
-			// Set node status to unavailable
-			if (err.code >= 500) {
-				const affectedNodeID = err.nodeID || nodeID;
-				if (affectedNodeID != this.nodeID)
-					this.nodeUnavailable(affectedNodeID);
-			}
-
-			// Need it? this.logger.error("Action request error!", err);
-
-			this.finishCall(ctx, err);
-
-			// Handle fallback response
-			if (opts.fallbackResponse) {
-				this.logger.warn(`Action '${actionName}' returns fallback response!`);
-				if (isFunction(opts.fallbackResponse))
-					return opts.fallbackResponse(ctx, ctx.nodeID);
-				else
-					return Promise.resolve(opts.fallbackResponse);
-			}
-
-			return Promise.reject(err);			
-		});
+		return p.catch(err => this._callErrorHandler(err, ctx, opts));
 	}
 
-	finishCall(ctx, err) {
+	_callErrorHandler(err, ctx, opts) {
+		const actionName = ctx.action.name;
+		const nodeID = ctx.nodeID;
+
+		if (!(err instanceof Error)) {
+			err = new E.CustomError(err);
+		}
+		if (err instanceof Promise.TimeoutError)
+			err = new E.RequestTimeoutError(actionName, nodeID);
+
+		err.ctx = ctx;
+
+		if (nodeID) {
+			// Remove pending request
+			this.transit.removePendingRequest(ctx.id);
+		}
+
+		if (err instanceof E.RequestTimeoutError) {
+			// Retry request
+			if (opts.retryCount-- > 0) {
+				this.logger.warn(`Action '${actionName}' call timed out on '${nodeID}'!`);
+				this.logger.warn(`Recall '${actionName}' action (retry: ${opts.retryCount + 1})...`);
+
+				opts.ctx = ctx; // Reuse this context
+				return this.call(actionName, ctx.params, opts);
+			}
+		}
+
+		// Set node status to unavailable
+		if (err.code >= 500) {
+			const affectedNodeID = err.nodeID || nodeID;
+			if (affectedNodeID != this.nodeID)
+				this.nodeUnavailable(affectedNodeID);
+		}
+
+		// Need it? this.logger.error("Action request error!", err);
+
+		this._metricsCall(ctx, err);
+
+		// Handle fallback response
+		if (opts.fallbackResponse) {
+			this.logger.warn(`Action '${actionName}' returns fallback response!`);
+			if (isFunction(opts.fallbackResponse))
+				return opts.fallbackResponse(ctx, ctx.nodeID);
+			else
+				return Promise.resolve(opts.fallbackResponse);
+		}
+
+		return Promise.reject(err);	
+	}
+
+	_metricsCall(ctx, err) {
 		if (ctx.metrics) {
 			ctx._metricFinish(err);
 
