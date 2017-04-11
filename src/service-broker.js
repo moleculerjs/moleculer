@@ -659,10 +659,22 @@ class ServiceBroker {
 		if (opts.retryCount == null)
 			opts.retryCount = this.options.requestRetry || 0;
 
-		return this.transit.request(ctx, opts).catch(err => this._remoteCallCather(err, ctx, opts));
+		if (ctx.metrics)
+			ctx._metricStart();
+		return this.transit.request(ctx, opts)
+			.then(data => {
+				if (ctx.metrics)
+					ctx._metricFinish();
+
+				return data;
+			})
+			.catch(err => this._remoteCallCather(err, ctx, opts));
 	}
 
 	_remoteCallCather(err, ctx, opts) {
+		if (ctx.metrics)
+			ctx._metricFinish(err);
+
 		if (err instanceof errors.RequestTimeoutError) {
 			// Retry request
 			if (opts.retryCount-- > 0) {
