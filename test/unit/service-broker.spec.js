@@ -23,7 +23,7 @@ describe("Test ServiceBroker constructor", () => {
 			logLevel: "info",
 
 			transporter: null, 
-			requestTimeout: 5000, 
+			requestTimeout: 0, 
 			requestRetry: 0, 
 			heartbeatInterval: 10, 
 			heartbeatTimeout : 30, 
@@ -880,7 +880,7 @@ describe("Test broker.call method", () => {
 				expect(ctx.params).toEqual({});
 				expect(ctx.metrics).toBe(true);
 				
-				expect(opts).toEqual({"retryCount": 0, "timeout": 5000});
+				expect(opts).toEqual({"retryCount": 0, "timeout": 0});
 
 				expect(broker.transit.request).toHaveBeenCalledTimes(1);
 				expect(broker.transit.request).toHaveBeenCalledWith(ctx, opts);
