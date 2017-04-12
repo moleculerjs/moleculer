@@ -379,55 +379,6 @@ class ServiceBroker {
 
 		return action;
 	}
-	/*
-	wrapContextInvoke(action, handler) {
-		// Finally logic
-		let after = (ctx, err) => {
-			if (ctx.metrics) {
-				ctx._metricFinish(err);
-
-				if (this.statistics)
-					this.statistics.addRequest(ctx.action.name, ctx.duration, err ? err.code || 500 : null);
-			}
-		};
-
-		// Add the main wrapper
-		action.handler = (ctx) => {
-			// Add metrics start
-			if (ctx.metrics)
-				ctx._metricStart();
-
-			// Call the handler
-			let p = handler(ctx);
-			
-			if (ctx.metrics || this.statistics) {
-				// Add after to metrics & statistics
-				p = p.then(res => {
-					after(ctx, null);
-					return res;
-				});
-			}
-
-			// Handle errors
-			return p.catch(err => {
-				if (!(err instanceof Error)) {
-					err = new E.CustomError(err);
-				}
-
-				// Need it? this.logger.error("Action request error!", err);
-
-				//ctx.error = err;
-				err.ctx = ctx;
-
-				after(ctx, err);
-
-				return Promise.reject(err);
-			});
-		};
-
-		return action;
-	}
-	*/
 
 	/**
 	 * Unregister an action on a local server. 
@@ -616,6 +567,7 @@ class ServiceBroker {
 	 * @param {any} opts		options of call (optional)
 	 * @returns
 	 * 
+	 * @performance-critical
 	 * @memberOf ServiceBroker
 	 */
 	call(actionName, params, opts = {}) {
@@ -663,7 +615,7 @@ class ServiceBroker {
 				metrics: this.shouldMetric(),
 				parent: opts.parentCtx,
 				meta: opts.meta
-				// bad performance above 8 props
+				// bad performance above 8 props!!!
 			};
 
 			ctx = new this.ContextFactory(ctxOpts);
