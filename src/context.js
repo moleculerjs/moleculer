@@ -31,7 +31,7 @@ class Context {
 		this.nodeID = opts.nodeID;
 		this.parentID = opts.parent ? opts.parent.id : null;
 
-		this.metrics = opts.metrics || false;
+		this.metrics = !!opts.metrics;
 		this.level = opts.level || (opts.parent && opts.parent.level ? opts.parent.level + 1 : 1);
 
 		this.setParams(opts.params);

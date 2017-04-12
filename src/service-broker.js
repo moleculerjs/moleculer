@@ -654,19 +654,21 @@ class ServiceBroker {
 			ctx.nodeID = nodeID;
 		} else {
 			// New root context
-			ctx = new this.ContextFactory({ 
+			const ctxOpts = { 
 				broker: this, 
 				action, 
 				params, 
 				nodeID, 
 				requestID: opts.requestID, 
-				metrics: this.shouldMetric(), 
+				metrics: this.shouldMetric(),
 				parent: opts.parentCtx,
-				meta: opts.meta,
+				meta: opts.meta
+				// bad performance above 8 props
+			};
 
-				timeout: opts.timeout,
-				retryCount: opts.retryCount 
-			});
+			ctx = new this.ContextFactory(ctxOpts);
+			ctx.timeout = opts.timeout;
+			ctx.retryCount = opts.retryCount;
 		}
 
 		// Add metrics start

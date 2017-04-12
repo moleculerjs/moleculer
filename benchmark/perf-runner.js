@@ -7,7 +7,7 @@ let Serializer = require("../src/serializers/json");
 function createBrokers(Transporter, opts) {
 	let b1 = new ServiceBroker({
 		transporter: new Transporter(opts),
-		requestTimeout: 0,
+		//requestTimeout: 0,
 		//logger: console,
 		//logLevel: "debug",
 		serializer: new Serializer(),
@@ -43,7 +43,7 @@ let [b1, b2] = createBrokers(Transporters.Fake);
 let count = 0;
 function doRequest() {
 	count++;
-	return b1.call("echo.reply", { a: count }).then(res => {
+	return b2.call("echo.reply", { a: count }).then(res => {
 		if (count % 10000) {
 			// Fast cycle
 			doRequest();
