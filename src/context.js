@@ -24,7 +24,7 @@ class Context {
 	 * 
 	 * @memberOf Context
 	 */
-	constructor(opts = {}) {
+	/*constructor(opts = {}) {
 		this.opts = opts;
 		this.broker = opts.broker;
 		this.action = opts.action;
@@ -62,6 +62,36 @@ class Context {
 
 		//this.error = null;
 		this.cachedResult = false;
+	}
+	*/
+
+	constructor() {
+		this.id = null;
+		this.broker = null;
+		this.action = null;
+		this.nodeID = null;
+		this.parentID = null;
+
+		this.metrics = false;
+		this.level = 1;
+
+		this.timeout = 0;
+		this.retryCount = 0;
+
+		this.meta = {};
+		
+		this.requestID = null;
+		this.startTime = null;
+		this.startHrTime = null;
+		this.stopTime = null;
+		this.duration = 0;
+
+		//this.error = null;
+		this.cachedResult = false;	
+	}
+
+	generateID() {
+		this.id = utils.generateToken();
 	}
 
 	/**

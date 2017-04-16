@@ -579,7 +579,7 @@ class ServiceBroker {
 		
 		// Find action by name
 		let actions = this.actions.get(actionName);
-		if (!actions) {
+		if (actions == null) {
 			const errMsg = `Action '${actionName}' is not registered!`;
 			this.logger.warn(errMsg);
 			return Promise.reject(new E.ServiceNotFoundError(errMsg, actionName));
@@ -587,7 +587,7 @@ class ServiceBroker {
 		
 		// Get an action handler item
 		let actionItem = actions.get();
-		if (!actionItem) {
+		if (actionItem == null) {
 			const errMsg = `Not available '${actionName}' action handler!`;
 			this.logger.warn(errMsg);
 			return Promise.reject(new E.ServiceNotFoundError(errMsg, actionName));
@@ -600,7 +600,7 @@ class ServiceBroker {
 		
 		// Create context
 		let ctx;
-		if (opts.ctx) {
+		if (opts.ctx != null) {
 			// Reused context
 			ctx = opts.ctx; 
 			ctx.nodeID = nodeID;
@@ -619,23 +619,43 @@ class ServiceBroker {
 			};
 
 			ctx = new this.ContextFactory(ctxOpts);
+			ctx.broker = this;
+			ctx.action = action;
+			ctx.nodeID = nodeID;
+			if (opts.requestID != null)
+				ctx.requestID = opts.requestID;
+			if (opts.meta != null)
+				ctx.meta = opts.meta;
+
 			ctx.timeout = opts.timeout;
 			ctx.retryCount = opts.retryCount;
+
+			ctx.metrics = this.shouldMetric();
+
+			if (ctx.metrics === true) {
+				ctx.generateID();
+
+				if (opts.parentCtx != null) {
+					ctx.parentID = opts.parentCtx.id;
+					ctx.level = opts.parentCtx.level + 1;
+				}
+
+			}
 		}
 
 		// Add metrics start
-		if (ctx.metrics)
+		if (ctx.metrics === true)
 			ctx._metricStart();
 
 		// Call handler or transfer request
 		let p;
-		if (!isRemoteCall) {
+		if (isRemoteCall === false) {
 			p = action.handler(ctx);
 		} else {
 			p = this.transit.request(ctx);
 		}
 
-		if (ctx.metrics || this.statistics) {
+		if (ctx.metrics === true || this.statistics === true) {
 			// Add metrics & statistics
 			p = p.then(res => {
 				this._finishCall(ctx, null);
