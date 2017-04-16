@@ -606,19 +606,7 @@ class ServiceBroker {
 			ctx.nodeID = nodeID;
 		} else {
 			// New root context
-			const ctxOpts = { 
-				broker: this, 
-				action, 
-				params, 
-				nodeID, 
-				requestID: opts.requestID, 
-				metrics: this.shouldMetric(),
-				parent: opts.parentCtx,
-				meta: opts.meta
-				// bad performance above 8 props!!!
-			};
-
-			ctx = new this.ContextFactory(ctxOpts);
+			ctx = new this.ContextFactory();
 			ctx.broker = this;
 			ctx.action = action;
 			ctx.nodeID = nodeID;
