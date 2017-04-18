@@ -70,12 +70,12 @@ let bench3 = benchmark.createSuite("Call with statistics & metrics");
 	});
 })();
 
-(function() {
+/*(function() {
 	let broker = createBroker({ statistics: true });
 	bench3.add("With statistics", done => {
 		return broker.call("users.empty").then(done);
 	});
-})();
+})();*/
 
 (function() {
 	let broker = createBroker({ metrics: true, statistics: true });
