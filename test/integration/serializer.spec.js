@@ -5,26 +5,23 @@ const Context = require("../../src/context");
 const { ValidationError } = require("../../src/errors");
 const P = require("../../src/packets");
 
-const ctx = new Context({
-	id: "100",
-	action: {
-		name: "posts.find"
-	},
-	// requestID: "12345",
-	params: { id: 5 },
-	meta: {
-		user: {
-			id: 1,
-			roles: [ "admin" ]
-		}
-	},
-	level: 4,
-	timeout: 1500,
-	metrics: true,
-	parent: {
-		id: "999"
+const ctx = new Context();
+ctx.id = "100";
+ctx.action = {
+	name: "posts.find"
+};
+// requestID: "12345",
+ctx.params = { id: 5 };
+ctx.meta = {
+	user: {
+		id: 1,
+		roles: [ "admin" ]
 	}
-});
+};
+ctx.level = 4;
+ctx.timeout = 1500;
+ctx.metrics = true;
+ctx.parentID = "999";
 
 describe("Test JSON serializer", () => {
 

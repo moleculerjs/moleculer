@@ -125,7 +125,9 @@ describe("Test middleware", () => {
 	let params = { id: 3, name: "Antsa" };
 
 	it("should give back the cached data and not called the handler", () => {
-		let ctx = new Context({ params, service: { broker } });
+		let ctx = new Context();
+		ctx.setParams(params);
+		
 		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
 		expect(typeof cachedHandler).toBe("function");
 
@@ -145,7 +147,9 @@ describe("Test middleware", () => {
 		broker.cacher.get = jest.fn(() => Promise.resolve(null));
 		mockAction.handler = jest.fn(() => Promise.resolve(resData));
 
-		let ctx = new Context({ params, service: { broker } });
+		let ctx = new Context();
+		ctx.setParams(params);
+		
 		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
 
 		return cachedHandler(ctx).then(response => {
@@ -169,7 +173,9 @@ describe("Test middleware", () => {
 		cacher.get.mockClear();
 		cacher.set.mockClear();
 
-		let ctx = new Context({ params, service: { broker } });
+		let ctx = new Context();
+		ctx.setParams(params);
+		
 		let cachedHandler = cacher.middleware()(action.handler, action);
 		expect(typeof cachedHandler).toBe("function");
 

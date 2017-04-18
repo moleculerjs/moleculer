@@ -170,7 +170,7 @@ describe("Test on/once/off event emitter", () => {
 
 describe("Test local call", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ metrics: true });
 
 	let actionHandler = jest.fn(ctx => ctx);
 
@@ -202,16 +202,16 @@ describe("Test local call", () => {
 	});
 
 	it("should create a sub context of parent context", () => {
-		let parentCtx = new Context({
-			params: {
-				a: 5,
-				b: 2
-			},
-			meta: {
-				user: "John",
-				roles: ["user"]
-			}
-		});		
+		let parentCtx = new Context();
+		parentCtx.params = {
+			a: 5,
+			b: 2
+		};
+		parentCtx.meta = {
+			user: "John",
+			roles: ["user"]
+		};		
+
 		let params = { a: 1 };
 		let meta = {
 			user: "Jane",
