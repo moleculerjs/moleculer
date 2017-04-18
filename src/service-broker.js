@@ -20,8 +20,7 @@ const healthInfo = require("./health");
 const JSONSerializer = require("./serializers/json");
 
 //const _ = require("lodash");
-const isFunction = require("lodash/isFunction");
-const defaultsDeep = require("lodash/defaultsDeep");
+const _ = require("lodash");
 const pick = require("lodash/pick");
 const omit = require("lodash/omit");
 const isArray = require("lodash/isArray");
@@ -45,7 +44,7 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	constructor(options) {
-		this.options = defaultsDeep(options, {
+		this.options = _.defaultsDeep(options, {
 			nodeID: null,
 
 			logger: null,
@@ -156,7 +155,7 @@ class ServiceBroker {
 	start() {
 		// Call service `started` handlers
 		this.services.forEach(service => {
-			if (service && service.schema && isFunction(service.schema.started)) {
+			if (service && service.schema && _.isFunction(service.schema.started)) {
 				service.schema.started.call(service);
 			}
 		});
@@ -205,7 +204,7 @@ class ServiceBroker {
 	stop() {
 		// Call service `started` handlers
 		this.services.forEach(service => {
-			if (service && service.schema && isFunction(service.schema.stopped)) {
+			if (service && service.schema && _.isFunction(service.schema.stopped)) {
 				service.schema.stopped.call(service);
 			}
 		});
@@ -294,7 +293,7 @@ class ServiceBroker {
 		let fName = path.resolve(filePath);
 		this.logger.debug(`Load service from '${path.basename(fName)}'...`);
 		let schema = require(fName);
-		if (isFunction(schema)) {
+		if (_.isFunction(schema)) {
 			let svc = schema(this);
 			if (svc instanceof this.ServiceFactory)
 				return svc;
@@ -606,16 +605,18 @@ class ServiceBroker {
 			ctx.nodeID = nodeID;
 		} else {
 			// New root context
-			ctx = new this.ContextFactory();
-			ctx.broker = this;
-			ctx.action = action;
+			ctx = new this.ContextFactory(this, action);
 			ctx.nodeID = nodeID;
-			ctx.setParams(opts.params);
+			ctx.setParams(params);
 
 			if (opts.requestID != null)
 				ctx.requestID = opts.requestID;
+			else if (opts.parentCtx != null && opts.parentCtx.requestID != null)
+				ctx.requestID = opts.parentCtx.requestID;
 
-			if (opts.meta != null)
+			if (opts.parentCtx != null && opts.parentCtx.meta != null)
+				ctx.meta = _.assign({}, opts.parentCtx.meta, opts.meta);
+			else if (opts.meta != null)
 				ctx.meta = opts.meta;
 
 			ctx.timeout = opts.timeout;
@@ -704,7 +705,7 @@ class ServiceBroker {
 		// Handle fallback response
 		if (opts.fallbackResponse) {
 			this.logger.warn(`Action '${actionName}' returns fallback response!`);
-			if (isFunction(opts.fallbackResponse))
+			if (_.isFunction(opts.fallbackResponse))
 				return opts.fallbackResponse(ctx);
 			else
 				return Promise.resolve(opts.fallbackResponse);

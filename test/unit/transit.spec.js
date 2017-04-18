@@ -324,18 +324,16 @@ describe("Test Transit.request", () => {
 	const transit = broker.transit;
 
 	it("should create packet", () => {
-		let ctx = new Context({
-			nodeID: "remote",
-			action: { name: "users.find" },
-			params: { a: 5 },
-			meta: {
-				user: {
-					id: 5,
-					roles: [ "user" ]
-				}
-			},
-			timeout: 500
-		});
+		let ctx = new Context(broker, { name: "users.find" });
+		ctx.nodeID = "remote";
+		ctx.params = { a: 5 };
+		ctx.meta = {
+			user: {
+				id: 5,
+				roles: [ "user" ]
+			}
+		},
+		ctx.timeout = 500;
 		ctx.id = "12345";
 
 		transit.publish = jest.fn(() => {

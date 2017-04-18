@@ -445,7 +445,7 @@ describe.skip("Test broker.wrapContextInvoke", () => {
 		broker.wrapContextInvoke(action, origHandler);
 
 		it("should call only origHandler", () => {
-			let ctx = new Context({ broker, action });
+			let ctx = new Context(broker, action);
 			ctx._metricStart = jest.fn();
 			ctx._metricFinish = jest.fn();
 			
@@ -476,7 +476,8 @@ describe.skip("Test broker.wrapContextInvoke", () => {
 		broker.wrapContextInvoke(action, origHandler);
 		
 		it("should call only origHandler", () => {
-			let ctx = new Context({ broker, action, metrics: true });
+			let ctx = new Context(broker, action);
+			ctx.metrics = true;
 			ctx._metricStart = jest.fn();
 			ctx._metricFinish = jest.fn();
 
@@ -509,7 +510,8 @@ describe.skip("Test broker.wrapContextInvoke", () => {
 		broker.wrapContextInvoke(action, origHandler);
 		
 		it("should call metrics & statistics methods & origHandler", () => {
-			let ctx = new Context({ broker, action, metrics: true });
+			let ctx = new Context(broker, action);
+			ctx.metrics = true;
 			ctx._metricStart = jest.fn();
 			ctx._metricFinish = jest.fn();
 
@@ -542,7 +544,7 @@ describe.skip("Test broker.wrapContextInvoke", () => {
 		broker.wrapContextInvoke(action, origHandler);
 		
 		it("should convert error message to CustomError", () => {
-			let ctx = new Context({ broker, action });
+			let ctx = new Context(broker, action);
 
 			return action.handler(ctx).catch(err => {
 				expect(err).toBeInstanceOf(CustomError);
@@ -778,8 +780,7 @@ describe("Test broker.call method", () => {
 				expect(ctx.broker).toBe(broker);
 				expect(ctx.nodeID).toBeUndefined();
 				expect(ctx.level).toBe(1);
-				expect(ctx.parent).toBeUndefined();
-				expect(ctx.requestID).toBeUndefined();
+				expect(ctx.requestID).toBeNull();
 				expect(ctx.action.name).toBe("posts.find");
 				expect(ctx.params).toEqual({});
 				expect(ctx.metrics).toBe(true);
@@ -819,7 +820,12 @@ describe("Test broker.call method", () => {
 
 		it("should call handler with a sub Context", () => {
 			actionHandler.mockClear();
-			let parentCtx = new Context({ broker, params: { a: 5 }, requestID: "555", metrics: true, meta: { a: 5 } });
+			let parentCtx = new Context(broker);
+			parentCtx.params = { a: 5 }; 
+			parentCtx.requestID = "555"; 
+			parentCtx.meta = { a: 123 }; 
+			parentCtx.metrics = true;
+
 			return broker.call("posts.find", { b: 10 }, { parentCtx, meta: { b: "Adam" } }).then(ctx => {
 				expect(ctx).toBeDefined();
 				expect(ctx.broker).toBe(broker);
@@ -829,7 +835,7 @@ describe("Test broker.call method", () => {
 				expect(ctx.requestID).toBe("555");
 				expect(ctx.action.name).toBe("posts.find");
 				expect(ctx.params).toEqual({ b: 10 });
-				expect(ctx.meta).toEqual({ a: 5, b: "Adam" });
+				expect(ctx.meta).toEqual({ a: 123, b: "Adam" });
 				expect(ctx.metrics).toBe(true);
 
 				expect(actionHandler).toHaveBeenCalledTimes(1);
@@ -839,7 +845,12 @@ describe("Test broker.call method", () => {
 
 		it("should call handler with a reused Context", () => {
 			actionHandler.mockClear();
-			let preCtx = new Context({ broker, action: { name: "posts.find" }, params: { a: 5 }, requestID: "555", meta: { a: 123 }, metrics: true });
+			let preCtx = new Context(broker, { name: "posts.find" });
+			preCtx.params = { a: 5 }; 
+			preCtx.requestID = "555"; 
+			preCtx.meta = { a: 123 }; 
+			preCtx.metrics = true;
+
 			preCtx._metricStart = jest.fn();
 			preCtx._metricFinish = jest.fn();
 						
@@ -848,7 +859,7 @@ describe("Test broker.call method", () => {
 				expect(ctx.broker).toBe(broker);
 				expect(ctx.nodeID).toBeUndefined();
 				expect(ctx.level).toBe(1);
-				expect(ctx.parent).toBeUndefined;
+				expect(ctx.parentID).toBeNull();
 				expect(ctx.requestID).toBe("555");
 				expect(ctx.action.name).toBe("posts.find");
 				expect(ctx.params).toEqual({ a: 5 }); // params from reused context
@@ -883,8 +894,7 @@ describe("Test broker.call method", () => {
 				expect(ctx.broker).toBe(broker);
 				expect(ctx.nodeID).toBe("server-2");
 				expect(ctx.level).toBe(1);
-				expect(ctx.parent).toBeUndefined();
-				expect(ctx.requestID).toBeUndefined();
+				expect(ctx.requestID).toBeNull();
 				expect(ctx.action.name).toBe("user.create");
 				expect(ctx.params).toEqual({});
 				expect(ctx.metrics).toBe(true);
@@ -926,7 +936,10 @@ describe("Test broker._callErrorHandler", () => {
 	broker.call = jest.fn(() => Promise.resolve());
 	let transit = broker.transit;
 	
-	let ctx = new Context({ broker, nodeID: "server-2", action: { name: "user.create" }, metrics: true});
+	let ctx = new Context(broker, { name: "user.create" });
+	ctx.nodeID = "server-2";
+	ctx.metrics = true;
+
 	let customErr = new CustomError("Error", 400);
 	let timeoutErr = new RequestTimeoutError("user.create", "server-2");
 	ctx._metricFinish = jest.fn();
@@ -1031,7 +1044,9 @@ describe("Test broker._finishCall", () => {
 
 	describe("metrics enabled", () => {
 		let broker = new ServiceBroker({ metrics: true });
-		let ctx = new Context({ broker, nodeID: "server-2", action: { name: "user.create" }, metrics: true});
+		let ctx = new Context(broker, { name: "user.create" });
+		ctx.nodeID = "server-2";
+		ctx.metrics = true;
 		ctx._metricFinish = jest.fn();
 
 		it("should call ctx._metricFinish", () => {
@@ -1054,7 +1069,9 @@ describe("Test broker._finishCall", () => {
 	describe("metrics & statistics enabled", () => {
 		let broker = new ServiceBroker({ metrics: true, statistics: true });
 		broker.statistics.addRequest = jest.fn();
-		let ctx = new Context({ broker, nodeID: "server-2", action: { name: "user.create" }, metrics: true});
+		let ctx = new Context(broker, { name: "user.create" });
+		ctx.nodeID = "server-2";
+		ctx.metrics = true;
 		ctx._metricFinish = jest.fn();
 
 		it("should call ctx._metricFinish", () => {

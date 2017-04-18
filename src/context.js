@@ -7,7 +7,6 @@
 "use strict";
 
 //const Promise = require("bluebird");
-const _ = require("lodash");
 const utils = require("./utils");
 
 /**
@@ -65,10 +64,10 @@ class Context {
 	}
 	*/
 
-	constructor() {
+	constructor(broker, action) {
 		this.id = null;
-		this.broker = null;
-		this.action = null;
+		this.broker = broker;
+		this.action = action;
 		this.nodeID = null;
 		this.parentID = null;
 
