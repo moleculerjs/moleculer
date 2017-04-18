@@ -12,8 +12,7 @@
 
 - [ ] move heart-beat handling to `Transit` class.
 
-- [ ] meta in context which will be transported. (for user, session, state...etc)
-	- [ ] other meta for response, that need to be transported back to caller (for contentType, pagination...etc)
+- [x] meta in context which will be transported. (for user, session, state...etc)
 
 - [x] create d.ts file
 
