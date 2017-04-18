@@ -62,7 +62,7 @@
   },
   "dependencies": {
     "amqplib": "0.5.1",
-    "avsc": "5.0.0",
+    "avsc": "5.0.1",
     "bluebird": "3.5.0",
     "chalk": "1.1.3",
     "es6-error": "4.0.2",
@@ -72,7 +72,7 @@
     "ioredis": "2.5.0",
     "lodash": "4.17.4",
     "micromatch": "2.3.11",
-    "mqtt": "2.5.2",
+    "mqtt": "2.6.2",
     "msgpack5": "3.4.1",
     "nats": "0.7.16",
     "node-object-hash": "1.2.0"
