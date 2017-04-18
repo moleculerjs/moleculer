@@ -197,17 +197,25 @@ class PacketEvent extends Packet {
  * @extends {Packet}
  */
 class PacketRequest extends Packet {
-	constructor(transit, target, id, action, params) {
+	constructor(transit, target, ctx) {
 		super(transit, PACKET_REQUEST, target);
 
-		this.payload.id = id;
-		this.payload.action = action;
-		this.payload.params = JSON.stringify(params);
+		if (ctx) {
+			this.payload.id = ctx.id;
+			this.payload.action = ctx.action.name;
+			this.payload.params = JSON.stringify(ctx.params);
+			this.payload.meta = JSON.stringify(ctx.meta);
+			this.payload.timeout = ctx.timeout;
+			this.payload.level = ctx.level;
+			this.payload.metrics = ctx.metrics;
+			this.payload.parentID = ctx.parentID;
+		}
 	}
 
 	transformPayload(payload) {
 		super.transformPayload(payload);
 		payload.params = JSON.parse(payload.params);
+		payload.meta = JSON.parse(payload.meta);
 	}	
 }
 

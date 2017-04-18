@@ -1,6 +1,4 @@
-const ServiceBroker = require("../../src/service-broker");
-const Transit = require("../../src/transit");
-const FakeTransporter = require("../../src/transporters/fake");
+const Context = require("../../src/context");
 const { ValidationError } = require("../../src/errors");
 
 const P = require("../../src/packets");
@@ -176,26 +174,51 @@ describe("Test PacketRequest", () => {
 	const transit = { nodeID: "node-1" };
 
 	it("should set properties", () => {
-		let params = { id: 5 };
-		let packet = new P.PacketRequest(transit, "server-2", "12345", "posts.find", params);
+		let ctx = new Context();
+		ctx.id = "100";
+		ctx.action = {
+			name: "posts.find"
+		};
+		// requestID: "12345",
+		ctx.params = { id: 5 };
+		ctx.meta = {
+			user: {
+				id: 1,
+				roles: [ "admin" ]
+			}
+		};
+		ctx.level = 4;
+		ctx.timeout = 1500;
+		ctx.retryCount = 2;
+		ctx.metrics = true;
+		ctx.parentID = "999";
+
+		let packet = new P.PacketRequest(transit, "server-2", ctx);
 		expect(packet).toBeDefined();
 		expect(packet.type).toBe(P.PACKET_REQUEST);
 		expect(packet.target).toBe("server-2");
 		expect(packet.payload).toBeDefined();
 		expect(packet.payload.sender).toBe("node-1");
-		expect(packet.payload.id).toBe("12345");
+		expect(packet.payload.id).toBe("100");
 		expect(packet.payload.action).toBe("posts.find");
 		expect(packet.payload.params).toBe("{\"id\":5}");
+		expect(packet.payload.meta).toBe("{\"user\":{\"id\":1,\"roles\":[\"admin\"]}}");
+		expect(packet.payload.timeout).toBe(1500);
+		expect(packet.payload.level).toBe(4);
+		expect(packet.payload.metrics).toBe(true);
+		expect(packet.payload.parentID).toBe("999");
 	});
 
 	it("should transform payload", () => {
 		let payload = {
-			params: "{\"a\":5}"
+			params: "{\"a\":5}",
+			meta: "{\"b\":\"John\"}"
 		};
-		let packet = new P.PacketRequest(transit, "server-2", "12345", "", {});
+		let packet = new P.PacketRequest(transit, "server-2");
 		packet.transformPayload(payload);
 
 		expect(packet.payload.params).toEqual({ a: 5 });
+		expect(packet.payload.meta).toEqual({ b: "John" });
 	});
 
 });

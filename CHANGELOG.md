@@ -2,14 +2,14 @@
 # 0.x.0 (2017-xx-xx)
 
 # New
-## Serializers for transporters #10
+## Serializers for transporters [#10](https://github.com/ice-services/moleculer/issues/10/)
 Implemented pluggable serializers.
 Built-in serializers:
 - JSON (default)
 - [x] [Avro](https://github.com/mtth/avsc)
 - [x] [MsgPack](https://github.com/mcollina/msgpack5)
 
-## Typescript definition file #5
+## Typescript definition file [#5](https://github.com/ice-services/moleculer/issues/5)
 Created an index.d.ts file. I'm not familiar in Typescript, so if you found error please help me and open a PR with fix. Thank you!
 
 **Usage**
@@ -37,6 +37,42 @@ let broker = new ServiceBroker({
 });
 ```
 
+## Context meta data ([#16](https://github.com/ice-services/moleculer/pull/16))
+Added `meta` prop to `Context`. The `meta` will be merged if has parent context.
+In case of remote call the metadata will be transfered to target service.
+
+**Usage**
+Set meta in `broker.call`
+```js
+// Broker call with meta data
+broker.call("user.create", { name: "Adam", status: true}, {
+    timeout: 1000,
+    meta: {
+        // Send logged in user data with request to the service
+        loggedInUser: {
+            userID: 45,
+            roles: [ "admin" ]
+        }
+    }
+})
+```
+
+Access meta in action
+```js
+broker.createService({
+    name: "user",
+    actions: {
+        create(ctx) {
+            const meta = ctx.meta;
+            if (meta.loggedInUser && meta.loggedInUser.roles.indexOf("admin") !== -1)
+                return Promise.resolve(...);
+            else
+                throw new CustomError("Access denied!");
+        }
+    }
+});
+```
+
 # Changes
 
 ## Update benchmarkify
@@ -48,6 +84,20 @@ Bench-bot is a benchmark runner. If a new Pull Request opened, bench-bot will ru
 - Timeout handling move from `Transit` to `ServiceBroker`
 - Remove `wrapContentAction`
 - In case of call error, Node will be unavailable, if the error code >= `500`
+
+## Context changes
+- Removed `createSubContext`
+- Removed `ctx.parent` and added `ctx.parentID`
+- Removed options in constructor. New constructor syntax:
+    ```js
+    let ctx = new Context(broker, action);
+    ctx.setParams({ a: 5 });
+    ctx.generateID(); // for metrics
+    ctx.requestID = requestID;
+    ```
+
+
+
 
 
 <a name="0.6.0"></a>

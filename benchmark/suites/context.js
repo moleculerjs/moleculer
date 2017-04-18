@@ -56,11 +56,6 @@ let bench1 = benchmark.createSuite("Context constructor");
 			metrics: true
 		});
 	});
-
-	let ctx = new Context();
-	bench1.add("create subContext", () => {
-		return ctx.createSubContext(action, params);
-	});
 })();
 
 bench1.run();

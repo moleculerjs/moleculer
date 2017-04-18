@@ -53,11 +53,11 @@ class BalancedList {
 	}
 
 	get() {
-		if (this.list.length == 0) {
+		if (this.list.length === 0) {
 			return null;
 		}
 
-		if (this.list.length == 1) {
+		if (this.list.length === 1) {
 			// No need to select a node, return the only one
 			return this.list[0];
 		}
@@ -68,14 +68,14 @@ class BalancedList {
 		}
 
 		// Search local item
-		if (this.opts.preferLocal) {
+		if (this.opts.preferLocal === true) {
 			let item = this.getLocalItem();
-			if (item) {
+			if (item != null) {
 				return item;
 			}
 		}
 
-		if (this.strategy == STRATEGY_RANDOM) {
+		if (this.strategy === STRATEGY_RANDOM) {
 			/* istanbul ignore next */
 			return this.list[random(0, this.list.length - 1)];
 		} else {
@@ -86,7 +86,7 @@ class BalancedList {
 
 	getData() {
 		const item = this.get();
-		return item ? item.data : null;
+		return item != null ? item.data : null;
 	}
 
 	count() {

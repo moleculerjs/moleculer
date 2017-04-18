@@ -20,8 +20,7 @@ const healthInfo = require("./health");
 const JSONSerializer = require("./serializers/json");
 
 //const _ = require("lodash");
-const isFunction = require("lodash/isFunction");
-const defaultsDeep = require("lodash/defaultsDeep");
+const _ = require("lodash");
 const pick = require("lodash/pick");
 const omit = require("lodash/omit");
 const isArray = require("lodash/isArray");
@@ -45,7 +44,7 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	constructor(options) {
-		this.options = defaultsDeep(options, {
+		this.options = _.defaultsDeep(options, {
 			nodeID: null,
 
 			logger: null,
@@ -156,7 +155,7 @@ class ServiceBroker {
 	start() {
 		// Call service `started` handlers
 		this.services.forEach(service => {
-			if (service && service.schema && isFunction(service.schema.started)) {
+			if (service && service.schema && _.isFunction(service.schema.started)) {
 				service.schema.started.call(service);
 			}
 		});
@@ -205,7 +204,7 @@ class ServiceBroker {
 	stop() {
 		// Call service `started` handlers
 		this.services.forEach(service => {
-			if (service && service.schema && isFunction(service.schema.stopped)) {
+			if (service && service.schema && _.isFunction(service.schema.stopped)) {
 				service.schema.stopped.call(service);
 			}
 		});
@@ -294,7 +293,7 @@ class ServiceBroker {
 		let fName = path.resolve(filePath);
 		this.logger.debug(`Load service from '${path.basename(fName)}'...`);
 		let schema = require(fName);
-		if (isFunction(schema)) {
+		if (_.isFunction(schema)) {
 			let svc = schema(this);
 			if (svc instanceof this.ServiceFactory)
 				return svc;
@@ -379,55 +378,6 @@ class ServiceBroker {
 
 		return action;
 	}
-	/*
-	wrapContextInvoke(action, handler) {
-		// Finally logic
-		let after = (ctx, err) => {
-			if (ctx.metrics) {
-				ctx._metricFinish(err);
-
-				if (this.statistics)
-					this.statistics.addRequest(ctx.action.name, ctx.duration, err ? err.code || 500 : null);
-			}
-		};
-
-		// Add the main wrapper
-		action.handler = (ctx) => {
-			// Add metrics start
-			if (ctx.metrics)
-				ctx._metricStart();
-
-			// Call the handler
-			let p = handler(ctx);
-			
-			if (ctx.metrics || this.statistics) {
-				// Add after to metrics & statistics
-				p = p.then(res => {
-					after(ctx, null);
-					return res;
-				});
-			}
-
-			// Handle errors
-			return p.catch(err => {
-				if (!(err instanceof Error)) {
-					err = new E.CustomError(err);
-				}
-
-				// Need it? this.logger.error("Action request error!", err);
-
-				//ctx.error = err;
-				err.ctx = ctx;
-
-				after(ctx, err);
-
-				return Promise.reject(err);
-			});
-		};
-
-		return action;
-	}
-	*/
 
 	/**
 	 * Unregister an action on a local server. 
@@ -616,6 +566,7 @@ class ServiceBroker {
 	 * @param {any} opts		options of call (optional)
 	 * @returns
 	 * 
+	 * @performance-critical
 	 * @memberOf ServiceBroker
 	 */
 	call(actionName, params, opts = {}) {
@@ -624,10 +575,10 @@ class ServiceBroker {
 
 		if (opts.retryCount == null)
 			opts.retryCount = this.options.requestRetry || 0;		
-
+		
 		// Find action by name
 		let actions = this.actions.get(actionName);
-		if (!actions) {
+		if (actions == null) {
 			const errMsg = `Action '${actionName}' is not registered!`;
 			this.logger.warn(errMsg);
 			return Promise.reject(new E.ServiceNotFoundError(errMsg, actionName));
@@ -635,7 +586,7 @@ class ServiceBroker {
 		
 		// Get an action handler item
 		let actionItem = actions.get();
-		if (!actionItem) {
+		if (actionItem == null) {
 			const errMsg = `Not available '${actionName}' action handler!`;
 			this.logger.warn(errMsg);
 			return Promise.reject(new E.ServiceNotFoundError(errMsg, actionName));
@@ -648,33 +599,55 @@ class ServiceBroker {
 		
 		// Create context
 		let ctx;
-		let reusedCtx = false;
-		if (opts.ctx) {
+		if (opts.ctx != null) {
 			// Reused context
 			ctx = opts.ctx; 
 			ctx.nodeID = nodeID;
-			reusedCtx = true;
-		} else if (opts.parentCtx) {
-			// Sub context
-			ctx = opts.parentCtx.createSubContext(action, params, nodeID);
 		} else {
 			// New root context
-			ctx = new this.ContextFactory({ broker: this, action, params, nodeID, requestID: opts.requestID, metrics: this.shouldMetric() });
+			ctx = new this.ContextFactory(this, action);
+			ctx.nodeID = nodeID;
+			ctx.setParams(params);
+
+			if (opts.requestID != null)
+				ctx.requestID = opts.requestID;
+			else if (opts.parentCtx != null && opts.parentCtx.requestID != null)
+				ctx.requestID = opts.parentCtx.requestID;
+
+			if (opts.parentCtx != null && opts.parentCtx.meta != null)
+				ctx.meta = _.assign({}, opts.parentCtx.meta, opts.meta);
+			else if (opts.meta != null)
+				ctx.meta = opts.meta;
+
+			ctx.timeout = opts.timeout;
+			ctx.retryCount = opts.retryCount;
+
+			ctx.metrics = this.shouldMetric();
+
+			if (ctx.metrics === true || isRemoteCall === true) {
+				ctx.generateID();
+
+				if (opts.parentCtx != null) {
+					ctx.parentID = opts.parentCtx.id;
+					ctx.level = opts.parentCtx.level + 1;
+				}
+
+			}
 		}
 
 		// Add metrics start
-		if (/*!reusedCtx && */ctx.metrics)
+		if (ctx.metrics === true)
 			ctx._metricStart();
 
 		// Call handler or transfer request
 		let p;
-		if (!isRemoteCall) {
+		if (isRemoteCall === false) {
 			p = action.handler(ctx);
 		} else {
-			p = this.transit.request(ctx, opts);
+			p = this.transit.request(ctx);
 		}
 
-		if (ctx.metrics || this.statistics) {
+		if (ctx.metrics === true || this.statistics === true) {
 			// Add metrics & statistics
 			p = p.then(res => {
 				this._finishCall(ctx, null);
@@ -683,8 +656,8 @@ class ServiceBroker {
 		}
 
 		// Timeout handler
-		if (opts.timeout > 0)
-			p = p.timeout(opts.timeout);
+		if (ctx.timeout > 0)
+			p = p.timeout(ctx.timeout);
 
 		// Error handler
 		return p.catch(err => this._callErrorHandler(err, ctx, opts));
@@ -709,9 +682,9 @@ class ServiceBroker {
 
 		if (err instanceof E.RequestTimeoutError) {
 			// Retry request
-			if (opts.retryCount-- > 0) {
+			if (ctx.retryCount-- > 0) {
 				this.logger.warn(`Action '${actionName}' call timed out on '${nodeID}'!`);
-				this.logger.warn(`Recall '${actionName}' action (retry: ${opts.retryCount + 1})...`);
+				this.logger.warn(`Recall '${actionName}' action (retry: ${ctx.retryCount + 1})...`);
 
 				opts.ctx = ctx; // Reuse this context
 				return this.call(actionName, ctx.params, opts);
@@ -732,7 +705,7 @@ class ServiceBroker {
 		// Handle fallback response
 		if (opts.fallbackResponse) {
 			this.logger.warn(`Action '${actionName}' returns fallback response!`);
-			if (isFunction(opts.fallbackResponse))
+			if (_.isFunction(opts.fallbackResponse))
 				return opts.fallbackResponse(ctx);
 			else
 				return Promise.resolve(opts.fallbackResponse);

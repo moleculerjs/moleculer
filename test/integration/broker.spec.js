@@ -170,7 +170,7 @@ describe("Test on/once/off event emitter", () => {
 
 describe("Test local call", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ metrics: true });
 
 	let actionHandler = jest.fn(ctx => ctx);
 
@@ -202,20 +202,27 @@ describe("Test local call", () => {
 	});
 
 	it("should create a sub context of parent context", () => {
-		let parentCtx = new Context({
-			params: {
-				a: 5,
-				b: 2
-			}
-		});		
-		let params = { a: 1 };
+		let parentCtx = new Context();
+		parentCtx.params = {
+			a: 5,
+			b: 2
+		};
+		parentCtx.meta = {
+			user: "John",
+			roles: ["user"]
+		};		
 
-		return broker.call("posts.find", params, { parentCtx }).then(ctx => {
+		let params = { a: 1 };
+		let meta = {
+			user: "Jane",
+			roles: ["admin"]
+		};
+
+		return broker.call("posts.find", params, { parentCtx, meta }).then(ctx => {
 			expect(ctx.params).toBe(params);
-			expect(ctx.params.a).toBe(1);
-			expect(ctx.params.b).not.toBeDefined();
+			expect(ctx.meta).toEqual({ user: "Jane", roles: ["admin"] });
 			expect(ctx.level).toBe(2);
-			expect(ctx.parent).toBe(parentCtx);
+			expect(ctx.parentID).toBe(parentCtx.id);
 		});
 
 	});

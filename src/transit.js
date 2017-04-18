@@ -7,7 +7,7 @@
 "use strict";
 
 const Promise					= require("bluebird");
-const { RequestTimeoutError } 	= require("./errors");
+const Context					= require("./context");
 const P 						= require("./packets");
 
 // Prefix for logger
@@ -196,11 +196,21 @@ class Transit {
 	 * 
 	 * @memberOf Transit
 	 */
-	_requestHandler({ sender, action, id, params }) {
-		this.logger.info(`Request '${action}' from '${sender}'. Params:`, params);
-		return this.broker.call(action, params, {}) // empty {} opts to avoid deoptimizing
-			.then(res => this.sendResponse(sender, id,  res, null))
-			.catch(err => this.sendResponse(sender, id, null, err));
+	_requestHandler(payload) {
+		this.logger.info(`Request '${payload.action}' from '${payload.sender}'. Params:`, payload.params);
+		const ctx = new Context({			
+			broker: this.broker,
+			id: payload.id,
+			parent: {
+				id: payload.parentID,
+			},
+			level: payload.level + 1,
+			metrics: payload.metrics,
+			meta: payload.meta
+		});
+		return this.broker.call(payload.action, payload.params, { parentCtx: ctx })
+			.then(res => this.sendResponse(payload.sender, payload.id,  res, null))
+			.catch(err => this.sendResponse(payload.sender, payload.id, null, err));
 	}
 
 	/**
@@ -240,36 +250,33 @@ class Transit {
 	 * what will be resolved when the response received.
 	 * 
 	 * @param {Context} ctx			Context of request
-	 * @param {any} opts			Options of request
 	 * @returns	{Promise}
 	 * 
 	 * @memberOf Transit
 	 */
-	request(ctx, opts = {}) {
+	request(ctx) {
 		// Expanded the code that v8 can optimize it.  (TryCatchStatement disable optimizing)
-		return new Promise((resolve, reject) => this._doRequest(ctx, opts, resolve, reject));
+		return new Promise((resolve, reject) => this._doRequest(ctx, resolve, reject));
 	}
 
 	/**
 	 * Do a remote request
 	 * 
 	 * @param {Context} ctx 		Context of request
-	 * @param {any} opts 			Options of request
 	 * @param {Function} resolve 	Resolve of Promise
 	 * @param {Function} reject 	Reject of Promise
 	 * 
 	 * @memberOf Transit
 	 */
-	_doRequest(ctx, opts, resolve, reject) {
+	_doRequest(ctx, resolve, reject) {
 		const request = {
 			nodeID: ctx.nodeID,
 			//ctx,
-			//opts,
 			resolve,
 			reject
 		};
 
-		const packet = new P.PacketRequest(this, ctx.nodeID, ctx.id, ctx.action.name, ctx.params);
+		const packet = new P.PacketRequest(this, ctx.nodeID, ctx);
 
 		// Add to pendings
 		this.pendingRequests.set(ctx.id, request);

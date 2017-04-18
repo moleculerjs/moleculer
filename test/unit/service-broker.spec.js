@@ -445,7 +445,7 @@ describe.skip("Test broker.wrapContextInvoke", () => {
 		broker.wrapContextInvoke(action, origHandler);
 
 		it("should call only origHandler", () => {
-			let ctx = new Context({ broker, action });
+			let ctx = new Context(broker, action);
 			ctx._metricStart = jest.fn();
 			ctx._metricFinish = jest.fn();
 			
@@ -476,7 +476,8 @@ describe.skip("Test broker.wrapContextInvoke", () => {
 		broker.wrapContextInvoke(action, origHandler);
 		
 		it("should call only origHandler", () => {
-			let ctx = new Context({ broker, action, metrics: true });
+			let ctx = new Context(broker, action);
+			ctx.metrics = true;
 			ctx._metricStart = jest.fn();
 			ctx._metricFinish = jest.fn();
 
@@ -509,7 +510,8 @@ describe.skip("Test broker.wrapContextInvoke", () => {
 		broker.wrapContextInvoke(action, origHandler);
 		
 		it("should call metrics & statistics methods & origHandler", () => {
-			let ctx = new Context({ broker, action, metrics: true });
+			let ctx = new Context(broker, action);
+			ctx.metrics = true;
 			ctx._metricStart = jest.fn();
 			ctx._metricFinish = jest.fn();
 
@@ -542,7 +544,7 @@ describe.skip("Test broker.wrapContextInvoke", () => {
 		broker.wrapContextInvoke(action, origHandler);
 		
 		it("should convert error message to CustomError", () => {
-			let ctx = new Context({ broker, action });
+			let ctx = new Context(broker, action);
 
 			return action.handler(ctx).catch(err => {
 				expect(err).toBeInstanceOf(CustomError);
@@ -778,8 +780,7 @@ describe("Test broker.call method", () => {
 				expect(ctx.broker).toBe(broker);
 				expect(ctx.nodeID).toBeUndefined();
 				expect(ctx.level).toBe(1);
-				expect(ctx.parent).toBeUndefined();
-				expect(ctx.requestID).toBeUndefined();
+				expect(ctx.requestID).toBeNull();
 				expect(ctx.action.name).toBe("posts.find");
 				expect(ctx.params).toEqual({});
 				expect(ctx.metrics).toBe(true);
@@ -805,11 +806,12 @@ describe("Test broker.call method", () => {
 		it("should call handler with new Context with requestID", () => {
 			actionHandler.mockClear();
 			let params = { limit: 5, search: "John" };
-			let opts = { requestID: "123" };
+			let opts = { requestID: "123", meta: { a: 5 } };
 			return broker.call("posts.find", params, opts).then(ctx => {
 				expect(ctx).toBeDefined();
 				expect(ctx.action.name).toBe("posts.find");
 				expect(ctx.requestID).toBe("123"); // need enabled `metrics`
+				expect(ctx.meta).toEqual({ a: 5 });
 
 				expect(actionHandler).toHaveBeenCalledTimes(1);
 				expect(actionHandler).toHaveBeenCalledWith(ctx);
@@ -818,16 +820,22 @@ describe("Test broker.call method", () => {
 
 		it("should call handler with a sub Context", () => {
 			actionHandler.mockClear();
-			let parentCtx = new Context({ broker, params: { a: 5 }, requestID: "555", metrics: true });
-			return broker.call("posts.find", { b: 10 }, { parentCtx }).then(ctx => {
+			let parentCtx = new Context(broker);
+			parentCtx.params = { a: 5 }; 
+			parentCtx.requestID = "555"; 
+			parentCtx.meta = { a: 123 }; 
+			parentCtx.metrics = true;
+
+			return broker.call("posts.find", { b: 10 }, { parentCtx, meta: { b: "Adam" } }).then(ctx => {
 				expect(ctx).toBeDefined();
 				expect(ctx.broker).toBe(broker);
 				expect(ctx.nodeID).toBeUndefined();
 				expect(ctx.level).toBe(2);
-				expect(ctx.parent).toBe(parentCtx);
+				expect(ctx.parentID).toBe(parentCtx.id);
 				expect(ctx.requestID).toBe("555");
 				expect(ctx.action.name).toBe("posts.find");
 				expect(ctx.params).toEqual({ b: 10 });
+				expect(ctx.meta).toEqual({ a: 123, b: "Adam" });
 				expect(ctx.metrics).toBe(true);
 
 				expect(actionHandler).toHaveBeenCalledTimes(1);
@@ -837,7 +845,12 @@ describe("Test broker.call method", () => {
 
 		it("should call handler with a reused Context", () => {
 			actionHandler.mockClear();
-			let preCtx = new Context({ broker, action: { name: "posts.find" }, params: { a: 5 }, requestID: "555", metrics: true });
+			let preCtx = new Context(broker, { name: "posts.find" });
+			preCtx.params = { a: 5 }; 
+			preCtx.requestID = "555"; 
+			preCtx.meta = { a: 123 }; 
+			preCtx.metrics = true;
+
 			preCtx._metricStart = jest.fn();
 			preCtx._metricFinish = jest.fn();
 						
@@ -846,10 +859,11 @@ describe("Test broker.call method", () => {
 				expect(ctx.broker).toBe(broker);
 				expect(ctx.nodeID).toBeUndefined();
 				expect(ctx.level).toBe(1);
-				expect(ctx.parent).toBeUndefined;
+				expect(ctx.parentID).toBeNull();
 				expect(ctx.requestID).toBe("555");
 				expect(ctx.action.name).toBe("posts.find");
 				expect(ctx.params).toEqual({ a: 5 }); // params from reused context
+				expect(ctx.meta).toEqual({ a: 123 });
 				expect(ctx.metrics).toBe(true);
 
 				expect(actionHandler).toHaveBeenCalledTimes(1);
@@ -872,39 +886,40 @@ describe("Test broker.call method", () => {
 			metrics: true
 		});
 		broker.registerAction({	name: "user.create" }, "server-2");
-		broker.transit.request = jest.fn((ctx, opts) => Promise.resolve({ ctx, opts }));
+		broker.transit.request = jest.fn((ctx) => Promise.resolve({ ctx }));
 			
 		it("should call transit.request with new Context without params", () => {
-			return broker.call("user.create").then(({ ctx, opts}) => {
+			return broker.call("user.create").then(({ ctx }) => {
 				expect(ctx).toBeDefined();
 				expect(ctx.broker).toBe(broker);
 				expect(ctx.nodeID).toBe("server-2");
 				expect(ctx.level).toBe(1);
-				expect(ctx.parent).toBeUndefined();
-				expect(ctx.requestID).toBeUndefined();
+				expect(ctx.requestID).toBeNull();
 				expect(ctx.action.name).toBe("user.create");
 				expect(ctx.params).toEqual({});
 				expect(ctx.metrics).toBe(true);
 				
-				expect(opts).toEqual({"retryCount": 0, "timeout": 0});
+				expect(ctx.timeout).toBe(0);
+				expect(ctx.retryCount).toBe(0);
 
 				expect(broker.transit.request).toHaveBeenCalledTimes(1);
-				expect(broker.transit.request).toHaveBeenCalledWith(ctx, opts);
+				expect(broker.transit.request).toHaveBeenCalledWith(ctx);
 			});
 		});
 		
 		it("should call transit.request with new Context with params & opts", () => {
 			broker.transit.request.mockClear();
 			let params = { limit: 5, search: "John" };
-			return broker.call("user.create", params, { timeout: 1000 }).then(({ ctx, opts}) => {
+			return broker.call("user.create", params, { timeout: 1000 }).then(({ ctx }) => {
 				expect(ctx).toBeDefined();
 				expect(ctx.action.name).toBe("user.create");
 				expect(ctx.params).toEqual(params);
 
-				expect(opts).toEqual({"retryCount": 0, "timeout": 1000});
+				expect(ctx.timeout).toBe(1000);
+				expect(ctx.retryCount).toBe(0);
 
 				expect(broker.transit.request).toHaveBeenCalledTimes(1);
-				expect(broker.transit.request).toHaveBeenCalledWith(ctx, opts);
+				expect(broker.transit.request).toHaveBeenCalledWith(ctx);
 
 				// expect(ctx._metricStart).toHaveBeenCalledTimes(1);
 				// expect(ctx._metricFinish).toHaveBeenCalledTimes(1);				
@@ -921,9 +936,12 @@ describe("Test broker._callErrorHandler", () => {
 	broker.call = jest.fn(() => Promise.resolve());
 	let transit = broker.transit;
 	
-	let ctx = new Context({ broker, nodeID: "server-2", action: { name: "user.create" }, metrics: true});
+	let ctx = new Context(broker, { name: "user.create" });
+	ctx.nodeID = "server-2";
+	ctx.metrics = true;
+
 	let customErr = new CustomError("Error", 400);
-	let timeoutErr = new RequestTimeoutError({ action: "user.create" }, "server-2");
+	let timeoutErr = new RequestTimeoutError("user.create", "server-2");
 	ctx._metricFinish = jest.fn();
 	transit.removePendingRequest = jest.fn();
 
@@ -974,12 +992,14 @@ describe("Test broker._callErrorHandler", () => {
 	it("should retry call if retryCount > 0", () => {
 		ctx._metricFinish.mockClear();
 		broker.nodeUnavailable.mockClear();
+		ctx.retryCount = 2;
 
-		return broker._callErrorHandler(timeoutErr, ctx, { retryCount: 1}).then(() => {
+		return broker._callErrorHandler(timeoutErr, ctx, {}).then(() => {
 			expect(broker.call).toHaveBeenCalledTimes(1);
-			expect(broker.call).toHaveBeenCalledWith("user.create", {}, { retryCount: 0, ctx });
+			expect(broker.call).toHaveBeenCalledWith("user.create", {}, { ctx });
 			expect(broker.nodeUnavailable).toHaveBeenCalledTimes(0);
 
+			expect(ctx.retryCount).toBe(1);
 			expect(ctx._metricFinish).toHaveBeenCalledTimes(0);
 		});
 	});
@@ -1024,7 +1044,9 @@ describe("Test broker._finishCall", () => {
 
 	describe("metrics enabled", () => {
 		let broker = new ServiceBroker({ metrics: true });
-		let ctx = new Context({ broker, nodeID: "server-2", action: { name: "user.create" }, metrics: true});
+		let ctx = new Context(broker, { name: "user.create" });
+		ctx.nodeID = "server-2";
+		ctx.metrics = true;
 		ctx._metricFinish = jest.fn();
 
 		it("should call ctx._metricFinish", () => {
@@ -1047,7 +1069,9 @@ describe("Test broker._finishCall", () => {
 	describe("metrics & statistics enabled", () => {
 		let broker = new ServiceBroker({ metrics: true, statistics: true });
 		broker.statistics.addRequest = jest.fn();
-		let ctx = new Context({ broker, nodeID: "server-2", action: { name: "user.create" }, metrics: true});
+		let ctx = new Context(broker, { name: "user.create" });
+		ctx.nodeID = "server-2";
+		ctx.metrics = true;
 		ctx._metricFinish = jest.fn();
 
 		it("should call ctx._metricFinish", () => {

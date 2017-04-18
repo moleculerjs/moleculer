@@ -23,26 +23,35 @@ class Context {
 	 * 
 	 * @memberOf Context
 	 */
-	constructor(opts = {}) {
+	/*constructor(opts = {}) {
 		this.opts = opts;
 		this.broker = opts.broker;
 		this.action = opts.action;
 		this.nodeID = opts.nodeID;
-		this.user = opts.user;
-		this.parent = opts.parent;
+		this.parentID = opts.parent ? opts.parent.id : null;
 
-		this.metrics = opts.metrics || false;
-		this.level = opts.parent && opts.parent.level ? opts.parent.level + 1 : 1;
+		this.metrics = !!opts.metrics;
+		this.level = opts.level || (opts.parent && opts.parent.level ? opts.parent.level + 1 : 1);
 
 		this.setParams(opts.params);
 
+		this.timeout = opts.timeout || 0;
+		this.retryCount = opts.retryCount || 0;
+
+		if (opts.parent && opts.parent.meta) {
+			// Merge metadata
+			this.meta = _.assign({}, opts.parent.meta, opts.meta);
+		} else {
+			this.meta = opts.meta || {};
+		}
+
 		// Generate ID for context
 		if (this.nodeID || opts.metrics)
-			this.id = utils.generateToken();
+			this.id = opts.id || utils.generateToken();
 
 		// Initialize metrics properties
 		if (this.metrics) {
-			this.requestID = opts.requestID;
+			this.requestID = opts.requestID || (opts.parent && opts.parent.requestID ? opts.parent.requestID : undefined);
 
 			this.startTime = null;
 			this.startHrTime = null;
@@ -53,41 +62,48 @@ class Context {
 		//this.error = null;
 		this.cachedResult = false;
 	}
+	*/
 
-	/**
-	 * Create a sub-context from this context
-	 * 
-	 * @param {any} action
-	 * @param {any} params
-	 * @returns
-	 * 
-	 * @memberOf Context
-	 */
-	createSubContext(action, params, nodeID) {
-		let ContextClass = this.broker ? this.broker.ContextFactory : Context;
-		let ctx = new ContextClass({
-			parent: this,
-			requestID: this.requestID,
-			broker: this.broker,
-			action: action || this.action,
-			nodeID,
-			user: this.user,
-			metrics: this.metrics,
-			params
-		});
+	constructor(broker, action) {
+		this.id = null;
+		this.broker = broker;
+		this.action = action;
+		this.nodeID = null;
+		this.parentID = null;
 
-		return ctx;
+		this.metrics = false;
+		this.level = 1;
+
+		this.timeout = 0;
+		this.retryCount = 0;
+
+		this.params = {};
+		this.meta = {};
+		
+		this.requestID = null;
+		this.startTime = null;
+		this.startHrTime = null;
+		this.stopTime = null;
+		this.duration = 0;
+
+		//this.error = null;
+		this.cachedResult = false;	
+	}
+
+	generateID() {
+		this.id = utils.generateToken();
 	}
 
 	/**
 	 * Set params of context
 	 * 
 	 * @param {any} newParams
+	 * @param {Boolean} cloning
 	 * 
 	 * @memberOf Context
 	 */
-	setParams(newParams) {
-		if (this.opts.cloneParams && newParams)
+	setParams(newParams, cloning = false) {
+		if (cloning && newParams)
 			this.params = Object.assign({}, newParams);
 		else
 			this.params = newParams || {};
@@ -142,8 +158,8 @@ class Context {
 				name: this.action.name
 			};
 		}
-		if (this.parent)
-			payload.parent = this.parent.id;
+		if (this.parentID)
+			payload.parent = this.parentID;
 		
 		this.broker.emit("metrics.trace.span.start", payload);
 
@@ -174,8 +190,8 @@ class Context {
 				name: this.action.name
 			};
 		}			
-		if (this.parent) 
-			payload.parent = this.parent.id;
+		if (this.parentID) 
+			payload.parent = this.parentID;
 		
 		if (error) {
 			payload.error = {
