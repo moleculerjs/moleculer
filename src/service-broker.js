@@ -610,8 +610,11 @@ class ServiceBroker {
 			ctx.broker = this;
 			ctx.action = action;
 			ctx.nodeID = nodeID;
+			ctx.setParams(opts.params);
+
 			if (opts.requestID != null)
 				ctx.requestID = opts.requestID;
+
 			if (opts.meta != null)
 				ctx.meta = opts.meta;
 
@@ -620,7 +623,7 @@ class ServiceBroker {
 
 			ctx.metrics = this.shouldMetric();
 
-			if (ctx.metrics === true) {
+			if (ctx.metrics === true || isRemoteCall === true) {
 				ctx.generateID();
 
 				if (opts.parentCtx != null) {

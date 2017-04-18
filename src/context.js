@@ -78,6 +78,7 @@ class Context {
 		this.timeout = 0;
 		this.retryCount = 0;
 
+		this.params = {};
 		this.meta = {};
 		
 		this.requestID = null;
@@ -98,11 +99,12 @@ class Context {
 	 * Set params of context
 	 * 
 	 * @param {any} newParams
+	 * @param {Boolean} cloning
 	 * 
 	 * @memberOf Context
 	 */
-	setParams(newParams) {
-		if (this.opts.cloneParams && newParams)
+	setParams(newParams, cloning = false) {
+		if (cloning && newParams)
 			this.params = Object.assign({}, newParams);
 		else
 			this.params = newParams || {};
