@@ -95,7 +95,11 @@ Bench-bot is a benchmark runner. If a new Pull Request opened, bench-bot will ru
     ctx.generateID(); // for metrics
     ctx.requestID = requestID;
     ```
-
+- Add Context reference to returned Promise
+    ```js
+    const p = broker.call("user.create");
+    console.log("Context:", p.ctx);
+    ```
 
 
 
