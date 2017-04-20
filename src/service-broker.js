@@ -660,7 +660,12 @@ class ServiceBroker {
 			p = p.timeout(ctx.timeout);
 
 		// Error handler
-		return p.catch(err => this._callErrorHandler(err, ctx, opts));
+		p = p.catch(err => this._callErrorHandler(err, ctx, opts));
+
+		// Pointer to Context
+		p.ctx = ctx;
+
+		return p;
 	}
 
 	_callErrorHandler(err, ctx, opts) {

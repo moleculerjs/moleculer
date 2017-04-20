@@ -43,7 +43,7 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch sandbox",
-			"program": "${workspaceRoot}\\examples\\sandbox\\transit.js",
+			"program": "${workspaceRoot}\\examples\\sandbox\\call.js",
 			"cwd": "${workspaceRoot}\\examples\\sandbox"
 		},		
 		{

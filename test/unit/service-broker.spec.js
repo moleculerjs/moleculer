@@ -775,7 +775,8 @@ describe("Test broker.call method", () => {
 		});
 
 		it("should call handler with new Context without params", () => {
-			return broker.call("posts.find").then(ctx => {
+			let p = broker.call("posts.find");
+			return p.then(ctx => {
 				expect(ctx).toBeDefined();
 				expect(ctx.broker).toBe(broker);
 				expect(ctx.nodeID).toBeUndefined();
@@ -784,6 +785,8 @@ describe("Test broker.call method", () => {
 				expect(ctx.action.name).toBe("posts.find");
 				expect(ctx.params).toEqual({});
 				expect(ctx.metrics).toBe(true);
+
+				expect(p.ctx).toBe(ctx);
 
 				expect(actionHandler).toHaveBeenCalledTimes(1);
 				expect(actionHandler).toHaveBeenCalledWith(ctx);
