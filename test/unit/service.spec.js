@@ -116,10 +116,10 @@ describe("Test events creation", () => {
 		expect(broker.on).toHaveBeenCalledWith("posts.updated", jasmine.any(Function));
 
 		let data = { id: 5 };
-		handlers["user.*"].call({ event: "user.created"}, data);
+		handlers["user.*"].call({ event: "user.created"}, data, "node-2");
 
 		expect(schema.events["user.*"]).toHaveBeenCalledTimes(1);
-		expect(schema.events["user.*"]).toHaveBeenCalledWith(data, "user.created");
+		expect(schema.events["user.*"]).toHaveBeenCalledWith(data, "node-2", "user.created");
 		
 	});
 

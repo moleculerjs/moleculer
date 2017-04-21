@@ -33,7 +33,7 @@ describe("Test Service handlers", () => {
 	it("should called event handler", () => {
 		broker.emit("user.created", { id: 1, name: "John" });
 		expect(eventHandler).toHaveBeenCalledTimes(1);
-		expect(eventHandler).toHaveBeenCalledWith({ id: 1, name: "John" }, "user.created");
+		expect(eventHandler).toHaveBeenCalledWith({ id: 1, name: "John" }, undefined, "user.created");
 	});		
 
 	it("should called created handler", () => {

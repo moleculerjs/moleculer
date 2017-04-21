@@ -38,10 +38,19 @@ b1.loadService(__dirname + "/../metrics.service");
 
 b1.start();
 
+b1.createService({
+	name: "nothing",
+	events: {
+		TEST2(a, sender) {
+			console.log(`TEST2 event received from '${sender}':`, a);			
+		}
+	}
+});
+/*
 b1.on("TEST2", (a, sender) => {
 	console.log(`TEST2 event received from '${sender}':`, a);
 });
-
+*/
 
 
 // --- NODE 2 ---

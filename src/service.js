@@ -102,8 +102,8 @@ class Service {
 				}
 
 				const self = this;
-				const handler = function(payload) {
-					return event.handler.apply(self, [payload, this.event]);
+				const handler = function(payload, sender) {
+					return event.handler.apply(self, [payload, sender, this.event]);
 				};
 
 				broker.on(name, handler);
