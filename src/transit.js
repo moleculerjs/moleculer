@@ -198,6 +198,8 @@ class Transit {
 	 */
 	_requestHandler(payload) {
 		this.logger.info(`Request '${payload.action}' from '${payload.sender}'. Params:`, payload.params);
+		
+		// Recreate caller context
 		const ctx = new Context(this.broker);
 		ctx.action = {
 			name: payload.action

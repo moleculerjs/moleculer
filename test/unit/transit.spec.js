@@ -176,11 +176,21 @@ describe("Test Transit.messageHandler", () => {
 			let response = [1, 5, 8];
 			broker.call = jest.fn(() => Promise.resolve(response));
 
-			let msg = { sender: "remote", action: "posts.find", id: "123", params: JSON.stringify({ limit: 5 }), meta: "{}" };
+			let msg = { sender: "remote", action: "posts.find", id: "123", params: JSON.stringify({ limit: 5 }), meta: JSON.stringify({ b: 100 }), parentID: "555", level: 5, metrics: true };
 			return transit.messageHandler("REQ", JSON.stringify(msg)).then(() => {
 				expect(broker.call).toHaveBeenCalledTimes(1);
-				expect(broker.call).toHaveBeenCalledWith(msg.action, { limit: 5 }, { parentCtx: jasmine.any(Context) });
-				// TODO: check context props
+				expect(broker.call).toHaveBeenCalledWith(msg.action, { limit: 5 }, { ctx: jasmine.any(Context) });
+
+				// Check context props
+				const ctx = broker.call.mock.calls[0][2].ctx;
+				expect(ctx).toBeInstanceOf(Context);
+				expect(ctx.id).toBe("123");
+				expect(ctx.parentID).toBe("555");
+				expect(ctx.action.name).toBe("posts.find");
+				expect(ctx.params).toEqual({ limit: 5 });
+				expect(ctx.meta).toEqual({ b: 100 });
+				expect(ctx.metrics).toBe(true);
+				expect(ctx.level).toBe(5);
 
 				expect(transit.sendResponse).toHaveBeenCalledTimes(1);
 				expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", [1, 5, 8], null);
@@ -196,8 +206,14 @@ describe("Test Transit.messageHandler", () => {
 			let msg = { sender: "remote", action: "posts.create", id: "123", params: JSON.stringify({ title: "Hello" }), meta: "{}" };
 			return transit.messageHandler("REQ", JSON.stringify(msg)).then(() => {
 				expect(broker.call).toHaveBeenCalledTimes(1);
-				expect(broker.call).toHaveBeenCalledWith(msg.action, { title: "Hello" }, { parentCtx: jasmine.any(Context) });
-				// TODO: check context props
+				expect(broker.call).toHaveBeenCalledWith(msg.action, { title: "Hello" }, { ctx: jasmine.any(Context) });
+				
+				// Check context props
+				const ctx = broker.call.mock.calls[0][2].ctx;
+				expect(ctx).toBeInstanceOf(Context);
+				expect(ctx.id).toBe("123");
+				expect(ctx.params).toEqual({"title": "Hello"});
+				expect(ctx.meta).toEqual({});
 
 				expect(transit.sendResponse).toHaveBeenCalledTimes(1);
 				expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", null, jasmine.any(ValidationError));

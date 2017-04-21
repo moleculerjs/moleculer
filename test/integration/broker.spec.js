@@ -196,8 +196,7 @@ describe("Test local call", () => {
 	it("should set params to context", () => {
 		let params = { a: 1 };
 		return broker.call("posts.find", params).then(ctx => {
-			expect(ctx.params).toBe(params);
-			expect(ctx.params.a).toBe(params.a);
+			expect(ctx.params).toEqual({ a: 1});
 		});
 	});
 
@@ -217,6 +216,7 @@ describe("Test local call", () => {
 			user: "Jane",
 			roles: ["admin"]
 		};
+		parentCtx.metrics = true;
 
 		return broker.call("posts.find", params, { parentCtx, meta }).then(ctx => {
 			expect(ctx.params).toBe(params);
