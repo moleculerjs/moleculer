@@ -663,7 +663,7 @@ class ServiceBroker {
 
 		// Call handler or transfer request
 		let p;
-		if (isRemoteCall === false) {
+		if (!isRemoteCall) {
 			// Add metrics start
 			if (ctx.metrics === true)
 				ctx._metricStart();
