@@ -38,8 +38,8 @@ b1.loadService(__dirname + "/../metrics.service");
 
 b1.start();
 
-b1.on("TEST2", a => {
-	console.log("TEST2 event received:", a);
+b1.on("TEST2", (a, sender) => {
+	console.log(`TEST2 event received from '${sender}':`, a);
 });
 
 

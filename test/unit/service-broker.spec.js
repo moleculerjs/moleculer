@@ -1222,7 +1222,7 @@ describe("Test broker.emitLocal", () => {
 		broker.emit("test.event");
 		
 		expect(broker.bus.emit).toHaveBeenCalledTimes(1);
-		expect(broker.bus.emit).toHaveBeenCalledWith("test.event", undefined);
+		expect(broker.bus.emit).toHaveBeenCalledWith("test.event", undefined, undefined);
 	});
 
 	it("should call bus.emit with object payload", () => {
@@ -1230,7 +1230,7 @@ describe("Test broker.emitLocal", () => {
 		broker.emit("user.event", { name: "John" });
 		
 		expect(broker.bus.emit).toHaveBeenCalledTimes(1);
-		expect(broker.bus.emit).toHaveBeenCalledWith("user.event", { name: "John" });
+		expect(broker.bus.emit).toHaveBeenCalledWith("user.event", { name: "John" }, undefined);
 	});
 });
 

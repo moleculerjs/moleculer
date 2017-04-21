@@ -164,7 +164,7 @@ describe("Test Transit.messageHandler", () => {
 		transit.messageHandler("EVENT", JSON.stringify(msg));
 
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith(msg.event, "John Doe");
+		expect(broker.emitLocal).toHaveBeenCalledWith(msg.event, "John Doe", "remote");
 	});
 
 	describe("Test 'REQ'", () => {

@@ -158,7 +158,7 @@ class Transit {
 		// Event
 		else if (cmd === P.PACKET_EVENT) {
 			//this.logger.debug("Event received", payload);
-			this.broker.emitLocal(payload.event, payload.data);				
+			this.broker.emitLocal(payload.event, payload.data, payload.sender);				
 			return;
 		}
 

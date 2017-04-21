@@ -137,11 +137,11 @@ describe("Test on/once/off event emitter", () => {
 		let p = { a: 5 };
 		broker.emitLocal("test.event", p);
 		expect(handler).toHaveBeenCalledTimes(1);
-		expect(handler).toHaveBeenCalledWith(p);
+		expect(handler).toHaveBeenCalledWith(p, undefined);
 
 		broker.emitLocal("test.event.demo", "data");
 		expect(handler).toHaveBeenCalledTimes(2);
-		expect(handler).toHaveBeenCalledWith("data");
+		expect(handler).toHaveBeenCalledWith("data", undefined);
 	});
 
 	it("unregister event handler", () => {
