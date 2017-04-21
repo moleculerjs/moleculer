@@ -1,5 +1,5 @@
-<a name="0.x.0"></a>
-# 0.x.0 (2017-xx-xx)
+<a name="0.7.0"></a>
+# 0.7.0 (2017-xx-xx)
 
 # New
 ## Serializers for transporters [#10](https://github.com/ice-services/moleculer/issues/10/)
@@ -104,7 +104,7 @@ Bench-bot is a benchmark runner. If a new Pull Request opened, bench-bot will ru
 
 ## Sender in event handlers
 If an event triggered remotely on an other node, broker passes the nodeID of server to the event handler as 2nd parameter.
-```
+```js
 // Usage in subscription
 broker.on("**", (payload, sender) => console.log(`Event from ${sender || "local"}:`, payload));
 
