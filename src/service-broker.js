@@ -531,6 +531,22 @@ class ServiceBroker {
 	}	
 
 	/**
+	 * Get an action by name
+	 * 
+	 * @param {any} actionName
+	 * @returns {Object}
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	getAction(actionName) {
+		const action = this.actions.get(actionName);
+		if (action) {
+			return action.get();
+		}
+		return null;
+	}	
+
+	/**
 	 * Check has available action handler
 	 * 
 	 * @param {any} actionName
@@ -576,20 +592,26 @@ class ServiceBroker {
 		if (opts.retryCount == null)
 			opts.retryCount = this.options.requestRetry || 0;		
 		
-		// Find action by name
-		let actions = this.actions.get(actionName);
-		if (actions == null) {
-			const errMsg = `Action '${actionName}' is not registered!`;
-			this.logger.warn(errMsg);
-			return Promise.reject(new E.ServiceNotFoundError(errMsg, actionName));
-		}
-		
-		// Get an action handler item
-		let actionItem = actions.get();
-		if (actionItem == null) {
-			const errMsg = `Not available '${actionName}' action handler!`;
-			this.logger.warn(errMsg);
-			return Promise.reject(new E.ServiceNotFoundError(errMsg, actionName));
+		let actionItem;
+		if (typeof actionName !== "string") {
+			actionItem = actionName;
+			actionName = actionItem.data.name;
+		} else {
+			// Find action by name
+			let actions = this.actions.get(actionName);
+			if (actions == null) {
+				const errMsg = `Action '${actionName}' is not registered!`;
+				this.logger.warn(errMsg);
+				return Promise.reject(new E.ServiceNotFoundError(errMsg, actionName));
+			}
+			
+			// Get an action handler item
+			actionItem = actions.get();
+			if (actionItem == null) {
+				const errMsg = `Not available '${actionName}' action handler!`;
+				this.logger.warn(errMsg);
+				return Promise.reject(new E.ServiceNotFoundError(errMsg, actionName));
+			}
 		}
 
 		// Expose action info

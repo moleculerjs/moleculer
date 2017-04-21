@@ -695,6 +695,32 @@ describe("Test broker.hasAction", () => {
 	});
 });
 
+describe("Test broker.getAction", () => {
+	let broker = new ServiceBroker();
+	const list = {
+		custom: "hello",
+		cache: true,
+		handler: jest.fn()
+	};
+	broker.createService({
+		name: "posts",
+		actions: {
+			list
+		}
+	});
+
+	it("should find the action by name", () => {
+		const action = broker.getAction("posts.list").data;
+		expect(action.custom).toBe("hello");
+		expect(action.cache).toBe(true);
+		expect(action.handler).toBeInstanceOf(Function);
+	});
+
+	it("should not find the action by name", () => {
+		expect(broker.getAction("posts.create")).toBe(null);
+	});
+});
+
 describe("Test broker.isActionAvailable", () => {
 	let broker = new ServiceBroker();
 	broker.createService({
@@ -876,6 +902,20 @@ describe("Test broker.call method", () => {
 				expect(preCtx._metricFinish).toHaveBeenCalledTimes(1);				
 			});
 		});
+
+		it("should call if actionName is an object", () => {
+			actionHandler.mockClear();
+			let params = { search: "John" };
+			let actionItem = broker.getAction("posts.find");
+			return broker.call(actionItem, params).then(ctx => {
+				expect(ctx).toBeDefined();
+				expect(ctx.action.name).toBe("posts.find");
+				expect(ctx.params).toEqual(params);
+
+				expect(actionHandler).toHaveBeenCalledTimes(1);
+				expect(actionHandler).toHaveBeenCalledWith(ctx);
+			});
+		});		
 
 	});
 
