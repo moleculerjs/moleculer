@@ -4,6 +4,7 @@ let { delay } = require("../../src/utils");
 
 let ServiceBroker = require("../../src/service-broker");
 let FakeTransporter = require("../../src/transporters/fake");
+let Serializer = require("../../src/serializers/protobuf");
 // let NatsTransporter = require("../../src/transporters/nats");
 // let MqttTransporter = require("../../src/transporters/mqtt");
 // let RedisTransporter = require("../../src/transporters/redis");
@@ -19,6 +20,7 @@ let b1 = new ServiceBroker({
 	//transporter: new MqttTransporter(),
 	//transporter: new RedisTransporter(),
 	//transporter: new FakeTransporter(),
+	serializer: new Serializer(),
 	logger: console,
 	//logLevel: "debug",
 	logLevel: {
@@ -51,6 +53,7 @@ let b2 = new ServiceBroker({
 	//transporter: new MqttTransporter(),
 	//transporter: new RedisTransporter("redis://127.0.0.1"),
 	//transporter: new FakeTransporter(),
+	serializer: new Serializer(),
 	logger: console,
 	logLevel: "warn",
 	metrics: false,
@@ -88,11 +91,10 @@ Promise.resolve()
 });
 */
 
-/*
+
 .then(() => {
 	let c = 1;
 	setInterval(() => {
 		b2.emit("TEST2", { a: c++ });
 	}, 5 * 1000);
 });
-*/

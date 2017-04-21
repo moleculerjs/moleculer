@@ -1,0 +1,54 @@
+// packets.proto
+package packets;
+syntax = "proto3";
+
+message PacketEvent {
+	required string sender 	= 1;
+	required string event 	= 2;
+	required string data 	= 3;
+}
+
+message PacketRequest {
+	required string sender 		= 1;
+	required string id 			= 2;
+	required string action 		= 3;
+	required string params 		= 4;
+	required string meta 		= 5;
+	required int32 timeout 		= 6;
+	required int32 level 		= 7;
+	required bool metrics 		= 8;
+	optional string parentID 	= 9;
+}
+
+message PacketResponse {
+	required string sender 		= 1;
+	required string id 			= 2;
+	required bool success 		= 3;
+	required string data 		= 4;
+	optional Error error 		= 5;
+
+	message Error {
+		required string name 		= 1;
+		required string message 	= 2;
+		required int32 code 		= 3;
+		required string data 		= 4;
+	}
+}
+
+message PacketDiscover {
+	required string sender 		= 1;
+	required string actions		= 2;
+}
+
+message PacketInfo {
+	required string sender 		= 1;
+	required string actions		= 2;
+}
+
+message PacketDisconnect {
+	required string sender 		= 1;
+}
+
+message PacketHeartbeat {
+	required string sender 		= 1;
+}
