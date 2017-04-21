@@ -34,7 +34,7 @@ schemas[P.PACKET_REQUEST] = avro.Type.forSchema({
 		{ name: "timeout", type: "int" },
 		{ name: "level", type: "int" },
 		{ name: "metrics", type: "boolean" },
-		{ name: "parentID", type: "string" }
+		{ name: "parentID", type: [ "null", "string"], default: null }
 	]
 });
 

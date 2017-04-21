@@ -2,6 +2,7 @@
 
 const ServiceBroker = require("../../src/service-broker");
 const FakeTransporter = require("../../src/transporters/fake");
+const Context = require("../../src/context");
 const Serializers = require("../../src/serializers");
 const P = require("../../src/packets");
 
@@ -34,36 +35,50 @@ function runTest(dataName) {
 	let bench1 = benchmark.createSuite(`Serialize event packet with ${dataName}bytes`);
 
 	bench1.ref("JSON", () => {
-		return new P.PacketEvent(brokerJSON.transit, "user.created", payload);
+		const packet = new P.PacketEvent(brokerJSON.transit, "user.created", payload);
+		return packet.serialize();
 	});
 
 	bench1.add("Avro", () => {
-		return new P.PacketEvent(brokerAvro.transit, "user.created", payload);
+		const packet = new P.PacketEvent(brokerAvro.transit, "user.created", payload);
+		return packet.serialize();
 	});
 	
 	bench1.add("MsgPack", () => {
-		return new P.PacketEvent(brokerMsgPack.transit, "user.created", payload);
+		const packet = new P.PacketEvent(brokerMsgPack.transit, "user.created", payload);
+		return packet.serialize();
 	});
 
 	let bench2 = benchmark.createSuite(`Serialize request packet with ${dataName}bytes`);
 
+	const ctx = new Context();
+	ctx.id = "dcfef88f-7dbe-4eed-87f1-aba340279f4f";
+	ctx.action = {
+		name: "posts.update"
+	};
+	ctx.nodeID = "node-2-12345";
+	ctx.params = payload;
+
 	bench2.ref("JSON", () => {
-		return new P.PacketRequest(brokerJSON.transit, "node-2-12345", "dcfef88f-7dbe-4eed-87f1-aba340279f4f", "post.update", payload);
+		const packet = new P.PacketRequest(brokerJSON.transit, "node-2-12345", ctx);
+		return packet.serialize();
 	});
 
 	bench2.add("Avro", () => {
-		return new P.PacketRequest(brokerAvro.transit, "node-2-12345", "dcfef88f-7dbe-4eed-87f1-aba340279f4f", "post.update", payload);
+		const packet = new P.PacketRequest(brokerAvro.transit, "node-2-12345", ctx);
+		return packet.serialize();
 	});
 	
 	bench2.add("MsgPack", () => {
-		return new P.PacketRequest(brokerMsgPack.transit, "node-2-12345", "dcfef88f-7dbe-4eed-87f1-aba340279f4f", "post.update", payload);
+		const packet = new P.PacketRequest(brokerMsgPack.transit, "node-2-12345", ctx);
+		return packet.serialize();
 	});
 
-	bench1.run()
+	return bench1.run()
 		.then(() => bench2.run())
 		.then(() => {
 			if (dataFiles.length > 0)
-				runTest(dataFiles.shift());
+				return runTest(dataFiles.shift());
 		});
 	
 }
