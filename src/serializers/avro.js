@@ -52,7 +52,8 @@ schemas[P.PACKET_RESPONSE] = avro.Type.forSchema({
 				{ name: "name", type: "string" },
 				{ name: "message", type: "string" },
 				{ name: "code", type: "int" },
-				{ name: "data", type: "string" }
+				{ name: "data", type: "string" },
+				{ name: "nodeID", type: "string" }
 			]
 		} ], default: null }
 	]

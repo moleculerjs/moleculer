@@ -1,3 +1,4 @@
+/* istanbul ignore next */
 /*eslint-disable block-scoped-var, no-redeclare, no-control-regex, no-prototype-builtins*/
 "use strict";
 
@@ -577,7 +578,7 @@ $root.packets = (function() {
 		 * @property {string} sender PacketResponse sender.
 		 * @property {string} id PacketResponse id.
 		 * @property {boolean} success PacketResponse success.
-		 * @property {string} data PacketResponse data.
+		 * @property {string} [data] PacketResponse data.
 		 * @property {packets.PacketResponse.Error$Properties} [error] PacketResponse error.
 		 */
 
@@ -645,7 +646,8 @@ $root.packets = (function() {
 			writer.uint32(/* id 1, wireType 2 =*/10).string(message.sender);
 			writer.uint32(/* id 2, wireType 2 =*/18).string(message.id);
 			writer.uint32(/* id 3, wireType 0 =*/24).bool(message.success);
-			writer.uint32(/* id 4, wireType 2 =*/34).string(message.data);
+			if (message.data != null && message.hasOwnProperty("data"))
+				writer.uint32(/* id 4, wireType 2 =*/34).string(message.data);
 			if (message.error != null && message.hasOwnProperty("error"))
 				$root.packets.PacketResponse.Error.encode(message.error, writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
 			return writer;
@@ -702,8 +704,6 @@ $root.packets = (function() {
 				throw $util.ProtocolError("missing required 'id'", { instance: message });
 			if (!message.hasOwnProperty("success"))
 				throw $util.ProtocolError("missing required 'success'", { instance: message });
-			if (!message.hasOwnProperty("data"))
-				throw $util.ProtocolError("missing required 'data'", { instance: message });
 			return message;
 		};
 
@@ -734,8 +734,9 @@ $root.packets = (function() {
 				return "id: string expected";
 			if (typeof message.success !== "boolean")
 				return "success: boolean expected";
-			if (!$util.isString(message.data))
-				return "data: string expected";
+			if (message.data != null && message.hasOwnProperty("data"))
+				if (!$util.isString(message.data))
+					return "data: string expected";
 			if (message.error != null && message.hasOwnProperty("error")) {
 				let error = $root.packets.PacketResponse.Error.verify(message.error);
 				if (error)
@@ -835,6 +836,7 @@ $root.packets = (function() {
 			 * @property {string} message Error message.
 			 * @property {number} code Error code.
 			 * @property {string} data Error data.
+			 * @property {string} nodeID Error nodeID.
 			 */
 
 			/**
@@ -875,6 +877,12 @@ $root.packets = (function() {
 			Error.prototype.data = "";
 
 			/**
+			 * Error nodeID.
+			 * @type {string}
+			 */
+			Error.prototype.nodeID = "";
+
+			/**
 			 * Creates a new Error instance using the specified properties.
 			 * @param {packets.PacketResponse.Error$Properties=} [properties] Properties to set
 			 * @returns {packets.PacketResponse.Error} Error instance
@@ -896,6 +904,7 @@ $root.packets = (function() {
 				writer.uint32(/* id 2, wireType 2 =*/18).string(message.message);
 				writer.uint32(/* id 3, wireType 0 =*/24).int32(message.code);
 				writer.uint32(/* id 4, wireType 2 =*/34).string(message.data);
+				writer.uint32(/* id 5, wireType 2 =*/42).string(message.nodeID);
 				return writer;
 			};
 
@@ -936,6 +945,9 @@ $root.packets = (function() {
 					case 4:
 						message.data = reader.string();
 						break;
+					case 5:
+						message.nodeID = reader.string();
+						break;
 					default:
 						reader.skipType(tag & 7);
 						break;
@@ -949,6 +961,8 @@ $root.packets = (function() {
 					throw $util.ProtocolError("missing required 'code'", { instance: message });
 				if (!message.hasOwnProperty("data"))
 					throw $util.ProtocolError("missing required 'data'", { instance: message });
+				if (!message.hasOwnProperty("nodeID"))
+					throw $util.ProtocolError("missing required 'nodeID'", { instance: message });
 				return message;
 			};
 
@@ -981,6 +995,8 @@ $root.packets = (function() {
 					return "code: integer expected";
 				if (!$util.isString(message.data))
 					return "data: string expected";
+				if (!$util.isString(message.nodeID))
+					return "nodeID: string expected";
 				return null;
 			};
 
@@ -1001,6 +1017,8 @@ $root.packets = (function() {
 					message.code = object.code | 0;
 				if (object.data != null)
 					message.data = String(object.data);
+				if (object.nodeID != null)
+					message.nodeID = String(object.nodeID);
 				return message;
 			};
 
@@ -1028,6 +1046,7 @@ $root.packets = (function() {
 					object.message = "";
 					object.code = 0;
 					object.data = "";
+					object.nodeID = "";
 				}
 				if (message.name != null && message.hasOwnProperty("name"))
 					object.name = message.name;
@@ -1037,6 +1056,8 @@ $root.packets = (function() {
 					object.code = message.code;
 				if (message.data != null && message.hasOwnProperty("data"))
 					object.data = message.data;
+				if (message.nodeID != null && message.hasOwnProperty("nodeID"))
+					object.nodeID = message.nodeID;
 				return object;
 			};
 

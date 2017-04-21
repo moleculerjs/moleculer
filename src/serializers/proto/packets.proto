@@ -24,7 +24,7 @@ message PacketResponse {
 	required string sender 		= 1;
 	required string id 			= 2;
 	required bool success 		= 3;
-	required string data 		= 4;
+	optional string data 		= 4;
 	optional Error error 		= 5;
 
 	message Error {
@@ -32,6 +32,7 @@ message PacketResponse {
 		required string message 	= 2;
 		required int32 code 		= 3;
 		required string data 		= 4;
+		required string nodeID 		= 5;
 	}
 }
 

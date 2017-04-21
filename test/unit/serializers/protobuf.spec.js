@@ -1,10 +1,9 @@
 const ServiceBroker = require("../../../src/service-broker");
-const AvroSerializer = require("../../../src/serializers/avro");
+const ProtoBufSerializer = require("../../../src/serializers/protobuf");
 
-
-describe("Test AvroSerializer constructor", () => {
+describe("Test ProtoBufSerializer constructor", () => {
 	it("should create an empty options", () => {
-		let serializer = new AvroSerializer();
+		let serializer = new ProtoBufSerializer();
 		expect(serializer).toBeDefined();
 		expect(serializer.serialize).toBeDefined();
 		expect(serializer.deserialize).toBeDefined();
