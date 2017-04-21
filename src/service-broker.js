@@ -603,6 +603,7 @@ class ServiceBroker {
 			// Reused context
 			ctx = opts.ctx; 
 			ctx.nodeID = nodeID;
+			ctx.action = action;
 		} else {
 			// New root context
 			ctx = new this.ContextFactory(this, action);
@@ -622,7 +623,10 @@ class ServiceBroker {
 			ctx.timeout = opts.timeout;
 			ctx.retryCount = opts.retryCount;
 
-			ctx.metrics = this.shouldMetric();
+			if (opts.parentCtx != null)
+				ctx.metrics = opts.parentCtx.metrics;
+			else
+				ctx.metrics = this.shouldMetric();
 
 			if (ctx.metrics === true || isRemoteCall === true) {
 				ctx.generateID();
@@ -635,24 +639,24 @@ class ServiceBroker {
 			}
 		}
 
-		// Add metrics start
-		if (ctx.metrics === true)
-			ctx._metricStart();
-
 		// Call handler or transfer request
 		let p;
 		if (isRemoteCall === false) {
+			// Add metrics start
+			if (ctx.metrics === true)
+				ctx._metricStart();
+
 			p = action.handler(ctx);
+
+			if (ctx.metrics === true || this.statistics === true) {
+				// Add metrics & statistics
+				p = p.then(res => {
+					this._finishCall(ctx, null);
+					return res;
+				});
+			}
 		} else {
 			p = this.transit.request(ctx);
-		}
-
-		if (ctx.metrics === true || this.statistics === true) {
-			// Add metrics & statistics
-			p = p.then(res => {
-				this._finishCall(ctx, null);
-				return res;
-			});
 		}
 
 		// Timeout handler

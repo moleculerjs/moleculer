@@ -2,7 +2,7 @@
 
 ## v0.7.x
 - [ ] Dynamic & reduced request timeout. Reduce the original time in subcalls.
-- [ ] official API gateway service (Native, Express, [Aero](https://github.com/aerojs/aero), [uWebsocket HTTP](https://github.com/uWebSockets/uWebSockets/blob/master/nodejs/http_sillybenchmark.js), [benchmark](https://github.com/blitzprog/webserver-benchmarks))
+- [ ] official API gateway service (Native, Express, [Aero](https://github.com/aerojs/aero), [uWebsocket HTTP](https://github.com/uWebSockets/bindings/blob/master/nodejs/examples/http_sillybenchmark.js), [benchmark](https://github.com/blitzprog/webserver-benchmarks))
 
 - [x] metricsRate: doesn't measure every request
 - [ ] add nodeID to EVENT package and it will be the 3rd param in event handlers
