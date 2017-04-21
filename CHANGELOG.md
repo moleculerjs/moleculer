@@ -40,10 +40,11 @@ let broker = new ServiceBroker({
 
 ## Context meta data ([#16](https://github.com/ice-services/moleculer/pull/16))
 Added `meta` prop to `Context`. The `meta` will be merged if has parent context.
-In case of remote call the metadata will be transfered to target service.
+In case of remote calls the metadata will be transfered to the target service.
 
 **Usage**
-Set meta in `broker.call`
+
+Set meta in `broker.call`:
 ```js
 // Broker call with meta data
 broker.call("user.create", { name: "Adam", status: true}, {
@@ -58,7 +59,7 @@ broker.call("user.create", { name: "Adam", status: true}, {
 })
 ```
 
-Access meta in action
+Access meta in action:
 ```js
 broker.createService({
     name: "user",
@@ -84,7 +85,7 @@ Bench-bot is a benchmark runner. If a new Pull Request opened, bench-bot will ru
 - Can be use timeout & fallback response in local calls.
 - Timeout handling move from `Transit` to `ServiceBroker`
 - Remove `wrapContentAction`
-- In case of call error, Node will be unavailable, if the error code >= `500`
+- In case of calling error, Node will be unavailable only if the error code >= `500`
 
 ## Context changes
 - Removed `createSubContext`
@@ -103,7 +104,7 @@ Bench-bot is a benchmark runner. If a new Pull Request opened, bench-bot will ru
     ```
 
 ## Sender in event handlers
-If an event triggered remotely on an other node, broker passes the nodeID of server to the event handler as 2nd parameter.
+If an event triggered remotely on an other node, broker passes the nodeID of sender to the event handler as 2nd parameter.
 ```js
 // Usage in subscription
 broker.on("**", (payload, sender) => console.log(`Event from ${sender || "local"}:`, payload));
