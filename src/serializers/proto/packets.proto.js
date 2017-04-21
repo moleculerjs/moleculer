@@ -1,4 +1,3 @@
-/* istanbul ignore next */
 /*eslint-disable block-scoped-var, no-redeclare, no-control-regex, no-prototype-builtins*/
 "use strict";
 
@@ -10,6 +9,7 @@ let $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.ut
 // Exported root namespace
 let $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
 
+/* istanbul ignore next */
 $root.packets = (function() {
 
 	/**
