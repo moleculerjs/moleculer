@@ -21,11 +21,22 @@ declare class Context {
 	broker: ServiceBroker;
 	action: Action;
 	nodeID?: String;
-	parent?: Context;
+	parentID?: String;
+
 	metrics: Boolean;
 	level?: Number;
-	requestID?: String;		
 
+	timeout: Number;
+	retryCount: Number;
+
+	params: Object;
+	meta: Object;
+
+	requestID?: String;
+	duration: Number;
+
+	generateID();
+	setParams(newParams: Object, cloning?: boolean);
 	call(actionName: String, params?: Object, opts?: Object): Promise<any>;
 	emit(eventName: string, data: any);
 }
@@ -80,11 +91,13 @@ declare class ServiceBroker {
 	loadServices(folder?: String, fileMask?: String): Number;
 	loadService(filePath: String): Service;
 	createService(schema: Object): Service;
+
 	on(name: String, handler: Function);
 	once(name: String, handler: Function);
 	off(name: String, handler: Function);
 
 	hasAction(actionName: String): Boolean;
+	getAction(actionName: String): Action;
 	isActionAvailable(actionName: String): Boolean;
 
 	use(...mws: Array<Function>);
@@ -100,6 +113,7 @@ declare class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	call(actionName: String, params?: Object, opts?: Object): Promise<any>;
+
 	emit(eventName: String, payload?: any);
 	emitLocal(eventName: String, payload?: any);
 }
@@ -160,7 +174,8 @@ export = {
 	},
 	Serializers: {
 		JSON: Serializer,
-		Avro: Serializer
+		Avro: Serializer,
+		MsgPack: Serializer
 	},
 
 	Validator: Validator,
