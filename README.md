@@ -1170,7 +1170,7 @@ let broker = new ServiceBroker({
 ```
 
 ## MsgPack serializer
-This is an [MsgPack](https://github.com/mcollina/msgpack5) serializer.
+This is a [MsgPack](https://github.com/mcollina/msgpack5) serializer.
 
 ```js
 let MsgPackSerializer = require("moleculer").Serializers.MsgPack;
@@ -1178,6 +1178,18 @@ let MsgPackSerializer = require("moleculer").Serializers.MsgPack;
 let broker = new ServiceBroker({
     ...
     serializer: new MsgPackSerializer()
+});
+```
+
+## ProtoBuf serializer
+This is a [Protocol Buffer](https://developers.google.com/protocol-buffers/) serializer.
+
+```js
+let ProtoBufSerializer = require("moleculer").Serializers.ProtoBuf;
+
+let broker = new ServiceBroker({
+    ...
+    serializer: new ProtoBufSerializer()
 });
 ```
 
