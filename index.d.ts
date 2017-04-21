@@ -175,7 +175,8 @@ export = {
 	Serializers: {
 		JSON: Serializer,
 		Avro: Serializer,
-		MsgPack: Serializer
+		MsgPack: Serializer,
+		ProtoBuf: Serializer
 	},
 
 	Validator: Validator,

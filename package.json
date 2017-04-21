@@ -15,15 +15,16 @@
     "update-deps": "next-update -k false --tldr",
     "coverall": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "changelog": "conventional-changelog -i CHANGELOG.md -s",
-    "changelog:full": "conventional-changelog -i CHANGELOG.md -s -r 0"
+    "changelog:full": "conventional-changelog -i CHANGELOG.md -s -r 0",
+    "proto": "pbjs -t static-module -w commonjs -o src/serializers/proto/packets.proto.js src/serializers/proto/packets.proto"
   },
   "keywords": [
     "microservices",
+    "microservice",
     "moleculer",
     "service",
     "services",
     "micro",
-    "microservice",
     "micro-services",
     "micro services",
     "worker",
@@ -50,6 +51,7 @@
     "jest": "19.0.2",
     "lolex": "1.6.0",
     "next-update": "1.5.1",
+    "nodemon": "1.11.0",
     "socket.io": "1.7.3",
     "v8-natives": "1.0.0"
   },
@@ -75,7 +77,8 @@
     "mqtt": "2.6.2",
     "msgpack5": "3.4.1",
     "nats": "0.7.16",
-    "node-object-hash": "1.2.0"
+    "node-object-hash": "1.2.0",
+    "protobufjs": "6.7.3"
   },
   "engines": {
     "node": ">= 6.x.x"

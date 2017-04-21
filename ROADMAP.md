@@ -20,6 +20,7 @@
 	- [x] JSON parse/stringify
 	- [x] [Avro](https://github.com/mtth/avsc)
     - [x] [MsgPack](https://github.com/mcollina/msgpack5)
+	- [x] [ProtoBuf](https://developers.google.com/protocol-buffers/)	
 
 ## v0.8.x
 - [ ] direct remote call to a specified node (for monitoring every node)
