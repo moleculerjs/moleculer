@@ -216,7 +216,7 @@ describe("Test Avro serializer", () => {
 	it("should serialize the request packet", () => {
 		const packet = new P.PacketRequest(broker.transit, "test-2", ctx);
 		const s = packet.serialize();
-		expect(s.length).toBe(75);
+		expect(s.length).toBe(76);
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_REQUEST, s);
 		expect(res).toBeInstanceOf(P.PacketRequest);

@@ -59,6 +59,10 @@ function runTest(dataName) {
 	ctx.nodeID = "node-2-12345";
 	ctx.params = payload;
 
+	console.log("JSON length:", (new P.PacketRequest(brokerJSON.transit, "node-2-12345", ctx)).serialize().length);
+	console.log("Avro length:", (new P.PacketRequest(brokerAvro.transit, "node-2-12345", ctx)).serialize().length);
+	console.log("MsgPack length:", (new P.PacketRequest(brokerMsgPack.transit, "node-2-12345", ctx)).serialize().length);
+
 	bench2.ref("JSON", () => {
 		const packet = new P.PacketRequest(brokerJSON.transit, "node-2-12345", ctx);
 		return packet.serialize();
