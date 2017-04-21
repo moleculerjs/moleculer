@@ -300,7 +300,7 @@ broker.on("user.created", user => console.log("User created:", user));
 broker.on("user.*", user => console.log("User event:", user));
 
 // Subscribe to all events
-broker.on("**", payload => console.log("Event:", payload));    
+broker.on("**", (payload, sender) => console.log(`Event from ${sender || "local"}:`, payload));
 ```
 
 To unsubscribe call the `off` method.
@@ -532,8 +532,9 @@ You can subscribe to events and can define event handlers in the schema under `e
         },
 
         // Subscribe to all "user.*" event
-        "user.*": function(payload, eventName) {
-            // Do something with payload. The `eventName` contains the original event name. E.g. `user.modified`
+        "user.*": function(payload, sender, eventName) {
+            // Do something with payload. The `eventName` contains the original event name. E.g. `user.modified`.
+            // The `sender` is the nodeID of sender if the event came from remote node. If the event is local, it'll be `undefined`
         }
     }
 

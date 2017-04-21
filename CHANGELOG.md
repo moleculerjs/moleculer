@@ -102,7 +102,22 @@ Bench-bot is a benchmark runner. If a new Pull Request opened, bench-bot will ru
     console.log("Context:", p.ctx);
     ```
 
+## Sender in event handlers
+If an event triggered remotely on an other node, broker passes the nodeID of server to the event handler as 2nd parameter.
+```
+// Usage in subscription
+broker.on("**", (payload, sender) => console.log(`Event from ${sender || "local"}:`, payload));
 
+// Usage in Service schema
+broker.createService({
+	...
+	events: {
+		something(payload, sender) {
+			console.log(`Something happened on '${sender}':`, payload);			
+		}
+	}
+});
+```
 
 
 <a name="0.6.0"></a>

@@ -51,6 +51,7 @@ b1.on("TEST2", (a, sender) => {
 	console.log(`TEST2 event received from '${sender}':`, a);
 });
 */
+//b1.on("**", (payload, sender) => console.log(`Event from ${sender || "local"}:`, payload));
 
 
 // --- NODE 2 ---
