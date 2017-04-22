@@ -39,6 +39,17 @@ describe("Test Errors", () => {
 		//expect(err.data).toBe(data);
 	});
 
+	it("test RequestSkippedError", () => {
+		let err = new errors.RequestSkippedError("posts.find");
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(Error);
+		expect(err.code).toBe(514);
+		expect(err.name).toBe("RequestSkippedError");
+		expect(err.message).toBe("Action 'posts.find' call is skipped because timeout reached!");
+		//expect(err.nodeID).toBe("server-2");
+		//expect(err.data).toBe(data);
+	});
+
 	it("test ValidationError", () => {
 		let data = {};
 		let err = new errors.ValidationError("Param is not correct!", data);
