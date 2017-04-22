@@ -40,7 +40,7 @@ module.exports = function() {
 				this.logger.info(["┌", r("─", w-2), "┐"].join(""));
 
 				let printSpanTime = (span) => {
-					let time = span.duration.toFixed(2);
+					let time = span.duration == null ? "?" : span.duration.toFixed(2);
 
 					let maxActionName = maxTitle - (span.level-1) * 2 - time.length - 3 - (span.fromCache ? 2 : 0) - (span.remoteCall ? 2 : 0) - (span.error ? 2 : 0);
 					let actionName = span.action ? span.action.name : "";
@@ -59,7 +59,7 @@ module.exports = function() {
 					].join("");
 
 					if (span.startTime == null || span.endTime == null) {
-						this.logger.info(strAction + "! Missing invoke !");
+						this.logger.info("│ " + strAction + "! Missing timings!" + " │");
 						return;
 					}
 

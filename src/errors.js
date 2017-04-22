@@ -31,7 +31,7 @@ class ServiceNotFoundError extends ExtendableError {
 }
 
 /**
- * 'Service not found' Error message
+ * 'Request timed out' Error message
  * 
  * @class RequestTimeoutError
  * @extends {Error}
@@ -49,6 +49,28 @@ class RequestTimeoutError extends ExtendableError {
 		super(`Request timed out when call '${action}' action on '${nodeID}' node!`);
 		this.code = 504;
 		this.nodeID = nodeID;
+		this.action = action;
+		//this.data = data;
+	}
+}
+/**
+ * 'Request skipped for timeout' Error message
+ * 
+ * @class RequestTimeoutError
+ * @extends {Error}
+ */
+class RequestSkippedError extends ExtendableError {
+	/**
+	 * Creates an instance of RequestSkippedError.
+	 * 
+	 * @param {String} action
+	 * 
+	 * @memberOf RequestSkippedError
+	 */
+	constructor(action) {
+		super(`Action '${action}' call is skipped because timeout reached!`);
+		this.code = 514;
+		//this.nodeID = nodeID;
 		this.action = action;
 		//this.data = data;
 	}
@@ -101,5 +123,6 @@ module.exports = {
 	CustomError,
 	ServiceNotFoundError,
 	ValidationError,
-	RequestTimeoutError
+	RequestTimeoutError,
+	RequestSkippedError
 };

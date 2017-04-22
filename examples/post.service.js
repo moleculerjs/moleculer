@@ -65,9 +65,23 @@ module.exports = function() {
 
 			count(ctx) {
 				//throw new CustomError("Hibás adatok!", 410, ctx.params);
+				this.logger.info("count called");
 				let count = posts.filter(post => post.author == ctx.params.id).length;
 				//return Promise.delay(1500).then(() => count);
 				return count;
+			},
+
+			slowGet(ctx) {
+				return Promise.delay(2000).then(() => {
+					this.logger.info("slowGet called");
+					let post = _.cloneDeep(posts.find(post => post.id == ctx.params.id));
+					return ctx.call("v2.users.slowGet", { id: post.author, withPostCount: true }).then(user => {
+						post.author = _.pick(user, ["userName", "email", "id", "firstName", "lastName", "postsCount"]);
+						return post;
+					});
+				}).catch(err => {
+					this.logger.error(err);
+				});
 			}
 		}
 	};
