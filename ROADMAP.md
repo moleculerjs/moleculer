@@ -1,7 +1,7 @@
 # Roadmap
 
 ## v0.7.x
-- [ ] [Distributed request timeout](https://www.datawire.io/guide/traffic/deadlines-distributed-timeouts-microservices/). Reduce the original timeout value in every calls.
+- [x] [Distributed request timeout](https://www.datawire.io/guide/traffic/deadlines-distributed-timeouts-microservices/). Reduce the original timeout value in every calls.
 - [ ] official API gateway service (Native, Express, [Aero](https://github.com/aerojs/aero), [uWebsocket HTTP](https://github.com/uWebSockets/bindings/blob/master/nodejs/examples/http_sillybenchmark.js), [benchmark](https://github.com/blitzprog/webserver-benchmarks))
 
 - [x] metricsRate: doesn't measure every request
