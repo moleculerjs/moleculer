@@ -66,13 +66,13 @@ Platform info:
    Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
 
 Suite: Middleware test
-√ Without middlewares x 519,015 ops/sec ±0.46% (85 runs sampled)
-√ With 1 middlewares x 493,663 ops/sec ±0.32% (88 runs sampled)
-√ With 10 middlewares x 518,211 ops/sec ±0.34% (89 runs sampled)
+√ Without middlewares*        1,368,899 rps
+√ With 1 middlewares*         1,007,793 rps
+√ With 10 middlewares*        1,343,916 rps
 
-   Without middlewares     0.00%    (519,015 ops/sec)
-   With 1 middlewares     -4.88%    (493,663 ops/sec)
-   With 10 middlewares    -0.15%    (518,211 ops/sec)
+   Without middlewares* (#)       0%      (1,368,899 rps)   (avg: 730ns)
+   With 1 middlewares*       -26.38%      (1,007,793 rps)   (avg: 992ns)
+   With 10 middlewares*       -1.83%      (1,343,916 rps)   (avg: 744ns)
 -----------------------------------------------------------------------
 
 

@@ -64,13 +64,13 @@ Platform info:
    Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
 
 Suite: Set & get 1k data with cacher
-√ Memory x 31,168,462 ops/sec ±0.30% (94 runs sampled)
-√ MemoryMap x 10,502,479 ops/sec ±1.19% (94 runs sampled)
-√ Redis x 7,568 ops/sec ±1.52% (83 runs sampled)
+√ Memory*           2,409,090 rps
+√ MemoryMap         9,968,747 rps
+√ Redis*               10,992 rps
 
-   Memory        0.00%   (31,168,462 ops/sec)
-   MemoryMap   -66.30%   (10,502,479 ops/sec)
-   Redis       -99.98%      (7,568 ops/sec)
+   Memory*         -75.83%      (2,409,090 rps)   (avg: 415ns)
+   MemoryMap            0%      (9,968,747 rps)   (avg: 100ns)
+   Redis*          -99.89%         (10,992 rps)   (avg: 90μs)
 -----------------------------------------------------------------------
 
 */

@@ -141,37 +141,35 @@ Platform info:
    Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
 
 Suite: Local call
-√ broker.call (normal) x 856,356 ops/sec ±0.33% (86 runs sampled)
-√ broker.call (with params) x 816,742 ops/sec ±1.36% (85 runs sampled)
+√ broker.call (normal)*             1,244,250 rps
+√ broker.call (with params)*        1,220,171 rps
 
-   broker.call (normal)          0.00%    (856,356 ops/sec)
-   broker.call (with params)    -4.63%    (816,742 ops/sec)
+   broker.call (normal)* (#)            0%      (1,244,250 rps)   (avg: 803ns)
+   broker.call (with params)*       -1.94%      (1,220,171 rps)   (avg: 819ns)
 -----------------------------------------------------------------------
 
 Suite: Call with middlewares
-√ No middlewares x 803,110 ops/sec ±1.02% (84 runs sampled)
-√ 5 middlewares x 808,488 ops/sec ±1.03% (88 runs sampled)
+√ No middlewares*        1,123,681 rps
+√ 5 middlewares*         1,159,550 rps
 
-   No middlewares    -0.67%    (803,110 ops/sec)
-   5 middlewares      0.00%    (808,488 ops/sec)
+   No middlewares* (#)       0%      (1,123,681 rps)   (avg: 889ns)
+   5 middlewares*        +3.19%      (1,159,550 rps)   (avg: 862ns)
 -----------------------------------------------------------------------
 
 Suite: Call with statistics & metrics
-√ No statistics x 812,022 ops/sec ±0.77% (87 runs sampled)
-√ With metrics x 199,014 ops/sec ±1.49% (85 runs sampled)
-√ With statistics x 522,074 ops/sec ±1.06% (88 runs sampled)
-√ With metrics & statistics x 191,070 ops/sec ±1.45% (77 runs sampled)
+√ No statistics*                    1,184,427 rps
+√ With metrics*                       305,400 rps
+√ With metrics & statistics*          280,921 rps
 
-   No statistics                 0.00%    (812,022 ops/sec)
-   With metrics                -75.49%    (199,014 ops/sec)
-   With statistics             -35.71%    (522,074 ops/sec)
-   With metrics & statistics   -76.47%    (191,070 ops/sec)
+   No statistics* (#)                   0%      (1,184,427 rps)   (avg: 844ns)
+   With metrics*                   -74.22%        (305,400 rps)   (avg: 3μs)
+   With metrics & statistics*      -76.28%        (280,921 rps)   (avg: 3μs)
 -----------------------------------------------------------------------
 
 Suite: Remote call with FakeTransporter
-√ Remote call echo.reply x 45,211 ops/sec ±1.00% (79 runs sampled)
+√ Remote call echo.reply*           70,667 rps
 
-   Remote call echo.reply     0.00%     (45,211 ops/sec)
+   Remote call echo.reply*           0%         (70,667 rps)   (avg: 14μs)
 -----------------------------------------------------------------------
 
 */
