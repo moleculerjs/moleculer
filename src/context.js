@@ -8,6 +8,7 @@
 
 //const Promise = require("bluebird");
 const utils = require("./utils");
+const { RequestSkippedError } = require("./errors");
 
 /**
  * Context class for action calls
@@ -121,6 +122,19 @@ class Context {
 	 */
 	call(actionName, params, opts = {}) {
 		opts.parentCtx = this;
+		if (this.timeout > 0) {
+			// Distributed timeout handling. Decrementing the timeout value with the elapsed time.
+			// If the timeout below 0, skip the call.
+			const diff = process.hrtime(this.startHrTime);
+			const duration = (diff[0] * 1e3) + (diff[1] / 1e6);
+			const distTimeout = this.timeout - duration;
+
+			if (distTimeout <= 0) {
+				return Promise.reject(new RequestSkippedError(actionName));
+			}
+			opts.timeout = distTimeout;
+			//console.warn(`Decrement timeout: ${opts.timeout.toFixed(0)} for action '${actionName}'`);
+		}
 		return this.broker.call(actionName, params, opts);
 	}	
 

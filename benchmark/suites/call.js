@@ -137,13 +137,6 @@ let bench5 = benchmark.createSuite("Call with statistics & metrics");
 })();
 
 (function() {
-	let broker = createBroker({ statistics: true });
-	bench5.add("With statistics", done => {
-		return broker.call("users.empty").then(done);
-	});
-})();
-
-(function() {
 	let broker = createBroker({ metrics: true, statistics: true });
 	bench5.add("With metrics & statistics", done => {
 		return broker.call("users.empty").then(done);
@@ -166,53 +159,53 @@ Platform info:
    Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
 
 Suite: Call methods
-√ broker.call (normal) x 818,115 ops/sec ±0.38% (87 runs sampled)
-√ broker.call (with params) x 790,488 ops/sec ±1.35% (86 runs sampled)
+√ broker.call (normal)*             1,239,453 rps
+√ broker.call (with params)*        1,181,153 rps
 
-   broker.call (normal)          0.00%    (818,115 ops/sec)
-   broker.call (with params)    -3.38%    (790,488 ops/sec)
+   broker.call (normal)* (#)            0%      (1,239,453 rps)   (avg: 806ns)
+   broker.call (with params)*        -4.7%      (1,181,153 rps)   (avg: 846ns)
 -----------------------------------------------------------------------
 
 Suite: Call with middlewares
-√ Call without middlewares x 762,770 ops/sec ±1.03% (87 runs sampled)
-√ Call with 1 middleware x 769,515 ops/sec ±0.73% (88 runs sampled)
-√ Call with 5 middlewares x 769,607 ops/sec ±0.96% (87 runs sampled)
+√ Call without middlewares*        1,200,847 rps
+√ Call with 1 middleware*          1,195,808 rps
+√ Call with 5 middlewares*         1,195,328 rps
 
-   Call without middlewares    -0.88%    (762,770 ops/sec)
-   Call with 1 middleware       0.00%    (769,515 ops/sec)
-   Call with 5 middlewares      0.01%    (769,607 ops/sec)
+   Call without middlewares* (#)       0%      (1,200,847 rps)   (avg: 832ns)
+   Call with 1 middleware*         -0.42%      (1,195,808 rps)   (avg: 836ns)
+   Call with 5 middlewares*        -0.46%      (1,195,328 rps)   (avg: 836ns)
 -----------------------------------------------------------------------
 
 Suite: Call with cachers
-√ No cacher x 598,163 ops/sec ±0.86% (85 runs sampled)
-√ Built-in cacher x 64,271 ops/sec ±0.99% (84 runs sampled)
-√ Built-in cacher (keys filter) x 88,719 ops/sec ±0.93% (86 runs sampled)
+√ No cacher*                              984,530 rps
+√ Built-in cacher*                        206,642 rps
+√ Built-in cacher (keys filter)*          367,210 rps
 
-   No cacher                         0.00%    (598,163 ops/sec)
-   Built-in cacher                 -89.26%     (64,271 ops/sec)
-   Built-in cacher (keys filter)   -85.17%     (88,719 ops/sec)
+   No cacher* (#)                           0%        (984,530 rps)   (avg: 1μs)
+   Built-in cacher*                    -79.01%        (206,642 rps)   (avg: 4μs)
+   Built-in cacher (keys filter)*       -62.7%        (367,210 rps)   (avg: 2μs)
 -----------------------------------------------------------------------
 
 Suite: Call with param validator
-√ No validator x 588,463 ops/sec ±1.11% (84 runs sampled)
-√ With validator passes x 541,903 ops/sec ±1.41% (84 runs sampled)
-√ With validator fail x 25,648 ops/sec ±1.62% (85 runs sampled)
+√ No validator*                   975,769 rps
+√ With validator passes*          858,968 rps
+√ With validator fail*             56,250 rps
 
-   No validator              0.00%    (588,463 ops/sec)
-   With validator passes    -7.91%    (541,903 ops/sec)
-   With validator fail     -95.64%     (25,648 ops/sec)
+   No validator* (#)                0%        (975,769 rps)   (avg: 1μs)
+   With validator passes*      -11.97%        (858,968 rps)   (avg: 1μs)
+   With validator fail*        -94.24%         (56,250 rps)   (avg: 17μs)
 -----------------------------------------------------------------------
 
 Suite: Call with statistics & metrics
-√ No statistics x 735,371 ops/sec ±1.16% (88 runs sampled)
-√ With metrics x 180,635 ops/sec ±1.49% (82 runs sampled)
-√ With statistics x 493,453 ops/sec ±1.06% (86 runs sampled)
-√ With metrics & statistics x 178,360 ops/sec ±0.96% (85 runs sampled)
+√ No statistics*                    1,170,614 rps
+√ With metrics*                       337,038 rps
+√ With statistics*                  1,190,222 rps
+√ With metrics & statistics*          306,707 rps
 
-   No statistics                 0.00%    (735,371 ops/sec)
-   With metrics                -75.44%    (180,635 ops/sec)
-   With statistics             -32.90%    (493,453 ops/sec)
-   With metrics & statistics   -75.75%    (178,360 ops/sec)
+   No statistics* (#)                   0%      (1,170,614 rps)   (avg: 854ns)
+   With metrics*                   -71.21%        (337,038 rps)   (avg: 2μs)
+   With statistics*                 +1.68%      (1,190,222 rps)   (avg: 840ns)
+   With metrics & statistics*       -73.8%        (306,707 rps)   (avg: 3μs)
 -----------------------------------------------------------------------
 
 */

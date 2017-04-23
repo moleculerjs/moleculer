@@ -665,10 +665,14 @@ class ServiceBroker {
 		let p;
 		if (!isRemoteCall) {
 			// Add metrics start
-			if (ctx.metrics === true)
+			if (ctx.metrics === true || ctx.timeout > 0)
 				ctx._metricStart();
 
 			p = action.handler(ctx);
+
+			// Timeout handler
+			if (ctx.timeout > 0)
+				p = p.timeout(ctx.timeout);
 
 			if (ctx.metrics === true || this.statistics === true) {
 				// Add metrics & statistics
@@ -679,11 +683,12 @@ class ServiceBroker {
 			}
 		} else {
 			p = this.transit.request(ctx);
+
+			// Timeout handler
+			if (ctx.timeout > 0)
+				p = p.timeout(ctx.timeout);
 		}
 
-		// Timeout handler
-		if (ctx.timeout > 0)
-			p = p.timeout(ctx.timeout);
 
 		// Error handler
 		p = p.catch(err => this._callErrorHandler(err, ctx, opts));
@@ -702,7 +707,7 @@ class ServiceBroker {
 			err = new E.CustomError(err);
 		}
 		if (err instanceof Promise.TimeoutError)
-			err = new E.RequestTimeoutError(actionName, nodeID);
+			err = new E.RequestTimeoutError(actionName, nodeID || this.nodeID);
 
 		err.ctx = ctx;
 
@@ -725,7 +730,7 @@ class ServiceBroker {
 		// Set node status to unavailable
 		if (err.code >= 500) {
 			const affectedNodeID = err.nodeID || nodeID;
-			if (affectedNodeID != this.nodeID)
+			if (affectedNodeID && affectedNodeID != this.nodeID)
 				this.nodeUnavailable(affectedNodeID);
 		}
 

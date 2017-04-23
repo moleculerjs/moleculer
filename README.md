@@ -21,18 +21,19 @@ Moleculer is a fast & powerful microservices framework for NodeJS (>= v6.x).
 
 # What's included
 
-- Promise-based functions
+- Promise-based solution
 - request-reply concept
 - event bus system
 - supports middlewares
 - multiple services on a node/server
 - built-in caching solution (memory, Redis)
-- multiple transporters (NATS, MQTT, Redis)
+- multiple supported transporters (NATS, MQTT, Redis)
+- multiple supported serializers (JSON, Avro, MsgPack, Protocol Buffer)
 - load balanced requests (round-robin, random)
 - every nodes are equal, no master/leader node
 - auto discovery services
 - parameter validation
-- request timeout handling with fallback response
+- distributed timeout handling with fallback response
 - health monitoring & statistics
 - supports versioned services (run different versions of the service)
 
@@ -111,23 +112,21 @@ broker.call("math.add", { a: 3, b: 5})
 ```
 [Try it on Runkit](https://runkit.com/icebob/moleculer-quick-start)
 
-<!--
 # How fast?
 We [tested](https://github.com/icebob/microservices-benchmark) some other frameworks and measured the local request times. The result is:
 ```
 Suite: Call local actions
-√ Seneca x 5,342 ops/sec ±2.64% (72 runs sampled)
-√ Hemera x 1,643 ops/sec ±3.80% (76 runs sampled)
-√ Nanoservices x 31,902 ops/sec ±0.56% (83 runs sampled)
-√ Moleculer x 239,099 ops/sec ±2.69% (81 runs sampled)
+√ Seneca*                 11,723 rps
+√ Hemera*                  4,727 rps
+√ Nanoservices*           71,189 rps
+√ Moleculer*           1,039,045 rps
 
-   Seneca         -97.77%      (5,342 ops/sec)
-   Hemera         -99.31%      (1,643 ops/sec)
-   Nanoservices   -86.66%     (31,902 ops/sec)
-   Moleculer        0.00%    (239,099 ops/sec)
+   Seneca* (#)                0%         (11,723 rps)   (avg: 85μs)
+   Hemera*               -59.68%          (4,727 rps)   (avg: 211μs)
+   Nanoservices*        +507.24%         (71,189 rps)   (avg: 14μs)
+   Moleculer*         +8,763.08%      (1,039,045 rps)   (avg: 962ns)
 ```
-[![Result chart](https://cloud.highcharts.com/images/utideti/800.png)](http://cloud.highcharts.com/show/utideti)
--->
+[![Result chart](https://cloud.highcharts.com/images/utideti/3/600.png)](http://cloud.highcharts.com/show/utideti)
 
 # Main modules
 
@@ -245,8 +244,8 @@ Available options:
 
 | Name | Type | Default | Description |
 | ------- | ----- | ------- | ------- |
-| `timeout` | `Number` | `requestTimeout of broker` | Timeout of request in milliseconds. If the request is timed out and you don't define `fallbackResponse`, broker will throw a `RequestTimeout` error. Disable: 0 |
-| `retryCount` | `Number` | `requestRetry of broker` | Count of retry of request. If the request timed out, broker will try to call again. |
+| `timeout` | `Number` | `requestTimeout` of broker | Timeout of request in milliseconds. If the request is timed out and you don't define `fallbackResponse`, broker will throw a `RequestTimeout` error. Disable: `0` or `null`|
+| `retryCount` | `Number` | `requestRetry` of broker | Count of retry of request. If the request timed out, broker will try to call again. |
 | `fallbackResponse` | `Any` | `null` | Return with it, if the request is timed out. [More info](#request-timeout-fallback-response) |
 
 
@@ -272,6 +271,8 @@ broker.call("posts.update", { id: 2, title: "Modified post title" })
 If you call action with `timeout` and the request is timed out, broker throws a `RequestTimeoutError` error.
 But if you set `fallbackResponse` in calling options, broker won't throw error, instead returns with this given value. It can be an `Object`, `Array`...etc. 
 This can be also a `Function`, which returns a `Promise`. In this case the broker will pass the current `Context` to this function as an argument.
+
+Moleculer uses [distributed timeouts](https://www.datawire.io/guide/traffic/deadlines-distributed-timeouts-microservices/).In the chained calls the timeout value will be decremented with the elapsed time. If the timeout value is less or equal than 0, next calls will be skipped because the first call is rejected any way.
 
 ## Emit events
 Broker has an internal event bus. You can send events locally & globally. The local event will be received only by local services of broker. The global event that will be received by all services on all nodes.

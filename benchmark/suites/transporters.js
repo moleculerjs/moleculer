@@ -2,11 +2,8 @@
 
 //let _ = require("lodash");
 let ServiceBroker = require("../../src/service-broker");
-let Context = require("../../src/context");
 let Transporters = require("../../src/transporters");
 
-let { generateToken, json2String } = require("../../src/utils");
-let Promise	= require("bluebird");
 let { getDataFile } = require("../utils");
 
 let Benchmarkify = require("benchmarkify");
@@ -108,15 +105,15 @@ Platform info:
    Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
 
 Suite: Transport with 10bytes
-√ Fake x 26,667 ops/sec ±2.16% (85 runs sampled)
-√ NATS x 5,011 ops/sec ±1.40% (84 runs sampled)
-√ Redis x 5,001 ops/sec ±1.31% (83 runs sampled)
-√ MQTT x 4,581 ops/sec ±1.12% (87 runs sampled)
+√ Fake*            74,742 rps
+√ NATS*             8,651 rps
+√ Redis*            7,897 rps
+√ MQTT*             7,992 rps
 
-   Fake      0.00%     (26,667 ops/sec)
-   NATS    -81.21%      (5,011 ops/sec)
-   Redis   -81.25%      (5,001 ops/sec)
-   MQTT    -82.82%      (4,581 ops/sec)
--------------------------------------------------------------------------
+   Fake* (#)        0%         (74,742 rps)   (avg: 13μs)
+   NATS*       -88.43%          (8,651 rps)   (avg: 115μs)
+   Redis*      -89.43%          (7,897 rps)   (avg: 126μs)
+   MQTT*       -89.31%          (7,992 rps)   (avg: 125μs)
+-----------------------------------------------------------------------
 
 */

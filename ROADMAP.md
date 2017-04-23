@@ -1,7 +1,7 @@
 # Roadmap
 
 ## v0.7.x
-- [ ] Dynamic & reduced request timeout. Reduce the original time in subcalls.
+- [x] [Distributed request timeout](https://www.datawire.io/guide/traffic/deadlines-distributed-timeouts-microservices/). Reduce the original timeout value in every calls.
 - [ ] official API gateway service (Native, Express, [Aero](https://github.com/aerojs/aero), [uWebsocket HTTP](https://github.com/uWebSockets/bindings/blob/master/nodejs/examples/http_sillybenchmark.js), [benchmark](https://github.com/blitzprog/webserver-benchmarks))
 
 - [x] metricsRate: doesn't measure every request
@@ -91,3 +91,4 @@ Create a command line tool to generate Moleculer project & modules.
 	- https://github.com/tj/consolidate.js
 	- https://github.com/mattallty/Caporal.js
 	- https://github.com/tj/ngen 
+	- https://github.com/senecajs/seneca-repl/blob/master/repl.js 

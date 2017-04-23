@@ -120,6 +120,9 @@ broker.createService({
 });
 ```
 
+## Distributed timeout handling
+Moleculer uses [distributed timeouts](https://www.datawire.io/guide/traffic/deadlines-distributed-timeouts-microservices/).In the chained calls the `ctx.call` decrement the original timeout value with the elapsed time. If the new calculated timeout is less or equal than 0, it'll skip the next calls because the first call is rejected with `RequestTimeoutError` error.
+
 
 <a name="0.6.0"></a>
 # 0.6.0 (2017-03-31)

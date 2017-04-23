@@ -56,7 +56,21 @@ module.exports = function(broker) {
 					.then(() => {
 						return users;
 					});
-			}			
+			},
+
+			slowGet(ctx) {
+				return Promise.delay(2000).then(() => {
+					this.logger.info("slowGet called");
+					const user = _.cloneDeep(this.findByID(ctx.params.id));
+					if (user && ctx.params.withPostCount)
+						return ctx.call("posts.count", { id: user.id }).then(count => {
+							user.postsCount = count;
+							return user;
+						})//.catch(err => this.logger.error(err));
+					else
+						return user;
+				});
+			}
 		},
 
 		methods: {
