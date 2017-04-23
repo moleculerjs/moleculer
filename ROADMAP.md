@@ -8,9 +8,9 @@
 - [x] add nodeID to EVENT package and it will be the 3rd param in event handlers
 
 - [ ] handleExceptions: true option
-	Catch unhandled exceptions and send an event with details. Can be catch in metrics, alert or logger services
+	Catch unhandled exceptions and send an event with details. Can be catch in metrics, alert or logger services ([example](https://github.com/winstonjs/winston/blob/master/lib/winston/exception.js))
 
-- [ ] move heart-beat handling to `Transit` class.
+- [x] move heart-beat handling to `Transit` class.
 
 - [x] meta in context which will be transported. (for user, session, state...etc)
 

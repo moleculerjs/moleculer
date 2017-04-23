@@ -1,3 +1,5 @@
+const { CustomError } = require("../src/errors");
+
 module.exports = {
 	name: "math",
 	actions: {
@@ -25,7 +27,7 @@ module.exports = {
 			if (b != 0)
 				return a / b;
 			else
-				throw new Error("Divide by zero!");
+				throw new CustomError("Divide by zero!", 422, ctx.params);
 		}
 	}
 };
