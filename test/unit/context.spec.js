@@ -1,8 +1,9 @@
 "use strict";
 
+let Promise = require("bluebird");
 let Context = require("../../src/context");
 let ServiceBroker = require("../../src/service-broker");
-let { ServiceNotFoundError } = require("../../src/errors");
+let { ServiceNotFoundError, RequestSkippedError } = require("../../src/errors");
 
 
 describe("Test Context", () => {
@@ -40,7 +41,7 @@ describe("Test Context", () => {
 		let broker = new ServiceBroker();
 		let action = {
 			name: "posts.find"
-		}
+		};
 
 		let ctx = new Context(broker, action);
 
@@ -108,6 +109,36 @@ describe("Test call method", () => {
 
 		expect(broker.call).toHaveBeenCalledTimes(1);
 		expect(broker.call).toHaveBeenCalledWith("posts.find", p, { parentCtx: ctx, timeout: 2500 });
+	});
+
+	it("should decrement the timeout with elapsed time", () => {
+		broker.call.mockClear();
+
+		let ctx = new Context(broker);
+		ctx._metricStart();
+		ctx.timeout = 1000;
+		return Promise.delay(300).then(() => {
+			ctx.call("posts.find", {});
+
+			expect(broker.call).toHaveBeenCalledTimes(1);
+			let opts = broker.call.mock.calls[0][2];
+			expect(opts.timeout).toBeGreaterThan(500);
+			expect(opts.timeout).toBeLessThan(800);
+		});
+	});
+
+	it("should throw RequestSkippedError", () => {
+		broker.call.mockClear();
+
+		let ctx = new Context(broker);
+		ctx._metricStart();
+		ctx.timeout = 200;
+		return Promise.delay(300).then(() => {
+			return ctx.call("posts.find", {});
+		}).catch(err => {
+			expect(err).toBeInstanceOf(RequestSkippedError);
+			expect(err.action).toBe("posts.find");
+		});
 	});
 });
 
