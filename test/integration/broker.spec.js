@@ -1,6 +1,7 @@
 const Promise = require("bluebird");
 const ServiceBroker = require("../../src/service-broker");
 const MemoryCacher = require("../../src/cachers/memory");
+const FakeTransporter = require("../../src/transporters/fake");
 const Context = require("../../src/context");
 const utils = require("../../src/utils");
 const lolex = require("lolex");
@@ -42,7 +43,9 @@ describe("Test load services", () => {
 describe("Test broker.registerInternalActions", () => {
 	let broker = new ServiceBroker({
 		statistics: true,
-		internalActions: true 			
+		internalActions: true,
+		nodeID: "server-1",
+		transporter: new FakeTransporter()
 	});
 
 	it("should register $node.stats internal action", () => {
@@ -111,7 +114,7 @@ describe("Test broker.registerInternalActions", () => {
 			nodeID: "server-2",
 			actions: {}
 		};
-		broker.processNodeInfo(info.nodeID, info);
+		broker.transit.processNodeInfo(info.nodeID, info);
 
 		return broker.call("$node.list").then(res => {
 			expect(res).toBeDefined();
