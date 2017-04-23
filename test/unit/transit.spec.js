@@ -2,7 +2,7 @@ const ServiceBroker = require("../../src/service-broker");
 const Context = require("../../src/context");
 const Transit = require("../../src/transit");
 const FakeTransporter = require("../../src/transporters/fake");
-const { RequestTimeoutError, ValidationError } = require("../../src/errors");
+const { ValidationError } = require("../../src/errors");
 const P = require("../../src/packets");
 
 describe("Test Transporter constructor", () => {
@@ -21,6 +21,7 @@ describe("Test Transporter constructor", () => {
 		expect(transit.logger).toBeDefined();
 		expect(transit.nodeID).toBe(broker.nodeID);
 		expect(transit.tx).toBe(transporter);
+		expect(transit.nodes).toBeInstanceOf(Map);
 		expect(transit.pendingRequests).toBeInstanceOf(Map);
 	});
  
@@ -55,6 +56,8 @@ describe("Test Transit.connect", () => {
 			expect(transporter.connect).toHaveBeenCalledTimes(1);
 			expect(transit.makeSubscriptions).toHaveBeenCalledTimes(1);
 			expect(transit.discoverNodes).toHaveBeenCalledTimes(1);
+			expect(transit.heartbeatTimer).toBeDefined();
+			expect(transit.checkNodesTimer).toBeDefined();
 		});
 	});
 
@@ -75,6 +78,8 @@ describe("Test Transit.disconnect", () => {
 		return transit.disconnect().then(() => {
 			expect(transporter.disconnect).toHaveBeenCalledTimes(1);
 			expect(transit.sendDisconnectPacket).toHaveBeenCalledTimes(1);
+			expect(transit.heartbeatTimer).toBeNull();
+			expect(transit.checkNodesTimer).toBeNull();			
 		});
 	});
 
@@ -289,47 +294,47 @@ describe("Test Transit.messageHandler", () => {
 
 	});
 
-	it("should call broker.processNodeInfo if topic is 'INFO' ", () => {
-		broker.processNodeInfo = jest.fn();
+	it("should call transit.processNodeInfo if topic is 'INFO' ", () => {
+		transit.processNodeInfo = jest.fn();
 
 		let msg = { sender: "remote", actions: JSON.stringify({}) };
 		transit.messageHandler("INFO", JSON.stringify(msg));
 
-		expect(broker.processNodeInfo).toHaveBeenCalledTimes(1);
-		expect(broker.processNodeInfo).toHaveBeenCalledWith("remote", {"actions": {}, "sender": "remote"});
+		expect(transit.processNodeInfo).toHaveBeenCalledTimes(1);
+		expect(transit.processNodeInfo).toHaveBeenCalledWith("remote", {"actions": {}, "sender": "remote"});
 	});	
 
 	it("should call broker.processNodeInfo & sendNodeInfo if topic is 'DISCOVER' ", () => {
-		broker.processNodeInfo = jest.fn();
+		transit.processNodeInfo = jest.fn();
 		transit.sendNodeInfo = jest.fn();
 
 		let msg = { sender: "remote", actions: JSON.stringify({}) };
 		transit.messageHandler("DISCOVER", JSON.stringify(msg));
 
-		expect(broker.processNodeInfo).toHaveBeenCalledTimes(1);
-		expect(broker.processNodeInfo).toHaveBeenCalledWith("remote", {"actions": {}, "sender": "remote"});
+		expect(transit.processNodeInfo).toHaveBeenCalledTimes(1);
+		expect(transit.processNodeInfo).toHaveBeenCalledWith("remote", {"actions": {}, "sender": "remote"});
 
 		expect(transit.sendNodeInfo).toHaveBeenCalledTimes(1);
 	});	
 
 	it("should call broker.nodeDisconnected if topic is 'DISCONNECT' ", () => {
-		broker.nodeDisconnected = jest.fn();
+		transit.nodeDisconnected = jest.fn();
 
 		let msg = { sender: "remote" };
 		transit.messageHandler("DISCONNECT", JSON.stringify(msg));
 
-		expect(broker.nodeDisconnected).toHaveBeenCalledTimes(1);
-		expect(broker.nodeDisconnected).toHaveBeenCalledWith(msg.sender, msg);
+		expect(transit.nodeDisconnected).toHaveBeenCalledTimes(1);
+		expect(transit.nodeDisconnected).toHaveBeenCalledWith(msg.sender);
 	});	
 
 	it("should call broker.nodeHeartbeat if topic is 'HEARTBEAT' ", () => {
-		broker.nodeHeartbeat = jest.fn();
+		transit.nodeHeartbeat = jest.fn();
 
 		let msg = { sender: "remote" };
 		transit.messageHandler("HEARTBEAT", JSON.stringify(msg));
 
-		expect(broker.nodeHeartbeat).toHaveBeenCalledTimes(1);
-		expect(broker.nodeHeartbeat).toHaveBeenCalledWith(msg.sender, msg);
+		expect(transit.nodeHeartbeat).toHaveBeenCalledTimes(1);
+		expect(transit.nodeHeartbeat).toHaveBeenCalledWith(msg.sender, msg);
 	});	
 
 });
@@ -535,3 +540,196 @@ describe("Test Transit.deserialize", () => {
 	});
 
 });
+
+describe("Test transit.processNodeInfo", () => {
+	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const transit = broker.transit;
+	broker.registerAction = jest.fn();
+	broker.emitLocal = jest.fn();
+
+	let remoteAction = {
+		name: "user.create",
+		cache: false
+	};
+	let nodeInfo = { 
+		sender: "server-1", 
+		actions: {
+			"user.create": remoteAction
+		} 
+	};
+
+	it("should emit a new node event & register remote actions", () => {
+		transit.processNodeInfo("server-1", nodeInfo);
+
+		let node = transit.nodes.get("server-1");
+
+		expect(node.id).toBe("server-1");
+		expect(node.available).toBe(true);
+		expect(node.lastHeartbeatTime).toBeDefined();
+
+		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
+		expect(broker.emitLocal).toHaveBeenCalledWith("node.connected", node);
+
+		expect(broker.registerAction).toHaveBeenCalledTimes(1);
+		expect(broker.registerAction).toHaveBeenCalledWith(remoteAction, "server-1");
+	});
+
+	it("should not emit event because node is exist but register remote actions again", () => {
+		broker.emitLocal.mockClear();
+		broker.registerAction.mockClear();
+
+		transit.processNodeInfo("server-1", nodeInfo);
+
+		let node = transit.nodes.get("server-1");
+
+		expect(node.id).toBe("server-1");
+
+		expect(broker.emitLocal).toHaveBeenCalledTimes(0);
+		
+		expect(broker.registerAction).toHaveBeenCalledTimes(1);
+		expect(broker.registerAction).toHaveBeenCalledWith(remoteAction, "server-1");
+	});
+
+	it("should not process info if nodeID is null", () => {
+		broker.emitLocal.mockClear();
+		broker.registerAction.mockClear();
+
+		transit.processNodeInfo(null, nodeInfo);
+
+		expect(broker.emitLocal).toHaveBeenCalledTimes(0);
+		expect(broker.registerAction).toHaveBeenCalledTimes(0);
+	});
+});
+
+describe("Test broker.nodeUnavailable", () => {
+	let broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const transit = broker.transit;
+	transit.nodeDisconnected = jest.fn();
+
+	it("should not call nodeDisconnected", () => {
+		transit.nodeUnavailable("server-2");
+		
+		expect(transit.nodeDisconnected).toHaveBeenCalledTimes(0);
+	});
+
+	it("should call nodeDisconnected", () => {
+		transit.nodes.set("server-2", {});
+		transit.nodeUnavailable("server-2");
+		
+		expect(transit.nodeDisconnected).toHaveBeenCalledTimes(1);
+		expect(transit.nodeDisconnected).toHaveBeenCalledWith("server-2", true);
+	});
+});
+
+describe("Test broker.isNodeAvailable", () => {
+	let broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const transit = broker.transit;
+
+	it("should node is not available because is not exist", () => {
+		expect(transit.isNodeAvailable("server-2")).toBe(false);
+	});
+
+	it("should node is not available", () => {
+		transit.nodes.set("server-2", { available: false });
+		expect(transit.isNodeAvailable("server-2")).toBe(false);
+	});
+
+	it("should node is available", () => {
+		transit.nodes.set("server-2", { available: true });
+		expect(transit.isNodeAvailable("server-2")).toBe(true);
+	});
+});
+
+describe("Test transit.nodeHeartbeat", () => {
+	let broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const transit = broker.transit;
+
+	transit.nodes.set("server-2", { available: false, lastHeartbeatTime: 1000 });
+
+	it("should node is not available because is not exist", () => {
+		transit.nodeHeartbeat("server-2");
+		expect(transit.nodes.get("server-2").available).toBe(true);
+		expect(transit.nodes.get("server-2").lastHeartbeatTime).not.toBe(1000);
+	});
+
+});
+
+describe("Test broker.nodeDisconnected", () => {
+	let broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const transit = broker.transit;
+
+	broker.emitLocal = jest.fn();
+	broker.unregisterAction = jest.fn();
+
+	transit.nodes.set("server-2", { available: true });
+
+	it("should not emit event because node is not found", () => {
+		broker.emitLocal.mockClear();
+
+		transit.nodeDisconnected("server-1");
+		expect(broker.emitLocal).toHaveBeenCalledTimes(0);
+	});
+
+	it("should set node to unavailable and emit a `disconnected` event", () => {
+		broker.emitLocal.mockClear();
+
+		transit.nodeDisconnected("server-2");
+
+		expect(transit.nodes.get("server-2").available).toBe(false);
+		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
+		expect(broker.emitLocal).toHaveBeenCalledWith("node.disconnected", {"available": false });
+	});
+
+	it("should set node to unavailable and emit a `broken` event", () => {
+		broker.emitLocal.mockClear();
+		transit.nodes.set("server-2", { available: true });
+
+		transit.nodeDisconnected("server-2", true);
+
+		expect(transit.nodes.get("server-2").available).toBe(false);
+		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
+		expect(broker.emitLocal).toHaveBeenCalledWith("node.broken", {"available": false });
+	});
+
+	let remoteAction = {
+		name: "user.create"
+	};
+	transit.nodes.set("server-3", { 
+		id: "server-3", 
+		available: true, 
+		actions: {
+			"user.create": remoteAction
+		} 
+	});
+
+	broker.registerAction(remoteAction, "server-3");
+
+	it("should unregister actions of disconnected node", () => {
+		transit.nodeDisconnected("server-3");
+
+		expect(broker.unregisterAction).toHaveBeenCalledTimes(1);
+		expect(broker.unregisterAction).toHaveBeenCalledWith(remoteAction, "server-3");
+	});
+});
+
+describe("Test broker.nodeDisconnected", () => {
+	let broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const transit = broker.transit;
+	broker.nodeDisconnected = jest.fn();
+
+	transit.nodes.set("server-2", { id: "server-2", available: true });
+
+	it("should call 'nodeDisconnected' if the heartbeat time is too old", () => {
+		let node = transit.nodes.get("server-2");
+		transit.nodeDisconnected = jest.fn();
+		transit.nodeHeartbeat("server-2");
+		transit.checkRemoteNodes();
+		expect(transit.nodeDisconnected).toHaveBeenCalledTimes(0);
+		node.lastHeartbeatTime -= broker.options.heartbeatTimeout * 1.5 * 1000;
+		transit.checkRemoteNodes();
+		expect(transit.nodeDisconnected).toHaveBeenCalledTimes(1);
+		expect(transit.nodeDisconnected).toHaveBeenCalledWith("server-2", true);
+	});
+
+});
+

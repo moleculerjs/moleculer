@@ -91,7 +91,6 @@ class ServiceBroker {
 		});
 
 		// Internal maps
-		this.nodes = new Map();
 		this.services = [];
 		this.actions = new Map();
 
@@ -175,21 +174,7 @@ class ServiceBroker {
 		this.logger.info("Broker started.");
 
 		if (this.transit) {
-			return this.transit.connect().then(() => {
-				
-				// Start timers
-				this.heartBeatTimer = setInterval(() => {
-					/* istanbul ignore next */
-					this.transit.sendHeartbeat();
-				}, this.options.heartbeatInterval * 1000);
-				this.heartBeatTimer.unref();
-
-				this.checkNodesTimer = setInterval(() => {
-					/* istanbul ignore next */
-					this.checkRemoteNodes();
-				}, this.options.heartbeatTimeout * 1000);
-				this.checkNodesTimer.unref();			
-			});
+			return this.transit.connect();
 		}
 		else
 			return Promise.resolve();
@@ -216,16 +201,6 @@ class ServiceBroker {
 		
 		if (this.transit) {
 			this.transit.disconnect();
-
-			if (this.heartBeatTimer) {
-				clearInterval(this.heartBeatTimer);
-				this.heartBeatTimer = null;
-			}
-
-			if (this.checkNodesTimer) {
-				clearInterval(this.checkNodesTimer);
-				this.checkNodesTimer = null;
-			}
 		}
 
 		this.logger.info("Broker stopped.");
@@ -419,7 +394,7 @@ class ServiceBroker {
 
 		addAction("$node.list", () => {
 			let res = [];
-			this.nodes.forEach(node => {
+			this.transit.nodes.forEach(node => {
 				res.push(pick(node, ["nodeID", "available"]));
 			});
 
@@ -831,127 +806,6 @@ class ServiceBroker {
 		return res;
 	}
 	
-	/**
-	 * Process remote node info (list of actions)
-	 * 
-	 * @param {any} info
-	 * 
-	 * @memberOf ServiceBroker
-	 */
-	processNodeInfo(nodeID, node) {
-		if (nodeID == null) {
-			this.logger.error("Missing nodeID from node info package!");
-			return;
-		}
-		let isNewNode = !this.nodes.has(nodeID);
-		node.lastHeartbeatTime = Date.now();
-		node.available = true;
-		node.id = nodeID;
-		this.nodes.set(nodeID, node);
-
-		if (isNewNode) {
-			this.emitLocal("node.connected", node);
-			this.logger.info(`Node '${nodeID}' connected!`);
-		}
-
-		if (node.actions) {
-			// Add external actions
-			Object.keys(node.actions).forEach(name => {
-				// Need to override the name cause of versioned action name;
-				let action = Object.assign({}, node.actions[name], { name });
-				this.registerAction(action, nodeID);
-			});
-		}
-	}
-
-	/**
-	 * Set node to unavailable. 
-	 * It will be called when a remote call is thrown a RequestTimeoutError exception.
-	 * 
-	 * @param {any} nodeID	Node ID
-	 * 
-	 * @memberOf ServiceBroker
-	 */
-	nodeUnavailable(nodeID) {
-		let node = this.nodes.get(nodeID);
-		if (node) {
-			this.nodeDisconnected(nodeID, true);
-		}
-	}
-
-	/**
-	 * Check the given nodeID is available
-	 * 
-	 * @param {any} nodeID	Node ID
-	 * @returns {boolean}
-	 * 
-	 * @memberOf ServiceBroker
-	 */
-	isNodeAvailable(nodeID) {
-		let info = this.nodes.get(nodeID);
-		if (info) 
-			return info.available;
-
-		return false;
-	}
-
-	/**
-	 * Save a heart-beat time from a remote node
-	 * 
-	 * @param {any} nodeID
-	 * 
-	 * @memberOf ServiceBroker
-	 */
-	nodeHeartbeat(nodeID) {
-		if (this.nodes.has(nodeID)) {
-			let node = this.nodes.get(nodeID);
-			node.lastHeartbeatTime = Date.now();
-			node.available = true;
-		}
-	}
-
-	/**
-	 * Node disconnected event handler. 
-	 * Remove node and remove remote actions of node
-	 * 
-	 * @param {any} nodeID
-	 * @param {Boolean} isUnexpected
-	 * 
-	 * @memberOf ServiceBroker
-	 */
-	nodeDisconnected(nodeID, isUnexpected) {
-		if (this.nodes.has(nodeID)) {
-			let node = this.nodes.get(nodeID);
-			if (node.available) {
-				node.available = false;
-				if (node.actions) {
-					// Remove remote actions of node
-					Object.keys(node.actions).forEach(name => {
-						let action = Object.assign({}, node.actions[name], { name });
-						this.unregisterAction(action, node.nodeID);
-					});
-				}
-
-				this.emitLocal(isUnexpected ? "node.broken" : "node.disconnected", node);
-				//this.nodes.delete(nodeID);			
-				this.logger.warn(`Node '${nodeID}' disconnected!`);
-			}
-		}
-	}
-
-	/**
-	 * Check all registered remote nodes is live.
-	 * 
-	 * @memberOf ServiceBroker
-	 */
-	checkRemoteNodes() {
-		let now = Date.now();
-		this.nodes.forEach(node => {
-			if (now - (node.lastHeartbeatTime || 0) > this.options.heartbeatTimeout * 1000) {
-				this.nodeDisconnected(node.nodeID);
-			}
-		});
-	}
 }
 
 module.exports = ServiceBroker;

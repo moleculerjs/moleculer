@@ -50,7 +50,6 @@ describe("Test ServiceBroker constructor", () => {
 		
 		expect(broker.bus).toBeDefined();
 
-		expect(broker.nodes).toBeInstanceOf(Map);
 		expect(broker.services).toBeInstanceOf(Array);
 		expect(broker.actions).toBeInstanceOf(Map);
 		
@@ -181,10 +180,8 @@ describe("Test broker.start", () => {
 		expect(broker.metricsTimer).toBeDefined();
 	});
 
-	it("should call transit.connect & create transit timers", () => {
+	it("should call transit.connect", () => {
 		expect(broker.transit.connect).toHaveBeenCalledTimes(1);
-		expect(broker.heartBeatTimer).toBeDefined();
-		expect(broker.checkNodesTimer).toBeDefined();
 	});
 
 });
@@ -221,10 +218,8 @@ describe("Test broker.stop", () => {
 		expect(broker.metricsTimer).toBeNull();
 	});
 
-	it("should disconnect transit & destroy timers", () => {
+	it("should disconnect transit", () => {
 		expect(broker.transit.disconnect).toHaveBeenCalledTimes(1);
-		expect(broker.heartBeatTimer).toBeNull();
-		expect(broker.checkNodesTimer).toBeNull();
 	});
 
 });
@@ -1266,189 +1261,3 @@ describe("Test broker.getLocalActionList", () => {
 		
 	});
 });
-
-describe("Test broker.processNodeInfo", () => {
-	let broker = new ServiceBroker();
-	broker.registerAction = jest.fn();
-	broker.emitLocal = jest.fn();
-
-	let remoteAction = {
-		name: "user.create",
-		cache: false
-	};
-	let nodeInfo = { 
-		sender: "server-1", 
-		actions: {
-			"user.create": remoteAction
-		} 
-	};
-
-	it("should emit a new node event & register remote actions", () => {
-		broker.processNodeInfo("server-1", nodeInfo);
-
-		let node = broker.nodes.get("server-1");
-
-		expect(node.id).toBe("server-1");
-		expect(node.available).toBe(true);
-		expect(node.lastHeartbeatTime).toBeDefined();
-
-		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("node.connected", node);
-
-		expect(broker.registerAction).toHaveBeenCalledTimes(1);
-		expect(broker.registerAction).toHaveBeenCalledWith(remoteAction, "server-1");
-	});
-
-	it("should not emit event because node is exist but register remote actions again", () => {
-		broker.emitLocal.mockClear();
-		broker.registerAction.mockClear();
-
-		broker.processNodeInfo("server-1", nodeInfo);
-
-		let node = broker.nodes.get("server-1");
-
-		expect(node.id).toBe("server-1");
-
-		expect(broker.emitLocal).toHaveBeenCalledTimes(0);
-		
-		expect(broker.registerAction).toHaveBeenCalledTimes(1);
-		expect(broker.registerAction).toHaveBeenCalledWith(remoteAction, "server-1");
-	});
-
-	it("should not process info if nodeID is null", () => {
-		broker.emitLocal.mockClear();
-		broker.registerAction.mockClear();
-
-		broker.processNodeInfo(null, nodeInfo);
-
-		expect(broker.emitLocal).toHaveBeenCalledTimes(0);
-		expect(broker.registerAction).toHaveBeenCalledTimes(0);
-	});
-});
-
-describe("Test broker.nodeUnavailable", () => {
-	let broker = new ServiceBroker();
-	broker.nodeDisconnected = jest.fn();
-
-	it("should not call nodeDisconnected", () => {
-		broker.nodeUnavailable("server-2");
-		
-		expect(broker.nodeDisconnected).toHaveBeenCalledTimes(0);
-	});
-
-	it("should call nodeDisconnected", () => {
-		broker.nodes.set("server-2", {});
-		broker.nodeUnavailable("server-2");
-		
-		expect(broker.nodeDisconnected).toHaveBeenCalledTimes(1);
-		expect(broker.nodeDisconnected).toHaveBeenCalledWith("server-2", true);
-	});
-});
-
-describe("Test broker.isNodeAvailable", () => {
-	let broker = new ServiceBroker();
-
-	it("should node is not available because is not exist", () => {
-		expect(broker.isNodeAvailable("server-2")).toBe(false);
-	});
-
-	it("should node is not available", () => {
-		broker.nodes.set("server-2", { available: false });
-		expect(broker.isNodeAvailable("server-2")).toBe(false);
-	});
-
-	it("should node is available", () => {
-		broker.nodes.set("server-2", { available: true });
-		expect(broker.isNodeAvailable("server-2")).toBe(true);
-	});
-});
-
-describe("Test broker.nodeHeartbeat", () => {
-	let broker = new ServiceBroker();
-
-	broker.nodes.set("server-2", { available: false, lastHeartbeatTime: 1000 });
-
-	it("should node is not available because is not exist", () => {
-		broker.nodeHeartbeat("server-2");
-		expect(broker.nodes.get("server-2").available).toBe(true);
-		expect(broker.nodes.get("server-2").lastHeartbeatTime).not.toBe(1000);
-	});
-
-});
-
-describe("Test broker.nodeDisconnected", () => {
-	let broker = new ServiceBroker();
-	broker.emitLocal = jest.fn();
-	broker.unregisterAction = jest.fn();
-
-	broker.nodes.set("server-2", { available: true });
-
-	it("should not emit event because node is not found", () => {
-		broker.emitLocal.mockClear();
-
-		broker.nodeDisconnected("server-1");
-		expect(broker.emitLocal).toHaveBeenCalledTimes(0);
-	});
-
-	it("should set node to unavailable and emit a `disconnected` event", () => {
-		broker.emitLocal.mockClear();
-
-		broker.nodeDisconnected("server-2");
-
-		expect(broker.nodes.get("server-2").available).toBe(false);
-		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("node.disconnected", {"available": false });
-	});
-
-	it("should set node to unavailable and emit a `broken` event", () => {
-		broker.emitLocal.mockClear();
-		broker.nodes.set("server-2", { available: true });
-
-		broker.nodeDisconnected("server-2", true);
-
-		expect(broker.nodes.get("server-2").available).toBe(false);
-		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("node.broken", {"available": false });
-	});
-
-	let remoteAction = {
-		name: "user.create"
-	};
-	broker.nodes.set("server-3", { 
-		nodeID: "server-3", 
-		available: true, 
-		actions: {
-			"user.create": remoteAction
-		} 
-	});
-
-	broker.registerAction(remoteAction, "server-3");
-
-	it("should unregister actions of disconnected node", () => {
-		broker.nodeDisconnected("server-3");
-
-		expect(broker.unregisterAction).toHaveBeenCalledTimes(1);
-		expect(broker.unregisterAction).toHaveBeenCalledWith(remoteAction, "server-3");
-	});
-});
-
-describe("Test broker.nodeDisconnected", () => {
-	let broker = new ServiceBroker();
-	broker.nodeDisconnected = jest.fn();
-
-	broker.nodes.set("server-2", { nodeID: "server-2", available: true });
-
-	it("should call 'nodeDisconnected' if the heartbeat time is too old", () => {
-		let node = broker.nodes.get("server-2");
-		broker.nodeDisconnected = jest.fn();
-		broker.nodeHeartbeat("server-2");
-		broker.checkRemoteNodes();
-		expect(broker.nodeDisconnected).toHaveBeenCalledTimes(0);
-		node.lastHeartbeatTime -= broker.options.heartbeatTimeout * 1.5 * 1000;
-		broker.checkRemoteNodes();
-		expect(broker.nodeDisconnected).toHaveBeenCalledTimes(1);
-		expect(broker.nodeDisconnected).toHaveBeenCalledWith("server-2");
-	});
-
-});
-

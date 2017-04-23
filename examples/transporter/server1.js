@@ -54,10 +54,10 @@ Promise.resolve()
 */
 .then(() => {
 	//broker.call("users.dangerous").catch(err => console.error(err));
-});
-/*
+})
+
 .then(() => {
 	setInterval(() => {
 		broker.emit("TEST1", { a: c++ });
 	}, 10 * 1000);
-});*/
+});

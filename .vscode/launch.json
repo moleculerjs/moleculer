@@ -22,7 +22,7 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch demo:transporter",
-			"program": "${workspaceRoot}\\examples\\transporter\\index.js",
+			"program": "${workspaceRoot}\\examples\\transporter\\server1.js",
 			"cwd": "${workspaceRoot}\\examples\\transporter"
 		},
 		{

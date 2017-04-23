@@ -36,7 +36,12 @@ class Transit {
 		this.tx = transporter;
 		this.opts = opts;
 
+		this.nodes = new Map();
+
 		this.pendingRequests = new Map();
+
+		this.heartbeatTimer = null;
+		this.checkNodesTimer = null;
 
 		this.tx.init(broker, this.messageHandler.bind(this));
 	}
@@ -49,7 +54,21 @@ class Transit {
 	connect() {
 		return this.tx.connect()
 			.then(() => this.makeSubscriptions())
-			.then(() => this.discoverNodes());
+			.then(() => this.discoverNodes())
+			.then(() => {
+				// Start timers
+				this.heartbeatTimer = setInterval(() => {
+					/* istanbul ignore next */
+					this.sendHeartbeat();
+				}, this.broker.options.heartbeatInterval * 1000);
+				this.heartbeatTimer.unref();
+
+				this.checkNodesTimer = setInterval(() => {
+					/* istanbul ignore next */
+					this.checkRemoteNodes();
+				}, this.broker.options.heartbeatTimeout * 1000);
+				this.checkNodesTimer.unref();			
+			});
 	}
 
 	/**
@@ -58,6 +77,16 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	disconnect() {
+		if (this.heartbeatTimer) {
+			clearInterval(this.heartbeatTimer);
+			this.heartbeatTimer = null;
+		}
+
+		if (this.checkNodesTimer) {
+			clearInterval(this.checkNodesTimer);
+			this.checkNodesTimer = null;
+		}
+
 		if (this.tx.connected) {
 			return this.sendDisconnectPacket()
 				.then(() => this.tx.disconnect());
@@ -164,7 +193,7 @@ class Transit {
 
 		// Node info
 		else if (cmd === P.PACKET_INFO || cmd === P.PACKET_DISCOVER) {
-			this.broker.processNodeInfo(payload.sender, payload);
+			this.processNodeInfo(payload.sender, payload);
 
 			if (cmd == "DISCOVER") {
 				//this.logger.debug("Discover received from " + payload.sender);
@@ -175,15 +204,14 @@ class Transit {
 
 		// Disconnect
 		else if (cmd === P.PACKET_DISCONNECT) {
-			this.logger.warn(`Node '${payload.sender}' disconnected`);
-			this.broker.nodeDisconnected(payload.sender, payload);
+			this.nodeDisconnected(payload.sender);
 			return;
 		}
 
 		// Heartbeat
 		else if (cmd === P.PACKET_HEARTBEAT) {
 			//this.logger.debug("Node heart-beat received from " + payload.sender);
-			this.broker.nodeHeartbeat(payload.sender, payload);
+			this.nodeHeartbeat(payload.sender, payload);
 			return;
 		}
 	}
@@ -398,6 +426,133 @@ class Transit {
 		return this.broker.serializer.deserialize(str, type);
 		//return str;
 	}
+
+	/**
+	 * Process remote node info (list of actions)
+	 * 
+	 * @param {any} info
+	 * 
+	 * @memberOf Transit
+	 */
+	processNodeInfo(nodeID, node) {
+		if (nodeID == null) {
+			this.logger.error("Missing nodeID from node info package!");
+			return;
+		}
+		let isNewNode = !this.nodes.has(nodeID);
+		let isReconnected = !node.available;
+		node.lastHeartbeatTime = Date.now();
+		node.available = true;
+		node.id = nodeID;
+		this.nodes.set(nodeID, node);
+
+		if (isNewNode) {
+			this.broker.emitLocal("node.connected", node);
+			this.logger.info(`Node '${nodeID}' connected!`);
+		} else if (isReconnected) {
+			this.broker.emitLocal("node.reconnected", node);
+			this.logger.info(`Node '${nodeID}' reconnected!`);
+		}
+
+		if (node.actions) {
+			// Add external actions
+			Object.keys(node.actions).forEach(name => {
+				// Need to override the name cause of versioned action name;
+				let action = Object.assign({}, node.actions[name], { name });
+				this.broker.registerAction(action, nodeID);
+			});
+		}
+	}
+
+	/**
+	 * Set node to unavailable. 
+	 * It will be called when a remote call is thrown a RequestTimeoutError exception.
+	 * 
+	 * @param {any} nodeID	Node ID
+	 * 
+	 * @memberOf Transit
+	 */
+	nodeUnavailable(nodeID) {
+		let node = this.nodes.get(nodeID);
+		if (node) {
+			this.nodeDisconnected(nodeID, true);
+		}
+	}
+
+	/**
+	 * Check the given nodeID is available
+	 * 
+	 * @param {any} nodeID	Node ID
+	 * @returns {boolean}
+	 * 
+	 * @memberOf Transit
+	 */
+	isNodeAvailable(nodeID) {
+		let info = this.nodes.get(nodeID);
+		if (info) 
+			return info.available;
+
+		return false;
+	}
+
+	/**
+	 * Save a heart-beat time from a remote node
+	 * 
+	 * @param {any} nodeID
+	 * 
+	 * @memberOf Transit
+	 */
+	nodeHeartbeat(nodeID) {
+		if (this.nodes.has(nodeID)) {
+			let node = this.nodes.get(nodeID);
+			node.lastHeartbeatTime = Date.now();
+			node.available = true;
+		}
+	}
+
+	/**
+	 * Node disconnected event handler. 
+	 * Remove node and remove remote actions of node
+	 * 
+	 * @param {any} nodeID
+	 * @param {Boolean} isUnexpected
+	 * 
+	 * @memberOf Transit
+	 */
+	nodeDisconnected(nodeID, isUnexpected) {
+		if (this.nodes.has(nodeID)) {
+			let node = this.nodes.get(nodeID);
+			if (node.available) {
+				node.available = false;
+				if (node.actions) {
+					// Remove remote actions of node
+					Object.keys(node.actions).forEach(name => {
+						let action = Object.assign({}, node.actions[name], { name });
+						this.broker.unregisterAction(action, node.id);
+					});
+				}
+
+				this.broker.emitLocal(isUnexpected ? "node.broken" : "node.disconnected", node);
+				//this.nodes.delete(nodeID);			
+				this.logger.warn(`Node '${nodeID}' disconnected!`);
+			}
+		}
+	}
+
+	/**
+	 * Check all registered remote nodes is live.
+	 * 
+	 * @memberOf Transit
+	 */
+	checkRemoteNodes() {
+		let now = Date.now();
+		this.nodes.forEach(node => {
+			if (now - (node.lastHeartbeatTime || 0) > this.broker.options.heartbeatTimeout * 1000) {
+				this.nodeDisconnected(node.id, true);
+			}
+		});
+	}
+	
 }
 
 module.exports = Transit;
