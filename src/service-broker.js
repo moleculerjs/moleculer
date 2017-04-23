@@ -573,6 +573,41 @@ class ServiceBroker {
 		});
 	}
 
+	createNewContext(action, nodeID, params, opts) {
+		const ctx = new this.ContextFactory(this, action);
+		ctx.nodeID = nodeID;
+		ctx.setParams(params);
+
+		if (opts.requestID != null)
+			ctx.requestID = opts.requestID;
+		else if (opts.parentCtx != null && opts.parentCtx.requestID != null)
+			ctx.requestID = opts.parentCtx.requestID;
+
+		if (opts.parentCtx != null && opts.parentCtx.meta != null)
+			ctx.meta = _.assign({}, opts.parentCtx.meta, opts.meta);
+		else if (opts.meta != null)
+			ctx.meta = opts.meta;
+
+		ctx.timeout = opts.timeout;
+		ctx.retryCount = opts.retryCount;
+
+		if (opts.parentCtx != null)
+			ctx.metrics = opts.parentCtx.metrics;
+		else
+			ctx.metrics = this.shouldMetric();
+
+		if (ctx.metrics || nodeID) {
+			ctx.generateID();
+
+			if (opts.parentCtx != null) {
+				ctx.parentID = opts.parentCtx.id;
+				ctx.level = opts.parentCtx.level + 1;
+			}
+
+		}
+
+		return ctx;
+	}
 
 	/**
 	 * Call an action (local or remote)
@@ -617,7 +652,6 @@ class ServiceBroker {
 		// Expose action info
 		let action = actionItem.data;
 		let nodeID = actionItem.nodeID;
-		const isRemoteCall = !actionItem.local;
 		
 		// Create context
 		let ctx;
@@ -628,42 +662,12 @@ class ServiceBroker {
 			ctx.action = action;
 		} else {
 			// New root context
-			ctx = new this.ContextFactory(this, action);
-			ctx.nodeID = nodeID;
-			ctx.setParams(params);
-
-			if (opts.requestID != null)
-				ctx.requestID = opts.requestID;
-			else if (opts.parentCtx != null && opts.parentCtx.requestID != null)
-				ctx.requestID = opts.parentCtx.requestID;
-
-			if (opts.parentCtx != null && opts.parentCtx.meta != null)
-				ctx.meta = _.assign({}, opts.parentCtx.meta, opts.meta);
-			else if (opts.meta != null)
-				ctx.meta = opts.meta;
-
-			ctx.timeout = opts.timeout;
-			ctx.retryCount = opts.retryCount;
-
-			if (opts.parentCtx != null)
-				ctx.metrics = opts.parentCtx.metrics;
-			else
-				ctx.metrics = this.shouldMetric();
-
-			if (ctx.metrics === true || isRemoteCall === true) {
-				ctx.generateID();
-
-				if (opts.parentCtx != null) {
-					ctx.parentID = opts.parentCtx.id;
-					ctx.level = opts.parentCtx.level + 1;
-				}
-
-			}
+			ctx = this.createNewContext(action, nodeID, params, opts);
 		}
 
 		// Call handler or transfer request
 		let p;
-		if (!isRemoteCall) {
+		if (!nodeID) {
 			// Add metrics start
 			if (ctx.metrics === true || ctx.timeout > 0)
 				ctx._metricStart();
