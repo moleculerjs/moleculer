@@ -12,8 +12,8 @@
 	<script>
 		var socket = io();
 
-		socket.on("event", function(event, payload){
-			console.log(event, payload);
+		socket.on("event", function(event, payload, nodeID){
+			console.log(event, payload, nodeID);
 		});		
 
 		window.socket = socket;

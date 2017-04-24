@@ -37,10 +37,10 @@ module.exports = function() {
 		},
 
 		events: {
-			"**"(data, event) {
+			"**"(data, nodeID, event) {
 				if (this.io) {
 					this.logger.debug(`Send '${event}' event to client`);
-					this.io.emit("event", event, data);
+					this.io.emit("event", event, data, nodeID);
 				}
 			}
 		},
