@@ -18,7 +18,7 @@ function createBrokers(Transporter, opts) {
 
 	let b2 = new ServiceBroker({
 		transporter: new Transporter(opts),
-		cacher: new Cacher(),
+		//cacher: new Cacher(),
 		//requestTimeout: 0,
 		//logger: console,
 		//logLevel: "debug",
@@ -55,8 +55,8 @@ let [b1, b2] = createBrokers(Transporters.Fake);
 let count = 0;
 function doRequest() {
 	count++;
-	//return b2.call("echo.reply", { a: count }).then(res => {
-	return b2.call("echo.get", { id: 5 }).then(res => {
+	return b2.call("echo.reply", { a: count }).then(res => {
+	//return b2.call("echo.get", { id: 5 }).then(res => {
 		if (count % 10000) {
 			// Fast cycle
 			doRequest();
