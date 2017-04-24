@@ -85,11 +85,11 @@ Suite: Set & get 1k data with cacher
 -----------------------------------------------------------------------
 
 Suite: Test getCacheKey
-√ Dynamic           534,814 rps
-√ Static          1,684,070 rps
+√ Dynamic           507,894 rps
+√ Static         19,409,900 rps
 
-   Dynamic       -68.24%        (534,814 rps)   (avg: 1μs)
-   Static             0%      (1,684,070 rps)   (avg: 593ns)
+   Dynamic       -97.38%        (507,894 rps)   (avg: 1μs)
+   Static             0%     (19,409,900 rps)   (avg: 51ns)
 -----------------------------------------------------------------------
 
 */

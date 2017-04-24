@@ -125,19 +125,26 @@ class Cacher {
 	 * Get a cache key by name and params. 
 	 * Concatenate the name and the hashed params object
 	 * 
-	 * @param {any} name
-	 * @param {any} params
-	 * @param {any} keys
+	 * @param {String} name
+	 * @param {Object} params
+	 * @param {Array|null} keys
 	 * @returns
 	 */
 	getCacheKey(name, params, keys) {
 		if (params) {
-			if (keys && Array.isArray(keys)) {
-				if (keys.length > 0)
-					return name + ":" + keys.map(key => params[key]).join("-");
+			const keyPrefix = name + ":";
+			if (keys) {
+				if (keys.length == 1) {
+					// Quick solution for 'id' only keys
+					return keyPrefix + params[keys[0]];
+				}
+				
+				if (keys.length > 0) {
+					return keys.reduce((a, key, i) => a + (i ? "|" : "") + params[key], keyPrefix);
+				}
 			}
 			else {
-				return name + ":" + hash(params);
+				return keyPrefix + hash(params);
 			}
 		}
 		return name;

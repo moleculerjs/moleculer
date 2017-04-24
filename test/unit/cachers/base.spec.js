@@ -91,6 +91,9 @@ describe("Test BaseCacher", () => {
 		
 		res = cacher.getCacheKey("user", {a: 5, b: 3, c: 5}, ["a"]);
 		expect(res).toBe("user:5");
+
+		res = cacher.getCacheKey("user", {a: 5, b: 3, c: 5}, ["a", "b", "c"]);
+		expect(res).toBe("user:5|3|5");
 		
 		res = cacher.getCacheKey("user", {a: 5, b: { id: 3 }}, ["a", "c", "b"]);
 		// FIXME

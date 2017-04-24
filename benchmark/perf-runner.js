@@ -1,6 +1,7 @@
 "use strict";
 
 let ServiceBroker = require("../src/service-broker");
+let Cacher = require("../src/cachers/memory-map");
 let Transporters = require("../src/transporters");
 let Serializer = require("../src/serializers/json");
 
@@ -17,6 +18,7 @@ function createBrokers(Transporter, opts) {
 
 	let b2 = new ServiceBroker({
 		transporter: new Transporter(opts),
+		cacher: new Cacher(),
 		//requestTimeout: 0,
 		//logger: console,
 		//logLevel: "debug",
@@ -29,6 +31,16 @@ function createBrokers(Transporter, opts) {
 		actions: {
 			reply(ctx) {
 				return ctx.params;
+			},
+			get: {
+				cache: {
+					keys: ["id"]
+				},
+				handler() {
+					return {
+						name: "User"
+					};
+				}
 			}
 		}
 	});
@@ -43,7 +55,8 @@ let [b1, b2] = createBrokers(Transporters.Fake);
 let count = 0;
 function doRequest() {
 	count++;
-	return b2.call("echo.reply", { a: count }).then(res => {
+	//return b2.call("echo.reply", { a: count }).then(res => {
+	return b2.call("echo.get", { id: 5 }).then(res => {
 		if (count % 10000) {
 			// Fast cycle
 			doRequest();
