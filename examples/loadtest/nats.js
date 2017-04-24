@@ -121,9 +121,9 @@ nc1.on('connect', function () {
 
 	};
 
-	//work1();
+	work1();
 	//work2();
-	work3();
+	//work3();
 
 
 });

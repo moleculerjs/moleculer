@@ -5,7 +5,7 @@ let NatsTransporter = require("../../src/transporters/nats");
 
 // Create broker
 let broker = new ServiceBroker({
-	nodeID: "server-1",
+	nodeID: process.argv[2] || "server-" + process.pid,
 	transporter: new NatsTransporter(),
 	logger: console
 });

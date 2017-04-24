@@ -28,6 +28,13 @@
 		{
 			"type": "node",
 			"request": "launch",
+			"name": "Launch demo:loadtest",
+			"program": "${workspaceRoot}\\examples\\loadtest\\monolith.js",
+			"cwd": "${workspaceRoot}\\examples\\loadtest"
+		},
+		{
+			"type": "node",
+			"request": "launch",
 			"name": "Launch demo:mw",
 			"program": "${workspaceRoot}\\examples\\middlewares\\index.js",
 			"cwd": "${workspaceRoot}\\examples\\middlewares"

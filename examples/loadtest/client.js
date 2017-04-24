@@ -3,12 +3,12 @@
 let random = require("lodash/random");
 
 let ServiceBroker = require("../../src/service-broker");
-let NatsTransporter = require("../../src/transporters/nats");
+let Transporters = require("../../src/transporters");
 
 // Create broker
 let broker = new ServiceBroker({
 	nodeID: process.argv[2] || "client",
-	transporter: new NatsTransporter(process.env.NATS_SERVER),
+	transporter: new Transporters.NATS(process.env.NATS_SERVER),
 	//logger: console
 });
 
@@ -22,11 +22,13 @@ function work() {
 	let payload = { a: random(0, 100), b: random(0, 100) };
 	broker.call("math.add", payload)
 	.then(res => {
+		broker._callCount++;
 		//console.info(`${payload.a} + ${payload.b} = ${res}`);
 		setImmediate(work);
 	});		
 }
 
+broker._callCount = 0;
 setTimeout(() => { 
 	let startTime = Date.now();
 	work();

@@ -1,9 +1,13 @@
 "use strict";
 
-let Promise	= require("bluebird");
 let ServiceBroker = require("../../src/service-broker");
 
-let broker = new ServiceBroker({ logger: console, validation: false, metrics: true });
+let broker = new ServiceBroker({ 
+	logger: console, 
+	validation: false, 
+	metrics: true 
+});
+
 broker.loadService(__dirname + "/../../benchmark/user.service");
 broker.loadService(__dirname + "/../metrics.service");
 

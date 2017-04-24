@@ -4,7 +4,7 @@ let { delay } = require("../../src/utils");
 
 let ServiceBroker = require("../../src/service-broker");
 let NatsTransporter = require("../../src/transporters/nats");
-let Serializer = require("../../src/serializers/avro");
+let Serializer = require("../../src/serializers/protobuf");
 
 // Create broker
 let broker = new ServiceBroker({
@@ -32,9 +32,9 @@ Promise.resolve()
 
 .then(() => {
 	broker.call("v2.users.find").then(res => {
-		console.log("[server-1] Success!", res.length);
+		broker.logger.info("[server-1] Success!", res.length);
 	}).catch(err => {
-		console.error("[server-1] Error!", err.message);
+		broker.logger.error("[server-1] Error!", err.message);
 	});	
 
 })

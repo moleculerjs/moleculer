@@ -24,7 +24,7 @@ let payload = { a: random(0, 100), b: random(0, 100) };
 
 function work() {
 	broker.call("math.add", payload).then(res => {
-		if (broker._callCount % 10000) {
+		if (broker._callCount++ % 10000) {
 			// Fast cycle
 			work();
 		} else {
@@ -38,6 +38,7 @@ function work() {
 	});
 }
 
+broker._callCount = 0;
 setTimeout(() => { 
 	console.log("Client started. nodeID:", broker.nodeID, " PID:", process.pid);
 

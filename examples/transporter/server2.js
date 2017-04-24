@@ -4,7 +4,7 @@ let { delay } = require("../../src/utils");
 
 let ServiceBroker = require("../../src/service-broker");
 let NatsTransporter = require("../../src/transporters/nats");
-let Serializer = require("../../src/serializers/avro");
+let Serializer = require("../../src/serializers/protobuf");
 
 // Create broker
 let broker = new ServiceBroker({
@@ -32,9 +32,9 @@ Promise.resolve()
 	let startTime = Date.now();
 	
 	broker.call("posts.find").then((posts) => {
-		console.log("[server-2] Posts: ", posts.length, ", Time:", Date.now() - startTime, "ms");
+		broker.logger.info("[server-2] Posts: ", posts.length, ", Time:", Date.now() - startTime, "ms");
 	})
-	.catch(err => console.error(err));
+	.catch(err => broker.logger.error(err));
 })
 
 .then(() => {

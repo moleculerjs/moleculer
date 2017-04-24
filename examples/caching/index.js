@@ -2,7 +2,6 @@
 
 //let _ = require("lodash");
 let path = require("path");
-let Promise = require("bluebird");
 let chalk = require("chalk");
 
 let utils = require("../../src/utils");
