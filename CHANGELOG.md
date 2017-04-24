@@ -5,13 +5,10 @@
 ## Serializers for transporters [#10](https://github.com/ice-services/moleculer/issues/10/)
 Implemented pluggable serializers.
 Built-in serializers:
-- JSON (default)
+- [x] JSON (default)
 - [x] [Avro](https://github.com/mtth/avsc)
 - [x] [MsgPack](https://github.com/mcollina/msgpack5)
 - [x] [ProtoBuf](https://developers.google.com/protocol-buffers/)
-
-## Typescript definition file [#5](https://github.com/ice-services/moleculer/issues/5)
-Created an index.d.ts file. I'm not familiar in Typescript, so if you found error please help me and open a PR with fix. Thank you!
 
 **Usage**
 ```js
@@ -23,6 +20,9 @@ let broker = new ServiceBroker({
 	nodeID: "node-1"	
 });
 ```
+
+## Typescript definition file [#5](https://github.com/ice-services/moleculer/issues/5)
+Created an index.d.ts file. I'm not familiar in Typescript, so if you found error please help me and open a PR with fix. Thank you!
 
 ## Metrics rate option
 Added `metricsRate` options to broker. This property sets the rate of sampled calls. 
