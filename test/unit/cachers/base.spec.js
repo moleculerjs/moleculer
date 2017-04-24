@@ -75,33 +75,33 @@ describe("Test BaseCacher", () => {
 		expect(res3).toBe("posts.find.model:f67b30a6ce5a28452217cb3b63a28d9db412e70de5ec1938ad373b36fa98073f");
 
 		res = cacher.getCacheKey();
-		expect(res).toBe("");
+		expect(res).toBe(undefined);
 		
 		res = cacher.getCacheKey("posts.find");
 		expect(res).toBe("posts.find");
 		
-		res = cacher.getCacheKey(null, {});
-		expect(res).toBe("");
+		res = cacher.getCacheKey("user", {});
+		expect(res).toBe("user:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a");
 		
-		res = cacher.getCacheKey(null, {a: 5});
-		expect(res).toBe("b0a7093990109d1355dc833dcddecae4de9624d2226b9499d459b8ef94353942");
+		res = cacher.getCacheKey("user", {a: 5});
+		expect(res).toBe("user:b0a7093990109d1355dc833dcddecae4de9624d2226b9499d459b8ef94353942");
 
-		res = cacher.getCacheKey(null, {a: 5}, ["a"]);
-		expect(res).toBe("5");
+		res = cacher.getCacheKey("user", {a: 5}, ["a"]);
+		expect(res).toBe("user:5");
 		
-		res = cacher.getCacheKey(null, {a: 5, b: 3, c: 5}, ["a"]);
-		expect(res).toBe("5");
+		res = cacher.getCacheKey("user", {a: 5, b: 3, c: 5}, ["a"]);
+		expect(res).toBe("user:5");
 		
-		res = cacher.getCacheKey(null, {a: 5, b: { id: 3 }}, ["a", "c", "b"]);
+		res = cacher.getCacheKey("user", {a: 5, b: { id: 3 }}, ["a", "c", "b"]);
 		// FIXME
-		//expect(res).toBe("5--<hashed object>");
+		//expect(res).toBe("user:5--<hashed object>");
 
-		res = cacher.getCacheKey(null, {a: 5, b: { id: 3 }}, ["a", "c", "b.id"]);
+		res = cacher.getCacheKey("user", {a: 5, b: { id: 3 }}, ["a", "c", "b.id"]);
 		// FIXME
-		//expect(res).toBe("5--3");
+		//expect(res).toBe("user:5--3");
 		
-		res = cacher.getCacheKey(null, {a: 5, b: 3}, []);
-		expect(res).toBe("");
+		res = cacher.getCacheKey("user", {a: 5, b: 3}, []);
+		expect(res).toBe("user");
 		
 	});	
 });

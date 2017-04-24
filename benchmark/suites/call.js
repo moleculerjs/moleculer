@@ -143,7 +143,8 @@ let bench5 = benchmark.createSuite("Call with statistics & metrics");
 	});
 })();
 
-benchmark.run([bench1, bench2, bench3, bench4, bench5]);
+//benchmark.run([bench1, bench2, bench3, bench4, bench5]);
+benchmark.run([bench3]);
 
 /*
 
@@ -177,13 +178,13 @@ Suite: Call with middlewares
 -----------------------------------------------------------------------
 
 Suite: Call with cachers
-√ No cacher*                              984,530 rps
-√ Built-in cacher*                        206,642 rps
-√ Built-in cacher (keys filter)*          367,210 rps
+√ No cacher*                            1,093,232 rps
+√ Built-in cacher*                        221,052 rps
+√ Built-in cacher (keys filter)*          445,376 rps
 
-   No cacher* (#)                           0%        (984,530 rps)   (avg: 1μs)
-   Built-in cacher*                    -79.01%        (206,642 rps)   (avg: 4μs)
-   Built-in cacher (keys filter)*       -62.7%        (367,210 rps)   (avg: 2μs)
+   No cacher* (#)                           0%      (1,093,232 rps)   (avg: 914ns)
+   Built-in cacher*                    -79.78%        (221,052 rps)   (avg: 4μs)
+   Built-in cacher (keys filter)*      -59.26%        (445,376 rps)   (avg: 2μs)
 -----------------------------------------------------------------------
 
 Suite: Call with param validator

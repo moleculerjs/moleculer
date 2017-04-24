@@ -8,7 +8,6 @@
 
 //const Promise 	= require("bluebird");
 const defaultsDeep 	= require("lodash/defaultsDeep");
-const isArray 		= require("lodash/isArray");
 const { hash } 		= require("node-object-hash")({ sort: false, coerce: false});
 
 /**
@@ -49,14 +48,14 @@ class Cacher {
 			broker.use(this.middleware());
 
 			this.broker.on("cache.clean", payload => {
-				if (isArray(payload))
+				if (Array.isArray(payload))
 					payload.forEach(match => this.clean(match));
 				else
 					this.clean(payload);
 			});
 
 			this.broker.on("cache.del", payload => {
-				if (isArray(payload))
+				if (Array.isArray(payload))
 					payload.forEach(key => this.del(key));
 				else
 					this.del(payload);
@@ -132,19 +131,16 @@ class Cacher {
 	 * @returns
 	 */
 	getCacheKey(name, params, keys) {
-		let parts = [];
-		if (name)
-			parts.push(name);
-
-		if (params && Object.keys(params).length > 0) {
-			if (isArray(keys)) {
+		if (params) {
+			if (keys && Array.isArray(keys)) {
 				if (keys.length > 0)
-					parts.push(keys.map(key => params[key]).join("-"));
+					return name + ":" + keys.map(key => params[key]).join("-");
 			}
-			else
-				parts.push(hash(params));
+			else {
+				return name + ":" + hash(params);
+			}
 		}
-		return parts.join(":");
+		return name;
 	}
 
 	/**
