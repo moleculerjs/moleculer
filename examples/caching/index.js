@@ -76,7 +76,7 @@ broker.call("v2.users.find").then(data => {
 .then(() => {
 	console.log("CLEAN CACHE: v2.users.*\n");
 	// Clear the cache
-	return broker.emit("cache.clean", { match: "v2.users.*" });
+	return broker.emit("cache.clean", "v2.users.*");
 })
 .then(utils.delay(100))
 .then(() => {

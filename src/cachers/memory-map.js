@@ -94,7 +94,7 @@ class MemoryMapCacher extends BaseCacher {
 	 */
 	del(key) {
 		this.cache.delete(key);
-		this.logger.debug(`Delete ${key}`);
+		this.logger.debug(`REMOVE ${key}`);
 		return Promise.resolve();
 	}
 
@@ -108,10 +108,10 @@ class MemoryMapCacher extends BaseCacher {
 	clean(match = "**") {
 		this.logger.debug(`CLEAN ${match}`);
 
-		this.cache.keys.forEach((key) => {
+		this.cache.forEach((value, key) => {
 			if (micromatch.isMatch(key, match)) {
 				this.logger.debug(`REMOVE ${key}`);
-				this.del(key);
+				this.cache.delete(key);
 			}
 		});
 
@@ -126,12 +126,12 @@ class MemoryMapCacher extends BaseCacher {
 	checkTTL() {
 		let self = this;
 		let now = Date.now();
-		this.cache.keys.forEach((key) => {
+		this.cache.forEach((value, key) => {
 			let item = this.cache.get(key);
 
 			if (item.expire && item.expire < now) {
 				this.logger.debug(`EXPIRED ${key}`);
-				self.cache.delete(key);
+				this.cache.delete(key);
 			}
 		});
 	}
