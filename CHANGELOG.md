@@ -1,5 +1,5 @@
 <a name="0.7.0"></a>
-# 0.7.0 (2017-xx-xx)
+# 0.7.0 (2017-04-24)
 
 # New
 ## Serializers for transporters [#10](https://github.com/ice-services/moleculer/issues/10/)

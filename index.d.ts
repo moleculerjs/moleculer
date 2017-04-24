@@ -16,7 +16,7 @@ declare interface Action {
 }
 
 declare class Context {
-	constructor(opts: Object);
+	constructor(broker: ServiceBroker, action: Action);
 	id: String;
 	broker: ServiceBroker;
 	action: Action;
@@ -34,6 +34,8 @@ declare class Context {
 
 	requestID?: String;
 	duration: Number;
+
+	cachedResult: Boolean;
 
 	generateID();
 	setParams(newParams: Object, cloning?: boolean);
