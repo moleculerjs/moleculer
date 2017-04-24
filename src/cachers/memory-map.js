@@ -50,10 +50,10 @@ class MemoryMapCacher extends BaseCacher {
 	 * @memberOf MemoryMapCacher
 	 */
 	get(key) {
-		//this.logger.debug(`Get ${key}`);
+		//this.logger.debug(`GET ${key}`);
 
 		if (this.cache.has(key)) { 
-			//this.logger.debug(`Found ${key}`);
+			//this.logger.debug(`FOUND ${key}`);
 
 			let item = this.cache.get(key);
 
@@ -80,7 +80,7 @@ class MemoryMapCacher extends BaseCacher {
 			data,
 			expire: this.opts.ttl ? Date.now() + this.opts.ttl * 1000 : null
 		});
-		this.logger.debug(`Set ${key}`);
+		this.logger.debug(`SET ${key}`);
 		return Promise.resolve(data);
 	}
 

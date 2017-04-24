@@ -78,7 +78,7 @@ class MemoryCacher extends BaseCacher {
 			data,
 			expire: this.opts.ttl ? Date.now() + this.opts.ttl * 1000 : null
 		};
-		this.logger.debug(`Set ${key}`);
+		this.logger.debug(`SET ${key}`);
 		return Promise.resolve(data);
 	}
 

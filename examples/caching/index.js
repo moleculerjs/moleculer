@@ -3,6 +3,7 @@
 //let _ = require("lodash");
 let path = require("path");
 let Promise = require("bluebird");
+let chalk = require("chalk");
 
 let utils = require("../../src/utils");
 let ServiceBroker = require("../../src/service-broker");
@@ -18,7 +19,6 @@ Promise.config({
 
 // Create broker
 let broker = new ServiceBroker({
-	nodeID: "server1",
 	logger: console,
 	logLevel: {
 		"*": "warn",
@@ -33,9 +33,9 @@ let broker = new ServiceBroker({
 // Load services
 console.log(""); 
 broker.loadServices(path.join(__dirname, ".."));
-console.log("---------------------------------------\n"); 
+console.log(""); 
 
-console.log(">> Get all users");
+console.log(chalk.bold(">> Get all users"));
 
 // Call actions
 broker.call("v2.users.find").then(data => {
@@ -43,7 +43,7 @@ broker.call("v2.users.find").then(data => {
 })
 
 .then(() => {
-	console.log(">> Get user.5 (found in the cache)");
+	console.log(chalk.bold(">> Get user.5 (found in the cache)"));
 	return broker.call("v2.users.get", { id: 5});
 })
 .then(data => {
@@ -51,13 +51,13 @@ broker.call("v2.users.find").then(data => {
 })
 
 .then(() => {
-	console.log(">> Get all posts (populate authors from users");
+	console.log(chalk.bold(">> Get all posts (populate authors from users"));
 	return broker.call("posts.find", { limit: 10 });
 })
 .then(data => {
 	console.log("posts.find response length:", data.length, "\n");
 
-	console.log(">> Get posts.4 (populate author from cache)");	
+	console.log(chalk.bold(">> Get posts.4 (populate author from cache)"));
 
 	return broker.call("posts.get", { id: data[4].id }).then((post) => {
 		console.log("posts[4].author email:", post.author.email, "\n");
@@ -66,7 +66,7 @@ broker.call("v2.users.find").then(data => {
 
 .then(() => {
 	// Get from cache
-	console.log(">> Get user.5 again (found in the cache)");
+	console.log(chalk.bold(">> Get user.5 again (found in the cache)"));
 	return broker.call("v2.users.get", { id: 5});
 })
 .then(data => {
@@ -74,13 +74,13 @@ broker.call("v2.users.find").then(data => {
 })
 
 .then(() => {
-	console.log("CLEAN CACHE: v2.users.*\n");
+	console.log(chalk.yellow.bold("CLEAN CACHE: v2.users.*\n"));
 	// Clear the cache
 	return broker.emit("cache.clean", "v2.users.*");
 })
 .then(utils.delay(100))
 .then(() => {
-	console.log(">> Get user.5 again (not found in the cache, after clean)");
+	console.log(chalk.bold("\n>> Get user.5 again (not found in the cache, after clean)"));
 	// Not found in the cache
 	return broker.call("v2.users.get", { id: 5});
 })
