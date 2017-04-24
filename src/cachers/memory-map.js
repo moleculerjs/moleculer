@@ -50,10 +50,10 @@ class MemoryMapCacher extends BaseCacher {
 	 * @memberOf MemoryMapCacher
 	 */
 	get(key) {
-		this.logger.debug(`Get ${key}`);
+		//this.logger.debug(`Get ${key}`);
 
 		if (this.cache.has(key)) { 
-			this.logger.debug(`Found ${key}`);
+			//this.logger.debug(`Found ${key}`);
 
 			let item = this.cache.get(key);
 
@@ -61,9 +61,9 @@ class MemoryMapCacher extends BaseCacher {
 				// Update expire time (hold in the cache if we are using it)
 				item.expire = Date.now() + this.opts.ttl * 1000;
 			}
-			return item.data;
+			return Promise.resolve(item.data);
 		}
-		return null;
+		return Promise.resolve(null);
 	}
 
 	/**
@@ -81,7 +81,7 @@ class MemoryMapCacher extends BaseCacher {
 			expire: this.opts.ttl ? Date.now() + this.opts.ttl * 1000 : null
 		});
 		this.logger.debug(`Set ${key}`);
-		return data;
+		return Promise.resolve(data);
 	}
 
 	/**
@@ -95,7 +95,7 @@ class MemoryMapCacher extends BaseCacher {
 	del(key) {
 		this.cache.delete(key);
 		this.logger.debug(`Delete ${key}`);
-		return ;
+		return Promise.resolve();
 	}
 
 	/**
@@ -106,14 +106,16 @@ class MemoryMapCacher extends BaseCacher {
 	 * @memberOf Cacher
 	 */
 	clean(match = "**") {
-		this.logger.debug(`Clean ${match}`);
+		this.logger.debug(`CLEAN ${match}`);
 
 		this.cache.keys.forEach((key) => {
-			if (micromatch.isMatch(key, match))
+			if (micromatch.isMatch(key, match)) {
+				this.logger.debug(`REMOVE ${key}`);
 				this.del(key);
+			}
 		});
 
-		return ;
+		return Promise.resolve();
 	}
 
 	/**
@@ -128,7 +130,7 @@ class MemoryMapCacher extends BaseCacher {
 			let item = this.cache.get(key);
 
 			if (item.expire && item.expire < now) {
-				this.logger.debug(`Expired ${key}`);
+				this.logger.debug(`EXPIRED ${key}`);
 				self.cache.delete(key);
 			}
 		});
