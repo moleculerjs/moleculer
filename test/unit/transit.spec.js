@@ -573,7 +573,7 @@ describe("Test Transit node & heartbeat handling", () => {
 			expect(broker.emitLocal).toHaveBeenCalledWith("node.connected", node);
 
 			expect(broker.registerAction).toHaveBeenCalledTimes(1);
-			expect(broker.registerAction).toHaveBeenCalledWith(remoteAction, "server-1");
+			expect(broker.registerAction).toHaveBeenCalledWith("server-1", remoteAction);
 		});
 
 		it("should not emit event because node is exist but register remote actions again", () => {
@@ -589,7 +589,7 @@ describe("Test Transit node & heartbeat handling", () => {
 			expect(broker.emitLocal).toHaveBeenCalledTimes(0);
 			
 			expect(broker.registerAction).toHaveBeenCalledTimes(1);
-			expect(broker.registerAction).toHaveBeenCalledWith(remoteAction, "server-1");
+			expect(broker.registerAction).toHaveBeenCalledWith("server-1", remoteAction);
 		});
 
 		it("should not process info if nodeID is null", () => {
@@ -713,13 +713,13 @@ describe("Test Transit node & heartbeat handling", () => {
 			} 
 		});
 
-		broker.registerAction(remoteAction, "server-3");
+		broker.registerAction("server-3", remoteAction);
 
 		it("should unregister actions of disconnected node", () => {
 			transit.nodeDisconnected("server-3");
 
 			expect(broker.unregisterAction).toHaveBeenCalledTimes(1);
-			expect(broker.unregisterAction).toHaveBeenCalledWith(remoteAction, "server-3");
+			expect(broker.unregisterAction).toHaveBeenCalledWith("server-3", remoteAction);
 		});
 	});
 

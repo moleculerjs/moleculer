@@ -1,15 +1,14 @@
 "use strict";
 
-const BalancedList = require("../../src/balanced-list");
-
+const { ActionList, STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM } = require("../../src/service-registry");
 
 describe("Test constructor", () => {
 
 	it("should create instance with default options", () => {
-		let list = new BalancedList();
+		let list = new ActionList();
 		expect(list).toBeDefined();
 		expect(list.list).toBeDefined();
-		expect(list.opts).toEqual({"preferLocal": true, "strategy": BalancedList.STRATEGY_ROUND_ROBIN});
+		expect(list.opts).toEqual({"preferLocal": true, "strategy": STRATEGY_ROUND_ROBIN});
 		expect(list.counter).toBe(0);
 		expect(list.count()).toBe(0);
 
@@ -20,11 +19,11 @@ describe("Test constructor", () => {
 	it("should create instance with options", () => {
 		let opts = {
 			preferLocal: false,
-			strategy: BalancedList.STRATEGY_RANDOM
+			strategy: STRATEGY_RANDOM
 		};
-		let list = new BalancedList(opts);
+		let list = new ActionList(opts);
 		expect(list).toBeDefined();
-		expect(list.opts).toEqual({"preferLocal": false, "strategy": BalancedList.STRATEGY_RANDOM});
+		expect(list.opts).toEqual({"preferLocal": false, "strategy": STRATEGY_RANDOM});
 	});
 
 });
@@ -33,7 +32,7 @@ describe("Test Add & get methods with preferLocal = true", () => {
 	let obj1 = { a: 1 };
 	let obj2 = { b: 2 };
 	let obj3 = { c: 3 };
-	let list = new BalancedList();
+	let list = new ActionList();
 
 	it("should add items and not found local item", () => {
 		list.add(obj1, "node1"); // remote
@@ -96,7 +95,7 @@ describe("Test Add & get methods with preferLocal = true", () => {
 	});
 
 	it("should not add again the exist data just replace", () => {
-		let list = new BalancedList();
+		let list = new ActionList();
 
 		list.add(obj1, "node1");
 		list.add(obj2, "node1");
@@ -110,7 +109,7 @@ describe("Test Add & get methods with preferLocal = true", () => {
 	let obj1 = { a: 1 };
 	let obj2 = { b: 2 };
 	let obj3 = { c: 3 };
-	let list = new BalancedList({ preferLocal: false});
+	let list = new ActionList({ preferLocal: false});
 
 	it("should add items and found local item", () => {
 		list.add(obj1, "node1");
@@ -145,7 +144,7 @@ describe("Test Add & get methods with preferLocal = true", () => {
 describe("Test getData method", () => {
 	let obj1 = { a: 1};
 	let obj2 = { b: 5};
-	let list = new BalancedList({ preferLocal: false });
+	let list = new ActionList({ preferLocal: false });
 
 	it("test getData", () => {
 		list.add(obj1);

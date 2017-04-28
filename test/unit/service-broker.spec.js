@@ -4,6 +4,7 @@ const path = require("path");
 const Promise = require("bluebird");
 const ServiceBroker = require("../../src/service-broker");
 const Service = require("../../src/service");
+const ServiceRegistry = require("../../src/service-registry");
 const Context = require("../../src/context");
 const Transit = require("../../src/transit");
 const MemoryCacher = require("../../src/cachers/memory");
@@ -51,7 +52,7 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.bus).toBeDefined();
 
 		expect(broker.services).toBeInstanceOf(Array);
-		expect(broker.actions).toBeInstanceOf(Map);
+		expect(broker.serviceRegistry).toBeInstanceOf(ServiceRegistry);
 		
 		expect(broker.middlewares).toBeInstanceOf(Array);
 
@@ -99,7 +100,7 @@ describe("Test ServiceBroker constructor", () => {
 			validation: false, 
 			internalActions: false });
 		expect(broker.services).toBeInstanceOf(Array);
-		expect(broker.actions).toBeInstanceOf(Map);
+		expect(broker.serviceRegistry).toBeInstanceOf(ServiceRegistry);
 		expect(broker.transit).toBeUndefined();
 		expect(broker.statistics).toBeDefined();
 		expect(broker.validator).toBeUndefined();
@@ -358,11 +359,11 @@ describe("Test broker.registerAction", () => {
 			name: "list"
 		};
 
-		broker.registerAction(action);
+		broker.registerAction(null, action);
 		expect(broker.wrapAction).toHaveBeenCalledTimes(1);
-		expect(broker.actions.get("list")).toBeDefined();
+		expect(broker.hasAction("list")).toBe(true);
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("register.action.list", { action, nodeID: undefined });
+		expect(broker.emitLocal).toHaveBeenCalledWith("register.action.list", { action, nodeID: null });
 	});
 
 	it("should push to the actions & emit an event with nodeID", () => {
@@ -372,9 +373,9 @@ describe("Test broker.registerAction", () => {
 			name: "update"
 		};
 
-		broker.registerAction(action, "server-2");
+		broker.registerAction("server-2", action);
 		expect(broker.wrapAction).toHaveBeenCalledTimes(0);
-		expect(broker.actions.get("update")).toBeDefined();
+		expect(broker.hasAction("update")).toBe(true);
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
 		expect(broker.emitLocal).toHaveBeenCalledWith("register.action.update", { action, nodeID: "server-2" });
 	});
@@ -553,7 +554,7 @@ describe.skip("Test broker.wrapContextInvoke", () => {
 
 });
 
-describe("Test broker.unregisterAction", () => {
+describe.skip("Test broker.unregisterAction", () => {
 
 	let broker = new ServiceBroker();
 
@@ -561,18 +562,18 @@ describe("Test broker.unregisterAction", () => {
 		name: "list"
 	};
 
-	broker.registerAction(action);
-	broker.registerAction(action, "server-2");
+	broker.registerAction(null, action);
+	broker.registerAction("server-2", action);
 	
 	it("should contains 2 items", () => {
-		let item = broker.actions.get("list");
+		let item = broker.getAction("list");
 		expect(item).toBeDefined();
 		expect(item.list.length).toBe(2);
 	});
 
 	it("should remove action from list by nodeID", () => {
 		broker.unregisterAction(action);
-		let item = broker.actions.get("list");
+		let item = broker.getAction("list");
 		expect(item).toBeDefined();
 		expect(item.list.length).toBe(1);
 		expect(item.get().nodeID).toBe("server-2");
@@ -580,7 +581,7 @@ describe("Test broker.unregisterAction", () => {
 
 	it("should remove last item from list", () => {
 		broker.unregisterAction(action, "server-2");
-		let item = broker.actions.get("list");
+		let item = broker.getAction("list");
 		expect(item).toBeDefined();
 		expect(item.list.length).toBe(0);
 	});
@@ -597,10 +598,10 @@ describe("Test broker.registerInternalActions", () => {
 		broker.registerInternalActions();
 		
 		expect(broker.registerAction).toHaveBeenCalledTimes(4);
-		expect(broker.registerAction).toHaveBeenCalledWith({ name: "$node.list", cache: false, handler: jasmine.any(Function) });
-		expect(broker.registerAction).toHaveBeenCalledWith({ name: "$node.services", cache: false, handler: jasmine.any(Function) });
-		expect(broker.registerAction).toHaveBeenCalledWith({ name: "$node.actions", cache: false, handler: jasmine.any(Function) });
-		expect(broker.registerAction).toHaveBeenCalledWith({ name: "$node.health", cache: false, handler: jasmine.any(Function) });
+		expect(broker.registerAction).toHaveBeenCalledWith(null, { name: "$node.list", cache: false, handler: jasmine.any(Function) });
+		expect(broker.registerAction).toHaveBeenCalledWith(null, { name: "$node.services", cache: false, handler: jasmine.any(Function) });
+		expect(broker.registerAction).toHaveBeenCalledWith(null, { name: "$node.actions", cache: false, handler: jasmine.any(Function) });
+		expect(broker.registerAction).toHaveBeenCalledWith(null, { name: "$node.health", cache: false, handler: jasmine.any(Function) });
 	});
 
 	it("should register internal action with statistics", () => {
@@ -612,7 +613,7 @@ describe("Test broker.registerInternalActions", () => {
 		broker.registerInternalActions();
 		
 		expect(broker.registerAction).toHaveBeenCalledTimes(5);
-		expect(broker.registerAction).toHaveBeenCalledWith({ name: "$node.stats", cache: false, handler: jasmine.any(Function) });
+		expect(broker.registerAction).toHaveBeenCalledWith(null, { name: "$node.stats", cache: false, handler: jasmine.any(Function) });
 	});
 });
 
@@ -731,7 +732,7 @@ describe("Test broker.isActionAvailable", () => {
 	});
 
 	it("should not find handler for action by name", () => {
-		broker.unregisterAction({ name: "posts.list" });
+		broker.unregisterAction(null, { name: "posts.list" });
 		expect(broker.hasAction("posts.list")).toBe(true);
 		expect(broker.isActionAvailable("posts.list")).toBe(false);
 	});
@@ -786,7 +787,7 @@ describe("Test broker.call method", () => {
 		});
 
 		it("should reject if no handler", () => {
-			broker.unregisterAction({ name: "posts.noHandler" });
+			broker.unregisterAction(null, { name: "posts.noHandler" });
 			return broker.call("posts.noHandler").catch(err => {
 				expect(err).toBeDefined();
 				expect(err).toBeInstanceOf(ServiceNotFoundError);
@@ -800,7 +801,7 @@ describe("Test broker.call method", () => {
 			return p.then(ctx => {
 				expect(ctx).toBeDefined();
 				expect(ctx.broker).toBe(broker);
-				expect(ctx.nodeID).toBeUndefined();
+				expect(ctx.nodeID).toBeNull();
 				expect(ctx.level).toBe(1);
 				expect(ctx.requestID).toBeNull();
 				expect(ctx.action.name).toBe("posts.find");
@@ -853,7 +854,7 @@ describe("Test broker.call method", () => {
 			return broker.call("posts.find", { b: 10 }, { parentCtx, meta: { b: "Adam" } }).then(ctx => {
 				expect(ctx).toBeDefined();
 				expect(ctx.broker).toBe(broker);
-				expect(ctx.nodeID).toBeUndefined();
+				expect(ctx.nodeID).toBeNull();
 				expect(ctx.level).toBe(2);
 				expect(ctx.parentID).toBe(parentCtx.id);
 				expect(ctx.requestID).toBe("555");
@@ -881,7 +882,7 @@ describe("Test broker.call method", () => {
 			return broker.call("posts.find", { b: 10 }, { ctx: preCtx }).then(ctx => {
 				expect(ctx).toBe(preCtx);
 				expect(ctx.broker).toBe(broker);
-				expect(ctx.nodeID).toBeUndefined();
+				expect(ctx.nodeID).toBeNull();
 				expect(ctx.level).toBe(1);
 				expect(ctx.parentID).toBeNull();
 				expect(ctx.requestID).toBe("555");
@@ -923,7 +924,7 @@ describe("Test broker.call method", () => {
 			internalActions: false, 
 			metrics: true
 		});
-		broker.registerAction({	name: "user.create" }, "server-2");
+		broker.registerAction("server-2", {	name: "user.create" });
 		broker.transit.request = jest.fn((ctx) => Promise.resolve({ ctx }));
 			
 		it("should call transit.request with new Context without params", () => {
@@ -1229,7 +1230,7 @@ describe("Test broker.emitLocal", () => {
 	});
 });
 
-describe("Test broker.getLocalActionList", () => {
+describe.skip("Test broker.getLocalActionList", () => {
 	let broker = new ServiceBroker();
 
 	broker.createService({
@@ -1245,7 +1246,7 @@ describe("Test broker.getLocalActionList", () => {
 	});
 
 	broker.loadService("./test/services/math.service.js");
-	broker.registerAction({ name: "remote.action" }, "server-2");
+	broker.registerAction("server-2", { name: "remote.action" });
 
 	it("should returns with local action list", () => {
 		let res = broker.getLocalActionList();

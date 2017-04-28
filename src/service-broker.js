@@ -9,7 +9,7 @@
 const Promise = require("bluebird");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const Transit = require("./transit");
-const BalancedList = require("./balanced-list");
+const ServiceRegistry = require("./service-registry");
 const E = require("./errors");
 const utils = require("./utils");
 const Logger = require("./logger");
@@ -22,13 +22,12 @@ const JSONSerializer = require("./serializers/json");
 //const _ = require("lodash");
 const _ = require("lodash");
 const pick = require("lodash/pick");
-const omit = require("lodash/omit");
 const isArray = require("lodash/isArray");
 
 const glob = require("glob");
 const path = require("path");
 
-
+const LOCAL_NODE_ID = null; // `null` means local nodeID
 /**
  * Service broker class
  * 
@@ -92,7 +91,7 @@ class ServiceBroker {
 
 		// Internal maps
 		this.services = [];
-		this.actions = new Map();
+		this.serviceRegistry = new ServiceRegistry();
 
 		// Middlewares
 		this.middlewares = [];
@@ -310,24 +309,18 @@ class ServiceBroker {
 	/**
 	 * Register an action in a local server
 	 * 
-	 * @param {any} action		action schema
 	 * @param {any} nodeID		NodeID if it is on a remote server/node
+	 * @param {any} action		action schema
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	registerAction(action, nodeID) {
+	registerAction(nodeID, action) {
 
 		// Wrap middlewares
 		if (!nodeID)
 			this.wrapAction(action);
 		
-		// Append action by name
-		let item = this.actions.get(action.name);
-		if (!item) {
-			item = new BalancedList();
-			this.actions.set(action.name, item);
-		}
-		if (item.add(action, nodeID)) {
+		if (this.serviceRegistry.registerAction(nodeID, action)) {
 			this.emitLocal(`register.action.${action.name}`, { action, nodeID });
 		}
 	}
@@ -358,24 +351,13 @@ class ServiceBroker {
 	 * Unregister an action on a local server. 
 	 * It will be called when a remote node disconnected. 
 	 * 
-	 * @param {any} action		action schema
 	 * @param {any} nodeID		NodeID if it is on a remote server/node
+	 * @param {any} action		action schema
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	unregisterAction(action, nodeID) {
-		let item = this.actions.get(action.name);
-		if (item) {
-			item.removeByNode(nodeID);
-			/* Don't delete because maybe node only disconnected and will come back.
-			   So the action is exists, just now it is not available.
-			
-			if (item.count() == 0) {
-				this.actions.delete(action.name);
-			}
-			this.emitLocal(`unregister.action.${action.name}`, { service, action, nodeID });
-			*/
-		}		
+	unregisterAction(nodeID, action) {
+		this.serviceRegistry.unregisterAction(nodeID, action);
 	}
 
 	/**
@@ -385,7 +367,7 @@ class ServiceBroker {
 	 */
 	registerInternalActions() {
 		const addAction = (name, handler) => {
-			this.registerAction({
+			this.registerAction(LOCAL_NODE_ID, {
 				name,
 				cache: false,
 				handler: Promise.method(handler)
@@ -411,17 +393,7 @@ class ServiceBroker {
 		});
 
 		addAction("$node.actions", () => {
-			let res = [];
-			this.actions.forEach((o, name) => {
-				let item = o.getLocalItem();
-				if (item) {
-					res.push({
-						name
-					});
-				}
-			});
-
-			return res;
+			return this.serviceRegistry.getLocalActionList();
 		});
 
 		addAction("$node.health", () => this.getNodeHealthInfo());
@@ -502,7 +474,7 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	hasAction(actionName) {
-		return this.actions.has(actionName);
+		return this.serviceRegistry.hasAction(actionName);
 	}	
 
 	/**
@@ -514,9 +486,9 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	getAction(actionName) {
-		const action = this.actions.get(actionName);
-		if (action) {
-			return action.get();
+		const item = this.serviceRegistry.findAction(actionName);
+		if (item) {
+			return item.get();
 		}
 		return null;
 	}	
@@ -530,8 +502,8 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	isActionAvailable(actionName) {
-		let action = this.actions.get(actionName);
-		return action && action.count() > 0;
+		const item = this.serviceRegistry.findAction(actionName);
+		return item && item.count() > 0;
 	}	
 
 	/**
@@ -608,7 +580,7 @@ class ServiceBroker {
 			actionName = actionItem.data.name;
 		} else {
 			// Find action by name
-			let actions = this.actions.get(actionName);
+			let actions = this.serviceRegistry.findAction(actionName);
 			if (actions == null) {
 				const errMsg = `Action '${actionName}' is not registered!`;
 				this.logger.warn(errMsg);
@@ -678,6 +650,16 @@ class ServiceBroker {
 		return p;
 	}
 
+	/**
+	 * Error handler for `call` method
+	 * 
+	 * @param {Error} err 
+	 * @param {Context} ctx 
+	 * @param {Object} opts 
+	 * @returns 
+	 * 
+	 * @memberOf ServiceBroker
+	 */
 	_callErrorHandler(err, ctx, opts) {
 		const actionName = ctx.action.name;
 		const nodeID = ctx.nodeID;
@@ -787,23 +769,6 @@ class ServiceBroker {
 		this.logger.debug("Event emitted:", eventName);		
 
 		return this.bus.emit(eventName, payload, sender);
-	}
-
-	/**
-	 * Get a list of names of local actions
-	 * 
-	 * @returns
-	 * 
-	 * @memberOf ServiceBroker
-	 */
-	getLocalActionList() {
-		let res = {};
-		this.actions.forEach((entry, key) => {
-			let item = entry.getLocalItem();
-			if (item && !/^\$node/.test(key)) // Skip internal actions
-				res[key] = omit(item.data, ["handler", "service"]);
-		});
-		return res;
 	}
 	
 }
