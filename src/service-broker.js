@@ -28,6 +28,7 @@ const glob = require("glob");
 const path = require("path");
 
 const LOCAL_NODE_ID = null; // `null` means local nodeID
+
 /**
  * Service broker class
  * 
@@ -54,6 +55,14 @@ class ServiceBroker {
 			requestRetry: 0,
 			heartbeatInterval: 10,
 			heartbeatTimeout: 30,
+
+			circuitBreaker: {
+				enabled: true,
+				maxFailures: 5,
+				halfOpenTime: 10 * 1000,
+				failureOnTimeout: true,
+				failureOnReject: true
+			},
 
 			cacher: null,
 			serializer: null,
@@ -91,7 +100,8 @@ class ServiceBroker {
 
 		// Internal maps
 		this.services = [];
-		this.serviceRegistry = new ServiceRegistry();
+		this.serviceRegistry = new ServiceRegistry(this.opts);
+		this.serviceRegistry.init(this);
 
 		// Middlewares
 		this.middlewares = [];
@@ -320,9 +330,7 @@ class ServiceBroker {
 		if (!nodeID)
 			this.wrapAction(action);
 		
-		if (this.serviceRegistry.registerAction(nodeID, action)) {
-			this.emitLocal(`register.action.${action.name}`, { action, nodeID });
-		}
+		this.serviceRegistry.registerAction(nodeID, action);
 	}
 
 	/**
@@ -488,7 +496,7 @@ class ServiceBroker {
 	getAction(actionName) {
 		const item = this.serviceRegistry.findAction(actionName);
 		if (item) {
-			return item.get();
+			return item.nextAvailable();
 		}
 		return null;
 	}	
@@ -520,29 +528,45 @@ class ServiceBroker {
 		});
 	}
 
+	/**
+	 * Create a new Context instance
+	 * 
+	 * @param {Object} action 
+	 * @param {String?} nodeID 
+	 * @param {Object?} params 
+	 * @param {Object?} opts 
+	 * @returns {Context}
+	 * 
+	 * @memberof ServiceBroker
+	 */
 	createNewContext(action, nodeID, params, opts) {
 		const ctx = new this.ContextFactory(this, action);
 		ctx.nodeID = nodeID;
 		ctx.setParams(params);
 
+		// RequestID
 		if (opts.requestID != null)
 			ctx.requestID = opts.requestID;
 		else if (opts.parentCtx != null && opts.parentCtx.requestID != null)
 			ctx.requestID = opts.parentCtx.requestID;
 
+		// Meta
 		if (opts.parentCtx != null && opts.parentCtx.meta != null)
 			ctx.meta = _.assign({}, opts.parentCtx.meta, opts.meta);
 		else if (opts.meta != null)
 			ctx.meta = opts.meta;
 
+		// Timeout
 		ctx.timeout = opts.timeout;
 		ctx.retryCount = opts.retryCount;
 
+		// Metrics
 		if (opts.parentCtx != null)
 			ctx.metrics = opts.parentCtx.metrics;
 		else
 			ctx.metrics = this.shouldMetric();
 
+		// ID, parentID, level
 		if (ctx.metrics || nodeID) {
 			ctx.generateID();
 
@@ -577,7 +601,7 @@ class ServiceBroker {
 		let actionItem;
 		if (typeof actionName !== "string") {
 			actionItem = actionName;
-			actionName = actionItem.data.name;
+			actionName = actionItem.action.name;
 		} else {
 			// Find action by name
 			let actions = this.serviceRegistry.findAction(actionName);
@@ -588,7 +612,7 @@ class ServiceBroker {
 			}
 			
 			// Get an action handler item
-			actionItem = actions.get();
+			actionItem = actions.nextAvailable();
 			if (actionItem == null) {
 				const errMsg = `Not available '${actionName}' action handler!`;
 				this.logger.warn(errMsg);
@@ -597,7 +621,7 @@ class ServiceBroker {
 		}
 
 		// Expose action info
-		let action = actionItem.data;
+		let action = actionItem.action;
 		let nodeID = actionItem.nodeID;
 		
 		// Create context
@@ -614,7 +638,7 @@ class ServiceBroker {
 
 		// Call handler or transfer request
 		let p;
-		if (!nodeID) {
+		if (actionItem.local) {
 			// Add metrics start
 			if (ctx.metrics === true || ctx.timeout > 0)
 				ctx._metricStart();
@@ -640,9 +664,17 @@ class ServiceBroker {
 				p = p.timeout(ctx.timeout);
 		}
 
+		// Handle half-open state in circuit breaker
+		if (this.options.circuitBreaker.enabled && actionItem.state === ServiceRegistry.CIRCUIT_HALF_OPEN) {
+			p = p.then(res => {
+				actionItem.circuitClose();
+				return res;
+			});
+		}
+
 
 		// Error handler
-		p = p.catch(err => this._callErrorHandler(err, ctx, opts));
+		p = p.catch(err => this._callErrorHandler(err, ctx, actionItem, opts));
 
 		// Pointer to Context
 		p.ctx = ctx;
@@ -655,12 +687,13 @@ class ServiceBroker {
 	 * 
 	 * @param {Error} err 
 	 * @param {Context} ctx 
+	 * @param {ActionItem} actionItem
 	 * @param {Object} opts 
 	 * @returns 
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	_callErrorHandler(err, ctx, opts) {
+	_callErrorHandler(err, ctx, actionItem, opts) {
 		const actionName = ctx.action.name;
 		const nodeID = ctx.nodeID;
 
@@ -675,6 +708,12 @@ class ServiceBroker {
 		if (nodeID) {
 			// Remove pending request
 			this.transit.removePendingRequest(ctx.id);
+		}
+
+		if (this.options.circuitBreaker.enabled) {
+			if ((err instanceof E.RequestTimeoutError && this.options.circuitBreaker.failureOnTimeout) || (err.code >= 500 && this.options.circuitBreaker.failureOnReject)) {
+				actionItem.failure();
+			}
 		}
 
 		if (err instanceof E.RequestTimeoutError) {
