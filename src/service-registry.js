@@ -250,6 +250,8 @@ class ActionList {
 			const item = this.get();
 			if (item.available())
 				return item;
+
+			i++;
 		}
 
 		return null;

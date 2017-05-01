@@ -100,7 +100,7 @@ class ServiceBroker {
 
 		// Internal maps
 		this.services = [];
-		this.serviceRegistry = new ServiceRegistry(this.opts);
+		this.serviceRegistry = new ServiceRegistry(this.options);
 		this.serviceRegistry.init(this);
 
 		// Middlewares

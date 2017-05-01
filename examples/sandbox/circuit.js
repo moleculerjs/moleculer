@@ -9,28 +9,57 @@ const broker = new ServiceBroker({
 		enabled: true,
 		maxFailures: 2,
 		halfOpenTime: 5 * 1000
-	}
+	},
+	preferLocal: false
 });
 
 let c = 0;
+// First unstable instance
 broker.createService({
 	name: "circuit",
 	actions: {
 		"no-good"() {
-			if (++c > 7) 
-				c = 1;
+			if (++this.c > 7) 
+				this.c = 1;
 
-			if (c > 5)
-				return this.broker.Promise.reject(new CustomError("Not so good! " + c, 500));
+			if (this.c > 5)
+				return this.broker.Promise.reject(new CustomError("Not so good! " + this.c, 500));
 			
 
-			return Promise.resolve(c);
+			return Promise.resolve("UNSTABLE " + this.c);
 		}
 	},
+	
 	events: {
 		"circuit-breaker.*"(payload, nodeID, eventName) {
 			this.broker.logger.info(eventName, payload.action.name);
 		}
+	},
+	
+	created() {
+		this.c = 0;
+	}
+});
+
+// Second instance
+broker.createService({
+	name: "circuit",
+	actions: {
+		"no-good"() {
+			return Promise.resolve("ALWAYS GOOD");
+			/*if (++this.c > 5) 
+				this.c = 1;
+
+			if (this.c > 3)
+				return this.broker.Promise.reject(new CustomError("Not so good! " + this.c, 500));
+			
+
+			return Promise.resolve("SECOND " + this.c);		*/	
+		}
+	},
+
+	created() {
+		this.c = 0;
 	}
 });
 
