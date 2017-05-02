@@ -293,6 +293,15 @@ describe("Test EndpointList nextAvailable methods with preferLocal", () => {
 		expect(ep.action).toBe(obj1);
 	});
 
+	it("should return null if list is contains one item but unavailable", () => {
+		list.list[0].state = ServiceRegistry.CIRCUIT_OPEN;
+
+		let ep = list.nextAvailable();
+		expect(ep).toBeNull();
+
+		list.list[0].state = ServiceRegistry.CIRCUIT_CLOSE;
+	});
+
 	it("should return the local item if list is contains local item", () => {
 		list.add(null, obj0);
 
@@ -439,9 +448,7 @@ describe("Test EndpointList removeByAction & removeByNode methods", () => {
 
 		expect(list.count()).toBe(3);
 
-		let item = list.get();
 		list.removeByAction(obj2);
-
 		expect(list.count()).toBe(2);
 	});
 
@@ -455,4 +462,147 @@ describe("Test EndpointList removeByAction & removeByNode methods", () => {
 		expect(list.count()).toBe(0);
 	});
 
+});
+
+describe("Test Endpoint constructor", () => {
+	const broker = new ServiceBroker();
+	broker.emit = jest.fn();
+
+	const action = {
+		name: "user.list",
+		handler: jest.fn()
+	};
+
+	it("should create a default instance", () => {
+		let item = new ServiceRegistry.Endpoint(broker, "node2", action);
+
+		expect(item).toBeDefined();
+		expect(item.broker).toBe(broker);
+		expect(item.nodeID).toBe("node2");
+		expect(item.action).toBe(action);
+		expect(item.local).toBe(false);
+		expect(item.state).toBe(ServiceRegistry.CIRCUIT_CLOSE);
+		expect(item.failures).toBe(0);
+		expect(item.cbTimer).toBeNull();
+	});
+
+	it("should create a local instance", () => {
+		let item = new ServiceRegistry.Endpoint(broker, null, action);
+
+		expect(item).toBeDefined();
+		expect(item.broker).toBe(broker);
+		expect(item.nodeID).toBeNull();
+		expect(item.action).toBe(action);
+		expect(item.local).toBe(true);
+		expect(item.state).toBe(ServiceRegistry.CIRCUIT_CLOSE);
+		expect(item.failures).toBe(0);
+		expect(item.cbTimer).toBeNull();
+	});
+
+	it("should update action", () => {
+		const action2 = {
+			name: "user.find"
+		};
+
+		let item = new ServiceRegistry.Endpoint(broker, null, action);
+		item.updateAction(action2);
+		expect(item.action).toBe(action2);
+	});
+});
+
+// jest.useFakeTimers();
+
+describe("Test Endpoint circuit methods", () => {
+	const broker = new ServiceBroker({
+		circuitBreaker: {
+			maxFailures: 2,
+			halfOpenTime: 100
+		}
+	});
+	broker.emitLocal = jest.fn();
+
+	const action = {
+		name: "user.list",
+		handler: jest.fn()
+	};
+
+	let item;
+	beforeEach(() => {
+		item = new ServiceRegistry.Endpoint(broker, null, action);
+	});
+
+	it("test available", () => {
+		item.state = ServiceRegistry.CIRCUIT_HALF_OPEN;
+		expect(item.available()).toBe(true);
+		
+		item.state = ServiceRegistry.CIRCUIT_OPEN;
+		expect(item.available()).toBe(false);
+
+		item.state = ServiceRegistry.CIRCUIT_CLOSE;
+		expect(item.available()).toBe(true);
+	});
+
+	it("test failure", () => {
+		item.circuitOpen = jest.fn();
+
+		expect(item.failures).toBe(0);
+		expect(item.circuitOpen).toHaveBeenCalledTimes(0);
+
+		item.failure();
+		expect(item.failures).toBe(1);
+		expect(item.circuitOpen).toHaveBeenCalledTimes(0);
+
+		item.failure();
+		expect(item.failures).toBe(2);
+		expect(item.circuitOpen).toHaveBeenCalledTimes(1);
+	});
+
+	it("test circuitOpen", () => {
+		item.state = ServiceRegistry.CIRCUIT_CLOSE;
+		item.circuitHalfOpen = jest.fn();
+
+		item.circuitOpen();
+
+		expect(item.state).toBe(ServiceRegistry.CIRCUIT_OPEN);
+		expect(item.cbTimer).toBeDefined();
+		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
+		expect(broker.emitLocal).toHaveBeenCalledWith("circuit-breaker.open", { nodeID: null, action, failures: 0 });
+
+		// circuitHalfOpen
+		expect(item.circuitHalfOpen).toHaveBeenCalledTimes(0);
+
+		return new Promise(resolve => {
+			setTimeout(() => {
+				expect(item.circuitHalfOpen).toHaveBeenCalledTimes(1);
+				resolve();
+			}, 150);
+		});
+
+	});
+
+	it("test circuitOpen", () => {
+		broker.emitLocal.mockClear();
+		item.state = ServiceRegistry.CIRCUIT_OPEN;
+
+		item.circuitHalfOpen();
+
+		expect(item.state).toBe(ServiceRegistry.CIRCUIT_HALF_OPEN);
+		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
+		expect(broker.emitLocal).toHaveBeenCalledWith("circuit-breaker.half-open", { nodeID: null, action });
+
+	});
+
+	it("test circuitOpen", () => {
+		broker.emitLocal.mockClear();
+		item.state = ServiceRegistry.CIRCUIT_HALF_OPEN;
+		item.failures = 5;
+
+		item.circuitClose();
+
+		expect(item.state).toBe(ServiceRegistry.CIRCUIT_CLOSE);
+		expect(item.failures).toBe(0);
+		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
+		expect(broker.emitLocal).toHaveBeenCalledWith("circuit-breaker.close", { nodeID: null, action });
+
+	});
 });
