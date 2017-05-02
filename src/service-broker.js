@@ -598,10 +598,10 @@ class ServiceBroker {
 		if (opts.retryCount == null)
 			opts.retryCount = this.options.requestRetry || 0;		
 		
-		let actionItem;
+		let endpoint;
 		if (typeof actionName !== "string") {
-			actionItem = actionName;
-			actionName = actionItem.action.name;
+			endpoint = actionName;
+			actionName = endpoint.action.name;
 		} else {
 			// Find action by name
 			let actions = this.serviceRegistry.findAction(actionName);
@@ -612,8 +612,8 @@ class ServiceBroker {
 			}
 			
 			// Get an action handler item
-			actionItem = actions.nextAvailable();
-			if (actionItem == null) {
+			endpoint = actions.nextAvailable();
+			if (endpoint == null) {
 				const errMsg = `Action '${actionName}' is not available!`;
 				this.logger.warn(errMsg);
 				return Promise.reject(new E.ServiceNotFoundError(errMsg, actionName));
@@ -621,8 +621,8 @@ class ServiceBroker {
 		}
 
 		// Expose action info
-		let action = actionItem.action;
-		let nodeID = actionItem.nodeID;
+		let action = endpoint.action;
+		let nodeID = endpoint.nodeID;
 		
 		// Create context
 		let ctx;
@@ -638,7 +638,7 @@ class ServiceBroker {
 
 		// Call handler or transfer request
 		let p;
-		if (actionItem.local) {
+		if (endpoint.local) {
 			// Add metrics start
 			if (ctx.metrics === true || ctx.timeout > 0)
 				ctx._metricStart();
@@ -665,16 +665,16 @@ class ServiceBroker {
 		}
 
 		// Handle half-open state in circuit breaker
-		if (this.options.circuitBreaker.enabled && actionItem.state === ServiceRegistry.CIRCUIT_HALF_OPEN) {
+		if (this.options.circuitBreaker.enabled && endpoint.state === ServiceRegistry.CIRCUIT_HALF_OPEN) {
 			p = p.then(res => {
-				actionItem.circuitClose();
+				endpoint.circuitClose();
 				return res;
 			});
 		}
 
 
 		// Error handler
-		p = p.catch(err => this._callErrorHandler(err, ctx, actionItem, opts));
+		p = p.catch(err => this._callErrorHandler(err, ctx, endpoint, opts));
 
 		// Pointer to Context
 		p.ctx = ctx;
@@ -687,13 +687,13 @@ class ServiceBroker {
 	 * 
 	 * @param {Error} err 
 	 * @param {Context} ctx 
-	 * @param {Endpoint} actionItem
+	 * @param {Endpoint} endpoint
 	 * @param {Object} opts 
 	 * @returns 
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	_callErrorHandler(err, ctx, actionItem, opts) {
+	_callErrorHandler(err, ctx, endpoint, opts) {
 		const actionName = ctx.action.name;
 		const nodeID = ctx.nodeID;
 
@@ -712,7 +712,7 @@ class ServiceBroker {
 
 		if (this.options.circuitBreaker.enabled) {
 			if ((err instanceof E.RequestTimeoutError && this.options.circuitBreaker.failureOnTimeout) || (err.code >= 500 && this.options.circuitBreaker.failureOnReject)) {
-				actionItem.failure();
+				endpoint.failure();
 			}
 		}
 
