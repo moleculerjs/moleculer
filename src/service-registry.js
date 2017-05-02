@@ -118,12 +118,12 @@ class ServiceRegistry {
 	 * 
 	 * @memberOf ServiceRegistry
 	 */
-	getLocalActionList() {
+	getLocalActions() {
 		let res = {};
 		this.actions.forEach((entry, key) => {
-			let item = entry.getLocalItem();
-			if (item && !/^\$node/.test(key)) // Skip internal actions
-				res[key] = omit(item.data, ["handler", "service"]);
+			let endpoint = entry.getLocalEndpoint();
+			if (endpoint && !/^\$node/.test(key)) // Skip internal actions
+				res[key] = omit(endpoint.action, ["handler", "service"]);
 		});
 		return res;
 	}	
@@ -283,7 +283,7 @@ class EndpointList {
 		return this.list.length;
 	}
 
-	getLocalItem() {
+	getLocalEndpoint() {
 		return this.localItem;
 	}
 

@@ -353,7 +353,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	discoverNodes() {
-		const actions = this.broker.serviceRegistry.getLocalActionList();
+		const actions = this.broker.serviceRegistry.getLocalActions();
 		return this.publish(new P.PacketDiscover(this, actions));
 	}
 
@@ -363,7 +363,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendNodeInfo(nodeID) {
-		const actions = this.broker.serviceRegistry.getLocalActionList();
+		const actions = this.broker.serviceRegistry.getLocalActions();
 		return this.publish(new P.PacketInfo(this, nodeID, actions));
 	}
 

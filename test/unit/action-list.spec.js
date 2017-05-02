@@ -62,7 +62,7 @@ describe.skip("Test Add & get methods with preferLocal = true", () => {
 	});
 
 	it("should found the local item", () => {
-		let item = list.getLocalItem();
+		let item = list.getLocalEndpoint();
 		expect(item.local).toBe(true);
 		expect(item.nodeID).toBeUndefined();
 		expect(item.data).toBe(obj3);
@@ -80,7 +80,7 @@ describe.skip("Test Add & get methods with preferLocal = true", () => {
 		expect(list.counter).toBe(1);
 		expect(list.hasLocal()).toBe(false);
 	
-		let item = list.getLocalItem();
+		let item = list.getLocalEndpoint();
 		expect(item).toBeUndefined();
 	});
 

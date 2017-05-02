@@ -28,6 +28,14 @@ describe("Test ServiceBroker constructor", () => {
 			requestRetry: 0, 
 			heartbeatInterval: 10, 
 			heartbeatTimeout : 30, 
+
+			circuitBreaker: {
+				enabled: false,
+				maxFailures: 5,
+				halfOpenTime: 10 * 1000,
+				failureOnTimeout: true,
+				failureOnReject: true
+			},			
 			
 			cacher: null,
 			serializer: null,
@@ -78,6 +86,11 @@ describe("Test ServiceBroker constructor", () => {
 			logLevel: "debug", 
 			requestRetry: 3, 
 			requestTimeout: 5000, 
+			circuitBreaker: {
+				enabled: true,
+				maxFailures: 2,
+				failureOnReject: false
+			},			
 			validation: false, 
 			internalActions: false });
 
@@ -95,6 +108,13 @@ describe("Test ServiceBroker constructor", () => {
 			statistics: true,
 			heartbeatTimeout : 20, 
 			heartbeatInterval: 10, 
+			circuitBreaker: {
+				enabled: true,
+				maxFailures: 2,
+				halfOpenTime: 10 * 1000,
+				failureOnTimeout: true,
+				failureOnReject: false
+			},			
 			requestRetry: 3, 
 			requestTimeout: 5000, 
 			validation: false, 
@@ -706,7 +726,7 @@ describe("Test broker.getAction", () => {
 	});
 
 	it("should find the action by name", () => {
-		const action = broker.getAction("posts.list").data;
+		const { action } = broker.getAction("posts.list");
 		expect(action.custom).toBe("hello");
 		expect(action.cache).toBe(true);
 		expect(action.handler).toBeInstanceOf(Function);
@@ -791,7 +811,7 @@ describe("Test broker.call method", () => {
 			return broker.call("posts.noHandler").catch(err => {
 				expect(err).toBeDefined();
 				expect(err).toBeInstanceOf(ServiceNotFoundError);
-				expect(err.message).toBe("Not available 'posts.noHandler' action handler!");
+				expect(err.message).toBe("Action 'posts.noHandler' is not available!");
 				expect(err.action).toBe("posts.noHandler");
 			});
 		});
@@ -983,9 +1003,10 @@ describe("Test broker._callErrorHandler", () => {
 	let timeoutErr = new RequestTimeoutError("user.create", "server-2");
 	ctx._metricFinish = jest.fn();
 	transit.removePendingRequest = jest.fn();
+	let endpoint = new ServiceRegistry.Endpoint(broker, ctx.nodeID, ctx.action);
 
 	it("should return error without retryCount & fallbackResponse", () => {
-		return broker._callErrorHandler(customErr, ctx, {}).catch(err => {
+		return broker._callErrorHandler(customErr, ctx, endpoint, {}).catch(err => {
 			expect(err).toBe(customErr);
 			expect(broker.nodeUnavailable).toHaveBeenCalledTimes(0);
 			expect(broker.call).toHaveBeenCalledTimes(0);
@@ -997,7 +1018,7 @@ describe("Test broker._callErrorHandler", () => {
 	});
 
 	it("should call nodeUnavailable if error code is greater than 500", () => {
-		return broker._callErrorHandler(timeoutErr, ctx, {}).catch(err => {
+		return broker._callErrorHandler(timeoutErr, ctx, endpoint, {}).catch(err => {
 			expect(err).toBe(timeoutErr);
 			expect(broker.nodeUnavailable).toHaveBeenCalledTimes(1);
 			expect(broker.nodeUnavailable).toHaveBeenCalledWith("server-2");
@@ -1008,7 +1029,7 @@ describe("Test broker._callErrorHandler", () => {
 	it("should convert error text to CustomError", () => {
 		broker.nodeUnavailable.mockClear();
 
-		return broker._callErrorHandler("Something happened", ctx, {}).catch(err => {
+		return broker._callErrorHandler("Something happened", ctx, endpoint, {}).catch(err => {
 			expect(err).toBeInstanceOf(CustomError);
 			expect(broker.call).toHaveBeenCalledTimes(0);
 			expect(broker.nodeUnavailable).toHaveBeenCalledTimes(1);
@@ -1019,7 +1040,7 @@ describe("Test broker._callErrorHandler", () => {
 	it("should convert Promise.TimeoutError to RequestTimeoutError", () => {
 		broker.nodeUnavailable.mockClear();
 
-		return broker._callErrorHandler(new Promise.TimeoutError, ctx, {}).catch(err => {
+		return broker._callErrorHandler(new Promise.TimeoutError, ctx, endpoint, {}).catch(err => {
 			expect(err).toBeInstanceOf(RequestTimeoutError);
 			expect(err.message).toBe("Request timed out when call 'user.create' action on 'server-2' node!");
 			expect(broker.call).toHaveBeenCalledTimes(0);
@@ -1033,7 +1054,7 @@ describe("Test broker._callErrorHandler", () => {
 		broker.nodeUnavailable.mockClear();
 		ctx.retryCount = 2;
 
-		return broker._callErrorHandler(timeoutErr, ctx, {}).then(() => {
+		return broker._callErrorHandler(timeoutErr, ctx, endpoint, {}).then(() => {
 			expect(broker.call).toHaveBeenCalledTimes(1);
 			expect(broker.call).toHaveBeenCalledWith("user.create", {}, { ctx });
 			expect(broker.nodeUnavailable).toHaveBeenCalledTimes(0);
@@ -1049,7 +1070,7 @@ describe("Test broker._callErrorHandler", () => {
 		broker.call.mockClear();
 
 		let otherRes = {};
-		return broker._callErrorHandler(customErr, ctx, { fallbackResponse: otherRes }).then(res => {
+		return broker._callErrorHandler(customErr, ctx, endpoint, { fallbackResponse: otherRes }).then(res => {
 			expect(res).toBe(otherRes);
 			expect(broker.nodeUnavailable).toHaveBeenCalledTimes(0);
 			expect(broker.call).toHaveBeenCalledTimes(0);
@@ -1067,7 +1088,7 @@ describe("Test broker._callErrorHandler", () => {
 
 		let otherRes = { a: 5 };
 		let otherFn = jest.fn(() => Promise.resolve(otherRes));
-		return broker._callErrorHandler(customErr, ctx, { fallbackResponse: otherFn }).then(res => {
+		return broker._callErrorHandler(customErr, ctx, endpoint, { fallbackResponse: otherFn }).then(res => {
 			expect(res).toBe(otherRes);
 			expect(otherFn).toHaveBeenCalledTimes(1);
 			expect(otherFn).toHaveBeenCalledWith(ctx);
@@ -1230,7 +1251,7 @@ describe("Test broker.emitLocal", () => {
 	});
 });
 
-describe.skip("Test broker.getLocalActionList", () => {
+describe.skip("Test broker.getLocalActions", () => {
 	let broker = new ServiceBroker();
 
 	broker.createService({
@@ -1249,7 +1270,7 @@ describe.skip("Test broker.getLocalActionList", () => {
 	broker.registerAction("server-2", { name: "remote.action" });
 
 	it("should returns with local action list", () => {
-		let res = broker.getLocalActionList();
+		let res = broker.getLocalActions();
 		
 		expect(Object.keys(res).length).toBe(5);
 

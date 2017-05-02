@@ -57,7 +57,7 @@ class ServiceBroker {
 			heartbeatTimeout: 30,
 
 			circuitBreaker: {
-				enabled: true,
+				enabled: false,
 				maxFailures: 5,
 				halfOpenTime: 10 * 1000,
 				failureOnTimeout: true,
@@ -401,7 +401,7 @@ class ServiceBroker {
 		});
 
 		addAction("$node.actions", () => {
-			return this.serviceRegistry.getLocalActionList();
+			return this.serviceRegistry.getLocalActions();
 		});
 
 		addAction("$node.health", () => this.getNodeHealthInfo());
