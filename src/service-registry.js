@@ -51,7 +51,7 @@ class ServiceRegistry {
 		// Append action by name
 		let item = this.actions.get(action.name);
 		if (!item) {
-			item = new ActionList(this.broker, this.opts);
+			item = new EndpointList(this.broker, this.opts);
 			this.actions.set(action.name, item);
 		}
 
@@ -129,7 +129,7 @@ class ServiceRegistry {
 	}	
 }
 
-class ActionItem {
+class Endpoint {
 	constructor(broker, nodeID, action) {
 		this.broker = broker;
 		this.nodeID = nodeID;
@@ -182,17 +182,17 @@ class ActionItem {
 	}
 }
 
-class ActionList {
+class EndpointList {
 
 	/**
-	 * Creates an instance of ActionList.
+	 * Creates an instance of EndpointList.
 	 * 
 	 * @param {ServiceBroker} broker
 	 * @param {any} opts
 	 * 		opts.strategy - type of balancing (STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM) (defaults: STRATEGY_ROUND_ROBIN)
 	 * 		opts.preferLocal - call a local service if available (defaults: true)
 	 * 
-	 * @memberOf ActionList
+	 * @memberOf EndpointList
 	 */
 	constructor(broker, opts) {
 		this.broker = broker;
@@ -215,7 +215,7 @@ class ActionList {
 			}
 		}
 
-		const item = new ActionItem(this.broker, nodeID, action);
+		const item = new Endpoint(this.broker, nodeID, action);
 		if (item.local)
 			this.localItem = item;
 
@@ -300,8 +300,8 @@ class ActionList {
 	}
 }
 
-ServiceRegistry.ActionList = ActionList;
-ServiceRegistry.ActionItem = ActionItem;
+ServiceRegistry.EndpointList = EndpointList;
+ServiceRegistry.Endpoint = Endpoint;
 
 ServiceRegistry.STRATEGY_ROUND_ROBIN = 1;
 ServiceRegistry.STRATEGY_RANDOM = 2;

@@ -1,11 +1,11 @@
 "use strict";
 
-const { ActionList, STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM } = require("../../src/service-registry");
+const { EndpointList, STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM } = require("../../src/service-registry");
 
 describe.skip("Test constructor", () => {
 
 	it("should create instance with default options", () => {
-		let list = new ActionList();
+		let list = new EndpointList();
 		expect(list).toBeDefined();
 		expect(list.list).toBeDefined();
 		expect(list.opts).toEqual({"preferLocal": true, "strategy": STRATEGY_ROUND_ROBIN});
@@ -21,7 +21,7 @@ describe.skip("Test constructor", () => {
 			preferLocal: false,
 			strategy: STRATEGY_RANDOM
 		};
-		let list = new ActionList(opts);
+		let list = new EndpointList(opts);
 		expect(list).toBeDefined();
 		expect(list.opts).toEqual({"preferLocal": false, "strategy": STRATEGY_RANDOM});
 	});
@@ -32,7 +32,7 @@ describe.skip("Test Add & get methods with preferLocal = true", () => {
 	let obj1 = { a: 1 };
 	let obj2 = { b: 2 };
 	let obj3 = { c: 3 };
-	let list = new ActionList();
+	let list = new EndpointList();
 
 	it("should add items and not found local item", () => {
 		list.add(obj1, "node1"); // remote
@@ -95,7 +95,7 @@ describe.skip("Test Add & get methods with preferLocal = true", () => {
 	});
 
 	it("should not add again the exist data just replace", () => {
-		let list = new ActionList();
+		let list = new EndpointList();
 
 		list.add(obj1, "node1");
 		list.add(obj2, "node1");
@@ -109,7 +109,7 @@ describe.skip("Test Add & get methods with preferLocal = true", () => {
 	let obj1 = { a: 1 };
 	let obj2 = { b: 2 };
 	let obj3 = { c: 3 };
-	let list = new ActionList({ preferLocal: false});
+	let list = new EndpointList({ preferLocal: false});
 
 	it("should add items and found local item", () => {
 		list.add(obj1, "node1");
@@ -144,7 +144,7 @@ describe.skip("Test Add & get methods with preferLocal = true", () => {
 describe.skip("Test getData method", () => {
 	let obj1 = { a: 1};
 	let obj2 = { b: 5};
-	let list = new ActionList({ preferLocal: false });
+	let list = new EndpointList({ preferLocal: false });
 
 	it("test getData", () => {
 		list.add(obj1);

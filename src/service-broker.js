@@ -687,7 +687,7 @@ class ServiceBroker {
 	 * 
 	 * @param {Error} err 
 	 * @param {Context} ctx 
-	 * @param {ActionItem} actionItem
+	 * @param {Endpoint} actionItem
 	 * @param {Object} opts 
 	 * @returns 
 	 * 
