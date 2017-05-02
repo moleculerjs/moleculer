@@ -47,7 +47,7 @@ class ServiceRegistry {
 	 * 
 	 * @memberOf ServiceRegistry
 	 */
-	registerAction(nodeID, action) {
+	register(nodeID, action) {
 		// Append action by name
 		let item = this.actions.get(action.name);
 		if (!item) {
@@ -71,7 +71,7 @@ class ServiceRegistry {
 	 * 
 	 * @memberOf ServiceRegistry
 	 */
-	deregisterAction(nodeID, action) {
+	deregister(nodeID, action) {
 		let item = this.actions.get(action.name);
 		if (item) {
 			item.removeByNode(nodeID);

@@ -330,7 +330,7 @@ class ServiceBroker {
 		if (!nodeID)
 			this.wrapAction(action);
 		
-		this.serviceRegistry.registerAction(nodeID, action);
+		this.serviceRegistry.register(nodeID, action);
 	}
 
 	/**
@@ -356,7 +356,7 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Unregister an action on a local server. 
+	 * Deregister an action on a local server. 
 	 * It will be called when a remote node disconnected. 
 	 * 
 	 * @param {any} nodeID		NodeID if it is on a remote server/node
@@ -365,7 +365,7 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	deregisterAction(nodeID, action) {
-		this.serviceRegistry.deregisterAction(nodeID, action);
+		this.serviceRegistry.deregister(nodeID, action);
 	}
 
 	/**
