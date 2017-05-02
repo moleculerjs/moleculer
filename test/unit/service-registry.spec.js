@@ -2,6 +2,7 @@
 
 const ServiceRegistry = require("../../src/service-registry");
 const ServiceBroker = require("../../src/service-broker");
+const lolex = require("lolex");
 
 describe("Test constructor", () => {
 
@@ -510,13 +511,11 @@ describe("Test Endpoint constructor", () => {
 	});
 });
 
-// jest.useFakeTimers();
-
 describe("Test Endpoint circuit methods", () => {
 	const broker = new ServiceBroker({
 		circuitBreaker: {
 			maxFailures: 2,
-			halfOpenTime: 100
+			halfOpenTime: 5 * 1000
 		}
 	});
 	broker.emitLocal = jest.fn();
@@ -558,6 +557,8 @@ describe("Test Endpoint circuit methods", () => {
 	});
 
 	it("test circuitOpen", () => {
+		const clock = lolex.install();
+
 		item.state = ServiceRegistry.CIRCUIT_CLOSE;
 		item.circuitHalfOpen = jest.fn();
 
@@ -571,13 +572,11 @@ describe("Test Endpoint circuit methods", () => {
 		// circuitHalfOpen
 		expect(item.circuitHalfOpen).toHaveBeenCalledTimes(0);
 
-		return new Promise(resolve => {
-			setTimeout(() => {
-				expect(item.circuitHalfOpen).toHaveBeenCalledTimes(1);
-				resolve();
-			}, 150);
-		});
+		clock.tick(6 * 1000);
 
+		expect(item.circuitHalfOpen).toHaveBeenCalledTimes(1);
+
+		clock.uninstall();
 	});
 
 	it("test circuitOpen", () => {
