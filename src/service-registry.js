@@ -54,13 +54,7 @@ class ServiceRegistry {
 			item = new EndpointList(this.broker, this.opts);
 			this.actions.set(action.name, item);
 		}
-
-		const res = item.add(nodeID, action);
-		if (res) {
-			this.broker.emitLocal(`register.action.${action.name}`, { nodeID, action });
-		}
-
-		return res;
+		return item.add(nodeID, action);
 	}	
 
 	/**
@@ -203,25 +197,39 @@ class EndpointList {
 
 		this.list = [];
 		this.counter = 0;
-		this.localItem = null;
+		this.localEndpoint = null;
 	}
 
 	add(nodeID, action) {
-		if (nodeID != null) {
-			let found = this.list.find(item => item.nodeID == nodeID);
-			if (found) {
-				found.updateAction(action);
-				return false;
-			}
+		let found = this.list.find(item => item.nodeID == nodeID);
+		if (found) {
+			found.updateAction(action);
+			return false;
 		}
 
 		const item = new Endpoint(this.broker, nodeID, action);
 		if (item.local)
-			this.localItem = item;
+			this.localEndpoint = item;
 
 		this.list.push(item);
 		
 		return true;
+	}
+
+	get() {
+		if (this.opts.strategy === STRATEGY_RANDOM) {
+			/* istanbul ignore next */
+			return this.list[random(0, this.list.length - 1)];
+		} else {
+			// Round-robin
+
+			// Reset counter
+			if (this.counter >= this.list.length) {
+				this.counter = 0;
+			}
+
+			return this.list[this.counter++];
+		}
 	}
 
 	nextAvailable() {
@@ -241,8 +249,8 @@ class EndpointList {
 		}
 
 		// Search local item
-		if (this.opts.preferLocal === true && this.localItem && this.localItem.available()) {
-			return this.localItem;
+		if (this.opts.preferLocal === true && this.localEndpoint && this.localEndpoint.available()) {
+			return this.localEndpoint;
 		}
 
 		const max = this.list.length;
@@ -258,24 +266,8 @@ class EndpointList {
 		return null;
 	}
 
-	get() {
-		if (this.opts.strategy === STRATEGY_RANDOM) {
-			/* istanbul ignore next */
-			return this.list[random(0, this.list.length - 1)];
-		} else {
-			// Round-robin
-
-			// Reset counter
-			if (this.counter >= this.list.length) {
-				this.counter = 0;
-			}
-
-			return this.list[this.counter++];
-		}
-	}
-
 	getAction() {
-		const item = this.get();
+		const item = this.nextAvailable();
 		return item != null ? item.action : null;
 	}
 
@@ -284,19 +276,21 @@ class EndpointList {
 	}
 
 	getLocalEndpoint() {
-		return this.localItem;
+		return this.localEndpoint;
 	}
 
 	hasLocal() {
-		return this.localItem != null;
+		return this.localEndpoint != null;
 	}
 
-	remove(data) {
-		remove(this.list, (el) => el.data == data);
+	removeByAction(action) {
+		remove(this.list, (el) => el.action == action);
 	}
 
 	removeByNode(nodeID) {
 		remove(this.list, item => item.nodeID == nodeID);
+		if (nodeID == null)
+			this.localEndpoint = null;
 	}
 }
 

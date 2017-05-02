@@ -330,7 +330,11 @@ class ServiceBroker {
 		if (!nodeID)
 			this.wrapAction(action);
 		
-		this.serviceRegistry.register(nodeID, action);
+		const res = this.serviceRegistry.register(nodeID, action);
+		if (res) {
+			this.emitLocal(`register.action.${action.name}`, { nodeID, action });
+		}
+		
 	}
 
 	/**
