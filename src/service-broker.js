@@ -364,8 +364,8 @@ class ServiceBroker {
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	unregisterAction(nodeID, action) {
-		this.serviceRegistry.unregisterAction(nodeID, action);
+	deregisterAction(nodeID, action) {
+		this.serviceRegistry.deregisterAction(nodeID, action);
 	}
 
 	/**
@@ -614,7 +614,7 @@ class ServiceBroker {
 			// Get an action handler item
 			actionItem = actions.nextAvailable();
 			if (actionItem == null) {
-				const errMsg = `Not available '${actionName}' action handler!`;
+				const errMsg = `Action '${actionName}' is not available!`;
 				this.logger.warn(errMsg);
 				return Promise.reject(new E.ServiceNotFoundError(errMsg, actionName));
 			}

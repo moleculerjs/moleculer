@@ -2,7 +2,7 @@
 
 const { ActionList, STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM } = require("../../src/service-registry");
 
-describe("Test constructor", () => {
+describe.skip("Test constructor", () => {
 
 	it("should create instance with default options", () => {
 		let list = new ActionList();
@@ -28,7 +28,7 @@ describe("Test constructor", () => {
 
 });
 
-describe("Test Add & get methods with preferLocal = true", () => {
+describe.skip("Test Add & get methods with preferLocal = true", () => {
 	let obj1 = { a: 1 };
 	let obj2 = { b: 2 };
 	let obj3 = { c: 3 };
@@ -105,7 +105,7 @@ describe("Test Add & get methods with preferLocal = true", () => {
 	});	
 });
 
-describe("Test Add & get methods with preferLocal = true", () => {
+describe.skip("Test Add & get methods with preferLocal = true", () => {
 	let obj1 = { a: 1 };
 	let obj2 = { b: 2 };
 	let obj3 = { c: 3 };
@@ -141,7 +141,7 @@ describe("Test Add & get methods with preferLocal = true", () => {
 
 });
 
-describe("Test getData method", () => {
+describe.skip("Test getData method", () => {
 	let obj1 = { a: 1};
 	let obj2 = { b: 5};
 	let list = new ActionList({ preferLocal: false });

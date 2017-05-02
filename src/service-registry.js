@@ -71,7 +71,7 @@ class ServiceRegistry {
 	 * 
 	 * @memberOf ServiceRegistry
 	 */
-	unregisterAction(nodeID, action) {
+	deregisterAction(nodeID, action) {
 		let item = this.actions.get(action.name);
 		if (item) {
 			item.removeByNode(nodeID);
@@ -236,6 +236,7 @@ class ActionList {
 			const item = this.list[0];
 			if (item.available())
 				return item;
+
 			return null;
 		}
 
@@ -300,6 +301,7 @@ class ActionList {
 }
 
 ServiceRegistry.ActionList = ActionList;
+ServiceRegistry.ActionItem = ActionItem;
 
 ServiceRegistry.STRATEGY_ROUND_ROBIN = 1;
 ServiceRegistry.STRATEGY_RANDOM = 2;

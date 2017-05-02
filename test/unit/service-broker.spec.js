@@ -554,7 +554,7 @@ describe.skip("Test broker.wrapContextInvoke", () => {
 
 });
 
-describe.skip("Test broker.unregisterAction", () => {
+describe.skip("Test broker.deregisterAction", () => {
 
 	let broker = new ServiceBroker();
 
@@ -572,7 +572,7 @@ describe.skip("Test broker.unregisterAction", () => {
 	});
 
 	it("should remove action from list by nodeID", () => {
-		broker.unregisterAction(action);
+		broker.deregisterAction(action);
 		let item = broker.getAction("list");
 		expect(item).toBeDefined();
 		expect(item.list.length).toBe(1);
@@ -580,7 +580,7 @@ describe.skip("Test broker.unregisterAction", () => {
 	});
 
 	it("should remove last item from list", () => {
-		broker.unregisterAction(action, "server-2");
+		broker.deregisterAction(action, "server-2");
 		let item = broker.getAction("list");
 		expect(item).toBeDefined();
 		expect(item.list.length).toBe(0);
@@ -732,7 +732,7 @@ describe("Test broker.isActionAvailable", () => {
 	});
 
 	it("should not find handler for action by name", () => {
-		broker.unregisterAction(null, { name: "posts.list" });
+		broker.deregisterAction(null, { name: "posts.list" });
 		expect(broker.hasAction("posts.list")).toBe(true);
 		expect(broker.isActionAvailable("posts.list")).toBe(false);
 	});
@@ -787,7 +787,7 @@ describe("Test broker.call method", () => {
 		});
 
 		it("should reject if no handler", () => {
-			broker.unregisterAction(null, { name: "posts.noHandler" });
+			broker.deregisterAction(null, { name: "posts.noHandler" });
 			return broker.call("posts.noHandler").catch(err => {
 				expect(err).toBeDefined();
 				expect(err).toBeInstanceOf(ServiceNotFoundError);

@@ -528,7 +528,7 @@ class Transit {
 					// Remove remote actions of node
 					Object.keys(node.actions).forEach(name => {
 						let action = Object.assign({}, node.actions[name], { name });
-						this.broker.unregisterAction(node.id, action);
+						this.broker.deregisterAction(node.id, action);
 					});
 				}
 
