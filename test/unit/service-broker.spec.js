@@ -373,31 +373,39 @@ describe("Test broker.registerAction", () => {
 	let broker = new ServiceBroker();
 	broker.wrapAction = jest.fn();
 	broker.emitLocal = jest.fn();
+	broker.serviceRegistry.register = jest.fn(() => true);
 	
-	it("should push to the actions & emit an event", () => {
+	it("should push to the actions & emit an event without nodeID", () => {
 		let action = {
-			name: "list"
+			name: "user.list"
 		};
 
 		broker.registerAction(null, action);
 		expect(broker.wrapAction).toHaveBeenCalledTimes(1);
-		expect(broker.hasAction("list")).toBe(true);
+
+		expect(broker.serviceRegistry.register).toHaveBeenCalledTimes(1);
+		expect(broker.serviceRegistry.register).toHaveBeenCalledWith(null, action);
+
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("register.action.list", { action, nodeID: null });
+		expect(broker.emitLocal).toHaveBeenCalledWith("register.action.user.list", { action, nodeID: null });
 	});
 
 	it("should push to the actions & emit an event with nodeID", () => {
+		broker.serviceRegistry.register.mockClear();
 		broker.wrapAction.mockClear();
 		broker.emitLocal.mockClear();
 		let action = {
-			name: "update"
+			name: "user.update"
 		};
 
 		broker.registerAction("server-2", action);
 		expect(broker.wrapAction).toHaveBeenCalledTimes(0);
-		expect(broker.hasAction("update")).toBe(true);
+
+		expect(broker.serviceRegistry.register).toHaveBeenCalledTimes(1);
+		expect(broker.serviceRegistry.register).toHaveBeenCalledWith("server-2", action);
+
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("register.action.update", { action, nodeID: "server-2" });
+		expect(broker.emitLocal).toHaveBeenCalledWith("register.action.user.update", { action, nodeID: "server-2" });
 	});
 
 });
