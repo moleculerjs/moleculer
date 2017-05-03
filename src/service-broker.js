@@ -9,7 +9,7 @@
 const Promise = require("bluebird");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const Transit = require("./transit");
-const BalancedList = require("./balanced-list");
+const ServiceRegistry = require("./service-registry");
 const E = require("./errors");
 const utils = require("./utils");
 const Logger = require("./logger");
@@ -19,15 +19,21 @@ const healthInfo = require("./health");
 
 const JSONSerializer = require("./serializers/json");
 
+// Registry strategies
+const { STRATEGY_ROUND_ROBIN } = require("./constants");
+
+// Circuit-breaker states
+const { CIRCUIT_HALF_OPEN } = require("./constants");
+
 //const _ = require("lodash");
 const _ = require("lodash");
 const pick = require("lodash/pick");
-const omit = require("lodash/omit");
 const isArray = require("lodash/isArray");
 
 const glob = require("glob");
 const path = require("path");
 
+const LOCAL_NODE_ID = null; // `null` means local nodeID
 
 /**
  * Service broker class
@@ -55,6 +61,19 @@ class ServiceBroker {
 			requestRetry: 0,
 			heartbeatInterval: 10,
 			heartbeatTimeout: 30,
+
+			registry: {
+				strategy: STRATEGY_ROUND_ROBIN,
+				preferLocal: true				
+			},
+
+			circuitBreaker: {
+				enabled: false,
+				maxFailures: 5,
+				halfOpenTime: 10 * 1000,
+				failureOnTimeout: true,
+				failureOnReject: true
+			},
 
 			cacher: null,
 			serializer: null,
@@ -92,7 +111,8 @@ class ServiceBroker {
 
 		// Internal maps
 		this.services = [];
-		this.actions = new Map();
+		this.serviceRegistry = new ServiceRegistry(this.options.registry);
+		this.serviceRegistry.init(this);
 
 		// Middlewares
 		this.middlewares = [];
@@ -310,26 +330,22 @@ class ServiceBroker {
 	/**
 	 * Register an action in a local server
 	 * 
-	 * @param {any} action		action schema
 	 * @param {any} nodeID		NodeID if it is on a remote server/node
+	 * @param {any} action		action schema
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	registerAction(action, nodeID) {
+	registerAction(nodeID, action) {
 
 		// Wrap middlewares
 		if (!nodeID)
 			this.wrapAction(action);
 		
-		// Append action by name
-		let item = this.actions.get(action.name);
-		if (!item) {
-			item = new BalancedList();
-			this.actions.set(action.name, item);
+		const res = this.serviceRegistry.register(nodeID, action);
+		if (res) {
+			this.emitLocal(`register.action.${action.name}`, { nodeID, action });
 		}
-		if (item.add(action, nodeID)) {
-			this.emitLocal(`register.action.${action.name}`, { action, nodeID });
-		}
+		
 	}
 
 	/**
@@ -355,27 +371,16 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Unregister an action on a local server. 
+	 * Deregister an action on a local server. 
 	 * It will be called when a remote node disconnected. 
 	 * 
-	 * @param {any} action		action schema
 	 * @param {any} nodeID		NodeID if it is on a remote server/node
+	 * @param {any} action		action schema
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	unregisterAction(action, nodeID) {
-		let item = this.actions.get(action.name);
-		if (item) {
-			item.removeByNode(nodeID);
-			/* Don't delete because maybe node only disconnected and will come back.
-			   So the action is exists, just now it is not available.
-			
-			if (item.count() == 0) {
-				this.actions.delete(action.name);
-			}
-			this.emitLocal(`unregister.action.${action.name}`, { service, action, nodeID });
-			*/
-		}		
+	deregisterAction(nodeID, action) {
+		this.serviceRegistry.deregister(nodeID, action);
 	}
 
 	/**
@@ -385,7 +390,7 @@ class ServiceBroker {
 	 */
 	registerInternalActions() {
 		const addAction = (name, handler) => {
-			this.registerAction({
+			this.registerAction(LOCAL_NODE_ID, {
 				name,
 				cache: false,
 				handler: Promise.method(handler)
@@ -411,17 +416,7 @@ class ServiceBroker {
 		});
 
 		addAction("$node.actions", () => {
-			let res = [];
-			this.actions.forEach((o, name) => {
-				let item = o.getLocalItem();
-				if (item) {
-					res.push({
-						name
-					});
-				}
-			});
-
-			return res;
+			return this.serviceRegistry.getLocalActions();
 		});
 
 		addAction("$node.health", () => this.getNodeHealthInfo());
@@ -502,7 +497,7 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	hasAction(actionName) {
-		return this.actions.has(actionName);
+		return this.serviceRegistry.hasAction(actionName);
 	}	
 
 	/**
@@ -514,9 +509,9 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	getAction(actionName) {
-		const action = this.actions.get(actionName);
-		if (action) {
-			return action.get();
+		const item = this.serviceRegistry.findAction(actionName);
+		if (item) {
+			return item.nextAvailable();
 		}
 		return null;
 	}	
@@ -530,8 +525,8 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	isActionAvailable(actionName) {
-		let action = this.actions.get(actionName);
-		return action && action.count() > 0;
+		const item = this.serviceRegistry.findAction(actionName);
+		return item && item.count() > 0;
 	}	
 
 	/**
@@ -548,29 +543,45 @@ class ServiceBroker {
 		});
 	}
 
+	/**
+	 * Create a new Context instance
+	 * 
+	 * @param {Object} action 
+	 * @param {String?} nodeID 
+	 * @param {Object?} params 
+	 * @param {Object?} opts 
+	 * @returns {Context}
+	 * 
+	 * @memberof ServiceBroker
+	 */
 	createNewContext(action, nodeID, params, opts) {
 		const ctx = new this.ContextFactory(this, action);
 		ctx.nodeID = nodeID;
 		ctx.setParams(params);
 
+		// RequestID
 		if (opts.requestID != null)
 			ctx.requestID = opts.requestID;
 		else if (opts.parentCtx != null && opts.parentCtx.requestID != null)
 			ctx.requestID = opts.parentCtx.requestID;
 
+		// Meta
 		if (opts.parentCtx != null && opts.parentCtx.meta != null)
 			ctx.meta = _.assign({}, opts.parentCtx.meta, opts.meta);
 		else if (opts.meta != null)
 			ctx.meta = opts.meta;
 
+		// Timeout
 		ctx.timeout = opts.timeout;
 		ctx.retryCount = opts.retryCount;
 
+		// Metrics
 		if (opts.parentCtx != null)
 			ctx.metrics = opts.parentCtx.metrics;
 		else
 			ctx.metrics = this.shouldMetric();
 
+		// ID, parentID, level
 		if (ctx.metrics || nodeID) {
 			ctx.generateID();
 
@@ -602,13 +613,13 @@ class ServiceBroker {
 		if (opts.retryCount == null)
 			opts.retryCount = this.options.requestRetry || 0;		
 		
-		let actionItem;
+		let endpoint;
 		if (typeof actionName !== "string") {
-			actionItem = actionName;
-			actionName = actionItem.data.name;
+			endpoint = actionName;
+			actionName = endpoint.action.name;
 		} else {
 			// Find action by name
-			let actions = this.actions.get(actionName);
+			let actions = this.serviceRegistry.findAction(actionName);
 			if (actions == null) {
 				const errMsg = `Action '${actionName}' is not registered!`;
 				this.logger.warn(errMsg);
@@ -616,17 +627,17 @@ class ServiceBroker {
 			}
 			
 			// Get an action handler item
-			actionItem = actions.get();
-			if (actionItem == null) {
-				const errMsg = `Not available '${actionName}' action handler!`;
+			endpoint = actions.nextAvailable();
+			if (endpoint == null) {
+				const errMsg = `Action '${actionName}' is not available!`;
 				this.logger.warn(errMsg);
 				return Promise.reject(new E.ServiceNotFoundError(errMsg, actionName));
 			}
 		}
 
 		// Expose action info
-		let action = actionItem.data;
-		let nodeID = actionItem.nodeID;
+		let action = endpoint.action;
+		let nodeID = endpoint.nodeID;
 		
 		// Create context
 		let ctx;
@@ -642,7 +653,7 @@ class ServiceBroker {
 
 		// Call handler or transfer request
 		let p;
-		if (!nodeID) {
+		if (endpoint.local) {
 			// Add metrics start
 			if (ctx.metrics === true || ctx.timeout > 0)
 				ctx._metricStart();
@@ -668,9 +679,16 @@ class ServiceBroker {
 				p = p.timeout(ctx.timeout);
 		}
 
+		// Handle half-open state in circuit breaker
+		if (this.options.circuitBreaker.enabled && endpoint.state === CIRCUIT_HALF_OPEN) {
+			p = p.then(res => {
+				endpoint.circuitClose();
+				return res;
+			});
+		}
 
 		// Error handler
-		p = p.catch(err => this._callErrorHandler(err, ctx, opts));
+		p = p.catch(err => this._callErrorHandler(err, ctx, endpoint, opts));
 
 		// Pointer to Context
 		p.ctx = ctx;
@@ -678,7 +696,18 @@ class ServiceBroker {
 		return p;
 	}
 
-	_callErrorHandler(err, ctx, opts) {
+	/**
+	 * Error handler for `call` method
+	 * 
+	 * @param {Error} err 
+	 * @param {Context} ctx 
+	 * @param {Endpoint} endpoint
+	 * @param {Object} opts 
+	 * @returns 
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	_callErrorHandler(err, ctx, endpoint, opts) {
 		const actionName = ctx.action.name;
 		const nodeID = ctx.nodeID;
 
@@ -695,6 +724,16 @@ class ServiceBroker {
 			this.transit.removePendingRequest(ctx.id);
 		}
 
+		if (this.options.circuitBreaker.enabled) {
+			if (err instanceof E.RequestTimeoutError) {
+				if (this.options.circuitBreaker.failureOnTimeout)
+					endpoint.failure();
+
+			} else if (err.code >= 500 && this.options.circuitBreaker.failureOnReject) {
+				endpoint.failure();
+			}
+		}
+
 		if (err instanceof E.RequestTimeoutError) {
 			// Retry request
 			if (ctx.retryCount-- > 0) {
@@ -704,13 +743,6 @@ class ServiceBroker {
 				opts.ctx = ctx; // Reuse this context
 				return this.call(actionName, ctx.params, opts);
 			}
-		}
-
-		// Set node status to unavailable
-		if (err.code >= 500) {
-			const affectedNodeID = err.nodeID || nodeID;
-			if (affectedNodeID && affectedNodeID != this.nodeID)
-				this.nodeUnavailable(affectedNodeID);
 		}
 
 		// Need it? this.logger.error("Action request error!", err);
@@ -787,23 +819,6 @@ class ServiceBroker {
 		this.logger.debug("Event emitted:", eventName);		
 
 		return this.bus.emit(eventName, payload, sender);
-	}
-
-	/**
-	 * Get a list of names of local actions
-	 * 
-	 * @returns
-	 * 
-	 * @memberOf ServiceBroker
-	 */
-	getLocalActionList() {
-		let res = {};
-		this.actions.forEach((entry, key) => {
-			let item = entry.getLocalItem();
-			if (item && !/^\$node/.test(key)) // Skip internal actions
-				res[key] = omit(item.data, ["handler", "service"]);
-		});
-		return res;
 	}
 	
 }

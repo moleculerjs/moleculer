@@ -50,7 +50,7 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch sandbox",
-			"program": "${workspaceRoot}\\examples\\sandbox\\timeout.js",
+			"program": "${workspaceRoot}\\examples\\sandbox\\circuit.js",
 			"cwd": "${workspaceRoot}\\examples\\sandbox"
 		},		
 		{

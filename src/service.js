@@ -73,7 +73,7 @@ class Service {
 				let innerAction = this._createActionHandler(cloneDeep(action), name);
 
 				// Register to broker
-				broker.registerAction(innerAction);
+				broker.registerAction(null, innerAction);
 
 				// Expose to call `service.actions.find({ ...params })`
 				this.actions[name] = (params) => {

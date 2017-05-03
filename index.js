@@ -6,6 +6,15 @@
 
 "use strict";
 
+const {
+	STRATEGY_ROUND_ROBIN,
+	STRATEGY_RANDOM,
+
+	CIRCUIT_CLOSE, 
+	CIRCUIT_HALF_OPEN, 
+	CIRCUIT_OPEN
+} = require("./src/constants");
+
 module.exports = {
 	Context: require("./src/context"),
 	Service: require("./src/service"),
@@ -17,5 +26,12 @@ module.exports = {
 
 	Validator: require("./src/validator"),
 
-	Errors: require("./src/errors")
+	Errors: require("./src/errors"),
+
+	STRATEGY_ROUND_ROBIN,
+	STRATEGY_RANDOM,
+
+	CIRCUIT_CLOSE, 
+	CIRCUIT_HALF_OPEN, 
+	CIRCUIT_OPEN
 };

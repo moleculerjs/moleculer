@@ -55,6 +55,14 @@ declare class Service {
 
 }
 
+declare interface BrokerCircuitBreakerOptions {
+	enabled: Boolean?;
+	maxFailures: Number?;
+	halfOpenTime: Number?;
+	failureOnTimeout: Boolean?;
+	failureOnReject: Boolean?;
+}
+
 declare interface BrokerOptions {
 	nodeID?: String;
 	
@@ -66,6 +74,8 @@ declare interface BrokerOptions {
 	requestRetry?: Number;
 	heartbeatInterval?: Number;
 	heartbeatTimeout?: Number;
+
+	circuitBreaker: BrokerCircuitBreakerOptions?;
 	
 	cacher?: Cacher;
 	serializer?: Serializer;
@@ -90,16 +100,20 @@ declare class ServiceBroker {
 
 	start(): Promise<any>;
 	stop();
+	getLogger(name: String?): Logger;
 	loadServices(folder?: String, fileMask?: String): Number;
 	loadService(filePath: String): Service;
 	createService(schema: Object): Service;
+
+	registerAction(nodeID: String?, action: Action);
+	deregisterAction(nodeID: String?, action: Action);
 
 	on(name: String, handler: Function);
 	once(name: String, handler: Function);
 	off(name: String, handler: Function);
 
 	hasAction(actionName: String): Boolean;
-	getAction(actionName: String): Action;
+	getAction(actionName: String): any;
 	isActionAvailable(actionName: String): Boolean;
 
 	use(...mws: Array<Function>);
@@ -116,8 +130,28 @@ declare class ServiceBroker {
 	 */
 	call(actionName: String, params?: Object, opts?: Object): Promise<any>;
 
+	/**
+	 * Emit an event (global & local)
+	 * 
+	 * @param {any} eventName
+	 * @param {any} payload
+	 * @returns
+	 * 
+	 * @memberOf ServiceBroker
+	 */
 	emit(eventName: String, payload?: any);
-	emitLocal(eventName: String, payload?: any);
+
+	/**
+	 * Emit an event only local
+	 * 
+	 * @param {string} eventName
+	 * @param {any} payload
+	 * @param {string} nodeID of server
+	 * @returns
+	 * 
+	 * @memberOf ServiceBroker
+	 */	
+	emitLocal(eventName: String, payload?: any, sender: String?);
 }
 
 declare class Packet {
@@ -188,5 +222,12 @@ export = {
 		RequestTimeoutError: Error,
 		ValidationError: Error,
 		CustomError: Error		
-	}
+	},
+
+	STRATEGY_ROUND_ROBIN: Number,
+	STRATEGY_RANDOM: Number,
+
+	CIRCUIT_CLOSE: String, 
+	CIRCUIT_HALF_OPEN: String, 
+	CIRCUIT_OPEN: String	
 }

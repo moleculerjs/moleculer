@@ -353,7 +353,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	discoverNodes() {
-		const actions = this.broker.getLocalActionList();
+		const actions = this.broker.serviceRegistry.getLocalActions();
 		return this.publish(new P.PacketDiscover(this, actions));
 	}
 
@@ -363,7 +363,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendNodeInfo(nodeID) {
-		const actions = this.broker.getLocalActionList();
+		const actions = this.broker.serviceRegistry.getLocalActions();
 		return this.publish(new P.PacketInfo(this, nodeID, actions));
 	}
 
@@ -459,23 +459,8 @@ class Transit {
 			Object.keys(node.actions).forEach(name => {
 				// Need to override the name cause of versioned action name;
 				let action = Object.assign({}, node.actions[name], { name });
-				this.broker.registerAction(action, nodeID);
+				this.broker.registerAction(nodeID, action);
 			});
-		}
-	}
-
-	/**
-	 * Set node to unavailable. 
-	 * It will be called when a remote call is thrown a RequestTimeoutError exception.
-	 * 
-	 * @param {any} nodeID	Node ID
-	 * 
-	 * @memberOf Transit
-	 */
-	nodeUnavailable(nodeID) {
-		let node = this.nodes.get(nodeID);
-		if (node) {
-			this.nodeDisconnected(nodeID, true);
 		}
 	}
 
@@ -528,7 +513,7 @@ class Transit {
 					// Remove remote actions of node
 					Object.keys(node.actions).forEach(name => {
 						let action = Object.assign({}, node.actions[name], { name });
-						this.broker.unregisterAction(action, node.id);
+						this.broker.deregisterAction(node.id, action);
 					});
 				}
 

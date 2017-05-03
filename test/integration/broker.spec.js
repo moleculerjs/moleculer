@@ -70,23 +70,58 @@ describe("Test broker.registerInternalActions", () => {
 
 	it("should return list of actions", () => {
 		return broker.call("$node.actions").then(res => {
-			expect(res).toEqual([
-				{"name": "$node.list"}, 
-				{"name": "$node.services"}, 
-				{"name": "$node.actions"}, 
-				{"name": "$node.health"}, 
-				{"name": "$node.stats"}, 
-
-				{"name": "math.add"}, 
-				{"name": "math.sub"}, 
-				{"name": "math.mult"}, 
-				{"name": "math.div"}, 
-				
-				{"name": "posts.find"}, 
-				{"name": "posts.delayed"}, 
-				{"name": "posts.get"}, 
-				{"name": "posts.author"}
-			]);
+			expect(res).toEqual({
+				"math.add": {
+					"cache": false,
+					"name": "math.add",
+					"version": undefined
+				},
+				"math.div": {
+					"cache": false,
+					"name": "math.div",
+					"version": undefined
+				},
+				"math.mult": {
+					"cache": false,
+					"name": "math.mult",
+					"params": {
+						"a": {
+							"type": "number"
+						},
+						"b": {
+							"type": "number"
+						}
+					},
+					"version": undefined
+				},
+				"math.sub": {
+					"cache": false,
+					"name": "math.sub",
+					"version": undefined
+				},
+				"posts.author": {
+					"cache": false,
+					"name": "posts.author",
+					"version": undefined
+				},
+				"posts.delayed": {
+					"cache": false,
+					"name": "posts.delayed",
+					"version": undefined
+				},
+				"posts.find": {
+					"cache": true,
+					"name": "posts.find",
+					"version": undefined
+				},
+				"posts.get": {
+					"cache": {
+						"keys": ["id"]
+					},
+					"name": "posts.get",
+					"version": undefined
+				}
+			});
 		});
 	});
 
@@ -189,7 +224,7 @@ describe("Test local call", () => {
 			expect(ctx).toBeDefined();
 			expect(ctx.broker).toBe(broker);
 			expect(ctx.action.name).toBe("posts.find");
-			expect(ctx.nodeID).toBeUndefined();
+			expect(ctx.nodeID).toBeNull();
 			expect(ctx.params).toBeDefined();
 			expect(actionHandler).toHaveBeenCalledTimes(1);
 			expect(actionHandler).toHaveBeenCalledWith(ctx);

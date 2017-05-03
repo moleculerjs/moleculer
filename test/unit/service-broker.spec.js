@@ -2,14 +2,19 @@
 
 const path = require("path");
 const Promise = require("bluebird");
+const lolex = require("lolex");
 const ServiceBroker = require("../../src/service-broker");
 const Service = require("../../src/service");
+const ServiceRegistry = require("../../src/service-registry");
 const Context = require("../../src/context");
 const Transit = require("../../src/transit");
 const MemoryCacher = require("../../src/cachers/memory");
 const JSONSerializer = require("../../src/serializers/json");
 const FakeTransporter = require("../../src/transporters/fake"); 
 const { CustomError, ServiceNotFoundError, RequestTimeoutError } = require("../../src/errors");
+
+// Registry strategies
+const { STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM } = require("../../src/constants");
 
 describe("Test ServiceBroker constructor", () => {
 
@@ -27,6 +32,19 @@ describe("Test ServiceBroker constructor", () => {
 			requestRetry: 0, 
 			heartbeatInterval: 10, 
 			heartbeatTimeout : 30, 
+
+			registry: {
+				strategy: STRATEGY_ROUND_ROBIN,
+				preferLocal: true				
+			},
+
+			circuitBreaker: {
+				enabled: false,
+				maxFailures: 5,
+				halfOpenTime: 10 * 1000,
+				failureOnTimeout: true,
+				failureOnReject: true
+			},			
 			
 			cacher: null,
 			serializer: null,
@@ -51,7 +69,7 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.bus).toBeDefined();
 
 		expect(broker.services).toBeInstanceOf(Array);
-		expect(broker.actions).toBeInstanceOf(Map);
+		expect(broker.serviceRegistry).toBeInstanceOf(ServiceRegistry);
 		
 		expect(broker.middlewares).toBeInstanceOf(Array);
 
@@ -77,6 +95,15 @@ describe("Test ServiceBroker constructor", () => {
 			logLevel: "debug", 
 			requestRetry: 3, 
 			requestTimeout: 5000, 
+			registry: {
+				strategy: STRATEGY_RANDOM,
+				preferLocal: false				
+			},			
+			circuitBreaker: {
+				enabled: true,
+				maxFailures: 2,
+				failureOnReject: false
+			},			
 			validation: false, 
 			internalActions: false });
 
@@ -94,12 +121,25 @@ describe("Test ServiceBroker constructor", () => {
 			statistics: true,
 			heartbeatTimeout : 20, 
 			heartbeatInterval: 10, 
+
+			registry: {
+				strategy: STRATEGY_RANDOM,
+				preferLocal: false				
+			},
+
+			circuitBreaker: {
+				enabled: true,
+				maxFailures: 2,
+				halfOpenTime: 10 * 1000,
+				failureOnTimeout: true,
+				failureOnReject: false
+			},			
 			requestRetry: 3, 
 			requestTimeout: 5000, 
 			validation: false, 
 			internalActions: false });
 		expect(broker.services).toBeInstanceOf(Array);
-		expect(broker.actions).toBeInstanceOf(Map);
+		expect(broker.serviceRegistry).toBeInstanceOf(ServiceRegistry);
 		expect(broker.transit).toBeUndefined();
 		expect(broker.statistics).toBeDefined();
 		expect(broker.validator).toBeUndefined();
@@ -352,31 +392,39 @@ describe("Test broker.registerAction", () => {
 	let broker = new ServiceBroker();
 	broker.wrapAction = jest.fn();
 	broker.emitLocal = jest.fn();
+	broker.serviceRegistry.register = jest.fn(() => true);
 	
-	it("should push to the actions & emit an event", () => {
+	it("should push to the actions & emit an event without nodeID", () => {
 		let action = {
-			name: "list"
+			name: "user.list"
 		};
 
-		broker.registerAction(action);
+		broker.registerAction(null, action);
 		expect(broker.wrapAction).toHaveBeenCalledTimes(1);
-		expect(broker.actions.get("list")).toBeDefined();
+
+		expect(broker.serviceRegistry.register).toHaveBeenCalledTimes(1);
+		expect(broker.serviceRegistry.register).toHaveBeenCalledWith(null, action);
+
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("register.action.list", { action, nodeID: undefined });
+		expect(broker.emitLocal).toHaveBeenCalledWith("register.action.user.list", { action, nodeID: null });
 	});
 
 	it("should push to the actions & emit an event with nodeID", () => {
+		broker.serviceRegistry.register.mockClear();
 		broker.wrapAction.mockClear();
 		broker.emitLocal.mockClear();
 		let action = {
-			name: "update"
+			name: "user.update"
 		};
 
-		broker.registerAction(action, "server-2");
+		broker.registerAction("server-2", action);
 		expect(broker.wrapAction).toHaveBeenCalledTimes(0);
-		expect(broker.actions.get("update")).toBeDefined();
+
+		expect(broker.serviceRegistry.register).toHaveBeenCalledTimes(1);
+		expect(broker.serviceRegistry.register).toHaveBeenCalledWith("server-2", action);
+
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("register.action.update", { action, nodeID: "server-2" });
+		expect(broker.emitLocal).toHaveBeenCalledWith("register.action.user.update", { action, nodeID: "server-2" });
 	});
 
 });
@@ -384,9 +432,19 @@ describe("Test broker.registerAction", () => {
 describe("Test broker.wrapAction", () => {
 
 	let broker = new ServiceBroker();
-	//broker.wrapContextInvoke = jest.fn();
 	
-	it("should run middlewares & call wrapContextInvoke method", () => {
+	it("should not change handler if no middlewares", () => {
+		let origHandler = jest.fn();
+		let action = {
+			name: "list",
+			handler: origHandler
+		};
+
+		broker.wrapAction(action);
+		expect(action.handler).toBe(origHandler);
+	});
+
+	it("should wrap middlewares", () => {
 		let action = {
 			name: "list",
 			handler: jest.fn()
@@ -404,14 +462,12 @@ describe("Test broker.wrapAction", () => {
 
 		expect(mw2).toHaveBeenCalledTimes(1);
 		expect(mw2).toHaveBeenCalledWith(action.handler, action);
-
-		// expect(broker.wrapContextInvoke).toHaveBeenCalledTimes(1);
-		// expect(broker.wrapContextInvoke).toHaveBeenCalledWith(action, action.handler);
 	});
 
 });
 
-describe.skip("Test broker.wrapContextInvoke", () => {
+/*
+describe("Test broker.wrapContextInvoke", () => {
 
 	describe("Test wrapping", () => {
 		let broker = new ServiceBroker();
@@ -552,37 +608,32 @@ describe.skip("Test broker.wrapContextInvoke", () => {
 	});
 
 });
+*/
 
-describe("Test broker.unregisterAction", () => {
+describe("Test broker.deregisterAction", () => {
 
 	let broker = new ServiceBroker();
+
+	broker.serviceRegistry.deregister = jest.fn(() => true);
 
 	let action = {
 		name: "list"
 	};
 
-	broker.registerAction(action);
-	broker.registerAction(action, "server-2");
-	
-	it("should contains 2 items", () => {
-		let item = broker.actions.get("list");
-		expect(item).toBeDefined();
-		expect(item.list.length).toBe(2);
+	it("should call deregister of serviceRegistry without nodeID", () => {
+		broker.deregisterAction(null, action);
+
+		expect(broker.serviceRegistry.deregister).toHaveBeenCalledTimes(1);
+		expect(broker.serviceRegistry.deregister).toHaveBeenCalledWith(null, action);
 	});
 
-	it("should remove action from list by nodeID", () => {
-		broker.unregisterAction(action);
-		let item = broker.actions.get("list");
-		expect(item).toBeDefined();
-		expect(item.list.length).toBe(1);
-		expect(item.get().nodeID).toBe("server-2");
-	});
+	it("should call deregister of serviceRegistry with nodeID", () => {
+		broker.serviceRegistry.deregister.mockClear();
 
-	it("should remove last item from list", () => {
-		broker.unregisterAction(action, "server-2");
-		let item = broker.actions.get("list");
-		expect(item).toBeDefined();
-		expect(item.list.length).toBe(0);
+		broker.deregisterAction("server-2", action);
+
+		expect(broker.serviceRegistry.deregister).toHaveBeenCalledTimes(1);
+		expect(broker.serviceRegistry.deregister).toHaveBeenCalledWith("server-2", action);
 	});
 });
 
@@ -597,10 +648,10 @@ describe("Test broker.registerInternalActions", () => {
 		broker.registerInternalActions();
 		
 		expect(broker.registerAction).toHaveBeenCalledTimes(4);
-		expect(broker.registerAction).toHaveBeenCalledWith({ name: "$node.list", cache: false, handler: jasmine.any(Function) });
-		expect(broker.registerAction).toHaveBeenCalledWith({ name: "$node.services", cache: false, handler: jasmine.any(Function) });
-		expect(broker.registerAction).toHaveBeenCalledWith({ name: "$node.actions", cache: false, handler: jasmine.any(Function) });
-		expect(broker.registerAction).toHaveBeenCalledWith({ name: "$node.health", cache: false, handler: jasmine.any(Function) });
+		expect(broker.registerAction).toHaveBeenCalledWith(null, { name: "$node.list", cache: false, handler: jasmine.any(Function) });
+		expect(broker.registerAction).toHaveBeenCalledWith(null, { name: "$node.services", cache: false, handler: jasmine.any(Function) });
+		expect(broker.registerAction).toHaveBeenCalledWith(null, { name: "$node.actions", cache: false, handler: jasmine.any(Function) });
+		expect(broker.registerAction).toHaveBeenCalledWith(null, { name: "$node.health", cache: false, handler: jasmine.any(Function) });
 	});
 
 	it("should register internal action with statistics", () => {
@@ -612,7 +663,7 @@ describe("Test broker.registerInternalActions", () => {
 		broker.registerInternalActions();
 		
 		expect(broker.registerAction).toHaveBeenCalledTimes(5);
-		expect(broker.registerAction).toHaveBeenCalledWith({ name: "$node.stats", cache: false, handler: jasmine.any(Function) });
+		expect(broker.registerAction).toHaveBeenCalledWith(null, { name: "$node.stats", cache: false, handler: jasmine.any(Function) });
 	});
 });
 
@@ -705,7 +756,7 @@ describe("Test broker.getAction", () => {
 	});
 
 	it("should find the action by name", () => {
-		const action = broker.getAction("posts.list").data;
+		const { action } = broker.getAction("posts.list");
 		expect(action.custom).toBe("hello");
 		expect(action.cache).toBe(true);
 		expect(action.handler).toBeInstanceOf(Function);
@@ -731,7 +782,7 @@ describe("Test broker.isActionAvailable", () => {
 	});
 
 	it("should not find handler for action by name", () => {
-		broker.unregisterAction({ name: "posts.list" });
+		broker.deregisterAction(null, { name: "posts.list" });
 		expect(broker.hasAction("posts.list")).toBe(true);
 		expect(broker.isActionAvailable("posts.list")).toBe(false);
 	});
@@ -772,7 +823,10 @@ describe("Test broker.call method", () => {
 			name: "posts",
 			actions: {
 				find: actionHandler,
-				noHandler: jest.fn()
+				noHandler: jest.fn(),
+				slow() {
+					return Promise.delay(5000).then(() => "OK");
+				}
 			}
 		});
 			
@@ -786,11 +840,11 @@ describe("Test broker.call method", () => {
 		});
 
 		it("should reject if no handler", () => {
-			broker.unregisterAction({ name: "posts.noHandler" });
+			broker.deregisterAction(null, { name: "posts.noHandler" });
 			return broker.call("posts.noHandler").catch(err => {
 				expect(err).toBeDefined();
 				expect(err).toBeInstanceOf(ServiceNotFoundError);
-				expect(err.message).toBe("Not available 'posts.noHandler' action handler!");
+				expect(err.message).toBe("Action 'posts.noHandler' is not available!");
 				expect(err.action).toBe("posts.noHandler");
 			});
 		});
@@ -800,7 +854,7 @@ describe("Test broker.call method", () => {
 			return p.then(ctx => {
 				expect(ctx).toBeDefined();
 				expect(ctx.broker).toBe(broker);
-				expect(ctx.nodeID).toBeUndefined();
+				expect(ctx.nodeID).toBeNull();
 				expect(ctx.level).toBe(1);
 				expect(ctx.requestID).toBeNull();
 				expect(ctx.action.name).toBe("posts.find");
@@ -853,7 +907,7 @@ describe("Test broker.call method", () => {
 			return broker.call("posts.find", { b: 10 }, { parentCtx, meta: { b: "Adam" } }).then(ctx => {
 				expect(ctx).toBeDefined();
 				expect(ctx.broker).toBe(broker);
-				expect(ctx.nodeID).toBeUndefined();
+				expect(ctx.nodeID).toBeNull();
 				expect(ctx.level).toBe(2);
 				expect(ctx.parentID).toBe(parentCtx.id);
 				expect(ctx.requestID).toBe("555");
@@ -881,7 +935,7 @@ describe("Test broker.call method", () => {
 			return broker.call("posts.find", { b: 10 }, { ctx: preCtx }).then(ctx => {
 				expect(ctx).toBe(preCtx);
 				expect(ctx.broker).toBe(broker);
-				expect(ctx.nodeID).toBeUndefined();
+				expect(ctx.nodeID).toBeNull();
 				expect(ctx.level).toBe(1);
 				expect(ctx.parentID).toBeNull();
 				expect(ctx.requestID).toBe("555");
@@ -912,6 +966,42 @@ describe("Test broker.call method", () => {
 			});
 		});		
 
+		it("should call circuitClose if endpoint is in 'half-open' state", () => {
+			broker.options.circuitBreaker.enabled = true;
+			actionHandler.mockClear();
+			let params = { search: "John" };
+			let actionItem = broker.getAction("posts.find");
+			actionItem.circuitHalfOpen();
+			actionItem.circuitClose = jest.fn();
+			return broker.call(actionItem, params).then(ctx => {
+				expect(ctx).toBeDefined();
+				expect(actionHandler).toHaveBeenCalledTimes(1);
+				expect(actionItem.circuitClose).toHaveBeenCalledTimes(1);
+			});
+		});		
+
+
+		it("should call _callErrorHandler if call timed out", () => {
+			let clock = lolex.install();
+			broker._callErrorHandler = jest.fn((err, ctx, endpoint, opts) => ({ err, ctx, endpoint, opts }));
+
+			let p = broker.call("posts.slow", null, { timeout: 1000 });
+			clock.tick(2000);
+
+			p.then(({ err, ctx, endpoint, opts }) => {
+				expect(err).toBeDefined();
+				expect(err).toBeInstanceOf(Promise.TimeoutError);
+				expect(ctx).toBeDefined();
+				expect(endpoint).toBeDefined();
+				expect(opts).toEqual({ retryCount: 0, timeout: 1000 });
+
+				expect(broker._callErrorHandler).toHaveBeenCalledTimes(1);
+				//expect(broker._callErrorHandler).toHaveBeenCalledWith(ctx);
+
+				clock.uninstall();
+			});
+		});	
+
 	});
 
 
@@ -923,7 +1013,7 @@ describe("Test broker.call method", () => {
 			internalActions: false, 
 			metrics: true
 		});
-		broker.registerAction({	name: "user.create" }, "server-2");
+		broker.registerAction("server-2", {	name: "user.create" });
 		broker.transit.request = jest.fn((ctx) => Promise.resolve({ ctx }));
 			
 		it("should call transit.request with new Context without params", () => {
@@ -969,8 +1059,13 @@ describe("Test broker.call method", () => {
 
 describe("Test broker._callErrorHandler", () => {
 
-	let broker = new ServiceBroker({ transporter: new FakeTransporter(), metrics: true });
-	broker.nodeUnavailable = jest.fn();
+	let broker = new ServiceBroker({ 
+		transporter: new FakeTransporter(), 
+		metrics: true, 
+		circuitBreaker: {
+			enabled: true
+		} 
+	});
 	broker.call = jest.fn(() => Promise.resolve());
 	let transit = broker.transit;
 	
@@ -982,60 +1077,74 @@ describe("Test broker._callErrorHandler", () => {
 	let timeoutErr = new RequestTimeoutError("user.create", "server-2");
 	ctx._metricFinish = jest.fn();
 	transit.removePendingRequest = jest.fn();
+	let endpoint = new ServiceRegistry.Endpoint(broker, ctx.nodeID, ctx.action);
+	endpoint.failure = jest.fn();
 
 	it("should return error without retryCount & fallbackResponse", () => {
-		return broker._callErrorHandler(customErr, ctx, {}).catch(err => {
+		return broker._callErrorHandler(customErr, ctx, endpoint, {}).catch(err => {
 			expect(err).toBe(customErr);
-			expect(broker.nodeUnavailable).toHaveBeenCalledTimes(0);
 			expect(broker.call).toHaveBeenCalledTimes(0);
 			expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
 			expect(ctx._metricFinish).toHaveBeenCalledWith(err);
 			expect(transit.removePendingRequest).toHaveBeenCalledTimes(1);
 			expect(transit.removePendingRequest).toHaveBeenCalledWith(ctx.id);
+			expect(endpoint.failure).toHaveBeenCalledTimes(0);
 		});
 	});
 
-	it("should call nodeUnavailable if error code is greater than 500", () => {
-		return broker._callErrorHandler(timeoutErr, ctx, {}).catch(err => {
-			expect(err).toBe(timeoutErr);
-			expect(broker.nodeUnavailable).toHaveBeenCalledTimes(1);
-			expect(broker.nodeUnavailable).toHaveBeenCalledWith("server-2");
-			expect(broker.call).toHaveBeenCalledTimes(0);
+	it("should call endpoint.failure", () => {
+		return broker._callErrorHandler(timeoutErr, ctx, endpoint, {}).catch(() => {
+			expect(endpoint.failure).toHaveBeenCalledTimes(1);
+		});
+	});
+
+	it("should call endpoint.failure if errorCode >= 500", () => {
+		endpoint.failure.mockClear();
+		return broker._callErrorHandler(new CustomError("Wrong", 500), ctx, endpoint, {}).catch(() => {
+			expect(endpoint.failure).toHaveBeenCalledTimes(1);
+		});
+	});
+
+	it("should call endpoint.failure if errorCode >= 500", () => {
+		endpoint.failure.mockClear();
+		broker.options.circuitBreaker.failureOnReject = false;
+		return broker._callErrorHandler(new CustomError("Wrong", 500), ctx, endpoint, {}).catch(() => {
+			expect(endpoint.failure).toHaveBeenCalledTimes(0);
 		});
 	});
 
 	it("should convert error text to CustomError", () => {
-		broker.nodeUnavailable.mockClear();
-
-		return broker._callErrorHandler("Something happened", ctx, {}).catch(err => {
+		return broker._callErrorHandler("Something happened", ctx, endpoint, {}).catch(err => {
 			expect(err).toBeInstanceOf(CustomError);
 			expect(broker.call).toHaveBeenCalledTimes(0);
-			expect(broker.nodeUnavailable).toHaveBeenCalledTimes(1);
-			expect(broker.nodeUnavailable).toHaveBeenCalledWith("server-2");
 		});
 	});
 
 	it("should convert Promise.TimeoutError to RequestTimeoutError", () => {
-		broker.nodeUnavailable.mockClear();
-
-		return broker._callErrorHandler(new Promise.TimeoutError, ctx, {}).catch(err => {
+		endpoint.failure.mockClear();
+		return broker._callErrorHandler(new Promise.TimeoutError, ctx, endpoint, {}).catch(err => {
 			expect(err).toBeInstanceOf(RequestTimeoutError);
 			expect(err.message).toBe("Request timed out when call 'user.create' action on 'server-2' node!");
 			expect(broker.call).toHaveBeenCalledTimes(0);
-			expect(broker.nodeUnavailable).toHaveBeenCalledTimes(1);
-			expect(broker.nodeUnavailable).toHaveBeenCalledWith("server-2");
+			expect(endpoint.failure).toHaveBeenCalledTimes(1);
 		});
 	});	
 
+	it("should not call endpoint.failure if failureOnTimeout is false", () => {
+		broker.options.circuitBreaker.failureOnTimeout = false;
+		endpoint.failure.mockClear();
+		return broker._callErrorHandler(timeoutErr, ctx, endpoint, {}).catch(() => {
+			expect(endpoint.failure).toHaveBeenCalledTimes(0);
+		});
+	});		
+
 	it("should retry call if retryCount > 0", () => {
 		ctx._metricFinish.mockClear();
-		broker.nodeUnavailable.mockClear();
 		ctx.retryCount = 2;
 
-		return broker._callErrorHandler(timeoutErr, ctx, {}).then(() => {
+		return broker._callErrorHandler(timeoutErr, ctx, endpoint, {}).then(() => {
 			expect(broker.call).toHaveBeenCalledTimes(1);
 			expect(broker.call).toHaveBeenCalledWith("user.create", {}, { ctx });
-			expect(broker.nodeUnavailable).toHaveBeenCalledTimes(0);
 
 			expect(ctx.retryCount).toBe(1);
 			expect(ctx._metricFinish).toHaveBeenCalledTimes(0);
@@ -1044,13 +1153,11 @@ describe("Test broker._callErrorHandler", () => {
 
 	it("should return with the fallbackResponse data", () => {
 		ctx._metricFinish.mockClear();
-		broker.nodeUnavailable.mockClear();
 		broker.call.mockClear();
 
 		let otherRes = {};
-		return broker._callErrorHandler(customErr, ctx, { fallbackResponse: otherRes }).then(res => {
+		return broker._callErrorHandler(customErr, ctx, endpoint, { fallbackResponse: otherRes }).then(res => {
 			expect(res).toBe(otherRes);
-			expect(broker.nodeUnavailable).toHaveBeenCalledTimes(0);
 			expect(broker.call).toHaveBeenCalledTimes(0);
 
 			expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
@@ -1059,18 +1166,16 @@ describe("Test broker._callErrorHandler", () => {
 	});
 
 	it("should return with the fallbackResponse function returned data", () => {
-		broker.nodeUnavailable.mockClear();
 		broker.call.mockClear();
 		ctx.metrics = false;
 		ctx._metricFinish.mockClear();
 
 		let otherRes = { a: 5 };
 		let otherFn = jest.fn(() => Promise.resolve(otherRes));
-		return broker._callErrorHandler(customErr, ctx, { fallbackResponse: otherFn }).then(res => {
+		return broker._callErrorHandler(customErr, ctx, endpoint, { fallbackResponse: otherFn }).then(res => {
 			expect(res).toBe(otherRes);
 			expect(otherFn).toHaveBeenCalledTimes(1);
 			expect(otherFn).toHaveBeenCalledWith(ctx);
-			expect(broker.nodeUnavailable).toHaveBeenCalledTimes(0);
 			expect(broker.call).toHaveBeenCalledTimes(0);
 
 			expect(ctx._metricFinish).toHaveBeenCalledTimes(0);
@@ -1229,35 +1334,3 @@ describe("Test broker.emitLocal", () => {
 	});
 });
 
-describe("Test broker.getLocalActionList", () => {
-	let broker = new ServiceBroker();
-
-	broker.createService({
-		name: "posts",
-		version: 2,
-		actions: {
-			list: {
-				cache: true,
-				params: { limit: "number" },
-				handler: jest.fn()
-			}
-		}
-	});
-
-	broker.loadService("./test/services/math.service.js");
-	broker.registerAction({ name: "remote.action" }, "server-2");
-
-	it("should returns with local action list", () => {
-		let res = broker.getLocalActionList();
-		
-		expect(Object.keys(res).length).toBe(5);
-
-		expect(res["v2.posts.list"].name).toBe("v2.posts.list");
-		expect(res["v2.posts.list"].version).toBe(2);
-		expect(res["v2.posts.list"].cache).toBe(true);
-		expect(res["v2.posts.list"].params).toEqual({ limit: "number" });
-		expect(res["v2.posts.list"].handler).toBeUndefined();
-		expect(res["v2.posts.list"].service).toBeUndefined();
-		
-	});
-});

@@ -38,6 +38,7 @@ function getPacketClassByType(type) {
 	if (type == PACKET_HEARTBEAT)
 		return PacketHeartbeat;
 
+	/* istanbul ignore next */
 	return Packet;
 }
 

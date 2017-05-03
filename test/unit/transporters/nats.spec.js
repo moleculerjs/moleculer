@@ -1,6 +1,8 @@
 const ServiceBroker = require("../../../src/service-broker");
 const { PacketInfo } = require("../../../src/packets");
 
+const lolex = require("lolex");
+
 jest.mock("nats");
 
 let Nats = require("nats");
@@ -41,7 +43,7 @@ describe("Test NatsTransporter constructor", () => {
 	});
 });
 
-describe("Test NatsTransporter connect & disconnect", () => {
+describe("Test NatsTransporter connect & disconnect & reconnect", () => {
 	let broker = new ServiceBroker();
 	let msgHandler = jest.fn();
 	let trans;
@@ -72,6 +74,20 @@ describe("Test NatsTransporter connect & disconnect", () => {
 		trans.disconnect();
 		expect(trans.client).toBeNull();
 		expect(cb).toHaveBeenCalledTimes(1);
+	});
+
+	it("check reconnect", () => {
+		let clock = lolex.install();
+
+		trans.connect = jest.fn();
+
+		trans.reconnectAfterTime();
+
+		clock.tick(5500);
+
+		expect(trans.connect).toHaveBeenCalledTimes(1);
+
+		clock.uninstall();
 	});
 });
 
