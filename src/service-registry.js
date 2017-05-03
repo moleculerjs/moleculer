@@ -9,13 +9,10 @@
 const { remove, random, defaultsDeep, omit } = require("lodash");
 
 // Registry strategies
-const STRATEGY_ROUND_ROBIN = 1;
-const STRATEGY_RANDOM = 2;
+const { STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM } = require("./constants");
 
 // Circuit-breaker states
-const CIRCUIT_CLOSE 	= "close";
-const CIRCUIT_HALF_OPEN = "half_open";
-const CIRCUIT_OPEN 		= "open";
+const { CIRCUIT_CLOSE, CIRCUIT_HALF_OPEN, CIRCUIT_OPEN } = require("./constants");
 
 class ServiceRegistry {
 	/**
@@ -296,13 +293,5 @@ class EndpointList {
 
 ServiceRegistry.EndpointList = EndpointList;
 ServiceRegistry.Endpoint = Endpoint;
-
-ServiceRegistry.STRATEGY_ROUND_ROBIN = 1;
-ServiceRegistry.STRATEGY_RANDOM = 2;
-
-// Circuit-breaker states
-ServiceRegistry.CIRCUIT_CLOSE 		= "close";
-ServiceRegistry.CIRCUIT_HALF_OPEN 	= "half_open";
-ServiceRegistry.CIRCUIT_OPEN 		= "open";
 
 module.exports = ServiceRegistry;

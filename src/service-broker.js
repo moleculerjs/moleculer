@@ -19,6 +19,9 @@ const healthInfo = require("./health");
 
 const JSONSerializer = require("./serializers/json");
 
+// Circuit-breaker states
+const { CIRCUIT_HALF_OPEN } = require("./constants");
+
 //const _ = require("lodash");
 const _ = require("lodash");
 const pick = require("lodash/pick");
@@ -669,13 +672,12 @@ class ServiceBroker {
 		}
 
 		// Handle half-open state in circuit breaker
-		if (this.options.circuitBreaker.enabled && endpoint.state === ServiceRegistry.CIRCUIT_HALF_OPEN) {
+		if (this.options.circuitBreaker.enabled && endpoint.state === CIRCUIT_HALF_OPEN) {
 			p = p.then(res => {
 				endpoint.circuitClose();
 				return res;
 			});
 		}
-
 
 		// Error handler
 		p = p.catch(err => this._callErrorHandler(err, ctx, endpoint, opts));

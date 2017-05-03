@@ -4,23 +4,29 @@ const ServiceRegistry = require("../../src/service-registry");
 const ServiceBroker = require("../../src/service-broker");
 const lolex = require("lolex");
 
+// Registry strategies
+const { STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM } = require("../../src/constants");
+
+// Circuit-breaker states
+const { CIRCUIT_CLOSE, CIRCUIT_HALF_OPEN, CIRCUIT_OPEN } = require("../../src/constants");
+
 describe("Test constructor", () => {
 
 	it("should create instance with default options", () => {
 		let registry = new ServiceRegistry();
 		expect(registry).toBeDefined();
-		expect(registry.opts).toEqual({"preferLocal": true, "strategy": ServiceRegistry.STRATEGY_ROUND_ROBIN});
+		expect(registry.opts).toEqual({"preferLocal": true, "strategy": STRATEGY_ROUND_ROBIN});
 		expect(registry.actions).toBeInstanceOf(Map);
 	});
 
 	it("should create instance with options", () => {
 		let opts = {
 			preferLocal: false,
-			strategy: ServiceRegistry.STRATEGY_RANDOM
+			strategy: STRATEGY_RANDOM
 		};
 		let registry = new ServiceRegistry(opts);
 		expect(registry).toBeDefined();
-		expect(registry.opts).toEqual({"preferLocal": false, "strategy": ServiceRegistry.STRATEGY_RANDOM});
+		expect(registry.opts).toEqual({"preferLocal": false, "strategy": STRATEGY_RANDOM});
 	});
 
 });
@@ -176,7 +182,7 @@ describe("Test EndpointList constructor", () => {
 		let list = new ServiceRegistry.EndpointList(broker);
 		expect(list).toBeDefined();
 		expect(list.list).toBeDefined();
-		expect(list.opts).toEqual({"preferLocal": true, "strategy": ServiceRegistry.STRATEGY_ROUND_ROBIN});
+		expect(list.opts).toEqual({"preferLocal": true, "strategy": STRATEGY_ROUND_ROBIN});
 		expect(list.counter).toBe(0);
 		expect(list.localEndpoint).toBeNull();
 		expect(list.count()).toBe(0);
@@ -186,11 +192,11 @@ describe("Test EndpointList constructor", () => {
 	it("should create instance with options", () => {
 		let opts = {
 			preferLocal: false,
-			strategy: ServiceRegistry.STRATEGY_RANDOM
+			strategy: STRATEGY_RANDOM
 		};
 		let list = new ServiceRegistry.EndpointList(broker, opts);
 		expect(list).toBeDefined();
-		expect(list.opts).toEqual({"preferLocal": false, "strategy": ServiceRegistry.STRATEGY_RANDOM});
+		expect(list.opts).toEqual({"preferLocal": false, "strategy": STRATEGY_RANDOM});
 	});
 
 });
@@ -235,7 +241,7 @@ describe("Test EndpointList add methods", () => {
 describe("Test EndpointList get methods with round-robin", () => {
 	const broker = new ServiceBroker();
 	let list = new ServiceRegistry.EndpointList(broker, {
-		strategy: ServiceRegistry.STRATEGY_ROUND_ROBIN
+		strategy: STRATEGY_ROUND_ROBIN
 	});
 
 	let obj1 = { a: 1 };
@@ -271,7 +277,7 @@ describe("Test EndpointList nextAvailable methods with preferLocal", () => {
 	const broker = new ServiceBroker();
 	let list = new ServiceRegistry.EndpointList(broker, {
 		preferLocal: true,
-		strategy: ServiceRegistry.STRATEGY_ROUND_ROBIN
+		strategy: STRATEGY_ROUND_ROBIN
 	});
 
 	let obj0 = { a: 0 };
@@ -295,12 +301,12 @@ describe("Test EndpointList nextAvailable methods with preferLocal", () => {
 	});
 
 	it("should return null if list is contains one item but unavailable", () => {
-		list.list[0].state = ServiceRegistry.CIRCUIT_OPEN;
+		list.list[0].state = CIRCUIT_OPEN;
 
 		let ep = list.nextAvailable();
 		expect(ep).toBeNull();
 
-		list.list[0].state = ServiceRegistry.CIRCUIT_CLOSE;
+		list.list[0].state = CIRCUIT_CLOSE;
 	});
 
 	it("should return the local item if list is contains local item", () => {
@@ -314,7 +320,7 @@ describe("Test EndpointList nextAvailable methods with preferLocal", () => {
 	});
 
 	it("should return the remote item if the local item is unavailable", () => {
-		list.list[1].state = ServiceRegistry.CIRCUIT_OPEN;
+		list.list[1].state = CIRCUIT_OPEN;
 
 		let ep = list.nextAvailable();
 		expect(ep.action).toBe(obj1);
@@ -343,7 +349,7 @@ describe("Test EndpointList nextAvailable methods with preferLocal", () => {
 		list.add("node2", obj2);
 		list.add("node3", obj3);
 
-		list.list[1].state = ServiceRegistry.CIRCUIT_OPEN;
+		list.list[1].state = CIRCUIT_OPEN;
 
 		let ep = list.nextAvailable();
 		expect(ep.action).toBe(obj3);
@@ -358,9 +364,9 @@ describe("Test EndpointList nextAvailable methods with preferLocal", () => {
 	});
 
 	it("should returns null if every endpoints are unavailable", () => {
-		list.list[0].state = ServiceRegistry.CIRCUIT_OPEN;
-		list.list[1].state = ServiceRegistry.CIRCUIT_OPEN;
-		list.list[2].state = ServiceRegistry.CIRCUIT_OPEN;
+		list.list[0].state = CIRCUIT_OPEN;
+		list.list[1].state = CIRCUIT_OPEN;
+		list.list[2].state = CIRCUIT_OPEN;
 
 		let ep = list.nextAvailable();
 		expect(ep).toBeNull();
@@ -482,7 +488,7 @@ describe("Test Endpoint constructor", () => {
 		expect(item.nodeID).toBe("node2");
 		expect(item.action).toBe(action);
 		expect(item.local).toBe(false);
-		expect(item.state).toBe(ServiceRegistry.CIRCUIT_CLOSE);
+		expect(item.state).toBe(CIRCUIT_CLOSE);
 		expect(item.failures).toBe(0);
 		expect(item.cbTimer).toBeNull();
 	});
@@ -495,7 +501,7 @@ describe("Test Endpoint constructor", () => {
 		expect(item.nodeID).toBeNull();
 		expect(item.action).toBe(action);
 		expect(item.local).toBe(true);
-		expect(item.state).toBe(ServiceRegistry.CIRCUIT_CLOSE);
+		expect(item.state).toBe(CIRCUIT_CLOSE);
 		expect(item.failures).toBe(0);
 		expect(item.cbTimer).toBeNull();
 	});
@@ -531,13 +537,13 @@ describe("Test Endpoint circuit methods", () => {
 	});
 
 	it("test available", () => {
-		item.state = ServiceRegistry.CIRCUIT_HALF_OPEN;
+		item.state = CIRCUIT_HALF_OPEN;
 		expect(item.available()).toBe(true);
 		
-		item.state = ServiceRegistry.CIRCUIT_OPEN;
+		item.state = CIRCUIT_OPEN;
 		expect(item.available()).toBe(false);
 
-		item.state = ServiceRegistry.CIRCUIT_CLOSE;
+		item.state = CIRCUIT_CLOSE;
 		expect(item.available()).toBe(true);
 	});
 
@@ -559,12 +565,12 @@ describe("Test Endpoint circuit methods", () => {
 	it("test circuitOpen", () => {
 		const clock = lolex.install();
 
-		item.state = ServiceRegistry.CIRCUIT_CLOSE;
+		item.state = CIRCUIT_CLOSE;
 		item.circuitHalfOpen = jest.fn();
 
 		item.circuitOpen();
 
-		expect(item.state).toBe(ServiceRegistry.CIRCUIT_OPEN);
+		expect(item.state).toBe(CIRCUIT_OPEN);
 		expect(item.cbTimer).toBeDefined();
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
 		expect(broker.emitLocal).toHaveBeenCalledWith("circuit-breaker.open", { nodeID: null, action, failures: 0 });
@@ -581,11 +587,11 @@ describe("Test Endpoint circuit methods", () => {
 
 	it("test circuitOpen", () => {
 		broker.emitLocal.mockClear();
-		item.state = ServiceRegistry.CIRCUIT_OPEN;
+		item.state = CIRCUIT_OPEN;
 
 		item.circuitHalfOpen();
 
-		expect(item.state).toBe(ServiceRegistry.CIRCUIT_HALF_OPEN);
+		expect(item.state).toBe(CIRCUIT_HALF_OPEN);
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
 		expect(broker.emitLocal).toHaveBeenCalledWith("circuit-breaker.half-open", { nodeID: null, action });
 
@@ -593,12 +599,12 @@ describe("Test Endpoint circuit methods", () => {
 
 	it("test circuitOpen", () => {
 		broker.emitLocal.mockClear();
-		item.state = ServiceRegistry.CIRCUIT_HALF_OPEN;
+		item.state = CIRCUIT_HALF_OPEN;
 		item.failures = 5;
 
 		item.circuitClose();
 
-		expect(item.state).toBe(ServiceRegistry.CIRCUIT_CLOSE);
+		expect(item.state).toBe(CIRCUIT_CLOSE);
 		expect(item.failures).toBe(0);
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
 		expect(broker.emitLocal).toHaveBeenCalledWith("circuit-breaker.close", { nodeID: null, action });

@@ -1,3 +1,54 @@
+<a name="0.8.0"></a>
+# 0.8.0 (2017-xx-xx)
+
+# New
+## Built-in circuit breaker [#22](https://github.com/ice-services/moleculer/issues/22/)
+Implemented better circuit breaker solution. Now every calls (local and remote) are protected with the built-in circuit breaker.
+You need only enable it in broker options.
+
+**Usage**
+```js
+let broker = new ServiceBroker({
+    circuitBreaker: {
+        enabled: true,
+        maxFailures: 5, // Trip after 5 failures
+        halfOpenTime: 10 * 1000 // 10 sec
+        failureOnTimeout: true // Failure if request timed out
+        failureOnReject: true // Failure if request rejected with error code >= 500
+    }
+});
+```
+
+*`nodeUnavailable` method is dropped.*
+
+## Service Registry module
+Created a built-in Service Registry module. It handles actions of services on nodes, circuit breaker logic...etc. In the future it will be perhaps pluggable.
+
+Via broker options you can change the load balancing strategies.
+
+**Example**
+
+```js
+const { STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM } = require("moleculer");
+
+let broker = new ServiceBroker({
+    registry: {
+        strategy: STRATEGY_ROUND_ROBIN, // Load balancing strategy
+		preferLocal: true // First call local service if available
+    }
+});
+```
+
+# Changes
+
+## Nanomatch instead of micromatch
+Memory cacher is using [nanomatch](https://github.com/micromatch/nanomatch) instead of [micromatch](https://github.com/micromatch/micromatch). The `nanomatch` is ~10x faster.
+
+
+
+
+
+
 <a name="0.7.0"></a>
 # 0.7.0 (2017-04-24)
 
