@@ -7,7 +7,7 @@
 "use strict";
 
 const Promise 		= require("bluebird");
-const micromatch  	= require("micromatch");
+const nanomatch  	= require("nanomatch");
 const BaseCacher  	= require("./base");
 /**
  * Cacher factory for memory cache
@@ -108,7 +108,7 @@ class MemoryCacher extends BaseCacher {
 
 		let keys = Object.keys(this.cache);
 		keys.forEach((key) => {
-			if (micromatch.isMatch(key, match)) {
+			if (nanomatch.isMatch(key, match)) {
 				this.logger.debug(`REMOVE ${key}`);
 				delete this.cache[key];
 			}

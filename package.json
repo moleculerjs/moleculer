@@ -73,9 +73,9 @@
     "glob": "7.1.1",
     "ioredis": "2.5.0",
     "lodash": "4.17.4",
-    "micromatch": "2.3.11",
     "mqtt": "2.7.1",
     "msgpack5": "3.4.1",
+    "nanomatch": "1.1.1",
     "nats": "0.7.16",
     "node-object-hash": "1.2.0",
     "protobufjs": "6.7.3"
