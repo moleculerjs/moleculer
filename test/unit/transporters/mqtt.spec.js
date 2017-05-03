@@ -1,4 +1,5 @@
 const ServiceBroker = require("../../../src/service-broker");
+const Transit = require("../../../src/transit");
 const MqttTransporter = require("../../../src/transporters/mqtt");
 const { PacketInfo } = require("../../../src/packets");
 
@@ -42,12 +43,13 @@ describe("Test NatsTransporter constructor", () => {
 
 describe("Test MqttTransporter connect & disconnect", () => {
 	let broker = new ServiceBroker();
+	let transit = new Transit(broker);
 	let msgHandler = jest.fn();
 	let trans;
 
 	beforeEach(() => {
 		trans = new MqttTransporter();
-		trans.init(broker, msgHandler);
+		trans.init(transit, msgHandler);
 	});
 
 	it("check connect", () => {
@@ -61,7 +63,7 @@ describe("Test MqttTransporter connect & disconnect", () => {
 			expect(trans.client.on).toHaveBeenCalledWith("message", jasmine.any(Function));
 		});
 
-		trans.client.onCallbacks.connect(); // Trigger the `resolve`
+		trans._client.onCallbacks.connect(); // Trigger the `resolve`
 
 		return p;
 	});

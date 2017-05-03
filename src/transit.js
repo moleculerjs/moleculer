@@ -43,18 +43,22 @@ class Transit {
 		this.heartbeatTimer = null;
 		this.checkNodesTimer = null;
 
-		this.tx.init(this, this.messageHandler.bind(this));
+		if (this.tx)
+			this.tx.init(this, this.messageHandler.bind(this));
 
 		this.__connectResolve = null;
 	}
 
 	afterConnect(wasReconnect) {
 		return Promise.resolve()
+
 		.then(() => {
 			if (!wasReconnect) 
 				this.makeSubscriptions();
 		})
+
 		.then(() => this.discoverNodes())
+
 		.then(() => {
 			if (this.__connectResolve) {
 				this.__connectResolve();

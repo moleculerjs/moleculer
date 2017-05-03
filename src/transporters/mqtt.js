@@ -42,6 +42,7 @@ class MqttTransporter extends Transporter {
 		return new Promise((resolve, reject) => {
 			const mqtt = require("mqtt");
 			const client = mqtt.connect(this.opts.mqtt);
+			this._client = client; // For tests
 
 			client.on("connect", () => {
 				this.client = client;
