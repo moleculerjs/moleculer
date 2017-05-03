@@ -465,21 +465,6 @@ class Transit {
 	}
 
 	/**
-	 * Set node to unavailable. 
-	 * It will be called when a remote call is thrown a RequestTimeoutError exception.
-	 * 
-	 * @param {any} nodeID	Node ID
-	 * 
-	 * @memberOf Transit
-	 */
-	nodeUnavailable(nodeID) {
-		let node = this.nodes.get(nodeID);
-		if (node) {
-			this.nodeDisconnected(nodeID, true);
-		}
-	}
-
-	/**
 	 * Check the given nodeID is available
 	 * 
 	 * @param {any} nodeID	Node ID

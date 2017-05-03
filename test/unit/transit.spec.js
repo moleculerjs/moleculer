@@ -603,26 +603,6 @@ describe("Test Transit node & heartbeat handling", () => {
 		});
 	});
 
-	describe("Test nodeUnavailable", () => {
-		let broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
-		const transit = broker.transit;
-		transit.nodeDisconnected = jest.fn();
-
-		it("should not call nodeDisconnected", () => {
-			transit.nodeUnavailable("server-2");
-			
-			expect(transit.nodeDisconnected).toHaveBeenCalledTimes(0);
-		});
-
-		it("should call nodeDisconnected", () => {
-			transit.nodes.set("server-2", {});
-			transit.nodeUnavailable("server-2");
-			
-			expect(transit.nodeDisconnected).toHaveBeenCalledTimes(1);
-			expect(transit.nodeDisconnected).toHaveBeenCalledWith("server-2", true);
-		});
-	});
-
 	describe("Test isNodeAvailable", () => {
 		let broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
 		const transit = broker.transit;

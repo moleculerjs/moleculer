@@ -735,14 +735,6 @@ class ServiceBroker {
 			}
 		}
 
-		// Set node status to unavailable
-		/* Old solution REMOVE IT
-		if (err.code >= 500) {
-			const affectedNodeID = err.nodeID || nodeID;
-			if (affectedNodeID && affectedNodeID != this.nodeID)
-				this.transit.nodeUnavailable(affectedNodeID);
-		}*/
-
 		// Need it? this.logger.error("Action request error!", err);
 
 		this._finishCall(ctx, err);
