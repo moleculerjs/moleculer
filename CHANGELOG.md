@@ -45,8 +45,7 @@ let broker = new ServiceBroker({
 Memory cacher is using [nanomatch](https://github.com/micromatch/nanomatch) instead of [micromatch](https://github.com/micromatch/micromatch). The `nanomatch` is ~10x faster.
 
 
-
-
+--------------------------------------------------
 
 
 <a name="0.7.0"></a>
@@ -175,6 +174,9 @@ broker.createService({
 Moleculer uses [distributed timeouts](https://www.datawire.io/guide/traffic/deadlines-distributed-timeouts-microservices/).In the chained calls the `ctx.call` decrement the original timeout value with the elapsed time. If the new calculated timeout is less or equal than 0, it'll skip the next calls because the first call is rejected with `RequestTimeoutError` error.
 
 
+--------------------------------------------------
+
+
 <a name="0.6.0"></a>
 # 0.6.0 (2017-03-31)
 
@@ -238,6 +240,9 @@ logger.fatal("fatal level");
 * `warn` -> `error` -> `info`
 * `error` -> `info`
 * `fatal` -> `error` -> `info`
+
+
+--------------------------------------------------
 
 
 <a name="0.5.0"></a>
