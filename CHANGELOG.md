@@ -24,7 +24,7 @@ let broker = new ServiceBroker({
 ## Service Registry module
 Created a built-in Service Registry module. It handles actions of services on nodes, circuit breaker logic...etc. In the future it will be perhaps pluggable.
 
-Via broker options you can change the load balancing strategies.
+Via broker options you can change the load balancing strategies of Service Registry.
 
 **Example**
 
