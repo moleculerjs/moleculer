@@ -413,9 +413,19 @@ describe("Test broker.registerAction", () => {
 describe("Test broker.wrapAction", () => {
 
 	let broker = new ServiceBroker();
-	//broker.wrapContextInvoke = jest.fn();
 	
-	it("should run middlewares & call wrapContextInvoke method", () => {
+	it("should not change handler if no middlewares", () => {
+		let origHandler = jest.fn();
+		let action = {
+			name: "list",
+			handler: origHandler
+		};
+
+		broker.wrapAction(action);
+		expect(action.handler).toBe(origHandler);
+	});
+
+	it("should wrap middlewares", () => {
 		let action = {
 			name: "list",
 			handler: jest.fn()
@@ -433,14 +443,12 @@ describe("Test broker.wrapAction", () => {
 
 		expect(mw2).toHaveBeenCalledTimes(1);
 		expect(mw2).toHaveBeenCalledWith(action.handler, action);
-
-		// expect(broker.wrapContextInvoke).toHaveBeenCalledTimes(1);
-		// expect(broker.wrapContextInvoke).toHaveBeenCalledWith(action, action.handler);
 	});
 
 });
 
-describe.skip("Test broker.wrapContextInvoke", () => {
+/*
+describe("Test broker.wrapContextInvoke", () => {
 
 	describe("Test wrapping", () => {
 		let broker = new ServiceBroker();
@@ -581,37 +589,32 @@ describe.skip("Test broker.wrapContextInvoke", () => {
 	});
 
 });
+*/
 
-describe.skip("Test broker.deregisterAction", () => {
+describe("Test broker.deregisterAction", () => {
 
 	let broker = new ServiceBroker();
+
+	broker.serviceRegistry.deregister = jest.fn(() => true);
 
 	let action = {
 		name: "list"
 	};
 
-	broker.registerAction(null, action);
-	broker.registerAction("server-2", action);
-	
-	it("should contains 2 items", () => {
-		let item = broker.getAction("list");
-		expect(item).toBeDefined();
-		expect(item.list.length).toBe(2);
+	it("should call deregister of serviceRegistry without nodeID", () => {
+		broker.deregisterAction(null, action);
+
+		expect(broker.serviceRegistry.deregister).toHaveBeenCalledTimes(1);
+		expect(broker.serviceRegistry.deregister).toHaveBeenCalledWith(null, action);
 	});
 
-	it("should remove action from list by nodeID", () => {
-		broker.deregisterAction(action);
-		let item = broker.getAction("list");
-		expect(item).toBeDefined();
-		expect(item.list.length).toBe(1);
-		expect(item.get().nodeID).toBe("server-2");
-	});
+	it("should call deregister of serviceRegistry with nodeID", () => {
+		broker.serviceRegistry.deregister.mockClear();
 
-	it("should remove last item from list", () => {
-		broker.deregisterAction(action, "server-2");
-		let item = broker.getAction("list");
-		expect(item).toBeDefined();
-		expect(item.list.length).toBe(0);
+		broker.deregisterAction("server-2", action);
+
+		expect(broker.serviceRegistry.deregister).toHaveBeenCalledTimes(1);
+		expect(broker.serviceRegistry.deregister).toHaveBeenCalledWith("server-2", action);
 	});
 });
 
@@ -1259,35 +1262,3 @@ describe("Test broker.emitLocal", () => {
 	});
 });
 
-describe.skip("Test broker.getLocalActions", () => {
-	let broker = new ServiceBroker();
-
-	broker.createService({
-		name: "posts",
-		version: 2,
-		actions: {
-			list: {
-				cache: true,
-				params: { limit: "number" },
-				handler: jest.fn()
-			}
-		}
-	});
-
-	broker.loadService("./test/services/math.service.js");
-	broker.registerAction("server-2", { name: "remote.action" });
-
-	it("should returns with local action list", () => {
-		let res = broker.getLocalActions();
-		
-		expect(Object.keys(res).length).toBe(5);
-
-		expect(res["v2.posts.list"].name).toBe("v2.posts.list");
-		expect(res["v2.posts.list"].version).toBe(2);
-		expect(res["v2.posts.list"].cache).toBe(true);
-		expect(res["v2.posts.list"].params).toEqual({ limit: "number" });
-		expect(res["v2.posts.list"].handler).toBeUndefined();
-		expect(res["v2.posts.list"].service).toBeUndefined();
-		
-	});
-});
