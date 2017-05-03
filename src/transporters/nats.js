@@ -47,17 +47,34 @@ class NatsTransporter extends Transporter {
 
 			this.client.on("connect", () => {
 				this.logger.info("NATS connected!");
-				this.connected = true;
+				this.onConnected().then(resolve);
+			});
 
-				resolve();
+			this.client.on("reconnect", () => {
+				this.logger.info("NATS reconnected!");
+				this.onConnected(true);
 			});
 
 			/* istanbul ignore next */
-			this.client.on("error", (e) => {
-				this.logger.error("NATS error", e);
-				if (e.toString().indexOf("ECONNREFUSED") != -1) {
-					this.reconnectAfterTime();
+			this.client.on("reconnecting", () => {
+				this.logger.warn("NATS reconnecting...");
+			});
+
+			/* istanbul ignore next */
+			this.client.on("disconnect", () => {
+				if (this.connected) {
+					this.logger.warn("NATS disconnected!");
+					this.connected = false;
 				}
+			});
+
+			/* istanbul ignore next */
+			this.client.on("error", e => {
+				this.logger.error("NATS error!", e.message);
+				/*if (e.toString().indexOf("ECONNREFUSED") != -1) {
+					this.reconnectAfterTime();
+					return;
+				}*/
 
 				if (!this.client.connected)
 					reject(e);
@@ -66,7 +83,7 @@ class NatsTransporter extends Transporter {
 			/* istanbul ignore next */
 			this.client.on("close", () => {
 				this.connected = false;
-				this.logger.warn("NATS disconnected!");
+				this.logger.warn("NATS connection closed!");
 			});			
 		});
 	}
@@ -88,12 +105,12 @@ class NatsTransporter extends Transporter {
 	 * 
 	 * @memberOf BaseTransporter
 	 */
-	reconnectAfterTime() {
+	/*reconnectAfterTime() {
 		//this.logger.info("Reconnecting after 5 sec...");
 		setTimeout(() => {
 			this.connect();
 		}, 5 * 1000);
-	}	
+	}*/	
 
 	/**
 	 * Subscribe to a command

@@ -35,9 +35,9 @@
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Launch demo:mw",
-			"program": "${workspaceRoot}\\examples\\middlewares\\index.js",
-			"cwd": "${workspaceRoot}\\examples\\middlewares"
+			"name": "Launch demo:multi",
+			"program": "${workspaceRoot}\\examples\\multi-server\\client.js",
+			"cwd": "${workspaceRoot}\\examples\\multi-server"
 		},
 		{
 			"type": "node",
