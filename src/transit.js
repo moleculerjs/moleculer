@@ -64,7 +64,7 @@ class Transit {
 	}
 
 	/**
-	 * Connect with transporter
+	 * Connect with transporter. If failed, try again after 5 sec.
 	 * 
 	 * @memberOf Transit
 	 */

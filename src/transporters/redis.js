@@ -41,51 +41,54 @@ class RedisTransporter extends Transporter {
 	 */
 	connect() {
 		return new Promise((resolve, reject) => {
-			let Redis = require("ioredis");
-			this.clientSub = new Redis(this.opts.redis);
-			this.clientPub = new Redis(this.opts.redis);
+			const Redis = require("ioredis");
+			const clientSub = new Redis(this.opts.redis);
 
-			this.clientSub.on("connect", () => {
+			clientSub.on("connect", () => {
 				this.logger.info("Redis-sub connected!");
 
-				this.clientPub.on("connect", () => {
+				const clientPub = new Redis(this.opts.redis);
+
+				clientPub.on("connect", () => {
+					this.clientSub = clientSub;
+					this.clientPub = clientPub;
+
 					this.logger.info("Redis-pub connected!");
 
-					this.connected = true;
-
-					resolve();
+					this.onConnected().then(resolve);
 				});
+
+				/* istanbul ignore next */
+				clientPub.on("error", (e) => {
+					this.logger.error("Redis-pub error", e);
+
+					if (!this.connected)
+						reject(e);
+				});
+				
+				/* istanbul ignore next */
+				clientPub.on("close", () => {
+					this.connected = true;
+					this.logger.warn("Redis-pub disconnected!");
+				});					
 			});
 
-			this.clientSub.on("message", (topic, msg) => {
+			clientSub.on("message", (topic, msg) => {
 				const cmd = topic.split(".")[1];
 				this.messageHandler(cmd, msg);
 			});
 
 			/* istanbul ignore next */
-			this.clientPub.on("error", (e) => {
-				this.logger.error("Redis-pub error", e);
-
-				if (!this.client.connected)
-					reject(e);
-			});
-
-			/* istanbul ignore next */
-			this.clientSub.on("error", (e) => {
+			clientSub.on("error", (e) => {
 				this.logger.error("Redis-sub error", e);
 			});
 
 			/* istanbul ignore next */
-			this.clientSub.on("close", () => {
+			clientSub.on("close", () => {
 				this.connected = true;
 				this.logger.warn("Redis-sub disconnected!");
 			});		
-
-			/* istanbul ignore next */
-			this.clientPub.on("close", () => {
-				this.connected = true;
-				this.logger.warn("Redis-pub disconnected!");
-			});			
+		
 		});
 	}
 

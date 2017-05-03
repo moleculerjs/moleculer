@@ -3,7 +3,7 @@
 let _ = require("lodash");
 let ServiceBroker = require("../../src/service-broker");
 let { CustomError } = require("../../src/errors");
-let NatsTransporter = require("../../src/transporters/nats");
+let NatsTransporter = require("../../src/transporters/mqtt");
 
 // Create broker
 let broker = new ServiceBroker({

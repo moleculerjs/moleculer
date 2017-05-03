@@ -5,7 +5,7 @@ let chalk = require("chalk");
 
 let { STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM } = require("../../src/constants");
 let ServiceBroker = require("../../src/service-broker");
-let NatsTransporter = require("../../src/transporters/nats");
+let NatsTransporter = require("../../src/transporters/mqtt");
 
 // Create broker
 let broker = new ServiceBroker({

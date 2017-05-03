@@ -40,36 +40,36 @@ class MqttTransporter extends Transporter {
 	 */
 	connect() {
 		return new Promise((resolve, reject) => {
-			let mqtt = require("mqtt");
-			this.client = mqtt.connect(this.opts.mqtt);
+			const mqtt = require("mqtt");
+			const client = mqtt.connect(this.opts.mqtt);
 
-			this.client.on("connect", () => {
+			client.on("connect", () => {
+				this.client = client;
 				this.logger.info("MQTT connected!");
-				this.connected = true;
 
-				resolve();
+				this.onConnected().then(resolve);
 			});
 
 			/* istanbul ignore next */
-			this.client.on("error", (e) => {
-				this.logger.error("MQTT error", e);
+			client.on("error", (e) => {
+				this.logger.error("MQTT error!", e.message);
 
-				if (!this.client.connected)
+				if (!client.connected)
 					reject(e);
 			});
 
 			/* istanbul ignore next */
-			this.client.on("reconnect", () => {
+			client.on("reconnect", () => {
 				this.logger.warn("MQTT reconnecting...");
 			});			
 
-			this.client.on("message", (topic, msg) => {
+			client.on("message", (topic, msg) => {
 				const cmd = topic.split(".")[1];
 				this.messageHandler(cmd, msg);
 			});
 
 			/* istanbul ignore next */
-			this.client.on("close", () => {
+			client.on("close", () => {
 				this.connected = true;
 				this.logger.warn("MQTT disconnected!");
 			});			

@@ -46,8 +46,7 @@ class FakeTransporter extends Transporter {
 	 * @memberOf FakeTransporter
 	 */
 	connect() {
-		this.connected = true;
-		return Promise.resolve();
+		return this.onConnected();
 	}
 
 	/**
