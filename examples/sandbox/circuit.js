@@ -9,8 +9,7 @@ const broker = new ServiceBroker({
 		enabled: true,
 		maxFailures: 2,
 		halfOpenTime: 5 * 1000
-	},
-	preferLocal: false
+	}
 });
 
 let c = 0;

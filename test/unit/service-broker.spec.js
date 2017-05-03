@@ -13,6 +13,8 @@ const JSONSerializer = require("../../src/serializers/json");
 const FakeTransporter = require("../../src/transporters/fake"); 
 const { CustomError, ServiceNotFoundError, RequestTimeoutError } = require("../../src/errors");
 
+// Registry strategies
+const { STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM } = require("../../src/constants");
 
 describe("Test ServiceBroker constructor", () => {
 
@@ -30,6 +32,11 @@ describe("Test ServiceBroker constructor", () => {
 			requestRetry: 0, 
 			heartbeatInterval: 10, 
 			heartbeatTimeout : 30, 
+
+			registry: {
+				strategy: STRATEGY_ROUND_ROBIN,
+				preferLocal: true				
+			},
 
 			circuitBreaker: {
 				enabled: false,
@@ -88,6 +95,10 @@ describe("Test ServiceBroker constructor", () => {
 			logLevel: "debug", 
 			requestRetry: 3, 
 			requestTimeout: 5000, 
+			registry: {
+				strategy: STRATEGY_RANDOM,
+				preferLocal: false				
+			},			
 			circuitBreaker: {
 				enabled: true,
 				maxFailures: 2,
@@ -110,6 +121,12 @@ describe("Test ServiceBroker constructor", () => {
 			statistics: true,
 			heartbeatTimeout : 20, 
 			heartbeatInterval: 10, 
+
+			registry: {
+				strategy: STRATEGY_RANDOM,
+				preferLocal: false				
+			},
+
 			circuitBreaker: {
 				enabled: true,
 				maxFailures: 2,

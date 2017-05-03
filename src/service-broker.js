@@ -19,6 +19,9 @@ const healthInfo = require("./health");
 
 const JSONSerializer = require("./serializers/json");
 
+// Registry strategies
+const { STRATEGY_ROUND_ROBIN } = require("./constants");
+
 // Circuit-breaker states
 const { CIRCUIT_HALF_OPEN } = require("./constants");
 
@@ -58,6 +61,11 @@ class ServiceBroker {
 			requestRetry: 0,
 			heartbeatInterval: 10,
 			heartbeatTimeout: 30,
+
+			registry: {
+				strategy: STRATEGY_ROUND_ROBIN,
+				preferLocal: true				
+			},
 
 			circuitBreaker: {
 				enabled: false,
@@ -103,7 +111,7 @@ class ServiceBroker {
 
 		// Internal maps
 		this.services = [];
-		this.serviceRegistry = new ServiceRegistry(this.options);
+		this.serviceRegistry = new ServiceRegistry(this.options.registry);
 		this.serviceRegistry.init(this);
 
 		// Middlewares

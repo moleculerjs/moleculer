@@ -29,6 +29,18 @@ describe("Test constructor", () => {
 		expect(registry.opts).toEqual({"preferLocal": false, "strategy": STRATEGY_RANDOM});
 	});
 
+	it("should create instance with options via broker", () => {
+		const broker = new ServiceBroker({
+			registry: {
+				preferLocal: false,
+				strategy: STRATEGY_RANDOM	
+			}			
+		});
+		let registry = broker.serviceRegistry;
+		expect(registry).toBeDefined();
+		expect(registry.opts).toEqual({"preferLocal": false, "strategy": STRATEGY_RANDOM});
+	});
+
 });
 
 describe("Test registry.init", () => {
