@@ -53,6 +53,7 @@ class ProtoBufSerializer extends BaseSerializer {
 	serialize(obj, type) {
 		const p = this.getPacketFromType(type);	
 		if (!p)
+			/* istanbul ignore next */
 			throw new Error("Invalid packet type!");
 
 		const buf = p.encode(obj).finish();
@@ -71,6 +72,7 @@ class ProtoBufSerializer extends BaseSerializer {
 	deserialize(str, type) {
 		const p = this.getPacketFromType(type);	
 		if (!p)
+			/* istanbul ignore next */
 			throw new Error("Invalid packet type!");
 
 		const buf = Buffer.from(str, "binary");
