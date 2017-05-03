@@ -1,4 +1,5 @@
 const ServiceBroker = require("../../../src/service-broker");
+const Transit = require("../../../src/transit");
 const RedisTransporter = require("../../../src/transporters/redis");
 const { PacketInfo } = require("../../../src/packets");
 
@@ -43,12 +44,14 @@ describe("Test NatsTransporter constructor", () => {
 
 describe("Test RedisTransporter connect & disconnect", () => {
 	let broker = new ServiceBroker();
+	let transit = new Transit(broker);	
 	let msgHandler = jest.fn();
 	let transporter;
 
 	beforeEach(() => {
 		transporter = new RedisTransporter();
-		transporter.init(broker, msgHandler);
+		transit.tx = transporter;
+		transporter.init(transit, msgHandler);
 	});
 
 	it("check connect", () => {
@@ -67,28 +70,33 @@ describe("Test RedisTransporter connect & disconnect", () => {
 			expect(transporter.clientPub.on).toHaveBeenCalledWith("close", jasmine.any(Function));
 		});
 
-		transporter.clientSub.onCallbacks.connect();
-		transporter.clientPub.onCallbacks.connect();
+		transporter._clientSub.onCallbacks.connect();
+		transporter._clientPub.onCallbacks.connect();
 
 		return p;
 	});
 
 	it("check disconnect", () => {
-		transporter.connect();
+		let p = transporter.connect().then(() => {
+			let cbSub = transporter.clientSub.disconnect;
+			let cbPub = transporter.clientPub.disconnect;
+			transporter.disconnect();
+			expect(transporter.clientSub).toBeNull();
+			expect(transporter.clientPub).toBeNull();
+			expect(cbSub).toHaveBeenCalledTimes(1);
+			expect(cbPub).toHaveBeenCalledTimes(1);
 
-		let cbSub = transporter.clientSub.disconnect;
-		let cbPub = transporter.clientPub.disconnect;
-		transporter.disconnect();
-		expect(transporter.clientSub).toBeNull();
-		expect(transporter.clientPub).toBeNull();
-		expect(cbSub).toHaveBeenCalledTimes(1);
-		expect(cbPub).toHaveBeenCalledTimes(1);
+		});
+
+		transporter._clientSub.onCallbacks.connect(); // Trigger the `resolve`
+		transporter._clientPub.onCallbacks.connect(); // Trigger the `resolve`
+		return p;		
 	});
 
 });
 
 
-describe("Test NatsTransporter subscribe & publish", () => {
+describe("Test RedisTransporter subscribe & publish", () => {
 	let transporter;
 	let msgHandler;
 
@@ -100,12 +108,18 @@ describe("Test NatsTransporter subscribe & publish", () => {
 	beforeEach(() => {
 		transporter = new RedisTransporter({ prefix: "TEST" });
 		let broker = new ServiceBroker();
+		let transit = new Transit(broker);	
+		transit.tx = transporter;
 		msgHandler = jest.fn();
-		transporter.init(broker, msgHandler);
-		transporter.connect();
+		transporter.init(transit, msgHandler);
+		let p = transporter.connect();
+		transporter._clientSub.onCallbacks.connect(); // Trigger the `resolve`
+		transporter._clientPub.onCallbacks.connect(); // Trigger the `resolve`
+		return p;
 	});
 
 	it("check subscribe", () => {
+		transporter.clientSub.subscribe.mockClear();
 		transporter.subscribe("REQ", "node");
 
 		expect(transporter.clientSub.subscribe).toHaveBeenCalledTimes(1);
@@ -120,6 +134,7 @@ describe("Test NatsTransporter subscribe & publish", () => {
 	});
 
 	it("check publish", () => {
+		transporter.clientPub.publish.mockClear();
 		transporter.publish(new PacketInfo(fakeTransit, "node2", {}));
 
 		expect(transporter.clientPub.publish).toHaveBeenCalledTimes(1);

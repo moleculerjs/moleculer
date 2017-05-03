@@ -52,13 +52,17 @@ describe("Test Transit.connect", () => {
 	transit.discoverNodes = jest.fn(() => Promise.resolve());
 
 	it("should call transporter connect & makeSubscriptions & discoverNodes", () => {
-		return transit.connect().then(() => {
+		let p = transit.connect().then(() => {
 			expect(transporter.connect).toHaveBeenCalledTimes(1);
 			expect(transit.makeSubscriptions).toHaveBeenCalledTimes(1);
 			expect(transit.discoverNodes).toHaveBeenCalledTimes(1);
 			expect(transit.heartbeatTimer).toBeDefined();
 			expect(transit.checkNodesTimer).toBeDefined();
 		});
+		
+		transit.afterConnect();
+
+		return p;
 	});
 
 });

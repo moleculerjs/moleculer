@@ -43,11 +43,13 @@ class RedisTransporter extends Transporter {
 		return new Promise((resolve, reject) => {
 			const Redis = require("ioredis");
 			const clientSub = new Redis(this.opts.redis);
+			this._clientSub = clientSub; // For tests
 
 			clientSub.on("connect", () => {
 				this.logger.info("Redis-sub connected!");
 
 				const clientPub = new Redis(this.opts.redis);
+				this._clientPub = clientPub; // For tests
 
 				clientPub.on("connect", () => {
 					this.clientSub = clientSub;

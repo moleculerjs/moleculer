@@ -1,4 +1,5 @@
 const ServiceBroker = require("../../../src/service-broker");
+const Transit = require("../../../src/transit");
 const FakeTransporter = require("../../../src/transporters/fake");
 const { PacketInfo } = require("../../../src/packets");
 
@@ -37,7 +38,8 @@ describe("Test FakeTransporter", () => {
 		let msgHandler = jest.fn();
 		let transporter = new FakeTransporter(opts);
 		let broker = new ServiceBroker();
-		transporter.init(broker, msgHandler);
+		let transit = new Transit(broker);
+		transporter.init(transit, msgHandler);
 
 		let subCb;
 		transporter.bus.on = jest.fn((name, cb) => subCb = cb);

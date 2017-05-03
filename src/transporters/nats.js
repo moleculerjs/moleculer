@@ -44,6 +44,7 @@ class NatsTransporter extends Transporter {
 		return new Promise((resolve, reject) => {
 			let Nats = require("nats");
 			const client = Nats.connect(this.opts.nats);
+			this._client = client; // For tests
 
 			client.on("connect", () => {
 				this.client = client;

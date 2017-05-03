@@ -85,7 +85,7 @@ describe("Test MqttTransporter connect & disconnect", () => {
 });
 
 
-describe("Test NatsTransporter subscribe & publish", () => {
+describe("Test MqttTransporter subscribe & publish", () => {
 	let transporter;
 	let msgHandler;
 
