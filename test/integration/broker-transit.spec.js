@@ -1,3 +1,4 @@
+const Promise = require("bluebird");
 const ServiceBroker = require("../../src/service-broker");
 const FakeTransporter = require("../../src/transporters/fake");
 
@@ -57,8 +58,6 @@ describe("Test RPC", () => {
 	beforeAll(() => b1.start().then(() => b2.start()));
 	afterAll(() => b1.stop().then(() => b2.stop()));
 
-	b1.nodeUnavailable = jest.fn(); // Skip
-
 	it("should call echo.reply on b2", () => {
 		return b1.call("echo.reply", { data: 100 }).then(res => {
 			expect(res).toEqual({ data: 100 });
@@ -84,17 +83,13 @@ describe("Test RPC", () => {
 		return b1.call("echo.slow", null, { timeout: 100 }).catch(err => {
 			expect(err).toBeInstanceOf(RequestTimeoutError);
 			expect(err.nodeID).toBe("node-2");
-
-			expect(b1.nodeUnavailable).toHaveBeenCalledTimes(1);
 		});
 	});	
 
 	it("should return with fallbackResponse", () => {
-		b1.nodeUnavailable.mockClear();
 		let fallbackResponse = "MAYBE";
 		return b1.call("echo.slow", null, { timeout: 100, fallbackResponse }).then(res => {
 			expect(res).toBe("MAYBE");
-			expect(b1.nodeUnavailable).toHaveBeenCalledTimes(1);
 		});
 	});
 });

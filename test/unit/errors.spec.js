@@ -9,6 +9,7 @@ describe("Test Errors", () => {
 		let err = new errors.CustomError("Something went wrong!", 555, { a: 5 });
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
+		expect(err).toBeInstanceOf(errors.CustomError);
 		expect(err.code).toBe(555);
 		expect(err.name).toBe("CustomError");
 		expect(err.message).toBe("Something went wrong!");
@@ -19,6 +20,7 @@ describe("Test Errors", () => {
 		let err = new errors.ServiceNotFoundError("Something went wrong!", "posts.find");
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
+		expect(err).toBeInstanceOf(errors.ServiceNotFoundError);
 		expect(err.code).toBe(501);
 		expect(err.name).toBe("ServiceNotFoundError");
 		expect(err.message).toBe("Something went wrong!");
@@ -32,6 +34,7 @@ describe("Test Errors", () => {
 		let err = new errors.RequestTimeoutError("posts.find", "server-2");
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
+		expect(err).toBeInstanceOf(errors.RequestTimeoutError);
 		expect(err.code).toBe(504);
 		expect(err.name).toBe("RequestTimeoutError");
 		expect(err.message).toBe("Request timed out when call 'posts.find' action on 'server-2' node!");
@@ -43,6 +46,7 @@ describe("Test Errors", () => {
 		let err = new errors.RequestSkippedError("posts.find");
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
+		expect(err).toBeInstanceOf(errors.RequestSkippedError);
 		expect(err.code).toBe(514);
 		expect(err.name).toBe("RequestSkippedError");
 		expect(err.message).toBe("Action 'posts.find' call is skipped because timeout reached!");
@@ -55,6 +59,7 @@ describe("Test Errors", () => {
 		let err = new errors.ValidationError("Param is not correct!", data);
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
+		expect(err).toBeInstanceOf(errors.ValidationError);
 		expect(err.code).toBe(422);
 		expect(err.name).toBe("ValidationError");
 		expect(err.message).toBe("Param is not correct!");

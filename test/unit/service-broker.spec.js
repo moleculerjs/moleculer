@@ -2,6 +2,7 @@
 
 const path = require("path");
 const Promise = require("bluebird");
+const lolex = require("lolex");
 const ServiceBroker = require("../../src/service-broker");
 const Service = require("../../src/service");
 const ServiceRegistry = require("../../src/service-registry");
@@ -11,6 +12,7 @@ const MemoryCacher = require("../../src/cachers/memory");
 const JSONSerializer = require("../../src/serializers/json");
 const FakeTransporter = require("../../src/transporters/fake"); 
 const { CustomError, ServiceNotFoundError, RequestTimeoutError } = require("../../src/errors");
+
 
 describe("Test ServiceBroker constructor", () => {
 
@@ -804,7 +806,10 @@ describe("Test broker.call method", () => {
 			name: "posts",
 			actions: {
 				find: actionHandler,
-				noHandler: jest.fn()
+				noHandler: jest.fn(),
+				slow() {
+					return Promise.delay(5000).then(() => "OK");
+				}
 			}
 		});
 			
@@ -944,6 +949,42 @@ describe("Test broker.call method", () => {
 			});
 		});		
 
+		it("should call circuitClose if endpoint is in 'half-open' state", () => {
+			broker.options.circuitBreaker.enabled = true;
+			actionHandler.mockClear();
+			let params = { search: "John" };
+			let actionItem = broker.getAction("posts.find");
+			actionItem.circuitHalfOpen();
+			actionItem.circuitClose = jest.fn();
+			return broker.call(actionItem, params).then(ctx => {
+				expect(ctx).toBeDefined();
+				expect(actionHandler).toHaveBeenCalledTimes(1);
+				expect(actionItem.circuitClose).toHaveBeenCalledTimes(1);
+			});
+		});		
+
+
+		it("should call _callErrorHandler if call timed out", () => {
+			let clock = lolex.install();
+			broker._callErrorHandler = jest.fn((err, ctx, endpoint, opts) => ({ err, ctx, endpoint, opts }));
+
+			let p = broker.call("posts.slow", null, { timeout: 1000 });
+			clock.tick(2000);
+
+			p.then(({ err, ctx, endpoint, opts }) => {
+				expect(err).toBeDefined();
+				expect(err).toBeInstanceOf(Promise.TimeoutError);
+				expect(ctx).toBeDefined();
+				expect(endpoint).toBeDefined();
+				expect(opts).toEqual({ retryCount: 0, timeout: 1000 });
+
+				expect(broker._callErrorHandler).toHaveBeenCalledTimes(1);
+				//expect(broker._callErrorHandler).toHaveBeenCalledWith(ctx);
+
+				clock.uninstall();
+			});
+		});	
+
 	});
 
 
@@ -1001,8 +1042,13 @@ describe("Test broker.call method", () => {
 
 describe("Test broker._callErrorHandler", () => {
 
-	let broker = new ServiceBroker({ transporter: new FakeTransporter(), metrics: true });
-	broker.nodeUnavailable = jest.fn();
+	let broker = new ServiceBroker({ 
+		transporter: new FakeTransporter(), 
+		metrics: true, 
+		circuitBreaker: {
+			enabled: true
+		} 
+	});
 	broker.call = jest.fn(() => Promise.resolve());
 	let transit = broker.transit;
 	
@@ -1015,60 +1061,73 @@ describe("Test broker._callErrorHandler", () => {
 	ctx._metricFinish = jest.fn();
 	transit.removePendingRequest = jest.fn();
 	let endpoint = new ServiceRegistry.Endpoint(broker, ctx.nodeID, ctx.action);
+	endpoint.failure = jest.fn();
 
 	it("should return error without retryCount & fallbackResponse", () => {
 		return broker._callErrorHandler(customErr, ctx, endpoint, {}).catch(err => {
 			expect(err).toBe(customErr);
-			expect(broker.nodeUnavailable).toHaveBeenCalledTimes(0);
 			expect(broker.call).toHaveBeenCalledTimes(0);
 			expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
 			expect(ctx._metricFinish).toHaveBeenCalledWith(err);
 			expect(transit.removePendingRequest).toHaveBeenCalledTimes(1);
 			expect(transit.removePendingRequest).toHaveBeenCalledWith(ctx.id);
+			expect(endpoint.failure).toHaveBeenCalledTimes(0);
 		});
 	});
 
-	it("should call nodeUnavailable if error code is greater than 500", () => {
-		return broker._callErrorHandler(timeoutErr, ctx, endpoint, {}).catch(err => {
-			expect(err).toBe(timeoutErr);
-			expect(broker.nodeUnavailable).toHaveBeenCalledTimes(1);
-			expect(broker.nodeUnavailable).toHaveBeenCalledWith("server-2");
-			expect(broker.call).toHaveBeenCalledTimes(0);
+	it("should call endpoint.failure", () => {
+		return broker._callErrorHandler(timeoutErr, ctx, endpoint, {}).catch(() => {
+			expect(endpoint.failure).toHaveBeenCalledTimes(1);
+		});
+	});
+
+	it("should call endpoint.failure if errorCode >= 500", () => {
+		endpoint.failure.mockClear();
+		return broker._callErrorHandler(new CustomError("Wrong", 500), ctx, endpoint, {}).catch(() => {
+			expect(endpoint.failure).toHaveBeenCalledTimes(1);
+		});
+	});
+
+	it("should call endpoint.failure if errorCode >= 500", () => {
+		endpoint.failure.mockClear();
+		broker.options.circuitBreaker.failureOnReject = false;
+		return broker._callErrorHandler(new CustomError("Wrong", 500), ctx, endpoint, {}).catch(() => {
+			expect(endpoint.failure).toHaveBeenCalledTimes(0);
 		});
 	});
 
 	it("should convert error text to CustomError", () => {
-		broker.nodeUnavailable.mockClear();
-
 		return broker._callErrorHandler("Something happened", ctx, endpoint, {}).catch(err => {
 			expect(err).toBeInstanceOf(CustomError);
 			expect(broker.call).toHaveBeenCalledTimes(0);
-			expect(broker.nodeUnavailable).toHaveBeenCalledTimes(1);
-			expect(broker.nodeUnavailable).toHaveBeenCalledWith("server-2");
 		});
 	});
 
 	it("should convert Promise.TimeoutError to RequestTimeoutError", () => {
-		broker.nodeUnavailable.mockClear();
-
+		endpoint.failure.mockClear();
 		return broker._callErrorHandler(new Promise.TimeoutError, ctx, endpoint, {}).catch(err => {
 			expect(err).toBeInstanceOf(RequestTimeoutError);
 			expect(err.message).toBe("Request timed out when call 'user.create' action on 'server-2' node!");
 			expect(broker.call).toHaveBeenCalledTimes(0);
-			expect(broker.nodeUnavailable).toHaveBeenCalledTimes(1);
-			expect(broker.nodeUnavailable).toHaveBeenCalledWith("server-2");
+			expect(endpoint.failure).toHaveBeenCalledTimes(1);
 		});
 	});	
 
+	it("should not call endpoint.failure if failureOnTimeout is false", () => {
+		broker.options.circuitBreaker.failureOnTimeout = false;
+		endpoint.failure.mockClear();
+		return broker._callErrorHandler(timeoutErr, ctx, endpoint, {}).catch(() => {
+			expect(endpoint.failure).toHaveBeenCalledTimes(0);
+		});
+	});		
+
 	it("should retry call if retryCount > 0", () => {
 		ctx._metricFinish.mockClear();
-		broker.nodeUnavailable.mockClear();
 		ctx.retryCount = 2;
 
 		return broker._callErrorHandler(timeoutErr, ctx, endpoint, {}).then(() => {
 			expect(broker.call).toHaveBeenCalledTimes(1);
 			expect(broker.call).toHaveBeenCalledWith("user.create", {}, { ctx });
-			expect(broker.nodeUnavailable).toHaveBeenCalledTimes(0);
 
 			expect(ctx.retryCount).toBe(1);
 			expect(ctx._metricFinish).toHaveBeenCalledTimes(0);
@@ -1077,13 +1136,11 @@ describe("Test broker._callErrorHandler", () => {
 
 	it("should return with the fallbackResponse data", () => {
 		ctx._metricFinish.mockClear();
-		broker.nodeUnavailable.mockClear();
 		broker.call.mockClear();
 
 		let otherRes = {};
 		return broker._callErrorHandler(customErr, ctx, endpoint, { fallbackResponse: otherRes }).then(res => {
 			expect(res).toBe(otherRes);
-			expect(broker.nodeUnavailable).toHaveBeenCalledTimes(0);
 			expect(broker.call).toHaveBeenCalledTimes(0);
 
 			expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
@@ -1092,7 +1149,6 @@ describe("Test broker._callErrorHandler", () => {
 	});
 
 	it("should return with the fallbackResponse function returned data", () => {
-		broker.nodeUnavailable.mockClear();
 		broker.call.mockClear();
 		ctx.metrics = false;
 		ctx._metricFinish.mockClear();
@@ -1103,7 +1159,6 @@ describe("Test broker._callErrorHandler", () => {
 			expect(res).toBe(otherRes);
 			expect(otherFn).toHaveBeenCalledTimes(1);
 			expect(otherFn).toHaveBeenCalledWith(ctx);
-			expect(broker.nodeUnavailable).toHaveBeenCalledTimes(0);
 			expect(broker.call).toHaveBeenCalledTimes(0);
 
 			expect(ctx._metricFinish).toHaveBeenCalledTimes(0);

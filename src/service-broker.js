@@ -715,7 +715,11 @@ class ServiceBroker {
 		}
 
 		if (this.options.circuitBreaker.enabled) {
-			if ((err instanceof E.RequestTimeoutError && this.options.circuitBreaker.failureOnTimeout) || (err.code >= 500 && this.options.circuitBreaker.failureOnReject)) {
+			if (err instanceof E.RequestTimeoutError) {
+				if (this.options.circuitBreaker.failureOnTimeout)
+					endpoint.failure();
+
+			} else if (err.code >= 500 && this.options.circuitBreaker.failureOnReject) {
 				endpoint.failure();
 			}
 		}
@@ -732,11 +736,12 @@ class ServiceBroker {
 		}
 
 		// Set node status to unavailable
+		/* Old solution REMOVE IT
 		if (err.code >= 500) {
 			const affectedNodeID = err.nodeID || nodeID;
 			if (affectedNodeID && affectedNodeID != this.nodeID)
-				this.nodeUnavailable(affectedNodeID);
-		}
+				this.transit.nodeUnavailable(affectedNodeID);
+		}*/
 
 		// Need it? this.logger.error("Action request error!", err);
 
