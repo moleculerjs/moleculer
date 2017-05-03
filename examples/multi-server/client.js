@@ -1,16 +1,31 @@
 "use strict";
 
 let _ = require("lodash");
+let chalk = require("chalk");
 
+let { STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM } = require("../../src/constants");
 let ServiceBroker = require("../../src/service-broker");
 let NatsTransporter = require("../../src/transporters/nats");
 
 // Create broker
 let broker = new ServiceBroker({
 	nodeID: process.argv[2] || "client-" + process.pid,
-	transporter: new NatsTransporter()
+	transporter: new NatsTransporter(),
+
+	registry: {
+		strategy: STRATEGY_ROUND_ROBIN
+	},
+
+	circuitBreaker: {
+		enabled: true,
+		maxFailures: 3
+	}
 	//logger: console
 });
+
+broker.on("circuit-breaker.open", payload => console.warn(chalk.yellow.bold(`---  Circuit breaker opened on '${payload.nodeID}'!`)));
+broker.on("circuit-breaker.half-open", payload => console.warn(chalk.green(`---  Circuit breaker half-opened on '${payload.nodeID}'!`)));
+broker.on("circuit-breaker.close", payload => console.warn(chalk.green.bold(`---  Circuit breaker closed on '${payload.nodeID}'!`)));
 
 broker.start();
 
@@ -21,6 +36,8 @@ Promise.resolve()
 		let p = broker.call("math.add", payload);
 		p.then(res => {
 			console.info(_.padEnd(`${payload.a} + ${payload.b} = ${res}`, 15), `(from: ${p.ctx.nodeID})`);
+		}).catch(err => {
+			console.warn(chalk.red.bold(_.padEnd(`${payload.a} + ${payload.b} = ERROR! ${err.message}`)));
 		});
-	}, 100);
+	}, 500);
 });
