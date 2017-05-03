@@ -34,10 +34,10 @@ describe("Test Transporter constructor", () => {
 
 	it("should call transporter.init", () => {
 		transporter.init = jest.fn();
-		new Transit(broker, transporter);
+		let transit = new Transit(broker, transporter);
 
 		expect(transporter.init).toHaveBeenCalledTimes(1);
-		expect(transporter.init).toHaveBeenCalledWith(broker, jasmine.any(Function));
+		expect(transporter.init).toHaveBeenCalledWith(transit, jasmine.any(Function));
 	});
 });
 

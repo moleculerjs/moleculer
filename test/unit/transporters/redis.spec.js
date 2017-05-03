@@ -21,66 +21,66 @@ Redis.mockImplementation(() => {
 describe("Test NatsTransporter constructor", () => {
 
 	it("check constructor", () => {
-		let trans = new RedisTransporter();
-		expect(trans).toBeDefined();
-		expect(trans.opts).toEqual({});
-		expect(trans.connected).toBe(false);
-		expect(trans.clientPub).toBeNull();
-		expect(trans.clientSub).toBeNull();
+		let transporter = new RedisTransporter();
+		expect(transporter).toBeDefined();
+		expect(transporter.opts).toEqual({});
+		expect(transporter.connected).toBe(false);
+		expect(transporter.clientPub).toBeNull();
+		expect(transporter.clientSub).toBeNull();
 	});
 
 	it("check constructor with string param", () => {
-		let trans = new RedisTransporter("redis://localhost");
-		expect(trans.opts).toEqual({ redis: "redis://localhost"});
+		let transporter = new RedisTransporter("redis://localhost");
+		expect(transporter.opts).toEqual({ redis: "redis://localhost"});
 	});
 
 	it("check constructor with options", () => {
 		let opts = { redis: { host: "localhost", port: 1234} };
-		let trans = new RedisTransporter(opts);
-		expect(trans.opts).toBe(opts);
+		let transporter = new RedisTransporter(opts);
+		expect(transporter.opts).toBe(opts);
 	});
 });
 
 describe("Test RedisTransporter connect & disconnect", () => {
 	let broker = new ServiceBroker();
 	let msgHandler = jest.fn();
-	let trans;
+	let transporter;
 
 	beforeEach(() => {
-		trans = new RedisTransporter();
-		trans.init(broker, msgHandler);
+		transporter = new RedisTransporter();
+		transporter.init(broker, msgHandler);
 	});
 
 	it("check connect", () => {
-		let p = trans.connect().then(() => {
-			expect(trans.clientSub).toBeDefined();
-			expect(trans.clientSub.on).toHaveBeenCalledTimes(4);
-			expect(trans.clientSub.on).toHaveBeenCalledWith("connect", jasmine.any(Function));
-			expect(trans.clientSub.on).toHaveBeenCalledWith("error", jasmine.any(Function));
-			expect(trans.clientSub.on).toHaveBeenCalledWith("close", jasmine.any(Function));
-			expect(trans.clientSub.on).toHaveBeenCalledWith("message", jasmine.any(Function));
+		let p = transporter.connect().then(() => {
+			expect(transporter.clientSub).toBeDefined();
+			expect(transporter.clientSub.on).toHaveBeenCalledTimes(4);
+			expect(transporter.clientSub.on).toHaveBeenCalledWith("connect", jasmine.any(Function));
+			expect(transporter.clientSub.on).toHaveBeenCalledWith("error", jasmine.any(Function));
+			expect(transporter.clientSub.on).toHaveBeenCalledWith("close", jasmine.any(Function));
+			expect(transporter.clientSub.on).toHaveBeenCalledWith("message", jasmine.any(Function));
 
-			expect(trans.clientPub).toBeDefined();
-			expect(trans.clientPub.on).toHaveBeenCalledTimes(3);
-			expect(trans.clientPub.on).toHaveBeenCalledWith("connect", jasmine.any(Function));
-			expect(trans.clientPub.on).toHaveBeenCalledWith("error", jasmine.any(Function));
-			expect(trans.clientPub.on).toHaveBeenCalledWith("close", jasmine.any(Function));
+			expect(transporter.clientPub).toBeDefined();
+			expect(transporter.clientPub.on).toHaveBeenCalledTimes(3);
+			expect(transporter.clientPub.on).toHaveBeenCalledWith("connect", jasmine.any(Function));
+			expect(transporter.clientPub.on).toHaveBeenCalledWith("error", jasmine.any(Function));
+			expect(transporter.clientPub.on).toHaveBeenCalledWith("close", jasmine.any(Function));
 		});
 
-		trans.clientSub.onCallbacks.connect();
-		trans.clientPub.onCallbacks.connect();
+		transporter.clientSub.onCallbacks.connect();
+		transporter.clientPub.onCallbacks.connect();
 
 		return p;
 	});
 
 	it("check disconnect", () => {
-		trans.connect();
+		transporter.connect();
 
-		let cbSub = trans.clientSub.disconnect;
-		let cbPub = trans.clientPub.disconnect;
-		trans.disconnect();
-		expect(trans.clientSub).toBeNull();
-		expect(trans.clientPub).toBeNull();
+		let cbSub = transporter.clientSub.disconnect;
+		let cbPub = transporter.clientPub.disconnect;
+		transporter.disconnect();
+		expect(transporter.clientSub).toBeNull();
+		expect(transporter.clientPub).toBeNull();
 		expect(cbSub).toHaveBeenCalledTimes(1);
 		expect(cbPub).toHaveBeenCalledTimes(1);
 	});
@@ -89,7 +89,7 @@ describe("Test RedisTransporter connect & disconnect", () => {
 
 
 describe("Test NatsTransporter subscribe & publish", () => {
-	let trans;
+	let transporter;
 	let msgHandler;
 
 	const fakeTransit = {
@@ -98,31 +98,31 @@ describe("Test NatsTransporter subscribe & publish", () => {
 	};	
 
 	beforeEach(() => {
-		trans = new RedisTransporter({ prefix: "TEST" });
+		transporter = new RedisTransporter({ prefix: "TEST" });
 		let broker = new ServiceBroker();
 		msgHandler = jest.fn();
-		trans.init(broker, msgHandler);
-		trans.connect();
+		transporter.init(broker, msgHandler);
+		transporter.connect();
 	});
 
 	it("check subscribe", () => {
-		trans.subscribe("REQ", "node");
+		transporter.subscribe("REQ", "node");
 
-		expect(trans.clientSub.subscribe).toHaveBeenCalledTimes(1);
-		expect(trans.clientSub.subscribe).toHaveBeenCalledWith("TEST.REQ.node");
+		expect(transporter.clientSub.subscribe).toHaveBeenCalledTimes(1);
+		expect(transporter.clientSub.subscribe).toHaveBeenCalledWith("TEST.REQ.node");
 	});
 
 	it("check incoming message handler", () => {
 		// Test subscribe callback
-		trans.clientSub.onCallbacks.message("prefix.event", "incoming data");
+		transporter.clientSub.onCallbacks.message("prefix.event", "incoming data");
 		expect(msgHandler).toHaveBeenCalledTimes(1);
 		expect(msgHandler).toHaveBeenCalledWith("event", "incoming data");
 	});
 
 	it("check publish", () => {
-		trans.publish(new PacketInfo(fakeTransit, "node2", {}));
+		transporter.publish(new PacketInfo(fakeTransit, "node2", {}));
 
-		expect(trans.clientPub.publish).toHaveBeenCalledTimes(1);
-		expect(trans.clientPub.publish).toHaveBeenCalledWith("TEST.INFO.node2", "{\"sender\":\"node1\",\"actions\":\"{}\"}");
+		expect(transporter.clientPub.publish).toHaveBeenCalledTimes(1);
+		expect(transporter.clientPub.publish).toHaveBeenCalledWith("TEST.INFO.node2", "{\"sender\":\"node1\",\"actions\":\"{}\"}");
 	});
 });
