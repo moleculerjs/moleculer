@@ -775,9 +775,9 @@ class ServiceBroker {
 	/**
 	 * Emit an event (global & local)
 	 * 
-	 * @param {any} eventName
+	 * @param {string} eventName
 	 * @param {any} payload
-	 * @returns
+	 * @returns {boolean}
 	 * 
 	 * @memberOf ServiceBroker
 	 */
@@ -793,8 +793,8 @@ class ServiceBroker {
 	 * 
 	 * @param {string} eventName
 	 * @param {any} payload
-	 * @param {string} nodeID of server
-	 * @returns
+	 * @param {string=} nodeID of server
+	 * @returns {boolean}
 	 * 
 	 * @memberOf ServiceBroker
 	 */

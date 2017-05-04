@@ -24,7 +24,7 @@ class Service {
 	/**
 	 * Creates an instance of Service by schema.
 	 * 
-	 * @param {ServiceBroker} 	broker	broker of service
+	 * @param {<ServiceBroker>} 	broker	broker of service
 	 * @param {Object} 			schema	schema of service
 	 * 
 	 * @memberOf Service

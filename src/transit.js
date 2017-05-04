@@ -25,7 +25,7 @@ class Transit {
 	 * 
 	 * @param {ServiceBroker} Broker instance
 	 * @param {Transporter} Transporter instance
-	 * @param {any} opts
+	 * @param {Object?} opts
 	 * 
 	 * @memberOf Transit
 	 */
@@ -252,7 +252,7 @@ class Transit {
 		// Heartbeat
 		else if (cmd === P.PACKET_HEARTBEAT) {
 			//this.logger.debug("Node heart-beat received from " + payload.sender);
-			this.nodeHeartbeat(payload.sender, payload);
+			this.nodeHeartbeat(payload.sender);
 			return;
 		}
 	}
@@ -321,7 +321,7 @@ class Transit {
 	 * Send a request to a remote service. It returns a Promise
 	 * what will be resolved when the response received.
 	 * 
-	 * @param {Context} ctx			Context of request
+	 * @param {<Context>} ctx			Context of request
 	 * @returns	{Promise}
 	 * 
 	 * @memberOf Transit
@@ -334,7 +334,7 @@ class Transit {
 	/**
 	 * Do a remote request
 	 * 
-	 * @param {Context} ctx 		Context of request
+	 * @param {<Context>} ctx 		Context of request
 	 * @param {Function} resolve 	Resolve of Promise
 	 * @param {Function} reject 	Reject of Promise
 	 * 
@@ -421,7 +421,7 @@ class Transit {
 	 * Subscribe via transporter
 	 * 
 	 * @param {String} topic 
-	 * @param {String} nodeID
+	 * @param {String=} nodeID
 	 * 
 	 * @memberOf Transit
 	 */
@@ -541,7 +541,7 @@ class Transit {
 	 * Remove node and remove remote actions of node
 	 * 
 	 * @param {any} nodeID
-	 * @param {Boolean} isUnexpected
+	 * @param {Boolean=} isUnexpected
 	 * 
 	 * @memberOf Transit
 	 */
