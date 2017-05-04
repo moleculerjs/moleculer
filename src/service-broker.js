@@ -745,7 +745,7 @@ class ServiceBroker {
 	}
 
 	_finishCall(ctx, err) {
-		if (ctx.metrics) {
+		if (ctx.metrics || this.statistics) {
 			ctx._metricFinish(err, ctx.metrics);
 		}
 

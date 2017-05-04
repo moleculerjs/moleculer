@@ -1210,7 +1210,8 @@ describe("Test broker._finishCall", () => {
 		it("should call ctx._metricFinish", () => {
 			broker._finishCall(ctx, null);
 
-			expect(ctx._metricFinish).toHaveBeenCalledTimes(0);
+			expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
+			expect(ctx._metricFinish).toHaveBeenCalledWith(null, false);
 
 			expect(broker.statistics.addRequest).toHaveBeenCalledTimes(1);
 			expect(broker.statistics.addRequest).toHaveBeenCalledWith("user.create", 0, null);			
@@ -1223,7 +1224,8 @@ describe("Test broker._finishCall", () => {
 			let err = new CustomError("", 505);
 			broker._finishCall(ctx, err);
 
-			expect(ctx._metricFinish).toHaveBeenCalledTimes(0);
+			expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
+			expect(ctx._metricFinish).toHaveBeenCalledWith(err, false);
 
 			expect(broker.statistics.addRequest).toHaveBeenCalledTimes(1);
 			expect(broker.statistics.addRequest).toHaveBeenCalledWith("user.create", 0, 505);		

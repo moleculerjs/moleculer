@@ -13,7 +13,7 @@ let broker = new ServiceBroker({
 	logLevel: "info",
 	metrics: true,
 	metricsRate: 1,
-	statistics: true
+	statistics: false
 });
 
 broker.loadServices(path.join(__dirname, ".."));
