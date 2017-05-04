@@ -1319,8 +1319,40 @@ You can also create your custom serializer module. We recommend you that copy th
 Moleculer has a metrics function. You can turn on in [broker options](#constructor-options) with `metrics: true` property.
 If enabled, the broker emits metrics events in every `broker.call`.
 
-##  Health info
-Broker emits a global event as `metrics.node.health` with health info of node.
+### Request started event
+The broker emit an `metrics.trace.span.start` when a new call/request started.
+The payload contains the following values:
+```js
+{ 
+	id: '4563b09f-04cf-4891-bc2c-f26f80c3f91e',
+	requestID: null,
+	startTime: 1493903164726,
+	level: 1,
+	remoteCall: false,
+	action: { 
+        name: 'v2.users.get' 
+    },
+	spans: [] 
+}
+```
+
+### Request finished event
+The broker emit an `metrics.trace.span.finish` when a call/request finished.
+The payload contains the following values:
+```js
+{ 
+	id: '4563b09f-04cf-4891-bc2c-f26f80c3f91e',
+	requestID: null,
+	level: 1,
+	endTime: 1493903164731.3684,
+	duration: 5.368304,
+	remoteCall: false,
+	fromCache: false,
+	action: { 
+		name: 'v2.users.get' 
+	}
+}
+```
 
 ## Statistics
 Moleculer has a statistics module that collects and aggregates the count & latency info of the requests.
