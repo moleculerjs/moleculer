@@ -17,7 +17,7 @@ let broker = new ServiceBroker({
 	},
 
 	circuitBreaker: {
-		enabled: false,
+		enabled: true,
 		maxFailures: 3
 	},
 	logger: console
