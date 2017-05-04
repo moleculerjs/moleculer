@@ -44,11 +44,19 @@ class Transit {
 		this.checkNodesTimer = null;
 
 		if (this.tx)
-			this.tx.init(this, this.messageHandler.bind(this));
+			this.tx.init(this, this.messageHandler.bind(this), this.afterConnect.bind(this));
 
 		this.__connectResolve = null;
 	}
 
+	/**
+	 * It will be called after transporter connected or reconnected.
+	 * 
+	 * @param {any} wasReconnect 
+	 * @returns {Promise}
+	 * 
+	 * @memberof Transit
+	 */
 	afterConnect(wasReconnect) {
 		return Promise.resolve()
 

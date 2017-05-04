@@ -52,7 +52,6 @@ describe("Test NatsTransporter connect & disconnect & reconnect", () => {
 
 	beforeEach(() => {
 		transporter = new NatsTransporter();
-		transit.tx = transporter;
 		transporter.init(transit, msgHandler);
 	});
 
@@ -72,6 +71,33 @@ describe("Test NatsTransporter connect & disconnect & reconnect", () => {
 
 		return p;
 	});
+
+	it("check onConnected after connect", () => {
+		transporter.onConnected = jest.fn(() => Promise.resolve());
+		let p = transporter.connect().then(() => {
+			expect(transporter.onConnected).toHaveBeenCalledTimes(1);
+			expect(transporter.onConnected).toHaveBeenCalledWith();
+		});
+
+		transporter._client.onCallbacks.connect(); // Trigger the `resolve`
+
+		return p;
+	});
+
+	it("check onConnected after reconnect", () => {
+		transporter.onConnected = jest.fn(() => Promise.resolve());
+
+		let p = transporter.connect().then(() => {
+			transporter.onConnected.mockClear();
+			transporter._client.onCallbacks.reconnect(); // Trigger the `resolve`
+			expect(transporter.onConnected).toHaveBeenCalledTimes(1);
+			expect(transporter.onConnected).toHaveBeenCalledWith(true);
+		});
+
+		transporter._client.onCallbacks.connect(); // Trigger the `resolve`
+
+		return p;
+	});	
 
 	it("check disconnect", () => {
 		let p = transporter.connect().then(() => {
@@ -98,12 +124,10 @@ describe("Test NatsTransporter subscribe & publish", () => {
 	};	
 
 	beforeEach(() => {
-		transporter = new NatsTransporter({ prefix: "TEST" });
-		let broker = new ServiceBroker();
-		let transit = new Transit(broker);		
-		transit.tx = transporter;
 		msgHandler = jest.fn();
-		transporter.init(transit, msgHandler);
+		transporter = new NatsTransporter({ prefix: "TEST" });
+		transporter.init(new Transit(new ServiceBroker()), msgHandler);		
+
 		let p = transporter.connect();
 		transporter._client.onCallbacks.connect(); // Trigger the `resolve`
 		return p;

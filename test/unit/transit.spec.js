@@ -37,7 +37,7 @@ describe("Test Transporter constructor", () => {
 		let transit = new Transit(broker, transporter);
 
 		expect(transporter.init).toHaveBeenCalledTimes(1);
-		expect(transporter.init).toHaveBeenCalledWith(transit, jasmine.any(Function));
+		expect(transporter.init).toHaveBeenCalledWith(transit, jasmine.any(Function), jasmine.any(Function));
 	});
 });
 

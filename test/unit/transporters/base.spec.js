@@ -6,59 +6,59 @@ const BaseTransporter = require("../../../src/transporters/base");
 describe("Test BaseTransporter", () => {
 
 	it("check constructor", () => {
-		let trans = new BaseTransporter();
-		expect(trans).toBeDefined();
-		expect(trans.opts).toBeDefined();
-		expect(trans.connected).toBe(false);
-		expect(trans.prefix).toBe("MOL");
+		let transporter = new BaseTransporter();
+		expect(transporter).toBeDefined();
+		expect(transporter.opts).toBeDefined();
+		expect(transporter.connected).toBe(false);
+		expect(transporter.prefix).toBe("MOL");
 
-		expect(trans.init).toBeDefined();
-		expect(trans.connect).toBeDefined();
-		expect(trans.onConnected).toBeDefined();
-		expect(trans.disconnect).toBeDefined();
-		expect(trans.subscribe).toBeDefined();
-		expect(trans.publish).toBeDefined();
+		expect(transporter.init).toBeDefined();
+		expect(transporter.connect).toBeDefined();
+		expect(transporter.onConnected).toBeDefined();
+		expect(transporter.disconnect).toBeDefined();
+		expect(transporter.subscribe).toBeDefined();
+		expect(transporter.publish).toBeDefined();
 	});
 
 	it("check constructor with options", () => {
 		let opts = { prefix: "TEST" };
-		let trans = new BaseTransporter(opts);
-		expect(trans).toBeDefined();
-		expect(trans.opts).toBe(opts);
-		expect(trans.prefix).toBe("TEST");
+		let transporter = new BaseTransporter(opts);
+		expect(transporter).toBeDefined();
+		expect(transporter.opts).toBe(opts);
+		expect(transporter.prefix).toBe("TEST");
 	});
 
 	it("check init", () => {
 		let broker = new ServiceBroker({ nodeID: "server1" });
-		let trans = new BaseTransporter();
-		let transit = new Transit(broker, trans);
+		let transporter = new BaseTransporter();
+		let transit = new Transit(broker, transporter);
 		let handler = jest.fn();
+		let handler2 = jest.fn();
 
-		trans.init(transit, handler);
-		expect(trans.transit).toBe(transit);
-		expect(trans.broker).toBe(broker);
-		expect(trans.nodeID).toBe("server1");
-		expect(trans.logger).toBeDefined();
-		expect(trans.messageHandler).toBe(handler);
+		transporter.init(transit, handler, handler2);
+		expect(transporter.transit).toBe(transit);
+		expect(transporter.broker).toBe(broker);
+		expect(transporter.nodeID).toBe("server1");
+		expect(transporter.logger).toBeDefined();
+		expect(transporter.messageHandler).toBe(handler);
+		expect(transporter.afterConnect).toBe(handler2);
 	});
 
 	it("check onConnected", () => {
-		let broker = new ServiceBroker({ nodeID: "server1" });
-		let trans = new BaseTransporter();
-		let transit = new Transit(broker, trans);
-		transit.afterConnect = jest.fn();
+		let transporter = new BaseTransporter();
+		let afterConnect = jest.fn();
 
-		expect(trans.connected).toBe(false);
+		expect(transporter.connected).toBe(false);
 
-		trans.init(transit);
+		transporter.init(null, null, afterConnect);
 
-		trans.onConnected();
-		expect(trans.connected).toBe(true);
-		expect(transit.afterConnect).toHaveBeenCalledTimes(1);
+		transporter.onConnected();
+		expect(transporter.connected).toBe(true);
+		expect(afterConnect).toHaveBeenCalledTimes(1);
 
-		transit.afterConnect.mockClear();
-		trans.onConnected(true);
-		expect(transit.afterConnect).toHaveBeenCalledTimes(1);
-		expect(transit.afterConnect).toHaveBeenCalledWith(true);
+		afterConnect.mockClear();
+		transporter.onConnected(true);
+		expect(afterConnect).toHaveBeenCalledTimes(1);
+		expect(afterConnect).toHaveBeenCalledWith(true);
 	});
 });

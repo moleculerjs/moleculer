@@ -50,7 +50,6 @@ describe("Test RedisTransporter connect & disconnect", () => {
 
 	beforeEach(() => {
 		transporter = new RedisTransporter();
-		transit.tx = transporter;
 		transporter.init(transit, msgHandler);
 	});
 
@@ -75,6 +74,19 @@ describe("Test RedisTransporter connect & disconnect", () => {
 
 		return p;
 	});
+
+	it("check onConnected after connect", () => {
+		transporter.onConnected = jest.fn(() => Promise.resolve());
+		let p = transporter.connect().then(() => {
+			expect(transporter.onConnected).toHaveBeenCalledTimes(1);
+			expect(transporter.onConnected).toHaveBeenCalledWith();
+		});
+
+		transporter._clientSub.onCallbacks.connect();
+		transporter._clientPub.onCallbacks.connect();
+
+		return p;
+	});	
 
 	it("check disconnect", () => {
 		let p = transporter.connect().then(() => {
@@ -106,12 +118,10 @@ describe("Test RedisTransporter subscribe & publish", () => {
 	};	
 
 	beforeEach(() => {
-		transporter = new RedisTransporter({ prefix: "TEST" });
-		let broker = new ServiceBroker();
-		let transit = new Transit(broker);	
-		transit.tx = transporter;
 		msgHandler = jest.fn();
-		transporter.init(transit, msgHandler);
+		transporter = new RedisTransporter({ prefix: "TEST" });
+		transporter.init(new Transit(new ServiceBroker()), msgHandler);
+		
 		let p = transporter.connect();
 		transporter._clientSub.onCallbacks.connect(); // Trigger the `resolve`
 		transporter._clientPub.onCallbacks.connect(); // Trigger the `resolve`

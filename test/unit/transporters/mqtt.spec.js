@@ -49,7 +49,6 @@ describe("Test MqttTransporter connect & disconnect", () => {
 
 	beforeEach(() => {
 		transporter = new MqttTransporter();
-		transit.tx = transporter;
 		transporter.init(transit, msgHandler);
 	});
 
@@ -69,16 +68,28 @@ describe("Test MqttTransporter connect & disconnect", () => {
 		return p;
 	});
 
+	it("check onConnected after connect", () => {
+		transporter.onConnected = jest.fn(() => Promise.resolve());
+		let p = transporter.connect().then(() => {
+			expect(transporter.onConnected).toHaveBeenCalledTimes(1);
+			expect(transporter.onConnected).toHaveBeenCalledWith();
+		});
+
+		transporter._client.onCallbacks.connect(); // Trigger the `resolve`
+
+		return p;
+	});
+
 	it("check disconnect", () => {
 		let p = transporter.connect().then(() => {
 			let cb = transporter.client.end;
 			transporter.disconnect();
 			expect(transporter.client).toBeNull();
 			expect(cb).toHaveBeenCalledTimes(1);
-
 		});
 
 		transporter._client.onCallbacks.connect(); // Trigger the `resolve`
+
 		return p;
 	});
 
@@ -96,11 +107,10 @@ describe("Test MqttTransporter subscribe & publish", () => {
 
 	beforeEach(() => {
 		transporter = new MqttTransporter({ prefix: "TEST" });
-		let broker = new ServiceBroker();
-		let transit = new Transit(broker);		
-		transit.tx = transporter;
 		msgHandler = jest.fn();
-		transporter.init(transit, msgHandler);
+
+		transporter.init(new Transit(new ServiceBroker()), msgHandler);
+
 		let p = transporter.connect();
 		transporter._client.onCallbacks.connect(); // Trigger the `resolve`
 		return p;

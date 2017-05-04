@@ -37,9 +37,7 @@ describe("Test FakeTransporter", () => {
 		let opts = { prefix: "TEST" };
 		let msgHandler = jest.fn();
 		let transporter = new FakeTransporter(opts);
-		let broker = new ServiceBroker();
-		let transit = new Transit(broker);
-		transporter.init(transit, msgHandler);
+		transporter.init(new Transit(new ServiceBroker()), msgHandler);
 
 		let subCb;
 		transporter.bus.on = jest.fn((name, cb) => subCb = cb);
