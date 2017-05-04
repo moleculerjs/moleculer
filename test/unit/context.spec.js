@@ -173,8 +173,19 @@ describe("Test _metricStart method", () => {
 
 	broker.emit = jest.fn();
 
-	it("should emit start event", () => {		
+	it("should not emit start event", () => {		
 		ctx._metricStart();
+
+		expect(ctx.startTime).toBeDefined();
+		expect(ctx.stopTime).toBeNull();
+		expect(ctx.duration).toBe(0);
+
+		expect(broker.emit).toHaveBeenCalledTimes(0);
+	});
+
+	it("should emit start event", () => {		
+		broker.emit.mockClear();
+		ctx._metricStart(true);
 
 		expect(ctx.startTime).toBeDefined();
 		expect(ctx.stopTime).toBeNull();
@@ -200,7 +211,7 @@ describe("Test _metricFinish method", () => {
 		broker.emit.mockClear();
 		return new Promise(resolve => {
 			setTimeout(() => {
-				ctx._metricFinish();
+				ctx._metricFinish(null, true);
 
 				expect(ctx.stopTime).toBeGreaterThan(0);
 				expect(ctx.duration).toBeGreaterThan(0);
@@ -216,7 +227,7 @@ describe("Test _metricFinish method", () => {
 	it("should emit finish event with error", () => {		
 		broker.emit.mockClear();
 		return new Promise(resolve => {
-			ctx._metricFinish(new ServiceNotFoundError("Something happened"));
+			ctx._metricFinish(new ServiceNotFoundError("Something happened"), true);
 
 			expect(ctx.stopTime).toBeGreaterThan(0);
 
@@ -226,4 +237,20 @@ describe("Test _metricFinish method", () => {
 			resolve();
 		});
 	});
+
+	it("should not emit finish event", () => {		
+		broker.emit.mockClear();
+		return new Promise(resolve => {
+			setTimeout(() => {
+				ctx._metricFinish();
+
+				expect(ctx.stopTime).toBeGreaterThan(0);
+				expect(ctx.duration).toBeGreaterThan(0);
+
+				expect(broker.emit).toHaveBeenCalledTimes(0);
+
+				resolve();
+			}, 100);
+		});
+	});	
 });

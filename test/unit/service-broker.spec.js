@@ -52,7 +52,6 @@ describe("Test ServiceBroker constructor", () => {
 			validation: true, 
 			metrics: false, 
 			metricsRate: 1, 
-			metricsSendInterval: 5 * 1000,
 			statistics: false,
 			internalActions: true 
 		});
@@ -90,7 +89,6 @@ describe("Test ServiceBroker constructor", () => {
 			heartbeatTimeout: 20, 
 			metrics: true, 
 			metricsRate: 0.5,
-			metricsSendInterval: 10 * 1000,
 			statistics: true,
 			logLevel: "debug", 
 			requestRetry: 3, 
@@ -117,7 +115,6 @@ describe("Test ServiceBroker constructor", () => {
 			transporter: null,
 			metrics: true, 
 			metricsRate: 0.5,
-			metricsSendInterval: 10 * 1000,
 			statistics: true,
 			heartbeatTimeout : 20, 
 			heartbeatInterval: 10, 
@@ -216,10 +213,6 @@ describe("Test broker.start", () => {
 		expect(schema.started).toHaveBeenCalledTimes(1);
 	});
 
-	it("should create metrics timer", () => {
-		expect(broker.metricsTimer).toBeDefined();
-	});
-
 	it("should call transit.connect", () => {
 		expect(broker.transit.connect).toHaveBeenCalledTimes(1);
 	});
@@ -252,10 +245,6 @@ describe("Test broker.stop", () => {
 
 	it("should call stopped of services", () => {
 		expect(schema.stopped).toHaveBeenCalledTimes(1);
-	});
-
-	it("should destroy metrics timer", () => {
-		expect(broker.metricsTimer).toBeNull();
 	});
 
 	it("should disconnect transit", () => {
@@ -1085,7 +1074,7 @@ describe("Test broker._callErrorHandler", () => {
 			expect(err).toBe(customErr);
 			expect(broker.call).toHaveBeenCalledTimes(0);
 			expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
-			expect(ctx._metricFinish).toHaveBeenCalledWith(err);
+			expect(ctx._metricFinish).toHaveBeenCalledWith(err, true);
 			expect(transit.removePendingRequest).toHaveBeenCalledTimes(1);
 			expect(transit.removePendingRequest).toHaveBeenCalledWith(ctx.id);
 			expect(endpoint.failure).toHaveBeenCalledTimes(0);
@@ -1161,7 +1150,7 @@ describe("Test broker._callErrorHandler", () => {
 			expect(broker.call).toHaveBeenCalledTimes(0);
 
 			expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
-			expect(ctx._metricFinish).toHaveBeenCalledWith(customErr);
+			expect(ctx._metricFinish).toHaveBeenCalledWith(customErr, true);
 		});
 	});
 
@@ -1187,6 +1176,7 @@ describe("Test broker._finishCall", () => {
 
 	describe("metrics enabled", () => {
 		let broker = new ServiceBroker({ metrics: true });
+		broker.statistics.addRequest = jest.fn();
 		let ctx = new Context(broker, { name: "user.create" });
 		ctx.nodeID = "server-2";
 		ctx.metrics = true;
@@ -1196,18 +1186,25 @@ describe("Test broker._finishCall", () => {
 			broker._finishCall(ctx, null);
 
 			expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
-			expect(ctx._metricFinish).toHaveBeenCalledWith(null);
+			expect(ctx._metricFinish).toHaveBeenCalledWith(null, true);
+
+			expect(broker.statistics.addRequest).toHaveBeenCalledTimes(1);
+			expect(broker.statistics.addRequest).toHaveBeenCalledWith("user.create", 0, null);
 		});
 
 		it("should call ctx._metricFinish with error", () => {
 			ctx._metricFinish.mockClear();
+			broker.statistics.addRequest.mockClear();
+
 			let err = new CustomError("");
 			broker._finishCall(ctx, err);
 
 			expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
-			expect(ctx._metricFinish).toHaveBeenCalledWith(err);
+			expect(ctx._metricFinish).toHaveBeenCalledWith(err, true);
+
+			expect(broker.statistics.addRequest).toHaveBeenCalledTimes(1);
+			expect(broker.statistics.addRequest).toHaveBeenCalledWith("user.create", 0, 500);
 		});
-	});
 
 	describe("metrics & statistics enabled", () => {
 		let broker = new ServiceBroker({ metrics: true, statistics: true });
@@ -1231,7 +1228,7 @@ describe("Test broker._finishCall", () => {
 
 			expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
 			expect(ctx._metricFinish).toHaveBeenCalledWith(err);
-		});
+		});		
 	});
 });
 

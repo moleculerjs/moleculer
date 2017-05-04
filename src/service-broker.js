@@ -81,7 +81,6 @@ class ServiceBroker {
 			validation: true,
 			metrics: false,
 			metricsRate: 1,
-			metricsSendInterval: 5 * 1000,
 			statistics: false,
 			internalActions: true
 			
@@ -179,25 +178,14 @@ class ServiceBroker {
 			}
 		});
 
-		if (this.options.metrics && this.options.metricsSendInterval > 0) {
-			this.metricsTimer = setInterval(() => {
-				// Send event with node health info
-				this.getNodeHealthInfo().then(data => this.emit("metrics.node.health", data));
-
-				// Send event with node statistics
-				if (this.statistics)
-					this.emit("metrics.node.stats", this.statistics.snapshot());
-			}, this.options.metricsSendInterval);
-			this.metricsTimer.unref();
-		}
-
-		this.logger.info("Broker started.");
-
-		if (this.transit) {
-			return this.transit.connect();
-		}
-		else
-			return Promise.resolve();
+		return Promise.resolve()
+		.then(() => {
+			if (this.transit)
+				return this.transit.connect();
+		})
+		.then(() => {
+			this.logger.info("Broker started.");
+		});
 	}
 
 	/**
@@ -213,12 +201,7 @@ class ServiceBroker {
 				service.schema.stopped.call(service);
 			}
 		});
-
-		if (this.metricsTimer) {
-			clearInterval(this.metricsTimer);
-			this.metricsTimer = null;
-		}
-		
+	
 		if (this.transit) {
 			this.transit.disconnect();
 		}
@@ -655,8 +638,8 @@ class ServiceBroker {
 		let p;
 		if (endpoint.local) {
 			// Add metrics start
-			if (ctx.metrics === true || ctx.timeout > 0)
-				ctx._metricStart();
+			if (ctx.metrics === true || ctx.timeout > 0 || this.statistics)
+				ctx._metricStart(ctx.metrics);
 
 			p = action.handler(ctx);
 
@@ -664,7 +647,7 @@ class ServiceBroker {
 			if (ctx.timeout > 0)
 				p = p.timeout(ctx.timeout);
 
-			if (ctx.metrics === true || this.statistics === true) {
+			if (ctx.metrics === true || this.statistics) {
 				// Add metrics & statistics
 				p = p.then(res => {
 					this._finishCall(ctx, null);
@@ -763,11 +746,11 @@ class ServiceBroker {
 
 	_finishCall(ctx, err) {
 		if (ctx.metrics) {
-			ctx._metricFinish(err);
-
-			if (this.statistics)
-				this.statistics.addRequest(ctx.action.name, ctx.duration, err ? err.code || 500 : null);
+			ctx._metricFinish(err, ctx.metrics);
 		}
+
+		if (this.statistics)
+			this.statistics.addRequest(ctx.action.name, ctx.duration, err ? err.code || 500 : null);
 	}	
 
 	/**

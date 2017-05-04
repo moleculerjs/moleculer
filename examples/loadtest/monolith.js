@@ -10,7 +10,7 @@ let ServiceBroker = require("../../src/service-broker");
 let broker = new ServiceBroker({
 	nodeID: process.argv[2] || hostname + "-server",
 	//logger: console
-	statistics: true
+	//metrics: true
 });
 
 broker.loadService(__dirname + "/../math.service");

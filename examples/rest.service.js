@@ -24,9 +24,9 @@ module.exports = function() {
 		started() {
 			this.logger.debug("");
 			this.logger.debug("--------------------------------------------------");
-			this.broker.actions.forEach((actionItem, name) => {
-				let action = actionItem.get();
+			this.broker.serviceRegistry.actions.forEach((actionItem, name) => {
 				let path = "/" + name.replace(/\./g, "/").replace(/\$/, "~");
+				console.log("Action API:", path);
 				this.app.get(path, (req, res) => {
 					//let ctx = new Context();
 					let params = _.defaults({}, req.query, req.params, req.body);

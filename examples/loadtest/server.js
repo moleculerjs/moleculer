@@ -11,7 +11,7 @@ let broker = new ServiceBroker({
 	nodeID: process.argv[2] || hostname + "-server",
 	transporter: new Transporters.NATS(process.env.NATS_SERVER),
 	//logger: console
-	//statistics: true
+	//metrics: true
 });
 
 broker.createService({

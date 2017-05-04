@@ -56,11 +56,11 @@ declare class Service {
 }
 
 declare interface BrokerCircuitBreakerOptions {
-	enabled: Boolean?;
-	maxFailures: Number?;
-	halfOpenTime: Number?;
-	failureOnTimeout: Boolean?;
-	failureOnReject: Boolean?;
+	enabled?: Boolean;
+	maxFailures?: Number;
+	halfOpenTime?: Number;
+	failureOnTimeout?: Boolean;
+	failureOnReject?: Boolean;
 }
 
 declare interface BrokerOptions {
@@ -75,7 +75,7 @@ declare interface BrokerOptions {
 	heartbeatInterval?: Number;
 	heartbeatTimeout?: Number;
 
-	circuitBreaker: BrokerCircuitBreakerOptions?;
+	circuitBreaker?: BrokerCircuitBreakerOptions;
 	
 	cacher?: Cacher;
 	serializer?: Serializer;
@@ -83,7 +83,6 @@ declare interface BrokerOptions {
 	validation?: Boolean;
 	metrics?: Boolean;
 	metricsRate?: Number;
-	metricsSendInterval?: Number;
 	statistics?: Boolean;
 	internalActions?: Boolean;
 
