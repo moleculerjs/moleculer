@@ -1,4 +1,5 @@
 const ServiceBroker = require("../../../src/service-broker");
+const Transit = require("../../../src/transit");
 const { PacketInfo } = require("../../../src/packets");
 
 const lolex = require("lolex");
@@ -24,75 +25,97 @@ const NatsTransporter = require("../../../src/transporters/nats");
 describe("Test NatsTransporter constructor", () => {
 
 	it("check constructor", () => {
-		let trans = new NatsTransporter();
-		expect(trans).toBeDefined();
-		expect(trans.opts).toEqual({});
-		expect(trans.connected).toBe(false);
-		expect(trans.client).toBeNull();
+		let transporter = new NatsTransporter();
+		expect(transporter).toBeDefined();
+		expect(transporter.opts).toEqual({});
+		expect(transporter.connected).toBe(false);
+		expect(transporter.client).toBeNull();
 	});
 
 	it("check constructor with string param", () => {
-		let trans = new NatsTransporter("nats://localhost");
-		expect(trans.opts).toEqual({ nats: "nats://localhost"});
+		let transporter = new NatsTransporter("nats://localhost");
+		expect(transporter.opts).toEqual({ nats: "nats://localhost"});
 	});
 
 	it("check constructor with options", () => {
 		let opts = { nats: { host: "localhost", port: 1234} };
-		let trans = new NatsTransporter(opts);
-		expect(trans.opts).toBe(opts);
+		let transporter = new NatsTransporter(opts);
+		expect(transporter.opts).toBe(opts);
 	});
 });
 
 describe("Test NatsTransporter connect & disconnect & reconnect", () => {
 	let broker = new ServiceBroker();
+	let transit = new Transit(broker);
 	let msgHandler = jest.fn();
-	let trans;
+	let transporter;
 
 	beforeEach(() => {
-		trans = new NatsTransporter();
-		trans.init(broker, msgHandler);
+		transporter = new NatsTransporter();
+		transporter.init(transit, msgHandler);
 	});
 
 	it("check connect", () => {
-		let p = trans.connect().then(() => {
-			expect(trans.client).toBeDefined();
-			expect(trans.client.on).toHaveBeenCalledTimes(3);
-			expect(trans.client.on).toHaveBeenCalledWith("connect", jasmine.any(Function));
-			expect(trans.client.on).toHaveBeenCalledWith("error", jasmine.any(Function));
-			expect(trans.client.on).toHaveBeenCalledWith("close", jasmine.any(Function));
+		let p = transporter.connect().then(() => {
+			expect(transporter.client).toBeDefined();
+			expect(transporter.client.on).toHaveBeenCalledTimes(6);
+			expect(transporter.client.on).toHaveBeenCalledWith("connect", jasmine.any(Function));
+			expect(transporter.client.on).toHaveBeenCalledWith("reconnect", jasmine.any(Function));
+			expect(transporter.client.on).toHaveBeenCalledWith("reconnecting", jasmine.any(Function));
+			expect(transporter.client.on).toHaveBeenCalledWith("disconnect", jasmine.any(Function));
+			expect(transporter.client.on).toHaveBeenCalledWith("error", jasmine.any(Function));
+			expect(transporter.client.on).toHaveBeenCalledWith("close", jasmine.any(Function));
 		});
 
-		trans.client.onCallbacks.connect();
+		transporter._client.onCallbacks.connect();
 
 		return p;
 	});
 
+	it("check onConnected after connect", () => {
+		transporter.onConnected = jest.fn(() => Promise.resolve());
+		let p = transporter.connect().then(() => {
+			expect(transporter.onConnected).toHaveBeenCalledTimes(1);
+			expect(transporter.onConnected).toHaveBeenCalledWith();
+		});
+
+		transporter._client.onCallbacks.connect(); // Trigger the `resolve`
+
+		return p;
+	});
+
+	it("check onConnected after reconnect", () => {
+		transporter.onConnected = jest.fn(() => Promise.resolve());
+
+		let p = transporter.connect().then(() => {
+			transporter.onConnected.mockClear();
+			transporter._client.onCallbacks.reconnect(); // Trigger the `resolve`
+			expect(transporter.onConnected).toHaveBeenCalledTimes(1);
+			expect(transporter.onConnected).toHaveBeenCalledWith(true);
+		});
+
+		transporter._client.onCallbacks.connect(); // Trigger the `resolve`
+
+		return p;
+	});	
+
 	it("check disconnect", () => {
-		trans.connect();
+		let p = transporter.connect().then(() => {
+			let cb = transporter.client.close;
+			transporter.disconnect();
+			expect(transporter.client).toBeNull();
+			expect(cb).toHaveBeenCalledTimes(1);
 
-		let cb = trans.client.close;
-		trans.disconnect();
-		expect(trans.client).toBeNull();
-		expect(cb).toHaveBeenCalledTimes(1);
+		});
+
+		transporter._client.onCallbacks.connect(); // Trigger the `resolve`
+		return p;
 	});
 
-	it("check reconnect", () => {
-		let clock = lolex.install();
-
-		trans.connect = jest.fn();
-
-		trans.reconnectAfterTime();
-
-		clock.tick(5500);
-
-		expect(trans.connect).toHaveBeenCalledTimes(1);
-
-		clock.uninstall();
-	});
 });
 
 describe("Test NatsTransporter subscribe & publish", () => {
-	let trans;
+	let transporter;
 	let msgHandler;
 
 	const fakeTransit = {
@@ -101,21 +124,23 @@ describe("Test NatsTransporter subscribe & publish", () => {
 	};	
 
 	beforeEach(() => {
-		trans = new NatsTransporter({ prefix: "TEST" });
-		let broker = new ServiceBroker();
 		msgHandler = jest.fn();
-		trans.init(broker, msgHandler);
-		trans.connect();
+		transporter = new NatsTransporter({ prefix: "TEST" });
+		transporter.init(new Transit(new ServiceBroker()), msgHandler);		
+
+		let p = transporter.connect();
+		transporter._client.onCallbacks.connect(); // Trigger the `resolve`
+		return p;
 	});
 
 	it("check subscribe", () => {
 		let subCb;
-		trans.client.subscribe = jest.fn((name, cb) => subCb = cb);
+		transporter.client.subscribe = jest.fn((name, cb) => subCb = cb);
 
-		trans.subscribe("REQ", "node");
+		transporter.subscribe("REQ", "node");
 
-		expect(trans.client.subscribe).toHaveBeenCalledTimes(1);
-		expect(trans.client.subscribe).toHaveBeenCalledWith("TEST.REQ.node", jasmine.any(Function));
+		expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
+		expect(transporter.client.subscribe).toHaveBeenCalledWith("TEST.REQ.node", jasmine.any(Function));
 
 		// Test subscribe callback
 		subCb("incoming data", null, "prefix,test,name");
@@ -124,9 +149,10 @@ describe("Test NatsTransporter subscribe & publish", () => {
 	});
 
 	it("check publish", () => {
-		trans.publish(new PacketInfo(fakeTransit, "node2", {}));
+		transporter.client.publish.mockClear();
+		transporter.publish(new PacketInfo(fakeTransit, "node2", {}));
 
-		expect(trans.client.publish).toHaveBeenCalledTimes(1);
-		expect(trans.client.publish).toHaveBeenCalledWith("TEST.INFO.node2", "{\"sender\":\"node1\",\"actions\":\"{}\"}");
+		expect(transporter.client.publish).toHaveBeenCalledTimes(1);
+		expect(transporter.client.publish).toHaveBeenCalledWith("TEST.INFO.node2", "{\"sender\":\"node1\",\"actions\":\"{}\"}");
 	});
 });

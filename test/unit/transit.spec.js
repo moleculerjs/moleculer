@@ -4,6 +4,7 @@ const Transit = require("../../src/transit");
 const FakeTransporter = require("../../src/transporters/fake");
 const { ValidationError } = require("../../src/errors");
 const P = require("../../src/packets");
+const lolex = require("lolex");
 
 describe("Test Transporter constructor", () => {
 
@@ -34,10 +35,10 @@ describe("Test Transporter constructor", () => {
 
 	it("should call transporter.init", () => {
 		transporter.init = jest.fn();
-		new Transit(broker, transporter);
+		let transit = new Transit(broker, transporter);
 
 		expect(transporter.init).toHaveBeenCalledTimes(1);
-		expect(transporter.init).toHaveBeenCalledWith(broker, jasmine.any(Function));
+		expect(transporter.init).toHaveBeenCalledWith(transit, jasmine.any(Function), jasmine.any(Function));
 	});
 });
 
@@ -48,16 +49,72 @@ describe("Test Transit.connect", () => {
 	const transit = new Transit(broker, transporter);
 
 	transporter.connect = jest.fn(() => Promise.resolve());
-	transit.makeSubscriptions = jest.fn(() => Promise.resolve());
-	transit.discoverNodes = jest.fn(() => Promise.resolve());
 
-	it("should call transporter connect & makeSubscriptions & discoverNodes", () => {
-		return transit.connect().then(() => {
+	it("should call transporter connect", () => {
+		let p = transit.connect().then(() => {
 			expect(transporter.connect).toHaveBeenCalledTimes(1);
-			expect(transit.makeSubscriptions).toHaveBeenCalledTimes(1);
-			expect(transit.discoverNodes).toHaveBeenCalledTimes(1);
+
+			expect(transit.__connectResolve).toBeDefined();
 			expect(transit.heartbeatTimer).toBeDefined();
 			expect(transit.checkNodesTimer).toBeDefined();
+		});
+
+		transit.__connectResolve();
+		
+		return p;
+	});
+
+	/* not working
+	it("should recall transporter connect if failed", () => {
+		let clock = lolex.install();
+		transporter.connect = jest.fn()
+			.mockImplementationOnce(() => Promise.reject())
+			.mockImplementationOnce(() => Promise.resolve());
+
+		let p = transit.connect().then(() => {
+			expect(transporter.connect).toHaveBeenCalledTimes(2);
+
+			clock.uninstall();
+		});
+
+		clock.runAll();
+
+		return p;
+	});
+	*/
+
+});
+
+describe("Test Transit.afterConnect", () => {
+
+	const broker = new ServiceBroker();
+	const transporter = new FakeTransporter();
+	const transit = new Transit(broker, transporter);
+
+	let resolver;
+	
+	beforeEach(() => {
+		resolver = jest.fn();
+		transit.__connectResolve = resolver;
+		transit.makeSubscriptions = jest.fn(() => Promise.resolve());
+		transit.discoverNodes = jest.fn(() => Promise.resolve());
+	});
+
+	it("should call makeSubscriptions & discoverNodes", () => {
+		return transit.afterConnect().then(() => {
+			expect(transit.makeSubscriptions).toHaveBeenCalledTimes(1);
+			expect(transit.discoverNodes).toHaveBeenCalledTimes(1);
+			expect(resolver).toHaveBeenCalledTimes(1);
+			expect(transit.__connectResolve).toBeNull();
+		});
+	});
+
+	it("should call only discoverNodes if was reconnected", () => {
+		return transit.afterConnect(true).then(() => {
+			expect(transit.makeSubscriptions).toHaveBeenCalledTimes(0);
+			expect(transit.discoverNodes).toHaveBeenCalledTimes(1);
+			expect(resolver).toHaveBeenCalledTimes(1);
+			expect(transit.__connectResolve).toBeNull();
 		});
 	});
 

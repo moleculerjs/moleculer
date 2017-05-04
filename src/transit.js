@@ -43,32 +43,73 @@ class Transit {
 		this.heartbeatTimer = null;
 		this.checkNodesTimer = null;
 
-		this.tx.init(broker, this.messageHandler.bind(this));
+		if (this.tx)
+			this.tx.init(this, this.messageHandler.bind(this), this.afterConnect.bind(this));
+
+		this.__connectResolve = null;
 	}
 
 	/**
-	 * Connect with transporter
+	 * It will be called after transporter connected or reconnected.
+	 * 
+	 * @param {any} wasReconnect 
+	 * @returns {Promise}
+	 * 
+	 * @memberof Transit
+	 */
+	afterConnect(wasReconnect) {
+		return Promise.resolve()
+
+		.then(() => {
+			if (!wasReconnect) 
+				this.makeSubscriptions();
+		})
+
+		.then(() => this.discoverNodes())
+
+		.then(() => {
+			if (this.__connectResolve) {
+				this.__connectResolve();
+				this.__connectResolve = null;
+			}
+		});
+	}
+
+	/**
+	 * Connect with transporter. If failed, try again after 5 sec.
 	 * 
 	 * @memberOf Transit
 	 */
 	connect() {
-		return this.tx.connect()
-			.then(() => this.makeSubscriptions())
-			.then(() => this.discoverNodes())
-			.then(() => {
-				// Start timers
-				this.heartbeatTimer = setInterval(() => {
-					/* istanbul ignore next */
-					this.sendHeartbeat();
-				}, this.broker.options.heartbeatInterval * 1000);
-				this.heartbeatTimer.unref();
+		return new Promise(resolve => {
+			this.__connectResolve = resolve;
 
-				this.checkNodesTimer = setInterval(() => {
+			const doConnect = () => {
+				this.tx.connect().catch(() => {
 					/* istanbul ignore next */
-					this.checkRemoteNodes();
-				}, this.broker.options.heartbeatTimeout * 1000);
-				this.checkNodesTimer.unref();			
-			});
+					setTimeout(() => {
+						doConnect();
+					}, 5 * 1000);
+				});
+			};
+
+			doConnect();
+		})
+		.then(() => {
+			// Start timers
+			this.heartbeatTimer = setInterval(() => {
+				/* istanbul ignore next */
+				this.sendHeartbeat();
+			}, this.broker.options.heartbeatInterval * 1000);
+			this.heartbeatTimer.unref();
+
+			this.checkNodesTimer = setInterval(() => {
+				/* istanbul ignore next */
+				this.checkRemoteNodes();
+			}, this.broker.options.heartbeatTimeout * 1000);
+			this.checkNodesTimer.unref();	
+
+		});
 	}
 
 	/**

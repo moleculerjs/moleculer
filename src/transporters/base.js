@@ -37,15 +37,21 @@ class BaseTransporter {
 	/**
 	 * Init transporter
 	 * 
-	 * @param {any} broker
+	 * @param {Transit} transit
+	 * @param {Function} messageHandler
+	 * @param {Function} afterConnect
 	 * 
 	 * @memberOf BaseTransporter
 	 */
-	init(broker, messageHandler) {
-		this.broker = broker;
-		this.nodeID = broker.nodeID;
-		this.logger = broker.getLogger(LOG_PREFIX);
+	init(transit, messageHandler, afterConnect) {
+		if (transit) {
+			this.transit = transit;
+			this.broker = transit.broker;
+			this.nodeID = transit.nodeID;
+			this.logger = this.broker.getLogger(LOG_PREFIX);
+		}
 		this.messageHandler = messageHandler;
+		this.afterConnect = afterConnect;
 	}
 
 	/**
@@ -56,6 +62,23 @@ class BaseTransporter {
 	connect() {
 		/* istanbul ignore next */
 		throw new Error("Not implemented!");
+	}
+
+	/**
+	 * Event handler for connected.
+	 * 
+	 * @param {any} wasReconnect 
+	 * @returns {Promise}
+	 * 
+	 * @memberof BaseTransporter
+	 */
+	onConnected(wasReconnect) {
+		this.connected = true;
+		if (this.afterConnect) {
+			return this.afterConnect(wasReconnect);
+		}
+
+		return Promise.resolve();
 	}
 
 	/**

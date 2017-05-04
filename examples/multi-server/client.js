@@ -17,19 +17,17 @@ let broker = new ServiceBroker({
 	},
 
 	circuitBreaker: {
-		enabled: true,
+		enabled: false,
 		maxFailures: 3
-	}
-	//logger: console
+	},
+	logger: console
 });
 
 broker.on("circuit-breaker.open", payload => console.warn(chalk.yellow.bold(`---  Circuit breaker opened on '${payload.nodeID}'!`)));
 broker.on("circuit-breaker.half-open", payload => console.warn(chalk.green(`---  Circuit breaker half-opened on '${payload.nodeID}'!`)));
 broker.on("circuit-breaker.close", payload => console.warn(chalk.green.bold(`---  Circuit breaker closed on '${payload.nodeID}'!`)));
 
-broker.start();
-
-Promise.resolve()
+broker.start()
 .then(() => {
 	setInterval(() => {
 		let payload = { a: _.random(0, 100), b: _.random(0, 100) };

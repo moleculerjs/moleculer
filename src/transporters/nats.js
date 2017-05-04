@@ -43,30 +43,47 @@ class NatsTransporter extends Transporter {
 	connect() {
 		return new Promise((resolve, reject) => {
 			let Nats = require("nats");
-			this.client = Nats.connect(this.opts.nats);
+			const client = Nats.connect(this.opts.nats);
+			this._client = client; // For tests
 
-			this.client.on("connect", () => {
+			client.on("connect", () => {
+				this.client = client;
 				this.logger.info("NATS connected!");
-				this.connected = true;
 
-				resolve();
+				this.onConnected().then(resolve);
 			});
 
 			/* istanbul ignore next */
-			this.client.on("error", (e) => {
-				this.logger.error("NATS error", e);
-				if (e.toString().indexOf("ECONNREFUSED") != -1) {
-					this.reconnectAfterTime();
-				}
+			client.on("reconnect", () => {
+				this.logger.info("NATS reconnected!");
+				this.onConnected(true);
+			});
 
-				if (!this.client.connected)
+			/* istanbul ignore next */
+			client.on("reconnecting", () => {
+				this.logger.warn("NATS reconnecting...");
+			});
+
+			/* istanbul ignore next */
+			client.on("disconnect", () => {
+				if (this.connected) {
+					this.logger.warn("NATS disconnected!");
+					this.connected = false;
+				}
+			});
+
+			/* istanbul ignore next */
+			client.on("error", e => {
+				this.logger.error("NATS error!", e.message);
+
+				if (!client.connected)
 					reject(e);
 			});
 
 			/* istanbul ignore next */
-			this.client.on("close", () => {
+			client.on("close", () => {
 				this.connected = false;
-				this.logger.warn("NATS disconnected!");
+				this.logger.warn("NATS connection closed!");
 			});			
 		});
 	}
@@ -88,12 +105,12 @@ class NatsTransporter extends Transporter {
 	 * 
 	 * @memberOf BaseTransporter
 	 */
-	reconnectAfterTime() {
+	/*reconnectAfterTime() {
 		//this.logger.info("Reconnecting after 5 sec...");
 		setTimeout(() => {
 			this.connect();
 		}, 5 * 1000);
-	}	
+	}*/	
 
 	/**
 	 * Subscribe to a command
