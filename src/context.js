@@ -198,6 +198,7 @@ class Context {
 				id: this.id,
 				requestID: this.requestID,
 				level: this.level,
+				startTime: this.startTime,
 				endTime: this.stopTime,
 				duration: this.duration,
 				remoteCall: !!this.nodeID,
