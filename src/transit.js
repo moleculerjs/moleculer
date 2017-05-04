@@ -81,11 +81,12 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	connect() {
-		return new Promise((resolve, reject) => {
+		return new Promise(resolve => {
 			this.__connectResolve = resolve;
 
 			const doConnect = () => {
 				this.tx.connect().catch(() => {
+					/* istanbul ignore next */
 					setTimeout(() => {
 						doConnect();
 					}, 5 * 1000);
