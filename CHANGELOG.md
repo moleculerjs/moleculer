@@ -10,9 +10,9 @@ You need only enable it in broker options.
 ```js
 let broker = new ServiceBroker({
     circuitBreaker: {
-        enabled: true,
-        maxFailures: 5, // Trip after 5 failures
-        halfOpenTime: 10 * 1000 // 10 sec
+        enabled: true, // Enable this feature
+        maxFailures: 5, // Trip breaker on 5 failures
+        halfOpenTime: 10 * 1000 // 10 sec to switch to `half-open` state
         failureOnTimeout: true // Failure if request timed out
         failureOnReject: true // Failure if request rejected with error code >= 500
     }
@@ -39,16 +39,45 @@ let broker = new ServiceBroker({
 });
 ```
 
+## Mergeable schemas in `createService`
+Now there is a second parameter of `broker.createService`. With it you can override the schema properties. You can use it to use a built-in service & override some props.
+
+**Example**
+
+```js
+broker.createService(apiGwService, {
+    settings: {
+        // Change port setting
+        port: 8080
+    },
+    actions: {
+        myAction() {
+            // Add a new action to apiGwService service
+        }
+    },
+
+    created() {
+        // Overwrite apiGwService.created handler
+    }
+});
+```
+
+Or you can merge it manually with `mergeSchemas` method.
+```js
+let mergedSchema = broker.mergeSchemas(origSchema, modifications);
+broker.createService(mergedSchema);
+```
+
 # Changes
 
-## Nanomatch instead of micromatch
+## Using Nanomatch instead of micromatch
 Memory cacher is using [nanomatch](https://github.com/micromatch/nanomatch) instead of [micromatch](https://github.com/micromatch/micromatch). The `nanomatch` is ~10x faster.
 
-## Removed `metricsSendInterval` [#24](https://github.com/ice-services/moleculer/issues/24/)
+## Removed `metricsSendInterval` option [#24](https://github.com/ice-services/moleculer/issues/24/)
 The `metricsSendInterval` option is removed from broker options. If you want to access statistics & health info, call the `$node.health` and `$node.stats` actions.
 
 ## Metrics & Statistics separated [#24](https://github.com/ice-services/moleculer/issues/24/)
-The metrics & statistics features separated. You can use only just metrics or only just statistics.
+The metrics & statistics features separated. You can use just metrics or just statistics.
 
 --------------------------------------------------
 
