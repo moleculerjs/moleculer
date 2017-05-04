@@ -1176,7 +1176,6 @@ describe("Test broker._finishCall", () => {
 
 	describe("metrics enabled", () => {
 		let broker = new ServiceBroker({ metrics: true });
-		broker.statistics.addRequest = jest.fn();
 		let ctx = new Context(broker, { name: "user.create" });
 		ctx.nodeID = "server-2";
 		ctx.metrics = true;
@@ -1187,24 +1186,49 @@ describe("Test broker._finishCall", () => {
 
 			expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
 			expect(ctx._metricFinish).toHaveBeenCalledWith(null, true);
-
-			expect(broker.statistics.addRequest).toHaveBeenCalledTimes(1);
-			expect(broker.statistics.addRequest).toHaveBeenCalledWith("user.create", 0, null);
 		});
 
 		it("should call ctx._metricFinish with error", () => {
 			ctx._metricFinish.mockClear();
-			broker.statistics.addRequest.mockClear();
 
 			let err = new CustomError("");
 			broker._finishCall(ctx, err);
 
 			expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
 			expect(ctx._metricFinish).toHaveBeenCalledWith(err, true);
+		});
+	});
+
+	describe("statistics enabled", () => {
+		let broker = new ServiceBroker({ metrics: false, statistics: true });
+		broker.statistics.addRequest = jest.fn();
+		let ctx = new Context(broker, { name: "user.create" });
+		ctx.nodeID = "server-2";
+		ctx.metrics = false;
+		ctx._metricFinish = jest.fn();
+
+		it("should call ctx._metricFinish", () => {
+			broker._finishCall(ctx, null);
+
+			expect(ctx._metricFinish).toHaveBeenCalledTimes(0);
 
 			expect(broker.statistics.addRequest).toHaveBeenCalledTimes(1);
-			expect(broker.statistics.addRequest).toHaveBeenCalledWith("user.create", 0, 500);
+			expect(broker.statistics.addRequest).toHaveBeenCalledWith("user.create", 0, null);			
 		});
+
+		it("should call ctx._metricFinish with error", () => {
+			ctx._metricFinish.mockClear();
+			broker.statistics.addRequest.mockClear();
+
+			let err = new CustomError("", 505);
+			broker._finishCall(ctx, err);
+
+			expect(ctx._metricFinish).toHaveBeenCalledTimes(0);
+
+			expect(broker.statistics.addRequest).toHaveBeenCalledTimes(1);
+			expect(broker.statistics.addRequest).toHaveBeenCalledWith("user.create", 0, 505);		
+		});		
+	});
 
 	describe("metrics & statistics enabled", () => {
 		let broker = new ServiceBroker({ metrics: true, statistics: true });
@@ -1214,20 +1238,27 @@ describe("Test broker._finishCall", () => {
 		ctx.metrics = true;
 		ctx._metricFinish = jest.fn();
 
-		it("should call ctx._metricFinish", () => {
+		it("should call statistics.addRequest", () => {
 			broker._finishCall(ctx, null);
 
 			expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
-			expect(ctx._metricFinish).toHaveBeenCalledWith(null);
+			expect(ctx._metricFinish).toHaveBeenCalledWith(null, true);
+
+			expect(broker.statistics.addRequest).toHaveBeenCalledTimes(1);
+			expect(broker.statistics.addRequest).toHaveBeenCalledWith("user.create", 0, null);			
 		});
 
-		it("should call ctx._metricFinish with error", () => {
+		it("should call statistics.addRequest with error", () => {
 			ctx._metricFinish.mockClear();
+			broker.statistics.addRequest.mockClear();
 			let err = new CustomError("", 505);
 			broker._finishCall(ctx, err);
 
 			expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
-			expect(ctx._metricFinish).toHaveBeenCalledWith(err);
+			expect(ctx._metricFinish).toHaveBeenCalledWith(err, true);
+
+			expect(broker.statistics.addRequest).toHaveBeenCalledTimes(1);
+			expect(broker.statistics.addRequest).toHaveBeenCalledWith("user.create", 0, 505);			
 		});		
 	});
 });
