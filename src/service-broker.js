@@ -287,13 +287,57 @@ class ServiceBroker {
 	 * Create a new service by schema
 	 * 
 	 * @param {any} schema	Schema of service
+	 * @param {any=} schemaMods	Modified schema
 	 * @returns {Service}
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	createService(schema) {
-		let service = new this.ServiceFactory(this, schema);
+	createService(schema, schemaMods) {
+		let s = schema;
+		if (schemaMods)
+			s = this.mergeSchemas(schema, schemaMods);
+
+		let service = new this.ServiceFactory(this, s);
 		return service;
+	}
+
+	/**
+	 * Merge two schemas
+	 * 
+	 * @param {Object} schema 
+	 * @param {Object} mods 
+	 * @returns {Object}
+	 * 
+	 * @memberof ServiceBroker
+	 */
+	mergeSchemas(schema, mods) {
+		function updateProp(propName, target, source) {
+			if (source[propName] !== undefined)
+				target[propName] = source[propName];
+		}
+
+		const res = _.cloneDeep(schema);
+
+		updateProp("name", res, mods);
+		updateProp("version", res, mods);
+
+		if (mods.settings)
+			res.settings = _.defaultsDeep(mods.settings, res.settings);
+		
+		if (mods.actions) 
+			res.actions = _.assign(res.actions, mods.actions);
+
+		if (mods.events) 
+			res.events = _.assign(res.events, mods.events);
+
+		if (mods.methods) 
+			res.methods = _.assign(res.methods, mods.methods);
+
+		updateProp("created", res, mods);
+		updateProp("started", res, mods);
+		updateProp("stopped", res, mods);
+
+		return res;
 	}
 
 	/**

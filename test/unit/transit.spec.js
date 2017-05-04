@@ -391,7 +391,7 @@ describe("Test Transit.messageHandler", () => {
 		transit.messageHandler("HEARTBEAT", JSON.stringify(msg));
 
 		expect(transit.nodeHeartbeat).toHaveBeenCalledTimes(1);
-		expect(transit.nodeHeartbeat).toHaveBeenCalledWith(msg.sender, msg);
+		expect(transit.nodeHeartbeat).toHaveBeenCalledWith(msg.sender);
 	});	
 
 });
