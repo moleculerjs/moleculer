@@ -1,18 +1,5 @@
 # Roadmap
 
-## v0.7.x
-- [x] [Distributed request timeout](https://www.datawire.io/guide/traffic/deadlines-distributed-timeouts-microservices/). Reduce the original timeout value in every calls.
-- [x] metricsRate: doesn't measure every request
-- [x] add nodeID to EVENT package and it will be the 3rd param in event handlers
-- [x] move heart-beat handling to `Transit` class.
-- [x] meta in context which will be transported. (for user, session, state...etc)
-- [x] create d.ts file
-- [x] pluggable serializer for transport
-	- [x] JSON parse/stringify
-	- [x] [Avro](https://github.com/mtth/avsc)
-    - [x] [MsgPack](https://github.com/mcollina/msgpack5)
-	- [x] [ProtoBuf](https://developers.google.com/protocol-buffers/)	
-
 ## v0.8.x
 - [ ] direct remote call to a specified node (for monitoring every node)
 - [ ] multi broker.call (array params & returns with array result )
@@ -23,6 +10,16 @@
 - [ ] add lru features to Memory and Redis cachers
 
 - [ ] official API gateway service (Native, Express, [Aero](https://github.com/aerojs/aero), [uWebsocket HTTP](https://github.com/uWebSockets/bindings/blob/master/nodejs/examples/http_sillybenchmark.js), [benchmark](https://github.com/blitzprog/webserver-benchmarks))
+
+------------------------------
+
+## v0.9.x
+
+------------------------------
+
+## v0.10.x
+
+------------------------------
 
 ## v1.0.x
 It will be the first stable release. Afterwards the version numbers should follow semver versioning.
