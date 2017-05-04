@@ -16,5 +16,7 @@ let broker = new ServiceBroker({
 	statistics: true
 });
 
+//broker.on("metrics.**", console.log);
+
 broker.loadServices(path.join(__dirname, ".."));
 broker.start();

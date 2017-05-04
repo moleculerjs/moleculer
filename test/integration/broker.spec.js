@@ -4,7 +4,6 @@ const MemoryCacher = require("../../src/cachers/memory");
 const FakeTransporter = require("../../src/transporters/fake");
 const Context = require("../../src/context");
 const utils = require("../../src/utils");
-const lolex = require("lolex");
 
 describe("Test load services", () => {
 	let broker = new ServiceBroker();
@@ -311,44 +310,6 @@ describe("Test versioned action registration", () => {
 		});
 	});
 		
-});
-
-describe("Test with metrics timer", () => {
-	let clock;
-	beforeAll(() => {
-		clock = lolex.install();
-	});
-
-	afterAll(() => {
-		clock.uninstall();
-	});
-
-	let broker= new ServiceBroker({
-		metrics: true,
-		statistics: true,
-		metricsSendInterval: 5 * 1000
-	});
-
-	broker.getNodeHealthInfo = jest.fn(() => Promise.resolve());
-	broker.emit = jest.fn();
-
-	it("should create metrics timer", () => {
-		return broker.start().then(() => {
-			expect(broker.metricsTimer).toBeDefined();
-		});
-	});
-
-	it("should send metrics events", () => {
-		clock.tick(6000);
-
-		expect(broker.emit).toHaveBeenCalledTimes(1); // node.health is async
-		expect(broker.getNodeHealthInfo).toHaveBeenCalledTimes(1);
-	});
-
-	it("should destroy metrics timer", () => {
-		broker.stop();
-		expect(broker.metricsTimer).toBeNull();
-	});	
 });
 
 describe("Test middleware system", () => {

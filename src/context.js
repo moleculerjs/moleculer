@@ -154,66 +154,72 @@ class Context {
 	/**
 	 * Send start event to metrics system
 	 * 
+	 * @param {boolean} emitEvent
 	 * @memberOf Context
 	 */
-	_metricStart() {
+	_metricStart(emitEvent) {
 		this.startTime = Date.now();
 		this.startHrTime = process.hrtime();
-		
-		let payload = {
-			id: this.id,
-			requestID: this.requestID,
-			startTime: this.startTime,
-			level: this.level,
-			remoteCall: !!this.nodeID
-		};
-		if (this.action) {
-			payload.action = {
-				name: this.action.name
-			};
-		}
-		if (this.parentID)
-			payload.parent = this.parentID;
-		
-		this.broker.emit("metrics.trace.span.start", payload);
-
 		this.duration = 0;
+		
+		if (emitEvent) {
+			let payload = {
+				id: this.id,
+				requestID: this.requestID,
+				startTime: this.startTime,
+				level: this.level,
+				remoteCall: !!this.nodeID
+			};
+			if (this.action) {
+				payload.action = {
+					name: this.action.name
+				};
+			}
+			if (this.parentID)
+				payload.parent = this.parentID;
+			
+			this.broker.emit("metrics.trace.span.start", payload);
+		}
 	}
 
 	/**
  	 * Send finish event to metrics system
-	 * 
+	 * @param {Error} error
+	 * @param {boolean} emitEvent
 	 * @memberOf Context
 	 */
-	_metricFinish(error) {
+	_metricFinish(error, emitEvent) {
 		let diff = process.hrtime(this.startHrTime);
 		this.duration = (diff[0] * 1e3) + (diff[1] / 1e6); // milliseconds
 		this.stopTime = this.startTime + this.duration;
 
-		let payload = {
-			id: this.id,
-			requestID: this.requestID,
-			level: this.level,
-			endTime: this.stopTime,
-			duration: this.duration,
-			remoteCall: !!this.nodeID,
-			fromCache: this.cachedResult
-		};
-		if (this.action) {
-			payload.action = {
-				name: this.action.name
+		if (emitEvent) {
+			let payload = {
+				id: this.id,
+				requestID: this.requestID,
+				level: this.level,
+				startTime: this.startTime,
+				endTime: this.stopTime,
+				duration: this.duration,
+				remoteCall: !!this.nodeID,
+				fromCache: this.cachedResult
 			};
-		}			
-		if (this.parentID) 
-			payload.parent = this.parentID;
-		
-		if (error) {
-			payload.error = {
-				type: error.name,
-				message: error.message
-			};
+			if (this.action) {
+				payload.action = {
+					name: this.action.name
+				};
+			}			
+			if (this.parentID) 
+				payload.parent = this.parentID;
+			
+			if (error) {
+				payload.error = {
+					type: error.name,
+					message: error.message
+				};
+			}
+			this.broker.emit("metrics.trace.span.finish", payload);
 		}
-		this.broker.emit("metrics.trace.span.finish", payload);
 	}
 }
 

@@ -34,7 +34,7 @@ Moleculer is a fast & powerful microservices framework for NodeJS (>= v6.x).
 - auto discovery services
 - parameter validation
 - distributed timeout handling with fallback response
-- health monitoring & statistics
+- health monitoring, metrics & statistics
 - supports versioned services (run different versions of the service)
 
 # Table of content
@@ -197,7 +197,6 @@ All available options:
     validation: true,
     metrics: false,
     metricsRate: 1,
-    metricsSendInterval: 5 * 1000,
     statistics: false,
     internalActions: true
     
@@ -218,8 +217,7 @@ All available options:
 | `serializer` | `Serializer` | `JSONSerializer` | Instance of serializer. Built-in serializers: [JSON](#json-serializer), [Avro](#avro-serializer) or [MsgPack](#msgpack-serializer) |
 | `validation` | `Boolean` | `false` | Enable action [parameters validation](). |
 | `metrics` | `Boolean` | `false` | Enable [metrics](#metrics) function. |
-| `metricsRate` | `Number` | `1` | Rate of metrics calls. |
-| `metricsSendInterval` | `Number` | `5000` | Metrics event sends period in milliseconds |
+| `metricsRate` | `Number` | `1` | Rate of metrics calls. `1` means 100% |
 | `statistics` | `Boolean` | `false` | Enable broker [statistics](). Measure the requests count & latencies |
 | `internalActions` | `Boolean` | `true` | Register internal actions for metrics & statistics functions |
 | `heartbeatInterval` | `Number` | `10` | Interval (seconds) of sending heartbeat |
@@ -379,11 +377,130 @@ This action returns the health info of process & OS.
 broker.call("$node.health").then(res => console.log(res));
 ```
 
+Example health info:
+```js
+{
+    "cpu": {
+        "load1": 0,
+        "load5": 0,
+        "load15": 0,
+        "cores": 4,
+        "utilization": 0
+    },
+    "mem": {
+        "free": 1217519616,
+        "total": 17161699328,
+        "percent": 7.094400109979598
+    },
+    "os": {
+        "uptime": 366733.2786046,
+        "type": "Windows_NT",
+        "release": "6.1.7601",
+        "hostname": "Developer-PC",
+        "arch": "x64",
+        "platform": "win32",
+        "user": {
+            "uid": -1,
+            "gid": -1,
+            "username": "Developer",
+            "homedir": "C:\\Users\\Developer",
+            "shell": null
+        }
+    },
+    "process": {
+        "pid": 13096,
+        "memory": {
+            "rss": 47173632,
+            "heapTotal": 31006720,
+            "heapUsed": 22112024
+        },
+        "uptime": 25.447
+    },
+    "net": {
+        "ip": [
+            "192.168.2.100",
+            "192.168.232.1",
+            "192.168.130.1",
+            "192.168.56.1",
+            "192.168.99.1"
+        ]
+    },
+    "time": {
+        "now": 1487338958409,
+        "iso": "2017-02-17T13:42:38.409Z",
+        "utc": "Fri, 17 Feb 2017 13:42:38 GMT"
+    }
+}
+```
+
+
 ### Statistics
 This action returns the request statistics if the `statistics` is enabled in [options](#constructor-options).
 ```js
 broker.call("$node.stats").then(res => console.log(res));
 ```
+
+Example statistics:
+```js
+{
+  "requests": {
+    // Total statistics
+    "total": {
+
+      // Count of requests
+      "count": 45,
+
+      // Count of error by code
+      "errors": {},
+
+      // Req/sec values
+      "rps": {
+        "current": 0.7999854548099126,
+        // Last x values
+        "values": [
+          0,
+          6.59868026394721,
+          2.200440088017604
+        ]
+      },
+
+      // Request latency values
+      "latency": {
+        "mean": 0.8863636363636364,
+        "median": 0,
+        "90th": 1,
+        "95th": 5,
+        "99th": 12,
+        "99.5th": 12
+      }
+    },
+
+    // Action-based statistics
+    "actions": {
+      "posts.find": {
+        "count": 4,
+        "errors": {},
+        "rps": {
+          "current": 0.599970001499925,
+          "values": [
+            1.7985611510791368,
+            0.20004000800160032
+          ]
+        },
+        "latency": {
+          "mean": 7.5,
+          "median": 5,
+          "90th": 12,
+          "95th": 12,
+          "99th": 12,
+          "99.5th": 12
+        }
+      }
+    }
+  }
+}
+```
+
 
 # Service
 The Service is the other main module in the Moleculer. With the help of this you can define actions.
@@ -1200,134 +1317,47 @@ You can also create your custom serializer module. We recommend you that copy th
 
 # Metrics
 Moleculer has a metrics function. You can turn on in [broker options](#constructor-options) with `metrics: true` property.
-If enabled, the broker emits metrics events in every `metricsSendInterval`.
+If enabled, the broker emits metrics events in every `broker.call`.
 
-##  Health info
-Broker emits a global event as `metrics.node.health` with health info of node.
-
-Example health info:
+### Request started event
+The broker emit an `metrics.trace.span.start` when a new call/request started.
+The payload contains the following values:
 ```js
-{
-    "cpu": {
-        "load1": 0,
-        "load5": 0,
-        "load15": 0,
-        "cores": 4,
-        "utilization": 0
+{ 
+	id: '4563b09f-04cf-4891-bc2c-f26f80c3f91e',
+	requestID: null,
+	startTime: 1493903164726,
+	level: 1,
+	remoteCall: false,
+	action: { 
+        name: 'v2.users.get' 
     },
-    "mem": {
-        "free": 1217519616,
-        "total": 17161699328,
-        "percent": 7.094400109979598
-    },
-    "os": {
-        "uptime": 366733.2786046,
-        "type": "Windows_NT",
-        "release": "6.1.7601",
-        "hostname": "Developer-PC",
-        "arch": "x64",
-        "platform": "win32",
-        "user": {
-            "uid": -1,
-            "gid": -1,
-            "username": "Developer",
-            "homedir": "C:\\Users\\Developer",
-            "shell": null
-        }
-    },
-    "process": {
-        "pid": 13096,
-        "memory": {
-            "rss": 47173632,
-            "heapTotal": 31006720,
-            "heapUsed": 22112024
-        },
-        "uptime": 25.447
-    },
-    "net": {
-        "ip": [
-            "192.168.2.100",
-            "192.168.232.1",
-            "192.168.130.1",
-            "192.168.56.1",
-            "192.168.99.1"
-        ]
-    },
-    "time": {
-        "now": 1487338958409,
-        "iso": "2017-02-17T13:42:38.409Z",
-        "utc": "Fri, 17 Feb 2017 13:42:38 GMT"
-    }
+	spans: [] 
 }
 ```
-**You can subscribe to it in your custom monitoring service.**
+
+### Request finished event
+The broker emit an `metrics.trace.span.finish` when a call/request finished.
+The payload contains the following values:
+```js
+{ 
+	id: '4563b09f-04cf-4891-bc2c-f26f80c3f91e',
+	requestID: null,
+	level: 1,
+	startTime: 1493903164726,
+    endTime: 1493903164731.3684,
+	duration: 5.368304,
+	remoteCall: false,
+	fromCache: false,
+	action: { 
+		name: 'v2.users.get' 
+	}
+}
+```
 
 ## Statistics
 Moleculer has a statistics module that collects and aggregates the count & latency info of the requests.
-You can enable it in [broker options](#constructor-options) with `statistics: true` property.
-
-Broker emits global events as `metrics.node.stats`. The payload contains the statistics. You need to enable [metrics](#metrics) functions too!
-
-Example statistics:
-```js
-{
-  "requests": {
-    // Total statistics
-    "total": {
-
-      // Count of requests
-      "count": 45,
-
-      // Count of error by code
-      "errors": {},
-
-      // Req/sec values
-      "rps": {
-        "current": 0.7999854548099126,
-        // Last x values
-        "values": [
-          0,
-          6.59868026394721,
-          2.200440088017604
-        ]
-      },
-
-      // Request latency values
-      "latency": {
-        "mean": 0.8863636363636364,
-        "median": 0,
-        "90th": 1,
-        "95th": 5,
-        "99th": 12,
-        "99.5th": 12
-      }
-    },
-
-    // Action-based statistics
-    "actions": {
-      "posts.find": {
-        "count": 4,
-        "errors": {},
-        "rps": {
-          "current": 0.599970001499925,
-          "values": [
-            1.7985611510791368,
-            0.20004000800160032
-          ]
-        },
-        "latency": {
-          "mean": 7.5,
-          "median": 5,
-          "90th": 12,
-          "95th": 12,
-          "99th": 12,
-          "99.5th": 12
-        }
-      }
-    }
-  }
-}
-```
+You can enable it in [broker options](#constructor-options) with `statistics: true` property. You can access the statistics data via `$node.stats` action.
 
 # Nodes
 Moleculer supports several architectures.

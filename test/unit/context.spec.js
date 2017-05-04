@@ -173,8 +173,19 @@ describe("Test _metricStart method", () => {
 
 	broker.emit = jest.fn();
 
-	it("should emit start event", () => {		
+	it("should not emit start event", () => {		
 		ctx._metricStart();
+
+		expect(ctx.startTime).toBeDefined();
+		expect(ctx.stopTime).toBeNull();
+		expect(ctx.duration).toBe(0);
+
+		expect(broker.emit).toHaveBeenCalledTimes(0);
+	});
+
+	it("should emit start event", () => {		
+		broker.emit.mockClear();
+		ctx._metricStart(true);
 
 		expect(ctx.startTime).toBeDefined();
 		expect(ctx.stopTime).toBeNull();
@@ -200,13 +211,13 @@ describe("Test _metricFinish method", () => {
 		broker.emit.mockClear();
 		return new Promise(resolve => {
 			setTimeout(() => {
-				ctx._metricFinish();
+				ctx._metricFinish(null, true);
 
 				expect(ctx.stopTime).toBeGreaterThan(0);
 				expect(ctx.duration).toBeGreaterThan(0);
 
 				expect(broker.emit).toHaveBeenCalledTimes(1);
-				expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.finish", {"action": {"name": "users.get"}, "duration": ctx.duration, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "endTime": ctx.stopTime, "fromCache": false, "level": 1, "remoteCall": true});
+				expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.finish", {"action": {"name": "users.get"}, "duration": ctx.duration, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "startTime": ctx.startTime, "endTime": ctx.stopTime, "fromCache": false, "level": 1, "remoteCall": true});
 
 				resolve();
 			}, 100);
@@ -216,14 +227,30 @@ describe("Test _metricFinish method", () => {
 	it("should emit finish event with error", () => {		
 		broker.emit.mockClear();
 		return new Promise(resolve => {
-			ctx._metricFinish(new ServiceNotFoundError("Something happened"));
+			ctx._metricFinish(new ServiceNotFoundError("Something happened"), true);
 
 			expect(ctx.stopTime).toBeGreaterThan(0);
 
 			expect(broker.emit).toHaveBeenCalledTimes(1);
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.finish", {"action": {"name": "users.get"}, "duration": ctx.duration, "error": { "message": "Something happened", "type": "ServiceNotFoundError" }, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "endTime": ctx.stopTime, "fromCache": false, "level": 1, "remoteCall": true });
+			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.finish", {"action": {"name": "users.get"}, "duration": ctx.duration, "error": { "message": "Something happened", "type": "ServiceNotFoundError" }, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "startTime": ctx.startTime, "endTime": ctx.stopTime, "fromCache": false, "level": 1, "remoteCall": true });
 
 			resolve();
 		});
 	});
+
+	it("should not emit finish event", () => {		
+		broker.emit.mockClear();
+		return new Promise(resolve => {
+			setTimeout(() => {
+				ctx._metricFinish();
+
+				expect(ctx.stopTime).toBeGreaterThan(0);
+				expect(ctx.duration).toBeGreaterThan(0);
+
+				expect(broker.emit).toHaveBeenCalledTimes(0);
+
+				resolve();
+			}, 100);
+		});
+	});	
 });

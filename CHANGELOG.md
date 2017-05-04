@@ -44,6 +44,11 @@ let broker = new ServiceBroker({
 ## Nanomatch instead of micromatch
 Memory cacher is using [nanomatch](https://github.com/micromatch/nanomatch) instead of [micromatch](https://github.com/micromatch/micromatch). The `nanomatch` is ~10x faster.
 
+## Removed `metricsSendInterval` [#24](https://github.com/ice-services/moleculer/issues/24/)
+The `metricsSendInterval` option is removed from broker options. If you want to access statistics & health info, call the `$node.health` and `$node.stats` actions.
+
+## Metrics & Statistics separated [#24](https://github.com/ice-services/moleculer/issues/24/)
+The metrics & statistics features separated. You can use only just metrics or only just statistics.
 
 --------------------------------------------------
 
