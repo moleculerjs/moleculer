@@ -1341,8 +1341,8 @@ The payload contains the following values:
 	action: { 
         name: 'v2.users.get' 
     }
-    // NodeID if it is a remote call
-    //nodeID: null,
+    // Node ID
+    nodeID: "node-1",
     // Parent context ID if it is a sub-call
     //parentID: null
 }
@@ -1373,8 +1373,8 @@ The payload contains the following values:
     action: { 
 		name: 'v2.users.get' 
 	}
-    // NodeID if it is a remote call
-    //nodeID: null,
+    // Node ID
+    nodeID: "node-1",
     // Parent context ID if it is a sub-call
     //parentID: null
 }
