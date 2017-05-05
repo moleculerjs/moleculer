@@ -21,13 +21,19 @@ module.exports = {
 			}
 		},
 
-		div(ctx) {
-			let a = Number(ctx.params.a);
-			let b = Number(ctx.params.b);
-			if (b != 0)
-				return a / b;
-			else
-				throw new CustomError("Divide by zero!", 422, ctx.params);
+		div: {
+			params: {
+				a: { type: "number", convert: true },
+				b: { type: "number", notEqual: 0, convert: true }
+			},
+			handler(ctx) {
+				let a = Number(ctx.params.a);
+				let b = Number(ctx.params.b);
+				if (b != 0 && !Number.isNaN(b))
+					return a / b;
+				else
+					throw new CustomError("Divide by zero!", 422, ctx.params);
+			}
 		}
 	}
 };

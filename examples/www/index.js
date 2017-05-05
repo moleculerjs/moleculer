@@ -16,7 +16,9 @@ let broker = new ServiceBroker({
 	},
 	metrics: true,
 	metricsRate: 1,
-	statistics: true
+	statistics: true,
+
+	validation: true
 	
 });
 
@@ -26,5 +28,6 @@ let broker = new ServiceBroker({
 
 broker.loadService(path.join(__dirname, "..", "api.service"));
 broker.loadService(path.join(__dirname, "..", "math.service"));
+broker.loadService(path.join(__dirname, "..", "metrics.service"));
 
 broker.start();

@@ -14,15 +14,14 @@ const bp 				= require("body-parser");
 const serveStatic 		= require("serve-static");
 const nanomatch  		= require("nanomatch");
 
-const { CustomError } 	= require("../src/errors");
+const { ServiceNotFoundError, CustomError } 	= require("../src/errors");
+//const Context 			= require("../src/context");
 
 /**
  * Official API Gateway service for Moleculer
  * 
  * TODO:
  * -----
- * 	- create context
- *  - generate requestID & response back to backend
  *  - prereq action to check the params & responseType
  *  - auth service call
  *  - 
@@ -87,10 +86,10 @@ module.exports = {
 	created() {
 		this.server = http.createServer(this.httpHandler);
 
-		this.server.on("connection", socket => {
+		/*this.server.on("connection", socket => {
 			// Disable Nagle algorithm https://nodejs.org/dist/latest-v6.x/docs/api/net.html#net_socket_setnodelay_nodelay
 			socket.setNoDelay(true);
-		});
+		});*/
 
 		// Create static server middleware
 		if (this.settings.assets) {
@@ -139,7 +138,7 @@ module.exports = {
 		},
 
 		/**
-		 * Main HTTP request handler
+		 * HTTP request handler
 		 * 
 		 * @param {HttpRequest} req 
 		 * @param {HttpResponse} res 
@@ -207,6 +206,7 @@ module.exports = {
 		 */
 		callAction(actionName, req, res, query) {
 			let params = {};
+			let endpoint;
 
 			return this.Promise.resolve()
 
@@ -230,7 +230,7 @@ module.exports = {
 					}
 				}
 			})
-	
+
 			// Parse body
 			.then(() => {
 				
@@ -255,25 +255,67 @@ module.exports = {
 					params = Object.assign(params, req.body);
 			})
 
-			// Call the action
+			// Resolve action by name
 			.then(() => {
+				endpoint = this.broker.getAction(actionName);
+				if (endpoint) {
+					// Validate params
+					if (this.broker.validator && endpoint.action.params)
+						this.broker.validator.validate(params, endpoint.action.params);					
+				} else {
+					// Action is not available
+					return Promise.reject(new ServiceNotFoundError(`Action '${actionName}' is not available!`, actionName));
+				}
+
+				return endpoint;
+			})
+
+			// Call the action
+			.then(endpoint => {
 				this.logger.info(`  Call '${actionName}' action with params:`, params);
 
-				return this.broker.call(actionName, params)
+				const restAction = {
+					name: "api.rest"
+				};
+
+				// Create a new context to wrap the request
+				const ctx = this.broker.createNewContext(restAction, null, params, {
+					timeout: 5 * 1000
+				});
+				ctx.requestID = ctx.id;
+				ctx._metricStart(ctx.metrics);
+
+				return ctx.call(endpoint, params)
 					.then(data => {
 						// Return with the response
-						res.writeHead(200, { "Content-type": "application/json"});
-						res.end(JSON.stringify(data));						
+						res.writeHead(200, { 
+							"Content-type": "application/json",
+							"Request-Id": ctx.id
+						});
+						res.end(JSON.stringify(data));
+
+						ctx._metricFinish(null, ctx.metrics);
 					});
 			})
 
 			// Error handling
-			.catch(err => {
+			.catch(err => {				
+				this.logger.error("Calling error!", err.name, ":", err.message, "\n", err.stack, "\nData:", err.data);
+				
+				const headers = { 
+					"Content-type": "application/json"					
+				};
+				if (err.ctx) {
+					headers["Request-Id"] = err.ctx.id;
+				}
+
 				// Return with the error
-				this.logger.error(err);
-				res.writeHead(err.code || 500, { "Content-type": "application/json"});
+				res.writeHead(err.code || 500, headers);
 				const errObj = _.pick(err, ["name", "message", "code", "data"]);
 				res.end(JSON.stringify(errObj, null, 2));
+
+				if (err.ctx)
+					err.ctx._metricFinish(null, err.ctx.metrics);
 			});
 		},
 
