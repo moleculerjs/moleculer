@@ -166,8 +166,8 @@ class Context {
 			let payload = {
 				id: this.id,
 				requestID: this.requestID,
-				startTime: this.startTime,
 				level: this.level,
+				startTime: this.startTime,
 				remoteCall: !!this.nodeID
 			};
 			if (this.action) {
@@ -177,6 +177,11 @@ class Context {
 			}
 			if (this.parentID)
 				payload.parent = this.parentID;
+
+			if (this.nodeID)
+				payload.nodeID = this.nodeID;
+			else
+				payload.nodeID = this.broker.nodeID;
 			
 			this.broker.emit("metrics.trace.span.start", payload);
 		}
@@ -211,6 +216,11 @@ class Context {
 			}			
 			if (this.parentID) 
 				payload.parent = this.parentID;
+			
+			if (this.nodeID)
+				payload.nodeID = this.nodeID;
+			else
+				payload.nodeID = this.broker.nodeID;
 			
 			if (error) {
 				payload.error = {
