@@ -6,23 +6,30 @@
 
 "use strict";
 
-const path 				= require("path");
 const http 				= require("http");
-
-//const url 			= require("url");
-const _ 				= require("lodash");
 const queryString 		= require("querystring");
+
+const _ 				= require("lodash");
 const bp 				= require("body-parser");
 const serveStatic 		= require("serve-static");
 const nanomatch  		= require("nanomatch");
 
 const { CustomError } 	= require("../src/errors");
 
+/**
+ * Official API Gateway service for Moleculer
+ */
 module.exports = {
+
+	// Service name
 	name: "api-gw",
+
+	// Version
 	version: "1.0",
 
+	// Service settings
 	settings: {
+		
 		// Exposed port
 		port: process.env.PORT || 4000,
 
@@ -31,9 +38,6 @@ module.exports = {
 
 		// Exposed path prefix
 		path: "/api",
-
-		// TODO: Append version to path
-		versioning: true,
 
 		// Whitelist of actions (array of string mask or regex)
 		whitelist: [
@@ -58,16 +62,16 @@ module.exports = {
 			options: {}
 		},
 
-		// TODO: Order to get params from request
-		paramsOrder: ["query", "body"],
-
-		// TODO: Use bodyparser module
+		// Use bodyparser module
 		bodyParsers: {
 			json: true,
 			urlencoded: { extended: true }
 		}
 	},
 
+	/**
+	 * Service created lifecycle event handler
+	 */
 	created() {
 		this.server = http.createServer(this.httpHandler);
 
@@ -76,7 +80,7 @@ module.exports = {
 			socket.setNoDelay(true);
 		});
 
-		// Create static serve
+		// Create static server middleware
 		if (this.settings.assets) {
 			this.serve = serveStatic(this.settings.assets.folder, _.defaultsDeep(this.settings.assets.options, {
 				fallthrough: false
@@ -102,7 +106,7 @@ module.exports = {
 			this.parsers = parsers;
 		}
 
-		// Create URL regexp
+		// Create URL prefix regexp
 		let path = this.settings.path || "/";
 		this.urlRegex = new RegExp(path.replace("/", "\\/") + "\\/([\\w\\.\\~\\/]+)", "g");
 
@@ -111,11 +115,24 @@ module.exports = {
 	},
 
 	methods: {
+		/**
+		 * Send 404 response
+		 * 
+		 * @param {HttpRequest} req 
+		 * @param {HttpResponse} res 
+		 */
 		send404(req, res) {
 			res.writeHead(404);
 			res.end("Not found");
 		},
 
+		/**
+		 * Main HTTP request handler
+		 * 
+		 * @param {HttpRequest} req 
+		 * @param {HttpResponse} res 
+		 * @returns 
+		 */
 		httpHandler(req, res) {
 			this.logger.debug(`${req.method} ${req.url}`);
 
@@ -157,6 +174,15 @@ module.exports = {
 			this.send404(req, res);
 		},
 
+		/**
+		 * Call an action with broker
+		 * 
+		 * @param {String} actionName 
+		 * @param {HttpRequest} req 
+		 * @param {HttpResponse} res 
+		 * @param {Object} query 
+		 * @returns {Promise}
+		 */
 		callAction(actionName, req, res, query) {
 			let params = {};
 
@@ -183,7 +209,7 @@ module.exports = {
 				}
 			})
 	
-			// Read params
+			// Read params, parses body
 			.then(() => {
 				
 				if (["POST", "PUT", "PATCH"].indexOf(req.method) !== -1 && this.parsers.length > 0) {
@@ -227,6 +253,12 @@ module.exports = {
 			});
 		},
 
+		/**
+		 * Check the action name in whitelist
+		 * 
+		 * @param {String} action 
+		 * @returns {Boolean}
+		 */
 		checkWhitelist(action) {
 			return this.settings.whitelist.find(mask => {
 				if (_.isString(mask))
@@ -236,6 +268,13 @@ module.exports = {
 			}) != null;
 		},
 
+		/**
+		 * Resolve alias names
+		 * 
+		 * @param {String} actionName 
+		 * @param {string} [method="GET"] 
+		 * @returns {String} Resolved actionName
+		 */
 		resolveAlias(actionName, method = "GET") {
 			const match = method + " " + actionName;
 
@@ -246,6 +285,9 @@ module.exports = {
 
 	},
 
+	/**
+	 * Service started lifecycle event handler
+	 */
 	started() {
 		this.server.listen(this.settings.port, this.settings.ip, err => {
 			if (err) 
@@ -256,6 +298,9 @@ module.exports = {
 		});		
 	},
 
+	/**
+	 * Service stopped lifecycle event handler
+	 */
 	stopped() {
 		if (this.server.listening) {
 			this.server.close(err => {
