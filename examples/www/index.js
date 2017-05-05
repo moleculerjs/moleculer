@@ -4,10 +4,12 @@ let path = require("path");
 
 let ServiceBroker = require("../../src/service-broker");
 let MemoryCacher = require("../../src/cachers").Memory;
+let NatsTransporter = require("../../src/transporters").NATS;
 
 // Create broker
 let broker = new ServiceBroker({
 	//cacher: new MemoryCacher(),
+	//transporter: new NatsTransporter(),
 	nodeID: "server",
 	logger: console,
 	logLevel: {
@@ -28,6 +30,7 @@ let broker = new ServiceBroker({
 
 broker.loadService(path.join(__dirname, "..", "api.service"));
 broker.loadService(path.join(__dirname, "..", "math.service"));
+broker.loadService(path.join(__dirname, "..", "file.service"));
 broker.loadService(path.join(__dirname, "..", "metrics.service"));
 
 broker.start();

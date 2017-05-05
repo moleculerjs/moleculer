@@ -1,5 +1,6 @@
 "use strict";
 
+let path = require("path");
 let _ = require("lodash");
 let ServiceBroker = require("../../src/service-broker");
 let { CustomError } = require("../../src/errors");
@@ -11,6 +12,8 @@ let broker = new ServiceBroker({
 	transporter: new NatsTransporter(),
 	logger: console
 });
+
+broker.loadService(path.join(__dirname, "..", "file.service"));
 
 broker.createService({
 	name: "math",

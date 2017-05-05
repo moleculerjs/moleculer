@@ -44,7 +44,7 @@
 			"request": "launch",
 			"name": "Launch demo:www",
 			"program": "${workspaceRoot}\\examples\\www\\index.js",
-			"cwd": "${workspaceRoot}\\examples\\www"
+			"cwd": "${workspaceRoot}"
 		},
 		{
 			"type": "node",

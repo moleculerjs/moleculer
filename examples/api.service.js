@@ -53,6 +53,7 @@ module.exports = {
 			"posts.*",
 			"users.get",
 			"$node.*",
+			"file.*",
 			/^math\.\w+$/
 		],
 
@@ -287,12 +288,30 @@ module.exports = {
 
 				return ctx.call(endpoint, params)
 					.then(data => {
+						let contentType = "application/json";
+						if (endpoint.action.responseType)
+							contentType = endpoint.action.responseType;
+
 						// Return with the response
 						res.writeHead(200, { 
-							"Content-type": "application/json",
+							"Content-type": contentType,
 							"Request-Id": ctx.id
 						});
-						res.end(JSON.stringify(data));
+						if (contentType == "application/json")
+							res.end(JSON.stringify(data));
+						else {
+							// Convert back Buffer (Transporter & serializer convert Buffer to JSON)
+							if (_.isString(data) || _.isBuffer(data)) {
+								res.end(data);
+							} else if (_.isObject(data) && data.type == "Buffer") {
+								const buf = Buffer.from(data);
+								res.end(buf);
+							} else {
+								const err = new CustomError("Invalid response format: " + typeof(data) + "!");
+								return this.Promise.reject(err);
+							}
+
+						}
 
 						ctx._metricFinish(null, ctx.metrics);
 					});
