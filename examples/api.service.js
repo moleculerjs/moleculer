@@ -18,6 +18,16 @@ const { CustomError } 	= require("../src/errors");
 
 /**
  * Official API Gateway service for Moleculer
+ * 
+ * TODO:
+ * -----
+ * 	- create context
+ *  - generate requestID & response back to backend
+ *  - prereq action to check the params & responseType
+ *  - auth service call
+ *  - 
+ * 
+ * 
  */
 module.exports = {
 
@@ -29,7 +39,7 @@ module.exports = {
 
 	// Service settings
 	settings: {
-		
+
 		// Exposed port
 		port: process.env.PORT || 4000,
 
@@ -43,6 +53,7 @@ module.exports = {
 		whitelist: [
 			"posts.*",
 			"users.get",
+			"$node.*",
 			/^math\.\w+$/
 		],
 
@@ -51,7 +62,8 @@ module.exports = {
 			"POST users": "users.create",
 			"add": "math.add",
 			"GET sub": "math.sub",
-			"POST divide": "math.div"
+			"POST divide": "math.div",
+			"health": "$node.health"
 		},
 
 		// Folder to server assets (static files)
@@ -134,53 +146,63 @@ module.exports = {
 		 * @returns 
 		 */
 		httpHandler(req, res) {
+			this.logger.debug("");
 			this.logger.debug(`${req.method} ${req.url}`);
 
-			// Split URL & query params
-			let url;
-			let query;
-			const questionIdx = req.url.indexOf("?", 1);
-			if (questionIdx === -1) {
-				url = req.url;
-			} else {
-				query = queryString.parse(req.url.substring(questionIdx + 1));
-				url = req.url.substring(0, questionIdx);
+			try {
+				// Split URL & query params
+				let url;
+				let query;
+				const questionIdx = req.url.indexOf("?", 1);
+				if (questionIdx === -1) {
+					url = req.url;
+				} else {
+					query = queryString.parse(req.url.substring(questionIdx + 1));
+					url = req.url.substring(0, questionIdx);
+				}
+
+				// Trim trailing slash
+				if (url.endsWith("/"))
+					url = url.slice(0, -1);
+
+				// Check the URL is an API request
+				this.urlRegex.lastIndex = 0;
+				const match = this.urlRegex.exec(url);
+				if (match) {
+					// Resolve action name
+					let actionName = match[1].replace(/~/, "$").replace(/\//g, ".");
+
+					return this.callAction(actionName, req, res, query);
+				} 
+
+				// Serve assets static files
+				if (this.serve) {
+					this.serve(req, res, err => {
+						this.logger.debug(err);
+						this.send404(req, res);
+					});
+					return;
+				} 
+
+				// 404
+				this.send404(req, res);
+
+			} catch(err) {
+				// 500
+				this.logger.error("Handler error!", err);
+
+				res.writeHead(500);
+				res.end("Server error! " + err.message);				
 			}
-
-			// Trim trailing slash
-			if (url.endsWith("/"))
-				url = url.slice(0, -1);
-
-			// Check the URL is an API request
-			this.urlRegex.lastIndex = 0;
-			const match = this.urlRegex.exec(url);
-			if (match) {
-				// Resolve action name
-				let actionName = match[1].replace(/~/, "$").replace(/\//g, ".");
-
-				return this.callAction(actionName, req, res, query);
-			} 
-
-			// Serve assets static files
-			if (this.serve) {
-				this.serve(req, res, err => {
-					this.logger.debug(err);
-					this.send404(req, res);
-				});
-				return;
-			} 
-
-			// 404
-			this.send404(req, res);
 		},
 
 		/**
 		 * Call an action with broker
 		 * 
-		 * @param {String} actionName 
-		 * @param {HttpRequest} req 
-		 * @param {HttpResponse} res 
-		 * @param {Object} query 
+		 * @param {String} actionName 	Name of action
+		 * @param {HttpRequest} req 	Request object
+		 * @param {HttpResponse} res 	Response object
+		 * @param {Object} query		Parsed query string
 		 * @returns {Promise}
 		 */
 		callAction(actionName, req, res, query) {
@@ -193,7 +215,7 @@ module.exports = {
 				if (this.hasAliases) {
 					const newActionName = this.resolveAlias(actionName, req.method);
 					if (newActionName !== actionName) {
-						this.logger.info(`Alias: ${req.method} ${actionName} -> ${newActionName}`);
+						this.logger.debug(`  Alias: ${req.method} ${actionName} -> ${newActionName}`);
 						actionName = newActionName;
 					}
 				}
@@ -203,13 +225,13 @@ module.exports = {
 			.then(() => {
 				if (this.hasWhitelist) {
 					if (!this.checkWhitelist(actionName)) {
-						this.logger.debug(`The '${actionName}' action is not in the whitelist!`);
+						this.logger.debug(`  The '${actionName}' action is not in the whitelist!`);
 						return this.Promise.reject(new CustomError("Not found", 404));
 					}
 				}
 			})
 	
-			// Read params, parses body
+			// Parse body
 			.then(() => {
 				
 				if (["POST", "PUT", "PATCH"].indexOf(req.method) !== -1 && this.parsers.length > 0) {
@@ -222,19 +244,20 @@ module.exports = {
 								resolve();
 							});
 						});
-					}).then(() => {
-						//this.logger.debug("Parsed body:", req.body);
-
-						params = Object.assign({}, query);
-						if (_.isObject(req.body)) 
-							params = Object.assign(params, req.body);
 					});
 				}
 			})
 
+			// Merge params
+			.then(() => {
+				params = Object.assign({}, query);
+				if (_.isObject(req.body)) 
+					params = Object.assign(params, req.body);
+			})
+
 			// Call the action
 			.then(() => {
-				this.logger.info(`Call '${actionName}' action with params:`, params);
+				this.logger.info(`  Call '${actionName}' action with params:`, params);
 
 				return this.broker.call(actionName, params)
 					.then(data => {
@@ -248,8 +271,9 @@ module.exports = {
 			.catch(err => {
 				// Return with the error
 				this.logger.error(err);
-				res.writeHead(err.code || 500, { "Content-type": "text/plain"});
-				res.end(err.message);						
+				res.writeHead(err.code || 500, { "Content-type": "application/json"});
+				const errObj = _.pick(err, ["name", "message", "code", "data"]);
+				res.end(JSON.stringify(errObj, null, 2));
 			});
 		},
 

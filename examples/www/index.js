@@ -10,11 +10,14 @@ let broker = new ServiceBroker({
 	//cacher: new MemoryCacher(),
 	nodeID: "server",
 	logger: console,
-	logLevel: "warn",
-	/*metrics: true,
+	logLevel: {
+		"*": "info",
+		"API-GW-SVC": "debug"
+	},
+	metrics: true,
 	metricsRate: 1,
 	statistics: true
-	*/
+	
 });
 
 //broker.on("metrics.**", console.log);

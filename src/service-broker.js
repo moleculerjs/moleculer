@@ -184,7 +184,7 @@ class ServiceBroker {
 				return this.transit.connect();
 		})
 		.then(() => {
-			this.logger.info("Broker started.");
+			this.logger.info("Broker started.\n");
 		});
 	}
 
