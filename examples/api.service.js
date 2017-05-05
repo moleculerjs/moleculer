@@ -69,7 +69,7 @@ module.exports = {
 		// Folder to server assets (static files)
 		assets: {
 			// Root folder of assets
-			folder: "./assets",
+			folder: "./examples/www/assets",
 			// Options to `server-static` module
 			options: {}
 		},
