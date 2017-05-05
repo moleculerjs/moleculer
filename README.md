@@ -464,7 +464,7 @@ Example statistics:
         ]
       },
 
-      // Request latency values
+      // Request latency values (ms)
       "latency": {
         "mean": 0.8863636363636364,
         "median": 0,
@@ -718,6 +718,7 @@ In service functions the `this` is always binded to the instance of service. It 
 | `this.settings` | `Object` | Settings of service from schema |
 | `this.schema` | `Object` | Schema definition of service |
 | `this.broker` | `ServiceBroker` | Instance of broker |
+| `this.Promise` | `Promise` | Class of Promise (Bluebird) |
 | `this.logger` | `Logger` | Logger module |
 | `this.actions` | `Object` | Actions of service. *Service can call its own actions directly.* |
 
@@ -828,8 +829,8 @@ broker.loadServices("./");
 broker.loadServices("./svc", "user*.service.js");
 ```
 
-## Local/Private properties
-If you would like to create private properties in service, we recommend to declare them in the `created` handler.
+## Local variables
+If you would like to create local properties/variables in service, we recommend to declare them in the `created` handler.
 
 **Example for local properties**
 ```js
@@ -876,10 +877,11 @@ When you call an action, the broker creates a `Context` instance which contains 
 | ------- | ----- | ------- |
 | `ctx.id` | `String` | Context ID |
 | `ctx.requestID` | `String` | Request ID. If you make sub-calls in a request, it will be the same ID |
-| `ctx.parent` | `Context` | Parent context, if it's a sub-call |
+| `ctx.parentID` | `String` | ID of parent context, if it's a sub-call |
 | `ctx.broker` | `ServiceBroker` | Instance of broker |
 | `ctx.action` | `Object` | Instance of action |
 | `ctx.params` | `Any` | Params of request. *Second argument of `broker.call`* |
+| `ctx.meta` | `Any` | Metadata of request. *It will be transferred in sub-calls* |
 | `ctx.nodeID` | `String` | Node ID |
 | `ctx.logger` | `Logger` | Logger module |
 | `ctx.level` | `Number` | Level of request |
@@ -922,6 +924,7 @@ Console messages:
 
 ## Custom log levels
 If you want to change log level you need to set `logLevel` in broker options.
+Available log levels: `fatal`, `error`, `warn`, `info`, `debug`, `trace`
 
 ```js
 let broker = new ServiceBroker({
@@ -939,6 +942,7 @@ let broker = new ServiceBroker({
         "BROKER": "info",       // Broker logger
         "CTX": "debug",         // Context logger
         "CACHER": "warn",       // Cacher logger
+        "TRANSIT": "trace",     // Transit logger
         "TX": "info",           // Transporter logger
         "POSTS-SVC": "error"    // Service logger. Generated from name of service
         "USERS-SVC": false      // No logger
@@ -1251,7 +1255,7 @@ new MqttTransporter({
 You can also create your custom transporter module. We recommend you that copy the source of [`NatsTransporter`](src/transporters/nats.js) and implement the `connect`, `disconnect`,  `subscribe` and `publish` methods.
 
 # Serializers
-For transportation needs a serializer module which serialize & deserialize the transfered packets. If you don't set serializer, the default is the JSON serializer.
+For transportation needs a serializer module which serialize & deserialize the transferred packets. If you don't set serializer, the default is the JSON serializer.
 
 ```js
 let { ServiceBroker } = require("moleculer");
@@ -1270,9 +1274,8 @@ This is the default serializer. Serialize the packets to JSON string and deseria
 
 ```js
 let broker = new ServiceBroker({
-    nodeID: "server-1",
-    transporter: new NatsTransporter(),
-    // serializer: new JSONSerializer() // not set, because it is the default
+    ...
+    // serializer: new JSONSerializer() // don't need to set, because it is the default
 });
 ```
 
@@ -1289,7 +1292,7 @@ let broker = new ServiceBroker({
 ```
 
 ## MsgPack serializer
-This is a [MsgPack](https://github.com/mcollina/msgpack5) serializer.
+This is an [MsgPack](https://github.com/mcollina/msgpack5) serializer.
 
 ```js
 let MsgPackSerializer = require("moleculer").Serializers.MsgPack;
@@ -1316,23 +1319,32 @@ let broker = new ServiceBroker({
 You can also create your custom serializer module. We recommend you that copy the source of [JSONSerializer](src/serializers/json.js) and implement the `serialize` and `deserialize` methods.
 
 # Metrics
-Moleculer has a metrics function. You can turn on in [broker options](#constructor-options) with `metrics: true` property.
-If enabled, the broker emits metrics events in every `broker.call`.
+Moleculer has a metrics function. You can turn on it in the [broker options](#constructor-options) with `metrics: true` property.
+If enabled, the broker emits metrics events in every `broker.call`. You can catch this events and transfer to your Tracer system (ZipKin, OpenTracing...etc)
 
 ### Request started event
-The broker emit an `metrics.trace.span.start` when a new call/request started.
+The broker emit an `metrics.trace.span.start` event when a new call/request started.
 The payload contains the following values:
 ```js
 { 
+    // Context ID
 	id: '4563b09f-04cf-4891-bc2c-f26f80c3f91e',
+    // Request ID
 	requestID: null,
-	startTime: 1493903164726,
+    // Level of call
 	level: 1,
+    // Start time
+	startTime: 1493903164726,
+    // Is it a remote call
 	remoteCall: false,
+    // Called action
 	action: { 
         name: 'v2.users.get' 
-    },
-	spans: [] 
+    }
+    // NodeID if it is a remote call
+    //nodeID: null,
+    // Parent context ID if it is a sub-call
+    //parentID: null
 }
 ```
 
@@ -1341,17 +1353,30 @@ The broker emit an `metrics.trace.span.finish` when a call/request finished.
 The payload contains the following values:
 ```js
 { 
-	id: '4563b09f-04cf-4891-bc2c-f26f80c3f91e',
-	requestID: null,
-	level: 1,
-	startTime: 1493903164726,
+	// Context ID
+    id: '4563b09f-04cf-4891-bc2c-f26f80c3f91e',
+	// Request ID
+    requestID: null,
+	// Level of call
+    level: 1,
+	// Start time
+    startTime: 1493903164726,
+    // End time
     endTime: 1493903164731.3684,
+    // Duration
 	duration: 5.368304,
+    // Is it a remote call
 	remoteCall: false,
+    // Is it resolved from cache
 	fromCache: false,
-	action: { 
+	// Called action
+    action: { 
 		name: 'v2.users.get' 
 	}
+    // NodeID if it is a remote call
+    //nodeID: null,
+    // Parent context ID if it is a sub-call
+    //parentID: null
 }
 ```
 
@@ -1379,7 +1404,6 @@ For example, if the `posts` service calls a lot of times the `users` service, we
 ![Mixed architecture](docs/assets/mixed-architecture.png)
 
 # Best practices (TODO)
-- service files
 - configuration
 - benchmark
 
