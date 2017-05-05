@@ -6,15 +6,17 @@
 
 "use strict";
 
-const path = require("path");
-const http = require("http");
+const path 				= require("path");
+const http 				= require("http");
 
-//const url = require("url");
-const _ = require("lodash");
-const queryString = require("querystring");
-const bodyParser = require("body-parser");
-const mimeTypes = require("mime-types");
-const serveStatic = require("serve-static");
+//const url 			= require("url");
+const _ 				= require("lodash");
+const queryString 		= require("querystring");
+const bp 				= require("body-parser");
+const serveStatic 		= require("serve-static");
+const nanomatch  		= require("nanomatch");
+
+const { CustomError } 	= require("../src/errors");
 
 module.exports = {
 	name: "api-gw",
@@ -33,15 +35,19 @@ module.exports = {
 		// TODO: Append version to path
 		versioning: true,
 
-		// TODO: Whitelist of actions
+		// Whitelist of actions (array of string mask or regex)
 		whitelist: [
 			"posts.*",
-			"users.get"
+			"users.get",
+			/^math\.\w+$/
 		],
 
-		// TODO: Action aliases
+		// Action aliases
 		aliases: {
-			"POST users": "users.create"
+			"POST users": "users.create",
+			"add": "math.add",
+			"GET sub": "math.sub",
+			"POST divide": "math.div"
 		},
 
 		// Folder to server assets (static files)
@@ -56,7 +62,10 @@ module.exports = {
 		paramsOrder: ["query", "body"],
 
 		// TODO: Use bodyparser module
-		bodyParser: true
+		bodyParsers: {
+			json: true,
+			urlencoded: { extended: true }
+		}
 	},
 
 	created() {
@@ -74,6 +83,24 @@ module.exports = {
 			}));
 		}
 
+		// Handle whitelist
+		this.hasWhitelist = Array.isArray(this.settings.whitelist);
+
+		// Handle aliases
+		this.hasAliases = this.settings.aliases && Object.keys(this.settings.aliases).length > 0;
+
+		// Handle body parsers
+		if (this.settings.bodyParsers) {
+			const bodyParsers = _.isObject(this.settings.bodyParsers) ? this.settings.bodyParsers : { json: true };
+			const parsers = [];
+			Object.keys(bodyParsers).forEach(key => {
+				const opts = _.isObject(bodyParsers[key]) ? bodyParsers[key] : undefined;
+				if (bodyParsers[key] !== false)
+					parsers.push(bp[key](opts));
+			});
+
+			this.parsers = parsers;
+		}
 
 		// Create URL regexp
 		let path = this.settings.path || "/";
@@ -84,6 +111,10 @@ module.exports = {
 	},
 
 	methods: {
+		send404(req, res) {
+			res.writeHead(404);
+			res.end("Not found");
+		},
 
 		httpHandler(req, res) {
 			this.logger.debug(`${req.method} ${req.url}`);
@@ -104,42 +135,113 @@ module.exports = {
 				url = url.slice(0, -1);
 
 			// Check the URL is an API request
+			this.urlRegex.lastIndex = 0;
 			const match = this.urlRegex.exec(url);
 			if (match) {
-				this.logger.info("URL path is a valid action call! Match:", match[1]);
-				this.logger.info("Query:", query);
+				// Resolve action name
+				let actionName = match[1].replace(/~/, "$").replace(/\//g, ".");
 
-				const actionName = match[1].replace(/~/, "$").replace(/\//g, ".");
-
-				let params = Object.assign({}, query);
-
-				this.logger.info(`Call '${actionName}' action with params:`, params);
-
-				return this.broker.call(actionName, params)
-					.then(data => {
-						res.writeHead(200, { "Content-type": "application/json"});
-						res.end(JSON.stringify(data));						
-					})
-					.catch(err => {
-						this.logger.error(err);
-						res.writeHead(err.code || 500, { "Content-type": "text/plain"});
-						res.end(err.message);						
-					});
+				return this.callAction(actionName, req, res, query);
 			} 
 
+			// Serve assets static files
 			if (this.serve) {
 				this.serve(req, res, err => {
-					this.logger.info(err);
-					res.writeHead(404);
-					res.end("File not found");					
-
+					this.logger.debug(err);
+					this.send404(req, res);
 				});
 				return;
 			} 
 
 			// 404
-			res.writeHead(404);
-			res.end("Path not found");
+			this.send404(req, res);
+		},
+
+		callAction(actionName, req, res, query) {
+			let params = {};
+
+			return this.Promise.resolve()
+
+			// Resolve aliases
+			.then(() => {
+				if (this.hasAliases) {
+					const newActionName = this.resolveAlias(actionName, req.method);
+					if (newActionName !== actionName) {
+						this.logger.info(`Alias: ${req.method} ${actionName} -> ${newActionName}`);
+						actionName = newActionName;
+					}
+				}
+			})
+
+			// Whitelist check
+			.then(() => {
+				if (this.hasWhitelist) {
+					if (!this.checkWhitelist(actionName)) {
+						this.logger.debug(`The '${actionName}' action is not in the whitelist!`);
+						return this.Promise.reject(new CustomError("Not found", 404));
+					}
+				}
+			})
+	
+			// Read params
+			.then(() => {
+				
+				if (["POST", "PUT", "PATCH"].indexOf(req.method) !== -1 && this.parsers.length > 0) {
+					return this.Promise.mapSeries(this.parsers, parser => {
+						return new this.Promise((resolve, reject) => {
+							parser(req, res, err => {
+								if (err)
+									return reject(err);
+
+								resolve();
+							});
+						});
+					}).then(() => {
+						//this.logger.debug("Parsed body:", req.body);
+
+						params = Object.assign({}, query);
+						if (_.isObject(req.body)) 
+							params = Object.assign(params, req.body);
+					});
+				}
+			})
+
+			// Call the action
+			.then(() => {
+				this.logger.info(`Call '${actionName}' action with params:`, params);
+
+				return this.broker.call(actionName, params)
+					.then(data => {
+						// Return with the response
+						res.writeHead(200, { "Content-type": "application/json"});
+						res.end(JSON.stringify(data));						
+					});
+			})
+
+			// Error handling
+			.catch(err => {
+				// Return with the error
+				this.logger.error(err);
+				res.writeHead(err.code || 500, { "Content-type": "text/plain"});
+				res.end(err.message);						
+			});
+		},
+
+		checkWhitelist(action) {
+			return this.settings.whitelist.find(mask => {
+				if (_.isString(mask))
+					return nanomatch.isMatch(action, mask, { unixify: false,  });
+				else if (_.isRegExp(mask))
+					return mask.test(action);
+			}) != null;
+		},
+
+		resolveAlias(actionName, method = "GET") {
+			const match = method + " " + actionName;
+
+			const res = this.settings.aliases[match] || this.settings.aliases[actionName];
+
+			return res ? res : actionName;
 		}
 
 	},
