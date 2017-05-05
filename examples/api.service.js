@@ -22,9 +22,28 @@ const { ServiceNotFoundError, CustomError } 	= require("../src/errors");
  * 
  * TODO:
  * -----
- *  - prereq action to check the params & responseType
  *  - auth service call
- *  - 
+ *  - custom errors
+ *  - SSL support
+ *  - multi routes
+{
+	
+	routes: [
+		{
+			prefix: "/api/admin",
+			auth: true,
+			whitelist: []
+			aliases: {}
+		},
+		{
+			prefix: "/api/public",
+			auth: false,
+			whitelist: []
+			aliases: {}
+		},
+	]
+}
+
  * 
  * 
  */
@@ -56,6 +75,8 @@ module.exports = {
 			"file.*",
 			/^math\.\w+$/
 		],
+
+		authorization: true,
 
 		// Action aliases
 		aliases: {
@@ -271,7 +292,7 @@ module.exports = {
 				return endpoint;
 			})
 
-			// Call the action
+			// Create a new context for request
 			.then(endpoint => {
 				this.logger.info(`  Call '${actionName}' action with params:`, params);
 
@@ -281,11 +302,36 @@ module.exports = {
 
 				// Create a new context to wrap the request
 				const ctx = this.broker.createNewContext(restAction, null, params, {
-					timeout: 5 * 1000
+					//timeout: 5 * 1000
 				});
 				ctx.requestID = ctx.id;
 				ctx._metricStart(ctx.metrics);
+				//ctx.endpoint = endpoint;
 
+				return ctx;
+			})
+
+			// Authorization
+			.then(ctx => {
+				if (this.settings.authorization) {
+					const params = {
+						apiKey: (query && query.apiKey) || req.headers["apikey"]
+					};
+					return ctx.call("auth.resolveUser", params).then(user => {
+						if (user) {
+							this.logger.debug("Logged in user:", user);
+							ctx.meta.user = user;
+						} else {
+							this.logger.warn("No logged in user!");
+						}
+
+						return ctx;
+					});
+				}
+			})
+
+			// Call the action
+			.then(ctx => {
 				return ctx.call(endpoint, params)
 					.then(data => {
 						let contentType = "application/json";
