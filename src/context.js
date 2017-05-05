@@ -122,7 +122,7 @@ class Context {
 	 */
 	call(actionName, params, opts = {}) {
 		opts.parentCtx = this;
-		if (this.timeout > 0) {
+		if (this.timeout > 0 && this.startHrTime) {
 			// Distributed timeout handling. Decrementing the timeout value with the elapsed time.
 			// If the timeout below 0, skip the call.
 			const diff = process.hrtime(this.startHrTime);
@@ -194,8 +194,10 @@ class Context {
 	 * @memberOf Context
 	 */
 	_metricFinish(error, emitEvent) {
-		let diff = process.hrtime(this.startHrTime);
-		this.duration = (diff[0] * 1e3) + (diff[1] / 1e6); // milliseconds
+		if (this.startHrTime){
+			let diff = process.hrtime(this.startHrTime);
+			this.duration = (diff[0] * 1e3) + (diff[1] / 1e6); // milliseconds
+		}
 		this.stopTime = this.startTime + this.duration;
 
 		if (emitEvent) {
