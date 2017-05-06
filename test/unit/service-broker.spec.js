@@ -388,7 +388,10 @@ describe("Test broker.mergeSchema", () => {
 				b: "10",
 				nested: {
 					id: 10
-				}
+				},
+				array: [
+					"first"
+				]
 			},
 
 			actions: {
@@ -424,7 +427,11 @@ describe("Test broker.mergeSchema", () => {
 				c: true,
 				nested: {
 					name: "John"
-				}
+				},
+				array: [
+					"second",
+					"third"
+				]
 			},
 
 			actions: {
@@ -462,7 +469,11 @@ describe("Test broker.mergeSchema", () => {
 			nested: {
 				id: 10, 
 				name: "John"
-			}
+			},
+			array: [
+				"second",
+				"third"
+			]
 		});
 
 		expect(res.actions.get).toBe(origSchema.actions.get);
