@@ -8,43 +8,102 @@
 
 const http 				= require("http");
 const https 			= require("https");
-const fs 				= require("fs");
 const queryString 		= require("querystring");
 
 const _ 				= require("lodash");
-const bodyParser 				= require("body-parser");
+const bodyParser 		= require("body-parser");
 const serveStatic 		= require("serve-static");
 const nanomatch  		= require("nanomatch");
 
 const { ServiceNotFoundError, CustomError } 	= require("../src/errors");
-//const Context 			= require("../src/context");
 
 /**
  * Official API Gateway service for Moleculer
  * 
- * TODO:
- * -----
- *  - auth service call
- *  - custom errors
- *  - multi routes
-{
-	
-	routes: [
-		{
-			prefix: "/api/admin",
-			auth: true,
-			whitelist: []
-			aliases: {}
-		},
-		{
-			prefix: "/api/public",
-			auth: false,
-			whitelist: []
-			aliases: {}
-		},
-	]
-}
-
+ * Example settings:
+ * 
+ * 	settings: {
+ * 
+ * 		// Exposed port
+ * 		port: process.env.PORT || 4000,
+ * 
+ * 		// Exposed IP
+ * 		ip: process.env.IP || "0.0.0.0",
+ * 
+ * 		// HTTPS server with certificate
+ * 		https: {
+ * 			key: fs.readFileSync("examples/www/ssl/key.pem"),
+ * 			cert: fs.readFileSync("examples/www/ssl/cert.pem")
+ * 		},
+ * 
+ * 		// Exposed path prefix
+ * 		path: "/api",
+ * 
+ * 		routes: [
+ * 			{
+ * 				// Path prefix to this route
+ * 				path: "/admin",
+ * 
+ * 				// Whitelist of actions (array of string mask or regex)
+ * 				whitelist: [
+ * 					"users.get",
+ * 					"$node.*"
+ * 				],
+ * 
+ * 				authorization: true,
+ * 
+ * 				// Action aliases
+ * 				aliases: {
+ * 					"POST users": "users.create",
+ * 					"health": "$node.health"
+ * 				},
+ * 
+ * 				// Use bodyparser module
+ * 				bodyParsers: {
+ * 					json: true,
+ * 					urlencoded: { extended: true }
+ * 				}
+ * 			},
+ * 
+ * 			{
+ * 				// Path prefix to this route
+ * 				path: "",
+ * 
+ * 				// Whitelist of actions (array of string mask or regex)
+ * 				whitelist: [
+ * 					"posts.*",
+ * 					"file.*",
+ * 					/^math\.\w+$/
+ * 				],
+ * 
+ * 				authorization: false,
+ * 
+ * 				// Action aliases
+ * 				aliases: {
+ * 					"add": "math.add",
+ * 					"GET sub": "math.sub",
+ * 					"POST divide": "math.div",
+ * 				},
+ * 
+ * 				// Use bodyparser module
+ * 				bodyParsers: {
+ * 					json: true,
+ * 					urlencoded: { extended: true }
+ * 				}
+ * 
+ * 			}
+ * 		],
+ * 
+ * 		// Folder to server assets (static files)
+ * 		assets: {
+ * 			// Root folder of assets
+ * 			folder: "./examples/www/assets",
+ * 			// Options to `server-static` module
+ * 			options: {}
+ * 		}
+ * 
+ * 	}
+ * 
  * 
  * 
  */
@@ -56,86 +115,21 @@ module.exports = {
 	// Version
 	version: "1.0",
 
-	// Service settings
+	// Default settings
 	settings: {
 
 		// Exposed port
-		port: process.env.PORT || 4000,
+		port: process.env.PORT || 3000,
 
 		// Exposed IP
 		ip: process.env.IP || "0.0.0.0",
 
-		// HTTPS server with certificate
-		_https: {
-			key: fs.readFileSync("examples/www/ssl/key.pem"),
-			cert: fs.readFileSync("examples/www/ssl/cert.pem")
-		},
-
-		// Exposed path prefix
-		path: "/api",
-
 		routes: [
 			{
 				// Path prefix to this route
-				path: "/admin",
-
-				// Whitelist of actions (array of string mask or regex)
-				whitelist: [
-					"users.get",
-					"$node.*"
-				],
-
-				authorization: true,
-
-				// Action aliases
-				aliases: {
-					"POST users": "users.create",
-					"health": "$node.health"
-				},
-
-				// Use bodyparser module
-				bodyParsers: {
-					json: true,
-					urlencoded: { extended: true }
-				}
-			},
-
-			{
-				// Path prefix to this route
-				path: "",
-
-				// Whitelist of actions (array of string mask or regex)
-				whitelist: [
-					"posts.*",
-					"file.*",
-					/^math\.\w+$/
-				],
-
-				authorization: false,
-
-				// Action aliases
-				aliases: {
-					"add": "math.add",
-					"GET sub": "math.sub",
-					"POST divide": "math.div",
-				},
-
-				// Use bodyparser module
-				bodyParsers: {
-					json: true,
-					urlencoded: { extended: true }
-				}
-
-			}
-		],
-
-		// Folder to server assets (static files)
-		assets: {
-			// Root folder of assets
-			folder: "./examples/www/assets",
-			// Options to `server-static` module
-			options: {}
-		}
+				path: "/"
+			}			
+		]
 
 	},
 
@@ -143,6 +137,8 @@ module.exports = {
 	 * Service created lifecycle event handler
 	 */
 	created() {
+
+		// Create HTTP or HTTPS server
 		if (this.settings.https && this.settings.https.key && this.settings.https.cert) {
 			this.server = https.createServer(this.settings.https, this.httpHandler);
 			this.isHTTPS = true;
@@ -156,34 +152,43 @@ module.exports = {
 
 		// Create static server middleware
 		if (this.settings.assets) {
-			this.serve = serveStatic(this.settings.assets.folder, _.defaultsDeep(this.settings.assets.options, {
-				fallthrough: false
-			}));
+			const opts = this.settings.assets.options || {};
+			opts.fallthrough = false;
+			this.serve = serveStatic(this.settings.assets.folder, opts);
 		}
 
+		// Process routes
 		if (Array.isArray(this.settings.routes)) {
 			this.routes = this.settings.routes.map(route => this.createRoute(route));
 		}
+
+		console.log(this.settings.routes);
 
 		this.logger.info("API Gateway created!");
 	},
 
 	methods: {
 
+		/**
+		 * Create route object from options
+		 * 
+		 * @param {Object} opts 
+		 * @returns {Object}
+		 */
 		createRoute(opts) {
 			let route = {
 				opts,
 				authorization: opts.authorization
 			};
 			// Handle whitelist
-			route.hasWhitelist = Array.isArray(opts.whitelist);
 			route.whitelist = opts.whitelist;
+			route.hasWhitelist = Array.isArray(route.whitelist);
 
 			// Handle aliases
-			route.hasAliases = opts.aliases && Object.keys(opts.aliases).length > 0;
 			route.aliases = opts.aliases;
+			route.hasAliases = route.aliases && Object.keys(route.aliases).length > 0;
 
-			// Handle body parsers
+			// Create body parsers
 			if (opts.bodyParsers) {
 				const bps = opts.bodyParsers;
 				const parsers = [];
@@ -200,7 +205,7 @@ module.exports = {
 			route.path = (this.settings.path || "") + (opts.path || "");
 			route.path = route.path || "/";
 
-			route.urlRegex = new RegExp(route.path.replace("/", "\\/") + "\\/([\\w\\.\\~\\/]+)", "g");
+			//route.urlRegex = new RegExp(route.path.replace("/", "\\/") + "\\/([\\w\\.\\~\\/]+)", "g");
 
 			return route;
 		},
@@ -255,7 +260,10 @@ module.exports = {
 						if (url.startsWith(route.path)) {
 							// Resolve action name
 							//let actionName = match[1].replace(/~/, "$").replace(/\//g, ".");
-							let actionName = url.slice(route.path.length + 1);
+							let actionName = url.slice(route.path.length);
+							if (actionName.startsWith("/"))
+								actionName = actionName.slice(1);
+
 							actionName = actionName.replace(/~/, "$").replace(/\//g, ".");
 
 							return this.callAction(route, actionName, req, res, query);
