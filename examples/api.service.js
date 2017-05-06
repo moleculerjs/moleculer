@@ -7,10 +7,12 @@
 "use strict";
 
 const http 				= require("http");
+const https 			= require("https");
+const fs 				= require("fs");
 const queryString 		= require("querystring");
 
 const _ 				= require("lodash");
-const bp 				= require("body-parser");
+const bodyParser 				= require("body-parser");
 const serveStatic 		= require("serve-static");
 const nanomatch  		= require("nanomatch");
 
@@ -24,7 +26,6 @@ const { ServiceNotFoundError, CustomError } 	= require("../src/errors");
  * -----
  *  - auth service call
  *  - custom errors
- *  - SSL support
  *  - multi routes
 {
 	
@@ -64,28 +65,69 @@ module.exports = {
 		// Exposed IP
 		ip: process.env.IP || "0.0.0.0",
 
+		// HTTPS server with certificate
+		_https: {
+			key: fs.readFileSync("examples/www/ssl/key.pem"),
+			cert: fs.readFileSync("examples/www/ssl/cert.pem")
+		},
+
 		// Exposed path prefix
 		path: "/api",
 
-		// Whitelist of actions (array of string mask or regex)
-		whitelist: [
-			"posts.*",
-			"users.get",
-			"$node.*",
-			"file.*",
-			/^math\.\w+$/
+		routes: [
+			{
+				// Path prefix to this route
+				path: "/admin",
+
+				// Whitelist of actions (array of string mask or regex)
+				whitelist: [
+					"users.get",
+					"$node.*"
+				],
+
+				authorization: true,
+
+				// Action aliases
+				aliases: {
+					"POST users": "users.create",
+					"health": "$node.health"
+				},
+
+				// Use bodyparser module
+				bodyParsers: {
+					json: true,
+					urlencoded: { extended: true }
+				}
+			},
+
+			{
+				// Path prefix to this route
+				path: "",
+
+				// Whitelist of actions (array of string mask or regex)
+				whitelist: [
+					"posts.*",
+					"file.*",
+					/^math\.\w+$/
+				],
+
+				authorization: false,
+
+				// Action aliases
+				aliases: {
+					"add": "math.add",
+					"GET sub": "math.sub",
+					"POST divide": "math.div",
+				},
+
+				// Use bodyparser module
+				bodyParsers: {
+					json: true,
+					urlencoded: { extended: true }
+				}
+
+			}
 		],
-
-		authorization: true,
-
-		// Action aliases
-		aliases: {
-			"POST users": "users.create",
-			"add": "math.add",
-			"GET sub": "math.sub",
-			"POST divide": "math.div",
-			"health": "$node.health"
-		},
 
 		// Folder to server assets (static files)
 		assets: {
@@ -93,20 +135,19 @@ module.exports = {
 			folder: "./examples/www/assets",
 			// Options to `server-static` module
 			options: {}
-		},
-
-		// Use bodyparser module
-		bodyParsers: {
-			json: true,
-			urlencoded: { extended: true }
 		}
+
 	},
 
 	/**
 	 * Service created lifecycle event handler
 	 */
 	created() {
-		this.server = http.createServer(this.httpHandler);
+		if (this.settings.https && this.settings.https.key && this.settings.https.cert) {
+			this.server = https.createServer(this.settings.https, this.httpHandler);
+			this.isHTTPS = true;
+		} else
+			this.server = http.createServer(this.httpHandler);
 
 		/*this.server.on("connection", socket => {
 			// Disable Nagle algorithm https://nodejs.org/dist/latest-v6.x/docs/api/net.html#net_socket_setnodelay_nodelay
@@ -120,34 +161,50 @@ module.exports = {
 			}));
 		}
 
-		// Handle whitelist
-		this.hasWhitelist = Array.isArray(this.settings.whitelist);
-
-		// Handle aliases
-		this.hasAliases = this.settings.aliases && Object.keys(this.settings.aliases).length > 0;
-
-		// Handle body parsers
-		if (this.settings.bodyParsers) {
-			const bodyParsers = _.isObject(this.settings.bodyParsers) ? this.settings.bodyParsers : { json: true };
-			const parsers = [];
-			Object.keys(bodyParsers).forEach(key => {
-				const opts = _.isObject(bodyParsers[key]) ? bodyParsers[key] : undefined;
-				if (bodyParsers[key] !== false)
-					parsers.push(bp[key](opts));
-			});
-
-			this.parsers = parsers;
+		if (Array.isArray(this.settings.routes)) {
+			this.routes = this.settings.routes.map(route => this.createRoute(route));
 		}
-
-		// Create URL prefix regexp
-		let path = this.settings.path || "/";
-		this.urlRegex = new RegExp(path.replace("/", "\\/") + "\\/([\\w\\.\\~\\/]+)", "g");
-
 
 		this.logger.info("API Gateway created!");
 	},
 
 	methods: {
+
+		createRoute(opts) {
+			let route = {
+				opts,
+				authorization: opts.authorization
+			};
+			// Handle whitelist
+			route.hasWhitelist = Array.isArray(opts.whitelist);
+			route.whitelist = opts.whitelist;
+
+			// Handle aliases
+			route.hasAliases = opts.aliases && Object.keys(opts.aliases).length > 0;
+			route.aliases = opts.aliases;
+
+			// Handle body parsers
+			if (opts.bodyParsers) {
+				const bps = opts.bodyParsers;
+				const parsers = [];
+				Object.keys(bps).forEach(key => {
+					const opts = _.isObject(bps[key]) ? bps[key] : undefined;
+					if (bps[key] !== false)
+						parsers.push(bodyParser[key](opts));
+				});
+
+				route.parsers = parsers;
+			}
+
+			// Create URL prefix regexp
+			route.path = (this.settings.path || "") + (opts.path || "");
+			route.path = route.path || "/";
+
+			route.urlRegex = new RegExp(route.path.replace("/", "\\/") + "\\/([\\w\\.\\~\\/]+)", "g");
+
+			return route;
+		},
+
 		/**
 		 * Send 404 response
 		 * 
@@ -187,14 +244,24 @@ module.exports = {
 					url = url.slice(0, -1);
 
 				// Check the URL is an API request
-				this.urlRegex.lastIndex = 0;
-				const match = this.urlRegex.exec(url);
-				if (match) {
-					// Resolve action name
-					let actionName = match[1].replace(/~/, "$").replace(/\//g, ".");
+				if (this.routes && this.routes.length > 0) {
+					for(let i = 0; i < this.routes.length; i++) {
+						const route = this.routes[i];
+						/*
+						this.urlRegex.lastIndex = 0;
+						const match = this.urlRegex.exec(url);
+						if (match) {
+						*/
+						if (url.startsWith(route.path)) {
+							// Resolve action name
+							//let actionName = match[1].replace(/~/, "$").replace(/\//g, ".");
+							let actionName = url.slice(route.path.length + 1);
+							actionName = actionName.replace(/~/, "$").replace(/\//g, ".");
 
-					return this.callAction(actionName, req, res, query);
-				} 
+							return this.callAction(route, actionName, req, res, query);
+						} 
+					}
+				}
 
 				// Serve assets static files
 				if (this.serve) {
@@ -220,13 +287,14 @@ module.exports = {
 		/**
 		 * Call an action with broker
 		 * 
+		 * @param {Object} route 		Route options
 		 * @param {String} actionName 	Name of action
 		 * @param {HttpRequest} req 	Request object
 		 * @param {HttpResponse} res 	Response object
 		 * @param {Object} query		Parsed query string
 		 * @returns {Promise}
 		 */
-		callAction(actionName, req, res, query) {
+		callAction(route, actionName, req, res, query) {
 			let params = {};
 			let endpoint;
 
@@ -234,8 +302,8 @@ module.exports = {
 
 			// Resolve aliases
 			.then(() => {
-				if (this.hasAliases) {
-					const newActionName = this.resolveAlias(actionName, req.method);
+				if (route.hasAliases) {
+					const newActionName = this.resolveAlias(route, actionName, req.method);
 					if (newActionName !== actionName) {
 						this.logger.debug(`  Alias: ${req.method} ${actionName} -> ${newActionName}`);
 						actionName = newActionName;
@@ -245,8 +313,8 @@ module.exports = {
 
 			// Whitelist check
 			.then(() => {
-				if (this.hasWhitelist) {
-					if (!this.checkWhitelist(actionName)) {
+				if (route.hasWhitelist) {
+					if (!this.checkWhitelist(route, actionName)) {
 						this.logger.debug(`  The '${actionName}' action is not in the whitelist!`);
 						return this.Promise.reject(new CustomError("Not found", 404));
 					}
@@ -256,8 +324,8 @@ module.exports = {
 			// Parse body
 			.then(() => {
 				
-				if (["POST", "PUT", "PATCH"].indexOf(req.method) !== -1 && this.parsers.length > 0) {
-					return this.Promise.mapSeries(this.parsers, parser => {
+				if (["POST", "PUT", "PATCH"].indexOf(req.method) !== -1 && route.parsers.length > 0) {
+					return this.Promise.mapSeries(route.parsers, parser => {
 						return new this.Promise((resolve, reject) => {
 							parser(req, res, err => {
 								if (err)
@@ -313,7 +381,7 @@ module.exports = {
 
 			// Authorization
 			.then(ctx => {
-				if (this.settings.authorization) {
+				if (route.authorization) {
 					const params = {
 						apiKey: (query && query.apiKey) || req.headers["apikey"]
 					};
@@ -323,11 +391,13 @@ module.exports = {
 							ctx.meta.user = user;
 						} else {
 							this.logger.warn("No logged in user!");
+							return Promise.reject(new CustomError("Forbidden", 403));
 						}
 
 						return ctx;
 					});
 				}
+				return ctx;
 			})
 
 			// Call the action
@@ -387,11 +457,12 @@ module.exports = {
 		/**
 		 * Check the action name in whitelist
 		 * 
+		 * @param {Object} route 
 		 * @param {String} action 
 		 * @returns {Boolean}
 		 */
-		checkWhitelist(action) {
-			return this.settings.whitelist.find(mask => {
+		checkWhitelist(route, action) {
+			return route.whitelist.find(mask => {
 				if (_.isString(mask))
 					return nanomatch.isMatch(action, mask, { unixify: false,  });
 				else if (_.isRegExp(mask))
@@ -402,14 +473,15 @@ module.exports = {
 		/**
 		 * Resolve alias names
 		 * 
+		 * @param {Object} route 
 		 * @param {String} actionName 
 		 * @param {string} [method="GET"] 
 		 * @returns {String} Resolved actionName
 		 */
-		resolveAlias(actionName, method = "GET") {
+		resolveAlias(route, actionName, method = "GET") {
 			const match = method + " " + actionName;
 
-			const res = this.settings.aliases[match] || this.settings.aliases[actionName];
+			const res = route.aliases[match] || route.aliases[actionName];
 
 			return res ? res : actionName;
 		}
@@ -425,7 +497,7 @@ module.exports = {
 				return this.logger.error("API Gateway listen error!", err);
 
 			const addr = this.server.address();
-			this.logger.info(`API Gateway listening on http://${addr.address}:${addr.port}`);
+			this.logger.info(`API Gateway listening on ${this.isHTTPS ? "https" : "http"}://${addr.address}:${addr.port}`);
 		});		
 	},
 

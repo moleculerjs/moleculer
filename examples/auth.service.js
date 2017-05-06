@@ -16,7 +16,7 @@ module.exports = {
 		resolveUser(ctx) {
 			switch(ctx.params.apiKey) {
 			case "123": return { id: 1, name: "John Doe" };
-			case "124": return { id: 1, name: "Jane Doe" };
+			case "124": return { id: 2, name: "Jane Doe" };
 			}
 			return null;
 		}
