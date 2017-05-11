@@ -119,13 +119,13 @@ broker.call("math.add", { a: 3, b: 5})
 # Moleculer packages
 
 ## Official packages
-| NPM name | Description | Version | License |
-|----------|-------------|---------|---------|
+| Package name | Description | Version | License |
+|--------------|-------------|---------|---------|
 | [moleculer-web](https://github.com/ice-services/moleculer-web) | Official API Gateway service for Moleculer framework | [![npm](https://img.shields.io/npm/v/moleculer-web.svg?maxAge=3600)](https://www.npmjs.com/package/moleculer-web) | [![license](https://img.shields.io/github/license/ice-services/moleculer-web.svg)](https://github.com/ice-services/moleculer-web)
 
 ## Third-party packages
-| NPM name | Description | Version | License |
-|----------|-------------|---------|---------|
+| Package name | Description | Version | License |
+|--------------|-------------|---------|---------|
 
 
 
