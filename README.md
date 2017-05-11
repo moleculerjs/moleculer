@@ -112,21 +112,31 @@ broker.call("math.add", { a: 3, b: 5})
 ```
 [Try it on Runkit](https://runkit.com/icebob/moleculer-quick-start)
 
-# How fast?
-We [tested](https://github.com/icebob/microservices-benchmark) some other frameworks and measured the local request times. The result is:
-```
-Suite: Call local actions
-√ Seneca*                 11,723 rps
-√ Hemera*                  4,727 rps
-√ Nanoservices*           71,189 rps
-√ Moleculer*           1,039,045 rps
 
-   Seneca* (#)                0%         (11,723 rps)   (avg: 85μs)
-   Hemera*               -59.68%          (4,727 rps)   (avg: 211μs)
-   Nanoservices*        +507.24%         (71,189 rps)   (avg: 14μs)
-   Moleculer*         +8,763.08%      (1,039,045 rps)   (avg: 962ns)
-```
-[![Result chart](https://cloud.highcharts.com/images/utideti/3/600.png)](http://cloud.highcharts.com/show/utideti)
+
+
+
+# Moleculer packages
+
+## Official packages
+| NPM name | Description | Version | License |
+|----------|-------------|---------|---------|
+| [moleculer-web](https://github.com/ice-services/moleculer-web) | Official API Gateway service for Moleculer framework | [![npm](https://img.shields.io/npm/v/moleculer-web.svg?maxAge=3600)](https://www.npmjs.com/package/moleculer-web) | [![license](https://img.shields.io/github/license/ice-services/moleculer-web.svg)](https://github.com/ice-services/moleculer-web)
+
+## Third-party packages
+| NPM name | Description | Version | License |
+|----------|-------------|---------|---------|
+
+
+
+
+
+# How fast?
+We [tested](https://github.com/icebob/microservices-benchmark) some other frameworks and measured the request times.
+[![Result chart](https://cloud.highcharts.com/images/utideti/5/600.png)](http://cloud.highcharts.com/show/utideti)
+[![Result chart](https://cloud.highcharts.com/images/abyfite/1/600.png)](http://cloud.highcharts.com/show/abyfite)
+
+
 
 # Main modules
 
