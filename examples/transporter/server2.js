@@ -12,7 +12,7 @@ let broker = new ServiceBroker({
 	transporter: new NatsTransporter(),
 	logger: console,
 	logLevel: "info",
-	serializer: new Serializer()
+	//serializer: new Serializer()
 });
 
 //broker.loadService(__dirname + "/../post.service");

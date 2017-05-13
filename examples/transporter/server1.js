@@ -13,7 +13,7 @@ let broker = new ServiceBroker({
 	logger: console,
 	logLevel: "info",
 	requestTimeout: 5 * 1000,
-	serializer: new Serializer()
+	//serializer: new Serializer()
 	//requestRetry: 3
 });
 

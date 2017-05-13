@@ -167,6 +167,27 @@ describe("Test PacketEvent", () => {
 
 		expect(packet.payload.data).toEqual({ a: 5 });
 	});
+
+	it("should convert undefined", () => {
+		let packet = new P.PacketEvent(transit, "user.updated");
+		expect(packet).toBeDefined();
+		expect(packet.type).toBe(P.PACKET_EVENT);
+		expect(packet.target).toBeUndefined();
+		expect(packet.payload).toBeDefined();
+		expect(packet.payload.sender).toBe("node-1");
+		expect(packet.payload.event).toBe("user.updated");
+		expect(packet.payload.data).toBeNull();
+	});	
+
+	it("should transform without payload", () => {
+		let payload = {
+			data: undefined
+		};
+		let packet = new P.PacketEvent(transit, "user.created", {});
+		packet.transformPayload(payload);
+
+		expect(packet.payload.data).toBeUndefined();
+	});	
 });
 
 describe("Test PacketRequest", () => {

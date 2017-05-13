@@ -182,12 +182,16 @@ class PacketEvent extends Packet {
 		super(transit, PACKET_EVENT);
 
 		this.payload.event = eventName;
-		this.payload.data = JSON.stringify(data);
+		if (data != null)
+			this.payload.data = JSON.stringify(data);
+		else
+			this.payload.data = null;
 	}
 
 	transformPayload(payload) {
 		super.transformPayload(payload);
-		payload.data = JSON.parse(payload.data);
+		if (payload.data != null)
+			payload.data = JSON.parse(payload.data);
 	}	
 }
 
