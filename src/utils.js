@@ -32,7 +32,7 @@ let utils = {
 	 * @returns
 	 */
 	getNodeID() {
-		return os.hostname().toLowerCase();
+		return os.hostname().toLowerCase();// + "-" + process.pid;
 	},
 
 	/**
@@ -54,47 +54,8 @@ let utils = {
 	 */
 	isPromise(p) {
 		return (p != null && typeof p.then === "function");
-	},
-
-	/**
-	 * Convert string to Javascript object. (Handle exceptions)
-	 * If string is empty or null or invalid JSON, returns with `undefined`
-	 * 
-	 * @param {any} str
-	 * @returns
-	 * @deprecated
-	 */
-	string2Json(str) {
-		try {
-			if (str) {
-				return JSON.parse(str);				
-			}
-		} catch (err) {
-			/* istanbul ignore next */
-			console.warn(err);
-		}
-		return null;
-	},
-
-	/**
-	 * Convert a JS object to string (stringify)
-	 * If param is null or undefined, returns with empty string (handle exception)
-	 * 
-	 * @param {any} json
-	 * @returns
-	 * @deprecated
-	 */
-	json2String(json) {
-		try {
-			if (json != null) {
-				return JSON.stringify(json);
-			}
-		} catch (err) {
-			/* istanbul ignore next */
-			console.warn(err);
-		}
-		return "";
 	}
+
 };
 
 module.exports = utils;

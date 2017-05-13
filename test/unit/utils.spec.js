@@ -34,31 +34,3 @@ describe("Test utils.getNodeID", () => {
 		expect(utils.getNodeID()).toBe(os.hostname().toLowerCase());
 	});
 });
-
-describe("Test utils.string2Json", () => {
-	let str = '{"a": 1, "b": [1,5,8], "c": "Test" }';
-	it("should give JS object", () => {
-		expect(utils.string2Json()).toBeNull();
-		expect(utils.string2Json("")).toBeNull();
-		expect(utils.string2Json(str)).toEqual({
-			a: 1, 
-			b: [1,5,8],
-			c: "Test"
-		});
-	});
-});
-
-describe("Test utils.json2String", () => {
-	let str = '{"a":1,"b":[1,5,8],"c":"Test"}';
-	let obj = {
-		a: 1, 
-		b: [1,5,8],
-		c: "Test"
-	};
-
-	it("should give JSON string", () => {
-		expect(utils.json2String()).toBe("");
-		expect(utils.json2String(null)).toBe("");
-		expect(utils.json2String(obj)).toBe(str);
-	});
-});
