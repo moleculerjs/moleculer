@@ -214,7 +214,13 @@ class ServiceBroker {
 		process.removeListener("SIGINT", this._closeFn);
 	}
 
+	/**
+	 * Start REPL mode
+	 * 
+	 * @memberof ServiceBroker
+	 */
 	repl() {
+		/* istanbul ignore next */
 		startREPL(this);
 	}
 

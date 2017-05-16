@@ -11,6 +11,7 @@ const path = require("path");
 const chalk = require("chalk");
 const vorpal = require("vorpal")();
 
+/* istanbul ignore next */
 const eventHandler = payload => {
 	console.log(chalk.magenta("Incoming event!"), payload);
 };
@@ -20,8 +21,9 @@ const eventHandler = payload => {
  * 
  * @param {ServiceBroker} broker 
  */
+/* istanbul ignore next */
 function startREPL(broker) {
-	
+
 	// Register broker.call
 	vorpal
 		.command("call <actionName> [params]", "Call an action")
