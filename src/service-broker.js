@@ -184,7 +184,7 @@ class ServiceBroker {
 				return this.transit.connect();
 		})
 		.then(() => {
-			this.logger.info("Broker started.\n");
+			this.logger.info(`Broker started. NodeID: ${this.nodeID}\n`);
 		});
 	}
 
@@ -206,7 +206,7 @@ class ServiceBroker {
 			this.transit.disconnect();
 		}
 
-		this.logger.info("Broker stopped.");
+		this.logger.info(`Broker stopped. NodeID: ${this.nodeID}\n`);
 
 		process.removeListener("beforeExit", this._closeFn);
 		process.removeListener("exit", this._closeFn);

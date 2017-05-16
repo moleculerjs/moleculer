@@ -42,16 +42,12 @@
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Launch demo:www",
-			"program": "${workspaceRoot}\\examples\\www\\index.js",
-			"cwd": "${workspaceRoot}"
-		},
-		{
-			"type": "node",
-			"request": "launch",
-			"name": "Launch sandbox",
-			"program": "${workspaceRoot}\\examples\\sandbox\\circuit.js",
-			"cwd": "${workspaceRoot}\\examples\\sandbox"
+			"name": "Launch dev",
+			"program": "${workspaceRoot}\\dev\\index.js",
+			"cwd": "${workspaceRoot}",
+			"args": [
+				"dev"
+			]
 		},		
 		{
 			"type": "node",
