@@ -14,7 +14,9 @@
     "lint": "eslint --ext=.js src test",
     "deps": "npm-check -u",
     "coverall": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
-    "proto": "pbjs -t static-module -w commonjs -o src/serializers/proto/packets.proto.js src/serializers/proto/packets.proto"
+    "proto": "pbjs -t static-module -w commonjs -o src/serializers/proto/packets.proto.js src/serializers/proto/packets.proto",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "keywords": [
     "microservices",
@@ -69,11 +71,13 @@
     "nanomatch": "1.1.1",
     "nats": "0.7.16",
     "node-object-hash": "1.2.0",
-    "protobufjs": "6.7.3"
+    "protobufjs": "6.7.3",
+    "snyk": "^1.30.1"
   },
   "engines": {
     "node": ">= 6.x.x"
   },
   "tonicExampleFilename": "docs/runkit/simple.js",
-  "typings": "./index.d.ts"
+  "typings": "./index.d.ts",
+  "snyk": true
 }
