@@ -84,6 +84,12 @@ Metrics events contains two nodeID properties.
 - `nodeID`: the "caller" nodeID
 - `targetNodeID`: in case of remote call this is the remote nodeID
 
+## Response error with stack trace
+If an action responses an error on a remote node, the transporter will send back the error to the caller with the stack traces.
+```js
+// It will print the original error stack trace.
+broker.call("account.deposit").catch(err => console.log(err.stack)); 
+```
 
 
 --------------------------------------------------
