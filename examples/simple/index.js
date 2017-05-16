@@ -28,3 +28,5 @@ broker.call("math.add", { a: 5, b: 3 }).then(res => broker.logger.info("  5 + 3 
 	if (err.data)
 		broker.logger.error("Error data:", err.data);
 });
+
+//broker.repl();

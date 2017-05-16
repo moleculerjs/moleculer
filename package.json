@@ -69,7 +69,8 @@
     "nanomatch": "1.1.1",
     "nats": "0.7.16",
     "node-object-hash": "1.2.0",
-    "protobufjs": "6.7.3"
+    "protobufjs": "6.7.3",
+    "vorpal": "1.12.0"
   },
   "engines": {
     "node": ">= 6.x.x"

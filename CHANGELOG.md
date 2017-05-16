@@ -39,6 +39,55 @@ let broker = new ServiceBroker({
 });
 ```
 
+## REPL mode
+Broker has an interactive REPL mode. You can load services, call actions, emit events, subscribe & unsubscribe events from your console.
+
+**Start REPL mode**
+```js
+let broker = new ServiceBroker({ logger: console });
+
+// Start REPL
+broker.repl();
+```
+
+### REPL Commands
+
+**Call an action**
+```
+mol $ call "test.hello"
+```
+
+**Call an action with params**
+```
+mol $ call "math.add" '{"a": 5, "b": 4}'
+```
+
+**Emit an event**
+```
+mol $ emit "user.created"
+```
+
+**Subscribe to an event**
+```
+mol $ subscribe "user.created"
+```
+
+**Unsubscribe from an event**
+```
+mol $ unsubscribe "user.created"
+```
+
+**Load a service**
+```
+mol $ load "./math.service.js"
+```
+
+**Load services from folder**
+```
+mol $ load "./services"
+```
+
+
 ## Mergeable schemas in `createService`
 Now there is a second parameter of `broker.createService`. With it you can override the schema properties. You can use it to use a built-in service & override some props.
 

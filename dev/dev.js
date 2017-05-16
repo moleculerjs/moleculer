@@ -33,3 +33,5 @@ broker1.Promise.resolve()
 .delay(500)
 .then(() => broker1.call("devil.danger"))
 .catch(err => console.log(err));
+
+broker1.repl();

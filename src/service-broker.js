@@ -16,6 +16,7 @@ const Logger = require("./logger");
 const Validator = require("./validator");
 const BrokerStatistics = require("./statistics");
 const healthInfo = require("./health");
+const startREPL = require("./repl");
 
 const JSONSerializer = require("./serializers/json");
 
@@ -211,6 +212,10 @@ class ServiceBroker {
 		process.removeListener("beforeExit", this._closeFn);
 		process.removeListener("exit", this._closeFn);
 		process.removeListener("SIGINT", this._closeFn);
+	}
+
+	repl() {
+		startREPL(this);
 	}
 
 	/**
