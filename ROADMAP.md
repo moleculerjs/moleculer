@@ -9,7 +9,7 @@
 	- [ ] https://github.com/segmentio/metalsmith
 - [ ] add lru features to Memory and Redis cachers
 
-- [ ] official API gateway service (Native, Express, [Aero](https://github.com/aerojs/aero), [uWebsocket HTTP](https://github.com/uWebSockets/bindings/blob/master/nodejs/examples/http_sillybenchmark.js), [benchmark](https://github.com/blitzprog/webserver-benchmarks))
+- [x] official API gateway service (Native, Express)
 
 ------------------------------
 
@@ -22,7 +22,7 @@
 ------------------------------
 
 ## v1.0.x
-It will be the first stable release. Afterwards the version numbers should follow semver versioning.
+It will be the first stable production-ready release. Afterwards the version numbers should follow semver versioning.
 
 - [ ] more [offical examples](https://github.com/ice-services/moleculer-examples)
 
@@ -64,21 +64,3 @@ In this case, if `posts` service asks the config, it'll get
 - [AutobahnJS](http://autobahn.ws/js/) [server](https://github.com/Orange-OpenSource/wamp.rt) or [server in go](https://github.com/jcelliott/turnpike)
 - add gzip support
 
-### Service dependency
-Wait for all dependent service will be available. After it, call the `started` event handler of service.
-[example](http://www.slideshare.net/adriancockcroft/microservices-whats-missing-oreilly-software-architecture-new-york#24)
-
-### CLI helper tool
-Create a command line tool to generate Moleculer project & modules.
-
-* `moleculer init` - create an empty Moleculer based project with sample code
-	* prompts for transporter, cacher, metrics, stats options
-* `moleculer add service` - create a new empty service. Ask name and version of service, action names.
-
-* `moleculer add middleware` - create a new empty middleware.
-
-	- https://github.com/sboudrias/Inquirer.js
-	- https://github.com/tj/consolidate.js
-	- https://github.com/mattallty/Caporal.js
-	- https://github.com/tj/ngen 
-	- https://github.com/senecajs/seneca-repl/blob/master/repl.js 
