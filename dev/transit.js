@@ -1,14 +1,14 @@
 "use strict";
 
-let { delay } = require("../../src/utils");
+let { delay } = require("../src/utils");
 
-let ServiceBroker = require("../../src/service-broker");
-let FakeTransporter = require("../../src/transporters/fake");
-let Serializer = require("../../src/serializers/protobuf");
-// let NatsTransporter = require("../../src/transporters/nats");
-// let MqttTransporter = require("../../src/transporters/mqtt");
-// let RedisTransporter = require("../../src/transporters/redis");
-// let FakeTransporter = require("../../src/transporters/fake");
+let ServiceBroker = require("../src/service-broker");
+let FakeTransporter = require("../src/transporters/fake");
+let Serializer = require("../src/serializers/protobuf");
+// let NatsTransporter = require("../src/transporters/nats");
+// let MqttTransporter = require("../src/transporters/mqtt");
+// let RedisTransporter = require("../src/transporters/redis");
+// let FakeTransporter = require("../src/transporters/fake");
 
 // --- NODE 1 ---
 
@@ -32,9 +32,9 @@ let b1 = new ServiceBroker({
 	//requestRetry: 3
 });
 
-b1.loadService(__dirname + "/../post.service");
-b1.loadService(__dirname + "/../metrics.service");
-//b1.loadService(__dirname + "/../user.service");
+b1.loadService(__dirname + "/../examples/post.service");
+b1.loadService(__dirname + "/../examples/metrics.service");
+//b1.loadService(__dirname + "/../examples/user.service");
 
 b1.start();
 
@@ -71,7 +71,7 @@ let b2 = new ServiceBroker({
 	//requestRetry: 3
 });
 
-b2.loadService(__dirname + "/../user.service");
+b2.loadService(__dirname + "/../examples/user.service");
 
 b2.start();
 

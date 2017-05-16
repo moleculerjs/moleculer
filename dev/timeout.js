@@ -1,6 +1,6 @@
 "use strict";
 
-let ServiceBroker = require("../../src/service-broker");
+let ServiceBroker = require("../src/service-broker");
 
 let broker = new ServiceBroker({ 
 	logger: console, 
@@ -8,9 +8,9 @@ let broker = new ServiceBroker({
 	metrics: true 
 });
 
-broker.loadService(__dirname + "/../metrics.service");
-broker.loadService(__dirname + "/../user.service");
-broker.loadService(__dirname + "/../post.service");
+broker.loadService(__dirname + "/../examples/metrics.service");
+broker.loadService(__dirname + "/../examples/user.service");
+broker.loadService(__dirname + "/../examples/post.service");
 
 broker.start();
 
