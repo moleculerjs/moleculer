@@ -306,6 +306,9 @@ class Transit {
 		if (!packet.success) {
 			// Recreate exception object
 			let err = new Error(packet.error.message + ` (NodeID: ${packet.sender})`);
+			// TODO create the original error object if it's available
+			//   let constructor = errors[packet.error.name]
+			//   let error = Object.create(constructor.prototype);
 			err.name = packet.error.name;
 			err.code = packet.error.code;
 			err.nodeID = packet.error.nodeID || packet.sender;

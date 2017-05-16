@@ -66,7 +66,7 @@ module.exports = function(broker) {
 						return ctx.call("posts.count", { id: user.id }).then(count => {
 							user.postsCount = count;
 							return user;
-						})//.catch(err => this.logger.error(err));
+						});//.catch(err => this.logger.error(err));
 					else
 						return user;
 				});

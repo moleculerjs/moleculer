@@ -12,6 +12,9 @@ module.exports = {
     "parserOptions": {
         "sourceType": "module"
     },
+    "plugins": [
+        "promise"
+    ],
     "rules": {
         "indent": [
             "warn",
