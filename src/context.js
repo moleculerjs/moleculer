@@ -178,10 +178,9 @@ class Context {
 			if (this.parentID)
 				payload.parent = this.parentID;
 
+			payload.nodeID = this.broker.nodeID;
 			if (this.nodeID)
-				payload.nodeID = this.nodeID;
-			else
-				payload.nodeID = this.broker.nodeID;
+				payload.targetNodeID = this.nodeID;
 			
 			this.broker.emit("metrics.trace.span.start", payload);
 		}
@@ -219,14 +218,14 @@ class Context {
 			if (this.parentID) 
 				payload.parent = this.parentID;
 			
+			payload.nodeID = this.broker.nodeID;
 			if (this.nodeID)
-				payload.nodeID = this.nodeID;
-			else
-				payload.nodeID = this.broker.nodeID;
+				payload.targetNodeID = this.nodeID;
 			
 			if (error) {
 				payload.error = {
-					type: error.name,
+					name: error.name,
+					code: error.code,
 					message: error.message
 				};
 			}

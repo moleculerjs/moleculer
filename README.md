@@ -1351,10 +1351,14 @@ The payload contains the following values:
 	action: { 
         name: 'v2.users.get' 
     }
-    // Node ID
+    // Node ID of caller
     nodeID: "node-1",
+
+    // Target nodeID if it's a remote call
+    //targetNodeID: "node-2",
+
     // Parent context ID if it is a sub-call
-    //parentID: null
+    //parent: null
 }
 ```
 
@@ -1383,10 +1387,20 @@ The payload contains the following values:
     action: { 
 		name: 'v2.users.get' 
 	}
-    // Node ID
+    // Node ID of caller
     nodeID: "node-1",
+
+    // Target nodeID if it's a remote call
+    //targetNodeID: "node-2",
+
     // Parent context ID if it is a sub-call
-    //parentID: null
+    //parent: null
+
+    // Error if the call returned with error
+    error: {
+        name: "ValidationError",
+        message: "Invalid incoming parameters"
+    }
 }
 ```
 

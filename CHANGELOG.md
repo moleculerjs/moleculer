@@ -79,6 +79,13 @@ The `metricsSendInterval` option is removed from broker options. If you want to 
 ## Metrics & Statistics separated [#24](https://github.com/ice-services/moleculer/issues/24/)
 The metrics & statistics features separated. You can use just metrics or just statistics.
 
+## Metrics nodeID
+Metrics events contains two nodeID properties. 
+- `nodeID`: the "caller" nodeID
+- `targetNodeID`: in case of remote call this is the remote nodeID
+
+
+
 --------------------------------------------------
 
 
