@@ -99,13 +99,16 @@ declare class ServiceBroker {
 
 	start(): Promise<any>;
 	stop();
-	getLogger(name: String?): Logger;
+
+	repl();
+
+	getLogger(name?: String): Logger;
 	loadServices(folder?: String, fileMask?: String): Number;
 	loadService(filePath: String): Service;
 	createService(schema: Object): Service;
 
-	registerAction(nodeID: String?, action: Action);
-	deregisterAction(nodeID: String?, action: Action);
+	registerAction(nodeID?: String, action: Action);
+	deregisterAction(nodeID?: String, action: Action);
 
 	on(name: String, handler: Function);
 	once(name: String, handler: Function);
@@ -150,7 +153,7 @@ declare class ServiceBroker {
 	 * 
 	 * @memberOf ServiceBroker
 	 */	
-	emitLocal(eventName: String, payload?: any, sender: String?);
+	emitLocal(eventName: String, payload?: any, sender?: String);
 }
 
 declare class Packet {
