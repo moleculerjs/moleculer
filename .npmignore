@@ -1,6 +1,7 @@
 .vscode
 benchmark
 coverage
+dev
 docs
 examples
 typings

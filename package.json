@@ -10,7 +10,7 @@
     "demo": "node examples/index.js",
     "deps": "npm-check -u",
     "dev": "nodemon dev/index.js",
-    "lint": "eslint --ext=.js src test",
+    "lint": "eslint --ext=.js src dev examples test",
     "perf": "nodemon --allow-natives-syntax benchmark/perf-runner.js",
     "pperf": "node --inspect --expose-gc benchmark/perf-runner.js",
     "proto": "pbjs -t static-module -w commonjs -o src/serializers/proto/packets.proto.js src/serializers/proto/packets.proto",
