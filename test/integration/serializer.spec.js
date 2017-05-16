@@ -247,10 +247,11 @@ describe("Test Avro serializer", () => {
 
 	it("should serialize the response packet with error", () => {
 		const err = new ValidationError("Invalid email!", { a: 5 });
+		err.stack = "STACK_PLACEHOLDER";
 
 		const packet = new P.PacketResponse(broker.transit, "test-2", "12345", null, err);
 		const s = packet.serialize(100);
-		expect(s.length).toBe(64);
+		expect(s.length).toBe(82);
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_RESPONSE, s);
 		expect(res).toBeInstanceOf(P.PacketResponse);
@@ -260,6 +261,7 @@ describe("Test Avro serializer", () => {
 			message: "Invalid email!",
 			code: 422,
 			nodeID: "test-1",
+			stack: "STACK_PLACEHOLDER",
 			data: {
 				a: 5
 			}
@@ -495,10 +497,11 @@ describe("Test ProtoBuf serializer", () => {
 
 	it("should serialize the response packet with error", () => {
 		const err = new ValidationError("Invalid email!", { a: 5 });
+		err.stack = "STACK_PLACEHOLDER";
 
 		const packet = new P.PacketResponse(broker.transit, "test-2", "12345", null, err);
 		const s = packet.serialize(100);
-		expect(s.length).toBe(72);
+		expect(s.length).toBe(91);
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_RESPONSE, s);
 		expect(res).toBeInstanceOf(P.PacketResponse);
@@ -507,6 +510,7 @@ describe("Test ProtoBuf serializer", () => {
 			name: "ValidationError",
 			message: "Invalid email!",
 			code: 422,
+			stack: "STACK_PLACEHOLDER",
 			nodeID: "test-1",
 			data: {
 				a: 5
