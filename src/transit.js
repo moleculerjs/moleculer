@@ -310,6 +310,8 @@ class Transit {
 			err.code = packet.error.code;
 			err.nodeID = packet.error.nodeID || packet.sender;
 			err.data = packet.error.data;
+			if (packet.error.stack)
+				err.stack = packet.error.stack;
 
 			return req.reject(err);
 		}

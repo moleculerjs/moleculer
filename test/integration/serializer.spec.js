@@ -124,10 +124,10 @@ describe("Test JSON serializer", () => {
 
 	it("should serialize the response packet with error", () => {
 		const err = new ValidationError("Invalid email!", { a: 5 });
-
+		err.stack ="STACK_PLACEHOLDER";
 		const packet = new P.PacketResponse(broker.transit, "test-2", "12345", null, err);
 		const s = packet.serialize();
-		expect(s).toBe("{\"sender\":\"test-1\",\"id\":\"12345\",\"success\":false,\"data\":null,\"error\":{\"name\":\"ValidationError\",\"message\":\"Invalid email!\",\"nodeID\":\"test-1\",\"code\":422,\"data\":\"{\\\"a\\\":5}\"}}");
+		expect(s).toBe("{\"sender\":\"test-1\",\"id\":\"12345\",\"success\":false,\"data\":null,\"error\":{\"name\":\"ValidationError\",\"message\":\"Invalid email!\",\"nodeID\":\"test-1\",\"code\":422,\"stack\":\"STACK_PLACEHOLDER\",\"data\":\"{\\\"a\\\":5}\"}}");
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_RESPONSE, s);
 		expect(res).toBeInstanceOf(P.PacketResponse);
@@ -137,6 +137,7 @@ describe("Test JSON serializer", () => {
 			message: "Invalid email!",
 			code: 422,
 			nodeID: "test-1",
+			stack: "STACK_PLACEHOLDER",
 			data: {
 				a: 5
 			}
@@ -370,10 +371,11 @@ describe("Test MsgPack serializer", () => {
 
 	it("should serialize the response packet with error", () => {
 		const err = new ValidationError("Invalid email!", { a: 5 });
+		err.stack = "STACK_PLACEHOLDER";
 
 		const packet = new P.PacketResponse(broker.transit, "test-2", "12345", null, err);
 		const s = packet.serialize();
-		expect(Buffer.byteLength(s, "binary")).toBe(125);
+		expect(Buffer.byteLength(s, "binary")).toBe(149);
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_RESPONSE, s);
 		expect(res).toBeInstanceOf(P.PacketResponse);
@@ -383,6 +385,7 @@ describe("Test MsgPack serializer", () => {
 			message: "Invalid email!",
 			code: 422,
 			nodeID: "test-1",
+			stack: "STACK_PLACEHOLDER",
 			data: {
 				a: 5
 			}
