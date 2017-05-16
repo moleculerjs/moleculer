@@ -4,17 +4,17 @@
   "description": "Fast & powerful microservices framework for Node.JS",
   "main": "index.js",
   "scripts": {
-    "demo": "node examples/index.js",
-    "demow": "nodemon examples/index.js",
     "bench": "node benchmark/index.js",
+    "ci": "jest --watch",
+    "coverall": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
+    "demo": "node examples/index.js",
+    "deps": "npm-check -u",
+    "dev": "nodemon dev/index.js",
+    "lint": "eslint --ext=.js src test",
     "perf": "nodemon --allow-natives-syntax benchmark/perf-runner.js",
     "pperf": "node --inspect --expose-gc benchmark/perf-runner.js",
-    "ci": "jest --watch",
-    "test": "jest --coverage",
-    "lint": "eslint --ext=.js src test",
-    "deps": "npm-check -u",
-    "coverall": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
-    "proto": "pbjs -t static-module -w commonjs -o src/serializers/proto/packets.proto.js src/serializers/proto/packets.proto"
+    "proto": "pbjs -t static-module -w commonjs -o src/serializers/proto/packets.proto.js src/serializers/proto/packets.proto",
+    "test": "jest --coverage"
   },
   "keywords": [
     "microservices",
