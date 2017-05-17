@@ -124,7 +124,6 @@ class MemoryMapCacher extends BaseCacher {
 	 * @memberOf MemoryMapCacher
 	 */
 	checkTTL() {
-		let self = this;
 		let now = Date.now();
 		this.cache.forEach((value, key) => {
 			let item = this.cache.get(key);
