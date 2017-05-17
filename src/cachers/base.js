@@ -7,7 +7,7 @@
 "use strict";
 
 //const Promise 	= require("bluebird");
-const defaultsDeep 	= require("lodash/defaultsDeep");
+const _ = require("lodash");
 const { hash } 		= require("node-object-hash")({ sort: false, coerce: false});
 
 /**
@@ -25,7 +25,7 @@ class Cacher {
 	 * @memberOf Cacher
 	 */
 	constructor(opts) {
-		this.opts = defaultsDeep(opts, {
+		this.opts = _.defaultsDeep(opts, {
 			prefix: "",
 			ttl: null
 		});
@@ -135,12 +135,16 @@ class Cacher {
 			const keyPrefix = name + ":";
 			if (keys) {
 				if (keys.length == 1) {
-					// Quick solution for 'id' only keys
-					return keyPrefix + params[keys[0]];
+					// Quick solution for ['id'] only key
+					const val = _.get(params, keys[0]);
+					return keyPrefix + (_.isObject(val) ? hash(val) : val);
 				}
 				
 				if (keys.length > 0) {
-					return keys.reduce((a, key, i) => a + (i ? "|" : "") + params[key], keyPrefix);
+					return keys.reduce((a, key, i) => {
+						const val = _.get(params, key);
+						return a + (i ? "|" : "") + (_.isObject(val) ? hash(val) : val);
+					}, keyPrefix);
 				}
 			}
 			else {
