@@ -92,6 +92,9 @@ describe("Test BaseCacher", () => {
 		res = cacher.getCacheKey("user", {a: { id: 5 }}, ["a"]);
 		expect(res).toBe("user:609885e768b9fe49724d1765ef39f50770a553a1b6b2bf2524eb4d170de6ef38");
 	
+		res = cacher.getCacheKey("user", { a: [1,3,5] }, ["a"]);
+		expect(res).toBe("user:7338883e2772613ee984693e6707038578abce9fc9ea0b789d06a8d5e8f99457");
+	
 		res = cacher.getCacheKey("user", {a: 5, b: 3, c: 5}, ["a"]);
 		expect(res).toBe("user:5");
 
