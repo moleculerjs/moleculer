@@ -405,7 +405,7 @@ class Transit {
 		const actions = this.broker.serviceRegistry.getLocalActions();
 		const uptime = process.uptime();
 		const ipList = getIpList();
-		const version = {
+		const versions = {
 			node: process.version,
 			moleculer: this.broker.MOLECULER_VERSION
 		};
@@ -413,7 +413,7 @@ class Transit {
 		return {
 			actions,
 			ipList,
-			version,
+			versions,
 			uptime
 		};
 	}
