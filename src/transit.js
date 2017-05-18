@@ -9,6 +9,7 @@
 const Promise					= require("bluebird");
 const Context					= require("./context");
 const P 						= require("./packets");
+const { getIpList } 			= require("./utils");
 
 // Prefix for logger
 const LOG_PREFIX 				= "TRANSIT";
@@ -252,7 +253,7 @@ class Transit {
 		// Heartbeat
 		else if (cmd === P.PACKET_HEARTBEAT) {
 			//this.logger.debug("Node heart-beat received from " + payload.sender);
-			this.nodeHeartbeat(payload.sender);
+			this.nodeHeartbeat(payload.sender, payload);
 			return;
 		}
 	}
@@ -394,13 +395,37 @@ class Transit {
 	}	
 
 	/**
+	 * Get Node information to DISCOVER & INFO packages
+	 * 
+	 * @returns {Object}
+	 * 
+	 * @memberof Transit
+	 */
+	getNodeInfo() {
+		const actions = this.broker.serviceRegistry.getLocalActions();
+		const uptime = process.uptime();
+		const ipList = getIpList();
+		const version = {
+			node: process.version,
+			moleculer: this.broker.MOLECULER_VERSION
+		};
+
+		return {
+			actions,
+			ipList,
+			version,
+			uptime
+		};
+	}
+
+	/**
 	 * Discover other nodes. It will be called after success connect.
 	 * 
 	 * @memberOf Transit
 	 */
 	discoverNodes() {
-		const actions = this.broker.serviceRegistry.getLocalActions();
-		return this.publish(new P.PacketDiscover(this, actions));
+		const info = this.getNodeInfo();
+		return this.publish(new P.PacketDiscover(this, info));
 	}
 
 	/**
@@ -409,8 +434,8 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendNodeInfo(nodeID) {
-		const actions = this.broker.serviceRegistry.getLocalActions();
-		return this.publish(new P.PacketInfo(this, nodeID, actions));
+		const info = this.getNodeInfo();
+		return this.publish(new P.PacketInfo(this, info));
 	}
 
 	/**
@@ -419,7 +444,8 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendHeartbeat() {
-		this.publish(new P.PacketHeartbeat(this));
+		const uptime = process.uptime();
+		this.publish(new P.PacketHeartbeat(this, uptime));
 	}
 
 	/**
@@ -476,16 +502,19 @@ class Transit {
 	/**
 	 * Process remote node info (list of actions)
 	 * 
-	 * @param {any} info
+	 * @param {String} nodeID
+	 * @param {Object} node
 	 * 
 	 * @memberOf Transit
 	 */
-	processNodeInfo(nodeID, node) {
+	processNodeInfo(nodeID, payload) {
 		if (nodeID == null) {
 			this.logger.error("Missing nodeID from node info package!");
 			return;
 		}
+		console.log(payload);
 		let isNewNode = !this.nodes.has(nodeID);
+		const node = Object.assign(this.nodes.get(nodeID) || {}, payload);
 		let isReconnected = !node.available;
 		node.lastHeartbeatTime = Date.now();
 		node.available = true;
@@ -530,13 +559,15 @@ class Transit {
 	 * Save a heart-beat time from a remote node
 	 * 
 	 * @param {any} nodeID
+	 * @param {Object} payload
 	 * 
 	 * @memberOf Transit
 	 */
-	nodeHeartbeat(nodeID) {
+	nodeHeartbeat(nodeID, payload) {
 		if (this.nodes.has(nodeID)) {
 			let node = this.nodes.get(nodeID);
 			node.lastHeartbeatTime = Date.now();
+			node.uptime = payload.uptime;
 			node.available = true;
 		}
 	}

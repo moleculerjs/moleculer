@@ -861,4 +861,7 @@ class ServiceBroker {
 	
 }
 
+// Set version of Moleculer
+ServiceBroker.prototype.MOLECULER_VERSION = require("../package.json").version;
+
 module.exports = ServiceBroker;

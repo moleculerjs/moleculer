@@ -158,7 +158,13 @@ function startREPL(broker) {
 	vorpal
 		.command("nodes", "List of nodes")
 		.action((args, done) => {
-			const nodes = broker.transit.nodes;
+			const nodes = [];
+			broker.transit.nodes.forEach(node => nodes.push(node));
+			const localNode = broker.transit.getNodeInfo();
+			localNode.id = null;
+			localNode.available = true;
+			nodes.unshift(localNode);
+
 
 			// action, nodeID, cached, CB state, description?, params?
 			const data = [];
@@ -171,15 +177,22 @@ function startREPL(broker) {
 				chalk.bold("Uptime")
 			]);
 
-			console.log(Object.keys(nodes));
 			nodes.forEach(node => {
+				let ip = "?";
+				if (node.ipList) {
+					if (node.ipList.length == 1) 
+						ip = node.ipList[0];
+					else if (node.ipList.length > 1)
+						ip = node.ipList[0] + `  (+${node.ipList.length - 1})`;
+				}
+
 				data.push([
-					node.id,
+					node.id || "<local>",
 					node.versions && node.versions.moleculer ? node.versions.moleculer : "?",
 					Object.keys(node.actions).length,
-					node.actions.ips ? node.actions.ips.join(", ") : "?",
-					node.available ? chalk.bgGreen.black("  ONLINE "):chalk.bgRed.white.bold(" OFFLINE "),
-					node.uptime ? ms(node.uptime) : "?"
+					ip,
+					node.available ? chalk.bgGreen.black(" ONLINE "):chalk.bgRed.white.bold(" OFFLINE "),
+					node.uptime ? ms(node.uptime * 1000) : "?"
 				]);
 			});
 

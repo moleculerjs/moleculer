@@ -7,6 +7,7 @@
 "use strict";
 
 const os = require("os");
+const { getIpList } = require("./utils");
 
 module.exports = function() {
 	return Promise.resolve({})
@@ -65,20 +66,8 @@ module.exports = function() {
 		// Network interfaces
 		.then(res => {
 			res.net = {
-				ip: []
+				ip:  getIpList()
 			};
-			res.mem.percent = (res.mem.free * 100 / res.mem.total);
-
-			const interfaces = os.networkInterfaces();
-			for (let iface in interfaces) {
-				for (let i in interfaces[iface]) {
-					const f = interfaces[iface][i];
-					if (f.family === "IPv4" && !f.internal) {
-						res.net.ip.push(f.address);
-						break;
-					}
-				}
-			}					
 
 			return res;
 		})

@@ -2,13 +2,15 @@
 
 let ServiceBroker = require("../src/service-broker");
 let Transporter = require("../src/transporters/nats");
+let Serializer = require("../src/serializers/json");
 let { CustomError } = require("../src/errors");
 
 let broker1 = new ServiceBroker({
 	nodeID: "node1",
 	logger: console,
 	logLevel: "info",
-	transporter: new Transporter()
+	transporter: new Transporter(),
+	serializer: new Serializer()
 });
 
 broker1.loadService("./examples/math.service");
@@ -19,7 +21,8 @@ let broker2 = new ServiceBroker({
 	nodeID: "node2",
 	logger: console,
 	logLevel: "info",
-	transporter: new Transporter()
+	transporter: new Transporter(),
+	serializer: new Serializer()
 });
 
 broker2.createService({

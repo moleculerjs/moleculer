@@ -65,7 +65,19 @@ schemas[P.PACKET_DISCOVER] = avro.Type.forSchema({
 	type: "record",
 	fields: [
 		{ name: "sender", type: "string" },
-		{ name: "actions", type: "string" }
+		{ name: "actions", type: "string" },
+		{ name: "uptime", type: "double" },
+		{ name: "ipList", type: {
+			type: "array",
+			items: "string"
+		}},
+		{ name: "versions", type: {
+			type: "record",
+			fields: [
+				{ name: "node", type: "string" },
+				{ name: "moleculer", type: "string" }
+			]
+		}}
 	]
 });
 
@@ -74,7 +86,19 @@ schemas[P.PACKET_INFO] = avro.Type.forSchema({
 	type: "record",
 	fields: [
 		{ name: "sender", type: "string" },
-		{ name: "actions", type: "string" }
+		{ name: "actions", type: "string" },
+		{ name: "uptime", type: "double" },
+		{ name: "ipList", type: {
+			type: "array",
+			items: "string"
+		}},
+		{ name: "versions", type: {
+			type: "record",
+			fields: [
+				{ name: "node", type: "string" },
+				{ name: "moleculer", type: "string" }
+			]
+		}}
 	]
 });
 
@@ -90,7 +114,8 @@ schemas[P.PACKET_HEARTBEAT] = avro.Type.forSchema({
 	name: P.PACKET_HEARTBEAT,
 	type: "record",
 	fields: [
-		{ name: "sender", type: "string" }
+		{ name: "sender", type: "string" },
+		{ name: "uptime", type: "double" }
 	]
 });
 
