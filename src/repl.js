@@ -200,7 +200,10 @@ function startREPL(broker) {
 				border: _.mapValues(getBorderCharacters("honeywell"), (char) => {
 					return chalk.gray(char);
 				}),
-				columns: {}
+				columns: {
+					2: { alignment: "right" },
+					5: { alignment: "right" }
+				}
 			};
 			
 			console.log(table(data, tableConf));
