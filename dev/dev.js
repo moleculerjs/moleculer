@@ -11,6 +11,10 @@ let broker1 = new ServiceBroker({
 	transporter: new Transporter()
 });
 
+broker1.loadService("./examples/math.service");
+broker1.loadService("./examples/post.service");
+broker1.loadService("./examples/user.service");
+
 let broker2 = new ServiceBroker({
 	nodeID: "node2",
 	logger: console,
@@ -26,12 +30,13 @@ broker2.createService({
 		}
 	}
 });
+broker2.loadService("./examples/math.service");
+broker2.loadService("./examples/file.service");
 
 broker1.Promise.resolve()
 .then(() => broker1.start())
 .then(() => broker2.start())
 .delay(500)
-.then(() => broker1.call("devil.danger"))
-.catch(err => console.log(err));
-
-broker1.repl();
+//.then(() => broker1.call("devil.danger"))
+//.catch(err => console.log(err));
+.then(() => broker1.repl());

@@ -8,7 +8,10 @@
 
 const fs = require("fs");
 const path = require("path");
+const _ = require("lodash");
 const chalk = require("chalk");
+const ms = require("ms");
+const { table, getBorderCharacters } = require("table");
 const vorpal = require("vorpal")();
 
 /* istanbul ignore next */
@@ -92,6 +95,107 @@ function startREPL(broker) {
 			console.log(chalk.green("Unsubscribed successfully!"));
 			done();
 		});		
+
+	// List actions
+	vorpal
+		.command("actions", "List of actions")
+		.action((args, done) => {
+			const actions = broker.serviceRegistry.getLocalActions();
+
+			// action, nodeID, cached, CB state, description?, params?
+			const data = [];
+			data.push([
+				chalk.bold("Action"),
+				chalk.bold("Ver"),
+				chalk.bold("Node ID"),
+				chalk.bold("State"),
+				chalk.bold("Cached"),
+				chalk.bold("Params")
+				//chalk.bold("Description")
+			]);
+
+			Object.keys(actions).forEach(actionName => {
+				const action = actions[actionName];
+				const state = data.length % 2;
+				const params = action.params ? Object.keys(action.params).join(", ") : "";
+				data.push([
+					action.name,
+					action.version || "",
+					"<local>",
+					state ? chalk.bgGreen.black("   OK   "):chalk.bgRed.white.bold(" FAILED "),
+					action.cache ? chalk.green("Yes"):chalk.gray("No"),
+					params
+					//action.description || ""
+				]);
+			});
+
+			const tableConf = {
+				border: _.mapValues(getBorderCharacters("honeywell"), (char) => {
+					return chalk.gray(char);
+				}),
+				columns: {
+					0: {
+						width: 20
+					},
+					1: {
+						//alignment: "center"
+					},
+					3: {
+						alignment: "center"
+					},
+					5: {
+						width: 20,
+						wrapWord: true
+					}
+				}
+			};
+			
+			console.log(table(data, tableConf));
+			done();
+		});			
+
+	// List nodes
+	vorpal
+		.command("nodes", "List of nodes")
+		.action((args, done) => {
+			const nodes = broker.transit.nodes;
+
+			// action, nodeID, cached, CB state, description?, params?
+			const data = [];
+			data.push([
+				chalk.bold("Node ID"),
+				chalk.bold("Version"),
+				chalk.bold("Actions"),
+				chalk.bold("IP"),
+				chalk.bold("State"),
+				chalk.bold("Uptime")
+			]);
+
+			console.log(Object.keys(nodes));
+			nodes.forEach(node => {
+				data.push([
+					node.id,
+					node.versions && node.versions.moleculer ? node.versions.moleculer : "?",
+					Object.keys(node.actions).length,
+					node.actions.ips ? node.actions.ips.join(", ") : "?",
+					node.available ? chalk.bgGreen.black("  ONLINE "):chalk.bgRed.white.bold(" OFFLINE "),
+					node.uptime ? ms(node.uptime) : "?"
+				]);
+			});
+
+			const tableConf = {
+				border: _.mapValues(getBorderCharacters("honeywell"), (char) => {
+					return chalk.gray(char);
+				}),
+				columns: {}
+			};
+			
+			console.log(table(data, tableConf));
+
+			done();
+		});			
+
+
 
 	// Start REPL
 	vorpal
