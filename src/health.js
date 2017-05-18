@@ -57,7 +57,8 @@ module.exports = function() {
 			res.process = {
 				pid: process.pid,
 				memory: process.memoryUsage(),
-				uptime: process.uptime()
+				uptime: process.uptime(),
+				argv: process.argv
 			};
 
 			return res;

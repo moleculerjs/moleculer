@@ -435,7 +435,7 @@ class Transit {
 	 */
 	sendNodeInfo(nodeID) {
 		const info = this.getNodeInfo();
-		return this.publish(new P.PacketInfo(this, info));
+		return this.publish(new P.PacketInfo(this, nodeID, info));
 	}
 
 	/**
@@ -512,7 +512,8 @@ class Transit {
 			this.logger.error("Missing nodeID from node info package!");
 			return;
 		}
-		console.log(payload);
+		//console.log(payload);
+
 		let isNewNode = !this.nodes.has(nodeID);
 		const node = Object.assign(this.nodes.get(nodeID) || {}, payload);
 		let isReconnected = !node.available;

@@ -59,7 +59,7 @@ describe("Test FakeTransporter", () => {
 		let transporter = new FakeTransporter();
 		transporter.bus.emit = jest.fn();
 
-		transporter.publish(new PacketInfo(fakeTransit, "node2", {}));
+		transporter.publish(new PacketInfo(fakeTransit, "node2", { actions: {} }));
 
 		expect(transporter.bus.emit).toHaveBeenCalledTimes(1);
 		expect(transporter.bus.emit).toHaveBeenCalledWith("MOL.INFO.node2", "{\"sender\":\"node1\",\"actions\":\"{}\"}");

@@ -387,11 +387,11 @@ describe("Test Transit.messageHandler", () => {
 	it("should call broker.nodeHeartbeat if topic is 'HEARTBEAT' ", () => {
 		transit.nodeHeartbeat = jest.fn();
 
-		let msg = { sender: "remote" };
+		let msg = { sender: "remote", uptime: 100 };
 		transit.messageHandler("HEARTBEAT", JSON.stringify(msg));
 
 		expect(transit.nodeHeartbeat).toHaveBeenCalledTimes(1);
-		expect(transit.nodeHeartbeat).toHaveBeenCalledWith(msg.sender);
+		expect(transit.nodeHeartbeat).toHaveBeenCalledWith(msg.sender, msg);
 	});	
 
 });
@@ -511,6 +511,11 @@ describe("Test Transit.sendNodeInfo", () => {
 		expect(packet).toBeInstanceOf(P.PacketInfo);
 		expect(packet.target).toBe("node2");
 		expect(packet.payload.actions).toBe("{}");
+		expect(packet.payload.ipList).toBeInstanceOf(Array);
+		expect(packet.payload.versions).toBeDefined();
+		expect(packet.payload.versions.node).toBe(process.version);
+		expect(packet.payload.versions.moleculer).toBe(broker.MOLECULER_VERSION);
+		expect(packet.payload.uptime).toBeDefined();
 	});
 
 });
@@ -686,9 +691,10 @@ describe("Test Transit node & heartbeat handling", () => {
 		transit.nodes.set("server-2", { available: false, lastHeartbeatTime: 1000 });
 
 		it("should node is not available because is not exist", () => {
-			transit.nodeHeartbeat("server-2");
+			transit.nodeHeartbeat("server-2", { uptime: 123 });
 			expect(transit.nodes.get("server-2").available).toBe(true);
 			expect(transit.nodes.get("server-2").lastHeartbeatTime).not.toBe(1000);
+			expect(transit.nodes.get("server-2").uptime).toBe(123);
 		});
 
 	});
@@ -770,9 +776,12 @@ describe("Test Transit node & heartbeat handling", () => {
 		it("should call 'nodeDisconnected' if the heartbeat time is too old", () => {
 			let node = transit.nodes.get("server-2");
 			transit.nodeDisconnected = jest.fn();
-			transit.nodeHeartbeat("server-2");
+			transit.nodeHeartbeat("server-2", {
+				uptime: 156
+			});
 			transit.checkRemoteNodes();
 			expect(transit.nodeDisconnected).toHaveBeenCalledTimes(0);
+			expect(node.uptime).toBe(156);
 			node.lastHeartbeatTime -= broker.options.heartbeatTimeout * 1.5 * 1000;
 			transit.checkRemoteNodes();
 			expect(transit.nodeDisconnected).toHaveBeenCalledTimes(1);

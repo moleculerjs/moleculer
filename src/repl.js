@@ -187,7 +187,7 @@ function startREPL(broker) {
 				}
 
 				data.push([
-					node.id || "<local>",
+					node.id || chalk.gray("<local>"),
 					node.versions && node.versions.moleculer ? node.versions.moleculer : "?",
 					Object.keys(node.actions).length,
 					ip,
