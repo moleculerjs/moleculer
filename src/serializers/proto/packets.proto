@@ -37,18 +37,13 @@ message PacketResponse {
 	}
 }
 
+message PacketDiscover {
+	required string sender 			= 1;
+}
+
 message NodeVersions {
 	required string node 		= 1;
 	required string moleculer 	= 2;
-}
-
-message PacketDiscover {
-	required string sender 			= 1;
-	required string actions			= 2;
-
-	required double uptime 			= 3;	
-	repeated string ipList			= 4;
-	required NodeVersions versions 	= 5;
 }
 
 message PacketInfo {

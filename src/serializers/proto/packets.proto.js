@@ -1,4 +1,4 @@
-/*eslint-disable block-scoped-var, no-redeclare, no-control-regex, no-prototype-builtins*/
+-/*eslint-disable block-scoped-var, no-redeclare, no-control-regex, no-prototype-builtins, no-var, indent*/
 "use strict";
 
 var $protobuf = require("protobufjs/minimal");
@@ -9,6 +9,7 @@ var $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.ut
 // Exported root namespace
 var $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
 
+/* istanbul ignore next */
 $root.packets = (function() {
 
     /**
@@ -1103,6 +1104,180 @@ $root.packets = (function() {
         return PacketResponse;
     })();
 
+    packets.PacketDiscover = (function() {
+
+        /**
+         * Properties of a PacketDiscover.
+         * @typedef packets.PacketDiscover$Properties
+         * @type {Object}
+         * @property {string} sender PacketDiscover sender.
+         */
+
+        /**
+         * Constructs a new PacketDiscover.
+         * @exports packets.PacketDiscover
+         * @constructor
+         * @param {packets.PacketDiscover$Properties=} [properties] Properties to set
+         */
+        function PacketDiscover(properties) {
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * PacketDiscover sender.
+         * @type {string}
+         */
+        PacketDiscover.prototype.sender = "";
+
+        /**
+         * Creates a new PacketDiscover instance using the specified properties.
+         * @param {packets.PacketDiscover$Properties=} [properties] Properties to set
+         * @returns {packets.PacketDiscover} PacketDiscover instance
+         */
+        PacketDiscover.create = function create(properties) {
+            return new PacketDiscover(properties);
+        };
+
+        /**
+         * Encodes the specified PacketDiscover message. Does not implicitly {@link packets.PacketDiscover.verify|verify} messages.
+         * @param {packets.PacketDiscover$Properties} message PacketDiscover message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        PacketDiscover.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            writer.uint32(/* id 1, wireType 2 =*/10).string(message.sender);
+            return writer;
+        };
+
+        /**
+         * Encodes the specified PacketDiscover message, length delimited. Does not implicitly {@link packets.PacketDiscover.verify|verify} messages.
+         * @param {packets.PacketDiscover$Properties} message PacketDiscover message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        PacketDiscover.encodeDelimited = function encodeDelimited(message, writer) {
+            return this.encode(message, writer).ldelim();
+        };
+
+        /**
+         * Decodes a PacketDiscover message from the specified reader or buffer.
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {packets.PacketDiscover} PacketDiscover
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        PacketDiscover.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.PacketDiscover();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                case 1:
+                    message.sender = reader.string();
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            if (!message.hasOwnProperty("sender"))
+                throw $util.ProtocolError("missing required 'sender'", { instance: message });
+            return message;
+        };
+
+        /**
+         * Decodes a PacketDiscover message from the specified reader or buffer, length delimited.
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @returns {packets.PacketDiscover} PacketDiscover
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        PacketDiscover.decodeDelimited = function decodeDelimited(reader) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader(reader);
+            return this.decode(reader, reader.uint32());
+        };
+
+        /**
+         * Verifies a PacketDiscover message.
+         * @param {Object.<string,*>} message Plain object to verify
+         * @returns {?string} `null` if valid, otherwise the reason why it is not
+         */
+        PacketDiscover.verify = function verify(message) {
+            if (typeof message !== "object" || message === null)
+                return "object expected";
+            if (!$util.isString(message.sender))
+                return "sender: string expected";
+            return null;
+        };
+
+        /**
+         * Creates a PacketDiscover message from a plain object. Also converts values to their respective internal types.
+         * @param {Object.<string,*>} object Plain object
+         * @returns {packets.PacketDiscover} PacketDiscover
+         */
+        PacketDiscover.fromObject = function fromObject(object) {
+            if (object instanceof $root.packets.PacketDiscover)
+                return object;
+            var message = new $root.packets.PacketDiscover();
+            if (object.sender != null)
+                message.sender = String(object.sender);
+            return message;
+        };
+
+        /**
+         * Creates a PacketDiscover message from a plain object. Also converts values to their respective internal types.
+         * This is an alias of {@link packets.PacketDiscover.fromObject}.
+         * @function
+         * @param {Object.<string,*>} object Plain object
+         * @returns {packets.PacketDiscover} PacketDiscover
+         */
+        PacketDiscover.from = PacketDiscover.fromObject;
+
+        /**
+         * Creates a plain object from a PacketDiscover message. Also converts values to other types if specified.
+         * @param {packets.PacketDiscover} message PacketDiscover
+         * @param {$protobuf.ConversionOptions} [options] Conversion options
+         * @returns {Object.<string,*>} Plain object
+         */
+        PacketDiscover.toObject = function toObject(message, options) {
+            if (!options)
+                options = {};
+            var object = {};
+            if (options.defaults)
+                object.sender = "";
+            if (message.sender != null && message.hasOwnProperty("sender"))
+                object.sender = message.sender;
+            return object;
+        };
+
+        /**
+         * Creates a plain object from this PacketDiscover message. Also converts values to other types if specified.
+         * @param {$protobuf.ConversionOptions} [options] Conversion options
+         * @returns {Object.<string,*>} Plain object
+         */
+        PacketDiscover.prototype.toObject = function toObject(options) {
+            return this.constructor.toObject(this, options);
+        };
+
+        /**
+         * Converts this PacketDiscover to JSON.
+         * @returns {Object.<string,*>} JSON object
+         */
+        PacketDiscover.prototype.toJSON = function toJSON() {
+            return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+        };
+
+        return PacketDiscover;
+    })();
+
     packets.NodeVersions = (function() {
 
         /**
@@ -1296,282 +1471,6 @@ $root.packets = (function() {
         };
 
         return NodeVersions;
-    })();
-
-    packets.PacketDiscover = (function() {
-
-        /**
-         * Properties of a PacketDiscover.
-         * @typedef packets.PacketDiscover$Properties
-         * @type {Object}
-         * @property {string} sender PacketDiscover sender.
-         * @property {string} actions PacketDiscover actions.
-         * @property {number} uptime PacketDiscover uptime.
-         * @property {Array.<string>} [ipList] PacketDiscover ipList.
-         * @property {packets.NodeVersions$Properties} versions PacketDiscover versions.
-         */
-
-        /**
-         * Constructs a new PacketDiscover.
-         * @exports packets.PacketDiscover
-         * @constructor
-         * @param {packets.PacketDiscover$Properties=} [properties] Properties to set
-         */
-        function PacketDiscover(properties) {
-            this.ipList = [];
-            if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
-                        this[keys[i]] = properties[keys[i]];
-        }
-
-        /**
-         * PacketDiscover sender.
-         * @type {string}
-         */
-        PacketDiscover.prototype.sender = "";
-
-        /**
-         * PacketDiscover actions.
-         * @type {string}
-         */
-        PacketDiscover.prototype.actions = "";
-
-        /**
-         * PacketDiscover uptime.
-         * @type {number}
-         */
-        PacketDiscover.prototype.uptime = 0;
-
-        /**
-         * PacketDiscover ipList.
-         * @type {Array.<string>}
-         */
-        PacketDiscover.prototype.ipList = $util.emptyArray;
-
-        /**
-         * PacketDiscover versions.
-         * @type {packets.NodeVersions$Properties}
-         */
-        PacketDiscover.prototype.versions = null;
-
-        /**
-         * Creates a new PacketDiscover instance using the specified properties.
-         * @param {packets.PacketDiscover$Properties=} [properties] Properties to set
-         * @returns {packets.PacketDiscover} PacketDiscover instance
-         */
-        PacketDiscover.create = function create(properties) {
-            return new PacketDiscover(properties);
-        };
-
-        /**
-         * Encodes the specified PacketDiscover message. Does not implicitly {@link packets.PacketDiscover.verify|verify} messages.
-         * @param {packets.PacketDiscover$Properties} message PacketDiscover message or plain object to encode
-         * @param {$protobuf.Writer} [writer] Writer to encode to
-         * @returns {$protobuf.Writer} Writer
-         */
-        PacketDiscover.encode = function encode(message, writer) {
-            if (!writer)
-                writer = $Writer.create();
-            writer.uint32(/* id 1, wireType 2 =*/10).string(message.sender);
-            writer.uint32(/* id 2, wireType 2 =*/18).string(message.actions);
-            writer.uint32(/* id 3, wireType 1 =*/25).double(message.uptime);
-            if (message.ipList != null && message.ipList.length)
-                for (var i = 0; i < message.ipList.length; ++i)
-                    writer.uint32(/* id 4, wireType 2 =*/34).string(message.ipList[i]);
-            $root.packets.NodeVersions.encode(message.versions, writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
-            return writer;
-        };
-
-        /**
-         * Encodes the specified PacketDiscover message, length delimited. Does not implicitly {@link packets.PacketDiscover.verify|verify} messages.
-         * @param {packets.PacketDiscover$Properties} message PacketDiscover message or plain object to encode
-         * @param {$protobuf.Writer} [writer] Writer to encode to
-         * @returns {$protobuf.Writer} Writer
-         */
-        PacketDiscover.encodeDelimited = function encodeDelimited(message, writer) {
-            return this.encode(message, writer).ldelim();
-        };
-
-        /**
-         * Decodes a PacketDiscover message from the specified reader or buffer.
-         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-         * @param {number} [length] Message length if known beforehand
-         * @returns {packets.PacketDiscover} PacketDiscover
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        PacketDiscover.decode = function decode(reader, length) {
-            if (!(reader instanceof $Reader))
-                reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.PacketDiscover();
-            while (reader.pos < end) {
-                var tag = reader.uint32();
-                switch (tag >>> 3) {
-                case 1:
-                    message.sender = reader.string();
-                    break;
-                case 2:
-                    message.actions = reader.string();
-                    break;
-                case 3:
-                    message.uptime = reader.double();
-                    break;
-                case 4:
-                    if (!(message.ipList && message.ipList.length))
-                        message.ipList = [];
-                    message.ipList.push(reader.string());
-                    break;
-                case 5:
-                    message.versions = $root.packets.NodeVersions.decode(reader, reader.uint32());
-                    break;
-                default:
-                    reader.skipType(tag & 7);
-                    break;
-                }
-            }
-            if (!message.hasOwnProperty("sender"))
-                throw $util.ProtocolError("missing required 'sender'", { instance: message });
-            if (!message.hasOwnProperty("actions"))
-                throw $util.ProtocolError("missing required 'actions'", { instance: message });
-            if (!message.hasOwnProperty("uptime"))
-                throw $util.ProtocolError("missing required 'uptime'", { instance: message });
-            if (!message.hasOwnProperty("versions"))
-                throw $util.ProtocolError("missing required 'versions'", { instance: message });
-            return message;
-        };
-
-        /**
-         * Decodes a PacketDiscover message from the specified reader or buffer, length delimited.
-         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-         * @returns {packets.PacketDiscover} PacketDiscover
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        PacketDiscover.decodeDelimited = function decodeDelimited(reader) {
-            if (!(reader instanceof $Reader))
-                reader = $Reader(reader);
-            return this.decode(reader, reader.uint32());
-        };
-
-        /**
-         * Verifies a PacketDiscover message.
-         * @param {Object.<string,*>} message Plain object to verify
-         * @returns {?string} `null` if valid, otherwise the reason why it is not
-         */
-        PacketDiscover.verify = function verify(message) {
-            if (typeof message !== "object" || message === null)
-                return "object expected";
-            if (!$util.isString(message.sender))
-                return "sender: string expected";
-            if (!$util.isString(message.actions))
-                return "actions: string expected";
-            if (typeof message.uptime !== "number")
-                return "uptime: number expected";
-            if (message.ipList != null && message.hasOwnProperty("ipList")) {
-                if (!Array.isArray(message.ipList))
-                    return "ipList: array expected";
-                for (var i = 0; i < message.ipList.length; ++i)
-                    if (!$util.isString(message.ipList[i]))
-                        return "ipList: string[] expected";
-            }
-            var error = $root.packets.NodeVersions.verify(message.versions);
-            if (error)
-                return "versions." + error;
-            return null;
-        };
-
-        /**
-         * Creates a PacketDiscover message from a plain object. Also converts values to their respective internal types.
-         * @param {Object.<string,*>} object Plain object
-         * @returns {packets.PacketDiscover} PacketDiscover
-         */
-        PacketDiscover.fromObject = function fromObject(object) {
-            if (object instanceof $root.packets.PacketDiscover)
-                return object;
-            var message = new $root.packets.PacketDiscover();
-            if (object.sender != null)
-                message.sender = String(object.sender);
-            if (object.actions != null)
-                message.actions = String(object.actions);
-            if (object.uptime != null)
-                message.uptime = Number(object.uptime);
-            if (object.ipList) {
-                if (!Array.isArray(object.ipList))
-                    throw TypeError(".packets.PacketDiscover.ipList: array expected");
-                message.ipList = [];
-                for (var i = 0; i < object.ipList.length; ++i)
-                    message.ipList[i] = String(object.ipList[i]);
-            }
-            if (object.versions != null) {
-                if (typeof object.versions !== "object")
-                    throw TypeError(".packets.PacketDiscover.versions: object expected");
-                message.versions = $root.packets.NodeVersions.fromObject(object.versions);
-            }
-            return message;
-        };
-
-        /**
-         * Creates a PacketDiscover message from a plain object. Also converts values to their respective internal types.
-         * This is an alias of {@link packets.PacketDiscover.fromObject}.
-         * @function
-         * @param {Object.<string,*>} object Plain object
-         * @returns {packets.PacketDiscover} PacketDiscover
-         */
-        PacketDiscover.from = PacketDiscover.fromObject;
-
-        /**
-         * Creates a plain object from a PacketDiscover message. Also converts values to other types if specified.
-         * @param {packets.PacketDiscover} message PacketDiscover
-         * @param {$protobuf.ConversionOptions} [options] Conversion options
-         * @returns {Object.<string,*>} Plain object
-         */
-        PacketDiscover.toObject = function toObject(message, options) {
-            if (!options)
-                options = {};
-            var object = {};
-            if (options.arrays || options.defaults)
-                object.ipList = [];
-            if (options.defaults) {
-                object.sender = "";
-                object.actions = "";
-                object.uptime = 0;
-                object.versions = null;
-            }
-            if (message.sender != null && message.hasOwnProperty("sender"))
-                object.sender = message.sender;
-            if (message.actions != null && message.hasOwnProperty("actions"))
-                object.actions = message.actions;
-            if (message.uptime != null && message.hasOwnProperty("uptime"))
-                object.uptime = message.uptime;
-            if (message.ipList && message.ipList.length) {
-                object.ipList = [];
-                for (var j = 0; j < message.ipList.length; ++j)
-                    object.ipList[j] = message.ipList[j];
-            }
-            if (message.versions != null && message.hasOwnProperty("versions"))
-                object.versions = $root.packets.NodeVersions.toObject(message.versions, options);
-            return object;
-        };
-
-        /**
-         * Creates a plain object from this PacketDiscover message. Also converts values to other types if specified.
-         * @param {$protobuf.ConversionOptions} [options] Conversion options
-         * @returns {Object.<string,*>} Plain object
-         */
-        PacketDiscover.prototype.toObject = function toObject(options) {
-            return this.constructor.toObject(this, options);
-        };
-
-        /**
-         * Converts this PacketDiscover to JSON.
-         * @returns {Object.<string,*>} JSON object
-         */
-        PacketDiscover.prototype.toJSON = function toJSON() {
-            return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-        };
-
-        return PacketDiscover;
     })();
 
     packets.PacketInfo = (function() {

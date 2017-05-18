@@ -89,29 +89,16 @@ describe("Test PacketHeartbeat", () => {
 
 });
 
-describe.skip("Test PacketDiscover", () => {
+describe("Test PacketDiscover", () => {
 
 	const transit = { nodeID: "node-1" };
 
 	it("should set properties", () => {
-		let actions = { "posts.find": {} };
-		let packet = new P.PacketDiscover(transit, actions);
+		let packet = new P.PacketDiscover(transit);
 		expect(packet).toBeDefined();
 		expect(packet.type).toBe(P.PACKET_DISCOVER);
 		expect(packet.target).toBeUndefined();
-		expect(packet.payload).toBeDefined();
-		expect(packet.payload.sender).toBe("node-1");
-		expect(packet.payload.actions).toBe("{\"posts.find\":{}}");
-	});
-
-	it("should transform payload", () => {
-		let payload = {
-			actions: "{\"posts.find\":{}}"
-		};
-		let packet = new P.PacketDiscover(transit, {});
-		packet.transformPayload(payload);
-
-		expect(packet.payload.actions).toEqual({ "posts.find": {} });
+		expect(packet.payload).toEqual({ sender: "node-1" });
 	});
 
 });

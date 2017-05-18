@@ -67,6 +67,7 @@ class Transit {
 		})
 
 		.then(() => this.discoverNodes())
+		.then(() => this.sendNodeInfo())
 
 		.then(() => {
 			if (this.__connectResolve) {
@@ -169,7 +170,8 @@ class Transit {
 		this.subscribe(P.PACKET_DISCOVER);
 
 		// NodeInfo handler
-		this.subscribe(P.PACKET_INFO, this.nodeID);
+		this.subscribe(P.PACKET_INFO); // Broadcasted INFO. If a new node connected
+		this.subscribe(P.PACKET_INFO, this.nodeID); // Response INFO to DISCOVER packet
 
 		// Disconnect handler
 		this.subscribe(P.PACKET_DISCONNECT);
@@ -424,8 +426,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	discoverNodes() {
-		const info = this.getNodeInfo();
-		return this.publish(new P.PacketDiscover(this, info));
+		return this.publish(new P.PacketDiscover(this));
 	}
 
 	/**

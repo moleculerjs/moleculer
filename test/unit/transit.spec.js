@@ -167,11 +167,12 @@ describe("Test Transit.makeSubscriptions", () => {
 
 	it("should call subscribe with all topics", () => {
 		transit.makeSubscriptions();
-		expect(transit.subscribe).toHaveBeenCalledTimes(7);
+		expect(transit.subscribe).toHaveBeenCalledTimes(8);
 		expect(transit.subscribe).toHaveBeenCalledWith("EVENT");
 		expect(transit.subscribe).toHaveBeenCalledWith("REQ", "node1");
 		expect(transit.subscribe).toHaveBeenCalledWith("RES", "node1");
 		expect(transit.subscribe).toHaveBeenCalledWith("DISCOVER");
+		expect(transit.subscribe).toHaveBeenCalledWith("INFO");
 		expect(transit.subscribe).toHaveBeenCalledWith("INFO", "node1");
 		expect(transit.subscribe).toHaveBeenCalledWith("DISCONNECT");
 		expect(transit.subscribe).toHaveBeenCalledWith("HEARTBEAT");
@@ -369,7 +370,7 @@ describe("Test Transit.messageHandler", () => {
 		transit.messageHandler("DISCOVER", JSON.stringify(msg));
 
 		expect(transit.processNodeInfo).toHaveBeenCalledTimes(1);
-		expect(transit.processNodeInfo).toHaveBeenCalledWith("remote", {"actions": {}, "sender": "remote"});
+		expect(transit.processNodeInfo).toHaveBeenCalledWith("remote", msg);
 
 		expect(transit.sendNodeInfo).toHaveBeenCalledTimes(1);
 	});	
@@ -492,7 +493,7 @@ describe("Test Transit.discoverNodes", () => {
 		expect(transit.publish).toHaveBeenCalledTimes(1);
 		const packet = transit.publish.mock.calls[0][0];
 		expect(packet).toBeInstanceOf(P.PacketDiscover);
-		expect(packet.payload.actions).toBe("{}");
+		expect(packet.payload).toEqual({ sender: "node1" });
 	});
 
 });

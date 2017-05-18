@@ -64,20 +64,7 @@ schemas[P.PACKET_DISCOVER] = avro.Type.forSchema({
 	name: P.PACKET_DISCOVER,
 	type: "record",
 	fields: [
-		{ name: "sender", type: "string" },
-		{ name: "actions", type: "string" },
-		{ name: "uptime", type: "double" },
-		{ name: "ipList", type: {
-			type: "array",
-			items: "string"
-		}},
-		{ name: "versions", type: {
-			type: "record",
-			fields: [
-				{ name: "node", type: "string" },
-				{ name: "moleculer", type: "string" }
-			]
-		}}
+		{ name: "sender", type: "string" }
 	]
 });
 
