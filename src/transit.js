@@ -120,20 +120,24 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	disconnect() {
-		if (this.heartbeatTimer) {
-			clearInterval(this.heartbeatTimer);
-			this.heartbeatTimer = null;
-		}
+		return Promise.resolve()
+		.then(() => {		
+			if (this.heartbeatTimer) {
+				clearInterval(this.heartbeatTimer);
+				this.heartbeatTimer = null;
+			}
 
-		if (this.checkNodesTimer) {
-			clearInterval(this.checkNodesTimer);
-			this.checkNodesTimer = null;
-		}
-
-		if (this.tx.connected) {
-			return this.sendDisconnectPacket()
-				.then(() => this.tx.disconnect());
-		}
+			if (this.checkNodesTimer) {
+				clearInterval(this.checkNodesTimer);
+				this.checkNodesTimer = null;
+			}
+		})
+		.then(() => {
+			if (this.tx.connected) {
+				return this.sendDisconnectPacket()
+					.then(() => this.tx.disconnect());
+			}
+		});
 	}
 
 	/**

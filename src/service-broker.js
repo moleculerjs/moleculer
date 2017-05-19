@@ -172,14 +172,15 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	start() {
-		// Call service `started` handlers
-		this.services.forEach(service => {
-			if (service && service.schema && _.isFunction(service.schema.started)) {
-				service.schema.started.call(service);
-			}
-		});
-
 		return Promise.resolve()
+		.then(() => {
+			// Call service `started` handlers
+			this.services.forEach(service => {
+				if (service && service.schema && _.isFunction(service.schema.started)) {
+					service.schema.started.call(service);
+				}
+			});
+		})
 		.then(() => {
 			if (this.transit)
 				return this.transit.connect();
@@ -192,26 +193,30 @@ class ServiceBroker {
 	/**
 	 * Stop broker. If set transport, transport.disconnect will be called.
 	 * 
-	 * 
 	 * @memberOf ServiceBroker
 	 */
 	stop() {
-		// Call service `started` handlers
-		this.services.forEach(service => {
-			if (service && service.schema && _.isFunction(service.schema.stopped)) {
-				service.schema.stopped.call(service);
+		return Promise.resolve()
+		.then(() => {
+			// Call service `started` handlers
+			this.services.forEach(service => {
+				if (service && service.schema && _.isFunction(service.schema.stopped)) {
+					service.schema.stopped.call(service);
+				}
+			});
+		})
+		.then(() => {
+			if (this.transit) {
+				return this.transit.disconnect();
 			}
+		})
+		.then(() => {
+			this.logger.info(`Broker stopped. NodeID: ${this.nodeID}\n`);
+
+			process.removeListener("beforeExit", this._closeFn);
+			process.removeListener("exit", this._closeFn);
+			process.removeListener("SIGINT", this._closeFn);
 		});
-	
-		if (this.transit) {
-			this.transit.disconnect();
-		}
-
-		this.logger.info(`Broker stopped. NodeID: ${this.nodeID}\n`);
-
-		process.removeListener("beforeExit", this._closeFn);
-		process.removeListener("exit", this._closeFn);
-		process.removeListener("SIGINT", this._closeFn);
 	}
 
 	/**

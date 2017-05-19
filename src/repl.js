@@ -28,6 +28,12 @@ const eventHandler = payload => {
  */
 /* istanbul ignore next */
 function startREPL(broker) {
+	vorpal
+		.command("q", "Exit application")
+		.action((args, done) => {
+			broker.stop().then(() => process.exit(0));
+			done();
+		});
 
 	// Register broker.call
 	vorpal
