@@ -269,7 +269,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	_requestHandler(payload) {
-		this.logger.info(`Request '${payload.action}' from '${payload.sender}'. Params:`, payload.params);
+		this.logger.debug(`Request '${payload.action}' from '${payload.sender}'. Params:`, payload.params);
 		
 		// Recreate caller context
 		const ctx = new Context(this.broker);
@@ -305,6 +305,8 @@ class Transit {
 
 		// Remove pending request
 		this.removePendingRequest(id);
+
+		this.logger.debug(`Response '${req.action.name}' is received from '${req.nodeID}'.`);
 
 		if (!packet.success) {
 			// Recreate exception object
@@ -351,12 +353,15 @@ class Transit {
 	_doRequest(ctx, resolve, reject) {
 		const request = {
 			nodeID: ctx.nodeID,
+			action: ctx.action,
 			//ctx,
 			resolve,
 			reject
 		};
 
 		const packet = new P.PacketRequest(this, ctx.nodeID, ctx);
+
+		this.logger.debug(`Send '${ctx.action.name}' request to '${ctx.nodeID}'. Params:`, ctx.params);
 
 		// Add to pendings
 		this.pendingRequests.set(ctx.id, request);
@@ -390,7 +395,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendResponse(nodeID, id, data, err) {
-		this.logger.debug(`Send response back to '${nodeID}'`);
+		//this.logger.debug(`Send response back to '${nodeID}'`);
 
 		// Publish the response
 		return this.publish(new P.PacketResponse(this, nodeID, id, data, err));
@@ -482,7 +487,6 @@ class Transit {
 	 */
 	serialize(obj, type) {
 		return this.broker.serializer.serialize(obj, type);
-		//return payload;
 	}
 
 	/**
@@ -497,7 +501,6 @@ class Transit {
 		if (str == null) return null;
 		
 		return this.broker.serializer.deserialize(str, type);
-		//return str;
 	}
 
 	/**
@@ -513,7 +516,7 @@ class Transit {
 			this.logger.error("Missing nodeID from node info package!");
 			return;
 		}
-		console.log(payload);
+		//console.log(payload);
 
 		let isNewNode = !this.nodes.has(nodeID);
 		const node = Object.assign(this.nodes.get(nodeID) || {}, payload);

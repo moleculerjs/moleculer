@@ -33,10 +33,17 @@ function startREPL(broker) {
 	vorpal
 		.command("call <actionName> [params]", "Call an action")
 		.action((args, done) => {
-			console.log(`Call '${args.actionName}' with`, args.params);
+			console.log(chalk.yellow.bold(`>> Call '${args.actionName}' with params:`), args.params);
 			broker.call(args.actionName, JSON.parse(args.params || "{}"))
-				.then(res => console.log(res))
-				.catch(err => console.error(err.message, err.stack, err.data))
+				.then(res => {
+					console.log(chalk.yellow.bold(">> Response:"));
+					console.log(res);
+				})
+				.catch(err => {
+					console.error(chalk.red.bold(">> ERROR:", err.message));
+					console.error(chalk.red.bold(err.stack));
+					console.error("Data: ", err.data);
+				})
 				.finally(done);
 		});
 
@@ -44,9 +51,9 @@ function startREPL(broker) {
 	vorpal
 		.command("emit <eventName> [payload]", "Emit an event")
 		.action((args, done) => {
-			console.log(`Emit '${args.eventName}' with`, args.payload);
+			console.log(chalk.yellow.bold(`>> Emit '${args.eventName}' with payload:`), args.payload);
 			broker.emit(args.eventName, args.payload);
-			console.log(chalk.green("Event sent."));
+			done();
 		});
 
 	// Register load service file
@@ -55,10 +62,10 @@ function startREPL(broker) {
 		.action((args, done) => {
 			let filePath = path.resolve(args.servicePath);
 			if (fs.existsSync(filePath)) {
-				console.log(chalk.yellow(`Load '${filePath}'...`));
+				console.log(chalk.yellow(`>> Load '${filePath}'...`));
 				let service = broker.loadService(filePath);
 				if (service)
-					console.log(chalk.green("Loaded successfully!"));
+					console.log(chalk.green(">> Loaded successfully!"));
 			} else {
 				console.warn(chalk.red("The service file is not exists!", filePath));
 			}
@@ -71,9 +78,9 @@ function startREPL(broker) {
 		.action((args, done) => {
 			let filePath = path.resolve(args.serviceFolder);
 			if (fs.existsSync(filePath)) {
-				console.log(chalk.yellow(`Load services from '${filePath}'...`));
+				console.log(chalk.yellow(`>> Load services from '${filePath}'...`));
 				const count = broker.loadServices(filePath, args.fileMask);
-				console.log(chalk.green(`Loaded ${count} services!`));
+				console.log(chalk.green(`>> Loaded ${count} services!`));
 			} else {
 				console.warn(chalk.red("The folder is not exists!", filePath));
 			}
@@ -85,7 +92,7 @@ function startREPL(broker) {
 		.command("subscribe <eventName>", "Subscribe to an event")
 		.action((args, done) => {
 			broker.on(args.eventName, eventHandler);
-			console.log(chalk.green("Subscribed successfully!"));
+			console.log(chalk.green(">> Subscribed successfully!"));
 			done();
 		});		
 
@@ -94,7 +101,7 @@ function startREPL(broker) {
 		.command("unsubscribe <eventName>", "Unsubscribe from an event")
 		.action((args, done) => {
 			broker.off(args.eventName, eventHandler);
-			console.log(chalk.green("Unsubscribed successfully!"));
+			console.log(chalk.green(">> Unsubscribed successfully!"));
 			done();
 		});		
 

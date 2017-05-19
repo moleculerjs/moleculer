@@ -676,6 +676,8 @@ class ServiceBroker {
 		// Expose action info
 		let action = endpoint.action;
 		let nodeID = endpoint.nodeID;
+
+		this.logger.debug(`Call action '${actionName}' on node '${nodeID || "<local>"}'`);
 		
 		// Create context
 		let ctx;
