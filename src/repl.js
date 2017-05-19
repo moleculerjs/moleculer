@@ -9,6 +9,7 @@
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
+const v8 = require("v8");
 const _ = require("lodash");
 const chalk = require("chalk");
 const ms = require("ms");
@@ -286,12 +287,15 @@ function startREPL(broker) {
 				const free = health.mem.free;
 				const used = total - free;
 				const human = pretty(free);
-				const maxHeap = 1.5 * 1024 * 1024 * 1024;
+
+				const heapStat = v8.getHeapStatistics();
+				const heapUsed = heapStat.used_heap_size; 
+				const maxHeap = heapStat.heap_size_limit;
 
 				printHeader("Common information");
 				print("CPU", "Arch: " + (os.arch()) + ", Cores: " + (os.cpus().length));
 				print("Memory", Gauge(used, total, 20, total * 0.8, human + " free"));
-				print("Heap", Gauge(health.process.memory.heapUsed, maxHeap, 20, maxHeap * 0.5, pretty(health.process.memory.heapUsed)));
+				print("Heap", Gauge(heapUsed, maxHeap, 20, maxHeap * 0.5, pretty(heapUsed)));
 				print("OS", (os.platform()) + " (" + (os.type()) + ")");
 				print("IP", health.net.ip.join(", "));
 				print("Hostname", os.hostname());
