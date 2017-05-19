@@ -1,23 +1,21 @@
 # Roadmap
 
 ## v0.8.x
-- [ ] direct remote call to a specified node (for monitoring every node)
+- [x] direct remote call to a specified node (for monitoring every node)
 - [ ] multi broker.call (array params & returns with array result )
-- [ ] official Zipkin tracer service
-- [ ] RabbitMQ transporter
-- [ ] create a multi-pages docs & generate a static site from it.
-	- [ ] https://github.com/segmentio/metalsmith
-- [ ] add lru features to Memory and Redis cachers
-
-- [x] official API gateway service (Native, Express)
 
 ------------------------------
 
 ## v0.9.x
+- [ ] official Zipkin tracer service
+- [ ] RabbitMQ transporter
+- [ ] add lru features to Memory and Redis cachers
 
 ------------------------------
 
 ## v0.10.x
+- [ ] create a multi-pages docs & generate a static site from it.
+	- [ ] https://github.com/segmentio/metalsmith
 
 ------------------------------
 
