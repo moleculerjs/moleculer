@@ -19,14 +19,14 @@ class ServiceNotFoundError extends ExtendableError {
 	 * Creates an instance of ServiceNotFoundError.
 	 * 
 	 * @param {String} message
-	 * @param {String} action
+	 * @param {any} data
 	 * 
 	 * @memberOf ServiceNotFoundError
 	 */
-	constructor(message, action) {
+	constructor(message, data) {
 		super(message);
 		this.code = 501;
-		this.action = action;
+		this.data = data;
 	}
 }
 

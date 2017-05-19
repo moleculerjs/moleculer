@@ -68,7 +68,7 @@ class ServiceRegistry {
 		if (list) {
 			list.removeByNode(nodeID);
 			/* Don't delete because maybe node only disconnected and will come back.
-			   So the action is exists, just now it is not available.
+			   So the action is exists, just there is not available.
 			
 			if (list.count() == 0) {
 				this.actions.delete(action.name);
@@ -91,10 +91,19 @@ class ServiceRegistry {
 		return item;
 	}
 
-	getActionByNodeID(actionName, nodeID) {
+	/**
+	 * Get endpoint by nodeID
+	 * 
+	 * @param {any} actionName 
+	 * @param {any} nodeID 
+	 * @returns 
+	 * 
+	 * @memberof ServiceRegistry
+	 */
+	getEndpointByNodeID(actionName, nodeID) {
 		let item = this.findAction(actionName);
 		if (item) {
-			return item.getActionByNodeID(nodeID);
+			return item.getEndpointByNodeID(nodeID);
 		}
 	}
 
@@ -331,8 +340,10 @@ class EndpointList {
 		return item != null ? item.action : null;
 	}
 
-	getActionByNodeID(nodeID) {
-		return this.list.find(item => item.nodeID == nodeID);
+	getEndpointByNodeID(nodeID) {
+		const item = this.list.find(item => item.nodeID == nodeID);
+		if (item && item.available())
+			return item;
 	}	
 
 	count() {

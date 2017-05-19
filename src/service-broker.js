@@ -667,20 +667,31 @@ class ServiceBroker {
 			endpoint = actionName;
 			actionName = endpoint.action.name;
 		} else {
-			// Find action by name
-			let actions = this.serviceRegistry.findAction(actionName);
-			if (actions == null) {
-				const errMsg = `Action '${actionName}' is not registered!`;
-				this.logger.warn(errMsg);
-				return Promise.reject(new E.ServiceNotFoundError(errMsg, actionName));
-			}
-			
-			// Get an action handler item
-			endpoint = actions.nextAvailable();
-			if (endpoint == null) {
-				const errMsg = `Action '${actionName}' is not available!`;
-				this.logger.warn(errMsg);
-				return Promise.reject(new E.ServiceNotFoundError(errMsg, actionName));
+			if (opts.nodeID) {
+				// Direct call
+				endpoint = this.serviceRegistry.getEndpointByNodeID(actionName, opts.nodeID);
+				if (!endpoint) {
+					const errMsg = `Action '${actionName}' is not available on '${opts.nodeID}' node!`;
+					this.logger.warn(errMsg);
+					return Promise.reject(new E.ServiceNotFoundError(errMsg, { action: actionName, nodeID: opts.nodeID }));
+				}
+
+			} else {
+				// Find action by name
+				let actions = this.serviceRegistry.findAction(actionName);
+				if (actions == null) {
+					const errMsg = `Action '${actionName}' is not registered!`;
+					this.logger.warn(errMsg);
+					return Promise.reject(new E.ServiceNotFoundError(errMsg, { action: actionName }));
+				}
+				
+				// Get an endpoint
+				endpoint = actions.nextAvailable();
+				if (endpoint == null) {
+					const errMsg = `Action '${actionName}' is not available!`;
+					this.logger.warn(errMsg);
+					return Promise.reject(new E.ServiceNotFoundError(errMsg, { action: actionName }));
+				}
 			}
 		}
 

@@ -57,6 +57,25 @@ function startREPL(broker) {
 				.finally(done);
 		});
 
+	// Register direct broker.call
+	vorpal
+		.command("dcall <nodeID> <actionName> [params]", "Call a direct action ")
+		.action((args, done) => {
+			const nodeID = args.nodeID;
+			console.log(chalk.yellow.bold(`>> Call '${args.actionName}' on '${nodeID}' with params:`), args.params);
+			broker.call(args.actionName, JSON.parse(args.params || "{}"), { nodeID })
+				.then(res => {
+					console.log(chalk.yellow.bold(">> Response:"));
+					console.log(res);
+				})
+				.catch(err => {
+					console.error(chalk.red.bold(">> ERROR:", err.message));
+					console.error(chalk.red.bold(err.stack));
+					console.error("Data: ", err.data);
+				})
+				.finally(done);
+		});
+
 	// Register broker.emit
 	vorpal
 		.command("emit <eventName> [payload]", "Emit an event")

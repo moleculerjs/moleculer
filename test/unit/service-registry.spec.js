@@ -161,7 +161,7 @@ describe("Test registry.findAction with internal actions", () => {
 
 });
 
-describe("Test registry.getActionByNodeID", () => {
+describe("Test registry.getEndpointByNodeID", () => {
 	const broker = new ServiceBroker({ internalActions: true, registry: { preferLocal: false } });
 	const registry = broker.serviceRegistry;
 
@@ -179,20 +179,28 @@ describe("Test registry.getActionByNodeID", () => {
 	});
 
 	it("should return the endpoint if action is exist", () => {
-		let endpoint = registry.getActionByNodeID("$node.list", "server-2");
+		let endpoint = registry.getEndpointByNodeID("$node.list", "server-2");
 		expect(endpoint).toBeDefined();
 		expect(endpoint.local).toBe(false);
 		expect(endpoint.action).toBeDefined();
 		expect(endpoint.action.custom).toBe(100);
 	});
 
+	it("should not return the endpoint if endpoint is not available", () => {
+		let endpoint = registry.getEndpointByNodeID("$node.list", "server-2");
+		endpoint.state = CIRCUIT_OPEN;
+
+		endpoint = registry.getEndpointByNodeID("$node.list", "server-2");
+		expect(endpoint).toBeUndefined();
+	});
+
 	it("should not return endpoint if action is not exist", () => {
-		let endpoint = registry.getActionByNodeID("math.pow", "server-2");
+		let endpoint = registry.getEndpointByNodeID("math.pow", "server-2");
 		expect(endpoint).toBeUndefined();
 	});
 
 	it("should not return endpoint if node is not exist", () => {
-		let endpoint = registry.getActionByNodeID("$node.list", "server-123");
+		let endpoint = registry.getEndpointByNodeID("$node.list", "server-123");
 		expect(endpoint).toBeUndefined();
 	});
 
