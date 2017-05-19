@@ -160,8 +160,48 @@ describe("Test registry.hasAction", () => {
 
 });
 
-describe("Test registry.hasAction", () => {
-	const broker = new ServiceBroker({ internalActions: false });
+describe("Test registry.getLocalActions", () => {
+	describe("Test without internal actions", () => {
+		const broker = new ServiceBroker({ internalActions: false });
+		const registry = broker.serviceRegistry;
+
+		let action = {
+			name: "posts.find",
+			cache: true,
+			custom: 5,
+			handler: jest.fn()
+		};
+
+		it("should returns empty list", () => {
+			expect(registry.getLocalActions()).toEqual([]);
+		});
+
+		it("should return empty list because only remote endpoint registered", () => {
+			registry.register("server-2", action);
+			expect(registry.getLocalActions()).toEqual([]);
+		});
+
+		it("should return action list", () => {
+			registry.register(null, action);
+			expect(registry.getLocalActions()).toEqual([{"cache": true, "custom": 5, "name": "posts.find"}]);
+		});
+
+	});
+
+	describe("Test with internal actions", () => {
+		const broker = new ServiceBroker({ internalActions: true });
+		const registry = broker.serviceRegistry;
+
+		it("should returns the internal list", () => {
+			expect(registry.getLocalActions().length).toBe(4);
+			expect(registry.getLocalActions()).toEqual([{"cache": false, "name": "$node.list"}, {"cache": false, "name": "$node.services"}, {"cache": false, "name": "$node.actions"}, {"cache": false, "name": "$node.health"}]);
+		});
+
+	});
+});
+
+describe("Test registry.getActionList", () => {
+	const broker = new ServiceBroker({ internalActions: true });
 	const registry = broker.serviceRegistry;
 
 	let action = {
@@ -171,18 +211,111 @@ describe("Test registry.hasAction", () => {
 		handler: jest.fn()
 	};
 
-	it("should returns empty list", () => {
-		expect(registry.getLocalActions()).toEqual({});
+	it("should return empty list", () => {
+		expect(registry.getActionList(true, true, false)).toEqual([]);
+	});
+
+	it("should return internal actions", () => {
+		expect(registry.getActionList(false, false, false)).toEqual([
+			{
+				"action": {
+					"cache": false,
+					"name": "$node.list"
+				},
+				"available": true,
+				"count": 1,
+				"hasLocal": true,
+				"name": "$node.list"
+			},
+			{
+				"action": {
+					"cache": false,
+					"name": "$node.services"
+				},
+				"available": true,
+				"count": 1,
+				"hasLocal": true,
+				"name": "$node.services"
+			},
+			{
+				"action": {
+					"cache": false,
+					"name": "$node.actions"
+				},
+				"available": true,
+				"count": 1,
+				"hasLocal": true,
+				"name": "$node.actions"
+			},
+			{
+				"action": {
+					"cache": false,
+					"name": "$node.health"
+				},
+				"available": true,
+				"count": 1,
+				"hasLocal": true,
+				"name": "$node.health"
+			}
+		]);
+	});
+
+	it("should return remote actions", () => {
+		registry.register("server-2", action);
+		expect(registry.getActionList(false, true, false)).toEqual([{"action": {"cache": true, "custom": 5, "name": "posts.find"}, "available": true, "count": 1, "hasLocal": false, "name": "posts.find"}]);
 	});
 
 	it("should return empty list because only remote endpoint registered", () => {
-		registry.register("server-2", action);
-		expect(registry.getLocalActions()).toEqual({});
+		expect(registry.getActionList(true, true, false)).toEqual([]);
 	});
 
 	it("should return action list", () => {
 		registry.register(null, action);
-		expect(registry.getLocalActions()).toEqual({"posts.find": {"cache": true, "custom": 5, "name": "posts.find"}});
+		expect(registry.getActionList(false, true, false)).toEqual([{"action": {"cache": true, "custom": 5, "name": "posts.find"}, "available": true, "count": 2, "hasLocal": true, "name": "posts.find"}]);
+	});
+
+	it("should return action list", () => {
+		registry.register("server-3", {
+			name: "hello.world"
+		});
+		expect(registry.getActionList(false, true, true)).toEqual([
+			{
+				"action": {
+					"cache": true,
+					"custom": 5,
+					"name": "posts.find"
+				},
+				"available": true,
+				"count": 2,
+				"endpoints": [
+					{
+						"nodeID": "server-2",
+						"state": "close"
+					},
+					{
+						"nodeID": null,
+						"state": "close"
+					}
+				],
+				"hasLocal": true,
+				"name": "posts.find"
+			},
+			{
+				"action": {
+					"name": "hello.world"
+				},
+				"available": true,
+				"count": 1,
+				"endpoints": [
+					{
+						"nodeID": "server-3",
+						"state": "close"
+					}
+				],
+				"hasLocal": false,
+				"name": "hello.world"
+			}
+		]);
 	});
 
 });

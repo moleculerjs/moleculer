@@ -306,6 +306,7 @@ describe("Test Transit.messageHandler", () => {
 		it("should call resolve with data", () => {
 			let data = { id: 5, name: "John" };
 			let req = { 
+				action: { name: "posts.find" },
 				resolve: jest.fn(() => Promise.resolve()), 
 				reject: jest.fn(() => Promise.resolve()) 
 			};
@@ -324,6 +325,7 @@ describe("Test Transit.messageHandler", () => {
 		
 		it("should call reject with error", () => {
 			let req = { 
+				action: { name: "posts.find" },
 				resolve: jest.fn(), 
 				reject: jest.fn(err => Promise.reject(err)) 
 			};
@@ -500,7 +502,7 @@ describe("Test Transit.discoverNodes", () => {
 
 describe("Test Transit.sendNodeInfo", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter(), internalActions: false });
 	const transit = broker.transit;
 
 	transit.publish = jest.fn();
@@ -511,7 +513,7 @@ describe("Test Transit.sendNodeInfo", () => {
 		const packet = transit.publish.mock.calls[0][0];
 		expect(packet).toBeInstanceOf(P.PacketInfo);
 		expect(packet.target).toBe("node2");
-		expect(packet.payload.actions).toBe("{}");
+		expect(packet.payload.actions).toBe("[]");
 		expect(packet.payload.ipList).toBeInstanceOf(Array);
 		expect(packet.payload.versions).toBeDefined();
 		expect(packet.payload.versions.node).toBe(process.version);
@@ -618,9 +620,9 @@ describe("Test Transit node & heartbeat handling", () => {
 		};
 		let nodeInfo = { 
 			sender: "server-1", 
-			actions: {
-				"user.create": remoteAction
-			} 
+			actions: [
+				remoteAction
+			]
 		};
 
 		it("should emit a new node event & register remote actions", () => {

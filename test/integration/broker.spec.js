@@ -69,58 +69,158 @@ describe("Test broker.registerInternalActions", () => {
 
 	it("should return list of actions", () => {
 		return broker.call("$node.actions").then(res => {
-			expect(res).toEqual({
-				"math.add": {
-					"cache": false,
-					"name": "math.add",
-					"version": undefined
+			expect(res).toEqual([
+				{
+					"action": {
+						"cache": false,
+						"name": "$node.list"
+					},
+					"available": true,
+					"count": 1,
+					"hasLocal": true,
+					"name": "$node.list"
 				},
-				"math.div": {
-					"cache": false,
-					"name": "math.div",
-					"version": undefined
+				{
+					"action": {
+						"cache": false,
+						"name": "$node.services"
+					},
+					"available": true,
+					"count": 1,
+					"hasLocal": true,
+					"name": "$node.services"
 				},
-				"math.mult": {
-					"cache": false,
-					"name": "math.mult",
-					"params": {
-						"a": {
-							"type": "number"
+				{
+					"action": {
+						"cache": false,
+						"name": "$node.actions"
+					},
+					"available": true,
+					"count": 1,
+					"hasLocal": true,
+					"name": "$node.actions"
+				},
+				{
+					"action": {
+						"cache": false,
+						"name": "$node.health"
+					},
+					"available": true,
+					"count": 1,
+					"hasLocal": true,
+					"name": "$node.health"
+				},
+				{
+					"action": {
+						"cache": false,
+						"name": "$node.stats"
+					},
+					"available": true,
+					"count": 1,
+					"hasLocal": true,
+					"name": "$node.stats"
+				},
+				{
+					"action": {
+						"cache": false,
+						"name": "math.add",
+						"version": undefined
+					},
+					"available": true,
+					"count": 1,
+					"hasLocal": true,
+					"name": "math.add"
+				},
+				{
+					"action": {
+						"cache": false,
+						"name": "math.sub",
+						"version": undefined
+					},
+					"available": true,
+					"count": 1,
+					"hasLocal": true,
+					"name": "math.sub"
+				},
+				{
+					"action": {
+						"cache": false,
+						"name": "math.mult",
+						"params": {
+							"a": {
+								"type": "number"
+							},
+							"b": {
+								"type": "number"
+							}
 						},
-						"b": {
-							"type": "number"
-						}
+						"version": undefined
 					},
-					"version": undefined
+					"available": true,
+					"count": 1,
+					"hasLocal": true,
+					"name": "math.mult"
 				},
-				"math.sub": {
-					"cache": false,
-					"name": "math.sub",
-					"version": undefined
-				},
-				"posts.author": {
-					"cache": false,
-					"name": "posts.author",
-					"version": undefined
-				},
-				"posts.delayed": {
-					"cache": false,
-					"name": "posts.delayed",
-					"version": undefined
-				},
-				"posts.find": {
-					"cache": true,
-					"name": "posts.find",
-					"version": undefined
-				},
-				"posts.get": {
-					"cache": {
-						"keys": ["id"]
+				{
+					"action": {
+						"cache": false,
+						"name": "math.div",
+						"version": undefined
 					},
-					"name": "posts.get",
-					"version": undefined
+					"available": true,
+					"count": 1,
+					"hasLocal": true,
+					"name": "math.div"
+				},
+				{
+					"action": {
+						"cache": true,
+						"name": "posts.find",
+						"version": undefined
+					},
+					"available": true,
+					"count": 1,
+					"hasLocal": true,
+					"name": "posts.find"
+				},
+				{
+					"action": {
+						"cache": false,
+						"name": "posts.delayed",
+						"version": undefined
+					},
+					"available": true,
+					"count": 1,
+					"hasLocal": true,
+					"name": "posts.delayed"
+				},
+				{
+					"action": {
+						"cache": {
+							"keys": [
+								"id"
+							]
+						},
+						"name": "posts.get",
+						"version": undefined
+					},
+					"available": true,
+					"count": 1,
+					"hasLocal": true,
+					"name": "posts.get"
+				},
+				{
+					"action": {
+						"cache": false,
+						"name": "posts.author",
+						"version": undefined
+					},
+					"available": true,
+					"count": 1,
+					"hasLocal": true,
+					"name": "posts.author"
 				}
-			});
+			]);
 		});
 	});
 
