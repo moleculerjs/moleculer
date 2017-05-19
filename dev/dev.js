@@ -19,7 +19,7 @@ let broker1 = new ServiceBroker({
 	}
 });
 
-//broker1.loadService("./examples/math.service");
+broker1.loadService("./examples/math.service");
 //broker1.loadService("./examples/post.service");
 
 let broker2 = new ServiceBroker({
@@ -30,7 +30,7 @@ let broker2 = new ServiceBroker({
 	serializer: new Serializer(),
 	statistics: true
 });
-
+/*
 broker2.createService({
 	name: "devil",
 	actions: {
@@ -38,9 +38,9 @@ broker2.createService({
 			throw new CustomError("Run!", 666, { a: 100 });
 		}
 	}
-});
+});*/
 broker2.loadService("./examples/math.service");
-//broker2.loadService("./examples/file.service");
+broker2.loadService("./examples/file.service");
 //broker1.loadService("./examples/user.service");
 
 
