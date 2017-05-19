@@ -46,12 +46,13 @@ class ServiceRegistry {
 	 */
 	register(nodeID, action) {
 		// Append action by name
-		let item = this.actions.get(action.name);
-		if (!item) {
-			item = new EndpointList(this.broker, this.opts);
-			this.actions.set(action.name, item);
+		let list = this.actions.get(action.name);
+		if (!list) {
+			list = new EndpointList(this.broker, this.opts);
+			list.internal = action.name.startsWith("$");
+			this.actions.set(action.name, list);
 		}
-		return item.add(nodeID, action);
+		return list.add(nodeID, action);
 	}	
 
 	/**
@@ -63,13 +64,13 @@ class ServiceRegistry {
 	 * @memberOf ServiceRegistry
 	 */
 	deregister(nodeID, action) {
-		let item = this.actions.get(action.name);
-		if (item) {
-			item.removeByNode(nodeID);
+		let list = this.actions.get(action.name);
+		if (list) {
+			list.removeByNode(nodeID);
 			/* Don't delete because maybe node only disconnected and will come back.
 			   So the action is exists, just now it is not available.
 			
-			if (item.count() == 0) {
+			if (list.count() == 0) {
 				this.actions.delete(action.name);
 			}
 			this.emitLocal(`unregister.action.${action.name}`, { service, action, nodeID });
@@ -283,6 +284,11 @@ class EndpointList {
 		// No items
 		if (this.list.length === 0) {
 			return null;
+		}
+
+		// If internal, return the local always
+		if (this.internal) {
+			return this.localEndpoint;
 		}
 
 		// Only 1 item

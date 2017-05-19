@@ -148,7 +148,7 @@ function startREPL(broker) {
 				let getStateLabel = (state) => {
 					switch(state) {
 					case C.CIRCUIT_CLOSE:		return chalk.bgGreen.white( "   OK   ");
-					case C.CIRCUIT_HALF_OPEN: 	return chalk.bgYellow.black("UNSTABLE");
+					case C.CIRCUIT_HALF_OPEN: 	return chalk.bgYellow.black(" TRYING ");
 					case C.CIRCUIT_OPEN: 		return chalk.bgRed.white(	" FAILED ");
 					}
 				};

@@ -10,18 +10,25 @@ let broker1 = new ServiceBroker({
 	logger: console,
 	logLevel: "info",
 	transporter: new Transporter(),
-	serializer: new Serializer()
+	serializer: new Serializer(),
+	circuitBreaker: {
+		enabled: true
+	},
+	registry: {
+		preferLocal: false
+	}
 });
 
-broker1.loadService("./examples/math.service");
-broker1.loadService("./examples/post.service");
+//broker1.loadService("./examples/math.service");
+//broker1.loadService("./examples/post.service");
 
 let broker2 = new ServiceBroker({
 	nodeID: "node2",
 	logger: console,
 	logLevel: "info",
 	transporter: new Transporter(),
-	serializer: new Serializer()
+	serializer: new Serializer(),
+	statistics: true
 });
 
 broker2.createService({
@@ -33,8 +40,8 @@ broker2.createService({
 	}
 });
 broker2.loadService("./examples/math.service");
-broker2.loadService("./examples/file.service");
-broker1.loadService("./examples/user.service");
+//broker2.loadService("./examples/file.service");
+//broker1.loadService("./examples/user.service");
 
 
 broker1.Promise.resolve()
