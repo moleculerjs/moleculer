@@ -17,14 +17,14 @@ describe("Test Errors", () => {
 	});
 
 	it("test ServiceNotFoundError", () => {
-		let err = new errors.ServiceNotFoundError("Something went wrong!", "posts.find");
+		let err = new errors.ServiceNotFoundError("Something went wrong!", { action: "posts.find" });
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err).toBeInstanceOf(errors.ServiceNotFoundError);
 		expect(err.code).toBe(501);
 		expect(err.name).toBe("ServiceNotFoundError");
 		expect(err.message).toBe("Something went wrong!");
-		expect(err.action).toBe("posts.find");
+		expect(err.data).toEqual({ action: "posts.find" });
 	});
 
 	it("test RequestTimeoutError", () => {
