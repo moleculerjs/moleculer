@@ -91,6 +91,13 @@ class ServiceRegistry {
 		return item;
 	}
 
+	getActionByNodeID(actionName, nodeID) {
+		let item = this.findAction(actionName);
+		if (item) {
+			return item.getActionByNodeID(nodeID);
+		}
+	}
+
 	/**
 	 * Has an action by name
 	 * 
@@ -323,6 +330,10 @@ class EndpointList {
 		const item = this.nextAvailable();
 		return item != null ? item.action : null;
 	}
+
+	getActionByNodeID(nodeID) {
+		return this.list.find(item => item.nodeID == nodeID);
+	}	
 
 	count() {
 		return this.list.length;

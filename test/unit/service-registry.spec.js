@@ -161,6 +161,43 @@ describe("Test registry.findAction with internal actions", () => {
 
 });
 
+describe("Test registry.getActionByNodeID", () => {
+	const broker = new ServiceBroker({ internalActions: true, registry: { preferLocal: false } });
+	const registry = broker.serviceRegistry;
+
+	let action = {
+		name: "$node.list",
+		custom: 100,
+		handler: jest.fn()
+	};
+
+	registry.register("server-2", action);
+
+	it("check the count of nodes", () => {
+		let item = registry.findAction("$node.list");
+		expect(item.count()).toBe(2);
+	});
+
+	it("should return the endpoint if action is exist", () => {
+		let endpoint = registry.getActionByNodeID("$node.list", "server-2");
+		expect(endpoint).toBeDefined();
+		expect(endpoint.local).toBe(false);
+		expect(endpoint.action).toBeDefined();
+		expect(endpoint.action.custom).toBe(100);
+	});
+
+	it("should not return endpoint if action is not exist", () => {
+		let endpoint = registry.getActionByNodeID("math.pow", "server-2");
+		expect(endpoint).toBeUndefined();
+	});
+
+	it("should not return endpoint if node is not exist", () => {
+		let endpoint = registry.getActionByNodeID("$node.list", "server-123");
+		expect(endpoint).toBeUndefined();
+	});
+
+});
+
 describe("Test registry.hasAction", () => {
 	const broker = new ServiceBroker({ internalActions: false });
 	const registry = broker.serviceRegistry;
