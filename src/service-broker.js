@@ -437,8 +437,14 @@ class ServiceBroker {
 
 		addAction("$node.list", () => {
 			let res = [];
+			const localNode = this.transit.getNodeInfo();
+			localNode.id = null;
+			localNode.available = true;
+			res.push(localNode);
+			
 			this.transit.nodes.forEach(node => {
-				res.push(pick(node, ["nodeID", "available"]));
+				//res.push(pick(node, ["nodeID", "available"]));
+				res.push(node);
 			});
 
 			return res;
@@ -447,7 +453,7 @@ class ServiceBroker {
 		addAction("$node.services", () => {
 			let res = [];
 			this.services.forEach(service => {
-				res.push(pick(service, ["name", "version"]));
+				res.push(pick(service, ["name", "version", "settings"]));
 			});
 
 			return res;
