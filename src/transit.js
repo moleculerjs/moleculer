@@ -44,6 +44,13 @@ class Transit {
 		this.heartbeatTimer = null;
 		this.checkNodesTimer = null;
 
+		this.stat = {
+			packets: {
+				sent: 0,
+				received: 0
+			}
+		};
+
 		if (this.tx)
 			this.tx.init(this, this.messageHandler.bind(this), this.afterConnect.bind(this));
 
@@ -209,6 +216,8 @@ class Transit {
 		if (msg == null) {
 			throw new Error("Missing packet!");
 		}
+
+		this.stat.packets.received = this.stat.packets.received + 1;
 
 		const packet = P.Packet.deserialize(this, cmd, msg);
 		const payload = packet.payload;
@@ -478,6 +487,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	publish(packet) {
+		this.stat.packets.sent = this.stat.packets.sent + 1;
 		return this.tx.publish(packet);
 	}
 

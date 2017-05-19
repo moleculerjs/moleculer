@@ -103,6 +103,17 @@ class ServiceRegistry {
 	}	
 
 	/**
+	 * Get count of actions
+	 * 
+	 * @returns 
+	 * 
+	 * @memberof ServiceRegistry
+	 */
+	count() {
+		return this.actions.size;
+	}
+
+	/**
 	 * Get a list of names of local actions
 	 * 
 	 * @returns

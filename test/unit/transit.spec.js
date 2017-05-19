@@ -24,6 +24,12 @@ describe("Test Transporter constructor", () => {
 		expect(transit.tx).toBe(transporter);
 		expect(transit.nodes).toBeInstanceOf(Map);
 		expect(transit.pendingRequests).toBeInstanceOf(Map);
+		expect(transit.stat).toEqual({
+			packets: {
+				sent: 0,
+				received: 0
+			}
+		});
 	});
  
 	it("create instance with options", () => {
@@ -212,6 +218,7 @@ describe("Test Transit.messageHandler", () => {
 	});
 
 	it("should throw Error if msg not valid", () => {
+		expect(transit.stat.packets.received).toBe(0);
 		//transit.deserialize = jest.fn(() => null);
 		expect(() => {
 			transit.messageHandler("EVENT");
@@ -228,6 +235,7 @@ describe("Test Transit.messageHandler", () => {
 
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
 		expect(broker.emitLocal).toHaveBeenCalledWith(msg.event, "John Doe", "remote");
+		expect(transit.stat.packets.received).toBe(1);
 	});
 
 	describe("Test 'REQ'", () => {
@@ -565,11 +573,13 @@ describe("Test Transit.publish", () => {
 	broker.serializer.serialize = jest.fn(o => JSON.stringify(o));
 
 	it("should call transporter.publish", () => {
+		expect(transit.stat.packets.sent).toBe(0);
 		let packet = new P.PacketEvent("user.created", { a: "John Doe" });
 		transit.publish(packet);
 		expect(transporter.publish).toHaveBeenCalledTimes(1);
 		const p = transporter.publish.mock.calls[0][0];
 		expect(p).toBe(packet);
+		expect(transit.stat.packets.sent).toBe(1);
 	});
 
 });

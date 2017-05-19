@@ -160,6 +160,26 @@ describe("Test registry.hasAction", () => {
 
 });
 
+describe("Test registry.count", () => {
+	const broker = new ServiceBroker({ internalActions: false });
+	const registry = broker.serviceRegistry;
+
+	let action = {
+		name: "posts.find",
+		handler: jest.fn()
+	};
+
+	it("should returns with 0", () => {
+		expect(registry.count()).toBe(0);
+	});
+
+	it("should return with 1", () => {
+		registry.register("server-2", action);
+		expect(registry.count()).toBe(1);
+	});
+
+});
+
 describe("Test registry.getLocalActions", () => {
 	describe("Test without internal actions", () => {
 		const broker = new ServiceBroker({ internalActions: false });

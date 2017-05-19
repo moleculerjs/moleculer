@@ -148,7 +148,7 @@ class ServiceBroker {
 		if (this.options.statistics)
 			this.statistics = new BrokerStatistics(this);
 
-		this.getNodeHealthInfo = healthInfo;
+		this.getNodeHealthInfo = () => healthInfo(this);
 
 		// Register internal actions
 		if (this.options.internalActions)

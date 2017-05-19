@@ -7,9 +7,10 @@
 "use strict";
 
 const os = require("os");
+const _ = require("lodash");
 const { getIpList } = require("./utils");
 
-module.exports = function() {
+module.exports = function(broker) {
 	return Promise.resolve({})
 
 		// CPU
@@ -69,6 +70,17 @@ module.exports = function() {
 			res.net = {
 				ip:  getIpList()
 			};
+
+			return res;
+		})
+
+		// Transit stat
+		.then(res => {
+			if (broker.transit) {
+				res.transit = {
+					stat: _.clone(broker.transit.stat)
+				};
+			}
 
 			return res;
 		})
