@@ -40,7 +40,7 @@ let broker = new ServiceBroker({
 ```
 
 ## REPL mode
-Broker has an interactive REPL mode. You can load services, call actions, emit events, subscribe & unsubscribe events from your console.
+Broker has an interactive REPL mode. You can load services, call actions, emit events, subscribe & unsubscribe events from your console. You can list registered nodes & actions.
 
 **Start REPL mode**
 ```js
@@ -50,7 +50,41 @@ let broker = new ServiceBroker({ logger: console });
 broker.repl();
 ```
 
+**Commands**
+```
+  Commands:
+
+    help [command...]                      Provides help for a given command.
+    exit                                   Exits application.
+    q                                      Exit application
+    call <actionName> [params]             Call an action
+    dcall <nodeID> <actionName> [params]   Call a direct action
+    emit <eventName> [payload]             Emit an event
+    load <servicePath>                     Load a service from file
+    loadFolder <serviceFolder> [fileMask]  Load all service from folder
+    subscribe <eventName>                  Subscribe to an event
+    unsubscribe <eventName>                Unsubscribe from an event
+    actions [options]                      List of actions
+    nodes                                  List of nodes
+    info                                   Information from broker
+```
+
 ### REPL Commands
+
+**List nodes**
+```
+mol $ nodes
+```
+
+**List actions**
+```
+mol $ actions
+```
+
+**Show common informations**
+```
+mol $ info
+```
 
 **Call an action**
 ```
@@ -60,6 +94,11 @@ mol $ call "test.hello"
 **Call an action with params**
 ```
 mol $ call "math.add" '{"a": 5, "b": 4}'
+```
+
+**Direct call**
+```
+mol $ dcall server-2 "$node.health"
 ```
 
 **Emit an event**
@@ -87,6 +126,14 @@ mol $ load "./math.service.js"
 mol $ load "./services"
 ```
 
+## Direct call
+There is available to call an action directly on a specified node. For use, you need to set `nodeID` in options of call.
+
+**Example**
+
+```js
+broker.call("user.create", {}, { timeout: 5000, nodeID: "server-12" });
+```
 
 ## Mergeable schemas in `createService`
 Now there is a second parameter of `broker.createService`. With it you can override the schema properties. You can use it to use a built-in service & override some props.

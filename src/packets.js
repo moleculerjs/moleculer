@@ -51,8 +51,8 @@ class Packet {
 	/**
 	 * Creates an instance of Packet.
 	 * 
-	 * @param {any} transit 
-	 * @param {any} type 
+	 * @param {Transit} transit 
+	 * @param {String} type 
 	 * @param {any} target 
 	 * 
 	 * @memberOf Packet
@@ -130,8 +130,9 @@ class PacketDisconnect extends Packet {
  * @extends {Packet}
  */
 class PacketHeartbeat extends Packet {
-	constructor(transit) {
+	constructor(transit, uptime) {
 		super(transit, PACKET_HEARTBEAT);
+		this.payload.uptime = uptime;
 	}
 }
 
@@ -142,14 +143,8 @@ class PacketHeartbeat extends Packet {
  * @extends {Packet}
  */
 class PacketDiscover extends Packet {
-	constructor(transit, actions) {
+	constructor(transit) {
 		super(transit, PACKET_DISCOVER);
-		this.payload.actions = JSON.stringify(actions);
-	}
-
-	transformPayload(payload) {
-		super.transformPayload(payload);
-		payload.actions = JSON.parse(payload.actions);
 	}
 }
 
@@ -160,9 +155,14 @@ class PacketDiscover extends Packet {
  * @extends {Packet}
  */
 class PacketInfo extends Packet {
-	constructor(transit, target, actions) {
+	constructor(transit, target, info) {
 		super(transit, PACKET_INFO, target);
-		this.payload.actions = JSON.stringify(actions);
+		if (info) {
+			this.payload.actions = JSON.stringify(info.actions);
+			this.payload.ipList = info.ipList;
+			this.payload.versions = info.versions;
+			this.payload.uptime = info.uptime;
+		}
 	}
 
 	transformPayload(payload) {

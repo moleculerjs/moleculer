@@ -964,7 +964,7 @@ describe("Test broker.call method", () => {
 				expect(err).toBeDefined();
 				expect(err).toBeInstanceOf(ServiceNotFoundError);
 				expect(err.message).toBe("Action 'posts.noaction' is not registered!");
-				expect(err.action).toBe("posts.noaction");
+				expect(err.data).toEqual({ action: "posts.noaction" });
 			});
 		});
 
@@ -974,7 +974,17 @@ describe("Test broker.call method", () => {
 				expect(err).toBeDefined();
 				expect(err).toBeInstanceOf(ServiceNotFoundError);
 				expect(err.message).toBe("Action 'posts.noHandler' is not available!");
-				expect(err.action).toBe("posts.noHandler");
+				expect(err.data).toEqual({ action: "posts.noHandler" });
+			});
+		});
+
+		it("should reject if no action on node", () => {
+			broker.deregisterAction(null, { name: "posts.noHandler" });
+			return broker.call("posts.noHandler", {}, { nodeID: "node-123"}).catch(err => {
+				expect(err).toBeDefined();
+				expect(err).toBeInstanceOf(ServiceNotFoundError);
+				expect(err.message).toBe("Action 'posts.noHandler' is not available on 'node-123' node!");
+				expect(err.data).toEqual({ action: "posts.noHandler", nodeID: "node-123" });
 			});
 		});
 
@@ -1180,6 +1190,53 @@ describe("Test broker.call method", () => {
 
 				// expect(ctx._metricStart).toHaveBeenCalledTimes(1);
 				// expect(ctx._metricFinish).toHaveBeenCalledTimes(1);				
+			});
+		});
+
+	});
+
+
+	describe("Test direct remote call", () => {
+
+		let broker = new ServiceBroker({ 
+			transporter: new FakeTransporter(), 
+			internalActions: false, 
+			metrics: true
+		});
+		broker.registerAction("server-1", {	name: "user.create" });
+		broker.registerAction("server-2", {	name: "user.create" });
+		broker.registerAction("server-3", {	name: "user.create" });
+		broker.registerAction("server-4", {	name: "user.create" });
+		broker.transit.request = jest.fn((ctx) => Promise.resolve({ ctx }));
+			
+		it("should call transit.request with nodeID 'server-3'", () => {
+			return broker.call("user.create", {}, { nodeID: "server-3" }).then(({ ctx }) => {
+				expect(ctx).toBeDefined();
+				expect(ctx.broker).toBe(broker);
+				expect(ctx.nodeID).toBe("server-3");
+				expect(ctx.level).toBe(1);
+				expect(ctx.requestID).toBeNull();
+				expect(ctx.action.name).toBe("user.create");
+				expect(ctx.params).toEqual({});
+
+				expect(broker.transit.request).toHaveBeenCalledTimes(1);
+				expect(broker.transit.request).toHaveBeenCalledWith(ctx);
+			});
+		});
+			
+		it("should call transit.request with nodeID 'server-3'", () => {
+			broker.transit.request.mockClear();
+			return broker.call("user.create", {}, { nodeID: "server-1" }).then(({ ctx }) => {
+				expect(ctx).toBeDefined();
+				expect(ctx.broker).toBe(broker);
+				expect(ctx.nodeID).toBe("server-1");
+				expect(ctx.level).toBe(1);
+				expect(ctx.requestID).toBeNull();
+				expect(ctx.action.name).toBe("user.create");
+				expect(ctx.params).toEqual({});
+
+				expect(broker.transit.request).toHaveBeenCalledTimes(1);
+				expect(broker.transit.request).toHaveBeenCalledWith(ctx);
 			});
 		});
 

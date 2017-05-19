@@ -7,8 +7,10 @@
 "use strict";
 
 const os = require("os");
+const _ = require("lodash");
+const { getIpList } = require("./utils");
 
-module.exports = function() {
+module.exports = function(broker) {
 	return Promise.resolve({})
 
 		// CPU
@@ -56,7 +58,8 @@ module.exports = function() {
 			res.process = {
 				pid: process.pid,
 				memory: process.memoryUsage(),
-				uptime: process.uptime()
+				uptime: process.uptime(),
+				argv: process.argv
 			};
 
 			return res;
@@ -65,20 +68,19 @@ module.exports = function() {
 		// Network interfaces
 		.then(res => {
 			res.net = {
-				ip: []
+				ip:  getIpList()
 			};
-			res.mem.percent = (res.mem.free * 100 / res.mem.total);
 
-			const interfaces = os.networkInterfaces();
-			for (let iface in interfaces) {
-				for (let i in interfaces[iface]) {
-					const f = interfaces[iface][i];
-					if (f.family === "IPv4" && !f.internal) {
-						res.net.ip.push(f.address);
-						break;
-					}
-				}
-			}					
+			return res;
+		})
+
+		// Transit stat
+		.then(res => {
+			if (broker.transit) {
+				res.transit = {
+					stat: _.clone(broker.transit.stat)
+				};
+			}
 
 			return res;
 		})

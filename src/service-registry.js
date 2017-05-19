@@ -46,12 +46,13 @@ class ServiceRegistry {
 	 */
 	register(nodeID, action) {
 		// Append action by name
-		let item = this.actions.get(action.name);
-		if (!item) {
-			item = new EndpointList(this.broker, this.opts);
-			this.actions.set(action.name, item);
+		let list = this.actions.get(action.name);
+		if (!list) {
+			list = new EndpointList(this.broker, this.opts);
+			list.internal = action.name.startsWith("$");
+			this.actions.set(action.name, list);
 		}
-		return item.add(nodeID, action);
+		return list.add(nodeID, action);
 	}	
 
 	/**
@@ -63,13 +64,13 @@ class ServiceRegistry {
 	 * @memberOf ServiceRegistry
 	 */
 	deregister(nodeID, action) {
-		let item = this.actions.get(action.name);
-		if (item) {
-			item.removeByNode(nodeID);
+		let list = this.actions.get(action.name);
+		if (list) {
+			list.removeByNode(nodeID);
 			/* Don't delete because maybe node only disconnected and will come back.
-			   So the action is exists, just now it is not available.
+			   So the action is exists, just there is not available.
 			
-			if (item.count() == 0) {
+			if (list.count() == 0) {
 				this.actions.delete(action.name);
 			}
 			this.emitLocal(`unregister.action.${action.name}`, { service, action, nodeID });
@@ -91,6 +92,22 @@ class ServiceRegistry {
 	}
 
 	/**
+	 * Get endpoint by nodeID
+	 * 
+	 * @param {any} actionName 
+	 * @param {any} nodeID 
+	 * @returns 
+	 * 
+	 * @memberof ServiceRegistry
+	 */
+	getEndpointByNodeID(actionName, nodeID) {
+		let item = this.findAction(actionName);
+		if (item) {
+			return item.getEndpointByNodeID(nodeID);
+		}
+	}
+
+	/**
 	 * Has an action by name
 	 * 
 	 * @param {any} actionName
@@ -103,6 +120,17 @@ class ServiceRegistry {
 	}	
 
 	/**
+	 * Get count of actions
+	 * 
+	 * @returns 
+	 * 
+	 * @memberof ServiceRegistry
+	 */
+	count() {
+		return this.actions.size;
+	}
+
+	/**
 	 * Get a list of names of local actions
 	 * 
 	 * @returns
@@ -110,14 +138,53 @@ class ServiceRegistry {
 	 * @memberOf ServiceRegistry
 	 */
 	getLocalActions() {
-		let res = {};
+		let res = [];
 		this.actions.forEach((entry, key) => {
 			let endpoint = entry.getLocalEndpoint();
-			if (endpoint && !/^\$node/.test(key)) // Skip internal actions
-				res[key] = omit(endpoint.action, ["handler", "service"]);
+			if (endpoint)
+				res.push(omit(endpoint.action, ["handler", "service"]));
 		});
 		return res;
 	}	
+
+	getActionList(onlyLocal = false, skipInternal = false, withEndpoints = false) {
+		let res = [];
+
+		this.actions.forEach((entry, key) => {
+			if (skipInternal && /^\$node/.test(key))
+				return;
+
+			if (onlyLocal && !entry.hasLocal())
+				return;
+
+			let item = {
+				name: key,
+				count: entry.count(),
+				hasLocal: entry.hasLocal(),
+				available: entry.hasAvailable()
+			};
+
+			if (item.count > 0) {
+				const ep = entry.list[0];
+				item.action = omit(ep.action, ["handler", "service"]);
+			}
+
+			if (withEndpoints) {
+				if (item.count > 0) {
+					item.endpoints = entry.list.map(endpoint => {
+						return {
+							nodeID: endpoint.nodeID,
+							state: endpoint.state
+						};
+					});
+				}
+			}
+
+			res.push(item);
+		});
+
+		return res;
+	}
 }
 
 class Endpoint {
@@ -235,6 +302,11 @@ class EndpointList {
 			return null;
 		}
 
+		// If internal, return the local always
+		if (this.internal) {
+			return this.localEndpoint;
+		}
+
 		// Only 1 item
 		if (this.list.length === 1) {
 			// No need to select a node, return the only one
@@ -268,6 +340,12 @@ class EndpointList {
 		return item != null ? item.action : null;
 	}
 
+	getEndpointByNodeID(nodeID) {
+		const item = this.list.find(item => item.nodeID == nodeID);
+		if (item && item.available())
+			return item;
+	}	
+
 	count() {
 		return this.list.length;
 	}
@@ -278,6 +356,10 @@ class EndpointList {
 
 	hasLocal() {
 		return this.localEndpoint != null;
+	}
+
+	hasAvailable() {
+		return this.list.find(endpoint => endpoint.available()) != null;
 	}
 
 	removeByAction(action) {

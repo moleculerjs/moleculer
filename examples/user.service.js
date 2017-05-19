@@ -20,6 +20,7 @@ module.exports = function(broker) {
 		actions: {
 			find: {
 				cache: false,
+				description: "List all users",
 				handler(ctx) {
 					//this.logger.debug("Find users...");
 					return users;
@@ -31,6 +32,8 @@ module.exports = function(broker) {
 				cache: {
 					keys: ["id", "withPostCount"]
 				},
+				description: "Get a user by ID. This is a very long description, because we need to test the line wrapping feature of `table` component",
+				//description: "Get a user by ID.",
 				handler(ctx) {
 					//this.logger.debug("Get user...", ctx.params);
 					const user = _.cloneDeep(this.findByID(ctx.params.id));

@@ -148,7 +148,7 @@ class ServiceBroker {
 		if (this.options.statistics)
 			this.statistics = new BrokerStatistics(this);
 
-		this.getNodeHealthInfo = healthInfo;
+		this.getNodeHealthInfo = () => healthInfo(this);
 
 		// Register internal actions
 		if (this.options.internalActions)
@@ -172,14 +172,15 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	start() {
-		// Call service `started` handlers
-		this.services.forEach(service => {
-			if (service && service.schema && _.isFunction(service.schema.started)) {
-				service.schema.started.call(service);
-			}
-		});
-
 		return Promise.resolve()
+		.then(() => {
+			// Call service `started` handlers
+			this.services.forEach(service => {
+				if (service && service.schema && _.isFunction(service.schema.started)) {
+					service.schema.started.call(service);
+				}
+			});
+		})
 		.then(() => {
 			if (this.transit)
 				return this.transit.connect();
@@ -192,26 +193,30 @@ class ServiceBroker {
 	/**
 	 * Stop broker. If set transport, transport.disconnect will be called.
 	 * 
-	 * 
 	 * @memberOf ServiceBroker
 	 */
 	stop() {
-		// Call service `started` handlers
-		this.services.forEach(service => {
-			if (service && service.schema && _.isFunction(service.schema.stopped)) {
-				service.schema.stopped.call(service);
+		return Promise.resolve()
+		.then(() => {
+			// Call service `started` handlers
+			this.services.forEach(service => {
+				if (service && service.schema && _.isFunction(service.schema.stopped)) {
+					service.schema.stopped.call(service);
+				}
+			});
+		})
+		.then(() => {
+			if (this.transit) {
+				return this.transit.disconnect();
 			}
+		})
+		.then(() => {
+			this.logger.info(`Broker stopped. NodeID: ${this.nodeID}\n`);
+
+			process.removeListener("beforeExit", this._closeFn);
+			process.removeListener("exit", this._closeFn);
+			process.removeListener("SIGINT", this._closeFn);
 		});
-	
-		if (this.transit) {
-			this.transit.disconnect();
-		}
-
-		this.logger.info(`Broker stopped. NodeID: ${this.nodeID}\n`);
-
-		process.removeListener("beforeExit", this._closeFn);
-		process.removeListener("exit", this._closeFn);
-		process.removeListener("SIGINT", this._closeFn);
 	}
 
 	/**
@@ -437,8 +442,14 @@ class ServiceBroker {
 
 		addAction("$node.list", () => {
 			let res = [];
+			const localNode = this.transit.getNodeInfo();
+			localNode.id = null;
+			localNode.available = true;
+			res.push(localNode);
+			
 			this.transit.nodes.forEach(node => {
-				res.push(pick(node, ["nodeID", "available"]));
+				//res.push(pick(node, ["nodeID", "available"]));
+				res.push(node);
 			});
 
 			return res;
@@ -447,14 +458,14 @@ class ServiceBroker {
 		addAction("$node.services", () => {
 			let res = [];
 			this.services.forEach(service => {
-				res.push(pick(service, ["name", "version"]));
+				res.push(pick(service, ["name", "version", "settings"]));
 			});
 
 			return res;
 		});
 
-		addAction("$node.actions", () => {
-			return this.serviceRegistry.getLocalActions();
+		addAction("$node.actions", ctx => {
+			return this.serviceRegistry.getActionList(ctx.params.onlyLocal, ctx.params.skipInternal, ctx.params.withEndpoints);
 		});
 
 		addAction("$node.health", () => this.getNodeHealthInfo());
@@ -656,26 +667,39 @@ class ServiceBroker {
 			endpoint = actionName;
 			actionName = endpoint.action.name;
 		} else {
-			// Find action by name
-			let actions = this.serviceRegistry.findAction(actionName);
-			if (actions == null) {
-				const errMsg = `Action '${actionName}' is not registered!`;
-				this.logger.warn(errMsg);
-				return Promise.reject(new E.ServiceNotFoundError(errMsg, actionName));
-			}
-			
-			// Get an action handler item
-			endpoint = actions.nextAvailable();
-			if (endpoint == null) {
-				const errMsg = `Action '${actionName}' is not available!`;
-				this.logger.warn(errMsg);
-				return Promise.reject(new E.ServiceNotFoundError(errMsg, actionName));
+			if (opts.nodeID) {
+				// Direct call
+				endpoint = this.serviceRegistry.getEndpointByNodeID(actionName, opts.nodeID);
+				if (!endpoint) {
+					const errMsg = `Action '${actionName}' is not available on '${opts.nodeID}' node!`;
+					this.logger.warn(errMsg);
+					return Promise.reject(new E.ServiceNotFoundError(errMsg, { action: actionName, nodeID: opts.nodeID }));
+				}
+
+			} else {
+				// Find action by name
+				let actions = this.serviceRegistry.findAction(actionName);
+				if (actions == null) {
+					const errMsg = `Action '${actionName}' is not registered!`;
+					this.logger.warn(errMsg);
+					return Promise.reject(new E.ServiceNotFoundError(errMsg, { action: actionName }));
+				}
+				
+				// Get an endpoint
+				endpoint = actions.nextAvailable();
+				if (endpoint == null) {
+					const errMsg = `Action '${actionName}' is not available!`;
+					this.logger.warn(errMsg);
+					return Promise.reject(new E.ServiceNotFoundError(errMsg, { action: actionName }));
+				}
 			}
 		}
 
 		// Expose action info
 		let action = endpoint.action;
 		let nodeID = endpoint.nodeID;
+
+		this.logger.debug(`Call action '${actionName}' on node '${nodeID || "<local>"}'`);
 		
 		// Create context
 		let ctx;
@@ -860,5 +884,8 @@ class ServiceBroker {
 	}
 	
 }
+
+// Set version of Moleculer
+ServiceBroker.prototype.MOLECULER_VERSION = require("../package.json").version;
 
 module.exports = ServiceBroker;

@@ -1,4 +1,4 @@
-/*eslint-disable block-scoped-var, no-redeclare, no-control-regex, no-prototype-builtins, no-var, indent*/
+-/*eslint-disable block-scoped-var, no-redeclare, no-control-regex, no-prototype-builtins, no-var, indent*/
 "use strict";
 
 var $protobuf = require("protobufjs/minimal");
@@ -1111,7 +1111,6 @@ $root.packets = (function() {
          * @typedef packets.PacketDiscover$Properties
          * @type {Object}
          * @property {string} sender PacketDiscover sender.
-         * @property {string} actions PacketDiscover actions.
          */
 
         /**
@@ -1134,12 +1133,6 @@ $root.packets = (function() {
         PacketDiscover.prototype.sender = "";
 
         /**
-         * PacketDiscover actions.
-         * @type {string}
-         */
-        PacketDiscover.prototype.actions = "";
-
-        /**
          * Creates a new PacketDiscover instance using the specified properties.
          * @param {packets.PacketDiscover$Properties=} [properties] Properties to set
          * @returns {packets.PacketDiscover} PacketDiscover instance
@@ -1158,7 +1151,6 @@ $root.packets = (function() {
             if (!writer)
                 writer = $Writer.create();
             writer.uint32(/* id 1, wireType 2 =*/10).string(message.sender);
-            writer.uint32(/* id 2, wireType 2 =*/18).string(message.actions);
             return writer;
         };
 
@@ -1190,9 +1182,6 @@ $root.packets = (function() {
                 case 1:
                     message.sender = reader.string();
                     break;
-                case 2:
-                    message.actions = reader.string();
-                    break;
                 default:
                     reader.skipType(tag & 7);
                     break;
@@ -1200,8 +1189,6 @@ $root.packets = (function() {
             }
             if (!message.hasOwnProperty("sender"))
                 throw $util.ProtocolError("missing required 'sender'", { instance: message });
-            if (!message.hasOwnProperty("actions"))
-                throw $util.ProtocolError("missing required 'actions'", { instance: message });
             return message;
         };
 
@@ -1228,8 +1215,6 @@ $root.packets = (function() {
                 return "object expected";
             if (!$util.isString(message.sender))
                 return "sender: string expected";
-            if (!$util.isString(message.actions))
-                return "actions: string expected";
             return null;
         };
 
@@ -1244,8 +1229,6 @@ $root.packets = (function() {
             var message = new $root.packets.PacketDiscover();
             if (object.sender != null)
                 message.sender = String(object.sender);
-            if (object.actions != null)
-                message.actions = String(object.actions);
             return message;
         };
 
@@ -1268,14 +1251,10 @@ $root.packets = (function() {
             if (!options)
                 options = {};
             var object = {};
-            if (options.defaults) {
+            if (options.defaults)
                 object.sender = "";
-                object.actions = "";
-            }
             if (message.sender != null && message.hasOwnProperty("sender"))
                 object.sender = message.sender;
-            if (message.actions != null && message.hasOwnProperty("actions"))
-                object.actions = message.actions;
             return object;
         };
 
@@ -1299,6 +1278,201 @@ $root.packets = (function() {
         return PacketDiscover;
     })();
 
+    packets.NodeVersions = (function() {
+
+        /**
+         * Properties of a NodeVersions.
+         * @typedef packets.NodeVersions$Properties
+         * @type {Object}
+         * @property {string} node NodeVersions node.
+         * @property {string} moleculer NodeVersions moleculer.
+         */
+
+        /**
+         * Constructs a new NodeVersions.
+         * @exports packets.NodeVersions
+         * @constructor
+         * @param {packets.NodeVersions$Properties=} [properties] Properties to set
+         */
+        function NodeVersions(properties) {
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * NodeVersions node.
+         * @type {string}
+         */
+        NodeVersions.prototype.node = "";
+
+        /**
+         * NodeVersions moleculer.
+         * @type {string}
+         */
+        NodeVersions.prototype.moleculer = "";
+
+        /**
+         * Creates a new NodeVersions instance using the specified properties.
+         * @param {packets.NodeVersions$Properties=} [properties] Properties to set
+         * @returns {packets.NodeVersions} NodeVersions instance
+         */
+        NodeVersions.create = function create(properties) {
+            return new NodeVersions(properties);
+        };
+
+        /**
+         * Encodes the specified NodeVersions message. Does not implicitly {@link packets.NodeVersions.verify|verify} messages.
+         * @param {packets.NodeVersions$Properties} message NodeVersions message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        NodeVersions.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            writer.uint32(/* id 1, wireType 2 =*/10).string(message.node);
+            writer.uint32(/* id 2, wireType 2 =*/18).string(message.moleculer);
+            return writer;
+        };
+
+        /**
+         * Encodes the specified NodeVersions message, length delimited. Does not implicitly {@link packets.NodeVersions.verify|verify} messages.
+         * @param {packets.NodeVersions$Properties} message NodeVersions message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        NodeVersions.encodeDelimited = function encodeDelimited(message, writer) {
+            return this.encode(message, writer).ldelim();
+        };
+
+        /**
+         * Decodes a NodeVersions message from the specified reader or buffer.
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {packets.NodeVersions} NodeVersions
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        NodeVersions.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.NodeVersions();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                case 1:
+                    message.node = reader.string();
+                    break;
+                case 2:
+                    message.moleculer = reader.string();
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            if (!message.hasOwnProperty("node"))
+                throw $util.ProtocolError("missing required 'node'", { instance: message });
+            if (!message.hasOwnProperty("moleculer"))
+                throw $util.ProtocolError("missing required 'moleculer'", { instance: message });
+            return message;
+        };
+
+        /**
+         * Decodes a NodeVersions message from the specified reader or buffer, length delimited.
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @returns {packets.NodeVersions} NodeVersions
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        NodeVersions.decodeDelimited = function decodeDelimited(reader) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader(reader);
+            return this.decode(reader, reader.uint32());
+        };
+
+        /**
+         * Verifies a NodeVersions message.
+         * @param {Object.<string,*>} message Plain object to verify
+         * @returns {?string} `null` if valid, otherwise the reason why it is not
+         */
+        NodeVersions.verify = function verify(message) {
+            if (typeof message !== "object" || message === null)
+                return "object expected";
+            if (!$util.isString(message.node))
+                return "node: string expected";
+            if (!$util.isString(message.moleculer))
+                return "moleculer: string expected";
+            return null;
+        };
+
+        /**
+         * Creates a NodeVersions message from a plain object. Also converts values to their respective internal types.
+         * @param {Object.<string,*>} object Plain object
+         * @returns {packets.NodeVersions} NodeVersions
+         */
+        NodeVersions.fromObject = function fromObject(object) {
+            if (object instanceof $root.packets.NodeVersions)
+                return object;
+            var message = new $root.packets.NodeVersions();
+            if (object.node != null)
+                message.node = String(object.node);
+            if (object.moleculer != null)
+                message.moleculer = String(object.moleculer);
+            return message;
+        };
+
+        /**
+         * Creates a NodeVersions message from a plain object. Also converts values to their respective internal types.
+         * This is an alias of {@link packets.NodeVersions.fromObject}.
+         * @function
+         * @param {Object.<string,*>} object Plain object
+         * @returns {packets.NodeVersions} NodeVersions
+         */
+        NodeVersions.from = NodeVersions.fromObject;
+
+        /**
+         * Creates a plain object from a NodeVersions message. Also converts values to other types if specified.
+         * @param {packets.NodeVersions} message NodeVersions
+         * @param {$protobuf.ConversionOptions} [options] Conversion options
+         * @returns {Object.<string,*>} Plain object
+         */
+        NodeVersions.toObject = function toObject(message, options) {
+            if (!options)
+                options = {};
+            var object = {};
+            if (options.defaults) {
+                object.node = "";
+                object.moleculer = "";
+            }
+            if (message.node != null && message.hasOwnProperty("node"))
+                object.node = message.node;
+            if (message.moleculer != null && message.hasOwnProperty("moleculer"))
+                object.moleculer = message.moleculer;
+            return object;
+        };
+
+        /**
+         * Creates a plain object from this NodeVersions message. Also converts values to other types if specified.
+         * @param {$protobuf.ConversionOptions} [options] Conversion options
+         * @returns {Object.<string,*>} Plain object
+         */
+        NodeVersions.prototype.toObject = function toObject(options) {
+            return this.constructor.toObject(this, options);
+        };
+
+        /**
+         * Converts this NodeVersions to JSON.
+         * @returns {Object.<string,*>} JSON object
+         */
+        NodeVersions.prototype.toJSON = function toJSON() {
+            return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+        };
+
+        return NodeVersions;
+    })();
+
     packets.PacketInfo = (function() {
 
         /**
@@ -1307,6 +1481,9 @@ $root.packets = (function() {
          * @type {Object}
          * @property {string} sender PacketInfo sender.
          * @property {string} actions PacketInfo actions.
+         * @property {number} uptime PacketInfo uptime.
+         * @property {Array.<string>} [ipList] PacketInfo ipList.
+         * @property {packets.NodeVersions$Properties} versions PacketInfo versions.
          */
 
         /**
@@ -1316,6 +1493,7 @@ $root.packets = (function() {
          * @param {packets.PacketInfo$Properties=} [properties] Properties to set
          */
         function PacketInfo(properties) {
+            this.ipList = [];
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
@@ -1333,6 +1511,24 @@ $root.packets = (function() {
          * @type {string}
          */
         PacketInfo.prototype.actions = "";
+
+        /**
+         * PacketInfo uptime.
+         * @type {number}
+         */
+        PacketInfo.prototype.uptime = 0;
+
+        /**
+         * PacketInfo ipList.
+         * @type {Array.<string>}
+         */
+        PacketInfo.prototype.ipList = $util.emptyArray;
+
+        /**
+         * PacketInfo versions.
+         * @type {packets.NodeVersions$Properties}
+         */
+        PacketInfo.prototype.versions = null;
 
         /**
          * Creates a new PacketInfo instance using the specified properties.
@@ -1354,6 +1550,11 @@ $root.packets = (function() {
                 writer = $Writer.create();
             writer.uint32(/* id 1, wireType 2 =*/10).string(message.sender);
             writer.uint32(/* id 2, wireType 2 =*/18).string(message.actions);
+            writer.uint32(/* id 3, wireType 1 =*/25).double(message.uptime);
+            if (message.ipList != null && message.ipList.length)
+                for (var i = 0; i < message.ipList.length; ++i)
+                    writer.uint32(/* id 4, wireType 2 =*/34).string(message.ipList[i]);
+            $root.packets.NodeVersions.encode(message.versions, writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
             return writer;
         };
 
@@ -1388,6 +1589,17 @@ $root.packets = (function() {
                 case 2:
                     message.actions = reader.string();
                     break;
+                case 3:
+                    message.uptime = reader.double();
+                    break;
+                case 4:
+                    if (!(message.ipList && message.ipList.length))
+                        message.ipList = [];
+                    message.ipList.push(reader.string());
+                    break;
+                case 5:
+                    message.versions = $root.packets.NodeVersions.decode(reader, reader.uint32());
+                    break;
                 default:
                     reader.skipType(tag & 7);
                     break;
@@ -1397,6 +1609,10 @@ $root.packets = (function() {
                 throw $util.ProtocolError("missing required 'sender'", { instance: message });
             if (!message.hasOwnProperty("actions"))
                 throw $util.ProtocolError("missing required 'actions'", { instance: message });
+            if (!message.hasOwnProperty("uptime"))
+                throw $util.ProtocolError("missing required 'uptime'", { instance: message });
+            if (!message.hasOwnProperty("versions"))
+                throw $util.ProtocolError("missing required 'versions'", { instance: message });
             return message;
         };
 
@@ -1425,6 +1641,18 @@ $root.packets = (function() {
                 return "sender: string expected";
             if (!$util.isString(message.actions))
                 return "actions: string expected";
+            if (typeof message.uptime !== "number")
+                return "uptime: number expected";
+            if (message.ipList != null && message.hasOwnProperty("ipList")) {
+                if (!Array.isArray(message.ipList))
+                    return "ipList: array expected";
+                for (var i = 0; i < message.ipList.length; ++i)
+                    if (!$util.isString(message.ipList[i]))
+                        return "ipList: string[] expected";
+            }
+            var error = $root.packets.NodeVersions.verify(message.versions);
+            if (error)
+                return "versions." + error;
             return null;
         };
 
@@ -1441,6 +1669,20 @@ $root.packets = (function() {
                 message.sender = String(object.sender);
             if (object.actions != null)
                 message.actions = String(object.actions);
+            if (object.uptime != null)
+                message.uptime = Number(object.uptime);
+            if (object.ipList) {
+                if (!Array.isArray(object.ipList))
+                    throw TypeError(".packets.PacketInfo.ipList: array expected");
+                message.ipList = [];
+                for (var i = 0; i < object.ipList.length; ++i)
+                    message.ipList[i] = String(object.ipList[i]);
+            }
+            if (object.versions != null) {
+                if (typeof object.versions !== "object")
+                    throw TypeError(".packets.PacketInfo.versions: object expected");
+                message.versions = $root.packets.NodeVersions.fromObject(object.versions);
+            }
             return message;
         };
 
@@ -1463,14 +1705,27 @@ $root.packets = (function() {
             if (!options)
                 options = {};
             var object = {};
+            if (options.arrays || options.defaults)
+                object.ipList = [];
             if (options.defaults) {
                 object.sender = "";
                 object.actions = "";
+                object.uptime = 0;
+                object.versions = null;
             }
             if (message.sender != null && message.hasOwnProperty("sender"))
                 object.sender = message.sender;
             if (message.actions != null && message.hasOwnProperty("actions"))
                 object.actions = message.actions;
+            if (message.uptime != null && message.hasOwnProperty("uptime"))
+                object.uptime = message.uptime;
+            if (message.ipList && message.ipList.length) {
+                object.ipList = [];
+                for (var j = 0; j < message.ipList.length; ++j)
+                    object.ipList[j] = message.ipList[j];
+            }
+            if (message.versions != null && message.hasOwnProperty("versions"))
+                object.versions = $root.packets.NodeVersions.toObject(message.versions, options);
             return object;
         };
 
@@ -1675,6 +1930,7 @@ $root.packets = (function() {
          * @typedef packets.PacketHeartbeat$Properties
          * @type {Object}
          * @property {string} sender PacketHeartbeat sender.
+         * @property {number} uptime PacketHeartbeat uptime.
          */
 
         /**
@@ -1697,6 +1953,12 @@ $root.packets = (function() {
         PacketHeartbeat.prototype.sender = "";
 
         /**
+         * PacketHeartbeat uptime.
+         * @type {number}
+         */
+        PacketHeartbeat.prototype.uptime = 0;
+
+        /**
          * Creates a new PacketHeartbeat instance using the specified properties.
          * @param {packets.PacketHeartbeat$Properties=} [properties] Properties to set
          * @returns {packets.PacketHeartbeat} PacketHeartbeat instance
@@ -1715,6 +1977,7 @@ $root.packets = (function() {
             if (!writer)
                 writer = $Writer.create();
             writer.uint32(/* id 1, wireType 2 =*/10).string(message.sender);
+            writer.uint32(/* id 2, wireType 1 =*/17).double(message.uptime);
             return writer;
         };
 
@@ -1746,6 +2009,9 @@ $root.packets = (function() {
                 case 1:
                     message.sender = reader.string();
                     break;
+                case 2:
+                    message.uptime = reader.double();
+                    break;
                 default:
                     reader.skipType(tag & 7);
                     break;
@@ -1753,6 +2019,8 @@ $root.packets = (function() {
             }
             if (!message.hasOwnProperty("sender"))
                 throw $util.ProtocolError("missing required 'sender'", { instance: message });
+            if (!message.hasOwnProperty("uptime"))
+                throw $util.ProtocolError("missing required 'uptime'", { instance: message });
             return message;
         };
 
@@ -1779,6 +2047,8 @@ $root.packets = (function() {
                 return "object expected";
             if (!$util.isString(message.sender))
                 return "sender: string expected";
+            if (typeof message.uptime !== "number")
+                return "uptime: number expected";
             return null;
         };
 
@@ -1793,6 +2063,8 @@ $root.packets = (function() {
             var message = new $root.packets.PacketHeartbeat();
             if (object.sender != null)
                 message.sender = String(object.sender);
+            if (object.uptime != null)
+                message.uptime = Number(object.uptime);
             return message;
         };
 
@@ -1815,10 +2087,14 @@ $root.packets = (function() {
             if (!options)
                 options = {};
             var object = {};
-            if (options.defaults)
+            if (options.defaults) {
                 object.sender = "";
+                object.uptime = 0;
+            }
             if (message.sender != null && message.hasOwnProperty("sender"))
                 object.sender = message.sender;
+            if (message.uptime != null && message.hasOwnProperty("uptime"))
+                object.uptime = message.uptime;
             return object;
         };
 

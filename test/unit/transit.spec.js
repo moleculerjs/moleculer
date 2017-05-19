@@ -24,6 +24,12 @@ describe("Test Transporter constructor", () => {
 		expect(transit.tx).toBe(transporter);
 		expect(transit.nodes).toBeInstanceOf(Map);
 		expect(transit.pendingRequests).toBeInstanceOf(Map);
+		expect(transit.stat).toEqual({
+			packets: {
+				sent: 0,
+				received: 0
+			}
+		});
 	});
  
 	it("create instance with options", () => {
@@ -167,11 +173,12 @@ describe("Test Transit.makeSubscriptions", () => {
 
 	it("should call subscribe with all topics", () => {
 		transit.makeSubscriptions();
-		expect(transit.subscribe).toHaveBeenCalledTimes(7);
+		expect(transit.subscribe).toHaveBeenCalledTimes(8);
 		expect(transit.subscribe).toHaveBeenCalledWith("EVENT");
 		expect(transit.subscribe).toHaveBeenCalledWith("REQ", "node1");
 		expect(transit.subscribe).toHaveBeenCalledWith("RES", "node1");
 		expect(transit.subscribe).toHaveBeenCalledWith("DISCOVER");
+		expect(transit.subscribe).toHaveBeenCalledWith("INFO");
 		expect(transit.subscribe).toHaveBeenCalledWith("INFO", "node1");
 		expect(transit.subscribe).toHaveBeenCalledWith("DISCONNECT");
 		expect(transit.subscribe).toHaveBeenCalledWith("HEARTBEAT");
@@ -211,6 +218,7 @@ describe("Test Transit.messageHandler", () => {
 	});
 
 	it("should throw Error if msg not valid", () => {
+		expect(transit.stat.packets.received).toBe(0);
 		//transit.deserialize = jest.fn(() => null);
 		expect(() => {
 			transit.messageHandler("EVENT");
@@ -227,6 +235,7 @@ describe("Test Transit.messageHandler", () => {
 
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
 		expect(broker.emitLocal).toHaveBeenCalledWith(msg.event, "John Doe", "remote");
+		expect(transit.stat.packets.received).toBe(1);
 	});
 
 	describe("Test 'REQ'", () => {
@@ -305,6 +314,7 @@ describe("Test Transit.messageHandler", () => {
 		it("should call resolve with data", () => {
 			let data = { id: 5, name: "John" };
 			let req = { 
+				action: { name: "posts.find" },
 				resolve: jest.fn(() => Promise.resolve()), 
 				reject: jest.fn(() => Promise.resolve()) 
 			};
@@ -323,6 +333,7 @@ describe("Test Transit.messageHandler", () => {
 		
 		it("should call reject with error", () => {
 			let req = { 
+				action: { name: "posts.find" },
 				resolve: jest.fn(), 
 				reject: jest.fn(err => Promise.reject(err)) 
 			};
@@ -369,7 +380,7 @@ describe("Test Transit.messageHandler", () => {
 		transit.messageHandler("DISCOVER", JSON.stringify(msg));
 
 		expect(transit.processNodeInfo).toHaveBeenCalledTimes(1);
-		expect(transit.processNodeInfo).toHaveBeenCalledWith("remote", {"actions": {}, "sender": "remote"});
+		expect(transit.processNodeInfo).toHaveBeenCalledWith("remote", msg);
 
 		expect(transit.sendNodeInfo).toHaveBeenCalledTimes(1);
 	});	
@@ -387,11 +398,11 @@ describe("Test Transit.messageHandler", () => {
 	it("should call broker.nodeHeartbeat if topic is 'HEARTBEAT' ", () => {
 		transit.nodeHeartbeat = jest.fn();
 
-		let msg = { sender: "remote" };
+		let msg = { sender: "remote", uptime: 100 };
 		transit.messageHandler("HEARTBEAT", JSON.stringify(msg));
 
 		expect(transit.nodeHeartbeat).toHaveBeenCalledTimes(1);
-		expect(transit.nodeHeartbeat).toHaveBeenCalledWith(msg.sender);
+		expect(transit.nodeHeartbeat).toHaveBeenCalledWith(msg.sender, msg);
 	});	
 
 });
@@ -492,14 +503,14 @@ describe("Test Transit.discoverNodes", () => {
 		expect(transit.publish).toHaveBeenCalledTimes(1);
 		const packet = transit.publish.mock.calls[0][0];
 		expect(packet).toBeInstanceOf(P.PacketDiscover);
-		expect(packet.payload.actions).toBe("{}");
+		expect(packet.payload).toEqual({ sender: "node1" });
 	});
 
 });
 
 describe("Test Transit.sendNodeInfo", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter(), internalActions: false });
 	const transit = broker.transit;
 
 	transit.publish = jest.fn();
@@ -510,7 +521,12 @@ describe("Test Transit.sendNodeInfo", () => {
 		const packet = transit.publish.mock.calls[0][0];
 		expect(packet).toBeInstanceOf(P.PacketInfo);
 		expect(packet.target).toBe("node2");
-		expect(packet.payload.actions).toBe("{}");
+		expect(packet.payload.actions).toBe("[]");
+		expect(packet.payload.ipList).toBeInstanceOf(Array);
+		expect(packet.payload.versions).toBeDefined();
+		expect(packet.payload.versions.node).toBe(process.version);
+		expect(packet.payload.versions.moleculer).toBe(broker.MOLECULER_VERSION);
+		expect(packet.payload.uptime).toBeDefined();
 	});
 
 });
@@ -557,11 +573,13 @@ describe("Test Transit.publish", () => {
 	broker.serializer.serialize = jest.fn(o => JSON.stringify(o));
 
 	it("should call transporter.publish", () => {
+		expect(transit.stat.packets.sent).toBe(0);
 		let packet = new P.PacketEvent("user.created", { a: "John Doe" });
 		transit.publish(packet);
 		expect(transporter.publish).toHaveBeenCalledTimes(1);
 		const p = transporter.publish.mock.calls[0][0];
 		expect(p).toBe(packet);
+		expect(transit.stat.packets.sent).toBe(1);
 	});
 
 });
@@ -612,9 +630,9 @@ describe("Test Transit node & heartbeat handling", () => {
 		};
 		let nodeInfo = { 
 			sender: "server-1", 
-			actions: {
-				"user.create": remoteAction
-			} 
+			actions: [
+				remoteAction
+			]
 		};
 
 		it("should emit a new node event & register remote actions", () => {
@@ -686,9 +704,10 @@ describe("Test Transit node & heartbeat handling", () => {
 		transit.nodes.set("server-2", { available: false, lastHeartbeatTime: 1000 });
 
 		it("should node is not available because is not exist", () => {
-			transit.nodeHeartbeat("server-2");
+			transit.nodeHeartbeat("server-2", { uptime: 123 });
 			expect(transit.nodes.get("server-2").available).toBe(true);
 			expect(transit.nodes.get("server-2").lastHeartbeatTime).not.toBe(1000);
+			expect(transit.nodes.get("server-2").uptime).toBe(123);
 		});
 
 	});
@@ -770,9 +789,12 @@ describe("Test Transit node & heartbeat handling", () => {
 		it("should call 'nodeDisconnected' if the heartbeat time is too old", () => {
 			let node = transit.nodes.get("server-2");
 			transit.nodeDisconnected = jest.fn();
-			transit.nodeHeartbeat("server-2");
+			transit.nodeHeartbeat("server-2", {
+				uptime: 156
+			});
 			transit.checkRemoteNodes();
 			expect(transit.nodeDisconnected).toHaveBeenCalledTimes(0);
+			expect(node.uptime).toBe(156);
 			node.lastHeartbeatTime -= broker.options.heartbeatTimeout * 1.5 * 1000;
 			transit.checkRemoteNodes();
 			expect(transit.nodeDisconnected).toHaveBeenCalledTimes(1);

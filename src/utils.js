@@ -36,6 +36,26 @@ let utils = {
 	},
 
 	/**
+	 * Get list of local IPs
+	 * 
+	 * @returns 
+	 */
+	getIpList() {
+		const list = [];
+		const interfaces = os.networkInterfaces();
+		for (let iface in interfaces) {
+			for (let i in interfaces[iface]) {
+				const f = interfaces[iface][i];
+				if (f.family === "IPv4" && !f.internal) {
+					list.push(f.address);
+					break;
+				}
+			}
+		}
+		return list;
+	},
+
+	/**
 	 * Delay for Promises
 	 * 
 	 * @param {any} ms
