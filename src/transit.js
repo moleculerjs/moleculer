@@ -504,7 +504,7 @@ class Transit {
 	 * Process remote node info (list of actions)
 	 * 
 	 * @param {String} nodeID
-	 * @param {Object} node
+	 * @param {Object} payload
 	 * 
 	 * @memberOf Transit
 	 */
@@ -513,7 +513,7 @@ class Transit {
 			this.logger.error("Missing nodeID from node info package!");
 			return;
 		}
-		//console.log(payload);
+		console.log(payload);
 
 		let isNewNode = !this.nodes.has(nodeID);
 		const node = Object.assign(this.nodes.get(nodeID) || {}, payload);
@@ -531,11 +531,9 @@ class Transit {
 			this.logger.info(`Node '${nodeID}' reconnected!`);
 		}
 
-		if (node.actions) {
+		if (Array.isArray(node.actions)) {
 			// Add external actions
-			Object.keys(node.actions).forEach(name => {
-				// Need to override the name cause of versioned action name;
-				let action = Object.assign({}, node.actions[name], { name });
+			node.actions.forEach(action => {
 				this.broker.registerAction(nodeID, action);
 			});
 		}

@@ -15,7 +15,6 @@ let broker1 = new ServiceBroker({
 
 broker1.loadService("./examples/math.service");
 broker1.loadService("./examples/post.service");
-broker1.loadService("./examples/user.service");
 
 let broker2 = new ServiceBroker({
 	nodeID: "node2",
@@ -35,6 +34,8 @@ broker2.createService({
 });
 broker2.loadService("./examples/math.service");
 broker2.loadService("./examples/file.service");
+broker1.loadService("./examples/user.service");
+
 
 broker1.Promise.resolve()
 .then(() => broker1.start())

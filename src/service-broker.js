@@ -453,8 +453,8 @@ class ServiceBroker {
 			return res;
 		});
 
-		addAction("$node.actions", () => {
-			return this.serviceRegistry.getLocalActions();
+		addAction("$node.actions", ctx => {
+			return this.serviceRegistry.getActionList(ctx.params.onlyLocal, ctx.params.skipInternal, ctx.params.withEndpoints);
 		});
 
 		addAction("$node.health", () => this.getNodeHealthInfo());

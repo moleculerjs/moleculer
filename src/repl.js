@@ -11,8 +11,10 @@ const path = require("path");
 const _ = require("lodash");
 const chalk = require("chalk");
 const ms = require("ms");
+const C = require("./constants");
 const { table, getBorderCharacters } = require("table");
 const vorpal = require("vorpal")();
+
 
 /* istanbul ignore next */
 const eventHandler = payload => {
@@ -99,54 +101,60 @@ function startREPL(broker) {
 	// List actions
 	vorpal
 		.command("actions", "List of actions")
+		.option("-d, --details")
 		.action((args, done) => {
-			const actions = broker.serviceRegistry.getLocalActions();
+			const actions = broker.serviceRegistry.getActionList(false, false, true);
 
-			// action, nodeID, cached, CB state, description?, params?
-			const data = [];
-			data.push([
-				chalk.bold("Action"),
-				chalk.bold("Ver"),
-				chalk.bold("Node ID"),
-				chalk.bold("State"),
-				chalk.bold("Cached"),
-				chalk.bold("Params")
-				//chalk.bold("Description")
-			]);
+			const data = [
+				[
+					chalk.bold("Action"),
+					chalk.bold("Nodes"),
+					chalk.bold("State"),
+					chalk.bold("Cached"),
+					chalk.bold("Params")
+				]
+			];
 
-			Object.keys(actions).forEach(actionName => {
-				const action = actions[actionName];
-				const state = data.length % 2;
+			actions.forEach(item => {
+				const action = item.action;
+				const state = item.available;
 				const params = action.params ? Object.keys(action.params).join(", ") : "";
+				
 				data.push([
 					action.name,
-					action.version || "",
-					"<local>",
-					state ? chalk.bgGreen.black("   OK   "):chalk.bgRed.white.bold(" FAILED "),
+					(item.hasLocal ? "(*) " : "") + item.count,
+					state ? chalk.bgGreen.white("   OK   "):chalk.bgRed.white.bold(" FAILED "),
 					action.cache ? chalk.green("Yes"):chalk.gray("No"),
 					params
-					//action.description || ""
 				]);
+
+				let getStateLabel = (state) => {
+					switch(state) {
+					case C.CIRCUIT_CLOSE:		return chalk.bgGreen.white( "   OK   ");
+					case C.CIRCUIT_HALF_OPEN: 	return chalk.bgYellow.black("UNSTABLE");
+					case C.CIRCUIT_OPEN: 		return chalk.bgRed.white(	" FAILED ");
+					}
+				};
+
+				if (args.options.details && item.endpoints) {
+					item.endpoints.forEach(endpoint => {
+						data.push([
+							"",
+							endpoint.nodeID || chalk.gray("<local>"),
+							getStateLabel(endpoint.state),
+							"",
+							""
+						]);						
+					});
+				}
 			});
 
 			const tableConf = {
-				border: _.mapValues(getBorderCharacters("honeywell"), (char) => {
-					return chalk.gray(char);
-				}),
+				border: _.mapValues(getBorderCharacters("honeywell"), char => chalk.gray(char)),
 				columns: {
-					0: {
-						width: 20
-					},
-					1: {
-						//alignment: "center"
-					},
-					3: {
-						alignment: "center"
-					},
-					5: {
-						width: 20,
-						wrapWord: true
-					}
+					1: { alignment: "right" },
+					3: { alignment: "center" },
+					5: { width: 20, wrapWord: true }
 				}
 			};
 			

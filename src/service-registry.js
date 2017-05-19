@@ -110,14 +110,53 @@ class ServiceRegistry {
 	 * @memberOf ServiceRegistry
 	 */
 	getLocalActions() {
-		let res = {};
+		let res = [];
 		this.actions.forEach((entry, key) => {
 			let endpoint = entry.getLocalEndpoint();
-			if (endpoint && !/^\$node/.test(key)) // Skip internal actions
-				res[key] = omit(endpoint.action, ["handler", "service"]);
+			if (endpoint)
+				res.push(omit(endpoint.action, ["handler", "service"]));
 		});
 		return res;
 	}	
+
+	getActionList(onlyLocal = false, skipInternal = false, withEndpoints = false) {
+		let res = [];
+
+		this.actions.forEach((entry, key) => {
+			if (skipInternal && /^\$node/.test(key))
+				return;
+
+			if (onlyLocal && !entry.hasLocal())
+				return;
+
+			let item = {
+				name: key,
+				count: entry.count(),
+				hasLocal: entry.hasLocal(),
+				available: entry.hasAvailable()
+			};
+
+			if (item.count > 0) {
+				const ep = entry.list[0];
+				item.action = omit(ep.action, ["handler", "service"]);
+			}
+
+			if (withEndpoints) {
+				if (item.count > 0) {
+					item.endpoints = entry.list.map(endpoint => {
+						return {
+							nodeID: endpoint.nodeID,
+							state: endpoint.state
+						};
+					});
+				}
+			}
+
+			res.push(item);
+		});
+
+		return res;
+	}
 }
 
 class Endpoint {
@@ -278,6 +317,10 @@ class EndpointList {
 
 	hasLocal() {
 		return this.localEndpoint != null;
+	}
+
+	hasAvailable() {
+		return this.list.find(endpoint => endpoint.available()) != null;
 	}
 
 	removeByAction(action) {
