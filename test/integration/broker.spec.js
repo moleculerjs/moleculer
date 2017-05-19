@@ -61,8 +61,8 @@ describe("Test broker.registerInternalActions", () => {
 	it("should return list of services", () => {
 		return broker.call("$node.services").then(res => {
 			expect(res).toEqual([
-				{"name": "math", "version": undefined}, 
-				{"name": "posts", "version": undefined}
+				{"name": "math", "version": undefined, settings: {}}, 
+				{"name": "posts", "version": undefined, settings: {}}
 			]);
 		});
 	});
@@ -246,15 +246,14 @@ describe("Test broker.registerInternalActions", () => {
 	it("should return list of remote nodes", () => {
 		let info = {
 			nodeID: "server-2",
-			actions: {}
+			actions: []
 		};
 		broker.transit.processNodeInfo(info.nodeID, info);
 
 		return broker.call("$node.list").then(res => {
-			expect(res).toBeDefined();
-			expect(res).toEqual([
-				{"available": true, "nodeID": "server-2"}
-			]);
+			expect(res).toBeInstanceOf(Array);
+			expect(res[0].id).toBeNull();
+			expect(res[1]).toEqual({"actions": [], "available": true, "id": "server-2", "lastHeartbeatTime": jasmine.any(Number), "nodeID": "server-2"});
 		});
 	});
 

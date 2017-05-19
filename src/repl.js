@@ -18,7 +18,7 @@ const vorpal = require("vorpal")();
 
 /* istanbul ignore next */
 const eventHandler = payload => {
-	console.log(chalk.magenta("Incoming event!"), payload);
+	console.log(chalk.magenta(">> Incoming event!"), payload);
 };
 
 /**

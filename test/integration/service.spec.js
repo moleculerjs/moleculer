@@ -25,9 +25,10 @@ describe("Test Service handlers", () => {
 		expect(createdHandler).toHaveBeenCalledTimes(1);
 	});		
 
-	it("should called created handler", () => {
-		broker.start();
-		expect(startedHandler).toHaveBeenCalledTimes(1);
+	it("should called start handler", () => {
+		return broker.start().then(() => {
+			expect(startedHandler).toHaveBeenCalledTimes(1);
+		});
 	});		
 
 	it("should called event handler", () => {
@@ -36,8 +37,9 @@ describe("Test Service handlers", () => {
 		expect(eventHandler).toHaveBeenCalledWith({ id: 1, name: "John" }, undefined, "user.created");
 	});		
 
-	it("should called created handler", () => {
-		broker.stop();
-		expect(stoppedHandler).toHaveBeenCalledTimes(1);
+	it("should called stop handler", () => {
+		return broker.stop().then(() => {
+			expect(stoppedHandler).toHaveBeenCalledTimes(1);
+		});
 	});		
 });
