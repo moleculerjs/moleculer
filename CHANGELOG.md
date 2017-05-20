@@ -167,6 +167,17 @@ let mergedSchema = broker.mergeSchemas(origSchema, modifications);
 broker.createService(mergedSchema);
 ```
 
+## New option to protect calling loop
+You can protect your app against calling loop with the new `maxCallLevel` option. If the `ctx.level` value reaches this limit, will be thrown a `MaxCallLevelError` error.
+
+```js
+let broker = new ServiceBroker({
+    maxCallLevel: 100
+});
+
+
+```
+
 # Changes
 
 ## Using Nanomatch instead of micromatch

@@ -11,7 +11,7 @@ const Transit = require("../../src/transit");
 const MemoryCacher = require("../../src/cachers/memory");
 const JSONSerializer = require("../../src/serializers/json");
 const FakeTransporter = require("../../src/transporters/fake"); 
-const { CustomError, ServiceNotFoundError, RequestTimeoutError } = require("../../src/errors");
+const { CustomError, ServiceNotFoundError, RequestTimeoutError, MaxCallLevelError } = require("../../src/errors");
 
 // Registry strategies
 const { STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM } = require("../../src/constants");
@@ -30,6 +30,7 @@ describe("Test ServiceBroker constructor", () => {
 			transporter: null, 
 			requestTimeout: 0, 
 			requestRetry: 0, 
+			maxCallLevel: 0,
 			heartbeatInterval: 10, 
 			heartbeatTimeout : 30, 
 
@@ -93,6 +94,7 @@ describe("Test ServiceBroker constructor", () => {
 			logLevel: "debug", 
 			requestRetry: 3, 
 			requestTimeout: 5000, 
+			maxCallLevel: 10,
 			registry: {
 				strategy: STRATEGY_RANDOM,
 				preferLocal: false				
@@ -133,6 +135,7 @@ describe("Test ServiceBroker constructor", () => {
 			},			
 			requestRetry: 3, 
 			requestTimeout: 5000, 
+			maxCallLevel: 10,
 			validation: false, 
 			internalActions: false });
 		expect(broker.services).toBeInstanceOf(Array);
@@ -1059,6 +1062,22 @@ describe("Test broker.call method", () => {
 				expect(actionHandler).toHaveBeenCalledWith(ctx);
 			});
 		});
+
+		it("should throw Error if reached the 'maxCallLevel'", () => {
+			actionHandler.mockClear();
+			broker.options.maxCallLevel = 5;
+			let parentCtx = new Context(broker);
+			parentCtx.level = 5;
+
+			return broker.call("posts.find", { b: 10 }, { parentCtx }).then(() => {
+				expect(false).toBe(true);
+			}).catch(err => {
+				expect(err).toBeInstanceOf(MaxCallLevelError);
+				expect(err.code).toBe(500);
+				expect(err.data).toEqual({"action": "posts.find", "level": 6});
+				expect(actionHandler).toHaveBeenCalledTimes(0);
+			});
+		});		
 
 		it("should call handler with a reused Context", () => {
 			actionHandler.mockClear();

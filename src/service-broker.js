@@ -60,6 +60,7 @@ class ServiceBroker {
 			transporter: null,
 			requestTimeout: 0 * 1000,
 			requestRetry: 0,
+			maxCallLevel: 0,
 			heartbeatInterval: 10,
 			heartbeatTimeout: 30,
 
@@ -624,6 +625,11 @@ class ServiceBroker {
 		ctx.timeout = opts.timeout;
 		ctx.retryCount = opts.retryCount;
 
+		if (opts.parentCtx != null) {
+			ctx.parentID = opts.parentCtx.id;
+			ctx.level = opts.parentCtx.level + 1;
+		}
+
 		// Metrics
 		if (opts.parentCtx != null)
 			ctx.metrics = opts.parentCtx.metrics;
@@ -633,12 +639,6 @@ class ServiceBroker {
 		// ID, parentID, level
 		if (ctx.metrics || nodeID) {
 			ctx.generateID();
-
-			if (opts.parentCtx != null) {
-				ctx.parentID = opts.parentCtx.id;
-				ctx.level = opts.parentCtx.level + 1;
-			}
-
 		}
 
 		return ctx;
@@ -711,6 +711,10 @@ class ServiceBroker {
 		} else {
 			// New root context
 			ctx = this.createNewContext(action, nodeID, params, opts);
+		}
+
+		if (this.options.maxCallLevel > 0 && ctx.level > this.options.maxCallLevel) {
+			return this.Promise.reject(new E.MaxCallLevelError({ level: ctx.level, action: actionName }));
 		}
 
 		// Call handler or transfer request

@@ -53,10 +53,11 @@ class RequestTimeoutError extends ExtendableError {
 		//this.data = data;
 	}
 }
+
 /**
  * 'Request skipped for timeout' Error message
  * 
- * @class RequestTimeoutError
+ * @class RequestSkippedError
  * @extends {Error}
  */
 class RequestSkippedError extends ExtendableError {
@@ -99,6 +100,27 @@ class ValidationError extends ExtendableError {
 }
 
 /**
+ * 'Request skipped for timeout' Error message
+ * 
+ * @class MaxCallLevelError
+ * @extends {Error}
+ */
+class MaxCallLevelError extends ExtendableError {
+	/**
+	 * Creates an instance of MaxCallLevelError.
+	 * 
+	 * @param {String} action
+	 * 
+	 * @memberOf MaxCallLevelError
+	 */
+	constructor(data) {
+		super("Call level is reached the limit!");
+		this.code = 500;
+		this.data = data;
+	}
+}
+
+/**
  * Custom Error class
  * 
  * @class CustomError
@@ -124,5 +146,6 @@ module.exports = {
 	ServiceNotFoundError,
 	ValidationError,
 	RequestTimeoutError,
-	RequestSkippedError
+	RequestSkippedError,
+	MaxCallLevelError
 };

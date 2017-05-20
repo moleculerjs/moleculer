@@ -16,6 +16,17 @@ describe("Test Errors", () => {
 		expect(err.data).toEqual({ a: 5});
 	});
 
+	it("test MaxCallLevelError", () => {
+		let err = new errors.MaxCallLevelError({ level: 10 });
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(Error);
+		expect(err).toBeInstanceOf(errors.MaxCallLevelError);
+		expect(err.code).toBe(500);
+		expect(err.name).toBe("MaxCallLevelError");
+		expect(err.message).toBe("Call level is reached the limit!");
+		expect(err.data).toEqual({ level: 10 });
+	});
+
 	it("test ServiceNotFoundError", () => {
 		let err = new errors.ServiceNotFoundError("Something went wrong!", { action: "posts.find" });
 		expect(err).toBeDefined();

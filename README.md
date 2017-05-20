@@ -200,6 +200,7 @@ All available options:
     requestRetry: 0,
     heartbeatInterval: 10,
     heartbeatTimeout: 30,
+    maxCallLevel: 500,
 
     cacher: null,
     serializer: null,
@@ -223,6 +224,7 @@ All available options:
 | `transporter` | `Transporter` | `null` | Instance of transporter. Required if you have 2 or more nodes. Internal transporters: [NatsTransporter](#nats-transporter)  |
 | `requestTimeout` | `Number` | `0` | Timeout of request in milliseconds. If the request is timed out, broker will throw a `RequestTimeout` error. Disable: 0 |
 | `requestRetry` | `Number` | `0` | Count of retry of request. If the request is timed out, broker will try to call again. |
+| `maxCallLevel` | `Number` | `0` | Limit of call level. If reach the limit, broker will throw an error. |
 | `cacher` | `Cacher` | `null` | Instance of cacher. Built-in cachers: [MemoryCacher](#memory-cacher) or [RedisCacher](#redis-cacher) |
 | `serializer` | `Serializer` | `JSONSerializer` | Instance of serializer. Built-in serializers: [JSON](#json-serializer), [Avro](#avro-serializer) or [MsgPack](#msgpack-serializer) |
 | `validation` | `Boolean` | `false` | Enable action [parameters validation](). |
