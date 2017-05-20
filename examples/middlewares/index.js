@@ -98,7 +98,7 @@ broker.call("posts.get", { id: 3 }).then(console.log)
 })
 .then(() => {
 	console.log(chalk.bold("\nCLEAR CACHE"));
-	return broker.emit("cache.clean", { match: "posts.*" });
+	return broker.emit("cache.clean", "posts.*");
 })
 .then(utils.delay(200))
 .then(() => {
