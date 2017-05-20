@@ -202,6 +202,11 @@ function startREPL(broker) {
 	vorpal
 		.command("nodes", "List of nodes")
 		.action((args, done) => {
+			if (!broker.transit) {
+				console.error("There is no transporter!");
+				return done();
+			}
+			
 			const nodes = [];
 			broker.transit.nodes.forEach(node => nodes.push(node));
 			const localNode = broker.transit.getNodeInfo();
