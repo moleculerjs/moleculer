@@ -74,6 +74,7 @@ declare interface BrokerOptions {
 	requestRetry?: Number;
 	heartbeatInterval?: Number;
 	heartbeatTimeout?: Number;
+	maxCallLevel?: Number;
 
 	circuitBreaker?: BrokerCircuitBreakerOptions;
 	
@@ -220,10 +221,12 @@ export = {
 	Validator: Validator,
 
 	Errors: {
+		CustomError: Error,
 		ServiceNotFoundError: Error,
-		RequestTimeoutError: Error,
 		ValidationError: Error,
-		CustomError: Error		
+		RequestTimeoutError: Error,
+		RequestSkippedError: Error,
+		MaxCallLevelError: Error
 	},
 
 	STRATEGY_ROUND_ROBIN: Number,
