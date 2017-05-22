@@ -49,7 +49,7 @@ or
 $ yarn add moleculer
 ```
 
-# Quick start
+# Your first microservice
 
 ```js
 const { ServiceBroker } = require("moleculer");
@@ -73,6 +73,29 @@ broker.call("math.add", { a: 5, b: 3 })
     .catch(err => console.error(`Error occured! ${err.message}`));
 ```
 [Try it on Runkit](https://runkit.com/icebob/moleculer-quick-example)
+
+# Quick start to create a project
+The fastest way to use Moleculer CLI tool to create a new Moleculer based microservices project.
+1. Install Moleculer CLI
+    ```bash
+    $ npm install moleculer-cli -g
+    ````
+2. Create a new project (named `first-demo`)
+    ```bash
+    $ moleculer init project-simple first-demo
+    ````
+    > Add API Gateway and press Y to `npm install`
+    
+3. Open project folder
+    ```bash
+    $ cd first-demo
+    ````
+    
+4. Start project
+    ```bash
+    $ npm run dev
+    ````
+5. Open the http://localhost:3000/math.add?a=5&b=3 link in your browser. ˙Congratulation, you created your first Moleculer based microservices project. Read [documentation](https://moleculer.services/docs) to learn more about Moleculer.
 
 # Documentation
 You can find [the documentation here](https://moleculer.services/docs).
