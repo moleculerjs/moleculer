@@ -8,14 +8,13 @@
 
 ## v0.9.x
 - [ ] official Zipkin tracer service
-- [ ] RabbitMQ transporter
 - [ ] add lru features to Memory and Redis cachers
 
 ------------------------------
 
 ## v0.10.x
-- [ ] create a multi-pages docs & generate a static site from it.
-	- [ ] https://github.com/segmentio/metalsmith
+- [ ] RabbitMQ transporter
+- [ ] Official monitoring solution
 
 ------------------------------
 
