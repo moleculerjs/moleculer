@@ -74,9 +74,9 @@ broker.call("math.add", { a: 5, b: 3 })
 ```
 [Try it on Runkit](https://runkit.com/icebob/moleculer-quick-example)
 
-# Quick start to create a project
+# Create a Moleculer project
 The fastest way to use Moleculer CLI tool to create a new Moleculer based microservices project.
-1. Install Moleculer CLI
+1. Install [moleculer-cli](https://github.com/ice-services/moleculer-cli)
     ```bash
     $ npm install moleculer-cli -g
     ````
@@ -95,7 +95,9 @@ The fastest way to use Moleculer CLI tool to create a new Moleculer based micros
     ```bash
     $ npm run dev
     ````
-5. Open the http://localhost:3000/math.add?a=5&b=3 link in your browser. ˙Congratulation, you created your first Moleculer based microservices project. Read [documentation](https://moleculer.services/docs) to learn more about Moleculer.
+5. Open the [http://localhost:3000/math.add?a=5&b=3](http://localhost:3000/math.add?a=5&b=3) link in your browser. It will call the `add` action of `math` service with two params via [API gateway](https://github.com/ice-services/moleculer-web) and returns with the result.
+
+**Congratulation, you created your first Moleculer based microservices project. Read our [documentation](https://moleculer.services/docs) to learn more about Moleculer.**
 
 # Documentation
 You can find [the documentation here](https://moleculer.services/docs).
@@ -110,6 +112,6 @@ See [ROADMAP.md](ROADMAP.md).
 Moleculer is available under the [MIT license](https://tldrlegal.com/license/mit-license).
 
 # Contact
-Copyright (c) 2017 Ice-Services
+Copyright (c) 2016-2017 Ice Services
 
 [![@ice-services](https://img.shields.io/badge/github-ice--services-green.svg)](https://github.com/ice-services) [![@MoleculerJS](https://img.shields.io/badge/twitter-MoleculerJS-blue.svg)](https://twitter.com/MoleculerJS)
