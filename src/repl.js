@@ -59,7 +59,7 @@ function startREPL(broker) {
 
 	// Register direct broker.call
 	vorpal
-		.command("dcall <nodeID> <actionName> [params]", "Call a direct action ")
+		.command("dcall <nodeID> <actionName> [params]", "Direct call an action ")
 		.action((args, done) => {
 			const nodeID = args.nodeID;
 			console.log(chalk.yellow.bold(`>> Call '${args.actionName}' on '${nodeID}' with params:`), args.params);
