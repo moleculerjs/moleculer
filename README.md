@@ -80,6 +80,9 @@ You can find [the documentation here](https://moleculer.services/docs).
 # Changelog
 See [CHANGELOG.md](CHANGELOG.md).
 
+# Roadmap
+See [ROADMAP.md](ROADMAP.md).
+
 # License
 Moleculer is available under the [MIT license](https://tldrlegal.com/license/mit-license).
 
