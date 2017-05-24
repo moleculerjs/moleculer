@@ -9,6 +9,7 @@
 ## v0.9.x
 - [ ] official Zipkin tracer service
 - [ ] add lru features to Memory and Redis cachers
+- [ ] Official services ([moleculer-addons](https://github.com/ice-services/moleculer-addons))
 
 ------------------------------
 
@@ -25,39 +26,9 @@ It will be the first stable production-ready release. Afterwards the version num
 
 ## Others in the future
 
-### Gobal configuration
-Every service can get the config from the broker (in constructor).
-The result is a merged configuration from the common & the specified service config.
-```js
-{
-	common: {
-		port: 3000,
-		db: {
-			uri: "mongo://localhost"
-		}
-	},
-
-	services: {
-		posts: {
-			db: {
-				uri: "couchdb://localhost"
-			}
-		}
-	}
-}
-```
-In this case, if `posts` service asks the config, it'll get 
-```js
-{
-	port: 3000,
-	db: {
-		uri: "couchdb://localhost"
-	}
-}
-```
 
 ### Other transporters
 - websocket
 - [AutobahnJS](http://autobahn.ws/js/) [server](https://github.com/Orange-OpenSource/wamp.rt) or [server in go](https://github.com/jcelliott/turnpike)
-- add gzip support
+- add gzip & AES to transporter
 
