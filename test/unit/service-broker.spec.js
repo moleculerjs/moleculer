@@ -457,7 +457,9 @@ describe("Test broker.mergeSchema", () => {
 			},
 
 			created() {},
-			stopped() {}
+			stopped() {},
+
+			customProp: "test"			
 		};
 
 		let res = broker.mergeSchemas(origSchema, newSchema);
@@ -495,6 +497,8 @@ describe("Test broker.mergeSchema", () => {
 		expect(res.created).toBe(newSchema.created);
 		expect(res.started).toBe(origSchema.started);
 		expect(res.stopped).toBe(newSchema.stopped);
+
+		expect(res.customProp).toBe("test");
 
 	});
 

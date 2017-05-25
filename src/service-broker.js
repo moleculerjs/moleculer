@@ -335,24 +335,14 @@ class ServiceBroker {
 
 		const res = _.cloneDeep(schema);
 
-		updateProp("name", res, mods);
-		updateProp("version", res, mods);
-
-		if (mods.settings)
-			res.settings = _.defaultsDeep(mods.settings, res.settings);
-		
-		if (mods.actions) 
-			res.actions = _.assign(res.actions, mods.actions);
-
-		if (mods.events) 
-			res.events = _.assign(res.events, mods.events);
-
-		if (mods.methods) 
-			res.methods = _.assign(res.methods, mods.methods);
-
-		updateProp("created", res, mods);
-		updateProp("started", res, mods);
-		updateProp("stopped", res, mods);
+		Object.keys(mods).forEach(key => {
+			if (["settings"].indexOf(key) !== -1)
+				res[key] = _.defaultsDeep(mods[key], res[key]);
+			else if (["actions", "events", "methods"].indexOf(key) !== -1)
+				res[key] = _.assign(mods[key], res[key]);
+			else
+				updateProp(key, res, mods);
+		});
 
 		return res;
 	}
