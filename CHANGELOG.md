@@ -167,6 +167,29 @@ let mergedSchema = broker.mergeSchemas(origSchema, modifications);
 broker.createService(mergedSchema);
 ```
 
+## Service mixins
+Similar as mergeable schemas, the service can contain any mixin schemas. The constructor of Service will merge these mixins with the schema of Service. Use it to reuse an other Service in your service. Or you can extend an other Service.
+
+**Examples**
+
+```js
+const ApiGwService = require("moleculer-web");
+
+module.exports = {
+    name: "api",
+    mixins: [ApiGwService]
+    settings: {
+        // Change port setting
+        port: 8080
+    },
+    actions: {
+        myAction() {
+            // Add a new action to apiGwService service
+        }
+    }
+}
+```
+
 ## New option to protect calling loop
 You can protect your app against calling loop with the new `maxCallLevel` option. If the `ctx.level` value reaches this limit, will be thrown a `MaxCallLevelError` error.
 
