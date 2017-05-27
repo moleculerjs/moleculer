@@ -39,14 +39,14 @@ class Service {
 			throw new Error("Must pass a service schema in constructor!");
 		}
 
-		if (!schema.name) {
-			throw new Error("Service name can't be empty!");
-		}
-
 		if (schema.mixins) {
 			schema = Service.applyMixins(schema);
 		}
 		
+		if (!schema.name) {
+			throw new Error("Service name can't be empty!");
+		}
+
 		this.name = schema.name;
 		this.version = schema.version;
 		this.settings = schema.settings || {};
@@ -167,10 +167,24 @@ class Service {
 		return action;
 	}
 
+	/**
+	 * Apply `mixins` list in schema. Merge the schema with mixins schemas. Returns with the mixed schema
+	 * 
+	 * @static
+	 * @param {Schema} schema 
+	 * @returns {Schema}
+	 * 
+	 * @memberof Service
+	 */
 	static applyMixins(schema) {
-		const mixins = Array.isArray(schema.mixins) ? schema.mixins : [schema.mixins];
-		const mixedSchema = mixins.reduce((s, mixin) => utils.mergeSchemas(s, mixin), {});
-		return utils.mergeSchemas(mixedSchema, schema);		
+		if (schema.mixins) {
+			const mixins = Array.isArray(schema.mixins) ? schema.mixins : [schema.mixins];
+			const mixedSchema = mixins.reduce((s, mixin) => utils.mergeSchemas(s, mixin), {});
+			return utils.mergeSchemas(mixedSchema, schema);
+		} 
+		
+		/* istanbul ignore next */
+		return schema;		
 	}
 }
 

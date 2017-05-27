@@ -1,8 +1,11 @@
 "use strict";
 
+jest.mock("../../src/utils");
+const utils = require("../../src/utils");
+utils.mergeSchemas = jest.fn((s1, s2) => s1);
+
 const Service = require("../../src/service");
 const ServiceBroker = require("../../src/service-broker");
-
 
 describe("Test Service constructor", () => {
 
@@ -291,5 +294,68 @@ describe("Test _createActionHandler function", () => {
 			expect(action.cache).toEqual({ keys: [ "id" ]});
 		});
 
+	});
+});
+
+
+describe("Test constructor with mixins", () => {
+	let broker = new ServiceBroker();
+
+	let mixin1 = { name: "mixin1" };
+	let mixin2 = { name: "mixin2" };
+
+	let schema = {
+		name: "posts",
+		mixins: [
+			mixin1,
+			mixin2
+		]
+	};
+
+	it("should call applyMixins with schema", () => {
+		let oldApply = Service.applyMixins;
+		Service.applyMixins = jest.fn(schema => schema);
+
+		let service = new Service(broker, schema);
+
+		expect(Service.applyMixins).toHaveBeenCalledTimes(1);
+		expect(Service.applyMixins).toHaveBeenCalledWith(schema);
+
+		Service.applyMixins = oldApply;
+	});
+});
+
+describe("Test applyMixins", () => {
+	let mixin1 = { name: "mixin1" };
+	let mixin2 = { name: "mixin2" };
+
+	it("should call utils.mergeSchemas with mixins", () => {
+		utils.mergeSchemas.mockClear();
+		let schema = {
+			name: "posts",
+			mixins: [
+				mixin1,
+				mixin2
+			]
+		};
+		Service.applyMixins(schema);
+
+		expect(utils.mergeSchemas).toHaveBeenCalledTimes(3);
+		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, mixin1);
+		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, mixin2);
+		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, schema);
+	});
+
+	it("should call utils.mergeSchemas with mixins", () => {
+		utils.mergeSchemas.mockClear();
+		let schema = {
+			name: "posts",
+			mixins: mixin2
+		};
+		Service.applyMixins(schema);
+
+		expect(utils.mergeSchemas).toHaveBeenCalledTimes(2);
+		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, mixin2);
+		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, schema);
 	});
 });
