@@ -26,10 +26,8 @@ const { STRATEGY_ROUND_ROBIN } = require("./constants");
 // Circuit-breaker states
 const { CIRCUIT_HALF_OPEN } = require("./constants");
 
-//const _ = require("lodash");
 const _ = require("lodash");
 const pick = require("lodash/pick");
-const isArray = require("lodash/isArray");
 
 const glob = require("glob");
 const path = require("path");
@@ -263,7 +261,7 @@ class ServiceBroker {
 		
 		let serviceFiles;
 
-		if (isArray(fileMask))
+		if (Array.isArray(fileMask))
 			serviceFiles = fileMask.map(f => path.join(folder, f));
 		else
 			serviceFiles = glob.sync(path.join(folder, fileMask));
@@ -312,39 +310,10 @@ class ServiceBroker {
 	createService(schema, schemaMods) {
 		let s = schema;
 		if (schemaMods)
-			s = this.mergeSchemas(schema, schemaMods);
+			s = utils.mergeSchemas(schema, schemaMods);
 
 		let service = new this.ServiceFactory(this, s);
 		return service;
-	}
-
-	/**
-	 * Merge two schemas
-	 * 
-	 * @param {Object} schema 
-	 * @param {Object} mods 
-	 * @returns {Object}
-	 * 
-	 * @memberof ServiceBroker
-	 */
-	mergeSchemas(schema, mods) {
-		function updateProp(propName, target, source) {
-			if (source[propName] !== undefined)
-				target[propName] = source[propName];
-		}
-
-		const res = _.cloneDeep(schema);
-
-		Object.keys(mods).forEach(key => {
-			if (["settings"].indexOf(key) !== -1)
-				res[key] = _.defaultsDeep(mods[key], res[key]);
-			else if (["actions", "events", "methods"].indexOf(key) !== -1)
-				res[key] = _.assign(mods[key], res[key]);
-			else
-				updateProp(key, res, mods);
-		});
-
-		return res;
 	}
 
 	/**

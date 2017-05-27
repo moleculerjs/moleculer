@@ -8,6 +8,7 @@
 
 const Promise 	= require("bluebird");
 const os 	 	= require("os");
+const _			= require("lodash");
 
 const lut = []; 
 for (let i=0; i<256; i++) { lut[i] = (i<16?"0":"")+(i).toString(16); }
@@ -74,6 +75,34 @@ let utils = {
 	 */
 	isPromise(p) {
 		return (p != null && typeof p.then === "function");
+	},
+
+
+	/**
+	 * Merge two Service schema
+	 * 
+	 * @param {Object} schema 
+	 * @param {Object} mods 
+	 * @returns 
+	 */
+	mergeSchemas(schema, mods) {
+		function updateProp(propName, target, source) {
+			if (source[propName] !== undefined)
+				target[propName] = source[propName];
+		}
+
+		const res = _.cloneDeep(schema);
+
+		Object.keys(mods).forEach(key => {
+			if (["settings"].indexOf(key) !== -1)
+				res[key] = _.defaultsDeep(mods[key], res[key]);
+			else if (["actions", "events", "methods"].indexOf(key) !== -1)
+				res[key] = _.assign(res[key], mods[key]);
+			else
+				updateProp(key, res, mods);
+		});
+
+		return res;
 	}
 
 };

@@ -13,6 +13,11 @@ const JSONSerializer = require("../../src/serializers/json");
 const FakeTransporter = require("../../src/transporters/fake"); 
 const { CustomError, ServiceNotFoundError, RequestTimeoutError, MaxCallLevelError } = require("../../src/errors");
 
+jest.mock("../../src/utils", () => ({
+	getNodeID() { return "node-1234"; },
+	generateToken() { return "1"; }
+}));
+
 // Registry strategies
 const { STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM } = require("../../src/constants");
 
@@ -62,7 +67,7 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.ServiceFactory).toBe(Service);
 		expect(broker.ContextFactory).toBe(Context);
 
-		expect(broker.nodeID).toBe(require("os").hostname().toLowerCase());
+		expect(broker.nodeID).toBe("node-1234");
 
 		expect(broker.logger).toBeDefined();
 		
@@ -144,7 +149,7 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.statistics).toBeDefined();
 		expect(broker.validator).toBeUndefined();
 		expect(broker.serializer).toBeInstanceOf(JSONSerializer);
-		expect(broker.nodeID).toBe(require("os").hostname().toLowerCase());
+		expect(broker.nodeID).toBe("node-1234");
 
 		expect(broker.hasAction("$node.list")).toBe(false);
 		expect(broker.hasAction("$node.services")).toBe(false);
@@ -159,7 +164,7 @@ describe("Test ServiceBroker constructor", () => {
 
 		expect(broker).toBeDefined();
 		expect(broker.transit).toBeInstanceOf(Transit);
-		expect(broker.nodeID).toBe(require("os").hostname().toLowerCase());
+		expect(broker.nodeID).toBe("node-1234");
 	});
 
 	it("should create cacher and call init", () => {
@@ -359,7 +364,9 @@ describe("Test broker.createService", () => {
 	});
 
 	it("should call mergeSchema if give schema mods param", () => {
-		broker.mergeSchemas = jest.fn((s1, s2) => s1);
+		let utils = require("../../src/utils");
+
+		utils.mergeSchemas = jest.fn((s1, s2) => s1);
 		let schema = {
 			name: "test",
 			actions: {
@@ -373,134 +380,9 @@ describe("Test broker.createService", () => {
 		};
 
 		broker.createService(schema, mods);
-		expect(broker.mergeSchemas).toHaveBeenCalledTimes(1);
-		expect(broker.mergeSchemas).toHaveBeenCalledWith(schema, mods);
+		expect(utils.mergeSchemas).toHaveBeenCalledTimes(1);
+		expect(utils.mergeSchemas).toHaveBeenCalledWith(schema, mods);
 	});	
-
-});
-
-describe("Test broker.mergeSchema", () => {
-
-	let broker = new ServiceBroker();
-	it("should merge two schemas", () => {
-
-		let origSchema = {
-			name: "posts",
-			settings: {
-				a: 5,
-				b: "10",
-				nested: {
-					id: 10
-				},
-				array: [
-					"first"
-				]
-			},
-
-			actions: {
-				get() {},
-				find() {},
-				list: {
-					cache: {
-						keys: ["id"]
-					},
-					handler() {}
-				}
-			},
-
-			events: {
-				"created"() {},
-				"updated"() {}
-			},
-
-			methods: {
-				getByID() {},
-				notify() {}
-			},
-
-			created() {},
-			started() {}
-		};
-
-		let newSchema = {
-			name: "users",
-			version: 2,
-			settings: {
-				b: 100,
-				c: true,
-				nested: {
-					name: "John"
-				},
-				array: [
-					"second",
-					"third"
-				]
-			},
-
-			actions: {
-				find: {
-					cache: false,
-					handler() {}
-				},
-				list() {},
-				remove() {}
-			},
-
-			events: {
-				"created"() {},
-				"removed"() {}
-			},
-
-			methods: {
-				getByID() {},
-				checkPermission() {}
-			},
-
-			created() {},
-			stopped() {},
-
-			customProp: "test"			
-		};
-
-		let res = broker.mergeSchemas(origSchema, newSchema);
-
-		expect(res).toBeDefined();
-		expect(res.name).toBe("users");
-		expect(res.version).toBe(2);
-		expect(res.settings).toEqual({
-			a: 5, 
-			b: 100, 
-			c: true, 
-			nested: {
-				id: 10, 
-				name: "John"
-			},
-			array: [
-				"second",
-				"third"
-			]
-		});
-
-		expect(res.actions.get).toBe(origSchema.actions.get);
-		expect(res.actions.find).toBe(newSchema.actions.find);
-		expect(res.actions.list).toBe(newSchema.actions.list);
-		expect(res.actions.remove).toBe(newSchema.actions.remove);
-
-		expect(res.events.created).toBe(newSchema.events.created);
-		expect(res.events.updated).toBe(origSchema.events.updated);
-		expect(res.events.removed).toBe(newSchema.events.removed);
-
-		expect(res.methods.getByID).toBe(newSchema.methods.getByID);
-		expect(res.methods.notify).toBe(origSchema.methods.notify);
-		expect(res.methods.checkPermission).toBe(newSchema.methods.checkPermission);
-		
-		expect(res.created).toBe(newSchema.created);
-		expect(res.started).toBe(origSchema.started);
-		expect(res.stopped).toBe(newSchema.stopped);
-
-		expect(res.customProp).toBe("test");
-
-	});
 
 });
 

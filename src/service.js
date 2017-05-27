@@ -6,13 +6,13 @@
 
 "use strict";
 
-//const _ = require("lodash");
-const isFunction = require("lodash/isFunction");
-const forIn = require("lodash/forIn");
-const isObject = require("lodash/isObject");
-const cloneDeep = require("lodash/cloneDeep");
+const isFunction 	= require("lodash/isFunction");
+const forIn 		= require("lodash/forIn");
+const isObject 		= require("lodash/isObject");
+const cloneDeep 	= require("lodash/cloneDeep");
+const utils 		= require("./utils");
 
-const Promise = require("bluebird");
+const Promise 		= require("bluebird");
 
 /**
  * Main Service class
@@ -41,6 +41,10 @@ class Service {
 
 		if (!schema.name) {
 			throw new Error("Service name can't be empty!");
+		}
+
+		if (schema.mixins) {
+			schema = Service.applyMixins(schema);
 		}
 		
 		this.name = schema.name;
@@ -163,6 +167,11 @@ class Service {
 		return action;
 	}
 
+	static applyMixins(schema) {
+		const mixins = Array.isArray(schema.mixins) ? schema.mixins : [schema.mixins];
+		const mixedSchema = mixins.reduce((s, mixin) => utils.mergeSchemas(s, mixin), {});
+		return utils.mergeSchemas(mixedSchema, schema);		
+	}
 }
 
 module.exports = Service;
