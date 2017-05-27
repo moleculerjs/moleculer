@@ -29,10 +29,11 @@ Moleculer is a fast & powerful microservices framework for NodeJS (>= v6.x).
 - request-reply concept
 - event bus system
 - supports middlewares
+- service mixins
 - multiple services on a node/server
 - built-in caching solution (memory, Redis)
-- multiple supported transporters (NATS, MQTT, Redis)
-- multiple supported serializers (JSON, Avro, MsgPack, Protocol Buffer)
+- pluggable transporters (NATS, MQTT, Redis)
+- pluggable serializers (JSON, Avro, MsgPack, Protocol Buffer)
 - load balanced requests (round-robin, random)
 - every nodes are equal, no master/leader node
 - auto discovery services
@@ -50,8 +51,8 @@ or
 $ yarn add moleculer
 ```
 
-# Your first microservice
-
+# Create your first microservice
+This example shows you how to create a small service with an `add` action which can add two numbers.
 ```js
 const { ServiceBroker } = require("moleculer");
 
@@ -76,8 +77,9 @@ broker.call("math.add", { a: 5, b: 3 })
 [Try it on Runkit](https://runkit.com/icebob/moleculer-quick-example)
 
 # Create a Moleculer project
-The fastest way is that use Moleculer CLI tool to create a new Moleculer based microservices project.
-1. Install [moleculer-cli](https://github.com/ice-services/moleculer-cli)
+Use the Moleculer CLI tool to create a new Moleculer based microservices project.
+
+1. Install [moleculer-cli](https://github.com/ice-services/moleculer-cli) globally
     ```bash
     $ npm install moleculer-cli -g
     ````
@@ -99,6 +101,9 @@ The fastest way is that use Moleculer CLI tool to create a new Moleculer based m
 5. Open the [http://localhost:3000/math.add?a=5&b=3](http://localhost:3000/math.add?a=5&b=3) link in your browser. It will call the `add` action of `math` service with two params via [API gateway](https://github.com/ice-services/moleculer-web) and returns with the result.
 
 :tada:**Congratulation, you created your first Moleculer based microservices project. Read our [documentation](https://moleculer.services/docs) to learn more about Moleculer.**
+
+# Official modules
+We have some official modules for Moleculer. [See the list!](https://moleculer.services/docs/modules.html)
 
 # Documentation
 You can find [the documentation here](https://moleculer.services/docs).
