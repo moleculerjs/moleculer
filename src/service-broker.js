@@ -743,7 +743,7 @@ class ServiceBroker {
 		const nodeID = ctx.nodeID;
 
 		if (!(err instanceof Error)) {
-			err = new E.CustomError(err);
+			err = new E.MoleculerError(err);
 		}
 		if (err instanceof Promise.TimeoutError)
 			err = new E.RequestTimeoutError(actionName, nodeID || this.nodeID);

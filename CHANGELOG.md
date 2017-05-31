@@ -299,7 +299,7 @@ broker.createService({
             if (meta.loggedInUser && meta.loggedInUser.roles.indexOf("admin") !== -1)
                 return Promise.resolve(...);
             else
-                throw new CustomError("Access denied!");
+                throw new MoleculerError("Access denied!");
         }
     }
 });

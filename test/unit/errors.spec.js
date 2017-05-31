@@ -5,13 +5,13 @@ let errors = require("../../src/errors");
 
 describe("Test Errors", () => {
 
-	it("test CustomError", () => {
-		let err = new errors.CustomError("Something went wrong!", 555, { a: 5 });
+	it("test MoleculerError", () => {
+		let err = new errors.MoleculerError("Something went wrong!", 555, { a: 5 });
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
-		expect(err).toBeInstanceOf(errors.CustomError);
+		expect(err).toBeInstanceOf(errors.MoleculerError);
 		expect(err.code).toBe(555);
-		expect(err.name).toBe("CustomError");
+		expect(err.name).toBe("MoleculerError");
 		expect(err.message).toBe("Something went wrong!");
 		expect(err.data).toEqual({ a: 5});
 	});

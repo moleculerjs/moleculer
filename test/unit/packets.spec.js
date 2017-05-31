@@ -308,7 +308,7 @@ describe("Test PacketResponse", () => {
 		let payload = {
 			data: null,
 			error: {
-				name: "CustomError",
+				name: "MoleculerError",
 				message: "Something happened",
 				code: 500,
 				nodeID: "far-far-node",
@@ -320,7 +320,7 @@ describe("Test PacketResponse", () => {
 
 		expect(packet.payload.data).toBeNull();
 		expect(packet.payload.error).toBeDefined();
-		expect(packet.payload.error.name).toBe("CustomError");
+		expect(packet.payload.error.name).toBe("MoleculerError");
 		expect(packet.payload.error.message).toBe("Something happened");
 		expect(packet.payload.error.code).toBe(500);
 		expect(packet.payload.error.nodeID).toBe("far-far-node");

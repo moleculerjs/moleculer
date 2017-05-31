@@ -9,24 +9,48 @@
 const ExtendableError = require("es6-error");
 
 /**
+ * Custom Moleculer Error class
+ * 
+ * @class MoleculerError
+ * @extends {Error}
+ */
+class MoleculerError extends ExtendableError {
+	/**
+	 * Creates an instance of MoleculerError.
+	 * 
+	 * @param {any} message
+	 * 
+	 * @memberOf MoleculerError
+	 */
+	constructor(message, code, type, data) {
+		super(message);
+		this.code = code || 500;
+		this.type = type;
+		this.data = data;
+	}
+}
+
+
+/**
  * 'Service not found' Error message
  * 
  * @class ServiceNotFoundError
  * @extends {Error}
  */
-class ServiceNotFoundError extends ExtendableError {
+class ServiceNotFoundError extends MoleculerError {
 	/**
 	 * Creates an instance of ServiceNotFoundError.
 	 * 
-	 * @param {String} message
-	 * @param {any} data
+	 * @param {String} action
+	 * @param {String} nodeID
 	 * 
 	 * @memberOf ServiceNotFoundError
 	 */
-	constructor(message, data) {
-		super(message);
-		this.code = 501;
-		this.data = data;
+	constructor(action, nodeID) {
+		super(`Service '${action}' is not available on '${nodeID || "<local>"}' node!`, 501, null, {
+			action,
+			nodeID
+		});
 	}
 }
 
@@ -36,7 +60,7 @@ class ServiceNotFoundError extends ExtendableError {
  * @class RequestTimeoutError
  * @extends {Error}
  */
-class RequestTimeoutError extends ExtendableError {
+class RequestTimeoutError extends MoleculerError {
 	/**
 	 * Creates an instance of RequestTimeoutError.
 	 * 
@@ -46,11 +70,10 @@ class RequestTimeoutError extends ExtendableError {
 	 * @memberOf RequestTimeoutError
 	 */
 	constructor(action, nodeID) {
-		super(`Request timed out when call '${action}' action on '${nodeID}' node!`);
-		this.code = 504;
-		this.nodeID = nodeID;
-		this.action = action;
-		//this.data = data;
+		super(`Request timed out when call '${action}' action on '${nodeID || "<local>"}' node!`, 504, null, {
+			action,
+			nodeID
+		});
 	}
 }
 
@@ -60,7 +83,7 @@ class RequestTimeoutError extends ExtendableError {
  * @class RequestSkippedError
  * @extends {Error}
  */
-class RequestSkippedError extends ExtendableError {
+class RequestSkippedError extends MoleculerError {
 	/**
 	 * Creates an instance of RequestSkippedError.
 	 * 
@@ -69,11 +92,9 @@ class RequestSkippedError extends ExtendableError {
 	 * @memberOf RequestSkippedError
 	 */
 	constructor(action) {
-		super(`Action '${action}' call is skipped because timeout reached!`);
-		this.code = 514;
-		//this.nodeID = nodeID;
-		this.action = action;
-		//this.data = data;
+		super(`Calling '${action}' is skipped because timeout reached!`, 514, null, {
+			action
+		});
 	}
 }
 
@@ -83,29 +104,28 @@ class RequestSkippedError extends ExtendableError {
  * @class ValidationError
  * @extends {Error}
  */
-class ValidationError extends ExtendableError {
+class ValidationError extends MoleculerError {
 	/**
 	 * Creates an instance of ValidationError.
 	 * 
-	 * @param {any} message
+	 * @param {String} message
+	 * @param {any} type
 	 * @param {any} data
 	 * 
 	 * @memberOf ValidationError
 	 */
-	constructor(message, data) {
-		super(message);
-		this.code = 422;
-		this.data = data;
+	constructor(message, type, data) {
+		super(message, 422, type, data);
 	}
 }
 
 /**
- * 'Request skipped for timeout' Error message
+ * 'Max request call level!' Error message
  * 
  * @class MaxCallLevelError
  * @extends {Error}
  */
-class MaxCallLevelError extends ExtendableError {
+class MaxCallLevelError extends MoleculerError {
 	/**
 	 * Creates an instance of MaxCallLevelError.
 	 * 
@@ -114,35 +134,14 @@ class MaxCallLevelError extends ExtendableError {
 	 * @memberOf MaxCallLevelError
 	 */
 	constructor(data) {
-		super("Call level is reached the limit!");
-		this.code = 500;
-		this.data = data;
+		super("Request call level is reached the limit!", 500, null, data);
 	}
 }
 
-/**
- * Custom Error class
- * 
- * @class CustomError
- * @extends {Error}
- */
-class CustomError extends ExtendableError {
-	/**
-	 * Creates an instance of CustomError.
-	 * 
-	 * @param {any} message
-	 * 
-	 * @memberOf CustomError
-	 */
-	constructor(message, code, data) {
-		super(message);
-		this.code = code || 500;
-		this.data = data;
-	}
-}
 
 module.exports = {
-	CustomError,
+	MoleculerError,
+
 	ServiceNotFoundError,
 	ValidationError,
 	RequestTimeoutError,

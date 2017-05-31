@@ -3,7 +3,7 @@
 let path = require("path");
 let _ = require("lodash");
 let ServiceBroker = require("../../src/service-broker");
-let { CustomError } = require("../../src/errors");
+let { MoleculerError } = require("../../src/errors");
 let NatsTransporter = require("../../src/transporters/nats");
 
 // Create broker
@@ -20,7 +20,7 @@ broker.createService({
 	actions: {
 		add(ctx) {
 			if (_.random(100) > 90)
-				return this.Promise.reject(new CustomError("Internal error!", 510));
+				return this.Promise.reject(new MoleculerError("Internal error!", 510));
 				
 			return Number(ctx.params.a) + Number(ctx.params.b);
 		},

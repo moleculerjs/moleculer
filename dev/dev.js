@@ -3,7 +3,7 @@
 let ServiceBroker = require("../src/service-broker");
 let Transporter = require("../src/transporters/nats");
 let Serializer = require("../src/serializers/json");
-let { CustomError } = require("../src/errors");
+let { MoleculerError } = require("../src/errors");
 
 let broker1 = new ServiceBroker({
 	nodeID: "node1",
@@ -35,7 +35,7 @@ broker2.createService({
 	name: "devil",
 	actions: {
 		danger(ctx) {
-			throw new CustomError("Run!", 666, { a: 100 });
+			throw new MoleculerError("Run!", 666, { a: 100 });
 		}
 	}
 });*/
