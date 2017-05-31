@@ -180,6 +180,9 @@ class ServiceBroker {
 				}
 			});
 		})
+		.catch(err => {
+			this.logger.error("Unable to start all services!", err);
+		})
 		.then(() => {
 			if (this.transit)
 				return this.transit.connect();
@@ -203,6 +206,9 @@ class ServiceBroker {
 					service.schema.stopped.call(service);
 				}
 			});
+		})
+		.catch(err => {
+			this.logger.error("Unable to stop all services!", err);
 		})
 		.then(() => {
 			if (this.transit) {
