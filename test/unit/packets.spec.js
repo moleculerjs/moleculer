@@ -275,7 +275,7 @@ describe("Test PacketResponse", () => {
 	});
 
 	it("should set properties with error", () => {
-		let err = new ValidationError("Validation error", { a: 5 });
+		let err = new ValidationError("Validation error", "ERR_INVALID_A", { a: 5 });
 		let packet = new P.PacketResponse(transit, "server-2", "12345", null, err);
 		expect(packet).toBeDefined();
 		expect(packet.type).toBe(P.PACKET_RESPONSE);
@@ -289,6 +289,7 @@ describe("Test PacketResponse", () => {
 		expect(packet.payload.error.name).toBe("ValidationError");
 		expect(packet.payload.error.message).toBe("Validation error");
 		expect(packet.payload.error.code).toBe(422);
+		expect(packet.payload.error.type).toBe("ERR_INVALID_A");
 		expect(packet.payload.error.nodeID).toBe("node-1");
 		expect(packet.payload.error.data).toBe("{\"a\":5}");
 	});
@@ -311,6 +312,7 @@ describe("Test PacketResponse", () => {
 				name: "MoleculerError",
 				message: "Something happened",
 				code: 500,
+				type: "ERR_SOMETHING",
 				nodeID: "far-far-node",
 				data: "{\"a\":5}"
 			}
@@ -323,6 +325,7 @@ describe("Test PacketResponse", () => {
 		expect(packet.payload.error.name).toBe("MoleculerError");
 		expect(packet.payload.error.message).toBe("Something happened");
 		expect(packet.payload.error.code).toBe(500);
+		expect(packet.payload.error.type).toBe("ERR_SOMETHING");
 		expect(packet.payload.error.nodeID).toBe("far-far-node");
 		expect(packet.payload.error.data).toEqual({ a: 5 });	
 	});
