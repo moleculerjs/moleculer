@@ -130,7 +130,7 @@ class Context {
 			const distTimeout = this.timeout - duration;
 
 			if (distTimeout <= 0) {
-				return Promise.reject(new RequestSkippedError(actionName));
+				return Promise.reject(new RequestSkippedError(actionName, this.broker.nodeID));
 			}
 			opts.timeout = distTimeout;
 			//console.warn(`Decrement timeout: ${opts.timeout.toFixed(0)} for action '${actionName}'`);

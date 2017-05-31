@@ -31,9 +31,10 @@ message PacketResponse {
 		required string name 		= 1;
 		required string message 	= 2;
 		required int32 code 		= 3;
-		required string data 		= 4;
-		required string stack 		= 5;
-		required string nodeID 		= 6;
+		required string type 		= 4;
+		required string data 		= 5;
+		required string stack 		= 6;
+		required string nodeID 		= 7;
 	}
 }
 

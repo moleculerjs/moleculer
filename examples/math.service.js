@@ -32,7 +32,7 @@ module.exports = {
 				if (b != 0 && !Number.isNaN(b))
 					return a / b;
 				else
-					throw new MoleculerError("Divide by zero!", 422, ctx.params);
+					throw new MoleculerError("Divide by zero!", 422, null, ctx.params);
 			}
 		}
 	}

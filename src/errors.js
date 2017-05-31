@@ -47,7 +47,13 @@ class ServiceNotFoundError extends MoleculerError {
 	 * @memberOf ServiceNotFoundError
 	 */
 	constructor(action, nodeID) {
-		super(`Service '${action}' is not available on '${nodeID || "<local>"}' node!`, 501, null, {
+		let msg;
+		if (nodeID) 
+			msg = `Service '${action}' is not available on '${nodeID || "<local>"}' node!`;
+		else 
+			msg = `Service '${action}' is not available!`;
+			
+		super(msg, 501, null, {
 			action,
 			nodeID
 		});

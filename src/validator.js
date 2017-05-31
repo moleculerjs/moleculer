@@ -30,7 +30,7 @@ class ParamValidator {
 	validate(params, schema) {
 		const res = this.validator.validate(params, schema);
 		if (res !== true)
-			throw new ValidationError("Parameters validation error!", res);
+			throw new ValidationError("Parameters validation error!", null, res);
 		
 		return true;
 	}
@@ -50,7 +50,7 @@ class ParamValidator {
 					if (res === true)
 						return handler(ctx);
 					else
-						return Promise.reject(new ValidationError("Parameters validation error!", res));
+						return Promise.reject(new ValidationError("Parameters validation error!", null, res));
 				};
 			}
 			return handler;
