@@ -137,7 +137,7 @@ describe("Test call method", () => {
 			return ctx.call("posts.find", {});
 		}).catch(err => {
 			expect(err).toBeInstanceOf(RequestSkippedError);
-			expect(err.action).toBe("posts.find");
+			expect(err.data.action).toBe("posts.find");
 		});
 	});
 });
@@ -228,12 +228,12 @@ describe("Test _metricFinish method", () => {
 	it("should emit finish event with error", () => {		
 		broker.emit.mockClear();
 		return new Promise(resolve => {
-			ctx._metricFinish(new ServiceNotFoundError("Something happened"), true);
+			ctx._metricFinish(new ServiceNotFoundError("posts.find"), true);
 
 			expect(ctx.stopTime).toBeGreaterThan(0);
 
 			expect(broker.emit).toHaveBeenCalledTimes(1);
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.finish", {"action": {"name": "users.get"}, "duration": ctx.duration, "error": { "message": "Something happened", "name": "ServiceNotFoundError", "code": 501 }, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "startTime": ctx.startTime, "endTime": ctx.stopTime, "fromCache": false, "level": 1, "remoteCall": true, "nodeID": broker.nodeID, "targetNodeID": "server-2" });
+			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.finish", {"action": {"name": "users.get"}, "duration": ctx.duration, "error": { "message": "Service 'posts.find' is not available!", "name": "ServiceNotFoundError", "code": 501 }, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "startTime": ctx.startTime, "endTime": ctx.stopTime, "fromCache": false, "level": 1, "remoteCall": true, "nodeID": broker.nodeID, "targetNodeID": "server-2" });
 
 			resolve();
 		});

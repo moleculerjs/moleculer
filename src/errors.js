@@ -140,7 +140,7 @@ class MaxCallLevelError extends MoleculerError {
 	 * @memberOf MaxCallLevelError
 	 */
 	constructor(data) {
-		super("Request call level is reached the limit!", 500, null, data);
+		super("Request level is reached the limit!", 500, null, data);
 	}
 }
 

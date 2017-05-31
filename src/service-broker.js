@@ -637,7 +637,7 @@ class ServiceBroker {
 				endpoint = this.serviceRegistry.getEndpointByNodeID(actionName, opts.nodeID);
 				if (!endpoint) {
 					this.logger.warn(`Service '${actionName}' is not available on '${opts.nodeID}' node!`);
-					return Promise.reject(new E.ServiceNotFoundError({ action: actionName, nodeID: opts.nodeID }));
+					return Promise.reject(new E.ServiceNotFoundError(actionName, opts.nodeID));
 				}
 
 			} else {
@@ -645,7 +645,7 @@ class ServiceBroker {
 				let actions = this.serviceRegistry.findAction(actionName);
 				if (actions == null) {
 					this.logger.warn(`Service '${actionName}' is not registered!`);
-					return Promise.reject(new E.ServiceNotFoundError({ action: actionName }));
+					return Promise.reject(new E.ServiceNotFoundError(actionName));
 				}
 				
 				// Get an endpoint
@@ -653,7 +653,7 @@ class ServiceBroker {
 				if (endpoint == null) {
 					const errMsg = `Service '${actionName}' is not available!`;
 					this.logger.warn(errMsg);
-					return Promise.reject(new E.ServiceNotFoundError({ action: actionName }));
+					return Promise.reject(new E.ServiceNotFoundError(actionName));
 				}
 			}
 		}

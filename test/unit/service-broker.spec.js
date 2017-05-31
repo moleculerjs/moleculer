@@ -852,7 +852,7 @@ describe("Test broker.call method", () => {
 			return broker.call("posts.noaction").catch(err => {
 				expect(err).toBeDefined();
 				expect(err).toBeInstanceOf(ServiceNotFoundError);
-				expect(err.message).toBe("Action 'posts.noaction' is not registered!");
+				expect(err.message).toBe("Service 'posts.noaction' is not available!");
 				expect(err.data).toEqual({ action: "posts.noaction" });
 			});
 		});
@@ -862,7 +862,7 @@ describe("Test broker.call method", () => {
 			return broker.call("posts.noHandler").catch(err => {
 				expect(err).toBeDefined();
 				expect(err).toBeInstanceOf(ServiceNotFoundError);
-				expect(err.message).toBe("Action 'posts.noHandler' is not available!");
+				expect(err.message).toBe("Service 'posts.noHandler' is not available!");
 				expect(err.data).toEqual({ action: "posts.noHandler" });
 			});
 		});
@@ -872,7 +872,7 @@ describe("Test broker.call method", () => {
 			return broker.call("posts.noHandler", {}, { nodeID: "node-123"}).catch(err => {
 				expect(err).toBeDefined();
 				expect(err).toBeInstanceOf(ServiceNotFoundError);
-				expect(err.message).toBe("Action 'posts.noHandler' is not available on 'node-123' node!");
+				expect(err.message).toBe("Service 'posts.noHandler' is not available on 'node-123' node!");
 				expect(err.data).toEqual({ action: "posts.noHandler", nodeID: "node-123" });
 			});
 		});
