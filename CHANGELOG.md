@@ -224,6 +224,30 @@ If an action responses an error on a remote node, the transporter will send back
 broker.call("account.deposit").catch(err => console.log(err.stack)); 
 ```
 
+## Type property in custom error
+The `CustomError` class renamed to `MoleculerError`. It got a `type` new property. You can store here a custom error type. E.g if you have a Validation error sometimes you don't enough the name & code. With `type` the client can handle the cause of error programmatically. 
+
+**Example**
+```js
+const ERR_MISSING_ID = "ERR_MISSING_ID";
+const ERR_ENTITY_NOT_FOUND = "ERR_ENTITY_NOT_FOUND";
+
+broker.createService({
+    actions: {
+        get(ctx) {
+            if (ctx.params.id) {
+                const entity = this.searchEntity(ctx.params.id);
+                if (entity)
+                    return entity;
+                else
+                    return Promise.reject(new ValidationError("Not found entity!", ERR_ENTITY_NOT_FOUND));
+            } else
+                return Promise.reject(new ValidationError("Please set the ID field!", ERR_MISSING_ID));
+        }
+    }
+});
+
+```
 
 --------------------------------------------------
 
