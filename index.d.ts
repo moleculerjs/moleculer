@@ -221,7 +221,7 @@ export = {
 	Validator: Validator,
 
 	Errors: {
-		CustomError: Error,
+		MoleculerError: Error,
 		ServiceNotFoundError: Error,
 		ValidationError: Error,
 		RequestTimeoutError: Error,

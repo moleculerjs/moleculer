@@ -2,8 +2,6 @@ let _ = require("lodash");
 let fakerator = require("fakerator")();
 const Promise = require("bluebird");
 
-const { CustomError } = require("../src/errors");
-
 let { delay } = require("../src/utils");
 
 module.exports = function() {
@@ -64,7 +62,6 @@ module.exports = function() {
 			},
 
 			count(ctx) {
-				//throw new CustomError("Hibás adatok!", 410, ctx.params);
 				this.logger.info("count called");
 				let count = posts.filter(post => post.author == ctx.params.id).length;
 				//return Promise.delay(1500).then(() => count);

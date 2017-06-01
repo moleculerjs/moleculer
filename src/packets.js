@@ -244,6 +244,7 @@ class PacketResponse extends Packet {
 				message: err.message,
 				nodeID: err.nodeID || this.payload.sender,
 				code: err.code,
+				type: err.type,
 				stack: err.stack,
 				data: JSON.stringify(err.data)
 			};

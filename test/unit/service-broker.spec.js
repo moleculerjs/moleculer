@@ -11,7 +11,7 @@ const Transit = require("../../src/transit");
 const MemoryCacher = require("../../src/cachers/memory");
 const JSONSerializer = require("../../src/serializers/json");
 const FakeTransporter = require("../../src/transporters/fake"); 
-const { CustomError, ServiceNotFoundError, RequestTimeoutError, MaxCallLevelError } = require("../../src/errors");
+const { MoleculerError, ServiceNotFoundError, RequestTimeoutError, MaxCallLevelError } = require("../../src/errors");
 
 jest.mock("../../src/utils", () => ({
 	getNodeID() { return "node-1234"; },
@@ -571,7 +571,7 @@ describe("Test broker.wrapContextInvoke", () => {
 		});
 		broker.statistics.addRequest = jest.fn();
 
-		let origHandler = jest.fn(() => Promise.reject(new CustomError("Something went wrong!", 402)));
+		let origHandler = jest.fn(() => Promise.reject(new MoleculerError("Something went wrong!", 402)));
 		let action = {
 			name: "list",
 			handler: origHandler
@@ -585,7 +585,7 @@ describe("Test broker.wrapContextInvoke", () => {
 			ctx._metricFinish = jest.fn();
 
 			return action.handler(ctx).catch(err => {
-				expect(err).toBeInstanceOf(CustomError);
+				expect(err).toBeInstanceOf(MoleculerError);
 				expect(err.message).toBe("Something went wrong!");
 				expect(err.ctx).toBe(ctx);
 				expect(ctx._metricStart).toHaveBeenCalledTimes(1);
@@ -612,11 +612,11 @@ describe("Test broker.wrapContextInvoke", () => {
 		};
 		broker.wrapContextInvoke(action, origHandler);
 		
-		it("should convert error message to CustomError", () => {
+		it("should convert error message to MoleculerError", () => {
 			let ctx = new Context(broker, action);
 
 			return action.handler(ctx).catch(err => {
-				expect(err).toBeInstanceOf(CustomError);
+				expect(err).toBeInstanceOf(MoleculerError);
 				expect(err.message).toBe("My custom error message");
 				expect(err.code).toBe(500);
 				expect(err.ctx).toBe(ctx);
@@ -852,7 +852,7 @@ describe("Test broker.call method", () => {
 			return broker.call("posts.noaction").catch(err => {
 				expect(err).toBeDefined();
 				expect(err).toBeInstanceOf(ServiceNotFoundError);
-				expect(err.message).toBe("Action 'posts.noaction' is not registered!");
+				expect(err.message).toBe("Service 'posts.noaction' is not available!");
 				expect(err.data).toEqual({ action: "posts.noaction" });
 			});
 		});
@@ -862,7 +862,7 @@ describe("Test broker.call method", () => {
 			return broker.call("posts.noHandler").catch(err => {
 				expect(err).toBeDefined();
 				expect(err).toBeInstanceOf(ServiceNotFoundError);
-				expect(err.message).toBe("Action 'posts.noHandler' is not available!");
+				expect(err.message).toBe("Service 'posts.noHandler' is not available!");
 				expect(err.data).toEqual({ action: "posts.noHandler" });
 			});
 		});
@@ -872,7 +872,7 @@ describe("Test broker.call method", () => {
 			return broker.call("posts.noHandler", {}, { nodeID: "node-123"}).catch(err => {
 				expect(err).toBeDefined();
 				expect(err).toBeInstanceOf(ServiceNotFoundError);
-				expect(err.message).toBe("Action 'posts.noHandler' is not available on 'node-123' node!");
+				expect(err.message).toBe("Service 'posts.noHandler' is not available on 'node-123' node!");
 				expect(err.data).toEqual({ action: "posts.noHandler", nodeID: "node-123" });
 			});
 		});
@@ -1164,7 +1164,7 @@ describe("Test broker._callErrorHandler", () => {
 	ctx.nodeID = "server-2";
 	ctx.metrics = true;
 
-	let customErr = new CustomError("Error", 400);
+	let customErr = new MoleculerError("Error", 400);
 	let timeoutErr = new RequestTimeoutError("user.create", "server-2");
 	ctx._metricFinish = jest.fn();
 	transit.removePendingRequest = jest.fn();
@@ -1191,7 +1191,7 @@ describe("Test broker._callErrorHandler", () => {
 
 	it("should call endpoint.failure if errorCode >= 500", () => {
 		endpoint.failure.mockClear();
-		return broker._callErrorHandler(new CustomError("Wrong", 500), ctx, endpoint, {}).catch(() => {
+		return broker._callErrorHandler(new MoleculerError("Wrong", 500), ctx, endpoint, {}).catch(() => {
 			expect(endpoint.failure).toHaveBeenCalledTimes(1);
 		});
 	});
@@ -1199,14 +1199,14 @@ describe("Test broker._callErrorHandler", () => {
 	it("should call endpoint.failure if errorCode >= 500", () => {
 		endpoint.failure.mockClear();
 		broker.options.circuitBreaker.failureOnReject = false;
-		return broker._callErrorHandler(new CustomError("Wrong", 500), ctx, endpoint, {}).catch(() => {
+		return broker._callErrorHandler(new MoleculerError("Wrong", 500), ctx, endpoint, {}).catch(() => {
 			expect(endpoint.failure).toHaveBeenCalledTimes(0);
 		});
 	});
 
-	it("should convert error text to CustomError", () => {
+	it("should convert error text to MoleculerError", () => {
 		return broker._callErrorHandler("Something happened", ctx, endpoint, {}).catch(err => {
-			expect(err).toBeInstanceOf(CustomError);
+			expect(err).toBeInstanceOf(MoleculerError);
 			expect(broker.call).toHaveBeenCalledTimes(0);
 		});
 	});
@@ -1293,7 +1293,7 @@ describe("Test broker._finishCall", () => {
 		it("should call ctx._metricFinish with error", () => {
 			ctx._metricFinish.mockClear();
 
-			let err = new CustomError("");
+			let err = new MoleculerError("");
 			broker._finishCall(ctx, err);
 
 			expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
@@ -1323,7 +1323,7 @@ describe("Test broker._finishCall", () => {
 			ctx._metricFinish.mockClear();
 			broker.statistics.addRequest.mockClear();
 
-			let err = new CustomError("", 505);
+			let err = new MoleculerError("", 505);
 			broker._finishCall(ctx, err);
 
 			expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
@@ -1355,7 +1355,7 @@ describe("Test broker._finishCall", () => {
 		it("should call statistics.addRequest with error", () => {
 			ctx._metricFinish.mockClear();
 			broker.statistics.addRequest.mockClear();
-			let err = new CustomError("", 505);
+			let err = new MoleculerError("", 505);
 			broker._finishCall(ctx, err);
 
 			expect(ctx._metricFinish).toHaveBeenCalledTimes(1);

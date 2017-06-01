@@ -636,26 +636,24 @@ class ServiceBroker {
 				// Direct call
 				endpoint = this.serviceRegistry.getEndpointByNodeID(actionName, opts.nodeID);
 				if (!endpoint) {
-					const errMsg = `Action '${actionName}' is not available on '${opts.nodeID}' node!`;
-					this.logger.warn(errMsg);
-					return Promise.reject(new E.ServiceNotFoundError(errMsg, { action: actionName, nodeID: opts.nodeID }));
+					this.logger.warn(`Service '${actionName}' is not available on '${opts.nodeID}' node!`);
+					return Promise.reject(new E.ServiceNotFoundError(actionName, opts.nodeID));
 				}
 
 			} else {
 				// Find action by name
 				let actions = this.serviceRegistry.findAction(actionName);
 				if (actions == null) {
-					const errMsg = `Action '${actionName}' is not registered!`;
-					this.logger.warn(errMsg);
-					return Promise.reject(new E.ServiceNotFoundError(errMsg, { action: actionName }));
+					this.logger.warn(`Service '${actionName}' is not registered!`);
+					return Promise.reject(new E.ServiceNotFoundError(actionName));
 				}
 				
 				// Get an endpoint
 				endpoint = actions.nextAvailable();
 				if (endpoint == null) {
-					const errMsg = `Action '${actionName}' is not available!`;
+					const errMsg = `Service '${actionName}' is not available!`;
 					this.logger.warn(errMsg);
-					return Promise.reject(new E.ServiceNotFoundError(errMsg, { action: actionName }));
+					return Promise.reject(new E.ServiceNotFoundError(actionName));
 				}
 			}
 		}
@@ -743,7 +741,7 @@ class ServiceBroker {
 		const nodeID = ctx.nodeID;
 
 		if (!(err instanceof Error)) {
-			err = new E.CustomError(err);
+			err = new E.MoleculerError(err, 500);
 		}
 		if (err instanceof Promise.TimeoutError)
 			err = new E.RequestTimeoutError(actionName, nodeID || this.nodeID);
