@@ -35,7 +35,7 @@ broker2.createService({
 	name: "devil",
 	actions: {
 		danger(ctx) {
-			throw new MoleculerError("Run!", 666, { a: 100 });
+			throw new MoleculerError("Run!", 666, null, { a: 100 });
 		}
 	}
 });*/
