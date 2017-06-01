@@ -3,7 +3,7 @@
 let Promise = require("bluebird");
 let Context = require("../../src/context");
 let ServiceBroker = require("../../src/service-broker");
-let { ServiceNotFoundError, RequestSkippedError } = require("../../src/errors");
+let { MoleculerError, RequestSkippedError } = require("../../src/errors");
 
 
 describe("Test Context", () => {
@@ -137,7 +137,7 @@ describe("Test call method", () => {
 			return ctx.call("posts.find", {});
 		}).catch(err => {
 			expect(err).toBeInstanceOf(RequestSkippedError);
-			expect(err.action).toBe("posts.find");
+			expect(err.data.action).toBe("posts.find");
 		});
 	});
 });
@@ -228,12 +228,12 @@ describe("Test _metricFinish method", () => {
 	it("should emit finish event with error", () => {		
 		broker.emit.mockClear();
 		return new Promise(resolve => {
-			ctx._metricFinish(new ServiceNotFoundError("Something happened"), true);
+			ctx._metricFinish(new MoleculerError("Some error!", 511, "ERR_CUSTOM", { a: 5 }), true);
 
 			expect(ctx.stopTime).toBeGreaterThan(0);
 
 			expect(broker.emit).toHaveBeenCalledTimes(1);
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.finish", {"action": {"name": "users.get"}, "duration": ctx.duration, "error": { "message": "Something happened", "name": "ServiceNotFoundError", "code": 501 }, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "startTime": ctx.startTime, "endTime": ctx.stopTime, "fromCache": false, "level": 1, "remoteCall": true, "nodeID": broker.nodeID, "targetNodeID": "server-2" });
+			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.finish", {"action": {"name": "users.get"}, "duration": ctx.duration, "error": { "message": "Some error!", "name": "MoleculerError", "code": 511, "type": "ERR_CUSTOM" }, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "startTime": ctx.startTime, "endTime": ctx.stopTime, "fromCache": false, "level": 1, "remoteCall": true, "nodeID": broker.nodeID, "targetNodeID": "server-2" });
 
 			resolve();
 		});

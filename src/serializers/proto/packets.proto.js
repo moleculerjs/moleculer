@@ -1,4 +1,5 @@
--/*eslint-disable block-scoped-var, no-redeclare, no-control-regex, no-prototype-builtins, no-var, indent*/
+/*eslint-disable block-scoped-var, no-redeclare, no-control-regex, no-prototype-builtins, no-var, indent*/
+
 "use strict";
 
 var $protobuf = require("protobufjs/minimal");
@@ -835,6 +836,7 @@ $root.packets = (function() {
              * @property {string} name Error name.
              * @property {string} message Error message.
              * @property {number} code Error code.
+             * @property {string} type Error type.
              * @property {string} data Error data.
              * @property {string} stack Error stack.
              * @property {string} nodeID Error nodeID.
@@ -870,6 +872,12 @@ $root.packets = (function() {
              * @type {number}
              */
             Error.prototype.code = 0;
+
+            /**
+             * Error type.
+             * @type {string}
+             */
+            Error.prototype.type = "";
 
             /**
              * Error data.
@@ -910,9 +918,10 @@ $root.packets = (function() {
                 writer.uint32(/* id 1, wireType 2 =*/10).string(message.name);
                 writer.uint32(/* id 2, wireType 2 =*/18).string(message.message);
                 writer.uint32(/* id 3, wireType 0 =*/24).int32(message.code);
-                writer.uint32(/* id 4, wireType 2 =*/34).string(message.data);
-                writer.uint32(/* id 5, wireType 2 =*/42).string(message.stack);
-                writer.uint32(/* id 6, wireType 2 =*/50).string(message.nodeID);
+                writer.uint32(/* id 4, wireType 2 =*/34).string(message.type);
+                writer.uint32(/* id 5, wireType 2 =*/42).string(message.data);
+                writer.uint32(/* id 6, wireType 2 =*/50).string(message.stack);
+                writer.uint32(/* id 7, wireType 2 =*/58).string(message.nodeID);
                 return writer;
             };
 
@@ -951,12 +960,15 @@ $root.packets = (function() {
                         message.code = reader.int32();
                         break;
                     case 4:
-                        message.data = reader.string();
+                        message.type = reader.string();
                         break;
                     case 5:
-                        message.stack = reader.string();
+                        message.data = reader.string();
                         break;
                     case 6:
+                        message.stack = reader.string();
+                        break;
+                    case 7:
                         message.nodeID = reader.string();
                         break;
                     default:
@@ -970,6 +982,8 @@ $root.packets = (function() {
                     throw $util.ProtocolError("missing required 'message'", { instance: message });
                 if (!message.hasOwnProperty("code"))
                     throw $util.ProtocolError("missing required 'code'", { instance: message });
+                if (!message.hasOwnProperty("type"))
+                    throw $util.ProtocolError("missing required 'type'", { instance: message });
                 if (!message.hasOwnProperty("data"))
                     throw $util.ProtocolError("missing required 'data'", { instance: message });
                 if (!message.hasOwnProperty("stack"))
@@ -1006,6 +1020,8 @@ $root.packets = (function() {
                     return "message: string expected";
                 if (!$util.isInteger(message.code))
                     return "code: integer expected";
+                if (!$util.isString(message.type))
+                    return "type: string expected";
                 if (!$util.isString(message.data))
                     return "data: string expected";
                 if (!$util.isString(message.stack))
@@ -1030,6 +1046,8 @@ $root.packets = (function() {
                     message.message = String(object.message);
                 if (object.code != null)
                     message.code = object.code | 0;
+                if (object.type != null)
+                    message.type = String(object.type);
                 if (object.data != null)
                     message.data = String(object.data);
                 if (object.stack != null)
@@ -1062,6 +1080,7 @@ $root.packets = (function() {
                     object.name = "";
                     object.message = "";
                     object.code = 0;
+                    object.type = "";
                     object.data = "";
                     object.stack = "";
                     object.nodeID = "";
@@ -1072,6 +1091,8 @@ $root.packets = (function() {
                     object.message = message.message;
                 if (message.code != null && message.hasOwnProperty("code"))
                     object.code = message.code;
+                if (message.type != null && message.hasOwnProperty("type"))
+                    object.type = message.type;
                 if (message.data != null && message.hasOwnProperty("data"))
                     object.data = message.data;
                 if (message.stack != null && message.hasOwnProperty("stack"))

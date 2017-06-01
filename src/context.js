@@ -24,47 +24,6 @@ class Context {
 	 * 
 	 * @memberOf Context
 	 */
-	/*constructor(opts = {}) {
-		this.opts = opts;
-		this.broker = opts.broker;
-		this.action = opts.action;
-		this.nodeID = opts.nodeID;
-		this.parentID = opts.parent ? opts.parent.id : null;
-
-		this.metrics = !!opts.metrics;
-		this.level = opts.level || (opts.parent && opts.parent.level ? opts.parent.level + 1 : 1);
-
-		this.setParams(opts.params);
-
-		this.timeout = opts.timeout || 0;
-		this.retryCount = opts.retryCount || 0;
-
-		if (opts.parent && opts.parent.meta) {
-			// Merge metadata
-			this.meta = _.assign({}, opts.parent.meta, opts.meta);
-		} else {
-			this.meta = opts.meta || {};
-		}
-
-		// Generate ID for context
-		if (this.nodeID || opts.metrics)
-			this.id = opts.id || utils.generateToken();
-
-		// Initialize metrics properties
-		if (this.metrics) {
-			this.requestID = opts.requestID || (opts.parent && opts.parent.requestID ? opts.parent.requestID : undefined);
-
-			this.startTime = null;
-			this.startHrTime = null;
-			this.stopTime = null;
-			this.duration = 0;
-		}		
-
-		//this.error = null;
-		this.cachedResult = false;
-	}
-	*/
-
 	constructor(broker, action) {
 		this.id = null;
 		this.broker = broker;
@@ -130,7 +89,7 @@ class Context {
 			const distTimeout = this.timeout - duration;
 
 			if (distTimeout <= 0) {
-				return Promise.reject(new RequestSkippedError(actionName));
+				return Promise.reject(new RequestSkippedError(actionName, this.broker.nodeID));
 			}
 			opts.timeout = distTimeout;
 			//console.warn(`Decrement timeout: ${opts.timeout.toFixed(0)} for action '${actionName}'`);
@@ -226,6 +185,7 @@ class Context {
 				payload.error = {
 					name: error.name,
 					code: error.code,
+					type: error.type,
 					message: error.message
 				};
 			}

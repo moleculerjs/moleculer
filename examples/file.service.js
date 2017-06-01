@@ -1,6 +1,5 @@
 const fs = require("fs");
 const path = require("path");
-const { CustomError } = require("../src/errors");
 
 module.exports = {
 	name: "file",

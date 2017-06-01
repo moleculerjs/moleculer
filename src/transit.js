@@ -329,6 +329,7 @@ class Transit {
 			//   let error = Object.create(constructor.prototype);
 			err.name = packet.error.name;
 			err.code = packet.error.code;
+			err.type = packet.error.type;
 			err.nodeID = packet.error.nodeID || packet.sender;
 			err.data = packet.error.data;
 			if (packet.error.stack)

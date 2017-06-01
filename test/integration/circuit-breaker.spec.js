@@ -1,7 +1,7 @@
 const Promise = require("bluebird");
 const ServiceBroker = require("../../src/service-broker");
 const FakeTransporter = require("../../src/transporters/fake");
-const { CustomError, ServiceNotFoundError } = require("../../src/errors");
+const { MoleculerError, ServiceNotFoundError } = require("../../src/errors");
 
 const lolex = require("lolex");
 
@@ -33,7 +33,7 @@ describe("Test circuit breaker", () => {
 
 			angry(ctx) {
 				if (ctx.params.please != true)
-					return Promise.reject(new CustomError("Don't call me!", 555));
+					return Promise.reject(new MoleculerError("Don't call me!", 555));
 				else
 					return "Just for you!";
 			},
@@ -66,14 +66,14 @@ describe("Test circuit breaker", () => {
 			.then(res => expect(res).toBe("OK"));
 	});
 
-	it("should return 'angry' with CustomError", () => {
+	it("should return 'angry' with MoleculerError", () => {
 		return master1.call("cb.angry")
 			.catch(err => {
-				expect(err.name).toBe("CustomError");
+				expect(err.name).toBe("MoleculerError");
 				return master1.call("cb.angry");
 			})
 			.catch(err => {
-				expect(err.name).toBe("CustomError");
+				expect(err.name).toBe("MoleculerError");
 				return master1.call("cb.angry");
 			})
 			.catch(err => {
@@ -89,7 +89,7 @@ describe("Test circuit breaker", () => {
 		clock.tick(6000);
 		return master1.call("cb.angry")
 			.catch(err => {
-				expect(err.name).toBe("CustomError");
+				expect(err.name).toBe("MoleculerError");
 				return "done";
 			})
 			.then(res => expect(res).toBe("done"))

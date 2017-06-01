@@ -473,7 +473,7 @@ describe("Test Transit.sendResponse", () => {
 
 	it("should call publish with the error", () => {
 		transit.publish.mockClear();
-		transit.sendResponse("node2", "12345", null, new ValidationError("Not valid params", { a: "Too small" }));
+		transit.sendResponse("node2", "12345", null, new ValidationError("Not valid params", "ERR_INVALID_A_PARAM", { a: "Too small" }));
 		expect(transit.publish).toHaveBeenCalledTimes(1);
 		const packet = transit.publish.mock.calls[0][0];
 		expect(packet).toBeInstanceOf(P.PacketResponse);
@@ -485,6 +485,7 @@ describe("Test Transit.sendResponse", () => {
 		expect(packet.payload.error.name).toBe("ValidationError");
 		expect(packet.payload.error.message).toBe("Not valid params");
 		expect(packet.payload.error.code).toBe(422);
+		expect(packet.payload.error.type).toBe("ERR_INVALID_A_PARAM");
 		expect(packet.payload.error.nodeID).toBe("node1");
 		expect(packet.payload.error.data).toBe("{\"a\":\"Too small\"}");
 	});
