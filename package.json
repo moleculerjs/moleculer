@@ -45,7 +45,7 @@
     "nodemon": "1.11.0",
     "npm-check": "5.4.4",
     "serve-static": "1.12.3",
-    "socket.io": "2.0.1",
+    "socket.io": "2.0.2",
     "v8-natives": "1.0.0"
   },
   "jest": {
@@ -71,7 +71,7 @@
     "glob": "7.1.2",
     "ioredis": "3.1.1",
     "lodash": "4.17.4",
-    "mqtt": "2.8.0",
+    "mqtt": "2.8.1",
     "ms": "2.0.0",
     "msgpack5": "3.4.1",
     "nanomatch": "1.2.0",
