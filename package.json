@@ -52,12 +52,12 @@
     "v8-natives": "1.0.0"
   },
   "peerDependencies": {
-    "avsc": "^5.0.x",
-    "ioredis": "^3.1.x",
-    "mqtt": "^2.8.x",
-    "msgpack5": "^3.4.x",
-    "nats": "^0.7.x",
-    "protobufjs": "^6.7.x"
+    "avsc": "^5.0.1",
+    "ioredis": "^3.1.1",
+    "mqtt": "^2.8.1",
+    "msgpack5": "^3.4.1",
+    "nats": "^0.7.20",
+    "protobufjs": "^6.7.3"
   },
   "dependencies": {
     "bluebird": "3.5.0",
