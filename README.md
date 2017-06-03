@@ -13,6 +13,8 @@
 
 # Moleculer [![NPM version](https://img.shields.io/npm/v/moleculer.svg)](https://www.npmjs.com/package/moleculer)
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/ice-services/moleculer.svg)](https://greenkeeper.io/)
+
 Moleculer is a fast & powerful microservices framework for NodeJS (>= v6.x).
 <!--
 ![](https://img.shields.io/badge/performance-%2B50%25-brightgreen.svg)
