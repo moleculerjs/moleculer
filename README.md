@@ -39,10 +39,11 @@ Moleculer is a fast & powerful microservices framework for NodeJS (>= v6.x).
 - load balanced requests (round-robin, random)
 - every nodes are equal, no master/leader node
 - auto discovery services
-- parameter validation
+- parameter validation with [fastest-validator](https://github.com/icebob/fastest-validator)
 - distributed timeout handling with fallback response
 - health monitoring, metrics & statistics
 - supports versioned services (run different versions of the service)
+- official [API gateway module](https://github.com/ice-services/moleculer-web)
 
 # Installation
 ```
@@ -102,13 +103,13 @@ Use the Moleculer CLI tool to create a new Moleculer based microservices project
     ````
 5. Open the [http://localhost:3000/math.add?a=5&b=3](http://localhost:3000/math.add?a=5&b=3) link in your browser. It will call the `add` action of `math` service with two params via [API gateway](https://github.com/ice-services/moleculer-web) and returns with the result.
 
-:tada:**Congratulation, you created your first Moleculer based microservices project. Read our [documentation](https://moleculer.services/docs) to learn more about Moleculer.**
+:tada:**Congratulations! You created your first Moleculer based microservices project. Read our [documentation](https://moleculer.services/docs) to learn more about Moleculer.**
 
 # Official modules
 We have some official modules for Moleculer. [See the list!](https://moleculer.services/docs/modules.html)
 
 # Documentation
-You can find [the documentation here](https://moleculer.services/docs).
+You can find here [the documentation](https://moleculer.services/docs).
 
 # Changelog
 See [CHANGELOG.md](CHANGELOG.md).
