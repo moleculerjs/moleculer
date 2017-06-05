@@ -179,6 +179,7 @@ class ServiceBroker {
 					service.schema.started.call(service);
 				}
 			});
+			return null; // avoid Bluebird warning
 		})
 		.catch(err => {
 			this.logger.error("Unable to start all services!", err);
@@ -206,6 +207,7 @@ class ServiceBroker {
 					service.schema.stopped.call(service);
 				}
 			});
+			return null; // avoid Bluebird warning
 		})
 		.catch(err => {
 			this.logger.error("Unable to stop all services!", err);
