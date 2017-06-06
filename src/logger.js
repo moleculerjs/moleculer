@@ -14,12 +14,13 @@ module.exports = {
 	/**
 	 * Create a sub-logger by external logger.
 	 * 
-	 * @param {any} extLogger
-	 * @param {any} moduleName
-	 * @param {any} logLevel
+	 * @param {Object} extLogger
+	 * @param {String} moduleName
+	 * @param {String|Object} logLevel
+	 * @param {Boolean} crashOnFatal
 	 * @returns
 	 */
-	wrap(extLogger, moduleName, logLevel) {
+	wrap(extLogger, moduleName, logLevel, crashOnFatal) {
 		let noop = function() {};
 
 		const levels = ["fatal", "error", "warn", "info", "debug", "trace"];
@@ -64,6 +65,16 @@ module.exports = {
 					}.bind(extLogger);
 				}
 			});
+
+			if (crashOnFatal) {
+				const origHandler = logger.fatal;
+				logger.fatal = function(msg, ...args) {
+					origHandler(prefix + msg, ...args);
+					origHandler(prefix, new Error("FATAL ERROR!").stack);
+
+					process.exit(2);
+				}.bind(extLogger);
+			}
 		}
 
 		return logger;		

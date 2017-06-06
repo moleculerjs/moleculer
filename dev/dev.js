@@ -26,6 +26,7 @@ let broker2 = new ServiceBroker({
 	nodeID: "node2",
 	logger: console,
 	logLevel: "info",
+	//crashOnFatal: false,
 	transporter: new Transporter(),
 	serializer: new Serializer(),
 	statistics: true
@@ -41,6 +42,7 @@ broker2.createService({
 });*/
 broker2.loadService("./examples/math.service");
 broker2.loadService("./examples/file.service");
+broker2.loadService("./examples/test.service");
 //broker1.loadService("./examples/user.service");
 
 

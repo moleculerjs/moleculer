@@ -54,6 +54,7 @@ class ServiceBroker {
 
 			logger: null,
 			logLevel: "info",
+			crashOnFatal: true,
 
 			transporter: null,
 			requestTimeout: 0 * 1000,
@@ -166,7 +167,7 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Start broker. If set transport, transport.connect will be called.
+	 * Start broker. If has transporter, transporter.connect will be called.
 	 * 
 	 * @memberOf ServiceBroker
 	 */
@@ -194,7 +195,7 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Stop broker. If set transport, transport.disconnect will be called.
+	 * Stop broker. If has transporter, transporter.disconnect will be called.
 	 * 
 	 * @memberOf ServiceBroker
 	 */
@@ -249,7 +250,7 @@ class ServiceBroker {
 		if (logger)
 			return logger;
 
-		logger = Logger.wrap(this.options.logger, name, this.options.logLevel);
+		logger = Logger.wrap(this.options.logger, name, this.options.logLevel, this.options.crashOnFatal);
 		this._loggerCache[name] = logger;
 
 		return logger;
