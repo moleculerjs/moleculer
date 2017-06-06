@@ -10,6 +10,21 @@
 ## v0.9.x
 - [ ] official Zipkin tracer service
 - [ ] add lru features to Memory and Redis cachers
+- [ ] official services
+	- [ ] `moleculer-auth` for authentication
+	- [ ] `moleculer-twitter` Twitter client
+	- [ ] `moleculer-slack` Slack client
+	- [ ] `moleculer-twilio`
+	- [ ] `moleculer-stripe`
+	- [ ] `moleculer-agenda` Job runner
+- [ ] more DB adapter
+	- [ ] mongo
+	- [ ] sql
+- [ ] key-value store adapter
+	- [ ] couchdb
+	- [ ] couchbase
+	- [ ] dynamodb
+	- [ ] redis
 
 ------------------------------
 
