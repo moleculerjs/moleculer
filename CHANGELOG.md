@@ -246,8 +246,11 @@ broker.createService({
         }
     }
 });
-
 ```
+
+## Crash on fatal
+The `ServiceBroker` has a new `crashOnFatal` option. If true, and any module call the `logger.fatal`, the broker will call the `process.exit` with code `2`.
+> If you are running your app in containers and set restart policy, you can use it to restart your app.
 
 --------------------------------------------------
 
