@@ -69,8 +69,8 @@ module.exports = {
 			if (crashOnFatal) {
 				const origHandler = logger.fatal;
 				logger.fatal = function(msg, ...args) {
-					origHandler(prefix + msg, ...args);
-					origHandler(prefix, new Error("FATAL ERROR!").stack);
+					origHandler(msg, ...args);
+					origHandler(new Error("FATAL ERROR!").stack);
 
 					process.exit(2);
 				}.bind(extLogger);

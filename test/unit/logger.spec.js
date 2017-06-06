@@ -19,7 +19,7 @@ describe("Test wrap", () => {
 			warn: jest.fn()
 		};
 		
-		let logger = wrap(con, null, "trace");
+		let logger = wrap(con, null, "trace", false);
 		expect(logger.fatal).toBeInstanceOf(Function);
 		expect(logger.error).toBeInstanceOf(Function);
 		expect(logger.warn).toBeInstanceOf(Function);
@@ -47,7 +47,7 @@ describe("Test wrap", () => {
 			error: jest.fn(),
 		};
 		
-		let logger = wrap(con, null, "trace");
+		let logger = wrap(con, null, "trace", false);
 		expect(logger.fatal).toBeInstanceOf(Function);
 		expect(logger.error).toBeInstanceOf(Function);
 		expect(logger.warn).toBeInstanceOf(Function);
@@ -73,7 +73,7 @@ describe("Test wrap", () => {
 			info: jest.fn()
 		};
 		
-		let logger = wrap(con, null, "trace");
+		let logger = wrap(con, null, "trace", false);
 		expect(logger.fatal).toBeInstanceOf(Function);
 		expect(logger.error).toBeInstanceOf(Function);
 		expect(logger.warn).toBeInstanceOf(Function);
@@ -101,7 +101,7 @@ describe("Test wrap", () => {
 			error: jest.fn(),
 			fatal: jest.fn()
 		};
-		let logger = wrap(con, "Module", "trace");
+		let logger = wrap(con, "Module", "trace", false);
 		expect(logger.fatal).toBeInstanceOf(Function);
 		expect(logger.error).toBeInstanceOf(Function);
 		expect(logger.warn).toBeInstanceOf(Function);
@@ -142,7 +142,7 @@ describe("Test wrap with logLevels", () => {
 			error: jest.fn(),
 			fatal: jest.fn()
 		};
-		let logger = wrap(con, "Module", "warn");
+		let logger = wrap(con, "Module", "warn", false);
 		expect(logger.fatal).toBeInstanceOf(Function);
 		expect(logger.error).toBeInstanceOf(Function);
 		expect(logger.warn).toBeInstanceOf(Function);
@@ -175,7 +175,7 @@ describe("Test wrap with logLevels", () => {
 		let logger = wrap(con, "CTX", {
 			"*": "debug",
 			"CTX": "error"
-		});
+		}, false);
 
 		callLogMethods(logger);
 		expect(con.debug).toHaveBeenCalledTimes(0);
@@ -197,7 +197,7 @@ describe("Test wrap with logLevels", () => {
 		let logger = wrap(con, "SVC", {
 			"*": "info",
 			"CTX": "error"
-		});
+		}, false);
 
 		callLogMethods(logger);
 		expect(con.trace).toHaveBeenCalledTimes(0);
@@ -220,7 +220,7 @@ describe("Test wrap with logLevels", () => {
 		let logger = wrap(con, "SVC", {
 			"*": "info",
 			"SVC": false
-		});
+		}, false);
 
 		callLogMethods(logger);
 		expect(con.trace).toHaveBeenCalledTimes(0);
@@ -232,3 +232,29 @@ describe("Test wrap with logLevels", () => {
 	});		
 
 });
+
+
+describe("Test wrap with crashOnFatal", () => {
+	let con = {
+		trace: jest.fn(),
+		debug: jest.fn(),
+		info: jest.fn(),
+		warn: jest.fn(),
+		error: jest.fn(),
+		fatal: jest.fn()
+	};
+	it("should wrap again if crashOnFatal is true", () => {
+		let logger = wrap(con, "Module", "info", true);
+		expect(logger.fatal).toBeInstanceOf(Function);
+		process.exit = jest.fn();
+
+		logger.fatal("fatal level");
+
+		expect(con.fatal).toHaveBeenCalledTimes(2);
+		expect(con.fatal).toHaveBeenCalledWith("[Module] fatal level");
+		
+		expect(process.exit).toHaveBeenCalledTimes(1);
+		expect(process.exit).toHaveBeenCalledWith(2);
+	});	
+
+});	
