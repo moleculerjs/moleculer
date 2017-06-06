@@ -29,8 +29,11 @@
 ------------------------------
 
 ## v0.10.x
+- [ ] Docker examples
 - [ ] RabbitMQ transporter
 - [ ] Official monitoring solution
+- [ ] compress transfer
+- [ ] crypt transfer
 
 ------------------------------
 
