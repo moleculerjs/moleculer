@@ -78,7 +78,7 @@ const getDateTimeInfo = () => {
 	};
 };
 
-const _getHealthStatus = (broker) => {
+const getHealthStatus = (broker) => {
 	return {
 		cpu: getCpuInfo(),
 		mem: getMemoryInfo(),
@@ -94,4 +94,4 @@ const _getHealthStatus = (broker) => {
 };
 
 module.exports = broker => Promise
-	.resolve(_getHealthStatus(broker));
+	.resolve(getHealthStatus(broker));
