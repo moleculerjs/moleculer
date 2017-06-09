@@ -54,7 +54,7 @@ describe("Test registry.init", () => {
 
 });
 
-describe("Test registry.register", () => {
+describe("Test registry.registerAction", () => {
 	const broker = new ServiceBroker({ internalActions: false });
 	const registry = broker.serviceRegistry;
 
@@ -65,7 +65,7 @@ describe("Test registry.register", () => {
 
 	it("should set local action and create an EndpointList", () => {
 		expect(registry.actions.size).toBe(0);
-		const res = registry.register(null, action);
+		const res = registry.registerAction(null, action);
 		expect(res).toBe(true);
 		expect(registry.actions.size).toBe(1);
 
@@ -75,13 +75,13 @@ describe("Test registry.register", () => {
 	});
 
 	it("should set local action but not create a new EndpointList", () => {
-		const res = registry.register(null, action);
+		const res = registry.registerAction(null, action);
 		expect(res).toBe(false);
 		expect(registry.actions.size).toBe(1);
 	});
 
 	it("should set remote action but not create a new EndpointList", () => {
-		const res = registry.register("server-2", action);
+		const res = registry.registerAction("server-2", action);
 		expect(res).toBe(true);
 		expect(registry.actions.size).toBe(1);
 
@@ -91,7 +91,7 @@ describe("Test registry.register", () => {
 
 });
 
-describe("Test registry.deregister", () => {
+describe("Test registry.unregister", () => {
 	const broker = new ServiceBroker({ internalActions: false });
 	const registry = broker.serviceRegistry;
 
@@ -100,8 +100,8 @@ describe("Test registry.deregister", () => {
 		handler: jest.fn()
 	};
 
-	registry.register(null, action);
-	registry.register("server-2", action);
+	registry.registerAction(null, action);
+	registry.registerAction("server-2", action);
 
 	it("should count endpoint equals 2", () => {
 		let endpoint = registry.findAction("posts.find");
@@ -109,7 +109,7 @@ describe("Test registry.deregister", () => {
 	});
 
 	it("should remove 'server-2' endpoint from list", () => {
-		registry.deregister("server-2", action);
+		registry.unregister("server-2", action);
 		let endpoint = registry.findAction("posts.find");
 		expect(endpoint.count()).toBe(1);
 	});
@@ -131,7 +131,7 @@ describe("Test registry.findAction", () => {
 	});
 
 	it("should return the endpoint if action is exist", () => {
-		registry.register("server-2", action);
+		registry.registerAction("server-2", action);
 		let endpoint = registry.findAction("posts.find");
 		expect(endpoint).toBeDefined();
 	});
@@ -147,7 +147,7 @@ describe("Test registry.findAction with internal actions", () => {
 		handler: jest.fn()
 	};
 
-	registry.register("server-2", action);
+	registry.registerAction("server-2", action);
 
 	it("should return the endpoint if action is exist", () => {
 		let endpoint = registry.findAction("$node.list").nextAvailable();
@@ -171,7 +171,7 @@ describe("Test registry.getEndpointByNodeID", () => {
 		handler: jest.fn()
 	};
 
-	registry.register("server-2", action);
+	registry.registerAction("server-2", action);
 
 	it("check the count of nodes", () => {
 		let item = registry.findAction("$node.list");
@@ -221,7 +221,7 @@ describe("Test registry.hasAction", () => {
 	});
 
 	it("should return the res if action is exist", () => {
-		registry.register("server-2", action);
+		registry.registerAction("server-2", action);
 		let res = registry.hasAction("posts.find");
 		expect(res).toBe(true);
 	});
@@ -242,7 +242,7 @@ describe("Test registry.count", () => {
 	});
 
 	it("should return with 1", () => {
-		registry.register("server-2", action);
+		registry.registerAction("server-2", action);
 		expect(registry.count()).toBe(1);
 	});
 
@@ -265,12 +265,12 @@ describe("Test registry.getLocalServices", () => {
 		});
 
 		it("should return empty list because only remote endpoint registered", () => {
-			registry.register("server-2", action);
+			registry.registerAction("server-2", action);
 			expect(registry.getLocalServices()).toEqual([]);
 		});
 
 		it("should return action list", () => {
-			registry.register(null, action);
+			registry.registerAction(null, action);
 			expect(registry.getLocalServices()).toEqual([{"cache": true, "custom": 5, "name": "posts.find"}]);
 		});
 
@@ -349,7 +349,7 @@ describe("Test registry.getActionList", () => {
 	});
 
 	it("should return remote actions", () => {
-		registry.register("server-2", action);
+		registry.registerAction("server-2", action);
 		expect(registry.getActionList(false, true, false)).toEqual([{"action": {"cache": true, "custom": 5, "name": "posts.find"}, "available": true, "count": 1, "hasLocal": false, "name": "posts.find"}]);
 	});
 
@@ -358,12 +358,12 @@ describe("Test registry.getActionList", () => {
 	});
 
 	it("should return action list", () => {
-		registry.register(null, action);
+		registry.registerAction(null, action);
 		expect(registry.getActionList(false, true, false)).toEqual([{"action": {"cache": true, "custom": 5, "name": "posts.find"}, "available": true, "count": 2, "hasLocal": true, "name": "posts.find"}]);
 	});
 
 	it("should return action list", () => {
-		registry.register("server-3", {
+		registry.registerAction("server-3", {
 			name: "hello.world"
 		});
 		expect(registry.getActionList(false, true, true)).toEqual([

@@ -109,7 +109,7 @@ declare class ServiceBroker {
 	createService(schema: Object): Service;
 
 	registerAction(nodeID?: String, action: Action);
-	deregisterAction(nodeID?: String, action: Action);
+	unregisterAction(nodeID?: String, action: Action);
 
 	on(name: String, handler: Function);
 	once(name: String, handler: Function);

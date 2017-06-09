@@ -61,7 +61,7 @@ class Service {
 
 		this.actions = {}; // external access to actions
 
-		this.broker.registerService(this);
+		this.broker.registerService(null, this);
 
 		// Register actions
 		if (isObject(schema.actions)) {
@@ -155,7 +155,7 @@ class Service {
 		else
 			action.name = action.name || name;
 
-		if (this.version) 
+		if (this.version && this.settings.useVersionPrefix !== false) 
 			action.name = `v${this.version}.${action.name}`;
 
 		action.version = this.version;

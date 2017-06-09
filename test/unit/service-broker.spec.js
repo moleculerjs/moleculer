@@ -399,11 +399,11 @@ describe("Test broker.registerService", () => {
 			name: "test"
 		};
 
-		broker.registerService(service);
+		broker.registerService(null, service);
 		expect(broker.services.length).toBe(1);
 		expect(broker.services[0]).toBe(service);
-		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("register.service.test", service);
+		//expect(broker.emitLocal).toHaveBeenCalledTimes(1);
+		//expect(broker.emitLocal).toHaveBeenCalledWith("register.service.test", service);
 	});
 
 });
@@ -426,8 +426,8 @@ describe("Test broker.registerAction", () => {
 		expect(broker.serviceRegistry.register).toHaveBeenCalledTimes(1);
 		expect(broker.serviceRegistry.register).toHaveBeenCalledWith(null, action);
 
-		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("register.action.user.list", { action, nodeID: null });
+		// expect(broker.emitLocal).toHaveBeenCalledTimes(1);
+		// expect(broker.emitLocal).toHaveBeenCalledWith("register.action.user.list", { action, nodeID: null });
 	});
 
 	it("should push to the actions & emit an event with nodeID", () => {
@@ -444,8 +444,8 @@ describe("Test broker.registerAction", () => {
 		expect(broker.serviceRegistry.register).toHaveBeenCalledTimes(1);
 		expect(broker.serviceRegistry.register).toHaveBeenCalledWith("server-2", action);
 
-		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("register.action.user.update", { action, nodeID: "server-2" });
+		// expect(broker.emitLocal).toHaveBeenCalledTimes(1);
+		// expect(broker.emitLocal).toHaveBeenCalledWith("register.action.user.update", { action, nodeID: "server-2" });
 	});
 
 });
@@ -631,30 +631,30 @@ describe("Test broker.wrapContextInvoke", () => {
 });
 */
 
-describe("Test broker.deregisterAction", () => {
+describe("Test broker.unregisterAction", () => {
 
 	let broker = new ServiceBroker();
 
-	broker.serviceRegistry.deregister = jest.fn(() => true);
+	broker.serviceRegistry.unregister = jest.fn(() => true);
 
 	let action = {
 		name: "list"
 	};
 
-	it("should call deregister of serviceRegistry without nodeID", () => {
-		broker.deregisterAction(null, action);
+	it("should call unregister of serviceRegistry without nodeID", () => {
+		broker.unregisterAction(null, action);
 
-		expect(broker.serviceRegistry.deregister).toHaveBeenCalledTimes(1);
-		expect(broker.serviceRegistry.deregister).toHaveBeenCalledWith(null, action);
+		expect(broker.serviceRegistry.unregister).toHaveBeenCalledTimes(1);
+		expect(broker.serviceRegistry.unregister).toHaveBeenCalledWith(null, action);
 	});
 
-	it("should call deregister of serviceRegistry with nodeID", () => {
-		broker.serviceRegistry.deregister.mockClear();
+	it("should call unregister of serviceRegistry with nodeID", () => {
+		broker.serviceRegistry.unregister.mockClear();
 
-		broker.deregisterAction("server-2", action);
+		broker.unregisterAction("server-2", action);
 
-		expect(broker.serviceRegistry.deregister).toHaveBeenCalledTimes(1);
-		expect(broker.serviceRegistry.deregister).toHaveBeenCalledWith("server-2", action);
+		expect(broker.serviceRegistry.unregister).toHaveBeenCalledTimes(1);
+		expect(broker.serviceRegistry.unregister).toHaveBeenCalledWith("server-2", action);
 	});
 });
 
@@ -803,7 +803,7 @@ describe("Test broker.isActionAvailable", () => {
 	});
 
 	it("should not find handler for action by name", () => {
-		broker.deregisterAction(null, { name: "posts.list" });
+		broker.unregisterAction(null, { name: "posts.list" });
 		expect(broker.hasAction("posts.list")).toBe(true);
 		expect(broker.isActionAvailable("posts.list")).toBe(false);
 	});
@@ -861,7 +861,7 @@ describe("Test broker.call method", () => {
 		});
 
 		it("should reject if no handler", () => {
-			broker.deregisterAction(null, { name: "posts.noHandler" });
+			broker.unregisterAction(null, { name: "posts.noHandler" });
 			return broker.call("posts.noHandler").catch(err => {
 				expect(err).toBeDefined();
 				expect(err).toBeInstanceOf(ServiceNotFoundError);
@@ -871,7 +871,7 @@ describe("Test broker.call method", () => {
 		});
 
 		it("should reject if no action on node", () => {
-			broker.deregisterAction(null, { name: "posts.noHandler" });
+			broker.unregisterAction(null, { name: "posts.noHandler" });
 			return broker.call("posts.noHandler", {}, { nodeID: "node-123"}).catch(err => {
 				expect(err).toBeDefined();
 				expect(err).toBeInstanceOf(ServiceNotFoundError);

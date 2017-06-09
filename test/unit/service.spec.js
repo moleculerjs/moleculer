@@ -73,7 +73,7 @@ describe("Test action creation", () => {
 
 		expect(service).toBeDefined();
 		expect(broker.registerService).toHaveBeenCalledTimes(1);
-		expect(broker.registerService).toHaveBeenCalledWith(service);
+		expect(broker.registerService).toHaveBeenCalledWith(null, service);
 
 		expect(broker.registerAction).toHaveBeenCalledTimes(2);
 

@@ -29,6 +29,7 @@ class ServiceRegistry {
 			strategy: STRATEGY_ROUND_ROBIN,
 			preferLocal: true
 		});
+		this.services = new Map();
 		this.actions = new Map();
 	}
 
@@ -37,14 +38,36 @@ class ServiceRegistry {
 	}
 
 	/**
-	 * Register an action in a local server
+	 * Register a service
+	 * 
+	 * @param {String?} nodeID		NodeID if it is on a remote server/node
+	 * @param {Service} service		Service instance
+	 * 
+	 * @memberOf ServiceRegistry
+	 */
+	registerService(nodeID, service) {
+		// Append action by name
+		let item = this.services.get(service.name);
+		if (!item) {
+			item = {
+				name: service.name,
+				version: service.version,
+				settings: service.settings,
+				nodeID: nodeID
+			};
+			this.services.set(service.name, item);
+		}
+	}
+
+	/**
+	 * Register an action
 	 * 
 	 * @param {String?} nodeID		NodeID if it is on a remote server/node
 	 * @param {Object} 	action		Action schema
 	 * 
 	 * @memberOf ServiceRegistry
 	 */
-	register(nodeID, action) {
+	registerAction(nodeID, action) {
 		// Append action by name
 		let list = this.actions.get(action.name);
 		if (!list) {
@@ -63,12 +86,12 @@ class ServiceRegistry {
 	 * 
 	 * @memberOf ServiceRegistry
 	 */
-	deregister(nodeID, action) {
+	unregister(nodeID, action) {
 		let list = this.actions.get(action.name);
 		if (list) {
 			list.removeByNode(nodeID);
 			/* Don't delete because maybe node only disconnected and will come back.
-			   So the action is exists, just there is not available.
+			   So the action is exists, just there is not available right now.
 			
 			if (list.count() == 0) {
 				this.actions.delete(action.name);
@@ -143,6 +166,8 @@ class ServiceRegistry {
 			let endpoint = entry.getLocalEndpoint();
 			if (endpoint) {
 				const a = endpoint.action;
+				if (a.protected === true) return;
+
 				let svc = a.service;
 				if (!svc) {
 					// Internal service
@@ -161,8 +186,8 @@ class ServiceRegistry {
 		return services;
 	}	
 
-	getActionList(onlyLocal = false, skipInternal = false, withEndpoints = false) {
-		let res = [];
+	getActionList({onlyLocal = false, skipInternal = false, withEndpoints = false, withServices = true}) {
+		let res = {};
 
 		this.actions.forEach((entry, key) => {
 			if (skipInternal && /^\$node/.test(key))

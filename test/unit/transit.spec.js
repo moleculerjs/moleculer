@@ -718,7 +718,7 @@ describe("Test Transit node & heartbeat handling", () => {
 		const transit = broker.transit;
 
 		broker.emitLocal = jest.fn();
-		broker.deregisterAction = jest.fn();
+		broker.unregisterAction = jest.fn();
 
 		transit.nodes.set("server-2", { available: true });
 
@@ -775,8 +775,8 @@ describe("Test Transit node & heartbeat handling", () => {
 		it("should unregister actions of disconnected node", () => {
 			transit.nodeDisconnected("server-3");
 
-			expect(broker.deregisterAction).toHaveBeenCalledTimes(1);
-			expect(broker.deregisterAction).toHaveBeenCalledWith("server-3", remoteAction);
+			expect(broker.unregisterAction).toHaveBeenCalledTimes(1);
+			expect(broker.unregisterAction).toHaveBeenCalledWith("server-3", remoteAction);
 		});
 	});
 
