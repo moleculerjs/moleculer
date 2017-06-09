@@ -10,7 +10,7 @@ const os = require("os");
 const _ = require("lodash");
 const { getIpList } = require("./utils");
 
-const _getCpuInfo = () => {
+const getCpuInfo = () => {
 	const load = os.loadavg();
 	const cpu = {
 		load1: load[0],
@@ -23,7 +23,7 @@ const _getCpuInfo = () => {
 	return cpu;
 };
 
-const _getMemoryInfo = () => {
+const getMemoryInfo = () => {
 	const mem = {
 		free: os.freemem(),
 		total: os.totalmem()
@@ -33,7 +33,7 @@ const _getMemoryInfo = () => {
 	return mem;
 };
 
-const _getOsInfo = () => {
+const getOsInfo = () => {
 	return {
 		uptime: os.uptime(),
 		type: os.type(),
@@ -45,7 +45,7 @@ const _getOsInfo = () => {
 	};
 };
 
-const _getProcessInfo = () => {
+const getProcessInfo = () => {
 	return {
 		pid: process.pid,
 		memory: process.memoryUsage(),
@@ -54,13 +54,13 @@ const _getProcessInfo = () => {
 	};
 };
 
-const _getNetworkInterfacesInfo = () => {
+const getNetworkInterfacesInfo = () => {
 	return {
 		ip:  getIpList()
 	};
 };
 
-const _getTransitStatus = (broker) => {
+const getTransitStatus = (broker) => {
 	if (broker.transit) {
 		return {
 			stat: _.clone(broker.transit.stat)
@@ -70,7 +70,7 @@ const _getTransitStatus = (broker) => {
 	return null;
 };
 
-const _getDateTimeInfo = () => {
+const getDateTimeInfo = () => {
 	return {
 		now: Date.now(),
 		iso: new Date().toISOString(),
@@ -80,13 +80,13 @@ const _getDateTimeInfo = () => {
 
 const _getHealthStatus = (broker) => {
 	return {
-		cpu: _getCpuInfo(),
-		mem: _getMemoryInfo(),
-		os: _getOsInfo(),
-		process: _getProcessInfo(),
-		net: _getNetworkInterfacesInfo(),
-		transit: _getTransitStatus(broker),
-		time: _getDateTimeInfo(),
+		cpu: getCpuInfo(),
+		mem: getMemoryInfo(),
+		os: getOsInfo(),
+		process: getProcessInfo(),
+		net: getNetworkInterfacesInfo(),
+		transit: getTransitStatus(broker),
+		time: getDateTimeInfo(),
 
 		// TODO: event loop & GC info
 		// https://github.com/RisingStack/trace-nodejs/blob/master/lib/agent/metrics/apm/index.js
