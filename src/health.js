@@ -10,92 +10,88 @@ const os = require("os");
 const _ = require("lodash");
 const { getIpList } = require("./utils");
 
-module.exports = function(broker) {
-	return Promise.resolve({})
+const getCpuInfo = () => {
+	const load = os.loadavg();
+	const cpu = {
+		load1: load[0],
+		load5: load[1],
+		load15: load[2],
+		cores: os.cpus().length,
+	};
+	cpu.utilization = Math.floor(load[0] * 100 / cpu.cores);
 
-		// CPU
-		.then(res => {
-			const load = os.loadavg();
-			res.cpu = {
-				load1: load[0],
-				load5: load[1],
-				load15: load[2],
-				cores: os.cpus().length
-			};
-			res.cpu.utilization = Math.floor(load[0] * 100 / res.cpu.cores);
+	return cpu;
+};
 
-			return res;
-		})
+const getMemoryInfo = () => {
+	const mem = {
+		free: os.freemem(),
+		total: os.totalmem()
+	};
+	mem.percent = (mem.free * 100 / mem.total);
 
-		// Memory
-		.then(res => {
-			res.mem = {
-				free: os.freemem(),
-				total: os.totalmem()
-			};
-			res.mem.percent = (res.mem.free * 100 / res.mem.total);
+	return mem;
+};
 
-			return res;
-		})
+const getOsInfo = () => {
+	return {
+		uptime: os.uptime(),
+		type: os.type(),
+		release: os.release(),
+		hostname: os.hostname(),
+		arch: os.arch(),
+		platform: os.platform(),
+		user: os.userInfo()
+	};
+};
 
-		// OS 
-		.then(res => {
-			res.os = {
-				uptime: os.uptime(),
-				type: os.type(),
-				release: os.release(),
-				hostname: os.hostname(),
-				arch: os.arch(),
-				platform: os.platform(),
-				user: os.userInfo()
-			};
+const getProcessInfo = () => {
+	return {
+		pid: process.pid,
+		memory: process.memoryUsage(),
+		uptime: process.uptime(),
+		argv: process.argv
+	};
+};
 
-			return res;
-		})
+const getNetworkInterfacesInfo = () => {
+	return {
+		ip:  getIpList()
+	};
+};
 
-		// Process 
-		.then(res => {
-			res.process = {
-				pid: process.pid,
-				memory: process.memoryUsage(),
-				uptime: process.uptime(),
-				argv: process.argv
-			};
+const getTransitStatus = (broker) => {
+	if (broker.transit) {
+		return {
+			stat: _.clone(broker.transit.stat)
+		};
+	}
 
-			return res;
-		})
+	return null;
+};
 
-		// Network interfaces
-		.then(res => {
-			res.net = {
-				ip:  getIpList()
-			};
+const getDateTimeInfo = () => {
+	return {
+		now: Date.now(),
+		iso: new Date().toISOString(),
+		utc: new Date().toUTCString()
+	};
+};
 
-			return res;
-		})
-
-		// Transit stat
-		.then(res => {
-			if (broker.transit) {
-				res.transit = {
-					stat: _.clone(broker.transit.stat)
-				};
-			}
-
-			return res;
-		})
-
-		// Date & time
-		.then(res => {
-			res.time = {
-				now: Date.now(),
-				iso: new Date().toISOString(),
-				utc: new Date().toUTCString()
-			};
-			return res;
-		});
+const getHealthStatus = (broker) => {
+	return {
+		cpu: getCpuInfo(),
+		mem: getMemoryInfo(),
+		os: getOsInfo(),
+		process: getProcessInfo(),
+		net: getNetworkInterfacesInfo(),
+		transit: getTransitStatus(broker),
+		time: getDateTimeInfo(),
 
 		// TODO: event loop & GC info
 		// https://github.com/RisingStack/trace-nodejs/blob/master/lib/agent/metrics/apm/index.js
-
+	};
 };
+
+module.exports = broker => Promise
+	.resolve(getHealthStatus(broker));
