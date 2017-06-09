@@ -201,6 +201,7 @@ function startREPL(broker) {
 	// List nodes
 	vorpal
 		.command("nodes", "List of nodes")
+		.option("-d, --details")
 		.action((args, done) => {
 			if (!broker.transit) {
 				console.error("There is no transporter!");
@@ -219,8 +220,8 @@ function startREPL(broker) {
 			const data = [];
 			data.push([
 				chalk.bold("Node ID"),
+				chalk.bold("Services"),
 				chalk.bold("Version"),
-				chalk.bold("Actions"),
 				chalk.bold("IP"),
 				chalk.bold("State"),
 				chalk.bold("Uptime")
@@ -237,12 +238,25 @@ function startREPL(broker) {
 
 				data.push([
 					node.id || chalk.gray("<local>"),
+					Object.keys(node.services).length,
 					node.versions && node.versions.moleculer ? node.versions.moleculer : "?",
-					Object.keys(node.actions).length,
 					ip,
 					node.available ? chalk.bgGreen.black(" ONLINE "):chalk.bgRed.white.bold(" OFFLINE "),
 					node.uptime ? ms(node.uptime * 1000) : "?"
 				]);
+
+				if (args.options.details && Object.keys(node.services).length > 0) {
+					_.forIn(node.services, service => {
+						data.push([
+							"",
+							service.name,
+							service.version || "-",
+							"",
+							"",
+							""
+						]);						
+					});
+				}				
 			});
 
 			const tableConf = {

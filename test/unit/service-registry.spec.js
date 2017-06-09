@@ -248,7 +248,7 @@ describe("Test registry.count", () => {
 
 });
 
-describe("Test registry.getLocalActions", () => {
+describe("Test registry.getLocalServices", () => {
 	describe("Test without internal actions", () => {
 		const broker = new ServiceBroker({ internalActions: false });
 		const registry = broker.serviceRegistry;
@@ -261,17 +261,17 @@ describe("Test registry.getLocalActions", () => {
 		};
 
 		it("should returns empty list", () => {
-			expect(registry.getLocalActions()).toEqual([]);
+			expect(registry.getLocalServices()).toEqual([]);
 		});
 
 		it("should return empty list because only remote endpoint registered", () => {
 			registry.register("server-2", action);
-			expect(registry.getLocalActions()).toEqual([]);
+			expect(registry.getLocalServices()).toEqual([]);
 		});
 
 		it("should return action list", () => {
 			registry.register(null, action);
-			expect(registry.getLocalActions()).toEqual([{"cache": true, "custom": 5, "name": "posts.find"}]);
+			expect(registry.getLocalServices()).toEqual([{"cache": true, "custom": 5, "name": "posts.find"}]);
 		});
 
 	});
@@ -281,8 +281,8 @@ describe("Test registry.getLocalActions", () => {
 		const registry = broker.serviceRegistry;
 
 		it("should returns the internal list", () => {
-			expect(registry.getLocalActions().length).toBe(4);
-			expect(registry.getLocalActions()).toEqual([{"cache": false, "name": "$node.list"}, {"cache": false, "name": "$node.services"}, {"cache": false, "name": "$node.actions"}, {"cache": false, "name": "$node.health"}]);
+			expect(registry.getLocalServices().length).toBe(4);
+			expect(registry.getLocalServices()).toEqual([{"cache": false, "name": "$node.list"}, {"cache": false, "name": "$node.services"}, {"cache": false, "name": "$node.actions"}, {"cache": false, "name": "$node.health"}]);
 		});
 
 	});

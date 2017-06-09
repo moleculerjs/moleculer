@@ -6,7 +6,7 @@
 
 "use strict";
 
-const { remove, random, defaultsDeep, omit } = require("lodash");
+const { remove, random, defaultsDeep, omit, pick } = require("lodash");
 
 // Registry strategies
 const { STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM } = require("./constants");
@@ -131,20 +131,34 @@ class ServiceRegistry {
 	}
 
 	/**
-	 * Get a list of names of local actions
+	 * Get a list of local services with actions
 	 * 
 	 * @returns
 	 * 
 	 * @memberOf ServiceRegistry
 	 */
-	getLocalActions() {
-		let res = [];
+	getLocalServices() {
+		let services = {};
 		this.actions.forEach((entry, key) => {
 			let endpoint = entry.getLocalEndpoint();
-			if (endpoint)
-				res.push(omit(endpoint.action, ["handler", "service"]));
+			if (endpoint) {
+				const a = endpoint.action;
+				let svc = a.service;
+				if (!svc) {
+					// Internal service
+					svc = {
+						name: "$node",
+						settings: {},
+					};
+				}
+				if (!services[svc.name]) {
+					services[svc.name] = pick(svc, ["name", "version", "settings"]);
+					services[svc.name].actions = {};
+				}
+				services[svc.name].actions[a.name] = omit(endpoint.action, ["handler", "service"]);
+			}
 		});
-		return res;
+		return services;
 	}	
 
 	getActionList(onlyLocal = false, skipInternal = false, withEndpoints = false) {

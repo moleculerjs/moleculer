@@ -7,6 +7,7 @@
 "use strict";
 
 const Promise					= require("bluebird");
+const _							= require("lodash");
 const Context					= require("./context");
 const P 						= require("./packets");
 const { getIpList } 			= require("./utils");
@@ -423,7 +424,7 @@ class Transit {
 	 * @memberof Transit
 	 */
 	getNodeInfo() {
-		const actions = this.broker.serviceRegistry.getLocalActions();
+		const services = this.broker.serviceRegistry.getLocalServices();
 		const uptime = process.uptime();
 		const ipList = getIpList();
 		const versions = {
@@ -432,7 +433,7 @@ class Transit {
 		};
 
 		return {
-			actions,
+			services,
 			ipList,
 			versions,
 			uptime
@@ -455,6 +456,7 @@ class Transit {
 	 */
 	sendNodeInfo(nodeID) {
 		const info = this.getNodeInfo();
+		console.log(`sendNodeInfo on ${this.nodeID}`, JSON.stringify(info, null, 2));
 		return this.publish(new P.PacketInfo(this, nodeID, info));
 	}
 
@@ -549,10 +551,14 @@ class Transit {
 			this.logger.info(`Node '${nodeID}' reconnected!`);
 		}
 
-		if (Array.isArray(node.actions)) {
-			// Add external actions
-			node.actions.forEach(action => {
-				this.broker.registerAction(nodeID, action);
+		if (node.services) {
+			// Add external services
+			_.forIn(node.services, service => {
+				if (service.actions) {
+					_.forIn(service.actions, action => {
+						this.broker.registerAction(nodeID, Object.assign({}, action, { service }));
+					});
+				}
 			});
 		}
 	}

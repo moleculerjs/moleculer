@@ -158,7 +158,7 @@ class PacketInfo extends Packet {
 	constructor(transit, target, info) {
 		super(transit, PACKET_INFO, target);
 		if (info) {
-			this.payload.actions = JSON.stringify(info.actions);
+			this.payload.services = JSON.stringify(info.services);
 			this.payload.ipList = info.ipList;
 			this.payload.versions = info.versions;
 			this.payload.uptime = info.uptime;
@@ -167,7 +167,7 @@ class PacketInfo extends Packet {
 
 	transformPayload(payload) {
 		super.transformPayload(payload);
-		payload.actions = JSON.parse(payload.actions);
+		payload.services = JSON.parse(payload.services);
 	}
 }
 

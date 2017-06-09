@@ -75,7 +75,7 @@ function createSchemas() {
 		type: "record",
 		fields: [
 			{ name: "sender", type: "string" },
-			{ name: "actions", type: "string" },
+			{ name: "services", type: "string" },
 			{ name: "uptime", type: "double" },
 			{ name: "ipList", type: {
 				type: "array",

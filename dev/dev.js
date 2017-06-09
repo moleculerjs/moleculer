@@ -40,7 +40,7 @@ broker2.createService({
 		}
 	}
 });*/
-broker2.loadService("./examples/math.service");
+//broker2.loadService("./examples/math.service");
 broker2.loadService("./examples/file.service");
 broker2.loadService("./examples/test.service");
 //broker1.loadService("./examples/user.service");
@@ -50,7 +50,7 @@ broker1.Promise.resolve()
 .then(() => broker1.start())
 .then(() => broker2.start())
 .delay(500)
-//.then(() => broker1.call("$node.actions", { onlyLocal: true }, { nodeID: "node2" }))
-//.then(res => console.log(res))
-//.catch(err => console.log(err))
+/*.then(() => broker1.call("$node.actions", { onlyLocal: true }, { nodeID: "node2" }))
+.then(res => console.log(res))
+.catch(err => console.log(err))*/
 .then(() => broker1.repl());

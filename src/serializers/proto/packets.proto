@@ -49,7 +49,7 @@ message NodeVersions {
 
 message PacketInfo {
 	required string sender 			= 1;
-	required string actions			= 2;
+	required string services		= 2;
 
 	required double uptime 			= 3;
 	repeated string ipList			= 4;
