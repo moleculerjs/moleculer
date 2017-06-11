@@ -161,6 +161,7 @@ class ServiceRegistry {
 	 * @memberOf ServiceRegistry
 	 */
 	getLocalServices() {
+		// TODO: array-nek kell lennie, mert futhat ugyanolyan néven service csak más verziószámmal!
 		let services = {};
 		this.actions.forEach((entry, key) => {
 			let endpoint = entry.getLocalEndpoint();
@@ -187,7 +188,7 @@ class ServiceRegistry {
 	}	
 
 	getActionList({onlyLocal = false, skipInternal = false, withEndpoints = false, withServices = true}) {
-		let res = {};
+		let res = [];
 
 		this.actions.forEach((entry, key) => {
 			if (skipInternal && /^\$node/.test(key))
