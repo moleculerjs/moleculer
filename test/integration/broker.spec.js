@@ -61,8 +61,27 @@ describe("Test broker.registerInternalActions", () => {
 	it("should return list of services", () => {
 		return broker.call("$node.services").then(res => {
 			expect(res).toEqual([
-				{"name": "math", "version": undefined, settings: {}}, 
-				{"name": "posts", "version": undefined, settings: {}}
+				{
+					"actions": {},
+					"name": "$node",
+					"nodes": [undefined],
+					"settings": {},
+					"version": null
+				},
+				{
+					"actions": {},
+					"name": "math",
+					"nodes": [undefined],
+					"settings": {},
+					"version": undefined
+				},
+				{
+					"actions": {},
+					"name": "posts",
+					"nodes": [undefined],
+					"settings": {},
+					"version": undefined
+				}
 			]);
 		});
 	});

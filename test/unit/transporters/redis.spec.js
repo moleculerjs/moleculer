@@ -145,9 +145,9 @@ describe("Test RedisTransporter subscribe & publish", () => {
 
 	it("check publish", () => {
 		transporter.clientPub.publish.mockClear();
-		transporter.publish(new PacketInfo(fakeTransit, "node2", { actions: {} }));
+		transporter.publish(new PacketInfo(fakeTransit, "node2", { services: {} }));
 
 		expect(transporter.clientPub.publish).toHaveBeenCalledTimes(1);
-		expect(transporter.clientPub.publish).toHaveBeenCalledWith("TEST.INFO.node2", "{\"sender\":\"node1\",\"actions\":\"{}\"}");
+		expect(transporter.clientPub.publish).toHaveBeenCalledWith("TEST.INFO.node2", "{\"sender\":\"node1\",\"services\":\"{}\"}");
 	});
 });

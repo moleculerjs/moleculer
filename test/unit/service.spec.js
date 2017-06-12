@@ -66,27 +66,29 @@ describe("Test action creation", () => {
 	};
 
 	it("should register service & actions", () => {
-		broker.registerService = jest.fn();
+		broker.registerLocalService = jest.fn();
 		broker.registerAction = jest.fn();
 
 		let service = broker.createService(schema); 
 
 		expect(service).toBeDefined();
-		expect(broker.registerService).toHaveBeenCalledTimes(1);
-		expect(broker.registerService).toHaveBeenCalledWith(null, service);
+		expect(broker.registerLocalService).toHaveBeenCalledTimes(1);
+		expect(broker.registerLocalService).toHaveBeenCalledWith(service);
 
 		expect(broker.registerAction).toHaveBeenCalledTimes(2);
 
 		expect(service.actions.find).toBeDefined();
 		expect(service.actions.get).toBeDefined();
 
-		let ctx = {};
-		broker.ContextFactory = jest.fn(() => ctx);
+		let ctx = {
+			setParams: jest.fn()
+		};
+		broker.createNewContext = jest.fn(() => ctx);
 
-		service.actions.find({ a: 5 });
+		service.actions.find({ a: 5 }, { timeout: 1000 });
 
-		expect(broker.ContextFactory).toHaveBeenCalledTimes(1);
-		expect(broker.ContextFactory).toHaveBeenCalledWith({ broker, action: jasmine.any(Object), params: { a: 5 } });
+		expect(broker.createNewContext).toHaveBeenCalledTimes(1);
+		expect(broker.createNewContext).toHaveBeenCalledWith(jasmine.any(Object), null, { a: 5 }, { timeout: 1000 });
 
 		expect(schema.actions.find).toHaveBeenCalledTimes(1);
 		expect(schema.actions.find).toHaveBeenCalledWith(ctx);

@@ -460,7 +460,7 @@ class ServiceBroker {
 		addAction("$node.services", () => {
 			let res = [];
 
-			const services = this.serviceRegistry.getServiceList();
+			const services = this.serviceRegistry.getServiceList({});
 			
 			services.forEach(svc => {
 				let item = res.find(o => o.name == svc.name && o.version == svc.version);
