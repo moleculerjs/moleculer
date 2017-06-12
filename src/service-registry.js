@@ -31,8 +31,6 @@ class ServiceRegistry {
 		});
 
 		this.services = [];
-		// Add internal service
-		this.services.push(new ServiceItem(null, "$node", null, {}));
 
 		this.actions = new Map();
 	}
@@ -46,33 +44,6 @@ class ServiceRegistry {
 	 */
 	init(broker) {
 		this.broker = broker;
-	}
-
-	/**
-	 * Find a service by name & version
-	 * 
-	 * @param {any} name 
-	 * @param {any} version 
-	 * @returns {ServiceItem} Service
-	 * 
-	 * @memberof ServiceRegistry
-	 */
-	findService(name, version) {
-		return this.services.find(svc => svc.isSame(name, version));
-	}
-
-	/**
-	 * Find a service by name & version
-	 * 
-	 * @param {String} nodeID 
-	 * @param {String} name 
-	 * @param {any} version 
-	 * @returns {ServiceItem} Service
-	 * 
-	 * @memberof ServiceRegistry
-	 */
-	findServiceByNode(nodeID, name, version) {
-		return this.services.find(svc => svc.name == name && svc.version == version && svc.nodeID == nodeID);
 	}
 
 	/**
@@ -108,6 +79,33 @@ class ServiceRegistry {
 		});
 
 		_.remove(this.services, svc => svc.nodeID == nodeID);
+	}
+
+	/**
+	 * Find a service by name & version
+	 * 
+	 * @param {any} name 
+	 * @param {any} version 
+	 * @returns {ServiceItem} Service
+	 * 
+	 * @memberof ServiceRegistry
+	 */
+	findService(name, version) {
+		return this.services.find(svc => svc.isSame(name, version));
+	}
+
+	/**
+	 * Find a service by name & version
+	 * 
+	 * @param {String} nodeID 
+	 * @param {String} name 
+	 * @param {any} version 
+	 * @returns {ServiceItem} Service
+	 * 
+	 * @memberof ServiceRegistry
+	 */
+	findServiceByNode(nodeID, name, version) {
+		return this.services.find(svc => svc.name == name && svc.version == version && svc.nodeID == nodeID);
 	}
 
 	/**
@@ -229,7 +227,8 @@ class ServiceRegistry {
 			let item = {
 				name: service.name,
 				version: service.version,
-				settings: service.settings
+				settings: service.settings,
+				nodeID: service.nodeID
 			};
 
 			if (withActions) {
@@ -502,5 +501,6 @@ class EndpointList {
 
 ServiceRegistry.EndpointList = EndpointList;
 ServiceRegistry.Endpoint = Endpoint;
+ServiceRegistry.ServiceItem = ServiceItem;
 
 module.exports = ServiceRegistry;

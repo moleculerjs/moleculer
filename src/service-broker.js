@@ -431,6 +431,11 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	registerInternalActions() {
+		this.serviceRegistry.registerService(null, {
+			name: "$node", 
+			settings: {}
+		});
+
 		const addAction = (name, handler) => {
 			this.registerAction(LOCAL_NODE_ID, {
 				name,
