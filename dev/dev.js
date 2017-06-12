@@ -41,9 +41,10 @@ broker2.createService({
 	}
 });*/
 //broker2.loadService("./examples/math.service");
-broker2.loadService("./examples/file.service");
+//broker2.loadService("./examples/file.service");
 broker2.loadService("./examples/test.service");
-//broker1.loadService("./examples/user.service");
+broker2.loadService("./examples/user.service");
+broker2.loadService("./examples/user.v1.service");
 
 
 broker1.Promise.resolve()

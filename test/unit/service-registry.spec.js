@@ -109,7 +109,7 @@ describe("Test registry.unregister", () => {
 	});
 
 	it("should remove 'server-2' endpoint from list", () => {
-		registry.unregister("server-2", action);
+		registry.unRegisterAction("server-2", action);
 		let endpoint = registry.findAction("posts.find");
 		expect(endpoint.count()).toBe(1);
 	});

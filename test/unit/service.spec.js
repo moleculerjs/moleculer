@@ -221,7 +221,7 @@ describe("Test _createActionHandler function", () => {
 		let service = broker.createService({ 
 			name: "users", 
 			settings: {
-				appendServiceName: false
+				serviceNamePrefix: false
 			} 
 		});
 

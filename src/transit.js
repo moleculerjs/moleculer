@@ -552,14 +552,8 @@ class Transit {
 		}
 
 		if (node.services) {
-			// Add external services
-			_.forIn(node.services, service => {
-				if (service.actions) {
-					_.forIn(service.actions, action => {
-						this.broker.registerAction(nodeID, Object.assign({}, action, { service }));
-					});
-				}
-			});
+			// Register remote services
+			node.services.forEach(service => this.broker.registerRemoteService(nodeID, service));
 		}
 	}
 

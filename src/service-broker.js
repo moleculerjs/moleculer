@@ -328,19 +328,36 @@ class ServiceBroker {
 	/**
 	 * Register a local service
 	 * 
+	 * @param {Service} service
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	registerLocalService(service) {
+		this.services.push(service);
+
+		this.serviceRegistry.registerService(null, service);
+
+		//this.emitLocal(`register.service.${service.name}`, service);
+		this.logger.info(`'${service.name}' service is registered!`);
+	}
+
+	/**
+	 * Register a remote service
+	 * 
 	 * @param {any} nodeID		NodeID if it is on a remote server/node
 	 * @param {any} service
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	registerService(nodeID, service) {
-		if (!nodeID)		
-			this.services.push(service);
-
+	registerRemoteService(nodeID, service) {
 		this.serviceRegistry.registerService(nodeID, service);
 
-		//this.emitLocal(`register.service.${service.name}`, service);
-		this.logger.info(`'${service.name}' service is registered!`);
+		if (service.actions) {
+			_.forIn(service.actions, action => {
+				this.registerAction(nodeID, Object.assign({}, action, { service }));
+			});
+		}
+
 	}
 
 	/**
@@ -396,7 +413,7 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	unregisterAction(nodeID, action) {
-		this.serviceRegistry.unregister(nodeID, action);
+		this.serviceRegistry.unRegisterAction(nodeID, action);
 	}
 
 	/**

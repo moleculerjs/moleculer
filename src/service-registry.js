@@ -20,7 +20,7 @@ class ServiceRegistry {
 	 * 
 	 * @param {any} opts
 	 * 		opts.strategy - type of balancing (STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM) (defaults: STRATEGY_ROUND_ROBIN)
-	 * 		opts.preferLocal - call a local service if available (defaults: true)
+	 * 		opts.preferLocal - call the local service if available (defaults: true)
 	 * 
 	 * @memberOf ServiceRegistry
 	 */
@@ -29,12 +29,40 @@ class ServiceRegistry {
 			strategy: STRATEGY_ROUND_ROBIN,
 			preferLocal: true
 		});
-		this.services = new Map();
+
+		this.services = [
+			// Internal service
+			{
+				name: "$node",
+				settings: {},
+				nodes: [null]
+			}
+		];
 		this.actions = new Map();
 	}
 
+	/**
+	 * Initialize Service Registry
+	 * 
+	 * @param {any} broker 
+	 * 
+	 * @memberof ServiceRegistry
+	 */
 	init(broker) {
 		this.broker = broker;
+	}
+
+	/**
+	 * Find a service by name & version
+	 * 
+	 * @param {any} name 
+	 * @param {any} version 
+	 * @returns {Object} Service
+	 * 
+	 * @memberof ServiceRegistry
+	 */
+	findService(name, version) {
+		return this.services.find(svc => svc.name == name && svc.version == version);
 	}
 
 	/**
@@ -47,15 +75,18 @@ class ServiceRegistry {
 	 */
 	registerService(nodeID, service) {
 		// Append action by name
-		let item = this.services.get(service.name);
+		let item = this.findService(service.name, service.version);
 		if (!item) {
 			item = {
 				name: service.name,
 				version: service.version,
 				settings: service.settings,
-				nodeID: nodeID
+				nodes: [nodeID]
 			};
-			this.services.set(service.name, item);
+			this.services.push(item);
+		} else {
+			if (item.nodes.indexOf(nodeID) === -1)
+				item.nodes.push(nodeID);
 		}
 	}
 
@@ -75,6 +106,7 @@ class ServiceRegistry {
 			list.internal = action.name.startsWith("$");
 			this.actions.set(action.name, list);
 		}
+
 		return list.add(nodeID, action);
 	}	
 
@@ -86,7 +118,7 @@ class ServiceRegistry {
 	 * 
 	 * @memberOf ServiceRegistry
 	 */
-	unregister(nodeID, action) {
+	unRegisterAction(nodeID, action) {
 		let list = this.actions.get(action.name);
 		if (list) {
 			list.removeByNode(nodeID);
@@ -161,8 +193,7 @@ class ServiceRegistry {
 	 * @memberOf ServiceRegistry
 	 */
 	getLocalServices() {
-		// TODO: array-nek kell lennie, mert futhat ugyanolyan néven service csak más verziószámmal!
-		let services = {};
+		let services = [];
 		this.actions.forEach((entry, key) => {
 			let endpoint = entry.getLocalEndpoint();
 			if (endpoint) {
@@ -177,17 +208,19 @@ class ServiceRegistry {
 						settings: {},
 					};
 				}
-				if (!services[svc.name]) {
-					services[svc.name] = pick(svc, ["name", "version", "settings"]);
-					services[svc.name].actions = {};
+				let item = services.find(o => o.name == svc.name && o.version == svc.version);
+				if (!item) {
+					item = pick(svc, ["name", "version", "settings"]);
+					item.actions = {};
+					services.push(item);
 				}
-				services[svc.name].actions[a.name] = omit(endpoint.action, ["handler", "service"]);
+				item.actions[a.name] = omit(endpoint.action, ["handler", "service"]);
 			}
 		});
 		return services;
 	}	
 
-	getActionList({onlyLocal = false, skipInternal = false, withEndpoints = false, withServices = true}) {
+	getActionList({onlyLocal = false, skipInternal = false, withEndpoints = false}) {
 		let res = [];
 
 		this.actions.forEach((entry, key) => {
