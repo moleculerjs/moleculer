@@ -58,34 +58,6 @@ describe("Test broker.registerInternalActions", () => {
 	broker.loadService("./test/services/math.service");
 	broker.loadService("./test/services/post.service");
 
-	it("should return list of services", () => {
-		return broker.call("$node.services").then(res => {
-			expect(res).toEqual([
-				{
-					"actions": {},
-					"name": "$node",
-					"nodes": [undefined],
-					"settings": {},
-					"version": null
-				},
-				{
-					"actions": {},
-					"name": "math",
-					"nodes": [undefined],
-					"settings": {},
-					"version": undefined
-				},
-				{
-					"actions": {},
-					"name": "posts",
-					"nodes": [undefined],
-					"settings": {},
-					"version": undefined
-				}
-			]);
-		});
-	});
-
 	it("should return list of actions", () => {
 		return broker.call("$node.actions").then(res => {
 			expect(res).toEqual([
@@ -243,6 +215,118 @@ describe("Test broker.registerInternalActions", () => {
 		});
 	});
 
+	it("should return list of services", () => {
+		let service = {
+			name: "math",
+			settings: {}
+		};
+		broker.registerRemoteService("node-3", service);
+		broker.registerAction("node-3", {
+			name: "math.pow",
+			cache: true,
+			service
+		});
+
+		return broker.call("$node.services", { withActions: true }).then(res => {
+			expect(res).toEqual([{
+				"actions": {
+					"$node.actions": {
+						"cache": false,
+						"name": "$node.actions"
+					},
+					"$node.health": {
+						"cache": false,
+						"name": "$node.health"
+					},
+					"$node.list": {
+						"cache": false,
+						"name": "$node.list"
+					},
+					"$node.services": {
+						"cache": false,
+						"name": "$node.services"
+					},
+					"$node.stats": {
+						"cache": false,
+						"name": "$node.stats"
+					}
+				},
+				"name": "$node",
+				"nodes": [null],
+				"settings": {},
+				"version": undefined
+			}, {
+				"actions": {
+					"math.add": {
+						"cache": false,
+						"name": "math.add",
+						"version": undefined
+					},
+					"math.div": {
+						"cache": false,
+						"name": "math.div",
+						"version": undefined
+					},
+					"math.mult": {
+						"cache": false,
+						"name": "math.mult",
+						"params": {
+							"a": {
+								"type": "number"
+							},
+							"b": {
+								"type": "number"
+							}
+						},
+						"version": undefined
+					},
+					"math.pow": {
+						"cache": true,
+						"name": "math.pow",
+					},
+					"math.sub": {
+						"cache": false,
+						"name": "math.sub",
+						"version": undefined
+					}
+				},
+				"name": "math",
+				"nodes": [null, "node-3"],
+				"settings": {},
+				"version": undefined
+			}, {
+				"actions": {
+					"posts.author": {
+						"cache": false,
+						"name": "posts.author",
+						"version": undefined
+					},
+					"posts.delayed": {
+						"cache": false,
+						"name": "posts.delayed",
+						"version": undefined
+					},
+					"posts.find": {
+						"cache": true,
+						"name": "posts.find",
+						"version": undefined
+					},
+					"posts.get": {
+						"cache": {
+							"keys": ["id"]
+						},
+						"name": "posts.get",
+						"version": undefined
+					}
+				},
+				"name": "posts",
+				"nodes": [null],
+				"settings": {},
+				"version": undefined
+			}]);
+		});
+	});
+
 	it("should return health of node", () => {
 		return broker.call("$node.health").then(res => {
 			expect(res).toBeDefined();
@@ -265,14 +349,16 @@ describe("Test broker.registerInternalActions", () => {
 	it("should return list of remote nodes", () => {
 		let info = {
 			nodeID: "server-2",
-			actions: []
+			services: []
 		};
 		broker.transit.processNodeInfo(info.nodeID, info);
 
 		return broker.call("$node.list").then(res => {
 			expect(res).toBeInstanceOf(Array);
+			expect(res.length).toBe(2);
 			expect(res[0].id).toBeNull();
-			expect(res[1]).toEqual({"actions": [], "available": true, "id": "server-2", "lastHeartbeatTime": jasmine.any(Number), "nodeID": "server-2"});
+			expect(res[0].services.length).toBe(3);
+			expect(res[1]).toEqual({"services": [], "available": true, "id": "server-2", "lastHeartbeatTime": jasmine.any(Number), "nodeID": "server-2"});
 		});
 	});
 

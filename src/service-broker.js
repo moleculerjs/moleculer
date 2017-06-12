@@ -183,6 +183,7 @@ class ServiceBroker {
 			return null; // avoid Bluebird warning
 		})
 		.catch(err => {
+			/* istanbul ignore next */
 			this.logger.error("Unable to start all services!", err);
 		})
 		.then(() => {
@@ -211,6 +212,7 @@ class ServiceBroker {
 			return null; // avoid Bluebird warning
 		})
 		.catch(err => {
+			/* istanbul ignore next */
 			this.logger.error("Unable to stop all services!", err);
 		})
 		.then(() => {
@@ -462,10 +464,10 @@ class ServiceBroker {
 			return res;
 		});
 
-		addAction("$node.services", () => {
+		addAction("$node.services", ctx => {
 			let res = [];
 
-			const services = this.serviceRegistry.getServiceList({});
+			const services = this.serviceRegistry.getServiceList(ctx.params);
 			
 			services.forEach(svc => {
 				let item = res.find(o => o.name == svc.name && o.version == svc.version);

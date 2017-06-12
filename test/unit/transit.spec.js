@@ -522,7 +522,7 @@ describe("Test Transit.sendNodeInfo", () => {
 		const packet = transit.publish.mock.calls[0][0];
 		expect(packet).toBeInstanceOf(P.PacketInfo);
 		expect(packet.target).toBe("node2");
-		expect(packet.payload.services).toBe("[{\"name\":\"$node\",\"version\":null,\"settings\":{},\"actions\":{}}]");
+		expect(packet.payload.services).toBe("[]");
 		expect(packet.payload.ipList).toBeInstanceOf(Array);
 		expect(packet.payload.versions).toBeDefined();
 		expect(packet.payload.versions.node).toBe(process.version);
