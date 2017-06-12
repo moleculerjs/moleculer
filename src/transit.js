@@ -424,7 +424,7 @@ class Transit {
 	 * @memberof Transit
 	 */
 	getNodeInfo() {
-		const services = this.broker.serviceRegistry.getLocalServicesWithActions();
+		const services = this.broker.serviceRegistry.getServiceList({ onlyLocal: true, withActions: true });
 		const uptime = process.uptime();
 		const ipList = getIpList();
 		const versions = {
@@ -604,13 +604,7 @@ class Transit {
 			let node = this.nodes.get(nodeID);
 			if (node.available) {
 				node.available = false;
-				if (node.actions) {
-					// Remove remote actions of node
-					Object.keys(node.actions).forEach(name => {
-						let action = Object.assign({}, node.actions[name], { name });
-						this.broker.unregisterAction(node.id, action);
-					});
-				}
+				this.broker.unregisterServicesByNode(nodeID);
 
 				this.broker.emitLocal(isUnexpected ? "node.broken" : "node.disconnected", node);
 				//this.nodes.delete(nodeID);			

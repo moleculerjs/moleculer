@@ -109,7 +109,7 @@ describe("Test registry.unregister", () => {
 	});
 
 	it("should remove 'server-2' endpoint from list", () => {
-		registry.unRegisterAction("server-2", action);
+		registry.unregisterAction("server-2", action);
 		let endpoint = registry.findAction("posts.find");
 		expect(endpoint.count()).toBe(1);
 	});
@@ -248,7 +248,7 @@ describe("Test registry.count", () => {
 
 });
 
-describe("Test registry.getLocalServicesWithActions", () => {
+describe("Test registry.getServicesWithActions", () => {
 	describe("Test without internal actions", () => {
 		const broker = new ServiceBroker({ internalActions: false });
 		const registry = broker.serviceRegistry;
@@ -261,17 +261,17 @@ describe("Test registry.getLocalServicesWithActions", () => {
 		};
 
 		it("should returns empty list", () => {
-			expect(registry.getLocalServicesWithActions()).toEqual([]);
+			expect(registry.getServicesWithActions()).toEqual([]);
 		});
 
 		it("should return empty list because only remote endpoint registered", () => {
 			registry.registerAction("server-2", action);
-			expect(registry.getLocalServicesWithActions()).toEqual([]);
+			expect(registry.getServicesWithActions()).toEqual([]);
 		});
 
 		it("should return action list", () => {
 			registry.registerAction(null, action);
-			expect(registry.getLocalServicesWithActions()).toEqual([{"cache": true, "custom": 5, "name": "posts.find"}]);
+			expect(registry.getServicesWithActions()).toEqual([{"cache": true, "custom": 5, "name": "posts.find"}]);
 		});
 
 	});
@@ -281,8 +281,8 @@ describe("Test registry.getLocalServicesWithActions", () => {
 		const registry = broker.serviceRegistry;
 
 		it("should returns the internal list", () => {
-			expect(registry.getLocalServicesWithActions().length).toBe(4);
-			expect(registry.getLocalServicesWithActions()).toEqual([{"cache": false, "name": "$node.list"}, {"cache": false, "name": "$node.services"}, {"cache": false, "name": "$node.actions"}, {"cache": false, "name": "$node.health"}]);
+			expect(registry.getServicesWithActions().length).toBe(4);
+			expect(registry.getServicesWithActions()).toEqual([{"cache": false, "name": "$node.list"}, {"cache": false, "name": "$node.services"}, {"cache": false, "name": "$node.actions"}, {"cache": false, "name": "$node.health"}]);
 		});
 
 	});

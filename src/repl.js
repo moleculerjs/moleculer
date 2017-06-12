@@ -139,7 +139,7 @@ function startREPL(broker) {
 		.command("actions", "List of actions")
 		.option("-d, --details")
 		.action((args, done) => {
-			const actions = broker.serviceRegistry.getActionList(false, false, true);
+			const actions = broker.serviceRegistry.getActionList({ onlyLocal: false, skipInternal: false, withEndpoints: true});
 
 			const data = [
 				[
@@ -154,15 +154,25 @@ function startREPL(broker) {
 			actions.forEach(item => {
 				const action = item.action;
 				const state = item.available;
-				const params = action.params ? Object.keys(action.params).join(", ") : "";
+				const params = action && action.params ? Object.keys(action.params).join(", ") : "";
 				
-				data.push([
-					action.name,
-					(item.hasLocal ? "(*) " : "") + item.count,
-					state ? chalk.bgGreen.white("   OK   "):chalk.bgRed.white.bold(" FAILED "),
-					action.cache ? chalk.green("Yes"):chalk.gray("No"),
-					params
-				]);
+				if (action) {
+					data.push([
+						action.name,
+						(item.hasLocal ? "(*) " : "") + item.count,
+						state ? chalk.bgGreen.white("   OK   "):chalk.bgRed.white.bold(" FAILED "),
+						action.cache ? chalk.green("Yes"):chalk.gray("No"),
+						params
+					]);
+				} else {
+					data.push([
+						item.name,
+						item.count,
+						chalk.bgRed.white.bold(" FAILED "),
+						"",
+						""
+					]);
+				}
 
 				let getStateLabel = (state) => {
 					switch(state) {
@@ -203,7 +213,7 @@ function startREPL(broker) {
 		.command("services", "List of services")
 		//.option("-d, --details")
 		.action((args, done) => {
-			const services = broker.serviceRegistry.getServiceList();
+			const services = broker.serviceRegistry.getServiceList({ onlyLocal: false, withActions: true });
 
 			const data = [
 				[

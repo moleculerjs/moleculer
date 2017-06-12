@@ -402,6 +402,17 @@ class ServiceBroker {
 	}
 
 	/**
+	 * Unregister services by node
+	 * 
+	 * @param {String} nodeID 
+	 * 
+	 * @memberof ServiceBroker
+	 */
+	unregisterServicesByNode(nodeID) {
+		this.serviceRegistry.unregisterServicesByNode(nodeID);
+	}
+
+	/**
 	 * Unregister an action on a local server. 
 	 * It will be called when a remote node disconnected. 
 	 * 
@@ -411,7 +422,7 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	unregisterAction(nodeID, action) {
-		this.serviceRegistry.unRegisterAction(nodeID, action);
+		this.serviceRegistry.unregisterAction(nodeID, action);
 	}
 
 	/**

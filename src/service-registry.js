@@ -64,7 +64,8 @@ class ServiceRegistry {
 	/**
 	 * Find a service by name & version
 	 * 
-	 * @param {any} name 
+	 * @param {String} nodeID 
+	 * @param {String} name 
 	 * @param {any} version 
 	 * @returns {ServiceItem} Service
 	 * 
@@ -88,6 +89,25 @@ class ServiceRegistry {
 			item = new ServiceItem(nodeID, service.name, service.version, service.settings);
 			this.services.push(item);
 		}
+	}
+
+	/**
+	 * Unregister services by nodeID. It will be called when a node disconnected
+	 * 
+	 * @param {String} nodeID 
+	 * 
+	 * @memberof ServiceRegistry
+	 */
+	unregisterServicesByNode(nodeID) {
+		this.services.forEach(svc => {
+			if (svc.nodeID !=  nodeID) return;
+			// Remove remote actions of node
+			_.forIn(svc.actions, action => {
+				this.unregisterAction(nodeID, action);
+			});
+		});
+
+		_.remove(this.services, svc => svc.nodeID == nodeID);
 	}
 
 	/**
@@ -122,11 +142,11 @@ class ServiceRegistry {
 	 * 
 	 * @memberOf ServiceRegistry
 	 */
-	unRegisterAction(nodeID, action) {
+	unregisterAction(nodeID, action) {
 		let list = this.actions.get(action.name);
 		if (list) {
 			list.removeByNode(nodeID);
-			/* Don't delete because maybe node only disconnected and will come back.
+			/* Don't delete because maybe node is only disconnected and will come back.
 			   So the action is exists, just there is not available right now.
 			
 			if (list.count() == 0) {
@@ -190,41 +210,45 @@ class ServiceRegistry {
 	}
 
 	/**
-	 * Get a list of local services with actions
+	 * Get a filtered list of services with actions
 	 * 
+	 * @param {any} {onlyLocal = false, skipInternal = false, withEndpoints = false} 
 	 * @returns {Array}
 	 * 
 	 * @memberOf ServiceRegistry
 	 */
-	getLocalServicesWithActions() {
+	getServiceList({ onlyLocal = false, skipInternal = false, withActions = false }) {
 		let res = [];
 		this.services.forEach(service => {
-			if (service.local) {
-				let item = {
-					name: service.name,
-					version: service.version,
-					settings: service.settings,
-					actions: {}
-				};
+			if (skipInternal && /^\$node/.test(service.name))
+				return;			
+
+			if (onlyLocal && !service.local)
+				return;
+
+			let item = {
+				name: service.name,
+				version: service.version,
+				settings: service.settings
+			};
+
+			if (withActions) {
+				item.actions = {};
+
 				_.forIn(service.actions, action => {
-					if (action.protected === true) return;
+					if (action.protected) return;
 
 					item.actions[action.name] = _.omit(action, ["handler", "service"]);
 				});
-
-				res.push(item);
 			}
+
+			res.push(item);
 		});
 		return res;
 	}	
 
-	// For REPL
-	getServiceList() {
-		return this.services;
-	}
-
 	/**
-	 * Get a list of actions with filters (for REPL)
+	 * Get a filtered list of actions
 	 * 
 	 * @param {any} {onlyLocal = false, skipInternal = false, withEndpoints = false} 
 	 * @returns 
