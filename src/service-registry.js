@@ -6,7 +6,7 @@
 
 "use strict";
 
-const { remove, random, defaultsDeep, omit, pick } = require("lodash");
+const _ = require("lodash");
 
 // Registry strategies
 const { STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM } = require("./constants");
@@ -25,19 +25,15 @@ class ServiceRegistry {
 	 * @memberOf ServiceRegistry
 	 */
 	constructor(opts) {
-		this.opts = defaultsDeep({}, opts, {
+		this.opts = _.defaultsDeep({}, opts, {
 			strategy: STRATEGY_ROUND_ROBIN,
 			preferLocal: true
 		});
 
-		this.services = [
-			// Internal service
-			{
-				name: "$node",
-				settings: {},
-				nodes: [null]
-			}
-		];
+		this.services = [];
+		// Add internal service
+		this.services.push(new ServiceItem(null, "$node", null, {}));
+
 		this.actions = new Map();
 	}
 
@@ -57,12 +53,25 @@ class ServiceRegistry {
 	 * 
 	 * @param {any} name 
 	 * @param {any} version 
-	 * @returns {Object} Service
+	 * @returns {ServiceItem} Service
 	 * 
 	 * @memberof ServiceRegistry
 	 */
 	findService(name, version) {
-		return this.services.find(svc => svc.name == name && svc.version == version);
+		return this.services.find(svc => svc.isSame(name, version));
+	}
+
+	/**
+	 * Find a service by name & version
+	 * 
+	 * @param {any} name 
+	 * @param {any} version 
+	 * @returns {ServiceItem} Service
+	 * 
+	 * @memberof ServiceRegistry
+	 */
+	findServiceByNode(nodeID, name, version) {
+		return this.services.find(svc => svc.name == name && svc.version == version && svc.nodeID == nodeID);
 	}
 
 	/**
@@ -74,19 +83,10 @@ class ServiceRegistry {
 	 * @memberOf ServiceRegistry
 	 */
 	registerService(nodeID, service) {
-		// Append action by name
-		let item = this.findService(service.name, service.version);
+		let item = this.findServiceByNode(nodeID, service.name, service.version);
 		if (!item) {
-			item = {
-				name: service.name,
-				version: service.version,
-				settings: service.settings,
-				nodes: [nodeID]
-			};
+			item = new ServiceItem(nodeID, service.name, service.version, service.settings);
 			this.services.push(item);
-		} else {
-			if (item.nodes.indexOf(nodeID) === -1)
-				item.nodes.push(nodeID);
 		}
 	}
 
@@ -106,6 +106,10 @@ class ServiceRegistry {
 			list.internal = action.name.startsWith("$");
 			this.actions.set(action.name, list);
 		}
+
+		const svc = this.findServiceByNode(nodeID, action.service.name, action.service.version);
+		if (svc)
+			svc.addAction(action);
 
 		return list.add(nodeID, action);
 	}	
@@ -181,45 +185,52 @@ class ServiceRegistry {
 	 * 
 	 * @memberof ServiceRegistry
 	 */
-	count() {
+	actionCount() {
 		return this.actions.size;
 	}
 
 	/**
 	 * Get a list of local services with actions
 	 * 
-	 * @returns
+	 * @returns {Array}
 	 * 
 	 * @memberOf ServiceRegistry
 	 */
-	getLocalServices() {
-		let services = [];
-		this.actions.forEach((entry, key) => {
-			let endpoint = entry.getLocalEndpoint();
-			if (endpoint) {
-				const a = endpoint.action;
-				if (a.protected === true) return;
+	getLocalServicesWithActions() {
+		let res = [];
+		this.services.forEach(service => {
+			if (service.local) {
+				let item = {
+					name: service.name,
+					version: service.version,
+					settings: service.settings,
+					actions: {}
+				};
+				_.forIn(service.actions, action => {
+					if (action.protected === true) return;
 
-				let svc = a.service;
-				if (!svc) {
-					// Internal service
-					svc = {
-						name: "$node",
-						settings: {},
-					};
-				}
-				let item = services.find(o => o.name == svc.name && o.version == svc.version);
-				if (!item) {
-					item = pick(svc, ["name", "version", "settings"]);
-					item.actions = {};
-					services.push(item);
-				}
-				item.actions[a.name] = omit(endpoint.action, ["handler", "service"]);
+					item.actions[action.name] = _.omit(action, ["handler", "service"]);
+				});
+
+				res.push(item);
 			}
 		});
-		return services;
+		return res;
 	}	
 
+	// For REPL
+	getServiceList() {
+		return this.services;
+	}
+
+	/**
+	 * Get a list of actions with filters (for REPL)
+	 * 
+	 * @param {any} {onlyLocal = false, skipInternal = false, withEndpoints = false} 
+	 * @returns 
+	 * 
+	 * @memberof ServiceRegistry
+	 */
 	getActionList({onlyLocal = false, skipInternal = false, withEndpoints = false}) {
 		let res = [];
 
@@ -239,7 +250,7 @@ class ServiceRegistry {
 
 			if (item.count > 0) {
 				const ep = entry.list[0];
-				item.action = omit(ep.action, ["handler", "service"]);
+				item.action = _.omit(ep.action, ["handler", "service"]);
 			}
 
 			if (withEndpoints) {
@@ -257,6 +268,25 @@ class ServiceRegistry {
 		});
 
 		return res;
+	}
+}
+
+class ServiceItem {
+	constructor(nodeID, name, version, settings) {
+		this.nodeID = nodeID;
+		this.name = name;
+		this.version = version;
+		this.settings = settings;
+		this.local = this.nodeID == null;
+		this.actions = {};
+	}
+
+	addAction(action) {
+		this.actions[action.name] = action;
+	}
+
+	isSame(name, version) {
+		return this.name == name && this.version == version;
 	}
 }
 
@@ -327,7 +357,7 @@ class EndpointList {
 	 */
 	constructor(broker, opts) {
 		this.broker = broker;
-		this.opts = defaultsDeep({}, opts, {
+		this.opts = _.defaultsDeep({}, opts, {
 			strategy: STRATEGY_ROUND_ROBIN,
 			preferLocal: true
 		});
@@ -356,7 +386,7 @@ class EndpointList {
 	get() {
 		if (this.opts.strategy === STRATEGY_RANDOM) {
 			/* istanbul ignore next */
-			return this.list[random(0, this.list.length - 1)];
+			return this.list[_.random(0, this.list.length - 1)];
 		} else {
 			// Round-robin
 
@@ -436,11 +466,11 @@ class EndpointList {
 	}
 
 	removeByAction(action) {
-		remove(this.list, (el) => el.action == action);
+		_.remove(this.list, (el) => el.action == action);
 	}
 
 	removeByNode(nodeID) {
-		remove(this.list, item => item.nodeID == nodeID);
+		_.remove(this.list, item => item.nodeID == nodeID);
 		if (nodeID == null)
 			this.localEndpoint = null;
 	}

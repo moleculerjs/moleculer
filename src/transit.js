@@ -424,7 +424,7 @@ class Transit {
 	 * @memberof Transit
 	 */
 	getNodeInfo() {
-		const services = this.broker.serviceRegistry.getLocalServices();
+		const services = this.broker.serviceRegistry.getLocalServicesWithActions();
 		const uptime = process.uptime();
 		const ipList = getIpList();
 		const versions = {
@@ -456,7 +456,7 @@ class Transit {
 	 */
 	sendNodeInfo(nodeID) {
 		const info = this.getNodeInfo();
-		console.log(`sendNodeInfo on ${this.nodeID}`, JSON.stringify(info, null, 2));
+		//console.log(`sendNodeInfo on ${this.nodeID}`, JSON.stringify(info, null, 2));
 		return this.publish(new P.PacketInfo(this, nodeID, info));
 	}
 

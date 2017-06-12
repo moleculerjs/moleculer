@@ -20,6 +20,7 @@ let broker1 = new ServiceBroker({
 });
 
 broker1.loadService("./examples/math.service");
+broker1.loadService("./examples/silent.service");
 //broker1.loadService("./examples/post.service");
 
 let broker2 = new ServiceBroker({

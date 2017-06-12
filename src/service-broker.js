@@ -370,15 +370,14 @@ class ServiceBroker {
 	 */
 	registerAction(nodeID, action) {
 
-		// Wrap middlewares
+		// Wrap middlewares on local actions
 		if (!nodeID)
 			this.wrapAction(action);
 		
 		const res = this.serviceRegistry.registerAction(nodeID, action);
 		/*if (res) {
 			this.emitLocal(`register.action.${action.name}`, { nodeID, action });
-		}*/
-		
+		}*/		
 	}
 
 	/**
@@ -397,14 +396,13 @@ class ServiceBroker {
 			}, handler);
 		}
 
-		//return this.wrapContextInvoke(action, handler);
 		action.handler = handler;
 
 		return action;
 	}
 
 	/**
-	 * Deregister an action on a local server. 
+	 * Unregister an action on a local server. 
 	 * It will be called when a remote node disconnected. 
 	 * 
 	 * @param {any} nodeID		NodeID if it is on a remote server/node
@@ -426,7 +424,10 @@ class ServiceBroker {
 			this.registerAction(LOCAL_NODE_ID, {
 				name,
 				cache: false,
-				handler: Promise.method(handler)
+				handler: Promise.method(handler),
+				service: {
+					name: "$node"
+				}
 			});
 		};
 
@@ -447,8 +448,32 @@ class ServiceBroker {
 
 		addAction("$node.services", () => {
 			let res = [];
-			this.services.forEach(service => {
-				res.push(pick(service, ["name", "version", "settings"]));
+
+			const services = this.serviceRegistry.getServiceList();
+			
+			services.forEach(svc => {
+				let item = res.find(o => o.name == svc.name && o.version == svc.version);
+				if (item) {
+					item.nodes.push(svc.nodeID);
+					// Merge services
+					_.forIn(svc.actions, (action, name) => {
+						if (action.protected === true) return;
+
+						if (!item.actions[name])
+							item.actions[name] = _.omit(action, ["handler", "service"]);
+					});
+					
+				} else {
+					item = _.pick(svc, ["name", "version", "settings"]);
+					item.nodes = [svc.nodeID];
+					item.actions = {};
+					_.forIn(svc.actions, (action, name) => {
+						if (action.protected === true) return;
+
+						item.actions[name] = _.omit(action, ["handler", "service"]);
+					});
+					res.push(item);
+				}
 			});
 
 			return res;

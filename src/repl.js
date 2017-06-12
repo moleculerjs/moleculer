@@ -196,6 +196,62 @@ function startREPL(broker) {
 			
 			console.log(table(data, tableConf));
 			done();
+		});	
+
+	// List services
+	vorpal
+		.command("services", "List of services")
+		//.option("-d, --details")
+		.action((args, done) => {
+			const services = broker.serviceRegistry.getServiceList();
+
+			const data = [
+				[
+					chalk.bold("Service"),
+					chalk.bold("Version"),
+					chalk.bold("Actions"),
+					chalk.bold("Nodes")
+				]
+			];
+
+			let list = [];
+
+			services.forEach(svc => {
+				let item = list.find(o => o.name == svc.name && o.version == svc.version);
+				if (item) {
+					item.nodes.push(svc.nodeID);
+				} else {
+					item = _.pick(svc, ["name", "version"]);
+					item.nodes = [svc.nodeID];
+					item.actionCount = Object.keys(svc.actions).length;
+					list.push(item);
+				}
+			});
+
+			list.forEach(item => {
+				const hasLocal = item.nodes.indexOf(null) !== -1;
+				const nodeCount = item.nodes.length;
+				
+				data.push([
+					item.name,
+					item.version || "-",
+					item.actionCount,
+					(hasLocal ? "(*) " : "") + nodeCount
+				]);
+
+			});
+
+			const tableConf = {
+				border: _.mapValues(getBorderCharacters("honeywell"), char => chalk.gray(char)),
+				columns: {
+					1: { alignment: "right" },
+					2: { alignment: "right" },
+					3: { alignment: "right" }
+				}
+			};
+			
+			console.log(table(data, tableConf));
+			done();
 		});			
 
 	// List nodes
