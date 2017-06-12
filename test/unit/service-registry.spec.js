@@ -10,13 +10,14 @@ const { STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM } = require("../../src/constants")
 // Circuit-breaker states
 const { CIRCUIT_CLOSE, CIRCUIT_HALF_OPEN, CIRCUIT_OPEN } = require("../../src/constants");
 
-describe.skip("Test constructor", () => {
+describe("Test constructor", () => {
 
 	it("should create instance with default options", () => {
 		let registry = new ServiceRegistry();
 		expect(registry).toBeDefined();
 		expect(registry.opts).toEqual({"preferLocal": true, "strategy": STRATEGY_ROUND_ROBIN});
 		expect(registry.actions).toBeInstanceOf(Map);
+		expect(registry.services).toBeInstanceOf(Array);
 	});
 
 	it("should create instance with options", () => {
@@ -43,7 +44,7 @@ describe.skip("Test constructor", () => {
 
 });
 
-describe.skip("Test registry.init", () => {
+describe("Test registry.init", () => {
 	const broker = new ServiceBroker();
 
 	it("should set broker to local var", () => {
@@ -91,7 +92,7 @@ describe.skip("Test registry.registerAction", () => {
 
 });
 
-describe.skip("Test registry.unregister", () => {
+describe.skip("Test registry.unregisterAction", () => {
 	const broker = new ServiceBroker({ internalActions: false });
 	const registry = broker.serviceRegistry;
 
