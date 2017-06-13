@@ -95,7 +95,7 @@ module.exports = function(broker) {
 			return res;
 		});
 
-		// TODO: event loop & GC info
-		// https://github.com/RisingStack/trace-nodejs/blob/master/lib/agent/metrics/apm/index.js
+	// TODO: event loop & GC info
+	// https://github.com/RisingStack/trace-nodejs/blob/master/lib/agent/metrics/apm/index.js
 
 };

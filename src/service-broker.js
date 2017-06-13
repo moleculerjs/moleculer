@@ -173,26 +173,26 @@ class ServiceBroker {
 	 */
 	start() {
 		return Promise.resolve()
-		.then(() => {
+			.then(() => {
 			// Call service `started` handlers
-			this.services.forEach(service => {
-				if (service && service.schema && _.isFunction(service.schema.started)) {
-					service.schema.started.call(service);
-				}
-			});
-			return null; // avoid Bluebird warning
-		})
-		.catch(err => {
+				this.services.forEach(service => {
+					if (service && service.schema && _.isFunction(service.schema.started)) {
+						service.schema.started.call(service);
+					}
+				});
+				return null; // avoid Bluebird warning
+			})
+			.catch(err => {
 			/* istanbul ignore next */
-			this.logger.error("Unable to start all services!", err);
-		})
-		.then(() => {
-			if (this.transit)
-				return this.transit.connect();
-		})
-		.then(() => {
-			this.logger.info(`Broker started. NodeID: ${this.nodeID}\n`);
-		});
+				this.logger.error("Unable to start all services!", err);
+			})
+			.then(() => {
+				if (this.transit)
+					return this.transit.connect();
+			})
+			.then(() => {
+				this.logger.info(`Broker started. NodeID: ${this.nodeID}\n`);
+			});
 	}
 
 	/**
@@ -202,31 +202,31 @@ class ServiceBroker {
 	 */
 	stop() {
 		return Promise.resolve()
-		.then(() => {
+			.then(() => {
 			// Call service `started` handlers
-			this.services.forEach(service => {
-				if (service && service.schema && _.isFunction(service.schema.stopped)) {
-					service.schema.stopped.call(service);
-				}
-			});
-			return null; // avoid Bluebird warning
-		})
-		.catch(err => {
+				this.services.forEach(service => {
+					if (service && service.schema && _.isFunction(service.schema.stopped)) {
+						service.schema.stopped.call(service);
+					}
+				});
+				return null; // avoid Bluebird warning
+			})
+			.catch(err => {
 			/* istanbul ignore next */
-			this.logger.error("Unable to stop all services!", err);
-		})
-		.then(() => {
-			if (this.transit) {
-				return this.transit.disconnect();
-			}
-		})
-		.then(() => {
-			this.logger.info(`Broker stopped. NodeID: ${this.nodeID}\n`);
+				this.logger.error("Unable to stop all services!", err);
+			})
+			.then(() => {
+				if (this.transit) {
+					return this.transit.disconnect();
+				}
+			})
+			.then(() => {
+				this.logger.info(`Broker stopped. NodeID: ${this.nodeID}\n`);
 
-			process.removeListener("beforeExit", this._closeFn);
-			process.removeListener("exit", this._closeFn);
-			process.removeListener("SIGINT", this._closeFn);
-		});
+				process.removeListener("beforeExit", this._closeFn);
+				process.removeListener("exit", this._closeFn);
+				process.removeListener("SIGINT", this._closeFn);
+			});
 	}
 
 	/**

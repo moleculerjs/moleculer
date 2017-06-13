@@ -69,20 +69,20 @@ class Transit {
 	afterConnect(wasReconnect) {
 		return Promise.resolve()
 
-		.then(() => {
-			if (!wasReconnect) 
-				this.makeSubscriptions();
-		})
+			.then(() => {
+				if (!wasReconnect) 
+					this.makeSubscriptions();
+			})
 
-		.then(() => this.discoverNodes())
-		.then(() => this.sendNodeInfo())
+			.then(() => this.discoverNodes())
+			.then(() => this.sendNodeInfo())
 
-		.then(() => {
-			if (this.__connectResolve) {
-				this.__connectResolve();
-				this.__connectResolve = null;
-			}
-		});
+			.then(() => {
+				if (this.__connectResolve) {
+					this.__connectResolve();
+					this.__connectResolve = null;
+				}
+			});
 	}
 
 	/**
@@ -105,21 +105,21 @@ class Transit {
 
 			doConnect();
 		})
-		.then(() => {
+			.then(() => {
 			// Start timers
-			this.heartbeatTimer = setInterval(() => {
+				this.heartbeatTimer = setInterval(() => {
 				/* istanbul ignore next */
-				this.sendHeartbeat();
-			}, this.broker.options.heartbeatInterval * 1000);
-			this.heartbeatTimer.unref();
+					this.sendHeartbeat();
+				}, this.broker.options.heartbeatInterval * 1000);
+				this.heartbeatTimer.unref();
 
-			this.checkNodesTimer = setInterval(() => {
+				this.checkNodesTimer = setInterval(() => {
 				/* istanbul ignore next */
-				this.checkRemoteNodes();
-			}, this.broker.options.heartbeatTimeout * 1000);
-			this.checkNodesTimer.unref();	
+					this.checkRemoteNodes();
+				}, this.broker.options.heartbeatTimeout * 1000);
+				this.checkNodesTimer.unref();	
 
-		});
+			});
 	}
 
 	/**
