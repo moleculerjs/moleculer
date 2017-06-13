@@ -411,11 +411,11 @@ function startREPL(broker) {
 
 				printHeader("Broker settings");
 				print("Services", broker.services.length);
-				print("Actions", broker.serviceRegistry.count());
+				print("Actions", broker.serviceRegistry.actionCount());
 				print("Cacher", broker.cacher ? broker.cacher.constructor.name : chalk.gray("<None>"));
 
 				if (broker.transit) {
-					print("Nodes", broker.transit.nodes.size);
+					print("Nodes", broker.transit.nodes.size + 1); // + 1 itself
 
 					console.log("");
 					printHeader("Transport information");
