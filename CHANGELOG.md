@@ -209,6 +209,9 @@ There is a new `useVersionPrefix` option in settings of Service. If false, Molec
 
 # Changes
 
+## Changed code of ServiceNotFoundError
+The code of `ServiceNotFoundError` is changed from `501` to `404`. [More info](https://github.com/ice-services/moleculer-web/issues/7)
+
 ## Using Nanomatch instead of micromatch
 Memory cacher is using [nanomatch](https://github.com/micromatch/nanomatch) instead of [micromatch](https://github.com/micromatch/micromatch). The `nanomatch` is ~10x faster.
 

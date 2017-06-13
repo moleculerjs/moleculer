@@ -53,7 +53,7 @@ class ServiceNotFoundError extends MoleculerError {
 		else 
 			msg = `Service '${action}' is not available!`;
 			
-		super(msg, 501, null, {
+		super(msg, 404, null, {
 			action,
 			nodeID
 		});

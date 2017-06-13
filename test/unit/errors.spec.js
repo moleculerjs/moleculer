@@ -33,7 +33,7 @@ describe("Test Errors", () => {
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err).toBeInstanceOf(errors.ServiceNotFoundError);
-		expect(err.code).toBe(501);
+		expect(err.code).toBe(404);
 		expect(err.name).toBe("ServiceNotFoundError");
 		expect(err.message).toBe("Service 'posts.find' is not available!");
 		expect(err.data).toEqual({ action: "posts.find" });
