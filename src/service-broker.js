@@ -16,7 +16,6 @@ const Logger = require("./logger");
 const Validator = require("./validator");
 const BrokerStatistics = require("./statistics");
 const healthInfo = require("./health");
-const startREPL = require("./repl");
 
 const JSONSerializer = require("./serializers/json");
 
@@ -232,9 +231,18 @@ class ServiceBroker {
 	 * 
 	 * @memberof ServiceBroker
 	 */
+	/* istanbul ignore next */
 	repl() {
-		/* istanbul ignore next */
-		startREPL(this);
+		let repl;
+		try {
+			repl = require("moleculer-repl");
+		} catch (error) {
+			console.error("The 'moleculer-repl' package is missing! Please install it with 'npm install moleculer-repl' command!"); // eslint-disable-line no-console
+			this.logger.error("The 'moleculer-repl' package is missing! Please install it with 'npm install moleculer-repl' command!");
+			this.logger.warn(error);
+		}
+		if (repl)
+			repl(this);
 	}
 
 	/**
