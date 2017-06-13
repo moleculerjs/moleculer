@@ -1,5 +1,4 @@
 /*eslint-disable block-scoped-var, no-redeclare, no-control-regex, no-prototype-builtins, no-var, indent*/
-
 "use strict";
 
 var $protobuf = require("protobufjs/minimal");
@@ -1501,7 +1500,7 @@ $root.packets = (function() {
          * @typedef packets.PacketInfo$Properties
          * @type {Object}
          * @property {string} sender PacketInfo sender.
-         * @property {string} actions PacketInfo actions.
+         * @property {string} services PacketInfo services.
          * @property {number} uptime PacketInfo uptime.
          * @property {Array.<string>} [ipList] PacketInfo ipList.
          * @property {packets.NodeVersions$Properties} versions PacketInfo versions.
@@ -1528,10 +1527,10 @@ $root.packets = (function() {
         PacketInfo.prototype.sender = "";
 
         /**
-         * PacketInfo actions.
+         * PacketInfo services.
          * @type {string}
          */
-        PacketInfo.prototype.actions = "";
+        PacketInfo.prototype.services = "";
 
         /**
          * PacketInfo uptime.
@@ -1570,7 +1569,7 @@ $root.packets = (function() {
             if (!writer)
                 writer = $Writer.create();
             writer.uint32(/* id 1, wireType 2 =*/10).string(message.sender);
-            writer.uint32(/* id 2, wireType 2 =*/18).string(message.actions);
+            writer.uint32(/* id 2, wireType 2 =*/18).string(message.services);
             writer.uint32(/* id 3, wireType 1 =*/25).double(message.uptime);
             if (message.ipList != null && message.ipList.length)
                 for (var i = 0; i < message.ipList.length; ++i)
@@ -1608,7 +1607,7 @@ $root.packets = (function() {
                     message.sender = reader.string();
                     break;
                 case 2:
-                    message.actions = reader.string();
+                    message.services = reader.string();
                     break;
                 case 3:
                     message.uptime = reader.double();
@@ -1628,8 +1627,8 @@ $root.packets = (function() {
             }
             if (!message.hasOwnProperty("sender"))
                 throw $util.ProtocolError("missing required 'sender'", { instance: message });
-            if (!message.hasOwnProperty("actions"))
-                throw $util.ProtocolError("missing required 'actions'", { instance: message });
+            if (!message.hasOwnProperty("services"))
+                throw $util.ProtocolError("missing required 'services'", { instance: message });
             if (!message.hasOwnProperty("uptime"))
                 throw $util.ProtocolError("missing required 'uptime'", { instance: message });
             if (!message.hasOwnProperty("versions"))
@@ -1660,8 +1659,8 @@ $root.packets = (function() {
                 return "object expected";
             if (!$util.isString(message.sender))
                 return "sender: string expected";
-            if (!$util.isString(message.actions))
-                return "actions: string expected";
+            if (!$util.isString(message.services))
+                return "services: string expected";
             if (typeof message.uptime !== "number")
                 return "uptime: number expected";
             if (message.ipList != null && message.hasOwnProperty("ipList")) {
@@ -1688,8 +1687,8 @@ $root.packets = (function() {
             var message = new $root.packets.PacketInfo();
             if (object.sender != null)
                 message.sender = String(object.sender);
-            if (object.actions != null)
-                message.actions = String(object.actions);
+            if (object.services != null)
+                message.services = String(object.services);
             if (object.uptime != null)
                 message.uptime = Number(object.uptime);
             if (object.ipList) {
@@ -1730,14 +1729,14 @@ $root.packets = (function() {
                 object.ipList = [];
             if (options.defaults) {
                 object.sender = "";
-                object.actions = "";
+                object.services = "";
                 object.uptime = 0;
                 object.versions = null;
             }
             if (message.sender != null && message.hasOwnProperty("sender"))
                 object.sender = message.sender;
-            if (message.actions != null && message.hasOwnProperty("actions"))
-                object.actions = message.actions;
+            if (message.services != null && message.hasOwnProperty("services"))
+                object.services = message.services;
             if (message.uptime != null && message.hasOwnProperty("uptime"))
                 object.uptime = message.uptime;
             if (message.ipList && message.ipList.length) {

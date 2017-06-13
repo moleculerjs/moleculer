@@ -4,7 +4,7 @@ const Transit = require("../../src/transit");
 const FakeTransporter = require("../../src/transporters/fake");
 const { ValidationError } = require("../../src/errors");
 const P = require("../../src/packets");
-const lolex = require("lolex");
+//const lolex = require("lolex");
 
 describe("Test Transporter constructor", () => {
 
@@ -365,18 +365,18 @@ describe("Test Transit.messageHandler", () => {
 	it("should call transit.processNodeInfo if topic is 'INFO' ", () => {
 		transit.processNodeInfo = jest.fn();
 
-		let msg = { sender: "remote", actions: JSON.stringify({}) };
+		let msg = { sender: "remote", services: JSON.stringify([]) };
 		transit.messageHandler("INFO", JSON.stringify(msg));
 
 		expect(transit.processNodeInfo).toHaveBeenCalledTimes(1);
-		expect(transit.processNodeInfo).toHaveBeenCalledWith("remote", {"actions": {}, "sender": "remote"});
+		expect(transit.processNodeInfo).toHaveBeenCalledWith("remote", {"services": [], "sender": "remote"});
 	});	
 
 	it("should call broker.processNodeInfo & sendNodeInfo if topic is 'DISCOVER' ", () => {
 		transit.processNodeInfo = jest.fn();
 		transit.sendNodeInfo = jest.fn();
 
-		let msg = { sender: "remote", actions: JSON.stringify({}) };
+		let msg = { sender: "remote", services: JSON.stringify([]) };
 		transit.messageHandler("DISCOVER", JSON.stringify(msg));
 
 		expect(transit.processNodeInfo).toHaveBeenCalledTimes(1);
@@ -522,7 +522,7 @@ describe("Test Transit.sendNodeInfo", () => {
 		const packet = transit.publish.mock.calls[0][0];
 		expect(packet).toBeInstanceOf(P.PacketInfo);
 		expect(packet.target).toBe("node2");
-		expect(packet.payload.actions).toBe("[]");
+		expect(packet.payload.services).toBe("[]");
 		expect(packet.payload.ipList).toBeInstanceOf(Array);
 		expect(packet.payload.versions).toBeDefined();
 		expect(packet.payload.versions.node).toBe(process.version);
@@ -620,19 +620,20 @@ describe("Test Transit.deserialize", () => {
 describe("Test Transit node & heartbeat handling", () => {
 
 	describe("Test processNodeInfo", () => {
-		const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+		const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter(), internalActions: false });
 		const transit = broker.transit;
-		broker.registerAction = jest.fn();
+		broker.registerRemoteService = jest.fn();
 		broker.emitLocal = jest.fn();
 
-		let remoteAction = {
-			name: "user.create",
-			cache: false
+		let remoteService = {
+			name: "users",
+			settings: {},
+			actions: {}
 		};
 		let nodeInfo = { 
 			sender: "server-1", 
-			actions: [
-				remoteAction
+			services: [
+				remoteService
 			]
 		};
 
@@ -648,13 +649,13 @@ describe("Test Transit node & heartbeat handling", () => {
 			expect(broker.emitLocal).toHaveBeenCalledTimes(1);
 			expect(broker.emitLocal).toHaveBeenCalledWith("node.connected", node);
 
-			expect(broker.registerAction).toHaveBeenCalledTimes(1);
-			expect(broker.registerAction).toHaveBeenCalledWith("server-1", remoteAction);
+			expect(broker.registerRemoteService).toHaveBeenCalledTimes(1);
+			expect(broker.registerRemoteService).toHaveBeenCalledWith("server-1", remoteService);
 		});
 
 		it("should not emit event because node is exist but register remote actions again", () => {
 			broker.emitLocal.mockClear();
-			broker.registerAction.mockClear();
+			broker.registerRemoteService.mockClear();
 
 			transit.processNodeInfo("server-1", nodeInfo);
 
@@ -664,18 +665,18 @@ describe("Test Transit node & heartbeat handling", () => {
 
 			expect(broker.emitLocal).toHaveBeenCalledTimes(0);
 			
-			expect(broker.registerAction).toHaveBeenCalledTimes(1);
-			expect(broker.registerAction).toHaveBeenCalledWith("server-1", remoteAction);
+			expect(broker.registerRemoteService).toHaveBeenCalledTimes(1);
+			expect(broker.registerRemoteService).toHaveBeenCalledWith("server-1", remoteService);
 		});
 
 		it("should not process info if nodeID is null", () => {
 			broker.emitLocal.mockClear();
-			broker.registerAction.mockClear();
+			broker.registerRemoteService.mockClear();
 
 			transit.processNodeInfo(null, nodeInfo);
 
 			expect(broker.emitLocal).toHaveBeenCalledTimes(0);
-			expect(broker.registerAction).toHaveBeenCalledTimes(0);
+			expect(broker.registerRemoteService).toHaveBeenCalledTimes(0);
 		});
 	});
 
@@ -718,7 +719,7 @@ describe("Test Transit node & heartbeat handling", () => {
 		const transit = broker.transit;
 
 		broker.emitLocal = jest.fn();
-		broker.deregisterAction = jest.fn();
+		broker.unregisterServicesByNode = jest.fn();
 
 		transit.nodes.set("server-2", { available: true });
 
@@ -752,31 +753,36 @@ describe("Test Transit node & heartbeat handling", () => {
 
 		it("should set node to unavailable and emit a `broken` event", () => {
 			broker.emitLocal.mockClear();
-			transit.processNodeInfo("server-2", { actions: {} });
+			transit.processNodeInfo("server-2", { services: [] });
 
 			expect(transit.nodes.get("server-2").available).toBe(true);
 			expect(broker.emitLocal).toHaveBeenCalledTimes(1);
 			expect(broker.emitLocal).toHaveBeenCalledWith("node.reconnected", transit.nodes.get("server-2"));
 		});		
 
-		let remoteAction = {
-			name: "user.create"
+		let remoteService = {
+			name: "users",
+			settings: {},
+			actions: {}
 		};
+
 		transit.nodes.set("server-3", { 
 			id: "server-3", 
 			available: true, 
-			actions: {
-				"user.create": remoteAction
-			} 
+			services: [
+				remoteService
+			]
 		});
 
-		broker.registerAction("server-3", remoteAction);
+		broker.registerRemoteService("server-3", remoteService);
 
 		it("should unregister actions of disconnected node", () => {
+			broker.unregisterServicesByNode.mockClear();
+			
 			transit.nodeDisconnected("server-3");
 
-			expect(broker.deregisterAction).toHaveBeenCalledTimes(1);
-			expect(broker.deregisterAction).toHaveBeenCalledWith("server-3", remoteAction);
+			expect(broker.unregisterServicesByNode).toHaveBeenCalledTimes(1);
+			expect(broker.unregisterServicesByNode).toHaveBeenCalledWith("server-3");
 		});
 	});
 

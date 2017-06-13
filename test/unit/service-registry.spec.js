@@ -17,6 +17,7 @@ describe("Test constructor", () => {
 		expect(registry).toBeDefined();
 		expect(registry.opts).toEqual({"preferLocal": true, "strategy": STRATEGY_ROUND_ROBIN});
 		expect(registry.actions).toBeInstanceOf(Map);
+		expect(registry.services).toBeInstanceOf(Array);
 	});
 
 	it("should create instance with options", () => {
@@ -26,7 +27,7 @@ describe("Test constructor", () => {
 		};
 		let registry = new ServiceRegistry(opts);
 		expect(registry).toBeDefined();
-		expect(registry.opts).toEqual({"preferLocal": false, "strategy": STRATEGY_RANDOM});
+		expect(registry.opts).toEqual({ preferLocal: false, strategy: STRATEGY_RANDOM});
 	});
 
 	it("should create instance with options via broker", () => {
@@ -38,7 +39,7 @@ describe("Test constructor", () => {
 		});
 		let registry = broker.serviceRegistry;
 		expect(registry).toBeDefined();
-		expect(registry.opts).toEqual({"preferLocal": false, "strategy": STRATEGY_RANDOM});
+		expect(registry.opts).toEqual({ preferLocal: false, strategy: STRATEGY_RANDOM});
 	});
 
 });
@@ -47,43 +48,212 @@ describe("Test registry.init", () => {
 	const broker = new ServiceBroker();
 
 	it("should set broker to local var", () => {
-		let registry = new ServiceRegistry();
-		registry.init(broker);
+		let registry = broker.serviceRegistry;
 		expect(registry.broker).toBe(broker);
+		expect(registry.services.length).toBe(1);
+		expect(registry.services[0]).toBeInstanceOf(ServiceRegistry.ServiceItem);
+		expect(registry.services[0].nodeID).toBe(null);
+		expect(registry.services[0].name).toBe("$node");
+		expect(registry.services[0].version).toBeUndefined();
+		expect(registry.services[0].settings).toEqual({});
 	});
 
 });
 
-describe("Test registry.register", () => {
+describe("Test registry.registerService", () => {
 	const broker = new ServiceBroker({ internalActions: false });
 	const registry = broker.serviceRegistry;
 
+	let service = {
+		name: "posts",
+		version: 2,
+		settings: {
+			a: 5
+		},
+		actions: {
+			find: {}
+		}
+	};
+
+	it("should find service, and push it if not found", () => {
+		registry.findServiceByNode = jest.fn();
+		expect(registry.services.length).toBe(0);
+
+		registry.registerService(null, service);
+		expect(registry.services.length).toBe(1);
+
+		expect(registry.services[0]).toBeInstanceOf(ServiceRegistry.ServiceItem);
+	});
+
+	it("should find service, and not push it if found", () => {
+		registry.services.length = 0;
+		registry.findServiceByNode = jest.fn(() => service);
+		expect(registry.services.length).toBe(0);
+
+		registry.registerService(null, service);
+		expect(registry.services.length).toBe(0);
+	});
+
+});
+
+describe("Test registry.unregisterServicesByNode", () => {
+	const broker = new ServiceBroker({ internalActions: false });
+	const registry = broker.serviceRegistry;
+
+	let service = {
+		name: "posts",
+		version: 2,
+		settings: {
+			a: 5
+		}
+	};
+
+	let action1 = {
+		name: "posts.find",
+		service
+	};
+
+	let action2 = {
+		name: "posts.get",
+		cache: true,
+		service
+	};
+
+	registry.registerService(null, service);
+	registry.registerService("node-2", service);
+	registry.registerAction(null, action1);
+	registry.registerAction(null, action2);
+	registry.registerAction("node-2", action1);
+	registry.registerAction("node-2", action2);
+
+	registry.unregisterAction = jest.fn();
+
+	it("should unregister actions & remove service", () => {
+		expect(registry.services.length).toBe(2);
+
+		registry.unregisterServicesByNode("node-2");
+		expect(registry.services.length).toBe(1);
+
+		expect(registry.unregisterAction).toHaveBeenCalledTimes(2);
+		expect(registry.unregisterAction).toHaveBeenCalledWith("node-2", action1);
+		expect(registry.unregisterAction).toHaveBeenCalledWith("node-2", action2);
+	});
+
+});
+
+describe("Test registry.findService", () => {
+	const broker = new ServiceBroker({ internalActions: false });
+	const registry = broker.serviceRegistry;
+
+	let serviceV1 = {
+		name: "posts",
+		version: 1,
+		settings: {}
+	};
+
+	let serviceV2 = {
+		name: "posts",
+		version: 2,
+		settings: {}
+	};
+
+	let serviceOther = {
+		name: "users",
+		settings: {}
+	};
+
+	registry.registerService(null, serviceV1);
+	registry.registerService(null, serviceV2);
+	registry.registerService("node-2", serviceOther);
+
+	it("should find versioned service", () => {
+		expect(registry.findService("posts", 1).name).toBe("posts");
+		expect(registry.findService("posts", 1).version).toBe(1);
+		expect(registry.findService("posts", 1).nodeID).toBeNull();
+		expect(registry.findService("posts", 1).settings).toBe(serviceV1.settings);
+
+		expect(registry.findService("posts", 2).name).toBe("posts");
+		expect(registry.findService("posts", 2).version).toBe(2);
+		expect(registry.findService("posts", 2).settings).toBe(serviceV2.settings);
+
+	});
+
+	it("should find not versioned service", () => {
+		expect(registry.findService("users").name).toBe("users");
+		expect(registry.findService("users").version).toBeUndefined();
+		expect(registry.findService("users").nodeID).toBe("node-2");
+		expect(registry.findService("users").settings).toBe(serviceOther.settings);
+
+		expect(registry.findService("users", 2)).toBeUndefined();
+	});
+
+});
+
+describe("Test registry.findServiceByNode", () => {
+	const broker = new ServiceBroker({ internalActions: false });
+	const registry = broker.serviceRegistry;
+
+	let service = {
+		name: "posts",
+		settings: {}
+	};
+
+	registry.registerService(null, service);
+	registry.registerService("node-2", service);
+	registry.registerService("node-3", service);
+
+	it("should find not versioned service", () => {
+		expect(registry.findServiceByNode(null, "posts").nodeID).toBeNull();
+		expect(registry.findServiceByNode("node-3", "posts").nodeID).toBe("node-3");
+		expect(registry.findServiceByNode("node-2", "posts").nodeID).toBe("node-2");
+
+		expect(registry.findServiceByNode("node-123", "posts")).toBeUndefined();
+	});
+
+});
+
+describe("Test registry.registerAction", () => {
+	const broker = new ServiceBroker({ internalActions: false });
+	const registry = broker.serviceRegistry;
+
+	let service = {
+		name: "posts",
+		settings: {}
+	};
+
 	let action = {
 		name: "posts.find",
-		handler: jest.fn()
+		handler: jest.fn(),
+		service
 	};
 
 	it("should set local action and create an EndpointList", () => {
 		expect(registry.actions.size).toBe(0);
-		const res = registry.register(null, action);
+		registry.registerService(null, service);
+		const res = registry.registerAction(null, action);
 		expect(res).toBe(true);
 		expect(registry.actions.size).toBe(1);
 
 		let endpoint = registry.findAction("posts.find");
 		expect(endpoint).toBeInstanceOf(ServiceRegistry.EndpointList);
 		expect(endpoint.count()).toBe(1);
+
+		expect(registry.services[0].actions["posts.find"]).toBeDefined();
 	});
 
 	it("should set local action but not create a new EndpointList", () => {
-		const res = registry.register(null, action);
+		const res = registry.registerAction(null, action);
 		expect(res).toBe(false);
 		expect(registry.actions.size).toBe(1);
+		expect(registry.services[0].actions["posts.find"]).toBeDefined();
 	});
 
 	it("should set remote action but not create a new EndpointList", () => {
-		const res = registry.register("server-2", action);
+		registry.registerService("server-2", service);
+		const res = registry.registerAction("server-2", action);
 		expect(res).toBe(true);
 		expect(registry.actions.size).toBe(1);
+		expect(registry.services[1].actions["posts.find"]).toBeDefined();
 
 		let endpoint = registry.findAction("posts.find");
 		expect(endpoint.count()).toBe(2);
@@ -91,17 +261,25 @@ describe("Test registry.register", () => {
 
 });
 
-describe("Test registry.deregister", () => {
+describe("Test registry.unregisterAction", () => {
 	const broker = new ServiceBroker({ internalActions: false });
 	const registry = broker.serviceRegistry;
 
-	let action = {
-		name: "posts.find",
-		handler: jest.fn()
+	let service = {
+		name: "posts",
+		settings: {}
 	};
 
-	registry.register(null, action);
-	registry.register("server-2", action);
+	let action = {
+		name: "posts.find",
+		handler: jest.fn(),
+		service
+	};
+
+	registry.registerService(null, service);
+	registry.registerService("server-2", service);
+	registry.registerAction(null, action);
+	registry.registerAction("server-2", action);
 
 	it("should count endpoint equals 2", () => {
 		let endpoint = registry.findAction("posts.find");
@@ -109,7 +287,7 @@ describe("Test registry.deregister", () => {
 	});
 
 	it("should remove 'server-2' endpoint from list", () => {
-		registry.deregister("server-2", action);
+		registry.unregisterAction("server-2", action);
 		let endpoint = registry.findAction("posts.find");
 		expect(endpoint.count()).toBe(1);
 	});
@@ -120,9 +298,15 @@ describe("Test registry.findAction", () => {
 	const broker = new ServiceBroker({ internalActions: false });
 	const registry = broker.serviceRegistry;
 
+	let service = {
+		name: "posts",
+		settings: {}
+	};
+
 	let action = {
 		name: "posts.find",
-		handler: jest.fn()
+		handler: jest.fn(),
+		service
 	};
 
 	it("should returns undefined if action is not exist", () => {
@@ -131,7 +315,8 @@ describe("Test registry.findAction", () => {
 	});
 
 	it("should return the endpoint if action is exist", () => {
-		registry.register("server-2", action);
+		registry.registerService("server-2", service);
+		registry.registerAction("server-2", action);
 		let endpoint = registry.findAction("posts.find");
 		expect(endpoint).toBeDefined();
 	});
@@ -141,13 +326,20 @@ describe("Test registry.findAction", () => {
 describe("Test registry.findAction with internal actions", () => {
 	const broker = new ServiceBroker({ internalActions: true, registry: { preferLocal: false } });
 	const registry = broker.serviceRegistry;
-
-	let action = {
-		name: "$node.list",
-		handler: jest.fn()
+	
+	let service = {
+		name: "posts",
+		settings: {}
 	};
 
-	registry.register("server-2", action);
+	let action = {
+		name: "posts.find",
+		handler: jest.fn(),
+		service
+	};
+
+	registry.registerService("server-2", service);
+	registry.registerAction("server-2", action);
 
 	it("should return the endpoint if action is exist", () => {
 		let endpoint = registry.findAction("$node.list").nextAvailable();
@@ -165,13 +357,20 @@ describe("Test registry.getEndpointByNodeID", () => {
 	const broker = new ServiceBroker({ internalActions: true, registry: { preferLocal: false } });
 	const registry = broker.serviceRegistry;
 
+	let service = {
+		name: "posts",
+		settings: {}
+	};
+
 	let action = {
 		name: "$node.list",
 		custom: 100,
-		handler: jest.fn()
+		handler: jest.fn(),
+		service
 	};
 
-	registry.register("server-2", action);
+	registry.registerService("server-2", service);
+	registry.registerAction("server-2", action);
 
 	it("check the count of nodes", () => {
 		let item = registry.findAction("$node.list");
@@ -210,9 +409,15 @@ describe("Test registry.hasAction", () => {
 	const broker = new ServiceBroker({ internalActions: false });
 	const registry = broker.serviceRegistry;
 
+	let service = {
+		name: "posts",
+		settings: {}
+	};
+
 	let action = {
 		name: "posts.find",
-		handler: jest.fn()
+		handler: jest.fn(),
+		service
 	};
 
 	it("should returns false if action is not exist", () => {
@@ -221,7 +426,8 @@ describe("Test registry.hasAction", () => {
 	});
 
 	it("should return the res if action is exist", () => {
-		registry.register("server-2", action);
+		registry.registerService("server-2", service);
+		registry.registerAction("server-2", action);
 		let res = registry.hasAction("posts.find");
 		expect(res).toBe(true);
 	});
@@ -232,46 +438,115 @@ describe("Test registry.count", () => {
 	const broker = new ServiceBroker({ internalActions: false });
 	const registry = broker.serviceRegistry;
 
+	let service = {
+		name: "posts",
+		settings: {}
+	};
+
 	let action = {
 		name: "posts.find",
-		handler: jest.fn()
+		handler: jest.fn(),
+		service
 	};
 
 	it("should returns with 0", () => {
-		expect(registry.count()).toBe(0);
+		expect(registry.actionCount()).toBe(0);
 	});
 
 	it("should return with 1", () => {
-		registry.register("server-2", action);
-		expect(registry.count()).toBe(1);
+		registry.registerService("server-2", service);
+		registry.registerAction("server-2", action);
+		expect(registry.actionCount()).toBe(1);
 	});
 
 });
 
-describe("Test registry.getLocalActions", () => {
+describe("Test registry.getServiceList", () => {
 	describe("Test without internal actions", () => {
 		const broker = new ServiceBroker({ internalActions: false });
 		const registry = broker.serviceRegistry;
+
+		let service = {
+			name: "posts",
+			settings: {}
+		};
 
 		let action = {
 			name: "posts.find",
 			cache: true,
 			custom: 5,
-			handler: jest.fn()
+			handler: jest.fn(),
+			service
 		};
 
 		it("should returns empty list", () => {
-			expect(registry.getLocalActions()).toEqual([]);
+			expect(registry.getServiceList({})).toEqual([]);
 		});
 
 		it("should return empty list because only remote endpoint registered", () => {
-			registry.register("server-2", action);
-			expect(registry.getLocalActions()).toEqual([]);
+			registry.registerService("server-2", service);
+			registry.registerAction("server-2", action);
+			expect(registry.getServiceList({ onlyLocal: true })).toEqual([]);
 		});
 
 		it("should return action list", () => {
-			registry.register(null, action);
-			expect(registry.getLocalActions()).toEqual([{"cache": true, "custom": 5, "name": "posts.find"}]);
+			registry.registerService(null, service);
+			registry.registerAction(null, action);
+			expect(registry.getServiceList({
+				onlyLocal: true
+			})).toEqual([{
+				"name": "posts",
+				"settings": {},
+				"version": undefined,
+				"nodeID": null
+			}]);
+		});
+
+		it("should return all services", () => {
+			expect(registry.getServiceList({
+				onlyLocal: false
+			})).toEqual([{
+				"name": "posts",
+				"settings": {},
+				"version": undefined,
+				"nodeID": "server-2"
+			}, {
+				"name": "posts",
+				"settings": {},
+				"version": undefined,
+				"nodeID": null
+			}]);
+		});
+
+		it("should return all services with actions", () => {
+			expect(registry.getServiceList({
+				onlyLocal: false,
+				withActions: true
+			})).toEqual([{
+				"actions": {
+					"posts.find": {
+						"cache": true,
+						"custom": 5,
+						"name": "posts.find"
+					}
+				},
+				"name": "posts",
+				"settings": {},
+				"version": undefined,
+				"nodeID": "server-2"
+			}, {
+				"actions": {
+					"posts.find": {
+						"cache": true,
+						"custom": 5,
+						"name": "posts.find"
+					}
+				},
+				"name": "posts",
+				"settings": {},
+				"version": undefined,
+				"nodeID": null
+			}]);
 		});
 
 	});
@@ -281,8 +556,9 @@ describe("Test registry.getLocalActions", () => {
 		const registry = broker.serviceRegistry;
 
 		it("should returns the internal list", () => {
-			expect(registry.getLocalActions().length).toBe(4);
-			expect(registry.getLocalActions()).toEqual([{"cache": false, "name": "$node.list"}, {"cache": false, "name": "$node.services"}, {"cache": false, "name": "$node.actions"}, {"cache": false, "name": "$node.health"}]);
+			expect(registry.getServiceList({}).length).toBe(1);
+			expect(registry.getServiceList({})).toEqual([{"name": "$node", "nodeID": null, "settings": {}, "version": undefined}]);
+			expect(registry.getServiceList({ skipInternal: true })).toEqual([]);
 		});
 
 	});
@@ -292,19 +568,25 @@ describe("Test registry.getActionList", () => {
 	const broker = new ServiceBroker({ internalActions: true });
 	const registry = broker.serviceRegistry;
 
+	let service = {
+		name: "posts",
+		settings: {}
+	};
+	
 	let action = {
 		name: "posts.find",
 		cache: true,
 		custom: 5,
-		handler: jest.fn()
+		handler: jest.fn(),
+		service
 	};
 
 	it("should return empty list", () => {
-		expect(registry.getActionList(true, true, false)).toEqual([]);
+		expect(registry.getActionList({ onlyLocal: true, skipInternal: true, withEndpoints: false })).toEqual([]);
 	});
 
 	it("should return internal actions", () => {
-		expect(registry.getActionList(false, false, false)).toEqual([
+		expect(registry.getActionList({ onlyLocal: false, skipInternal: false, withEndpoints: false })).toEqual([
 			{
 				"action": {
 					"cache": false,
@@ -349,24 +631,29 @@ describe("Test registry.getActionList", () => {
 	});
 
 	it("should return remote actions", () => {
-		registry.register("server-2", action);
-		expect(registry.getActionList(false, true, false)).toEqual([{"action": {"cache": true, "custom": 5, "name": "posts.find"}, "available": true, "count": 1, "hasLocal": false, "name": "posts.find"}]);
+		registry.registerService("server-2", service);
+		registry.registerAction("server-2", action);
+		expect(registry.getActionList({ onlyLocal: false, skipInternal: true, withEndpoints: false })).toEqual([{"action": {"cache": true, "custom": 5, "name": "posts.find"}, "available": true, "count": 1, "hasLocal": false, "name": "posts.find"}]);
 	});
 
 	it("should return empty list because only remote endpoint registered", () => {
-		expect(registry.getActionList(true, true, false)).toEqual([]);
+		expect(registry.getActionList({ onlyLocal: true, skipInternal: true, withEndpoints: false })).toEqual([]);
 	});
 
 	it("should return action list", () => {
-		registry.register(null, action);
-		expect(registry.getActionList(false, true, false)).toEqual([{"action": {"cache": true, "custom": 5, "name": "posts.find"}, "available": true, "count": 2, "hasLocal": true, "name": "posts.find"}]);
+		registry.registerService(null, service);
+		registry.registerAction(null, action);
+		expect(registry.getActionList({ onlyLocal: false, skipInternal: true, withEndpoints: false })).toEqual([{"action": {"cache": true, "custom": 5, "name": "posts.find"}, "available": true, "count": 2, "hasLocal": true, "name": "posts.find"}]);
 	});
 
 	it("should return action list", () => {
-		registry.register("server-3", {
-			name: "hello.world"
+		let svc = { name: "hello", settings: {} };
+		registry.registerService("server-3", svc);
+		registry.registerAction("server-3", {
+			name: "hello.world",
+			service: svc
 		});
-		expect(registry.getActionList(false, true, true)).toEqual([
+		expect(registry.getActionList({ onlyLocal: false, skipInternal: true, withEndpoints: true })).toEqual([
 			{
 				"action": {
 					"cache": true,
@@ -843,4 +1130,45 @@ describe("Test Endpoint circuit methods", () => {
 		expect(broker.emitLocal).toHaveBeenCalledWith("circuit-breaker.close", { nodeID: null, action });
 
 	});
+});
+
+
+describe("Test ServiceItem constructor", () => {
+	const settings = {};
+	let item;
+
+	let action = {
+		name: "posts.find",
+		cache: true,
+		handler: jest.fn()
+	};
+
+	it("should create instance", () => {
+		item = new ServiceRegistry.ServiceItem(null, "posts", 2, settings);
+		expect(item).toBeDefined();
+		expect(item.nodeID).toBe(null);
+		expect(item.name).toBe("posts");
+		expect(item.version).toBe(2);
+		expect(item.settings).toBe(settings);
+		expect(item.local).toBe(true);
+		expect(item.actions).toEqual({});
+	});
+
+	it("should add action", () => {
+		item.addAction(action);
+		expect(item.actions["posts.find"]).toBe(action);
+	});
+
+	it("check isSame", () => {
+		expect(item.isSame("posts")).toBe(false);
+		expect(item.isSame("posts", null)).toBe(false);
+		expect(item.isSame("posts", 2)).toBe(true);
+
+		let item2 = new ServiceRegistry.ServiceItem(null, "users", undefined, settings);
+		expect(item2.isSame("users")).toBe(true);
+		expect(item2.isSame("users", null)).toBe(true);
+		expect(item2.isSame("users", 2)).toBe(false);
+		
+	});
+
 });

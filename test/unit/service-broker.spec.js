@@ -389,21 +389,53 @@ describe("Test broker.createService", () => {
 
 });
 
-describe("Test broker.registerService", () => {
+describe("Test broker.registerLocalService", () => {
 
 	let broker = new ServiceBroker();
 	broker.emitLocal = jest.fn();
+	broker.serviceRegistry.registerService = jest.fn();
 	
-	it("should push to the services & emit an event", () => {
+	it("should push to the services & call service registry", () => {
 		let service = {
 			name: "test"
 		};
 
-		broker.registerService(service);
+		broker.registerLocalService(service);
 		expect(broker.services.length).toBe(1);
 		expect(broker.services[0]).toBe(service);
-		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("register.service.test", service);
+		expect(broker.serviceRegistry.registerService).toHaveBeenCalledTimes(1);
+		expect(broker.serviceRegistry.registerService).toHaveBeenCalledWith(null, service);
+	});
+
+});
+
+describe("Test broker.registerRemoteService", () => {
+
+	let broker = new ServiceBroker();
+	broker.serviceRegistry.registerService = jest.fn();
+	broker.registerAction = jest.fn();
+	
+	it("should save service & actions", () => {
+		let service = {
+			name: "test",
+			actions: {
+				hello: {
+					name: "test.hello",
+					params: {}
+				},
+				hi: {
+					name: "test.hi"
+				}
+			}
+		};
+
+		broker.registerRemoteService("node-2", service);
+		expect(broker.services.length).toBe(0);
+		expect(broker.serviceRegistry.registerService).toHaveBeenCalledTimes(1);
+		expect(broker.serviceRegistry.registerService).toHaveBeenCalledWith("node-2", service);
+		expect(broker.registerAction).toHaveBeenCalledTimes(2);
+		expect(broker.registerAction).toHaveBeenCalledWith("node-2", { name: "test.hello", service, params: {} });
+		expect(broker.registerAction).toHaveBeenCalledWith("node-2", { name: "test.hi", service });
 	});
 
 });
@@ -413,39 +445,41 @@ describe("Test broker.registerAction", () => {
 	let broker = new ServiceBroker();
 	broker.wrapAction = jest.fn();
 	broker.emitLocal = jest.fn();
-	broker.serviceRegistry.register = jest.fn(() => true);
+	broker.serviceRegistry.registerAction = jest.fn(() => true);
 	
 	it("should push to the actions & emit an event without nodeID", () => {
 		let action = {
-			name: "user.list"
+			name: "user.list",
+			service: { name: "user" }
 		};
 
 		broker.registerAction(null, action);
 		expect(broker.wrapAction).toHaveBeenCalledTimes(1);
 
-		expect(broker.serviceRegistry.register).toHaveBeenCalledTimes(1);
-		expect(broker.serviceRegistry.register).toHaveBeenCalledWith(null, action);
+		expect(broker.serviceRegistry.registerAction).toHaveBeenCalledTimes(1);
+		expect(broker.serviceRegistry.registerAction).toHaveBeenCalledWith(null, action);
 
-		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("register.action.user.list", { action, nodeID: null });
+		// expect(broker.emitLocal).toHaveBeenCalledTimes(1);
+		// expect(broker.emitLocal).toHaveBeenCalledWith("register.action.user.list", { action, nodeID: null });
 	});
 
 	it("should push to the actions & emit an event with nodeID", () => {
-		broker.serviceRegistry.register.mockClear();
+		broker.serviceRegistry.registerAction.mockClear();
 		broker.wrapAction.mockClear();
 		broker.emitLocal.mockClear();
 		let action = {
-			name: "user.update"
+			name: "user.update",
+			service: { name: "user" }
 		};
 
 		broker.registerAction("server-2", action);
 		expect(broker.wrapAction).toHaveBeenCalledTimes(0);
 
-		expect(broker.serviceRegistry.register).toHaveBeenCalledTimes(1);
-		expect(broker.serviceRegistry.register).toHaveBeenCalledWith("server-2", action);
+		expect(broker.serviceRegistry.registerAction).toHaveBeenCalledTimes(1);
+		expect(broker.serviceRegistry.registerAction).toHaveBeenCalledWith("server-2", action);
 
-		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("register.action.user.update", { action, nodeID: "server-2" });
+		// expect(broker.emitLocal).toHaveBeenCalledTimes(1);
+		// expect(broker.emitLocal).toHaveBeenCalledWith("register.action.user.update", { action, nodeID: "server-2" });
 	});
 
 });
@@ -631,30 +665,30 @@ describe("Test broker.wrapContextInvoke", () => {
 });
 */
 
-describe("Test broker.deregisterAction", () => {
+describe("Test broker.unregisterAction", () => {
 
 	let broker = new ServiceBroker();
 
-	broker.serviceRegistry.deregister = jest.fn(() => true);
+	broker.serviceRegistry.unregisterAction = jest.fn(() => true);
 
 	let action = {
 		name: "list"
 	};
 
-	it("should call deregister of serviceRegistry without nodeID", () => {
-		broker.deregisterAction(null, action);
+	it("should call unregister of serviceRegistry without nodeID", () => {
+		broker.unregisterAction(null, action);
 
-		expect(broker.serviceRegistry.deregister).toHaveBeenCalledTimes(1);
-		expect(broker.serviceRegistry.deregister).toHaveBeenCalledWith(null, action);
+		expect(broker.serviceRegistry.unregisterAction).toHaveBeenCalledTimes(1);
+		expect(broker.serviceRegistry.unregisterAction).toHaveBeenCalledWith(null, action);
 	});
 
-	it("should call deregister of serviceRegistry with nodeID", () => {
-		broker.serviceRegistry.deregister.mockClear();
+	it("should call unregister of serviceRegistry with nodeID", () => {
+		broker.serviceRegistry.unregisterAction.mockClear();
 
-		broker.deregisterAction("server-2", action);
+		broker.unregisterAction("server-2", action);
 
-		expect(broker.serviceRegistry.deregister).toHaveBeenCalledTimes(1);
-		expect(broker.serviceRegistry.deregister).toHaveBeenCalledWith("server-2", action);
+		expect(broker.serviceRegistry.unregisterAction).toHaveBeenCalledTimes(1);
+		expect(broker.serviceRegistry.unregisterAction).toHaveBeenCalledWith("server-2", action);
 	});
 });
 
@@ -665,14 +699,16 @@ describe("Test broker.registerInternalActions", () => {
 			statistics: false,
 			internalActions: false
 		});
+		const service = {"name": "$node"};
+
 		broker.registerAction = jest.fn();
 		broker.registerInternalActions();
 		
 		expect(broker.registerAction).toHaveBeenCalledTimes(4);
-		expect(broker.registerAction).toHaveBeenCalledWith(null, { name: "$node.list", cache: false, handler: jasmine.any(Function) });
-		expect(broker.registerAction).toHaveBeenCalledWith(null, { name: "$node.services", cache: false, handler: jasmine.any(Function) });
-		expect(broker.registerAction).toHaveBeenCalledWith(null, { name: "$node.actions", cache: false, handler: jasmine.any(Function) });
-		expect(broker.registerAction).toHaveBeenCalledWith(null, { name: "$node.health", cache: false, handler: jasmine.any(Function) });
+		expect(broker.registerAction).toHaveBeenCalledWith(null, { name: "$node.list", cache: false, handler: jasmine.any(Function), service });
+		expect(broker.registerAction).toHaveBeenCalledWith(null, { name: "$node.services", cache: false, handler: jasmine.any(Function), service });
+		expect(broker.registerAction).toHaveBeenCalledWith(null, { name: "$node.actions", cache: false, handler: jasmine.any(Function), service });
+		expect(broker.registerAction).toHaveBeenCalledWith(null, { name: "$node.health", cache: false, handler: jasmine.any(Function), service });
 	});
 
 	it("should register internal action with statistics", () => {
@@ -680,11 +716,13 @@ describe("Test broker.registerInternalActions", () => {
 			statistics: true,
 			internalActions: false
 		});
+		const service = {"name": "$node"};
+
 		broker.registerAction = jest.fn();
 		broker.registerInternalActions();
 		
 		expect(broker.registerAction).toHaveBeenCalledTimes(5);
-		expect(broker.registerAction).toHaveBeenCalledWith(null, { name: "$node.stats", cache: false, handler: jasmine.any(Function) });
+		expect(broker.registerAction).toHaveBeenCalledWith(null, { name: "$node.stats", cache: false, handler: jasmine.any(Function), service });
 	});
 });
 
@@ -803,7 +841,7 @@ describe("Test broker.isActionAvailable", () => {
 	});
 
 	it("should not find handler for action by name", () => {
-		broker.deregisterAction(null, { name: "posts.list" });
+		broker.unregisterAction(null, { name: "posts.list" });
 		expect(broker.hasAction("posts.list")).toBe(true);
 		expect(broker.isActionAvailable("posts.list")).toBe(false);
 	});
@@ -861,7 +899,7 @@ describe("Test broker.call method", () => {
 		});
 
 		it("should reject if no handler", () => {
-			broker.deregisterAction(null, { name: "posts.noHandler" });
+			broker.unregisterAction(null, { name: "posts.noHandler" });
 			return broker.call("posts.noHandler").catch(err => {
 				expect(err).toBeDefined();
 				expect(err).toBeInstanceOf(ServiceNotFoundError);
@@ -871,7 +909,7 @@ describe("Test broker.call method", () => {
 		});
 
 		it("should reject if no action on node", () => {
-			broker.deregisterAction(null, { name: "posts.noHandler" });
+			broker.unregisterAction(null, { name: "posts.noHandler" });
 			return broker.call("posts.noHandler", {}, { nodeID: "node-123"}).catch(err => {
 				expect(err).toBeDefined();
 				expect(err).toBeInstanceOf(ServiceNotFoundError);
@@ -1060,7 +1098,7 @@ describe("Test broker.call method", () => {
 			internalActions: false, 
 			metrics: true
 		});
-		broker.registerAction("server-2", {	name: "user.create" });
+		broker.registerAction("server-2", {	name: "user.create", service: { name: "user" } });
 		broker.transit.request = jest.fn((ctx) => Promise.resolve({ ctx }));
 			
 		it("should call transit.request with new Context without params", () => {
@@ -1111,10 +1149,11 @@ describe("Test broker.call method", () => {
 			internalActions: false, 
 			metrics: true
 		});
-		broker.registerAction("server-1", {	name: "user.create" });
-		broker.registerAction("server-2", {	name: "user.create" });
-		broker.registerAction("server-3", {	name: "user.create" });
-		broker.registerAction("server-4", {	name: "user.create" });
+		const service = { name: "user" };
+		broker.registerAction("server-1", {	name: "user.create", service });
+		broker.registerAction("server-2", {	name: "user.create", service });
+		broker.registerAction("server-3", {	name: "user.create", service });
+		broker.registerAction("server-4", {	name: "user.create", service });
 		broker.transit.request = jest.fn((ctx) => Promise.resolve({ ctx }));
 			
 		it("should call transit.request with nodeID 'server-3'", () => {

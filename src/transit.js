@@ -68,20 +68,20 @@ class Transit {
 	afterConnect(wasReconnect) {
 		return Promise.resolve()
 
-		.then(() => {
-			if (!wasReconnect) 
-				this.makeSubscriptions();
-		})
+			.then(() => {
+				if (!wasReconnect) 
+					this.makeSubscriptions();
+			})
 
-		.then(() => this.discoverNodes())
-		.then(() => this.sendNodeInfo())
+			.then(() => this.discoverNodes())
+			.then(() => this.sendNodeInfo())
 
-		.then(() => {
-			if (this.__connectResolve) {
-				this.__connectResolve();
-				this.__connectResolve = null;
-			}
-		});
+			.then(() => {
+				if (this.__connectResolve) {
+					this.__connectResolve();
+					this.__connectResolve = null;
+				}
+			});
 	}
 
 	/**
@@ -104,21 +104,21 @@ class Transit {
 
 			doConnect();
 		})
-		.then(() => {
+			.then(() => {
 			// Start timers
-			this.heartbeatTimer = setInterval(() => {
+				this.heartbeatTimer = setInterval(() => {
 				/* istanbul ignore next */
-				this.sendHeartbeat();
-			}, this.broker.options.heartbeatInterval * 1000);
-			this.heartbeatTimer.unref();
+					this.sendHeartbeat();
+				}, this.broker.options.heartbeatInterval * 1000);
+				this.heartbeatTimer.unref();
 
-			this.checkNodesTimer = setInterval(() => {
+				this.checkNodesTimer = setInterval(() => {
 				/* istanbul ignore next */
-				this.checkRemoteNodes();
-			}, this.broker.options.heartbeatTimeout * 1000);
-			this.checkNodesTimer.unref();	
+					this.checkRemoteNodes();
+				}, this.broker.options.heartbeatTimeout * 1000);
+				this.checkNodesTimer.unref();	
 
-		});
+			});
 	}
 
 	/**
@@ -127,24 +127,21 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	disconnect() {
-		return Promise.resolve()
-		.then(() => {		
-			if (this.heartbeatTimer) {
-				clearInterval(this.heartbeatTimer);
-				this.heartbeatTimer = null;
-			}
+		if (this.heartbeatTimer) {
+			clearInterval(this.heartbeatTimer);
+			this.heartbeatTimer = null;
+		}
 
-			if (this.checkNodesTimer) {
-				clearInterval(this.checkNodesTimer);
-				this.checkNodesTimer = null;
-			}
-		})
-		.then(() => {
-			if (this.tx.connected) {
-				return this.sendDisconnectPacket()
-					.then(() => this.tx.disconnect());
-			}
-		});
+		if (this.checkNodesTimer) {
+			clearInterval(this.checkNodesTimer);
+			this.checkNodesTimer = null;
+		}
+		if (this.tx.connected) {
+			return this.sendDisconnectPacket()
+				.then(() => this.tx.disconnect());
+		}
+		/* istanbul ignore next */
+		return Promise.resolve();
 	}
 
 	/**
@@ -423,7 +420,7 @@ class Transit {
 	 * @memberof Transit
 	 */
 	getNodeInfo() {
-		const actions = this.broker.serviceRegistry.getLocalActions();
+		const services = this.broker.serviceRegistry.getServiceList({ onlyLocal: true, withActions: true });
 		const uptime = process.uptime();
 		const ipList = getIpList();
 		const versions = {
@@ -432,7 +429,7 @@ class Transit {
 		};
 
 		return {
-			actions,
+			services,
 			ipList,
 			versions,
 			uptime
@@ -531,7 +528,6 @@ class Transit {
 			this.logger.error("Missing nodeID from node info package!");
 			return;
 		}
-		//console.log(payload);
 
 		let isNewNode = !this.nodes.has(nodeID);
 		const node = Object.assign(this.nodes.get(nodeID) || {}, payload);
@@ -549,11 +545,9 @@ class Transit {
 			this.logger.info(`Node '${nodeID}' reconnected!`);
 		}
 
-		if (Array.isArray(node.actions)) {
-			// Add external actions
-			node.actions.forEach(action => {
-				this.broker.registerAction(nodeID, action);
-			});
+		if (node.services) {
+			// Register remote services
+			node.services.forEach(service => this.broker.registerRemoteService(nodeID, service));
 		}
 	}
 
@@ -604,13 +598,7 @@ class Transit {
 			let node = this.nodes.get(nodeID);
 			if (node.available) {
 				node.available = false;
-				if (node.actions) {
-					// Remove remote actions of node
-					Object.keys(node.actions).forEach(name => {
-						let action = Object.assign({}, node.actions[name], { name });
-						this.broker.deregisterAction(node.id, action);
-					});
-				}
+				this.broker.unregisterServicesByNode(nodeID);
 
 				this.broker.emitLocal(isUnexpected ? "node.broken" : "node.disconnected", node);
 				//this.nodes.delete(nodeID);			

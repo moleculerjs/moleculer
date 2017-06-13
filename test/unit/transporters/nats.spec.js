@@ -2,7 +2,7 @@ const ServiceBroker = require("../../../src/service-broker");
 const Transit = require("../../../src/transit");
 const { PacketInfo } = require("../../../src/packets");
 
-const lolex = require("lolex");
+// const lolex = require("lolex");
 
 jest.mock("nats");
 
@@ -150,9 +150,9 @@ describe("Test NatsTransporter subscribe & publish", () => {
 
 	it("check publish", () => {
 		transporter.client.publish.mockClear();
-		transporter.publish(new PacketInfo(fakeTransit, "node2", { actions: {} }));
+		transporter.publish(new PacketInfo(fakeTransit, "node2", { services: {} }));
 
 		expect(transporter.client.publish).toHaveBeenCalledTimes(1);
-		expect(transporter.client.publish).toHaveBeenCalledWith("TEST.INFO.node2", "{\"sender\":\"node1\",\"actions\":\"{}\"}");
+		expect(transporter.client.publish).toHaveBeenCalledWith("TEST.INFO.node2", "{\"sender\":\"node1\",\"services\":\"{}\"}");
 	});
 });

@@ -62,10 +62,11 @@ describe("Test JSON serializer", () => {
 
 	it("should serialize the info packet", () => {
 		const info = {
-			actions: {
-				"user.find": { cache: true },
-				"user.create": {}
-			},
+			services: [
+				{ name: "users", version: "2", settings: {}, actions: {
+					"users.create": {}
+				}}
+			],
 			ipList: [ "127.0.0.1" ],
 			versions: {
 				node: "6.10.2",
@@ -76,11 +77,11 @@ describe("Test JSON serializer", () => {
 		};
 		const packet = new P.PacketInfo(broker.transit, "test-2", info);
 		const s = packet.serialize();
-		expect(s).toBe("{\"sender\":\"test-1\",\"actions\":\"{\\\"user.find\\\":{\\\"cache\\\":true},\\\"user.create\\\":{}}\",\"ipList\":[\"127.0.0.1\"],\"versions\":{\"node\":\"6.10.2\",\"moleculer\":\"1.2.3\"},\"uptime\":100}");
+		expect(s).toBe("{\"sender\":\"test-1\",\"services\":\"[{\\\"name\\\":\\\"users\\\",\\\"version\\\":\\\"2\\\",\\\"settings\\\":{},\\\"actions\\\":{\\\"users.create\\\":{}}}]\",\"ipList\":[\"127.0.0.1\"],\"versions\":{\"node\":\"6.10.2\",\"moleculer\":\"1.2.3\"},\"uptime\":100}");
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_INFO, s);
 		expect(res).toBeInstanceOf(P.PacketInfo);
-		expect(res.payload.actions).toEqual(info.actions);
+		expect(res.payload.services).toEqual(info.services);
 		expect(res.payload.ipList).toEqual(info.ipList);
 		expect(res.payload.versions).toEqual(info.versions);
 		expect(res.payload.uptime).toEqual(info.uptime);
@@ -195,10 +196,11 @@ describe("Test Avro serializer", () => {
 
 	it("should serialize the info packet", () => {
 		const info = {
-			actions: {
-				"user.find": { cache: true },
-				"user.create": {}
-			},
+			services: [
+				{ name: "users", version: "2", settings: {}, actions: {
+					"users.create": {}
+				}}
+			],
 			ipList: [ "127.0.0.1" ],
 			versions: {
 				node: "6.10.2",
@@ -209,11 +211,11 @@ describe("Test Avro serializer", () => {
 		};
 		const packet = new P.PacketInfo(broker.transit, "test-2", info);
 		const s = packet.serialize();
-		expect(s.length).toBe(86);
+		expect(s.length).toBe(118);
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_INFO, s);
 		expect(res).toBeInstanceOf(P.PacketInfo);
-		expect(res.payload.actions).toEqual(info.actions);
+		expect(res.payload.services).toEqual(info.services);
 		expect(res.payload.ipList).toEqual(info.ipList);
 		expect(res.payload.versions).toEqual(info.versions);
 		expect(res.payload.uptime).toEqual(info.uptime);
@@ -331,10 +333,11 @@ describe("Test MsgPack serializer", () => {
 
 	it("should serialize the info packet", () => {
 		const info = {
-			actions: {
-				"user.find": { cache: true },
-				"user.create": {}
-			},
+			services: [
+				{ name: "users", version: "2", settings: {}, actions: {
+					"users.create": {}
+				}}
+			],
 			ipList: [ "127.0.0.1" ],
 			versions: {
 				node: "6.10.2",
@@ -345,11 +348,11 @@ describe("Test MsgPack serializer", () => {
 		};
 		const packet = new P.PacketInfo(broker.transit, "test-2", info);
 		const s = packet.serialize();
-		expect(Buffer.byteLength(s, "binary")).toBe(134);
+		expect(Buffer.byteLength(s, "binary")).toBe(166);
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_INFO, s);
 		expect(res).toBeInstanceOf(P.PacketInfo);
-		expect(res.payload.actions).toEqual(info.actions);
+		expect(res.payload.services).toEqual(info.services);
 		expect(res.payload.ipList).toEqual(info.ipList);
 		expect(res.payload.versions).toEqual(info.versions);
 		expect(res.payload.uptime).toEqual(info.uptime);
@@ -465,10 +468,11 @@ describe("Test ProtoBuf serializer", () => {
 
 	it("should serialize the info packet", () => {
 		const info = {
-			actions: {
-				"user.find": { cache: true },
-				"user.create": {}
-			},
+			services: [
+				{ name: "users", version: "2", settings: {}, actions: {
+					"users.create": {}
+				}}
+			],
 			ipList: [ "127.0.0.1" ],
 			versions: {
 				node: "6.10.2",
@@ -479,11 +483,11 @@ describe("Test ProtoBuf serializer", () => {
 		};
 		const packet = new P.PacketInfo(broker.transit, "test-2", info);
 		const s = packet.serialize();
-		expect(s.length).toBe(92);
+		expect(s.length).toBe(123);
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_INFO, s);
 		expect(res).toBeInstanceOf(P.PacketInfo);
-		expect(res.payload.actions).toEqual(info.actions);
+		expect(res.payload.services).toEqual(info.services);
 		expect(res.payload.ipList).toEqual(info.ipList);
 		expect(res.payload.versions).toEqual(info.versions);
 		expect(res.payload.uptime).toEqual(info.uptime);

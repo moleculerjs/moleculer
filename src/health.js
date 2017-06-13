@@ -67,6 +67,7 @@ const getTransitStatus = (broker) => {
 		};
 	}
 
+	/* istanbul ignore next */
 	return null;
 };
 
@@ -86,12 +87,11 @@ const getHealthStatus = (broker) => {
 		process: getProcessInfo(),
 		net: getNetworkInterfacesInfo(),
 		transit: getTransitStatus(broker),
-		time: getDateTimeInfo(),
+		time: getDateTimeInfo()
 
 		// TODO: event loop & GC info
 		// https://github.com/RisingStack/trace-nodejs/blob/master/lib/agent/metrics/apm/index.js
 	};
 };
 
-module.exports = broker => Promise
-	.resolve(getHealthStatus(broker));
+module.exports = broker => Promise.resolve(getHealthStatus(broker));

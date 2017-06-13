@@ -27,8 +27,6 @@ const { STRATEGY_ROUND_ROBIN } = require("./constants");
 const { CIRCUIT_HALF_OPEN } = require("./constants");
 
 const _ = require("lodash");
-const pick = require("lodash/pick");
-
 const glob = require("glob");
 const path = require("path");
 
@@ -173,25 +171,26 @@ class ServiceBroker {
 	 */
 	start() {
 		return Promise.resolve()
-		.then(() => {
+			.then(() => {
 			// Call service `started` handlers
-			this.services.forEach(service => {
-				if (service && service.schema && _.isFunction(service.schema.started)) {
-					service.schema.started.call(service);
-				}
+				this.services.forEach(service => {
+					if (service && service.schema && _.isFunction(service.schema.started)) {
+						service.schema.started.call(service);
+					}
+				});
+				return null; // avoid Bluebird warning
+			})
+			.catch(err => {
+			/* istanbul ignore next */
+				this.logger.error("Unable to start all services!", err);
+			})
+			.then(() => {
+				if (this.transit)
+					return this.transit.connect();
+			})
+			.then(() => {
+				this.logger.info(`Broker started. NodeID: ${this.nodeID}\n`);
 			});
-			return null; // avoid Bluebird warning
-		})
-		.catch(err => {
-			this.logger.error("Unable to start all services!", err);
-		})
-		.then(() => {
-			if (this.transit)
-				return this.transit.connect();
-		})
-		.then(() => {
-			this.logger.info(`Broker started. NodeID: ${this.nodeID}\n`);
-		});
 	}
 
 	/**
@@ -201,30 +200,31 @@ class ServiceBroker {
 	 */
 	stop() {
 		return Promise.resolve()
-		.then(() => {
+			.then(() => {
 			// Call service `started` handlers
-			this.services.forEach(service => {
-				if (service && service.schema && _.isFunction(service.schema.stopped)) {
-					service.schema.stopped.call(service);
+				this.services.forEach(service => {
+					if (service && service.schema && _.isFunction(service.schema.stopped)) {
+						service.schema.stopped.call(service);
+					}
+				});
+				return null; // avoid Bluebird warning
+			})
+			.catch(err => {
+			/* istanbul ignore next */
+				this.logger.error("Unable to stop all services!", err);
+			})
+			.then(() => {
+				if (this.transit) {
+					return this.transit.disconnect();
 				}
-			});
-			return null; // avoid Bluebird warning
-		})
-		.catch(err => {
-			this.logger.error("Unable to stop all services!", err);
-		})
-		.then(() => {
-			if (this.transit) {
-				return this.transit.disconnect();
-			}
-		})
-		.then(() => {
-			this.logger.info(`Broker stopped. NodeID: ${this.nodeID}\n`);
+			})
+			.then(() => {
+				this.logger.info(`Broker stopped. NodeID: ${this.nodeID}\n`);
 
-			process.removeListener("beforeExit", this._closeFn);
-			process.removeListener("exit", this._closeFn);
-			process.removeListener("SIGINT", this._closeFn);
-		});
+				process.removeListener("beforeExit", this._closeFn);
+				process.removeListener("exit", this._closeFn);
+				process.removeListener("SIGINT", this._closeFn);
+			});
 	}
 
 	/**
@@ -328,15 +328,36 @@ class ServiceBroker {
 	/**
 	 * Register a local service
 	 * 
+	 * @param {Service} service
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	registerLocalService(service) {
+		this.services.push(service);
+
+		this.serviceRegistry.registerService(null, service);
+
+		//this.emitLocal(`register.service.${service.name}`, service);
+		this.logger.info(`'${service.name}' service is registered!`);
+	}
+
+	/**
+	 * Register a remote service
+	 * 
+	 * @param {any} nodeID		NodeID if it is on a remote server/node
 	 * @param {any} service
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	registerService(service) {
-		// Append service
-		this.services.push(service);
-		this.emitLocal(`register.service.${service.name}`, service);
-		this.logger.info(`'${service.name}' service is registered!`);
+	registerRemoteService(nodeID, service) {
+		this.serviceRegistry.registerService(nodeID, service);
+
+		if (service.actions) {
+			_.forIn(service.actions, action => {
+				this.registerAction(nodeID, Object.assign({}, action, { service }));
+			});
+		}
+
 	}
 
 	/**
@@ -349,15 +370,15 @@ class ServiceBroker {
 	 */
 	registerAction(nodeID, action) {
 
-		// Wrap middlewares
+		// Wrap middlewares on local actions
 		if (!nodeID)
 			this.wrapAction(action);
 		
-		const res = this.serviceRegistry.register(nodeID, action);
+		this.serviceRegistry.registerAction(nodeID, action);
+		/*const res = this.serviceRegistry.registerAction(nodeID, action);
 		if (res) {
 			this.emitLocal(`register.action.${action.name}`, { nodeID, action });
-		}
-		
+		}*/		
 	}
 
 	/**
@@ -376,14 +397,24 @@ class ServiceBroker {
 			}, handler);
 		}
 
-		//return this.wrapContextInvoke(action, handler);
 		action.handler = handler;
 
 		return action;
 	}
 
 	/**
-	 * Deregister an action on a local server. 
+	 * Unregister services by node
+	 * 
+	 * @param {String} nodeID 
+	 * 
+	 * @memberof ServiceBroker
+	 */
+	unregisterServicesByNode(nodeID) {
+		this.serviceRegistry.unregisterServicesByNode(nodeID);
+	}
+
+	/**
+	 * Unregister an action on a local server. 
 	 * It will be called when a remote node disconnected. 
 	 * 
 	 * @param {any} nodeID		NodeID if it is on a remote server/node
@@ -391,8 +422,8 @@ class ServiceBroker {
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	deregisterAction(nodeID, action) {
-		this.serviceRegistry.deregister(nodeID, action);
+	unregisterAction(nodeID, action) {
+		this.serviceRegistry.unregisterAction(nodeID, action);
 	}
 
 	/**
@@ -401,11 +432,19 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	registerInternalActions() {
+		this.serviceRegistry.registerService(null, {
+			name: "$node", 
+			settings: {}
+		});
+
 		const addAction = (name, handler) => {
 			this.registerAction(LOCAL_NODE_ID, {
 				name,
 				cache: false,
-				handler: Promise.method(handler)
+				handler: Promise.method(handler),
+				service: {
+					name: "$node"
+				}
 			});
 		};
 
@@ -424,17 +463,41 @@ class ServiceBroker {
 			return res;
 		});
 
-		addAction("$node.services", () => {
+		addAction("$node.services", ctx => {
 			let res = [];
-			this.services.forEach(service => {
-				res.push(pick(service, ["name", "version", "settings"]));
+
+			const services = this.serviceRegistry.getServiceList(ctx.params);
+			
+			services.forEach(svc => {
+				let item = res.find(o => o.name == svc.name && o.version == svc.version);
+				if (item) {
+					item.nodes.push(svc.nodeID);
+					// Merge services
+					_.forIn(svc.actions, (action, name) => {
+						if (action.protected === true) return;
+
+						if (!item.actions[name])
+							item.actions[name] = _.omit(action, ["handler", "service"]);
+					});
+					
+				} else {
+					item = _.pick(svc, ["name", "version", "settings"]);
+					item.nodes = [svc.nodeID];
+					item.actions = {};
+					_.forIn(svc.actions, (action, name) => {
+						if (action.protected === true) return;
+
+						item.actions[name] = _.omit(action, ["handler", "service"]);
+					});
+					res.push(item);
+				}
 			});
 
 			return res;
 		});
 
 		addAction("$node.actions", ctx => {
-			return this.serviceRegistry.getActionList(ctx.params.onlyLocal, ctx.params.skipInternal, ctx.params.withEndpoints);
+			return this.serviceRegistry.getActionList(ctx.params);
 		});
 
 		addAction("$node.health", () => this.getNodeHealthInfo());

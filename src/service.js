@@ -24,7 +24,7 @@ class Service {
 	/**
 	 * Creates an instance of Service by schema.
 	 * 
-	 * @param {<ServiceBroker>} 	broker	broker of service
+	 * @param {ServiceBroker} 	broker	broker of service
 	 * @param {Object} 			schema	schema of service
 	 * 
 	 * @memberOf Service
@@ -61,7 +61,7 @@ class Service {
 
 		this.actions = {}; // external access to actions
 
-		this.broker.registerService(this);
+		this.broker.registerLocalService(this);
 
 		// Register actions
 		if (isObject(schema.actions)) {
@@ -80,8 +80,8 @@ class Service {
 				broker.registerAction(null, innerAction);
 
 				// Expose to call `service.actions.find({ ...params })`
-				this.actions[name] = (params) => {
-					let ctx = new broker.ContextFactory({ broker, action: innerAction, params });
+				this.actions[name] = (params, opts) => {
+					const ctx = broker.createNewContext(innerAction, null, params, opts);
 					return innerAction.handler(ctx);
 				};
 				
@@ -150,19 +150,19 @@ class Service {
 			throw new Error(`Missing action handler on '${name}' action in '${this.name}' service!`);
 		}
 
-		if (this.settings.appendServiceName !== false)
+		if (this.settings.serviceNamePrefix !== false)
 			action.name = this.name + "." + (action.name || name);
 		else
 			action.name = action.name || name;
 
-		if (this.version) 
+		if (this.version && this.settings.useVersionPrefix !== false) 
 			action.name = `v${this.version}.${action.name}`;
 
+		//action.origName = name;
 		action.version = this.version;
 		action.service = this;
 		action.cache = action.cache !== undefined ? action.cache : (this.settings.cache || false);
 		action.handler = Promise.method(handler.bind(this));
-		//action.handler = handler.bind(this);
 		
 		return action;
 	}

@@ -133,9 +133,9 @@ describe("Test MqttTransporter subscribe & publish", () => {
 
 	it("check publish", () => {
 		transporter.client.publish.mockClear();
-		transporter.publish(new PacketInfo(fakeTransit, "node2", { actions: {} }));
+		transporter.publish(new PacketInfo(fakeTransit, "node2", { services: {} }));
 
 		expect(transporter.client.publish).toHaveBeenCalledTimes(1);
-		expect(transporter.client.publish).toHaveBeenCalledWith("TEST.INFO.node2", "{\"sender\":\"node1\",\"actions\":\"{}\"}");
+		expect(transporter.client.publish).toHaveBeenCalledWith("TEST.INFO.node2", "{\"sender\":\"node1\",\"services\":\"{}\"}");
 	});
 });

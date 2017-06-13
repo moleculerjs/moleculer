@@ -92,7 +92,6 @@ class Context {
 				return Promise.reject(new RequestSkippedError(actionName, this.broker.nodeID));
 			}
 			opts.timeout = distTimeout;
-			//console.warn(`Decrement timeout: ${opts.timeout.toFixed(0)} for action '${actionName}'`);
 		}
 		return this.broker.call(actionName, params, opts);
 	}	

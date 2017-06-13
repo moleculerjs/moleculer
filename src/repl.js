@@ -1,3 +1,4 @@
+/*eslint-disable no-console*/
 /*
  * moleculer
  * Copyright (c) 2017 Ice Services (https://github.com/ice-services/moleculer)
@@ -137,9 +138,11 @@ function startREPL(broker) {
 	// List actions
 	vorpal
 		.command("actions", "List of actions")
-		.option("-d, --details")
+		.option("-l, --local", "Only local services")
+		.option("-i, --skipinternal", "Skip internal services")
+		.option("-d, --details", "Print endpoints")
 		.action((args, done) => {
-			const actions = broker.serviceRegistry.getActionList(false, false, true);
+			const actions = broker.serviceRegistry.getActionList({ onlyLocal: args.options.local, skipInternal: args.options.skipinternal, withEndpoints: args.options.details });
 
 			const data = [
 				[
@@ -154,15 +157,25 @@ function startREPL(broker) {
 			actions.forEach(item => {
 				const action = item.action;
 				const state = item.available;
-				const params = action.params ? Object.keys(action.params).join(", ") : "";
+				const params = action && action.params ? Object.keys(action.params).join(", ") : "";
 				
-				data.push([
-					action.name,
-					(item.hasLocal ? "(*) " : "") + item.count,
-					state ? chalk.bgGreen.white("   OK   "):chalk.bgRed.white.bold(" FAILED "),
-					action.cache ? chalk.green("Yes"):chalk.gray("No"),
-					params
-				]);
+				if (action) {
+					data.push([
+						action.name,
+						(item.hasLocal ? "(*) " : "") + item.count,
+						state ? chalk.bgGreen.white("   OK   "):chalk.bgRed.white.bold(" FAILED "),
+						action.cache ? chalk.green("Yes"):chalk.gray("No"),
+						params
+					]);
+				} else {
+					data.push([
+						item.name,
+						item.count,
+						chalk.bgRed.white.bold(" FAILED "),
+						"",
+						""
+					]);
+				}
 
 				let getStateLabel = (state) => {
 					switch(state) {
@@ -196,11 +209,69 @@ function startREPL(broker) {
 			
 			console.log(table(data, tableConf));
 			done();
+		});	
+
+	// List services
+	vorpal
+		.command("services", "List of services")
+		.option("-l, --local", "Only local services")
+		.option("-i, --skipinternal", "Skip internal services")
+		.action((args, done) => {
+			const services = broker.serviceRegistry.getServiceList({ onlyLocal: args.options.local, skipInternal: args.options.skipinternal, withActions: true });
+
+			const data = [
+				[
+					chalk.bold("Service"),
+					chalk.bold("Version"),
+					chalk.bold("Actions"),
+					chalk.bold("Nodes")
+				]
+			];
+
+			let list = [];
+
+			services.forEach(svc => {
+				let item = list.find(o => o.name == svc.name && o.version == svc.version);
+				if (item) {
+					item.nodes.push(svc.nodeID);
+				} else {
+					item = _.pick(svc, ["name", "version"]);
+					item.nodes = [svc.nodeID];
+					item.actionCount = Object.keys(svc.actions).length;
+					list.push(item);
+				}
+			});
+
+			list.forEach(item => {
+				const hasLocal = item.nodes.indexOf(null) !== -1;
+				const nodeCount = item.nodes.length;
+				
+				data.push([
+					item.name,
+					item.version || "-",
+					item.actionCount,
+					(hasLocal ? "(*) " : "") + nodeCount
+				]);
+
+			});
+
+			const tableConf = {
+				border: _.mapValues(getBorderCharacters("honeywell"), char => chalk.gray(char)),
+				columns: {
+					1: { alignment: "right" },
+					2: { alignment: "right" },
+					3: { alignment: "right" }
+				}
+			};
+			
+			console.log(table(data, tableConf));
+			done();
 		});			
 
 	// List nodes
 	vorpal
 		.command("nodes", "List of nodes")
+		.option("-d, --details")
 		.action((args, done) => {
 			if (!broker.transit) {
 				console.error("There is no transporter!");
@@ -219,8 +290,8 @@ function startREPL(broker) {
 			const data = [];
 			data.push([
 				chalk.bold("Node ID"),
+				chalk.bold("Services"),
 				chalk.bold("Version"),
-				chalk.bold("Actions"),
 				chalk.bold("IP"),
 				chalk.bold("State"),
 				chalk.bold("Uptime")
@@ -237,12 +308,25 @@ function startREPL(broker) {
 
 				data.push([
 					node.id || chalk.gray("<local>"),
+					Object.keys(node.services).length,
 					node.versions && node.versions.moleculer ? node.versions.moleculer : "?",
-					Object.keys(node.actions).length,
 					ip,
 					node.available ? chalk.bgGreen.black(" ONLINE "):chalk.bgRed.white.bold(" OFFLINE "),
 					node.uptime ? ms(node.uptime * 1000) : "?"
 				]);
+
+				if (args.options.details && Object.keys(node.services).length > 0) {
+					_.forIn(node.services, service => {
+						data.push([
+							"",
+							service.name,
+							service.version || "-",
+							"",
+							"",
+							""
+						]);						
+					});
+				}				
 			});
 
 			const tableConf = {
@@ -327,11 +411,11 @@ function startREPL(broker) {
 
 				printHeader("Broker settings");
 				print("Services", broker.services.length);
-				print("Actions", broker.serviceRegistry.count());
+				print("Actions", broker.serviceRegistry.actionCount());
 				print("Cacher", broker.cacher ? broker.cacher.constructor.name : chalk.gray("<None>"));
 
 				if (broker.transit) {
-					print("Nodes", broker.transit.nodes.size);
+					print("Nodes", broker.transit.nodes.size + 1); // + 1 itself
 
 					console.log("");
 					printHeader("Transport information");

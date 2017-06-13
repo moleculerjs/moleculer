@@ -109,10 +109,11 @@ describe("Test PacketInfo", () => {
 
 	it("should set properties", () => {
 		const info = {
-			actions: {
-				"user.find": { cache: true },
-				"user.create": {}
-			},
+			services: [
+				{ name: "users", version: "2", settings: {}, actions: {
+					"users.create": {}
+				}}
+			],
 			ipList: [ "127.0.0.1" ],
 			versions: {
 				node: "6.10.2",
@@ -128,7 +129,7 @@ describe("Test PacketInfo", () => {
 		expect(packet.target).toBe("node-2");
 		expect(packet.payload).toBeDefined();
 		expect(packet.payload.sender).toBe("node-1");
-		expect(packet.payload.actions).toBe("{\"user.find\":{\"cache\":true},\"user.create\":{}}");
+		expect(packet.payload.services).toBe("[{\"name\":\"users\",\"version\":\"2\",\"settings\":{},\"actions\":{\"users.create\":{}}}]");
 		expect(packet.payload.ipList).toEqual(info.ipList);
 		expect(packet.payload.versions).toEqual(info.versions);
 		expect(packet.payload.uptime).toEqual(info.uptime);		
@@ -136,7 +137,7 @@ describe("Test PacketInfo", () => {
 
 	it("should transform payload", () => {
 		let payload = {
-			actions: "{\"posts.find\":{}}",
+			services: "[{\"name\":\"users\",\"version\":\"2\",\"settings\":{},\"actions\":{\"users.create\":{}}}]",
 			ipList: [ "127.0.0.1" ],
 			versions: {
 				node: "6.10.2",
@@ -147,7 +148,11 @@ describe("Test PacketInfo", () => {
 		let packet = new P.PacketInfo(transit, "server-2", {});
 		packet.transformPayload(payload);
 
-		expect(packet.payload.actions).toEqual({ "posts.find": {} });
+		expect(packet.payload.services).toEqual([
+			{ name: "users", version: "2", settings: {}, actions: {
+				"users.create": {}
+			}}
+		]);
 		expect(packet.payload.ipList).toEqual(payload.ipList);
 		expect(packet.payload.versions).toEqual(payload.versions);
 		expect(packet.payload.uptime).toEqual(payload.uptime);			
