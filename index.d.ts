@@ -107,19 +107,36 @@ declare class ServiceBroker {
 	loadServices(folder?: String, fileMask?: String): Number;
 	loadService(filePath: String): Service;
 	createService(schema: Object): Service;
+	registerLocalService(service: Service);
+	registerRemoteService(nodeID: String, service: Service);
 
 	registerAction(nodeID?: String, action: Action);
+	unregisterServicesByNode(nodeID?: String);
 	unregisterAction(nodeID?: String, action: Action);
 
 	on(name: String, handler: Function);
 	once(name: String, handler: Function);
 	off(name: String, handler: Function);
 
+	getService(serviceName: String): Service;
 	hasAction(actionName: String): Boolean;
 	getAction(actionName: String): any;
 	isActionAvailable(actionName: String): Boolean;
 
 	use(...mws: Array<Function>);
+
+	/**
+	 * Create a new Context instance
+	 * 
+	 * @param {Object} action 
+	 * @param {String?} nodeID 
+	 * @param {Object?} params 
+	 * @param {Object?} opts 
+	 * @returns {Context}
+	 * 
+	 * @memberof ServiceBroker
+	 */
+	createNewContext(action: Action, nodeID?: String, params?: Object, opts?: Object): Context;
 
 	/**
 	 * Call an action (local or global)
@@ -155,6 +172,8 @@ declare class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */	
 	emitLocal(eventName: String, payload?: any, sender?: String);
+
+	static MOLECULER_VERSION: String;
 }
 
 declare class Packet {
