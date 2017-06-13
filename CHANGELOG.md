@@ -41,6 +41,7 @@ let broker = new ServiceBroker({
 
 ## REPL mode [#30](https://github.com/ice-services/moleculer/issues/30/)
 Broker has an interactive REPL mode. You can load services, call actions, emit events, subscribe & unsubscribe events from your console. You can list registered nodes & actions.
+> To use REPL mode please install the [moleculer-repl](https://github.com/ice-services/moleculer-repl) module with `npm install moleculer-repl --save` command.
 
 **Start REPL mode**
 ```js
