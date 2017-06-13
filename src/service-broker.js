@@ -27,8 +27,6 @@ const { STRATEGY_ROUND_ROBIN } = require("./constants");
 const { CIRCUIT_HALF_OPEN } = require("./constants");
 
 const _ = require("lodash");
-const pick = require("lodash/pick");
-
 const glob = require("glob");
 const path = require("path");
 
@@ -376,8 +374,9 @@ class ServiceBroker {
 		if (!nodeID)
 			this.wrapAction(action);
 		
-		const res = this.serviceRegistry.registerAction(nodeID, action);
-		/*if (res) {
+		this.serviceRegistry.registerAction(nodeID, action);
+		/*const res = this.serviceRegistry.registerAction(nodeID, action);
+		if (res) {
 			this.emitLocal(`register.action.${action.name}`, { nodeID, action });
 		}*/		
 	}

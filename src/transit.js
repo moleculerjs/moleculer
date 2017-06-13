@@ -7,7 +7,6 @@
 "use strict";
 
 const Promise					= require("bluebird");
-const _							= require("lodash");
 const Context					= require("./context");
 const P 						= require("./packets");
 const { getIpList } 			= require("./utils");
