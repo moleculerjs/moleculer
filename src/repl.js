@@ -138,9 +138,11 @@ function startREPL(broker) {
 	// List actions
 	vorpal
 		.command("actions", "List of actions")
-		.option("-d, --details")
+		.option("-l, --local", "Only local services")
+		.option("-i, --skipinternal", "Skip internal services")
+		.option("-d, --details", "Print endpoints")
 		.action((args, done) => {
-			const actions = broker.serviceRegistry.getActionList({ onlyLocal: false, skipInternal: false, withEndpoints: true});
+			const actions = broker.serviceRegistry.getActionList({ onlyLocal: args.options.local, skipInternal: args.options.skipinternal, withEndpoints: args.options.details });
 
 			const data = [
 				[
@@ -212,9 +214,10 @@ function startREPL(broker) {
 	// List services
 	vorpal
 		.command("services", "List of services")
-		//.option("-d, --details")
+		.option("-l, --local", "Only local services")
+		.option("-i, --skipinternal", "Skip internal services")
 		.action((args, done) => {
-			const services = broker.serviceRegistry.getServiceList({ onlyLocal: false, withActions: true });
+			const services = broker.serviceRegistry.getServiceList({ onlyLocal: args.options.local, skipInternal: args.options.skipinternal, withActions: true });
 
 			const data = [
 				[

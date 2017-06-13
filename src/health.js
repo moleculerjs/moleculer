@@ -67,6 +67,7 @@ const getTransitStatus = (broker) => {
 		};
 	}
 
+	/* istanbul ignore next */
 	return null;
 };
 
@@ -93,5 +94,4 @@ const getHealthStatus = (broker) => {
 	};
 };
 
-module.exports = broker => Promise
-	.resolve(getHealthStatus(broker));
+module.exports = broker => Promise.resolve(getHealthStatus(broker));
