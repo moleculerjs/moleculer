@@ -44,6 +44,7 @@ class MqttTransporter extends Transporter {
 			try {
 				mqtt = require("mqtt");
 			} catch(err) {
+				/* istanbul ignore next */
 				this.broker.fatal("The 'mqtt' package is missing! Please install it with 'npm install mqtt --save' command!", err, true);
 			}			
 			

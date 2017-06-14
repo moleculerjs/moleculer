@@ -45,6 +45,7 @@ class RedisTransporter extends Transporter {
 			try {
 				Redis = require("ioredis");
 			} catch(err) {
+				/* istanbul ignore next */
 				this.broker.fatal("The 'ioredis' package is missing! Please install it with 'npm install ioredis --save' command!", err, true);
 			}
 

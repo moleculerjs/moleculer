@@ -6,7 +6,7 @@ let ServiceBroker = require("../src/service-broker");
 let Transporter = require("../src/transporters/nats");
 let Cacher = require("../src/cachers/redis");
 
-let Serializer = require("../src/serializers/msgpack");
+let Serializer = require("../src/serializers/json");
 
 // --- NODE 1 ---
 

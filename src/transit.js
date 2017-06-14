@@ -95,11 +95,11 @@ class Transit {
 			this.__connectResolve = resolve;
 
 			const doConnect = () => {
+				/* istanbul ignore next */
 				this.tx.connect().catch(err => {
 					this.logger.warn("Connect failed!", err.message);
 					this.logger.debug("ERROR!", err);
 
-					/* istanbul ignore next */
 					setTimeout(() => {
 						this.logger.info("Reconnecting...");
 						doConnect();

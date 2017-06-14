@@ -31,6 +31,7 @@ class ProtoBufSerializer extends BaseSerializer {
 		try {
 			require("protobufjs/minimal");
 		} catch(err) {
+			/* istanbul ignore next */
 			this.broker.fatal("The 'protobufjs' package is missing! Please install it with 'npm install protobufjs --save' command!", err, true);
 		}
 

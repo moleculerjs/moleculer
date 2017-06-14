@@ -46,6 +46,7 @@ class NatsTransporter extends Transporter {
 			try {
 				Nats = require("nats");
 			} catch(err) {
+				/* istanbul ignore next */
 				this.broker.fatal("The 'nats' package is missing! Please install it with 'npm install nats --save' command!", err, true);
 			}			
 			const client = Nats.connect(this.opts.nats);

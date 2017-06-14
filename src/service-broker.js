@@ -280,7 +280,7 @@ class ServiceBroker {
 		this.logger.fatal(message);
 
 		if (needExit)
-			process.exit(1);
+			process.exit(2);
 	}
 
 	/**

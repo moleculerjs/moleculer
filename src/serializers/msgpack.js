@@ -30,6 +30,7 @@ class MsgPackSerializer extends BaseSerializer {
 		try {
 			this.msgpack = require("msgpack5")();
 		} catch(err) {
+			/* istanbul ignore next */
 			this.broker.fatal("The 'msgpack5' package is missing! Please install it with 'npm install msgpack5 --save' command!", err, true);
 		}		
 	}
