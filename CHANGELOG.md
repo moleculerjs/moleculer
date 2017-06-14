@@ -210,6 +210,10 @@ There is a new `useVersionPrefix` option in settings of Service. If false, Molec
 
 # Changes
 
+## Remove Transporter, Cacher and Serializers dependencies (breaking)
+Moleculer doesn't contain dependencies for NATS, Redis, MQTT, MsgPack, Avro and Protobuf. So it need install manually in your project.
+If you want to create a Moleculer project which communicates via NATS and your Redis cacher, you have to install `npm install moleculer nats redis --save`
+
 ## Changed code of ServiceNotFoundError
 The code of `ServiceNotFoundError` is changed from `501` to `404`. [More info](https://github.com/ice-services/moleculer-web/issues/7)
 
