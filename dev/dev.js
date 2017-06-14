@@ -8,7 +8,9 @@ let { MoleculerError } = require("../src/errors");
 let broker1 = new ServiceBroker({
 	nodeID: "node1",
 	logger: console,
-	logLevel: "info",
+	logLevel: "debug",
+	requestTimeout: 5000,
+	requestRetry: 3,
 	transporter: new Transporter(),
 	serializer: new Serializer(),
 	circuitBreaker: {
@@ -19,10 +21,10 @@ let broker1 = new ServiceBroker({
 	}
 });
 
-broker1.loadService("./examples/math.service");
-broker1.loadService("./examples/silent.service");
+//broker1.loadService("./examples/math.service");
+//broker1.loadService("./examples/silent.service");
 //broker1.loadService("./examples/post.service");
-
+/*
 let broker2 = new ServiceBroker({
 	nodeID: "node2",
 	logger: console,
@@ -31,7 +33,7 @@ let broker2 = new ServiceBroker({
 	transporter: new Transporter(),
 	serializer: new Serializer(),
 	statistics: true
-});
+});*/
 /*
 broker2.createService({
 	name: "devil",
@@ -43,14 +45,14 @@ broker2.createService({
 });*/
 //broker2.loadService("./examples/math.service");
 //broker2.loadService("./examples/file.service");
-broker2.loadService("./examples/test.service");
+/*broker2.loadService("./examples/test.service");
 broker2.loadService("./examples/user.service");
 broker2.loadService("./examples/user.v1.service");
-
+*/
 
 broker1.Promise.resolve()
 .then(() => broker1.start())
-.then(() => broker2.start())
+//.then(() => broker2.start())
 .delay(500)
 /*.then(() => broker1.call("$node.actions", { onlyLocal: true }, { nodeID: "node2" }))
 .then(res => console.log(res))

@@ -54,14 +54,6 @@
     "protobufjs": "6.8.0",
     "v8-natives": "1.0.0"
   },
-  "peerDependencies": {
-    "avsc": "^5.0.1",
-    "ioredis": "^3.1.1",
-    "mqtt": "^2.8.1",
-    "msgpack5": "^3.4.1",
-    "nats": "^0.7.20",
-    "protobufjs": "^6.7.3"
-  },
   "dependencies": {
     "bluebird": "3.5.0",
     "es6-error": "4.0.2",
