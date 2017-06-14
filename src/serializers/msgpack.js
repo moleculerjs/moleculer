@@ -18,14 +18,20 @@ const BaseSerializer = require("./base");
 class MsgPackSerializer extends BaseSerializer {
 
 	/**
-	 * Creates an instance of MsgPackSerializer.
+	 * Initialize Serializer
 	 * 
-	 * @memberOf MsgPackSerializer
+	 * @param {any} broker
+	 * 
+	 * @memberOf Serializer
 	 */
-	constructor() {
-		super();
+	init(broker) {
+		super.init(broker);
 
-		this.msgpack = require("msgpack5")();
+		try {
+			this.msgpack = require("msgpack5")();
+		} catch(err) {
+			this.broker.fatal("The 'msgpack5' package is missing! Please install it with 'npm install msgpack5 --save' command!", err, true);
+		}		
 	}
 
 	/**

@@ -29,7 +29,6 @@ let broker2 = new ServiceBroker({
 	nodeID: "node2",
 	logger: console,
 	logLevel: "info",
-	//crashOnFatal: false,
 	transporter: new Transporter(),
 	serializer: new Serializer(),
 	statistics: true

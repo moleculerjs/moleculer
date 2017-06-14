@@ -90,13 +90,18 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	connect() {
+		this.logger.info("Connecting to transporter...");
 		return new Promise(resolve => {
 			this.__connectResolve = resolve;
 
 			const doConnect = () => {
-				this.tx.connect().catch(() => {
+				this.tx.connect().catch(err => {
+					this.logger.warn("Connect failed!", err.message);
+					this.logger.debug("ERROR!", err);
+
 					/* istanbul ignore next */
 					setTimeout(() => {
+						this.logger.info("Reconnecting...");
 						doConnect();
 					}, 5 * 1000);
 				});

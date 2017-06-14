@@ -40,7 +40,13 @@ class MqttTransporter extends Transporter {
 	 */
 	connect() {
 		return new Promise((resolve, reject) => {
-			const mqtt = require("mqtt");
+			let mqtt;
+			try {
+				mqtt = require("mqtt");
+			} catch(err) {
+				this.broker.fatal("The 'mqtt' package is missing! Please install it with 'npm install mqtt --save' command!", err, true);
+			}			
+			
 			const client = mqtt.connect(this.opts.mqtt);
 			this._client = client; // For tests
 

@@ -264,9 +264,22 @@ broker.createService({
 
 ## Renamed `appendServiceName` settings to `serviceNamePrefix` in Service schema
 
-## Crash on fatal
-The `ServiceBroker` has a new `crashOnFatal` option. If it's true and any module calls the `this.logger.fatal`, the broker will call the `process.exit` with code `2`.
+## Fatal crash
+The `ServiceBroker` has a new `fatal` method. If you call it, you can log message with `fatal` level and exit the process with code `2`.
+
+`broker.fatal(message, err, needExit = true)`
 > If you are running your app in containers and it has restart policy, you can use it to restart your app.
+
+**Usage**
+```js
+
+try {
+    // Do something dangerous
+} catch(err) {
+    broker.fatal("Dangerous thing is happened!", err, true);
+}
+
+```
 
 ## Low-level changes
 - new output of `$node.actions` and `$node.services`˛

@@ -3,24 +3,19 @@
 let { delay } = require("../src/utils");
 
 let ServiceBroker = require("../src/service-broker");
-let FakeTransporter = require("../src/transporters/fake");
-let Serializer = require("../src/serializers/protobuf");
-// let NatsTransporter = require("../src/transporters/nats");
-// let MqttTransporter = require("../src/transporters/mqtt");
-// let RedisTransporter = require("../src/transporters/redis");
-// let FakeTransporter = require("../src/transporters/fake");
+let Transporter = require("../src/transporters/nats");
+let Cacher = require("../src/cachers/redis");
+
+let Serializer = require("../src/serializers/msgpack");
 
 // --- NODE 1 ---
 
 // Create broker
 let b1 = new ServiceBroker({
 	nodeID: "node-1",
-	transporter: new FakeTransporter(),
-	//transporter: new NatsTransporter({ nats: "nats://127.0.0.1:4222"}),
-	//transporter: new MqttTransporter(),
-	//transporter: new RedisTransporter(),
-	//transporter: new FakeTransporter(),
+	transporter: new Transporter(),
 	serializer: new Serializer(),
+	//cacher: new Cacher(),
 	logger: console,
 	//logLevel: "debug",
 	logLevel: {
@@ -58,11 +53,7 @@ b1.on("TEST2", (a, sender) => {
 // Create broker
 let b2 = new ServiceBroker({
 	nodeID: "node-2",
-	transporter: new FakeTransporter(),
-	//transporter: new NatsTransporter({ nats: "nats://127.0.0.1:4222"}),
-	//transporter: new MqttTransporter(),
-	//transporter: new RedisTransporter("redis://127.0.0.1"),
-	//transporter: new FakeTransporter(),
+	transporter: new Transporter(),
 	serializer: new Serializer(),
 	logger: console,
 	logLevel: "warn",

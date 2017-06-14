@@ -121,14 +121,22 @@ function createSchemas() {
 class AvroSerializer extends BaseSerializer {
 
 	/**
-	 * Creates an instance of AvroSerializer.
+	 * Initialize Serializer
 	 * 
-	 * @memberOf AvroSerializer
+	 * @param {any} broker
+	 * 
+	 * @memberOf Serializer
 	 */
-	constructor() {
-		super();
+	init(broker) {
+		super.init(broker);
 
-		this.schemas = createSchemas();
+		try {
+			require("avsc");
+		} catch(err) {
+			this.broker.fatal("The 'avsc' package is missing! Please install it with 'npm install avsc --save' command!", err, true);
+		}		
+
+		this.schemas = createSchemas(broker);
 	}
 
 	/**

@@ -31,7 +31,6 @@ describe("Test ServiceBroker constructor", () => {
 
 			logger: null,
 			logLevel: "info",
-			crashOnFatal: true,
 
 			transporter: null, 
 			requestTimeout: 0, 
@@ -98,7 +97,6 @@ describe("Test ServiceBroker constructor", () => {
 			metricsRate: 0.5,
 			statistics: true,
 			logLevel: "debug", 
-			crashOnFatal: false,
 			requestRetry: 3, 
 			requestTimeout: 5000, 
 			maxCallLevel: 10,
@@ -119,7 +117,6 @@ describe("Test ServiceBroker constructor", () => {
 			nodeID: null,
 			logger: null,
 			logLevel: "debug",
-			crashOnFatal: false, 
 			cacher: null,
 			serializer: null,
 			transporter: null,

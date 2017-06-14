@@ -17,10 +17,9 @@ module.exports = {
 	 * @param {Object} extLogger
 	 * @param {String} moduleName
 	 * @param {String|Object} logLevel
-	 * @param {Boolean} crashOnFatal
 	 * @returns
 	 */
-	wrap(extLogger, moduleName, logLevel, crashOnFatal) {
+	wrap(extLogger, moduleName, logLevel) {
 		let noop = function() {};
 
 		const levels = ["fatal", "error", "warn", "info", "debug", "trace"];
@@ -66,15 +65,6 @@ module.exports = {
 				}
 			});
 
-			if (crashOnFatal) {
-				const origHandler = logger.fatal;
-				logger.fatal = function(msg, ...args) {
-					origHandler(msg, ...args);
-					origHandler(new Error("FATAL ERROR!").stack);
-
-					process.exit(2);
-				}.bind(extLogger);
-			}
 		}
 
 		return logger;		

@@ -51,7 +51,6 @@ class ServiceBroker {
 
 			logger: null,
 			logLevel: "info",
-			crashOnFatal: true,
 
 			transporter: null,
 			requestTimeout: 0 * 1000,
@@ -239,7 +238,7 @@ class ServiceBroker {
 		} catch (error) {
 			console.error("The 'moleculer-repl' package is missing! Please install it with 'npm install moleculer-repl' command!"); // eslint-disable-line no-console
 			this.logger.error("The 'moleculer-repl' package is missing! Please install it with 'npm install moleculer-repl' command!");
-			this.logger.warn(error);
+			this.logger.debug("ERROR", error);
 		}
 		if (repl)
 			repl(this);
@@ -258,10 +257,30 @@ class ServiceBroker {
 		if (logger)
 			return logger;
 
-		logger = Logger.wrap(this.options.logger, name, this.options.logLevel, this.options.crashOnFatal);
+		logger = Logger.wrap(this.options.logger, name, this.options.logLevel);
 		this._loggerCache[name] = logger;
 
 		return logger;
+	}
+
+	/**
+	 * Fatal error. Print the message to console (if logger is not exists). And exit the process (if need)
+	 * 
+	 * @param {String} message 
+	 * @param {Error?} err 
+	 * @param {boolean} [needExit=true] 
+	 * 
+	 * @memberof ServiceBroker
+	 */
+	fatal(message, err, needExit = true) {
+		if (err)
+			this.logger.debug("ERROR", err);
+
+		console.error(message); // eslint-disable-line no-console
+		this.logger.fatal(message);
+
+		if (needExit)
+			process.exit(1);
 	}
 
 	/**

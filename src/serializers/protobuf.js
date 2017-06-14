@@ -19,15 +19,23 @@ const P = require("../packets");
 class ProtoBufSerializer extends BaseSerializer {
 
 	/**
-	 * Creates an instance of ProtoBufSerializer.
+	 * Initialize Serializer
 	 * 
-	 * @memberOf ProtoBufSerializer
+	 * @param {any} broker
+	 * 
+	 * @memberOf Serializer
 	 */
-	constructor() {
-		super();
+	init(broker) {
+		super.init(broker);
 
-		this.packets = require("./proto/packets.proto.js").packets;
-	}
+		try {
+			require("protobufjs/minimal");
+		} catch(err) {
+			this.broker.fatal("The 'protobufjs' package is missing! Please install it with 'npm install protobufjs --save' command!", err, true);
+		}
+
+		this.packets = require("./proto/packets.proto.js").packets;		
+	}	
 
 	getPacketFromType(type) {
 		switch(type) {
