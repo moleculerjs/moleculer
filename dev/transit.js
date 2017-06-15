@@ -4,7 +4,7 @@ let { delay } = require("../src/utils");
 
 let ServiceBroker = require("../src/service-broker");
 let Transporter = require("../src/transporters/nats");
-let Cacher = require("../src/cachers/redis");
+//let Cacher = require("../src/cachers/redis");
 
 let Serializer = require("../src/serializers/protobuf");
 

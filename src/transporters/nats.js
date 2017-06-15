@@ -31,6 +31,14 @@ class NatsTransporter extends Transporter {
 		
 		if (typeof this.opts == "string")
 			this.opts = { nats: this.opts };
+
+		// Use the 'preserveBuffers' option as true as default
+		if (!this.opts.nats || this.opts.nats.preserveBuffers !== false) {
+			if (!this.opts.nats)
+				this.opts.nats = {};
+
+			this.opts.nats.preserveBuffers = true;
+		}
 		
 		this.client = null;
 	}

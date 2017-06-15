@@ -82,9 +82,10 @@ class RedisTransporter extends Transporter {
 				});					
 			});
 
-			clientSub.on("message", (topic, msg) => {
+			clientSub.on("messageBuffer", (topicBuf, buf) => {
+				const topic = topicBuf.toString();
 				const cmd = topic.split(".")[1];
-				this.messageHandler(cmd, msg);
+				this.messageHandler(cmd, buf);
 			});
 
 			/* istanbul ignore next */
