@@ -14,7 +14,7 @@ message PacketRequest {
 	required string action 		= 3;
 	required string params 		= 4;
 	required string meta 		= 5;
-	required int32 timeout 		= 6;
+	required double timeout		= 6;
 	required int32 level 		= 7;
 	required bool metrics 		= 8;
 	optional string parentID 	= 9;

@@ -23,18 +23,19 @@ $root.packets = (function() {
 
         /**
          * Properties of a PacketEvent.
-         * @typedef packets.PacketEvent$Properties
-         * @type {Object}
-         * @property {string} sender PacketEvent sender.
-         * @property {string} event PacketEvent event.
-         * @property {string} data PacketEvent data.
+         * @memberof packets
+         * @interface IPacketEvent
+         * @property {string} sender PacketEvent sender
+         * @property {string} event PacketEvent event
+         * @property {string} data PacketEvent data
          */
 
         /**
          * Constructs a new PacketEvent.
-         * @exports packets.PacketEvent
+         * @memberof packets
+         * @classdesc Represents a PacketEvent.
          * @constructor
-         * @param {packets.PacketEvent$Properties=} [properties] Properties to set
+         * @param {packets.IPacketEvent=} [properties] Properties to set
          */
         function PacketEvent(properties) {
             if (properties)
@@ -45,25 +46,34 @@ $root.packets = (function() {
 
         /**
          * PacketEvent sender.
-         * @type {string}
+         * @member {string}sender
+         * @memberof packets.PacketEvent
+         * @instance
          */
         PacketEvent.prototype.sender = "";
 
         /**
          * PacketEvent event.
-         * @type {string}
+         * @member {string}event
+         * @memberof packets.PacketEvent
+         * @instance
          */
         PacketEvent.prototype.event = "";
 
         /**
          * PacketEvent data.
-         * @type {string}
+         * @member {string}data
+         * @memberof packets.PacketEvent
+         * @instance
          */
         PacketEvent.prototype.data = "";
 
         /**
          * Creates a new PacketEvent instance using the specified properties.
-         * @param {packets.PacketEvent$Properties=} [properties] Properties to set
+         * @function create
+         * @memberof packets.PacketEvent
+         * @static
+         * @param {packets.IPacketEvent=} [properties] Properties to set
          * @returns {packets.PacketEvent} PacketEvent instance
          */
         PacketEvent.create = function create(properties) {
@@ -72,7 +82,10 @@ $root.packets = (function() {
 
         /**
          * Encodes the specified PacketEvent message. Does not implicitly {@link packets.PacketEvent.verify|verify} messages.
-         * @param {packets.PacketEvent$Properties} message PacketEvent message or plain object to encode
+         * @function encode
+         * @memberof packets.PacketEvent
+         * @static
+         * @param {packets.IPacketEvent} message PacketEvent message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -87,7 +100,10 @@ $root.packets = (function() {
 
         /**
          * Encodes the specified PacketEvent message, length delimited. Does not implicitly {@link packets.PacketEvent.verify|verify} messages.
-         * @param {packets.PacketEvent$Properties} message PacketEvent message or plain object to encode
+         * @function encodeDelimited
+         * @memberof packets.PacketEvent
+         * @static
+         * @param {packets.IPacketEvent} message PacketEvent message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -97,6 +113,9 @@ $root.packets = (function() {
 
         /**
          * Decodes a PacketEvent message from the specified reader or buffer.
+         * @function decode
+         * @memberof packets.PacketEvent
+         * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
          * @returns {packets.PacketEvent} PacketEvent
@@ -135,6 +154,9 @@ $root.packets = (function() {
 
         /**
          * Decodes a PacketEvent message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof packets.PacketEvent
+         * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @returns {packets.PacketEvent} PacketEvent
          * @throws {Error} If the payload is not a reader or valid buffer
@@ -142,14 +164,17 @@ $root.packets = (function() {
          */
         PacketEvent.decodeDelimited = function decodeDelimited(reader) {
             if (!(reader instanceof $Reader))
-                reader = $Reader(reader);
+                reader = new $Reader(reader);
             return this.decode(reader, reader.uint32());
         };
 
         /**
          * Verifies a PacketEvent message.
+         * @function verify
+         * @memberof packets.PacketEvent
+         * @static
          * @param {Object.<string,*>} message Plain object to verify
-         * @returns {?string} `null` if valid, otherwise the reason why it is not
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
         PacketEvent.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
@@ -165,6 +190,9 @@ $root.packets = (function() {
 
         /**
          * Creates a PacketEvent message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof packets.PacketEvent
+         * @static
          * @param {Object.<string,*>} object Plain object
          * @returns {packets.PacketEvent} PacketEvent
          */
@@ -182,18 +210,12 @@ $root.packets = (function() {
         };
 
         /**
-         * Creates a PacketEvent message from a plain object. Also converts values to their respective internal types.
-         * This is an alias of {@link packets.PacketEvent.fromObject}.
-         * @function
-         * @param {Object.<string,*>} object Plain object
-         * @returns {packets.PacketEvent} PacketEvent
-         */
-        PacketEvent.from = PacketEvent.fromObject;
-
-        /**
          * Creates a plain object from a PacketEvent message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof packets.PacketEvent
+         * @static
          * @param {packets.PacketEvent} message PacketEvent
-         * @param {$protobuf.ConversionOptions} [options] Conversion options
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
         PacketEvent.toObject = function toObject(message, options) {
@@ -215,16 +237,10 @@ $root.packets = (function() {
         };
 
         /**
-         * Creates a plain object from this PacketEvent message. Also converts values to other types if specified.
-         * @param {$protobuf.ConversionOptions} [options] Conversion options
-         * @returns {Object.<string,*>} Plain object
-         */
-        PacketEvent.prototype.toObject = function toObject(options) {
-            return this.constructor.toObject(this, options);
-        };
-
-        /**
          * Converts this PacketEvent to JSON.
+         * @function toJSON
+         * @memberof packets.PacketEvent
+         * @instance
          * @returns {Object.<string,*>} JSON object
          */
         PacketEvent.prototype.toJSON = function toJSON() {
@@ -238,24 +254,25 @@ $root.packets = (function() {
 
         /**
          * Properties of a PacketRequest.
-         * @typedef packets.PacketRequest$Properties
-         * @type {Object}
-         * @property {string} sender PacketRequest sender.
-         * @property {string} id PacketRequest id.
-         * @property {string} action PacketRequest action.
-         * @property {string} params PacketRequest params.
-         * @property {string} meta PacketRequest meta.
-         * @property {number} timeout PacketRequest timeout.
-         * @property {number} level PacketRequest level.
-         * @property {boolean} metrics PacketRequest metrics.
-         * @property {string} [parentID] PacketRequest parentID.
+         * @memberof packets
+         * @interface IPacketRequest
+         * @property {string} sender PacketRequest sender
+         * @property {string} id PacketRequest id
+         * @property {string} action PacketRequest action
+         * @property {string} params PacketRequest params
+         * @property {string} meta PacketRequest meta
+         * @property {number} timeout PacketRequest timeout
+         * @property {number} level PacketRequest level
+         * @property {boolean} metrics PacketRequest metrics
+         * @property {string} [parentID] PacketRequest parentID
          */
 
         /**
          * Constructs a new PacketRequest.
-         * @exports packets.PacketRequest
+         * @memberof packets
+         * @classdesc Represents a PacketRequest.
          * @constructor
-         * @param {packets.PacketRequest$Properties=} [properties] Properties to set
+         * @param {packets.IPacketRequest=} [properties] Properties to set
          */
         function PacketRequest(properties) {
             if (properties)
@@ -266,61 +283,82 @@ $root.packets = (function() {
 
         /**
          * PacketRequest sender.
-         * @type {string}
+         * @member {string}sender
+         * @memberof packets.PacketRequest
+         * @instance
          */
         PacketRequest.prototype.sender = "";
 
         /**
          * PacketRequest id.
-         * @type {string}
+         * @member {string}id
+         * @memberof packets.PacketRequest
+         * @instance
          */
         PacketRequest.prototype.id = "";
 
         /**
          * PacketRequest action.
-         * @type {string}
+         * @member {string}action
+         * @memberof packets.PacketRequest
+         * @instance
          */
         PacketRequest.prototype.action = "";
 
         /**
          * PacketRequest params.
-         * @type {string}
+         * @member {string}params
+         * @memberof packets.PacketRequest
+         * @instance
          */
         PacketRequest.prototype.params = "";
 
         /**
          * PacketRequest meta.
-         * @type {string}
+         * @member {string}meta
+         * @memberof packets.PacketRequest
+         * @instance
          */
         PacketRequest.prototype.meta = "";
 
         /**
          * PacketRequest timeout.
-         * @type {number}
+         * @member {number}timeout
+         * @memberof packets.PacketRequest
+         * @instance
          */
         PacketRequest.prototype.timeout = 0;
 
         /**
          * PacketRequest level.
-         * @type {number}
+         * @member {number}level
+         * @memberof packets.PacketRequest
+         * @instance
          */
         PacketRequest.prototype.level = 0;
 
         /**
          * PacketRequest metrics.
-         * @type {boolean}
+         * @member {boolean}metrics
+         * @memberof packets.PacketRequest
+         * @instance
          */
         PacketRequest.prototype.metrics = false;
 
         /**
          * PacketRequest parentID.
-         * @type {string}
+         * @member {string}parentID
+         * @memberof packets.PacketRequest
+         * @instance
          */
         PacketRequest.prototype.parentID = "";
 
         /**
          * Creates a new PacketRequest instance using the specified properties.
-         * @param {packets.PacketRequest$Properties=} [properties] Properties to set
+         * @function create
+         * @memberof packets.PacketRequest
+         * @static
+         * @param {packets.IPacketRequest=} [properties] Properties to set
          * @returns {packets.PacketRequest} PacketRequest instance
          */
         PacketRequest.create = function create(properties) {
@@ -329,7 +367,10 @@ $root.packets = (function() {
 
         /**
          * Encodes the specified PacketRequest message. Does not implicitly {@link packets.PacketRequest.verify|verify} messages.
-         * @param {packets.PacketRequest$Properties} message PacketRequest message or plain object to encode
+         * @function encode
+         * @memberof packets.PacketRequest
+         * @static
+         * @param {packets.IPacketRequest} message PacketRequest message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -341,7 +382,7 @@ $root.packets = (function() {
             writer.uint32(/* id 3, wireType 2 =*/26).string(message.action);
             writer.uint32(/* id 4, wireType 2 =*/34).string(message.params);
             writer.uint32(/* id 5, wireType 2 =*/42).string(message.meta);
-            writer.uint32(/* id 6, wireType 0 =*/48).int32(message.timeout);
+            writer.uint32(/* id 6, wireType 1 =*/49).double(message.timeout);
             writer.uint32(/* id 7, wireType 0 =*/56).int32(message.level);
             writer.uint32(/* id 8, wireType 0 =*/64).bool(message.metrics);
             if (message.parentID != null && message.hasOwnProperty("parentID"))
@@ -351,7 +392,10 @@ $root.packets = (function() {
 
         /**
          * Encodes the specified PacketRequest message, length delimited. Does not implicitly {@link packets.PacketRequest.verify|verify} messages.
-         * @param {packets.PacketRequest$Properties} message PacketRequest message or plain object to encode
+         * @function encodeDelimited
+         * @memberof packets.PacketRequest
+         * @static
+         * @param {packets.IPacketRequest} message PacketRequest message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -361,6 +405,9 @@ $root.packets = (function() {
 
         /**
          * Decodes a PacketRequest message from the specified reader or buffer.
+         * @function decode
+         * @memberof packets.PacketRequest
+         * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
          * @returns {packets.PacketRequest} PacketRequest
@@ -390,7 +437,7 @@ $root.packets = (function() {
                     message.meta = reader.string();
                     break;
                 case 6:
-                    message.timeout = reader.int32();
+                    message.timeout = reader.double();
                     break;
                 case 7:
                     message.level = reader.int32();
@@ -427,6 +474,9 @@ $root.packets = (function() {
 
         /**
          * Decodes a PacketRequest message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof packets.PacketRequest
+         * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @returns {packets.PacketRequest} PacketRequest
          * @throws {Error} If the payload is not a reader or valid buffer
@@ -434,14 +484,17 @@ $root.packets = (function() {
          */
         PacketRequest.decodeDelimited = function decodeDelimited(reader) {
             if (!(reader instanceof $Reader))
-                reader = $Reader(reader);
+                reader = new $Reader(reader);
             return this.decode(reader, reader.uint32());
         };
 
         /**
          * Verifies a PacketRequest message.
+         * @function verify
+         * @memberof packets.PacketRequest
+         * @static
          * @param {Object.<string,*>} message Plain object to verify
-         * @returns {?string} `null` if valid, otherwise the reason why it is not
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
         PacketRequest.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
@@ -456,8 +509,8 @@ $root.packets = (function() {
                 return "params: string expected";
             if (!$util.isString(message.meta))
                 return "meta: string expected";
-            if (!$util.isInteger(message.timeout))
-                return "timeout: integer expected";
+            if (typeof message.timeout !== "number")
+                return "timeout: number expected";
             if (!$util.isInteger(message.level))
                 return "level: integer expected";
             if (typeof message.metrics !== "boolean")
@@ -470,6 +523,9 @@ $root.packets = (function() {
 
         /**
          * Creates a PacketRequest message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof packets.PacketRequest
+         * @static
          * @param {Object.<string,*>} object Plain object
          * @returns {packets.PacketRequest} PacketRequest
          */
@@ -488,7 +544,7 @@ $root.packets = (function() {
             if (object.meta != null)
                 message.meta = String(object.meta);
             if (object.timeout != null)
-                message.timeout = object.timeout | 0;
+                message.timeout = Number(object.timeout);
             if (object.level != null)
                 message.level = object.level | 0;
             if (object.metrics != null)
@@ -499,18 +555,12 @@ $root.packets = (function() {
         };
 
         /**
-         * Creates a PacketRequest message from a plain object. Also converts values to their respective internal types.
-         * This is an alias of {@link packets.PacketRequest.fromObject}.
-         * @function
-         * @param {Object.<string,*>} object Plain object
-         * @returns {packets.PacketRequest} PacketRequest
-         */
-        PacketRequest.from = PacketRequest.fromObject;
-
-        /**
          * Creates a plain object from a PacketRequest message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof packets.PacketRequest
+         * @static
          * @param {packets.PacketRequest} message PacketRequest
-         * @param {$protobuf.ConversionOptions} [options] Conversion options
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
         PacketRequest.toObject = function toObject(message, options) {
@@ -539,7 +589,7 @@ $root.packets = (function() {
             if (message.meta != null && message.hasOwnProperty("meta"))
                 object.meta = message.meta;
             if (message.timeout != null && message.hasOwnProperty("timeout"))
-                object.timeout = message.timeout;
+                object.timeout = options.json && !isFinite(message.timeout) ? String(message.timeout) : message.timeout;
             if (message.level != null && message.hasOwnProperty("level"))
                 object.level = message.level;
             if (message.metrics != null && message.hasOwnProperty("metrics"))
@@ -550,16 +600,10 @@ $root.packets = (function() {
         };
 
         /**
-         * Creates a plain object from this PacketRequest message. Also converts values to other types if specified.
-         * @param {$protobuf.ConversionOptions} [options] Conversion options
-         * @returns {Object.<string,*>} Plain object
-         */
-        PacketRequest.prototype.toObject = function toObject(options) {
-            return this.constructor.toObject(this, options);
-        };
-
-        /**
          * Converts this PacketRequest to JSON.
+         * @function toJSON
+         * @memberof packets.PacketRequest
+         * @instance
          * @returns {Object.<string,*>} JSON object
          */
         PacketRequest.prototype.toJSON = function toJSON() {
@@ -573,20 +617,21 @@ $root.packets = (function() {
 
         /**
          * Properties of a PacketResponse.
-         * @typedef packets.PacketResponse$Properties
-         * @type {Object}
-         * @property {string} sender PacketResponse sender.
-         * @property {string} id PacketResponse id.
-         * @property {boolean} success PacketResponse success.
-         * @property {string} [data] PacketResponse data.
-         * @property {packets.PacketResponse.Error$Properties} [error] PacketResponse error.
+         * @memberof packets
+         * @interface IPacketResponse
+         * @property {string} sender PacketResponse sender
+         * @property {string} id PacketResponse id
+         * @property {boolean} success PacketResponse success
+         * @property {string} [data] PacketResponse data
+         * @property {packets.PacketResponse.IError} [error] PacketResponse error
          */
 
         /**
          * Constructs a new PacketResponse.
-         * @exports packets.PacketResponse
+         * @memberof packets
+         * @classdesc Represents a PacketResponse.
          * @constructor
-         * @param {packets.PacketResponse$Properties=} [properties] Properties to set
+         * @param {packets.IPacketResponse=} [properties] Properties to set
          */
         function PacketResponse(properties) {
             if (properties)
@@ -597,37 +642,50 @@ $root.packets = (function() {
 
         /**
          * PacketResponse sender.
-         * @type {string}
+         * @member {string}sender
+         * @memberof packets.PacketResponse
+         * @instance
          */
         PacketResponse.prototype.sender = "";
 
         /**
          * PacketResponse id.
-         * @type {string}
+         * @member {string}id
+         * @memberof packets.PacketResponse
+         * @instance
          */
         PacketResponse.prototype.id = "";
 
         /**
          * PacketResponse success.
-         * @type {boolean}
+         * @member {boolean}success
+         * @memberof packets.PacketResponse
+         * @instance
          */
         PacketResponse.prototype.success = false;
 
         /**
          * PacketResponse data.
-         * @type {string}
+         * @member {string}data
+         * @memberof packets.PacketResponse
+         * @instance
          */
         PacketResponse.prototype.data = "";
 
         /**
          * PacketResponse error.
-         * @type {(packets.PacketResponse.Error$Properties|null)}
+         * @member {(packets.PacketResponse.IError|null|undefined)}error
+         * @memberof packets.PacketResponse
+         * @instance
          */
         PacketResponse.prototype.error = null;
 
         /**
          * Creates a new PacketResponse instance using the specified properties.
-         * @param {packets.PacketResponse$Properties=} [properties] Properties to set
+         * @function create
+         * @memberof packets.PacketResponse
+         * @static
+         * @param {packets.IPacketResponse=} [properties] Properties to set
          * @returns {packets.PacketResponse} PacketResponse instance
          */
         PacketResponse.create = function create(properties) {
@@ -636,7 +694,10 @@ $root.packets = (function() {
 
         /**
          * Encodes the specified PacketResponse message. Does not implicitly {@link packets.PacketResponse.verify|verify} messages.
-         * @param {packets.PacketResponse$Properties} message PacketResponse message or plain object to encode
+         * @function encode
+         * @memberof packets.PacketResponse
+         * @static
+         * @param {packets.IPacketResponse} message PacketResponse message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -655,7 +716,10 @@ $root.packets = (function() {
 
         /**
          * Encodes the specified PacketResponse message, length delimited. Does not implicitly {@link packets.PacketResponse.verify|verify} messages.
-         * @param {packets.PacketResponse$Properties} message PacketResponse message or plain object to encode
+         * @function encodeDelimited
+         * @memberof packets.PacketResponse
+         * @static
+         * @param {packets.IPacketResponse} message PacketResponse message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -665,6 +729,9 @@ $root.packets = (function() {
 
         /**
          * Decodes a PacketResponse message from the specified reader or buffer.
+         * @function decode
+         * @memberof packets.PacketResponse
+         * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
          * @returns {packets.PacketResponse} PacketResponse
@@ -709,6 +776,9 @@ $root.packets = (function() {
 
         /**
          * Decodes a PacketResponse message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof packets.PacketResponse
+         * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @returns {packets.PacketResponse} PacketResponse
          * @throws {Error} If the payload is not a reader or valid buffer
@@ -716,14 +786,17 @@ $root.packets = (function() {
          */
         PacketResponse.decodeDelimited = function decodeDelimited(reader) {
             if (!(reader instanceof $Reader))
-                reader = $Reader(reader);
+                reader = new $Reader(reader);
             return this.decode(reader, reader.uint32());
         };
 
         /**
          * Verifies a PacketResponse message.
+         * @function verify
+         * @memberof packets.PacketResponse
+         * @static
          * @param {Object.<string,*>} message Plain object to verify
-         * @returns {?string} `null` if valid, otherwise the reason why it is not
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
         PacketResponse.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
@@ -747,6 +820,9 @@ $root.packets = (function() {
 
         /**
          * Creates a PacketResponse message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof packets.PacketResponse
+         * @static
          * @param {Object.<string,*>} object Plain object
          * @returns {packets.PacketResponse} PacketResponse
          */
@@ -771,18 +847,12 @@ $root.packets = (function() {
         };
 
         /**
-         * Creates a PacketResponse message from a plain object. Also converts values to their respective internal types.
-         * This is an alias of {@link packets.PacketResponse.fromObject}.
-         * @function
-         * @param {Object.<string,*>} object Plain object
-         * @returns {packets.PacketResponse} PacketResponse
-         */
-        PacketResponse.from = PacketResponse.fromObject;
-
-        /**
          * Creates a plain object from a PacketResponse message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof packets.PacketResponse
+         * @static
          * @param {packets.PacketResponse} message PacketResponse
-         * @param {$protobuf.ConversionOptions} [options] Conversion options
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
         PacketResponse.toObject = function toObject(message, options) {
@@ -810,16 +880,10 @@ $root.packets = (function() {
         };
 
         /**
-         * Creates a plain object from this PacketResponse message. Also converts values to other types if specified.
-         * @param {$protobuf.ConversionOptions} [options] Conversion options
-         * @returns {Object.<string,*>} Plain object
-         */
-        PacketResponse.prototype.toObject = function toObject(options) {
-            return this.constructor.toObject(this, options);
-        };
-
-        /**
          * Converts this PacketResponse to JSON.
+         * @function toJSON
+         * @memberof packets.PacketResponse
+         * @instance
          * @returns {Object.<string,*>} JSON object
          */
         PacketResponse.prototype.toJSON = function toJSON() {
@@ -830,22 +894,23 @@ $root.packets = (function() {
 
             /**
              * Properties of an Error.
-             * @typedef packets.PacketResponse.Error$Properties
-             * @type {Object}
-             * @property {string} name Error name.
-             * @property {string} message Error message.
-             * @property {number} code Error code.
-             * @property {string} type Error type.
-             * @property {string} data Error data.
-             * @property {string} stack Error stack.
-             * @property {string} nodeID Error nodeID.
+             * @memberof packets.PacketResponse
+             * @interface IError
+             * @property {string} name Error name
+             * @property {string} message Error message
+             * @property {number} code Error code
+             * @property {string} type Error type
+             * @property {string} data Error data
+             * @property {string} stack Error stack
+             * @property {string} nodeID Error nodeID
              */
 
             /**
              * Constructs a new Error.
-             * @exports packets.PacketResponse.Error
+             * @memberof packets.PacketResponse
+             * @classdesc Represents an Error.
              * @constructor
-             * @param {packets.PacketResponse.Error$Properties=} [properties] Properties to set
+             * @param {packets.PacketResponse.IError=} [properties] Properties to set
              */
             function Error(properties) {
                 if (properties)
@@ -856,49 +921,66 @@ $root.packets = (function() {
 
             /**
              * Error name.
-             * @type {string}
+             * @member {string}name
+             * @memberof packets.PacketResponse.Error
+             * @instance
              */
             Error.prototype.name = "";
 
             /**
              * Error message.
-             * @type {string}
+             * @member {string}message
+             * @memberof packets.PacketResponse.Error
+             * @instance
              */
             Error.prototype.message = "";
 
             /**
              * Error code.
-             * @type {number}
+             * @member {number}code
+             * @memberof packets.PacketResponse.Error
+             * @instance
              */
             Error.prototype.code = 0;
 
             /**
              * Error type.
-             * @type {string}
+             * @member {string}type
+             * @memberof packets.PacketResponse.Error
+             * @instance
              */
             Error.prototype.type = "";
 
             /**
              * Error data.
-             * @type {string}
+             * @member {string}data
+             * @memberof packets.PacketResponse.Error
+             * @instance
              */
             Error.prototype.data = "";
 
             /**
              * Error stack.
-             * @type {string}
+             * @member {string}stack
+             * @memberof packets.PacketResponse.Error
+             * @instance
              */
             Error.prototype.stack = "";
 
             /**
              * Error nodeID.
-             * @type {string}
+             * @member {string}nodeID
+             * @memberof packets.PacketResponse.Error
+             * @instance
              */
             Error.prototype.nodeID = "";
 
             /**
              * Creates a new Error instance using the specified properties.
-             * @param {packets.PacketResponse.Error$Properties=} [properties] Properties to set
+             * @function create
+             * @memberof packets.PacketResponse.Error
+             * @static
+             * @param {packets.PacketResponse.IError=} [properties] Properties to set
              * @returns {packets.PacketResponse.Error} Error instance
              */
             Error.create = function create(properties) {
@@ -907,7 +989,10 @@ $root.packets = (function() {
 
             /**
              * Encodes the specified Error message. Does not implicitly {@link packets.PacketResponse.Error.verify|verify} messages.
-             * @param {packets.PacketResponse.Error$Properties} message Error message or plain object to encode
+             * @function encode
+             * @memberof packets.PacketResponse.Error
+             * @static
+             * @param {packets.PacketResponse.IError} message Error message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -926,7 +1011,10 @@ $root.packets = (function() {
 
             /**
              * Encodes the specified Error message, length delimited. Does not implicitly {@link packets.PacketResponse.Error.verify|verify} messages.
-             * @param {packets.PacketResponse.Error$Properties} message Error message or plain object to encode
+             * @function encodeDelimited
+             * @memberof packets.PacketResponse.Error
+             * @static
+             * @param {packets.PacketResponse.IError} message Error message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -936,6 +1024,9 @@ $root.packets = (function() {
 
             /**
              * Decodes an Error message from the specified reader or buffer.
+             * @function decode
+             * @memberof packets.PacketResponse.Error
+             * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
              * @returns {packets.PacketResponse.Error} Error
@@ -994,6 +1085,9 @@ $root.packets = (function() {
 
             /**
              * Decodes an Error message from the specified reader or buffer, length delimited.
+             * @function decodeDelimited
+             * @memberof packets.PacketResponse.Error
+             * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @returns {packets.PacketResponse.Error} Error
              * @throws {Error} If the payload is not a reader or valid buffer
@@ -1001,14 +1095,17 @@ $root.packets = (function() {
              */
             Error.decodeDelimited = function decodeDelimited(reader) {
                 if (!(reader instanceof $Reader))
-                    reader = $Reader(reader);
+                    reader = new $Reader(reader);
                 return this.decode(reader, reader.uint32());
             };
 
             /**
              * Verifies an Error message.
+             * @function verify
+             * @memberof packets.PacketResponse.Error
+             * @static
              * @param {Object.<string,*>} message Plain object to verify
-             * @returns {?string} `null` if valid, otherwise the reason why it is not
+             * @returns {string|null} `null` if valid, otherwise the reason why it is not
              */
             Error.verify = function verify(message) {
                 if (typeof message !== "object" || message === null)
@@ -1032,6 +1129,9 @@ $root.packets = (function() {
 
             /**
              * Creates an Error message from a plain object. Also converts values to their respective internal types.
+             * @function fromObject
+             * @memberof packets.PacketResponse.Error
+             * @static
              * @param {Object.<string,*>} object Plain object
              * @returns {packets.PacketResponse.Error} Error
              */
@@ -1057,18 +1157,12 @@ $root.packets = (function() {
             };
 
             /**
-             * Creates an Error message from a plain object. Also converts values to their respective internal types.
-             * This is an alias of {@link packets.PacketResponse.Error.fromObject}.
-             * @function
-             * @param {Object.<string,*>} object Plain object
-             * @returns {packets.PacketResponse.Error} Error
-             */
-            Error.from = Error.fromObject;
-
-            /**
              * Creates a plain object from an Error message. Also converts values to other types if specified.
+             * @function toObject
+             * @memberof packets.PacketResponse.Error
+             * @static
              * @param {packets.PacketResponse.Error} message Error
-             * @param {$protobuf.ConversionOptions} [options] Conversion options
+             * @param {$protobuf.IConversionOptions} [options] Conversion options
              * @returns {Object.<string,*>} Plain object
              */
             Error.toObject = function toObject(message, options) {
@@ -1102,16 +1196,10 @@ $root.packets = (function() {
             };
 
             /**
-             * Creates a plain object from this Error message. Also converts values to other types if specified.
-             * @param {$protobuf.ConversionOptions} [options] Conversion options
-             * @returns {Object.<string,*>} Plain object
-             */
-            Error.prototype.toObject = function toObject(options) {
-                return this.constructor.toObject(this, options);
-            };
-
-            /**
              * Converts this Error to JSON.
+             * @function toJSON
+             * @memberof packets.PacketResponse.Error
+             * @instance
              * @returns {Object.<string,*>} JSON object
              */
             Error.prototype.toJSON = function toJSON() {
@@ -1128,16 +1216,17 @@ $root.packets = (function() {
 
         /**
          * Properties of a PacketDiscover.
-         * @typedef packets.PacketDiscover$Properties
-         * @type {Object}
-         * @property {string} sender PacketDiscover sender.
+         * @memberof packets
+         * @interface IPacketDiscover
+         * @property {string} sender PacketDiscover sender
          */
 
         /**
          * Constructs a new PacketDiscover.
-         * @exports packets.PacketDiscover
+         * @memberof packets
+         * @classdesc Represents a PacketDiscover.
          * @constructor
-         * @param {packets.PacketDiscover$Properties=} [properties] Properties to set
+         * @param {packets.IPacketDiscover=} [properties] Properties to set
          */
         function PacketDiscover(properties) {
             if (properties)
@@ -1148,13 +1237,18 @@ $root.packets = (function() {
 
         /**
          * PacketDiscover sender.
-         * @type {string}
+         * @member {string}sender
+         * @memberof packets.PacketDiscover
+         * @instance
          */
         PacketDiscover.prototype.sender = "";
 
         /**
          * Creates a new PacketDiscover instance using the specified properties.
-         * @param {packets.PacketDiscover$Properties=} [properties] Properties to set
+         * @function create
+         * @memberof packets.PacketDiscover
+         * @static
+         * @param {packets.IPacketDiscover=} [properties] Properties to set
          * @returns {packets.PacketDiscover} PacketDiscover instance
          */
         PacketDiscover.create = function create(properties) {
@@ -1163,7 +1257,10 @@ $root.packets = (function() {
 
         /**
          * Encodes the specified PacketDiscover message. Does not implicitly {@link packets.PacketDiscover.verify|verify} messages.
-         * @param {packets.PacketDiscover$Properties} message PacketDiscover message or plain object to encode
+         * @function encode
+         * @memberof packets.PacketDiscover
+         * @static
+         * @param {packets.IPacketDiscover} message PacketDiscover message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -1176,7 +1273,10 @@ $root.packets = (function() {
 
         /**
          * Encodes the specified PacketDiscover message, length delimited. Does not implicitly {@link packets.PacketDiscover.verify|verify} messages.
-         * @param {packets.PacketDiscover$Properties} message PacketDiscover message or plain object to encode
+         * @function encodeDelimited
+         * @memberof packets.PacketDiscover
+         * @static
+         * @param {packets.IPacketDiscover} message PacketDiscover message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -1186,6 +1286,9 @@ $root.packets = (function() {
 
         /**
          * Decodes a PacketDiscover message from the specified reader or buffer.
+         * @function decode
+         * @memberof packets.PacketDiscover
+         * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
          * @returns {packets.PacketDiscover} PacketDiscover
@@ -1214,6 +1317,9 @@ $root.packets = (function() {
 
         /**
          * Decodes a PacketDiscover message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof packets.PacketDiscover
+         * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @returns {packets.PacketDiscover} PacketDiscover
          * @throws {Error} If the payload is not a reader or valid buffer
@@ -1221,14 +1327,17 @@ $root.packets = (function() {
          */
         PacketDiscover.decodeDelimited = function decodeDelimited(reader) {
             if (!(reader instanceof $Reader))
-                reader = $Reader(reader);
+                reader = new $Reader(reader);
             return this.decode(reader, reader.uint32());
         };
 
         /**
          * Verifies a PacketDiscover message.
+         * @function verify
+         * @memberof packets.PacketDiscover
+         * @static
          * @param {Object.<string,*>} message Plain object to verify
-         * @returns {?string} `null` if valid, otherwise the reason why it is not
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
         PacketDiscover.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
@@ -1240,6 +1349,9 @@ $root.packets = (function() {
 
         /**
          * Creates a PacketDiscover message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof packets.PacketDiscover
+         * @static
          * @param {Object.<string,*>} object Plain object
          * @returns {packets.PacketDiscover} PacketDiscover
          */
@@ -1253,18 +1365,12 @@ $root.packets = (function() {
         };
 
         /**
-         * Creates a PacketDiscover message from a plain object. Also converts values to their respective internal types.
-         * This is an alias of {@link packets.PacketDiscover.fromObject}.
-         * @function
-         * @param {Object.<string,*>} object Plain object
-         * @returns {packets.PacketDiscover} PacketDiscover
-         */
-        PacketDiscover.from = PacketDiscover.fromObject;
-
-        /**
          * Creates a plain object from a PacketDiscover message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof packets.PacketDiscover
+         * @static
          * @param {packets.PacketDiscover} message PacketDiscover
-         * @param {$protobuf.ConversionOptions} [options] Conversion options
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
         PacketDiscover.toObject = function toObject(message, options) {
@@ -1279,16 +1385,10 @@ $root.packets = (function() {
         };
 
         /**
-         * Creates a plain object from this PacketDiscover message. Also converts values to other types if specified.
-         * @param {$protobuf.ConversionOptions} [options] Conversion options
-         * @returns {Object.<string,*>} Plain object
-         */
-        PacketDiscover.prototype.toObject = function toObject(options) {
-            return this.constructor.toObject(this, options);
-        };
-
-        /**
          * Converts this PacketDiscover to JSON.
+         * @function toJSON
+         * @memberof packets.PacketDiscover
+         * @instance
          * @returns {Object.<string,*>} JSON object
          */
         PacketDiscover.prototype.toJSON = function toJSON() {
@@ -1302,17 +1402,18 @@ $root.packets = (function() {
 
         /**
          * Properties of a NodeVersions.
-         * @typedef packets.NodeVersions$Properties
-         * @type {Object}
-         * @property {string} node NodeVersions node.
-         * @property {string} moleculer NodeVersions moleculer.
+         * @memberof packets
+         * @interface INodeVersions
+         * @property {string} node NodeVersions node
+         * @property {string} moleculer NodeVersions moleculer
          */
 
         /**
          * Constructs a new NodeVersions.
-         * @exports packets.NodeVersions
+         * @memberof packets
+         * @classdesc Represents a NodeVersions.
          * @constructor
-         * @param {packets.NodeVersions$Properties=} [properties] Properties to set
+         * @param {packets.INodeVersions=} [properties] Properties to set
          */
         function NodeVersions(properties) {
             if (properties)
@@ -1323,19 +1424,26 @@ $root.packets = (function() {
 
         /**
          * NodeVersions node.
-         * @type {string}
+         * @member {string}node
+         * @memberof packets.NodeVersions
+         * @instance
          */
         NodeVersions.prototype.node = "";
 
         /**
          * NodeVersions moleculer.
-         * @type {string}
+         * @member {string}moleculer
+         * @memberof packets.NodeVersions
+         * @instance
          */
         NodeVersions.prototype.moleculer = "";
 
         /**
          * Creates a new NodeVersions instance using the specified properties.
-         * @param {packets.NodeVersions$Properties=} [properties] Properties to set
+         * @function create
+         * @memberof packets.NodeVersions
+         * @static
+         * @param {packets.INodeVersions=} [properties] Properties to set
          * @returns {packets.NodeVersions} NodeVersions instance
          */
         NodeVersions.create = function create(properties) {
@@ -1344,7 +1452,10 @@ $root.packets = (function() {
 
         /**
          * Encodes the specified NodeVersions message. Does not implicitly {@link packets.NodeVersions.verify|verify} messages.
-         * @param {packets.NodeVersions$Properties} message NodeVersions message or plain object to encode
+         * @function encode
+         * @memberof packets.NodeVersions
+         * @static
+         * @param {packets.INodeVersions} message NodeVersions message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -1358,7 +1469,10 @@ $root.packets = (function() {
 
         /**
          * Encodes the specified NodeVersions message, length delimited. Does not implicitly {@link packets.NodeVersions.verify|verify} messages.
-         * @param {packets.NodeVersions$Properties} message NodeVersions message or plain object to encode
+         * @function encodeDelimited
+         * @memberof packets.NodeVersions
+         * @static
+         * @param {packets.INodeVersions} message NodeVersions message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -1368,6 +1482,9 @@ $root.packets = (function() {
 
         /**
          * Decodes a NodeVersions message from the specified reader or buffer.
+         * @function decode
+         * @memberof packets.NodeVersions
+         * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
          * @returns {packets.NodeVersions} NodeVersions
@@ -1401,6 +1518,9 @@ $root.packets = (function() {
 
         /**
          * Decodes a NodeVersions message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof packets.NodeVersions
+         * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @returns {packets.NodeVersions} NodeVersions
          * @throws {Error} If the payload is not a reader or valid buffer
@@ -1408,14 +1528,17 @@ $root.packets = (function() {
          */
         NodeVersions.decodeDelimited = function decodeDelimited(reader) {
             if (!(reader instanceof $Reader))
-                reader = $Reader(reader);
+                reader = new $Reader(reader);
             return this.decode(reader, reader.uint32());
         };
 
         /**
          * Verifies a NodeVersions message.
+         * @function verify
+         * @memberof packets.NodeVersions
+         * @static
          * @param {Object.<string,*>} message Plain object to verify
-         * @returns {?string} `null` if valid, otherwise the reason why it is not
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
         NodeVersions.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
@@ -1429,6 +1552,9 @@ $root.packets = (function() {
 
         /**
          * Creates a NodeVersions message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof packets.NodeVersions
+         * @static
          * @param {Object.<string,*>} object Plain object
          * @returns {packets.NodeVersions} NodeVersions
          */
@@ -1444,18 +1570,12 @@ $root.packets = (function() {
         };
 
         /**
-         * Creates a NodeVersions message from a plain object. Also converts values to their respective internal types.
-         * This is an alias of {@link packets.NodeVersions.fromObject}.
-         * @function
-         * @param {Object.<string,*>} object Plain object
-         * @returns {packets.NodeVersions} NodeVersions
-         */
-        NodeVersions.from = NodeVersions.fromObject;
-
-        /**
          * Creates a plain object from a NodeVersions message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof packets.NodeVersions
+         * @static
          * @param {packets.NodeVersions} message NodeVersions
-         * @param {$protobuf.ConversionOptions} [options] Conversion options
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
         NodeVersions.toObject = function toObject(message, options) {
@@ -1474,16 +1594,10 @@ $root.packets = (function() {
         };
 
         /**
-         * Creates a plain object from this NodeVersions message. Also converts values to other types if specified.
-         * @param {$protobuf.ConversionOptions} [options] Conversion options
-         * @returns {Object.<string,*>} Plain object
-         */
-        NodeVersions.prototype.toObject = function toObject(options) {
-            return this.constructor.toObject(this, options);
-        };
-
-        /**
          * Converts this NodeVersions to JSON.
+         * @function toJSON
+         * @memberof packets.NodeVersions
+         * @instance
          * @returns {Object.<string,*>} JSON object
          */
         NodeVersions.prototype.toJSON = function toJSON() {
@@ -1497,20 +1611,21 @@ $root.packets = (function() {
 
         /**
          * Properties of a PacketInfo.
-         * @typedef packets.PacketInfo$Properties
-         * @type {Object}
-         * @property {string} sender PacketInfo sender.
-         * @property {string} services PacketInfo services.
-         * @property {number} uptime PacketInfo uptime.
-         * @property {Array.<string>} [ipList] PacketInfo ipList.
-         * @property {packets.NodeVersions$Properties} versions PacketInfo versions.
+         * @memberof packets
+         * @interface IPacketInfo
+         * @property {string} sender PacketInfo sender
+         * @property {string} services PacketInfo services
+         * @property {number} uptime PacketInfo uptime
+         * @property {Array.<string>} [ipList] PacketInfo ipList
+         * @property {packets.INodeVersions} versions PacketInfo versions
          */
 
         /**
          * Constructs a new PacketInfo.
-         * @exports packets.PacketInfo
+         * @memberof packets
+         * @classdesc Represents a PacketInfo.
          * @constructor
-         * @param {packets.PacketInfo$Properties=} [properties] Properties to set
+         * @param {packets.IPacketInfo=} [properties] Properties to set
          */
         function PacketInfo(properties) {
             this.ipList = [];
@@ -1522,37 +1637,50 @@ $root.packets = (function() {
 
         /**
          * PacketInfo sender.
-         * @type {string}
+         * @member {string}sender
+         * @memberof packets.PacketInfo
+         * @instance
          */
         PacketInfo.prototype.sender = "";
 
         /**
          * PacketInfo services.
-         * @type {string}
+         * @member {string}services
+         * @memberof packets.PacketInfo
+         * @instance
          */
         PacketInfo.prototype.services = "";
 
         /**
          * PacketInfo uptime.
-         * @type {number}
+         * @member {number}uptime
+         * @memberof packets.PacketInfo
+         * @instance
          */
         PacketInfo.prototype.uptime = 0;
 
         /**
          * PacketInfo ipList.
-         * @type {Array.<string>}
+         * @member {Array.<string>}ipList
+         * @memberof packets.PacketInfo
+         * @instance
          */
         PacketInfo.prototype.ipList = $util.emptyArray;
 
         /**
          * PacketInfo versions.
-         * @type {packets.NodeVersions$Properties}
+         * @member {packets.INodeVersions}versions
+         * @memberof packets.PacketInfo
+         * @instance
          */
         PacketInfo.prototype.versions = null;
 
         /**
          * Creates a new PacketInfo instance using the specified properties.
-         * @param {packets.PacketInfo$Properties=} [properties] Properties to set
+         * @function create
+         * @memberof packets.PacketInfo
+         * @static
+         * @param {packets.IPacketInfo=} [properties] Properties to set
          * @returns {packets.PacketInfo} PacketInfo instance
          */
         PacketInfo.create = function create(properties) {
@@ -1561,7 +1689,10 @@ $root.packets = (function() {
 
         /**
          * Encodes the specified PacketInfo message. Does not implicitly {@link packets.PacketInfo.verify|verify} messages.
-         * @param {packets.PacketInfo$Properties} message PacketInfo message or plain object to encode
+         * @function encode
+         * @memberof packets.PacketInfo
+         * @static
+         * @param {packets.IPacketInfo} message PacketInfo message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -1580,7 +1711,10 @@ $root.packets = (function() {
 
         /**
          * Encodes the specified PacketInfo message, length delimited. Does not implicitly {@link packets.PacketInfo.verify|verify} messages.
-         * @param {packets.PacketInfo$Properties} message PacketInfo message or plain object to encode
+         * @function encodeDelimited
+         * @memberof packets.PacketInfo
+         * @static
+         * @param {packets.IPacketInfo} message PacketInfo message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -1590,6 +1724,9 @@ $root.packets = (function() {
 
         /**
          * Decodes a PacketInfo message from the specified reader or buffer.
+         * @function decode
+         * @memberof packets.PacketInfo
+         * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
          * @returns {packets.PacketInfo} PacketInfo
@@ -1638,6 +1775,9 @@ $root.packets = (function() {
 
         /**
          * Decodes a PacketInfo message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof packets.PacketInfo
+         * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @returns {packets.PacketInfo} PacketInfo
          * @throws {Error} If the payload is not a reader or valid buffer
@@ -1645,14 +1785,17 @@ $root.packets = (function() {
          */
         PacketInfo.decodeDelimited = function decodeDelimited(reader) {
             if (!(reader instanceof $Reader))
-                reader = $Reader(reader);
+                reader = new $Reader(reader);
             return this.decode(reader, reader.uint32());
         };
 
         /**
          * Verifies a PacketInfo message.
+         * @function verify
+         * @memberof packets.PacketInfo
+         * @static
          * @param {Object.<string,*>} message Plain object to verify
-         * @returns {?string} `null` if valid, otherwise the reason why it is not
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
         PacketInfo.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
@@ -1678,6 +1821,9 @@ $root.packets = (function() {
 
         /**
          * Creates a PacketInfo message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof packets.PacketInfo
+         * @static
          * @param {Object.<string,*>} object Plain object
          * @returns {packets.PacketInfo} PacketInfo
          */
@@ -1707,18 +1853,12 @@ $root.packets = (function() {
         };
 
         /**
-         * Creates a PacketInfo message from a plain object. Also converts values to their respective internal types.
-         * This is an alias of {@link packets.PacketInfo.fromObject}.
-         * @function
-         * @param {Object.<string,*>} object Plain object
-         * @returns {packets.PacketInfo} PacketInfo
-         */
-        PacketInfo.from = PacketInfo.fromObject;
-
-        /**
          * Creates a plain object from a PacketInfo message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof packets.PacketInfo
+         * @static
          * @param {packets.PacketInfo} message PacketInfo
-         * @param {$protobuf.ConversionOptions} [options] Conversion options
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
         PacketInfo.toObject = function toObject(message, options) {
@@ -1738,7 +1878,7 @@ $root.packets = (function() {
             if (message.services != null && message.hasOwnProperty("services"))
                 object.services = message.services;
             if (message.uptime != null && message.hasOwnProperty("uptime"))
-                object.uptime = message.uptime;
+                object.uptime = options.json && !isFinite(message.uptime) ? String(message.uptime) : message.uptime;
             if (message.ipList && message.ipList.length) {
                 object.ipList = [];
                 for (var j = 0; j < message.ipList.length; ++j)
@@ -1750,16 +1890,10 @@ $root.packets = (function() {
         };
 
         /**
-         * Creates a plain object from this PacketInfo message. Also converts values to other types if specified.
-         * @param {$protobuf.ConversionOptions} [options] Conversion options
-         * @returns {Object.<string,*>} Plain object
-         */
-        PacketInfo.prototype.toObject = function toObject(options) {
-            return this.constructor.toObject(this, options);
-        };
-
-        /**
          * Converts this PacketInfo to JSON.
+         * @function toJSON
+         * @memberof packets.PacketInfo
+         * @instance
          * @returns {Object.<string,*>} JSON object
          */
         PacketInfo.prototype.toJSON = function toJSON() {
@@ -1773,16 +1907,17 @@ $root.packets = (function() {
 
         /**
          * Properties of a PacketDisconnect.
-         * @typedef packets.PacketDisconnect$Properties
-         * @type {Object}
-         * @property {string} sender PacketDisconnect sender.
+         * @memberof packets
+         * @interface IPacketDisconnect
+         * @property {string} sender PacketDisconnect sender
          */
 
         /**
          * Constructs a new PacketDisconnect.
-         * @exports packets.PacketDisconnect
+         * @memberof packets
+         * @classdesc Represents a PacketDisconnect.
          * @constructor
-         * @param {packets.PacketDisconnect$Properties=} [properties] Properties to set
+         * @param {packets.IPacketDisconnect=} [properties] Properties to set
          */
         function PacketDisconnect(properties) {
             if (properties)
@@ -1793,13 +1928,18 @@ $root.packets = (function() {
 
         /**
          * PacketDisconnect sender.
-         * @type {string}
+         * @member {string}sender
+         * @memberof packets.PacketDisconnect
+         * @instance
          */
         PacketDisconnect.prototype.sender = "";
 
         /**
          * Creates a new PacketDisconnect instance using the specified properties.
-         * @param {packets.PacketDisconnect$Properties=} [properties] Properties to set
+         * @function create
+         * @memberof packets.PacketDisconnect
+         * @static
+         * @param {packets.IPacketDisconnect=} [properties] Properties to set
          * @returns {packets.PacketDisconnect} PacketDisconnect instance
          */
         PacketDisconnect.create = function create(properties) {
@@ -1808,7 +1948,10 @@ $root.packets = (function() {
 
         /**
          * Encodes the specified PacketDisconnect message. Does not implicitly {@link packets.PacketDisconnect.verify|verify} messages.
-         * @param {packets.PacketDisconnect$Properties} message PacketDisconnect message or plain object to encode
+         * @function encode
+         * @memberof packets.PacketDisconnect
+         * @static
+         * @param {packets.IPacketDisconnect} message PacketDisconnect message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -1821,7 +1964,10 @@ $root.packets = (function() {
 
         /**
          * Encodes the specified PacketDisconnect message, length delimited. Does not implicitly {@link packets.PacketDisconnect.verify|verify} messages.
-         * @param {packets.PacketDisconnect$Properties} message PacketDisconnect message or plain object to encode
+         * @function encodeDelimited
+         * @memberof packets.PacketDisconnect
+         * @static
+         * @param {packets.IPacketDisconnect} message PacketDisconnect message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -1831,6 +1977,9 @@ $root.packets = (function() {
 
         /**
          * Decodes a PacketDisconnect message from the specified reader or buffer.
+         * @function decode
+         * @memberof packets.PacketDisconnect
+         * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
          * @returns {packets.PacketDisconnect} PacketDisconnect
@@ -1859,6 +2008,9 @@ $root.packets = (function() {
 
         /**
          * Decodes a PacketDisconnect message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof packets.PacketDisconnect
+         * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @returns {packets.PacketDisconnect} PacketDisconnect
          * @throws {Error} If the payload is not a reader or valid buffer
@@ -1866,14 +2018,17 @@ $root.packets = (function() {
          */
         PacketDisconnect.decodeDelimited = function decodeDelimited(reader) {
             if (!(reader instanceof $Reader))
-                reader = $Reader(reader);
+                reader = new $Reader(reader);
             return this.decode(reader, reader.uint32());
         };
 
         /**
          * Verifies a PacketDisconnect message.
+         * @function verify
+         * @memberof packets.PacketDisconnect
+         * @static
          * @param {Object.<string,*>} message Plain object to verify
-         * @returns {?string} `null` if valid, otherwise the reason why it is not
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
         PacketDisconnect.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
@@ -1885,6 +2040,9 @@ $root.packets = (function() {
 
         /**
          * Creates a PacketDisconnect message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof packets.PacketDisconnect
+         * @static
          * @param {Object.<string,*>} object Plain object
          * @returns {packets.PacketDisconnect} PacketDisconnect
          */
@@ -1898,18 +2056,12 @@ $root.packets = (function() {
         };
 
         /**
-         * Creates a PacketDisconnect message from a plain object. Also converts values to their respective internal types.
-         * This is an alias of {@link packets.PacketDisconnect.fromObject}.
-         * @function
-         * @param {Object.<string,*>} object Plain object
-         * @returns {packets.PacketDisconnect} PacketDisconnect
-         */
-        PacketDisconnect.from = PacketDisconnect.fromObject;
-
-        /**
          * Creates a plain object from a PacketDisconnect message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof packets.PacketDisconnect
+         * @static
          * @param {packets.PacketDisconnect} message PacketDisconnect
-         * @param {$protobuf.ConversionOptions} [options] Conversion options
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
         PacketDisconnect.toObject = function toObject(message, options) {
@@ -1924,16 +2076,10 @@ $root.packets = (function() {
         };
 
         /**
-         * Creates a plain object from this PacketDisconnect message. Also converts values to other types if specified.
-         * @param {$protobuf.ConversionOptions} [options] Conversion options
-         * @returns {Object.<string,*>} Plain object
-         */
-        PacketDisconnect.prototype.toObject = function toObject(options) {
-            return this.constructor.toObject(this, options);
-        };
-
-        /**
          * Converts this PacketDisconnect to JSON.
+         * @function toJSON
+         * @memberof packets.PacketDisconnect
+         * @instance
          * @returns {Object.<string,*>} JSON object
          */
         PacketDisconnect.prototype.toJSON = function toJSON() {
@@ -1947,17 +2093,18 @@ $root.packets = (function() {
 
         /**
          * Properties of a PacketHeartbeat.
-         * @typedef packets.PacketHeartbeat$Properties
-         * @type {Object}
-         * @property {string} sender PacketHeartbeat sender.
-         * @property {number} uptime PacketHeartbeat uptime.
+         * @memberof packets
+         * @interface IPacketHeartbeat
+         * @property {string} sender PacketHeartbeat sender
+         * @property {number} uptime PacketHeartbeat uptime
          */
 
         /**
          * Constructs a new PacketHeartbeat.
-         * @exports packets.PacketHeartbeat
+         * @memberof packets
+         * @classdesc Represents a PacketHeartbeat.
          * @constructor
-         * @param {packets.PacketHeartbeat$Properties=} [properties] Properties to set
+         * @param {packets.IPacketHeartbeat=} [properties] Properties to set
          */
         function PacketHeartbeat(properties) {
             if (properties)
@@ -1968,19 +2115,26 @@ $root.packets = (function() {
 
         /**
          * PacketHeartbeat sender.
-         * @type {string}
+         * @member {string}sender
+         * @memberof packets.PacketHeartbeat
+         * @instance
          */
         PacketHeartbeat.prototype.sender = "";
 
         /**
          * PacketHeartbeat uptime.
-         * @type {number}
+         * @member {number}uptime
+         * @memberof packets.PacketHeartbeat
+         * @instance
          */
         PacketHeartbeat.prototype.uptime = 0;
 
         /**
          * Creates a new PacketHeartbeat instance using the specified properties.
-         * @param {packets.PacketHeartbeat$Properties=} [properties] Properties to set
+         * @function create
+         * @memberof packets.PacketHeartbeat
+         * @static
+         * @param {packets.IPacketHeartbeat=} [properties] Properties to set
          * @returns {packets.PacketHeartbeat} PacketHeartbeat instance
          */
         PacketHeartbeat.create = function create(properties) {
@@ -1989,7 +2143,10 @@ $root.packets = (function() {
 
         /**
          * Encodes the specified PacketHeartbeat message. Does not implicitly {@link packets.PacketHeartbeat.verify|verify} messages.
-         * @param {packets.PacketHeartbeat$Properties} message PacketHeartbeat message or plain object to encode
+         * @function encode
+         * @memberof packets.PacketHeartbeat
+         * @static
+         * @param {packets.IPacketHeartbeat} message PacketHeartbeat message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -2003,7 +2160,10 @@ $root.packets = (function() {
 
         /**
          * Encodes the specified PacketHeartbeat message, length delimited. Does not implicitly {@link packets.PacketHeartbeat.verify|verify} messages.
-         * @param {packets.PacketHeartbeat$Properties} message PacketHeartbeat message or plain object to encode
+         * @function encodeDelimited
+         * @memberof packets.PacketHeartbeat
+         * @static
+         * @param {packets.IPacketHeartbeat} message PacketHeartbeat message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -2013,6 +2173,9 @@ $root.packets = (function() {
 
         /**
          * Decodes a PacketHeartbeat message from the specified reader or buffer.
+         * @function decode
+         * @memberof packets.PacketHeartbeat
+         * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
          * @returns {packets.PacketHeartbeat} PacketHeartbeat
@@ -2046,6 +2209,9 @@ $root.packets = (function() {
 
         /**
          * Decodes a PacketHeartbeat message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof packets.PacketHeartbeat
+         * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @returns {packets.PacketHeartbeat} PacketHeartbeat
          * @throws {Error} If the payload is not a reader or valid buffer
@@ -2053,14 +2219,17 @@ $root.packets = (function() {
          */
         PacketHeartbeat.decodeDelimited = function decodeDelimited(reader) {
             if (!(reader instanceof $Reader))
-                reader = $Reader(reader);
+                reader = new $Reader(reader);
             return this.decode(reader, reader.uint32());
         };
 
         /**
          * Verifies a PacketHeartbeat message.
+         * @function verify
+         * @memberof packets.PacketHeartbeat
+         * @static
          * @param {Object.<string,*>} message Plain object to verify
-         * @returns {?string} `null` if valid, otherwise the reason why it is not
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
         PacketHeartbeat.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
@@ -2074,6 +2243,9 @@ $root.packets = (function() {
 
         /**
          * Creates a PacketHeartbeat message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof packets.PacketHeartbeat
+         * @static
          * @param {Object.<string,*>} object Plain object
          * @returns {packets.PacketHeartbeat} PacketHeartbeat
          */
@@ -2089,18 +2261,12 @@ $root.packets = (function() {
         };
 
         /**
-         * Creates a PacketHeartbeat message from a plain object. Also converts values to their respective internal types.
-         * This is an alias of {@link packets.PacketHeartbeat.fromObject}.
-         * @function
-         * @param {Object.<string,*>} object Plain object
-         * @returns {packets.PacketHeartbeat} PacketHeartbeat
-         */
-        PacketHeartbeat.from = PacketHeartbeat.fromObject;
-
-        /**
          * Creates a plain object from a PacketHeartbeat message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof packets.PacketHeartbeat
+         * @static
          * @param {packets.PacketHeartbeat} message PacketHeartbeat
-         * @param {$protobuf.ConversionOptions} [options] Conversion options
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
         PacketHeartbeat.toObject = function toObject(message, options) {
@@ -2114,21 +2280,15 @@ $root.packets = (function() {
             if (message.sender != null && message.hasOwnProperty("sender"))
                 object.sender = message.sender;
             if (message.uptime != null && message.hasOwnProperty("uptime"))
-                object.uptime = message.uptime;
+                object.uptime = options.json && !isFinite(message.uptime) ? String(message.uptime) : message.uptime;
             return object;
         };
 
         /**
-         * Creates a plain object from this PacketHeartbeat message. Also converts values to other types if specified.
-         * @param {$protobuf.ConversionOptions} [options] Conversion options
-         * @returns {Object.<string,*>} Plain object
-         */
-        PacketHeartbeat.prototype.toObject = function toObject(options) {
-            return this.constructor.toObject(this, options);
-        };
-
-        /**
          * Converts this PacketHeartbeat to JSON.
+         * @function toJSON
+         * @memberof packets.PacketHeartbeat
+         * @instance
          * @returns {Object.<string,*>} JSON object
          */
         PacketHeartbeat.prototype.toJSON = function toJSON() {

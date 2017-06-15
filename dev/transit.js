@@ -6,7 +6,7 @@ let ServiceBroker = require("../src/service-broker");
 let Transporter = require("../src/transporters/nats");
 let Cacher = require("../src/cachers/redis");
 
-let Serializer = require("../src/serializers/json");
+let Serializer = require("../src/serializers/protobuf");
 
 // --- NODE 1 ---
 

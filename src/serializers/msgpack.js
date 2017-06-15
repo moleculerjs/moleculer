@@ -36,10 +36,10 @@ class MsgPackSerializer extends BaseSerializer {
 	}
 
 	/**
-	 * Serializer a JS object to string or Buffer
+	 * Serializer a JS object to Buffer
 	 * 
 	 * @param {Object} obj
-	 * @returns {String|Buffer}
+	 * @returns {Buffer}
 	 * 
 	 * @memberOf Serializer
 	 */
@@ -49,15 +49,15 @@ class MsgPackSerializer extends BaseSerializer {
 	}
 
 	/**
-	 * Deserialize string/Buffer to JS object
+	 * Deserialize Buffer to JS object
 	 * 
-	 * @param {String|Buffer} str
+	 * @param {Buffer} str
 	 * @returns {Object}
 	 * 
 	 * @memberOf Serializer
 	 */
-	deserialize(str) {
-		const res = this.msgpack.decode(str);
+	deserialize(buf) {
+		const res = this.msgpack.decode(buf);
 		return res;
 	}
 }

@@ -51,40 +51,41 @@ class ProtoBufSerializer extends BaseSerializer {
 	}
 
 	/**
-	 * Serializer a JS object to string or Buffer
+	 * Serializer a JS object to Buffer
 	 * 
 	 * @param {Object} obj
 	 * @param {String} type of packet
-	 * @returns {String|Buffer}
+	 * @returns {Buffer}
 	 * 
 	 * @memberOf Serializer
 	 */
 	serialize(obj, type) {
 		const p = this.getPacketFromType(type);	
-		if (!p)
+		if (!p) {
 			/* istanbul ignore next */
 			throw new Error("Invalid packet type!");
-
+		}
+		
 		const buf = p.encode(obj).finish();
-		return buf.toString("binary");
+		return buf;
 	}
 
 	/**
-	 * Deserialize string/Buffer to JS object
+	 * Deserialize Buffer to JS object
 	 * 
-	 * @param {String|Buffer} str
+	 * @param {Buffer} buf
 	 * @param {String} type of packet
 	 * @returns {Object}
 	 * 
 	 * @memberOf Serializer
 	 */
-	deserialize(str, type) {
+	deserialize(buf, type) {
 		const p = this.getPacketFromType(type);	
-		if (!p)
+		if (!p) {
 			/* istanbul ignore next */
 			throw new Error("Invalid packet type!");
+		}
 
-		const buf = Buffer.from(str, "binary");
 		return p.decode(buf);
 	}
 }

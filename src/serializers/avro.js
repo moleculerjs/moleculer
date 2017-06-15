@@ -32,7 +32,7 @@ function createSchemas() {
 			{ name: "action", type: "string" },
 			{ name: "params", type: "string" },
 			{ name: "meta", type: "string" },
-			{ name: "timeout", type: "int" },
+			{ name: "timeout", type: "double" },
 			{ name: "level", type: "int" },
 			{ name: "metrics", type: "boolean" },
 			{ name: "parentID", type: [ "null", "string"], default: null }
@@ -141,32 +141,30 @@ class AvroSerializer extends BaseSerializer {
 	}
 
 	/**
-	 * Serializer a JS object to string or Buffer
+	 * Serializer a JS object to Buffer
 	 * 
 	 * @param {Object} obj
 	 * @param {String} type of packet
-	 * @returns {String|Buffer}
+	 * @returns {Buffer}
 	 * 
 	 * @memberOf Serializer
 	 */
 	serialize(obj, type) {
-		//const t = schemas[type].toBuffer(obj);
-		const t = this.schemas[type].toBuffer(obj).toString("binary");
+		const t = this.schemas[type].toBuffer(obj);
 		return t;
 	}
 
 	/**
-	 * Deserialize string/Buffer to JS object
+	 * Deserialize Buffer to JS object
 	 * 
-	 * @param {String|Buffer} str
+	 * @param {Buffer} buf
 	 * @param {String} type of packet
 	 * @returns {Object}
 	 * 
 	 * @memberOf Serializer
 	 */
-	deserialize(str, type) {
-		//const res = schemas[type].fromBuffer(str);
-		const res = this.schemas[type].fromBuffer(Buffer.from(str, "binary"));
+	deserialize(buf, type) {
+		const res = this.schemas[type].fromBuffer(buf);
 		return res;
 	}
 }
