@@ -1,3 +1,4 @@
+/*eslint-disable no-console */
 "use strict";
 
 const path = require("path");
@@ -273,6 +274,44 @@ describe("Test broker.getLogger", () => {
 	expect(logger1).toBe(logger3);
 
 	expect(Object.keys(broker._loggerCache).length).toBe(2 + 1); // +1 logger of broker
+});
+
+describe("Test broker.getLogger", () => {
+
+	let broker = new ServiceBroker();
+
+	broker.logger.fatal = jest.fn();
+	broker.logger.debug = jest.fn();
+	console.error = jest.fn();
+	process.exit = jest.fn();
+
+	it("should log the message to console & logger", () => {
+		broker.fatal("Fatal error happened!");
+
+		expect(broker.logger.fatal).toHaveBeenCalledTimes(1);
+		expect(broker.logger.fatal).toHaveBeenCalledWith("Fatal error happened!");
+		expect(console.error).toHaveBeenCalledTimes(1);
+		expect(console.error).toHaveBeenCalledWith("Fatal error happened!");
+		expect(broker.logger.debug).toHaveBeenCalledTimes(0);
+		expect(process.exit).toHaveBeenCalledTimes(1);
+		expect(process.exit).toHaveBeenCalledWith(2);
+	});
+
+	it("should log the message & error and doesn't call exit", () => {
+		broker.logger.fatal.mockClear();
+		console.error.mockClear();
+		process.exit.mockClear();
+		const err = new Error("Fatal");
+		broker.fatal("Fatal error happened!", err, false);
+
+		expect(broker.logger.fatal).toHaveBeenCalledTimes(1);
+		expect(broker.logger.fatal).toHaveBeenCalledWith("Fatal error happened!");
+		expect(console.error).toHaveBeenCalledTimes(1);
+		expect(console.error).toHaveBeenCalledWith("Fatal error happened!");
+		expect(broker.logger.debug).toHaveBeenCalledTimes(1);
+		expect(broker.logger.debug).toHaveBeenCalledWith("ERROR", err);
+		expect(process.exit).toHaveBeenCalledTimes(0);
+	});
 });
 
 describe("Test loadServices", () => {
