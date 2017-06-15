@@ -498,7 +498,7 @@ class Transit {
 	 * Serialize the object
 	 * 
 	 * @param {Object} obj 
-	 * @returns {String}
+	 * @returns {Buffer}
 	 * 
 	 * @memberOf Transit
 	 */
@@ -507,17 +507,17 @@ class Transit {
 	}
 
 	/**
-	 * Deserialize the incoming string to object
+	 * Deserialize the incoming Buffer to object
 	 * 
-	 * @param {String} str 
+	 * @param {Buffer} buf
 	 * @returns {any}
 	 * 
 	 * @memberOf Transit
 	 */
-	deserialize(str, type) {
-		if (str == null) return null;
+	deserialize(buf, type) {
+		if (buf == null) return null;
 		
-		return this.broker.serializer.deserialize(str, type);
+		return this.broker.serializer.deserialize(buf, type);
 	}
 
 	/**

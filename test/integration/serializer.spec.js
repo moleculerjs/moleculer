@@ -238,7 +238,7 @@ describe("Test Avro serializer", () => {
 	it("should serialize the request packet", () => {
 		const packet = new P.PacketRequest(broker.transit, "test-2", ctx);
 		const s = packet.serialize();
-		expect(s.length).toBe(76);
+		expect(s.length).toBe(82);
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_REQUEST, s);
 		expect(res).toBeInstanceOf(P.PacketRequest);
@@ -510,7 +510,7 @@ describe("Test ProtoBuf serializer", () => {
 	it("should serialize the request packet", () => {
 		const packet = new P.PacketRequest(broker.transit, "test-2", ctx);
 		const s = packet.serialize();
-		expect(s.length).toBe(84);
+		expect(s.length).toBe(90);
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_REQUEST, s);
 		expect(res).toBeInstanceOf(P.PacketRequest);

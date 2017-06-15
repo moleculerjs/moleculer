@@ -60,7 +60,7 @@ describe("Test RedisTransporter connect & disconnect", () => {
 			expect(transporter.clientSub.on).toHaveBeenCalledWith("connect", jasmine.any(Function));
 			expect(transporter.clientSub.on).toHaveBeenCalledWith("error", jasmine.any(Function));
 			expect(transporter.clientSub.on).toHaveBeenCalledWith("close", jasmine.any(Function));
-			expect(transporter.clientSub.on).toHaveBeenCalledWith("message", jasmine.any(Function));
+			expect(transporter.clientSub.on).toHaveBeenCalledWith("messageBuffer", jasmine.any(Function));
 
 			expect(transporter.clientPub).toBeDefined();
 			expect(transporter.clientPub.on).toHaveBeenCalledTimes(3);
@@ -138,9 +138,10 @@ describe("Test RedisTransporter subscribe & publish", () => {
 
 	it("check incoming message handler", () => {
 		// Test subscribe callback
-		transporter.clientSub.onCallbacks.message("prefix.event", "incoming data");
+		const buf = Buffer.from("incoming data");
+		transporter.clientSub.onCallbacks.messageBuffer("prefix.event", buf);
 		expect(msgHandler).toHaveBeenCalledTimes(1);
-		expect(msgHandler).toHaveBeenCalledWith("event", "incoming data");
+		expect(msgHandler).toHaveBeenCalledWith("event", buf);
 	});
 
 	it("check publish", () => {

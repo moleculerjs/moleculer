@@ -27,20 +27,26 @@ describe("Test NatsTransporter constructor", () => {
 	it("check constructor", () => {
 		let transporter = new NatsTransporter();
 		expect(transporter).toBeDefined();
-		expect(transporter.opts).toEqual({});
+		expect(transporter.opts).toEqual({ nats: { preserveBuffers: true }});
 		expect(transporter.connected).toBe(false);
 		expect(transporter.client).toBeNull();
 	});
 
 	it("check constructor with string param", () => {
 		let transporter = new NatsTransporter("nats://localhost");
-		expect(transporter.opts).toEqual({ nats: "nats://localhost"});
+		expect(transporter.opts).toEqual({ nats: { preserveBuffers: true, url: "nats://localhost" }});
 	});
 
 	it("check constructor with options", () => {
 		let opts = { nats: { host: "localhost", port: 1234} };
 		let transporter = new NatsTransporter(opts);
-		expect(transporter.opts).toBe(opts);
+		expect(transporter.opts).toEqual({ nats: { host: "localhost", port: 1234, preserveBuffers: true } });
+	});
+
+	it("check constructor with disabled preserveBuffers", () => {
+		let opts = { nats: { preserveBuffers: false } };
+		let transporter = new NatsTransporter(opts);
+		expect(transporter.opts).toEqual({ nats: { preserveBuffers: false } });
 	});
 });
 

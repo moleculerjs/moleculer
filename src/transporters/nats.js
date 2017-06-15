@@ -30,7 +30,7 @@ class NatsTransporter extends Transporter {
 		super(opts);
 		
 		if (typeof this.opts == "string")
-			this.opts = { nats: this.opts };
+			this.opts = { nats: { url: this.opts } };
 
 		// Use the 'preserveBuffers' option as true as default
 		if (!this.opts.nats || this.opts.nats.preserveBuffers !== false) {
