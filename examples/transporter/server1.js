@@ -4,7 +4,7 @@ let { delay } = require("../../src/utils");
 
 let ServiceBroker = require("../../src/service-broker");
 let NatsTransporter = require("../../src/transporters/nats");
-//let Serializer = require("../../src/serializers/protobuf");
+let Serializer = require("../../src/serializers/protobuf");
 
 // Create broker
 let broker = new ServiceBroker({
@@ -28,16 +28,16 @@ broker.on("TEST2", a => {
 });
 
 Promise.resolve()
-.then(delay(1000))
+	.then(delay(1000))
 
-.then(() => {
-	broker.call("v2.users.find").then(res => {
-		broker.logger.info("[server-1] Success!", res.length);
-	}).catch(err => {
-		broker.logger.error("[server-1] Error!", err.message);
-	});	
+	.then(() => {
+		broker.call("v2.users.find").then(res => {
+			broker.logger.info("[server-1] Success!", res.length);
+		}).catch(err => {
+			broker.logger.error("[server-1] Error!", err.message);
+		});	
 
-})
+	})
 /*
 .then(() => {
 	
@@ -52,12 +52,12 @@ Promise.resolve()
 	
 })
 */
-.then(() => {
+	.then(() => {
 	//broker.call("users.dangerous").catch(err => console.error(err));
-})
+	})
 
-.then(() => {
-	setInterval(() => {
-		broker.emit("TEST1", { a: c++ });
-	}, 10 * 1000);
-});
+	.then(() => {
+		setInterval(() => {
+			broker.emit("TEST1", { a: c++ });
+		}, 10 * 1000);
+	});
