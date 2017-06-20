@@ -10,7 +10,7 @@ let NatsTransporter = require("../../src/transporters/nats");
 // Create broker
 let broker = new ServiceBroker({
 	nodeID: process.argv[2] || "client-" + process.pid,
-	transporter: new NatsTransporter(),
+	transporter: "NATS",
 
 	registry: {
 		strategy: STRATEGY_ROUND_ROBIN

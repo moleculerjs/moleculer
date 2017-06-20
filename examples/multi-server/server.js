@@ -4,12 +4,11 @@ let path = require("path");
 let _ = require("lodash");
 let ServiceBroker = require("../../src/service-broker");
 let { MoleculerError } = require("../../src/errors");
-let NatsTransporter = require("../../src/transporters/nats");
 
 // Create broker
 let broker = new ServiceBroker({
 	nodeID: process.argv[2] || "server-" + process.pid,
-	transporter: new NatsTransporter(),
+	transporter: "NATS",
 	logger: console
 });
 

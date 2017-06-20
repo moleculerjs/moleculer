@@ -167,7 +167,10 @@ class ServiceBroker {
 		if (opt instanceof Transporters.Base) {
 			return opt;
 		} else if (_.isString(opt)) {
-			let TransporterClass;
+			let TransporterClass = Transporters[opt];
+			if (TransporterClass)
+				return new TransporterClass();
+
 			if (opt.startsWith("nats://"))
 				TransporterClass = Transporters.NATS;
 			else if (opt.startsWith("mqtt://"))

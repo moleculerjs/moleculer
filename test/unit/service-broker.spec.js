@@ -209,18 +209,33 @@ describe("Test option resolvers", () => {
 			expect(trans).toBeNull();
 		});
 
-		it("should resolve NATSTransporter from string", () => {
+		it("should resolve NATSTransporter from connection string", () => {
 			let trans = broker._resolveTransporter("nats://localhost:4222");
 			expect(trans).toBeInstanceOf(Transporters.NATS);
 		});
 
-		it("should resolve MQTTTransporter from string", () => {
+		it("should resolve NATSTransporter from string", () => {
+			let trans = broker._resolveTransporter("NATS");
+			expect(trans).toBeInstanceOf(Transporters.NATS);
+		});
+
+		it("should resolve MQTTTransporter from connection string", () => {
 			let trans = broker._resolveTransporter("mqtt://localhost");
 			expect(trans).toBeInstanceOf(Transporters.MQTT);
 		});
 
-		it("should resolve RedisTransporter from string", () => {
+		it("should resolve MQTTTransporter from string", () => {
+			let trans = broker._resolveTransporter("MQTT");
+			expect(trans).toBeInstanceOf(Transporters.MQTT);
+		});
+
+		it("should resolve RedisTransporter from connection string", () => {
 			let trans = broker._resolveTransporter("redis://localhost");
+			expect(trans).toBeInstanceOf(Transporters.Redis);
+		});
+
+		it("should resolve RedisTransporter from string", () => {
+			let trans = broker._resolveTransporter("Redis");
 			expect(trans).toBeInstanceOf(Transporters.Redis);
 		});
 
@@ -238,7 +253,7 @@ describe("Test option resolvers", () => {
 			expect(trans.opts).toEqual({ prefix: "moleculer", mqtt: "mqtt://localhost" });
 		});
 
-		it("should resolve Redistrans from obj with Redis type", () => {
+		it("should resolve RedisTransporter from obj with Redis type", () => {
 			let options = { prefix: "mol-redis", redis: { database: 3 } };
 			let trans = broker._resolveTransporter({ type: "Redis", options });
 			expect(trans).toBeInstanceOf(Transporters.Redis);
@@ -247,11 +262,11 @@ describe("Test option resolvers", () => {
 
 		it("should throw error if type if not correct", () => {
 			expect(() => {
-				let trans = broker._resolveTransporter({ type: "xyz" });
+				broker._resolveTransporter({ type: "xyz" });
 			}).toThrowError(MoleculerError);
 
 			expect(() => {
-				let trans = broker._resolveTransporter("xyz");
+				broker._resolveTransporter("xyz");
 			}).toThrowError(MoleculerError);
 		});
 		
@@ -304,11 +319,11 @@ describe("Test option resolvers", () => {
 
 		it("should throw error if type if not correct", () => {
 			expect(() => {
-				let cacher = broker._resolveCacher({ type: "xyz" });
+				broker._resolveCacher({ type: "xyz" });
 			}).toThrowError(MoleculerError);
 
 			expect(() => {
-				let cacher = broker._resolveCacher("xyz");
+				broker._resolveCacher("xyz");
 			}).toThrowError(MoleculerError);
 		});
 		
@@ -340,11 +355,11 @@ describe("Test option resolvers", () => {
 
 		it("should throw error if type if not correct", () => {
 			expect(() => {
-				let serializer = broker._resolveSerializer("xyz");
+				broker._resolveSerializer("xyz");
 			}).toThrowError(MoleculerError);
 
 			expect(() => {
-				let serializer = broker._resolveSerializer({ type: "xyz" });
+				broker._resolveSerializer({ type: "xyz" });
 			}).toThrowError(MoleculerError);
 		});
 
