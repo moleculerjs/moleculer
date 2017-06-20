@@ -647,7 +647,7 @@ describe("Test Transit node & heartbeat handling", () => {
 			expect(node.lastHeartbeatTime).toBeDefined();
 
 			expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-			expect(broker.emitLocal).toHaveBeenCalledWith("node.connected", node);
+			expect(broker.emitLocal).toHaveBeenCalledWith("node.connected", { node, reconnected: false });
 
 			expect(broker.registerRemoteService).toHaveBeenCalledTimes(1);
 			expect(broker.registerRemoteService).toHaveBeenCalledWith("server-1", remoteService);
@@ -737,7 +737,7 @@ describe("Test Transit node & heartbeat handling", () => {
 
 			expect(transit.nodes.get("server-2").available).toBe(false);
 			expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-			expect(broker.emitLocal).toHaveBeenCalledWith("node.disconnected", {"available": false });
+			expect(broker.emitLocal).toHaveBeenCalledWith("node.disconnected", { node: {"available": false }, unexpected: false });
 		});
 
 		it("should set node to unavailable and emit a `broken` event", () => {
@@ -748,7 +748,7 @@ describe("Test Transit node & heartbeat handling", () => {
 
 			expect(transit.nodes.get("server-2").available).toBe(false);
 			expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-			expect(broker.emitLocal).toHaveBeenCalledWith("node.broken", {"available": false });
+			expect(broker.emitLocal).toHaveBeenCalledWith("node.disconnected", { node: {"available": false }, unexpected: true });
 		});
 
 		it("should set node to unavailable and emit a `broken` event", () => {
@@ -757,7 +757,7 @@ describe("Test Transit node & heartbeat handling", () => {
 
 			expect(transit.nodes.get("server-2").available).toBe(true);
 			expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-			expect(broker.emitLocal).toHaveBeenCalledWith("node.reconnected", transit.nodes.get("server-2"));
+			expect(broker.emitLocal).toHaveBeenCalledWith("node.connected", { node: transit.nodes.get("server-2"), reconnected: true });
 		});		
 
 		let remoteService = {

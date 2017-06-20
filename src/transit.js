@@ -543,10 +543,10 @@ class Transit {
 		this.nodes.set(nodeID, node);
 
 		if (isNewNode) {
-			this.broker.emitLocal("node.connected", node);
+			this.broker.emitLocal("node.connected", { node, reconnected: false });
 			this.logger.info(`Node '${nodeID}' connected!`);
 		} else if (isReconnected) {
-			this.broker.emitLocal("node.reconnected", node);
+			this.broker.emitLocal("node.connected", { node, reconnected: true });
 			this.logger.info(`Node '${nodeID}' reconnected!`);
 		}
 
@@ -605,7 +605,7 @@ class Transit {
 				node.available = false;
 				this.broker.unregisterServicesByNode(nodeID);
 
-				this.broker.emitLocal(isUnexpected ? "node.broken" : "node.disconnected", node);
+				this.broker.emitLocal("node.disconnected", { node, unexpected: !!isUnexpected });
 				//this.nodes.delete(nodeID);			
 				this.logger.warn(`Node '${nodeID}' disconnected!`);
 			}

@@ -210,6 +210,23 @@ There is a new `useVersionPrefix` option in settings of Service. If false, Molec
 
 # Changes
 
+## Removed the `node.reconnected` and `node.broker` events (breaking)
+We merged the `node.connected` and `node.reconnected` event. The payload is changed:
+```js
+{
+    node: {...},
+    reconnected: false // it indicates the node is connected or reconnected
+}
+```
+
+We merged the `node.disconnected` and `node.broken` event. The payload is changed:
+```js
+{
+    node: {...},
+    unexpected: true // True: broken, not coming heart-beat, False: received "DISCONNECT" packet
+}
+```
+
 ## Remove Transporter, Cacher and Serializers dependencies (breaking)
 Moleculer doesn't contain dependencies for NATS, Redis, MQTT, MsgPack, Avro and Protobuf. So it need install manually in your project.
 If you want to create a Moleculer project which communicates via NATS and your Redis cacher, you have to install `npm install moleculer nats redis --save`
