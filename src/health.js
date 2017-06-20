@@ -9,6 +9,14 @@
 const os = require("os");
 const _ = require("lodash");
 const { getIpList } = require("./utils");
+const MOLECULER_VERSION = require("../package.json").version;
+
+const getVersions = () => {
+	return {
+		node: process.version,
+		moleculer: MOLECULER_VERSION
+	};
+};
 
 const getCpuInfo = () => {
 	const load = os.loadavg();
@@ -85,6 +93,7 @@ const getHealthStatus = (broker) => {
 		mem: getMemoryInfo(),
 		os: getOsInfo(),
 		process: getProcessInfo(),
+		versions: getVersions(),
 		net: getNetworkInterfacesInfo(),
 		transit: getTransitStatus(broker),
 		time: getDateTimeInfo()
