@@ -9,8 +9,10 @@ const Service = require("../../src/service");
 const ServiceRegistry = require("../../src/service-registry");
 const Context = require("../../src/context");
 const Transit = require("../../src/transit");
-const MemoryCacher = require("../../src/cachers/memory");
+const Cachers = require("../../src/cachers");
+const Serializers = require("../../src/serializers");
 const JSONSerializer = require("../../src/serializers/json");
+const Transporters = require("../../src/transporters"); 
 const FakeTransporter = require("../../src/transporters/fake"); 
 const { MoleculerError, ServiceNotFoundError, RequestTimeoutError, MaxCallLevelError } = require("../../src/errors");
 
@@ -169,7 +171,7 @@ describe("Test ServiceBroker constructor", () => {
 	});
 
 	it("should create cacher and call init", () => {
-		let cacher = new MemoryCacher();
+		let cacher = new Cachers.Memory();
 		cacher.init = jest.fn();
 		let broker = new ServiceBroker( { 
 			cacher
@@ -192,6 +194,160 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.serializer).toBe(serializer);
 		expect(serializer.init).toHaveBeenCalledTimes(1);
 		expect(serializer.init).toHaveBeenCalledWith(broker);
+	});
+
+});
+
+describe("Test option resolvers", () => {
+
+	describe("Test _resolveTransporter", () => {
+
+		let broker = new ServiceBroker();
+
+		it("should resolve null from undefined", () => {
+			let trans = broker._resolveTransporter();
+			expect(trans).toBeNull();
+		});
+
+		it("should resolve NATSTransporter from string", () => {
+			let trans = broker._resolveTransporter("nats://localhost:4222");
+			expect(trans).toBeInstanceOf(Transporters.NATS);
+		});
+
+		it("should resolve MQTTTransporter from string", () => {
+			let trans = broker._resolveTransporter("mqtt://localhost");
+			expect(trans).toBeInstanceOf(Transporters.MQTT);
+		});
+
+		it("should resolve RedisTransporter from string", () => {
+			let trans = broker._resolveTransporter("redis://localhost");
+			expect(trans).toBeInstanceOf(Transporters.Redis);
+		});
+
+		it("should resolve NATSTransporter from obj without type", () => {
+			let options = { prefix: "test", nats: { url: "nats://localhost:4222" } };
+			let trans = broker._resolveTransporter({ options });
+			expect(trans).toBeInstanceOf(Transporters.NATS);
+			expect(trans.opts).toEqual({"nats": {"preserveBuffers": true, "url": "nats://localhost:4222"}, "prefix": "test"});
+		});
+
+		it("should resolve NATSTransporter from obj", () => {
+			let options = { prefix: "moleculer", mqtt: "mqtt://localhost" };
+			let trans = broker._resolveTransporter({ type: "MQTT", options });
+			expect(trans).toBeInstanceOf(Transporters.MQTT);
+			expect(trans.opts).toEqual({ prefix: "moleculer", mqtt: "mqtt://localhost" });
+		});
+
+		it("should resolve Redistrans from obj with Redis type", () => {
+			let options = { prefix: "mol-redis", redis: { database: 3 } };
+			let trans = broker._resolveTransporter({ type: "Redis", options });
+			expect(trans).toBeInstanceOf(Transporters.Redis);
+			expect(trans.opts).toEqual({ prefix: "mol-redis", redis: { database: 3 } });
+		});
+
+		it("should throw error if type if not correct", () => {
+			expect(() => {
+				let trans = broker._resolveTransporter({ type: "xyz" });
+			}).toThrowError(MoleculerError);
+
+			expect(() => {
+				let trans = broker._resolveTransporter("xyz");
+			}).toThrowError(MoleculerError);
+		});
+		
+	});
+
+	describe("Test _resolveCacher", () => {
+
+		let broker = new ServiceBroker();
+
+		it("should resolve null from undefined", () => {
+			let cacher = broker._resolveCacher();
+			expect(cacher).toBeNull();
+		});
+
+		it("should resolve MemoryCacher from true", () => {
+			let cacher = broker._resolveCacher(true);
+			expect(cacher).toBeInstanceOf(Cachers.Memory);
+		});
+
+		it("should resolve MemoryCacher from string", () => {
+			let cacher = broker._resolveCacher("Memory");
+			expect(cacher).toBeInstanceOf(Cachers.Memory);
+		});
+
+		it("should resolve RedisCacher from string", () => {
+			let cacher = broker._resolveCacher("Redis");
+			expect(cacher).toBeInstanceOf(Cachers.Redis);
+		});
+
+		it("should resolve MemoryCacher from obj without type", () => {
+			let options = { ttl: 100 };
+			let cacher = broker._resolveCacher({ options });
+			expect(cacher).toBeInstanceOf(Cachers.Memory);
+			expect(cacher.opts).toEqual({ prefix: "", ttl: 100});
+		});
+
+		it("should resolve MemoryCacher from obj", () => {
+			let options = { ttl: 100 };
+			let cacher = broker._resolveCacher({ type: "Memory", options });
+			expect(cacher).toBeInstanceOf(Cachers.Memory);
+			expect(cacher.opts).toEqual({ prefix: "", ttl: 100});
+		});
+
+		it("should resolve RedisCacher from obj with Redis type", () => {
+			let options = { ttl: 100 };
+			let cacher = broker._resolveCacher({ type: "Redis", options });
+			expect(cacher).toBeInstanceOf(Cachers.Redis);
+			expect(cacher.opts).toEqual({ prefix: "", ttl: 100});
+		});
+
+		it("should throw error if type if not correct", () => {
+			expect(() => {
+				let cacher = broker._resolveCacher({ type: "xyz" });
+			}).toThrowError(MoleculerError);
+
+			expect(() => {
+				let cacher = broker._resolveCacher("xyz");
+			}).toThrowError(MoleculerError);
+		});
+		
+	});
+
+	describe("Test _resolveSerializer", () => {
+
+		let broker = new ServiceBroker();
+
+		it("should resolve null from undefined", () => {
+			let serializer = broker._resolveSerializer();
+			expect(serializer).toBeInstanceOf(Serializers.JSON);
+		});
+
+		it("should resolve JSONSerializer from obj without type", () => {
+			let serializer = broker._resolveSerializer({});
+			expect(serializer).toBeInstanceOf(Serializers.JSON);
+		});
+
+		it("should resolve JSONSerializer from obj", () => {
+			let serializer = broker._resolveSerializer({ type: "JSON" });
+			expect(serializer).toBeInstanceOf(Serializers.JSON);
+		});
+
+		it("should resolve AvroSerializer from string with Avro type", () => {
+			let serializer = broker._resolveSerializer("Avro");
+			expect(serializer).toBeInstanceOf(Serializers.Avro);
+		});
+
+		it("should throw error if type if not correct", () => {
+			expect(() => {
+				let serializer = broker._resolveSerializer("xyz");
+			}).toThrowError(MoleculerError);
+
+			expect(() => {
+				let serializer = broker._resolveSerializer({ type: "xyz" });
+			}).toThrowError(MoleculerError);
+		});
+
 	});
 });
 

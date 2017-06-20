@@ -17,7 +17,9 @@ const Validator = require("./validator");
 const BrokerStatistics = require("./statistics");
 const healthInfo = require("./health");
 
-const JSONSerializer = require("./serializers/json");
+const Cachers = require("./cachers");
+const Transporters = require("./transporters");
+const Serializers = require("./serializers");
 
 // Registry strategies
 const { STRATEGY_ROUND_ROBIN } = require("./constants");
@@ -114,15 +116,13 @@ class ServiceBroker {
 		this.middlewares = [];
 
 		// Cacher
-		this.cacher = this.options.cacher;
+		this.cacher = this._resolveCacher(this.options.cacher);
 		if (this.cacher) {
 			this.cacher.init(this);
 		}
 
 		// Serializer
-		this.serializer = this.options.serializer;
-		if (!this.serializer)
-			this.serializer = new JSONSerializer();
+		this.serializer = this._resolveSerializer(this.options.serializer);
 		this.serializer.init(this);
 
 		// Validation
@@ -133,9 +133,10 @@ class ServiceBroker {
 			}
 		}
 
-		// Transit
+		// Transit & Transporter
 		if (this.options.transporter) {
-			this.transit = new Transit(this, this.options.transporter);
+			const tx = this._resolveTransporter(this.options.transporter);
+			this.transit = new Transit(this, tx);
 		}
 
 		// Counter for metricsRate
@@ -160,6 +161,78 @@ class ServiceBroker {
 		process.on("beforeExit", this._closeFn);
 		process.on("exit", this._closeFn);
 		process.on("SIGINT", this._closeFn);
+	}
+
+	_resolveTransporter(opt) {
+		if (opt instanceof Transporters.Base) {
+			return opt;
+		} else if (_.isString(opt)) {
+			let TransporterClass;
+			if (opt.startsWith("nats://"))
+				TransporterClass = Transporters.NATS;
+			else if (opt.startsWith("mqtt://"))
+				TransporterClass = Transporters.MQTT;
+			else if (opt.startsWith("redis://"))
+				TransporterClass = Transporters.Redis;
+
+			if (TransporterClass)
+				return new TransporterClass(opt);
+			else
+				throw new E.MoleculerError(`Invalid transporter type '${opt}'`, null, "NOT_FOUND_TRANSPORTER", { type: opt });
+
+		} else if (_.isObject(opt)) {
+			let TransporterClass = Transporters[opt.type || "NATS"];
+			if (TransporterClass)
+				return new TransporterClass(opt.options);
+			else
+				throw new E.MoleculerError(`Invalid transporter type '${opt.type}'`, null, "NOT_FOUND_TRANSPORTER", { type: opt.type });
+		}
+		
+		return null;
+	}
+
+	_resolveCacher(opt) {
+		if (opt instanceof Cachers.Base) {
+			return opt;
+		} else if (opt === true) {
+			return new Cachers.Memory();
+		} else if (_.isString(opt)) {
+			let CacherClass = Cachers[opt];
+			if (CacherClass)
+				return new CacherClass();
+			else
+				throw new E.MoleculerError(`Invalid cacher type '${opt}'`, null, "NOT_FOUND_CACHER", { type: opt });
+
+		} else if (_.isObject(opt)) {
+			let CacherClass = Cachers[opt.type || "Memory"];
+			if (CacherClass)
+				return new CacherClass(opt.options);
+			else
+				throw new E.MoleculerError(`Invalid cacher type '${opt.type}'`, null, "NOT_FOUND_CACHER", { type: opt.type });
+		}
+		
+		return null;
+	}
+
+	_resolveSerializer(opt) {
+		if (opt instanceof Serializers.Base) {
+			return opt;
+		} else if (_.isString(opt)) {
+			let SerializerClass = Serializers[opt];
+			if (SerializerClass)
+				return new SerializerClass();
+			else
+				throw new E.MoleculerError(`Invalid serializer type '${opt}'`, null, "NOT_FOUND_SERIALIZER", { type: opt });
+
+		} else if (_.isObject(opt)) {
+			let SerializerClass = Serializers[opt.type || "JSON"];
+			if (SerializerClass)
+				return new SerializerClass(opt.options);
+			else
+				throw new E.MoleculerError(`Invalid serializer type '${opt.type}'`, null, "NOT_FOUND_SERIALIZER", { type: opt.type });
+		}
+
+		return new Serializers.JSON();
 	}
 
 	/**
