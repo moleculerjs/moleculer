@@ -210,7 +210,7 @@ There is a new `useVersionPrefix` option in settings of Service. If false, Molec
 
 # Changes
 
-## Removed the `node.reconnected` and `node.broker` events (breaking)
+## Removed the `node.reconnected` and `node.broken` events (breaking)
 We merged the `node.connected` and `node.reconnected` event. The payload is changed:
 ```js
 {
