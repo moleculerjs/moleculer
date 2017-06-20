@@ -330,7 +330,8 @@ class ServiceBroker {
 		if (logger)
 			return logger;
 
-		logger = Logger.wrap(this.options.logger, name, this.options.logLevel);
+		const baseLogger = this.options.logger === true ? console : this.options.logger;
+		logger = Logger.wrap(baseLogger, name, this.options.logLevel);
 		this._loggerCache[name] = logger;
 
 		return logger;
