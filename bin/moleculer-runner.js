@@ -20,7 +20,6 @@ let broker;
 
 /**
  * Process command line arguments
- * 
  */
 function processFlags() {
 	Args

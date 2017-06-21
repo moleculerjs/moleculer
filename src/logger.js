@@ -50,11 +50,11 @@ module.exports = {
 				let externalMethod = extLogger[type];
 				if (!externalMethod) {
 					switch(type) {
-					case "fatal":
-					case "warn": externalMethod = extLogger["error"] || extLogger["info"]; break;
-					case "debug": externalMethod = extLogger["info"]; break;
-					case "trace": externalMethod = extLogger["debug"] || extLogger["info"]; break;
-					default: externalMethod = extLogger["info"];
+						case "fatal":
+						case "warn": externalMethod = extLogger["error"] || extLogger["info"]; break;
+						case "debug": externalMethod = extLogger["info"]; break;
+						case "trace": externalMethod = extLogger["debug"] || extLogger["info"]; break;
+						default: externalMethod = extLogger["info"];
 					}
 				}
 
