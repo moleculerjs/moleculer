@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 "use strict";
 
 let random = require("lodash/random");

@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 "use strict";
 
 let path = require("path");
@@ -15,7 +17,7 @@ let broker = new ServiceBroker({
 });
 
 function middleware1() {
-	return function(handler) {
+	return function (handler) {
 
 		return function mw1(ctx) {
 			broker.logger.info(chalk.yellow("mw1 before", ctx.action.name));
@@ -29,7 +31,7 @@ function middleware1() {
 }
 
 function middleware2() {
-	return function(handler) {
+	return function (handler) {
 
 		return function mw2(ctx) {
 			broker.logger.info(chalk.magenta("mw2 before-promise", ctx.action.name));
@@ -92,16 +94,16 @@ broker.start();
 
 
 broker.call("posts.get", { id: 3 }).then(console.log)
-.then(() => {
-	console.log(chalk.bold("\nNEXT CALL FROM CACHE"));
-	return broker.call("posts.get", { id: 3 }).then(console.log);
-})
-.then(() => {
-	console.log(chalk.bold("\nCLEAR CACHE"));
-	return broker.emit("cache.clean", "posts.*");
-})
-.then(utils.delay(200))
-.then(() => {
-	console.log(chalk.bold("\nNEXT CALL WITHOUT CACHE"));
-	return broker.call("posts.get", { id: 3 }).then(console.log);
-});
+	.then(() => {
+		console.log(chalk.bold("\nNEXT CALL FROM CACHE"));
+		return broker.call("posts.get", { id: 3 }).then(console.log);
+	})
+	.then(() => {
+		console.log(chalk.bold("\nCLEAR CACHE"));
+		return broker.emit("cache.clean", "posts.*");
+	})
+	.then(utils.delay(200))
+	.then(() => {
+		console.log(chalk.bold("\nNEXT CALL WITHOUT CACHE"));
+		return broker.call("posts.get", { id: 3 }).then(console.log);
+	});

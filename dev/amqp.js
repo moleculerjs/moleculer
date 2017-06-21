@@ -1,3 +1,7 @@
+/* eslint-disable no-console */
+
+"use strict";
+
 let q = "tasks";
 
 let open = require("amqplib").connect("amqp://192.168.0.207");

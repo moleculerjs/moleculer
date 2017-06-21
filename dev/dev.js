@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 "use strict";
 
 let ServiceBroker = require("../src/service-broker");
@@ -9,7 +11,7 @@ let broker1 = new ServiceBroker({
 	logLevel: "debug",
 	requestTimeout: 5000,
 	requestRetry: 3,
-	transporter: { type: "NATS" },
+	transporter: "NATS",
 	serializer: "JSON",
 	circuitBreaker: {
 		enabled: true
@@ -27,7 +29,7 @@ let broker2 = new ServiceBroker({
 	nodeID: "node2",
 	logger: true,
 	logLevel: "info",
-	transporter: { type: "NATS" },
+	transporter: "NATS",
 	serializer: "JSON",
 	statistics: true
 });

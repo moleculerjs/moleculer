@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 "use strict";
 
 let { delay } = require("../../src/utils");
