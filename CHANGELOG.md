@@ -361,7 +361,7 @@ broker.createService({
 ## Renamed `appendServiceName` settings to `serviceNamePrefix` in Service schema
 
 ## Fatal crash
-The `ServiceBroker` has a new `fatal` method. If you call it, you can log message with `fatal` level and exit the process with code `2`.
+The `ServiceBroker` has a new `fatal` method. If you call it, broker will log the message with `fatal` level and exit the process with code `2`.
 
 `broker.fatal(message, err, needExit = true)`
 > If you are running your app in containers and it has restart policy, you can use it to restart your app.
@@ -378,7 +378,7 @@ try {
 ```
 
 ## Low-level changes
-- new output of `$node.actions` and `$node.services`˛
+- new output of `$node.actions` and `$node.services`
 - In packet `INFO` & `DISCOVER` changed the `actions` property to `services` and now it contains all services with actions of node
 - splitted `broker.registerService` to `registerLocalService` and `registerRemoteService`
 - new `broker.unregisterServicesByNode`. It will be called when a node disconnected
