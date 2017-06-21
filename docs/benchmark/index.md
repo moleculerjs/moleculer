@@ -1,2 +1,0 @@
-# Benchmark results of Moleculer
-
