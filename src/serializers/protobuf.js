@@ -40,13 +40,13 @@ class ProtoBufSerializer extends BaseSerializer {
 
 	getPacketFromType(type) {
 		switch(type) {
-		case P.PACKET_EVENT: return this.packets.PacketEvent;
-		case P.PACKET_REQUEST: return this.packets.PacketRequest;
-		case P.PACKET_RESPONSE: return this.packets.PacketResponse;
-		case P.PACKET_DISCOVER: return this.packets.PacketDiscover;
-		case P.PACKET_INFO: return this.packets.PacketInfo;
-		case P.PACKET_DISCONNECT: return this.packets.PacketDisconnect;
-		case P.PACKET_HEARTBEAT: return this.packets.PacketHeartbeat;
+			case P.PACKET_EVENT: return this.packets.PacketEvent;
+			case P.PACKET_REQUEST: return this.packets.PacketRequest;
+			case P.PACKET_RESPONSE: return this.packets.PacketResponse;
+			case P.PACKET_DISCOVER: return this.packets.PacketDiscover;
+			case P.PACKET_INFO: return this.packets.PacketInfo;
+			case P.PACKET_DISCONNECT: return this.packets.PacketDisconnect;
+			case P.PACKET_HEARTBEAT: return this.packets.PacketHeartbeat;
 		}
 	}
 

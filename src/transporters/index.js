@@ -7,6 +7,7 @@
 "use strict";
 
 module.exports = {
+	Base: require("./base"),
 	Fake: require("./fake"),
 	NATS: require("./nats"),
 	MQTT: require("./mqtt"),

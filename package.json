@@ -30,6 +30,9 @@
     "type": "git",
     "url": "https://github.com/ice-services/moleculer.git"
   },
+  "bin": {
+    "moleculer-runner": "./bin/moleculer-runner.js"
+  },
   "author": "Ice Services",
   "license": "MIT",
   "devDependencies": {
@@ -45,8 +48,8 @@
     "jest": "20.0.4",
     "jest-cli": "20.0.4",
     "lolex": "1.6.0",
-    "moleculer-repl": "0.1.2",
-    "mqtt": "2.8.2",
+    "moleculer-repl": "0.1.3",
+    "mqtt": "2.9.0",
     "msgpack5": "3.4.1",
     "nats": "0.7.20",
     "nodemon": "1.11.0",
@@ -55,6 +58,7 @@
     "v8-natives": "1.0.0"
   },
   "dependencies": {
+    "args": "3.0.2",
     "bluebird": "3.5.0",
     "es6-error": "4.0.2",
     "eventemitter2": "4.1.0",

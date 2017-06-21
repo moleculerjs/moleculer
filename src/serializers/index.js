@@ -7,6 +7,7 @@
 "use strict";
 
 module.exports = {
+	Base: require("./base"),
 	JSON: require("./json"),
 	Avro: require("./avro"),
 	MsgPack: require("./msgpack"),
