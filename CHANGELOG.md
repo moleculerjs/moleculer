@@ -2,9 +2,88 @@
 # 0.8.0 (2017-xx-xx)
 
 # New
+
+## Project runner script
+There is a new Moleculer project runner script in the `bin` folder.
+You can use it if you want to create small repos for services. In this case you needn't to create a ServiceBroker with options. Just create a `moleculer.config.js` or `moleculer.config.json` file in the root of repo fill it with your options and call the `moleculer-runner` within the NPM scripts.
+Other solution is that you don't put options to file, instead put it to the environment variables.
+
+[Read more about runner](http://moleculer.services/docs/runner.html)
+
+## Shorthand for transporters, cachers and serializers in broker options
+There are implemented some new resolvers in broker options to support shorthand configurations. This feature is enabled to load broker options easily from a JSON file or load from environment variables.
+
+**Usage for transporters**
+```js
+// Connect to the NATS default (localhost) server
+let broker = new ServiceBroker({
+    transporter: "NATS"
+});
+
+// Connect to a NATS server with connection string
+let broker = new ServiceBroker({
+    transporter: "nats://nats-server:4222"
+});
+
+// Connect to a NATS server with transporter options
+let broker = new ServiceBroker({
+    transporter: {
+        type: "NATS",
+        options: {
+            prefix: "TEST",
+            nats: {
+                host: "nats-server",
+                user: "admin",
+                pass: "nats-pass"
+            }
+        }
+    }
+});
+```
+
+**Usage for cachers**
+```js
+// Use a memory cacher
+let broker = new ServiceBroker({
+    cacher: true
+    // or
+    // cacher: "Memory"
+});
+
+// Use a Redis cacher with default options
+let broker = new ServiceBroker({
+    cacher: "Redis"
+});
+
+// Use a Redis cacher with options
+let broker = new ServiceBroker({
+    cacher: {
+        type: "Redis",
+        options: {
+            ttl: 100
+        }
+    }
+});
+```
+
+**Usage for serializers**
+```js
+// Use the Avro serializer
+let broker = new ServiceBroker({
+    serializers: "Avro"
+});
+
+// Use the Protocol Buffer serializer
+let broker = new ServiceBroker({
+    serializers: {
+        type: "ProtoBuf"
+    }
+});
+```
+
 ## Built-in circuit breaker [#22](https://github.com/ice-services/moleculer/issues/22/)
 Implemented better circuit breaker solution. Now every calls (local and remote) are protected with the built-in circuit breaker.
-You need only enable it in broker options.
+You only need to enable it in broker options.
 
 **Usage**
 ```js
