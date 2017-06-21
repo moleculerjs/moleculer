@@ -30,6 +30,9 @@
     "type": "git",
     "url": "https://github.com/ice-services/moleculer.git"
   },
+  "bin": {
+    "moleculer-runner": "./bin/moleculer-runner.js"
+  },
   "author": "Ice Services",
   "license": "MIT",
   "devDependencies": {
@@ -55,6 +58,7 @@
     "v8-natives": "1.0.0"
   },
   "dependencies": {
+    "args": "3.0.2",
     "bluebird": "3.5.0",
     "es6-error": "4.0.2",
     "eventemitter2": "4.1.0",

@@ -77,6 +77,13 @@
 		},
 		{
 			"type": "node",
+			"request": "launch",
+			"name": "Moleculer-runner",
+			"program": "${workspaceRoot}\\bin\\moleculer-runner.js",
+			"cwd": "${workspaceRoot}"
+		},		
+		{
+			"type": "node",
 			"request": "attach",
 			"name": "Attach to Process",
 			"port": 5858

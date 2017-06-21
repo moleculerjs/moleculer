@@ -33,6 +33,45 @@ const path = require("path");
 
 const LOCAL_NODE_ID = null; // `null` means local nodeID
 
+const defaultConfig = {
+	nodeID: null,
+
+	logger: null,
+	logLevel: "info",
+
+	transporter: null,
+	requestTimeout: 0 * 1000,
+	requestRetry: 0,
+	maxCallLevel: 0,
+	heartbeatInterval: 10,
+	heartbeatTimeout: 30,
+
+	registry: {
+		strategy: STRATEGY_ROUND_ROBIN,
+		preferLocal: true				
+	},
+
+	circuitBreaker: {
+		enabled: false,
+		maxFailures: 5,
+		halfOpenTime: 10 * 1000,
+		failureOnTimeout: true,
+		failureOnReject: true
+	},
+
+	cacher: null,
+	serializer: null,
+
+	validation: true,
+	metrics: false,
+	metricsRate: 1,
+	statistics: false,
+	internalActions: true
+	
+	// ServiceFactory: null,
+	// ContextFactory: null
+};
+
 /**
  * Service broker class
  * 
@@ -48,44 +87,7 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	constructor(options) {
-		this.options = _.defaultsDeep(options, {
-			nodeID: null,
-
-			logger: null,
-			logLevel: "info",
-
-			transporter: null,
-			requestTimeout: 0 * 1000,
-			requestRetry: 0,
-			maxCallLevel: 0,
-			heartbeatInterval: 10,
-			heartbeatTimeout: 30,
-
-			registry: {
-				strategy: STRATEGY_ROUND_ROBIN,
-				preferLocal: true				
-			},
-
-			circuitBreaker: {
-				enabled: false,
-				maxFailures: 5,
-				halfOpenTime: 10 * 1000,
-				failureOnTimeout: true,
-				failureOnReject: true
-			},
-
-			cacher: null,
-			serializer: null,
-
-			validation: true,
-			metrics: false,
-			metricsRate: 1,
-			statistics: false,
-			internalActions: true
-			
-			// ServiceFactory: null,
-			// ContextFactory: null
-		});
+		this.options = _.defaultsDeep(options, defaultConfig);
 
 		// Promise constructor
 		this.Promise = Promise;
@@ -1023,6 +1025,8 @@ class ServiceBroker {
 }
 
 // Set version of Moleculer
-ServiceBroker.prototype.MOLECULER_VERSION = require("../package.json").version;
+ServiceBroker.MOLECULER_VERSION = require("../package.json").version;
+ServiceBroker.prototype.MOLECULER_VERSION = ServiceBroker.MOLECULER_VERSION;
+ServiceBroker.defaultConfig = defaultConfig;
 
 module.exports = ServiceBroker;
