@@ -91,6 +91,10 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.hasAction("$node.services")).toBe(true);
 		expect(broker.hasAction("$node.actions")).toBe(true);
 		expect(broker.hasAction("$node.health")).toBe(true);
+
+		expect(ServiceBroker.defaultConfig).toBeDefined();
+		expect(ServiceBroker.MOLECULER_VERSION).toBeDefined();
+		expect(broker.MOLECULER_VERSION).toBeDefined();
 	});
 
 	it("should merge options", () => {
