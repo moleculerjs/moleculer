@@ -23,9 +23,9 @@ let broker;
  * Process command line arguments
  * 
  * Available options:
- * 		- c, --config <file> - Load an external configuration files (.js or .json)
- * 		- r, --repl  - After broker started, switch to REPL mode
- * 		-s , --silent - Silent mode. Disable logger, no console messages.
+ * 		-c, --config <file> - Load an external configuration files (.js or .json)
+ * 		-r, --repl  		- After broker started, switch to REPL mode
+ * 		-s , --silent 		- Silent mode. Disable logger, no console messages.
  */
 function processFlags() {
 	Args
