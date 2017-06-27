@@ -25,10 +25,10 @@ class RedisTransporter extends Transporter {
 	 * @memberOf RedisTransporter
 	 */
 	constructor(opts) {
+		if (typeof opts == "string")
+			opts = { redis: opts };
+
 		super(opts);
-		
-		if (typeof this.opts == "string")
-			this.opts = { redis: this.opts };
 		
 		this.clientPub = null;
 		this.clientSub = null;

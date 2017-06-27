@@ -25,11 +25,11 @@ class MqttTransporter extends Transporter {
 	 * @memberOf MqttTransporter
 	 */
 	constructor(opts) {
+		if (typeof opts == "string")
+			opts = { mqtt: opts };
+		
 		super(opts);
 
-		if (typeof this.opts == "string")
-			this.opts = { mqtt: this.opts };
-		
 		this.client = null;
 	}
 

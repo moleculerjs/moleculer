@@ -5,13 +5,13 @@
 let { delay } = require("../../src/utils");
 
 let ServiceBroker = require("../../src/service-broker");
-let NatsTransporter = require("../../src/transporters/nats");
+let Transporter = require("../../src/transporters/redis");
 let Serializer = require("../../src/serializers/protobuf");
 
 // Create broker
 let broker = new ServiceBroker({
 	nodeID: process.argv[2] || "server-1",
-	transporter: new NatsTransporter(),
+	transporter: new Transporter("redis://localhost:3232"),
 	logger: console,
 	logLevel: "info",
 	requestTimeout: 5 * 1000,

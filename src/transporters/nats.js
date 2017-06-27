@@ -27,11 +27,11 @@ class NatsTransporter extends Transporter {
 	 * @memberOf NatsTransporter
 	 */
 	constructor(opts) {
+		if (typeof opts == "string")
+			opts = { nats: { url: opts } };
+
 		super(opts);
 		
-		if (typeof this.opts == "string")
-			this.opts = { nats: { url: this.opts } };
-
 		// Use the 'preserveBuffers' option as true as default
 		if (!this.opts.nats || this.opts.nats.preserveBuffers !== false) {
 			if (!this.opts.nats)
