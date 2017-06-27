@@ -295,6 +295,11 @@ class ServiceBroker {
 				}
 			})
 			.then(() => {
+				if (this.cacher) {
+					return this.cacher.close();
+				}
+			})
+			.then(() => {
 				this.logger.info(`Broker stopped. NodeID: ${this.nodeID}\n`);
 
 				process.removeListener("beforeExit", this._closeFn);

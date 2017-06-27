@@ -23,6 +23,17 @@ describe("Test RedisCacher constructor", () => {
 		expect(cacher.opts.ttl).toBe(500);
 	});
 
+	it("should create with redis opts from string", () => {
+		let opts = "redis://localhost:6379";
+		let cacher = new RedisCacher(opts);
+		expect(cacher).toBeDefined();
+		expect(cacher.opts).toEqual({
+			prefix: "",
+			ttl: null,
+			redis: opts
+		});
+	});
+
 });
 
 describe("Test RedisCacher set & get without prefix", () => {

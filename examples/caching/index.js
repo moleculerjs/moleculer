@@ -10,6 +10,7 @@ let utils = require("../../src/utils");
 let ServiceBroker = require("../../src/service-broker");
 
 let MemoryCacher = require("../../src/cachers").Memory;
+let RedisCacher = require("../../src/cachers").Redis;
 
 /*
 process.on("promiseCreated", promise => console.log("New promise created!", promise));
@@ -28,7 +29,8 @@ let broker = new ServiceBroker({
 		"METRICS-SVC": "debug"
 	},
 	metrics: true,
-	cacher: new MemoryCacher()
+	//cacher: new MemoryCacher()
+	cacher: new RedisCacher("redis://localhost:6379")
 });
 
 // Load services
@@ -38,14 +40,20 @@ console.log("");
 
 console.log(chalk.bold(">> Get all users"));
 
-// Call actions
-broker.call("v2.users.find").then(data => {
-	console.log("v2.users.find response length:", data.length, "\n");
-})
+broker.start()
+	.then(() => {
+		return broker.call("v2.users.find");
+	})
+
+	.then(data => {
+		console.log("v2.users.find response length:", data.length, "\n");
+	})
 
 	.then(() => {
 		console.log(chalk.bold(">> Get user.5 (found in the cache)"));
-		return broker.call("v2.users.get", { id: 5 });
+		return broker.call("v2.users.get", {
+			id: 5
+		});
 	})
 	.then(data => {
 		console.log("v2.users.get(5) response user email:", data.email, "\n");
@@ -53,14 +61,18 @@ broker.call("v2.users.find").then(data => {
 
 	.then(() => {
 		console.log(chalk.bold(">> Get all posts (populate authors from users"));
-		return broker.call("posts.find", { limit: 10 });
+		return broker.call("posts.find", {
+			limit: 10
+		});
 	})
 	.then(data => {
 		console.log("posts.find response length:", data.length, "\n");
 
 		console.log(chalk.bold(">> Get posts.4 (populate author from cache)"));
 
-		return broker.call("posts.get", { id: data[4].id }).then((post) => {
+		return broker.call("posts.get", {
+			id: data[4].id
+		}).then((post) => {
 			console.log("posts[4].author email:", post.author.email, "\n");
 		});
 	})
@@ -68,7 +80,9 @@ broker.call("v2.users.find").then(data => {
 	.then(() => {
 		// Get from cache
 		console.log(chalk.bold(">> Get user.5 again (found in the cache)"));
-		return broker.call("v2.users.get", { id: 5 });
+		return broker.call("v2.users.get", {
+			id: 5
+		});
 	})
 	.then(data => {
 		console.log("v2.users.get(5) (cache) user email:", data.email, "\n");
@@ -83,7 +97,9 @@ broker.call("v2.users.find").then(data => {
 	.then(() => {
 		console.log(chalk.bold("\n>> Get user.5 again (not found in the cache, after clean)"));
 		// Not found in the cache
-		return broker.call("v2.users.get", { id: 5 });
+		return broker.call("v2.users.get", {
+			id: 5
+		});
 	})
 	.then(data => {
 		console.log("v2.users.get(5) response user email:", data.email, "\n");
@@ -91,4 +107,6 @@ broker.call("v2.users.find").then(data => {
 
 	.catch((err) => {
 		console.error("Error!", err);
-	});
+	})
+
+	.then(() => broker.stop());

@@ -424,6 +424,10 @@ describe("Test broker.stop", () => {
 		broker.transit.connect = jest.fn(() => Promise.resolve()); 
 		broker.transit.disconnect = jest.fn(() => Promise.resolve()); 
 
+		broker.cacher = {
+			close: jest.fn(() => Promise.resolve())
+		}; 
+
 		return broker.start().then(() => broker.stop());
 	});
 
@@ -433,6 +437,10 @@ describe("Test broker.stop", () => {
 
 	it("should disconnect transit", () => {
 		expect(broker.transit.disconnect).toHaveBeenCalledTimes(1);
+	});
+
+	it("should close cacher", () => {
+		expect(broker.cacher.close).toHaveBeenCalledTimes(1);
 	});
 
 });

@@ -69,6 +69,8 @@ class Cacher {
 	 * @memberOf Cacher
 	 */
 	close() {
+		/* istanbul ignore next */
+		return Promise.resolve();
 	}
 
 	/**

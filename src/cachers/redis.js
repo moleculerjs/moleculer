@@ -25,6 +25,9 @@ class RedisCacher extends BaseCacher {
 	 * @memberOf RedisCacher
 	 */
 	constructor(opts) {
+		if (typeof opts == "string")
+			opts = { redis: opts };
+
 		super(opts);
 	}
 
@@ -76,7 +79,7 @@ class RedisCacher extends BaseCacher {
 	 * @memberOf RedisCacher
 	 */
 	close() {
-		this.client.quit();
+		return this.client.quit();
 	}
 
 	/**
