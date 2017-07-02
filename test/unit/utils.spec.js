@@ -143,9 +143,13 @@ describe("Test mergeSchemas", () => {
 		expect(res.actions.list).toBe(newSchema.actions.list);
 		expect(res.actions.remove).toBe(newSchema.actions.remove);
 
-		expect(res.events.created).toBe(newSchema.events.created);
+		expect(res.events.created).toBeInstanceOf(Array);
+		expect(res.events.created[0]).toBe(origSchema.events.created);
+		expect(res.events.created[1]).toBe(newSchema.events.created);
+
 		expect(res.events.updated).toBe(origSchema.events.updated);
-		expect(res.events.removed).toBe(newSchema.events.removed);
+		expect(res.events.removed).toBeInstanceOf(Array);
+		expect(res.events.removed[0]).toBe(newSchema.events.removed);
 
 		expect(res.methods.getByID).toBe(newSchema.methods.getByID);
 		expect(res.methods.notify).toBe(origSchema.methods.notify);

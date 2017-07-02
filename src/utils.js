@@ -96,8 +96,15 @@ let utils = {
 		Object.keys(mods).forEach(key => {
 			if (["settings"].indexOf(key) !== -1) {
 				res[key] = _.defaultsDeep(mods[key], res[key]);
-			} else if (["actions", "events", "methods"].indexOf(key) !== -1) {
+			} else if (["actions", "methods"].indexOf(key) !== -1) {
 				res[key] = _.assign(res[key], mods[key]);
+			} else if (["events"].indexOf(key) !== -1) {
+				if (res[key] == null)
+					res[key] = {};
+
+				Object.keys(mods[key]).forEach(k => {
+					res[key][k] = _.compact(_.flatten([res[key][k], mods[key][k]]));	
+				});
 			} else if (["created", "started", "stopped"].indexOf(key) !== -1) {
 				// Concat lifecycle event handlers
 				res[key] = _.compact(_.flatten([res[key], mods[key]]));

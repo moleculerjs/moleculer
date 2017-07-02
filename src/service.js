@@ -89,25 +89,30 @@ class Service {
 		// Event subscriptions
 		if (isObject(schema.events)) {
 
-			forIn(schema.events, (event, name) => {
-				if (isFunction(event)) {
-					event = {
-						handler: event
+			forIn(schema.events, (eventHandlers, name) => {
+				if (!Array.isArray(eventHandlers))
+					eventHandlers = [eventHandlers];
+
+				eventHandlers.forEach(event => {
+					if (isFunction(event)) {
+						event = {
+							handler: event
+						};
+					}
+					if (!event.name)
+						event.name = event;
+
+					if (!isFunction(event.handler)) {
+						throw new Error(`Missing event handler on '${name}' event in '${this.name}' service!`);
+					}
+
+					const self = this;
+					const handler = function(payload, sender) {
+						return event.handler.apply(self, [payload, sender, this.event]);
 					};
-				}
-				if (!event.name)
-					event.name = event;
 
-				if (!isFunction(event.handler)) {
-					throw new Error(`Missing event handler on '${name}' event in '${this.name}' service!`);
-				}
-
-				const self = this;
-				const handler = function(payload, sender) {
-					return event.handler.apply(self, [payload, sender, this.event]);
-				};
-
-				broker.on(name, handler);
+					broker.on(name, handler);
+				});
 			});
 
 		}
@@ -204,15 +209,14 @@ class Service {
 	static applyMixins(schema) {
 		if (schema.mixins) {
 			const mixins = Array.isArray(schema.mixins) ? schema.mixins : [schema.mixins];
-			mixins.push(schema);
-			const mixedSchema = mixins.reduce((s, mixin) => {
-				console.log(`Mix ${s.name} to ${mixin.name}`);
-				let res = utils.mergeSchemas(s, mixin);
-				console.log(res);
-				return res;
+			const mixedSchema = mixins.reverse().reduce((s, mixin) => {
+				if (mixin.mixins)
+					mixin = Service.applyMixins(mixin);
+
+				return utils.mergeSchemas(s, mixin);
 			}, {});
-			//return utils.mergeSchemas(mixedSchema, schema);
-			return mixedSchema;
+			
+			return utils.mergeSchemas(mixedSchema, schema);
 		} 
 		
 		/* istanbul ignore next */
