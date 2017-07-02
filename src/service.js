@@ -31,21 +31,18 @@ class Service {
 	 */
 	constructor(broker, schema) {
 
-		if (!isObject(broker)) {
-			throw new Error("Must to set a ServiceBroker instance!");
-		}
+		if (!isObject(broker))
+			throw new Error("Must set a ServiceBroker instance!");
 
-		if (!isObject(schema)) {
+		if (!isObject(schema))
 			throw new Error("Must pass a service schema in constructor!");
-		}
 
 		if (schema.mixins) {
 			schema = Service.applyMixins(schema);
 		}
 		
-		if (!schema.name) {
+		if (!schema.name)
 			throw new Error("Service name can't be empty!");
-		}
 
 		this.name = schema.name;
 		this.version = schema.version;
@@ -120,7 +117,7 @@ class Service {
 
 			forIn(schema.methods, (method, name) => {
 				/* istanbul ignore next */
-				if (["name", "version", "settings", "schema", "broker", "actions", "logger"].indexOf(name) != -1) {
+				if (["name", "version", "settings", "schema", "broker", "actions", "logger", "created", "started", "stopped"].indexOf(name) != -1) {
 					throw new Error(`Invalid method name '${name}' in '${this.name}' service!`);
 				}
 				this[name] = method.bind(this);
@@ -128,11 +125,39 @@ class Service {
 
 		}
 
-		// Call `created` function from schema
-		if (isFunction(this.schema.created)) {
-			this.schema.created.call(this);
-		}
+		// Create lifecycle runner methods
+		this.created = () => {
+			if (isFunction(this.schema.created)) {
+				this.schema.created.call(this);
+			} else if (Array.isArray(this.schema.created)) {
+				this.schema.created.forEach(fn => fn.call(this));
+			}
+		};
 
+		this.started = () => {
+			if (isFunction(this.schema.started))
+				return this.Promise.method(this.schema.started).call(this);
+
+			if (Array.isArray(this.schema.started)) {
+				return this.schema.started.map(fn => this.Promise.method(fn.bind(this))).reduce((p, fn) => p.then(fn), this.Promise.resolve());
+			}
+
+			return Promise.resolve();
+		};
+
+		this.stopped = () => {
+			if (isFunction(this.schema.stopped))
+				return this.Promise.method(this.schema.stopped).call(this);
+
+			if (Array.isArray(this.schema.stopped)) {
+				return this.schema.stopped.reverse().map(fn => this.Promise.method(fn.bind(this))).reduce((p, fn) => p.then(fn), this.Promise.resolve());
+			}
+
+			return Promise.resolve();
+		};
+
+		// Call the created event handler
+		this.created();
 	}
 
 	/**

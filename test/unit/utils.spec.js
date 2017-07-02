@@ -73,8 +73,9 @@ describe("Test mergeSchemas", () => {
 				notify() {}
 			},
 
-			created() {},
-			started() {}
+			created: jest.fn(),
+			started: jest.fn(),
+			stopped: jest.fn()
 		};
 
 		let newSchema = {
@@ -111,8 +112,9 @@ describe("Test mergeSchemas", () => {
 				checkPermission() {}
 			},
 
-			created() {},
-			stopped() {},
+			created: jest.fn(),
+			started: jest.fn(),
+			stopped: jest.fn(),
 
 			customProp: "test"			
 		};
@@ -149,9 +151,18 @@ describe("Test mergeSchemas", () => {
 		expect(res.methods.notify).toBe(origSchema.methods.notify);
 		expect(res.methods.checkPermission).toBe(newSchema.methods.checkPermission);
 		
-		expect(res.created).toBe(newSchema.created);
-		expect(res.started).toBe(origSchema.started);
-		expect(res.stopped).toBe(newSchema.stopped);
+		expect(res.created).toBeInstanceOf(Array);
+		expect(res.started).toBeInstanceOf(Array);
+		expect(res.stopped).toBeInstanceOf(Array);
+
+		expect(res.created[0]).toBe(origSchema.created);
+		expect(res.created[1]).toBe(newSchema.created);
+
+		expect(res.started[0]).toBe(origSchema.started);
+		expect(res.started[1]).toBe(newSchema.started);
+
+		expect(res.stopped[0]).toBe(origSchema.stopped);
+		expect(res.stopped[1]).toBe(newSchema.stopped);
 
 		expect(res.customProp).toBe("test");
 

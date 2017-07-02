@@ -98,7 +98,10 @@ let utils = {
 				res[key] = _.defaultsDeep(mods[key], res[key]);
 			else if (["actions", "events", "methods"].indexOf(key) !== -1)
 				res[key] = _.assign(res[key], mods[key]);
-			else
+			else if (["created", "started", "stopped"].indexOf(key) !== -1) {
+				// Concat lifecycle event handlers
+				res[key] = _.compact(_.flatten([res[key], mods[key]]));
+			} else
 				updateProp(key, res, mods);
 		});
 

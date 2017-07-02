@@ -248,17 +248,13 @@ class ServiceBroker {
 	start() {
 		return Promise.resolve()
 			.then(() => {
-			// Call service `started` handlers
-				this.services.forEach(service => {
-					if (service && service.schema && _.isFunction(service.schema.started)) {
-						service.schema.started.call(service);
-					}
-				});
-				return null; // avoid Bluebird warning
+				// Call service `started` handlers
+				return Promise.all(this.services.map(svc => svc.started.call(svc)));
 			})
 			.catch(err => {
-			/* istanbul ignore next */
+				/* istanbul ignore next */
 				this.logger.error("Unable to start all services!", err);
+				return Promise.reject(err);
 			})
 			.then(() => {
 				if (this.transit)
@@ -277,16 +273,11 @@ class ServiceBroker {
 	stop() {
 		return Promise.resolve()
 			.then(() => {
-			// Call service `started` handlers
-				this.services.forEach(service => {
-					if (service && service.schema && _.isFunction(service.schema.stopped)) {
-						service.schema.stopped.call(service);
-					}
-				});
-				return null; // avoid Bluebird warning
+				// Call service `started` handlers
+				return Promise.all(this.services.map(svc => svc.stopped.call(svc)));
 			})
 			.catch(err => {
-			/* istanbul ignore next */
+				/* istanbul ignore next */
 				this.logger.error("Unable to stop all services!", err);
 			})
 			.then(() => {
