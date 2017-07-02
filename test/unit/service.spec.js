@@ -23,7 +23,7 @@ describe("Test Service constructor", () => {
 	it("should throw exceptions if missing main properties", () => {
 		expect(() => {
 			new Service();
-		}).toThrowError("Must to set a ServiceBroker instance!");
+		}).toThrowError("Must set a ServiceBroker instance!");
 
 		expect(() => {
 			new Service({});
@@ -44,6 +44,10 @@ describe("Test Service constructor", () => {
 		
 		expect(service.logger).toBeDefined();
 		expect(service.actions).toEqual({});
+
+		expect(service.created).toBeInstanceOf(Function);
+		expect(service.started).toBeInstanceOf(Function);
+		expect(service.stopped).toBeInstanceOf(Function);
 	});
 	
 });
@@ -348,7 +352,7 @@ describe("Test applyMixins", () => {
 		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, schema);
 	});
 
-	it("should call utils.mergeSchemas with mixins", () => {
+	it("should call utils.mergeSchemas with mixin", () => {
 		utils.mergeSchemas.mockClear();
 		let schema = {
 			name: "posts",
@@ -360,4 +364,95 @@ describe("Test applyMixins", () => {
 		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, mixin2);
 		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, schema);
 	});
+});
+
+describe("Test lifecycle event handlers", () => {
+	describe("with simple handlers", () => {
+
+		let broker = new ServiceBroker();
+
+		let schema = {
+			name: "simple",
+
+			created: jest.fn(),
+			started: jest.fn(),
+			stopped: jest.fn()
+		};
+
+		it("should called created", () => {
+			broker.createService(schema);
+
+			expect(schema.created).toHaveBeenCalledTimes(1);
+
+			return broker.start();
+		});
+
+		it("should called started", () => {
+			expect(schema.started).toHaveBeenCalledTimes(1);
+
+			return broker.stop();
+		});
+
+		it("should called stopped", () => {
+			expect(schema.stopped).toHaveBeenCalledTimes(1);
+		});
+	});
+	
+	describe("with multiple handlers (from mixins)", () => {
+
+		let broker = new ServiceBroker();
+
+		let FLOW = [];
+
+		let createdFn1 = jest.fn(() => FLOW.push("C1"));
+		let createdFn2 = jest.fn(() => FLOW.push("C2"));
+
+		let startedFn1 = jest.fn(() => FLOW.push("A1"));
+		let startedFn2 = jest.fn(() => FLOW.push("A2"));
+
+		let stoppedFn1 = jest.fn(() => FLOW.push("O1"));
+		let stoppedFn2 = jest.fn(() => FLOW.push("O2"));
+
+		let schema = {
+			name: "simple",
+
+			created: [
+				createdFn1, 
+				createdFn2
+			],
+			started: [
+				startedFn1, 
+				startedFn2
+			],
+			stopped: [
+				stoppedFn1, 
+				stoppedFn2
+			],
+		};
+
+		it("should called created", () => {
+			broker.createService(schema);
+
+			expect(createdFn1).toHaveBeenCalledTimes(1);
+			expect(createdFn2).toHaveBeenCalledTimes(1);
+
+			return broker.start();
+		});
+
+		it("should called started", () => {
+			expect(startedFn1).toHaveBeenCalledTimes(1);
+			expect(startedFn2).toHaveBeenCalledTimes(1);
+
+			return broker.stop();
+		});
+
+		it("should called stopped", () => {
+			expect(stoppedFn1).toHaveBeenCalledTimes(1);
+			expect(stoppedFn2).toHaveBeenCalledTimes(1);
+			
+			expect(FLOW.join("-")).toBe("C1-C2-A1-A2-O2-O1");
+		});
+	});
+
+
 });

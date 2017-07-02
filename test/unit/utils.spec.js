@@ -168,4 +168,33 @@ describe("Test mergeSchemas", () => {
 
 	});
 
+	it("should concat tlifecycle events", () => {
+
+		let origSchema = {
+			created: jest.fn(),
+			started: jest.fn()
+		};
+
+		let newSchema = {
+			created: jest.fn(),
+			stopped: jest.fn()
+		};
+
+		let res = utils.mergeSchemas(origSchema, newSchema);
+
+		expect(res).toBeDefined();
+
+		expect(res.created).toBeInstanceOf(Array);
+		expect(res.created.length).toBe(2);
+		expect(res.created[0]).toBe(origSchema.created);
+		expect(res.created[1]).toBe(newSchema.created);
+
+		expect(res.started).toBe(origSchema.started);
+
+		expect(res.stopped).toBeInstanceOf(Array);
+		expect(res.stopped.length).toBe(1);
+		expect(res.stopped[0]).toBe(newSchema.stopped);
+
+	});
+
 });

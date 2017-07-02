@@ -372,14 +372,14 @@ describe("Test option resolvers", () => {
 
 describe("Test broker.start", () => {
 
-	let broker;
+	describe("if started success", () => {
 
-	let schema = {
-		name: "test",
-		started: jest.fn()
-	};
+		let broker;
+		let schema = {
+			name: "test",
+			started: jest.fn()
+		};
 
-	beforeAll(() => {
 		broker = new ServiceBroker({
 			metrics: true,
 			statistics: true,
@@ -390,29 +390,117 @@ describe("Test broker.start", () => {
 
 		broker.transit.connect = jest.fn(() => Promise.resolve()); 
 
-		return broker.start();
+		beforeAll(() => broker.start());
+
+		it("should call started of services", () => {
+			expect(schema.started).toHaveBeenCalledTimes(1);
+			expect(broker.transit.connect).toHaveBeenCalledTimes(1);
+		});
 	});
 
-	it("should call started of services", () => {
-		expect(schema.started).toHaveBeenCalledTimes(1);
+	describe("if started return with Promise", () => {
+
+		let broker;
+		let schema = {
+			name: "test",
+			started: jest.fn(() => Promise.resolve())
+		};
+
+		broker = new ServiceBroker({
+			metrics: true,
+			statistics: true,
+			transporter: new FakeTransporter()
+		});
+
+		broker.createService(schema);
+
+		broker.transit.connect = jest.fn(() => Promise.resolve()); 
+
+		beforeAll(() => broker.start());
+
+		it("should call started of services", () => {
+			expect(schema.started).toHaveBeenCalledTimes(1);
+			expect(broker.transit.connect).toHaveBeenCalledTimes(1);
+		});
 	});
 
-	it("should call transit.connect", () => {
-		expect(broker.transit.connect).toHaveBeenCalledTimes(1);
+	describe("if started throw error", () => {
+
+		let broker;
+		let schema = {
+			name: "test",
+			started: jest.fn(() => Promise.reject("Can't start!"))
+		};
+
+		broker = new ServiceBroker({
+			metrics: true,
+			statistics: true,
+			transporter: new FakeTransporter()
+		});
+
+		broker.createService(schema);
+
+		broker.transit.connect = jest.fn(() => Promise.resolve()); 
+
+		it("should reject", () => {
+			return expect(broker.start()).rejects.toBeDefined();
+		});
+
+		it("should call started of services", () => {
+			expect(schema.started).toHaveBeenCalledTimes(1);
+			expect(broker.transit.connect).toHaveBeenCalledTimes(0);
+		});
 	});
 
 });
 
 describe("Test broker.stop", () => {
 
-	let broker;
+	describe("if stopped success", () => {
 
-	let schema = {
-		name: "test",
-		stopped: jest.fn()
-	};
 
-	beforeAll(() => {
+		let broker;
+
+		let schema = {
+			name: "test",
+			stopped: jest.fn()
+		};
+
+		beforeAll(() => {
+			broker = new ServiceBroker({
+				metrics: true,
+				statistics: true,
+				transporter: new FakeTransporter()
+			});
+
+			broker.createService(schema);
+
+			broker.transit.connect = jest.fn(() => Promise.resolve()); 
+			broker.transit.disconnect = jest.fn(() => Promise.resolve()); 
+
+			broker.cacher = {
+				close: jest.fn(() => Promise.resolve())
+			}; 
+
+			return broker.start().then(() => broker.stop());
+		});
+
+		it("should call stopped of services", () => {
+			expect(schema.stopped).toHaveBeenCalledTimes(1);
+			expect(broker.transit.disconnect).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.close).toHaveBeenCalledTimes(1);
+		});
+
+	});
+
+	describe("if stopped return with Promise", () => {
+
+		let broker;
+		let schema = {
+			name: "test",
+			stopped: jest.fn(() => Promise.resolve())
+		};
+
 		broker = new ServiceBroker({
 			metrics: true,
 			statistics: true,
@@ -428,19 +516,45 @@ describe("Test broker.stop", () => {
 			close: jest.fn(() => Promise.resolve())
 		}; 
 
-		return broker.start().then(() => broker.stop());
+		beforeAll(() => broker.start().then(() => broker.stop()));
+
+		it("should call stopped of services", () => {
+			expect(schema.stopped).toHaveBeenCalledTimes(1);
+			expect(broker.transit.disconnect).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.close).toHaveBeenCalledTimes(1);
+		});
 	});
 
-	it("should call stopped of services", () => {
-		expect(schema.stopped).toHaveBeenCalledTimes(1);
-	});
+	describe("if stopped throw error", () => {
 
-	it("should disconnect transit", () => {
-		expect(broker.transit.disconnect).toHaveBeenCalledTimes(1);
-	});
+		let broker;
+		let schema = {
+			name: "test",
+			stopped: jest.fn(() => Promise.reject("Can't start!"))
+		};
 
-	it("should close cacher", () => {
-		expect(broker.cacher.close).toHaveBeenCalledTimes(1);
+		broker = new ServiceBroker({
+			metrics: true,
+			statistics: true,
+			transporter: new FakeTransporter()
+		});
+
+		broker.createService(schema);
+
+		broker.transit.connect = jest.fn(() => Promise.resolve()); 
+		broker.transit.disconnect = jest.fn(() => Promise.resolve()); 
+
+		broker.cacher = {
+			close: jest.fn(() => Promise.resolve())
+		}; 
+
+		beforeAll(() => broker.start().then(() => broker.stop()));
+
+		it("should call stopped of services", () => {
+			expect(schema.stopped).toHaveBeenCalledTimes(1);
+			expect(broker.transit.disconnect).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.close).toHaveBeenCalledTimes(1);
+		});
 	});
 
 });
