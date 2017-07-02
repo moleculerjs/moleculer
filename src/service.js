@@ -204,8 +204,15 @@ class Service {
 	static applyMixins(schema) {
 		if (schema.mixins) {
 			const mixins = Array.isArray(schema.mixins) ? schema.mixins : [schema.mixins];
-			const mixedSchema = mixins.reduce((s, mixin) => utils.mergeSchemas(s, mixin), {});
-			return utils.mergeSchemas(mixedSchema, schema);
+			mixins.push(schema);
+			const mixedSchema = mixins.reduce((s, mixin) => {
+				console.log(`Mix ${s.name} to ${mixin.name}`);
+				let res = utils.mergeSchemas(s, mixin);
+				console.log(res);
+				return res;
+			}, {});
+			//return utils.mergeSchemas(mixedSchema, schema);
+			return mixedSchema;
 		} 
 		
 		/* istanbul ignore next */

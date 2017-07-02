@@ -94,13 +94,16 @@ let utils = {
 		const res = _.cloneDeep(schema);
 
 		Object.keys(mods).forEach(key => {
-			if (["settings"].indexOf(key) !== -1)
+			if (["settings"].indexOf(key) !== -1) {
 				res[key] = _.defaultsDeep(mods[key], res[key]);
-			else if (["actions", "events", "methods"].indexOf(key) !== -1)
+			} else if (["actions", "events", "methods"].indexOf(key) !== -1) {
 				res[key] = _.assign(res[key], mods[key]);
-			else if (["created", "started", "stopped"].indexOf(key) !== -1) {
+			} else if (["created", "started", "stopped"].indexOf(key) !== -1) {
 				// Concat lifecycle event handlers
 				res[key] = _.compact(_.flatten([res[key], mods[key]]));
+			} else if (["mixins"].indexOf(key) !== -1) {
+				// Concat mixins
+				res[key] = _.compact(_.flatten([mods[key], res[key]]));
 			} else
 				updateProp(key, res, mods);
 		});
