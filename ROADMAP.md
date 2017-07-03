@@ -2,7 +2,6 @@
 
 ## v0.9.x
 - [ ] multi broker.call (array params & returns with array result )
-- [ ] move repl to an external module.
 - [ ] official Zipkin tracer service
 - [ ] add lru features to Memory and Redis cachers
 - [ ] official services
