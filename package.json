@@ -1,6 +1,6 @@
 {
   "name": "moleculer",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Fast & powerful microservices framework for Node.JS",
   "main": "index.js",
   "scripts": {
