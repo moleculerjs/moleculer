@@ -62,7 +62,7 @@
     "bluebird": "3.5.0",
     "es6-error": "4.0.2",
     "eventemitter2": "4.1.0",
-    "fastest-validator": "0.4.3",
+    "fastest-validator": "0.5.0",
     "glob": "7.1.2",
     "lodash": "4.17.4",
     "nanomatch": "1.2.0",
