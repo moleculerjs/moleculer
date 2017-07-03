@@ -73,8 +73,9 @@ describe("Test mergeSchemas", () => {
 				notify() {}
 			},
 
-			created() {},
-			started() {}
+			created: jest.fn(),
+			started: jest.fn(),
+			stopped: jest.fn()
 		};
 
 		let newSchema = {
@@ -111,8 +112,9 @@ describe("Test mergeSchemas", () => {
 				checkPermission() {}
 			},
 
-			created() {},
-			stopped() {},
+			created: jest.fn(),
+			started: jest.fn(),
+			stopped: jest.fn(),
 
 			customProp: "test"			
 		};
@@ -141,19 +143,61 @@ describe("Test mergeSchemas", () => {
 		expect(res.actions.list).toBe(newSchema.actions.list);
 		expect(res.actions.remove).toBe(newSchema.actions.remove);
 
-		expect(res.events.created).toBe(newSchema.events.created);
+		expect(res.events.created).toBeInstanceOf(Array);
+		expect(res.events.created[0]).toBe(origSchema.events.created);
+		expect(res.events.created[1]).toBe(newSchema.events.created);
+
 		expect(res.events.updated).toBe(origSchema.events.updated);
-		expect(res.events.removed).toBe(newSchema.events.removed);
+		expect(res.events.removed).toBeInstanceOf(Array);
+		expect(res.events.removed[0]).toBe(newSchema.events.removed);
 
 		expect(res.methods.getByID).toBe(newSchema.methods.getByID);
 		expect(res.methods.notify).toBe(origSchema.methods.notify);
 		expect(res.methods.checkPermission).toBe(newSchema.methods.checkPermission);
 		
-		expect(res.created).toBe(newSchema.created);
-		expect(res.started).toBe(origSchema.started);
-		expect(res.stopped).toBe(newSchema.stopped);
+		expect(res.created).toBeInstanceOf(Array);
+		expect(res.started).toBeInstanceOf(Array);
+		expect(res.stopped).toBeInstanceOf(Array);
+
+		expect(res.created[0]).toBe(origSchema.created);
+		expect(res.created[1]).toBe(newSchema.created);
+
+		expect(res.started[0]).toBe(origSchema.started);
+		expect(res.started[1]).toBe(newSchema.started);
+
+		expect(res.stopped[0]).toBe(origSchema.stopped);
+		expect(res.stopped[1]).toBe(newSchema.stopped);
 
 		expect(res.customProp).toBe("test");
+
+	});
+
+	it("should concat tlifecycle events", () => {
+
+		let origSchema = {
+			created: jest.fn(),
+			started: jest.fn()
+		};
+
+		let newSchema = {
+			created: jest.fn(),
+			stopped: jest.fn()
+		};
+
+		let res = utils.mergeSchemas(origSchema, newSchema);
+
+		expect(res).toBeDefined();
+
+		expect(res.created).toBeInstanceOf(Array);
+		expect(res.created.length).toBe(2);
+		expect(res.created[0]).toBe(origSchema.created);
+		expect(res.created[1]).toBe(newSchema.created);
+
+		expect(res.started).toBe(origSchema.started);
+
+		expect(res.stopped).toBeInstanceOf(Array);
+		expect(res.stopped.length).toBe(1);
+		expect(res.stopped[0]).toBe(newSchema.stopped);
 
 	});
 
