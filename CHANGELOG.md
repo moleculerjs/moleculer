@@ -4,7 +4,7 @@
 # New
 
 ## Improved mixin's merge logic [#50](https://github.com/ice-services/moleculer/issues/50/)
-The mixins merge logic is handle better events & lifecycle events. If you have a `created`, `started`, `stopped` lifecycle event or any other service event handler in your services, but your mixin has the same vent, Moleculer will call all of them in your service and in mixins. 
+The mixins merge logic is handle better events & lifecycle events. If you have a `created`, `started`, `stopped` lifecycle event or any other service event handler in your services, but your mixin has the same event, Moleculer will call all of them in your service and in mixins. 
 
 [Read more about mixins](http://moleculer.services/docs/service.html#Mixins)
 
