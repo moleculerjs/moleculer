@@ -1,3 +1,15 @@
+<a name="0.8.1"></a>
+# 0.8.1 (2017-07-xx)
+
+# New
+
+## Improved mixin's merge logic
+The mixins merge logic is handle better events & lifecycle events. If you have a `created`, `started`, `stopped` lifecycle event or any other service event handler in your services, but your mixin has the same vent, Moleculer will call all of them in your service and in mixins. 
+
+[Read more about mixins](http://moleculer.services/docs/service.html#Mixins)
+
+--------------------------------------------------
+
 <a name="0.8.0"></a>
 # 0.8.0 (2017-06-21)
 

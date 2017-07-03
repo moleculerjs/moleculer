@@ -79,7 +79,7 @@ describe.only("Test Service mixins", () => {
 			e: "Susan"
 		},
 
-		actions :{
+		actions: {
 			gamma(ctx) {
 				return "From mixin2L1";
 			},
@@ -150,8 +150,8 @@ describe.only("Test Service mixins", () => {
 		expect(mixinL2.created).toHaveBeenCalledTimes(2);
 
 		return broker.start();
-	});		
-	
+	});
+
 	it("should call every start handler", () => {
 		expect(mainSchema.started).toHaveBeenCalledTimes(1);
 		expect(mixin2L1.started).toHaveBeenCalledTimes(1);
@@ -201,31 +201,26 @@ describe.only("Test Service mixins", () => {
 
 	it("should call 'jupiter' method", () => {
 		svc.jupiter();
-		
 		expect(mixin1L1.methods.jupiter).toHaveBeenCalledTimes(1);
 	});
 
 	it("should call 'uranus' method", () => {
 		svc.uranus();
-		
 		expect(mainSchema.methods.uranus).toHaveBeenCalledTimes(1);
 	});
 
 	it("should call 'saturn' method", () => {
 		svc.saturn();
-		
 		expect(mixin1L1.methods.saturn).toHaveBeenCalledTimes(1);
 	});
 
 	it("should call 'mars' method", () => {
 		svc.mars();
-		
 		expect(mixinL2.methods.mars).toHaveBeenCalledTimes(1);
 	});
 
 	it("should call 'venus' method", () => {
 		svc.venus();
-		
 		expect(mixin2L1.methods.venus).toHaveBeenCalledTimes(1);
 	});
 
@@ -235,16 +230,16 @@ describe.only("Test Service mixins", () => {
 
 		expect(mainSchema.events.oxygen).toHaveBeenCalledTimes(1);
 		expect(mainSchema.events.oxygen).toHaveBeenCalledWith(payload, undefined, "oxygen");
-			
+
 		expect(mixin1L1.events.oxygen).toHaveBeenCalledTimes(1);
 		expect(mixin1L1.events.oxygen).toHaveBeenCalledWith(payload, undefined, "oxygen");
-			
+
 		expect(mixin2L1.events.oxygen).toHaveBeenCalledTimes(1);
 		expect(mixin2L1.events.oxygen).toHaveBeenCalledWith(payload, undefined, "oxygen");
-			
+
 		expect(mixinL2.events.oxygen).toHaveBeenCalledTimes(2);
 		expect(mixinL2.events.oxygen).toHaveBeenCalledWith(payload, undefined, "oxygen");
-	});		
+	});
 
 	it("should call 'carbon' event handlers", () => {
 		let payload = { a: 5 };
@@ -252,7 +247,7 @@ describe.only("Test Service mixins", () => {
 
 		expect(mainSchema.events.carbon).toHaveBeenCalledTimes(1);
 		expect(mainSchema.events.carbon).toHaveBeenCalledWith(payload, undefined, "carbon");
-	});		
+	});
 
 	it("should call 'hydrogen' event handlers", () => {
 		let payload = { a: 5 };
@@ -263,7 +258,7 @@ describe.only("Test Service mixins", () => {
 
 		expect(mixin2L1.events.hydrogen).toHaveBeenCalledTimes(1);
 		expect(mixin2L1.events.hydrogen).toHaveBeenCalledWith(payload, undefined, "hydrogen");
-	});		
+	});
 
 	it("calling broker.stop", () => {
 		return broker.stop();
@@ -273,6 +268,6 @@ describe.only("Test Service mixins", () => {
 		expect(mainSchema.stopped).toHaveBeenCalledTimes(1);
 		expect(mixin1L1.stopped).toHaveBeenCalledTimes(1);
 		expect(mixinL2.stopped).toHaveBeenCalledTimes(2);
-	});	
+	});
 
 });
