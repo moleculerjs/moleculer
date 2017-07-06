@@ -36,7 +36,7 @@ let broker2 = new ServiceBroker({
 		options: {
 			redis: { 
 				host: "localhost",
-				database: 3
+				db: 3
 			}
 		}
 	},

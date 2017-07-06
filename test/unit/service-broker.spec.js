@@ -258,10 +258,10 @@ describe("Test option resolvers", () => {
 		});
 
 		it("should resolve RedisTransporter from obj with Redis type", () => {
-			let options = { prefix: "mol-redis", redis: { database: 3 } };
+			let options = { prefix: "mol-redis", redis: { db: 3 } };
 			let trans = broker._resolveTransporter({ type: "Redis", options });
 			expect(trans).toBeInstanceOf(Transporters.Redis);
-			expect(trans.opts).toEqual({ prefix: "mol-redis", redis: { database: 3 } });
+			expect(trans.opts).toEqual({ prefix: "mol-redis", redis: { db: 3 } });
 		});
 
 		it("should throw error if type if not correct", () => {
@@ -322,10 +322,10 @@ describe("Test option resolvers", () => {
 		});
 
 		it("should resolve RedisCacher from obj with Redis type", () => {
-			let options = { ttl: 80, redis: { database: 3 } };
+			let options = { ttl: 80, redis: { db: 3 } };
 			let cacher = broker._resolveCacher({ type: "Redis", options });
 			expect(cacher).toBeInstanceOf(Cachers.Redis);
-			expect(cacher.opts).toEqual({ prefix: "", ttl: 80, redis: { database: 3 } });
+			expect(cacher.opts).toEqual({ prefix: "", ttl: 80, redis: { db: 3 } });
 		});
 		
 		it("should resolve RedisCacher from connection string", () => {
