@@ -205,6 +205,12 @@ class ServiceBroker {
 			let CacherClass = Cachers[opt];
 			if (CacherClass)
 				return new CacherClass();
+
+			if (opt.startsWith("redis://"))
+				CacherClass = Cachers.Redis;
+
+			if (CacherClass)
+				return new CacherClass(opt);
 			else
 				throw new E.MoleculerError(`Invalid cacher type '${opt}'`, null, "NOT_FOUND_CACHER", { type: opt });
 

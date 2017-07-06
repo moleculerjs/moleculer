@@ -12,6 +12,7 @@ let broker1 = new ServiceBroker({
 	requestTimeout: 5000,
 	requestRetry: 3,
 	transporter: "NATS",
+	cacher: "redis://localhost",
 	serializer: "JSON",
 	circuitBreaker: {
 		enabled: true
@@ -30,6 +31,15 @@ let broker2 = new ServiceBroker({
 	logger: true,
 	logLevel: "info",
 	transporter: "NATS",
+	cacher: {
+		type: "Redis",
+		options: {
+			redis: { 
+				host: "localhost",
+				database: 3
+			}
+		}
+	},
 	serializer: "JSON",
 	statistics: true
 });
@@ -54,6 +64,6 @@ broker1.Promise.resolve()
 	.then(() => broker2.start())
 	.delay(500)
 	.then(() => broker1.call("$node.actions", { onlyLocal: true }, { nodeID: "node2" }))
-	.then(res => console.log(res))
+	//.then(res => console.log(res))
 	.catch(err => console.log(err))
 	.then(() => broker1.repl());

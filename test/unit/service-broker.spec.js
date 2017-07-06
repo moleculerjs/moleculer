@@ -321,6 +321,18 @@ describe("Test option resolvers", () => {
 			expect(cacher.opts).toEqual({ prefix: "", ttl: 100});
 		});
 
+		it("should resolve RedisCacher from obj with Redis type", () => {
+			let options = { ttl: 80, redis: { database: 3 } };
+			let cacher = broker._resolveCacher({ type: "Redis", options });
+			expect(cacher).toBeInstanceOf(Cachers.Redis);
+			expect(cacher.opts).toEqual({ prefix: "", ttl: 80, redis: { database: 3 } });
+		});
+		
+		it("should resolve RedisCacher from connection string", () => {
+			let cacher = broker._resolveCacher("redis://localhost");
+			expect(cacher).toBeInstanceOf(Cachers.Redis);
+		});		
+
 		it("should throw error if type if not correct", () => {
 			expect(() => {
 				broker._resolveCacher({ type: "xyz" });
