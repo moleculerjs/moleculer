@@ -1,7 +1,7 @@
 # Roadmap
 
 ## v0.9.x
-- [ ] multi broker.call (array params & returns with array result )
+- [ ] multi broker.call (array & object)
 - [ ] official Zipkin tracer service
 - [ ] add lru features to Memory and Redis cachers
 - [ ] official services

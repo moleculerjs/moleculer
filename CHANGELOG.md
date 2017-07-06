@@ -1,3 +1,21 @@
+<a name="0.8.2"></a>
+# 0.8.2 (2017-07-06)
+
+# Fixes
+- fixed Redis cacher option resolver in ServiceBroker. Now it accepts connection string.
+
+    ```js
+    let broker = new ServiceBroker({
+        cacher: "redis://localhost"
+    });
+    ```
+
+# New
+
+## Validator updated
+The fastest-validator is updated to [v0.5.0](https://github.com/icebob/fastest-validator/releases/tag/v0.5.0). It supports multi rules & custom validators.
+
+--------------------------------------------------
 <a name="0.8.1"></a>
 # 0.8.1 (2017-07-03)
 
