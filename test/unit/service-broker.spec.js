@@ -1653,7 +1653,7 @@ describe("Test broker._callErrorHandler", () => {
 		return broker._callErrorHandler(customErr, ctx, endpoint, { fallbackResponse: otherFn }).then(res => {
 			expect(res).toBe(otherRes);
 			expect(otherFn).toHaveBeenCalledTimes(1);
-			expect(otherFn).toHaveBeenCalledWith(ctx);
+			expect(otherFn).toHaveBeenCalledWith(ctx, customErr);
 			expect(broker.call).toHaveBeenCalledTimes(0);
 
 			expect(ctx._metricFinish).toHaveBeenCalledTimes(0);

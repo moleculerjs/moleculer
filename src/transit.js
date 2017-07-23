@@ -70,7 +70,7 @@ class Transit {
 
 			.then(() => {
 				if (!wasReconnect) 
-					this.makeSubscriptions();
+					return this.makeSubscriptions();
 			})
 
 			.then(() => this.discoverNodes())

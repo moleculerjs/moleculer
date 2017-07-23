@@ -956,7 +956,7 @@ class ServiceBroker {
 		if (opts.fallbackResponse) {
 			this.logger.warn(`Action '${actionName}' returns fallback response!`);
 			if (_.isFunction(opts.fallbackResponse))
-				return opts.fallbackResponse(ctx);
+				return opts.fallbackResponse(ctx, err);
 			else
 				return Promise.resolve(opts.fallbackResponse);
 		}
