@@ -3,7 +3,7 @@
 
 # New
 
-## Remove actions in mixins
+## Removable actions in mixins
 You can remove an existing action when mixing a service.
 
 ```
