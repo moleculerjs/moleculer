@@ -1,3 +1,23 @@
+<a name="0.8.3"></a>
+# 0.8.3 (2017-0x-xx)
+
+# New
+
+## Remove actions in mixins
+You can remove an existing action when mixing a service.
+
+```
+broker.createService({
+    name: "test",
+    mixins: [OtherService],
+    actions: {
+        dangerAction: false
+    }
+});
+```
+In the `test` service the `dangerAction` action won't be registered.
+
+--------------------------------------------------
 <a name="0.8.2"></a>
 # 0.8.2 (2017-07-06)
 

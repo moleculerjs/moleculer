@@ -64,6 +64,9 @@ class Service {
 		if (isObject(schema.actions)) {
 
 			forIn(schema.actions, (action, name) => {
+				if (action === false)
+					return;
+				
 				if (isFunction(action)) {
 					// Wrap to an object
 					action = {

@@ -65,7 +65,8 @@ describe("Test action creation", () => {
 					id: "required|numeric"
 				},
 				handler: jest.fn()
-			}
+			},
+			noExist: false
 		}
 	};
 
