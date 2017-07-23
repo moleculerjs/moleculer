@@ -54,13 +54,15 @@ describe("Test Errors", () => {
 	});
 
 	it("test RequestSkippedError", () => {
-		let err = new errors.RequestSkippedError("posts.find");
+		let err = new errors.RequestSkippedError("posts.find", "server-3");
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err).toBeInstanceOf(errors.RequestSkippedError);
 		expect(err.code).toBe(514);
 		expect(err.name).toBe("RequestSkippedError");
-		expect(err.message).toBe("Calling 'posts.find' is skipped because timeout reached!");
+		expect(err.message).toBe("Calling 'posts.find' is skipped because timeout reached on 'server-3' node!");
+		expect(err.data.action).toBe("posts.find");
+		expect(err.data.nodeID).toBe("server-3");
 	});
 
 	it("test ValidationError", () => {

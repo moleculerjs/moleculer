@@ -94,12 +94,14 @@ class RequestSkippedError extends MoleculerError {
 	 * Creates an instance of RequestSkippedError.
 	 * 
 	 * @param {String} action
+	 * @param {String} nodeID
 	 * 
 	 * @memberOf RequestSkippedError
 	 */
-	constructor(action) {
-		super(`Calling '${action}' is skipped because timeout reached!`, 514, null, {
-			action
+	constructor(action, nodeID) {
+		super(`Calling '${action}' is skipped because timeout reached on '${nodeID || "<local>"}' node!`, 514, null, {
+			action, 
+			nodeID
 		});
 	}
 }
