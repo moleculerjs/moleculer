@@ -51,7 +51,7 @@ function processFlags() {
 /**
  * Load configuration file
  * 
- * Try to load a configuration file in order:
+ * Try to load a configuration file in order to:
  * 	
  * 		- load file which is defined in CLI option with --config
  * 		- try to load the `moleculer.config.js` file if exist in the cwd
@@ -151,11 +151,11 @@ function mergeOptions() {
  * 
  * 1. first check the CLI arguments. If it find filename(s), load it/them
  * 2. If find directory(ies), load it/them
- * 3. If find SERVICEDIR env var and not find SERVICES env var, load all services from the SERVICEDIR directory
- * 4. If find SERVICEDIR env var and SERVICES env var, load the specified services from the SERVICEDIR directory
- * 5. If not find SERVICEDIR env var but find SERVICES env var, load the specified services from the current directory
+ * 3. If find `SERVICEDIR` env var and not find `SERVICES` env var, load all services from the `SERVICEDIR` directory
+ * 4. If find `SERVICEDIR` env var and `SERVICES` env var, load the specified services from the `SERVICEDIR` directory
+ * 5. If not find `SERVICEDIR` env var but find `SERVICES` env var, load the specified services from the current directory
  * 
- * Please note: you can use shorthand names for SERVICES env var. 
+ * Please note: you can use shorthand names for `SERVICES` env var. 
  * 	E.g.
  * 		SERVICES=posts,users
  * 
@@ -168,17 +168,25 @@ function loadServices() {
 		servicePaths.forEach(p => {
 			if (!p) return;
 
-			const svcPath = path.isAbsolute(p) ? p : path.resolve(process.cwd(), p);
-			if (!fs.existsSync(svcPath))
-				throw new Error(`Path not found: ${svcPath}`);
+			if (p.startsWith("npm:")) {
+				// Load from NPM module
+				loadNpmModule(p.slice(4));
 
-			const isDir = fs.lstatSync(svcPath).isDirectory();
-			if (isDir) {
-				broker.loadServices(svcPath);
 			} else {
-				broker.loadService(svcPath);
+				// Load file or dir
+				const svcPath = path.isAbsolute(p) ? p : path.resolve(process.cwd(), p);
+				if (!fs.existsSync(svcPath))
+					throw new Error(`Path not found: ${svcPath}`);
+
+				const isDir = fs.lstatSync(svcPath).isDirectory();
+				if (isDir) {
+					broker.loadServices(svcPath);
+				} else {
+					broker.loadService(svcPath);
+				}
 			}
 		});
+
 	} else if (process.env.SERVICES || process.env.SERVICEDIR) {
 		let svcDir = process.env.SERVICEDIR || "";
 
@@ -194,17 +202,36 @@ function loadServices() {
 
 			services.map(s => s.trim()).forEach(p => {
 				let name = p;
-				if (!name.endsWith(".service.js"))
-					name = name + ".service.js";
 
-				const svcPath = path.resolve(dir, name);
-				if (!fs.existsSync(svcPath))
-					throw new Error(`Path not found: ${svcPath}`);
+				if (name.startsWith("npm:")) {
+					// Load from NPM module
+					loadNpmModule(p.slice(4));
 
-				broker.loadService(svcPath);
+				} else {
+					// Load from local files
+					if (!name.endsWith(".service.js") && !name.endsWith(".js"))
+						name = name + ".service.js";
+
+					const svcPath = path.resolve(dir, name);
+					if (!fs.existsSync(svcPath))
+						throw new Error(`Path not found: ${svcPath}`);
+
+					broker.loadService(svcPath);
+				}
 			});
 		}
 	}
+}
+
+/**
+ * Load service from NPM module
+ * 
+ * @param {String} name 
+ * @returns {Service}
+ */
+function loadNpmModule(name) {
+	let svc = require(name);
+	return broker.createService(svc);
 }
 
 /**
