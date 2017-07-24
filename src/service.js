@@ -81,7 +81,7 @@ class Service {
 
 				// Expose to call `service.actions.find({ ...params })`
 				this.actions[name] = (params, opts) => {
-					const ctx = broker.createNewContext(innerAction, null, params, opts);
+					const ctx = broker.createNewContext(innerAction, null, params, opts || {});
 					return innerAction.handler(ctx);
 				};
 				

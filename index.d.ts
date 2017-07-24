@@ -131,12 +131,12 @@ declare class ServiceBroker {
 	 * @param {Object} action 
 	 * @param {String?} nodeID 
 	 * @param {Object?} params 
-	 * @param {Object?} opts 
+	 * @param {Object} opts 
 	 * @returns {Context}
 	 * 
 	 * @memberof ServiceBroker
 	 */
-	createNewContext(action: Action, nodeID?: String, params?: Object, opts?: Object): Context;
+	createNewContext(action: Action, nodeID?: String, params?: Object, opts: Object): Context;
 
 	/**
 	 * Call an action (local or global)

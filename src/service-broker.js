@@ -738,7 +738,7 @@ class ServiceBroker {
 	 * @param {Object} action 
 	 * @param {String?} nodeID 
 	 * @param {Object?} params 
-	 * @param {Object?} opts 
+	 * @param {Object} opts 
 	 * @returns {Context}
 	 * 
 	 * @memberof ServiceBroker
