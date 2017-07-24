@@ -3,8 +3,7 @@ cache:
   directories:
   - node_modules
 node_js:
-#    - "8"
-    - "7"
+    - "8"
     - "6"
 after_success:
   - npm run coverall
