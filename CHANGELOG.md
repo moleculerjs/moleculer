@@ -78,12 +78,12 @@ The mixins merge logic is handle better events & lifecycle events. If you have a
 ## Project runner script
 There is a new Moleculer project runner script in the `bin` folder.
 You can use it if you want to create small repos for services. In this case you needn't to create a ServiceBroker with options. Just create a `moleculer.config.js` or `moleculer.config.json` file in the root of repo fill it with your options and call the `moleculer-runner` within the NPM scripts.
-Other solution is that you don't put options to file, instead put it to the environment variables.
+As an other solution you can put it to the environment variables instead of putting  options to file.
 
 [Read more about runner](http://moleculer.services/docs/runner.html)
 
 ## Shorthand for transporters, cachers and serializers in broker options
-There are implemented some new resolvers in broker options to support shorthand configurations. This feature is enabled to load broker options easily from a JSON file or load from environment variables.
+Some new resolvers are implemented in broker options to support shorthand configurations. This feature is enabled to load broker options easily from a JSON file or load from environment variables.
 
 **Usage for transporters**
 ```js
@@ -154,7 +154,7 @@ let broker = new ServiceBroker({
 ```
 
 ## Built-in circuit breaker [#22](https://github.com/ice-services/moleculer/issues/22/)
-Implemented better circuit breaker solution. Now every calls (local and remote) are protected with the built-in circuit breaker.
+A better circuit breaker solution has recently been implemented. As a result of this improvement every call (local and remote) is protected by the built-in circuit breaker.
 You only need to enable it in broker options.
 
 **Usage**
@@ -173,9 +173,9 @@ let broker = new ServiceBroker({
 *`nodeUnavailable` method is dropped.*
 
 ## Service Registry module
-Created a built-in Service Registry module. It handles actions of services on nodes, circuit breaker logic...etc. In the future it will be perhaps pluggable.
+A built-in Service Registry module was created. It handles actions of services on nodes, circuit breaker logic...etc. It would be pluggable in the future.
 
-Via broker options you can change the load balancing strategies of Service Registry.
+You can change the load balancing strategies of Service Registry via broker options.
 
 **Example**
 
@@ -191,7 +191,7 @@ let broker = new ServiceBroker({
 ```
 
 ## REPL mode [#30](https://github.com/ice-services/moleculer/issues/30/)
-Broker has an interactive REPL mode. You can load services, call actions, emit events, subscribe & unsubscribe events from your console. You can list registered nodes & actions.
+Broker module has an interactive REPL mode. You can call actions, load services, also emit events, subscribe to & unsubscribe from events from your console. You can list registered nodes & actions.
 > To use REPL mode please install the [moleculer-repl](https://github.com/ice-services/moleculer-repl) module with `npm install moleculer-repl --save` command.
 
 **Start REPL mode**
@@ -287,7 +287,7 @@ mol $ load "./services"
 ```
 
 ## Direct call
-There is available to call an action directly on a specified node. For use, you need to set `nodeID` in options of call.
+It is available to call an action directly on a specified node. To use it set `nodeID` in options of call.
 
 **Example**
 
@@ -325,7 +325,7 @@ broker.createService(mergedSchema);
 ```
 
 ## Service mixins
-Similar as mergeable schemas, the service can contain any mixin schemas. The constructor of Service will merge these mixins with the schema of Service. Use it to reuse an other Service in your service. Or you can extend an other Service.
+Like mergeable schemas, the service may include any mixin schemas. The constructor of Service merges these mixins with the schema of Service. It is to reuse an other Service in your service or extend an other Service.
 
 **Examples**
 
@@ -348,7 +348,7 @@ module.exports = {
 ```
 
 ## New option to protect calling loop
-You can protect your app against calling loop with the new `maxCallLevel` option. If the `ctx.level` value reaches this limit, will be thrown a `MaxCallLevelError` error.
+You can protect your app against calling loop with the new `maxCallLevel` option. If the `ctx.level` value reaches this limit, it throwns a `MaxCallLevelError` error.
 
 ```js
 let broker = new ServiceBroker({
@@ -357,7 +357,7 @@ let broker = new ServiceBroker({
 ```
 
 ## New Service setting
-There is a new `useVersionPrefix` option in settings of Service. If false, Moleculer can't use the version number of service as prefix for action names. The name of service will be `users.find` instead of `v2.users.find`. The default is `true`.
+There is a new `useVersionPrefix` option in Service settings. If it is `false`, Moleculer can't use the version number of service as prefix for action names. The name of service will be `users.find` instead of `v2.users.find`. The default is `true`.
 
 # Changes
 
@@ -407,7 +407,7 @@ broker.call("account.deposit").catch(err => console.log(err.stack));
 ```
 
 ## Type property in custom error
-The `CustomError` class renamed to `MoleculerError`. It got a `type` new property. You can store here a custom error type. E.g if you have a Validation error sometimes you don't enough the name & code. With `type` the client can handle the cause of error programmatically. 
+The `CustomError` class renamed to `MoleculerError`. also it has a `type` new property. You can store here a custom error type. For example, if you have a `ValidationError`, in some cases the `name` & `code` is not enough. By `type` error causes are to be stored. 
 
 **Example**
 ```js
