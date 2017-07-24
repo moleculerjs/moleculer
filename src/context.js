@@ -13,6 +13,8 @@ const { RequestSkippedError } = require("./errors");
 /**
  * Context class for action calls
  * 
+ * @property {String} id - Context ID
+ * 
  * @class Context
  */
 class Context {
@@ -20,12 +22,22 @@ class Context {
 	/**
 	 * Creates an instance of Context.
 	 * 
-	 * @param {any} opts
+	 * @param {ServiceBroker} broker - Broker instance
+	 * @param {Action} action - Action definition 
+	 * 
+	 * @example
+	 * let ctx = new Context(broker, action);
+	 * 
+	 * @example
+	 * let ctx2 = new Context(broker, action);
 	 * 
 	 * @memberOf Context
 	 */
 	constructor(broker, action) {
+		/* @type {String} - Context ID */
 		this.id = null;
+
+		/* @type {ServiceBroker} - Broker instance */
 		this.broker = broker;
 		this.action = action;
 		this.nodeID = null;
@@ -57,7 +69,7 @@ class Context {
 	/**
 	 * Set params of context
 	 * 
-	 * @param {any} newParams
+	 * @param {Object} newParams
 	 * @param {Boolean} cloning
 	 * 
 	 * @memberOf Context
@@ -72,9 +84,9 @@ class Context {
 	/**
 	 * Call an other action. It will be create a sub-context.
 	 * 
-	 * @param {any} actionName
-	 * @param {any} params
-	 * @param {any} opts
+	 * @param {String} actionName
+	 * @param {Object?} params
+	 * @param {Object?} opts
 	 * @returns
 	 * 
 	 * @memberOf Context
@@ -97,9 +109,9 @@ class Context {
 	}	
 
 	/**
-	 * Call a global event (with broker.emit)
+	 * Call a global event (with broker.emit).
 	 * 
-	 * @param {any} eventName
+	 * @param {String} eventName
 	 * @param {any} data
 	 * @returns
 	 * 
@@ -110,9 +122,11 @@ class Context {
 	}
 
 	/**
-	 * Send start event to metrics system
+	 * Send start event to metrics system.
 	 * 
 	 * @param {boolean} emitEvent
+	 * 
+	 * @private
 	 * @memberOf Context
 	 */
 	_metricStart(emitEvent) {
@@ -145,9 +159,12 @@ class Context {
 	}
 
 	/**
- 	 * Send finish event to metrics system
+	 * Send finish event to metrics system.
+	 * 	   
 	 * @param {Error} error
 	 * @param {boolean} emitEvent
+	 * 
+	 * @private
 	 * @memberOf Context
 	 */
 	_metricFinish(error, emitEvent) {
