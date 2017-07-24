@@ -17,6 +17,21 @@ broker.createService({
 ```
 In the `test` service the `dangerAction` action won't be registered.
 
+## Support NPM modules in `moleculer-runner`
+You can load services from NPM module in `moleculer-runner`.
+
+**With CLI arguments**
+```bash
+$ moleculer-runner -r npm:moleculer-fake npm:moleculer-twilio
+```
+
+**With env**
+```bash
+$ SERVICES=posts,users,npm:moleculer-fale,npm:moleculer-twilio
+
+$ moleculer-runner
+```
+
 --------------------------------------------------
 <a name="0.8.2"></a>
 # 0.8.2 (2017-07-06)
