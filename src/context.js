@@ -14,6 +14,12 @@ const { RequestSkippedError } = require("./errors");
  * Context class for action calls
  * 
  * @property {String} id - Context ID
+ * @property {ServiceBroker} broker - Broker instance
+ * @property {Action} action - Action definition
+ * @property {String} [nodeID=null] - Node ID
+ * @property {String} parentID - Parent Context ID
+ * @property {Boolean} metrics - Need send metrics events
+ * @property {Number} [level=1] - Level of context
  * 
  * @class Context
  */
@@ -34,10 +40,8 @@ class Context {
 	 * @memberOf Context
 	 */
 	constructor(broker, action) {
-		/* @type {String} - Context ID */
 		this.id = null;
 
-		/* @type {ServiceBroker} - Broker instance */
 		this.broker = broker;
 		this.action = action;
 		this.nodeID = null;
@@ -87,7 +91,10 @@ class Context {
 	 * @param {String} actionName
 	 * @param {Object?} params
 	 * @param {Object?} opts
-	 * @returns
+	 * @returns {Promise}
+	 * 
+	 * @example <caption>Call an other service with params & options</caption>
+	 * ctx.call("posts.get", { id: 12 }, { timeout: 1000 });
 	 * 
 	 * @memberOf Context
 	 */
@@ -114,6 +121,9 @@ class Context {
 	 * @param {String} eventName
 	 * @param {any} data
 	 * @returns
+	 * 
+	 * @example
+	 * ctx.emit("user.created", { entity: user, creator: ctx.meta.user });
 	 * 
 	 * @memberOf Context
 	 */
