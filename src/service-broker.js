@@ -306,11 +306,13 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Start REPL mode
+	 * Switch the console to REPL mode.
 	 * 
-	 * @memberof ServiceBroker
+	 * @example
+	 * broker.start().then(() => broker.repl());
+	 * 
+	 * @memberOf ServiceBroker
 	 */
-	/* istanbul ignore next */
 	repl() {
 		let repl;
 		try {
@@ -351,7 +353,7 @@ class ServiceBroker {
 	 * @param {Error?} err 
 	 * @param {boolean} [needExit=true] 
 	 * 
-	 * @memberof ServiceBroker
+	 * @memberOf ServiceBroker
 	 */
 	fatal(message, err, needExit = true) {
 		if (err)
@@ -515,7 +517,7 @@ class ServiceBroker {
 	 * 
 	 * @param {String} nodeID 
 	 * 
-	 * @memberof ServiceBroker
+	 * @memberOf ServiceBroker
 	 */
 	unregisterServicesByNode(nodeID) {
 		this.serviceRegistry.unregisterServicesByNode(nodeID);
@@ -741,7 +743,7 @@ class ServiceBroker {
 	 * @param {Object} opts 
 	 * @returns {Context}
 	 * 
-	 * @memberof ServiceBroker
+	 * @memberOf ServiceBroker
 	 */
 	createNewContext(action, nodeID, params, opts) {
 		const ctx = new this.ContextFactory(this, action);
@@ -1026,9 +1028,19 @@ class ServiceBroker {
 	
 }
 
-// Set version of Moleculer
+/**
+ * Version of Moleculer
+ */
 ServiceBroker.MOLECULER_VERSION = require("../package.json").version;
+
+/**
+ * Version of Moleculer
+ */
 ServiceBroker.prototype.MOLECULER_VERSION = ServiceBroker.MOLECULER_VERSION;
+
+/**
+ * Default configuration
+ */
 ServiceBroker.defaultConfig = defaultConfig;
 
 module.exports = ServiceBroker;
