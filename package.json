@@ -39,6 +39,7 @@
     "amqplib": "0.5.1",
     "avsc": "5.0.4",
     "benchmarkify": "2.1.0",
+    "bunyan": "1.8.12",
     "chalk": "2.0.1",
     "coveralls": "2.13.1",
     "eslint": "4.3.0",
