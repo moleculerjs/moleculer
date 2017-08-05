@@ -54,6 +54,7 @@
     "nats": "0.7.20",
     "nodemon": "1.11.0",
     "npm-check": "5.4.5",
+    "pino": "4.7.1",
     "protobufjs": "6.8.0",
     "v8-natives": "1.0.0"
   },

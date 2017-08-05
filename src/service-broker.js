@@ -454,8 +454,8 @@ class ServiceBroker {
 	/**
 	 * Register a remote service
 	 * 
-	 * @param {any} nodeID		NodeID if it is on a remote server/node
-	 * @param {any} service
+	 * @param {String} nodeID		NodeID if it is on a remote server/node
+	 * @param {Service} service
 	 * 
 	 * @memberOf ServiceBroker
 	 */
@@ -473,7 +473,7 @@ class ServiceBroker {
 	/**
 	 * Register an action in a local server
 	 * 
-	 * @param {any} nodeID		NodeID if it is on a remote server/node
+	 * @param {String} nodeID		NodeID if it is on a remote server/node
 	 * @param {any} action		action schema
 	 * 
 	 * @memberOf ServiceBroker
@@ -527,7 +527,7 @@ class ServiceBroker {
 	 * Unregister an action on a local server. 
 	 * It will be called when a remote node disconnected. 
 	 * 
-	 * @param {any} nodeID		NodeID if it is on a remote server/node
+	 * @param {String} nodeID		NodeID if it is on a remote server/node
 	 * @param {any} action		action schema
 	 * 
 	 * @memberOf ServiceBroker

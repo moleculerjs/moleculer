@@ -60,7 +60,7 @@ module.exports = {
 
 				if (externalMethod) {
 					logger[type] = function(msg, ...args) {
-						externalMethod(prefix + msg, ...args);
+						externalMethod.call(extLogger, prefix + msg, ...args);
 					}.bind(extLogger);
 				}
 			});
