@@ -15,7 +15,7 @@ let Serializer = require("../src/serializers/json");
 // Create broker
 let b1 = new ServiceBroker({
 	nodeID: "node-1",
-	transporter: new Transporter("nats://demo.nats.io:4222"),
+	transporter: new Transporter("nats://localhost:4222"),
 	serializer: new Serializer(),
 	//cacher: new Cacher(),
 	logger: console,
@@ -55,7 +55,7 @@ b1.on("TEST2", (a, sender) => {
 // Create broker
 let b2 = new ServiceBroker({
 	nodeID: "node-2",
-	transporter: new Transporter("nats://demo.nats.io:4222"),
+	transporter: new Transporter("nats://localhost:4222"),
 	serializer: new Serializer(),
 	logger: console,
 	logLevel: "warn",

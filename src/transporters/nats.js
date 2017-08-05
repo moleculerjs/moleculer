@@ -147,6 +147,7 @@ class NatsTransporter extends Transporter {
 	 * @memberOf NatsTransporter
 	 */
 	publish(packet) {
+		if (!this.client) return;
 		const data = packet.serialize();
 		this.client.publish(this.getTopicName(packet.type, packet.target), data);
 	}

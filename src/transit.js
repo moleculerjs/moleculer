@@ -51,6 +51,8 @@ class Transit {
 			}
 		};
 
+		this.disconnecting = true;
+
 		if (this.tx)
 			this.tx.init(this, this.messageHandler.bind(this), this.afterConnect.bind(this));
 
@@ -97,6 +99,8 @@ class Transit {
 			const doConnect = () => {
 				/* istanbul ignore next */
 				this.tx.connect().catch(err => {
+					if (this.disconnecting) return;
+					
 					this.logger.warn("Connect failed!", err.message);
 					this.logger.debug("ERROR!", err);
 
@@ -132,6 +136,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	disconnect() {
+		this.disconnecting = true;
 		if (this.heartbeatTimer) {
 			clearInterval(this.heartbeatTimer);
 			this.heartbeatTimer = null;
