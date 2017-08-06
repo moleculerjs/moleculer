@@ -1,3 +1,11 @@
+<a name="0.8.5"></a>
+# 0.8.5 (2017-08-06)
+
+# Fixes
+- fixed logger method bindings.
+- fixed transporter shutdown errors [#62](https://github.com/ice-services/moleculer/issues/62)
+
+--------------------------------------------------
 <a name="0.8.4"></a>
 # 0.8.4 (2017-07-24)
 
