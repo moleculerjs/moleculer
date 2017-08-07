@@ -432,7 +432,24 @@ class ServiceBroker {
 			s = utils.mergeSchemas(schema, schemaMods);
 
 		let service = new this.ServiceFactory(this, s);
+
+		this.servicesChanged();
+
 		return service;
+	}
+
+	/**
+	 * Destroy a local service
+	 * 
+	 * @param {Service} service 
+	 * @memberof ServiceBroker
+	 */
+	destroyService(service) {
+		service.stopped.call(service);
+		this.services = this.services.filter(s => s !== service);
+		this.serviceRegistry.unregisterService(null, service.name);
+		this.logger.info(`'${service.name}' service is destroyed!`);
+		this.servicesChanged();
 	}
 
 	/**
@@ -616,6 +633,18 @@ class ServiceBroker {
 			addAction("$node.stats", () => {
 				return this.statistics.snapshot();
 			});				
+		}
+	}
+
+	/**
+	 * It will be called when a new service registered or unregistered
+	 * 
+	 * @memberof ServiceBroker
+	 */
+	servicesChanged() {
+		// Notify other nodes, we have a new service list.
+		if (this.transit && this.transit.connected) {
+			this.transit.sendNodeInfo();
 		}
 	}
 

@@ -63,6 +63,25 @@ class ServiceRegistry {
 	}
 
 	/**
+	 * Unregister local service
+	 * 
+	 * @param {Service} svc 
+	 * 
+	 * @memberof ServiceRegistry
+	 */
+	unregisterService(nodeID, serviceName) {
+		this.services.forEach(svc => {
+			if (svc.nodeID != nodeID || svc.name != serviceName) return;
+			// Remove remote actions of node
+			_.forIn(svc.actions, action => {
+				this.unregisterAction(nodeID, action);
+			});
+		});
+
+		_.remove(this.services, svc => svc.nodeID == nodeID && svc.name == serviceName);
+	}	
+
+	/**
 	 * Unregister services by nodeID. It will be called when a node disconnected
 	 * 
 	 * @param {String} nodeID 

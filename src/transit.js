@@ -561,6 +561,7 @@ class Transit {
 		}
 
 		if (node.services) {
+			this.broker.unregisterServicesByNode(nodeID);
 			// Register remote services
 			node.services.forEach(service => this.broker.registerRemoteService(nodeID, service));
 		}
