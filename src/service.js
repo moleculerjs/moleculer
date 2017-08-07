@@ -9,6 +9,7 @@
 const isFunction 	= require("lodash/isFunction");
 const forIn 		= require("lodash/forIn");
 const isObject 		= require("lodash/isObject");
+const isNumber 		= require("lodash/isNumber");
 const cloneDeep 	= require("lodash/cloneDeep");
 const utils 		= require("./utils");
 
@@ -67,14 +68,7 @@ class Service {
 				if (action === false)
 					return;
 				
-				if (isFunction(action)) {
-					// Wrap to an object
-					action = {
-						handler: action
-					};
-				}
-
-				let innerAction = this._createActionHandler(cloneDeep(action), name);
+				let innerAction = this._createAction(this, action, name);
 
 				// Register to broker
 				broker.registerAction(null, innerAction);
@@ -106,7 +100,7 @@ class Service {
 						event.name = event;
 
 					if (!isFunction(event.handler)) {
-						throw new Error(`Missing event handler on '${name}' event in '${this.name}' service!`);
+						throw new ServiceSchemaError(`Missing event handler on '${name}' event in '${this.name}' service!`);
 					}
 
 					const self = this;
@@ -126,7 +120,7 @@ class Service {
 			forIn(schema.methods, (method, name) => {
 				/* istanbul ignore next */
 				if (["name", "version", "settings", "schema", "broker", "actions", "logger", "created", "started", "stopped"].indexOf(name) != -1) {
-					throw new Error(`Invalid method name '${name}' in '${this.name}' service!`);
+					throw new ServiceSchemaError(`Invalid method name '${name}' in '${this.name}' service!`);
 				}
 				this[name] = method.bind(this);
 			});
@@ -171,30 +165,46 @@ class Service {
 	/**
 	 * Create an external action handler for broker (internal command!)
 	 * 
-	 * @param {any} action
+	 * @param {any} actionDef
 	 * @param {any} name
 	 * @returns
 	 * 
 	 * @memberOf Service
 	 */
-	_createActionHandler(action, name) {
-		let handler = action.handler;
-		if (!isFunction(handler)) {
-			throw new Error(`Missing action handler on '${name}' action in '${this.name}' service!`);
+	_createAction(actionDef, name) {
+		let action;
+		if (isFunction(actionDef)) {
+			// Wrap to an object
+			action = {
+				handler: actionDef
+			};
+		} else if (isObject(actionDef)) {
+			action = cloneDeep(actionDef);
+		} else {
+			throw new ServiceSchemaError(`Invalid action definition in '${name}' action in '${this.name}' service!`);
 		}
 
-		if (this.settings.serviceNamePrefix !== false)
+		let handler = action.handler;
+		if (!isFunction(handler)) {
+			throw new ServiceSchemaError(`Missing action handler on '${name}' action in '${this.name}' service!`);
+		}
+
+		if (this.settings.$noServiceNamePrefix === false)
 			action.name = this.name + "." + (action.name || name);
 		else
 			action.name = action.name || name;
 
-		if (this.version && this.settings.useVersionPrefix !== false) 
-			action.name = `v${this.version}.${action.name}`;
+		if (this.version && this.settings.$noVersionPrefix === false) {
+			if (isNumber(this.version))
+				action.name = `v${this.version}.${action.name}`;
+			else
+				action.name = `${this.version}.${action.name}`;
+		}
 
 		//action.origName = name;
 		action.version = this.version;
 		action.service = this;
-		action.cache = action.cache !== undefined ? action.cache : (this.settings.cache || false);
+		action.cache = action.cache !== undefined ? action.cache : (this.settings.$cache || false);
 		action.handler = this.Promise.method(handler.bind(this));
 		
 		return action;

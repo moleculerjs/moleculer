@@ -1,3 +1,67 @@
+<a name="0.8.x"></a>
+# 0.9.x (2017-08-xx)
+
+# Breaking changes
+
+## Renamed internal service settings
+The `useVersionPrefix` is renamed to `$noVersionPrefix`. The `serviceNamePrefix` is renamed to `$noServiceNamePrefix`. Both settings logical state is changed.
+The `cache` setting is renamed to `$cache`.
+
+### Migration guide
+
+**Before**
+```js
+broker.createService({
+    name: "test",
+    settings: {
+        useVersionPrefix: false,
+        serviceNamePrefix: false,
+        cache: true
+    }
+});
+```
+
+**After**
+```js
+broker.createService({
+    name: "test",
+    settings: {
+        $noVersionPrefix: true,
+        $noServiceNamePrefix: true,
+        $cache: true
+    }
+});
+```
+
+## Changed versioned action names
+Based on [58](https://github.com/ice-services/moleculer/issues/58) if service version is a `String`, the version in action names won't be prefixed with `v`, expect if it is a `Number`.
+
+**Example**
+```js
+broker.createService({
+    name: "test",
+    version: 3,
+    actions: {
+        hello(ctx) {}
+    }
+});
+broker.call("v3.test.hello");
+
+broker.createService({
+    name: "test",
+    version: "staging",
+    actions: {
+        hello(ctx) {}
+    }
+});
+broker.call("staging.test.hello");
+```
+
+# New 
+
+# Fixes
+
+--------------------------------------------------
 <a name="0.8.5"></a>
 # 0.8.5 (2017-08-06)
 
