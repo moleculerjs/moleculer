@@ -231,10 +231,17 @@ describe("Test _createAction function", () => {
 	it("should create action with version string", () => {
 		let service = broker.createService({ name: "users", version: "staging" });
 
-		let action = service._createAction({ handler, myProp: "teszt" }, "find");
+		let action = service._createAction({ handler }, "find");
 		expect(action.name).toBe("staging.users.find");
 		expect(action.version).toBe("staging");
-		expect(action.myProp).toBe("teszt");
+	});
+
+	it("should create action without version", () => {
+		let service = broker.createService({ name: "users", version: 2, settings: { $noVersionPrefix: true } });
+
+		let action = service._createAction({ handler }, "find");
+		expect(action.name).toBe("users.find");
+		expect(action.version).toBe(2);
 	});
 
 	it("should create action with different name", () => {
