@@ -12,7 +12,7 @@ const isObject 		= require("lodash/isObject");
 const cloneDeep 	= require("lodash/cloneDeep");
 const utils 		= require("./utils");
 
-const Promise 		= require("bluebird");
+const { ServiceSchemaError } = require("./errors");
 
 /**
  * Main Service class
@@ -32,17 +32,17 @@ class Service {
 	constructor(broker, schema) {
 
 		if (!isObject(broker))
-			throw new Error("Must set a ServiceBroker instance!");
+			throw new ServiceSchemaError("Must set a ServiceBroker instance!");
 
 		if (!isObject(schema))
-			throw new Error("Must pass a service schema in constructor!");
+			throw new ServiceSchemaError("Must pass a service schema in constructor!");
 
 		if (schema.mixins) {
 			schema = Service.applyMixins(schema);
 		}
 		
 		if (!schema.name)
-			throw new Error("Service name can't be empty!");
+			throw new ServiceSchemaError("Service name can't be empty!");
 
 		this.name = schema.name;
 		this.version = schema.version;
@@ -150,7 +150,7 @@ class Service {
 				return this.schema.started.map(fn => this.Promise.method(fn.bind(this))).reduce((p, fn) => p.then(fn), this.Promise.resolve());
 			}
 
-			return Promise.resolve();
+			return this.Promise.resolve();
 		};
 
 		this.stopped = () => {
@@ -161,7 +161,7 @@ class Service {
 				return this.schema.stopped.reverse().map(fn => this.Promise.method(fn.bind(this))).reduce((p, fn) => p.then(fn), this.Promise.resolve());
 			}
 
-			return Promise.resolve();
+			return this.Promise.resolve();
 		};
 
 		// Call the created event handler
@@ -195,7 +195,7 @@ class Service {
 		action.version = this.version;
 		action.service = this;
 		action.cache = action.cache !== undefined ? action.cache : (this.settings.cache || false);
-		action.handler = Promise.method(handler.bind(this));
+		action.handler = this.Promise.method(handler.bind(this));
 		
 		return action;
 	}

@@ -58,7 +58,6 @@ broker2.loadService("./examples/test.service");
 broker2.loadService("./examples/user.service");
 broker2.loadService("./examples/user.v1.service");
 
-
 broker1.Promise.resolve()
 	.then(() => broker1.start())
 	.then(() => broker2.start())

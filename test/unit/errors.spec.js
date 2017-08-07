@@ -78,4 +78,13 @@ describe("Test Errors", () => {
 		expect(err.data).toBe(data);
 	});
 
+	it("test ServiceSchemaError", () => {
+		let err = new errors.ServiceSchemaError("Invalid schema");
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(Error);
+		expect(err).toBeInstanceOf(errors.ServiceSchemaError);
+		expect(err.name).toBe("ServiceSchemaError");
+		expect(err.message).toBe("Invalid schema");
+	});	
+
 });

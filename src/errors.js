@@ -146,6 +146,15 @@ class MaxCallLevelError extends MoleculerError {
 	}
 }
 
+/**
+ * Custom Moleculer Error class
+ * 
+ * @class ServiceSchemaError
+ * @extends {Error}
+ */
+class ServiceSchemaError extends ExtendableError {
+}
+
 
 module.exports = {
 	MoleculerError,
@@ -154,5 +163,7 @@ module.exports = {
 	ValidationError,
 	RequestTimeoutError,
 	RequestSkippedError,
-	MaxCallLevelError
+	MaxCallLevelError,
+
+	ServiceSchemaError
 };
