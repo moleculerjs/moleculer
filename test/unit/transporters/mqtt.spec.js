@@ -136,6 +136,6 @@ describe("Test MqttTransporter subscribe & publish", () => {
 		transporter.publish(new PacketInfo(fakeTransit, "node2", { services: {} }));
 
 		expect(transporter.client.publish).toHaveBeenCalledTimes(1);
-		expect(transporter.client.publish).toHaveBeenCalledWith("TEST.INFO.node2", "{\"sender\":\"node1\",\"services\":\"{}\"}");
+		expect(transporter.client.publish).toHaveBeenCalledWith("TEST.INFO.node2", "{\"sender\":\"node1\",\"services\":\"{}\"}", jasmine.any(Function));
 	});
 });
