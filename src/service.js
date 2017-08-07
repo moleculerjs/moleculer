@@ -68,7 +68,7 @@ class Service {
 				if (action === false)
 					return;
 				
-				let innerAction = this._createAction(this, action, name);
+				let innerAction = this._createAction(action, name);
 
 				// Register to broker
 				broker.registerAction(null, innerAction);
@@ -189,12 +189,12 @@ class Service {
 			throw new ServiceSchemaError(`Missing action handler on '${name}' action in '${this.name}' service!`);
 		}
 
-		if (this.settings.$noServiceNamePrefix === false)
+		if (this.settings.$noServiceNamePrefix !== true)
 			action.name = this.name + "." + (action.name || name);
 		else
 			action.name = action.name || name;
 
-		if (this.version && this.settings.$noVersionPrefix === false) {
+		if (this.version && this.settings.$noVersionPrefix !== true) {
 			if (isNumber(this.version))
 				action.name = `v${this.version}.${action.name}`;
 			else
