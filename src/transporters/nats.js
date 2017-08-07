@@ -137,6 +137,7 @@ class NatsTransporter extends Transporter {
 	subscribe(cmd, nodeID) {
 		const t = this.getTopicName(cmd, nodeID);
 		this.client.subscribe(t, (msg) => this.messageHandler(cmd, msg));
+		return Promise.resolve();
 	}
 
 	/**
@@ -149,7 +150,9 @@ class NatsTransporter extends Transporter {
 	publish(packet) {
 		if (!this.client) return;
 		const data = packet.serialize();
-		this.client.publish(this.getTopicName(packet.type, packet.target), data);
+		return new this.broker.Promise(resolve => {
+			this.client.publish(this.getTopicName(packet.type, packet.target), data, resolve);
+		});
 	}
 
 }

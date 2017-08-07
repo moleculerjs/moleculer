@@ -77,7 +77,7 @@ class RedisTransporter extends Transporter {
 				
 				/* istanbul ignore next */
 				clientPub.on("close", () => {
-					this.connected = true;
+					this.connected = false;
 					this.logger.warn("Redis-pub disconnected!");
 				});					
 			});
@@ -95,7 +95,7 @@ class RedisTransporter extends Transporter {
 
 			/* istanbul ignore next */
 			clientSub.on("close", () => {
-				this.connected = true;
+				this.connected = false;
 				this.logger.warn("Redis-sub disconnected!");
 			});		
 		
@@ -129,6 +129,7 @@ class RedisTransporter extends Transporter {
 	 */
 	subscribe(cmd, nodeID) {
 		this.clientSub.subscribe(this.getTopicName(cmd, nodeID));
+		return Promise.resolve();
 	}
 
 	/**
@@ -142,6 +143,7 @@ class RedisTransporter extends Transporter {
 		if (!this.clientPub) return;
 		const data = packet.serialize();
 		this.clientPub.publish(this.getTopicName(packet.type, packet.target), data);
+		return Promise.resolve();
 	}
 
 }

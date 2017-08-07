@@ -78,7 +78,7 @@ class MqttTransporter extends Transporter {
 
 			/* istanbul ignore next */
 			client.on("close", () => {
-				this.connected = true;
+				this.connected = false;
 				this.logger.warn("MQTT disconnected!");
 			});			
 		});
@@ -106,6 +106,7 @@ class MqttTransporter extends Transporter {
 	 */
 	subscribe(cmd, nodeID) {
 		this.client.subscribe(this.getTopicName(cmd, nodeID));
+		return Promise.resolve();
 	}
 
 	/**
@@ -118,7 +119,14 @@ class MqttTransporter extends Transporter {
 	publish(packet) {
 		if (!this.client) return;
 		const data = packet.serialize();		
-		this.client.publish(this.getTopicName(packet.type, packet.target), data);
+		
+		return new this.broker.Promise((resolve, reject) => {
+			this.client.publish(this.getTopicName(packet.type, packet.target), data, err => {
+				if (err)
+					return reject(err);
+				resolve();
+			});
+		});
 	}
 
 }

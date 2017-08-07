@@ -51,6 +51,7 @@ class Transit {
 			}
 		};
 
+		this.connected = false;
 		this.disconnecting = true;
 
 		if (this.tx)
@@ -79,6 +80,8 @@ class Transit {
 			.then(() => this.sendNodeInfo())
 
 			.then(() => {
+				this.connected = true;
+
 				if (this.__connectResolve) {
 					this.__connectResolve();
 					this.__connectResolve = null;
@@ -136,6 +139,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	disconnect() {
+		this.connected = false;
 		this.disconnecting = true;
 		if (this.heartbeatTimer) {
 			clearInterval(this.heartbeatTimer);
@@ -164,8 +168,7 @@ class Transit {
 	sendDisconnectPacket() {
 		this.logger.debug("Send DISCONNECT to nodes");
 
-		this.publish(new P.PacketDisconnect(this));
-		return Promise.resolve();
+		return this.publish(new P.PacketDisconnect(this));
 	}
 
 	/**
@@ -196,6 +199,8 @@ class Transit {
 
 		// Heart-beat handler
 		this.subscribe(P.PACKET_HEARTBEAT);
+
+		return Promise.resolve();
 	}
 
 	/**
@@ -472,7 +477,7 @@ class Transit {
 	 */
 	sendHeartbeat() {
 		const uptime = process.uptime();
-		this.publish(new P.PacketHeartbeat(this, uptime));
+		return this.publish(new P.PacketHeartbeat(this, uptime));
 	}
 
 	/**
