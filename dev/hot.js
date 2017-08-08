@@ -2,37 +2,40 @@
 
 "use strict";
 
-let _ = require("lodash");
 let ServiceBroker = require("../src/service-broker");
 
 // Create broker
 let broker = new ServiceBroker({
-	nodeID: process.argv[2] || "server-" + process.pid,
+	nodeID: "hot-" + process.pid,
 	transporter: "NATS",
 	logger: console
 });
 
-broker.start();
+broker.start().then(() => {
 
-let svc;
-setTimeout(() => {
-	console.log("Create math service...");
+	let svc;
+	setTimeout(() => {
+		console.log("Create math service...");
 
-	svc = broker.createService({
-		name: "math",
-		actions: {
-			add(ctx) {
-				return Number(ctx.params.a) + Number(ctx.params.b);
-			},
-		}
-	});
+		// Create a new service after 5s
+		svc = broker.createService({
+			name: "math",
+			actions: {
+				add(ctx) {
+					return Number(ctx.params.a) + Number(ctx.params.b);
+				},
+			}
+		});
 
-}, 5000);
+	}, 5000);
 
-setTimeout(() => {
-	console.log("Destroy math service...");
+	setTimeout(() => {
+		console.log("Destroy math service...");
 
-	svc = broker.getService("math");
-	broker.destroyService(svc);
+		// Destroy a created service after 10s
+		svc = broker.getService("math");
+		broker.destroyService(svc);
 
-}, 10000);
+	}, 10000);
+
+});
