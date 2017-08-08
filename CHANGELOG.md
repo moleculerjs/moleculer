@@ -59,6 +59,37 @@ broker.call("staging.test.hello");
 
 # New 
 
+## Dynamic service load & destroy
+Available to load & destroy services after the broker started.
+
+**Example**
+```js
+
+broker.start().then(() => {
+
+	setTimeout(() => {
+		// Create a new service after 5s
+		broker.createService({
+			name: "math",
+			actions: {
+				add(ctx) {
+					return Number(ctx.params.a) + Number(ctx.params.b);
+				},
+			}
+		});
+
+	}, 5000);
+
+	setTimeout(() => {
+		// Destroy a created service after 10s
+		let svc = broker.getService("math");
+		broker.destroyService(svc);
+
+	}, 10000);
+
+});
+```
+
 # Fixes
 
 --------------------------------------------------
