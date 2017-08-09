@@ -9,7 +9,6 @@ describe("Test BaseCacher", () => {
 		let cacher = new Cacher();
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toBeDefined();
-		expect(cacher.prefix).toBe("");
 		expect(cacher.opts.ttl).toBeNull();
 		expect(cacher.init).toBeDefined();
 		expect(cacher.close).toBeDefined();
@@ -25,16 +24,14 @@ describe("Test BaseCacher", () => {
 		let opts = {};
 		let cacher = new Cacher(opts);
 		expect(cacher.opts).toBeDefined();
-		expect(cacher.prefix).toBe("");
 		expect(cacher.opts.ttl).toBeNull();
 	});
 
 	it("check constructor with options", () => {
-		let opts = { prefix: "TEST", ttl: 500 };
+		let opts = { ttl: 500 };
 		let cacher = new Cacher(opts);
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toEqual(opts);
-		expect(cacher.prefix).toBe("TEST");
 		expect(cacher.opts.ttl).toBe(500);
 	});
 
@@ -47,12 +44,21 @@ describe("Test BaseCacher", () => {
 		cacher.init(broker);
 		expect(cacher.broker).toBe(broker);
 		expect(cacher.logger).toBeDefined();
+		expect(cacher.prefix).toBe("MOL-");
 
 		expect(broker.use).toHaveBeenCalledTimes(1);
 
 		expect(broker.on).toHaveBeenCalledTimes(2);
 		expect(broker.on).toHaveBeenCalledWith("cache.clean", jasmine.any(Function));
 		expect(broker.on).toHaveBeenCalledWith("cache.del", jasmine.any(Function));
+	});
+
+	it("check init with namespace", () => {
+		let broker = new ServiceBroker({ namespace: "uat-test" });
+		let cacher = new Cacher();
+		cacher.init(broker);
+
+		expect(cacher.prefix).toBe("MOL-uat-test-");
 	});
 
 

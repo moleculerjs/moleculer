@@ -15,11 +15,10 @@ describe("Test RedisCacher constructor", () => {
 	}); 
 
 	it("should create a timer if set ttl option", () => {
-		let opts = { prefix: "TEST", ttl: 500 };
+		let opts = { ttl: 500 };
 		let cacher = new RedisCacher(opts);
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toEqual(opts);
-		expect(cacher.prefix).toBe("TEST");
 		expect(cacher.opts.ttl).toBe(500);
 	});
 
@@ -28,7 +27,6 @@ describe("Test RedisCacher constructor", () => {
 		let cacher = new RedisCacher(opts);
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toEqual({
-			prefix: "",
 			ttl: null,
 			redis: opts
 		});
@@ -52,6 +50,8 @@ describe("Test RedisCacher set & get without prefix", () => {
 		}
 	};
 
+	let prefix = "MOL-";
+
 	cacher.client.get = jest.fn(() => Promise.resolve(JSON.stringify(data1)));
 	cacher.client.set = jest.fn(() => Promise.resolve());
 	cacher.client.del = jest.fn(() => Promise.resolve());
@@ -59,14 +59,14 @@ describe("Test RedisCacher set & get without prefix", () => {
 	it("should call client.set with key & data", () => {
 		cacher.set(key, data1);
 		expect(cacher.client.set).toHaveBeenCalledTimes(1);
-		expect(cacher.client.set).toHaveBeenCalledWith(key, JSON.stringify(data1));
+		expect(cacher.client.set).toHaveBeenCalledWith(prefix + key, JSON.stringify(data1));
 		expect(cacher.client.setex).toHaveBeenCalledTimes(0);
 	});
 	
 	it("should call client.get with key & return with data1", () => {
 		let p = cacher.get(key);
 		expect(cacher.client.get).toHaveBeenCalledTimes(1);
-		expect(cacher.client.get).toHaveBeenCalledWith(key);
+		expect(cacher.client.get).toHaveBeenCalledWith(prefix + key);
 		return p.then((d) => {
 			expect(d).toEqual(data1);
 		});
@@ -77,7 +77,7 @@ describe("Test RedisCacher set & get without prefix", () => {
 
 		let p = cacher.get(key);
 		expect(cacher.client.get).toHaveBeenCalledTimes(1);
-		expect(cacher.client.get).toHaveBeenCalledWith(key);
+		expect(cacher.client.get).toHaveBeenCalledWith(prefix + key);
 		return p.then((d) => {
 			expect(d).toBeNull();
 		});
@@ -86,7 +86,7 @@ describe("Test RedisCacher set & get without prefix", () => {
 	it("should call client.del with key", () => {
 		cacher.del(key);
 		expect(cacher.client.del).toHaveBeenCalledTimes(1);
-		expect(cacher.client.del).toHaveBeenCalledWith(key);
+		expect(cacher.client.del).toHaveBeenCalledWith(prefix + key);
 	});
 
 	it("should call client.scan & del", () => {
@@ -95,7 +95,7 @@ describe("Test RedisCacher set & get without prefix", () => {
 
 		cacher.clean();
 		expect(cacher.client.scan).toHaveBeenCalledTimes(1);
-		expect(cacher.client.scan).toHaveBeenCalledWith(0, "MATCH", "*", "COUNT", 100, jasmine.any(Function));
+		expect(cacher.client.scan).toHaveBeenCalledWith(0, "MATCH", "MOL-*", "COUNT", 100, jasmine.any(Function));
 
 		expect(cacher.client.del).toHaveBeenCalledTimes(1);
 		expect(cacher.client.del).toHaveBeenCalledWith(["key1", "key2"], jasmine.any(Function));
@@ -103,12 +103,10 @@ describe("Test RedisCacher set & get without prefix", () => {
 	
 });
 
-describe("Test RedisCacher set & get with prefix & ttl", () => {
-	let prefix = "devices:get:";
+describe("Test RedisCacher set & get with namespace & ttl", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ namespace: "uat" });
 	let cacher = new RedisCacher({
-		prefix,
 		ttl: 60
 	});
 	cacher.init(broker); // for empty logger
@@ -125,6 +123,8 @@ describe("Test RedisCacher set & get with prefix & ttl", () => {
 			e: 55
 		}
 	};
+
+	let prefix = "MOL-uat-";
 
 	it("should call client.setex with key & data", () => {
 		cacher.set(key, data1);
@@ -147,7 +147,7 @@ describe("Test RedisCacher set & get with prefix & ttl", () => {
 	it("should call client.scan", () => {
 		cacher.clean();
 		expect(cacher.client.scan).toHaveBeenCalledTimes(1);
-		expect(cacher.client.scan).toHaveBeenCalledWith(0, "MATCH", "devices:get:*", "COUNT", 100, jasmine.any(Function));
+		expect(cacher.client.scan).toHaveBeenCalledWith(0, "MATCH", "MOL-uat-*", "COUNT", 100, jasmine.any(Function));
 	});
 });
 

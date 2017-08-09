@@ -14,11 +14,13 @@ const { STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM } = require("./constants");
 // Circuit-breaker states
 const { CIRCUIT_CLOSE, CIRCUIT_HALF_OPEN, CIRCUIT_OPEN } = require("./constants");
 
+let LOCAL_NODE_ID;
+
 class ServiceRegistry {
 	/**
 	 * Creates an instance of ServiceRegistry.
 	 * 
-	 * @param {any} opts
+	 * @param {Object} opts
 	 * 		opts.strategy - type of balancing (STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM) (defaults: STRATEGY_ROUND_ROBIN)
 	 * 		opts.preferLocal - call the local service if available (defaults: true)
 	 * 
@@ -44,6 +46,8 @@ class ServiceRegistry {
 	 */
 	init(broker) {
 		this.broker = broker;
+
+		LOCAL_NODE_ID = this.broker.LOCAL_NODE_ID;
 	}
 
 	/**
@@ -63,15 +67,35 @@ class ServiceRegistry {
 	}
 
 	/**
+	 * Unregister local service
+	 * 
+	 * @param {String?} nodeID 
+	 * @param {String} serviceName
+	 * 
+	 * @memberof ServiceRegistry
+	 */
+	unregisterService(nodeID, serviceName) {
+		this.services.forEach(svc => {
+			if (svc.nodeID != nodeID || svc.name != serviceName) return;
+			// Remove actions of node
+			_.forIn(svc.actions, action => {
+				this.unregisterAction(nodeID, action);
+			});
+		});
+
+		_.remove(this.services, svc => svc.nodeID == nodeID && svc.name == serviceName);
+	}	
+
+	/**
 	 * Unregister services by nodeID. It will be called when a node disconnected
 	 * 
-	 * @param {String} nodeID 
+	 * @param {String?} nodeID 
 	 * 
 	 * @memberof ServiceRegistry
 	 */
 	unregisterServicesByNode(nodeID) {
 		this.services.forEach(svc => {
-			if (svc.nodeID !=  nodeID) return;
+			if (svc.nodeID != nodeID) return;
 			// Remove remote actions of node
 			_.forIn(svc.actions, action => {
 				this.unregisterAction(nodeID, action);
@@ -84,8 +108,8 @@ class ServiceRegistry {
 	/**
 	 * Find a service by name & version
 	 * 
-	 * @param {any} name 
-	 * @param {any} version 
+	 * @param {String} name 
+	 * @param {String|Number} version 
 	 * @returns {ServiceItem} Service
 	 * 
 	 * @memberof ServiceRegistry
@@ -99,13 +123,13 @@ class ServiceRegistry {
 	 * 
 	 * @param {String} nodeID 
 	 * @param {String} name 
-	 * @param {any} version 
+	 * @param {String|Number} version 
 	 * @returns {ServiceItem} Service
 	 * 
 	 * @memberof ServiceRegistry
 	 */
 	findServiceByNode(nodeID, name, version) {
-		return this.services.find(svc => svc.name == name && svc.version == version && svc.nodeID == nodeID);
+		return this.services.find(svc => svc.isSame(name, version) && svc.nodeID == nodeID);
 	}
 
 	/**
@@ -120,14 +144,16 @@ class ServiceRegistry {
 		// Append action by name
 		let list = this.actions.get(action.name);
 		if (!list) {
+			// Create a new endpoint list for action
 			list = new EndpointList(this.broker, this.opts);
 			list.internal = action.name.startsWith("$");
 			this.actions.set(action.name, list);
 		}
 
 		const svc = this.findServiceByNode(nodeID, action.service.name, action.service.version);
-		if (svc)
+		if (svc) {
 			svc.addAction(action);
+		}
 
 		return list.add(nodeID, action);
 	}	
@@ -144,14 +170,6 @@ class ServiceRegistry {
 		let list = this.actions.get(action.name);
 		if (list) {
 			list.removeByNode(nodeID);
-			/* Don't delete because maybe node is only disconnected and will come back.
-			   So the action is exists, just there is not available right now.
-			
-			if (list.count() == 0) {
-				this.actions.delete(action.name);
-			}
-			this.emitLocal(`unregister.action.${action.name}`, { service, action, nodeID });
-			*/
 		}		
 	}
 
@@ -159,7 +177,7 @@ class ServiceRegistry {
 	 * Find action item by name
 	 * 
 	 * @param {String} actionName 
-	 * @returns 
+	 * @returns {EndpointList}
 	 * 
 	 * @memberOf ServiceRegistry
 	 */
@@ -199,7 +217,7 @@ class ServiceRegistry {
 	/**
 	 * Get count of actions
 	 * 
-	 * @returns 
+	 * @returns {Number} Number of actions
 	 * 
 	 * @memberof ServiceRegistry
 	 */
@@ -300,7 +318,7 @@ class ServiceItem {
 		this.name = name;
 		this.version = version;
 		this.settings = settings;
-		this.local = this.nodeID == null;
+		this.local = this.nodeID == LOCAL_NODE_ID;
 		this.actions = {};
 	}
 
@@ -318,7 +336,7 @@ class Endpoint {
 		this.broker = broker;
 		this.nodeID = nodeID;
 		this.action = action;
-		this.local = this.nodeID == null;
+		this.local = this.nodeID == LOCAL_NODE_ID;
 
 		this.state = CIRCUIT_CLOSE;
 		this.failures = 0;
@@ -372,7 +390,7 @@ class EndpointList {
 	 * Creates an instance of EndpointList.
 	 * 
 	 * @param {ServiceBroker} broker
-	 * @param {any} opts
+	 * @param {Object} opts
 	 * 		opts.strategy - type of balancing (STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM) (defaults: STRATEGY_ROUND_ROBIN)
 	 * 		opts.preferLocal - call a local service if available (defaults: true)
 	 * 

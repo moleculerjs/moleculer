@@ -1,3 +1,142 @@
+<a name="0.9.0"></a>
+# 0.9.0 (2017-08-xx)
+
+# Breaking changes
+
+## Namespace support, removed `prefix` options [#57](https://github.com/ice-services/moleculer/issues/57)
+The broker has a new `namespace` option to segment your services. For example, you are running development & production services (or more production services) on the same transporter. If you are using different `namespace` you can avoid collisions between different environments.
+
+> You can reach it in your services as `this.broker.namespace`.
+
+Thereupon the `prefix` option in transporters & cachers is removed.
+
+**Example**
+```js
+const broker = new ServiceBroker({
+    logger: console,
+    namespace: "DEV",
+    transporter: "NATS",
+    cacher: "Redis"
+});
+```
+In this case the transporter & cacher prefix will be `MOL-DEV`.
+
+
+## Renamed internal service settings
+The `useVersionPrefix` is renamed to `$noVersionPrefix`. The `serviceNamePrefix` is renamed to `$noServiceNamePrefix`. Both settings logical state is changed.
+The `cache` setting is renamed to `$cache`.
+
+### Migration guide
+
+**Before**
+```js
+broker.createService({
+    name: "test",
+    settings: {
+        useVersionPrefix: false,
+        serviceNamePrefix: false,
+        cache: true
+    }
+});
+```
+
+**After**
+```js
+broker.createService({
+    name: "test",
+    settings: {
+        $noVersionPrefix: true,
+        $noServiceNamePrefix: true,
+        $cache: true
+    }
+});
+```
+
+## Changed versioned action names [#58](https://github.com/ice-services/moleculer/issues/58)
+Based on [#58](https://github.com/ice-services/moleculer/issues/58) if service version is a `String`, the version in action names won't be prefixed with `v`, expect if it is a `Number`.
+
+**Example**
+```js
+broker.createService({
+    name: "test",
+    version: 3,
+    actions: {
+        hello(ctx) {}
+    }
+});
+broker.call("v3.test.hello");
+
+broker.createService({
+    name: "test",
+    version: "staging",
+    actions: {
+        hello(ctx) {}
+    }
+});
+broker.call("staging.test.hello");
+```
+
+# New 
+
+## Dynamic service load & destroy
+Available to load & destroy services after the broker started. For example you can hot-reload your services in runtime. The remote nodes will be notified about changes. The broker will emit a `services.changed` event locally.
+
+**Example**
+```js
+
+broker.start().then(() => {
+
+    setTimeout(() => {
+        // Create a new service after 5s
+        broker.createService({
+            name: "math",
+            actions: {
+                add(ctx) {
+                    return Number(ctx.params.a) + Number(ctx.params.b);
+                },
+            }
+        });
+
+    }, 5000);
+
+    setTimeout(() => {
+        // Destroy a created service after 10s
+        let svc = broker.getService("math");
+        broker.destroyService(svc);
+
+    }, 10000);
+
+});
+```
+
+## Multiple service calls [#31](https://github.com/ice-services/moleculer/issues/31)
+With `broker.mcall` method you can call multiple actions (in parallel). 
+
+**Example with `Array`**
+```js
+broker.mcall([
+    { action: "posts.find", params: {limit: 5, offset: 0}, options: { timeout: 500 } },
+    { action: "users.find", params: {limit: 5, sort: "username"} }
+]).then(results => {
+    let posts = results[0];
+    let users = results[1];
+})
+```
+
+**Example with `Object`**
+```js
+broker.mcall({
+    posts: { action: "posts.find", params: {limit: 5, offset: 0}, options: { timeout: 500 } },
+    users: { action: "users.find", params: {limit: 5, sort: "username"} }
+}).then(results => {
+    let posts = results.posts;
+    let users = results.users;
+})
+```
+
+# Fixes
+
+--------------------------------------------------
 <a name="0.8.5"></a>
 # 0.8.5 (2017-08-06)
 
@@ -193,7 +332,7 @@ const { STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM } = require("moleculer");
 let broker = new ServiceBroker({
     registry: {
         strategy: STRATEGY_ROUND_ROBIN, // Load balancing strategy
-		preferLocal: true // First call local service if available
+        preferLocal: true // First call local service if available
     }
 });
 ```
@@ -483,9 +622,9 @@ Built-in serializers:
 let JSONSerializer = require("moleculer").Serializers.JSON;
 
 let broker = new ServiceBroker({
-	serializer: new JSONSerializer(),
-	transporter: new Transporter(),
-	nodeID: "node-1"	
+    serializer: new JSONSerializer(),
+    transporter: new Transporter(),
+    nodeID: "node-1"	
 });
 ```
 
@@ -579,12 +718,12 @@ broker.on("**", (payload, sender) => console.log(`Event from ${sender || "local"
 
 // Usage in Service schema
 broker.createService({
-	...
-	events: {
-		something(payload, sender) {
-			console.log(`Something happened on '${sender}':`, payload);			
-		}
-	}
+    ...
+    events: {
+        something(payload, sender) {
+            console.log(`Something happened on '${sender}':`, payload);			
+        }
+    }
 });
 ```
 

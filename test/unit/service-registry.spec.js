@@ -96,6 +96,62 @@ describe("Test registry.registerService", () => {
 
 });
 
+describe("Test registry.unregisterService", () => {
+	const broker = new ServiceBroker({ internalActions: false });
+	const registry = broker.serviceRegistry;
+
+	let service = {
+		name: "posts",
+		version: 2,
+		settings: {
+			a: 5
+		}
+	};
+
+	let action1 = {
+		name: "posts.find",
+		service
+	};
+
+	let action2 = {
+		name: "posts.get",
+		cache: true,
+		service
+	};
+
+	let service2 = {
+		name: "users"
+	};
+
+	let action3 = {
+		name: "users.find",
+		service: service2
+	};	
+
+	registry.registerService(null, service);
+	registry.registerService("node-2", service);
+	registry.registerService("node-2", service2);
+	registry.registerAction(null, action1);
+	registry.registerAction(null, action2);
+	registry.registerAction("node-2", action1);
+	registry.registerAction("node-2", action2);
+	registry.registerAction("node-2", action3);
+
+	registry.unregisterAction = jest.fn();
+
+	it("should unregister 'node-2' 'posts' actions & remove service", () => {
+		expect(registry.services.length).toBe(3);
+
+		registry.unregisterService("node-2", "posts");
+		expect(registry.services.length).toBe(2);
+
+		expect(registry.unregisterAction).toHaveBeenCalledTimes(2);
+		expect(registry.unregisterAction).toHaveBeenCalledWith("node-2", action1);
+		expect(registry.unregisterAction).toHaveBeenCalledWith("node-2", action2);
+	});
+
+});
+
 describe("Test registry.unregisterServicesByNode", () => {
 	const broker = new ServiceBroker({ internalActions: false });
 	const registry = broker.serviceRegistry;

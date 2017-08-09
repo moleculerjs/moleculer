@@ -1,6 +1,6 @@
 let ServiceBroker = require("../../src/service-broker");
 
-describe.only("Test Service mixins", () => {
+describe("Test Service mixins", () => {
 
 	let mixinL2 = {
 		name: "mixinL2",

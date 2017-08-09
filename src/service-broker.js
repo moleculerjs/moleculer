@@ -6,34 +6,36 @@
 
 "use strict";
 
-const Promise = require("bluebird");
-const EventEmitter2 = require("eventemitter2").EventEmitter2;
-const Transit = require("./transit");
-const ServiceRegistry = require("./service-registry");
-const E = require("./errors");
-const utils = require("./utils");
-const Logger = require("./logger");
-const Validator = require("./validator");
-const BrokerStatistics = require("./statistics");
-const healthInfo = require("./health");
+const Promise 			= require("bluebird");
+const EventEmitter2 	= require("eventemitter2").EventEmitter2;
+const _ 				= require("lodash");
+const glob 				= require("glob");
+const path 				= require("path");
 
-const Cachers = require("./cachers");
-const Transporters = require("./transporters");
-const Serializers = require("./serializers");
+const Transit 			= require("./transit");
+const ServiceRegistry 	= require("./service-registry");
+const E 				= require("./errors");
+const utils 			= require("./utils");
+const Logger 			= require("./logger");
+const Validator 		= require("./validator");
+const BrokerStatistics 	= require("./statistics");
+const healthInfo 		= require("./health");
+
+const Cachers 			= require("./cachers");
+const Transporters 		= require("./transporters");
+const Serializers 		= require("./serializers");
 
 // Registry strategies
-const { STRATEGY_ROUND_ROBIN } = require("./constants");
+const { STRATEGY_ROUND_ROBIN } 	= require("./constants");
 
 // Circuit-breaker states
-const { CIRCUIT_HALF_OPEN } = require("./constants");
+const { CIRCUIT_HALF_OPEN } 	= require("./constants");
 
-const _ = require("lodash");
-const glob = require("glob");
-const path = require("path");
 
 const LOCAL_NODE_ID = null; // `null` means local nodeID
 
 const defaultConfig = {
+	namespace: "",
 	nodeID: null,
 
 	logger: null,
@@ -95,6 +97,9 @@ class ServiceBroker {
 		// Class factories
 		this.ServiceFactory = this.options.ServiceFactory || require("./service");
 		this.ContextFactory = this.options.ContextFactory || require("./context");
+
+		// Namespace
+		this.namespace = this.options.namespace || "";
 
 		// Self nodeID
 		this.nodeID = this.options.nodeID || utils.getNodeID();
@@ -347,7 +352,7 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Fatal error. Print the message to console (if logger is not exists). And exit the process (if need)
+	 * Fatal error. Print the message to console and exit the process (if need)
 	 * 
 	 * @param {String} message 
 	 * @param {Error?} err 
@@ -386,8 +391,8 @@ class ServiceBroker {
 			serviceFiles = glob.sync(path.join(folder, fileMask));
 
 		if (serviceFiles) {
-			serviceFiles.forEach(servicePath => {
-				this.loadService(servicePath);
+			serviceFiles.forEach(filename => {
+				this.loadService(filename);
 			});
 		}	
 		return serviceFiles.length;	
@@ -405,16 +410,20 @@ class ServiceBroker {
 		let fName = path.resolve(filePath);
 		this.logger.debug(`Load service from '${path.basename(fName)}'...`);
 		let schema = require(fName);
+		let svc;
 		if (_.isFunction(schema)) {
-			let svc = schema(this);
-			if (svc instanceof this.ServiceFactory)
-				return svc;
-			else
-				return this.createService(svc);
-
+			svc = schema(this);
+			if (!(svc instanceof this.ServiceFactory)) {
+				svc = this.createService(svc);
+			}
 		} else {
-			return this.createService(schema);
+			svc = this.createService(schema);
 		}
+
+		if (svc)
+			svc.__filename = filePath;
+
+		return svc;
 	}
 
 	/**
@@ -432,7 +441,32 @@ class ServiceBroker {
 			s = utils.mergeSchemas(schema, schemaMods);
 
 		let service = new this.ServiceFactory(this, s);
+
+		this.servicesChanged();
+
 		return service;
+	}
+
+	/**
+	 * Destroy a local service
+	 * 
+	 * @param {Service} service 
+	 * @memberof ServiceBroker
+	 */
+	destroyService(service) {
+		return Promise.resolve()
+			.then(() => service.stopped.call(service))
+			.catch(err => {
+				/* istanbul ignore next */
+				this.logger.error(`Unable to stop service '${service.name}'!`, err);
+			})
+			.then(() => {
+				_.remove(this.services, svc => svc == service);
+				this.serviceRegistry.unregisterService(LOCAL_NODE_ID, service.name);
+
+				this.logger.info(`Service '${service.name}' is destroyed!`);
+				this.servicesChanged();
+			});
 	}
 
 	/**
@@ -445,7 +479,7 @@ class ServiceBroker {
 	registerLocalService(service) {
 		this.services.push(service);
 
-		this.serviceRegistry.registerService(null, service);
+		this.serviceRegistry.registerService(LOCAL_NODE_ID, service);
 
 		//this.emitLocal(`register.service.${service.name}`, service);
 		this.logger.info(`'${service.name}' service is registered!`);
@@ -471,24 +505,19 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Register an action in a local server
+	 * Register an action
 	 * 
-	 * @param {String} nodeID		NodeID if it is on a remote server/node
+	 * @param {String} nodeID	NodeID if it is on a remote server/node
 	 * @param {any} action		action schema
 	 * 
 	 * @memberOf ServiceBroker
 	 */
 	registerAction(nodeID, action) {
-
 		// Wrap middlewares on local actions
-		if (!nodeID)
+		if (nodeID == LOCAL_NODE_ID)
 			this.wrapAction(action);
 		
 		this.serviceRegistry.registerAction(nodeID, action);
-		/*const res = this.serviceRegistry.registerAction(nodeID, action);
-		if (res) {
-			this.emitLocal(`register.action.${action.name}`, { nodeID, action });
-		}*/		
 	}
 
 	/**
@@ -542,7 +571,7 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	registerInternalActions() {
-		this.serviceRegistry.registerService(null, {
+		this.serviceRegistry.registerService(LOCAL_NODE_ID, {
 			name: "$node", 
 			settings: {}
 		});
@@ -561,7 +590,7 @@ class ServiceBroker {
 		addAction("$node.list", () => {
 			let res = [];
 			const localNode = this.transit.getNodeInfo();
-			localNode.id = null;
+			localNode.id = LOCAL_NODE_ID;
 			localNode.available = true;
 			res.push(localNode);
 			
@@ -620,10 +649,24 @@ class ServiceBroker {
 	}
 
 	/**
+	 * It will be called when a new service registered or unregistered
+	 * 
+	 * @memberof ServiceBroker
+	 */
+	servicesChanged() {
+		this.emitLocal("services.changed");
+
+		// Notify other nodes, we have a new service list.
+		if (this.transit && this.transit.connected) {
+			this.transit.sendNodeInfo();
+		}
+	}
+
+	/**
 	 * Subscribe to an event
 	 * 
-	 * @param {any} name
-	 * @param {any} handler
+	 * @param {String} name
+	 * @param {Function} handler
 	 * 
 	 * @memberOf ServiceBroker
 	 */
@@ -634,8 +677,8 @@ class ServiceBroker {
 	/**
 	 * Subscribe to an event once
 	 * 
-	 * @param {any} name
-	 * @param {any} handler
+	 * @param {String} name
+	 * @param {Function} handler
 	 * 
 	 * @memberOf ServiceBroker
 	 */
@@ -646,8 +689,8 @@ class ServiceBroker {
 	/**
 	 * Unsubscribe from an event
 	 * 
-	 * @param {any} name
-	 * @param {any} handler
+	 * @param {String} name
+	 * @param {Function} handler
 	 * 
 	 * @memberOf ServiceBroker
 	 */
@@ -658,8 +701,8 @@ class ServiceBroker {
 	/**
 	 * Get a local service by name
 	 * 
-	 * @param {any} serviceName
-	 * @returns
+	 * @param {String} serviceName
+	 * @returns {Service}
 	 * 
 	 * @memberOf ServiceBroker
 	 */
@@ -670,8 +713,8 @@ class ServiceBroker {
 	/**
 	 * Has a local service by name
 	 * 
-	 * @param {any} serviceName
-	 * @returns
+	 * @param {String} serviceName
+	 * @returns {Boolean}
 	 * 
 	 * @memberOf ServiceBroker
 	 */
@@ -682,8 +725,8 @@ class ServiceBroker {
 	/**
 	 * Has an action by name
 	 * 
-	 * @param {any} actionName
-	 * @returns
+	 * @param {String} actionName
+	 * @returns {Boolean}
 	 * 
 	 * @memberOf ServiceBroker
 	 */
@@ -694,7 +737,7 @@ class ServiceBroker {
 	/**
 	 * Get an action by name
 	 * 
-	 * @param {any} actionName
+	 * @param {String} actionName
 	 * @returns {Object}
 	 * 
 	 * @memberOf ServiceBroker
@@ -708,10 +751,10 @@ class ServiceBroker {
 	}	
 
 	/**
-	 * Check has available action handler
+	 * Check has callable action handler
 	 * 
-	 * @param {any} actionName
-	 * @returns
+	 * @param {String} actionName
+	 * @returns {Boolean}
 	 * 
 	 * @memberOf ServiceBroker
 	 */
@@ -723,7 +766,7 @@ class ServiceBroker {
 	/**
 	 * Add a middleware to the broker
 	 * 
-	 * @param {any} mw
+	 * @param {Function} mws
 	 * 
 	 * @memberOf ServiceBroker
 	 */
@@ -976,6 +1019,55 @@ class ServiceBroker {
 	}	
 
 	/**
+	 * Multiple action calls.
+	 * 
+	 * @param {Array<Object>|Object} def Calling definitions.
+	 * @returns {Promise<Array<Object>|Object>}
+	 * 
+	 * @example
+	 * Call `mcall` with an array:
+	 * ```js
+	 * broker.mcall([
+	 * 	{ action: "posts.find", params: { limit: 5, offset: 0 } },
+	 * 	{ action: "users.find", params: { limit: 5, sort: "username" }, opts: { timeout: 500 } }
+	 * ]).then(results => {
+	 * 	let posts = results[0];
+	 * 	let users = results[1];
+	 * })
+	 * ```
+	 * 
+	 * @example
+	 * Call `mcall` with an Object:
+	 * ```js
+	 * broker.mcall({
+	 * 	posts: { action: "posts.find", params: { limit: 5, offset: 0 } },
+	 * 	users: { action: "users.find", params: { limit: 5, sort: "username" }, opts: { timeout: 500 } }
+	 * }).then(results => {
+	 * 	let posts = results.posts;
+	 * 	let users = results.users;
+	 * })
+	 * ```
+	 * @throws MoleculerError - If the `def` is not an `Array` and not an `Object`.
+	 * @memberof ServiceBroker
+	 */
+	mcall(def) {
+		if (Array.isArray(def)) {
+			let p = def.map(item => this.call(item.action, item.params, item.options));
+			return Promise.all(p);
+
+		} else if (_.isObject(def)) {
+			let results = {};
+			let p = Object.keys(def).map(name => {
+				const item = def[name];
+
+				return this.call(item.action, item.params, item.options).then(res => results[name] = res);
+			});
+			return Promise.all(p).then(() => results);
+		} else
+			throw new E.MoleculerError("Invalid calling definition");
+	}
+
+	/**
 	 * Check should metric the current call
 	 * 
 	 * @returns 
@@ -1037,6 +1129,16 @@ ServiceBroker.MOLECULER_VERSION = require("../package.json").version;
  * Version of Moleculer
  */
 ServiceBroker.prototype.MOLECULER_VERSION = ServiceBroker.MOLECULER_VERSION;
+
+/**
+ * Local NodeID
+ */
+ServiceBroker.LOCAL_NODE_ID = LOCAL_NODE_ID;
+
+/**
+ * Local NodeID
+ */
+ServiceBroker.prototype.LOCAL_NODE_ID = LOCAL_NODE_ID;
 
 /**
  * Default configuration

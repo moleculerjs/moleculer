@@ -26,12 +26,6 @@ class BaseTransporter {
 	constructor(opts) {
 		this.opts = opts || {};
 		this.connected = false;
-
-		this.prefix = "MOL";
-		
-		if (this.opts.prefix) {
-			this.prefix = this.opts.prefix;
-		}
 	}
 
 	/**
@@ -49,6 +43,11 @@ class BaseTransporter {
 			this.broker = transit.broker;
 			this.nodeID = transit.nodeID;
 			this.logger = this.broker.getLogger(LOG_PREFIX);
+
+			this.prefix = "MOL";
+			if (this.broker.namespace)
+				this.prefix += "-" + this.broker.namespace;
+			
 		}
 		this.messageHandler = messageHandler;
 		this.afterConnect = afterConnect;

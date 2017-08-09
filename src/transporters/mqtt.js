@@ -120,7 +120,7 @@ class MqttTransporter extends Transporter {
 		if (!this.client) return;
 		const data = packet.serialize();		
 		
-		return new this.broker.Promise((resolve, reject) => {
+		return new Promise((resolve, reject) => {
 			this.client.publish(this.getTopicName(packet.type, packet.target), data, err => {
 				if (err)
 					return reject(err);

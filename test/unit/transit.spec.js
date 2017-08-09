@@ -5,6 +5,7 @@ const FakeTransporter = require("../../src/transporters/fake");
 const { ValidationError } = require("../../src/errors");
 const P = require("../../src/packets");
 //const lolex = require("lolex");
+const _ = require("lodash");
 
 describe("Test Transporter constructor", () => {
 
@@ -624,6 +625,7 @@ describe("Test Transit node & heartbeat handling", () => {
 		const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter(), internalActions: false });
 		const transit = broker.transit;
 		broker.registerRemoteService = jest.fn();
+		broker.unregisterServicesByNode = jest.fn();
 		broker.emitLocal = jest.fn();
 
 		let remoteService = {
@@ -654,7 +656,7 @@ describe("Test Transit node & heartbeat handling", () => {
 			expect(broker.registerRemoteService).toHaveBeenCalledWith("server-1", remoteService);
 		});
 
-		it("should not emit event because node is exist but register remote actions again", () => {
+		it("should emit a node.info event because node is exist but not register remote actions again", () => {
 			broker.emitLocal.mockClear();
 			broker.registerRemoteService.mockClear();
 
@@ -664,10 +666,33 @@ describe("Test Transit node & heartbeat handling", () => {
 
 			expect(node.id).toBe("server-1");
 
-			expect(broker.emitLocal).toHaveBeenCalledTimes(0);
+			expect(broker.emitLocal).toHaveBeenCalledTimes(1);
+			expect(broker.emitLocal).toHaveBeenCalledWith("node.info", { node });
 			
+			expect(broker.registerRemoteService).toHaveBeenCalledTimes(0);
+		});
+
+		it("should emit a node.info event because node is exist but not register remote actions again", () => {
+			broker.emitLocal.mockClear();
+			broker.registerRemoteService.mockClear();
+			broker.unregisterServicesByNode.mockClear();
+
+			let newNodeInfo = _.cloneDeep(nodeInfo);
+			newNodeInfo.services[0].version = 2;
+			transit.processNodeInfo("server-1", newNodeInfo);
+
+			let node = transit.nodes.get("server-1");
+
+			expect(node.id).toBe("server-1");
+
+			expect(broker.emitLocal).toHaveBeenCalledTimes(1);
+			expect(broker.emitLocal).toHaveBeenCalledWith("node.info", { node });
+			
+			expect(broker.unregisterServicesByNode).toHaveBeenCalledTimes(1);
+			expect(broker.unregisterServicesByNode).toHaveBeenCalledWith("server-1");
+
 			expect(broker.registerRemoteService).toHaveBeenCalledTimes(1);
-			expect(broker.registerRemoteService).toHaveBeenCalledWith("server-1", remoteService);
+			expect(broker.registerRemoteService).toHaveBeenCalledWith("server-1", newNodeInfo.services[0]);
 		});
 
 		it("should not process info if nodeID is null", () => {

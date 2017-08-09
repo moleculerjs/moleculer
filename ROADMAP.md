@@ -1,14 +1,14 @@
 # Roadmap
 
 ## v0.9.x
-- [ ] multi broker.call (array & object)
-- [ ] namespace support
+- [x] multi broker.call (array & object)
+- [x] namespace support
 - [ ] better custom logger support
-- [ ] broker plugin system (adopt middleware feature)
-- [ ] service hot-reload
+- [x] service hot-reload
 ------------------------------
 
 ## v0.10.x
+- [ ] broker plugin system (adopt middleware feature)
 - [ ] official Zipkin tracer service
 - [ ] add lru features to Memory and Redis cachers
 - [ ] official services

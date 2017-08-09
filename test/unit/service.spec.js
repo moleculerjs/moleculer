@@ -99,6 +99,17 @@ describe("Test action creation", () => {
 		expect(schema.actions.find).toHaveBeenCalledWith(ctx);
 
 	});
+
+	it("should throw error if action is not object nor function", () => {
+		expect(() => {
+			broker.createService({
+				name: "test",
+				actions: {
+					hello: 500
+				}
+			});
+		}).toThrowError("Invalid action definition in 'hello' action in 'test' service!");
+	});
 });
 
 describe("Test events creation", () => {
@@ -192,7 +203,7 @@ describe("Test created event handler", () => {
 	});
 });
 
-describe("Test _createActionHandler function", () => {
+describe("Test _createAction function", () => {
 	let broker = new ServiceBroker();
 
 	const handler = jest.fn();
@@ -200,7 +211,7 @@ describe("Test _createActionHandler function", () => {
 	it("should create action object with default values", () => {
 		let service = broker.createService({ name: "users" });
 
-		let action = service._createActionHandler({ handler }, "find");
+		let action = service._createAction({ handler }, "find");
 		expect(action.name).toBe("users.find");
 		expect(action.cache).toBe(false);
 		expect(action.handler).toBeInstanceOf(Function);
@@ -211,16 +222,32 @@ describe("Test _createActionHandler function", () => {
 	it("should create action with version number", () => {
 		let service = broker.createService({ name: "users", version: 3 });
 
-		let action = service._createActionHandler({ handler, myProp: "teszt" }, "find");
+		let action = service._createAction({ handler, myProp: "teszt" }, "find");
 		expect(action.name).toBe("v3.users.find");
 		expect(action.version).toBe(3);
 		expect(action.myProp).toBe("teszt");
 	});
 
+	it("should create action with version string", () => {
+		let service = broker.createService({ name: "users", version: "staging" });
+
+		let action = service._createAction({ handler }, "find");
+		expect(action.name).toBe("staging.users.find");
+		expect(action.version).toBe("staging");
+	});
+
+	it("should create action without version", () => {
+		let service = broker.createService({ name: "users", version: 2, settings: { $noVersionPrefix: true } });
+
+		let action = service._createAction({ handler }, "find");
+		expect(action.name).toBe("users.find");
+		expect(action.version).toBe(2);
+	});
+
 	it("should create action with different name", () => {
 		let service = broker.createService({ name: "users" });
 
-		let action = service._createActionHandler({ handler, name: "list" }, "find");
+		let action = service._createAction({ handler, name: "list" }, "find");
 		expect(action.name).toBe("users.list");
 	});
 
@@ -228,11 +255,11 @@ describe("Test _createActionHandler function", () => {
 		let service = broker.createService({ 
 			name: "users", 
 			settings: {
-				serviceNamePrefix: false
+				$noServiceNamePrefix: true
 			} 
 		});
 
-		let action = service._createActionHandler({ handler }, "find");
+		let action = service._createAction({ handler }, "find");
 		expect(action.name).toBe("find");
 	});
 
@@ -240,63 +267,63 @@ describe("Test _createActionHandler function", () => {
 	it("should throw Error if no handler", () => {
 		let service = broker.createService({ name: "users" });
 
-		expect(() => service._createActionHandler({}, "find")).toThrowError("Missing action handler on 'find' action in 'users' service!");
+		expect(() => service._createAction({}, "find")).toThrowError("Missing action handler on 'find' action in 'users' service!");
 	});	
 
 	describe("Test action cache property", () => {
 
 		it("cache is FALSE, if schema cache is UNDEFINED and action cache is UNDEFINED", () => {
 			let service = broker.createService({ name: "test" });
-			let action = service._createActionHandler({ handler }, "find");
+			let action = service._createAction({ handler }, "find");
 
 			expect(action.cache).toBe(false);
 		});
 
 		it("cache is TRUE, if schema cache is TRUE and action cache UNDEFINED", () => {
-			let service = broker.createService({ name: "test", settings: { cache: true } });
-			let action = service._createActionHandler({ handler }, "find");
+			let service = broker.createService({ name: "test", settings: { $cache: true } });
+			let action = service._createAction({ handler }, "find");
 
 			expect(action.cache).toBe(true);
 		});
 
 		it("cache is FALSE, if schema cache is TRUE and action cache is FALSE", () => {
-			let service = broker.createService({ name: "test", settings: { cache: true } });
-			let action = service._createActionHandler({ handler, cache: false }, "find");
+			let service = broker.createService({ name: "test", settings: { $cache: true } });
+			let action = service._createAction({ handler, cache: false }, "find");
 
 			expect(action.cache).toBe(false);
 		});
 
 		it("cache is TRUE, if schema cache is UNDEFINED and action cache is TRUE", () => {
 			let service = broker.createService({ name: "test" });
-			let action = service._createActionHandler({ handler, cache: true }, "find");
+			let action = service._createAction({ handler, cache: true }, "find");
 
 			expect(action.cache).toBe(true);
 		});
 
 		it("cache is TRUE, if schema cache is UNDEFINED and action cache is Object", () => {
 			let service = broker.createService({ name: "test" });
-			let action = service._createActionHandler({ handler, cache: {} }, "find");
+			let action = service._createAction({ handler, cache: {} }, "find");
 
 			expect(action.cache).toEqual({});
 		});
 
 		it("cache is TRUE, if schema cache is FALSE and action cache is TRUE", () => {
-			let service = broker.createService({ name: "test", settings: { cache: false } });
-			let action = service._createActionHandler({ handler, cache: true }, "find");
+			let service = broker.createService({ name: "test", settings: { $cache: false } });
+			let action = service._createAction({ handler, cache: true }, "find");
 
 			expect(action.cache).toBe(true);
 		});
 
 		it("cache is TRUE, if schema cache is TRUE and action cache is TRUE", () => {
-			let service = broker.createService({ name: "test", settings: { cache: true } });
-			let action = service._createActionHandler({ handler, cache: true }, "find");
+			let service = broker.createService({ name: "test", settings: { $cache: true } });
+			let action = service._createAction({ handler, cache: true }, "find");
 
 			expect(action.cache).toBe(true);
 		});
 
 		it("cache is TRUE, if schema cache is TRUE and action cache is Object", () => {
-			let service = broker.createService({ name: "test", settings: { cache: true } });
-			let action = service._createActionHandler({ handler, cache: { keys: [ "id" ]} }, "find");
+			let service = broker.createService({ name: "test", settings: { $cache: true } });
+			let action = service._createAction({ handler, cache: { keys: [ "id" ]} }, "find");
 
 			expect(action.cache).toEqual({ keys: [ "id" ]});
 		});

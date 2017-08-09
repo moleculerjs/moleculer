@@ -106,10 +106,10 @@ describe("Test MqttTransporter subscribe & publish", () => {
 	};	
 
 	beforeEach(() => {
-		transporter = new MqttTransporter({ prefix: "TEST" });
+		transporter = new MqttTransporter();
 		msgHandler = jest.fn();
 
-		transporter.init(new Transit(new ServiceBroker()), msgHandler);
+		transporter.init(new Transit(new ServiceBroker({ namespace: "TEST" })), msgHandler);
 
 		let p = transporter.connect();
 		transporter._client.onCallbacks.connect(); // Trigger the `resolve`
@@ -121,7 +121,7 @@ describe("Test MqttTransporter subscribe & publish", () => {
 		transporter.subscribe("REQ", "node");
 
 		expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-		expect(transporter.client.subscribe).toHaveBeenCalledWith("TEST.REQ.node");
+		expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.REQ.node");
 	});
 
 	it("check incoming message handler", () => {
@@ -136,6 +136,6 @@ describe("Test MqttTransporter subscribe & publish", () => {
 		transporter.publish(new PacketInfo(fakeTransit, "node2", { services: {} }));
 
 		expect(transporter.client.publish).toHaveBeenCalledTimes(1);
-		expect(transporter.client.publish).toHaveBeenCalledWith("TEST.INFO.node2", "{\"sender\":\"node1\",\"services\":\"{}\"}", jasmine.any(Function));
+		expect(transporter.client.publish).toHaveBeenCalledWith("MOL-TEST.INFO.node2", "{\"sender\":\"node1\",\"services\":\"{}\"}", jasmine.any(Function));
 	});
 });

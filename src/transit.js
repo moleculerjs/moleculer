@@ -10,6 +10,7 @@ const Promise					= require("bluebird");
 const Context					= require("./context");
 const P 						= require("./packets");
 const { getIpList } 			= require("./utils");
+const { hash } 					= require("node-object-hash")({ sort: false, coerce: false});
 
 // Prefix for logger
 const LOG_PREFIX 				= "TRANSIT";
@@ -544,25 +545,50 @@ class Transit {
 			return;
 		}
 
+		// Is it a new node?
 		let isNewNode = !this.nodes.has(nodeID);
-		const node = Object.assign(this.nodes.get(nodeID) || {}, payload);
+
+		// Get old node item
+		const oldNode = this.nodes.get(nodeID);
+		const oldServicesHash = hash(oldNode ? oldNode.services : null);
+
+		// Refresh node properties
+		const node = Object.assign(oldNode || {}, payload);
+
+		// Is it a reconnected node?
 		let isReconnected = !node.available;
+
+		// Update heartbeat & status
 		node.lastHeartbeatTime = Date.now();
 		node.available = true;
 		node.id = nodeID;
+
+		// Set the new node item
 		this.nodes.set(nodeID, node);
 
+		// Notifications
 		if (isNewNode) {
 			this.broker.emitLocal("node.connected", { node, reconnected: false });
 			this.logger.info(`Node '${nodeID}' connected!`);
 		} else if (isReconnected) {
 			this.broker.emitLocal("node.connected", { node, reconnected: true });
 			this.logger.info(`Node '${nodeID}' reconnected!`);
+		} else {
+			this.broker.emitLocal("node.info", { node });
+			this.logger.debug(`Node '${nodeID}' info received!`);
 		}
 
+		// Update node services in registry
 		if (node.services) {
-			// Register remote services
-			node.services.forEach(service => this.broker.registerRemoteService(nodeID, service));
+			if (oldServicesHash !== hash(node.services)) {
+				this.logger.debug(`Re-register node '${nodeID}' services...`);
+
+				// Unregister previous services
+				this.broker.unregisterServicesByNode(nodeID);
+
+				// Register remote services
+				node.services.forEach(service => this.broker.registerRemoteService(nodeID, service));
+			}
 		}
 	}
 

@@ -30,6 +30,7 @@ describe("Test ServiceBroker constructor", () => {
 		let broker = new ServiceBroker();
 		expect(broker).toBeDefined();
 		expect(broker.options).toEqual({ 
+			namespace: "",
 			nodeID: null,
 
 			logger: null,
@@ -70,6 +71,7 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.ServiceFactory).toBe(Service);
 		expect(broker.ContextFactory).toBe(Context);
 
+		expect(broker.namespace).toBe("");
 		expect(broker.nodeID).toBe("node-1234");
 
 		expect(broker.logger).toBeDefined();
@@ -99,6 +101,7 @@ describe("Test ServiceBroker constructor", () => {
 
 	it("should merge options", () => {
 		let broker = new ServiceBroker( { 
+			namespace: "test",
 			heartbeatTimeout: 20, 
 			metrics: true, 
 			metricsRate: 0.5,
@@ -121,6 +124,7 @@ describe("Test ServiceBroker constructor", () => {
 
 		expect(broker).toBeDefined();
 		expect(broker.options).toEqual({ 
+			namespace: "test",
 			nodeID: null,
 			logger: null,
 			logLevel: "debug",
@@ -156,6 +160,7 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.statistics).toBeDefined();
 		expect(broker.validator).toBeUndefined();
 		expect(broker.serializer).toBeInstanceOf(JSONSerializer);
+		expect(broker.namespace).toBe("test");
 		expect(broker.nodeID).toBe("node-1234");
 
 		expect(broker.hasAction("$node.list")).toBe(false);
@@ -244,24 +249,24 @@ describe("Test option resolvers", () => {
 		});
 
 		it("should resolve NATSTransporter from obj without type", () => {
-			let options = { prefix: "test", nats: { url: "nats://localhost:4222" } };
+			let options = { nats: { url: "nats://localhost:4222" } };
 			let trans = broker._resolveTransporter({ options });
 			expect(trans).toBeInstanceOf(Transporters.NATS);
-			expect(trans.opts).toEqual({"nats": {"preserveBuffers": true, "url": "nats://localhost:4222"}, "prefix": "test"});
+			expect(trans.opts).toEqual({"nats": {"preserveBuffers": true, "url": "nats://localhost:4222"}});
 		});
 
 		it("should resolve NATSTransporter from obj", () => {
-			let options = { prefix: "moleculer", mqtt: "mqtt://localhost" };
+			let options = { mqtt: "mqtt://localhost" };
 			let trans = broker._resolveTransporter({ type: "MQTT", options });
 			expect(trans).toBeInstanceOf(Transporters.MQTT);
-			expect(trans.opts).toEqual({ prefix: "moleculer", mqtt: "mqtt://localhost" });
+			expect(trans.opts).toEqual({ mqtt: "mqtt://localhost" });
 		});
 
 		it("should resolve RedisTransporter from obj with Redis type", () => {
-			let options = { prefix: "mol-redis", redis: { db: 3 } };
+			let options = { redis: { db: 3 } };
 			let trans = broker._resolveTransporter({ type: "Redis", options });
 			expect(trans).toBeInstanceOf(Transporters.Redis);
-			expect(trans.opts).toEqual({ prefix: "mol-redis", redis: { db: 3 } });
+			expect(trans.opts).toEqual({ redis: { db: 3 } });
 		});
 
 		it("should throw error if type if not correct", () => {
@@ -304,28 +309,28 @@ describe("Test option resolvers", () => {
 			let options = { ttl: 100 };
 			let cacher = broker._resolveCacher({ options });
 			expect(cacher).toBeInstanceOf(Cachers.Memory);
-			expect(cacher.opts).toEqual({ prefix: "", ttl: 100});
+			expect(cacher.opts).toEqual({ ttl: 100});
 		});
 
 		it("should resolve MemoryCacher from obj", () => {
 			let options = { ttl: 100 };
 			let cacher = broker._resolveCacher({ type: "Memory", options });
 			expect(cacher).toBeInstanceOf(Cachers.Memory);
-			expect(cacher.opts).toEqual({ prefix: "", ttl: 100});
+			expect(cacher.opts).toEqual({ ttl: 100});
 		});
 
 		it("should resolve RedisCacher from obj with Redis type", () => {
 			let options = { ttl: 100 };
 			let cacher = broker._resolveCacher({ type: "Redis", options });
 			expect(cacher).toBeInstanceOf(Cachers.Redis);
-			expect(cacher.opts).toEqual({ prefix: "", ttl: 100});
+			expect(cacher.opts).toEqual({ ttl: 100});
 		});
 
 		it("should resolve RedisCacher from obj with Redis type", () => {
 			let options = { ttl: 80, redis: { db: 3 } };
 			let cacher = broker._resolveCacher({ type: "Redis", options });
 			expect(cacher).toBeInstanceOf(Cachers.Redis);
-			expect(cacher.opts).toEqual({ prefix: "", ttl: 80, redis: { db: 3 } });
+			expect(cacher.opts).toEqual({ ttl: 80, redis: { db: 3 } });
 		});
 		
 		it("should resolve RedisCacher from connection string", () => {
@@ -732,6 +737,79 @@ describe("Test broker.createService", () => {
 		expect(utils.mergeSchemas).toHaveBeenCalledWith(schema, mods);
 	});	
 
+});
+
+
+describe("Test broker.destroyService", () => {
+
+	let stopped = jest.fn();
+	let broker = new ServiceBroker();
+	let service = broker.createService({
+		name: "greeter",
+		actions: {
+			hello() {},
+			welcome() {}
+		},
+		stopped
+	});
+	
+	it("should destroy service", () => {
+		broker.serviceRegistry.unregisterService = jest.fn();
+		broker.servicesChanged = jest.fn();
+
+		expect(broker.services.length).toBe(1);
+
+		return broker.destroyService(service).then(() => {
+
+			expect(stopped).toHaveBeenCalledTimes(1);
+			
+			expect(broker.serviceRegistry.unregisterService).toHaveBeenCalledTimes(1);
+			expect(broker.serviceRegistry.unregisterService).toHaveBeenCalledWith(null, "greeter");
+
+			expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
+
+			expect(broker.services.length).toBe(0);
+		});
+	});
+});
+
+describe("Test broker.servicesChanged", () => {
+
+	let broker;
+
+	broker = new ServiceBroker({
+		transporter: new FakeTransporter()
+	});
+
+	broker.emitLocal = jest.fn();
+	broker.transit.sendNodeInfo = jest.fn(); 
+
+	beforeAll(() => broker.start());
+
+	it("should call emitLocal & transit.sendNodeInfo", () => {
+		broker.transit.sendNodeInfo.mockClear();
+		
+		broker.servicesChanged();
+
+		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
+		expect(broker.emitLocal).toHaveBeenCalledWith("services.changed");
+
+		expect(broker.transit.sendNodeInfo).toHaveBeenCalledTimes(1);
+	});
+
+	it("should call emitLocal without transit.sendNodeInfo because it is disconnected", () => {
+		broker.transit.connected = false;
+		
+		broker.emitLocal.mockClear();
+		broker.transit.sendNodeInfo.mockClear();
+
+		broker.servicesChanged();
+
+		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
+		expect(broker.emitLocal).toHaveBeenCalledWith("services.changed");
+
+		expect(broker.transit.sendNodeInfo).toHaveBeenCalledTimes(0);
+	});
 });
 
 describe("Test broker.registerLocalService", () => {
@@ -1534,6 +1612,47 @@ describe("Test broker.call method", () => {
 
 	});
 });
+
+describe("Test broker.mcall", () => {
+
+	let broker = new ServiceBroker({ internalActions: false });
+	broker.call = jest.fn(action => Promise.resolve(action));
+		
+	it("should call both action & return an array", () => {
+		return broker.mcall([
+			{ action: "posts.find", params: { limit: 2, offset: 0 }, options: { timeout: 500 } },
+			{ action: "users.find", params: { limit: 2, sort: "username" } }
+		]).then(res => {
+			expect(res).toEqual(["posts.find", "users.find"]);
+
+			expect(broker.call).toHaveBeenCalledTimes(2);
+			expect(broker.call).toHaveBeenCalledWith("posts.find", { limit: 2, offset: 0}, { timeout: 500 });
+			expect(broker.call).toHaveBeenCalledWith("users.find", { limit: 2, sort: "username"}, undefined);
+		});
+	});
+
+	it("should call both action & return an object", () => {
+		broker.call.mockClear();
+
+		return broker.mcall({
+			posts: { action: "posts.find", params: { limit: 2, offset: 0 }, options: { timeout: 500 } },
+			users: { action: "users.find", params: { limit: 2, sort: "username" } }
+		}).then(res => {
+			expect(res).toEqual({ posts: "posts.find", users: "users.find"});
+
+			expect(broker.call).toHaveBeenCalledTimes(2);
+			expect(broker.call).toHaveBeenCalledWith("posts.find", { limit: 2, offset: 0}, { timeout: 500 });
+			expect(broker.call).toHaveBeenCalledWith("users.find", { limit: 2, sort: "username"}, undefined);
+		});
+	});
+
+	it("should throw error", () => {
+		expect(() => {
+			return broker.mcall(6);
+		}).toThrowError(MoleculerError);
+	});
+});
+
 
 describe("Test broker._callErrorHandler", () => {
 
