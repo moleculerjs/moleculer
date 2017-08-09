@@ -739,6 +739,79 @@ describe("Test broker.createService", () => {
 
 });
 
+
+describe("Test broker.destroyService", () => {
+
+	let stopped = jest.fn();
+	let broker = new ServiceBroker();
+	let service = broker.createService({
+		name: "greeter",
+		actions: {
+			hello() {},
+			welcome() {}
+		},
+		stopped
+	});
+	
+	it("should destroy service", () => {
+		broker.serviceRegistry.unregisterService = jest.fn();
+		broker.servicesChanged = jest.fn();
+
+		expect(broker.services.length).toBe(1);
+
+		return broker.destroyService(service).then(() => {
+
+			expect(stopped).toHaveBeenCalledTimes(1);
+			
+			expect(broker.serviceRegistry.unregisterService).toHaveBeenCalledTimes(1);
+			expect(broker.serviceRegistry.unregisterService).toHaveBeenCalledWith(null, "greeter");
+
+			expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
+
+			expect(broker.services.length).toBe(0);
+		});
+	});
+});
+
+describe("Test broker.servicesChanged", () => {
+
+	let broker;
+
+	broker = new ServiceBroker({
+		transporter: new FakeTransporter()
+	});
+
+	broker.emitLocal = jest.fn();
+	broker.transit.sendNodeInfo = jest.fn(); 
+
+	beforeAll(() => broker.start());
+
+	it("should call emitLocal & transit.sendNodeInfo", () => {
+		broker.transit.sendNodeInfo.mockClear();
+		
+		broker.servicesChanged();
+
+		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
+		expect(broker.emitLocal).toHaveBeenCalledWith("services.changed");
+
+		expect(broker.transit.sendNodeInfo).toHaveBeenCalledTimes(1);
+	});
+
+	it("should call emitLocal without transit.sendNodeInfo because it is disconnected", () => {
+		broker.transit.connected = false;
+		
+		broker.emitLocal.mockClear();
+		broker.transit.sendNodeInfo.mockClear();
+
+		broker.servicesChanged();
+
+		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
+		expect(broker.emitLocal).toHaveBeenCalledWith("services.changed");
+
+		expect(broker.transit.sendNodeInfo).toHaveBeenCalledTimes(0);
+	});
+});
+
 describe("Test broker.registerLocalService", () => {
 
 	let broker = new ServiceBroker();

@@ -150,7 +150,7 @@ class NatsTransporter extends Transporter {
 	publish(packet) {
 		if (!this.client) return;
 		const data = packet.serialize();
-		return new this.broker.Promise(resolve => {
+		return new Promise(resolve => {
 			this.client.publish(this.getTopicName(packet.type, packet.target), data, resolve);
 		});
 	}

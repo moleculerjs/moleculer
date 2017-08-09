@@ -9,11 +9,10 @@
 const Promise		= require("bluebird");
 const Transporter 	= require("./base");
 
-//const EventEmitter2 = require("eventemitter2").EventEmitter2;
-const EventEmitter = require("events").EventEmitter;
+const EventEmitter2 = require("eventemitter2").EventEmitter2;
 
-// Put to global to transfer messages between brokers in the process
-global.bus = new EventEmitter({
+// Put to global to transfer messages between brokers in the same process
+global.bus = new EventEmitter2({
 	wildcard: true,
 	maxListeners: 100
 });
