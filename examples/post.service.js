@@ -20,6 +20,8 @@ module.exports = function() {
 				handler(ctx) {
 					//this.logger.debug("Find posts...");
 					let result = _.cloneDeep(posts);
+					if (ctx.params.limit)
+						result = result.slice(0, ctx.params.limit);
 
 					// Resolve authors
 					let promises = result.map(post => {

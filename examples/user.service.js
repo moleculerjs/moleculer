@@ -23,8 +23,11 @@ module.exports = function(broker) {
 				description: "List all users",
 				handler(ctx) {
 					//this.logger.debug("Find users...");
-					return users;
-					//return _.cloneDeep(users);
+					let result = _.cloneDeep(users);
+					if (ctx.params.limit)
+						result = result.slice(0, ctx.params.limit);
+
+					return result;
 				}
 			},
 

@@ -1019,6 +1019,55 @@ class ServiceBroker {
 	}	
 
 	/**
+	 * Multiple action calls.
+	 * 
+	 * @param {Array<Object>|Object} def Calling definitions.
+	 * @returns {Promise<Array<Object>|Object>}
+	 * 
+	 * @example
+	 * Call `mcall` with an array:
+	 * ```js
+	 * broker.mcall([
+	 * 	{ action: "posts.find", params: { limit: 5, offset: 0 } },
+	 * 	{ action: "users.find", params: { limit: 5, sort: "username" }, opts: { timeout: 500 } }
+	 * ]).then(results => {
+	 * 	let posts = results[0];
+	 * 	let users = results[1];
+	 * })
+	 * ```
+	 * 
+	 * @example
+	 * Call `mcall` with an Object:
+	 * ```js
+	 * broker.mcall({
+	 * 	posts: { action: "posts.find", params: { limit: 5, offset: 0 } },
+	 * 	users: { action: "users.find", params: { limit: 5, sort: "username" }, opts: { timeout: 500 } }
+	 * }).then(results => {
+	 * 	let posts = results.posts;
+	 * 	let users = results.users;
+	 * })
+	 * ```
+	 * @throws MoleculerError - If the `def` is not an `Array` and not an `Object`.
+	 * @memberof ServiceBroker
+	 */
+	mcall(def) {
+		if (Array.isArray(def)) {
+			let p = def.map(item => this.call(item.action, item.params, item.options));
+			return Promise.all(p);
+
+		} else if (_.isObject(def)) {
+			let results = {};
+			let p = Object.keys(def).map(name => {
+				const item = def[name];
+
+				return this.call(item.action, item.params, item.options).then(res => results[name] = res);
+			});
+			return Promise.all(p).then(() => results);
+		} else
+			throw new E.MoleculerError("Invalid calling definition");
+	}
+
+	/**
 	 * Check should metric the current call
 	 * 
 	 * @returns 
