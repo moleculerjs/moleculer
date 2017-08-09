@@ -14,6 +14,12 @@ const LOG_LEVELS = ["fatal", "error", "warn", "info", "debug", "trace"];
 
 module.exports = {
 	
+	/**
+	 * Extend a logger class if missing log level methods
+	 * 
+	 * @param {Object} logger 
+	 * @returns {Object} logger
+	 */
 	extend(logger) {
 		LOG_LEVELS.forEach((type, i) => {
 			let method = logger[type];
@@ -29,6 +35,14 @@ module.exports = {
 		return logger;		
 	},
 	
+	/**
+	 * Create a default logger for `console` logger.
+	 * 
+	 * @param {Object} baseLogger 
+	 * @param {Object} bindings 
+	 * @param {String?} logLevel 
+	 * @returns {Object} logger
+	 */
 	createDefaultLogger(baseLogger, bindings, logLevel) {
 		const noop = function() {};
 
@@ -61,16 +75,20 @@ module.exports = {
 				}
 			}
 
-			if (method) {
-				logger[type] = function(...args) {
-					let pargs = args.map(p => {
-						if (_.isObject(p) || _.isArray(p))
-							return util.inspect(p, { showHidden: false, depth: 2, colors: true });
-						return p;
-					});
-					method.call(baseLogger, chalk.grey(`[${new Date().toISOString()}]`), getType(type), getModuleName() + ":", ...pargs);
-				}.bind(baseLogger);
-			}
+			// Wrap the original method
+			logger[type] = function(...args) {
+				// Format arguments (inspect & colorize the objects & array)
+				let pargs = args.map(p => {
+					if (_.isObject(p) || _.isArray(p))
+						return util.inspect(p, { showHidden: false, depth: 2, colors: true });
+					return p;
+				});
+
+				// Call the original method
+				method.call(baseLogger, chalk.grey(`[${new Date().toISOString()}]`), getType(type), getModuleName() + ":", ...pargs);
+
+			}.bind(baseLogger);
+
 		});
 
 		return logger;		

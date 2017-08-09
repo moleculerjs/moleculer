@@ -68,7 +68,7 @@ function createBroker(options) {
 	logging(broker);
 	broker.start();
 })();
-*/
+
 (function() {
 	console.log(chalk.yellow.bold("\n--- WINSTON ---"));
 	const winston = require("winston");
@@ -88,6 +88,6 @@ function createBroker(options) {
 	logging(broker);
 	broker.start();
 })();
-
+*/
 
 console.log(chalk.yellow.bold("-----------------\n"));
