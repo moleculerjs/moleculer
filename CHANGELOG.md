@@ -79,7 +79,7 @@ broker.call("staging.test.hello");
 # New 
 
 ## Dynamic service load & destroy
-Available to load & destroy services after the broker started. For example you can hot-reload your services in runtime. The remote nodes will be notified about changes. The broker will emit a `service.changed` event locally.
+Available to load & destroy services after the broker started. For example you can hot-reload your services in runtime. The remote nodes will be notified about changes. The broker will emit a `services.changed` event locally.
 
 **Example**
 ```js
