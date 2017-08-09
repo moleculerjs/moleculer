@@ -1613,6 +1613,47 @@ describe("Test broker.call method", () => {
 	});
 });
 
+describe("Test broker.mcall", () => {
+
+	let broker = new ServiceBroker({ internalActions: false });
+	broker.call = jest.fn(action => Promise.resolve(action));
+		
+	it("should call both action & return an array", () => {
+		return broker.mcall([
+			{ action: "posts.find", params: { limit: 2, offset: 0 }, options: { timeout: 500 } },
+			{ action: "users.find", params: { limit: 2, sort: "username" } }
+		]).then(res => {
+			expect(res).toEqual(["posts.find", "users.find"]);
+
+			expect(broker.call).toHaveBeenCalledTimes(2);
+			expect(broker.call).toHaveBeenCalledWith("posts.find", { limit: 2, offset: 0}, { timeout: 500 });
+			expect(broker.call).toHaveBeenCalledWith("users.find", { limit: 2, sort: "username"}, undefined);
+		});
+	});
+
+	it("should call both action & return an object", () => {
+		broker.call.mockClear();
+
+		return broker.mcall({
+			posts: { action: "posts.find", params: { limit: 2, offset: 0 }, options: { timeout: 500 } },
+			users: { action: "users.find", params: { limit: 2, sort: "username" } }
+		}).then(res => {
+			expect(res).toEqual({ posts: "posts.find", users: "users.find"});
+
+			expect(broker.call).toHaveBeenCalledTimes(2);
+			expect(broker.call).toHaveBeenCalledWith("posts.find", { limit: 2, offset: 0}, { timeout: 500 });
+			expect(broker.call).toHaveBeenCalledWith("users.find", { limit: 2, sort: "username"}, undefined);
+		});
+	});
+
+	it("should throw error", () => {
+		expect(() => {
+			return broker.mcall(6);
+		}).toThrowError(MoleculerError);
+	});
+});
+
+
 describe("Test broker._callErrorHandler", () => {
 
 	let broker = new ServiceBroker({ 
