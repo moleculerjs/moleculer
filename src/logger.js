@@ -41,9 +41,10 @@ module.exports = {
 	 * @param {Object} baseLogger 
 	 * @param {Object} bindings 
 	 * @param {String?} logLevel 
+	 * @param {Function?} logFormatter Custom log formatter function
 	 * @returns {Object} logger
 	 */
-	createDefaultLogger(baseLogger, bindings, logLevel) {
+	createDefaultLogger(baseLogger, bindings, logLevel, logFormatter) {
 		const noop = function() {};
 
 		const getModuleName = () => chalk.grey(bindings.nodeID + "/" + (bindings.service ? bindings.service.toUpperCase() : bindings.module.toUpperCase()));
@@ -77,6 +78,9 @@ module.exports = {
 
 			// Wrap the original method
 			logger[type] = function(...args) {
+				if (logFormatter) {
+					return method.call(baseLogger, logFormatter(type, args, bindings));
+				}
 				// Format arguments (inspect & colorize the objects & array)
 				let pargs = args.map(p => {
 					if (_.isObject(p) || _.isArray(p))

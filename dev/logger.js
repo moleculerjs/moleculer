@@ -36,6 +36,9 @@ function createBroker(options) {
 	const broker = createBroker({ 
 		logger: console, 
 		logLevel: "debug",
+		/*logFormatter(level, args, meta) {
+			return level.toUpperCase() + " " + meta.nodeID + ": " + args.join(" ");
+		},*/
 		transporter: "NATS",
 		cacher: "Redis"
 	});

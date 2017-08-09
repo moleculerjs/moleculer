@@ -356,7 +356,7 @@ class ServiceBroker {
 			return this.options.logger;
 
 		// Create console logger
-		return Logger.createDefaultLogger(console, bindings, this.options.logLevel || "info");
+		return Logger.createDefaultLogger(console, bindings, this.options.logLevel || "info", this.options.logFormatter);
 	}
 
 	/**
