@@ -35,6 +35,7 @@ const { CIRCUIT_HALF_OPEN } 	= require("./constants");
 const LOCAL_NODE_ID = null; // `null` means local nodeID
 
 const defaultConfig = {
+	namespace: "",
 	nodeID: null,
 
 	logger: null,
@@ -96,6 +97,9 @@ class ServiceBroker {
 		// Class factories
 		this.ServiceFactory = this.options.ServiceFactory || require("./service");
 		this.ContextFactory = this.options.ContextFactory || require("./context");
+
+		// Namespace
+		this.namespace = this.options.namespace || "";
 
 		// Self nodeID
 		this.nodeID = this.options.nodeID || utils.getNodeID();
@@ -650,6 +654,8 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	servicesChanged() {
+		this.emitLocal("services.changed");
+
 		// Notify other nodes, we have a new service list.
 		if (this.transit && this.transit.connected) {
 			this.transit.sendNodeInfo();

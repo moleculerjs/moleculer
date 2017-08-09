@@ -26,11 +26,8 @@ class Cacher {
 	 */
 	constructor(opts) {
 		this.opts = _.defaultsDeep(opts, {
-			prefix: "",
 			ttl: null
 		});
-
-		this.prefix = this.opts.prefix;
 	}
 
 	/**
@@ -44,6 +41,11 @@ class Cacher {
 		this.broker = broker;
 		if (this.broker) {
 			this.logger = broker.getLogger("CACHER");
+
+			this.prefix = "MOL-";
+			if (this.broker.namespace)
+				this.prefix += this.broker.namespace + "-";
+			
 
 			broker.use(this.middleware());
 

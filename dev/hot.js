@@ -6,6 +6,7 @@ let ServiceBroker = require("../src/service-broker");
 
 // Create broker
 let broker = new ServiceBroker({
+	namespace: "multi",
 	nodeID: "hot-" + process.pid,
 	transporter: "NATS",
 	logger: console

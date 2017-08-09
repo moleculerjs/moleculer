@@ -21,6 +21,7 @@ Promise.config({
 
 // Create broker
 let broker = new ServiceBroker({
+	namespace: "demo",
 	logger: console,
 	logLevel: {
 		"*": "warn",
