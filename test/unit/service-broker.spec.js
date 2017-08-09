@@ -30,6 +30,7 @@ describe("Test ServiceBroker constructor", () => {
 		let broker = new ServiceBroker();
 		expect(broker).toBeDefined();
 		expect(broker.options).toEqual({ 
+			namespace: "",
 			nodeID: null,
 
 			logger: null,
@@ -70,6 +71,7 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.ServiceFactory).toBe(Service);
 		expect(broker.ContextFactory).toBe(Context);
 
+		expect(broker.namespace).toBe("");
 		expect(broker.nodeID).toBe("node-1234");
 
 		expect(broker.logger).toBeDefined();
@@ -99,6 +101,7 @@ describe("Test ServiceBroker constructor", () => {
 
 	it("should merge options", () => {
 		let broker = new ServiceBroker( { 
+			namespace: "test",
 			heartbeatTimeout: 20, 
 			metrics: true, 
 			metricsRate: 0.5,
@@ -121,6 +124,7 @@ describe("Test ServiceBroker constructor", () => {
 
 		expect(broker).toBeDefined();
 		expect(broker.options).toEqual({ 
+			namespace: "test",
 			nodeID: null,
 			logger: null,
 			logLevel: "debug",
@@ -156,6 +160,7 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.statistics).toBeDefined();
 		expect(broker.validator).toBeUndefined();
 		expect(broker.serializer).toBeInstanceOf(JSONSerializer);
+		expect(broker.namespace).toBe("test");
 		expect(broker.nodeID).toBe("node-1234");
 
 		expect(broker.hasAction("$node.list")).toBe(false);
@@ -244,24 +249,24 @@ describe("Test option resolvers", () => {
 		});
 
 		it("should resolve NATSTransporter from obj without type", () => {
-			let options = { prefix: "test", nats: { url: "nats://localhost:4222" } };
+			let options = { nats: { url: "nats://localhost:4222" } };
 			let trans = broker._resolveTransporter({ options });
 			expect(trans).toBeInstanceOf(Transporters.NATS);
-			expect(trans.opts).toEqual({"nats": {"preserveBuffers": true, "url": "nats://localhost:4222"}, "prefix": "test"});
+			expect(trans.opts).toEqual({"nats": {"preserveBuffers": true, "url": "nats://localhost:4222"}});
 		});
 
 		it("should resolve NATSTransporter from obj", () => {
-			let options = { prefix: "moleculer", mqtt: "mqtt://localhost" };
+			let options = { mqtt: "mqtt://localhost" };
 			let trans = broker._resolveTransporter({ type: "MQTT", options });
 			expect(trans).toBeInstanceOf(Transporters.MQTT);
-			expect(trans.opts).toEqual({ prefix: "moleculer", mqtt: "mqtt://localhost" });
+			expect(trans.opts).toEqual({ mqtt: "mqtt://localhost" });
 		});
 
 		it("should resolve RedisTransporter from obj with Redis type", () => {
-			let options = { prefix: "mol-redis", redis: { db: 3 } };
+			let options = { redis: { db: 3 } };
 			let trans = broker._resolveTransporter({ type: "Redis", options });
 			expect(trans).toBeInstanceOf(Transporters.Redis);
-			expect(trans.opts).toEqual({ prefix: "mol-redis", redis: { db: 3 } });
+			expect(trans.opts).toEqual({ redis: { db: 3 } });
 		});
 
 		it("should throw error if type if not correct", () => {
@@ -304,28 +309,28 @@ describe("Test option resolvers", () => {
 			let options = { ttl: 100 };
 			let cacher = broker._resolveCacher({ options });
 			expect(cacher).toBeInstanceOf(Cachers.Memory);
-			expect(cacher.opts).toEqual({ prefix: "", ttl: 100});
+			expect(cacher.opts).toEqual({ ttl: 100});
 		});
 
 		it("should resolve MemoryCacher from obj", () => {
 			let options = { ttl: 100 };
 			let cacher = broker._resolveCacher({ type: "Memory", options });
 			expect(cacher).toBeInstanceOf(Cachers.Memory);
-			expect(cacher.opts).toEqual({ prefix: "", ttl: 100});
+			expect(cacher.opts).toEqual({ ttl: 100});
 		});
 
 		it("should resolve RedisCacher from obj with Redis type", () => {
 			let options = { ttl: 100 };
 			let cacher = broker._resolveCacher({ type: "Redis", options });
 			expect(cacher).toBeInstanceOf(Cachers.Redis);
-			expect(cacher.opts).toEqual({ prefix: "", ttl: 100});
+			expect(cacher.opts).toEqual({ ttl: 100});
 		});
 
 		it("should resolve RedisCacher from obj with Redis type", () => {
 			let options = { ttl: 80, redis: { db: 3 } };
 			let cacher = broker._resolveCacher({ type: "Redis", options });
 			expect(cacher).toBeInstanceOf(Cachers.Redis);
-			expect(cacher.opts).toEqual({ prefix: "", ttl: 80, redis: { db: 3 } });
+			expect(cacher.opts).toEqual({ ttl: 80, redis: { db: 3 } });
 		});
 		
 		it("should resolve RedisCacher from connection string", () => {

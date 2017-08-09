@@ -119,8 +119,8 @@ describe("Test RedisTransporter subscribe & publish", () => {
 
 	beforeEach(() => {
 		msgHandler = jest.fn();
-		transporter = new RedisTransporter({ prefix: "TEST" });
-		transporter.init(new Transit(new ServiceBroker()), msgHandler);
+		transporter = new RedisTransporter();
+		transporter.init(new Transit(new ServiceBroker({ namespace: "TEST" })), msgHandler);
 		
 		let p = transporter.connect();
 		transporter._clientSub.onCallbacks.connect(); // Trigger the `resolve`
@@ -133,7 +133,7 @@ describe("Test RedisTransporter subscribe & publish", () => {
 		transporter.subscribe("REQ", "node");
 
 		expect(transporter.clientSub.subscribe).toHaveBeenCalledTimes(1);
-		expect(transporter.clientSub.subscribe).toHaveBeenCalledWith("TEST.REQ.node");
+		expect(transporter.clientSub.subscribe).toHaveBeenCalledWith("MOL-TEST.REQ.node");
 	});
 
 	it("check incoming message handler", () => {
@@ -149,6 +149,6 @@ describe("Test RedisTransporter subscribe & publish", () => {
 		transporter.publish(new PacketInfo(fakeTransit, "node2", { services: {} }));
 
 		expect(transporter.clientPub.publish).toHaveBeenCalledTimes(1);
-		expect(transporter.clientPub.publish).toHaveBeenCalledWith("TEST.INFO.node2", "{\"sender\":\"node1\",\"services\":\"{}\"}");
+		expect(transporter.clientPub.publish).toHaveBeenCalledWith("MOL-TEST.INFO.node2", "{\"sender\":\"node1\",\"services\":\"{}\"}");
 	});
 });

@@ -10,7 +10,6 @@ describe("Test BaseTransporter", () => {
 		expect(transporter).toBeDefined();
 		expect(transporter.opts).toBeDefined();
 		expect(transporter.connected).toBe(false);
-		expect(transporter.prefix).toBe("MOL");
 
 		expect(transporter.init).toBeDefined();
 		expect(transporter.connect).toBeDefined();
@@ -21,15 +20,14 @@ describe("Test BaseTransporter", () => {
 	});
 
 	it("check constructor with options", () => {
-		let opts = { prefix: "TEST" };
+		let opts = {};
 		let transporter = new BaseTransporter(opts);
 		expect(transporter).toBeDefined();
 		expect(transporter.opts).toBe(opts);
-		expect(transporter.prefix).toBe("TEST");
 	});
 
 	it("check init", () => {
-		let broker = new ServiceBroker({ nodeID: "server1" });
+		let broker = new ServiceBroker({ namespace: "beta-test", nodeID: "server1" });
 		let transporter = new BaseTransporter();
 		let transit = new Transit(broker, transporter);
 		let handler = jest.fn();
@@ -39,6 +37,7 @@ describe("Test BaseTransporter", () => {
 		expect(transporter.transit).toBe(transit);
 		expect(transporter.broker).toBe(broker);
 		expect(transporter.nodeID).toBe("server1");
+		expect(transporter.prefix).toBe("MOL-beta-test");
 		expect(transporter.logger).toBeDefined();
 		expect(transporter.messageHandler).toBe(handler);
 		expect(transporter.afterConnect).toBe(handler2);

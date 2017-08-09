@@ -12,11 +12,10 @@ describe("Test MemoryCacher constructor", () => {
 	});
 
 	it("should create a timer if set ttl option", () => {
-		let opts = { prefix: "TEST", ttl: 500 };
+		let opts = { ttl: 500 };
 		let cacher = new MemoryCacher(opts);
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toEqual(opts);
-		expect(cacher.prefix).toBe("TEST");
 		expect(cacher.opts.ttl).toBe(500);
 		expect(cacher.timer).toBeDefined();
 	});

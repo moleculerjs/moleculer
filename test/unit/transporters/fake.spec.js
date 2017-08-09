@@ -34,10 +34,10 @@ describe("Test FakeTransporter", () => {
 	});	
 
 	it("check subscribe", () => {
-		let opts = { prefix: "TEST" };
+		let opts = {};
 		let msgHandler = jest.fn();
 		let transporter = new FakeTransporter(opts);
-		transporter.init(new Transit(new ServiceBroker()), msgHandler);
+		transporter.init(new Transit(new ServiceBroker({ namespace: "TEST" })), msgHandler);
 
 		let subCb;
 		transporter.bus.on = jest.fn((name, cb) => subCb = cb);
@@ -45,7 +45,7 @@ describe("Test FakeTransporter", () => {
 		transporter.subscribe("REQ", "node");
 
 		expect(transporter.bus.on).toHaveBeenCalledTimes(1);
-		expect(transporter.bus.on).toHaveBeenCalledWith("TEST.REQ.node", jasmine.any(Function));
+		expect(transporter.bus.on).toHaveBeenCalledWith("MOL-TEST.REQ.node", jasmine.any(Function));
 
 		// Test subscribe callback
 		//subCb.call({ event: "event.test.name" }, "incoming data");
@@ -57,6 +57,7 @@ describe("Test FakeTransporter", () => {
 
 	it("check publish", () => {
 		let transporter = new FakeTransporter();
+		transporter.init(new Transit(new ServiceBroker()));
 		transporter.bus.emit = jest.fn();
 
 		transporter.publish(new PacketInfo(fakeTransit, "node2", { services: {} }));
