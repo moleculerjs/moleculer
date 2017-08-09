@@ -1,7 +1,24 @@
-<a name="0.8.x"></a>
-# 0.9.x (2017-08-xx)
+<a name="0.9.0"></a>
+# 0.9.0 (2017-08-xx)
 
 # Breaking changes
+
+## Namespace support, removed `prefix` options [#57](https://github.com/ice-services/moleculer/issues/57)
+The broker has a new `namespace` option to segment your services. For example, you are running development & production services (or more production services) on the same transporter. If you are using different `namespace` you can avoid collisions between different environments.
+
+Thereupon the `prefix` option in transporters & cachers is removed.
+
+**Example**
+```js
+const broker = new ServiceBroker({
+    logger: console,
+    namespace: "DEV",
+    transporter: "NATS",
+    cacher: "Redis"
+});
+```
+In this case the transporter & cacher prefix will be `MOL-DEV`.
+
 
 ## Renamed internal service settings
 The `useVersionPrefix` is renamed to `$noVersionPrefix`. The `serviceNamePrefix` is renamed to `$noServiceNamePrefix`. Both settings logical state is changed.
@@ -88,6 +105,31 @@ broker.start().then(() => {
 	}, 10000);
 
 });
+```
+
+## Multiple service calls [#31](https://github.com/ice-services/moleculer/issues/31)
+With `broker.mcall` method you can call multiple actions (in parallel). 
+
+**Example with `Array`**
+```js
+broker.mcall([
+	{ action: "posts.find", params: {limit: 5, offset: 0}, options: { timeout: 500 } },
+	{ action: "users.find", params: {limit: 5, sort: "username"} }
+]).then(results => {
+	let posts = results[0];
+	let users = results[1];
+})
+```
+
+**Example with `Object`**
+```js
+broker.mcall({
+	posts: { action: "posts.find", params: {limit: 5, offset: 0}, options: { timeout: 500 } },
+	users: { action: "users.find", params: {limit: 5, sort: "username"} }
+}).then(results => {
+	let posts = results.posts;
+	let users = results.users;
+})
 ```
 
 # Fixes
