@@ -12,9 +12,6 @@ const P 						= require("./packets");
 const { getIpList } 			= require("./utils");
 const { hash } 					= require("node-object-hash")({ sort: false, coerce: false});
 
-// Prefix for logger
-const LOG_PREFIX 				= "TRANSIT";
-
 /**
  * Transit class
  * 
@@ -33,7 +30,7 @@ class Transit {
 	 */
 	constructor(broker, transporter, opts) {
 		this.broker = broker;
-		this.logger = broker.getLogger(LOG_PREFIX);
+		this.logger = broker.getLogger("transit");
 		this.nodeID = broker.nodeID;		
 		this.tx = transporter;
 		this.opts = opts;

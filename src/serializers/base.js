@@ -31,7 +31,7 @@ class Serializer {
 	init(broker) {
 		this.broker = broker;
 		/*if (this.broker) {
-			this.logger = broker.getLogger("Serializer");
+			this.logger = broker.getLogger("serializer");
 		}*/
 	}
 

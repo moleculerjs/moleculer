@@ -55,7 +55,7 @@ class Service {
 			this.Promise = broker.Promise;
 		}
 
-		this.logger = this.broker.getLogger(this.name.toUpperCase() + "-SVC");
+		this.logger = this.broker.getLogger("service", this.name);
 
 		this.actions = {}; // external access to actions
 

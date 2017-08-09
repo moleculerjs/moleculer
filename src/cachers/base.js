@@ -40,7 +40,7 @@ class Cacher {
 	init(broker) {
 		this.broker = broker;
 		if (this.broker) {
-			this.logger = broker.getLogger("CACHER");
+			this.logger = broker.getLogger("cacher");
 
 			this.prefix = "MOL-";
 			if (this.broker.namespace)

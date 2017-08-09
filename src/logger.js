@@ -6,66 +6,72 @@
 
 "use strict";
 
-const isString  = require("lodash/isString");
-const isObject  = require("lodash/isObject");
+const chalk 	= require("chalk");
+const _ 		= require("lodash");
+const util 		= require("util");
+
+const LOG_LEVELS = ["fatal", "error", "warn", "info", "debug", "trace"];
 
 module.exports = {
 	
-	/**
-	 * Create a sub-logger by external logger.
-	 * 
-	 * @param {Object} extLogger
-	 * @param {String} moduleName
-	 * @param {String|Object} logLevel
-	 * @returns
-	 */
-	wrap(extLogger, moduleName, logLevel) {
-		let noop = function() {};
+	extend(logger) {
+		LOG_LEVELS.forEach((type, i) => {
+			let method = logger[type];
+			if (!method) {
+				switch(type) {
+					case "fatal":method = logger["error"] || logger["info"]; break;
+					case "trace": method = logger["debug"] || logger["info"]; break;
+					default: method = logger["info"];
+				}
+				logger[type] = method.bind(logger);
+			}
+		});
+		return logger;		
+	},
+	
+	createDefaultLogger(baseLogger, bindings, logLevel) {
+		const noop = function() {};
 
-		const levels = ["fatal", "error", "warn", "info", "debug", "trace"];
-		let prefix = moduleName? "[" + moduleName + "] " : "";
+		const getModuleName = () => chalk.grey(bindings.nodeID + "/" + (bindings.service ? bindings.service.toUpperCase() : bindings.module.toUpperCase()));
+		const getColor = type => {
+			switch(type) {
+				case "fatal": return chalk.red.inverse;
+				case "error": return chalk.red;
+				case "warn": return chalk.yellow;
+				case "debug": return chalk.magenta;
+				case "trace": return chalk.gray;
+				default: return chalk.green;
+			}
+		};
+		const getType = type => getColor(type)(_.padEnd(type.toUpperCase(), 5));
 
 		let logger = {};
-		levels.forEach((type) => logger[type] = noop);
-		
-		if (extLogger) {
-
-			let levelIdx = -1;
-			if (isString(logLevel))
-				levelIdx = levels.indexOf(logLevel);
-			else if (isObject(logLevel)) {
-				let customLevel = logLevel[moduleName];
-				if (customLevel == null)
-					customLevel = logLevel["*"];
-
-				if (customLevel == null || customLevel === false)
-					levelIdx = -1;
-				else
-					levelIdx = levels.indexOf(customLevel);
+		LOG_LEVELS.forEach((type, i) => {
+			if (logLevel && i > LOG_LEVELS.indexOf(logLevel)) {
+				logger[type] = noop;
+				return;
 			}
 
-			levels.forEach((type, i) => {
-				if (i > levelIdx) return;
-
-				let externalMethod = extLogger[type];
-				if (!externalMethod) {
-					switch(type) {
-						case "fatal":
-						case "warn": externalMethod = extLogger["error"] || extLogger["info"]; break;
-						case "debug": externalMethod = extLogger["info"]; break;
-						case "trace": externalMethod = extLogger["debug"] || extLogger["info"]; break;
-						default: externalMethod = extLogger["info"];
-					}
+			let method = baseLogger[type];
+			if (!method) {
+				switch(type) {
+					case "fatal":method = baseLogger["error"] || baseLogger["info"]; break;
+					case "trace": method = baseLogger["debug"] || baseLogger["info"]; break;
+					default: method = baseLogger["info"];
 				}
+			}
 
-				if (externalMethod) {
-					logger[type] = function(msg, ...args) {
-						externalMethod.call(extLogger, prefix + msg, ...args);
-					}.bind(extLogger);
-				}
-			});
-
-		}
+			if (method) {
+				logger[type] = function(...args) {
+					let pargs = args.map(p => {
+						if (_.isObject(p) || _.isArray(p))
+							return util.inspect(p, { showHidden: false, depth: 2, colors: true });
+						return p;
+					});
+					method.call(baseLogger, chalk.grey(`[${new Date().toISOString()}]`), getType(type), getModuleName() + ":", ...pargs);
+				}.bind(baseLogger);
+			}
+		});
 
 		return logger;		
 	}

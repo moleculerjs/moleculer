@@ -39,7 +39,7 @@ const defaultConfig = {
 	nodeID: null,
 
 	logger: null,
-	logLevel: "info",
+	logLevel: null,
 
 	transporter: null,
 	requestTimeout: 0 * 1000,
@@ -105,8 +105,7 @@ class ServiceBroker {
 		this.nodeID = this.options.nodeID || utils.getNodeID();
 
 		// Logger
-		this._loggerCache = {};
-		this.logger = this.getLogger("BROKER");
+		this.logger = this.getLogger("broker");
 
 		// Local event bus
 		this.bus = new EventEmitter2({
@@ -272,7 +271,7 @@ class ServiceBroker {
 					return this.transit.connect();
 			})
 			.then(() => {
-				this.logger.info(`Broker started. NodeID: ${this.nodeID}\n`);
+				this.logger.info(`Broker started. NodeID: ${this.nodeID}`);
 			});
 	}
 
@@ -302,7 +301,7 @@ class ServiceBroker {
 				}
 			})
 			.then(() => {
-				this.logger.info(`Broker stopped. NodeID: ${this.nodeID}\n`);
+				this.logger.info(`Broker stopped. NodeID: ${this.nodeID}`);
 
 				process.removeListener("beforeExit", this._closeFn);
 				process.removeListener("exit", this._closeFn);
@@ -334,21 +333,30 @@ class ServiceBroker {
 	/**
 	 * Get a custom logger for sub-modules (service, transporter, cacher, context...etc)
 	 * 
-	 * @param {String} name	name of module
-	 * @returns
+	 * @param {String} module	Module type
+	 * @param {String} service	Service name
+	 * @returns {Logger}
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	getLogger(name) {
-		let logger = this._loggerCache[name];
-		if (logger)
-			return logger;
+	getLogger(module, service) {
+		let bindings = {
+			module,
+			service,
+			nodeID: this.nodeID, 
+			namespace: this.namespace
+		};
 
-		const baseLogger = this.options.logger === true ? console : this.options.logger;
-		logger = Logger.wrap(baseLogger, name, this.options.logLevel);
-		this._loggerCache[name] = logger;
+		// Call logger creator
+		if (_.isFunction(this.options.logger))
+			return this.options.logger.call(this, bindings);
 
-		return logger;
+		// External logger
+		if (_.isObject(this.options.logger) && this.options.logger !== console)
+			return this.options.logger;
+
+		// Create console logger
+		return Logger.createDefaultLogger(console, bindings, this.options.logLevel || "info");
 	}
 
 	/**
