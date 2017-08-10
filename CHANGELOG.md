@@ -161,13 +161,6 @@ const broker = createBroker({
 });
 ```
 
-The `bindings` contains the following properties:
-- `ns` - namespace
-- `nodeID` - nodeID
-- `mod` - type of core module: `broker`, `cacher`, `transit`, `transporter`
-- `svc` - service name
-- `ver` - service version
-
 > Please note! Some external loggers have not `trace` & `fatal` log methods (e.g.: winston). In this case you have to extend your logger.
 ```js
 const WinstonContext = require("winston-context");
@@ -177,6 +170,16 @@ const broker = createBroker({
     logger: bindings => extend(new WinstonContext(winston, "", bindings))
 });
 ```
+
+The `bindings` contains the following properties:
+- `ns` - namespace
+- `nodeID` - nodeID
+- `mod` - type of core module: `broker`, `cacher`, `transit`, `transporter`
+- `svc` - service name
+- `ver` - service version
+
+> Please note! Please avoid to use these property names when you log an `Object`. For example: the `broker.logger.error({ mod: "peanut" })` overrides the original `mod` value!
+
 
 ## Dynamic service load & destroy
 Available to load & destroy services after the broker started. For example you can hot-reload your services in runtime. The remote nodes will be notified about changes and the broker will emit a `services.changed` event locally.
