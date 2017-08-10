@@ -39,7 +39,7 @@ const defaultConfig = {
 	nodeID: null,
 
 	logger: null,
-	logLevel: "info",
+	logLevel: null,
 
 	transporter: null,
 	requestTimeout: 0 * 1000,
@@ -105,8 +105,7 @@ class ServiceBroker {
 		this.nodeID = this.options.nodeID || utils.getNodeID();
 
 		// Logger
-		this._loggerCache = {};
-		this.logger = this.getLogger("BROKER");
+		this.logger = this.getLogger("broker");
 
 		// Local event bus
 		this.bus = new EventEmitter2({
@@ -272,7 +271,7 @@ class ServiceBroker {
 					return this.transit.connect();
 			})
 			.then(() => {
-				this.logger.info(`Broker started. NodeID: ${this.nodeID}\n`);
+				this.logger.info("Broker started.");
 			});
 	}
 
@@ -302,7 +301,7 @@ class ServiceBroker {
 				}
 			})
 			.then(() => {
-				this.logger.info(`Broker stopped. NodeID: ${this.nodeID}\n`);
+				this.logger.info("Broker stopped.");
 
 				process.removeListener("beforeExit", this._closeFn);
 				process.removeListener("exit", this._closeFn);
@@ -322,11 +321,14 @@ class ServiceBroker {
 		let repl;
 		try {
 			repl = require("moleculer-repl");
-		} catch (error) {
+		} 
+		catch (error) {
 			console.error("The 'moleculer-repl' package is missing! Please install it with 'npm install moleculer-repl' command!"); // eslint-disable-line no-console
 			this.logger.error("The 'moleculer-repl' package is missing! Please install it with 'npm install moleculer-repl' command!");
 			this.logger.debug("ERROR", error);
+			return;
 		}
+
 		if (repl)
 			repl(this);
 	}
@@ -334,21 +336,39 @@ class ServiceBroker {
 	/**
 	 * Get a custom logger for sub-modules (service, transporter, cacher, context...etc)
 	 * 
-	 * @param {String} name	name of module
-	 * @returns
+	 * @param {String} module	Name of module
+	 * @param {String} service	Service name
+	 * @param {String|Number} version	Service version
+	 * @returns {Logger}
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	getLogger(name) {
-		let logger = this._loggerCache[name];
-		if (logger)
-			return logger;
+	getLogger(module, service, version) {
+		let bindings = {
+			nodeID: this.nodeID, 
+			ns: this.namespace
+		};
+		if (service) {
+			bindings.svc = service;
+			if (version)
+				bindings.ver = version;
+		}
+		else
+			bindings.mod = module;
 
-		const baseLogger = this.options.logger === true ? console : this.options.logger;
-		logger = Logger.wrap(baseLogger, name, this.options.logLevel);
-		this._loggerCache[name] = logger;
+		// Call logger creator
+		if (_.isFunction(this.options.logger))
+			return this.options.logger.call(this, bindings);
 
-		return logger;
+		// External logger
+		if (_.isObject(this.options.logger) && this.options.logger !== console)
+			return Logger.extend(this.options.logger);
+
+		// Create console logger
+		if (this.options.logger === true || this.options.logger === console)
+			return Logger.createDefaultLogger(console, bindings, this.options.logLevel || "info", this.options.logFormatter);
+
+		return Logger.createDefaultLogger();
 	}
 
 	/**
@@ -408,7 +428,7 @@ class ServiceBroker {
 	 */
 	loadService(filePath) {
 		let fName = path.resolve(filePath);
-		this.logger.debug(`Load service from '${path.basename(fName)}'...`);
+		this.logger.debug(`Load service '${path.basename(fName)}'...`);
 		let schema = require(fName);
 		let svc;
 		if (_.isFunction(schema)) {
@@ -985,7 +1005,7 @@ class ServiceBroker {
 		if (err instanceof E.RequestTimeoutError) {
 			// Retry request
 			if (ctx.retryCount-- > 0) {
-				this.logger.warn(`Action '${actionName}' call timed out on '${nodeID}'!`);
+				this.logger.warn(`Action '${actionName}' timed out on '${nodeID}'!`);
 				this.logger.warn(`Recall '${actionName}' action (retry: ${ctx.retryCount + 1})...`);
 
 				opts.ctx = ctx; // Reuse this context
@@ -999,7 +1019,7 @@ class ServiceBroker {
 
 		// Handle fallback response
 		if (opts.fallbackResponse) {
-			this.logger.warn(`Action '${actionName}' returns fallback response!`);
+			this.logger.warn(`Action '${actionName}' returns with fallback response.`);
 			if (_.isFunction(opts.fallbackResponse))
 				return opts.fallbackResponse(ctx, err);
 			else

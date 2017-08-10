@@ -93,10 +93,10 @@ broker.loadService(path.join(__dirname, "..", "user.service.js"));
 broker.start();
 
 
-broker.call("posts.get", { id: 3 }).then(console.log)
+broker.call("posts.get", { id: 3 }).then(res => broker.logger.info(res))
 	.then(() => {
 		console.log(chalk.bold("\nNEXT CALL FROM CACHE"));
-		return broker.call("posts.get", { id: 3 }).then(console.log);
+		return broker.call("posts.get", { id: 3 }).then(res => broker.logger.info(res));
 	})
 	.then(() => {
 		console.log(chalk.bold("\nCLEAR CACHE"));
@@ -105,5 +105,5 @@ broker.call("posts.get", { id: 3 }).then(console.log)
 	.then(utils.delay(200))
 	.then(() => {
 		console.log(chalk.bold("\nNEXT CALL WITHOUT CACHE"));
-		return broker.call("posts.get", { id: 3 }).then(console.log);
+		return broker.call("posts.get", { id: 3 }).then(res => broker.logger.info(res));
 	});

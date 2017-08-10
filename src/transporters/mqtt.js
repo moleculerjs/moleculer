@@ -53,7 +53,7 @@ class MqttTransporter extends Transporter {
 
 			client.on("connect", () => {
 				this.client = client;
-				this.logger.info("MQTT connected!");
+				this.logger.info("MQTT client is connected!");
 
 				this.onConnected().then(resolve);
 			});
@@ -61,6 +61,7 @@ class MqttTransporter extends Transporter {
 			/* istanbul ignore next */
 			client.on("error", (e) => {
 				this.logger.error("MQTT error!", e.message);
+				this.logger.dbug(e);
 
 				if (!client.connected)
 					reject(e);
@@ -68,7 +69,7 @@ class MqttTransporter extends Transporter {
 
 			/* istanbul ignore next */
 			client.on("reconnect", () => {
-				this.logger.warn("MQTT reconnecting...");
+				this.logger.warn("MQTT client is reconnecting...");
 			});			
 
 			client.on("message", (topic, msg) => {
@@ -79,7 +80,7 @@ class MqttTransporter extends Transporter {
 			/* istanbul ignore next */
 			client.on("close", () => {
 				this.connected = false;
-				this.logger.warn("MQTT disconnected!");
+				this.logger.warn("MQTT client is disconnected!");
 			});			
 		});
 	}

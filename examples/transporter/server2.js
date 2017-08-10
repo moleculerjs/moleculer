@@ -5,16 +5,14 @@
 let { delay } = require("../../src/utils");
 
 let ServiceBroker = require("../../src/service-broker");
-let Transporter = require("../../src/transporters/redis");
-let Serializer = require("../../src/serializers/protobuf");
 
 // Create broker
 let broker = new ServiceBroker({
 	nodeID: process.argv[2] || "server-2",
-	transporter: new Transporter("redis://localhost:3232"),
+	transporter: "NATS",
 	logger: console,
 	logLevel: "info",
-	serializer: new Serializer()
+	serializer: "JSON"
 });
 
 //broker.loadService(__dirname + "/../post.service");
@@ -25,7 +23,7 @@ broker.start();
 let c = 1;
 
 broker.on("TEST1", a => {
-	console.log("TEST1 event received:", a);
+	broker.logger.info("TEST1 event received:", a);
 });
 
 Promise.resolve()

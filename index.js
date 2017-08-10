@@ -19,6 +19,7 @@ module.exports = {
 	Context: require("./src/context"),
 	Service: require("./src/service"),
 	ServiceBroker: require("./src/service-broker"),
+	Logger: require("./src/logger"),
 
 	Transporters: require("./src/transporters"),
 	Cachers: require("./src/cachers"),

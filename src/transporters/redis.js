@@ -53,7 +53,7 @@ class RedisTransporter extends Transporter {
 			this._clientSub = clientSub; // For tests
 
 			clientSub.on("connect", () => {
-				this.logger.info("Redis-sub connected!");
+				this.logger.info("Redis-sub client is connected!");
 
 				const clientPub = new Redis(this.opts.redis);
 				this._clientPub = clientPub; // For tests
@@ -62,14 +62,15 @@ class RedisTransporter extends Transporter {
 					this.clientSub = clientSub;
 					this.clientPub = clientPub;
 
-					this.logger.info("Redis-pub connected!");
+					this.logger.info("Redis-pub client is connected!");
 
 					this.onConnected().then(resolve);
 				});
 
 				/* istanbul ignore next */
 				clientPub.on("error", (e) => {
-					this.logger.error("Redis-pub error", e);
+					this.logger.error("Redis-pub error", e.message);
+					this.logger.debug(e);
 
 					if (!this.connected)
 						reject(e);
@@ -78,7 +79,7 @@ class RedisTransporter extends Transporter {
 				/* istanbul ignore next */
 				clientPub.on("close", () => {
 					this.connected = false;
-					this.logger.warn("Redis-pub disconnected!");
+					this.logger.warn("Redis-pub client is disconnected!");
 				});					
 			});
 
@@ -90,13 +91,14 @@ class RedisTransporter extends Transporter {
 
 			/* istanbul ignore next */
 			clientSub.on("error", (e) => {
-				this.logger.error("Redis-sub error", e);
+				this.logger.error("Redis-sub error", e.message);
+				this.logger.debug(e);
 			});
 
 			/* istanbul ignore next */
 			clientSub.on("close", () => {
 				this.connected = false;
-				this.logger.warn("Redis-sub disconnected!");
+				this.logger.warn("Redis-sub client is disconnected!");
 			});		
 		
 		});
