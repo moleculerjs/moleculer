@@ -82,19 +82,19 @@ The module log level is not supported. The `logLevel` option can be only `String
 # New 
 
 ## Better logging [#61](https://github.com/ice-services/moleculer/issues/61)
-The whole Moleculer logger is rewritten. It supports better the external loggers. Changed the built-in log message format.
+The whole Moleculer logger is rewritten. It supports better the external loggers. The built-in log message format is also changed.
 
 ### Built-in `console` logger
 ```js
 const broker = createBroker({ 
     logger: console, 
-    logLevel: "debug"
+    logLevel: "info"
 });
 ```
 New console output:
 ![image](https://user-images.githubusercontent.com/306521/29127309-011bd0e0-7d21-11e7-87e2-c2d83352a857.png)
 
-**Console logger with custom `logFormatter`**
+**With custom `logFormatter`**
 ```js
 const broker = new ServiceBroker({ 
     logger: console, 
@@ -107,34 +107,34 @@ broker.logger.error("Error message");
 ```
 Output:
 ```
-WARN norbi-pc2: Warn message
-ERROR norbi-pc2: Error message
+WARN dev-pc: Warn message
+ERROR dev-pc: Error message
 ```
 
 ### External loggers
 
 **[Pino](http://getpino.io/)**
 ```js
-const pino = require("pino")({ level: "debug" });
+const pino = require("pino")({ level: "info" });
 const broker = new ServiceBroker({ 
     logger: bindings => pino.child(bindings)
 });
 ```
 
-Output:
+Sample output:
 ![image](https://user-images.githubusercontent.com/306521/29127258-e151e3bc-7d20-11e7-9995-025f53cf41ec.png)
 
 
 **[Bunyan](https://github.com/trentm/node-bunyan)**
 ```js
 const bunyan = require("bunyan");
-const logger = bunyan.createLogger({ name: "moleculer", level: "debug" });
+const logger = bunyan.createLogger({ name: "moleculer", level: "info" });
 const broker = new ServiceBroker({ 
     logger: bindings => logger.child(bindings)
 });
 ```
 
-Output:
+Sample output:
 ![image](https://user-images.githubusercontent.com/306521/29127286-f2203428-7d20-11e7-84f1-c81aeaaaef53.png)
 
 **[Winston](https://github.com/winstonjs/winston)**
@@ -157,7 +157,7 @@ const broker = new ServiceBroker({
 const WinstonContext = require("winston-context");
 const winston = require("winston");
 const broker = createBroker({ 
-    logger: bindings => extend(new WinstonContext(winston, "", bindings))
+    logger: bindings => new WinstonContext(winston, "", bindings)
 });
 ```
 
@@ -168,10 +168,18 @@ The `bindings` contains the following properties:
 - `svc` - service name
 - `ver` - service version
 
-
+> Please note! Some external loggers have not `trace` & `fatal` log methods (e.g.: winston). In this case you have to extend your logger.
+```js
+const WinstonContext = require("winston-context");
+const winston = require("winston");
+const { extend } = require("moleculer").Logger;
+const broker = createBroker({ 
+    logger: bindings => extend(new WinstonContext(winston, "", bindings))
+});
+```
 
 ## Dynamic service load & destroy
-Available to load & destroy services after the broker started. For example you can hot-reload your services in runtime. The remote nodes will be notified about changes. The broker will emit a `services.changed` event locally.
+Available to load & destroy services after the broker started. For example you can hot-reload your services in runtime. The remote nodes will be notified about changes and the broker will emit a `services.changed` event locally.
 
 **Example**
 ```js
