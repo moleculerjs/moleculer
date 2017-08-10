@@ -1,4 +1,4 @@
-declare class Logger {
+declare class LoggerInstance {
 	fatal(...args);
 	error(...args);
 	warn(...args);
@@ -51,8 +51,8 @@ declare class Service {
 	settings: Object;
 	schema: Object;
 	broker: ServiceBroker;
-	logger: Logger;
-
+	logger: LoggerInstance;
+	Promise: typeof Promise;
 }
 
 declare interface BrokerCircuitBreakerOptions {
@@ -64,12 +64,13 @@ declare interface BrokerCircuitBreakerOptions {
 }
 
 declare interface BrokerOptions {
+	namespace?: String;
 	nodeID?: String;
 	
-	logger?: Object;
-	logLevel?: String|Object;
+	logger?: Function|LoggerInstance;
+	logLevel?: String;
 	
-	transporter?: Transporter;
+	transporter?: Transporter|String|Object;
 	requestTimeout?: Number;
 	requestRetry?: Number;
 	heartbeatInterval?: Number;
@@ -78,8 +79,8 @@ declare interface BrokerOptions {
 
 	circuitBreaker?: BrokerCircuitBreakerOptions;
 	
-	cacher?: Cacher;
-	serializer?: Serializer;
+	cacher?: Cacher|String|Object;
+	serializer?: Serializer|String|Object;
 
 	validation?: Boolean;
 	metrics?: Boolean;
@@ -94,19 +95,23 @@ declare interface BrokerOptions {
 declare class ServiceBroker {
 	constructor(options?: BrokerOptions);
 	Promise: typeof Promise;
+
+	namespace?: string;
 	nodeID?: string;
-	logger: Logger;
+	logger: LoggerInstance;
 	cacher?: Cacher;
 
 	start(): Promise<any>;
-	stop();
+	stop(): Promise<any>;
 
 	repl();
 
-	getLogger(name?: String): Logger;
+	getLogger(module: String, service?: String, version?: Number|String): LoggerInstance;
+	fatal(message: String, err?: Error, needExit?: boolean = true);
 	loadServices(folder?: String, fileMask?: String): Number;
 	loadService(filePath: String): Service;
 	createService(schema: Object): Service;
+	destroyService(service: Service): Promise<any>;
 	registerLocalService(service: Service);
 	registerRemoteService(nodeID: String, service: Service);
 
@@ -119,6 +124,7 @@ declare class ServiceBroker {
 	off(name: String, handler: Function);
 
 	getService(serviceName: String): Service;
+	hasService(serviceName: String): Boolean;
 	hasAction(actionName: String): Boolean;
 	getAction(actionName: String): any;
 	isActionAvailable(actionName: String): Boolean;
@@ -151,6 +157,41 @@ declare class ServiceBroker {
 	call(actionName: String, params?: Object, opts?: Object): Promise<any>;
 
 	/**
+	 * Multiple action calls.
+	 * 
+	 * @param {Array<Object>|Object} def Calling definitions.
+	 * @returns {Promise<Array<Object>|Object>}
+	 * 
+	 * @example
+	 * Call `mcall` with an array:
+	 * ```js
+	 * broker.mcall([
+	 * 	{ action: "posts.find", params: { limit: 5, offset: 0 } },
+	 * 	{ action: "users.find", params: { limit: 5, sort: "username" }, opts: { timeout: 500 } }
+	 * ]).then(results => {
+	 * 	let posts = results[0];
+	 * 	let users = results[1];
+	 * })
+	 * ```
+	 * 
+	 * @example
+	 * Call `mcall` with an Object:
+	 * ```js
+	 * broker.mcall({
+	 * 	posts: { action: "posts.find", params: { limit: 5, offset: 0 } },
+	 * 	users: { action: "users.find", params: { limit: 5, sort: "username" }, opts: { timeout: 500 } }
+	 * }).then(results => {
+	 * 	let posts = results.posts;
+	 * 	let users = results.users;
+	 * })
+	 * ```
+	 * @throws MoleculerError - If the `def` is not an `Array` and not an `Object`.
+	 * 
+	 * @memberOf ServiceBroker
+	 */
+	mcall(def): Promise<any>;
+
+	/**
 	 * Emit an event (global & local)
 	 * 
 	 * @param {any} eventName
@@ -173,7 +214,12 @@ declare class ServiceBroker {
 	 */	
 	emitLocal(eventName: String, payload?: any, sender?: String);
 
+	MOLECULER_VERSION: String;
+	LOCAL_NODE_ID: any;
+
 	static MOLECULER_VERSION: String;
+	static LOCAL_NODE_ID: any;
+	static defaultConfig: BrokerOptions;
 }
 
 declare class Packet {
@@ -188,7 +234,7 @@ declare class Transporter {
 	connect(): Promise<any>;
 	disconnect(): Promise<any>;
 	subscribe(cmd: String, nodeID?: String);
-	publish(packet: Packet);
+	publish(packet: Packet): Promise<any>;
 }
 
 declare class Cacher {
@@ -215,10 +261,16 @@ declare class Validator {
 	validate(params: Object, schema: Object): Boolean;
 }
 
+declare class LoggerHelper {
+	static extend(logger: LoggerInstance): LoggerInstance;
+	static createDefaultLogger(baseLogger?: LoggerInstance, bindings: Object, logLevel?: String, logFormatter?: Function): LoggerInstance;
+}
+
 export = {
 	Context: Context,
 	Service: Service,
 	ServiceBroker: ServiceBroker,
+	Logger: LoggerHelper,
 
 	Transporters: {
 		Fake: Transporter,
