@@ -90,7 +90,7 @@ Use the Moleculer CLI tool to create a new Moleculer based microservices project
     ```bash
     $ moleculer init project-simple first-demo
     ```
-    > Add API Gateway and press Y to `npm install`
+    > Press Y on API Gateway & `npm install`
     
 3. Open project folder
     ```bash
@@ -101,7 +101,7 @@ Use the Moleculer CLI tool to create a new Moleculer based microservices project
     ```bash
     $ npm run dev
     ```
-5. Open the [http://localhost:3000/math.add?a=5&b=3](http://localhost:3000/math.add?a=5&b=3) link in your browser. It will call the `add` action of `math` service with two params via [API gateway](https://github.com/ice-services/moleculer-web) and returns with the result.
+5. Open the http://localhost:3000/greeter/welcome?name=world link in your browser. It will call the `welcome` action of `greeter` service with a `name` param via [API gateway](https://github.com/ice-services/moleculer-web) and returns with the result.
 
 :tada:**Congratulations! You created your first Moleculer based microservices project. Read our [documentation](https://moleculer.services/docs) to learn more about Moleculer.**
 
