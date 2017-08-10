@@ -103,10 +103,10 @@ Use the Moleculer CLI tool to create a new Moleculer based microservices project
     ```
 5. Open the http://localhost:3000/greeter/welcome?name=world link in your browser. It will call the `welcome` action of `greeter` service with a `name` param via [API gateway](https://github.com/ice-services/moleculer-web) and returns with the result.
 
-:tada:**Congratulations! You created your first Moleculer based microservices project. Read our [documentation](https://moleculer.services/docs) to learn more about Moleculer.**
+:tada:**Congratulations! Your first Moleculer based microservices project is created. Read our [documentation](https://moleculer.services/docs) to learn more about Moleculer.**
 
 # Official modules
-We have some official modules for Moleculer. [See the list!](https://moleculer.services/docs/modules.html)
+We have many official modules for Moleculer. [Check our list!](https://moleculer.services/docs/modules.html)
 
 # Documentation
 You can find here [the documentation](https://moleculer.services/docs).
@@ -116,6 +116,9 @@ See [CHANGELOG.md](CHANGELOG.md).
 
 # Roadmap
 See [ROADMAP.md](ROADMAP.md).
+
+# Contributions
+We welcome you to join the development of Moleculer. Please read our [contribution guide](http://moleculer.services/docs/contributing.html).
 
 # License
 Moleculer is available under the [MIT license](https://tldrlegal.com/license/mit-license).
