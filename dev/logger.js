@@ -46,7 +46,7 @@ function createBroker(options) {
 	logging(broker);
 	broker.start();
 })();
-/*
+
 (function() {
 	console.log(chalk.yellow.bold("\n--- PINO ---"));
 	const pino = require("pino")({ level: "debug" });
@@ -92,6 +92,6 @@ function createBroker(options) {
 	logging(broker);
 	broker.start();
 })();
-*/
+
 
 console.log(chalk.yellow.bold("-----------------\n"));

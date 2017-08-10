@@ -91,10 +91,10 @@ class RedisCacher extends BaseCacher {
 	 * @memberOf Cacher
 	 */
 	get(key) {
-		this.logger.debug(`Get ${key}`);
+		//this.logger.debug(`GET ${key}`);
 		return this.client.get(this.prefix + key).then((data) => {
 			if (data) {
-				this.logger.debug(`Found ${key}`);
+				//this.logger.debug(`FOUND ${key}`);
 				try {
 					return JSON.parse(data);
 				} catch (err) {
@@ -118,18 +118,12 @@ class RedisCacher extends BaseCacher {
 		if (isObject(data)) {
 			data = JSON.stringify(data);
 		}
-		this.logger.debug(`Set ${key}`);
+		this.logger.debug(`SET ${key}`);
 
 		if (this.opts.ttl) {
-			return this.client.setex(this.prefix + key, this.opts.ttl, data);/*, (err) => {
-				if (err)
-					this.logger.error("Redis `setex` error!", err);
-			});*/
+			return this.client.setex(this.prefix + key, this.opts.ttl, data);
 		} else {
-			return this.client.set(this.prefix + key, data);/*, (err) => {
-				if (err)
-					this.logger.error("Redis `set` error!", err);
-			});*/
+			return this.client.set(this.prefix + key, data);
 		}
 	}
 
@@ -142,7 +136,7 @@ class RedisCacher extends BaseCacher {
 	 * @memberOf Cacher
 	 */
 	del(key) {
-		this.logger.debug(`Delete ${key}`);
+		this.logger.debug(`DELETE ${key}`);
 		return this.client.del(this.prefix + key).catch((err) => {
 			/* istanbul ignore next */
 			this.logger.error("Redis `del` error!", err);

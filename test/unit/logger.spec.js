@@ -68,7 +68,7 @@ describe("Test createDefaultLogger", () => {
 		};
 
 		let bindings = {
-			comp: "broker",
+			mod: "broker",
 			nodeID: "server-2",
 			ns: "testing"
 		};

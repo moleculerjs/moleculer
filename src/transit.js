@@ -93,7 +93,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	connect() {
-		this.logger.info("Connecting to transporter...");
+		this.logger.info("Connecting to the transporter...");
 		return new Promise(resolve => {
 			this.__connectResolve = resolve;
 
@@ -102,8 +102,8 @@ class Transit {
 				this.tx.connect().catch(err => {
 					if (this.disconnecting) return;
 					
-					this.logger.warn("Connect failed!", err.message);
-					this.logger.debug("ERROR!", err);
+					this.logger.warn("Connection is failed!", err.message);
+					this.logger.debug(err);
 
 					setTimeout(() => {
 						this.logger.info("Reconnecting...");
@@ -164,7 +164,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendDisconnectPacket() {
-		this.logger.debug("Send DISCONNECT to nodes");
+		this.logger.debug("Send DISCONNECT to nodes...");
 
 		return this.publish(new P.PacketDisconnect(this));
 	}
@@ -292,7 +292,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	_requestHandler(payload) {
-		this.logger.debug(`Request '${payload.action}' from '${payload.sender}'. Params:`, payload.params);
+		this.logger.debug(`Request '${payload.action}' received from '${payload.sender}' node.`);
 		
 		// Recreate caller context
 		const ctx = new Context(this.broker);
@@ -329,7 +329,7 @@ class Transit {
 		// Remove pending request
 		this.removePendingRequest(id);
 
-		this.logger.debug(`Response '${req.action.name}' is received from '${req.nodeID}'.`);
+		this.logger.debug(`Response '${req.action.name}' received from '${req.nodeID}'.`);
 
 		if (!packet.success) {
 			// Recreate exception object
@@ -385,7 +385,7 @@ class Transit {
 
 		const packet = new P.PacketRequest(this, ctx.nodeID, ctx);
 
-		this.logger.debug(`Send '${ctx.action.name}' request to '${ctx.nodeID}'. Params:`, ctx.params);
+		this.logger.debug(`Send '${ctx.action.name}' request to '${ctx.nodeID}' node.`);
 
 		// Add to pendings
 		this.pendingRequests.set(ctx.id, request);
@@ -538,7 +538,7 @@ class Transit {
 	 */
 	processNodeInfo(nodeID, payload) {
 		if (nodeID == null) {
-			this.logger.error("Missing nodeID from node info package!");
+			this.logger.error("Missing nodeID in INFO packet!");
 			return;
 		}
 

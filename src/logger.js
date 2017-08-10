@@ -54,8 +54,8 @@ module.exports = {
 				if (bindings.ver) {
 					mod += ":" + (typeof(bindings.ver) == "number" ? "v" + bindings.ver : bindings.ver);
 				}
-			} else if (bindings.comp)
-				mod = bindings.comp.toUpperCase();
+			} else if (bindings.mod)
+				mod = bindings.mod.toUpperCase();
 
 			return bindings.nodeID + "/" + mod;
 		};

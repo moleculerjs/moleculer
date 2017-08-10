@@ -62,26 +62,26 @@ class NatsTransporter extends Transporter {
 
 			client.on("connect", () => {
 				this.client = client;
-				this.logger.info("NATS connected!");
+				this.logger.info("NATS client is connected!");
 
 				this.onConnected().then(resolve);
 			});
 
 			/* istanbul ignore next */
 			client.on("reconnect", () => {
-				this.logger.info("NATS reconnected!");
+				this.logger.info("NATS client is reconnected!");
 				this.onConnected(true);
 			});
 
 			/* istanbul ignore next */
 			client.on("reconnecting", () => {
-				this.logger.warn("NATS reconnecting...");
+				this.logger.warn("NATS client is reconnecting...");
 			});
 
 			/* istanbul ignore next */
 			client.on("disconnect", () => {
 				if (this.connected) {
-					this.logger.warn("NATS disconnected!");
+					this.logger.warn("NATS client is disconnected!");
 					this.connected = false;
 				}
 			});
@@ -89,6 +89,7 @@ class NatsTransporter extends Transporter {
 			/* istanbul ignore next */
 			client.on("error", e => {
 				this.logger.error("NATS error!", e.message);
+				this.logger.debug(e);
 
 				if (!client.connected)
 					reject(e);
@@ -97,7 +98,7 @@ class NatsTransporter extends Transporter {
 			/* istanbul ignore next */
 			client.on("close", () => {
 				this.connected = false;
-				this.logger.warn("NATS connection closed!");
+				this.logger.warn("NATS connection is closed!");
 			});			
 		});
 	}

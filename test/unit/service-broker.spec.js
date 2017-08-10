@@ -643,7 +643,7 @@ describe("Test broker.getLogger", () => {
 		broker.logger.info("Teszt", { a: 5 });
 
 		expect(logFormatter).toHaveBeenCalledTimes(1);
-		expect(logFormatter).toHaveBeenCalledWith("info", ["Teszt", { a: 5 }], {"comp": "broker", "nodeID": "node-1234", "ns": ""});
+		expect(logFormatter).toHaveBeenCalledWith("info", ["Teszt", { a: 5 }], {"mod": "broker", "nodeID": "node-1234", "ns": ""});
 	});
 
 	describe("Test logger creator", () => {
@@ -654,7 +654,7 @@ describe("Test broker.getLogger", () => {
 			broker = new ServiceBroker({ logger, namespace: "testing", nodeID: "test-pc" });
 
 			expect(logger).toHaveBeenCalledTimes(1);
-			expect(logger).toHaveBeenCalledWith({"comp": "broker", "nodeID": "test-pc", "ns": "testing"});
+			expect(logger).toHaveBeenCalledWith({"mod": "broker", "nodeID": "test-pc", "ns": "testing"});
 		});
 
 		it("should call creator function with service bindings", () => {

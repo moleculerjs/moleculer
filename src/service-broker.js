@@ -271,7 +271,7 @@ class ServiceBroker {
 					return this.transit.connect();
 			})
 			.then(() => {
-				this.logger.info(`Broker started. NodeID: ${this.nodeID}`);
+				this.logger.info("Broker started.");
 			});
 	}
 
@@ -301,7 +301,7 @@ class ServiceBroker {
 				}
 			})
 			.then(() => {
-				this.logger.info(`Broker stopped. NodeID: ${this.nodeID}`);
+				this.logger.info("Broker stopped.");
 
 				process.removeListener("beforeExit", this._closeFn);
 				process.removeListener("exit", this._closeFn);
@@ -336,14 +336,14 @@ class ServiceBroker {
 	/**
 	 * Get a custom logger for sub-modules (service, transporter, cacher, context...etc)
 	 * 
-	 * @param {String} component	Name of component
+	 * @param {String} module	Name of module
 	 * @param {String} service	Service name
 	 * @param {String|Number} version	Service version
 	 * @returns {Logger}
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	getLogger(component, service, version) {
+	getLogger(module, service, version) {
 		let bindings = {
 			nodeID: this.nodeID, 
 			ns: this.namespace
@@ -354,7 +354,7 @@ class ServiceBroker {
 				bindings.ver = version;
 		}
 		else
-			bindings.comp = component;
+			bindings.mod = module;
 
 		// Call logger creator
 		if (_.isFunction(this.options.logger))
@@ -428,7 +428,7 @@ class ServiceBroker {
 	 */
 	loadService(filePath) {
 		let fName = path.resolve(filePath);
-		this.logger.debug(`Load service from '${path.basename(fName)}'...`);
+		this.logger.debug(`Load service '${path.basename(fName)}'...`);
 		let schema = require(fName);
 		let svc;
 		if (_.isFunction(schema)) {
@@ -1005,7 +1005,7 @@ class ServiceBroker {
 		if (err instanceof E.RequestTimeoutError) {
 			// Retry request
 			if (ctx.retryCount-- > 0) {
-				this.logger.warn(`Action '${actionName}' call timed out on '${nodeID}'!`);
+				this.logger.warn(`Action '${actionName}' timed out on '${nodeID}'!`);
 				this.logger.warn(`Recall '${actionName}' action (retry: ${ctx.retryCount + 1})...`);
 
 				opts.ctx = ctx; // Reuse this context
@@ -1019,7 +1019,7 @@ class ServiceBroker {
 
 		// Handle fallback response
 		if (opts.fallbackResponse) {
-			this.logger.warn(`Action '${actionName}' returns fallback response!`);
+			this.logger.warn(`Action '${actionName}' returns with fallback response.`);
 			if (_.isFunction(opts.fallbackResponse))
 				return opts.fallbackResponse(ctx, err);
 			else
