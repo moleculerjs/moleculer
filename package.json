@@ -57,7 +57,8 @@
     "pino": "4.7.1",
     "protobufjs": "6.8.0",
     "v8-natives": "1.0.0",
-    "winston": "2.3.1"
+    "winston": "2.3.1",
+    "winston-context": "0.0.7"
   },
   "dependencies": {
     "args": "3.0.4",

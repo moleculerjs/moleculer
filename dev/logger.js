@@ -93,5 +93,18 @@ function createBroker(options) {
 	broker.start();
 })();
 
+(function() {
+	console.log(chalk.yellow.bold("\n--- WINSTON CONTEXT ---"));
+	const WinstonContext = require("winston-context");
+	const winston = require("winston");
+	const broker = createBroker({ 
+		logger: bindings => extend(new WinstonContext(winston, "", bindings)),
+		transporter: "NATS",
+		cacher: "Redis"
+	});
+	logging(broker);
+	broker.start();
+})();
+
 
 console.log(chalk.yellow.bold("-----------------\n"));
