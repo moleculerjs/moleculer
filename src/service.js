@@ -55,7 +55,7 @@ class Service {
 			this.Promise = broker.Promise;
 		}
 
-		this.logger = this.broker.getLogger("service", this.name);
+		this.logger = this.broker.getLogger("service", this.name, this.version);
 
 		this.actions = {}; // external access to actions
 

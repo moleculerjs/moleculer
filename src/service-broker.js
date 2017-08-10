@@ -333,19 +333,25 @@ class ServiceBroker {
 	/**
 	 * Get a custom logger for sub-modules (service, transporter, cacher, context...etc)
 	 * 
-	 * @param {String} module	Module type
+	 * @param {String} component	Name of component
 	 * @param {String} service	Service name
+	 * @param {String|Number} version	Service version
 	 * @returns {Logger}
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	getLogger(module, service) {
+	getLogger(component, service, version) {
 		let bindings = {
-			module,
-			service,
 			nodeID: this.nodeID, 
-			namespace: this.namespace
+			ns: this.namespace
 		};
+		if (service) {
+			bindings.svc = service;
+			if (version)
+				bindings.ver = version;
+		}
+		else
+			bindings.comp = component;
 
 		// Call logger creator
 		if (_.isFunction(this.options.logger))

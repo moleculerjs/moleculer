@@ -47,7 +47,19 @@ module.exports = {
 	createDefaultLogger(baseLogger, bindings, logLevel, logFormatter) {
 		const noop = function() {};
 
-		const getModuleName = () => chalk.grey(bindings.nodeID + "/" + (bindings.service ? bindings.service.toUpperCase() : bindings.module.toUpperCase()));
+		const getModuleName = () => {
+			let mod;
+			if (bindings.svc) {
+				mod = bindings.svc.toUpperCase();
+				if (bindings.ver) {
+					mod += ":" + (typeof(bindings.ver) == "number" ? "v" + bindings.ver : bindings.ver);
+				}
+			} else if (bindings.comp)
+				mod = bindings.comp.toUpperCase();
+
+			return bindings.nodeID + "/" + mod;
+		};
+
 		const getColor = type => {
 			switch(type) {
 				case "fatal": return chalk.red.inverse;
@@ -89,7 +101,7 @@ module.exports = {
 				});
 
 				// Call the original method
-				method.call(baseLogger, chalk.grey(`[${new Date().toISOString()}]`), getType(type), getModuleName() + ":", ...pargs);
+				method.call(baseLogger, chalk.grey(`[${new Date().toISOString()}]`), getType(type), chalk.grey(getModuleName() + ":"), ...pargs);
 
 			}.bind(baseLogger);
 

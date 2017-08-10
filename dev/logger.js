@@ -23,6 +23,7 @@ function createBroker(options) {
 
 	broker.createService({
 		name: "greeter",
+		version: 2,
 		started() {
 			this.logger.info("Service started!");
 		}
