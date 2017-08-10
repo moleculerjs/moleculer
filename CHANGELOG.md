@@ -178,7 +178,7 @@ The `bindings` contains the following properties:
 - `svc` - service name
 - `ver` - service version
 
-**Please avoid to use these property names when you log an `Object`. For example: the `broker.logger.error({ mod: "peanut" })` overrides the original `mod` value!**
+**Please avoid to use these property names when you log an `Object`.** For example: the `broker.logger.error({ mod: "peanut" })` overrides the original `mod` value!
 
 
 ## Dynamic service load & destroy
