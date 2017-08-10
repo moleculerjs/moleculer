@@ -1,6 +1,9 @@
 /*eslint-disable no-console */
 "use strict";
 
+const chalk = require("chalk"); 
+chalk.enabled = false;
+
 const path = require("path");
 const Promise = require("bluebird");
 const lolex = require("lolex");
@@ -34,7 +37,7 @@ describe("Test ServiceBroker constructor", () => {
 			nodeID: null,
 
 			logger: null,
-			logLevel: "info",
+			logLevel: null,
 
 			transporter: null, 
 			requestTimeout: 0, 
@@ -576,21 +579,124 @@ describe("Test broker.stop", () => {
 
 });
 
-describe("Test broker.getLogger", () => {
+describe("Test broker.repl", () => {
+
+	jest.mock("moleculer-repl");
+	let repl = require("moleculer-repl");
+	repl.mockImplementation(() => jest.fn()); 
 
 	let broker = new ServiceBroker();
 
-	let logger1 = broker.getLogger("test");
-	let logger2 = broker.getLogger("other");
-	let logger3 = broker.getLogger("test");
+	it("should switch to repl mode", () => {
+		broker.repl();
 
-	expect(logger1).not.toBe(logger2);
-	expect(logger1).toBe(logger3);
-
-	expect(Object.keys(broker._loggerCache).length).toBe(2 + 1); // +1 logger of broker
+		expect(repl).toHaveBeenCalledTimes(1);
+		expect(repl).toHaveBeenCalledWith(broker);
+	});
 });
 
 describe("Test broker.getLogger", () => {
+	let clock;
+	beforeAll(() => clock = lolex.install());
+	afterAll(() => clock.uninstall());
+
+	console.info = jest.fn();
+	console.error = jest.fn();
+
+	it("should not use any logger", () => {
+		let broker = new ServiceBroker();
+
+		console.info.mockClear();
+		broker.logger.info("Teszt");
+
+		expect(console.info).toHaveBeenCalledTimes(0);
+	});
+
+	it("should create default console logger", () => {
+		let broker = new ServiceBroker({ logger: console });
+
+		console.info.mockClear();
+		broker.logger.info("Teszt");
+
+		expect(console.info).toHaveBeenCalledTimes(1);
+		expect(console.info).toHaveBeenCalledWith("[1970-01-01T00:00:00.000Z]", "INFO ", "node-1234/BROKER:", "Teszt");
+	});
+
+	it("should create default console logger with logLevel", () => {
+		let broker = new ServiceBroker({ logger: true, logLevel: "error" });
+
+		console.info.mockClear();
+		console.error.mockClear();
+		broker.logger.info("Teszt");
+		broker.logger.error("Error", { a: 5 });
+
+		expect(console.info).toHaveBeenCalledTimes(0);
+		expect(console.error).toHaveBeenCalledTimes(1);
+		expect(console.error).toHaveBeenCalledWith("[1970-01-01T00:00:00.000Z]", "ERROR", "node-1234/BROKER:", "Error", "{ a: 5 }");
+	});
+
+	it("should create default console logger with logFormatter", () => {
+		let logFormatter = jest.fn();
+		let broker = new ServiceBroker({ logger: true, logFormatter });
+
+		console.info.mockClear();
+		broker.logger.info("Teszt", { a: 5 });
+
+		expect(logFormatter).toHaveBeenCalledTimes(1);
+		expect(logFormatter).toHaveBeenCalledWith("info", ["Teszt", { a: 5 }], {"comp": "broker", "nodeID": "node-1234", "ns": ""});
+	});
+
+	describe("Test logger creator", () => {
+		let logger = jest.fn();
+		let broker;
+
+		it("should call logger function with broker bindings", () => {
+			broker = new ServiceBroker({ logger, namespace: "testing", nodeID: "test-pc" });
+
+			expect(logger).toHaveBeenCalledTimes(1);
+			expect(logger).toHaveBeenCalledWith({"comp": "broker", "nodeID": "test-pc", "ns": "testing"});
+		});
+
+		it("should call creator function with service bindings", () => {
+			logger.mockClear();
+			broker.getLogger("service", "posts");
+
+			expect(logger).toHaveBeenCalledTimes(1);
+			expect(logger).toHaveBeenCalledWith({"svc": "posts", "nodeID": "test-pc", "ns": "testing"});
+		});
+
+		it("should call creator function with versioned service bindings", () => {
+			logger.mockClear();
+			broker.getLogger("service", "posts", 2);
+
+			expect(logger).toHaveBeenCalledTimes(1);
+			expect(logger).toHaveBeenCalledWith({"svc": "posts", "ver": 2, "nodeID": "test-pc", "ns": "testing"});
+		});
+
+	});
+
+	it("should extend an external logger", () => {
+		let logger = {
+			info: jest.fn()
+		};
+		let broker = new ServiceBroker({ logger });
+
+		expect(logger.fatal).toBeDefined();
+		expect(logger.error).toBeDefined();
+		expect(logger.warn).toBeDefined();
+		expect(logger.info).toBeDefined();
+		expect(logger.debug).toBeDefined();
+		expect(logger.trace).toBeDefined();
+
+		broker.logger.info("Info message");
+		broker.logger.error("Error message");
+
+		expect(logger.info).toHaveBeenCalledTimes(2);
+	});
+
+});
+
+describe("Test broker.fatal", () => {
 
 	let broker = new ServiceBroker();
 
@@ -600,6 +706,7 @@ describe("Test broker.getLogger", () => {
 	process.exit = jest.fn();
 
 	it("should log the message to console & logger", () => {
+		console.error.mockClear();
 		broker.fatal("Fatal error happened!");
 
 		expect(broker.logger.fatal).toHaveBeenCalledTimes(1);

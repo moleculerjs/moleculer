@@ -321,11 +321,14 @@ class ServiceBroker {
 		let repl;
 		try {
 			repl = require("moleculer-repl");
-		} catch (error) {
+		} 
+		catch (error) {
 			console.error("The 'moleculer-repl' package is missing! Please install it with 'npm install moleculer-repl' command!"); // eslint-disable-line no-console
 			this.logger.error("The 'moleculer-repl' package is missing! Please install it with 'npm install moleculer-repl' command!");
 			this.logger.debug("ERROR", error);
+			return;
 		}
+
 		if (repl)
 			repl(this);
 	}
@@ -359,10 +362,13 @@ class ServiceBroker {
 
 		// External logger
 		if (_.isObject(this.options.logger) && this.options.logger !== console)
-			return this.options.logger;
+			return Logger.extend(this.options.logger);
 
 		// Create console logger
-		return Logger.createDefaultLogger(console, bindings, this.options.logLevel || "info", this.options.logFormatter);
+		if (this.options.logger === true || this.options.logger === console)
+			return Logger.createDefaultLogger(console, bindings, this.options.logLevel || "info", this.options.logFormatter);
+
+		return Logger.createDefaultLogger();
 	}
 
 	/**

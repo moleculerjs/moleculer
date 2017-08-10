@@ -1,4 +1,10 @@
-const { wrap } = require("../../src/logger");
+"use strict";
+
+const chalk = require("chalk");
+chalk.enabled = false;
+
+const { extend, createDefaultLogger } = require("../../src/logger");
+const lolex = require("lolex");
 
 function callLogMethods(logger) {
 	logger.trace("trace level");
@@ -9,99 +15,65 @@ function callLogMethods(logger) {
 	logger.fatal("fatal level");
 }
 
+describe("Test extend", () => {
 
-describe("Test wrap", () => {
-
-	it("should create a full logger without moduleName", () => {
+	it("should extend to full logger", () => {
 		let con = {
 			info: jest.fn(),
-			error: jest.fn(),
 			warn: jest.fn()
 		};
 		
-		let logger = wrap(con, null, "trace", false);
-		expect(logger.fatal).toBeInstanceOf(Function);
-		expect(logger.error).toBeInstanceOf(Function);
-		expect(logger.warn).toBeInstanceOf(Function);
-		expect(logger.info).toBeInstanceOf(Function);
-		expect(logger.debug).toBeInstanceOf(Function);
-		expect(logger.trace).toBeInstanceOf(Function);
-
-		callLogMethods(logger);
-		expect(con.warn).toHaveBeenCalledTimes(1);
-		expect(con.warn).toHaveBeenCalledWith("warn level");
-
-		expect(con.error).toHaveBeenCalledTimes(2);
-		expect(con.error).toHaveBeenCalledWith("error level");
-		expect(con.error).toHaveBeenCalledWith("fatal level");
-
-		expect(con.info).toHaveBeenCalledTimes(3);
-		expect(con.info).toHaveBeenCalledWith("debug level");
-		expect(con.info).toHaveBeenCalledWith("info level");
-		expect(con.info).toHaveBeenCalledWith("trace level");
-	});
-
-	it("should create a full logger with missing methods", () => {
-		let con = {
-			info: jest.fn(),
-			error: jest.fn(),
-		};
-		
-		let logger = wrap(con, null, "trace", false);
-		expect(logger.fatal).toBeInstanceOf(Function);
-		expect(logger.error).toBeInstanceOf(Function);
-		expect(logger.warn).toBeInstanceOf(Function);
-		expect(logger.info).toBeInstanceOf(Function);
-		expect(logger.debug).toBeInstanceOf(Function);
-		expect(logger.trace).toBeInstanceOf(Function);
+		let logger = extend(con);
+		expect(logger.fatal).toBeDefined();
+		expect(logger.error).toBeDefined();
+		expect(logger.warn).toBeDefined();
+		expect(logger.info).toBeDefined();
+		expect(logger.debug).toBeDefined();
+		expect(logger.trace).toBeDefined();
 
 		callLogMethods(logger);
 
-		expect(con.error).toHaveBeenCalledTimes(3);
-		expect(con.error).toHaveBeenCalledWith("error level");
-		expect(con.error).toHaveBeenCalledWith("warn level");
-		expect(con.error).toHaveBeenCalledWith("fatal level");
-
-		expect(con.info).toHaveBeenCalledTimes(3);
-		expect(con.info).toHaveBeenCalledWith("debug level");
-		expect(con.info).toHaveBeenCalledWith("info level");
-		expect(con.info).toHaveBeenCalledWith("trace level");
-	});	
-
-	it("should create a full logger from one-method logger", () => {
-		let con = {
-			info: jest.fn()
-		};
-		
-		let logger = wrap(con, null, "trace", false);
-		expect(logger.fatal).toBeInstanceOf(Function);
-		expect(logger.error).toBeInstanceOf(Function);
-		expect(logger.warn).toBeInstanceOf(Function);
-		expect(logger.info).toBeInstanceOf(Function);
-		expect(logger.debug).toBeInstanceOf(Function);
-		expect(logger.trace).toBeInstanceOf(Function);
-
-		callLogMethods(logger);
-
-		expect(con.info).toHaveBeenCalledTimes(6);
+		expect(con.info).toHaveBeenCalledTimes(5);
 		expect(con.info).toHaveBeenCalledWith("fatal level");
 		expect(con.info).toHaveBeenCalledWith("error level");
-		expect(con.info).toHaveBeenCalledWith("warn level");
 		expect(con.info).toHaveBeenCalledWith("debug level");
 		expect(con.info).toHaveBeenCalledWith("info level");
 		expect(con.info).toHaveBeenCalledWith("trace level");
+
+		expect(con.warn).toHaveBeenCalledTimes(1);
+		expect(con.warn).toHaveBeenCalledWith("warn level");
+	});
+
+});
+
+
+describe("Test createDefaultLogger", () => {
+
+	let clock;
+
+	beforeAll(() => {
+		clock = lolex.install();
+	});
+
+	afterAll(() => {
+		clock.uninstall();
 	});
 
 	it("should create a full logger with moduleName", () => {
 		let con = {
-			trace: jest.fn(),
 			debug: jest.fn(),
 			info: jest.fn(),
 			warn: jest.fn(),
-			error: jest.fn(),
-			fatal: jest.fn()
+			error: jest.fn()
 		};
-		let logger = wrap(con, "Module", "trace", false);
+
+		let bindings = {
+			comp: "broker",
+			nodeID: "server-2",
+			ns: "testing"
+		};
+
+		let logger = createDefaultLogger(con, bindings, "trace");
 		expect(logger.fatal).toBeInstanceOf(Function);
 		expect(logger.error).toBeInstanceOf(Function);
 		expect(logger.warn).toBeInstanceOf(Function);
@@ -111,38 +83,34 @@ describe("Test wrap", () => {
 
 		callLogMethods(logger);
 
-		expect(con.fatal).toHaveBeenCalledTimes(1);
-		expect(con.fatal).toHaveBeenCalledWith("[Module] fatal level");
-
-		expect(con.error).toHaveBeenCalledTimes(1);
-		expect(con.error).toHaveBeenCalledWith("[Module] error level");
+		expect(con.error).toHaveBeenCalledTimes(2);
+		expect(con.error).toHaveBeenCalledWith("[1970-01-01T00:00:00.000Z]", "FATAL", "server-2/BROKER:", "fatal level");
+		expect(con.error).toHaveBeenCalledWith("[1970-01-01T00:00:00.000Z]", "ERROR", "server-2/BROKER:", "error level");
 
 		expect(con.warn).toHaveBeenCalledTimes(1);
-		expect(con.warn).toHaveBeenCalledWith("[Module] warn level");
+		expect(con.warn).toHaveBeenCalledWith("[1970-01-01T00:00:00.000Z]", "WARN ", "server-2/BROKER:", "warn level");
 
 		expect(con.info).toHaveBeenCalledTimes(1);
-		expect(con.info).toHaveBeenCalledWith("[Module] info level");
+		expect(con.info).toHaveBeenCalledWith("[1970-01-01T00:00:00.000Z]", "INFO ", "server-2/BROKER:", "info level");
 
-		expect(con.debug).toHaveBeenCalledTimes(1);
-		expect(con.debug).toHaveBeenCalledWith("[Module] debug level");
-
-		expect(con.trace).toHaveBeenCalledTimes(1);
-		expect(con.trace).toHaveBeenCalledWith("[Module] trace level");
+		expect(con.debug).toHaveBeenCalledTimes(2);
+		expect(con.debug).toHaveBeenCalledWith("[1970-01-01T00:00:00.000Z]", "DEBUG", "server-2/BROKER:", "debug level");
+		expect(con.debug).toHaveBeenCalledWith("[1970-01-01T00:00:00.000Z]", "TRACE", "server-2/BROKER:", "trace level");
 	});
-});
 
-describe("Test wrap with logLevels", () => {
-
-	it("should create a filtered-level logger (warn)", () => {
+	it("should create a full logger with versioned service name", () => {
 		let con = {
-			trace: jest.fn(),
-			debug: jest.fn(),
-			info: jest.fn(),
-			warn: jest.fn(),
-			error: jest.fn(),
-			fatal: jest.fn()
+			info: jest.fn()
 		};
-		let logger = wrap(con, "Module", "warn", false);
+
+		let bindings = {
+			svc: "posts",
+			ver: 2,
+			nodeID: "server-2",
+			ns: ""
+		};
+
+		let logger = createDefaultLogger(con, bindings, "info");
 		expect(logger.fatal).toBeInstanceOf(Function);
 		expect(logger.error).toBeInstanceOf(Function);
 		expect(logger.warn).toBeInstanceOf(Function);
@@ -151,110 +119,31 @@ describe("Test wrap with logLevels", () => {
 		expect(logger.trace).toBeInstanceOf(Function);
 
 		callLogMethods(logger);
-		expect(con.trace).toHaveBeenCalledTimes(0);
-		expect(con.debug).toHaveBeenCalledTimes(0);
-		expect(con.info).toHaveBeenCalledTimes(0);
 
-		expect(con.warn).toHaveBeenCalledTimes(1);
-		expect(con.warn).toHaveBeenCalledWith("[Module] warn level");
-		expect(con.error).toHaveBeenCalledTimes(1);
-		expect(con.error).toHaveBeenCalledWith("[Module] error level");
-		expect(con.fatal).toHaveBeenCalledTimes(1);
-		expect(con.fatal).toHaveBeenCalledWith("[Module] fatal level");
-	});	
+		expect(con.info).toHaveBeenCalledTimes(4);
+		expect(con.info).toHaveBeenCalledWith("[1970-01-01T00:00:00.000Z]", "INFO ", "server-2/POSTS:v2:", "info level");
+	});
 
-	it("should create a filtered-level logger (module error)", () => {
+	it("should create a full logger with logFormatter", () => {
 		let con = {
-			trace: jest.fn(),
-			debug: jest.fn(),
-			info: jest.fn(),
-			warn: jest.fn(),
-			error: jest.fn(),
-			fatal: jest.fn(),
+			info: jest.fn()
 		};
-		let logger = wrap(con, "CTX", {
-			"*": "debug",
-			"CTX": "error"
-		}, false);
 
-		callLogMethods(logger);
-		expect(con.debug).toHaveBeenCalledTimes(0);
-		expect(con.info).toHaveBeenCalledTimes(0);
-		expect(con.warn).toHaveBeenCalledTimes(0);
-		expect(con.error).toHaveBeenCalledTimes(1);
-		expect(con.fatal).toHaveBeenCalledTimes(1);
-	});		
-
-	it("should create a filtered-level logger ('*' info)", () => {
-		let con = {
-			trace: jest.fn(),
-			debug: jest.fn(),
-			info: jest.fn(),
-			warn: jest.fn(),
-			error: jest.fn(),
-			fatal: jest.fn(),
+		let bindings = {
+			svc: "posts",
+			ver: 2,
+			nodeID: "server-2",
+			ns: ""
 		};
-		let logger = wrap(con, "SVC", {
-			"*": "info",
-			"CTX": "error"
-		}, false);
 
-		callLogMethods(logger);
-		expect(con.trace).toHaveBeenCalledTimes(0);
-		expect(con.debug).toHaveBeenCalledTimes(0);
-		expect(con.info).toHaveBeenCalledTimes(1);
-		expect(con.warn).toHaveBeenCalledTimes(1);
-		expect(con.error).toHaveBeenCalledTimes(1);
-		expect(con.fatal).toHaveBeenCalledTimes(1);
-	});		
+		let logFormatter = jest.fn();
 
-	it("should create an empty logger (false)", () => {
-		let con = {
-			trace: jest.fn(),
-			debug: jest.fn(),
-			info: jest.fn(),
-			warn: jest.fn(),
-			error: jest.fn(),
-			fatal: jest.fn()
-		};
-		let logger = wrap(con, "SVC", {
-			"*": "info",
-			"SVC": false
-		}, false);
+		let logger = createDefaultLogger(con, bindings, "info", logFormatter);
 
-		callLogMethods(logger);
-		expect(con.trace).toHaveBeenCalledTimes(0);
-		expect(con.debug).toHaveBeenCalledTimes(0);
-		expect(con.info).toHaveBeenCalledTimes(0);
-		expect(con.warn).toHaveBeenCalledTimes(0);
-		expect(con.error).toHaveBeenCalledTimes(0);
-		expect(con.fatal).toHaveBeenCalledTimes(0);
-	});		
+		logger.info("info level");
+
+		expect(logFormatter).toHaveBeenCalledTimes(1);
+		expect(logFormatter).toHaveBeenCalledWith("info", ["info level"], {"nodeID": "server-2", "ns": "", "svc": "posts", "ver": 2});
+	});
 
 });
-
-/*
-describe("Test wrap with crashOnFatal", () => {
-	let con = {
-		trace: jest.fn(),
-		debug: jest.fn(),
-		info: jest.fn(),
-		warn: jest.fn(),
-		error: jest.fn(),
-		fatal: jest.fn()
-	};
-	it("should wrap again if crashOnFatal is true", () => {
-		let logger = wrap(con, "Module", "info", true);
-		expect(logger.fatal).toBeInstanceOf(Function);
-		process.exit = jest.fn();
-
-		logger.fatal("fatal level");
-
-		expect(con.fatal).toHaveBeenCalledTimes(2);
-		expect(con.fatal).toHaveBeenCalledWith("[Module] fatal level");
-		
-		expect(process.exit).toHaveBeenCalledTimes(1);
-		expect(process.exit).toHaveBeenCalledWith(2);
-	});	
-
-});	*/

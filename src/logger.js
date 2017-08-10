@@ -21,7 +21,7 @@ module.exports = {
 	 * @returns {Object} logger
 	 */
 	extend(logger) {
-		LOG_LEVELS.forEach((type, i) => {
+		LOG_LEVELS.forEach(type => {
 			let method = logger[type];
 			if (!method) {
 				switch(type) {
@@ -74,7 +74,7 @@ module.exports = {
 
 		let logger = {};
 		LOG_LEVELS.forEach((type, i) => {
-			if (logLevel && i > LOG_LEVELS.indexOf(logLevel)) {
+			if (!baseLogger || (logLevel && i > LOG_LEVELS.indexOf(logLevel))) {
 				logger[type] = noop;
 				return;
 			}
@@ -96,7 +96,7 @@ module.exports = {
 				// Format arguments (inspect & colorize the objects & array)
 				let pargs = args.map(p => {
 					if (_.isObject(p) || _.isArray(p))
-						return util.inspect(p, { showHidden: false, depth: 2, colors: true });
+						return util.inspect(p, { showHidden: false, depth: 2, colors: chalk.enabled });
 					return p;
 				});
 
