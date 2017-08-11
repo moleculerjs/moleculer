@@ -4,22 +4,24 @@ This documentation describes the communication protocol between nodes.
 
 **Variables in topic names:**
 - `<namespace>` - Namespace from broker options
-- `<nodeID>` - NodeID of target
+- `<nodeID>` - Target nodeID
 
 
 ## Subscriptions
-After the client is connected to the message broker (NATS, Redis, MQTT) it subscribes to topics.
+After the client is connected to the message broker (NATS, Redis, MQTT), it subscribes to topics.
 
-| Type | Topic name | Example |
-| ---- | ---------- | ------- |
-| Event | `MOL-<namespace>.EVENT` | `MOL-dev.EVENT` or `MOL.EVENT` (if no namespace) |
-| Request | `MOL-<namespace>.REQUEST.<nodeID>` | `MOL-dev.REQUEST.node-2` or `MOL.REQUEST.node-2` (if no namespace) |
-| Response | `MOL-<namespace>.RESPONSE.<nodeID>` | `MOL-dev.RESPONSE.node-1` or `MOL.RESPONSE.node-1` (if no namespace) |
-| Discover | `MOL-<namespace>.DISCOVER` | `MOL-dev.DISCOVER` or `MOL.DISCOVER` (if no namespace) |
-| Info | `MOL-<namespace>.INFO` | `MOL-dev.INFO` or `MOL.INFO` (if no namespace) |
-| Info (targetted) | `MOL-<namespace>.INFO.<nodeID>` | `MOL-dev.INFO.node-1` or `MOL.INFO.node-1` (if no namespace) |
-| Heartbeat | `MOL-<namespace>.HEARTBEAT` | `MOL-dev.HEARTBEAT` or `MOL.HEARTBEAT` (if no namespace) |
-| Disconnect | `MOL-<namespace>.DISCONNECT` | `MOL-dev.DISCONNECT` or `MOL.DISCONNECT` (if no namespace) |
+| Type | Topic name |
+| ---- | ---------- |
+| Event | `MOL.EVENT` |
+| Request | `MOL.REQUEST.<nodeID>` |
+| Response | `MOL.RESPONSE.<nodeID>` |
+| Discover | `MOL.DISCOVER` |
+| Info | `MOL.INFO` |
+| Info (targetted) | `MOL.INFO.<nodeID>` |
+| Heartbeat | `MOL.HEARTBEAT` |
+| Disconnect | `MOL.DISCONNECT` |
+
+> If `namespace` is defined, the topic prefix is `MOL-namespace` instead of `MOL`. For example: `MOL-dev.EVENT`
 
 ## Discovering
 After subscriptions the client broadcasts a `DISCOVER` packet. In response to this every connected nodes send back an INFO packet to the sender node. From these responses the client need to build its own service registry. At last, the client broadcasts also own INFO packet to all nodes.
