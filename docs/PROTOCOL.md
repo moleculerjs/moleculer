@@ -23,19 +23,24 @@ After the client is connected to the message broker (NATS, Redis, MQTT) it subsc
 
 ## Discovering
 After subscriptions the client broadcasts a `DISCOVER` packet. In response to this every connected nodes send back an INFO packet to the sender node. From these responses the client need to build its own service registry. At last, the client broadcasts also own INFO packet to all nodes.
+![](http://moleculer.services/images/protocol-0.8/moleculer_protocol_discover.png)
 
 ## Heartbeat
 The client has to broadcast `HEARTBEAT` packets periodically. The period value is come from broker settings. Default value is 10 secs. 
 If the client doesn't receive `HEARTBEAT` for `period*3` seconds from a node, it marks the node to broken and doesn't route requests this node.
+![](http://moleculer.services/images/protocol-0.8/moleculer_protocol_heartbeat.png)
 
 ## Request-reply
 When you call the `broker.call` method, the broker sends a `REQUEST` packet to the targetted node. It processes the request and sends back a `RESPONSE` packet to the requester node.
+![](http://moleculer.services/images/protocol-0.8/moleculer_protocol_request.png)
 
 ## Event
 When you call the `broker.emit` method, the broker broadcasts an `EVENT` packet to all nodes.
+![](http://moleculer.services/images/protocol-0.8/moleculer_protocol_event.png)
 
 ## Disconnect
 When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
+![](http://moleculer.services/images/protocol-0.8/moleculer_protocol_disconnect.png)
 
 ## Packets
 
