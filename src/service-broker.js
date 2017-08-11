@@ -929,7 +929,7 @@ class ServiceBroker {
 			p = action.handler(ctx);
 
 			// Timeout handler
-			if (ctx.timeout > 0)
+			if (ctx.timeout > 0 && p.timeout)
 				p = p.timeout(ctx.timeout);
 
 			if (ctx.metrics === true || this.statistics) {
@@ -943,7 +943,7 @@ class ServiceBroker {
 			p = this.transit.request(ctx);
 
 			// Timeout handler
-			if (ctx.timeout > 0)
+			if (ctx.timeout > 0 && p.timeout)
 				p = p.timeout(ctx.timeout);
 		}
 
