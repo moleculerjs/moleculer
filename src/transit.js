@@ -175,30 +175,33 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	makeSubscriptions() {
+		this.subscribing = Promise.all([
+			// Subscribe to broadcast events
+			this.subscribe(P.PACKET_EVENT),
 
-		// Subscribe to broadcast events
-		this.subscribe(P.PACKET_EVENT);
+			// Subscribe to requests
+			this.subscribe(P.PACKET_REQUEST, this.nodeID),
 
-		// Subscribe to requests
-		this.subscribe(P.PACKET_REQUEST, this.nodeID);
+			// Subscribe to node responses of requests
+			this.subscribe(P.PACKET_RESPONSE, this.nodeID),
 
-		// Subscribe to node responses of requests
-		this.subscribe(P.PACKET_RESPONSE, this.nodeID);
+			// Discover handler
+			this.subscribe(P.PACKET_DISCOVER),
 
-		// Discover handler
-		this.subscribe(P.PACKET_DISCOVER);
+			// NodeInfo handler
+			this.subscribe(P.PACKET_INFO), // Broadcasted INFO. If a new node connected
+			this.subscribe(P.PACKET_INFO, this.nodeID), // Response INFO to DISCOVER packet
 
-		// NodeInfo handler
-		this.subscribe(P.PACKET_INFO); // Broadcasted INFO. If a new node connected
-		this.subscribe(P.PACKET_INFO, this.nodeID); // Response INFO to DISCOVER packet
+			// Disconnect handler
+			this.subscribe(P.PACKET_DISCONNECT),
 
-		// Disconnect handler
-		this.subscribe(P.PACKET_DISCONNECT);
-
-		// Heart-beat handler
-		this.subscribe(P.PACKET_HEARTBEAT);
-
-		return Promise.resolve();
+			// Heart-beat handler
+			this.subscribe(P.PACKET_HEARTBEAT),
+		])
+			.then(() => {
+				this.subscribing = null;
+			});
+		return this.subscribing;
 	}
 
 	/**
@@ -498,6 +501,13 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	publish(packet) {
+		if (this.subscribing) {
+			return this.subscribing
+				.then(() => {
+					this.stat.packets.sent = this.stat.packets.sent + 1;
+					return this.tx.publish(packet);
+				});
+		}
 		this.stat.packets.sent = this.stat.packets.sent + 1;
 		return this.tx.publish(packet);
 	}
