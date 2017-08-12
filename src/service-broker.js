@@ -183,6 +183,8 @@ class ServiceBroker {
 				TransporterClass = Transporters.MQTT;
 			else if (opt.startsWith("redis://"))
 				TransporterClass = Transporters.Redis;
+			else if (opt.startsWith("amqp://"))
+				TransporterClass = Transporters.AMQP;
 
 			if (TransporterClass)
 				return new TransporterClass(opt);

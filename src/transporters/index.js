@@ -11,5 +11,6 @@ module.exports = {
 	Fake: require("./fake"),
 	NATS: require("./nats"),
 	MQTT: require("./mqtt"),
-	Redis: require("./redis")
+	Redis: require("./redis"),
+	AMQP: require("./amqp")
 };
