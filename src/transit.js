@@ -577,7 +577,7 @@ class Transit {
 
 		// Update node services in registry
 		if (node.services) {
-			if (oldServicesHash !== hash(node.services)) {
+			if (isReconnected || oldServicesHash !== hash(node.services)) {
 				this.logger.debug(`Re-register node '${nodeID}' services...`);
 
 				// Unregister previous services
