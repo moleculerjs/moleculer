@@ -10,6 +10,32 @@ const { STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM } = require("../../src/constants")
 // Circuit-breaker states
 const { CIRCUIT_CLOSE, CIRCUIT_HALF_OPEN, CIRCUIT_OPEN } = require("../../src/constants");
 
+expect.extend({
+
+	toBeAnyOf(received, expected) {
+
+		let pass = false;
+		for (const item of expected) {
+			if (received === item) {
+				pass = true;
+				break;
+			}
+		}
+
+		let list = expected
+			.map(item => item.toString())
+			.join(", ");
+		let message = `Expected ${received.toString()} to be any of [${list}]`;
+
+		return {
+			actual: received,
+			message,
+			pass
+		};
+	},
+});
+
+
 describe("Test constructor", () => {
 
 	it("should create instance with default options", () => {
@@ -844,6 +870,29 @@ describe("Test EndpointList get methods with round-robin", () => {
 		ep = list.get();
 		expect(ep.action).toBe(obj1);
 		expect(list.counter).toBe(1);
+
+	});
+
+});
+
+describe("Test EndpointList get methods with random", () => {
+	const broker = new ServiceBroker();
+	let list = new ServiceRegistry.EndpointList(broker, {
+		strategy: STRATEGY_RANDOM
+	});
+
+	let obj1 = { a: 1 };
+	let obj2 = { b: 2 };
+	let obj3 = { c: 3 };
+
+	list.add("node1", obj1);
+	list.add("node2", obj2);
+	list.add("node3", obj3);
+
+	it("should return items", () => {
+
+		let ep = list.get();
+		expect(ep.action).toBeAnyOf([obj1, obj2, obj3]);
 
 	});
 
