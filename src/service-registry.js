@@ -14,16 +14,18 @@ const { STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM } = require("./constants");
 // Circuit-breaker states
 const { CIRCUIT_CLOSE, CIRCUIT_HALF_OPEN, CIRCUIT_OPEN } = require("./constants");
 
+const { MoleculerError } = require("./errors");
+
 let LOCAL_NODE_ID;
 
 class ServiceRegistry {
 	/**
 	 * Creates an instance of ServiceRegistry.
-	 * 
+	 *
 	 * @param {Object} opts
 	 * 		opts.strategy - type of balancing (STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM) (defaults: STRATEGY_ROUND_ROBIN)
 	 * 		opts.preferLocal - call the local service if available (defaults: true)
-	 * 
+	 *
 	 * @memberOf ServiceRegistry
 	 */
 	constructor(opts) {
@@ -420,24 +422,37 @@ class EndpointList {
 			this.localEndpoint = item;
 
 		this.list.push(item);
-		
+
 		return true;
 	}
 
 	get() {
-		if (this.opts.strategy === STRATEGY_RANDOM) {
-			/* istanbul ignore next */
-			return this.list[_.random(0, this.list.length - 1)];
-		} else {
-			// Round-robin
-
-			// Reset counter
-			if (this.counter >= this.list.length) {
-				this.counter = 0;
+		// Interface these strategies?
+		// RoundRobinStrategy, RandomStrategy, CustomStrategy(fn) ?
+		if (typeof this.opts.strategy === "function") {
+			const endpoint = this.opts.strategy(this.list);
+			if (!endpoint) {
+				throw new MoleculerError("Custom strategy returned an invalid endpoint.");
 			}
-
-			return this.list[this.counter++];
+			return endpoint;
+		} else if (this.opts.strategy === STRATEGY_RANDOM) {
+			return this.getRandom();
+		} else {
+			return this.getRoundRobin();
 		}
+	}
+
+	getRoundRobin() {
+		// Reset counter
+		if (this.counter >= this.list.length) {
+			this.counter = 0;
+		}
+		return this.list[this.counter++];
+	}
+
+	getRandom() {
+		/* istanbul ignore next */
+		return this.list[_.random(0, this.list.length - 1)];
 	}
 
 	nextAvailable() {
