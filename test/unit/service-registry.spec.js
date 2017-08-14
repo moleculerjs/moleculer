@@ -881,6 +881,30 @@ describe("Test EndpointList get methods with a custom strategy", () => {
 
 });
 
+describe("Test EndpointList get methods with an invalid custom strategy", () => {
+	const broker = new ServiceBroker();
+	let list = new ServiceRegistry.EndpointList(broker, {
+		strategy: () => {
+			// undefined return
+		}
+	});
+
+	let obj1 = { a: 1 };
+	let obj2 = { b: 2 };
+	let obj3 = { c: 3 };
+
+	list.add("node1", obj1);
+	list.add("node2", obj2);
+	list.add("node3", obj3);
+
+	it("should throw if custom strategy fails", () => {
+		expect(() => {
+			list.get();
+		}).toThrow();
+	});
+
+});
+
 describe("Test EndpointList nextAvailable methods with preferLocal", () => {
 	const broker = new ServiceBroker();
 	let list = new ServiceRegistry.EndpointList(broker, {
