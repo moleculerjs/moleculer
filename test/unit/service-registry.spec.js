@@ -34,8 +34,8 @@ describe("Test constructor", () => {
 		const broker = new ServiceBroker({
 			registry: {
 				preferLocal: false,
-				strategy: STRATEGY_RANDOM	
-			}			
+				strategy: STRATEGY_RANDOM
+			}
 		});
 		let registry = broker.serviceRegistry;
 		expect(registry).toBeDefined();
@@ -126,7 +126,7 @@ describe("Test registry.unregisterService", () => {
 	let action3 = {
 		name: "users.find",
 		service: service2
-	};	
+	};
 
 	registry.registerService(null, service);
 	registry.registerService("node-2", service);
@@ -382,7 +382,7 @@ describe("Test registry.findAction", () => {
 describe("Test registry.findAction with internal actions", () => {
 	const broker = new ServiceBroker({ internalActions: true, registry: { preferLocal: false } });
 	const registry = broker.serviceRegistry;
-	
+
 	let service = {
 		name: "posts",
 		settings: {}
@@ -628,7 +628,7 @@ describe("Test registry.getActionList", () => {
 		name: "posts",
 		settings: {}
 	};
-	
+
 	let action = {
 		name: "posts.find",
 		cache: true,
@@ -832,7 +832,7 @@ describe("Test EndpointList get methods with round-robin", () => {
 		let ep = list.get();
 		expect(ep.action).toBe(obj1);
 		expect(list.counter).toBe(1);
-		
+
 		ep = list.get();
 		expect(ep.action).toBe(obj2);
 		expect(list.counter).toBe(2);
@@ -845,6 +845,38 @@ describe("Test EndpointList get methods with round-robin", () => {
 		expect(ep.action).toBe(obj1);
 		expect(list.counter).toBe(1);
 
+	});
+
+});
+
+describe("Test EndpointList get methods with a custom strategy", () => {
+	const broker = new ServiceBroker();
+	let list = new ServiceRegistry.EndpointList(broker, {
+		strategy: (list) => {
+			return list[0]; //
+		}
+	});
+
+	let obj1 = { a: 1 };
+	let obj2 = { b: 2 };
+	let obj3 = { c: 3 };
+
+	list.add("node1", obj1);
+	list.add("node2", obj2);
+	list.add("node3", obj3);
+
+	it("should return items", () => {
+		let ep = list.get();
+		expect(ep.action).toBe(obj1);
+
+		ep = list.get();
+		expect(ep.action).toBe(obj1);
+
+		ep = list.get();
+		expect(ep.action).toBe(obj1);
+
+		ep = list.get();
+		expect(ep.action).toBe(obj1);
 	});
 
 });
@@ -1115,7 +1147,7 @@ describe("Test Endpoint circuit methods", () => {
 	it("test available", () => {
 		item.state = CIRCUIT_HALF_OPEN;
 		expect(item.available()).toBe(true);
-		
+
 		item.state = CIRCUIT_OPEN;
 		expect(item.available()).toBe(false);
 
@@ -1224,7 +1256,7 @@ describe("Test ServiceItem constructor", () => {
 		expect(item2.isSame("users")).toBe(true);
 		expect(item2.isSame("users", null)).toBe(true);
 		expect(item2.isSame("users", 2)).toBe(false);
-		
+
 	});
 
 });
