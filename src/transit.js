@@ -303,6 +303,7 @@ class Transit {
 		ctx.parentID = payload.parentID;
 		ctx.level = payload.level;
 		ctx.metrics = payload.metrics;
+		ctx.callerNodeID = payload.sender;
 		ctx.meta = payload.meta;
 		ctx.setParams(payload.params);
 		
