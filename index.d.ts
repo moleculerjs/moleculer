@@ -66,10 +66,10 @@ declare interface BrokerCircuitBreakerOptions {
 declare interface BrokerOptions {
 	namespace?: String;
 	nodeID?: String;
-	
+
 	logger?: Function|LoggerInstance;
 	logLevel?: String;
-	
+
 	transporter?: Transporter|String|Object;
 	requestTimeout?: Number;
 	requestRetry?: Number;
@@ -78,7 +78,7 @@ declare interface BrokerOptions {
 	maxCallLevel?: Number;
 
 	circuitBreaker?: BrokerCircuitBreakerOptions;
-	
+
 	cacher?: Cacher|String|Object;
 	serializer?: Serializer|String|Object;
 
@@ -133,35 +133,35 @@ declare class ServiceBroker {
 
 	/**
 	 * Create a new Context instance
-	 * 
-	 * @param {Object} action 
-	 * @param {String?} nodeID 
-	 * @param {Object?} params 
-	 * @param {Object} opts 
+	 *
+	 * @param {Object} action
+	 * @param {String?} nodeID
+	 * @param {Object?} params
+	 * @param {Object} opts
 	 * @returns {Context}
-	 * 
+	 *
 	 * @memberof ServiceBroker
 	 */
 	createNewContext(action: Action, nodeID?: String, params?: Object, opts: Object): Context;
 
 	/**
 	 * Call an action (local or global)
-	 * 
+	 *
 	 * @param {any} actionName	name of action
 	 * @param {any} params		params of action
 	 * @param {any} opts		options of call (optional)
 	 * @returns
-	 * 
+	 *
 	 * @memberOf ServiceBroker
 	 */
 	call(actionName: String, params?: Object, opts?: Object): Promise<any>;
 
 	/**
 	 * Multiple action calls.
-	 * 
+	 *
 	 * @param {Array<Object>|Object} def Calling definitions.
 	 * @returns {Promise<Array<Object>|Object>}
-	 * 
+	 *
 	 * @example
 	 * Call `mcall` with an array:
 	 * ```js
@@ -173,7 +173,7 @@ declare class ServiceBroker {
 	 * 	let users = results[1];
 	 * })
 	 * ```
-	 * 
+	 *
 	 * @example
 	 * Call `mcall` with an Object:
 	 * ```js
@@ -186,32 +186,32 @@ declare class ServiceBroker {
 	 * })
 	 * ```
 	 * @throws MoleculerError - If the `def` is not an `Array` and not an `Object`.
-	 * 
+	 *
 	 * @memberOf ServiceBroker
 	 */
 	mcall(def): Promise<any>;
 
 	/**
 	 * Emit an event (global & local)
-	 * 
+	 *
 	 * @param {any} eventName
 	 * @param {any} payload
 	 * @returns
-	 * 
+	 *
 	 * @memberOf ServiceBroker
 	 */
 	emit(eventName: String, payload?: any);
 
 	/**
 	 * Emit an event only local
-	 * 
+	 *
 	 * @param {string} eventName
 	 * @param {any} payload
 	 * @param {string} nodeID of server
 	 * @returns
-	 * 
+	 *
 	 * @memberOf ServiceBroker
-	 */	
+	 */
 	emitLocal(eventName: String, payload?: any, sender?: String);
 
 	MOLECULER_VERSION: String;
@@ -266,6 +266,17 @@ declare class LoggerHelper {
 	static createDefaultLogger(baseLogger?: LoggerInstance, bindings: Object, logLevel?: String, logFormatter?: Function): LoggerInstance;
 }
 
+declare abstract class BaseStrategy {
+	init(broker: ServiceBroker): void;
+	select(list: any[]): any;
+}
+
+declare class RoundRobinStrategy extends BaseStrategy {
+}
+
+declare class RandomStrategy extends BaseStrategy {
+}
+
 export = {
 	Context: Context,
 	Service: Service,
@@ -300,10 +311,13 @@ export = {
 		MaxCallLevelError: Error
 	},
 
-	STRATEGY_ROUND_ROBIN: Number,
-	STRATEGY_RANDOM: Number,
+	Strategies: {
+		BaseStrategy: BaseStrategy,
+		RoundRobinStrategy: RoundRobinStrategy,
+		RandomStrategy: RandomStrategy,
+	},
 
-	CIRCUIT_CLOSE: String, 
-	CIRCUIT_HALF_OPEN: String, 
-	CIRCUIT_OPEN: String	
+	CIRCUIT_CLOSE: String,
+	CIRCUIT_HALF_OPEN: String,
+	CIRCUIT_OPEN: String
 }

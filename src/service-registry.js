@@ -8,27 +8,28 @@
 
 const _ = require("lodash");
 
-// Registry strategies
-const { STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM } = require("./constants");
+const { RoundRobinStrategy } = require("./strategies");
 
 // Circuit-breaker states
 const { CIRCUIT_CLOSE, CIRCUIT_HALF_OPEN, CIRCUIT_OPEN } = require("./constants");
+
+const { MoleculerError } = require("./errors");
 
 let LOCAL_NODE_ID;
 
 class ServiceRegistry {
 	/**
 	 * Creates an instance of ServiceRegistry.
-	 * 
+	 *
 	 * @param {Object} opts
-	 * 		opts.strategy - type of balancing (STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM) (defaults: STRATEGY_ROUND_ROBIN)
+	 * 		opts.strategy - type of balancing (defaults: new RoundRobinStrategy())
 	 * 		opts.preferLocal - call the local service if available (defaults: true)
-	 * 
+	 *
 	 * @memberOf ServiceRegistry
 	 */
 	constructor(opts) {
 		this.opts = _.defaultsDeep({}, opts, {
-			strategy: STRATEGY_ROUND_ROBIN,
+			strategy: new RoundRobinStrategy(),
 			preferLocal: true
 		});
 
@@ -39,23 +40,23 @@ class ServiceRegistry {
 
 	/**
 	 * Initialize Service Registry
-	 * 
-	 * @param {any} broker 
-	 * 
+	 *
+	 * @param {any} broker
+	 *
 	 * @memberof ServiceRegistry
 	 */
 	init(broker) {
 		this.broker = broker;
-
+		this.opts.strategy.init(broker);
 		LOCAL_NODE_ID = this.broker.LOCAL_NODE_ID;
 	}
 
 	/**
 	 * Register a service
-	 * 
+	 *
 	 * @param {String?} nodeID		NodeID if it is on a remote server/node
 	 * @param {Service} service		Service instance
-	 * 
+	 *
 	 * @memberOf ServiceRegistry
 	 */
 	registerService(nodeID, service) {
@@ -68,10 +69,10 @@ class ServiceRegistry {
 
 	/**
 	 * Unregister local service
-	 * 
-	 * @param {String?} nodeID 
+	 *
+	 * @param {String?} nodeID
 	 * @param {String} serviceName
-	 * 
+	 *
 	 * @memberof ServiceRegistry
 	 */
 	unregisterService(nodeID, serviceName) {
@@ -84,13 +85,13 @@ class ServiceRegistry {
 		});
 
 		_.remove(this.services, svc => svc.nodeID == nodeID && svc.name == serviceName);
-	}	
+	}
 
 	/**
 	 * Unregister services by nodeID. It will be called when a node disconnected
-	 * 
-	 * @param {String?} nodeID 
-	 * 
+	 *
+	 * @param {String?} nodeID
+	 *
 	 * @memberof ServiceRegistry
 	 */
 	unregisterServicesByNode(nodeID) {
@@ -107,11 +108,11 @@ class ServiceRegistry {
 
 	/**
 	 * Find a service by name & version
-	 * 
-	 * @param {String} name 
-	 * @param {String|Number} version 
+	 *
+	 * @param {String} name
+	 * @param {String|Number} version
 	 * @returns {ServiceItem} Service
-	 * 
+	 *
 	 * @memberof ServiceRegistry
 	 */
 	findService(name, version) {
@@ -120,12 +121,12 @@ class ServiceRegistry {
 
 	/**
 	 * Find a service by name & version
-	 * 
-	 * @param {String} nodeID 
-	 * @param {String} name 
-	 * @param {String|Number} version 
+	 *
+	 * @param {String} nodeID
+	 * @param {String} name
+	 * @param {String|Number} version
 	 * @returns {ServiceItem} Service
-	 * 
+	 *
 	 * @memberof ServiceRegistry
 	 */
 	findServiceByNode(nodeID, name, version) {
@@ -134,10 +135,10 @@ class ServiceRegistry {
 
 	/**
 	 * Register an action
-	 * 
+	 *
 	 * @param {String?} nodeID		NodeID if it is on a remote server/node
 	 * @param {Object} 	action		Action schema
-	 * 
+	 *
 	 * @memberOf ServiceRegistry
 	 */
 	registerAction(nodeID, action) {
@@ -156,29 +157,29 @@ class ServiceRegistry {
 		}
 
 		return list.add(nodeID, action);
-	}	
+	}
 
 	/**
-	 * Unregister an action. It will be called when a remote node disconnected. 
-	 * 
+	 * Unregister an action. It will be called when a remote node disconnected.
+	 *
 	 * @param {String?} nodeID		NodeID if it is on a remote server/node
 	 * @param {Object} 	action		action schema
-	 * 
+	 *
 	 * @memberOf ServiceRegistry
 	 */
 	unregisterAction(nodeID, action) {
 		let list = this.actions.get(action.name);
 		if (list) {
 			list.removeByNode(nodeID);
-		}		
+		}
 	}
 
 	/**
 	 * Find action item by name
-	 * 
-	 * @param {String} actionName 
+	 *
+	 * @param {String} actionName
 	 * @returns {EndpointList}
-	 * 
+	 *
 	 * @memberOf ServiceRegistry
 	 */
 	findAction(actionName) {
@@ -188,11 +189,11 @@ class ServiceRegistry {
 
 	/**
 	 * Get endpoint by nodeID
-	 * 
-	 * @param {any} actionName 
-	 * @param {any} nodeID 
-	 * @returns 
-	 * 
+	 *
+	 * @param {any} actionName
+	 * @param {any} nodeID
+	 * @returns
+	 *
 	 * @memberof ServiceRegistry
 	 */
 	getEndpointByNodeID(actionName, nodeID) {
@@ -204,21 +205,21 @@ class ServiceRegistry {
 
 	/**
 	 * Has an action by name
-	 * 
+	 *
 	 * @param {any} actionName
 	 * @returns
-	 * 
+	 *
 	 * @memberOf ServiceRegistry
 	 */
 	hasAction(actionName) {
 		return this.actions.has(actionName);
-	}	
+	}
 
 	/**
 	 * Get count of actions
-	 * 
+	 *
 	 * @returns {Number} Number of actions
-	 * 
+	 *
 	 * @memberof ServiceRegistry
 	 */
 	actionCount() {
@@ -227,17 +228,17 @@ class ServiceRegistry {
 
 	/**
 	 * Get a filtered list of services with actions
-	 * 
-	 * @param {any} {onlyLocal = false, skipInternal = false, withEndpoints = false} 
+	 *
+	 * @param {any} {onlyLocal = false, skipInternal = false, withEndpoints = false}
 	 * @returns {Array}
-	 * 
+	 *
 	 * @memberOf ServiceRegistry
 	 */
 	getServiceList({ onlyLocal = false, skipInternal = false, withActions = false }) {
 		let res = [];
 		this.services.forEach(service => {
 			if (skipInternal && /^\$node/.test(service.name))
-				return;			
+				return;
 
 			if (onlyLocal && !service.local)
 				return;
@@ -262,14 +263,14 @@ class ServiceRegistry {
 			res.push(item);
 		});
 		return res;
-	}	
+	}
 
 	/**
 	 * Get a filtered list of actions
-	 * 
-	 * @param {any} {onlyLocal = false, skipInternal = false, withEndpoints = false} 
-	 * @returns 
-	 * 
+	 *
+	 * @param {any} {onlyLocal = false, skipInternal = false, withEndpoints = false}
+	 * @returns
+	 *
 	 * @memberof ServiceRegistry
 	 */
 	getActionList({onlyLocal = false, skipInternal = false, withEndpoints = false}) {
@@ -354,7 +355,7 @@ class Endpoint {
 
 	failure() {
 		this.failures++;
-		if (this.failures >= this.broker.options.circuitBreaker.maxFailures) { 
+		if (this.failures >= this.broker.options.circuitBreaker.maxFailures) {
 			this.circuitOpen();
 		}
 	}
@@ -380,7 +381,7 @@ class Endpoint {
 		this.state = CIRCUIT_CLOSE;
 		this.failures = 0;
 		this.broker.emitLocal("circuit-breaker.close", { nodeID: this.nodeID, action: this.action });
-		
+
 	}
 }
 
@@ -388,23 +389,22 @@ class EndpointList {
 
 	/**
 	 * Creates an instance of EndpointList.
-	 * 
+	 *
 	 * @param {ServiceBroker} broker
 	 * @param {Object} opts
-	 * 		opts.strategy - type of balancing (STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM) (defaults: STRATEGY_ROUND_ROBIN)
+	 * 		opts.strategy - type of balancing (defaults: new RoundRobinStrategy())
 	 * 		opts.preferLocal - call a local service if available (defaults: true)
-	 * 
+	 *
 	 * @memberOf EndpointList
 	 */
 	constructor(broker, opts) {
 		this.broker = broker;
 		this.opts = _.defaultsDeep({}, opts, {
-			strategy: STRATEGY_ROUND_ROBIN,
+			strategy: new RoundRobinStrategy(),
 			preferLocal: true
 		});
 
 		this.list = [];
-		this.counter = 0;
 		this.localEndpoint = null;
 	}
 
@@ -420,24 +420,16 @@ class EndpointList {
 			this.localEndpoint = item;
 
 		this.list.push(item);
-		
+
 		return true;
 	}
 
 	get() {
-		if (this.opts.strategy === STRATEGY_RANDOM) {
-			/* istanbul ignore next */
-			return this.list[_.random(0, this.list.length - 1)];
-		} else {
-			// Round-robin
-
-			// Reset counter
-			if (this.counter >= this.list.length) {
-				this.counter = 0;
-			}
-
-			return this.list[this.counter++];
+		const ret = this.getStrategy().select(this.list);
+		if (!ret) {
+			throw new Error(`Strategy ${typeof(this.getStrategy())} returned an invalid endpoint.`);
 		}
+		return ret;
 	}
 
 	nextAvailable() {
@@ -488,7 +480,7 @@ class EndpointList {
 		const item = this.list.find(item => item.nodeID == nodeID);
 		if (item && item.available())
 			return item;
-	}	
+	}
 
 	count() {
 		return this.list.length;
@@ -496,6 +488,10 @@ class EndpointList {
 
 	getLocalEndpoint() {
 		return this.localEndpoint;
+	}
+
+	getStrategy() {
+		return this.opts.strategy;
 	}
 
 	hasLocal() {

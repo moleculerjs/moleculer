@@ -7,11 +7,8 @@
 "use strict";
 
 const {
-	STRATEGY_ROUND_ROBIN,
-	STRATEGY_RANDOM,
-
-	CIRCUIT_CLOSE, 
-	CIRCUIT_HALF_OPEN, 
+	CIRCUIT_CLOSE,
+	CIRCUIT_HALF_OPEN,
 	CIRCUIT_OPEN
 } = require("./src/constants");
 
@@ -29,10 +26,9 @@ module.exports = {
 
 	Errors: require("./src/errors"),
 
-	STRATEGY_ROUND_ROBIN,
-	STRATEGY_RANDOM,
+	Strategies: require("./src/strategies"),
 
-	CIRCUIT_CLOSE, 
-	CIRCUIT_HALF_OPEN, 
+	CIRCUIT_CLOSE,
+	CIRCUIT_HALF_OPEN,
 	CIRCUIT_OPEN
 };

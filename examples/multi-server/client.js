@@ -4,7 +4,7 @@
 let _ = require("lodash");
 let chalk = require("chalk");
 
-let { STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM } = require("../../src/constants");
+let RoundRobinStrategy = require("../../src/strategies/roundrobin");
 let ServiceBroker = require("../../src/service-broker");
 
 // Create broker
@@ -14,7 +14,7 @@ let broker = new ServiceBroker({
 	transporter: "NATS",
 
 	registry: {
-		strategy: STRATEGY_ROUND_ROBIN
+		strategy: new RoundRobinStrategy(),
 	},
 
 	circuitBreaker: {
