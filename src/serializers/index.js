@@ -11,5 +11,5 @@ module.exports = {
 	JSON: require("./json"),
 	Avro: require("./avro"),
 	MsgPack: require("./msgpack"),
-	ProtoBuf: require("./protobuf")	
+	ProtoBuf: require("./protobuf")
 };

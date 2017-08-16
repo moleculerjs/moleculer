@@ -27,7 +27,7 @@ class MemoryMapCacher extends BaseCacher {
 	 */
 	constructor(opts) {
 		super(opts);
-		
+
 		// Cache container
 		this.cache = new Map();
 
@@ -38,7 +38,7 @@ class MemoryMapCacher extends BaseCacher {
 			}, 30 * 1000);
 
 			this.timer.unref();
-		}		
+		}
 	}
 
 	/**
@@ -52,7 +52,7 @@ class MemoryMapCacher extends BaseCacher {
 	get(key) {
 		//this.logger.debug(`GET ${key}`);
 
-		if (this.cache.has(key)) { 
+		if (this.cache.has(key)) {
 			//this.logger.debug(`FOUND ${key}`);
 
 			let item = this.cache.get(key);

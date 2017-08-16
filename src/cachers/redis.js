@@ -69,7 +69,7 @@ class RedisCacher extends BaseCacher {
 				});
 			});
 		}
-		
+
 		this.logger.debug("Redis Cacher created. Prefix: " + this.prefix);
 	}
 

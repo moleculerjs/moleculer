@@ -135,7 +135,7 @@ class AvroSerializer extends BaseSerializer {
 		} catch(err) {
 			/* istanbul ignore next */
 			this.broker.fatal("The 'avsc' package is missing! Please install it with 'npm install avsc --save' command!", err, true);
-		}		
+		}
 
 		this.schemas = createSchemas(broker);
 	}

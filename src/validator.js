@@ -31,7 +31,7 @@ class ParamValidator {
 		const res = this.validator.validate(params, schema);
 		if (res !== true)
 			throw new ValidationError("Parameters validation error!", null, res);
-		
+
 		return true;
 	}
 

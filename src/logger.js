@@ -13,7 +13,7 @@ const util 		= require("util");
 const LOG_LEVELS = ["fatal", "error", "warn", "info", "debug", "trace"];
 
 module.exports = {
-	
+
 	/**
 	 * Extend a logger class if missing log level methods
 	 * 
@@ -32,9 +32,9 @@ module.exports = {
 				logger[type] = method.bind(logger);
 			}
 		});
-		return logger;		
+		return logger;
 	},
-	
+
 	/**
 	 * Create a default logger for `console` logger.
 	 * 
@@ -107,7 +107,7 @@ module.exports = {
 
 		});
 
-		return logger;		
+		return logger;
 	}
 
 };

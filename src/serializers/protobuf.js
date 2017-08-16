@@ -35,8 +35,8 @@ class ProtoBufSerializer extends BaseSerializer {
 			this.broker.fatal("The 'protobufjs' package is missing! Please install it with 'npm install protobufjs --save' command!", err, true);
 		}
 
-		this.packets = require("./proto/packets.proto.js").packets;		
-	}	
+		this.packets = require("./proto/packets.proto.js").packets;
+	}
 
 	getPacketFromType(type) {
 		switch(type) {
@@ -60,12 +60,12 @@ class ProtoBufSerializer extends BaseSerializer {
 	 * @memberOf Serializer
 	 */
 	serialize(obj, type) {
-		const p = this.getPacketFromType(type);	
+		const p = this.getPacketFromType(type);
 		if (!p) {
 			/* istanbul ignore next */
 			throw new Error("Invalid packet type!");
 		}
-		
+
 		const buf = p.encode(obj).finish();
 		return buf;
 	}
@@ -80,7 +80,7 @@ class ProtoBufSerializer extends BaseSerializer {
 	 * @memberOf Serializer
 	 */
 	deserialize(buf, type) {
-		const p = this.getPacketFromType(type);	
+		const p = this.getPacketFromType(type);
 		if (!p) {
 			/* istanbul ignore next */
 			throw new Error("Invalid packet type!");

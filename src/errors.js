@@ -48,11 +48,11 @@ class ServiceNotFoundError extends MoleculerError {
 	 */
 	constructor(action, nodeID) {
 		let msg;
-		if (nodeID) 
+		if (nodeID)
 			msg = `Service '${action}' is not available on '${nodeID || "<local>"}' node!`;
-		else 
+		else
 			msg = `Service '${action}' is not available!`;
-			
+
 		super(msg, 404, null, {
 			action,
 			nodeID
@@ -100,7 +100,7 @@ class RequestSkippedError extends MoleculerError {
 	 */
 	constructor(action, nodeID) {
 		super(`Calling '${action}' is skipped because timeout reached on '${nodeID || "<local>"}' node!`, 514, null, {
-			action, 
+			action,
 			nodeID
 		});
 	}

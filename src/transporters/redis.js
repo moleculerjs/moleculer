@@ -29,7 +29,7 @@ class RedisTransporter extends Transporter {
 			opts = { redis: opts };
 
 		super(opts);
-		
+
 		this.clientPub = null;
 		this.clientSub = null;
 	}
@@ -75,12 +75,12 @@ class RedisTransporter extends Transporter {
 					if (!this.connected)
 						reject(e);
 				});
-				
+
 				/* istanbul ignore next */
 				clientPub.on("close", () => {
 					this.connected = false;
 					this.logger.warn("Redis-pub client is disconnected!");
-				});					
+				});
 			});
 
 			clientSub.on("messageBuffer", (topicBuf, buf) => {
@@ -99,8 +99,8 @@ class RedisTransporter extends Transporter {
 			clientSub.on("close", () => {
 				this.connected = false;
 				this.logger.warn("Redis-sub client is disconnected!");
-			});		
-		
+			});
+
 		});
 	}
 

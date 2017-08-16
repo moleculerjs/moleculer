@@ -37,6 +37,9 @@ module.exports = {
         ],
         "no-unused-vars": [
             "warn"
+        ],
+        "no-trailing-spaces": [
+            "warn"
         ]
     }
 };

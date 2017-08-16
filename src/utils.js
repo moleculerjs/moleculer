@@ -10,7 +10,7 @@ const Promise 	= require("bluebird");
 const os 	 	= require("os");
 const _			= require("lodash");
 
-const lut = []; 
+const lut = [];
 for (let i=0; i<256; i++) { lut[i] = (i<16?"0":"")+(i).toString(16); }
 
 let utils = {
@@ -24,7 +24,7 @@ let utils = {
 		return lut[d0&0xff]+lut[d0>>8&0xff]+lut[d0>>16&0xff]+lut[d0>>24&0xff]+"-"+
 			lut[d1&0xff]+lut[d1>>8&0xff]+"-"+lut[d1>>16&0x0f|0x40]+lut[d1>>24&0xff]+"-"+
 			lut[d2&0x3f|0x80]+lut[d2>>8&0xff]+"-"+lut[d2>>16&0xff]+lut[d2>>24&0xff]+
-			lut[d3&0xff]+lut[d3>>8&0xff]+lut[d3>>16&0xff]+lut[d3>>24&0xff];		
+			lut[d3&0xff]+lut[d3>>8&0xff]+lut[d3>>16&0xff]+lut[d3>>24&0xff];
 	},
 
 	/**
@@ -103,7 +103,7 @@ let utils = {
 					res[key] = {};
 
 				Object.keys(mods[key]).forEach(k => {
-					res[key][k] = _.compact(_.flatten([res[key][k], mods[key][k]]));	
+					res[key][k] = _.compact(_.flatten([res[key][k], mods[key][k]]));
 				});
 			} else if (["created", "started", "stopped"].indexOf(key) !== -1) {
 				// Concat lifecycle event handlers

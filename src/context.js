@@ -56,7 +56,7 @@ class Context {
 
 		this.params = {};
 		this.meta = {};
-		
+
 		this.requestID = null;
 		this.startTime = null;
 		this.startHrTime = null;
@@ -64,7 +64,7 @@ class Context {
 		this.duration = 0;
 
 		//this.error = null;
-		this.cachedResult = false;	
+		this.cachedResult = false;
 	}
 
 	generateID() {
@@ -114,7 +114,7 @@ class Context {
 			opts.timeout = distTimeout;
 		}
 		return this.broker.call(actionName, params, opts);
-	}	
+	}
 
 	/**
 	 * Call a global event (with broker.emit).
@@ -144,7 +144,7 @@ class Context {
 		this.startTime = Date.now();
 		this.startHrTime = process.hrtime();
 		this.duration = 0;
-		
+
 		if (emitEvent) {
 			let payload = {
 				id: this.id,
@@ -164,7 +164,7 @@ class Context {
 			payload.nodeID = this.broker.nodeID;
 			if (this.callerNodeID)
 				payload.callerNodeID = this.callerNodeID;
-			
+
 			this.broker.emit("metrics.trace.span.start", payload);
 		}
 	}
@@ -200,14 +200,14 @@ class Context {
 				payload.action = {
 					name: this.action.name
 				};
-			}			
-			if (this.parentID) 
+			}
+			if (this.parentID)
 				payload.parent = this.parentID;
-			
+
 			payload.nodeID = this.broker.nodeID;
 			if (this.callerNodeID)
 				payload.callerNodeID = this.callerNodeID;
-			
+
 			if (error) {
 				payload.error = {
 					name: error.name,

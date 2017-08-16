@@ -4,9 +4,9 @@
  * MIT Licensed
  */
 
- "use strict";
+"use strict";
 
- const BaseStrategy = require("./base");
+const BaseStrategy = require("./base");
 
 /**
  * Round-robin strategy class
