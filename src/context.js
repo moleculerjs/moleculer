@@ -46,6 +46,7 @@ class Context {
 		this.action = action;
 		this.nodeID = null;
 		this.parentID = null;
+		this.callerNodeID = null;
 
 		this.metrics = false;
 		this.level = 1;
@@ -150,7 +151,7 @@ class Context {
 				requestID: this.requestID,
 				level: this.level,
 				startTime: this.startTime,
-				remoteCall: !!this.nodeID
+				remoteCall: !!this.callerNodeID
 			};
 			if (this.action) {
 				payload.action = {
@@ -161,8 +162,8 @@ class Context {
 				payload.parent = this.parentID;
 
 			payload.nodeID = this.broker.nodeID;
-			if (this.nodeID)
-				payload.targetNodeID = this.nodeID;
+			if (this.callerNodeID)
+				payload.callerNodeID = this.callerNodeID;
 			
 			this.broker.emit("metrics.trace.span.start", payload);
 		}
@@ -192,7 +193,7 @@ class Context {
 				startTime: this.startTime,
 				endTime: this.stopTime,
 				duration: this.duration,
-				remoteCall: !!this.nodeID,
+				remoteCall: !!this.callerNodeID,
 				fromCache: this.cachedResult
 			};
 			if (this.action) {
@@ -204,8 +205,8 @@ class Context {
 				payload.parent = this.parentID;
 			
 			payload.nodeID = this.broker.nodeID;
-			if (this.nodeID)
-				payload.targetNodeID = this.nodeID;
+			if (this.callerNodeID)
+				payload.callerNodeID = this.callerNodeID;
 			
 			if (error) {
 				payload.error = {

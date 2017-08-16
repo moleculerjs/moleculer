@@ -185,7 +185,7 @@ describe("Test _metricStart method", () => {
 
 	it("should emit start event", () => {		
 		broker.emit.mockClear();
-		ctx.nodeID = "remote-node";
+		ctx.callerNodeID = "remote-node";
 		ctx._metricStart(true);
 
 		expect(ctx.startTime).toBeDefined();
@@ -193,14 +193,14 @@ describe("Test _metricStart method", () => {
 		expect(ctx.duration).toBe(0);
 
 		expect(broker.emit).toHaveBeenCalledTimes(1);
-		expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {"action": {"name": "users.get"}, "id": ctx.id, "level": 1, "parent": 123, "remoteCall": true, "requestID": "abcdef", "startTime": ctx.startTime, "nodeID": broker.nodeID, "targetNodeID": "remote-node"});
+		expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {"action": {"name": "users.get"}, "id": ctx.id, "level": 1, "parent": 123, "remoteCall": true, "requestID": "abcdef", "startTime": ctx.startTime, "nodeID": broker.nodeID, "callerNodeID": "remote-node"});
 	});
 });
 
 describe("Test _metricFinish method", () => {
 	let broker = new ServiceBroker({ metrics: true });
 	let ctx = new Context(broker, { name: "users.get" });
-	ctx.nodeID = "server-2";
+	ctx.callerNodeID = "server-2";
 	ctx.parentID = 123;
 	ctx.metrics = true;
 	ctx.generateID();	
@@ -218,7 +218,7 @@ describe("Test _metricFinish method", () => {
 				expect(ctx.duration).toBeGreaterThan(0);
 
 				expect(broker.emit).toHaveBeenCalledTimes(1);
-				expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.finish", {"action": {"name": "users.get"}, "duration": ctx.duration, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "startTime": ctx.startTime, "endTime": ctx.stopTime, "fromCache": false, "level": 1, "remoteCall": true, "nodeID": broker.nodeID, "targetNodeID": "server-2"});
+				expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.finish", {"action": {"name": "users.get"}, "duration": ctx.duration, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "startTime": ctx.startTime, "endTime": ctx.stopTime, "fromCache": false, "level": 1, "remoteCall": true, "nodeID": broker.nodeID, "callerNodeID": "server-2"});
 
 				resolve();
 			}, 100);
@@ -233,7 +233,7 @@ describe("Test _metricFinish method", () => {
 			expect(ctx.stopTime).toBeGreaterThan(0);
 
 			expect(broker.emit).toHaveBeenCalledTimes(1);
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.finish", {"action": {"name": "users.get"}, "duration": ctx.duration, "error": { "message": "Some error!", "name": "MoleculerError", "code": 511, "type": "ERR_CUSTOM" }, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "startTime": ctx.startTime, "endTime": ctx.stopTime, "fromCache": false, "level": 1, "remoteCall": true, "nodeID": broker.nodeID, "targetNodeID": "server-2" });
+			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.finish", {"action": {"name": "users.get"}, "duration": ctx.duration, "error": { "message": "Some error!", "name": "MoleculerError", "code": 511, "type": "ERR_CUSTOM" }, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "startTime": ctx.startTime, "endTime": ctx.stopTime, "fromCache": false, "level": 1, "remoteCall": true, "nodeID": broker.nodeID, "callerNodeID": "server-2" });
 
 			resolve();
 		});
