@@ -5,13 +5,15 @@ const ServiceBroker = require("../../src/service-broker");
 const lolex = require("lolex");
 
 // Registry strategies
-const { STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM } = require("../../src/constants");
+const {
+	RoundRobinStrategy,
+	RandomStrategy
+} = require("../../src/strategies");
 
 // Circuit-breaker states
 const { CIRCUIT_CLOSE, CIRCUIT_HALF_OPEN, CIRCUIT_OPEN } = require("../../src/constants");
 
 expect.extend({
-
 	toBeAnyOf(received, expected) {
 
 		let pass = false;
@@ -39,33 +41,36 @@ expect.extend({
 describe("Test constructor", () => {
 
 	it("should create instance with default options", () => {
+		const strategy = new RoundRobinStrategy();
 		let registry = new ServiceRegistry();
 		expect(registry).toBeDefined();
-		expect(registry.opts).toEqual({"preferLocal": true, "strategy": STRATEGY_ROUND_ROBIN});
+		expect(registry.opts).toEqual({ preferLocal: true, strategy });
 		expect(registry.actions).toBeInstanceOf(Map);
 		expect(registry.services).toBeInstanceOf(Array);
 	});
 
 	it("should create instance with options", () => {
+		const strategy = new RandomStrategy();
 		let opts = {
 			preferLocal: false,
-			strategy: STRATEGY_RANDOM
+			strategy,
 		};
 		let registry = new ServiceRegistry(opts);
 		expect(registry).toBeDefined();
-		expect(registry.opts).toEqual({ preferLocal: false, strategy: STRATEGY_RANDOM});
+		expect(registry.opts).toEqual({ preferLocal: false, strategy });
 	});
 
 	it("should create instance with options via broker", () => {
+		const strategy = new RandomStrategy();
 		const broker = new ServiceBroker({
 			registry: {
 				preferLocal: false,
-				strategy: STRATEGY_RANDOM
+				strategy
 			}
 		});
 		let registry = broker.serviceRegistry;
 		expect(registry).toBeDefined();
-		expect(registry.opts).toEqual({ preferLocal: false, strategy: STRATEGY_RANDOM});
+		expect(registry.opts).toEqual({ preferLocal: false, strategy });
 	});
 
 });
@@ -784,21 +789,21 @@ describe("Test EndpointList constructor", () => {
 		let list = new ServiceRegistry.EndpointList(broker);
 		expect(list).toBeDefined();
 		expect(list.list).toBeDefined();
-		expect(list.opts).toEqual({"preferLocal": true, "strategy": STRATEGY_ROUND_ROBIN});
-		expect(list.counter).toBe(0);
+		expect(list.opts).toEqual({ preferLocal: true, strategy: new RoundRobinStrategy() });
 		expect(list.localEndpoint).toBeNull();
 		expect(list.count()).toBe(0);
 		expect(list.hasLocal()).toBe(false);
 	});
 
 	it("should create instance with options", () => {
+		const strategy = new RandomStrategy();
 		let opts = {
 			preferLocal: false,
-			strategy: STRATEGY_RANDOM
+			strategy,
 		};
 		let list = new ServiceRegistry.EndpointList(broker, opts);
 		expect(list).toBeDefined();
-		expect(list.opts).toEqual({"preferLocal": false, "strategy": STRATEGY_RANDOM});
+		expect(list.opts).toEqual({ preferLocal: false, strategy });
 	});
 
 });
@@ -817,7 +822,6 @@ describe("Test EndpointList add methods", () => {
 
 		expect(list.count()).toBe(2);
 		expect(list.hasLocal()).toBe(false);
-		expect(list.counter).toBe(0);
 	});
 
 	it("should add & found local item", () => {
@@ -827,7 +831,6 @@ describe("Test EndpointList add methods", () => {
 		expect(list.localEndpoint.action).toBe(obj3);
 		expect(list.count()).toBe(3);
 		expect(list.hasLocal()).toBe(true);
-		expect(list.counter).toBe(0);
 	});
 
 	it("should re-add remote item", () => {
@@ -835,15 +838,15 @@ describe("Test EndpointList add methods", () => {
 
 		expect(list.count()).toBe(3);
 		expect(list.hasLocal()).toBe(true);
-		expect(list.counter).toBe(0);
 	});
 
 });
 
 describe("Test EndpointList get methods with round-robin", () => {
+
 	const broker = new ServiceBroker();
 	let list = new ServiceRegistry.EndpointList(broker, {
-		strategy: STRATEGY_ROUND_ROBIN
+		strategy: new RoundRobinStrategy()
 	});
 
 	let obj1 = { a: 1 };
@@ -855,21 +858,21 @@ describe("Test EndpointList get methods with round-robin", () => {
 	list.add("node3", obj3);
 
 	it("should return items", () => {
+
 		let ep = list.get();
 		expect(ep.action).toBe(obj1);
-		expect(list.counter).toBe(1);
 
 		ep = list.get();
 		expect(ep.action).toBe(obj2);
-		expect(list.counter).toBe(2);
 
 		ep = list.get();
 		expect(ep.action).toBe(obj3);
-		expect(list.counter).toBe(3);
 
 		ep = list.get();
 		expect(ep.action).toBe(obj1);
-		expect(list.counter).toBe(1);
+
+		ep = list.get();
+		expect(ep.action).toBe(obj2);
 
 	});
 
@@ -878,7 +881,7 @@ describe("Test EndpointList get methods with round-robin", () => {
 describe("Test EndpointList get methods with random", () => {
 	const broker = new ServiceBroker();
 	let list = new ServiceRegistry.EndpointList(broker, {
-		strategy: STRATEGY_RANDOM
+		strategy: new RandomStrategy()
 	});
 
 	let obj1 = { a: 1 };
@@ -898,12 +901,17 @@ describe("Test EndpointList get methods with random", () => {
 
 });
 
+class CustomStrategy {
+	select(list) {
+		return list[0];
+	}
+}
+
 describe("Test EndpointList get methods with a custom strategy", () => {
+
 	const broker = new ServiceBroker();
 	let list = new ServiceRegistry.EndpointList(broker, {
-		strategy: (list) => {
-			return list[0]; //
-		}
+		strategy: new CustomStrategy(),
 	});
 
 	let obj1 = { a: 1 };
@@ -958,7 +966,7 @@ describe("Test EndpointList nextAvailable methods with preferLocal", () => {
 	const broker = new ServiceBroker();
 	let list = new ServiceRegistry.EndpointList(broker, {
 		preferLocal: true,
-		strategy: STRATEGY_ROUND_ROBIN
+		strategy: new RoundRobinStrategy(),
 	});
 
 	let obj0 = { a: 0 };
