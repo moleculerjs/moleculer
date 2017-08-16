@@ -236,6 +236,11 @@ describe("Test option resolvers", () => {
 			expect(trans).toBeInstanceOf(Transporters.NATS);
 		});
 
+		it("should resolve AMQPTransporter from connection string", () => {
+			let trans = broker._resolveTransporter("amqp://localhost:5672");
+			expect(trans).toBeInstanceOf(Transporters.AMQP);
+		});
+
 		it("should resolve MQTTTransporter from connection string", () => {
 			let trans = broker._resolveTransporter("mqtt://localhost");
 			expect(trans).toBeInstanceOf(Transporters.MQTT);
@@ -261,6 +266,19 @@ describe("Test option resolvers", () => {
 			let trans = broker._resolveTransporter({ options });
 			expect(trans).toBeInstanceOf(Transporters.NATS);
 			expect(trans.opts).toEqual({"nats": {"preserveBuffers": true, "url": "nats://localhost:4222"}});
+		});
+
+		it("should resolve AMQPTransporter from obj", () => {
+			let options = { amqp: { url: "amqp://localhost" } };
+			let trans = broker._resolveTransporter({ type: "AMQP", options });
+			expect(trans).toBeInstanceOf(Transporters.AMQP);
+			expect(trans.opts).toEqual({
+				amqp: {
+					prefetch: 1,
+					eventTimeToLive: 5000,
+					url: "amqp://localhost"
+				},
+			});
 		});
 
 		it("should resolve NATSTransporter from obj", () => {
