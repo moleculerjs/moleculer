@@ -15,7 +15,7 @@ describe("Test BaseStrategy", () => {
 		expect(broker.options.registry.strategy.getBroker()).toBe(broker);
 	});
 
-	it("broker should initialize registry", () => {
+	it("broker should initialize strategy", () => {
 
 		const strategy = new BaseStrategy();
 		strategy.init = jest.fn();
