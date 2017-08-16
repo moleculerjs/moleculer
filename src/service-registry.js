@@ -47,7 +47,7 @@ class ServiceRegistry {
 	 */
 	init(broker) {
 		this.broker = broker;
-
+		this.opts.strategy.init(broker);
 		LOCAL_NODE_ID = this.broker.LOCAL_NODE_ID;
 	}
 
@@ -425,7 +425,11 @@ class EndpointList {
 	}
 
 	get() {
-		return this.getStrategy().select(this.list);
+		const ret = this.getStrategy().select(this.list);
+		if (!ret) {
+			throw new Error(`Strategy ${typeof(this.getStrategy())} returned an invalid endpoint.`);
+		}
+		return ret;
 	}
 
 	nextAvailable() {

@@ -34,6 +34,8 @@ describe("Test ServiceBroker constructor", () => {
 
 	it("should set default options", () => {
 		let broker = new ServiceBroker();
+		let strategy = new RoundRobinStrategy();
+		strategy.init(broker);
 		expect(broker).toBeDefined();
 		expect(broker.options).toEqual({
 			namespace: "",
@@ -50,7 +52,7 @@ describe("Test ServiceBroker constructor", () => {
 			heartbeatTimeout : 30,
 
 			registry: {
-				strategy: new RoundRobinStrategy(),
+				strategy,
 				preferLocal: true
 			},
 

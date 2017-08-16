@@ -6,6 +6,7 @@ const lolex = require("lolex");
 
 // Registry strategies
 const {
+	BaseStrategy,
 	RoundRobinStrategy,
 	RandomStrategy
 } = require("../../src/strategies");
@@ -901,7 +902,7 @@ describe("Test EndpointList get methods with random", () => {
 
 });
 
-class CustomStrategy {
+class CustomStrategy extends BaseStrategy {
 	select(list) {
 		return list[0];
 	}
@@ -938,12 +939,16 @@ describe("Test EndpointList get methods with a custom strategy", () => {
 
 });
 
+class InvalidStrategy extends BaseStrategy {
+	select() {
+		// Returns undefined, which is invalid
+	}
+}
+
 describe("Test EndpointList get methods with an invalid custom strategy", () => {
 	const broker = new ServiceBroker();
 	let list = new ServiceRegistry.EndpointList(broker, {
-		strategy: () => {
-			// undefined return
-		}
+		strategy: new InvalidStrategy()
 	});
 
 	let obj1 = { a: 1 };

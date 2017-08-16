@@ -1,7 +1,14 @@
+const BaseStrategy = require("./base");
 
-module.exports = class RoundRobinStrategy {
+/**
+ * Round-robin strategy class
+ *
+ * @class RoundRobinStrategy
+ */
+class RoundRobinStrategy extends BaseStrategy {
 
 	constructor() {
+		super();
 		this.counter = 0;
 	}
 
@@ -13,4 +20,6 @@ module.exports = class RoundRobinStrategy {
 		return list[this.counter++];
 	}
 
-};
+}
+
+module.exports = RoundRobinStrategy;

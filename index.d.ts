@@ -266,16 +266,15 @@ declare class LoggerHelper {
 	static createDefaultLogger(baseLogger?: LoggerInstance, bindings: Object, logLevel?: String, logFormatter?: Function): LoggerInstance;
 }
 
-declare interface IStrategy {
+declare abstract class BaseStrategy {
+	init(broker: ServiceBroker): void;
 	select(list: any[]): any;
 }
 
-declare class RoundRobinStrategy implements IStrategy {
-
+declare class RoundRobinStrategy extends BaseStrategy {
 }
 
-declare class RandomStrategy implements IStrategy {
-
+declare class RandomStrategy extends BaseStrategy {
 }
 
 export = {
@@ -312,8 +311,11 @@ export = {
 		MaxCallLevelError: Error
 	},
 
-	RoundRobinStrategy: RoundRobinStrategy,
-	RandomStrategy: RandomStrategy,
+	Strategies: {
+		BaseStrategy: BaseStrategy,
+		RoundRobinStrategy: RoundRobinStrategy,
+		RandomStrategy: RandomStrategy,
+	},
 
 	CIRCUIT_CLOSE: String,
 	CIRCUIT_HALF_OPEN: String,
