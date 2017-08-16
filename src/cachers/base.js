@@ -45,7 +45,7 @@ class Cacher {
 			this.prefix = "MOL-";
 			if (this.broker.namespace)
 				this.prefix += this.broker.namespace + "-";
-			
+
 
 			broker.use(this.middleware());
 
@@ -143,7 +143,7 @@ class Cacher {
 					const val = _.get(params, keys[0]);
 					return keyPrefix + (_.isObject(val) ? hash(val) : val);
 				}
-				
+
 				if (keys.length > 0) {
 					return keys.reduce((a, key, i) => {
 						const val = _.get(params, key);
@@ -179,7 +179,7 @@ class Cacher {
 						return handler(ctx).then(result => {
 							// Save the response to the cache
 							this.set(cacheKey, result);
-							
+
 							return result;
 						});
 					});
@@ -189,7 +189,7 @@ class Cacher {
 			return handler;
 		};
 	}
-		
+
 }
 
 module.exports = Cacher;

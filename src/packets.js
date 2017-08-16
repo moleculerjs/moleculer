@@ -109,7 +109,7 @@ class Packet {
 	transformPayload(payload) {
 		this.payload = payload;
 	}
-} 
+}
 
 /**
  * Packet for node disconnect
@@ -192,7 +192,7 @@ class PacketEvent extends Packet {
 		super.transformPayload(payload);
 		if (payload.data != null)
 			payload.data = JSON.parse(payload.data);
-	}	
+	}
 }
 
 /**
@@ -221,7 +221,7 @@ class PacketRequest extends Packet {
 		super.transformPayload(payload);
 		payload.params = JSON.parse(payload.params);
 		payload.meta = JSON.parse(payload.meta);
-	}	
+	}
 }
 
 /**
@@ -271,7 +271,7 @@ module.exports = {
 	PACKET_HEARTBEAT,
 
 	Packet,
-	PacketEvent, 
+	PacketEvent,
 	PacketDisconnect,
 	PacketDiscover,
 	PacketInfo,

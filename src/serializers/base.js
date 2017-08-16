@@ -62,7 +62,7 @@ class Serializer {
 		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
 	}
-	
+
 }
 
 module.exports = Serializer;

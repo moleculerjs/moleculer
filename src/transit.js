@@ -31,7 +31,7 @@ class Transit {
 	constructor(broker, transporter, opts) {
 		this.broker = broker;
 		this.logger = broker.getLogger("transit");
-		this.nodeID = broker.nodeID;		
+		this.nodeID = broker.nodeID;
 		this.tx = transporter;
 		this.opts = opts;
 
@@ -70,7 +70,7 @@ class Transit {
 		return Promise.resolve()
 
 			.then(() => {
-				if (!wasReconnect) 
+				if (!wasReconnect)
 					return this.makeSubscriptions();
 			})
 
@@ -101,7 +101,7 @@ class Transit {
 				/* istanbul ignore next */
 				this.tx.connect().catch(err => {
 					if (this.disconnecting) return;
-					
+
 					this.logger.warn("Connection is failed!", err.message);
 					this.logger.debug(err);
 
@@ -126,7 +126,7 @@ class Transit {
 				/* istanbul ignore next */
 					this.checkRemoteNodes();
 				}, this.broker.options.heartbeatTimeout * 1000);
-				this.checkNodesTimer.unref();	
+				this.checkNodesTimer.unref();
 
 			});
 	}
@@ -241,8 +241,8 @@ class Transit {
 			throw new Error("Missing response payload!");
 		}
 
-		if (payload.sender == this.nodeID) 
-			return Promise.resolve(); 
+		if (payload.sender == this.nodeID)
+			return Promise.resolve();
 
 		// Request
 		if (cmd === P.PACKET_REQUEST) {
@@ -257,7 +257,7 @@ class Transit {
 		// Event
 		else if (cmd === P.PACKET_EVENT) {
 			//this.logger.debug("Event received", payload);
-			this.broker.emitLocal(payload.event, payload.data, payload.sender);				
+			this.broker.emitLocal(payload.event, payload.data, payload.sender);
 			return;
 		}
 
@@ -296,7 +296,7 @@ class Transit {
 	 */
 	_requestHandler(payload) {
 		this.logger.debug(`Request '${payload.action}' received from '${payload.sender}' node.`);
-		
+
 		// Recreate caller context
 		const ctx = new Context(this.broker);
 		ctx.action = {
@@ -309,7 +309,7 @@ class Transit {
 		ctx.callerNodeID = payload.sender;
 		ctx.meta = payload.meta;
 		ctx.setParams(payload.params);
-		
+
 		return this.broker.call(payload.action, payload.params, { ctx: ctx })
 			.then(res => this.sendResponse(payload.sender, payload.id,  res, null))
 			.catch(err => this.sendResponse(payload.sender, payload.id, null, err));
@@ -353,7 +353,7 @@ class Transit {
 		}
 
 		return req.resolve(packet.data);
-	}	
+	}
 
 	/**
 	 * Send a request to a remote service. It returns a Promise
@@ -395,9 +395,9 @@ class Transit {
 		this.pendingRequests.set(ctx.id, request);
 
 		//return resolve(ctx.params);
-		
+
 		// Publish request
-		this.publish(packet);		
+		this.publish(packet);
 	}
 
 
@@ -427,7 +427,7 @@ class Transit {
 
 		// Publish the response
 		return this.publish(new P.PacketResponse(this, nodeID, id, data, err));
-	}	
+	}
 
 	/**
 	 * Get Node information to DISCOVER & INFO packages
@@ -535,7 +535,7 @@ class Transit {
 	 */
 	deserialize(buf, type) {
 		if (buf == null) return null;
-		
+
 		return this.broker.serializer.deserialize(buf, type);
 	}
 
@@ -610,7 +610,7 @@ class Transit {
 	 */
 	isNodeAvailable(nodeID) {
 		let info = this.nodes.get(nodeID);
-		if (info) 
+		if (info)
 			return info.available;
 
 		return false;
@@ -669,7 +669,7 @@ class Transit {
 			}
 		});
 	}
-	
+
 }
 
 module.exports = Transit;

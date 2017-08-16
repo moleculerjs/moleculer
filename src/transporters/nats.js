@@ -31,7 +31,7 @@ class NatsTransporter extends Transporter {
 			opts = { nats: { url: opts } };
 
 		super(opts);
-		
+
 		// Use the 'preserveBuffers' option as true as default
 		if (!this.opts.nats || this.opts.nats.preserveBuffers !== false) {
 			if (!this.opts.nats)
@@ -39,7 +39,7 @@ class NatsTransporter extends Transporter {
 
 			this.opts.nats.preserveBuffers = true;
 		}
-		
+
 		this.client = null;
 	}
 
@@ -56,7 +56,7 @@ class NatsTransporter extends Transporter {
 			} catch(err) {
 				/* istanbul ignore next */
 				this.broker.fatal("The 'nats' package is missing! Please install it with 'npm install nats --save' command!", err, true);
-			}			
+			}
 			const client = Nats.connect(this.opts.nats);
 			this._client = client; // For tests
 
@@ -99,7 +99,7 @@ class NatsTransporter extends Transporter {
 			client.on("close", () => {
 				this.connected = false;
 				this.logger.warn("NATS connection is closed!");
-			});			
+			});
 		});
 	}
 

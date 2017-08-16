@@ -56,7 +56,7 @@ class StatRequestStore {
 		this.count++;
 		if (errCode)
 			this.errors[errCode] = (this.errors[errCode] || 0) + 1;
-		
+
 		if (latency != null)
 			this.lastTimeBucket.times.push(latency);
 	}
@@ -194,9 +194,9 @@ class RequestStatistics {
 
 		this.cycleTimer = setInterval(() => {
 			this.cycle();
-		}, this.options.cycleTime);	
+		}, this.options.cycleTime);
 
-		this.cycleTimer.unref();	
+		this.cycleTimer.unref();
 	}
 
 	/**
@@ -292,7 +292,7 @@ class BrokerStatistics {
 	snapshot() {
 		return {
 			requests: this.requests.snapshot()
-		};		
+		};
 	}
 }
 

@@ -34,7 +34,7 @@ class FakeTransporter extends Transporter {
 	 */
 	constructor(opts) {
 		super(opts);
-		
+
 		// Local event bus
 		this.bus = global.bus;
 	}

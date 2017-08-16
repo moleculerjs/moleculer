@@ -44,7 +44,7 @@ class BaseTransporter {
 			this.prefix = "MOL";
 			if (this.broker.namespace)
 				this.prefix += "-" + this.broker.namespace;
-			
+
 		}
 		this.messageHandler = messageHandler;
 		this.afterConnect = afterConnect;

@@ -27,7 +27,7 @@ class MemoryCacher extends BaseCacher {
 	 */
 	constructor(opts) {
 		super(opts);
-		
+
 		// Cache container
 		this.cache = {};
 
@@ -52,7 +52,7 @@ class MemoryCacher extends BaseCacher {
 	get(key) {
 		//this.logger.debug(`Get ${key}`);
 		let item = this.cache[key];
-		if (item) { 
+		if (item) {
 			//this.logger.debug(`Found ${key}`);
 
 			if (this.opts.ttl) {
@@ -135,7 +135,7 @@ class MemoryCacher extends BaseCacher {
 				delete self.cache[key];
 			}
 		});
-	}	
+	}
 }
 
 module.exports = MemoryCacher;

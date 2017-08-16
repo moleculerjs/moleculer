@@ -41,7 +41,7 @@ class Service {
 		if (schema.mixins) {
 			schema = Service.applyMixins(schema);
 		}
-		
+
 		if (!schema.name)
 			throw new ServiceSchemaError("Service name can't be empty!");
 
@@ -67,7 +67,7 @@ class Service {
 			forIn(schema.actions, (action, name) => {
 				if (action === false)
 					return;
-				
+
 				let innerAction = this._createAction(action, name);
 
 				// Register to broker
@@ -78,7 +78,7 @@ class Service {
 					const ctx = broker.createNewContext(innerAction, null, params, opts || {});
 					return innerAction.handler(ctx);
 				};
-				
+
 			});
 
 		}
@@ -206,7 +206,7 @@ class Service {
 		action.service = this;
 		action.cache = action.cache !== undefined ? action.cache : (this.settings.$cache || false);
 		action.handler = this.Promise.method(handler.bind(this));
-		
+
 		return action;
 	}
 
@@ -228,12 +228,12 @@ class Service {
 
 				return utils.mergeSchemas(s, mixin);
 			}, {});
-			
+
 			return utils.mergeSchemas(mixedSchema, schema);
-		} 
-		
+		}
+
 		/* istanbul ignore next */
-		return schema;		
+		return schema;
 	}
 }
 
