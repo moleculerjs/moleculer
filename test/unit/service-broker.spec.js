@@ -25,16 +25,13 @@ jest.mock("../../src/utils", () => ({
 }));
 
 // Registry strategies
-const {
-	RoundRobinStrategy,
-	RandomStrategy
-} = require("../../src/strategies");
+const Strategies = require("../../src/strategies");
 
 describe("Test ServiceBroker constructor", () => {
 
 	it("should set default options", () => {
 		let broker = new ServiceBroker();
-		let strategy = new RoundRobinStrategy();
+		let strategy = new Strategies.RoundRobin();
 		strategy.init(broker);
 		expect(broker).toBeDefined();
 		expect(broker.options).toEqual({
@@ -109,7 +106,7 @@ describe("Test ServiceBroker constructor", () => {
 
 	it("should merge options", () => {
 
-		let strategy = new RandomStrategy();
+		let strategy = new Strategies.Random();
 
 		let broker = new ServiceBroker( {
 			namespace: "test",

@@ -4,7 +4,7 @@
 let _ = require("lodash");
 let chalk = require("chalk");
 
-let RoundRobinStrategy = require("../../src/strategies/roundrobin");
+let RoundRobinStrategy = require("../../src/strategies/round-robin");
 let ServiceBroker = require("../../src/service-broker");
 
 // Create broker

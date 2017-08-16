@@ -1,4 +1,12 @@
-const _ = require("lodash");
+/*
+ * moleculer
+ * Copyright (c) 2017 Ice Services (https://github.com/ice-services/moleculer)
+ * MIT Licensed
+ */
+
+"use strict";
+
+const { random } = require("lodash");
 const BaseStrategy = require("./base");
 
 /**
@@ -8,7 +16,7 @@ const BaseStrategy = require("./base");
  */
 class RandomStrategy extends BaseStrategy {
 	select(list) {
-		return list[_.random(0, list.length - 1)];
+		return list[random(0, list.length - 1)];
 	}
 }
 

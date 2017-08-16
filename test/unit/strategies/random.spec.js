@@ -1,6 +1,6 @@
 "use strict";
 
-let { RandomStrategy } = require("../../../src/strategies");
+let RandomStrategy = require("../../../src/strategies/random");
 
 expect.extend({
 	toBeAnyOf(received, expected) {

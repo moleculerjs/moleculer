@@ -8,12 +8,12 @@
 
 const _ = require("lodash");
 
-const { RoundRobinStrategy } = require("./strategies");
+const RoundRobinStrategy = require("./strategies/round-robin");
 
 // Circuit-breaker states
 const { CIRCUIT_CLOSE, CIRCUIT_HALF_OPEN, CIRCUIT_OPEN } = require("./constants");
 
-const { MoleculerError } = require("./errors");
+//const { MoleculerError } = require("./errors");
 
 let LOCAL_NODE_ID;
 

@@ -5,11 +5,7 @@ const ServiceBroker = require("../../src/service-broker");
 const lolex = require("lolex");
 
 // Registry strategies
-const {
-	BaseStrategy,
-	RoundRobinStrategy,
-	RandomStrategy
-} = require("../../src/strategies");
+const Strategies = require("../../src/strategies");
 
 // Circuit-breaker states
 const { CIRCUIT_CLOSE, CIRCUIT_HALF_OPEN, CIRCUIT_OPEN } = require("../../src/constants");
@@ -42,7 +38,7 @@ expect.extend({
 describe("Test constructor", () => {
 
 	it("should create instance with default options", () => {
-		const strategy = new RoundRobinStrategy();
+		const strategy = new Strategies.RoundRobin();
 		let registry = new ServiceRegistry();
 		expect(registry).toBeDefined();
 		expect(registry.opts).toEqual({ preferLocal: true, strategy });
@@ -51,7 +47,7 @@ describe("Test constructor", () => {
 	});
 
 	it("should create instance with options", () => {
-		const strategy = new RandomStrategy();
+		const strategy = new Strategies.Random();
 		let opts = {
 			preferLocal: false,
 			strategy,
@@ -62,7 +58,7 @@ describe("Test constructor", () => {
 	});
 
 	it("should create instance with options via broker", () => {
-		const strategy = new RandomStrategy();
+		const strategy = new Strategies.Random();
 		const broker = new ServiceBroker({
 			registry: {
 				preferLocal: false,
@@ -790,14 +786,14 @@ describe("Test EndpointList constructor", () => {
 		let list = new ServiceRegistry.EndpointList(broker);
 		expect(list).toBeDefined();
 		expect(list.list).toBeDefined();
-		expect(list.opts).toEqual({ preferLocal: true, strategy: new RoundRobinStrategy() });
+		expect(list.opts).toEqual({ preferLocal: true, strategy: new Strategies.RoundRobin() });
 		expect(list.localEndpoint).toBeNull();
 		expect(list.count()).toBe(0);
 		expect(list.hasLocal()).toBe(false);
 	});
 
 	it("should create instance with options", () => {
-		const strategy = new RandomStrategy();
+		const strategy = new Strategies.Random();
 		let opts = {
 			preferLocal: false,
 			strategy,
@@ -847,7 +843,7 @@ describe("Test EndpointList get methods with round-robin", () => {
 
 	const broker = new ServiceBroker();
 	let list = new ServiceRegistry.EndpointList(broker, {
-		strategy: new RoundRobinStrategy()
+		strategy: new Strategies.RoundRobin()
 	});
 
 	let obj1 = { a: 1 };
@@ -882,7 +878,7 @@ describe("Test EndpointList get methods with round-robin", () => {
 describe("Test EndpointList get methods with random", () => {
 	const broker = new ServiceBroker();
 	let list = new ServiceRegistry.EndpointList(broker, {
-		strategy: new RandomStrategy()
+		strategy: new Strategies.Random()
 	});
 
 	let obj1 = { a: 1 };
@@ -902,7 +898,7 @@ describe("Test EndpointList get methods with random", () => {
 
 });
 
-class CustomStrategy extends BaseStrategy {
+class CustomStrategy extends Strategies.Base {
 	select(list) {
 		return list[0];
 	}
@@ -939,7 +935,7 @@ describe("Test EndpointList get methods with a custom strategy", () => {
 
 });
 
-class InvalidStrategy extends BaseStrategy {
+class InvalidStrategy extends Strategies.Base {
 	select() {
 		// Returns undefined, which is invalid
 	}
@@ -971,7 +967,7 @@ describe("Test EndpointList nextAvailable methods with preferLocal", () => {
 	const broker = new ServiceBroker();
 	let list = new ServiceRegistry.EndpointList(broker, {
 		preferLocal: true,
-		strategy: new RoundRobinStrategy(),
+		strategy: new Strategies.RoundRobin(),
 	});
 
 	let obj0 = { a: 0 };

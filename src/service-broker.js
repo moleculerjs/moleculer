@@ -24,11 +24,11 @@ const healthInfo 		= require("./health");
 const Cachers 			= require("./cachers");
 const Transporters 		= require("./transporters");
 const Serializers 		= require("./serializers");
+const RoundRobinStrategy = require("./strategies/round-robin");
 
 // Circuit-breaker states
 const { CIRCUIT_HALF_OPEN } 	= require("./constants");
 
-const { RoundRobinStrategy } 	= require("./strategies");
 
 const LOCAL_NODE_ID = null; // `null` means local nodeID
 

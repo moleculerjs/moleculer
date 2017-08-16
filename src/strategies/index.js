@@ -1,5 +1,13 @@
+/*
+ * moleculer
+ * Copyright (c) 2017 Ice Services (https://github.com/ice-services/moleculer)
+ * MIT Licensed
+ */
+
+"use strict";
+
 module.exports = {
-	BaseStrategy: require("./base"),
-	RoundRobinStrategy: require("./roundrobin"),
-	RandomStrategy: require("./random"),
+	Base: require("./base"),
+	RoundRobin: require("./round-robin"),
+	Random: require("./random"),
 };
