@@ -26,11 +26,7 @@ module.exports = {
 
 	Errors: require("./src/errors"),
 
-	Strategies: {
-		BaseStrategy: require("./src/strategies/base"),
-		RoundRobinStrategy: require("./src/strategies/roundrobin"),
-		RandomStrategy: require("./src/strategies/random"),
-	},
+	Strategies: require("./src/strategies"),
 
 	CIRCUIT_CLOSE,
 	CIRCUIT_HALF_OPEN,
