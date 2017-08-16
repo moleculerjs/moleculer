@@ -1132,7 +1132,7 @@ class ServiceBroker {
 	 * 
 	 * @memberOf ServiceBroker
 	 */
-	emitLocal(eventName, payload, sender) {
+	emitLocal(eventName, payload, sender = null) {
 		this.logger.debug("Event emitted:", eventName);		
 
 		return this.bus.emit(eventName, payload, sender);
