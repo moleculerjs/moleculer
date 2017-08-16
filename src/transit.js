@@ -50,7 +50,7 @@ class Transit {
 		};
 
 		this.connected = false;
-		this.disconnecting = true;
+		this.disconnecting = false;
 
 		if (this.tx)
 			this.tx.init(this, this.messageHandler.bind(this), this.afterConnect.bind(this));

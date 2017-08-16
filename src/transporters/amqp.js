@@ -79,12 +79,13 @@ class AmqpTransporter extends Transporter {
 					connection
 						.on("error", (err) => {
 							this.connected = false;
-							this.logger.error("AMQP connection error!", err);
+							reject(err);
+							this.logger.error("AMQP connection error!");
 						})
 						.on("close", (err) => {
 							this.connected = false;
-							const crashWorthy = require("amqplib/lib/connection").isFatalError(err);
-							this.logger.error("AMQP connection closed!", crashWorthy && err ||  "");
+							reject(err);
+							this.logger.error("AMQP connection closed!");
 						})
 						.on("blocked", (reason) => {
 							this.logger.warn("AMQP connection blocked!", reason);
@@ -106,11 +107,13 @@ class AmqpTransporter extends Transporter {
 							channel
 								.on("close", () => {
 									this.connected = false;
+									reject();
 									this.logger.warn("AMQP channel closed!");
 								})
-								.on("error", (error) => {
+								.on("error", (err) => {
 									this.connected = false;
-									this.logger.error("AMQP channel error!", error);
+									reject(err);
+									this.logger.error("AMQP channel error!");
 								})
 								.on("drain", () => {
 									this.logger.info("AMQP channel drained!");
@@ -121,13 +124,15 @@ class AmqpTransporter extends Transporter {
 						})
 						.catch((err) => {
 							/* istanbul ignore next*/
-							this.logger.error("AMQP failed to create channel!", err);
+							this.logger.error("AMQP failed to create channel!");
+							this.connected = false;
 							reject(err);
 						});
 				})
 				.catch((err) => {
 					/* istanbul ignore next*/
-					this.logger.error("AMQP failed to connect!", err);
+					this.logger.warn("AMQP failed to connect!");
+					this.connected = false;
 					reject(err);
 				});
 		});
