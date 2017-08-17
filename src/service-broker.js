@@ -774,8 +774,6 @@ class ServiceBroker {
 		let action = endpoint.action;
 		let nodeID = endpoint.nodeID;
 
-		this.logger.debug(`Call action '${actionName}' on node '${nodeID || "<local>"}'`);
-
 		// Create context
 		let ctx;
 		if (opts.ctx != null) {
@@ -795,6 +793,8 @@ class ServiceBroker {
 		// Call handler or transfer request
 		let p;
 		if (endpoint.local) {
+			this.logger.debug(`Call '${actionName}' action on local node.`);
+
 			// Add metrics start
 			if (ctx.metrics === true || ctx.timeout > 0 || this.statistics)
 				ctx._metricStart(ctx.metrics);
@@ -813,6 +813,8 @@ class ServiceBroker {
 				});
 			}
 		} else {
+			this.logger.debug(`Call remote '${actionName}' action on '${nodeID}' node.`);
+
 			p = this.transit.request(ctx);
 
 			// Timeout handler

@@ -7,7 +7,6 @@
 "use strict";
 
 const Promise					= require("bluebird");
-const Context					= require("./context");
 const P 						= require("./packets");
 const { getIpList } 			= require("./utils");
 const { hash } 					= require("node-object-hash")({ sort: false, coerce: false});

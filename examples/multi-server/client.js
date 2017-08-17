@@ -4,8 +4,26 @@
 let _ = require("lodash");
 let chalk = require("chalk");
 
-let RoundRobinStrategy = require("../../src/strategies/round-robin");
+let Strategies = require("../../src/strategies");
 let ServiceBroker = require("../../src/service-broker");
+/*
+class LastHeartBeatStrategy extends Strategies.Base {
+	select(list) {
+		if (!this.nodes)
+			this.nodes = this.broker.transit.nodes;
+
+		let nodeID;
+		let lastTime;
+		this.nodes.forEach(node => {
+			if (!lastTime || node.lastHeartbeatTime > lastTime) {
+				nodeID = node.id;
+				lastTime = node.lastHeartbeatTime;
+			}
+		});
+
+		return list.find(l => l.nodeID == nodeID);
+	}
+}*/
 
 // Create broker
 let broker = new ServiceBroker({
@@ -14,7 +32,7 @@ let broker = new ServiceBroker({
 	transporter: "NATS",
 
 	registry: {
-		strategy: new RoundRobinStrategy(),
+		strategy: new Strategies.RoundRobin(),
 	},
 
 	circuitBreaker: {

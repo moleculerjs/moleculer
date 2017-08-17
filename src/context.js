@@ -8,7 +8,7 @@
 
 //const Promise = require("bluebird");
 const _ = require("lodash");
-const utils = require("./utils");
+const { generateToken } = require("./utils");
 const { RequestSkippedError } = require("./errors");
 
 /**
@@ -69,7 +69,7 @@ class Context {
 	}
 
 	generateID() {
-		this.id = utils.generateToken();
+		this.id = generateToken();
 	}
 
 	/**
