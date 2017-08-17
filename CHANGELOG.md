@@ -3,7 +3,155 @@
 
 # Breaking changes
 
+## No more `nodeID == null` in local stuff
+In all core modules removed the nullable `nodeID`. Every places (context, events, $node.* results) the nodeID contains a valid (local or remote) nodeID. On local nodes it equals with `broker.nodeID`.
+
+**Migration guide**
+
+Before:
+```js
+if (ctx.nodeID == null) { ... }
+// ---------
+events: {
+    "users.created"(payload, sender) {
+        if (sender == null) { ... }
+    }
+}
+```
+
+After:
+```js
+if (ctx.nodeID == ctx.broker.nodeID) { ... }
+// ---------
+events: {
+    "users.created"(payload, sender) {
+        if (sender == this.broker.nodeID) { ... }
+    }
+}
+```
+
+## `internalActions` is renamed to `internalServices`
+The `internalActions` broker option is renamed to `internalServices`.
+
+## Removed `broker.createNewContext` method
+The `createNewContext` broker method is moved to `Context`class as a static method.
+
+**Migration guide:**
+
+Before:
+```js
+let ctx = broker.createNewContext(action, nodeID, params, opts);
+```
+
+After:
+```js
+let ctx = Context.create(broker, action, nodeID, params, opts);
+// or better
+let ctx = broker.ContextFactory.create(broker, action, nodeID, params, opts);
+```
+
+## Removed `LOCAL_NODE_ID` constant
+The recently added `LOCAL_NODE_ID` constant is removed. If you want to check the nodeID is local, please use the `if (nodeID == broker.nodeID)` syntax.
+
+## Class based pluggable Service registry strategies [#75](https://github.com/ice-services/moleculer/pull/75)
+By @WoLfulus, the service registry balancer strategy is now pluggable.
+
+**New syntax:**
+```js
+let Strategies = require("moleculer").Strategies;
+
+let broker = new ServiceBroker({
+    registry: {        
+        strategy: new Strategies.RoundRobin()
+    }
+});
+```
+
+**Custom strategy**
+
+You can create you custom strategy.
+
+```js
+let BaseStrategy = require("moleculer").Strategies.Base;
+
+class CustomStrategy extends BaseStrategy {
+    select(list) {
+        return list[0];
+    }
+};
+
+let broker = new ServiceBroker({
+    registry: {        
+        strategy: new CustomStrategy()
+    }
+});
+```
+
+## Metrics event payloads are changed
+The metrics payload contains `remoteCall` and `callerNodeID` properties. The `remoteCall` is true if the request is called from a remote node. In this case the `callerNodeID` contains the caller nodeID.
+
+`metrics.trace.span.start`:
+```js
+{
+    "action": {
+        "name": "users.get"
+    },
+    "id": "123123123",
+    "level": 1,
+    "parent": 123,
+    "remoteCall": true,
+    "requestID": "abcdef",
+    "startTime": 123456789,
+    "nodeID": "node-1",
+    "callerNodeID": "node-2"
+}
+```
+
+`metrics.trace.span.start`:
+```js
+{
+    "action": {
+        "name": "users.get"
+    },
+    "duration": 45,
+    "id": "123123123",
+    "parent": 123,
+    "requestID": "abcdef",
+    "startTime": 123456789,
+    "endTime": 123456795,
+    "fromCache": false,
+    "level": 1,
+    "remoteCall": true,
+    "nodeID": "node-1",
+    "callerNodeID": "node-2"
+}
+```
+
 # New
+
+## Protocol documentation
+Moleculer protocol documentation is available in [docs/PROTOCOL.md](docs/PROTOCOL.md) file.
+
+# AMQP transporter [#72](https://github.com/ice-services/moleculer/pull/72)
+By @Nathan-Schwartz, AMQP (for RabbitMQ) transporter added to Moleculer project.
+
+```js
+let broker = new ServiceBroker({
+    transporter: "amqp://guest:guest@rabbitmq-server:5672"
+});
+
+let broker = new ServiceBroker({
+    transporter: new AmqpTransporter({
+        amqp: {
+            url: "amqp://guest:guest@localhost:5672",
+            eventTimeToLive: 5000,
+            prefetch: 1 
+        }
+    });
+});
+```
+
+# Changes
 
 # Fixed
 
