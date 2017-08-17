@@ -68,7 +68,7 @@ describe("Test ServiceBroker constructor", () => {
 			metrics: false,
 			metricsRate: 1,
 			statistics: false,
-			internalActions: true
+			internalServices: true
 		});
 
 		expect(broker.Promise).toBe(Promise);
@@ -128,7 +128,7 @@ describe("Test ServiceBroker constructor", () => {
 				failureOnReject: false
 			},
 			validation: false,
-			internalActions: false });
+			internalServices: false });
 
 		expect(broker).toBeDefined();
 		expect(broker.options).toEqual({
@@ -161,7 +161,7 @@ describe("Test ServiceBroker constructor", () => {
 			requestTimeout: 5000,
 			maxCallLevel: 10,
 			validation: false,
-			internalActions: false });
+			internalServices: false });
 		expect(broker.services).toBeInstanceOf(Array);
 		expect(broker.serviceRegistry).toBeInstanceOf(ServiceRegistry);
 		expect(broker.transit).toBeUndefined();
@@ -660,7 +660,7 @@ describe("Test broker.getLogger", () => {
 
 	it("should create default console logger with logFormatter", () => {
 		let logFormatter = jest.fn();
-		let broker = new ServiceBroker({ internalActions: false, logger: true, logFormatter });
+		let broker = new ServiceBroker({ internalServices: false, logger: true, logFormatter });
 
 		console.info.mockClear();
 		broker.logger.info("Teszt", { a: 5 });
@@ -674,7 +674,7 @@ describe("Test broker.getLogger", () => {
 		let broker;
 
 		it("should call logger function with broker bindings", () => {
-			broker = new ServiceBroker({ internalActions: false, logger, namespace: "testing", nodeID: "test-pc" });
+			broker = new ServiceBroker({ internalServices: false, logger, namespace: "testing", nodeID: "test-pc" });
 
 			expect(logger).toHaveBeenCalledTimes(1);
 			expect(logger).toHaveBeenCalledWith({"mod": "broker", "nodeID": "test-pc", "ns": "testing"});
@@ -702,7 +702,7 @@ describe("Test broker.getLogger", () => {
 		let logger = {
 			info: jest.fn()
 		};
-		let broker = new ServiceBroker({ internalActions: false, logger });
+		let broker = new ServiceBroker({ internalServices: false, logger });
 
 		expect(logger.fatal).toBeDefined();
 		expect(logger.error).toBeDefined();
@@ -873,7 +873,7 @@ describe("Test broker.createService", () => {
 describe("Test broker.destroyService", () => {
 
 	let stopped = jest.fn();
-	let broker = new ServiceBroker({ internalActions: false });
+	let broker = new ServiceBroker({ internalServices: false });
 	let service = broker.createService({
 		name: "greeter",
 		actions: {
@@ -944,7 +944,7 @@ describe("Test broker.servicesChanged", () => {
 
 describe("Test broker.registerLocalService", () => {
 
-	let broker = new ServiceBroker({ internalActions: false });
+	let broker = new ServiceBroker({ internalServices: false });
 	broker.emitLocal = jest.fn();
 	broker.serviceRegistry.registerService = jest.fn();
 
@@ -964,7 +964,7 @@ describe("Test broker.registerLocalService", () => {
 
 describe("Test broker.registerRemoteService", () => {
 
-	let broker = new ServiceBroker({ internalActions: false });
+	let broker = new ServiceBroker({ internalServices: false });
 	broker.serviceRegistry.registerService = jest.fn();
 	broker.registerAction = jest.fn();
 
@@ -1250,7 +1250,7 @@ describe("Test broker.registerInternalServices", () => {
 	it("should register internal action without statistics", () => {
 		let broker = new ServiceBroker({
 			statistics: false,
-			internalActions: false
+			internalServices: false
 		});
 
 		broker.createService = jest.fn();
@@ -1268,7 +1268,7 @@ describe("Test broker.registerInternalServices", () => {
 	it("should register internal action with statistics", () => {
 		let broker = new ServiceBroker({
 			statistics: true,
-			internalActions: false
+			internalServices: false
 		});
 
 		broker.createService = jest.fn();
@@ -1434,7 +1434,7 @@ describe("Test broker.call method", () => {
 
 	describe("Test local call", () => {
 
-		let broker = new ServiceBroker({ internalActions: false, metrics: true });
+		let broker = new ServiceBroker({ internalServices: false, metrics: true });
 
 		let actionHandler = jest.fn(ctx => ctx);
 		broker.createService({
@@ -1654,7 +1654,7 @@ describe("Test broker.call method", () => {
 
 		let broker = new ServiceBroker({
 			transporter: new FakeTransporter(),
-			internalActions: false,
+			internalServices: false,
 			metrics: true
 		});
 		broker.registerAction("server-2", {	name: "user.create", service: { name: "user" } });
@@ -1706,7 +1706,7 @@ describe("Test broker.call method", () => {
 		let broker = new ServiceBroker({
 			nodeID: "server-0",
 			transporter: new FakeTransporter(),
-			internalActions: false,
+			internalServices: false,
 			metrics: true
 		});
 		const service = { name: "user" };
@@ -1769,7 +1769,7 @@ describe("Test broker.call method", () => {
 
 describe("Test broker.mcall", () => {
 
-	let broker = new ServiceBroker({ internalActions: false });
+	let broker = new ServiceBroker({ internalServices: false });
 	broker.call = jest.fn(action => Promise.resolve(action));
 
 	it("should call both action & return an array", () => {

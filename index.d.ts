@@ -86,7 +86,7 @@ declare interface BrokerOptions {
 	metrics?: Boolean;
 	metricsRate?: Number;
 	statistics?: Boolean;
-	internalActions?: Boolean;
+	internalServices?: Boolean;
 
 	ServiceFactory?: Service;
 	ContextFactory?: Context;

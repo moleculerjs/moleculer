@@ -89,7 +89,7 @@ describe("Test registry.init", () => {
 });
 
 describe("Test registry.registerService", () => {
-	const broker = new ServiceBroker({ internalActions: false });
+	const broker = new ServiceBroker({ internalServices: false });
 	const registry = broker.serviceRegistry;
 
 	let service = {
@@ -125,7 +125,7 @@ describe("Test registry.registerService", () => {
 });
 
 describe("Test registry.unregisterService", () => {
-	const broker = new ServiceBroker({ internalActions: false });
+	const broker = new ServiceBroker({ internalServices: false });
 	const registry = broker.serviceRegistry;
 
 	let service = {
@@ -181,7 +181,7 @@ describe("Test registry.unregisterService", () => {
 });
 
 describe("Test registry.unregisterServicesByNode", () => {
-	const broker = new ServiceBroker({ internalActions: false });
+	const broker = new ServiceBroker({ internalServices: false });
 	const registry = broker.serviceRegistry;
 
 	let service = {
@@ -226,7 +226,7 @@ describe("Test registry.unregisterServicesByNode", () => {
 });
 
 describe("Test registry.findService", () => {
-	const broker = new ServiceBroker({ internalActions: false });
+	const broker = new ServiceBroker({ internalServices: false });
 	const registry = broker.serviceRegistry;
 
 	let serviceV1 = {
@@ -274,7 +274,7 @@ describe("Test registry.findService", () => {
 });
 
 describe("Test registry.findServiceByNode", () => {
-	const broker = new ServiceBroker({ internalActions: false });
+	const broker = new ServiceBroker({ internalServices: false });
 	const registry = broker.serviceRegistry;
 
 	let service = {
@@ -297,7 +297,7 @@ describe("Test registry.findServiceByNode", () => {
 });
 
 describe("Test registry.registerAction", () => {
-	const broker = new ServiceBroker({ internalActions: false });
+	const broker = new ServiceBroker({ internalServices: false });
 	const registry = broker.serviceRegistry;
 
 	let service = {
@@ -346,7 +346,7 @@ describe("Test registry.registerAction", () => {
 });
 
 describe("Test registry.unregisterAction", () => {
-	const broker = new ServiceBroker({ internalActions: false });
+	const broker = new ServiceBroker({ internalServices: false });
 	const registry = broker.serviceRegistry;
 
 	let service = {
@@ -379,7 +379,7 @@ describe("Test registry.unregisterAction", () => {
 });
 
 describe("Test registry.findAction", () => {
-	const broker = new ServiceBroker({ internalActions: false });
+	const broker = new ServiceBroker({ internalServices: false });
 	const registry = broker.serviceRegistry;
 
 	let service = {
@@ -408,7 +408,7 @@ describe("Test registry.findAction", () => {
 });
 
 describe("Test registry.findAction with internal actions", () => {
-	const broker = new ServiceBroker({ internalActions: true, registry: { preferLocal: false } });
+	const broker = new ServiceBroker({ internalServices: true, registry: { preferLocal: false } });
 	const registry = broker.serviceRegistry;
 
 	let service = {
@@ -440,7 +440,7 @@ describe("Test registry.findAction with internal actions", () => {
 });
 
 describe("Test registry.getEndpointByNodeID", () => {
-	const broker = new ServiceBroker({ internalActions: true, registry: { preferLocal: false } });
+	const broker = new ServiceBroker({ internalServices: true, registry: { preferLocal: false } });
 	const registry = broker.serviceRegistry;
 
 	let service = {
@@ -492,7 +492,7 @@ describe("Test registry.getEndpointByNodeID", () => {
 });
 
 describe("Test registry.hasAction", () => {
-	const broker = new ServiceBroker({ internalActions: false });
+	const broker = new ServiceBroker({ internalServices: false });
 	const registry = broker.serviceRegistry;
 
 	let service = {
@@ -521,7 +521,7 @@ describe("Test registry.hasAction", () => {
 });
 
 describe("Test registry.count", () => {
-	const broker = new ServiceBroker({ internalActions: false });
+	const broker = new ServiceBroker({ internalServices: false });
 	const registry = broker.serviceRegistry;
 
 	let service = {
@@ -549,7 +549,7 @@ describe("Test registry.count", () => {
 
 describe("Test registry.getServiceList", () => {
 	describe("Test without internal actions", () => {
-		const broker = new ServiceBroker({ internalActions: false });
+		const broker = new ServiceBroker({ internalServices: false });
 		const registry = broker.serviceRegistry;
 
 		let service = {
@@ -638,7 +638,7 @@ describe("Test registry.getServiceList", () => {
 	});
 
 	describe("Test with internal actions", () => {
-		const broker = new ServiceBroker({ internalActions: true });
+		const broker = new ServiceBroker({ internalServices: true });
 		const registry = broker.serviceRegistry;
 
 		it("should returns the internal list", () => {
@@ -651,7 +651,7 @@ describe("Test registry.getServiceList", () => {
 });
 
 describe("Test registry.getActionList", () => {
-	const broker = new ServiceBroker({ internalActions: true });
+	const broker = new ServiceBroker({ internalServices: true });
 	const registry = broker.serviceRegistry;
 
 	let service = {

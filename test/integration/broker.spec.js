@@ -43,7 +43,7 @@ describe("Test broker.registerInternalServices", () => {
 	let broker = new ServiceBroker({
 		nodeID: "server-1",
 		statistics: true,
-		internalActions: true,
+		internalServices: true,
 		transporter: new FakeTransporter()
 	});
 

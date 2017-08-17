@@ -64,7 +64,7 @@ const defaultConfig = {
 	metrics: false,
 	metricsRate: 1,
 	statistics: false,
-	internalActions: true,
+	internalServices: true,
 
 	// ServiceFactory: null,
 	// ContextFactory: null
@@ -150,7 +150,7 @@ class ServiceBroker {
 		this.getNodeHealthInfo = () => healthInfo(this);
 
 		// Register internal actions
-		if (this.options.internalActions)
+		if (this.options.internalServices)
 			this.registerInternalServices();
 
 		// Graceful exit
