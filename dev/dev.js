@@ -12,7 +12,7 @@ let broker1 = new ServiceBroker({
 	requestTimeout: 5000,
 	requestRetry: 3,
 	transporter: "NATS",
-	cacher: "redis://localhost",
+	//cacher: "redis://localhost",
 	serializer: "JSON",
 	circuitBreaker: {
 		enabled: true
@@ -31,15 +31,15 @@ let broker2 = new ServiceBroker({
 	logger: true,
 	logLevel: "info",
 	transporter: "NATS",
-	cacher: {
+	/*cacher: {
 		type: "Redis",
 		options: {
-			redis: { 
+			redis: {
 				host: "localhost",
 				db: 3
 			}
 		}
-	},
+	},*/
 	serializer: "JSON",
 	statistics: true
 });
@@ -52,7 +52,7 @@ broker2.createService({
 		}
 	}
 });*/
-//broker2.loadService("./examples/math.service");
+broker2.loadService("./examples/math.service");
 //broker2.loadService("./examples/file.service");
 broker2.loadService("./examples/test.service");
 broker2.loadService("./examples/user.service");
