@@ -39,7 +39,7 @@ describe("Test load services", () => {
 });
 
 
-describe("Test broker.registerInternalActions", () => {
+describe("Test broker.registerInternalServices", () => {
 	let broker = new ServiceBroker({
 		nodeID: "server-1",
 		statistics: true,
@@ -505,7 +505,7 @@ describe("Test local call", () => {
 			expect(ctx).toBeDefined();
 			expect(ctx.broker).toBe(broker);
 			expect(ctx.action.name).toBe("posts.find");
-			expect(ctx.nodeID).toBeNull();
+			expect(ctx.nodeID).toBe(broker.nodeID);
 			expect(ctx.params).toBeDefined();
 			expect(actionHandler).toHaveBeenCalledTimes(1);
 			expect(actionHandler).toHaveBeenCalledWith(ctx);

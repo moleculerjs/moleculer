@@ -80,7 +80,7 @@ describe("Test registry.init", () => {
 		expect(registry.broker).toBe(broker);
 		expect(registry.services.length).toBe(1);
 		expect(registry.services[0]).toBeInstanceOf(ServiceRegistry.ServiceItem);
-		expect(registry.services[0].nodeID).toBe(null);
+		expect(registry.services[0].nodeID).toBe(broker.nodeID);
 		expect(registry.services[0].name).toBe("$node");
 		expect(registry.services[0].version).toBeUndefined();
 		expect(registry.services[0].settings).toEqual({});
@@ -428,11 +428,13 @@ describe("Test registry.findAction with internal actions", () => {
 	it("should return the endpoint if action is exist", () => {
 		let endpoint = registry.findAction("$node.list").nextAvailable();
 		expect(endpoint).toBeDefined();
-		expect(endpoint.nodeID).toBeNull();
+		expect(endpoint.nodeID).toBe(broker.nodeID);
+		expect(endpoint.local).toBe(true);
 
 		endpoint = registry.findAction("$node.list").nextAvailable();
 		expect(endpoint).toBeDefined();
-		expect(endpoint.nodeID).toBeNull();
+		expect(endpoint.nodeID).toBe(broker.nodeID);
+		expect(endpoint.local).toBe(true);
 	});
 
 });
@@ -574,15 +576,15 @@ describe("Test registry.getServiceList", () => {
 		});
 
 		it("should return action list", () => {
-			registry.registerService(null, service);
-			registry.registerAction(null, action);
+			registry.registerService(broker.nodeID, service);
+			registry.registerAction(broker.nodeID, action);
 			expect(registry.getServiceList({
 				onlyLocal: true
 			})).toEqual([{
 				"name": "posts",
 				"settings": {},
 				"version": undefined,
-				"nodeID": null
+				"nodeID": broker.nodeID
 			}]);
 		});
 
@@ -598,7 +600,7 @@ describe("Test registry.getServiceList", () => {
 				"name": "posts",
 				"settings": {},
 				"version": undefined,
-				"nodeID": null
+				"nodeID": broker.nodeID
 			}]);
 		});
 
@@ -629,7 +631,7 @@ describe("Test registry.getServiceList", () => {
 				"name": "posts",
 				"settings": {},
 				"version": undefined,
-				"nodeID": null
+				"nodeID": broker.nodeID
 			}]);
 		});
 
@@ -641,7 +643,7 @@ describe("Test registry.getServiceList", () => {
 
 		it("should returns the internal list", () => {
 			expect(registry.getServiceList({}).length).toBe(1);
-			expect(registry.getServiceList({})).toEqual([{"name": "$node", "nodeID": null, "settings": {}, "version": undefined}]);
+			expect(registry.getServiceList({})).toEqual([{"name": "$node", "nodeID": broker.nodeID, "settings": {}, "version": undefined}]);
 			expect(registry.getServiceList({ skipInternal: true })).toEqual([]);
 		});
 
@@ -757,8 +759,8 @@ describe("Test registry.getActionList", () => {
 	});
 
 	it("should return action list", () => {
-		registry.registerService(null, service);
-		registry.registerAction(null, action);
+		registry.registerService(broker.nodeID, service);
+		registry.registerAction(broker.nodeID, action);
 		expect(registry.getActionList({ onlyLocal: false, skipInternal: true, withEndpoints: false })).toEqual([{"action": {"cache": true, "custom": 5, "name": "posts.find"}, "available": true, "count": 2, "hasLocal": true, "name": "posts.find"}]);
 	});
 
@@ -784,7 +786,7 @@ describe("Test registry.getActionList", () => {
 						"state": "close"
 					},
 					{
-						"nodeID": null,
+						"nodeID": broker.nodeID,
 						"state": "close"
 					}
 				],
@@ -838,7 +840,7 @@ describe("Test EndpointList constructor", () => {
 });
 
 describe("Test EndpointList add methods", () => {
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ nodeID: "node0" });
 	let list = new ServiceRegistry.EndpointList(broker);
 
 	let obj1 = { a: 1 };
@@ -854,7 +856,7 @@ describe("Test EndpointList add methods", () => {
 	});
 
 	it("should add & found local item", () => {
-		list.add(null, obj3); // local
+		list.add(broker.nodeID, obj3); // local
 
 		expect(list.localEndpoint).toBeDefined();
 		expect(list.localEndpoint.action).toBe(obj3);
@@ -996,7 +998,7 @@ describe("Test EndpointList get methods with an invalid custom strategy", () => 
 });
 
 describe("Test EndpointList nextAvailable methods with preferLocal", () => {
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ nodeID: "node0" });
 	let list = new ServiceRegistry.EndpointList(broker, {
 		preferLocal: true,
 		strategy: new Strategies.RoundRobin(),
@@ -1032,7 +1034,7 @@ describe("Test EndpointList nextAvailable methods with preferLocal", () => {
 	});
 
 	it("should return the local item if list is contains local item", () => {
-		list.add(null, obj0);
+		list.add(broker.nodeID, obj0);
 
 		let ep = list.nextAvailable();
 		expect(ep.action).toBe(obj0);
@@ -1052,7 +1054,7 @@ describe("Test EndpointList nextAvailable methods with preferLocal", () => {
 	});
 
 	it("should return the remote items if list is NOT contains local item", () => {
-		list.removeByNode(null);
+		list.removeByNode(broker.nodeID);
 		list.add("node2", obj2);
 		list.add("node3", obj3);
 
@@ -1067,7 +1069,7 @@ describe("Test EndpointList nextAvailable methods with preferLocal", () => {
 	});
 
 	it("should skip the unavailable items", () => {
-		list.removeByNode(null);
+		list.removeByNode(broker.nodeID);
 		list.add("node2", obj2);
 		list.add("node3", obj3);
 
@@ -1100,7 +1102,7 @@ describe("Test EndpointList nextAvailable methods with preferLocal", () => {
 });
 
 describe("Test EndpointList getAction method", () => {
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ nodeID: "node0" });
 	let list = new ServiceRegistry.EndpointList(broker);
 
 	let obj1 = { a: 1 };
@@ -1126,7 +1128,7 @@ describe("Test EndpointList getAction method", () => {
 });
 
 describe("Test EndpointList getLocalEndpoint & hasLocal methods", () => {
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ nodeID: "node0" });
 	let list = new ServiceRegistry.EndpointList(broker);
 
 	let obj1 = { a: 1 };
@@ -1141,7 +1143,7 @@ describe("Test EndpointList getLocalEndpoint & hasLocal methods", () => {
 	it("should return the local endpoint", () => {
 		list.add("node1", obj1);
 		list.add("node2", obj2);
-		list.add(null, obj3);
+		list.add(broker.nodeID, obj3);
 
 		expect(list.hasLocal()).toBe(true);
 		expect(list.getLocalEndpoint().action).toBe(obj3);
@@ -1149,7 +1151,7 @@ describe("Test EndpointList getLocalEndpoint & hasLocal methods", () => {
 	});
 
 	it("should return null after remove", () => {
-		list.removeByNode(null);
+		list.removeByNode(broker.nodeID);
 
 		expect(list.hasLocal()).toBe(false);
 		expect(list.getLocalEndpoint()).toBeNull();
@@ -1158,7 +1160,7 @@ describe("Test EndpointList getLocalEndpoint & hasLocal methods", () => {
 });
 
 describe("Test EndpointList removeByAction & removeByNode methods", () => {
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ nodeID: "node0" });
 	let list = new ServiceRegistry.EndpointList(broker);
 
 	let obj1 = { a: 1 };
@@ -1173,7 +1175,7 @@ describe("Test EndpointList removeByAction & removeByNode methods", () => {
 	it("should remove item by action", () => {
 		list.add("node1", obj1);
 		list.add("node2", obj2);
-		list.add(null, obj3);
+		list.add(broker.nodeID, obj3);
 
 		expect(list.count()).toBe(3);
 
@@ -1184,7 +1186,7 @@ describe("Test EndpointList removeByAction & removeByNode methods", () => {
 	it("should remove item by nodeID", () => {
 		expect(list.count()).toBe(2);
 
-		list.removeByNode(null);
+		list.removeByNode(broker.nodeID);
 		expect(list.count()).toBe(1);
 
 		list.removeByNode("node1");
@@ -1194,7 +1196,7 @@ describe("Test EndpointList removeByAction & removeByNode methods", () => {
 });
 
 describe("Test Endpoint constructor", () => {
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ nodeID: "node0" });
 	broker.emit = jest.fn();
 
 	const action = {
@@ -1216,11 +1218,11 @@ describe("Test Endpoint constructor", () => {
 	});
 
 	it("should create a local instance", () => {
-		let item = new ServiceRegistry.Endpoint(broker, null, action);
+		let item = new ServiceRegistry.Endpoint(broker, broker.nodeID, action);
 
 		expect(item).toBeDefined();
 		expect(item.broker).toBe(broker);
-		expect(item.nodeID).toBeNull();
+		expect(item.nodeID).toBe(broker.nodeID);
 		expect(item.action).toBe(action);
 		expect(item.local).toBe(true);
 		expect(item.state).toBe(CIRCUIT_CLOSE);
@@ -1233,7 +1235,7 @@ describe("Test Endpoint constructor", () => {
 			name: "user.find"
 		};
 
-		let item = new ServiceRegistry.Endpoint(broker, null, action);
+		let item = new ServiceRegistry.Endpoint(broker, broker.nodeID, action);
 		item.updateAction(action2);
 		expect(item.action).toBe(action2);
 	});
@@ -1255,7 +1257,7 @@ describe("Test Endpoint circuit methods", () => {
 
 	let item;
 	beforeEach(() => {
-		item = new ServiceRegistry.Endpoint(broker, null, action);
+		item = new ServiceRegistry.Endpoint(broker, broker.nodeID, action);
 	});
 
 	it("test available", () => {
@@ -1295,7 +1297,7 @@ describe("Test Endpoint circuit methods", () => {
 		expect(item.state).toBe(CIRCUIT_OPEN);
 		expect(item.cbTimer).toBeDefined();
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("circuit-breaker.open", { nodeID: null, action, failures: 0 });
+		expect(broker.emitLocal).toHaveBeenCalledWith("circuit-breaker.open", { nodeID: broker.nodeID, action, failures: 0 });
 
 		// circuitHalfOpen
 		expect(item.circuitHalfOpen).toHaveBeenCalledTimes(0);
@@ -1315,7 +1317,7 @@ describe("Test Endpoint circuit methods", () => {
 
 		expect(item.state).toBe(CIRCUIT_HALF_OPEN);
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("circuit-breaker.half-open", { nodeID: null, action });
+		expect(broker.emitLocal).toHaveBeenCalledWith("circuit-breaker.half-open", { nodeID: broker.nodeID, action });
 
 	});
 
@@ -1329,7 +1331,7 @@ describe("Test Endpoint circuit methods", () => {
 		expect(item.state).toBe(CIRCUIT_CLOSE);
 		expect(item.failures).toBe(0);
 		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("circuit-breaker.close", { nodeID: null, action });
+		expect(broker.emitLocal).toHaveBeenCalledWith("circuit-breaker.close", { nodeID: broker.nodeID, action });
 
 	});
 });
@@ -1345,10 +1347,12 @@ describe("Test ServiceItem constructor", () => {
 		handler: jest.fn()
 	};
 
+	let nodeID = "server-2";
+
 	it("should create instance", () => {
-		item = new ServiceRegistry.ServiceItem(null, "posts", 2, settings);
+		item = new ServiceRegistry.ServiceItem(nodeID, "posts", 2, settings, true);
 		expect(item).toBeDefined();
-		expect(item.nodeID).toBe(null);
+		expect(item.nodeID).toBe(nodeID);
 		expect(item.name).toBe("posts");
 		expect(item.version).toBe(2);
 		expect(item.settings).toBe(settings);
@@ -1366,7 +1370,7 @@ describe("Test ServiceItem constructor", () => {
 		expect(item.isSame("posts", null)).toBe(false);
 		expect(item.isSame("posts", 2)).toBe(true);
 
-		let item2 = new ServiceRegistry.ServiceItem(null, "users", undefined, settings);
+		let item2 = new ServiceRegistry.ServiceItem(nodeID, "users", undefined, settings, true);
 		expect(item2.isSame("users")).toBe(true);
 		expect(item2.isSame("users", null)).toBe(true);
 		expect(item2.isSame("users", 2)).toBe(false);

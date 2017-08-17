@@ -16,8 +16,6 @@ const { CIRCUIT_CLOSE, CIRCUIT_HALF_OPEN, CIRCUIT_OPEN } = require("./constants"
 
 //const { MoleculerError } = require("./errors");
 
-let LOCAL_NODE_ID;
-
 class ServiceRegistry {
 	/**
 	 * Creates an instance of ServiceRegistry.
@@ -49,7 +47,6 @@ class ServiceRegistry {
 	init(broker) {
 		this.broker = broker;
 		this.opts.strategy.init(broker);
-		LOCAL_NODE_ID = this.broker.LOCAL_NODE_ID;
 	}
 
 	/**
@@ -63,7 +60,7 @@ class ServiceRegistry {
 	registerService(nodeID, service) {
 		let item = this.findServiceByNode(nodeID, service.name, service.version);
 		if (!item) {
-			item = new ServiceItem(nodeID, service.name, service.version, service.settings);
+			item = new ServiceItem(nodeID, service.name, service.version, service.settings, nodeID == this.broker.nodeID);
 			this.services.push(item);
 		}
 	}
@@ -316,12 +313,12 @@ class ServiceRegistry {
 }
 
 class ServiceItem {
-	constructor(nodeID, name, version, settings) {
+	constructor(nodeID, name, version, settings, local) {
 		this.nodeID = nodeID;
 		this.name = name;
 		this.version = version;
 		this.settings = settings;
-		this.local = this.nodeID == LOCAL_NODE_ID;
+		this.local = local;
 		this.actions = {};
 	}
 
@@ -339,7 +336,7 @@ class Endpoint {
 		this.broker = broker;
 		this.nodeID = nodeID;
 		this.action = action;
-		this.local = this.nodeID == LOCAL_NODE_ID;
+		this.local = this.nodeID == broker.nodeID;
 
 		this.state = CIRCUIT_CLOSE;
 		this.failures = 0;
@@ -479,9 +476,6 @@ class EndpointList {
 	}
 
 	getEndpointByNodeID(nodeID) {
-		if (nodeID == this.broker.nodeID)
-			nodeID = LOCAL_NODE_ID;
-
 		const item = this.list.find(item => item.nodeID == nodeID);
 		if (item && item.available())
 			return item;
@@ -513,7 +507,7 @@ class EndpointList {
 
 	removeByNode(nodeID) {
 		_.remove(this.list, item => item.nodeID == nodeID);
-		if (nodeID == null)
+		if (nodeID == this.broker.nodeID)
 			this.localEndpoint = null;
 	}
 }

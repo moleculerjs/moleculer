@@ -66,7 +66,7 @@ const defaultConfig = {
 	metrics: false,
 	metricsRate: 1,
 	statistics: false,
-	internalActions: true
+	internalActions: true,
 
 	// ServiceFactory: null,
 	// ContextFactory: null
@@ -153,7 +153,7 @@ class ServiceBroker {
 
 		// Register internal actions
 		if (this.options.internalActions)
-			this.registerInternalActions();
+			this.registerInternalServices();
 
 		// Graceful exit
 		this._closeFn = () => {
@@ -482,7 +482,7 @@ class ServiceBroker {
 			})
 			.then(() => {
 				_.remove(this.services, svc => svc == service);
-				this.serviceRegistry.unregisterService(LOCAL_NODE_ID, service.name);
+				this.serviceRegistry.unregisterService(this.nodeID, service.name);
 
 				this.logger.info(`Service '${service.name}' is destroyed!`);
 				this.servicesChanged();
@@ -499,7 +499,7 @@ class ServiceBroker {
 	registerLocalService(service) {
 		this.services.push(service);
 
-		this.serviceRegistry.registerService(LOCAL_NODE_ID, service);
+		this.serviceRegistry.registerService(this.nodeID, service);
 
 		//this.emitLocal(`register.service.${service.name}`, service);
 		this.logger.info(`'${service.name}' service is registered!`);
@@ -534,7 +534,7 @@ class ServiceBroker {
 	 */
 	registerAction(nodeID, action) {
 		// Wrap middlewares on local actions
-		if (nodeID == LOCAL_NODE_ID)
+		if (nodeID == this.nodeID)
 			this.wrapAction(action);
 
 		this.serviceRegistry.registerAction(nodeID, action);
@@ -586,87 +586,12 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Register internal actions
+	 * Register internal services
 	 *
 	 * @memberOf ServiceBroker
 	 */
-	registerInternalActions() {
+	registerInternalServices() {
 		this.createService(require("./internals")(this));
-		/*this.serviceRegistry.registerService(LOCAL_NODE_ID, {
-			name: "$node",
-			settings: {}
-		});
-
-		const addAction = (name, handler) => {
-			this.registerAction(LOCAL_NODE_ID, {
-				name,
-				cache: false,
-				handler: Promise.method(handler),
-				service: {
-					name: "$node"
-				}
-			});
-		};
-
-		addAction("$node.list", () => {
-			let res = [];
-			const localNode = this.transit.getNodeInfo();
-			localNode.id = LOCAL_NODE_ID;
-			localNode.available = true;
-			res.push(localNode);
-
-			this.transit.nodes.forEach(node => {
-				//res.push(pick(node, ["nodeID", "available"]));
-				res.push(node);
-			});
-
-			return res;
-		});
-
-		addAction("$node.services", ctx => {
-			let res = [];
-
-			const services = this.serviceRegistry.getServiceList(ctx.params);
-
-			services.forEach(svc => {
-				let item = res.find(o => o.name == svc.name && o.version == svc.version);
-				if (item) {
-					item.nodes.push(svc.nodeID);
-					// Merge services
-					_.forIn(svc.actions, (action, name) => {
-						if (action.protected === true) return;
-
-						if (!item.actions[name])
-							item.actions[name] = _.omit(action, ["handler", "service"]);
-					});
-
-				} else {
-					item = _.pick(svc, ["name", "version", "settings"]);
-					item.nodes = [svc.nodeID];
-					item.actions = {};
-					_.forIn(svc.actions, (action, name) => {
-						if (action.protected === true) return;
-
-						item.actions[name] = _.omit(action, ["handler", "service"]);
-					});
-					res.push(item);
-				}
-			});
-
-			return res;
-		});
-
-		addAction("$node.actions", ctx => {
-			return this.serviceRegistry.getActionList(ctx.params);
-		});
-
-		addAction("$node.health", () => this.getNodeHealthInfo());
-
-		if (this.statistics) {
-			addAction("$node.stats", () => {
-				return this.statistics.snapshot();
-			});
-		}*/
 	}
 
 	/**
@@ -984,11 +909,11 @@ class ServiceBroker {
 			err = new E.MoleculerError(err, 500);
 		}
 		if (err instanceof Promise.TimeoutError)
-			err = new E.RequestTimeoutError(actionName, nodeID || this.nodeID);
+			err = new E.RequestTimeoutError(actionName, nodeID);
 
 		err.ctx = ctx;
 
-		if (nodeID) {
+		if (nodeID != this.nodeID) {
 			// Remove pending request
 			this.transit.removePendingRequest(ctx.id);
 		}

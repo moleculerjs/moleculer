@@ -894,7 +894,7 @@ describe("Test broker.destroyService", () => {
 			expect(stopped).toHaveBeenCalledTimes(1);
 
 			expect(broker.serviceRegistry.unregisterService).toHaveBeenCalledTimes(1);
-			expect(broker.serviceRegistry.unregisterService).toHaveBeenCalledWith(null, "greeter");
+			expect(broker.serviceRegistry.unregisterService).toHaveBeenCalledWith(broker.nodeID, "greeter");
 
 			expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
 
@@ -957,7 +957,7 @@ describe("Test broker.registerLocalService", () => {
 		expect(broker.services.length).toBe(1);
 		expect(broker.services[0]).toBe(service);
 		expect(broker.serviceRegistry.registerService).toHaveBeenCalledTimes(1);
-		expect(broker.serviceRegistry.registerService).toHaveBeenCalledWith(null, service);
+		expect(broker.serviceRegistry.registerService).toHaveBeenCalledWith(broker.nodeID, service);
 	});
 
 });
@@ -1006,14 +1006,14 @@ describe("Test broker.registerAction", () => {
 			service: { name: "user" }
 		};
 
-		broker.registerAction(null, action);
+		broker.registerAction(broker.nodeID, action);
 		expect(broker.wrapAction).toHaveBeenCalledTimes(1);
 
 		expect(broker.serviceRegistry.registerAction).toHaveBeenCalledTimes(1);
-		expect(broker.serviceRegistry.registerAction).toHaveBeenCalledWith(null, action);
+		expect(broker.serviceRegistry.registerAction).toHaveBeenCalledWith(broker.nodeID, action);
 
 		// expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		// expect(broker.emitLocal).toHaveBeenCalledWith("register.action.user.list", { action, nodeID: null });
+		// expect(broker.emitLocal).toHaveBeenCalledWith("register.action.user.list", { action, nodeID: broker.nodeID });
 	});
 
 	it("should push to the actions & emit an event with nodeID", () => {
@@ -1229,10 +1229,10 @@ describe("Test broker.unregisterAction", () => {
 	};
 
 	it("should call unregister of serviceRegistry without nodeID", () => {
-		broker.unregisterAction(null, action);
+		broker.unregisterAction(broker.nodeID, action);
 
 		expect(broker.serviceRegistry.unregisterAction).toHaveBeenCalledTimes(1);
-		expect(broker.serviceRegistry.unregisterAction).toHaveBeenCalledWith(null, action);
+		expect(broker.serviceRegistry.unregisterAction).toHaveBeenCalledWith(broker.nodeID, action);
 	});
 
 	it("should call unregister of serviceRegistry with nodeID", () => {
@@ -1245,7 +1245,7 @@ describe("Test broker.unregisterAction", () => {
 	});
 });
 
-describe("Test broker.registerInternalActions", () => {
+describe("Test broker.registerInternalServices", () => {
 
 	it("should register internal action without statistics", () => {
 		let broker = new ServiceBroker({
@@ -1254,7 +1254,7 @@ describe("Test broker.registerInternalActions", () => {
 		});
 
 		broker.createService = jest.fn();
-		broker.registerInternalActions();
+		broker.registerInternalServices();
 
 		expect(broker.createService).toHaveBeenCalledTimes(1);
 		expect(broker.createService).toHaveBeenCalledWith({ name: "$node", actions: {
@@ -1272,7 +1272,7 @@ describe("Test broker.registerInternalActions", () => {
 		});
 
 		broker.createService = jest.fn();
-		broker.registerInternalActions();
+		broker.registerInternalServices();
 
 		expect(broker.createService).toHaveBeenCalledTimes(1);
 		expect(broker.createService).toHaveBeenCalledWith({ name: "$node", actions: {
@@ -1400,7 +1400,7 @@ describe("Test broker.isActionAvailable", () => {
 	});
 
 	it("should not find handler for action by name", () => {
-		broker.unregisterAction(null, { name: "posts.list" });
+		broker.unregisterAction(broker.nodeID, { name: "posts.list" });
 		expect(broker.hasAction("posts.list")).toBe(true);
 		expect(broker.isActionAvailable("posts.list")).toBe(false);
 	});
@@ -1458,7 +1458,7 @@ describe("Test broker.call method", () => {
 		});
 
 		it("should reject if no handler", () => {
-			broker.unregisterAction(null, { name: "posts.noHandler" });
+			broker.unregisterAction(broker.nodeID, { name: "posts.noHandler" });
 			return broker.call("posts.noHandler").catch(err => {
 				expect(err).toBeDefined();
 				expect(err).toBeInstanceOf(ServiceNotFoundError);
@@ -1468,7 +1468,7 @@ describe("Test broker.call method", () => {
 		});
 
 		it("should reject if no action on node", () => {
-			broker.unregisterAction(null, { name: "posts.noHandler" });
+			broker.unregisterAction(broker.nodeID, { name: "posts.noHandler" });
 			return broker.call("posts.noHandler", {}, { nodeID: "node-123"}).catch(err => {
 				expect(err).toBeDefined();
 				expect(err).toBeInstanceOf(ServiceNotFoundError);
@@ -1482,7 +1482,7 @@ describe("Test broker.call method", () => {
 			return p.then(ctx => {
 				expect(ctx).toBeDefined();
 				expect(ctx.broker).toBe(broker);
-				expect(ctx.nodeID).toBeNull();
+				expect(ctx.nodeID).toBe(broker.nodeID);
 				expect(ctx.level).toBe(1);
 				expect(ctx.requestID).toBeNull();
 				expect(ctx.action.name).toBe("posts.find");
@@ -1535,7 +1535,7 @@ describe("Test broker.call method", () => {
 			return broker.call("posts.find", { b: 10 }, { parentCtx, meta: { b: "Adam" } }).then(ctx => {
 				expect(ctx).toBeDefined();
 				expect(ctx.broker).toBe(broker);
-				expect(ctx.nodeID).toBeNull();
+				expect(ctx.nodeID).toBe(broker.nodeID);
 				expect(ctx.level).toBe(2);
 				expect(ctx.parentID).toBe(parentCtx.id);
 				expect(ctx.requestID).toBe("555");
@@ -1579,7 +1579,7 @@ describe("Test broker.call method", () => {
 			return broker.call("posts.find", { b: 10 }, { ctx: preCtx }).then(ctx => {
 				expect(ctx).toBe(preCtx);
 				expect(ctx.broker).toBe(broker);
-				expect(ctx.nodeID).toBeNull();
+				expect(ctx.nodeID).toBe(broker.nodeID);
 				expect(ctx.level).toBe(1);
 				expect(ctx.parentID).toBeNull();
 				expect(ctx.requestID).toBe("555");
@@ -1711,7 +1711,7 @@ describe("Test broker.call method", () => {
 		});
 		const service = { name: "user" };
 		const localHandler = jest.fn(ctx => Promise.resolve(ctx));
-		broker.registerAction(null, {	name: "user.create", service, handler: localHandler });
+		broker.registerAction(broker.nodeID, {	name: "user.create", service, handler: localHandler });
 		broker.registerAction("server-1", {	name: "user.create", service });
 		broker.registerAction("server-2", {	name: "user.create", service });
 		broker.registerAction("server-3", {	name: "user.create", service });
@@ -1749,11 +1749,11 @@ describe("Test broker.call method", () => {
 			});
 		});
 
-		it("should call local transit.request with nodeID 'server-0'", () => {
+		it("should call local handler with local nodeID", () => {
 			return broker.call("user.create", {}, { nodeID: "server-0" }).then(ctx => {
 				expect(ctx).toBeDefined();
 				expect(ctx.broker).toBe(broker);
-				expect(ctx.nodeID).toBe(null);
+				expect(ctx.nodeID).toBe("server-0");
 				expect(ctx.level).toBe(1);
 				expect(ctx.requestID).toBeNull();
 				expect(ctx.action.name).toBe("user.create");
