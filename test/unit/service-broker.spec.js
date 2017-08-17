@@ -802,6 +802,7 @@ describe("Test broker.loadService", () => {
 
 	let broker = new ServiceBroker();
 	broker.createService = jest.fn(svc => svc);
+	broker.servicesChanged = jest.fn();
 
 	it("should load service from schema", () => {
 		// Load schema
@@ -816,6 +817,7 @@ describe("Test broker.loadService", () => {
 		let service = broker.loadService("./test/services/user.service.js");
 		expect(service).toBeInstanceOf(Service);
 		expect(broker.createService).toHaveBeenCalledTimes(0);
+		expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
 	});
 
 	it("should call function which returns schema", () => {
