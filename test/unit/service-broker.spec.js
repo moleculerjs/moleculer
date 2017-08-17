@@ -660,7 +660,7 @@ describe("Test broker.getLogger", () => {
 
 	it("should create default console logger with logFormatter", () => {
 		let logFormatter = jest.fn();
-		let broker = new ServiceBroker({ logger: true, logFormatter });
+		let broker = new ServiceBroker({ internalActions: false, logger: true, logFormatter });
 
 		console.info.mockClear();
 		broker.logger.info("Teszt", { a: 5 });
@@ -674,7 +674,7 @@ describe("Test broker.getLogger", () => {
 		let broker;
 
 		it("should call logger function with broker bindings", () => {
-			broker = new ServiceBroker({ logger, namespace: "testing", nodeID: "test-pc" });
+			broker = new ServiceBroker({ internalActions: false, logger, namespace: "testing", nodeID: "test-pc" });
 
 			expect(logger).toHaveBeenCalledTimes(1);
 			expect(logger).toHaveBeenCalledWith({"mod": "broker", "nodeID": "test-pc", "ns": "testing"});
@@ -702,7 +702,7 @@ describe("Test broker.getLogger", () => {
 		let logger = {
 			info: jest.fn()
 		};
-		let broker = new ServiceBroker({ logger });
+		let broker = new ServiceBroker({ internalActions: false, logger });
 
 		expect(logger.fatal).toBeDefined();
 		expect(logger.error).toBeDefined();
@@ -873,7 +873,7 @@ describe("Test broker.createService", () => {
 describe("Test broker.destroyService", () => {
 
 	let stopped = jest.fn();
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ internalActions: false });
 	let service = broker.createService({
 		name: "greeter",
 		actions: {
@@ -944,7 +944,7 @@ describe("Test broker.servicesChanged", () => {
 
 describe("Test broker.registerLocalService", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ internalActions: false });
 	broker.emitLocal = jest.fn();
 	broker.serviceRegistry.registerService = jest.fn();
 
@@ -964,7 +964,7 @@ describe("Test broker.registerLocalService", () => {
 
 describe("Test broker.registerRemoteService", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ internalActions: false });
 	broker.serviceRegistry.registerService = jest.fn();
 	broker.registerAction = jest.fn();
 
@@ -1252,16 +1252,17 @@ describe("Test broker.registerInternalActions", () => {
 			statistics: false,
 			internalActions: false
 		});
-		const service = {"name": "$node"};
 
-		broker.registerAction = jest.fn();
+		broker.createService = jest.fn();
 		broker.registerInternalActions();
 
-		expect(broker.registerAction).toHaveBeenCalledTimes(4);
-		expect(broker.registerAction).toHaveBeenCalledWith(null, { name: "$node.list", cache: false, handler: jasmine.any(Function), service });
-		expect(broker.registerAction).toHaveBeenCalledWith(null, { name: "$node.services", cache: false, handler: jasmine.any(Function), service });
-		expect(broker.registerAction).toHaveBeenCalledWith(null, { name: "$node.actions", cache: false, handler: jasmine.any(Function), service });
-		expect(broker.registerAction).toHaveBeenCalledWith(null, { name: "$node.health", cache: false, handler: jasmine.any(Function), service });
+		expect(broker.createService).toHaveBeenCalledTimes(1);
+		expect(broker.createService).toHaveBeenCalledWith({ name: "$node", actions: {
+			list: jasmine.any(Object),
+			services: jasmine.any(Object),
+			actions: jasmine.any(Object),
+			health: jasmine.any(Object),
+		} });
 	});
 
 	it("should register internal action with statistics", () => {
@@ -1269,13 +1270,18 @@ describe("Test broker.registerInternalActions", () => {
 			statistics: true,
 			internalActions: false
 		});
-		const service = {"name": "$node"};
 
-		broker.registerAction = jest.fn();
+		broker.createService = jest.fn();
 		broker.registerInternalActions();
 
-		expect(broker.registerAction).toHaveBeenCalledTimes(5);
-		expect(broker.registerAction).toHaveBeenCalledWith(null, { name: "$node.stats", cache: false, handler: jasmine.any(Function), service });
+		expect(broker.createService).toHaveBeenCalledTimes(1);
+		expect(broker.createService).toHaveBeenCalledWith({ name: "$node", actions: {
+			list: jasmine.any(Object),
+			services: jasmine.any(Object),
+			actions: jasmine.any(Object),
+			health: jasmine.any(Object),
+			stats: jasmine.any(Object),
+		} });
 	});
 });
 

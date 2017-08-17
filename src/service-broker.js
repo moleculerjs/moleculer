@@ -591,7 +591,8 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	registerInternalActions() {
-		this.serviceRegistry.registerService(LOCAL_NODE_ID, {
+		this.createService(require("./internals")(this));
+		/*this.serviceRegistry.registerService(LOCAL_NODE_ID, {
 			name: "$node",
 			settings: {}
 		});
@@ -665,7 +666,7 @@ class ServiceBroker {
 			addAction("$node.stats", () => {
 				return this.statistics.snapshot();
 			});
-		}
+		}*/
 	}
 
 	/**

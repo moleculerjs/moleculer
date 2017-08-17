@@ -674,7 +674,8 @@ describe("Test registry.getActionList", () => {
 			{
 				"action": {
 					"cache": false,
-					"name": "$node.list"
+					"name": "$node.list",
+					"version": undefined
 				},
 				"available": true,
 				"count": 1,
@@ -684,7 +685,22 @@ describe("Test registry.getActionList", () => {
 			{
 				"action": {
 					"cache": false,
-					"name": "$node.services"
+					"name": "$node.services",
+					"params": {
+						"onlyLocal": {
+							"optional": true,
+							"type": "boolean"
+						},
+						"skipInternal": {
+							"optional": true,
+							"type": "boolean"
+						},
+						"withActions": {
+							"optional": true,
+							"type": "boolean"
+						}
+					},
+					"version": undefined
 				},
 				"available": true,
 				"count": 1,
@@ -694,7 +710,22 @@ describe("Test registry.getActionList", () => {
 			{
 				"action": {
 					"cache": false,
-					"name": "$node.actions"
+					"name": "$node.actions",
+					"params": {
+						"onlyLocal": {
+							"optional": true,
+							"type": "boolean"
+						},
+						"skipInternal": {
+							"optional": true,
+							"type": "boolean"
+						},
+						"withEndpoints": {
+							"optional": true,
+							"type": "boolean"
+						}
+					},
+					"version": undefined
 				},
 				"available": true,
 				"count": 1,
@@ -704,7 +735,8 @@ describe("Test registry.getActionList", () => {
 			{
 				"action": {
 					"cache": false,
-					"name": "$node.health"
+					"name": "$node.health",
+					"version": undefined
 				},
 				"available": true,
 				"count": 1,

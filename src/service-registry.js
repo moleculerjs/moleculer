@@ -7,6 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
+const { MoleculerError } = require("./errors");
 
 const RoundRobinStrategy = require("./strategies/round-robin");
 
@@ -294,6 +295,7 @@ class ServiceRegistry {
 				const ep = entry.list[0];
 				item.action = _.omit(ep.action, ["handler", "service"]);
 			}
+			if (item.action.protected === true) return;
 
 			if (withEndpoints) {
 				if (item.count > 0) {
@@ -427,7 +429,7 @@ class EndpointList {
 	get() {
 		const ret = this.getStrategy().select(this.list);
 		if (!ret) {
-			throw new Error(`Strategy ${typeof(this.getStrategy())} returned an invalid endpoint.`);
+			throw new MoleculerError(`Strategy ${typeof(this.getStrategy())} returned an invalid endpoint.`);
 		}
 		return ret;
 	}
