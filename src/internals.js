@@ -47,7 +47,7 @@ module.exports = function(broker) {
 					services.forEach(svc => {
 						let item = res.find(o => o.name == svc.name && o.version == svc.version);
 						if (item) {
-							item.nodes.push(svc.nodeID || this.broker.nodeID);
+							item.nodes.push(svc.nodeID);
 							// Merge services
 							_.forIn(svc.actions, (action, name) => {
 								if (action.protected === true) return;
@@ -58,7 +58,7 @@ module.exports = function(broker) {
 
 						} else {
 							item = _.pick(svc, ["name", "version", "settings"]);
-							item.nodes = [svc.nodeID || this.broker.nodeID];
+							item.nodes = [svc.nodeID];
 							item.actions = {};
 							_.forIn(svc.actions, (action, name) => {
 								if (action.protected === true) return;
