@@ -477,6 +477,9 @@ class EndpointList {
 	}
 
 	getEndpointByNodeID(nodeID) {
+		if (nodeID == this.broker.nodeID)
+			nodeID = LOCAL_NODE_ID;
+
 		const item = this.list.find(item => item.nodeID == nodeID);
 		if (item && item.available())
 			return item;

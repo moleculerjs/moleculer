@@ -62,7 +62,7 @@ broker1.Promise.resolve()
 	.then(() => broker1.start())
 	.then(() => broker2.start())
 	.delay(500)
-	.then(() => broker1.call("$node.actions", { onlyLocal: true }, { nodeID: "node2" }))
+	.then(() => broker1.call("$node.actions", { onlyLocal: true }, { nodeID: "node1" }))
 	//.then(res => console.log(res))
 	.catch(err => console.log(err))
 	.then(() => broker1.repl());

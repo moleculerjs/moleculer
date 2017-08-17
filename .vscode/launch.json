@@ -46,9 +46,9 @@
 			"program": "${workspaceRoot}\\dev\\index.js",
 			"cwd": "${workspaceRoot}",
 			"args": [
-				"logger"
+				"dev"
 			]
-		},		
+		},
 		{
 			"type": "node",
 			"request": "launch",
@@ -81,7 +81,7 @@
 			"name": "Moleculer-runner",
 			"program": "${workspaceRoot}\\bin\\moleculer-runner.js",
 			"cwd": "${workspaceRoot}"
-		},		
+		},
 		{
 			"type": "node",
 			"request": "attach",
