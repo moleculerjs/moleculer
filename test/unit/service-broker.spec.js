@@ -2108,15 +2108,15 @@ describe("Test broker.shouldMetric", () => {
 	});
 });
 
-describe("Test broker.emitLocal", () => {
-	let broker = new ServiceBroker();
+describe("Test broker emit & emitLocal", () => {
+	let broker = new ServiceBroker({ nodeID: "server-1" });
 	broker.bus.emit = jest.fn();
 
 	it("should call bus.emit without payload", () => {
 		broker.emit("test.event");
 
 		expect(broker.bus.emit).toHaveBeenCalledTimes(1);
-		expect(broker.bus.emit).toHaveBeenCalledWith("test.event", undefined, null);
+		expect(broker.bus.emit).toHaveBeenCalledWith("test.event", undefined, "server-1");
 	});
 
 	it("should call bus.emit with object payload", () => {
@@ -2124,7 +2124,23 @@ describe("Test broker.emitLocal", () => {
 		broker.emit("user.event", { name: "John" });
 
 		expect(broker.bus.emit).toHaveBeenCalledTimes(1);
-		expect(broker.bus.emit).toHaveBeenCalledWith("user.event", { name: "John" }, null);
+		expect(broker.bus.emit).toHaveBeenCalledWith("user.event", { name: "John" }, "server-1");
+	});
+
+	it("should call bus.emit with object payload", () => {
+		broker.bus.emit.mockClear();
+		broker.emitLocal("user.event", { name: "John" });
+
+		expect(broker.bus.emit).toHaveBeenCalledTimes(1);
+		expect(broker.bus.emit).toHaveBeenCalledWith("user.event", { name: "John" }, "server-1");
+	});
+
+	it("should call bus.emit with object payload", () => {
+		broker.bus.emit.mockClear();
+		broker.emitLocal("user.event", { name: "John" }, "server-2");
+
+		expect(broker.bus.emit).toHaveBeenCalledTimes(1);
+		expect(broker.bus.emit).toHaveBeenCalledWith("user.event", { name: "John" }, "server-2");
 	});
 });
 

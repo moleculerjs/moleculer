@@ -1006,15 +1006,15 @@ class ServiceBroker {
 	 *
 	 * @param {string} eventName
 	 * @param {any} payload
-	 * @param {string=} nodeID of server
+	 * @param {string=} Sender nodeID
 	 * @returns {boolean}
 	 *
 	 * @memberOf ServiceBroker
 	 */
-	emitLocal(eventName, payload, sender = null) {
+	emitLocal(eventName, payload, sender) {
 		this.logger.debug("Event emitted:", eventName);
 
-		return this.bus.emit(eventName, payload, sender);
+		return this.bus.emit(eventName, payload, sender || this.nodeID);
 	}
 
 }
