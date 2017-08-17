@@ -433,7 +433,11 @@ class ServiceBroker {
 			svc = schema(this);
 			if (!(svc instanceof this.ServiceFactory)) {
 				svc = this.createService(svc);
+			} else {
+				// Need to call changed because we didn't call the `createService`.
+				this.servicesChanged();
 			}
+
 		} else {
 			svc = this.createService(schema);
 		}
