@@ -1698,11 +1698,14 @@ describe("Test broker.call method", () => {
 	describe("Test direct remote call", () => {
 
 		let broker = new ServiceBroker({
+			nodeID: "server-0",
 			transporter: new FakeTransporter(),
 			internalActions: false,
 			metrics: true
 		});
 		const service = { name: "user" };
+		const localHandler = jest.fn(ctx => Promise.resolve(ctx));
+		broker.registerAction(null, {	name: "user.create", service, handler: localHandler });
 		broker.registerAction("server-1", {	name: "user.create", service });
 		broker.registerAction("server-2", {	name: "user.create", service });
 		broker.registerAction("server-3", {	name: "user.create", service });
@@ -1724,7 +1727,7 @@ describe("Test broker.call method", () => {
 			});
 		});
 
-		it("should call transit.request with nodeID 'server-3'", () => {
+		it("should call transit.request with nodeID 'server-1'", () => {
 			broker.transit.request.mockClear();
 			return broker.call("user.create", {}, { nodeID: "server-1" }).then(({ ctx }) => {
 				expect(ctx).toBeDefined();
@@ -1737,6 +1740,21 @@ describe("Test broker.call method", () => {
 
 				expect(broker.transit.request).toHaveBeenCalledTimes(1);
 				expect(broker.transit.request).toHaveBeenCalledWith(ctx);
+			});
+		});
+
+		it("should call local transit.request with nodeID 'server-0'", () => {
+			return broker.call("user.create", {}, { nodeID: "server-0" }).then(ctx => {
+				expect(ctx).toBeDefined();
+				expect(ctx.broker).toBe(broker);
+				expect(ctx.nodeID).toBe(null);
+				expect(ctx.level).toBe(1);
+				expect(ctx.requestID).toBeNull();
+				expect(ctx.action.name).toBe("user.create");
+				expect(ctx.params).toEqual({});
+
+				expect(localHandler).toHaveBeenCalledTimes(1);
+				expect(localHandler).toHaveBeenCalledWith(ctx);
 			});
 		});
 
