@@ -47,6 +47,7 @@ describe("Test Context", () => {
 
 		expect(ctx.broker).toBe(broker);
 		expect(ctx.action).toBe(action);
+		expect(ctx.nodeID).toBe(broker.nodeID);
 	});
 });
 

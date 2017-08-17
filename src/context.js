@@ -12,7 +12,7 @@ const { RequestSkippedError } = require("./errors");
 
 /**
  * Context class for action calls
- * 
+ *
  * @property {String} id - Context ID
  * @property {ServiceBroker} broker - Broker instance
  * @property {Action} action - Action definition
@@ -20,23 +20,23 @@ const { RequestSkippedError } = require("./errors");
  * @property {String} parentID - Parent Context ID
  * @property {Boolean} metrics - Need send metrics events
  * @property {Number} [level=1] - Level of context
- * 
+ *
  * @class Context
  */
 class Context {
 
 	/**
 	 * Creates an instance of Context.
-	 * 
+	 *
 	 * @param {ServiceBroker} broker - Broker instance
-	 * @param {Action} action - Action definition 
-	 * 
+	 * @param {Action} action - Action definition
+	 *
 	 * @example
 	 * let ctx = new Context(broker, action);
-	 * 
+	 *
 	 * @example
 	 * let ctx2 = new Context(broker, action);
-	 * 
+	 *
 	 * @memberOf Context
 	 */
 	constructor(broker, action) {
@@ -44,7 +44,7 @@ class Context {
 
 		this.broker = broker;
 		this.action = action;
-		this.nodeID = null;
+		this.nodeID = broker ? broker.nodeID : null;
 		this.parentID = null;
 		this.callerNodeID = null;
 
@@ -73,10 +73,10 @@ class Context {
 
 	/**
 	 * Set params of context
-	 * 
+	 *
 	 * @param {Object} newParams
 	 * @param {Boolean} cloning
-	 * 
+	 *
 	 * @memberOf Context
 	 */
 	setParams(newParams, cloning = false) {
@@ -88,15 +88,15 @@ class Context {
 
 	/**
 	 * Call an other action. It will be create a sub-context.
-	 * 
+	 *
 	 * @param {String} actionName
 	 * @param {Object?} params
 	 * @param {Object?} opts
 	 * @returns {Promise}
-	 * 
+	 *
 	 * @example <caption>Call an other service with params & options</caption>
 	 * ctx.call("posts.get", { id: 12 }, { timeout: 1000 });
-	 * 
+	 *
 	 * @memberOf Context
 	 */
 	call(actionName, params, opts = {}) {
@@ -118,14 +118,14 @@ class Context {
 
 	/**
 	 * Call a global event (with broker.emit).
-	 * 
+	 *
 	 * @param {String} eventName
 	 * @param {any} data
 	 * @returns
-	 * 
+	 *
 	 * @example
 	 * ctx.emit("user.created", { entity: user, creator: ctx.meta.user });
-	 * 
+	 *
 	 * @memberOf Context
 	 */
 	emit(eventName, data) {
@@ -134,9 +134,9 @@ class Context {
 
 	/**
 	 * Send start event to metrics system.
-	 * 
+	 *
 	 * @param {boolean} emitEvent
-	 * 
+	 *
 	 * @private
 	 * @memberOf Context
 	 */
@@ -161,7 +161,7 @@ class Context {
 			if (this.parentID)
 				payload.parent = this.parentID;
 
-			payload.nodeID = this.broker.nodeID;
+			payload.nodeID = this.nodeID;
 			if (this.callerNodeID)
 				payload.callerNodeID = this.callerNodeID;
 
@@ -171,10 +171,10 @@ class Context {
 
 	/**
 	 * Send finish event to metrics system.
-	 * 	   
+	 *
 	 * @param {Error} error
 	 * @param {boolean} emitEvent
-	 * 
+	 *
 	 * @private
 	 * @memberOf Context
 	 */
@@ -204,7 +204,7 @@ class Context {
 			if (this.parentID)
 				payload.parent = this.parentID;
 
-			payload.nodeID = this.broker.nodeID;
+			payload.nodeID = this.nodeID;
 			if (this.callerNodeID)
 				payload.callerNodeID = this.callerNodeID;
 
