@@ -39,11 +39,11 @@ describe("Test load services", () => {
 });
 
 
-describe("Test broker.registerInternalActions", () => {
+describe("Test broker.registerInternalServices", () => {
 	let broker = new ServiceBroker({
-		statistics: true,
-		internalActions: true,
 		nodeID: "server-1",
+		statistics: true,
+		internalServices: true,
 		transporter: new FakeTransporter()
 	});
 
@@ -64,7 +64,8 @@ describe("Test broker.registerInternalActions", () => {
 				{
 					"action": {
 						"cache": false,
-						"name": "$node.list"
+						"name": "$node.list",
+						"version": undefined
 					},
 					"available": true,
 					"count": 1,
@@ -74,7 +75,22 @@ describe("Test broker.registerInternalActions", () => {
 				{
 					"action": {
 						"cache": false,
-						"name": "$node.services"
+						"name": "$node.services",
+						"params": {
+							"onlyLocal": {
+								"optional": true,
+								"type": "boolean"
+							},
+							"skipInternal": {
+								"optional": true,
+								"type": "boolean"
+							},
+							"withActions": {
+								"optional": true,
+								"type": "boolean"
+							}
+						},
+						"version": undefined
 					},
 					"available": true,
 					"count": 1,
@@ -84,7 +100,22 @@ describe("Test broker.registerInternalActions", () => {
 				{
 					"action": {
 						"cache": false,
-						"name": "$node.actions"
+						"name": "$node.actions",
+						"params": {
+							"onlyLocal": {
+								"optional": true,
+								"type": "boolean"
+							},
+							"skipInternal": {
+								"optional": true,
+								"type": "boolean"
+							},
+							"withEndpoints": {
+								"optional": true,
+								"type": "boolean"
+							}
+						},
+						"version": undefined
 					},
 					"available": true,
 					"count": 1,
@@ -94,7 +125,8 @@ describe("Test broker.registerInternalActions", () => {
 				{
 					"action": {
 						"cache": false,
-						"name": "$node.health"
+						"name": "$node.health",
+						"version": undefined
 					},
 					"available": true,
 					"count": 1,
@@ -104,7 +136,8 @@ describe("Test broker.registerInternalActions", () => {
 				{
 					"action": {
 						"cache": false,
-						"name": "$node.stats"
+						"name": "$node.stats",
+						"version": undefined
 					},
 					"available": true,
 					"count": 1,
@@ -232,30 +265,66 @@ describe("Test broker.registerInternalActions", () => {
 				"actions": {
 					"$node.actions": {
 						"cache": false,
-						"name": "$node.actions"
+						"name": "$node.actions",
+						"params": {
+							"onlyLocal": {
+								"optional": true,
+								"type": "boolean"
+							},
+							"skipInternal": {
+								"optional": true,
+								"type": "boolean"
+							},
+							"withEndpoints": {
+								"optional": true,
+								"type": "boolean"
+							}
+						},
+						"version": undefined
 					},
 					"$node.health": {
 						"cache": false,
-						"name": "$node.health"
+						"name": "$node.health",
+						"version": undefined
 					},
 					"$node.list": {
 						"cache": false,
-						"name": "$node.list"
+						"name": "$node.list",
+						"version": undefined
 					},
 					"$node.services": {
 						"cache": false,
-						"name": "$node.services"
+						"name": "$node.services",
+						"params": {
+							"onlyLocal": {
+								"optional": true,
+								"type": "boolean"
+							},
+							"skipInternal": {
+								"optional": true,
+								"type": "boolean"
+							},
+							"withActions": {
+								"optional": true,
+								"type": "boolean"
+							}
+						},
+						"version": undefined
 					},
 					"$node.stats": {
 						"cache": false,
-						"name": "$node.stats"
+						"name": "$node.stats",
+						"version": undefined
 					}
 				},
 				"name": "$node",
-				"nodes": [null],
+				"nodes": [
+					"server-1"
+				],
 				"settings": {},
 				"version": undefined
-			}, {
+			},
+			{
 				"actions": {
 					"math.add": {
 						"cache": false,
@@ -282,7 +351,7 @@ describe("Test broker.registerInternalActions", () => {
 					},
 					"math.pow": {
 						"cache": true,
-						"name": "math.pow",
+						"name": "math.pow"
 					},
 					"math.sub": {
 						"cache": false,
@@ -291,10 +360,14 @@ describe("Test broker.registerInternalActions", () => {
 					}
 				},
 				"name": "math",
-				"nodes": [null, "node-3"],
+				"nodes": [
+					"server-1",
+					"node-3"
+				],
 				"settings": {},
 				"version": undefined
-			}, {
+			},
+			{
 				"actions": {
 					"posts.author": {
 						"cache": false,
@@ -313,14 +386,18 @@ describe("Test broker.registerInternalActions", () => {
 					},
 					"posts.get": {
 						"cache": {
-							"keys": ["id"]
+							"keys": [
+								"id"
+							]
 						},
 						"name": "posts.get",
 						"version": undefined
 					}
 				},
 				"name": "posts",
-				"nodes": [null],
+				"nodes": [
+					"server-1"
+				],
 				"settings": {},
 				"version": undefined
 			}]);
@@ -356,7 +433,8 @@ describe("Test broker.registerInternalActions", () => {
 		return broker.call("$node.list").then(res => {
 			expect(res).toBeInstanceOf(Array);
 			expect(res.length).toBe(2);
-			expect(res[0].id).toBeNull();
+			expect(res[0].id).toBe("server-1");
+			expect(res[0].local).toBe(true);
 			expect(res[0].services.length).toBe(3);
 			expect(res[1]).toEqual({"services": [], "available": true, "id": "server-2", "lastHeartbeatTime": jasmine.any(Number), "nodeID": "server-2"});
 		});
@@ -427,7 +505,7 @@ describe("Test local call", () => {
 			expect(ctx).toBeDefined();
 			expect(ctx.broker).toBe(broker);
 			expect(ctx.action.name).toBe("posts.find");
-			expect(ctx.nodeID).toBeNull();
+			expect(ctx.nodeID).toBe(broker.nodeID);
 			expect(ctx.params).toBeDefined();
 			expect(actionHandler).toHaveBeenCalledTimes(1);
 			expect(actionHandler).toHaveBeenCalledWith(ctx);

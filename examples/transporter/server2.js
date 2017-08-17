@@ -12,12 +12,20 @@ let broker = new ServiceBroker({
 	transporter: "NATS",
 	logger: console,
 	logLevel: "info",
-	serializer: "JSON"
+	serializer: "JSON",
+	metrics: true,
 });
 
 //broker.loadService(__dirname + "/../post.service");
 broker.loadService(__dirname + "/../user.service");
+/*
+broker.on("metrics.trace.span.start", payload => {
+	broker.logger.info("metrics.trace.span.start", payload);
+});
 
+broker.on("metrics.trace.span.finish", payload => {
+	broker.logger.info("metrics.trace.span.finish", payload);
+});*/
 
 broker.start();
 let c = 1;
@@ -32,7 +40,7 @@ Promise.resolve()
 		let startTime = Date.now();
 
 		broker.call("posts.find").then((posts) => {
-			broker.logger.info("[server-2] Posts: ", posts.length, ", Time:", Date.now() - startTime, "ms");
+			broker.logger.info("Posts: ", posts.length, ", Time:", Date.now() - startTime, "ms");
 		})
 			.catch(err => broker.logger.error(err));
 	})
@@ -44,5 +52,5 @@ Promise.resolve()
 			//process.exit();
 			}
 
-		}, 10 * 1000);
+		}, 5 * 1000);
 	});

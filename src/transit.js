@@ -14,18 +14,18 @@ const { hash } 					= require("node-object-hash")({ sort: false, coerce: false})
 
 /**
  * Transit class
- * 
+ *
  * @class Transit
  */
 class Transit {
 
 	/**
 	 * Create an instance of Transit.
-	 * 
+	 *
 	 * @param {ServiceBroker} Broker instance
 	 * @param {Transporter} Transporter instance
 	 * @param {Object?} opts
-	 * 
+	 *
 	 * @memberOf Transit
 	 */
 	constructor(broker, transporter, opts) {
@@ -60,10 +60,10 @@ class Transit {
 
 	/**
 	 * It will be called after transporter connected or reconnected.
-	 * 
-	 * @param {any} wasReconnect 
+	 *
+	 * @param {any} wasReconnect
 	 * @returns {Promise}
-	 * 
+	 *
 	 * @memberof Transit
 	 */
 	afterConnect(wasReconnect) {
@@ -89,7 +89,7 @@ class Transit {
 
 	/**
 	 * Connect with transporter. If failed, try again after 5 sec.
-	 * 
+	 *
 	 * @memberOf Transit
 	 */
 	connect() {
@@ -133,7 +133,7 @@ class Transit {
 
 	/**
 	 * Disconnect with transporter
-	 * 
+	 *
 	 * @memberOf Transit
 	 */
 	disconnect() {
@@ -158,9 +158,9 @@ class Transit {
 
 	/**
 	 * Send DISCONNECT to remote nodes
-	 * 
+	 *
 	 * @returns {Promise}
-	 * 
+	 *
 	 * @memberOf Transit
 	 */
 	sendDisconnectPacket() {
@@ -171,7 +171,7 @@ class Transit {
 
 	/**
 	 * Subscribe to topics for transportation
-	 * 
+	 *
 	 * @memberOf Transit
 	 */
 	makeSubscriptions() {
@@ -206,10 +206,10 @@ class Transit {
 
 	/**
 	 * Emit an event to remote nodes
-	 * 
+	 *
 	 * @param {any} eventName
 	 * @param {any} data
-	 * 
+	 *
 	 * @memberOf Transit
 	 */
 	emit(eventName, data) {
@@ -218,11 +218,11 @@ class Transit {
 
 	/**
 	 * Message handler for incoming packets
-	 * 
-	 * @param {Array} topic 
-	 * @param {String} msg 
-	 * @returns 
-	 * 
+	 *
+	 * @param {Array} topic
+	 * @param {String} msg
+	 * @returns
+	 *
 	 * @memberOf Transit
 	 */
 	messageHandler(cmd, msg) {
@@ -288,17 +288,17 @@ class Transit {
 
 	/**
 	 * Handle incoming request
-	 * 
-	 * @param {Object} packet 
+	 *
+	 * @param {Object} packet
 	 * @returns {Promise}
-	 * 
+	 *
 	 * @memberOf Transit
 	 */
 	_requestHandler(payload) {
 		this.logger.debug(`Request '${payload.action}' received from '${payload.sender}' node.`);
 
 		// Recreate caller context
-		const ctx = new Context(this.broker);
+		const ctx = new this.broker.ContextFactory(this.broker);
 		ctx.action = {
 			name: payload.action
 		};
@@ -317,10 +317,10 @@ class Transit {
 
 	/**
 	 * Process incoming response of request
-	 * 
-	 * @param {Object} packet 
+	 *
+	 * @param {Object} packet
 	 * @returns {Promise}
-	 * 
+	 *
 	 * @memberOf Transit
 	 */
 	_responseHandler(packet) {
@@ -358,10 +358,10 @@ class Transit {
 	/**
 	 * Send a request to a remote service. It returns a Promise
 	 * what will be resolved when the response received.
-	 * 
+	 *
 	 * @param {<Context>} ctx			Context of request
 	 * @returns	{Promise}
-	 * 
+	 *
 	 * @memberOf Transit
 	 */
 	request(ctx) {
@@ -371,11 +371,11 @@ class Transit {
 
 	/**
 	 * Do a remote request
-	 * 
+	 *
 	 * @param {<Context>} ctx 		Context of request
 	 * @param {Function} resolve 	Resolve of Promise
 	 * @param {Function} reject 	Reject of Promise
-	 * 
+	 *
 	 * @memberOf Transit
 	 */
 	_doRequest(ctx, resolve, reject) {
@@ -403,9 +403,9 @@ class Transit {
 
 	/**
 	 * Remove a pending request
-	 * 
-	 * @param {any} id 
-	 * 
+	 *
+	 * @param {any} id
+	 *
 	 * @memberOf Transit
 	 */
 	removePendingRequest(id) {
@@ -414,12 +414,12 @@ class Transit {
 
 	/**
 	 * Send back the response of request
-	 * 
-	 * @param {String} nodeID 
+	 *
+	 * @param {String} nodeID
 	 * @param {String} id
-	 * @param {any} data 
-	 * @param {Error} err 
-	 * 
+	 * @param {any} data
+	 * @param {Error} err
+	 *
 	 * @memberOf Transit
 	 */
 	sendResponse(nodeID, id, data, err) {
@@ -431,9 +431,9 @@ class Transit {
 
 	/**
 	 * Get Node information to DISCOVER & INFO packages
-	 * 
+	 *
 	 * @returns {Object}
-	 * 
+	 *
 	 * @memberof Transit
 	 */
 	getNodeInfo() {
@@ -455,7 +455,7 @@ class Transit {
 
 	/**
 	 * Discover other nodes. It will be called after success connect.
-	 * 
+	 *
 	 * @memberOf Transit
 	 */
 	discoverNodes() {
@@ -464,7 +464,7 @@ class Transit {
 
 	/**
 	 * Send node info package to other nodes. It will be called with timer
-	 * 
+	 *
 	 * @memberOf Transit
 	 */
 	sendNodeInfo(nodeID) {
@@ -474,7 +474,7 @@ class Transit {
 
 	/**
 	 * Send a node heart-beat. It will be called with timer
-	 * 
+	 *
 	 * @memberOf Transit
 	 */
 	sendHeartbeat() {
@@ -484,10 +484,10 @@ class Transit {
 
 	/**
 	 * Subscribe via transporter
-	 * 
-	 * @param {String} topic 
+	 *
+	 * @param {String} topic
 	 * @param {String=} nodeID
-	 * 
+	 *
 	 * @memberOf Transit
 	 */
 	subscribe(topic, nodeID) {
@@ -496,9 +496,9 @@ class Transit {
 
 	/**
 	 * Publish via transporter
-	 * 
+	 *
 	 * @param {Packet} Packet
-	 * 
+	 *
 	 * @memberOf Transit
 	 */
 	publish(packet) {
@@ -515,10 +515,10 @@ class Transit {
 
 	/**
 	 * Serialize the object
-	 * 
-	 * @param {Object} obj 
+	 *
+	 * @param {Object} obj
 	 * @returns {Buffer}
-	 * 
+	 *
 	 * @memberOf Transit
 	 */
 	serialize(obj, type) {
@@ -527,10 +527,10 @@ class Transit {
 
 	/**
 	 * Deserialize the incoming Buffer to object
-	 * 
+	 *
 	 * @param {Buffer} buf
 	 * @returns {any}
-	 * 
+	 *
 	 * @memberOf Transit
 	 */
 	deserialize(buf, type) {
@@ -541,10 +541,10 @@ class Transit {
 
 	/**
 	 * Process remote node info (list of actions)
-	 * 
+	 *
 	 * @param {String} nodeID
 	 * @param {Object} payload
-	 * 
+	 *
 	 * @memberOf Transit
 	 */
 	processNodeInfo(nodeID, payload) {
@@ -602,10 +602,10 @@ class Transit {
 
 	/**
 	 * Check the given nodeID is available
-	 * 
+	 *
 	 * @param {any} nodeID	Node ID
 	 * @returns {boolean}
-	 * 
+	 *
 	 * @memberOf Transit
 	 */
 	isNodeAvailable(nodeID) {
@@ -618,10 +618,10 @@ class Transit {
 
 	/**
 	 * Save a heart-beat time from a remote node
-	 * 
+	 *
 	 * @param {any} nodeID
 	 * @param {Object} payload
-	 * 
+	 *
 	 * @memberOf Transit
 	 */
 	nodeHeartbeat(nodeID, payload) {
@@ -634,12 +634,12 @@ class Transit {
 	}
 
 	/**
-	 * Node disconnected event handler. 
+	 * Node disconnected event handler.
 	 * Remove node and remove remote actions of node
-	 * 
+	 *
 	 * @param {any} nodeID
 	 * @param {Boolean=} isUnexpected
-	 * 
+	 *
 	 * @memberOf Transit
 	 */
 	nodeDisconnected(nodeID, isUnexpected) {
@@ -650,7 +650,7 @@ class Transit {
 				this.broker.unregisterServicesByNode(nodeID);
 
 				this.broker.emitLocal("node.disconnected", { node, unexpected: !!isUnexpected });
-				//this.nodes.delete(nodeID);			
+				//this.nodes.delete(nodeID);
 				this.logger.warn(`Node '${nodeID}' disconnected!`);
 			}
 		}
@@ -658,7 +658,7 @@ class Transit {
 
 	/**
 	 * Check all registered remote nodes is live.
-	 * 
+	 *
 	 * @memberOf Transit
 	 */
 	checkRemoteNodes() {

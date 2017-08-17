@@ -13,7 +13,8 @@ let broker = new ServiceBroker({
 	logger: console,
 	logLevel: "info",
 	requestTimeout: 5 * 1000,
-	serializer: "JSON"
+	serializer: "JSON",
+	metrics: true,
 	//requestRetry: 3
 });
 
@@ -30,30 +31,26 @@ broker.on("TEST2", a => {
 Promise.resolve()
 	.then(delay(1000))
 
-	.then(() => {
+	/*.then(() => {
 		broker.call("v2.users.find").then(res => {
-			broker.logger.info("[server-1] Success!", res.length);
+			broker.logger.info("Success!", res.length);
 		}).catch(err => {
-			broker.logger.error("[server-1] Error!", err.message);
+			broker.logger.error("Error!", err.message);
 		});
 
-	})
-/*
-.then(() => {
-	
-	setInterval(() => {
-		let startTime = Date.now();
-		broker.call("posts.find").then((posts) => {
-			console.log("[server-1] Posts: ", posts.length, ", Time:", Date.now() - startTime, "ms");
-		}).catch(err => {
-			console.error("[server-1] Error!", err.message);
-		});	
-	}, 8000);
-	
-})
-*/
+	})*/
+
 	.then(() => {
-	//broker.call("users.dangerous").catch(err => console.error(err));
+
+		setInterval(() => {
+			let startTime = Date.now();
+			broker.call("posts.find").then((posts) => {
+				broker.logger.info("Posts: ", posts.length, ", Time:", Date.now() - startTime, "ms");
+			}).catch(err => {
+				broker.logger.error("Error!", err.message);
+			});
+		}, 4000);
+
 	})
 
 	.then(() => {

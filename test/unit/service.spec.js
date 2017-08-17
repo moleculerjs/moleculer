@@ -53,7 +53,7 @@ describe("Test Service constructor", () => {
 });
 
 describe("Test action creation", () => {
-	let broker = new ServiceBroker({ internalActions: false });
+	let broker = new ServiceBroker({ internalServices: false });
 
 	let schema = {
 		name: "posts",
@@ -113,7 +113,7 @@ describe("Test action creation", () => {
 });
 
 describe("Test events creation", () => {
-	let broker = new ServiceBroker({ internalActions: false });
+	let broker = new ServiceBroker({ internalServices: false });
 
 	let schema = {
 		name: "posts",
@@ -157,7 +157,7 @@ describe("Test events creation", () => {
 });
 
 describe("Test methods creation", () => {
-	let broker = new ServiceBroker({ internalActions: false });
+	let broker = new ServiceBroker({ internalServices: false });
 
 	let schema = {
 		name: "posts",
@@ -190,7 +190,7 @@ describe("Test methods creation", () => {
 });
 
 describe("Test created event handler", () => {
-	let broker = new ServiceBroker({ internalActions: false });
+	let broker = new ServiceBroker({ internalServices: false });
 
 	let schema = {
 		name: "posts",

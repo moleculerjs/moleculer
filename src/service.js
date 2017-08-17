@@ -17,17 +17,17 @@ const { ServiceSchemaError } = require("./errors");
 
 /**
  * Main Service class
- * 
+ *
  * @class Service
  */
 class Service {
 
 	/**
 	 * Creates an instance of Service by schema.
-	 * 
+	 *
 	 * @param {ServiceBroker} 	broker	broker of service
 	 * @param {Object} 			schema	schema of service
-	 * 
+	 *
 	 * @memberOf Service
 	 */
 	constructor(broker, schema) {
@@ -71,7 +71,7 @@ class Service {
 				let innerAction = this._createAction(action, name);
 
 				// Register to broker
-				broker.registerAction(null, innerAction);
+				broker.registerAction(this.broker.nodeID, innerAction);
 
 				// Expose to call `service.actions.find({ ...params })`
 				this.actions[name] = (params, opts) => {
@@ -164,11 +164,11 @@ class Service {
 
 	/**
 	 * Create an external action handler for broker (internal command!)
-	 * 
+	 *
 	 * @param {any} actionDef
 	 * @param {any} name
 	 * @returns
-	 * 
+	 *
 	 * @memberOf Service
 	 */
 	_createAction(actionDef, name) {
@@ -212,11 +212,11 @@ class Service {
 
 	/**
 	 * Apply `mixins` list in schema. Merge the schema with mixins schemas. Returns with the mixed schema
-	 * 
+	 *
 	 * @static
-	 * @param {Schema} schema 
+	 * @param {Schema} schema
 	 * @returns {Schema}
-	 * 
+	 *
 	 * @memberof Service
 	 */
 	static applyMixins(schema) {

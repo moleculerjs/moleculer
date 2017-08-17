@@ -513,7 +513,7 @@ describe("Test Transit.discoverNodes", () => {
 
 describe("Test Transit.sendNodeInfo", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter(), internalActions: false });
+	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter(), internalServices: false });
 	const transit = broker.transit;
 
 	transit.publish = jest.fn();
@@ -622,7 +622,7 @@ describe("Test Transit.deserialize", () => {
 describe("Test Transit node & heartbeat handling", () => {
 
 	describe("Test processNodeInfo", () => {
-		const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter(), internalActions: false });
+		const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter(), internalServices: false });
 		const transit = broker.transit;
 		broker.registerRemoteService = jest.fn();
 		broker.unregisterServicesByNode = jest.fn();

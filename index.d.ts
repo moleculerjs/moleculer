@@ -86,7 +86,7 @@ declare interface BrokerOptions {
 	metrics?: Boolean;
 	metricsRate?: Number;
 	statistics?: Boolean;
-	internalActions?: Boolean;
+	internalServices?: Boolean;
 
 	ServiceFactory?: Service;
 	ContextFactory?: Context;
@@ -215,10 +215,8 @@ declare class ServiceBroker {
 	emitLocal(eventName: String, payload?: any, sender?: String);
 
 	MOLECULER_VERSION: String;
-	LOCAL_NODE_ID: any;
 
 	static MOLECULER_VERSION: String;
-	static LOCAL_NODE_ID: any;
 	static defaultConfig: BrokerOptions;
 }
 
