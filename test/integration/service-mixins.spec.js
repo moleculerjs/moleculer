@@ -229,16 +229,16 @@ describe("Test Service mixins", () => {
 		broker.emit("oxygen", payload);
 
 		expect(mainSchema.events.oxygen).toHaveBeenCalledTimes(1);
-		expect(mainSchema.events.oxygen).toHaveBeenCalledWith(payload, null, "oxygen");
+		expect(mainSchema.events.oxygen).toHaveBeenCalledWith(payload, broker.nodeID, "oxygen");
 
 		expect(mixin1L1.events.oxygen).toHaveBeenCalledTimes(1);
-		expect(mixin1L1.events.oxygen).toHaveBeenCalledWith(payload, null, "oxygen");
+		expect(mixin1L1.events.oxygen).toHaveBeenCalledWith(payload, broker.nodeID, "oxygen");
 
 		expect(mixin2L1.events.oxygen).toHaveBeenCalledTimes(1);
-		expect(mixin2L1.events.oxygen).toHaveBeenCalledWith(payload, null, "oxygen");
+		expect(mixin2L1.events.oxygen).toHaveBeenCalledWith(payload, broker.nodeID, "oxygen");
 
 		expect(mixinL2.events.oxygen).toHaveBeenCalledTimes(2);
-		expect(mixinL2.events.oxygen).toHaveBeenCalledWith(payload, null, "oxygen");
+		expect(mixinL2.events.oxygen).toHaveBeenCalledWith(payload, broker.nodeID, "oxygen");
 	});
 
 	it("should call 'carbon' event handlers", () => {
@@ -246,7 +246,7 @@ describe("Test Service mixins", () => {
 		broker.emit("carbon", payload);
 
 		expect(mainSchema.events.carbon).toHaveBeenCalledTimes(1);
-		expect(mainSchema.events.carbon).toHaveBeenCalledWith(payload, null, "carbon");
+		expect(mainSchema.events.carbon).toHaveBeenCalledWith(payload, broker.nodeID, "carbon");
 	});
 
 	it("should call 'hydrogen' event handlers", () => {
@@ -254,10 +254,10 @@ describe("Test Service mixins", () => {
 		broker.emit("hydrogen", payload);
 
 		expect(mixin1L1.events.hydrogen).toHaveBeenCalledTimes(1);
-		expect(mixin1L1.events.hydrogen).toHaveBeenCalledWith(payload, null, "hydrogen");
+		expect(mixin1L1.events.hydrogen).toHaveBeenCalledWith(payload, broker.nodeID, "hydrogen");
 
 		expect(mixin2L1.events.hydrogen).toHaveBeenCalledTimes(1);
-		expect(mixin2L1.events.hydrogen).toHaveBeenCalledWith(payload, null, "hydrogen");
+		expect(mixin2L1.events.hydrogen).toHaveBeenCalledWith(payload, broker.nodeID, "hydrogen");
 	});
 
 	it("calling broker.stop", () => {

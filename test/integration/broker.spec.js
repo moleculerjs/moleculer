@@ -444,7 +444,7 @@ describe("Test broker.registerInternalServices", () => {
 
 describe("Test on/once/off event emitter", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ nodeID: "node-1" });
 	let handler = jest.fn();
 
 	it("register event handler", () => {
@@ -456,11 +456,15 @@ describe("Test on/once/off event emitter", () => {
 		let p = { a: 5 };
 		broker.emitLocal("test.event", p);
 		expect(handler).toHaveBeenCalledTimes(1);
-		expect(handler).toHaveBeenCalledWith(p, null);
+		expect(handler).toHaveBeenCalledWith(p, "node-1");
 
 		broker.emitLocal("test.event.demo", "data");
 		expect(handler).toHaveBeenCalledTimes(2);
-		expect(handler).toHaveBeenCalledWith("data", null);
+		expect(handler).toHaveBeenCalledWith("data", "node-1");
+
+		broker.emitLocal("test.event.demo", "data", "node-2");
+		expect(handler).toHaveBeenCalledTimes(3);
+		expect(handler).toHaveBeenCalledWith("data", "node-2");
 	});
 
 	it("unregister event handler", () => {

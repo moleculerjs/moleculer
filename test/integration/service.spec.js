@@ -7,7 +7,7 @@ describe("Test Service handlers", () => {
 	let stoppedHandler = jest.fn();
 	let eventHandler = jest.fn();
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ nodeID: "node-1" });
 
 	broker.createService({
 		name: "posts",
@@ -34,7 +34,7 @@ describe("Test Service handlers", () => {
 	it("should called event handler", () => {
 		broker.emit("user.created", { id: 1, name: "John" });
 		expect(eventHandler).toHaveBeenCalledTimes(1);
-		expect(eventHandler).toHaveBeenCalledWith({ id: 1, name: "John" }, null, "user.created");
+		expect(eventHandler).toHaveBeenCalledWith({ id: 1, name: "John" }, "node-1", "user.created");
 	});
 
 	it("should called stop handler", () => {
