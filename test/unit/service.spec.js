@@ -88,16 +88,18 @@ describe("Test action creation", () => {
 		let ctx = {
 			setParams: jest.fn()
 		};
-		broker.createNewContext = jest.fn(() => ctx);
+		let oldCreate = broker.ContextFactory.create;
+		broker.ContextFactory.create = jest.fn(() => ctx);
 
 		service.actions.find({ a: 5 }, { timeout: 1000 });
 
-		expect(broker.createNewContext).toHaveBeenCalledTimes(1);
-		expect(broker.createNewContext).toHaveBeenCalledWith(jasmine.any(Object), null, { a: 5 }, { timeout: 1000 });
+		expect(broker.ContextFactory.create).toHaveBeenCalledTimes(1);
+		expect(broker.ContextFactory.create).toHaveBeenCalledWith(broker, jasmine.any(Object), null, { a: 5 }, { timeout: 1000 });
 
 		expect(schema.actions.find).toHaveBeenCalledTimes(1);
 		expect(schema.actions.find).toHaveBeenCalledWith(ctx);
 
+		broker.ContextFactory.create = oldCreate;
 	});
 
 	it("should throw error if action is not object nor function", () => {

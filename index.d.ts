@@ -41,6 +41,19 @@ declare class Context {
 	setParams(newParams: Object, cloning?: boolean);
 	call(actionName: String, params?: Object, opts?: Object): Promise<any>;
 	emit(eventName: string, data: any);
+
+	/**
+	 * Create a new Context instance
+	 *
+	 * @param {Object} action
+	 * @param {String?} nodeID
+	 * @param {Object?} params
+	 * @param {Object} opts
+	 * @returns {Context}
+	 *
+	 * @memberof ServiceBroker
+	 */
+	static create(broker: ServiceBroker, action: Action, nodeID?: String, params?: Object, opts: Object): Context;
 }
 
 declare class Service {
@@ -130,19 +143,6 @@ declare class ServiceBroker {
 	isActionAvailable(actionName: String): Boolean;
 
 	use(...mws: Array<Function>);
-
-	/**
-	 * Create a new Context instance
-	 *
-	 * @param {Object} action
-	 * @param {String?} nodeID
-	 * @param {Object?} params
-	 * @param {Object} opts
-	 * @returns {Context}
-	 *
-	 * @memberof ServiceBroker
-	 */
-	createNewContext(action: Action, nodeID?: String, params?: Object, opts: Object): Context;
 
 	/**
 	 * Call an action (local or global)

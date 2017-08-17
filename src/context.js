@@ -7,6 +7,7 @@
 "use strict";
 
 //const Promise = require("bluebird");
+const _ = require("lodash");
 const utils = require("./utils");
 const { RequestSkippedError } = require("./errors");
 
@@ -69,6 +70,59 @@ class Context {
 
 	generateID() {
 		this.id = utils.generateToken();
+	}
+
+	/**
+	 * Create a new Context instance.
+	 *
+	 * @param {ServiceBroker} broker
+	 * @param {Object} action
+	 * @param {String?} nodeID
+	 * @param {Object?} params
+	 * @param {Object} opts
+	 * @returns {Context}
+	 *
+	 * @static
+	 * @memberof Context
+	 */
+	static create(broker, action, nodeID, params, opts) {
+		const ctx = new Context(broker, action);
+		ctx.nodeID = nodeID;
+		ctx.setParams(params);
+
+		// RequestID
+		if (opts.requestID != null)
+			ctx.requestID = opts.requestID;
+		else if (opts.parentCtx != null && opts.parentCtx.requestID != null)
+			ctx.requestID = opts.parentCtx.requestID;
+
+		// Meta
+		if (opts.parentCtx != null && opts.parentCtx.meta != null)
+			ctx.meta = _.assign({}, opts.parentCtx.meta, opts.meta);
+		else if (opts.meta != null)
+			ctx.meta = opts.meta;
+
+		// Timeout
+		ctx.timeout = opts.timeout;
+		ctx.retryCount = opts.retryCount;
+
+		if (opts.parentCtx != null) {
+			ctx.parentID = opts.parentCtx.id;
+			ctx.level = opts.parentCtx.level + 1;
+		}
+
+		// Metrics
+		if (opts.parentCtx != null)
+			ctx.metrics = opts.parentCtx.metrics;
+		else
+			ctx.metrics = broker.shouldMetric();
+
+		// ID, parentID, level
+		if (ctx.metrics || nodeID != broker.nodeID) {
+			ctx.generateID();
+		}
+
+		return ctx;
 	}
 
 	/**

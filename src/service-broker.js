@@ -722,57 +722,6 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Create a new Context instance
-	 *
-	 * @param {Object} action
-	 * @param {String?} nodeID
-	 * @param {Object?} params
-	 * @param {Object} opts
-	 * @returns {Context}
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	createNewContext(action, nodeID, params, opts) {
-		const ctx = new this.ContextFactory(this, action);
-		ctx.nodeID = nodeID;
-		ctx.setParams(params);
-
-		// RequestID
-		if (opts.requestID != null)
-			ctx.requestID = opts.requestID;
-		else if (opts.parentCtx != null && opts.parentCtx.requestID != null)
-			ctx.requestID = opts.parentCtx.requestID;
-
-		// Meta
-		if (opts.parentCtx != null && opts.parentCtx.meta != null)
-			ctx.meta = _.assign({}, opts.parentCtx.meta, opts.meta);
-		else if (opts.meta != null)
-			ctx.meta = opts.meta;
-
-		// Timeout
-		ctx.timeout = opts.timeout;
-		ctx.retryCount = opts.retryCount;
-
-		if (opts.parentCtx != null) {
-			ctx.parentID = opts.parentCtx.id;
-			ctx.level = opts.parentCtx.level + 1;
-		}
-
-		// Metrics
-		if (opts.parentCtx != null)
-			ctx.metrics = opts.parentCtx.metrics;
-		else
-			ctx.metrics = this.shouldMetric();
-
-		// ID, parentID, level
-		if (ctx.metrics || nodeID) {
-			ctx.generateID();
-		}
-
-		return ctx;
-	}
-
-	/**
 	 * Call an action (local or remote)
 	 *
 	 * @param {any} actionName	name of action
@@ -836,7 +785,7 @@ class ServiceBroker {
 			ctx.action = action;
 		} else {
 			// New root context
-			ctx = this.createNewContext(action, nodeID, params, opts);
+			ctx = this.ContextFactory.create(this, action, nodeID, params, opts);
 		}
 
 		if (this.options.maxCallLevel > 0 && ctx.level > this.options.maxCallLevel) {

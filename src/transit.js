@@ -298,17 +298,16 @@ class Transit {
 		this.logger.debug(`Request '${payload.action}' received from '${payload.sender}' node.`);
 
 		// Recreate caller context
-		const ctx = new this.broker.ContextFactory(this.broker);
-		ctx.action = {
+		const ctx = this.broker.ContextFactory.create(this.broker, {
 			name: payload.action
-		};
+		}, this.broker.nodeID, payload.params, {
+			meta: payload.meta
+		});
 		ctx.id = payload.id;
 		ctx.parentID = payload.parentID;
 		ctx.level = payload.level;
 		ctx.metrics = payload.metrics;
 		ctx.callerNodeID = payload.sender;
-		ctx.meta = payload.meta;
-		ctx.setParams(payload.params);
 
 		return this.broker.call(payload.action, payload.params, { ctx: ctx })
 			.then(res => this.sendResponse(payload.sender, payload.id,  res, null))
