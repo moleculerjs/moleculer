@@ -7,23 +7,25 @@
 
 "use strict";
 
-const Moleculer = require("../");
-const fs = require("fs");
-const path = require("path");
-const _ = require("lodash");
-const Args = require("args");
+const Moleculer 	= require("../");
+const fs 			= require("fs");
+const path 			= require("path");
+const _ 			= require("lodash");
+const Args 			= require("args");
 
 let flags;
 let configFile;
 let config;
 let servicePaths;
 let broker;
+let logger;
 
 /**
  * Process command line arguments
- * 
+ *
  * Available options:
  * 		-c, --config <file> - Load an external configuration files (.js or .json)
+ * 		-h, --hot  			- Hot reload services if changed
  * 		-r, --repl  		- After broker started, switch to REPL mode
  * 		-s , --silent 		- Silent mode. Disable logger, no console messages.
  */
@@ -31,6 +33,7 @@ function processFlags() {
 	Args
 		.option("config", "Load the configuration from a file")
 		.option("repl", "Start REPL mode", false)
+		.option("hot", "Hot reload services if changed", false)
 		.option("silent", "Silent mode. No logger", false);
 
 	flags = Args.parse(process.argv, {
@@ -40,7 +43,7 @@ function processFlags() {
 				r: "repl",
 				s: "silent"
 			},
-			boolean: ["repl", "silent"],
+			boolean: ["repl", "silent", "hot"],
 			string: ["config"]
 		}
 	});
@@ -50,14 +53,12 @@ function processFlags() {
 
 /**
  * Load configuration file
- * 
+ *
  * Try to load a configuration file in order to:
- * 	
+ *
  * 		- load file which is defined in CLI option with --config
  * 		- try to load the `moleculer.config.js` file if exist in the cwd
  * 		- try to load the `moleculer.config.json` file if exist in the cwd
- * 
- * @returns 
  */
 function loadConfigFile() {
 	let filePath;
@@ -89,21 +90,21 @@ function loadConfigFile() {
 
 /**
  * Merge broker options
- * 
+ *
  * Merge options from environment variables and config file. First
- * load the config file if exists. After it overwrite the vars from 
- * the environment values. 
- * 
+ * load the config file if exists. After it overwrite the vars from
+ * the environment values.
+ *
  * Example options:
- * 
+ *
  * 	Original broker option: `logLevel`
  *  Config file property: 	`logLevel`
  *  Env variable:			`LOGLEVEL`
- * 
+ *
  * 	Original broker option: `circuitBreaker.enabled`
  *  Config file property: 	`circuitBreaker.enabled`
  *  Env variable:			`CIRCUITBREAKER_ENABLED`
- * 
+ *
  */
 function mergeOptions() {
 
@@ -148,20 +149,20 @@ function mergeOptions() {
 
 /**
  * Load services from files or directories
- * 
+ *
  * 1. first check the CLI arguments. If it find filename(s), load it/them
  * 2. If find directory(ies), load it/them
  * 3. If find `SERVICEDIR` env var and not find `SERVICES` env var, load all services from the `SERVICEDIR` directory
  * 4. If find `SERVICEDIR` env var and `SERVICES` env var, load the specified services from the `SERVICEDIR` directory
  * 5. If not find `SERVICEDIR` env var but find `SERVICES` env var, load the specified services from the current directory
- * 
- * Please note: you can use shorthand names for `SERVICES` env var. 
+ *
+ * Please note: you can use shorthand names for `SERVICES` env var.
  * 	E.g.
  * 		SERVICES=posts,users
- * 
+ *
  * 		It will be load the `posts.service.js` and `users.service.js` files
- * 	
- * 
+ *
+ *
  */
 function loadServices() {
 	if (servicePaths.length > 0) {
@@ -221,12 +222,48 @@ function loadServices() {
 			});
 		}
 	}
+
+	if (flags.hot) {
+		let debouncedHotReload = _.debounce(hotReloadService, 500);
+
+		broker.services.forEach(service => {
+			if (service.__filename) {
+				logger.info(`Watching '${service.name}' service file...`);
+
+				// Better: https://github.com/paulmillr/chokidar
+				fs.watch(service.__filename, (eventType, filename) => {
+					logger.debug(`The ${filename} is changed: ${eventType}`);
+
+					debouncedHotReload(service);
+				});
+			}
+		});
+	}
+}
+function clearRequireCache(filename) {
+	Object.keys(require.cache).forEach(function(key) {
+		if (key == filename) {
+			delete require.cache[key];
+			logger.debug("Cleared from require cache.", filename);
+		}
+	});
+}
+
+function hotReloadService(service) {
+	logger.info(`Hot reloading '${service.name}' service...`, service.__filename);
+
+	clearRequireCache(service.__filename);
+
+	broker.destroyService(service)
+		.then(() => broker.loadService(service.__filename))
+		.then(svc => svc.started.call(svc).then(() => svc))
+		.then(svc => logger.info(`Service '${svc.name}' is reloaded.`));
 }
 
 /**
  * Load service from NPM module
- * 
- * @param {String} name 
+ *
+ * @param {String} name
  * @returns {Service}
  */
 function loadNpmModule(name) {
@@ -240,6 +277,7 @@ function loadNpmModule(name) {
 function startBroker() {
 	// Create service broker
 	broker = new Moleculer.ServiceBroker(config);
+	logger = broker.getLogger("runner");
 
 	loadServices();
 
