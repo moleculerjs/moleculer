@@ -14,7 +14,7 @@ let c = 0;
 module.exports = function(broker) {
 	return new Service(broker, {
 		name: "users",
-		
+
 		actions: {
 			find: {
 				cache: false,
@@ -47,7 +47,7 @@ module.exports = function(broker) {
 					.then(() => {
 						return users;
 					});
-			}			
+			}
 		},
 
 		methods: {

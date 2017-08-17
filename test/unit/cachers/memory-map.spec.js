@@ -120,7 +120,7 @@ describe("Test MemoryCacher clean", () => {
 	it("should give item in cache for keys", () => {
 		expect(cacher.cache.get(key1)).toBeDefined();
 		expect(cacher.cache.get(key2)).toBeDefined();
-	});	
+	});
 
 	it("should clean test* keys", () => {
 		cacher.clean("tst*");

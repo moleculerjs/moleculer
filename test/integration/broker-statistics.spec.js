@@ -14,7 +14,7 @@ describe("Test Broker Statistics snapshot", () => {
 
 	afterAll(() => {
 		clock.uninstall();
-	});	
+	});
 
 	it("should return an empty stats object", () => {
 		let stat = new BrokerStatistics(broker);
@@ -23,16 +23,16 @@ describe("Test Broker Statistics snapshot", () => {
 		let res = stat.snapshot();
 		expect(res).toBeDefined();
 		expect(res.requests).toBeDefined();
-		expect(res.requests).toEqual({ 
-			"actions": {}, 
-			"total": { 
-				"count": 0, 
-				"errors": {}, 
-				"rps": { 
-					"current": 0, 
+		expect(res.requests).toEqual({
+			"actions": {},
+			"total": {
+				"count": 0,
+				"errors": {},
+				"rps": {
+					"current": 0,
 					"values": []
-				} 
-			} 
+				}
+			}
 		});
 	});
 
@@ -130,7 +130,7 @@ describe("Test Broker Statistics snapshot", () => {
 				}
 			}
 		});
-	});	
+	});
 
 	it("should return stats after 1 success req", () => {
 		let stat = new BrokerStatistics(broker);

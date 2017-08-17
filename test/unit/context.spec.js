@@ -20,7 +20,7 @@ describe("Test Context", () => {
 
 		expect(ctx.metrics).toBe(false);
 		expect(ctx.level).toBe(1);
-		
+
 		expect(ctx.timeout).toBe(0);
 		expect(ctx.retryCount).toBe(0);
 
@@ -81,7 +81,7 @@ describe("Test setParams", () => {
 		ctx.setParams(params2, true);
 		expect(ctx.params).not.toBe(params2);
 		expect(ctx.params).toEqual(params2);
-	});	
+	});
 });
 
 
@@ -160,7 +160,7 @@ describe("Test emit method", () => {
 		broker.emit.mockClear();
 		ctx.emit("request.rest", "string-data");
 		expect(broker.emit).toHaveBeenCalledTimes(1);
-		expect(broker.emit).toHaveBeenCalledWith("request.rest", "string-data");		
+		expect(broker.emit).toHaveBeenCalledWith("request.rest", "string-data");
 	});
 });
 
@@ -173,7 +173,7 @@ describe("Test _metricStart method", () => {
 
 	broker.emit = jest.fn();
 
-	it("should not emit start event", () => {		
+	it("should not emit start event", () => {
 		ctx._metricStart();
 
 		expect(ctx.startTime).toBeDefined();
@@ -183,7 +183,7 @@ describe("Test _metricStart method", () => {
 		expect(broker.emit).toHaveBeenCalledTimes(0);
 	});
 
-	it("should emit start event", () => {		
+	it("should emit start event", () => {
 		broker.emit.mockClear();
 		ctx.callerNodeID = "remote-node";
 		ctx._metricStart(true);
@@ -203,12 +203,12 @@ describe("Test _metricFinish method", () => {
 	ctx.callerNodeID = "server-2";
 	ctx.parentID = 123;
 	ctx.metrics = true;
-	ctx.generateID();	
+	ctx.generateID();
 
 	broker.emit = jest.fn();
 	ctx._metricStart();
 
-	it("should emit finish event", () => {		
+	it("should emit finish event", () => {
 		broker.emit.mockClear();
 		return new Promise(resolve => {
 			setTimeout(() => {
@@ -225,7 +225,7 @@ describe("Test _metricFinish method", () => {
 		});
 	});
 
-	it("should emit finish event with error", () => {		
+	it("should emit finish event with error", () => {
 		broker.emit.mockClear();
 		return new Promise(resolve => {
 			ctx._metricFinish(new MoleculerError("Some error!", 511, "ERR_CUSTOM", { a: 5 }), true);
@@ -239,7 +239,7 @@ describe("Test _metricFinish method", () => {
 		});
 	});
 
-	it("should not emit finish event", () => {		
+	it("should not emit finish event", () => {
 		broker.emit.mockClear();
 		return new Promise(resolve => {
 			setTimeout(() => {
@@ -253,5 +253,5 @@ describe("Test _metricFinish method", () => {
 				resolve();
 			}, 100);
 		});
-	});	
+	});
 });

@@ -4,10 +4,10 @@
 
 let ServiceBroker = require("../src/service-broker");
 
-let broker = new ServiceBroker({ 
-	logger: console, 
-	validation: false, 
-	metrics: true 
+let broker = new ServiceBroker({
+	logger: console,
+	validation: false,
+	metrics: true
 });
 
 broker.loadService(__dirname + "/../examples/metrics.service");

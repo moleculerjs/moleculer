@@ -25,29 +25,29 @@ describe("Test broker validator with actions", () => {
 
 	it("shouldn't wrap validation, if action can't contain params settings", () => {
 		return broker.call("test.withoutValidation")
-		.then(() => {
-			expect(broker.validator.validate).toHaveBeenCalledTimes(0);
-		});
+			.then(() => {
+				expect(broker.validator.validate).toHaveBeenCalledTimes(0);
+			});
 	});
 
 	it("should call handler, if params are correct", () => {
 		schema.actions.withValidation.handler.mockClear();
 		let p = { a: 5, b: 10 };
 		return broker.call("test.withValidation", p)
-		.then(res => {
-			expect(res).toBe(123);
-			expect(schema.actions.withValidation.handler).toHaveBeenCalledTimes(1);
-		});
+			.then(res => {
+				expect(res).toBe(123);
+				expect(schema.actions.withValidation.handler).toHaveBeenCalledTimes(1);
+			});
 	});
 
 	it("should throw ValidationError, if params is not correct", () => {
 		schema.actions.withValidation.handler.mockClear();
 		let p = { a: 5, b: "asd" };
 		return broker.call("test.withValidation", p)
-		.catch(err => {
-			expect(err).toBeInstanceOf(ValidationError);
-			expect(schema.actions.withValidation.handler).toHaveBeenCalledTimes(0);
-		});
+			.catch(err => {
+				expect(err).toBeInstanceOf(ValidationError);
+				expect(schema.actions.withValidation.handler).toHaveBeenCalledTimes(0);
+			});
 	});
 
 });

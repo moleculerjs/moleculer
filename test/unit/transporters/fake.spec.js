@@ -25,13 +25,13 @@ describe("Test FakeTransporter", () => {
 		expect(isPromise(p)).toBe(true);
 		expect(transporter.connected).toBe(true);
 		return p;
-	});	
+	});
 
 	it("check disconnect", () => {
 		let transporter = new FakeTransporter();
 		transporter.disconnect();
 		expect(transporter.connected).toBe(false);
-	});	
+	});
 
 	it("check subscribe", () => {
 		let opts = {};

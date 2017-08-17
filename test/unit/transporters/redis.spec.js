@@ -44,7 +44,7 @@ describe("Test NatsTransporter constructor", () => {
 
 describe("Test RedisTransporter connect & disconnect", () => {
 	let broker = new ServiceBroker();
-	let transit = new Transit(broker);	
+	let transit = new Transit(broker);
 	let msgHandler = jest.fn();
 	let transporter;
 
@@ -86,7 +86,7 @@ describe("Test RedisTransporter connect & disconnect", () => {
 		transporter._clientPub.onCallbacks.connect();
 
 		return p;
-	});	
+	});
 
 	it("check disconnect", () => {
 		let p = transporter.connect().then(() => {
@@ -102,7 +102,7 @@ describe("Test RedisTransporter connect & disconnect", () => {
 
 		transporter._clientSub.onCallbacks.connect(); // Trigger the `resolve`
 		transporter._clientPub.onCallbacks.connect(); // Trigger the `resolve`
-		return p;		
+		return p;
 	});
 
 });
@@ -115,13 +115,13 @@ describe("Test RedisTransporter subscribe & publish", () => {
 	const fakeTransit = {
 		nodeID: "node1",
 		serialize: jest.fn(msg => JSON.stringify(msg))
-	};	
+	};
 
 	beforeEach(() => {
 		msgHandler = jest.fn();
 		transporter = new RedisTransporter();
 		transporter.init(new Transit(new ServiceBroker({ namespace: "TEST" })), msgHandler);
-		
+
 		let p = transporter.connect();
 		transporter._clientSub.onCallbacks.connect(); // Trigger the `resolve`
 		transporter._clientPub.onCallbacks.connect(); // Trigger the `resolve`

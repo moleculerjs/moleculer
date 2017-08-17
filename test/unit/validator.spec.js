@@ -54,7 +54,7 @@ describe("Test Validator.validate", () => {
 			v.validate({}, {});
 
 		}).toThrow(ValidationError);
-	});		
+	});
 });
 
 describe("Test middleware", () => {
@@ -80,14 +80,14 @@ describe("Test middleware", () => {
 			},
 			handler: jest.fn(() => Promise.resolve())
 		};
-		
+
 		// Create wrapped handler
 		let wrapped = mw(mockAction.handler, mockAction);
 		expect(typeof wrapped).toBe("function");
 
 		expect(v.compile).toHaveBeenCalledTimes(1);
 		expect(v.compile).toHaveBeenCalledWith({"id": "number", "name": "string"});
-		
+
 
 		// Create fake context
 		let ctx = { params: { id: 5, name: "John" } };
@@ -96,7 +96,7 @@ describe("Test middleware", () => {
 		return wrapped(ctx).then(() => {
 			expect(__checkGood).toHaveBeenCalledTimes(1);
 			expect(__checkGood).toHaveBeenCalledWith({"id": 5, "name": "John"});
-			expect(mockAction.handler).toHaveBeenCalledTimes(1);		
+			expect(mockAction.handler).toHaveBeenCalledTimes(1);
 		});
 	});
 
@@ -111,7 +111,7 @@ describe("Test middleware", () => {
 			},
 			handler: jest.fn(() => Promise.resolve())
 		};
-		
+
 		// Create wrapped handler
 		let wrapped = mw(mockAction.handler, mockAction);
 		expect(typeof wrapped).toBe("function");
@@ -121,7 +121,7 @@ describe("Test middleware", () => {
 		// Call wrapped function
 		return wrapped(ctx).catch(err => {
 			expect(err).toBeInstanceOf(ValidationError);
-			expect(mockAction.handler).toHaveBeenCalledTimes(0);		
+			expect(mockAction.handler).toHaveBeenCalledTimes(0);
 		});
 	});
 
@@ -131,7 +131,7 @@ describe("Test middleware", () => {
 			name: "posts.find",
 			handler: jest.fn()
 		};
-		
+
 		let wrapped = v.middleware()(mockAction.handler, mockAction);
 		expect(typeof wrapped).toBe("function");
 
@@ -139,7 +139,7 @@ describe("Test middleware", () => {
 		wrapped(ctx);
 
 		expect(v.validate).toHaveBeenCalledTimes(0);
-		expect(mockAction.handler).toHaveBeenCalledTimes(1);		
+		expect(mockAction.handler).toHaveBeenCalledTimes(1);
 	});
 
 });

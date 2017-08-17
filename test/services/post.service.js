@@ -28,8 +28,8 @@ module.exports = function() {
 
 					return Promise.all(promises).then(() => {
 						return result;
-					});	
-				}			
+					});
+				}
 			},
 
 			delayed(ctx) {

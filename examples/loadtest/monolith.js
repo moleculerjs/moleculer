@@ -41,7 +41,7 @@ function work() {
 }
 
 broker._callCount = 0;
-setTimeout(() => { 
+setTimeout(() => {
 	console.log("Client started. nodeID:", broker.nodeID, " PID:", process.pid);
 
 	let startTime = Date.now();

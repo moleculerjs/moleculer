@@ -35,7 +35,7 @@ Promise.resolve()
 			broker.logger.info("[server-1] Success!", res.length);
 		}).catch(err => {
 			broker.logger.error("[server-1] Error!", err.message);
-		});	
+		});
 
 	})
 /*

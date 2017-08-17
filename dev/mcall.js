@@ -17,7 +17,7 @@ broker.start().delay(500)
 
 	.then(() => {
 		console.log("\n--- ARRAY MCALL ---");
-		
+
 		return broker.mcall([
 			{ action: "posts.find", params: {limit: 2, offset: 0} },
 			{ action: "v2.users.find", params: {limit: 2, sort: "username"} }

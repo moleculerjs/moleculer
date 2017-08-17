@@ -23,15 +23,15 @@ console.log("Client started. nodeID:", broker.nodeID, " PID:", process.pid);
 function work() {
 	let payload = { a: random(0, 100), b: random(0, 100) };
 	broker.call("math.add", payload)
-	.then(res => {
-		broker._callCount++;
-		//console.info(`${payload.a} + ${payload.b} = ${res}`);
-		setImmediate(work);
-	});		
+		.then(res => {
+			broker._callCount++;
+			//console.info(`${payload.a} + ${payload.b} = ${res}`);
+			setImmediate(work);
+		});
 }
 
 broker._callCount = 0;
-setTimeout(() => { 
+setTimeout(() => {
 	let startTime = Date.now();
 	work();
 

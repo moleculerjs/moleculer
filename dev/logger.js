@@ -34,8 +34,8 @@ function createBroker(options) {
 
 (function() {
 	console.log(chalk.yellow.bold("\n--- CONSOLE ---"));
-	const broker = createBroker({ 
-		logger: console, 
+	const broker = createBroker({
+		logger: console,
 		logLevel: "debug",
 		/*logFormatter(level, args, meta) {
 			return level.toUpperCase() + " " + meta.nodeID + ": " + args.join(" ");
@@ -50,7 +50,7 @@ function createBroker(options) {
 (function() {
 	console.log(chalk.yellow.bold("\n--- PINO ---"));
 	const pino = require("pino")({ level: "debug" });
-	const broker = createBroker({ 
+	const broker = createBroker({
 		logger: bindings => pino.child(bindings),
 		transporter: "NATS",
 		cacher: "Redis"
@@ -63,7 +63,7 @@ function createBroker(options) {
 	console.log(chalk.yellow.bold("\n--- BUNYAN ---"));
 	const bunyan = require("bunyan");
 	const logger = bunyan.createLogger({ name: "moleculer", level: "debug" });
-	const broker = createBroker({ 
+	const broker = createBroker({
 		logger: bindings => logger.child(bindings),
 		transporter: "NATS",
 		cacher: "Redis"
@@ -76,7 +76,7 @@ function createBroker(options) {
 (function() {
 	console.log(chalk.yellow.bold("\n--- WINSTON ---"));
 	const winston = require("winston");
-	const broker = createBroker({ 
+	const broker = createBroker({
 		logger: bindings => extend(new winston.Logger({
 			transports: [
 				new (winston.transports.Console)({
@@ -97,7 +97,7 @@ function createBroker(options) {
 	console.log(chalk.yellow.bold("\n--- WINSTON CONTEXT ---"));
 	const WinstonContext = require("winston-context");
 	const winston = require("winston");
-	const broker = createBroker({ 
+	const broker = createBroker({
 		logger: bindings => extend(new WinstonContext(winston, "", bindings)),
 		transporter: "NATS",
 		cacher: "Redis"

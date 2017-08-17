@@ -17,7 +17,7 @@ describe("Test utils.generateToken", () => {
 
 
 describe("Test utils.isPromise", () => {
-	
+
 	it("should check the param", () => {
 		expect(utils.isPromise()).toBe(false);
 		expect(utils.isPromise({})).toBe(false);
@@ -116,7 +116,7 @@ describe("Test mergeSchemas", () => {
 			started: jest.fn(),
 			stopped: jest.fn(),
 
-			customProp: "test"			
+			customProp: "test"
 		};
 
 		let res = utils.mergeSchemas(origSchema, newSchema);
@@ -125,11 +125,11 @@ describe("Test mergeSchemas", () => {
 		expect(res.name).toBe("users");
 		expect(res.version).toBe(2);
 		expect(res.settings).toEqual({
-			a: 5, 
-			b: 100, 
-			c: true, 
+			a: 5,
+			b: 100,
+			c: true,
 			nested: {
-				id: 10, 
+				id: 10,
 				name: "John"
 			},
 			array: [
@@ -154,7 +154,7 @@ describe("Test mergeSchemas", () => {
 		expect(res.methods.getByID).toBe(newSchema.methods.getByID);
 		expect(res.methods.notify).toBe(origSchema.methods.notify);
 		expect(res.methods.checkPermission).toBe(newSchema.methods.checkPermission);
-		
+
 		expect(res.created).toBeInstanceOf(Array);
 		expect(res.started).toBeInstanceOf(Array);
 		expect(res.stopped).toBeInstanceOf(Array);

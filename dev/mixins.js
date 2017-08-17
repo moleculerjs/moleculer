@@ -30,7 +30,7 @@ let service1 = {
 
 	stopped() {
 		this.logger.info("Stopped from service-1");
-	}	
+	}
 };
 
 let service2 = {
@@ -57,7 +57,7 @@ let service2 = {
 
 	stopped() {
 		this.logger.info("Stopped from service-2");
-	}	
+	}
 };
 
 broker.createService({
@@ -76,7 +76,7 @@ broker.createService({
 	/*created() {
 		this.logger.info("Created from mixed");
 	}*/
-	
+
 	started() {
 		this.logger.info("Started from mixed");
 	},
@@ -84,7 +84,7 @@ broker.createService({
 	stopped() {
 		this.logger.info("Stopped from mixed");
 		//throw new Error("Can't stop mixed!");
-	}	
+	}
 
 });
 
@@ -102,14 +102,14 @@ broker.createService({
 	stopped() {
 		this.logger.info("Normal stopped");
 		//throw new Error("Can't stop normal!");
-	}	
+	}
 });
 
 broker.start().then(() => {
 	broker.logger.info("Started!");
 }).timeout(1000).then(() => broker.stop())
-.then(() => broker.logger.info("Stopped!"))
-.catch(err => broker.logger.error("Can't start broker!", err));
+	.then(() => broker.logger.info("Stopped!"))
+	.catch(err => broker.logger.error("Can't start broker!", err));
 
 //broker.call("mixed.hello").then(console.log);
 //broker.call("mixed.greeter", { name: "John" }).then(console.log);

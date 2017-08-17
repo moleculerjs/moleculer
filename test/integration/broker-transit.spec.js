@@ -64,27 +64,27 @@ describe("Test RPC", () => {
 
 			expect(b2ReplyHandler).toHaveBeenCalledTimes(1);
 		});
-	});		
+	});
 
 	it("should call double RPC (b1 -> b2 -> b1 -> b2 -> b1) & emit an event to b1", () => {
 		return b1.call("echo.helloProxy", { name: "Icebob" }).then(res => {
 			expect(res).toEqual("Hello Icebob (proxied)");
 		});
-	});	
+	});
 
 	it("should emit & receive an event via transporter", () => {
 		return b1.call("echo.emitter", { a: 5 }).then(() => {
 			expect(eventHandler).toHaveBeenCalledTimes(1);
 			expect(eventHandler).toHaveBeenCalledWith({ a: 5 }, "node-2", "emitter.hello.event");
 		});
-	});	
+	});
 
 	it("should return with RequestTimeout", () => {
 		return b1.call("echo.slow", null, { timeout: 100 }).catch(err => {
 			expect(err).toBeInstanceOf(RequestTimeoutError);
 			expect(err.data.nodeID).toBe("node-2");
 		});
-	});	
+	});
 
 	it("should return with fallbackResponse", () => {
 		let fallbackResponse = "MAYBE";

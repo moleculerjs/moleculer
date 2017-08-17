@@ -85,6 +85,6 @@ describe("Test Errors", () => {
 		expect(err).toBeInstanceOf(errors.ServiceSchemaError);
 		expect(err.name).toBe("ServiceSchemaError");
 		expect(err.message).toBe("Invalid schema");
-	});	
+	});
 
 });

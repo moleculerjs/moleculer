@@ -38,7 +38,7 @@ describe("Test JSON serializer", () => {
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_DISCONNECT, s);
 		expect(res).toBeInstanceOf(P.PacketDisconnect);
-	});		
+	});
 
 	it("should serialize the heartbeat packet", () => {
 		const packet = new P.PacketHeartbeat(broker.transit, 120);
@@ -47,8 +47,8 @@ describe("Test JSON serializer", () => {
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_HEARTBEAT, s);
 		expect(res).toBeInstanceOf(P.PacketHeartbeat);
-		expect(res.payload.uptime).toBe(120);		
-	});		
+		expect(res.payload.uptime).toBe(120);
+	});
 
 	it("should serialize the discover packet", () => {
 		const packet = new P.PacketDiscover(broker.transit);
@@ -58,7 +58,7 @@ describe("Test JSON serializer", () => {
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_DISCOVER, s);
 		expect(res).toBeInstanceOf(P.PacketDiscover);
 		expect(res.payload).toEqual({ sender: "test-1" });
-	});		
+	});
 
 	it("should serialize the info packet", () => {
 		const info = {
@@ -85,7 +85,7 @@ describe("Test JSON serializer", () => {
 		expect(res.payload.ipList).toEqual(info.ipList);
 		expect(res.payload.versions).toEqual(info.versions);
 		expect(res.payload.uptime).toEqual(info.uptime);
-	});		
+	});
 
 	it("should serialize the event packet", () => {
 		const data = {
@@ -99,7 +99,7 @@ describe("Test JSON serializer", () => {
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_EVENT, s);
 		expect(res).toBeInstanceOf(P.PacketEvent);
 		expect(res.payload.data).toEqual(data);
-	});		
+	});
 
 	it("should serialize the request packet", () => {
 		const packet = new P.PacketRequest(broker.transit, "test-2", ctx);
@@ -115,7 +115,7 @@ describe("Test JSON serializer", () => {
 		expect(res.payload.timeout).toBe(1500);
 		expect(res.payload.metrics).toBe(true);
 		expect(res.payload.parentID).toBe("999");
-	});		
+	});
 
 	it("should serialize the response packet with data", () => {
 		const data = [
@@ -130,7 +130,7 @@ describe("Test JSON serializer", () => {
 		expect(res).toBeInstanceOf(P.PacketResponse);
 		expect(res.payload.id).toBe("12345");
 		expect(res.payload.data).toEqual(data);
-	});		
+	});
 
 	it("should serialize the response packet with error", () => {
 		const err = new ValidationError("Invalid email!", "ERR_INVALID_A", { a: 5 });
@@ -153,7 +153,7 @@ describe("Test JSON serializer", () => {
 				a: 5
 			}
 		});
-	});		
+	});
 
 });
 
@@ -172,7 +172,7 @@ describe("Test Avro serializer", () => {
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_DISCONNECT, s);
 		expect(res).toBeInstanceOf(P.PacketDisconnect);
-	});		
+	});
 
 	it("should serialize the heartbeat packet", () => {
 		const packet = new P.PacketHeartbeat(broker.transit, 120);
@@ -182,7 +182,7 @@ describe("Test Avro serializer", () => {
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_HEARTBEAT, s);
 		expect(res).toBeInstanceOf(P.PacketHeartbeat);
 		expect(res.payload.uptime).toBe(120);
-	});		
+	});
 
 	it("should serialize the discover packet", () => {
 		const packet = new P.PacketDiscover(broker.transit);
@@ -192,7 +192,7 @@ describe("Test Avro serializer", () => {
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_DISCOVER, s);
 		expect(res).toBeInstanceOf(P.PacketDiscover);
 		expect(res.payload).toEqual({ sender: "test-1" });
-	});		
+	});
 
 	it("should serialize the info packet", () => {
 		const info = {
@@ -219,7 +219,7 @@ describe("Test Avro serializer", () => {
 		expect(res.payload.ipList).toEqual(info.ipList);
 		expect(res.payload.versions).toEqual(info.versions);
 		expect(res.payload.uptime).toEqual(info.uptime);
-	});		
+	});
 
 	it("should serialize the event packet", () => {
 		const data = {
@@ -233,7 +233,7 @@ describe("Test Avro serializer", () => {
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_EVENT, s);
 		expect(res).toBeInstanceOf(P.PacketEvent);
 		expect(res.payload.data).toEqual(data);
-	});		
+	});
 
 	it("should serialize the request packet", () => {
 		const packet = new P.PacketRequest(broker.transit, "test-2", ctx);
@@ -249,7 +249,7 @@ describe("Test Avro serializer", () => {
 		expect(res.payload.timeout).toBe(1500);
 		expect(res.payload.metrics).toBe(true);
 		expect(res.payload.parentID).toBe("999");
-	});		
+	});
 
 	it("should serialize the response packet with data", () => {
 		const data = [
@@ -264,7 +264,7 @@ describe("Test Avro serializer", () => {
 		expect(res).toBeInstanceOf(P.PacketResponse);
 		expect(res.payload.id).toBe("12345");
 		expect(res.payload.data).toEqual(data);
-	});		
+	});
 
 	it("should serialize the response packet with error", () => {
 		const err = new ValidationError("Invalid email!", "ERR_INVALID_A", { a: 5 });
@@ -288,7 +288,7 @@ describe("Test Avro serializer", () => {
 				a: 5
 			}
 		});
-	});		
+	});
 
 });
 
@@ -309,7 +309,7 @@ describe("Test MsgPack serializer", () => {
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_DISCONNECT, s);
 		expect(res).toBeInstanceOf(P.PacketDisconnect);
-	});		
+	});
 
 	it("should serialize the heartbeat packet", () => {
 		const packet = new P.PacketHeartbeat(broker.transit, 120);
@@ -318,8 +318,8 @@ describe("Test MsgPack serializer", () => {
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_HEARTBEAT, s);
 		expect(res).toBeInstanceOf(P.PacketHeartbeat);
-		expect(res.payload.uptime).toBe(120);		
-	});		
+		expect(res.payload.uptime).toBe(120);
+	});
 
 	it("should serialize the discover packet", () => {
 		const packet = new P.PacketDiscover(broker.transit);
@@ -329,7 +329,7 @@ describe("Test MsgPack serializer", () => {
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_DISCOVER, s);
 		expect(res).toBeInstanceOf(P.PacketDiscover);
 		expect(res.payload).toEqual({ sender: "test-1" });
-	});		
+	});
 
 	it("should serialize the info packet", () => {
 		const info = {
@@ -356,7 +356,7 @@ describe("Test MsgPack serializer", () => {
 		expect(res.payload.ipList).toEqual(info.ipList);
 		expect(res.payload.versions).toEqual(info.versions);
 		expect(res.payload.uptime).toEqual(info.uptime);
-	});		
+	});
 
 	it("should serialize the event packet", () => {
 		const data = {
@@ -370,7 +370,7 @@ describe("Test MsgPack serializer", () => {
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_EVENT, s);
 		expect(res).toBeInstanceOf(P.PacketEvent);
 		expect(res.payload.data).toEqual(data);
-	});		
+	});
 
 	it("should serialize the request packet", () => {
 		const packet = new P.PacketRequest(broker.transit, "test-2", ctx);
@@ -386,7 +386,7 @@ describe("Test MsgPack serializer", () => {
 		expect(res.payload.timeout).toBe(1500);
 		expect(res.payload.metrics).toBe(true);
 		expect(res.payload.parentID).toBe("999");
-	});		
+	});
 
 	it("should serialize the response packet with data", () => {
 		const data = [
@@ -401,7 +401,7 @@ describe("Test MsgPack serializer", () => {
 		expect(res).toBeInstanceOf(P.PacketResponse);
 		expect(res.payload.id).toBe("12345");
 		expect(res.payload.data).toEqual(data);
-	});		
+	});
 
 	it("should serialize the response packet with error", () => {
 		const err = new ValidationError("Invalid email!", "ERR_INVALID_A", { a: 5 });
@@ -425,7 +425,7 @@ describe("Test MsgPack serializer", () => {
 				a: 5
 			}
 		});
-	});		
+	});
 
 });
 
@@ -444,7 +444,7 @@ describe("Test ProtoBuf serializer", () => {
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_DISCONNECT, s);
 		expect(res).toBeInstanceOf(P.PacketDisconnect);
-	});		
+	});
 
 	it("should serialize the heartbeat packet", () => {
 		const packet = new P.PacketHeartbeat(broker.transit, 120);
@@ -453,8 +453,8 @@ describe("Test ProtoBuf serializer", () => {
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_HEARTBEAT, s);
 		expect(res).toBeInstanceOf(P.PacketHeartbeat);
-		expect(res.payload.uptime).toBe(120);		
-	});		
+		expect(res.payload.uptime).toBe(120);
+	});
 
 	it("should serialize the discover packet", () => {
 		const packet = new P.PacketDiscover(broker.transit);
@@ -464,7 +464,7 @@ describe("Test ProtoBuf serializer", () => {
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_DISCOVER, s);
 		expect(res).toBeInstanceOf(P.PacketDiscover);
 		expect(res.payload).toEqual({ sender: "test-1" });
-	});		
+	});
 
 	it("should serialize the info packet", () => {
 		const info = {
@@ -491,7 +491,7 @@ describe("Test ProtoBuf serializer", () => {
 		expect(res.payload.ipList).toEqual(info.ipList);
 		expect(res.payload.versions).toEqual(info.versions);
 		expect(res.payload.uptime).toEqual(info.uptime);
-	});		
+	});
 
 	it("should serialize the event packet", () => {
 		const data = {
@@ -505,7 +505,7 @@ describe("Test ProtoBuf serializer", () => {
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_EVENT, s);
 		expect(res).toBeInstanceOf(P.PacketEvent);
 		expect(res.payload.data).toEqual(data);
-	});		
+	});
 
 	it("should serialize the request packet", () => {
 		const packet = new P.PacketRequest(broker.transit, "test-2", ctx);
@@ -521,7 +521,7 @@ describe("Test ProtoBuf serializer", () => {
 		expect(res.payload.timeout).toBe(1500);
 		expect(res.payload.metrics).toBe(true);
 		expect(res.payload.parentID).toBe("999");
-	});		
+	});
 
 	it("should serialize the response packet with data", () => {
 		const data = [
@@ -536,7 +536,7 @@ describe("Test ProtoBuf serializer", () => {
 		expect(res).toBeInstanceOf(P.PacketResponse);
 		expect(res.payload.id).toBe("12345");
 		expect(res.payload.data).toEqual(data);
-	});		
+	});
 
 	it("should serialize the response packet with error", () => {
 		const err = new ValidationError("Invalid email!", "ERR_INVALID_A", { a: 5 });
@@ -560,6 +560,6 @@ describe("Test ProtoBuf serializer", () => {
 				a: 5
 			}
 		});
-	});		
+	});
 
 });

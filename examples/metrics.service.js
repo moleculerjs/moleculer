@@ -3,7 +3,7 @@ let _ = require("lodash");
 module.exports = function() {
 	return {
 		name: "metrics",
-		
+
 		events: {
 
 			"metrics.trace.span.start"(payload) {
@@ -44,7 +44,7 @@ module.exports = function() {
 
 					let maxActionName = maxTitle - (span.level-1) * 2 - time.length - 3 - (span.fromCache ? 2 : 0) - (span.remoteCall ? 2 : 0) - (span.error ? 2 : 0);
 					let actionName = span.action ? span.action.name : "";
-					if (actionName.length > maxActionName) 
+					if (actionName.length > maxActionName)
 						actionName = _.truncate(span.action.name, { length: maxActionName });
 
 					let strAction = [
@@ -92,7 +92,7 @@ module.exports = function() {
 				};
 
 				printSpanTime(main);
-				this.logger.info(["└", r("─", w-2), "┘"].join(""));			
+				this.logger.info(["└", r("─", w-2), "┘"].join(""));
 			}
 		},
 

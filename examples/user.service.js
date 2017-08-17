@@ -16,7 +16,7 @@ module.exports = function(broker) {
 		name: "users",
 		version: 2,
 		latestVersion: true,
-		
+
 		actions: {
 			find: {
 				cache: false,

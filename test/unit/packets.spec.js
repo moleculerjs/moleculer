@@ -50,11 +50,11 @@ describe("Test base Packet", () => {
 	it("should return a Packet instance", () => {
 		transit.deserialize.mockClear();
 
-		let packet = P.Packet.deserialize(transit, P.PACKET_HEARTBEAT, '{"a": 5}');
+		let packet = P.Packet.deserialize(transit, P.PACKET_HEARTBEAT, "{\"a\": 5}");
 		expect(packet).toBeInstanceOf(P.PacketHeartbeat);
 		expect(packet.payload).toEqual({ a: 5 });
 		expect(transit.deserialize).toHaveBeenCalledTimes(1);
-		expect(transit.deserialize).toHaveBeenCalledWith('{"a": 5}', P.PACKET_HEARTBEAT);
+		expect(transit.deserialize).toHaveBeenCalledWith("{\"a\": 5}", P.PACKET_HEARTBEAT);
 	});
 
 });
@@ -122,7 +122,7 @@ describe("Test PacketInfo", () => {
 			uptime: 100
 
 		};
-		
+
 		let packet = new P.PacketInfo(transit, "node-2", info);
 		expect(packet).toBeDefined();
 		expect(packet.type).toBe(P.PACKET_INFO);
@@ -132,7 +132,7 @@ describe("Test PacketInfo", () => {
 		expect(packet.payload.services).toBe("[{\"name\":\"users\",\"version\":\"2\",\"settings\":{},\"actions\":{\"users.create\":{}}}]");
 		expect(packet.payload.ipList).toEqual(info.ipList);
 		expect(packet.payload.versions).toEqual(info.versions);
-		expect(packet.payload.uptime).toEqual(info.uptime);		
+		expect(packet.payload.uptime).toEqual(info.uptime);
 	});
 
 	it("should transform payload", () => {
@@ -155,7 +155,7 @@ describe("Test PacketInfo", () => {
 		]);
 		expect(packet.payload.ipList).toEqual(payload.ipList);
 		expect(packet.payload.versions).toEqual(payload.versions);
-		expect(packet.payload.uptime).toEqual(payload.uptime);			
+		expect(packet.payload.uptime).toEqual(payload.uptime);
 	});
 });
 
@@ -194,7 +194,7 @@ describe("Test PacketEvent", () => {
 		expect(packet.payload.sender).toBe("node-1");
 		expect(packet.payload.event).toBe("user.updated");
 		expect(packet.payload.data).toBeNull();
-	});	
+	});
 
 	it("should transform without payload", () => {
 		let payload = {
@@ -204,7 +204,7 @@ describe("Test PacketEvent", () => {
 		packet.transformPayload(payload);
 
 		expect(packet.payload.data).toBeUndefined();
-	});	
+	});
 });
 
 describe("Test PacketRequest", () => {
@@ -307,7 +307,7 @@ describe("Test PacketResponse", () => {
 		packet.transformPayload(payload);
 
 		expect(packet.payload.data).toEqual({ a: 5 });
-		expect(packet.payload.error).toBeUndefined();		
+		expect(packet.payload.error).toBeUndefined();
 	});
 
 	it("should transform payload with error", () => {
@@ -332,7 +332,7 @@ describe("Test PacketResponse", () => {
 		expect(packet.payload.error.code).toBe(500);
 		expect(packet.payload.error.type).toBe("ERR_SOMETHING");
 		expect(packet.payload.error.nodeID).toBe("far-far-node");
-		expect(packet.payload.error.data).toEqual({ a: 5 });	
+		expect(packet.payload.error.data).toEqual({ a: 5 });
 	});
 
 });

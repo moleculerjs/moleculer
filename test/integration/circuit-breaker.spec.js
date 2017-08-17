@@ -93,7 +93,7 @@ describe("Test circuit breaker", () => {
 				return "done";
 			})
 			.then(res => expect(res).toBe("done"))
-			
+
 			.then(() => master1.call("cb.angry", { please: true }))
 			.catch(err => {
 				expect(err).toBeInstanceOf(ServiceNotFoundError);

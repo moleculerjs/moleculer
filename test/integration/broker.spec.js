@@ -404,7 +404,7 @@ describe("Test on/once/off event emitter", () => {
 
 		broker.emitLocal("request");
 		expect(handler).toHaveBeenCalledTimes(1);
-	});	
+	});
 
 });
 
@@ -421,7 +421,7 @@ describe("Test local call", () => {
 			find: actionHandler
 		}
 	});
-		
+
 	it("should return context & call the action handler", () => {
 		return broker.call("posts.find").then(ctx => {
 			expect(ctx).toBeDefined();
@@ -433,7 +433,7 @@ describe("Test local call", () => {
 			expect(actionHandler).toHaveBeenCalledWith(ctx);
 		});
 	});
-		
+
 	it("should set params to context", () => {
 		let params = { a: 1 };
 		return broker.call("posts.find", params).then(ctx => {
@@ -450,7 +450,7 @@ describe("Test local call", () => {
 		parentCtx.meta = {
 			user: "John",
 			roles: ["user"]
-		};		
+		};
 
 		let params = { a: 1 };
 		let meta = {
@@ -493,7 +493,7 @@ describe("Test versioned action registration", () => {
 		actions: {
 			find: findV2
 		}
-	});	
+	});
 
 	it("should return with the correct action", () => {
 		expect(broker.hasAction("v1.posts.find")).toBe(true);
@@ -513,7 +513,7 @@ describe("Test versioned action registration", () => {
 			expect(findV2).toHaveBeenCalledTimes(1);
 		});
 	});
-		
+
 });
 
 describe("Test middleware system", () => {
@@ -525,7 +525,7 @@ describe("Test middleware system", () => {
 				flow.push("B1");
 				return handler(ctx).then(res => {
 					flow.push("A1");
-					return res;		
+					return res;
 				});
 			};
 		};
@@ -543,7 +543,7 @@ describe("Test middleware system", () => {
 				}).then(res => {
 					flow.push("A2");
 					return res;
-				});		
+				});
 			};
 		};
 
@@ -562,13 +562,13 @@ describe("Test middleware system", () => {
 				foo: master
 			}
 		});
-		
+
 		it("should register plugins", () => {
 			expect(broker.middlewares.length).toBe(2);
 		});
 
 		it("should call all middlewares functions & master", () => {
-			let p = broker.call("test.foo");		
+			let p = broker.call("test.foo");
 			expect(utils.isPromise(p)).toBe(true);
 			return p.then(res => {
 				expect(res).toEqual({ user: "icebob" });
@@ -576,7 +576,7 @@ describe("Test middleware system", () => {
 
 				expect(flow.join("-")).toBe("B1-B2-B2P-MASTER-A2-A1");
 			});
-		});	
+		});
 	});
 
 	describe("Test with SYNC break", () => {
@@ -586,7 +586,7 @@ describe("Test middleware system", () => {
 				flow.push("B1");
 				return handler(ctx).then(res => {
 					flow.push("A1");
-					return res;		
+					return res;
 				});
 			};
 		};
@@ -604,7 +604,7 @@ describe("Test middleware system", () => {
 				flow.push("B3");
 				return handler(ctx).then(res => {
 					flow.push("A3");
-					return res;		
+					return res;
 				});
 			};
 		};
@@ -623,13 +623,13 @@ describe("Test middleware system", () => {
 				foo: master
 			}
 		});
-		
+
 		it("should register plugins", () => {
 			expect(broker.middlewares.length).toBe(3);
-		});	
+		});
 
 		it("should call only mw1 & mw2 middlewares functions", () => {
-			let p = broker.call("test.foo");		
+			let p = broker.call("test.foo");
 			expect(utils.isPromise(p)).toBe(true);
 			return p.then(res => {
 				expect(res).toEqual({ user: "bobcsi" });
@@ -646,7 +646,7 @@ describe("Test middleware system", () => {
 				flow.push("B1");
 				return handler(ctx).then(res => {
 					flow.push("A1");
-					return res;		
+					return res;
 				});
 			};
 		};
@@ -658,7 +658,7 @@ describe("Test middleware system", () => {
 					setTimeout(() => {
 						flow.push("B2P");
 						resolve({ user: "bobcsi" });
-					}, 10);				
+					}, 10);
 				});
 			};
 		};
@@ -668,7 +668,7 @@ describe("Test middleware system", () => {
 				flow.push("B3");
 				return handler(ctx).then(res => {
 					flow.push("A3");
-					return res;		
+					return res;
 				});
 			};
 		};
@@ -688,13 +688,13 @@ describe("Test middleware system", () => {
 				foo: master
 			}
 		});
-		
+
 		it("should register plugins", () => {
 			expect(broker.middlewares.length).toBe(3);
-		});	
+		});
 
 		it("should call only mw1 & mw2 middlewares functions", () => {
-			let p = broker.call("test.foo");		
+			let p = broker.call("test.foo");
 			expect(utils.isPromise(p)).toBe(true);
 			return p.then(res => {
 				expect(res).toEqual({ user: "bobcsi" });
@@ -711,7 +711,7 @@ describe("Test middleware system", () => {
 				flow.push("B1");
 				return handler(ctx).then(res => {
 					flow.push("A1");
-					return res;		
+					return res;
 				});
 			};
 		};
@@ -741,13 +741,13 @@ describe("Test middleware system", () => {
 		});
 
 		it("should call only mw1 & mw2 middlewares functions", () => {
-			let p = broker.call("test.foo");		
+			let p = broker.call("test.foo");
 			expect(utils.isPromise(p)).toBe(true);
 			return p.catch(err => {
 				expect(err.message).toEqual("Something happened in mw2");
 				expect(flow.join("-")).toBe("B1-B2");
 			});
-		});	
+		});
 	});
 
 });
@@ -807,7 +807,7 @@ describe("Test cachers", () => {
 			expect(handler).toHaveBeenCalledTimes(1);
 		});
 	});
-	
+
 });
 
 describe.skip("Test validation", () => {

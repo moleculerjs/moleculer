@@ -11,7 +11,7 @@ describe("Test Statistics constructor", () => {
 		expect(stat).toBeDefined();
 		expect(stat.broker).toBe(broker);
 		expect(stat.options).toEqual({});
-		
+
 		expect(stat.requests).toBeDefined();
 
 		expect(stat.addRequest).toBeInstanceOf(Function);

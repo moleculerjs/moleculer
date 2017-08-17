@@ -12,7 +12,7 @@ describe("Test RedisCacher constructor", () => {
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toBeDefined();
 		expect(cacher.opts.ttl).toBeNull();
-	}); 
+	});
 
 	it("should create a timer if set ttl option", () => {
 		let opts = { ttl: 500 };
@@ -62,7 +62,7 @@ describe("Test RedisCacher set & get without prefix", () => {
 		expect(cacher.client.set).toHaveBeenCalledWith(prefix + key, JSON.stringify(data1));
 		expect(cacher.client.setex).toHaveBeenCalledTimes(0);
 	});
-	
+
 	it("should call client.get with key & return with data1", () => {
 		let p = cacher.get(key);
 		expect(cacher.client.get).toHaveBeenCalledTimes(1);
@@ -81,7 +81,7 @@ describe("Test RedisCacher set & get without prefix", () => {
 		return p.then((d) => {
 			expect(d).toBeNull();
 		});
-	});	
+	});
 
 	it("should call client.del with key", () => {
 		cacher.del(key);
@@ -100,7 +100,7 @@ describe("Test RedisCacher set & get without prefix", () => {
 		expect(cacher.client.del).toHaveBeenCalledTimes(1);
 		expect(cacher.client.del).toHaveBeenCalledWith(["key1", "key2"], jasmine.any(Function));
 	});
-	
+
 });
 
 describe("Test RedisCacher set & get with namespace & ttl", () => {
@@ -131,7 +131,7 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 		expect(cacher.client.setex).toHaveBeenCalledTimes(1);
 		expect(cacher.client.setex).toHaveBeenCalledWith(prefix + key, 60, JSON.stringify(data1));
 	});
-	
+
 	it("should give back the data by key", () => {
 		cacher.get(key);
 		expect(cacher.client.get).toHaveBeenCalledTimes(1);

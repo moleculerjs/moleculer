@@ -73,34 +73,34 @@ describe("Test BaseCacher", () => {
 
 		// Same result, with same params
 		let res2 = cacher.getCacheKey("posts.find.model", { id: 1, name: "Bob" });
-		expect(res2).toEqual(res); 
+		expect(res2).toEqual(res);
 
 		// Different result, with different params
 		let res3 = cacher.getCacheKey("posts.find.model", { id: 2, name: "Bob" });
-		expect(res3).not.toEqual(res); 
+		expect(res3).not.toEqual(res);
 		expect(res3).toBe("posts.find.model:f67b30a6ce5a28452217cb3b63a28d9db412e70de5ec1938ad373b36fa98073f");
 
 		res = cacher.getCacheKey();
 		expect(res).toBe(undefined);
-		
+
 		res = cacher.getCacheKey("posts.find");
 		expect(res).toBe("posts.find");
-		
+
 		res = cacher.getCacheKey("user", {});
 		expect(res).toBe("user:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a");
-		
+
 		res = cacher.getCacheKey("user", {a: 5});
 		expect(res).toBe("user:b0a7093990109d1355dc833dcddecae4de9624d2226b9499d459b8ef94353942");
 
 		res = cacher.getCacheKey("user", {a: 5}, ["a"]);
 		expect(res).toBe("user:5");
-	
+
 		res = cacher.getCacheKey("user", {a: { id: 5 }}, ["a"]);
 		expect(res).toBe("user:609885e768b9fe49724d1765ef39f50770a553a1b6b2bf2524eb4d170de6ef38");
-	
+
 		res = cacher.getCacheKey("user", { a: [1,3,5] }, ["a"]);
 		expect(res).toBe("user:7338883e2772613ee984693e6707038578abce9fc9ea0b789d06a8d5e8f99457");
-	
+
 		res = cacher.getCacheKey("user", {a: 5, b: 3, c: 5}, ["a"]);
 		expect(res).toBe("user:5");
 
@@ -113,7 +113,7 @@ describe("Test BaseCacher", () => {
 		res = cacher.getCacheKey("user", {a: 5, c: 5}, ["a", "b", "c"]);
 		expect(res).toBe("user:5|undefined|5");
 
-		
+
 		res = cacher.getCacheKey("user", {a: 5, b: { id: 3 }}, ["a", "c", "b"]);
 		expect(res).toBe("user:5|undefined|7cd0bff03436177b21566f74101e93f73b7295a6d7855339e540f044af12d469");
 
@@ -122,11 +122,11 @@ describe("Test BaseCacher", () => {
 
 		res = cacher.getCacheKey("user", {a: 5, b: { id: 3, other: { status: true } }}, ["a", "b.id", "b.other.status"]);
 		expect(res).toBe("user:5|3|true");
-		
+
 		res = cacher.getCacheKey("user", {a: 5, b: 3}, []);
 		expect(res).toBe("user");
-		
-	});	
+
+	});
 });
 
 describe("Test middleware", () => {
@@ -150,7 +150,7 @@ describe("Test middleware", () => {
 	it("should give back the cached data and not called the handler", () => {
 		let ctx = new Context();
 		ctx.setParams(params);
-		
+
 		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
 		expect(typeof cachedHandler).toBe("function");
 
@@ -172,7 +172,7 @@ describe("Test middleware", () => {
 
 		let ctx = new Context();
 		ctx.setParams(params);
-		
+
 		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
 
 		return cachedHandler(ctx).then(response => {
@@ -198,7 +198,7 @@ describe("Test middleware", () => {
 
 		let ctx = new Context();
 		ctx.setParams(params);
-		
+
 		let cachedHandler = cacher.middleware()(action.handler, action);
 		expect(typeof cachedHandler).toBe("function");
 
@@ -209,7 +209,7 @@ describe("Test middleware", () => {
 			expect(broker.cacher.set).toHaveBeenCalledTimes(0);
 		});
 
-	});	
+	});
 
 });
 

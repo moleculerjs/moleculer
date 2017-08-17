@@ -103,7 +103,7 @@ describe("Test MqttTransporter subscribe & publish", () => {
 	const fakeTransit = {
 		nodeID: "node1",
 		serialize: jest.fn(msg => JSON.stringify(msg))
-	};	
+	};
 
 	beforeEach(() => {
 		transporter = new MqttTransporter();

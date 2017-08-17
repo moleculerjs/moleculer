@@ -2,7 +2,7 @@
 
 "use strict";
 
-const 
+const
 	os = require("os"),
 	cluster = require("cluster"),
 	stopSignals = [

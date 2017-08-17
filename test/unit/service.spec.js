@@ -10,7 +10,7 @@ const ServiceBroker = require("../../src/service-broker");
 describe("Test Service constructor", () => {
 
 	let broker = new ServiceBroker();
-	
+
 	let schema = {
 		name: "users",
 		version: 2,
@@ -41,7 +41,7 @@ describe("Test Service constructor", () => {
 		expect(service.settings).toBe(schema.settings);
 		expect(service.schema).toBe(schema);
 		expect(service.broker).toBe(broker);
-		
+
 		expect(service.logger).toBeDefined();
 		expect(service.actions).toEqual({});
 
@@ -49,7 +49,7 @@ describe("Test Service constructor", () => {
 		expect(service.started).toBeInstanceOf(Function);
 		expect(service.stopped).toBeInstanceOf(Function);
 	});
-	
+
 });
 
 describe("Test action creation", () => {
@@ -74,7 +74,7 @@ describe("Test action creation", () => {
 		broker.registerLocalService = jest.fn();
 		broker.registerAction = jest.fn();
 
-		let service = broker.createService(schema); 
+		let service = broker.createService(schema);
 
 		expect(service).toBeDefined();
 		expect(broker.registerLocalService).toHaveBeenCalledTimes(1);
@@ -129,7 +129,7 @@ describe("Test events creation", () => {
 		let handlers = {};
 		broker.on = jest.fn((name, fn) => handlers[name] = fn);
 
-		let service = broker.createService(schema); 
+		let service = broker.createService(schema);
 
 		expect(service).toBeDefined();
 		expect(broker.on).toHaveBeenCalledTimes(2);
@@ -141,7 +141,7 @@ describe("Test events creation", () => {
 
 		expect(schema.events["user.*"]).toHaveBeenCalledTimes(1);
 		expect(schema.events["user.*"]).toHaveBeenCalledWith(data, "node-2", "user.created");
-		
+
 	});
 
 	it("should throw error because no handler of event", () => {
@@ -167,7 +167,7 @@ describe("Test methods creation", () => {
 	};
 
 	it("should create method in Service instance", () => {
-		let service = broker.createService(schema); 
+		let service = broker.createService(schema);
 
 		expect(service).toBeDefined();
 		expect(typeof service.something).toBe("function");
@@ -198,7 +198,7 @@ describe("Test created event handler", () => {
 	};
 
 	it("should create method in Service instance", () => {
-		broker.createService(schema); 
+		broker.createService(schema);
 		expect(schema.created).toHaveBeenCalledTimes(1);
 	});
 });
@@ -252,11 +252,11 @@ describe("Test _createAction function", () => {
 	});
 
 	it("should create action without service name", () => {
-		let service = broker.createService({ 
-			name: "users", 
+		let service = broker.createService({
+			name: "users",
 			settings: {
 				$noServiceNamePrefix: true
-			} 
+			}
 		});
 
 		let action = service._createAction({ handler }, "find");
@@ -268,7 +268,7 @@ describe("Test _createAction function", () => {
 		let service = broker.createService({ name: "users" });
 
 		expect(() => service._createAction({}, "find")).toThrowError("Missing action handler on 'find' action in 'users' service!");
-	});	
+	});
 
 	describe("Test action cache property", () => {
 
@@ -425,7 +425,7 @@ describe("Test lifecycle event handlers", () => {
 			expect(schema.stopped).toHaveBeenCalledTimes(1);
 		});
 	});
-	
+
 	describe("with multiple handlers (from mixins)", () => {
 
 		let broker = new ServiceBroker();
@@ -445,15 +445,15 @@ describe("Test lifecycle event handlers", () => {
 			name: "simple",
 
 			created: [
-				createdFn1, 
+				createdFn1,
 				createdFn2
 			],
 			started: [
-				startedFn1, 
+				startedFn1,
 				startedFn2
 			],
 			stopped: [
-				stoppedFn1, 
+				stoppedFn1,
 				stoppedFn2
 			],
 		};
@@ -477,7 +477,7 @@ describe("Test lifecycle event handlers", () => {
 		it("should called stopped", () => {
 			expect(stoppedFn1).toHaveBeenCalledTimes(1);
 			expect(stoppedFn2).toHaveBeenCalledTimes(1);
-			
+
 			expect(FLOW.join("-")).toBe("C1-C2-A1-A2-O2-O1");
 		});
 	});

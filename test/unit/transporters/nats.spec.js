@@ -103,7 +103,7 @@ describe("Test NatsTransporter connect & disconnect & reconnect", () => {
 		transporter._client.onCallbacks.connect(); // Trigger the `resolve`
 
 		return p;
-	});	
+	});
 
 	it("check disconnect", () => {
 		let p = transporter.connect().then(() => {
@@ -127,12 +127,12 @@ describe("Test NatsTransporter subscribe & publish", () => {
 	const fakeTransit = {
 		nodeID: "node1",
 		serialize: jest.fn(msg => JSON.stringify(msg))
-	};	
+	};
 
 	beforeEach(() => {
 		msgHandler = jest.fn();
 		transporter = new NatsTransporter();
-		transporter.init(new Transit(new ServiceBroker({ namespace: "TEST" })), msgHandler);		
+		transporter.init(new Transit(new ServiceBroker({ namespace: "TEST" })), msgHandler);
 
 		let p = transporter.connect();
 		transporter._client.onCallbacks.connect(); // Trigger the `resolve`

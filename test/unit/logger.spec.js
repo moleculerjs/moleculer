@@ -11,7 +11,7 @@ function callLogMethods(logger) {
 	logger.debug("debug level");
 	logger.info("info level");
 	logger.warn("warn level");
-	logger.error("error level");	
+	logger.error("error level");
 	logger.fatal("fatal level");
 }
 
@@ -22,7 +22,7 @@ describe("Test extend", () => {
 			info: jest.fn(),
 			warn: jest.fn()
 		};
-		
+
 		let logger = extend(con);
 		expect(logger.fatal).toBeDefined();
 		expect(logger.error).toBeDefined();

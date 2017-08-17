@@ -30,7 +30,7 @@ Promise.resolve()
 	.then(delay(1000))
 	.then(() => {
 		let startTime = Date.now();
-	
+
 		broker.call("posts.find").then((posts) => {
 			broker.logger.info("[server-2] Posts: ", posts.length, ", Time:", Date.now() - startTime, "ms");
 		})

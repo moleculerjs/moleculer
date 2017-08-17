@@ -39,7 +39,7 @@ b1.createService({
 	name: "nothing",
 	events: {
 		TEST2(a, sender) {
-			console.log(`TEST2 event received from '${sender}':`, a);			
+			console.log(`TEST2 event received from '${sender}':`, a);
 		}
 	}
 });
@@ -76,16 +76,16 @@ b2.on("TEST1", a => {
 // --- WORKFLOW ---
 
 Promise.resolve()
-.then(delay(1000))
+	.then(delay(1000))
 
-.then(() => {
-	b1.call("posts.get", { id: 1 }, { meta: { user: "John" }}).then(res => {
-		console.log("[server-1] Success!", res);
-	}).catch(err => {
-		console.error("[server-1] Error!", err);
-	});	
+	.then(() => {
+		b1.call("posts.get", { id: 1 }, { meta: { user: "John" }}).then(res => {
+			console.log("[server-1] Success!", res);
+		}).catch(err => {
+			console.error("[server-1] Error!", err);
+		});
 
-})
+	})
 
 
 /*
@@ -95,9 +95,9 @@ Promise.resolve()
 */
 
 
-.then(() => {
-	let c = 1;
-	setInterval(() => {
-		b2.emit("TEST2", { a: c++ });
-	}, 5 * 1000);
-});
+	.then(() => {
+		let c = 1;
+		setInterval(() => {
+			b2.emit("TEST2", { a: c++ });
+		}, 5 * 1000);
+	});
