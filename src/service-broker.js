@@ -30,8 +30,6 @@ const RoundRobinStrategy = require("./strategies/round-robin");
 const { CIRCUIT_HALF_OPEN } 	= require("./constants");
 
 
-const LOCAL_NODE_ID = null; // `null` means local nodeID
-
 const defaultConfig = {
 	namespace: "",
 	nodeID: null,
@@ -1075,16 +1073,6 @@ ServiceBroker.MOLECULER_VERSION = require("../package.json").version;
  * Version of Moleculer
  */
 ServiceBroker.prototype.MOLECULER_VERSION = ServiceBroker.MOLECULER_VERSION;
-
-/**
- * Local NodeID
- */
-ServiceBroker.LOCAL_NODE_ID = LOCAL_NODE_ID;
-
-/**
- * Local NodeID
- */
-ServiceBroker.prototype.LOCAL_NODE_ID = LOCAL_NODE_ID;
 
 /**
  * Default configuration
