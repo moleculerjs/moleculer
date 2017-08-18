@@ -1,5 +1,5 @@
 <a name="0.10.0"></a>
-# 0.10.0 (2017-08-xx)
+# [0.10.0](https://github.com/ice-services/moleculer/compare/v0.9.0...v0.10.0) (2017-08-xx)
 
 # Breaking changes
 
@@ -179,7 +179,7 @@ let broker = new ServiceBroker({
 --------------------------------------------------
 
 <a name="0.9.0"></a>
-# 0.9.0 (2017-08-10)
+# [0.9.0](https://github.com/ice-services/moleculer/compare/v0.8.5...v0.9.0) (2017-08-10)
 
 # Breaking changes
 
@@ -421,7 +421,7 @@ broker.mcall({
 
 --------------------------------------------------
 <a name="0.8.5"></a>
-# 0.8.5 (2017-08-06)
+# [0.8.5](https://github.com/ice-services/moleculer/compare/v0.8.4...v0.8.5) (2017-08-06)
 
 # Fixes
 - fixed logger method bindings.
@@ -429,14 +429,14 @@ broker.mcall({
 
 --------------------------------------------------
 <a name="0.8.4"></a>
-# 0.8.4 (2017-07-24)
+# [0.8.5](https://github.com/ice-services/moleculer/compare/v0.8.3...v0.8.4) (2017-07-24)
 
 # Fixes
 - fixed `Calling error! TypeError : Cannot read property 'requestID' of undefined` error when you call a local action from other one directly.
 
 --------------------------------------------------
 <a name="0.8.3"></a>
-# 0.8.3 (2017-07-24)
+# [0.8.3](https://github.com/ice-services/moleculer/compare/v0.8.2...v0.8.3) (2017-07-24)
 
 # New
 
@@ -471,7 +471,7 @@ $ moleculer-runner
 
 --------------------------------------------------
 <a name="0.8.2"></a>
-# 0.8.2 (2017-07-06)
+# [0.8.2](https://github.com/ice-services/moleculer/compare/v0.8.1...v0.8.2) (2017-07-06)
 
 # Fixes
 - fixed Redis cacher option resolver in ServiceBroker. Now it accepts connection string.
@@ -489,7 +489,7 @@ The fastest-validator is updated to [v0.5.0](https://github.com/icebob/fastest-v
 
 --------------------------------------------------
 <a name="0.8.1"></a>
-# 0.8.1 (2017-07-03)
+# [0.8.1](https://github.com/ice-services/moleculer/compare/v0.8.0...v0.8.1) (2017-07-03)
 
 # New
 
@@ -501,7 +501,7 @@ The mixins merge logic is handle better events & lifecycle events. If you have a
 --------------------------------------------------
 
 <a name="0.8.0"></a>
-# 0.8.0 (2017-06-21)
+# [0.8.0](https://github.com/ice-services/moleculer/compare/v0.7.0...v0.8.0) (2017-06-21)
 
 # New
 
