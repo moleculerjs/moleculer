@@ -429,7 +429,7 @@ broker.mcall({
 
 --------------------------------------------------
 <a name="0.8.4"></a>
-# [0.8.5](https://github.com/ice-services/moleculer/compare/v0.8.3...v0.8.4) (2017-07-24)
+# [0.8.4](https://github.com/ice-services/moleculer/compare/v0.8.3...v0.8.4) (2017-07-24)
 
 # Fixes
 - fixed `Calling error! TypeError : Cannot read property 'requestID' of undefined` error when you call a local action from other one directly.
