@@ -105,7 +105,11 @@ class Service {
 
 					const self = this;
 					const handler = function(payload, sender) {
-						return event.handler.apply(self, [payload, sender, this.event]);
+						const p = event.handler.apply(self, [payload, sender, this.event]);
+						if (utils.isPromise(p)) {
+							p.catch(err => self.logger.error(err));
+						}
+						return null;
 					};
 
 					broker.on(name, handler);
