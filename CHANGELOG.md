@@ -129,7 +129,7 @@ The metrics payload contains `remoteCall` and `callerNodeID` properties. The `re
 
 # New
 
-## Hot reload services
+## Hot reload services [#82](https://github.com/ice-services/moleculer/pull/82)
 The ServiceBroker supports hot reloading services. If you enable it broker will watch file changes. If you modify service file, broker will reload it on-the-fly.
 [Demo video](https://www.youtube.com/watch?v=l9FsAvje4F4)
 
