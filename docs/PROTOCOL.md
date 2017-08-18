@@ -1,4 +1,4 @@
-# Moleculer protocol v0.9.x
+# Moleculer protocol v0.10.x
 
 This documentation describes the communication protocol between nodes. 
 
@@ -8,7 +8,7 @@ This documentation describes the communication protocol between nodes.
 
 
 ## Subscriptions
-After the client is connected to the message broker (NATS, Redis, MQTT), it subscribes to topics.
+After the client is connected to the message broker (NATS, Redis, MQTT), it subscribes to the following topics:
 
 | Type | Topic name |
 | ---- | ---------- |
@@ -28,8 +28,8 @@ After subscriptions the client broadcasts a `DISCOVER` packet. In response to th
 ![](http://moleculer.services/images/protocol-0.8/moleculer_protocol_discover.png)
 
 ## Heartbeat
-The client has to broadcast `HEARTBEAT` packets periodically. The period value comes from broker settings. Default value is 10 secs. 
-If the client doesn't receive `HEARTBEAT` for `period*3` seconds from a node, it marks the node to broken and doesn't route requests to this node.
+The client has to broadcast `HEARTBEAT` packets periodically. The period value comes from broker options (`heartbeatInterval`). Default value is 10 secs. 
+If the client doesn't receive `HEARTBEAT` for `heartbeatTimeout` seconds from a node, marks it to broken and doesn't route requests to this node.
 ![](http://moleculer.services/images/protocol-0.8/moleculer_protocol_heartbeat.png)
 
 ## Request-reply
@@ -73,7 +73,7 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `services` | `string` | ✔ | JSON encoded string with services list. |
 | `uptime` | `double` | ✔ | Uptime of process. |
-| `ipList` | `[string]` | ✔ | List of IP address of node |
+| `ipList` | `[string]` | ✔ | IP address list of node |
 | `versions` | `object` | ✔ | Versions |
 |   `versions.node` | `string` | ✔ | NodeJS version |
 |   `versions.moleculer` | `string` | ✔ | Moleculer version |
@@ -105,7 +105,7 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | ----- | ---- | -------- | ----------- |
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `id` | `string` | ✔ | Context ID. |
-| `action` | `string` | ✔ | Name of action. E.g.: `posts.find` |
+| `action` | `string` | ✔ | Action name. E.g.: `posts.find` |
 | `params` | `string` | ✔ | JSON encoded `ctx.params` object. |
 | `meta` | `string` | ✔ | JSON encoded `ctx.meta` object. |
 | `timeout` | `double` | ✔ | Request timeout (distributed). |

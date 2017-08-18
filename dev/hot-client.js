@@ -11,6 +11,8 @@ let broker = new ServiceBroker({
 	logger: console
 });
 
+broker.loadService("./examples/math.service.js");
+
 broker.start().then(() => {
 
 	setInterval(() => {
