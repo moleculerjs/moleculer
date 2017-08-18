@@ -29,7 +29,7 @@ let utils = {
 
 	/**
 	 * Get default NodeID (computerName)
-	 * 
+	 *
 	 * @returns
 	 */
 	getNodeID() {
@@ -38,8 +38,8 @@ let utils = {
 
 	/**
 	 * Get list of local IPs
-	 * 
-	 * @returns 
+	 *
+	 * @returns
 	 */
 	getIpList() {
 		const list = [];
@@ -58,7 +58,7 @@ let utils = {
 
 	/**
 	 * Delay for Promises
-	 * 
+	 *
 	 * @param {any} ms
 	 * @returns
 	 */
@@ -69,7 +69,7 @@ let utils = {
 
 	/**
 	 * Check the param is a Promise instance
-	 * 
+	 *
 	 * @param {any} p
 	 * @returns
 	 */
@@ -80,10 +80,10 @@ let utils = {
 
 	/**
 	 * Merge two Service schema
-	 * 
-	 * @param {Object} schema 
-	 * @param {Object} mods 
-	 * @returns 
+	 *
+	 * @param {Object} schema
+	 * @param {Object} mods
+	 * @returns
 	 */
 	mergeSchemas(schema, mods) {
 		function updateProp(propName, target, source) {
@@ -116,6 +116,14 @@ let utils = {
 		});
 
 		return res;
+	},
+
+	clearRequireCache(filename) {
+		Object.keys(require.cache).forEach(function(key) {
+			if (key == filename) {
+				delete require.cache[key];
+			}
+		});
 	}
 
 };

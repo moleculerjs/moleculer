@@ -25,7 +25,7 @@ let logger;
  *
  * Available options:
  * 		-c, --config <file> - Load an external configuration files (.js or .json)
- * 		-h, --hot  			- Hot reload services if changed
+ * 		-H, --hot  			- Hot reload services if changed
  * 		-r, --repl  		- After broker started, switch to REPL mode
  * 		-s , --silent 		- Silent mode. Disable logger, no console messages.
  */
@@ -33,7 +33,7 @@ function processFlags() {
 	Args
 		.option("config", "Load the configuration from a file")
 		.option("repl", "Start REPL mode", false)
-		.option("hot", "Hot reload services if changed", false)
+		.option(["H", "hot"], "Hot reload services if changed", false)
 		.option("silent", "Silent mode. No logger", false);
 
 	flags = Args.parse(process.argv, {
@@ -41,6 +41,7 @@ function processFlags() {
 			alias: {
 				c: "config",
 				r: "repl",
+				H: "hot",
 				s: "silent"
 			},
 			boolean: ["repl", "silent", "hot"],
@@ -144,6 +145,10 @@ function mergeOptions() {
 		config.logger = null;
 	}
 
+	if (flags.hot) {
+		config.hotReload = true;
+	}
+
 	//console.log("Config", config);
 }
 
@@ -223,41 +228,6 @@ function loadServices() {
 		}
 	}
 
-	if (flags.hot) {
-		let debouncedHotReload = _.debounce(hotReloadService, 500);
-
-		broker.services.forEach(service => {
-			if (service.__filename) {
-				logger.info(`Watching '${service.name}' service file...`);
-
-				// Better: https://github.com/paulmillr/chokidar
-				fs.watch(service.__filename, (eventType, filename) => {
-					logger.debug(`The ${filename} is changed: ${eventType}`);
-
-					debouncedHotReload(service);
-				});
-			}
-		});
-	}
-}
-function clearRequireCache(filename) {
-	Object.keys(require.cache).forEach(function(key) {
-		if (key == filename) {
-			delete require.cache[key];
-			logger.debug("Cleared from require cache.", filename);
-		}
-	});
-}
-
-function hotReloadService(service) {
-	logger.info(`Hot reloading '${service.name}' service...`, service.__filename);
-
-	clearRequireCache(service.__filename);
-
-	broker.destroyService(service)
-		.then(() => broker.loadService(service.__filename))
-		.then(svc => svc.started.call(svc).then(() => svc))
-		.then(svc => logger.info(`Service '${svc.name}' is reloaded.`));
 }
 
 /**

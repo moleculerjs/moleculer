@@ -11,6 +11,7 @@ const EventEmitter2 	= require("eventemitter2").EventEmitter2;
 const _ 				= require("lodash");
 const glob 				= require("glob");
 const path 				= require("path");
+const fs 				= require("fs");
 
 const Transit 			= require("./transit");
 const ServiceRegistry 	= require("./service-registry");
@@ -65,6 +66,8 @@ const defaultConfig = {
 	metricsRate: 1,
 	statistics: false,
 	internalServices: true,
+
+	hotReload: false,
 
 	// ServiceFactory: null,
 	// ContextFactory: null
@@ -442,10 +445,57 @@ class ServiceBroker {
 			svc = this.createService(schema);
 		}
 
-		if (svc)
-			svc.__filename = filePath;
+		if (svc) {
+			svc.__filename = fName;
+			if (this.options.hotReload)
+				this.watchService(svc);
+		}
 
 		return svc;
+	}
+
+	/**
+	 * Watch a service file and hot reload if it changed.
+	 *
+	 * @param {Service} service
+	 * @memberof ServiceBroker
+	 */
+	watchService(service) {
+		if (service.__filename) {
+			const debouncedHotReload = _.debounce(this.hotReloadService.bind(this), 500);
+
+			this.logger.info(`Watching '${service.name}' service file...`);
+
+			// Better: https://github.com/paulmillr/chokidar
+			const watcher = fs.watch(service.__filename, (eventType, filename) => {
+				this.logger.warn(`The ${filename} is changed: ${eventType}`);
+
+				watcher.close();
+				debouncedHotReload(service);
+			});
+		}
+	}
+
+	/**
+	 * Hot reload a service
+	 *
+	 * @param {Service} service
+	 * @returns {Service} Reloaded service instance
+	 *
+	 * @memberof ServiceBroker
+	 */
+	hotReloadService(service) {
+		this.logger.info(`Hot reloading '${service.name}' service...`, service.__filename);
+
+		utils.clearRequireCache(service.__filename);
+
+		return this.destroyService(service)
+			.then(() => this.loadService(service.__filename))
+			.then(svc => svc.started.call(svc).then(() => svc))
+			.then(svc => {
+				this.logger.info(`Service '${svc.name}' is reloaded.`);
+				return svc;
+			});
 	}
 
 	/**

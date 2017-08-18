@@ -129,6 +129,31 @@ The metrics payload contains `remoteCall` and `callerNodeID` properties. The `re
 
 # New
 
+## Hot reload services
+The ServiceBroker supports hot reloading services. If you enable it broker will watch file changes. If you modify service file, broker will reload it on-the-fly.
+[Demo video](https://www.youtube.com/watch?v=l9FsAvje4F4)
+
+> Note: Hot reloading is only working with Moleculer Runner or if you load your services with `broker.loadService` or `broker.loadServices`.
+
+**Usage**
+
+```js
+let broker = new ServiceBroker({
+    logger: console,
+    hotReload: true
+});
+
+broker.loadService("./services/test.service.js");
+```
+
+**Usage with Moleculer Runner**
+
+Turn it on with `--hot` or `-H` flags.
+
+```bash
+$ moleculer-runner --hot ./services/test.service.js
+```
+
 ## Protocol documentation
 Moleculer protocol documentation is available in [docs/PROTOCOL.md](docs/PROTOCOL.md) file.
 
