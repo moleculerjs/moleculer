@@ -100,6 +100,7 @@ declare interface BrokerOptions {
 	metricsRate?: Number;
 	statistics?: Boolean;
 	internalServices?: Boolean;
+	hotReload?: Boolean;
 
 	ServiceFactory?: Service;
 	ContextFactory?: Context;
@@ -123,6 +124,8 @@ declare class ServiceBroker {
 	fatal(message: String, err?: Error, needExit?: boolean = true);
 	loadServices(folder?: String, fileMask?: String): Number;
 	loadService(filePath: String): Service;
+	watchService(service: Service);
+	hotReloadService(service: Service): Service;
 	createService(schema: Object): Service;
 	destroyService(service: Service): Promise<any>;
 	registerLocalService(service: Service);
