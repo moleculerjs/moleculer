@@ -4,6 +4,8 @@
 const chalk = require("chalk");
 chalk.enabled = false;
 
+const fs = require("fs");
+const utils = require("../../src/utils");
 const path = require("path");
 const Promise = require("bluebird");
 const lolex = require("lolex");
@@ -68,7 +70,8 @@ describe("Test ServiceBroker constructor", () => {
 			metrics: false,
 			metricsRate: 1,
 			statistics: false,
-			internalServices: true
+			internalServices: true,
+			hotReload: false
 		});
 
 		expect(broker.Promise).toBe(Promise);
@@ -128,7 +131,8 @@ describe("Test ServiceBroker constructor", () => {
 				failureOnReject: false
 			},
 			validation: false,
-			internalServices: false });
+			internalServices: false,
+			hotReload: true });
 
 		expect(broker).toBeDefined();
 		expect(broker.options).toEqual({
@@ -161,7 +165,9 @@ describe("Test ServiceBroker constructor", () => {
 			requestTimeout: 5000,
 			maxCallLevel: 10,
 			validation: false,
-			internalServices: false });
+			internalServices: false,
+			hotReload: true });
+
 		expect(broker.services).toBeInstanceOf(Array);
 		expect(broker.serviceRegistry).toBeInstanceOf(ServiceRegistry);
 		expect(broker.transit).toBeUndefined();
@@ -2144,3 +2150,113 @@ describe("Test broker emit & emitLocal", () => {
 	});
 });
 
+describe("Test hot-reload feature", () => {
+
+	describe("Test loadService with hot reload", () => {
+		let broker = new ServiceBroker({
+			hotReload: true
+		});
+
+		broker.watchService = jest.fn();
+
+		it("should watch services", () => {
+			let svc = broker.loadService("./test/services/math.service.js");
+
+			expect(broker.watchService).toHaveBeenCalledTimes(1);
+			expect(broker.watchService).toHaveBeenCalledWith(svc);
+		});
+
+		it("should load all services & watch", () => {
+			broker.watchService.mockClear();
+
+			let count = broker.loadServices("./test/services");
+			expect(count).toBe(3);
+
+			expect(broker.watchService).toHaveBeenCalledTimes(3);
+		});
+	});
+
+	describe("Test watchService", () => {
+		let handler;
+		let unwatch = jest.fn();
+		fs.watch = jest.fn((name, h) => {
+			handler = h;
+			return { close: unwatch };
+		});
+
+		let broker = new ServiceBroker({
+			hotReload: true
+		});
+
+		broker.hotReloadService = jest.fn();
+
+		let svc = broker.createService({
+			name: "test"
+		});
+
+		it("should not call fs.watch because no __filename", () => {
+
+			broker.watchService(svc);
+			expect(fs.watch).toHaveBeenCalledTimes(0);
+		});
+
+		it("should call fs.watch", () => {
+			svc.__filename = "./hello.service.js";
+
+			broker.watchService(svc);
+			expect(fs.watch).toHaveBeenCalledTimes(1);
+			expect(fs.watch).toHaveBeenCalledWith("./hello.service.js", handler);
+
+		});
+
+		it("should call close & hotReloadService", () => {
+			handler("changed", svc.__filename);
+
+			expect(unwatch).toHaveBeenCalledTimes(1);
+
+			return broker.Promise.delay(600).then(() => {
+				expect(broker.hotReloadService).toHaveBeenCalledTimes(1);
+				expect(broker.hotReloadService).toHaveBeenCalledWith(svc);
+			});
+		});
+
+	});
+
+	describe("Test hotReloadService", () => {
+		utils.clearRequireCache = jest.fn();
+
+		let broker = new ServiceBroker({
+			hotReload: true
+		});
+
+		let started = jest.fn(() => Promise.resolve());
+		let svc = broker.createService({
+			name: "test",
+			started
+		});
+		svc.__filename = "./hello.service.js";
+
+		broker.destroyService = jest.fn(() => Promise.resolve(svc));
+		broker.loadService = jest.fn(() => Promise.resolve(svc));
+
+		it("should call hot reload methods", () => {
+			started.mockClear();
+			return broker.hotReloadService(svc).then(() => {
+
+				expect(utils.clearRequireCache).toHaveBeenCalledTimes(1);
+				expect(utils.clearRequireCache).toHaveBeenCalledWith("./hello.service.js");
+
+				expect(broker.destroyService).toHaveBeenCalledTimes(1);
+				expect(broker.destroyService).toHaveBeenCalledWith(svc);
+
+				expect(broker.loadService).toHaveBeenCalledTimes(1);
+				expect(broker.loadService).toHaveBeenCalledWith("./hello.service.js");
+
+				expect(started).toHaveBeenCalledTimes(1);
+
+			});
+		});
+	});
+
+
+});

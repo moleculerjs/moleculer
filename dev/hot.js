@@ -6,14 +6,16 @@ let ServiceBroker = require("../src/service-broker");
 
 // Create broker
 let broker = new ServiceBroker({
-	namespace: "multi",
 	nodeID: "hot-" + process.pid,
 	transporter: "NATS",
-	logger: console
+	logger: console,
+	//logLevel: "debug",
+	hotReload: true
 });
 
 broker.start().then(() => {
 
+	/*
 	let svc;
 	setTimeout(() => {
 		console.log("Create math service...");
@@ -38,5 +40,10 @@ broker.start().then(() => {
 		broker.destroyService(svc);
 
 	}, 10000);
+	*/
 
+	broker.loadService("./examples/hot.service.js");
+	broker.loadService("./examples/math.service.js");
+
+	broker.repl();
 });

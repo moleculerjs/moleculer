@@ -290,9 +290,10 @@ class ServiceRegistry {
 
 			if (item.count > 0) {
 				const ep = entry.list[0];
-				item.action = _.omit(ep.action, ["handler", "service"]);
+				if (ep)
+					item.action = _.omit(ep.action, ["handler", "service"]);
 			}
-			if (item.action.protected === true) return;
+			if (item.action == null || item.action.protected === true) return;
 
 			if (withEndpoints) {
 				if (item.count > 0) {

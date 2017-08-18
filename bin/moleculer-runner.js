@@ -7,23 +7,25 @@
 
 "use strict";
 
-const Moleculer = require("../");
-const fs = require("fs");
-const path = require("path");
-const _ = require("lodash");
-const Args = require("args");
+const Moleculer 	= require("../");
+const fs 			= require("fs");
+const path 			= require("path");
+const _ 			= require("lodash");
+const Args 			= require("args");
 
 let flags;
 let configFile;
 let config;
 let servicePaths;
 let broker;
+let logger;
 
 /**
  * Process command line arguments
- * 
+ *
  * Available options:
  * 		-c, --config <file> - Load an external configuration files (.js or .json)
+ * 		-H, --hot  			- Hot reload services if changed
  * 		-r, --repl  		- After broker started, switch to REPL mode
  * 		-s , --silent 		- Silent mode. Disable logger, no console messages.
  */
@@ -31,6 +33,7 @@ function processFlags() {
 	Args
 		.option("config", "Load the configuration from a file")
 		.option("repl", "Start REPL mode", false)
+		.option(["H", "hot"], "Hot reload services if changed", false)
 		.option("silent", "Silent mode. No logger", false);
 
 	flags = Args.parse(process.argv, {
@@ -38,9 +41,10 @@ function processFlags() {
 			alias: {
 				c: "config",
 				r: "repl",
+				H: "hot",
 				s: "silent"
 			},
-			boolean: ["repl", "silent"],
+			boolean: ["repl", "silent", "hot"],
 			string: ["config"]
 		}
 	});
@@ -50,14 +54,12 @@ function processFlags() {
 
 /**
  * Load configuration file
- * 
+ *
  * Try to load a configuration file in order to:
- * 	
+ *
  * 		- load file which is defined in CLI option with --config
  * 		- try to load the `moleculer.config.js` file if exist in the cwd
  * 		- try to load the `moleculer.config.json` file if exist in the cwd
- * 
- * @returns 
  */
 function loadConfigFile() {
 	let filePath;
@@ -89,21 +91,21 @@ function loadConfigFile() {
 
 /**
  * Merge broker options
- * 
+ *
  * Merge options from environment variables and config file. First
- * load the config file if exists. After it overwrite the vars from 
- * the environment values. 
- * 
+ * load the config file if exists. After it overwrite the vars from
+ * the environment values.
+ *
  * Example options:
- * 
+ *
  * 	Original broker option: `logLevel`
  *  Config file property: 	`logLevel`
  *  Env variable:			`LOGLEVEL`
- * 
+ *
  * 	Original broker option: `circuitBreaker.enabled`
  *  Config file property: 	`circuitBreaker.enabled`
  *  Env variable:			`CIRCUITBREAKER_ENABLED`
- * 
+ *
  */
 function mergeOptions() {
 
@@ -143,25 +145,29 @@ function mergeOptions() {
 		config.logger = null;
 	}
 
+	if (flags.hot) {
+		config.hotReload = true;
+	}
+
 	//console.log("Config", config);
 }
 
 /**
  * Load services from files or directories
- * 
+ *
  * 1. first check the CLI arguments. If it find filename(s), load it/them
  * 2. If find directory(ies), load it/them
  * 3. If find `SERVICEDIR` env var and not find `SERVICES` env var, load all services from the `SERVICEDIR` directory
  * 4. If find `SERVICEDIR` env var and `SERVICES` env var, load the specified services from the `SERVICEDIR` directory
  * 5. If not find `SERVICEDIR` env var but find `SERVICES` env var, load the specified services from the current directory
- * 
- * Please note: you can use shorthand names for `SERVICES` env var. 
+ *
+ * Please note: you can use shorthand names for `SERVICES` env var.
  * 	E.g.
  * 		SERVICES=posts,users
- * 
+ *
  * 		It will be load the `posts.service.js` and `users.service.js` files
- * 	
- * 
+ *
+ *
  */
 function loadServices() {
 	if (servicePaths.length > 0) {
@@ -221,12 +227,13 @@ function loadServices() {
 			});
 		}
 	}
+
 }
 
 /**
  * Load service from NPM module
- * 
- * @param {String} name 
+ *
+ * @param {String} name
  * @returns {Service}
  */
 function loadNpmModule(name) {
@@ -240,6 +247,7 @@ function loadNpmModule(name) {
 function startBroker() {
 	// Create service broker
 	broker = new Moleculer.ServiceBroker(config);
+	logger = broker.getLogger("runner");
 
 	loadServices();
 
