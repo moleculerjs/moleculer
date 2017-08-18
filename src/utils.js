@@ -119,6 +119,7 @@ let utils = {
 	},
 
 	clearRequireCache(filename) {
+		/* istanbul ignore next */
 		Object.keys(require.cache).forEach(function(key) {
 			if (key == filename) {
 				delete require.cache[key];
