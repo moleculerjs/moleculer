@@ -43,8 +43,8 @@ broker.start().then(() => {
 	*/
 
 	broker.loadService("./examples/hot.service.js");
-	broker.loadService("./examples/math.service.js");
-	broker.loadService("./examples/user.service.js");
+	//broker.loadService("./examples/math.service.js");
+	//broker.loadService("./examples/user.service.js");
 
 	broker.repl();
 });
