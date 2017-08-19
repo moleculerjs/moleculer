@@ -7,11 +7,11 @@ let ServiceBroker = require("../src/service-broker");
 // Create broker
 let broker = new ServiceBroker({
 	nodeID: "client-" + process.pid,
-	transporter: "NATS",
+	transporter: "amqp://192.168.0.181:5672",
 	logger: console
 });
 
-broker.loadService("./examples/math.service.js");
+//broker.loadService("./examples/math.service.js");
 
 broker.start().then(() => {
 

@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 const path = require("path");
 const Promise = require("bluebird");
 const { exec, callIn } = require("../util");
@@ -13,7 +15,7 @@ const findResponse = (arr) => arr
 	})
 	.filter(a => a);
 
-xdescribe("Test AMQPTransporter events", () => {
+describe("Test AMQPTransporter events", () => {
 	beforeEach(() => exec("node", [path.resolve(__dirname, "..", "purge.js")]));
 	afterAll(() => exec("node", [path.resolve(__dirname, "..", "purge.js")]));
 

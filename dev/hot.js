@@ -7,7 +7,7 @@ let ServiceBroker = require("../src/service-broker");
 // Create broker
 let broker = new ServiceBroker({
 	nodeID: "hot-" + process.pid,
-	transporter: "NATS",
+	transporter: "amqp://192.168.0.181:5672",
 	logger: console,
 	//logLevel: "debug",
 	hotReload: true
@@ -44,6 +44,7 @@ broker.start().then(() => {
 
 	broker.loadService("./examples/hot.service.js");
 	broker.loadService("./examples/math.service.js");
+	broker.loadService("./examples/user.service.js");
 
 	broker.repl();
 });
