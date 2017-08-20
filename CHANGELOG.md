@@ -1,5 +1,5 @@
 <a name="0.10.0"></a>
-# [0.10.0](https://github.com/ice-services/moleculer/compare/v0.9.0...v0.10.0) (2017-08-xx)
+# [0.10.0](https://github.com/ice-services/moleculer/compare/v0.9.0...v0.10.0) (2017-08-20)
 
 # Breaking changes
 
