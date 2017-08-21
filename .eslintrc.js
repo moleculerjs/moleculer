@@ -1,5 +1,4 @@
 module.exports = {
-    root: true,
     "env": {
         "node": true,
         "commonjs": true,
@@ -8,12 +7,17 @@ module.exports = {
         "jest": true,
         "jasmine": true
     },
-    "extends": "eslint:recommended",
+    "extends": [
+        "eslint:recommended",
+        "plugin:security/recommended"
+    ],
     "parserOptions": {
         "sourceType": "module"
     },
     "plugins": [
-        "promise"
+        "node",
+        "promise",
+        "security"
     ],
     "rules": {
         "indent": [
@@ -39,7 +43,16 @@ module.exports = {
             "warn"
         ],
         "no-trailing-spaces": [
-            "warn"
-        ]
+            "error"
+        ],
+		"linebreak-style": [
+			"error",
+			"unix"
+		],
+		"no-alert": 0,
+		"no-shadow": 0,
+		"security/detect-object-injection": ["off"],
+        "no-process-exit": ["off"],
+        "node/no-unpublished-require": 0
     }
 };

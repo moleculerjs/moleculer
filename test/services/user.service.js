@@ -18,7 +18,7 @@ module.exports = function(broker) {
 		actions: {
 			find: {
 				cache: false,
-				handler(ctx) {
+				handler() {
 					//this.logger.debug("Find users...");
 					return users;
 					//return _.cloneDeep(users);
@@ -40,7 +40,7 @@ module.exports = function(broker) {
 				return Promise.reject(new ValidationError("Wrong params!"));
 			},
 
-			delayed(ctx) {
+			delayed() {
 				c++;
 				return Promise.resolve()
 					.then(delay(c < 3 ? 6000 : 1000))

@@ -11,7 +11,7 @@ describe("Test broker validator with actions", () => {
 					a: { type: "number" },
 					b: { type: "number" }
 				},
-				handler: jest.fn(ctx => 123)
+				handler: jest.fn(() => 123)
 			},
 			withoutValidation: {
 				handler() {}

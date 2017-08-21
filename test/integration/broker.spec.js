@@ -585,13 +585,13 @@ describe("Test versioned action registration", () => {
 	});
 
 	it("should call the v1 handler", () => {
-		return broker.call("v1.posts.find").then(ctx => {
+		return broker.call("v1.posts.find").then(() => {
 			expect(findV1).toHaveBeenCalledTimes(1);
 		});
 	});
 
 	it("should call the v2 handler", () => {
-		return broker.call("v2.posts.find").then(ctx => {
+		return broker.call("v2.posts.find").then(() => {
 			expect(findV2).toHaveBeenCalledTimes(1);
 		});
 	});
@@ -673,8 +673,8 @@ describe("Test middleware system", () => {
 			};
 		};
 
-		let mw2 = handler => {
-			return ctx => {
+		let mw2 = () => {
+			return () => {
 				flow.push("B2");
 				// Don't call handler, break the chain
 				return Promise.resolve({ user: "bobcsi" });
@@ -733,8 +733,8 @@ describe("Test middleware system", () => {
 			};
 		};
 
-		let mw2 = handler => {
-			return ctx => {
+		let mw2 = () => {
+			return () => {
 				flow.push("B2");
 				return new Promise(resolve => {
 					setTimeout(() => {
@@ -798,8 +798,8 @@ describe("Test middleware system", () => {
 			};
 		};
 
-		let mw2 = handler => {
-			return ctx => {
+		let mw2 = () => {
+			return () => {
 				flow.push("B2");
 				return Promise.reject(new Error("Something happened in mw2"));
 			};

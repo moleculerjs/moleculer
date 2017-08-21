@@ -1,4 +1,3 @@
-const ServiceBroker = require("../../../src/service-broker");
 const AvroSerializer = require("../../../src/serializers/avro");
 
 

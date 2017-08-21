@@ -13,7 +13,7 @@ const broker = new ServiceBroker({
 broker.createService({
 	name: "bService",
 	events: {
-		"hello.world": function(payload) {
+		"hello.world": function() {
 			console.log("Subscriber3 received the event.");
 		},
 	}
