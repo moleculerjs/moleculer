@@ -594,6 +594,8 @@ class Transit {
 
 				// Register remote services
 				node.services.forEach(service => this.broker.registerRemoteService(nodeID, service));
+
+				this.broker.servicesChanged(false);
 			}
 		}
 	}
@@ -646,6 +648,7 @@ class Transit {
 			if (node.available) {
 				node.available = false;
 				this.broker.unregisterServicesByNode(nodeID);
+				this.broker.servicesChanged(false);
 
 				this.broker.emitLocal("node.disconnected", { node, unexpected: !!isUnexpected });
 				//this.nodes.delete(nodeID);

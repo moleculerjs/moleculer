@@ -12,6 +12,10 @@ let broker1 = new ServiceBroker({
 	transporter: "NATS"
 });
 
+broker1.on("services.changed", (payload) => {
+	console.log("Services changed!");
+});
+
 //broker1.loadService("./examples/math.service");
 //broker1.loadService("./examples/silent.service");
 //broker1.loadService("./examples/post.service");
@@ -27,6 +31,7 @@ broker2.loadService("./examples/math.service");
 
 broker1.Promise.resolve()
 	.then(() => broker1.start())
+	.delay(500)
 	.then(() => broker2.start())
 	.delay(500)
 	.then(() => broker1.call("math.add", { a: 7, b: 3 }))

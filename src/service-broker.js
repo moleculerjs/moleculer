@@ -438,7 +438,7 @@ class ServiceBroker {
 				svc = this.createService(svc);
 			} else {
 				// Need to call changed because we didn't call the `createService`.
-				this.servicesChanged();
+				this.servicesChanged(true);
 			}
 
 		} else {
@@ -514,7 +514,7 @@ class ServiceBroker {
 
 		let service = new this.ServiceFactory(this, s);
 
-		this.servicesChanged();
+		this.servicesChanged(true);
 
 		return service;
 	}
@@ -537,7 +537,7 @@ class ServiceBroker {
 				this.serviceRegistry.unregisterService(this.nodeID, service.name);
 
 				this.logger.info(`Service '${service.name}' is destroyed!`);
-				this.servicesChanged();
+				this.servicesChanged(true);
 			});
 	}
 
@@ -651,11 +651,11 @@ class ServiceBroker {
 	 *
 	 * @memberof ServiceBroker
 	 */
-	servicesChanged() {
+	servicesChanged(resendNodeInfo = false) {
 		this.emitLocal("services.changed");
 
 		// Notify other nodes, we have a new service list.
-		if (this.transit && this.transit.connected) {
+		if (resendNodeInfo && this.transit && this.transit.connected) {
 			this.transit.sendNodeInfo();
 		}
 	}
