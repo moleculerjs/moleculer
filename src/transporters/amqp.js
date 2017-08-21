@@ -157,7 +157,8 @@ class AmqpTransporter extends Transporter {
 					this.bindings = null;
 					this.channel = null;
 					this.connection = null;
-				});
+				})
+				.catch(err => this.logger.warn(err));
 		}
 	}
 
@@ -173,17 +174,17 @@ class AmqpTransporter extends Transporter {
 			// Requests and responses don't expire.
 			case PACKET_REQUEST:
 			case PACKET_RESPONSE:
-				return {};
+				return { autoDelete: true };
 			// Packet types meant for internal use will expire after 5 seconds.
 			case PACKET_DISCOVER:
 			case PACKET_DISCONNECT:
 			case PACKET_UNKNOW:
 			case PACKET_INFO:
 			case PACKET_HEARTBEAT:
-				return { messageTtl: 5000 };
+				return { messageTtl: 5000, autoDelete: true };
 			// Consumers can decide how long events live. Defaults to 5 seconds.
 			case PACKET_EVENT:
-				return { messageTtl: this.opts.amqp.eventTimeToLive };
+				return { messageTtl: this.opts.amqp.eventTimeToLive, autoDelete: true };
 		}
 	}
 
@@ -249,10 +250,10 @@ class AmqpTransporter extends Transporter {
 
 		// Safer version of `if (topic.includes(nodeID))`.
 		// Some topics are specific to this node already, in these cases we don't need an exchange.
-		if ((cmd === PACKET_INFO && topic !== `${this.prefix}.${PACKET_INFO}`)
-			|| cmd === PACKET_RESPONSE) {
+		if ((cmd === PACKET_INFO && topic !== `${this.prefix}.${PACKET_INFO}`) || cmd === PACKET_RESPONSE) {
 			return this.channel.assertQueue(topic, this._getQueueOptions(cmd))
 				.then(() => this.channel.consume(topic, this._consumeCB(cmd), { noAck: true }));
+
 		} else if (cmd !== PACKET_REQUEST) {
 			// Create a queue specific to this nodeID so that this node can receive broadcasted messages.
 			const queueName = `${this.prefix}.${cmd}.${this.nodeID}`;
