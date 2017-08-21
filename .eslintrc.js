@@ -45,13 +45,11 @@ module.exports = {
 		"no-trailing-spaces": [
 			"error"
 		],
-		"linebreak-style": [
-			"error",
-			"unix"
-		],
 		"no-alert": 0,
 		"no-shadow": 0,
 		"security/detect-object-injection": ["off"],
+		"security/detect-non-literal-require": ["off"],
+		"security/detect-non-literal-fs-filename": ["off"],
 		"no-process-exit": ["off"],
 		"node/no-unpublished-require": 0
 	}
