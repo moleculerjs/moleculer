@@ -273,27 +273,26 @@ class AmqpTransporter extends Transporter {
 	}
 
 	/**
-	 * Parse a broker's services in order to initialize queues for REQUEST packets.
-	 *
-	 * @param {Array} services
+	 * Initialize queues for REQUEST packets.
 	 *
 	 * @memberOf AmqpTransporter
 	 */
-	_makeServiceSpecificSubscriptions(services) {
-		return Promise.all(services.map(service => service.schema)
-			.map((schema) => {
-				if (typeof schema.actions !== "object") return Promise.resolve();
-				const genericToService = `${this.prefix}.${PACKET_REQUEST}.${schema.name}`;
+	_makeServiceSpecificSubscriptions() {
+		const services = this.transit.getNodeInfo().services;
+		return Promise.all(services.map(schema => {
+			if (typeof schema.actions !== "object") return Promise.resolve();
 
-				return Promise.all(
-					Object.keys(schema.actions)
-						.map((action) => {
-							const queue = `${genericToService}.${action}`;
-							return this.channel.assertQueue(queue, this._getQueueOptions(PACKET_REQUEST))
-								.then(() => this.channel.consume(queue, this._consumeCB(PACKET_REQUEST)));
-						})
-				);
-			}));
+			const genericToService = `${this.prefix}.${PACKET_REQUEST}`;
+
+			return Promise.all(
+				Object.keys(schema.actions)
+					.map((action) => {
+						const queue = `${genericToService}.${action}`;
+						return this.channel.assertQueue(queue, this._getQueueOptions(PACKET_REQUEST))
+							.then(() => this.channel.consume(queue, this._consumeCB(PACKET_REQUEST)));
+					})
+			);
+		}));
 	}
 
 	/**
@@ -310,7 +309,7 @@ class AmqpTransporter extends Transporter {
 		if (!this.channel) return;
 
 		const topic = this.getTopicName(packet.type, packet.target);
-		const payload = new Buffer(packet.serialize()); // amqp.node expects data to be a buffer
+		const payload = Buffer.from(packet.serialize());
 
 		let destination = packet.type === PACKET_REQUEST
 			?	`${this.prefix}.${packet.type}.${packet.payload.action}`
@@ -325,7 +324,7 @@ class AmqpTransporter extends Transporter {
 
 		// HACK: This is the best way I have found to obtain the broker's services.
 		if (destination === `${this.prefix}.${PACKET_INFO}`) {
-			return this._makeServiceSpecificSubscriptions(packet.transit.broker.services);
+			return this._makeServiceSpecificSubscriptions();
 		}
 		return Promise.resolve();
 	}
