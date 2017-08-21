@@ -26,7 +26,7 @@ broker.createService({
 				return new Promise((resolve) => {
 					setTimeout(() => {
 						console.log("responded", Date.now());
-  					resolve({ msg: ctx.params.cmd, from: "timestampedWorker" });
+						resolve({ msg: ctx.params.cmd, from: "timestampedWorker" });
 					}, 1000);
 				});
 			},

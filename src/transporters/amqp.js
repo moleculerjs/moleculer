@@ -310,7 +310,7 @@ class AmqpTransporter extends Transporter {
 		if (!this.channel) return;
 
 		const topic = this.getTopicName(packet.type, packet.target);
-		const payload = new Buffer(packet.serialize()); // amqp.node expects data to be a buffer
+		const payload = Buffer.from(packet.serialize()); // amqp.node expects data to be a buffer
 
 		let destination = packet.type === PACKET_REQUEST
 			?	`${this.prefix}.${packet.type}.${packet.payload.action}`

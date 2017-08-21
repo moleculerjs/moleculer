@@ -13,13 +13,13 @@ describe("Test Service mixins", () => {
 
 		actions: {
 			alpha: {
-				handler(ctx) {
+				handler() {
 					return "From mixinL2";
 				}
 			},
 
 			beta: {
-				handler(ctx) {
+				handler() {
 					return "From mixinL2";
 				}
 			}

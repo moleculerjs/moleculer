@@ -1,4 +1,3 @@
-const ServiceBroker = require("../../../src/service-broker");
 const ProtoBufSerializer = require("../../../src/serializers/protobuf");
 
 describe("Test ProtoBufSerializer constructor", () => {
