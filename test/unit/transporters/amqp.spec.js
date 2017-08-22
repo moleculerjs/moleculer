@@ -152,7 +152,7 @@ describe("Test AmqpTransporter subscribe", () => {
 					.toHaveBeenCalledWith("MOL-TEST.RES.node", jasmine.any(Function), { noAck: true });
 
 				const consumeCb = transporter.channel.consume.mock.calls[0][1];
-				consumeCb({ content: new Buffer("data") });
+				consumeCb({ content: Buffer.from("data") });
 
 				expect(msgHandler).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.ack).toHaveBeenCalledTimes(0);
@@ -171,7 +171,7 @@ describe("Test AmqpTransporter subscribe", () => {
 					.toHaveBeenCalledWith("MOL-TEST.INFO.node", jasmine.any(Function), { noAck: true });
 
 				const consumeCb = transporter.channel.consume.mock.calls[0][1];
-				consumeCb({ content: new Buffer("data") });
+				consumeCb({ content: Buffer.from("data") });
 
 				expect(msgHandler).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.ack).toHaveBeenCalledTimes(0);
@@ -218,7 +218,7 @@ describe("Test AmqpTransporter subscribe", () => {
 					.toHaveBeenCalledWith("MOL-TEST.REQ.example1.testing", jasmine.any(Function));
 
 				const consumeCb = transporter.channel.consume.mock.calls[0][1];
-				consumeCb({ content: new Buffer("data") });
+				consumeCb({ content: Buffer.from("data") });
 
 				expect(msgHandler).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.ack).toHaveBeenCalledTimes(1);
@@ -247,7 +247,7 @@ describe("Test AmqpTransporter subscribe", () => {
 					);
 
 				const consumeCb = transporter.channel.consume.mock.calls[0][1];
-				consumeCb({ content: new Buffer("data") });
+				consumeCb({ content: Buffer.from("data") });
 
 				expect(msgHandler).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.ack).toHaveBeenCalledTimes(0);
@@ -277,7 +277,7 @@ describe("Test AmqpTransporter subscribe", () => {
 						);
 
 					const consumeCb = transporter.channel.consume.mock.calls[0][1];
-					consumeCb({ content: new Buffer("data") });
+					consumeCb({ content: Buffer.from("data") });
 
 					expect(msgHandler).toHaveBeenCalledTimes(1);
 					expect(transporter.channel.ack).toHaveBeenCalledTimes(0);
