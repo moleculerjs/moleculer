@@ -174,7 +174,7 @@ class AmqpTransporter extends Transporter {
 			// Requests and responses don't expire.
 			case PACKET_REQUEST:
 			case PACKET_RESPONSE:
-				return { autoDelete: true };
+				return {};
 			// Packet types meant for internal use will expire after 5 seconds.
 			case PACKET_DISCOVER:
 			case PACKET_DISCONNECT:
