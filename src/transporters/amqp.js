@@ -157,7 +157,8 @@ class AmqpTransporter extends Transporter {
 					this.bindings = null;
 					this.channel = null;
 					this.connection = null;
-				});
+				})
+				.catch(err => this.logger.warn(err));
 		}
 	}
 
@@ -180,10 +181,10 @@ class AmqpTransporter extends Transporter {
 			case PACKET_UNKNOW:
 			case PACKET_INFO:
 			case PACKET_HEARTBEAT:
-				return { messageTtl: 5000 };
+				return { messageTtl: 5000, autoDelete: true };
 			// Consumers can decide how long events live. Defaults to 5 seconds.
 			case PACKET_EVENT:
-				return { messageTtl: this.opts.amqp.eventTimeToLive };
+				return { messageTtl: this.opts.amqp.eventTimeToLive, autoDelete: true };
 		}
 	}
 
@@ -249,10 +250,10 @@ class AmqpTransporter extends Transporter {
 
 		// Safer version of `if (topic.includes(nodeID))`.
 		// Some topics are specific to this node already, in these cases we don't need an exchange.
-		if ((cmd === PACKET_INFO && topic !== `${this.prefix}.${PACKET_INFO}`)
-			|| cmd === PACKET_RESPONSE) {
+		if ((cmd === PACKET_INFO && topic !== `${this.prefix}.${PACKET_INFO}`) || cmd === PACKET_RESPONSE) {
 			return this.channel.assertQueue(topic, this._getQueueOptions(cmd))
 				.then(() => this.channel.consume(topic, this._consumeCB(cmd), { noAck: true }));
+
 		} else if (cmd !== PACKET_REQUEST) {
 			// Create a queue specific to this nodeID so that this node can receive broadcasted messages.
 			const queueName = `${this.prefix}.${cmd}.${this.nodeID}`;
@@ -273,27 +274,26 @@ class AmqpTransporter extends Transporter {
 	}
 
 	/**
-	 * Parse a broker's services in order to initialize queues for REQUEST packets.
-	 *
-	 * @param {Array} services
+	 * Initialize queues for REQUEST packets.
 	 *
 	 * @memberOf AmqpTransporter
 	 */
-	_makeServiceSpecificSubscriptions(services) {
-		return Promise.all(services.map(service => service.schema)
-			.map((schema) => {
-				if (typeof schema.actions !== "object") return Promise.resolve();
-				const genericToService = `${this.prefix}.${PACKET_REQUEST}.${schema.name}`;
+	_makeServiceSpecificSubscriptions() {
+		const services = this.transit.getNodeInfo().services;
+		return Promise.all(services.map(schema => {
+			if (typeof schema.actions !== "object") return Promise.resolve();
 
-				return Promise.all(
-					Object.keys(schema.actions)
-						.map((action) => {
-							const queue = `${genericToService}.${action}`;
-							return this.channel.assertQueue(queue, this._getQueueOptions(PACKET_REQUEST))
-								.then(() => this.channel.consume(queue, this._consumeCB(PACKET_REQUEST)));
-						})
-				);
-			}));
+			const genericToService = `${this.prefix}.${PACKET_REQUEST}`;
+
+			return Promise.all(
+				Object.keys(schema.actions)
+					.map((action) => {
+						const queue = `${genericToService}.${action}`;
+						return this.channel.assertQueue(queue, this._getQueueOptions(PACKET_REQUEST))
+							.then(() => this.channel.consume(queue, this._consumeCB(PACKET_REQUEST)));
+					})
+			);
+		}));
 	}
 
 	/**
@@ -325,7 +325,7 @@ class AmqpTransporter extends Transporter {
 
 		// HACK: This is the best way I have found to obtain the broker's services.
 		if (destination === `${this.prefix}.${PACKET_INFO}`) {
-			return this._makeServiceSpecificSubscriptions(packet.transit.broker.services);
+			return this._makeServiceSpecificSubscriptions();
 		}
 		return Promise.resolve();
 	}
