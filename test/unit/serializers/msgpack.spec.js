@@ -1,6 +1,4 @@
-const ServiceBroker = require("../../../src/service-broker");
 const MsgPackSerializer = require("../../../src/serializers/msgpack");
-
 
 describe("Test MsgPackSerializer constructor", () => {
 	it("should create an empty options", () => {

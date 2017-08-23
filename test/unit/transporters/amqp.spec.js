@@ -131,11 +131,13 @@ describe("Test AmqpTransporter connect & disconnect", () => {
 describe("Test AmqpTransporter subscribe", () => {
 	let transporter;
 	let msgHandler;
+	let broker;
 
 	beforeEach(() => {
+		broker = new ServiceBroker({ namespace: "TEST", nodeID: "node", internalServices: false });
 		msgHandler = jest.fn();
 		transporter = new AmqpTransporter({ amqp: { url: "amqp://localhost", eventTimeToLive: 3000 }});
-		transporter.init(new Transit(new ServiceBroker({ namespace: "TEST", nodeID: "node" })), msgHandler);
+		transporter.init(new Transit(broker), msgHandler);
 		return transporter.connect();
 	});
 
@@ -150,7 +152,7 @@ describe("Test AmqpTransporter subscribe", () => {
 					.toHaveBeenCalledWith("MOL-TEST.RES.node", jasmine.any(Function), { noAck: true });
 
 				const consumeCb = transporter.channel.consume.mock.calls[0][1];
-				consumeCb({ content: new Buffer("data") });
+				consumeCb({ content: Buffer.from("data") });
 
 				expect(msgHandler).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.ack).toHaveBeenCalledTimes(0);
@@ -169,7 +171,7 @@ describe("Test AmqpTransporter subscribe", () => {
 					.toHaveBeenCalledWith("MOL-TEST.INFO.node", jasmine.any(Function), { noAck: true });
 
 				const consumeCb = transporter.channel.consume.mock.calls[0][1];
-				consumeCb({ content: new Buffer("data") });
+				consumeCb({ content: Buffer.from("data") });
 
 				expect(msgHandler).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.ack).toHaveBeenCalledTimes(0);
@@ -178,26 +180,27 @@ describe("Test AmqpTransporter subscribe", () => {
 
 	it("check REQ subscription", () => {
 		const mockServices = [
-			{ schema: { name: "empty" } },
+			{ name: "empty" },
 			{
-				schema: {
-					name: "example1",
-					actions: {
-						testing: {},
-						hello: {},
-					}
+				name: "example1",
+				actions: {
+					"example1.testing": {},
+					"example1.hello": {},
 				}
 			},
 			{
-				schema: {
-					name: "example2",
-					actions: { world: {} },
-				}
+				name: "example2",
+				actions: { "example2.world": {} },
 			}
 		];
+		transporter.transit.getNodeInfo = jest.fn(() => ({
+			services: mockServices
+		}));
 
-		return transporter._makeServiceSpecificSubscriptions(mockServices)
+		return transporter._makeServiceSpecificSubscriptions()
 			.then(() => {
+				expect(transporter.transit.getNodeInfo).toHaveBeenCalledTimes(1);
+
 				expect(transporter.channel.assertQueue).toHaveBeenCalledTimes(3);
 				expect(transporter.channel.consume).toHaveBeenCalledTimes(3);
 				expect(transporter.channel.assertQueue)
@@ -215,7 +218,7 @@ describe("Test AmqpTransporter subscribe", () => {
 					.toHaveBeenCalledWith("MOL-TEST.REQ.example1.testing", jasmine.any(Function));
 
 				const consumeCb = transporter.channel.consume.mock.calls[0][1];
-				consumeCb({ content: new Buffer("data") });
+				consumeCb({ content: Buffer.from("data") });
 
 				expect(msgHandler).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.ack).toHaveBeenCalledTimes(1);
@@ -231,7 +234,7 @@ describe("Test AmqpTransporter subscribe", () => {
 				expect(transporter.channel.consume).toHaveBeenCalledTimes(1);
 
 				expect(transporter.channel.assertQueue)
-					.toHaveBeenCalledWith("MOL-TEST.EVENT.node", { messageTtl: 3000 }); // use ttl option
+					.toHaveBeenCalledWith("MOL-TEST.EVENT.node", { autoDelete: true, messageTtl: 3000 }); // use ttl option
 				expect(transporter.channel.assertExchange)
 					.toHaveBeenCalledWith("MOL-TEST.EVENT", "fanout");
 				expect(transporter.channel.bindQueue)
@@ -244,7 +247,7 @@ describe("Test AmqpTransporter subscribe", () => {
 					);
 
 				const consumeCb = transporter.channel.consume.mock.calls[0][1];
-				consumeCb({ content: new Buffer("data") });
+				consumeCb({ content: Buffer.from("data") });
 
 				expect(msgHandler).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.ack).toHaveBeenCalledTimes(0);
@@ -261,7 +264,7 @@ describe("Test AmqpTransporter subscribe", () => {
 					expect(transporter.channel.consume).toHaveBeenCalledTimes(1);
 
 					expect(transporter.channel.assertQueue)
-						.toHaveBeenCalledWith(`MOL-TEST.${type}.node`, { messageTtl: 5000 });
+						.toHaveBeenCalledWith(`MOL-TEST.${type}.node`, { autoDelete: true, messageTtl: 5000 });
 					expect(transporter.channel.assertExchange)
 						.toHaveBeenCalledWith(`MOL-TEST.${type}`, "fanout");
 					expect(transporter.channel.bindQueue)
@@ -274,7 +277,7 @@ describe("Test AmqpTransporter subscribe", () => {
 						);
 
 					const consumeCb = transporter.channel.consume.mock.calls[0][1];
-					consumeCb({ content: new Buffer("data") });
+					consumeCb({ content: Buffer.from("data") });
 
 					expect(msgHandler).toHaveBeenCalledTimes(1);
 					expect(transporter.channel.ack).toHaveBeenCalledTimes(0);
@@ -406,7 +409,6 @@ describe("Test AmqpTransporter publish", () => {
 				);
 
 				expect(transporter._makeServiceSpecificSubscriptions).toHaveBeenCalledTimes(1);
-				expect(transporter._makeServiceSpecificSubscriptions).toHaveBeenCalledWith(mockServices);
 			});
 	});
 });
