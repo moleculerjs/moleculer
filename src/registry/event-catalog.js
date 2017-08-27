@@ -6,9 +6,16 @@
 
 "use strict";
 
-const BaseCatalog = require("./base-catalog");
+//const BaseCatalog = require("./base-catalog");
 
-class EventCatalog extends BaseCatalog {
+class EventCatalog {
+
+	constructor(registry, broker, logger) {
+		this.registry = registry;
+		this.broker = broker;
+		this.logger = logger;
+
+	}
 
 }
 
