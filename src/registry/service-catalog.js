@@ -22,8 +22,8 @@ class ServiceCatalog {
 		broker.on("$node.info", this.onNodeInfo);
 	}
 
-	add(nodeID, name, version, settings) {
-		const item = new ServiceItem(nodeID, name, version, settings, nodeID == this.broker.nodeID);
+	add(node, name, version, settings) {
+		const item = new ServiceItem(node, name, version, settings, node.id == this.broker.nodeID);
 		this.services.push(item);
 	}
 

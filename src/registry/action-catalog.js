@@ -20,7 +20,7 @@ class ActionCatalog {
 		this.actions = new Map();
 	}
 
-	add(nodeID, action) {
+	add(node, service, action) {
 		let list = this.actions.get(action.name);
 		if (!list) {
 			// Create a new EndpointList
@@ -28,17 +28,17 @@ class ActionCatalog {
 			this.actions.set(action.name, list);
 		}
 
-		list.add(nodeID, action);
+		list.add(node, service, action);
 	}
 /*
 	has(name, version, nodeID) {
-		return this.services.find(svc => svc.equals(name, version, nodeID)) != null;
-	}
-
-	get(name, version, nodeID) {
-		return this.services.find(svc => svc.equals(name, version, nodeID));
+		return this.actions.find(svc => svc.equals(name, version, nodeID)) != null;
 	}
 */
+	get(name, version, nodeID) {
+		return this.actions.find(svc => svc.equals(name, version, nodeID));
+	}
+
 }
 
 module.exports = ActionCatalog;

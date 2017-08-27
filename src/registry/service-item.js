@@ -8,8 +8,8 @@
 
 class ServiceItem {
 
-	constructor(nodeID, name, version, settings, local) {
-		this.nodeID = nodeID;
+	constructor(node, name, version, settings, local) {
+		this.node = node;
 		this.name = name;
 		this.version = version;
 		this.settings = settings;
@@ -17,7 +17,7 @@ class ServiceItem {
 	}
 
 	equals(name, version, nodeID) {
-		return this.name == name && this.version == version && (nodeID == null || this.nodeID == nodeID);
+		return this.name == name && this.version == version && (nodeID == null || this.node.id == nodeID);
 	}
 
 	update(svc) {

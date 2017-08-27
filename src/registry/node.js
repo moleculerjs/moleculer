@@ -31,6 +31,14 @@ class Node {
 		this.services = payload.services;
 		this.events = payload.events;
 	}
+
+	updateFromLocal() {
+		this.uptime = process.uptime();
+		this.versions = {
+			node: process.version,
+			moleculer: this.broker.MOLECULER_VERSION
+		};
+	}
 }
 
 module.exports = Node;

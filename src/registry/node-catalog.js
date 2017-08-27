@@ -17,6 +17,17 @@ class NodeCatalog {
 
 		this.nodes = new Map();
 
+		this.createLocalNode();
+	}
+
+	createLocalNode() {
+		const node = new Node(this.broker.nodeID);
+		node.local = true;
+
+		this.add(node.id, node);
+
+		this._localNode = node;
+		return node;
 	}
 
 	add(id, node) {
@@ -66,6 +77,11 @@ class NodeCatalog {
 
 	}
 
+	get localNode() {
+		// Update local node info
+		this._localNode.updateFromLocal();
+		return this._localNode;
+	}
 }
 
 module.exports = NodeCatalog;

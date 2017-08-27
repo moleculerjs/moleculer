@@ -36,14 +36,6 @@ class EndpointList {
 		this.endpoints.push(ep);
 	}
 
-	getEndpointByNodeID(nodeID) {
-		const ep = this.list.find(ep => ep.id == nodeID);
-		if (ep && ep.isAvailable())
-			return ep;
-
-		return null;
-	}
-
 	select() {
 		const ret = this.registry.strategy.select(this.endpoints);
 		if (!ret) {
@@ -52,7 +44,7 @@ class EndpointList {
 		return ret;
 	}
 
-	nextAvailable() {
+	next() {
 		// No items
 		if (this.endpoints.length === 0) {
 			return null;
@@ -87,6 +79,18 @@ class EndpointList {
 
 			i++;
 		}
+
+		return null;
+	}
+
+	hasAvailable() {
+		return this.list.find(ep => ep.isAvailable()) != null;
+	}
+
+	getEndpointByNodeID(nodeID) {
+		const ep = this.list.find(ep => ep.id == nodeID);
+		if (ep && ep.isAvailable())
+			return ep;
 
 		return null;
 	}
