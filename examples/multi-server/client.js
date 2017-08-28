@@ -32,7 +32,7 @@ let broker = new ServiceBroker({
 	transporter: "NATS",
 
 	registry: {
-		strategy: new Strategies.RoundRobin(),
+		strategy: new Strategies.Random(),
 	},
 
 	circuitBreaker: {

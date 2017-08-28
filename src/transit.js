@@ -442,7 +442,7 @@ class Transit {
 	 */
 	sendNodeInfo(nodeID) {
 		const info = this.broker.registry.getLocalNodeInfo();
-		this.logger.info("---> INFO:", info, info.services); // TODO
+		//this.logger.info("---> INFO:", info, info.services); // TODO
 
 		return this.publish(new P.PacketInfo(this, nodeID, info));
 	}
