@@ -9,6 +9,8 @@
 const _ = require("lodash");
 //const BaseCatalog = require("./base-catalog");
 const EndpointList = require("./endpoint-list");
+const ActionEndpoint = require("./endpoint-action");
+const ActionEndpointCB = require("./endpoint-cb");
 
 class ActionCatalog {
 
@@ -18,13 +20,15 @@ class ActionCatalog {
 		this.logger = logger;
 
 		this.actions = new Map();
+
+		this.EndpointFactory = this.registry.opts.circuitBreaker && this.registry.opts.circuitBreaker.enabled ? ActionEndpointCB : ActionEndpoint;
 	}
 
 	add(node, service, action) {
 		let list = this.actions.get(action.name);
 		if (!list) {
 			// Create a new EndpointList
-			list = new EndpointList(this.registry, this.broker, this.logger, action.name);
+			list = new EndpointList(this.registry, this.broker, this.logger, action.name, this.EndpointFactory);
 			this.actions.set(action.name, list);
 		}
 

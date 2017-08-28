@@ -42,9 +42,9 @@ let broker = new ServiceBroker({
 	logger: console
 });
 
-broker.on("circuit-breaker.open", payload => console.warn(chalk.yellow.bold(`---  Circuit breaker opened on '${payload.nodeID}'!`)));
-broker.on("circuit-breaker.half-open", payload => console.warn(chalk.green(`---  Circuit breaker half-opened on '${payload.nodeID}'!`)));
-broker.on("circuit-breaker.close", payload => console.warn(chalk.green.bold(`---  Circuit breaker closed on '${payload.nodeID}'!`)));
+broker.on("$circuit-breaker.open", payload => console.warn(chalk.yellow.bold(`---  Circuit breaker opened on '${payload.node.id}'!`)));
+broker.on("$circuit-breaker.half-open", payload => console.warn(chalk.green(`---  Circuit breaker half-opened on '${payload.node.id}'!`)));
+broker.on("$circuit-breaker.close", payload => console.warn(chalk.green.bold(`---  Circuit breaker closed on '${payload.node.id}'!`)));
 
 broker.start()
 	.then(() => {

@@ -7,13 +7,12 @@
 "use strict";
 
 class Endpoint {
-	constructor(registry, broker, node, service, action) {
+	constructor(registry, broker, node) {
+		this.registry = registry;
 		this.broker = broker;
 
 		this.id = node.id;
 		this.node = node;
-		this.service = service;
-		this.action = action;
 
 		this.local = node.id === broker.nodeID;
 		this.state = true;
@@ -21,10 +20,6 @@ class Endpoint {
 
 	get isAvailable() {
 		return this.state;
-	}
-
-	updateAction(action) {
-		this.action = action;
 	}
 }
 
