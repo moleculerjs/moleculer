@@ -59,7 +59,14 @@ class Service {
 
 		this.actions = {}; // external access to actions
 
-		this.broker.registerLocalService(this);
+		//Service item for Registry
+		const registryItem = {
+			name: this.name,
+			version: this.version,
+			settings: this.settings,
+			actions: {},
+			events: {}
+		};
 
 		// Register actions
 		if (isObject(schema.actions)) {
@@ -70,8 +77,7 @@ class Service {
 
 				let innerAction = this._createAction(action, name);
 
-				// Register to broker
-				broker.registerAction(this.broker.nodeID, innerAction);
+				registryItem.actions[innerAction.name] = broker.wrapAction(innerAction);
 
 				// Expose to call `service.actions.find({ ...params })`
 				this.actions[name] = (params, opts) => {
@@ -131,6 +137,11 @@ class Service {
 
 		}
 
+		// Register service
+		broker.addService(this);
+		broker.registry.registerLocalService(registryItem);
+
+
 		// Create lifecycle runner methods
 		this.created = () => {
 			if (isFunction(this.schema.created)) {
@@ -173,6 +184,7 @@ class Service {
 	 * @param {any} name
 	 * @returns
 	 *
+	 * @private
 	 * @memberOf Service
 	 */
 	_createAction(actionDef, name) {

@@ -6,6 +6,8 @@
 
 "use strict";
 
+const { getIpList } 			= require("../utils");
+
 class Node {
 	constructor(id) {
 		this.id = id;
@@ -32,11 +34,21 @@ class Node {
 		this.events = payload.events;
 	}
 
+	heartbeat(payload) {
+		this.lastHeartbeatTime = Date.now();
+		this.available = true;
+	}
+
+	disconnected() {
+		this.available = false;
+	}
+
 	updateFromLocal() {
 		this.uptime = process.uptime();
+		this.ipList = getIpList();
 		this.versions = {
 			node: process.version,
-			moleculer: this.broker.MOLECULER_VERSION
+			//moleculer: this.broker.MOLECULER_VERSION
 		};
 	}
 }

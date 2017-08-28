@@ -14,7 +14,7 @@ const path 				= require("path");
 const fs 				= require("fs");
 
 const Transit 			= require("./transit");
-const ServiceRegistry 	= require("./service-registry");
+const Registry 			= require("./registry");
 const E 				= require("./errors");
 const utils 			= require("./utils");
 const Logger 			= require("./logger");
@@ -114,8 +114,9 @@ class ServiceBroker {
 
 		// Internal maps
 		this.services = [];
-		this.serviceRegistry = new ServiceRegistry(this.options.registry);
-		this.serviceRegistry.init(this);
+
+		// Service registry
+		this.registry = new Registry(this);
 
 		// Middlewares
 		this.middlewares = [];
@@ -519,6 +520,10 @@ class ServiceBroker {
 		return service;
 	}
 
+	addService(service) {
+		this.services.push(service);
+	}
+
 	/**
 	 * Destroy a local service
 	 *
@@ -534,62 +539,11 @@ class ServiceBroker {
 			})
 			.then(() => {
 				_.remove(this.services, svc => svc == service);
-				this.serviceRegistry.unregisterService(this.nodeID, service.name);
+				this.registry.unregisterService(service.name, service.version);
 
 				this.logger.info(`Service '${service.name}' is destroyed!`);
 				this.servicesChanged(true);
 			});
-	}
-
-	/**
-	 * Register a local service
-	 *
-	 * @param {Service} service
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	registerLocalService(service) {
-		this.services.push(service);
-
-		this.serviceRegistry.registerService(this.nodeID, service);
-
-		//this.emitLocal(`register.service.${service.name}`, service);
-		this.logger.info(`'${service.name}' service is registered!`);
-	}
-
-	/**
-	 * Register a remote service
-	 *
-	 * @param {String} nodeID		NodeID if it is on a remote server/node
-	 * @param {Service} service
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	registerRemoteService(nodeID, service) {
-		this.serviceRegistry.registerService(nodeID, service);
-
-		if (service.actions) {
-			_.forIn(service.actions, action => {
-				this.registerAction(nodeID, Object.assign({}, action, { service }));
-			});
-		}
-
-	}
-
-	/**
-	 * Register an action
-	 *
-	 * @param {String} nodeID	NodeID if it is on a remote server/node
-	 * @param {any} action		action schema
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	registerAction(nodeID, action) {
-		// Wrap middlewares on local actions
-		if (nodeID == this.nodeID)
-			this.wrapAction(action);
-
-		this.serviceRegistry.registerAction(nodeID, action);
 	}
 
 	/**
@@ -614,30 +568,6 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Unregister services by node
-	 *
-	 * @param {String} nodeID
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	unregisterServicesByNode(nodeID) {
-		this.serviceRegistry.unregisterServicesByNode(nodeID);
-	}
-
-	/**
-	 * Unregister an action on a local server.
-	 * It will be called when a remote node disconnected.
-	 *
-	 * @param {String} nodeID		NodeID if it is on a remote server/node
-	 * @param {any} action		action schema
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	unregisterAction(nodeID, action) {
-		this.serviceRegistry.unregisterAction(nodeID, action);
-	}
-
-	/**
 	 * Register internal services
 	 *
 	 * @memberOf ServiceBroker
@@ -652,6 +582,7 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	servicesChanged(resendNodeInfo = false) {
+		// TODO
 		this.emitLocal("services.changed");
 
 		// Notify other nodes, we have a new service list.
@@ -704,61 +635,8 @@ class ServiceBroker {
 	 *
 	 * @memberOf ServiceBroker
 	 */
-	getService(serviceName) {
+	getLocalService(serviceName) {
 		return this.services.find(service => service.name == serviceName);
-	}
-
-	/**
-	 * Has a local service by name
-	 *
-	 * @param {String} serviceName
-	 * @returns {Boolean}
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	hasService(serviceName) {
-		return this.services.find(service => service.name == serviceName) != null;
-	}
-
-	/**
-	 * Has an action by name
-	 *
-	 * @param {String} actionName
-	 * @returns {Boolean}
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	hasAction(actionName) {
-		return this.serviceRegistry.hasAction(actionName);
-	}
-
-	/**
-	 * Get an action by name
-	 *
-	 * @param {String} actionName
-	 * @returns {Object}
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	getAction(actionName) {
-		const item = this.serviceRegistry.findAction(actionName);
-		if (item) {
-			return item.nextAvailable();
-		}
-		return null;
-	}
-
-	/**
-	 * Check has callable action handler
-	 *
-	 * @param {String} actionName
-	 * @returns {Boolean}
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	isActionAvailable(actionName) {
-		const item = this.serviceRegistry.findAction(actionName);
-		return item && item.count() > 0;
 	}
 
 	/**
@@ -800,7 +678,7 @@ class ServiceBroker {
 		} else {
 			if (opts.nodeID) {
 				// Direct call
-				endpoint = this.serviceRegistry.getEndpointByNodeID(actionName, opts.nodeID);
+				endpoint = this.registry.getActionEndpointByNodeId(actionName, opts.nodeID);
 				if (!endpoint) {
 					this.logger.warn(`Service '${actionName}' is not available on '${opts.nodeID}' node!`);
 					return Promise.reject(new E.ServiceNotFoundError(actionName, opts.nodeID));
@@ -808,14 +686,14 @@ class ServiceBroker {
 
 			} else {
 				// Find action by name
-				let actions = this.serviceRegistry.findAction(actionName);
+				let actions = this.registry.getActionEndpoints(actionName);
 				if (actions == null) {
 					this.logger.warn(`Service '${actionName}' is not registered!`);
 					return Promise.reject(new E.ServiceNotFoundError(actionName));
 				}
 
 				// Get an endpoint
-				endpoint = actions.nextAvailable();
+				endpoint = actions.next();
 				if (endpoint == null) {
 					const errMsg = `Service '${actionName}' is not available!`;
 					this.logger.warn(errMsg);
@@ -826,7 +704,7 @@ class ServiceBroker {
 
 		// Expose action info
 		let action = endpoint.action;
-		let nodeID = endpoint.nodeID;
+		let nodeID = endpoint.id;
 
 		// Create context
 		let ctx;

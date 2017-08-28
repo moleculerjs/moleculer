@@ -16,19 +16,9 @@ module.exports = function(broker) {
 			list: {
 				cache: false,
 				handler() {
-					let res = [];
-					const localNode = this.broker.transit.getNodeInfo();
-					localNode.id = this.broker.nodeID;
-					localNode.local = true;
-					localNode.available = true;
-					res.push(localNode);
+					let nodes = this.broker.registry.nodes.list();
 
-					this.broker.transit.nodes.forEach(node => {
-						//res.push(pick(node, ["nodeID", "available"]));
-						res.push(node);
-					});
-
-					return res;
+					return nodes;
 				}
 			},
 
@@ -42,8 +32,9 @@ module.exports = function(broker) {
 				handler(ctx) {
 					let res = [];
 
-					const services = this.broker.serviceRegistry.getServiceList(ctx.params);
+					const services = this.broker.registry.services.list(ctx.params);
 
+					// TODO
 					services.forEach(svc => {
 						let item = res.find(o => o.name == svc.name && o.version == svc.version);
 						if (item) {
@@ -81,7 +72,7 @@ module.exports = function(broker) {
 					withEndpoints: { type: "boolean", optional: true }
 				},
 				handler(ctx) {
-					return this.broker.serviceRegistry.getActionList(ctx.params);
+					return this.broker.registry.actons.list(ctx.params);
 				}
 			},
 

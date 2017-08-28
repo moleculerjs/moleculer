@@ -13,7 +13,7 @@ let broker = new ServiceBroker({
 	logger: console
 });
 
-broker.loadService(path.join(__dirname, "..", "file.service"));
+//broker.loadService(path.join(__dirname, "..", "file.service"));
 
 broker.createService({
 	name: "math",
@@ -27,4 +27,5 @@ broker.createService({
 	}
 });
 
-broker.start();
+broker.start()
+	.then(() => broker.repl());

@@ -4,7 +4,7 @@ module.exports = {
 	name: "test",
 	actions: {
 		hello() {
-			return "Hello Moleculer!!!";
+			return "Hello Moleculer!";
 		}
 	}
 };

@@ -14,6 +14,8 @@ class ServiceItem {
 		this.version = version;
 		this.settings = settings;
 		this.local = local;
+
+		this.actions = {};
 	}
 
 	equals(name, version, nodeID) {
@@ -23,6 +25,10 @@ class ServiceItem {
 	update(svc) {
 		this.version = svc.version;
 		this.settings = svc.settings;
+	}
+
+	addAction(action) {
+		this.actions[action.name] = action;
 	}
 }
 

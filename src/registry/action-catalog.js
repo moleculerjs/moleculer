@@ -8,7 +8,7 @@
 
 const _ = require("lodash");
 //const BaseCatalog = require("./base-catalog");
-const EndpointList = require("endpoint-list");
+const EndpointList = require("./endpoint-list");
 
 class ActionCatalog {
 
@@ -35,10 +35,15 @@ class ActionCatalog {
 		return this.actions.find(svc => svc.equals(name, version, nodeID)) != null;
 	}
 */
-	get(name, version, nodeID) {
-		return this.actions.find(svc => svc.equals(name, version, nodeID));
+	get(actionName) {
+		return this.actions.get(actionName);
 	}
 
+	removeByService(service) {
+		this.actions.forEach(list => {
+			list.removeByService(service);
+		});
+	}
 }
 
 module.exports = ActionCatalog;

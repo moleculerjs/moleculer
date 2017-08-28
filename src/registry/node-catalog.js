@@ -6,6 +6,7 @@
 
 "use strict";
 
+const _ = require("lodash");
 const Node = require("./node");
 
 class NodeCatalog {
@@ -60,7 +61,7 @@ class NodeCatalog {
 		node.update(payload);
 
 		if (node.services) {
-			this.registry.registerRemoteServices(node);
+			this.registry.registerServices(node, payload.services);
 		}
 
 		// Local notifications
@@ -82,6 +83,29 @@ class NodeCatalog {
 		this._localNode.updateFromLocal();
 		return this._localNode;
 	}
+
+	/**
+	 * Check all registered remote nodes is live.
+	 *
+	 * @memberOf Transit
+	 */
+	checkRemoteNodes() {
+		const now = Date.now();
+		this.nodes.forEach(node => {
+			if (node.local) return;
+
+			if (now - (node.lastHeartbeatTime || 0) > this.broker.options.heartbeatTimeout * 1000) {
+				this.registry.nodeDisconnected(node.id, true);
+			}
+		});
+	}
+
+	heartbeat(payload) {
+		const node = this.get(payload.sender);
+		if (node)
+			node.heartbeat(payload);
+	}
+
 }
 
 module.exports = NodeCatalog;

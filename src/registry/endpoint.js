@@ -22,6 +22,10 @@ class Endpoint {
 	get isAvailable() {
 		return this.state;
 	}
+
+	updateAction(action) {
+		this.action = action;
+	}
 }
 
 module.exports = Endpoint;

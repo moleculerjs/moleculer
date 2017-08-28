@@ -7,6 +7,16 @@
 		{
 			"type": "node",
 			"request": "launch",
+			"name": "Launch dev",
+			"program": "${workspaceRoot}\\dev\\index.js",
+			"cwd": "${workspaceRoot}",
+			"args": [
+				"base"
+			]
+		},
+		{
+			"type": "node",
+			"request": "launch",
 			"name": "Launch demo:caching",
 			"program": "${workspaceRoot}\\examples\\caching\\index.js",
 			"cwd": "${workspaceRoot}\\examples\\caching"
@@ -36,18 +46,8 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch demo:multi",
-			"program": "${workspaceRoot}\\examples\\multi-server\\client.js",
+			"program": "${workspaceRoot}\\examples\\multi-server\\server.js",
 			"cwd": "${workspaceRoot}\\examples\\multi-server"
-		},
-		{
-			"type": "node",
-			"request": "launch",
-			"name": "Launch dev",
-			"program": "${workspaceRoot}\\dev\\index.js",
-			"cwd": "${workspaceRoot}",
-			"args": [
-				"dev"
-			]
 		},
 		{
 			"type": "node",

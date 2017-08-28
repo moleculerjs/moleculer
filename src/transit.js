@@ -8,7 +8,6 @@
 
 const Promise					= require("bluebird");
 const P 						= require("./packets");
-const { getIpList } 			= require("./utils");
 const { hash } 					= require("node-object-hash")({ sort: false, coerce: false});
 
 /**
@@ -34,7 +33,7 @@ class Transit {
 		this.tx = transporter;
 		this.opts = opts;
 
-		this.nodes = new Map();
+		//this.nodes = new Map();
 
 		this.pendingRequests = new Map();
 
@@ -123,7 +122,7 @@ class Transit {
 
 				this.checkNodesTimer = setInterval(() => {
 				/* istanbul ignore next */
-					this.checkRemoteNodes();
+					this.broker.registry.nodes.checkRemoteNodes();
 				}, this.broker.options.heartbeatTimeout * 1000);
 				this.checkNodesTimer.unref();
 
@@ -163,7 +162,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendDisconnectPacket() {
-		this.logger.debug("Send DISCONNECT to nodes...");
+		this.logger.debug("Send DISCONNECT...");
 
 		return this.publish(new P.PacketDisconnect(this));
 	}
@@ -260,27 +259,27 @@ class Transit {
 			return;
 		}
 
-		// Node info
-		else if (cmd === P.PACKET_INFO || cmd === P.PACKET_DISCOVER) {
-			this.processNodeInfo(payload.sender, payload);
+		// Discover
+		else if (cmd === P.PACKET_DISCOVER) {
+			this.sendNodeInfo(payload.sender);
+			return;
+		}
 
-			if (cmd == "DISCOVER") {
-				//this.logger.debug("Discover received from " + payload.sender);
-				this.sendNodeInfo(payload.sender);
-			}
+		// Node info
+		else if (cmd === P.PACKET_INFO) {
+			this.broker.registry.processNodeInfo(payload);
 			return;
 		}
 
 		// Disconnect
 		else if (cmd === P.PACKET_DISCONNECT) {
-			this.nodeDisconnected(payload.sender);
+			this.broker.registry.nodeDisconnected(payload.sender, false);
 			return;
 		}
 
 		// Heartbeat
 		else if (cmd === P.PACKET_HEARTBEAT) {
-			//this.logger.debug("Node heart-beat received from " + payload.sender);
-			this.nodeHeartbeat(payload.sender, payload);
+			this.broker.registry.nodeHeartbeat(payload);
 			return;
 		}
 	}
@@ -428,30 +427,6 @@ class Transit {
 	}
 
 	/**
-	 * Get Node information to DISCOVER & INFO packages
-	 *
-	 * @returns {Object}
-	 *
-	 * @memberof Transit
-	 */
-	getNodeInfo() {
-		const services = this.broker.serviceRegistry.getServiceList({ onlyLocal: true, withActions: true });
-		const uptime = process.uptime();
-		const ipList = getIpList();
-		const versions = {
-			node: process.version,
-			moleculer: this.broker.MOLECULER_VERSION
-		};
-
-		return {
-			services,
-			ipList,
-			versions,
-			uptime
-		};
-	}
-
-	/**
 	 * Discover other nodes. It will be called after success connect.
 	 *
 	 * @memberOf Transit
@@ -461,12 +436,12 @@ class Transit {
 	}
 
 	/**
-	 * Send node info package to other nodes. It will be called with timer
+	 * Send node info package to other nodes.
 	 *
 	 * @memberOf Transit
 	 */
 	sendNodeInfo(nodeID) {
-		const info = this.getNodeInfo();
+		const info = this.broker.registry.getLocalNodeInfo();
 		return this.publish(new P.PacketInfo(this, nodeID, info));
 	}
 
@@ -535,140 +510,6 @@ class Transit {
 		if (buf == null) return null;
 
 		return this.broker.serializer.deserialize(buf, type);
-	}
-
-	/**
-	 * Process remote node info (list of actions)
-	 *
-	 * @param {String} nodeID
-	 * @param {Object} payload
-	 *
-	 * @memberOf Transit
-	 */
-	processNodeInfo(nodeID, payload) {
-		if (nodeID == null) {
-			this.logger.error("Missing nodeID in INFO packet!");
-			return;
-		}
-
-		// Is it a new node?
-		let isNewNode = !this.nodes.has(nodeID);
-
-		// Get old node item
-		const oldNode = this.nodes.get(nodeID);
-		const oldServicesHash = hash(oldNode ? oldNode.services : null);
-
-		// Refresh node properties
-		const node = Object.assign(oldNode || {}, payload);
-
-		// Is it a reconnected node?
-		let isReconnected = !node.available;
-
-		// Update heartbeat & status
-		node.lastHeartbeatTime = Date.now();
-		node.available = true;
-		node.id = nodeID;
-
-		// Set the new node item
-		this.nodes.set(nodeID, node);
-
-		// Notifications
-		if (isNewNode) {
-			this.broker.emitLocal("node.connected", { node, reconnected: false });
-			this.logger.info(`Node '${nodeID}' connected!`);
-		} else if (isReconnected) {
-			this.broker.emitLocal("node.connected", { node, reconnected: true });
-			this.logger.info(`Node '${nodeID}' reconnected!`);
-		} else {
-			this.broker.emitLocal("node.info", { node });
-			this.logger.debug(`Node '${nodeID}' info received!`);
-		}
-
-		// Update node services in registry
-		if (node.services) {
-			if (isReconnected || oldServicesHash !== hash(node.services)) {
-				this.logger.debug(`Re-register node '${nodeID}' services...`);
-
-				// Unregister previous services
-				this.broker.unregisterServicesByNode(nodeID);
-
-				// Register remote services
-				node.services.forEach(service => this.broker.registerRemoteService(nodeID, service));
-
-				this.broker.servicesChanged(false);
-			}
-		}
-	}
-
-	/**
-	 * Check the given nodeID is available
-	 *
-	 * @param {any} nodeID	Node ID
-	 * @returns {boolean}
-	 *
-	 * @memberOf Transit
-	 */
-	isNodeAvailable(nodeID) {
-		let info = this.nodes.get(nodeID);
-		if (info)
-			return info.available;
-
-		return false;
-	}
-
-	/**
-	 * Save a heart-beat time from a remote node
-	 *
-	 * @param {any} nodeID
-	 * @param {Object} payload
-	 *
-	 * @memberOf Transit
-	 */
-	nodeHeartbeat(nodeID, payload) {
-		if (this.nodes.has(nodeID)) {
-			let node = this.nodes.get(nodeID);
-			node.lastHeartbeatTime = Date.now();
-			node.uptime = payload.uptime;
-			node.available = true;
-		}
-	}
-
-	/**
-	 * Node disconnected event handler.
-	 * Remove node and remove remote actions of node
-	 *
-	 * @param {any} nodeID
-	 * @param {Boolean=} isUnexpected
-	 *
-	 * @memberOf Transit
-	 */
-	nodeDisconnected(nodeID, isUnexpected) {
-		if (this.nodes.has(nodeID)) {
-			let node = this.nodes.get(nodeID);
-			if (node.available) {
-				node.available = false;
-				this.broker.unregisterServicesByNode(nodeID);
-				this.broker.servicesChanged(false);
-
-				this.broker.emitLocal("node.disconnected", { node, unexpected: !!isUnexpected });
-				//this.nodes.delete(nodeID);
-				this.logger.warn(`Node '${nodeID}' disconnected!`);
-			}
-		}
-	}
-
-	/**
-	 * Check all registered remote nodes is live.
-	 *
-	 * @memberOf Transit
-	 */
-	checkRemoteNodes() {
-		let now = Date.now();
-		this.nodes.forEach(node => {
-			if (now - (node.lastHeartbeatTime || 0) > this.broker.options.heartbeatTimeout * 1000) {
-				this.nodeDisconnected(node.id, true);
-			}
-		});
 	}
 
 }

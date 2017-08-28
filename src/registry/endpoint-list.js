@@ -6,6 +6,7 @@
 
 "use strict";
 
+const _ = require("lodash");
 const { MoleculerError } = require("../errors");
 const Endpoint = require("./endpoint");
 
@@ -59,7 +60,7 @@ class EndpointList {
 		if (this.endpoints.length === 1) {
 			// No need to select a node, return the only one
 			const item = this.endpoints[0];
-			if (item.isAvailable())
+			if (item.isAvailable)
 				return item;
 
 			return null;
@@ -74,7 +75,7 @@ class EndpointList {
 		let i = 0;
 		while (i < max) {
 			const ep = this.select();
-			if (ep.isAvailable())
+			if (ep.isAvailable)
 				return ep;
 
 			i++;
@@ -84,15 +85,29 @@ class EndpointList {
 	}
 
 	hasAvailable() {
-		return this.list.find(ep => ep.isAvailable()) != null;
+		return this.endpoints.find(ep => ep.isAvailable) != null;
 	}
 
 	getEndpointByNodeID(nodeID) {
-		const ep = this.list.find(ep => ep.id == nodeID);
-		if (ep && ep.isAvailable())
+		const ep = this.endpoints.find(ep => ep.id == nodeID);
+		if (ep && ep.isAvailable)
 			return ep;
 
 		return null;
+	}
+
+	removeByService(service) {
+		_.remove(this.endpoints, ep => ep.service == service);
+
+		this.setLocalEndpoint();
+	}
+
+	setLocalEndpoint() {
+		this.localEndpoint = null;
+		this.endpoints.forEach(ep => {
+			if (ep.node.id == this.broker.nodeID)
+				this.localEndpoint = ep;
+		});
 	}
 }
 
