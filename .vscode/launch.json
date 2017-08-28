@@ -46,7 +46,7 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch demo:multi",
-			"program": "${workspaceRoot}\\examples\\multi-server\\server.js",
+			"program": "${workspaceRoot}\\examples\\multi-server\\client.js",
 			"cwd": "${workspaceRoot}\\examples\\multi-server"
 		},
 		{

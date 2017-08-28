@@ -13,7 +13,7 @@ class Node {
 		this.id = id;
 		this.available = true;
 		this.local = false;
-		this.lastHeartbeat = Date.now();
+		this.lastHeartbeatTime = Date.now();
 
 		this.uptime = null;
 		this.ipList = null;

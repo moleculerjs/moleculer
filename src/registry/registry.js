@@ -46,7 +46,7 @@ class Registry {
 
 			this.broker.emitLocal("$node.disconnected", { node, unexpected: !!isUnexpected });
 
-			this.logger.warn(`Node '${node.id}' disconnected!`);
+			this.logger.warn(`Node '${node.id}' disconnected! Unexpected:`, !!isUnexpected);
 
 			this.broker.servicesChanged(false);
 		}

@@ -78,7 +78,6 @@ class ServiceCatalog {
 		_.remove(this.services, service => {
 			if (service.node.id == nodeID) {
 				this.registry.actions.removeByService(service);
-				return true;
 			}
 		});
 	}

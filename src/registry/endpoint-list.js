@@ -67,7 +67,7 @@ class EndpointList {
 		}
 
 		// Search local item
-		if (this.registry.opts.preferLocal === true && this.localEndpoint && this.localEndpoint.available()) {
+		if (this.registry.opts.preferLocal === true && this.localEndpoint && this.localEndpoint.isAvailable) {
 			return this.localEndpoint;
 		}
 

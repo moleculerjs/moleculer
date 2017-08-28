@@ -95,6 +95,7 @@ class NodeCatalog {
 			if (node.local) return;
 
 			if (now - (node.lastHeartbeatTime || 0) > this.broker.options.heartbeatTimeout * 1000) {
+				this.logger.warn("Node timeout!", node, now);
 				this.registry.nodeDisconnected(node.id, true);
 			}
 		});
