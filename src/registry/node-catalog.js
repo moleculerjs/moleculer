@@ -92,7 +92,7 @@ class NodeCatalog {
 	checkRemoteNodes() {
 		const now = Date.now();
 		this.nodes.forEach(node => {
-			if (node.local) return;
+			if (node.local || !node.available) return;
 
 			if (now - (node.lastHeartbeatTime || 0) > this.broker.options.heartbeatTimeout * 1000) {
 				this.logger.warn("Node timeout!", node, now);
