@@ -218,7 +218,6 @@ class Service {
 		}
 
 		//action.origName = name;
-		action.version = this.version;
 		action.service = this;
 		action.cache = action.cache !== undefined ? action.cache : (this.settings.$cache || false);
 		action.handler = this.Promise.method(handler.bind(this));

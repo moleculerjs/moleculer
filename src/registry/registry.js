@@ -53,7 +53,6 @@ class Registry {
 	}
 
 	nodeHeartbeat(payload) {
-		this.logger.info("HEARTBEAT:", payload);
 		this.nodes.heartbeat(payload);
 	}
 
@@ -66,21 +65,44 @@ class Registry {
 	}
 
 	registerServices(node, serviceList) {
-		this.logger.info("SERVICELIST:", serviceList); // TODO
+		//this.logger.info("< ---- INFO:", node, node.services); // TODO
 
 		serviceList.forEach(svc => {
+			let prevActions;
 			let service = this.services.get(svc.name, svc.version, node.id);
 			if (!service) {
 				service = this.services.add(node, svc.name, svc.version, svc.settings);
 			} else {
+				prevActions = Object.assign({}, service.actions);
 				service.update(svc);
 			}
 
 			this.registerActions(node, service, svc.actions);
 
+			// remove old actions which is not exist
+			if (prevActions) {
+				_.forIn(prevActions, (action, name) => {
+					if (!svc.actions[name])
+						this.unregisterAction(node, name);
+				});
+			}
 		});
 
-		// TODO: remove old services which is not exist in new serviceList
+		// remove old services which is not exist in new serviceList
+		this.services.services.forEach(service => {
+			if (service.node != node) return;
+
+			let exist = false;
+			serviceList.forEach(svc => {
+				if (service.equals(svc.name, svc.version))
+					exist = true;
+			});
+
+			if (!exist) {
+				// This service is removed on remote node!
+				this.unregisterService(service.name, service.version, node.id);
+			}
+		});
 	}
 
 	registerActions(node, service, actions) {
@@ -88,8 +110,6 @@ class Registry {
 			this.actions.add(node, service, action);
 			service.addAction(action);
 		});
-
-		// TODO: remove old services which is not exist in new actions
 	}
 
 	getActionEndpoints(actionName) {
@@ -97,21 +117,25 @@ class Registry {
 	}
 
 	getActionEndpointByNodeId(actionName, nodeID) {
-		// TODO
-		//return this.actions.get(actionName);
+		const list = this.actions.get(actionName);
+		if (list)
+			return list.getEndpointByNodeID(nodeID);
 	}
 
-	unregisterService(name, version) {
-		this.services.remove(name, version, this.broker.nodeID);
+	unregisterService(name, version, nodeID) {
+		this.services.remove(name, version, nodeID || this.broker.nodeID);
 	}
 
 	unregisterServicesByNode(nodeID) {
 		this.services.removeAllByNodeID(nodeID);
 	}
 
+	unregisterAction(node, name) {
+		this.actions.remove(name, node.id);
+	}
 
 	getLocalNodeInfo() {
-		const res = _.pick(this.nodes._localNode, ["uptime", "ipList", "versions"]);
+		const res = _.pick(this.nodes.localNode, ["uptime", "ipList", "versions"]);
 		res.services = this.services.list({ onlyLocal: true, withActions: true });
 		res.events = {}; // TODO
 
@@ -128,8 +152,8 @@ class Registry {
 	 */
 	getActionList({onlyLocal = false, skipInternal = false, withEndpoints = false}) {
 		let res = [];
-		/* TODO
-		this.actions.forEach((entry, key) => {
+		// TODO
+		this.actions.actions.forEach((entry, key) => {
 			if (skipInternal && /^\$node/.test(key))
 				return;
 
@@ -144,7 +168,7 @@ class Registry {
 			};
 
 			if (item.count > 0) {
-				const ep = entry.list[0];
+				const ep = entry.endpoints[0];
 				if (ep)
 					item.action = _.omit(ep.action, ["handler", "service"]);
 			}
@@ -152,10 +176,10 @@ class Registry {
 
 			if (withEndpoints) {
 				if (item.count > 0) {
-					item.endpoints = entry.list.map(endpoint => {
+					item.endpoints = entry.endpoints.map(ep => {
 						return {
-							nodeID: endpoint.nodeID,
-							state: endpoint.state
+							nodeID: ep.node.id,
+							state: ep.state
 						};
 					});
 				}
@@ -163,7 +187,7 @@ class Registry {
 
 			res.push(item);
 		});
-		*/
+
 		return res;
 	}
 }

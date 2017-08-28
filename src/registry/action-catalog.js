@@ -44,6 +44,12 @@ class ActionCatalog {
 			list.removeByService(service);
 		});
 	}
+
+	remove(actionName, nodeID) {
+		const list = this.actions.get(actionName);
+		if (list)
+			list.removeByNodeID(nodeID);
+	}
 }
 
 module.exports = ActionCatalog;

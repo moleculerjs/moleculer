@@ -22,21 +22,26 @@ broker.createService({
 });*/
 
 broker.start().then(() => {
-
+/*
 	setInterval(() => {
 		//broker.call("test.hello")
 		broker.call("math.add", { a: 5, b: 2 })
 			.then(res => broker.logger.info(res))
 			.catch(err => broker.logger.error(err));
 
-	}, 1000);
+	}, 1000);*/
 
-	/*setTimeout(() => {
-		let svc = broker.getLocalService("test");
-		broker.destroyService(svc);
-	}, 3000);*/
+	//setInterval(() => {
+/*
+		setTimeout(() => {
+			let svc = broker.getLocalService("test");
+			broker.destroyService(svc);
+		}, 10 * 1000);*/
 
-	//broker.loadService("./examples/hot.service.js");
+		//broker.loadService("./examples/hot.service.js");
+
+	//}, 10 * 1000);
+
 	//broker.loadService("./examples/math.service.js");
 	//broker.loadService("./examples/user.service.js");
 

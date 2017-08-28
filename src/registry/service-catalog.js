@@ -84,10 +84,11 @@ class ServiceCatalog {
 	}
 
 	remove(name, version, nodeID) {
-		let service = this.services.get(name, version, nodeID);
+		let service = this.get(name, version, nodeID);
 		if (service) {
 			this.registry.actions.removeByService(service);
-			this.services.delete(service);
+
+			_.remove(this.services, svc => svc == service);
 		}
 	}
 }

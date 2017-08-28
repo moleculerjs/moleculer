@@ -88,6 +88,14 @@ class EndpointList {
 		return this.endpoints.find(ep => ep.isAvailable) != null;
 	}
 
+	hasLocal() {
+		return this.localEndpoint != null;
+	}
+
+	count() {
+		return this.endpoints.length;
+	}
+
 	getEndpointByNodeID(nodeID) {
 		const ep = this.endpoints.find(ep => ep.id == nodeID);
 		if (ep && ep.isAvailable)
@@ -96,8 +104,18 @@ class EndpointList {
 		return null;
 	}
 
+	hasNodeID(nodeID) {
+		return this.endpoints.find(ep => ep.id == nodeID) != null;
+	}
+
 	removeByService(service) {
 		_.remove(this.endpoints, ep => ep.service == service);
+
+		this.setLocalEndpoint();
+	}
+
+	removeByNodeID(nodeID) {
+		_.remove(this.endpoints, ep => ep.id == nodeID);
 
 		this.setLocalEndpoint();
 	}

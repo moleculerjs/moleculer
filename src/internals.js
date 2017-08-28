@@ -72,7 +72,7 @@ module.exports = function(broker) {
 					withEndpoints: { type: "boolean", optional: true }
 				},
 				handler(ctx) {
-					return this.broker.registry.actons.list(ctx.params);
+					return this.broker.registry.getActionList(ctx.params);
 				}
 			},
 
