@@ -6,8 +6,6 @@
 
 "use strict";
 
-const { getIpList } 			= require("../utils");
-
 class Node {
 	constructor(id) {
 		this.id = id;
@@ -15,9 +13,8 @@ class Node {
 		this.local = false;
 		this.lastHeartbeatTime = Date.now();
 
-		this.uptime = null;
 		this.ipList = null;
-		this.versions = null;
+		this.client = null;
 
 		this.services = null;
 		this.events = null;
@@ -25,9 +22,8 @@ class Node {
 
 	update(payload) {
 		// Update properties
-		this.uptime = payload.uptime;
 		this.ipList = payload.ipList;
-		this.versions = payload.versions;
+		this.client = payload.client;
 
 		// Process services & events
 		this.services = payload.services;
@@ -41,15 +37,6 @@ class Node {
 
 	disconnected() {
 		this.available = false;
-	}
-
-	updateFromLocal() {
-		this.uptime = process.uptime();
-		this.ipList = getIpList();
-		this.versions = {
-			node: process.version,
-			//moleculer: this.broker.MOLECULER_VERSION
-		};
 	}
 }
 

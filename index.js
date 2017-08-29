@@ -30,5 +30,7 @@ module.exports = {
 
 	CIRCUIT_CLOSE,
 	CIRCUIT_HALF_OPEN,
-	CIRCUIT_OPEN
+	CIRCUIT_OPEN,
+
+	MOLECULER_VERSION: require("./src/service-broker").MOLECULER_VERSION
 };

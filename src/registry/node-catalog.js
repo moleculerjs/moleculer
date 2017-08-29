@@ -6,8 +6,9 @@
 
 "use strict";
 
-const _ = require("lodash");
-const Node = require("./node");
+const _ 			= require("lodash");
+const Node 			= require("./node");
+const { getIpList } = require("../utils");
 
 class NodeCatalog {
 
@@ -24,10 +25,16 @@ class NodeCatalog {
 	createLocalNode() {
 		const node = new Node(this.broker.nodeID);
 		node.local = true;
+		node.ipList = getIpList();
+		node.client = {
+			type: "nodejs",
+			version: this.broker.MOLECULER_VERSION,
+			langVersion: process.version
+		};
 
 		this.add(node.id, node);
 
-		this._localNode = node;
+		this.localNode = node;
 		return node;
 	}
 
@@ -78,12 +85,6 @@ class NodeCatalog {
 
 	}
 
-	get localNode() {
-		// Update local node info
-		this._localNode.updateFromLocal();
-		return this._localNode;
-	}
-
 	/**
 	 * Check all registered remote nodes is live.
 	 *
@@ -95,7 +96,7 @@ class NodeCatalog {
 			if (node.local || !node.available) return;
 
 			if (now - (node.lastHeartbeatTime || 0) > this.broker.options.heartbeatTimeout * 1000) {
-				this.logger.warn("Node timeout!", node, now);
+				this.logger.warn(`Node '${node.id}' unavailable! Heartbeat is no received.`);
 				this.registry.nodeDisconnected(node.id, true);
 			}
 		});
@@ -107,6 +108,14 @@ class NodeCatalog {
 			node.heartbeat(payload);
 	}
 
+	list() {
+		let res = [];
+		this.nodes.forEach(node => {
+			res.push(_.omit(node, ["services", "events"]));
+		});
+
+		return res;
+	}
 }
 
 module.exports = NodeCatalog;
