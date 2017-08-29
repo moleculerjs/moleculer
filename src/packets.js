@@ -15,6 +15,8 @@ const PACKET_DISCOVER 		= "DISCOVER";
 const PACKET_INFO 			= "INFO";
 const PACKET_DISCONNECT 	= "DISCONNECT";
 const PACKET_HEARTBEAT 		= "HEARTBEAT";
+const PACKET_PING 			= "PING";
+const PACKET_PONG 			= "PONG";
 
 /**
  * Get packet class from packet type
@@ -37,6 +39,10 @@ function getPacketClassByType(type) {
 		return PacketDisconnect;
 	if (type == PACKET_HEARTBEAT)
 		return PacketHeartbeat;
+	if (type == PACKET_PING)
+		return PacketPing;
+	if (type == PACKET_PONG)
+		return PacketPong;
 
 	/* istanbul ignore next */
 	return Packet;
@@ -130,9 +136,9 @@ class PacketDisconnect extends Packet {
  * @extends {Packet}
  */
 class PacketHeartbeat extends Packet {
-	constructor(transit, uptime) {
+	constructor(transit, cpu) {
 		super(transit, PACKET_HEARTBEAT);
-		this.payload.uptime = uptime;
+		this.payload.cpu = cpu;
 	}
 }
 
@@ -259,6 +265,34 @@ class PacketResponse extends Packet {
 }
 
 
+/**
+ * Packet for ping
+ *
+ * @class PacketPing
+ * @extends {Packet}
+ */
+class PacketPing extends Packet {
+	constructor(transit, target, time) {
+		super(transit, PACKET_PING, target);
+		this.payload.time = time;
+	}
+}
+
+/**
+ * Packet for pong
+ *
+ * @class PacketPong
+ * @extends {Packet}
+ */
+class PacketPong extends Packet {
+	constructor(transit, target, time, arrived) {
+		super(transit, PACKET_PONG, target);
+		this.payload.time = time;
+		this.payload.arrived = arrived;
+	}
+}
+
+
 module.exports = {
 	PACKET_UNKNOW,
 	PACKET_EVENT,
@@ -268,6 +302,8 @@ module.exports = {
 	PACKET_INFO,
 	PACKET_DISCONNECT,
 	PACKET_HEARTBEAT,
+	PACKET_PING,
+	PACKET_PONG,
 
 	Packet,
 	PacketEvent,
@@ -276,5 +312,7 @@ module.exports = {
 	PacketInfo,
 	PacketHeartbeat,
 	PacketRequest,
-	PacketResponse
+	PacketResponse,
+	PacketPing,
+	PacketPong
 };

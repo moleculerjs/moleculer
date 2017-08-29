@@ -11,10 +11,11 @@ const _ = require("lodash");
 const { getIpList } = require("./utils");
 const MOLECULER_VERSION = require("../package.json").version;
 
-const getVersions = () => {
+const getClientInfo = () => {
 	return {
-		node: process.version,
-		moleculer: MOLECULER_VERSION
+		type: "nodejs",
+		version: MOLECULER_VERSION,
+		langVersion: process.version
 	};
 };
 
@@ -93,7 +94,7 @@ const getHealthStatus = (broker) => {
 		mem: getMemoryInfo(),
 		os: getOsInfo(),
 		process: getProcessInfo(),
-		versions: getVersions(),
+		client: getClientInfo(),
 		net: getNetworkInterfacesInfo(),
 		transit: getTransitStatus(broker),
 		time: getDateTimeInfo()
@@ -103,4 +104,14 @@ const getHealthStatus = (broker) => {
 	};
 };
 
-module.exports = broker => Promise.resolve(getHealthStatus(broker));
+module.exports = {
+	getHealthStatus,
+	getCpuInfo,
+	getMemoryInfo,
+	getOsInfo,
+	getProcessInfo,
+	getClientInfo,
+	getNetworkInterfacesInfo,
+	getTransitStatus,
+	getDateTimeInfo
+};

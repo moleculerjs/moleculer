@@ -6,9 +6,10 @@
 
 "use strict";
 
-const Promise					= require("bluebird");
-const P 						= require("./packets");
-const { hash } 					= require("node-object-hash")({ sort: false, coerce: false});
+const Promise			= require("bluebird");
+const P 				= require("./packets");
+const { hash } 			= require("node-object-hash")({ sort: false, coerce: false});
+const { getCpuInfo } 	= require("./health");
 
 /**
  * Transit class
@@ -171,6 +172,14 @@ class Transit {
 
 			// Heart-beat handler
 			this.subscribe(P.PACKET_HEARTBEAT),
+
+			// Ping handler
+			this.subscribe(P.PACKET_PING), // Broadcasted
+			this.subscribe(P.PACKET_PING, this.nodeID), // Targeted
+
+			// Pong handler
+			this.subscribe(P.PACKET_PONG, this.nodeID)
+
 		])
 			.then(() => {
 				this.subscribing = null;
@@ -215,6 +224,7 @@ class Transit {
 			throw new Error("Missing response payload!");
 		}
 
+		// Skip own packets
 		if (payload.sender == this.nodeID)
 			return Promise.resolve();
 
@@ -256,6 +266,18 @@ class Transit {
 		// Heartbeat
 		else if (cmd === P.PACKET_HEARTBEAT) {
 			this.broker.registry.nodes.heartbeat(payload);
+			return;
+		}
+
+		// Ping
+		else if (cmd === P.PACKET_PING) {
+			this.sendPong(payload);
+			return;
+		}
+
+		// Ping
+		else if (cmd === P.PACKET_PONG) {
+			this.processPong(payload);
 			return;
 		}
 	}
@@ -424,13 +446,52 @@ class Transit {
 	}
 
 	/**
+	 * Send ping to a node (or all nodes if nodeID is null)
+	 *
+	 * @param {String?} nodeID
+	 * @returns
+	 * @memberof Transit
+	 */
+	sendPing(nodeID) {
+		return this.publish(new P.PacketPing(this, nodeID, Date.now()));
+	}
+
+	/**
+	 * Send back pong response
+	 *
+	 * @param {Object} payload
+	 * @returns
+	 * @memberof Transit
+	 */
+	sendPong(payload) {
+		return this.publish(new P.PacketPong(this, payload.sender, payload.time, Date.now()));
+	}
+
+	/**
+	 * Process incoming PONG packet.
+	 * Measure ping time & current time difference.
+	 *
+	 * @param {Object} payload
+	 * @memberof Transit
+	 */
+	processPong(payload) {
+		const now = Date.now();
+		const elapsedTime = now - payload.time;
+		const timeDiff = Math.round(now - payload.arrived - elapsedTime / 2);
+
+		this.logger.info(`PING-PONG from '${payload.sender}' - Time: ${elapsedTime}ms, Time difference: ${timeDiff}ms `);
+
+		this.broker.emit("$node.ping", { elapsedTime, timeDiff });
+	}
+
+	/**
 	 * Send a node heart-beat. It will be called with timer
 	 *
 	 * @memberOf Transit
 	 */
 	sendHeartbeat() {
-		const uptime = process.uptime();
-		return this.publish(new P.PacketHeartbeat(this, uptime));
+		const cpu = getCpuInfo();
+		return this.publish(new P.PacketHeartbeat(this, cpu.utilization));
 	}
 
 	/**

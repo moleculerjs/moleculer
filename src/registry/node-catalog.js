@@ -32,7 +32,12 @@ class NodeCatalog {
 	startHeartbeatTimers() {
 		this.heartbeatTimer = setInterval(() => {
 			/* istanbul ignore next */
-			this.broker.transit.sendHeartbeat();
+			if (this.broker.transit)
+				this.broker.transit.sendHeartbeat();
+
+			// TODO
+			// this.broker.transit.sendPing();
+
 		}, this.broker.options.heartbeatInterval * 1000);
 		this.heartbeatTimer.unref();
 

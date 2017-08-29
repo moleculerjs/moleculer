@@ -6,7 +6,8 @@
 
 "use strict";
 
-const _ = require("lodash");
+const _ 					= require("lodash");
+const { getHealthStatus } 	= require("./health");
 
 module.exports = function(broker) {
 	const schema = {
@@ -79,7 +80,7 @@ module.exports = function(broker) {
 			health: {
 				cache: false,
 				handler() {
-					return this.broker.getNodeHealthInfo();
+					return getHealthStatus(broker);
 				}
 			}
 		}

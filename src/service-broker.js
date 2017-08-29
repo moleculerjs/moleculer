@@ -20,7 +20,6 @@ const utils 			= require("./utils");
 const Logger 			= require("./logger");
 const Validator 		= require("./validator");
 const BrokerStatistics 	= require("./statistics");
-const healthInfo 		= require("./health");
 
 const Cachers 			= require("./cachers");
 const Transporters 		= require("./transporters");
@@ -150,8 +149,6 @@ class ServiceBroker {
 
 		if (this.options.statistics)
 			this.statistics = new BrokerStatistics(this);
-
-		this.getNodeHealthInfo = () => healthInfo(this);
 
 		// Register internal actions
 		if (this.options.internalServices)
