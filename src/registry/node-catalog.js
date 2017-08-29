@@ -134,7 +134,7 @@ class NodeCatalog {
 			if (node.local || !node.available) return;
 
 			if (now - (node.lastHeartbeatTime || 0) > this.broker.options.heartbeatTimeout * 1000) {
-				this.logger.warn(`Node '${node.id}' unavailable! Heartbeat is no received.`);
+				this.logger.warn(`Heartbeat is not received from '${node.id}' node!`);
 				this.disconnected(node.id, true);
 			}
 		});

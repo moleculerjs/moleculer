@@ -8,8 +8,9 @@
 
 const Promise			= require("bluebird");
 const P 				= require("./packets");
-const { hash } 			= require("node-object-hash")({ sort: false, coerce: false});
 const { getCpuInfo } 	= require("./health");
+
+const { ProtocolVersionMismatchError } = require("./errors");
 
 /**
  * Transit class
@@ -222,6 +223,13 @@ class Transit {
 		if (!payload) {
 			/* istanbul ignore next */
 			throw new Error("Missing response payload!");
+		}
+
+		// Check protocol version
+		if (payload.ver != P.PROTOCOL_VERSION) {
+			let err = new ProtocolVersionMismatchError(payload.sender,P.PROTOCOL_VERSION, payload.ver || "1");
+			this.logger.error(err);
+			return Promise.reject(err);
 		}
 
 		// Skip own packets
@@ -481,7 +489,7 @@ class Transit {
 
 		this.logger.info(`PING-PONG from '${payload.sender}' - Time: ${elapsedTime}ms, Time difference: ${timeDiff}ms `);
 
-		this.broker.emit("$node.ping", { elapsedTime, timeDiff });
+		this.broker.emitLocal("$node.ping", { elapsedTime, timeDiff });
 	}
 
 	/**

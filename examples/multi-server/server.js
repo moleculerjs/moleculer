@@ -28,4 +28,7 @@ broker.createService({
 });
 
 broker.start()
+	.then(() => {
+		setInterval(() => broker.transit.sendPing(), 5000);
+	})
 	.then(() => broker.repl());

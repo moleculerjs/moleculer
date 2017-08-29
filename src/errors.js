@@ -10,16 +10,16 @@ const ExtendableError = require("es6-error");
 
 /**
  * Custom Moleculer Error class
- * 
+ *
  * @class MoleculerError
  * @extends {Error}
  */
 class MoleculerError extends ExtendableError {
 	/**
 	 * Creates an instance of MoleculerError.
-	 * 
+	 *
 	 * @param {any} message
-	 * 
+	 *
 	 * @memberOf MoleculerError
 	 */
 	constructor(message, code, type, data) {
@@ -33,17 +33,17 @@ class MoleculerError extends ExtendableError {
 
 /**
  * 'Service not found' Error message
- * 
+ *
  * @class ServiceNotFoundError
  * @extends {Error}
  */
 class ServiceNotFoundError extends MoleculerError {
 	/**
 	 * Creates an instance of ServiceNotFoundError.
-	 * 
+	 *
 	 * @param {String} action
 	 * @param {String} nodeID
-	 * 
+	 *
 	 * @memberOf ServiceNotFoundError
 	 */
 	constructor(action, nodeID) {
@@ -62,17 +62,17 @@ class ServiceNotFoundError extends MoleculerError {
 
 /**
  * 'Request timed out' Error message
- * 
+ *
  * @class RequestTimeoutError
  * @extends {Error}
  */
 class RequestTimeoutError extends MoleculerError {
 	/**
 	 * Creates an instance of RequestTimeoutError.
-	 * 
+	 *
 	 * @param {String} action
 	 * @param {String} nodeID
-	 * 
+	 *
 	 * @memberOf RequestTimeoutError
 	 */
 	constructor(action, nodeID) {
@@ -85,17 +85,17 @@ class RequestTimeoutError extends MoleculerError {
 
 /**
  * 'Request skipped for timeout' Error message
- * 
+ *
  * @class RequestSkippedError
  * @extends {Error}
  */
 class RequestSkippedError extends MoleculerError {
 	/**
 	 * Creates an instance of RequestSkippedError.
-	 * 
+	 *
 	 * @param {String} action
 	 * @param {String} nodeID
-	 * 
+	 *
 	 * @memberOf RequestSkippedError
 	 */
 	constructor(action, nodeID) {
@@ -108,18 +108,18 @@ class RequestSkippedError extends MoleculerError {
 
 /**
  * 'Parameters of action call validation error
- * 
+ *
  * @class ValidationError
  * @extends {Error}
  */
 class ValidationError extends MoleculerError {
 	/**
 	 * Creates an instance of ValidationError.
-	 * 
+	 *
 	 * @param {String} message
 	 * @param {any} type
 	 * @param {any} data
-	 * 
+	 *
 	 * @memberOf ValidationError
 	 */
 	constructor(message, type, data) {
@@ -129,16 +129,16 @@ class ValidationError extends MoleculerError {
 
 /**
  * 'Max request call level!' Error message
- * 
+ *
  * @class MaxCallLevelError
  * @extends {Error}
  */
 class MaxCallLevelError extends MoleculerError {
 	/**
 	 * Creates an instance of MaxCallLevelError.
-	 * 
+	 *
 	 * @param {String} action
-	 * 
+	 *
 	 * @memberOf MaxCallLevelError
 	 */
 	constructor(data) {
@@ -148,11 +148,30 @@ class MaxCallLevelError extends MoleculerError {
 
 /**
  * Custom Moleculer Error class
- * 
+ *
  * @class ServiceSchemaError
  * @extends {Error}
  */
 class ServiceSchemaError extends ExtendableError {
+}
+
+/**
+ * Protocol version is mismatch
+ *
+ * @class ProtocolVersionMismatchError
+ * @extends {Error}
+ */
+class ProtocolVersionMismatchError extends MoleculerError {
+	/**
+	 * Creates an instance of ProtocolVersionMismatchError.
+	 *
+	 * @param {String} action
+	 *
+	 * @memberOf ProtocolVersionMismatchError
+	 */
+	constructor(nodeID, actual, received) {
+		super("Protocol version mismatch!", 500, null, { nodeID, actual, received });
+	}
 }
 
 
@@ -165,5 +184,7 @@ module.exports = {
 	RequestSkippedError,
 	MaxCallLevelError,
 
-	ServiceSchemaError
+	ServiceSchemaError,
+
+	ProtocolVersionMismatchError
 };

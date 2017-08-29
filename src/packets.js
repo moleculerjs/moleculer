@@ -18,6 +18,8 @@ const PACKET_HEARTBEAT 		= "HEARTBEAT";
 const PACKET_PING 			= "PING";
 const PACKET_PONG 			= "PONG";
 
+const PROTOCOL_VERSION 		= "2";
+
 /**
  * Get packet class from packet type
  *
@@ -69,6 +71,7 @@ class Packet {
 		this.target = target;
 
 		this.payload = {
+			ver: PROTOCOL_VERSION,
 			sender: transit ? transit.nodeID : null
 		};
 	}
@@ -294,6 +297,8 @@ class PacketPong extends Packet {
 
 
 module.exports = {
+	PROTOCOL_VERSION,
+
 	PACKET_UNKNOW,
 	PACKET_EVENT,
 	PACKET_REQUEST,
