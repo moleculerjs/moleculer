@@ -12,6 +12,9 @@ class Node {
 		this.available = true;
 		this.local = false;
 		this.lastHeartbeatTime = Date.now();
+		this.cpu = null;
+		this.config = {};
+		this.port = null;
 
 		this.ipList = null;
 		this.client = null;
@@ -31,6 +34,7 @@ class Node {
 	}
 
 	heartbeat(payload) {
+		this.cpu = payload.cpu;
 		this.lastHeartbeatTime = Date.now();
 		this.available = true;
 	}

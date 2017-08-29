@@ -161,7 +161,7 @@ class PacketInfo extends Packet {
 			this.payload.ipList = info.ipList;
 			this.payload.client = info.client;
 			this.payload.port = info.port;
-			this.payload.config = info.config || {};
+			this.payload.config = info.config;
 		}
 	}
 }

@@ -112,7 +112,7 @@ class Registry {
 	}
 
 	getLocalNodeInfo() {
-		const res = _.pick(this.nodes.localNode, ["ipList", "client"]);
+		const res = _.pick(this.nodes.localNode, ["ipList", "client", "config", "port"]);
 		res.services = this.services.list({ onlyLocal: true, withActions: true });
 		res.events = {}; // TODO
 

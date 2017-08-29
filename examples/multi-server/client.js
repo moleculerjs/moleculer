@@ -42,29 +42,32 @@ broker.createService({
 		},
 
 		"reply.event"(data, sender) {
-			broker.logger.info(`Reply event received from ${sender}. Counter: ${data.counter}.`);
+			broker.logger.info(`<< Reply event received from ${sender}. Counter: ${data.counter}.`);
 		}
 	},
 
 	started() {
 		this.counter = 1;
 		setInterval(() => {
-			broker.logger.info(`Send echo event to all nodes. Counter: ${this.counter}.`);
+			broker.logger.info(`>> Send echo event to all nodes. Counter: ${this.counter}.`);
 			broker.emit("echo.event", { counter: this.counter++ });
 		}, 5000);
 	}
 });
+
+let reqCount = 0;
 
 broker.start()
 	.then(() => {
 		setInterval(() => {
 			let payload = { a: _.random(0, 100), b: _.random(0, 100) };
 			let p = broker.call("math.add", payload);
+			reqCount++;
 			p.then(res => {
-				broker.logger.info(_.padEnd(`${payload.a} + ${payload.b} = ${res}`, 15), `(from: ${p.ctx.nodeID})`);
+				broker.logger.info(_.padEnd(`${reqCount}. ${payload.a} + ${payload.b} = ${res}`, 20), `(from: ${p.ctx.nodeID})`);
 			}).catch(err => {
-				broker.logger.warn(chalk.red.bold(_.padEnd(`${payload.a} + ${payload.b} = ERROR! ${err.message}`)));
+				broker.logger.warn(chalk.red.bold(_.padEnd(`${reqCount}. ${payload.a} + ${payload.b} = ERROR! ${err.message}`)));
 			});
-		}, 500);
+		}, 1000);
 
 	});
