@@ -34,7 +34,7 @@ module.exports = function(broker) {
 
 					const services = this.broker.registry.services.list(ctx.params);
 
-					// TODO
+					// Pre-process list, group services by nodes.
 					services.forEach(svc => {
 						let item = res.find(o => o.name == svc.name && o.version == svc.version);
 						if (item) {
@@ -72,7 +72,7 @@ module.exports = function(broker) {
 					withEndpoints: { type: "boolean", optional: true }
 				},
 				handler(ctx) {
-					return this.broker.registry.getActionList(ctx.params);
+					return this.broker.registry.actions.list(ctx.params);
 				}
 			},
 

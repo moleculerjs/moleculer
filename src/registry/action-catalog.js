@@ -54,6 +54,55 @@ class ActionCatalog {
 		if (list)
 			list.removeByNodeID(nodeID);
 	}
+
+	/**
+	 * Get a filtered list of actions
+	 *
+	 * @param {Object} {onlyLocal = false, skipInternal = false, withEndpoints = false}
+	 * @returns {Array}
+	 *
+	 * @memberof ActionCatalog
+	 */
+	list({onlyLocal = false, skipInternal = false, withEndpoints = false}) {
+		let res = [];
+		// TODO
+		this.actions.forEach((list, key) => {
+			if (skipInternal && /^\$node/.test(key))
+				return;
+
+			if (onlyLocal && !list.hasLocal())
+				return;
+
+			let item = {
+				name: key,
+				count: list.count(),
+				hasLocal: list.hasLocal(),
+				available: list.hasAvailable()
+			};
+
+			if (item.count > 0) {
+				const ep = list.endpoints[0];
+				if (ep)
+					item.action = _.omit(ep.action, ["handler", "service"]);
+			}
+			if (item.action == null || item.action.protected === true) return;
+
+			if (withEndpoints) {
+				if (item.count > 0) {
+					item.endpoints = list.endpoints.map(ep => {
+						return {
+							nodeID: ep.node.id,
+							state: ep.state
+						};
+					});
+				}
+			}
+
+			res.push(item);
+		});
+
+		return res;
+	}
 }
 
 module.exports = ActionCatalog;

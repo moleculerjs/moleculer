@@ -33,12 +33,7 @@ class Transit {
 		this.tx = transporter;
 		this.opts = opts;
 
-		//this.nodes = new Map();
-
 		this.pendingRequests = new Map();
-
-		this.heartbeatTimer = null;
-		this.checkNodesTimer = null;
 
 		this.stat = {
 			packets: {
@@ -78,6 +73,8 @@ class Transit {
 			.then(() => {
 				this.connected = true;
 
+				this.broker.emitLocal("$transporter.connected");
+
 				if (this.__connectResolve) {
 					this.__connectResolve();
 					this.__connectResolve = null;
@@ -111,22 +108,8 @@ class Transit {
 			};
 
 			doConnect();
-		})
-			.then(() => {
-			// Start timers
-				this.heartbeatTimer = setInterval(() => {
-				/* istanbul ignore next */
-					this.sendHeartbeat();
-				}, this.broker.options.heartbeatInterval * 1000);
-				this.heartbeatTimer.unref();
 
-				this.checkNodesTimer = setInterval(() => {
-				/* istanbul ignore next */
-					this.broker.registry.nodes.checkRemoteNodes();
-				}, this.broker.options.heartbeatTimeout * 1000);
-				this.checkNodesTimer.unref();
-
-			});
+		});
 	}
 
 	/**
@@ -137,15 +120,9 @@ class Transit {
 	disconnect() {
 		this.connected = false;
 		this.disconnecting = true;
-		if (this.heartbeatTimer) {
-			clearInterval(this.heartbeatTimer);
-			this.heartbeatTimer = null;
-		}
 
-		if (this.checkNodesTimer) {
-			clearInterval(this.checkNodesTimer);
-			this.checkNodesTimer = null;
-		}
+		this.broker.emitLocal("$transporter.disconnected", { graceFul: true });
+
 		if (this.tx.connected) {
 			return this.sendDisconnectPacket()
 				.then(() => this.tx.disconnect());
@@ -162,7 +139,6 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendDisconnectPacket() {
-		this.logger.debug("Send DISCONNECT...");
 
 		return this.publish(new P.PacketDisconnect(this));
 	}
@@ -267,19 +243,19 @@ class Transit {
 
 		// Node info
 		else if (cmd === P.PACKET_INFO) {
-			this.broker.registry.processNodeInfo(payload);
+			this.broker.registry.nodes.processNodeInfo(payload);
 			return;
 		}
 
 		// Disconnect
 		else if (cmd === P.PACKET_DISCONNECT) {
-			this.broker.registry.nodeDisconnected(payload.sender, false);
+			this.broker.registry.nodes.disconnected(payload.sender, false);
 			return;
 		}
 
 		// Heartbeat
 		else if (cmd === P.PACKET_HEARTBEAT) {
-			this.broker.registry.nodeHeartbeat(payload);
+			this.broker.registry.nodes.heartbeat(payload);
 			return;
 		}
 	}

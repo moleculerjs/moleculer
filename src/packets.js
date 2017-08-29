@@ -18,8 +18,8 @@ const PACKET_HEARTBEAT 		= "HEARTBEAT";
 
 /**
  * Get packet class from packet type
- * 
- * @param {any} type 
+ *
+ * @param {any} type
  * @returns {Packet}
  */
 function getPacketClassByType(type) {
@@ -44,17 +44,17 @@ function getPacketClassByType(type) {
 
 /**
  * Base packet
- * 
+ *
  * @class Packet
  */
 class Packet {
 	/**
 	 * Creates an instance of Packet.
-	 * 
-	 * @param {Transit} transit 
-	 * @param {String} type 
-	 * @param {any} target 
-	 * 
+	 *
+	 * @param {Transit} transit
+	 * @param {String} type
+	 * @param {any} target
+	 *
 	 * @memberOf Packet
 	 */
 	constructor(transit, type, target) {
@@ -69,9 +69,9 @@ class Packet {
 
 	/**
 	 * Serialize a packet
-	 * 
-	 * @returns 
-	 * 
+	 *
+	 * @returns
+	 *
 	 * @memberOf Packet
 	 */
 	serialize() {
@@ -80,13 +80,13 @@ class Packet {
 
 	/**
 	 * Deserialize message to packet
-	 * 
+	 *
 	 * @static
-	 * @param {any} transit 
-	 * @param {any} type 
-	 * @param {any} msg 
+	 * @param {any} transit
+	 * @param {any} type
+	 * @param {any} msg
 	 * @returns {Packet}
-	 * 
+	 *
 	 * @memberOf Packet
 	 */
 	static deserialize(transit, type, msg) {
@@ -101,9 +101,9 @@ class Packet {
 
 	/**
 	 * Deserialize custom data in payload
-	 * 
-	 * @param {any} payload 
-	 * 
+	 *
+	 * @param {any} payload
+	 *
 	 * @memberOf Packet
 	 */
 	transformPayload(payload) {
@@ -113,7 +113,7 @@ class Packet {
 
 /**
  * Packet for node disconnect
- * 
+ *
  * @class PacketDisconnect
  * @extends {Packet}
  */
@@ -125,7 +125,7 @@ class PacketDisconnect extends Packet {
 
 /**
  * Packet for heartbeat
- * 
+ *
  * @class PacketHeartbeat
  * @extends {Packet}
  */
@@ -138,7 +138,7 @@ class PacketHeartbeat extends Packet {
 
 /**
  * Packet for node discover
- * 
+ *
  * @class PacketDiscover
  * @extends {Packet}
  */
@@ -150,7 +150,7 @@ class PacketDiscover extends Packet {
 
 /**
  * Packet for node info
- * 
+ *
  * @class PacketInfo
  * @extends {Packet}
  */
@@ -160,8 +160,7 @@ class PacketInfo extends Packet {
 		if (info) {
 			this.payload.services = JSON.stringify(info.services);
 			this.payload.ipList = info.ipList;
-			this.payload.versions = info.versions;
-			this.payload.uptime = info.uptime;
+			this.payload.client = info.client;
 		}
 	}
 
@@ -173,7 +172,7 @@ class PacketInfo extends Packet {
 
 /**
  * Packet for events
- * 
+ *
  * @class PacketEvent
  * @extends {Packet}
  */
@@ -197,7 +196,7 @@ class PacketEvent extends Packet {
 
 /**
  * Packet for request
- * 
+ *
  * @class PacketRequest
  * @extends {Packet}
  */
@@ -226,7 +225,7 @@ class PacketRequest extends Packet {
 
 /**
  * Packet for response of request
- * 
+ *
  * @class PacketResponse
  * @extends {Packet}
  */

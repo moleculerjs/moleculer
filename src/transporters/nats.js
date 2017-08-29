@@ -11,9 +11,9 @@ const Transporter 	= require("./base");
 
 /**
  * Transporter for NATS
- * 
+ *
  * More info: http://nats.io/
- * 
+ *
  * @class NatsTransporter
  * @extends {Transporter}
  */
@@ -21,9 +21,9 @@ class NatsTransporter extends Transporter {
 
 	/**
 	 * Creates an instance of NatsTransporter.
-	 * 
+	 *
 	 * @param {any} opts
-	 * 
+	 *
 	 * @memberOf NatsTransporter
 	 */
 	constructor(opts) {
@@ -45,7 +45,7 @@ class NatsTransporter extends Transporter {
 
 	/**
 	 * Connect to a NATS server
-	 * 
+	 *
 	 * @memberOf NatsTransporter
 	 */
 	connect() {
@@ -98,14 +98,15 @@ class NatsTransporter extends Transporter {
 			/* istanbul ignore next */
 			client.on("close", () => {
 				this.connected = false;
-				this.logger.warn("NATS connection is closed!");
+				// Hint: It won't try reconnecting again, so we kill the process.
+				this.broker.fatal("NATS connection is closed!");
 			});
 		});
 	}
 
 	/**
 	 * Disconnect from a NATS server
-	 * 
+	 *
 	 * @memberOf NatsTransporter
 	 */
 	disconnect() {
@@ -117,7 +118,7 @@ class NatsTransporter extends Transporter {
 
 	/**
 	 * Reconnect to server after x seconds
-	 * 
+	 *
 	 * @memberOf BaseTransporter
 	 */
 	/*reconnectAfterTime() {
@@ -125,14 +126,14 @@ class NatsTransporter extends Transporter {
 		setTimeout(() => {
 			this.connect();
 		}, 5 * 1000);
-	}*/	
+	}*/
 
 	/**
 	 * Subscribe to a command
-	 * 
-	 * @param {String} cmd 
-	 * @param {String} nodeID 
-	 * 
+	 *
+	 * @param {String} cmd
+	 * @param {String} nodeID
+	 *
 	 * @memberOf NatsTransporter
 	 */
 	subscribe(cmd, nodeID) {
@@ -143,9 +144,9 @@ class NatsTransporter extends Transporter {
 
 	/**
 	 * Publish a packet
-	 * 
-	 * @param {Packet} packet 
-	 * 
+	 *
+	 * @param {Packet} packet
+	 *
 	 * @memberOf NatsTransporter
 	 */
 	publish(packet) {

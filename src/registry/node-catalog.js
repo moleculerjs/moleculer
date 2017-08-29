@@ -19,7 +19,40 @@ class NodeCatalog {
 
 		this.nodes = new Map();
 
+		this.heartbeatTimer = null;
+		this.checkNodesTimer = null;
+
+
 		this.createLocalNode();
+
+		this.broker.on("$transporter.connected", this.startHeartbeatTimers.bind(this));
+		this.broker.on("$transporter.disconnected", this.stopHeartbeatTimers.bind(this));
+	}
+
+	startHeartbeatTimers() {
+		this.heartbeatTimer = setInterval(() => {
+			/* istanbul ignore next */
+			this.broker.transit.sendHeartbeat();
+		}, this.broker.options.heartbeatInterval * 1000);
+		this.heartbeatTimer.unref();
+
+		this.checkNodesTimer = setInterval(() => {
+			/* istanbul ignore next */
+			this.checkRemoteNodes();
+		}, this.broker.options.heartbeatTimeout * 1000);
+		this.checkNodesTimer.unref();
+	}
+
+	stopHeartbeatTimers() {
+		if (this.heartbeatTimer) {
+			clearInterval(this.heartbeatTimer);
+			this.heartbeatTimer = null;
+		}
+
+		if (this.checkNodesTimer) {
+			clearInterval(this.checkNodesTimer);
+			this.checkNodesTimer = null;
+		}
 	}
 
 	createLocalNode() {
@@ -97,9 +130,24 @@ class NodeCatalog {
 
 			if (now - (node.lastHeartbeatTime || 0) > this.broker.options.heartbeatTimeout * 1000) {
 				this.logger.warn(`Node '${node.id}' unavailable! Heartbeat is no received.`);
-				this.registry.nodeDisconnected(node.id, true);
+				this.disconnected(node.id, true);
 			}
 		});
+	}
+
+	disconnected(nodeID, isUnexpected) {
+		let node = this.get(nodeID);
+		if (node && node.available) {
+			node.disconnected(isUnexpected);
+
+			this.registry.unregisterServicesByNode(node.id);
+
+			this.broker.emitLocal("$node.disconnected", { node, unexpected: !!isUnexpected });
+
+			this.logger.warn(`Node '${node.id}' disconnected! Unexpected:`, !!isUnexpected);
+
+			this.broker.servicesChanged(false);
+		}
 	}
 
 	heartbeat(payload) {
