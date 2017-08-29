@@ -1,13 +1,13 @@
 /*eslint-disable block-scoped-var, no-redeclare, no-control-regex, no-prototype-builtins*/
 "use strict";
 
-var $protobuf = require("protobufjs/minimal");
+let $protobuf = require("protobufjs/minimal");
 
 // Common aliases
-var $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
+let $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
 
 // Exported root namespace
-var $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
+let $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
 
 $root.packets = (function() {
 
@@ -16,7 +16,7 @@ $root.packets = (function() {
      * @exports packets
      * @namespace
      */
-    var packets = {};
+    let packets = {};
 
     packets.PacketEvent = (function() {
 
@@ -39,7 +39,7 @@ $root.packets = (function() {
          */
         function PacketEvent(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -134,9 +134,9 @@ $root.packets = (function() {
         PacketEvent.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.PacketEvent();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.PacketEvent();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     message.ver = reader.string();
@@ -215,7 +215,7 @@ $root.packets = (function() {
         PacketEvent.fromObject = function fromObject(object) {
             if (object instanceof $root.packets.PacketEvent)
                 return object;
-            var message = new $root.packets.PacketEvent();
+            let message = new $root.packets.PacketEvent();
             if (object.ver != null)
                 message.ver = String(object.ver);
             if (object.sender != null)
@@ -239,7 +239,7 @@ $root.packets = (function() {
         PacketEvent.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.defaults) {
                 object.ver = "";
                 object.sender = "";
@@ -299,7 +299,7 @@ $root.packets = (function() {
          */
         function PacketRequest(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -459,9 +459,9 @@ $root.packets = (function() {
         PacketRequest.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.PacketRequest();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.PacketRequest();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     message.ver = reader.string();
@@ -587,7 +587,7 @@ $root.packets = (function() {
         PacketRequest.fromObject = function fromObject(object) {
             if (object instanceof $root.packets.PacketRequest)
                 return object;
-            var message = new $root.packets.PacketRequest();
+            let message = new $root.packets.PacketRequest();
             if (object.ver != null)
                 message.ver = String(object.ver);
             if (object.sender != null)
@@ -625,7 +625,7 @@ $root.packets = (function() {
         PacketRequest.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.defaults) {
                 object.ver = "";
                 object.sender = "";
@@ -701,7 +701,7 @@ $root.packets = (function() {
          */
         function PacketResponse(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -816,9 +816,9 @@ $root.packets = (function() {
         PacketResponse.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.PacketResponse();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.PacketResponse();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     message.ver = reader.string();
@@ -893,7 +893,7 @@ $root.packets = (function() {
                 if (!$util.isString(message.data))
                     return "data: string expected";
             if (message.error != null && message.hasOwnProperty("error")) {
-                var error = $root.packets.PacketResponse.Error.verify(message.error);
+                let error = $root.packets.PacketResponse.Error.verify(message.error);
                 if (error)
                     return "error." + error;
             }
@@ -911,7 +911,7 @@ $root.packets = (function() {
         PacketResponse.fromObject = function fromObject(object) {
             if (object instanceof $root.packets.PacketResponse)
                 return object;
-            var message = new $root.packets.PacketResponse();
+            let message = new $root.packets.PacketResponse();
             if (object.ver != null)
                 message.ver = String(object.ver);
             if (object.sender != null)
@@ -942,7 +942,7 @@ $root.packets = (function() {
         PacketResponse.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.defaults) {
                 object.ver = "";
                 object.sender = "";
@@ -1001,7 +1001,7 @@ $root.packets = (function() {
              */
             function Error(properties) {
                 if (properties)
-                    for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                         if (properties[keys[i]] != null)
                             this[keys[i]] = properties[keys[i]];
             }
@@ -1125,9 +1125,9 @@ $root.packets = (function() {
             Error.decode = function decode(reader, length) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                var end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.PacketResponse.Error();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.PacketResponse.Error();
                 while (reader.pos < end) {
-                    var tag = reader.uint32();
+                    let tag = reader.uint32();
                     switch (tag >>> 3) {
                     case 1:
                         message.name = reader.string();
@@ -1225,7 +1225,7 @@ $root.packets = (function() {
             Error.fromObject = function fromObject(object) {
                 if (object instanceof $root.packets.PacketResponse.Error)
                     return object;
-                var message = new $root.packets.PacketResponse.Error();
+                let message = new $root.packets.PacketResponse.Error();
                 if (object.name != null)
                     message.name = String(object.name);
                 if (object.message != null)
@@ -1255,7 +1255,7 @@ $root.packets = (function() {
             Error.toObject = function toObject(message, options) {
                 if (!options)
                     options = {};
-                var object = {};
+                let object = {};
                 if (options.defaults) {
                     object.name = "";
                     object.message = "";
@@ -1318,7 +1318,7 @@ $root.packets = (function() {
          */
         function PacketDiscover(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -1395,9 +1395,9 @@ $root.packets = (function() {
         PacketDiscover.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.PacketDiscover();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.PacketDiscover();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     message.ver = reader.string();
@@ -1462,7 +1462,7 @@ $root.packets = (function() {
         PacketDiscover.fromObject = function fromObject(object) {
             if (object instanceof $root.packets.PacketDiscover)
                 return object;
-            var message = new $root.packets.PacketDiscover();
+            let message = new $root.packets.PacketDiscover();
             if (object.ver != null)
                 message.ver = String(object.ver);
             if (object.sender != null)
@@ -1482,7 +1482,7 @@ $root.packets = (function() {
         PacketDiscover.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.defaults) {
                 object.ver = "";
                 object.sender = "";
@@ -1534,7 +1534,7 @@ $root.packets = (function() {
         function PacketInfo(properties) {
             this.ipList = [];
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -1633,7 +1633,7 @@ $root.packets = (function() {
             writer.uint32(/* id 4, wireType 2 =*/34).string(message.events);
             writer.uint32(/* id 5, wireType 2 =*/42).string(message.config);
             if (message.ipList != null && message.ipList.length)
-                for (var i = 0; i < message.ipList.length; ++i)
+                for (let i = 0; i < message.ipList.length; ++i)
                     writer.uint32(/* id 6, wireType 2 =*/50).string(message.ipList[i]);
             if (message.port != null && message.hasOwnProperty("port"))
                 writer.uint32(/* id 7, wireType 0 =*/56).int32(message.port);
@@ -1668,9 +1668,9 @@ $root.packets = (function() {
         PacketInfo.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.PacketInfo();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.PacketInfo();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     message.ver = reader.string();
@@ -1758,14 +1758,14 @@ $root.packets = (function() {
             if (message.ipList != null && message.hasOwnProperty("ipList")) {
                 if (!Array.isArray(message.ipList))
                     return "ipList: array expected";
-                for (var i = 0; i < message.ipList.length; ++i)
+                for (let i = 0; i < message.ipList.length; ++i)
                     if (!$util.isString(message.ipList[i]))
                         return "ipList: string[] expected";
             }
             if (message.port != null && message.hasOwnProperty("port"))
                 if (!$util.isInteger(message.port))
                     return "port: integer expected";
-            var error = $root.packets.PacketInfo.Client.verify(message.client);
+            let error = $root.packets.PacketInfo.Client.verify(message.client);
             if (error)
                 return "client." + error;
             return null;
@@ -1782,7 +1782,7 @@ $root.packets = (function() {
         PacketInfo.fromObject = function fromObject(object) {
             if (object instanceof $root.packets.PacketInfo)
                 return object;
-            var message = new $root.packets.PacketInfo();
+            let message = new $root.packets.PacketInfo();
             if (object.ver != null)
                 message.ver = String(object.ver);
             if (object.sender != null)
@@ -1797,7 +1797,7 @@ $root.packets = (function() {
                 if (!Array.isArray(object.ipList))
                     throw TypeError(".packets.PacketInfo.ipList: array expected");
                 message.ipList = [];
-                for (var i = 0; i < object.ipList.length; ++i)
+                for (let i = 0; i < object.ipList.length; ++i)
                     message.ipList[i] = String(object.ipList[i]);
             }
             if (object.port != null)
@@ -1822,7 +1822,7 @@ $root.packets = (function() {
         PacketInfo.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.arrays || options.defaults)
                 object.ipList = [];
             if (options.defaults) {
@@ -1846,7 +1846,7 @@ $root.packets = (function() {
                 object.config = message.config;
             if (message.ipList && message.ipList.length) {
                 object.ipList = [];
-                for (var j = 0; j < message.ipList.length; ++j)
+                for (let j = 0; j < message.ipList.length; ++j)
                     object.ipList[j] = message.ipList[j];
             }
             if (message.port != null && message.hasOwnProperty("port"))
@@ -1887,7 +1887,7 @@ $root.packets = (function() {
              */
             function Client(properties) {
                 if (properties)
-                    for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                         if (properties[keys[i]] != null)
                             this[keys[i]] = properties[keys[i]];
             }
@@ -1973,9 +1973,9 @@ $root.packets = (function() {
             Client.decode = function decode(reader, length) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                var end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.PacketInfo.Client();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.PacketInfo.Client();
                 while (reader.pos < end) {
-                    var tag = reader.uint32();
+                    let tag = reader.uint32();
                     switch (tag >>> 3) {
                     case 1:
                         message.type = reader.string();
@@ -2047,7 +2047,7 @@ $root.packets = (function() {
             Client.fromObject = function fromObject(object) {
                 if (object instanceof $root.packets.PacketInfo.Client)
                     return object;
-                var message = new $root.packets.PacketInfo.Client();
+                let message = new $root.packets.PacketInfo.Client();
                 if (object.type != null)
                     message.type = String(object.type);
                 if (object.version != null)
@@ -2069,7 +2069,7 @@ $root.packets = (function() {
             Client.toObject = function toObject(message, options) {
                 if (!options)
                     options = {};
-                var object = {};
+                let object = {};
                 if (options.defaults) {
                     object.type = "";
                     object.version = "";
@@ -2120,7 +2120,7 @@ $root.packets = (function() {
          */
         function PacketDisconnect(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -2197,9 +2197,9 @@ $root.packets = (function() {
         PacketDisconnect.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.PacketDisconnect();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.PacketDisconnect();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     message.ver = reader.string();
@@ -2264,7 +2264,7 @@ $root.packets = (function() {
         PacketDisconnect.fromObject = function fromObject(object) {
             if (object instanceof $root.packets.PacketDisconnect)
                 return object;
-            var message = new $root.packets.PacketDisconnect();
+            let message = new $root.packets.PacketDisconnect();
             if (object.ver != null)
                 message.ver = String(object.ver);
             if (object.sender != null)
@@ -2284,7 +2284,7 @@ $root.packets = (function() {
         PacketDisconnect.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.defaults) {
                 object.ver = "";
                 object.sender = "";
@@ -2330,7 +2330,7 @@ $root.packets = (function() {
          */
         function PacketHeartbeat(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -2416,9 +2416,9 @@ $root.packets = (function() {
         PacketHeartbeat.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.PacketHeartbeat();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.PacketHeartbeat();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     message.ver = reader.string();
@@ -2490,7 +2490,7 @@ $root.packets = (function() {
         PacketHeartbeat.fromObject = function fromObject(object) {
             if (object instanceof $root.packets.PacketHeartbeat)
                 return object;
-            var message = new $root.packets.PacketHeartbeat();
+            let message = new $root.packets.PacketHeartbeat();
             if (object.ver != null)
                 message.ver = String(object.ver);
             if (object.sender != null)
@@ -2512,7 +2512,7 @@ $root.packets = (function() {
         PacketHeartbeat.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.defaults) {
                 object.ver = "";
                 object.sender = "";
@@ -2561,7 +2561,7 @@ $root.packets = (function() {
          */
         function PacketPing(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -2647,9 +2647,9 @@ $root.packets = (function() {
         PacketPing.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.PacketPing();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.PacketPing();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     message.ver = reader.string();
@@ -2721,7 +2721,7 @@ $root.packets = (function() {
         PacketPing.fromObject = function fromObject(object) {
             if (object instanceof $root.packets.PacketPing)
                 return object;
-            var message = new $root.packets.PacketPing();
+            let message = new $root.packets.PacketPing();
             if (object.ver != null)
                 message.ver = String(object.ver);
             if (object.sender != null)
@@ -2750,12 +2750,12 @@ $root.packets = (function() {
         PacketPing.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.defaults) {
                 object.ver = "";
                 object.sender = "";
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, false);
+                    let long = new $util.Long(0, 0, false);
                     object.time = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.time = options.longs === String ? "0" : 0;
@@ -2807,7 +2807,7 @@ $root.packets = (function() {
          */
         function PacketPong(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -2902,9 +2902,9 @@ $root.packets = (function() {
         PacketPong.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.PacketPong();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.PacketPong();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     message.ver = reader.string();
@@ -2983,7 +2983,7 @@ $root.packets = (function() {
         PacketPong.fromObject = function fromObject(object) {
             if (object instanceof $root.packets.PacketPong)
                 return object;
-            var message = new $root.packets.PacketPong();
+            let message = new $root.packets.PacketPong();
             if (object.ver != null)
                 message.ver = String(object.ver);
             if (object.sender != null)
@@ -3021,17 +3021,17 @@ $root.packets = (function() {
         PacketPong.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.defaults) {
                 object.ver = "";
                 object.sender = "";
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, false);
+                    let long = new $util.Long(0, 0, false);
                     object.time = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.time = options.longs === String ? "0" : 0;
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, false);
+                    let long = new $util.Long(0, 0, false);
                     object.arrived = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.arrived = options.longs === String ? "0" : 0;
