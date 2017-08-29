@@ -113,18 +113,18 @@ function createSchemas() {
 
 /**
  * Avro serializer for Moleculer
- * 
+ *
  * https://github.com/mtth/avsc
- * 
+ *
  * @class AvroSerializer
  */
 class AvroSerializer extends BaseSerializer {
 
 	/**
 	 * Initialize Serializer
-	 * 
+	 *
 	 * @param {any} broker
-	 * 
+	 *
 	 * @memberOf Serializer
 	 */
 	init(broker) {
@@ -142,29 +142,49 @@ class AvroSerializer extends BaseSerializer {
 
 	/**
 	 * Serializer a JS object to Buffer
-	 * 
+	 *
 	 * @param {Object} obj
 	 * @param {String} type of packet
 	 * @returns {Buffer}
-	 * 
+	 *
 	 * @memberOf Serializer
 	 */
 	serialize(obj, type) {
+		/*
+			TODO:
+
+			INFO: JSON.stringify `services`, `events`
+			EVENT: JSON.stringify `data`
+			REQUEST: JSON.stringify `params`, `meta`
+			RESPONSE: JSON.stringify `data`, `error.data`
+		*/
+
 		const t = this.schemas[type].toBuffer(obj);
+
 		return t;
 	}
 
 	/**
 	 * Deserialize Buffer to JS object
-	 * 
+	 *
 	 * @param {Buffer} buf
 	 * @param {String} type of packet
 	 * @returns {Object}
-	 * 
+	 *
 	 * @memberOf Serializer
 	 */
 	deserialize(buf, type) {
 		const res = this.schemas[type].fromBuffer(buf);
+
+		/*
+			TODO:
+
+			INFO: JSON.parse `services`, `events`
+			EVENT: JSON.parse `data`
+			REQUEST: JSON.parse `params`, `meta`
+			RESPONSE: JSON.parse `data`, `error.data`
+		*/
+
 		return res;
 	}
 }

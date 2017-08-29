@@ -103,20 +103,9 @@ class Packet {
 		const packetClass = getPacketClassByType(type);
 
 		const packet = new packetClass(transit);
-		packet.transformPayload(payload);
+		packet.payload = payload;
 
 		return packet;
-	}
-
-	/**
-	 * Deserialize custom data in payload
-	 *
-	 * @param {any} payload
-	 *
-	 * @memberOf Packet
-	 */
-	transformPayload(payload) {
-		this.payload = payload;
 	}
 }
 
@@ -167,15 +156,11 @@ class PacketInfo extends Packet {
 	constructor(transit, target, info) {
 		super(transit, PACKET_INFO, target);
 		if (info) {
-			this.payload.services = JSON.stringify(info.services);
+			this.payload.services = info.services;
+			this.payload.events = info.events;
 			this.payload.ipList = info.ipList;
 			this.payload.client = info.client;
 		}
-	}
-
-	transformPayload(payload) {
-		super.transformPayload(payload);
-		payload.services = JSON.parse(payload.services);
 	}
 }
 
@@ -191,15 +176,9 @@ class PacketEvent extends Packet {
 
 		this.payload.event = eventName;
 		if (data != null)
-			this.payload.data = JSON.stringify(data);
+			this.payload.data = data;
 		else
 			this.payload.data = null;
-	}
-
-	transformPayload(payload) {
-		super.transformPayload(payload);
-		if (payload.data != null)
-			payload.data = JSON.parse(payload.data);
 	}
 }
 
@@ -216,19 +195,14 @@ class PacketRequest extends Packet {
 		if (ctx) {
 			this.payload.id = ctx.id;
 			this.payload.action = ctx.action.name;
-			this.payload.params = JSON.stringify(ctx.params);
-			this.payload.meta = JSON.stringify(ctx.meta);
+			this.payload.params = ctx.params;
+			this.payload.meta = ctx.meta;
 			this.payload.timeout = ctx.timeout;
 			this.payload.level = ctx.level;
 			this.payload.metrics = ctx.metrics;
 			this.payload.parentID = ctx.parentID;
+			this.payload.requestID = ctx.requestID;
 		}
-	}
-
-	transformPayload(payload) {
-		super.transformPayload(payload);
-		payload.params = JSON.parse(payload.params);
-		payload.meta = JSON.parse(payload.meta);
 	}
 }
 
@@ -244,7 +218,7 @@ class PacketResponse extends Packet {
 
 		this.payload.id = id;
 		this.payload.success = err == null;
-		this.payload.data = data != null ? JSON.stringify(data) : null;
+		this.payload.data = data;
 
 		if (err) {
 			this.payload.error = {
@@ -254,16 +228,9 @@ class PacketResponse extends Packet {
 				code: err.code,
 				type: err.type,
 				stack: err.stack,
-				data: JSON.stringify(err.data)
+				data: err.data
 			};
 		}
-	}
-
-	transformPayload(payload) {
-		super.transformPayload(payload);
-		this.payload.data = payload.data ? JSON.parse(payload.data) : null;
-		if (payload.error && payload.error.data)
-			this.payload.error.data = JSON.parse(payload.error.data);
 	}
 }
 

@@ -12,6 +12,7 @@ let broker = new ServiceBroker({
 	//namespace: "multi",
 	nodeID: process.argv[2] || "client-" + process.pid,
 	transporter: "NATS",
+	serializer: "ProtoBuf",
 	requestTimeout: 1000,
 
 	registry: {
@@ -25,9 +26,34 @@ let broker = new ServiceBroker({
 	logger: console
 });
 
-broker.on("$circuit-breaker.open", payload => broker.logger.warn(chalk.yellow.bold(`---  Circuit breaker opened on '${payload.node.id}'!`)));
-broker.on("$circuit-breaker.half-open", payload => broker.logger.warn(chalk.green(`---  Circuit breaker half-opened on '${payload.node.id}'!`)));
-broker.on("$circuit-breaker.close", payload => broker.logger.warn(chalk.green.bold(`---  Circuit breaker closed on '${payload.node.id}'!`)));
+broker.createService({
+	name: "event-handler",
+	events: {
+		"$circuit-breaker.open"(payload) {
+			broker.logger.warn(chalk.yellow.bold(`---  Circuit breaker opened on '${payload.node.id}'!`));
+		},
+
+		"$circuit-breaker.half-open"(payload) {
+			broker.logger.warn(chalk.green(`---  Circuit breaker half-opened on '${payload.node.id}'!`));
+		},
+
+		"$circuit-breaker.close"(payload) {
+			broker.logger.warn(chalk.green.bold(`---  Circuit breaker closed on '${payload.node.id}'!`));
+		},
+
+		"reply.event"(data, sender) {
+			broker.logger.info(`Reply event received from ${sender}. Counter: ${data.counter}.`);
+		}
+	},
+
+	started() {
+		this.counter = 1;
+		setInterval(() => {
+			broker.logger.info(`Send echo event to all nodes. Counter: ${this.counter}.`);
+			broker.emit("echo.event", { counter: this.counter++ });
+		}, 5000);
+	}
+});
 
 broker.start()
 	.then(() => {
@@ -40,4 +66,5 @@ broker.start()
 				broker.logger.warn(chalk.red.bold(_.padEnd(`${payload.a} + ${payload.b} = ERROR! ${err.message}`)));
 			});
 		}, 500);
+
 	});

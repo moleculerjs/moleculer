@@ -3,64 +3,86 @@ package packets;
 syntax = "proto3";
 
 message PacketEvent {
-	required string sender 	= 1;
-	required string event 	= 2;
-	required string data 	= 3;
+	required string ver 	= 1;
+	required string sender 	= 2;
+	required string event 	= 3;
+	required string data 	= 4;
 }
 
 message PacketRequest {
-	required string sender 		= 1;
-	required string id 			= 2;
-	required string action 		= 3;
-	required string params 		= 4;
-	required string meta 		= 5;
-	required double timeout		= 6;
-	required int32 level 		= 7;
-	required bool metrics 		= 8;
-	optional string parentID 	= 9;
+	required string ver 		= 1;
+	required string sender 		= 2;
+	required string id 			= 3;
+	required string action 		= 4;
+	required string params 		= 5;
+	required string meta 		= 6;
+	required double timeout		= 7;
+	required int32 level 		= 8;
+	required bool metrics 		= 9;
+	optional string parentID 	= 10;
+	optional string requestID 	= 11;
 }
 
 message PacketResponse {
-	required string sender 		= 1;
-	required string id 			= 2;
-	required bool success 		= 3;
-	optional string data 		= 4;
-	optional Error error 		= 5;
+	required string ver 		= 1;
+	required string sender 		= 2;
+	required string id 			= 3;
+	required bool success 		= 4;
+	optional string data 		= 5;
+	optional Error error 		= 6;
 
 	message Error {
 		required string name 		= 1;
 		required string message 	= 2;
 		required int32 code 		= 3;
-		required string type 		= 4;
-		required string data 		= 5;
+		optional string type 		= 4;
+		optional string data 		= 5;
 		required string stack 		= 6;
 		required string nodeID 		= 7;
 	}
 }
 
 message PacketDiscover {
-	required string sender 			= 1;
-}
-
-message NodeVersions {
-	required string node 		= 1;
-	required string moleculer 	= 2;
+	required string ver 		= 1;
+	required string sender 		= 2;
 }
 
 message PacketInfo {
-	required string sender 			= 1;
-	required string services		= 2;
+	required string ver 			= 1;
+	required string sender 			= 2;
+	required string services		= 3;
+	required string events			= 4;
 
-	required double uptime 			= 3;
-	repeated string ipList			= 4;
-	required NodeVersions versions 	= 5;
+	repeated string ipList			= 5;
+	required Client client 		= 6;
+
+	message Client {
+		required string type 			= 1;
+		required string version 		= 2;
+		required string langVersion 	= 3;
+	}
 }
 
 message PacketDisconnect {
-	required string sender 		= 1;
+	required string ver 	= 1;
+	required string sender 	= 2;
 }
 
 message PacketHeartbeat {
-	required string sender 		= 1;
-	required double uptime 		= 2;
+	required string ver 		= 1;
+	required string sender 		= 2;
+	required double cpu 		= 3;
+}
+
+message PacketPing {
+	required string ver 		= 1;
+	required string sender 		= 2;
+	required int64 time 		= 3;
+}
+
+message PacketPong {
+	required string ver 		= 1;
+	required string sender 		= 2;
+	required int64 time 		= 3;
+	required int64 arrived 		= 4;
 }

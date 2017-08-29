@@ -11,18 +11,18 @@ const P = require("../packets");
 
 /**
  * Protocol Buffer Serializer for Moleculer
- * 
+ *
  * https://github.com/google/protobuf
- * 
+ *
  * @class ProtoBufSerializer
  */
 class ProtoBufSerializer extends BaseSerializer {
 
 	/**
 	 * Initialize Serializer
-	 * 
+	 *
 	 * @param {any} broker
-	 * 
+	 *
 	 * @memberOf Serializer
 	 */
 	init(broker) {
@@ -47,16 +47,18 @@ class ProtoBufSerializer extends BaseSerializer {
 			case P.PACKET_INFO: return this.packets.PacketInfo;
 			case P.PACKET_DISCONNECT: return this.packets.PacketDisconnect;
 			case P.PACKET_HEARTBEAT: return this.packets.PacketHeartbeat;
+			case P.PACKET_PING: return this.packets.PacketPing;
+			case P.PACKET_PONG: return this.packets.PacketPong;
 		}
 	}
 
 	/**
 	 * Serializer a JS object to Buffer
-	 * 
+	 *
 	 * @param {Object} obj
 	 * @param {String} type of packet
 	 * @returns {Buffer}
-	 * 
+	 *
 	 * @memberOf Serializer
 	 */
 	serialize(obj, type) {
@@ -66,17 +68,41 @@ class ProtoBufSerializer extends BaseSerializer {
 			throw new Error("Invalid packet type!");
 		}
 
+		switch(type) {
+			case P.PACKET_INFO: {
+				obj.services = JSON.stringify(obj.services);
+				obj.events = JSON.stringify(obj.events);
+				break;
+			}
+			case P.PACKET_EVENT: {
+				obj.data = JSON.stringify(obj.data);
+				break;
+			}
+			case P.PACKET_REQUEST: {
+				obj.params = JSON.stringify(obj.params);
+				obj.meta = JSON.stringify(obj.meta);
+				break;
+			}
+			case P.PACKET_RESPONSE: {
+				if (obj.data)
+					obj.data = JSON.stringify(obj.data);
+				if (obj.error && obj.error.data)
+					obj.error.data = JSON.stringify(obj.error.data);
+				break;
+			}
+		}
+
 		const buf = p.encode(obj).finish();
 		return buf;
 	}
 
 	/**
 	 * Deserialize Buffer to JS object
-	 * 
+	 *
 	 * @param {Buffer} buf
 	 * @param {String} type of packet
 	 * @returns {Object}
-	 * 
+	 *
 	 * @memberOf Serializer
 	 */
 	deserialize(buf, type) {
@@ -86,7 +112,33 @@ class ProtoBufSerializer extends BaseSerializer {
 			throw new Error("Invalid packet type!");
 		}
 
-		return p.decode(buf);
+		const obj = p.decode(buf);
+
+		switch(type) {
+			case P.PACKET_INFO: {
+				obj.services = JSON.parse(obj.services);
+				obj.events = JSON.parse(obj.events);
+				break;
+			}
+			case P.PACKET_EVENT: {
+				obj.data = JSON.parse(obj.data);
+				break;
+			}
+			case P.PACKET_REQUEST: {
+				obj.params = JSON.parse(obj.params);
+				obj.meta = JSON.parse(obj.meta);
+				break;
+			}
+			case P.PACKET_RESPONSE: {
+				if (obj.data)
+					obj.data = JSON.parse(obj.data);
+				if (obj.error && obj.error.data)
+					obj.error.data = JSON.parse(obj.error.data);
+				break;
+			}
+		}
+
+		return obj;
 	}
 }
 
