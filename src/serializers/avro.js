@@ -17,6 +17,7 @@ function createSchemas() {
 		name: P.PACKET_EVENT,
 		type: "record",
 		fields: [
+			{ name: "ver", type: "string" },
 			{ name: "sender", type: "string" },
 			{ name: "event", type: "string" },
 			{ name: "data", type: "string" }
@@ -27,6 +28,7 @@ function createSchemas() {
 		name: P.PACKET_REQUEST,
 		type: "record",
 		fields: [
+			{ name: "ver", type: "string" },
 			{ name: "sender", type: "string" },
 			{ name: "id", type: "string" },
 			{ name: "action", type: "string" },
@@ -35,7 +37,8 @@ function createSchemas() {
 			{ name: "timeout", type: "double" },
 			{ name: "level", type: "int" },
 			{ name: "metrics", type: "boolean" },
-			{ name: "parentID", type: [ "null", "string"], default: null }
+			{ name: "parentID", type: [ "null", "string"], default: null },
+			{ name: "requestID", type: [ "null", "string"], default: null }
 		]
 	});
 
@@ -43,6 +46,7 @@ function createSchemas() {
 		name: P.PACKET_RESPONSE,
 		type: "record",
 		fields: [
+			{ name: "ver", type: "string" },
 			{ name: "sender", type: "string" },
 			{ name: "id", type: "string" },
 			{ name: "success", type: "boolean" },
@@ -53,9 +57,9 @@ function createSchemas() {
 					{ name: "name", type: "string" },
 					{ name: "message", type: "string" },
 					{ name: "code", type: "int" },
-					{ name: "type", type: "string" },
+					{ name: "type", type: [ "null", "string"], default: null },
+					{ name: "data", type: [ "null", "string"], default: null },
 					{ name: "stack", type: "string" },
-					{ name: "data", type: "string" },
 					{ name: "nodeID", type: "string" }
 				]
 			} ], default: null }
@@ -66,6 +70,7 @@ function createSchemas() {
 		name: P.PACKET_DISCOVER,
 		type: "record",
 		fields: [
+			{ name: "ver", type: "string" },
 			{ name: "sender", type: "string" }
 		]
 	});
@@ -74,18 +79,20 @@ function createSchemas() {
 		name: P.PACKET_INFO,
 		type: "record",
 		fields: [
+			{ name: "ver", type: "string" },
 			{ name: "sender", type: "string" },
 			{ name: "services", type: "string" },
-			{ name: "uptime", type: "double" },
+			{ name: "events", type: "string" },
 			{ name: "ipList", type: {
 				type: "array",
 				items: "string"
 			}},
-			{ name: "versions", type: {
+			{ name: "client", type: {
 				type: "record",
 				fields: [
-					{ name: "node", type: "string" },
-					{ name: "moleculer", type: "string" }
+					{ name: "type", type: "string" },
+					{ name: "version", type: "string" },
+					{ name: "langVersion", type: "string" }
 				]
 			}}
 		]
@@ -95,6 +102,7 @@ function createSchemas() {
 		name: P.PACKET_DISCONNECT,
 		type: "record",
 		fields: [
+			{ name: "ver", type: "string" },
 			{ name: "sender", type: "string" }
 		]
 	});
@@ -103,8 +111,30 @@ function createSchemas() {
 		name: P.PACKET_HEARTBEAT,
 		type: "record",
 		fields: [
+			{ name: "ver", type: "string" },
 			{ name: "sender", type: "string" },
-			{ name: "uptime", type: "double" }
+			{ name: "cpu", type: "double" }
+		]
+	});
+
+	schemas[P.PACKET_PING] = avro.Type.forSchema({
+		name: P.PACKET_PING,
+		type: "record",
+		fields: [
+			{ name: "ver", type: "string" },
+			{ name: "sender", type: "string" },
+			{ name: "time", type: "long" }
+		]
+	});
+
+	schemas[P.PACKET_PONG] = avro.Type.forSchema({
+		name: P.PACKET_PONG,
+		type: "record",
+		fields: [
+			{ name: "ver", type: "string" },
+			{ name: "sender", type: "string" },
+			{ name: "time", type: "long" },
+			{ name: "arrived", type: "long" }
 		]
 	});
 
@@ -150,14 +180,7 @@ class AvroSerializer extends BaseSerializer {
 	 * @memberOf Serializer
 	 */
 	serialize(obj, type) {
-		/*
-			TODO:
-
-			INFO: JSON.stringify `services`, `events`
-			EVENT: JSON.stringify `data`
-			REQUEST: JSON.stringify `params`, `meta`
-			RESPONSE: JSON.stringify `data`, `error.data`
-		*/
+		this.serializeCustomFields(type, obj);
 
 		const t = this.schemas[type].toBuffer(obj);
 
@@ -174,18 +197,11 @@ class AvroSerializer extends BaseSerializer {
 	 * @memberOf Serializer
 	 */
 	deserialize(buf, type) {
-		const res = this.schemas[type].fromBuffer(buf);
+		const obj = this.schemas[type].fromBuffer(buf);
 
-		/*
-			TODO:
+		this.deserializeCustomFields(type, obj);
 
-			INFO: JSON.parse `services`, `events`
-			EVENT: JSON.parse `data`
-			REQUEST: JSON.parse `params`, `meta`
-			RESPONSE: JSON.parse `data`, `error.data`
-		*/
-
-		return res;
+		return obj;
 	}
 }
 

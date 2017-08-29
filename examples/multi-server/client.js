@@ -12,7 +12,7 @@ let broker = new ServiceBroker({
 	//namespace: "multi",
 	nodeID: process.argv[2] || "client-" + process.pid,
 	transporter: "NATS",
-	serializer: "ProtoBuf",
+	//serializer: "ProtoBuf",
 	requestTimeout: 1000,
 
 	registry: {

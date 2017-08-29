@@ -6,16 +6,18 @@
 
 "use strict";
 
+const P = require("../packets");
+
 /**
  * Abstract serializer class
- * 
+ *
  * @class Serializer
  */
 class Serializer {
 
 	/**
 	 * Creates an instance of Serializer.
-	 * 
+	 *
 	 * @memberOf Serializer
 	 */
 	constructor() {
@@ -23,9 +25,9 @@ class Serializer {
 
 	/**
 	 * Initialize Serializer
-	 * 
+	 *
 	 * @param {any} broker
-	 * 
+	 *
 	 * @memberOf Serializer
 	 */
 	init(broker) {
@@ -37,11 +39,11 @@ class Serializer {
 
 	/**
 	 * Serializer a JS object to Buffer
-	 * 
+	 *
 	 * @param {Object} obj
 	 * @param {String} type of packet
 	 * @returns {Buffer}
-	 * 
+	 *
 	 * @memberOf Serializer
 	 */
 	serialize(/*obj, type*/) {
@@ -51,11 +53,11 @@ class Serializer {
 
 	/**
 	 * Deserialize Buffer to JS object
-	 * 
+	 *
 	 * @param {Buffer} buf
 	 * @param {String} type of packet
 	 * @returns {Object}
-	 * 
+	 *
 	 * @memberOf Serializer
 	 */
 	deserialize(/*buf, type*/) {
@@ -63,6 +65,61 @@ class Serializer {
 		throw new Error("Not implemented method!");
 	}
 
+	serializeCustomFields(type, obj) {
+		switch(type) {
+			case P.PACKET_INFO: {
+				obj.services = JSON.stringify(obj.services);
+				obj.events = JSON.stringify(obj.events);
+				break;
+			}
+			case P.PACKET_EVENT: {
+				obj.data = JSON.stringify(obj.data);
+				break;
+			}
+			case P.PACKET_REQUEST: {
+				obj.params = JSON.stringify(obj.params);
+				obj.meta = JSON.stringify(obj.meta);
+				break;
+			}
+			case P.PACKET_RESPONSE: {
+				if (obj.data)
+					obj.data = JSON.stringify(obj.data);
+				if (obj.error && obj.error.data)
+					obj.error.data = JSON.stringify(obj.error.data);
+				break;
+			}
+		}
+
+		return obj;
+	}
+
+	deserializeCustomFields(type, obj) {
+		switch(type) {
+			case P.PACKET_INFO: {
+				obj.services = JSON.parse(obj.services);
+				obj.events = JSON.parse(obj.events);
+				break;
+			}
+			case P.PACKET_EVENT: {
+				obj.data = JSON.parse(obj.data);
+				break;
+			}
+			case P.PACKET_REQUEST: {
+				obj.params = JSON.parse(obj.params);
+				obj.meta = JSON.parse(obj.meta);
+				break;
+			}
+			case P.PACKET_RESPONSE: {
+				if (obj.data)
+					obj.data = JSON.parse(obj.data);
+				if (obj.error && obj.error.data)
+					obj.error.data = JSON.parse(obj.error.data);
+				break;
+			}
+		}
+
+		return obj;
+	}
 }
 
 module.exports = Serializer;
