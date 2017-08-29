@@ -52,9 +52,11 @@ message PacketInfo {
 	required string sender 			= 2;
 	required string services		= 3;
 	required string events			= 4;
+	required string config			= 5;
 
-	repeated string ipList			= 5;
-	required Client client 		= 6;
+	repeated string ipList			= 6;
+	optional int32 port				= 7;
+	required Client client 			= 8;
 
 	message Client {
 		required string type 			= 1;

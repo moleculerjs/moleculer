@@ -83,10 +83,12 @@ function createSchemas() {
 			{ name: "sender", type: "string" },
 			{ name: "services", type: "string" },
 			{ name: "events", type: "string" },
+			{ name: "config", type: "string" },
 			{ name: "ipList", type: {
 				type: "array",
 				items: "string"
 			}},
+			{ name: "port", type: [ "null", "int"], default: null },
 			{ name: "client", type: {
 				type: "record",
 				fields: [
