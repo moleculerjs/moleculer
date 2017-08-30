@@ -82,7 +82,6 @@ function createSchemas() {
 			{ name: "ver", type: "string" },
 			{ name: "sender", type: "string" },
 			{ name: "services", type: "string" },
-			{ name: "events", type: "string" },
 			{ name: "config", type: "string" },
 			{ name: "ipList", type: {
 				type: "array",

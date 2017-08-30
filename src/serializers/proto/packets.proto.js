@@ -1517,7 +1517,6 @@ $root.packets = (function() {
          * @property {string} ver PacketInfo ver
          * @property {string} sender PacketInfo sender
          * @property {string} services PacketInfo services
-         * @property {string} events PacketInfo events
          * @property {string} config PacketInfo config
          * @property {Array.<string>} [ipList] PacketInfo ipList
          * @property {number} [port] PacketInfo port
@@ -1562,14 +1561,6 @@ $root.packets = (function() {
          * @instance
          */
         PacketInfo.prototype.services = "";
-
-        /**
-         * PacketInfo events.
-         * @member {string}events
-         * @memberof packets.PacketInfo
-         * @instance
-         */
-        PacketInfo.prototype.events = "";
 
         /**
          * PacketInfo config.
@@ -1630,14 +1621,13 @@ $root.packets = (function() {
             writer.uint32(/* id 1, wireType 2 =*/10).string(message.ver);
             writer.uint32(/* id 2, wireType 2 =*/18).string(message.sender);
             writer.uint32(/* id 3, wireType 2 =*/26).string(message.services);
-            writer.uint32(/* id 4, wireType 2 =*/34).string(message.events);
-            writer.uint32(/* id 5, wireType 2 =*/42).string(message.config);
+            writer.uint32(/* id 4, wireType 2 =*/34).string(message.config);
             if (message.ipList != null && message.ipList.length)
                 for (let i = 0; i < message.ipList.length; ++i)
-                    writer.uint32(/* id 6, wireType 2 =*/50).string(message.ipList[i]);
+                    writer.uint32(/* id 5, wireType 2 =*/42).string(message.ipList[i]);
             if (message.port != null && message.hasOwnProperty("port"))
-                writer.uint32(/* id 7, wireType 0 =*/56).int32(message.port);
-            $root.packets.PacketInfo.Client.encode(message.client, writer.uint32(/* id 8, wireType 2 =*/66).fork()).ldelim();
+                writer.uint32(/* id 6, wireType 0 =*/48).int32(message.port);
+            $root.packets.PacketInfo.Client.encode(message.client, writer.uint32(/* id 7, wireType 2 =*/58).fork()).ldelim();
             return writer;
         };
 
@@ -1682,20 +1672,17 @@ $root.packets = (function() {
                     message.services = reader.string();
                     break;
                 case 4:
-                    message.events = reader.string();
-                    break;
-                case 5:
                     message.config = reader.string();
                     break;
-                case 6:
+                case 5:
                     if (!(message.ipList && message.ipList.length))
                         message.ipList = [];
                     message.ipList.push(reader.string());
                     break;
-                case 7:
+                case 6:
                     message.port = reader.int32();
                     break;
-                case 8:
+                case 7:
                     message.client = $root.packets.PacketInfo.Client.decode(reader, reader.uint32());
                     break;
                 default:
@@ -1709,8 +1696,6 @@ $root.packets = (function() {
                 throw $util.ProtocolError("missing required 'sender'", { instance: message });
             if (!message.hasOwnProperty("services"))
                 throw $util.ProtocolError("missing required 'services'", { instance: message });
-            if (!message.hasOwnProperty("events"))
-                throw $util.ProtocolError("missing required 'events'", { instance: message });
             if (!message.hasOwnProperty("config"))
                 throw $util.ProtocolError("missing required 'config'", { instance: message });
             if (!message.hasOwnProperty("client"))
@@ -1751,8 +1736,6 @@ $root.packets = (function() {
                 return "sender: string expected";
             if (!$util.isString(message.services))
                 return "services: string expected";
-            if (!$util.isString(message.events))
-                return "events: string expected";
             if (!$util.isString(message.config))
                 return "config: string expected";
             if (message.ipList != null && message.hasOwnProperty("ipList")) {
@@ -1789,8 +1772,6 @@ $root.packets = (function() {
                 message.sender = String(object.sender);
             if (object.services != null)
                 message.services = String(object.services);
-            if (object.events != null)
-                message.events = String(object.events);
             if (object.config != null)
                 message.config = String(object.config);
             if (object.ipList) {
@@ -1829,7 +1810,6 @@ $root.packets = (function() {
                 object.ver = "";
                 object.sender = "";
                 object.services = "";
-                object.events = "";
                 object.config = "";
                 object.port = 0;
                 object.client = null;
@@ -1840,8 +1820,6 @@ $root.packets = (function() {
                 object.sender = message.sender;
             if (message.services != null && message.hasOwnProperty("services"))
                 object.services = message.services;
-            if (message.events != null && message.hasOwnProperty("events"))
-                object.events = message.events;
             if (message.config != null && message.hasOwnProperty("config"))
                 object.config = message.config;
             if (message.ipList && message.ipList.length) {

@@ -111,6 +111,20 @@ class Registry {
 		this.actions.remove(name, node.id);
 	}
 
+	registerEvents(node, eventList) {
+		eventList.forEach(event => {
+			this.registerEvent(event, node);
+		});
+	}
+
+	registerEvent(node, event) {
+		this.events.add(event, node);
+	}
+
+	unregisterEvent(node, name) {
+		this.events.remove(name, node.id);
+	}
+
 	getLocalNodeInfo() {
 		const res = _.pick(this.nodes.localNode, ["ipList", "client", "config", "port"]);
 		res.services = this.services.list({ onlyLocal: true, withActions: true });

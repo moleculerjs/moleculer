@@ -157,7 +157,6 @@ class PacketInfo extends Packet {
 		super(transit, PACKET_INFO, target);
 		if (info) {
 			this.payload.services = info.services;
-			this.payload.events = info.events;
 			this.payload.ipList = info.ipList;
 			this.payload.client = info.client;
 			this.payload.port = info.port;

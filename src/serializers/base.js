@@ -69,7 +69,6 @@ class Serializer {
 		switch(type) {
 			case P.PACKET_INFO: {
 				obj.services = JSON.stringify(obj.services);
-				obj.events = JSON.stringify(obj.events);
 				if (obj.config)
 					obj.config = JSON.stringify(obj.config);
 				break;
@@ -99,7 +98,6 @@ class Serializer {
 		switch(type) {
 			case P.PACKET_INFO: {
 				obj.services = JSON.parse(obj.services);
-				obj.events = JSON.parse(obj.events);
 				if (obj.config)
 					obj.config = JSON.parse(obj.config);
 				break;
