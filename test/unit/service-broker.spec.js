@@ -282,7 +282,11 @@ describe("Test option resolvers", () => {
 				amqp: {
 					prefetch: 1,
 					eventTimeToLive: 5000,
-					url: "amqp://localhost"
+					url: "amqp://localhost",
+					exchangeOptions: {},
+					messageOptions: {},
+					queueOptions: {},
+					consumeOptions: {}
 				},
 			});
 		});
