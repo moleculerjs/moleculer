@@ -21,6 +21,9 @@ class Endpoint {
 	get isAvailable() {
 		return this.state;
 	}
+
+	update() {
+	}
 }
 
 module.exports = Endpoint;

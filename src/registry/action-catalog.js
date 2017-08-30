@@ -14,10 +14,11 @@ const ActionEndpointCB = require("./endpoint-cb");
 
 class ActionCatalog {
 
-	constructor(registry, broker, logger) {
+	constructor(registry, broker, logger, strategy) {
 		this.registry = registry;
 		this.broker = broker;
 		this.logger = logger;
+		this.strategy = strategy;
 
 		this.actions = new Map();
 
@@ -28,7 +29,7 @@ class ActionCatalog {
 		let list = this.actions.get(action.name);
 		if (!list) {
 			// Create a new EndpointList
-			list = new EndpointList(this.registry, this.broker, this.logger, action.name, this.EndpointFactory);
+			list = new EndpointList(this.registry, this.broker, this.logger, action.name, this.EndpointFactory, this.strategy);
 			this.actions.set(action.name, list);
 		}
 

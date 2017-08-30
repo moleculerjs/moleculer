@@ -43,18 +43,21 @@ class ActionEndpointCB extends ActionEndpoint {
 		this.cbTimer.unref();
 
 		this.broker.emitLocal("$circuit-breaker.open", { node: this.node, action: this.action, failures: this.failures });
+		this.broker.emit("metrics.circuit-breaker.open", { nodeID: this.node.id, action: this.action.name, failures: this.failures });
 	}
 
 	circuitHalfOpen() {
 		this.state = CIRCUIT_HALF_OPEN;
 
 		this.broker.emitLocal("$circuit-breaker.half-open", { node: this.node, action: this.action });
+		this.broker.emit("metrics.circuit-breaker.half-open", { nodeID: this.node.id, action: this.action.name });
 	}
 
 	circuitClose() {
 		this.state = CIRCUIT_CLOSE;
 		this.failures = 0;
 		this.broker.emitLocal("$circuit-breaker.close", { node: this.node, action: this.action });
+		this.broker.emit("metrics.circuit-breaker.close", { nodeID: this.node.id, action: this.action.name });
 
 	}
 }

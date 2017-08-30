@@ -16,6 +16,7 @@ class ServiceItem {
 		this.local = local;
 
 		this.actions = {};
+		this.events = {};
 	}
 
 	equals(name, version, nodeID) {
@@ -29,6 +30,10 @@ class ServiceItem {
 
 	addAction(action) {
 		this.actions[action.name] = action;
+	}
+
+	addEvent(event) {
+		this.events[event.name] = event;
 	}
 }
 

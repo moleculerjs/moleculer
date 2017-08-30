@@ -8,31 +8,31 @@
 
 const _ = require("lodash");
 const { MoleculerError } = require("../errors");
-const Endpoint = require("./endpoint-action");
 
 class EndpointList {
 
-	constructor(registry, broker, logger, name, EndPointFactory) {
+	constructor(registry, broker, logger, name, EndPointFactory, strategy) {
 		this.registry = registry;
 		this.broker = broker;
 		this.logger = logger;
+		this.strategy = strategy;
 		this.name = name;
 		this.internal = name.startsWith("$");
 
-		this.EndPointFactory = EndPointFactory || Endpoint;
+		this.EndPointFactory = EndPointFactory;
 
 
 		this.endpoints = [];
 		this.localEndpoint = null;
 	}
 
-	add(node, service, action) {
+	add(node, service, data) {
 		const found = this.endpoints.find(ep => ep.node == node);
 		if (found) {
-			return found.updateAction(action);
+			return found.update(data);
 		}
 
-		const ep = new this.EndPointFactory(this.registry, this.broker, node, service, action);
+		const ep = new this.EndPointFactory(this.registry, this.broker, node, service, data);
 		if (ep.local)
 			this.localEndpoint = ep;
 

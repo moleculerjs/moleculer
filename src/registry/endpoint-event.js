@@ -8,22 +8,22 @@
 
 const Endpoint = require("./endpoint");
 
-class ActionEndpoint extends Endpoint {
+class EventEndpoint extends Endpoint {
 
-	constructor(registry, broker, node, service, action) {
+	constructor(registry, broker, node, service, event) {
 		super(registry, broker, node);
 
 		this.service = service;
-		this.action = action;
+		this.event = event;
 	}
 
 	get isAvailable() {
 		return this.state;
 	}
 
-	update(action) {
-		this.action = action;
+	update(event) {
+		this.event = event;
 	}
 }
 
-module.exports = ActionEndpoint;
+module.exports = EventEndpoint;

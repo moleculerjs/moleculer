@@ -59,7 +59,7 @@ let reqCount = 0;
 
 broker.start()
 	.then(() => {
-		setInterval(() => {
+		/*setInterval(() => {
 			let payload = { a: _.random(0, 100), b: _.random(0, 100) };
 			let p = broker.call("math.add", payload);
 			reqCount++;
@@ -68,6 +68,6 @@ broker.start()
 			}).catch(err => {
 				broker.logger.warn(chalk.red.bold(_.padEnd(`${reqCount}. ${payload.a} + ${payload.b} = ERROR! ${err.message}`)));
 			});
-		}, 1000);
+		}, 1000);*/
 
 	});

@@ -24,19 +24,23 @@ class Registry {
 		this.opts = broker.options.registry || {};
 		this.opts.circuitBreaker = broker.options.circuitBreaker || {};
 
-		this.strategy = this.opts.strategy || new RoundRobinStrategy();
+		//this.strategy = this.opts.strategy || new RoundRobinStrategy();
 
 		this.nodes = new NodeCatalog(this, broker, this.logger);
 		this.services = new ServiceCatalog(this, broker, this.logger);
-		this.events = new EventCatalog(this, broker, this.logger);
-		this.actions = new ActionCatalog(this, broker, this.logger);
+		this.actions = new ActionCatalog(this, broker, this.logger, new RoundRobinStrategy());
+		this.events = new EventCatalog(this, broker, this.logger, new RoundRobinStrategy());
 
 	}
 
 	registerLocalService(svc) {
 		const service = this.services.add(this.nodes.localNode, svc.name, svc.version, svc.settings);
 
-		this.registerActions(this.nodes.localNode, service, svc.actions);
+		if (svc.actions)
+			this.registerActions(this.nodes.localNode, service, svc.actions);
+
+		if (svc.events)
+			this.registerEvents(this.nodes.localNode, service, svc.events);
 
 		this.logger.info(`'${service.name}' service is registered!`);
 	}
@@ -45,22 +49,37 @@ class Registry {
 		//this.logger.info("< ---- INFO:", node, node.services); // TODO
 
 		serviceList.forEach(svc => {
-			let prevActions;
+			let prevActions, prevEvents;
 			let service = this.services.get(svc.name, svc.version, node.id);
 			if (!service) {
 				service = this.services.add(node, svc.name, svc.version, svc.settings);
 			} else {
 				prevActions = Object.assign({}, service.actions);
+				prevEvents = Object.assign({}, service.events);
 				service.update(svc);
 			}
 
-			this.registerActions(node, service, svc.actions);
+			//Register actions
+			if (svc.actions)
+				this.registerActions(node, service, svc.actions);
 
 			// remove old actions which is not exist
 			if (prevActions) {
 				_.forIn(prevActions, (action, name) => {
 					if (!svc.actions[name])
 						this.unregisterAction(node, name);
+				});
+			}
+
+			//Register events
+			if (svc.events)
+				this.registerEvents(node, service, svc.events);
+
+			// remove old actions which is not exist
+			if (prevEvents) {
+				_.forIn(prevEvents, (event, name) => {
+					if (!svc.events[name])
+						this.unregisterEvent(node, name);
 				});
 			}
 		});
@@ -111,14 +130,11 @@ class Registry {
 		this.actions.remove(name, node.id);
 	}
 
-	registerEvents(node, eventList) {
-		eventList.forEach(event => {
-			this.registerEvent(event, node);
+	registerEvents(node, service, events) {
+		_.forIn(events, event => {
+			this.events.add(node, service, event);
+			service.addEvent(event);
 		});
-	}
-
-	registerEvent(node, event) {
-		this.events.add(event, node);
 	}
 
 	unregisterEvent(node, name) {
@@ -127,9 +143,9 @@ class Registry {
 
 	getLocalNodeInfo() {
 		const res = _.pick(this.nodes.localNode, ["ipList", "client", "config", "port"]);
-		res.services = this.services.list({ onlyLocal: true, withActions: true });
-		res.events = {}; // TODO
+		res.services = this.services.list({ onlyLocal: true, withActions: true, withEvents: true });
 
+		this.logger.info("LOCAL SERVICES", res.services);
 		return res;
 	}
 

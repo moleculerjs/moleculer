@@ -77,6 +77,18 @@ module.exports = function(broker) {
 				}
 			},
 
+			events: {
+				cache: false,
+				params: {
+					onlyLocal: { type: "boolean", optional: true },
+					skipInternal: { type: "boolean", optional: true },
+					withEndpoints: { type: "boolean", optional: true }
+				},
+				handler(ctx) {
+					return this.broker.registry.events.list(ctx.params);
+				}
+			},
+
 			health: {
 				cache: false,
 				handler() {

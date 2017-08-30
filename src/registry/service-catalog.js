@@ -37,12 +37,12 @@ class ServiceCatalog {
 	/**
 	 * Get a filtered list of services with actions
 	 *
-	 * @param {Object} {onlyLocal = false, skipInternal = false, withEndpoints = false}
+	 * @param {Object} {onlyLocal = false, skipInternal = false, withActions = false, withEvents = false}
 	 * @returns {Array}
 	 *
 	 * @memberof Registry
 	 */
-	list({ onlyLocal = false, skipInternal = false, withActions = false }) {
+	list({ onlyLocal = false, skipInternal = false, withActions = false, withEvents = false }) {
 		let res = [];
 		this.services.forEach(service => {
 			if (skipInternal && /^\$node/.test(service.name))
@@ -68,6 +68,17 @@ class ServiceCatalog {
 				});
 			}
 
+			if (withEvents) {
+				item.events = {};
+
+				_.forIn(service.events, event => {
+					// Skip internal event handlers
+					if (/^\$/.test(event.name)) return;
+
+					item.events[event.name] = _.omit(event, ["handler", "service"]);
+				});
+			}
+
 			res.push(item);
 		});
 
@@ -78,6 +89,7 @@ class ServiceCatalog {
 		_.remove(this.services, service => {
 			if (service.node.id == nodeID) {
 				this.registry.actions.removeByService(service);
+				this.registry.events.removeByService(service);
 			}
 		});
 	}
@@ -86,6 +98,7 @@ class ServiceCatalog {
 		let service = this.get(name, version, nodeID);
 		if (service) {
 			this.registry.actions.removeByService(service);
+			this.registry.events.removeByService(service);
 
 			_.remove(this.services, svc => svc == service);
 		}

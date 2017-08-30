@@ -103,22 +103,26 @@ class Service {
 						};
 					}
 					if (!event.name)
-						event.name = event;
+						event.name = name;
 
 					if (!isFunction(event.handler)) {
 						throw new ServiceSchemaError(`Missing event handler on '${name}' event in '${this.name}' service!`);
 					}
 
+					event.service = this;
+					const handler = event.handler;
 					const self = this;
-					const handler = function(payload, sender) {
-						const p = event.handler.apply(self, [payload, sender, this.event]);
+					event.handler = function(payload, sender) {
+						const p = handler.apply(self, [payload, sender, this.event]);
 						if (utils.isPromise(p)) {
 							p.catch(err => self.logger.error(err));
 						}
 						return null;
 					};
 
-					broker.on(name, handler);
+					broker.on(name, event.handler);
+
+					registryItem.events[event.name] = event;
 				});
 			});
 
