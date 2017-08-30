@@ -25,7 +25,7 @@ broker.createService({
 				return new Promise((resolve) => {
 					setTimeout(() => {
 						resolve({ msg: ctx.params.cmd, from: "slowWorker" });
-					}, 4000);
+					}, 10000);
 				});
 			},
 		},
