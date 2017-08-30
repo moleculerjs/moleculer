@@ -48,6 +48,18 @@ class AmqpTransporter extends Transporter {
 		if (typeof opts.amqp.eventTimeToLive !== "number")
 			opts.amqp.eventTimeToLive = 5000;
 
+		if (typeof opts.amqp.queueOptions !== "object")
+			opts.amqp.queueOptions = {};
+
+		if (typeof opts.amqp.exchangeOptions !== "object")
+			opts.amqp.exchangeOptions = {};
+
+		if (typeof opts.amqp.messageOptions !== "object")
+			opts.amqp.messageOptions = {};
+
+		if (typeof opts.amqp.consumeOptions !== "object")
+			opts.amqp.consumeOptions = {};
+
 		super(opts);
 
 		this.connection = null;
@@ -170,22 +182,27 @@ class AmqpTransporter extends Transporter {
 	 * @memberOf AmqpTransporter
 	 */
 	_getQueueOptions(packetType) {
+		let packetOptions;
 		switch(packetType) {
 			// Requests and responses don't expire.
 			case PACKET_REQUEST:
 			case PACKET_RESPONSE:
-				return {};
+				packetOptions = {};
+				break;
 			// Packet types meant for internal use will expire after 5 seconds.
 			case PACKET_DISCOVER:
 			case PACKET_DISCONNECT:
 			case PACKET_UNKNOW:
 			case PACKET_INFO:
 			case PACKET_HEARTBEAT:
-				return { messageTtl: 5000, autoDelete: true };
+				packetOptions = { messageTtl: 5000, autoDelete: true };
+				break;
 			// Consumers can decide how long events live. Defaults to 5 seconds.
 			case PACKET_EVENT:
-				return { messageTtl: this.opts.amqp.eventTimeToLive, autoDelete: true };
+				packetOptions = { messageTtl: this.opts.amqp.eventTimeToLive, autoDelete: true };
 		}
+
+		return Object.assign(packetOptions, this.opts.amqp.queueOptions);
 	}
 
 	/**
@@ -252,7 +269,11 @@ class AmqpTransporter extends Transporter {
 		// Some topics are specific to this node already, in these cases we don't need an exchange.
 		if ((cmd === PACKET_INFO && topic !== `${this.prefix}.${PACKET_INFO}`) || cmd === PACKET_RESPONSE) {
 			return this.channel.assertQueue(topic, this._getQueueOptions(cmd))
-				.then(() => this.channel.consume(topic, this._consumeCB(cmd), { noAck: true }));
+				.then(() => this.channel.consume(
+					topic,
+					this._consumeCB(cmd),
+					Object.assign({ noAck: true }, this.opts.amqp.consumeOptions)
+				));
 
 		} else if (cmd !== PACKET_REQUEST) {
 			// Create a queue specific to this nodeID so that this node can receive broadcasted messages.
@@ -263,12 +284,16 @@ class AmqpTransporter extends Transporter {
 			this.bindings.push(bindingArgs);
 
 			return Promise.all([
-				this.channel.assertExchange(topic, "fanout"),
+				this.channel.assertExchange(topic, "fanout", this.opts.amqp.exchangeOptions),
 				this.channel.assertQueue(queueName, this._getQueueOptions(cmd)),
 			])
 				.then(() => Promise.all([
 					this.channel.bindQueue(...bindingArgs),
-					this.channel.consume(queueName, this._consumeCB(cmd), { noAck: true })
+					this.channel.consume(
+						queueName,
+						this._consumeCB(cmd),
+						Object.assign({ noAck: true }, this.opts.amqp.consumeOptions)
+					)
 				]));
 		}
 	}
@@ -290,7 +315,11 @@ class AmqpTransporter extends Transporter {
 					.map((action) => {
 						const queue = `${genericToService}.${action}`;
 						return this.channel.assertQueue(queue, this._getQueueOptions(PACKET_REQUEST))
-							.then(() => this.channel.consume(queue, this._consumeCB(PACKET_REQUEST)));
+							.then(() => this.channel.consume(
+								queue,
+								this._consumeCB(PACKET_REQUEST),
+								this.opts.amqp.consumeOptions
+							));
 					})
 			);
 		}));
@@ -319,9 +348,9 @@ class AmqpTransporter extends Transporter {
 		if ((packet.type === PACKET_INFO && topic !== `${this.prefix}.${PACKET_INFO}`)
 			|| packet.type === PACKET_REQUEST
 			|| packet.type === PACKET_RESPONSE)
-			this.channel.sendToQueue(destination, payload);
+			this.channel.sendToQueue(destination, payload, this.opts.amqp.messageOptions);
 		else
-			this.channel.publish(destination, "", payload);
+			this.channel.publish(destination, "", payload, this.opts.amqp.messageOptions);
 
 		// HACK: This is the best way I have found to obtain the broker's services.
 		if (destination === `${this.prefix}.${PACKET_INFO}`) {
