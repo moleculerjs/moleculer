@@ -8,7 +8,8 @@ let ServiceBroker = require("../src/service-broker");
 let broker = new ServiceBroker({
 	nodeID: process.argv[2] || "receiver-" + process.pid,
 	transporter: "NATS",
-	logger: console
+	logger: console,
+	logFormatter: "simple"
 });
 
 broker.createService({
