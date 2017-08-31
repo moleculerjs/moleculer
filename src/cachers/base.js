@@ -6,9 +6,8 @@
 
 "use strict";
 
-//const Promise 	= require("bluebird");
-const _ = require("lodash");
-const { hash } 		= require("node-object-hash")({ sort: false, coerce: false});
+const _ 		= require("lodash");
+const { hash } 	= require("node-object-hash")({ sort: false, coerce: false});
 
 /**
  * Abstract cacher class
@@ -49,7 +48,7 @@ class Cacher {
 
 			broker.use(this.middleware());
 
-			// TODO
+			/* TODO
 			this.broker.on("cache.clean", payload => {
 				if (Array.isArray(payload))
 					payload.forEach(match => this.clean(match));
@@ -63,6 +62,7 @@ class Cacher {
 				else
 					this.del(payload);
 			});
+			*/
 		}
 	}
 

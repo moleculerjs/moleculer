@@ -17,17 +17,6 @@ describe("Test Errors", () => {
 		expect(err.data).toEqual({ a: 5});
 	});
 
-	it("test MaxCallLevelError", () => {
-		let err = new errors.MaxCallLevelError({ level: 10 });
-		expect(err).toBeDefined();
-		expect(err).toBeInstanceOf(Error);
-		expect(err).toBeInstanceOf(errors.MaxCallLevelError);
-		expect(err.code).toBe(500);
-		expect(err.name).toBe("MaxCallLevelError");
-		expect(err.message).toBe("Request level is reached the limit!");
-		expect(err.data).toEqual({ level: 10 });
-	});
-
 	it("test ServiceNotFoundError", () => {
 		let err = new errors.ServiceNotFoundError("posts.find");
 		expect(err).toBeDefined();
@@ -78,6 +67,17 @@ describe("Test Errors", () => {
 		expect(err.data).toBe(data);
 	});
 
+	it("test MaxCallLevelError", () => {
+		let err = new errors.MaxCallLevelError({ level: 10 });
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(Error);
+		expect(err).toBeInstanceOf(errors.MaxCallLevelError);
+		expect(err.code).toBe(500);
+		expect(err.name).toBe("MaxCallLevelError");
+		expect(err.message).toBe("Request level is reached the limit!");
+		expect(err.data).toEqual({ level: 10 });
+	});
+
 	it("test ServiceSchemaError", () => {
 		let err = new errors.ServiceSchemaError("Invalid schema");
 		expect(err).toBeDefined();
@@ -85,6 +85,17 @@ describe("Test Errors", () => {
 		expect(err).toBeInstanceOf(errors.ServiceSchemaError);
 		expect(err.name).toBe("ServiceSchemaError");
 		expect(err.message).toBe("Invalid schema");
+	});
+
+	it("test ProtocolVersionMismatchError", () => {
+		let err = new errors.ProtocolVersionMismatchError("server-2", "2", "1");
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(Error);
+		expect(err).toBeInstanceOf(errors.ProtocolVersionMismatchError);
+		expect(err.code).toBe(500);
+		expect(err.name).toBe("ProtocolVersionMismatchError");
+		expect(err.message).toBe("Protocol version mismatch!");
+		expect(err.data).toEqual({ nodeID: "server-2", actual: "2", received: "1" });
 	});
 
 });

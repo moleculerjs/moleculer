@@ -18,6 +18,7 @@ describe("Test base Packet", () => {
 		expect(packet.type).toBe(P.PACKET_UNKNOW);
 		expect(packet.target).toBeUndefined();
 		expect(packet.payload).toBeDefined();
+		expect(packet.payload.ver).toBe(P.PROTOCOL_VERSION);
 		expect(packet.payload.sender).toBe("node-1");
 	});
 
@@ -38,13 +39,6 @@ describe("Test base Packet", () => {
 		packet.serialize();
 		expect(transit.serialize).toHaveBeenCalledTimes(1);
 		expect(transit.serialize).toHaveBeenCalledWith(packet.payload, P.PACKET_EVENT);
-	});
-
-	it("should set payload", () => {
-		let packet = new P.Packet(transit, P.PACKET_EVENT, "node-2");
-		let obj = { a: 5 };
-		packet.transformPayload(obj);
-		expect(packet.payload).toBe(obj);
 	});
 
 	it("should return a Packet instance", () => {
@@ -79,12 +73,13 @@ describe("Test PacketHeartbeat", () => {
 	const transit = { nodeID: "node-1" };
 
 	it("should set properties", () => {
-		let packet = new P.PacketHeartbeat(transit);
+		let packet = new P.PacketHeartbeat(transit, 65);
 		expect(packet).toBeDefined();
 		expect(packet.type).toBe(P.PACKET_HEARTBEAT);
 		expect(packet.target).toBeUndefined();
 		expect(packet.payload).toBeDefined();
 		expect(packet.payload.sender).toBe("node-1");
+		expect(packet.payload.cpu).toBe(65);
 	});
 
 });
@@ -94,11 +89,11 @@ describe("Test PacketDiscover", () => {
 	const transit = { nodeID: "node-1" };
 
 	it("should set properties", () => {
-		let packet = new P.PacketDiscover(transit);
+		let packet = new P.PacketDiscover(transit, "server-2");
 		expect(packet).toBeDefined();
 		expect(packet.type).toBe(P.PACKET_DISCOVER);
-		expect(packet.target).toBeUndefined();
-		expect(packet.payload).toEqual({ sender: "node-1" });
+		expect(packet.target).toBe("server-2");
+		expect(packet.payload).toEqual({ sender: "node-1", ver: P.PROTOCOL_VERSION });
 	});
 
 });
@@ -112,15 +107,20 @@ describe("Test PacketInfo", () => {
 			services: [
 				{ name: "users", version: "2", settings: {}, actions: {
 					"users.create": {}
-				}}
+				}, events: [
+					{ name: "user.created" }
+				]}
 			],
 			ipList: [ "127.0.0.1" ],
-			versions: {
-				node: "6.10.2",
-				moleculer: "1.2.3"
+			client: {
+				type: "node",
+				version: "1.2.3",
+				langVersion: "6.10.2"
 			},
-			uptime: 100
-
+			config: {
+				compression: "gzip"
+			},
+			port: 3400
 		};
 
 		let packet = new P.PacketInfo(transit, "node-2", info);
@@ -129,34 +129,13 @@ describe("Test PacketInfo", () => {
 		expect(packet.target).toBe("node-2");
 		expect(packet.payload).toBeDefined();
 		expect(packet.payload.sender).toBe("node-1");
-		expect(packet.payload.services).toBe("[{\"name\":\"users\",\"version\":\"2\",\"settings\":{},\"actions\":{\"users.create\":{}}}]");
+		expect(packet.payload.services).toEqual(info.services);
 		expect(packet.payload.ipList).toEqual(info.ipList);
-		expect(packet.payload.versions).toEqual(info.versions);
-		expect(packet.payload.uptime).toEqual(info.uptime);
+		expect(packet.payload.client).toEqual(info.client);
+		expect(packet.payload.port).toEqual(info.port);
+		expect(packet.payload.config).toEqual(info.config);
 	});
 
-	it("should transform payload", () => {
-		let payload = {
-			services: "[{\"name\":\"users\",\"version\":\"2\",\"settings\":{},\"actions\":{\"users.create\":{}}}]",
-			ipList: [ "127.0.0.1" ],
-			versions: {
-				node: "6.10.2",
-				moleculer: "1.2.3"
-			},
-			uptime: 100
-		};
-		let packet = new P.PacketInfo(transit, "server-2", {});
-		packet.transformPayload(payload);
-
-		expect(packet.payload.services).toEqual([
-			{ name: "users", version: "2", settings: {}, actions: {
-				"users.create": {}
-			}}
-		]);
-		expect(packet.payload.ipList).toEqual(payload.ipList);
-		expect(packet.payload.versions).toEqual(payload.versions);
-		expect(packet.payload.uptime).toEqual(payload.uptime);
-	});
 });
 
 describe("Test PacketEvent", () => {
@@ -165,46 +144,31 @@ describe("Test PacketEvent", () => {
 
 	it("should set properties", () => {
 		let data = { id: 5 };
-		let packet = new P.PacketEvent(transit, "user.created", data);
+		let packet = new P.PacketEvent(transit, "node-2", "user.created", data, ["users", "payments"]);
 		expect(packet).toBeDefined();
 		expect(packet.type).toBe(P.PACKET_EVENT);
-		expect(packet.target).toBeUndefined();
+		expect(packet.target).toBe("node-2");
 		expect(packet.payload).toBeDefined();
 		expect(packet.payload.sender).toBe("node-1");
+		expect(packet.payload.ver).toBe(P.PROTOCOL_VERSION);
 		expect(packet.payload.event).toBe("user.created");
-		expect(packet.payload.data).toBe("{\"id\":5}");
+		expect(packet.payload.data).toBe(data);
+		expect(packet.payload.groups).toEqual(["users", "payments"]);
 	});
 
-	it("should transform payload", () => {
-		let payload = {
-			data: "{\"a\":5}"
-		};
-		let packet = new P.PacketEvent(transit, "user.created", {});
-		packet.transformPayload(payload);
-
-		expect(packet.payload.data).toEqual({ a: 5 });
-	});
-
-	it("should convert undefined", () => {
-		let packet = new P.PacketEvent(transit, "user.updated");
+	it("should handle undefined", () => {
+		let packet = new P.PacketEvent(transit, "node-2", "user.updated");
 		expect(packet).toBeDefined();
 		expect(packet.type).toBe(P.PACKET_EVENT);
-		expect(packet.target).toBeUndefined();
+		expect(packet.target).toBe("node-2");
 		expect(packet.payload).toBeDefined();
 		expect(packet.payload.sender).toBe("node-1");
+		expect(packet.payload.ver).toBe(P.PROTOCOL_VERSION);
 		expect(packet.payload.event).toBe("user.updated");
 		expect(packet.payload.data).toBeNull();
+		expect(packet.payload.groups).toBeNull();
 	});
 
-	it("should transform without payload", () => {
-		let payload = {
-			data: undefined
-		};
-		let packet = new P.PacketEvent(transit, "user.created", {});
-		packet.transformPayload(payload);
-
-		expect(packet.payload.data).toBeUndefined();
-	});
 });
 
 describe("Test PacketRequest", () => {
@@ -239,24 +203,12 @@ describe("Test PacketRequest", () => {
 		expect(packet.payload.sender).toBe("node-1");
 		expect(packet.payload.id).toBe("100");
 		expect(packet.payload.action).toBe("posts.find");
-		expect(packet.payload.params).toBe("{\"id\":5}");
-		expect(packet.payload.meta).toBe("{\"user\":{\"id\":1,\"roles\":[\"admin\"]}}");
+		expect(packet.payload.params).toEqual({ id: 5 });
+		expect(packet.payload.meta).toBe(ctx.meta);
 		expect(packet.payload.timeout).toBe(1500);
 		expect(packet.payload.level).toBe(4);
 		expect(packet.payload.metrics).toBe(true);
 		expect(packet.payload.parentID).toBe("999");
-	});
-
-	it("should transform payload", () => {
-		let payload = {
-			params: "{\"a\":5}",
-			meta: "{\"b\":\"John\"}"
-		};
-		let packet = new P.PacketRequest(transit, "server-2");
-		packet.transformPayload(payload);
-
-		expect(packet.payload.params).toEqual({ a: 5 });
-		expect(packet.payload.meta).toEqual({ b: "John" });
 	});
 
 });
@@ -275,7 +227,7 @@ describe("Test PacketResponse", () => {
 		expect(packet.payload.sender).toBe("node-1");
 		expect(packet.payload.id).toBe("12345");
 		expect(packet.payload.success).toBe(true);
-		expect(packet.payload.data).toBe("{\"id\":5}");
+		expect(packet.payload.data).toEqual({ id: 5 });
 		expect(packet.payload.error).toBeUndefined();
 	});
 
@@ -296,42 +248,6 @@ describe("Test PacketResponse", () => {
 		expect(packet.payload.error.code).toBe(422);
 		expect(packet.payload.error.type).toBe("ERR_INVALID_A");
 		expect(packet.payload.error.nodeID).toBe("node-1");
-		expect(packet.payload.error.data).toBe("{\"a\":5}");
-	});
-
-	it("should transform payload without error", () => {
-		let payload = {
-			data: "{\"a\":5}"
-		};
-		let packet = new P.PacketResponse(transit, "server-2", "12345", {});
-		packet.transformPayload(payload);
-
-		expect(packet.payload.data).toEqual({ a: 5 });
-		expect(packet.payload.error).toBeUndefined();
-	});
-
-	it("should transform payload with error", () => {
-		let payload = {
-			data: null,
-			error: {
-				name: "MoleculerError",
-				message: "Something happened",
-				code: 500,
-				type: "ERR_SOMETHING",
-				nodeID: "far-far-node",
-				data: "{\"a\":5}"
-			}
-		};
-		let packet = new P.PacketResponse(transit, "server-2", "12345", {});
-		packet.transformPayload(payload);
-
-		expect(packet.payload.data).toBeNull();
-		expect(packet.payload.error).toBeDefined();
-		expect(packet.payload.error.name).toBe("MoleculerError");
-		expect(packet.payload.error.message).toBe("Something happened");
-		expect(packet.payload.error.code).toBe(500);
-		expect(packet.payload.error.type).toBe("ERR_SOMETHING");
-		expect(packet.payload.error.nodeID).toBe("far-far-node");
 		expect(packet.payload.error.data).toEqual({ a: 5 });
 	});
 
