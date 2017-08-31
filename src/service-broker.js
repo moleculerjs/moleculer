@@ -45,7 +45,7 @@ const defaultConfig = {
 	heartbeatTimeout: 15,
 
 	registry: {
-		strategy: new RoundRobinStrategy(),
+		//strategy: new RoundRobinStrategy(),
 		preferLocal: true
 	},
 
@@ -933,10 +933,12 @@ class ServiceBroker {
 			}
 		});
 
-		// Remote service
-		_.forIn(groupedEP, (groups, nodeID) => {
-			return this.transit.sendEvent(nodeID, eventName, payload, groups);
-		});
+		if (this.transit) {
+			// Remote service
+			_.forIn(groupedEP, (groups, nodeID) => {
+				return this.transit.sendEvent(nodeID, eventName, payload, groups);
+			});
+		}
 
 	}
 

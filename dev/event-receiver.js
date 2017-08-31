@@ -24,6 +24,7 @@ broker.createService({
 
 broker.createService({
 	name: "payment",
+	version: 1,
 	events: {
 		"user.created"(data) {
 			this.logger.info("PAYMENT: User created event received! ID:", data.id);

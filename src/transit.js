@@ -141,7 +141,6 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendDisconnectPacket() {
-
 		return this.publish(new P.PacketDisconnect(this));
 	}
 

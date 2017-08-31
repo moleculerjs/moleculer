@@ -21,7 +21,7 @@ class Registry {
 		this.broker = broker;
 		this.logger = broker.getLogger("registry");
 
-		this.opts = broker.options.registry || {};
+		this.opts = Object.assign({}, broker.options.registry);
 		this.opts.circuitBreaker = broker.options.circuitBreaker || {};
 
 		this.StrategyFactory = this.opts.StrategyFactory || RoundRobinStrategy;

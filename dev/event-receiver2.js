@@ -12,15 +12,16 @@ let broker = new ServiceBroker({
 	logger: console,
 	logFormatter: "simple"
 });
-/*
+
 broker.createService({
 	name: "payment",
+	version: 2,
 	events: {
 		"user.created"(data, sender) {
-			this.logger.info("PAYMENT: User created event received! ID:", data.id);
+			this.logger.info("PAYMENT2: User created event received! ID:", data.id);
 		}
 	}
-});*/
+});
 
 broker.createService({
 	name: "mail",
@@ -32,7 +33,7 @@ broker.createService({
 		}
 	}
 });
-
+/*
 broker.createService({
 	name: "joker",
 	events: {
@@ -43,6 +44,7 @@ broker.createService({
 		}
 	}
 });
+*/
 
 broker.start().then(() => {
 	broker.repl();
