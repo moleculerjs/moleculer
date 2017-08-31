@@ -33,6 +33,23 @@ broker.createService({
 	}
 });
 
+broker.createService({
+	name: "joker",
+	events: {
+		"**": {
+			handler(data, sender, eventName) {
+				this.logger.info(`JOKER: Event '${eventName}' received from ${sender}!`, data);
+			}
+		}
+	}
+});
+
 broker.start().then(() => {
 	broker.repl();
+
+	/*setTimeout(() => {
+		let svc = broker.getLocalService("mail");
+		broker.destroyService(svc);
+	}, 30 * 1000);
+	*/
 });

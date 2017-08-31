@@ -75,7 +75,7 @@ class Transit {
 			.then(() => {
 				this.connected = true;
 
-				this.broker.broadcastLocal("$transporter.connected");
+				this.broker.internalEvents.emit("$transporter.connected");
 
 				if (this.__connectResolve) {
 					this.__connectResolve();
@@ -123,7 +123,7 @@ class Transit {
 		this.connected = false;
 		this.disconnecting = true;
 
-		this.broker.broadcastLocal("$transporter.disconnected", { graceFul: true });
+		this.broker.internalEvents.emit("$transporter.disconnected", { graceFul: true });
 
 		if (this.tx.connected) {
 			return this.sendDisconnectPacket()
@@ -253,12 +253,7 @@ class Transit {
 
 		// Event
 		else if (cmd === P.PACKET_EVENT) {
-			this.logger.info(`Event '${payload.event}' received from '${payload.sender}' node` + (payload.groups ? ` in '${payload.groups.join(", ")}' group(s)` : "") + ".");
-
-			if (payload.groups && payload.groups.length > 0)
-				this.broker.registry.events.emitLocalServices(payload.event, payload.data, payload.groups, payload.sender);
-			else
-				this.broker.broadcastLocal(payload.event, payload.data, payload.sender);
+			this._eventHandler(payload);
 			return;
 		}
 
@@ -297,6 +292,12 @@ class Transit {
 			this.processPong(payload);
 			return;
 		}
+	}
+
+	_eventHandler(payload) {
+		this.logger.info(`Event '${payload.event}' received from '${payload.sender}' node` + (payload.groups ? ` in '${payload.groups.join(", ")}' group(s)` : "") + ".");
+
+		this.broker.registry.events.emitLocalServices(payload.event, payload.data, payload.groups, payload.sender);
 	}
 
 	/**
@@ -467,8 +468,6 @@ class Transit {
 	 */
 	sendNodeInfo(nodeID) {
 		const info = this.broker.registry.getLocalNodeInfo();
-		//this.logger.info("---> INFO:", info, info.services); // TODO
-
 		return this.publish(new P.PacketInfo(this, nodeID, info));
 	}
 
@@ -506,9 +505,9 @@ class Transit {
 		const elapsedTime = now - payload.time;
 		const timeDiff = Math.round(now - payload.arrived - elapsedTime / 2);
 
-		this.logger.info(`PING-PONG from '${payload.sender}' - Time: ${elapsedTime}ms, Time difference: ${timeDiff}ms `);
+		this.logger.debug(`PING-PONG from '${payload.sender}' - Time: ${elapsedTime}ms, Time difference: ${timeDiff}ms `);
 
-		this.broker.broadcastLocal("$node.ping", { elapsedTime, timeDiff });
+		this.broker.broadcastLocal("$node.pong", { nodeID: payload.sender, elapsedTime, timeDiff }, payload.sender);
 	}
 
 	/**

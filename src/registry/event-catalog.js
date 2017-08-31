@@ -7,6 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
+const nanomatch  	= require("nanomatch");
 //const BaseCatalog = require("./base-catalog");
 const EventGroupCatalog = require("./eventgroup-catalog");
 const EventEndpoint = require("./endpoint-event");
@@ -42,9 +43,9 @@ class EventCatalog {
 
 	getBalancedEndpoints(eventName, groupName) {
 		const res = [];
-		// TODO handle wildcards
-		const groups = this.events.get(eventName);
-		if (groups) {
+
+		this.events.forEach((groups, name) => {
+			if (!nanomatch.isMatch(eventName, name)) return;
 			groups.groups.forEach((list, gName) => {
 				if (groupName == null || groupName == gName) {
 					const ep = list.next();
@@ -54,7 +55,7 @@ class EventCatalog {
 						this.logger.debug(`There is no available '${gName}' service to handle the 'eventName' event!`);
 				}
 			});
-		}
+		});
 
 		return res;
 	}
@@ -62,32 +63,32 @@ class EventCatalog {
 	getAllEndpoints(eventName) {
 		const res = [];
 		// TODO handle wildcards
-		const groups = this.events.get(eventName);
-		if (groups) {
+		this.events.forEach((groups, name) => {
+			if (!nanomatch.isMatch(eventName, name)) return;
 			groups.groups.forEach((list) => {
 				list.endpoints.forEach(ep => {
 					if (ep.isAvailable)
 						res.push(ep);
 				});
 			});
-		}
+		});
 
 		return _.uniqBy(res, "id");
 	}
 
 	emitLocalServices(eventName, payload, groupNames, nodeID) {
 		// TODO handle wildcards
-		const groups = this.events.get(eventName);
-		if (groups) {
+		this.events.forEach((groups, name) => {
+			if (!nanomatch.isMatch(eventName, name)) return;
 			groups.groups.forEach((list, gName) => {
-				if (groupNames == null || groupNames.indexOf(gName) !== -1) {
+				if (groupNames == null || groupNames.length == 0 || groupNames.indexOf(gName) !== -1) {
 					list.endpoints.forEach(ep => {
 						if (ep.local && ep.event.handler)
 							ep.event.handler(payload, nodeID, eventName);
 					});
 				}
 			});
-		}
+		});
 	}
 
 	removeByService(service) {
@@ -112,7 +113,7 @@ class EventCatalog {
 	 */
 	list({onlyLocal = false, skipInternal = false, withEndpoints = false}) {
 		let res = [];
-		// TODO
+
 		this.events.forEach((groups, eventName) => {
 			groups.groups.forEach((list, groupName) => {
 				if (skipInternal && /^\$/.test(eventName))

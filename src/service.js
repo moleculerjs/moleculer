@@ -112,15 +112,13 @@ class Service {
 					event.service = this;
 					const handler = event.handler;
 					const self = this;
-					event.handler = function(payload, sender) {
-						const p = handler.apply(self, [payload, sender, this.event]);
+					event.handler = function(payload, sender, eventName) {
+						const p = handler.apply(self, [payload, sender, eventName]);
 						if (utils.isPromise(p)) {
 							p.catch(err => self.logger.error(err));
 						}
 						return null;
 					};
-
-					broker.on(name, event.handler);
 
 					registryItem.events[event.name] = event;
 				});

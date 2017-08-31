@@ -25,8 +25,8 @@ class NodeCatalog {
 
 		this.createLocalNode();
 
-		this.broker.on("$transporter.connected", this.startHeartbeatTimers.bind(this));
-		this.broker.on("$transporter.disconnected", this.stopHeartbeatTimers.bind(this));
+		this.broker.internalEvents.on("$transporter.connected", this.startHeartbeatTimers.bind(this));
+		this.broker.internalEvents.on("$transporter.disconnected", this.stopHeartbeatTimers.bind(this));
 	}
 
 	startHeartbeatTimers() {
@@ -34,9 +34,6 @@ class NodeCatalog {
 			/* istanbul ignore next */
 			if (this.broker.transit)
 				this.broker.transit.sendHeartbeat();
-
-			// TODO
-			// this.broker.transit.sendPing();
 
 		}, this.broker.options.heartbeatInterval * 1000);
 		this.heartbeatTimer.unref();

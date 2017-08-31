@@ -66,7 +66,7 @@ class ActionCatalog {
 	 */
 	list({onlyLocal = false, skipInternal = false, withEndpoints = false}) {
 		let res = [];
-		// TODO
+
 		this.actions.forEach((list, key) => {
 			if (skipInternal && /^\$node/.test(key))
 				return;

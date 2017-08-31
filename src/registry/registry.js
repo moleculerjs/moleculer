@@ -46,8 +46,6 @@ class Registry {
 	}
 
 	registerServices(node, serviceList) {
-		//this.logger.info("< ---- INFO:", node, node.services); // TODO
-
 		serviceList.forEach(svc => {
 			let prevActions, prevEvents;
 			let service = this.services.get(svc.name, svc.version, node.id);

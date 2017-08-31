@@ -16,8 +16,8 @@ let broker = new ServiceBroker({
 broker.createService({
 	name: "users",
 	events: {
-		"user.created"(data, sender) {
-			this.logger.info("USERS: User created event received! ID:", data.id);
+		"user.*"(data, sender, eventName) {
+			this.logger.info(`USERS: '${eventName}' event received! ID: ${data.id}`);
 		}
 	}
 });
@@ -25,7 +25,7 @@ broker.createService({
 broker.createService({
 	name: "payment",
 	events: {
-		"user.created"(data, sender) {
+		"user.created"(data) {
 			this.logger.info("PAYMENT: User created event received! ID:", data.id);
 		}
 	}

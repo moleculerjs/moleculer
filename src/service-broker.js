@@ -105,8 +105,8 @@ class ServiceBroker {
 		// Logger
 		this.logger = this.getLogger("broker");
 
-		// Local event bus
-		this.bus = new EventEmitter2({
+		// Internal event bus
+		this.internalEvents = new EventEmitter2({
 			wildcard: true,
 			maxListeners: 100
 		});
@@ -435,7 +435,7 @@ class ServiceBroker {
 			if (!(svc instanceof this.ServiceFactory)) {
 				svc = this.createService(svc);
 			} else {
-				// Need to call changed because we didn't call the `createService`.
+				// Should call changed because we didn't call the `createService`.
 				this.servicesChanged(true);
 			}
 
@@ -574,54 +574,18 @@ class ServiceBroker {
 	}
 
 	/**
-	 * It will be called when a new service registered or unregistered
+	 * It will be called when a new local or remote service
+	 * is registered or unregistered.
 	 *
 	 * @memberof ServiceBroker
 	 */
-	servicesChanged(resendNodeInfo = false) {
-		// TODO
-		this.broadcastLocal("$services.changed");
+	servicesChanged(localService = false) {
+		this.broadcastLocal("$services.changed", { localService });
 
-		// Notify other nodes, we have a new service list.
-		if (resendNodeInfo && this.transit && this.transit.connected) {
+		// Should notify remote nodes, because our service list is changed.
+		if (localService && this.transit && this.transit.connected) {
 			this.transit.sendNodeInfo();
 		}
-	}
-
-	/**
-	 * Subscribe to an event
-	 *
-	 * @param {String} name
-	 * @param {Function} handler
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	on(name, handler) {
-		this.bus.on(name, handler);
-	}
-
-	/**
-	 * Subscribe to an event once
-	 *
-	 * @param {String} name
-	 * @param {Function} handler
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	once(name, handler) {
-		this.bus.once(name, handler);
-	}
-
-	/**
-	 * Unsubscribe from an event
-	 *
-	 * @param {String} name
-	 * @param {Function} handler
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	off(name, handler) {
-		this.bus.off(name, handler);
 	}
 
 	/**
@@ -911,10 +875,11 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Emit an event (grouped balanced global event)
+	 * Emit an event (grouped & balanced global event)
 	 *
 	 * @param {string} eventName
 	 * @param {any} payload
+	 * @param {String=} groupName
 	 * @returns
 	 *
 	 * @memberOf ServiceBroker
@@ -927,7 +892,7 @@ class ServiceBroker {
 
 		endpoints.forEach(([ep, group]) => {
 			if (ep.id == this.nodeID) {
-				// Local service
+				// Local service, call handler
 				ep.event.handler(payload, this.nodeID, eventName);
 			} else {
 				const e = groupedEP[ep.id];
@@ -939,8 +904,8 @@ class ServiceBroker {
 		});
 
 		// Remote service
-		_.forIn(groupedEP, (group, nodeID) => {
-			return this.transit.sendEvent(nodeID, eventName, payload, group);
+		_.forIn(groupedEP, (groups, nodeID) => {
+			return this.transit.sendEvent(nodeID, eventName, payload, groups);
 		});
 
 	}
@@ -973,15 +938,16 @@ class ServiceBroker {
 	 *
 	 * @param {string} eventName
 	 * @param {any} payload
-	 * @param {String} nodeID
+	 * @param {Array<String>?} groups
+	 * @param {String?} nodeID
 	 * @returns
 	 *
 	 * @memberOf ServiceBroker
 	 */
-	broadcastLocal(eventName, payload, nodeID) {
-		this.logger.debug("Event (local) emitted:", eventName);
+	broadcastLocal(eventName, payload, groups, nodeID) {
+		this.logger.debug("Event emitted locally:", eventName);
 
-		return this.bus.emit(eventName, payload, nodeID || this.nodeID);
+		return this.registry.events.emitLocalServices(eventName, payload, null, nodeID || this.nodeID);
 	}
 
 }

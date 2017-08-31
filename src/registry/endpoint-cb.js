@@ -42,22 +42,22 @@ class ActionEndpointCB extends ActionEndpoint {
 
 		this.cbTimer.unref();
 
-		this.broker.broadcastLocal("$circuit-breaker.open", { node: this.node, action: this.action, failures: this.failures });
-		this.broker.emit("metrics.circuit-breaker.open", { nodeID: this.node.id, action: this.action.name, failures: this.failures });
+		this.broker.broadcastLocal("$circuit-breaker.opened", { node: this.node, action: this.action, failures: this.failures });
+		this.broker.emit("metrics.circuit-breaker.opened", { nodeID: this.node.id, action: this.action.name, failures: this.failures });
 	}
 
 	circuitHalfOpen() {
 		this.state = CIRCUIT_HALF_OPEN;
 
-		this.broker.broadcastLocal("$circuit-breaker.half-open", { node: this.node, action: this.action });
-		this.broker.emit("metrics.circuit-breaker.half-open", { nodeID: this.node.id, action: this.action.name });
+		this.broker.broadcastLocal("$circuit-breaker.half-opened", { node: this.node, action: this.action });
+		this.broker.emit("metrics.circuit-breaker.half-opened", { nodeID: this.node.id, action: this.action.name });
 	}
 
 	circuitClose() {
 		this.state = CIRCUIT_CLOSE;
 		this.failures = 0;
-		this.broker.broadcastLocal("$circuit-breaker.close", { node: this.node, action: this.action });
-		this.broker.emit("metrics.circuit-breaker.close", { nodeID: this.node.id, action: this.action.name });
+		this.broker.broadcastLocal("$circuit-breaker.closed", { node: this.node, action: this.action });
+		this.broker.emit("metrics.circuit-breaker.closed", { nodeID: this.node.id, action: this.action.name });
 
 	}
 }
