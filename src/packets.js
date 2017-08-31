@@ -141,8 +141,8 @@ class PacketHeartbeat extends Packet {
  * @extends {Packet}
  */
 class PacketDiscover extends Packet {
-	constructor(transit) {
-		super(transit, PACKET_DISCOVER);
+	constructor(transit, target) {
+		super(transit, PACKET_DISCOVER, target);
 	}
 }
 
@@ -172,12 +172,12 @@ class PacketInfo extends Packet {
  * @extends {Packet}
  */
 class PacketEvent extends Packet {
-	constructor(transit, target, eventName, data = null, group = null) {
+	constructor(transit, target, eventName, data = null, groups = null) {
 		super(transit, PACKET_EVENT, target);
 
 		this.payload.event = eventName;
 		this.payload.data = data;
-		this.payload.group = group;
+		this.payload.groups = groups;
 	}
 }
 

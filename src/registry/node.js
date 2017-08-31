@@ -37,8 +37,6 @@ class Node {
 		this.cpu = payload.cpu;
 		this.lastHeartbeatTime = Date.now();
 		this.available = true;
-		// TODO: If was unavailable, request an INFO from this node
-		// because we removed node services & events from registry.
 	}
 
 	disconnected() {

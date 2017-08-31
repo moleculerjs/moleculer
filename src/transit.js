@@ -163,6 +163,7 @@ class Transit {
 
 			// Discover handler
 			this.subscribe(P.PACKET_DISCOVER),
+			this.subscribe(P.PACKET_DISCOVER, this.nodeID),
 
 			// NodeInfo handler
 			this.subscribe(P.PACKET_INFO), // Broadcasted INFO. If a new node connected
@@ -194,14 +195,14 @@ class Transit {
 	 * @param {String} nodeID
 	 * @param {String} eventName
 	 * @param {any} data
-	 * @param {String=} groupName
+	 * @param {Array<String>=} groups
 	 *
 	 * @memberOf Transit
 	 */
-	sendEvent(nodeID, eventName, data, groupName) {
-		this.logger.debug(`Send '${eventName}' event to '${nodeID}' node` + (groupName ? ` in '${groupName}' group` : "") + ".");
+	sendEvent(nodeID, eventName, data, groups) {
+		this.logger.info(`Send '${eventName}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
 
-		return this.publish(new P.PacketEvent(this, nodeID, eventName, data, groupName));
+		return this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups));
 	}
 
 	/**
@@ -252,10 +253,10 @@ class Transit {
 
 		// Event
 		else if (cmd === P.PACKET_EVENT) {
-			this.logger.debug(`Event '${payload.event}' received from '${payload.sender}' node` + (payload.group ? ` in '${payload.group}' group` : "") + ".");
+			this.logger.info(`Event '${payload.event}' received from '${payload.sender}' node` + (payload.groups ? ` in '${payload.groups.join(", ")}' group(s)` : "") + ".");
 
-			if (payload.group)
-				this.broker.registry.events.emitLocalServices(payload.event, payload.data, payload.group, payload.sender);
+			if (payload.groups && payload.groups.length > 0)
+				this.broker.registry.events.emitLocalServices(payload.event, payload.data, payload.groups, payload.sender);
 			else
 				this.broker.broadcastLocal(payload.event, payload.data, payload.sender);
 			return;
@@ -447,6 +448,16 @@ class Transit {
 	 */
 	discoverNodes() {
 		return this.publish(new P.PacketDiscover(this));
+	}
+
+	/**
+	 * Discover a node. It will be called if we got message from a node
+	 * what we don't know.
+	 *
+	 * @memberOf Transit
+	 */
+	discoverNode(nodeID) {
+		return this.publish(new P.PacketDiscover(this, nodeID));
 	}
 
 	/**

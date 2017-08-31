@@ -21,7 +21,10 @@ function createSchemas() {
 			{ name: "sender", type: "string" },
 			{ name: "event", type: "string" },
 			{ name: "data", type: "string" },
-			{ name: "group", type: [ "null", "string"], default: null }
+			{ name: "groups", type: [ "null", {
+				type: "array",
+				items: "string"
+			}], default: null }
 		]
 	});
 

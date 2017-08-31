@@ -11,16 +11,7 @@ let broker = new ServiceBroker({
 	logger: console,
 	logFormatter: "simple"
 });
-
-broker.createService({
-	name: "users",
-	events: {
-		"user.created"(data, sender) {
-			this.logger.info("USERS: User created event received! ID:", data.id);
-		}
-	}
-});
-
+/*
 broker.createService({
 	name: "payment",
 	events: {
@@ -28,8 +19,18 @@ broker.createService({
 			this.logger.info("PAYMENT: User created event received! ID:", data.id);
 		}
 	}
-});
+});*/
 
+broker.createService({
+	name: "mail",
+	events: {
+		"user.created": {
+			handler(data, sender) {
+				this.logger.info("MAIL: User created event received! ID:", data.id);
+			}
+		}
+	}
+});
 
 broker.start().then(() => {
 	broker.repl();

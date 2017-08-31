@@ -51,7 +51,7 @@ class EventCatalog {
 					if (ep)
 						res.push([ep, gName]);
 					else
-						this.logger.warn(`There is no available '${groupName}' service to handle the 'eventName' event!`);
+						this.logger.debug(`There is no available '${gName}' service to handle the 'eventName' event!`);
 				}
 			});
 		}
@@ -75,12 +75,12 @@ class EventCatalog {
 		return _.uniqBy(res, "id");
 	}
 
-	emitLocalServices(eventName, payload, groupName, nodeID) {
+	emitLocalServices(eventName, payload, groupNames, nodeID) {
 		// TODO handle wildcards
 		const groups = this.events.get(eventName);
 		if (groups) {
 			groups.groups.forEach((list, gName) => {
-				if (groupName == null || groupName == gName) {
+				if (groupNames == null || groupNames.indexOf(gName) !== -1) {
 					list.endpoints.forEach(ep => {
 						if (ep.local && ep.event.handler)
 							ep.event.handler(payload, nodeID, eventName);

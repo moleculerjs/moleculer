@@ -12,12 +12,13 @@ let broker = new ServiceBroker({
 	logFormatter: "simple"
 });
 
+let c = 1;
 broker.createService({
 	name: "event-sender",
 	started() {
 		setInterval(() => {
-			this.logger.info("Send 'user.created' event");
-			this.broker.emit("user.created");
+			this.logger.info(`Send 'user.created' event. ID: ${c}`);
+			this.broker.emit("user.created", { id: c++ });
 		}, 2000);
 	}
 });

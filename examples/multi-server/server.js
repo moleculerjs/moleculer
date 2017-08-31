@@ -35,18 +35,8 @@ broker.createService({
 	}
 });
 
-broker.createService({
-	name: "other",
-	events: {
-		"echo.event"(data, sender) {
-			broker.logger.info(`<< OTHER: Echo event received from ${sender}. Counter: ${data.counter}.`);
-		}
-	}
-});
-
 broker.start()
 	.then(() => {
 		setInterval(() => broker.transit.sendPing(), 10 * 1000);
 	})
-	.then(() => broker.call("$node.events").then(res => broker.logger.info(res)))
 	.then(() => broker.repl());

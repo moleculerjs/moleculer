@@ -157,8 +157,17 @@ class NodeCatalog {
 
 	heartbeat(payload) {
 		const node = this.get(payload.sender);
-		if (node)
-			node.heartbeat(payload);
+		if (node) {
+			if (!node.available) {
+				// Unknow node. Request an INFO from node
+				this.broker.transit.discoverNode(payload.sender);
+			} else
+				node.heartbeat(payload);
+
+		} else {
+			// Unknow node. Request an INFO from node
+			this.broker.transit.discoverNode(payload.sender);
+		}
 	}
 
 	list() {

@@ -922,15 +922,27 @@ class ServiceBroker {
 	emit(eventName, payload, groupName) {
 		const endpoints = this.registry.events.getBalancedEndpoints(eventName, groupName);
 
+		// Grouping remote events (minimize network traffic)
+		const groupedEP = {};
+
 		endpoints.forEach(([ep, group]) => {
 			if (ep.id == this.nodeID) {
 				// Local service
 				ep.event.handler(payload, this.nodeID, eventName);
 			} else {
-				// Remote service
-				return this.transit.sendEvent(ep.id, eventName, payload, group);
+				const e = groupedEP[ep.id];
+				if (e)
+					e.push(group);
+				else
+					groupedEP[ep.id] = [group];
 			}
 		});
+
+		// Remote service
+		_.forIn(groupedEP, (group, nodeID) => {
+			return this.transit.sendEvent(nodeID, eventName, payload, group);
+		});
+
 	}
 
 	/**
