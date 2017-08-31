@@ -8,7 +8,7 @@ let ServiceBroker = require("../src/service-broker");
 let broker = new ServiceBroker({
 	nodeID: process.argv[2] || "receiver-" + process.pid,
 	transporter: "NATS",
-	serializer: "ProtoBuf",
+	//serializer: "ProtoBuf",
 	logger: console,
 	logFormatter: "simple"
 });

@@ -62,7 +62,6 @@ class EventCatalog {
 
 	getAllEndpoints(eventName) {
 		const res = [];
-		// TODO handle wildcards
 		this.events.forEach((groups, name) => {
 			if (!nanomatch.isMatch(eventName, name)) return;
 			groups.groups.forEach((list) => {
@@ -77,7 +76,6 @@ class EventCatalog {
 	}
 
 	emitLocalServices(eventName, payload, groupNames, nodeID) {
-		// TODO handle wildcards
 		this.events.forEach((groups, name) => {
 			if (!nanomatch.isMatch(eventName, name)) return;
 			groups.groups.forEach((list, gName) => {

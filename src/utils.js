@@ -125,38 +125,7 @@ let utils = {
 				delete require.cache[key];
 			}
 		});
-	},
-
-	/*wildcardMatches(text, pattern) {
-		let rest = null;
-		const pos = pattern.indexOf("*");
-		if (pos != -1) {
-			rest = pattern.substring(pos + 1);
-			pattern = pattern.substring(0, pos);
-		}
-		if (pattern.length > text.length) {
-			return false;
-		}
-
-		// Handle the part up to the first *
-		for (let i = 0; i < pattern.length; i++) {
-			if (pattern.charAt(i) != "?" && pattern.substring(i, i + 1) != text.substring(i, i + 1)) {
-				return false;
-			}
-		}
-
-		// Recurse for the part after the first *, if any
-		if (rest == null) {
-			return pattern.length == text.length;
-		} else {
-			for (let i = pattern.length; i <= text.length; i++) {
-				if (utils.wildcardMatches(text.substring(i), rest)) {
-					return true;
-				}
-			}
-			return false;
-		}
-	}*/
+	}
 
 };
 
