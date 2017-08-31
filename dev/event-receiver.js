@@ -6,26 +6,20 @@ let ServiceBroker = require("../src/service-broker");
 
 // Create broker
 let broker = new ServiceBroker({
+	nodeID: process.argv[2] || "receiver-" + process.pid,
+	transporter: "NATS",
 	logger: console
 });
 
 broker.createService({
-	name: "event",
+	name: "users",
 	events: {
-		test() {
-			this.logger.info("TEST event");
-			return Promise.reject(new Error("Hiba!"));
+		"user.created"(data, sender) {
+			this.logger.info("User created event received!");
 		}
 	}
 });
 
 broker.start().then(() => {
-
-	/*setInterval(() => {
-		broker.emit("test");
-
-	}, 1000);*/
-
 	broker.repl();
-
 });

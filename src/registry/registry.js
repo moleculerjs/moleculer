@@ -145,7 +145,7 @@ class Registry {
 		const res = _.pick(this.nodes.localNode, ["ipList", "client", "config", "port"]);
 		res.services = this.services.list({ onlyLocal: true, withActions: true, withEvents: true });
 
-		this.logger.info("LOCAL SERVICES", res.services);
+		//this.logger.info("LOCAL SERVICES", res.services);
 		return res;
 	}
 
