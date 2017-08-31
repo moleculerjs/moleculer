@@ -8,6 +8,7 @@ let ServiceBroker = require("../src/service-broker");
 let broker = new ServiceBroker({
 	nodeID: process.argv[2] || "sender-" + process.pid,
 	transporter: "NATS",
+	serializer: "ProtoBuf",
 	logger: console,
 	logFormatter: "simple"
 });
@@ -19,6 +20,8 @@ broker.createService({
 		setInterval(() => {
 			this.logger.info(`Send 'user.created' event. ID: ${c}`);
 			this.broker.emit("user.created", { id: c++ });
+			//this.broker.broadcast("user.created", { id: c++ });
+			//this.broker.broadcastLocal("user.created", { id: c++ });
 		}, 2000);
 	}
 });
