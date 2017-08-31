@@ -48,7 +48,7 @@ class EventCatalog {
 			if (!nanomatch.isMatch(eventName, list.name)) return;
 			if (groupName == null || groupName == list.group) {
 				const ep = list.next();
-				if (ep)
+				if (ep && ep.isAvailable)
 					res.push([ep, list.group]);
 			}
 		});

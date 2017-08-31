@@ -6,6 +6,8 @@
 
 "use strict";
 
+const { getCpuInfo } 	= require("../health");
+
 class Node {
 	constructor(id) {
 		this.id = id;
@@ -31,6 +33,10 @@ class Node {
 		// Process services & events
 		this.services = payload.services;
 		this.events = payload.events;
+	}
+
+	updateLocalInfo() {
+		this.cpu = getCpuInfo().utilization;
 	}
 
 	heartbeat(payload) {

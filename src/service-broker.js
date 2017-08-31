@@ -41,8 +41,8 @@ const defaultConfig = {
 	requestTimeout: 0 * 1000,
 	requestRetry: 0,
 	maxCallLevel: 0,
-	heartbeatInterval: 10,
-	heartbeatTimeout: 30,
+	heartbeatInterval: 5,
+	heartbeatTimeout: 15,
 
 	registry: {
 		strategy: new RoundRobinStrategy(),
@@ -51,7 +51,7 @@ const defaultConfig = {
 
 	circuitBreaker: {
 		enabled: false,
-		maxFailures: 5,
+		maxFailures: 3,
 		halfOpenTime: 10 * 1000,
 		failureOnTimeout: true,
 		failureOnReject: true

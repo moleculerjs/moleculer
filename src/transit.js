@@ -8,7 +8,6 @@
 
 const Promise			= require("bluebird");
 const P 				= require("./packets");
-const { getCpuInfo } 	= require("./health");
 
 const { ProtocolVersionMismatchError } = require("./errors");
 
@@ -200,7 +199,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendEvent(nodeID, eventName, data, groups) {
-		this.logger.info(`Send '${eventName}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
+		this.logger.debug(`Send '${eventName}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
 
 		return this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups));
 	}
@@ -295,7 +294,7 @@ class Transit {
 	}
 
 	_eventHandler(payload) {
-		this.logger.info(`Event '${payload.event}' received from '${payload.sender}' node` + (payload.groups ? ` in '${payload.groups.join(", ")}' group(s)` : "") + ".");
+		this.logger.debug(`Event '${payload.event}' received from '${payload.sender}' node` + (payload.groups ? ` in '${payload.groups.join(", ")}' group(s)` : "") + ".");
 
 		this.broker.registry.events.emitLocalServices(payload.event, payload.data, payload.groups, payload.sender);
 	}
@@ -515,9 +514,8 @@ class Transit {
 	 *
 	 * @memberOf Transit
 	 */
-	sendHeartbeat() {
-		const cpu = getCpuInfo();
-		return this.publish(new P.PacketHeartbeat(this, cpu.utilization));
+	sendHeartbeat(localNode) {
+		return this.publish(new P.PacketHeartbeat(this, localNode.cpu));
 	}
 
 	/**

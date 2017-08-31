@@ -17,10 +17,6 @@ class ActionEndpoint extends Endpoint {
 		this.action = action;
 	}
 
-	get isAvailable() {
-		return this.state;
-	}
-
 	update(action) {
 		this.action = action;
 	}

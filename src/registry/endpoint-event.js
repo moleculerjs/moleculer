@@ -17,10 +17,6 @@ class EventEndpoint extends Endpoint {
 		this.event = event;
 	}
 
-	get isAvailable() {
-		return this.state;
-	}
-
 	update(event) {
 		this.event = event;
 	}

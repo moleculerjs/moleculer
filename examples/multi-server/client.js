@@ -19,25 +19,28 @@ let broker = new ServiceBroker({
 		strategy: new Strategies.RoundRobin(),
 	},
 
+	metrics: true,
+
 	circuitBreaker: {
 		enabled: true,
 		maxFailures: 3
 	},
-	logger: console
+	logger: console,
+	logFormatter: "simple"
 });
 
 broker.createService({
 	name: "event-handler",
 	events: {
-		"$circuit-breaker.open"(payload) {
+		"$circuit-breaker.opened"(payload) {
 			broker.logger.warn(chalk.yellow.bold(`---  Circuit breaker opened on '${payload.node.id}'!`));
 		},
 
-		"$circuit-breaker.half-open"(payload) {
+		"$circuit-breaker.half-opened"(payload) {
 			broker.logger.warn(chalk.green(`---  Circuit breaker half-opened on '${payload.node.id}'!`));
 		},
 
-		"$circuit-breaker.close"(payload) {
+		"$circuit-breaker.closed"(payload) {
 			broker.logger.warn(chalk.green.bold(`---  Circuit breaker closed on '${payload.node.id}'!`));
 		},
 
@@ -59,7 +62,7 @@ let reqCount = 0;
 
 broker.start()
 	.then(() => {
-		/*setInterval(() => {
+		setInterval(() => {
 			let payload = { a: _.random(0, 100), b: _.random(0, 100) };
 			let p = broker.call("math.add", payload);
 			reqCount++;
@@ -68,6 +71,6 @@ broker.start()
 			}).catch(err => {
 				broker.logger.warn(chalk.red.bold(_.padEnd(`${reqCount}. ${payload.a} + ${payload.b} = ERROR! ${err.message}`)));
 			});
-		}, 1000);*/
+		}, 500);
 
 	});
