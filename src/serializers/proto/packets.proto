@@ -7,6 +7,7 @@ message PacketEvent {
 	required string sender 	= 2;
 	required string event 	= 3;
 	required string data 	= 4;
+	required string group 	= 5;
 }
 
 message PacketRequest {

@@ -172,14 +172,12 @@ class PacketInfo extends Packet {
  * @extends {Packet}
  */
 class PacketEvent extends Packet {
-	constructor(transit, eventName, data) {
-		super(transit, PACKET_EVENT);
+	constructor(transit, target, eventName, data = null, group = null) {
+		super(transit, PACKET_EVENT, target);
 
 		this.payload.event = eventName;
-		if (data != null)
-			this.payload.data = data;
-		else
-			this.payload.data = null;
+		this.payload.data = data;
+		this.payload.group = group;
 	}
 }
 

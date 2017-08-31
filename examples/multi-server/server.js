@@ -29,8 +29,17 @@ broker.createService({
 
 	events: {
 		"echo.event"(data, sender) {
-			broker.logger.info(`<< Echo event received from ${sender}. Counter: ${data.counter}. Send reply...`);
+			broker.logger.info(`<< MATH: Echo event received from ${sender}. Counter: ${data.counter}. Send reply...`);
 			this.broker.emit("reply.event", data);
+		}
+	}
+});
+
+broker.createService({
+	name: "other",
+	events: {
+		"echo.event"(data, sender) {
+			broker.logger.info(`<< OTHER: Echo event received from ${sender}. Counter: ${data.counter}.`);
 		}
 	}
 });

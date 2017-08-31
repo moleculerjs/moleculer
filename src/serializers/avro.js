@@ -20,7 +20,8 @@ function createSchemas() {
 			{ name: "ver", type: "string" },
 			{ name: "sender", type: "string" },
 			{ name: "event", type: "string" },
-			{ name: "data", type: "string" }
+			{ name: "data", type: "string" },
+			{ name: "group", type: [ "null", "string"], default: null }
 		]
 	});
 

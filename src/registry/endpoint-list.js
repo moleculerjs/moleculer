@@ -40,9 +40,9 @@ class EndpointList {
 	}
 
 	select() {
-		const ret = this.registry.strategy.select(this.endpoints);
+		const ret = this.strategy.select(this.endpoints);
 		if (!ret) {
-			throw new MoleculerError(`Strategy ${typeof(this.getStrategy())} returned an invalid endpoint.`);
+			throw new MoleculerError(`Strategy ${typeof(this.strategy)} returned an invalid endpoint.`);
 		}
 		return ret;
 	}

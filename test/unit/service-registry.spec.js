@@ -1248,7 +1248,7 @@ describe("Test Endpoint circuit methods", () => {
 			halfOpenTime: 5 * 1000
 		}
 	});
-	broker.emitLocal = jest.fn();
+	broker.broadcastLocal = jest.fn();
 
 	const action = {
 		name: "user.list",
@@ -1296,8 +1296,8 @@ describe("Test Endpoint circuit methods", () => {
 
 		expect(item.state).toBe(CIRCUIT_OPEN);
 		expect(item.cbTimer).toBeDefined();
-		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("circuit-breaker.open", { nodeID: broker.nodeID, action, failures: 0 });
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("circuit-breaker.open", { nodeID: broker.nodeID, action, failures: 0 });
 
 		// circuitHalfOpen
 		expect(item.circuitHalfOpen).toHaveBeenCalledTimes(0);
@@ -1310,19 +1310,19 @@ describe("Test Endpoint circuit methods", () => {
 	});
 
 	it("test circuitOpen", () => {
-		broker.emitLocal.mockClear();
+		broker.broadcastLocal.mockClear();
 		item.state = CIRCUIT_OPEN;
 
 		item.circuitHalfOpen();
 
 		expect(item.state).toBe(CIRCUIT_HALF_OPEN);
-		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("circuit-breaker.half-open", { nodeID: broker.nodeID, action });
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("circuit-breaker.half-open", { nodeID: broker.nodeID, action });
 
 	});
 
 	it("test circuitOpen", () => {
-		broker.emitLocal.mockClear();
+		broker.broadcastLocal.mockClear();
 		item.state = CIRCUIT_HALF_OPEN;
 		item.failures = 5;
 
@@ -1330,8 +1330,8 @@ describe("Test Endpoint circuit methods", () => {
 
 		expect(item.state).toBe(CIRCUIT_CLOSE);
 		expect(item.failures).toBe(0);
-		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("circuit-breaker.close", { nodeID: broker.nodeID, action });
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("circuit-breaker.close", { nodeID: broker.nodeID, action });
 
 	});
 });

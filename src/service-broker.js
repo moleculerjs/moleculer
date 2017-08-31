@@ -580,7 +580,7 @@ class ServiceBroker {
 	 */
 	servicesChanged(resendNodeInfo = false) {
 		// TODO
-		this.emitLocal("services.changed");
+		this.broadcastLocal("$services.changed");
 
 		// Notify other nodes, we have a new service list.
 		if (resendNodeInfo && this.transit && this.transit.connected) {
@@ -911,35 +911,65 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Emit an event (global & local)
+	 * Emit an event (grouped balanced global event)
 	 *
 	 * @param {string} eventName
 	 * @param {any} payload
-	 * @returns {boolean}
+	 * @returns
 	 *
 	 * @memberOf ServiceBroker
 	 */
-	emit(eventName, payload) {
-		if (this.transit)
-			this.transit.emit(eventName, payload);
+	emit(eventName, payload, groupName) {
+		const endpoints = this.registry.events.getBalancedEndpoints(eventName, groupName);
 
-		return this.emitLocal(eventName, payload);
+		endpoints.forEach(([ep, group]) => {
+			if (ep.id == this.nodeID) {
+				// Local service
+				ep.event.handler(payload, this.nodeID, eventName);
+			} else {
+				// Remote service
+				return this.transit.sendEvent(ep.id, eventName, payload, group);
+			}
+		});
 	}
 
 	/**
-	 * Emit an event only local
+	 * Emit an event for all local & remote services
 	 *
 	 * @param {string} eventName
 	 * @param {any} payload
-	 * @param {string=} Sender nodeID
-	 * @returns {boolean}
+	 * @returns
 	 *
 	 * @memberOf ServiceBroker
 	 */
-	emitLocal(eventName, payload, sender) {
-		this.logger.debug("Event emitted:", eventName);
+	broadcast(eventName, payload) {
+		const endpoints = this.registry.events.getAllEndpoints(eventName);
 
-		return this.bus.emit(eventName, payload, sender || this.nodeID);
+		// Send to remote services
+		endpoints.forEach(ep => {
+			if (ep.id != this.nodeID) {
+				return this.transit.sendEvent(ep.id, eventName, payload);
+			}
+		});
+
+		// Send to local services
+		return this.broadcastLocal(eventName, payload);
+	}
+
+	/**
+	 * Emit an event for all local services
+	 *
+	 * @param {string} eventName
+	 * @param {any} payload
+	 * @param {String} nodeID
+	 * @returns
+	 *
+	 * @memberOf ServiceBroker
+	 */
+	broadcastLocal(eventName, payload, nodeID) {
+		this.logger.debug("Event (local) emitted:", eventName);
+
+		return this.bus.emit(eventName, payload, nodeID || this.nodeID);
 	}
 
 }

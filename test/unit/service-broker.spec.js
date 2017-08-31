@@ -919,32 +919,32 @@ describe("Test broker.servicesChanged", () => {
 		transporter: new FakeTransporter()
 	});
 
-	broker.emitLocal = jest.fn();
+	broker.broadcastLocal = jest.fn();
 	broker.transit.sendNodeInfo = jest.fn();
 
 	beforeAll(() => broker.start());
 
-	it("should call emitLocal & transit.sendNodeInfo", () => {
+	it("should call broadcastLocal & transit.sendNodeInfo", () => {
 		broker.transit.sendNodeInfo.mockClear();
 
 		broker.servicesChanged();
 
-		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("services.changed");
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("services.changed");
 
 		expect(broker.transit.sendNodeInfo).toHaveBeenCalledTimes(1);
 	});
 
-	it("should call emitLocal without transit.sendNodeInfo because it is disconnected", () => {
+	it("should call broadcastLocal without transit.sendNodeInfo because it is disconnected", () => {
 		broker.transit.connected = false;
 
-		broker.emitLocal.mockClear();
+		broker.broadcastLocal.mockClear();
 		broker.transit.sendNodeInfo.mockClear();
 
 		broker.servicesChanged();
 
-		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("services.changed");
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("services.changed");
 
 		expect(broker.transit.sendNodeInfo).toHaveBeenCalledTimes(0);
 	});
@@ -953,7 +953,7 @@ describe("Test broker.servicesChanged", () => {
 describe("Test broker.registerLocalService", () => {
 
 	let broker = new ServiceBroker({ internalServices: false });
-	broker.emitLocal = jest.fn();
+	broker.broadcastLocal = jest.fn();
 	broker.serviceRegistry.registerService = jest.fn();
 
 	it("should push to the services & call service registry", () => {
@@ -1005,7 +1005,7 @@ describe("Test broker.registerAction", () => {
 
 	let broker = new ServiceBroker();
 	broker.wrapAction = jest.fn();
-	broker.emitLocal = jest.fn();
+	broker.broadcastLocal = jest.fn();
 	broker.serviceRegistry.registerAction = jest.fn(() => true);
 
 	it("should push to the actions & emit an event without nodeID", () => {
@@ -1020,14 +1020,14 @@ describe("Test broker.registerAction", () => {
 		expect(broker.serviceRegistry.registerAction).toHaveBeenCalledTimes(1);
 		expect(broker.serviceRegistry.registerAction).toHaveBeenCalledWith(broker.nodeID, action);
 
-		// expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		// expect(broker.emitLocal).toHaveBeenCalledWith("register.action.user.list", { action, nodeID: broker.nodeID });
+		// expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		// expect(broker.broadcastLocal).toHaveBeenCalledWith("register.action.user.list", { action, nodeID: broker.nodeID });
 	});
 
 	it("should push to the actions & emit an event with nodeID", () => {
 		broker.serviceRegistry.registerAction.mockClear();
 		broker.wrapAction.mockClear();
-		broker.emitLocal.mockClear();
+		broker.broadcastLocal.mockClear();
 		let action = {
 			name: "user.update",
 			service: { name: "user" }
@@ -1039,8 +1039,8 @@ describe("Test broker.registerAction", () => {
 		expect(broker.serviceRegistry.registerAction).toHaveBeenCalledTimes(1);
 		expect(broker.serviceRegistry.registerAction).toHaveBeenCalledWith("server-2", action);
 
-		// expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		// expect(broker.emitLocal).toHaveBeenCalledWith("register.action.user.update", { action, nodeID: "server-2" });
+		// expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		// expect(broker.broadcastLocal).toHaveBeenCalledWith("register.action.user.update", { action, nodeID: "server-2" });
 	});
 
 });
@@ -2037,28 +2037,28 @@ describe("Test broker._finishCall", () => {
 
 describe("Test broker.emit", () => {
 	let broker = new ServiceBroker();
-	broker.emitLocal = jest.fn();
+	broker.broadcastLocal = jest.fn();
 
-	it("should call emitLocal without payload", () => {
+	it("should call broadcastLocal without payload", () => {
 		broker.emit("test.event");
 
-		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("test.event", undefined);
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("test.event", undefined);
 	});
 
-	it("should call emitLocal with object payload", () => {
-		broker.emitLocal.mockClear();
+	it("should call broadcastLocal with object payload", () => {
+		broker.broadcastLocal.mockClear();
 		broker.emit("user.event", { name: "John" });
 
-		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("user.event", { name: "John" });
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("user.event", { name: "John" });
 	});
 });
 
 describe("Test broker.emit with transporter", () => {
 	let broker = new ServiceBroker({ transporter: new FakeTransporter });
 	broker.transit.emit = jest.fn();
-	broker.emitLocal = jest.fn();
+	broker.broadcastLocal = jest.fn();
 
 	it("should call transit.emit with object payload", () => {
 		broker.transit.emit.mockClear();
@@ -2066,8 +2066,8 @@ describe("Test broker.emit with transporter", () => {
 
 		expect(broker.transit.emit).toHaveBeenCalledTimes(1);
 		expect(broker.transit.emit).toHaveBeenCalledWith("user.event", { name: "John" });
-		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("user.event", { name: "John" });
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("user.event", { name: "John" });
 	});
 });
 
@@ -2114,7 +2114,7 @@ describe("Test broker.shouldMetric", () => {
 	});
 });
 
-describe("Test broker emit & emitLocal", () => {
+describe("Test broker emit & broadcastLocal", () => {
 	let broker = new ServiceBroker({ nodeID: "server-1" });
 	broker.bus.emit = jest.fn();
 
@@ -2135,7 +2135,7 @@ describe("Test broker emit & emitLocal", () => {
 
 	it("should call bus.emit with object payload", () => {
 		broker.bus.emit.mockClear();
-		broker.emitLocal("user.event", { name: "John" });
+		broker.broadcastLocal("user.event", { name: "John" });
 
 		expect(broker.bus.emit).toHaveBeenCalledTimes(1);
 		expect(broker.bus.emit).toHaveBeenCalledWith("user.event", { name: "John" }, "server-1");
@@ -2143,7 +2143,7 @@ describe("Test broker emit & emitLocal", () => {
 
 	it("should call bus.emit with object payload", () => {
 		broker.bus.emit.mockClear();
-		broker.emitLocal("user.event", { name: "John" }, "server-2");
+		broker.broadcastLocal("user.event", { name: "John" }, "server-2");
 
 		expect(broker.bus.emit).toHaveBeenCalledTimes(1);
 		expect(broker.bus.emit).toHaveBeenCalledWith("user.event", { name: "John" }, "server-2");

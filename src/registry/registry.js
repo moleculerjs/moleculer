@@ -24,12 +24,12 @@ class Registry {
 		this.opts = broker.options.registry || {};
 		this.opts.circuitBreaker = broker.options.circuitBreaker || {};
 
-		//this.strategy = this.opts.strategy || new RoundRobinStrategy();
+		this.StrategyFactory = this.opts.StrategyFactory || RoundRobinStrategy;
 
 		this.nodes = new NodeCatalog(this, broker, this.logger);
 		this.services = new ServiceCatalog(this, broker, this.logger);
-		this.actions = new ActionCatalog(this, broker, this.logger, new RoundRobinStrategy());
-		this.events = new EventCatalog(this, broker, this.logger, new RoundRobinStrategy());
+		this.actions = new ActionCatalog(this, broker, this.logger, RoundRobinStrategy);
+		this.events = new EventCatalog(this, broker, this.logger, RoundRobinStrategy);
 
 	}
 

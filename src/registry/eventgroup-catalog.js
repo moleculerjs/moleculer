@@ -12,11 +12,11 @@ const EventEndpoint = require("./endpoint-event");
 
 class EventGroupCatalog {
 
-	constructor(registry, broker, logger, strategy) {
+	constructor(registry, broker, logger, StrategyFactory) {
 		this.registry = registry;
 		this.broker = broker;
 		this.logger = logger;
-		this.strategy = strategy;
+		this.StrategyFactory = StrategyFactory;
 
 		this.groups = new Map();
 
@@ -28,7 +28,7 @@ class EventGroupCatalog {
 		let list = this.groups.get(name);
 		if (!list) {
 			// Create a new EndpointList
-			list = new EndpointList(this.registry, this.broker, this.logger, name, this.EndpointFactory, this.strategy);
+			list = new EndpointList(this.registry, this.broker, this.logger, name, this.EndpointFactory, new this.StrategyFactory());
 			this.groups.set(name, list);
 		}
 

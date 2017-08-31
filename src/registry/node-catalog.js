@@ -111,13 +111,13 @@ class NodeCatalog {
 
 		// Local notifications
 		if (isNew) {
-			this.broker.emitLocal("$node.connected", { node, reconnected: false });
+			this.broker.broadcastLocal("$node.connected", { node, reconnected: false });
 			this.logger.info(`Node '${nodeID}' connected!`);
 		} else if (isReconnected) {
-			this.broker.emitLocal("$node.connected", { node, reconnected: true });
+			this.broker.broadcastLocal("$node.connected", { node, reconnected: true });
 			this.logger.info(`Node '${nodeID}' reconnected!`);
 		} else {
-			this.broker.emitLocal("$node.updated", { node });
+			this.broker.broadcastLocal("$node.updated", { node });
 			this.logger.debug(`Node '${nodeID}' updated!`);
 		}
 
@@ -147,7 +147,7 @@ class NodeCatalog {
 
 			this.registry.unregisterServicesByNode(node.id);
 
-			this.broker.emitLocal("$node.disconnected", { node, unexpected: !!isUnexpected });
+			this.broker.broadcastLocal("$node.disconnected", { node, unexpected: !!isUnexpected });
 
 			this.logger.warn(`Node '${node.id}' disconnected! Unexpected:`, !!isUnexpected);
 

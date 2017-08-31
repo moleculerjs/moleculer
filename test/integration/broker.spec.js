@@ -450,19 +450,19 @@ describe("Test on/once/off event emitter", () => {
 	it("register event handler", () => {
 		broker.on("test.event.**", handler);
 
-		broker.emitLocal("test");
+		broker.broadcastLocal("test");
 		expect(handler).toHaveBeenCalledTimes(0);
 
 		let p = { a: 5 };
-		broker.emitLocal("test.event", p);
+		broker.broadcastLocal("test.event", p);
 		expect(handler).toHaveBeenCalledTimes(1);
 		expect(handler).toHaveBeenCalledWith(p, "node-1");
 
-		broker.emitLocal("test.event.demo", "data");
+		broker.broadcastLocal("test.event.demo", "data");
 		expect(handler).toHaveBeenCalledTimes(2);
 		expect(handler).toHaveBeenCalledWith("data", "node-1");
 
-		broker.emitLocal("test.event.demo", "data", "node-2");
+		broker.broadcastLocal("test.event.demo", "data", "node-2");
 		expect(handler).toHaveBeenCalledTimes(3);
 		expect(handler).toHaveBeenCalledWith("data", "node-2");
 	});
@@ -471,9 +471,9 @@ describe("Test on/once/off event emitter", () => {
 		handler.mockClear();
 		broker.off("test.event.**", handler);
 
-		broker.emitLocal("test");
-		broker.emitLocal("test.event");
-		broker.emitLocal("test.event.demo");
+		broker.broadcastLocal("test");
+		broker.broadcastLocal("test.event");
+		broker.broadcastLocal("test.event.demo");
 		expect(handler).toHaveBeenCalledTimes(0);
 	});
 
@@ -481,10 +481,10 @@ describe("Test on/once/off event emitter", () => {
 		handler.mockClear();
 		broker.once("request", handler);
 
-		broker.emitLocal("request");
+		broker.broadcastLocal("request");
 		expect(handler).toHaveBeenCalledTimes(1);
 
-		broker.emitLocal("request");
+		broker.broadcastLocal("request");
 		expect(handler).toHaveBeenCalledTimes(1);
 	});
 

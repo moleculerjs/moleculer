@@ -28,6 +28,7 @@ $root.packets = (function() {
          * @property {string} sender PacketEvent sender
          * @property {string} event PacketEvent event
          * @property {string} data PacketEvent data
+         * @property {string} group PacketEvent group
          */
 
         /**
@@ -77,6 +78,14 @@ $root.packets = (function() {
         PacketEvent.prototype.data = "";
 
         /**
+         * PacketEvent group.
+         * @member {string}group
+         * @memberof packets.PacketEvent
+         * @instance
+         */
+        PacketEvent.prototype.group = "";
+
+        /**
          * Creates a new PacketEvent instance using the specified properties.
          * @function create
          * @memberof packets.PacketEvent
@@ -104,6 +113,7 @@ $root.packets = (function() {
             writer.uint32(/* id 2, wireType 2 =*/18).string(message.sender);
             writer.uint32(/* id 3, wireType 2 =*/26).string(message.event);
             writer.uint32(/* id 4, wireType 2 =*/34).string(message.data);
+            writer.uint32(/* id 5, wireType 2 =*/42).string(message.group);
             return writer;
         };
 
@@ -150,6 +160,9 @@ $root.packets = (function() {
                 case 4:
                     message.data = reader.string();
                     break;
+                case 5:
+                    message.group = reader.string();
+                    break;
                 default:
                     reader.skipType(tag & 7);
                     break;
@@ -163,6 +176,8 @@ $root.packets = (function() {
                 throw $util.ProtocolError("missing required 'event'", { instance: message });
             if (!message.hasOwnProperty("data"))
                 throw $util.ProtocolError("missing required 'data'", { instance: message });
+            if (!message.hasOwnProperty("group"))
+                throw $util.ProtocolError("missing required 'group'", { instance: message });
             return message;
         };
 
@@ -201,6 +216,8 @@ $root.packets = (function() {
                 return "event: string expected";
             if (!$util.isString(message.data))
                 return "data: string expected";
+            if (!$util.isString(message.group))
+                return "group: string expected";
             return null;
         };
 
@@ -224,6 +241,8 @@ $root.packets = (function() {
                 message.event = String(object.event);
             if (object.data != null)
                 message.data = String(object.data);
+            if (object.group != null)
+                message.group = String(object.group);
             return message;
         };
 
@@ -245,6 +264,7 @@ $root.packets = (function() {
                 object.sender = "";
                 object.event = "";
                 object.data = "";
+                object.group = "";
             }
             if (message.ver != null && message.hasOwnProperty("ver"))
                 object.ver = message.ver;
@@ -254,6 +274,8 @@ $root.packets = (function() {
                 object.event = message.event;
             if (message.data != null && message.hasOwnProperty("data"))
                 object.data = message.data;
+            if (message.group != null && message.hasOwnProperty("group"))
+                object.group = message.group;
             return object;
         };
 
