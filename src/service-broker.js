@@ -600,7 +600,7 @@ class ServiceBroker {
 		return this.services.find(service => service.name == serviceName);
 	}
 
-	waitForServices(serviceNames, timeout, interval = 1000, logger = this.logger) {
+	waitForServices(serviceNames, timeout, interval, logger = this.logger) {
 		if (!Array.isArray(serviceNames))
 			serviceNames = [serviceNames];
 
@@ -623,7 +623,7 @@ class ServiceBroker {
 				if (timeout && Date.now() - startTime > timeout)
 					return reject(new E.MoleculerError("Services waiting is timed out!", 500, "WAITFOR_SERVICES", serviceNames));
 
-				setTimeout(check, interval);
+				setTimeout(check, interval || 1000);
 			};
 
 			check();
