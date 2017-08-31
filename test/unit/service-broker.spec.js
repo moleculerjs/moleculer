@@ -37,44 +37,7 @@ describe("Test ServiceBroker constructor", () => {
 		let strategy = new Strategies.RoundRobin();
 		strategy.init(broker);
 		expect(broker).toBeDefined();
-		expect(broker.options).toEqual({
-			namespace: "",
-			nodeID: null,
-
-			logger: null,
-			logLevel: null,
-
-			transporter: null,
-			requestTimeout: 0,
-			requestRetry: 0,
-			maxCallLevel: 0,
-			heartbeatInterval: 5,
-			heartbeatTimeout : 15,
-
-			registry: {
-				//strategy,
-				preferLocal: true
-			},
-
-			circuitBreaker: {
-				enabled: false,
-				maxFailures: 3,
-				halfOpenTime: 10 * 1000,
-				failureOnTimeout: true,
-				failureOnReject: true
-			},
-
-			cacher: null,
-			serializer: null,
-
-			validation: true,
-			metrics: false,
-			metricsRate: 1,
-			statistics: false,
-			internalServices: true,
-
-			hotReload: false
-		});
+		expect(broker.options).toEqual(ServiceBroker.defaultConfig);
 
 		expect(broker.Promise).toBe(Promise);
 

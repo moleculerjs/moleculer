@@ -1,3 +1,41 @@
+<a name="0.11.0"></a>
+# [Next - 0.11.0](https://github.com/ice-services/moleculer/compare/v0.10.0...v0.11.0) (2017-xx-xx)
+
+- Cacher doesn't listen "cache.clean" event
+- $node.health: removed `versions`, added `client`
+- broker options: `logFormatter: "simple"`
+- new PING & PONG packets
+- versioned packets
+- removed double stringify in packets data
+- removed `uptime`, added `cpu` utilization in HEARTBEAT packet
+- added `client`, `port`, `config`, removed `versions` fields in INFO packet
+- added `group` field in EVENT packet
+- added `requestID` field in REQUEST packet
+- changed default broker options: `heartbeatInterval: 5`, `heartbeatTimeout: 15`, `circuitBreaker.maxFailures: 3`
+- `broker.bus`, `broker.on`, `broker.once`, `broker.off` removed. Use `events` in service schema.
+- rewritten service registry module
+- internal events starts with `$`
+- internal node events `$node.connected`, `$node.updated`, `$node.disconnected`
+- `services.changed` renamed to `$services.changed`. It is called if local or remote service list changed. First parameter is `localService` boolean.
+- `broker.getService` renamed to `broker.getLocalService`
+- some broker method removed: `hasService`, `hasAction`, `getAction`, `isActionAvailable`
+- new event sending methods
+    - `broker.emit` - balancing events between service instances. 3rd param is the service "group" name
+    - `broker.broadcast` - same as the old `broker.emit`. Every nodes & every services receive the event
+    - `broker.broadcastLocal` - every local service receive the event.
+
+- changed circuit breaker events:
+    - local events: `$circuit-breaker.closed`, `$circuit-breaker.opened`, `$circuit-breaker.half-opened`
+    - global metrics events: `metrics.circuit-breaker.closed`, `metrics.circuit-breaker.opened`, `metrics.circuit-breaker.half-opened`
+
+- changed returned structure of `$node.list`, `$node.services`, `$node.actions`, `$node.health`
+- new internal action `$node.events`
+- support balanced events (event-driver arch)
+- new `waitForServices` method in services & broker
+- ping other nodes `transit.sendPing`. For responses subscribe to `$node.pong` event.
+
+
+--------------------------------------------------
 <a name="0.10.0"></a>
 # [0.10.0](https://github.com/ice-services/moleculer/compare/v0.9.0...v0.10.0) (2017-08-20)
 
