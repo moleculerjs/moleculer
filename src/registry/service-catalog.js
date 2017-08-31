@@ -7,7 +7,6 @@
 "use strict";
 
 const _ = require("lodash");
-//const BaseCatalog = require("./base-catalog");
 const ServiceItem = require("./service-item");
 
 class ServiceCatalog {

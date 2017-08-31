@@ -8,8 +8,7 @@
 
 const _ = require("lodash");
 const nanomatch  	= require("nanomatch");
-//const BaseCatalog = require("./base-catalog");
-const EventGroupCatalog = require("./eventgroup-catalog");
+const EndpointList = require("./endpoint-list");
 const EventEndpoint = require("./endpoint-event");
 
 class EventCatalog {
@@ -20,41 +19,38 @@ class EventCatalog {
 		this.logger = logger;
 		this.StrategyFactory = StrategyFactory;
 
-		this.events = new Map();
+		this.events = [];
 
 		this.EndpointFactory = EventEndpoint;
 	}
 
 	add(node, service, event) {
-		const name = event.name;
-		let groups = this.events.get(name);
-		if (!groups) {
-			// Create a new Event groups
-			groups = new EventGroupCatalog(this.registry, this.broker, this.logger, this.StrategyFactory);
-			this.events.set(name, groups);
+		const eventName = event.name;
+		const groupName = event.group || service.name;
+		let list = this.get(eventName, groupName);
+		if (!list) {
+			// Create a new EndpointList
+			list = new EndpointList(this.registry, this.broker, this.logger, eventName, groupName, this.EndpointFactory, new this.StrategyFactory());
+			this.events.push(list);
 		}
 
-		groups.add(node, service, event);
+		list.add(node, service, event);
 	}
 
-	get(eventName) {
-		return this.events.get(eventName);
+	get(eventName, groupName) {
+		return this.events.find(list => list.name == eventName && list.group == groupName);
 	}
 
 	getBalancedEndpoints(eventName, groupName) {
 		const res = [];
 
-		this.events.forEach((groups, name) => {
-			if (!nanomatch.isMatch(eventName, name)) return;
-			groups.groups.forEach((list, gName) => {
-				if (groupName == null || groupName == gName) {
-					const ep = list.next();
-					if (ep)
-						res.push([ep, gName]);
-					else
-						this.logger.debug(`There is no available '${gName}' service to handle the 'eventName' event!`);
-				}
-			});
+		this.events.forEach(list => {
+			if (!nanomatch.isMatch(eventName, list.name)) return;
+			if (groupName == null || groupName == list.group) {
+				const ep = list.next();
+				if (ep)
+					res.push([ep, list.group]);
+			}
 		});
 
 		return res;
@@ -62,13 +58,11 @@ class EventCatalog {
 
 	getAllEndpoints(eventName) {
 		const res = [];
-		this.events.forEach((groups, name) => {
-			if (!nanomatch.isMatch(eventName, name)) return;
-			groups.groups.forEach((list) => {
-				list.endpoints.forEach(ep => {
-					if (ep.isAvailable)
-						res.push(ep);
-				});
+		this.events.forEach(list => {
+			if (!nanomatch.isMatch(eventName, list.name)) return;
+			list.endpoints.forEach(ep => {
+				if (ep.isAvailable)
+					res.push(ep);
 			});
 		});
 
@@ -76,29 +70,28 @@ class EventCatalog {
 	}
 
 	emitLocalServices(eventName, payload, groupNames, nodeID) {
-		this.events.forEach((groups, name) => {
-			if (!nanomatch.isMatch(eventName, name)) return;
-			groups.groups.forEach((list, gName) => {
-				if (groupNames == null || groupNames.length == 0 || groupNames.indexOf(gName) !== -1) {
-					list.endpoints.forEach(ep => {
-						if (ep.local && ep.event.handler)
-							ep.event.handler(payload, nodeID, eventName);
-					});
-				}
-			});
+		this.events.forEach(list => {
+			if (!nanomatch.isMatch(eventName, list.name)) return;
+			if (groupNames == null || groupNames.length == 0 || groupNames.indexOf(list.group) !== -1) {
+				list.endpoints.forEach(ep => {
+					if (ep.local && ep.event.handler)
+						ep.event.handler(payload, nodeID, eventName);
+				});
+			}
 		});
 	}
 
 	removeByService(service) {
-		this.events.forEach(groups => {
-			groups.removeByService(service);
+		this.events.forEach(list => {
+			list.removeByService(service);
 		});
 	}
 
 	remove(eventName, nodeID) {
-		const groups = this.events.get(eventName);
-		if (groups)
-			groups.removeByNodeID(nodeID);
+		this.events.forEach(list => {
+			if (list.name == eventName)
+				list.removeByNodeID(nodeID);
+		});
 	}
 
 	/**
@@ -112,41 +105,39 @@ class EventCatalog {
 	list({onlyLocal = false, skipInternal = false, withEndpoints = false}) {
 		let res = [];
 
-		this.events.forEach((groups, eventName) => {
-			groups.groups.forEach((list, groupName) => {
-				if (skipInternal && /^\$/.test(eventName))
-					return;
+		this.events.forEach(list => {
+			if (skipInternal && /^\$/.test(list.name))
+				return;
 
-				if (onlyLocal && !list.hasLocal())
-					return;
+			if (onlyLocal && !list.hasLocal())
+				return;
 
-				let item = {
-					name: eventName,
-					group: groupName,
-					count: list.count(),
-					hasLocal: list.hasLocal(),
-					available: list.hasAvailable()
-				};
+			let item = {
+				name: list.name,
+				group: list.group,
+				count: list.count(),
+				hasLocal: list.hasLocal(),
+				available: list.hasAvailable()
+			};
 
+			if (item.count > 0) {
+				const ep = list.endpoints[0];
+				if (ep)
+					item.event = _.omit(ep.event, ["handler", "service"]);
+			}
+
+			if (withEndpoints) {
 				if (item.count > 0) {
-					const ep = list.endpoints[0];
-					if (ep)
-						item.event = _.omit(ep.event, ["handler", "service"]);
+					item.endpoints = list.endpoints.map(ep => {
+						return {
+							nodeID: ep.node.id,
+							state: ep.state
+						};
+					});
 				}
+			}
 
-				if (withEndpoints) {
-					if (item.count > 0) {
-						item.endpoints = list.endpoints.map(ep => {
-							return {
-								nodeID: ep.node.id,
-								state: ep.state
-							};
-						});
-					}
-				}
-
-				res.push(item);
-			});
+			res.push(item);
 		});
 
 		return res;

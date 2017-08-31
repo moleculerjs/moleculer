@@ -11,12 +11,13 @@ const { MoleculerError } = require("../errors");
 
 class EndpointList {
 
-	constructor(registry, broker, logger, name, EndPointFactory, strategy) {
+	constructor(registry, broker, logger, name, group, EndPointFactory, strategy) {
 		this.registry = registry;
 		this.broker = broker;
 		this.logger = logger;
 		this.strategy = strategy;
 		this.name = name;
+		this.group = group;
 		this.internal = name.startsWith("$");
 
 		this.EndPointFactory = EndPointFactory;

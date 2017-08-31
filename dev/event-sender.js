@@ -31,7 +31,7 @@ broker.createService({
 
 	events: {
 		"$node.pong"({ nodeID, elapsedTime, timeDiff }) {
-			this.logger.info(`PING-PONG from '${nodeID}' - Time: ${elapsedTime}ms, Time difference: ${timeDiff}ms `);
+			//this.logger.info(`PING-PONG from '${nodeID}' - Time: ${elapsedTime}ms, Time difference: ${timeDiff}ms `);
 		}
 	}
 });
