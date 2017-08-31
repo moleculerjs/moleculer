@@ -70,6 +70,7 @@ class Transit {
 
 			.then(() => this.discoverNodes())
 			.then(() => this.sendNodeInfo())
+			.delay(200) // Waiting for incoming INFO packets
 
 			.then(() => {
 				this.connected = true;
@@ -378,11 +379,11 @@ class Transit {
 	 */
 	request(ctx) {
 		// Expanded the code that v8 can optimize it.  (TryCatchStatement disable optimizing)
-		return new Promise((resolve, reject) => this._doRequest(ctx, resolve, reject));
+		return new Promise((resolve, reject) => this._sendRequest(ctx, resolve, reject));
 	}
 
 	/**
-	 * Do a remote request
+	 * Send a remote request
 	 *
 	 * @param {<Context>} ctx 		Context of request
 	 * @param {Function} resolve 	Resolve of Promise
@@ -390,7 +391,7 @@ class Transit {
 	 *
 	 * @memberOf Transit
 	 */
-	_doRequest(ctx, resolve, reject) {
+	_sendRequest(ctx, resolve, reject) {
 		const request = {
 			nodeID: ctx.nodeID,
 			action: ctx.action,

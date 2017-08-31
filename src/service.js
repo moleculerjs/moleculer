@@ -227,6 +227,10 @@ class Service {
 		return action;
 	}
 
+	waitForServices(serviceNames, timeout, interval) {
+		return this.broker.waitForServices(serviceNames, timeout, interval, this.logger);
+	}
+
 	/**
 	 * Apply `mixins` list in schema. Merge the schema with mixins schemas. Returns with the mixed schema
 	 *

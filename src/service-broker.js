@@ -600,6 +600,36 @@ class ServiceBroker {
 		return this.services.find(service => service.name == serviceName);
 	}
 
+	waitForServices(serviceNames, timeout, interval = 1000, logger = this.logger) {
+		if (!Array.isArray(serviceNames))
+			serviceNames = [serviceNames];
+
+		logger.info(`Waiting for services '${serviceNames.join(", ")}'...`);
+
+		const startTime = Date.now();
+		return new Promise((resolve, reject) => {
+			const check = () => {
+				const count = serviceNames.filter(name => {
+					return this.registry.services.has(name);
+				});
+
+				if (count.length == serviceNames.length) {
+					logger.info(`Services '${serviceNames.join(", ")}' are available!`);
+					return resolve();
+				}
+
+				logger.debug(`${count.length} of ${serviceNames.length} services are available. Waiting...`);
+
+				if (timeout && Date.now() - startTime > timeout)
+					return reject(new E.MoleculerError("Services waiting is timed out!", 500, "WAITFOR_SERVICES", serviceNames));
+
+				setTimeout(check, interval);
+			};
+
+			check();
+		});
+	}
+
 	/**
 	 * Add a middleware to the broker
 	 *

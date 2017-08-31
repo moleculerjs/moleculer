@@ -26,6 +26,7 @@ let broker = new ServiceBroker({
 		maxFailures: 3
 	},
 	logger: console,
+	//logLevel: "debug",
 	logFormatter: "simple"
 });
 
@@ -51,6 +52,7 @@ broker.createService({
 
 	started() {
 		this.counter = 1;
+
 		setInterval(() => {
 			broker.logger.info(`>> Send echo event to all nodes. Counter: ${this.counter}.`);
 			broker.emit("echo.event", { counter: this.counter++ });
@@ -61,6 +63,7 @@ broker.createService({
 let reqCount = 0;
 
 broker.start()
+	.then(() => broker.waitForServices("math", 30 * 1000, 5 * 1000))
 	.then(() => {
 		setInterval(() => {
 			let payload = { a: _.random(0, 100), b: _.random(0, 100) };
