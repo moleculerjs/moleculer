@@ -6,8 +6,8 @@
 
 "use strict";
 
-const Promise			= require("bluebird");
-const P 				= require("./packets");
+const Promise	= require("bluebird");
+const P 		= require("./packets");
 
 const { ProtocolVersionMismatchError } = require("./errors");
 
@@ -318,6 +318,7 @@ class Transit {
 		});
 		ctx.id = payload.id;
 		ctx.parentID = payload.parentID;
+		ctx.requestID = payload.requestID;
 		ctx.level = payload.level;
 		ctx.metrics = payload.metrics;
 		ctx.callerNodeID = payload.sender;
