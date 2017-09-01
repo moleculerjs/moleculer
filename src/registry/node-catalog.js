@@ -12,10 +12,10 @@ const { getIpList } = require("../utils");
 
 class NodeCatalog {
 
-	constructor(registry, broker, logger) {
+	constructor(registry, broker) {
 		this.registry = registry;
 		this.broker = broker;
-		this.logger = logger;
+		this.logger = registry.logger;
 
 		this.nodes = new Map();
 

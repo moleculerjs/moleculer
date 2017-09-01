@@ -11,10 +11,10 @@ const { MoleculerError } = require("../errors");
 
 class EndpointList {
 
-	constructor(registry, broker, logger, name, group, EndPointFactory, strategy) {
+	constructor(registry, broker, name, group, EndPointFactory, strategy) {
 		this.registry = registry;
 		this.broker = broker;
-		this.logger = logger;
+		this.logger = registry.logger;
 		this.strategy = strategy;
 		this.name = name;
 		this.group = group;
@@ -30,7 +30,8 @@ class EndpointList {
 	add(node, service, data) {
 		const found = this.endpoints.find(ep => ep.node == node);
 		if (found) {
-			return found.update(data);
+			found.update(data);
+			return found;
 		}
 
 		const ep = new this.EndPointFactory(this.registry, this.broker, node, service, data);
@@ -38,6 +39,7 @@ class EndpointList {
 			this.localEndpoint = ep;
 
 		this.endpoints.push(ep);
+		return ep;
 	}
 
 	select() {

@@ -11,10 +11,10 @@ const ServiceItem = require("./service-item");
 
 class ServiceCatalog {
 
-	constructor(registry, broker, logger) {
+	constructor(registry, broker) {
 		this.registry = registry;
 		this.broker = broker;
-		this.logger = logger;
+		this.logger = registry.logger;
 
 		this.services = [];
 	}

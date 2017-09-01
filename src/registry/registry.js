@@ -26,10 +26,10 @@ class Registry {
 
 		this.StrategyFactory = this.opts.StrategyFactory || RoundRobinStrategy;
 
-		this.nodes = new NodeCatalog(this, broker, this.logger);
-		this.services = new ServiceCatalog(this, broker, this.logger);
-		this.actions = new ActionCatalog(this, broker, this.logger, RoundRobinStrategy);
-		this.events = new EventCatalog(this, broker, this.logger, RoundRobinStrategy);
+		this.nodes = new NodeCatalog(this, broker);
+		this.services = new ServiceCatalog(this, broker);
+		this.actions = new ActionCatalog(this, broker, RoundRobinStrategy);
+		this.events = new EventCatalog(this, broker, RoundRobinStrategy);
 
 	}
 

@@ -11,12 +11,25 @@ const EndpointList = require("./endpoint-list");
 const ActionEndpoint = require("./endpoint-action");
 const ActionEndpointCB = require("./endpoint-cb");
 
+/**
+ * Catalog class to store service actions
+ *
+ * @class ActionCatalog
+ */
 class ActionCatalog {
 
-	constructor(registry, broker, logger, StrategyFactory) {
+	/**
+	 * Creates an instance of ActionCatalog.
+	 *
+	 * @param {Registry} registry
+	 * @param {ServiceBroker} broker
+	 * @param {Strategy} StrategyFactory
+	 * @memberof ActionCatalog
+	 */
+	constructor(registry, broker, StrategyFactory) {
 		this.registry = registry;
 		this.broker = broker;
-		this.logger = logger;
+		this.logger = registry.logger;
 		this.StrategyFactory = StrategyFactory;
 
 		this.actions = new Map();
@@ -24,31 +37,57 @@ class ActionCatalog {
 		this.EndpointFactory = this.registry.opts.circuitBreaker && this.registry.opts.circuitBreaker.enabled ? ActionEndpointCB : ActionEndpoint;
 	}
 
+	/**
+	 * Add an action
+	 *
+	 * @param {Node} node
+	 * @param {ServiceItem} service
+	 * @param {Action} action
+	 * @memberof ActionCatalog
+	 */
 	add(node, service, action) {
 		let list = this.actions.get(action.name);
 		if (!list) {
 			// Create a new EndpointList
-			list = new EndpointList(this.registry, this.broker, this.logger, action.name, null, this.EndpointFactory, new this.StrategyFactory());
+			list = new EndpointList(this.registry, this.broker, action.name, null, this.EndpointFactory, new this.StrategyFactory());
 			this.actions.set(action.name, list);
 		}
 
 		list.add(node, service, action);
+
+		return list;
 	}
-/*
-	has(name, version, nodeID) {
-		return this.actions.find(svc => svc.equals(name, version, nodeID)) != null;
-	}
-*/
+
+	/**
+	 * Get action by name
+	 *
+	 * @param {String} actionName
+	 * @returns
+	 * @memberof ActionCatalog
+	 */
 	get(actionName) {
 		return this.actions.get(actionName);
 	}
 
+	/**
+	 * Remove all actions by service
+	 *
+	 * @param {ServiceItem} service
+	 * @memberof ActionCatalog
+	 */
 	removeByService(service) {
 		this.actions.forEach(list => {
 			list.removeByService(service);
 		});
 	}
 
+	/**
+	 * Remove action by name & nodeID
+	 *
+	 * @param {String} actionName
+	 * @param {String} nodeID
+	 * @memberof ActionCatalog
+	 */
 	remove(actionName, nodeID) {
 		const list = this.actions.get(actionName);
 		if (list)
