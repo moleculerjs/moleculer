@@ -35,6 +35,8 @@ class EventCatalog {
 		}
 
 		list.add(node, service, event);
+
+		return list;
 	}
 
 	get(eventName, groupName) {

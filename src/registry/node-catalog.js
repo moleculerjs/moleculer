@@ -98,6 +98,8 @@ class NodeCatalog {
 			node = new Node(nodeID);
 
 			this.add(nodeID, node);
+		} else if (!node.available) {
+			isReconnected = true;
 		}
 
 		// Update instance
