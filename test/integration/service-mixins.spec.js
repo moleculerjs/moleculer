@@ -226,7 +226,7 @@ describe("Test Service mixins", () => {
 
 	it("should call 'oxygen' event handlers", () => {
 		let payload = { a: 5 };
-		broker.emit("oxygen", payload);
+		broker.broadcastLocal("oxygen", payload);
 
 		expect(mainSchema.events.oxygen).toHaveBeenCalledTimes(1);
 		expect(mainSchema.events.oxygen).toHaveBeenCalledWith(payload, broker.nodeID, "oxygen");
@@ -243,7 +243,7 @@ describe("Test Service mixins", () => {
 
 	it("should call 'carbon' event handlers", () => {
 		let payload = { a: 5 };
-		broker.emit("carbon", payload);
+		broker.broadcastLocal("carbon", payload);
 
 		expect(mainSchema.events.carbon).toHaveBeenCalledTimes(1);
 		expect(mainSchema.events.carbon).toHaveBeenCalledWith(payload, broker.nodeID, "carbon");
@@ -251,7 +251,7 @@ describe("Test Service mixins", () => {
 
 	it("should call 'hydrogen' event handlers", () => {
 		let payload = { a: 5 };
-		broker.emit("hydrogen", payload);
+		broker.broadcastLocal("hydrogen", payload);
 
 		expect(mixin1L1.events.hydrogen).toHaveBeenCalledTimes(1);
 		expect(mixin1L1.events.hydrogen).toHaveBeenCalledWith(payload, broker.nodeID, "hydrogen");

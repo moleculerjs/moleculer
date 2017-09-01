@@ -92,36 +92,39 @@ class Service {
 		// Event subscriptions
 		if (isObject(schema.events)) {
 
-			forIn(schema.events, (eventHandlers, name) => {
-				if (!Array.isArray(eventHandlers))
-					eventHandlers = [eventHandlers];
-
-				eventHandlers.forEach(event => {
-					if (isFunction(event)) {
-						event = {
-							handler: event
-						};
-					}
-					if (!event.name)
-						event.name = name;
-
-					if (!isFunction(event.handler)) {
-						throw new ServiceSchemaError(`Missing event handler on '${name}' event in '${this.name}' service!`);
-					}
-
-					event.service = this;
-					const handler = event.handler;
-					const self = this;
-					event.handler = function(payload, sender, eventName) {
-						const p = handler.apply(self, [payload, sender, eventName]);
-						if (utils.isPromise(p)) {
-							p.catch(err => self.logger.error(err));
-						}
-						return null;
+			forIn(schema.events, (event, name) => {
+				if (isFunction(event) || Array.isArray(event)) {
+					event = {
+						handler: event
 					};
+				}
+				if (!event.name)
+					event.name = name;
 
-					registryItem.events[event.name] = event;
-				});
+				if (!event.handler) {
+					throw new ServiceSchemaError(`Missing event handler on '${name}' event in '${this.name}' service!`);
+				}
+
+				event.service = this;
+				const handler = event.handler;
+				const self = this;
+				event.handler = function(payload, sender, eventName) {
+					if (isFunction(handler)) {
+						const p = handler.apply(self, [payload, sender, eventName]);
+						if (utils.isPromise(p))
+							p.catch(err => self.logger.error(err));
+					} else if (Array.isArray(handler)) {
+						handler.forEach(fn => {
+							const p = fn.apply(self, [payload, sender, eventName]);
+							if (utils.isPromise(p))
+								p.catch(err => self.logger.error(err));
+						});
+					}
+
+					return null;
+				};
+
+				registryItem.events[event.name] = event;
 			});
 
 		}
