@@ -9,8 +9,23 @@
 const _ = require("lodash");
 const { MoleculerError } = require("../errors");
 
+/**
+ * Endpoint list class
+ *
+ * @class EndpointList
+ */
 class EndpointList {
 
+	/**
+	 * Creates an instance of EndpointList.
+	 * @param {Registry} registry
+	 * @param {ServiceBroker} broker
+	 * @param {String} name
+	 * @param {String} group
+	 * @param {EndPointClass} EndPointFactory
+	 * @param {Strategy} strategy
+	 * @memberof EndpointList
+	 */
 	constructor(registry, broker, name, group, EndPointFactory, strategy) {
 		this.registry = registry;
 		this.broker = broker;
@@ -27,6 +42,15 @@ class EndpointList {
 		this.localEndpoint = null;
 	}
 
+	/**
+	 * Add a new endpoint
+	 *
+	 * @param {Node} node
+	 * @param {Service} service
+	 * @param {any} data
+	 * @returns
+	 * @memberof EndpointList
+	 */
 	add(node, service, data) {
 		const found = this.endpoints.find(ep => ep.node == node);
 		if (found) {
@@ -42,6 +66,12 @@ class EndpointList {
 		return ep;
 	}
 
+	/**
+	 * Select next endpoint with balancer strategy
+	 *
+	 * @returns
+	 * @memberof EndpointList
+	 */
 	select() {
 		const ret = this.strategy.select(this.endpoints);
 		if (!ret) {
@@ -50,6 +80,12 @@ class EndpointList {
 		return ret;
 	}
 
+	/**
+	 * Get next endpoint
+	 *
+	 * @returns
+	 * @memberof EndpointList
+	 */
 	next() {
 		// No items
 		if (this.endpoints.length === 0) {
@@ -89,18 +125,43 @@ class EndpointList {
 		return null;
 	}
 
+	/**
+	 * Check there is available endpoint
+	 *
+	 * @returns
+	 * @memberof EndpointList
+	 */
 	hasAvailable() {
 		return this.endpoints.find(ep => ep.isAvailable) != null;
 	}
 
+	/**
+	 * Check there is local endpoint
+	 *
+	 * @returns
+	 * @memberof EndpointList
+	 */
 	hasLocal() {
 		return this.localEndpoint != null;
 	}
 
+	/**
+	 * Get count of endpoints
+	 *
+	 * @returns
+	 * @memberof EndpointList
+	 */
 	count() {
 		return this.endpoints.length;
 	}
 
+	/**
+	 * Get endpoint on a specified node
+	 *
+	 * @param {String} nodeID
+	 * @returns
+	 * @memberof EndpointList
+	 */
 	getEndpointByNodeID(nodeID) {
 		const ep = this.endpoints.find(ep => ep.id == nodeID);
 		if (ep && ep.isAvailable)
@@ -109,22 +170,46 @@ class EndpointList {
 		return null;
 	}
 
+	/**
+	 * Check nodeID in the endpoint list
+	 *
+	 * @param {String} nodeID
+	 * @returns
+	 * @memberof EndpointList
+	 */
 	hasNodeID(nodeID) {
 		return this.endpoints.find(ep => ep.id == nodeID) != null;
 	}
 
+	/**
+	 * Remove all endpoints by service
+	 *
+	 * @param {ServiceItem} service
+	 * @memberof EndpointList
+	 */
 	removeByService(service) {
 		_.remove(this.endpoints, ep => ep.service == service);
 
 		this.setLocalEndpoint();
 	}
 
+	/**
+	 * Remove endpoints by node ID
+	 *
+	 * @param {String} nodeID
+	 * @memberof EndpointList
+	 */
 	removeByNodeID(nodeID) {
 		_.remove(this.endpoints, ep => ep.id == nodeID);
 
 		this.setLocalEndpoint();
 	}
 
+	/**
+	 * Set local endpoint
+	 *
+	 * @memberof EndpointList
+	 */
 	setLocalEndpoint() {
 		this.localEndpoint = null;
 		this.endpoints.forEach(ep => {

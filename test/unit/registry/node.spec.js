@@ -41,7 +41,6 @@ describe("Test Node", () => {
 	it("should update heartbeat props", () => {
 		let node = new Node("node-1");
 		node.available = false;
-		let oldTime = node.lastHeartbeatTime;
 
 		let payload = {
 			cpu: 56.8

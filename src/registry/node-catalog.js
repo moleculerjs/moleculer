@@ -10,8 +10,21 @@ const _ 			= require("lodash");
 const Node 			= require("./node");
 const { getIpList } = require("../utils");
 
+/**
+ * Catalog for nodes
+ *
+ * @class NodeCatalog
+ */
 class NodeCatalog {
 
+	/**
+	 * Creates an instance of NodeCatalog.
+	 *
+	 * @param {Registry} registry
+	 * @param {ServiceBroker} broker
+	 *
+	 * @memberof NodeCatalog
+	 */
 	constructor(registry, broker) {
 		this.registry = registry;
 		this.broker = broker;
@@ -29,6 +42,11 @@ class NodeCatalog {
 		this.broker.internalEvents.on("$transporter.disconnected", this.stopHeartbeatTimers.bind(this));
 	}
 
+	/**
+	 * Start heartbeat timers
+	 *
+	 * @memberof NodeCatalog
+	 */
 	startHeartbeatTimers() {
 		this.heartbeatTimer = setInterval(() => {
 			this.localNode.updateLocalInfo();
@@ -46,6 +64,11 @@ class NodeCatalog {
 		this.checkNodesTimer.unref();
 	}
 
+	/**
+	 * Stop heartbeat timers
+	 *
+	 * @memberof NodeCatalog
+	 */
 	stopHeartbeatTimers() {
 		if (this.heartbeatTimer) {
 			clearInterval(this.heartbeatTimer);
@@ -58,6 +81,12 @@ class NodeCatalog {
 		}
 	}
 
+	/**
+	 * Create local node with local information
+	 *
+	 * @returns
+	 * @memberof NodeCatalog
+	 */
 	createLocalNode() {
 		const node = new Node(this.broker.nodeID);
 		node.local = true;
@@ -74,18 +103,45 @@ class NodeCatalog {
 		return node;
 	}
 
+	/**
+	 * Add a new node
+	 *
+	 * @param {String} id
+	 * @param {any} node
+	 * @memberof NodeCatalog
+	 */
 	add(id, node) {
 		this.nodes.set(id, node);
 	}
 
+	/**
+	 * Check a node exist by nodeID
+	 *
+	 * @param {String} id
+	 * @returns
+	 * @memberof NodeCatalog
+	 */
 	has(id) {
 		return this.nodes.has(id);
 	}
 
+	/**
+	 * Get a node by nodeID
+	 *
+	 * @param {String} id
+	 * @returns
+	 * @memberof NodeCatalog
+	 */
 	get(id) {
 		return this.nodes.get(id);
 	}
 
+	/**
+	 * Process incoming INFO packet payload
+	 *
+	 * @param {any} payload
+	 * @memberof NodeCatalog
+	 */
 	processNodeInfo(payload) {
 		const nodeID = payload.sender;
 		//let oldNode;
@@ -124,7 +180,7 @@ class NodeCatalog {
 	}
 
 	/**
-	 * Check all registered remote nodes is live.
+	 * Check all registered remote nodes are available.
 	 *
 	 * @memberOf Transit
 	 */
@@ -140,6 +196,13 @@ class NodeCatalog {
 		});
 	}
 
+	/**
+	 * Disconnected a node
+	 *
+	 * @param {String} nodeID
+	 * @param {Boolean} isUnexpected
+	 * @memberof NodeCatalog
+	 */
 	disconnected(nodeID, isUnexpected) {
 		let node = this.get(nodeID);
 		if (node && node.available) {
@@ -155,6 +218,12 @@ class NodeCatalog {
 		}
 	}
 
+	/**
+	 * Heartbeat
+	 *
+	 * @param {any} payload
+	 * @memberof NodeCatalog
+	 */
 	heartbeat(payload) {
 		const node = this.get(payload.sender);
 		if (node) {
@@ -170,6 +239,12 @@ class NodeCatalog {
 		}
 	}
 
+	/**
+	 * Get a node list
+	 *
+	 * @returns
+	 * @memberof NodeCatalog
+	 */
 	list() {
 		let res = [];
 		this.nodes.forEach(node => {

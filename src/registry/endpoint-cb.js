@@ -10,8 +10,23 @@ const { CIRCUIT_CLOSE, CIRCUIT_HALF_OPEN, CIRCUIT_OPEN } = require("../constants
 
 const ActionEndpoint = require("./endpoint-action");
 
+/**
+ * Action endpoint, which protected with circuit breaker logic
+ *
+ * @class ActionEndpointCB
+ * @extends {ActionEndpoint}
+ */
 class ActionEndpointCB extends ActionEndpoint {
 
+	/**
+	 * Creates an instance of ActionEndpointCB.
+	 * @param {Registry} registry
+	 * @param {ServiceBroker} broker
+	 * @param {Node} node
+	 * @param {ServiceItem} service
+	 * @param {any} action
+	 * @memberof ActionEndpointCB
+	 */
 	constructor(registry, broker, node, service, action) {
 		super(registry, broker, node, service, action);
 
@@ -23,10 +38,21 @@ class ActionEndpointCB extends ActionEndpoint {
 		this.cbTimer = null;
 	}
 
+	/**
+	 * Get availability
+	 *
+	 * @readonly
+	 * @memberof ActionEndpointCB
+	 */
 	get isAvailable() {
 		return this.state === CIRCUIT_CLOSE || this.state === CIRCUIT_HALF_OPEN;
 	}
 
+	/**
+	 * Increment failure counter
+	 *
+	 * @memberof ActionEndpointCB
+	 */
 	failure() {
 		this.failures++;
 		if (this.failures >= this.opts.maxFailures) {
@@ -34,6 +60,11 @@ class ActionEndpointCB extends ActionEndpoint {
 		}
 	}
 
+	/**
+	 * Change circuit-breaker status to open
+	 *
+	 * @memberof ActionEndpointCB
+	 */
 	circuitOpen() {
 		this.state = CIRCUIT_OPEN;
 		this.cbTimer = setTimeout(() => {
@@ -48,6 +79,11 @@ class ActionEndpointCB extends ActionEndpoint {
 			this.broker.emit("metrics.circuit-breaker.opened", { nodeID: this.node.id, action: this.action.name, failures: this.failures });
 	}
 
+	/**
+	 * Change circuit-breaker status to half-open
+	 *
+	 * @memberof ActionEndpointCB
+	 */
 	circuitHalfOpen() {
 		this.state = CIRCUIT_HALF_OPEN;
 
@@ -56,6 +92,11 @@ class ActionEndpointCB extends ActionEndpoint {
 			this.broker.emit("metrics.circuit-breaker.half-opened", { nodeID: this.node.id, action: this.action.name });
 	}
 
+	/**
+	 * Change circuit-breaker status to close
+	 *
+	 * @memberof ActionEndpointCB
+	 */
 	circuitClose() {
 		this.state = CIRCUIT_CLOSE;
 		this.failures = 0;

@@ -6,7 +6,19 @@
 
 "use strict";
 
+/**
+ * Endpoint class
+ *
+ * @class Endpoint
+ */
 class Endpoint {
+	/**
+	 * Creates an instance of Endpoint.
+	 * @param {Registry} registry
+	 * @param {ServiceBroker} broker
+	 * @param {Node} node
+	 * @memberof Endpoint
+	 */
 	constructor(registry, broker, node) {
 		this.registry = registry;
 		this.broker = broker;
@@ -18,6 +30,12 @@ class Endpoint {
 		this.state = true;
 	}
 
+	/**
+	 * Get availability
+	 *
+	 * @readonly
+	 * @memberof Endpoint
+	 */
 	get isAvailable() {
 		return this.state;
 	}

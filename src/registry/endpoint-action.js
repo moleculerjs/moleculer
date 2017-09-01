@@ -8,8 +8,23 @@
 
 const Endpoint = require("./endpoint");
 
+/**
+ * Endpoint class for actions
+ *
+ * @class ActionEndpoint
+ * @extends {Endpoint}
+ */
 class ActionEndpoint extends Endpoint {
 
+	/**
+	 * Creates an instance of ActionEndpoint.
+	 * @param {Registry} registry
+	 * @param {ServiceBroker} broker
+	 * @param {Node} node
+	 * @param {ServiceItem} service
+	 * @param {any} action
+	 * @memberof ActionEndpoint
+	 */
 	constructor(registry, broker, node, service, action) {
 		super(registry, broker, node);
 
@@ -17,6 +32,12 @@ class ActionEndpoint extends Endpoint {
 		this.action = action;
 	}
 
+	/**
+	 * Update properties
+	 *
+	 * @param {any} action
+	 * @memberof ActionEndpoint
+	 */
 	update(action) {
 		this.action = action;
 	}

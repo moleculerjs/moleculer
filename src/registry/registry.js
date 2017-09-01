@@ -15,8 +15,19 @@ const ActionCatalog = require("./action-catalog");
 
 const RoundRobinStrategy = require("../strategies").RoundRobin;
 
+/**
+ * Service Registry
+ *
+ * @class Registry
+ */
 class Registry {
 
+	/**
+	 * Creates an instance of Registry.
+	 *
+	 * @param {any} broker
+	 * @memberof Registry
+	 */
 	constructor(broker) {
 		this.broker = broker;
 		this.logger = broker.getLogger("registry");
@@ -30,9 +41,14 @@ class Registry {
 		this.services = new ServiceCatalog(this, broker);
 		this.actions = new ActionCatalog(this, broker, RoundRobinStrategy);
 		this.events = new EventCatalog(this, broker, RoundRobinStrategy);
-
 	}
 
+	/**
+	 * Register local service
+	 *
+	 * @param {Service} svc
+	 * @memberof Registry
+	 */
 	registerLocalService(svc) {
 		const service = this.services.add(this.nodes.localNode, svc.name, svc.version, svc.settings);
 
@@ -42,9 +58,16 @@ class Registry {
 		if (svc.events)
 			this.registerEvents(this.nodes.localNode, service, svc.events);
 
-		this.logger.info(`'${service.name}' service is registered!`);
+		this.logger.info(`'${svc.name}' service is registered!`);
 	}
 
+	/**
+	 * Register remote services
+	 *
+	 * @param {Nodeany} node
+	 * @param {Array} serviceList
+	 * @memberof Registry
+	 */
 	registerServices(node, serviceList) {
 		serviceList.forEach(svc => {
 			let prevActions, prevEvents;
@@ -99,6 +122,14 @@ class Registry {
 		});
 	}
 
+	/**
+	 * Register service action
+	 *
+	 * @param {Node} node
+	 * @param {Service} service
+	 * @param {Object} actions
+	 * @memberof Registry
+	 */
 	registerActions(node, service, actions) {
 		_.forIn(actions, action => {
 			this.actions.add(node, service, action);
@@ -106,28 +137,72 @@ class Registry {
 		});
 	}
 
+	/**
+	 * Get endpoint list for an action by name
+	 *
+	 * @param {String} actionName
+	 * @returns {EndpointList}
+	 * @memberof Registry
+	 */
 	getActionEndpoints(actionName) {
 		return this.actions.get(actionName);
 	}
 
+	/**
+	 * Get an endpoint for an action on a specified node
+	 *
+	 * @param {String} actionName
+	 * @param {String} nodeID
+	 * @returns {Endpoint}
+	 * @memberof Registry
+	 */
 	getActionEndpointByNodeId(actionName, nodeID) {
 		const list = this.actions.get(actionName);
 		if (list)
 			return list.getEndpointByNodeID(nodeID);
 	}
 
+	/**
+	 * Unregister service
+	 *
+	 * @param {String} name
+	 * @param {any} version
+	 * @param {String?} nodeID
+	 * @memberof Registry
+	 */
 	unregisterService(name, version, nodeID) {
 		this.services.remove(name, version, nodeID || this.broker.nodeID);
 	}
 
+	/**
+	 * Unregister all services by nodeID
+	 *
+	 * @param {String} nodeID
+	 * @memberof Registry
+	 */
 	unregisterServicesByNode(nodeID) {
 		this.services.removeAllByNodeID(nodeID);
 	}
 
-	unregisterAction(node, name) {
-		this.actions.remove(name, node.id);
+	/**
+	 * Unregister an action by node & name
+	 *
+	 * @param {Node} node
+	 * @param {String} actionName
+	 * @memberof Registry
+	 */
+	unregisterAction(node, actionName) {
+		this.actions.remove(actionName, node.id);
 	}
 
+	/**
+	 * Register service events
+	 *
+	 * @param {Node} node
+	 * @param {ServiceItem} service
+	 * @param {Object} events
+	 * @memberof Registry
+	 */
 	registerEvents(node, service, events) {
 		_.forIn(events, event => {
 			this.events.add(node, service, event);
@@ -135,10 +210,23 @@ class Registry {
 		});
 	}
 
-	unregisterEvent(node, name) {
-		this.events.remove(name, node.id);
+	/**
+	 * Unregister event by name & node
+	 *
+	 * @param {Node} node
+	 * @param {String} eventName
+	 * @memberof Registry
+	 */
+	unregisterEvent(node, eventName) {
+		this.events.remove(eventName, node.id);
 	}
 
+	/**
+	 * Generate local node info for INFO packets
+	 *
+	 * @returns
+	 * @memberof Registry
+	 */
 	getLocalNodeInfo() {
 		const res = _.pick(this.nodes.localNode, ["ipList", "client", "config", "port"]);
 		res.services = this.services.list({ onlyLocal: true, withActions: true, withEvents: true });

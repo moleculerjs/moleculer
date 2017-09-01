@@ -9,8 +9,20 @@
 const _ = require("lodash");
 const ServiceItem = require("./service-item");
 
+/**
+ * Catalog for services
+ *
+ * @class ServiceCatalog
+ */
 class ServiceCatalog {
 
+	/**
+	 * Creates an instance of ServiceCatalog.
+	 *
+	 * @param {Registry} registry
+	 * @param {ServiceBroker} broker
+	 * @memberof ServiceCatalog
+	 */
 	constructor(registry, broker) {
 		this.registry = registry;
 		this.broker = broker;
@@ -19,16 +31,44 @@ class ServiceCatalog {
 		this.services = [];
 	}
 
+	/**
+	 * Add a new service
+	 *
+	 * @param {Node} node
+	 * @param {String} name
+	 * @param {any} version
+	 * @param {Object} settings
+	 * @returns
+	 * @memberof ServiceCatalog
+	 */
 	add(node, name, version, settings) {
 		const item = new ServiceItem(node, name, version, settings, node.id == this.broker.nodeID);
 		this.services.push(item);
 		return item;
 	}
 
+	/**
+	 * Check the service is exist
+	 *
+	 * @param {String} name
+	 * @param {any} version
+	 * @param {String} nodeID
+	 * @returns
+	 * @memberof ServiceCatalog
+	 */
 	has(name, version, nodeID) {
 		return this.services.find(svc => svc.equals(name, version, nodeID)) != null;
 	}
 
+	/**
+	 * Get a service by name, version & nodeID
+	 *
+	 * @param {String} name
+	 * @param {any} version
+	 * @param {String} nodeID
+	 * @returns
+	 * @memberof ServiceCatalog
+	 */
 	get(name, version, nodeID) {
 		return this.services.find(svc => svc.equals(name, version, nodeID));
 	}
@@ -84,6 +124,12 @@ class ServiceCatalog {
 		return res;
 	}
 
+	/**
+	 * Remove all endpoints by nodeID
+	 *
+	 * @param {String} nodeID
+	 * @memberof ServiceCatalog
+	 */
 	removeAllByNodeID(nodeID) {
 		_.remove(this.services, service => {
 			if (service.node.id == nodeID) {
@@ -93,6 +139,14 @@ class ServiceCatalog {
 		});
 	}
 
+	/**
+	 * Remove endpoint by name, version & nodeID
+	 *
+	 * @param {String} name
+	 * @param {any} version
+	 * @param {String} nodeID
+	 * @memberof ServiceCatalog
+	 */
 	remove(name, version, nodeID) {
 		let service = this.get(name, version, nodeID);
 		if (service) {

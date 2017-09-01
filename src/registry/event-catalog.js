@@ -6,13 +6,26 @@
 
 "use strict";
 
-const _ = require("lodash");
+const _ 			= require("lodash");
 const nanomatch  	= require("nanomatch");
-const EndpointList = require("./endpoint-list");
+const EndpointList 	= require("./endpoint-list");
 const EventEndpoint = require("./endpoint-event");
 
+/**
+ * Catalog for events
+ *
+ * @class EventCatalog
+ */
 class EventCatalog {
 
+	/**
+	 * Creates an instance of EventCatalog.
+	 *
+	 * @param {Registry} registry
+	 * @param {ServiceBroker} broker
+	 * @param {any} StrategyFactory
+	 * @memberof EventCatalog
+	 */
 	constructor(registry, broker, StrategyFactory) {
 		this.registry = registry;
 		this.broker = broker;
@@ -24,6 +37,15 @@ class EventCatalog {
 		this.EndpointFactory = EventEndpoint;
 	}
 
+	/**
+	 * Add a new event
+	 *
+	 * @param {Node} node
+	 * @param {ServiceItem} service
+	 * @param {any} event
+	 * @returns
+	 * @memberof EventCatalog
+	 */
 	add(node, service, event) {
 		const eventName = event.name;
 		const groupName = event.group || service.name;
@@ -39,10 +61,26 @@ class EventCatalog {
 		return list;
 	}
 
+	/**
+	 * Get an event by name (and group name)
+	 *
+	 * @param {String} eventName
+	 * @param {String} groupName
+	 * @returns
+	 * @memberof EventCatalog
+	 */
 	get(eventName, groupName) {
 		return this.events.find(list => list.name == eventName && list.group == groupName);
 	}
 
+	/**
+	 * Get balanced endpoint for event
+	 *
+	 * @param {String} eventName
+	 * @param {String?} groupName
+	 * @returns
+	 * @memberof EventCatalog
+	 */
 	getBalancedEndpoints(eventName, groupName) {
 		const res = [];
 
@@ -58,6 +96,13 @@ class EventCatalog {
 		return res;
 	}
 
+	/**
+	 * Get all endpoints for event
+	 *
+	 * @param {String} eventName
+	 * @returns
+	 * @memberof EventCatalog
+	 */
 	getAllEndpoints(eventName) {
 		const res = [];
 		this.events.forEach(list => {
@@ -71,6 +116,15 @@ class EventCatalog {
 		return _.uniqBy(res, "id");
 	}
 
+	/**
+	 * Emit local services
+	 *
+	 * @param {String} eventName
+	 * @param {any} payload
+	 * @param {Array<String>?} groupNames
+	 * @param {String} nodeID
+	 * @memberof EventCatalog
+	 */
 	emitLocalServices(eventName, payload, groupNames, nodeID) {
 		this.events.forEach(list => {
 			if (!nanomatch.isMatch(eventName, list.name)) return;
@@ -83,12 +137,25 @@ class EventCatalog {
 		});
 	}
 
+	/**
+	 * Remove endpoints by service
+	 *
+	 * @param {ServiceItem} service
+	 * @memberof EventCatalog
+	 */
 	removeByService(service) {
 		this.events.forEach(list => {
 			list.removeByService(service);
 		});
 	}
 
+	/**
+	 * Remove endpoint by name & nodeId
+	 *
+	 * @param {String} eventName
+	 * @param {String} nodeID
+	 * @memberof EventCatalog
+	 */
 	remove(eventName, nodeID) {
 		this.events.forEach(list => {
 			if (list.name == eventName)
