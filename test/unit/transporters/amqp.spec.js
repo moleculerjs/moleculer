@@ -309,7 +309,7 @@ describe("Test AmqpTransporter publish", () => {
 				expect(transporter.channel.sendToQueue).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.sendToQueue).toHaveBeenCalledWith(
 					"MOL-TEST.INFO.node2",
-					Buffer.from(JSON.stringify({"sender": "node1"}))
+					Buffer.from(JSON.stringify({"ver": "2", "sender": "node1"}))
 				);
 			});
 	});
