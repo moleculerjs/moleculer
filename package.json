@@ -16,6 +16,7 @@
     "pperf": "node --inspect --expose-gc benchmark/perf-runner.js",
     "proto": "pbjs -t static-module -w commonjs -o src/serializers/proto/packets.proto.js src/serializers/proto/packets.proto",
     "test": "jest --coverage --no-cache",
+    "test:int": "jest --testMatch \"**/integration/**spec.js\" --coverage --no-cache",
     "test:amqp": "jest --testMatch \"**/?(*.)spc.js\""
   },
   "keywords": [
