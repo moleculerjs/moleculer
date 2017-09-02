@@ -7,6 +7,7 @@
 "use strict";
 
 const { CIRCUIT_CLOSE, CIRCUIT_HALF_OPEN, CIRCUIT_OPEN } = require("../constants");
+const { RequestTimeoutError } = require("../errors");
 
 const ActionEndpoint = require("./endpoint-action");
 
@@ -53,11 +54,30 @@ class ActionEndpointCB extends ActionEndpoint {
 	 *
 	 * @memberof ActionEndpointCB
 	 */
-	failure() {
-		this.failures++;
-		if (this.failures >= this.opts.maxFailures) {
-			this.circuitOpen();
+	failure(err) {
+		if (err) {
+			if (err instanceof RequestTimeoutError) {
+				if (this.opts.failureOnTimeout)
+					this.failures++;
+
+			} else if (err.code >= 500 && this.opts.failureOnReject) {
+				this.failures++;
+			}
+
+			if (this.failures >= this.opts.maxFailures) {
+				this.circuitOpen();
+			}
 		}
+	}
+
+	/**
+	 *
+	 *
+	 * @memberof ActionEndpointCB
+	 */
+	success() {
+		if (this.state === CIRCUIT_HALF_OPEN)
+			this.circuitClose();
 	}
 
 	/**

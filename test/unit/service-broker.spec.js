@@ -1240,7 +1240,7 @@ describe("Test broker.call method", () => {
 
 	});
 
-	describe("Test local call", () => {
+	describe("Test local call with circuit breaker", () => {
 
 		let broker = new ServiceBroker({ internalServices: false, metrics: true, circuitBreaker: { enabled: true } });
 
@@ -1259,13 +1259,12 @@ describe("Test broker.call method", () => {
 		it("should call circuitClose if endpoint is in 'half-open' state", () => {
 			actionHandler.mockClear();
 			let params = { search: "John" };
-			let actionItem = broker.registry.getActionEndpoints("posts.find").next();
-			actionItem.circuitHalfOpen();
-			actionItem.circuitClose = jest.fn();
-			return broker.call(actionItem, params).then(ctx => {
+			let ep = broker.registry.getActionEndpoints("posts.find").next();
+			ep.success = jest.fn();
+			return broker.call(ep, params).then(ctx => {
 				expect(ctx).toBeDefined();
 				expect(actionHandler).toHaveBeenCalledTimes(1);
-				expect(actionItem.circuitClose).toHaveBeenCalledTimes(1);
+				expect(ep.success).toHaveBeenCalledTimes(1);
 			});
 		});
 	});
@@ -1483,26 +1482,13 @@ describe("Test broker._callErrorHandler", () => {
 			expect(ctx._metricFinish).toHaveBeenCalledWith(err, true);
 			expect(transit.removePendingRequest).toHaveBeenCalledTimes(1);
 			expect(transit.removePendingRequest).toHaveBeenCalledWith(ctx.id);
-			expect(endpoint.failure).toHaveBeenCalledTimes(0);
-		});
-	});
-
-	it("should call endpoint.failure", () => {
-		return broker._callErrorHandler(timeoutErr, ctx, endpoint, {}).catch(() => {
 			expect(endpoint.failure).toHaveBeenCalledTimes(1);
 		});
 	});
 
-	it("should call endpoint.failure if errorCode >= 500", () => {
+	it("should not call endpoint.failure if circuitBreaker disabled", () => {
 		endpoint.failure.mockClear();
-		return broker._callErrorHandler(new MoleculerError("Wrong", 500), ctx, endpoint, {}).catch(() => {
-			expect(endpoint.failure).toHaveBeenCalledTimes(1);
-		});
-	});
-
-	it("should call endpoint.failure if errorCode >= 500", () => {
-		endpoint.failure.mockClear();
-		broker.options.circuitBreaker.failureOnReject = false;
+		broker.options.circuitBreaker.enabled = false;
 		return broker._callErrorHandler(new MoleculerError("Wrong", 500), ctx, endpoint, {}).catch(() => {
 			expect(endpoint.failure).toHaveBeenCalledTimes(0);
 		});
@@ -1516,20 +1502,10 @@ describe("Test broker._callErrorHandler", () => {
 	});
 
 	it("should convert Promise.TimeoutError to RequestTimeoutError", () => {
-		endpoint.failure.mockClear();
 		return broker._callErrorHandler(new Promise.TimeoutError, ctx, endpoint, {}).catch(err => {
 			expect(err).toBeInstanceOf(RequestTimeoutError);
 			expect(err.message).toBe("Request timed out when call 'user.create' action on 'server-2' node!");
 			expect(broker.call).toHaveBeenCalledTimes(0);
-			expect(endpoint.failure).toHaveBeenCalledTimes(1);
-		});
-	});
-
-	it("should not call endpoint.failure if failureOnTimeout is false", () => {
-		broker.options.circuitBreaker.failureOnTimeout = false;
-		endpoint.failure.mockClear();
-		return broker._callErrorHandler(timeoutErr, ctx, endpoint, {}).catch(() => {
-			expect(endpoint.failure).toHaveBeenCalledTimes(0);
 		});
 	});
 

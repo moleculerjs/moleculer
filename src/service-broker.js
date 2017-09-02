@@ -746,9 +746,9 @@ class ServiceBroker {
 		}
 
 		// Handle half-open state in circuit breaker
-		if (this.options.circuitBreaker.enabled && endpoint.state === CIRCUIT_HALF_OPEN) {
+		if (this.options.circuitBreaker.enabled) {
 			p = p.then(res => {
-				endpoint.circuitClose();
+				endpoint.success();
 				return res;
 			});
 		}
@@ -791,13 +791,7 @@ class ServiceBroker {
 		}
 
 		if (this.options.circuitBreaker.enabled) {
-			if (err instanceof E.RequestTimeoutError) {
-				if (this.options.circuitBreaker.failureOnTimeout)
-					endpoint.failure();
-
-			} else if (err.code >= 500 && this.options.circuitBreaker.failureOnReject) {
-				endpoint.failure();
-			}
+			endpoint.failure(err);
 		}
 
 		if (err instanceof E.RequestTimeoutError) {

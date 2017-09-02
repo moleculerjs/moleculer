@@ -3,6 +3,7 @@
 const lolex = require("lolex");
 let ActionEndpointCB = require("../../../src/registry/endpoint-cb");
 let ServiceBroker = require("../../../src/service-broker");
+let { RequestTimeoutError, MoleculerError } = require("../../../src/errors");
 const { CIRCUIT_CLOSE, CIRCUIT_HALF_OPEN, CIRCUIT_OPEN } = require("../../../src/constants");
 
 describe("Test ActionEndpoint", () => {
@@ -76,10 +77,29 @@ describe("Test ActionEndpoint circuit-breaker", () => {
 		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
 
 		ep.failure();
+		expect(ep.failures).toBe(0);
+		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
+
+		ep.failure(new RequestTimeoutError());
 		expect(ep.failures).toBe(1);
 		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
 
-		ep.failure();
+		ep.opts.failureOnTimeout = false;
+		ep.failure(new RequestTimeoutError());
+		expect(ep.failures).toBe(1);
+		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
+
+		ep.failure(new MoleculerError("Client error", 404));
+		expect(ep.failures).toBe(1);
+		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
+
+		ep.opts.failureOnReject = false;
+		ep.failure(new MoleculerError("Server error"));
+		expect(ep.failures).toBe(1);
+		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
+
+		ep.opts.failureOnReject = true;
+		ep.failure(new MoleculerError("Server error"));
 		expect(ep.failures).toBe(2);
 		expect(ep.circuitOpen).toHaveBeenCalledTimes(1);
 	});
