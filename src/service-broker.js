@@ -956,15 +956,17 @@ class ServiceBroker {
 	broadcast(eventName, payload) {
 		const endpoints = this.registry.events.getAllEndpoints(eventName);
 
-		// Send to remote services
-		endpoints.forEach(ep => {
-			if (ep.id != this.nodeID) {
-				return this.transit.sendEvent(ep.id, eventName, payload);
-			}
-		});
+		if (this.transit) {
+			// Send to remote services
+			endpoints.forEach(ep => {
+				if (ep.id != this.nodeID) {
+					return this.transit.sendEvent(ep.id, eventName, payload);
+				}
+			});
+		}
 
 		// Send to local services
-		return this.broadcastLocal(eventName, payload);
+		return this.broadcastLocal(eventName, payload, null, this.nodeID);
 	}
 
 	/**

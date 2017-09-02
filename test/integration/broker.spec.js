@@ -138,9 +138,6 @@ describe("Test versioned action registration", () => {
 
 });
 
-
-
-
 describe("Test cachers", () => {
 
 	let broker = new ServiceBroker({

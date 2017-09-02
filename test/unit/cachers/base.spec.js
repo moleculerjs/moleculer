@@ -215,7 +215,8 @@ describe("Test middleware", () => {
 
 });
 
-describe.skip("Test cache.clean & cache.del events", () => {
+/*
+describe("Test cache.clean & cache.del events", () => {
 	let cacher = new Cacher();
 	let broker = new ServiceBroker({
 		cacher
@@ -252,3 +253,5 @@ describe.skip("Test cache.clean & cache.del events", () => {
 		expect(cacher.del).toHaveBeenCalledWith("users.model.222");
 	});
 });
+
+*/
