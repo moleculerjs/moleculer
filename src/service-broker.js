@@ -525,6 +525,12 @@ class ServiceBroker {
 		return service;
 	}
 
+	/**
+	 * Add a local service instance
+	 *
+	 * @param {Service} service
+	 * @memberof ServiceBroker
+	 */
 	addService(service) {
 		this.services.push(service);
 	}
@@ -549,6 +555,21 @@ class ServiceBroker {
 				this.logger.info(`Service '${service.name}' is destroyed!`);
 				this.servicesChanged(true);
 			});
+	}
+
+	/**
+	 * It will be called when a new local or remote service
+	 * is registered or unregistered.
+	 *
+	 * @memberof ServiceBroker
+	 */
+	servicesChanged(localService = false) {
+		this.broadcastLocal("$services.changed", { localService });
+
+		// Should notify remote nodes, because our service list is changed.
+		if (localService && this.transit && this.transit.connected) {
+			this.transit.sendNodeInfo();
+		}
 	}
 
 	/**
@@ -579,21 +600,6 @@ class ServiceBroker {
 	 */
 	registerInternalServices() {
 		this.createService(require("./internals")(this));
-	}
-
-	/**
-	 * It will be called when a new local or remote service
-	 * is registered or unregistered.
-	 *
-	 * @memberof ServiceBroker
-	 */
-	servicesChanged(localService = false) {
-		this.broadcastLocal("$services.changed", { localService });
-
-		// Should notify remote nodes, because our service list is changed.
-		if (localService && this.transit && this.transit.connected) {
-			this.transit.sendNodeInfo();
-		}
 	}
 
 	/**
