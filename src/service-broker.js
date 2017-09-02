@@ -45,7 +45,7 @@ const defaultConfig = {
 	heartbeatTimeout: 15,
 
 	registry: {
-		//strategy: new RoundRobinStrategy(),
+		strategy: RoundRobinStrategy,
 		preferLocal: true
 	},
 

@@ -84,9 +84,9 @@ describe("Test event balancing", () => {
 
 	beforeAll(() => {
 		return Promise.all(nodes.map(node => node.start()));
-			/*.delay(500)
-			.then(() => master.call("$node.list"))
-			.then(list => console.log("All nodes is started!", list));*/
+		/*.delay(500)
+		.then(() => master.call("$node.list"))
+		.then(list => console.log("All nodes is started!", list));*/
 	});
 
 	afterAll(() => {

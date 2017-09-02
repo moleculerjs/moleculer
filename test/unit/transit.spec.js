@@ -268,7 +268,7 @@ describe("Test Transit.messageHandler", () => {
 	});
 
 	it("should throw Error if version mismatch", () => {
-		transit.messageHandler("EVENT", '{"ver": "1"}').catch(err => {
+		transit.messageHandler("EVENT", "{\"ver\": \"1\"}").catch(err => {
 			expect(err).toBeInstanceOf(ProtocolVersionMismatchError);
 		});
 	});

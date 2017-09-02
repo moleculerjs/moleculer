@@ -810,7 +810,7 @@ describe("Test broker.createService", () => {
 	it("should call mergeSchema if give schema mods param", () => {
 		let utils = require("../../src/utils");
 
-		utils.mergeSchemas = jest.fn((s1, s2) => s1);
+		utils.mergeSchemas = jest.fn(s1 => s1);
 		let schema = {
 			name: "test",
 			actions: {
