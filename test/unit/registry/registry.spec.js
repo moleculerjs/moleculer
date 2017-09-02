@@ -78,3 +78,5 @@ describe("Test Registry.registerLocalService", () => {
 		expect(registry.registerEvents).toHaveBeenCalledTimes(0);
 	});
 });
+
+// TODO: test more methods
