@@ -252,3 +252,34 @@ describe("Test PacketResponse", () => {
 	});
 
 });
+
+describe("Test PacketPing", () => {
+
+	const transit = { nodeID: "node-1" };
+
+	it("should set properties", () => {
+		let packet = new P.PacketPing(transit, "node-2", 1234567);
+		expect(packet).toBeDefined();
+		expect(packet.type).toBe(P.PACKET_PING);
+		expect(packet.target).toBe("node-2");
+		expect(packet.payload).toBeDefined();
+		expect(packet.payload.time).toBe(1234567);
+	});
+
+});
+
+describe("Test PacketPong", () => {
+
+	const transit = { nodeID: "node-1" };
+
+	it("should set properties", () => {
+		let packet = new P.PacketPong(transit, "node-2", 1234567, 7654321);
+		expect(packet).toBeDefined();
+		expect(packet.type).toBe(P.PACKET_PONG);
+		expect(packet.target).toBe("node-2");
+		expect(packet.payload).toBeDefined();
+		expect(packet.payload.time).toBe(1234567);
+		expect(packet.payload.arrived).toBe(7654321);
+	});
+
+});

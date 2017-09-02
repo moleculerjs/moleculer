@@ -220,7 +220,7 @@ declare class ServiceBroker {
 	MOLECULER_VERSION: String;
 
 	static MOLECULER_VERSION: String;
-	static defaultConfig: BrokerOptions;
+	static defaultOptions: BrokerOptions;
 }
 
 declare class Packet {

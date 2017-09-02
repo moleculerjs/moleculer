@@ -26,11 +26,10 @@ const Transporters 		= require("./transporters");
 const Serializers 		= require("./serializers");
 const RoundRobinStrategy = require("./strategies/round-robin");
 
-// Circuit-breaker states
-const { CIRCUIT_HALF_OPEN } 	= require("./constants");
-
-
-const defaultConfig = {
+/**
+ * Default broker options
+ */
+const defaultOptions = {
 	namespace: "",
 	nodeID: null,
 
@@ -87,7 +86,7 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	constructor(options) {
-		this.options = _.defaultsDeep(options, defaultConfig);
+		this.options = _.defaultsDeep(options, defaultOptions);
 
 		// Promise constructor
 		this.Promise = Promise;
@@ -805,8 +804,6 @@ class ServiceBroker {
 			}
 		}
 
-		// Need it? this.logger.error("Action request error!", err);
-
 		this._finishCall(ctx, err);
 
 		// Handle fallback response
@@ -921,6 +918,7 @@ class ServiceBroker {
 				// Local service, call handler
 				ep.event.handler(payload, this.nodeID, eventName);
 			} else {
+				// Remote service
 				const e = groupedEP[ep.id];
 				if (e)
 					e.push(group);
@@ -995,6 +993,6 @@ ServiceBroker.prototype.MOLECULER_VERSION = ServiceBroker.MOLECULER_VERSION;
 /**
  * Default configuration
  */
-ServiceBroker.defaultConfig = defaultConfig;
+ServiceBroker.defaultOptions = defaultOptions;
 
 module.exports = ServiceBroker;

@@ -33,7 +33,7 @@ describe("Test ServiceBroker constructor", () => {
 	it("should set default options", () => {
 		let broker = new ServiceBroker();
 		expect(broker).toBeDefined();
-		expect(broker.options).toEqual(ServiceBroker.defaultConfig);
+		expect(broker.options).toEqual(ServiceBroker.defaultOptions);
 
 		expect(broker.Promise).toBe(Promise);
 
@@ -60,7 +60,7 @@ describe("Test ServiceBroker constructor", () => {
 
 		expect(broker.getLocalService("$node")).toBeDefined();
 
-		expect(ServiceBroker.defaultConfig).toBeDefined();
+		expect(ServiceBroker.defaultOptions).toBeDefined();
 		expect(ServiceBroker.MOLECULER_VERSION).toBeDefined();
 		expect(broker.MOLECULER_VERSION).toBeDefined();
 	});
