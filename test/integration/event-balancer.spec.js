@@ -78,12 +78,12 @@ function createNodes(ns) {
 }
 
 
-describe("Test broker.emit balancing", () => {
+describe("Test event balancing", () => {
 	const nodes = createNodes();
 	const master = nodes[0];
 
 	beforeAll(() => {
-		return Promise.all(nodes.map(node => node.start()))
+		return Promise.all(nodes.map(node => node.start()));
 			/*.delay(500)
 			.then(() => master.call("$node.list"))
 			.then(list => console.log("All nodes is started!", list));*/
@@ -233,7 +233,7 @@ describe("Test broker.emit balancing", () => {
 
 });
 
-
+/*
 describe("Test broker.emit balancing 2", () => {
 	const nodes = createNodes();
 	const master = nodes[0];
@@ -258,3 +258,4 @@ describe("Test broker.emit balancing 2", () => {
 	});
 
 });
+*/
