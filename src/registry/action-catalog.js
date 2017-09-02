@@ -70,6 +70,21 @@ class ActionCatalog {
 	}
 
 	/**
+	 * Check the action is available (there is live endpoint)
+	 *
+	 * @param {String} actionName
+	 * @returns {Boolean}
+	 * @memberof ActionCatalog
+	 */
+	isAvailable(actionName) {
+		const list = this.actions.get(actionName);
+		if (list)
+			return list.hasAvailable();
+
+		return false;
+	}
+
+	/**
 	 * Remove all actions by service
 	 *
 	 * @param {ServiceItem} service

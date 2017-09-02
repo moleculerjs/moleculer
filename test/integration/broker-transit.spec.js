@@ -1,12 +1,10 @@
 const ServiceBroker = require("../../src/service-broker");
-const FakeTransporter = require("../../src/transporters/fake");
-
 const { RequestTimeoutError } = require("../../src/errors");
 
 describe("Test RPC", () => {
 
 	let b1 = new ServiceBroker({
-		transporter: new FakeTransporter(),
+		transporter: "Fake",
 		nodeID: "node-1"
 	});
 
@@ -26,7 +24,7 @@ describe("Test RPC", () => {
 	});
 
 	let b2 = new ServiceBroker({
-		transporter: new FakeTransporter(),
+		transporter: "Fake",
 		nodeID: "node-2"
 	});
 
@@ -54,8 +52,8 @@ describe("Test RPC", () => {
 		}
 	});
 
-	beforeAll(() => b1.start().then(() => b2.start()));
-	afterAll(() => b1.stop().then(() => b2.stop()));
+	beforeAll(() => Promise.all([b1.start(), b2.start()]));
+	afterAll(() => Promise.all([b1.stop(), b2.stop()]));
 
 	it("should call echo.reply on b2", () => {
 		return b1.call("echo.reply", { data: 100 }).then(res => {
