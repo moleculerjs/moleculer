@@ -9,7 +9,7 @@
 const Promise	= require("bluebird");
 const P 		= require("./packets");
 
-const { ProtocolVersionMismatchError } = require("./errors");
+const { MoleculerError, ProtocolVersionMismatchError } = require("./errors");
 
 /**
  * Transit class
@@ -171,7 +171,7 @@ class Transit {
 			// Disconnect handler
 			this.subscribe(P.PACKET_DISCONNECT),
 
-			// Heart-beat handler
+			// Heartbeat handler
 			this.subscribe(P.PACKET_HEARTBEAT),
 
 			// Ping handler
@@ -215,7 +215,7 @@ class Transit {
 	 */
 	messageHandler(cmd, msg) {
 		if (msg == null) {
-			throw new Error("Missing packet!");
+			throw new MoleculerError("Missing packet!", 500, "MISSING_PACKET");
 		}
 
 		this.stat.packets.received = this.stat.packets.received + 1;
@@ -226,7 +226,7 @@ class Transit {
 		// Check payload
 		if (!payload) {
 			/* istanbul ignore next */
-			throw new Error("Missing response payload!");
+			throw new MoleculerError("Missing response payload!", 500, "MISSING_PAYLOAD");
 		}
 
 		// Check protocol version

@@ -35,6 +35,7 @@ const defaultOptions = {
 
 	logger: null,
 	logLevel: null,
+	logFormatter: "default",
 
 	transporter: null,
 	requestTimeout: 0 * 1000,
@@ -165,11 +166,17 @@ class ServiceBroker {
 		process.on("SIGINT", this._closeFn);
 	}
 
+	getModuleClass(obj, name) {
+		let n = Object.keys(obj).find(n => n.toLowerCase() == name.toLowerCase());
+		if (n)
+			return obj[n];
+	}
+
 	_resolveTransporter(opt) {
 		if (opt instanceof Transporters.Base) {
 			return opt;
 		} else if (_.isString(opt)) {
-			let TransporterClass = Transporters[opt];
+			let TransporterClass = this.getModuleClass(Transporters, opt);
 			if (TransporterClass)
 				return new TransporterClass();
 
@@ -188,7 +195,9 @@ class ServiceBroker {
 				throw new E.MoleculerError(`Invalid transporter type '${opt}'`, null, "NOT_FOUND_TRANSPORTER", { type: opt });
 
 		} else if (_.isObject(opt)) {
-			let TransporterClass = Transporters[opt.type || "NATS"];
+			let TransporterClass = this.getModuleClass(Transporters, opt.type || "NATS");
+
+			//let TransporterClass = Transporters[];
 			if (TransporterClass)
 				return new TransporterClass(opt.options);
 			else
@@ -204,7 +213,7 @@ class ServiceBroker {
 		} else if (opt === true) {
 			return new Cachers.Memory();
 		} else if (_.isString(opt)) {
-			let CacherClass = Cachers[opt];
+			let CacherClass = this.getModuleClass(Cachers, opt);
 			if (CacherClass)
 				return new CacherClass();
 
@@ -217,7 +226,7 @@ class ServiceBroker {
 				throw new E.MoleculerError(`Invalid cacher type '${opt}'`, null, "NOT_FOUND_CACHER", { type: opt });
 
 		} else if (_.isObject(opt)) {
-			let CacherClass = Cachers[opt.type || "Memory"];
+			let CacherClass = this.getModuleClass(Cachers, opt.type || "Memory");
 			if (CacherClass)
 				return new CacherClass(opt.options);
 			else
@@ -231,14 +240,14 @@ class ServiceBroker {
 		if (opt instanceof Serializers.Base) {
 			return opt;
 		} else if (_.isString(opt)) {
-			let SerializerClass = Serializers[opt];
+			let SerializerClass = this.getModuleClass(Serializers, opt);
 			if (SerializerClass)
 				return new SerializerClass();
 			else
 				throw new E.MoleculerError(`Invalid serializer type '${opt}'`, null, "NOT_FOUND_SERIALIZER", { type: opt });
 
 		} else if (_.isObject(opt)) {
-			let SerializerClass = Serializers[opt.type || "JSON"];
+			let SerializerClass = this.getModuleClass(Serializers, opt.type || "JSON");
 			if (SerializerClass)
 				return new SerializerClass(opt.options);
 			else
@@ -599,6 +608,16 @@ class ServiceBroker {
 		return this.services.find(service => service.name == serviceName);
 	}
 
+	/**
+	 * Wait for other services
+	 *
+	 * @param {String|Array<String>} serviceNames
+	 * @param {Number} timeout Timeout in milliseconds
+	 * @param {Number} interval Check interval in milliseconds
+	 * @returns {Promise}
+	 *
+	 * @memberof ServiceBroker
+	 */
 	waitForServices(serviceNames, timeout, interval, logger = this.logger) {
 		if (!Array.isArray(serviceNames))
 			serviceNames = [serviceNames];
@@ -617,7 +636,7 @@ class ServiceBroker {
 					return resolve();
 				}
 
-				logger.debug(`${count.length} of ${serviceNames.length} services are available. Waiting...`);
+				logger.debug(`${count.length} of ${serviceNames.length} services are available. Waiting further...`);
 
 				if (timeout && Date.now() - startTime > timeout)
 					return reject(new E.MoleculerError("Services waiting is timed out!", 500, "WAITFOR_SERVICES", serviceNames));
@@ -715,6 +734,7 @@ class ServiceBroker {
 		// Call handler or transfer request
 		let p;
 		if (endpoint.local) {
+			// Local call
 			this.logger.debug(`Call '${actionName}' action on local node.`);
 
 			// Add metrics start
@@ -735,7 +755,9 @@ class ServiceBroker {
 				});
 			}
 		} else {
-			this.logger.debug(`Call remote '${actionName}' action on '${nodeID}' node.`);
+			// Remote call
+
+			this.logger.debug(`Call '${actionName}' action on '${nodeID}' node.`);
 
 			p = this.transit.request(ctx);
 
@@ -886,7 +908,7 @@ class ServiceBroker {
 	shouldMetric() {
 		if (this.options.metrics) {
 			this.sampleCount++;
-			if (this.sampleCount * this.options.metricsRate >= 1) {
+			if (this.sampleCount * this.options.metricsRate >= 1.0) {
 				this.sampleCount = 0;
 				return true;
 			}

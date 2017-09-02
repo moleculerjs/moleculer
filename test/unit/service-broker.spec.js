@@ -69,11 +69,13 @@ describe("Test ServiceBroker constructor", () => {
 
 		let broker = new ServiceBroker( {
 			namespace: "test",
+			nodeID: "server-12",
 			heartbeatTimeout: 20,
 			metrics: true,
 			metricsRate: 0.5,
 			statistics: true,
 			logLevel: "debug",
+			logFormatter: "simple",
 			requestRetry: 3,
 			requestTimeout: 5000,
 			maxCallLevel: 10,
@@ -93,9 +95,10 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker).toBeDefined();
 		expect(broker.options).toEqual({
 			namespace: "test",
-			nodeID: null,
+			nodeID: "server-12",
 			logger: null,
 			logLevel: "debug",
+			logFormatter: "simple",
 			cacher: null,
 			serializer: null,
 			transporter: null,
@@ -131,7 +134,7 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.validator).toBeUndefined();
 		expect(broker.serializer).toBeInstanceOf(JSONSerializer);
 		expect(broker.namespace).toBe("test");
-		expect(broker.nodeID).toBe("node-1234");
+		expect(broker.nodeID).toBe("server-12");
 
 		expect(broker.getLocalService("$node")).not.toBeDefined();
 	});
@@ -172,6 +175,16 @@ describe("Test ServiceBroker constructor", () => {
 		expect(serializer.init).toHaveBeenCalledWith(broker);
 	});
 
+	it("should set validator", () => {
+		let broker = new ServiceBroker();
+		expect(broker.validator).toBeDefined();
+	});
+
+	it("should not set validator", () => {
+		let broker = new ServiceBroker({ validation: false });
+		expect(broker.validator).toBeUndefined();
+	});
+
 });
 
 describe("Test option resolvers", () => {
@@ -206,7 +219,7 @@ describe("Test option resolvers", () => {
 		});
 
 		it("should resolve MQTTTransporter from string", () => {
-			let trans = broker._resolveTransporter("MQTT");
+			let trans = broker._resolveTransporter("mqtt");
 			expect(trans).toBeInstanceOf(Transporters.MQTT);
 		});
 
@@ -240,9 +253,9 @@ describe("Test option resolvers", () => {
 			});
 		});
 
-		it("should resolve NATSTransporter from obj", () => {
+		it("should resolve MQTTransporter from obj", () => {
 			let options = { mqtt: "mqtt://localhost" };
-			let trans = broker._resolveTransporter({ type: "MQTT", options });
+			let trans = broker._resolveTransporter({ type: "mqtt", options });
 			expect(trans).toBeInstanceOf(Transporters.MQTT);
 			expect(trans.opts).toEqual({ mqtt: "mqtt://localhost" });
 		});
@@ -281,7 +294,7 @@ describe("Test option resolvers", () => {
 		});
 
 		it("should resolve MemoryCacher from string", () => {
-			let cacher = broker._resolveCacher("Memory");
+			let cacher = broker._resolveCacher("memory");
 			expect(cacher).toBeInstanceOf(Cachers.Memory);
 		});
 
@@ -313,7 +326,7 @@ describe("Test option resolvers", () => {
 
 		it("should resolve RedisCacher from obj with Redis type", () => {
 			let options = { ttl: 80, redis: { db: 3 } };
-			let cacher = broker._resolveCacher({ type: "Redis", options });
+			let cacher = broker._resolveCacher({ type: "redis", options });
 			expect(cacher).toBeInstanceOf(Cachers.Redis);
 			expect(cacher.opts).toEqual({ ttl: 80, redis: { db: 3 } });
 		});
@@ -355,7 +368,7 @@ describe("Test option resolvers", () => {
 		});
 
 		it("should resolve AvroSerializer from string with Avro type", () => {
-			let serializer = broker._resolveSerializer("Avro");
+			let serializer = broker._resolveSerializer("avro");
 			expect(serializer).toBeInstanceOf(Serializers.Avro);
 		});
 

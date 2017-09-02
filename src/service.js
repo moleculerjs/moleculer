@@ -230,6 +230,15 @@ class Service {
 		return action;
 	}
 
+	/**
+	 * Wait for other services
+	 *
+	 * @param {String|Array<String>} serviceNames
+	 * @param {Number} timeout Timeout in milliseconds
+	 * @param {Number} interval Check interval in milliseconds
+	 * @returns {Promise}
+	 * @memberof Service
+	 */
 	waitForServices(serviceNames, timeout, interval) {
 		return this.broker.waitForServices(serviceNames, timeout, interval, this.logger);
 	}

@@ -12,10 +12,6 @@ let broker1 = new ServiceBroker({
 	transporter: "NATS"
 });
 
-broker1.on("services.changed", (payload) => {
-	console.log("Services changed!");
-});
-
 broker1.createService({
 	name: "small-planets",
 	events: {
@@ -23,7 +19,7 @@ broker1.createService({
 			this.logger.info("Earth is fired!");
 		},
 		"planets.mars"(payload) {
-			this.logger.info("mars is fired!");
+			this.logger.info("Mars is fired!");
 		}
 
 	}
@@ -70,6 +66,7 @@ broker1.Promise.resolve()
 	.then(() => broker2.start())
 	.delay(500)
 	//.then(() => broker1.call("math.add", { a: 7, b: 3 }))
+	.then(() => broker1.emit("planets.mars"))
 	//.then(res => broker1.logger.info("Result:", res))
 	.catch(err => broker1.logger.error(err))
 	.then(() => broker1.repl());
