@@ -77,16 +77,16 @@ class EventCatalog {
 	 * Get balanced endpoint for event
 	 *
 	 * @param {String} eventName
-	 * @param {String?} groupName
+	 * @param {String|Array?} groups
 	 * @returns
 	 * @memberof EventCatalog
 	 */
-	getBalancedEndpoints(eventName, groupName) {
+	getBalancedEndpoints(eventName, groups) {
 		const res = [];
 
 		this.events.forEach(list => {
 			if (!nanomatch.isMatch(eventName, list.name)) return;
-			if (groupName == null || groupName == list.group) {
+			if (groups == null || groups.length == 0 || groups.indexOf(list.group) != -1) {
 				const ep = list.next();
 				if (ep && ep.isAvailable)
 					res.push([ep, list.group]);

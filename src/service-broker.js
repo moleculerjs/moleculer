@@ -914,8 +914,10 @@ class ServiceBroker {
 	 *
 	 * @memberOf ServiceBroker
 	 */
-	emit(eventName, payload, groupName) {
-		const endpoints = this.registry.events.getBalancedEndpoints(eventName, groupName);
+	emit(eventName, payload, groups) {
+		if (groups && !Array.isArray(groups))
+			groups = [groups];
+		const endpoints = this.registry.events.getBalancedEndpoints(eventName, groups);
 
 		// Grouping remote events (minimize network traffic)
 		const groupedEP = {};

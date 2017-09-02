@@ -76,6 +76,7 @@ describe("Test circuit breaker", () => {
 				expect(err.name).toBe("MoleculerError");
 				return master1.call("cb.angry");
 			})
+			// Circuit-breaker opened
 			.catch(err => {
 				expect(err).toBeInstanceOf(ServiceNotFoundError);
 				return "done";

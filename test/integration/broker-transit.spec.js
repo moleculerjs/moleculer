@@ -1,4 +1,3 @@
-const Promise = require("bluebird");
 const ServiceBroker = require("../../src/service-broker");
 const FakeTransporter = require("../../src/transporters/fake");
 
@@ -46,7 +45,7 @@ describe("Test RPC", () => {
 			},
 
 			slow() {
-				return new Promise(resolve => {
+				return new this.Promise(resolve => {
 					setTimeout(() => {
 						resolve("OK");
 					}, 1000);
