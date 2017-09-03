@@ -153,7 +153,7 @@ describe("Test ActionEndpoint circuit-breaker", () => {
 		ep.state = CIRCUIT_HALF_OPEN;
 		ep.failures = 5;
 
-		ep.circuitClose();
+		ep.success();
 
 		expect(ep.state).toBe(CIRCUIT_CLOSE);
 		expect(ep.failures).toBe(0);

@@ -86,14 +86,63 @@ describe("Test ServiceCatalog methods", () => {
 	});
 
 	it("should return with action list", () => {
-		catalog.add("posts", 2, "server-2");
+		catalog.add({ id: broker.nodeID }, "$node", undefined);
+
+		catalog.add({ id: "server-2" }, "$node", undefined);
+
+		let svc = catalog.add({ id: "server-2" }, "posts", 2, { a: 5 });
+		svc.addAction({ name: "posts.find" });
+		svc.addEvent({ name: "user.created" });
+		svc.addEvent({ name: "$services.changed" }); // internal
+
 		let res = catalog.list({});
 		expect(res).toEqual([{
-			"name": 2,
-			"nodeID": undefined,
+			"name": "$node",
+			"nodeID": broker.nodeID,
 			"settings": undefined,
-			"version": "server-2"
+			"version": undefined
+		}, {
+			"name": "$node",
+			"nodeID": "server-2",
+			"settings": undefined,
+			"version": undefined
+		}, {
+			"name": "posts",
+			"nodeID": "server-2",
+			"settings": {
+				"a": 5
+			},
+			"version": 2
 		}]);
+
+		res = catalog.list({ onlyLocal: true });
+		expect(res).toEqual([{
+			"name": "$node",
+			"nodeID": broker.nodeID,
+			"settings": undefined,
+			"version": undefined
+		}]);
+
+		res = catalog.list({ skipInternal: true, withActions: true, withEvents: true });
+		expect(res).toEqual([{
+			"actions": {
+				"posts.find": {
+					"name": "posts.find"
+				}
+			},
+			"events": {
+				"user.created": {
+					"name": "user.created"
+				}
+			},
+			"name": "posts",
+			"nodeID": "server-2",
+			"settings": {
+				"a": 5
+			},
+			"version": 2
+		}]);
+
 	});
 
 });

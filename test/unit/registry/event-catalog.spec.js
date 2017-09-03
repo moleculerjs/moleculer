@@ -155,6 +155,19 @@ describe("Test EventCatalog methods", () => {
 				"name": "echo.reply"
 			}
 		]);
+
+		res = catalog.list({ onlyLocal: true, skipInternal: true });
+		expect(res).toEqual([{
+			"available": true,
+			"count": 1,
+			"event": {
+				"cache": true,
+				"name": "echo.reply"
+			},
+			"group": "echo",
+			"hasLocal": true,
+			"name": "echo.reply"
+		}]);
 	});
 
 });

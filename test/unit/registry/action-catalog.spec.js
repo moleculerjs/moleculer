@@ -1,8 +1,4 @@
 "use strict";
-/*
-jest.mock("../../../src/registry/endpoint-list", () => ({
-	add: jest.fn()
-}));*/
 
 let Strategy = require("../../../src/strategies").RoundRobin;
 let ActionCatalog = require("../../../src/registry/action-catalog");
@@ -59,6 +55,9 @@ describe("Test ActionCatalog methods", () => {
 
 		expect(catalog.actions.size).toBe(1);
 		expect(list).toBeInstanceOf(EndpointList);
+
+		expect(catalog.isAvailable("test.hello")).toBe(true);
+		expect(catalog.isAvailable("test.hi")).toBe(false);
 
 	});
 
@@ -133,6 +132,18 @@ describe("Test ActionCatalog methods", () => {
 				"name": "echo.reply"
 			}
 		]);
+
+		res = catalog.list({ onlyLocal: true, skipInternal: true });
+		expect(res).toEqual( [{
+			"action": {
+				"cache": true,
+				"name": "echo.reply"
+			},
+			"available": true,
+			"count": 1,
+			"hasLocal": true,
+			"name": "echo.reply"
+		}]);
 
 		res = catalog.list({ withEndpoints: true });
 		expect(res).toEqual([

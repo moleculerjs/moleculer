@@ -2,7 +2,6 @@
 
 let NodeCatalog = require("../../../src/registry/node-catalog");
 let ServiceBroker = require("../../../src/service-broker");
-let FakeTransporter = require("../../../src/transporters/fake");
 
 describe("Test NodeCatalog constructor", () => {
 
@@ -208,7 +207,7 @@ describe("Test NodeCatalog.disconnected", () => {
 });
 
 describe("Test NodeCatalog.heartbeat", () => {
-	let broker = new ServiceBroker({ transporter: FakeTransporter });
+	let broker = new ServiceBroker({ transporter: "fake" });
 	let catalog = new NodeCatalog(broker.registry, broker);
 	broker.transit.discoverNode = jest.fn();
 
@@ -260,8 +259,52 @@ describe("Test NodeCatalog.heartbeat", () => {
 
 });
 
+describe("Test checkRemoteNodes", () => {
+	let broker = new ServiceBroker({ transporter: "fake" });
+	let catalog = new NodeCatalog(broker.registry, broker);
+
+	let payload = {
+		sender: "node-10",
+		services: []
+	};
+
+	catalog.processNodeInfo(payload);
+	let node = catalog.get("node-10");
+
+	catalog.disconnected = jest.fn();
+
+	it("should call 'disconnected' if the heartbeat time is too old", () => {
+		node.lastHeartbeatTime = Date.now();
+		catalog.checkRemoteNodes();
+		expect(catalog.disconnected).toHaveBeenCalledTimes(0);
+
+		node.lastHeartbeatTime -= broker.options.heartbeatTimeout * 1.5 * 1000;
+		catalog.checkRemoteNodes();
+
+		expect(catalog.disconnected).toHaveBeenCalledTimes(1);
+		expect(catalog.disconnected).toHaveBeenCalledWith("node-10", true);
+	});
+
+	it("should not call 'disconnected' if the node is local", () => {
+		catalog.disconnected.mockClear();
+		node.local = true;
+		catalog.checkRemoteNodes();
+		expect(catalog.disconnected).toHaveBeenCalledTimes(0);
+		node.local = false;
+	});
+
+	it("should not call 'disconnected' if the node is not available", () => {
+		catalog.disconnected.mockClear();
+		node.available = false;
+		catalog.checkRemoteNodes();
+		expect(catalog.disconnected).toHaveBeenCalledTimes(0);
+		node.available = true;
+	});
+
+});
+
 describe("Test NodeCatalog.list", () => {
-	let broker = new ServiceBroker({ transporter: FakeTransporter });
+	let broker = new ServiceBroker({ transporter: "fake" });
 	let catalog = new NodeCatalog(broker.registry, broker);
 	broker.transit.discoverNode = jest.fn();
 

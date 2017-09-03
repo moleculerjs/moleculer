@@ -1,5 +1,8 @@
 "use strict";
 
+const H = require("../../../src/health");
+H.getCpuInfo = jest.fn(() => ({ utilization: 12 }));
+
 let Node = require("../../../src/registry/node");
 
 describe("Test Node", () => {
@@ -61,4 +64,12 @@ describe("Test Node", () => {
 		expect(node.available).toBe(false);
 	});
 
+	it("should update local info", () => {
+		let node = new Node("node-1");
+
+		node.updateLocalInfo();
+
+		expect(node.cpu).toBe(12);
+		expect(H.getCpuInfo).toHaveBeenCalledTimes(1);
+	});
 });

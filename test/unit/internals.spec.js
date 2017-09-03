@@ -31,7 +31,10 @@ describe("Test health status methods", () => {
 				nodeID: "node-2",
 				actions: {
 					find() {},
-					get() {}
+					get() {},
+					login: {
+						protected: true
+					}
 				}
 			},
 			{
@@ -40,10 +43,7 @@ describe("Test health status methods", () => {
 				nodeID: "node-3",
 				actions: {
 					find() {},
-					get() {},
-					login: {
-						protected: true
-					}
+					get() {}
 				}
 			},
 		]);
