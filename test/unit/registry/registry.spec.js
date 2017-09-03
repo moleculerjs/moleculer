@@ -79,4 +79,260 @@ describe("Test Registry.registerLocalService", () => {
 	});
 });
 
-// TODO: test more methods
+describe("Test Registry.registerServices", () => {
+
+	let broker = new ServiceBroker();
+	let registry = broker.registry;
+
+	let node = { id: "node-11" };
+
+	let serviceItem = {
+		update: jest.fn()
+	};
+
+	registry.services.get = jest.fn(() => null);
+	registry.services.add = jest.fn(() => serviceItem);
+	registry.unregisterService = jest.fn();
+	registry.registerActions = jest.fn();
+	registry.unregisterAction = jest.fn();
+	registry.registerEvents = jest.fn();
+	registry.unregisterEvent = jest.fn();
+
+	it("should call services.add", () => {
+		let service = {
+			name: "users",
+			version: 2,
+			settings: { a: 5 },
+			actions: {
+				"users.find"() {},
+				"users.get"() {}
+			},
+			events: {
+				"user.created"() {},
+				"user.removed"() {}
+			}
+		};
+
+		registry.registerServices(node, [service]);
+
+		expect(registry.services.add).toHaveBeenCalledTimes(1);
+		expect(registry.services.add).toHaveBeenCalledWith(node, "users", 2, service.settings);
+		expect(serviceItem.update).toHaveBeenCalledTimes(0);
+
+		expect(registry.registerActions).toHaveBeenCalledTimes(1);
+		expect(registry.registerActions).toHaveBeenCalledWith(node, serviceItem, service.actions);
+
+		expect(registry.unregisterAction).toHaveBeenCalledTimes(0);
+
+		expect(registry.registerEvents).toHaveBeenCalledTimes(1);
+		expect(registry.registerEvents).toHaveBeenCalledWith(node, serviceItem, service.events);
+
+		expect(registry.unregisterEvent).toHaveBeenCalledTimes(0);
+
+		expect(registry.unregisterService).toHaveBeenCalledTimes(0);
+	});
+
+	it("should update service, actions & events", () => {
+		let serviceItem = {
+			name: "users",
+			version: 2,
+			node,
+			update: jest.fn(),
+			equals: jest.fn(() => false),
+			actions: {
+				"users.find"() {},
+				"users.get"() {}
+			},
+			events: {
+				"user.created"() {},
+				"user.removed"() {}
+			}
+		};
+		registry.services.get = jest.fn(() => serviceItem);
+		registry.services.add.mockClear();
+		registry.unregisterService.mockClear();
+		registry.registerActions.mockClear();
+		registry.unregisterAction.mockClear();
+		registry.registerEvents.mockClear();
+		registry.unregisterEvent.mockClear();
+
+		let service = {
+			name: "users",
+			version: 2,
+			settings: { b: 3 },
+			actions: {
+				"users.find"() {},
+				"users.remove"() {}
+			},
+			events: {
+				"user.created"() {},
+				"user.deleted"() {}
+			}
+		};
+
+		registry.registerServices(node, [service]);
+
+		expect(registry.services.add).toHaveBeenCalledTimes(0);
+
+		expect(registry.services.get).toHaveBeenCalledTimes(1);
+		expect(registry.services.get).toHaveBeenCalledWith("users", 2, node.id);
+
+		expect(serviceItem.update).toHaveBeenCalledTimes(1);
+		expect(serviceItem.update).toHaveBeenCalledWith(service);
+
+		expect(registry.registerActions).toHaveBeenCalledTimes(1);
+		expect(registry.registerActions).toHaveBeenCalledWith(node, serviceItem, service.actions);
+
+		expect(registry.unregisterAction).toHaveBeenCalledTimes(1);
+		expect(registry.unregisterAction).toHaveBeenCalledWith(node, "users.get");
+
+		expect(registry.registerEvents).toHaveBeenCalledTimes(1);
+		expect(registry.registerEvents).toHaveBeenCalledWith(node, serviceItem, service.events);
+
+		expect(registry.unregisterEvent).toHaveBeenCalledTimes(1);
+		expect(registry.unregisterEvent).toHaveBeenCalledWith(node, "user.removed");
+
+		expect(registry.unregisterService).toHaveBeenCalledTimes(0);
+
+		// For next test
+		registry.services.services.push(serviceItem);
+	});
+
+	it("should remove old service", () => {
+		registry.services.get = jest.fn();
+		registry.services.add.mockClear();
+		registry.unregisterService.mockClear();
+
+		let service = {
+			name: "posts"
+		};
+
+		registry.registerServices(node, [service]);
+
+		expect(registry.unregisterService).toHaveBeenCalledTimes(1);
+		expect(registry.unregisterService).toHaveBeenCalledWith("users", 2, "node-11");
+	});
+
+});
+
+describe("Test Registry.unregisterService & unregisterServicesByNode", () => {
+
+	let broker = new ServiceBroker();
+	let registry = broker.registry;
+
+	registry.services.remove = jest.fn();
+	registry.services.removeAllByNodeID = jest.fn();
+
+	it("should call services remove method", () => {
+		registry.unregisterService("posts", 2, "node-11");
+
+		expect(registry.services.remove).toHaveBeenCalledTimes(1);
+		expect(registry.services.remove).toHaveBeenCalledWith("posts", 2, "node-11");
+	});
+
+	it("should call services remove method with local nodeID", () => {
+		registry.services.remove.mockClear();
+
+		registry.unregisterService("posts", 2);
+
+		expect(registry.services.remove).toHaveBeenCalledTimes(1);
+		expect(registry.services.remove).toHaveBeenCalledWith("posts", 2, broker.nodeID);
+	});
+
+	it("should call services removeAllByNodeID method", () => {
+		registry.services.removeAllByNodeID.mockClear();
+
+		registry.unregisterServicesByNode("node-2");
+
+		expect(registry.services.removeAllByNodeID).toHaveBeenCalledTimes(1);
+		expect(registry.services.removeAllByNodeID).toHaveBeenCalledWith("node-2");
+	});
+
+});
+
+describe("Test Registry.registerActions", () => {
+
+	let broker = new ServiceBroker();
+	let registry = broker.registry;
+
+	registry.actions.add = jest.fn();
+	let service = {
+		addAction: jest.fn()
+	};
+	let node = { id: "node-11" };
+
+	it("should call actions add & service addAction methods", () => {
+		registry.registerActions(node, service, {
+			"users.find": { name: "users.find" },
+			"users.save": { name: "users.save" },
+		});
+
+		expect(registry.actions.add).toHaveBeenCalledTimes(2);
+		expect(registry.actions.add).toHaveBeenCalledWith(node, service, {"name": "users.find"});
+		expect(registry.actions.add).toHaveBeenCalledWith(node, service, {"name": "users.save"});
+
+		expect(service.addAction).toHaveBeenCalledTimes(2);
+		expect(service.addAction).toHaveBeenCalledWith({"name": "users.find"});
+		expect(service.addAction).toHaveBeenCalledWith({"name": "users.save"});
+	});
+});
+
+describe("Test Registry.unregisterAction", () => {
+
+	let broker = new ServiceBroker();
+	let registry = broker.registry;
+
+	registry.actions.remove = jest.fn();
+
+	it("should call actions remove method", () => {
+		registry.unregisterAction({ id: "node-11" }, "posts.find");
+
+		expect(registry.actions.remove).toHaveBeenCalledTimes(1);
+		expect(registry.actions.remove).toHaveBeenCalledWith("posts.find", "node-11");
+	});
+
+});
+
+describe("Test Registry.registerEvents", () => {
+
+	let broker = new ServiceBroker();
+	let registry = broker.registry;
+
+	registry.events.add = jest.fn();
+	let service = {
+		addEvent: jest.fn()
+	};
+	let node = { id: "node-11" };
+
+	it("should call events add & service addEvent methods", () => {
+		registry.registerEvents(node, service, {
+			"user.created": { name: "user.created" },
+			"user.removed": { name: "user.removed" },
+		});
+
+		expect(registry.events.add).toHaveBeenCalledTimes(2);
+		expect(registry.events.add).toHaveBeenCalledWith(node, service, {"name": "user.created"});
+		expect(registry.events.add).toHaveBeenCalledWith(node, service, {"name": "user.removed"});
+
+		expect(service.addEvent).toHaveBeenCalledTimes(2);
+		expect(service.addEvent).toHaveBeenCalledWith({"name": "user.created"});
+		expect(service.addEvent).toHaveBeenCalledWith({"name": "user.removed"});
+	});
+
+});
+
+describe("Test Registry.unregisterEvent", () => {
+
+	let broker = new ServiceBroker();
+	let registry = broker.registry;
+
+	registry.events.remove = jest.fn();
+
+	it("should call events remove method", () => {
+		registry.unregisterEvent({ id: "node-11" }, "posts.find");
+
+		expect(registry.events.remove).toHaveBeenCalledTimes(1);
+		expect(registry.events.remove).toHaveBeenCalledWith("posts.find", "node-11");
+	});
+
+});

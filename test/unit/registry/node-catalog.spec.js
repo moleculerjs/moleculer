@@ -5,12 +5,12 @@ let ServiceBroker = require("../../../src/service-broker");
 
 describe("Test NodeCatalog constructor", () => {
 
-	let broker = new ServiceBroker();
-	let registry = broker.registry;
-
-	broker.internalEvents.on = jest.fn();
-
 	it("test properties", () => {
+		let broker = new ServiceBroker();
+		let registry = broker.registry;
+
+		broker.internalEvents.on = jest.fn();
+
 		let catalog = new NodeCatalog(registry, broker);
 
 		expect(catalog).toBeDefined();
@@ -29,6 +29,26 @@ describe("Test NodeCatalog constructor", () => {
 		expect(broker.internalEvents.on).toHaveBeenCalledTimes(2);
 		expect(broker.internalEvents.on).toHaveBeenCalledWith("$transporter.connected", jasmine.any(Function));
 		expect(broker.internalEvents.on).toHaveBeenCalledWith("$transporter.disconnected", jasmine.any(Function));
+	});
+
+	it("should call startHeartbeatTimers & stortHeartbeatTimers", () => {
+		let broker = new ServiceBroker();
+		let catalog = new NodeCatalog(broker.registry, broker);
+
+		catalog.startHeartbeatTimers = jest.fn();
+		catalog.stoptHeartbeatTimers = jest.fn();
+
+		broker.internalEvents.emit("$transporter.connected");
+
+		expect(catalog.heartbeatTimer).toBeDefined();
+		expect(catalog.checkNodesTimer).toBeDefined();
+		//expect(catalog.startHeartbeatTimers).toHaveBeenCalledTimes(1);
+
+		broker.internalEvents.emit("$transporter.disconnected");
+
+		expect(catalog.heartbeatTimer).toBeNull();
+		expect(catalog.checkNodesTimer).toBeNull();
+		///expect(catalog.stoptHeartbeatTimers).toHaveBeenCalledTimes(1);
 	});
 
 });
