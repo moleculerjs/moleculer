@@ -178,6 +178,27 @@ describe("Test JSON serializer", () => {
 		});
 	});
 
+	it("should serialize the ping packet", () => {
+		const packet = new P.PacketPing(broker.transit, "test-2", 1234567);
+		const s = packet.serialize();
+		expect(s).toBe("{\"ver\":\"2\",\"sender\":\"test-1\",\"time\":1234567}");
+
+		const res = P.Packet.deserialize(broker.transit, P.PACKET_PING, s);
+		expect(res).toBeInstanceOf(P.PacketPing);
+		expect(res.payload.time).toBe(1234567);
+	});
+
+	it("should serialize the pong packet", () => {
+		const packet = new P.PacketPong(broker.transit, "test-2", 1234567, 7654321);
+		const s = packet.serialize();
+		expect(s).toBe("{\"ver\":\"2\",\"sender\":\"test-1\",\"time\":1234567,\"arrived\":7654321}");
+
+		const res = P.Packet.deserialize(broker.transit, P.PACKET_PONG, s);
+		expect(res).toBeInstanceOf(P.PacketPong);
+		expect(res.payload.time).toBe(1234567);
+		expect(res.payload.arrived).toBe(7654321);
+	});
+
 });
 
 describe("Test Avro serializer", () => {
@@ -317,7 +338,7 @@ describe("Test Avro serializer", () => {
 		err.stack = "STACK_PLACEHOLDER";
 
 		const packet = new P.PacketResponse(broker.transit, "test-2", "12345", null, err);
-		const s = packet.serialize(100);
+		const s = packet.serialize();
 		expect(s.length).toBe(100);
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_RESPONSE, s);
@@ -334,6 +355,27 @@ describe("Test Avro serializer", () => {
 				a: 5
 			}
 		});
+	});
+
+	it("should serialize the ping packet", () => {
+		const packet = new P.PacketPing(broker.transit, "test-2", 1234567);
+		const s = packet.serialize();
+		expect(s.length).toBe(13);
+
+		const res = P.Packet.deserialize(broker.transit, P.PACKET_PING, s);
+		expect(res).toBeInstanceOf(P.PacketPing);
+		expect(res.payload.time).toBe(1234567);
+	});
+
+	it("should serialize the pong packet", () => {
+		const packet = new P.PacketPong(broker.transit, "test-2", 1234567, 7654321);
+		const s = packet.serialize();
+		expect(s.length).toBe(17);
+
+		const res = P.Packet.deserialize(broker.transit, P.PACKET_PONG, s);
+		expect(res).toBeInstanceOf(P.PacketPong);
+		expect(res.payload.time).toBe(1234567);
+		expect(res.payload.arrived).toBe(7654321);
 	});
 
 });
@@ -496,6 +538,26 @@ describe("Test MsgPack serializer", () => {
 		});
 	});
 
+	it("should serialize the ping packet", () => {
+		const packet = new P.PacketPing(broker.transit, "test-2", 1234567);
+		const s = packet.serialize();
+		expect(s.length).toBe(31);
+
+		const res = P.Packet.deserialize(broker.transit, P.PACKET_PING, s);
+		expect(res).toBeInstanceOf(P.PacketPing);
+		expect(res.payload.time).toBe(1234567);
+	});
+
+	it("should serialize the pong packet", () => {
+		const packet = new P.PacketPong(broker.transit, "test-2", 1234567, 7654321);
+		const s = packet.serialize();
+		expect(s.length).toBe(44);
+
+		const res = P.Packet.deserialize(broker.transit, P.PACKET_PONG, s);
+		expect(res).toBeInstanceOf(P.PacketPong);
+		expect(res.payload.time).toBe(1234567);
+		expect(res.payload.arrived).toBe(7654321);
+	});
 });
 
 describe("Test ProtoBuf serializer", () => {
@@ -654,4 +716,24 @@ describe("Test ProtoBuf serializer", () => {
 		});
 	});
 
+	it("should serialize the ping packet", () => {
+		const packet = new P.PacketPing(broker.transit, "test-2", 1234567);
+		const s = packet.serialize();
+		expect(s.length).toBe(15);
+
+		const res = P.Packet.deserialize(broker.transit, P.PACKET_PING, s);
+		expect(res).toBeInstanceOf(P.PacketPing);
+		// TODO: expect(res.payload.time).toBe(1234567);
+	});
+
+	it("should serialize the pong packet", () => {
+		const packet = new P.PacketPong(broker.transit, "test-2", 1234567, 7654321);
+		const s = packet.serialize();
+		expect(s.length).toBe(20);
+
+		const res = P.Packet.deserialize(broker.transit, P.PACKET_PONG, s);
+		expect(res).toBeInstanceOf(P.PacketPong);
+		// TODO: expect(res.payload.time).toBe(1234567);
+		// TODO: expect(res.payload.arrived).toBe(7654321);
+	});
 });
