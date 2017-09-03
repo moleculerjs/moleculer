@@ -1758,14 +1758,39 @@ describe("Test broker.emit", () => {
 
 		expect(handler).toHaveBeenCalledTimes(1);
 		expect(handler).toHaveBeenCalledWith(undefined, broker.nodeID, "test.event");
+
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(1);
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith("test.event", undefined);
 	});
 
 	it("should call broadcastLocal with object payload", () => {
 		handler.mockClear();
+		broker.registry.events.getBalancedEndpoints.mockClear();
 		broker.emit("test.event", { a: 5 });
 
 		expect(handler).toHaveBeenCalledTimes(1);
 		expect(handler).toHaveBeenCalledWith({a : 5}, broker.nodeID, "test.event");
+
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(1);
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith("test.event", undefined);
+	});
+
+	it("should call broadcastLocal with a group", () => {
+		handler.mockClear();
+		broker.registry.events.getBalancedEndpoints.mockClear();
+		broker.emit("test.event", { a: 5 }, "users");
+
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(1);
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith("test.event", ["users"]);
+	});
+
+	it("should call broadcastLocal with multiple groups", () => {
+		handler.mockClear();
+		broker.registry.events.getBalancedEndpoints.mockClear();
+		broker.emit("test.event", { a: 5 }, ["users", "payments"]);
+
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(1);
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith("test.event", ["users", "payments"]);
 	});
 });
 
