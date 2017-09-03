@@ -286,7 +286,7 @@ class Transit {
 			return;
 		}
 
-		// Ping
+		// Pong
 		else if (cmd === P.PACKET_PONG) {
 			this.processPong(payload);
 			return;

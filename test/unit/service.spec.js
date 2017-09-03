@@ -146,6 +146,40 @@ describe("Test events creation", () => {
 		expect(svc.actions).toEqual({});
 	});
 
+	it("should register event handler with mixins", () => {
+		let broker = new ServiceBroker({ internalServices: false });
+		broker.registry.registerLocalService = jest.fn();
+
+		let cb1 = jest.fn();
+		let cb2 = jest.fn();
+		let cb3 = jest.fn();
+		let service = broker.createService({
+			name: "posts",
+			events: {
+				"user.*": [cb1, cb2],
+				"posts.updated": {
+					handler: cb3
+				}
+			}
+		});
+
+		expect(service).toBeDefined();
+
+		expect(broker.registry.registerLocalService).toHaveBeenCalledTimes(1);
+		expect(broker.registry.registerLocalService).toHaveBeenCalledTimes(1);
+		const svc = broker.registry.registerLocalService.mock.calls[0][0];
+		expect(svc.events["posts.updated"]).toBeDefined();
+		expect(svc.events["user.*"]).toBeDefined();
+		expect(svc.actions).toEqual({});
+
+		svc.events["posts.updated"].handler();
+		expect(cb3).toHaveBeenCalledTimes(1);
+
+		svc.events["user.*"].handler();
+		expect(cb1).toHaveBeenCalledTimes(1);
+		expect(cb2).toHaveBeenCalledTimes(1);
+	});
+
 	it("should throw error because no handler of event", () => {
 		let broker = new ServiceBroker({ internalServices: false });
 		expect(() => {
@@ -359,6 +393,7 @@ describe("Test constructor with mixins", () => {
 describe("Test applyMixins", () => {
 	let mixin1 = { name: "mixin1" };
 	let mixin2 = { name: "mixin2" };
+	let mixin3 = { name: "mixin3", mixins: mixin2 };
 
 	it("should call utils.mergeSchemas with mixins", () => {
 		utils.mergeSchemas.mockClear();
@@ -386,6 +421,21 @@ describe("Test applyMixins", () => {
 		Service.applyMixins(schema);
 
 		expect(utils.mergeSchemas).toHaveBeenCalledTimes(2);
+		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, mixin2);
+		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, schema);
+	});
+
+	it("should call utils.mergeSchemas with two level mixins", () => {
+		utils.mergeSchemas.mockClear();
+		let schema = {
+			name: "posts",
+			mixins: mixin3
+		};
+		Service.applyMixins(schema);
+
+		expect(utils.mergeSchemas).toHaveBeenCalledTimes(4);
+		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, {});
+		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, mixin3);
 		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, mixin2);
 		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, schema);
 	});
@@ -479,5 +529,22 @@ describe("Test lifecycle event handlers", () => {
 		});
 	});
 
+
+});
+
+describe("Test broker.waitForServices", () => {
+	let broker = new ServiceBroker();
+	broker.waitForServices = jest.fn();
+
+	it("should call waitForServices", () => {
+		let svc = broker.createService({
+			name: "test",
+			created() {
+				this.waitForServices("posts", 5000, 500);
+			}
+		});
+		expect(broker.waitForServices).toHaveBeenCalledTimes(1);
+		expect(broker.waitForServices).toHaveBeenCalledWith("posts", 5000, 500, svc.logger);
+	});
 
 });

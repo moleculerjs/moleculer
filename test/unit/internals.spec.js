@@ -40,12 +40,15 @@ describe("Test health status methods", () => {
 				nodeID: "node-3",
 				actions: {
 					find() {},
-					get() {}
+					get() {},
+					login: {
+						protected: true
+					}
 				}
 			},
 		]);
 
-		let opts = { skipInternal: true, withActions: false };
+		let opts = { skipInternal: true, withActions: true };
 		return broker.call("$node.services", opts).catch(protectReject).then(res => {
 			expect(broker.registry.services.list).toHaveBeenCalledTimes(1);
 			expect(broker.registry.services.list).toHaveBeenCalledWith(opts);

@@ -1823,6 +1823,9 @@ describe("Test broker.emit with transporter", () => {
 		expect(broker.transit.sendEvent).toHaveBeenCalledTimes(2);
 		expect(broker.transit.sendEvent).toHaveBeenCalledWith("node-3", "user.event", { name: "John" }, ["users"]);
 		expect(broker.transit.sendEvent).toHaveBeenCalledWith("node-2", "user.event", { name: "John" }, ["payment", "mail"]);
+
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(1);
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith("user.event", undefined);
 	});
 });
 
@@ -1845,11 +1848,15 @@ describe("Test broker broadcast", () => {
 		expect(broker.transit.sendEvent).toHaveBeenCalledTimes(2);
 		expect(broker.transit.sendEvent).toHaveBeenCalledWith("node-2", "test.event", undefined);
 		expect(broker.transit.sendEvent).toHaveBeenCalledWith("node-3", "test.event", undefined);
+
+		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledTimes(1);
+		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledWith("test.event");
 	});
 
 	it("should call bus.emit with object payload", () => {
 		broker.broadcastLocal.mockClear();
 		broker.transit.sendEvent.mockClear();
+		broker.registry.events.getAllEndpoints.mockClear();
 		broker.broadcast("user.event", { name: "John" });
 
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
@@ -1858,6 +1865,9 @@ describe("Test broker broadcast", () => {
 		expect(broker.transit.sendEvent).toHaveBeenCalledTimes(2);
 		expect(broker.transit.sendEvent).toHaveBeenCalledWith("node-2", "user.event", { name: "John" });
 		expect(broker.transit.sendEvent).toHaveBeenCalledWith("node-3", "user.event", { name: "John" });
+
+		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledTimes(1);
+		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledWith("user.event");
 	});
 
 });
