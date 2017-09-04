@@ -59,5 +59,8 @@ broker.createService({
 broker.start()
 	.then(() => {
 		setInterval(() => broker.transit.sendPing(), 10 * 1000);
+		setInterval(() => {
+			broker.broadcast("echo.broadcast");
+		}, 5 * 1000);
 	})
 	.then(() => broker.repl());

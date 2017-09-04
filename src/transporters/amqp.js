@@ -132,7 +132,7 @@ class AmqpTransporter extends Transporter {
 								.on("error", (err) => {
 									this.connected = false;
 									reject(err);
-									this.logger.error("AMQP channel error!");
+									this.logger.error("AMQP channel error!", err);
 								})
 								.on("drain", () => {
 									this.logger.info("AMQP channel drained!");
@@ -223,25 +223,18 @@ class AmqpTransporter extends Transporter {
 	 * Build a function to handle requests.
 	 *
 	 * @param {String} cmd
+	 * @param {Boolean} needAck
 	 *
 	 * @memberOf AmqpTransporter
 	 */
-	_consumeCB(cmd) {
+	_consumeCB(cmd, needAck = false) {
 		return (msg) => {
 			const result = this.messageHandler(cmd, msg.content);
 
 			// If a promise is returned, acknowledge the message after it has resolved.
 			// This means that if a worker dies after receiving a message but before responding, the
 			// message won't be lost and it can be retried.
-			if(cmd === PACKET_REQUEST) {
-				if (result instanceof Promise) {
-					return result.then(() => this.channel.ack(msg));
-				} else {
-					this.channel.ack(msg);
-				}
-			}
-
-			if(cmd === PACKET_EVENT) {
+			if(needAck) {
 				if (result instanceof Promise) {
 					return result.then(() => this.channel.ack(msg));
 				} else {
@@ -338,7 +331,7 @@ class AmqpTransporter extends Transporter {
 					return this.channel.assertQueue(queue, this._getQueueOptions(PACKET_REQUEST))
 						.then(() => this.channel.consume(
 							queue,
-							this._consumeCB(PACKET_REQUEST),
+							this._consumeCB(PACKET_REQUEST, true),
 							this.opts.amqp.consumeOptions
 						));
 				}),
@@ -350,7 +343,7 @@ class AmqpTransporter extends Transporter {
 					return this.channel.assertQueue(queue, this._getQueueOptions(PACKET_EVENT + "LB"))
 						.then(() => this.channel.consume(
 							queue,
-							this._consumeCB(PACKET_EVENT),
+							this._consumeCB(PACKET_EVENT, true),
 							this.opts.amqp.consumeOptions
 						));
 				})

@@ -48,6 +48,9 @@ broker.createService({
 
 		"reply.event"(data, sender) {
 			broker.logger.info(`<< Reply event received from ${sender}. Counter: ${data.counter}.`);
+		},
+		"echo.broadcast"(data, sender) {
+			broker.logger.info(`<< Broadcast event received from ${sender}.`);
 		}
 	},
 
