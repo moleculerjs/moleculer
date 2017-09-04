@@ -55,7 +55,7 @@ broker.createService({
 		this.counter = 1;
 
 		setInterval(() => {
-			broker.logger.info(`>> Send echo event to all nodes. Counter: ${this.counter}.`);
+			broker.logger.info(`>> Send echo event. Counter: ${this.counter}.`);
 			broker.emit("echo.event", { counter: this.counter++ });
 		}, 5000);
 	}
@@ -64,7 +64,7 @@ broker.createService({
 let reqCount = 0;
 
 broker.start()
-	.then(() => broker.waitForServices("math", 30 * 1000, 5 * 1000))
+	.then(() => broker.waitForServices("math"))
 	.then(() => {
 		setInterval(() => {
 			let payload = { a: _.random(0, 100), b: _.random(0, 100) };
@@ -75,6 +75,6 @@ broker.start()
 			}).catch(err => {
 				broker.logger.warn(chalk.red.bold(_.padEnd(`${reqCount}. ${payload.a} + ${payload.b} = ERROR! ${err.message}`)));
 			});
-		}, 500);
+		}, 1000);
 
 	});
