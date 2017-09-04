@@ -126,6 +126,7 @@ class AmqpTransporter extends Transporter {
 							channel
 								.on("close", () => {
 									this.connected = false;
+									this.channel = null;
 									reject();
 									this.logger.warn("AMQP channel closed!");
 								})
@@ -324,9 +325,11 @@ class AmqpTransporter extends Transporter {
 		return Promise.all(services.map(service => {
 			if (typeof service.actions !== "object" && typeof service.events !== "object") return Promise.resolve();
 
-			return Promise.all(_.compact(_.flatten(
+			const p = [];
+
+			if (service.actions) {
 				// Service actions queues
-				Object.keys(service.actions).map(action => {
+				p.push(Object.keys(service.actions).map(action => {
 					const queue = `${this.prefix}.${PACKET_REQUEST}.${action}`;
 					return this.channel.assertQueue(queue, this._getQueueOptions(PACKET_REQUEST))
 						.then(() => this.channel.consume(
@@ -334,10 +337,12 @@ class AmqpTransporter extends Transporter {
 							this._consumeCB(PACKET_REQUEST, true),
 							this.opts.amqp.consumeOptions
 						));
-				}),
+				}));
+			}
 
+			if (service.events) {
 				// Load-balanced/grouped events queues
-				Object.keys(service.events).map(event => {
+				p.push(Object.keys(service.events).map(event => {
 					const group = service.events[event].group || service.name;
 					const queue = `${this.prefix}.${PACKET_EVENT}.${group}.${event}`;
 					return this.channel.assertQueue(queue, this._getQueueOptions(PACKET_EVENT + "LB"))
@@ -346,8 +351,10 @@ class AmqpTransporter extends Transporter {
 							this._consumeCB(PACKET_EVENT, true),
 							this.opts.amqp.consumeOptions
 						));
-				})
-			)));
+				}));
+			}
+
+			return Promise.all(_.compact(_.flatten(p, true)));
 		}));
 	}
 
@@ -362,7 +369,7 @@ class AmqpTransporter extends Transporter {
 	 * Reasonings documented in the subscribe method.
 	 */
 	publish(packet) {
-		if (!this.channel) return;
+		if (!this.channel) return Promise.resolve();
 
 		const topic = this.getTopicName(packet.type, packet.target);
 		const payload = Buffer.from(packet.serialize()); // amqp.node expects data to be a buffer
@@ -380,7 +387,7 @@ class AmqpTransporter extends Transporter {
 						let queue = `${this.prefix}.${packet.type}.${group}.${packet.payload.event}`;
 						this.channel.sendToQueue(queue, payload, this.opts.amqp.messageOptions);
 					});
-					return;
+					return Promise.resolve();
 				}
 				// If it's not contain, then it is a broadcasted event,
 				// we sent it in the normal way (exchange)
