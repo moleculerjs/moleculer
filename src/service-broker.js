@@ -25,6 +25,7 @@ const Cachers 			= require("./cachers");
 const Transporters 		= require("./transporters");
 const Serializers 		= require("./serializers");
 const RoundRobinStrategy = require("./strategies/round-robin");
+const H 				= require("./health");
 
 /**
  * Default broker options
@@ -1008,6 +1009,15 @@ class ServiceBroker {
 		return this.registry.events.emitLocalServices(eventName, payload, null, nodeID || this.nodeID);
 	}
 
+	/**
+	 * Get local node health status
+	 *
+	 * @returns {Promise}
+	 * @memberof ServiceBroker
+	 */
+	getHealthStatus() {
+		return H.getHealthStatus(this);
+	}
 }
 
 /**

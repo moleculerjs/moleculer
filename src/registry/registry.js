@@ -58,6 +58,9 @@ class Registry {
 		if (svc.events)
 			this.registerEvents(this.nodes.localNode, service, svc.events);
 
+
+		this.nodes.localNode.services.push(service);
+
 		this.logger.info(`'${svc.name}' service is registered!`);
 	}
 

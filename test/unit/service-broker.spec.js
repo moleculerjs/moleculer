@@ -4,6 +4,9 @@
 const chalk = require("chalk");
 chalk.enabled = false;
 
+const H = require("../../src/health");
+H.getHealthStatus = jest.fn();
+
 const { protectReject } = require("./utils");
 const fs = require("fs");
 const utils = require("../../src/utils");
@@ -2004,6 +2007,16 @@ describe("Test hot-reload feature", () => {
 			});
 		});
 	});
+});
 
+describe("Test broker getHealthStatus", () => {
+	let broker = new ServiceBroker();
+
+	it("should call H.getHealthStatus", () => {
+		broker.getHealthStatus();
+
+		expect(H.getHealthStatus).toHaveBeenCalledTimes(1);
+		expect(H.getHealthStatus).toHaveBeenCalledWith(broker);
+	});
 
 });

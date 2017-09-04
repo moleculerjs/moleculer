@@ -92,7 +92,7 @@ module.exports = function(broker) {
 			health: {
 				cache: false,
 				handler() {
-					return getHealthStatus(broker);
+					return this.broker.getHealthStatus();
 				}
 			}
 		}

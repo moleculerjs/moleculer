@@ -246,13 +246,17 @@ class NodeCatalog {
 	/**
 	 * Get a node list
 	 *
+	 * @param {boolean} withServices
 	 * @returns
 	 * @memberof NodeCatalog
 	 */
-	list() {
+	list(withServices = false) {
 		let res = [];
 		this.nodes.forEach(node => {
-			res.push(_.omit(node, ["services", "events"]));
+			if (withServices)
+				res.push(node);
+			else
+				res.push(_.omit(node, ["services"]));
 		});
 
 		return res;

@@ -20,8 +20,7 @@ describe("Test Node", () => {
 		expect(node.port).toBeNull();
 		expect(node.ipList).toBeNull();
 		expect(node.client).toBeNull();
-		expect(node.services).toBeNull();
-		expect(node.events).toBeNull();
+		expect(node.services).toEqual([]);
 	});
 
 	it("should update props", () => {
@@ -30,15 +29,13 @@ describe("Test Node", () => {
 		let payload = {
 			ipList: ["127.0.0.1"],
 			client: {},
-			services: [],
-			events: []
+			services: [{}]
 		};
 		node.update(payload);
 
 		expect(node.ipList).toBe(payload.ipList);
 		expect(node.client).toBe(payload.client);
 		expect(node.services).toBe(payload.services);
-		expect(node.events).toBe(payload.events);
 	});
 
 	it("should update heartbeat props", () => {

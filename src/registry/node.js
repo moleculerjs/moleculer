@@ -33,8 +33,7 @@ class Node {
 		this.ipList = null;
 		this.client = null;
 
-		this.services = null;
-		this.events = null;
+		this.services = [];
 	}
 
 	/**
@@ -50,7 +49,6 @@ class Node {
 
 		// Process services & events
 		this.services = payload.services;
-		this.events = payload.events;
 	}
 
 	/**

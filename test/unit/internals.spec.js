@@ -1,7 +1,5 @@
 "use strict";
 
-const H = require("../../src/health");
-H.getHealthStatus = jest.fn();
 const ServiceBroker = require("../../src/service-broker");
 const { protectReject } = require("./utils");
 
@@ -93,8 +91,9 @@ describe("Test health status methods", () => {
 	});
 
 	it("should call getHealthStatus", () => {
+		broker.getHealthStatus = jest.fn();
 		return broker.call("$node.health").catch(protectReject).then(() => {
-			expect(H.getHealthStatus).toHaveBeenCalledTimes(1);
+			expect(broker.getHealthStatus).toHaveBeenCalledTimes(1);
 		});
 	});
 
