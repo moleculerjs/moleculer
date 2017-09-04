@@ -10,7 +10,8 @@ let { MoleculerError } = require("../../src/errors");
 let broker = new ServiceBroker({
 	//namespace: "multi",
 	nodeID: process.argv[2] || "server-" + process.pid,
-	transporter: "NATS",
+	//transporter: "NATS",
+	transporter: "amqp://192.168.51.29:5672",
 	//serializer: "Avro",
 	logger: console,
 	logFormatter: "simple"
@@ -22,8 +23,8 @@ broker.createService({
 	name: "math",
 	actions: {
 		add(ctx) {
-			if (_.random(100) > 90)
-				return this.Promise.reject(new MoleculerError("Random error!", 510));
+			//if (_.random(100) > 90)
+			//	return this.Promise.reject(new MoleculerError("Random error!", 510));
 
 			return Number(ctx.params.a) + Number(ctx.params.b);
 		},

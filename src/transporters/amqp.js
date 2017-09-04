@@ -17,6 +17,8 @@ const {
 	PACKET_INFO,
 	PACKET_DISCONNECT,
 	PACKET_HEARTBEAT,
+	PACKET_PING,
+	PACKET_PONG,
 } = require("../packets");
 
 /**
@@ -155,7 +157,7 @@ class AmqpTransporter extends Transporter {
 	}
 
 	/**
-	 * Disconnect from a AMQP server
+	 * Disconnect from an AMQP server
 	 *
 	 * @memberOf AmqpTransporter
 	 * @description Close the connection and unbind this node's queues.
@@ -199,6 +201,8 @@ class AmqpTransporter extends Transporter {
 			case PACKET_UNKNOW:
 			case PACKET_INFO:
 			case PACKET_HEARTBEAT:
+			case PACKET_PING:
+			case PACKET_PONG:
 				packetOptions = { messageTtl: 5000, autoDelete: true };
 				break;
 			// Consumers can decide how long events live. Defaults to 5 seconds.
@@ -230,6 +234,15 @@ class AmqpTransporter extends Transporter {
 					this.channel.ack(msg);
 				}
 			}
+
+			/* TODO same solution for events
+			if(cmd === PACKET_EVENT) {
+				if (result instanceof Promise) {
+					return result.then(() => this.channel.ack(msg));
+				} else {
+					this.channel.ack(msg);
+				}
+			}*/
 		};
 	}
 
@@ -247,7 +260,7 @@ class AmqpTransporter extends Transporter {
 	 * exchange that routes each message to all queues. These packet types will not use
 	 * acknowledgements and have a set time-to-live. The time-to-live for EVENT packets can be
 	 * configured in options.
-	 * Examples: INFO (sometimes), DISCOVER, DISCONNECT, HEARTBEAT, EVENT
+	 * Examples: INFO (sometimes), DISCOVER, DISCONNECT, HEARTBEAT, PING, PONG, EVENT
 	 *
 	 * Other Packets are headed towards a specific node or queue. These don't need exchanges and
 	 * packets of this type will not expire.
@@ -269,9 +282,10 @@ class AmqpTransporter extends Transporter {
 
 		const topic = this.getTopicName(cmd, nodeID);
 
-		// Safer version of `if (topic.includes(nodeID))`.
+		if (cmd === PACKET_REQUEST) return;
+
 		// Some topics are specific to this node already, in these cases we don't need an exchange.
-		if ((cmd === PACKET_INFO && topic !== `${this.prefix}.${PACKET_INFO}`) || cmd === PACKET_RESPONSE) {
+		if (nodeID != null && cmd !== PACKET_REQUEST) {
 			return this.channel.assertQueue(topic, this._getQueueOptions(cmd))
 				.then(() => this.channel.consume(
 					topic,
@@ -279,7 +293,7 @@ class AmqpTransporter extends Transporter {
 					Object.assign({ noAck: true }, this.opts.amqp.consumeOptions)
 				));
 
-		} else if (cmd !== PACKET_REQUEST) {
+		} else {
 			// Create a queue specific to this nodeID so that this node can receive broadcasted messages.
 			const queueName = `${this.prefix}.${cmd}.${this.nodeID}`;
 
@@ -308,14 +322,14 @@ class AmqpTransporter extends Transporter {
 	 * @memberOf AmqpTransporter
 	 */
 	_makeServiceSpecificSubscriptions() {
-		const services = this.transit.getNodeInfo().services;
-		return Promise.all(services.map(schema => {
-			if (typeof schema.actions !== "object") return Promise.resolve();
+		const services = this.broker.registry.getLocalNodeInfo().services;
+		return Promise.all(services.map(service => {
+			if (typeof service.actions !== "object") return Promise.resolve();
 
 			const genericToService = `${this.prefix}.${PACKET_REQUEST}`;
 
 			return Promise.all(
-				Object.keys(schema.actions)
+				Object.keys(service.actions)
 					.map((action) => {
 						const queue = `${genericToService}.${action}`;
 						return this.channel.assertQueue(queue, this._getQueueOptions(PACKET_REQUEST))
@@ -349,9 +363,7 @@ class AmqpTransporter extends Transporter {
 			?	`${this.prefix}.${packet.type}.${packet.payload.action}`
 			: topic;
 
-		if ((packet.type === PACKET_INFO && topic !== `${this.prefix}.${PACKET_INFO}`)
-			|| packet.type === PACKET_REQUEST
-			|| packet.type === PACKET_RESPONSE)
+		if (packet.target != null)
 			this.channel.sendToQueue(destination, payload, this.opts.amqp.messageOptions);
 		else
 			this.channel.publish(destination, "", payload, this.opts.amqp.messageOptions);

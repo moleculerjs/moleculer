@@ -11,7 +11,8 @@ let ServiceBroker = require("../../src/service-broker");
 let broker = new ServiceBroker({
 	//namespace: "multi",
 	nodeID: process.argv[2] || "client-" + process.pid,
-	transporter: "NATS",
+	//transporter: "NATS",
+	transporter: "amqp://192.168.51.29:5672",
 	//serializer: "Avro",
 	requestTimeout: 1000,
 
