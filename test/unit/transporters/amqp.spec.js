@@ -52,7 +52,15 @@ describe("Test AmqpTransporter constructor", () => {
 		let transporter = new AmqpTransporter("amqp://localhost");
 		expect(transporter).toBeDefined();
 		expect(transporter.opts).toEqual({
-			amqp: { url: "amqp://localhost", prefetch: 1, eventTimeToLive: 5000 }
+			amqp: {
+				url: "amqp://localhost",
+				prefetch: 1,
+				eventTimeToLive: 5000,
+				exchangeOptions: {},
+				messageOptions: {},
+				queueOptions: {},
+				consumeOptions: {}
+			}
 		});
 		expect(transporter.connected).toBe(false);
 		expect(transporter.channel).toBeNull();
@@ -61,7 +69,17 @@ describe("Test AmqpTransporter constructor", () => {
 	});
 
 	it("check constructor with options", () => {
-		let opts = { amqp: { url: "amqp://localhost", prefetch: 3, eventTimeToLive: 10000 } };
+		let opts = {
+			amqp: {
+				url: "amqp://localhost",
+				prefetch: 3,
+				eventTimeToLive: 10000,
+				exchangeOptions: { alternateExchange: "retry" },
+				messageOptions: { expiration: 120000, persistent: true, mandatory: true },
+				queueOptions: { deadLetterExchange: "dlx", maxLength: 100 },
+				consumeOptions: { priority: 5 }
+			},
+		};
 		let transporter = new AmqpTransporter(opts);
 		expect(transporter.opts).toEqual(opts);
 	});
@@ -211,11 +229,11 @@ describe("Test AmqpTransporter subscribe", () => {
 					.toHaveBeenCalledWith("MOL-TEST.REQ.example1.testing", {});
 
 				expect(transporter.channel.consume)
-					.toHaveBeenCalledWith("MOL-TEST.REQ.example2.world", jasmine.any(Function));
+					.toHaveBeenCalledWith("MOL-TEST.REQ.example2.world", jasmine.any(Function), {});
 				expect(transporter.channel.consume)
-					.toHaveBeenCalledWith("MOL-TEST.REQ.example1.hello", jasmine.any(Function));
+					.toHaveBeenCalledWith("MOL-TEST.REQ.example1.hello", jasmine.any(Function), {});
 				expect(transporter.channel.consume)
-					.toHaveBeenCalledWith("MOL-TEST.REQ.example1.testing", jasmine.any(Function));
+					.toHaveBeenCalledWith("MOL-TEST.REQ.example1.testing", jasmine.any(Function), {});
 
 				const consumeCb = transporter.channel.consume.mock.calls[0][1];
 				consumeCb({ content: Buffer.from("data") });
@@ -236,7 +254,7 @@ describe("Test AmqpTransporter subscribe", () => {
 				expect(transporter.channel.assertQueue)
 					.toHaveBeenCalledWith("MOL-TEST.EVENT.node", { autoDelete: true, messageTtl: 3000 }); // use ttl option
 				expect(transporter.channel.assertExchange)
-					.toHaveBeenCalledWith("MOL-TEST.EVENT", "fanout");
+					.toHaveBeenCalledWith("MOL-TEST.EVENT", "fanout", {});
 				expect(transporter.channel.bindQueue)
 					.toHaveBeenCalledWith("MOL-TEST.EVENT.node", "MOL-TEST.EVENT", "");
 				expect(transporter.channel.consume)
@@ -266,7 +284,7 @@ describe("Test AmqpTransporter subscribe", () => {
 					expect(transporter.channel.assertQueue)
 						.toHaveBeenCalledWith(`MOL-TEST.${type}.node`, { autoDelete: true, messageTtl: 5000 });
 					expect(transporter.channel.assertExchange)
-						.toHaveBeenCalledWith(`MOL-TEST.${type}`, "fanout");
+						.toHaveBeenCalledWith(`MOL-TEST.${type}`, "fanout", {});
 					expect(transporter.channel.bindQueue)
 						.toHaveBeenCalledWith(`MOL-TEST.${type}.node`, `MOL-TEST.${type}`, "");
 					expect(transporter.channel.consume)
@@ -309,7 +327,8 @@ describe("Test AmqpTransporter publish", () => {
 				expect(transporter.channel.sendToQueue).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.sendToQueue).toHaveBeenCalledWith(
 					"MOL-TEST.INFO.node2",
-					Buffer.from(JSON.stringify({"ver": "2", "sender": "node1"}))
+					Buffer.from(JSON.stringify({"sender": "node1"})),
+					{}
 				);
 			});
 	});
@@ -329,7 +348,8 @@ describe("Test AmqpTransporter publish", () => {
 				expect(transporter.channel.sendToQueue).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.sendToQueue).toHaveBeenCalledWith(
 					"MOL-TEST.REQ.echo",
-					Buffer.from(packet.serialize())
+					Buffer.from(packet.serialize()),
+					{}
 				);
 			});
 	});
@@ -345,7 +365,8 @@ describe("Test AmqpTransporter publish", () => {
 				expect(transporter.channel.sendToQueue).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.sendToQueue).toHaveBeenCalledWith(
 					"MOL-TEST.RES.node",
-					Buffer.from(packet.serialize())
+					Buffer.from(packet.serialize()),
+					{}
 				);
 			});
 	});
@@ -363,7 +384,8 @@ describe("Test AmqpTransporter publish", () => {
 					expect(transporter.channel.publish).toHaveBeenCalledWith(
 						`MOL-TEST.${type}.node`,
 						"",
-						Buffer.from(packet.serialize())
+						Buffer.from(packet.serialize()),
+						{}
 					);
 				});
 		});
@@ -405,7 +427,8 @@ describe("Test AmqpTransporter publish", () => {
 				expect(transporter.channel.publish).toHaveBeenCalledWith(
 					"MOL-TEST.INFO",
 					"",
-					Buffer.from(packet.serialize())
+					Buffer.from(packet.serialize()),
+					{}
 				);
 
 				expect(transporter._makeServiceSpecificSubscriptions).toHaveBeenCalledTimes(1);
