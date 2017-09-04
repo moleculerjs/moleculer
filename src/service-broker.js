@@ -554,6 +554,8 @@ class ServiceBroker {
 
 				this.logger.info(`Service '${service.name}' is destroyed!`);
 				this.servicesChanged(true);
+
+				return Promise.resolve();
 			});
 	}
 
