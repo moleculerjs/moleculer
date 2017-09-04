@@ -1,8 +1,7 @@
 # Roadmap
 
-## v0.11.x
+## v0.12.x
 
-- [ ] broker plugin system (adopt middleware feature)
 - [ ] official Zipkin tracer service
 - [ ] add lru features to Memory and Redis cachers
 - [ ] official services
