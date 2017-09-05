@@ -8,6 +8,7 @@
 
 const Promise	= require("bluebird");
 const P 		= require("./packets");
+const _ 		= require("lodash");
 
 const { MoleculerError, ProtocolVersionMismatchError } = require("./errors");
 
@@ -46,8 +47,11 @@ class Transit {
 		this.connected = false;
 		this.disconnecting = false;
 
-		if (this.tx)
+		if (this.tx) {
 			this.tx.init(this, this.messageHandler.bind(this), this.afterConnect.bind(this));
+			if (this.tx.hasBuiltInBalancer)
+				this.broker.registry.disableBalancing();
+		}
 
 		this.__connectResolve = null;
 	}
@@ -189,22 +193,6 @@ class Transit {
 	}
 
 	/**
-	 * Send an event to a remote node
-	 *
-	 * @param {String} nodeID
-	 * @param {String} eventName
-	 * @param {any} data
-	 * @param {Array<String>=} groups
-	 *
-	 * @memberOf Transit
-	 */
-	sendEvent(nodeID, eventName, data, groups) {
-		this.logger.debug(`Send '${eventName}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
-
-		return this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups));
-	}
-
-	/**
 	 * Message handler for incoming packets
 	 *
 	 * @param {Array} topic
@@ -236,8 +224,11 @@ class Transit {
 			return Promise.reject(err);
 		}
 
-		// Skip own packets
-		if (payload.sender == this.nodeID)
+		// Skip own packets (if no built-in balance & packet not balanced)
+		if (payload.sender == this.nodeID && !(
+			this.tx.hasBuiltInBalancer
+			&& (cmd === P.PACKET_EVENT || cmd === P.PACKET_REQUEST)
+		))
 			return Promise.resolve();
 
 		// Request
@@ -413,6 +404,63 @@ class Transit {
 		this.publish(packet);
 	}
 
+	/**
+	 * Send an event to a remote node
+	 *
+	 * @param {String} nodeID
+	 * @param {String} eventName
+	 * @param {any} data
+	 *
+	 * @memberOf Transit
+	 */
+	sendEvent(nodeID, eventName, data) {
+		this.logger.debug(`Send '${eventName}' event to '${nodeID}'.`);
+
+		return this.publish(new P.PacketEvent(this, nodeID, eventName, data));
+	}
+
+	/**
+	 * Send a grouped event to remote nodes.
+	 * The event is balanced internally.
+	 *
+	 * @param {String} eventName
+	 * @param {any} data
+	 * @param {Object} groupList
+	 *
+	 * @memberOf Transit
+	 */
+	sendBalancedEvent(eventName, data, groupList) {
+		_.forIn(groupList, (groups, nodeID) => {
+			this.logger.debug(`Send '${eventName}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
+
+			if (this.tx.hasBuiltInBalancer) {
+				groups.forEach(group => this.publish(new P.PacketEvent(this, nodeID, eventName, data, [group])));
+			} else {
+				return this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups));
+			}
+		});
+	}
+
+	/**
+	 * Send an event to groups.
+	 * The transporter should make balancing
+	 *
+	 * @param {String} eventName
+	 * @param {any} data
+	 * @param {Object} groupList
+	 *
+	 * @memberOf Transit
+	 */
+	sendEventToGroups(eventName, data, groups) {
+		if (!groups || groups.length == 0)
+			groups = this.broker.registry.events.getGroups(eventName);
+
+		if (groups.length == 0)
+			return;
+
+		this.logger.debug(`Send '${eventName}' event to '${groups.join(", ")}' group(s).`);
+		this.publish(new P.PacketEvent(this, null, eventName, data, groups));
+	}
 
 	/**
 	 * Remove a pending request

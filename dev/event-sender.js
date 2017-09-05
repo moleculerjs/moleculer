@@ -20,9 +20,10 @@ broker.createService({
 	started() {
 		setInterval(() => {
 			this.logger.info(`Send 'user.created' event. ID: ${c}`);
-			this.broker.emit("user.created", { id: c++ }/*, "payment"*/);
-			//this.broker.broadcast("user.created", { id: c++ });
-			//this.broker.broadcastLocal("user.created", { id: c++ });
+			this.broker.emit("user.created", { id: c++ }); // Balanced
+			//this.broker.emit("user.created", { id: c++ }, "payment"); // Balanced but only for 'payment' group
+			//this.broker.broadcast("user.created", { id: c++ }); // Broadcasted all services
+			//this.broker.broadcastLocal("user.created", { id: c++ }); // Broadcasted only local services
 		}, 2000);
 
 		setInterval(() => {
@@ -56,8 +57,8 @@ broker.createService({
 			}
 		}
 	}
-});*/
-
+});
+*/
 broker.start().then(() => {
 	broker.repl();
 });

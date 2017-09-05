@@ -106,6 +106,10 @@ class ServiceBroker {
 		// Logger
 		this.logger = this.getLogger("broker");
 
+		this.logger.info("Moleculer version:", this.MOLECULER_VERSION);
+		this.logger.info("Node ID:", this.nodeID);
+		this.logger.info("Namespace:", this.namespace || "<not defined>");
+
 		// Internal event bus
 		this.internalEvents = new EventEmitter2({
 			wildcard: true,
@@ -939,30 +943,42 @@ class ServiceBroker {
 	emit(eventName, payload, groups) {
 		if (groups && !Array.isArray(groups))
 			groups = [groups];
-		const endpoints = this.registry.events.getBalancedEndpoints(eventName, groups);
 
-		// Grouping remote events (minimize network traffic)
-		const groupedEP = {};
+		if (this.registry.opts.balancing) {
 
-		endpoints.forEach(([ep, group]) => {
-			if (ep.id == this.nodeID) {
-				// Local service, call handler
-				ep.event.handler(payload, this.nodeID, eventName);
-			} else {
-				// Remote service
-				const e = groupedEP[ep.id];
-				if (e)
-					e.push(group);
-				else
-					groupedEP[ep.id] = [group];
-			}
-		});
+			const endpoints = this.registry.events.getBalancedEndpoints(eventName, groups);
 
-		if (this.transit) {
-			// Remote service
-			_.forIn(groupedEP, (groups, nodeID) => {
-				return this.transit.sendEvent(nodeID, eventName, payload, groups);
+			// Grouping remote events (minimize network traffic)
+			const groupedEP = {};
+
+			endpoints.forEach(([ep, group]) => {
+				if (ep) {
+					if (ep.id == this.nodeID) {
+						// Local service, call handler
+						ep.event.handler(payload, this.nodeID, eventName);
+					} else {
+						// Remote service
+						const e = groupedEP[ep.id];
+						if (e)
+							e.push(group);
+						else
+							groupedEP[ep.id] = [group];
+					}
+				} else {
+					if (groupedEP[null])
+						groupedEP[null].push(group);
+					else
+						groupedEP[null] = [group];
+				}
 			});
+
+			if (this.transit) {
+				// Remote service
+				return this.transit.sendBalancedEvent(eventName, payload, groupedEP);
+			}
+
+		} else if (this.transit) {
+			return this.transit.sendEventToGroups(eventName, payload, groups);
 		}
 
 	}

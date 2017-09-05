@@ -69,6 +69,7 @@ class AmqpTransporter extends Transporter {
 
 		super(opts);
 
+		this.hasBuiltInBalancer = true;
 		this.connection = null;
 		this.channel = null;
 		this.bindings = [];
@@ -351,6 +352,30 @@ class AmqpTransporter extends Transporter {
 							this._consumeCB(PACKET_EVENT, true),
 							this.opts.amqp.consumeOptions
 						));
+
+					/* REMOVE IT
+					// Create a group specific queue and bind to the exchange.
+					const topic = `${this.prefix}.${PACKET_EVENT}.${event}`;
+					// And an event specific exchange
+					const queue = `${this.prefix}.${PACKET_EVENT}.${group}.${event}`;
+
+					// Save binding arguments for easy unbinding later.
+					const bindingArgs = [queue, topic, ""];
+					this.bindings.push(bindingArgs);
+
+					return Promise.all([
+						this.channel.assertExchange(topic, "fanout", this.opts.amqp.exchangeOptions),
+						this.channel.assertQueue(queue, this._getQueueOptions(PACKET_EVENT + "LB")),
+					])
+						.then(() => Promise.all([
+							this.channel.bindQueue(...bindingArgs),
+							this.channel.consume(
+								queue,
+								this._consumeCB(PACKET_EVENT, true),
+								this.opts.amqp.consumeOptions
+							)
+						]));
+					*/
 				}));
 			}
 
@@ -371,33 +396,40 @@ class AmqpTransporter extends Transporter {
 	publish(packet) {
 		if (!this.channel) return Promise.resolve();
 
-		const topic = this.getTopicName(packet.type, packet.target);
+		let topic = this.getTopicName(packet.type, packet.target);
+
+		if (packet.type === PACKET_EVENT && packet.payload.groups) {
+			let groups = packet.payload.groups;
+			// If the packet contains groups, we don't send the packet
+			// the targetted node, but we push them to the event group queues
+			// and AMQP will load-balanced it.
+			if (groups.length > 0) {
+				groups.forEach(group => {
+					let queue = `${this.prefix}.${PACKET_EVENT}.${group}.${packet.payload.event}`;
+					// Change the groups to this group to avoid multi handling in consumers.
+					packet.payload.groups = [group];
+					this.channel.sendToQueue(queue, Buffer.from(packet.serialize()), this.opts.amqp.messageOptions);
+				});
+				return Promise.resolve();
+			}
+			/* REMOVE IT
+			else {
+				let topic = `${this.prefix}.${PACKET_EVENT}.${packet.payload.event}`;
+				this.channel.publish(topic, "", payload, this.opts.amqp.messageOptions);
+				return Promise.resolve();
+			}*/
+			// If it's not contain, then it is a broadcasted event,
+			// we sent it in the normal way (exchange)
+		}
+
 		const payload = Buffer.from(packet.serialize()); // amqp.node expects data to be a buffer
 
-		let destination = topic;
-
 		if (packet.target != null) {
-			if (packet.type === PACKET_EVENT) {
-				let groups = packet.payload.groups;
-				// If the packet contains groups, we don't send the packet
-				// the targetted node, but we push them to the event group queues
-				// and AMQP will load-balanced it.
-				if (groups != null && groups.length > 0) {
-					groups.forEach(group => {
-						let queue = `${this.prefix}.${packet.type}.${group}.${packet.payload.event}`;
-						this.channel.sendToQueue(queue, payload, this.opts.amqp.messageOptions);
-					});
-					return Promise.resolve();
-				}
-				// If it's not contain, then it is a broadcasted event,
-				// we sent it in the normal way (exchange)
-			}
-
 			if (packet.type === PACKET_REQUEST)
-				destination = `${this.prefix}.${packet.type}.${packet.payload.action}`;
-			this.channel.sendToQueue(destination, payload, this.opts.amqp.messageOptions);
+				topic = `${this.prefix}.${packet.type}.${packet.payload.action}`;
+			this.channel.sendToQueue(topic, payload, this.opts.amqp.messageOptions);
 		} else {
-			this.channel.publish(destination, "", payload, this.opts.amqp.messageOptions);
+			this.channel.publish(topic, "", payload, this.opts.amqp.messageOptions);
 		}
 
 		// HACK: This is the best way I have found to obtain the broker's services.

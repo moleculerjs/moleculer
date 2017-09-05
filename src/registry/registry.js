@@ -32,7 +32,7 @@ class Registry {
 		this.broker = broker;
 		this.logger = broker.getLogger("registry");
 
-		this.opts = Object.assign({}, broker.options.registry);
+		this.opts = Object.assign({ balancing: true }, broker.options.registry);
 		this.opts.circuitBreaker = broker.options.circuitBreaker || {};
 
 		this.StrategyFactory = this.opts.StrategyFactory || RoundRobinStrategy;
@@ -41,6 +41,16 @@ class Registry {
 		this.services = new ServiceCatalog(this, broker);
 		this.actions = new ActionCatalog(this, broker, RoundRobinStrategy);
 		this.events = new EventCatalog(this, broker, RoundRobinStrategy);
+	}
+
+	/**
+	 * Disable built-in balancer if transporter support it
+	 *
+	 * @memberof Registry
+	 */
+	disableBalancing() {
+		this.logger.info("Registry built-in balancer is disabled!");
+		this.opts.balancing = false;
 	}
 
 	/**

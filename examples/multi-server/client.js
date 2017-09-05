@@ -13,7 +13,7 @@ let broker = new ServiceBroker({
 	nodeID: process.argv[2] || "client-" + process.pid,
 	//transporter: "NATS",
 	transporter: "amqp://192.168.51.29:5672",
-	//serializer: "Avro",
+	serializer: "Avro",
 	requestTimeout: 1000,
 
 	registry: {
