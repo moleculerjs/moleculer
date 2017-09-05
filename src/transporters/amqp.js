@@ -424,9 +424,13 @@ class AmqpTransporter extends Transporter {
 
 		const payload = Buffer.from(packet.serialize()); // amqp.node expects data to be a buffer
 
+		if (packet.type === PACKET_REQUEST) {
+			topic = `${this.prefix}.${packet.type}.${packet.payload.action}`;
+			this.channel.sendToQueue(topic, payload, this.opts.amqp.messageOptions);
+			return Promise.resolve();
+		}
+
 		if (packet.target != null) {
-			if (packet.type === PACKET_REQUEST)
-				topic = `${this.prefix}.${packet.type}.${packet.payload.action}`;
 			this.channel.sendToQueue(topic, payload, this.opts.amqp.messageOptions);
 		} else {
 			this.channel.publish(topic, "", payload, this.opts.amqp.messageOptions);
