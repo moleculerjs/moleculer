@@ -215,13 +215,13 @@ describe("Test AmqpTransporter subscribe", () => {
 				}
 			}
 		];
-		transporter.transit.broker.registry.getLocalNodeInfo = jest.fn(() => ({
+		transporter.transit.broker.getLocalNodeInfo = jest.fn(() => ({
 			services: mockServices
 		}));
 
 		return transporter._makeServiceSpecificSubscriptions()
 			.then(() => {
-				expect(transporter.transit.broker.registry.getLocalNodeInfo).toHaveBeenCalledTimes(1);
+				expect(transporter.transit.broker.getLocalNodeInfo).toHaveBeenCalledTimes(1);
 
 				expect(transporter.channel.assertQueue).toHaveBeenCalledTimes(5);
 				expect(transporter.channel.consume).toHaveBeenCalledTimes(5);

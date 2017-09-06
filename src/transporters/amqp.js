@@ -322,7 +322,7 @@ class AmqpTransporter extends Transporter {
 	 * @memberOf AmqpTransporter
 	 */
 	_makeServiceSpecificSubscriptions() {
-		const services = this.broker.registry.getLocalNodeInfo().services;
+		const services = this.broker.getLocalNodeInfo().services;
 		return Promise.all(services.map(service => {
 			if (typeof service.actions !== "object" && typeof service.events !== "object") return Promise.resolve();
 

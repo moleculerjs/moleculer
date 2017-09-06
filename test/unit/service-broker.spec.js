@@ -2067,3 +2067,39 @@ describe("Test broker getHealthStatus", () => {
 	});
 
 });
+
+describe("Test registry links", () => {
+	let broker = new ServiceBroker();
+
+	broker.registry.disableBalancing = jest.fn();
+	broker.registry.getLocalNodeInfo = jest.fn();
+	broker.registry.events.getGroups = jest.fn();
+	broker.registry.events.emitLocalServices = jest.fn();
+
+	it("should call H.getHealthStatus", () => {
+		broker.disableBalancing();
+
+		expect(broker.registry.disableBalancing).toHaveBeenCalledTimes(1);
+	});
+
+	it("should call registry.getLocalNodeInfo", () => {
+		broker.getLocalNodeInfo();
+
+		expect(broker.registry.getLocalNodeInfo).toHaveBeenCalledTimes(1);
+	});
+
+	it("should call registry.", () => {
+		broker.getEventGroups("event.name");
+
+		expect(broker.registry.events.getGroups).toHaveBeenCalledTimes(1);
+		expect(broker.registry.events.getGroups).toHaveBeenCalledWith("event.name");
+	});
+
+	it("should call registry.events.emitLocalServices", () => {
+		broker.emitLocalServices("user.created", { a: 5 }, ["users"], "node-3");
+
+		expect(broker.registry.events.emitLocalServices).toHaveBeenCalledTimes(1);
+		expect(broker.registry.events.emitLocalServices).toHaveBeenCalledWith("user.created", { a: 5 }, ["users"], "node-3");
+	});
+
+});

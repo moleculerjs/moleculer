@@ -50,7 +50,7 @@ class Transit {
 		if (this.tx) {
 			this.tx.init(this, this.messageHandler.bind(this), this.afterConnect.bind(this));
 			if (this.tx.hasBuiltInBalancer)
-				this.broker.registry.disableBalancing();
+				this.broker.disableBalancing();
 		}
 
 		this.__connectResolve = null;
@@ -243,8 +243,7 @@ class Transit {
 
 		// Event
 		else if (cmd === P.PACKET_EVENT) {
-			this._eventHandler(payload);
-			return;
+			return this._eventHandler(payload);
 		}
 
 		// Discover
@@ -287,7 +286,7 @@ class Transit {
 	_eventHandler(payload) {
 		this.logger.debug(`Event '${payload.event}' received from '${payload.sender}' node` + (payload.groups ? ` in '${payload.groups.join(", ")}' group(s)` : "") + ".");
 
-		this.broker.registry.events.emitLocalServices(payload.event, payload.data, payload.groups, payload.sender);
+		this.broker.emitLocalServices(payload.event, payload.data, payload.groups, payload.sender);
 	}
 
 	/**
@@ -433,11 +432,7 @@ class Transit {
 		_.forIn(nodeGroups, (groups, nodeID) => {
 			this.logger.debug(`Send '${eventName}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
 
-			/*if (this.tx.hasBuiltInBalancer) {
-				groups.forEach(group => this.publish(new P.PacketEvent(this, nodeID, eventName, data, [group])));
-			} else {*/
-				return this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups));
-			//}
+			return this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups));
 		});
 	}
 
@@ -453,7 +448,7 @@ class Transit {
 	 */
 	sendEventToGroups(eventName, data, groups) {
 		if (!groups || groups.length == 0)
-			groups = this.broker.registry.events.getGroups(eventName);
+			groups = this.broker.getEventGroups(eventName);
 
 		if (groups.length == 0)
 			return;
@@ -515,7 +510,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendNodeInfo(nodeID) {
-		const info = this.broker.registry.getLocalNodeInfo();
+		const info = this.broker.getLocalNodeInfo();
 		return this.publish(new P.PacketInfo(this, nodeID, info));
 	}
 

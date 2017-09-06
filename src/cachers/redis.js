@@ -12,16 +12,16 @@ const BaseCacher 	= require("./base");
 
 /**
  * Cacher factory for Redis
- * 
+ *
  * @class RedisCacher
  */
 class RedisCacher extends BaseCacher {
 
 	/**
 	 * Creates an instance of RedisCacher.
-	 * 
+	 *
 	 * @param {object} opts
-	 * 
+	 *
 	 * @memberOf RedisCacher
 	 */
 	constructor(opts) {
@@ -33,9 +33,9 @@ class RedisCacher extends BaseCacher {
 
 	/**
 	 * Initialize cacher. Connect to Redis server
-	 * 
+	 *
 	 * @param {any} broker
-	 * 
+	 *
 	 * @memberOf RedisCacher
 	 */
 	init(broker) {
@@ -75,7 +75,7 @@ class RedisCacher extends BaseCacher {
 
 	/**
 	 * Close Redis client connection
-	 * 
+	 *
 	 * @memberOf RedisCacher
 	 */
 	close() {
@@ -84,10 +84,10 @@ class RedisCacher extends BaseCacher {
 
 	/**
 	 * Get data from cache by key
-	 * 
+	 *
 	 * @param {any} key
 	 * @returns {Promise}
-	 *  
+	 *
 	 * @memberOf Cacher
 	 */
 	get(key) {
@@ -107,11 +107,11 @@ class RedisCacher extends BaseCacher {
 
 	/**
 	 * Save data to cache by key
-	 * 
+	 *
 	 * @param {any} key
 	 * @param {any} data JSON object
 	 * @returns {Promise}
-	 * 
+	 *
 	 * @memberOf Cacher
 	 */
 	set(key, data) {
@@ -129,10 +129,10 @@ class RedisCacher extends BaseCacher {
 
 	/**
 	 * Delete a key from cache
-	 * 
+	 *
 	 * @param {any} key
 	 * @returns {Promise}
-	 * 
+	 *
 	 * @memberOf Cacher
 	 */
 	del(key) {
@@ -150,7 +150,7 @@ class RedisCacher extends BaseCacher {
 	 * 		https://github.com/cayasso/cacheman-redis/blob/master/lib/index.js#L125
 	 * @param {any} match Match string for SCAN. Default is "*"
 	 * @returns {Promise}
-	 * 
+	 *
 	 * @memberOf Cacher
 	 */
 	clean(match = "*") {
@@ -165,8 +165,12 @@ class RedisCacher extends BaseCacher {
 				let nextCursor = parseInt(resp[0]);
 				let keys = resp[1];
 				// no next cursor and no keys to delete
-				if (!nextCursor && !keys.length) {
-					return cb(null);
+
+				if (!keys.length) {
+					if (!nextCursor)
+						return cb(null);
+
+					return scanDel(nextCursor, cb);
 				}
 
 				self.client.del(keys, function (err) {

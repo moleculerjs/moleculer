@@ -87,15 +87,10 @@ class EventCatalog {
 		this.events.forEach(list => {
 			if (!nanomatch.isMatch(eventName, list.name)) return;
 			if (groups == null || groups.length == 0 || groups.indexOf(list.group) != -1) {
-				if (this.registry.opts.balancing) {
-					// Use built-in balancer, get the next endpoint
-					const ep = list.next();
-					if (ep && ep.isAvailable)
-						res.push([ep, list.group]);
-				} else {
-					// Disabled balancer
-					res.push([null, list.group]);
-				}
+				// Use built-in balancer, get the next endpoint
+				const ep = list.next();
+				if (ep && ep.isAvailable)
+					res.push([ep, list.group]);
 			}
 		});
 

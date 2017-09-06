@@ -5,15 +5,13 @@
 let path = require("path");
 let chalk = require("chalk");
 
-let utils = require("../../src/utils");
 let ServiceBroker = require("../../src/service-broker");
-let MemoryCacher = require("../../src/cachers").Memory;
 
 // Create broker
 let broker = new ServiceBroker({
 	logger: console,
 	logLevel: "info",
-	cacher: new MemoryCacher()
+	cacher: true
 });
 
 function middleware1() {
@@ -102,7 +100,7 @@ broker.call("posts.get", { id: 3 }).then(res => broker.logger.info(res))
 		console.log(chalk.bold("\nCLEAR CACHE"));
 		return broker.emit("cache.clean", "posts.*");
 	})
-	.then(utils.delay(200))
+	.delay(200)
 	.then(() => {
 		console.log(chalk.bold("\nNEXT CALL WITHOUT CACHE"));
 		return broker.call("posts.get", { id: 3 }).then(res => broker.logger.info(res));

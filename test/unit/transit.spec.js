@@ -268,7 +268,7 @@ describe("Test Transit.sendEventToGroups", () => {
 	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
-	broker.registry.events.getGroups = jest.fn(() => ["users", "payments"]);
+	broker.getEventGroups = jest.fn(() => ["users", "payments"]);
 	transit.publish = jest.fn();
 
 	it("should call publish with correct params", () => {
@@ -282,12 +282,12 @@ describe("Test Transit.sendEventToGroups", () => {
 		expect(packet.payload.data).toBe(user);
 		expect(packet.payload.groups).toEqual(["users", "payments"]);
 
-		expect(broker.registry.events.getGroups).toHaveBeenCalledTimes(1);
-		expect(broker.registry.events.getGroups).toHaveBeenCalledWith("user.created");
+		expect(broker.getEventGroups).toHaveBeenCalledTimes(1);
+		expect(broker.getEventGroups).toHaveBeenCalledWith("user.created");
 	});
 
 	it("should call publish with groups", () => {
-		broker.registry.events.getGroups.mockClear();
+		broker.getEventGroups.mockClear();
 		transit.publish.mockClear();
 		const user = { id: 5, name: "Jameson" };
 		transit.sendEventToGroups("user.created", user, ["users", "mail"]);
@@ -299,7 +299,7 @@ describe("Test Transit.sendEventToGroups", () => {
 		expect(packet.payload.data).toBe(user);
 		expect(packet.payload.groups).toEqual(["users", "mail"]);
 
-		expect(broker.registry.events.getGroups).toHaveBeenCalledTimes(0);
+		expect(broker.getEventGroups).toHaveBeenCalledTimes(0);
 	});
 });
 
@@ -544,7 +544,7 @@ describe("Test Transit._eventHandler", () => {
 	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
-	broker.registry.events.emitLocalServices = jest.fn();
+	broker.emitLocalServices = jest.fn();
 	it("should create packet", () => {
 		transit._eventHandler({
 			event: "user.created",
@@ -553,8 +553,8 @@ describe("Test Transit._eventHandler", () => {
 			sender: "node-1"
 		});
 
-		expect(broker.registry.events.emitLocalServices).toHaveBeenCalledTimes(1);
-		expect(broker.registry.events.emitLocalServices).toHaveBeenCalledWith("user.created", {"a": 5}, ["users"], "node-1");
+		expect(broker.emitLocalServices).toHaveBeenCalledTimes(1);
+		expect(broker.emitLocalServices).toHaveBeenCalledWith("user.created", {"a": 5}, ["users"], "node-1");
 	});
 
 });
@@ -685,23 +685,21 @@ describe("Test Transit.sendNodeInfo", () => {
 
 	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter(), internalServices: false });
 	const transit = broker.transit;
+	broker.getLocalNodeInfo = jest.fn(() => ({
+		id: "node2",
+		services: []
+	}));
 
 	transit.publish = jest.fn();
 
 	it("should call publish with correct params", () => {
 		transit.sendNodeInfo("node2");
 		expect(transit.publish).toHaveBeenCalledTimes(1);
+		expect(broker.getLocalNodeInfo).toHaveBeenCalledTimes(1);
 		const packet = transit.publish.mock.calls[0][0];
 		expect(packet).toBeInstanceOf(P.PacketInfo);
 		expect(packet.target).toBe("node2");
 		expect(packet.payload.services).toEqual([]);
-		expect(packet.payload.ipList).toBeInstanceOf(Array);
-		expect(packet.payload.client).toBeDefined();
-		expect(packet.payload.client.type).toBe("nodejs");
-		expect(packet.payload.client.langVersion).toBe(process.version);
-		expect(packet.payload.client.version).toBe(broker.MOLECULER_VERSION);
-		expect(packet.payload.config).toEqual({});
-		expect(packet.payload.port).toBeNull();
 	});
 
 });

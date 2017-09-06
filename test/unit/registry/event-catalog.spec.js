@@ -258,6 +258,28 @@ describe("Test EventCatalog.getBalancedEndpoints & getAllEndpoints", () => {
 
 });
 
+describe("Test getGroups", () => {
+	let broker = new ServiceBroker({ nodeID: "node-2" });
+	let catalog = new EventCatalog(broker.registry, broker, Strategy);
+
+	let usersEvent = { name: "user.created", handler: jest.fn() };
+	let paymentEvent = { name: "user.created", handler: jest.fn() };
+	let mailEvent = { name: "user.*", handler: jest.fn() };
+
+	catalog.add({ id: "node-1" }, { name: "users" }, usersEvent);
+	catalog.add({ id: "node-1" }, { name: "payment" }, paymentEvent);
+	catalog.add({ id: "node-2" }, { name: "users" }, usersEvent);
+	catalog.add({ id: "node-2" }, { name: "payment" }, paymentEvent);
+	catalog.add({ id: "node-2" }, { name: "mail" }, mailEvent);
+	catalog.add({ id: "node-3" }, { name: "mail" }, mailEvent);
+
+	it("should collect groups for event 'user.created'", () => {
+		expect(catalog.getGroups("user.created")).toEqual(["users", "payment", "mail"]);
+		expect(catalog.getGroups("user.removed")).toEqual(["mail"]);
+		expect(catalog.getGroups("posts.created")).toEqual([]);
+	});
+});
+
 describe("Test EventCatalog.emitLocalServices", () => {
 	let broker = new ServiceBroker({ nodeID: "node-2" });
 	let catalog = new EventCatalog(broker.registry, broker, Strategy);

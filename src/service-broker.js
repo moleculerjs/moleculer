@@ -1048,6 +1048,23 @@ class ServiceBroker {
 	getHealthStatus() {
 		return H.getHealthStatus(this);
 	}
+
+	disableBalancing() {
+		this.registry.disableBalancing();
+	}
+
+	getLocalNodeInfo() {
+		return this.registry.getLocalNodeInfo();
+	}
+
+	getEventGroups(eventName) {
+		return this.registry.events.getGroups(eventName);
+	}
+
+	emitLocalServices(event, payload, groups, sender) {
+		return this.registry.events.emitLocalServices(event, payload, groups, sender);
+	}
+
 }
 
 /**

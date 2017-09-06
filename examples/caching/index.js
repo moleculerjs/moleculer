@@ -9,29 +9,14 @@ let chalk = require("chalk");
 let utils = require("../../src/utils");
 let ServiceBroker = require("../../src/service-broker");
 
-let MemoryCacher = require("../../src/cachers").Memory;
-let RedisCacher = require("../../src/cachers").Redis;
-
-/*
-process.on("promiseCreated", promise => console.log("New promise created!", promise));
-process.on("promiseChained", promise => console.log("New promise created!"));
-Promise.config({
-	monitoring: true
-});*/
-
 // Create broker
 let broker = new ServiceBroker({
 	namespace: "demo",
 	logger: console,
-	logLevel: {
-		"*": "warn",
-		"CACHER": "debug",
-		//"CTX": "debug",
-		"METRICS-SVC": "debug"
-	},
+	logLevel: "debug",
 	metrics: true,
-	//cacher: new MemoryCacher()
-	cacher: new RedisCacher("redis://localhost:6379")
+	cacher: true,
+	//cacher: "redis://localhost:6379"
 });
 
 // Load services
@@ -92,7 +77,7 @@ broker.start()
 	.then(() => {
 		console.log(chalk.yellow.bold("CLEAN CACHE: v2.users.*\n"));
 		// Clear the cache
-		return broker.emit("cache.clean", "v2.users.*");
+		return broker.cacher.clean("v2.users.*");
 	})
 	.then(utils.delay(100))
 	.then(() => {
