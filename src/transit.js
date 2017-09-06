@@ -425,19 +425,19 @@ class Transit {
 	 *
 	 * @param {String} eventName
 	 * @param {any} data
-	 * @param {Object} groupList
+	 * @param {Object} nodeGroups
 	 *
 	 * @memberOf Transit
 	 */
-	sendBalancedEvent(eventName, data, groupList) {
-		_.forIn(groupList, (groups, nodeID) => {
+	sendBalancedEvent(eventName, data, nodeGroups) {
+		_.forIn(nodeGroups, (groups, nodeID) => {
 			this.logger.debug(`Send '${eventName}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
 
-			if (this.tx.hasBuiltInBalancer) {
+			/*if (this.tx.hasBuiltInBalancer) {
 				groups.forEach(group => this.publish(new P.PacketEvent(this, nodeID, eventName, data, [group])));
-			} else {
+			} else {*/
 				return this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups));
-			}
+			//}
 		});
 	}
 
@@ -447,7 +447,7 @@ class Transit {
 	 *
 	 * @param {String} eventName
 	 * @param {any} data
-	 * @param {Object} groupList
+	 * @param {Object} groups
 	 *
 	 * @memberOf Transit
 	 */

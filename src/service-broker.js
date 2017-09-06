@@ -571,6 +571,7 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	servicesChanged(localService = false) {
+		this.internalEvents.emit("$services.changed", { localService });
 		this.broadcastLocal("$services.changed", { localService });
 
 		// Should notify remote nodes, because our service list is changed.
@@ -676,11 +677,24 @@ class ServiceBroker {
 	}
 
 	/**
+	 * Get an action endpoint
+	 *
+	 * @deprecated For moleculer-web@0.4.4 or older
+	 * @param {String} actionName
+	 * @memberof ServiceBroker
+	 */
+	getAction(actionName) {
+		let actions = this.registry.getActionEndpoints(actionName);
+		if (actions)
+			return actions.next();
+	}
+
+	/**
 	 * Call an action (local or remote)
 	 *
-	 * @param {any} actionName	name of action
-	 * @param {any} params		params of action
-	 * @param {any} opts		options of call (optional)
+	 * @param {String} actionName	name of action
+	 * @param {Object?} params		params of action
+	 * @param {Object?} opts		options of call (optional)
 	 * @returns
 	 *
 	 * @performance-critical

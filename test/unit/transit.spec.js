@@ -223,23 +223,84 @@ describe("Test Transit.sendEvent", () => {
 		expect(transit.publish).toHaveBeenCalledTimes(1);
 		const packet = transit.publish.mock.calls[0][0];
 		expect(packet).toBeInstanceOf(P.PacketEvent);
+		expect(packet.target).toBe("node2");
 		expect(packet.payload.event).toBe("user.created");
 		expect(packet.payload.data).toBe(user);
 		expect(packet.payload.groups).toBeNull();
 	});
 
-	it("should call publish with groups", () => {
-		transit.publish.mockClear();
+});
+
+describe("Test Transit.sendBalancedEvent", () => {
+
+	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const transit = broker.transit;
+
+	transit.publish = jest.fn();
+
+	it("should call publish with correct params", () => {
 		const user = { id: 5, name: "Jameson" };
-		transit.sendEvent("node2", "user.created", user, ["users", "mail"]);
+		transit.sendBalancedEvent("user.created", user, {
+			"node-2": ["users", "payments"],
+			"node-4": ["mail"]
+		});
+		expect(transit.publish).toHaveBeenCalledTimes(2);
+
+		const packet1 = transit.publish.mock.calls[0][0];
+		expect(packet1).toBeInstanceOf(P.PacketEvent);
+		expect(packet1.target).toBe("node-2");
+		expect(packet1.payload.event).toBe("user.created");
+		expect(packet1.payload.data).toBe(user);
+		expect(packet1.payload.groups).toEqual(["users", "payments"]);
+
+		const packet2 = transit.publish.mock.calls[1][0];
+		expect(packet2).toBeInstanceOf(P.PacketEvent);
+		expect(packet2.target).toBe("node-4");
+		expect(packet2.payload.event).toBe("user.created");
+		expect(packet2.payload.data).toBe(user);
+		expect(packet2.payload.groups).toEqual(["mail"]);
+	});
+
+});
+
+describe("Test Transit.sendEventToGroups", () => {
+
+	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const transit = broker.transit;
+
+	broker.registry.events.getGroups = jest.fn(() => ["users", "payments"]);
+	transit.publish = jest.fn();
+
+	it("should call publish with correct params", () => {
+		const user = { id: 5, name: "Jameson" };
+		transit.sendEventToGroups("user.created", user);
 		expect(transit.publish).toHaveBeenCalledTimes(1);
 		const packet = transit.publish.mock.calls[0][0];
 		expect(packet).toBeInstanceOf(P.PacketEvent);
+		expect(packet.target).toBeNull();
+		expect(packet.payload.event).toBe("user.created");
+		expect(packet.payload.data).toBe(user);
+		expect(packet.payload.groups).toEqual(["users", "payments"]);
+
+		expect(broker.registry.events.getGroups).toHaveBeenCalledTimes(1);
+		expect(broker.registry.events.getGroups).toHaveBeenCalledWith("user.created");
+	});
+
+	it("should call publish with groups", () => {
+		broker.registry.events.getGroups.mockClear();
+		transit.publish.mockClear();
+		const user = { id: 5, name: "Jameson" };
+		transit.sendEventToGroups("user.created", user, ["users", "mail"]);
+		expect(transit.publish).toHaveBeenCalledTimes(1);
+		const packet = transit.publish.mock.calls[0][0];
+		expect(packet).toBeInstanceOf(P.PacketEvent);
+		expect(packet.target).toBeNull();
 		expect(packet.payload.event).toBe("user.created");
 		expect(packet.payload.data).toBe(user);
 		expect(packet.payload.groups).toEqual(["users", "mail"]);
-	});
 
+		expect(broker.registry.events.getGroups).toHaveBeenCalledTimes(0);
+	});
 });
 
 describe("Test Transit.messageHandler", () => {
