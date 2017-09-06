@@ -838,7 +838,8 @@ class ServiceBroker {
 			this.transit.removePendingRequest(ctx.id);
 		}
 
-		if (this.options.circuitBreaker.enabled) {
+		// Only failure if error came from the direct request.
+		if (this.options.circuitBreaker.enabled && (!err.nodeID || err.nodeID == ctx.nodeID)) {
 			endpoint.failure(err);
 		}
 
