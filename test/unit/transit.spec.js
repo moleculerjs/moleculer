@@ -353,16 +353,16 @@ describe("Test Transit.messageHandler", () => {
 		let transit = broker.transit;
 		transit.sendResponse = jest.fn();
 
-		it("should call broker.call & sendResponse with result", () => {
+		it("should call broker._handleRemoteRequest & sendResponse with result", () => {
 			let response = [1, 5, 8];
-			broker.call = jest.fn(() => Promise.resolve(response));
+			broker._handleRemoteRequest = jest.fn(() => Promise.resolve(response));
 
-			let msg = { ver: "2", sender: "remote", action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456" };
+			let msg = { ver: "2", sender: "remote", action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456", timeout: 567 };
 			return transit.messageHandler("REQ", JSON.stringify(msg)).catch(protectReject).then(() => {
-				const ctx = broker.call.mock.calls[0][2].ctx;
+				const ctx = broker._handleRemoteRequest.mock.calls[0][0];
 
-				expect(broker.call).toHaveBeenCalledTimes(1);
-				expect(broker.call).toHaveBeenCalledWith(msg.action, { limit: 5 }, { ctx });
+				expect(broker._handleRemoteRequest).toHaveBeenCalledTimes(1);
+				expect(broker._handleRemoteRequest).toHaveBeenCalledWith(ctx);
 
 				// Check context props
 				expect(ctx).toBeInstanceOf(Context);
@@ -374,6 +374,7 @@ describe("Test Transit.messageHandler", () => {
 				expect(ctx.meta).toEqual({ b: 100 });
 				expect(ctx.metrics).toBe(true);
 				expect(ctx.level).toBe(5);
+				expect(ctx.timeout).toBe(567);
 
 				expect(transit.sendResponse).toHaveBeenCalledTimes(1);
 				expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", [1, 5, 8], null);
@@ -382,16 +383,16 @@ describe("Test Transit.messageHandler", () => {
 
 		});
 
-		it("should call broker.call & sendResponse with error", () => {
+		it("should call broker._handleRemoteRequest & sendResponse with error", () => {
 			transit.sendResponse.mockClear();
-			broker.call = jest.fn(() => Promise.reject(new ValidationError("Not valid params")));
+			broker._handleRemoteRequest = jest.fn(() => Promise.reject(new ValidationError("Not valid params")));
 
 			let msg = { ver: "2", sender: "remote", action: "posts.create", id: "123", params: { title: "Hello" }, meta: {} };
 			return transit.messageHandler("REQ", JSON.stringify(msg)).catch(protectReject).then(() => {
-				const ctx = broker.call.mock.calls[0][2].ctx;
+				const ctx = broker._handleRemoteRequest.mock.calls[0][0];
 
-				expect(broker.call).toHaveBeenCalledTimes(1);
-				expect(broker.call).toHaveBeenCalledWith(msg.action, { title: "Hello" }, { ctx });
+				expect(broker._handleRemoteRequest).toHaveBeenCalledTimes(1);
+				expect(broker._handleRemoteRequest).toHaveBeenCalledWith(ctx);
 
 				// Check context props
 				expect(ctx).toBeInstanceOf(Context);
@@ -600,8 +601,7 @@ describe("Test Transit.request", () => {
 			expect(packet.payload.meta).toBe(ctx.meta);
 			expect(packet.payload.timeout).toBe(500);
 
-			expect(req.nodeID).toBe("remote");
-			//expect(req.ctx).toBe(ctx);
+			expect(req.ctx).toBe(ctx);
 			expect(req.resolve).toBeInstanceOf(Function);
 			expect(req.reject).toBeInstanceOf(Function);
 		});

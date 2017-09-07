@@ -4,7 +4,6 @@
 let _ = require("lodash");
 let chalk = require("chalk");
 
-let Strategies = require("../../src/strategies");
 let ServiceBroker = require("../../src/service-broker");
 
 // Create broker
@@ -13,7 +12,7 @@ let broker = new ServiceBroker({
 	nodeID: process.argv[2] || "client-" + process.pid,
 	//transporter: "NATS",
 	transporter: "amqp://192.168.51.29:5672",
-	serializer: "ProtoBuf",
+	//serializer: "ProtoBuf",
 	requestTimeout: 1000,
 
 	registry: {

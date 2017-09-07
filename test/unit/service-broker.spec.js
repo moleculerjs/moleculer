@@ -24,12 +24,13 @@ const JSONSerializer = require("../../src/serializers/json");
 const Transporters = require("../../src/transporters");
 const FakeTransporter = require("../../src/transporters/fake");
 const Strategies = require("../../src/strategies");
-const { MoleculerError, ServiceNotFoundError, RequestTimeoutError, MaxCallLevelError } = require("../../src/errors");
+const { MoleculerError, ServiceNotFoundError, RequestTimeoutError } = require("../../src/errors");
 
 jest.mock("../../src/utils", () => ({
 	getNodeID() { return "node-1234"; },
 	generateToken() { return "1"; },
-	getIpList() { return []; }
+	getIpList() { return []; },
+	isPromise(p) {return p.then != null; }
 }));
 
 describe("Test ServiceBroker constructor", () => {
@@ -1226,20 +1227,6 @@ describe("Test broker.call method", () => {
 
 				expect(actionHandler).toHaveBeenCalledTimes(1);
 				expect(actionHandler).toHaveBeenCalledWith(ctx);
-			});
-		});
-
-		it("should throw Error if reached the 'maxCallLevel'", () => {
-			actionHandler.mockClear();
-			broker.options.maxCallLevel = 5;
-			let parentCtx = new Context(broker);
-			parentCtx.level = 5;
-
-			return broker.call("posts.find", { b: 10 }, { parentCtx }).then(protectReject).catch(err => {
-				expect(err).toBeInstanceOf(MaxCallLevelError);
-				expect(err.code).toBe(500);
-				expect(err.data).toEqual({"action": "posts.find", "level": 6});
-				expect(actionHandler).toHaveBeenCalledTimes(0);
 			});
 		});
 

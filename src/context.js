@@ -184,11 +184,13 @@ class Context {
 			}
 			opts.timeout = distTimeout;
 
-			// Max calling level check to avoid calling loops
-			if (this.broker.options.maxCallLevel > 0 && this.level > this.broker.options.maxCallLevel) {
-				return this.Promise.reject(new MaxCallLevelError({ level: this.level, action: actionName }));
-			}
 		}
+
+		// Max calling level check to avoid calling loops
+		if (this.broker.options.maxCallLevel > 0 && this.level >= this.broker.options.maxCallLevel) {
+			return Promise.reject(new MaxCallLevelError({ level: this.level, action: actionName }));
+		}
+
 		return this.broker.call(actionName, params, opts);
 	}
 
