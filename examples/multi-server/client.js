@@ -3,6 +3,7 @@
 
 let _ = require("lodash");
 let chalk = require("chalk");
+let { MoleculerError } = require("../../src/errors");
 
 let ServiceBroker = require("../../src/service-broker");
 
@@ -16,7 +17,8 @@ let broker = new ServiceBroker({
 	requestTimeout: 1000,
 
 	registry: {
-		disableBalancer: true
+		disableBalancer: false,
+		preferLocal: false
 	},
 
 	metrics: true,
@@ -60,6 +62,18 @@ broker.createService({
 			broker.logger.info(`>> Send echo event. Counter: ${this.counter}.`);
 			broker.emit("echo.event", { counter: this.counter++ });
 		}, 5000);
+	}
+});
+
+broker.createService({
+	name: "math",
+	actions: {
+		add(ctx) {
+			if (_.random(100) > 90)
+				return this.Promise.reject(new MoleculerError("Random error!", 510));
+
+			return Number(ctx.params.a) + Number(ctx.params.b);
+		},
 	}
 });
 

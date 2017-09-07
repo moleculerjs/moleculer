@@ -224,11 +224,8 @@ class Transit {
 			return Promise.reject(err);
 		}
 
-		// Skip own packets (if no built-in balance & packet not balanced)
-		if (payload.sender == this.nodeID && !(
-			this.tx.hasBuiltInBalancer
-			&& (cmd === P.PACKET_EVENT || cmd === P.PACKET_REQUEST)
-		))
+		// Skip own packets (if built-in balancer disabled)
+		if (payload.sender == this.nodeID && (cmd !== P.PACKET_EVENT && cmd !== P.PACKET_REQUEST && cmd !== P.PACKET_RESPONSE))
 			return Promise.resolve();
 
 		// Request
