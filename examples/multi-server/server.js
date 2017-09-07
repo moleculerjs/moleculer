@@ -13,6 +13,11 @@ let broker = new ServiceBroker({
 	//transporter: "NATS",
 	transporter: "amqp://192.168.51.29:5672",
 	serializer: "ProtoBuf",
+
+	registry: {
+		disableBalancer: true
+	},
+
 	logger: console,
 	logFormatter: "simple"
 });

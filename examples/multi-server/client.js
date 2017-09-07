@@ -17,7 +17,7 @@ let broker = new ServiceBroker({
 	requestTimeout: 1000,
 
 	registry: {
-		strategy: new Strategies.RoundRobin(),
+		disableBalancer: true
 	},
 
 	metrics: true,

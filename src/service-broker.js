@@ -98,6 +98,9 @@ class ServiceBroker {
 		this.ServiceFactory = this.options.ServiceFactory || require("./service");
 		this.ContextFactory = this.options.ContextFactory || require("./context");
 
+		if (this.options.registry.disableBalancer)
+			this.call = this.callWithoutBalancer;
+
 		// Namespace
 		this.namespace = this.options.namespace || "";
 
@@ -763,36 +766,109 @@ class ServiceBroker {
 		let p;
 		if (endpoint.local) {
 			// Local call
-			this.logger.debug(`Call '${actionName}' action on local node.`);
-
-			// Add metrics start
-			if (ctx.metrics === true || ctx.timeout > 0 || this.statistics)
-				ctx._metricStart(ctx.metrics);
-
-			p = action.handler(ctx);
-
-			// Timeout handler
-			if (ctx.timeout > 0 && p.timeout)
-				p = p.timeout(ctx.timeout);
-
-			if (ctx.metrics === true || this.statistics) {
-				// Add metrics & statistics
-				p = p.then(res => {
-					this._finishCall(ctx, null);
-					return res;
-				});
-			}
+			return this._localCall(ctx, endpoint, opts);
 		} else {
 			// Remote call
-
-			this.logger.debug(`Call '${actionName}' action on '${nodeID}' node.`);
-
-			p = this.transit.request(ctx);
-
-			// Timeout handler
-			if (ctx.timeout > 0 && p.timeout)
-				p = p.timeout(ctx.timeout);
+			return this._remoteCall(ctx, endpoint, opts);
 		}
+	}
+
+	callWithoutBalancer(actionName, params, opts = {}) {
+		if (opts.timeout == null)
+			opts.timeout = this.options.requestTimeout || 0;
+
+		if (opts.retryCount == null)
+			opts.retryCount = this.options.requestRetry || 0;
+
+		let action;
+		let nodeID;
+		if (typeof actionName !== "string") {
+			let endpoint = actionName;
+			action = endpoint.action;
+			actionName = endpoint.action.name;
+			nodeID = endpoint.id;
+		} else {
+			if (opts.nodeID) {
+				nodeID = opts.nodeID;
+			} else {
+				// Find action by name
+				let actions = this.registry.getActionEndpoints(actionName);
+				if (actions == null) {
+					this.logger.warn(`Service '${actionName}' is not registered!`);
+					return Promise.reject(new E.ServiceNotFoundError(actionName));
+				}
+				let endpoint = actions.next();
+				action = endpoint.action;
+			}
+		}
+
+		// Create context
+		let ctx;
+		if (opts.ctx != null) {
+			// Reused context
+			ctx = opts.ctx;
+			ctx.nodeID = nodeID;
+			ctx.action = action;
+		} else {
+			// New root context
+			ctx = this.ContextFactory.create(this, action, nodeID, params, opts);
+		}
+
+		if (this.options.maxCallLevel > 0 && ctx.level > this.options.maxCallLevel) {
+			return this.Promise.reject(new E.MaxCallLevelError({ level: ctx.level, action: actionName }));
+		}
+
+		this.logger.debug(`Call '${actionName}' action`);
+
+		let p = this.transit.request(ctx);
+
+		// Timeout handler
+		if (ctx.timeout > 0 && p.timeout)
+			p = p.timeout(ctx.timeout);
+
+		// Handle half-open state in circuit breaker
+		if (this.options.circuitBreaker.enabled) {
+			p = p.then(res => {
+				// TODO endpoint.success();
+				return res;
+			});
+		}
+
+		// Error handler
+		p = p.catch(err => this._callErrorHandler(err, ctx, null, opts));
+
+		// Pointer to Context
+		p.ctx = ctx;
+
+		return p;
+	}
+
+	_localCall(ctx, endpoint, opts) {
+		let action = endpoint.action;
+
+		this.logger.debug(`Call '${ctx.action.name}' action on local node.`);
+
+		// Add metrics start
+		if (ctx.metrics === true || ctx.timeout > 0 || this.statistics)
+			ctx._metricStart(ctx.metrics);
+
+		let p = action.handler(ctx);
+
+		// Timeout handler
+		if (ctx.timeout > 0 && p.timeout)
+			p = p.timeout(ctx.timeout);
+
+		if (ctx.metrics === true || this.statistics) {
+			// Add metrics & statistics
+			p = p.then(res => {
+				this._finishCall(ctx, null);
+				return res;
+			});
+		}
+
+		// Timeout handler
+		if (ctx.timeout > 0 && p.timeout)
+			p = p.timeout(ctx.timeout);
 
 		// Handle half-open state in circuit breaker
 		if (this.options.circuitBreaker.enabled) {
@@ -804,6 +880,94 @@ class ServiceBroker {
 
 		// Error handler
 		p = p.catch(err => this._callErrorHandler(err, ctx, endpoint, opts));
+
+		// Pointer to Context
+		p.ctx = ctx;
+
+		return p;
+	}
+
+	_remoteCall(ctx, endpoint, opts) {
+		this.logger.debug(`Call '${ctx.action.name}' action on '${ctx.nodeID}' node.`);
+
+		let p = this.transit.request(ctx);
+
+		// Timeout handler
+		if (ctx.timeout > 0 && p.timeout)
+			p = p.timeout(ctx.timeout);
+
+		// Handle half-open state in circuit breaker
+		if (this.options.circuitBreaker.enabled) {
+			p = p.then(res => {
+				endpoint.success();
+				return res;
+			});
+		}
+
+		// Error handler
+		p = p.catch(err => this._callErrorHandler(err, ctx, endpoint, opts));
+
+		// Pointer to Context
+		p.ctx = ctx;
+
+		return p;
+	}
+
+	handleRemoteRequest(ctx) {
+		let actionName = ctx.action.name;
+		// Find action by name
+		let actions = this.registry.getActionEndpoints(actionName);
+		if (actions == null || actions.localEndpoint == null) {
+			this.logger.warn(`Service '${actionName}' is not registered!`);
+			return Promise.reject(new E.ServiceNotFoundError(actionName));
+		}
+
+		// Get local endpoint
+		let endpoint = actions.localEndpoint;
+
+		// Expose action info
+		let action = endpoint.action;
+		let nodeID = endpoint.id;
+
+		ctx.action = action;
+		/*
+		if (this.options.maxCallLevel > 0 && ctx.level > this.options.maxCallLevel) {
+			return this.Promise.reject(new E.MaxCallLevelError({ level: ctx.level, action: actionName }));
+		}*/
+
+		// Call handler or transfer request
+		let p;
+		// Local call
+		this.logger.debug(`Call '${actionName}' action on local node.`);
+
+		// Add metrics start
+		if (ctx.metrics === true || ctx.timeout > 0 || this.statistics)
+			ctx._metricStart(ctx.metrics);
+
+		p = action.handler(ctx);
+
+		// Timeout handler
+		if (ctx.timeout > 0 && p.timeout)
+			p = p.timeout(ctx.timeout);
+
+		if (ctx.metrics === true || this.statistics) {
+			// Add metrics & statistics
+			p = p.then(res => {
+				this._finishCall(ctx, null);
+				return res;
+			});
+		}
+
+		// Handle half-open state in circuit breaker
+		if (this.options.circuitBreaker.enabled) {
+			p = p.then(res => {
+				endpoint.success();
+				return res;
+			});
+		}
+
+		// Error handler
+		p = p.catch(err => this._callErrorHandler(err, ctx, endpoint, {}));
 
 		// Pointer to Context
 		p.ctx = ctx;
@@ -840,7 +1004,8 @@ class ServiceBroker {
 		}
 
 		// Only failure if error came from the direct requested node.
-		if (this.options.circuitBreaker.enabled && (!err.nodeID || err.nodeID == ctx.nodeID)) {
+		// TODO if no endpoint?
+		if (this.options.circuitBreaker.enabled && endpoint && (!err.nodeID || err.nodeID == ctx.nodeID)) {
 			endpoint.failure(err);
 		}
 

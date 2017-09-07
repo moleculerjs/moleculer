@@ -113,6 +113,7 @@ describe("Test ServiceBroker constructor", () => {
 			heartbeatInterval: 5,
 
 			registry: {
+				disableBalancer: false,
 				strategy: Strategies.Random,
 				preferLocal: false
 			},
@@ -2069,14 +2070,14 @@ describe("Test broker getHealthStatus", () => {
 });
 
 describe("Test registry links", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ transporter: "Fake" });
 
 	broker.registry.disableBalancer = jest.fn();
 	broker.registry.getLocalNodeInfo = jest.fn();
 	broker.registry.events.getGroups = jest.fn();
 	broker.registry.events.emitLocalServices = jest.fn();
 
-	it("should call H.getHealthStatus", () => {
+	it("should call registry.disableBalancer", () => {
 		broker.disableBalancer();
 
 		expect(broker.registry.disableBalancer).toHaveBeenCalledTimes(1);
