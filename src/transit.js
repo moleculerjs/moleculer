@@ -79,7 +79,7 @@ class Transit {
 			.then(() => {
 				this.connected = true;
 
-				this.broker.internalEvents.emit("$transporter.connected");
+				this.broker.broadcastLocal("$transporter.connected");
 
 				if (this.__connectResolve) {
 					this.__connectResolve();
@@ -127,7 +127,7 @@ class Transit {
 		this.connected = false;
 		this.disconnecting = true;
 
-		this.broker.internalEvents.emit("$transporter.disconnected", { graceFul: true });
+		this.broker.broadcastLocal("$transporter.disconnected", { graceFul: true });
 
 		if (this.tx.connected) {
 			return this.sendDisconnectPacket()

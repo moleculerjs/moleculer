@@ -14,11 +14,13 @@
 - changed default broker options: `heartbeatInterval: 5`, `heartbeatTimeout: 15`, `circuitBreaker.maxFailures: 3`
 - `broker.bus`, `broker.on`, `broker.once`, `broker.off` removed. Use `events` in service schema.
 - rewritten service registry module
-- internal events starts with `$`
+- internal events starts with `$`, they are not transferred to remote nodes.
+- subscribe to local events in service `events` or with `broker.localBus.on`.
 - internal node events `$node.connected`, `$node.updated`, `$node.disconnected`
-- `services.changed` renamed to `$services.changed`. It is called if local or remote service list changed. First parameter is `localService` boolean.
+- `services.changed` renamed to `$services.changed`. It is called if local or remote service list changed. First parameter is `localService` (boolean).
 - `broker.getService` renamed to `broker.getLocalService`
-- some broker method removed: `hasService`, `hasAction`, `getAction`, `isActionAvailable`
+- some broker method removed: `hasService`, `hasAction`, `isActionAvailable`
+- `getAction` deprecated. 
 - new event sending methods
     - `broker.emit` - balancing events between service instances. 3rd param is the service "group" name
     - `broker.broadcast` - same as the old `broker.emit`. Every nodes & every services receive the event

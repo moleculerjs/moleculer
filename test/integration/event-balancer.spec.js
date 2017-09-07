@@ -8,6 +8,9 @@ let userService = {
 	events: {
 		"user.created"() {
 			flow.push(`${this.broker.nodeID}-${this.name}-uc`);
+		},
+		"$local.user.event"() {
+			flow.push(`${this.broker.nodeID}-${this.name}-$lue`);
 		}
 	}
 };
@@ -48,6 +51,9 @@ function createNodes(ns) {
 
 	const nodeUser1 = new ServiceBroker({ namespace: ns, nodeID: "user-1", transporter: "Fake", logger });
 	nodeUser1.createService(userService);
+	nodeUser1.localBus.on("$local.user.event", () => flow.push("nodeUser1-on-$lue"));
+
+
 	const nodeUser2 = new ServiceBroker({ namespace: ns, nodeID: "user-2", transporter: "Fake", logger });
 	nodeUser2.createService(userService);
 	nodeUser2.createService(otherService);
@@ -81,6 +87,7 @@ function createNodes(ns) {
 describe("Test event balancing", () => {
 	const nodes = createNodes();
 	const master = nodes[0];
+	const nodeUser1 = nodes[1];
 
 	beforeAll(() => {
 		return Promise.all(nodes.map(node => node.start()));
@@ -230,7 +237,36 @@ describe("Test event balancing", () => {
 		]);
 	});
 
+	// --- LOCAL EVENTS ---
 
+	it("broadcast a '$local.user.event' event on master", () => {
+		master.broadcast("$local.user.event");
+		expect(flow).toEqual([]);
+	});
+
+	it("broadcast a '$local.user.event' event on node1", () => {
+		nodeUser1.broadcast("$local.user.event");
+		expect(flow).toEqual([
+			"nodeUser1-on-$lue",
+			"user-1-users-$lue"
+		]);
+	});
+
+	it("broadcastLocal a '$local.user.event' event on node1", () => {
+		nodeUser1.broadcastLocal("$local.user.event");
+		expect(flow).toEqual([
+			"nodeUser1-on-$lue",
+			"user-1-users-$lue"
+		]);
+	});
+
+	it("emit a '$local.user.event' event on node1", () => {
+		nodeUser1.emit("$local.user.event");
+		expect(flow).toEqual([
+			"nodeUser1-on-$lue",
+			"user-1-users-$lue"
+		]);
+	});
 });
 
 /*

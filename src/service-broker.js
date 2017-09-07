@@ -115,7 +115,7 @@ class ServiceBroker {
 		this.logger.info("Namespace:", this.namespace || "<not defined>");
 
 		// Internal event bus
-		this.internalEvents = new EventEmitter2({
+		this.localBus = new EventEmitter2({
 			wildcard: true,
 			maxListeners: 100
 		});
@@ -575,7 +575,6 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	servicesChanged(localService = false) {
-		this.internalEvents.emit("$services.changed", { localService });
 		this.broadcastLocal("$services.changed", { localService });
 
 		// Should notify remote nodes, because our service list is changed.
@@ -1108,6 +1107,10 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	emit(eventName, payload, groups) {
+		// Call local/internal subscribers
+		if (/^\$/.test(eventName))
+			this.localBus.emit(eventName, payload);
+
 		if (groups && !Array.isArray(groups))
 			groups = [groups];
 
@@ -1144,7 +1147,7 @@ class ServiceBroker {
 				return this.transit.sendBalancedEvent(eventName, payload, groupedEP);
 			}
 
-		} else if (this.transit) {
+		} else if (this.transit && !/^\$/.test(eventName)) {
 			return this.transit.sendEventToGroups(eventName, payload, groups);
 		}
 	}
@@ -1159,15 +1162,17 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	broadcast(eventName, payload) {
-		const endpoints = this.registry.events.getAllEndpoints(eventName);
+		if (!/^\$/.test(eventName)) {
+			const endpoints = this.registry.events.getAllEndpoints(eventName);
 
-		if (this.transit) {
-			// Send to remote services
-			endpoints.forEach(ep => {
-				if (ep.id != this.nodeID) {
-					return this.transit.sendEvent(ep.id, eventName, payload);
-				}
-			});
+			if (this.transit) {
+				// Send to remote services
+				endpoints.forEach(ep => {
+					if (ep.id != this.nodeID) {
+						return this.transit.sendEvent(ep.id, eventName, payload);
+					}
+				});
+			}
 		}
 
 		// Send to local services
@@ -1187,6 +1192,10 @@ class ServiceBroker {
 	 */
 	broadcastLocal(eventName, payload, groups, nodeID) {
 		this.logger.debug("Event emitted locally:", eventName);
+
+		// Call local/internal subscribers
+		if (/^\$/.test(eventName))
+			this.localBus.emit(eventName, payload);
 
 		return this.registry.events.emitLocalServices(eventName, payload, null, nodeID || this.nodeID);
 	}

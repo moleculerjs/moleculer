@@ -100,7 +100,7 @@ describe("Test Transit.afterConnect", () => {
 
 	let resolver;
 
-	broker.internalEvents.emit = jest.fn();
+	broker.broadcastLocal = jest.fn();
 
 	beforeEach(() => {
 		resolver = jest.fn();
@@ -116,13 +116,13 @@ describe("Test Transit.afterConnect", () => {
 			expect(resolver).toHaveBeenCalledTimes(1);
 			expect(transit.__connectResolve).toBeNull();
 			expect(transit.connected).toBe(true);
-			expect(broker.internalEvents.emit).toHaveBeenCalledTimes(1);
-			expect(broker.internalEvents.emit).toHaveBeenCalledWith("$transporter.connected");
+			expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+			expect(broker.broadcastLocal).toHaveBeenCalledWith("$transporter.connected");
 		});
 	});
 
 	it("should call only discoverNodes if was reconnected", () => {
-		broker.internalEvents.emit.mockClear();
+		broker.broadcastLocal.mockClear();
 
 		return transit.afterConnect(true).catch(protectReject).then(() => {
 			expect(transit.makeSubscriptions).toHaveBeenCalledTimes(0);
@@ -130,8 +130,8 @@ describe("Test Transit.afterConnect", () => {
 			expect(resolver).toHaveBeenCalledTimes(1);
 			expect(transit.__connectResolve).toBeNull();
 			expect(transit.connected).toBe(true);
-			expect(broker.internalEvents.emit).toHaveBeenCalledTimes(1);
-			expect(broker.internalEvents.emit).toHaveBeenCalledWith("$transporter.connected");
+			expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+			expect(broker.broadcastLocal).toHaveBeenCalledWith("$transporter.connected");
 		});
 	});
 
@@ -145,20 +145,20 @@ describe("Test Transit.disconnect", () => {
 
 	transporter.disconnect = jest.fn(() => Promise.resolve());
 	transit.sendDisconnectPacket = jest.fn(() => Promise.resolve());
-	broker.internalEvents.emit = jest.fn();
+	broker.broadcastLocal = jest.fn();
 
 	transit.connect();
 
 	it("should call transporter disconnect & sendDisconnectPacket", () => {
-		broker.internalEvents.emit.mockClear();
+		broker.broadcastLocal.mockClear();
 		expect(transit.connected).toBe(true);
 		expect(transit.disconnecting).toBe(false);
 		return transit.disconnect().catch(protectReject).then(() => {
 			expect(transporter.disconnect).toHaveBeenCalledTimes(1);
 			expect(transit.sendDisconnectPacket).toHaveBeenCalledTimes(1);
 
-			expect(broker.internalEvents.emit).toHaveBeenCalledTimes(1);
-			expect(broker.internalEvents.emit).toHaveBeenCalledWith("$transporter.disconnected", { graceFul: true });
+			expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+			expect(broker.broadcastLocal).toHaveBeenCalledWith("$transporter.disconnected", { graceFul: true });
 
 			expect(transit.connected).toBe(false);
 			expect(transit.disconnecting).toBe(true);

@@ -38,8 +38,8 @@ class NodeCatalog {
 
 		this.createLocalNode();
 
-		this.broker.internalEvents.on("$transporter.connected", this.startHeartbeatTimers.bind(this));
-		this.broker.internalEvents.on("$transporter.disconnected", this.stopHeartbeatTimers.bind(this));
+		this.broker.localBus.on("$transporter.connected", this.startHeartbeatTimers.bind(this));
+		this.broker.localBus.on("$transporter.disconnected", this.stopHeartbeatTimers.bind(this));
 	}
 
 	/**

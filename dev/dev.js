@@ -13,17 +13,34 @@ let broker1 = new ServiceBroker({
 });
 
 broker1.createService({
-	name: "small-planets",
+	name: "planets",
 	events: {
-		"planets.earth"(payload) {
-			this.logger.info("Earth is fired!");
+		"$planet.earth"(payload) {
+			this.logger.info(`$Earth is fired '${this.broker.nodeID}'!`);
 		},
-		"planets.mars"(payload) {
-			this.logger.info("Mars is fired!");
+		"planet.mars"(payload) {
+			this.logger.info(`Mars is fired '${this.broker.nodeID}'!`);
+		},
+		"$transporter.connected"(payload) {
+			console.log("Transporter CONNECTED");
 		}
-
+	},
+	started() {
+		setInterval(() => {
+			this.logger.info(`Emit on '${this.broker.nodeID}'`);
+			this.broker.broadcast("$planet.earth");
+			//this.broker.emit("planet.mars");
+		}, 2000);
 	}
 });
+/*
+broker1.localBus.on("$planet.earth", payload => {
+	console.log("Event emitted: $planet.earth");
+});
+
+broker1.localBus.on("$transporter.connected", payload => {
+	console.log("Transporter CONNECTED");
+});*/
 
 // ----------------------------------------------------------------------
 
@@ -35,26 +52,21 @@ let broker2 = new ServiceBroker({
 });
 
 broker2.createService({
-	name: "big-planets",
+	name: "planets",
 	events: {
-		"planets.neptune"(payload) {
-			this.logger.info("Neptune is fired!");
+		"$planet.earth"(payload) {
+			this.logger.info(`$Earth is fired '${this.broker.nodeID}'!`);
 		},
-		"planets.saturn"(payload) {
-			this.logger.info("Saturn is fired!");
-		}
-	}
-});
-
-broker2.createService({
-	name: "big-planets-2",
-	events: {
-		"planets.jupiter"(payload) {
-			this.logger.info("Jupiter is fired!");
-		},
-		"planets.saturn"(payload) {
-			this.logger.info("Saturn is fired!");
-		}
+		/*"planet.mars"(payload) {
+			this.logger.info(`Mars is fired '${this.broker.nodeID}'!`);
+		}*/
+	},
+	started() {
+		/*setInterval(() => {
+			//this.logger.info(`Emit on '${this.broker.nodeID}'`);
+			//this.broker.emit("$planet.earth");
+			this.broker.emit("planet.mars");
+		}, 2000);*/
 	}
 });
 
@@ -62,11 +74,6 @@ broker2.createService({
 
 broker1.Promise.resolve()
 	.then(() => broker1.start())
-	.delay(500)
 	.then(() => broker2.start())
-	.delay(500)
-	//.then(() => broker1.call("math.add", { a: 7, b: 3 }))
-	.then(() => broker1.emit("planets.mars"))
-	//.then(res => broker1.logger.info("Result:", res))
 	.catch(err => broker1.logger.error(err))
 	.then(() => broker1.repl());
