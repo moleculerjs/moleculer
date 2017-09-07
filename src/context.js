@@ -9,7 +9,7 @@
 //const Promise = require("bluebird");
 const _ = require("lodash");
 const { generateToken } = require("./utils");
-const { RequestSkippedError } = require("./errors");
+const { RequestSkippedError, MaxCallLevelError } = require("./errors");
 
 /**
  * Context class for action calls
@@ -125,6 +125,23 @@ class Context {
 		return ctx;
 	}
 
+	static createFromPayload(broker, payload) {
+		const ctx = new Context(broker, { name: payload.action });
+		ctx.id = payload.id;
+		ctx.nodeID = broker.nodeID;
+		ctx.setParams(payload.params);
+		ctx.parentID = payload.parentID;
+		ctx.requestID = payload.requestID;
+		ctx.meta = payload.meta || {};
+
+		ctx.timeout = payload.timeout || 0;
+		ctx.level = payload.level;
+		ctx.metrics = payload.metrics;
+		ctx.callerNodeID = payload.sender;
+
+		return ctx;
+	}
+
 	/**
 	 * Set params of context
 	 *
@@ -166,6 +183,11 @@ class Context {
 				return Promise.reject(new RequestSkippedError(actionName, this.broker.nodeID));
 			}
 			opts.timeout = distTimeout;
+
+			// Max calling level check to avoid calling loops
+			if (this.broker.options.maxCallLevel > 0 && this.level > this.broker.options.maxCallLevel) {
+				return this.Promise.reject(new MaxCallLevelError({ level: this.level, action: actionName }));
+			}
 		}
 		return this.broker.call(actionName, params, opts);
 	}

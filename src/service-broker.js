@@ -694,76 +694,83 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Call an action (local or remote)
+	 * Find the next available endpoint for action
+	 *
+	 * @param {String} actionName
+	 * @param {Object} opts
+	 * @returns {Endpoint|Promise}
+	 *
+	 * @performance-critical
+	 * @memberof ServiceBroker
+	 */
+	_findNextActionEndpoint(actionName, opts) {
+		if (typeof actionName !== "string") {
+			return actionName;
+		} else {
+			if (opts.nodeID) {
+				// Direct call
+				const endpoint = this.registry.getActionEndpointByNodeId(actionName, opts.nodeID);
+				if (!endpoint) {
+					this.logger.warn(`Service '${actionName}' is not available on '${opts.nodeID}' node!`);
+					return Promise.reject(new E.ServiceNotFoundError(actionName, opts.nodeID));
+				}
+				return endpoint;
+
+			} else {
+				// Get endpoint list by action name
+				const epList = this.registry.getActionEndpoints(actionName);
+				if (!epList) {
+					this.logger.warn(`Service '${actionName}' is not registered!`);
+					return Promise.reject(new E.ServiceNotFoundError(actionName));
+				}
+
+				// Get the next available endpoint
+				const endpoint = epList.next();
+				if (!endpoint) {
+					const errMsg = `Service '${actionName}' is not available!`;
+					this.logger.warn(errMsg);
+					return Promise.reject(new E.ServiceNotFoundError(actionName));
+				}
+				return endpoint;
+			}
+		}
+	}
+
+	/**
+	 * Call an action
 	 *
 	 * @param {String} actionName	name of action
 	 * @param {Object?} params		params of action
 	 * @param {Object?} opts		options of call (optional)
-	 * @returns
+	 * @returns {Promise}
 	 *
 	 * @performance-critical
 	 * @memberOf ServiceBroker
 	 */
 	call(actionName, params, opts = {}) {
+		const endpoint = this._findNextActionEndpoint(actionName, opts);
+		if (utils.isPromise(endpoint))
+			return endpoint;
+
+		// Load opts with default values
 		if (opts.timeout == null)
 			opts.timeout = this.options.requestTimeout || 0;
 
 		if (opts.retryCount == null)
 			opts.retryCount = this.options.requestRetry || 0;
 
-		let endpoint;
-		if (typeof actionName !== "string") {
-			endpoint = actionName;
-			actionName = endpoint.action.name;
-		} else {
-			if (opts.nodeID) {
-				// Direct call
-				endpoint = this.registry.getActionEndpointByNodeId(actionName, opts.nodeID);
-				if (!endpoint) {
-					this.logger.warn(`Service '${actionName}' is not available on '${opts.nodeID}' node!`);
-					return Promise.reject(new E.ServiceNotFoundError(actionName, opts.nodeID));
-				}
-
-			} else {
-				// Find action by name
-				let actions = this.registry.getActionEndpoints(actionName);
-				if (actions == null) {
-					this.logger.warn(`Service '${actionName}' is not registered!`);
-					return Promise.reject(new E.ServiceNotFoundError(actionName));
-				}
-
-				// Get an endpoint
-				endpoint = actions.next();
-				if (endpoint == null) {
-					const errMsg = `Service '${actionName}' is not available!`;
-					this.logger.warn(errMsg);
-					return Promise.reject(new E.ServiceNotFoundError(actionName));
-				}
-			}
-		}
-
-		// Expose action info
-		let action = endpoint.action;
-		let nodeID = endpoint.id;
-
 		// Create context
 		let ctx;
 		if (opts.ctx != null) {
 			// Reused context
 			ctx = opts.ctx;
-			ctx.nodeID = nodeID;
-			ctx.action = action;
+			ctx.nodeID = endpoint.id;
+			ctx.action = endpoint.action;
 		} else {
 			// New root context
-			ctx = this.ContextFactory.create(this, action, nodeID, params, opts);
+			ctx = this.ContextFactory.create(this, endpoint.action, endpoint.id, params, opts);
 		}
 
-		if (this.options.maxCallLevel > 0 && ctx.level > this.options.maxCallLevel) {
-			return this.Promise.reject(new E.MaxCallLevelError({ level: ctx.level, action: actionName }));
-		}
-
-		// Call handler or transfer request
-		let p;
 		if (endpoint.local) {
 			// Local call
 			return this._localCall(ctx, endpoint, opts);
@@ -773,6 +780,21 @@ class ServiceBroker {
 		}
 	}
 
+	/**
+	 * Call an action without built-in balancer.
+	 * You don't call it directly. Broker will replace the
+	 * original 'call' method to this if you disable the
+	 * built-in balancer with the "disableBalancer" option.
+	 *
+	 * @param {String} actionName	name of action
+	 * @param {Object?} params		params of action
+	 * @param {Object?} opts		options of call (optional)
+	 * @returns {Promise}
+	 * @returns {Promise}
+	 *
+	 * @private
+	 * @memberof ServiceBroker
+	 */
 	callWithoutBalancer(actionName, params, opts = {}) {
 		if (opts.timeout == null)
 			opts.timeout = this.options.requestTimeout || 0;
@@ -780,69 +802,51 @@ class ServiceBroker {
 		if (opts.retryCount == null)
 			opts.retryCount = this.options.requestRetry || 0;
 
-		let action;
 		let nodeID;
 		if (typeof actionName !== "string") {
-			let endpoint = actionName;
-			action = endpoint.action;
+			const endpoint = actionName;
 			actionName = endpoint.action.name;
 			nodeID = endpoint.id;
 		} else {
 			if (opts.nodeID) {
 				nodeID = opts.nodeID;
 			} else {
-				// Find action by name
-				let actions = this.registry.getActionEndpoints(actionName);
-				if (actions == null) {
+				// Get endpoint list by action name
+				const epList = this.registry.getActionEndpoints(actionName);
+				if (epList == null) {
 					this.logger.warn(`Service '${actionName}' is not registered!`);
 					return Promise.reject(new E.ServiceNotFoundError(actionName));
 				}
-				let endpoint = actions.next();
-				action = endpoint.action;
 			}
 		}
 
 		// Create context
 		let ctx;
+		let action = { name: actionName };
 		if (opts.ctx != null) {
 			// Reused context
 			ctx = opts.ctx;
 			ctx.nodeID = nodeID;
-			ctx.action = action;
+			ctx.action = { name: actionName };
 		} else {
 			// New root context
 			ctx = this.ContextFactory.create(this, action, nodeID, params, opts);
 		}
 
-		if (this.options.maxCallLevel > 0 && ctx.level > this.options.maxCallLevel) {
-			return this.Promise.reject(new E.MaxCallLevelError({ level: ctx.level, action: actionName }));
-		}
-
-		this.logger.debug(`Call '${actionName}' action`);
-
-		let p = this.transit.request(ctx);
-
-		// Timeout handler
-		if (ctx.timeout > 0 && p.timeout)
-			p = p.timeout(ctx.timeout);
-
-		// Handle half-open state in circuit breaker
-		if (this.options.circuitBreaker.enabled) {
-			p = p.then(res => {
-				// TODO endpoint.success();
-				return res;
-			});
-		}
-
-		// Error handler
-		p = p.catch(err => this._callErrorHandler(err, ctx, null, opts));
-
-		// Pointer to Context
-		p.ctx = ctx;
-
-		return p;
+		return this._remoteCall(ctx, null, opts);
 	}
 
+	/**
+	 * Call the context locally
+	 *
+	 * @param {Context} ctx
+	 * @param {Endpoint} endpoint
+	 * @param {Object} opts
+	 * @returns {Promise}
+	 *
+	 * @performance-critical
+	 * @memberof ServiceBroker
+	 */
 	_localCall(ctx, endpoint, opts) {
 		let action = endpoint.action;
 
@@ -887,8 +891,19 @@ class ServiceBroker {
 		return p;
 	}
 
+	/**
+	 * Call the context on a remote node
+	 *
+	 * @param {Context} ctx
+	 * @param {Endpoint} endpoint
+	 * @param {Object} opts
+	 * @returns {Promise}
+	 *
+	 * @performance-critical
+	 * @memberof ServiceBroker
+	 */
 	_remoteCall(ctx, endpoint, opts) {
-		this.logger.debug(`Call '${ctx.action.name}' action on '${ctx.nodeID}' node.`);
+		this.logger.debug(`Call '${ctx.action.name}' action on '${ctx.nodeID ? ctx.nodeID : "some"}' node.`);
 
 		let p = this.transit.request(ctx);
 
@@ -897,7 +912,7 @@ class ServiceBroker {
 			p = p.timeout(ctx.timeout);
 
 		// Handle half-open state in circuit breaker
-		if (this.options.circuitBreaker.enabled) {
+		if (this.options.circuitBreaker.enabled && endpoint) {
 			p = p.then(res => {
 				endpoint.success();
 				return res;
@@ -913,7 +928,18 @@ class ServiceBroker {
 		return p;
 	}
 
-	handleRemoteRequest(ctx) {
+	/**
+	 * Handle a remote request (call a local action).
+	 * It's called from Transit if a request is received
+	 * from a remote node.
+	 *
+	 * @param {Context} ctx
+	 * @returns {Promise}
+	 *
+	 * @private
+	 * @memberof ServiceBroker
+	 */
+	_handleRemoteRequest(ctx) {
 		let actionName = ctx.action.name;
 		// Find action by name
 		let actions = this.registry.getActionEndpoints(actionName);
@@ -924,55 +950,15 @@ class ServiceBroker {
 
 		// Get local endpoint
 		let endpoint = actions.localEndpoint;
+		ctx.action = endpoint.action;
 
-		// Expose action info
-		let action = endpoint.action;
-		let nodeID = endpoint.id;
+		// Load opts
+		let opts = {
+			timeout: ctx.timeout || this.options.requestTimeout || 0
+		};
 
-		ctx.action = action;
-		/*
-		if (this.options.maxCallLevel > 0 && ctx.level > this.options.maxCallLevel) {
-			return this.Promise.reject(new E.MaxCallLevelError({ level: ctx.level, action: actionName }));
-		}*/
-
-		// Call handler or transfer request
-		let p;
 		// Local call
-		this.logger.debug(`Call '${actionName}' action on local node.`);
-
-		// Add metrics start
-		if (ctx.metrics === true || ctx.timeout > 0 || this.statistics)
-			ctx._metricStart(ctx.metrics);
-
-		p = action.handler(ctx);
-
-		// Timeout handler
-		if (ctx.timeout > 0 && p.timeout)
-			p = p.timeout(ctx.timeout);
-
-		if (ctx.metrics === true || this.statistics) {
-			// Add metrics & statistics
-			p = p.then(res => {
-				this._finishCall(ctx, null);
-				return res;
-			});
-		}
-
-		// Handle half-open state in circuit breaker
-		if (this.options.circuitBreaker.enabled) {
-			p = p.then(res => {
-				endpoint.success();
-				return res;
-			});
-		}
-
-		// Error handler
-		p = p.catch(err => this._callErrorHandler(err, ctx, endpoint, {}));
-
-		// Pointer to Context
-		p.ctx = ctx;
-
-		return p;
+		return this._localCall(ctx, endpoint, opts);
 	}
 
 	/**

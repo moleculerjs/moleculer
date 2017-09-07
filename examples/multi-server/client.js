@@ -73,7 +73,7 @@ broker.start()
 			let payload = { a: _.random(0, 100), b: _.random(0, 100) };
 			let p = broker.call("math.add", payload);
 			if (p.ctx)
-				broker.logger.info(chalk.grey(`Send request to ${p.ctx.nodeID}...`));
+				broker.logger.info(chalk.grey(`Send request to ${p.ctx.nodeID ? p.ctx.nodeID : "some node"}...`));
 			reqCount++;
 			p.then(res => {
 				broker.logger.info(_.padEnd(`${reqCount}. ${payload.a} + ${payload.b} = ${res}`, 20), `(from: ${p.ctx.nodeID})`);

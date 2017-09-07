@@ -292,7 +292,7 @@ class Transit {
 	/**
 	 * Handle incoming request
 	 *
-	 * @param {Object} packet
+	 * @param {Object} payload
 	 * @returns {Promise}
 	 *
 	 * @memberOf Transit
@@ -301,19 +301,9 @@ class Transit {
 		this.logger.debug(`Request '${payload.action}' received from '${payload.sender}' node.`);
 
 		// Recreate caller context
-		const ctx = this.broker.ContextFactory.create(this.broker, {
-			name: payload.action
-		}, this.broker.nodeID, payload.params, {
-			meta: payload.meta
-		});
-		ctx.id = payload.id;
-		ctx.parentID = payload.parentID;
-		ctx.requestID = payload.requestID;
-		ctx.level = payload.level;
-		ctx.metrics = payload.metrics;
-		ctx.callerNodeID = payload.sender;
+		const ctx = this.broker.ContextFactory.createFromPayload(this.broker, payload);
 
-		return this.broker.call(payload.action, payload.params, { ctx: ctx })
+		return this.broker._handleRemoteRequest(ctx)
 			.then(res => this.sendResponse(payload.sender, payload.id,  res, null))
 			.catch(err => this.sendResponse(payload.sender, payload.id, null, err));
 	}
@@ -385,7 +375,6 @@ class Transit {
 	 */
 	_sendRequest(ctx, resolve, reject) {
 		const request = {
-			nodeID: ctx.nodeID,
 			action: ctx.action,
 			ctx,
 			resolve,
@@ -394,7 +383,7 @@ class Transit {
 
 		const packet = new P.PacketRequest(this, ctx.nodeID, ctx);
 
-		this.logger.debug(`Send '${ctx.action.name}' request to '${ctx.nodeID}' node.`);
+		this.logger.debug(`Send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`);
 
 		// Add to pendings
 		this.pendingRequests.set(ctx.id, request);
