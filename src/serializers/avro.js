@@ -54,19 +54,8 @@ function createSchemas() {
 			{ name: "sender", type: "string" },
 			{ name: "id", type: "string" },
 			{ name: "success", type: "boolean" },
-			{ name: "data", type: [ "null", "string"] },
-			{ name: "error", type: [ "null", {
-				type: "record",
-				fields: [
-					{ name: "name", type: "string" },
-					{ name: "message", type: "string" },
-					{ name: "code", type: "int" },
-					{ name: "type", type: [ "null", "string"], default: null },
-					{ name: "data", type: [ "null", "string"], default: null },
-					{ name: "stack", type: "string" },
-					{ name: "nodeID", type: "string" }
-				]
-			} ], default: null }
+			{ name: "data", type: [ "null", "string"], default: null },
+			{ name: "error", type: [ "null", "string"], default: null }
 		]
 	});
 

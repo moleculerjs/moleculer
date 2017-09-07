@@ -30,17 +30,7 @@ message PacketResponse {
 	required string id 			= 3;
 	required bool success 		= 4;
 	optional string data 		= 5;
-	optional Error error 		= 6;
-
-	message Error {
-		required string name 		= 1;
-		required string message 	= 2;
-		required int32 code 		= 3;
-		optional string type 		= 4;
-		optional string data 		= 5;
-		required string stack 		= 6;
-		required string nodeID 		= 7;
-	}
+	optional string error 		= 6;
 }
 
 message PacketDiscover {

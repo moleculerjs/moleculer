@@ -834,7 +834,7 @@ class ServiceBroker {
 		err.ctx = ctx;
 
 		if (nodeID != this.nodeID) {
-			// Remove pending request
+			// Remove pending request (if the request didn't reached the target service)
 			this.transit.removePendingRequest(ctx.id);
 		}
 

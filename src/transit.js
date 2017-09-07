@@ -336,7 +336,9 @@ class Transit {
 		// Remove pending request
 		this.removePendingRequest(id);
 
-		this.logger.debug(`Response '${req.action.name}' received from '${req.nodeID}'.`);
+		this.logger.debug(`Response '${req.action.name}' received from '${packet.sender}'.`);
+		// Update nodeID in context (if it use external balancer)
+		req.ctx.nodeID = packet.sender;
 
 		if (!packet.success) {
 			// Recreate exception object
@@ -385,7 +387,7 @@ class Transit {
 		const request = {
 			nodeID: ctx.nodeID,
 			action: ctx.action,
-			//ctx,
+			ctx,
 			resolve,
 			reject
 		};

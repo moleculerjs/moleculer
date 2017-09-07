@@ -428,6 +428,7 @@ describe("Test Transit.messageHandler", () => {
 			let data = { id: 5, name: "John" };
 			let req = {
 				action: { name: "posts.find" },
+				ctx: { nodeID: null },
 				resolve: jest.fn(() => Promise.resolve()),
 				reject: jest.fn(() => Promise.resolve())
 			};
@@ -438,6 +439,7 @@ describe("Test Transit.messageHandler", () => {
 				expect(req.resolve).toHaveBeenCalledTimes(1);
 				expect(req.resolve).toHaveBeenCalledWith(data);
 				expect(req.reject).toHaveBeenCalledTimes(0);
+				expect(req.ctx.nodeID).toBe("remote");
 
 				expect(transit.pendingRequests.size).toBe(0);
 			});
@@ -447,6 +449,7 @@ describe("Test Transit.messageHandler", () => {
 		it("should call reject with error", () => {
 			let req = {
 				action: { name: "posts.find" },
+				ctx: { nodeID: null },
 				resolve: jest.fn(),
 				reject: jest.fn(err => Promise.reject(err))
 			};
@@ -463,6 +466,7 @@ describe("Test Transit.messageHandler", () => {
 				expect(req.reject).toHaveBeenCalledTimes(1);
 				expect(req.reject).toHaveBeenCalledWith(err);
 				expect(req.resolve).toHaveBeenCalledTimes(0);
+				expect(req.ctx.nodeID).toBe("remote");
 
 				expect(err.name).toBe("ValidationError");
 				expect(err.code).toBe(422);

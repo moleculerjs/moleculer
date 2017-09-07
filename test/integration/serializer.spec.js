@@ -339,7 +339,7 @@ describe("Test Avro serializer", () => {
 
 		const packet = new P.PacketResponse(broker.transit, "test-2", "12345", null, err);
 		const s = packet.serialize();
-		expect(s.length).toBe(100);
+		expect(s.length).toBe(168);
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_RESPONSE, s);
 		expect(res).toBeInstanceOf(P.PacketResponse);
@@ -698,7 +698,7 @@ describe("Test ProtoBuf serializer", () => {
 
 		const packet = new P.PacketResponse(broker.transit, "test-2", "12345", null, err);
 		const s = packet.serialize(100);
-		expect(s.length).toBe(109);
+		expect(s.length).toBe(171);
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_RESPONSE, s);
 		expect(res).toBeInstanceOf(P.PacketResponse);
