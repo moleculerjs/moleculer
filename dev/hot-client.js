@@ -13,6 +13,7 @@ let broker = new ServiceBroker({
 
 //broker.loadService("./examples/math.service.js");
 
+let c = 0;
 broker.start().then(() => {
 
 	setInterval(() => {
@@ -21,6 +22,7 @@ broker.start().then(() => {
 			.catch(err => broker.logger.warn(err.message));
 
 
+		broker.emit("test.event", ++c);
 	}, 1000);
 
 });
