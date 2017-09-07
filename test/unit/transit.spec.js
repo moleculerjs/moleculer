@@ -337,7 +337,47 @@ describe("Test Transit.messageHandler", () => {
 		});
 	});
 
-	it("should call broker.broadcastLocal if topic is 'EVENT' ", () => {
+	it("should call _requestHandler if topic is 'REQ' ", () => {
+		transit._requestHandler = jest.fn();
+
+		let msg = { ver: "2", sender: "remote", action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456", timeout: 567 };
+		transit.messageHandler("REQ", JSON.stringify(msg));
+
+		expect(transit._requestHandler).toHaveBeenCalledTimes(1);
+		expect(transit._requestHandler).toHaveBeenCalledWith(msg);
+	});
+
+	it("should call _requestHandler if topic is 'REQ' && sender is itself", () => {
+		transit._requestHandler = jest.fn();
+
+		let msg = { ver: "2", sender: broker.nodeID, action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456", timeout: 567 };
+		transit.messageHandler("REQ", JSON.stringify(msg));
+
+		expect(transit._requestHandler).toHaveBeenCalledTimes(1);
+		expect(transit._requestHandler).toHaveBeenCalledWith(msg);
+	});
+
+	it("should call _responseHandler if topic is 'RES' ", () => {
+		transit._responseHandler = jest.fn();
+
+		let msg = { ver: "2", sender: "remote", id: "12345" };
+		transit.messageHandler("RES", JSON.stringify(msg));
+
+		expect(transit._responseHandler).toHaveBeenCalledTimes(1);
+		expect(transit._responseHandler).toHaveBeenCalledWith(msg);
+	});
+
+	it("should call _responseHandler if topic is 'RES' && sender is itself", () => {
+		transit._responseHandler = jest.fn();
+
+		let msg = { ver: "2", sender: broker.nodeID, id: "12345" };
+		transit.messageHandler("RES", JSON.stringify(msg));
+
+		expect(transit._responseHandler).toHaveBeenCalledTimes(1);
+		expect(transit._responseHandler).toHaveBeenCalledWith(msg);
+	});
+
+	it("should call __eventHandler if topic is 'EVENT' ", () => {
 		transit._eventHandler = jest.fn();
 
 		let msg = { ver: "2", sender: "remote", event: "user.created", data: "John Doe" };
@@ -345,151 +385,16 @@ describe("Test Transit.messageHandler", () => {
 
 		expect(transit._eventHandler).toHaveBeenCalledTimes(1);
 		expect(transit._eventHandler).toHaveBeenCalledWith(msg);
-		expect(transit.stat.packets.received).toBe(1);
 	});
 
-	describe("Test 'REQ'", () => {
-		let broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
-		let transit = broker.transit;
-		transit.sendResponse = jest.fn();
+	it("should call __eventHandler if topic is 'EVENT' && sender is itself", () => {
+		transit._eventHandler = jest.fn();
 
-		it("should call broker._handleRemoteRequest & sendResponse with result", () => {
-			let response = [1, 5, 8];
-			broker._handleRemoteRequest = jest.fn(() => Promise.resolve(response));
+		let msg = { ver: "2", sender: broker.nodeID, event: "user.created", data: "John Doe" };
+		transit.messageHandler("EVENT", JSON.stringify(msg));
 
-			let msg = { ver: "2", sender: "remote", action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456", timeout: 567 };
-			return transit.messageHandler("REQ", JSON.stringify(msg)).catch(protectReject).then(() => {
-				const ctx = broker._handleRemoteRequest.mock.calls[0][0];
-
-				expect(broker._handleRemoteRequest).toHaveBeenCalledTimes(1);
-				expect(broker._handleRemoteRequest).toHaveBeenCalledWith(ctx);
-
-				// Check context props
-				expect(ctx).toBeInstanceOf(Context);
-				expect(ctx.id).toBe("123");
-				expect(ctx.parentID).toBe("555");
-				expect(ctx.requestID).toBe("123456");
-				expect(ctx.action.name).toBe("posts.find");
-				expect(ctx.params).toEqual({ limit: 5 });
-				expect(ctx.meta).toEqual({ b: 100 });
-				expect(ctx.metrics).toBe(true);
-				expect(ctx.level).toBe(5);
-				expect(ctx.timeout).toBe(567);
-
-				expect(transit.sendResponse).toHaveBeenCalledTimes(1);
-				expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", [1, 5, 8], null);
-
-			});
-
-		});
-
-		it("should call broker._handleRemoteRequest & sendResponse with error", () => {
-			transit.sendResponse.mockClear();
-			broker._handleRemoteRequest = jest.fn(() => Promise.reject(new ValidationError("Not valid params")));
-
-			let msg = { ver: "2", sender: "remote", action: "posts.create", id: "123", params: { title: "Hello" }, meta: {} };
-			return transit.messageHandler("REQ", JSON.stringify(msg)).catch(protectReject).then(() => {
-				const ctx = broker._handleRemoteRequest.mock.calls[0][0];
-
-				expect(broker._handleRemoteRequest).toHaveBeenCalledTimes(1);
-				expect(broker._handleRemoteRequest).toHaveBeenCalledWith(ctx);
-
-				// Check context props
-				expect(ctx).toBeInstanceOf(Context);
-				expect(ctx.id).toBe("123");
-				expect(ctx.params).toEqual({"title": "Hello"});
-				expect(ctx.meta).toEqual({});
-
-				expect(transit.sendResponse).toHaveBeenCalledTimes(1);
-				expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", null, jasmine.any(ValidationError));
-			});
-
-		});
-
-	});
-
-	describe("Test 'RES'", () => {
-		const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
-		const transit = broker.transit;
-
-		let id = "12345";
-
-		it("should not call resolve or reject if pending req is not exists", () => {
-			let req = { resolve: jest.fn(), reject: jest.fn() };
-			let msg = { ver: "2", sender: "remote", id };
-
-			return transit.messageHandler("RES", JSON.stringify(msg)).catch(protectReject).then(() => {
-				expect(req.resolve).toHaveBeenCalledTimes(0);
-				expect(req.reject).toHaveBeenCalledTimes(0);
-			});
-
-		});
-
-		it("should call resolve with data", () => {
-			let data = { id: 5, name: "John" };
-			let req = {
-				action: { name: "posts.find" },
-				ctx: { nodeID: null },
-				resolve: jest.fn(() => Promise.resolve()),
-				reject: jest.fn(() => Promise.resolve())
-			};
-			transit.pendingRequests.set(id, req);
-
-			let msg = { ver: "2", sender: "remote", id, success: true, data };
-			return transit.messageHandler("RES", JSON.stringify(msg)).catch(protectReject).then(() => {
-				expect(req.resolve).toHaveBeenCalledTimes(1);
-				expect(req.resolve).toHaveBeenCalledWith(data);
-				expect(req.reject).toHaveBeenCalledTimes(0);
-				expect(req.ctx.nodeID).toBe("remote");
-
-				expect(transit.pendingRequests.size).toBe(0);
-			});
-
-		});
-
-		it("should call reject with error", () => {
-			let req = {
-				action: { name: "posts.find" },
-				ctx: { nodeID: null },
-				resolve: jest.fn(),
-				reject: jest.fn(err => Promise.reject(err))
-			};
-			transit.pendingRequests.set(id, req);
-
-			let msg = { ver: "2", sender: "remote", id, success: false, error: {
-				name: "ValidationError",
-				code: 422,
-				data: { a: 5 },
-				stack: "STACK-TRACE"
-			}};
-
-			return transit.messageHandler("RES", JSON.stringify(msg)).then(protectReject).catch(err => {
-				expect(req.reject).toHaveBeenCalledTimes(1);
-				expect(req.reject).toHaveBeenCalledWith(err);
-				expect(req.resolve).toHaveBeenCalledTimes(0);
-				expect(req.ctx.nodeID).toBe("remote");
-
-				expect(err.name).toBe("ValidationError");
-				expect(err.code).toBe(422);
-				expect(err.data).toEqual({ a: 5 });
-				expect(err.stack).toBe("STACK-TRACE");
-				expect(err.nodeID).toBe("remote");
-
-				expect(transit.pendingRequests.size).toBe(0);
-			});
-
-		});
-
-	});
-
-	it("should call broker.registry.nodes.processNodeInfo if topic is 'INFO' ", () => {
-		broker.registry.nodes.processNodeInfo = jest.fn();
-
-		let msg = { ver: "2", sender: "remote", services: [] };
-		transit.messageHandler("INFO", JSON.stringify(msg));
-
-		expect(broker.registry.nodes.processNodeInfo).toHaveBeenCalledTimes(1);
-		expect(broker.registry.nodes.processNodeInfo).toHaveBeenCalledWith(msg);
+		expect(transit._eventHandler).toHaveBeenCalledTimes(1);
+		expect(transit._eventHandler).toHaveBeenCalledWith(msg);
 	});
 
 	it("should call broker.processNodeInfo & sendNodeInfo if topic is 'DISCOVER' ", () => {
@@ -500,6 +405,16 @@ describe("Test Transit.messageHandler", () => {
 		transit.messageHandler("DISCOVER", JSON.stringify(msg));
 		expect(transit.sendNodeInfo).toHaveBeenCalledTimes(1);
 		expect(transit.sendNodeInfo).toHaveBeenCalledWith("remote");
+	});
+
+	it("should call broker.registry.nodes.processNodeInfo if topic is 'INFO' ", () => {
+		broker.registry.nodes.processNodeInfo = jest.fn();
+
+		let msg = { ver: "2", sender: "remote", services: [] };
+		transit.messageHandler("INFO", JSON.stringify(msg));
+
+		expect(broker.registry.nodes.processNodeInfo).toHaveBeenCalledTimes(1);
+		expect(broker.registry.nodes.processNodeInfo).toHaveBeenCalledWith(msg);
 	});
 
 	it("should call broker.registry.nodes.disconnected if topic is 'DISCONNECT' ", () => {
@@ -542,6 +457,150 @@ describe("Test Transit.messageHandler", () => {
 		expect(transit.processPong).toHaveBeenCalledWith(msg);
 	});
 
+	it("should skip processing if sender is itself", () => {
+		transit.sendPong = jest.fn();
+
+		let msg = { ver: "2", sender: broker.nodeID, time: 1234567 };
+		transit.messageHandler("PING", JSON.stringify(msg));
+
+		expect(transit.sendPong).toHaveBeenCalledTimes(0);
+	});
+
+});
+
+describe("Test Transit._requestHandler", () => {
+
+	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const transit = broker.transit;
+
+	transit.sendResponse = jest.fn();
+
+	it("should call broker._handleRemoteRequest & sendResponse with result", () => {
+		let response = [1, 5, 8];
+		broker._handleRemoteRequest = jest.fn(() => Promise.resolve(response));
+
+		let payload = { ver: "2", sender: "remote", action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456", timeout: 567 };
+		return transit._requestHandler(payload).catch(protectReject).then(() => {
+			const ctx = broker._handleRemoteRequest.mock.calls[0][0];
+
+			expect(broker._handleRemoteRequest).toHaveBeenCalledTimes(1);
+			expect(broker._handleRemoteRequest).toHaveBeenCalledWith(ctx);
+
+			// Check context props
+			expect(ctx).toBeInstanceOf(Context);
+			expect(ctx.id).toBe("123");
+			expect(ctx.parentID).toBe("555");
+			expect(ctx.requestID).toBe("123456");
+			expect(ctx.action.name).toBe("posts.find");
+			expect(ctx.params).toEqual({ limit: 5 });
+			expect(ctx.meta).toEqual({ b: 100 });
+			expect(ctx.metrics).toBe(true);
+			expect(ctx.level).toBe(5);
+			expect(ctx.timeout).toBe(567);
+
+			expect(transit.sendResponse).toHaveBeenCalledTimes(1);
+			expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", [1, 5, 8], null);
+
+		});
+
+	});
+
+	it("should call broker._handleRemoteRequest & sendResponse with error", () => {
+		transit.sendResponse.mockClear();
+		broker._handleRemoteRequest = jest.fn(() => Promise.reject(new ValidationError("Not valid params")));
+
+		let payload = { ver: "2", sender: "remote", action: "posts.create", id: "123", params: { title: "Hello" }, meta: {} };
+		return transit._requestHandler(payload).catch(protectReject).then(() => {
+			const ctx = broker._handleRemoteRequest.mock.calls[0][0];
+
+			expect(broker._handleRemoteRequest).toHaveBeenCalledTimes(1);
+			expect(broker._handleRemoteRequest).toHaveBeenCalledWith(ctx);
+
+			// Check context props
+			expect(ctx).toBeInstanceOf(Context);
+			expect(ctx.id).toBe("123");
+			expect(ctx.params).toEqual({"title": "Hello"});
+			expect(ctx.meta).toEqual({});
+
+			expect(transit.sendResponse).toHaveBeenCalledTimes(1);
+			expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", null, jasmine.any(ValidationError));
+		});
+
+	});
+});
+
+describe("Test Transit._responseHandler", () => {
+
+	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const transit = broker.transit;
+
+	let id = "12345";
+
+	it("should not call resolve or reject if pending req is not exists", () => {
+		let req = { resolve: jest.fn(), reject: jest.fn() };
+		let payload = { ver: "2", sender: "remote", id };
+
+		return transit._responseHandler(payload).catch(protectReject).then(() => {
+			expect(req.resolve).toHaveBeenCalledTimes(0);
+			expect(req.reject).toHaveBeenCalledTimes(0);
+		});
+
+	});
+
+	it("should call resolve with data", () => {
+		let data = { id: 5, name: "John" };
+		let req = {
+			action: { name: "posts.find" },
+			ctx: { nodeID: null },
+			resolve: jest.fn(() => Promise.resolve()),
+			reject: jest.fn(() => Promise.resolve())
+		};
+		transit.pendingRequests.set(id, req);
+
+		let payload = { ver: "2", sender: "remote", id, success: true, data };
+		return transit._responseHandler(payload).catch(protectReject).then(() => {
+			expect(req.resolve).toHaveBeenCalledTimes(1);
+			expect(req.resolve).toHaveBeenCalledWith(data);
+			expect(req.reject).toHaveBeenCalledTimes(0);
+			expect(req.ctx.nodeID).toBe("remote");
+
+			expect(transit.pendingRequests.size).toBe(0);
+		});
+
+	});
+
+	it("should call reject with error", () => {
+		let req = {
+			action: { name: "posts.find" },
+			ctx: { nodeID: null },
+			resolve: jest.fn(),
+			reject: jest.fn(err => Promise.reject(err))
+		};
+		transit.pendingRequests.set(id, req);
+
+		let payload = { ver: "2", sender: "remote", id, success: false, error: {
+			name: "ValidationError",
+			code: 422,
+			data: { a: 5 },
+			stack: "STACK-TRACE"
+		}};
+
+		return transit._responseHandler(payload).then(protectReject).catch(err => {
+			expect(req.reject).toHaveBeenCalledTimes(1);
+			expect(req.reject).toHaveBeenCalledWith(err);
+			expect(req.resolve).toHaveBeenCalledTimes(0);
+			expect(req.ctx.nodeID).toBe("remote");
+
+			expect(err.name).toBe("ValidationError");
+			expect(err.code).toBe(422);
+			expect(err.data).toEqual({ a: 5 });
+			expect(err.stack).toBe("STACK-TRACE");
+			expect(err.nodeID).toBe("remote");
+
+			expect(transit.pendingRequests.size).toBe(0);
+		});
+
+	});
 });
 
 describe("Test Transit._eventHandler", () => {

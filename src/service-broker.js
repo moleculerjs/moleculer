@@ -801,7 +801,7 @@ class ServiceBroker {
 		if (opts.retryCount == null)
 			opts.retryCount = this.options.requestRetry || 0;
 
-		let nodeID;
+		let nodeID = null;
 		if (typeof actionName !== "string") {
 			const endpoint = actionName;
 			actionName = endpoint.action.name;
@@ -847,7 +847,7 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	_localCall(ctx, endpoint, opts) {
-		let action = endpoint.action;
+		let action = ctx.action;
 
 		this.logger.debug(`Call '${ctx.action.name}' action on local node.`);
 

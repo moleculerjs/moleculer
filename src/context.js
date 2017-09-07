@@ -87,6 +87,7 @@ class Context {
 	 */
 	static create(broker, action, nodeID, params, opts) {
 		const ctx = new Context(broker, action);
+
 		ctx.nodeID = nodeID;
 		ctx.setParams(params);
 
@@ -128,7 +129,6 @@ class Context {
 	static createFromPayload(broker, payload) {
 		const ctx = new Context(broker, { name: payload.action });
 		ctx.id = payload.id;
-		ctx.nodeID = broker.nodeID;
 		ctx.setParams(payload.params);
 		ctx.parentID = payload.parentID;
 		ctx.requestID = payload.requestID;
