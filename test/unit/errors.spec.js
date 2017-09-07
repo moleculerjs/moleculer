@@ -24,6 +24,17 @@ describe("Test Errors", () => {
 		expect(err).toBeInstanceOf(errors.ServiceNotFoundError);
 		expect(err.code).toBe(404);
 		expect(err.name).toBe("ServiceNotFoundError");
+		expect(err.message).toBe("Service 'posts.find' is not found!");
+		expect(err.data).toEqual({ action: "posts.find" });
+	});
+
+	it("test ServiceNotAvailable", () => {
+		let err = new errors.ServiceNotAvailable("posts.find");
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(Error);
+		expect(err).toBeInstanceOf(errors.ServiceNotAvailable);
+		expect(err.code).toBe(404);
+		expect(err.name).toBe("ServiceNotAvailable");
 		expect(err.message).toBe("Service 'posts.find' is not available!");
 		expect(err.data).toEqual({ action: "posts.find" });
 	});

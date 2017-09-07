@@ -1,7 +1,7 @@
 const Promise = require("bluebird");
 const ServiceBroker = require("../../src/service-broker");
 const FakeTransporter = require("../../src/transporters/fake");
-const { MoleculerError, ServiceNotFoundError } = require("../../src/errors");
+const { MoleculerError, ServiceNotFoundError, ServiceNotAvailable } = require("../../src/errors");
 
 const lolex = require("lolex");
 
@@ -78,7 +78,7 @@ describe("Test circuit breaker", () => {
 			})
 			// Circuit-breaker opened
 			.catch(err => {
-				expect(err).toBeInstanceOf(ServiceNotFoundError);
+				expect(err).toBeInstanceOf(ServiceNotAvailable);
 				return "done";
 			})
 			.then(res => {
@@ -97,7 +97,7 @@ describe("Test circuit breaker", () => {
 
 			.then(() => master1.call("cb.angry", { please: true }))
 			.catch(err => {
-				expect(err).toBeInstanceOf(ServiceNotFoundError);
+				expect(err).toBeInstanceOf(ServiceNotAvailable);
 				return "done2";
 			})
 			.then(res => expect(res).toBe("done2"));

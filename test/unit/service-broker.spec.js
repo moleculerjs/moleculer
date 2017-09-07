@@ -24,7 +24,7 @@ const JSONSerializer = require("../../src/serializers/json");
 const Transporters = require("../../src/transporters");
 const FakeTransporter = require("../../src/transporters/fake");
 const Strategies = require("../../src/strategies");
-const { MoleculerError, ServiceNotFoundError, RequestTimeoutError } = require("../../src/errors");
+const { MoleculerError, ServiceNotFoundError, ServiceNotAvailable, RequestTimeoutError } = require("../../src/errors");
 
 jest.mock("../../src/utils", () => ({
 	getNodeID() { return "node-1234"; },
@@ -1133,7 +1133,7 @@ describe("Test broker.call method", () => {
 			return broker.call("posts.noaction").then(protectReject).catch(err => {
 				expect(err).toBeDefined();
 				expect(err).toBeInstanceOf(ServiceNotFoundError);
-				expect(err.message).toBe("Service 'posts.noaction' is not available!");
+				expect(err.message).toBe("Service 'posts.noaction' is not found!");
 				expect(err.data).toEqual({ action: "posts.noaction" });
 			});
 		});
@@ -1142,7 +1142,7 @@ describe("Test broker.call method", () => {
 			broker.registry.unregisterAction({ id: broker.nodeID }, "posts.noHandler");
 			return broker.call("posts.noHandler").then(protectReject).catch(err => {
 				expect(err).toBeDefined();
-				expect(err).toBeInstanceOf(ServiceNotFoundError);
+				expect(err).toBeInstanceOf(ServiceNotAvailable);
 				expect(err.message).toBe("Service 'posts.noHandler' is not available!");
 				expect(err.data).toEqual({ action: "posts.noHandler" });
 			});
@@ -1152,7 +1152,7 @@ describe("Test broker.call method", () => {
 			return broker.call("posts.noHandler", {}, { nodeID: "node-123"}).then(protectReject).catch(err => {
 				expect(err).toBeDefined();
 				expect(err).toBeInstanceOf(ServiceNotFoundError);
-				expect(err.message).toBe("Service 'posts.noHandler' is not available on 'node-123' node!");
+				expect(err.message).toBe("Service 'posts.noHandler' is not found on 'node-123' node!");
 				expect(err.data).toEqual({ action: "posts.noHandler", nodeID: "node-123" });
 			});
 		});

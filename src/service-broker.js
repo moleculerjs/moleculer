@@ -711,7 +711,7 @@ class ServiceBroker {
 				// Direct call
 				const endpoint = this.registry.getActionEndpointByNodeId(actionName, opts.nodeID);
 				if (!endpoint) {
-					this.logger.warn(`Service '${actionName}' is not available on '${opts.nodeID}' node!`);
+					this.logger.warn(`Service '${actionName}' is not found on '${opts.nodeID}' node!`);
 					return Promise.reject(new E.ServiceNotFoundError(actionName, opts.nodeID));
 				}
 				return endpoint;
@@ -720,7 +720,7 @@ class ServiceBroker {
 				// Get endpoint list by action name
 				const epList = this.registry.getActionEndpoints(actionName);
 				if (!epList) {
-					this.logger.warn(`Service '${actionName}' is not registered!`);
+					this.logger.warn(`Service '${actionName}' is not found!`);
 					return Promise.reject(new E.ServiceNotFoundError(actionName));
 				}
 
@@ -729,7 +729,7 @@ class ServiceBroker {
 				if (!endpoint) {
 					const errMsg = `Service '${actionName}' is not available!`;
 					this.logger.warn(errMsg);
-					return Promise.reject(new E.ServiceNotFoundError(actionName));
+					return Promise.reject(new E.ServiceNotAvailable(actionName));
 				}
 				return endpoint;
 			}
@@ -814,7 +814,7 @@ class ServiceBroker {
 				// Get endpoint list by action name
 				const epList = this.registry.getActionEndpoints(actionName);
 				if (epList == null) {
-					this.logger.warn(`Service '${actionName}' is not registered!`);
+					this.logger.warn(`Service '${actionName}' is not found!`);
 					return Promise.reject(new E.ServiceNotFoundError(actionName));
 				}
 			}
@@ -944,7 +944,7 @@ class ServiceBroker {
 		// Find action by name
 		let actions = this.registry.getActionEndpoints(actionName);
 		if (actions == null || actions.localEndpoint == null) {
-			this.logger.warn(`Service '${actionName}' is not registered!`);
+			this.logger.warn(`Service '${actionName}' is not found!`);
 			return Promise.reject(new E.ServiceNotFoundError(actionName));
 		}
 

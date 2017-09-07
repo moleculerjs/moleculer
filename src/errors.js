@@ -49,6 +49,35 @@ class ServiceNotFoundError extends MoleculerError {
 	constructor(action, nodeID) {
 		let msg;
 		if (nodeID)
+			msg = `Service '${action}' is not found on '${nodeID || "<local>"}' node!`;
+		else
+			msg = `Service '${action}' is not found!`;
+
+		super(msg, 404, null, {
+			action,
+			nodeID
+		});
+	}
+}
+
+/**
+ * 'Service not available' Error message
+ *
+ * @class ServiceNotAvailable
+ * @extends {Error}
+ */
+class ServiceNotAvailable extends MoleculerError {
+	/**
+	 * Creates an instance of ServiceNotAvailable.
+	 *
+	 * @param {String} action
+	 * @param {String} nodeID
+	 *
+	 * @memberOf ServiceNotAvailable
+	 */
+	constructor(action, nodeID) {
+		let msg;
+		if (nodeID)
 			msg = `Service '${action}' is not available on '${nodeID || "<local>"}' node!`;
 		else
 			msg = `Service '${action}' is not available!`;
@@ -179,6 +208,8 @@ module.exports = {
 	MoleculerError,
 
 	ServiceNotFoundError,
+	ServiceNotAvailable,
+
 	ValidationError,
 	RequestTimeoutError,
 	RequestSkippedError,
