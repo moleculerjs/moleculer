@@ -1855,7 +1855,7 @@ describe("Test broker.emit with transporter", () => {
 		broker.transit.sendEventToGroups.mockClear();
 		broker.registry.events.getBalancedEndpoints.mockClear();
 
-		broker.registry.disableBalancing();
+		broker.disableBalancer();
 
 		broker.emit("user.event", { name: "John" });
 
@@ -1871,7 +1871,7 @@ describe("Test broker.emit with transporter", () => {
 		broker.transit.sendEventToGroups.mockClear();
 		broker.registry.events.getBalancedEndpoints.mockClear();
 
-		broker.registry.disableBalancing();
+		broker.disableBalancer();
 
 		broker.emit("user.event", { name: "John" }, ["users", "mail"]);
 
@@ -2071,15 +2071,15 @@ describe("Test broker getHealthStatus", () => {
 describe("Test registry links", () => {
 	let broker = new ServiceBroker();
 
-	broker.registry.disableBalancing = jest.fn();
+	broker.registry.disableBalancer = jest.fn();
 	broker.registry.getLocalNodeInfo = jest.fn();
 	broker.registry.events.getGroups = jest.fn();
 	broker.registry.events.emitLocalServices = jest.fn();
 
 	it("should call H.getHealthStatus", () => {
-		broker.disableBalancing();
+		broker.disableBalancer();
 
-		expect(broker.registry.disableBalancing).toHaveBeenCalledTimes(1);
+		expect(broker.registry.disableBalancer).toHaveBeenCalledTimes(1);
 	});
 
 	it("should call registry.getLocalNodeInfo", () => {

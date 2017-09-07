@@ -282,10 +282,8 @@ class AmqpTransporter extends Transporter {
 
 		const topic = this.getTopicName(cmd, nodeID);
 
-		if (cmd === PACKET_REQUEST) return;
-
 		// Some topics are specific to this node already, in these cases we don't need an exchange.
-		if (nodeID != null && cmd !== PACKET_REQUEST) {
+		if (nodeID != null) {
 			return this.channel.assertQueue(topic, this._getQueueOptions(cmd))
 				.then(() => this.channel.consume(
 					topic,
@@ -331,7 +329,7 @@ class AmqpTransporter extends Transporter {
 			if (service.actions) {
 				// Service actions queues
 				p.push(Object.keys(service.actions).map(action => {
-					const queue = `${this.prefix}.${PACKET_REQUEST}.${action}`;
+					const queue = `${this.prefix}.${PACKET_REQUEST}B.${action}`;
 					return this.channel.assertQueue(queue, this._getQueueOptions(PACKET_REQUEST))
 						.then(() => this.channel.consume(
 							queue,
@@ -345,7 +343,7 @@ class AmqpTransporter extends Transporter {
 				// Load-balanced/grouped events queues
 				p.push(Object.keys(service.events).map(event => {
 					const group = service.events[event].group || service.name;
-					const queue = `${this.prefix}.${PACKET_EVENT}.${group}.${event}`;
+					const queue = `${this.prefix}.${PACKET_EVENT}B.${group}.${event}`;
 					return this.channel.assertQueue(queue, this._getQueueOptions(PACKET_EVENT + "LB"))
 						.then(() => this.channel.consume(
 							queue,
@@ -398,14 +396,14 @@ class AmqpTransporter extends Transporter {
 
 		let topic = this.getTopicName(packet.type, packet.target);
 
-		if (packet.type === PACKET_EVENT && packet.payload.groups) {
+		if (packet.type === PACKET_EVENT && !packet.target && packet.payload.groups) {
 			let groups = packet.payload.groups;
-			// If the packet contains groups, we don't send the packet
+			// If the packet contains groups, we don't send the packet to
 			// the targetted node, but we push them to the event group queues
 			// and AMQP will load-balanced it.
 			if (groups.length > 0) {
 				groups.forEach(group => {
-					let queue = `${this.prefix}.${PACKET_EVENT}.${group}.${packet.payload.event}`;
+					let queue = `${this.prefix}.${PACKET_EVENT}B.${group}.${packet.payload.event}`;
 					// Change the groups to this group to avoid multi handling in consumers.
 					packet.payload.groups = [group];
 					this.channel.sendToQueue(queue, Buffer.from(packet.serialize()), this.opts.amqp.messageOptions);
@@ -424,8 +422,8 @@ class AmqpTransporter extends Transporter {
 
 		const payload = Buffer.from(packet.serialize()); // amqp.node expects data to be a buffer
 
-		if (packet.type === PACKET_REQUEST) {
-			topic = `${this.prefix}.${packet.type}.${packet.payload.action}`;
+		if (packet.type === PACKET_REQUEST && packet.target == null) {
+			topic = `${this.prefix}.${PACKET_REQUEST}B.${packet.payload.action}`;
 			this.channel.sendToQueue(topic, payload, this.opts.amqp.messageOptions);
 			return Promise.resolve();
 		}

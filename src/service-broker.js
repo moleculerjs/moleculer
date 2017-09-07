@@ -46,6 +46,7 @@ const defaultOptions = {
 	heartbeatTimeout: 15,
 
 	registry: {
+		disableBalancer: false,
 		strategy: RoundRobinStrategy,
 		preferLocal: true
 	},
@@ -838,7 +839,7 @@ class ServiceBroker {
 			this.transit.removePendingRequest(ctx.id);
 		}
 
-		// Only failure if error came from the direct request.
+		// Only failure if error came from the direct requested node.
 		if (this.options.circuitBreaker.enabled && (!err.nodeID || err.nodeID == ctx.nodeID)) {
 			endpoint.failure(err);
 		}
@@ -959,7 +960,7 @@ class ServiceBroker {
 		if (groups && !Array.isArray(groups))
 			groups = [groups];
 
-		if (this.registry.opts.balancing) {
+		if (!this.options.registry.disableBalancer) {
 
 			const endpoints = this.registry.events.getBalancedEndpoints(eventName, groups);
 
@@ -995,7 +996,6 @@ class ServiceBroker {
 		} else if (this.transit) {
 			return this.transit.sendEventToGroups(eventName, payload, groups);
 		}
-
 	}
 
 	/**
@@ -1050,8 +1050,19 @@ class ServiceBroker {
 		return H.getHealthStatus(this);
 	}
 
-	disableBalancing() {
-		this.registry.disableBalancing();
+	/**
+	 * Disable built-in request & event balancer
+	 *
+	 * @memberof ServiceBroker
+	 */
+	disableBalancer() {
+		if (this.transit && this.transit.tx.hasBuiltInBalancer) {
+			this.logger.info("The built-in balancer is disabled!");
+			this.options.registry.disableBalancer = true;
+			this.registry.disableBalancer();
+		} else {
+			this.logger.info("The Transporter hasn't got built-in balancer!");
+		}
 	}
 
 	getLocalNodeInfo() {

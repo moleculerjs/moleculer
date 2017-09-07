@@ -49,8 +49,8 @@ class Transit {
 
 		if (this.tx) {
 			this.tx.init(this, this.messageHandler.bind(this), this.afterConnect.bind(this));
-			if (this.tx.hasBuiltInBalancer)
-				this.broker.disableBalancing();
+			//if (this.tx.hasBuiltInBalancer)
+			//	this.broker.disableBalancer();
 		}
 
 		this.__connectResolve = null;
