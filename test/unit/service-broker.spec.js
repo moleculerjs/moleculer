@@ -68,6 +68,8 @@ describe("Test ServiceBroker constructor", () => {
 		expect(ServiceBroker.defaultOptions).toBeDefined();
 		expect(ServiceBroker.MOLECULER_VERSION).toBeDefined();
 		expect(broker.MOLECULER_VERSION).toBeDefined();
+
+		expect(broker.call).not.toBe(broker.callWithoutBalancer);
 	});
 
 	it("should merge options", () => {
@@ -86,7 +88,8 @@ describe("Test ServiceBroker constructor", () => {
 			maxCallLevel: 10,
 			registry: {
 				strategy: Strategies.Random,
-				preferLocal: false
+				preferLocal: false,
+				disableBalancer: true
 			},
 			circuitBreaker: {
 				enabled: true,
@@ -114,7 +117,7 @@ describe("Test ServiceBroker constructor", () => {
 			heartbeatInterval: 5,
 
 			registry: {
-				disableBalancer: false,
+				disableBalancer: true,
 				strategy: Strategies.Random,
 				preferLocal: false
 			},
@@ -141,6 +144,7 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.serializer).toBeInstanceOf(JSONSerializer);
 		expect(broker.namespace).toBe("test");
 		expect(broker.nodeID).toBe("server-12");
+		expect(broker.call).toBe(broker.callWithoutBalancer);
 
 		expect(broker.getLocalService("$node")).not.toBeDefined();
 	});
@@ -1119,7 +1123,7 @@ describe("Test broker._findNextActionEndpoint", () => {
 	});
 
 	it("should reject if no action", () => {
-		return broker._findNextActionEndpoint("posts.noaction", {}).then(protectReject).catch(err => {
+		return broker._findNextActionEndpoint("posts.noaction").then(protectReject).catch(err => {
 			expect(err).toBeDefined();
 			expect(err).toBeInstanceOf(ServiceNotFoundError);
 			expect(err.message).toBe("Service 'posts.noaction' is not found!");
@@ -1144,6 +1148,20 @@ describe("Test broker._findNextActionEndpoint", () => {
 			expect(err.message).toBe("Service 'posts.noHandler' is not found on 'node-123' node!");
 			expect(err.data).toEqual({ action: "posts.noHandler", nodeID: "node-123" });
 		});
+	});
+
+	it("should find the endpoint with nodeID", () => {
+		let ep = broker._findNextActionEndpoint("posts.find", { nodeID: broker.nodeID});
+		expect(ep).toBeDefined();
+		expect(ep.action).toBeDefined();
+		expect(ep.id).toBe(broker.nodeID);
+	});
+
+	it("should find the endpoint", () => {
+		let ep = broker._findNextActionEndpoint("posts.find");
+		expect(ep).toBeDefined();
+		expect(ep.action).toBeDefined();
+		expect(ep.id).toBe(broker.nodeID);
 	});
 });
 
@@ -1541,7 +1559,7 @@ describe("Test broker._localCall", () => {
 		let err = new MoleculerError("Wrong thing!");
 		let action = {
 			name: "posts.find",
-			handler: jest.fn(ctx => Promise.reject(err))
+			handler: jest.fn(() => Promise.reject(err))
 		};
 
 		it("should not call finishCall & call callErrorHandler", () => {
@@ -1653,7 +1671,7 @@ describe("Test broker._remoteCall", () => {
 		let action = {
 			name: "posts.find"
 		};
-		transit.request = jest.fn(ctx => Promise.reject(err));
+		transit.request = jest.fn(() => Promise.reject(err));
 
 		it("should not call finishCall & call callErrorHandler", () => {
 			broker._callErrorHandler.mockClear();
@@ -1675,9 +1693,6 @@ describe("Test broker._remoteCall", () => {
 
 describe("Test broker._handleRemoteRequest", () => {
 	let broker = new ServiceBroker({ internalServices: false, metrics: true });
-	let action = {
-		name: "posts.find"
-	};
 
 	let ep = {
 		id: broker.nodeID,

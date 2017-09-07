@@ -702,7 +702,7 @@ class ServiceBroker {
 	 * @performance-critical
 	 * @memberof ServiceBroker
 	 */
-	_findNextActionEndpoint(actionName, opts) {
+	_findNextActionEndpoint(actionName, opts = {}) {
 		if (typeof actionName !== "string") {
 			return actionName;
 		} else {

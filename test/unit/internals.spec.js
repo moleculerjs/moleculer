@@ -21,7 +21,8 @@ describe("Test health status methods", () => {
 				nodeID: "node-1",
 				actions: {
 					find() {},
-					get() {}
+					get() {},
+					protected: { protected: true }
 				}
 			},
 			{
@@ -32,7 +33,8 @@ describe("Test health status methods", () => {
 					get() {},
 					login: {
 						protected: true
-					}
+					},
+					logout: {}
 				}
 			},
 			{
@@ -54,7 +56,8 @@ describe("Test health status methods", () => {
 			expect(res).toEqual([{
 				"actions": {
 					"find": {},
-					"get": {}
+					"get": {},
+					"logout": {}
 				},
 				"name": "users",
 				"nodes": ["node-1", "node-2"]

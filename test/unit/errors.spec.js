@@ -39,6 +39,17 @@ describe("Test Errors", () => {
 		expect(err.data).toEqual({ action: "posts.find" });
 	});
 
+	it("test ServiceNotAvailable with NodeID", () => {
+		let err = new errors.ServiceNotAvailable("posts.find", "server-2");
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(Error);
+		expect(err).toBeInstanceOf(errors.ServiceNotAvailable);
+		expect(err.code).toBe(404);
+		expect(err.name).toBe("ServiceNotAvailable");
+		expect(err.message).toBe("Service 'posts.find' is not available on 'server-2' node!");
+		expect(err.data).toEqual({ action: "posts.find", nodeID: "server-2" });
+	});
+
 	it("test RequestTimeoutError", () => {
 		// let data = {
 		// 	action: "posts.find"
