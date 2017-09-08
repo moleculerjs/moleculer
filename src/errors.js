@@ -12,21 +12,82 @@ const ExtendableError = require("es6-error");
  * Custom Moleculer Error class
  *
  * @class MoleculerError
- * @extends {Error}
+ * @extends {ExtendableError}
  */
 class MoleculerError extends ExtendableError {
 	/**
 	 * Creates an instance of MoleculerError.
 	 *
-	 * @param {any} message
+	 * @param {String?} message
+	 * @param {Number?} code
+	 * @param {String?} type
+	 * @param {any} data
 	 *
-	 * @memberOf MoleculerError
+	 * @memberof MoleculerError
 	 */
 	constructor(message, code, type, data) {
 		super(message);
 		this.code = code || 500;
 		this.type = type;
 		this.data = data;
+		this.retryable = false;
+	}
+}
+
+/**
+ * Custom Moleculer Error class
+ *
+ * @class MoleculerRetryableError
+ * @extends {MoleculerError}
+ */
+class MoleculerRetryableError extends MoleculerError {
+	/**
+	 * Creates an instance of MoleculerRetryableError.
+	 *
+	 * @param {String?} message
+	 * @param {Number?} code
+	 * @param {String?} type
+	 * @param {any} data
+	 *
+	 * @memberOf MoleculerRetryableError
+	 */
+	constructor(message, code, type, data) {
+		super(message);
+		this.code = code || 500;
+		this.type = type;
+		this.data = data;
+		this.retryable = true;
+	}
+}
+
+/**
+ * Custom Moleculer Error class
+ *
+ * @class MoleculerServerError
+ * @extends {MoleculerRetryableError}
+ */
+class MoleculerServerError extends MoleculerRetryableError {
+}
+
+/**
+ * Custom Moleculer Error class
+ *
+ * @class MoleculerClientError
+ * @extends {MoleculerError}
+ */
+class MoleculerClientError extends MoleculerError {
+	/**
+	 * Creates an instance of MoleculerClientError.
+	 *
+	 * @param {String?} message
+	 * @param {Number?} code
+	 * @param {String?} type
+	 * @param {any} data
+	 *
+	 * @memberOf MoleculerClientError
+	 */
+	constructor(message, code, type, data) {
+		super(message, code || 400, type, data);
 	}
 }
 
@@ -57,6 +118,8 @@ class ServiceNotFoundError extends MoleculerError {
 			action,
 			nodeID
 		});
+
+		this.retryable = false;
 	}
 }
 
@@ -86,6 +149,8 @@ class ServiceNotAvailable extends MoleculerError {
 			action,
 			nodeID
 		});
+
+		this.retryable = false;
 	}
 }
 
@@ -93,9 +158,9 @@ class ServiceNotAvailable extends MoleculerError {
  * 'Request timed out' Error message
  *
  * @class RequestTimeoutError
- * @extends {Error}
+ * @extends {MoleculerRetryableError}
  */
-class RequestTimeoutError extends MoleculerError {
+class RequestTimeoutError extends MoleculerRetryableError {
 	/**
 	 * Creates an instance of RequestTimeoutError.
 	 *
@@ -132,6 +197,7 @@ class RequestSkippedError extends MoleculerError {
 			action,
 			nodeID
 		});
+		this.retryable = false;
 	}
 }
 
@@ -139,14 +205,14 @@ class RequestSkippedError extends MoleculerError {
  * 'Parameters of action call validation error
  *
  * @class ValidationError
- * @extends {Error}
+ * @extends {MoleculerClientError}
  */
-class ValidationError extends MoleculerError {
+class ValidationError extends MoleculerClientError {
 	/**
 	 * Creates an instance of ValidationError.
 	 *
 	 * @param {String} message
-	 * @param {any} type
+	 * @param {String} type
 	 * @param {any} data
 	 *
 	 * @memberOf ValidationError
@@ -160,18 +226,19 @@ class ValidationError extends MoleculerError {
  * 'Max request call level!' Error message
  *
  * @class MaxCallLevelError
- * @extends {Error}
+ * @extends {MoleculerError}
  */
 class MaxCallLevelError extends MoleculerError {
 	/**
 	 * Creates an instance of MaxCallLevelError.
 	 *
-	 * @param {String} action
+	 * @param {any} data
 	 *
 	 * @memberOf MaxCallLevelError
 	 */
 	constructor(data) {
 		super("Request level is reached the limit!", 500, null, data);
+		this.retryable = false;
 	}
 }
 
@@ -206,6 +273,9 @@ class ProtocolVersionMismatchError extends MoleculerError {
 
 module.exports = {
 	MoleculerError,
+	MoleculerRetryableError,
+	MoleculerServerError,
+	MoleculerClientError,
 
 	ServiceNotFoundError,
 	ServiceNotAvailable,

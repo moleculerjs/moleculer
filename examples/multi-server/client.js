@@ -64,7 +64,7 @@ broker.createService({
 		}, 5000);
 	}
 });
-
+/*
 broker.createService({
 	name: "math",
 	actions: {
@@ -75,7 +75,7 @@ broker.createService({
 			return Number(ctx.params.a) + Number(ctx.params.b);
 		},
 	}
-});
+});*/
 
 let reqCount = 0;
 
