@@ -35,7 +35,7 @@ class MoleculerError extends ExtendableError {
 }
 
 /**
- * Custom Moleculer Error class
+ * Custom Moleculer Error class for retryable errors.
  *
  * @class MoleculerRetryableError
  * @extends {MoleculerError}
@@ -61,7 +61,7 @@ class MoleculerRetryableError extends MoleculerError {
 }
 
 /**
- * Custom Moleculer Error class
+ * Moleculer Error class for server error which is retryable.
  *
  * @class MoleculerServerError
  * @extends {MoleculerRetryableError}
@@ -70,7 +70,7 @@ class MoleculerServerError extends MoleculerRetryableError {
 }
 
 /**
- * Custom Moleculer Error class
+ * Moleculer Error class for client errors which is not retryable.
  *
  * @class MoleculerClientError
  * @extends {MoleculerError}
@@ -155,7 +155,7 @@ class ServiceNotAvailable extends MoleculerError {
 }
 
 /**
- * 'Request timed out' Error message
+ * 'Request timed out' Error message. Retryable.
  *
  * @class RequestTimeoutError
  * @extends {MoleculerRetryableError}
