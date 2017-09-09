@@ -336,3 +336,108 @@ describe("Test Registry.unregisterEvent", () => {
 	});
 
 });
+
+describe("Test Registry.processNodeInfo", () => {
+	let broker = new ServiceBroker();
+	let registry = broker.registry;
+
+	registry.nodes.processNodeInfo = jest.fn();
+
+	it("should call registry.nodes.processNodeInfo method", () => {
+		let payload = {};
+		registry.processNodeInfo(payload);
+
+		expect(registry.nodes.processNodeInfo).toHaveBeenCalledTimes(1);
+		expect(registry.nodes.processNodeInfo).toHaveBeenCalledWith(payload);
+	});
+});
+
+describe("Test Registry.nodeDisconnected", () => {
+	let broker = new ServiceBroker();
+	let registry = broker.registry;
+
+	registry.nodes.disconnected = jest.fn();
+
+	it("should call registry.nodes.disconnected method", () => {
+		let payload = { sender: "node-2" };
+		registry.nodeDisconnected(payload);
+
+		expect(registry.nodes.disconnected).toHaveBeenCalledTimes(1);
+		expect(registry.nodes.disconnected).toHaveBeenCalledWith("node-2", false);
+	});
+});
+
+describe("Test Registry.nodeHeartbeat", () => {
+	let broker = new ServiceBroker();
+	let registry = broker.registry;
+
+	registry.nodes.heartbeat = jest.fn();
+
+	it("should call registry.nodes.heartbeat method", () => {
+		let payload = {};
+		registry.nodeHeartbeat(payload);
+
+		expect(registry.nodes.heartbeat).toHaveBeenCalledTimes(1);
+		expect(registry.nodes.heartbeat).toHaveBeenCalledWith(payload);
+	});
+});
+
+describe("Test Registry.getNodeList", () => {
+	let broker = new ServiceBroker();
+	let registry = broker.registry;
+
+	registry.nodes.list = jest.fn();
+
+	it("should call registry.nodes.list method", () => {
+		let opts = {};
+		registry.nodes.list(opts);
+
+		expect(registry.nodes.list).toHaveBeenCalledTimes(1);
+		expect(registry.nodes.list).toHaveBeenCalledWith(opts);
+	});
+});
+
+describe("Test Registry.getServiceList", () => {
+	let broker = new ServiceBroker();
+	let registry = broker.registry;
+
+	registry.services.list = jest.fn();
+
+	it("should call registry.services.list method", () => {
+		let opts = {};
+		registry.getServiceList(opts);
+
+		expect(registry.services.list).toHaveBeenCalledTimes(1);
+		expect(registry.services.list).toHaveBeenCalledWith(opts);
+	});
+});
+
+describe("Test Registry.getActionList", () => {
+	let broker = new ServiceBroker();
+	let registry = broker.registry;
+
+	registry.actions.list = jest.fn();
+
+	it("should call registry.actions.list method", () => {
+		let opts = {};
+		registry.getActionList(opts);
+
+		expect(registry.actions.list).toHaveBeenCalledTimes(1);
+		expect(registry.actions.list).toHaveBeenCalledWith(opts);
+	});
+});
+
+describe("Test Registry.getEventList", () => {
+	let broker = new ServiceBroker();
+	let registry = broker.registry;
+
+	registry.events.list = jest.fn();
+
+	it("should call registry.events.list method", () => {
+		let opts = {};
+		registry.getEventList(opts);
+
+		expect(registry.events.list).toHaveBeenCalledTimes(1);
+		expect(registry.events.list).toHaveBeenCalledWith(opts);
+	});
+});

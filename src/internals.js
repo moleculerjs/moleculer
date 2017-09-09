@@ -7,7 +7,6 @@
 "use strict";
 
 const _ 					= require("lodash");
-const { getHealthStatus } 	= require("./health");
 
 module.exports = function(broker) {
 	const schema = {
@@ -17,9 +16,7 @@ module.exports = function(broker) {
 			list: {
 				cache: false,
 				handler() {
-					let nodes = this.broker.registry.nodes.list();
-
-					return nodes;
+					return this.broker.registry.getNodeList();
 				}
 			},
 
@@ -33,7 +30,7 @@ module.exports = function(broker) {
 				handler(ctx) {
 					let res = [];
 
-					const services = this.broker.registry.services.list(ctx.params);
+					const services = this.broker.registry.getServiceList(ctx.params);
 
 					// Pre-process list, group services by nodes.
 					services.forEach(svc => {
@@ -73,7 +70,7 @@ module.exports = function(broker) {
 					withEndpoints: { type: "boolean", optional: true }
 				},
 				handler(ctx) {
-					return this.broker.registry.actions.list(ctx.params);
+					return this.broker.registry.getActionList(ctx.params);
 				}
 			},
 
@@ -85,7 +82,7 @@ module.exports = function(broker) {
 					withEndpoints: { type: "boolean", optional: true }
 				},
 				handler(ctx) {
-					return this.broker.registry.events.list(ctx.params);
+					return this.broker.registry.getEventList(ctx.params);
 				}
 			},
 

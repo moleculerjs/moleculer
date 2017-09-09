@@ -860,14 +860,21 @@ describe("Test broker.createService", () => {
 
 });
 
-describe("Test broker.addService", () => {
+describe("Test broker.registerLocalService", () => {
 
 	let broker = new ServiceBroker({ internalServices: false });
 
 	it("should add service to list", () => {
+		let svc = { name: "test" };
+		let registryItem = { actions: {} };
+		broker.registry.registerLocalService = jest.fn();
+
 		expect(broker.services.length).toBe(0);
-		broker.addService({});
+		broker.registerLocalService(svc, registryItem);
 		expect(broker.services.length).toBe(1);
+		expect(broker.services[0]).toBe(svc);
+		expect(broker.registry.registerLocalService).toHaveBeenCalledTimes(1);
+		expect(broker.registry.registerLocalService).toHaveBeenCalledWith(registryItem);
 	});
 });
 

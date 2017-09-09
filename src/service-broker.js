@@ -535,13 +535,15 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Add a local service instance
+	 * Add & register a local service instance
 	 *
 	 * @param {Service} service
+	 * @param {Object} registryItem
 	 * @memberof ServiceBroker
 	 */
-	addService(service) {
+	registerLocalService(service, registryItem) {
 		this.services.push(service);
+		this.registry.registerLocalService(registryItem);
 	}
 
 	/**

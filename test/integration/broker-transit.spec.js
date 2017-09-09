@@ -80,6 +80,7 @@ describe("Test RPC", () => {
 		return b1.call("echo.slow", null, { timeout: 100 }).catch(err => {
 			expect(err).toBeInstanceOf(RequestTimeoutError);
 			expect(err.data.nodeID).toBe("node-2");
+			expect(err.data.action).toBe("echo.slow");
 		});
 	});
 

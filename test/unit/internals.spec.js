@@ -6,16 +6,16 @@ const { protectReject } = require("./utils");
 describe("Test health status methods", () => {
 	const broker = new ServiceBroker({ transporter: "fake", statistics: true });
 
-	it("should call nodes.list", () => {
-		broker.registry.nodes.list = jest.fn();
+	it("should call getNodeList", () => {
+		broker.registry.getNodeList = jest.fn();
 
 		return broker.call("$node.list").catch(protectReject).then(() => {
-			expect(broker.registry.nodes.list).toHaveBeenCalledTimes(1);
+			expect(broker.registry.getNodeList).toHaveBeenCalledTimes(1);
 		});
 	});
 
-	it("should call services.list", () => {
-		broker.registry.services.list = jest.fn(() => [
+	it("should call getServiceList", () => {
+		broker.registry.getServiceList = jest.fn(() => [
 			{
 				name: "users",
 				nodeID: "node-1",
@@ -50,8 +50,8 @@ describe("Test health status methods", () => {
 
 		let opts = { skipInternal: true, withActions: true };
 		return broker.call("$node.services", opts).catch(protectReject).then(res => {
-			expect(broker.registry.services.list).toHaveBeenCalledTimes(1);
-			expect(broker.registry.services.list).toHaveBeenCalledWith(opts);
+			expect(broker.registry.getServiceList).toHaveBeenCalledTimes(1);
+			expect(broker.registry.getServiceList).toHaveBeenCalledWith(opts);
 
 			expect(res).toEqual([{
 				"actions": {
@@ -73,23 +73,23 @@ describe("Test health status methods", () => {
 		});
 	});
 
-	it("should call actions.list", () => {
-		broker.registry.actions.list = jest.fn();
+	it("should call getActionList", () => {
+		broker.registry.getActionList = jest.fn();
 
 		let opts = { skipInternal: true };
 		return broker.call("$node.actions", opts).catch(protectReject).then(() => {
-			expect(broker.registry.actions.list).toHaveBeenCalledTimes(1);
-			expect(broker.registry.actions.list).toHaveBeenCalledWith(opts);
+			expect(broker.registry.getActionList).toHaveBeenCalledTimes(1);
+			expect(broker.registry.getActionList).toHaveBeenCalledWith(opts);
 		});
 	});
 
-	it("should call events.list", () => {
-		broker.registry.events.list = jest.fn();
+	it("should call getEventList", () => {
+		broker.registry.getEventList = jest.fn();
 
 		let opts = { skipInternal: true };
 		return broker.call("$node.events", opts).catch(protectReject).then(() => {
-			expect(broker.registry.events.list).toHaveBeenCalledTimes(1);
-			expect(broker.registry.events.list).toHaveBeenCalledWith(opts);
+			expect(broker.registry.getEventList).toHaveBeenCalledTimes(1);
+			expect(broker.registry.getEventList).toHaveBeenCalledWith(opts);
 		});
 	});
 

@@ -247,6 +247,82 @@ class Registry {
 		return res;
 	}
 
+	/**
+	 * Process an incoming node INFO packet
+	 *
+	 * @param {any} payload
+	 * @returns
+	 * @memberof Registry
+	 */
+	processNodeInfo(payload) {
+		return this.nodes.processNodeInfo(payload);
+	}
+
+	/**
+	 * Process an incoming node DISCONNECTED packet
+	 *
+	 * @param {any} payload
+	 * @returns
+	 * @memberof Registry
+	 */
+	nodeDisconnected(payload) {
+		return this.nodes.disconnected(payload.sender, false);
+	}
+
+	/**
+	 * Process an incoming node HEARTBEAT packet
+	 *
+	 * @param {any} payload
+	 * @returns
+	 * @memberof Registry
+	 */
+	nodeHeartbeat(payload) {
+		return this.nodes.heartbeat(payload);
+	}
+
+	/**
+	 * Get list of registered nodes
+	 *
+	 * @param {any} opts
+	 * @returns
+	 * @memberof Registry
+	 */
+	getNodeList(opts) {
+		return this.nodes.list(opts);
+	}
+
+	/**
+	 * Get list of registered services
+	 *
+	 * @param {any} opts
+	 * @returns
+	 * @memberof Registry
+	 */
+	getServiceList(opts) {
+		return this.services.list(opts);
+	}
+
+	/**
+	 * Get list of registered actions
+	 *
+	 * @param {any} opts
+	 * @returns
+	 * @memberof Registry
+	 */
+	getActionList(opts) {
+		return this.actions.list(opts);
+	}
+
+	/**
+	 * Get list of registered events
+	 *
+	 * @param {any} opts
+	 * @returns
+	 * @memberof Registry
+	 */
+	getEventList(opts) {
+		return this.events.list(opts);
+	}
 }
 
 module.exports = Registry;

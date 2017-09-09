@@ -71,17 +71,15 @@ describe("Test action creation", () => {
 	};
 
 	it("should register service & actions", () => {
-		broker.addService = jest.fn();
-		broker.registry.registerLocalService = jest.fn();
+		broker.registerLocalService = jest.fn();
 
 		let service = broker.createService(schema);
 
 		expect(service).toBeDefined();
-		expect(broker.addService).toHaveBeenCalledTimes(1);
-		expect(broker.addService).toHaveBeenCalledWith(service);
 
-		expect(broker.registry.registerLocalService).toHaveBeenCalledTimes(1);
-		const svc = broker.registry.registerLocalService.mock.calls[0][0];
+		expect(broker.registerLocalService).toHaveBeenCalledTimes(1);
+		expect(broker.registerLocalService.mock.calls[0][0]).toBe(service);
+		const svc = broker.registerLocalService.mock.calls[0][1];
 		expect(svc.name).toBe("posts");
 		expect(svc.version).toBeUndefined();
 		expect(svc.settings).toEqual({});

@@ -143,8 +143,7 @@ class Service {
 		}
 
 		// Register service
-		broker.addService(this);
-		broker.registry.registerLocalService(registryItem);
+		broker.registerLocalService(this, registryItem);
 
 
 		// Create lifecycle runner methods

@@ -246,37 +246,37 @@ class Transit {
 		// Discover
 		else if (cmd === P.PACKET_DISCOVER) {
 			this.sendNodeInfo(payload.sender);
-			return;
+			return Promise.resolve();
 		}
 
 		// Node info
 		else if (cmd === P.PACKET_INFO) {
-			this.broker.registry.nodes.processNodeInfo(payload);
-			return;
+			this.broker.registry.processNodeInfo(payload);
+			return Promise.resolve();
 		}
 
 		// Disconnect
 		else if (cmd === P.PACKET_DISCONNECT) {
-			this.broker.registry.nodes.disconnected(payload.sender, false);
-			return;
+			this.broker.registry.nodeDisconnected(payload);
+			return Promise.resolve();
 		}
 
 		// Heartbeat
 		else if (cmd === P.PACKET_HEARTBEAT) {
-			this.broker.registry.nodes.heartbeat(payload);
-			return;
+			this.broker.registry.nodeHeartbeat(payload);
+			return Promise.resolve();
 		}
 
 		// Ping
 		else if (cmd === P.PACKET_PING) {
 			this.sendPong(payload);
-			return;
+			return Promise.resolve();
 		}
 
 		// Pong
 		else if (cmd === P.PACKET_PONG) {
 			this.processPong(payload);
-			return;
+			return Promise.resolve();
 		}
 	}
 
