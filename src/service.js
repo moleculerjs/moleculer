@@ -160,7 +160,9 @@ class Service {
 				return this.Promise.method(this.schema.started).call(this);
 
 			if (Array.isArray(this.schema.started)) {
-				return this.schema.started.map(fn => this.Promise.method(fn.bind(this))).reduce((p, fn) => p.then(fn), this.Promise.resolve());
+				return this.schema.started
+					.map(fn => this.Promise.method(fn.bind(this)))
+					.reduce((p, fn) => p.then(fn), this.Promise.resolve());
 			}
 
 			return this.Promise.resolve();
@@ -171,7 +173,10 @@ class Service {
 				return this.Promise.method(this.schema.stopped).call(this);
 
 			if (Array.isArray(this.schema.stopped)) {
-				return this.schema.stopped.reverse().map(fn => this.Promise.method(fn.bind(this))).reduce((p, fn) => p.then(fn), this.Promise.resolve());
+				return this.schema.stopped
+					.reverse()
+					.map(fn => this.Promise.method(fn.bind(this)))
+					.reduce((p, fn) => p.then(fn), this.Promise.resolve());
 			}
 
 			return this.Promise.resolve();
