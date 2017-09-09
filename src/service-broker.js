@@ -63,6 +63,7 @@ const defaultOptions = {
 	serializer: null,
 
 	validation: true,
+	validator: null,
 	metrics: false,
 	metricsRate: 1,
 	statistics: false,
@@ -141,7 +142,7 @@ class ServiceBroker {
 
 		// Validation
 		if (this.options.validation !== false) {
-			this.validator = new Validator();
+			this.validator = this.options.validator ? this.options.validator : new Validator();
 			if (this.validator) {
 				this.validator.init(this);
 			}

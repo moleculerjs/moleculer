@@ -133,6 +133,7 @@ describe("Test ServiceBroker constructor", () => {
 			requestTimeout: 5000,
 			maxCallLevel: 10,
 			validation: false,
+			validator: null,
 			internalServices: false,
 			hotReload: true });
 
