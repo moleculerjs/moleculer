@@ -8,7 +8,7 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch dev",
-			"program": "${workspaceRoot}\\dev\\index.js",
+			"program": "${workspaceRoot}\\dev\\joi-validator.js",
 			"cwd": "${workspaceRoot}",
 			"args": [
 				"error-1"

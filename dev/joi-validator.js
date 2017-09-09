@@ -4,11 +4,26 @@
 
 let ServiceBroker = require("../src/service-broker");
 let BaseValidator = require("../src/validator");
-let Joi = require("joi");
 let { ValidationError } = require("../src/errors");
+let Joi = require("joi");
 
 class JoiValidator extends BaseValidator {
+	constructor() {
+		super();
+		this.validator = require("joi");
+	}
 
+	compile(schema) {
+		return (params) => this.validate(params, schema);
+	}
+
+	validate(params, schema) {
+		const res = this.validator.validate(params, schema);
+		if (res.error)
+			throw new ValidationError(res.error.message, null, res.error.details);
+
+		return true;
+	}
 }
 
 let broker = new ServiceBroker({
@@ -21,9 +36,12 @@ broker.createService({
 	name: "greeter",
 	actions: {
 		hello: {
-			params: {
+			/*params: {
 				name: { type: "string", min: 4 }
-			},
+			},*/
+			params: Joi.object().keys({
+				name: Joi.string().min(4).max(30).required()
+			}),
 			handler(ctx) {
 				return `Hello ${ctx.params.name}`;
 			}
