@@ -996,7 +996,7 @@ class ServiceBroker {
 			endpoint.failure(err);
 		}
 
-		if (err instanceof E.RequestTimeoutError) {
+		if (err.retryable) {
 			// Retry request
 			if (ctx.retryCount-- > 0) {
 				this.logger.warn(`Action '${actionName}' timed out on '${nodeID}'!`);
