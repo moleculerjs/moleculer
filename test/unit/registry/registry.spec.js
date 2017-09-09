@@ -441,3 +441,17 @@ describe("Test Registry.getEventList", () => {
 		expect(registry.events.list).toHaveBeenCalledWith(opts);
 	});
 });
+
+describe("Test Registry.hasService", () => {
+	let broker = new ServiceBroker();
+	let registry = broker.registry;
+
+	registry.services.has = jest.fn();
+
+	it("should call registry.services.has method", () => {
+		registry.hasService("posts", 2);
+
+		expect(registry.services.has).toHaveBeenCalledTimes(1);
+		expect(registry.services.has).toHaveBeenCalledWith("posts", 2, undefined);
+	});
+});

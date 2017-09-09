@@ -647,7 +647,7 @@ class ServiceBroker {
 		return new Promise((resolve, reject) => {
 			const check = () => {
 				const count = serviceNames.filter(name => {
-					return this.registry.services.has(name);
+					return this.registry.hasService(name);
 				});
 
 				if (count.length == serviceNames.length) {

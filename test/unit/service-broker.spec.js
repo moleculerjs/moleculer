@@ -1060,11 +1060,11 @@ describe("Test broker.getLocalService", () => {
 describe("Test broker.waitForServices", () => {
 	let broker = new ServiceBroker();
 	let res = false;
-	broker.registry.services.has = jest.fn(() => res);
+	broker.registry.hasService = jest.fn(() => res);
 
 	it("should wait service", () => {
 		let p = broker.waitForServices("posts", 10 * 1000, 100).catch(protectReject).then(() => {
-			expect(broker.registry.services.has).toHaveBeenCalledTimes(6);
+			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
 		});
 
 		setTimeout(() => res = true, 450);
@@ -1073,7 +1073,7 @@ describe("Test broker.waitForServices", () => {
 	});
 
 	it("should reject if timed out", () => {
-		broker.registry.services.has.mockClear();
+		broker.registry.hasService.mockClear();
 		res = false;
 		let p = broker.waitForServices("posts", 300, 100).then(protectReject).catch(err => {
 			expect(err).toBeInstanceOf(MoleculerError);

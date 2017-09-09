@@ -150,6 +150,19 @@ class Registry {
 	}
 
 	/**
+	 * Check the service is exist
+	 *
+	 * @param {String} name
+	 * @param {any} version
+	 * @param {String} nodeID
+	 * @returns {Boolean}
+	 * @memberof Registry
+	 */
+	hasService(name, version, nodeID) {
+		return this.services.has(name, version, nodeID);
+	}
+
+	/**
 	 * Get endpoint list for an action by name
 	 *
 	 * @param {String} actionName
