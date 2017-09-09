@@ -7,6 +7,7 @@ let BaseValidator = require("../src/validator");
 let { ValidationError } = require("../src/errors");
 let Joi = require("joi");
 
+// --- JOI VALIDATOR CLASS ---
 class JoiValidator extends BaseValidator {
 	constructor() {
 		super();
@@ -31,6 +32,8 @@ let broker = new ServiceBroker({
 	validation: true,
 	validator: new JoiValidator
 });
+
+// --- TEST BROKER ---
 
 broker.createService({
 	name: "greeter",
