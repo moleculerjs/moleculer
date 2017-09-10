@@ -536,7 +536,7 @@ class Transit {
 		const elapsedTime = now - payload.time;
 		const timeDiff = Math.round(now - payload.arrived - elapsedTime / 2);
 
-		this.logger.debug(`PING-PONG from '${payload.sender}' - Time: ${elapsedTime}ms, Time difference: ${timeDiff}ms `);
+		// this.logger.debug(`PING-PONG from '${payload.sender}' - Time: ${elapsedTime}ms, Time difference: ${timeDiff}ms `);
 
 		this.broker.broadcastLocal("$node.pong", { nodeID: payload.sender, elapsedTime, timeDiff }, payload.sender);
 	}

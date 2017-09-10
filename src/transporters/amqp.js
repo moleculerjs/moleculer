@@ -350,30 +350,6 @@ class AmqpTransporter extends Transporter {
 							this._consumeCB(PACKET_EVENT, true),
 							this.opts.amqp.consumeOptions
 						));
-
-					/* REMOVE IT
-					// Create a group specific queue and bind to the exchange.
-					const topic = `${this.prefix}.${PACKET_EVENT}.${event}`;
-					// And an event specific exchange
-					const queue = `${this.prefix}.${PACKET_EVENT}.${group}.${event}`;
-
-					// Save binding arguments for easy unbinding later.
-					const bindingArgs = [queue, topic, ""];
-					this.bindings.push(bindingArgs);
-
-					return Promise.all([
-						this.channel.assertExchange(topic, "fanout", this.opts.amqp.exchangeOptions),
-						this.channel.assertQueue(queue, this._getQueueOptions(PACKET_EVENT + "LB")),
-					])
-						.then(() => Promise.all([
-							this.channel.bindQueue(...bindingArgs),
-							this.channel.consume(
-								queue,
-								this._consumeCB(PACKET_EVENT, true),
-								this.opts.amqp.consumeOptions
-							)
-						]));
-					*/
 				}));
 			}
 
@@ -410,12 +386,6 @@ class AmqpTransporter extends Transporter {
 				});
 				return Promise.resolve();
 			}
-			/* REMOVE IT
-			else {
-				let topic = `${this.prefix}.${PACKET_EVENT}.${packet.payload.event}`;
-				this.channel.publish(topic, "", payload, this.opts.amqp.messageOptions);
-				return Promise.resolve();
-			}*/
 			// If it's not contain, then it is a broadcasted event,
 			// we sent it in the normal way (exchange)
 		}
