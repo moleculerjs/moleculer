@@ -7,7 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
-const { MoleculerError } = require("../errors");
+const { MoleculerServerError } = require("../errors");
 
 /**
  * Endpoint list class
@@ -75,7 +75,7 @@ class EndpointList {
 	select() {
 		const ret = this.strategy.select(this.endpoints);
 		if (!ret) {
-			throw new MoleculerError(`Strategy ${typeof(this.strategy)} returned an invalid endpoint.`);
+			throw new MoleculerServerError("Strategy returned an invalid endpoint.", 500, "INVALID_ENDPOINT", { strategy: typeof(this.strategy)});
 		}
 		return ret;
 	}

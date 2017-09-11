@@ -98,7 +98,7 @@ class RedisCacher extends BaseCacher {
 				try {
 					return JSON.parse(data);
 				} catch (err) {
-					this.logger.error("Redis result parse error!", err);
+					this.logger.error("Redis result parse error!", err, data);
 				}
 			}
 			return null;
@@ -137,9 +137,9 @@ class RedisCacher extends BaseCacher {
 	 */
 	del(key) {
 		this.logger.debug(`DELETE ${key}`);
-		return this.client.del(this.prefix + key).catch((err) => {
+		return this.client.del(this.prefix + key).catch(err => {
 			/* istanbul ignore next */
-			this.logger.error("Redis `del` error!", err);
+			this.logger.error("Redis `del` error!", key, err);
 		});
 	}
 
@@ -154,11 +154,12 @@ class RedisCacher extends BaseCacher {
 	 * @memberOf Cacher
 	 */
 	clean(match = "*") {
-		this.logger.debug(`CLEAN ${this.prefix}${match}`);
+		match = self.prefix + match.replace(/\*\*/g, "*");
+		this.logger.debug(`CLEAN ${match}`);
 		let self = this;
 		let scanDel = function (cursor, cb) {
 			/* istanbul ignore next */
-			self.client.scan(cursor, "MATCH", self.prefix + match.replace(/\*\*/g, "*"), "COUNT", 100, function (err, resp) {
+			self.client.scan(cursor, "MATCH", match, "COUNT", 100, function (err, resp) {
 				if (err) {
 					return cb(err);
 				}
@@ -188,7 +189,7 @@ class RedisCacher extends BaseCacher {
 		scanDel(0, (err) => {
 			/* istanbul ignore next */
 			if (err) {
-				this.logger.error("Redis `scanDel` error!", err);
+				this.logger.error("Redis `scanDel` error!", match, err);
 			}
 		});
 

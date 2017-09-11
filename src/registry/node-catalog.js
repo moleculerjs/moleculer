@@ -169,13 +169,13 @@ class NodeCatalog {
 		// Local notifications
 		if (isNew) {
 			this.broker.broadcastLocal("$node.connected", { node, reconnected: false });
-			this.logger.info(`Node '${nodeID}' connected!`);
+			this.logger.info(`Node '${nodeID}' connected.`);
 		} else if (isReconnected) {
 			this.broker.broadcastLocal("$node.connected", { node, reconnected: true });
-			this.logger.info(`Node '${nodeID}' reconnected!`);
+			this.logger.info(`Node '${nodeID}' reconnected.`);
 		} else {
 			this.broker.broadcastLocal("$node.updated", { node });
-			this.logger.debug(`Node '${nodeID}' updated!`);
+			this.logger.debug(`Node '${nodeID}' updated.`);
 		}
 
 	}
@@ -191,7 +191,7 @@ class NodeCatalog {
 			if (node.local || !node.available) return;
 
 			if (now - (node.lastHeartbeatTime || 0) > this.broker.options.heartbeatTimeout * 1000) {
-				this.logger.warn(`Heartbeat is not received from '${node.id}' node!`);
+				this.logger.warn(`Heartbeat is not received from '${node.id}' node.`);
 				this.disconnected(node.id, true);
 			}
 		});
@@ -213,10 +213,7 @@ class NodeCatalog {
 
 			this.broker.broadcastLocal("$node.disconnected", { node, unexpected: !!isUnexpected });
 
-			if (isUnexpected)
-				this.logger.warn(`Node '${node.id}' disconnected (unexpected)!`);
-			else
-				this.logger.warn(`Node '${node.id}' disconnected`);
+			this.logger.warn(`Node '${node.id}' disconnected${isUnexpected ? "" : " unexpectedly"}.`);
 
 			this.broker.servicesChanged(false);
 		}

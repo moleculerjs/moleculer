@@ -188,7 +188,7 @@ class Context {
 
 		// Max calling level check to avoid calling loops
 		if (this.broker.options.maxCallLevel > 0 && this.level >= this.broker.options.maxCallLevel) {
-			return Promise.reject(new MaxCallLevelError({ level: this.level, action: actionName }));
+			return Promise.reject(new MaxCallLevelError(this.broker.nodeID, { level: this.level, action: actionName }));
 		}
 
 		return this.broker.call(actionName, params, opts);

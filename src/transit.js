@@ -10,7 +10,7 @@ const Promise	= require("bluebird");
 const P 		= require("./packets");
 const _ 		= require("lodash");
 
-const { MoleculerError, ProtocolVersionMismatchError } = require("./errors");
+const { MoleculerServerError, ProtocolVersionMismatchError } = require("./errors");
 
 /**
  * Transit class
@@ -101,7 +101,7 @@ class Transit {
 				this.tx.connect().catch(err => {
 					if (this.disconnecting) return;
 
-					this.logger.warn("Connection is failed!", err.message);
+					this.logger.warn("Connection is failed.", err.message);
 					this.logger.debug(err);
 
 					setTimeout(() => {
@@ -201,7 +201,7 @@ class Transit {
 	 */
 	messageHandler(cmd, msg) {
 		if (msg == null) {
-			throw new MoleculerError("Missing packet!", 500, "MISSING_PACKET");
+			throw new MoleculerServerError("Missing packet.", 500, "MISSING_PACKET");
 		}
 
 		this.stat.packets.received = this.stat.packets.received + 1;
@@ -212,7 +212,7 @@ class Transit {
 		// Check payload
 		if (!payload) {
 			/* istanbul ignore next */
-			throw new MoleculerError("Missing response payload!", 500, "MISSING_PAYLOAD");
+			throw new MoleculerServerError("Missing response payload.", 500, "MISSING_PAYLOAD");
 		}
 
 		// Check protocol version
@@ -465,8 +465,6 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendResponse(nodeID, id, data, err) {
-		//this.logger.debug(`Send response back to '${nodeID}'`);
-
 		// Publish the response
 		return this.publish(new P.PacketResponse(this, nodeID, id, data, err));
 	}
@@ -534,7 +532,7 @@ class Transit {
 		const elapsedTime = now - payload.time;
 		const timeDiff = Math.round(now - payload.arrived - elapsedTime / 2);
 
-		// this.logger.debug(`PING-PONG from '${payload.sender}' - Time: ${elapsedTime}ms, Time difference: ${timeDiff}ms `);
+		// this.logger.debug(`PING-PONG from '${payload.sender}' - Time: ${elapsedTime}ms, Time difference: ${timeDiff}ms`);
 
 		this.broker.broadcastLocal("$node.pong", { nodeID: payload.sender, elapsedTime, timeDiff }, payload.sender);
 	}

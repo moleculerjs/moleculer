@@ -11,7 +11,7 @@ const Transporter 	= require("./base");
 
 /**
  * Transporter for Redis
- * 
+ *
  * @class RedisTransporter
  * @extends {Transporter}
  */
@@ -19,9 +19,9 @@ class RedisTransporter extends Transporter {
 
 	/**
 	 * Creates an instance of RedisTransporter.
-	 * 
+	 *
 	 * @param {any} opts
-	 * 
+	 *
 	 * @memberOf RedisTransporter
 	 */
 	constructor(opts) {
@@ -36,7 +36,7 @@ class RedisTransporter extends Transporter {
 
 	/**
 	 * Connect to the server
-	 * 
+	 *
 	 * @memberOf RedisTransporter
 	 */
 	connect() {
@@ -46,14 +46,14 @@ class RedisTransporter extends Transporter {
 				Redis = require("ioredis");
 			} catch(err) {
 				/* istanbul ignore next */
-				this.broker.fatal("The 'ioredis' package is missing! Please install it with 'npm install ioredis --save' command!", err, true);
+				this.broker.fatal("The 'ioredis' package is missing. Please install it with 'npm install ioredis --save' command.", err, true);
 			}
 
 			const clientSub = new Redis(this.opts.redis);
 			this._clientSub = clientSub; // For tests
 
 			clientSub.on("connect", () => {
-				this.logger.info("Redis-sub client is connected!");
+				this.logger.info("Redis-sub client is connected.");
 
 				const clientPub = new Redis(this.opts.redis);
 				this._clientPub = clientPub; // For tests
@@ -62,7 +62,7 @@ class RedisTransporter extends Transporter {
 					this.clientSub = clientSub;
 					this.clientPub = clientPub;
 
-					this.logger.info("Redis-pub client is connected!");
+					this.logger.info("Redis-pub client is connected.");
 
 					this.onConnected().then(resolve);
 				});
@@ -79,7 +79,7 @@ class RedisTransporter extends Transporter {
 				/* istanbul ignore next */
 				clientPub.on("close", () => {
 					this.connected = false;
-					this.logger.warn("Redis-pub client is disconnected!");
+					this.logger.warn("Redis-pub client is disconnected.");
 				});
 			});
 
@@ -98,7 +98,7 @@ class RedisTransporter extends Transporter {
 			/* istanbul ignore next */
 			clientSub.on("close", () => {
 				this.connected = false;
-				this.logger.warn("Redis-sub client is disconnected!");
+				this.logger.warn("Redis-sub client is disconnected.");
 			});
 
 		});
@@ -106,7 +106,7 @@ class RedisTransporter extends Transporter {
 
 	/**
 	 * Disconnect from the server
-	 * 
+	 *
 	 * @memberOf RedisTransporter
 	 */
 	disconnect() {
@@ -123,10 +123,10 @@ class RedisTransporter extends Transporter {
 
 	/**
 	 * Subscribe to a command
-	 * 
-	 * @param {String} cmd 
-	 * @param {String} nodeID 
-	 * 
+	 *
+	 * @param {String} cmd
+	 * @param {String} nodeID
+	 *
 	 * @memberOf RedisTransporter
 	 */
 	subscribe(cmd, nodeID) {
@@ -136,9 +136,9 @@ class RedisTransporter extends Transporter {
 
 	/**
 	 * Publish a packet
-	 * 
+	 *
 	 * @param {Packet} packet
-	 * 
+	 *
 	 * @memberOf RedisTransporter
 	 */
 	publish(packet) {

@@ -108,11 +108,7 @@ class ServiceNotFoundError extends MoleculerError {
 	 * @memberOf ServiceNotFoundError
 	 */
 	constructor(action, nodeID) {
-		let msg;
-		if (nodeID)
-			msg = `Service '${action}' is not found on '${nodeID || "<local>"}' node!`;
-		else
-			msg = `Service '${action}' is not found!`;
+		let msg = `Service '${action}' is not found on '${nodeID}' node.`;
 
 		super(msg, 404, null, {
 			action,
@@ -139,11 +135,7 @@ class ServiceNotAvailable extends MoleculerError {
 	 * @memberOf ServiceNotAvailable
 	 */
 	constructor(action, nodeID) {
-		let msg;
-		if (nodeID)
-			msg = `Service '${action}' is not available on '${nodeID || "<local>"}' node!`;
-		else
-			msg = `Service '${action}' is not available!`;
+		let msg = `Service '${action}' is not available on '${nodeID}' node.`;
 
 		super(msg, 404, null, {
 			action,
@@ -170,7 +162,7 @@ class RequestTimeoutError extends MoleculerRetryableError {
 	 * @memberOf RequestTimeoutError
 	 */
 	constructor(action, nodeID) {
-		super(`Request timed out when call '${action}' action on '${nodeID || "<local>"}' node!`, 504, null, {
+		super(`Request is timed out when call '${action}' action on '${nodeID}' node.`, 504, null, {
 			action,
 			nodeID
 		});
@@ -193,7 +185,7 @@ class RequestSkippedError extends MoleculerError {
 	 * @memberOf RequestSkippedError
 	 */
 	constructor(action, nodeID) {
-		super(`Calling '${action}' is skipped because timeout reached on '${nodeID || "<local>"}' node!`, 514, null, {
+		super(`Calling '${action}' is skipped because timeout reached on '${nodeID}' node.`, 514, null, {
 			action,
 			nodeID
 		});
@@ -232,12 +224,13 @@ class MaxCallLevelError extends MoleculerError {
 	/**
 	 * Creates an instance of MaxCallLevelError.
 	 *
+	 * @param {String} nodeID
 	 * @param {any} data
 	 *
 	 * @memberOf MaxCallLevelError
 	 */
-	constructor(data) {
-		super("Request level is reached the limit!", 500, null, data);
+	constructor(nodeID, data) {
+		super(`Request level is reached the limit on '${nodeID}' node.`, 500, null, data);
 		this.retryable = false;
 	}
 }
@@ -266,7 +259,7 @@ class ProtocolVersionMismatchError extends MoleculerError {
 	 * @memberOf ProtocolVersionMismatchError
 	 */
 	constructor(nodeID, actual, received) {
-		super("Protocol version mismatch!", 500, null, { nodeID, actual, received });
+		super("Protocol version mismatch.", 500, null, { nodeID, actual, received });
 	}
 }
 

@@ -55,21 +55,21 @@ class NatsTransporter extends Transporter {
 				Nats = require("nats");
 			} catch(err) {
 				/* istanbul ignore next */
-				this.broker.fatal("The 'nats' package is missing! Please install it with 'npm install nats --save' command!", err, true);
+				this.broker.fatal("The 'nats' package is missing! Please install it with 'npm install nats --save' command.", err, true);
 			}
 			const client = Nats.connect(this.opts.nats);
 			this._client = client; // For tests
 
 			client.on("connect", () => {
 				this.client = client;
-				this.logger.info("NATS client is connected!");
+				this.logger.info("NATS client is connected.");
 
 				this.onConnected().then(resolve);
 			});
 
 			/* istanbul ignore next */
 			client.on("reconnect", () => {
-				this.logger.info("NATS client is reconnected!");
+				this.logger.info("NATS client is reconnected.");
 				this.onConnected(true);
 			});
 
@@ -81,14 +81,14 @@ class NatsTransporter extends Transporter {
 			/* istanbul ignore next */
 			client.on("disconnect", () => {
 				if (this.connected) {
-					this.logger.warn("NATS client is disconnected!");
+					this.logger.warn("NATS client is disconnected.");
 					this.connected = false;
 				}
 			});
 
 			/* istanbul ignore next */
 			client.on("error", e => {
-				this.logger.error("NATS error!", e.message);
+				this.logger.error("NATS error.", e.message);
 				this.logger.debug(e);
 
 				if (!client.connected)
@@ -99,7 +99,7 @@ class NatsTransporter extends Transporter {
 			client.on("close", () => {
 				this.connected = false;
 				// Hint: It won't try reconnecting again, so we kill the process.
-				this.broker.fatal("NATS connection is closed!");
+				this.broker.fatal("NATS connection closed.");
 			});
 		});
 	}

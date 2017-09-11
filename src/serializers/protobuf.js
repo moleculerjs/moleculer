@@ -8,7 +8,7 @@
 
 const BaseSerializer = require("./base");
 const P = require("../packets");
-const { MoleculerError } = require("../errors");
+const { MoleculerServerError } = require("../errors");
 
 /**
  * Protocol Buffer Serializer for Moleculer
@@ -66,7 +66,7 @@ class ProtoBufSerializer extends BaseSerializer {
 		const p = this.getPacketFromType(type);
 		if (!p) {
 			/* istanbul ignore next */
-			throw new MoleculerError("Invalid packet type!");
+			throw new MoleculerServerError("Invalid packet type!", 500, "INVALID_PACKET_TYPE");
 		}
 
 		this.serializeCustomFields(type, obj);
@@ -88,7 +88,7 @@ class ProtoBufSerializer extends BaseSerializer {
 		const p = this.getPacketFromType(type);
 		if (!p) {
 			/* istanbul ignore next */
-			throw new MoleculerError("Invalid packet type!");
+			throw new MoleculerServerError("Invalid packet type!", 500, "INVALID_PACKET_TYPE");
 		}
 
 		const obj = p.decode(buf);
