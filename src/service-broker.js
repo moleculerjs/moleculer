@@ -157,7 +157,7 @@ class ServiceBroker {
 			if (this.options.disableBalancer && tx.hasBuiltInBalancer) {
 				this.logger.info("The built-in balancer is disabled.");
 			} else {
-				this.logger.warn("The Transporter has no built-in balancer! Broker balancer is ENABLED.");
+				this.logger.warn("The Transporter has no built-in balancer. Broker balancer is ENABLED.");
 				this.options.disableBalancer = false;
 			}
 
@@ -293,7 +293,7 @@ class ServiceBroker {
 			})
 			.catch(err => {
 				/* istanbul ignore next */
-				this.logger.error("Unable to start all services!", err);
+				this.logger.error("Unable to start all services.", err);
 				return Promise.reject(err);
 			})
 			.then(() => {
@@ -319,7 +319,7 @@ class ServiceBroker {
 			})
 			.catch(err => {
 				/* istanbul ignore next */
-				this.logger.error("Unable to stop all services!", err);
+				this.logger.error("Unable to stop all services.", err);
 			})
 			.then(() => {
 				if (this.transit) {
@@ -332,7 +332,7 @@ class ServiceBroker {
 				}
 			})
 			.then(() => {
-				this.logger.info("ServiceBroker is stopped successfully. Good bye!");
+				this.logger.info("ServiceBroker is stopped successfully. Good bye.");
 
 				process.removeListener("beforeExit", this._closeFn);
 				process.removeListener("exit", this._closeFn);
@@ -354,8 +354,8 @@ class ServiceBroker {
 			repl = require("moleculer-repl");
 		}
 		catch (error) {
-			console.error("The 'moleculer-repl' package is missing! Please install it with 'npm install moleculer-repl' command!"); // eslint-disable-line no-console
-			this.logger.error("The 'moleculer-repl' package is missing! Please install it with 'npm install moleculer-repl' command!");
+			console.error("The 'moleculer-repl' package is missing. Please install it with 'npm install moleculer-repl' command."); // eslint-disable-line no-console
+			this.logger.error("The 'moleculer-repl' package is missing. Please install it with 'npm install moleculer-repl' command.");
 			this.logger.debug("ERROR", error);
 			return;
 		}
@@ -541,7 +541,7 @@ class ServiceBroker {
 
 		if (this._started) {
 			// If broker started, should call the started lifecycle event
-			service.started.call(service).catch(err => this.logger.error("Unable to start service!", err));
+			service.started.call(service).catch(err => this.logger.error("Unable to start service.", err));
 		}
 
 		this.servicesChanged(true);
@@ -572,7 +572,7 @@ class ServiceBroker {
 			.then(() => service.stopped.call(service))
 			.catch(err => {
 				/* istanbul ignore next */
-				this.logger.error(`Unable to stop service '${service.name}'!`, err);
+				this.logger.error(`Unable to stop service '${service.name}'.`, err);
 			})
 			.then(() => {
 				_.remove(this.services, svc => svc == service);
@@ -673,7 +673,7 @@ class ServiceBroker {
 				logger.debug(`${count.length} of ${serviceNames.length} services are available. Waiting further...`);
 
 				if (timeout && Date.now() - startTime > timeout)
-					return reject(new E.MoleculerServerError("Services waiting is timed out!", 500, "WAITFOR_SERVICES", { services: serviceNames }));
+					return reject(new E.MoleculerServerError("Services waiting is timed out.", 500, "WAITFOR_SERVICES", { services: serviceNames }));
 
 				setTimeout(check, interval || 1000);
 			};
@@ -960,7 +960,7 @@ class ServiceBroker {
 		// Find action by name
 		let actions = this.registry.getActionEndpoints(actionName);
 		if (actions == null || actions.localEndpoint == null) {
-			this.logger.warn(`Service '${actionName}' is not registered locally!`);
+			this.logger.warn(`Service '${actionName}' is not registered locally.`);
 			return Promise.reject(new E.ServiceNotFoundError(actionName, this.broker.nodeID));
 		}
 
