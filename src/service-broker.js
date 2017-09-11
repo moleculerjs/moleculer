@@ -95,6 +95,9 @@ class ServiceBroker {
 		// Promise constructor
 		this.Promise = Promise;
 
+		// Broker started flag
+		this._started = false;
+
 		// Class factories
 		this.ServiceFactory = this.options.ServiceFactory || require("./service");
 		this.ContextFactory = this.options.ContextFactory || require("./context");
@@ -289,6 +292,7 @@ class ServiceBroker {
 			})
 			.then(() => {
 				this.logger.info("Broker started.");
+				this._started = true;
 			});
 	}
 
@@ -507,7 +511,6 @@ class ServiceBroker {
 
 		return this.destroyService(service)
 			.then(() => this.loadService(service.__filename))
-			.then(svc => svc.started.call(svc).then(() => svc))
 			.then(svc => {
 				this.logger.info(`Service '${svc.name}' is reloaded.`);
 				return svc;
@@ -529,6 +532,11 @@ class ServiceBroker {
 			s = utils.mergeSchemas(schema, schemaMods);
 
 		let service = new this.ServiceFactory(this, s);
+
+		if (this._started) {
+			// If broker started, should call the started lifecycle event
+			service.started.call(service).catch(err => this.logger.error("Unable to start service!", err));
+		}
 
 		this.servicesChanged(true);
 

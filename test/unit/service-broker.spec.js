@@ -2405,18 +2405,17 @@ describe("Test hot-reload feature", () => {
 			hotReload: true
 		});
 
-		let started = jest.fn(() => Promise.resolve());
 		let svc = broker.createService({
-			name: "test",
-			started
+			name: "test"
 		});
 		svc.__filename = "./hello.service.js";
 
 		broker.destroyService = jest.fn(() => Promise.resolve(svc));
 		broker.loadService = jest.fn(() => Promise.resolve(svc));
 
+		beforeAll(() => broker.start());
+
 		it("should call hot reload methods", () => {
-			started.mockClear();
 			return broker.hotReloadService(svc).catch(protectReject).then(() => {
 
 				expect(utils.clearRequireCache).toHaveBeenCalledTimes(1);
@@ -2427,9 +2426,6 @@ describe("Test hot-reload feature", () => {
 
 				expect(broker.loadService).toHaveBeenCalledTimes(1);
 				expect(broker.loadService).toHaveBeenCalledWith("./hello.service.js");
-
-				expect(started).toHaveBeenCalledTimes(1);
-
 			});
 		});
 	});
