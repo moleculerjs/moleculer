@@ -86,10 +86,11 @@ describe("Test ServiceBroker constructor", () => {
 			requestRetry: 3,
 			requestTimeout: 5000,
 			maxCallLevel: 10,
+
+			disableBalancer: true,
 			registry: {
 				strategy: Strategies.Random,
 				preferLocal: false,
-				disableBalancer: true
 			},
 			circuitBreaker: {
 				enabled: true,
@@ -116,8 +117,8 @@ describe("Test ServiceBroker constructor", () => {
 			heartbeatTimeout : 20,
 			heartbeatInterval: 5,
 
+			disableBalancer: true,
 			registry: {
-				disableBalancer: true,
 				strategy: Strategies.Random,
 				preferLocal: false
 			},
@@ -196,6 +197,26 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.validator).toBeUndefined();
 	});
 
+	it("should disable balancer if transporter has no built-in balancer", () => {
+		let broker = new ServiceBroker( {
+			transporter: new FakeTransporter(),
+			disableBalancer: true
+		});
+
+		expect(broker.options.disableBalancer).toBe(true);
+	});
+
+	it("should not disable balancer if transporter has no built-in balancer", () => {
+		let tx = new FakeTransporter();
+		tx.hasBuiltInBalancer = false;
+
+		let broker = new ServiceBroker( {
+			transporter: tx,
+			disableBalancer: true
+		});
+
+		expect(broker.options.disableBalancer).toBe(false);
+	});
 });
 
 describe("Test option resolvers", () => {
@@ -2181,7 +2202,7 @@ describe("Test broker.emit with transporter", () => {
 		broker.transit.sendEventToGroups.mockClear();
 		broker.registry.events.getBalancedEndpoints.mockClear();
 
-		broker.disableBalancer();
+		broker.options.disableBalancer = true;
 
 		broker.emit("user.event", { name: "John" });
 
@@ -2197,7 +2218,7 @@ describe("Test broker.emit with transporter", () => {
 		broker.transit.sendEventToGroups.mockClear();
 		broker.registry.events.getBalancedEndpoints.mockClear();
 
-		broker.disableBalancer();
+		broker.options.disableBalancer = true;
 
 		broker.emit("user.event", { name: "John" }, ["users", "mail"]);
 
@@ -2214,7 +2235,7 @@ describe("Test broker.emit with transporter", () => {
 		broker.transit.sendEventToGroups.mockClear();
 		broker.registry.events.getBalancedEndpoints.mockClear();
 
-		broker.disableBalancer();
+		broker.options.disableBalancer = true;
 
 		broker.emit("$user.event", { name: "John" }, ["users", "mail"]);
 
@@ -2446,16 +2467,9 @@ describe("Test broker getHealthStatus", () => {
 describe("Test registry links", () => {
 	let broker = new ServiceBroker({ transporter: "Fake" });
 
-	broker.registry.disableBalancer = jest.fn();
 	broker.registry.getLocalNodeInfo = jest.fn();
 	broker.registry.events.getGroups = jest.fn();
 	broker.registry.events.emitLocalServices = jest.fn();
-
-	it("should call registry.disableBalancer", () => {
-		broker.disableBalancer();
-
-		expect(broker.registry.disableBalancer).toHaveBeenCalledTimes(1);
-	});
 
 	it("should call registry.getLocalNodeInfo", () => {
 		broker.getLocalNodeInfo();

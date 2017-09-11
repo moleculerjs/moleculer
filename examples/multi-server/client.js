@@ -16,10 +16,7 @@ let broker = new ServiceBroker({
 	//serializer: "ProtoBuf",
 	requestTimeout: 1000,
 
-	registry: {
-		disableBalancer: false,
-		preferLocal: false
-	},
+	disableBalancer: true,
 
 	metrics: true,
 

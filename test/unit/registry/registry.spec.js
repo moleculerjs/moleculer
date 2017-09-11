@@ -15,7 +15,7 @@ describe("Test Registry constructor", () => {
 		expect(registry.broker).toBe(broker);
 		expect(registry.logger).toBeDefined();
 
-		expect(registry.opts).toEqual({ "disableBalancer": false, "circuitBreaker": {"enabled": false, "failureOnReject": true, "failureOnTimeout": true, "halfOpenTime": 10000, "maxFailures": 3}, "preferLocal": true, strategy: RoundRobinStrategy});
+		expect(registry.opts).toEqual({ "circuitBreaker": {"enabled": false, "failureOnReject": true, "failureOnTimeout": true, "halfOpenTime": 10000, "maxFailures": 3}, "preferLocal": true, strategy: RoundRobinStrategy});
 		expect(registry.StrategyFactory).toBe(RoundRobinStrategy);
 		expect(registry.nodes).toBeDefined();
 		expect(registry.services).toBeDefined();

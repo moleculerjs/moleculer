@@ -45,8 +45,9 @@ const defaultOptions = {
 	heartbeatInterval: 5,
 	heartbeatTimeout: 15,
 
+	disableBalancer: false,
+
 	registry: {
-		disableBalancer: false,
 		strategy: RoundRobinStrategy,
 		preferLocal: true
 	},
@@ -102,9 +103,6 @@ class ServiceBroker {
 		this.ServiceFactory = this.options.ServiceFactory || require("./service");
 		this.ContextFactory = this.options.ContextFactory || require("./context");
 
-		if (this.options.registry.disableBalancer)
-			this.call = this.callWithoutBalancer;
-
 		// Namespace
 		this.namespace = this.options.namespace || "";
 
@@ -155,6 +153,18 @@ class ServiceBroker {
 		if (this.options.transporter) {
 			const tx = this._resolveTransporter(this.options.transporter);
 			this.transit = new Transit(this, tx);
+
+			if (this.options.disableBalancer && tx.hasBuiltInBalancer) {
+				this.logger.info("The built-in balancer is disabled!");
+			} else {
+				this.logger.warn("The Transporter hasn't got built-in balancer! Built-in balancer is enabled!");
+				this.options.disableBalancer = false;
+			}
+
+		}
+
+		if (this.options.disableBalancer) {
+			this.call = this.callWithoutBalancer;
 		}
 
 		// Counter for metricsRate
@@ -1125,7 +1135,7 @@ class ServiceBroker {
 		if (groups && !Array.isArray(groups))
 			groups = [groups];
 
-		if (!this.options.registry.disableBalancer) {
+		if (!this.options.disableBalancer) {
 
 			const endpoints = this.registry.events.getBalancedEndpoints(eventName, groups);
 
@@ -1222,28 +1232,36 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Disable built-in request & event balancer
+	 * Get local node info.
 	 *
+	 * @returns
 	 * @memberof ServiceBroker
 	 */
-	disableBalancer() {
-		if (this.transit && this.transit.tx.hasBuiltInBalancer) {
-			this.logger.info("The built-in balancer is disabled!");
-			this.options.registry.disableBalancer = true;
-			this.registry.disableBalancer();
-		} else {
-			this.logger.info("The Transporter hasn't got built-in balancer!");
-		}
-	}
-
 	getLocalNodeInfo() {
 		return this.registry.getLocalNodeInfo();
 	}
 
+	/**
+	 * Get event groups by event name
+	 *
+	 * @param {String} eventName
+	 * @returns
+	 * @memberof ServiceBroker
+	 */
 	getEventGroups(eventName) {
 		return this.registry.events.getGroups(eventName);
 	}
 
+	/**
+	 * Emit event to local nodes
+	 *
+	 * @param {String} event
+	 * @param {any} payload
+	 * @param {any} groups
+	 * @param {String} sender
+	 * @returns
+	 * @memberof ServiceBroker
+	 */
 	emitLocalServices(event, payload, groups, sender) {
 		return this.registry.events.emitLocalServices(event, payload, groups, sender);
 	}

@@ -44,15 +44,6 @@ class Registry {
 	}
 
 	/**
-	 * Disable built-in balancer if transporter support it
-	 *
-	 * @memberof Registry
-	 */
-	disableBalancer() {
-		this.opts.disableBalancer = true;
-	}
-
-	/**
 	 * Register local service
 	 *
 	 * @param {Service} svc
