@@ -6,6 +6,9 @@ This documentation describes the communication protocol between Moleculer nodes.
 **Variables in topic names:**
 - `<namespace>` - Namespace from broker options
 - `<nodeID>` - Target nodeID
+- `<action>` - Action name. E.g.: `posts.find`
+- `<group>` - Event group name. E.g.: `users`
+- `<event>` - Event name. E.g.: `user.created`
 
 
 ## Subscriptions
@@ -111,8 +114,9 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 ### `REQUEST`
 
 **Topic name:**
-- `MOL.REQUEST.node-2`
-- `MOL-dev.REQUEST.node-2` (if namespace is `dev`)
+- `MOL.REQ.node-2`
+- `MOL.REQB.<action>` (if built-in balancer is disabled)
+- `MOL-dev.REQ.node-2` (if namespace is `dev`)
 
 **Fields:**
 
@@ -134,8 +138,8 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 ### `RESPONSE`
 
 **Topic name:**
-- `MOL.RESPONSE.node-1`
-- `MOL-dev.RESPONSE.node-1` (if namespace is `dev`)
+- `MOL.RES.node-1`
+- `MOL-dev.RES.node-1` (if namespace is `dev`)
 
 **Fields:**
 
@@ -153,6 +157,7 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 
 **Topic name:**
 - `MOL.EVENT.node-1`
+- `MOL.EVENTB.<group>.<event>` (if built-in balancer is disabled)
 - `MOL-dev.EVENT.node-1` (if namespace is `dev`)
 
 **Fields:**
