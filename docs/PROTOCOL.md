@@ -1,4 +1,4 @@
-title: Protocol (ver: "2")
+title: Protocol v2
 ---
 
 This documentation describes the communication protocol between Moleculer nodes. 
@@ -163,7 +163,7 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `event` | `string` | ✔ | Event name. E.g.: `users.created` |
 | `data` | `string` | ✔ | JSON encoded event payload. |
-| `groups` | `string` | ✔ | Groups for balanced events. If `null` or empty, the event is broadcasted. |
+| `groups` | `Array<string>` | ✔ | Groups for balanced events. If `null` or empty, the event is broadcasted. |
 
 
 ### `PING`
