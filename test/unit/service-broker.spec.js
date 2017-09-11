@@ -1155,8 +1155,8 @@ describe("Test broker._findNextActionEndpoint", () => {
 		return broker._findNextActionEndpoint("posts.noaction").then(protectReject).catch(err => {
 			expect(err).toBeDefined();
 			expect(err).toBeInstanceOf(ServiceNotFoundError);
-			expect(err.message).toBe("Service 'posts.noaction' is not found!");
-			expect(err.data).toEqual({ action: "posts.noaction" });
+			expect(err.message).toBe("Service 'posts.noaction' is not found on 'node-1234' node.");
+			expect(err.data).toEqual({ action: "posts.noaction", nodeID: broker.nodeID });
 		});
 	});
 
@@ -1165,8 +1165,8 @@ describe("Test broker._findNextActionEndpoint", () => {
 		return broker._findNextActionEndpoint("posts.noHandler", {}).then(protectReject).catch(err => {
 			expect(err).toBeDefined();
 			expect(err).toBeInstanceOf(ServiceNotAvailable);
-			expect(err.message).toBe("Service 'posts.noHandler' is not available!");
-			expect(err.data).toEqual({ action: "posts.noHandler" });
+			expect(err.message).toBe("Service 'posts.noHandler' is not available on 'node-1234' node.");
+			expect(err.data).toEqual({ action: "posts.noHandler", nodeID: broker.nodeID });
 		});
 	});
 
@@ -1174,7 +1174,7 @@ describe("Test broker._findNextActionEndpoint", () => {
 		return broker._findNextActionEndpoint("posts.noHandler", { nodeID: "node-123"}).then(protectReject).catch(err => {
 			expect(err).toBeDefined();
 			expect(err).toBeInstanceOf(ServiceNotFoundError);
-			expect(err.message).toBe("Service 'posts.noHandler' is not found on 'node-123' node!");
+			expect(err.message).toBe("Service 'posts.noHandler' is not found on 'node-123' node.");
 			expect(err.data).toEqual({ action: "posts.noHandler", nodeID: "node-123" });
 		});
 	});
@@ -1371,8 +1371,8 @@ describe("Test broker.callWithoutBalancer", () => {
 		return broker.callWithoutBalancer("posts.noaction", {}).then(protectReject).catch(err => {
 			expect(err).toBeDefined();
 			expect(err).toBeInstanceOf(ServiceNotFoundError);
-			expect(err.message).toBe("Service 'posts.noaction' is not found!");
-			expect(err.data).toEqual({ action: "posts.noaction" });
+			expect(err.message).toBe("Service 'posts.noaction' is not found on 'node-1234' node.");
+			expect(err.data).toEqual({ action: "posts.noaction", nodeID: broker.nodeID });
 		});
 	});
 
@@ -1778,8 +1778,8 @@ describe("Test broker._handleRemoteRequest", () => {
 		return broker._handleRemoteRequest(ctx).then(protectReject).catch(err => {
 			expect(err).toBeDefined();
 			expect(err).toBeInstanceOf(ServiceNotFoundError);
-			expect(err.message).toBe("Service 'posts.find' is not found!");
-			expect(err.data).toEqual({ action: "posts.find", nodeID: undefined });
+			expect(err.message).toBe("Service 'posts.find' is not found on 'node-1234' node.");
+			expect(err.data).toEqual({ action: "posts.find", nodeID: "node-1234" });
 
 			expect(broker._localCall).toHaveBeenCalledTimes(0);
 		});
@@ -1794,8 +1794,8 @@ describe("Test broker._handleRemoteRequest", () => {
 		return broker._handleRemoteRequest(ctx).then(protectReject).catch(err => {
 			expect(err).toBeDefined();
 			expect(err).toBeInstanceOf(ServiceNotFoundError);
-			expect(err.message).toBe("Service 'posts.find' is not found!");
-			expect(err.data).toEqual({ action: "posts.find", nodeID: undefined });
+			expect(err.message).toBe("Service 'posts.find' is not found on 'node-1234' node.");
+			expect(err.data).toEqual({ action: "posts.find", nodeID: "node-1234" });
 
 			expect(broker._localCall).toHaveBeenCalledTimes(0);
 		});
@@ -1897,7 +1897,7 @@ describe("Test broker._callErrorHandler", () => {
 	it("should convert Promise.TimeoutError to RequestTimeoutError", () => {
 		return broker._callErrorHandler(new Promise.TimeoutError, ctx, endpoint, {}).then(protectReject).catch(err => {
 			expect(err).toBeInstanceOf(RequestTimeoutError);
-			expect(err.message).toBe("Request timed out when call 'user.create' action on 'server-2' node!");
+			expect(err.message).toBe("Request is timed out when call 'user.create' action on 'server-2' node.");
 			expect(broker.call).toHaveBeenCalledTimes(0);
 		});
 	});

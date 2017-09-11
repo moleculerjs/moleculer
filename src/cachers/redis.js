@@ -46,13 +46,13 @@ class RedisCacher extends BaseCacher {
 			Redis = require("ioredis");
 		} catch(err) {
 			/* istanbul ignore next */
-			this.broker.fatal("The 'ioredis' package is missing! Please install it with 'npm install ioredis --save' command!", err, true);
+			this.broker.fatal("The 'ioredis' package is missing. Please install it with 'npm install ioredis --save' command.", err, true);
 		}
 
 		this.client = new Redis(this.opts.redis);
 		this.client.on("connect", () => {
 			/* istanbul ignore next */
-			this.logger.info("Redis cacher connected!");
+			this.logger.info("Redis cacher connected.");
 		});
 
 		this.client.on("error", (err) => {
@@ -98,7 +98,7 @@ class RedisCacher extends BaseCacher {
 				try {
 					return JSON.parse(data);
 				} catch (err) {
-					this.logger.error("Redis result parse error!", err, data);
+					this.logger.error("Redis result parse error.", err, data);
 				}
 			}
 			return null;
@@ -139,7 +139,7 @@ class RedisCacher extends BaseCacher {
 		this.logger.debug(`DELETE ${key}`);
 		return this.client.del(this.prefix + key).catch(err => {
 			/* istanbul ignore next */
-			this.logger.error("Redis `del` error!", key, err);
+			this.logger.error("Redis `del` error.", key, err);
 		});
 	}
 
@@ -154,7 +154,7 @@ class RedisCacher extends BaseCacher {
 	 * @memberOf Cacher
 	 */
 	clean(match = "*") {
-		match = self.prefix + match.replace(/\*\*/g, "*");
+		match = this.prefix + match.replace(/\*\*/g, "*");
 		this.logger.debug(`CLEAN ${match}`);
 		let self = this;
 		let scanDel = function (cursor, cb) {
@@ -189,7 +189,7 @@ class RedisCacher extends BaseCacher {
 		scanDel(0, (err) => {
 			/* istanbul ignore next */
 			if (err) {
-				this.logger.error("Redis `scanDel` error!", match, err);
+				this.logger.error("Redis `scanDel` error.", match, err);
 			}
 		});
 

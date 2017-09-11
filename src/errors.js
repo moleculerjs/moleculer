@@ -225,23 +225,32 @@ class MaxCallLevelError extends MoleculerError {
 	 * Creates an instance of MaxCallLevelError.
 	 *
 	 * @param {String} nodeID
-	 * @param {any} data
+	 * @param {Number} level
 	 *
 	 * @memberOf MaxCallLevelError
 	 */
-	constructor(nodeID, data) {
-		super(`Request level is reached the limit on '${nodeID}' node.`, 500, null, data);
+	constructor(nodeID, level) {
+		super(`Request level is reached the limit (${level}) on '${nodeID}' node.`, 500, null, { level });
 		this.retryable = false;
 	}
 }
 
 /**
- * Custom Moleculer Error class
+ * Custom Moleculer Error class for Service schema errors
  *
  * @class ServiceSchemaError
  * @extends {Error}
  */
-class ServiceSchemaError extends ExtendableError {
+class ServiceSchemaError extends MoleculerError {
+	/**
+	 * Creates an instance of ServiceSchemaError.
+	 *
+	 * @param {String} msg
+	 * @memberof ServiceSchemaError
+	 */
+	constructor(msg) {
+		super(msg, 500, null);
+	}
 }
 
 /**

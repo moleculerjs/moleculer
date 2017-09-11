@@ -320,7 +320,7 @@ describe("Test Transit.messageHandler", () => {
 		//transit.deserialize = jest.fn(() => null);
 		expect(() => {
 			transit.messageHandler("EVENT");
-		}).toThrow("Missing packet!");
+		}).toThrow("Missing packet.");
 
 		//transit.deserialize.mockReset();
 	});
