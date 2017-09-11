@@ -30,13 +30,11 @@ Every internal event names start with '$'. These events are not transferred to r
 - global circuit breaker events for metrics: `metrics.circuit-breaker.closed`, `metrics.circuit-breaker.opened`, `metrics.circuit-breaker.half-opened`
 
 ## Switchable built-in load balancer
-The built-in Moleculer load balancer is switchable. You can turn off it, if you use transporter what has internal balancer (like AMQP).
+The built-in Moleculer load balancer is switchable. You can turn off it, if the transporter has internal balancer (currently only AMQP).
 
 ```js
 const broker = new ServiceBroker({
-    registry: {
-        disableBalancer: false
-    }
+    disableBalancer: false
 });
 ```
 
