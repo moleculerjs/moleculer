@@ -3,36 +3,56 @@
 
 # Breaking changes
 
-## Protocol changed
-- versioned packets
-- $node.health: removed `versions`, added `client`
-- removed double stringify in packets data
-- removed `uptime`, added `cpu` utilization in HEARTBEAT packet
-- added `client`, `port`, `config`, removed `versions` fields in INFO packet
-- added `group` field in EVENT packet
-- added `requestID` field in REQUEST packet
--the `error` field is JSON encoded string in RESPONSE packet
+## Protocol changed [#86](https://github.com/ice-services/moleculer/issues/86)
+The Moleculer transportation protocol is changed. It's mean, **the new (>= v0.11) versions can't communicate with the old (<= c0.10.x) versions.**
+You can find more information about changes in [#86](https://github.com/ice-services/moleculer/issues/86) issue.
 
 ## Balanced events
-- support balanced events (event-driver arch)
-- internal events starts with `$`, they are not transferred to remote nodes.
-- internal node events `$node.connected`, `$node.updated`, `$node.disconnected`
-- `services.changed` renamed to `$services.changed`. It is called if local or remote service list changed. First parameter is `localService` (boolean).
-- `broker.getService` renamed to `broker.getLocalService`
-- some broker method removed: `hasService`, `hasAction`, `isActionAvailable`
-- `getAction` deprecated. 
-- new event sending methods
-    - `broker.emit` - balancing events between service instances. 3rd param is the service "group" name
-    - `broker.broadcast` - same as the old `broker.emit`. Every nodes & every services receive the event
-    - `broker.broadcastLocal` - every local service receive the event.
-- changed circuit breaker events:
-    - local events: `$circuit-breaker.closed`, `$circuit-breaker.opened`, `$circuit-breaker.half-opened`
-    - global metrics events: `metrics.circuit-breaker.closed`, `metrics.circuit-breaker.opened`, `metrics.circuit-breaker.half-opened`
+The whole event handling is rewritten. From now Moleculer supports [event driven architecture](http://microservices.io/patterns/data/event-driven-architecture.html). It means the event emits is balanced like action calls.
+
+For example, you have 2 main services: `users` & `payments`. Both subscribe to the `user.created` event. You start 3 instances from `users` service and 2 instances from `payments` service. If you emit the event with `broker.emit('user.created')`, broker will grouping & balancing the event, so only one `users` and one `payments` service will receive the event. 
+You can also send broadcast events with the `broker.broadcast('user.created`) command. In this way every service instances on every nodes will receive the event.
+The `broker.broadcastLocal('user.created')` command only send events to the local services.
+
+## Renamed & new internal events
+Every internal event names start with '$'. This event is not transferred to remote nodes.
+
+**Renamed event:**
+- `node.connected` -> `$node.connected`.
+- `node.updated` -> `$node.updated`
+- `node.disconnected` -> `$node.disconnected`
+- `services.changed` -> `$services.changed`. It is called if local or remote service list changed.
+- `circuit-breaker.closed` -> `$circuit-breaker.closed`
+- `circuit-breaker.opened` -> `$circuit-breaker.opened`
+- `circuit-breaker.half-opened` -> `$circuit-breaker.half-opened`
+
+**New events:**
+- global circuit breaker events for metrics: `metrics.circuit-breaker.closed`, `metrics.circuit-breaker.opened`, `metrics.circuit-breaker.half-opened`
 
 ## Built-in load balancer is switchable.
+The built-in Moleculer load balancer is switchable. You can turn off it, if you use transporter what has internal balancer (like AMQP).
 
-## Removed `broker.on`
-- `broker.bus`, `broker.on`, `broker.once`, `broker.off` removed. Use `events` in service schema.
+```js
+const broker = new ServiceBroker({
+    registry: {
+        disableBalancer: false
+    }
+});
+```
+
+> Please note! If built-in balancer is disabled, every calls & emits (includes locals too) are transferred via transporter.
+
+## Removed broker methods
+Some internal broker methods is removed or renamed.
+- `broker.bus` is removed. Use `events` in service schema instead.
+- `broker.on` is removed. Use `events` in service schema instead.
+- `broker.once` is removed. Use `events` in service schema instead.
+- `broker.off` is removed. Use `events` in service schema instead.
+- `broker.getService` is renamed to `broker.getLocalService`
+- `broker.hasService` is removed.
+- `broker.hasAction` is removed.
+- `broker.isActionAvailable` is removed.
+
 
 ## Changed local service responses
 - changed returned structure of `$node.list`, `$node.services`, `$node.actions`, `$node.health`
@@ -40,28 +60,60 @@
 
 # New
 
-## New broker options
+## Broker option changes
+- `heartbeatInterval` default value is changed from `10` to `5`.
+- `heartbeatTimeout` default value is changed from `30` to `15`.
+- `circuitBreaker.maxFailures` default value is changed from `5` to `3`.
+- `logFormatter` accepts string. The `simple` is a new formatter to show only log level & log messages.
 
 ## Ping command
-- new PING & PONG packets
-- broker options: `logFormatter: "simple"`
-- ping other nodes `transit.sendPing`. For responses subscribe to `$node.pong` event.
+Implemented a new PING & PONG feature. You can ping other nodes to measure the network latency and system time differences.
+
+```js
+broker.createService({
+	name: "test",
+	events: {
+		"$node.pong"({ nodeID, elapsedTime, timeDiff }) {
+			this.logger.info(`Pong received from '${nodeID}' - Time: ${elapsedTime}ms, System time difference: ${timeDiff}ms`);
+		}
+	}
+});
+
+broker.start().then(() => broker.transit.sendPing(/*nodeID*/));
+```
 
 ## Pluggable validator
+The Validator in ServiceBroker is pluggable. So you can change the built-in `fastest-validator` to a slower other one :) [Example Joi validator](https://gist.github.com/icebob/07024c0ac22589a5496473c2a8a91146)
 
 ## Waiting for other services feature
-- new `waitForServices` method in services & broker
+If your services depends on other services, use the `waitForService` method to wait while dependencies start.
+
+```js
+let svc = broker.createService({
+    name: "seed",
+    started() {
+        return this.waitForServices(["posts", "users"]).then(() => {
+            // Do work...
+        });
+    }
+});
+```
+
+Signature: 
+```js
+this.waitForServices(serviceNames: String|Array<String>, timeout: Number/*milliseconds*/, interval: Number/*milliseconds*/)
+```
 
 ## New error types
-- `MoleculerRetryableError`, `MoleculerServerError`, `MoleculerClientError`, `ServiceNotAvailable`, `ProtocolVersionMismatchError`
+We added some new Moleculer error classes.
+- `MoleculerRetryableError` - Common Retryable error
+- `MoleculerServerError` - Common server error
+- `MoleculerClientError` - Common client error
+- `ServiceNotAvailable` - Service is registered but isn't available (no live nodes or CB disabled them)
+- `ProtocolVersionMismatchError` - Invalid protocol version (if you connect with an older client (<= v0.10.0))
 
 # Other changes
-- changed default broker options: `heartbeatInterval: 5`, `heartbeatTimeout: 15`, `circuitBreaker.maxFailures: 3`
-- rewritten service registry module
-- Cacher doesn't listen "cache.clean" event
-
-
-
+- The cachers don't listen "cache.clean" event.
 
 --------------------------------------------------
 <a name="0.10.0"></a>
