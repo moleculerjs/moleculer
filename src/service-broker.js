@@ -157,7 +157,7 @@ class ServiceBroker {
 			if (this.options.disableBalancer && tx.hasBuiltInBalancer) {
 				this.logger.info("The built-in balancer is disabled!");
 			} else {
-				this.logger.warn("The Transporter hasn't got built-in balancer! Built-in balancer is enabled!");
+				this.logger.warn("The Transporter has no built-in balancer! Broker balancer is ENABLED!");
 				this.options.disableBalancer = false;
 			}
 
