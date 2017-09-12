@@ -1132,7 +1132,7 @@ describe("Test broker.use (middleware)", () => {
 	});
 });
 
-describe("Test broker._findNextActionEndpoint", () => {
+describe("Test broker.findNextActionEndpoint", () => {
 	let broker = new ServiceBroker({ internalServices: false });
 	let actionHandler = jest.fn(ctx => ctx);
 	broker.createService({
@@ -1148,30 +1148,30 @@ describe("Test broker._findNextActionEndpoint", () => {
 
 	it("should return actionName if it is not String", () => {
 		let ep = {};
-		expect(broker._findNextActionEndpoint(ep, {})).toBe(ep);
+		expect(broker.findNextActionEndpoint(ep, {})).toBe(ep);
 	});
 
 	it("should reject if no action", () => {
-		return broker._findNextActionEndpoint("posts.noaction").then(protectReject).catch(err => {
+		return broker.findNextActionEndpoint("posts.noaction").then(protectReject).catch(err => {
 			expect(err).toBeDefined();
 			expect(err).toBeInstanceOf(ServiceNotFoundError);
-			expect(err.message).toBe("Service 'posts.noaction' is not found on 'node-1234' node.");
-			expect(err.data).toEqual({ action: "posts.noaction", nodeID: broker.nodeID });
+			expect(err.message).toBe("Service 'posts.noaction' is not found.");
+			expect(err.data).toEqual({ action: "posts.noaction", nodeID: undefined });
 		});
 	});
 
 	it("should reject if no handler", () => {
 		broker.registry.unregisterAction({ id: broker.nodeID }, "posts.noHandler");
-		return broker._findNextActionEndpoint("posts.noHandler", {}).then(protectReject).catch(err => {
+		return broker.findNextActionEndpoint("posts.noHandler", {}).then(protectReject).catch(err => {
 			expect(err).toBeDefined();
 			expect(err).toBeInstanceOf(ServiceNotAvailable);
-			expect(err.message).toBe("Service 'posts.noHandler' is not available on 'node-1234' node.");
-			expect(err.data).toEqual({ action: "posts.noHandler", nodeID: broker.nodeID });
+			expect(err.message).toBe("Service 'posts.noHandler' is not available.");
+			expect(err.data).toEqual({ action: "posts.noHandler", nodeID: undefined });
 		});
 	});
 
 	it("should reject if no action on node", () => {
-		return broker._findNextActionEndpoint("posts.noHandler", { nodeID: "node-123"}).then(protectReject).catch(err => {
+		return broker.findNextActionEndpoint("posts.noHandler", { nodeID: "node-123"}).then(protectReject).catch(err => {
 			expect(err).toBeDefined();
 			expect(err).toBeInstanceOf(ServiceNotFoundError);
 			expect(err.message).toBe("Service 'posts.noHandler' is not found on 'node-123' node.");
@@ -1180,14 +1180,14 @@ describe("Test broker._findNextActionEndpoint", () => {
 	});
 
 	it("should find the endpoint with nodeID", () => {
-		let ep = broker._findNextActionEndpoint("posts.find", { nodeID: broker.nodeID});
+		let ep = broker.findNextActionEndpoint("posts.find", { nodeID: broker.nodeID});
 		expect(ep).toBeDefined();
 		expect(ep.action).toBeDefined();
 		expect(ep.id).toBe(broker.nodeID);
 	});
 
 	it("should find the endpoint", () => {
-		let ep = broker._findNextActionEndpoint("posts.find");
+		let ep = broker.findNextActionEndpoint("posts.find");
 		expect(ep).toBeDefined();
 		expect(ep.action).toBeDefined();
 		expect(ep.id).toBe(broker.nodeID);
@@ -1206,7 +1206,7 @@ describe("Test broker.call", () => {
 		local: true,
 		action
 	};
-	broker._findNextActionEndpoint = jest.fn(() => ep);
+	broker.findNextActionEndpoint = jest.fn(() => ep);
 
 	broker._localCall = jest.fn(ctx => Promise.resolve(ctx));
 	broker._remoteCall = jest.fn(ctx => Promise.resolve(ctx));
@@ -1317,7 +1317,7 @@ describe("Test broker.call", () => {
 			local: false,
 			action
 		};
-		broker._findNextActionEndpoint = jest.fn(() => ep);
+		broker.findNextActionEndpoint = jest.fn(() => ep);
 
 		let params = { limit: 5, search: "John" };
 		let opts = { requestID: "123", meta: { a: 5 } };
