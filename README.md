@@ -13,7 +13,7 @@
 
 # Moleculer [![NPM version](https://img.shields.io/npm/v/moleculer.svg)](https://www.npmjs.com/package/moleculer)
 
-Moleculer is a fast & powerful microservices framework for NodeJS (>= v6.x).
+Moleculer is a fast, modern and powerful microservices framework for NodeJS (>= v6.x).
 <!--
 ![](https://img.shields.io/badge/performance-%2B50%25-brightgreen.svg)
 ![](https://img.shields.io/badge/performance-%2B5%25-green.svg)
@@ -29,21 +29,22 @@ Moleculer is a fast & powerful microservices framework for NodeJS (>= v6.x).
 
 - Promise-based solution
 - request-reply concept
-- event bus system
+- support event driven architecture with balancing
+- built-in service registry & auto discovery
+- load balanced requests & events (round-robin, random, custom)
 - supports middlewares
 - service mixins
 - multiple services on a node/server
 - built-in caching solution (memory, Redis)
 - pluggable transporters (NATS, MQTT, Redis)
 - pluggable serializers (JSON, Avro, MsgPack, Protocol Buffer)
-- load balanced requests (round-robin, random)
+- pluggable validator
 - every nodes are equal, no master/leader node
-- auto discovery services
 - parameter validation with [fastest-validator](https://github.com/icebob/fastest-validator)
 - distributed timeout handling with fallback response
 - health monitoring, metrics & statistics
-- supports versioned services (run different versions of the service)
-- official [API gateway module](https://github.com/ice-services/moleculer-web)
+- supports versioned services
+- official [API gateway module](https://github.com/ice-services/moleculer-web) and many other modules...
 
 # Installation
 ```
@@ -118,7 +119,7 @@ See [CHANGELOG.md](CHANGELOG.md).
 See [ROADMAP.md](ROADMAP.md).
 
 # Contributions
-We welcome you to join the development of Moleculer. Please read our [contribution guide](http://moleculer.services/docs/contributing.html).
+We welcome you to join to the development of Moleculer. Please read our [contribution guide](http://moleculer.services/docs/contributing.html).
 
 # License
 Moleculer is available under the [MIT license](https://tldrlegal.com/license/mit-license).
