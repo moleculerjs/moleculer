@@ -7,6 +7,16 @@
 		{
 			"type": "node",
 			"request": "launch",
+			"name": "Launch dev",
+			"program": "${workspaceRoot}\\dev\\joi-validator.js",
+			"cwd": "${workspaceRoot}",
+			"args": [
+				"error-1"
+			]
+		},
+		{
+			"type": "node",
+			"request": "launch",
 			"name": "Launch demo:caching",
 			"program": "${workspaceRoot}\\examples\\caching\\index.js",
 			"cwd": "${workspaceRoot}\\examples\\caching"
@@ -37,16 +47,9 @@
 			"request": "launch",
 			"name": "Launch demo:multi",
 			"program": "${workspaceRoot}\\examples\\multi-server\\client.js",
-			"cwd": "${workspaceRoot}\\examples\\multi-server"
-		},
-		{
-			"type": "node",
-			"request": "launch",
-			"name": "Launch dev",
-			"program": "${workspaceRoot}\\dev\\index.js",
-			"cwd": "${workspaceRoot}",
+			"cwd": "${workspaceRoot}\\examples\\multi-server",
 			"args": [
-				"hot"
+				"client"
 			]
 		},
 		{
@@ -54,7 +57,7 @@
 			"request": "launch",
 			"name": "Launch benchmark",
 			"program": "${workspaceRoot}\\benchmark\\index.js",
-			"args": ["serializers"],
+			"args": ["emitter"],
 			"cwd": "${workspaceRoot}\\benchmark"
 		},
 		{

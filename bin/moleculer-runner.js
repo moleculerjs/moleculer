@@ -109,7 +109,7 @@ function loadConfigFile() {
  */
 function mergeOptions() {
 
-	config = _.defaultsDeep(configFile, Moleculer.ServiceBroker.defaultConfig);
+	config = _.defaultsDeep(configFile, Moleculer.ServiceBroker.defaultOptions);
 	if (config.logger == null && !flags.silent)
 		config.logger = console;
 

@@ -6,7 +6,7 @@
 
 "use strict";
 
-const _ = require("lodash");
+const _ 					= require("lodash");
 
 module.exports = function(broker) {
 	const schema = {
@@ -16,19 +16,7 @@ module.exports = function(broker) {
 			list: {
 				cache: false,
 				handler() {
-					let res = [];
-					const localNode = this.broker.transit.getNodeInfo();
-					localNode.id = this.broker.nodeID;
-					localNode.local = true;
-					localNode.available = true;
-					res.push(localNode);
-
-					this.broker.transit.nodes.forEach(node => {
-						//res.push(pick(node, ["nodeID", "available"]));
-						res.push(node);
-					});
-
-					return res;
+					return this.broker.registry.getNodeList();
 				}
 			},
 
@@ -42,8 +30,9 @@ module.exports = function(broker) {
 				handler(ctx) {
 					let res = [];
 
-					const services = this.broker.serviceRegistry.getServiceList(ctx.params);
+					const services = this.broker.registry.getServiceList(ctx.params);
 
+					// Pre-process list, group services by nodes.
 					services.forEach(svc => {
 						let item = res.find(o => o.name == svc.name && o.version == svc.version);
 						if (item) {
@@ -81,14 +70,26 @@ module.exports = function(broker) {
 					withEndpoints: { type: "boolean", optional: true }
 				},
 				handler(ctx) {
-					return this.broker.serviceRegistry.getActionList(ctx.params);
+					return this.broker.registry.getActionList(ctx.params);
+				}
+			},
+
+			events: {
+				cache: false,
+				params: {
+					onlyLocal: { type: "boolean", optional: true },
+					skipInternal: { type: "boolean", optional: true },
+					withEndpoints: { type: "boolean", optional: true }
+				},
+				handler(ctx) {
+					return this.broker.registry.getEventList(ctx.params);
 				}
 			},
 
 			health: {
 				cache: false,
 				handler() {
-					return this.broker.getNodeHealthInfo();
+					return this.broker.getHealthStatus();
 				}
 			}
 		}

@@ -7,6 +7,7 @@ describe("Test RoundRobinStrategy", () => {
 	it("get endpoint in order", () => {
 
 		let strategy = new RoundRobinStrategy();
+		expect(strategy.counter).toBe(0);
 
 		const list = [
 			{ a: "hello" },

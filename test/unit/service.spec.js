@@ -62,7 +62,7 @@ describe("Test action creation", () => {
 			get: {
 				cache: false,
 				params: {
-					id: "required|numeric"
+					id: "number"
 				},
 				handler: jest.fn()
 			},
@@ -72,15 +72,20 @@ describe("Test action creation", () => {
 
 	it("should register service & actions", () => {
 		broker.registerLocalService = jest.fn();
-		broker.registerAction = jest.fn();
 
 		let service = broker.createService(schema);
 
 		expect(service).toBeDefined();
-		expect(broker.registerLocalService).toHaveBeenCalledTimes(1);
-		expect(broker.registerLocalService).toHaveBeenCalledWith(service);
 
-		expect(broker.registerAction).toHaveBeenCalledTimes(2);
+		expect(broker.registerLocalService).toHaveBeenCalledTimes(1);
+		expect(broker.registerLocalService.mock.calls[0][0]).toBe(service);
+		const svc = broker.registerLocalService.mock.calls[0][1];
+		expect(svc.name).toBe("posts");
+		expect(svc.version).toBeUndefined();
+		expect(svc.settings).toEqual({});
+		expect(svc.actions["posts.find"]).toBeDefined();
+		expect(svc.actions["posts.get"]).toBeDefined();
+		expect(svc.events).toEqual({});
 
 		expect(service.actions.find).toBeDefined();
 		expect(service.actions.get).toBeDefined();
@@ -115,38 +120,66 @@ describe("Test action creation", () => {
 });
 
 describe("Test events creation", () => {
-	let broker = new ServiceBroker({ internalServices: false });
-
-	let schema = {
-		name: "posts",
-		events: {
-			"user.*": jest.fn(),
-			"posts.updated": {
-				handler: jest.fn()
-			}
-		}
-	};
-
 	it("should register event handler to broker", () => {
-		let handlers = {};
-		broker.on = jest.fn((name, fn) => handlers[name] = fn);
+		let broker = new ServiceBroker({ internalServices: false });
+		broker.registry.registerLocalService = jest.fn();
 
-		let service = broker.createService(schema);
+		let service = broker.createService({
+			name: "posts",
+			events: {
+				"user.*": jest.fn(),
+				"posts.updated": {
+					handler: jest.fn()
+				}
+			}
+		});
 
 		expect(service).toBeDefined();
-		expect(broker.on).toHaveBeenCalledTimes(2);
-		expect(broker.on).toHaveBeenCalledWith("user.*", jasmine.any(Function));
-		expect(broker.on).toHaveBeenCalledWith("posts.updated", jasmine.any(Function));
 
-		let data = { id: 5 };
-		handlers["user.*"].call({ event: "user.created"}, data, "node-2");
+		expect(broker.registry.registerLocalService).toHaveBeenCalledTimes(1);
+		expect(broker.registry.registerLocalService).toHaveBeenCalledTimes(1);
+		const svc = broker.registry.registerLocalService.mock.calls[0][0];
+		expect(svc.events["posts.updated"]).toBeDefined();
+		expect(svc.events["user.*"]).toBeDefined();
+		expect(svc.actions).toEqual({});
+	});
 
-		expect(schema.events["user.*"]).toHaveBeenCalledTimes(1);
-		expect(schema.events["user.*"]).toHaveBeenCalledWith(data, "node-2", "user.created");
+	it("should register event handler with mixins", () => {
+		let broker = new ServiceBroker({ internalServices: false });
+		broker.registry.registerLocalService = jest.fn();
 
+		let cb1 = jest.fn();
+		let cb2 = jest.fn();
+		let cb3 = jest.fn();
+		let service = broker.createService({
+			name: "posts",
+			events: {
+				"user.*": [cb1, cb2],
+				"posts.updated": {
+					handler: cb3
+				}
+			}
+		});
+
+		expect(service).toBeDefined();
+
+		expect(broker.registry.registerLocalService).toHaveBeenCalledTimes(1);
+		expect(broker.registry.registerLocalService).toHaveBeenCalledTimes(1);
+		const svc = broker.registry.registerLocalService.mock.calls[0][0];
+		expect(svc.events["posts.updated"]).toBeDefined();
+		expect(svc.events["user.*"]).toBeDefined();
+		expect(svc.actions).toEqual({});
+
+		svc.events["posts.updated"].handler();
+		expect(cb3).toHaveBeenCalledTimes(1);
+
+		svc.events["user.*"].handler();
+		expect(cb1).toHaveBeenCalledTimes(1);
+		expect(cb2).toHaveBeenCalledTimes(1);
 	});
 
 	it("should throw error because no handler of event", () => {
+		let broker = new ServiceBroker({ internalServices: false });
 		expect(() => {
 			broker.createService({
 				name: "test",
@@ -159,17 +192,14 @@ describe("Test events creation", () => {
 });
 
 describe("Test methods creation", () => {
-	let broker = new ServiceBroker({ internalServices: false });
-
-	let schema = {
-		name: "posts",
-		methods: {
-			something: jest.fn()
-		}
-	};
-
 	it("should create method in Service instance", () => {
-		let service = broker.createService(schema);
+		let broker = new ServiceBroker({ internalServices: false });
+		let service = broker.createService({
+			name: "posts",
+			methods: {
+				something: jest.fn()
+			}
+		});
 
 		expect(service).toBeDefined();
 		expect(typeof service.something).toBe("function");
@@ -180,6 +210,7 @@ describe("Test methods creation", () => {
 	});
 
 	it("should throw error because method name is reserved", () => {
+		let broker = new ServiceBroker({ internalServices: false });
 		expect(() => {
 			broker.createService({
 				name: "test",
@@ -218,7 +249,6 @@ describe("Test _createAction function", () => {
 		expect(action.cache).toBe(false);
 		expect(action.handler).toBeInstanceOf(Function);
 		expect(action.service).toBe(service);
-		expect(action.version).toBeUndefined;
 	});
 
 	it("should create action with version number", () => {
@@ -226,7 +256,6 @@ describe("Test _createAction function", () => {
 
 		let action = service._createAction({ handler, myProp: "teszt" }, "find");
 		expect(action.name).toBe("v3.users.find");
-		expect(action.version).toBe(3);
 		expect(action.myProp).toBe("teszt");
 	});
 
@@ -235,7 +264,6 @@ describe("Test _createAction function", () => {
 
 		let action = service._createAction({ handler }, "find");
 		expect(action.name).toBe("staging.users.find");
-		expect(action.version).toBe("staging");
 	});
 
 	it("should create action without version", () => {
@@ -243,7 +271,6 @@ describe("Test _createAction function", () => {
 
 		let action = service._createAction({ handler }, "find");
 		expect(action.name).toBe("users.find");
-		expect(action.version).toBe(2);
 	});
 
 	it("should create action with different name", () => {
@@ -364,6 +391,7 @@ describe("Test constructor with mixins", () => {
 describe("Test applyMixins", () => {
 	let mixin1 = { name: "mixin1" };
 	let mixin2 = { name: "mixin2" };
+	let mixin3 = { name: "mixin3", mixins: mixin2 };
 
 	it("should call utils.mergeSchemas with mixins", () => {
 		utils.mergeSchemas.mockClear();
@@ -391,6 +419,21 @@ describe("Test applyMixins", () => {
 		Service.applyMixins(schema);
 
 		expect(utils.mergeSchemas).toHaveBeenCalledTimes(2);
+		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, mixin2);
+		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, schema);
+	});
+
+	it("should call utils.mergeSchemas with two level mixins", () => {
+		utils.mergeSchemas.mockClear();
+		let schema = {
+			name: "posts",
+			mixins: mixin3
+		};
+		Service.applyMixins(schema);
+
+		expect(utils.mergeSchemas).toHaveBeenCalledTimes(4);
+		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, {});
+		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, mixin3);
 		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, mixin2);
 		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, schema);
 	});
@@ -484,5 +527,22 @@ describe("Test lifecycle event handlers", () => {
 		});
 	});
 
+
+});
+
+describe("Test broker.waitForServices", () => {
+	let broker = new ServiceBroker();
+	broker.waitForServices = jest.fn();
+
+	it("should call waitForServices", () => {
+		let svc = broker.createService({
+			name: "test",
+			created() {
+				this.waitForServices("posts", 5000, 500);
+			}
+		});
+		expect(broker.waitForServices).toHaveBeenCalledTimes(1);
+		expect(broker.waitForServices).toHaveBeenCalledWith("posts", 5000, 500, svc.logger);
+	});
 
 });

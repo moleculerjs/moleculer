@@ -4,29 +4,15 @@ const BaseStrategy = require("../../../src/strategies/base");
 const ServiceBroker = require("../../../src/service-broker");
 
 describe("Test BaseStrategy", () => {
+	const broker = new ServiceBroker();
 
-	it("strategy must initialize broker", () => {
-		const strategy = new BaseStrategy();
-		const broker = new ServiceBroker({
-			registry: {
-				strategy,
-			}
-		});
-		expect(broker.options.registry.strategy.getBroker()).toBe(broker);
-	});
+	it("should load propertes", () => {
+		const strategy = new BaseStrategy(broker.registry, broker);
 
-	it("broker should initialize strategy", () => {
+		expect(strategy.registry).toBe(broker.registry);
+		expect(strategy.broker).toBe(broker);
 
-		const strategy = new BaseStrategy();
-		strategy.init = jest.fn();
-
-		new ServiceBroker({
-			registry: {
-				strategy,
-			}
-		});
-
-		expect(strategy.init).toHaveBeenCalled();
+		expect(strategy.select).toBeInstanceOf(Function);
 	});
 
 });

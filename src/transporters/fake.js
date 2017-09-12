@@ -19,7 +19,7 @@ global.bus = new EventEmitter2({
 
 /**
  * Fake Transporter
- * 
+ *
  * @class FakeTransporter
  * @extends {Transporter}
  */
@@ -27,9 +27,9 @@ class FakeTransporter extends Transporter {
 
 	/**
 	 * Creates an instance of FakeTransporter.
-	 * 
+	 *
 	 * @param {any} opts
-	 * 
+	 *
 	 * @memberOf FakeTransporter
 	 */
 	constructor(opts) {
@@ -37,11 +37,12 @@ class FakeTransporter extends Transporter {
 
 		// Local event bus
 		this.bus = global.bus;
+		this.hasBuiltInBalancer = true;
 	}
 
 	/**
 	 * Connect to a NATS server
-	 * 
+	 *
 	 * @memberOf FakeTransporter
 	 */
 	connect() {
@@ -50,7 +51,7 @@ class FakeTransporter extends Transporter {
 
 	/**
 	 * Disconnect from a NATS server
-	 * 
+	 *
 	 * @memberOf FakeTransporter
 	 */
 	disconnect() {
@@ -60,10 +61,10 @@ class FakeTransporter extends Transporter {
 
 	/**
 	 * Subscribe to a command
-	 * 
-	 * @param {String} cmd 
-	 * @param {String} nodeID 
-	 * 
+	 *
+	 * @param {String} cmd
+	 * @param {String} nodeID
+	 *
 	 * @memberOf FakeTransporter
 	 */
 	subscribe(cmd, nodeID) {
@@ -74,9 +75,9 @@ class FakeTransporter extends Transporter {
 
 	/**
 	 * Publish a packet
-	 * 
+	 *
 	 * @param {Packet} packet
-	 * 
+	 *
 	 * @memberOf FakeTransporter
 	 */
 	publish(packet) {

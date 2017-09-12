@@ -13,7 +13,7 @@ function createBrokers(Transporter, opts) {
 		//logLevel: "debug",
 		serializer: new Serializer(),
 		nodeID: "node-1",
-		
+
 	});
 
 	let b2 = new ServiceBroker({
@@ -55,7 +55,7 @@ let [b1, b2] = createBrokers(Transporters.Fake);
 let count = 0;
 function doRequest() {
 	count++;
-	return b1.call("echo.reply", { a: count }).then(res => {
+	return b2.call("echo.reply", { a: count }).then(res => {
 	//return b2.call("echo.get", { id: 5 }).then(res => {
 		if (count % 10000) {
 			// Fast cycle
@@ -73,7 +73,7 @@ function doRequest() {
 
 setTimeout(() => {
 	let startTime = Date.now();
-	
+
 	setInterval(() => {
 		let rps = count / ((Date.now() - startTime) / 1000);
 		console.log("RPS:", rps.toLocaleString("hu-HU", {maximumFractionDigits: 0}), "req/s");

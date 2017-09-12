@@ -4,6 +4,10 @@
 const chalk = require("chalk");
 chalk.enabled = false;
 
+const H = require("../../src/health");
+H.getHealthStatus = jest.fn();
+
+const { protectReject } = require("./utils");
 const fs = require("fs");
 const utils = require("../../src/utils");
 const path = require("path");
@@ -11,7 +15,7 @@ const Promise = require("bluebird");
 const lolex = require("lolex");
 const ServiceBroker = require("../../src/service-broker");
 const Service = require("../../src/service");
-const ServiceRegistry = require("../../src/service-registry");
+const Registry = require("../../src/registry");
 const Context = require("../../src/context");
 const Transit = require("../../src/transit");
 const Cachers = require("../../src/cachers");
@@ -19,60 +23,22 @@ const Serializers = require("../../src/serializers");
 const JSONSerializer = require("../../src/serializers/json");
 const Transporters = require("../../src/transporters");
 const FakeTransporter = require("../../src/transporters/fake");
-const { MoleculerError, ServiceNotFoundError, RequestTimeoutError, MaxCallLevelError } = require("../../src/errors");
+const Strategies = require("../../src/strategies");
+const { MoleculerError, ServiceNotFoundError, ServiceNotAvailable, RequestTimeoutError } = require("../../src/errors");
 
 jest.mock("../../src/utils", () => ({
 	getNodeID() { return "node-1234"; },
-	generateToken() { return "1"; }
+	generateToken() { return "1"; },
+	getIpList() { return []; },
+	isPromise(p) {return p.then != null; }
 }));
-
-// Registry strategies
-const Strategies = require("../../src/strategies");
 
 describe("Test ServiceBroker constructor", () => {
 
 	it("should set default options", () => {
 		let broker = new ServiceBroker();
-		let strategy = new Strategies.RoundRobin();
-		strategy.init(broker);
 		expect(broker).toBeDefined();
-		expect(broker.options).toEqual({
-			namespace: "",
-			nodeID: null,
-
-			logger: null,
-			logLevel: null,
-
-			transporter: null,
-			requestTimeout: 0,
-			requestRetry: 0,
-			maxCallLevel: 0,
-			heartbeatInterval: 10,
-			heartbeatTimeout : 30,
-
-			registry: {
-				strategy,
-				preferLocal: true
-			},
-
-			circuitBreaker: {
-				enabled: false,
-				maxFailures: 5,
-				halfOpenTime: 10 * 1000,
-				failureOnTimeout: true,
-				failureOnReject: true
-			},
-
-			cacher: null,
-			serializer: null,
-
-			validation: true,
-			metrics: false,
-			metricsRate: 1,
-			statistics: false,
-			internalServices: true,
-			hotReload: false
-		});
+		expect(broker.options).toEqual(ServiceBroker.defaultOptions);
 
 		expect(broker.Promise).toBe(Promise);
 
@@ -84,10 +50,10 @@ describe("Test ServiceBroker constructor", () => {
 
 		expect(broker.logger).toBeDefined();
 
-		expect(broker.bus).toBeDefined();
+		expect(broker.localBus).toBeDefined();
 
 		expect(broker.services).toBeInstanceOf(Array);
-		expect(broker.serviceRegistry).toBeInstanceOf(ServiceRegistry);
+		expect(broker.registry).toBeInstanceOf(Registry);
 
 		expect(broker.middlewares).toBeInstanceOf(Array);
 
@@ -97,33 +63,34 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.transit).toBeUndefined();
 		expect(broker.statistics).toBeUndefined();
 
-		expect(broker.hasAction("$node.list")).toBe(true);
-		expect(broker.hasAction("$node.services")).toBe(true);
-		expect(broker.hasAction("$node.actions")).toBe(true);
-		expect(broker.hasAction("$node.health")).toBe(true);
+		expect(broker.getLocalService("$node")).toBeDefined();
 
-		expect(ServiceBroker.defaultConfig).toBeDefined();
+		expect(ServiceBroker.defaultOptions).toBeDefined();
 		expect(ServiceBroker.MOLECULER_VERSION).toBeDefined();
 		expect(broker.MOLECULER_VERSION).toBeDefined();
+
+		expect(broker.call).not.toBe(broker.callWithoutBalancer);
 	});
 
 	it("should merge options", () => {
 
-		let strategy = new Strategies.Random();
-
 		let broker = new ServiceBroker( {
 			namespace: "test",
+			nodeID: "server-12",
 			heartbeatTimeout: 20,
 			metrics: true,
 			metricsRate: 0.5,
 			statistics: true,
 			logLevel: "debug",
+			logFormatter: "simple",
 			requestRetry: 3,
 			requestTimeout: 5000,
 			maxCallLevel: 10,
+
+			disableBalancer: true,
 			registry: {
-				strategy,
-				preferLocal: false
+				strategy: Strategies.Random,
+				preferLocal: false,
 			},
 			circuitBreaker: {
 				enabled: true,
@@ -137,9 +104,10 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker).toBeDefined();
 		expect(broker.options).toEqual({
 			namespace: "test",
-			nodeID: null,
+			nodeID: "server-12",
 			logger: null,
 			logLevel: "debug",
+			logFormatter: "simple",
 			cacher: null,
 			serializer: null,
 			transporter: null,
@@ -147,10 +115,11 @@ describe("Test ServiceBroker constructor", () => {
 			metricsRate: 0.5,
 			statistics: true,
 			heartbeatTimeout : 20,
-			heartbeatInterval: 10,
+			heartbeatInterval: 5,
 
+			disableBalancer: true,
 			registry: {
-				strategy,
+				strategy: Strategies.Random,
 				preferLocal: false
 			},
 
@@ -165,22 +134,21 @@ describe("Test ServiceBroker constructor", () => {
 			requestTimeout: 5000,
 			maxCallLevel: 10,
 			validation: false,
+			validator: null,
 			internalServices: false,
 			hotReload: true });
 
 		expect(broker.services).toBeInstanceOf(Array);
-		expect(broker.serviceRegistry).toBeInstanceOf(ServiceRegistry);
+		expect(broker.registry).toBeInstanceOf(Registry);
 		expect(broker.transit).toBeUndefined();
 		expect(broker.statistics).toBeDefined();
 		expect(broker.validator).toBeUndefined();
 		expect(broker.serializer).toBeInstanceOf(JSONSerializer);
 		expect(broker.namespace).toBe("test");
-		expect(broker.nodeID).toBe("node-1234");
+		expect(broker.nodeID).toBe("server-12");
+		expect(broker.call).toBe(broker.callWithoutBalancer);
 
-		expect(broker.hasAction("$node.list")).toBe(false);
-		expect(broker.hasAction("$node.services")).toBe(false);
-		expect(broker.hasAction("$node.actions")).toBe(false);
-		expect(broker.hasAction("$node.health")).toBe(false);
+		expect(broker.getLocalService("$node")).not.toBeDefined();
 	});
 
 	it("should create transit if transporter into options", () => {
@@ -219,6 +187,36 @@ describe("Test ServiceBroker constructor", () => {
 		expect(serializer.init).toHaveBeenCalledWith(broker);
 	});
 
+	it("should set validator", () => {
+		let broker = new ServiceBroker();
+		expect(broker.validator).toBeDefined();
+	});
+
+	it("should not set validator", () => {
+		let broker = new ServiceBroker({ validation: false });
+		expect(broker.validator).toBeUndefined();
+	});
+
+	it("should disable balancer if transporter has no built-in balancer", () => {
+		let broker = new ServiceBroker( {
+			transporter: new FakeTransporter(),
+			disableBalancer: true
+		});
+
+		expect(broker.options.disableBalancer).toBe(true);
+	});
+
+	it("should not disable balancer if transporter has no built-in balancer", () => {
+		let tx = new FakeTransporter();
+		tx.hasBuiltInBalancer = false;
+
+		let broker = new ServiceBroker( {
+			transporter: tx,
+			disableBalancer: true
+		});
+
+		expect(broker.options.disableBalancer).toBe(false);
+	});
 });
 
 describe("Test option resolvers", () => {
@@ -253,7 +251,7 @@ describe("Test option resolvers", () => {
 		});
 
 		it("should resolve MQTTTransporter from string", () => {
-			let trans = broker._resolveTransporter("MQTT");
+			let trans = broker._resolveTransporter("mqtt");
 			expect(trans).toBeInstanceOf(Transporters.MQTT);
 		});
 
@@ -291,9 +289,9 @@ describe("Test option resolvers", () => {
 			});
 		});
 
-		it("should resolve NATSTransporter from obj", () => {
+		it("should resolve MQTTransporter from obj", () => {
 			let options = { mqtt: "mqtt://localhost" };
-			let trans = broker._resolveTransporter({ type: "MQTT", options });
+			let trans = broker._resolveTransporter({ type: "mqtt", options });
 			expect(trans).toBeInstanceOf(Transporters.MQTT);
 			expect(trans.opts).toEqual({ mqtt: "mqtt://localhost" });
 		});
@@ -332,7 +330,7 @@ describe("Test option resolvers", () => {
 		});
 
 		it("should resolve MemoryCacher from string", () => {
-			let cacher = broker._resolveCacher("Memory");
+			let cacher = broker._resolveCacher("memory");
 			expect(cacher).toBeInstanceOf(Cachers.Memory);
 		});
 
@@ -364,7 +362,7 @@ describe("Test option resolvers", () => {
 
 		it("should resolve RedisCacher from obj with Redis type", () => {
 			let options = { ttl: 80, redis: { db: 3 } };
-			let cacher = broker._resolveCacher({ type: "Redis", options });
+			let cacher = broker._resolveCacher({ type: "redis", options });
 			expect(cacher).toBeInstanceOf(Cachers.Redis);
 			expect(cacher.opts).toEqual({ ttl: 80, redis: { db: 3 } });
 		});
@@ -406,7 +404,7 @@ describe("Test option resolvers", () => {
 		});
 
 		it("should resolve AvroSerializer from string with Avro type", () => {
-			let serializer = broker._resolveSerializer("Avro");
+			let serializer = broker._resolveSerializer("avro");
 			expect(serializer).toBeInstanceOf(Serializers.Avro);
 		});
 
@@ -426,17 +424,13 @@ describe("Test option resolvers", () => {
 describe("Test broker.start", () => {
 
 	describe("if started success", () => {
-
-		let broker;
 		let schema = {
 			name: "test",
 			started: jest.fn()
 		};
 
-		broker = new ServiceBroker({
-			metrics: true,
-			statistics: true,
-			transporter: new FakeTransporter()
+		let broker = new ServiceBroker({
+			transporter: "fake"
 		});
 
 		broker.createService(schema);
@@ -452,16 +446,12 @@ describe("Test broker.start", () => {
 	});
 
 	describe("if started return with Promise", () => {
-
-		let broker;
 		let schema = {
 			name: "test",
 			started: jest.fn(() => Promise.resolve())
 		};
 
-		broker = new ServiceBroker({
-			metrics: true,
-			statistics: true,
+		let broker = new ServiceBroker({
 			transporter: new FakeTransporter()
 		});
 
@@ -478,16 +468,12 @@ describe("Test broker.start", () => {
 	});
 
 	describe("if started throw error", () => {
-
-		let broker;
 		let schema = {
 			name: "test",
 			started: jest.fn(() => Promise.reject("Can't start!"))
 		};
 
-		broker = new ServiceBroker({
-			metrics: true,
-			statistics: true,
+		let broker = new ServiceBroker({
 			transporter: new FakeTransporter()
 		});
 
@@ -510,8 +496,6 @@ describe("Test broker.start", () => {
 describe("Test broker.stop", () => {
 
 	describe("if stopped success", () => {
-
-
 		let broker;
 
 		let schema = {
@@ -521,8 +505,6 @@ describe("Test broker.stop", () => {
 
 		beforeAll(() => {
 			broker = new ServiceBroker({
-				metrics: true,
-				statistics: true,
 				transporter: new FakeTransporter()
 			});
 
@@ -583,7 +565,7 @@ describe("Test broker.stop", () => {
 		let broker;
 		let schema = {
 			name: "test",
-			stopped: jest.fn(() => Promise.reject("Can't start!"))
+			stopped: jest.fn(() => Promise.reject("Can't stop!"))
 		};
 
 		broker = new ServiceBroker({
@@ -668,11 +650,21 @@ describe("Test broker.getLogger", () => {
 		expect(console.error).toHaveBeenCalledWith("[1970-01-01T00:00:00.000Z]", "ERROR", "node-1234/BROKER:", "Error", "{ a: 5 }");
 	});
 
+	it("should create default console logger with simple logFormatter", () => {
+		let broker = new ServiceBroker({ internalServices: false, logger: true, logFormatter: "simple" });
+
+		console.info.mockClear();
+		broker.logger.info("Teszt", { a: 5 });
+
+		expect(console.info).toHaveBeenCalledTimes(1);
+		expect(console.info).toHaveBeenCalledWith("INFO ", "-", "Teszt", "{ a: 5 }");
+	});
+
 	it("should create default console logger with logFormatter", () => {
 		let logFormatter = jest.fn();
 		let broker = new ServiceBroker({ internalServices: false, logger: true, logFormatter });
 
-		console.info.mockClear();
+		logFormatter.mockClear();
 		broker.logger.info("Teszt", { a: 5 });
 
 		expect(logFormatter).toHaveBeenCalledTimes(1);
@@ -680,13 +672,13 @@ describe("Test broker.getLogger", () => {
 	});
 
 	describe("Test logger creator", () => {
-		let logger = jest.fn();
+		let logger = jest.fn(() => ({ info: jest.fn() }));
 		let broker;
 
 		it("should call logger function with broker bindings", () => {
 			broker = new ServiceBroker({ internalServices: false, logger, namespace: "testing", nodeID: "test-pc" });
 
-			expect(logger).toHaveBeenCalledTimes(1);
+			expect(logger).toHaveBeenCalledTimes(2);
 			expect(logger).toHaveBeenCalledWith({"mod": "broker", "nodeID": "test-pc", "ns": "testing"});
 		});
 
@@ -713,6 +705,8 @@ describe("Test broker.getLogger", () => {
 			info: jest.fn()
 		};
 		let broker = new ServiceBroker({ internalServices: false, logger });
+
+		logger.info.mockClear();
 
 		expect(logger.fatal).toBeDefined();
 		expect(logger.error).toBeDefined();
@@ -810,31 +804,40 @@ describe("Test loadServices", () => {
 
 describe("Test broker.loadService", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ hotReload: true });
 	broker.createService = jest.fn(svc => svc);
 	broker.servicesChanged = jest.fn();
+	broker.watchService = jest.fn();
 
 	it("should load service from schema", () => {
 		// Load schema
 		let service = broker.loadService("./test/services/math.service.js");
 		expect(service).toBeDefined();
+		expect(service.__filename).toBeDefined();
 		expect(broker.createService).toHaveBeenCalledTimes(1);
-		//expect(broker.createService).toHaveBeenCalledWith({ name: "math" });
+		expect(broker.watchService).toHaveBeenCalledTimes(1);
+		expect(broker.watchService).toHaveBeenCalledWith(service);
 	});
 
 	it("should call function which returns Service instance", () => {
 		broker.createService.mockClear();
+		broker.watchService.mockClear();
 		let service = broker.loadService("./test/services/user.service.js");
 		expect(service).toBeInstanceOf(Service);
 		expect(broker.createService).toHaveBeenCalledTimes(0);
 		expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
+		expect(broker.watchService).toHaveBeenCalledTimes(1);
+		expect(broker.watchService).toHaveBeenCalledWith(service);
 	});
 
 	it("should call function which returns schema", () => {
 		broker.createService.mockClear();
+		broker.watchService.mockClear();
 		let service = broker.loadService("./test/services/post.service.js");
 		expect(service).toBeDefined();
 		expect(broker.createService).toHaveBeenCalledTimes(1);
+		expect(broker.watchService).toHaveBeenCalledTimes(1);
+		expect(broker.watchService).toHaveBeenCalledWith(service);
 	});
 
 });
@@ -859,9 +862,7 @@ describe("Test broker.createService", () => {
 	});
 
 	it("should call mergeSchema if give schema mods param", () => {
-		let utils = require("../../src/utils");
-
-		utils.mergeSchemas = jest.fn((s1, s2) => s1);
+		utils.mergeSchemas = jest.fn(s1 => s1);
 		let schema = {
 			name: "test",
 			actions: {
@@ -881,6 +882,23 @@ describe("Test broker.createService", () => {
 
 });
 
+describe("Test broker.registerLocalService", () => {
+
+	let broker = new ServiceBroker({ internalServices: false });
+
+	it("should add service to list", () => {
+		let svc = { name: "test" };
+		let registryItem = { actions: {} };
+		broker.registry.registerLocalService = jest.fn();
+
+		expect(broker.services.length).toBe(0);
+		broker.registerLocalService(svc, registryItem);
+		expect(broker.services.length).toBe(1);
+		expect(broker.services[0]).toBe(svc);
+		expect(broker.registry.registerLocalService).toHaveBeenCalledTimes(1);
+		expect(broker.registry.registerLocalService).toHaveBeenCalledWith(registryItem);
+	});
+});
 
 describe("Test broker.destroyService", () => {
 
@@ -896,19 +914,20 @@ describe("Test broker.destroyService", () => {
 	});
 
 	it("should destroy service", () => {
-		broker.serviceRegistry.unregisterService = jest.fn();
+		broker.registry.unregisterService = jest.fn();
 		broker.servicesChanged = jest.fn();
 
 		expect(broker.services.length).toBe(1);
 
-		return broker.destroyService(service).then(() => {
+		return broker.destroyService(service).catch(protectReject).then(() => {
 
 			expect(stopped).toHaveBeenCalledTimes(1);
 
-			expect(broker.serviceRegistry.unregisterService).toHaveBeenCalledTimes(1);
-			expect(broker.serviceRegistry.unregisterService).toHaveBeenCalledWith(broker.nodeID, "greeter");
+			expect(broker.registry.unregisterService).toHaveBeenCalledTimes(1);
+			expect(broker.registry.unregisterService).toHaveBeenCalledWith("greeter", undefined);
 
 			expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
+			expect(broker.servicesChanged).toHaveBeenCalledWith(true);
 
 			expect(broker.services.length).toBe(0);
 		});
@@ -923,131 +942,50 @@ describe("Test broker.servicesChanged", () => {
 		transporter: new FakeTransporter()
 	});
 
-	broker.emitLocal = jest.fn();
+	broker.broadcastLocal = jest.fn();
 	broker.transit.sendNodeInfo = jest.fn();
 
 	beforeAll(() => broker.start());
 
-	it("should call emitLocal & transit.sendNodeInfo", () => {
+	it("should call broadcastLocal without transit.sendNodeInfo because remote changes", () => {
+		broker.broadcastLocal.mockClear();
 		broker.transit.sendNodeInfo.mockClear();
 
-		broker.servicesChanged();
+		broker.servicesChanged(false);
 
-		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("services.changed");
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$services.changed", { localService: false });
+
+		expect(broker.transit.sendNodeInfo).toHaveBeenCalledTimes(0);
+	});
+
+	it("should call broadcastLocal & transit.sendNodeInfo", () => {
+		broker.transit.sendNodeInfo.mockClear();
+		broker.broadcastLocal.mockClear();
+
+		broker.servicesChanged(true);
+
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$services.changed", { localService: true });
 
 		expect(broker.transit.sendNodeInfo).toHaveBeenCalledTimes(1);
 	});
 
-	it("should call emitLocal without transit.sendNodeInfo because it is disconnected", () => {
+	it("should call broadcastLocal without transit.sendNodeInfo because it is disconnected", () => {
 		broker.transit.connected = false;
 
-		broker.emitLocal.mockClear();
+		broker.broadcastLocal.mockClear();
 		broker.transit.sendNodeInfo.mockClear();
 
-		broker.servicesChanged();
+		broker.servicesChanged(true);
 
-		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("services.changed");
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$services.changed", { localService: true });
 
 		expect(broker.transit.sendNodeInfo).toHaveBeenCalledTimes(0);
 	});
 });
 
-describe("Test broker.registerLocalService", () => {
-
-	let broker = new ServiceBroker({ internalServices: false });
-	broker.emitLocal = jest.fn();
-	broker.serviceRegistry.registerService = jest.fn();
-
-	it("should push to the services & call service registry", () => {
-		let service = {
-			name: "test"
-		};
-
-		broker.registerLocalService(service);
-		expect(broker.services.length).toBe(1);
-		expect(broker.services[0]).toBe(service);
-		expect(broker.serviceRegistry.registerService).toHaveBeenCalledTimes(1);
-		expect(broker.serviceRegistry.registerService).toHaveBeenCalledWith(broker.nodeID, service);
-	});
-
-});
-
-describe("Test broker.registerRemoteService", () => {
-
-	let broker = new ServiceBroker({ internalServices: false });
-	broker.serviceRegistry.registerService = jest.fn();
-	broker.registerAction = jest.fn();
-
-	it("should save service & actions", () => {
-		let service = {
-			name: "test",
-			actions: {
-				hello: {
-					name: "test.hello",
-					params: {}
-				},
-				hi: {
-					name: "test.hi"
-				}
-			}
-		};
-
-		broker.registerRemoteService("node-2", service);
-		expect(broker.services.length).toBe(0);
-		expect(broker.serviceRegistry.registerService).toHaveBeenCalledTimes(1);
-		expect(broker.serviceRegistry.registerService).toHaveBeenCalledWith("node-2", service);
-		expect(broker.registerAction).toHaveBeenCalledTimes(2);
-		expect(broker.registerAction).toHaveBeenCalledWith("node-2", { name: "test.hello", service, params: {} });
-		expect(broker.registerAction).toHaveBeenCalledWith("node-2", { name: "test.hi", service });
-	});
-
-});
-
-describe("Test broker.registerAction", () => {
-
-	let broker = new ServiceBroker();
-	broker.wrapAction = jest.fn();
-	broker.emitLocal = jest.fn();
-	broker.serviceRegistry.registerAction = jest.fn(() => true);
-
-	it("should push to the actions & emit an event without nodeID", () => {
-		let action = {
-			name: "user.list",
-			service: { name: "user" }
-		};
-
-		broker.registerAction(broker.nodeID, action);
-		expect(broker.wrapAction).toHaveBeenCalledTimes(1);
-
-		expect(broker.serviceRegistry.registerAction).toHaveBeenCalledTimes(1);
-		expect(broker.serviceRegistry.registerAction).toHaveBeenCalledWith(broker.nodeID, action);
-
-		// expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		// expect(broker.emitLocal).toHaveBeenCalledWith("register.action.user.list", { action, nodeID: broker.nodeID });
-	});
-
-	it("should push to the actions & emit an event with nodeID", () => {
-		broker.serviceRegistry.registerAction.mockClear();
-		broker.wrapAction.mockClear();
-		broker.emitLocal.mockClear();
-		let action = {
-			name: "user.update",
-			service: { name: "user" }
-		};
-
-		broker.registerAction("server-2", action);
-		expect(broker.wrapAction).toHaveBeenCalledTimes(0);
-
-		expect(broker.serviceRegistry.registerAction).toHaveBeenCalledTimes(1);
-		expect(broker.serviceRegistry.registerAction).toHaveBeenCalledWith("server-2", action);
-
-		// expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		// expect(broker.emitLocal).toHaveBeenCalledWith("register.action.user.update", { action, nodeID: "server-2" });
-	});
-
-});
 
 describe("Test broker.wrapAction", () => {
 
@@ -1086,177 +1024,6 @@ describe("Test broker.wrapAction", () => {
 
 });
 
-/*
-describe("Test broker.wrapContextInvoke", () => {
-
-	describe("Test wrapping", () => {
-		let broker = new ServiceBroker();
-
-		let origHandler = jest.fn(() => Promise.resolve());
-		let action = {
-			name: "list",
-			handler: origHandler
-		};
-
-		it("should wrap the handler and set to the action", () => {
-			broker.wrapContextInvoke(action, origHandler);
-			expect(action.handler).not.toBe(origHandler);
-		});
-	});
-
-	describe("Test with success response", () => {
-
-		let broker = new ServiceBroker();
-
-		let origHandler = jest.fn(() => Promise.resolve());
-		let action = {
-			name: "list",
-			handler: origHandler
-		};
-		broker.wrapContextInvoke(action, origHandler);
-
-		it("should call only origHandler", () => {
-			let ctx = new Context(broker, action);
-			ctx._metricStart = jest.fn();
-			ctx._metricFinish = jest.fn();
-
-			return action.handler(ctx).then(() => {
-				expect(ctx._metricStart).toHaveBeenCalledTimes(0);
-				expect(ctx._metricFinish).toHaveBeenCalledTimes(0);
-
-				expect(origHandler).toHaveBeenCalledTimes(1);
-				expect(origHandler).toHaveBeenCalledWith(ctx);
-			});
-		});
-
-	});
-
-	describe("Test with success resolve & statistics & metrics", () => {
-
-		let broker = new ServiceBroker({
-			metrics: true,
-			statistics: true
-		});
-		broker.statistics.addRequest = jest.fn();
-
-		let origHandler = jest.fn(() => Promise.resolve());
-		let action = {
-			name: "list",
-			handler: origHandler
-		};
-		broker.wrapContextInvoke(action, origHandler);
-
-		it("should call only origHandler", () => {
-			let ctx = new Context(broker, action);
-			ctx.metrics = true;
-			ctx._metricStart = jest.fn();
-			ctx._metricFinish = jest.fn();
-
-			return action.handler(ctx).then(() => {
-				expect(ctx._metricStart).toHaveBeenCalledTimes(1);
-				expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
-				expect(broker.statistics.addRequest).toHaveBeenCalledTimes(1);
-				expect(broker.statistics.addRequest).toHaveBeenCalledWith("list", 0, null);
-
-				expect(origHandler).toHaveBeenCalledTimes(1);
-				expect(origHandler).toHaveBeenCalledWith(ctx);
-			});
-		});
-
-	});
-
-	describe("Test with error reject & statistics & metrics", () => {
-
-		let broker = new ServiceBroker({
-			metrics: true,
-			statistics: true
-		});
-		broker.statistics.addRequest = jest.fn();
-
-		let origHandler = jest.fn(() => Promise.reject(new MoleculerError("Something went wrong!", 402)));
-		let action = {
-			name: "list",
-			handler: origHandler
-		};
-		broker.wrapContextInvoke(action, origHandler);
-
-		it("should call metrics & statistics methods & origHandler", () => {
-			let ctx = new Context(broker, action);
-			ctx.metrics = true;
-			ctx._metricStart = jest.fn();
-			ctx._metricFinish = jest.fn();
-
-			return action.handler(ctx).catch(err => {
-				expect(err).toBeInstanceOf(MoleculerError);
-				expect(err.message).toBe("Something went wrong!");
-				expect(err.ctx).toBe(ctx);
-				expect(ctx._metricStart).toHaveBeenCalledTimes(1);
-				expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
-				expect(ctx._metricFinish).toHaveBeenCalledWith(err);
-				expect(broker.statistics.addRequest).toHaveBeenCalledTimes(1);
-				expect(broker.statistics.addRequest).toHaveBeenCalledWith("list", 0, 402);
-
-				expect(origHandler).toHaveBeenCalledTimes(1);
-				expect(origHandler).toHaveBeenCalledWith(ctx);
-			});
-		});
-
-	});
-
-	describe("Test with rejected error message", () => {
-
-		let broker = new ServiceBroker();
-
-		let origHandler = jest.fn(() => Promise.reject("My custom error message"));
-		let action = {
-			name: "list",
-			handler: origHandler
-		};
-		broker.wrapContextInvoke(action, origHandler);
-
-		it("should convert error message to MoleculerError", () => {
-			let ctx = new Context(broker, action);
-
-			return action.handler(ctx).catch(err => {
-				expect(err).toBeInstanceOf(MoleculerError);
-				expect(err.message).toBe("My custom error message");
-				expect(err.code).toBe(500);
-				expect(err.ctx).toBe(ctx);
-			});
-		});
-
-	});
-
-});
-*/
-
-describe("Test broker.unregisterAction", () => {
-
-	let broker = new ServiceBroker();
-
-	broker.serviceRegistry.unregisterAction = jest.fn(() => true);
-
-	let action = {
-		name: "list"
-	};
-
-	it("should call unregister of serviceRegistry without nodeID", () => {
-		broker.unregisterAction(broker.nodeID, action);
-
-		expect(broker.serviceRegistry.unregisterAction).toHaveBeenCalledTimes(1);
-		expect(broker.serviceRegistry.unregisterAction).toHaveBeenCalledWith(broker.nodeID, action);
-	});
-
-	it("should call unregister of serviceRegistry with nodeID", () => {
-		broker.serviceRegistry.unregisterAction.mockClear();
-
-		broker.unregisterAction("server-2", action);
-
-		expect(broker.serviceRegistry.unregisterAction).toHaveBeenCalledTimes(1);
-		expect(broker.serviceRegistry.unregisterAction).toHaveBeenCalledWith("server-2", action);
-	});
-});
-
 describe("Test broker.registerInternalServices", () => {
 
 	it("should register internal action without statistics", () => {
@@ -1273,6 +1040,7 @@ describe("Test broker.registerInternalServices", () => {
 			list: jasmine.any(Object),
 			services: jasmine.any(Object),
 			actions: jasmine.any(Object),
+			events: jasmine.any(Object),
 			health: jasmine.any(Object),
 		} });
 	});
@@ -1291,131 +1059,53 @@ describe("Test broker.registerInternalServices", () => {
 			list: jasmine.any(Object),
 			services: jasmine.any(Object),
 			actions: jasmine.any(Object),
+			events: jasmine.any(Object),
 			health: jasmine.any(Object),
 			stats: jasmine.any(Object),
 		} });
 	});
 });
 
-describe("Test broker.on", () => {
-	let broker = new ServiceBroker();
-	broker.bus.on = jest.fn();
-
-	it("should register handler on this.bus", () => {
-		broker.on("test.event", jest.fn());
-
-		expect(broker.bus.on).toHaveBeenCalledTimes(1);
-		expect(broker.bus.on).toHaveBeenCalledWith("test.event", jasmine.any(Function));
-	});
-});
-
-describe("Test broker.once", () => {
-	let broker = new ServiceBroker();
-	broker.bus.once = jest.fn();
-
-	it("should register handler once on this.bus", () => {
-		broker.once("test.event", jest.fn());
-
-		expect(broker.bus.once).toHaveBeenCalledTimes(1);
-		expect(broker.bus.once).toHaveBeenCalledWith("test.event", jasmine.any(Function));
-	});
-});
-
-describe("Test broker.off", () => {
-	let broker = new ServiceBroker();
-	broker.bus.off = jest.fn();
-
-	it("should unregister handler on this.bus", () => {
-		broker.off("test.event", jest.fn());
-
-		expect(broker.bus.off).toHaveBeenCalledTimes(1);
-		expect(broker.bus.off).toHaveBeenCalledWith("test.event", jasmine.any(Function));
-	});
-});
-
-describe("Test broker.getService & hasService", () => {
+describe("Test broker.getLocalService", () => {
 	let broker = new ServiceBroker();
 	let service = broker.createService({
 		name: "posts"
 	});
 
 	it("should find the service by name", () => {
-		let found = broker.getService("posts");
-		expect(found).toBeDefined();
-		expect(found).toBe(service);
-		expect(broker.hasService("posts")).toBe(true);
+		expect(broker.getLocalService("posts")).toBe(service);
+		expect(broker.getLocalService("other")).toBeUndefined();
 	});
 
-	it("should not find the service by name", () => {
-		let found = broker.getService("other");
-		expect(found).not.toBeDefined();
-		expect(broker.hasService("other")).toBe(false);
-	});
 });
 
-describe("Test broker.hasAction", () => {
+describe("Test broker.waitForServices", () => {
 	let broker = new ServiceBroker();
-	broker.createService({
-		name: "posts",
-		actions: {
-			list: jest.fn()
-		}
+	let res = false;
+	broker.registry.hasService = jest.fn(() => res);
+
+	it("should wait service", () => {
+		let p = broker.waitForServices("posts", 10 * 1000, 100).catch(protectReject).then(() => {
+			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
+		});
+
+		setTimeout(() => res = true, 450);
+
+		return p;
 	});
 
-	it("should find the action by name", () => {
-		expect(broker.hasAction("posts.list")).toBe(true);
+	it("should reject if timed out", () => {
+		broker.registry.hasService.mockClear();
+		res = false;
+		let p = broker.waitForServices("posts", 300, 100).then(protectReject).catch(err => {
+			expect(err).toBeInstanceOf(MoleculerError);
+		});
+
+		setTimeout(() => res = true, 450);
+
+		return p;
 	});
 
-	it("should not find the action by name", () => {
-		expect(broker.hasAction("posts.create")).toBe(false);
-	});
-});
-
-describe("Test broker.getAction", () => {
-	let broker = new ServiceBroker();
-	const list = {
-		custom: "hello",
-		cache: true,
-		handler: jest.fn()
-	};
-	broker.createService({
-		name: "posts",
-		actions: {
-			list
-		}
-	});
-
-	it("should find the action by name", () => {
-		const { action } = broker.getAction("posts.list");
-		expect(action.custom).toBe("hello");
-		expect(action.cache).toBe(true);
-		expect(action.handler).toBeInstanceOf(Function);
-	});
-
-	it("should not find the action by name", () => {
-		expect(broker.getAction("posts.create")).toBe(null);
-	});
-});
-
-describe("Test broker.isActionAvailable", () => {
-	let broker = new ServiceBroker();
-	broker.createService({
-		name: "posts",
-		actions: {
-			list: jest.fn()
-		}
-	});
-
-	it("should find handler for action by name", () => {
-		expect(broker.hasAction("posts.list")).toBe(true);
-		expect(broker.isActionAvailable("posts.list")).toBe(true);
-	});
-
-	it("should not find handler for action by name", () => {
-		broker.unregisterAction(broker.nodeID, { name: "posts.list" });
-		expect(broker.hasAction("posts.list")).toBe(true);
-		expect(broker.isActionAvailable("posts.list")).toBe(false);
-	});
 });
 
 describe("Test broker.use (middleware)", () => {
@@ -1442,341 +1132,672 @@ describe("Test broker.use (middleware)", () => {
 	});
 });
 
-describe("Test broker.call method", () => {
+describe("Test broker.findNextActionEndpoint", () => {
+	let broker = new ServiceBroker({ internalServices: false });
+	let actionHandler = jest.fn(ctx => ctx);
+	broker.createService({
+		name: "posts",
+		actions: {
+			find: actionHandler,
+			noHandler: jest.fn(),
+			slow() {
+				return Promise.delay(5000).then(() => "OK");
+			}
+		}
+	});
 
-	describe("Test local call", () => {
+	it("should return actionName if it is not String", () => {
+		let ep = {};
+		expect(broker.findNextActionEndpoint(ep, {})).toBe(ep);
+	});
 
+	it("should reject if no action", () => {
+		const err = broker.findNextActionEndpoint("posts.noaction");
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(ServiceNotFoundError);
+		expect(err.message).toBe("Service 'posts.noaction' is not found.");
+		expect(err.data).toEqual({ action: "posts.noaction", nodeID: undefined });
+	});
+
+	it("should reject if no handler", () => {
+		broker.registry.unregisterAction({ id: broker.nodeID }, "posts.noHandler");
+		const err = broker.findNextActionEndpoint("posts.noHandler", {});
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(ServiceNotAvailable);
+		expect(err.message).toBe("Service 'posts.noHandler' is not available.");
+		expect(err.data).toEqual({ action: "posts.noHandler", nodeID: undefined });
+	});
+
+	it("should reject if no action on node", () => {
+		const err = broker.findNextActionEndpoint("posts.noHandler", { nodeID: "node-123"});
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(ServiceNotFoundError);
+		expect(err.message).toBe("Service 'posts.noHandler' is not found on 'node-123' node.");
+		expect(err.data).toEqual({ action: "posts.noHandler", nodeID: "node-123" });
+	});
+
+	it("should find the endpoint with nodeID", () => {
+		let ep = broker.findNextActionEndpoint("posts.find", { nodeID: broker.nodeID});
+		expect(ep).toBeDefined();
+		expect(ep.action).toBeDefined();
+		expect(ep.id).toBe(broker.nodeID);
+	});
+
+	it("should find the endpoint", () => {
+		let ep = broker.findNextActionEndpoint("posts.find");
+		expect(ep).toBeDefined();
+		expect(ep.action).toBeDefined();
+		expect(ep.id).toBe(broker.nodeID);
+	});
+});
+
+describe("Test broker.call", () => {
+	let broker = new ServiceBroker({ internalServices: false, metrics: true });
+	let action = {
+		name: "posts.find",
+		handler: jest.fn(ctx => ctx)
+	};
+
+	let ep = {
+		id: broker.nodeID,
+		local: true,
+		action
+	};
+	broker.findNextActionEndpoint = jest.fn(() => ep);
+
+	broker._localCall = jest.fn(ctx => Promise.resolve(ctx));
+	broker._remoteCall = jest.fn(ctx => Promise.resolve(ctx));
+
+	it("should call _localCall with new Context without params", () => {
+		let p = broker.call("posts.find");
+		return p.catch(protectReject).then(ctx => {
+			expect(ctx).toBeDefined();
+			expect(ctx.broker).toBe(broker);
+			expect(ctx.nodeID).toBe(broker.nodeID);
+			expect(ctx.level).toBe(1);
+			expect(ctx.requestID).toBeNull();
+			expect(ctx.action.name).toBe("posts.find");
+			expect(ctx.params).toEqual({});
+			expect(ctx.metrics).toBe(true);
+			expect(ctx.timeout).toBe(0);
+
+			expect(broker._localCall).toHaveBeenCalledTimes(1);
+			expect(broker._localCall).toHaveBeenCalledWith(ctx, ep, {"retryCount": 0, "timeout": 0});
+		});
+	});
+
+	it("should call _localCall with new Context with params", () => {
+		broker._localCall.mockClear();
+		let params = { limit: 5, search: "John" };
+		return broker.call("posts.find", params).catch(protectReject).then(ctx => {
+			expect(ctx).toBeDefined();
+			expect(ctx.action.name).toBe("posts.find");
+			expect(ctx.params).toEqual(params);
+
+			expect(broker._localCall).toHaveBeenCalledTimes(1);
+			expect(broker._localCall).toHaveBeenCalledWith(ctx, ep, {"retryCount": 0, "timeout": 0});
+		});
+	});
+
+	it("should call _localCall with new Context with requestID & meta", () => {
+		broker._localCall.mockClear();
+		let params = { limit: 5, search: "John" };
+		let opts = { requestID: "123", meta: { a: 5 } };
+		return broker.call("posts.find", params, opts).catch(protectReject).then(ctx => {
+			expect(ctx).toBeDefined();
+			expect(ctx.action.name).toBe("posts.find");
+			expect(ctx.requestID).toBe("123"); // need enabled `metrics`
+			expect(ctx.meta).toEqual({ a: 5 });
+
+			expect(broker._localCall).toHaveBeenCalledTimes(1);
+			expect(broker._localCall).toHaveBeenCalledWith(ctx, ep, opts);
+		});
+	});
+
+	it("should call _localCall with a sub Context", () => {
+		broker._localCall.mockClear();
+		let parentCtx = new Context(broker);
+		parentCtx.params = { a: 5 };
+		parentCtx.requestID = "555";
+		parentCtx.meta = { a: 123 };
+		parentCtx.metrics = true;
+
+		let opts = { parentCtx, meta: { b: "Adam" } };
+		return broker.call("posts.find", { b: 10 }, opts).catch(protectReject).then(ctx => {
+			expect(ctx).toBeDefined();
+			expect(ctx.broker).toBe(broker);
+			expect(ctx.nodeID).toBe(broker.nodeID);
+			expect(ctx.level).toBe(2);
+			expect(ctx.parentID).toBe(parentCtx.id);
+			expect(ctx.requestID).toBe("555");
+			expect(ctx.action.name).toBe("posts.find");
+			expect(ctx.params).toEqual({ b: 10 });
+			expect(ctx.meta).toEqual({ a: 123, b: "Adam" });
+			expect(ctx.metrics).toBe(true);
+
+			expect(broker._localCall).toHaveBeenCalledTimes(1);
+			expect(broker._localCall).toHaveBeenCalledWith(ctx, ep, opts);
+		});
+	});
+
+	it("should call _localCall with a reused Context", () => {
+		broker._localCall.mockClear();
+		let preCtx = new Context(broker, { name: "posts.find" });
+		preCtx.params = { a: 5 };
+		preCtx.requestID = "555";
+		preCtx.meta = { a: 123 };
+		preCtx.metrics = true;
+
+		let opts = { ctx: preCtx };
+		return broker.call("posts.find", { b: 10 }, opts).catch(protectReject).then(ctx => {
+			expect(ctx).toBe(preCtx);
+			expect(ctx.broker).toBe(broker);
+			expect(ctx.nodeID).toBe(broker.nodeID);
+			expect(ctx.level).toBe(1);
+			expect(ctx.parentID).toBeNull();
+			expect(ctx.requestID).toBe("555");
+			expect(ctx.action.name).toBe("posts.find");
+			expect(ctx.params).toEqual({ a: 5 }); // params from reused context
+			expect(ctx.meta).toEqual({ a: 123 });
+			expect(ctx.metrics).toBe(true);
+
+			expect(broker._localCall).toHaveBeenCalledTimes(1);
+			expect(broker._localCall).toHaveBeenCalledWith(ctx, ep, opts);
+		});
+	});
+
+
+	it("should call _remoteCall with new Context with requestID & meta", () => {
+		broker._remoteCall.mockClear();
+		let ep = {
+			id: "node-12",
+			local: false,
+			action
+		};
+		broker.findNextActionEndpoint = jest.fn(() => ep);
+
+		let params = { limit: 5, search: "John" };
+		let opts = { requestID: "123", meta: { a: 5 } };
+		return broker.call("posts.find", params, opts).catch(protectReject).then(ctx => {
+			expect(ctx).toBeDefined();
+			expect(ctx.action.name).toBe("posts.find");
+			expect(ctx.requestID).toBe("123"); // need enabled `metrics`
+			expect(ctx.nodeID).toBe("node-12");
+			expect(ctx.meta).toEqual({ a: 5 });
+
+			expect(broker._remoteCall).toHaveBeenCalledTimes(1);
+			expect(broker._remoteCall).toHaveBeenCalledWith(ctx, ep, opts);
+		});
+	});
+});
+
+describe("Test broker.callWithoutBalancer", () => {
+	let broker = new ServiceBroker({ internalServices: false, metrics: true });
+	let action = {
+		name: "posts.find"
+	};
+
+	let ep = {
+		id: "node-11",
+		local: false,
+		action
+	};
+	broker.registry.getActionEndpoints = jest.fn(() => []);
+
+	broker._remoteCall = jest.fn(ctx => Promise.resolve(ctx));
+
+	it("should call remoteCall if actionName is an endpoint", () => {
+		let p = broker.callWithoutBalancer(ep);
+		return p.catch(protectReject).then(ctx => {
+			expect(ctx).toBeDefined();
+			expect(ctx.nodeID).toBe("node-11");
+			expect(ctx.level).toBe(1);
+			expect(ctx.requestID).toBeNull();
+			expect(ctx.action.name).toBe("posts.find");
+			expect(ctx.params).toEqual({});
+			expect(ctx.metrics).toBe(true);
+			expect(ctx.timeout).toBe(0);
+
+			expect(broker._remoteCall).toHaveBeenCalledTimes(1);
+			expect(broker._remoteCall).toHaveBeenCalledWith(ctx, null, {"retryCount": 0, "timeout": 0});
+		});
+	});
+
+	it("should reject if no action", () => {
+		broker.registry.getActionEndpoints = jest.fn();
+		return broker.callWithoutBalancer("posts.noaction", {}).then(protectReject).catch(err => {
+			expect(err).toBeDefined();
+			expect(err).toBeInstanceOf(ServiceNotFoundError);
+			expect(err.message).toBe("Service 'posts.noaction' is not found on 'node-1234' node.");
+			expect(err.data).toEqual({ action: "posts.noaction", nodeID: broker.nodeID });
+		});
+	});
+
+	it("should call _remoteCall with new Context without params", () => {
+		broker._remoteCall.mockClear();
+		broker.registry.getActionEndpoints = jest.fn(() => []);
+
+		let p = broker.callWithoutBalancer("posts.find");
+		return p.catch(protectReject).then(ctx => {
+			expect(ctx).toBeDefined();
+			expect(ctx.broker).toBe(broker);
+			expect(ctx.nodeID).toBe(null);
+			expect(ctx.level).toBe(1);
+			expect(ctx.requestID).toBeNull();
+			expect(ctx.action.name).toBe("posts.find");
+			expect(ctx.params).toEqual({});
+			expect(ctx.metrics).toBe(true);
+			expect(ctx.timeout).toBe(0);
+
+			expect(broker._remoteCall).toHaveBeenCalledTimes(1);
+			expect(broker._remoteCall).toHaveBeenCalledWith(ctx, null, {"retryCount": 0, "timeout": 0});
+		});
+	});
+
+	it("should call _remoteCall with new Context with params", () => {
+		broker._remoteCall.mockClear();
+		let params = { limit: 5, search: "John" };
+		return broker.callWithoutBalancer("posts.find", params).catch(protectReject).then(ctx => {
+			expect(ctx).toBeDefined();
+			expect(ctx.action.name).toBe("posts.find");
+			expect(ctx.params).toEqual(params);
+
+			expect(broker._remoteCall).toHaveBeenCalledTimes(1);
+			expect(broker._remoteCall).toHaveBeenCalledWith(ctx, null, {"retryCount": 0, "timeout": 0});
+		});
+	});
+
+	it("should call _remoteCall with specified nodeID", () => {
+		broker._remoteCall.mockClear();
+		let params = { limit: 5, search: "John" };
+		let opts = { nodeID: "node-10" };
+		return broker.callWithoutBalancer("posts.find", params, opts).catch(protectReject).then(ctx => {
+			expect(ctx).toBeDefined();
+			expect(ctx.action.name).toBe("posts.find");
+			expect(ctx.params).toEqual(params);
+			expect(ctx.nodeID).toBe("node-10");
+
+			expect(broker._remoteCall).toHaveBeenCalledTimes(1);
+			expect(broker._remoteCall).toHaveBeenCalledWith(ctx, null, opts);
+		});
+	});
+
+	it("should call _remoteCall with new Context with requestID & meta", () => {
+		broker._remoteCall.mockClear();
+		let params = { limit: 5, search: "John" };
+		let opts = { requestID: "123", meta: { a: 5 } };
+		return broker.callWithoutBalancer("posts.find", params, opts).catch(protectReject).then(ctx => {
+			expect(ctx).toBeDefined();
+			expect(ctx.action.name).toBe("posts.find");
+			expect(ctx.requestID).toBe("123"); // need enabled `metrics`
+			expect(ctx.meta).toEqual({ a: 5 });
+
+			expect(broker._remoteCall).toHaveBeenCalledTimes(1);
+			expect(broker._remoteCall).toHaveBeenCalledWith(ctx, null, opts);
+		});
+	});
+
+	it("should call _remoteCall with a sub Context", () => {
+		broker._remoteCall.mockClear();
+		let parentCtx = new Context(broker);
+		parentCtx.params = { a: 5 };
+		parentCtx.requestID = "555";
+		parentCtx.meta = { a: 123 };
+		parentCtx.metrics = true;
+
+		let opts = { parentCtx, meta: { b: "Adam" } };
+		return broker.callWithoutBalancer("posts.find", { b: 10 }, opts).catch(protectReject).then(ctx => {
+			expect(ctx).toBeDefined();
+			expect(ctx.broker).toBe(broker);
+			expect(ctx.nodeID).toBeNull();
+			expect(ctx.level).toBe(2);
+			expect(ctx.parentID).toBe(parentCtx.id);
+			expect(ctx.requestID).toBe("555");
+			expect(ctx.action.name).toBe("posts.find");
+			expect(ctx.params).toEqual({ b: 10 });
+			expect(ctx.meta).toEqual({ a: 123, b: "Adam" });
+			expect(ctx.metrics).toBe(true);
+
+			expect(broker._remoteCall).toHaveBeenCalledTimes(1);
+			expect(broker._remoteCall).toHaveBeenCalledWith(ctx, null, opts);
+		});
+	});
+
+	it("should call _remoteCall with a reused Context", () => {
+		broker._remoteCall.mockClear();
+		let preCtx = new Context(broker, { name: "posts.find" });
+		preCtx.params = { a: 5 };
+		preCtx.requestID = "555";
+		preCtx.meta = { a: 123 };
+		preCtx.metrics = true;
+
+		let opts = { ctx: preCtx };
+		return broker.callWithoutBalancer("posts.find", { b: 10 }, opts).catch(protectReject).then(ctx => {
+			expect(ctx).toBe(preCtx);
+			expect(ctx.broker).toBe(broker);
+			expect(ctx.nodeID).toBeNull();
+			expect(ctx.level).toBe(1);
+			expect(ctx.parentID).toBeNull();
+			expect(ctx.requestID).toBe("555");
+			expect(ctx.action.name).toBe("posts.find");
+			expect(ctx.params).toEqual({ a: 5 }); // params from reused context
+			expect(ctx.meta).toEqual({ a: 123 });
+			expect(ctx.metrics).toBe(true);
+
+			expect(broker._remoteCall).toHaveBeenCalledTimes(1);
+			expect(broker._remoteCall).toHaveBeenCalledWith(ctx, null, opts);
+		});
+	});
+
+});
+
+describe("Test broker._localCall", () => {
+
+	describe("Test with success handler", () => {
 		let broker = new ServiceBroker({ internalServices: false, metrics: true });
 
-		let actionHandler = jest.fn(ctx => ctx);
-		broker.createService({
-			name: "posts",
-			actions: {
-				find: actionHandler,
-				noHandler: jest.fn(),
-				slow() {
-					return Promise.delay(5000).then(() => "OK");
-				}
-			}
-		});
+		let action = {
+			name: "posts.find",
+			handler: jest.fn(ctx => Promise.resolve(ctx))
+		};
+		broker._finishCall = jest.fn();
 
-		it("should reject if no action", () => {
-			return broker.call("posts.noaction").catch(err => {
-				expect(err).toBeDefined();
-				expect(err).toBeInstanceOf(ServiceNotFoundError);
-				expect(err.message).toBe("Service 'posts.noaction' is not available!");
-				expect(err.data).toEqual({ action: "posts.noaction" });
+		it("should not call metricsStart & metricsFinish if no metrics", () => {
+			broker._finishCall.mockClear();
+
+			let ctx = new Context(broker, action);
+			ctx.metrics = false;
+			ctx._metricStart = jest.fn();
+
+			return broker._localCall(ctx).catch(protectReject).then(() => {
+				expect(ctx._metricStart).toHaveBeenCalledTimes(0);
+				expect(action.handler).toHaveBeenCalledTimes(1);
+				expect(action.handler).toHaveBeenCalledWith(ctx);
+				expect(broker._finishCall).toHaveBeenCalledTimes(0);
 			});
+
 		});
 
-		it("should reject if no handler", () => {
-			broker.unregisterAction(broker.nodeID, { name: "posts.noHandler" });
-			return broker.call("posts.noHandler").catch(err => {
-				expect(err).toBeDefined();
-				expect(err).toBeInstanceOf(ServiceNotFoundError);
-				expect(err.message).toBe("Service 'posts.noHandler' is not available!");
-				expect(err.data).toEqual({ action: "posts.noHandler" });
+		it("should call metricsStart & metricsFinish if has metrics", () => {
+			broker._finishCall.mockClear();
+			action.handler.mockClear();
+
+			let ctx = new Context(broker, action);
+			ctx.metrics = true;
+			ctx._metricStart = jest.fn();
+			broker._finishCall = jest.fn();
+
+			return broker._localCall(ctx).catch(protectReject).then(() => {
+				expect(ctx._metricStart).toHaveBeenCalledTimes(1);
+				expect(ctx._metricStart).toHaveBeenCalledWith(true);
+				expect(action.handler).toHaveBeenCalledTimes(1);
+				expect(action.handler).toHaveBeenCalledWith(ctx);
+				expect(broker._finishCall).toHaveBeenCalledTimes(1);
+				expect(broker._finishCall).toHaveBeenCalledWith(ctx, null);
 			});
+
 		});
 
-		it("should reject if no action on node", () => {
-			broker.unregisterAction(broker.nodeID, { name: "posts.noHandler" });
-			return broker.call("posts.noHandler", {}, { nodeID: "node-123"}).catch(err => {
-				expect(err).toBeDefined();
-				expect(err).toBeInstanceOf(ServiceNotFoundError);
-				expect(err.message).toBe("Service 'posts.noHandler' is not available on 'node-123' node!");
-				expect(err.data).toEqual({ action: "posts.noHandler", nodeID: "node-123" });
+		it("should call metricsStart & metricsFinish if has timeout", () => {
+			broker._finishCall.mockClear();
+			action.handler.mockClear();
+
+			let ctx = new Context(broker, action);
+			ctx.metrics = false;
+			ctx.timeout = 500;
+			ctx._metricStart = jest.fn();
+			broker._finishCall = jest.fn();
+
+			return broker._localCall(ctx).catch(protectReject).then(() => {
+				expect(ctx._metricStart).toHaveBeenCalledTimes(1);
+				expect(ctx._metricStart).toHaveBeenCalledWith(false);
+				expect(action.handler).toHaveBeenCalledTimes(1);
+				expect(action.handler).toHaveBeenCalledWith(ctx);
+				expect(broker._finishCall).toHaveBeenCalledTimes(0);
 			});
+
 		});
 
-		it("should call handler with new Context without params", () => {
-			let p = broker.call("posts.find");
-			return p.then(ctx => {
-				expect(ctx).toBeDefined();
-				expect(ctx.broker).toBe(broker);
-				expect(ctx.nodeID).toBe(broker.nodeID);
-				expect(ctx.level).toBe(1);
-				expect(ctx.requestID).toBeNull();
-				expect(ctx.action.name).toBe("posts.find");
-				expect(ctx.params).toEqual({});
-				expect(ctx.metrics).toBe(true);
+		it("should call endpoint.success if circuitBreaker is enabled", () => {
+			action.handler.mockClear();
 
-				expect(p.ctx).toBe(ctx);
-
-				expect(actionHandler).toHaveBeenCalledTimes(1);
-				expect(actionHandler).toHaveBeenCalledWith(ctx);
-			});
-		});
-
-		it("should call handler with new Context with params", () => {
-			actionHandler.mockClear();
-			let params = { limit: 5, search: "John" };
-			return broker.call("posts.find", params).then(ctx => {
-				expect(ctx).toBeDefined();
-				expect(ctx.action.name).toBe("posts.find");
-				expect(ctx.params).toEqual(params);
-
-				expect(actionHandler).toHaveBeenCalledTimes(1);
-				expect(actionHandler).toHaveBeenCalledWith(ctx);
-			});
-		});
-
-		it("should call handler with new Context with requestID", () => {
-			actionHandler.mockClear();
-			let params = { limit: 5, search: "John" };
-			let opts = { requestID: "123", meta: { a: 5 } };
-			return broker.call("posts.find", params, opts).then(ctx => {
-				expect(ctx).toBeDefined();
-				expect(ctx.action.name).toBe("posts.find");
-				expect(ctx.requestID).toBe("123"); // need enabled `metrics`
-				expect(ctx.meta).toEqual({ a: 5 });
-
-				expect(actionHandler).toHaveBeenCalledTimes(1);
-				expect(actionHandler).toHaveBeenCalledWith(ctx);
-			});
-		});
-
-		it("should call handler with a sub Context", () => {
-			actionHandler.mockClear();
-			let parentCtx = new Context(broker);
-			parentCtx.params = { a: 5 };
-			parentCtx.requestID = "555";
-			parentCtx.meta = { a: 123 };
-			parentCtx.metrics = true;
-
-			return broker.call("posts.find", { b: 10 }, { parentCtx, meta: { b: "Adam" } }).then(ctx => {
-				expect(ctx).toBeDefined();
-				expect(ctx.broker).toBe(broker);
-				expect(ctx.nodeID).toBe(broker.nodeID);
-				expect(ctx.level).toBe(2);
-				expect(ctx.parentID).toBe(parentCtx.id);
-				expect(ctx.requestID).toBe("555");
-				expect(ctx.action.name).toBe("posts.find");
-				expect(ctx.params).toEqual({ b: 10 });
-				expect(ctx.meta).toEqual({ a: 123, b: "Adam" });
-				expect(ctx.metrics).toBe(true);
-
-				expect(actionHandler).toHaveBeenCalledTimes(1);
-				expect(actionHandler).toHaveBeenCalledWith(ctx);
-			});
-		});
-
-		it("should throw Error if reached the 'maxCallLevel'", () => {
-			actionHandler.mockClear();
-			broker.options.maxCallLevel = 5;
-			let parentCtx = new Context(broker);
-			parentCtx.level = 5;
-
-			return broker.call("posts.find", { b: 10 }, { parentCtx }).then(() => {
-				expect(false).toBe(true);
-			}).catch(err => {
-				expect(err).toBeInstanceOf(MaxCallLevelError);
-				expect(err.code).toBe(500);
-				expect(err.data).toEqual({"action": "posts.find", "level": 6});
-				expect(actionHandler).toHaveBeenCalledTimes(0);
-			});
-		});
-
-		it("should call handler with a reused Context", () => {
-			actionHandler.mockClear();
-			let preCtx = new Context(broker, { name: "posts.find" });
-			preCtx.params = { a: 5 };
-			preCtx.requestID = "555";
-			preCtx.meta = { a: 123 };
-			preCtx.metrics = true;
-
-			preCtx._metricStart = jest.fn();
-			preCtx._metricFinish = jest.fn();
-
-			return broker.call("posts.find", { b: 10 }, { ctx: preCtx }).then(ctx => {
-				expect(ctx).toBe(preCtx);
-				expect(ctx.broker).toBe(broker);
-				expect(ctx.nodeID).toBe(broker.nodeID);
-				expect(ctx.level).toBe(1);
-				expect(ctx.parentID).toBeNull();
-				expect(ctx.requestID).toBe("555");
-				expect(ctx.action.name).toBe("posts.find");
-				expect(ctx.params).toEqual({ a: 5 }); // params from reused context
-				expect(ctx.meta).toEqual({ a: 123 });
-				expect(ctx.metrics).toBe(true);
-
-				expect(actionHandler).toHaveBeenCalledTimes(1);
-				expect(actionHandler).toHaveBeenCalledWith(ctx);
-
-				expect(preCtx._metricStart).toHaveBeenCalledTimes(1);
-				expect(preCtx._metricFinish).toHaveBeenCalledTimes(1);
-			});
-		});
-
-		it("should call if actionName is an object", () => {
-			actionHandler.mockClear();
-			let params = { search: "John" };
-			let actionItem = broker.getAction("posts.find");
-			return broker.call(actionItem, params).then(ctx => {
-				expect(ctx).toBeDefined();
-				expect(ctx.action.name).toBe("posts.find");
-				expect(ctx.params).toEqual(params);
-
-				expect(actionHandler).toHaveBeenCalledTimes(1);
-				expect(actionHandler).toHaveBeenCalledWith(ctx);
-			});
-		});
-
-		it("should call circuitClose if endpoint is in 'half-open' state", () => {
 			broker.options.circuitBreaker.enabled = true;
-			actionHandler.mockClear();
-			let params = { search: "John" };
-			let actionItem = broker.getAction("posts.find");
-			actionItem.circuitHalfOpen();
-			actionItem.circuitClose = jest.fn();
-			return broker.call(actionItem, params).then(ctx => {
-				expect(ctx).toBeDefined();
-				expect(actionHandler).toHaveBeenCalledTimes(1);
-				expect(actionItem.circuitClose).toHaveBeenCalledTimes(1);
+			let ep = {
+				success: jest.fn()
+			};
+
+			let ctx = new Context(broker, action);
+
+			return broker._localCall(ctx, ep).catch(protectReject).then(() => {
+				expect(ep.success).toHaveBeenCalledTimes(1);
+				expect(action.handler).toHaveBeenCalledWith(ctx);
 			});
+
 		});
 
+	});
 
-		it("should call _callErrorHandler if call timed out", () => {
-			let clock = lolex.install();
-			broker._callErrorHandler = jest.fn((err, ctx, endpoint, opts) => ({ err, ctx, endpoint, opts }));
+	describe("Test with fail handler", () => {
+		let broker = new ServiceBroker({ internalServices: false });
+		broker._finishCall = jest.fn();
+		broker._callErrorHandler = jest.fn(err => Promise.reject(err));
 
-			let p = broker.call("posts.slow", null, { timeout: 1000 });
-			clock.tick(2000);
+		let err = new MoleculerError("Wrong thing!");
+		let action = {
+			name: "posts.find",
+			handler: jest.fn(() => Promise.reject(err))
+		};
 
-			p.then(({ err, ctx, endpoint, opts }) => {
-				expect(err).toBeDefined();
-				expect(err).toBeInstanceOf(Promise.TimeoutError);
-				expect(ctx).toBeDefined();
-				expect(endpoint).toBeDefined();
-				expect(opts).toEqual({ retryCount: 0, timeout: 1000 });
+		it("should not call finishCall & call callErrorHandler", () => {
+			broker._finishCall.mockClear();
+			broker._callErrorHandler.mockClear();
+			action.handler.mockClear();
 
+			let ctx = new Context(broker, action);
+			let opts = {};
+
+			return broker._localCall(ctx, null, opts).then(protectReject).catch(err => {
+				expect(action.handler).toHaveBeenCalledTimes(1);
+				expect(action.handler).toHaveBeenCalledWith(ctx);
+				expect(broker._finishCall).toHaveBeenCalledTimes(0);
 				expect(broker._callErrorHandler).toHaveBeenCalledTimes(1);
-				//expect(broker._callErrorHandler).toHaveBeenCalledWith(ctx);
-
-				clock.uninstall();
+				expect(broker._callErrorHandler).toHaveBeenCalledWith(err, ctx, null, opts);
 			});
+
+		});
+	});
+});
+
+describe("Test broker._remoteCall", () => {
+
+	describe("Test with success handler", () => {
+		let broker = new ServiceBroker({ transporter: "Fake", internalServices: false });
+		let transit = broker.transit;
+
+		let action = {
+			name: "posts.find"
+		};
+		broker._finishCall = jest.fn();
+		transit.request = jest.fn(ctx => Promise.resolve(ctx));
+
+		it("should call transit.request", () => {
+			broker._finishCall.mockClear();
+			transit.request.mockClear();
+
+			let ctx = new Context(broker, action);
+
+			return broker._remoteCall(ctx).catch(protectReject).then(() => {
+				expect(transit.request).toHaveBeenCalledTimes(1);
+				expect(transit.request).toHaveBeenCalledWith(ctx);
+			});
+		});
+
+		it("should not call metricsStart & metricsFinish if has metrics", () => {
+			broker._finishCall.mockClear();
+			transit.request.mockClear();
+
+			let ctx = new Context(broker, action);
+			ctx.metrics = true;
+			ctx._metricStart = jest.fn();
+			broker._finishCall = jest.fn();
+
+			return broker._remoteCall(ctx).catch(protectReject).then(() => {
+				expect(ctx._metricStart).toHaveBeenCalledTimes(0);
+				expect(transit.request).toHaveBeenCalledTimes(1);
+				expect(transit.request).toHaveBeenCalledWith(ctx);
+				expect(broker._finishCall).toHaveBeenCalledTimes(0);
+			});
+
+		});
+
+		it("should not call metricsStart & metricsFinish if has timeout", () => {
+			broker._finishCall.mockClear();
+			transit.request.mockClear();
+
+			let ctx = new Context(broker, action);
+			ctx.metrics = false;
+			ctx.timeout = 500;
+			ctx._metricStart = jest.fn();
+			broker._finishCall = jest.fn();
+
+			return broker._remoteCall(ctx).catch(protectReject).then(() => {
+				expect(ctx._metricStart).toHaveBeenCalledTimes(0);
+				expect(transit.request).toHaveBeenCalledTimes(1);
+				expect(transit.request).toHaveBeenCalledWith(ctx);
+				expect(broker._finishCall).toHaveBeenCalledTimes(0);
+			});
+
+		});
+
+		it("should call endpoint.success if circuitBreaker is enabled", () => {
+			transit.request.mockClear();
+
+			broker.options.circuitBreaker.enabled = true;
+			let ep = {
+				success: jest.fn()
+			};
+
+			let ctx = new Context(broker, action);
+
+			return broker._remoteCall(ctx, ep).catch(protectReject).then(() => {
+				expect(ep.success).toHaveBeenCalledTimes(1);
+				expect(transit.request).toHaveBeenCalledWith(ctx);
+			});
+
 		});
 
 	});
 
+	describe("Test with fail handler", () => {
+		let broker = new ServiceBroker({ transporter: "Fake", internalServices: false });
+		let transit = broker.transit;
+		broker._callErrorHandler = jest.fn(err => Promise.reject(err));
 
+		let err = new MoleculerError("Wrong thing!");
+		let action = {
+			name: "posts.find"
+		};
+		transit.request = jest.fn(() => Promise.reject(err));
 
-	describe("Test remote call", () => {
+		it("should not call finishCall & call callErrorHandler", () => {
+			broker._callErrorHandler.mockClear();
+			transit.request.mockClear();
 
-		let broker = new ServiceBroker({
-			transporter: new FakeTransporter(),
-			internalServices: false,
-			metrics: true
-		});
-		broker.registerAction("server-2", {	name: "user.create", service: { name: "user" } });
-		broker.transit.request = jest.fn((ctx) => Promise.resolve({ ctx }));
+			let ctx = new Context(broker, action);
+			let opts = {};
 
-		it("should call transit.request with new Context without params", () => {
-			return broker.call("user.create").then(({ ctx }) => {
-				expect(ctx).toBeDefined();
-				expect(ctx.broker).toBe(broker);
-				expect(ctx.nodeID).toBe("server-2");
-				expect(ctx.level).toBe(1);
-				expect(ctx.requestID).toBeNull();
-				expect(ctx.action.name).toBe("user.create");
-				expect(ctx.params).toEqual({});
-				expect(ctx.metrics).toBe(true);
-
-				expect(ctx.timeout).toBe(0);
-				expect(ctx.retryCount).toBe(0);
-
-				expect(broker.transit.request).toHaveBeenCalledTimes(1);
-				expect(broker.transit.request).toHaveBeenCalledWith(ctx);
+			return broker._remoteCall(ctx, null, opts).then(protectReject).catch(err => {
+				expect(transit.request).toHaveBeenCalledTimes(1);
+				expect(transit.request).toHaveBeenCalledWith(ctx);
+				expect(broker._callErrorHandler).toHaveBeenCalledTimes(1);
+				expect(broker._callErrorHandler).toHaveBeenCalledWith(err, ctx, null, opts);
 			});
+
 		});
+	});
+});
 
-		it("should call transit.request with new Context with params & opts", () => {
-			broker.transit.request.mockClear();
-			let params = { limit: 5, search: "John" };
-			return broker.call("user.create", params, { timeout: 1000 }).then(({ ctx }) => {
-				expect(ctx).toBeDefined();
-				expect(ctx.action.name).toBe("user.create");
-				expect(ctx.params).toEqual(params);
+describe("Test broker._handleRemoteRequest", () => {
+	let broker = new ServiceBroker({ internalServices: false, metrics: true });
 
-				expect(ctx.timeout).toBe(1000);
-				expect(ctx.retryCount).toBe(0);
+	let ep = {
+		id: broker.nodeID,
+		local: true,
+		action: {
+			name: "posts.find"
+		}
+	};
 
-				expect(broker.transit.request).toHaveBeenCalledTimes(1);
-				expect(broker.transit.request).toHaveBeenCalledWith(ctx);
+	let epList = {
+		localEndpoint: ep
+	};
 
-				// expect(ctx._metricStart).toHaveBeenCalledTimes(1);
-				// expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
-			});
+	broker.registry.getActionEndpoints = jest.fn(() => epList);
+
+	broker._localCall = jest.fn(ctx => Promise.resolve(ctx));
+
+	it("should call _localCall with passed Context", () => {
+		let ctx = new Context(broker, ep.action);
+
+		return broker._handleRemoteRequest(ctx).catch(protectReject).then(res => {
+			expect(res).toBe(ctx);
+			expect(res.broker).toBe(broker);
+			expect(res.action).toBe(ep.action);
+			expect(res.timeout).toBe(0);
+
+			expect(broker._localCall).toHaveBeenCalledTimes(1);
+			expect(broker._localCall).toHaveBeenCalledWith(ctx, ep, {"timeout": 0});
 		});
-
 	});
 
+	it("should call _localCall with passed Context & timeout from ctx", () => {
+		broker._localCall.mockClear();
+		let ctx = new Context(broker, ep.action);
+		ctx.timeout = 380;
 
-	describe("Test direct remote call", () => {
+		return broker._handleRemoteRequest(ctx).catch(protectReject).then(res => {
+			expect(res).toBe(ctx);
+			expect(res.broker).toBe(broker);
+			expect(res.action).toBe(ep.action);
+			expect(res.timeout).toBe(380);
 
-		let broker = new ServiceBroker({
-			nodeID: "server-0",
-			transporter: new FakeTransporter(),
-			internalServices: false,
-			metrics: true
+			expect(broker._localCall).toHaveBeenCalledTimes(1);
+			expect(broker._localCall).toHaveBeenCalledWith(ctx, ep, {"timeout": 380});
 		});
-		const service = { name: "user" };
-		const localHandler = jest.fn(ctx => Promise.resolve(ctx));
-		broker.registerAction(broker.nodeID, {	name: "user.create", service, handler: localHandler });
-		broker.registerAction("server-1", {	name: "user.create", service });
-		broker.registerAction("server-2", {	name: "user.create", service });
-		broker.registerAction("server-3", {	name: "user.create", service });
-		broker.registerAction("server-4", {	name: "user.create", service });
-		broker.transit.request = jest.fn((ctx) => Promise.resolve({ ctx }));
-
-		it("should call transit.request with nodeID 'server-3'", () => {
-			return broker.call("user.create", {}, { nodeID: "server-3" }).then(({ ctx }) => {
-				expect(ctx).toBeDefined();
-				expect(ctx.broker).toBe(broker);
-				expect(ctx.nodeID).toBe("server-3");
-				expect(ctx.level).toBe(1);
-				expect(ctx.requestID).toBeNull();
-				expect(ctx.action.name).toBe("user.create");
-				expect(ctx.params).toEqual({});
-
-				expect(broker.transit.request).toHaveBeenCalledTimes(1);
-				expect(broker.transit.request).toHaveBeenCalledWith(ctx);
-			});
-		});
-
-		it("should call transit.request with nodeID 'server-1'", () => {
-			broker.transit.request.mockClear();
-			return broker.call("user.create", {}, { nodeID: "server-1" }).then(({ ctx }) => {
-				expect(ctx).toBeDefined();
-				expect(ctx.broker).toBe(broker);
-				expect(ctx.nodeID).toBe("server-1");
-				expect(ctx.level).toBe(1);
-				expect(ctx.requestID).toBeNull();
-				expect(ctx.action.name).toBe("user.create");
-				expect(ctx.params).toEqual({});
-
-				expect(broker.transit.request).toHaveBeenCalledTimes(1);
-				expect(broker.transit.request).toHaveBeenCalledWith(ctx);
-			});
-		});
-
-		it("should call local handler with local nodeID", () => {
-			return broker.call("user.create", {}, { nodeID: "server-0" }).then(ctx => {
-				expect(ctx).toBeDefined();
-				expect(ctx.broker).toBe(broker);
-				expect(ctx.nodeID).toBe("server-0");
-				expect(ctx.level).toBe(1);
-				expect(ctx.requestID).toBeNull();
-				expect(ctx.action.name).toBe("user.create");
-				expect(ctx.params).toEqual({});
-
-				expect(localHandler).toHaveBeenCalledTimes(1);
-				expect(localHandler).toHaveBeenCalledWith(ctx);
-			});
-		});
-
 	});
+
+	it("should throw ServiceNotFoundError if there is no endpoint list", () => {
+		broker._localCall.mockClear();
+		broker.registry.getActionEndpoints = jest.fn();
+
+		let ctx = new Context(broker, ep.action);
+
+		return broker._handleRemoteRequest(ctx).then(protectReject).catch(err => {
+			expect(err).toBeDefined();
+			expect(err).toBeInstanceOf(ServiceNotFoundError);
+			expect(err.message).toBe("Service 'posts.find' is not found on 'node-1234' node.");
+			expect(err.data).toEqual({ action: "posts.find", nodeID: "node-1234" });
+
+			expect(broker._localCall).toHaveBeenCalledTimes(0);
+		});
+	});
+
+	it("should throw ServiceNotFoundError if there is no local endpoint", () => {
+		broker._localCall.mockClear();
+		broker.registry.getActionEndpoints = jest.fn(() => ({ localEndpoint: null }));
+
+		let ctx = new Context(broker, ep.action);
+
+		return broker._handleRemoteRequest(ctx).then(protectReject).catch(err => {
+			expect(err).toBeDefined();
+			expect(err).toBeInstanceOf(ServiceNotFoundError);
+			expect(err.message).toBe("Service 'posts.find' is not found on 'node-1234' node.");
+			expect(err.data).toEqual({ action: "posts.find", nodeID: "node-1234" });
+
+			expect(broker._localCall).toHaveBeenCalledTimes(0);
+		});
+	});
+
 });
 
 describe("Test broker.mcall", () => {
@@ -1788,7 +1809,7 @@ describe("Test broker.mcall", () => {
 		return broker.mcall([
 			{ action: "posts.find", params: { limit: 2, offset: 0 }, options: { timeout: 500 } },
 			{ action: "users.find", params: { limit: 2, sort: "username" } }
-		]).then(res => {
+		]).catch(protectReject).then(res => {
 			expect(res).toEqual(["posts.find", "users.find"]);
 
 			expect(broker.call).toHaveBeenCalledTimes(2);
@@ -1803,7 +1824,7 @@ describe("Test broker.mcall", () => {
 		return broker.mcall({
 			posts: { action: "posts.find", params: { limit: 2, offset: 0 }, options: { timeout: 500 } },
 			users: { action: "users.find", params: { limit: 2, sort: "username" } }
-		}).then(res => {
+		}).catch(protectReject).then(res => {
 			expect(res).toEqual({ posts: "posts.find", users: "users.find"});
 
 			expect(broker.call).toHaveBeenCalledTimes(2);
@@ -1840,64 +1861,41 @@ describe("Test broker._callErrorHandler", () => {
 	let timeoutErr = new RequestTimeoutError("user.create", "server-2");
 	ctx._metricFinish = jest.fn();
 	transit.removePendingRequest = jest.fn();
-	let endpoint = new ServiceRegistry.Endpoint(broker, ctx.nodeID, ctx.action);
+	let endpoint = new Registry.Endpoint(broker, ctx.nodeID, ctx.action);
 	endpoint.failure = jest.fn();
 
 	it("should return error without retryCount & fallbackResponse", () => {
-		return broker._callErrorHandler(customErr, ctx, endpoint, {}).catch(err => {
+		return broker._callErrorHandler(customErr, ctx, endpoint, {}).then(protectReject).catch(err => {
 			expect(err).toBe(customErr);
 			expect(broker.call).toHaveBeenCalledTimes(0);
 			expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
 			expect(ctx._metricFinish).toHaveBeenCalledWith(err, true);
 			expect(transit.removePendingRequest).toHaveBeenCalledTimes(1);
 			expect(transit.removePendingRequest).toHaveBeenCalledWith(ctx.id);
-			expect(endpoint.failure).toHaveBeenCalledTimes(0);
-		});
-	});
-
-	it("should call endpoint.failure", () => {
-		return broker._callErrorHandler(timeoutErr, ctx, endpoint, {}).catch(() => {
 			expect(endpoint.failure).toHaveBeenCalledTimes(1);
 		});
 	});
 
-	it("should call endpoint.failure if errorCode >= 500", () => {
+	it("should not call endpoint.failure if circuitBreaker disabled", () => {
 		endpoint.failure.mockClear();
-		return broker._callErrorHandler(new MoleculerError("Wrong", 500), ctx, endpoint, {}).catch(() => {
-			expect(endpoint.failure).toHaveBeenCalledTimes(1);
-		});
-	});
-
-	it("should call endpoint.failure if errorCode >= 500", () => {
-		endpoint.failure.mockClear();
-		broker.options.circuitBreaker.failureOnReject = false;
-		return broker._callErrorHandler(new MoleculerError("Wrong", 500), ctx, endpoint, {}).catch(() => {
+		broker.options.circuitBreaker.enabled = false;
+		return broker._callErrorHandler(new MoleculerError("Wrong", 500), ctx, endpoint, {}).then(protectReject).catch(() => {
 			expect(endpoint.failure).toHaveBeenCalledTimes(0);
 		});
 	});
 
 	it("should convert error text to MoleculerError", () => {
-		return broker._callErrorHandler("Something happened", ctx, endpoint, {}).catch(err => {
+		return broker._callErrorHandler("Something happened", ctx, endpoint, {}).then(protectReject).catch(err => {
 			expect(err).toBeInstanceOf(MoleculerError);
 			expect(broker.call).toHaveBeenCalledTimes(0);
 		});
 	});
 
 	it("should convert Promise.TimeoutError to RequestTimeoutError", () => {
-		endpoint.failure.mockClear();
-		return broker._callErrorHandler(new Promise.TimeoutError, ctx, endpoint, {}).catch(err => {
+		return broker._callErrorHandler(new Promise.TimeoutError, ctx, endpoint, {}).then(protectReject).catch(err => {
 			expect(err).toBeInstanceOf(RequestTimeoutError);
-			expect(err.message).toBe("Request timed out when call 'user.create' action on 'server-2' node!");
+			expect(err.message).toBe("Request is timed out when call 'user.create' action on 'server-2' node.");
 			expect(broker.call).toHaveBeenCalledTimes(0);
-			expect(endpoint.failure).toHaveBeenCalledTimes(1);
-		});
-	});
-
-	it("should not call endpoint.failure if failureOnTimeout is false", () => {
-		broker.options.circuitBreaker.failureOnTimeout = false;
-		endpoint.failure.mockClear();
-		return broker._callErrorHandler(timeoutErr, ctx, endpoint, {}).catch(() => {
-			expect(endpoint.failure).toHaveBeenCalledTimes(0);
 		});
 	});
 
@@ -1905,7 +1903,7 @@ describe("Test broker._callErrorHandler", () => {
 		ctx._metricFinish.mockClear();
 		ctx.retryCount = 2;
 
-		return broker._callErrorHandler(timeoutErr, ctx, endpoint, {}).then(() => {
+		return broker._callErrorHandler(timeoutErr, ctx, endpoint, {}).catch(protectReject).then(() => {
 			expect(broker.call).toHaveBeenCalledTimes(1);
 			expect(broker.call).toHaveBeenCalledWith("user.create", {}, { ctx });
 
@@ -1919,7 +1917,7 @@ describe("Test broker._callErrorHandler", () => {
 		broker.call.mockClear();
 
 		let otherRes = {};
-		return broker._callErrorHandler(customErr, ctx, endpoint, { fallbackResponse: otherRes }).then(res => {
+		return broker._callErrorHandler(customErr, ctx, endpoint, { fallbackResponse: otherRes }).catch(protectReject).then(res => {
 			expect(res).toBe(otherRes);
 			expect(broker.call).toHaveBeenCalledTimes(0);
 
@@ -1935,7 +1933,7 @@ describe("Test broker._callErrorHandler", () => {
 
 		let otherRes = { a: 5 };
 		let otherFn = jest.fn(() => Promise.resolve(otherRes));
-		return broker._callErrorHandler(customErr, ctx, endpoint, { fallbackResponse: otherFn }).then(res => {
+		return broker._callErrorHandler(customErr, ctx, endpoint, { fallbackResponse: otherFn }).catch(protectReject).then(res => {
 			expect(res).toBe(otherRes);
 			expect(otherFn).toHaveBeenCalledTimes(1);
 			expect(otherFn).toHaveBeenCalledWith(ctx, customErr);
@@ -2039,42 +2037,6 @@ describe("Test broker._finishCall", () => {
 	});
 });
 
-describe("Test broker.emit", () => {
-	let broker = new ServiceBroker();
-	broker.emitLocal = jest.fn();
-
-	it("should call emitLocal without payload", () => {
-		broker.emit("test.event");
-
-		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("test.event", undefined);
-	});
-
-	it("should call emitLocal with object payload", () => {
-		broker.emitLocal.mockClear();
-		broker.emit("user.event", { name: "John" });
-
-		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("user.event", { name: "John" });
-	});
-});
-
-describe("Test broker.emit with transporter", () => {
-	let broker = new ServiceBroker({ transporter: new FakeTransporter });
-	broker.transit.emit = jest.fn();
-	broker.emitLocal = jest.fn();
-
-	it("should call transit.emit with object payload", () => {
-		broker.transit.emit.mockClear();
-		broker.emit("user.event", { name: "John" });
-
-		expect(broker.transit.emit).toHaveBeenCalledTimes(1);
-		expect(broker.transit.emit).toHaveBeenCalledWith("user.event", { name: "John" });
-		expect(broker.emitLocal).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocal).toHaveBeenCalledWith("user.event", { name: "John" });
-	});
-});
-
 describe("Test broker.shouldMetric", () => {
 
 	describe("Test broker.shouldMetric with 0.25", () => {
@@ -2118,40 +2080,268 @@ describe("Test broker.shouldMetric", () => {
 	});
 });
 
-describe("Test broker emit & emitLocal", () => {
-	let broker = new ServiceBroker({ nodeID: "server-1" });
-	broker.bus.emit = jest.fn();
+describe("Test broker.emit", () => {
+	let broker = new ServiceBroker();
+	let handler = jest.fn();
+	broker.registry.events.getBalancedEndpoints = jest.fn(() => [
+		[{
+			id: broker.nodeID,
+			event: { handler }
+		}, "users"],
+		[{
+			id: "node-2"
+		}, "payment"],
+	]);
+	broker.localBus.emit = jest.fn();
 
-	it("should call bus.emit without payload", () => {
+	it("should call the local handler", () => {
+		expect(broker.transit).toBeUndefined();
+
 		broker.emit("test.event");
 
-		expect(broker.bus.emit).toHaveBeenCalledTimes(1);
-		expect(broker.bus.emit).toHaveBeenCalledWith("test.event", undefined, "server-1");
+		expect(handler).toHaveBeenCalledTimes(1);
+		expect(handler).toHaveBeenCalledWith(undefined, broker.nodeID, "test.event");
+
+		expect(broker.localBus.emit).toHaveBeenCalledTimes(0);
+
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(1);
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith("test.event", undefined);
 	});
 
-	it("should call bus.emit with object payload", () => {
-		broker.bus.emit.mockClear();
+	it("should call the localBus.emit if it starts with '$'", () => {
+		handler.mockClear();
+		broker.localBus.emit.mockClear();
+		broker.registry.events.getBalancedEndpoints.mockClear();
+
+		broker.emit("$test.event", { a: 5 });
+
+		expect(handler).toHaveBeenCalledTimes(1);
+		expect(handler).toHaveBeenCalledWith({a: 5}, broker.nodeID, "$test.event");
+
+		expect(broker.localBus.emit).toHaveBeenCalledTimes(1);
+		expect(broker.localBus.emit).toHaveBeenCalledWith("$test.event", {a : 5});
+
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(1);
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith("$test.event", undefined);
+	});
+
+	it("should call getBalancedEndpoints with object payload", () => {
+		handler.mockClear();
+		broker.registry.events.getBalancedEndpoints.mockClear();
+
+		broker.emit("test.event", { a: 5 });
+
+		expect(handler).toHaveBeenCalledTimes(1);
+		expect(handler).toHaveBeenCalledWith({a : 5}, broker.nodeID, "test.event");
+
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(1);
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith("test.event", undefined);
+	});
+
+	it("should call getBalancedEndpoints with a group", () => {
+		handler.mockClear();
+		broker.registry.events.getBalancedEndpoints.mockClear();
+
+		broker.emit("test.event", { a: 5 }, "users");
+
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(1);
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith("test.event", ["users"]);
+	});
+
+	it("should call getBalancedEndpoints with multiple groups", () => {
+		handler.mockClear();
+		broker.registry.events.getBalancedEndpoints.mockClear();
+
+		broker.emit("test.event", { a: 5 }, ["users", "payments"]);
+
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(1);
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith("test.event", ["users", "payments"]);
+	});
+});
+
+describe("Test broker.emit with transporter", () => {
+	let broker = new ServiceBroker({ transporter: "Fake" });
+	broker.transit.sendBalancedEvent = jest.fn();
+	broker.transit.sendEventToGroups = jest.fn();
+	let handler = jest.fn();
+	broker.registry.events.getBalancedEndpoints = jest.fn(() => [
+		[{
+			id: broker.nodeID,
+			event: { handler }
+		}, "users"],
+		[{
+			id: "node-2"
+		}, "payment"],
+		[{
+			id: "node-3"
+		}, "users"],
+		[{
+			id: "node-2"
+		}, "mail"],
+	]);
+	broker.localBus.emit = jest.fn();
+
+	it("should call sendBalancedEvent with object payload", () => {
+		broker.transit.sendBalancedEvent.mockClear();
 		broker.emit("user.event", { name: "John" });
 
-		expect(broker.bus.emit).toHaveBeenCalledTimes(1);
-		expect(broker.bus.emit).toHaveBeenCalledWith("user.event", { name: "John" }, "server-1");
+		expect(handler).toHaveBeenCalledTimes(1);
+		expect(handler).toHaveBeenCalledWith({ name: "John" }, broker.nodeID, "user.event");
+		expect(broker.transit.sendBalancedEvent).toHaveBeenCalledTimes(1);
+		expect(broker.transit.sendBalancedEvent).toHaveBeenCalledWith("user.event", {"name": "John"}, {"node-2": ["payment", "mail"], "node-3": ["users"]});
+
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(1);
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith("user.event", undefined);
 	});
 
-	it("should call bus.emit with object payload", () => {
-		broker.bus.emit.mockClear();
-		broker.emitLocal("user.event", { name: "John" });
+	it("should call sendEventToGroups if no registry balancing", () => {
+		handler.mockClear();
+		broker.transit.sendEventToGroups.mockClear();
+		broker.registry.events.getBalancedEndpoints.mockClear();
 
-		expect(broker.bus.emit).toHaveBeenCalledTimes(1);
-		expect(broker.bus.emit).toHaveBeenCalledWith("user.event", { name: "John" }, "server-1");
+		broker.options.disableBalancer = true;
+
+		broker.emit("user.event", { name: "John" });
+
+		expect(handler).toHaveBeenCalledTimes(0);
+		expect(broker.transit.sendEventToGroups).toHaveBeenCalledTimes(1);
+		expect(broker.transit.sendEventToGroups).toHaveBeenCalledWith("user.event", {"name": "John"}, undefined);
+
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(0);
 	});
 
-	it("should call bus.emit with object payload", () => {
-		broker.bus.emit.mockClear();
-		broker.emitLocal("user.event", { name: "John" }, "server-2");
+	it("should call sendEventToGroups if no registry balancing with groups", () => {
+		handler.mockClear();
+		broker.transit.sendEventToGroups.mockClear();
+		broker.registry.events.getBalancedEndpoints.mockClear();
 
-		expect(broker.bus.emit).toHaveBeenCalledTimes(1);
-		expect(broker.bus.emit).toHaveBeenCalledWith("user.event", { name: "John" }, "server-2");
+		broker.options.disableBalancer = true;
+
+		broker.emit("user.event", { name: "John" }, ["users", "mail"]);
+
+		expect(handler).toHaveBeenCalledTimes(0);
+		expect(broker.transit.sendEventToGroups).toHaveBeenCalledTimes(1);
+		expect(broker.transit.sendEventToGroups).toHaveBeenCalledWith("user.event", {"name": "John"}, ["users", "mail"]);
+
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(0);
 	});
+
+	it("should not call sendEventToGroups if it is a local event", () => {
+		handler.mockClear();
+		broker.localBus.emit.mockClear();
+		broker.transit.sendEventToGroups.mockClear();
+		broker.registry.events.getBalancedEndpoints.mockClear();
+
+		broker.options.disableBalancer = true;
+
+		broker.emit("$user.event", { name: "John" }, ["users", "mail"]);
+
+		expect(broker.localBus.emit).toHaveBeenCalledTimes(1);
+		expect(broker.localBus.emit).toHaveBeenCalledWith("$user.event", { name: "John" });
+
+		expect(handler).toHaveBeenCalledTimes(0);
+		expect(broker.transit.sendEventToGroups).toHaveBeenCalledTimes(0);
+		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(0);
+	});
+});
+
+describe("Test broker broadcast", () => {
+	let broker = new ServiceBroker({ nodeID: "server-1", transporter: "Fake" });
+	broker.broadcastLocal = jest.fn();
+	broker.transit.sendEvent = jest.fn();
+
+	broker.registry.events.getAllEndpoints = jest.fn(() => [
+		{ id: "node-2" },
+		{ id: "node-3" },
+	]);
+
+	it("should call sendEvent & broadcastLocal without payload", () => {
+		broker.broadcast("test.event");
+
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("test.event", undefined, null, "server-1");
+
+		expect(broker.transit.sendEvent).toHaveBeenCalledTimes(2);
+		expect(broker.transit.sendEvent).toHaveBeenCalledWith("node-2", "test.event", undefined);
+		expect(broker.transit.sendEvent).toHaveBeenCalledWith("node-3", "test.event", undefined);
+
+		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledTimes(1);
+		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledWith("test.event");
+	});
+
+	it("should call sendEvent & broadcastLocal with object payload", () => {
+		broker.broadcastLocal.mockClear();
+		broker.transit.sendEvent.mockClear();
+		broker.registry.events.getAllEndpoints.mockClear();
+
+		broker.broadcast("user.event", { name: "John" });
+
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("user.event", { name: "John" }, null, "server-1");
+
+		expect(broker.transit.sendEvent).toHaveBeenCalledTimes(2);
+		expect(broker.transit.sendEvent).toHaveBeenCalledWith("node-2", "user.event", { name: "John" });
+		expect(broker.transit.sendEvent).toHaveBeenCalledWith("node-3", "user.event", { name: "John" });
+
+		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledTimes(1);
+		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledWith("user.event");
+	});
+
+	it("should not call sendEvent if local event", () => {
+		broker.broadcastLocal.mockClear();
+		broker.transit.sendEvent.mockClear();
+		broker.registry.events.getAllEndpoints.mockClear();
+
+		broker.broadcast("$user.event", { name: "John" });
+
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$user.event", { name: "John" }, null, "server-1");
+
+		expect(broker.transit.sendEvent).toHaveBeenCalledTimes(0);
+		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledTimes(0);
+	});
+
+});
+
+describe("Test broker broadcastLocal", () => {
+	let broker = new ServiceBroker({ nodeID: "server-1" });
+	broker.registry.events.emitLocalServices = jest.fn();
+	broker.localBus.emit = jest.fn();
+
+	it("should call emitLocalServices without payload", () => {
+		broker.broadcastLocal("test.event");
+
+		expect(broker.registry.events.emitLocalServices).toHaveBeenCalledTimes(1);
+		expect(broker.registry.events.emitLocalServices).toHaveBeenCalledWith("test.event", undefined, null, "server-1");
+
+		expect(broker.localBus.emit).toHaveBeenCalledTimes(0);
+	});
+
+	it("should call emitLocalServices with object payload", () => {
+		broker.localBus.emit.mockClear();
+		broker.registry.events.emitLocalServices.mockClear();
+
+		broker.broadcastLocal("user.event", { name: "John" });
+
+		expect(broker.registry.events.emitLocalServices).toHaveBeenCalledTimes(1);
+		expect(broker.registry.events.emitLocalServices).toHaveBeenCalledWith("user.event", { name: "John" }, null, "server-1");
+
+		expect(broker.localBus.emit).toHaveBeenCalledTimes(0);
+	});
+
+	it("should call emitLocalServices with object payload", () => {
+		broker.localBus.emit.mockClear();
+		broker.registry.events.emitLocalServices.mockClear();
+
+		broker.broadcastLocal("$user.event", { name: "John" });
+
+		expect(broker.registry.events.emitLocalServices).toHaveBeenCalledTimes(1);
+		expect(broker.registry.events.emitLocalServices).toHaveBeenCalledWith("$user.event", { name: "John" }, null, "server-1");
+
+		expect(broker.localBus.emit).toHaveBeenCalledTimes(1);
+		expect(broker.localBus.emit).toHaveBeenCalledWith("$user.event", { name: "John" });
+	});
+
 });
 
 describe("Test hot-reload feature", () => {
@@ -2233,19 +2423,18 @@ describe("Test hot-reload feature", () => {
 			hotReload: true
 		});
 
-		let started = jest.fn(() => Promise.resolve());
 		let svc = broker.createService({
-			name: "test",
-			started
+			name: "test"
 		});
 		svc.__filename = "./hello.service.js";
 
 		broker.destroyService = jest.fn(() => Promise.resolve(svc));
 		broker.loadService = jest.fn(() => Promise.resolve(svc));
 
+		beforeAll(() => broker.start());
+
 		it("should call hot reload methods", () => {
-			started.mockClear();
-			return broker.hotReloadService(svc).then(() => {
+			return broker.hotReloadService(svc).catch(protectReject).then(() => {
 
 				expect(utils.clearRequireCache).toHaveBeenCalledTimes(1);
 				expect(utils.clearRequireCache).toHaveBeenCalledWith("./hello.service.js");
@@ -2255,12 +2444,48 @@ describe("Test hot-reload feature", () => {
 
 				expect(broker.loadService).toHaveBeenCalledTimes(1);
 				expect(broker.loadService).toHaveBeenCalledWith("./hello.service.js");
-
-				expect(started).toHaveBeenCalledTimes(1);
-
 			});
 		});
 	});
+});
 
+describe("Test broker getHealthStatus", () => {
+	let broker = new ServiceBroker();
+
+	it("should call H.getHealthStatus", () => {
+		broker.getHealthStatus();
+
+		expect(H.getHealthStatus).toHaveBeenCalledTimes(1);
+		expect(H.getHealthStatus).toHaveBeenCalledWith(broker);
+	});
+
+});
+
+describe("Test registry links", () => {
+	let broker = new ServiceBroker({ transporter: "Fake" });
+
+	broker.registry.getLocalNodeInfo = jest.fn();
+	broker.registry.events.getGroups = jest.fn();
+	broker.registry.events.emitLocalServices = jest.fn();
+
+	it("should call registry.getLocalNodeInfo", () => {
+		broker.getLocalNodeInfo();
+
+		expect(broker.registry.getLocalNodeInfo).toHaveBeenCalledTimes(1);
+	});
+
+	it("should call registry.", () => {
+		broker.getEventGroups("event.name");
+
+		expect(broker.registry.events.getGroups).toHaveBeenCalledTimes(1);
+		expect(broker.registry.events.getGroups).toHaveBeenCalledWith("event.name");
+	});
+
+	it("should call registry.events.emitLocalServices", () => {
+		broker.emitLocalServices("user.created", { a: 5 }, ["users"], "node-3");
+
+		expect(broker.registry.events.emitLocalServices).toHaveBeenCalledTimes(1);
+		expect(broker.registry.events.emitLocalServices).toHaveBeenCalledWith("user.created", { a: 5 }, ["users"], "node-3");
+	});
 
 });

@@ -13,21 +13,14 @@
  */
 class BaseStrategy {
 
-	constructor() {
-		this.broker = null;
-	}
-
-	init(broker) {
+	constructor(registry, broker) {
+		this.registry = registry;
 		this.broker = broker;
 	}
 
 	select(/*list*/) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
-	}
-
-	getBroker() {
-		return this.broker;
 	}
 
 }

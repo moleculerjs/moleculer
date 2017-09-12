@@ -59,7 +59,14 @@ class Service {
 
 		this.actions = {}; // external access to actions
 
-		this.broker.registerLocalService(this);
+		//Service item for Registry
+		const registryItem = {
+			name: this.name,
+			version: this.version,
+			settings: this.settings,
+			actions: {},
+			events: {}
+		};
 
 		// Register actions
 		if (isObject(schema.actions)) {
@@ -70,8 +77,7 @@ class Service {
 
 				let innerAction = this._createAction(action, name);
 
-				// Register to broker
-				broker.registerAction(this.broker.nodeID, innerAction);
+				registryItem.actions[innerAction.name] = broker.wrapAction(innerAction);
 
 				// Expose to call `service.actions.find({ ...params })`
 				this.actions[name] = (params, opts) => {
@@ -86,34 +92,39 @@ class Service {
 		// Event subscriptions
 		if (isObject(schema.events)) {
 
-			forIn(schema.events, (eventHandlers, name) => {
-				if (!Array.isArray(eventHandlers))
-					eventHandlers = [eventHandlers];
-
-				eventHandlers.forEach(event => {
-					if (isFunction(event)) {
-						event = {
-							handler: event
-						};
-					}
-					if (!event.name)
-						event.name = event;
-
-					if (!isFunction(event.handler)) {
-						throw new ServiceSchemaError(`Missing event handler on '${name}' event in '${this.name}' service!`);
-					}
-
-					const self = this;
-					const handler = function(payload, sender) {
-						const p = event.handler.apply(self, [payload, sender, this.event]);
-						if (utils.isPromise(p)) {
-							p.catch(err => self.logger.error(err));
-						}
-						return null;
+			forIn(schema.events, (event, name) => {
+				if (isFunction(event) || Array.isArray(event)) {
+					event = {
+						handler: event
 					};
+				}
+				if (!event.name)
+					event.name = name;
 
-					broker.on(name, handler);
-				});
+				if (!event.handler) {
+					throw new ServiceSchemaError(`Missing event handler on '${name}' event in '${this.name}' service!`);
+				}
+
+				event.service = this;
+				const handler = event.handler;
+				const self = this;
+				event.handler = function(payload, sender, eventName) {
+					if (isFunction(handler)) {
+						const p = handler.apply(self, [payload, sender, eventName]);
+						if (utils.isPromise(p))
+							p.catch(err => self.logger.error(err));
+					} else if (Array.isArray(handler)) {
+						handler.forEach(fn => {
+							const p = fn.apply(self, [payload, sender, eventName]);
+							if (utils.isPromise(p))
+								p.catch(err => self.logger.error(err));
+						});
+					}
+
+					return null;
+				};
+
+				registryItem.events[event.name] = event;
 			});
 
 		}
@@ -131,6 +142,10 @@ class Service {
 
 		}
 
+		// Register service
+		broker.registerLocalService(this, registryItem);
+
+
 		// Create lifecycle runner methods
 		this.created = () => {
 			if (isFunction(this.schema.created)) {
@@ -145,7 +160,9 @@ class Service {
 				return this.Promise.method(this.schema.started).call(this);
 
 			if (Array.isArray(this.schema.started)) {
-				return this.schema.started.map(fn => this.Promise.method(fn.bind(this))).reduce((p, fn) => p.then(fn), this.Promise.resolve());
+				return this.schema.started
+					.map(fn => this.Promise.method(fn.bind(this)))
+					.reduce((p, fn) => p.then(fn), this.Promise.resolve());
 			}
 
 			return this.Promise.resolve();
@@ -156,7 +173,10 @@ class Service {
 				return this.Promise.method(this.schema.stopped).call(this);
 
 			if (Array.isArray(this.schema.stopped)) {
-				return this.schema.stopped.reverse().map(fn => this.Promise.method(fn.bind(this))).reduce((p, fn) => p.then(fn), this.Promise.resolve());
+				return this.schema.stopped
+					.reverse()
+					.map(fn => this.Promise.method(fn.bind(this)))
+					.reduce((p, fn) => p.then(fn), this.Promise.resolve());
 			}
 
 			return this.Promise.resolve();
@@ -173,6 +193,7 @@ class Service {
 	 * @param {any} name
 	 * @returns
 	 *
+	 * @private
 	 * @memberOf Service
 	 */
 	_createAction(actionDef, name) {
@@ -206,12 +227,24 @@ class Service {
 		}
 
 		//action.origName = name;
-		action.version = this.version;
 		action.service = this;
 		action.cache = action.cache !== undefined ? action.cache : (this.settings.$cache || false);
 		action.handler = this.Promise.method(handler.bind(this));
 
 		return action;
+	}
+
+	/**
+	 * Wait for other services
+	 *
+	 * @param {String|Array<String>} serviceNames
+	 * @param {Number} timeout Timeout in milliseconds
+	 * @param {Number} interval Check interval in milliseconds
+	 * @returns {Promise}
+	 * @memberof Service
+	 */
+	waitForServices(serviceNames, timeout, interval) {
+		return this.broker.waitForServices(serviceNames, timeout, interval, this.logger);
 	}
 
 	/**

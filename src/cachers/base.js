@@ -6,22 +6,21 @@
 
 "use strict";
 
-//const Promise 	= require("bluebird");
-const _ = require("lodash");
-const { hash } 		= require("node-object-hash")({ sort: false, coerce: false});
+const _ 		= require("lodash");
+const { hash } 	= require("node-object-hash")({ sort: false, coerce: false});
 
 /**
  * Abstract cacher class
- * 
+ *
  * @class Cacher
  */
 class Cacher {
 
 	/**
 	 * Creates an instance of Cacher.
-	 * 
+	 *
 	 * @param {object} opts
-	 * 
+	 *
 	 * @memberOf Cacher
 	 */
 	constructor(opts) {
@@ -32,9 +31,9 @@ class Cacher {
 
 	/**
 	 * Initialize cacher
-	 * 
+	 *
 	 * @param {any} broker
-	 * 
+	 *
 	 * @memberOf Cacher
 	 */
 	init(broker) {
@@ -49,6 +48,7 @@ class Cacher {
 
 			broker.use(this.middleware());
 
+			/* TODO
 			this.broker.on("cache.clean", payload => {
 				if (Array.isArray(payload))
 					payload.forEach(match => this.clean(match));
@@ -62,12 +62,13 @@ class Cacher {
 				else
 					this.del(payload);
 			});
+			*/
 		}
 	}
 
 	/**
 	 * Close cacher
-	 * 
+	 *
 	 * @memberOf Cacher
 	 */
 	close() {
@@ -77,9 +78,9 @@ class Cacher {
 
 	/**
 	 * Get a cached content by key
-	 * 
+	 *
 	 * @param {any} key
-	 * 
+	 *
 	 * @memberOf Cacher
 	 */
 	get(/*key*/) {
@@ -89,10 +90,10 @@ class Cacher {
 
 	/**
 	 * Set a content by key to cache
-	 * 
+	 *
 	 * @param {any} key
 	 * @param {any} data
-	 * 
+	 *
 	 * @memberOf Cacher
 	 */
 	set(/*key, data*/) {
@@ -102,9 +103,9 @@ class Cacher {
 
 	/**
 	 * Delete a content by key from cache
-	 * 
+	 *
 	 * @param {any} key
-	 * 
+	 *
 	 * @memberOf Cacher
 	 */
 	del(/*key*/) {
@@ -117,7 +118,7 @@ class Cacher {
 	 * Clean cache. Remove every key by match
 	 * @param {any} match string. Default is "**"
 	 * @returns {Promise}
-	 * 
+	 *
 	 * @memberOf Cacher
 	 */
 	clean(/*match = "**"*/) {
@@ -126,9 +127,9 @@ class Cacher {
 	}
 
 	/**
-	 * Get a cache key by name and params. 
+	 * Get a cache key by name and params.
 	 * Concatenate the name and the hashed params object
-	 * 
+	 *
 	 * @param {String} name
 	 * @param {Object} params
 	 * @param {Array|null} keys
@@ -160,7 +161,7 @@ class Cacher {
 
 	/**
 	 * Register cacher as a middleware
-	 * 
+	 *
 	 * @memberOf Cacher
 	 */
 	middleware() {

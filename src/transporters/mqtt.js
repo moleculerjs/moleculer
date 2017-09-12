@@ -11,7 +11,7 @@ const Transporter 	= require("./base");
 
 /**
  * Transporter for MQTT
- * 
+ *
  * @class MqttTransporter
  * @extends {Transporter}
  */
@@ -19,9 +19,9 @@ class MqttTransporter extends Transporter {
 
 	/**
 	 * Creates an instance of MqttTransporter.
-	 * 
+	 *
 	 * @param {any} opts
-	 * 
+	 *
 	 * @memberOf MqttTransporter
 	 */
 	constructor(opts) {
@@ -35,7 +35,7 @@ class MqttTransporter extends Transporter {
 
 	/**
 	 * Connect to the server
-	 * 
+	 *
 	 * @memberOf MqttTransporter
 	 */
 	connect() {
@@ -45,7 +45,7 @@ class MqttTransporter extends Transporter {
 				mqtt = require("mqtt");
 			} catch(err) {
 				/* istanbul ignore next */
-				this.broker.fatal("The 'mqtt' package is missing! Please install it with 'npm install mqtt --save' command!", err, true);
+				this.broker.fatal("The 'mqtt' package is missing. Please install it with 'npm install mqtt --save' command.", err, true);
 			}
 
 			const client = mqtt.connect(this.opts.mqtt);
@@ -53,14 +53,14 @@ class MqttTransporter extends Transporter {
 
 			client.on("connect", () => {
 				this.client = client;
-				this.logger.info("MQTT client is connected!");
+				this.logger.info("MQTT client is connected.");
 
 				this.onConnected().then(resolve);
 			});
 
 			/* istanbul ignore next */
 			client.on("error", (e) => {
-				this.logger.error("MQTT error!", e.message);
+				this.logger.error("MQTT error.", e.message);
 				this.logger.dbug(e);
 
 				if (!client.connected)
@@ -80,14 +80,14 @@ class MqttTransporter extends Transporter {
 			/* istanbul ignore next */
 			client.on("close", () => {
 				this.connected = false;
-				this.logger.warn("MQTT client is disconnected!");
+				this.logger.warn("MQTT client is disconnected.");
 			});
 		});
 	}
 
 	/**
 	 * Disconnect from the server
-	 * 
+	 *
 	 * @memberOf MqttTransporter
 	 */
 	disconnect() {
@@ -99,10 +99,10 @@ class MqttTransporter extends Transporter {
 
 	/**
 	 * Subscribe to a command
-	 * 
-	 * @param {String} cmd 
-	 * @param {String} nodeID 
-	 * 
+	 *
+	 * @param {String} cmd
+	 * @param {String} nodeID
+	 *
 	 * @memberOf MqttTransporter
 	 */
 	subscribe(cmd, nodeID) {
@@ -112,9 +112,9 @@ class MqttTransporter extends Transporter {
 
 	/**
 	 * Publish a packet
-	 * 
+	 *
 	 * @param {Packet} packet
-	 * 
+	 *
 	 * @memberOf MqttTransporter
 	 */
 	publish(packet) {

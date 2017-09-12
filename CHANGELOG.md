@@ -1,3 +1,119 @@
+<a name="0.11.0"></a>
+# [Next - 0.11.0](https://github.com/ice-services/moleculer/compare/v0.10.0...v0.11.0) (2017-xx-xx)
+
+# Breaking changes
+
+## Protocol changed [#86](https://github.com/ice-services/moleculer/issues/86)
+The Moleculer transportation protocol is changed. It means, **the new (>= v0.11) versions can't communicate with the old (<= v0.10.x) versions.**
+You can find more information about changes in [#86](https://github.com/ice-services/moleculer/issues/86) issue.
+
+## Balanced events
+The whole event handling is rewritten. From now Moleculer supports [event driven architecture](http://microservices.io/patterns/data/event-driven-architecture.html). It means the event emits are balanced like action calls.
+
+For example, you have 2 main services: `users` & `payments`. Both subscribe to the `user.created` event. You start 3 instances from `users` service and 2 instances from `payments` service. If you emit the event with `broker.emit('user.created')`, broker will grouping & balancing the event, so only one `users` and one `payments` service will receive the event. 
+You can also send broadcast events with the `broker.broadcast('user.created`) command. In this way every service instances on every nodes will receive the event.
+The `broker.broadcastLocal('user.created')` command send events only to the local services.
+
+## Renamed & new internal events
+Every internal event names start with '$'. These events are not transferred to remote nodes.
+
+**Renamed events:**
+- `node.connected` -> `$node.connected`
+- `node.updated` -> `$node.updated`
+- `node.disconnected` -> `$node.disconnected`
+- `services.changed` -> `$services.changed`. It is called if local or remote service list changed.
+- `circuit-breaker.closed` -> `$circuit-breaker.closed`
+- `circuit-breaker.opened` -> `$circuit-breaker.opened`
+- `circuit-breaker.half-opened` -> `$circuit-breaker.half-opened`
+
+**New events:**
+- global circuit breaker events for metrics: `metrics.circuit-breaker.closed`, `metrics.circuit-breaker.opened`, `metrics.circuit-breaker.half-opened`
+
+## Switchable built-in load balancer
+The built-in Moleculer load balancer is switchable. You can turn off it, if the transporter has internal balancer (currently only AMQP).
+
+```js
+const broker = new ServiceBroker({
+    disableBalancer: false
+});
+```
+
+> Please note! If built-in balancer is disabled, every calls & emits (includes locals too) are transferred via transporter.
+
+## Removed broker methods
+Some internal broker methods are removed or renamed.
+- `broker.bus` is removed. Use `events` in service schema instead.
+- `broker.on` is removed. Use `events` in service schema instead.
+- `broker.once` is removed. Use `events` in service schema instead.
+- `broker.off` is removed. Use `events` in service schema instead.
+- `broker.getService` is renamed to `broker.getLocalService`
+- `broker.hasService` is removed.
+- `broker.hasAction` is removed.
+- `broker.getAction` is deprecated.
+- `broker.isActionAvailable` is removed.
+
+
+## Changed local service responses
+Internal action (`$node.list`, `$node.services`, `$node.actions`, `$node.health`) responses are changed. New internal action (`$node.events`) to list event subscriptiion is added.
+
+## Broker option changes
+- `heartbeatInterval` default value is changed from `10` to `5`.
+- `heartbeatTimeout` default value is changed from `30` to `15`.
+- `circuitBreaker.maxFailures` default value is changed from `5` to `3`.
+- `logFormatter` accepts string. The `simple` value is a new formatter to show only log level & log messages.
+
+# New
+
+## Ping command
+Implemented a new PING & PONG feature. You can ping other nodes to measure the network latency and system time differences.
+
+```js
+broker.createService({
+    name: "test",
+    events: {
+        "$node.pong"({ nodeID, elapsedTime, timeDiff }) {
+            this.logger.info(`Pong received from '${nodeID}' - Time: ${elapsedTime}ms, System time difference: ${timeDiff}ms`);
+        }
+    }
+});
+
+broker.start().then(() => broker.transit.sendPing(/*nodeID*/));
+```
+
+## Pluggable validator
+The Validator in ServiceBroker is pluggable. So you can change the built-in `fastest-validator` to a slower other one :) [Example Joi validator](https://gist.github.com/icebob/07024c0ac22589a5496473c2a8a91146)
+
+## Waiting for other services feature
+If your services depends on other services, use the `waitForService` method to wait while dependencies start.
+
+```js
+let svc = broker.createService({
+    name: "seed",
+    started() {
+        return this.waitForServices(["posts", "users"]).then(() => {
+            // Do work...
+        });
+    }
+});
+```
+
+Signature: 
+```js
+this.waitForServices(serviceNames: String|Array<String>, timeout: Number/*milliseconds*/, interval: Number/*milliseconds*/): Promise
+```
+
+## New error types
+We added some new Moleculer error classes.
+- `MoleculerRetryableError` - Common Retryable error. Caller retries the request if `retryCount > 0`.
+- `MoleculerServerError` - Common server error (5xx).
+- `MoleculerClientError` - Common client/request error (4xx).
+- `ServiceNotAvailable` - Raises if the service is registered but isn't available (no live nodes or CB disabled them).
+- `ProtocolVersionMismatchError` - Raises if connect a node with an older client (<= v0.10.0)).
+
+# Other changes
+- The cachers don't listen "cache.clean" event.
+
+--------------------------------------------------
 <a name="0.10.0"></a>
 # [0.10.0](https://github.com/ice-services/moleculer/compare/v0.9.0...v0.10.0) (2017-08-20)
 

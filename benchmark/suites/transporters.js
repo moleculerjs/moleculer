@@ -2,7 +2,7 @@
 
 //let _ = require("lodash");
 let ServiceBroker = require("../../src/service-broker");
-let Transporters = require("../../src/transporters");
+let Promise = require("bluebird");
 
 let { getDataFile } = require("../utils");
 
@@ -11,9 +11,9 @@ let benchmark = new Benchmarkify("Transporters benchmark").printHeader();
 
 let dataFiles = ["10"];//, "150", "1k", "10k", "50k", "100k", "1M"];
 
-function createBrokers(Transporter, opts) {
+function createBrokers(transporter) {
 	let b1 = new ServiceBroker({
-		transporter: new Transporter(opts),
+		transporter,
 		//requestTimeout: 0,
 		//logger: console,
 		//logLevel: "debug",
@@ -21,7 +21,7 @@ function createBrokers(Transporter, opts) {
 	});
 
 	let b2 = new ServiceBroker({
-		transporter: new Transporter(opts),
+		transporter,
 		//requestTimeout: 0,
 		//logger: console,
 		//logLevel: "debug",
@@ -37,9 +37,10 @@ function createBrokers(Transporter, opts) {
 		}
 	});
 
-	b1.start().then(() => b2.start());
-
-	return [b1, b2];
+	return Promise.all([
+		b1.start(),
+		b2.start()
+	]).then(() => [b1, b2]);
 }
 
 function runTest(dataName) {
@@ -48,46 +49,61 @@ function runTest(dataName) {
 	let data = getDataFile(dataName + ".json");
 	let payload = JSON.parse(data);
 
-	let [fake1, fake2] = createBrokers(Transporters.Fake);
-	let [nats1, nats2] = createBrokers(Transporters.NATS);
-	let [redis1, redis2] = createBrokers(Transporters.Redis);
-	let [mqtt1, mqtt2] = createBrokers(Transporters.MQTT);
-
-	bench.ref("Fake", done => {
-		return fake1.call("echo.reply", payload).then(done);
-	});
-
-	bench.add("NATS", done => {
-		return nats1.call("echo.reply", payload).then(done);
-	});
-	
-	bench.add("Redis", done => {
-		return redis1.call("echo.reply", payload).then(done);
-	});
-
-	bench.add("MQTT", done => {
-		return mqtt1.call("echo.reply", payload).then(done);
-	});
-	
-	setTimeout(() => {
-		bench.run().then(() => {
-			fake1.stop();
-			fake2.stop();
-
-			nats1.stop();
-			nats2.stop();
-
-			redis1.stop();
-			redis2.stop();
-
-			mqtt1.stop();
-			mqtt2.stop();
-
-			if (dataFiles.length > 0)
-				runTest(dataFiles.shift());
+	Promise.all([
+		createBrokers("Fake"),
+		createBrokers("NATS"),
+		createBrokers("Redis"),
+		createBrokers("MQTT"),
+		createBrokers("amqp://192.168.51.29:5672")
+	]).delay(1000).then(([
+		[fake1, fake2],
+		[nats1, nats2],
+		[redis1, redis2],
+		[mqtt1, mqtt2],
+		[amqp1, amqp2],
+	]) => {
+		bench.ref("Fake", done => {
+			return fake1.call("echo.reply", payload).then(done);
 		});
-	}, 2000);
-	
+
+		bench.add("NATS", done => {
+			return nats1.call("echo.reply", payload).then(done);
+		});
+
+		bench.add("Redis", done => {
+			return redis1.call("echo.reply", payload).then(done);
+		});
+
+		bench.add("MQTT", done => {
+			return mqtt1.call("echo.reply", payload).then(done);
+		});
+
+		bench.add("AMQP", done => {
+			return amqp1.call("echo.reply", payload).then(done);
+		});
+
+		bench.run().then(() => {
+			return Promise.all([
+				fake1.stop(),
+				fake2.stop(),
+
+				nats1.stop(),
+				nats2.stop(),
+
+				redis1.stop(),
+				redis2.stop(),
+
+				mqtt1.stop(),
+				mqtt2.stop(),
+
+				amqp1.stop(),
+				amqp2.stop()
+			]).then(() => {
+				if (dataFiles.length > 0)
+					runTest(dataFiles.shift());
+			});
+		});
+	});
 }
 
 runTest(dataFiles.shift());

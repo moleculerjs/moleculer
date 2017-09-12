@@ -14,45 +14,47 @@ const path 				= require("path");
 const fs 				= require("fs");
 
 const Transit 			= require("./transit");
-const ServiceRegistry 	= require("./service-registry");
+const Registry 			= require("./registry");
 const E 				= require("./errors");
 const utils 			= require("./utils");
 const Logger 			= require("./logger");
 const Validator 		= require("./validator");
 const BrokerStatistics 	= require("./statistics");
-const healthInfo 		= require("./health");
 
 const Cachers 			= require("./cachers");
 const Transporters 		= require("./transporters");
 const Serializers 		= require("./serializers");
 const RoundRobinStrategy = require("./strategies/round-robin");
+const H 				= require("./health");
 
-// Circuit-breaker states
-const { CIRCUIT_HALF_OPEN } 	= require("./constants");
-
-
-const defaultConfig = {
+/**
+ * Default broker options
+ */
+const defaultOptions = {
 	namespace: "",
 	nodeID: null,
 
 	logger: null,
 	logLevel: null,
+	logFormatter: "default",
 
 	transporter: null,
 	requestTimeout: 0 * 1000,
 	requestRetry: 0,
 	maxCallLevel: 0,
-	heartbeatInterval: 10,
-	heartbeatTimeout: 30,
+	heartbeatInterval: 5,
+	heartbeatTimeout: 15,
+
+	disableBalancer: false,
 
 	registry: {
-		strategy: new RoundRobinStrategy(),
+		strategy: RoundRobinStrategy,
 		preferLocal: true
 	},
 
 	circuitBreaker: {
 		enabled: false,
-		maxFailures: 5,
+		maxFailures: 3,
 		halfOpenTime: 10 * 1000,
 		failureOnTimeout: true,
 		failureOnReject: true
@@ -62,6 +64,7 @@ const defaultConfig = {
 	serializer: null,
 
 	validation: true,
+	validator: null,
 	metrics: false,
 	metricsRate: 1,
 	statistics: false,
@@ -88,10 +91,13 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	constructor(options) {
-		this.options = _.defaultsDeep(options, defaultConfig);
+		this.options = _.defaultsDeep(options, defaultOptions);
 
 		// Promise constructor
 		this.Promise = Promise;
+
+		// Broker started flag
+		this._started = false;
 
 		// Class factories
 		this.ServiceFactory = this.options.ServiceFactory || require("./service");
@@ -106,16 +112,21 @@ class ServiceBroker {
 		// Logger
 		this.logger = this.getLogger("broker");
 
-		// Local event bus
-		this.bus = new EventEmitter2({
+		this.logger.info(`Moleculer v${this.MOLECULER_VERSION} is starting...`);
+		this.logger.info("Node ID:", this.nodeID);
+		this.logger.info("Namespace:", this.namespace || "<not defined>");
+
+		// Internal event bus
+		this.localBus = new EventEmitter2({
 			wildcard: true,
 			maxListeners: 100
 		});
 
 		// Internal maps
 		this.services = [];
-		this.serviceRegistry = new ServiceRegistry(this.options.registry);
-		this.serviceRegistry.init(this);
+
+		// Service registry
+		this.registry = new Registry(this);
 
 		// Middlewares
 		this.middlewares = [];
@@ -132,7 +143,7 @@ class ServiceBroker {
 
 		// Validation
 		if (this.options.validation !== false) {
-			this.validator = new Validator();
+			this.validator = this.options.validator ? this.options.validator : new Validator();
 			if (this.validator) {
 				this.validator.init(this);
 			}
@@ -142,6 +153,20 @@ class ServiceBroker {
 		if (this.options.transporter) {
 			const tx = this._resolveTransporter(this.options.transporter);
 			this.transit = new Transit(this, tx);
+
+			if (this.options.disableBalancer) {
+				if (tx.hasBuiltInBalancer) {
+					this.logger.info("The built-in balancer is disabled.");
+				} else {
+					this.logger.warn("The Transporter has no built-in balancer. Broker balancer is ENABLED.");
+					this.options.disableBalancer = false;
+				}
+			}
+
+		}
+
+		if (this.options.disableBalancer) {
+			this.call = this.callWithoutBalancer;
 		}
 
 		// Counter for metricsRate
@@ -149,8 +174,6 @@ class ServiceBroker {
 
 		if (this.options.statistics)
 			this.statistics = new BrokerStatistics(this);
-
-		this.getNodeHealthInfo = () => healthInfo(this);
 
 		// Register internal actions
 		if (this.options.internalServices)
@@ -168,11 +191,17 @@ class ServiceBroker {
 		process.on("SIGINT", this._closeFn);
 	}
 
+	getModuleClass(obj, name) {
+		let n = Object.keys(obj).find(n => n.toLowerCase() == name.toLowerCase());
+		if (n)
+			return obj[n];
+	}
+
 	_resolveTransporter(opt) {
 		if (opt instanceof Transporters.Base) {
 			return opt;
 		} else if (_.isString(opt)) {
-			let TransporterClass = Transporters[opt];
+			let TransporterClass = this.getModuleClass(Transporters, opt);
 			if (TransporterClass)
 				return new TransporterClass();
 
@@ -188,14 +217,16 @@ class ServiceBroker {
 			if (TransporterClass)
 				return new TransporterClass(opt);
 			else
-				throw new E.MoleculerError(`Invalid transporter type '${opt}'`, null, "NOT_FOUND_TRANSPORTER", { type: opt });
+				throw new E.MoleculerServerError(`Invalid transporter type '${opt}'.`, null, "INVALID_TRANSPORTER_TYPE", { type: opt });
 
 		} else if (_.isObject(opt)) {
-			let TransporterClass = Transporters[opt.type || "NATS"];
+			let TransporterClass = this.getModuleClass(Transporters, opt.type || "NATS");
+
+			//let TransporterClass = Transporters[];
 			if (TransporterClass)
 				return new TransporterClass(opt.options);
 			else
-				throw new E.MoleculerError(`Invalid transporter type '${opt.type}'`, null, "NOT_FOUND_TRANSPORTER", { type: opt.type });
+				throw new E.MoleculerServerError(`Invalid transporter type '${opt.type}'.`, null, "INVALID_TRANSPORTER_TYPE", { type: opt.type });
 		}
 
 		return null;
@@ -207,7 +238,7 @@ class ServiceBroker {
 		} else if (opt === true) {
 			return new Cachers.Memory();
 		} else if (_.isString(opt)) {
-			let CacherClass = Cachers[opt];
+			let CacherClass = this.getModuleClass(Cachers, opt);
 			if (CacherClass)
 				return new CacherClass();
 
@@ -217,14 +248,14 @@ class ServiceBroker {
 			if (CacherClass)
 				return new CacherClass(opt);
 			else
-				throw new E.MoleculerError(`Invalid cacher type '${opt}'`, null, "NOT_FOUND_CACHER", { type: opt });
+				throw new E.MoleculerServerError(`Invalid cacher type '${opt}'.`, null, "INVALID_CACHER_TYPE", { type: opt });
 
 		} else if (_.isObject(opt)) {
-			let CacherClass = Cachers[opt.type || "Memory"];
+			let CacherClass = this.getModuleClass(Cachers, opt.type || "Memory");
 			if (CacherClass)
 				return new CacherClass(opt.options);
 			else
-				throw new E.MoleculerError(`Invalid cacher type '${opt.type}'`, null, "NOT_FOUND_CACHER", { type: opt.type });
+				throw new E.MoleculerServerError(`Invalid cacher type '${opt.type}'.`, null, "INVALID_CACHER_TYPE", { type: opt.type });
 		}
 
 		return null;
@@ -234,18 +265,18 @@ class ServiceBroker {
 		if (opt instanceof Serializers.Base) {
 			return opt;
 		} else if (_.isString(opt)) {
-			let SerializerClass = Serializers[opt];
+			let SerializerClass = this.getModuleClass(Serializers, opt);
 			if (SerializerClass)
 				return new SerializerClass();
 			else
-				throw new E.MoleculerError(`Invalid serializer type '${opt}'`, null, "NOT_FOUND_SERIALIZER", { type: opt });
+				throw new E.MoleculerServerError(`Invalid serializer type '${opt}'.`, null, "INVALID_SERIALIZER_TYPE", { type: opt });
 
 		} else if (_.isObject(opt)) {
-			let SerializerClass = Serializers[opt.type || "JSON"];
+			let SerializerClass = this.getModuleClass(Serializers, opt.type || "JSON");
 			if (SerializerClass)
 				return new SerializerClass(opt.options);
 			else
-				throw new E.MoleculerError(`Invalid serializer type '${opt.type}'`, null, "NOT_FOUND_SERIALIZER", { type: opt.type });
+				throw new E.MoleculerServerError(`Invalid serializer type '${opt.type}'.`, null, "INVALID_SERIALIZER_TYPE", { type: opt.type });
 		}
 
 		return new Serializers.JSON();
@@ -264,7 +295,7 @@ class ServiceBroker {
 			})
 			.catch(err => {
 				/* istanbul ignore next */
-				this.logger.error("Unable to start all services!", err);
+				this.logger.error("Unable to start all services.", err);
 				return Promise.reject(err);
 			})
 			.then(() => {
@@ -272,7 +303,8 @@ class ServiceBroker {
 					return this.transit.connect();
 			})
 			.then(() => {
-				this.logger.info("Broker started.");
+				this.logger.info(`ServiceBroker with ${this.services.length} service(s) is started successfully.`);
+				this._started = true;
 			});
 	}
 
@@ -289,7 +321,7 @@ class ServiceBroker {
 			})
 			.catch(err => {
 				/* istanbul ignore next */
-				this.logger.error("Unable to stop all services!", err);
+				this.logger.error("Unable to stop all services.", err);
 			})
 			.then(() => {
 				if (this.transit) {
@@ -302,7 +334,7 @@ class ServiceBroker {
 				}
 			})
 			.then(() => {
-				this.logger.info("Broker stopped.");
+				this.logger.info("ServiceBroker is stopped successfully. Good bye.");
 
 				process.removeListener("beforeExit", this._closeFn);
 				process.removeListener("exit", this._closeFn);
@@ -324,8 +356,8 @@ class ServiceBroker {
 			repl = require("moleculer-repl");
 		}
 		catch (error) {
-			console.error("The 'moleculer-repl' package is missing! Please install it with 'npm install moleculer-repl' command!"); // eslint-disable-line no-console
-			this.logger.error("The 'moleculer-repl' package is missing! Please install it with 'npm install moleculer-repl' command!");
+			console.error("The 'moleculer-repl' package is missing. Please install it with 'npm install moleculer-repl' command."); // eslint-disable-line no-console
+			this.logger.error("The 'moleculer-repl' package is missing. Please install it with 'npm install moleculer-repl' command.");
 			this.logger.debug("ERROR", error);
 			return;
 		}
@@ -402,7 +434,7 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	loadServices(folder = "./services", fileMask = "*.service.js") {
-		this.logger.info(`Search services in '${folder}/${fileMask}'...`);
+		this.logger.debug(`Search services in '${folder}/${fileMask}'...`);
 
 		let serviceFiles;
 
@@ -437,8 +469,8 @@ class ServiceBroker {
 			if (!(svc instanceof this.ServiceFactory)) {
 				svc = this.createService(svc);
 			} else {
-				// Need to call changed because we didn't call the `createService`.
-				this.servicesChanged();
+				// Should call changed because we didn't call the `createService`.
+				this.servicesChanged(true);
 			}
 
 		} else {
@@ -464,11 +496,11 @@ class ServiceBroker {
 		if (service.__filename) {
 			const debouncedHotReload = _.debounce(this.hotReloadService.bind(this), 500);
 
-			this.logger.info(`Watching '${service.name}' service file...`);
+			this.logger.debug(`Watching '${service.name}' service file...`);
 
 			// Better: https://github.com/paulmillr/chokidar
 			const watcher = fs.watch(service.__filename, (eventType, filename) => {
-				this.logger.warn(`The ${filename} is changed: ${eventType}`);
+				this.logger.info(`The ${filename} is changed. (Type: ${eventType})`);
 
 				watcher.close();
 				debouncedHotReload(service);
@@ -485,17 +517,12 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	hotReloadService(service) {
-		this.logger.info(`Hot reloading '${service.name}' service...`, service.__filename);
+		this.logger.info(`Hot reload '${service.name}' service...`, service.__filename);
 
 		utils.clearRequireCache(service.__filename);
 
 		return this.destroyService(service)
-			.then(() => this.loadService(service.__filename))
-			.then(svc => svc.started.call(svc).then(() => svc))
-			.then(svc => {
-				this.logger.info(`Service '${svc.name}' is reloaded.`);
-				return svc;
-			});
+			.then(() => this.loadService(service.__filename));
 	}
 
 	/**
@@ -514,9 +541,26 @@ class ServiceBroker {
 
 		let service = new this.ServiceFactory(this, s);
 
-		this.servicesChanged();
+		if (this._started) {
+			// If broker started, should call the started lifecycle event
+			service.started.call(service).catch(err => this.logger.error("Unable to start service.", err));
+		}
+
+		this.servicesChanged(true);
 
 		return service;
+	}
+
+	/**
+	 * Add & register a local service instance
+	 *
+	 * @param {Service} service
+	 * @param {Object} registryItem
+	 * @memberof ServiceBroker
+	 */
+	registerLocalService(service, registryItem) {
+		this.services.push(service);
+		this.registry.registerLocalService(registryItem);
 	}
 
 	/**
@@ -530,66 +574,32 @@ class ServiceBroker {
 			.then(() => service.stopped.call(service))
 			.catch(err => {
 				/* istanbul ignore next */
-				this.logger.error(`Unable to stop service '${service.name}'!`, err);
+				this.logger.error(`Unable to stop service '${service.name}'.`, err);
 			})
 			.then(() => {
 				_.remove(this.services, svc => svc == service);
-				this.serviceRegistry.unregisterService(this.nodeID, service.name);
+				this.registry.unregisterService(service.name, service.version);
 
-				this.logger.info(`Service '${service.name}' is destroyed!`);
-				this.servicesChanged();
+				this.logger.info(`Service '${service.name}' is stopped.`);
+				this.servicesChanged(true);
+
+				return Promise.resolve();
 			});
 	}
 
 	/**
-	 * Register a local service
+	 * It will be called when a new local or remote service
+	 * is registered or unregistered.
 	 *
-	 * @param {Service} service
-	 *
-	 * @memberOf ServiceBroker
+	 * @memberof ServiceBroker
 	 */
-	registerLocalService(service) {
-		this.services.push(service);
+	servicesChanged(localService = false) {
+		this.broadcastLocal("$services.changed", { localService });
 
-		this.serviceRegistry.registerService(this.nodeID, service);
-
-		//this.emitLocal(`register.service.${service.name}`, service);
-		this.logger.info(`'${service.name}' service is registered!`);
-	}
-
-	/**
-	 * Register a remote service
-	 *
-	 * @param {String} nodeID		NodeID if it is on a remote server/node
-	 * @param {Service} service
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	registerRemoteService(nodeID, service) {
-		this.serviceRegistry.registerService(nodeID, service);
-
-		if (service.actions) {
-			_.forIn(service.actions, action => {
-				this.registerAction(nodeID, Object.assign({}, action, { service }));
-			});
+		// Should notify remote nodes, because our service list is changed.
+		if (localService && this.transit && this.transit.connected) {
+			this.transit.sendNodeInfo();
 		}
-
-	}
-
-	/**
-	 * Register an action
-	 *
-	 * @param {String} nodeID	NodeID if it is on a remote server/node
-	 * @param {any} action		action schema
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	registerAction(nodeID, action) {
-		// Wrap middlewares on local actions
-		if (nodeID == this.nodeID)
-			this.wrapAction(action);
-
-		this.serviceRegistry.registerAction(nodeID, action);
 	}
 
 	/**
@@ -614,86 +624,12 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Unregister services by node
-	 *
-	 * @param {String} nodeID
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	unregisterServicesByNode(nodeID) {
-		this.serviceRegistry.unregisterServicesByNode(nodeID);
-	}
-
-	/**
-	 * Unregister an action on a local server.
-	 * It will be called when a remote node disconnected.
-	 *
-	 * @param {String} nodeID		NodeID if it is on a remote server/node
-	 * @param {any} action		action schema
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	unregisterAction(nodeID, action) {
-		this.serviceRegistry.unregisterAction(nodeID, action);
-	}
-
-	/**
 	 * Register internal services
 	 *
 	 * @memberOf ServiceBroker
 	 */
 	registerInternalServices() {
 		this.createService(require("./internals")(this));
-	}
-
-	/**
-	 * It will be called when a new service registered or unregistered
-	 *
-	 * @memberof ServiceBroker
-	 */
-	servicesChanged() {
-		this.emitLocal("services.changed");
-
-		// Notify other nodes, we have a new service list.
-		if (this.transit && this.transit.connected) {
-			this.transit.sendNodeInfo();
-		}
-	}
-
-	/**
-	 * Subscribe to an event
-	 *
-	 * @param {String} name
-	 * @param {Function} handler
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	on(name, handler) {
-		this.bus.on(name, handler);
-	}
-
-	/**
-	 * Subscribe to an event once
-	 *
-	 * @param {String} name
-	 * @param {Function} handler
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	once(name, handler) {
-		this.bus.once(name, handler);
-	}
-
-	/**
-	 * Unsubscribe from an event
-	 *
-	 * @param {String} name
-	 * @param {Function} handler
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	off(name, handler) {
-		this.bus.off(name, handler);
 	}
 
 	/**
@@ -704,61 +640,48 @@ class ServiceBroker {
 	 *
 	 * @memberOf ServiceBroker
 	 */
-	getService(serviceName) {
+	getLocalService(serviceName) {
 		return this.services.find(service => service.name == serviceName);
 	}
 
 	/**
-	 * Has a local service by name
+	 * Wait for other services
 	 *
-	 * @param {String} serviceName
-	 * @returns {Boolean}
+	 * @param {String|Array<String>} serviceNames
+	 * @param {Number} timeout Timeout in milliseconds
+	 * @param {Number} interval Check interval in milliseconds
+	 * @returns {Promise}
 	 *
-	 * @memberOf ServiceBroker
+	 * @memberof ServiceBroker
 	 */
-	hasService(serviceName) {
-		return this.services.find(service => service.name == serviceName) != null;
-	}
+	waitForServices(serviceNames, timeout, interval, logger = this.logger) {
+		if (!Array.isArray(serviceNames))
+			serviceNames = [serviceNames];
 
-	/**
-	 * Has an action by name
-	 *
-	 * @param {String} actionName
-	 * @returns {Boolean}
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	hasAction(actionName) {
-		return this.serviceRegistry.hasAction(actionName);
-	}
+		logger.info(`Waiting for service(s) '${serviceNames.join(", ")}'...`);
 
-	/**
-	 * Get an action by name
-	 *
-	 * @param {String} actionName
-	 * @returns {Object}
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	getAction(actionName) {
-		const item = this.serviceRegistry.findAction(actionName);
-		if (item) {
-			return item.nextAvailable();
-		}
-		return null;
-	}
+		const startTime = Date.now();
+		return new Promise((resolve, reject) => {
+			const check = () => {
+				const count = serviceNames.filter(name => {
+					return this.registry.hasService(name);
+				});
 
-	/**
-	 * Check has callable action handler
-	 *
-	 * @param {String} actionName
-	 * @returns {Boolean}
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	isActionAvailable(actionName) {
-		const item = this.serviceRegistry.findAction(actionName);
-		return item && item.count() > 0;
+				if (count.length == serviceNames.length) {
+					logger.info(`Service(s) '${serviceNames.join(", ")}' are available.`);
+					return resolve();
+				}
+
+				logger.debug(`${count.length} of ${serviceNames.length} services are available. Waiting further...`);
+
+				if (timeout && Date.now() - startTime > timeout)
+					return reject(new E.MoleculerServerError("Services waiting is timed out.", 500, "WAITFOR_SERVICES", { services: serviceNames }));
+
+				setTimeout(check, interval || 1000);
+			};
+
+			check();
+		});
 	}
 
 	/**
@@ -776,110 +699,203 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Call an action (local or remote)
+	 * Get an action endpoint
 	 *
-	 * @param {any} actionName	name of action
-	 * @param {any} params		params of action
-	 * @param {any} opts		options of call (optional)
-	 * @returns
+	 * @deprecated For moleculer-web@0.4.4 or older
+	 * @param {String} actionName
+	 * @memberof ServiceBroker
+	 */
+	getAction(actionName) {
+		let actions = this.registry.getActionEndpoints(actionName);
+		if (actions)
+			return actions.next();
+	}
+
+	/**
+	 * Find the next available endpoint for action
+	 *
+	 * @param {String} actionName
+	 * @param {Object} opts
+	 * @returns {Endpoint|Error}
+	 *
+	 * @performance-critical
+	 * @memberof ServiceBroker
+	 */
+	findNextActionEndpoint(actionName, opts = {}) {
+		if (typeof actionName !== "string") {
+			return actionName;
+		} else {
+			if (opts.nodeID) {
+				// Direct call
+				const endpoint = this.registry.getActionEndpointByNodeId(actionName, opts.nodeID);
+				if (!endpoint) {
+					this.logger.warn(`Service '${actionName}' is not found on '${opts.nodeID}' node.`);
+					return new E.ServiceNotFoundError(actionName, opts.nodeID);
+				}
+				return endpoint;
+
+			} else {
+				// Get endpoint list by action name
+				const epList = this.registry.getActionEndpoints(actionName);
+				if (!epList) {
+					this.logger.warn(`Service '${actionName}' is not registered.`);
+					return new E.ServiceNotFoundError(actionName);
+				}
+
+				// Get the next available endpoint
+				const endpoint = epList.next();
+				if (!endpoint) {
+					const errMsg = `Service '${actionName}' is not available.`;
+					this.logger.warn(errMsg);
+					return new E.ServiceNotAvailable(actionName);
+				}
+				return endpoint;
+			}
+		}
+	}
+
+	/**
+	 * Call an action
+	 *
+	 * @param {String} actionName	name of action
+	 * @param {Object?} params		params of action
+	 * @param {Object?} opts		options of call (optional)
+	 * @returns {Promise}
 	 *
 	 * @performance-critical
 	 * @memberOf ServiceBroker
 	 */
 	call(actionName, params, opts = {}) {
+		const endpoint = this.findNextActionEndpoint(actionName, opts);
+		if (endpoint instanceof Error)
+			return Promise.reject(endpoint);
+
+		// Load opts with default values
 		if (opts.timeout == null)
 			opts.timeout = this.options.requestTimeout || 0;
 
 		if (opts.retryCount == null)
 			opts.retryCount = this.options.requestRetry || 0;
 
-		let endpoint;
-		if (typeof actionName !== "string") {
-			endpoint = actionName;
-			actionName = endpoint.action.name;
-		} else {
-			if (opts.nodeID) {
-				// Direct call
-				endpoint = this.serviceRegistry.getEndpointByNodeID(actionName, opts.nodeID);
-				if (!endpoint) {
-					this.logger.warn(`Service '${actionName}' is not available on '${opts.nodeID}' node!`);
-					return Promise.reject(new E.ServiceNotFoundError(actionName, opts.nodeID));
-				}
-
-			} else {
-				// Find action by name
-				let actions = this.serviceRegistry.findAction(actionName);
-				if (actions == null) {
-					this.logger.warn(`Service '${actionName}' is not registered!`);
-					return Promise.reject(new E.ServiceNotFoundError(actionName));
-				}
-
-				// Get an endpoint
-				endpoint = actions.nextAvailable();
-				if (endpoint == null) {
-					const errMsg = `Service '${actionName}' is not available!`;
-					this.logger.warn(errMsg);
-					return Promise.reject(new E.ServiceNotFoundError(actionName));
-				}
-			}
-		}
-
-		// Expose action info
-		let action = endpoint.action;
-		let nodeID = endpoint.nodeID;
-
 		// Create context
 		let ctx;
 		if (opts.ctx != null) {
 			// Reused context
 			ctx = opts.ctx;
+			ctx.nodeID = endpoint.id;
+			ctx.action = endpoint.action;
+		} else {
+			// New root context
+			ctx = this.ContextFactory.create(this, endpoint.action, endpoint.id, params, opts);
+		}
+
+		if (endpoint.local) {
+			// Local call
+			return this._localCall(ctx, endpoint, opts);
+		} else {
+			// Remote call
+			return this._remoteCall(ctx, endpoint, opts);
+		}
+	}
+
+	/**
+	 * Call an action without built-in balancer.
+	 * You don't call it directly. Broker will replace the
+	 * original 'call' method to this if you disable the
+	 * built-in balancer with the "disableBalancer" option.
+	 *
+	 * @param {String} actionName	name of action
+	 * @param {Object?} params		params of action
+	 * @param {Object?} opts		options of call (optional)
+	 * @returns {Promise}
+	 * @returns {Promise}
+	 *
+	 * @private
+	 * @memberof ServiceBroker
+	 */
+	callWithoutBalancer(actionName, params, opts = {}) {
+		if (opts.timeout == null)
+			opts.timeout = this.options.requestTimeout || 0;
+
+		if (opts.retryCount == null)
+			opts.retryCount = this.options.requestRetry || 0;
+
+		let nodeID = null;
+		if (typeof actionName !== "string") {
+			const endpoint = actionName;
+			actionName = endpoint.action.name;
+			nodeID = endpoint.id;
+		} else {
+			if (opts.nodeID) {
+				nodeID = opts.nodeID;
+			} else {
+				// Get endpoint list by action name
+				const epList = this.registry.getActionEndpoints(actionName);
+				if (epList == null) {
+					this.logger.warn(`Service '${actionName}' is not registered.`);
+					return Promise.reject(new E.ServiceNotFoundError(actionName, this.nodeID));
+				}
+			}
+		}
+
+		// Create context
+		let ctx;
+		let action = { name: actionName };
+		if (opts.ctx != null) {
+			// Reused context
+			ctx = opts.ctx;
 			ctx.nodeID = nodeID;
-			ctx.action = action;
+			ctx.action = { name: actionName };
 		} else {
 			// New root context
 			ctx = this.ContextFactory.create(this, action, nodeID, params, opts);
 		}
 
-		if (this.options.maxCallLevel > 0 && ctx.level > this.options.maxCallLevel) {
-			return this.Promise.reject(new E.MaxCallLevelError({ level: ctx.level, action: actionName }));
+		return this._remoteCall(ctx, null, opts);
+	}
+
+	/**
+	 * Call the context locally
+	 *
+	 * @param {Context} ctx
+	 * @param {Endpoint} endpoint
+	 * @param {Object} opts
+	 * @returns {Promise}
+	 *
+	 * @performance-critical
+	 * @memberof ServiceBroker
+	 */
+	_localCall(ctx, endpoint, opts) {
+		let action = ctx.action;
+
+		this.logger.debug(`Call '${ctx.action.name}' action locally.`);
+
+		// Add metrics start
+		if (ctx.metrics === true || ctx.timeout > 0 || this.statistics)
+			ctx._metricStart(ctx.metrics);
+
+		let p = action.handler(ctx);
+
+		// Timeout handler
+		if (ctx.timeout > 0 && p.timeout)
+			p = p.timeout(ctx.timeout);
+
+		if (ctx.metrics === true || this.statistics) {
+			// Add metrics & statistics
+			p = p.then(res => {
+				this._finishCall(ctx, null);
+				return res;
+			});
 		}
 
-		// Call handler or transfer request
-		let p;
-		if (endpoint.local) {
-			this.logger.debug(`Call '${actionName}' action on local node.`);
-
-			// Add metrics start
-			if (ctx.metrics === true || ctx.timeout > 0 || this.statistics)
-				ctx._metricStart(ctx.metrics);
-
-			p = action.handler(ctx);
-
-			// Timeout handler
-			if (ctx.timeout > 0 && p.timeout)
-				p = p.timeout(ctx.timeout);
-
-			if (ctx.metrics === true || this.statistics) {
-				// Add metrics & statistics
-				p = p.then(res => {
-					this._finishCall(ctx, null);
-					return res;
-				});
-			}
-		} else {
-			this.logger.debug(`Call remote '${actionName}' action on '${nodeID}' node.`);
-
-			p = this.transit.request(ctx);
-
-			// Timeout handler
-			if (ctx.timeout > 0 && p.timeout)
-				p = p.timeout(ctx.timeout);
-		}
+		// Timeout handler
+		if (ctx.timeout > 0 && p.timeout)
+			p = p.timeout(ctx.timeout);
 
 		// Handle half-open state in circuit breaker
-		if (this.options.circuitBreaker.enabled && endpoint.state === CIRCUIT_HALF_OPEN) {
+		if (this.options.circuitBreaker.enabled) {
 			p = p.then(res => {
-				endpoint.circuitClose();
+				endpoint.success();
 				return res;
 			});
 		}
@@ -891,6 +907,76 @@ class ServiceBroker {
 		p.ctx = ctx;
 
 		return p;
+	}
+
+	/**
+	 * Call the context on a remote node
+	 *
+	 * @param {Context} ctx
+	 * @param {Endpoint} endpoint
+	 * @param {Object} opts
+	 * @returns {Promise}
+	 *
+	 * @performance-critical
+	 * @memberof ServiceBroker
+	 */
+	_remoteCall(ctx, endpoint, opts) {
+		this.logger.debug(`Call '${ctx.action.name}' action on '${ctx.nodeID ? ctx.nodeID : "some"}' node.`);
+
+		let p = this.transit.request(ctx);
+
+		// Timeout handler
+		if (ctx.timeout > 0 && p.timeout)
+			p = p.timeout(ctx.timeout);
+
+		// Handle half-open state in circuit breaker
+		if (this.options.circuitBreaker.enabled && endpoint) {
+			p = p.then(res => {
+				endpoint.success();
+				return res;
+			});
+		}
+
+		// Error handler
+		p = p.catch(err => this._callErrorHandler(err, ctx, endpoint, opts));
+
+		// Pointer to Context
+		p.ctx = ctx;
+
+		return p;
+	}
+
+	/**
+	 * Handle a remote request (call a local action).
+	 * It's called from Transit if a request is received
+	 * from a remote node.
+	 *
+	 * @param {Context} ctx
+	 * @returns {Promise}
+	 *
+	 * @private
+	 * @memberof ServiceBroker
+	 */
+	_handleRemoteRequest(ctx) {
+		let actionName = ctx.action.name;
+		// Find action by name
+		let actions = this.registry.getActionEndpoints(actionName);
+		if (actions == null || actions.localEndpoint == null) {
+			this.logger.warn(`Service '${actionName}' is not registered locally.`);
+			return Promise.reject(new E.ServiceNotFoundError(actionName, this.nodeID));
+		}
+
+		// Get local endpoint
+		let endpoint = actions.localEndpoint;
+		ctx.action = endpoint.action;
+
+		// Load opts
+		let opts = {
+			timeout: ctx.timeout || this.options.requestTimeout || 0
+		};
+
+		// Local call
+		return this._localCall(ctx, endpoint, opts);
 	}
 
 	/**
@@ -917,32 +1003,26 @@ class ServiceBroker {
 		err.ctx = ctx;
 
 		if (nodeID != this.nodeID) {
-			// Remove pending request
+			// Remove pending request (if the request didn't reached the target service)
 			this.transit.removePendingRequest(ctx.id);
 		}
 
-		if (this.options.circuitBreaker.enabled) {
-			if (err instanceof E.RequestTimeoutError) {
-				if (this.options.circuitBreaker.failureOnTimeout)
-					endpoint.failure();
-
-			} else if (err.code >= 500 && this.options.circuitBreaker.failureOnReject) {
-				endpoint.failure();
-			}
+		// Only failure if error came from the direct requested node.
+		// TODO if no endpoint?
+		if (this.options.circuitBreaker.enabled && endpoint && (!err.nodeID || err.nodeID == ctx.nodeID)) {
+			endpoint.failure(err);
 		}
 
-		if (err instanceof E.RequestTimeoutError) {
+		if (err.retryable) {
 			// Retry request
 			if (ctx.retryCount-- > 0) {
-				this.logger.warn(`Action '${actionName}' timed out on '${nodeID}'!`);
-				this.logger.warn(`Recall '${actionName}' action (retry: ${ctx.retryCount + 1})...`);
+				this.logger.warn(`Action '${actionName}' timed out on '${nodeID}'.`);
+				this.logger.warn(`Retry to call '${actionName}' action (${ctx.retryCount + 1})...`);
 
 				opts.ctx = ctx; // Reuse this context
 				return this.call(actionName, ctx.params, opts);
 			}
 		}
-
-		// Need it? this.logger.error("Action request error!", err);
 
 		this._finishCall(ctx, err);
 
@@ -996,7 +1076,7 @@ class ServiceBroker {
 	 * 	let users = results.users;
 	 * })
 	 * ```
-	 * @throws MoleculerError - If the `def` is not an `Array` and not an `Object`.
+	 * @throws MoleculerServerError - If the `def` is not an `Array` and not an `Object`.
 	 * @memberof ServiceBroker
 	 */
 	mcall(def) {
@@ -1013,7 +1093,7 @@ class ServiceBroker {
 			});
 			return Promise.all(p).then(() => results);
 		} else
-			throw new E.MoleculerError("Invalid calling definition");
+			throw new E.MoleculerServerError("Invalid calling definition.", 500, "INVALID_PARAMETERS");
 	}
 
 	/**
@@ -1026,7 +1106,7 @@ class ServiceBroker {
 	shouldMetric() {
 		if (this.options.metrics) {
 			this.sampleCount++;
-			if (this.sampleCount * this.options.metricsRate >= 1) {
+			if (this.sampleCount * this.options.metricsRate >= 1.0) {
 				this.sampleCount = 0;
 				return true;
 			}
@@ -1036,35 +1116,156 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Emit an event (global & local)
+	 * Emit an event (grouped & balanced global event)
 	 *
 	 * @param {string} eventName
 	 * @param {any} payload
-	 * @returns {boolean}
+	 * @param {String=} groupName
+	 * @returns
 	 *
 	 * @memberOf ServiceBroker
 	 */
-	emit(eventName, payload) {
-		if (this.transit)
-			this.transit.emit(eventName, payload);
+	emit(eventName, payload, groups) {
+		this.logger.debug(`Emit '${eventName}' event.`);
 
-		return this.emitLocal(eventName, payload);
+		// Call local/internal subscribers
+		if (/^\$/.test(eventName))
+			this.localBus.emit(eventName, payload);
+
+		if (groups && !Array.isArray(groups))
+			groups = [groups];
+
+		if (!this.options.disableBalancer) {
+
+			const endpoints = this.registry.events.getBalancedEndpoints(eventName, groups);
+
+			// Grouping remote events (minimize network traffic)
+			const groupedEP = {};
+
+			endpoints.forEach(([ep, group]) => {
+				if (ep) {
+					if (ep.id == this.nodeID) {
+						// Local service, call handler
+						ep.event.handler(payload, this.nodeID, eventName);
+					} else {
+						// Remote service
+						const e = groupedEP[ep.id];
+						if (e)
+							e.push(group);
+						else
+							groupedEP[ep.id] = [group];
+					}
+				} else {
+					if (groupedEP[null])
+						groupedEP[null].push(group);
+					else
+						groupedEP[null] = [group];
+				}
+			});
+
+			if (this.transit) {
+				// Remote service
+				return this.transit.sendBalancedEvent(eventName, payload, groupedEP);
+			}
+
+		} else if (this.transit && !/^\$/.test(eventName)) {
+			return this.transit.sendEventToGroups(eventName, payload, groups);
+		}
 	}
 
 	/**
-	 * Emit an event only local
+	 * Emit an event for all local & remote services
 	 *
 	 * @param {string} eventName
 	 * @param {any} payload
-	 * @param {string=} Sender nodeID
-	 * @returns {boolean}
+	 * @returns
 	 *
 	 * @memberOf ServiceBroker
 	 */
-	emitLocal(eventName, payload, sender) {
-		this.logger.debug("Event emitted:", eventName);
+	broadcast(eventName, payload) {
+		this.logger.debug(`Broadcast '${eventName}' event.`);
 
-		return this.bus.emit(eventName, payload, sender || this.nodeID);
+		if (!/^\$/.test(eventName)) {
+			const endpoints = this.registry.events.getAllEndpoints(eventName);
+
+			if (this.transit) {
+				// Send to remote services
+				endpoints.forEach(ep => {
+					if (ep.id != this.nodeID) {
+						return this.transit.sendEvent(ep.id, eventName, payload);
+					}
+				});
+			}
+		}
+
+		// Send to local services
+		return this.broadcastLocal(eventName, payload, null, this.nodeID);
+	}
+
+	/**
+	 * Emit an event for all local services
+	 *
+	 * @param {string} eventName
+	 * @param {any} payload
+	 * @param {Array<String>?} groups
+	 * @param {String?} nodeID
+	 * @returns
+	 *
+	 * @memberOf ServiceBroker
+	 */
+	broadcastLocal(eventName, payload, groups, nodeID) {
+		this.logger.debug(`Broadcast '${eventName}' event locally.`);
+
+		// Call local/internal subscribers
+		if (/^\$/.test(eventName))
+			this.localBus.emit(eventName, payload);
+
+		return this.registry.events.emitLocalServices(eventName, payload, null, nodeID || this.nodeID);
+	}
+
+	/**
+	 * Get local node health status
+	 *
+	 * @returns {Promise}
+	 * @memberof ServiceBroker
+	 */
+	getHealthStatus() {
+		return H.getHealthStatus(this);
+	}
+
+	/**
+	 * Get local node info.
+	 *
+	 * @returns
+	 * @memberof ServiceBroker
+	 */
+	getLocalNodeInfo() {
+		return this.registry.getLocalNodeInfo();
+	}
+
+	/**
+	 * Get event groups by event name
+	 *
+	 * @param {String} eventName
+	 * @returns
+	 * @memberof ServiceBroker
+	 */
+	getEventGroups(eventName) {
+		return this.registry.events.getGroups(eventName);
+	}
+
+	/**
+	 * Emit event to local nodes
+	 *
+	 * @param {String} event
+	 * @param {any} payload
+	 * @param {any} groups
+	 * @param {String} sender
+	 * @returns
+	 * @memberof ServiceBroker
+	 */
+	emitLocalServices(event, payload, groups, sender) {
+		return this.registry.events.emitLocalServices(event, payload, groups, sender);
 	}
 
 }
@@ -1082,6 +1283,6 @@ ServiceBroker.prototype.MOLECULER_VERSION = ServiceBroker.MOLECULER_VERSION;
 /**
  * Default configuration
  */
-ServiceBroker.defaultConfig = defaultConfig;
+ServiceBroker.defaultOptions = defaultOptions;
 
 module.exports = ServiceBroker;

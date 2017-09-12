@@ -15,11 +15,15 @@ const PACKET_DISCOVER 		= "DISCOVER";
 const PACKET_INFO 			= "INFO";
 const PACKET_DISCONNECT 	= "DISCONNECT";
 const PACKET_HEARTBEAT 		= "HEARTBEAT";
+const PACKET_PING 			= "PING";
+const PACKET_PONG 			= "PONG";
+
+const PROTOCOL_VERSION 		= "2";
 
 /**
  * Get packet class from packet type
- * 
- * @param {any} type 
+ *
+ * @param {any} type
  * @returns {Packet}
  */
 function getPacketClassByType(type) {
@@ -37,6 +41,10 @@ function getPacketClassByType(type) {
 		return PacketDisconnect;
 	if (type == PACKET_HEARTBEAT)
 		return PacketHeartbeat;
+	if (type == PACKET_PING)
+		return PacketPing;
+	if (type == PACKET_PONG)
+		return PacketPong;
 
 	/* istanbul ignore next */
 	return Packet;
@@ -44,17 +52,17 @@ function getPacketClassByType(type) {
 
 /**
  * Base packet
- * 
+ *
  * @class Packet
  */
 class Packet {
 	/**
 	 * Creates an instance of Packet.
-	 * 
-	 * @param {Transit} transit 
-	 * @param {String} type 
-	 * @param {any} target 
-	 * 
+	 *
+	 * @param {Transit} transit
+	 * @param {String} type
+	 * @param {any} target
+	 *
 	 * @memberOf Packet
 	 */
 	constructor(transit, type, target) {
@@ -63,15 +71,16 @@ class Packet {
 		this.target = target;
 
 		this.payload = {
+			ver: PROTOCOL_VERSION,
 			sender: transit ? transit.nodeID : null
 		};
 	}
 
 	/**
 	 * Serialize a packet
-	 * 
-	 * @returns 
-	 * 
+	 *
+	 * @returns
+	 *
 	 * @memberOf Packet
 	 */
 	serialize() {
@@ -80,13 +89,13 @@ class Packet {
 
 	/**
 	 * Deserialize message to packet
-	 * 
+	 *
 	 * @static
-	 * @param {any} transit 
-	 * @param {any} type 
-	 * @param {any} msg 
+	 * @param {any} transit
+	 * @param {any} type
+	 * @param {any} msg
 	 * @returns {Packet}
-	 * 
+	 *
 	 * @memberOf Packet
 	 */
 	static deserialize(transit, type, msg) {
@@ -94,26 +103,15 @@ class Packet {
 		const packetClass = getPacketClassByType(type);
 
 		const packet = new packetClass(transit);
-		packet.transformPayload(payload);
+		packet.payload = payload;
 
 		return packet;
-	}
-
-	/**
-	 * Deserialize custom data in payload
-	 * 
-	 * @param {any} payload 
-	 * 
-	 * @memberOf Packet
-	 */
-	transformPayload(payload) {
-		this.payload = payload;
 	}
 }
 
 /**
  * Packet for node disconnect
- * 
+ *
  * @class PacketDisconnect
  * @extends {Packet}
  */
@@ -125,32 +123,32 @@ class PacketDisconnect extends Packet {
 
 /**
  * Packet for heartbeat
- * 
+ *
  * @class PacketHeartbeat
  * @extends {Packet}
  */
 class PacketHeartbeat extends Packet {
-	constructor(transit, uptime) {
+	constructor(transit, cpu) {
 		super(transit, PACKET_HEARTBEAT);
-		this.payload.uptime = uptime;
+		this.payload.cpu = cpu;
 	}
 }
 
 /**
  * Packet for node discover
- * 
+ *
  * @class PacketDiscover
  * @extends {Packet}
  */
 class PacketDiscover extends Packet {
-	constructor(transit) {
-		super(transit, PACKET_DISCOVER);
+	constructor(transit, target) {
+		super(transit, PACKET_DISCOVER, target);
 	}
 }
 
 /**
  * Packet for node info
- * 
+ *
  * @class PacketInfo
  * @extends {Packet}
  */
@@ -158,46 +156,34 @@ class PacketInfo extends Packet {
 	constructor(transit, target, info) {
 		super(transit, PACKET_INFO, target);
 		if (info) {
-			this.payload.services = JSON.stringify(info.services);
+			this.payload.services = info.services;
 			this.payload.ipList = info.ipList;
-			this.payload.versions = info.versions;
-			this.payload.uptime = info.uptime;
+			this.payload.client = info.client;
+			this.payload.port = info.port;
+			this.payload.config = info.config;
 		}
-	}
-
-	transformPayload(payload) {
-		super.transformPayload(payload);
-		payload.services = JSON.parse(payload.services);
 	}
 }
 
 /**
  * Packet for events
- * 
+ *
  * @class PacketEvent
  * @extends {Packet}
  */
 class PacketEvent extends Packet {
-	constructor(transit, eventName, data) {
-		super(transit, PACKET_EVENT);
+	constructor(transit, target, eventName, data = null, groups = null) {
+		super(transit, PACKET_EVENT, target);
 
 		this.payload.event = eventName;
-		if (data != null)
-			this.payload.data = JSON.stringify(data);
-		else
-			this.payload.data = null;
-	}
-
-	transformPayload(payload) {
-		super.transformPayload(payload);
-		if (payload.data != null)
-			payload.data = JSON.parse(payload.data);
+		this.payload.data = data;
+		this.payload.groups = groups;
 	}
 }
 
 /**
  * Packet for request
- * 
+ *
  * @class PacketRequest
  * @extends {Packet}
  */
@@ -208,25 +194,20 @@ class PacketRequest extends Packet {
 		if (ctx) {
 			this.payload.id = ctx.id;
 			this.payload.action = ctx.action.name;
-			this.payload.params = JSON.stringify(ctx.params);
-			this.payload.meta = JSON.stringify(ctx.meta);
+			this.payload.params = ctx.params;
+			this.payload.meta = ctx.meta;
 			this.payload.timeout = ctx.timeout;
 			this.payload.level = ctx.level;
 			this.payload.metrics = ctx.metrics;
 			this.payload.parentID = ctx.parentID;
+			this.payload.requestID = ctx.requestID;
 		}
-	}
-
-	transformPayload(payload) {
-		super.transformPayload(payload);
-		payload.params = JSON.parse(payload.params);
-		payload.meta = JSON.parse(payload.meta);
 	}
 }
 
 /**
  * Packet for response of request
- * 
+ *
  * @class PacketResponse
  * @extends {Packet}
  */
@@ -236,7 +217,7 @@ class PacketResponse extends Packet {
 
 		this.payload.id = id;
 		this.payload.success = err == null;
-		this.payload.data = data != null ? JSON.stringify(data) : null;
+		this.payload.data = data;
 
 		if (err) {
 			this.payload.error = {
@@ -246,21 +227,44 @@ class PacketResponse extends Packet {
 				code: err.code,
 				type: err.type,
 				stack: err.stack,
-				data: JSON.stringify(err.data)
+				data: err.data
 			};
 		}
 	}
+}
 
-	transformPayload(payload) {
-		super.transformPayload(payload);
-		this.payload.data = payload.data ? JSON.parse(payload.data) : null;
-		if (payload.error && payload.error.data)
-			this.payload.error.data = JSON.parse(payload.error.data);
+
+/**
+ * Packet for ping
+ *
+ * @class PacketPing
+ * @extends {Packet}
+ */
+class PacketPing extends Packet {
+	constructor(transit, target, time) {
+		super(transit, PACKET_PING, target);
+		this.payload.time = time;
+	}
+}
+
+/**
+ * Packet for pong
+ *
+ * @class PacketPong
+ * @extends {Packet}
+ */
+class PacketPong extends Packet {
+	constructor(transit, target, time, arrived) {
+		super(transit, PACKET_PONG, target);
+		this.payload.time = time;
+		this.payload.arrived = arrived;
 	}
 }
 
 
 module.exports = {
+	PROTOCOL_VERSION,
+
 	PACKET_UNKNOW,
 	PACKET_EVENT,
 	PACKET_REQUEST,
@@ -269,6 +273,8 @@ module.exports = {
 	PACKET_INFO,
 	PACKET_DISCONNECT,
 	PACKET_HEARTBEAT,
+	PACKET_PING,
+	PACKET_PONG,
 
 	Packet,
 	PacketEvent,
@@ -277,5 +283,7 @@ module.exports = {
 	PacketInfo,
 	PacketHeartbeat,
 	PacketRequest,
-	PacketResponse
+	PacketResponse,
+	PacketPing,
+	PacketPong
 };

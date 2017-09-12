@@ -6,10 +6,11 @@
 
 "use strict";
 
-const Promise					= require("bluebird");
-const P 						= require("./packets");
-const { getIpList } 			= require("./utils");
-const { hash } 					= require("node-object-hash")({ sort: false, coerce: false});
+const Promise	= require("bluebird");
+const P 		= require("./packets");
+const _ 		= require("lodash");
+
+const { MoleculerServerError, ProtocolVersionMismatchError } = require("./errors");
 
 /**
  * Transit class
@@ -34,12 +35,7 @@ class Transit {
 		this.tx = transporter;
 		this.opts = opts;
 
-		this.nodes = new Map();
-
 		this.pendingRequests = new Map();
-
-		this.heartbeatTimer = null;
-		this.checkNodesTimer = null;
 
 		this.stat = {
 			packets: {
@@ -51,8 +47,9 @@ class Transit {
 		this.connected = false;
 		this.disconnecting = false;
 
-		if (this.tx)
+		if (this.tx) {
 			this.tx.init(this, this.messageHandler.bind(this), this.afterConnect.bind(this));
+		}
 
 		this.__connectResolve = null;
 	}
@@ -75,9 +72,12 @@ class Transit {
 
 			.then(() => this.discoverNodes())
 			.then(() => this.sendNodeInfo())
+			.delay(200) // Waiting for incoming INFO packets
 
 			.then(() => {
 				this.connected = true;
+
+				this.broker.broadcastLocal("$transporter.connected");
 
 				if (this.__connectResolve) {
 					this.__connectResolve();
@@ -101,7 +101,7 @@ class Transit {
 				this.tx.connect().catch(err => {
 					if (this.disconnecting) return;
 
-					this.logger.warn("Connection is failed!", err.message);
+					this.logger.warn("Connection is failed.", err.message);
 					this.logger.debug(err);
 
 					setTimeout(() => {
@@ -112,22 +112,8 @@ class Transit {
 			};
 
 			doConnect();
-		})
-			.then(() => {
-			// Start timers
-				this.heartbeatTimer = setInterval(() => {
-				/* istanbul ignore next */
-					this.sendHeartbeat();
-				}, this.broker.options.heartbeatInterval * 1000);
-				this.heartbeatTimer.unref();
 
-				this.checkNodesTimer = setInterval(() => {
-				/* istanbul ignore next */
-					this.checkRemoteNodes();
-				}, this.broker.options.heartbeatTimeout * 1000);
-				this.checkNodesTimer.unref();
-
-			});
+		});
 	}
 
 	/**
@@ -138,15 +124,9 @@ class Transit {
 	disconnect() {
 		this.connected = false;
 		this.disconnecting = true;
-		if (this.heartbeatTimer) {
-			clearInterval(this.heartbeatTimer);
-			this.heartbeatTimer = null;
-		}
 
-		if (this.checkNodesTimer) {
-			clearInterval(this.checkNodesTimer);
-			this.checkNodesTimer = null;
-		}
+		this.broker.broadcastLocal("$transporter.disconnected", { graceFul: true });
+
 		if (this.tx.connected) {
 			return this.sendDisconnectPacket()
 				.then(() => this.tx.disconnect());
@@ -163,8 +143,6 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendDisconnectPacket() {
-		this.logger.debug("Send DISCONNECT to nodes...");
-
 		return this.publish(new P.PacketDisconnect(this));
 	}
 
@@ -176,7 +154,7 @@ class Transit {
 	makeSubscriptions() {
 		this.subscribing = Promise.all([
 			// Subscribe to broadcast events
-			this.subscribe(P.PACKET_EVENT),
+			this.subscribe(P.PACKET_EVENT, this.nodeID),
 
 			// Subscribe to requests
 			this.subscribe(P.PACKET_REQUEST, this.nodeID),
@@ -186,6 +164,7 @@ class Transit {
 
 			// Discover handler
 			this.subscribe(P.PACKET_DISCOVER),
+			this.subscribe(P.PACKET_DISCOVER, this.nodeID),
 
 			// NodeInfo handler
 			this.subscribe(P.PACKET_INFO), // Broadcasted INFO. If a new node connected
@@ -194,25 +173,21 @@ class Transit {
 			// Disconnect handler
 			this.subscribe(P.PACKET_DISCONNECT),
 
-			// Heart-beat handler
+			// Heartbeat handler
 			this.subscribe(P.PACKET_HEARTBEAT),
+
+			// Ping handler
+			this.subscribe(P.PACKET_PING), // Broadcasted
+			this.subscribe(P.PACKET_PING, this.nodeID), // Targeted
+
+			// Pong handler
+			this.subscribe(P.PACKET_PONG, this.nodeID)
+
 		])
 			.then(() => {
 				this.subscribing = null;
 			});
 		return this.subscribing;
-	}
-
-	/**
-	 * Emit an event to remote nodes
-	 *
-	 * @param {any} eventName
-	 * @param {any} data
-	 *
-	 * @memberOf Transit
-	 */
-	emit(eventName, data) {
-		this.publish(new P.PacketEvent(this, eventName, data));
 	}
 
 	/**
@@ -226,7 +201,7 @@ class Transit {
 	 */
 	messageHandler(cmd, msg) {
 		if (msg == null) {
-			throw new Error("Missing packet!");
+			throw new MoleculerServerError("Missing packet.", 500, "MISSING_PACKET");
 		}
 
 		this.stat.packets.received = this.stat.packets.received + 1;
@@ -237,10 +212,18 @@ class Transit {
 		// Check payload
 		if (!payload) {
 			/* istanbul ignore next */
-			throw new Error("Missing response payload!");
+			throw new MoleculerServerError("Missing response payload.", 500, "MISSING_PAYLOAD");
 		}
 
-		if (payload.sender == this.nodeID)
+		// Check protocol version
+		if (payload.ver != P.PROTOCOL_VERSION) {
+			let err = new ProtocolVersionMismatchError(payload.sender,P.PROTOCOL_VERSION, payload.ver || "1");
+			this.logger.error(err);
+			return Promise.reject(err);
+		}
+
+		// Skip own packets (if built-in balancer disabled)
+		if (payload.sender == this.nodeID && (cmd !== P.PACKET_EVENT && cmd !== P.PACKET_REQUEST && cmd !== P.PACKET_RESPONSE))
 			return Promise.resolve();
 
 		// Request
@@ -255,40 +238,56 @@ class Transit {
 
 		// Event
 		else if (cmd === P.PACKET_EVENT) {
-			//this.logger.debug("Event received", payload);
-			this.broker.emitLocal(payload.event, payload.data, payload.sender);
-			return;
+			return this._eventHandler(payload);
+		}
+
+		// Discover
+		else if (cmd === P.PACKET_DISCOVER) {
+			this.sendNodeInfo(payload.sender);
+			return Promise.resolve();
 		}
 
 		// Node info
-		else if (cmd === P.PACKET_INFO || cmd === P.PACKET_DISCOVER) {
-			this.processNodeInfo(payload.sender, payload);
-
-			if (cmd == "DISCOVER") {
-				//this.logger.debug("Discover received from " + payload.sender);
-				this.sendNodeInfo(payload.sender);
-			}
-			return;
+		else if (cmd === P.PACKET_INFO) {
+			this.broker.registry.processNodeInfo(payload);
+			return Promise.resolve();
 		}
 
 		// Disconnect
 		else if (cmd === P.PACKET_DISCONNECT) {
-			this.nodeDisconnected(payload.sender);
-			return;
+			this.broker.registry.nodeDisconnected(payload);
+			return Promise.resolve();
 		}
 
 		// Heartbeat
 		else if (cmd === P.PACKET_HEARTBEAT) {
-			//this.logger.debug("Node heart-beat received from " + payload.sender);
-			this.nodeHeartbeat(payload.sender, payload);
-			return;
+			this.broker.registry.nodeHeartbeat(payload);
+			return Promise.resolve();
 		}
+
+		// Ping
+		else if (cmd === P.PACKET_PING) {
+			this.sendPong(payload);
+			return Promise.resolve();
+		}
+
+		// Pong
+		else if (cmd === P.PACKET_PONG) {
+			this.processPong(payload);
+			return Promise.resolve();
+		}
+	}
+
+	_eventHandler(payload) {
+		this.logger.debug(`Event '${payload.event}' received from '${payload.sender}' node` + (payload.groups ? ` in '${payload.groups.join(", ")}' group(s)` : "") + ".");
+
+		this.broker.emitLocalServices(payload.event, payload.data, payload.groups, payload.sender);
 	}
 
 	/**
 	 * Handle incoming request
 	 *
-	 * @param {Object} packet
+	 * @param {Object} payload
 	 * @returns {Promise}
 	 *
 	 * @memberOf Transit
@@ -297,18 +296,9 @@ class Transit {
 		this.logger.debug(`Request '${payload.action}' received from '${payload.sender}' node.`);
 
 		// Recreate caller context
-		const ctx = this.broker.ContextFactory.create(this.broker, {
-			name: payload.action
-		}, this.broker.nodeID, payload.params, {
-			meta: payload.meta
-		});
-		ctx.id = payload.id;
-		ctx.parentID = payload.parentID;
-		ctx.level = payload.level;
-		ctx.metrics = payload.metrics;
-		ctx.callerNodeID = payload.sender;
+		const ctx = this.broker.ContextFactory.createFromPayload(this.broker, payload);
 
-		return this.broker.call(payload.action, payload.params, { ctx: ctx })
+		return this.broker._handleRemoteRequest(ctx)
 			.then(res => this.sendResponse(payload.sender, payload.id,  res, null))
 			.catch(err => this.sendResponse(payload.sender, payload.id, null, err));
 	}
@@ -331,7 +321,9 @@ class Transit {
 		// Remove pending request
 		this.removePendingRequest(id);
 
-		this.logger.debug(`Response '${req.action.name}' received from '${req.nodeID}'.`);
+		this.logger.debug(`Response '${req.action.name}' received from '${packet.sender}'.`);
+		// Update nodeID in context (if it use external balancer)
+		req.ctx.nodeID = packet.sender;
 
 		if (!packet.success) {
 			// Recreate exception object
@@ -364,11 +356,11 @@ class Transit {
 	 */
 	request(ctx) {
 		// Expanded the code that v8 can optimize it.  (TryCatchStatement disable optimizing)
-		return new Promise((resolve, reject) => this._doRequest(ctx, resolve, reject));
+		return new Promise((resolve, reject) => this._sendRequest(ctx, resolve, reject));
 	}
 
 	/**
-	 * Do a remote request
+	 * Send a remote request
 	 *
 	 * @param {<Context>} ctx 		Context of request
 	 * @param {Function} resolve 	Resolve of Promise
@@ -376,18 +368,17 @@ class Transit {
 	 *
 	 * @memberOf Transit
 	 */
-	_doRequest(ctx, resolve, reject) {
+	_sendRequest(ctx, resolve, reject) {
 		const request = {
-			nodeID: ctx.nodeID,
 			action: ctx.action,
-			//ctx,
+			ctx,
 			resolve,
 			reject
 		};
 
 		const packet = new P.PacketRequest(this, ctx.nodeID, ctx);
 
-		this.logger.debug(`Send '${ctx.action.name}' request to '${ctx.nodeID}' node.`);
+		this.logger.debug(`Send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`);
 
 		// Add to pendings
 		this.pendingRequests.set(ctx.id, request);
@@ -398,6 +389,59 @@ class Transit {
 		this.publish(packet);
 	}
 
+	/**
+	 * Send an event to a remote node
+	 *
+	 * @param {String} nodeID
+	 * @param {String} eventName
+	 * @param {any} data
+	 *
+	 * @memberOf Transit
+	 */
+	sendEvent(nodeID, eventName, data) {
+		this.logger.debug(`Send '${eventName}' event to '${nodeID}'.`);
+
+		return this.publish(new P.PacketEvent(this, nodeID, eventName, data));
+	}
+
+	/**
+	 * Send a grouped event to remote nodes.
+	 * The event is balanced internally.
+	 *
+	 * @param {String} eventName
+	 * @param {any} data
+	 * @param {Object} nodeGroups
+	 *
+	 * @memberOf Transit
+	 */
+	sendBalancedEvent(eventName, data, nodeGroups) {
+		_.forIn(nodeGroups, (groups, nodeID) => {
+			this.logger.debug(`Send '${eventName}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
+
+			return this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups));
+		});
+	}
+
+	/**
+	 * Send an event to groups.
+	 * The transporter should make balancing
+	 *
+	 * @param {String} eventName
+	 * @param {any} data
+	 * @param {Object} groups
+	 *
+	 * @memberOf Transit
+	 */
+	sendEventToGroups(eventName, data, groups) {
+		if (!groups || groups.length == 0)
+			groups = this.broker.getEventGroups(eventName);
+
+		if (groups.length == 0)
+			return;
+
+		this.logger.debug(`Send '${eventName}' event to '${groups.join(", ")}' group(s).`);
+		this.publish(new P.PacketEvent(this, null, eventName, data, groups));
+	}
 
 	/**
 	 * Remove a pending request
@@ -421,34 +465,8 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendResponse(nodeID, id, data, err) {
-		//this.logger.debug(`Send response back to '${nodeID}'`);
-
 		// Publish the response
 		return this.publish(new P.PacketResponse(this, nodeID, id, data, err));
-	}
-
-	/**
-	 * Get Node information to DISCOVER & INFO packages
-	 *
-	 * @returns {Object}
-	 *
-	 * @memberof Transit
-	 */
-	getNodeInfo() {
-		const services = this.broker.serviceRegistry.getServiceList({ onlyLocal: true, withActions: true });
-		const uptime = process.uptime();
-		const ipList = getIpList();
-		const versions = {
-			node: process.version,
-			moleculer: this.broker.MOLECULER_VERSION
-		};
-
-		return {
-			services,
-			ipList,
-			versions,
-			uptime
-		};
 	}
 
 	/**
@@ -461,13 +479,62 @@ class Transit {
 	}
 
 	/**
-	 * Send node info package to other nodes. It will be called with timer
+	 * Discover a node. It will be called if we got message from a node
+	 * what we don't know.
+	 *
+	 * @memberOf Transit
+	 */
+	discoverNode(nodeID) {
+		return this.publish(new P.PacketDiscover(this, nodeID));
+	}
+
+	/**
+	 * Send node info package to other nodes.
 	 *
 	 * @memberOf Transit
 	 */
 	sendNodeInfo(nodeID) {
-		const info = this.getNodeInfo();
+		const info = this.broker.getLocalNodeInfo();
 		return this.publish(new P.PacketInfo(this, nodeID, info));
+	}
+
+	/**
+	 * Send ping to a node (or all nodes if nodeID is null)
+	 *
+	 * @param {String?} nodeID
+	 * @returns
+	 * @memberof Transit
+	 */
+	sendPing(nodeID) {
+		return this.publish(new P.PacketPing(this, nodeID, Date.now()));
+	}
+
+	/**
+	 * Send back pong response
+	 *
+	 * @param {Object} payload
+	 * @returns
+	 * @memberof Transit
+	 */
+	sendPong(payload) {
+		return this.publish(new P.PacketPong(this, payload.sender, payload.time, Date.now()));
+	}
+
+	/**
+	 * Process incoming PONG packet.
+	 * Measure ping time & current time difference.
+	 *
+	 * @param {Object} payload
+	 * @memberof Transit
+	 */
+	processPong(payload) {
+		const now = Date.now();
+		const elapsedTime = now - payload.time;
+		const timeDiff = Math.round(now - payload.arrived - elapsedTime / 2);
+
+		// this.logger.debug(`PING-PONG from '${payload.sender}' - Time: ${elapsedTime}ms, Time difference: ${timeDiff}ms`);
+
+		this.broker.broadcastLocal("$node.pong", { nodeID: payload.sender, elapsedTime, timeDiff }, payload.sender);
 	}
 
 	/**
@@ -475,9 +542,8 @@ class Transit {
 	 *
 	 * @memberOf Transit
 	 */
-	sendHeartbeat() {
-		const uptime = process.uptime();
-		return this.publish(new P.PacketHeartbeat(this, uptime));
+	sendHeartbeat(localNode) {
+		return this.publish(new P.PacketHeartbeat(this, localNode.cpu));
 	}
 
 	/**
@@ -535,137 +601,6 @@ class Transit {
 		if (buf == null) return null;
 
 		return this.broker.serializer.deserialize(buf, type);
-	}
-
-	/**
-	 * Process remote node info (list of actions)
-	 *
-	 * @param {String} nodeID
-	 * @param {Object} payload
-	 *
-	 * @memberOf Transit
-	 */
-	processNodeInfo(nodeID, payload) {
-		if (nodeID == null) {
-			this.logger.error("Missing nodeID in INFO packet!");
-			return;
-		}
-
-		// Is it a new node?
-		let isNewNode = !this.nodes.has(nodeID);
-
-		// Get old node item
-		const oldNode = this.nodes.get(nodeID);
-		const oldServicesHash = hash(oldNode ? oldNode.services : null);
-
-		// Refresh node properties
-		const node = Object.assign(oldNode || {}, payload);
-
-		// Is it a reconnected node?
-		let isReconnected = !node.available;
-
-		// Update heartbeat & status
-		node.lastHeartbeatTime = Date.now();
-		node.available = true;
-		node.id = nodeID;
-
-		// Set the new node item
-		this.nodes.set(nodeID, node);
-
-		// Notifications
-		if (isNewNode) {
-			this.broker.emitLocal("node.connected", { node, reconnected: false });
-			this.logger.info(`Node '${nodeID}' connected!`);
-		} else if (isReconnected) {
-			this.broker.emitLocal("node.connected", { node, reconnected: true });
-			this.logger.info(`Node '${nodeID}' reconnected!`);
-		} else {
-			this.broker.emitLocal("node.info", { node });
-			this.logger.debug(`Node '${nodeID}' info received!`);
-		}
-
-		// Update node services in registry
-		if (node.services) {
-			if (isReconnected || oldServicesHash !== hash(node.services)) {
-				this.logger.debug(`Re-register node '${nodeID}' services...`);
-
-				// Unregister previous services
-				this.broker.unregisterServicesByNode(nodeID);
-
-				// Register remote services
-				node.services.forEach(service => this.broker.registerRemoteService(nodeID, service));
-			}
-		}
-	}
-
-	/**
-	 * Check the given nodeID is available
-	 *
-	 * @param {any} nodeID	Node ID
-	 * @returns {boolean}
-	 *
-	 * @memberOf Transit
-	 */
-	isNodeAvailable(nodeID) {
-		let info = this.nodes.get(nodeID);
-		if (info)
-			return info.available;
-
-		return false;
-	}
-
-	/**
-	 * Save a heart-beat time from a remote node
-	 *
-	 * @param {any} nodeID
-	 * @param {Object} payload
-	 *
-	 * @memberOf Transit
-	 */
-	nodeHeartbeat(nodeID, payload) {
-		if (this.nodes.has(nodeID)) {
-			let node = this.nodes.get(nodeID);
-			node.lastHeartbeatTime = Date.now();
-			node.uptime = payload.uptime;
-			node.available = true;
-		}
-	}
-
-	/**
-	 * Node disconnected event handler.
-	 * Remove node and remove remote actions of node
-	 *
-	 * @param {any} nodeID
-	 * @param {Boolean=} isUnexpected
-	 *
-	 * @memberOf Transit
-	 */
-	nodeDisconnected(nodeID, isUnexpected) {
-		if (this.nodes.has(nodeID)) {
-			let node = this.nodes.get(nodeID);
-			if (node.available) {
-				node.available = false;
-				this.broker.unregisterServicesByNode(nodeID);
-
-				this.broker.emitLocal("node.disconnected", { node, unexpected: !!isUnexpected });
-				//this.nodes.delete(nodeID);
-				this.logger.warn(`Node '${nodeID}' disconnected!`);
-			}
-		}
-	}
-
-	/**
-	 * Check all registered remote nodes is live.
-	 *
-	 * @memberOf Transit
-	 */
-	checkRemoteNodes() {
-		let now = Date.now();
-		this.nodes.forEach(node => {
-			if (now - (node.lastHeartbeatTime || 0) > this.broker.options.heartbeatTimeout * 1000) {
-				this.nodeDisconnected(node.id, true);
-			}
-		});
 	}
 
 }

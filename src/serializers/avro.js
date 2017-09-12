@@ -17,9 +17,14 @@ function createSchemas() {
 		name: P.PACKET_EVENT,
 		type: "record",
 		fields: [
+			{ name: "ver", type: "string" },
 			{ name: "sender", type: "string" },
 			{ name: "event", type: "string" },
-			{ name: "data", type: "string" }
+			{ name: "data", type: "string" },
+			{ name: "groups", type: [ "null", {
+				type: "array",
+				items: "string"
+			}], default: null }
 		]
 	});
 
@@ -27,6 +32,7 @@ function createSchemas() {
 		name: P.PACKET_REQUEST,
 		type: "record",
 		fields: [
+			{ name: "ver", type: "string" },
 			{ name: "sender", type: "string" },
 			{ name: "id", type: "string" },
 			{ name: "action", type: "string" },
@@ -35,7 +41,8 @@ function createSchemas() {
 			{ name: "timeout", type: "double" },
 			{ name: "level", type: "int" },
 			{ name: "metrics", type: "boolean" },
-			{ name: "parentID", type: [ "null", "string"], default: null }
+			{ name: "parentID", type: [ "null", "string"], default: null },
+			{ name: "requestID", type: [ "null", "string"], default: null }
 		]
 	});
 
@@ -43,22 +50,12 @@ function createSchemas() {
 		name: P.PACKET_RESPONSE,
 		type: "record",
 		fields: [
+			{ name: "ver", type: "string" },
 			{ name: "sender", type: "string" },
 			{ name: "id", type: "string" },
 			{ name: "success", type: "boolean" },
-			{ name: "data", type: [ "null", "string"] },
-			{ name: "error", type: [ "null", {
-				type: "record",
-				fields: [
-					{ name: "name", type: "string" },
-					{ name: "message", type: "string" },
-					{ name: "code", type: "int" },
-					{ name: "type", type: "string" },
-					{ name: "stack", type: "string" },
-					{ name: "data", type: "string" },
-					{ name: "nodeID", type: "string" }
-				]
-			} ], default: null }
+			{ name: "data", type: [ "null", "string"], default: null },
+			{ name: "error", type: [ "null", "string"], default: null }
 		]
 	});
 
@@ -66,6 +63,7 @@ function createSchemas() {
 		name: P.PACKET_DISCOVER,
 		type: "record",
 		fields: [
+			{ name: "ver", type: "string" },
 			{ name: "sender", type: "string" }
 		]
 	});
@@ -74,18 +72,21 @@ function createSchemas() {
 		name: P.PACKET_INFO,
 		type: "record",
 		fields: [
+			{ name: "ver", type: "string" },
 			{ name: "sender", type: "string" },
 			{ name: "services", type: "string" },
-			{ name: "uptime", type: "double" },
+			{ name: "config", type: "string" },
 			{ name: "ipList", type: {
 				type: "array",
 				items: "string"
 			}},
-			{ name: "versions", type: {
+			{ name: "port", type: [ "null", "int"], default: null },
+			{ name: "client", type: {
 				type: "record",
 				fields: [
-					{ name: "node", type: "string" },
-					{ name: "moleculer", type: "string" }
+					{ name: "type", type: "string" },
+					{ name: "version", type: "string" },
+					{ name: "langVersion", type: "string" }
 				]
 			}}
 		]
@@ -95,6 +96,7 @@ function createSchemas() {
 		name: P.PACKET_DISCONNECT,
 		type: "record",
 		fields: [
+			{ name: "ver", type: "string" },
 			{ name: "sender", type: "string" }
 		]
 	});
@@ -103,8 +105,30 @@ function createSchemas() {
 		name: P.PACKET_HEARTBEAT,
 		type: "record",
 		fields: [
+			{ name: "ver", type: "string" },
 			{ name: "sender", type: "string" },
-			{ name: "uptime", type: "double" }
+			{ name: "cpu", type: "double" }
+		]
+	});
+
+	schemas[P.PACKET_PING] = avro.Type.forSchema({
+		name: P.PACKET_PING,
+		type: "record",
+		fields: [
+			{ name: "ver", type: "string" },
+			{ name: "sender", type: "string" },
+			{ name: "time", type: "long" }
+		]
+	});
+
+	schemas[P.PACKET_PONG] = avro.Type.forSchema({
+		name: P.PACKET_PONG,
+		type: "record",
+		fields: [
+			{ name: "ver", type: "string" },
+			{ name: "sender", type: "string" },
+			{ name: "time", type: "long" },
+			{ name: "arrived", type: "long" }
 		]
 	});
 
@@ -113,18 +137,18 @@ function createSchemas() {
 
 /**
  * Avro serializer for Moleculer
- * 
+ *
  * https://github.com/mtth/avsc
- * 
+ *
  * @class AvroSerializer
  */
 class AvroSerializer extends BaseSerializer {
 
 	/**
 	 * Initialize Serializer
-	 * 
+	 *
 	 * @param {any} broker
-	 * 
+	 *
 	 * @memberOf Serializer
 	 */
 	init(broker) {
@@ -142,30 +166,36 @@ class AvroSerializer extends BaseSerializer {
 
 	/**
 	 * Serializer a JS object to Buffer
-	 * 
+	 *
 	 * @param {Object} obj
 	 * @param {String} type of packet
 	 * @returns {Buffer}
-	 * 
+	 *
 	 * @memberOf Serializer
 	 */
 	serialize(obj, type) {
+		this.serializeCustomFields(type, obj);
+
 		const t = this.schemas[type].toBuffer(obj);
+
 		return t;
 	}
 
 	/**
 	 * Deserialize Buffer to JS object
-	 * 
+	 *
 	 * @param {Buffer} buf
 	 * @param {String} type of packet
 	 * @returns {Object}
-	 * 
+	 *
 	 * @memberOf Serializer
 	 */
 	deserialize(buf, type) {
-		const res = this.schemas[type].fromBuffer(buf);
-		return res;
+		const obj = this.schemas[type].fromBuffer(buf);
+
+		this.deserializeCustomFields(type, obj);
+
+		return obj;
 	}
 }
 

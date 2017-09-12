@@ -8,30 +8,31 @@
 
 /**
  * Base Transporter class
- * 
+ *
  * @class BaseTransporter
  */
 class BaseTransporter {
 
 	/**
 	 * Creates an instance of BaseTransporter.
-	 * 
+	 *
 	 * @param {any} opts
-	 * 
+	 *
 	 * @memberOf BaseTransporter
 	 */
 	constructor(opts) {
 		this.opts = opts || {};
 		this.connected = false;
+		this.hasBuiltInBalancer = false;
 	}
 
 	/**
 	 * Init transporter
-	 * 
+	 *
 	 * @param {Transit} transit
 	 * @param {Function} messageHandler
 	 * @param {Function} afterConnect
-	 * 
+	 *
 	 * @memberOf BaseTransporter
 	 */
 	init(transit, messageHandler, afterConnect) {
@@ -52,7 +53,7 @@ class BaseTransporter {
 
 	/**
 	 * Connect to the transporter server
-	 * 
+	 *
 	 * @memberOf BaseTransporter
 	 */
 	connect() {
@@ -62,10 +63,10 @@ class BaseTransporter {
 
 	/**
 	 * Event handler for connected.
-	 * 
-	 * @param {any} wasReconnect 
+	 *
+	 * @param {any} wasReconnect
 	 * @returns {Promise}
-	 * 
+	 *
 	 * @memberof BaseTransporter
 	 */
 	onConnected(wasReconnect) {
@@ -79,7 +80,7 @@ class BaseTransporter {
 
 	/**
 	 * Disconnect from the transporter server
-	 * 
+	 *
 	 * @memberOf BaseTransporter
 	 */
 	disconnect() {
@@ -89,10 +90,10 @@ class BaseTransporter {
 
 	/**
 	 * Subscribe to a command
-	 * 
-	 * @param {String} cmd 
-	 * @param {String} nodeID 
-	 * 
+	 *
+	 * @param {String} cmd
+	 * @param {String} nodeID
+	 *
 	 * @memberOf BaseTransporter
 	 */
 	subscribe(/*cmd, nodeID*/) {
@@ -102,9 +103,9 @@ class BaseTransporter {
 
 	/**
 	 * Publish a packet
-	 * 
+	 *
 	 * @param {Packet} packet
-	 * 
+	 *
 	 * @memberOf BaseTransporter
 	 */
 	publish(/*packet*/) {
@@ -114,10 +115,10 @@ class BaseTransporter {
 
 	/**
 	 * Get topic name from command & target nodeID
-	 * 
-	 * @param {any} cmd 
-	 * @param {any} nodeID 
-	 * 
+	 *
+	 * @param {any} cmd
+	 * @param {any} nodeID
+	 *
 	 * @memberOf BaseTransporter
 	 */
 	getTopicName(cmd, nodeID) {

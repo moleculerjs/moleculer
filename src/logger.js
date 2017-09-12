@@ -16,8 +16,8 @@ module.exports = {
 
 	/**
 	 * Extend a logger class if missing log level methods
-	 * 
-	 * @param {Object} logger 
+	 *
+	 * @param {Object} logger
 	 * @returns {Object} logger
 	 */
 	extend(logger) {
@@ -37,10 +37,10 @@ module.exports = {
 
 	/**
 	 * Create a default logger for `console` logger.
-	 * 
-	 * @param {Object} baseLogger 
-	 * @param {Object} bindings 
-	 * @param {String?} logLevel 
+	 *
+	 * @param {Object} baseLogger
+	 * @param {Object} bindings
+	 * @param {String?} logLevel
 	 * @param {Function?} logFormatter Custom log formatter function
 	 * @returns {Object} logger
 	 */
@@ -90,9 +90,10 @@ module.exports = {
 
 			// Wrap the original method
 			logger[type] = function(...args) {
-				if (logFormatter) {
+				const format = logFormatter;
+				if (_.isFunction(format))
 					return method.call(baseLogger, logFormatter(type, args, bindings));
-				}
+
 				// Format arguments (inspect & colorize the objects & array)
 				let pargs = args.map(p => {
 					if (_.isObject(p) || _.isArray(p))
@@ -100,8 +101,11 @@ module.exports = {
 					return p;
 				});
 
-				// Call the original method
-				method.call(baseLogger, chalk.grey(`[${new Date().toISOString()}]`), getType(type), chalk.grey(getModuleName() + ":"), ...pargs);
+				if (format == "simple") {
+					method.call(baseLogger, getType(type), "-", ...pargs);
+				} else {
+					method.call(baseLogger, chalk.grey(`[${new Date().toISOString()}]`), getType(type), chalk.grey(getModuleName() + ":"), ...pargs);
+				}
 
 			}.bind(baseLogger);
 

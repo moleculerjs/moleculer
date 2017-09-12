@@ -1,11 +1,14 @@
-title: Protocol
+title: Protocol v2
 ---
 
-This documentation describes the communication protocol between nodes. 
+This documentation describes the communication protocol between Moleculer nodes. 
 
 **Variables in topic names:**
 - `<namespace>` - Namespace from broker options
 - `<nodeID>` - Target nodeID
+- `<action>` - Action name. E.g.: `posts.find`
+- `<group>` - Event group name. E.g.: `users`
+- `<event>` - Event name. E.g.: `user.created`
 
 
 ## Subscriptions
@@ -13,50 +16,60 @@ After the client is connected to the message broker (NATS, Redis, MQTT), it subs
 
 | Type | Topic name |
 | ---- | ---------- |
-| Event | `MOL.EVENT` |
+| Event | `MOL.EVENT.<nodeID>` |
 | Request | `MOL.REQUEST.<nodeID>` |
 | Response | `MOL.RESPONSE.<nodeID>` |
 | Discover | `MOL.DISCOVER` |
+| Discover (targetted) | `MOL.DISCOVER.<nodeID>` |
 | Info | `MOL.INFO` |
 | Info (targetted) | `MOL.INFO.<nodeID>` |
 | Heartbeat | `MOL.HEARTBEAT` |
+| Ping | `MOL.PING` |
+| Ping (targetted) | `MOL.PING.<nodeID>` |
+| Pong | `MOL.PONG.<nodeID>` |
 | Disconnect | `MOL.DISCONNECT` |
 
 > If `namespace` is defined, the topic prefix is `MOL-namespace` instead of `MOL`. For example: `MOL-dev.EVENT` if namespace is `dev`.
 
 ## Discovering
-After subscriptions the client broadcasts a `DISCOVER` packet. In response to this all connected nodes send back an `INFO` packet to the sender node. From these responses the client builds its own service registry. At last, the client broadcasts also own INFO packet to all other nodes.
-![](http://moleculer.services/images/protocol-0.8/moleculer_protocol_discover.png)
+After subscriptions, the client broadcasts a `DISCOVER` packet. In response to this all connected nodes send back `INFO` packet to the sender node. From these responses the client builds its own service registry. At last, the client broadcasts also own INFO packet to all other nodes.
+![](http://moleculer.services/images/protocol-v2/moleculer_protocol_discover.png)
 
 ## Heartbeat
-The client has to broadcast `HEARTBEAT` packets periodically. The period value comes from broker options (`heartbeatInterval`). Default value is 10 secs. 
+The client has to broadcast `HEARTBEAT` packets periodically. The period value comes from broker options (`heartbeatInterval`). Default value is 5 secs. 
 If the client doesn't receive `HEARTBEAT` for `heartbeatTimeout` seconds from a node, marks it to broken and doesn't route requests to this node.
-![](http://moleculer.services/images/protocol-0.8/moleculer_protocol_heartbeat.png)
+![](http://moleculer.services/images/protocol-v2/moleculer_protocol_heartbeat.png)
 
 ## Request-reply
 When you call the `broker.call` method, the broker sends a `REQUEST` packet to the targetted node. It processes the request and sends back a `RESPONSE` packet to the requester node.
-![](http://moleculer.services/images/protocol-0.8/moleculer_protocol_request.png)
+![](http://moleculer.services/images/protocol-v2/moleculer_protocol_request.png)
 
 ## Event
-When you call the `broker.emit` method, the broker broadcasts an `EVENT` packet to all nodes.
-![](http://moleculer.services/images/protocol-0.8/moleculer_protocol_event.png)
+When you call the `broker.emit` method, the broker sends an `EVENT` packet to the subscribed nodes. The broker groups & balances the subscribers, so only one instance per service receives the event.
+![](http://moleculer.services/images/protocol-v2/moleculer_protocol_event.png)
+
+## Ping-pong
+When you call the `broker.transit.sendPing` method, the broker sends a `PING` packet to the targetted node. If node is not defined, it sends to all nodes. If the client receives the `PING` packet, sends back a `PONG` response packet. If it receives, broker broadcasts a local `$node.pong` event to the local services.
+![](http://moleculer.services/images/protocol-v2/moleculer_protocol_pong.png)
 
 ## Disconnect
 When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
-![](http://moleculer.services/images/protocol-0.8/moleculer_protocol_disconnect.png)
+![](http://moleculer.services/images/protocol-v2/moleculer_protocol_disconnect.png)
 
 ## Packets
 
 ### `DISCOVER`
 
 **Topic name:**
-- `MOL.DISCOVER`
+- `MOL.DISCOVER` (if broadcasts)
+- `MOL.DISCOVER.node-1` (if sent only to `node-1`)
 - `MOL-dev.DISCOVER` (if namespace is `dev`)
 
 **Fields:**
 
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
+| `ver` | `string` | ✔ | Protocol version. Current: `'2'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
 
 
@@ -64,20 +77,23 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 
 **Topic name:**
 - `MOL.INFO` (if broadcasts)
-- `MOL.INFO.node-1` (if sent only to `node-1` nodeID)
+- `MOL.INFO.node-1` (if sent only to `node-1`)
 - `MOL-dev.INFO` (if namespace is `dev`)
 
 **Fields:**
 
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
+| `ver` | `string` | ✔ | Protocol version. Current: `'2'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `services` | `string` | ✔ | JSON encoded string with services list. |
-| `uptime` | `double` | ✔ | Uptime of process. |
+| `config` | `string` | ✔ | JSON encoded client configuration. |
 | `ipList` | `[string]` | ✔ | IP address list of node |
-| `versions` | `object` | ✔ | Versions |
-|   `versions.node` | `string` | ✔ | NodeJS version |
-|   `versions.moleculer` | `string` | ✔ | Moleculer version |
+| `port` | `int32` |   | Port number |
+| `client` | `object` | ✔ | Client information |
+|   `client.type` | `string` | ✔ | Type of client implementation(`nodejs`, `java`, `go`) |
+|   `client.version` | `string` | ✔ | Client (Moleculer) version |
+|   `client.langVersion` | `string` | ✔ | NodeJS/Java/Go version |
 
 
 ### `HEARTBEAT`
@@ -90,20 +106,23 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
+| `ver` | `string` | ✔ | Protocol version. Current: `'2'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
-| `uptime` | `double` | ✔ | Uptime of process. |
+| `cpu` | `double` | ✔ | Current CPU utilization (percentage). |
 
 
 ### `REQUEST`
 
 **Topic name:**
-- `MOL.REQUEST.node-2`
-- `MOL-dev.REQUEST.node-2` (if namespace is `dev`)
+- `MOL.REQ.node-2`
+- `MOL.REQB.<action>` (if built-in balancer is disabled)
+- `MOL-dev.REQ.node-2` (if namespace is `dev`)
 
 **Fields:**
 
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
+| `ver` | `string` | ✔ | Protocol version. Current: `'2'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `id` | `string` | ✔ | Context ID. |
 | `action` | `string` | ✔ | Action name. E.g.: `posts.find` |
@@ -113,45 +132,74 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `level` | `int32` | ✔ | Level of request. |
 | `metrics` | `boolean` | ✔ | Need to send metrics events. |
 | `parentID` | `string` |  | Parent context ID. |
+| `requestID` | `string` |  | Request ID from `ctx.requestID`. |
 
 
 ### `RESPONSE`
 
 **Topic name:**
-- `MOL.RESPONSE.node-1`
-- `MOL-dev.RESPONSE.node-1` (if namespace is `dev`)
+- `MOL.RES.node-1`
+- `MOL-dev.RES.node-1` (if namespace is `dev`)
 
 **Fields:**
 
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
+| `ver` | `string` | ✔ | Protocol version. Current: `'2'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `id` | `string` | ✔ | Context ID (from `REQUEST`). |
 | `success` | `boolean` | ✔ | Is it a success response? |
 | `data` | `string` |  | JSON encoded response if success. |
-| `error` | `object` |  | Error object if not success. |
-|   `error.name` | `string` | ✔ | Error name. |
-|   `error.message` | `string` | ✔ | Error message. |
-|   `error.code` | `string` | ✔ | Error code. |
-|   `error.type` | `string` | ✔ | Error type. |
-|   `error.data` | `string` | ✔ | JSON encoded data of error. |
-|   `error.stack` | `string` | ✔ | Call stack traces. |
-|   `error.nodeID` | `string` | ✔ | NodeID when the error generated. |
+| `error` | `string` |  | JSON encoded error object if not success. |
 
 
 ### `EVENT`
 
 **Topic name:**
-- `MOL.EVENT`
-- `MOL-dev.EVENT` (if namespace is `dev`)
+- `MOL.EVENT.node-1`
+- `MOL.EVENTB.<group>.<event>` (if built-in balancer is disabled)
+- `MOL-dev.EVENT.node-1` (if namespace is `dev`)
 
 **Fields:**
 
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
+| `ver` | `string` | ✔ | Protocol version. Current: `'2'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `event` | `string` | ✔ | Event name. E.g.: `users.created` |
 | `data` | `string` | ✔ | JSON encoded event payload. |
+| `groups` | `Array<string>` | ✔ | Groups for balanced events. If `null` or empty, the event is broadcasted. |
+
+
+### `PING`
+
+**Topic name:**
+- `MOL.PING` (if broadcasts)
+- `MOL.PING.node-1` (if sent only to `node-1`)
+- `MOL-dev.PING` (if namespace is `dev`)
+
+**Fields:**
+
+| Field | Type | Required | Description |
+| ----- | ---- | -------- | ----------- |
+| `ver` | `string` | ✔ | Protocol version. Current: `'2'`. |
+| `sender` | `string` | ✔ | Sender nodeID. |
+| `time` | `int64` | ✔ | Time of sent. |
+
+### `PONG`
+
+**Topic name:**
+- `MOL.PONG.node-1`
+- `MOL-dev.PONG` (if namespace is `dev`)
+
+**Fields:**
+
+| Field | Type | Required | Description |
+| ----- | ---- | -------- | ----------- |
+| `ver` | `string` | ✔ | Protocol version. Current: `'2'`. |
+| `sender` | `string` | ✔ | Sender nodeID. |
+| `time` | `int64` | ✔ | Timestamp of sent. |
+| `arrived` | `int64` | ✔ | Timestamp of arrived. |
 
 
 ### `DISCONNECT`
@@ -164,5 +212,6 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
+| `ver` | `string` | ✔ | Protocol version. Current: `'2'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
 

@@ -24,8 +24,13 @@ broker.loadService(__dirname + "/../post.service");
 broker.start();
 let c = 1;
 
-broker.on("TEST2", a => {
-	broker.logger.info("TEST2 event received:", a);
+broker.createService({
+	name: "events",
+	events: {
+		TEST2(a) {
+			broker.logger.info("TEST2 event received:", a);
+		}
+	}
 });
 
 Promise.resolve()

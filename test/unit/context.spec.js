@@ -3,8 +3,8 @@
 let Promise = require("bluebird");
 let Context = require("../../src/context");
 let ServiceBroker = require("../../src/service-broker");
-let { MoleculerError, RequestSkippedError } = require("../../src/errors");
-
+let { MoleculerError, RequestSkippedError, MaxCallLevelError } = require("../../src/errors");
+const { protectReject } = require("./utils");
 
 describe("Test Context", () => {
 
@@ -87,7 +87,7 @@ describe("Test setParams", () => {
 
 
 describe("Test call method", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ maxCallLevel: 5 });
 	broker.call = jest.fn();
 
 	it("should call broker.call method with itself", () => {
@@ -104,6 +104,7 @@ describe("Test call method", () => {
 		broker.call.mockClear();
 
 		let ctx = new Context(broker);
+		ctx.level = 4;
 
 		let p = { id: 5 };
 		ctx.call("posts.find", p, { timeout: 2500 });
@@ -118,7 +119,7 @@ describe("Test call method", () => {
 		let ctx = new Context(broker);
 		ctx._metricStart();
 		ctx.timeout = 1000;
-		return Promise.delay(300).then(() => {
+		return Promise.delay(300).catch(protectReject).then(() => {
 			ctx.call("posts.find", {});
 
 			expect(broker.call).toHaveBeenCalledTimes(1);
@@ -136,9 +137,23 @@ describe("Test call method", () => {
 		ctx.timeout = 200;
 		return Promise.delay(300).then(() => {
 			return ctx.call("posts.find", {});
-		}).catch(err => {
+		}).then(protectReject).catch(err => {
+			expect(broker.call).toHaveBeenCalledTimes(0);
 			expect(err).toBeInstanceOf(RequestSkippedError);
 			expect(err.data.action).toBe("posts.find");
+		});
+	});
+
+	it("should throw Error if reached the 'maxCallLevel'", () => {
+		broker.call.mockClear();
+
+		let ctx = new Context(broker);
+		ctx.level = 5;
+		return ctx.call("posts.find", {}).then(protectReject).catch(err => {
+			expect(broker.call).toHaveBeenCalledTimes(0);
+			expect(err).toBeInstanceOf(MaxCallLevelError);
+			expect(err.code).toBe(500);
+			expect(err.data).toEqual({ level: 5 });
 		});
 	});
 });

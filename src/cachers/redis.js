@@ -12,16 +12,16 @@ const BaseCacher 	= require("./base");
 
 /**
  * Cacher factory for Redis
- * 
+ *
  * @class RedisCacher
  */
 class RedisCacher extends BaseCacher {
 
 	/**
 	 * Creates an instance of RedisCacher.
-	 * 
+	 *
 	 * @param {object} opts
-	 * 
+	 *
 	 * @memberOf RedisCacher
 	 */
 	constructor(opts) {
@@ -33,9 +33,9 @@ class RedisCacher extends BaseCacher {
 
 	/**
 	 * Initialize cacher. Connect to Redis server
-	 * 
+	 *
 	 * @param {any} broker
-	 * 
+	 *
 	 * @memberOf RedisCacher
 	 */
 	init(broker) {
@@ -46,13 +46,13 @@ class RedisCacher extends BaseCacher {
 			Redis = require("ioredis");
 		} catch(err) {
 			/* istanbul ignore next */
-			this.broker.fatal("The 'ioredis' package is missing! Please install it with 'npm install ioredis --save' command!", err, true);
+			this.broker.fatal("The 'ioredis' package is missing. Please install it with 'npm install ioredis --save' command.", err, true);
 		}
 
 		this.client = new Redis(this.opts.redis);
 		this.client.on("connect", () => {
 			/* istanbul ignore next */
-			this.logger.info("Redis cacher connected!");
+			this.logger.info("Redis cacher connected.");
 		});
 
 		this.client.on("error", (err) => {
@@ -75,7 +75,7 @@ class RedisCacher extends BaseCacher {
 
 	/**
 	 * Close Redis client connection
-	 * 
+	 *
 	 * @memberOf RedisCacher
 	 */
 	close() {
@@ -84,10 +84,10 @@ class RedisCacher extends BaseCacher {
 
 	/**
 	 * Get data from cache by key
-	 * 
+	 *
 	 * @param {any} key
 	 * @returns {Promise}
-	 *  
+	 *
 	 * @memberOf Cacher
 	 */
 	get(key) {
@@ -98,7 +98,7 @@ class RedisCacher extends BaseCacher {
 				try {
 					return JSON.parse(data);
 				} catch (err) {
-					this.logger.error("Redis result parse error!", err);
+					this.logger.error("Redis result parse error.", err, data);
 				}
 			}
 			return null;
@@ -107,11 +107,11 @@ class RedisCacher extends BaseCacher {
 
 	/**
 	 * Save data to cache by key
-	 * 
+	 *
 	 * @param {any} key
 	 * @param {any} data JSON object
 	 * @returns {Promise}
-	 * 
+	 *
 	 * @memberOf Cacher
 	 */
 	set(key, data) {
@@ -129,17 +129,17 @@ class RedisCacher extends BaseCacher {
 
 	/**
 	 * Delete a key from cache
-	 * 
+	 *
 	 * @param {any} key
 	 * @returns {Promise}
-	 * 
+	 *
 	 * @memberOf Cacher
 	 */
 	del(key) {
 		this.logger.debug(`DELETE ${key}`);
-		return this.client.del(this.prefix + key).catch((err) => {
+		return this.client.del(this.prefix + key).catch(err => {
 			/* istanbul ignore next */
-			this.logger.error("Redis `del` error!", err);
+			this.logger.error("Redis `del` error.", key, err);
 		});
 	}
 
@@ -150,23 +150,28 @@ class RedisCacher extends BaseCacher {
 	 * 		https://github.com/cayasso/cacheman-redis/blob/master/lib/index.js#L125
 	 * @param {any} match Match string for SCAN. Default is "*"
 	 * @returns {Promise}
-	 * 
+	 *
 	 * @memberOf Cacher
 	 */
 	clean(match = "*") {
-		this.logger.debug(`CLEAN ${this.prefix}${match}`);
+		match = this.prefix + match.replace(/\*\*/g, "*");
+		this.logger.debug(`CLEAN ${match}`);
 		let self = this;
 		let scanDel = function (cursor, cb) {
 			/* istanbul ignore next */
-			self.client.scan(cursor, "MATCH", self.prefix + match.replace(/\*\*/g, "*"), "COUNT", 100, function (err, resp) {
+			self.client.scan(cursor, "MATCH", match, "COUNT", 100, function (err, resp) {
 				if (err) {
 					return cb(err);
 				}
 				let nextCursor = parseInt(resp[0]);
 				let keys = resp[1];
 				// no next cursor and no keys to delete
-				if (!nextCursor && !keys.length) {
-					return cb(null);
+
+				if (!keys.length) {
+					if (!nextCursor)
+						return cb(null);
+
+					return scanDel(nextCursor, cb);
 				}
 
 				self.client.del(keys, function (err) {
@@ -184,7 +189,7 @@ class RedisCacher extends BaseCacher {
 		scanDel(0, (err) => {
 			/* istanbul ignore next */
 			if (err) {
-				this.logger.error("Redis `scanDel` error!", err);
+				this.logger.error("Redis `scanDel` error.", match, err);
 			}
 		});
 

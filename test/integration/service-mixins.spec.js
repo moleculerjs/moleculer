@@ -2,6 +2,10 @@ let ServiceBroker = require("../../src/service-broker");
 
 describe("Test Service mixins", () => {
 
+	let flowCreated = [];
+	let flowStarted = [];
+	let flowStopped = [];
+
 	let mixinL2 = {
 		name: "mixinL2",
 
@@ -34,9 +38,9 @@ describe("Test Service mixins", () => {
 			"oxygen": jest.fn()
 		},
 
-		created: jest.fn(),
-		started: jest.fn(),
-		stopped: jest.fn()
+		created: jest.fn(() => flowCreated.push("mixinL2")),
+		started: jest.fn(() => flowStarted.push("mixinL2")),
+		stopped: jest.fn(() => flowStopped.push("mixinL2"))
 	};
 
 	let mixin1L1 = {
@@ -67,8 +71,8 @@ describe("Test Service mixins", () => {
 			"hydrogen": jest.fn()
 		},
 
-		created: jest.fn(),
-		stopped: jest.fn()
+		created: jest.fn(() => flowCreated.push("mixin1L1")),
+		stopped: jest.fn(() => flowStopped.push("mixin1L1"))
 	};
 
 	let mixin2L1 = {
@@ -100,8 +104,8 @@ describe("Test Service mixins", () => {
 			"hydrogen": jest.fn()
 		},
 
-		created: jest.fn(),
-		started: jest.fn()
+		created: jest.fn(() => flowCreated.push("mixin2L1")),
+		started: jest.fn(() => flowStarted.push("mixin2L1"))
 	};
 
 	let mainSchema = {
@@ -132,9 +136,9 @@ describe("Test Service mixins", () => {
 			"carbon": jest.fn(),
 		},
 
-		created: jest.fn(),
-		started: jest.fn(),
-		stopped: jest.fn()
+		created: jest.fn(() => flowCreated.push("main")),
+		started: jest.fn(() => flowStarted.push("main")),
+		stopped: jest.fn(() => flowStopped.push("main"))
 	};
 
 	let broker = new ServiceBroker();
@@ -148,6 +152,7 @@ describe("Test Service mixins", () => {
 		expect(mixin1L1.created).toHaveBeenCalledTimes(1);
 		expect(mixin2L1.created).toHaveBeenCalledTimes(1);
 		expect(mixinL2.created).toHaveBeenCalledTimes(2);
+		expect(flowCreated.join("-")).toBe("mixinL2-mixin2L1-mixinL2-mixin1L1-main");
 
 		return broker.start();
 	});
@@ -156,6 +161,7 @@ describe("Test Service mixins", () => {
 		expect(mainSchema.started).toHaveBeenCalledTimes(1);
 		expect(mixin2L1.started).toHaveBeenCalledTimes(1);
 		expect(mixinL2.started).toHaveBeenCalledTimes(2);
+		expect(flowStarted.join("-")).toBe("mixinL2-mixin2L1-mixinL2-main");
 	});
 
 	it("should merge settings", () => {
@@ -226,7 +232,7 @@ describe("Test Service mixins", () => {
 
 	it("should call 'oxygen' event handlers", () => {
 		let payload = { a: 5 };
-		broker.emit("oxygen", payload);
+		broker.broadcastLocal("oxygen", payload);
 
 		expect(mainSchema.events.oxygen).toHaveBeenCalledTimes(1);
 		expect(mainSchema.events.oxygen).toHaveBeenCalledWith(payload, broker.nodeID, "oxygen");
@@ -243,7 +249,7 @@ describe("Test Service mixins", () => {
 
 	it("should call 'carbon' event handlers", () => {
 		let payload = { a: 5 };
-		broker.emit("carbon", payload);
+		broker.broadcastLocal("carbon", payload);
 
 		expect(mainSchema.events.carbon).toHaveBeenCalledTimes(1);
 		expect(mainSchema.events.carbon).toHaveBeenCalledWith(payload, broker.nodeID, "carbon");
@@ -251,7 +257,7 @@ describe("Test Service mixins", () => {
 
 	it("should call 'hydrogen' event handlers", () => {
 		let payload = { a: 5 };
-		broker.emit("hydrogen", payload);
+		broker.broadcastLocal("hydrogen", payload);
 
 		expect(mixin1L1.events.hydrogen).toHaveBeenCalledTimes(1);
 		expect(mixin1L1.events.hydrogen).toHaveBeenCalledWith(payload, broker.nodeID, "hydrogen");
@@ -268,6 +274,8 @@ describe("Test Service mixins", () => {
 		expect(mainSchema.stopped).toHaveBeenCalledTimes(1);
 		expect(mixin1L1.stopped).toHaveBeenCalledTimes(1);
 		expect(mixinL2.stopped).toHaveBeenCalledTimes(2);
+
+		expect(flowStopped.join("-")).toBe("main-mixin1L1-mixinL2-mixinL2");
 	});
 
 });

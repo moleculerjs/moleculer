@@ -18,20 +18,18 @@ let broker = new ServiceBroker({
 
 //broker.loadService(__dirname + "/../post.service");
 broker.loadService(__dirname + "/../user.service");
-/*
-broker.on("metrics.trace.span.start", payload => {
-	broker.logger.info("metrics.trace.span.start", payload);
-});
-
-broker.on("metrics.trace.span.finish", payload => {
-	broker.logger.info("metrics.trace.span.finish", payload);
-});*/
 
 broker.start();
 let c = 1;
 
-broker.on("TEST1", a => {
-	broker.logger.info("TEST1 event received:", a);
+
+broker.createService({
+	name: "events",
+	events: {
+		TEST1(a) {
+			broker.logger.info("TEST1 event received:", a);
+		}
+	}
 });
 
 Promise.resolve()

@@ -48,9 +48,11 @@ describe("Test BaseCacher", () => {
 
 		expect(broker.use).toHaveBeenCalledTimes(1);
 
+		/*
 		expect(broker.on).toHaveBeenCalledTimes(2);
 		expect(broker.on).toHaveBeenCalledWith("cache.clean", jasmine.any(Function));
 		expect(broker.on).toHaveBeenCalledWith("cache.del", jasmine.any(Function));
+		*/
 	});
 
 	it("check init with namespace", () => {
@@ -213,6 +215,7 @@ describe("Test middleware", () => {
 
 });
 
+/*
 describe("Test cache.clean & cache.del events", () => {
 	let cacher = new Cacher();
 	let broker = new ServiceBroker({
@@ -250,3 +253,5 @@ describe("Test cache.clean & cache.del events", () => {
 		expect(cacher.del).toHaveBeenCalledWith("users.model.222");
 	});
 });
+
+*/
