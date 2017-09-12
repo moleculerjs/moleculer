@@ -154,11 +154,13 @@ class ServiceBroker {
 			const tx = this._resolveTransporter(this.options.transporter);
 			this.transit = new Transit(this, tx);
 
-			if (this.options.disableBalancer && tx.hasBuiltInBalancer) {
-				this.logger.info("The built-in balancer is disabled.");
-			} else {
-				this.logger.warn("The Transporter has no built-in balancer. Broker balancer is ENABLED.");
-				this.options.disableBalancer = false;
+			if (this.options.disableBalancer) {
+				if (tx.hasBuiltInBalancer) {
+					this.logger.info("The built-in balancer is disabled.");
+				} else {
+					this.logger.warn("The Transporter has no built-in balancer. Broker balancer is ENABLED.");
+					this.options.disableBalancer = false;
+				}
 			}
 
 		}
