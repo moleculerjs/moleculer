@@ -1,5 +1,5 @@
 <a name="0.11.0"></a>
-# [Next - 0.11.0](https://github.com/ice-services/moleculer/compare/v0.10.0...v0.11.0) (2017-xx-xx)
+# [Next - 0.11.0](https://github.com/ice-services/moleculer/compare/v0.10.0...v0.11.0) (2017-09-12)
 
 # Breaking changes
 
