@@ -714,7 +714,7 @@ class ServiceBroker {
 	 *
 	 * @param {String} actionName
 	 * @param {Object} opts
-	 * @returns {Endpoint|Promise}
+	 * @returns {Endpoint|Error}
 	 *
 	 * @performance-critical
 	 * @memberof ServiceBroker
@@ -728,7 +728,7 @@ class ServiceBroker {
 				const endpoint = this.registry.getActionEndpointByNodeId(actionName, opts.nodeID);
 				if (!endpoint) {
 					this.logger.warn(`Service '${actionName}' is not found on '${opts.nodeID}' node.`);
-					return Promise.reject(new E.ServiceNotFoundError(actionName, opts.nodeID));
+					return new E.ServiceNotFoundError(actionName, opts.nodeID);
 				}
 				return endpoint;
 
@@ -737,7 +737,7 @@ class ServiceBroker {
 				const epList = this.registry.getActionEndpoints(actionName);
 				if (!epList) {
 					this.logger.warn(`Service '${actionName}' is not registered.`);
-					return Promise.reject(new E.ServiceNotFoundError(actionName));
+					return new E.ServiceNotFoundError(actionName);
 				}
 
 				// Get the next available endpoint
@@ -745,7 +745,7 @@ class ServiceBroker {
 				if (!endpoint) {
 					const errMsg = `Service '${actionName}' is not available.`;
 					this.logger.warn(errMsg);
-					return Promise.reject(new E.ServiceNotAvailable(actionName));
+					return new E.ServiceNotAvailable(actionName);
 				}
 				return endpoint;
 			}
@@ -765,8 +765,8 @@ class ServiceBroker {
 	 */
 	call(actionName, params, opts = {}) {
 		const endpoint = this.findNextActionEndpoint(actionName, opts);
-		if (utils.isPromise(endpoint))
-			return endpoint;
+		if (endpoint instanceof Error)
+			return Promise.reject(endpoint);
 
 		// Load opts with default values
 		if (opts.timeout == null)

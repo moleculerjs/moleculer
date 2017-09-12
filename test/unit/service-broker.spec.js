@@ -1152,31 +1152,28 @@ describe("Test broker.findNextActionEndpoint", () => {
 	});
 
 	it("should reject if no action", () => {
-		return broker.findNextActionEndpoint("posts.noaction").then(protectReject).catch(err => {
-			expect(err).toBeDefined();
-			expect(err).toBeInstanceOf(ServiceNotFoundError);
-			expect(err.message).toBe("Service 'posts.noaction' is not found.");
-			expect(err.data).toEqual({ action: "posts.noaction", nodeID: undefined });
-		});
+		const err = broker.findNextActionEndpoint("posts.noaction");
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(ServiceNotFoundError);
+		expect(err.message).toBe("Service 'posts.noaction' is not found.");
+		expect(err.data).toEqual({ action: "posts.noaction", nodeID: undefined });
 	});
 
 	it("should reject if no handler", () => {
 		broker.registry.unregisterAction({ id: broker.nodeID }, "posts.noHandler");
-		return broker.findNextActionEndpoint("posts.noHandler", {}).then(protectReject).catch(err => {
-			expect(err).toBeDefined();
-			expect(err).toBeInstanceOf(ServiceNotAvailable);
-			expect(err.message).toBe("Service 'posts.noHandler' is not available.");
-			expect(err.data).toEqual({ action: "posts.noHandler", nodeID: undefined });
-		});
+		const err = broker.findNextActionEndpoint("posts.noHandler", {});
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(ServiceNotAvailable);
+		expect(err.message).toBe("Service 'posts.noHandler' is not available.");
+		expect(err.data).toEqual({ action: "posts.noHandler", nodeID: undefined });
 	});
 
 	it("should reject if no action on node", () => {
-		return broker.findNextActionEndpoint("posts.noHandler", { nodeID: "node-123"}).then(protectReject).catch(err => {
-			expect(err).toBeDefined();
-			expect(err).toBeInstanceOf(ServiceNotFoundError);
-			expect(err.message).toBe("Service 'posts.noHandler' is not found on 'node-123' node.");
-			expect(err.data).toEqual({ action: "posts.noHandler", nodeID: "node-123" });
-		});
+		const err = broker.findNextActionEndpoint("posts.noHandler", { nodeID: "node-123"});
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(ServiceNotFoundError);
+		expect(err.message).toBe("Service 'posts.noHandler' is not found on 'node-123' node.");
+		expect(err.data).toEqual({ action: "posts.noHandler", nodeID: "node-123" });
 	});
 
 	it("should find the endpoint with nodeID", () => {
