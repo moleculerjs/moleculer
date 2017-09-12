@@ -719,7 +719,7 @@ class ServiceBroker {
 	 * @performance-critical
 	 * @memberof ServiceBroker
 	 */
-	_findNextActionEndpoint(actionName, opts = {}) {
+	findNextActionEndpoint(actionName, opts = {}) {
 		if (typeof actionName !== "string") {
 			return actionName;
 		} else {
@@ -737,7 +737,7 @@ class ServiceBroker {
 				const epList = this.registry.getActionEndpoints(actionName);
 				if (!epList) {
 					this.logger.warn(`Service '${actionName}' is not registered.`);
-					return Promise.reject(new E.ServiceNotFoundError(actionName, this.nodeID));
+					return Promise.reject(new E.ServiceNotFoundError(actionName));
 				}
 
 				// Get the next available endpoint
@@ -745,7 +745,7 @@ class ServiceBroker {
 				if (!endpoint) {
 					const errMsg = `Service '${actionName}' is not available.`;
 					this.logger.warn(errMsg);
-					return Promise.reject(new E.ServiceNotAvailable(actionName, this.nodeID));
+					return Promise.reject(new E.ServiceNotAvailable(actionName));
 				}
 				return endpoint;
 			}
@@ -764,7 +764,7 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	call(actionName, params, opts = {}) {
-		const endpoint = this._findNextActionEndpoint(actionName, opts);
+		const endpoint = this.findNextActionEndpoint(actionName, opts);
 		if (utils.isPromise(endpoint))
 			return endpoint;
 
