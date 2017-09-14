@@ -10,6 +10,11 @@ function convertTime(ts) {
 	return Math.round(ts * 1000);
 }
 
+/**
+ * Running Zipkin in Docker:
+ *
+ * 	 docker run -d -p 9411:9411 --name=zipkin openzipkin/zipkin
+ */
 module.exports = {
 	name: "zipkin",
 	settings: {
