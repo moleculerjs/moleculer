@@ -8,7 +8,7 @@ let { MoleculerError } = require("../src/errors");
 let broker1 = new ServiceBroker({
 	nodeID: "node1",
 	logger: true,
-	logLevel: "debug",
+	logLevel: "info",
 	transporter: "NATS",
 	metrics: true
 });
@@ -30,7 +30,7 @@ broker1.loadService("./examples/metrics.zipkin.service");
 let broker2 = new ServiceBroker({
 	nodeID: "node2",
 	logger: true,
-	logLevel: "debug",
+	logLevel: "info",
 	transporter: "NATS",
 	metrics: true
 });
@@ -40,14 +40,18 @@ broker2.createService({
 	actions: {
 		second(ctx) {
 			//return "Hello from second!";
-			return ctx.call("service2.third").delay(20);
+			return this.Promise.all([
+				ctx.call("service2.third"),
+				ctx.call("service2.third"),
+				ctx.call("service2.third"),
+				ctx.call("service2.third")
+			]);
 		},
 		third(ctx) {
-			return this.Promise.delay(50).then(() => "Hello from third!");
+			return this.Promise.delay(25 + Math.round(Math.random() * 50)).then(() => "Hello from third!");
 		}
 	}
 });
-broker2.loadService("./examples/metrics.zipkin.service");
 
 // ----------------------------------------------------------------------
 

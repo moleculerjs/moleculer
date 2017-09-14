@@ -22,6 +22,8 @@ let broker = new ServiceBroker({
 // Load services
 console.log("");
 broker.loadServices(path.join(__dirname, ".."));
+broker.loadService("./examples/metrics.zipkin.service");
+
 console.log("");
 
 console.log(chalk.bold(">> Get all users"));

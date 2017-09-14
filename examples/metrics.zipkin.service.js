@@ -2,114 +2,65 @@
 
 let axios = require("axios");
 
+function convertID(id) {
+	return id ? id.replace(/-/g, "") : null;
+}
+
+function convertTime(ts) {
+	return Math.round(ts * 1000);
+}
+
 module.exports = {
 	name: "zipkin",
+	settings: {
+		zipkin: {
+			host: "http://192.168.51.29:9411"
+		}
+	},
 	events: {
-		/*"metrics.trace.span.start"(metric) {
-			//this.logger.info("Metric start", metric);
-			let serviceName = metric.action.name.split(".")[0];
-			const payload = {
-				id: metric.id.replace(/-/g, ""),
-				traceId: metric.requestID,
-				name: metric.action.name,
-				parentId: metric.parent ? metric.parent.replace(/-/g, "") : null,
-				annotations: [
-					{
-						"endpoint": {
-							"serviceName": serviceName,
-							"ipv4": 0,
-							"port": 0
-						},
-						"timestamp": Math.round(metric.startTime * 1000),
-						"value": "sr"
-					}
-				],
-				binaryAnnotations: [
-					{
-						key: "nodeID",
-						value: metric.nodeID
-					},
-					{
-						key: "level",
-						value: metric.level.toString()
-					},
-					{
-						key: "remoteCall",
-						value: metric.remoteCall.toString()
-					},
-					{
-						key: "callerNodeID",
-						value: metric.callerNodeID ? metric.callerNodeID : ""
-					}
-				],
-				timestamp: Math.round(metric.startTime * 1000)
-			};
-
-			//this.logger.info("Finish", metric.action.name, payload);
-
-			axios.post("http://192.168.51.29:9411/api/v1/spans", [payload])
-				.then(res => this.logger.info("OK"))
-				.catch(err => this.logger.error(err.response.data));
-
-		},*/
-
 		"metrics.trace.span.finish"(metric) {
 			//this.logger.info("Metric finish", metric);
 
-			let serviceName = metric.action.name.split(".")[0];
+			let parts = metric.action.name.split(".");
+			parts.pop();
+			let serviceName = parts.join(".");
 
 			const payload = {
-				traceId: metric.requestID,
 				name: metric.action.name,
-				id: metric.id.replace(/-/g, ""),
-				parentId: metric.parent ? metric.parent.replace(/-/g, "") : null,
+
+				// Trace & span IDs
+				traceId: convertID(metric.requestID),
+				id: convertID(metric.id),
+				parentId: convertID(metric.parent),
+
+				// Annotations
 				annotations: [
 					{
-						"endpoint": {
-							"serviceName": serviceName,
-							"ipv4": "",
-							"port": 0
-						},
-						"timestamp": Math.round(metric.startTime * 1000),
-						"value": "sr"
+						endpoint: { serviceName: serviceName, ipv4: "", port: 0 },
+						timestamp: convertTime(metric.startTime),
+						value: "sr"
 					},
 					{
-						"endpoint": {
-							"serviceName": serviceName,
-							"ipv4": "",
-							"port": 0
-						},
-						"timestamp": Math.round(metric.endTime * 1000),
-						//"duration": Math.round(metric.duration * 1000),
-						"value": "ss"
+						endpoint: { serviceName: serviceName, ipv4: "", port: 0 },
+						timestamp: convertTime(metric.endTime),
+						value: "ss"
 					}
 				],
+
+				// Binary annotations
 				binaryAnnotations: [
-					{
-						key: "nodeID",
-						value: metric.nodeID
-					},
-					{
-						key: "level",
-						value: metric.level.toString()
-					},
-					{
-						key: "remoteCall",
-						value: metric.remoteCall.toString()
-					},
-					{
-						key: "callerNodeID",
-						value: metric.callerNodeID ? metric.callerNodeID : ""
-					}
+					{ key: "nodeID", 		value: metric.nodeID },
+					{ key: "level", 		value: metric.level.toString() },
+					{ key: "remoteCall", 	value: metric.remoteCall.toString() },
+					{ key: "callerNodeID", 	value: metric.callerNodeID ? metric.callerNodeID : "" }
 				],
-				timestamp: Math.round(metric.endTime * 1000)
+
+				timestamp: convertTime(metric.endTime)
 			};
 
-			//this.logger.info("Finish", metric.action.name, payload);
-
-			axios.post("http://192.168.51.29:9411/api/v1/spans", [payload])
-				.then(res => this.logger.info("OK"))
-				.catch(err => this.logger.error(err.response.data));
+			axios.post(`${this.settings.zipkin.host}/api/v1/spans`, [payload])
+				.then(() => this.logger.debug(`Span '${payload.id}' sent. Trace ID: ${payload.traceId}`))
+				.catch(err => this.logger.error("Span sending error!", err.response.data));
 
 		}
 	}

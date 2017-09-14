@@ -121,6 +121,8 @@ class Context {
 		// ID, parentID, level
 		if (ctx.metrics || nodeID != broker.nodeID) {
 			ctx.generateID();
+			if (!ctx.requestID)
+				ctx.requestID = ctx.id;
 		}
 
 		return ctx;
