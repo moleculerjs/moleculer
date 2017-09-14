@@ -4,6 +4,7 @@
 
 let ServiceBroker = require("../src/service-broker");
 let { MoleculerError } = require("../src/errors");
+let _ = require("lodash");
 
 let broker1 = new ServiceBroker({
 	nodeID: "node1",
@@ -38,6 +39,7 @@ let broker2 = new ServiceBroker({
 broker2.createService({
 	name: "service2",
 	actions: {
+
 		second(ctx) {
 			//return "Hello from second!";
 			return this.Promise.all([
@@ -47,8 +49,12 @@ broker2.createService({
 				ctx.call("service2.third")
 			]);
 		},
+
 		third(ctx) {
-			return this.Promise.delay(25 + Math.round(Math.random() * 50)).then(() => "Hello from third!");
+			if (_.random(100) > 80)
+				return this.Promise.reject(new MoleculerError("Random error!", 510));
+
+			return this.Promise.delay(_.random(25, 75)).then(() => "Hello from third!");
 		}
 	}
 });
@@ -60,5 +66,5 @@ broker1.Promise.resolve()
 	.then(() => broker2.start())
 	.catch(err => broker1.logger.error(err))
 	.delay(1000)
-	.then(() => broker1.call("service1.first", {}, { requestID: Date.now() }))
+	.then(() => broker1.call("service1.first"))
 	.then(() => broker1.repl());

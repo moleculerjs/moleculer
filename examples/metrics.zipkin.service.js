@@ -3,7 +3,7 @@
 let axios = require("axios");
 
 function convertID(id) {
-	return id ? id.replace(/-/g, "") : null;
+	return id && typeof(id) == "string" ? id.replace(/-/g, "") : id;
 }
 
 function convertTime(ts) {
@@ -24,7 +24,7 @@ module.exports = {
 	},
 	events: {
 		"metrics.trace.span.finish"(metric) {
-			//this.logger.info("Metric finish", metric);
+			this.logger.info("Metric finish", metric);
 
 			let parts = metric.action.name.split(".");
 			parts.pop();
@@ -62,6 +62,19 @@ module.exports = {
 
 				timestamp: convertTime(metric.endTime)
 			};
+
+			if (metric.error) {
+				payload.binaryAnnotations.push({
+					key: "error",
+					value: metric.error.message
+				});
+
+				payload.annotations.push({
+					value: "error",
+					endpoint: { serviceName: serviceName, ipv4: "", port: 0 },
+					timestamp: convertTime(metric.endTime)
+				});
+			}
 
 			axios.post(`${this.settings.zipkin.host}/api/v1/spans`, [payload])
 				.then(() => this.logger.debug(`Span '${payload.id}' sent. Trace ID: ${payload.traceId}`))
