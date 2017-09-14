@@ -1215,7 +1215,7 @@ describe("Test broker.call", () => {
 			expect(ctx.broker).toBe(broker);
 			expect(ctx.nodeID).toBe(broker.nodeID);
 			expect(ctx.level).toBe(1);
-			expect(ctx.requestID).toBeNull();
+			expect(ctx.requestID).toBe(ctx.id);
 			expect(ctx.action.name).toBe("posts.find");
 			expect(ctx.params).toEqual({});
 			expect(ctx.metrics).toBe(true);
@@ -1352,7 +1352,7 @@ describe("Test broker.callWithoutBalancer", () => {
 			expect(ctx).toBeDefined();
 			expect(ctx.nodeID).toBe("node-11");
 			expect(ctx.level).toBe(1);
-			expect(ctx.requestID).toBeNull();
+			expect(ctx.requestID).toBe(ctx.id);
 			expect(ctx.action.name).toBe("posts.find");
 			expect(ctx.params).toEqual({});
 			expect(ctx.metrics).toBe(true);
@@ -1383,7 +1383,7 @@ describe("Test broker.callWithoutBalancer", () => {
 			expect(ctx.broker).toBe(broker);
 			expect(ctx.nodeID).toBe(null);
 			expect(ctx.level).toBe(1);
-			expect(ctx.requestID).toBeNull();
+			expect(ctx.requestID).toBe(ctx.id);
 			expect(ctx.action.name).toBe("posts.find");
 			expect(ctx.params).toEqual({});
 			expect(ctx.metrics).toBe(true);
