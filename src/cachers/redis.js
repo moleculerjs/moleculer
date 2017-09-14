@@ -115,9 +115,7 @@ class RedisCacher extends BaseCacher {
 	 * @memberOf Cacher
 	 */
 	set(key, data) {
-		if (isObject(data)) {
-			data = JSON.stringify(data);
-		}
+		data = JSON.stringify(data);
 		this.logger.debug(`SET ${key}`);
 
 		if (this.opts.ttl) {
