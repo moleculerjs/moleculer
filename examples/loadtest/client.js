@@ -11,7 +11,8 @@ let broker = new ServiceBroker({
 	nodeID: process.argv[2] || "client",
 	transporter: process.env.TRANSPORTER || "NATS",
 	logger: console,
-	logLevel: "warn"
+	logLevel: "warn",
+	metrics: true,
 });
 
 console.log("Client started. nodeID:", broker.nodeID, " PID:", process.pid);
@@ -25,7 +26,7 @@ function work() {
 			setImmediate(work);
 		})
 		.catch(err => {
-			console.warn(err.message);
+			//console.warn(err.message);
 			setImmediate(work);
 		});
 }

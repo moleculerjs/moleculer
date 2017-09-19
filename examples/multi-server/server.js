@@ -10,8 +10,8 @@ let { MoleculerError } = require("../../src/errors");
 let broker = new ServiceBroker({
 	//namespace: "multi",
 	nodeID: process.argv[2] || "server-" + process.pid,
-	//transporter: "NATS",
-	transporter: "amqp://192.168.51.29:5672",
+	transporter: "NATS",
+	//transporter: "amqp://192.168.51.29:5672",
 	//serializer: "ProtoBuf",
 
 	disableBalancer: true,
@@ -21,6 +21,7 @@ let broker = new ServiceBroker({
 });
 
 //broker.loadService(path.join(__dirname, "..", "file.service"));
+broker.loadService(path.join(__dirname, "..", "metrics.prometheus.service"));
 
 broker.createService({
 	name: "math",
