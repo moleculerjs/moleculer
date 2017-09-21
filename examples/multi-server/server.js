@@ -27,8 +27,8 @@ broker.createService({
 	name: "math",
 	actions: {
 		add(ctx) {
-			if (_.random(100) > 90)
-				return this.Promise.reject(new MoleculerError("Random error!", 510));
+			//if (_.random(100) > 90)
+			//	return this.Promise.reject(new MoleculerError("Random error!", 510));
 
 			return Number(ctx.params.a) + Number(ctx.params.b);
 		},

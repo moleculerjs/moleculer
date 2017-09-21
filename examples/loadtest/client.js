@@ -13,6 +13,7 @@ let broker = new ServiceBroker({
 	logger: console,
 	logLevel: "warn",
 	metrics: true,
+	requestTimeout: 1000,
 });
 
 console.log("Client started. nodeID:", broker.nodeID, " PID:", process.pid);
