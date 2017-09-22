@@ -170,7 +170,7 @@ class ServiceBroker {
 		}
 
 		// Counter for metricsRate
-		this.sampleCount = 0;
+		this._sampleCount = 0;
 
 		if (this.options.statistics)
 			this.statistics = new BrokerStatistics(this);
@@ -1105,9 +1105,9 @@ class ServiceBroker {
 	 */
 	shouldMetric() {
 		if (this.options.metrics) {
-			this.sampleCount++;
-			if (this.sampleCount * this.options.metricsRate >= 1.0) {
-				this.sampleCount = 0;
+			this._sampleCount++;
+			if (this._sampleCount * this.options.metricsRate >= 1.0) {
+				this._sampleCount = 0;
 				return true;
 			}
 
@@ -1120,7 +1120,7 @@ class ServiceBroker {
 	 *
 	 * @param {string} eventName
 	 * @param {any} payload
-	 * @param {String=} groupName
+	 * @param {String|Array<String>=} groups
 	 * @returns
 	 *
 	 * @memberOf ServiceBroker
