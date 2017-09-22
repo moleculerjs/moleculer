@@ -1224,6 +1224,17 @@ class ServiceBroker {
 	}
 
 	/**
+	 * Send ping to a node (or all nodes if nodeID is null)
+	 *
+	 * @param {String?} nodeID
+	 * @returns
+	 * @memberof ServiceBroker
+	 */
+	sendPing(nodeID) {
+		return this.transit.sendPing(nodeID);
+	}
+
+	/**
 	 * Get local node health status
 	 *
 	 * @returns {Promise}
