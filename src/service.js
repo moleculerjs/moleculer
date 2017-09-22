@@ -48,6 +48,8 @@ class Service {
 		this.name = schema.name;
 		this.version = schema.version;
 		this.settings = schema.settings || {};
+		this.metadata = schema.metadata || {};
+
 		this.schema = schema;
 		this.broker = broker;
 
@@ -64,6 +66,7 @@ class Service {
 			name: this.name,
 			version: this.version,
 			settings: this.settings,
+			metadata: this.metadata,
 			actions: {},
 			events: {}
 		};
