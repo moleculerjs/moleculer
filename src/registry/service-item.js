@@ -20,14 +20,16 @@ class ServiceItem {
 	 * @param {String} name
 	 * @param {any} version
 	 * @param {Object} settings
+	 * @param {Object} metadata
 	 * @param {Boolean} local
 	 * @memberof ServiceItem
 	 */
-	constructor(node, name, version, settings, local) {
+	constructor(node, name, version, settings, metadata, local) {
 		this.node = node;
 		this.name = name;
 		this.version = version;
 		this.settings = settings;
+		this.metadata = metadata || {};
 		this.local = local;
 
 		this.actions = {};
@@ -56,6 +58,7 @@ class ServiceItem {
 	update(svc) {
 		this.version = svc.version;
 		this.settings = svc.settings;
+		this.metadata = svc.metadata;
 	}
 
 	/**

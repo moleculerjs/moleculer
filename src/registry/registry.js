@@ -50,7 +50,7 @@ class Registry {
 	 * @memberof Registry
 	 */
 	registerLocalService(svc) {
-		const service = this.services.add(this.nodes.localNode, svc.name, svc.version, svc.settings);
+		const service = this.services.add(this.nodes.localNode, svc.name, svc.version, svc.settings, svc.metadata);
 
 		if (svc.actions)
 			this.registerActions(this.nodes.localNode, service, svc.actions);
@@ -76,7 +76,7 @@ class Registry {
 			let prevActions, prevEvents;
 			let service = this.services.get(svc.name, svc.version, node.id);
 			if (!service) {
-				service = this.services.add(node, svc.name, svc.version, svc.settings);
+				service = this.services.add(node, svc.name, svc.version, svc.settings, svc.metadata);
 			} else {
 				prevActions = Object.assign({}, service.actions);
 				prevEvents = Object.assign({}, service.events);

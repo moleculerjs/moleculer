@@ -52,6 +52,16 @@ describe("Test mergeSchemas", () => {
 				]
 			},
 
+			metadata: {
+				a: "a",
+				b: 33,
+				d: true,
+				nested: {
+					old: 1,
+					tag: "old"
+				}
+			},
+
 			actions: {
 				get() {},
 				find() {},
@@ -91,6 +101,16 @@ describe("Test mergeSchemas", () => {
 					"second",
 					"third"
 				]
+			},
+
+			metadata: {
+				a: "aaa",
+				b: 25,
+				c: "metadata",
+				nested: {
+					tag: "new",
+					res: "test"
+				}
 			},
 
 			actions: {
@@ -136,6 +156,17 @@ describe("Test mergeSchemas", () => {
 				"second",
 				"third"
 			]
+		});
+		expect(res.metadata).toEqual({
+			a: "aaa",
+			b: 25,
+			c: "metadata",
+			d: true,
+			nested: {
+				old: 1,
+				tag: "new",
+				res: "test"
+			}
 		});
 
 		expect(res.actions.get).toBe(origSchema.actions.get);

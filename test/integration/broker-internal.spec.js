@@ -14,6 +14,9 @@ describe("Test internal services", () => {
 		settings: {
 			anonymous: "John"
 		},
+		metadata: {
+			scaling: true
+		},
 		actions: {
 			hello() {},
 			welcome: {
@@ -79,6 +82,7 @@ describe("Test internal services", () => {
 				"name": "$node",
 				"nodes": ["node-master"],
 				"settings": {},
+				"metadata": {},
 				"version": undefined
 			}, {
 				"actions": {},
@@ -87,12 +91,16 @@ describe("Test internal services", () => {
 				"settings": {
 					"anonymous": "John"
 				},
+				"metadata": {
+					"scaling": true
+				},
 				"version": undefined
 			}, {
 				"actions": {},
 				"name": "echo",
 				"nodes": ["node-master"],
 				"settings": {},
+				"metadata": {},
 				"version": "alpha"
 			}]);
 		});
@@ -121,6 +129,9 @@ describe("Test internal services", () => {
 				"settings": {
 					"anonymous": "John"
 				},
+				"metadata": {
+					"scaling": true
+				},
 				"version": undefined
 			}, {
 				"actions": {
@@ -132,6 +143,7 @@ describe("Test internal services", () => {
 				"name": "echo",
 				"nodes": ["node-master"],
 				"settings": {},
+				"metadata": {},
 				"version": "alpha"
 			}]);
 		});
@@ -345,7 +357,7 @@ describe("Test internal services", () => {
 		});
 	});
 
-	it("should return action event (withEndpoints)", () => {
+	it("should return event list (withEndpoints)", () => {
 		return broker.call("$node.events", { withEndpoints: true }).then(res => {
 			expect(res).toEqual([{
 				"available": true,

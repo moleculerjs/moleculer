@@ -90,7 +90,7 @@ describe("Test ServiceCatalog methods", () => {
 
 		catalog.add({ id: "server-2" }, "$node", undefined);
 
-		let svc = catalog.add({ id: "server-2" }, "posts", 2, { a: 5 });
+		let svc = catalog.add({ id: "server-2" }, "posts", 2, { a: 5 }, { priority:  5 });
 		svc.addAction({ name: "posts.find" });
 		svc.addEvent({ name: "user.created" });
 		svc.addEvent({ name: "$services.changed" }); // internal
@@ -100,11 +100,13 @@ describe("Test ServiceCatalog methods", () => {
 			"name": "$node",
 			"nodeID": broker.nodeID,
 			"settings": undefined,
+			"metadata": {},
 			"version": undefined
 		}, {
 			"name": "$node",
 			"nodeID": "server-2",
 			"settings": undefined,
+			"metadata": {},
 			"version": undefined
 		}, {
 			"name": "posts",
@@ -112,6 +114,7 @@ describe("Test ServiceCatalog methods", () => {
 			"settings": {
 				"a": 5
 			},
+			"metadata": { priority: 5 },
 			"version": 2
 		}]);
 
@@ -120,6 +123,7 @@ describe("Test ServiceCatalog methods", () => {
 			"name": "$node",
 			"nodeID": broker.nodeID,
 			"settings": undefined,
+			"metadata": {},
 			"version": undefined
 		}]);
 
@@ -139,6 +143,9 @@ describe("Test ServiceCatalog methods", () => {
 			"nodeID": "server-2",
 			"settings": {
 				"a": 5
+			},
+			"metadata": {
+				"priority": 5
 			},
 			"version": 2
 		}]);

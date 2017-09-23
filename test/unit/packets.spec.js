@@ -105,7 +105,7 @@ describe("Test PacketInfo", () => {
 	it("should set properties", () => {
 		const info = {
 			services: [
-				{ name: "users", version: "2", settings: {}, actions: {
+				{ name: "users", version: "2", settings: {}, metadata: {}, actions: {
 					"users.create": {}
 				}, events: [
 					{ name: "user.created" }

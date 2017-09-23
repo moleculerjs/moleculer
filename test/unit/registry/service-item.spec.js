@@ -6,16 +6,18 @@ describe("Test ServiceItem without version", () => {
 
 	let node = { id: "server-1" };
 	let settings = { a: 5 };
+	let metadata = { tag: 1 };
 	let svc;
 
 	it("should create new ServiceItem", () => {
-		svc = new ServiceItem(node, "posts", undefined, settings, false);
+		svc = new ServiceItem(node, "posts", undefined, settings, metadata, false);
 
 		expect(svc).toBeDefined();
 		expect(svc.node).toBe(node);
 		expect(svc.name).toBe("posts");
 		expect(svc.version).toBeUndefined();
 		expect(svc.settings).toBe(settings);
+		expect(svc.metadata).toBe(metadata);
 		expect(svc.local).toBe(false);
 		expect(svc.actions).toEqual({});
 		expect(svc.events).toEqual({});
@@ -33,9 +35,10 @@ describe("Test ServiceItem without version", () => {
 	});
 
 	it("should update props", () => {
-		svc.update({ version: 2, settings: { b: 3 }});
+		svc.update({ version: 2, settings: { b: 3 }, metadata: { scalable: true }});
 		expect(svc.version).toBe(2);
 		expect(svc.settings).toEqual({ b: 3 });
+		expect(svc.metadata).toEqual({ scalable: true });
 	});
 
 	it("should add actions", () => {
@@ -56,16 +59,18 @@ describe("Test ServiceItem with version", () => {
 
 	let node = { id: "server-1" };
 	let settings = { a: 5 };
+	let metadata = { tag: 1 };
 	let svc;
 
 	it("should create new ServiceItem", () => {
-		svc = new ServiceItem(node, "posts", 4, settings, true);
+		svc = new ServiceItem(node, "posts", 4, settings, metadata, true);
 
 		expect(svc).toBeDefined();
 		expect(svc.node).toBe(node);
 		expect(svc.name).toBe("posts");
 		expect(svc.version).toBe(4);
 		expect(svc.settings).toBe(settings);
+		expect(svc.metadata).toBe(metadata);
 		expect(svc.local).toBe(true);
 		expect(svc.actions).toEqual({});
 		expect(svc.events).toEqual({});
@@ -84,8 +89,9 @@ describe("Test ServiceItem with version", () => {
 	});
 
 	it("should update props", () => {
-		svc.update({ version: 2, settings: { b: 3 }});
+		svc.update({ version: 2, settings: { b: 3 }, metadata: { scalable: true }});
 		expect(svc.version).toBe(2);
 		expect(svc.settings).toEqual({ b: 3 });
+		expect(svc.metadata).toEqual({ scalable: true });
 	});
 });

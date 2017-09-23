@@ -46,7 +46,7 @@ module.exports = function(broker) {
 							});
 
 						} else {
-							item = _.pick(svc, ["name", "version", "settings"]);
+							item = _.pick(svc, ["name", "version", "settings", "metadata"]);
 							item.nodes = [svc.nodeID];
 							item.actions = {};
 							_.forIn(svc.actions, (action, name) => {

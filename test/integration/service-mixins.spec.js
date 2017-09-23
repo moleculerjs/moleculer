@@ -15,6 +15,11 @@ describe("Test Service mixins", () => {
 			c: "John"
 		},
 
+		metadata: {
+			priority: 5,
+			tag: "other"
+		},
+
 		actions: {
 			alpha: {
 				handler() {
@@ -49,6 +54,11 @@ describe("Test Service mixins", () => {
 		settings: {
 			b: 500,
 			d: "Adam"
+		},
+
+		metadata: {
+			scalable: true,
+			priority: 3
 		},
 
 		actions: {
@@ -121,6 +131,10 @@ describe("Test Service mixins", () => {
 			f: "Bill"
 		},
 
+		metadata: {
+			minMemory: "2g"
+		},
+
 		actions: {
 			tango(ctx) {
 				return "From main";
@@ -172,6 +186,15 @@ describe("Test Service mixins", () => {
 			d: "Adam",
 			e: "Susan",
 			f: "Bill"
+		});
+	});
+
+	it("should merge metadata", () => {
+		expect(svc.metadata).toEqual({
+			priority: 3,
+			tag: "other",
+			scalable: true,
+			minMemory: "2g"
 		});
 	});
 
