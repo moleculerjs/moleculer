@@ -62,11 +62,11 @@ describe("Test Service mixins", () => {
 		},
 
 		actions: {
-			beta(ctx) {
+			beta() {
 				return "From mixin1L1";
 			},
 
-			gamma(ctx) {
+			gamma() {
 				return "From mixin1L1";
 			}
 		},
@@ -94,11 +94,11 @@ describe("Test Service mixins", () => {
 		},
 
 		actions: {
-			gamma(ctx) {
+			gamma() {
 				return "From mixin2L1";
 			},
 
-			delta(ctx) {
+			delta() {
 				return "From mixin2L1";
 			}
 		},
@@ -136,7 +136,7 @@ describe("Test Service mixins", () => {
 		},
 
 		actions: {
-			tango(ctx) {
+			tango() {
 				return "From main";
 			}
 		},

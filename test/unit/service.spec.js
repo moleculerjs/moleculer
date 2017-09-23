@@ -2,7 +2,7 @@
 
 jest.mock("../../src/utils");
 const utils = require("../../src/utils");
-utils.mergeSchemas = jest.fn((s1, s2) => s1);
+utils.mergeSchemas = jest.fn(s1 => s1);
 
 const Service = require("../../src/service");
 const ServiceBroker = require("../../src/service-broker");
@@ -401,7 +401,7 @@ describe("Test constructor with mixins", () => {
 		let oldApply = Service.applyMixins;
 		Service.applyMixins = jest.fn(schema => schema);
 
-		let service = new Service(broker, schema);
+		new Service(broker, schema);
 
 		expect(Service.applyMixins).toHaveBeenCalledTimes(1);
 		expect(Service.applyMixins).toHaveBeenCalledWith(schema);

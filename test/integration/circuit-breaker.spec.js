@@ -1,7 +1,7 @@
 const Promise = require("bluebird");
 const ServiceBroker = require("../../src/service-broker");
 const FakeTransporter = require("../../src/transporters/fake");
-const { MoleculerError, ServiceNotFoundError, ServiceNotAvailable } = require("../../src/errors");
+const { MoleculerError, ServiceNotAvailable } = require("../../src/errors");
 
 const lolex = require("lolex");
 

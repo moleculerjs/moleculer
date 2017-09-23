@@ -7,8 +7,6 @@ const Transit = require("../../src/transit");
 const FakeTransporter = require("../../src/transporters/fake");
 const { ValidationError, ProtocolVersionMismatchError } = require("../../src/errors");
 const P = require("../../src/packets");
-//const lolex = require("lolex");
-const _ = require("lodash");
 
 describe("Test Transporter constructor", () => {
 

@@ -1,5 +1,5 @@
-<a name="0.11.x"></a>
-# [0.11.x](https://github.com/ice-services/moleculer/compare/v0.11.0...v0.11.x) (2017-xx-xx)
+<a name="0.11.1"></a>
+# [0.11.1](https://github.com/ice-services/moleculer/compare/v0.11.0...v0.11.1) (2017-xx-xx)
 
 # New
 
@@ -25,7 +25,7 @@ broker.createService({
 
 --------------------------------------------------
 <a name="0.11.0"></a>
-# [Next - 0.11.0](https://github.com/ice-services/moleculer/compare/v0.10.0...v0.11.0) (2017-09-12)
+# [0.11.0](https://github.com/ice-services/moleculer/compare/v0.10.0...v0.11.0) (2017-09-12)
 
 # Breaking changes
 
