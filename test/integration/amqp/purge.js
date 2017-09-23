@@ -80,7 +80,7 @@ const exchanges = [
 const amqp = require("amqplib");
 let connectionRef;
 
-amqp.connect(process.env.AMQP_URI || process.env.AMQP_URI || "amqp://guest:guest@localhost:5672")
+amqp.connect(process.env.AMQP_URI || "amqp://guest:guest@localhost:5672")
 	.then(connection => {
 		console.info("AMQP connected!");
 		connectionRef = connection;
