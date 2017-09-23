@@ -1,3 +1,29 @@
+<a name="0.11.x"></a>
+# [0.11.x](https://github.com/ice-services/moleculer/compare/v0.11.0...v0.11.x) (2017-xx-xx)
+
+# New
+
+## Service metadata [#91](https://github.com/ice-services/moleculer/issues/91)
+The `Service` schema has a new `metadata` property. The Moleculer modules doesn't use it, so you can use it whatever you want.
+
+```js
+broker.createService({
+    name: "posts",
+    settings: {},
+    metadata: {
+        scalable: true,
+        priority: 5
+    },
+
+    actions: { ... }
+});
+```
+
+> The `metadata` is transferred between nodes, you can access it via `$node.services`. Or inside service with `this.metadata` like settings.
+
+# Breaking changes
+
+--------------------------------------------------
 <a name="0.11.0"></a>
 # [Next - 0.11.0](https://github.com/ice-services/moleculer/compare/v0.10.0...v0.11.0) (2017-09-12)
 
