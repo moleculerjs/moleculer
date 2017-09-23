@@ -10,7 +10,7 @@ let FLOW = [];
 
 function createNode(name, disableBalancer = false) {
 	const broker = new ServiceBroker({
-		namespace: "broadcast",
+		namespace: "test-broadcast",
 		nodeID: "event-" + name,
 		//logger: console,
 		//logLevel: "error",

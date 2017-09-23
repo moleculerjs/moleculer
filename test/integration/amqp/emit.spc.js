@@ -10,7 +10,7 @@ let FLOW = [];
 
 function createNode(name, serviceName = "emit-handler", disableBalancer = false) {
 	const broker = new ServiceBroker({
-		namespace: "emit",
+		namespace: "test-emit",
 		nodeID: "event-" + name,
 		//logger: console,
 		//logLevel: name == "pub"? "debug" : "error",

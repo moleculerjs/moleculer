@@ -8,7 +8,7 @@ extendExpect(expect);
 
 function createNode(name, disableBalancer = false, service) {
 	const broker = new ServiceBroker({
-		namespace: "broadcast",
+		namespace: "test-rpc",
 		nodeID: "rpc-" + name,
 		//logger: console,
 		//logLevel: "debug",
