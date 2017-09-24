@@ -751,16 +751,34 @@ describe("Test Transit.sendNodeInfo", () => {
 		services: []
 	}));
 
+	transit.tx._makeServiceSpecificSubscriptions = jest.fn(() => Promise.resolve());
 	transit.publish = jest.fn();
 
-	it("should call publish with correct params", () => {
-		transit.sendNodeInfo("node2");
-		expect(transit.publish).toHaveBeenCalledTimes(1);
-		expect(broker.getLocalNodeInfo).toHaveBeenCalledTimes(1);
-		const packet = transit.publish.mock.calls[0][0];
-		expect(packet).toBeInstanceOf(P.PacketInfo);
-		expect(packet.target).toBe("node2");
-		expect(packet.payload.services).toEqual([]);
+	it("should call publish with correct params if has nodeID", () => {
+		return transit.sendNodeInfo("node2").then(() => {
+			expect(transit.tx._makeServiceSpecificSubscriptions).toHaveBeenCalledTimes(0);
+			expect(transit.publish).toHaveBeenCalledTimes(1);
+			expect(broker.getLocalNodeInfo).toHaveBeenCalledTimes(1);
+			const packet = transit.publish.mock.calls[0][0];
+			expect(packet).toBeInstanceOf(P.PacketInfo);
+			expect(packet.target).toBe("node2");
+			expect(packet.payload.services).toEqual([]);
+		});
+	});
+
+	it("should call publish with correct params if has no nodeID", () => {
+		transit.publish.mockClear();
+		broker.getLocalNodeInfo.mockClear();
+
+		return transit.sendNodeInfo().then(() => {
+			expect(transit.tx._makeServiceSpecificSubscriptions).toHaveBeenCalledTimes(1);
+			expect(transit.publish).toHaveBeenCalledTimes(1);
+			expect(broker.getLocalNodeInfo).toHaveBeenCalledTimes(1);
+			const packet = transit.publish.mock.calls[0][0];
+			expect(packet).toBeInstanceOf(P.PacketInfo);
+			expect(packet.target).toBe();
+			expect(packet.payload.services).toEqual([]);
+		});
 	});
 
 });
