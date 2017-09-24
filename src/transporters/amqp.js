@@ -244,8 +244,17 @@ class AmqpTransporter extends Transporter {
 			// message won't be lost and it can be retried.
 			if(needAck) {
 				if (result instanceof Promise) {
-					return result.then(() => this.channel.ack(msg));
-				} else {
+					return result
+						.then(() => {
+							if (this.channel)
+								this.channel.ack(msg);
+						})
+						.catch(err => {
+							this.logger.error("Message handling error.", err);
+							if (this.channel)
+								this.channel.nack(msg);
+						});
+				} else if (this.channel) {
 					this.channel.ack(msg);
 				}
 			}

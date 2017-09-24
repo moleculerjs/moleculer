@@ -165,3 +165,82 @@ describe("Test AMQPTransporter RPC with DISABLED built-in balancer", () => {
 		});
 	}, 10000);
 });
+
+describe.only("Test AMQPTransporter RPC with DISABLED built-in balancer & retried request", () => {
+
+	const client = createNode("client", true);
+	let worker2CB = jest.fn();
+
+	const worker1 = createNode("worker1", true, {
+		name: "test",
+		actions: {
+			hello(ctx) {
+				return Promise.resolve({
+					worker: "worker1",
+					a: ctx.params.a
+				});
+			}
+		}
+	});
+
+	const worker2 = createNode("worker2", true, {
+		name: "test",
+		actions: {
+			hello() {
+				worker2CB();
+				return worker2.stop();
+				//return Promise.resolve(`Hello from ${this.broker.nodeID}`).delay(200);
+			}
+		}
+	});
+
+	const worker3 = createNode("worker3", true, {
+		name: "test",
+		actions: {
+			hello(ctx) {
+				return Promise.resolve({
+					worker: "worker3",
+					a: ctx.params.a
+				});
+			}
+		}
+	});
+
+	beforeEach(() => {
+		return Promise.all([
+			client.start(),
+			worker1.start(),
+			worker2.start(),
+			worker3.start(),
+		]);
+	});
+
+	afterEach(() => Promise.all([
+		client.stop(),
+		worker1.stop(),
+		//worker2.stop(),
+		worker3.stop(),
+	]));
+
+	it("should retry unacked requests to other node", () => {
+		return Promise.delay(2000).then(() => {
+			return Promise.all([
+				client.call("test.hello", { a: 1 }),
+				client.call("test.hello", { a: 2 }),
+				client.call("test.hello", { a: 3 }),
+				client.call("test.hello", { a: 4 }),
+				client.call("test.hello", { a: 5 }),
+				client.call("test.hello", { a: 6 }),
+			]).catch(protectReject).then(res => {
+				//console.log(res);
+				expect(res).toHaveLength(6);
+				expect(worker2CB).toHaveBeenCalledTimes(1);
+				expect(res.filter(o => o.worker == "worker1").length).toBeGreaterThan(0);
+				expect(res.filter(o => o.worker == "worker3").length).toBeGreaterThan(0);
+				// worker2 is crashed, so we didn't receive response from it.
+				expect(res.filter(o => o.worker == "worker2")).toHaveLength(0);
+				expect(res.map(o => o.a)).toEqual(expect.arrayContaining([1, 2, 3, 4, 5, 6]));
+			});
+		});
+	}, 10000);
+});
