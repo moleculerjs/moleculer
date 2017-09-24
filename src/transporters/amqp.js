@@ -7,8 +7,8 @@
 "use strict";
 
 const Promise		= require("bluebird");
-const _				= require("lodash");
 const Transporter 	= require("./base");
+
 const {
 	PACKET_REQUEST,
 	PACKET_RESPONSE,
@@ -330,46 +330,36 @@ class AmqpTransporter extends Transporter {
 	}
 
 	/**
-	 * Initialize queues for REQUEST packets.
+	 * Subscribe to balanced action commands
 	 *
-	 * @memberOf AmqpTransporter
+	 * @param {String} action
+	 * @memberof AmqpTransporter
 	 */
-	_makeServiceSpecificSubscriptions() {
-		const services = this.broker.getLocalNodeInfo().services;
-		return Promise.all(services.map(service => {
-			if (typeof service.actions !== "object" && typeof service.events !== "object") return Promise.resolve();
+	subscribeBalancedRequest(action) {
+		const queue = `${this.prefix}.${PACKET_REQUEST}B.${action}`;
+		return this.channel.assertQueue(queue, this._getQueueOptions(PACKET_REQUEST))
+			.then(() => this.channel.consume(
+				queue,
+				this._consumeCB(PACKET_REQUEST, true),
+				this.opts.amqp.consumeOptions
+			));
+	}
 
-			const p = [];
-
-			if (service.actions) {
-				// Service actions queues
-				p.push(Object.keys(service.actions).map(action => {
-					const queue = `${this.prefix}.${PACKET_REQUEST}B.${action}`;
-					return this.channel.assertQueue(queue, this._getQueueOptions(PACKET_REQUEST))
-						.then(() => this.channel.consume(
-							queue,
-							this._consumeCB(PACKET_REQUEST, true),
-							this.opts.amqp.consumeOptions
-						));
-				}));
-			}
-
-			if (service.events) {
-				// Load-balanced/grouped events queues
-				p.push(Object.keys(service.events).map(event => {
-					const group = service.events[event].group || service.name;
-					const queue = `${this.prefix}.${PACKET_EVENT}B.${group}.${event}`;
-					return this.channel.assertQueue(queue, this._getQueueOptions(PACKET_EVENT + "LB"))
-						.then(() => this.channel.consume(
-							queue,
-							this._consumeCB(PACKET_EVENT, true),
-							this.opts.amqp.consumeOptions
-						));
-				}));
-			}
-
-			return Promise.all(_.compact(_.flatten(p, true)));
-		}));
+	/**
+	 * Subscribe to balanced event command
+	 *
+	 * @param {String} event
+	 * @param {String} group
+	 * @memberof AmqpTransporter
+	 */
+	subscribeBalancedEvent(event, group) {
+		const queue = `${this.prefix}.${PACKET_EVENT}B.${group}.${event}`;
+		return this.channel.assertQueue(queue, this._getQueueOptions(PACKET_EVENT + "LB"))
+			.then(() => this.channel.consume(
+				queue,
+				this._consumeCB(PACKET_EVENT, true),
+				this.opts.amqp.consumeOptions
+			));
 	}
 
 	/**
@@ -386,32 +376,7 @@ class AmqpTransporter extends Transporter {
 		if (!this.channel) return Promise.resolve();
 
 		let topic = this.getTopicName(packet.type, packet.target);
-
-		if (packet.type === PACKET_EVENT && !packet.target && packet.payload.groups) {
-			let groups = packet.payload.groups;
-			// If the packet contains groups, we don't send the packet to
-			// the targetted node, but we push them to the event group queues
-			// and AMQP will load-balanced it.
-			if (groups.length > 0) {
-				groups.forEach(group => {
-					let queue = `${this.prefix}.${PACKET_EVENT}B.${group}.${packet.payload.event}`;
-					// Change the groups to this group to avoid multi handling in consumers.
-					packet.payload.groups = [group];
-					this.channel.sendToQueue(queue, Buffer.from(packet.serialize()), this.opts.amqp.messageOptions);
-				});
-				return Promise.resolve();
-			}
-			// If it's not contain, then it is a broadcasted event,
-			// we sent it in the normal way (exchange)
-		}
-
 		const payload = Buffer.from(packet.serialize()); // amqp.node expects data to be a buffer
-
-		if (packet.type === PACKET_REQUEST && packet.target == null) {
-			topic = `${this.prefix}.${PACKET_REQUEST}B.${packet.payload.action}`;
-			this.channel.sendToQueue(topic, payload, this.opts.amqp.messageOptions);
-			return Promise.resolve();
-		}
 
 		if (packet.target != null) {
 			this.channel.sendToQueue(topic, payload, this.opts.amqp.messageOptions);
@@ -419,10 +384,39 @@ class AmqpTransporter extends Transporter {
 			this.channel.publish(topic, "", payload, this.opts.amqp.messageOptions);
 		}
 
-		// HACK: This is the best way I have found to obtain the broker's services.
-		if (packet.type === PACKET_INFO && packet.target == null) {
-			return this._makeServiceSpecificSubscriptions();
-		}
+		return Promise.resolve();
+	}
+
+	/**
+	 * Publish a balanced EVENT packet to a balanced queue
+	 *
+	 * @param {Packet} packet
+	 * @param {String} group
+	 * @returns {Promise}
+	 * @memberof AmqpTransporter
+	 */
+	publishBalancedEvent(packet, group) {
+		if (!this.channel) return Promise.resolve();
+
+		let queue = `${this.prefix}.${PACKET_EVENT}B.${group}.${packet.payload.event}`;
+		const payload = Buffer.from(packet.serialize()); // amqp.node expects data to be a buffer
+		this.channel.sendToQueue(queue, payload, this.opts.amqp.messageOptions);
+		return Promise.resolve();
+	}
+
+	/**
+	 * Publish a balanced REQ packet to a balanced queue
+	 *
+	 * @param {Packet} packet
+	 * @returns {Promise}
+	 * @memberof AmqpTransporter
+	 */
+	publishBalancedRequest(packet) {
+		if (!this.channel) return Promise.resolve();
+
+		const payload = Buffer.from(packet.serialize()); // amqp.node expects data to be a buffer
+		const topic = `${this.prefix}.${PACKET_REQUEST}B.${packet.payload.action}`;
+		this.channel.sendToQueue(topic, payload, this.opts.amqp.messageOptions);
 		return Promise.resolve();
 	}
 }

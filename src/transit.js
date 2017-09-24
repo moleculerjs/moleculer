@@ -495,7 +495,12 @@ class Transit {
 	 */
 	sendNodeInfo(nodeID) {
 		const info = this.broker.getLocalNodeInfo();
-		return this.publish(new P.PacketInfo(this, nodeID, info));
+
+		let p = Promise.resolve();
+		if (!nodeID)
+			p = this.tx._makeServiceSpecificSubscriptions();
+
+		return p.then(() => this.publish(new P.PacketInfo(this, nodeID, info)));
 	}
 
 	/**
@@ -570,11 +575,11 @@ class Transit {
 			return this.subscribing
 				.then(() => {
 					this.stat.packets.sent = this.stat.packets.sent + 1;
-					return this.tx.publish(packet);
+					return this.tx.prepublish(packet);
 				});
 		}
 		this.stat.packets.sent = this.stat.packets.sent + 1;
-		return this.tx.publish(packet);
+		return this.tx.prepublish(packet);
 	}
 
 	/**

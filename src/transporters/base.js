@@ -6,6 +6,13 @@
 
 "use strict";
 
+const Promise		= require("bluebird");
+const _				= require("lodash");
+const {
+	PACKET_REQUEST,
+	PACKET_EVENT,
+} = require("../packets");
+
 /**
  * Base Transporter class
  *
@@ -102,13 +109,74 @@ class BaseTransporter {
 	}
 
 	/**
-	 * Publish a packet
+	 * Subscribe to balanced action commands
+	 *
+	 * @param {String} action
+	 * @memberof AmqpTransporter
+	 */
+	subscribeBalancedRequest(/*action*/) {
+		/* istanbul ignore next */
+		throw new Error("Not implemented!");
+	}
+
+	/**
+	 * Subscribe to balanced event command
+	 *
+	 * @param {String} event
+	 * @param {String} group
+	 * @memberof AmqpTransporter
+	 */
+	subscribeBalancedEvent(/*event, group*/) {
+		/* istanbul ignore next */
+		throw new Error("Not implemented!");
+	}
+
+	/**
+	 * Unsubscribe all balanced request and event commands
+	 *
+	 * @memberof BaseTransporter
+	 */
+	unsubscribeFromBalancedCommands() {
+		/* istanbul ignore next */
+		return Promise.resolve();
+	}
+
+	/**
+	 * Publish a normal not balanced packet
 	 *
 	 * @param {Packet} packet
+	 * @returns {Promise}
 	 *
 	 * @memberOf BaseTransporter
 	 */
 	publish(/*packet*/) {
+		/* istanbul ignore next */
+		throw new Error("Not implemented!");
+	}
+
+	/**
+	 * Publish a balanced EVENT packet to a balanced queue
+	 *
+	 * @param {Packet} packet
+	 * @param {String} group
+	 * @returns {Promise}
+	 *
+	 * @memberOf BaseTransporter
+	 */
+	publishBalancedEvent(/*packet, group*/) {
+		/* istanbul ignore next */
+		throw new Error("Not implemented!");
+	}
+
+	/**
+	 * Publish a balanced REQ packet to a balanced queue
+	 *
+	 * @param {Packet} packet
+	 * @returns {Promise}
+	 *
+	 * @memberOf BaseTransporter
+	 */
+	publishBalancedRequest(/*packet*/) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented!");
 	}
@@ -125,6 +193,68 @@ class BaseTransporter {
 		return this.prefix + "." + cmd + (nodeID ? "." + nodeID : "");
 	}
 
+	/**
+	 * Initialize queues for REQUEST & EVENT packets.
+	 *
+	 * @memberOf AmqpTransporter
+	 */
+	_makeServiceSpecificSubscriptions() {
+		if (!this.hasBuiltInBalancer) return Promise.resolve();
+
+		return this.unsubscribeFromBalancedCommands().then(() => {
+			const services = this.broker.getLocalNodeInfo().services;
+			return Promise.all(services.map(service => {
+				const p = [];
+
+				// Service actions queues
+				if (service.actions && typeof(service.actions) == "object") {
+					p.push(Object.keys(service.actions).map(action => this.subscribeBalancedRequest(action)));
+				}
+
+				// Load-balanced/grouped events queues
+				if (service.events && typeof(service.events) == "object") {
+					p.push(Object.keys(service.events).map(event => {
+						const group = service.events[event].group || service.name;
+						this.subscribeBalancedEvent(event, group);
+					}));
+				}
+
+				return Promise.all(_.compact(_.flatten(p, true)));
+			}));
+		});
+	}
+
+	/**
+	 * Prepublish a packet. Handle balancing.
+	 *
+	 * @param {Packet} packet
+	 * @returns {Promise}
+	 * @memberof BaseTransporter
+	 */
+	prepublish(packet) {
+		if (packet.type === PACKET_EVENT && packet.target == null && packet.payload.groups) {
+			let groups = packet.payload.groups;
+			// If the packet contains groups, we don't send the packet to
+			// the targetted node, but we push them to the event group queues
+			// and AMQP will load-balanced it.
+			if (groups.length > 0) {
+				groups.forEach(group => {
+					// Change the groups to this group to avoid multi handling in consumers.
+					packet.payload.groups = [group];
+					this.publishBalancedEvent(packet, group);
+				});
+				return Promise.resolve();
+			}
+			// If it's not contain, then it is a broadcasted event,
+			// we sent it in the normal way (exchange)
+
+		} else if (packet.type === PACKET_REQUEST && packet.target == null) {
+			return this.publishBalancedRequest(packet);
+		}
+
+		// Normal packet publishing...
+		return this.publish(packet);
+	}
 }
 
 module.exports = BaseTransporter;
