@@ -63,7 +63,7 @@ describe("Test JSON serializer", () => {
 	it("should serialize the info packet", () => {
 		const info = {
 			services: [
-				{ name: "users", version: "2", settings: {}, actions: {
+				{ name: "users", version: "2", settings: {}, metadata: {}, actions: {
 					"users.create": {}
 				}, events: {
 					"user.created": {}
@@ -80,7 +80,7 @@ describe("Test JSON serializer", () => {
 		};
 		const packet = new P.PacketInfo(broker.transit, "test-2", info);
 		const s = packet.serialize();
-		expect(s).toBe("{\"ver\":\"2\",\"sender\":\"test-1\",\"services\":[{\"name\":\"users\",\"version\":\"2\",\"settings\":{},\"actions\":{\"users.create\":{}},\"events\":{\"user.created\":{}}}],\"ipList\":[\"127.0.0.1\"],\"client\":{\"type\":\"nodejs\",\"version\":\"1.2.3\",\"langVersion\":\"6.10.2\"},\"port\":3000,\"config\":{}}");
+		expect(s).toBe("{\"ver\":\"2\",\"sender\":\"test-1\",\"services\":[{\"name\":\"users\",\"version\":\"2\",\"settings\":{},\"metadata\":{},\"actions\":{\"users.create\":{}},\"events\":{\"user.created\":{}}}],\"ipList\":[\"127.0.0.1\"],\"client\":{\"type\":\"nodejs\",\"version\":\"1.2.3\",\"langVersion\":\"6.10.2\"},\"port\":3000,\"config\":{}}");
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_INFO, s);
 		expect(res).toBeInstanceOf(P.PacketInfo);
@@ -241,7 +241,7 @@ describe("Test Avro serializer", () => {
 	it("should serialize the info packet", () => {
 		const info = {
 			services: [
-				{ name: "users", version: "2", settings: {}, actions: {
+				{ name: "users", version: "2", settings: {}, metadata: {}, actions: {
 					"users.create": {}
 				}, events: {
 					"user.created": {}
@@ -258,7 +258,7 @@ describe("Test Avro serializer", () => {
 		};
 		const packet = new P.PacketInfo(broker.transit, "test-2", info);
 		const s = packet.serialize();
-		expect(s.length).toBe(154);
+		expect(s.length).toBe(168);
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_INFO, s);
 		expect(res).toBeInstanceOf(P.PacketInfo);
@@ -422,7 +422,7 @@ describe("Test MsgPack serializer", () => {
 	it("should serialize the info packet", () => {
 		const info = {
 			services: [
-				{ name: "users", version: "2", settings: {}, actions: {
+				{ name: "users", version: "2", settings: {}, metadata: {}, actions: {
 					"users.create": {}
 				}, events: {
 					"user.created": {}
@@ -439,7 +439,7 @@ describe("Test MsgPack serializer", () => {
 		};
 		const packet = new P.PacketInfo(broker.transit, "test-2", info);
 		const s = packet.serialize();
-		expect(Buffer.byteLength(s, "binary")).toBe(195);
+		expect(Buffer.byteLength(s, "binary")).toBe(205);
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_INFO, s);
 		expect(res).toBeInstanceOf(P.PacketInfo);
@@ -600,7 +600,7 @@ describe("Test ProtoBuf serializer", () => {
 	it("should serialize the info packet", () => {
 		const info = {
 			services: [
-				{ name: "users", version: "2", settings: {}, actions: {
+				{ name: "users", version: "2", settings: {}, metadata: {}, actions: {
 					"users.create": {}
 				}, events: {
 					"user.created": {}
@@ -617,7 +617,7 @@ describe("Test ProtoBuf serializer", () => {
 		};
 		const packet = new P.PacketInfo(broker.transit, "test-2", info);
 		const s = packet.serialize();
-		expect(s.length).toBe(161);
+		expect(s.length).toBe(175);
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_INFO, s);
 		expect(res).toBeInstanceOf(P.PacketInfo);

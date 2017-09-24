@@ -18,7 +18,7 @@
     "test": "jest --coverage --no-cache",
     "test:unit": "jest --testMatch \"**/unit/**spec.js\" --coverage --no-cache",
     "test:int": "jest --testMatch \"**/integration/**spec.js\" --coverage --no-cache",
-    "test:amqp": "jest --testMatch \"**/?(*.)spc.js\""
+    "test:amqp": "jest --testMatch \"**/integration/amqp/**spc.js\""
   },
   "keywords": [
     "microservices",
@@ -54,7 +54,7 @@
     "jest-cli": "20.0.4",
     "joi": "11.0.3",
     "lolex": "2.1.2",
-    "moleculer-repl": "0.3.0",
+    "moleculer-repl": "0.3.1",
     "mqtt": "2.13.0",
     "msgpack5": "3.5.1",
     "nats": "0.7.20",

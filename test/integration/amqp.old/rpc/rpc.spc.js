@@ -10,7 +10,9 @@ const respond = "responded";
 
 const findLines = (str, target) => str.split("\n").filter(a => a.includes(target));
 
+
 describe("Test AMQPTransporter RPC", () => {
+
 	beforeEach(() => exec("node", [path.resolve(__dirname, "..", "purge.js")]));
 	afterAll(() => exec("node", [path.resolve(__dirname, "..", "purge.js")]));
 
@@ -113,4 +115,5 @@ describe("Test AMQPTransporter RPC", () => {
 				expect(responses).toHaveLength(0);
 			});
 	}, 60000);
+
 });

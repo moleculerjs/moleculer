@@ -14,6 +14,9 @@ let broker1 = new ServiceBroker({
 
 broker1.createService({
 	name: "planets",
+	metadata: {
+		type: "planets"
+	},
 	events: {
 		"$planet.earth"(payload) {
 			this.logger.info(`$Earth is fired '${this.broker.nodeID}'!`);

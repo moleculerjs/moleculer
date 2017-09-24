@@ -1,5 +1,34 @@
+<a name="0.11.1"></a>
+# [0.11.1](https://github.com/ice-services/moleculer/compare/v0.11.0...v0.11.1) (2017-xx-xx)
+
+# New
+
+## Service metadata [#91](https://github.com/ice-services/moleculer/issues/91)
+The `Service` schema has a new `metadata` property. The Moleculer modules doesn't use it, so you can use it whatever you want.
+
+```js
+broker.createService({
+    name: "posts",
+    settings: {},
+    metadata: {
+        scalable: true,
+        priority: 5
+    },
+
+    actions: { ... }
+});
+```
+
+> The `metadata` is transferred between nodes, you can access it via `$node.services`. Or inside service with `this.metadata` like settings.
+
+# Changes
+- ping nodes with `broker.sendPing` instead of `broker.transit.sendPing`.
+- `index.d.ts` updated to v0.11
+- AMQP integration tests is rewritten.
+
+--------------------------------------------------
 <a name="0.11.0"></a>
-# [Next - 0.11.0](https://github.com/ice-services/moleculer/compare/v0.10.0...v0.11.0) (2017-09-12)
+# [0.11.0](https://github.com/ice-services/moleculer/compare/v0.10.0...v0.11.0) (2017-09-12)
 
 # Breaking changes
 

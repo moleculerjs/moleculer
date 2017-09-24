@@ -7,7 +7,6 @@
 "use strict";
 
 const Promise		= require("bluebird");
-const isObject 		= require("lodash/isObject");
 const BaseCacher 	= require("./base");
 
 /**

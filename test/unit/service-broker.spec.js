@@ -2449,6 +2449,20 @@ describe("Test hot-reload feature", () => {
 	});
 });
 
+describe("Test broker sendPing", () => {
+	let broker = new ServiceBroker({ transporter: "Fake" });
+
+	beforeAll(() => broker.start());
+	broker.transit.sendPing = jest.fn();
+
+	it("should call transit.sendPing", () => {
+		broker.sendPing("node-2");
+
+		expect(broker.transit.sendPing).toHaveBeenCalledTimes(1);
+		expect(broker.transit.sendPing).toHaveBeenCalledWith("node-2");
+	});
+});
+
 describe("Test broker getHealthStatus", () => {
 	let broker = new ServiceBroker();
 
@@ -2458,7 +2472,6 @@ describe("Test broker getHealthStatus", () => {
 		expect(H.getHealthStatus).toHaveBeenCalledTimes(1);
 		expect(H.getHealthStatus).toHaveBeenCalledWith(broker);
 	});
-
 });
 
 describe("Test registry links", () => {
@@ -2487,5 +2500,4 @@ describe("Test registry links", () => {
 		expect(broker.registry.events.emitLocalServices).toHaveBeenCalledTimes(1);
 		expect(broker.registry.events.emitLocalServices).toHaveBeenCalledWith("user.created", { a: 5 }, ["users"], "node-3");
 	});
-
 });

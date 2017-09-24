@@ -1,4 +1,4 @@
-const MyService = require("./my-service-factory");
+"use strict";
 
 module.exports = {
 	name: "my"

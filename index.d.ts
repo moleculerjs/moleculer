@@ -9,10 +9,9 @@ declare class LoggerInstance {
 
 declare interface Action {
 	name: String;
-	handler: Function;
-	version?: String|Number;
 	service: Service;
 	cache: Boolean;
+	handler: Function;
 }
 
 declare class Context {
@@ -42,18 +41,9 @@ declare class Context {
 	call(actionName: String, params?: Object, opts?: Object): Promise<any>;
 	emit(eventName: string, data: any);
 
-	/**
-	 * Create a new Context instance
-	 *
-	 * @param {Object} action
-	 * @param {String?} nodeID
-	 * @param {Object?} params
-	 * @param {Object} opts
-	 * @returns {Context}
-	 *
-	 * @memberof ServiceBroker
-	 */
 	static create(broker: ServiceBroker, action: Action, nodeID?: String, params?: Object, opts: Object): Context;
+
+	static createFromPayload(broker: ServiceBroker, payload: Object);
 }
 
 declare class Service {
@@ -62,10 +52,18 @@ declare class Service {
 	name: String;
 	version?: String|Number;
 	settings: Object;
+	metadata: Object;
 	schema: Object;
 	broker: ServiceBroker;
 	logger: LoggerInstance;
+	actions: Object;
 	Promise: typeof Promise;
+
+	waitForServices(serviceNames: String|Array<String>, timeout?: Number, interval?: Number): Promise<any>;
+
+	created: Function;
+	started: Function;
+	stopped: Function;
 }
 
 declare interface BrokerCircuitBreakerOptions {
@@ -76,19 +74,29 @@ declare interface BrokerCircuitBreakerOptions {
 	failureOnReject?: Boolean;
 }
 
+declare interface BrokerRegistryOptions {
+	strategy?: Function;
+	preferLocal?: Boolean;
+}
+
 declare interface BrokerOptions {
 	namespace?: String;
 	nodeID?: String;
 
 	logger?: Function|LoggerInstance;
 	logLevel?: String;
+	logFormatter?: Function|String;
 
 	transporter?: Transporter|String|Object;
 	requestTimeout?: Number;
 	requestRetry?: Number;
+	maxCallLevel?: Number;
 	heartbeatInterval?: Number;
 	heartbeatTimeout?: Number;
-	maxCallLevel?: Number;
+
+	disableBalancer?: Boolean;
+
+	registry?: BrokerRegistryOptions;
 
 	circuitBreaker?: BrokerCircuitBreakerOptions;
 
@@ -96,10 +104,12 @@ declare interface BrokerOptions {
 	serializer?: Serializer|String|Object;
 
 	validation?: Boolean;
+	validator?: Validator;
 	metrics?: Boolean;
 	metricsRate?: Number;
 	statistics?: Boolean;
 	internalServices?: Boolean;
+
 	hotReload?: Boolean;
 
 	ServiceFactory?: Service;
@@ -108,12 +118,15 @@ declare interface BrokerOptions {
 
 declare class ServiceBroker {
 	constructor(options?: BrokerOptions);
+
 	Promise: typeof Promise;
 
-	namespace?: string;
-	nodeID?: string;
+	namespace: string;
+	nodeID: string;
 	logger: LoggerInstance;
 	cacher?: Cacher;
+	serializer?: Serializer;
+	validator?: Validator;
 
 	start(): Promise<any>;
 	stop(): Promise<any>;
@@ -128,24 +141,14 @@ declare class ServiceBroker {
 	hotReloadService(service: Service): Service;
 	createService(schema: Object): Service;
 	destroyService(service: Service): Promise<any>;
-	registerLocalService(service: Service);
-	registerRemoteService(nodeID: String, service: Service);
 
-	registerAction(nodeID?: String, action: Action);
-	unregisterServicesByNode(nodeID?: String);
-	unregisterAction(nodeID?: String, action: Action);
-
-	on(name: String, handler: Function);
-	once(name: String, handler: Function);
-	off(name: String, handler: Function);
-
-	getService(serviceName: String): Service;
-	hasService(serviceName: String): Boolean;
-	hasAction(actionName: String): Boolean;
-	getAction(actionName: String): any;
-	isActionAvailable(actionName: String): Boolean;
+	getLocalService(serviceName: String): Service;
+	waitForServices(serviceNames: String|Array<String>, timeout?: Number, interval?: Number, logger?: LoggerInstance): Promise<any>;
 
 	use(...mws: Array<Function>);
+
+	getAction(actionName: String): any;
+	findNextActionEndpoint(actionName: String, opts?: Object): any;
 
 	/**
 	 * Call an action (local or global)
@@ -203,19 +206,35 @@ declare class ServiceBroker {
 	 *
 	 * @memberOf ServiceBroker
 	 */
-	emit(eventName: String, payload?: any);
+	emit(eventName: String, payload?: any, groups?: String|Array<String>);
 
 	/**
-	 * Emit an event only local
+	 * Emit an event for all local & remote services
 	 *
 	 * @param {string} eventName
 	 * @param {any} payload
-	 * @param {string} nodeID of server
 	 * @returns
 	 *
 	 * @memberOf ServiceBroker
 	 */
-	emitLocal(eventName: String, payload?: any, sender?: String);
+	broadcast(eventName: String, payload?: any)
+
+	/**
+	 * Emit an event for all local services
+	 *
+	 * @param {string} eventName
+	 * @param {any} payload
+	 * @param {Array<String>?} groups
+	 * @param {String?} nodeID
+	 * @returns
+	 *
+	 * @memberOf ServiceBroker
+	 */
+	broadcastLocal(eventName: String, payload?: any, groups?: String|Array<String>, nodeID?: String);
+
+	sendPing(nodeID?: String);
+	getHealthStatus();
+	getLocalNodeInfo();
 
 	MOLECULER_VERSION: String;
 
@@ -288,7 +307,8 @@ export = {
 		Fake: Transporter,
 		NATS: Transporter,
 		MQTT: Transporter,
-		Redis: Transporter
+		Redis: Transporter,
+		AMQP: Transporter
 	},
 	Cachers: {
 		Memory: Cacher,
@@ -305,11 +325,20 @@ export = {
 
 	Errors: {
 		MoleculerError: Error,
+		MoleculerRetryableError: Error,
+		MoleculerServerError: Error,
+		MoleculerClientError: Error,
+
 		ServiceNotFoundError: Error,
+		ServiceNotAvailable: Error,
+
 		ValidationError: Error,
 		RequestTimeoutError: Error,
 		RequestSkippedError: Error,
-		MaxCallLevelError: Error
+		MaxCallLevelError: Error,
+
+		ServiceSchemaError: Error,
+		ProtocolVersionMismatchError: Error
 	},
 
 	Strategies: {
