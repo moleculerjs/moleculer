@@ -21,7 +21,10 @@ broker.createService({
 
 > The `metadata` is transferred between nodes, you can access it via `$node.services`. Or inside service with `this.metadata` like settings.
 
-# Breaking changes
+# Changes
+- ping nodes with `broker.sendPing` instead of `broker.transit.sendPing`.
+- `index.d.ts` updated to v0.11
+- AMQP integration tests is rewritten.
 
 --------------------------------------------------
 <a name="0.11.0"></a>
