@@ -186,6 +186,7 @@ class NatsTransporter extends Transporter {
 	unsubscribeFromBalancedCommands() {
 		return new Promise(resolve => {
 			this.subscriptions.forEach(uid => this.client.unsubscribe(uid));
+			this.subscriptions = [];
 
 			this.client.flush(resolve);
 		});
