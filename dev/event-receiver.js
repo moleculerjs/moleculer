@@ -7,8 +7,9 @@ let ServiceBroker = require("../src/service-broker");
 // Create broker
 let broker = new ServiceBroker({
 	nodeID: process.argv[2] || "receiver-" + process.pid,
-	//transporter: "NATS",
-	transporter: "amqp://192.168.51.29:5672",
+	transporter: "NATS",
+	//transporter: "amqp://192.168.0.181:5672",
+	disableBalancer: true,
 	//serializer: "ProtoBuf",
 	logger: console,
 	logFormatter: "simple"
