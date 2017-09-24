@@ -875,21 +875,21 @@ describe("Test Transit.publish", () => {
 	const transit = broker.transit;
 	const transporter = transit.tx;
 
-	transporter.publish = jest.fn();
+	transporter.prepublish = jest.fn();
 	broker.serializer.serialize = jest.fn(o => JSON.stringify(o));
 
-	it("should call transporter.publish", () => {
+	it("should call transporter.prepublish", () => {
 		expect(transit.stat.packets.sent).toBe(0);
 		let packet = new P.PacketEvent("user.created", { a: "John Doe" });
 		transit.publish(packet);
-		expect(transporter.publish).toHaveBeenCalledTimes(1);
-		const p = transporter.publish.mock.calls[0][0];
+		expect(transporter.prepublish).toHaveBeenCalledTimes(1);
+		const p = transporter.prepublish.mock.calls[0][0];
 		expect(p).toBe(packet);
 		expect(transit.stat.packets.sent).toBe(1);
 	});
 
-	it("should call transporter.publish after subscribing", () => {
-		transporter.publish.mockClear();
+	it("should call transporter.prepublish after subscribing", () => {
+		transporter.prepublish.mockClear();
 		transit.stat.packets.sent = 0;
 		let resolve;
 		transit.subscribing = new Promise(r => resolve = r);
@@ -899,12 +899,12 @@ describe("Test Transit.publish", () => {
 		let packet = new P.PacketEvent("user.created", { a: "John Doe" });
 		let p = transit.publish(packet);
 
-		expect(transporter.publish).toHaveBeenCalledTimes(0);
+		expect(transporter.prepublish).toHaveBeenCalledTimes(0);
 		resolve();
 
 		return p.catch(protectReject).then(() => {
-			expect(transporter.publish).toHaveBeenCalledTimes(1);
-			const p = transporter.publish.mock.calls[0][0];
+			expect(transporter.prepublish).toHaveBeenCalledTimes(1);
+			const p = transporter.prepublish.mock.calls[0][0];
 			expect(p).toBe(packet);
 			expect(transit.stat.packets.sent).toBe(1);
 		});

@@ -8,6 +8,7 @@
 
 const Promise		= require("bluebird");
 const Transporter 	= require("./base");
+const { isPromise }	= require("../utils");
 
 const {
 	PACKET_REQUEST,
@@ -243,7 +244,7 @@ class AmqpTransporter extends Transporter {
 			// This means that if a worker dies after receiving a message but before responding, the
 			// message won't be lost and it can be retried.
 			if(needAck) {
-				if (result instanceof Promise) {
+				if (isPromise(result)) {
 					return result
 						.then(() => {
 							if (this.channel)
@@ -258,6 +259,7 @@ class AmqpTransporter extends Transporter {
 					this.channel.ack(msg);
 				}
 			}
+			return result;
 		};
 	}
 

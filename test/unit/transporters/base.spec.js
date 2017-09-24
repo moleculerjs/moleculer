@@ -1,6 +1,8 @@
 const ServiceBroker = require("../../../src/service-broker");
 const Transit = require("../../../src/transit");
+const P = require("../../../src/packets");
 const BaseTransporter = require("../../../src/transporters/base");
+const { protectReject } = require("../utils");
 
 
 describe("Test BaseTransporter", () => {
@@ -10,13 +12,20 @@ describe("Test BaseTransporter", () => {
 		expect(transporter).toBeDefined();
 		expect(transporter.opts).toBeDefined();
 		expect(transporter.connected).toBe(false);
+		expect(transporter.hasBuiltInBalancer).toBe(false);
 
 		expect(transporter.init).toBeDefined();
 		expect(transporter.connect).toBeDefined();
 		expect(transporter.onConnected).toBeDefined();
 		expect(transporter.disconnect).toBeDefined();
 		expect(transporter.subscribe).toBeDefined();
+		expect(transporter.subscribeBalancedRequest).toBeDefined();
+		expect(transporter.subscribeBalancedEvent).toBeDefined();
+		expect(transporter.unsubscribeFromBalancedCommands).toBeDefined();
+		expect(transporter.prepublish).toBeDefined();
 		expect(transporter.publish).toBeDefined();
+		expect(transporter.publishBalancedEvent).toBeDefined();
+		expect(transporter.publishBalancedRequest).toBeDefined();
 	});
 
 	it("check constructor with options", () => {
@@ -60,4 +69,173 @@ describe("Test BaseTransporter", () => {
 		expect(afterConnect).toHaveBeenCalledTimes(1);
 		expect(afterConnect).toHaveBeenCalledWith(true);
 	});
+
+	it("check getTopicName", () => {
+		let broker = new ServiceBroker({ namespace: "beta-test", nodeID: "server1" });
+		let transporter = new BaseTransporter();
+		new Transit(broker, transporter);
+
+		expect(transporter.getTopicName("REQ")).toBe("MOL-beta-test.REQ");
+		expect(transporter.getTopicName("REQ", "server-2")).toBe("MOL-beta-test.REQ.server-2");
+	});
+
+	it("check _makeServiceSpecificSubscriptions if hasBuiltInBalancer = FALSE", () => {
+		let broker = new ServiceBroker({ namespace: "beta-test", nodeID: "server1" });
+		let transporter = new BaseTransporter();
+		new Transit(broker, transporter);
+		transporter.hasBuiltInBalancer = false;
+
+		transporter.unsubscribeFromBalancedCommands = jest.fn(() => Promise.resolve());
+		broker.getLocalNodeInfo = jest.fn(() => ({ services: [
+			{
+				actions: {
+					"posts.find": {},
+					"posts.get": {}
+				}
+			},
+			{
+				name: "users",
+				events: {
+					"user.created": {},
+					"user.updated": {}
+				}
+			},
+			{
+				// Empty
+			}
+		]}));
+
+		transporter.subscribeBalancedEvent = jest.fn();
+		transporter.subscribeBalancedRequest = jest.fn();
+
+		return transporter._makeServiceSpecificSubscriptions().catch(protectReject).then(() => {
+			expect(transporter.unsubscribeFromBalancedCommands).toHaveBeenCalledTimes(0);
+			expect(broker.getLocalNodeInfo).toHaveBeenCalledTimes(0);
+			expect(transporter.subscribeBalancedRequest).toHaveBeenCalledTimes(0);
+			expect(transporter.subscribeBalancedEvent).toHaveBeenCalledTimes(0);
+		});
+	});
+
+	it("check _makeServiceSpecificSubscriptions if hasBuiltInBalancer = TRUE", () => {
+		let broker = new ServiceBroker({ namespace: "beta-test", nodeID: "server1" });
+		let transporter = new BaseTransporter();
+		new Transit(broker, transporter);
+		transporter.hasBuiltInBalancer = true;
+
+		transporter.unsubscribeFromBalancedCommands = jest.fn(() => Promise.resolve());
+		broker.getLocalNodeInfo = jest.fn(() => ({ services: [
+			{
+				actions: {
+					"posts.find": {},
+					"posts.get": {}
+				}
+			},
+			{
+				name: "users",
+				events: {
+					"user.created": {},
+					"user.updated": {}
+				}
+			},
+			{
+				// Empty
+			}
+		]}));
+
+		transporter.subscribeBalancedEvent = jest.fn();
+		transporter.subscribeBalancedRequest = jest.fn();
+
+		return transporter._makeServiceSpecificSubscriptions().catch(protectReject).then(() => {
+			expect(transporter.unsubscribeFromBalancedCommands).toHaveBeenCalledTimes(1);
+
+			expect(broker.getLocalNodeInfo).toHaveBeenCalledTimes(1);
+
+			expect(transporter.subscribeBalancedRequest).toHaveBeenCalledTimes(2);
+			expect(transporter.subscribeBalancedRequest).toHaveBeenCalledWith("posts.find");
+			expect(transporter.subscribeBalancedRequest).toHaveBeenCalledWith("posts.get");
+
+			expect(transporter.subscribeBalancedEvent).toHaveBeenCalledTimes(2);
+			expect(transporter.subscribeBalancedEvent).toHaveBeenCalledWith("user.created", "users");
+			expect(transporter.subscribeBalancedEvent).toHaveBeenCalledWith("user.updated", "users");
+		});
+	});
+
+	describe("Test prepublish", () => {
+
+		const broker = new ServiceBroker({ namespace: "beta-test", nodeID: "server1" });
+		const transporter = new BaseTransporter();
+		const transit = new Transit(broker, transporter);
+
+		transporter.publish = jest.fn(() => Promise.resolve());
+		transporter.publishBalancedEvent = jest.fn(() => Promise.resolve());
+		transporter.publishBalancedRequest = jest.fn(() => Promise.resolve());
+
+		it("check with PACKET_EVENT with target without groups", () => {
+			transporter.publish.mockClear();
+			transporter.publishBalancedEvent.mockClear();
+
+			let packet = new P.PacketEvent(transit, "server-2", "user.created");
+			return transporter.prepublish(packet).catch(protectReject).then(() => {
+				expect(transporter.publish).toHaveBeenCalledTimes(1);
+				expect(transporter.publishBalancedEvent).toHaveBeenCalledTimes(0);
+			});
+		});
+
+		it("check with PACKET_EVENT with target with groups", () => {
+			transporter.publish.mockClear();
+			transporter.publishBalancedEvent.mockClear();
+
+			let packet = new P.PacketEvent(transit, "server-2", "user.created", null, ["users", "payments"]);
+			return transporter.prepublish(packet).catch(protectReject).then(() => {
+				expect(transporter.publish).toHaveBeenCalledTimes(1);
+				expect(transporter.publishBalancedEvent).toHaveBeenCalledTimes(0);
+			});
+		});
+
+		it("check with PACKET_EVENT without target", () => {
+			transporter.publish.mockClear();
+			transporter.publishBalancedEvent.mockClear();
+
+			let packet = new P.PacketEvent(transit, null, "user.created");
+			return transporter.prepublish(packet).catch(protectReject).then(() => {
+				expect(transporter.publish).toHaveBeenCalledTimes(1);
+				expect(transporter.publishBalancedEvent).toHaveBeenCalledTimes(0);
+			});
+		});
+
+		it("check with PACKET_EVENT with target with groups", () => {
+			transporter.publish.mockClear();
+			transporter.publishBalancedEvent.mockClear();
+
+			let packet = new P.PacketEvent(transit, null, "user.created", null, ["users", "payments"]);
+			return transporter.prepublish(packet).catch(protectReject).then(() => {
+				expect(transporter.publish).toHaveBeenCalledTimes(0);
+				expect(transporter.publishBalancedEvent).toHaveBeenCalledTimes(2);
+			});
+		});
+
+
+		it("check with PACKET_REQ without target", () => {
+			transporter.publish.mockClear();
+			transporter.publishBalancedRequest.mockClear();
+
+			let packet = new P.PacketRequest(transit, null);
+			return transporter.prepublish(packet).catch(protectReject).then(() => {
+				expect(transporter.publish).toHaveBeenCalledTimes(0);
+				expect(transporter.publishBalancedRequest).toHaveBeenCalledTimes(1);
+			});
+		});
+
+		it("check with PACKET_REQ with target", () => {
+			transporter.publish.mockClear();
+			transporter.publishBalancedRequest.mockClear();
+
+			let packet = new P.PacketRequest(transit, "server-2");
+			return transporter.prepublish(packet).catch(protectReject).then(() => {
+				expect(transporter.publish).toHaveBeenCalledTimes(1);
+				expect(transporter.publishBalancedRequest).toHaveBeenCalledTimes(0);
+			});
+		});
+	});
+
 });

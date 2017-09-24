@@ -1,6 +1,7 @@
 const ServiceBroker = require("../../../src/service-broker");
 const Transit = require("../../../src/transit");
-const { PacketInfo } = require("../../../src/packets");
+const { PacketInfo, PacketEvent, PacketRequest } = require("../../../src/packets");
+const { protectReject } = require("../utils");
 
 jest.mock("amqplib");
 
@@ -63,6 +64,7 @@ describe("Test AmqpTransporter constructor", () => {
 			}
 		});
 		expect(transporter.connected).toBe(false);
+		expect(transporter.hasBuiltInBalancer).toBe(true);
 		expect(transporter.channel).toBeNull();
 		expect(transporter.connection).toBeNull();
 		expect(transporter.bindings).toHaveLength(0);
@@ -97,7 +99,7 @@ describe("Test AmqpTransporter connect & disconnect", () => {
 	});
 
 	it("check connect", () => {
-		return transporter.connect().then(() => {
+		return transporter.connect().catch(protectReject).then(() => {
 			expect(transporter.connection).toBeDefined();
 			expect(transporter.connection.on).toHaveBeenCalledTimes(4);
 			expect(transporter.connection.on).toHaveBeenCalledWith("error", jasmine.any(Function));
@@ -117,7 +119,7 @@ describe("Test AmqpTransporter connect & disconnect", () => {
 
 	it("check onConnected after connect", () => {
 		transporter.onConnected = jest.fn(() => Promise.resolve());
-		return transporter.connect().then(() => {
+		return transporter.connect().catch(protectReject).then(() => {
 			expect(transporter.onConnected).toHaveBeenCalledTimes(1);
 			expect(transporter.onConnected).toHaveBeenCalledWith();
 		});
@@ -125,13 +127,13 @@ describe("Test AmqpTransporter connect & disconnect", () => {
 
 	it("check disconnect", () => {
 		transporter.bindings = [["queue1", "exchange1", ""], ["queue2", "exchange2", ""]];
-		return transporter.connect().then(() => {
+		return transporter.connect().catch(protectReject).then(() => {
 			let chanCloseCb = transporter.channel.close;
 			let chanUnbindCb = transporter.channel.unbindQueue;
 			let conCloseCb = transporter.connection.close;
 			let bindings = transporter.bindings;
 			transporter.disconnect()
-				.then(() => {
+				.catch(protectReject).then(() => {
 					expect(transporter.channel).toBeNull();
 					expect(transporter.connection).toBeNull();
 					expect(chanCloseCb).toHaveBeenCalledTimes(1);
@@ -142,6 +144,85 @@ describe("Test AmqpTransporter connect & disconnect", () => {
 						expect(chanUnbindCb).toHaveBeenCalledWith(...binding);
 					}
 				});
+		});
+	});
+});
+
+
+describe("Test AmqpTransporter subscribe", () => {
+	let transporter;
+	let msgHandler;
+	let broker;
+
+	beforeEach(() => {
+		broker = new ServiceBroker({ namespace: "TEST", nodeID: "node", internalServices: false });
+		msgHandler = jest.fn();
+		transporter = new AmqpTransporter({ amqp: { url: "amqp://localhost", eventTimeToLive: 3000 }});
+		transporter.init(new Transit(broker), msgHandler);
+		return transporter.connect();
+	});
+
+	it("should not call channel.ack", () => {
+		transporter.channel.ack = jest.fn();
+		transporter.channel.nack = jest.fn();
+
+		let cb = transporter._consumeCB("REQ", false);
+
+		let msg = { content: "msg" };
+		cb(msg);
+
+		expect(msgHandler).toHaveBeenCalledTimes(1);
+		expect(msgHandler).toHaveBeenCalledWith("REQ", msg.content);
+
+		expect(transporter.channel.ack).toHaveBeenCalledTimes(0);
+		expect(transporter.channel.nack).toHaveBeenCalledTimes(0);
+	});
+
+	it("should call channel.ack (sync)", () => {
+		transporter.channel.ack = jest.fn();
+		transporter.channel.nack = jest.fn();
+
+		let cb = transporter._consumeCB("REQ", true);
+
+		let msg = { content: "msg" };
+		cb(msg);
+
+		expect(msgHandler).toHaveBeenCalledTimes(1);
+		expect(msgHandler).toHaveBeenCalledWith("REQ", msg.content);
+		expect(transporter.channel.ack).toHaveBeenCalledTimes(1);
+		expect(transporter.channel.ack).toHaveBeenCalledWith(msg);
+		expect(transporter.channel.nack).toHaveBeenCalledTimes(0);
+	});
+
+	it("should call channel.ack (async)", () => {
+		transporter.channel.ack = jest.fn();
+		transporter.channel.nack = jest.fn();
+		transporter.messageHandler = jest.fn(() => Promise.resolve());
+
+		let cb = transporter._consumeCB("REQ", true);
+
+		let msg = { content: "msg" };
+		return cb(msg).catch(protectReject).then(() => {
+			expect(transporter.messageHandler).toHaveBeenCalledTimes(1);
+			expect(transporter.channel.ack).toHaveBeenCalledTimes(1);
+			expect(transporter.channel.ack).toHaveBeenCalledWith(msg);
+			expect(transporter.channel.nack).toHaveBeenCalledTimes(0);
+		});
+	});
+
+	it("should call channel.nack (async)", () => {
+		transporter.channel.ack = jest.fn();
+		transporter.channel.nack = jest.fn();
+		transporter.messageHandler = jest.fn(() => Promise.reject());
+
+		let cb = transporter._consumeCB("REQ", true);
+
+		let msg = { content: "msg" };
+		return cb(msg).catch(protectReject).then(() => {
+			expect(transporter.messageHandler).toHaveBeenCalledTimes(1);
+			expect(transporter.channel.nack).toHaveBeenCalledTimes(1);
+			expect(transporter.channel.nack).toHaveBeenCalledWith(msg);
+			expect(transporter.channel.ack).toHaveBeenCalledTimes(0);
 		});
 	});
 });
@@ -161,7 +242,7 @@ describe("Test AmqpTransporter subscribe", () => {
 
 	it("check RES subscription", () => {
 		return transporter.subscribe("RES", "node")
-			.then(() => {
+			.catch(protectReject).then(() => {
 				expect(transporter.channel.assertQueue).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.consume).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.assertQueue)
@@ -180,7 +261,7 @@ describe("Test AmqpTransporter subscribe", () => {
 	it("check INFO.nodeID subscription", () => {
 		transporter.getTopicName = () => "MOL-TEST.INFO.node";
 		return transporter.subscribe("INFO", "node")
-			.then(() => {
+			.catch(protectReject).then(() => {
 				expect(transporter.channel.assertQueue).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.consume).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.assertQueue)
@@ -196,69 +277,29 @@ describe("Test AmqpTransporter subscribe", () => {
 			});
 	});
 
-	it("check REQ subscription", () => {
-		const mockServices = [
-			{ name: "empty" },
-			{
-				name: "example1",
-				actions: {
-					"example1.testing": {},
-					"example1.hello": {},
-				}
-			},
-			{
-				name: "example2",
-				actions: { "example2.world": {} },
-				events: {
-					"user.created": {},
-					"payment.done": {}
-				}
-			}
-		];
-		transporter.transit.broker.getLocalNodeInfo = jest.fn(() => ({
-			services: mockServices
-		}));
 
-		return transporter._makeServiceSpecificSubscriptions()
-			.then(() => {
-				expect(transporter.transit.broker.getLocalNodeInfo).toHaveBeenCalledTimes(1);
-
-				expect(transporter.channel.assertQueue).toHaveBeenCalledTimes(5);
-				expect(transporter.channel.consume).toHaveBeenCalledTimes(5);
+	it("check REQ.nodeID subscription", () => {
+		transporter.getTopicName = () => "MOL-TEST.REQ.node";
+		return transporter.subscribe("REQ", "node")
+			.catch(protectReject).then(() => {
+				expect(transporter.channel.assertQueue).toHaveBeenCalledTimes(1);
+				expect(transporter.channel.consume).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.assertQueue)
-					.toHaveBeenCalledWith("MOL-TEST.REQB.example2.world", {});
-				expect(transporter.channel.assertQueue)
-					.toHaveBeenCalledWith("MOL-TEST.REQB.example1.hello", {});
-				expect(transporter.channel.assertQueue)
-					.toHaveBeenCalledWith("MOL-TEST.REQB.example1.testing", {});
-
-				expect(transporter.channel.assertQueue)
-					.toHaveBeenCalledWith("MOL-TEST.EVENTB.example2.user.created", {});
-				expect(transporter.channel.assertQueue)
-					.toHaveBeenCalledWith("MOL-TEST.EVENTB.example2.payment.done", {});
-
+					.toHaveBeenCalledWith("MOL-TEST.REQ.node", {});
 				expect(transporter.channel.consume)
-					.toHaveBeenCalledWith("MOL-TEST.REQB.example2.world", jasmine.any(Function), {});
-				expect(transporter.channel.consume)
-					.toHaveBeenCalledWith("MOL-TEST.REQB.example1.hello", jasmine.any(Function), {});
-				expect(transporter.channel.consume)
-					.toHaveBeenCalledWith("MOL-TEST.REQB.example1.testing", jasmine.any(Function), {});
-				expect(transporter.channel.consume)
-					.toHaveBeenCalledWith("MOL-TEST.EVENTB.example2.user.created", jasmine.any(Function), {});
-				expect(transporter.channel.consume)
-					.toHaveBeenCalledWith("MOL-TEST.EVENTB.example2.payment.done", jasmine.any(Function), {});
+					.toHaveBeenCalledWith("MOL-TEST.REQ.node", jasmine.any(Function), { noAck: true });
 
 				const consumeCb = transporter.channel.consume.mock.calls[0][1];
 				consumeCb({ content: Buffer.from("data") });
 
 				expect(msgHandler).toHaveBeenCalledTimes(1);
-				expect(transporter.channel.ack).toHaveBeenCalledTimes(1);
+				expect(transporter.channel.ack).toHaveBeenCalledTimes(0);
 			});
 	});
 
 	it("check EVENT subscription", () => {
 		return transporter.subscribe("EVENT", "node")
-			.then(() => {
+			.catch(protectReject).then(() => {
 				expect(transporter.channel.assertQueue).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.assertExchange).toHaveBeenCalledTimes(0);
 				expect(transporter.channel.bindQueue).toHaveBeenCalledTimes(0);
@@ -266,16 +307,8 @@ describe("Test AmqpTransporter subscribe", () => {
 
 				expect(transporter.channel.assertQueue)
 					.toHaveBeenCalledWith("MOL-TEST.EVENT.node", { autoDelete: true, messageTtl: 3000 }); // use ttl option
-				//expect(transporter.channel.assertExchange)
-				//	.toHaveBeenCalledWith("MOL-TEST.EVENT", "fanout", {});
-				//expect(transporter.channel.bindQueue)
-				//	.toHaveBeenCalledWith("MOL-TEST.EVENT.node", "MOL-TEST.EVENT", "");
 				expect(transporter.channel.consume)
-					.toHaveBeenCalledWith(
-						"MOL-TEST.EVENT.node",
-						jasmine.any(Function),
-						{ noAck: true }
-					);
+					.toHaveBeenCalledWith("MOL-TEST.EVENT.node", jasmine.any(Function), { noAck: true });
 
 				const consumeCb = transporter.channel.consume.mock.calls[0][1];
 				consumeCb({ content: Buffer.from("data") });
@@ -288,7 +321,7 @@ describe("Test AmqpTransporter subscribe", () => {
 	["DISCOVER", "DISCONNECT", "INFO", "HEARTBEAT"].forEach(type => {
 		it(`check ${type} subscription`, () => {
 			return transporter.subscribe(type)
-				.then(() => {
+				.catch(protectReject).then(() => {
 					expect(transporter.channel.assertQueue).toHaveBeenCalledTimes(1);
 					expect(transporter.channel.assertExchange).toHaveBeenCalledTimes(1);
 					expect(transporter.channel.bindQueue).toHaveBeenCalledTimes(1);
@@ -315,6 +348,42 @@ describe("Test AmqpTransporter subscribe", () => {
 				});
 		});
 	});
+
+	it("check subscribeBalancedRequest", () => {
+		return transporter.subscribeBalancedRequest("posts.find")
+			.catch(protectReject).then(() => {
+				expect(transporter.channel.assertQueue).toHaveBeenCalledTimes(1);
+				expect(transporter.channel.consume).toHaveBeenCalledTimes(1);
+				expect(transporter.channel.assertQueue)
+					.toHaveBeenCalledWith("MOL-TEST.REQB.posts.find", {});
+				expect(transporter.channel.consume)
+					.toHaveBeenCalledWith("MOL-TEST.REQB.posts.find", jasmine.any(Function), {});
+
+				const consumeCb = transporter.channel.consume.mock.calls[0][1];
+				consumeCb({ content: Buffer.from("data") });
+
+				expect(msgHandler).toHaveBeenCalledTimes(1);
+				expect(transporter.channel.ack).toHaveBeenCalledTimes(1);
+			});
+	});
+
+	it("check subscribeBalancedEvent", () => {
+		return transporter.subscribeBalancedEvent("cache.clear", "posts")
+			.catch(protectReject).then(() => {
+				expect(transporter.channel.assertQueue).toHaveBeenCalledTimes(1);
+				expect(transporter.channel.consume).toHaveBeenCalledTimes(1);
+				expect(transporter.channel.assertQueue)
+					.toHaveBeenCalledWith("MOL-TEST.EVENTB.posts.cache.clear", {});
+				expect(transporter.channel.consume)
+					.toHaveBeenCalledWith("MOL-TEST.EVENTB.posts.cache.clear", jasmine.any(Function), {});
+
+				const consumeCb = transporter.channel.consume.mock.calls[0][1];
+				consumeCb({ content: Buffer.from("data") });
+
+				expect(msgHandler).toHaveBeenCalledTimes(1);
+				expect(transporter.channel.ack).toHaveBeenCalledTimes(1);
+			});
+	});
 });
 
 describe("Test AmqpTransporter publish", () => {
@@ -333,10 +402,10 @@ describe("Test AmqpTransporter publish", () => {
 		return transporter.connect();
 	});
 
-	it("check INFO.node publish", () => {
+	it("check publish with target", () => {
 		const packet = new PacketInfo(fakeTransit, "node2", {});
 		return transporter.publish(packet)
-			.then(() => {
+			.catch(protectReject).then(() => {
 				expect(transporter.channel.sendToQueue).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.sendToQueue).toHaveBeenCalledWith(
 					"MOL-TEST.INFO.node2",
@@ -346,200 +415,50 @@ describe("Test AmqpTransporter publish", () => {
 			});
 	});
 
-	// The following tests mock a packet for ease of testing.
-	it("check REQ publish to direct node", () => {
-		const packet = {
-			type: "REQ",
-			target: "node-2",
-			serialize: () => JSON.stringify({ fake: "payload" }),
-			payload: {
-				action: "echo"
-			}
-		};
+	it("check publish without target", () => {
+		const packet = new PacketInfo(fakeTransit, null, {});
 		return transporter.publish(packet)
-			.then(() => {
-				expect(transporter.channel.sendToQueue).toHaveBeenCalledTimes(1);
-				expect(transporter.channel.sendToQueue).toHaveBeenCalledWith(
-					"MOL-TEST.REQ.node-2",
-					Buffer.from(packet.serialize()),
-					{}
-				);
-			});
-	});
-
-	// The following tests mock a packet for ease of testing.
-	it("check REQ publish with internal balancer", () => {
-		const packet = {
-			type: "REQ",
-			target: null,
-			serialize: () => JSON.stringify({ fake: "payload" }),
-			payload: {
-				action: "echo"
-			}
-		};
-		return transporter.publish(packet)
-			.then(() => {
-				expect(transporter.channel.sendToQueue).toHaveBeenCalledTimes(1);
-				expect(transporter.channel.sendToQueue).toHaveBeenCalledWith(
-					"MOL-TEST.REQB.echo",
-					Buffer.from(packet.serialize()),
-					{}
-				);
-			});
-	});
-
-	it("check RES publish", () => {
-		transporter.getTopicName = () => `${transporter.prefix}.RES.node`;
-		const packet = {
-			type: "RES",
-			target: "node-2",
-			serialize: () => JSON.stringify({ fake: "payload" }),
-		};
-		return transporter.publish(packet)
-			.then(() => {
-				expect(transporter.channel.sendToQueue).toHaveBeenCalledTimes(1);
-				expect(transporter.channel.sendToQueue).toHaveBeenCalledWith(
-					"MOL-TEST.RES.node",
-					Buffer.from(packet.serialize()),
-					{}
-				);
-			});
-	});
-
-	["DISCOVER", "HEARTBEAT", "DISCONNECT"].forEach((type) => {
-		it(`check ${type} publish`, () => {
-			transporter.getTopicName = () => `${transporter.prefix}.${type}.node`;
-			const packet = {
-				type,
-				serialize: () => JSON.stringify({ fake: "payload" }),
-			};
-			return transporter.publish(packet)
-				.then(() => {
-					expect(transporter.channel.publish).toHaveBeenCalledTimes(1);
-					expect(transporter.channel.publish).toHaveBeenCalledWith(
-						`MOL-TEST.${type}.node`,
-						"",
-						Buffer.from(packet.serialize()),
-						{}
-					);
-				});
-		});
-	});
-
-	it("check grouped EVENT publish", () => {
-		const packet = {
-			type: "EVENT",
-			target: null,
-			serialize: () => JSON.stringify({ fake: "payload" }),
-			payload: {
-				event: "user.created",
-				groups: ["users", "payments"]
-			}
-		};
-		return transporter.publish(packet)
-			.then(() => {
-				expect(transporter.channel.sendToQueue).toHaveBeenCalledTimes(2);
-				expect(transporter.channel.sendToQueue).toHaveBeenCalledWith(
-					"MOL-TEST.EVENTB.users.user.created",
-					Buffer.from(packet.serialize()),
-					{}
-				);
-				expect(transporter.channel.sendToQueue).toHaveBeenCalledWith(
-					"MOL-TEST.EVENTB.payments.user.created",
-					Buffer.from(packet.serialize()),
-					{}
-				);
-			});
-	});
-
-	it("check grouped EVENT publishto node", () => {
-		const packet = {
-			type: "EVENT",
-			target: "node-2",
-			serialize: () => JSON.stringify({ fake: "payload" }),
-			payload: {
-				event: "user.created",
-				groups: ["users", "payments"]
-			}
-		};
-		return transporter.publish(packet)
-			.then(() => {
-				expect(transporter.channel.sendToQueue).toHaveBeenCalledTimes(1);
-				expect(transporter.channel.sendToQueue).toHaveBeenCalledWith(
-					"MOL-TEST.EVENT.node-2",
-					Buffer.from(packet.serialize()),
-					{}
-				);
-			});
-	});
-
-	it("check broadcast EVENT publish", () => {
-		const packet = {
-			type: "EVENT",
-			target: "node-2",
-			serialize: () => JSON.stringify({ fake: "payload" }),
-			payload: {
-				event: "user.created",
-				groups: null
-			}
-		};
-		return transporter.publish(packet)
-			.then(() => {
-				expect(transporter.channel.sendToQueue).toHaveBeenCalledTimes(1);
-				expect(transporter.channel.sendToQueue).toHaveBeenCalledWith(
-					"MOL-TEST.EVENT.node-2",
-					Buffer.from(packet.serialize()),
-					{}
-				);
-
-			});
-	});
-
-	it("check INFO publish", () => {
-		transporter.getTopicName = () => `${transporter.prefix}.INFO`;
-		transporter._makeServiceSpecificSubscriptions = jest.fn(() => Promise.resolve());
-		const mockServices = [
-			{ schema: { name: "empty" } },
-			{
-				schema: {
-					name: "example1",
-					actions: {
-						testing: {},
-						hello: {},
-					}
-				}
-			},
-			{
-				schema: {
-					name: "example2",
-					actions: { world: {} },
-					events: {
-						"user.created": {},
-						"payment.done": {}
-					}
-				}
-			}
-		];
-		const packet = {
-			type: "INFO",
-			serialize: () => JSON.stringify({ fake: "payload" }),
-			transit: {
-				broker: {
-					services: mockServices
-				}
-			}
-		};
-		return transporter.publish(packet)
-			.then(() => {
+			.catch(protectReject).then(() => {
 				expect(transporter.channel.publish).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.publish).toHaveBeenCalledWith(
 					"MOL-TEST.INFO",
 					"",
-					Buffer.from(packet.serialize()),
+					Buffer.from(JSON.stringify({"ver": "2", "sender": "node1"})),
 					{}
 				);
-
-				expect(transporter._makeServiceSpecificSubscriptions).toHaveBeenCalledTimes(1);
 			});
 	});
+
+	it("check publishBalancedEvent", () => {
+		const packet = new PacketEvent(fakeTransit, null, "user.created", { id: 5 }, ["mail"]);
+		return transporter.publishBalancedEvent(packet, "mail")
+			.catch(protectReject).then(() => {
+				expect(transporter.channel.sendToQueue).toHaveBeenCalledTimes(1);
+				expect(transporter.channel.sendToQueue).toHaveBeenCalledWith(
+					"MOL-TEST.EVENTB.mail.user.created",
+					Buffer.from(JSON.stringify({"ver": "2", "sender": "node1", "event": "user.created", "data": { id: 5 }, "groups": ["mail"]})),
+					{}
+				);
+			});
+
+	});
+
+	it("check publishBalancedRequest", () => {
+		let ctx = {
+			action: { name: "posts.find" },
+			params: { a: 5 }
+		};
+		const packet = new PacketRequest(fakeTransit, null, ctx);
+		return transporter.publishBalancedRequest(packet)
+			.catch(protectReject).then(() => {
+				expect(transporter.channel.sendToQueue).toHaveBeenCalledTimes(1);
+				expect(transporter.channel.sendToQueue).toHaveBeenCalledWith(
+					"MOL-TEST.REQB.posts.find",
+					Buffer.from(JSON.stringify({"ver": "2", "sender": "node1", "action": "posts.find", "params": { a: 5 }})),
+					{}
+				);
+			});
+
+	});
+
 });
