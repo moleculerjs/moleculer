@@ -17,8 +17,10 @@ After the client is connected to the message broker (NATS, Redis, MQTT), it subs
 | Type | Topic name |
 | ---- | ---------- |
 | Event | `MOL.EVENT.<nodeID>` |
-| Request | `MOL.REQUEST.<nodeID>` |
-| Response | `MOL.RESPONSE.<nodeID>` |
+| Event (balanced) | `MOL.EVENTB.<event>` |
+| Request | `MOL.REQ.<nodeID>` |
+| Request (balanced) | `MOL.REQB.<action>` |
+| Response | `MOL.RES.<nodeID>` |
 | Discover | `MOL.DISCOVER` |
 | Discover (targetted) | `MOL.DISCOVER.<nodeID>` |
 | Info | `MOL.INFO` |
