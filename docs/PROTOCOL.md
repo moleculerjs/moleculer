@@ -88,8 +88,8 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | ----- | ---- | -------- | ----------- |
 | `ver` | `string` | ✔ | Protocol version. Current: `'2'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
-| `services` | `string` | ✔ | JSON encoded string with services list. |
-| `config` | `string` | ✔ | JSON encoded client configuration. |
+| `services` | `object` | ✔ | Services list. (*) |
+| `config` | `object` | ✔ | Client configuration. (*) |
 | `ipList` | `[string]` | ✔ | IP address list of node |
 | `port` | `int32` |   | Port number |
 | `client` | `object` | ✔ | Client information |
@@ -97,6 +97,7 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 |   `client.version` | `string` | ✔ | Client (Moleculer) version |
 |   `client.langVersion` | `string` | ✔ | NodeJS/Java/Go version |
 
+(*) In case of `ProtoBuf`, `Avro` or any other schema-based serializer, the field value is encoded to JSON string.
 
 ### `HEARTBEAT`
 
@@ -128,14 +129,15 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `id` | `string` | ✔ | Context ID. |
 | `action` | `string` | ✔ | Action name. E.g.: `posts.find` |
-| `params` | `string` | ✔ | JSON encoded `ctx.params` object. |
-| `meta` | `string` | ✔ | JSON encoded `ctx.meta` object. |
+| `params` | `string` | ✔ | `ctx.params` object. (*) |
+| `meta` | `string` | ✔ | `ctx.meta` object. (*) |
 | `timeout` | `double` | ✔ | Request timeout (distributed). |
 | `level` | `int32` | ✔ | Level of request. |
 | `metrics` | `boolean` | ✔ | Need to send metrics events. |
 | `parentID` | `string` |  | Parent context ID. |
 | `requestID` | `string` |  | Request ID from `ctx.requestID`. |
 
+(*) In case of `ProtoBuf`, `Avro` or any other schema-based serializer, the field value is encoded to JSON string.
 
 ### `RESPONSE`
 
@@ -151,8 +153,10 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `id` | `string` | ✔ | Context ID (from `REQUEST`). |
 | `success` | `boolean` | ✔ | Is it a success response? |
-| `data` | `string` |  | JSON encoded response if success. |
-| `error` | `string` |  | JSON encoded error object if not success. |
+| `data` | `object` |  | Response data if success. (*) |
+| `error` | `object` |  | Error object if not success. (*) |
+
+(*) In case of `ProtoBuf`, `Avro` or any other schema-based serializer, the field value is encoded to JSON string.
 
 
 ### `EVENT`
@@ -169,8 +173,10 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `ver` | `string` | ✔ | Protocol version. Current: `'2'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `event` | `string` | ✔ | Event name. E.g.: `users.created` |
-| `data` | `string` | ✔ | JSON encoded event payload. |
+| `data` | `object` | ✔ | Event payload. (*) |
 | `groups` | `Array<string>` | ✔ | Groups for balanced events. If `null` or empty, the event is broadcasted. |
+
+(*) In case of `ProtoBuf`, `Avro` or any other schema-based serializer, the field value is encoded to JSON string.
 
 
 ### `PING`
