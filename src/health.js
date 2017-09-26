@@ -27,7 +27,7 @@ const getCpuInfo = () => {
 		load15: load[2],
 		cores: os.cpus().length,
 	};
-	cpu.utilization = Math.floor(load[0] * 100 / cpu.cores);
+	cpu.utilization = Math.min(Math.floor(load[0] * 100 / cpu.cores), 100);
 
 	return cpu;
 };

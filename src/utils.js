@@ -94,7 +94,7 @@ let utils = {
 		const res = _.cloneDeep(schema);
 
 		Object.keys(mods).forEach(key => {
-			if (["settings"].indexOf(key) !== -1) {
+			if (["settings", "metadata"].indexOf(key) !== -1) {
 				res[key] = _.defaultsDeep(mods[key], res[key]);
 			} else if (["actions", "methods"].indexOf(key) !== -1) {
 				res[key] = _.assign(res[key], mods[key]);

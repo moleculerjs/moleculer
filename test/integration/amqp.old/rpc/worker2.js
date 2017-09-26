@@ -1,16 +1,11 @@
 /* eslint-disable no-console */
 
-const {
-	ServiceBroker,
-	Transporters: { AMQP: AmqpTransport }
-} = require("../../../..");
-const AMQP_URL = process.env.AMQP_URI || "amqp://guest:guest@localhost:5672";
+const { ServiceBroker } = require("../../../..");
 
-const amqpTransporter = new AmqpTransport(AMQP_URL);
 const broker = new ServiceBroker({
 	nodeID: "worker2-nodeID",
 	logger: console,
-	transporter: amqpTransporter,
+	transporter: process.env.AMQP_URI || "amqp://guest:guest@localhost:5672",
 });
 
 broker.createService({

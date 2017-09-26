@@ -48,6 +48,8 @@ class Service {
 		this.name = schema.name;
 		this.version = schema.version;
 		this.settings = schema.settings || {};
+		this.metadata = schema.metadata || {};
+
 		this.schema = schema;
 		this.broker = broker;
 
@@ -64,6 +66,7 @@ class Service {
 			name: this.name,
 			version: this.version,
 			settings: this.settings,
+			metadata: this.metadata,
 			actions: {},
 			events: {}
 		};
@@ -134,7 +137,7 @@ class Service {
 
 			forIn(schema.methods, (method, name) => {
 				/* istanbul ignore next */
-				if (["name", "version", "settings", "schema", "broker", "actions", "logger", "created", "started", "stopped"].indexOf(name) != -1) {
+				if (["name", "version", "settings", "metadata", "schema", "broker", "actions", "logger", "created", "started", "stopped"].indexOf(name) != -1) {
 					throw new ServiceSchemaError(`Invalid method name '${name}' in '${this.name}' service!`);
 				}
 				this[name] = method.bind(this);

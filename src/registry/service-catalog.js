@@ -38,11 +38,14 @@ class ServiceCatalog {
 	 * @param {String} name
 	 * @param {any} version
 	 * @param {Object} settings
-	 * @returns
+	 * @param {Object} metadata
+	 *
+	 * @returns {ServiceItem}
+	 *
 	 * @memberof ServiceCatalog
 	 */
-	add(node, name, version, settings) {
-		const item = new ServiceItem(node, name, version, settings, node.id == this.broker.nodeID);
+	add(node, name, version, settings, metadata) {
+		const item = new ServiceItem(node, name, version, settings, metadata, node.id == this.broker.nodeID);
 		this.services.push(item);
 		return item;
 	}
@@ -94,6 +97,7 @@ class ServiceCatalog {
 				name: service.name,
 				version: service.version,
 				settings: service.settings,
+				metadata: service.metadata,
 				nodeID: service.node.id
 			};
 

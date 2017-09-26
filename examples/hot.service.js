@@ -2,6 +2,11 @@
 
 module.exports = {
 	name: "test",
+	metadata: {
+		scalable: true,
+		priority: 5
+	},
+
 	actions: {
 		hello() {
 			return "Hello Moleculer!";

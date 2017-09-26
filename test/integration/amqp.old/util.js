@@ -1,3 +1,5 @@
+/* eslint-disable security/detect-child-process */
+
 /* istanbul ignore next*/
 const debugExec = (cmd, args=[]) =>
 	new Promise(function (resolve, reject) {

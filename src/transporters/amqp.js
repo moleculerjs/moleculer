@@ -105,7 +105,10 @@ class AmqpTransporter extends Transporter {
 						.on("close", (err) => {
 							this.connected = false;
 							reject(err);
-							this.logger.error("AMQP connection is closed.");
+							if (!this.transit.disconnecting)
+								this.logger.error("AMQP connection is closed.");
+							else
+								this.logger.info("AMQP connection is closed gracefully.");
 						})
 						.on("blocked", (reason) => {
 							this.logger.warn("AMQP connection is blocked.", reason);
@@ -129,7 +132,10 @@ class AmqpTransporter extends Transporter {
 									this.connected = false;
 									this.channel = null;
 									reject();
-									this.logger.warn("AMQP channel is closed.");
+									if (!this.transit.disconnecting)
+										this.logger.warn("AMQP channel is closed.");
+									else
+										this.logger.info("AMQP channel is closed gracefully.");
 								})
 								.on("error", (err) => {
 									this.connected = false;
@@ -238,8 +244,17 @@ class AmqpTransporter extends Transporter {
 			// message won't be lost and it can be retried.
 			if(needAck) {
 				if (result instanceof Promise) {
-					return result.then(() => this.channel.ack(msg));
-				} else {
+					return result
+						.then(() => {
+							if (this.channel)
+								this.channel.ack(msg);
+						})
+						.catch(err => {
+							this.logger.error("Message handling error.", err);
+							if (this.channel)
+								this.channel.nack(msg);
+						});
+				} else if (this.channel) {
 					this.channel.ack(msg);
 				}
 			}

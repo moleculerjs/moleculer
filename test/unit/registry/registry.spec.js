@@ -41,6 +41,7 @@ describe("Test Registry.registerLocalService", () => {
 			name: "users",
 			version: 2,
 			settings: {},
+			metadata: {},
 			actions: {},
 			events: []
 		};
@@ -48,7 +49,7 @@ describe("Test Registry.registerLocalService", () => {
 		registry.registerLocalService(svc);
 
 		expect(registry.services.add).toHaveBeenCalledTimes(1);
-		expect(registry.services.add).toHaveBeenCalledWith(registry.nodes.localNode, "users", 2, svc.settings);
+		expect(registry.services.add).toHaveBeenCalledWith(registry.nodes.localNode, "users", 2, svc.settings, svc.metadata);
 
 		expect(registry.registerActions).toHaveBeenCalledTimes(1);
 		expect(registry.registerActions).toHaveBeenCalledWith(registry.nodes.localNode, service, svc.actions);
@@ -65,13 +66,14 @@ describe("Test Registry.registerLocalService", () => {
 		let svc = {
 			name: "users",
 			version: 2,
-			settings: {}
+			settings: {},
+			metadata: {}
 		};
 
 		registry.registerLocalService(svc);
 
 		expect(registry.services.add).toHaveBeenCalledTimes(1);
-		expect(registry.services.add).toHaveBeenCalledWith(registry.nodes.localNode, "users", 2, svc.settings);
+		expect(registry.services.add).toHaveBeenCalledWith(registry.nodes.localNode, "users", 2, svc.settings, svc.metadata);
 
 		expect(registry.registerActions).toHaveBeenCalledTimes(0);
 
@@ -116,7 +118,7 @@ describe("Test Registry.registerServices", () => {
 		registry.registerServices(node, [service]);
 
 		expect(registry.services.add).toHaveBeenCalledTimes(1);
-		expect(registry.services.add).toHaveBeenCalledWith(node, "users", 2, service.settings);
+		expect(registry.services.add).toHaveBeenCalledWith(node, "users", 2, service.settings, undefined);
 		expect(serviceItem.update).toHaveBeenCalledTimes(0);
 
 		expect(registry.registerActions).toHaveBeenCalledTimes(1);
@@ -136,6 +138,7 @@ describe("Test Registry.registerServices", () => {
 		let serviceItem = {
 			name: "users",
 			version: 2,
+			metadata: {},
 			node,
 			update: jest.fn(),
 			equals: jest.fn(() => false),
@@ -160,6 +163,7 @@ describe("Test Registry.registerServices", () => {
 			name: "users",
 			version: 2,
 			settings: { b: 3 },
+			metadata: { priority: 3 },
 			actions: {
 				"users.find"() {},
 				"users.remove"() {}

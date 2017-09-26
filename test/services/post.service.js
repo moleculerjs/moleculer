@@ -32,7 +32,7 @@ module.exports = function() {
 				}
 			},
 
-			delayed(ctx) {
+			delayed() {
 				return Promise.resolve()
 					.then(delay(6000))
 					.then(() => {

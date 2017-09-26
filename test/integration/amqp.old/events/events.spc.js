@@ -2,7 +2,7 @@
 
 const path = require("path");
 const Promise = require("bluebird");
-const { exec, callIn } = require("../util");
+let { exec, debugExec, callIn } = require("../util");
 
 const commonString = " received the event.";
 
@@ -16,6 +16,7 @@ const findResponse = (arr) => arr
 	.filter(a => a);
 
 describe("Test AMQPTransporter events", () => {
+	//exec = debugExec;
 	beforeEach(() => exec("node", [path.resolve(__dirname, "..", "purge.js")]));
 	afterAll(() => exec("node", [path.resolve(__dirname, "..", "purge.js")]));
 

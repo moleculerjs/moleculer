@@ -329,8 +329,8 @@ describe("Test EndpointList.hasNodeID", () => {
 
 	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, strategy);
 
-	let ep1 = list.add({ id: "node-1" }, service, action);
-	let ep2 = list.add({ id: broker.nodeID }, service, action);
+	list.add({ id: "node-1" }, service, action);
+	list.add({ id: broker.nodeID }, service, action);
 
 	it("should return the correct ep", () => {
 		expect(list.hasNodeID(broker.nodeID)).toBe(true);
@@ -351,9 +351,9 @@ describe("Test EndpointList.removeByService", () => {
 
 	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, strategy);
 
-	let ep1 = list.add({ id: "node-1" }, service1, action);
-	let ep2 = list.add({ id: broker.nodeID }, service2, action);
-	let ep3 = list.add({ id: "node-2" }, service1, action);
+	list.add({ id: "node-1" }, service1, action);
+	list.add({ id: broker.nodeID }, service2, action);
+	list.add({ id: "node-2" }, service1, action);
 
 	it("should remove endpoints for service-1", () => {
 		expect(list.count()).toBe(3);
@@ -383,8 +383,8 @@ describe("Test EndpointList.removeByNodeID", () => {
 
 	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, strategy);
 
-	let ep1 = list.add({ id: "node-1" }, service1, action);
-	let ep2 = list.add({ id: broker.nodeID }, service2, action);
+	list.add({ id: "node-1" }, service1, action);
+	list.add({ id: broker.nodeID }, service2, action);
 
 	it("should remove endpoints for service-1", () => {
 		expect(list.count()).toBe(2);
@@ -413,7 +413,7 @@ describe("Test EndpointList.setLocalEndpoint", () => {
 
 	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, strategy);
 
-	let ep1 = list.add({ id: "node-1" }, service1, action);
+	list.add({ id: "node-1" }, service1, action);
 	let ep2 = list.add({ id: broker.nodeID }, service2, action);
 
 	it("should remove endpoints for service-1", () => {

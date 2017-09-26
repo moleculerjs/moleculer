@@ -2,7 +2,7 @@
 
 jest.mock("../../src/utils");
 const utils = require("../../src/utils");
-utils.mergeSchemas = jest.fn((s1, s2) => s1);
+utils.mergeSchemas = jest.fn(s1 => s1);
 
 const Service = require("../../src/service");
 const ServiceBroker = require("../../src/service-broker");
@@ -39,6 +39,27 @@ describe("Test Service constructor", () => {
 		expect(service.name).toBe("users");
 		expect(service.version).toBe(2);
 		expect(service.settings).toBe(schema.settings);
+		expect(service.metadata).toEqual({});
+		expect(service.schema).toBe(schema);
+		expect(service.broker).toBe(broker);
+
+		expect(service.logger).toBeDefined();
+		expect(service.actions).toEqual({});
+
+		expect(service.created).toBeInstanceOf(Function);
+		expect(service.started).toBeInstanceOf(Function);
+		expect(service.stopped).toBeInstanceOf(Function);
+	});
+
+	it("check local properties with metadata", () => {
+		schema.metadata = {
+			scalable: true
+		};
+		let service = new Service(broker, schema);
+		expect(service.name).toBe("users");
+		expect(service.version).toBe(2);
+		expect(service.settings).toBe(schema.settings);
+		expect(service.metadata).toEqual({ scalable: true });
 		expect(service.schema).toBe(schema);
 		expect(service.broker).toBe(broker);
 
@@ -83,6 +104,7 @@ describe("Test action creation", () => {
 		expect(svc.name).toBe("posts");
 		expect(svc.version).toBeUndefined();
 		expect(svc.settings).toEqual({});
+		expect(svc.metadata).toEqual({});
 		expect(svc.actions["posts.find"]).toBeDefined();
 		expect(svc.actions["posts.get"]).toBeDefined();
 		expect(svc.events).toEqual({});
@@ -379,7 +401,7 @@ describe("Test constructor with mixins", () => {
 		let oldApply = Service.applyMixins;
 		Service.applyMixins = jest.fn(schema => schema);
 
-		let service = new Service(broker, schema);
+		new Service(broker, schema);
 
 		expect(Service.applyMixins).toHaveBeenCalledTimes(1);
 		expect(Service.applyMixins).toHaveBeenCalledWith(schema);
