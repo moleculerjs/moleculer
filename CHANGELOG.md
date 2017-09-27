@@ -1,5 +1,5 @@
 <a name="0.11.1"></a>
-# [0.11.1](https://github.com/ice-services/moleculer/compare/v0.11.0...v0.11.1) (2017-xx-xx)
+# [0.11.1](https://github.com/ice-services/moleculer/compare/v0.11.0...v0.11.1) (2017-09-27)
 
 # New
 
@@ -26,8 +26,8 @@ The NATS transporter code is changed. Now it supports to use the NATS built-in b
 
 ```js
 let broker = new ServiceBroker({
-	transporter: "NATS",
-	disableBalancer: true
+    transporter: "NATS",
+    disableBalancer: true
 });
 ```
 
