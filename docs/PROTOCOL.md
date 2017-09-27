@@ -129,8 +129,8 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `id` | `string` | ✔ | Context ID. |
 | `action` | `string` | ✔ | Action name. E.g.: `posts.find` |
-| `params` | `string` | ✔ | `ctx.params` object. (*) |
-| `meta` | `string` | ✔ | `ctx.meta` object. (*) |
+| `params` | `object` | ✔ | `ctx.params` object. (*) |
+| `meta` | `object` | ✔ | `ctx.meta` object. (*) |
 | `timeout` | `double` | ✔ | Request timeout (distributed). |
 | `level` | `int32` | ✔ | Level of request. |
 | `metrics` | `boolean` | ✔ | Need to send metrics events. |
