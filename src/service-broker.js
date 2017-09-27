@@ -424,7 +424,7 @@ class ServiceBroker {
 		this.logger.fatal(message);
 
 		if (needExit)
-			process.exit(2);
+			process.exit(1);
 	}
 
 	/**
