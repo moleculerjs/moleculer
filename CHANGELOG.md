@@ -28,6 +28,7 @@ The NATS transporter code is changed. Now it supports to use the NATS built-in b
 let broker = new ServiceBroker({
 	transporter: "NATS",
 	disableBalancer: true
+});
 ```
 
 # Changes
