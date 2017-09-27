@@ -8,6 +8,10 @@
 
 const Promise		= require("bluebird");
 const Transporter 	= require("./base");
+const {
+	PACKET_REQUEST,
+	PACKET_EVENT,
+} = require("../packets");
 
 /**
  * Transporter for NATS
@@ -40,7 +44,10 @@ class NatsTransporter extends Transporter {
 			this.opts.nats.preserveBuffers = true;
 		}
 
+		this.hasBuiltInBalancer = true;
 		this.client = null;
+
+		this.subscriptions = [];
 	}
 
 	/**
@@ -111,8 +118,10 @@ class NatsTransporter extends Transporter {
 	 */
 	disconnect() {
 		if (this.client) {
-			this.client.close();
-			this.client = null;
+			this.client.flush(() => {
+				this.client.close();
+				this.client = null;
+			});
 		}
 	}
 
@@ -138,8 +147,49 @@ class NatsTransporter extends Transporter {
 	 */
 	subscribe(cmd, nodeID) {
 		const t = this.getTopicName(cmd, nodeID);
+
 		this.client.subscribe(t, (msg) => this.messageHandler(cmd, msg));
 		return Promise.resolve();
+	}
+
+	/**
+	 * Subscribe to balanced action commands
+	 *
+	 * @param {String} action
+	 * @memberof NatsTransporter
+	 */
+	subscribeBalancedRequest(action) {
+		const topic = `${this.prefix}.${PACKET_REQUEST}B.${action}`;
+		const queue = action;
+
+		this.subscriptions.push(this.client.subscribe(topic, { queue }, (msg) => this.messageHandler(PACKET_REQUEST, msg)));
+	}
+
+	/**
+	 * Subscribe to balanced event command
+	 *
+	 * @param {String} event
+	 * @param {String} group
+	 * @memberof NatsTransporter
+	 */
+	subscribeBalancedEvent(event, group) {
+		const topic = `${this.prefix}.${PACKET_EVENT}B.${group}.${event}`;
+
+		this.subscriptions.push(this.client.subscribe(topic, { queue: group }, (msg) => this.messageHandler(PACKET_EVENT, msg)));
+	}
+
+	/**
+	 * Unsubscribe all balanced request and event commands
+	 *
+	 * @memberof BaseTransporter
+	 */
+	unsubscribeFromBalancedCommands() {
+		return new Promise(resolve => {
+			this.subscriptions.forEach(uid => this.client.unsubscribe(uid));
+			this.subscriptions = [];
+
+			this.client.flush(resolve);
+		});
 	}
 
 	/**
@@ -150,10 +200,50 @@ class NatsTransporter extends Transporter {
 	 * @memberOf NatsTransporter
 	 */
 	publish(packet) {
-		if (!this.client) return;
-		const data = packet.serialize();
+		if (!this.client) return Promise.resolve();
+
 		return new Promise(resolve => {
-			this.client.publish(this.getTopicName(packet.type, packet.target), data, resolve);
+			let topic = this.getTopicName(packet.type, packet.target);
+			const payload = Buffer.from(packet.serialize());
+
+			this.client.publish(topic, payload, resolve);
+		});
+	}
+
+	/**
+	 * Publish a balanced EVENT packet to a balanced queue
+	 *
+	 * @param {Packet} packet
+	 * @param {String} group
+	 * @returns {Promise}
+	 * @memberof AmqpTransporter
+	 */
+	publishBalancedEvent(packet, group) {
+		if (!this.client) return Promise.resolve();
+
+		return new Promise(resolve => {
+			let topic = `${this.prefix}.${PACKET_EVENT}B.${group}.${packet.payload.event}`;
+			const payload = Buffer.from(packet.serialize());
+
+			this.client.publish(topic, payload, resolve);
+		});
+	}
+
+	/**
+	 * Publish a balanced REQ packet to a balanced queue
+	 *
+	 * @param {Packet} packet
+	 * @returns {Promise}
+	 * @memberof AmqpTransporter
+	 */
+	publishBalancedRequest(packet) {
+		if (!this.client) return Promise.resolve();
+
+		return new Promise(resolve => {
+			const topic = `${this.prefix}.${PACKET_REQUEST}B.${packet.payload.action}`;
+			const payload = Buffer.from(packet.serialize());
+
+			this.client.publish(topic, payload, resolve);
 		});
 	}
 

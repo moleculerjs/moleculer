@@ -751,16 +751,34 @@ describe("Test Transit.sendNodeInfo", () => {
 		services: []
 	}));
 
+	transit.tx._makeServiceSpecificSubscriptions = jest.fn(() => Promise.resolve());
 	transit.publish = jest.fn();
 
-	it("should call publish with correct params", () => {
-		transit.sendNodeInfo("node2");
-		expect(transit.publish).toHaveBeenCalledTimes(1);
-		expect(broker.getLocalNodeInfo).toHaveBeenCalledTimes(1);
-		const packet = transit.publish.mock.calls[0][0];
-		expect(packet).toBeInstanceOf(P.PacketInfo);
-		expect(packet.target).toBe("node2");
-		expect(packet.payload.services).toEqual([]);
+	it("should call publish with correct params if has nodeID", () => {
+		return transit.sendNodeInfo("node2").then(() => {
+			expect(transit.tx._makeServiceSpecificSubscriptions).toHaveBeenCalledTimes(0);
+			expect(transit.publish).toHaveBeenCalledTimes(1);
+			expect(broker.getLocalNodeInfo).toHaveBeenCalledTimes(1);
+			const packet = transit.publish.mock.calls[0][0];
+			expect(packet).toBeInstanceOf(P.PacketInfo);
+			expect(packet.target).toBe("node2");
+			expect(packet.payload.services).toEqual([]);
+		});
+	});
+
+	it("should call publish with correct params if has no nodeID", () => {
+		transit.publish.mockClear();
+		broker.getLocalNodeInfo.mockClear();
+
+		return transit.sendNodeInfo().then(() => {
+			expect(transit.tx._makeServiceSpecificSubscriptions).toHaveBeenCalledTimes(1);
+			expect(transit.publish).toHaveBeenCalledTimes(1);
+			expect(broker.getLocalNodeInfo).toHaveBeenCalledTimes(1);
+			const packet = transit.publish.mock.calls[0][0];
+			expect(packet).toBeInstanceOf(P.PacketInfo);
+			expect(packet.target).toBe();
+			expect(packet.payload.services).toEqual([]);
+		});
 	});
 
 });
@@ -857,21 +875,21 @@ describe("Test Transit.publish", () => {
 	const transit = broker.transit;
 	const transporter = transit.tx;
 
-	transporter.publish = jest.fn();
+	transporter.prepublish = jest.fn();
 	broker.serializer.serialize = jest.fn(o => JSON.stringify(o));
 
-	it("should call transporter.publish", () => {
+	it("should call transporter.prepublish", () => {
 		expect(transit.stat.packets.sent).toBe(0);
 		let packet = new P.PacketEvent("user.created", { a: "John Doe" });
 		transit.publish(packet);
-		expect(transporter.publish).toHaveBeenCalledTimes(1);
-		const p = transporter.publish.mock.calls[0][0];
+		expect(transporter.prepublish).toHaveBeenCalledTimes(1);
+		const p = transporter.prepublish.mock.calls[0][0];
 		expect(p).toBe(packet);
 		expect(transit.stat.packets.sent).toBe(1);
 	});
 
-	it("should call transporter.publish after subscribing", () => {
-		transporter.publish.mockClear();
+	it("should call transporter.prepublish after subscribing", () => {
+		transporter.prepublish.mockClear();
 		transit.stat.packets.sent = 0;
 		let resolve;
 		transit.subscribing = new Promise(r => resolve = r);
@@ -881,12 +899,12 @@ describe("Test Transit.publish", () => {
 		let packet = new P.PacketEvent("user.created", { a: "John Doe" });
 		let p = transit.publish(packet);
 
-		expect(transporter.publish).toHaveBeenCalledTimes(0);
+		expect(transporter.prepublish).toHaveBeenCalledTimes(0);
 		resolve();
 
 		return p.catch(protectReject).then(() => {
-			expect(transporter.publish).toHaveBeenCalledTimes(1);
-			const p = transporter.publish.mock.calls[0][0];
+			expect(transporter.prepublish).toHaveBeenCalledTimes(1);
+			const p = transporter.prepublish.mock.calls[0][0];
 			expect(p).toBe(packet);
 			expect(transit.stat.packets.sent).toBe(1);
 		});

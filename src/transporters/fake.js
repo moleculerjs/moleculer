@@ -74,6 +74,27 @@ class FakeTransporter extends Transporter {
 	}
 
 	/**
+	 * Subscribe to balanced action commands
+	 *
+	 * @param {String} action
+	 * @memberof AmqpTransporter
+	 */
+	subscribeBalancedRequest(/*action*/) {
+		return Promise.resolve();
+	}
+
+	/**
+	 * Subscribe to balanced event command
+	 *
+	 * @param {String} event
+	 * @param {String} group
+	 * @memberof AmqpTransporter
+	 */
+	subscribeBalancedEvent(/*event, group*/) {
+		return Promise.resolve();
+	}
+
+	/**
 	 * Publish a packet
 	 *
 	 * @param {Packet} packet
@@ -83,6 +104,31 @@ class FakeTransporter extends Transporter {
 	publish(packet) {
 		const data = packet.serialize();
 		this.bus.emit(this.getTopicName(packet.type, packet.target), data);
+		return Promise.resolve();
+	}
+
+	/**
+	 * Publish a balanced EVENT packet to a balanced queue
+	 *
+	 * @param {Packet} packet
+	 * @param {String} group
+	 * @returns {Promise}
+	 *
+	 * @memberOf BaseTransporter
+	 */
+	publishBalancedEvent(/*packet, group*/) {
+		return Promise.resolve();
+	}
+
+	/**
+	 * Publish a balanced REQ packet to a balanced queue
+	 *
+	 * @param {Packet} packet
+	 * @returns {Promise}
+	 *
+	 * @memberOf BaseTransporter
+	 */
+	publishBalancedRequest(/*packet*/) {
 		return Promise.resolve();
 	}
 

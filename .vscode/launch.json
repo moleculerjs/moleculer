@@ -8,10 +8,10 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch dev",
-			"program": "${workspaceRoot}\\dev\\trace.js",
+			"program": "${workspaceRoot}\\dev\\client.js",
 			"cwd": "${workspaceRoot}",
 			"args": [
-				"error-1"
+				"client"
 			]
 		},
 		{

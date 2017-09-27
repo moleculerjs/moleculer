@@ -742,7 +742,7 @@ describe("Test broker.fatal", () => {
 		expect(console.error).toHaveBeenCalledWith("Fatal error happened!");
 		expect(broker.logger.debug).toHaveBeenCalledTimes(0);
 		expect(process.exit).toHaveBeenCalledTimes(1);
-		expect(process.exit).toHaveBeenCalledWith(2);
+		expect(process.exit).toHaveBeenCalledWith(1);
 	});
 
 	it("should log the message & error and doesn't call exit", () => {

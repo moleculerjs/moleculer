@@ -79,6 +79,8 @@ module.exports = {
 		},
 
 		updateCommonValues() {
+			if (!this.metrics) return;
+
 			this.broker.mcall({
 				nodes: { action: "$node.list" },
 				services: { action: "$node.services", params: { withActions: false, skipInternal: true } },
@@ -93,10 +95,10 @@ module.exports = {
 				services.forEach(svc => this.metrics.service.endpoints.set({ service: svc.name, version: svc.version }, svc.nodes.length));
 
 				this.metrics.common.actions.set(actions.length);
-				actions.forEach(action => this.metrics.action.endpoints.set({ action: action.name }, action.endpoints.length));
+				actions.forEach(action => this.metrics.action.endpoints.set({ action: action.name }, action.endpoints ? action.endpoints.length : 0));
 
 				this.metrics.common.events.set(events.length);
-				events.forEach(event => this.metrics.event.endpoints.set({ event: event.name, group: event.group }, event.endpoints.length));
+				events.forEach(event => this.metrics.event.endpoints.set({ event: event.name, group: event.group }, event.endpoints ? event.endpoints.length : 0));
 			});
 		}
 	},

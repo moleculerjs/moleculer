@@ -154,11 +154,14 @@ class ServiceBroker {
 			const tx = this._resolveTransporter(this.options.transporter);
 			this.transit = new Transit(this, tx);
 
+			const txName = tx.constructor.name;
+			this.logger.info("Transporter:", txName);
+
 			if (this.options.disableBalancer) {
 				if (tx.hasBuiltInBalancer) {
 					this.logger.info("The built-in balancer is disabled.");
 				} else {
-					this.logger.warn("The Transporter has no built-in balancer. Broker balancer is ENABLED.");
+					this.logger.warn(`The ${txName} has no built-in balancer. Broker balancer is ENABLED.`);
 					this.options.disableBalancer = false;
 				}
 			}
@@ -421,7 +424,7 @@ class ServiceBroker {
 		this.logger.fatal(message);
 
 		if (needExit)
-			process.exit(2);
+			process.exit(1);
 	}
 
 	/**
