@@ -8,44 +8,47 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch dev",
-			"program": "${workspaceRoot}\\dev\\client.js",
+			"program": "${workspaceRoot}\\dev\\server.js",
 			"cwd": "${workspaceRoot}",
 			"args": [
-				"client"
+				"server-vscode"
 			]
 		},
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Launch demo:caching",
+			"name": "Launch demo: caching",
 			"program": "${workspaceRoot}\\examples\\caching\\index.js",
 			"cwd": "${workspaceRoot}\\examples\\caching"
 		},
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Launch demo:simple",
+			"name": "Launch demo: simple",
 			"program": "${workspaceRoot}\\examples\\simple\\index.js",
 			"cwd": "${workspaceRoot}\\examples\\simple"
 		},
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Launch demo:transporter",
+			"name": "Launch demo: transporter",
 			"program": "${workspaceRoot}\\examples\\transporter\\index.js",
 			"cwd": "${workspaceRoot}\\examples\\transporter"
 		},
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Launch demo:loadtest",
-			"program": "${workspaceRoot}\\examples\\loadtest\\monolith.js",
-			"cwd": "${workspaceRoot}\\examples\\loadtest"
+			"name": "Launch demo: loadtest",
+			"program": "${workspaceRoot}\\examples\\loadtest\\server.js",
+			"cwd": "${workspaceRoot}\\examples\\loadtest",
+			"args": [
+				"server-vscode"
+			]
 		},
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Launch demo:multi",
+			"name": "Launch demo: multi",
 			"program": "${workspaceRoot}\\examples\\multi-server\\client.js",
 			"cwd": "${workspaceRoot}\\examples\\multi-server",
 			"args": [

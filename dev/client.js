@@ -14,9 +14,9 @@ let broker = new ServiceBroker({
 	transporter: "NATS",
 	//transporter: "amqp://192.168.0.181:5672",
 	//serializer: "ProtoBuf",
-	requestTimeout: 1000,
+	//requestTimeout: 1000,
 
-	disableBalancer: true,
+	//disableBalancer: true,
 
 	metrics: true,
 
@@ -82,16 +82,21 @@ broker.start()
 	.then(() => broker.waitForServices("math"))
 	.then(() => {
 		setInterval(() => {
-			let payload = { a: _.random(0, 100), b: _.random(0, 100) };
+			/* Overload protection
+			if (broker.transit.pendingRequests.size > 10) {
+				broker.logger.warn(chalk.yellow.bold(`Queue is big (${broker.transit.pendingRequests.size})! Waiting...`));
+				return;
+			}*/
+
+			let payload = { a: _.random(0, 100), b: _.random(0, 100), count: ++reqCount };
 			let p = broker.call("math.add", payload);
 			if (p.ctx)
-				broker.logger.info(chalk.grey(`Send request to ${p.ctx.nodeID ? p.ctx.nodeID : "some node"}...`));
-			reqCount++;
-			p.then(res => {
-				broker.logger.info(_.padEnd(`${reqCount}. ${payload.a} + ${payload.b} = ${res}`, 20), `(from: ${p.ctx.nodeID})`);
+				broker.logger.info(chalk.grey(`${reqCount}. Send request (${payload.a} + ${payload.b}) to ${p.ctx.nodeID ? p.ctx.nodeID : "some node"} (queue: ${broker.transit.pendingRequests.size})...`));
+			p.then(({ count, res }) => {
+				broker.logger.info(_.padEnd(`${count}. ${payload.a} + ${payload.b} = ${res}`, 20), `(from: ${p.ctx.nodeID})`);
 			}).catch(err => {
-				broker.logger.warn(chalk.red.bold(_.padEnd(`${reqCount}. ${payload.a} + ${payload.b} = ERROR! ${err.message}`)));
+				broker.logger.warn(chalk.red.bold(_.padEnd(`${payload.count}. ${payload.a} + ${payload.b} = ERROR! ${err.message}`)));
 			});
-		}, 1000);
+		}, 500);
 
 	});

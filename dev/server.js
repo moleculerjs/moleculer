@@ -14,7 +14,7 @@ let broker = new ServiceBroker({
 	//transporter: "amqp://192.168.0.181:5672",
 	//serializer: "ProtoBuf",
 
-	disableBalancer: true,
+	//disableBalancer: true,
 
 	logger: console,
 	logFormatter: "simple"
@@ -26,10 +26,15 @@ broker.createService({
 	name: "math",
 	actions: {
 		add(ctx) {
+			const wait = _.random(2000, 10000);
+			broker.logger.info(_.padEnd(`${ctx.params.count}. Add ${ctx.params.a} + ${ctx.params.b}`, 20), `(from: ${ctx.callerNodeID}, ${wait})`);
 			//if (_.random(100) > 90)
 			//	return this.Promise.reject(new MoleculerError("Random error!", 510));
 
-			return Number(ctx.params.a) + Number(ctx.params.b);
+			return this.Promise.resolve().delay(wait).then(() => ({
+				count: ctx.params.count,
+				res: Number(ctx.params.a) + Number(ctx.params.b)
+			}));
 		},
 	},
 
