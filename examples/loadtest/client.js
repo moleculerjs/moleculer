@@ -19,14 +19,12 @@ let broker = new ServiceBroker({
 console.log("Client started. nodeID:", broker.nodeID, " PID:", process.pid);
 
 function work() {
-	const p = Promise.all(times(100, () => {
-		let payload = { a: random(0, 100), b: random(0, 100) };
-		return broker.call("math.add", payload)
-			.then(() => broker._callCount++)
-			.catch(err => console.warn(err.message));
-	}));
+	let payload = { a: random(0, 100), b: random(0, 100) };
+	const p = broker.call("math.add", payload)
+		.then(() => broker._callCount++)
+		.catch(err => console.warn(err.message));
 
-	if (broker.transit.pendingRequests.size < 10 * 1000)
+	if (broker.transit.pendingRequests.size < 1 * 1000)
 		setImmediate(work);
 	else
 		p.then(() => setImmediate(work));
