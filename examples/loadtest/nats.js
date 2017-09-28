@@ -46,26 +46,12 @@ nc1.on("connect", function () {
 		let received = 0;
 		let start = new Date();
 
-		nc1.subscribe("ping", (msg, replySubject) => {
+		nc1.subscribe("ping", msg => {
 			nc1.publish("pong", "ok");
 		});
 
 		nc1.flush(() => {
 			let doWork = function() {
-				/*nc2.request("ping", "ok", { max: 1}, () => {
-					received += 1;
-
-					if (received >= loop) {
-						let stop = new Date();
-						let mps = parseInt(loop / ((stop - start) / 1000));
-						console.log('\nPublished/Subscribe at ' + mps + ' msgs/sec');
-						console.log('Received ' + received + ' messages');
-						received = 0;
-						start = new Date();
-					}
-					doWork();
-		});*/
-
 				nc2.publish("ping", "ok");
 			};
 
@@ -123,9 +109,9 @@ nc1.on("connect", function () {
 
 	};
 
-	work1();
+	//work1();
 	//work2();
-	//work3();
+	work3();
 
 
 });

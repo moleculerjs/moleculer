@@ -3,6 +3,7 @@
 "use strict";
 
 let ServiceBroker = require("../../src/service-broker");
+let { padStart } = require("lodash");
 
 let os = require("os");
 let hostname = os.hostname();
@@ -34,7 +35,7 @@ console.log("Server started. nodeID: ", broker.nodeID, ", PID:", process.pid);
 broker._callCount = 0;
 setInterval(() => {
 	if (broker._callCount > 0) {
-		console.log(broker.nodeID, ":", broker._callCount, "req/s");
+		console.log(broker.nodeID, ":", padStart(Number(broker._callCount.toFixed(0)).toLocaleString(), 10), "req/s");
 		broker._callCount = 0;
 	}
 }, 1000);

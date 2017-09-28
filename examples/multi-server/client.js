@@ -3,7 +3,6 @@
 
 let _ = require("lodash");
 let chalk = require("chalk");
-let { MoleculerError } = require("../../src/errors");
 
 let ServiceBroker = require("../../src/service-broker");
 
@@ -12,7 +11,7 @@ let broker = new ServiceBroker({
 	namespace: "multi",
 	nodeID: process.argv[2] || "client-" + process.pid,
 	transporter: "NATS",
-	serializer: "ProtoBuf",
+	//serializer: "ProtoBuf",
 	requestTimeout: 1000,
 
 	circuitBreaker: {

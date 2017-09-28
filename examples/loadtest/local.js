@@ -16,7 +16,6 @@ let broker = new ServiceBroker({
 });
 
 broker.loadService(__dirname + "/../math.service");
-broker.loadService(__dirname + "/../rest.service");
 
 broker.start();
 
@@ -50,7 +49,7 @@ setTimeout(() => {
 	setInterval(() => {
 		if (broker._callCount > 0) {
 			let rps = broker._callCount / ((Date.now() - startTime) / 1000);
-			console.log(broker.nodeID, ":", rps.toFixed(0), "req/s");
+			console.log(broker.nodeID, ":", Number(rps.toFixed(0)).toLocaleString(), "req/s");
 			broker._callCount = 0;
 			startTime = Date.now();
 		}

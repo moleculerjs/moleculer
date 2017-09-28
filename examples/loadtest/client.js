@@ -2,7 +2,7 @@
 
 "use strict";
 
-let random = require("lodash/random");
+let { times, random, padStart } = require("lodash");
 
 let ServiceBroker = require("../../src/service-broker");
 
@@ -20,6 +20,8 @@ console.log("Client started. nodeID:", broker.nodeID, " PID:", process.pid);
 
 function work() {
 	let payload = { a: random(0, 100), b: random(0, 100) };
+
+	//return Promise.all(times(100, () => {
 	broker.call("math.add", payload)
 		.then(res => {
 			broker._callCount++;
@@ -30,6 +32,7 @@ function work() {
 			//console.warn(err.message);
 			setImmediate(work);
 		});
+	//})).then(() => setImmediate(work));
 }
 
 broker._callCount = 0;
@@ -44,7 +47,7 @@ broker.start()
 			setInterval(() => {
 				if (broker._callCount > 0) {
 					let rps = broker._callCount / ((Date.now() - startTime) / 1000);
-					console.log(broker.nodeID, ":", rps.toFixed(0), "req/s");
+					console.log(broker.nodeID, ":", padStart(Number(broker._callCount.toFixed(0)).toLocaleString(), 10), "req/s", "    Queue: " + padStart(Number(broker.transit.pendingRequests.size.toFixed(0)).toLocaleString(), 8));
 					broker._callCount = 0;
 					startTime = Date.now();
 				}
