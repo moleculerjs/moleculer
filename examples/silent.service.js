@@ -6,7 +6,7 @@ module.exports = {
 	actions: {
 		topsecret: {
 			protected: true,
-			handler(ctx) {
+			handler() {
 				return "Only accessible locally!";
 			}
 		}

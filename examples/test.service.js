@@ -3,7 +3,7 @@
 module.exports = {
 	name: "test",
 	actions: {
-		fatal(ctx) {
+		fatal() {
 			this.logger.fatal("Fatal error!");
 		}
 	}

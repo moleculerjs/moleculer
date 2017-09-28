@@ -2,8 +2,6 @@
 
 "use strict";
 
-//let _ = require("lodash");
-let path = require("path");
 let chalk = require("chalk");
 
 let utils = require("../../src/utils");
@@ -16,15 +14,12 @@ let broker = new ServiceBroker({
 	logLevel: "debug",
 	metrics: true,
 	cacher: true,
-	//cacher: "redis://localhost:6379"
+	//cacher: "redis://192.168.51.29:6379"
 });
 
-// Load services
-console.log("");
-broker.loadServices(path.join(__dirname, ".."));
-broker.loadService("./examples/metrics.zipkin.service");
+broker.loadService("./examples/post.service.js");
+broker.loadService("./examples/user.service.js");
 
-console.log("");
 
 console.log(chalk.bold(">> Get all users"));
 

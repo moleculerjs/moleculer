@@ -1,3 +1,5 @@
+"use strict";
+
 let _ = require("lodash");
 let fakerator = require("fakerator")();
 let Service = require("../src/service");

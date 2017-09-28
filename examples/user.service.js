@@ -1,10 +1,9 @@
+"use strict";
+
 let _ = require("lodash");
 let fakerator = require("fakerator")();
 let Service = require("../src/service");
 let { ValidationError } = require("../src/errors");
-const Promise = require("bluebird");
-
-let { delay } = require("../src/utils");
 
 let users = fakerator.times(fakerator.entity.user, 10);
 
@@ -15,14 +14,12 @@ module.exports = function(broker) {
 	return new Service(broker, {
 		name: "users",
 		version: 2,
-		latestVersion: true,
 
 		actions: {
 			find: {
 				cache: false,
 				description: "List all users",
 				handler(ctx) {
-					//this.logger.debug("Find users...");
 					let result = _.cloneDeep(users);
 					if (ctx.params.limit)
 						result = result.slice(0, ctx.params.limit);
@@ -36,9 +33,7 @@ module.exports = function(broker) {
 					keys: ["id", "withPostCount"]
 				},
 				description: "Get a user by ID. This is a very long description, because we need to test the line wrapping feature of `table` component",
-				//description: "Get a user by ID.",
 				handler(ctx) {
-					//this.logger.debug("Get user...", ctx.params);
 					const user = _.cloneDeep(this.findByID(ctx.params.id));
 					if (user && ctx.params.withPostCount)
 						return ctx.call("posts.count", { id: user.id }, { timeout: 1000, /*fallbackResponse: 999*/ }).then(count => {
@@ -51,21 +46,18 @@ module.exports = function(broker) {
 			},
 
 			dangerous() {
-				//return Promise.reject(new Error("Something went wrong!"));
-				return Promise.reject(new ValidationError("Wrong params!"));
+				return this.Promise.reject(new ValidationError("Wrong params!"));
 			},
 
-			delayed(ctx) {
+			delayed() {
 				c++;
-				return Promise.resolve()
-					.then(delay(c < 3 ? 6000 : 1000))
-					.then(() => {
-						return users;
-					});
+				return this.Promise.resolve()
+					.delay(c < 3 ? 6000 : 1000)
+					.then(() => users);
 			},
 
 			slowGet(ctx) {
-				return Promise.delay(2000).then(() => {
+				return this.Promise.delay(2000).then(() => {
 					this.logger.info("slowGet called");
 					const user = _.cloneDeep(this.findByID(ctx.params.id));
 					if (user && ctx.params.withPostCount)
