@@ -2305,38 +2305,38 @@ describe("Test broker broadcast", () => {
 
 describe("Test broker broadcastLocal", () => {
 	let broker = new ServiceBroker({ nodeID: "server-1" });
-	broker.registry.events.emitLocalServices = jest.fn();
+	broker.emitLocalServices = jest.fn();
 	broker.localBus.emit = jest.fn();
 
 	it("should call emitLocalServices without payload", () => {
 		broker.broadcastLocal("test.event");
 
-		expect(broker.registry.events.emitLocalServices).toHaveBeenCalledTimes(1);
-		expect(broker.registry.events.emitLocalServices).toHaveBeenCalledWith("test.event", undefined, null, "server-1");
+		expect(broker.emitLocalServices).toHaveBeenCalledTimes(1);
+		expect(broker.emitLocalServices).toHaveBeenCalledWith("test.event", undefined, null, "server-1");
 
 		expect(broker.localBus.emit).toHaveBeenCalledTimes(0);
 	});
 
 	it("should call emitLocalServices with object payload", () => {
 		broker.localBus.emit.mockClear();
-		broker.registry.events.emitLocalServices.mockClear();
+		broker.emitLocalServices.mockClear();
 
 		broker.broadcastLocal("user.event", { name: "John" });
 
-		expect(broker.registry.events.emitLocalServices).toHaveBeenCalledTimes(1);
-		expect(broker.registry.events.emitLocalServices).toHaveBeenCalledWith("user.event", { name: "John" }, null, "server-1");
+		expect(broker.emitLocalServices).toHaveBeenCalledTimes(1);
+		expect(broker.emitLocalServices).toHaveBeenCalledWith("user.event", { name: "John" }, null, "server-1");
 
 		expect(broker.localBus.emit).toHaveBeenCalledTimes(0);
 	});
 
 	it("should call emitLocalServices with object payload", () => {
 		broker.localBus.emit.mockClear();
-		broker.registry.events.emitLocalServices.mockClear();
+		broker.emitLocalServices.mockClear();
 
 		broker.broadcastLocal("$user.event", { name: "John" });
 
-		expect(broker.registry.events.emitLocalServices).toHaveBeenCalledTimes(1);
-		expect(broker.registry.events.emitLocalServices).toHaveBeenCalledWith("$user.event", { name: "John" }, null, "server-1");
+		expect(broker.emitLocalServices).toHaveBeenCalledTimes(1);
+		expect(broker.emitLocalServices).toHaveBeenCalledWith("$user.event", { name: "John" }, null, "server-1");
 
 		expect(broker.localBus.emit).toHaveBeenCalledTimes(1);
 		expect(broker.localBus.emit).toHaveBeenCalledWith("$user.event", { name: "John" });

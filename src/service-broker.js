@@ -1216,14 +1216,14 @@ class ServiceBroker {
 	 *
 	 * @memberOf ServiceBroker
 	 */
-	broadcastLocal(eventName, payload, groups, nodeID) {
+	broadcastLocal(eventName, payload, groups = null) {
 		this.logger.debug(`Broadcast '${eventName}' event locally.`);
 
 		// Call local/internal subscribers
 		if (/^\$/.test(eventName))
 			this.localBus.emit(eventName, payload);
 
-		return this.registry.events.emitLocalServices(eventName, payload, null, nodeID || this.nodeID);
+		return this.emitLocalServices(eventName, payload, groups, this.nodeID);
 	}
 
 	/**
