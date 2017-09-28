@@ -131,7 +131,7 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `action` | `string` | ✔ | Action name. E.g.: `posts.find` |
 | `params` | `object` | ✔ | `ctx.params` object. (*) |
 | `meta` | `object` | ✔ | `ctx.meta` object. (*) |
-| `timeout` | `double` | ✔ | Request timeout (distributed). |
+| `timeout` | `double` | ✔ | Request timeout (distributed) in milliseconds. |
 | `level` | `int32` | ✔ | Level of request. |
 | `metrics` | `boolean` | ✔ | Need to send metrics events. |
 | `parentID` | `string` |  | Parent context ID. |
@@ -192,7 +192,9 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | ----- | ---- | -------- | ----------- |
 | `ver` | `string` | ✔ | Protocol version. Current: `'2'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
-| `time` | `int64` | ✔ | Time of sent. |
+| `time` | `int64` | ✔ | Time of sent. (*) |
+
+> (*) The number of milliseconds between 1 January 1970 00:00:00 UTC and the given date.
 
 ### `PONG`
 
@@ -206,9 +208,10 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | ----- | ---- | -------- | ----------- |
 | `ver` | `string` | ✔ | Protocol version. Current: `'2'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
-| `time` | `int64` | ✔ | Timestamp of sent. |
-| `arrived` | `int64` | ✔ | Timestamp of arrived. |
+| `time` | `int64` | ✔ | Timestamp of sent. (*) |
+| `arrived` | `int64` | ✔ | Timestamp of arrived. (*) |
 
+> (*) The number of milliseconds between 1 January 1970 00:00:00 UTC and the given date.
 
 ### `DISCONNECT`
 
