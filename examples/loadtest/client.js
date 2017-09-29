@@ -22,12 +22,15 @@ function work() {
 	let payload = { a: random(0, 100), b: random(0, 100) };
 	const p = broker.call("math.add", payload)
 		.then(() => broker._callCount++)
-		.catch(err => console.warn(err.message));
+		.catch(err => console.warn(err.message))
+		.then(() => setImmediate(work));
 
+	/* Overload
 	if (broker.transit.pendingRequests.size < 1 * 1000)
 		setImmediate(work);
 	else
 		p.then(() => setImmediate(work));
+	*/
 }
 
 broker._callCount = 0;
