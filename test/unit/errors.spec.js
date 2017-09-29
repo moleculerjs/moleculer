@@ -123,6 +123,20 @@ describe("Test Errors", () => {
 		expect(err.retryable).toBe(false);
 	});
 
+	it("test RequestRejected", () => {
+		let err = new errors.RequestRejected("posts.find", "server-3");
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(Error);
+		expect(err).toBeInstanceOf(errors.MoleculerRetryableError);
+		expect(err).toBeInstanceOf(errors.RequestRejected);
+		expect(err.code).toBe(503);
+		expect(err.name).toBe("RequestRejected");
+		expect(err.message).toBe("Request is rejected when call 'posts.find' action on 'server-3' node.");
+		expect(err.data.action).toBe("posts.find");
+		expect(err.data.nodeID).toBe("server-3");
+		expect(err.retryable).toBe(true);
+	});
+
 	it("test ValidationError", () => {
 		let data = {};
 		let err = new errors.ValidationError("Param is not correct!", "ERR_TYPE", data);
@@ -172,6 +186,19 @@ describe("Test Errors", () => {
 		expect(err.name).toBe("ProtocolVersionMismatchError");
 		expect(err.message).toBe("Protocol version mismatch.");
 		expect(err.data).toEqual({ nodeID: "server-2", actual: "2", received: "1" });
+		expect(err.retryable).toBe(false);
+	});
+
+	it("test InvalidPacketData", () => {
+		let packet = {};
+		let err = new errors.InvalidPacketData(packet);
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(Error);
+		expect(err).toBeInstanceOf(errors.InvalidPacketData);
+		expect(err.code).toBe(500);
+		expect(err.name).toBe("InvalidPacketData");
+		expect(err.message).toBe("Invalid packet data.");
+		expect(err.data).toEqual({ packet });
 		expect(err.retryable).toBe(false);
 	});
 

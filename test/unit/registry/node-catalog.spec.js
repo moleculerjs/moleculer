@@ -170,10 +170,11 @@ describe("Test NodeCatalog.processNodeInfo", () => {
 });
 
 describe("Test NodeCatalog.disconnected", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ transporter: "Fake" });
 	let catalog = new NodeCatalog(broker.registry, broker);
 	broker.registry.unregisterServicesByNode = jest.fn();
 	broker.broadcastLocal = jest.fn();
+	broker.transit.removePendingRequestByNodeID = jest.fn();
 	broker.servicesChanged = jest.fn();
 
 	let payload = {
@@ -199,6 +200,9 @@ describe("Test NodeCatalog.disconnected", () => {
 
 		expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
 		expect(broker.servicesChanged).toHaveBeenCalledWith(false);
+
+		expect(broker.transit.removePendingRequestByNodeID).toHaveBeenCalledTimes(1);
+		expect(broker.transit.removePendingRequestByNodeID).toHaveBeenCalledWith("node-11");
 
 		expect(broker.registry.unregisterServicesByNode).toHaveBeenCalledTimes(1);
 		expect(broker.registry.unregisterServicesByNode).toHaveBeenCalledWith(node.id);

@@ -217,7 +217,7 @@ class RequestRejected extends MoleculerRetryableError {
 	 * @memberOf RequestRejected
 	 */
 	constructor(action, nodeID) {
-		super(`Request is rejected when call '${action}' action on '${nodeID}' node.`, 504, null, {
+		super(`Request is rejected when call '${action}' action on '${nodeID}' node.`, 503, null, {
 			action,
 			nodeID
 		});
