@@ -97,6 +97,6 @@ broker.start()
 			}).catch(err => {
 				broker.logger.warn(chalk.red.bold(_.padEnd(`${payload.count}. ${payload.a} + ${payload.b} = ERROR! ${err.message}`)));
 			});
-		}, 500);
+		}, 1000);
 
 	});

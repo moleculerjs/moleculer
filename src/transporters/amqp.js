@@ -240,6 +240,7 @@ class AmqpTransporter extends Transporter {
 		return (msg) => {
 			const result = this.messageHandler(cmd, msg.content);
 
+			/* TODO: not returned with Promise
 			// If a promise is returned, acknowledge the message after it has resolved.
 			// This means that if a worker dies after receiving a message but before responding, the
 			// message won't be lost and it can be retried.
@@ -259,6 +260,11 @@ class AmqpTransporter extends Transporter {
 					this.channel.ack(msg);
 				}
 			}
+			*/
+
+			if (needAck && this.channel)
+				this.channel.ack(msg);
+
 			return result;
 		};
 	}

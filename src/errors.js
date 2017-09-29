@@ -202,6 +202,29 @@ class RequestSkippedError extends MoleculerError {
 }
 
 /**
+ * 'Request rejected' Error message. Retryable.
+ *
+ * @class RequestRejected
+ * @extends {MoleculerRetryableError}
+ */
+class RequestRejected extends MoleculerRetryableError {
+	/**
+	 * Creates an instance of RequestRejected.
+	 *
+	 * @param {String} action
+	 * @param {String} nodeID
+	 *
+	 * @memberOf RequestRejected
+	 */
+	constructor(action, nodeID) {
+		super(`Request is rejected when call '${action}' action on '${nodeID}' node.`, 504, null, {
+			action,
+			nodeID
+		});
+	}
+}
+
+/**
  * 'Parameters of action call validation error
  *
  * @class ValidationError
@@ -280,6 +303,25 @@ class ProtocolVersionMismatchError extends MoleculerError {
 	}
 }
 
+/**
+ * Invalid packet format error
+ *
+ * @class InvalidPacketData
+ * @extends {Error}
+ */
+class InvalidPacketData extends MoleculerError {
+	/**
+	 * Creates an instance of InvalidPacketData.
+	 *
+	 * @param {String} action
+	 *
+	 * @memberOf InvalidPacketData
+	 */
+	constructor(packet) {
+		super("Invalid packet data.", 500, null, { packet });
+	}
+}
+
 
 module.exports = {
 	MoleculerError,
@@ -293,9 +335,11 @@ module.exports = {
 	ValidationError,
 	RequestTimeoutError,
 	RequestSkippedError,
+	RequestRejected,
 	MaxCallLevelError,
 
 	ServiceSchemaError,
 
-	ProtocolVersionMismatchError
+	ProtocolVersionMismatchError,
+	InvalidPacketData
 };

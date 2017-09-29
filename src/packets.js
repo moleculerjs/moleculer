@@ -6,6 +6,9 @@
 
 "use strict";
 
+const E = require("./errors");
+
+
 // Packet types
 const PACKET_UNKNOW			= "???";
 const PACKET_EVENT 			= "EVENT";
@@ -99,13 +102,17 @@ class Packet {
 	 * @memberOf Packet
 	 */
 	static deserialize(transit, type, msg) {
-		const payload = transit.deserialize(msg, type);
-		const packetClass = getPacketClassByType(type);
+		try {
+			const payload = transit.deserialize(msg, type);
+			const packetClass = getPacketClassByType(type);
 
-		const packet = new packetClass(transit);
-		packet.payload = payload;
+			const packet = new packetClass(transit);
+			packet.payload = payload;
 
-		return packet;
+			return packet;
+		} catch(err) {
+			throw new E.InvalidPacketData(msg);
+		}
 	}
 }
 

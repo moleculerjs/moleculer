@@ -7,10 +7,10 @@
 "use strict";
 
 const Promise	= require("bluebird");
-const P 		= require("./packets");
 const _ 		= require("lodash");
 
-const { MoleculerServerError, ProtocolVersionMismatchError } = require("./errors");
+const P 		= require("./packets");
+const E 		= require("./errors");
 
 /**
  * Transit class
@@ -195,89 +195,98 @@ class Transit {
 	 *
 	 * @param {Array} topic
 	 * @param {String} msg
-	 * @returns
+	 * @returns {Boolean} If packet is processed return with `true`
 	 *
 	 * @memberOf Transit
 	 */
 	messageHandler(cmd, msg) {
-		if (msg == null) {
-			throw new MoleculerServerError("Missing packet.", 500, "MISSING_PACKET");
+		try {
+
+			if (msg == null) {
+				throw new E.MoleculerServerError("Missing packet.", 500, "MISSING_PACKET");
+			}
+
+			this.stat.packets.received = this.stat.packets.received + 1;
+
+			const packet = P.Packet.deserialize(this, cmd, msg);
+			const payload = packet.payload;
+
+			// Check payload
+			if (!payload) {
+				/* istanbul ignore next */
+				throw new E.MoleculerServerError("Missing response payload.", 500, "MISSING_PAYLOAD");
+			}
+
+			// Check protocol version
+			if (payload.ver != P.PROTOCOL_VERSION) {
+				throw new E.ProtocolVersionMismatchError(payload.sender,P.PROTOCOL_VERSION, payload.ver || "1");
+			}
+
+			// Skip own packets (if built-in balancer disabled)
+			if (payload.sender == this.nodeID && (cmd !== P.PACKET_EVENT && cmd !== P.PACKET_REQUEST && cmd !== P.PACKET_RESPONSE))
+				return;
+
+
+			this.logger.debug(`Incoming ${cmd} packet from '${payload.sender}'`);
+
+			// Request
+			if (cmd === P.PACKET_REQUEST) {
+				this._requestHandler(payload);
+			}
+
+			// Response
+			else if (cmd === P.PACKET_RESPONSE) {
+				this._responseHandler(payload);
+			}
+
+			// Event
+			else if (cmd === P.PACKET_EVENT) {
+				this._eventHandler(payload);
+			}
+
+			// Discover
+			else if (cmd === P.PACKET_DISCOVER) {
+				this.sendNodeInfo(payload.sender);
+			}
+
+			// Node info
+			else if (cmd === P.PACKET_INFO) {
+				this.broker.registry.processNodeInfo(payload);
+			}
+
+			// Disconnect
+			else if (cmd === P.PACKET_DISCONNECT) {
+				this.broker.registry.nodeDisconnected(payload);
+			}
+
+			// Heartbeat
+			else if (cmd === P.PACKET_HEARTBEAT) {
+				this.broker.registry.nodeHeartbeat(payload);
+			}
+
+			// Ping
+			else if (cmd === P.PACKET_PING) {
+				this.sendPong(payload);
+			}
+
+			// Pong
+			else if (cmd === P.PACKET_PONG) {
+				this.processPong(payload);
+			}
+
+			return true;
+		} catch(err) {
+			this.logger.error(err, cmd, msg);
 		}
-
-		this.stat.packets.received = this.stat.packets.received + 1;
-
-		const packet = P.Packet.deserialize(this, cmd, msg);
-		const payload = packet.payload;
-
-		// Check payload
-		if (!payload) {
-			/* istanbul ignore next */
-			throw new MoleculerServerError("Missing response payload.", 500, "MISSING_PAYLOAD");
-		}
-
-		// Check protocol version
-		if (payload.ver != P.PROTOCOL_VERSION) {
-			let err = new ProtocolVersionMismatchError(payload.sender,P.PROTOCOL_VERSION, payload.ver || "1");
-			this.logger.error(err);
-			return Promise.reject(err);
-		}
-
-		// Skip own packets (if built-in balancer disabled)
-		if (payload.sender == this.nodeID && (cmd !== P.PACKET_EVENT && cmd !== P.PACKET_REQUEST && cmd !== P.PACKET_RESPONSE))
-			return Promise.resolve();
-
-		// Request
-		if (cmd === P.PACKET_REQUEST) {
-			return this._requestHandler(payload);
-		}
-
-		// Response
-		else if (cmd === P.PACKET_RESPONSE) {
-			return this._responseHandler(payload);
-		}
-
-		// Event
-		else if (cmd === P.PACKET_EVENT) {
-			return this._eventHandler(payload);
-		}
-
-		// Discover
-		else if (cmd === P.PACKET_DISCOVER) {
-			this.sendNodeInfo(payload.sender);
-			return Promise.resolve();
-		}
-
-		// Node info
-		else if (cmd === P.PACKET_INFO) {
-			this.broker.registry.processNodeInfo(payload);
-			return Promise.resolve();
-		}
-
-		// Disconnect
-		else if (cmd === P.PACKET_DISCONNECT) {
-			this.broker.registry.nodeDisconnected(payload);
-			return Promise.resolve();
-		}
-
-		// Heartbeat
-		else if (cmd === P.PACKET_HEARTBEAT) {
-			this.broker.registry.nodeHeartbeat(payload);
-			return Promise.resolve();
-		}
-
-		// Ping
-		else if (cmd === P.PACKET_PING) {
-			this.sendPong(payload);
-			return Promise.resolve();
-		}
-
-		// Pong
-		else if (cmd === P.PACKET_PONG) {
-			this.processPong(payload);
-			return Promise.resolve();
-		}
+		return false;
 	}
 
+	/**
+	 * Handle incoming event
+	 *
+	 * @param {any} payload
+	 * @memberof Transit
+	 */
 	_eventHandler(payload) {
 		this.logger.debug(`Event '${payload.event}' received from '${payload.sender}' node` + (payload.groups ? ` in '${payload.groups.join(", ")}' group(s)` : "") + ".");
 
@@ -288,7 +297,6 @@ class Transit {
 	 * Handle incoming request
 	 *
 	 * @param {Object} payload
-	 * @returns {Promise}
 	 *
 	 * @memberOf Transit
 	 */
@@ -298,16 +306,17 @@ class Transit {
 		// Recreate caller context
 		const ctx = this.broker.ContextFactory.createFromPayload(this.broker, payload);
 
-		return this.broker._handleRemoteRequest(ctx)
+		this.broker._handleRemoteRequest(ctx)
 			.then(res => this.sendResponse(payload.sender, payload.id,  res, null))
 			.catch(err => this.sendResponse(payload.sender, payload.id, null, err));
+
+		return null;
 	}
 
 	/**
 	 * Process incoming response of request
 	 *
 	 * @param {Object} packet
-	 * @returns {Promise}
 	 *
 	 * @memberOf Transit
 	 */
@@ -316,7 +325,7 @@ class Transit {
 		const req = this.pendingRequests.get(id);
 
 		// If not exists (timed out), we skip to process the response
-		if (req == null) return Promise.resolve();
+		if (req == null) return;
 
 		// Remove pending request
 		this.removePendingRequest(id);
@@ -339,10 +348,10 @@ class Transit {
 			if (packet.error.stack)
 				err.stack = packet.error.stack;
 
-			return req.reject(err);
+			req.reject(err);
+		} else {
+			req.resolve(packet.data);
 		}
-
-		return req.resolve(packet.data);
 	}
 
 	/**
@@ -371,6 +380,7 @@ class Transit {
 	_sendRequest(ctx, resolve, reject) {
 		const request = {
 			action: ctx.action,
+			nodeID: ctx.nodeID,
 			ctx,
 			resolve,
 			reject
@@ -401,7 +411,7 @@ class Transit {
 	sendEvent(nodeID, eventName, data) {
 		this.logger.debug(`Send '${eventName}' event to '${nodeID}'.`);
 
-		return this.publish(new P.PacketEvent(this, nodeID, eventName, data));
+		this.publish(new P.PacketEvent(this, nodeID, eventName, data));
 	}
 
 	/**
@@ -418,7 +428,7 @@ class Transit {
 		_.forIn(nodeGroups, (groups, nodeID) => {
 			this.logger.debug(`Send '${eventName}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
 
-			return this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups));
+			this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups));
 		});
 	}
 
@@ -452,6 +462,25 @@ class Transit {
 	 */
 	removePendingRequest(id) {
 		this.pendingRequests.delete(id);
+	}
+
+	/**
+	 * Remove a pending request
+	 *
+	 * @param {String} nodeID
+	 *
+	 * @memberOf Transit
+	 */
+	removePendingRequestByNodeID(nodeID) {
+		this.logger.debug("Remove pending requests");
+		this.pendingRequests.forEach((req, id) => {
+			if (req.nodeID == nodeID) {
+				this.pendingRequests.delete(id);
+
+				// Reject the request
+				req.reject(new E.RequestRejected(req.action.name, req.nodeID));
+			}
+		});
 	}
 
 	/**
@@ -571,6 +600,8 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	publish(packet) {
+		this.logger.debug(`Send ${packet.type} packet to '${packet.target || "all nodes"}'`);
+
 		if (this.subscribing) {
 			return this.subscribing
 				.then(() => {

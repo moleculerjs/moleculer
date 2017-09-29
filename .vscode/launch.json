@@ -8,10 +8,10 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch dev",
-			"program": "${workspaceRoot}\\dev\\server.js",
+			"program": "${workspaceRoot}\\dev\\client.js",
 			"cwd": "${workspaceRoot}",
 			"args": [
-				"server-vscode"
+				""
 			]
 		},
 		{

@@ -216,6 +216,9 @@ class NodeCatalog {
 
 			this.logger.warn(`Node '${node.id}' disconnected${isUnexpected ? " unexpectedly" : ""}.`);
 
+			if (this.broker.transit)
+				this.broker.transit.removePendingRequestByNodeID(nodeID);
+
 			this.broker.servicesChanged(false);
 		}
 	}

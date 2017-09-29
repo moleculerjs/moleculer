@@ -17,6 +17,7 @@ let broker = new ServiceBroker({
 	//disableBalancer: true,
 
 	logger: console,
+	//logLevel: "debug",
 	logFormatter: "simple"
 });
 
@@ -26,8 +27,8 @@ broker.createService({
 	name: "math",
 	actions: {
 		add(ctx) {
-			const wait = _.random(2000, 10000);
-			broker.logger.info(_.padEnd(`${ctx.params.count}. Add ${ctx.params.a} + ${ctx.params.b}`, 20), `(from: ${ctx.callerNodeID}, ${wait})`);
+			const wait = _.random(500, 5000);
+			broker.logger.info(_.padEnd(`${ctx.params.count}. Add ${ctx.params.a} + ${ctx.params.b}`, 20), `(from: ${ctx.callerNodeID})`);
 			//if (_.random(100) > 90)
 			//	return this.Promise.reject(new MoleculerError("Random error!", 510));
 
