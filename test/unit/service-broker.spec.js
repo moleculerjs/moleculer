@@ -1094,6 +1094,72 @@ describe("Test broker.waitForServices", () => {
 		return p;
 	});
 
+	it("should wait for service when service is passed as an array of string", () => {
+		let p = broker.waitForServices(["posts"], 10 * 1000, 100).catch(protectReject).then(() => {
+			expect(broker.registry.hasService).toHaveBeenCalledTimes(7);
+			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts", undefined);
+		});
+
+		setTimeout(() => res = true, 450);
+
+		return p;
+	});
+
+	it("should wait for service when service is passed as an array of object", () => {
+		let p = broker.waitForServices([{ name: "posts" }], 10 * 1000, 100).catch(protectReject).then(() => {
+			expect(broker.registry.hasService).toHaveBeenCalledTimes(8);
+			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts", undefined);
+		});
+
+		setTimeout(() => res = true, 450);
+
+		return p;
+	});
+
+	it("should wait for service when service is passed as an object", () => {
+		let p = broker.waitForServices({ name: "posts" }, 10 * 1000, 100).catch(protectReject).then(() => {
+			expect(broker.registry.hasService).toHaveBeenCalledTimes(9);
+			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts", undefined);
+		});
+
+		setTimeout(() => res = true, 450);
+
+		return p;
+	});
+
+	it("should wait for service when service is passed as an array of object with version", () => {
+		let p = broker.waitForServices([{ name: "posts", version: 1 }], 10 * 1000, 100).catch(protectReject).then(() => {
+			expect(broker.registry.hasService).toHaveBeenCalledTimes(10);
+			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts", 1);
+		});
+
+		setTimeout(() => res = true, 450);
+
+		return p;
+	});
+
+	it("should wait for service when service is passed as an array of object with version and unrelated property", () => {
+		let p = broker.waitForServices([{ name: "posts", version: 1, meta: true }], 10 * 1000, 100).catch(protectReject).then(() => {
+			expect(broker.registry.hasService).toHaveBeenCalledTimes(11);
+			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts", 1);
+		});
+
+		setTimeout(() => res = true, 450);
+
+		return p;
+	});
+
+	it("should wait for service when service is passed as an array of object without name", () => {
+		let p = broker.waitForServices([{ svcName: "posts", version: 1, meta: true }], 10 * 1000, 100).catch(protectReject).then(() => {
+			expect(broker.registry.hasService).toHaveBeenCalledTimes(12);
+			expect(broker.registry.hasService).toHaveBeenLastCalledWith(undefined, 1);
+		});
+
+		setTimeout(() => res = true, 450);
+
+		return p;
+	});
+
 	it("should reject if timed out", () => {
 		broker.registry.hasService.mockClear();
 		res = false;

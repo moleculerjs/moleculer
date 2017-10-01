@@ -661,21 +661,22 @@ class ServiceBroker {
 		if (!Array.isArray(serviceNames))
 			serviceNames = [serviceNames];
 
-		logger.info(`Waiting for service(s) '${serviceNames.join(", ")}'...`);
+		const serviceObjs = serviceNames.map(x => _.isPlainObject(x) ? x : { name: x });
+		logger.info(`Waiting for service(s) '${_.map(serviceObjs, "name").join(", ")}'...`);
 
 		const startTime = Date.now();
 		return new Promise((resolve, reject) => {
 			const check = () => {
-				const count = serviceNames.filter(name => {
-					return this.registry.hasService(name);
+				const count = serviceObjs.filter(svcObj => {
+					return this.registry.hasService(svcObj.name, svcObj.version);
 				});
 
-				if (count.length == serviceNames.length) {
-					logger.info(`Service(s) '${serviceNames.join(", ")}' are available.`);
+				if (count.length == serviceObjs.length) {
+					logger.info(`Service(s) '${_.map(serviceObjs, "name").join(", ")}' are available.`);
 					return resolve();
 				}
 
-				logger.debug(`${count.length} of ${serviceNames.length} services are available. Waiting further...`);
+				logger.debug(`${count.length} of ${serviceObjs.length} services are available. Waiting further...`);
 
 				if (timeout && Date.now() - startTime > timeout)
 					return reject(new E.MoleculerServerError("Services waiting is timed out.", 500, "WAITFOR_SERVICES", { services: serviceNames }));
