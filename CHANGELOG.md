@@ -1,3 +1,43 @@
+<a name="0.11.2"></a>
+# [0.11.2](https://github.com/ice-services/moleculer/compare/v0.11.1...v0.11.2) (2017-xx-xx)
+
+# New
+
+## Service dependencies [#102](https://github.com/ice-services/moleculer/issues/102)
+The `Service` schema has a new `dependencies` property. You can use it to wait other services before `started` handler would be called.
+
+```js
+module.exports = {
+  name: "posts",
+  settings: {
+      $dependencyTimeout: 30000 // Default: 0 - no timeout
+  },
+  dependencies: [
+      "likes", // shorthand w/o version
+      { name: "users", version: 2 }, // with numeric version
+      { name: "comments", version: "staging" } // with string version
+  ],
+  started() {
+      this.logger.info("Service started after the dependent services available.");
+  }
+  ....
+}
+```
+The `started` service handler will be called if the `likes`, `users` and `comments` services is registered (on the local or remote nodes).
+
+# Changes
+
+## The `waitForServices` method supports service versions [#112](https://github.com/ice-services/moleculer/issues/112)
+By [@imatefx](https://github.com/imatefx), the `waitForServices` broker & service methods supports versioned services. If you want to define version in a dependency, use the following formats:
+
+```js
+module.exports = {
+    name: "test",
+    dependencies: { name: "users", version: 2 }
+};
+```
+
+--------------------------------------------------
 <a name="0.11.1"></a>
 # [0.11.1](https://github.com/ice-services/moleculer/compare/v0.11.0...v0.11.1) (2017-09-27)
 
