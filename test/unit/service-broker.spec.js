@@ -486,8 +486,8 @@ describe("Test broker.start", () => {
 		});
 
 		it("should call started of services", () => {
+			expect(broker.transit.connect).toHaveBeenCalledTimes(1);
 			expect(schema.started).toHaveBeenCalledTimes(1);
-			expect(broker.transit.connect).toHaveBeenCalledTimes(0);
 		});
 	});
 

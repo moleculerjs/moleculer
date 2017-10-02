@@ -70,8 +70,10 @@ describe("Test Service handlers after broker.call", () => {
 	});
 
 	it("should called created & started handler", () => {
-		expect(createdHandler).toHaveBeenCalledTimes(1);
-		expect(startedHandler).toHaveBeenCalledTimes(1);
+		return broker.Promise.delay(100).then(() => {
+			expect(createdHandler).toHaveBeenCalledTimes(1);
+			expect(startedHandler).toHaveBeenCalledTimes(1);
+		});
 	});
 
 	it("should called event handler", () => {

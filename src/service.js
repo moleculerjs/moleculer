@@ -114,11 +114,16 @@ class Service {
 				event.handler = function(payload, sender, eventName) {
 					if (isFunction(handler)) {
 						const p = handler.apply(self, [payload, sender, eventName]);
+
+						// Handle async-await returns
 						if (utils.isPromise(p))
 							p.catch(err => self.logger.error(err));
+
 					} else if (Array.isArray(handler)) {
 						handler.forEach(fn => {
 							const p = fn.apply(self, [payload, sender, eventName]);
+
+							// Handle async-await returns
 							if (utils.isPromise(p))
 								p.catch(err => self.logger.error(err));
 						});
@@ -137,7 +142,7 @@ class Service {
 
 			forIn(schema.methods, (method, name) => {
 				/* istanbul ignore next */
-				if (["name", "version", "settings", "metadata", "schema", "broker", "actions", "logger", "created", "started", "stopped"].indexOf(name) != -1) {
+				if (["name", "version", "settings", "metadata", "dependencies", "schema", "broker", "actions", "logger", "created", "started", "stopped"].indexOf(name) != -1) {
 					throw new ServiceSchemaError(`Invalid method name '${name}' in '${this.name}' service!`);
 				}
 				this[name] = method.bind(this);

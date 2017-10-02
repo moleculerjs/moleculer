@@ -19,7 +19,7 @@ broker.createService({
 		$dependencyTimeout: 0
 	},
 	dependencies: [
-		{ name: "test", version: 2 },
+		//{ name: "test", version: 2 },
 		"math"
 	],
 	started() {
