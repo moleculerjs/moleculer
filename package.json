@@ -44,8 +44,8 @@
     "benchmarkify": "2.1.0",
     "bunyan": "1.8.12",
     "coveralls": "2.13.1",
-    "eslint": "4.7.2",
-    "eslint-plugin-node": "^5.1.1",
+    "eslint": "4.8.0",
+    "eslint-plugin-node": "5.2.0",
     "eslint-plugin-promise": "3.5.0",
     "eslint-plugin-security": "^1.4.0",
     "fakerator": "0.3.0",
@@ -63,7 +63,7 @@
     "pino": "4.7.2",
     "protobufjs": "6.8.0",
     "v8-natives": "1.0.2",
-    "winston": "2.3.1",
+    "winston": "2.4.0",
     "winston-context": "0.0.7"
   },
   "dependencies": {
