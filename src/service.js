@@ -159,16 +159,22 @@ class Service {
 		};
 
 		this.started = () => {
-			if (isFunction(this.schema.started))
-				return this.Promise.method(this.schema.started).call(this);
+			return this.Promise.resolve()
+				.then(() => {
+					// Wait for dependent services
+					if (this.schema.dependencies)
+						return this.waitForServices(this.schema.dependencies, this.settings.$dependencyTimeout || 0);
+				})
+				.then(() => {
+					if (isFunction(this.schema.started))
+						return this.Promise.method(this.schema.started).call(this);
 
-			if (Array.isArray(this.schema.started)) {
-				return this.schema.started
-					.map(fn => this.Promise.method(fn.bind(this)))
-					.reduce((p, fn) => p.then(fn), this.Promise.resolve());
-			}
-
-			return this.Promise.resolve();
+					if (Array.isArray(this.schema.started)) {
+						return this.schema.started
+							.map(fn => this.Promise.method(fn.bind(this)))
+							.reduce((p, fn) => p.then(fn), this.Promise.resolve());
+					}
+				});
 		};
 
 		this.stopped = () => {
