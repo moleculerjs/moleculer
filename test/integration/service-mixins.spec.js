@@ -93,6 +93,8 @@ describe("Test Service mixins", () => {
 			e: "Susan"
 		},
 
+		dependencies: "math",
+
 		actions: {
 			gamma() {
 				return "From mixin2L1";
@@ -124,6 +126,11 @@ describe("Test Service mixins", () => {
 		mixins: [
 			mixin1L1,
 			mixin2L1
+		],
+
+		dependencies: [
+			"posts",
+			{ name: "users", version: 2 }
 		],
 
 		settings: {
@@ -158,6 +165,7 @@ describe("Test Service mixins", () => {
 	let broker = new ServiceBroker();
 
 	let svc = broker.createService(mainSchema);
+	svc.waitForServices = jest.fn(() => Promise.resolve());
 
 	// console.log(svc.schema);
 
@@ -187,6 +195,16 @@ describe("Test Service mixins", () => {
 			e: "Susan",
 			f: "Bill"
 		});
+	});
+
+	it("should merge dependencies", () => {
+		expect(svc.schema.dependencies).toEqual([
+			"posts",
+			{ name: "users", version: 2 },
+			"math"
+		]);
+		expect(svc.waitForServices).toHaveBeenCalledTimes(1);
+		expect(svc.waitForServices).toHaveBeenCalledWith(["posts", { name: "users", version: 2 }, "math"], 0);
 	});
 
 	it("should merge metadata", () => {

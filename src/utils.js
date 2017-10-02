@@ -108,7 +108,7 @@ let utils = {
 			} else if (["created", "started", "stopped"].indexOf(key) !== -1) {
 				// Concat lifecycle event handlers
 				res[key] = _.compact(_.flatten([res[key], mods[key]]));
-			} else if (["mixins"].indexOf(key) !== -1) {
+			} else if (["mixins", "dependencies"].indexOf(key) !== -1) {
 				// Concat mixins
 				res[key] = _.compact(_.flatten([mods[key], res[key]]));
 			} else

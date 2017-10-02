@@ -549,7 +549,6 @@ describe("Test lifecycle event handlers", () => {
 		});
 	});
 
-
 });
 
 describe("Test broker.waitForServices", () => {
@@ -565,6 +564,73 @@ describe("Test broker.waitForServices", () => {
 		});
 		expect(broker.waitForServices).toHaveBeenCalledTimes(1);
 		expect(broker.waitForServices).toHaveBeenCalledWith("posts", 5000, 500, svc.logger);
+	});
+
+});
+
+describe("Test dependencies", () => {
+
+	describe("with one dependency", () => {
+
+		let broker = new ServiceBroker();
+
+		let schema = {
+			name: "simple",
+			dependencies: "math",
+
+			created: jest.fn(),
+			started: jest.fn()
+		};
+		let svc;
+
+		it("should called created", () => {
+			svc = broker.createService(schema);
+			svc.waitForServices = jest.fn(() => Promise.resolve());
+
+			expect(schema.created).toHaveBeenCalledTimes(1);
+
+			return broker.start();
+		});
+
+		it("should called started", () => {
+			expect(schema.started).toHaveBeenCalledTimes(1);
+			expect(svc.waitForServices).toHaveBeenCalledTimes(1);
+			expect(svc.waitForServices).toHaveBeenCalledWith("math", 0);
+
+			return broker.stop();
+		});
+	});
+
+	describe("with multi dependency & $dependencyTimeout ", () => {
+
+		let broker = new ServiceBroker();
+
+		let schema = {
+			name: "simple",
+			dependencies: [
+				{ name: "math" },
+				{ name: "test", version: 2 }
+			],
+			settings: {
+				$dependencyTimeout: 5000
+			},
+			started: jest.fn()
+		};
+		let svc;
+
+		it("should called created", () => {
+			svc = broker.createService(schema);
+			svc.waitForServices = jest.fn(() => Promise.resolve());
+			return broker.start();
+		});
+
+		it("should called started", () => {
+			expect(schema.started).toHaveBeenCalledTimes(1);
+			expect(svc.waitForServices).toHaveBeenCalledTimes(1);
+			expect(svc.waitForServices).toHaveBeenCalledWith(schema.dependencies, 5000);
+
+			return broker.stop();
+		});
 	});
 
 });

@@ -293,6 +293,10 @@ class ServiceBroker {
 	start() {
 		return Promise.resolve()
 			.then(() => {
+				if (this.transit)
+					return this.transit.connect();
+			})
+			.then(() => {
 				// Call service `started` handlers
 				return Promise.all(this.services.map(svc => svc.started.call(svc)));
 			})
@@ -300,10 +304,6 @@ class ServiceBroker {
 				/* istanbul ignore next */
 				this.logger.error("Unable to start all services.", err);
 				return Promise.reject(err);
-			})
-			.then(() => {
-				if (this.transit)
-					return this.transit.connect();
 			})
 			.then(() => {
 				this.logger.info(`ServiceBroker with ${this.services.length} service(s) is started successfully.`);
@@ -319,7 +319,7 @@ class ServiceBroker {
 	stop() {
 		return Promise.resolve()
 			.then(() => {
-				// Call service `started` handlers
+				// Call service `stopped` handlers
 				return Promise.all(this.services.map(svc => svc.stopped.call(svc)));
 			})
 			.catch(err => {

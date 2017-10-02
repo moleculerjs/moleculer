@@ -52,6 +52,11 @@ describe("Test mergeSchemas", () => {
 				]
 			},
 
+			dependencies: [
+				"posts",
+				"users"
+			],
+
 			metadata: {
 				a: "a",
 				b: 33,
@@ -102,6 +107,8 @@ describe("Test mergeSchemas", () => {
 					"third"
 				]
 			},
+
+			dependencies: "math",
 
 			metadata: {
 				a: "aaa",
@@ -168,6 +175,7 @@ describe("Test mergeSchemas", () => {
 				res: "test"
 			}
 		});
+		expect(res.dependencies).toEqual(["math", "posts", "users"]);
 
 		expect(res.actions.get).toBe(origSchema.actions.get);
 		expect(res.actions.find).toBe(newSchema.actions.find);
