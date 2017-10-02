@@ -4,7 +4,7 @@
 # New
 
 ## Service dependencies [#102](https://github.com/ice-services/moleculer/issues/102)
-The `Service` schema has a new `dependencies` property. You can use it to wait other services before `started` handler would be called.
+The `Service` schema has a new `dependencies` property. You can wait other dependent services when service is starting. So you don't need to call `waitForServices` in `started` any more.
 
 ```js
 module.exports = {
@@ -23,12 +23,14 @@ module.exports = {
   ....
 }
 ```
-The `started` service handler will be called if the `likes`, `users` and `comments` services is registered (on the local or remote nodes).
+The `started` service handler is called after the `likes`, `users` and `comments` services are registered (on the local or remote nodes).
+
+> Services can wait for each others, it's not a problem.
 
 # Changes
 
 ## The `waitForServices` method supports service versions [#112](https://github.com/ice-services/moleculer/issues/112)
-By [@imatefx](https://github.com/imatefx), the `waitForServices` broker & service methods supports versioned services. If you want to define version in a dependency, use the following formats:
+By [@imatefx](https://github.com/imatefx), the `waitForServices` broker & service methods support versioned services. If you want to define version in a dependency, use the following formats:
 
 ```js
 module.exports = {
