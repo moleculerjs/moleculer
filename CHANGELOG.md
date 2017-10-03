@@ -27,6 +27,18 @@ The `started` service handler is called after the `likes`, `users` and `comments
 
 > Services can wait for each others, it's not a problem.
 
+## Pending request queue size limit [#111](https://github.com/ice-services/moleculer/issues/111)
+The `ServiceBroker` has a new `maxQueueSize` option under `transit` key. With it the broker protects the process to avoid crash in a rush. If the pending request queue size reaches this limit, broker rejects the request with a `QueueIsFull` (retryable) error. The `maxQueueSize` default value is 50,000.
+
+```js
+let broker = new ServiceBroker({
+	transporter: "NATS",
+	transit: {
+		maxQueueSize: 10 * 1000
+	}
+}
+```
+
 # Changes
 
 ## The `waitForServices` method supports service versions [#112](https://github.com/ice-services/moleculer/issues/112)
