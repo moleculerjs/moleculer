@@ -225,6 +225,33 @@ class RequestRejected extends MoleculerRetryableError {
 }
 
 /**
+ * 'Queue is full' error message. Retryable.
+ *
+ * @class QueueIsFull
+ * @extends {MoleculerRetryableError}
+ */
+class QueueIsFull extends MoleculerRetryableError {
+	/**
+	 * Creates an instance of QueueIsFull.
+	 *
+	 * @param {String} action
+	 * @param {String} nodeID
+	 * @param {Number} size
+	 * @param {Number} limit
+	 *
+	 * @memberOf QueueIsFull
+	 */
+	constructor(action, nodeID, size, limit) {
+		super(`Queue is full. Request '${action}' action on '${nodeID}' node is rejected.`, 429, null, {
+			action,
+			nodeID,
+			size,
+			limit
+		});
+	}
+}
+
+/**
  * 'Parameters of action call validation error
  *
  * @class ValidationError
@@ -336,6 +363,7 @@ module.exports = {
 	RequestTimeoutError,
 	RequestSkippedError,
 	RequestRejected,
+	QueueIsFull,
 	MaxCallLevelError,
 
 	ServiceSchemaError,

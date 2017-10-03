@@ -130,6 +130,11 @@ describe("Test ServiceBroker constructor", () => {
 				failureOnTimeout: true,
 				failureOnReject: false
 			},
+
+			transit: {
+				maxQueueSize: 50 * 1000
+			},
+
 			requestRetry: 3,
 			requestTimeout: 5000,
 			maxCallLevel: 10,

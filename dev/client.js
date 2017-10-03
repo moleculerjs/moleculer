@@ -20,6 +20,10 @@ let broker = new ServiceBroker({
 
 	metrics: true,
 
+	transit: {
+		maxQueueSize: 10
+	},
+
 	circuitBreaker: {
 		enabled: true,
 		maxFailures: 3

@@ -60,6 +60,10 @@ const defaultOptions = {
 		failureOnReject: true
 	},
 
+	transit: {
+		maxQueueSize: 50 * 1000 // 50k ~ 400MB
+	},
+
 	cacher: null,
 	serializer: null,
 
@@ -152,14 +156,14 @@ class ServiceBroker {
 		// Transit & Transporter
 		if (this.options.transporter) {
 			const tx = this._resolveTransporter(this.options.transporter);
-			this.transit = new Transit(this, tx);
+			this.transit = new Transit(this, tx, this.options.transit);
 
 			const txName = tx.constructor.name;
 			this.logger.info("Transporter:", txName);
 
 			if (this.options.disableBalancer) {
 				if (tx.hasBuiltInBalancer) {
-					this.logger.info("The built-in balancer is disabled.");
+					this.logger.info("The broker built-in balancer is DISABLED.");
 				} else {
 					this.logger.warn(`The ${txName} has no built-in balancer. Broker balancer is ENABLED.`);
 					this.options.disableBalancer = false;

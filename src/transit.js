@@ -364,6 +364,9 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	request(ctx) {
+		if (this.opts.maxQueueSize && this.pendingRequests.size > this.opts.maxQueueSize)
+			return Promise.reject(new E.QueueIsFull(ctx.action.name, ctx.nodeID, this.pendingRequests.length, this.opts.maxQueueSize));
+
 		// Expanded the code that v8 can optimize it.  (TryCatchStatement disable optimizing)
 		return new Promise((resolve, reject) => this._sendRequest(ctx, resolve, reject));
 	}

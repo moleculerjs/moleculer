@@ -137,6 +137,22 @@ describe("Test Errors", () => {
 		expect(err.retryable).toBe(true);
 	});
 
+	it("test QueueIsFull", () => {
+		let err = new errors.QueueIsFull("posts.find", "server-3", 100, 50);
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(Error);
+		expect(err).toBeInstanceOf(errors.MoleculerRetryableError);
+		expect(err).toBeInstanceOf(errors.QueueIsFull);
+		expect(err.code).toBe(429);
+		expect(err.name).toBe("QueueIsFull");
+		expect(err.message).toBe("Queue is full. Request 'posts.find' action on 'server-3' node is rejected.");
+		expect(err.data.action).toBe("posts.find");
+		expect(err.data.nodeID).toBe("server-3");
+		expect(err.data.size).toBe(100);
+		expect(err.data.limit).toBe(50);
+		expect(err.retryable).toBe(true);
+	});
+
 	it("test ValidationError", () => {
 		let data = {};
 		let err = new errors.ValidationError("Param is not correct!", "ERR_TYPE", data);
