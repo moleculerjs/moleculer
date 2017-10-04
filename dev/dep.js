@@ -24,6 +24,11 @@ broker.createService({
 	],
 	started() {
 		this.logger.info("!!! SERVICE STARTED !!!");
+		setInterval(() => {
+			broker.call("math.add", { a: 5, b: 3 })
+				.then(res => broker.logger.info(res))
+				.catch(err => broker.logger.error(err));
+		}, 500);
 	}
 });
 

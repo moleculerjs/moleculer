@@ -12,6 +12,7 @@ function createBroker(opts) {
 	// Create broker
 	let broker = new ServiceBroker(opts);
 	broker.loadService(__dirname + "/../user.service");
+	broker.loadService(__dirname + "/../math.service");
 	broker.start();
 
 	return broker;
@@ -25,7 +26,7 @@ let bench1 = benchmark.createSuite("Local call");
 	});
 
 	bench1.add("broker.call (with params)", done => {
-		return broker.call("users.empty", { id: 5, sort: "name created", limit: 10 }).then(done);
+		return broker.call("math.add", { a: 4, b: 2 }).then(done);
 	});
 
 })();
