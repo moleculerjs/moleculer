@@ -53,6 +53,7 @@ declare class Service {
 	version?: String|Number;
 	settings: Object;
 	metadata: Object;
+	dependencies: String|Object|Array<String>|Array<Object>;
 	schema: Object;
 	broker: ServiceBroker;
 	logger: LoggerInstance;
@@ -79,6 +80,10 @@ declare interface BrokerRegistryOptions {
 	preferLocal?: Boolean;
 }
 
+declare interface BrokerTransitOptions {
+	maxQueueSize?: Number;
+}
+
 declare interface BrokerOptions {
 	namespace?: String;
 	nodeID?: String;
@@ -95,6 +100,8 @@ declare interface BrokerOptions {
 	heartbeatTimeout?: Number;
 
 	disableBalancer?: Boolean;
+
+	transit?: BrokerTransitOptions;
 
 	registry?: BrokerRegistryOptions;
 
