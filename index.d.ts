@@ -342,10 +342,14 @@ export = {
 		ValidationError: Error,
 		RequestTimeoutError: Error,
 		RequestSkippedError: Error,
+		RequestRejected: Error,
+		QueueIsFull: Error,
 		MaxCallLevelError: Error,
 
 		ServiceSchemaError: Error,
-		ProtocolVersionMismatchError: Error
+
+		ProtocolVersionMismatchError: Error,
+		InvalidPacketData: Error
 	},
 
 	Strategies: {
