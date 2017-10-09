@@ -206,7 +206,7 @@ describe("Test AMQPTransporter", () => {
 			return Promise.all(brokers.map(broker => broker.stop()));
 		});
 
-		runTestCases(logs, client, worker1, worker2, worker3, false);
+		runTestCases(logs, client, worker1, worker2, worker3, true);
 
 	});
 
@@ -228,7 +228,7 @@ describe("Test AMQPTransporter", () => {
 			return Promise.all(brokers.map(broker => broker.stop()));
 		});
 
-		runTestCases(logs, client, worker1, worker2, worker3, true);
+		runTestCases(logs, client, worker1, worker2, worker3, false);
 
 	});
 });
