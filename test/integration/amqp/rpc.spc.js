@@ -58,7 +58,7 @@ const createWorker = (number, disableBalancer, logs, options = {}) => {
 };
 
 // Wrap all test cases in a function so that they can be easily ran with and without balancing.
-const runTestCases = (logs, client, worker1, worker2, worker3) => {
+const runTestCases = (logs, client, worker1, worker2, worker3, builtInBalancer) => {
 
 	// Simple function that we use everywhere
 	const callShortDelay = () => client.call("test.hello", { delay: 20 });
@@ -120,57 +120,63 @@ const runTestCases = (logs, client, worker1, worker2, worker3) => {
 			});
 	});
 
-	it("Should use availability-based load balancing", () => {
-		// Should allow consumers to pull messages as they can handle them.
-		// This means that a single slow node won't slow down everything, or cause requests to be
-		// processed out of order
-		const callShortDelay = () => client.call("test.hello", { delay: 20 });
+	// This test case doesn't work with built-in balancer
+	if (!builtInBalancer) {
 
-		return Promise.all([
-			client.call("test.hello", { delay: 3000 }),
-			...Array(8).fill().map(callShortDelay),
-		]).catch(protectReject).then(res => {
-			const slowWorker = logs.find(a => a.params.delay === 3000).worker;
-			const otherWorker = logs.find(a => a.params.delay === 20).worker;
+		it("Should use availability-based load balancing", () => {
+			// Should allow consumers to pull messages as they can handle them.
+			// This means that a single slow node won't slow down everything, or cause requests to be
+			// processed out of order
+			const callShortDelay = (_, i) => client.call("test.hello", { i: i + 1, delay: 20 });
 
-			expect(res).toHaveLength(9);
+			return Promise.all([
+				client.call("test.hello", { i: 0, delay: 3000 }),
+				...Array(8).fill().map(callShortDelay),
+			]).catch(protectReject).then(res => {
+				const slowWorker = logs.find(a => a.params.delay === 3000).worker;
+				const otherWorker = logs.find(a => a.params.delay === 20).worker;
 
-			expect(res).toEqual(expect.arrayContaining([
-				expect.objectContaining({ worker: 1 }),
-				expect.objectContaining({ worker: 2 }),
-				expect.objectContaining({ worker: 3 }),
-			]));
+				expect(res).toHaveLength(9);
 
-			// Slow worker should only have handled 1 request
-			expect(res.filter(a => a.worker === slowWorker)).toHaveLength(1);
+				expect(res).toEqual(expect.arrayContaining([
+					expect.objectContaining({ worker: 1 }),
+					expect.objectContaining({ worker: 2 }),
+					expect.objectContaining({ worker: 3 }),
+				]));
 
-			// The other 2 workers should have handled 4
-			expect(res.filter(a => a.worker === otherWorker)).toHaveLength(4);
-		});
-	});
+				// Slow worker should only have handled 1 request
+				expect(res.filter(a => a.worker === slowWorker)).toHaveLength(1);
 
-	it("Messages that haven't finished processing should be retryable by other nodes.", () => {
-		// This requires all requests to be made to a single queue.
-		// This test also requires messages to be acked after the action handler finishes.
-		// All broker's should consume from the same queue so that messages aren't abandoned in
-		// node-specific queues, or tried out of order.
-		const crashRequest = () => {
-			return client.call("test.hello", { delay: 20, crash: true })
-				.catch(err => ({ message: err.message, type: "error"}));
-		};
-
-		return Promise.all(Array(9).fill().map(crashRequest))
-			.catch(protectReject).then((res) => {
-				// The responses that failed initially won't show up in res, but the messages are still in
-				// AMQP. If the messages are not ack'ed until processed, then another node will be able to
-				// handle them instead.
-				expect(logs.filter(a => a.type === "respond")).toHaveLength(9);
-
-				// Check that crashing node actually crashed instead of responding
-				expect(logs.filter(a => a.type === "crash").length).toBeGreaterThanOrEqual(2);
-
+				// The other 2 workers should have handled 4
+				expect(res.filter(a => a.worker === otherWorker)).toHaveLength(4);
 			});
-	}, 40000);
+		});
+
+		it("Messages that haven't finished processing should be retryable by other nodes.", () => {
+			// This requires all requests to be made to a single queue.
+			// This test also requires messages to be acked after the action handler finishes.
+			// All broker's should consume from the same queue so that messages aren't abandoned in
+			// node-specific queues, or tried out of order.
+			const crashRequest = () => {
+				return client.call("test.hello", { delay: 20, crash: true })
+					.catch(err => ({ message: err.message, type: "error"}));
+			};
+
+			return Promise.all(Array(9).fill().map(crashRequest))
+				.catch(protectReject).then((res) => {
+					// The responses that failed initially won't show up in res, but the messages are still in
+					// AMQP. If the messages are not ack'ed until processed, then another node will be able to
+					// handle them instead.
+					expect(logs.filter(a => a.type === "respond")).toHaveLength(9);
+
+					// Check that crashing node actually crashed instead of responding
+					expect(logs.filter(a => a.type === "crash").length).toBeGreaterThanOrEqual(2);
+
+				});
+		}, 40000);
+
+	}
+
 };
 
 describe("Test AMQPTransporter", () => {
@@ -200,7 +206,7 @@ describe("Test AMQPTransporter", () => {
 			return Promise.all(brokers.map(broker => broker.stop()));
 		});
 
-		runTestCases(logs, client, worker1, worker2, worker3);
+		runTestCases(logs, client, worker1, worker2, worker3, false);
 
 	});
 
@@ -222,7 +228,7 @@ describe("Test AMQPTransporter", () => {
 			return Promise.all(brokers.map(broker => broker.stop()));
 		});
 
-		runTestCases(logs, client, worker1, worker2, worker3);
+		runTestCases(logs, client, worker1, worker2, worker3, true);
 
 	});
 });

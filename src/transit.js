@@ -231,7 +231,7 @@ class Transit {
 
 			// Request
 			if (cmd === P.PACKET_REQUEST) {
-				this._requestHandler(payload);
+				return this._requestHandler(payload);
 			}
 
 			// Response
@@ -306,11 +306,9 @@ class Transit {
 		// Recreate caller context
 		const ctx = this.broker.ContextFactory.createFromPayload(this.broker, payload);
 
-		this.broker._handleRemoteRequest(ctx)
+		return this.broker._handleRemoteRequest(ctx)
 			.then(res => this.sendResponse(payload.sender, payload.id,  res, null))
 			.catch(err => this.sendResponse(payload.sender, payload.id, null, err));
-
-		return null;
 	}
 
 	/**

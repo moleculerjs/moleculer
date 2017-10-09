@@ -240,7 +240,6 @@ class AmqpTransporter extends Transporter {
 		return (msg) => {
 			const result = this.messageHandler(cmd, msg.content);
 
-			/* TODO: not returned with Promise
 			// If a promise is returned, acknowledge the message after it has resolved.
 			// This means that if a worker dies after receiving a message but before responding, the
 			// message won't be lost and it can be retried.
@@ -260,10 +259,6 @@ class AmqpTransporter extends Transporter {
 					this.channel.ack(msg);
 				}
 			}
-			*/
-
-			if (needAck && this.channel)
-				this.channel.ack(msg);
 
 			return result;
 		};
@@ -307,11 +302,13 @@ class AmqpTransporter extends Transporter {
 
 		// Some topics are specific to this node already, in these cases we don't need an exchange.
 		if (nodeID != null) {
+			const needAck = [PACKET_REQUEST].indexOf(cmd) !== -1;
+
 			return this.channel.assertQueue(topic, this._getQueueOptions(cmd))
 				.then(() => this.channel.consume(
 					topic,
-					this._consumeCB(cmd),
-					Object.assign({ noAck: true }, this.opts.amqp.consumeOptions)
+					this._consumeCB(cmd, needAck),
+					Object.assign({ noAck: !needAck }, this.opts.amqp.consumeOptions)
 				));
 
 		} else {
