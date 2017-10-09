@@ -3,43 +3,36 @@
 "use strict";
 
 const amqp = require("amqplib");
+const Promise = require("bluebird");
 
-module.exports = function({ queues, exchanges }) {
+const connectionPromise = amqp.connect(process.env.AMQP_URI || "amqp://guest:guest@localhost:5672");
 
-	let connectionRef;
+// Trying to delete a non-existant queue or exchange would cause a channel error.
+// Using a new channel for each operation allows us to reliably clear out AMQP queues and exchanges.
 
-	return amqp.connect(process.env.AMQP_URI || "amqp://guest:guest@localhost:5672")
-		.then(connection => {
-			//console.info("AMQP connected!");
-			connectionRef = connection;
-			return connection
-				.on("error", (err) => {
-					console.error("AMQP connection error!", err);
-				})
-				.on("close", (err) => {
-					//const crashWorthy = require("amqplib/lib/connection").isFatalError(err);
-					//console.error("AMQP connection closed!", crashWorthy && err ||  "");
-				})
-				.createChannel();
-		})
+const useNewChannel = (cb) => {
+	let channelRef = { close: () => {} };
+
+	return connectionPromise
+		.then(connection => connection.createChannel())
 		.then((channel) => {
-			//console.info("AMQP channel created!");
-			channel
-				.on("close", () => {
-					//console.warn("AMQP channel closed!");
-				})
-				.on("error", (error) => {
-					console.error("AMQP channel error!", error);
-				});
+			channelRef = channel;
+			channel.on("error", () => {});
+			return cb(channel);
+		})
+		.catch(() => {})
+		.then(() => channelRef.close())
+		.catch(() => {});
+};
 
-			return Promise.all(queues.map(q => channel.deleteQueue(q)))
-				.then(() => Promise.all(exchanges.map(e => channel.deleteExchange(e))));
-		})
-		.then(() => {
-			//console.log("Done.");
-			return connectionRef.close();
-		})
-		.catch((err) => {
-			console.error("AMQP failed to create channel!", err);
-		});
+const clearQueue = (q) => useNewChannel(channel => channel.purgeQueue(q));
+const deleteQueue = (q) => useNewChannel(channel => channel.deleteQueue(q));
+const deleteExchange = (e) => useNewChannel(channel => channel.deleteExchange(e));
+
+module.exports = function({ queues, exchanges }, destroy = false) {
+	const donePromise = destroy
+		? Promise.all(queues.map(deleteQueue).concat(exchanges.map(deleteExchange)))
+		: Promise.all(queues.map(clearQueue));
+
+	return donePromise.delay(2000);
 };

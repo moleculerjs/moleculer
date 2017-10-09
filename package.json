@@ -18,7 +18,7 @@
     "test": "jest --coverage --no-cache",
     "test:unit": "jest --testMatch \"**/unit/**spec.js\" --coverage --no-cache",
     "test:int": "jest --testMatch \"**/integration/**spec.js\" --coverage --no-cache",
-    "test:amqp": "jest --testMatch \"**/integration/amqp/**spc.js\""
+    "test:amqp": "jest --testMatch \"**/integration/amqp/**spc.js\" --runInBand --forceExit"
   },
   "keywords": [
     "microservices",

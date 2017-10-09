@@ -287,13 +287,13 @@ describe("Test AmqpTransporter subscribe", () => {
 				expect(transporter.channel.assertQueue)
 					.toHaveBeenCalledWith("MOL-TEST.REQ.node", {});
 				expect(transporter.channel.consume)
-					.toHaveBeenCalledWith("MOL-TEST.REQ.node", jasmine.any(Function), { noAck: true });
+					.toHaveBeenCalledWith("MOL-TEST.REQ.node", jasmine.any(Function), { noAck: false });
 
 				const consumeCb = transporter.channel.consume.mock.calls[0][1];
 				consumeCb({ content: Buffer.from("data") });
 
 				expect(msgHandler).toHaveBeenCalledTimes(1);
-				expect(transporter.channel.ack).toHaveBeenCalledTimes(0);
+				expect(transporter.channel.ack).toHaveBeenCalledTimes(1);
 			});
 	});
 
