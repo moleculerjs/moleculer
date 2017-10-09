@@ -10,6 +10,6 @@ node_js:
     - "8"
     - "6"
 script:
-  - npm test && npm test:amqp
+  - npm test && npm run test:amqp
 after_success:
   - npm run coverall
