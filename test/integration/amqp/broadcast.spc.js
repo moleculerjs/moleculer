@@ -35,8 +35,12 @@ function createNode(name, disableBalancer = false) {
 
 describe("Test AMQPTransporter", () => {
 
-	beforeAll(() => purge(purgeList));
-	afterAll(() => purge(purgeList));
+	// Delete all queues and exchanges before and after suite
+	beforeAll(() => purge(purgeList, true));
+	afterAll(() => purge(purgeList, true));
+
+	// Clear all queues between each test.
+	afterEach(() => purge(purgeList));
 
 	describe("Test AMQPTransporter event broadcast with built-in balancer", () => {
 
@@ -147,7 +151,6 @@ describe("Test AMQPTransporter", () => {
 				pub.broadcastLocal("hello.world", { testing: true });
 
 			return Promise.delay(2000).catch(protectReject).then(() => {
-				// console.log(FLOW);
 				expect(FLOW).toEqual([
 					"pub",
 					"pub",
@@ -161,10 +164,7 @@ describe("Test AMQPTransporter", () => {
 
 const purgeList = {
 	queues: [
-		"MOL-test-broadcast.EVENTB.pub.hello.world",
-		"MOL-test-broadcast.EVENTB.sub1.hello.world",
-		"MOL-test-broadcast.EVENTB.sub2.hello.world",
-		"MOL-test-broadcast.EVENTB.sub3.hello.world",
+		// Includes auto-delete queue's in case default settings change
 		"MOL-test-broadcast.REQ.event-pub",
 		"MOL-test-broadcast.REQ.event-sub1",
 		"MOL-test-broadcast.REQ.event-sub2",
@@ -178,6 +178,38 @@ const purgeList = {
 		"MOL-test-broadcast.RES.event-sub1",
 		"MOL-test-broadcast.RES.event-sub2",
 		"MOL-test-broadcast.RES.event-sub3",
+		"MOL-test-broadcast.EVENTB.pub.hello.world",
+		"MOL-test-broadcast.EVENTB.sub1.hello.world",
+		"MOL-test-broadcast.EVENTB.sub2.hello.world",
+		"MOL-test-broadcast.EVENTB.sub3.hello.world",
+		"MOL-test-broadcast.DISCONNECT.event-pub",
+		"MOL-test-broadcast.DISCONNECT.event-sub1",
+		"MOL-test-broadcast.DISCONNECT.event-sub2",
+		"MOL-test-broadcast.DISCONNECT.event-sub3",
+		"MOL-test-broadcast.DISCOVER.event-pub",
+		"MOL-test-broadcast.DISCOVER.event-sub1",
+		"MOL-test-broadcast.DISCOVER.event-sub2",
+		"MOL-test-broadcast.DISCOVER.event-sub3",
+		"MOL-test-broadcast.EVENT.event-pub",
+		"MOL-test-broadcast.EVENT.event-sub1",
+		"MOL-test-broadcast.EVENT.event-sub2",
+		"MOL-test-broadcast.EVENT.event-sub3",
+		"MOL-test-broadcast.HEARTBEAT.event-pub",
+		"MOL-test-broadcast.HEARTBEAT.event-sub1",
+		"MOL-test-broadcast.HEARTBEAT.event-sub2",
+		"MOL-test-broadcast.HEARTBEAT.event-sub3",
+		"MOL-test-broadcast.INFO.event-pub",
+		"MOL-test-broadcast.INFO.event-sub1",
+		"MOL-test-broadcast.INFO.event-sub2",
+		"MOL-test-broadcast.INFO.event-sub3",
+		"MOL-test-broadcast.PING.event-pub",
+		"MOL-test-broadcast.PING.event-sub1",
+		"MOL-test-broadcast.PING.event-sub2",
+		"MOL-test-broadcast.PING.event-sub3",
+		"MOL-test-broadcast.PONG.event-pub",
+		"MOL-test-broadcast.PONG.event-sub1",
+		"MOL-test-broadcast.PONG.event-sub2",
+		"MOL-test-broadcast.PONG.event-sub3",
 	],
 
 	exchanges: [

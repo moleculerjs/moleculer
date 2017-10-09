@@ -38,8 +38,12 @@ function createNode(name, serviceName = "emit-handler", disableBalancer = false)
 
 describe("Test AMQPTransporter", () => {
 
-	beforeAll(() => purge(purgeList));
-	afterAll(() => purge(purgeList));
+	// Delete all queues and exchanges before and after suite
+	beforeAll(() => purge(purgeList, true));
+	afterAll(() => purge(purgeList, true));
+
+	// Clear all queues between each test.
+	afterEach(() => purge(purgeList));
 
 	describe("Test AMQPTransporter event emit with built-in balancer", () => {
 
@@ -48,7 +52,8 @@ describe("Test AMQPTransporter", () => {
 		const sub2 = createNode("sub2");
 		const sub3 = createNode("sub3", "other-handler");
 
-		beforeAll(() => {
+		// Reset Flow array and start services
+		beforeEach(() => {
 			FLOW = [];
 			return Promise.all([
 				pub.start(),
@@ -58,19 +63,19 @@ describe("Test AMQPTransporter", () => {
 			]).delay(200);
 		});
 
-		afterAll(() => Promise.all([
+		// Stop services and clear queues
+		afterEach(() => Promise.all([
 			pub.stop(),
 			sub1.stop(),
 			sub2.stop(),
 			sub3.stop(),
 		]));
 
-		it("should send emit event only one service", () => {
+		it("should send emit event to only one service", () => {
 			for(let i = 0; i < 6; i++)
 				pub.emit("hello.world2", { testing: true });
 
 			return Promise.delay(2000).catch(protectReject).then(() => {
-				//console.log(FLOW);
 				expect(FLOW).toHaveLength(12);
 				expect(FLOW).toEqual(expect.arrayContaining([
 					"pub",
@@ -91,7 +96,8 @@ describe("Test AMQPTransporter", () => {
 		const sub2 = createNode("sub2", "emit-handler", true);
 		const sub3 = createNode("sub3", "other-handler", true);
 
-		beforeAll(() => {
+		// Reset Flow array and start services
+		beforeEach(() => {
 			FLOW = [];
 			return Promise.all([
 				pub.start(),
@@ -101,7 +107,8 @@ describe("Test AMQPTransporter", () => {
 			]).delay(200);
 		});
 
-		afterAll(() => Promise.all([
+		// Stop services and clear queues
+		afterEach(() => Promise.all([
 			pub.stop(),
 			sub1.stop(),
 			sub2.stop(),
@@ -113,7 +120,6 @@ describe("Test AMQPTransporter", () => {
 				pub.emit("hello.world2", { testing: true });
 
 			return Promise.delay(2000).catch(protectReject).then(() => {
-				//console.log(FLOW);
 				expect(FLOW).toHaveLength(12);
 				expect(FLOW).toEqual(expect.arrayContaining([
 					"pub",
@@ -129,8 +135,37 @@ describe("Test AMQPTransporter", () => {
 
 const purgeList = {
 	queues: [
+		// Includes auto-delete queue's in case default settings change
+		"MOL-test-emit.DISCONNECT.event-pub",
+		"MOL-test-emit.DISCONNECT.event-sub1",
+		"MOL-test-emit.DISCONNECT.event-sub2",
+		"MOL-test-emit.DISCONNECT.event-sub3",
+		"MOL-test-emit.DISCOVER.event-pub",
+		"MOL-test-emit.DISCOVER.event-sub1",
+		"MOL-test-emit.DISCOVER.event-sub2",
+		"MOL-test-emit.DISCOVER.event-sub3",
+		"MOL-test-emit.EVENT.event-pub",
+		"MOL-test-emit.EVENT.event-sub1",
+		"MOL-test-emit.EVENT.event-sub2",
+		"MOL-test-emit.EVENT.event-sub3",
 		"MOL-test-emit.EVENTB.emit-handler.hello.world2",
 		"MOL-test-emit.EVENTB.other-handler.hello.world2",
+		"MOL-test-emit.HEARTBEAT.event-pub",
+		"MOL-test-emit.HEARTBEAT.event-sub1",
+		"MOL-test-emit.HEARTBEAT.event-sub2",
+		"MOL-test-emit.HEARTBEAT.event-sub3",
+		"MOL-test-emit.INFO.event-pub",
+		"MOL-test-emit.INFO.event-sub1",
+		"MOL-test-emit.INFO.event-sub2",
+		"MOL-test-emit.INFO.event-sub3",
+		"MOL-test-emit.PING.event-pub",
+		"MOL-test-emit.PING.event-sub1",
+		"MOL-test-emit.PING.event-sub2",
+		"MOL-test-emit.PING.event-sub3",
+		"MOL-test-emit.PONG.event-pub",
+		"MOL-test-emit.PONG.event-sub1",
+		"MOL-test-emit.PONG.event-sub2",
+		"MOL-test-emit.PONG.event-sub3",
 		"MOL-test-emit.REQ.event-pub",
 		"MOL-test-emit.REQ.event-sub1",
 		"MOL-test-emit.REQ.event-sub2",
@@ -145,7 +180,6 @@ const purgeList = {
 		"MOL-test-emit.RES.event-sub2",
 		"MOL-test-emit.RES.event-sub3",
 	],
-
 	exchanges: [
 		"MOL-test-emit.DISCONNECT",
 		"MOL-test-emit.DISCOVER",

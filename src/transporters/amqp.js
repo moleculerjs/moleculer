@@ -182,7 +182,7 @@ class AmqpTransporter extends Transporter {
 				.then(() => this.channel.close())
 				.then(() => this.connection.close())
 				.then(() => {
-					this.bindings = null;
+					this.bindings = [];
 					this.channel = null;
 					this.connection = null;
 				})
