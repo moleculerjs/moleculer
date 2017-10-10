@@ -1,3 +1,11 @@
+<a name="0.11.3"></a>
+# [0.11.3](https://github.com/ice-services/moleculer/compare/v0.11.2...v0.11.3) (2017-10-10)
+
+# Changes
+- fix `ack` handling in AMQP transporter and add integration tests
+
+
+--------------------------------------------------
 <a name="0.11.2"></a>
 # [0.11.2](https://github.com/ice-services/moleculer/compare/v0.11.1...v0.11.2) (2017-10-06)
 
