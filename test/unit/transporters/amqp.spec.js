@@ -56,7 +56,8 @@ describe("Test AmqpTransporter constructor", () => {
 			amqp: {
 				url: "amqp://localhost",
 				prefetch: 1,
-				eventTimeToLive: 5000,
+				eventTimeToLive: null,
+				heartbeatTimeToLive: null,
 				exchangeOptions: {},
 				messageOptions: {},
 				queueOptions: {},
@@ -76,6 +77,7 @@ describe("Test AmqpTransporter constructor", () => {
 				url: "amqp://localhost",
 				prefetch: 3,
 				eventTimeToLive: 10000,
+				heartbeatTimeToLive: 30000,
 				exchangeOptions: { alternateExchange: "retry" },
 				messageOptions: { expiration: 120000, persistent: true, mandatory: true },
 				queueOptions: { deadLetterExchange: "dlx", maxLength: 100 },
@@ -235,7 +237,9 @@ describe("Test AmqpTransporter subscribe", () => {
 	beforeEach(() => {
 		broker = new ServiceBroker({ namespace: "TEST", nodeID: "node", internalServices: false });
 		msgHandler = jest.fn();
-		transporter = new AmqpTransporter({ amqp: { url: "amqp://localhost", eventTimeToLive: 3000 }});
+		transporter = new AmqpTransporter({
+			amqp: { url: "amqp://localhost", eventTimeToLive: 3000, heartbeatTimeToLive: 4000 }
+		});
 		transporter.init(new Transit(broker), msgHandler);
 		return transporter.connect();
 	});
@@ -265,7 +269,7 @@ describe("Test AmqpTransporter subscribe", () => {
 				expect(transporter.channel.assertQueue).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.consume).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.assertQueue)
-					.toHaveBeenCalledWith("MOL-TEST.INFO.node", {"autoDelete": true, "messageTtl": 5000});
+					.toHaveBeenCalledWith("MOL-TEST.INFO.node", {"autoDelete": true});
 				expect(transporter.channel.consume)
 					.toHaveBeenCalledWith("MOL-TEST.INFO.node", jasmine.any(Function), { noAck: true });
 
@@ -306,7 +310,7 @@ describe("Test AmqpTransporter subscribe", () => {
 				expect(transporter.channel.consume).toHaveBeenCalledTimes(1);
 
 				expect(transporter.channel.assertQueue)
-					.toHaveBeenCalledWith("MOL-TEST.EVENT.node", { autoDelete: true, messageTtl: 3000 }); // use ttl option
+					.toHaveBeenCalledWith("MOL-TEST.EVENT.node", { messageTtl: 3000 }); // use ttl option
 				expect(transporter.channel.consume)
 					.toHaveBeenCalledWith("MOL-TEST.EVENT.node", jasmine.any(Function), { noAck: true });
 
@@ -318,7 +322,36 @@ describe("Test AmqpTransporter subscribe", () => {
 			});
 	});
 
-	["DISCOVER", "DISCONNECT", "INFO", "HEARTBEAT"].forEach(type => {
+	it("check HEARTBEAT subscription", () => {
+		return transporter.subscribe("HEARTBEAT")
+			.catch(protectReject).then(() => {
+				expect(transporter.channel.assertQueue).toHaveBeenCalledTimes(1);
+				expect(transporter.channel.assertExchange).toHaveBeenCalledTimes(1);
+				expect(transporter.channel.bindQueue).toHaveBeenCalledTimes(1);
+				expect(transporter.channel.consume).toHaveBeenCalledTimes(1);
+
+				expect(transporter.channel.assertQueue)
+					.toHaveBeenCalledWith("MOL-TEST.HEARTBEAT.node", { autoDelete: true, messageTtl: 4000});
+				expect(transporter.channel.assertExchange)
+					.toHaveBeenCalledWith("MOL-TEST.HEARTBEAT", "fanout", {});
+				expect(transporter.channel.bindQueue)
+					.toHaveBeenCalledWith("MOL-TEST.HEARTBEAT.node", "MOL-TEST.HEARTBEAT", "");
+				expect(transporter.channel.consume)
+					.toHaveBeenCalledWith(
+						"MOL-TEST.HEARTBEAT.node",
+						jasmine.any(Function),
+						{ noAck: true }
+					);
+
+				const consumeCb = transporter.channel.consume.mock.calls[0][1];
+				consumeCb({ content: Buffer.from("data") });
+
+				expect(msgHandler).toHaveBeenCalledTimes(1);
+				expect(transporter.channel.ack).toHaveBeenCalledTimes(0);
+			});
+	});
+
+	["DISCOVER", "DISCONNECT", "INFO"].forEach(type => {
 		it(`check ${type} subscription`, () => {
 			return transporter.subscribe(type)
 				.catch(protectReject).then(() => {
@@ -328,7 +361,7 @@ describe("Test AmqpTransporter subscribe", () => {
 					expect(transporter.channel.consume).toHaveBeenCalledTimes(1);
 
 					expect(transporter.channel.assertQueue)
-						.toHaveBeenCalledWith(`MOL-TEST.${type}.node`, { autoDelete: true, messageTtl: 5000 });
+						.toHaveBeenCalledWith(`MOL-TEST.${type}.node`, { autoDelete: true });
 					expect(transporter.channel.assertExchange)
 						.toHaveBeenCalledWith(`MOL-TEST.${type}`, "fanout", {});
 					expect(transporter.channel.bindQueue)
@@ -373,7 +406,8 @@ describe("Test AmqpTransporter subscribe", () => {
 				expect(transporter.channel.assertQueue).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.consume).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.assertQueue)
-					.toHaveBeenCalledWith("MOL-TEST.EVENTB.posts.cache.clear", {});
+					.toHaveBeenCalledWith("MOL-TEST.EVENTB.posts.cache.clear",
+						{ messageTtl: 3000});
 				expect(transporter.channel.consume)
 					.toHaveBeenCalledWith("MOL-TEST.EVENTB.posts.cache.clear", jasmine.any(Function), {});
 

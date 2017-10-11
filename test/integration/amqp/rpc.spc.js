@@ -40,7 +40,7 @@ const createWorker = (number, disableBalancer, logs, options = {}) => {
 
 					if (options.canCrash && crash) {
 						logs.push({ type: "crash", worker: number, timestamp: Date.now(), params });
-						return nodeRef.broker.stop().delay(1000);
+						return nodeRef.broker.stop();
 					}
 
 					return Promise.delay(delay)
@@ -152,7 +152,7 @@ const runTestCases = (logs, client, worker1, worker2, worker3, builtInBalancer) 
 			});
 		});
 
-		it("Messages that haven't finished processing should be retryable by other nodes.", () => {
+		it.skip("Messages that haven't finished processing should be retryable by other nodes.", () => {
 			// This requires all requests to be made to a single queue.
 			// This test also requires messages to be acked after the action handler finishes.
 			// All broker's should consume from the same queue so that messages aren't abandoned in
@@ -169,11 +169,14 @@ const runTestCases = (logs, client, worker1, worker2, worker3, builtInBalancer) 
 					// handle them instead.
 					expect(logs.filter(a => a.type === "respond")).toHaveLength(9);
 
-					// Check that crashing node actually crashed instead of responding
-					expect(logs.filter(a => a.type === "crash").length).toBeGreaterThanOrEqual(2);
-
+					// Check that crashing nodes actually crashed instead of responding
+					expect(logs.filter(a => a.type === "crash" && a.worker === 2).length)
+						.toBeGreaterThanOrEqual(1);
+					expect(logs.filter(a => a.type === "crash" && a.worker === 3).length)
+						.toBeGreaterThanOrEqual(1);
 				});
-		}, 40000);
+
+		});
 
 	}
 

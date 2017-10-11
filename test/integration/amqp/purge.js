@@ -5,16 +5,14 @@
 const amqp = require("amqplib");
 const Promise = require("bluebird");
 
-const connectionPromise = amqp.connect(process.env.AMQP_URI || "amqp://guest:guest@localhost:5672");
+const URI = process.env.AMQP_URI || "amqp://guest:guest@localhost:5672";
 
 // Trying to delete a non-existant queue or exchange would cause a channel error.
 // Using a new channel for each operation allows us to reliably clear out AMQP queues and exchanges.
-
-const useNewChannel = (cb) => {
+const useNewChannel = (connection, cb) => {
 	let channelRef = { close: () => {} };
 
-	return connectionPromise
-		.then(connection => connection.createChannel())
+	return connection.createChannel()
 		.then((channel) => {
 			channelRef = channel;
 			channel.on("error", () => {});
@@ -25,14 +23,24 @@ const useNewChannel = (cb) => {
 		.catch(() => {});
 };
 
-const clearQueue = (q) => useNewChannel(channel => channel.purgeQueue(q));
-const deleteQueue = (q) => useNewChannel(channel => channel.deleteQueue(q));
-const deleteExchange = (e) => useNewChannel(channel => channel.deleteExchange(e));
+const clearQueue = connection => q =>
+	useNewChannel(connection, channel => channel.purgeQueue(q));
+const deleteQueue = connection => q =>
+	useNewChannel(connection, channel => channel.deleteQueue(q));
+const deleteExchange = connection => e =>
+	useNewChannel(connection, channel => channel.deleteExchange(e));
 
 module.exports = function({ queues, exchanges }, destroy = false) {
-	const donePromise = destroy
-		? Promise.all(queues.map(deleteQueue).concat(exchanges.map(deleteExchange)))
-		: Promise.all(queues.map(clearQueue));
+	return amqp.connect(URI)
+		.then((connection) => {
+			const donePromise = destroy
+				? Promise.all(
+					queues.map(deleteQueue(connection)).concat(exchanges.map(deleteExchange(connection)))
+				)
+				: Promise.all(queues.map(clearQueue(connection)));
 
-	return donePromise.delay(2000);
+			return donePromise
+				.then(() => connection.close())
+				.catch(() => {});
+		});
 };

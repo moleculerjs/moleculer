@@ -284,7 +284,8 @@ describe("Test option resolvers", () => {
 			expect(trans.opts).toEqual({
 				amqp: {
 					prefetch: 1,
-					eventTimeToLive: 5000,
+					heartbeatTimeToLive: null,
+					eventTimeToLive: null,
 					url: "amqp://localhost",
 					exchangeOptions: {},
 					messageOptions: {},

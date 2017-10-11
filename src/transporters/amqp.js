@@ -54,7 +54,10 @@ class AmqpTransporter extends Transporter {
 
 		// Number of milliseconds before an event expires
 		if (typeof opts.amqp.eventTimeToLive !== "number")
-			opts.amqp.eventTimeToLive = 5000;
+			opts.amqp.eventTimeToLive = null;
+
+		if (typeof opts.amqp.heartbeatTimeToLive !== "number")
+			opts.amqp.heartbeatTimeToLive = null;
 
 		if (typeof opts.amqp.queueOptions !== "object")
 			opts.amqp.queueOptions = {};
@@ -205,23 +208,31 @@ class AmqpTransporter extends Transporter {
 			case PACKET_RESPONSE:
 				packetOptions = {};
 				break;
-			// Packet types meant for internal use will expire after 5 seconds.
+
+			// Consumers can decide how long events live
+			// Load-balanced/grouped events
+			case PACKET_EVENT + "LB":
+			case PACKET_EVENT:
+				packetOptions = {};
+				// If eventTimeToLive is specified, add to options.
+				if (this.opts.amqp.eventTimeToLive)
+					packetOptions.messageTtl = this.opts.amqp.eventTimeToLive;
+				break;
+
+			// Packet types meant for internal use
+			case PACKET_HEARTBEAT:
+				packetOptions = { autoDelete: true };
+				// If heartbeatTimeToLive is specified, add to options.
+				if (this.opts.amqp.heartbeatTimeToLive)
+					packetOptions.messageTtl = this.opts.amqp.heartbeatTimeToLive;
+				break;
 			case PACKET_DISCOVER:
 			case PACKET_DISCONNECT:
 			case PACKET_UNKNOW:
 			case PACKET_INFO:
-			case PACKET_HEARTBEAT:
 			case PACKET_PING:
 			case PACKET_PONG:
-				packetOptions = { messageTtl: 5000, autoDelete: true };
-				break;
-			// Consumers can decide how long events live. Defaults to 5 seconds.
-			case PACKET_EVENT:
-				packetOptions = { messageTtl: this.opts.amqp.eventTimeToLive, autoDelete: true };
-				break;
-			// Load-balanced/grouped events
-			case PACKET_EVENT + "LB":
-				packetOptions = {};
+				packetOptions = { autoDelete: true };
 				break;
 		}
 
