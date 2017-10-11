@@ -1,3 +1,12 @@
+<a name="0.11.4"></a>
+# [0.11.4](https://github.com/ice-services/moleculer/compare/v0.11.3...v0.11.4) (2017-10-11)
+
+# Changes
+- fix Moleculer Runner arguments (services arg)
+- update AMQP queue options by @Nathan-Schwartz [#119](https://github.com/ice-services/moleculer/pull/119)
+
+
+--------------------------------------------------
 <a name="0.11.3"></a>
 # [0.11.3](https://github.com/ice-services/moleculer/compare/v0.11.2...v0.11.3) (2017-10-10)
 
