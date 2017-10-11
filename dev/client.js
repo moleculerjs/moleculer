@@ -4,6 +4,7 @@
 let _ = require("lodash");
 let chalk = require("chalk");
 let { MoleculerError } = require("../src/errors");
+let Strategies = require("../").Strategies;
 
 let ServiceBroker = require("../src/service-broker");
 
@@ -22,6 +23,10 @@ let broker = new ServiceBroker({
 
 	transit: {
 		maxQueueSize: 10
+	},
+
+	registry: {
+		strategy: Strategies.Random
 	},
 
 	circuitBreaker: {
