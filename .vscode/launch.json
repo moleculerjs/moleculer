@@ -86,7 +86,12 @@
 			"request": "launch",
 			"name": "Moleculer-runner",
 			"program": "${workspaceRoot}\\bin\\moleculer-runner.js",
-			"cwd": "${workspaceRoot}"
+			"cwd": "${workspaceRoot}",
+			"args": [
+				"--hot",
+				"--repl",
+				"examples"
+			]
 		},
 		{
 			"type": "node",

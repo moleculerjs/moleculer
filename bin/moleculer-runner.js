@@ -37,7 +37,7 @@ function processFlags() {
 		.option("silent", "Silent mode. No logger", false);
 
 	flags = Args.parse(process.argv, {
-		minimist: {
+		mri: {
 			alias: {
 				c: "config",
 				r: "repl",
