@@ -1,3 +1,11 @@
+<a name="0.11.5"></a>
+# [0.11.5](https://github.com/ice-services/moleculer/compare/v0.11.4...v0.11.5) (2017-10-12)
+
+# Changes
+- fix `strategy` option in broker option [#121](https://github.com/ice-services/moleculer/pull/121)
+
+
+--------------------------------------------------
 <a name="0.11.4"></a>
 # [0.11.4](https://github.com/ice-services/moleculer/compare/v0.11.3...v0.11.4) (2017-10-11)
 
