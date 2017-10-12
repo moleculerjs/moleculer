@@ -39,7 +39,7 @@ Moleculer is a fast, modern and powerful microservices framework for NodeJS (>= 
 - pluggable transporters (NATS, MQTT, Redis)
 - pluggable serializers (JSON, Avro, MsgPack, Protocol Buffer)
 - pluggable validator
-- every nodes are equal, no master/leader node
+- all nodes are equal, no master/leader node
 - parameter validation with [fastest-validator](https://github.com/icebob/fastest-validator)
 - distributed timeout handling with fallback response
 - health monitoring, metrics & statistics
