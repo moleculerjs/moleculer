@@ -2,7 +2,7 @@
 # [0.11.5](https://github.com/ice-services/moleculer/compare/v0.11.4...v0.11.5) (2017-10-12)
 
 # Changes
-- fix `strategy` option in broker option [#121](https://github.com/ice-services/moleculer/pull/121)
+- `strategy` option has been fixed in broker option [#121](https://github.com/ice-services/moleculer/pull/121)
 
 
 --------------------------------------------------
@@ -10,8 +10,8 @@
 # [0.11.4](https://github.com/ice-services/moleculer/compare/v0.11.3...v0.11.4) (2017-10-11)
 
 # Changes
-- fix Moleculer Runner arguments (services arg)
-- update AMQP queue options by @Nathan-Schwartz [#119](https://github.com/ice-services/moleculer/pull/119)
+- Moleculer Runner arguments have been fixed (`services` arg)
+- update AMQP default queue options by @Nathan-Schwartz [#119](https://github.com/ice-services/moleculer/pull/119)
 
 
 --------------------------------------------------
@@ -19,7 +19,8 @@
 # [0.11.3](https://github.com/ice-services/moleculer/compare/v0.11.2...v0.11.3) (2017-10-10)
 
 # Changes
-- fix `ack` handling in AMQP transporter and add integration tests
+- The `ack` handling has been fixed in AMQP transporter.
+- AMQP RCP integration tests are added.
 
 
 --------------------------------------------------
@@ -29,7 +30,7 @@
 # New
 
 ## Service dependencies [#102](https://github.com/ice-services/moleculer/issues/102)
-The `Service` schema has a new `dependencies` property. You can wait other dependent services when service is starting. So you don't need to call `waitForServices` in `started` any more.
+The `Service` schema has a new `dependencies` property. The serice can wait for other dependening ones when it starts. This way you don't need to call `waitForServices` in `started` any longer.
 
 ```js
 module.exports = {
@@ -48,12 +49,10 @@ module.exports = {
   ....
 }
 ```
-The `started` service handler is called after the `likes`, `users` and `comments` services are registered (on the local or remote nodes).
-
-> Services can wait for each others, it's not a problem.
+The `started` service handler is called once the `likes`, `users` and `comments` services are registered (on the local or remote nodes).
 
 ## Pending request queue size limit [#111](https://github.com/ice-services/moleculer/issues/111)
-The `ServiceBroker` has a new `maxQueueSize` option under `transit` key. With it the broker protects the process to avoid crash in a rush. If the pending request queue size reaches this limit, broker rejects the request with a `QueueIsFull` (retryable) error. The `maxQueueSize` default value is 50,000.
+The `ServiceBroker` has a new `maxQueueSize` option under `transit` key. The broker protects the process to avoid crash during a high load with it. The `maxQueueSize` default value is 50,000. If pending request queue size reaches it, broker rejects the request with a `QueueIsFull` (retryable) error.
 
 ```js
 let broker = new ServiceBroker({
@@ -67,7 +66,7 @@ let broker = new ServiceBroker({
 # Changes
 
 ## The `waitForServices` method supports service versions [#112](https://github.com/ice-services/moleculer/issues/112)
-By [@imatefx](https://github.com/imatefx), the `waitForServices` broker & service methods support versioned services. If you want to define version in a dependency, use the following formats:
+By [@imatefx](https://github.com/imatefx), the `waitForServices` broker & service methods support service versions. Use the following formats to define version in a dependency:
 
 ```js
 module.exports = {
@@ -123,24 +122,24 @@ let broker = new ServiceBroker({
 # Breaking changes
 
 ## Protocol changed [#86](https://github.com/ice-services/moleculer/issues/86)
-The Moleculer transportation protocol is changed. It means, **the new (>= v0.11) versions can't communicate with the old (<= v0.10.x) versions.**
+The Moleculer transportation protocol has been changed. It means, **the new (>= v0.11) versions can't communicate with the old (<= v0.10.x) ones.**
 You can find more information about changes in [#86](https://github.com/ice-services/moleculer/issues/86) issue.
 
 ## Balanced events
-The whole event handling is rewritten. From now Moleculer supports [event driven architecture](http://microservices.io/patterns/data/event-driven-architecture.html). It means the event emits are balanced like action calls.
+The whole event handling has been rewritten. By now Moleculer supports [event driven architecture](http://microservices.io/patterns/data/event-driven-architecture.html). It means that event emits are balanced like action calls are.
 
-For example, you have 2 main services: `users` & `payments`. Both subscribe to the `user.created` event. You start 3 instances from `users` service and 2 instances from `payments` service. If you emit the event with `broker.emit('user.created')`, broker will grouping & balancing the event, so only one `users` and one `payments` service will receive the event. 
-You can also send broadcast events with the `broker.broadcast('user.created`) command. In this way every service instances on every nodes will receive the event.
-The `broker.broadcastLocal('user.created')` command send events only to the local services.
+For example, you have 2 main services: `users` & `payments`. Both subscribe to the `user.created` event. You start 3 instances from `users` service and 2 instances from `payments` service. If you emit the event with `broker.emit('user.created')`, broker groups & balances the event, so only one `users` and one `payments` service receive the event. 
+You can also send broadcast events with the `broker.broadcast('user.created`) command. This way every service instance on every node receives the event.
+The `broker.broadcastLocal('user.created')` command sends events only to the local services.
 
 ## Renamed & new internal events
-Every internal event names start with '$'. These events are not transferred to remote nodes.
+Every internal event name starts with '$'. These events are not transferred to remote nodes.
 
 **Renamed events:**
 - `node.connected` -> `$node.connected`
 - `node.updated` -> `$node.updated`
 - `node.disconnected` -> `$node.disconnected`
-- `services.changed` -> `$services.changed`. It is called if local or remote service list changed.
+- `services.changed` -> `$services.changed`. It is called if local or remote service list is changed.
 - `circuit-breaker.closed` -> `$circuit-breaker.closed`
 - `circuit-breaker.opened` -> `$circuit-breaker.opened`
 - `circuit-breaker.half-opened` -> `$circuit-breaker.half-opened`
@@ -149,7 +148,7 @@ Every internal event names start with '$'. These events are not transferred to r
 - global circuit breaker events for metrics: `metrics.circuit-breaker.closed`, `metrics.circuit-breaker.opened`, `metrics.circuit-breaker.half-opened`
 
 ## Switchable built-in load balancer
-The built-in Moleculer load balancer is switchable. You can turn off it, if the transporter has internal balancer (currently only AMQP).
+The built-in Moleculer load balancer is switchable. You can turn it off, if the transporter has internal balancer (currently AMQP has it).
 
 ```js
 const broker = new ServiceBroker({
@@ -157,20 +156,19 @@ const broker = new ServiceBroker({
 });
 ```
 
-> Please note! If built-in balancer is disabled, every calls & emits (includes locals too) are transferred via transporter.
+> Please note! If built-in balancer is disabled, every call & emit (including local ones too) are transferred via transporter.
 
 ## Removed broker methods
-Some internal broker methods are removed or renamed.
-- `broker.bus` is removed. Use `events` in service schema instead.
-- `broker.on` is removed. Use `events` in service schema instead.
-- `broker.once` is removed. Use `events` in service schema instead.
-- `broker.off` is removed. Use `events` in service schema instead.
-- `broker.getService` is renamed to `broker.getLocalService`
-- `broker.hasService` is removed.
-- `broker.hasAction` is removed.
-- `broker.getAction` is deprecated.
-- `broker.isActionAvailable` is removed.
-
+Some internal broker methods have been removed or renamed.
+- `broker.bus` has been removed.
+- `broker.on` has been removed. Use `events` in service schema instead.
+- `broker.once` has been removed.
+- `broker.off` has been removed.
+- `broker.getService` has been renamed to `broker.getLocalService`
+- `broker.hasService` has been removed.
+- `broker.hasAction` has been removed.
+- `broker.getAction` has been deprecated.
+- `broker.isActionAvailable` has been removed.
 
 ## Changed local service responses
 Internal action (`$node.list`, `$node.services`, `$node.actions`, `$node.health`) responses are changed. New internal action (`$node.events`) to list event subscriptiion is added.
@@ -184,7 +182,7 @@ Internal action (`$node.list`, `$node.services`, `$node.actions`, `$node.health`
 # New
 
 ## Ping command
-Implemented a new PING & PONG feature. You can ping other nodes to measure the network latency and system time differences.
+New PING & PONG feature has been implemented. Ping remite nodes to measure the network latency and system time differences.
 
 ```js
 broker.createService({
@@ -200,10 +198,10 @@ broker.start().then(() => broker.transit.sendPing(/*nodeID*/));
 ```
 
 ## Pluggable validator
-The Validator in ServiceBroker is pluggable. So you can change the built-in `fastest-validator` to a slower other one :) [Example Joi validator](https://gist.github.com/icebob/07024c0ac22589a5496473c2a8a91146)
+The Validator in ServiceBroker is plugable. So you can change the built-in `fastest-validator` to a slower one :) [Example Joi validator](https://gist.github.com/icebob/07024c0ac22589a5496473c2a8a91146)
 
 ## Waiting for other services feature
-If your services depends on other services, use the `waitForService` method to wait while dependencies start.
+If your services depend on other ones, use the `waitForService` method to make services wait until dependencies start.
 
 ```js
 let svc = broker.createService({
