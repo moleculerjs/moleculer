@@ -100,7 +100,7 @@ broker.createService({
 > The `metadata` is transferred between nodes, you can access it via `$node.services`. Or inside service with `this.metadata` like settings.
 
 ## NATS transporter supports to use the built-in balancer
-The NATS transporter code is changed. Now it supports to use the NATS built-in balancer instead of Moleculer balancer. In this case every `call` & `emit` will be transferred through NATS message broker.
+The NATS transporter has been changed. It supports to use the NATS built-in balancer instead of Moleculer balancer. In this case every `call` & `emit` will be transferred through NATS message broker.
 
 ```js
 let broker = new ServiceBroker({
@@ -112,7 +112,7 @@ let broker = new ServiceBroker({
 # Changes
 - ping nodes with `broker.sendPing` instead of `broker.transit.sendPing`.
 - `index.d.ts` updated to v0.11
-- AMQP integration tests is rewritten.
+- AMQP integration tests has been rewritten.
 - process exit code changed from `2` to `1` in `broker.fatal`. Reason: `2` is reserved by Bash for builtin misuse. [More info](https://nodejs.org/dist/latest-v6.x/docs/api/process.html#process_exit_codes)
 
 --------------------------------------------------
