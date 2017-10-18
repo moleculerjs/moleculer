@@ -129,7 +129,7 @@ You can find more information about changes in [#86](https://github.com/ice-serv
 The whole event handling has been rewritten. By now Moleculer supports [event driven architecture](http://microservices.io/patterns/data/event-driven-architecture.html). It means that event emits are balanced like action calls are.
 
 For example, you have 2 main services: `users` & `payments`. Both subscribe to the `user.created` event. You start 3 instances from `users` service and 2 instances from `payments` service. If you emit the event with `broker.emit('user.created')`, broker groups & balances the event, so only one `users` and one `payments` service receive the event. 
-You can also send broadcast events with the `broker.broadcast('user.created`) command. This way every service instance on every node receives the event.
+You can also send broadcast events with the `broker.broadcast('user.created')` command. This way every service instance on every node receives the event.
 The `broker.broadcastLocal('user.created')` command sends events only to the local services.
 
 ## Renamed & new internal events
