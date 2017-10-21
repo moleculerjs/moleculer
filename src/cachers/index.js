@@ -7,8 +7,7 @@
 "use strict";
 
 module.exports = {
-	//Memory: require("./memory"),  - slower
 	Base: require("./base"),
-	Memory: require("./memory-map"),
+	Memory: require("./memory"),
 	Redis: require("./redis")
 };

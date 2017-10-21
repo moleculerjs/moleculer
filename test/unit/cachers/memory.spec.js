@@ -2,7 +2,7 @@ const ServiceBroker = require("../../../src/service-broker");
 const MemoryCacher = require("../../../src/cachers/memory");
 
 
-describe("Test MemoryCacher constructor", () => {
+describe("Test MemoryMapCacher constructor", () => {
 
 	it("should create an empty options", () => {
 		let cacher = new MemoryCacher();
@@ -40,9 +40,9 @@ describe("Test MemoryCacher set & get", () => {
 
 	it("should save the data with key", () => {
 		cacher.set(key, data1);
-		expect(cacher.cache[key]).toBeDefined();
-		expect(cacher.cache[key].data).toBe(data1);
-		expect(cacher.cache[key].expire).toBeNull();
+		expect(cacher.cache.get(key)).toBeDefined();
+		expect(cacher.cache.get(key).data).toBe(data1);
+		expect(cacher.cache.get(key).expire).toBeNull();
 	});
 
 	it("should give back the data by key", () => {
@@ -81,9 +81,9 @@ describe("Test MemoryCacher delete", () => {
 	});
 
 	it("should delete the key", () => {
-		expect(cacher.cache[key]).toBeDefined();
+		expect(cacher.cache.get(key)).toBeDefined();
 		cacher.del(key);
-		expect(cacher.cache[key]).toBeUndefined();
+		expect(cacher.cache.get(key)).toBeUndefined();
 	});
 
 	it("should give null", () => {
@@ -118,8 +118,8 @@ describe("Test MemoryCacher clean", () => {
 	});
 
 	it("should give item in cache for keys", () => {
-		expect(cacher.cache[key1]).toBeDefined();
-		expect(cacher.cache[key2]).toBeDefined();
+		expect(cacher.cache.get(key1)).toBeDefined();
+		expect(cacher.cache.get(key2)).toBeDefined();
 	});
 
 	it("should clean test* keys", () => {
@@ -177,10 +177,10 @@ describe("Test MemoryCacher expired method", () => {
 	});
 
 	it("should set expire to item", () => {
-		expect(cacher.cache[key1].expire).toBeDefined();
-		expect(cacher.cache[key1].expire).toBeGreaterThan(Date.now());
+		expect(cacher.cache.get(key1).expire).toBeDefined();
+		expect(cacher.cache.get(key1).expire).toBeGreaterThan(Date.now());
 
-		cacher.cache[key1].expire = Date.now() - 10 * 1000; // Hach the expire time
+		cacher.cache.get(key1).expire = Date.now() - 10 * 1000; // Hack the expire time
 		cacher.checkTTL();
 	});
 
