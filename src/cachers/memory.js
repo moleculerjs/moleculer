@@ -11,18 +11,18 @@ const nanomatch  	= require("nanomatch");
 const BaseCacher  	= require("./base");
 /**
  * Cacher factory for memory cache
- * 
+ *
  * 		Similar: https://github.com/mpneuried/nodecache/blob/master/_src/lib/node_cache.coffee
- * 
+ *
  * @class MemoryMapCacher
  */
 class MemoryMapCacher extends BaseCacher {
 
 	/**
 	 * Creates an instance of MemoryMapCacher.
-	 * 
+	 *
 	 * @param {object} opts
-	 * 
+	 *
 	 * @memberOf MemoryMapCacher
 	 */
 	constructor(opts) {
@@ -43,17 +43,17 @@ class MemoryMapCacher extends BaseCacher {
 
 	/**
 	 * Get data from cache by key
-	 * 
+	 *
 	 * @param {any} key
 	 * @returns {Promise}
-	 *  
+	 *
 	 * @memberOf MemoryMapCacher
 	 */
 	get(key) {
-		//this.logger.debug(`GET ${key}`);
+		this.logger.debug(`GET ${key}`);
 
 		if (this.cache.has(key)) {
-			//this.logger.debug(`FOUND ${key}`);
+			this.logger.debug(`FOUND ${key}`);
 
 			let item = this.cache.get(key);
 
@@ -68,11 +68,11 @@ class MemoryMapCacher extends BaseCacher {
 
 	/**
 	 * Save data to cache by key
-	 * 
+	 *
 	 * @param {any} key
 	 * @param {any} data JSON object
 	 * @returns {Promise}
-	 * 
+	 *
 	 * @memberOf MemoryMapCacher
 	 */
 	set(key, data) {
@@ -86,10 +86,10 @@ class MemoryMapCacher extends BaseCacher {
 
 	/**
 	 * Delete a key from cache
-	 * 
+	 *
 	 * @param {any} key
 	 * @returns {Promise}
-	 * 
+	 *
 	 * @memberOf MemoryMapCacher
 	 */
 	del(key) {
@@ -102,7 +102,7 @@ class MemoryMapCacher extends BaseCacher {
 	 * Clean cache. Remove every key by match
 	 * @param {any} match string. Default is "**"
 	 * @returns {Promise}
-	 * 
+	 *
 	 * @memberOf Cacher
 	 */
 	clean(match = "**") {
@@ -120,7 +120,7 @@ class MemoryMapCacher extends BaseCacher {
 
 	/**
 	 * Check & remove the expired cache items
-	 * 
+	 *
 	 * @memberOf MemoryMapCacher
 	 */
 	checkTTL() {

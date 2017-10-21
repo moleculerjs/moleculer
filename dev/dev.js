@@ -3,80 +3,44 @@
 "use strict";
 
 let ServiceBroker = require("../src/service-broker");
-let { MoleculerError } = require("../src/errors");
 
-let broker1 = new ServiceBroker({
-	nodeID: "node1",
+let broker = new ServiceBroker({
 	logger: true,
 	logLevel: "debug",
-	transporter: "NATS"
-});
-
-broker1.createService({
-	name: "planets",
-	metadata: {
-		type: "planets"
-	},
-	events: {
-		"$planet.earth"(payload) {
-			this.logger.info(`$Earth is fired '${this.broker.nodeID}'!`);
-		},
-		"planet.mars"(payload) {
-			this.logger.info(`Mars is fired '${this.broker.nodeID}'!`);
-		},
-		"$transporter.connected"(payload) {
-			console.log("Transporter CONNECTED");
-		}
-	},
-	started() {
-		setInterval(() => {
-			this.logger.info(`Emit on '${this.broker.nodeID}'`);
-			this.broker.broadcast("$planet.earth");
-			//this.broker.emit("planet.mars");
-		}, 2000);
-	}
-});
-/*
-broker1.localBus.on("$planet.earth", payload => {
-	console.log("Event emitted: $planet.earth");
-});
-
-broker1.localBus.on("$transporter.connected", payload => {
-	console.log("Transporter CONNECTED");
-});*/
-
-// ----------------------------------------------------------------------
-
-let broker2 = new ServiceBroker({
-	nodeID: "node2",
-	logger: true,
-	logLevel: "debug",
-	transporter: "NATS"
-});
-
-broker2.createService({
-	name: "planets",
-	events: {
-		"$planet.earth"(payload) {
-			this.logger.info(`$Earth is fired '${this.broker.nodeID}'!`);
-		},
-		/*"planet.mars"(payload) {
-			this.logger.info(`Mars is fired '${this.broker.nodeID}'!`);
+	cacher: {
+		type: "memory",
+		/*options: {
+			keygen(name, params, meta, keys) {
+				console.log("Keygen...");
+				return "asd";
+			}
 		}*/
-	},
-	started() {
-		/*setInterval(() => {
-			//this.logger.info(`Emit on '${this.broker.nodeID}'`);
-			//this.broker.emit("$planet.earth");
-			this.broker.emit("planet.mars");
-		}, 2000);*/
 	}
 });
 
-// ----------------------------------------------------------------------
+broker.createService({
+	name: "math",
+	actions: {
+		add: {
+			cache: {
+				keys: ["a", "b", "#c"]
+			},
+			handler(ctx) {
+				return Number(ctx.params.a) + Number(ctx.params.b) + Number(ctx.meta.c || 0);
+			}
+		}
+	}
+});
 
-broker1.Promise.resolve()
-	.then(() => broker1.start())
-	.then(() => broker2.start())
-	.catch(err => broker1.logger.error(err))
-	.then(() => broker1.repl());
+broker.start()
+	// Without meta  - no cache
+	.then(() => broker.call("math.add", { a: 5, b: 3 }).then(res => broker.logger.info("[No cache] 5 + 3 =", res)))
+	// Without meta  - cache
+	.then(() => broker.call("math.add", { a: 5, b: 3 }).then(res => broker.logger.info("[CACHED] 5 + 3 =", res)))
+
+	// With meta  - no cache
+	.then(() => broker.call("math.add", { a: 5, b: 3 }, { meta: { c: 2 }}).then(res => broker.logger.info("[No cache] 5 + 3 + 2 =", res)))
+	// With meta  - cache
+	.then(() => broker.call("math.add", { a: 5, b: 3 }, { meta: { c: 2 }}).then(res => broker.logger.info("[CACHED] 5 + 3 + 2 =", res)))
+	// With meta  - no cache
+	.then(() => broker.call("math.add", { a: 5, b: 3 }, { meta: { c: 4 }}).then(res => broker.logger.info("[No cache] 5 + 3 + 4 =", res)));

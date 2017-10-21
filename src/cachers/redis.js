@@ -90,10 +90,10 @@ class RedisCacher extends BaseCacher {
 	 * @memberOf Cacher
 	 */
 	get(key) {
-		//this.logger.debug(`GET ${key}`);
+		this.logger.debug(`GET ${key}`);
 		return this.client.get(this.prefix + key).then((data) => {
 			if (data) {
-				//this.logger.debug(`FOUND ${key}`);
+				this.logger.debug(`FOUND ${key}`);
 				try {
 					return JSON.parse(data);
 				} catch (err) {
