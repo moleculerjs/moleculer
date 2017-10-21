@@ -20,9 +20,7 @@ const Context = require("../../src/context");
 const Transit = require("../../src/transit");
 const Cachers = require("../../src/cachers");
 const Serializers = require("../../src/serializers");
-const JSONSerializer = require("../../src/serializers/json");
 const Transporters = require("../../src/transporters");
-const FakeTransporter = require("../../src/transporters/fake");
 const Strategies = require("../../src/strategies");
 const { MoleculerError, ServiceNotFoundError, ServiceNotAvailable, RequestTimeoutError } = require("../../src/errors");
 
@@ -58,7 +56,7 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.middlewares).toBeInstanceOf(Array);
 
 		expect(broker.cacher).toBeNull();
-		expect(broker.serializer).toBeInstanceOf(JSONSerializer);
+		expect(broker.serializer).toBeInstanceOf(Serializers.JSON);
 		expect(broker.validator).toBeDefined();
 		expect(broker.transit).toBeUndefined();
 		expect(broker.statistics).toBeUndefined();
@@ -148,7 +146,7 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.transit).toBeUndefined();
 		expect(broker.statistics).toBeDefined();
 		expect(broker.validator).toBeUndefined();
-		expect(broker.serializer).toBeInstanceOf(JSONSerializer);
+		expect(broker.serializer).toBeInstanceOf(Serializers.JSON);
 		expect(broker.namespace).toBe("test");
 		expect(broker.nodeID).toBe("server-12");
 		expect(broker.call).toBe(broker.callWithoutBalancer);
@@ -158,7 +156,7 @@ describe("Test ServiceBroker constructor", () => {
 
 	it("should create transit if transporter into options", () => {
 		let broker = new ServiceBroker( {
-			transporter: new FakeTransporter()
+			transporter: "Fake"
 		});
 
 		expect(broker).toBeDefined();
@@ -180,7 +178,7 @@ describe("Test ServiceBroker constructor", () => {
 	});
 
 	it("should set serializer and call init", () => {
-		let serializer = new JSONSerializer();
+		let serializer = new Serializers.JSON();
 		serializer.init = jest.fn();
 		let broker = new ServiceBroker( {
 			serializer
@@ -204,7 +202,7 @@ describe("Test ServiceBroker constructor", () => {
 
 	it("should disable balancer if transporter has no built-in balancer", () => {
 		let broker = new ServiceBroker( {
-			transporter: new FakeTransporter(),
+			transporter: "Fake",
 			disableBalancer: true
 		});
 
@@ -212,7 +210,7 @@ describe("Test ServiceBroker constructor", () => {
 	});
 
 	it("should not disable balancer if transporter has no built-in balancer", () => {
-		let tx = new FakeTransporter();
+		let tx = new Transporters.Fake();
 		tx.hasBuiltInBalancer = false;
 
 		let broker = new ServiceBroker( {
@@ -458,7 +456,7 @@ describe("Test broker.start", () => {
 		};
 
 		let broker = new ServiceBroker({
-			transporter: new FakeTransporter()
+			transporter: "Fake"
 		});
 
 		broker.createService(schema);
@@ -480,7 +478,7 @@ describe("Test broker.start", () => {
 		};
 
 		let broker = new ServiceBroker({
-			transporter: new FakeTransporter()
+			transporter: "Fake"
 		});
 
 		broker.createService(schema);
@@ -511,7 +509,7 @@ describe("Test broker.stop", () => {
 
 		beforeAll(() => {
 			broker = new ServiceBroker({
-				transporter: new FakeTransporter()
+				transporter: "Fake"
 			});
 
 			broker.createService(schema);
@@ -545,7 +543,7 @@ describe("Test broker.stop", () => {
 		broker = new ServiceBroker({
 			metrics: true,
 			statistics: true,
-			transporter: new FakeTransporter()
+			transporter: "Fake"
 		});
 
 		broker.createService(schema);
@@ -577,7 +575,7 @@ describe("Test broker.stop", () => {
 		broker = new ServiceBroker({
 			metrics: true,
 			statistics: true,
-			transporter: new FakeTransporter()
+			transporter: "Fake"
 		});
 
 		broker.createService(schema);
@@ -945,7 +943,7 @@ describe("Test broker.servicesChanged", () => {
 	let broker;
 
 	broker = new ServiceBroker({
-		transporter: new FakeTransporter()
+		transporter: "Fake"
 	});
 
 	broker.broadcastLocal = jest.fn();
@@ -1916,7 +1914,7 @@ describe("Test broker.mcall", () => {
 describe("Test broker._callErrorHandler", () => {
 
 	let broker = new ServiceBroker({
-		transporter: new FakeTransporter(),
+		transporter: "Fake",
 		metrics: true,
 		circuitBreaker: {
 			enabled: true
@@ -2112,7 +2110,7 @@ describe("Test broker._finishCall", () => {
 describe("Test broker.shouldMetric", () => {
 
 	describe("Test broker.shouldMetric with 0.25", () => {
-		let broker = new ServiceBroker({ transporter: new FakeTransporter, metrics: true, metricsRate: 0.25 });
+		let broker = new ServiceBroker({ transporter: "Fake", metrics: true, metricsRate: 0.25 });
 
 		it("should return true only all 1/4 calls", () => {
 			expect(broker.shouldMetric()).toBe(false);
@@ -2128,7 +2126,7 @@ describe("Test broker.shouldMetric", () => {
 	});
 
 	describe("Test broker.shouldMetric with 1", () => {
-		let broker = new ServiceBroker({ transporter: new FakeTransporter, metrics: true, metricsRate: 1 });
+		let broker = new ServiceBroker({ transporter: "Fake", metrics: true, metricsRate: 1 });
 
 		it("should return true all calls", () => {
 			expect(broker.shouldMetric()).toBe(true);
@@ -2140,7 +2138,7 @@ describe("Test broker.shouldMetric", () => {
 	});
 
 	describe("Test broker.shouldMetric with 0", () => {
-		let broker = new ServiceBroker({ transporter: new FakeTransporter, metrics: true, metricsRate: 0 });
+		let broker = new ServiceBroker({ transporter: "Fake", metrics: true, metricsRate: 0 });
 
 		it("should return false all calls", () => {
 			expect(broker.shouldMetric()).toBe(false);
