@@ -9,7 +9,7 @@ let Benchmarkify = require("benchmarkify");
 let benchmark = new Benchmarkify("Cachers benchmark").printHeader();
 
 let Moleculer = require("../../");
-let MemoryMapCacher = require("../../src/cachers/memory-map");
+let MemoryCacher = require("../../src/cachers/memory");
 
 let key = "TESTKEY-12345";
 
@@ -21,9 +21,6 @@ let broker = new Moleculer.ServiceBroker();
 let memCacher = new Moleculer.Cachers.Memory();
 memCacher.init(broker);
 
-let memMapCacher = new MemoryMapCacher();
-memMapCacher.init(broker);
-
 let redisCacher = new Moleculer.Cachers.Redis({
 	redis: {
 		uri: "localhost:6379"
@@ -34,13 +31,7 @@ redisCacher.init(broker);
 
 // ----
 bench1.add("Memory", done => {
-	memCacher.set(key, data);
-	memCacher.get(key).then(done);
-});
-
-bench1.add("MemoryMap", () => {
-	memMapCacher.set(key, data);
-	return memMapCacher.get(key);	
+	memCacher.set(key, data).then(() => memCacher.get(key)).then(done);
 });
 
 bench1.add("Redis", done => {
@@ -50,11 +41,11 @@ bench1.add("Redis", done => {
 let bench2 = benchmark.createSuite("Test getCacheKey");
 
 bench2.add("Dynamic", () => {
-	return memCacher.getCacheKey("user", { id: 5 });
+	return memCacher.getCacheKey("user", { id: 5 }, null);
 });
 
 bench2.add("Static", () => {
-	return memCacher.getCacheKey("user", { id: 5 }, ["id"]);
+	return memCacher.getCacheKey("user", { id: 5 }, null, ["id"]);
 });
 
 benchmark.run([bench1, bench2]).then(() => {
@@ -70,26 +61,25 @@ benchmark.run([bench1, bench2]).then(() => {
 Platform info:
 ==============
    Windows_NT 6.1.7601 x64
-   Node.JS: 6.10.0
-   V8: 5.1.281.93
+   Node.JS: 6.11.4
+   V8: 5.1.281.108
    Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
 
 Suite: Set & get 1k data with cacher
-√ Memory*           1,949,992 rps
-√ MemoryMap         4,753,352 rps
-√ Redis*               11,533 rps
+√ Memory*        1,434,441 rps
+√ Redis*            11,464 rps
 
-   Memory*         -58.98%      (1,949,992 rps)   (avg: 512ns)
-   MemoryMap            0%      (4,753,352 rps)   (avg: 210ns)
-   Redis*          -99.76%         (11,533 rps)   (avg: 86μs)
+   Memory*           0%      (1,434,441 rps)   (avg: 697ns)
+   Redis*        -99.2%         (11,464 rps)   (avg: 87μs)
 -----------------------------------------------------------------------
 
 Suite: Test getCacheKey
-√ Dynamic           507,894 rps
-√ Static         19,409,900 rps
+√ Dynamic           535,623 rps
+√ Static          4,159,573 rps
 
-   Dynamic       -97.38%        (507,894 rps)   (avg: 1μs)
-   Static             0%     (19,409,900 rps)   (avg: 51ns)
+   Dynamic       -87.12%        (535,623 rps)   (avg: 1μs)
+   Static             0%      (4,159,573 rps)   (avg: 240ns)
 -----------------------------------------------------------------------
+
 
 */

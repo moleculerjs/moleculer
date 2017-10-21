@@ -144,6 +144,9 @@ describe("Test BaseCacher", () => {
 		res = cacher.getCacheKey("user", {a: 5}, { user: "bob" }, ["a", "#user"]);
 		expect(res).toBe("user:5|bob");
 
+		res = cacher.getCacheKey("user", {a: 5}, { user: "bob" }, ["#user", "a"]);
+		expect(res).toBe("user:bob|5");
+
 		res = cacher.getCacheKey("user", {a: 5, user: "adam"}, { user: "bob" }, ["#user"]);
 		expect(res).toBe("user:bob");
 
@@ -153,6 +156,19 @@ describe("Test BaseCacher", () => {
 		res = cacher.getCacheKey("user", null, {a: { b: { c: "nested" }}}, ["#a.b.c"]);
 		expect(res).toBe("user:nested");
 
+	});
+
+	it("check getCacheKey with custom keygen", () => {
+		let broker = new ServiceBroker();
+		let keygen = jest.fn(() => "custom");
+		let cacher = new Cacher({ keygen });
+
+		cacher.init(broker);
+
+		let res = cacher.getCacheKey("posts.find.model", { limit: 5 }, { user: "bob" }, ["limit", "#user"]);
+		expect(res).toBe("custom");
+		expect(keygen).toHaveBeenCalledTimes(1);
+		expect(keygen).toHaveBeenCalledWith("posts.find.model", { limit: 5 }, { user: "bob" }, ["limit", "#user"]);
 	});
 });
 
