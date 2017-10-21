@@ -27,6 +27,7 @@ describe("Test RedisCacher constructor", () => {
 		let cacher = new RedisCacher(opts);
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toEqual({
+			keygen: null,
 			ttl: null,
 			redis: opts
 		});
