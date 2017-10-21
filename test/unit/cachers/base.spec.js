@@ -226,7 +226,32 @@ describe("Test middleware", () => {
 			expect(broker.cacher.get).toHaveBeenCalledWith(cacheKey);
 
 			expect(broker.cacher.set).toHaveBeenCalledTimes(1);
-			expect(broker.cacher.set).toHaveBeenCalledWith(cacheKey, resData);
+			expect(broker.cacher.set).toHaveBeenCalledWith(cacheKey, resData, undefined);
+		});
+	});
+
+	it("should call the 'cache.set' action with custom TTL", () => {
+		let resData = [1];
+		let cacheKey = cacher.getCacheKey(mockAction.name, params);
+		broker.cacher.set.mockClear();
+		broker.cacher.get = jest.fn(() => Promise.resolve(null));
+		mockAction.handler = jest.fn(() => Promise.resolve(resData));
+		mockAction.cache = { ttl: 8 };
+
+		let ctx = new Context();
+		ctx.setParams(params);
+
+		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+
+		return cachedHandler(ctx).then(response => {
+			expect(response).toBe(resData);
+			expect(mockAction.handler).toHaveBeenCalledTimes(1);
+
+			expect(broker.cacher.get).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.get).toHaveBeenCalledWith(cacheKey);
+
+			expect(broker.cacher.set).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.set).toHaveBeenCalledWith(cacheKey, resData, 8);
 		});
 	});
 

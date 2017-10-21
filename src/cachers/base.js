@@ -94,10 +94,11 @@ class Cacher {
 	 *
 	 * @param {any} key
 	 * @param {any} data
+	 * @param {Number?} ttl
 	 *
 	 * @memberOf Cacher
 	 */
-	set(/*key, data*/) {
+	set(/*key, data, ttl*/) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
 	}
@@ -145,19 +146,16 @@ class Cacher {
 	}
 
 	/**
-	 * Get a cache key by name and params.
-	 * Concatenate the name and the hashed params object
+	 * Default cache key generator
 	 *
-	 * @param {String} name
+	 * @param {String} actionName
 	 * @param {Object} params
 	 * @param {Object} meta
 	 * @param {Array|null} keys
-	 * @returns
+	 * @returns {String}
+	 * @memberof Cacher
 	 */
-	getCacheKey(actionName, params, meta, keys) {
-		if (_.isFunction(this.opts.keygen))
-			return this.opts.keygen.call(this, actionName, params, meta, keys);
-
+	defaultKeygen(actionName, params, meta, keys) {
 		if (params || meta) {
 			const keyPrefix = actionName + ":";
 			if (keys) {
@@ -182,6 +180,23 @@ class Cacher {
 	}
 
 	/**
+	 * Get a cache key by name and params.
+	 * Concatenate the name and the hashed params object
+	 *
+	 * @param {String} name
+	 * @param {Object} params
+	 * @param {Object} meta
+	 * @param {Array|null} keys
+	 * @returns {String}
+	 */
+	getCacheKey(actionName, params, meta, keys) {
+		if (_.isFunction(this.opts.keygen))
+			return this.opts.keygen.call(this, actionName, params, meta, keys);
+		else
+			return this.defaultKeygen(actionName, params, meta, keys);
+	}
+
+	/**
 	 * Register cacher as a middleware
 	 *
 	 * @memberOf Cacher
@@ -193,15 +208,15 @@ class Cacher {
 					const cacheKey = this.getCacheKey(action.name, ctx.params, ctx.meta, action.cache.keys);
 					return this.get(cacheKey).then(content => {
 						if (content != null) {
-							// Found in the cache! Don't call handler, return with the context
+							// Found in the cache! Don't call handler, return with the content
 							ctx.cachedResult = true;
 							return content;
 						}
 
 						// Call the handler
 						return handler(ctx).then(result => {
-							// Save the response to the cache
-							this.set(cacheKey, result);
+							// Save the result to the cache
+							this.set(cacheKey, result, action.cache.ttl);
 
 							return result;
 						});

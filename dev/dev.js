@@ -7,6 +7,7 @@ let ServiceBroker = require("../src/service-broker");
 let broker = new ServiceBroker({
 	logger: true,
 	logLevel: "debug",
+	transporter: "NATS",
 	cacher: {
 		type: "memory",
 		/*options: {
@@ -23,7 +24,8 @@ broker.createService({
 	actions: {
 		add: {
 			cache: {
-				keys: ["a", "b", "#c"]
+				keys: ["a", "b", "#c"],
+				ttl: 5
 			},
 			handler(ctx) {
 				return Number(ctx.params.a) + Number(ctx.params.b) + Number(ctx.meta.c || 0);

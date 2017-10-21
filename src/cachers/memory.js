@@ -12,18 +12,16 @@ const BaseCacher  	= require("./base");
 /**
  * Cacher factory for memory cache
  *
- * 		Similar: https://github.com/mpneuried/nodecache/blob/master/_src/lib/node_cache.coffee
- *
- * @class MemoryMapCacher
+ * @class MemoryCacher
  */
-class MemoryMapCacher extends BaseCacher {
+class MemoryCacher extends BaseCacher {
 
 	/**
-	 * Creates an instance of MemoryMapCacher.
+	 * Creates an instance of MemoryCacher.
 	 *
 	 * @param {object} opts
 	 *
-	 * @memberOf MemoryMapCacher
+	 * @memberOf MemoryCacher
 	 */
 	constructor(opts) {
 		super(opts);
@@ -31,14 +29,13 @@ class MemoryMapCacher extends BaseCacher {
 		// Cache container
 		this.cache = new Map();
 
-		if (this.opts.ttl) {
-			this.timer = setInterval(() => {
-				/* istanbul ignore next */
-				this.checkTTL();
-			}, 30 * 1000);
+		// Start TTL timer
+		this.timer = setInterval(() => {
+			/* istanbul ignore next */
+			this.checkTTL();
+		}, 30 * 1000);
 
-			this.timer.unref();
-		}
+		this.timer.unref();
 	}
 
 	/**
@@ -47,7 +44,7 @@ class MemoryMapCacher extends BaseCacher {
 	 * @param {any} key
 	 * @returns {Promise}
 	 *
-	 * @memberOf MemoryMapCacher
+	 * @memberOf MemoryCacher
 	 */
 	get(key) {
 		this.logger.debug(`GET ${key}`);
@@ -69,16 +66,20 @@ class MemoryMapCacher extends BaseCacher {
 	/**
 	 * Save data to cache by key
 	 *
-	 * @param {any} key
+	 * @param {String} key
 	 * @param {any} data JSON object
+	 * @param {Number} ttl Optional Time-to-Live
 	 * @returns {Promise}
 	 *
-	 * @memberOf MemoryMapCacher
+	 * @memberOf MemoryCacher
 	 */
-	set(key, data) {
+	set(key, data, ttl) {
+		if (ttl == null)
+			ttl = this.opts.ttl;
+
 		this.cache.set(key, {
 			data,
-			expire: this.opts.ttl ? Date.now() + this.opts.ttl * 1000 : null
+			expire: ttl ? Date.now() + ttl * 1000 : null
 		});
 		this.logger.debug(`SET ${key}`);
 		return Promise.resolve(data);
@@ -90,7 +91,7 @@ class MemoryMapCacher extends BaseCacher {
 	 * @param {any} key
 	 * @returns {Promise}
 	 *
-	 * @memberOf MemoryMapCacher
+	 * @memberOf MemoryCacher
 	 */
 	del(key) {
 		this.cache.delete(key);
@@ -121,7 +122,7 @@ class MemoryMapCacher extends BaseCacher {
 	/**
 	 * Check & remove the expired cache items
 	 *
-	 * @memberOf MemoryMapCacher
+	 * @memberOf MemoryCacher
 	 */
 	checkTTL() {
 		let now = Date.now();
@@ -136,4 +137,4 @@ class MemoryMapCacher extends BaseCacher {
 	}
 }
 
-module.exports = MemoryMapCacher;
+module.exports = MemoryCacher;
