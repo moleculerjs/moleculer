@@ -1,62 +1,62 @@
 <a name="0.11.6"></a>
-# [0.116](https://github.com/ice-services/moleculer/compare/v0.11.5...v0.11.5) (2017-xx-xx)
+# [0.11.6](https://github.com/ice-services/moleculer/compare/v0.11.5...v0.11.6) (2017-xx-xx)
 
 # New
 ## New cacher features
 In action cache keys you can use meta keys with `#` prefix.
 ```js
 broker.createService({
-	name: "posts",
-	actions: {
-		list: {
-			cache: {
+    name: "posts",
+    actions: {
+        list: {
+            cache: {
                 // Cache key:  "limit" & "offset" from ctx.params, "user.id" from ctx.meta
-				keys: ["limit", "offset", "#user.id"],
-				ttl: 5
-			},
-			handler(ctx) {...}
-		}
-	}
+                keys: ["limit", "offset", "#user.id"],
+                ttl: 5
+            },
+            handler(ctx) {...}
+        }
+    }
 });
 ```
 
 You can override the cacher default TTL setting in action definition.
 ```js
 let broker = new ServiceBroker({
-	cacher: {
-		type: "memory",
-		options: {
+    cacher: {
+        type: "memory",
+        options: {
             ttl: 30 // 30 seconds
-		}
-	}
+        }
+    }
 });
 
 broker.createService({
-	name: "posts",
-	actions: {
-		list: {
-			cache: {
+    name: "posts",
+    actions: {
+        list: {
+            cache: {
                 // This cache entries will be expired after 5 seconds instead of 30.
-				ttl: 5
-			},
-			handler(ctx) {...}
-		}
-	}
+                ttl: 5
+            },
+            handler(ctx) {...}
+        }
+    }
 });
 ```
 
 You can change the built-in cacher keygen function to your own one.
 ```js
 let broker = new ServiceBroker({
-	cacher: {
-		type: "memory",
-		options: {
-			keygen(name, params, meta, keys) {
-				// Generate a cache key
-				return ...;
-			}
-		}
-	}
+    cacher: {
+        type: "memory",
+        options: {
+            keygen(name, params, meta, keys) {
+                // Generate a cache key
+                return ...;
+            }
+        }
+    }
 });
 ```
 
@@ -119,10 +119,10 @@ The `ServiceBroker` has a new `maxQueueSize` option under `transit` key. The bro
 
 ```js
 let broker = new ServiceBroker({
-	transporter: "NATS",
-	transit: {
-		maxQueueSize: 10 * 1000
-	}
+    transporter: "NATS",
+    transit: {
+        maxQueueSize: 10 * 1000
+    }
 }
 ```
 
