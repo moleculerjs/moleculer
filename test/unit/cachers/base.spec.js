@@ -94,40 +94,81 @@ describe("Test BaseCacher", () => {
 		res = cacher.getCacheKey("user", {a: 5});
 		expect(res).toBe("user:b0a7093990109d1355dc833dcddecae4de9624d2226b9499d459b8ef94353942");
 
-		res = cacher.getCacheKey("user", {a: 5}, ["a"]);
+		res = cacher.getCacheKey("user", {a: 5}, null, ["a"]);
 		expect(res).toBe("user:5");
 
-		res = cacher.getCacheKey("user", {a: { id: 5 }}, ["a"]);
+		res = cacher.getCacheKey("user", {a: { id: 5 }}, null, ["a"]);
 		expect(res).toBe("user:609885e768b9fe49724d1765ef39f50770a553a1b6b2bf2524eb4d170de6ef38");
 
-		res = cacher.getCacheKey("user", { a: [1,3,5] }, ["a"]);
+		res = cacher.getCacheKey("user", { a: [1,3,5] }, null, ["a"]);
 		expect(res).toBe("user:7338883e2772613ee984693e6707038578abce9fc9ea0b789d06a8d5e8f99457");
 
-		res = cacher.getCacheKey("user", {a: 5, b: 3, c: 5}, ["a"]);
+		res = cacher.getCacheKey("user", {a: 5, b: 3, c: 5}, null, ["a"]);
 		expect(res).toBe("user:5");
 
-		res = cacher.getCacheKey("user", {a: { b: "John" }}, ["a.b"]);
+		res = cacher.getCacheKey("user", {a: { b: "John" }}, null, ["a.b"]);
 		expect(res).toBe("user:John");
 
-		res = cacher.getCacheKey("user", {a: 5, b: 3, c: 5}, ["a", "b", "c"]);
+		res = cacher.getCacheKey("user", {a: 5, b: 3, c: 5}, null, ["a", "b", "c"]);
 		expect(res).toBe("user:5|3|5");
 
-		res = cacher.getCacheKey("user", {a: 5, c: 5}, ["a", "b", "c"]);
+		res = cacher.getCacheKey("user", {a: 5, c: 5}, null, ["a", "b", "c"]);
 		expect(res).toBe("user:5|undefined|5");
 
 
-		res = cacher.getCacheKey("user", {a: 5, b: { id: 3 }}, ["a", "c", "b"]);
+		res = cacher.getCacheKey("user", {a: 5, b: { id: 3 }}, null, ["a", "c", "b"]);
 		expect(res).toBe("user:5|undefined|7cd0bff03436177b21566f74101e93f73b7295a6d7855339e540f044af12d469");
 
-		res = cacher.getCacheKey("user", {a: 5, b: { id: 3, other: { status: true } }}, ["a", "c", "b.id"]);
+		res = cacher.getCacheKey("user", {a: 5, b: { id: 3, other: { status: true } }}, null, ["a", "c", "b.id"]);
 		expect(res).toBe("user:5|undefined|3");
 
-		res = cacher.getCacheKey("user", {a: 5, b: { id: 3, other: { status: true } }}, ["a", "b.id", "b.other.status"]);
+		res = cacher.getCacheKey("user", {a: 5, b: { id: 3, other: { status: true } }}, null, ["a", "b.id", "b.other.status"]);
 		expect(res).toBe("user:5|3|true");
 
-		res = cacher.getCacheKey("user", {a: 5, b: 3}, []);
+		res = cacher.getCacheKey("user", {a: 5, b: 3}, null, []);
 		expect(res).toBe("user");
 
+		// Test with meta
+		res = cacher.getCacheKey("user", {a: 5}, { user: "bob" });
+		expect(res).toBe("user:b0a7093990109d1355dc833dcddecae4de9624d2226b9499d459b8ef94353942");
+
+		res = cacher.getCacheKey("user", {a: 5}, { user: "bob" }, ["a"]);
+		expect(res).toBe("user:5");
+
+		res = cacher.getCacheKey("user", {a: 5}, { user: "bob" }, ["user"]);
+		expect(res).toBe("user:undefined");
+
+		res = cacher.getCacheKey("user", {a: 5}, { user: "bob" }, ["#user"]);
+		expect(res).toBe("user:bob");
+
+		res = cacher.getCacheKey("user", {a: 5}, { user: "bob" }, ["a", "#user"]);
+		expect(res).toBe("user:5|bob");
+
+		res = cacher.getCacheKey("user", {a: 5}, { user: "bob" }, ["#user", "a"]);
+		expect(res).toBe("user:bob|5");
+
+		res = cacher.getCacheKey("user", {a: 5, user: "adam"}, { user: "bob" }, ["#user"]);
+		expect(res).toBe("user:bob");
+
+		res = cacher.getCacheKey("user", {a: 5}, null, ["#user"]);
+		expect(res).toBe("user:undefined");
+
+		res = cacher.getCacheKey("user", null, {a: { b: { c: "nested" }}}, ["#a.b.c"]);
+		expect(res).toBe("user:nested");
+
+	});
+
+	it("check getCacheKey with custom keygen", () => {
+		let broker = new ServiceBroker();
+		let keygen = jest.fn(() => "custom");
+		let cacher = new Cacher({ keygen });
+
+		cacher.init(broker);
+
+		let res = cacher.getCacheKey("posts.find.model", { limit: 5 }, { user: "bob" }, ["limit", "#user"]);
+		expect(res).toBe("custom");
+		expect(keygen).toHaveBeenCalledTimes(1);
+		expect(keygen).toHaveBeenCalledWith("posts.find.model", { limit: 5 }, { user: "bob" }, ["limit", "#user"]);
 	});
 });
 
@@ -185,7 +226,32 @@ describe("Test middleware", () => {
 			expect(broker.cacher.get).toHaveBeenCalledWith(cacheKey);
 
 			expect(broker.cacher.set).toHaveBeenCalledTimes(1);
-			expect(broker.cacher.set).toHaveBeenCalledWith(cacheKey, resData);
+			expect(broker.cacher.set).toHaveBeenCalledWith(cacheKey, resData, undefined);
+		});
+	});
+
+	it("should call the 'cache.set' action with custom TTL", () => {
+		let resData = [1];
+		let cacheKey = cacher.getCacheKey(mockAction.name, params);
+		broker.cacher.set.mockClear();
+		broker.cacher.get = jest.fn(() => Promise.resolve(null));
+		mockAction.handler = jest.fn(() => Promise.resolve(resData));
+		mockAction.cache = { ttl: 8 };
+
+		let ctx = new Context();
+		ctx.setParams(params);
+
+		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+
+		return cachedHandler(ctx).then(response => {
+			expect(response).toBe(resData);
+			expect(mockAction.handler).toHaveBeenCalledTimes(1);
+
+			expect(broker.cacher.get).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.get).toHaveBeenCalledWith(cacheKey);
+
+			expect(broker.cacher.set).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.set).toHaveBeenCalledWith(cacheKey, resData, 8);
 		});
 	});
 

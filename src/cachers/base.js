@@ -25,7 +25,8 @@ class Cacher {
 	 */
 	constructor(opts) {
 		this.opts = _.defaultsDeep(opts, {
-			ttl: null
+			ttl: null,
+			keygen: null
 		});
 	}
 
@@ -93,10 +94,11 @@ class Cacher {
 	 *
 	 * @param {any} key
 	 * @param {any} data
+	 * @param {Number?} ttl
 	 *
 	 * @memberOf Cacher
 	 */
-	set(/*key, data*/) {
+	set(/*key, data, ttl*/) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
 	}
@@ -127,27 +129,45 @@ class Cacher {
 	}
 
 	/**
-	 * Get a cache key by name and params.
-	 * Concatenate the name and the hashed params object
+	 * Get a value from params or meta by `key`.
+	 * If the key starts with `#` it reads from `meta`, otherwise from `params`.
 	 *
-	 * @param {String} name
+	 * @param {String} key
 	 * @param {Object} params
-	 * @param {Array|null} keys
-	 * @returns
+	 * @param {Object} meta
+	 * @returns {any}
+	 * @memberof Cacher
 	 */
-	getCacheKey(name, params, keys) {
-		if (params) {
-			const keyPrefix = name + ":";
+	getParamMetaValue(key, params, meta) {
+		if (key.startsWith("#") && meta != null)
+			return _.get(meta, key.slice(1));
+		else if (params != null)
+			return _.get(params, key);
+	}
+
+	/**
+	 * Default cache key generator
+	 *
+	 * @param {String} actionName
+	 * @param {Object} params
+	 * @param {Object} meta
+	 * @param {Array|null} keys
+	 * @returns {String}
+	 * @memberof Cacher
+	 */
+	defaultKeygen(actionName, params, meta, keys) {
+		if (params || meta) {
+			const keyPrefix = actionName + ":";
 			if (keys) {
 				if (keys.length == 1) {
-					// Quick solution for ['id'] only key
-					const val = _.get(params, keys[0]);
+					// Fast solution for ['id'] key
+					const val = this.getParamMetaValue(keys[0], params, meta);
 					return keyPrefix + (_.isObject(val) ? hash(val) : val);
 				}
 
 				if (keys.length > 0) {
 					return keys.reduce((a, key, i) => {
-						const val = _.get(params, key);
+						const val = this.getParamMetaValue(key, params, meta);
 						return a + (i ? "|" : "") + (_.isObject(val) ? hash(val) : val);
 					}, keyPrefix);
 				}
@@ -156,7 +176,24 @@ class Cacher {
 				return keyPrefix + hash(params);
 			}
 		}
-		return name;
+		return actionName;
+	}
+
+	/**
+	 * Get a cache key by name and params.
+	 * Concatenate the name and the hashed params object
+	 *
+	 * @param {String} name
+	 * @param {Object} params
+	 * @param {Object} meta
+	 * @param {Array|null} keys
+	 * @returns {String}
+	 */
+	getCacheKey(actionName, params, meta, keys) {
+		if (_.isFunction(this.opts.keygen))
+			return this.opts.keygen.call(this, actionName, params, meta, keys);
+		else
+			return this.defaultKeygen(actionName, params, meta, keys);
 	}
 
 	/**
@@ -168,18 +205,18 @@ class Cacher {
 		return (handler, action) => {
 			if (action.cache) {
 				return function cacherMiddleware(ctx) {
-					const cacheKey = this.getCacheKey(action.name, ctx.params, action.cache.keys);
+					const cacheKey = this.getCacheKey(action.name, ctx.params, ctx.meta, action.cache.keys);
 					return this.get(cacheKey).then(content => {
 						if (content != null) {
-							// Found in the cache! Don't call handler, return with the context
+							// Found in the cache! Don't call handler, return with the content
 							ctx.cachedResult = true;
 							return content;
 						}
 
 						// Call the handler
 						return handler(ctx).then(result => {
-							// Save the response to the cache
-							this.set(cacheKey, result);
+							// Save the result to the cache
+							this.set(cacheKey, result, action.cache.ttl);
 
 							return result;
 						});

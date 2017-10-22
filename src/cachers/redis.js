@@ -90,10 +90,10 @@ class RedisCacher extends BaseCacher {
 	 * @memberOf Cacher
 	 */
 	get(key) {
-		//this.logger.debug(`GET ${key}`);
+		this.logger.debug(`GET ${key}`);
 		return this.client.get(this.prefix + key).then((data) => {
 			if (data) {
-				//this.logger.debug(`FOUND ${key}`);
+				this.logger.debug(`FOUND ${key}`);
 				try {
 					return JSON.parse(data);
 				} catch (err) {
@@ -107,18 +107,22 @@ class RedisCacher extends BaseCacher {
 	/**
 	 * Save data to cache by key
 	 *
-	 * @param {any} key
+	 * @param {String} key
 	 * @param {any} data JSON object
+	 * @param {Number} ttl Optional Time-to-Live
 	 * @returns {Promise}
 	 *
 	 * @memberOf Cacher
 	 */
-	set(key, data) {
+	set(key, data, ttl) {
 		data = JSON.stringify(data);
 		this.logger.debug(`SET ${key}`);
 
-		if (this.opts.ttl) {
-			return this.client.setex(this.prefix + key, this.opts.ttl, data);
+		if (ttl == null)
+			ttl = this.opts.ttl;
+
+		if (ttl) {
+			return this.client.setex(this.prefix + key, ttl, data);
 		} else {
 			return this.client.set(this.prefix + key, data);
 		}
