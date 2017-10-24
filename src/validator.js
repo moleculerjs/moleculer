@@ -37,7 +37,7 @@ class ParamValidator {
 
 	/**
 	 * Register validator as a middleware
-	 * 
+	 *
 	 * @memberOf ParamValidator
 	 */
 	middleware() {
@@ -45,7 +45,7 @@ class ParamValidator {
 			// Wrap a param validator
 			if (action.params && typeof action.params === "object") {
 				const check = this.compile(action.params);
-				return ctx => {
+				return function validateContextParams(ctx) {
 					const res = check(ctx.params);
 					if (res === true)
 						return handler(ctx);
