@@ -1,364 +1,407 @@
-declare class LoggerInstance {
-	fatal(...args);
-	error(...args);
-	warn(...args);
-	info(...args);
-	debug(...args);
-	trace(...args);
-}
+declare namespace Moleculer {
+	interface Logger {
+		fatal?: (...args: any[]) => void;
+		error: (...args: any[]) => void;
+		warn: (...args: any[]) => void;
+		info: (...args: any[]) => void;
+		debug?: (...args: any[]) => void;
+		trace: (...args: any[]) => void;
+	}
 
-declare interface Action {
-	name: String;
-	service: Service;
-	cache: Boolean;
-	handler: Function;
-}
+	class LoggerInstance {
+		fatal(...args: any[]): void;
+		error(...args: any[]): void;
+		warn(...args: any[]): void;
+		info(...args: any[]): void;
+		debug(...args: any[]): void;
+		trace(...args: any[]): void;
+	}
 
-declare class Context {
-	constructor(broker: ServiceBroker, action: Action);
-	id: String;
-	broker: ServiceBroker;
-	action: Action;
-	nodeID?: String;
-	parentID?: String;
+	interface Action {
+		name: string;
+		service: Service;
+		cache: boolean;
+		handler: (ctx: Context) => Promise<any>;
+	}
 
-	metrics: Boolean;
-	level?: Number;
+	class Context {
+		constructor(broker: ServiceBroker, action: Action);
+		id: string;
+		broker: ServiceBroker;
+		action: Action;
+		nodeID?: string;
+		parentID?: string;
 
-	timeout: Number;
-	retryCount: Number;
+		metrics: boolean;
+		level?: number;
 
-	params: Object;
-	meta: Object;
+		timeout: number;
+		retryCount: number;
 
-	requestID?: String;
-	duration: Number;
+		params: object;
+		meta: object;
 
-	cachedResult: Boolean;
+		requestID?: string;
+		duration: number;
 
-	generateID();
-	setParams(newParams: Object, cloning?: boolean);
-	call(actionName: String, params?: Object, opts?: Object): Promise<any>;
-	emit(eventName: string, data: any);
+		cachedResult: boolean;
 
-	static create(broker: ServiceBroker, action: Action, nodeID?: String, params?: Object, opts: Object): Context;
+		generateID(): string;
+		setParams(newParams: object, cloning?: boolean): void;
+		call(actionName: string, params?: object, opts?: object): Promise<any>;
+		emit(eventName: string, data: any): void;
 
-	static createFromPayload(broker: ServiceBroker, payload: Object);
-}
+		static create(broker: ServiceBroker, action: Action, nodeID: string, params: object, opts: object): Context;
+		static create(broker: ServiceBroker, action: Action, nodeID: string, opts: object): Context;
+		static create(broker: ServiceBroker, action: Action, opts: object): Context;
 
-declare class Service {
-	constructor(broker: ServiceBroker, schema: Object);
+		static createFromPayload(broker: ServiceBroker, payload: object): Context;
+	}
 
-	name: String;
-	version?: String|Number;
-	settings: Object;
-	metadata: Object;
-	dependencies: String|Object|Array<String>|Array<Object>;
-	schema: Object;
-	broker: ServiceBroker;
-	logger: LoggerInstance;
-	actions: Object;
-	Promise: typeof Promise;
+	interface ServiceSchema {
+		name: string;
+		version?: string|Number;
+		settings: object;
+		metadata?: object;
+		dependencies?: string|object|Array<string>|Array<object>;
+		schema?: object;
+		broker?: ServiceBroker;
+		logger?: LoggerInstance;
+		actions?: object;
+	}
 
-	waitForServices(serviceNames: String|Array<String>, timeout?: Number, interval?: Number): Promise<any>;
+	class Service {
+		constructor(broker: ServiceBroker, schema: ServiceSchema);
 
-	created: Function;
-	started: Function;
-	stopped: Function;
-}
+		name: string;
+		version?: string|Number;
+		settings: object;
+		metadata: object;
+		dependencies: string|object|Array<string>|Array<object>;
+		schema: object;
+		broker: ServiceBroker;
+		logger: LoggerInstance;
+		actions: object;
+		Promise: Promise<any>;
 
-declare interface BrokerCircuitBreakerOptions {
-	enabled?: Boolean;
-	maxFailures?: Number;
-	halfOpenTime?: Number;
-	failureOnTimeout?: Boolean;
-	failureOnReject?: Boolean;
-}
+		waitForServices(serviceNames: string|Array<string>, timeout?: number, interval?: number): Promise<void>;
 
-declare interface BrokerRegistryOptions {
-	strategy?: Function;
-	preferLocal?: Boolean;
-}
+		created: () => void;
+		started: () => Promise<void>;
+		stopped: () => Promise<void>;
+	}
 
-declare interface BrokerTransitOptions {
-	maxQueueSize?: Number;
-}
+	interface BrokerCircuitBreakerOptions {
+		enabled?: boolean;
+		maxFailures?: number;
+		halfOpenTime?: number;
+		failureOnTimeout?: boolean;
+		failureOnReject?: boolean;
+	}
 
-declare interface BrokerOptions {
-	namespace?: String;
-	nodeID?: String;
+	interface BrokerRegistryOptions {
+		strategy?: Function;
+		preferLocal?: boolean;
+	}
 
-	logger?: Function|LoggerInstance;
-	logLevel?: String;
-	logFormatter?: Function|String;
+	interface BrokerTransitOptions {
+		maxQueueSize?: number;
+	}
 
-	transporter?: Transporter|String|Object;
-	requestTimeout?: Number;
-	requestRetry?: Number;
-	maxCallLevel?: Number;
-	heartbeatInterval?: Number;
-	heartbeatTimeout?: Number;
+	interface BrokerOptions {
+		namespace?: string;
+		nodeID?: string;
 
-	disableBalancer?: Boolean;
+		logger?: Logger;
+		logLevel?: string;
+		logFormatter?: Function|string;
 
-	transit?: BrokerTransitOptions;
+		transporter?: Transporter|string|object;
+		requestTimeout?: number;
+		requestRetry?: number;
+		maxCallLevel?: number;
+		heartbeatInterval?: number;
+		heartbeatTimeout?: number;
 
-	registry?: BrokerRegistryOptions;
+		disableBalancer?: boolean;
 
-	circuitBreaker?: BrokerCircuitBreakerOptions;
+		transit?: BrokerTransitOptions;
 
-	cacher?: Cacher|String|Object;
-	serializer?: Serializer|String|Object;
+		registry?: BrokerRegistryOptions;
 
-	validation?: Boolean;
-	validator?: Validator;
-	metrics?: Boolean;
-	metricsRate?: Number;
-	statistics?: Boolean;
-	internalServices?: Boolean;
+		circuitBreaker?: BrokerCircuitBreakerOptions;
 
-	hotReload?: Boolean;
+		cacher?: Cacher|string|object;
+		serializer?: Serializer|string|object;
 
-	ServiceFactory?: Service;
-	ContextFactory?: Context;
-}
+		validation?: boolean;
+		validator?: Validator;
+		metrics?: boolean;
+		metricsRate?: number;
+		statistics?: boolean;
+		internalServices?: boolean;
 
-declare class ServiceBroker {
-	constructor(options?: BrokerOptions);
+		hotReload?: boolean;
 
-	Promise: typeof Promise;
+		ServiceFactory?: Service;
+		ContextFactory?: Context;
+	}
 
-	namespace: string;
-	nodeID: string;
-	logger: LoggerInstance;
-	cacher?: Cacher;
-	serializer?: Serializer;
-	validator?: Validator;
+	class ServiceBroker {
+		constructor(options?: BrokerOptions);
 
-	start(): Promise<any>;
-	stop(): Promise<any>;
+		Promise: Promise<any>;
 
-	repl();
+		namespace: string;
+		nodeID: string;
+		logger: LoggerInstance;
+		cacher?: Cacher;
+		serializer?: Serializer;
+		validator?: Validator;
 
-	getLogger(module: String, service?: String, version?: Number|String): LoggerInstance;
-	fatal(message: String, err?: Error, needExit?: boolean = true);
-	loadServices(folder?: String, fileMask?: String): Number;
-	loadService(filePath: String): Service;
-	watchService(service: Service);
-	hotReloadService(service: Service): Service;
-	createService(schema: Object): Service;
-	destroyService(service: Service): Promise<any>;
+		start(): Promise<void>;
+		stop(): Promise<void>;
 
-	getLocalService(serviceName: String): Service;
-	waitForServices(serviceNames: String|Array<String>, timeout?: Number, interval?: Number, logger?: LoggerInstance): Promise<any>;
+		repl(): void;
 
-	use(...mws: Array<Function>);
+		getLogger(module: string, service?: string, version?: number|string): LoggerInstance;
+		fatal(message: string, err?: Error, needExit?: boolean): void;
+		loadServices(folder?: string, fileMask?: string): number;
+		loadService(filePath: string): Service;
+		watchService(service: Service): void;
+		hotReloadService(service: Service): Service;
+		createService(schema: ServiceSchema): Service;
+		destroyService(service: Service): Promise<void>;
 
-	getAction(actionName: String): any;
-	findNextActionEndpoint(actionName: String, opts?: Object): any;
+		getLocalService(serviceName: string): Service;
+		waitForServices(serviceNames: string|Array<string>, timeout?: number, interval?: number, logger?: LoggerInstance): Promise<void>;
 
-	/**
-	 * Call an action (local or global)
-	 *
-	 * @param {any} actionName	name of action
-	 * @param {any} params		params of action
-	 * @param {any} opts		options of call (optional)
-	 * @returns
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	call(actionName: String, params?: Object, opts?: Object): Promise<any>;
+		use(...mws: Array<Function>): void;
 
-	/**
-	 * Multiple action calls.
-	 *
-	 * @param {Array<Object>|Object} def Calling definitions.
-	 * @returns {Promise<Array<Object>|Object>}
-	 *
-	 * @example
-	 * Call `mcall` with an array:
-	 * ```js
-	 * broker.mcall([
-	 * 	{ action: "posts.find", params: { limit: 5, offset: 0 } },
-	 * 	{ action: "users.find", params: { limit: 5, sort: "username" }, opts: { timeout: 500 } }
-	 * ]).then(results => {
-	 * 	let posts = results[0];
-	 * 	let users = results[1];
-	 * })
-	 * ```
-	 *
-	 * @example
-	 * Call `mcall` with an Object:
-	 * ```js
-	 * broker.mcall({
-	 * 	posts: { action: "posts.find", params: { limit: 5, offset: 0 } },
-	 * 	users: { action: "users.find", params: { limit: 5, sort: "username" }, opts: { timeout: 500 } }
-	 * }).then(results => {
-	 * 	let posts = results.posts;
-	 * 	let users = results.users;
-	 * })
-	 * ```
-	 * @throws MoleculerError - If the `def` is not an `Array` and not an `Object`.
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	mcall(def): Promise<any>;
+		getAction(actionName: string): Action;
+		findNextActionEndpoint(actionName: string, opts?: object): string;
 
-	/**
-	 * Emit an event (global & local)
-	 *
-	 * @param {any} eventName
-	 * @param {any} payload
-	 * @returns
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	emit(eventName: String, payload?: any, groups?: String|Array<String>);
+		/**
+		 * Call an action (local or global)
+		 *
+		 * @param {any} actionName	name of action
+		 * @param {any} params		params of action
+		 * @param {any} opts		options of call (optional)
+		 * @returns
+		 *
+		 * @memberOf ServiceBroker
+		 */
+		call(actionName: string, params?: object, opts?: object): Promise<any>;
 
-	/**
-	 * Emit an event for all local & remote services
-	 *
-	 * @param {string} eventName
-	 * @param {any} payload
-	 * @returns
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	broadcast(eventName: String, payload?: any)
+		/**
+		 * Multiple action calls.
+		 *
+		 * @param {Array<object>|object} def Calling definitions.
+		 * @returns {Promise<Array<object>|object>}
+		 * | (broker: ServiceBroker): Service)
+		 * @example
+		 * Call `mcall` with an array:
+		 * ```js
+		 * broker.mcall([
+		 * 	{ action: "posts.find", params: { limit: 5, offset: 0 } },
+		 * 	{ action: "users.find", params: { limit: 5, sort: "username" }, opts: { timeout: 500 } }
+		 * ]).then(results => {
+		 * 	let posts = results[0];
+		 * 	let users = results[1];
+		 * })
+		 * ```
+		 *
+		 * @example
+		 * Call `mcall` with an Object:
+		 * ```js
+		 * broker.mcall({
+		 * 	posts: { action: "posts.find", params: { limit: 5, offset: 0 } },
+		 * 	users: { action: "users.find", params: { limit: 5, sort: "username" }, opts: { timeout: 500 } }
+		 * }).then(results => {
+		 * 	let posts = results.posts;
+		 * 	let users = results.users;
+		 * })
+		 * ```
+		 * @throws MoleculerError - If the `def` is not an `Array` and not an `Object`.
+		 *
+		 * @memberOf ServiceBroker
+		 */
+		mcall(def: Array<object>|object): Promise<Array<any>|any>;
 
-	/**
-	 * Emit an event for all local services
-	 *
-	 * @param {string} eventName
-	 * @param {any} payload
-	 * @param {Array<String>?} groups
-	 * @param {String?} nodeID
-	 * @returns
-	 *
-	 * @memberOf ServiceBroker
-	 */
-	broadcastLocal(eventName: String, payload?: any, groups?: String|Array<String>, nodeID?: String);
+		/**
+		 * Emit an event (global & local)
+		 *
+		 * @param {any} eventName
+		 * @param {any} payload
+		 * @returns
+		 *
+		 * @memberOf ServiceBroker
+		 */
+		emit(eventName: string, payload?: any, groups?: string|Array<string>): void;
 
-	sendPing(nodeID?: String);
-	getHealthStatus();
-	getLocalNodeInfo();
+		/**
+		 * Emit an event for all local & remote services
+		 *
+		 * @param {string} eventName
+		 * @param {any} payload
+		 * @returns
+		 *
+		 * @memberOf ServiceBroker
+		 */
+		broadcast(eventName: string, payload?: any): void
 
-	MOLECULER_VERSION: String;
+		/**
+		 * Emit an event for all local services
+		 *
+		 * @param {string} eventName
+		 * @param {any} payload
+		 * @param {Array<string>?} groups
+		 * @param {String?} nodeID
+		 * @returns
+		 *
+		 * @memberOf ServiceBroker
+		 */
+		broadcastLocal(eventName: string, payload?: any, groups?: string|Array<string>, nodeID?: string): void;
 
-	static MOLECULER_VERSION: String;
-	static defaultOptions: BrokerOptions;
-}
+		sendPing(nodeID?: string): Promise<void>;
+		getHealthStatus(): {
+			getHealthStatus: any;
+			getCpuInfo: any;
+			getMemoryInfo: any;
+			getOsInfo: any;
+			getProcessInfo: any;
+			getClientInfo: any;
+			getNetworkInterfacesInfo: any;
+			getTransitStatus: any;
+			getDateTimeInfo: any;
+		};
+		getLocalNodeInfo(): {
+			ipList: any;
+			client: any;
+			config: any;
+			port: any;
+			services: Array<any>;
+		};
 
-declare class Packet {
-	constructor(transit: any, type: String, target: String);
-	serialize(): String|Buffer;
-	static deserialize(transit: any, type: String, msg: String): Packet;
-}
+		MOLECULER_VERSION: string;
 
-declare class Transporter {
-	constructor(opts?: Object);
-	init(broker: ServiceBroker, messageHandler: (cmd: String, msg: String) => void);
-	connect(): Promise<any>;
-	disconnect(): Promise<any>;
-	subscribe(cmd: String, nodeID?: String);
-	publish(packet: Packet): Promise<any>;
-}
+		static MOLECULER_VERSION: string;
+		static defaultOptions: BrokerOptions;
+	}
 
-declare class Cacher {
-	constructor(opts?: Object);
-	init(broker: ServiceBroker);
-	close();
-	get(key: String): Promise<any>;
-	set(key: String, data: any): Promise<any>;
-	del(key: String): Promise<any>;
-	clean(match?: String): Promise<any>;
-}
+	class Packet {
+		constructor(transit: any, type: string, target: string);
+		serialize(): string|Buffer;
+		static deserialize(transit: any, type: string, msg: string): Packet;
+	}
 
-declare class Serializer {
-	constructor();
-	init(broker: ServiceBroker);
-	serialize(obj: Object, type: String): String|Buffer;
-	deserialize(str: String, type: String): String;
-}
+	class Transporter {
+		constructor(opts?: object);
+		init(broker: ServiceBroker, messageHandler: (cmd: string, msg: string) => void): void;
+		connect(): Promise<any>;
+		disconnect(): Promise<any>;
+		subscribe(cmd: string, nodeID?: string): Promise<void>;
+		publish(packet: Packet): Promise<void>;
+	}
 
-declare class Validator {
-	constructor();
-	init(broker: ServiceBroker);
-	compile(schema: Object): Function;
-	validate(params: Object, schema: Object): Boolean;
-}
+	class Cacher {
+		constructor(opts?: object);
+		init(broker: ServiceBroker): void;
+		close(): Promise<any>;
+		get(key: string): Promise<null|object>;
+		set(key: string, data: any): Promise<any>;
+		del(key: string): Promise<any>;
+		clean(match?: string): Promise<any>;
+	}
 
-declare class LoggerHelper {
-	static extend(logger: LoggerInstance): LoggerInstance;
-	static createDefaultLogger(baseLogger?: LoggerInstance, bindings: Object, logLevel?: String, logFormatter?: Function): LoggerInstance;
-}
+	class Serializer {
+		constructor();
+		init(broker: ServiceBroker): void;
+		serialize(obj: object, type: string): string|Buffer;
+		deserialize(str: string, type: string): string;
+	}
 
-declare abstract class BaseStrategy {
-	init(broker: ServiceBroker): void;
-	select(list: any[]): any;
-}
+	class Validator {
+		constructor();
+		init(broker: ServiceBroker): void;
+		compile(schema: object): Function;
+		validate(params: object, schema: object): boolean;
+	}
 
-declare class RoundRobinStrategy extends BaseStrategy {
-}
+	class LoggerHelper {
+		static extend(logger: LoggerInstance): LoggerInstance;
+		static createDefaultLogger(baseLogger: LoggerInstance, bindings: object, logLevel?: string, logFormatter?: Function): LoggerInstance;
+		static createDefaultLogger(bindings: object, logLevel?: string, logFormatter?: Function): LoggerInstance;
+	}
 
-declare class RandomStrategy extends BaseStrategy {
-}
+	abstract class BaseStrategy {
+		init(broker: ServiceBroker): void;
+		select(list: any[]): any;
+	}
 
-export = {
-	Context: Context,
-	Service: Service,
-	ServiceBroker: ServiceBroker,
-	Logger: LoggerHelper,
+	class RoundRobinStrategy extends BaseStrategy {
+	}
 
-	Transporters: {
-		Fake: Transporter,
-		NATS: Transporter,
-		MQTT: Transporter,
-		Redis: Transporter,
-		AMQP: Transporter
-	},
-	Cachers: {
+	class RandomStrategy extends BaseStrategy {
+	}
+
+	namespace Transporters {
+		class Fake extends Transporter {}
+		class NATS extends Transporter {}
+		class MQTT extends Transporter {}
+		class Redis extends Transporter {}
+		class AMQP extends Transporter {}
+	}
+
+	const Cachers: {
 		Memory: Cacher,
 		Redis: Cacher
-	},
-	Serializers: {
+	};
+	const Serializers: {
 		JSON: Serializer,
 		Avro: Serializer,
 		MsgPack: Serializer,
 		ProtoBuf: Serializer
-	},
+	};
 
-	Validator: Validator,
+	namespace Errors {
+		class MoleculerError extends Error {}
+		class MoleculerRetryableError extends MoleculerError {}
+		class MoleculerServerError extends MoleculerError {}
+		class MoleculerClientError extends MoleculerError {}
 
-	Errors: {
-		MoleculerError: Error,
-		MoleculerRetryableError: Error,
-		MoleculerServerError: Error,
-		MoleculerClientError: Error,
+		class ServiceNotFoundError extends MoleculerError {}
+		class ServiceNotAvailable extends MoleculerError {}
 
-		ServiceNotFoundError: Error,
-		ServiceNotAvailable: Error,
+		class ValidationError extends MoleculerError {}
+		class RequestTimeoutError extends MoleculerError {}
+		class RequestSkippedError extends MoleculerError {}
+		class RequestRejected extends MoleculerError {}
+		class QueueIsFull extends MoleculerError {}
+		class MaxCallLevelError extends MoleculerError {}
 
-		ValidationError: Error,
-		RequestTimeoutError: Error,
-		RequestSkippedError: Error,
-		RequestRejected: Error,
-		QueueIsFull: Error,
-		MaxCallLevelError: Error,
+		class ServiceSchemaError extends MoleculerError {}
 
-		ServiceSchemaError: Error,
+		class ProtocolVersionMismatchError extends MoleculerError {}
+		class InvalidPacketData extends MoleculerError {}
+	}
 
-		ProtocolVersionMismatchError: Error,
-		InvalidPacketData: Error
-	},
+	namespace Strategies {
+		abstract class BaseStrategy {
+			init(broker: ServiceBroker): void;
+			select(list: any[]): any;
+		}
 
-	Strategies: {
-		BaseStrategy: BaseStrategy,
-		RoundRobinStrategy: RoundRobinStrategy,
-		RandomStrategy: RandomStrategy,
-	},
+		class RoundRobinStrategy extends BaseStrategy {
+		}
 
-	CIRCUIT_CLOSE: String,
-	CIRCUIT_HALF_OPEN: String,
-	CIRCUIT_OPEN: String
+		class RandomStrategy extends BaseStrategy {
+		}
+	}
+
+	const CIRCUIT_CLOSE: string;
+	const CIRCUIT_HALF_OPEN: string;
+	const CIRCUIT_OPEN: string;
 }
+
+export = Moleculer;
