@@ -58,33 +58,53 @@ declare namespace Moleculer {
 		static createFromPayload(broker: ServiceBroker, payload: object): Context;
 	}
 
+	interface ServiceActionSchema {
+		cache?: boolean;
+		params?: object;
+		handler: (ctx: Context) => Promise<any>;
+	}
+
+	interface ServiceSettingSchema {
+		port?: number | string;
+		routes?: Route[];
+		[name: string]: any;
+	}
+
+	interface RouteSchema {
+		path?: string;
+		mappingPolicy?: string;
+		whitelist?: string[];
+		bodyParsers?: any;
+		aliases?: { [alias: string]: string };
+	}
+
 	interface ServiceSchema {
 		name: string;
-		version?: string|Number;
-		settings: object;
+		version?: string | Number;
+		settings: ServiceSettingSchema;
 		metadata?: object;
-		dependencies?: string|object|Array<string>|Array<object>;
+		dependencies?: string | object | Array<string> | Array<object>;
 		schema?: object;
 		broker?: ServiceBroker;
 		logger?: LoggerInstance;
-		actions?: object;
+		actions?: { [name: string]: ServiceActionSchema };
 	}
 
 	class Service {
 		constructor(broker: ServiceBroker, schema: ServiceSchema);
 
 		name: string;
-		version?: string|Number;
+		version?: string | Number;
 		settings: object;
 		metadata: object;
-		dependencies: string|object|Array<string>|Array<object>;
+		dependencies: string | object | Array<string> | Array<object>;
 		schema: object;
 		broker: ServiceBroker;
 		logger: LoggerInstance;
 		actions: object;
 		Promise: Promise<any>;
 
-		waitForServices(serviceNames: string|Array<string>, timeout?: number, interval?: number): Promise<void>;
+		waitForServices(serviceNames: string | Array<string>, timeout?: number, interval?: number): Promise<void>;
 
 		created: () => void;
 		started: () => Promise<void>;
@@ -114,9 +134,9 @@ declare namespace Moleculer {
 
 		logger?: Logger;
 		logLevel?: string;
-		logFormatter?: Function|string;
+		logFormatter?: Function | string;
 
-		transporter?: Transporter|string|object;
+		transporter?: Transporter | string | object;
 		requestTimeout?: number;
 		requestRetry?: number;
 		maxCallLevel?: number;
@@ -131,8 +151,8 @@ declare namespace Moleculer {
 
 		circuitBreaker?: BrokerCircuitBreakerOptions;
 
-		cacher?: Cacher|string|object;
-		serializer?: Serializer|string|object;
+		cacher?: Cacher | string | object;
+		serializer?: Serializer | string | object;
 
 		validation?: boolean;
 		validator?: Validator;
@@ -164,7 +184,7 @@ declare namespace Moleculer {
 
 		repl(): void;
 
-		getLogger(module: string, service?: string, version?: number|string): LoggerInstance;
+		getLogger(module: string, service?: string, version?: number | string): LoggerInstance;
 		fatal(message: string, err?: Error, needExit?: boolean): void;
 		loadServices(folder?: string, fileMask?: string): number;
 		loadService(filePath: string): Service;
@@ -174,7 +194,7 @@ declare namespace Moleculer {
 		destroyService(service: Service): Promise<void>;
 
 		getLocalService(serviceName: string): Service;
-		waitForServices(serviceNames: string|Array<string>, timeout?: number, interval?: number, logger?: LoggerInstance): Promise<void>;
+		waitForServices(serviceNames: string | Array<string>, timeout?: number, interval?: number, logger?: LoggerInstance): Promise<void>;
 
 		use(...mws: Array<Function>): void;
 
@@ -226,7 +246,7 @@ declare namespace Moleculer {
 		 *
 		 * @memberOf ServiceBroker
 		 */
-		mcall(def: Array<object>|object): Promise<Array<any>|any>;
+		mcall(def: Array<object> | object): Promise<Array<any> | any>;
 
 		/**
 		 * Emit an event (global & local)
@@ -237,7 +257,7 @@ declare namespace Moleculer {
 		 *
 		 * @memberOf ServiceBroker
 		 */
-		emit(eventName: string, payload?: any, groups?: string|Array<string>): void;
+		emit(eventName: string, payload?: any, groups?: string | Array<string>): void;
 
 		/**
 		 * Emit an event for all local & remote services
@@ -261,7 +281,7 @@ declare namespace Moleculer {
 		 *
 		 * @memberOf ServiceBroker
 		 */
-		broadcastLocal(eventName: string, payload?: any, groups?: string|Array<string>, nodeID?: string): void;
+		broadcastLocal(eventName: string, payload?: any, groups?: string | Array<string>, nodeID?: string): void;
 
 		sendPing(nodeID?: string): Promise<void>;
 		getHealthStatus(): {
@@ -291,7 +311,7 @@ declare namespace Moleculer {
 
 	class Packet {
 		constructor(transit: any, type: string, target: string);
-		serialize(): string|Buffer;
+		serialize(): string | Buffer;
 		static deserialize(transit: any, type: string, msg: string): Packet;
 	}
 
@@ -308,7 +328,7 @@ declare namespace Moleculer {
 		constructor(opts?: object);
 		init(broker: ServiceBroker): void;
 		close(): Promise<any>;
-		get(key: string): Promise<null|object>;
+		get(key: string): Promise<null | object>;
 		set(key: string, data: any): Promise<any>;
 		del(key: string): Promise<any>;
 		clean(match?: string): Promise<any>;
@@ -317,7 +337,7 @@ declare namespace Moleculer {
 	class Serializer {
 		constructor();
 		init(broker: ServiceBroker): void;
-		serialize(obj: object, type: string): string|Buffer;
+		serialize(obj: object, type: string): string | Buffer;
 		deserialize(str: string, type: string): string;
 	}
 
@@ -346,11 +366,11 @@ declare namespace Moleculer {
 	}
 
 	namespace Transporters {
-		class Fake extends Transporter {}
-		class NATS extends Transporter {}
-		class MQTT extends Transporter {}
-		class Redis extends Transporter {}
-		class AMQP extends Transporter {}
+		class Fake extends Transporter { }
+		class NATS extends Transporter { }
+		class MQTT extends Transporter { }
+		class Redis extends Transporter { }
+		class AMQP extends Transporter { }
 	}
 
 	const Cachers: {
@@ -365,25 +385,25 @@ declare namespace Moleculer {
 	};
 
 	namespace Errors {
-		class MoleculerError extends Error {}
-		class MoleculerRetryableError extends MoleculerError {}
-		class MoleculerServerError extends MoleculerError {}
-		class MoleculerClientError extends MoleculerError {}
+		class MoleculerError extends Error { }
+		class MoleculerRetryableError extends MoleculerError { }
+		class MoleculerServerError extends MoleculerError { }
+		class MoleculerClientError extends MoleculerError { }
 
-		class ServiceNotFoundError extends MoleculerError {}
-		class ServiceNotAvailable extends MoleculerError {}
+		class ServiceNotFoundError extends MoleculerError { }
+		class ServiceNotAvailable extends MoleculerError { }
 
-		class ValidationError extends MoleculerError {}
-		class RequestTimeoutError extends MoleculerError {}
-		class RequestSkippedError extends MoleculerError {}
-		class RequestRejected extends MoleculerError {}
-		class QueueIsFull extends MoleculerError {}
-		class MaxCallLevelError extends MoleculerError {}
+		class ValidationError extends MoleculerError { }
+		class RequestTimeoutError extends MoleculerError { }
+		class RequestSkippedError extends MoleculerError { }
+		class RequestRejected extends MoleculerError { }
+		class QueueIsFull extends MoleculerError { }
+		class MaxCallLevelError extends MoleculerError { }
 
-		class ServiceSchemaError extends MoleculerError {}
+		class ServiceSchemaError extends MoleculerError { }
 
-		class ProtocolVersionMismatchError extends MoleculerError {}
-		class InvalidPacketData extends MoleculerError {}
+		class ProtocolVersionMismatchError extends MoleculerError { }
+		class InvalidPacketData extends MoleculerError { }
 	}
 
 	namespace Strategies {
