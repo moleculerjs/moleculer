@@ -132,7 +132,7 @@ declare namespace Moleculer {
 		namespace?: string;
 		nodeID?: string;
 
-		logger?: Logger;
+		logger?: Logger | boolean;
 		logLevel?: string;
 		logFormatter?: Function | string;
 
