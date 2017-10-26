@@ -5,7 +5,7 @@ declare namespace Moleculer {
 		warn: (...args: any[]) => void;
 		info: (...args: any[]) => void;
 		debug?: (...args: any[]) => void;
-		trace: (...args: any[]) => void;
+		trace?: (...args: any[]) => void;
 	}
 
 	class LoggerInstance {
@@ -17,12 +17,19 @@ declare namespace Moleculer {
 		trace(...args: any[]): void;
 	}
 
+	type ActionHandler = (ctx: Context) => Promise<any>;
+	type ActionParamTypes = "number" | "string" | "object";
+	type ActionParams = {[key: string]: ActionParamTypes};
+
 	interface Action {
 		name: string;
-		service: Service;
-		cache: boolean;
-		handler: (ctx: Context) => Promise<any>;
+		params?: ActionParams;
+		service?: Service;
+		cache?: boolean;
+		handler: ActionHandler;
 	}
+
+	type Actions = { [key: string]: Action; } | { [key: string]: ActionHandler; }
 
 	class Context {
 		constructor(broker: ServiceBroker, action: Action);
@@ -42,6 +49,7 @@ declare namespace Moleculer {
 		meta: object;
 
 		requestID?: string;
+		callerNodeID?: string;
 		duration: number;
 
 		cachedResult: boolean;
@@ -58,17 +66,15 @@ declare namespace Moleculer {
 		static createFromPayload(broker: ServiceBroker, payload: object): Context;
 	}
 
-	interface ServiceActionSchema {
-		cache?: boolean;
-		params?: object;
-		handler: (ctx: Context) => Promise<any>;
-	}
-
 	interface ServiceSettingSchema {
-		port?: number | string;
-		routes?: Route[];
+		$noVersionPrefix?: boolean;
+		$noServiceNamePrefix?: boolean;
 		[name: string]: any;
 	}
+
+	type ServiceEventHandler = (payload: any, sender: any, eventName: string) => void;
+	type ServiceLocalEventHandler = (node: object) => void;
+	type ServiceEvents = { [key: string]: ServiceEventHandler | ServiceLocalEventHandler };
 
 	interface RouteSchema {
 		path?: string;
@@ -80,35 +86,43 @@ declare namespace Moleculer {
 
 	interface ServiceSchema {
 		name: string;
-		version?: string | Number;
-		settings: ServiceSettingSchema;
+		version?: string | number;
+		settings?: ServiceSettingSchema;
 		metadata?: object;
-		dependencies?: string | object | Array<string> | Array<object>;
-		schema?: object;
-		broker?: ServiceBroker;
-		logger?: LoggerInstance;
-		actions?: { [name: string]: ServiceActionSchema };
+		actions?: Actions;
+		mixins?: Array<ServiceSchema>;
+		methods?: {[key: string]: Function};
+
+		events?: ServiceEvents;
+		created?: () => void;
+		started?: () => Promise<void>;
+		stopped?: () => Promise<void>;
+		[name: string]: any;
 	}
 
-	class Service {
+	class Service implements ServiceSchema {
 		constructor(broker: ServiceBroker, schema: ServiceSchema);
 
 		name: string;
-		version?: string | Number;
-		settings: object;
+		version?: string | number;
+		settings: ServiceSettingSchema;
 		metadata: object;
 		dependencies: string | object | Array<string> | Array<object>;
-		schema: object;
+		schema: ServiceSchema;
 		broker: ServiceBroker;
 		logger: LoggerInstance;
-		actions: object;
+		actions?: Actions;
+		mixins?: Array<ServiceSchema>;
+		methods?: {[key: string]: Function};
 		Promise: Promise<any>;
 
 		waitForServices(serviceNames: string | Array<string>, timeout?: number, interval?: number): Promise<void>;
 
+		events?: ServiceEvents;
 		created: () => void;
 		started: () => Promise<void>;
 		stopped: () => Promise<void>;
+		[name: string]: any;
 	}
 
 	interface BrokerCircuitBreakerOptions {
@@ -178,6 +192,7 @@ declare namespace Moleculer {
 		cacher?: Cacher;
 		serializer?: Serializer;
 		validator?: Validator;
+		transit: object;
 
 		start(): Promise<void>;
 		stop(): Promise<void>;
@@ -285,18 +300,52 @@ declare namespace Moleculer {
 
 		sendPing(nodeID?: string): Promise<void>;
 		getHealthStatus(): {
-			getHealthStatus: any;
-			getCpuInfo: any;
-			getMemoryInfo: any;
-			getOsInfo: any;
-			getProcessInfo: any;
-			getClientInfo: any;
-			getNetworkInterfacesInfo: any;
-			getTransitStatus: any;
-			getDateTimeInfo: any;
+			cpu: {
+				load1: number;
+				load5: number;
+				load15: number;
+				cores: number;
+				utilization: number;
+			};
+			mem: {
+				free: number;
+				total: number;
+				percent: number;
+			};
+			os: {
+				uptime: number;
+				type: string;
+				release: string;
+				hostname: string;
+				arch: string;
+				platform: string;
+				user: string;
+			};
+			process: {
+				pid: NodeJS.Process["pid"];
+				memory: NodeJS.MemoryUsage;
+				uptime: number;
+				argv: string[];
+			};
+			client: {
+				type: string;
+				version: string;
+				langVersion: NodeJS.Process["version"];
+			};
+			net: {
+				ip: string[];
+			};
+			transit: {
+				stat: object;
+			} | null,
+			time: {
+				now: number;
+				iso: string;
+				utc: string;
+			};
 		};
 		getLocalNodeInfo(): {
-			ipList: any;
+			ipList: string[];
 			client: any;
 			config: any;
 			port: any;
@@ -304,6 +353,7 @@ declare namespace Moleculer {
 		};
 
 		MOLECULER_VERSION: string;
+		[name: string]: any;
 
 		static MOLECULER_VERSION: string;
 		static defaultOptions: BrokerOptions;
