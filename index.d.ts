@@ -67,9 +67,6 @@ declare namespace Moleculer {
 	}
 
 	interface ServiceSettingSchema {
-		port?: number | string;
-		routes?: RouteSchema[];
-		transport?: string | Transporter;
 		$noVersionPrefix?: boolean;
 		$noServiceNamePrefix?: boolean;
 		[name: string]: any;
