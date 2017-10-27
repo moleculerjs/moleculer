@@ -31,7 +31,7 @@ declare namespace Moleculer {
 		handler: ActionHandler;
 	}
 
-	type Actions = { [key: string]: Action; } | { [key: string]: ActionHandler; }
+	type Actions = { [key: string]: Action | ActionHandler; };
 
 	class Context {
 		constructor(broker: ServiceBroker, action: Action);
