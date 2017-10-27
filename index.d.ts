@@ -513,7 +513,8 @@ declare namespace Moleculer {
 		sendEventToGroups(eventName: string, data: GenericObject, groups: Array<any>): void;
 		removePendingRequest(id: string): void
 		removePendingRequestByNodeID(nodeID: string): void;
-		sendResponse(nodeID: string, id: string, data: GenericObject, err?: Error): Promise<void>;
+		sendResponse(nodeID: string, id: string, data: GenericObject, err: Error): Promise<void>;
+		sendResponse(nodeID: string, id: string, data: GenericObject): Promise<void>;
 		discoverNodes(): Promise<void>;
 		discoverNode(nodeID: string): Promise<void>;
 		sendNodeInfo(nodeID: string): Promise<void | Array<void>>;
