@@ -1,11 +1,13 @@
 declare namespace Moleculer {
+	type GenericObject = { [name: string]: any };
+
 	interface Logger {
 		fatal?: (...args: any[]) => void;
 		error: (...args: any[]) => void;
 		warn: (...args: any[]) => void;
 		info: (...args: any[]) => void;
 		debug?: (...args: any[]) => void;
-		trace: (...args: any[]) => void;
+		trace?: (...args: any[]) => void;
 	}
 
 	class LoggerInstance {
@@ -17,12 +19,19 @@ declare namespace Moleculer {
 		trace(...args: any[]): void;
 	}
 
+	type ActionHandler = (ctx: Context) => Promise<any>;
+	type ActionParamTypes = "number" | "string" | "object";
+	type ActionParams = {[key: string]: ActionParamTypes};
+
 	interface Action {
 		name: string;
-		service: Service;
-		cache: boolean;
-		handler: (ctx: Context) => Promise<any>;
+		params?: ActionParams;
+		service?: Service;
+		cache?: boolean;
+		handler: ActionHandler;
 	}
+
+	type Actions = { [key: string]: Action; } | { [key: string]: ActionHandler; }
 
 	class Context {
 		constructor(broker: ServiceBroker, action: Action);
@@ -38,37 +47,36 @@ declare namespace Moleculer {
 		timeout: number;
 		retryCount: number;
 
-		params: object;
-		meta: object;
+		params: GenericObject;
+		meta: GenericObject;
 
 		requestID?: string;
+		callerNodeID?: string;
 		duration: number;
 
 		cachedResult: boolean;
 
 		generateID(): string;
-		setParams(newParams: object, cloning?: boolean): void;
-		call(actionName: string, params?: object, opts?: object): Promise<any>;
+		setParams(newParams: GenericObject, cloning?: boolean): void;
+		call(actionName: string, params?: GenericObject, opts?: GenericObject): Promise<any>;
 		emit(eventName: string, data: any): void;
 
-		static create(broker: ServiceBroker, action: Action, nodeID: string, params: object, opts: object): Context;
-		static create(broker: ServiceBroker, action: Action, nodeID: string, opts: object): Context;
-		static create(broker: ServiceBroker, action: Action, opts: object): Context;
+		static create(broker: ServiceBroker, action: Action, nodeID: string, params: GenericObject, opts: GenericObject): Context;
+		static create(broker: ServiceBroker, action: Action, nodeID: string, opts: GenericObject): Context;
+		static create(broker: ServiceBroker, action: Action, opts: GenericObject): Context;
 
-		static createFromPayload(broker: ServiceBroker, payload: object): Context;
-	}
-
-	interface ServiceActionSchema {
-		cache?: boolean;
-		params?: object;
-		handler: (ctx: Context) => Promise<any>;
+		static createFromPayload(broker: ServiceBroker, payload: GenericObject): Context;
 	}
 
 	interface ServiceSettingSchema {
-		port?: number | string;
-		routes?: Route[];
+		$noVersionPrefix?: boolean;
+		$noServiceNamePrefix?: boolean;
 		[name: string]: any;
 	}
+
+	type ServiceEventHandler = (payload: any, sender: any, eventName: string) => void;
+	type ServiceLocalEventHandler = (node: GenericObject) => void;
+	type ServiceEvents = { [key: string]: ServiceEventHandler | ServiceLocalEventHandler };
 
 	interface RouteSchema {
 		path?: string;
@@ -80,35 +88,43 @@ declare namespace Moleculer {
 
 	interface ServiceSchema {
 		name: string;
-		version?: string | Number;
-		settings: ServiceSettingSchema;
-		metadata?: object;
-		dependencies?: string | object | Array<string> | Array<object>;
-		schema?: object;
-		broker?: ServiceBroker;
-		logger?: LoggerInstance;
-		actions?: { [name: string]: ServiceActionSchema };
+		version?: string | number;
+		settings?: ServiceSettingSchema;
+		metadata?: GenericObject;
+		actions?: Actions;
+		mixins?: Array<ServiceSchema>;
+		methods?: {[key: string]: Function};
+
+		events?: ServiceEvents;
+		created?: () => void;
+		started?: () => Promise<void>;
+		stopped?: () => Promise<void>;
+		[name: string]: any;
 	}
 
-	class Service {
+	class Service implements ServiceSchema {
 		constructor(broker: ServiceBroker, schema: ServiceSchema);
 
 		name: string;
-		version?: string | Number;
-		settings: object;
-		metadata: object;
-		dependencies: string | object | Array<string> | Array<object>;
-		schema: object;
+		version?: string | number;
+		settings: ServiceSettingSchema;
+		metadata: GenericObject;
+		dependencies: string | GenericObject | Array<string> | Array<GenericObject>;
+		schema: ServiceSchema;
 		broker: ServiceBroker;
 		logger: LoggerInstance;
-		actions: object;
+		actions?: Actions;
+		mixins?: Array<ServiceSchema>;
+		methods?: {[key: string]: Function};
 		Promise: Promise<any>;
 
 		waitForServices(serviceNames: string | Array<string>, timeout?: number, interval?: number): Promise<void>;
 
+		events?: ServiceEvents;
 		created: () => void;
 		started: () => Promise<void>;
 		stopped: () => Promise<void>;
+		[name: string]: any;
 	}
 
 	interface BrokerCircuitBreakerOptions {
@@ -136,7 +152,7 @@ declare namespace Moleculer {
 		logLevel?: string;
 		logFormatter?: Function | string;
 
-		transporter?: Transporter | string | object;
+		transporter?: Transporter | string | GenericObject;
 		requestTimeout?: number;
 		requestRetry?: number;
 		maxCallLevel?: number;
@@ -151,8 +167,8 @@ declare namespace Moleculer {
 
 		circuitBreaker?: BrokerCircuitBreakerOptions;
 
-		cacher?: Cacher | string | object;
-		serializer?: Serializer | string | object;
+		cacher?: Cacher | string | GenericObject;
+		serializer?: Serializer | string | GenericObject;
 
 		validation?: boolean;
 		validator?: Validator;
@@ -178,6 +194,7 @@ declare namespace Moleculer {
 		cacher?: Cacher;
 		serializer?: Serializer;
 		validator?: Validator;
+		transit: GenericObject;
 
 		start(): Promise<void>;
 		stop(): Promise<void>;
@@ -199,7 +216,7 @@ declare namespace Moleculer {
 		use(...mws: Array<Function>): void;
 
 		getAction(actionName: string): Action;
-		findNextActionEndpoint(actionName: string, opts?: object): string;
+		findNextActionEndpoint(actionName: string, opts?: GenericObject): string;
 
 		/**
 		 * Call an action (local or global)
@@ -211,13 +228,13 @@ declare namespace Moleculer {
 		 *
 		 * @memberOf ServiceBroker
 		 */
-		call(actionName: string, params?: object, opts?: object): Promise<any>;
+		call(actionName: string, params?: GenericObject, opts?: GenericObject): Promise<any>;
 
 		/**
 		 * Multiple action calls.
 		 *
-		 * @param {Array<object>|object} def Calling definitions.
-		 * @returns {Promise<Array<object>|object>}
+		 * @param {Array<GenericObject>|GenericObject} def Calling definitions.
+		 * @returns {Promise<Array<GenericObject>|GenericObject>}
 		 * | (broker: ServiceBroker): Service)
 		 * @example
 		 * Call `mcall` with an array:
@@ -246,7 +263,7 @@ declare namespace Moleculer {
 		 *
 		 * @memberOf ServiceBroker
 		 */
-		mcall(def: Array<object> | object): Promise<Array<any> | any>;
+		mcall(def: Array<GenericObject> | GenericObject): Promise<Array<any> | any>;
 
 		/**
 		 * Emit an event (global & local)
@@ -285,18 +302,52 @@ declare namespace Moleculer {
 
 		sendPing(nodeID?: string): Promise<void>;
 		getHealthStatus(): {
-			getHealthStatus: any;
-			getCpuInfo: any;
-			getMemoryInfo: any;
-			getOsInfo: any;
-			getProcessInfo: any;
-			getClientInfo: any;
-			getNetworkInterfacesInfo: any;
-			getTransitStatus: any;
-			getDateTimeInfo: any;
+			cpu: {
+				load1: number;
+				load5: number;
+				load15: number;
+				cores: number;
+				utilization: number;
+			};
+			mem: {
+				free: number;
+				total: number;
+				percent: number;
+			};
+			os: {
+				uptime: number;
+				type: string;
+				release: string;
+				hostname: string;
+				arch: string;
+				platform: string;
+				user: string;
+			};
+			process: {
+				pid: NodeJS.Process["pid"];
+				memory: NodeJS.MemoryUsage;
+				uptime: number;
+				argv: string[];
+			};
+			client: {
+				type: string;
+				version: string;
+				langVersion: NodeJS.Process["version"];
+			};
+			net: {
+				ip: string[];
+			};
+			transit: {
+				stat: GenericObject;
+			} | null,
+			time: {
+				now: number;
+				iso: string;
+				utc: string;
+			};
 		};
 		getLocalNodeInfo(): {
-			ipList: any;
+			ipList: string[];
 			client: any;
 			config: any;
 			port: any;
@@ -304,6 +355,7 @@ declare namespace Moleculer {
 		};
 
 		MOLECULER_VERSION: string;
+		[name: string]: any;
 
 		static MOLECULER_VERSION: string;
 		static defaultOptions: BrokerOptions;
@@ -316,7 +368,7 @@ declare namespace Moleculer {
 	}
 
 	class Transporter {
-		constructor(opts?: object);
+		constructor(opts?: GenericObject);
 		init(broker: ServiceBroker, messageHandler: (cmd: string, msg: string) => void): void;
 		connect(): Promise<any>;
 		disconnect(): Promise<any>;
@@ -325,10 +377,10 @@ declare namespace Moleculer {
 	}
 
 	class Cacher {
-		constructor(opts?: object);
+		constructor(opts?: GenericObject);
 		init(broker: ServiceBroker): void;
 		close(): Promise<any>;
-		get(key: string): Promise<null | object>;
+		get(key: string): Promise<null | GenericObject>;
 		set(key: string, data: any): Promise<any>;
 		del(key: string): Promise<any>;
 		clean(match?: string): Promise<any>;
@@ -337,21 +389,21 @@ declare namespace Moleculer {
 	class Serializer {
 		constructor();
 		init(broker: ServiceBroker): void;
-		serialize(obj: object, type: string): string | Buffer;
+		serialize(obj: GenericObject, type: string): string | Buffer;
 		deserialize(str: string, type: string): string;
 	}
 
 	class Validator {
 		constructor();
 		init(broker: ServiceBroker): void;
-		compile(schema: object): Function;
-		validate(params: object, schema: object): boolean;
+		compile(schema: GenericObject): Function;
+		validate(params: GenericObject, schema: GenericObject): boolean;
 	}
 
 	class LoggerHelper {
 		static extend(logger: LoggerInstance): LoggerInstance;
-		static createDefaultLogger(baseLogger: LoggerInstance, bindings: object, logLevel?: string, logFormatter?: Function): LoggerInstance;
-		static createDefaultLogger(bindings: object, logLevel?: string, logFormatter?: Function): LoggerInstance;
+		static createDefaultLogger(baseLogger: LoggerInstance, bindings: GenericObject, logLevel?: string, logFormatter?: Function): LoggerInstance;
+		static createDefaultLogger(bindings: GenericObject, logLevel?: string, logFormatter?: Function): LoggerInstance;
 	}
 
 	abstract class BaseStrategy {
