@@ -31,7 +31,7 @@ declare namespace Moleculer {
 		handler: ActionHandler;
 	}
 
-	type Actions = { [key: string]: Action; } | { [key: string]: ActionHandler; }
+	type Actions = { [key: string]: Action | ActionHandler; };
 
 	class Context {
 		constructor(broker: ServiceBroker, action: Action);
@@ -183,6 +183,52 @@ declare namespace Moleculer {
 		ContextFactory?: Context;
 	}
 
+	interface NodeHealthStatus {
+		cpu: {
+			load1: number;
+			load5: number;
+			load15: number;
+			cores: number;
+			utilization: number;
+		};
+		mem: {
+			free: number;
+			total: number;
+			percent: number;
+		};
+		os: {
+			uptime: number;
+			type: string;
+			release: string;
+			hostname: string;
+			arch: string;
+			platform: string;
+			user: string;
+		};
+		process: {
+			pid: NodeJS.Process["pid"];
+			memory: NodeJS.MemoryUsage;
+			uptime: number;
+			argv: string[];
+		};
+		client: {
+			type: string;
+			version: string;
+			langVersion: NodeJS.Process["version"];
+		};
+		net: {
+			ip: string[];
+		};
+		transit: {
+			stat: GenericObject;
+		} | null,
+		time: {
+			now: number;
+			iso: string;
+			utc: string;
+		};
+	}
+
 	class ServiceBroker {
 		constructor(options?: BrokerOptions);
 
@@ -301,51 +347,7 @@ declare namespace Moleculer {
 		broadcastLocal(eventName: string, payload?: any, groups?: string | Array<string>, nodeID?: string): void;
 
 		sendPing(nodeID?: string): Promise<void>;
-		getHealthStatus(): {
-			cpu: {
-				load1: number;
-				load5: number;
-				load15: number;
-				cores: number;
-				utilization: number;
-			};
-			mem: {
-				free: number;
-				total: number;
-				percent: number;
-			};
-			os: {
-				uptime: number;
-				type: string;
-				release: string;
-				hostname: string;
-				arch: string;
-				platform: string;
-				user: string;
-			};
-			process: {
-				pid: NodeJS.Process["pid"];
-				memory: NodeJS.MemoryUsage;
-				uptime: number;
-				argv: string[];
-			};
-			client: {
-				type: string;
-				version: string;
-				langVersion: NodeJS.Process["version"];
-			};
-			net: {
-				ip: string[];
-			};
-			transit: {
-				stat: GenericObject;
-			} | null,
-			time: {
-				now: number;
-				iso: string;
-				utc: string;
-			};
-		};
+		getHealthStatus(): NodeHealthStatus;
 		getLocalNodeInfo(): {
 			ipList: string[];
 			client: any;
@@ -418,11 +420,37 @@ declare namespace Moleculer {
 	}
 
 	namespace Transporters {
-		class Fake extends Transporter { }
-		class NATS extends Transporter { }
-		class MQTT extends Transporter { }
-		class Redis extends Transporter { }
-		class AMQP extends Transporter { }
+		type MessageHandler = (cmd: string, msg: any) => Promise<void>;
+		type AfterConnectHandler = (wasReconnect: boolean) => Promise<void>;
+
+		class BaseTransporter {
+			constructor(opts?: object);
+			public init(transit: object, messageHandler: MessageHandler, afterConnect?: AfterConnectHandler): void;
+			public connect(): Promise<any>;
+			public onConnected(wasReconnect: boolean): Promise<void>;
+			public disconnect(): Promise<void>;
+			public subscribe(cmd: string, nodeID: string): Promise<void>;
+			public subscribe(): Promise<void>;
+			public subscribeBalancedRequest(action: string): Promise<void>;
+			public subscribeBalancedRequest(): Promise<void>;
+			public subscribeBalancedEvent(event: string, group: string): Promise<void>;
+			public subscribeBalancedEvent(): Promise<void>;
+			public unsubscribeFromBalancedCommands(): Promise<void>;
+			public publish(packet: Packet): Promise<void>;
+			public publish(): Promise<void>;
+			public publishBalancedEvent(packet: Packet, group: string): Promise<void>;
+			public publishBalancedEvent(): Promise<void>;
+			public publishBalancedRequest(packet: Packet): Promise<void>;
+			public publishBalancedRequest(): Promise<void>;
+			public getTopicName(cmd: string, nodeID: string): string;
+			public prepublish(packet: Packet): Promise<void>;
+		}
+
+		class Fake extends BaseTransporter { }
+		class NATS extends BaseTransporter { }
+		class MQTT extends BaseTransporter { }
+		class Redis extends BaseTransporter { }
+		class AMQP extends BaseTransporter { }
 	}
 
 	const Cachers: {
@@ -469,6 +497,36 @@ declare namespace Moleculer {
 
 		class RandomStrategy extends BaseStrategy {
 		}
+	}
+
+	interface Transit {
+		afterConnect(wasReconnect: boolean): Promise<void>;
+		connect(): Promise<void>;
+		disconnect(): Promise<void>;
+		sendDisconnectPacket(): Promise<void>;
+		makeSubscriptions(): Promise<Array<void>>;
+		messageHandler(cmd: string, msg: GenericObject): boolean | Promise<void> | undefined;
+		request(ctx: Context): Promise<void>;
+		sendEvent(nodeID: string, eventName: string, data: GenericObject): void;
+		sendBalancedEvent(eventName: string, data: GenericObject, nodeGroups: GenericObject): void;
+		sendEventToGroups(eventName: string, data: GenericObject, groups: Array<string>): void;
+		sendEventToGroups(eventName: string, data: GenericObject): void;
+		removePendingRequest(id: string): void;
+		removePendingRequestByNodeID(nodeID: string): void;
+		sendResponse(nodeID: string, id: string, data: GenericObject, err: Error): Promise<void>;
+		sendResponse(nodeID: string, id: string, data: GenericObject): Promise<void>;
+		discoverNodes(): Promise<void>;
+		discoverNode(nodeID: string): Promise<void>;
+		sendNodeInfo(nodeID: string): Promise<void | Array<void>>;
+		sendPing(nodeID: string): Promise<void>;
+		sendPong(payload: GenericObject): Promise<void>;
+		processPong(payload: GenericObject): void;
+		sendHeartbeat(localNode: NodeHealthStatus): Promise<void>;
+		subscribe(topic: string, nodeID: string): Promise<void>;
+		publish(packet: Packet): Promise<void>;
+		serialize(obj: GenericObject, type: string): Buffer;
+		deserialize(buf: Buffer, type: string): any;
+		deserialize(buf: Buffer): any;
 	}
 
 	const CIRCUIT_CLOSE: string;
