@@ -499,8 +499,7 @@ declare namespace Moleculer {
 		}
 	}
 
-	class Transit {
-		constructor(broker: ServiceBroker, transporter: Transporter, opts: GenericObject);
+	interface Transit {
 		afterConnect(wasReconnect: boolean): Promise<void>;
 		connect(): Promise<void>;
 		disconnect(): Promise<void>;
@@ -510,8 +509,9 @@ declare namespace Moleculer {
 		request(ctx: Context): Promise<void>;
 		sendEvent(nodeID: string, eventName: string, data: GenericObject): void;
 		sendBalancedEvent(eventName: string, data: GenericObject, nodeGroups: GenericObject): void;
-		sendEventToGroups(eventName: string, data: GenericObject, groups: Array<any>): void;
-		removePendingRequest(id: string): void
+		sendEventToGroups(eventName: string, data: GenericObject, groups: Array<string>): void;
+		sendEventToGroups(eventName: string, data: GenericObject): void;
+		removePendingRequest(id: string): void;
 		removePendingRequestByNodeID(nodeID: string): void;
 		sendResponse(nodeID: string, id: string, data: GenericObject, err: Error): Promise<void>;
 		sendResponse(nodeID: string, id: string, data: GenericObject): Promise<void>;
@@ -525,8 +525,8 @@ declare namespace Moleculer {
 		subscribe(topic: string, nodeID: string): Promise<void>;
 		publish(packet: Packet): Promise<void>;
 		serialize(obj: GenericObject, type: string): Buffer;
-		deserialize(buf: Buffer, type: string): any
-		deserialize(buf: Buffer): any
+		deserialize(buf: Buffer, type: string): any;
+		deserialize(buf: Buffer): any;
 	}
 
 	const CIRCUIT_CLOSE: string;
