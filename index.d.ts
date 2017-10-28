@@ -476,10 +476,12 @@ declare namespace Moleculer {
 		class MoleculerClientError extends MoleculerError { }
 
 		class ServiceNotFoundError extends MoleculerError {
-			constructor(action, nodeID);
+			constructor(action: string, nodeID: string);
+			constructor(action: string);
 		}
 		class ServiceNotAvailable extends MoleculerError {
-			constructor(action, nodeID);
+			constructor(action: string, nodeID: string);
+			constructor(action: string);
 		}
 
 		class RequestTimeoutError extends MoleculerRetryableError {
