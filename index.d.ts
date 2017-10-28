@@ -465,25 +465,55 @@ declare namespace Moleculer {
 	};
 
 	namespace Errors {
-		class MoleculerError extends Error { }
+		class MoleculerError extends Error {
+			constructor(message: string, code: number, type: string, data: any);
+			constructor(message: string, code: number, type: string);
+			constructor(message: string, code: number);
+			constructor(message: string);
+		}
 		class MoleculerRetryableError extends MoleculerError { }
-		class MoleculerServerError extends MoleculerError { }
+		class MoleculerServerError extends MoleculerRetryableError { }
 		class MoleculerClientError extends MoleculerError { }
 
-		class ServiceNotFoundError extends MoleculerError { }
-		class ServiceNotAvailable extends MoleculerError { }
+		class ServiceNotFoundError extends MoleculerError {
+			constructor(action, nodeID);
+		}
+		class ServiceNotAvailable extends MoleculerError {
+			constructor(action, nodeID);
+		}
 
-		class ValidationError extends MoleculerError { }
-		class RequestTimeoutError extends MoleculerError { }
-		class RequestSkippedError extends MoleculerError { }
-		class RequestRejected extends MoleculerError { }
-		class QueueIsFull extends MoleculerError { }
-		class MaxCallLevelError extends MoleculerError { }
+		class RequestTimeoutError extends MoleculerRetryableError {
+			constructor(action: string, nodeID: string);
+		}
+		class RequestSkippedError extends MoleculerError {
+			constructor(action: string, nodeID: string);
+		}
+		class RequestRejected extends MoleculerRetryableError {
+			constructor(action: string, nodeID: string);
+		}
 
-		class ServiceSchemaError extends MoleculerError { }
+		class QueueIsFull extends MoleculerRetryableError {
+			constructor(action: string, nodeID: string, size: number, limit: number);
+		}
+		class ValidationError extends MoleculerClientError {
+			constructor(message, type, data);
+			constructor(message, type);
+			constructor(message);
+		}
+		class MaxCallLevelError extends MoleculerError {
+			constructor(nodeID: string, level: number);
+		}
 
-		class ProtocolVersionMismatchError extends MoleculerError { }
-		class InvalidPacketData extends MoleculerError { }
+		class ServiceSchemaError extends MoleculerError {
+			constructor(message: string);
+		}
+
+		class ProtocolVersionMismatchError extends MoleculerError {
+			constructor(nodeID: string, actual: string, received: string);
+		}
+		class InvalidPacketData extends MoleculerError {
+			constructor(packet: Packet);
+		}
 	}
 
 	namespace Strategies {
