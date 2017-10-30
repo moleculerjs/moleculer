@@ -436,8 +436,8 @@ declare namespace Moleculer {
 		type AfterConnectHandler = (wasReconnect: boolean) => Promise<void>;
 
 		class BaseTransporter {
-			constructor(opts?: object);
-			public init(transit: object, messageHandler: MessageHandler, afterConnect?: AfterConnectHandler): void;
+			constructor(opts?: GenericObject);
+			public init(transit: GenericObject, messageHandler: MessageHandler, afterConnect?: AfterConnectHandler): void;
 			public connect(): Promise<any>;
 			public onConnected(wasReconnect: boolean): Promise<void>;
 			public disconnect(): Promise<void>;
