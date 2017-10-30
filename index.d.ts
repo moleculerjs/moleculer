@@ -229,6 +229,17 @@ declare namespace Moleculer {
 		};
 	}
 
+	type FallbackResponse = string | number | GenericObject;
+	type FallbackResponseHandler = (ctx: Context, err: Errors.MoleculerError) => Promise<any>;
+
+	interface CallOptions {
+		timeout?: number;
+		retryCount?: number;
+		fallbackResponse?: FallbackResponse | Array<FallbackResponse> | FallbackResponseHandler;
+		nodeID?: string;
+		meta?: GenericObject;
+	}
+
 	class ServiceBroker {
 		constructor(options?: BrokerOptions);
 
@@ -274,7 +285,7 @@ declare namespace Moleculer {
 		 *
 		 * @memberOf ServiceBroker
 		 */
-		call(actionName: string, params?: GenericObject, opts?: GenericObject): Promise<any>;
+		call(actionName: string, params?: GenericObject, opts?: CallOptions): Promise<any>;
 
 		/**
 		 * Multiple action calls.
