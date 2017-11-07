@@ -1,7 +1,8 @@
 <a name="0.11.6"></a>
-# [0.11.6](https://github.com/ice-services/moleculer/compare/v0.11.5...v0.11.6) (2017-xx-xx)
+# [0.11.6](https://github.com/ice-services/moleculer/compare/v0.11.5...v0.11.6) (2017-11-07)
 
 # New
+
 ## New cacher features
 In action cache keys you can use meta keys with `#` prefix.
 ```js
@@ -59,6 +60,9 @@ let broker = new ServiceBroker({
     }
 });
 ```
+
+# Others
+- `d.ts` has been improved by [@rmccallum81](https://github.com/rmccallum81)
 
 --------------------------------------------------
 <a name="0.11.5"></a>
