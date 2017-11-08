@@ -20,12 +20,11 @@ declare namespace Moleculer {
 	}
 
 	type ActionHandler = (ctx: Context) => Promise<any>;
-	type ActionParamTypes = "number" | "string" | "object";
-	type ActionParams = {[key: string]: ActionParamTypes};
+	type ActionParamsSchema = { [key: string]: any };
 
 	interface Action {
 		name: string;
-		params?: ActionParams;
+		params?: ActionParamsSchema;
 		service?: Service;
 		cache?: boolean;
 		handler: ActionHandler;
@@ -93,7 +92,7 @@ declare namespace Moleculer {
 		metadata?: GenericObject;
 		actions?: Actions;
 		mixins?: Array<ServiceSchema>;
-		methods?: {[key: string]: Function};
+		methods?: { [key: string]: Function };
 
 		events?: ServiceEvents;
 		created?: () => void;
@@ -115,7 +114,7 @@ declare namespace Moleculer {
 		logger: LoggerInstance;
 		actions?: Actions;
 		mixins?: Array<ServiceSchema>;
-		methods?: {[key: string]: Function};
+		methods?: { [key: string]: Function };
 		Promise: Promise<any>;
 
 		waitForServices(serviceNames: string | Array<string>, timeout?: number, interval?: number): Promise<void>;
