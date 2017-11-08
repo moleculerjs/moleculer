@@ -20,11 +20,13 @@ declare namespace Moleculer {
 	}
 
 	type ActionHandler = (ctx: Context) => Promise<any>;
-	type ActionParamsSchema = { [key: string]: any };
+	type ActionParamSchema = { [key: string]: any };
+	type ActionParamTypes = "boolean" | "number" | "string" | "object" | "array" | ActionParamSchema;
+	type ActionParams = { [key: string]: ActionParamTypes };
 
 	interface Action {
 		name: string;
-		params?: ActionParamsSchema;
+		params?: ActionParams;
 		service?: Service;
 		cache?: boolean;
 		handler: ActionHandler;
