@@ -1239,7 +1239,8 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	sendPing(nodeID) {
-		return this.transit.sendPing(nodeID);
+		if (this.transit && this.transit.connected)
+			return this.transit.sendPing(nodeID);
 	}
 
 	/**
