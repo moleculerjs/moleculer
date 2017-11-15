@@ -1,3 +1,4 @@
+import * as bluebird from "bluebird";
 declare namespace Moleculer {
 	type GenericObject = { [name: string]: any };
 
@@ -19,7 +20,7 @@ declare namespace Moleculer {
 		trace(...args: any[]): void;
 	}
 
-	type ActionHandler = (ctx: Context) => Promise<any>;
+	type ActionHandler = (ctx: Context) => bluebird.Promise<any>;
 	type ActionParamSchema = { [key: string]: any };
 	type ActionParamTypes = "boolean" | "number" | "string" | "object" | "array" | ActionParamSchema;
 	type ActionParams = { [key: string]: ActionParamTypes };
@@ -59,7 +60,7 @@ declare namespace Moleculer {
 
 		generateID(): string;
 		setParams(newParams: GenericObject, cloning?: boolean): void;
-		call(actionName: string, params?: GenericObject, opts?: GenericObject): Promise<any>;
+		call(actionName: string, params?: GenericObject, opts?: GenericObject): bluebird.Promise<any>;
 		emit(eventName: string, data: any): void;
 
 		static create(broker: ServiceBroker, action: Action, nodeID: string, params: GenericObject, opts: GenericObject): Context;
@@ -98,8 +99,8 @@ declare namespace Moleculer {
 
 		events?: ServiceEvents;
 		created?: () => void;
-		started?: () => Promise<void>;
-		stopped?: () => Promise<void>;
+		started?: () => bluebird.Promise<void>;
+		stopped?: () => bluebird.Promise<void>;
 		[name: string]: any;
 	}
 
@@ -117,14 +118,14 @@ declare namespace Moleculer {
 		actions?: Actions;
 		mixins?: Array<ServiceSchema>;
 		methods?: { [key: string]: Function };
-		Promise: Promise<any>;
+		Promise: bluebird.Promise<any>;
 
-		waitForServices(serviceNames: string | Array<string>, timeout?: number, interval?: number): Promise<void>;
+		waitForServices(serviceNames: string | Array<string>, timeout?: number, interval?: number): bluebird.Promise<void>;
 
 		events?: ServiceEvents;
 		created: () => void;
-		started: () => Promise<void>;
-		stopped: () => Promise<void>;
+		started: () => bluebird.Promise<void>;
+		stopped: () => bluebird.Promise<void>;
 		[name: string]: any;
 	}
 
@@ -231,7 +232,7 @@ declare namespace Moleculer {
 	}
 
 	type FallbackResponse = string | number | GenericObject;
-	type FallbackResponseHandler = (ctx: Context, err: Errors.MoleculerError) => Promise<any>;
+	type FallbackResponseHandler = (ctx: Context, err: Errors.MoleculerError) => bluebird.Promise<any>;
 
 	interface CallOptions {
 		timeout?: number;
@@ -244,7 +245,7 @@ declare namespace Moleculer {
 	class ServiceBroker {
 		constructor(options?: BrokerOptions);
 
-		Promise: Promise<any>;
+		Promise: bluebird.Promise<any>;
 
 		namespace: string;
 		nodeID: string;
@@ -254,8 +255,8 @@ declare namespace Moleculer {
 		validator?: Validator;
 		transit: GenericObject;
 
-		start(): Promise<void>;
-		stop(): Promise<void>;
+		start(): bluebird.Promise<void>;
+		stop(): bluebird.Promise<void>;
 
 		repl(): void;
 
@@ -266,10 +267,10 @@ declare namespace Moleculer {
 		watchService(service: Service): void;
 		hotReloadService(service: Service): Service;
 		createService(schema: ServiceSchema): Service;
-		destroyService(service: Service): Promise<void>;
+		destroyService(service: Service): bluebird.Promise<void>;
 
 		getLocalService(serviceName: string): Service;
-		waitForServices(serviceNames: string | Array<string>, timeout?: number, interval?: number, logger?: LoggerInstance): Promise<void>;
+		waitForServices(serviceNames: string | Array<string>, timeout?: number, interval?: number, logger?: LoggerInstance): bluebird.Promise<void>;
 
 		use(...mws: Array<Function>): void;
 
@@ -286,13 +287,13 @@ declare namespace Moleculer {
 		 *
 		 * @memberOf ServiceBroker
 		 */
-		call(actionName: string, params?: GenericObject, opts?: CallOptions): Promise<any>;
+		call(actionName: string, params?: GenericObject, opts?: CallOptions): bluebird.Promise<any>;
 
 		/**
 		 * Multiple action calls.
 		 *
 		 * @param {Array<GenericObject>|GenericObject} def Calling definitions.
-		 * @returns {Promise<Array<GenericObject>|GenericObject>}
+		 * @returns {bluebird.Promise<Array<GenericObject>|GenericObject>}
 		 * | (broker: ServiceBroker): Service)
 		 * @example
 		 * Call `mcall` with an array:
@@ -321,7 +322,7 @@ declare namespace Moleculer {
 		 *
 		 * @memberOf ServiceBroker
 		 */
-		mcall(def: Array<GenericObject> | GenericObject): Promise<Array<any> | any>;
+		mcall(def: Array<GenericObject> | GenericObject): bluebird.Promise<Array<any> | any>;
 
 		/**
 		 * Emit an event (global & local)
@@ -358,7 +359,7 @@ declare namespace Moleculer {
 		 */
 		broadcastLocal(eventName: string, payload?: any, groups?: string | Array<string>, nodeID?: string): void;
 
-		sendPing(nodeID?: string): Promise<void>;
+		sendPing(nodeID?: string): bluebird.Promise<void>;
 		getHealthStatus(): NodeHealthStatus;
 		getLocalNodeInfo(): {
 			ipList: string[];
@@ -381,23 +382,129 @@ declare namespace Moleculer {
 		static deserialize(transit: any, type: string, msg: string): Packet;
 	}
 
+	namespace Packets {
+		type PROTOCOL_VERSION = "2";
+		type PACKET_UNKNOWN = "???";
+		type PACKET_EVENT = "EVENT";
+		type PACKET_REQUEST = "REQ";
+		type PACKET_RESPONSE = "RES";
+		type PACKET_DISCOVER = "DISCOVER";
+		type PACKET_INFO = "INFO";
+		type PACKET_DISCONNECT = "DISCONNECT";
+		type PACKET_HEARTBEAT = "HEARTBEAT";
+		type PACKET_PING = "PING";
+		type PACKET_PONG = "PONG";
+
+		const PROTOCOL_VERSION: PROTOCOL_VERSION;
+		const PACKET_UNKNOWN: PACKET_UNKNOWN;
+		const PACKET_EVENT: PACKET_EVENT;
+		const PACKET_REQUEST: PACKET_REQUEST;
+		const PACKET_RESPONSE: PACKET_RESPONSE;
+		const PACKET_DISCOVER: PACKET_DISCOVER;
+		const PACKET_INFO: PACKET_INFO;
+		const PACKET_DISCONNECT: PACKET_DISCONNECT;
+		const PACKET_HEARTBEAT: PACKET_HEARTBEAT;
+		const PACKET_PING: PACKET_PING;
+		const PACKET_PONG: PACKET_PONG;
+
+		interface PacketPayload {
+			ver: PROTOCOL_VERSION;
+			sender: string | null;
+		}
+
+		interface Packet {
+			type: PACKET_UNKNOWN;
+			transit?: Transit;
+			target?: string;
+			payload: PacketPayload
+		}
+		interface PacketEvent extends Packet {
+			type: PACKET_EVENT;
+			payload: PacketPayload & {
+				event: string;
+				data: any | null;
+				groups: any | null;
+			};
+		}
+		interface PacketDisconnect extends Packet {
+			type: PACKET_DISCONNECT;
+		}
+		interface PacketDiscover extends Packet {
+			type: PACKET_DISCOVER;
+		}
+		interface PacketInfo extends Packet {
+			type: PACKET_INFO;
+			payload: PacketPayload & {
+				services?: any;
+				ipList?: Array<string>;
+				client?: any;
+				port?: any;
+				config?: any;
+			}
+		}
+		interface PacketHeartbeat extends Packet {
+			type: PACKET_HEARTBEAT;
+			payload: PacketPayload & { cpu: number };
+		}
+		interface PacketRequest extends Packet {
+			type: PACKET_REQUEST;
+			payload: PacketPayload & {
+				id?: string;
+				action?: string;
+				params?: GenericObject;
+				meta?: GenericObject;
+				timeout?: number;
+				level?: number;
+				metrics?: GenericObject;
+				parentID?: string;
+				requestID?: string;
+			};
+		}
+		interface PacketResponse extends Packet {
+			type: PACKET_RESPONSE;
+			payload: PacketPayload & {
+				id: string;
+				success: boolean;
+				data?: GenericObject;
+
+				error?: {
+					name: string;
+					message: string;
+					nodeID: string;
+					code: number;
+					type: string;
+					stack: string;
+					data: GenericObject;
+				};
+			};
+		}
+		interface PacketPing extends Packet {
+			type: PACKET_PING;
+			payload: PacketPayload & { time: number };
+		}
+		interface PacketPong extends Packet {
+			type: PACKET_PONG;
+			payload: PacketPayload & { time: number, arrived: number };
+		}
+	}
+
 	class Transporter {
 		constructor(opts?: GenericObject);
 		init(broker: ServiceBroker, messageHandler: (cmd: string, msg: string) => void): void;
-		connect(): Promise<any>;
-		disconnect(): Promise<any>;
-		subscribe(cmd: string, nodeID?: string): Promise<void>;
-		publish(packet: Packet): Promise<void>;
+		connect(): bluebird.Promise<any>;
+		disconnect(): bluebird.Promise<any>;
+		subscribe(cmd: string, nodeID?: string): bluebird.Promise<void>;
+		publish(packet: Packet): bluebird.Promise<void>;
 	}
 
 	class Cacher {
 		constructor(opts?: GenericObject);
 		init(broker: ServiceBroker): void;
-		close(): Promise<any>;
-		get(key: string): Promise<null | GenericObject>;
-		set(key: string, data: any): Promise<any>;
-		del(key: string): Promise<any>;
-		clean(match?: string): Promise<any>;
+		close(): bluebird.Promise<any>;
+		get(key: string): bluebird.Promise<null | GenericObject>;
+		set(key: string, data: any): bluebird.Promise<any>;
+		del(key: string): bluebird.Promise<any>;
+		clean(match?: string): bluebird.Promise<any>;
 	}
 
 	class Serializer {
@@ -432,30 +539,37 @@ declare namespace Moleculer {
 	}
 
 	namespace Transporters {
-		type MessageHandler = (cmd: string, msg: any) => Promise<void>;
-		type AfterConnectHandler = (wasReconnect: boolean) => Promise<void>;
+		type MessageHandler = (cmd: string, msg: any) => bluebird.Promise<void>;
+		type AfterConnectHandler = (wasReconnect: boolean) => bluebird.Promise<void>;
 
 		class BaseTransporter {
 			constructor(opts?: GenericObject);
-			public init(transit: GenericObject, messageHandler: MessageHandler, afterConnect?: AfterConnectHandler): void;
-			public connect(): Promise<any>;
-			public onConnected(wasReconnect: boolean): Promise<void>;
-			public disconnect(): Promise<void>;
-			public subscribe(cmd: string, nodeID: string): Promise<void>;
-			public subscribe(): Promise<void>;
-			public subscribeBalancedRequest(action: string): Promise<void>;
-			public subscribeBalancedRequest(): Promise<void>;
-			public subscribeBalancedEvent(event: string, group: string): Promise<void>;
-			public subscribeBalancedEvent(): Promise<void>;
-			public unsubscribeFromBalancedCommands(): Promise<void>;
-			public publish(packet: Packet): Promise<void>;
-			public publish(): Promise<void>;
-			public publishBalancedEvent(packet: Packet, group: string): Promise<void>;
-			public publishBalancedEvent(): Promise<void>;
-			public publishBalancedRequest(packet: Packet): Promise<void>;
-			public publishBalancedRequest(): Promise<void>;
+
+			public init(transit: Transit, messageHandler: MessageHandler, afterConnect: AfterConnectHandler): void;
+			public init(transit: Transit, messageHandler: MessageHandler): void;
+			public connect(): bluebird.Promise<any>;
+			public onConnected(wasReconnect: boolean): bluebird.Promise<void>;
+			public disconnect(): bluebird.Promise<void>;
+			public subscribe(cmd: string, nodeID: string): bluebird.Promise<void>;
+			public subscribeBalancedRequest(action: string): bluebird.Promise<void>;
+			public subscribeBalancedEvent(event: string, group: string): bluebird.Promise<void>;
+			public unsubscribeFromBalancedCommands(): bluebird.Promise<void>;
+			public publish(packet: Packet): bluebird.Promise<void>;
+			public publishBalancedEvent(packet: Packet, group: string): bluebird.Promise<void>;
+			public publishBalancedRequest(packet: Packet): bluebird.Promise<void>;
 			public getTopicName(cmd: string, nodeID: string): string;
-			public prepublish(packet: Packet): Promise<void>;
+			public prepublish(packet: Packet): bluebird.Promise<void>;
+
+			protected opts: GenericObject;
+			protected connected: boolean;
+			protected hasBuiltInBalancer: boolean;
+			protected transit: Transit;
+			protected broker: ServiceBroker;
+			protected nodeID: string;
+			protected logger: Logger;
+			protected prefix: string;
+			protected messageHandler: MessageHandler;
+			protected afterConnect?: AfterConnectHandler;
 		}
 
 		class Fake extends BaseTransporter { }
@@ -543,34 +657,45 @@ declare namespace Moleculer {
 		}
 	}
 
+	interface TransitRequest {
+		action: string;
+		nodeID: string;
+		ctx: Context;
+		resolve: (value: any) => void;
+		reject: (reason: any) => void;
+	}
+
 	interface Transit {
-		afterConnect(wasReconnect: boolean): Promise<void>;
-		connect(): Promise<void>;
-		disconnect(): Promise<void>;
-		sendDisconnectPacket(): Promise<void>;
-		makeSubscriptions(): Promise<Array<void>>;
-		messageHandler(cmd: string, msg: GenericObject): boolean | Promise<void> | undefined;
-		request(ctx: Context): Promise<void>;
+		afterConnect(wasReconnect: boolean): bluebird.Promise<void>;
+		connect(): bluebird.Promise<void>;
+		disconnect(): bluebird.Promise<void>;
+		sendDisconnectPacket(): bluebird.Promise<void>;
+		makeSubscriptions(): bluebird.Promise<Array<void>>;
+		messageHandler(cmd: string, msg: GenericObject): boolean | bluebird.Promise<void> | undefined;
+		request(ctx: Context): bluebird.Promise<void>;
 		sendEvent(nodeID: string, eventName: string, data: GenericObject): void;
 		sendBalancedEvent(eventName: string, data: GenericObject, nodeGroups: GenericObject): void;
 		sendEventToGroups(eventName: string, data: GenericObject, groups: Array<string>): void;
 		sendEventToGroups(eventName: string, data: GenericObject): void;
 		removePendingRequest(id: string): void;
 		removePendingRequestByNodeID(nodeID: string): void;
-		sendResponse(nodeID: string, id: string, data: GenericObject, err: Error): Promise<void>;
-		sendResponse(nodeID: string, id: string, data: GenericObject): Promise<void>;
-		discoverNodes(): Promise<void>;
-		discoverNode(nodeID: string): Promise<void>;
-		sendNodeInfo(nodeID: string): Promise<void | Array<void>>;
-		sendPing(nodeID: string): Promise<void>;
-		sendPong(payload: GenericObject): Promise<void>;
+		sendResponse(nodeID: string, id: string, data: GenericObject, err: Error): bluebird.Promise<void>;
+		sendResponse(nodeID: string, id: string, data: GenericObject): bluebird.Promise<void>;
+		discoverNodes(): bluebird.Promise<void>;
+		discoverNode(nodeID: string): bluebird.Promise<void>;
+		sendNodeInfo(nodeID: string): bluebird.Promise<void | Array<void>>;
+		sendPing(nodeID: string): bluebird.Promise<void>;
+		sendPong(payload: GenericObject): bluebird.Promise<void>;
 		processPong(payload: GenericObject): void;
-		sendHeartbeat(localNode: NodeHealthStatus): Promise<void>;
-		subscribe(topic: string, nodeID: string): Promise<void>;
-		publish(packet: Packet): Promise<void>;
+		sendHeartbeat(localNode: NodeHealthStatus): bluebird.Promise<void>;
+		subscribe(topic: string, nodeID: string): bluebird.Promise<void>;
+		publish(packet: Packet): bluebird.Promise<void>;
 		serialize(obj: GenericObject, type: string): Buffer;
 		deserialize(buf: Buffer, type: string): any;
 		deserialize(buf: Buffer): any;
+
+		pendingRequests: Map<string, TransitRequest>
+		nodeID: string;
 	}
 
 	const CIRCUIT_CLOSE: string;
