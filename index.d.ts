@@ -20,7 +20,7 @@ declare namespace Moleculer {
 		trace(...args: any[]): void;
 	}
 
-	type ActionHandler = (ctx: Context) => bluebird.Promise<any>;
+	type ActionHandler = ((ctx: Context) => bluebird.Promise<any>) & ThisType<Service>;
 	type ActionParamSchema = { [key: string]: any };
 	type ActionParamTypes = "boolean" | "number" | "string" | "object" | "array" | ActionParamSchema;
 	type ActionParams = { [key: string]: ActionParamTypes };
@@ -78,15 +78,9 @@ declare namespace Moleculer {
 
 	type ServiceEventHandler = (payload: any, sender: any, eventName: string) => void;
 	type ServiceLocalEventHandler = (node: GenericObject) => void;
-	type ServiceEvents = { [key: string]: ServiceEventHandler | ServiceLocalEventHandler };
+	type ServiceEvents = { [key: string]: ServiceEventHandler | ServiceLocalEventHandler } & ThisType<Service>;
 
-	interface RouteSchema {
-		path?: string;
-		mappingPolicy?: string;
-		whitelist?: string[];
-		bodyParsers?: any;
-		aliases?: { [alias: string]: string };
-	}
+	type ServiceMethods = { [key: string]: (...args: any[]) => any } & ThisType<Service>;
 
 	interface ServiceSchema {
 		name: string;
@@ -95,7 +89,7 @@ declare namespace Moleculer {
 		metadata?: GenericObject;
 		actions?: Actions;
 		mixins?: Array<ServiceSchema>;
-		methods?: { [key: string]: Function };
+		methods?: ServiceMethods;
 
 		events?: ServiceEvents;
 		created?: () => void;
@@ -117,7 +111,7 @@ declare namespace Moleculer {
 		logger: LoggerInstance;
 		actions?: Actions;
 		mixins?: Array<ServiceSchema>;
-		methods?: { [key: string]: Function };
+		methods?: ServiceMethods;
 		Promise: bluebird.Promise<any>;
 
 		waitForServices(serviceNames: string | Array<string>, timeout?: number, interval?: number): bluebird.Promise<void>;
@@ -539,8 +533,8 @@ declare namespace Moleculer {
 	}
 
 	namespace Transporters {
-		type MessageHandler = (cmd: string, msg: any) => bluebird.Promise<void>;
-		type AfterConnectHandler = (wasReconnect: boolean) => bluebird.Promise<void>;
+		type MessageHandler = ((cmd: string, msg: any) => bluebird.Promise<void>) & ThisType<BaseTransporter>;
+		type AfterConnectHandler = ((wasReconnect: boolean) => bluebird.Promise<void>) & ThisType<BaseTransporter>;
 
 		class BaseTransporter {
 			constructor(opts?: GenericObject);
