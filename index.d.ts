@@ -31,6 +31,7 @@ declare namespace Moleculer {
 		service?: Service;
 		cache?: boolean;
 		handler: ActionHandler;
+		[key: string]: any;
 	}
 
 	type Actions = { [key: string]: Action | ActionHandler; };
