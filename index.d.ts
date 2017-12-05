@@ -31,6 +31,7 @@ declare namespace Moleculer {
 		service?: Service;
 		cache?: boolean;
 		handler: ActionHandler;
+		[key: string]: any;
 	}
 
 	type Actions = { [key: string]: Action | ActionHandler; };
@@ -76,11 +77,17 @@ declare namespace Moleculer {
 		[name: string]: any;
 	}
 
-	type ServiceEventHandler = (payload: any, sender: any, eventName: string) => void;
-	type ServiceLocalEventHandler = (node: GenericObject) => void;
-	type ServiceEvents = { [key: string]: ServiceEventHandler | ServiceLocalEventHandler } & ThisType<Service>;
+	type ServiceEventHandler = ((payload: any, sender: string, eventName: string) => void) & ThisType<Service>;
+	type ServiceLocalEventHandler = ((node: GenericObject) => void) & ThisType<Service>;
 
-	type ServiceMethods = { [key: string]: (...args: any[]) => any } & ThisType<Service>;
+	interface ServiceEvent {
+		name: string;
+		handler: ServiceEventHandler | ServiceLocalEventHandler;
+	}
+
+	type ServiceEvents = { [key: string]: ServiceEventHandler | ServiceLocalEventHandler };
+
+	type ServiceMethods = { [key: string]: ((...args: any[]) => any) & ThisType<Service> };
 
 	interface ServiceSchema {
 		name: string;
