@@ -414,7 +414,8 @@ declare namespace Moleculer {
 		}
 
 		interface Packet {
-			type: PACKET_UNKNOWN;
+			type: | PACKET_EVENT | PACKET_DISCONNECT | PACKET_DISCOVER |
+			PACKET_INFO | PACKET_HEARTBEAT | PACKET_REQUEST | PACKET_PING | PACKET_PONG | PACKET_RESPONSE;
 			transit?: Transit;
 			target?: string;
 			payload: PacketPayload
