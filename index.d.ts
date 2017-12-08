@@ -541,16 +541,16 @@ declare namespace Moleculer {
 	}
 
 	namespace Transporters {
-		type MessageHandler = ((cmd: string, msg: any) => Bluebird<void>) & ThisType<BaseTransporter>;
-		type AfterConnectHandler = ((wasReconnect: boolean) => Bluebird<void>) & ThisType<BaseTransporter>;
+		type MessageHandler = ((cmd: string, msg: any) => Bluebird<void>) & ThisType<Base>;
+		type AfterConnectHandler = ((wasReconnect?: boolean) => Bluebird<void>) & ThisType<Base>;
 
-		class BaseTransporter {
+		class Base {
 			constructor(opts?: GenericObject);
 
 			public init(transit: Transit, messageHandler: MessageHandler, afterConnect: AfterConnectHandler): void;
 			public init(transit: Transit, messageHandler: MessageHandler): void;
 			public connect(): Bluebird<any>;
-			public onConnected(wasReconnect: boolean): Bluebird<void>;
+			public onConnected(wasReconnect?: boolean): Bluebird<void>;
 			public disconnect(): Bluebird<void>;
 			public subscribe(cmd: string, nodeID: string): Bluebird<void>;
 			public subscribeBalancedRequest(action: string): Bluebird<void>;
@@ -574,11 +574,11 @@ declare namespace Moleculer {
 			protected afterConnect?: AfterConnectHandler;
 		}
 
-		class Fake extends BaseTransporter { }
-		class NATS extends BaseTransporter { }
-		class MQTT extends BaseTransporter { }
-		class Redis extends BaseTransporter { }
-		class AMQP extends BaseTransporter { }
+		class Fake extends Base { }
+		class NATS extends Base { }
+		class MQTT extends Base { }
+		class Redis extends Base { }
+		class AMQP extends Base { }
 	}
 
 	const Cachers: {
