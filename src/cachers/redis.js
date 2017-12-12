@@ -155,46 +155,50 @@ class RedisCacher extends BaseCacher {
 	 * @memberOf Cacher
 	 */
 	clean(match = "*") {
-		match = this.prefix + match.replace(/\*\*/g, "*");
-		this.logger.debug(`CLEAN ${match}`);
-		let self = this;
-		let scanDel = function (cursor, cb) {
-			/* istanbul ignore next */
-			self.client.scan(cursor, "MATCH", match, "COUNT", 100, function (err, resp) {
-				if (err) {
-					return cb(err);
-				}
-				let nextCursor = parseInt(resp[0]);
-				let keys = resp[1];
-				// no next cursor and no keys to delete
-
-				if (!keys.length) {
-					if (!nextCursor)
-						return cb(null);
-
-					return scanDel(nextCursor, cb);
-				}
-
-				self.client.del(keys, function (err) {
+		return new Promise((resolve, reject) => {
+			match = this.prefix + match.replace(/\*\*/g, "*");
+			this.logger.debug(`CLEAN ${match}`);
+			let self = this;
+			let scanDel = function (cursor, cb) {
+				/* istanbul ignore next */
+				self.client.scan(cursor, "MATCH", match, "COUNT", 100, function (err, resp) {
 					if (err) {
 						return cb(err);
 					}
-					if (!nextCursor) {
-						return cb(null);
+					let nextCursor = parseInt(resp[0]);
+					let keys = resp[1];
+					// no next cursor and no keys to delete
+
+					if (!keys.length) {
+						if (!nextCursor)
+							return cb(null);
+
+						return scanDel(nextCursor, cb);
 					}
-					scanDel(nextCursor, cb);
+
+					self.client.del(keys, function (err) {
+						if (err) {
+							return cb(err);
+						}
+						if (!nextCursor) {
+							return cb(null);
+						}
+						scanDel(nextCursor, cb);
+					});
 				});
+			};
+
+			scanDel(0, (err) => {
+				/* istanbul ignore next */
+				if (err) {
+					this.logger.error("Redis `scanDel` error.", match, err);
+
+					return reject(err);
+				}
+
+				resolve();
 			});
-		};
-
-		scanDel(0, (err) => {
-			/* istanbul ignore next */
-			if (err) {
-				this.logger.error("Redis `scanDel` error.", match, err);
-			}
 		});
-
-		return Promise.resolve();
 	}
 
 }
