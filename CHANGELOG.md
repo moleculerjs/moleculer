@@ -1,10 +1,18 @@
 --------------------------------------------------
+<a name="0.11.8"></a>
+# [0.11.8](https://github.com/ice-services/moleculer/compare/v0.11.7...v0.11.8) (2017-12-15)
+
+# Changes
+- `d.ts` has been improved.
+
+--------------------------------------------------
 <a name="0.11.7"></a>
 # [0.11.7](https://github.com/ice-services/moleculer/compare/v0.11.6...v0.11.7) (2017-12-05)
 
 # Changes
 - `d.ts` has been improved.
 
+--------------------------------------------------
 <a name="0.11.6"></a>
 # [0.11.6](https://github.com/ice-services/moleculer/compare/v0.11.5...v0.11.6) (2017-11-07)
 
