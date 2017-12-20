@@ -7,13 +7,13 @@ let ServiceBroker = require("../src/service-broker");
 // Create broker
 let broker = new ServiceBroker({
 	nodeID: process.argv[2] || "receiver-" + process.pid,
-	//transporter: "NATS",
-	transporter: "amqp://192.168.0.181:5672",
-	disableBalancer: true,
-	//serializer: "ProtoBuf",
+	transporter: "NATS",
+	//transporter: "amqp://192.168.0.181:5672",
+	//disableBalancer: true,
+	//serializer: "MsgPack",
 	logger: console,
 	logFormatter: "simple",
-	hotReload: true
+	//hotReload: true
 });
 
 broker.loadService("./examples/hot.service.js");

@@ -2,12 +2,23 @@
 
 "use strict";
 
+let fs = require("fs");
 let ServiceBroker = require("../src/service-broker");
 
 let broker = new ServiceBroker({
 	logger: true,
 	logLevel: "debug",
-	transporter: "NATS",
+	transporter: {
+		type: "NATS",
+		options: {
+			nats: {
+				port: 4222,
+				tls: {
+					ca: [fs.readFileSync(__dirname + "/nats-cert.pem")]
+				}
+			}
+		}
+	},
 	cacher: {
 		type: "memory",
 		/*options: {

@@ -9,12 +9,12 @@ let broker = new ServiceBroker({
 	nodeID: process.argv[2] || "receiver-" + process.pid,
 	transporter: "NATS",
 	//transporter: "amqp://192.168.0.181:5672",
-	disableBalancer: true,
+	//disableBalancer: true,
 	//serializer: "ProtoBuf",
 	logger: console,
 	logFormatter: "simple"
 });
-/*
+
 broker.createService({
 	name: "payment",
 	version: 2,
@@ -23,7 +23,7 @@ broker.createService({
 			this.logger.info("PAYMENT2: User created event received! ID:", data.id);
 		}
 	}
-});*/
+});
 
 broker.createService({
 	name: "mail",
@@ -35,7 +35,7 @@ broker.createService({
 		}
 	}
 });
-/*
+
 broker.createService({
 	name: "joker",
 	events: {
@@ -46,7 +46,7 @@ broker.createService({
 		}
 	}
 });
-*/
+
 
 broker.start().then(() => {
 	broker.repl();
