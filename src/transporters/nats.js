@@ -32,16 +32,16 @@ class NatsTransporter extends Transporter {
 	 */
 	constructor(opts) {
 		if (typeof opts == "string")
-			opts = { nats: { url: opts } };
+			opts = { url: opts };
 
 		super(opts);
 
 		// Use the 'preserveBuffers' option as true as default
-		if (!this.opts.nats || this.opts.nats.preserveBuffers !== false) {
-			if (!this.opts.nats)
-				this.opts.nats = {};
+		if (!this.opts || this.opts.preserveBuffers !== false) {
+			if (!this.opts)
+				this.opts = {};
 
-			this.opts.nats.preserveBuffers = true;
+			this.opts.preserveBuffers = true;
 		}
 
 		this.hasBuiltInBalancer = true;
