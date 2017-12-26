@@ -468,8 +468,16 @@ class ServiceBroker {
 	 */
 	loadService(filePath) {
 		let fName = path.resolve(filePath);
+		let schema;
+
 		this.logger.debug(`Load service '${path.basename(fName)}'...`);
-		let schema = require(fName);
+
+		try {
+			schema = require(fName);
+		} catch (e) {
+			this.logger.error(`Fail load service '${path.basename(fName)}'`, e);
+		}
+
 		let svc;
 		if (_.isFunction(schema)) {
 			svc = schema(this);
@@ -480,14 +488,16 @@ class ServiceBroker {
 				this.servicesChanged(true);
 			}
 
-		} else {
+		} else if (schema) {
 			svc = this.createService(schema);
 		}
 
 		if (svc) {
 			svc.__filename = fName;
-			if (this.options.hotReload)
-				this.watchService(svc);
+		}
+
+		if (this.options.hotReload) {
+			this.watchService(svc || { __filename: fName, name: fName });
 		}
 
 		return svc;
