@@ -20,7 +20,7 @@ declare namespace Moleculer {
 		trace(...args: any[]): void;
 	}
 
-	type ActionHandler = ((ctx: Context) => Bluebird<any>) & ThisType<Service>;
+	type ActionHandler = ((ctx: Context) => Bluebird<any> | any) & ThisType<Service>;
 	type ActionParamSchema = { [key: string]: any };
 	type ActionParamTypes = "boolean" | "number" | "string" | "object" | "array" | ActionParamSchema;
 	type ActionParams = { [key: string]: ActionParamTypes };
