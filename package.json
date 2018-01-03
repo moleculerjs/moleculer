@@ -56,7 +56,7 @@
     "lolex": "2.3.1",
     "moleculer-repl": "0.3.1",
     "mqtt": "2.15.0",
-    "msgpack5": "3.6.0",
+    "msgpack5": "4.0.0",
     "nats": "0.7.24",
     "nodemon": "1.14.7",
     "npm-check": "5.5.2",
