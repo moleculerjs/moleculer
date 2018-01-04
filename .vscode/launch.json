@@ -8,7 +8,7 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch dev",
-			"program": "${workspaceRoot}\\dev\\client.js",
+			"program": "${workspaceRoot}\\dev\\dev.js",
 			"cwd": "${workspaceRoot}",
 			"args": [
 				""
