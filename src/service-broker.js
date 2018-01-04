@@ -1,31 +1,31 @@
 /*
  * moleculer
- * Copyright (c) 2017 Ice Services (https://github.com/ice-services/moleculer)
+ * Copyright (c) 2018 Ice Services (https://github.com/ice-services/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
-const Promise 			= require("bluebird");
-const EventEmitter2 	= require("eventemitter2").EventEmitter2;
-const _ 				= require("lodash");
-const glob 				= require("glob");
-const path 				= require("path");
-const fs 				= require("fs");
+const Promise 				= require("bluebird");
+const EventEmitter2 		= require("eventemitter2").EventEmitter2;
+const _ 					= require("lodash");
+const glob 					= require("glob");
+const path 					= require("path");
+const fs 					= require("fs");
 
-const Transit 			= require("./transit");
-const Registry 			= require("./registry");
-const E 				= require("./errors");
-const utils 			= require("./utils");
-const Logger 			= require("./logger");
-const Validator 		= require("./validator");
-const BrokerStatistics 	= require("./statistics");
+const Transit 				= require("./transit");
+const Registry 				= require("./registry");
+const E 					= require("./errors");
+const utils 				= require("./utils");
+const Logger 				= require("./logger");
+const Validator 			= require("./validator");
+const BrokerStatistics 		= require("./statistics");
 
-const Cachers 			= require("./cachers");
-const Transporters 		= require("./transporters");
-const Serializers 		= require("./serializers");
-const RoundRobinStrategy = require("./strategies/round-robin");
-const H 				= require("./health");
+const Cachers 				= require("./cachers");
+const Transporters 			= require("./transporters");
+const Serializers 			= require("./serializers");
+const RoundRobinStrategy 	= require("./strategies/round-robin");
+const H 					= require("./health");
 
 /**
  * Default broker options

@@ -13,9 +13,9 @@ let broker = new ServiceBroker({
 		options: {
 			nats: {
 				port: 4222,
-				tls: {
+				/*tls: {
 					ca: [fs.readFileSync(__dirname + "/nats-cert.pem")]
-				}
+				}*/
 			}
 		}
 	},
@@ -56,4 +56,6 @@ broker.start()
 	// With meta  - cache
 	.then(() => broker.call("math.add", { a: 5, b: 3 }, { meta: { c: 2 }}).then(res => broker.logger.info("[CACHED] 5 + 3 + 2 =", res)))
 	// With meta  - no cache
-	.then(() => broker.call("math.add", { a: 5, b: 3 }, { meta: { c: 4 }}).then(res => broker.logger.info("[No cache] 5 + 3 + 4 =", res)));
+	.then(() => broker.call("math.add", { a: 5, b: 3 }, { meta: { c: 4 }}).then(res => broker.logger.info("[No cache] 5 + 3 + 4 =", res)))
+
+	.then(() => broker.repl());
