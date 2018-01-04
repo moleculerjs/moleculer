@@ -423,6 +423,48 @@ describe("Test option resolvers", () => {
 		});
 
 	});
+
+	describe("Test _resolveStrategy", () => {
+
+		let broker = new ServiceBroker();
+
+		it("should resolve null from undefined", () => {
+			let Strategy = broker._resolveStrategy();
+			expect(Strategy).toBe(Strategies.RoundRobin);
+		});
+
+		it("should resolve RoundRobinStrategy from obj without type", () => {
+			let Strategy = broker._resolveStrategy({});
+			expect(Strategy).toBe(Strategies.RoundRobin);
+		});
+
+		it("should resolve RoundRobinStrategy from obj", () => {
+			let Strategy = broker._resolveStrategy({ type: "random" });
+			expect(Strategy).toBe(Strategies.Random);
+
+			Strategy = broker._resolveStrategy({ type: "Random" });
+			expect(Strategy).toBe(Strategies.Random);
+		});
+
+		it("should resolve RandomStrategy from string with 'random' and 'Random' type", () => {
+			let Strategy = broker._resolveStrategy("random");
+			expect(Strategy).toBe(Strategies.Random);
+
+			Strategy = broker._resolveStrategy("Random");
+			expect(Strategy).toBe(Strategies.Random);
+		});
+
+		it("should throw error if type if not correct", () => {
+			expect(() => {
+				broker._resolveStrategy("xyz");
+			}).toThrowError(MoleculerError);
+
+			expect(() => {
+				broker._resolveStrategy({ type: "xyz" });
+			}).toThrowError(MoleculerError);
+		});
+
+	});
 });
 
 describe("Test broker.start", () => {

@@ -303,14 +303,14 @@ class ServiceBroker {
 				throw new E.MoleculerServerError(`Invalid strategy type '${opt}'.`, null, "INVALID_STRATEGY_TYPE", { type: opt });
 
 		} else if (_.isObject(opt)) {
-			let SerializerClass = this.getModuleClass(Strategies, opt.type);
+			let SerializerClass = this.getModuleClass(Strategies, opt.type || "RoundRobin");
 			if (SerializerClass)
 				return SerializerClass;
 			else
 				throw new E.MoleculerServerError(`Invalid strategy type '${opt.type}'.`, null, "INVALID_STRATEGY_TYPE", { type: opt.type });
 		}
 
-		return new Strategies.RoundRobin;
+		return Strategies.RoundRobin;
 	}
 
 	/**
