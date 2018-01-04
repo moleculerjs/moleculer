@@ -1,8 +1,11 @@
 <a name="0.11.9"></a>
 # [0.11.9](https://github.com/ice-services/moleculer/compare/v0.11.8...v0.11.9) (2018-xx-xx)
 
-# Changes
-- ServiceBroker can resolve the `strategy` as a string. 
+# New
+
+## Strategy resolver
+
+ServiceBroker can resolve the `strategy` from a string.
 ```js
 let broker = new ServiceBroker({
     registry: {
@@ -12,10 +15,14 @@ let broker = new ServiceBroker({
 });
 ```
 
-You can set it via env variables too if you are using the Moleculer Runner:
+You can set it via env variables as well, if you are using the Moleculer Runner:
 ```sh
 $ REGISTRY_STRATEGY=random
 ```
+
+# Fixes
+- fixed hot reloading after broken service files by @askuzminov ([#155](https://github.com/ice-services/moleculer/pull/155))
+
 
 --------------------------------------------------
 <a name="0.11.8"></a>
