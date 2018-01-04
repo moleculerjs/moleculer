@@ -28,8 +28,8 @@ let logger;
  * 		-H, --hot  			- Hot reload services if changed
  * 		-r, --repl  		- After broker started, switch to REPL mode
  * 		-s , --silent 		- Silent mode. Disable logger, no console messages.
- * 		--env 				- Load envorinment variables from the '.env' file from the current folder.
- * 		--envfile 			- Load envorinment variables from the specified file.
+ * 		-e, --env 			- Load envorinment variables from the '.env' file from the current folder.
+ * 		-E, --envfile 		- Load envorinment variables from the specified file.
  */
 function processFlags() {
 	Args
