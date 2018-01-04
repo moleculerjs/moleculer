@@ -24,7 +24,7 @@ const BrokerStatistics 		= require("./statistics");
 const Cachers 				= require("./cachers");
 const Transporters 			= require("./transporters");
 const Serializers 			= require("./serializers");
-const RoundRobinStrategy 	= require("./strategies/round-robin");
+const Strategies		 	= require("./strategies");
 const H 					= require("./health");
 
 /**
@@ -48,7 +48,7 @@ const defaultOptions = {
 	disableBalancer: false,
 
 	registry: {
-		strategy: RoundRobinStrategy,
+		strategy: Strategies.RoundRobin,
 		preferLocal: true
 	},
 
@@ -199,6 +199,9 @@ class ServiceBroker {
 	}
 
 	getModuleClass(obj, name) {
+		if (!name)
+			return null;
+
 		let n = Object.keys(obj).find(n => n.toLowerCase() == name.toLowerCase());
 		if (n)
 			return obj[n];
@@ -287,6 +290,27 @@ class ServiceBroker {
 		}
 
 		return new Serializers.JSON();
+	}
+
+	_resolveStrategy(opt) {
+		if (Strategies.Base.isPrototypeOf(opt)) {
+			return opt;
+		} else if (_.isString(opt)) {
+			let SerializerClass = this.getModuleClass(Strategies, opt);
+			if (SerializerClass)
+				return SerializerClass;
+			else
+				throw new E.MoleculerServerError(`Invalid strategy type '${opt}'.`, null, "INVALID_STRATEGY_TYPE", { type: opt });
+
+		} else if (_.isObject(opt)) {
+			let SerializerClass = this.getModuleClass(Strategies, opt.type);
+			if (SerializerClass)
+				return SerializerClass;
+			else
+				throw new E.MoleculerServerError(`Invalid strategy type '${opt.type}'.`, null, "INVALID_STRATEGY_TYPE", { type: opt.type });
+		}
+
+		return new Strategies.RoundRobin;
 	}
 
 	/**
