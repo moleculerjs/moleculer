@@ -1,3 +1,22 @@
+<a name="0.11.9"></a>
+# [0.11.9](https://github.com/ice-services/moleculer/compare/v0.11.8...v0.11.9) (2018-xx-xx)
+
+# Changes
+- ServiceBroker can resolve the `strategy` as a string. 
+```js
+let broker = new ServiceBroker({
+    registry: {
+        strategy: "Random"
+        // strategy: "RoundRobin"
+    }
+});
+```
+
+You can set it via env variables too if you are using the Moleculer Runner:
+```sh
+$ REGISTRY_STRATEGY=random
+```
+
 --------------------------------------------------
 <a name="0.11.8"></a>
 # [0.11.8](https://github.com/ice-services/moleculer/compare/v0.11.7...v0.11.8) (2017-12-15)
