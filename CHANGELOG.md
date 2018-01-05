@@ -20,6 +20,21 @@ You can set it via env variables as well, if you are using the Moleculer Runner:
 $ REGISTRY_STRATEGY=random
 ```
 
+## Load env files in Moleculer Runner [#158](https://github.com/ice-services/moleculer/issues/158)
+Moleculer runner can load `.env` file at starting. There are two new cli options to load env file:
+
+* `-e, --env` - Load envorinment variables from the '.env' file from the current folder.
+* `-E, --envfile <filename>` - Load envorinment variables from the specified file.
+ 
+**Example**
+```sh
+# Load the default .env file from current directory
+$ moleculer-runner --env 
+
+# Load the specified .my-env file
+$ moleculer-runner --envfile .my-env
+```
+
 # Fixes
 - fixed hot reloading after broken service files by @askuzminov ([#155](https://github.com/ice-services/moleculer/pull/155))
 

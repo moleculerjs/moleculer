@@ -28,13 +28,17 @@ let logger;
  * 		-H, --hot  			- Hot reload services if changed
  * 		-r, --repl  		- After broker started, switch to REPL mode
  * 		-s , --silent 		- Silent mode. Disable logger, no console messages.
+ * 		-e, --env 			- Load envorinment variables from the '.env' file from the current folder.
+ * 		-E, --envfile 		- Load envorinment variables from the specified file.
  */
 function processFlags() {
 	Args
 		.option("config", "Load the configuration from a file")
 		.option("repl", "Start REPL mode", false)
 		.option(["H", "hot"], "Hot reload services if changed", false)
-		.option("silent", "Silent mode. No logger", false);
+		.option("silent", "Silent mode. No logger", false)
+		.option("env", "Load .env file from the current directory")
+		.option("envfile", "Load a specified .env file");
 
 	flags = Args.parse(process.argv, {
 		mri: {
@@ -42,14 +46,34 @@ function processFlags() {
 				c: "config",
 				r: "repl",
 				H: "hot",
-				s: "silent"
+				s: "silent",
+				e: "env",
+				E: "envfile"
 			},
-			boolean: ["repl", "silent", "hot"],
-			string: ["config"]
+			boolean: ["repl", "silent", "hot", "env"],
+			string: ["config", "envfile"]
 		}
 	});
 
 	servicePaths = Args.sub;
+}
+
+/**
+ * Load environment variables from '.env' file
+ */
+function loadEnvFile() {
+	if (flags.env || flags.envfile) {
+		try {
+			const dotenv = require("dotenv");
+
+			if (flags.envfile)
+				dotenv.config({ path: flags.envfile });
+			else
+				dotenv.config();
+		} catch(err) {
+			throw new Error("The 'dotenv' package is missing! Please install it with 'npm install dotenv --save' command.");
+		}
+	}
 }
 
 /**
@@ -264,6 +288,7 @@ function startBroker() {
  */
 Promise.resolve()
 	.then(processFlags)
+	.then(loadEnvFile)
 	.then(loadConfigFile)
 	.then(mergeOptions)
 	.then(startBroker)
