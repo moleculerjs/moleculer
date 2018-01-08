@@ -1,5 +1,5 @@
 <a name="0.11.9"></a>
-# [0.11.9](https://github.com/ice-services/moleculer/compare/v0.11.8...v0.11.9) (2018-xx-xx)
+# [0.11.9](https://github.com/ice-services/moleculer/compare/v0.11.8...v0.11.9) (2018-01-08)
 
 # New
 
@@ -37,6 +37,7 @@ $ moleculer-runner --envfile .my-env
 
 # Fixes
 - fixed hot reloading after broken service files by @askuzminov ([#155](https://github.com/ice-services/moleculer/pull/155))
+- allow fallbackResponse to be falsy values
 
 
 --------------------------------------------------
