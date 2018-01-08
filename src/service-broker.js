@@ -1069,7 +1069,7 @@ class ServiceBroker {
 		this._finishCall(ctx, err);
 
 		// Handle fallback response
-		if (opts.fallbackResponse) {
+		if (_.has(opts, 'fallbackResponse')) {
 			this.logger.warn(`Action '${actionName}' returns with fallback response.`);
 			if (_.isFunction(opts.fallbackResponse))
 				return opts.fallbackResponse(ctx, err);
