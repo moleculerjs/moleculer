@@ -233,6 +233,10 @@ class Context {
 				startTime: this.startTime,
 				remoteCall: !!this.callerNodeID
 			};
+
+			if (this.meta)
+				payload.meta = this.meta;
+
 			if (this.action) {
 				payload.action = {
 					name: this.action.name
@@ -259,7 +263,7 @@ class Context {
 	 * @memberOf Context
 	 */
 	_metricFinish(error, emitEvent) {
-		if (this.startHrTime){
+		if (this.startHrTime) {
 			let diff = process.hrtime(this.startHrTime);
 			this.duration = (diff[0] * 1e3) + (diff[1] / 1e6); // milliseconds
 		}
@@ -276,6 +280,10 @@ class Context {
 				remoteCall: !!this.callerNodeID,
 				fromCache: this.cachedResult
 			};
+
+			if (this.meta)
+				payload.meta = this.meta;
+
 			if (this.action) {
 				payload.action = {
 					name: this.action.name
