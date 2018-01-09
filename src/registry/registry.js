@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2017 Ice Services (https://github.com/ice-services/moleculer)
+ * Copyright (c) 2018 Ice Services (https://github.com/ice-services/moleculer)
  * MIT Licensed
  */
 
@@ -35,7 +35,9 @@ class Registry {
 		this.opts = Object.assign({}, broker.options.registry);
 		this.opts.circuitBreaker = broker.options.circuitBreaker || {};
 
-		this.StrategyFactory = this.opts.strategy || RoundRobinStrategy;
+		this.StrategyFactory = broker._resolveStrategy(this.opts.strategy);
+
+		this.logger.info("Strategy:", this.StrategyFactory.name);
 
 		this.nodes = new NodeCatalog(this, broker);
 		this.services = new ServiceCatalog(this, broker);

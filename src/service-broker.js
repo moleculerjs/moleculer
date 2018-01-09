@@ -1,31 +1,31 @@
 /*
  * moleculer
- * Copyright (c) 2017 Ice Services (https://github.com/ice-services/moleculer)
+ * Copyright (c) 2018 Ice Services (https://github.com/ice-services/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
-const Promise 			= require("bluebird");
-const EventEmitter2 	= require("eventemitter2").EventEmitter2;
-const _ 				= require("lodash");
-const glob 				= require("glob");
-const path 				= require("path");
-const fs 				= require("fs");
+const Promise 				= require("bluebird");
+const EventEmitter2 		= require("eventemitter2").EventEmitter2;
+const _ 					= require("lodash");
+const glob 					= require("glob");
+const path 					= require("path");
+const fs 					= require("fs");
 
-const Transit 			= require("./transit");
-const Registry 			= require("./registry");
-const E 				= require("./errors");
-const utils 			= require("./utils");
-const Logger 			= require("./logger");
-const Validator 		= require("./validator");
-const BrokerStatistics 	= require("./statistics");
+const Transit 				= require("./transit");
+const Registry 				= require("./registry");
+const E 					= require("./errors");
+const utils 				= require("./utils");
+const Logger 				= require("./logger");
+const Validator 			= require("./validator");
+const BrokerStatistics 		= require("./statistics");
 
-const Cachers 			= require("./cachers");
-const Transporters 		= require("./transporters");
-const Serializers 		= require("./serializers");
-const RoundRobinStrategy = require("./strategies/round-robin");
-const H 				= require("./health");
+const Cachers 				= require("./cachers");
+const Transporters 			= require("./transporters");
+const Serializers 			= require("./serializers");
+const Strategies		 	= require("./strategies");
+const H 					= require("./health");
 
 /**
  * Default broker options
@@ -48,7 +48,7 @@ const defaultOptions = {
 	disableBalancer: false,
 
 	registry: {
-		strategy: RoundRobinStrategy,
+		strategy: Strategies.RoundRobin,
 		preferLocal: true
 	},
 
@@ -199,6 +199,9 @@ class ServiceBroker {
 	}
 
 	getModuleClass(obj, name) {
+		if (!name)
+			return null;
+
 		let n = Object.keys(obj).find(n => n.toLowerCase() == name.toLowerCase());
 		if (n)
 			return obj[n];
@@ -287,6 +290,27 @@ class ServiceBroker {
 		}
 
 		return new Serializers.JSON();
+	}
+
+	_resolveStrategy(opt) {
+		if (Strategies.Base.isPrototypeOf(opt)) {
+			return opt;
+		} else if (_.isString(opt)) {
+			let SerializerClass = this.getModuleClass(Strategies, opt);
+			if (SerializerClass)
+				return SerializerClass;
+			else
+				throw new E.MoleculerServerError(`Invalid strategy type '${opt}'.`, null, "INVALID_STRATEGY_TYPE", { type: opt });
+
+		} else if (_.isObject(opt)) {
+			let SerializerClass = this.getModuleClass(Strategies, opt.type || "RoundRobin");
+			if (SerializerClass)
+				return SerializerClass;
+			else
+				throw new E.MoleculerServerError(`Invalid strategy type '${opt.type}'.`, null, "INVALID_STRATEGY_TYPE", { type: opt.type });
+		}
+
+		return Strategies.RoundRobin;
 	}
 
 	/**
@@ -468,8 +492,16 @@ class ServiceBroker {
 	 */
 	loadService(filePath) {
 		let fName = path.resolve(filePath);
+		let schema;
+
 		this.logger.debug(`Load service '${path.basename(fName)}'...`);
-		let schema = require(fName);
+
+		try {
+			schema = require(fName);
+		} catch (e) {
+			this.logger.error(`Fail load service '${path.basename(fName)}'`, e);
+		}
+
 		let svc;
 		if (_.isFunction(schema)) {
 			svc = schema(this);
@@ -480,14 +512,16 @@ class ServiceBroker {
 				this.servicesChanged(true);
 			}
 
-		} else {
+		} else if (schema) {
 			svc = this.createService(schema);
 		}
 
 		if (svc) {
 			svc.__filename = fName;
-			if (this.options.hotReload)
-				this.watchService(svc);
+		}
+
+		if (this.options.hotReload) {
+			this.watchService(svc || { __filename: fName, name: fName });
 		}
 
 		return svc;
@@ -1035,7 +1069,7 @@ class ServiceBroker {
 		this._finishCall(ctx, err);
 
 		// Handle fallback response
-		if (opts.fallbackResponse) {
+		if (_.has(opts, 'fallbackResponse')) {
 			this.logger.warn(`Action '${actionName}' returns with fallback response.`);
 			if (_.isFunction(opts.fallbackResponse))
 				return opts.fallbackResponse(ctx, err);

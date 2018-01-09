@@ -1,3 +1,52 @@
+<a name="0.11.9"></a>
+# [0.11.9](https://github.com/ice-services/moleculer/compare/v0.11.8...v0.11.9) (2018-01-08)
+
+# New
+
+## Strategy resolver
+
+ServiceBroker can resolve the `strategy` from a string.
+```js
+let broker = new ServiceBroker({
+    registry: {
+        strategy: "Random"
+        // strategy: "RoundRobin"
+    }
+});
+```
+
+You can set it via env variables as well, if you are using the Moleculer Runner:
+```sh
+$ REGISTRY_STRATEGY=random
+```
+
+## Load env files in Moleculer Runner [#158](https://github.com/ice-services/moleculer/issues/158)
+Moleculer runner can load `.env` file at starting. There are two new cli options to load env file:
+
+* `-e, --env` - Load envorinment variables from the '.env' file from the current folder.
+* `-E, --envfile <filename>` - Load envorinment variables from the specified file.
+ 
+**Example**
+```sh
+# Load the default .env file from current directory
+$ moleculer-runner --env 
+
+# Load the specified .my-env file
+$ moleculer-runner --envfile .my-env
+```
+
+# Fixes
+- fixed hot reloading after broken service files by @askuzminov ([#155](https://github.com/ice-services/moleculer/pull/155))
+- allow fallbackResponse to be falsy values
+
+
+--------------------------------------------------
+<a name="0.11.8"></a>
+# [0.11.8](https://github.com/ice-services/moleculer/compare/v0.11.7...v0.11.8) (2017-12-15)
+
+# Changes
+- `d.ts` has been improved.
+
 --------------------------------------------------
 <a name="0.11.7"></a>
 # [0.11.7](https://github.com/ice-services/moleculer/compare/v0.11.6...v0.11.7) (2017-12-05)
@@ -5,6 +54,7 @@
 # Changes
 - `d.ts` has been improved.
 
+--------------------------------------------------
 <a name="0.11.6"></a>
 # [0.11.6](https://github.com/ice-services/moleculer/compare/v0.11.5...v0.11.6) (2017-11-07)
 
