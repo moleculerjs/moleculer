@@ -237,6 +237,9 @@ class Context {
 			if (this.meta)
 				payload.meta = this.meta;
 
+			if (this.params)
+				payload.params = this.params;
+
 			if (this.action) {
 				payload.action = {
 					name: this.action.name
@@ -283,6 +286,9 @@ class Context {
 
 			if (this.meta)
 				payload.meta = this.meta;
+
+			if (this.params)
+				payload.params = this.params;
 
 			if (this.action) {
 				payload.action = {
