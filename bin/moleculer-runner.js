@@ -8,6 +8,7 @@
 "use strict";
 
 const Moleculer 	= require("../");
+const utils			= require("../src/utils");
 const fs 			= require("fs");
 const path 			= require("path");
 const _ 			= require("lodash");
@@ -301,7 +302,7 @@ function startWorkers(instances) {
 		}
 	});
 
-	const workerCount = Number.isInteger(instances) || os.cpus().length;
+	const workerCount = Number.isInteger(instances) ? instances : os.cpus().length;
 
 	logger.info(`Starting ${workerCount} workers...`);
 
@@ -340,7 +341,7 @@ function startBroker() {
 
 	// Create service broker
 	broker = new Moleculer.ServiceBroker(Object.assign({}, config, {
-		nodeID: config.nodeID + "-" + worker.id
+		nodeID: (config.nodeID || utils.getNodeID()) + "-" + worker.id
 	}));
 
 	loadServices();
