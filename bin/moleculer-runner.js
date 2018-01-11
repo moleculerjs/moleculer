@@ -283,7 +283,6 @@ function loadServices() {
 
 /*
  * Start workers
- *
  */
 function startWorkers(instances) {
 	let stopping = false;
@@ -302,7 +301,7 @@ function startWorkers(instances) {
 		}
 	});
 
-	const workerCount = Number.isInteger(instances) ? instances : os.cpus().length;
+	const workerCount = Number.isInteger(instances) && instances > 0 ? instances : os.cpus().length;
 
 	logger.info(`Starting ${workerCount} workers...`);
 
@@ -339,18 +338,21 @@ function loadNpmModule(name) {
 function startBroker() {
 	let worker = cluster.worker;
 
+	if (worker) {
+		Object.assign(config, {
+			nodeID: (config.nodeID || utils.getNodeID()) + "-" + worker.id
+		});
+	}
+
 	// Create service broker
-	broker = new Moleculer.ServiceBroker(Object.assign({}, config, {
-		nodeID: (config.nodeID || utils.getNodeID()) + "-" + worker.id
-	}));
+	broker = new Moleculer.ServiceBroker(Object.assign({}, config));
 
 	loadServices();
 
 	broker.start().then(() => {
 
-		if (flags.repl && worker.id === 1)
+		if (flags.repl && (!worker || worker.id === 1))
 			broker.repl();
-
 	});
 }
 
