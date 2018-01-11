@@ -8,17 +8,41 @@
 "use strict";
 
 const Moleculer 	= require("../");
+const utils			= require("../src/utils");
 const fs 			= require("fs");
 const path 			= require("path");
 const _ 			= require("lodash");
 const Args 			= require("args");
+const os			= require("os");
+const cluster		= require("cluster");
+const chalk			= require("chalk");
+
+const stopSignals = [
+	"SIGHUP", "SIGINT", "SIGQUIT", "SIGILL", "SIGTRAP", "SIGABRT",
+	"SIGBUS", "SIGFPE", "SIGUSR1", "SIGSEGV", "SIGUSR2", "SIGTERM"
+];
+const production = process.env.NODE_ENV === "production";
 
 let flags;
 let configFile;
 let config;
 let servicePaths;
 let broker;
-let logger;
+
+/**
+ * Logger helper
+ *
+ */
+const logger = {
+	info(message) {
+		/* eslint-disable no-console */
+		console.log(chalk.green.bold(message));
+	},
+	error(message) {
+		/* eslint-disable no-console */
+		console.error(chalk.red.bold(message));
+	}
+};
 
 /**
  * Process command line arguments
@@ -30,6 +54,7 @@ let logger;
  * 		-s , --silent 		- Silent mode. Disable logger, no console messages.
  * 		-e, --env 			- Load envorinment variables from the '.env' file from the current folder.
  * 		-E, --envfile 		- Load envorinment variables from the specified file.
+ * 		-i, --instances     - Launch [number] instances node (load balanced)
  */
 function processFlags() {
 	Args
@@ -38,7 +63,8 @@ function processFlags() {
 		.option(["H", "hot"], "Hot reload services if changed", false)
 		.option("silent", "Silent mode. No logger", false)
 		.option("env", "Load .env file from the current directory")
-		.option("envfile", "Load a specified .env file");
+		.option("envfile", "Load a specified .env file")
+		.option("instances", "Launch [number] instances node (load balanced)");
 
 	flags = Args.parse(process.argv, {
 		mri: {
@@ -48,7 +74,8 @@ function processFlags() {
 				H: "hot",
 				s: "silent",
 				e: "env",
-				E: "envfile"
+				E: "envfile",
+				i: "instances"
 			},
 			boolean: ["repl", "silent", "hot", "env"],
 			string: ["config", "envfile"]
@@ -254,6 +281,46 @@ function loadServices() {
 
 }
 
+/*
+ * Start workers
+ */
+function startWorkers(instances) {
+	let stopping = false;
+
+	cluster.on("exit", function(worker, code) {
+		if (!stopping) {
+			// only restart the worker if the exit was by an error
+			if (production && code !== 0) {
+				logger.info(`The worker #${worker.id} has disconnected`);
+				logger.info(`Worker #${worker.id} restarting...`);
+				cluster.fork();
+				logger.info(`Worker #${worker.id} restarted`);
+			} else {
+				process.exit(code);
+			}
+		}
+	});
+
+	const workerCount = Number.isInteger(instances) && instances > 0 ? instances : os.cpus().length;
+
+	logger.info(`Starting ${workerCount} workers...`);
+
+	for (let i = 0; i < workerCount; i++) {
+		cluster.fork();
+	}
+
+	stopSignals.forEach(function (signal) {
+		process.on(signal, () => {
+			logger.info(`Got ${signal}, stopping workers...`);
+			stopping = true;
+			cluster.disconnect(function () {
+				logger.info("All workers stopped, exiting.");
+				process.exit(0);
+			});
+		});
+	});
+}
+
 /**
  * Load service from NPM module
  *
@@ -269,31 +336,47 @@ function loadNpmModule(name) {
  * Start Moleculer broker
  */
 function startBroker() {
+	let worker = cluster.worker;
+
+	if (worker) {
+		Object.assign(config, {
+			nodeID: (config.nodeID || utils.getNodeID()) + "-" + worker.id
+		});
+	}
+
 	// Create service broker
-	broker = new Moleculer.ServiceBroker(config);
-	logger = broker.getLogger("runner");
+	broker = new Moleculer.ServiceBroker(Object.assign({}, config));
 
 	loadServices();
 
 	broker.start().then(() => {
 
-		if (flags.repl)
+		if (flags.repl && (!worker || worker.id === 1))
 			broker.repl();
-
 	});
 }
 
 /**
  * Running
  */
+function run() {
+	return Promise.resolve()
+		.then(loadEnvFile)
+		.then(loadConfigFile)
+		.then(mergeOptions)
+		.then(startBroker)
+		.catch(err => {
+			logger.error(err);
+			process.exit(1);
+		});
+}
+
 Promise.resolve()
 	.then(processFlags)
-	.then(loadEnvFile)
-	.then(loadConfigFile)
-	.then(mergeOptions)
-	.then(startBroker)
-	.catch(err => {
-		/* eslint-disable no-console */
-		console.error(err);
-		process.exit(1);
+	.then(() => {
+		if (flags.instances !== undefined && cluster.isMaster) {
+			return startWorkers(flags.instances);
+		}
+
+		return run();
 	});
