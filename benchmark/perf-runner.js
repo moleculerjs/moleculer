@@ -1,7 +1,7 @@
 "use strict";
 
 let ServiceBroker = require("../src/service-broker");
-let Cacher = require("../src/cachers/memory-map");
+let Cacher = require("../src/cachers/memory");
 let Transporters = require("../src/transporters");
 let Serializer = require("../src/serializers/json");
 
