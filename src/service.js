@@ -6,12 +6,13 @@
 
 "use strict";
 
-const isFunction 	= require("lodash/isFunction");
-const forIn 		= require("lodash/forIn");
-const isObject 		= require("lodash/isObject");
-const isNumber 		= require("lodash/isNumber");
-const cloneDeep 	= require("lodash/cloneDeep");
-const utils 		= require("./utils");
+const isFunction = require("lodash/isFunction");
+const forIn = require("lodash/forIn");
+const isObject = require("lodash/isObject");
+const isNumber = require("lodash/isNumber");
+const cloneDeep = require("lodash/cloneDeep");
+const defaultsDeep = require("lodash/defaultsDeep");
+const utils = require("./utils");
 
 const { ServiceSchemaError } = require("./errors");
 
@@ -111,7 +112,7 @@ class Service {
 				event.service = this;
 				const handler = event.handler;
 				const self = this;
-				event.handler = function(payload, sender, eventName) {
+				event.handler = function (payload, sender, eventName) {
 					if (isFunction(handler)) {
 						const p = handler.apply(self, [payload, sender, eventName]);
 
@@ -244,6 +245,9 @@ class Service {
 		action.service = this;
 		action.cache = action.cache !== undefined ? action.cache : (this.settings.$cache || false);
 		action.handler = this.Promise.method(handler.bind(this));
+
+		// action metrics options by default
+		action.metrics = defaultsDeep({ params: false, meta: true });
 
 		return action;
 	}
