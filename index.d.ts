@@ -139,7 +139,7 @@ declare namespace Moleculer {
 	}
 
 	interface BrokerRegistryOptions {
-		strategy?: Function;
+		strategy?: Function | string;
 		preferLocal?: boolean;
 	}
 
