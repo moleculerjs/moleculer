@@ -24,6 +24,7 @@ declare namespace Moleculer {
 	type ActionParamSchema = { [key: string]: any };
 	type ActionParamTypes = "boolean" | "number" | "string" | "object" | "array" | ActionParamSchema;
 	type ActionParams = { [key: string]: ActionParamTypes };
+	type MetricsOptions = { params?: "boolean" | "array" | "function", meta?: "boolean" | "array" | "function" };
 
 	interface Action {
 		name: string;
@@ -31,6 +32,7 @@ declare namespace Moleculer {
 		service?: Service;
 		cache?: boolean;
 		handler: ActionHandler;
+		metrics?: MetricsOptions;
 		[key: string]: any;
 	}
 

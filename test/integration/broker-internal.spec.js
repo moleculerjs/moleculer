@@ -18,18 +18,18 @@ describe("Test internal services", () => {
 			scaling: true
 		},
 		actions: {
-			hello() {},
+			hello() { },
 			welcome: {
 				cache: true,
 				params: {
 					name: { type: "string" }
 				},
-				handler() {}
+				handler() { }
 			}
 		},
 		events: {
-			"say.hi"() {},
-			"say.hello"() {}
+			"say.hi"() { },
+			"say.hello"() { }
 		}
 	});
 
@@ -37,7 +37,7 @@ describe("Test internal services", () => {
 		name: "echo",
 		version: "alpha",
 		actions: {
-			reply() {}
+			reply() { }
 		}
 	});
 
@@ -112,11 +112,13 @@ describe("Test internal services", () => {
 				"actions": {
 					"greeter.hello": {
 						"cache": false,
-						"name": "greeter.hello"
+						"name": "greeter.hello",
+						"metrics": { "meta": true, "params": false }
 					},
 					"greeter.welcome": {
 						"cache": true,
 						"name": "greeter.welcome",
+						"metrics": { "meta": true, "params": false },
 						"params": {
 							"name": {
 								"type": "string"
@@ -137,7 +139,8 @@ describe("Test internal services", () => {
 				"actions": {
 					"alpha.echo.reply": {
 						"cache": false,
-						"name": "alpha.echo.reply"
+						"name": "alpha.echo.reply",
+						"metrics": { "meta": true, "params": false }
 					}
 				},
 				"name": "echo",
@@ -154,7 +157,8 @@ describe("Test internal services", () => {
 			expect(res).toEqual([{
 				"action": {
 					"cache": false,
-					"name": "$node.list"
+					"name": "$node.list",
+					"metrics": { "meta": true, "params": false }
 				},
 				"available": true,
 				"count": 1,
@@ -164,6 +168,7 @@ describe("Test internal services", () => {
 				"action": {
 					"cache": false,
 					"name": "$node.services",
+					"metrics": { "meta": true, "params": false },
 					"params": {
 						"onlyLocal": {
 							"optional": true,
@@ -187,6 +192,7 @@ describe("Test internal services", () => {
 				"action": {
 					"cache": false,
 					"name": "$node.actions",
+					"metrics": { "meta": true, "params": false },
 					"params": {
 						"onlyLocal": {
 							"optional": true,
@@ -210,6 +216,7 @@ describe("Test internal services", () => {
 				"action": {
 					"cache": false,
 					"name": "$node.events",
+					"metrics": { "meta": true, "params": false },
 					"params": {
 						"onlyLocal": {
 							"optional": true,
@@ -232,7 +239,8 @@ describe("Test internal services", () => {
 			}, {
 				"action": {
 					"cache": false,
-					"name": "$node.health"
+					"name": "$node.health",
+					"metrics": { "meta": true, "params": false },
 				},
 				"available": true,
 				"count": 1,
@@ -241,7 +249,8 @@ describe("Test internal services", () => {
 			}, {
 				"action": {
 					"cache": false,
-					"name": "$node.stats"
+					"name": "$node.stats",
+					"metrics": { "meta": true, "params": false },
 				},
 				"available": true,
 				"count": 1,
@@ -250,7 +259,8 @@ describe("Test internal services", () => {
 			}, {
 				"action": {
 					"cache": false,
-					"name": "greeter.hello"
+					"name": "greeter.hello",
+					"metrics": { "meta": true, "params": false },
 				},
 				"available": true,
 				"count": 1,
@@ -260,6 +270,7 @@ describe("Test internal services", () => {
 				"action": {
 					"cache": true,
 					"name": "greeter.welcome",
+					"metrics": { "meta": true, "params": false },
 					"params": {
 						"name": {
 							"type": "string"
@@ -273,7 +284,8 @@ describe("Test internal services", () => {
 			}, {
 				"action": {
 					"cache": false,
-					"name": "alpha.echo.reply"
+					"name": "alpha.echo.reply",
+					"metrics": { "meta": true, "params": false }
 				},
 				"available": true,
 				"count": 1,
@@ -288,7 +300,8 @@ describe("Test internal services", () => {
 			expect(res).toEqual([{
 				"action": {
 					"cache": false,
-					"name": "greeter.hello"
+					"name": "greeter.hello",
+					"metrics": { "meta": true, "params": false }
 				},
 				"available": true,
 				"count": 1,
@@ -302,6 +315,7 @@ describe("Test internal services", () => {
 				"action": {
 					"cache": true,
 					"name": "greeter.welcome",
+					"metrics": { "meta": true, "params": false },
 					"params": {
 						"name": {
 							"type": "string"
@@ -319,7 +333,8 @@ describe("Test internal services", () => {
 			}, {
 				"action": {
 					"cache": false,
-					"name": "alpha.echo.reply"
+					"name": "alpha.echo.reply",
+					"metrics": { "meta": true, "params": false }
 				},
 				"available": true,
 				"count": 1,

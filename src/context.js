@@ -129,7 +129,7 @@ class Context {
 	}
 
 	static createFromPayload(broker, payload) {
-		const ctx = new Context(broker, { name: payload.action });
+		const ctx = new Context(broker, { name: payload.action, metrics: { params: false, meta: true } });
 		ctx.id = payload.id;
 		ctx.setParams(payload.params);
 		ctx.parentID = payload.parentID;
@@ -233,6 +233,10 @@ class Context {
 				startTime: this.startTime,
 				remoteCall: !!this.callerNodeID
 			};
+
+			// Process extra metrics
+			this._processExtraMetrics(payload);
+
 			if (this.action) {
 				payload.action = {
 					name: this.action.name
@@ -259,7 +263,7 @@ class Context {
 	 * @memberOf Context
 	 */
 	_metricFinish(error, emitEvent) {
-		if (this.startHrTime){
+		if (this.startHrTime) {
 			let diff = process.hrtime(this.startHrTime);
 			this.duration = (diff[0] * 1e3) + (diff[1] / 1e6); // milliseconds
 		}
@@ -276,6 +280,10 @@ class Context {
 				remoteCall: !!this.callerNodeID,
 				fromCache: this.cachedResult
 			};
+
+			// Process extra metrics
+			this._processExtraMetrics(payload);
+
 			if (this.action) {
 				payload.action = {
 					name: this.action.name
@@ -297,6 +305,44 @@ class Context {
 				};
 			}
 			this.broker.emit("metrics.trace.span.finish", payload);
+		}
+	}
+
+	/**
+	 * Assign extra metrics taking into account action definitions
+	 *
+	 * @param {string} name Field of the context to be assigned.
+	 * @param {any} payload Object for assignement.
+	 *
+	 * @private
+	 * @memberof Context
+	 */
+	_assignExtraMetrics(name, payload) {
+		let def = this.action.metrics[name];
+		// if metrics definitions is boolean do default, metrics=true
+		if (def === true) {
+			payload[name] = this[name];
+		} else if (_.isArray(def)) {
+			payload[name] = _.pick(this[name], def);
+		} else if (_.isFunction(def)) {
+			payload[name] = def(this[name]);
+		}
+	}
+
+	/**
+	 * Decide and process extra metrics taking into account action definitions
+	 *
+	 * @param {any} payload Object for assignement.
+	 *
+	 * @private
+	 * @memberof Context
+	 */
+	_processExtraMetrics(payload) {
+		// extra metrics (params and meta)
+		if (_.isObject(this.action.metrics)) {
+			// custom metrics def
+			this._assignExtraMetrics("params", payload);
+			this._assignExtraMetrics("meta", payload);
 		}
 	}
 }
