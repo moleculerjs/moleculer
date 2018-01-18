@@ -1,3 +1,45 @@
+<a name="0.11.10"></a>
+# [0.11.10](https://github.com/ice-services/moleculer/compare/v0.11.9...v0.11.10) (2018-01-xx)
+
+# New
+
+## Built-in clustering in Moleculer Runner [#169](https://github.com/ice-services/moleculer/pull/169)
+By [@tinchoz49](https://github.com/tinchoz49 ) Moleculer Runner has a new built-in clustering function. With it, you can start multiple instances from your broker.
+
+Example to start all services from the `services` folder in 4 instances.
+```bash
+$ moleculer-runner --instances 4 services
+```
+> Please note, the `nodeID` will be suffixed with the worker ID.
+
+
+## Context meta & params in metrics events [#166](https://github.com/ice-services/moleculer/pull/166)
+By [@dani8art](https://github.com/dani8art) you can set that the broker put some `ctx.meta` and `ctx.params` fields to the metrics events.
+You can define it in the action definition:
+
+```js
+module.exports = {
+    name: "test",
+    actions: {
+        import: {
+            cache: true,
+            metrics: {
+                // Disable to add `ctx.params` to metrics payload. Default: false
+                params: false,
+                // Enable to add `ctx.meta` to metrics payload. Default: true
+                meta: true
+            },
+            handler(ctx) {
+                // ...
+            }
+        }
+    }
+}
+```
+
+If the value is `true`, it adds all fields. If `Array`, it adds the specified fields. If `Function`, it calls with `params` or `meta`and you need to return with an `Object`.
+
+--------------------------------------------------
 <a name="0.11.9"></a>
 # [0.11.9](https://github.com/ice-services/moleculer/compare/v0.11.8...v0.11.9) (2018-01-08)
 
