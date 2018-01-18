@@ -267,6 +267,29 @@ describe("Test _metricStart method", () => {
 		expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", { "action": { "name": "users.get" }, "id": ctx.id, "level": 1, "parent": 123, "remoteCall": true, "requestID": "abcdef", "startTime": ctx.startTime, "nodeID": broker.nodeID, "params": { "username": "user" }, "callerNodeID": "remote-node" });
 	});
 
+	it("should have been called with array of field meta and without params", () => {
+		broker.emit.mockClear();
+		ctx = new Context(broker, {
+			name: "users.get", params: { username: "string", pass: "string" },
+			metrics: { meta: ["user", "token"] }
+		});
+		ctx.callerNodeID = "remote-node";
+		ctx.params = { username: "user", pass: "pass" };
+		ctx.meta = {
+			user: "John",
+			token: 123456,
+			session: "00001"
+		};
+		ctx.requestID = "abcdef";
+		ctx.parentID = 123;
+		ctx.metrics = true;
+
+		ctx._metricStart(true);
+
+		expect(broker.emit).toHaveBeenCalledTimes(1);
+		expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", { "action": { "name": "users.get" }, "id": ctx.id, "level": 1, "meta": {"token": 123456, "user": "John"}, "parent": 123, "remoteCall": true, "requestID": "abcdef", "startTime": ctx.startTime, "nodeID": broker.nodeID, "callerNodeID": "remote-node" });
+	});
+
 	it("should have been called with function map of params and without meta", () => {
 		broker.emit.mockClear();
 		ctx = new Context(broker, {

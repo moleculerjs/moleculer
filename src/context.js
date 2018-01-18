@@ -320,7 +320,7 @@ class Context {
 	_assignExtraMetrics(name, payload) {
 		let def = this.action.metrics[name];
 		// if metrics definitions is boolean do default, metrics=true
-		if (_.isBoolean(def) && def) {
+		if (def === true) {
 			payload[name] = this[name];
 		} else if (_.isArray(def)) {
 			payload[name] = _.pick(this[name], def);
