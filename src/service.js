@@ -247,7 +247,7 @@ class Service {
 		action.handler = this.Promise.method(handler.bind(this));
 
 		// action metrics options by default
-		action.metrics = defaultsDeep({ params: false, meta: true });
+		action.metrics = defaultsDeep(action.metrics, { params: false, meta: true });
 
 		return action;
 	}

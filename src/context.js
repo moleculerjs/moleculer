@@ -320,16 +320,12 @@ class Context {
 	_assignExtraMetrics(name, payload) {
 		let def = this.action.metrics[name];
 		// if metrics definitions is boolean do default, metrics=true
-		let toAssign = {};
 		if (_.isBoolean(def) && def) {
-			toAssign[name] = this[name];
-			_.assign(payload, toAssign);
+			payload[name] = this[name];
 		} else if (_.isArray(def)) {
-			toAssign[name] = _.pick(this[name], def);
-			_.assign(payload, toAssign);
+			payload[name] = _.pick(this[name], def);
 		} else if (_.isFunction(def)) {
-			toAssign[name] = def(this[name]);
-			_.assign(payload, toAssign);
+			payload[name] = def(this[name]);
 		}
 	}
 
