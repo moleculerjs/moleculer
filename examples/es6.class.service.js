@@ -34,9 +34,9 @@ class GreeterService extends Service {
 			events: {
 				"user.created": this.userCreated
 			},
-			created: this.created,
-			started: this.started,
-			stopped: this.stopped,
+			created: this.serviceCreated,
+			started: this.serviceStarted,
+			stopped: this.serviceStopped,
 		});
 	}
 
@@ -61,17 +61,17 @@ class GreeterService extends Service {
 		this.broker.call("mail.send", { user });
 	}
 
-	created() {
+	serviceCreated() {
 		this.logger.info("ES6 Service created.");
 	}
 
-	started() {
+	serviceStarted() {
 		this.logger.info("ES6 Service started.");
 	}
 
-	stopped() {
+	serviceStopped() {
 		this.logger.info("ES6 Service stopped.");
 	}
 }
 
-module.exports = broker => new GreeterService(broker);
+module.exports = GreeterService;

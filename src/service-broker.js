@@ -503,7 +503,13 @@ class ServiceBroker {
 		}
 
 		let svc;
-		if (_.isFunction(schema)) {
+		if (this.ServiceFactory.isPrototypeOf(schema)) {
+			// Service implementation
+			svc = new schema(this);
+			this.servicesChanged(true);
+
+		} else if (_.isFunction(schema)) {
+			// Function
 			svc = schema(this);
 			if (!(svc instanceof this.ServiceFactory)) {
 				svc = this.createService(svc);
@@ -513,6 +519,7 @@ class ServiceBroker {
 			}
 
 		} else if (schema) {
+			// Schema object
 			svc = this.createService(schema);
 		}
 
