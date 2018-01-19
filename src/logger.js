@@ -81,7 +81,7 @@ module.exports = {
 
 			let method = baseLogger[type];
 
-			if (baseLogger === console && process.versions.node.split(".")[0] == 8 && type === "debug")
+			if (baseLogger === console && process.versions.node.split(".")[0] >= 8 && type === "debug")
 				method = null;
 
 			if (!method) {
