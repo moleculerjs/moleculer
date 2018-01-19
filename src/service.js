@@ -32,10 +32,20 @@ class Service {
 	 * @memberOf Service
 	 */
 	constructor(broker, schema) {
-
 		if (!isObject(broker))
 			throw new ServiceSchemaError("Must set a ServiceBroker instance!");
 
+		this.broker = broker;
+
+		if (broker) {
+			this.Promise = broker.Promise;
+		}
+
+		if (schema)
+			this._processSchema(schema);
+	}
+
+	_processSchema(schema) {
 		if (!isObject(schema))
 			throw new ServiceSchemaError("Must pass a service schema in constructor!");
 
@@ -52,11 +62,6 @@ class Service {
 		this.metadata = schema.metadata || {};
 
 		this.schema = schema;
-		this.broker = broker;
-
-		if (broker) {
-			this.Promise = broker.Promise;
-		}
 
 		this.logger = this.broker.getLogger("service", this.name, this.version);
 
@@ -81,11 +86,11 @@ class Service {
 
 				let innerAction = this._createAction(action, name);
 
-				registryItem.actions[innerAction.name] = broker.wrapAction(innerAction);
+				registryItem.actions[innerAction.name] = this.broker.wrapAction(innerAction);
 
 				// Expose to call `service.actions.find({ ...params })`
 				this.actions[name] = (params, opts) => {
-					const ctx = broker.ContextFactory.create(broker, innerAction, null, params, opts || {});
+					const ctx = this.broker.ContextFactory.create(this.broker, innerAction, null, params, opts || {});
 					return innerAction.handler(ctx);
 				};
 
@@ -152,7 +157,7 @@ class Service {
 		}
 
 		// Register service
-		broker.registerLocalService(this, registryItem);
+		this.broker.registerLocalService(this, registryItem);
 
 
 		// Create lifecycle runner methods
