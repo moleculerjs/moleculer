@@ -1,19 +1,5 @@
----
-engines:
-  duplication:
-    enabled: false
-    config:
-      languages:
-      - javascript
-  eslint:
-    enabled: true
-    channel: "eslint-4"
-  fixme:
-    enabled: true
-ratings:
-  paths:
-  - "**.js"
-  - "**.jsx"
+version: "2"
+
 checks:
   argument-count:
     enabled: false
@@ -35,8 +21,23 @@ checks:
     enabled: false
   identical-code:
     enabled: false
+
+plugins:
+  duplication:
+    enabled: false
+    config:
+      languages:
+      - javascript
+  eslint:
+    enabled: true
+    channel: "eslint-4"
+  fixme:
+    enabled: true
+
 exclude_paths:
 - test/
+- dev/
+- docs/
 - benchmark/
 - examples/
 - typings/
