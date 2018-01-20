@@ -5,21 +5,47 @@ const MemoryCacher = require("../../../src/cachers/memory");
 describe("Test MemoryMapCacher constructor", () => {
 
 	it("should create an empty options", () => {
-		let cacher = new MemoryCacher();
+		const cacher = new MemoryCacher();
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toBeDefined();
 		expect(cacher.opts.ttl).toBeNull();
 	});
 
 	it("should create a timer if set ttl option", () => {
-		let opts = { ttl: 500 };
-		let cacher = new MemoryCacher(opts);
+		const opts = { ttl: 500 };
+		const cacher = new MemoryCacher(opts);
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toEqual(opts);
 		expect(cacher.opts.ttl).toBe(500);
 		expect(cacher.timer).toBeDefined();
 	});
 
+});
+
+describe("Test MemoryCacher init", () => {
+
+	it("check init", () => {
+		const broker = new ServiceBroker();
+		broker.localBus.on = jest.fn();
+		const cacher = new MemoryCacher();
+
+		cacher.init(broker);
+
+		expect(broker.localBus.on).toHaveBeenCalledTimes(1);
+		expect(broker.localBus.on).toHaveBeenCalledWith("$transporter.connected", jasmine.any(Function));
+	});
+
+	it("should call cache clean after transporter connected", () => {
+		const broker = new ServiceBroker();
+		const cacher = new MemoryCacher();
+		cacher.clean = jest.fn();
+
+		cacher.init(broker);
+
+		broker.localBus.emit("$transporter.connected");
+
+		expect(cacher.clean).toHaveBeenCalledTimes(1);
+	});
 });
 
 describe("Test MemoryCacher set & get", () => {

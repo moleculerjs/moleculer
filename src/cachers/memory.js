@@ -39,6 +39,22 @@ class MemoryCacher extends BaseCacher {
 	}
 
 	/**
+	 * Initialize cacher
+	 *
+	 * @param {any} broker
+	 *
+	 * @memberOf Cacher
+	 */
+	init(broker) {
+		super.init(broker);
+
+		broker.localBus.on("$transporter.connected", () => {
+			// Clear all entries after transporter connected. Maybe we missed some "cache.clear" events.
+			this.clean();
+		});
+	}
+
+	/**
 	 * Get data from cache by key
 	 *
 	 * @param {any} key

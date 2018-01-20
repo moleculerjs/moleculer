@@ -9,29 +9,8 @@ let S = require("../src/strategies");
 let broker = new ServiceBroker({
 	logger: true,
 	logLevel: "debug",
-	registry: {
-		strategy: "Random"
-	},
-	transporter: {
-		type: "NATS",
-		options: {
-			nats: {
-				port: 4222,
-				/*tls: {
-					ca: [fs.readFileSync(__dirname + "/nats-cert.pem")]
-				}*/
-			}
-		}
-	},
-	cacher: {
-		type: "memory",
-		/*options: {
-			keygen(name, params, meta, keys) {
-				console.log("Keygen...");
-				return "asd";
-			}
-		}*/
-	}
+	transporter: "NATS",
+	cacher: "memory"
 });
 
 broker.createService({
@@ -50,4 +29,7 @@ broker.createService({
 });
 
 broker.start()
-	.then(() => broker.repl());
+	.then(() => broker.repl())
+	.then(() => setInterval(() => {
+		broker.call("math.add", { a: 5, b: 3});
+	}, 5000));
