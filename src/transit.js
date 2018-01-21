@@ -307,8 +307,8 @@ class Transit {
 		const ctx = this.broker.ContextFactory.createFromPayload(this.broker, payload);
 
 		return this.broker._handleRemoteRequest(ctx)
-			.then(res => this.sendResponse(payload.sender, payload.id,  res, null))
-			.catch(err => this.sendResponse(payload.sender, payload.id, null, err));
+			.then(res => this.sendResponse(payload.sender, payload.id,  ctx.meta, res, null))
+			.catch(err => this.sendResponse(payload.sender, payload.id, ctx.meta, null, err));
 	}
 
 	/**
@@ -329,8 +329,12 @@ class Transit {
 		this.removePendingRequest(id);
 
 		this.logger.debug(`Response '${req.action.name}' received from '${packet.sender}'.`);
+
 		// Update nodeID in context (if it use external balancer)
 		req.ctx.nodeID = packet.sender;
+
+		// Merge response meta with original meta
+		_.assign(req.ctx.meta, packet.meta);
 
 		if (!packet.success) {
 			// Recreate exception object
@@ -393,8 +397,6 @@ class Transit {
 
 		// Add to pendings
 		this.pendingRequests.set(ctx.id, request);
-
-		//return resolve(ctx.params);
 
 		// Publish request
 		this.publish(packet);
@@ -483,14 +485,15 @@ class Transit {
 	 *
 	 * @param {String} nodeID
 	 * @param {String} id
+	 * @param {any} meta
 	 * @param {any} data
 	 * @param {Error} err
 	 *
 	 * @memberOf Transit
 	 */
-	sendResponse(nodeID, id, data, err) {
+	sendResponse(nodeID, id, meta, data, err) {
 		// Publish the response
-		return this.publish(new P.PacketResponse(this, nodeID, id, data, err));
+		return this.publish(new P.PacketResponse(this, nodeID, id, meta, data, err));
 	}
 
 	/**

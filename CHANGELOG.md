@@ -33,6 +33,9 @@ module.exports = {
 };
 ```
 
+## Broadcast event with group filter
+TODO
+
 # Changes
 - MemoryCacher clean cache entries after the transporter connected.
 - `broker.loadServices` file mask is changed from `*.service.js` to `**/*.service.js` to load all services from subfolders too.

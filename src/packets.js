@@ -221,10 +221,11 @@ class PacketRequest extends Packet {
  * @extends {Packet}
  */
 class PacketResponse extends Packet {
-	constructor(transit, target, id, data, err) {
+	constructor(transit, target, id, meta, data, err) {
 		super(transit, PACKET_RESPONSE, target);
 
 		this.payload.id = id;
+		this.payload.meta = meta;
 		this.payload.success = err == null;
 		this.payload.data = data;
 

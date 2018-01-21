@@ -55,7 +55,8 @@ function createSchemas() {
 			{ name: "id", type: "string" },
 			{ name: "success", type: "boolean" },
 			{ name: "data", type: [ "null", "string"], default: null },
-			{ name: "error", type: [ "null", "string"], default: null }
+			{ name: "error", type: [ "null", "string"], default: null },
+			{ name: "meta", type: "string" },
 		]
 	});
 
@@ -80,7 +81,7 @@ function createSchemas() {
 				type: "array",
 				items: "string"
 			}},
-			{ name: "port", type: [ "null", "int"], default: null },
+			//{ name: "port", type: [ "null", "int"], default: null },
 			{ name: "client", type: {
 				type: "record",
 				fields: [

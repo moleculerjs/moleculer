@@ -83,6 +83,7 @@ class Serializer {
 				break;
 			}
 			case P.PACKET_RESPONSE: {
+				obj.meta = JSON.stringify(obj.meta);
 				if (obj.data)
 					obj.data = JSON.stringify(obj.data);
 				if (obj.error)
@@ -112,6 +113,7 @@ class Serializer {
 				break;
 			}
 			case P.PACKET_RESPONSE: {
+				obj.meta = JSON.parse(obj.meta);
 				if (obj.data)
 					obj.data = JSON.parse(obj.data);
 				if (obj.error)

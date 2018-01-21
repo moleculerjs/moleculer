@@ -1039,7 +1039,9 @@ class ServiceBroker {
 		};
 
 		// Local call
-		return this._localCall(ctx, endpoint, opts);
+		const p = this._localCall(ctx, endpoint, opts);
+
+		return p;
 	}
 
 	/**
