@@ -435,7 +435,7 @@ class Transit {
 
 	/**
 	 * Send an event to groups.
-	 * The transporter should make balancing
+	 * The event is balanced by transporter
 	 *
 	 * @param {String} eventName
 	 * @param {any} data

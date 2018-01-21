@@ -367,4 +367,35 @@ describe("Test NodeCatalog.list", () => {
 		]);
 
 	});
+
+	it("should return node list with services", () => {
+		let res = catalog.list(true);
+		expect(res).toEqual([
+			{
+				"available": true,
+				"client": catalog.localNode.client,
+				"config": {},
+				"cpu": null,
+				"id": broker.nodeID,
+				"ipList": catalog.localNode.ipList,
+				"lastHeartbeatTime": jasmine.any(Number),
+				"local": true,
+				"port": null,
+				"services": []
+			},
+			{
+				"available": true,
+				"client": undefined,
+				"config": {},
+				"cpu": null,
+				"id": "node-10",
+				"ipList": undefined,
+				"lastHeartbeatTime": jasmine.any(Number),
+				"local": false,
+				"port": null,
+				"services": []
+			}
+		]);
+
+	});
 });

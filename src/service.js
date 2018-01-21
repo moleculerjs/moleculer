@@ -117,16 +117,20 @@ class Service {
 						const p = handler.apply(self, [payload, sender, eventName]);
 
 						// Handle async-await returns
-						if (utils.isPromise(p))
+						if (utils.isPromise(p)) {
+							/* istanbul ignore next */
 							p.catch(err => self.logger.error(err));
+						}
 
 					} else if (Array.isArray(handler)) {
 						handler.forEach(fn => {
 							const p = fn.apply(self, [payload, sender, eventName]);
 
 							// Handle async-await returns
-							if (utils.isPromise(p))
+							if (utils.isPromise(p)) {
+								/* istanbul ignore next */
 								p.catch(err => self.logger.error(err));
+							}
 						});
 					}
 
