@@ -139,7 +139,9 @@ describe("Test ServiceBroker constructor", () => {
 			validation: false,
 			validator: null,
 			internalServices: false,
-			hotReload: true });
+			hotReload: true,
+			middlewares: null
+		});
 
 		expect(broker.services).toBeInstanceOf(Array);
 		expect(broker.registry).toBeInstanceOf(Registry);
@@ -220,6 +222,51 @@ describe("Test ServiceBroker constructor", () => {
 
 		expect(broker.options.disableBalancer).toBe(false);
 	});
+
+	it("should load middlewares", () => {
+		let mw1 = jest.fn(handler => handler);
+		let mw2 = jest.fn(handler => handler);
+		let broker = new ServiceBroker( {
+			middlewares: [mw1, mw2],
+			validation: false
+		});
+
+		expect(broker.middlewares.length).toBe(2);
+		expect(mw1).toHaveBeenCalledTimes(5);
+		expect(mw2).toHaveBeenCalledTimes(5);
+	});
+
+	it("should call lifecycle handlers", () => {
+		let created = jest.fn();
+		let started = jest.fn();
+		let stopped = jest.fn();
+
+		let broker = new ServiceBroker( {
+			created,
+			started,
+			stopped
+		});
+
+		expect(created).toHaveBeenCalledTimes(1);
+		expect(created).toHaveBeenCalledWith(broker);
+		expect(started).toHaveBeenCalledTimes(0);
+		expect(stopped).toHaveBeenCalledTimes(0);
+
+		return broker.start().then(() => {
+			expect(created).toHaveBeenCalledTimes(1);
+			expect(started).toHaveBeenCalledTimes(1);
+			expect(started).toHaveBeenCalledWith(broker);
+			expect(stopped).toHaveBeenCalledTimes(0);
+
+			return broker.stop().then(() => {
+				expect(created).toHaveBeenCalledTimes(1);
+				expect(started).toHaveBeenCalledTimes(1);
+				expect(stopped).toHaveBeenCalledTimes(1);
+				expect(stopped).toHaveBeenCalledWith(broker);
+			});
+		});
+	});
+
 });
 
 describe("Test option resolvers", () => {
@@ -815,11 +862,12 @@ describe("Test loadServices", () => {
 
 	it("should load 3 services", () => {
 		let count = broker.loadServices("./test/services");
-		expect(count).toBe(3);
-		expect(broker.loadService).toHaveBeenCalledTimes(3);
+		expect(count).toBe(4);
+		expect(broker.loadService).toHaveBeenCalledTimes(4);
 		expect(broker.loadService).toHaveBeenCalledWith("test/services/user.service.js");
 		expect(broker.loadService).toHaveBeenCalledWith("test/services/post.service.js");
 		expect(broker.loadService).toHaveBeenCalledWith("test/services/math.service.js");
+		expect(broker.loadService).toHaveBeenCalledWith("test/services/utils/util.service.js");
 	});
 
 	it("should load 1 services", () => {
@@ -2514,9 +2562,9 @@ describe("Test hot-reload feature", () => {
 			broker.watchService.mockClear();
 
 			let count = broker.loadServices("./test/services");
-			expect(count).toBe(3);
+			expect(count).toBe(4);
 
-			expect(broker.watchService).toHaveBeenCalledTimes(3);
+			expect(broker.watchService).toHaveBeenCalledTimes(4);
 		});
 	});
 

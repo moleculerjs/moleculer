@@ -76,6 +76,8 @@ const defaultOptions = {
 
 	hotReload: false,
 
+	middlewares: null,
+
 	// ServiceFactory: null,
 	// ContextFactory: null
 };
@@ -182,9 +184,17 @@ class ServiceBroker {
 		if (this.options.statistics)
 			this.statistics = new BrokerStatistics(this);
 
+		// Register middlewares
+		if (Array.isArray(this.options.middlewares) && this.options.middlewares.length > 0)
+			this.use(...this.options.middlewares);
+
 		// Register internal actions
 		if (this.options.internalServices)
 			this.registerInternalServices();
+
+		// Call `created` event handler
+		if (_.isFunction(this.options.created))
+			this.options.created(this);
 
 		// Graceful exit
 		this._closeFn = () => {
@@ -336,6 +346,10 @@ class ServiceBroker {
 			.then(() => {
 				this.logger.info(`ServiceBroker with ${this.services.length} service(s) is started successfully.`);
 				this._started = true;
+			})
+			.then(() => {
+				if (_.isFunction(this.options.started))
+					return this.options.started(this);
 			});
 	}
 
@@ -363,6 +377,10 @@ class ServiceBroker {
 				if (this.cacher) {
 					return this.cacher.close();
 				}
+			})
+			.then(() => {
+				if (_.isFunction(this.options.stopped))
+					return this.options.stopped(this);
 			})
 			.then(() => {
 				this.logger.info("ServiceBroker is stopped successfully. Good bye.");
@@ -459,12 +477,12 @@ class ServiceBroker {
 	 * Load services from a folder
 	 *
 	 * @param {string} [folder="./services"]		Folder of services
-	 * @param {string} [fileMask="*.service.js"]	Service filename mask
+	 * @param {string} [fileMask="**\/*.service.js"]	Service filename mask
 	 * @returns	{Number}							Number of found services
 	 *
 	 * @memberOf ServiceBroker
 	 */
-	loadServices(folder = "./services", fileMask = "*.service.js") {
+	loadServices(folder = "./services", fileMask = "**/*.service.js") {
 		this.logger.debug(`Search services in '${folder}/${fileMask}'...`);
 
 		let serviceFiles;

@@ -3,8 +3,39 @@
 
 # New
 
+## New ServiceBroker options
+There are some new properties in ServiceBroker option.
+It is useful if you load your project with Moleculer Runner.
+
+```js
+// moleculer.config.js
+module.exports = {
+	logger: true,
+
+    // Add middlewares
+	middlewares: [myMiddleware()],
+
+    // Fired when the broker is created
+	created(broker) {
+	},
+
+    // Fired when the broker is started
+	started(broker) {
+        // You can return with Promise
+		return broker.Promise.resolve();
+	},
+
+    // Fired when the broker is stopped
+	stopped(broker) {
+        // You can return with Promise
+		return broker.Promise.resolve();
+	}
+};
+```
+
 # Changes
 - MemoryCacher clean cache entries after the transporter connected.
+- `broker.loadServices` file mask is changed from `*.service.js` to `**/*.service.js` to load all services from subfolders too.
 
 # Fixes
 - handles invalid `dependencies` value in service schema [#164](https://github.com/ice-services/moleculer/pull/164)

@@ -26,7 +26,7 @@ describe("Test load services", () => {
 
 	it("should load all services", () => {
 		let count = broker.loadServices("./test/services");
-		expect(count).toBe(3);
+		expect(count).toBe(4);
 
 		expect(broker.getLocalService("posts").name).toBe("posts");
 	});
