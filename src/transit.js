@@ -412,7 +412,7 @@ class Transit {
 	sendBroadcastEvent(nodeID, eventName, data, groups) {
 		this.logger.debug(`Send '${eventName}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
 
-		this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups, true));
+		this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups));
 	}
 
 	/**
@@ -429,7 +429,7 @@ class Transit {
 		_.forIn(nodeGroups, (groups, nodeID) => {
 			this.logger.debug(`Send '${eventName}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
 
-			this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups, false));
+			this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups));
 		});
 	}
 
@@ -444,14 +444,8 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendEventToGroups(eventName, data, groups) {
-		if (!groups || groups.length == 0)
-			groups = this.broker.getEventGroups(eventName);
-
-		if (groups.length == 0)
-			return;
-
 		this.logger.debug(`Send '${eventName}' event to '${groups.join(", ")}' group(s).`);
-		this.publish(new P.PacketEvent(this, null, eventName, data, groups, false));
+		this.publish(new P.PacketEvent(this, null, eventName, data, groups));
 	}
 
 	/**
@@ -509,8 +503,7 @@ class Transit {
 	}
 
 	/**
-	 * Discover a node. It will be called if we got message from a node
-	 * what we don't know.
+	 * Discover a node. It will be called if we got message from an unknown node.
 	 *
 	 * @memberOf Transit
 	 */

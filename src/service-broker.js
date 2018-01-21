@@ -1189,14 +1189,14 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	emit(eventName, payload, groups) {
+		if (groups && !Array.isArray(groups))
+			groups = [groups];
+
 		this.logger.debug(`Emit '${eventName}' event`+ (groups ? ` to '${groups.join(", ")}' group(s)` : "") + ".");
 
 		// Call local/internal subscribers
 		if (/^\$/.test(eventName))
 			this.localBus.emit(eventName, payload);
-
-		if (groups && !Array.isArray(groups))
-			groups = [groups];
 
 		if (!this.options.disableBalancer) {
 
@@ -1232,6 +1232,12 @@ class ServiceBroker {
 			}
 
 		} else if (this.transit && !/^\$/.test(eventName)) {
+			if (!groups || groups.length == 0)
+				groups = this.getEventGroups(eventName);
+
+			if (groups.length == 0)
+				return;
+
 			return this.transit.sendEventToGroups(eventName, payload, groups);
 		}
 	}
@@ -1253,7 +1259,7 @@ class ServiceBroker {
 			groups = [groups];
 
 		if (!/^\$/.test(eventName)) {
-			const endpoints = this.registry.events.getAllEndpoints(eventName); // TODO by groups
+			const endpoints = this.registry.events.getAllEndpoints(eventName, groups); // TODO by groups
 
 			if (this.transit) {
 				// Send to remote services

@@ -2378,6 +2378,7 @@ describe("Test broker.emit with transporter", () => {
 		}, "mail"],
 	]);
 	broker.localBus.emit = jest.fn();
+	broker.getEventGroups = jest.fn(() => ["mail", "payment"]);
 
 	it("should call sendBalancedEvent with object payload", () => {
 		broker.transit.sendBalancedEvent.mockClear();
@@ -2394,6 +2395,7 @@ describe("Test broker.emit with transporter", () => {
 
 	it("should call sendEventToGroups if no registry balancing", () => {
 		handler.mockClear();
+		broker.getEventGroups.mockClear();
 		broker.transit.sendEventToGroups.mockClear();
 		broker.registry.events.getBalancedEndpoints.mockClear();
 
@@ -2402,14 +2404,19 @@ describe("Test broker.emit with transporter", () => {
 		broker.emit("user.event", { name: "John" });
 
 		expect(handler).toHaveBeenCalledTimes(0);
+
+		expect(broker.getEventGroups).toHaveBeenCalledTimes(1);
+		expect(broker.getEventGroups).toHaveBeenCalledWith("user.event");
+
 		expect(broker.transit.sendEventToGroups).toHaveBeenCalledTimes(1);
-		expect(broker.transit.sendEventToGroups).toHaveBeenCalledWith("user.event", {"name": "John"}, undefined);
+		expect(broker.transit.sendEventToGroups).toHaveBeenCalledWith("user.event", {"name": "John"}, ["mail", "payment"]);
 
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(0);
 	});
 
 	it("should call sendEventToGroups if no registry balancing with groups", () => {
 		handler.mockClear();
+		broker.getEventGroups.mockClear();
 		broker.transit.sendEventToGroups.mockClear();
 		broker.registry.events.getBalancedEndpoints.mockClear();
 
@@ -2418,6 +2425,8 @@ describe("Test broker.emit with transporter", () => {
 		broker.emit("user.event", { name: "John" }, ["users", "mail"]);
 
 		expect(handler).toHaveBeenCalledTimes(0);
+		expect(broker.getEventGroups).toHaveBeenCalledTimes(0);
+
 		expect(broker.transit.sendEventToGroups).toHaveBeenCalledTimes(1);
 		expect(broker.transit.sendEventToGroups).toHaveBeenCalledWith("user.event", {"name": "John"}, ["users", "mail"]);
 
@@ -2446,56 +2455,74 @@ describe("Test broker.emit with transporter", () => {
 describe("Test broker broadcast", () => {
 	let broker = new ServiceBroker({ nodeID: "server-1", transporter: "Fake" });
 	broker.broadcastLocal = jest.fn();
-	broker.transit.sendEvent = jest.fn();
+	broker.transit.sendBroadcastEvent = jest.fn();
 
 	broker.registry.events.getAllEndpoints = jest.fn(() => [
 		{ id: "node-2" },
 		{ id: "node-3" },
 	]);
 
-	it("should call sendEvent & broadcastLocal without payload", () => {
+	it("should call sendBroadcastEvent & broadcastLocal without payload", () => {
 		broker.broadcast("test.event");
 
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
-		expect(broker.broadcastLocal).toHaveBeenCalledWith("test.event", undefined, null, "server-1");
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("test.event", undefined, null);
 
-		expect(broker.transit.sendEvent).toHaveBeenCalledTimes(2);
-		expect(broker.transit.sendEvent).toHaveBeenCalledWith("node-2", "test.event", undefined);
-		expect(broker.transit.sendEvent).toHaveBeenCalledWith("node-3", "test.event", undefined);
+		expect(broker.transit.sendBroadcastEvent).toHaveBeenCalledTimes(2);
+		expect(broker.transit.sendBroadcastEvent).toHaveBeenCalledWith("node-2", "test.event", undefined, null);
+		expect(broker.transit.sendBroadcastEvent).toHaveBeenCalledWith("node-3", "test.event", undefined, null);
 
 		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledTimes(1);
-		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledWith("test.event");
+		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledWith("test.event", null);
 	});
 
-	it("should call sendEvent & broadcastLocal with object payload", () => {
+	it("should call sendBroadcastEvent & broadcastLocal with object payload", () => {
 		broker.broadcastLocal.mockClear();
-		broker.transit.sendEvent.mockClear();
+		broker.transit.sendBroadcastEvent.mockClear();
 		broker.registry.events.getAllEndpoints.mockClear();
 
 		broker.broadcast("user.event", { name: "John" });
 
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
-		expect(broker.broadcastLocal).toHaveBeenCalledWith("user.event", { name: "John" }, null, "server-1");
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("user.event", { name: "John" }, null);
 
-		expect(broker.transit.sendEvent).toHaveBeenCalledTimes(2);
-		expect(broker.transit.sendEvent).toHaveBeenCalledWith("node-2", "user.event", { name: "John" });
-		expect(broker.transit.sendEvent).toHaveBeenCalledWith("node-3", "user.event", { name: "John" });
+		expect(broker.transit.sendBroadcastEvent).toHaveBeenCalledTimes(2);
+		expect(broker.transit.sendBroadcastEvent).toHaveBeenCalledWith("node-2", "user.event", { name: "John" }, null);
+		expect(broker.transit.sendBroadcastEvent).toHaveBeenCalledWith("node-3", "user.event", { name: "John" }, null);
 
 		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledTimes(1);
-		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledWith("user.event");
+		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledWith("user.event", null);
 	});
 
-	it("should not call sendEvent if local event", () => {
+	it("should call sendBroadcastEvent & broadcastLocal with groups", () => {
 		broker.broadcastLocal.mockClear();
-		broker.transit.sendEvent.mockClear();
+		broker.transit.sendBroadcastEvent.mockClear();
+		broker.registry.events.getAllEndpoints.mockClear();
+
+		broker.broadcast("user.event", { name: "John" }, ["mail", "payment"]);
+
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("user.event", { name: "John" }, ["mail", "payment"]);
+
+		expect(broker.transit.sendBroadcastEvent).toHaveBeenCalledTimes(2);
+		expect(broker.transit.sendBroadcastEvent).toHaveBeenCalledWith("node-2", "user.event", { name: "John" }, ["mail", "payment"]);
+		expect(broker.transit.sendBroadcastEvent).toHaveBeenCalledWith("node-3", "user.event", { name: "John" }, ["mail", "payment"]);
+
+		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledTimes(1);
+		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledWith("user.event", ["mail", "payment"]);
+	});
+
+	it("should not call sendBroadcastEvent if local event", () => {
+		broker.broadcastLocal.mockClear();
+		broker.transit.sendBroadcastEvent.mockClear();
 		broker.registry.events.getAllEndpoints.mockClear();
 
 		broker.broadcast("$user.event", { name: "John" });
 
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
-		expect(broker.broadcastLocal).toHaveBeenCalledWith("$user.event", { name: "John" }, null, "server-1");
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$user.event", { name: "John" }, null);
 
-		expect(broker.transit.sendEvent).toHaveBeenCalledTimes(0);
+		expect(broker.transit.sendBroadcastEvent).toHaveBeenCalledTimes(0);
 		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledTimes(0);
 	});
 

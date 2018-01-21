@@ -242,6 +242,15 @@ describe("Test EventCatalog.getBalancedEndpoints & getAllEndpoints", () => {
 
 	});
 
+	it("should return all endpoint with groups", () => {
+		let res = catalog.getAllEndpoints("user.created", ["mail"]);
+
+		expect(res.length).toBe(2);
+		expect(res[0].id).toEqual("node-2");
+		expect(res[1].id).toEqual("node-3");
+
+	});
+
 	it("should return all endpoint with matches", () => {
 		let res = catalog.getAllEndpoints("user.removed");
 

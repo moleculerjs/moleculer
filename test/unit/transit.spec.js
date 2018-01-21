@@ -215,7 +215,7 @@ describe("Test Transit.sendEvent", () => {
 
 	transit.publish = jest.fn();
 
-	it("should call publish with correct params", () => {
+	it("should call publish with correct params and without groups", () => {
 		const user = { id: 5, name: "Jameson" };
 		transit.sendBroadcastEvent("node2", "user.created", user);
 		expect(transit.publish).toHaveBeenCalledTimes(1);
@@ -225,6 +225,19 @@ describe("Test Transit.sendEvent", () => {
 		expect(packet.payload.event).toBe("user.created");
 		expect(packet.payload.data).toBe(user);
 		expect(packet.payload.groups).toBeNull();
+	});
+
+	it("should call publish with correct params and with groups", () => {
+		transit.publish.mockClear();
+		const user = { id: 5, name: "Jameson" };
+		transit.sendBroadcastEvent("node2", "user.created", user, ["mail", "payment"]);
+		expect(transit.publish).toHaveBeenCalledTimes(1);
+		const packet = transit.publish.mock.calls[0][0];
+		expect(packet).toBeInstanceOf(P.PacketEvent);
+		expect(packet.target).toBe("node2");
+		expect(packet.payload.event).toBe("user.created");
+		expect(packet.payload.data).toBe(user);
+		expect(packet.payload.groups).toEqual(["mail", "payment"]);
 	});
 
 });
@@ -266,26 +279,9 @@ describe("Test Transit.sendEventToGroups", () => {
 	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
-	broker.getEventGroups = jest.fn(() => ["users", "payments"]);
 	transit.publish = jest.fn();
 
-	it("should call publish with correct params", () => {
-		const user = { id: 5, name: "Jameson" };
-		transit.sendEventToGroups("user.created", user);
-		expect(transit.publish).toHaveBeenCalledTimes(1);
-		const packet = transit.publish.mock.calls[0][0];
-		expect(packet).toBeInstanceOf(P.PacketEvent);
-		expect(packet.target).toBeNull();
-		expect(packet.payload.event).toBe("user.created");
-		expect(packet.payload.data).toBe(user);
-		expect(packet.payload.groups).toEqual(["users", "payments"]);
-
-		expect(broker.getEventGroups).toHaveBeenCalledTimes(1);
-		expect(broker.getEventGroups).toHaveBeenCalledWith("user.created");
-	});
-
 	it("should call publish with groups", () => {
-		broker.getEventGroups.mockClear();
 		transit.publish.mockClear();
 		const user = { id: 5, name: "Jameson" };
 		transit.sendEventToGroups("user.created", user, ["users", "mail"]);
@@ -296,8 +292,6 @@ describe("Test Transit.sendEventToGroups", () => {
 		expect(packet.payload.event).toBe("user.created");
 		expect(packet.payload.data).toBe(user);
 		expect(packet.payload.groups).toEqual(["users", "mail"]);
-
-		expect(broker.getEventGroups).toHaveBeenCalledTimes(0);
 	});
 });
 

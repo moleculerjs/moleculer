@@ -112,17 +112,20 @@ class EventCatalog {
 	 * Get all endpoints for event
 	 *
 	 * @param {String} eventName
+	 * @param {Array<String>?} groupNames
 	 * @returns
 	 * @memberof EventCatalog
 	 */
-	getAllEndpoints(eventName) {
+	getAllEndpoints(eventName, groupNames) {
 		const res = [];
 		this.events.forEach(list => {
 			if (!nanomatch.isMatch(eventName, list.name)) return;
-			list.endpoints.forEach(ep => {
-				if (ep.isAvailable)
-					res.push(ep);
-			});
+			if (groupNames == null || groupNames.length == 0 || groupNames.indexOf(list.group) !== -1) {
+				list.endpoints.forEach(ep => {
+					if (ep.isAvailable)
+						res.push(ep);
+				});
+			}
 		});
 
 		return _.uniqBy(res, "id");
