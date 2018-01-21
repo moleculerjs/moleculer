@@ -217,7 +217,7 @@ describe("Test Transit.sendEvent", () => {
 
 	it("should call publish with correct params", () => {
 		const user = { id: 5, name: "Jameson" };
-		transit.sendEvent("node2", "user.created", user);
+		transit.sendBroadcastEvent("node2", "user.created", user);
 		expect(transit.publish).toHaveBeenCalledTimes(1);
 		const packet = transit.publish.mock.calls[0][0];
 		expect(packet).toBeInstanceOf(P.PacketEvent);

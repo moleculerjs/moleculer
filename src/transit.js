@@ -401,7 +401,7 @@ class Transit {
 	}
 
 	/**
-	 * Send an event to a remote node
+	 * Send a broadcast event to a remote node
 	 *
 	 * @param {String} nodeID
 	 * @param {String} eventName
@@ -409,10 +409,10 @@ class Transit {
 	 *
 	 * @memberOf Transit
 	 */
-	sendEvent(nodeID, eventName, data) {
-		this.logger.debug(`Send '${eventName}' event to '${nodeID}'.`);
+	sendBroadcastEvent(nodeID, eventName, data, groups) {
+		this.logger.debug(`Send '${eventName}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
 
-		this.publish(new P.PacketEvent(this, nodeID, eventName, data));
+		this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups, true));
 	}
 
 	/**
@@ -429,7 +429,7 @@ class Transit {
 		_.forIn(nodeGroups, (groups, nodeID) => {
 			this.logger.debug(`Send '${eventName}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
 
-			this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups));
+			this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups, false));
 		});
 	}
 
@@ -451,7 +451,7 @@ class Transit {
 			return;
 
 		this.logger.debug(`Send '${eventName}' event to '${groups.join(", ")}' group(s).`);
-		this.publish(new P.PacketEvent(this, null, eventName, data, groups));
+		this.publish(new P.PacketEvent(this, null, eventName, data, groups, false));
 	}
 
 	/**

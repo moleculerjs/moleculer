@@ -343,11 +343,12 @@ declare namespace Moleculer {
 		 *
 		 * @param {string} eventName
 		 * @param {any} payload
+		 * @param {Array<string>?} groups
 		 * @returns
 		 *
 		 * @memberOf ServiceBroker
 		 */
-		broadcast(eventName: string, payload?: any): void
+		broadcast(eventName: string, payload?: any, groups?: string | Array<string>): void
 
 		/**
 		 * Emit an event for all local services
@@ -677,7 +678,7 @@ declare namespace Moleculer {
 		makeSubscriptions(): Bluebird<Array<void>>;
 		messageHandler(cmd: string, msg: GenericObject): boolean | Bluebird<void> | undefined;
 		request(ctx: Context): Bluebird<void>;
-		sendEvent(nodeID: string, eventName: string, data: GenericObject): void;
+		sendBroadcastEvent(nodeID: string, eventName: string, data: GenericObject, nodeGroups: GenericObject): void;
 		sendBalancedEvent(eventName: string, data: GenericObject, nodeGroups: GenericObject): void;
 		sendEventToGroups(eventName: string, data: GenericObject, groups: Array<string>): void;
 		sendEventToGroups(eventName: string, data: GenericObject): void;

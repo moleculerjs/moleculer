@@ -1189,7 +1189,7 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	emit(eventName, payload, groups) {
-		this.logger.debug(`Emit '${eventName}' event.`);
+		this.logger.debug(`Emit '${eventName}' event`+ (groups ? ` to '${groups.join(", ")}' group(s)` : "") + ".");
 
 		// Call local/internal subscribers
 		if (/^\$/.test(eventName))
@@ -1202,7 +1202,7 @@ class ServiceBroker {
 
 			const endpoints = this.registry.events.getBalancedEndpoints(eventName, groups);
 
-			// Grouping remote events (minimize network traffic)
+			// Grouping remote events (reduce the network traffic)
 			const groupedEP = {};
 
 			endpoints.forEach(([ep, group]) => {
@@ -1241,28 +1241,32 @@ class ServiceBroker {
 	 *
 	 * @param {string} eventName
 	 * @param {any} payload
+	 * @param {String|Array<String>=} groups
 	 * @returns
 	 *
 	 * @memberOf ServiceBroker
 	 */
-	broadcast(eventName, payload) {
-		this.logger.debug(`Broadcast '${eventName}' event.`);
+	broadcast(eventName, payload, groups = null) {
+		this.logger.debug(`Broadcast '${eventName}' event`+ (groups ? ` to '${groups.join(", ")}' group(s)` : "") + ".");
+
+		if (groups && !Array.isArray(groups))
+			groups = [groups];
 
 		if (!/^\$/.test(eventName)) {
-			const endpoints = this.registry.events.getAllEndpoints(eventName);
+			const endpoints = this.registry.events.getAllEndpoints(eventName); // TODO by groups
 
 			if (this.transit) {
 				// Send to remote services
 				endpoints.forEach(ep => {
 					if (ep.id != this.nodeID) {
-						return this.transit.sendEvent(ep.id, eventName, payload);
+						return this.transit.sendBroadcastEvent(ep.id, eventName, payload, groups);
 					}
 				});
 			}
 		}
 
 		// Send to local services
-		return this.broadcastLocal(eventName, payload, null, this.nodeID);
+		return this.broadcastLocal(eventName, payload, groups);
 	}
 
 	/**
@@ -1277,7 +1281,7 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	broadcastLocal(eventName, payload, groups = null) {
-		this.logger.debug(`Broadcast '${eventName}' event locally.`);
+		this.logger.debug(`Emit '${eventName}' event`+ (groups ? ` to '${groups.join(", ")}' local group(s)` : "") + ".");
 
 		// Call local/internal subscribers
 		if (/^\$/.test(eventName))
