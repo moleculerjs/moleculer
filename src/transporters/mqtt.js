@@ -122,6 +122,7 @@ class MqttTransporter extends Transporter {
 		const data = packet.serialize();
 
 		return new Promise((resolve, reject) => {
+			/* istanbul ignore next */
 			this.client.publish(this.getTopicName(packet.type, packet.target), data, err => {
 				if (err)
 					return reject(err);

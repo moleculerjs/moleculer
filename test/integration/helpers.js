@@ -43,6 +43,8 @@ const H = {
 		const list = broker.registry.actions.get(actionName);
 		if (list)
 			return list.endpoints.map(ep => ep.id);
+
+		/* istanbul ignore next */
 		return [];
 	},
 

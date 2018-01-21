@@ -187,6 +187,7 @@ class EventCatalog {
 		let res = [];
 
 		this.events.forEach(list => {
+			/* istanbul ignore next */
 			if (skipInternal && /^\$/.test(list.name))
 				return;
 

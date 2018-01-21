@@ -111,6 +111,7 @@ class Packet {
 
 			return packet;
 		} catch(err) {
+			/* istanbul ignore next */
 			throw new E.InvalidPacketData(msg);
 		}
 	}

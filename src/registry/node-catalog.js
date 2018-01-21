@@ -48,17 +48,17 @@ class NodeCatalog {
 	 * @memberof NodeCatalog
 	 */
 	startHeartbeatTimers() {
+		/* istanbul ignore next */
 		this.heartbeatTimer = setInterval(() => {
 			this.localNode.updateLocalInfo();
-			/* istanbul ignore next */
 			if (this.broker.transit)
 				this.broker.transit.sendHeartbeat(this.localNode);
 
 		}, this.broker.options.heartbeatInterval * 1000);
 		this.heartbeatTimer.unref();
 
+		/* istanbul ignore next */
 		this.checkNodesTimer = setInterval(() => {
-			/* istanbul ignore next */
 			this.checkRemoteNodes();
 		}, this.broker.options.heartbeatTimeout * 1000);
 		this.checkNodesTimer.unref();

@@ -10,26 +10,26 @@ It is useful if you load your project with Moleculer Runner.
 ```js
 // moleculer.config.js
 module.exports = {
-	logger: true,
+    logger: true,
 
     // Add middlewares
-	middlewares: [myMiddleware()],
+    middlewares: [myMiddleware()],
 
     // Fired when the broker is created
-	created(broker) {
-	},
+    created(broker) {
+    },
 
     // Fired when the broker is started
-	started(broker) {
+    started(broker) {
         // You can return with Promise
-		return broker.Promise.resolve();
-	},
+        return broker.Promise.resolve();
+    },
 
     // Fired when the broker is stopped
-	stopped(broker) {
+    stopped(broker) {
         // You can return with Promise
-		return broker.Promise.resolve();
-	}
+        return broker.Promise.resolve();
+    }
 };
 ```
 
