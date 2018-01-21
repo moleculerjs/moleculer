@@ -61,6 +61,18 @@ describe("Test Errors", () => {
 	});
 
 	it("test ServiceNotFoundError", () => {
+		let err = new errors.ServiceNotFoundError("posts.find");
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(Error);
+		expect(err).toBeInstanceOf(errors.ServiceNotFoundError);
+		expect(err.code).toBe(404);
+		expect(err.name).toBe("ServiceNotFoundError");
+		expect(err.message).toBe("Service 'posts.find' is not found.");
+		expect(err.data).toEqual({ action: "posts.find" });
+		expect(err.retryable).toBe(false);
+	});
+
+	it("test ServiceNotFoundError with nodeID", () => {
 		let err = new errors.ServiceNotFoundError("posts.find", "node-2");
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
@@ -73,14 +85,14 @@ describe("Test Errors", () => {
 	});
 
 	it("test ServiceNotAvailable", () => {
-		let err = new errors.ServiceNotAvailable("posts.find", "node-2");
+		let err = new errors.ServiceNotAvailable("posts.find");
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err).toBeInstanceOf(errors.ServiceNotAvailable);
 		expect(err.code).toBe(404);
 		expect(err.name).toBe("ServiceNotAvailable");
-		expect(err.message).toBe("Service 'posts.find' is not available on 'node-2' node.");
-		expect(err.data).toEqual({ action: "posts.find", nodeID: "node-2" });
+		expect(err.message).toBe("Service 'posts.find' is not available.");
+		expect(err.data).toEqual({ action: "posts.find" });
 		expect(err.retryable).toBe(false);
 	});
 

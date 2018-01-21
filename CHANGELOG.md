@@ -6,6 +6,9 @@
 # Changes
 - MemoryCacher clean cache entries after the transporter connected.
 
+# Fixes
+- handles invalid `dependencies` value in service schema [#164](https://github.com/ice-services/moleculer/pull/164)
+
 --------------------------------------------------
 <a name="0.11.10"></a>
 # [0.11.10](https://github.com/ice-services/moleculer/compare/v0.11.9...v0.11.10) (2018-01-19)

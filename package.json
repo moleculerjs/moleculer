@@ -9,7 +9,7 @@
     "coverall": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "demo": "node examples/index.js",
     "deps": "npm-check -u",
-    "dev": "nodemon --debug dev/index.js",
+    "dev": "nodemon --inspect dev/index.js",
     "lint": "eslint --ext=.js src test",
     "lint:fix": "eslint --fix --ext=.js src test",
     "perf": "nodemon --allow-natives-syntax benchmark/perf-runner.js",
