@@ -699,7 +699,10 @@ class ServiceBroker {
 		if (!Array.isArray(serviceNames))
 			serviceNames = [serviceNames];
 
-		const serviceObjs = serviceNames.map(x => _.isPlainObject(x) ? x : { name: x });
+		const serviceObjs = serviceNames.map(x => _.isPlainObject(x) ? x : { name: x }).filter(x => x.name);
+		if (serviceObjs.length == 0)
+			return Promise.resolve();
+
 		logger.info(`Waiting for service(s) '${_.map(serviceObjs, "name").join(", ")}'...`);
 
 		const startTime = Date.now();

@@ -9,12 +9,13 @@ let S = require("../src/strategies");
 let broker = new ServiceBroker({
 	logger: true,
 	logLevel: "debug",
-	transporter: "NATS",
+	//transporter: "NATS",
 	cacher: "memory"
 });
 
 broker.createService({
 	name: "math",
+	dependencies: [],
 	actions: {
 		add: {
 			cache: {
