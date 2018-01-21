@@ -1258,10 +1258,10 @@ class ServiceBroker {
 		if (groups && !Array.isArray(groups))
 			groups = [groups];
 
-		if (!/^\$/.test(eventName)) {
-			const endpoints = this.registry.events.getAllEndpoints(eventName, groups); // TODO by groups
+		if (this.transit) {
+			if (!/^\$/.test(eventName)) {
+				const endpoints = this.registry.events.getAllEndpoints(eventName, groups);
 
-			if (this.transit) {
 				// Send to remote services
 				endpoints.forEach(ep => {
 					if (ep.id != this.nodeID) {
@@ -1289,7 +1289,7 @@ class ServiceBroker {
 	broadcastLocal(eventName, payload, groups = null) {
 		this.logger.debug(`Emit '${eventName}' event`+ (groups ? ` to '${groups.join(", ")}' local group(s)` : "") + ".");
 
-		// Call local/internal subscribers
+		// Call internal subscribers
 		if (/^\$/.test(eventName))
 			this.localBus.emit(eventName, payload);
 
