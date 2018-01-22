@@ -862,12 +862,13 @@ describe("Test loadServices", () => {
 
 	it("should load 3 services", () => {
 		let count = broker.loadServices("./test/services");
-		expect(count).toBe(4);
-		expect(broker.loadService).toHaveBeenCalledTimes(4);
+		expect(count).toBe(5);
+		expect(broker.loadService).toHaveBeenCalledTimes(5);
 		expect(broker.loadService).toHaveBeenCalledWith("test/services/user.service.js");
 		expect(broker.loadService).toHaveBeenCalledWith("test/services/post.service.js");
 		expect(broker.loadService).toHaveBeenCalledWith("test/services/math.service.js");
 		expect(broker.loadService).toHaveBeenCalledWith("test/services/utils/util.service.js");
+		expect(broker.loadService).toHaveBeenCalledWith("test/services/greeter.es6.service.js");
 	});
 
 	it("should load 1 services", () => {
@@ -2606,9 +2607,9 @@ describe("Test hot-reload feature", () => {
 			broker.watchService.mockClear();
 
 			let count = broker.loadServices("./test/services");
-			expect(count).toBe(4);
+			expect(count).toBe(5);
 
-			expect(broker.watchService).toHaveBeenCalledTimes(4);
+			expect(broker.watchService).toHaveBeenCalledTimes(5);
 		});
 	});
 
