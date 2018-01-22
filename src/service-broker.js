@@ -762,19 +762,6 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Get an action endpoint
-	 *
-	 * @deprecated For moleculer-web@0.4.4 or older
-	 * @param {String} actionName
-	 * @memberof ServiceBroker
-	 */
-	getAction(actionName) {
-		let actions = this.registry.getActionEndpoints(actionName);
-		if (actions)
-			return actions.next();
-	}
-
-	/**
 	 * Find the next available endpoint for action
 	 *
 	 * @param {String} actionName
@@ -1023,14 +1010,14 @@ class ServiceBroker {
 	_handleRemoteRequest(ctx) {
 		let actionName = ctx.action.name;
 		// Find action by name
-		let actions = this.registry.getActionEndpoints(actionName);
-		if (actions == null || !actions.hasLocal()) {
+		let epList = this.registry.getActionEndpoints(actionName);
+		if (epList == null || !epList.hasLocal()) {
 			this.logger.warn(`Service '${actionName}' is not registered locally.`);
 			return Promise.reject(new E.ServiceNotFoundError(actionName, this.nodeID));
 		}
 
 		// Get local endpoint
-		let endpoint = actions.nextLocal();
+		let endpoint = epList.nextLocal();
 		if (!endpoint) {
 			this.logger.warn(`Service '${actionName}' is not available locally.`);
 			return Promise.reject(new E.ServiceNotAvailable(actionName, this.nodeID));
