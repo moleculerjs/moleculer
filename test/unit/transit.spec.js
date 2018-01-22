@@ -29,6 +29,7 @@ describe("Test Transporter constructor", () => {
 
 		expect(transit.connected).toBe(false);
 		expect(transit.disconnecting).toBe(false);
+		expect(transit.isReady).toBe(false);
 
 		expect(transit.tx).toBe(transporter);
 	});
@@ -161,6 +162,36 @@ describe("Test Transit.disconnect", () => {
 			expect(transit.connected).toBe(false);
 			expect(transit.disconnecting).toBe(true);
 		});
+	});
+
+});
+
+describe("Test Transit.ready", () => {
+
+	const broker = new ServiceBroker();
+	const transporter = new FakeTransporter();
+	const transit = new Transit(broker, transporter);
+
+	transit.sendNodeInfo = jest.fn(() => Promise.resolve());
+
+	it("should not call sendNodeInfo if not connected", () => {
+		expect(transit.isReady).toBe(false);
+		expect(transit.connected).toBe(false);
+
+		transit.ready();
+
+		expect(transit.sendNodeInfo).toHaveBeenCalledTimes(0);
+		expect(transit.isReady).toBe(false);
+	});
+
+	it("should call sendNodeInfo if connected", () => {
+		transit.connected = true;
+		expect(transit.isReady).toBe(false);
+
+		transit.ready();
+
+		expect(transit.sendNodeInfo).toHaveBeenCalledTimes(1);
+		expect(transit.isReady).toBe(true);
 	});
 
 });
@@ -740,7 +771,23 @@ describe("Test Transit.sendNodeInfo", () => {
 	transit.tx._makeServiceSpecificSubscriptions = jest.fn(() => Promise.resolve());
 	transit.publish = jest.fn();
 
+	it("should not call publish while not connected", () => {
+		return transit.sendNodeInfo("node2").then(() => {
+			expect(transit.publish).toHaveBeenCalledTimes(0);
+			expect(broker.getLocalNodeInfo).toHaveBeenCalledTimes(0);
+		});
+	});
+
+	it("should not call publish while not ready", () => {
+		transit.connected = true;
+		return transit.sendNodeInfo("node2").then(() => {
+			expect(transit.publish).toHaveBeenCalledTimes(0);
+			expect(broker.getLocalNodeInfo).toHaveBeenCalledTimes(0);
+		});
+	});
+
 	it("should call publish with correct params if has nodeID", () => {
+		transit.isReady = true;
 		return transit.sendNodeInfo("node2").then(() => {
 			expect(transit.tx._makeServiceSpecificSubscriptions).toHaveBeenCalledTimes(0);
 			expect(transit.publish).toHaveBeenCalledTimes(1);

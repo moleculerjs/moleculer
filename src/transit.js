@@ -46,6 +46,7 @@ class Transit {
 
 		this.connected = false;
 		this.disconnecting = false;
+		this.isReady = false;
 
 		if (this.tx) {
 			this.tx.init(this, this.messageHandler.bind(this), this.afterConnect.bind(this));
@@ -71,8 +72,7 @@ class Transit {
 			})
 
 			.then(() => this.discoverNodes())
-			.then(() => this.sendNodeInfo())
-			.delay(200) // Waiting for incoming INFO packets
+			.delay(500) // Waiting for incoming INFO packets
 
 			.then(() => {
 				this.connected = true;
@@ -123,6 +123,7 @@ class Transit {
 	 */
 	disconnect() {
 		this.connected = false;
+		this.isReady = false;
 		this.disconnecting = true;
 
 		this.broker.broadcastLocal("$transporter.disconnected", { graceFul: true });
@@ -133,6 +134,17 @@ class Transit {
 		}
 		/* istanbul ignore next */
 		return Promise.resolve();
+	}
+
+	/**
+	 * Local broker is ready (all services loaded).
+	 * Send INFO packet to all other nodes
+	 */
+	ready() {
+		if (this.connected) {
+			this.isReady = true;
+			return this.sendNodeInfo();
+		}
 	}
 
 	/**
@@ -520,6 +532,8 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendNodeInfo(nodeID) {
+		if (!this.connected || !this.isReady) return Promise.resolve();
+
 		const info = this.broker.getLocalNodeInfo();
 
 		let p = Promise.resolve();

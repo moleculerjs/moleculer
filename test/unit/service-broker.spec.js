@@ -1065,20 +1065,6 @@ describe("Test broker.servicesChanged", () => {
 
 		expect(broker.transit.sendNodeInfo).toHaveBeenCalledTimes(1);
 	});
-
-	it("should call broadcastLocal without transit.sendNodeInfo because it is disconnected", () => {
-		broker.transit.connected = false;
-
-		broker.broadcastLocal.mockClear();
-		broker.transit.sendNodeInfo.mockClear();
-
-		broker.servicesChanged(true);
-
-		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
-		expect(broker.broadcastLocal).toHaveBeenCalledWith("$services.changed", { localService: true });
-
-		expect(broker.transit.sendNodeInfo).toHaveBeenCalledTimes(0);
-	});
 });
 
 

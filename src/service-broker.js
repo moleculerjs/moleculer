@@ -348,6 +348,10 @@ class ServiceBroker {
 				this._started = true;
 			})
 			.then(() => {
+				if (this.transit)
+					return this.transit.ready();
+			})
+			.then(() => {
 				if (_.isFunction(this.options.started))
 					return this.options.started(this);
 			});
@@ -663,7 +667,7 @@ class ServiceBroker {
 		this.broadcastLocal("$services.changed", { localService });
 
 		// Should notify remote nodes, because our service list is changed.
-		if (localService && this.transit && this.transit.connected) {
+		if (localService && this.transit) {
 			this.transit.sendNodeInfo();
 		}
 	}
