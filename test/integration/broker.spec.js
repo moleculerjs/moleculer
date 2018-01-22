@@ -15,6 +15,7 @@ describe("Test load services", () => {
 			}
 		});
 
+		expect(broker.getLocalService("mailer")).toBeDefined();
 		expect(broker.registry.actions.isAvailable("v2.mailer.send")).toBe(true);
 
 		broker.call("v2.mailer.send").then(() => {
@@ -24,9 +25,13 @@ describe("Test load services", () => {
 
 	it("should load all services", () => {
 		let count = broker.loadServices("./test/services");
-		expect(count).toBe(5);
+		expect(count).toBe(4);
 
-		expect(broker.getLocalService("posts").name).toBe("posts");
+		//expect(broker.getLocalService("greeter")).toBeDefined();
+		expect(broker.getLocalService("math")).toBeDefined();
+		expect(broker.getLocalService("posts")).toBeDefined();
+		expect(broker.getLocalService("users")).toBeDefined();
+		expect(broker.getLocalService("test")).toBeDefined();
 	});
 });
 

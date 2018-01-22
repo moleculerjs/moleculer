@@ -862,21 +862,21 @@ describe("Test loadServices", () => {
 
 	it("should load 3 services", () => {
 		let count = broker.loadServices("./test/services");
-		expect(count).toBe(5);
-		expect(broker.loadService).toHaveBeenCalledTimes(5);
-		expect(broker.loadService).toHaveBeenCalledWith("test/services/user.service.js");
-		expect(broker.loadService).toHaveBeenCalledWith("test/services/post.service.js");
+		expect(count).toBe(4);
+		expect(broker.loadService).toHaveBeenCalledTimes(4);
+		expect(broker.loadService).toHaveBeenCalledWith("test/services/users.service.js");
+		expect(broker.loadService).toHaveBeenCalledWith("test/services/posts.service.js");
 		expect(broker.loadService).toHaveBeenCalledWith("test/services/math.service.js");
 		expect(broker.loadService).toHaveBeenCalledWith("test/services/utils/util.service.js");
-		expect(broker.loadService).toHaveBeenCalledWith("test/services/greeter.es6.service.js");
+		//expect(broker.loadService).toHaveBeenCalledWith("test/services/greeter.es6.service.js");
 	});
 
 	it("should load 1 services", () => {
 		broker.loadService.mockClear();
-		let count = broker.loadServices("./test/services", "user.*.js");
+		let count = broker.loadServices("./test/services", "users.*.js");
 		expect(count).toBe(1);
 		expect(broker.loadService).toHaveBeenCalledTimes(1);
-		expect(broker.loadService).toHaveBeenCalledWith("test/services/user.service.js");
+		expect(broker.loadService).toHaveBeenCalledWith("test/services/users.service.js");
 	});
 
 	it("should load 0 services", () => {
@@ -888,10 +888,10 @@ describe("Test loadServices", () => {
 
 	it("should load selected services", () => {
 		broker.loadService.mockClear();
-		let count = broker.loadServices("./test/services", ["user.service", "math.service"]);
+		let count = broker.loadServices("./test/services", ["users.service", "math.service"]);
 		expect(count).toBe(2);
 		expect(broker.loadService).toHaveBeenCalledTimes(2);
-		expect(broker.loadService).toHaveBeenCalledWith(path.join("test", "services", "user.service"));
+		expect(broker.loadService).toHaveBeenCalledWith(path.join("test", "services", "users.service"));
 		expect(broker.loadService).toHaveBeenCalledWith(path.join("test", "services", "math.service"));
 	});
 
@@ -917,7 +917,7 @@ describe("Test broker.loadService", () => {
 	it("should call function which returns Service instance", () => {
 		broker.createService.mockClear();
 		broker.watchService.mockClear();
-		let service = broker.loadService("./test/services/user.service.js");
+		let service = broker.loadService("./test/services/users.service.js");
 		expect(service).toBeInstanceOf(broker.ServiceFactory);
 		expect(broker.createService).toHaveBeenCalledTimes(0);
 		expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
@@ -928,7 +928,7 @@ describe("Test broker.loadService", () => {
 	it("should call function which returns schema", () => {
 		broker.createService.mockClear();
 		broker.watchService.mockClear();
-		let service = broker.loadService("./test/services/post.service.js");
+		let service = broker.loadService("./test/services/posts.service.js");
 		expect(service).toBeDefined();
 		expect(broker.createService).toHaveBeenCalledTimes(1);
 		expect(broker.watchService).toHaveBeenCalledTimes(1);
@@ -2607,9 +2607,9 @@ describe("Test hot-reload feature", () => {
 			broker.watchService.mockClear();
 
 			let count = broker.loadServices("./test/services");
-			expect(count).toBe(5);
+			expect(count).toBe(4);
 
-			expect(broker.watchService).toHaveBeenCalledTimes(5);
+			expect(broker.watchService).toHaveBeenCalledTimes(4);
 		});
 	});
 

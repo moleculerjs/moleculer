@@ -1,4 +1,8 @@
-const Service = require("../src/service");
+/**
+ * IT IS NOT WORKING WITH THE LATEST JEST VERSION
+ *
+ */
+const Service = require("../../src/service");
 
 class GreeterService extends Service {
 
