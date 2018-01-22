@@ -1,3 +1,49 @@
+<a name="0.12.0"></a>
+# [0.12.0](https://github.com/ice-services/moleculer/compare/v0.11.10...v0.12.0) (2018-xx-xx)
+
+# New
+
+## New ServiceBroker options
+There are some new properties in ServiceBroker option.
+It is useful if you load your project with Moleculer Runner.
+
+```js
+// moleculer.config.js
+module.exports = {
+    logger: true,
+
+    // Add middlewares
+    middlewares: [myMiddleware()],
+
+    // Fired when the broker is created
+    created(broker) {
+    },
+
+    // Fired when the broker is started
+    started(broker) {
+        // You can return with Promise
+        return broker.Promise.resolve();
+    },
+
+    // Fired when the broker is stopped
+    stopped(broker) {
+        // You can return with Promise
+        return broker.Promise.resolve();
+    }
+};
+```
+
+## Broadcast event with group filter
+TODO
+
+# Changes
+- MemoryCacher clean cache entries after the transporter connected.
+- `broker.loadServices` file mask is changed from `*.service.js` to `**/*.service.js` to load all services from subfolders too.
+
+# Fixes
+- handles invalid `dependencies` value in service schema [#164](https://github.com/ice-services/moleculer/pull/164)
+
+--------------------------------------------------
 <a name="0.11.10"></a>
 # [0.11.10](https://github.com/ice-services/moleculer/compare/v0.11.9...v0.11.10) (2018-01-19)
 

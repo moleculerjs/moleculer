@@ -119,8 +119,7 @@ describe("Test PacketInfo", () => {
 			},
 			config: {
 				compression: "gzip"
-			},
-			port: 3400
+			}
 		};
 
 		let packet = new P.PacketInfo(transit, "node-2", info);
@@ -132,7 +131,6 @@ describe("Test PacketInfo", () => {
 		expect(packet.payload.services).toEqual(info.services);
 		expect(packet.payload.ipList).toEqual(info.ipList);
 		expect(packet.payload.client).toEqual(info.client);
-		expect(packet.payload.port).toEqual(info.port);
 		expect(packet.payload.config).toEqual(info.config);
 	});
 
@@ -217,15 +215,17 @@ describe("Test PacketResponse", () => {
 
 	const transit = { nodeID: "node-1" };
 
+	const meta = { headers: ["header"] };
 	it("should set properties without error", () => {
 		let data = { id: 5 };
-		let packet = new P.PacketResponse(transit, "server-2", "12345", data);
+		let packet = new P.PacketResponse(transit, "server-2", "12345", meta, data);
 		expect(packet).toBeDefined();
 		expect(packet.type).toBe(P.PACKET_RESPONSE);
 		expect(packet.target).toBe("server-2");
 		expect(packet.payload).toBeDefined();
 		expect(packet.payload.sender).toBe("node-1");
 		expect(packet.payload.id).toBe("12345");
+		expect(packet.payload.meta).toBe(meta);
 		expect(packet.payload.success).toBe(true);
 		expect(packet.payload.data).toEqual({ id: 5 });
 		expect(packet.payload.error).toBeUndefined();
@@ -233,13 +233,14 @@ describe("Test PacketResponse", () => {
 
 	it("should set properties with error", () => {
 		let err = new ValidationError("Validation error", "ERR_INVALID_A", { a: 5 });
-		let packet = new P.PacketResponse(transit, "server-2", "12345", null, err);
+		let packet = new P.PacketResponse(transit, "server-2", "12345", meta, null, err);
 		expect(packet).toBeDefined();
 		expect(packet.type).toBe(P.PACKET_RESPONSE);
 		expect(packet.target).toBe("server-2");
 		expect(packet.payload).toBeDefined();
 		expect(packet.payload.sender).toBe("node-1");
 		expect(packet.payload.id).toBe("12345");
+		expect(packet.payload.meta).toBe(meta);
 		expect(packet.payload.success).toBe(false);
 		expect(packet.payload.data).toBeNull();
 		expect(packet.payload.error).toBeDefined();

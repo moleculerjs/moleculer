@@ -21,7 +21,7 @@ const PACKET_HEARTBEAT 		= "HEARTBEAT";
 const PACKET_PING 			= "PING";
 const PACKET_PONG 			= "PONG";
 
-const PROTOCOL_VERSION 		= "2";
+const PROTOCOL_VERSION 		= "3";
 
 /**
  * Get packet class from packet type
@@ -111,6 +111,7 @@ class Packet {
 
 			return packet;
 		} catch(err) {
+			/* istanbul ignore next */
 			throw new E.InvalidPacketData(msg);
 		}
 	}
@@ -166,7 +167,6 @@ class PacketInfo extends Packet {
 			this.payload.services = info.services;
 			this.payload.ipList = info.ipList;
 			this.payload.client = info.client;
-			this.payload.port = info.port;
 			this.payload.config = info.config;
 		}
 	}
@@ -179,12 +179,13 @@ class PacketInfo extends Packet {
  * @extends {Packet}
  */
 class PacketEvent extends Packet {
-	constructor(transit, target, eventName, data = null, groups = null) {
+	constructor(transit, target, eventName, data = null, groups = null, broadcast = false) {
 		super(transit, PACKET_EVENT, target);
 
 		this.payload.event = eventName;
 		this.payload.data = data;
 		this.payload.groups = groups;
+		this.payload.broadcast = broadcast;
 	}
 }
 
@@ -219,10 +220,11 @@ class PacketRequest extends Packet {
  * @extends {Packet}
  */
 class PacketResponse extends Packet {
-	constructor(transit, target, id, data, err) {
+	constructor(transit, target, id, meta, data, err) {
 		super(transit, PACKET_RESPONSE, target);
 
 		this.payload.id = id;
+		this.payload.meta = meta;
 		this.payload.success = err == null;
 		this.payload.data = data;
 

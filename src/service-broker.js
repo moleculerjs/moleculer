@@ -76,6 +76,8 @@ const defaultOptions = {
 
 	hotReload: false,
 
+	middlewares: null,
+
 	// ServiceFactory: null,
 	// ContextFactory: null
 };
@@ -182,9 +184,17 @@ class ServiceBroker {
 		if (this.options.statistics)
 			this.statistics = new BrokerStatistics(this);
 
+		// Register middlewares
+		if (Array.isArray(this.options.middlewares) && this.options.middlewares.length > 0)
+			this.use(...this.options.middlewares);
+
 		// Register internal actions
 		if (this.options.internalServices)
 			this.registerInternalServices();
+
+		// Call `created` event handler
+		if (_.isFunction(this.options.created))
+			this.options.created(this);
 
 		// Graceful exit
 		this._closeFn = () => {
@@ -336,6 +346,10 @@ class ServiceBroker {
 			.then(() => {
 				this.logger.info(`ServiceBroker with ${this.services.length} service(s) is started successfully.`);
 				this._started = true;
+			})
+			.then(() => {
+				if (_.isFunction(this.options.started))
+					return this.options.started(this);
 			});
 	}
 
@@ -363,6 +377,10 @@ class ServiceBroker {
 				if (this.cacher) {
 					return this.cacher.close();
 				}
+			})
+			.then(() => {
+				if (_.isFunction(this.options.stopped))
+					return this.options.stopped(this);
 			})
 			.then(() => {
 				this.logger.info("ServiceBroker is stopped successfully. Good bye.");
@@ -459,12 +477,12 @@ class ServiceBroker {
 	 * Load services from a folder
 	 *
 	 * @param {string} [folder="./services"]		Folder of services
-	 * @param {string} [fileMask="*.service.js"]	Service filename mask
+	 * @param {string} [fileMask="**\/*.service.js"]	Service filename mask
 	 * @returns	{Number}							Number of found services
 	 *
 	 * @memberOf ServiceBroker
 	 */
-	loadServices(folder = "./services", fileMask = "*.service.js") {
+	loadServices(folder = "./services", fileMask = "**/*.service.js") {
 		this.logger.debug(`Search services in '${folder}/${fileMask}'...`);
 
 		let serviceFiles;
@@ -706,7 +724,10 @@ class ServiceBroker {
 		if (!Array.isArray(serviceNames))
 			serviceNames = [serviceNames];
 
-		const serviceObjs = serviceNames.map(x => _.isPlainObject(x) ? x : { name: x });
+		const serviceObjs = serviceNames.map(x => _.isPlainObject(x) ? x : { name: x }).filter(x => x.name);
+		if (serviceObjs.length == 0)
+			return Promise.resolve();
+
 		logger.info(`Waiting for service(s) '${_.map(serviceObjs, "name").join(", ")}'...`);
 
 		const startTime = Date.now();
@@ -745,19 +766,6 @@ class ServiceBroker {
 			if (mw)
 				this.middlewares.push(mw);
 		});
-	}
-
-	/**
-	 * Get an action endpoint
-	 *
-	 * @deprecated For moleculer-web@0.4.4 or older
-	 * @param {String} actionName
-	 * @memberof ServiceBroker
-	 */
-	getAction(actionName) {
-		let actions = this.registry.getActionEndpoints(actionName);
-		if (actions)
-			return actions.next();
 	}
 
 	/**
@@ -1009,14 +1017,19 @@ class ServiceBroker {
 	_handleRemoteRequest(ctx) {
 		let actionName = ctx.action.name;
 		// Find action by name
-		let actions = this.registry.getActionEndpoints(actionName);
-		if (actions == null || actions.localEndpoint == null) {
+		let epList = this.registry.getActionEndpoints(actionName);
+		if (epList == null || !epList.hasLocal()) {
 			this.logger.warn(`Service '${actionName}' is not registered locally.`);
 			return Promise.reject(new E.ServiceNotFoundError(actionName, this.nodeID));
 		}
 
 		// Get local endpoint
-		let endpoint = actions.localEndpoint;
+		let endpoint = epList.nextLocal();
+		if (!endpoint) {
+			this.logger.warn(`Service '${actionName}' is not available locally.`);
+			return Promise.reject(new E.ServiceNotAvailable(actionName, this.nodeID));
+		}
+
 		ctx.action = endpoint.action;
 
 		// Load opts
@@ -1025,7 +1038,9 @@ class ServiceBroker {
 		};
 
 		// Local call
-		return this._localCall(ctx, endpoint, opts);
+		const p = this._localCall(ctx, endpoint, opts);
+
+		return p;
 	}
 
 	/**
@@ -1076,7 +1091,7 @@ class ServiceBroker {
 		this._finishCall(ctx, err);
 
 		// Handle fallback response
-		if (_.has(opts, 'fallbackResponse')) {
+		if (opts.fallbackResponse) {
 			this.logger.warn(`Action '${actionName}' returns with fallback response.`);
 			if (_.isFunction(opts.fallbackResponse))
 				return opts.fallbackResponse(ctx, err);
@@ -1175,20 +1190,20 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	emit(eventName, payload, groups) {
-		this.logger.debug(`Emit '${eventName}' event.`);
+		if (groups && !Array.isArray(groups))
+			groups = [groups];
+
+		this.logger.debug(`Emit '${eventName}' event`+ (groups ? ` to '${groups.join(", ")}' group(s)` : "") + ".");
 
 		// Call local/internal subscribers
 		if (/^\$/.test(eventName))
 			this.localBus.emit(eventName, payload);
 
-		if (groups && !Array.isArray(groups))
-			groups = [groups];
-
 		if (!this.options.disableBalancer) {
 
 			const endpoints = this.registry.events.getBalancedEndpoints(eventName, groups);
 
-			// Grouping remote events (minimize network traffic)
+			// Grouping remote events (reduce the network traffic)
 			const groupedEP = {};
 
 			endpoints.forEach(([ep, group]) => {
@@ -1218,6 +1233,12 @@ class ServiceBroker {
 			}
 
 		} else if (this.transit && !/^\$/.test(eventName)) {
+			if (!groups || groups.length == 0)
+				groups = this.getEventGroups(eventName);
+
+			if (groups.length == 0)
+				return;
+
 			return this.transit.sendEventToGroups(eventName, payload, groups);
 		}
 	}
@@ -1227,28 +1248,32 @@ class ServiceBroker {
 	 *
 	 * @param {string} eventName
 	 * @param {any} payload
+	 * @param {String|Array<String>=} groups
 	 * @returns
 	 *
 	 * @memberOf ServiceBroker
 	 */
-	broadcast(eventName, payload) {
-		this.logger.debug(`Broadcast '${eventName}' event.`);
+	broadcast(eventName, payload, groups = null) {
+		if (groups && !Array.isArray(groups))
+			groups = [groups];
 
-		if (!/^\$/.test(eventName)) {
-			const endpoints = this.registry.events.getAllEndpoints(eventName);
+		this.logger.debug(`Broadcast '${eventName}' event`+ (groups ? ` to '${groups.join(", ")}' group(s)` : "") + ".");
 
-			if (this.transit) {
+		if (this.transit) {
+			if (!/^\$/.test(eventName)) {
+				const endpoints = this.registry.events.getAllEndpoints(eventName, groups);
+
 				// Send to remote services
 				endpoints.forEach(ep => {
 					if (ep.id != this.nodeID) {
-						return this.transit.sendEvent(ep.id, eventName, payload);
+						return this.transit.sendBroadcastEvent(ep.id, eventName, payload, groups);
 					}
 				});
 			}
 		}
 
 		// Send to local services
-		return this.broadcastLocal(eventName, payload, null, this.nodeID);
+		return this.broadcastLocal(eventName, payload, groups);
 	}
 
 	/**
@@ -1263,13 +1288,13 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	broadcastLocal(eventName, payload, groups = null) {
-		this.logger.debug(`Broadcast '${eventName}' event locally.`);
+		this.logger.debug(`Broadcast '${eventName}' local event`+ (groups ? ` to '${groups.join(", ")}' group(s)` : "") + ".");
 
-		// Call local/internal subscribers
+		// Call internal subscribers
 		if (/^\$/.test(eventName))
 			this.localBus.emit(eventName, payload);
 
-		return this.emitLocalServices(eventName, payload, groups, this.nodeID);
+		return this.emitLocalServices(eventName, payload, groups, this.nodeID, true);
 	}
 
 	/**
@@ -1322,11 +1347,12 @@ class ServiceBroker {
 	 * @param {any} payload
 	 * @param {any} groups
 	 * @param {String} sender
+	 * @param {boolean} broadcast
 	 * @returns
 	 * @memberof ServiceBroker
 	 */
-	emitLocalServices(event, payload, groups, sender) {
-		return this.registry.events.emitLocalServices(event, payload, groups, sender);
+	emitLocalServices(event, payload, groups, sender, broadcast) {
+		return this.registry.events.emitLocalServices(event, payload, groups, sender, broadcast);
 	}
 
 }

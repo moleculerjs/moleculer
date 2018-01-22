@@ -117,6 +117,7 @@ class FakeTransporter extends Transporter {
 	 * @memberOf BaseTransporter
 	 */
 	publishBalancedEvent(/*packet, group*/) {
+		/* istanbul ignore next */
 		return Promise.resolve();
 	}
 
@@ -129,6 +130,7 @@ class FakeTransporter extends Transporter {
 	 * @memberOf BaseTransporter
 	 */
 	publishBalancedRequest(/*packet*/) {
+		/* istanbul ignore next */
 		return Promise.resolve();
 	}
 

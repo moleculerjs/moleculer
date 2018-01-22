@@ -88,7 +88,7 @@ describe("Test setParams", () => {
 
 describe("Test call method", () => {
 	let broker = new ServiceBroker({ maxCallLevel: 5 });
-	broker.call = jest.fn();
+	broker.call = jest.fn(() => broker.Promise.resolve());
 
 	it("should call broker.call method with itself", () => {
 		let ctx = new Context(broker);
@@ -154,6 +154,53 @@ describe("Test call method", () => {
 			expect(err).toBeInstanceOf(MaxCallLevelError);
 			expect(err.code).toBe(500);
 			expect(err.data).toEqual({ level: 5 });
+		});
+	});
+});
+
+describe("Test call with meta merge", () => {
+	let broker = new ServiceBroker({ maxCallLevel: 5 });
+
+	broker.call = jest.fn()
+		.mockImplementationOnce(() => {
+			const p = broker.Promise.resolve();
+			p.ctx = {
+				meta: {
+					b: 5
+				}
+			};
+			return p;
+		})
+		.mockImplementationOnce(() => {
+			const p = broker.Promise.reject();
+			p.ctx = {
+				meta: {
+					b: 5
+				}
+			};
+			return p;
+		});
+
+	it("should merge meta from sub-context if resolved", () => {
+		let ctx = new Context(broker);
+		ctx.meta.a = "Hello";
+		ctx.meta.b = 1;
+		ctx._metricStart();
+		return ctx.call("posts.find", {}).catch(protectReject).then(() => {
+			expect(broker.call).toHaveBeenCalledTimes(1);
+			expect(ctx.meta).toEqual({ a: "Hello", b: 5 });
+		});
+	});
+
+	it("should merge meta from sub-context if rejected", () => {
+		broker.call.mockClear();
+		let ctx = new Context(broker);
+		ctx.meta.a = "Hello";
+		ctx.meta.b = 1;
+		ctx._metricStart();
+		return ctx.call("posts.find", {}).then(protectReject).catch(err => {
+			expect(broker.call).toHaveBeenCalledTimes(1);
+			expect(ctx.meta).toEqual({ a: "Hello", b: 5 });
 		});
 	});
 });

@@ -188,8 +188,8 @@ class RedisCacher extends BaseCacher {
 				});
 			};
 
+			/* istanbul ignore next */
 			scanDel(0, (err) => {
-				/* istanbul ignore next */
 				if (err) {
 					this.logger.error("Redis `scanDel` error.", match, err);
 

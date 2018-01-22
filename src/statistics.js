@@ -16,17 +16,17 @@ https://github.com/RisingStack/trace-nodejs/blob/master/lib/agent/metrics/rpm/in
 const defaultsDeep = require("lodash/defaultsDeep");
 
 /**
- * 
- * 
+ *
+ *
  * @class StatRequestStore
  */
 class StatRequestStore {
 	/**
 	 * Creates an instance of StatRequestStore.
-	 * 
+	 *
 	 * @param {any} name
 	 * @param {any} bucketCount
-	 * 
+	 *
 	 * @memberOf StatRequestStore
 	 */
 	constructor(name, bucketCount) {
@@ -43,11 +43,11 @@ class StatRequestStore {
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @param {any} latency
 	 * @param {any} errCode
-	 * 
+	 *
 	 * @memberOf StatRequestStore
 	 */
 	append(latency, errCode) {
@@ -62,9 +62,9 @@ class StatRequestStore {
 	}
 
 	/**
-	 * 
-	 * 
-	 * 
+	 *
+	 *
+	 *
 	 * @memberOf StatRequestStore
 	 */
 	cycle() {
@@ -85,10 +85,10 @@ class StatRequestStore {
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @returns
-	 * 
+	 *
 	 * @memberOf StatRequestStore
 	 */
 	calculateRps() {
@@ -116,10 +116,10 @@ class StatRequestStore {
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @returns
-	 * 
+	 *
 	 * @memberOf StatRequestStore
 	 */
 	calculate() {
@@ -149,16 +149,17 @@ class StatRequestStore {
 			this.dirty = false;
 		} else {
 			// Calculate req/sec
+			/* istanbul ignore next */
 			this.stat.rps = this.calculateRps();
 		}
 		return this.stat;
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @returns
-	 * 
+	 *
 	 * @memberOf StatRequestStore
 	 */
 	snapshot() {
@@ -170,17 +171,17 @@ class StatRequestStore {
 }
 
 /**
- * 
- * 
+ *
+ *
  * @class RequestStatistics
  */
 class RequestStatistics {
 
 	/**
 	 * Creates an instance of RequestStatistics.
-	 * 
+	 *
 	 * @param {any} options
-	 * 
+	 *
 	 * @memberOf RequestStatistics
 	 */
 	constructor(options) {
@@ -200,12 +201,12 @@ class RequestStatistics {
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @param {any} actionName
 	 * @param {any} latency
 	 * @param {any} errCode
-	 * 
+	 *
 	 * @memberOf RequestStatistics
 	 */
 	append(actionName, latency, errCode) {
@@ -219,9 +220,9 @@ class RequestStatistics {
 	}
 
 	/**
-	 * 
-	 * 
-	 * 
+	 *
+	 *
+	 *
 	 * @memberOf RequestStatistics
 	 */
 	cycle() {
@@ -230,10 +231,10 @@ class RequestStatistics {
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @returns
-	 * 
+	 *
 	 * @memberOf RequestStatistics
 	 */
 	snapshot() {
@@ -249,17 +250,17 @@ class RequestStatistics {
 }
 
 /**
- * 
- * 
+ *
+ *
  * @class BrokerStatistics
  */
 class BrokerStatistics {
 	/**
 	 * Creates an instance of BrokerStatistics.
-	 * 
+	 *
 	 * @param {any} broker
 	 * @param {any} options
-	 * 
+	 *
 	 * @memberOf BrokerStatistics
 	 */
 	constructor(broker, options) {
@@ -270,12 +271,12 @@ class BrokerStatistics {
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @param {any} actionName
 	 * @param {any} latency
 	 * @param {any} errCode
-	 * 
+	 *
 	 * @memberOf BrokerStatistics
 	 */
 	addRequest(actionName, latency, errCode) {
@@ -283,10 +284,10 @@ class BrokerStatistics {
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @returns
-	 * 
+	 *
 	 * @memberOf BrokerStatistics
 	 */
 	snapshot() {

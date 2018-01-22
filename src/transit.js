@@ -290,7 +290,7 @@ class Transit {
 	_eventHandler(payload) {
 		this.logger.debug(`Event '${payload.event}' received from '${payload.sender}' node` + (payload.groups ? ` in '${payload.groups.join(", ")}' group(s)` : "") + ".");
 
-		this.broker.emitLocalServices(payload.event, payload.data, payload.groups, payload.sender);
+		this.broker.emitLocalServices(payload.event, payload.data, payload.groups, payload.sender, payload.broadcast);
 	}
 
 	/**
@@ -307,8 +307,8 @@ class Transit {
 		const ctx = this.broker.ContextFactory.createFromPayload(this.broker, payload);
 
 		return this.broker._handleRemoteRequest(ctx)
-			.then(res => this.sendResponse(payload.sender, payload.id,  res, null))
-			.catch(err => this.sendResponse(payload.sender, payload.id, null, err));
+			.then(res => this.sendResponse(payload.sender, payload.id,  ctx.meta, res, null))
+			.catch(err => this.sendResponse(payload.sender, payload.id, ctx.meta, null, err));
 	}
 
 	/**
@@ -329,8 +329,12 @@ class Transit {
 		this.removePendingRequest(id);
 
 		this.logger.debug(`Response '${req.action.name}' received from '${packet.sender}'.`);
+
 		// Update nodeID in context (if it use external balancer)
 		req.ctx.nodeID = packet.sender;
+
+		// Merge response meta with original meta
+		_.assign(req.ctx.meta, packet.meta);
 
 		if (!packet.success) {
 			// Recreate exception object
@@ -394,14 +398,12 @@ class Transit {
 		// Add to pendings
 		this.pendingRequests.set(ctx.id, request);
 
-		//return resolve(ctx.params);
-
 		// Publish request
 		this.publish(packet);
 	}
 
 	/**
-	 * Send an event to a remote node
+	 * Send a broadcast event to a remote node
 	 *
 	 * @param {String} nodeID
 	 * @param {String} eventName
@@ -409,10 +411,10 @@ class Transit {
 	 *
 	 * @memberOf Transit
 	 */
-	sendEvent(nodeID, eventName, data) {
-		this.logger.debug(`Send '${eventName}' event to '${nodeID}'.`);
+	sendBroadcastEvent(nodeID, eventName, data, groups) {
+		this.logger.debug(`Send '${eventName}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
 
-		this.publish(new P.PacketEvent(this, nodeID, eventName, data));
+		this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups, true));
 	}
 
 	/**
@@ -429,13 +431,13 @@ class Transit {
 		_.forIn(nodeGroups, (groups, nodeID) => {
 			this.logger.debug(`Send '${eventName}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
 
-			this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups));
+			this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups, false));
 		});
 	}
 
 	/**
 	 * Send an event to groups.
-	 * The transporter should make balancing
+	 * The event is balanced by transporter
 	 *
 	 * @param {String} eventName
 	 * @param {any} data
@@ -444,14 +446,8 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendEventToGroups(eventName, data, groups) {
-		if (!groups || groups.length == 0)
-			groups = this.broker.getEventGroups(eventName);
-
-		if (groups.length == 0)
-			return;
-
 		this.logger.debug(`Send '${eventName}' event to '${groups.join(", ")}' group(s).`);
-		this.publish(new P.PacketEvent(this, null, eventName, data, groups));
+		this.publish(new P.PacketEvent(this, null, eventName, data, groups, false));
 	}
 
 	/**
@@ -489,14 +485,15 @@ class Transit {
 	 *
 	 * @param {String} nodeID
 	 * @param {String} id
+	 * @param {any} meta
 	 * @param {any} data
 	 * @param {Error} err
 	 *
 	 * @memberOf Transit
 	 */
-	sendResponse(nodeID, id, data, err) {
+	sendResponse(nodeID, id, meta, data, err) {
 		// Publish the response
-		return this.publish(new P.PacketResponse(this, nodeID, id, data, err));
+		return this.publish(new P.PacketResponse(this, nodeID, id, meta, data, err));
 	}
 
 	/**
@@ -509,8 +506,7 @@ class Transit {
 	}
 
 	/**
-	 * Discover a node. It will be called if we got message from a node
-	 * what we don't know.
+	 * Discover a node. It will be called if we got message from an unknown node.
 	 *
 	 * @memberOf Transit
 	 */

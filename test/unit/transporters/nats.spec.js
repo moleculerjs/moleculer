@@ -217,7 +217,7 @@ describe("Test NatsTransporter subscribe & publish", () => {
 				expect(transporter.client.publish).toHaveBeenCalledTimes(1);
 				expect(transporter.client.publish).toHaveBeenCalledWith(
 					"MOL-TEST.INFO.node2",
-					Buffer.from(JSON.stringify({"ver": "2", "sender": "node1"})),
+					Buffer.from(JSON.stringify({"ver": "3", "sender": "node1"})),
 					expect.any(Function)
 				);
 			});
@@ -231,7 +231,7 @@ describe("Test NatsTransporter subscribe & publish", () => {
 				expect(transporter.client.publish).toHaveBeenCalledTimes(1);
 				expect(transporter.client.publish).toHaveBeenCalledWith(
 					"MOL-TEST.INFO",
-					Buffer.from(JSON.stringify({"ver": "2", "sender": "node1"})),
+					Buffer.from(JSON.stringify({"ver": "3", "sender": "node1"})),
 					expect.any(Function)
 				);
 			});
@@ -245,7 +245,7 @@ describe("Test NatsTransporter subscribe & publish", () => {
 				expect(transporter.client.publish).toHaveBeenCalledTimes(1);
 				expect(transporter.client.publish).toHaveBeenCalledWith(
 					"MOL-TEST.EVENTB.mail.user.created",
-					Buffer.from(JSON.stringify({"ver": "2", "sender": "node1", "event": "user.created", "data": { id: 5 }, "groups": ["mail"]})),
+					Buffer.from(JSON.stringify({"ver": "3", "sender": "node1", "event": "user.created", "data": { id: 5 }, "groups": ["mail"], "broadcast": false })),
 					expect.any(Function)
 				);
 			});
@@ -264,7 +264,7 @@ describe("Test NatsTransporter subscribe & publish", () => {
 				expect(transporter.client.publish).toHaveBeenCalledTimes(1);
 				expect(transporter.client.publish).toHaveBeenCalledWith(
 					"MOL-TEST.REQB.posts.find",
-					Buffer.from(JSON.stringify({"ver": "2", "sender": "node1", "action": "posts.find", "params": { a: 5 }})),
+					Buffer.from(JSON.stringify({"ver": "3", "sender": "node1", "action": "posts.find", "params": { a: 5 }})),
 					expect.any(Function)
 				);
 			});

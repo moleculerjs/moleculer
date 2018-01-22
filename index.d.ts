@@ -343,11 +343,12 @@ declare namespace Moleculer {
 		 *
 		 * @param {string} eventName
 		 * @param {any} payload
+		 * @param {Array<string>?} groups
 		 * @returns
 		 *
 		 * @memberOf ServiceBroker
 		 */
-		broadcast(eventName: string, payload?: any): void
+		broadcast(eventName: string, payload?: any, groups?: string | Array<string>): void
 
 		/**
 		 * Emit an event for all local services
@@ -386,7 +387,7 @@ declare namespace Moleculer {
 	}
 
 	namespace Packets {
-		type PROTOCOL_VERSION = "2";
+		type PROTOCOL_VERSION = "3";
 		type PACKET_UNKNOWN = "???";
 		type PACKET_EVENT = "EVENT";
 		type PACKET_REQUEST = "REQ";
@@ -428,6 +429,7 @@ declare namespace Moleculer {
 				event: string;
 				data: any | null;
 				groups: any | null;
+				broadcast: boolean
 			};
 		}
 		interface PacketDisconnect extends Packet {
@@ -468,6 +470,7 @@ declare namespace Moleculer {
 			type: PACKET_RESPONSE;
 			payload: PacketPayload & {
 				id: string;
+				meta?: GenericObject;
 				success: boolean;
 				data?: GenericObject;
 
@@ -677,7 +680,7 @@ declare namespace Moleculer {
 		makeSubscriptions(): Bluebird<Array<void>>;
 		messageHandler(cmd: string, msg: GenericObject): boolean | Bluebird<void> | undefined;
 		request(ctx: Context): Bluebird<void>;
-		sendEvent(nodeID: string, eventName: string, data: GenericObject): void;
+		sendBroadcastEvent(nodeID: string, eventName: string, data: GenericObject, nodeGroups: GenericObject): void;
 		sendBalancedEvent(eventName: string, data: GenericObject, nodeGroups: GenericObject): void;
 		sendEventToGroups(eventName: string, data: GenericObject, groups: Array<string>): void;
 		sendEventToGroups(eventName: string, data: GenericObject): void;

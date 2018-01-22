@@ -52,7 +52,7 @@ class EventCatalog {
 		let list = this.get(eventName, groupName);
 		if (!list) {
 			// Create a new EndpointList
-			list = new EndpointList(this.registry, this.broker, eventName, groupName, this.EndpointFactory, new this.StrategyFactory());
+			list = new EndpointList(this.registry, this.broker, eventName, groupName, this.EndpointFactory, this.StrategyFactory);
 			this.events.push(list);
 		}
 
@@ -112,39 +112,50 @@ class EventCatalog {
 	 * Get all endpoints for event
 	 *
 	 * @param {String} eventName
+	 * @param {Array<String>?} groupNames
 	 * @returns
 	 * @memberof EventCatalog
 	 */
-	getAllEndpoints(eventName) {
+	getAllEndpoints(eventName, groupNames) {
 		const res = [];
 		this.events.forEach(list => {
 			if (!nanomatch.isMatch(eventName, list.name)) return;
-			list.endpoints.forEach(ep => {
-				if (ep.isAvailable)
-					res.push(ep);
-			});
+			if (groupNames == null || groupNames.length == 0 || groupNames.indexOf(list.group) !== -1) {
+				list.endpoints.forEach(ep => {
+					if (ep.isAvailable)
+						res.push(ep);
+				});
+			}
 		});
 
 		return _.uniqBy(res, "id");
 	}
 
 	/**
-	 * Emit local services
+	 * Call local service handlers
 	 *
 	 * @param {String} eventName
 	 * @param {any} payload
 	 * @param {Array<String>?} groupNames
 	 * @param {String} nodeID
+	 * @param {boolean} broadcast
+	 *
 	 * @memberof EventCatalog
 	 */
-	emitLocalServices(eventName, payload, groupNames, nodeID) {
+	emitLocalServices(eventName, payload, groupNames, nodeID, broadcast) {
 		this.events.forEach(list => {
 			if (!nanomatch.isMatch(eventName, list.name)) return;
 			if (groupNames == null || groupNames.length == 0 || groupNames.indexOf(list.group) !== -1) {
-				list.endpoints.forEach(ep => {
-					if (ep.local && ep.event.handler)
+				if (broadcast) {
+					list.endpoints.forEach(ep => {
+						if (ep.local && ep.event.handler)
+							ep.event.handler(payload, nodeID, eventName);
+					});
+				} else {
+					const ep = list.nextLocal();
+					if (ep && ep.event.handler)
 						ep.event.handler(payload, nodeID, eventName);
-				});
+				}
 			}
 		});
 	}
@@ -187,6 +198,7 @@ class EventCatalog {
 		let res = [];
 
 		this.events.forEach(list => {
+			/* istanbul ignore next */
 			if (skipInternal && /^\$/.test(list.name))
 				return;
 

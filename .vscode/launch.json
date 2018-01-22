@@ -8,10 +8,10 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch dev",
-			"program": "${workspaceRoot}\\dev\\dev.js",
+			"program": "${workspaceRoot}\\dev\\index.js",
 			"cwd": "${workspaceRoot}",
 			"args": [
-				""
+				"broadcast-groups"
 			]
 		},
 		{
