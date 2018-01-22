@@ -20,9 +20,7 @@ describe("Test load services", () => {
 		broker.call("v2.mailer.send").then(() => {
 			expect(handler).toHaveBeenCalledTimes(1);
 		});
-
 	});
-
 
 	it("should load all services", () => {
 		let count = broker.loadServices("./test/services");
@@ -37,11 +35,16 @@ describe("Test local call", () => {
 	let broker = new ServiceBroker({ metrics: true });
 
 	let actionHandler = jest.fn(ctx => ctx);
+	let exportHandler = jest.fn(ctx => {
+		ctx.meta.headers = { "Content-Type": "text/csv" };
+		return ctx;
+	});
 
 	broker.createService({
 		name: "posts",
 		actions: {
-			find: actionHandler
+			find: actionHandler,
+			export: exportHandler
 		}
 	});
 
@@ -93,6 +96,53 @@ describe("Test local call", () => {
 			expect(ctx.metrics).toBe(true);
 			expect(ctx.parentID).toBe(parentCtx.id);
 			expect(ctx.requestID).toBe("12345");
+		});
+
+	});
+
+	it("should merge meta from sub context to parent context", () => {
+		let ctx = new Context(broker, {});
+
+		ctx.meta = {
+			user: "John",
+			roles: ["user"],
+			status: true
+		};
+
+		let meta = {
+			user: "Jane",
+			roles: ["admin"],
+			verified: true
+		};
+		ctx.metrics = true;
+		ctx.requestID = "12345";
+
+		return ctx.call("posts.export", {}, { meta }).then(newCtx => {
+			expect(newCtx.id).not.toBe(ctx.id);
+			expect(newCtx.level).toBe(2);
+			expect(newCtx.metrics).toBe(true);
+			expect(newCtx.parentID).toBe(ctx.id);
+			expect(newCtx.requestID).toBe("12345");
+
+			expect(newCtx.meta).toEqual({
+				roles: ["admin"],
+				status: true,
+				user: "Jane",
+				verified: true,
+				headers: {
+					"Content-Type": "text/csv"
+				}
+			});
+
+			expect(ctx.meta).toEqual({
+				roles: ["admin"],
+				status: true,
+				user: "Jane",
+				verified: true,
+				headers: {
+					"Content-Type": "text/csv"
+				}
+			});
 		});
 
 	});

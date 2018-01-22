@@ -46,5 +46,6 @@ broker1.Promise.all([
 	broker1.start(),
 	broker2.start()
 ]).delay(1000).then(() => {
-	broker1.call("test.hello", {}, { meta: { token: "123456" }}).then(res => broker1.logger.info(res));
+	const p = broker1.call("test.hello", {}, { meta: { token: "123456" }})
+	p.then(res => broker1.logger.info(res));
 });

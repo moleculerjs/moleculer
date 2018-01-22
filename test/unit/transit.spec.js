@@ -656,26 +656,29 @@ describe("Test Transit.sendResponse", () => {
 
 	transit.publish = jest.fn();
 
+	const meta = { headers: ["header"] };
 	it("should call publish with the data", () => {
 		const data = { id: 1, name: "John Doe" };
-		transit.sendResponse("node2", "12345", data);
+		transit.sendResponse("node2", "12345", meta, data);
 		expect(transit.publish).toHaveBeenCalledTimes(1);
 		const packet = transit.publish.mock.calls[0][0];
 		expect(packet).toBeInstanceOf(P.PacketResponse);
 		expect(packet.target).toBe("node2");
 		expect(packet.payload.id).toBe("12345");
+		expect(packet.payload.meta).toBe(meta);
 		expect(packet.payload.success).toBe(true);
 		expect(packet.payload.data).toBe(data);
 	});
 
 	it("should call publish with the error", () => {
 		transit.publish.mockClear();
-		transit.sendResponse("node2", "12345", null, new ValidationError("Not valid params", "ERR_INVALID_A_PARAM", { a: "Too small" }));
+		transit.sendResponse("node2", "12345", meta, null, new ValidationError("Not valid params", "ERR_INVALID_A_PARAM", { a: "Too small" }));
 		expect(transit.publish).toHaveBeenCalledTimes(1);
 		const packet = transit.publish.mock.calls[0][0];
 		expect(packet).toBeInstanceOf(P.PacketResponse);
 		expect(packet.target).toBe("node2");
 		expect(packet.payload.id).toBe("12345");
+		expect(packet.payload.meta).toBe(meta);
 		expect(packet.payload.success).toBe(false);
 		expect(packet.payload.data).toBeNull();
 		expect(packet.payload.error).toBeDefined();

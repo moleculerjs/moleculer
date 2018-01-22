@@ -160,7 +160,21 @@ class Context {
 	}
 
 	/**
-	 * Call an other action. It will be create a sub-context.
+	 * Merge metadata
+	 *
+	 * @param {Object} newMeta
+	 *
+	 * @private
+	 * @memberOf Context
+	 */
+	_mergeMeta(newMeta) {
+		if (newMeta)
+			_.assign(this.meta, newMeta);
+		return this.meta;
+	}
+
+	/**
+	 * Call an other action. It creates a sub-context.
 	 *
 	 * @param {String} actionName
 	 * @param {Object?} params
@@ -193,7 +207,20 @@ class Context {
 			return Promise.reject(new MaxCallLevelError(this.broker.nodeID, this.level));
 		}
 
-		return this.broker.call(actionName, params, opts);
+		const p = this.broker.call(actionName, params, opts);
+
+		// Merge metadata with sub context metadata
+		p.then(res => {
+			if (p.ctx)
+				this._mergeMeta(p.ctx.meta);
+			return res;
+		}).catch(err => {
+			if (p.ctx)
+				this._mergeMeta(p.ctx.meta);
+			return err;
+		});
+
+		return p;
 	}
 
 	/**

@@ -22,6 +22,18 @@ broker1.createService({
 });
 
 broker1.createService({
+	name: "other",
+	events: {
+		"user.created": {
+			group: "payment",
+			handler() {
+				this.logger.info(this.broker.nodeID, " - OTHER: Event received!");
+			}
+		}
+	}
+});
+
+broker1.createService({
 	name: "mail",
 	events: {
 		"user.created": {
@@ -65,7 +77,7 @@ broker1.Promise.all([
 	broker2.start()
 ]).delay(1000).then(() => {
 	//broker1.broadcast("user.created", "data");
-	broker1.broadcast("user.created", "data", ["mail"]);
+	broker1.broadcast("user.created", "data", ["payment"]);
 	//broker1.broadcast("user.created", "data", ["mail", "payment"]);
 
 	//broker1.emit("user.created", "data");
