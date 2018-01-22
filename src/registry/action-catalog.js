@@ -49,7 +49,7 @@ class ActionCatalog {
 		let list = this.actions.get(action.name);
 		if (!list) {
 			// Create a new EndpointList
-			list = new EndpointList(this.registry, this.broker, action.name, null, this.EndpointFactory, new this.StrategyFactory());
+			list = new EndpointList(this.registry, this.broker, action.name, null, this.EndpointFactory, this.StrategyFactory);
 			this.actions.set(action.name, list);
 		}
 

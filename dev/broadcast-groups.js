@@ -11,7 +11,7 @@ let broker1 = new ServiceBroker({
 	logger: console,
 	logFormatter: "simple",
 	registry: {
-		preferLocal: false
+		//preferLocal: false
 	}
 });
 
@@ -54,7 +54,7 @@ let broker2 = new ServiceBroker({
 	logger: console,
 	logFormatter: "simple",
 	registry: {
-		preferLocal: false
+		//preferLocal: false
 	}
 });
 

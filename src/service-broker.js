@@ -1024,13 +1024,18 @@ class ServiceBroker {
 		let actionName = ctx.action.name;
 		// Find action by name
 		let actions = this.registry.getActionEndpoints(actionName);
-		if (actions == null || actions.localEndpoint == null) {
+		if (actions == null || !actions.hasLocal()) {
 			this.logger.warn(`Service '${actionName}' is not registered locally.`);
 			return Promise.reject(new E.ServiceNotFoundError(actionName, this.nodeID));
 		}
 
 		// Get local endpoint
-		let endpoint = actions.localEndpoint;
+		let endpoint = actions.nextLocal();
+		if (!endpoint) {
+			this.logger.warn(`Service '${actionName}' is not available locally.`);
+			return Promise.reject(new E.ServiceNotAvailable(actionName, this.nodeID));
+		}
+
 		ctx.action = endpoint.action;
 
 		// Load opts
@@ -1255,10 +1260,10 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	broadcast(eventName, payload, groups = null) {
-		this.logger.debug(`Broadcast '${eventName}' event`+ (groups ? ` to '${groups.join(", ")}' group(s)` : "") + ".");
-
 		if (groups && !Array.isArray(groups))
 			groups = [groups];
+
+		this.logger.debug(`Broadcast '${eventName}' event`+ (groups ? ` to '${groups.join(", ")}' group(s)` : "") + ".");
 
 		if (this.transit) {
 			if (!/^\$/.test(eventName)) {

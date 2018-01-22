@@ -23,23 +23,24 @@ class EndpointList {
 	 * @param {String} name
 	 * @param {String} group
 	 * @param {EndPointClass} EndPointFactory
-	 * @param {Strategy} strategy
+	 * @param {Strategy} StrategyFactory
 	 * @memberof EndpointList
 	 */
-	constructor(registry, broker, name, group, EndPointFactory, strategy) {
+	constructor(registry, broker, name, group, EndPointFactory, StrategyFactory) {
 		this.registry = registry;
 		this.broker = broker;
 		this.logger = registry.logger;
-		this.strategy = strategy;
+		this.strategy = new StrategyFactory();
 		this.name = name;
 		this.group = group;
 		this.internal = name.startsWith("$");
 
 		this.EndPointFactory = EndPointFactory;
 
-
 		this.endpoints = [];
-		this.localEndpoint = null;
+
+		this.localEndpoints = [];
+		this.localStrategy = new StrategyFactory();
 	}
 
 	/**
@@ -59,10 +60,10 @@ class EndpointList {
 		}
 
 		const ep = new this.EndPointFactory(this.registry, this.broker, node, service, data);
-		if (ep.local)
-			this.localEndpoint = ep;
-
 		this.endpoints.push(ep);
+
+		this.setLocalEndpoints();
+
 		return ep;
 	}
 
@@ -72,23 +73,7 @@ class EndpointList {
 	 * @returns
 	 * @memberof EndpointList
 	 */
-	select() {
-		const ret = this.strategy.select(this.endpoints);
-		if (!ret) {
-			/* istanbul ignore next */
-			throw new MoleculerServerError("Strategy returned an invalid endpoint.", 500, "INVALID_ENDPOINT", { strategy: typeof(this.strategy)});
-		}
-		return ret;
-	}
-
-	/**
-	 * Select local next endpoint with balancer strategy
-	 *
-	 * @returns
-	 * @memberof EndpointList
-	 */
-	selectLocal() {
-		const list = this.endpoints.filter(ep => ep.local);
+	select(list) {
 		const ret = this.strategy.select(list);
 		if (!ret) {
 			/* istanbul ignore next */
@@ -109,9 +94,9 @@ class EndpointList {
 			return null;
 		}
 
-		// If internal, return the local always
-		if (this.internal) {
-			return this.localEndpoint;
+		// If internal (service), return the local always
+		if (this.internal && this.hasLocal()) {
+			return this.nextLocal();
 		}
 
 		// Only 1 item
@@ -125,14 +110,51 @@ class EndpointList {
 		}
 
 		// Search local item
-		if (this.registry.opts.preferLocal === true && this.localEndpoint && this.localEndpoint.isAvailable) {
-			return this.localEndpoint;
+		if (this.registry.opts.preferLocal === true && this.hasLocal()) {
+			const ep = this.nextLocal();
+			if (ep && ep.isAvailable)
+				return ep;
 		}
 
 		const max = this.endpoints.length;
 		let i = 0;
 		while (i < max) {
-			const ep = this.select();
+			const ep = this.select(this.endpoints);
+			if (ep.isAvailable)
+				return ep;
+
+			i++;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Get next local endpoint
+	 *
+	 * @returns
+	 * @memberof EndpointList
+	 */
+	nextLocal() {
+		// No items
+		if (this.localEndpoints.length === 0) {
+			return null;
+		}
+
+		// Only 1 item
+		if (this.localEndpoints.length === 1) {
+			// No need to select a node, return the only one
+			const item = this.localEndpoints[0];
+			if (item.isAvailable)
+				return item;
+
+			return null;
+		}
+
+		const max = this.localEndpoints.length;
+		let i = 0;
+		while (i < max) {
+			const ep = this.select(this.localEndpoints);
 			if (ep.isAvailable)
 				return ep;
 
@@ -159,7 +181,16 @@ class EndpointList {
 	 * @memberof EndpointList
 	 */
 	hasLocal() {
-		return this.localEndpoint != null;
+		return this.localEndpoints.length > 0;
+	}
+
+	/**
+	 * Set local endpoint
+	 *
+	 * @memberof EndpointList
+	 */
+	setLocalEndpoints() {
+		this.localEndpoints = this.endpoints.filter(ep => ep.local);
 	}
 
 	/**
@@ -207,7 +238,7 @@ class EndpointList {
 	removeByService(service) {
 		_.remove(this.endpoints, ep => ep.service == service);
 
-		this.setLocalEndpoint();
+		this.setLocalEndpoints();
 	}
 
 	/**
@@ -219,20 +250,7 @@ class EndpointList {
 	removeByNodeID(nodeID) {
 		_.remove(this.endpoints, ep => ep.id == nodeID);
 
-		this.setLocalEndpoint();
-	}
-
-	/**
-	 * Set local endpoint
-	 *
-	 * @memberof EndpointList
-	 */
-	setLocalEndpoint() {
-		this.localEndpoint = null;
-		this.endpoints.forEach(ep => {
-			if (ep.node.id == this.broker.nodeID)
-				this.localEndpoint = ep;
-		});
+		this.setLocalEndpoints();
 	}
 }
 

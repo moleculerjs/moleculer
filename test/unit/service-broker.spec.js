@@ -1927,7 +1927,8 @@ describe("Test broker._handleRemoteRequest", () => {
 	};
 
 	let epList = {
-		localEndpoint: ep
+		hasLocal: () => true,
+		nextLocal: () => ep
 	};
 
 	broker.registry.getActionEndpoints = jest.fn(() => epList);
@@ -1982,7 +1983,7 @@ describe("Test broker._handleRemoteRequest", () => {
 
 	it("should throw ServiceNotFoundError if there is no local endpoint", () => {
 		broker._localCall.mockClear();
-		broker.registry.getActionEndpoints = jest.fn(() => ({ localEndpoint: null }));
+		broker.registry.getActionEndpoints = jest.fn(() => ({ hasLocal: () => false }));
 
 		let ctx = new Context(broker, ep.action);
 
@@ -1990,6 +1991,22 @@ describe("Test broker._handleRemoteRequest", () => {
 			expect(err).toBeDefined();
 			expect(err).toBeInstanceOf(ServiceNotFoundError);
 			expect(err.message).toBe("Service 'posts.find' is not found on 'node-1234' node.");
+			expect(err.data).toEqual({ action: "posts.find", nodeID: "node-1234" });
+
+			expect(broker._localCall).toHaveBeenCalledTimes(0);
+		});
+	});
+
+	it("should throw ServiceNotAvailable if there is no next endpoint", () => {
+		broker._localCall.mockClear();
+		broker.registry.getActionEndpoints = jest.fn(() => ({ hasLocal: () => true, nextLocal: () => null }));
+
+		let ctx = new Context(broker, ep.action);
+
+		return broker._handleRemoteRequest(ctx).then(protectReject).catch(err => {
+			expect(err).toBeDefined();
+			expect(err).toBeInstanceOf(ServiceNotAvailable);
+			expect(err.message).toBe("Service 'posts.find' is not available on 'node-1234' node.");
 			expect(err.data).toEqual({ action: "posts.find", nodeID: "node-1234" });
 
 			expect(broker._localCall).toHaveBeenCalledTimes(0);

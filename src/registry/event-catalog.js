@@ -52,7 +52,7 @@ class EventCatalog {
 		let list = this.get(eventName, groupName);
 		if (!list) {
 			// Create a new EndpointList
-			list = new EndpointList(this.registry, this.broker, eventName, groupName, this.EndpointFactory, new this.StrategyFactory());
+			list = new EndpointList(this.registry, this.broker, eventName, groupName, this.EndpointFactory, this.StrategyFactory);
 			this.events.push(list);
 		}
 
@@ -152,7 +152,7 @@ class EventCatalog {
 							ep.event.handler(payload, nodeID, eventName);
 					});
 				} else {
-					const ep = list.selectLocal();
+					const ep = list.nextLocal();
 					if (ep && ep.event.handler)
 						ep.event.handler(payload, nodeID, eventName);
 				}
