@@ -8,6 +8,7 @@ message PacketEvent {
 	required string event 	= 3;
 	required string data 	= 4;
 	repeated string groups 	= 5;
+	repeated bool broadcast	= 6;
 }
 
 message PacketRequest {
@@ -46,8 +47,7 @@ message PacketInfo {
 	required string config			= 4;
 
 	repeated string ipList			= 5;
-//	optional int32 port				= 6;
-	required Client client 			= 7;
+	required Client client 			= 6;
 
 	message Client {
 		required string type 			= 1;

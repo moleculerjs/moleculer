@@ -387,7 +387,7 @@ declare namespace Moleculer {
 	}
 
 	namespace Packets {
-		type PROTOCOL_VERSION = "2";
+		type PROTOCOL_VERSION = "3";
 		type PACKET_UNKNOWN = "???";
 		type PACKET_EVENT = "EVENT";
 		type PACKET_REQUEST = "REQ";
@@ -429,6 +429,7 @@ declare namespace Moleculer {
 				event: string;
 				data: any | null;
 				groups: any | null;
+				broadcast: boolean
 			};
 		}
 		interface PacketDisconnect extends Packet {
@@ -469,6 +470,7 @@ declare namespace Moleculer {
 			type: PACKET_RESPONSE;
 			payload: PacketPayload & {
 				id: string;
+				meta?: GenericObject;
 				success: boolean;
 				data?: GenericObject;
 

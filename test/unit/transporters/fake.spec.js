@@ -63,7 +63,7 @@ describe("Test FakeTransporter", () => {
 		transporter.publish(new PacketInfo(fakeTransit, "node2", { services: {} }));
 
 		expect(transporter.bus.emit).toHaveBeenCalledTimes(1);
-		expect(transporter.bus.emit).toHaveBeenCalledWith("MOL.INFO.node2", "{\"ver\":\"2\",\"sender\":\"node1\",\"services\":{}}");
+		expect(transporter.bus.emit).toHaveBeenCalledWith("MOL.INFO.node2", "{\"ver\":\"3\",\"sender\":\"node1\",\"services\":{}}");
 	});
 
 });

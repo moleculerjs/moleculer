@@ -24,7 +24,8 @@ function createSchemas() {
 			{ name: "groups", type: [ "null", {
 				type: "array",
 				items: "string"
-			}], default: null }
+			}], default: null },
+			{ name: "broadcast", type: "boolean" }
 		]
 	});
 
@@ -81,7 +82,6 @@ function createSchemas() {
 				type: "array",
 				items: "string"
 			}},
-			//{ name: "port", type: [ "null", "int"], default: null },
 			{ name: "client", type: {
 				type: "record",
 				fields: [

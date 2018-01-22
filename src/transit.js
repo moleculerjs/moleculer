@@ -414,7 +414,7 @@ class Transit {
 	sendBroadcastEvent(nodeID, eventName, data, groups) {
 		this.logger.debug(`Send '${eventName}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
 
-		this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups));
+		this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups, true));
 	}
 
 	/**
@@ -431,7 +431,7 @@ class Transit {
 		_.forIn(nodeGroups, (groups, nodeID) => {
 			this.logger.debug(`Send '${eventName}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
 
-			this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups));
+			this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups, false));
 		});
 	}
 
@@ -447,7 +447,7 @@ class Transit {
 	 */
 	sendEventToGroups(eventName, data, groups) {
 		this.logger.debug(`Send '${eventName}' event to '${groups.join(", ")}' group(s).`);
-		this.publish(new P.PacketEvent(this, null, eventName, data, groups));
+		this.publish(new P.PacketEvent(this, null, eventName, data, groups, false));
 	}
 
 	/**

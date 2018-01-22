@@ -119,8 +119,7 @@ describe("Test PacketInfo", () => {
 			},
 			config: {
 				compression: "gzip"
-			},
-			port: 3400
+			}
 		};
 
 		let packet = new P.PacketInfo(transit, "node-2", info);
@@ -132,7 +131,6 @@ describe("Test PacketInfo", () => {
 		expect(packet.payload.services).toEqual(info.services);
 		expect(packet.payload.ipList).toEqual(info.ipList);
 		expect(packet.payload.client).toEqual(info.client);
-		expect(packet.payload.port).toEqual(info.port);
 		expect(packet.payload.config).toEqual(info.config);
 	});
 

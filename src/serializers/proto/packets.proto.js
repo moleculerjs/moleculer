@@ -9,6 +9,7 @@ let $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.ut
 // Exported root namespace
 let $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
 
+/* istanbul ignore next */
 $root.packets = (function() {
 
 	/**
@@ -29,6 +30,7 @@ $root.packets = (function() {
          * @property {string} event PacketEvent event
          * @property {string} data PacketEvent data
          * @property {Array.<string>|null} [groups] PacketEvent groups
+         * @property {Array.<boolean>|null} [broadcast] PacketEvent broadcast
          */
 
 		/**
@@ -41,6 +43,7 @@ $root.packets = (function() {
          */
 		function PacketEvent(properties) {
 			this.groups = [];
+			this.broadcast = [];
 			if (properties)
 				for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
 					if (properties[keys[i]] != null)
@@ -88,6 +91,14 @@ $root.packets = (function() {
 		PacketEvent.prototype.groups = $util.emptyArray;
 
 		/**
+         * PacketEvent broadcast.
+         * @member {Array.<boolean>} broadcast
+         * @memberof packets.PacketEvent
+         * @instance
+         */
+		PacketEvent.prototype.broadcast = $util.emptyArray;
+
+		/**
          * Creates a new PacketEvent instance using the specified properties.
          * @function create
          * @memberof packets.PacketEvent
@@ -118,6 +129,12 @@ $root.packets = (function() {
 			if (message.groups != null && message.groups.length)
 				for (let i = 0; i < message.groups.length; ++i)
 					writer.uint32(/* id 5, wireType 2 =*/42).string(message.groups[i]);
+			if (message.broadcast != null && message.broadcast.length) {
+				writer.uint32(/* id 6, wireType 2 =*/50).fork();
+				for (let i = 0; i < message.broadcast.length; ++i)
+					writer.bool(message.broadcast[i]);
+				writer.ldelim();
+			}
 			return writer;
 		};
 
@@ -168,6 +185,16 @@ $root.packets = (function() {
 						if (!(message.groups && message.groups.length))
 							message.groups = [];
 						message.groups.push(reader.string());
+						break;
+					case 6:
+						if (!(message.broadcast && message.broadcast.length))
+							message.broadcast = [];
+						if ((tag & 7) === 2) {
+							let end2 = reader.uint32() + reader.pos;
+							while (reader.pos < end2)
+								message.broadcast.push(reader.bool());
+						} else
+							message.broadcast.push(reader.bool());
 						break;
 					default:
 						reader.skipType(tag & 7);
@@ -227,6 +254,13 @@ $root.packets = (function() {
 					if (!$util.isString(message.groups[i]))
 						return "groups: string[] expected";
 			}
+			if (message.broadcast != null && message.hasOwnProperty("broadcast")) {
+				if (!Array.isArray(message.broadcast))
+					return "broadcast: array expected";
+				for (let i = 0; i < message.broadcast.length; ++i)
+					if (typeof message.broadcast[i] !== "boolean")
+						return "broadcast: boolean[] expected";
+			}
 			return null;
 		};
 
@@ -257,6 +291,13 @@ $root.packets = (function() {
 				for (let i = 0; i < object.groups.length; ++i)
 					message.groups[i] = String(object.groups[i]);
 			}
+			if (object.broadcast) {
+				if (!Array.isArray(object.broadcast))
+					throw TypeError(".packets.PacketEvent.broadcast: array expected");
+				message.broadcast = [];
+				for (let i = 0; i < object.broadcast.length; ++i)
+					message.broadcast[i] = Boolean(object.broadcast[i]);
+			}
 			return message;
 		};
 
@@ -273,8 +314,10 @@ $root.packets = (function() {
 			if (!options)
 				options = {};
 			let object = {};
-			if (options.arrays || options.defaults)
+			if (options.arrays || options.defaults) {
 				object.groups = [];
+				object.broadcast = [];
+			}
 			if (options.defaults) {
 				object.ver = "";
 				object.sender = "";
@@ -293,6 +336,11 @@ $root.packets = (function() {
 				object.groups = [];
 				for (let j = 0; j < message.groups.length; ++j)
 					object.groups[j] = message.groups[j];
+			}
+			if (message.broadcast && message.broadcast.length) {
+				object.broadcast = [];
+				for (let j = 0; j < message.broadcast.length; ++j)
+					object.broadcast[j] = message.broadcast[j];
 			}
 			return object;
 		};
@@ -1358,7 +1406,7 @@ $root.packets = (function() {
 			if (message.ipList != null && message.ipList.length)
 				for (let i = 0; i < message.ipList.length; ++i)
 					writer.uint32(/* id 5, wireType 2 =*/42).string(message.ipList[i]);
-			$root.packets.PacketInfo.Client.encode(message.client, writer.uint32(/* id 7, wireType 2 =*/58).fork()).ldelim();
+			$root.packets.PacketInfo.Client.encode(message.client, writer.uint32(/* id 6, wireType 2 =*/50).fork()).ldelim();
 			return writer;
 		};
 
@@ -1410,7 +1458,7 @@ $root.packets = (function() {
 							message.ipList = [];
 						message.ipList.push(reader.string());
 						break;
-					case 7:
+					case 6:
 						message.client = $root.packets.PacketInfo.Client.decode(reader, reader.uint32());
 						break;
 					default:

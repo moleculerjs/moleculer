@@ -323,7 +323,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call _requestHandler if topic is 'REQ' ", () => {
 		transit._requestHandler = jest.fn();
 
-		let msg = { ver: "2", sender: "remote", action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456", timeout: 567 };
+		let msg = { ver: "3", sender: "remote", action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456", timeout: 567 };
 		transit.messageHandler("REQ", JSON.stringify(msg));
 
 		expect(transit._requestHandler).toHaveBeenCalledTimes(1);
@@ -333,7 +333,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call _requestHandler if topic is 'REQ' && sender is itself", () => {
 		transit._requestHandler = jest.fn();
 
-		let msg = { ver: "2", sender: broker.nodeID, action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456", timeout: 567 };
+		let msg = { ver: "3", sender: broker.nodeID, action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456", timeout: 567 };
 		transit.messageHandler("REQ", JSON.stringify(msg));
 
 		expect(transit._requestHandler).toHaveBeenCalledTimes(1);
@@ -343,7 +343,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call _responseHandler if topic is 'RES' ", () => {
 		transit._responseHandler = jest.fn();
 
-		let msg = { ver: "2", sender: "remote", id: "12345" };
+		let msg = { ver: "3", sender: "remote", id: "12345" };
 		transit.messageHandler("RES", JSON.stringify(msg));
 
 		expect(transit._responseHandler).toHaveBeenCalledTimes(1);
@@ -353,7 +353,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call _responseHandler if topic is 'RES' && sender is itself", () => {
 		transit._responseHandler = jest.fn();
 
-		let msg = { ver: "2", sender: broker.nodeID, id: "12345" };
+		let msg = { ver: "3", sender: broker.nodeID, id: "12345" };
 		transit.messageHandler("RES", JSON.stringify(msg));
 
 		expect(transit._responseHandler).toHaveBeenCalledTimes(1);
@@ -363,7 +363,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call __eventHandler if topic is 'EVENT' ", () => {
 		transit._eventHandler = jest.fn();
 
-		let msg = { ver: "2", sender: "remote", event: "user.created", data: "John Doe" };
+		let msg = { ver: "3", sender: "remote", event: "user.created", data: "John Doe" };
 		transit.messageHandler("EVENT", JSON.stringify(msg));
 
 		expect(transit._eventHandler).toHaveBeenCalledTimes(1);
@@ -373,7 +373,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call __eventHandler if topic is 'EVENT' && sender is itself", () => {
 		transit._eventHandler = jest.fn();
 
-		let msg = { ver: "2", sender: broker.nodeID, event: "user.created", data: "John Doe" };
+		let msg = { ver: "3", sender: broker.nodeID, event: "user.created", data: "John Doe" };
 		transit.messageHandler("EVENT", JSON.stringify(msg));
 
 		expect(transit._eventHandler).toHaveBeenCalledTimes(1);
@@ -384,7 +384,7 @@ describe("Test Transit.messageHandler", () => {
 		broker.registry.nodes.processNodeInfo = jest.fn();
 		transit.sendNodeInfo = jest.fn();
 
-		let msg = { ver: "2", sender: "remote", services: JSON.stringify([]) };
+		let msg = { ver: "3", sender: "remote", services: JSON.stringify([]) };
 		transit.messageHandler("DISCOVER", JSON.stringify(msg));
 		expect(transit.sendNodeInfo).toHaveBeenCalledTimes(1);
 		expect(transit.sendNodeInfo).toHaveBeenCalledWith("remote");
@@ -393,7 +393,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call broker.registry.nodes.processNodeInfo if topic is 'INFO' ", () => {
 		broker.registry.nodes.processNodeInfo = jest.fn();
 
-		let msg = { ver: "2", sender: "remote", services: [] };
+		let msg = { ver: "3", sender: "remote", services: [] };
 		transit.messageHandler("INFO", JSON.stringify(msg));
 
 		expect(broker.registry.nodes.processNodeInfo).toHaveBeenCalledTimes(1);
@@ -403,7 +403,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call broker.registry.nodes.disconnected if topic is 'DISCONNECT' ", () => {
 		broker.registry.nodes.disconnected = jest.fn();
 
-		let msg = { ver: "2", sender: "remote" };
+		let msg = { ver: "3", sender: "remote" };
 		transit.messageHandler("DISCONNECT", JSON.stringify(msg));
 
 		expect(broker.registry.nodes.disconnected).toHaveBeenCalledTimes(1);
@@ -413,7 +413,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call broker.registry.nodes.heartbeat if topic is 'HEARTBEAT' ", () => {
 		broker.registry.nodes.heartbeat = jest.fn();
 
-		let msg = { ver: "2", sender: "remote", cpu: 100 };
+		let msg = { ver: "3", sender: "remote", cpu: 100 };
 		transit.messageHandler("HEARTBEAT", JSON.stringify(msg));
 
 		expect(broker.registry.nodes.heartbeat).toHaveBeenCalledTimes(1);
@@ -423,7 +423,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call broker.registry.nodes.heartbeat if topic is 'PING' ", () => {
 		transit.sendPong = jest.fn();
 
-		let msg = { ver: "2", sender: "remote", time: 1234567 };
+		let msg = { ver: "3", sender: "remote", time: 1234567 };
 		transit.messageHandler("PING", JSON.stringify(msg));
 
 		expect(transit.sendPong).toHaveBeenCalledTimes(1);
@@ -433,7 +433,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call broker.registry.nodes.heartbeat if topic is 'PONG' ", () => {
 		transit.processPong = jest.fn();
 
-		let msg = { ver: "2", sender: "remote", time: 1234567, arrived: 7654321 };
+		let msg = { ver: "3", sender: "remote", time: 1234567, arrived: 7654321 };
 		transit.messageHandler("PONG", JSON.stringify(msg));
 
 		expect(transit.processPong).toHaveBeenCalledTimes(1);
@@ -443,7 +443,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should skip processing if sender is itself", () => {
 		transit.sendPong = jest.fn();
 
-		let msg = { ver: "2", sender: broker.nodeID, time: 1234567 };
+		let msg = { ver: "3", sender: broker.nodeID, time: 1234567 };
 		transit.messageHandler("PING", JSON.stringify(msg));
 
 		expect(transit.sendPong).toHaveBeenCalledTimes(0);
@@ -462,7 +462,7 @@ describe("Test Transit._requestHandler", () => {
 		let response = [1, 5, 8];
 		broker._handleRemoteRequest = jest.fn(() => Promise.resolve(response));
 
-		let payload = { ver: "2", sender: "remote", action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456", timeout: 567 };
+		let payload = { ver: "3", sender: "remote", action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456", timeout: 567 };
 
 		transit._requestHandler(payload);
 		const ctx = broker._handleRemoteRequest.mock.calls[0][0];
@@ -491,7 +491,7 @@ describe("Test Transit._requestHandler", () => {
 		transit.sendResponse.mockClear();
 		broker._handleRemoteRequest = jest.fn(() => Promise.reject(new ValidationError("Not valid params")));
 
-		let payload = { ver: "2", sender: "remote", action: "posts.create", id: "123", params: { title: "Hello" }, meta: {} };
+		let payload = { ver: "3", sender: "remote", action: "posts.create", id: "123", params: { title: "Hello" }, meta: {} };
 		transit._requestHandler(payload);
 		const ctx = broker._handleRemoteRequest.mock.calls[0][0];
 
@@ -520,7 +520,7 @@ describe("Test Transit._responseHandler", () => {
 
 	it("should not call resolve or reject if pending req is not exists", () => {
 		let req = { resolve: jest.fn(), reject: jest.fn() };
-		let payload = { ver: "2", sender: "remote", id };
+		let payload = { ver: "3", sender: "remote", id };
 
 		transit._responseHandler(payload);
 		expect(req.resolve).toHaveBeenCalledTimes(0);
@@ -538,7 +538,7 @@ describe("Test Transit._responseHandler", () => {
 		};
 		transit.pendingRequests.set(id, req);
 
-		let payload = { ver: "2", sender: "remote", id, success: true, data };
+		let payload = { ver: "3", sender: "remote", id, success: true, data };
 		transit._responseHandler(payload);
 		expect(req.resolve).toHaveBeenCalledTimes(1);
 		expect(req.resolve).toHaveBeenCalledWith(data);
@@ -559,7 +559,7 @@ describe("Test Transit._responseHandler", () => {
 		};
 		transit.pendingRequests.set(id, req);
 
-		let payload = { ver: "2", sender: "remote", id, success: false, error: {
+		let payload = { ver: "3", sender: "remote", id, success: false, error: {
 			name: "ValidationError",
 			code: 422,
 			data: { a: 5 },
@@ -704,7 +704,7 @@ describe("Test Transit.discoverNodes", () => {
 		expect(transit.publish).toHaveBeenCalledTimes(1);
 		const packet = transit.publish.mock.calls[0][0];
 		expect(packet).toBeInstanceOf(P.PacketDiscover);
-		expect(packet.payload).toEqual({ sender: "node1", ver: "2" });
+		expect(packet.payload).toEqual({ sender: "node1", ver: "3" });
 	});
 
 });
@@ -722,7 +722,7 @@ describe("Test Transit.discoverNode", () => {
 		const packet = transit.publish.mock.calls[0][0];
 		expect(packet).toBeInstanceOf(P.PacketDiscover);
 		expect(packet.target).toBe("node-2");
-		expect(packet.payload).toEqual({ sender: "node1", ver: "2" });
+		expect(packet.payload).toEqual({ sender: "node1", ver: "3" });
 	});
 
 });
@@ -781,7 +781,7 @@ describe("Test Transit.sendPing", () => {
 		const packet = transit.publish.mock.calls[0][0];
 		expect(packet).toBeInstanceOf(P.PacketPing);
 		expect(packet.target).toBe("node-2");
-		expect(packet.payload).toEqual({ sender: "node-1", ver: "2", time: jasmine.any(Number) });
+		expect(packet.payload).toEqual({ sender: "node-1", ver: "3", time: jasmine.any(Number) });
 	});
 
 });
@@ -799,7 +799,7 @@ describe("Test Transit.sendPong", () => {
 		const packet = transit.publish.mock.calls[0][0];
 		expect(packet).toBeInstanceOf(P.PacketPong);
 		expect(packet.target).toBe("node-2");
-		expect(packet.payload).toEqual({ sender: "node-1", ver: "2", time: 123456, arrived: jasmine.any(Number) });
+		expect(packet.payload).toEqual({ sender: "node-1", ver: "3", time: 123456, arrived: jasmine.any(Number) });
 	});
 
 });
