@@ -290,7 +290,7 @@ class Transit {
 	_eventHandler(payload) {
 		this.logger.debug(`Event '${payload.event}' received from '${payload.sender}' node` + (payload.groups ? ` in '${payload.groups.join(", ")}' group(s)` : "") + ".");
 
-		this.broker.emitLocalServices(payload.event, payload.data, payload.groups, payload.sender);
+		this.broker.emitLocalServices(payload.event, payload.data, payload.groups, payload.sender, payload.broadcast);
 	}
 
 	/**

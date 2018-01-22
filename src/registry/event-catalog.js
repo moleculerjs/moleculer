@@ -138,16 +138,23 @@ class EventCatalog {
 	 * @param {any} payload
 	 * @param {Array<String>?} groupNames
 	 * @param {String} nodeID
+	 * @param {boolean} broadcast
 	 * @memberof EventCatalog
 	 */
-	emitLocalServices(eventName, payload, groupNames, nodeID) {
+	emitLocalServices(eventName, payload, groupNames, nodeID, broadcast) {
 		this.events.forEach(list => {
 			if (!nanomatch.isMatch(eventName, list.name)) return;
 			if (groupNames == null || groupNames.length == 0 || groupNames.indexOf(list.group) !== -1) {
-				list.endpoints.forEach(ep => {
-					if (ep.local && ep.event.handler)
+				if (broadcast) {
+					list.endpoints.forEach(ep => {
+						if (ep.local && ep.event.handler)
+							ep.event.handler(payload, nodeID, eventName);
+					});
+				} else {
+					const ep = list.selectLocal();
+					if (ep && ep.event.handler)
 						ep.event.handler(payload, nodeID, eventName);
-				});
+				}
 			}
 		});
 	}

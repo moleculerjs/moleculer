@@ -1092,7 +1092,7 @@ class ServiceBroker {
 		this._finishCall(ctx, err);
 
 		// Handle fallback response
-		if (_.has(opts, 'fallbackResponse')) {
+		if (opts.fallbackResponse) {
 			this.logger.warn(`Action '${actionName}' returns with fallback response.`);
 			if (_.isFunction(opts.fallbackResponse))
 				return opts.fallbackResponse(ctx, err);
@@ -1289,13 +1289,13 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	broadcastLocal(eventName, payload, groups = null) {
-		this.logger.debug(`Emit '${eventName}' event`+ (groups ? ` to '${groups.join(", ")}' local group(s)` : "") + ".");
+		this.logger.debug(`Broadcast '${eventName}' local event`+ (groups ? ` to '${groups.join(", ")}' group(s)` : "") + ".");
 
 		// Call internal subscribers
 		if (/^\$/.test(eventName))
 			this.localBus.emit(eventName, payload);
 
-		return this.emitLocalServices(eventName, payload, groups, this.nodeID);
+		return this.emitLocalServices(eventName, payload, groups, this.nodeID, true);
 	}
 
 	/**
@@ -1348,11 +1348,12 @@ class ServiceBroker {
 	 * @param {any} payload
 	 * @param {any} groups
 	 * @param {String} sender
+	 * @param {boolean} broadcast
 	 * @returns
 	 * @memberof ServiceBroker
 	 */
-	emitLocalServices(event, payload, groups, sender) {
-		return this.registry.events.emitLocalServices(event, payload, groups, sender);
+	emitLocalServices(event, payload, groups, sender, broadcast) {
+		return this.registry.events.emitLocalServices(event, payload, groups, sender, broadcast);
 	}
 
 }

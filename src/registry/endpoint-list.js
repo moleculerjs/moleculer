@@ -52,7 +52,7 @@ class EndpointList {
 	 * @memberof EndpointList
 	 */
 	add(node, service, data) {
-		const found = this.endpoints.find(ep => ep.node == node);
+		const found = this.endpoints.find(ep => ep.node == node && ep.service.name == service.name);
 		if (found) {
 			found.update(data);
 			return found;
@@ -74,6 +74,21 @@ class EndpointList {
 	 */
 	select() {
 		const ret = this.strategy.select(this.endpoints);
+		if (!ret) {
+			throw new MoleculerServerError("Strategy returned an invalid endpoint.", 500, "INVALID_ENDPOINT", { strategy: typeof(this.strategy)});
+		}
+		return ret;
+	}
+
+	/**
+	 * Select local next endpoint with balancer strategy
+	 *
+	 * @returns
+	 * @memberof EndpointList
+	 */
+	selectLocal() {
+		const list = this.endpoints.filter(ep => ep.local);
+		const ret = this.strategy.select(list);
 		if (!ret) {
 			throw new MoleculerServerError("Strategy returned an invalid endpoint.", 500, "INVALID_ENDPOINT", { strategy: typeof(this.strategy)});
 		}
