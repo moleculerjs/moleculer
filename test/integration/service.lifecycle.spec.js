@@ -21,30 +21,30 @@ describe("Test Service handlers", () => {
 		}
 	});
 
-	it("should called created handler", () => {
+	it("should call created handler", () => {
 		expect(createdHandler).toHaveBeenCalledTimes(1);
 	});
 
-	it("should called start handler", () => {
+	it("should call start handler", () => {
 		return broker.start().then(() => {
 			expect(startedHandler).toHaveBeenCalledTimes(1);
 		});
 	});
 
-	it("should called event handler", () => {
+	it("should call event handler", () => {
 		broker.broadcastLocal("user.created", { id: 1, name: "John" });
 		expect(eventHandler).toHaveBeenCalledTimes(1);
 		expect(eventHandler).toHaveBeenCalledWith({ id: 1, name: "John" }, "node-1", "user.created");
 	});
 
-	it("should called stop handler", () => {
+	it("should call stop handler", () => {
 		return broker.stop().then(() => {
 			expect(stoppedHandler).toHaveBeenCalledTimes(1);
 		});
 	});
 });
 
-describe("Test Service handlers after broker.call", () => {
+describe("Test Service handlers after broker.start", () => {
 
 	let createdHandler = jest.fn();
 	let startedHandler = jest.fn();
@@ -69,20 +69,20 @@ describe("Test Service handlers after broker.call", () => {
 		});
 	});
 
-	it("should called created & started handler", () => {
+	it("should call created & started handler", () => {
 		return broker.Promise.delay(100).then(() => {
 			expect(createdHandler).toHaveBeenCalledTimes(1);
 			expect(startedHandler).toHaveBeenCalledTimes(1);
 		});
 	});
 
-	it("should called event handler", () => {
+	it("should call event handler", () => {
 		broker.broadcastLocal("user.created", { id: 1, name: "John" });
 		expect(eventHandler).toHaveBeenCalledTimes(1);
 		expect(eventHandler).toHaveBeenCalledWith({ id: 1, name: "John" }, "node-1", "user.created");
 	});
 
-	it("should called stop handler", () => {
+	it("should call stop handler", () => {
 		return broker.stop().then(() => {
 			expect(stoppedHandler).toHaveBeenCalledTimes(1);
 		});
