@@ -75,6 +75,7 @@ class EndpointList {
 	select() {
 		const ret = this.strategy.select(this.endpoints);
 		if (!ret) {
+			/* istanbul ignore next */
 			throw new MoleculerServerError("Strategy returned an invalid endpoint.", 500, "INVALID_ENDPOINT", { strategy: typeof(this.strategy)});
 		}
 		return ret;
@@ -90,6 +91,7 @@ class EndpointList {
 		const list = this.endpoints.filter(ep => ep.local);
 		const ret = this.strategy.select(list);
 		if (!ret) {
+			/* istanbul ignore next */
 			throw new MoleculerServerError("Strategy returned an invalid endpoint.", 500, "INVALID_ENDPOINT", { strategy: typeof(this.strategy)});
 		}
 		return ret;

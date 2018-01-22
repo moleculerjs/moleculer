@@ -132,13 +132,14 @@ class EventCatalog {
 	}
 
 	/**
-	 * Emit local services
+	 * Call local service handlers
 	 *
 	 * @param {String} eventName
 	 * @param {any} payload
 	 * @param {Array<String>?} groupNames
 	 * @param {String} nodeID
 	 * @param {boolean} broadcast
+	 *
 	 * @memberof EventCatalog
 	 */
 	emitLocalServices(eventName, payload, groupNames, nodeID, broadcast) {

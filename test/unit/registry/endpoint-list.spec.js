@@ -96,6 +96,37 @@ describe("Test EndpointList.add", () => {
 
 });
 
+describe("Test EndpointList.selectLocal", () => {
+	let broker = new ServiceBroker();
+	let registry = broker.registry;
+	let ep = {};
+	let strategy = {
+		select: jest.fn(() => ep)
+	};
+
+	let service = { name: "test" };
+	let action = { name: "test.hello" };
+
+	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, strategy);
+	let ep1 = list.add({ id: "node-2" }, service, action);
+	let ep2 = list.add({ id: broker.nodeID }, service, action);
+
+	it("should call strategy select", () => {
+		let res = list.selectLocal();
+		expect(res).toBe(ep);
+		expect(strategy.select).toHaveBeenCalledTimes(1);
+		expect(strategy.select).toHaveBeenCalledWith([ep2]);
+	});
+
+	it("should throw exception if select return with null", () => {
+		strategy.select = jest.fn();
+		expect(() => {
+			list.selectLocal();
+		}).toThrowError(MoleculerError);
+	});
+
+});
+
 describe("Test EndpointList.select", () => {
 	let broker = new ServiceBroker();
 	let registry = broker.registry;
@@ -107,7 +138,7 @@ describe("Test EndpointList.select", () => {
 	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, strategy);
 
 	it("should call strategy select", () => {
-		let res = list.select();
+		let res = list.selectLocal();
 		expect(res).toBe(ep);
 		expect(strategy.select).toHaveBeenCalledTimes(1);
 		expect(strategy.select).toHaveBeenCalledWith(list.endpoints);

@@ -2537,7 +2537,7 @@ describe("Test broker broadcastLocal", () => {
 		broker.broadcastLocal("test.event");
 
 		expect(broker.emitLocalServices).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocalServices).toHaveBeenCalledWith("test.event", undefined, null, "server-1");
+		expect(broker.emitLocalServices).toHaveBeenCalledWith("test.event", undefined, null, "server-1", true);
 
 		expect(broker.localBus.emit).toHaveBeenCalledTimes(0);
 	});
@@ -2549,7 +2549,7 @@ describe("Test broker broadcastLocal", () => {
 		broker.broadcastLocal("user.event", { name: "John" });
 
 		expect(broker.emitLocalServices).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocalServices).toHaveBeenCalledWith("user.event", { name: "John" }, null, "server-1");
+		expect(broker.emitLocalServices).toHaveBeenCalledWith("user.event", { name: "John" }, null, "server-1", true);
 
 		expect(broker.localBus.emit).toHaveBeenCalledTimes(0);
 	});
@@ -2561,7 +2561,7 @@ describe("Test broker broadcastLocal", () => {
 		broker.broadcastLocal("$user.event", { name: "John" });
 
 		expect(broker.emitLocalServices).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocalServices).toHaveBeenCalledWith("$user.event", { name: "John" }, null, "server-1");
+		expect(broker.emitLocalServices).toHaveBeenCalledWith("$user.event", { name: "John" }, null, "server-1", true);
 
 		expect(broker.localBus.emit).toHaveBeenCalledTimes(1);
 		expect(broker.localBus.emit).toHaveBeenCalledWith("$user.event", { name: "John" });
@@ -2720,9 +2720,9 @@ describe("Test registry links", () => {
 	});
 
 	it("should call registry.events.emitLocalServices", () => {
-		broker.emitLocalServices("user.created", { a: 5 }, ["users"], "node-3");
+		broker.emitLocalServices("user.created", { a: 5 }, ["users"], "node-3", true);
 
 		expect(broker.registry.events.emitLocalServices).toHaveBeenCalledTimes(1);
-		expect(broker.registry.events.emitLocalServices).toHaveBeenCalledWith("user.created", { a: 5 }, ["users"], "node-3");
+		expect(broker.registry.events.emitLocalServices).toHaveBeenCalledWith("user.created", { a: 5 }, ["users"], "node-3", true);
 	});
 });

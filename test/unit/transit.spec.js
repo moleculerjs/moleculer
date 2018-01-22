@@ -594,11 +594,12 @@ describe("Test Transit._eventHandler", () => {
 			event: "user.created",
 			data: { a: 5 },
 			groups: ["users"],
-			sender: "node-1"
+			sender: "node-1",
+			broadcast: true
 		});
 
 		expect(broker.emitLocalServices).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocalServices).toHaveBeenCalledWith("user.created", {"a": 5}, ["users"], "node-1");
+		expect(broker.emitLocalServices).toHaveBeenCalledWith("user.created", {"a": 5}, ["users"], "node-1", true);
 	});
 
 });
