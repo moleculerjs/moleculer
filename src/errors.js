@@ -96,9 +96,9 @@ class MoleculerClientError extends MoleculerError {
  * 'Service not found' Error message
  *
  * @class ServiceNotFoundError
- * @extends {Error}
+ * @extends {MoleculerRetryableError}
  */
-class ServiceNotFoundError extends MoleculerError {
+class ServiceNotFoundError extends MoleculerRetryableError {
 	/**
 	 * Creates an instance of ServiceNotFoundError.
 	 *
@@ -118,8 +118,6 @@ class ServiceNotFoundError extends MoleculerError {
 			action,
 			nodeID
 		});
-
-		this.retryable = false;
 	}
 }
 
@@ -127,9 +125,9 @@ class ServiceNotFoundError extends MoleculerError {
  * 'Service not available' Error message
  *
  * @class ServiceNotAvailable
- * @extends {Error}
+ * @extends {MoleculerRetryableError}
  */
-class ServiceNotAvailable extends MoleculerError {
+class ServiceNotAvailable extends MoleculerRetryableError {
 	/**
 	 * Creates an instance of ServiceNotAvailable.
 	 *
@@ -149,8 +147,6 @@ class ServiceNotAvailable extends MoleculerError {
 			action,
 			nodeID
 		});
-
-		this.retryable = false;
 	}
 }
 
