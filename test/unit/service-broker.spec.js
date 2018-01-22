@@ -917,7 +917,7 @@ describe("Test broker.loadService", () => {
 		broker.createService.mockClear();
 		broker.watchService.mockClear();
 		let service = broker.loadService("./test/services/user.service.js");
-		expect(service).toBeInstanceOf(Service);
+		expect(service).toBeInstanceOf(broker.ServiceFactory);
 		expect(broker.createService).toHaveBeenCalledTimes(0);
 		expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
 		expect(broker.watchService).toHaveBeenCalledTimes(1);
