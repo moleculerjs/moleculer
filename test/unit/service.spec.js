@@ -25,9 +25,9 @@ describe("Test Service constructor", () => {
 			new Service();
 		}).toThrowError("Must set a ServiceBroker instance!");
 
-		expect(() => {
-			new Service({});
-		}).toThrowError("Must pass a service schema in constructor!");
+		// expect(() => {
+		// 	new Service({});
+		// }).toThrowError("Must pass a service schema in constructor!");
 
 		expect(() => {
 			new Service({}, {});

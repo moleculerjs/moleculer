@@ -2,9 +2,7 @@
 
 "use strict";
 
-let fs = require("fs");
 let ServiceBroker = require("../src/service-broker");
-let S = require("../src/strategies");
 
 let broker = new ServiceBroker({
 	logger: true,
