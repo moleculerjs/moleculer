@@ -152,7 +152,7 @@ const runTestCases = (logs, client, worker1, worker2, worker3, builtInBalancer) 
 			});
 		});
 
-		it.skip("Messages that haven't finished processing should be retryable by other nodes.", () => {
+		it("Messages that haven't finished processing should be retryable by other nodes.", () => {
 			// This requires all requests to be made to a single queue.
 			// This test also requires messages to be acked after the action handler finishes.
 			// All broker's should consume from the same queue so that messages aren't abandoned in
@@ -202,7 +202,7 @@ describe("Test AMQPTransporter", () => {
 
 		const brokers = [client, worker1, worker2, worker3];
 
-		beforeEach(() => Promise.all(brokers.map(broker => broker.start())));
+		beforeEach(() => Promise.all(brokers.map(broker => broker.start())).delay(1000));
 
 		afterEach(() => {
 			logs.length = 0;
@@ -224,7 +224,7 @@ describe("Test AMQPTransporter", () => {
 
 		const brokers = [client, worker1, worker2, worker3];
 
-		beforeEach(() => Promise.all(brokers.map(broker => broker.start())));
+		beforeEach(() => Promise.all(brokers.map(broker => broker.start())).delay(1000));
 
 		afterEach(() => {
 			logs.length = 0;

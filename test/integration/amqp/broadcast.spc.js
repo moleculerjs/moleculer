@@ -57,7 +57,7 @@ describe("Test AMQPTransporter", () => {
 				pub.start(),
 				sub1.start(),
 				sub2.start()
-			]);
+			]).delay(500);
 		});
 
 		afterEach(() => Promise.all([
@@ -97,7 +97,7 @@ describe("Test AMQPTransporter", () => {
 				pub.start(),
 				sub1.start(),
 				sub2.start()
-			]);
+			]).delay(500);
 		});
 
 		afterEach(() => Promise.all([

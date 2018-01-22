@@ -60,7 +60,7 @@ describe("Test AMQPTransporter", () => {
 				sub1.start(),
 				sub2.start(),
 				sub3.start()
-			]).delay(200);
+			]).delay(1000);
 		});
 
 		// Stop services and clear queues
@@ -104,7 +104,7 @@ describe("Test AMQPTransporter", () => {
 				sub1.start(),
 				sub2.start(),
 				sub3.start()
-			]).delay(200);
+			]).delay(1000);
 		});
 
 		// Stop services and clear queues
