@@ -545,6 +545,9 @@ declare namespace Moleculer {
 	class RandomStrategy extends BaseStrategy {
 	}
 
+	class CpuUsageStrategy extends BaseStrategy {
+	}
+
 	namespace Transporters {
 		type MessageHandler = ((cmd: string, msg: any) => Bluebird<void>) & ThisType<Base>;
 		type AfterConnectHandler = ((wasReconnect?: boolean) => Bluebird<void>) & ThisType<Base>;
@@ -661,6 +664,9 @@ declare namespace Moleculer {
 		}
 
 		class RandomStrategy extends BaseStrategy {
+		}
+
+		class CpuUsageStrategy extends BaseStrategy {
 		}
 	}
 

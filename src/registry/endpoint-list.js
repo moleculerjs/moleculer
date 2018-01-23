@@ -30,7 +30,7 @@ class EndpointList {
 		this.registry = registry;
 		this.broker = broker;
 		this.logger = registry.logger;
-		this.strategy = new StrategyFactory();
+		this.strategy = new StrategyFactory(registry, broker);
 		this.name = name;
 		this.group = group;
 		this.internal = name.startsWith("$");
@@ -40,7 +40,7 @@ class EndpointList {
 		this.endpoints = [];
 
 		this.localEndpoints = [];
-		this.localStrategy = new StrategyFactory();
+		this.localStrategy = new StrategyFactory(registry, broker);
 	}
 
 	/**

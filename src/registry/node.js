@@ -6,7 +6,7 @@
 
 "use strict";
 
-const { getCpuInfo } 	= require("../health");
+const cpuUsage 	= require("../cpu-usage");
 
 /**
  * Node class
@@ -57,7 +57,9 @@ class Node {
 	 * @memberof Node
 	 */
 	updateLocalInfo() {
-		this.cpu = getCpuInfo().utilization;
+		return cpuUsage().then(res => {
+			this.cpu = res.avg;
+		});
 	}
 
 	/**
