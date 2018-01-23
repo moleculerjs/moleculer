@@ -54,13 +54,13 @@ function runTest(dataName) {
 		createBrokers("NATS"),
 		createBrokers("Redis"),
 		createBrokers("MQTT"),
-		createBrokers("amqp://192.168.51.29:5672")
+		//createBrokers("amqp://192.168.51.29:5672")
 	]).delay(1000).then(([
 		[fake1, fake2],
 		[nats1, nats2],
 		[redis1, redis2],
 		[mqtt1, mqtt2],
-		[amqp1, amqp2],
+		//[amqp1, amqp2],
 	]) => {
 		bench.ref("Fake", done => {
 			return fake1.call("echo.reply", payload).then(done);
@@ -78,9 +78,9 @@ function runTest(dataName) {
 			return mqtt1.call("echo.reply", payload).then(done);
 		});
 
-		bench.add("AMQP", done => {
+		/*bench.add("AMQP", done => {
 			return amqp1.call("echo.reply", payload).then(done);
-		});
+		});*/
 
 		bench.run().then(() => {
 			return Promise.all([
@@ -96,8 +96,8 @@ function runTest(dataName) {
 				mqtt1.stop(),
 				mqtt2.stop(),
 
-				amqp1.stop(),
-				amqp2.stop()
+				// amqp1.stop(),
+				// amqp2.stop()
 			]).then(() => {
 				if (dataFiles.length > 0)
 					runTest(dataFiles.shift());

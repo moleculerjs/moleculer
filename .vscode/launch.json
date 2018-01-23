@@ -60,7 +60,7 @@
 			"request": "launch",
 			"name": "Launch benchmark",
 			"program": "${workspaceRoot}\\benchmark\\index.js",
-			"args": ["emitter"],
+			"args": ["throughput"],
 			"cwd": "${workspaceRoot}\\benchmark"
 		},
 		{
