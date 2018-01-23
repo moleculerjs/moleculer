@@ -5,7 +5,7 @@ class GreeterService extends Service {
 	constructor(broker) {
 		super(broker);
 
-		this._processSchema({
+		this.parseServiceSchema({
 			name: "greeter",
 			version: "v2",
 			meta: {

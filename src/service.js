@@ -42,10 +42,14 @@ class Service {
 		}
 
 		if (schema)
-			this._processSchema(schema);
+			this.parseServiceSchema(schema);
 	}
 
-	_processSchema(schema) {
+	/**
+	 * Parse Service schema & register as local service
+	 * @param {Object} schema of Service
+	 */
+	parseServiceSchema(schema) {
 		if (!isObject(schema))
 			throw new ServiceSchemaError("Must pass a service schema in constructor!");
 
