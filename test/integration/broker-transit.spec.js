@@ -1,7 +1,7 @@
 const ServiceBroker = require("../../src/service-broker");
 const { RequestTimeoutError } = require("../../src/errors");
 
-describe.only("Test RPC", () => {
+describe("Test RPC", () => {
 
 	let b1 = new ServiceBroker({
 		transporter: "Fake",
