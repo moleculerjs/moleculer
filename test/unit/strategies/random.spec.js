@@ -16,12 +16,9 @@ describe("Test RandomStrategy", () => {
 			{ b: "world" },
 		];
 
-		const selected = strategy.select(list);
-
-		expect(selected).toBeAnyOf(list);
-		expect(selected).toBeAnyOf(list);
-		expect(selected).toBeAnyOf(list);
-
+		expect(strategy.select(list)).toBeAnyOf(list);
+		expect(strategy.select(list)).toBeAnyOf(list);
+		expect(strategy.select(list)).toBeAnyOf(list);
 	});
 
 });
