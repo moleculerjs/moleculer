@@ -5,9 +5,10 @@
 let ServiceBroker = require("../src/service-broker");
 
 let broker = new ServiceBroker({
+	nodeID: "dev-" + process.pid,
 	logger: true,
-	logLevel: "debug",
-	//transporter: "NATS",
+	//logLevel: "debug",
+	transporter: "NATS",
 	cacher: "memory"
 });
 

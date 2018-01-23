@@ -21,6 +21,7 @@ describe("Test NodeCatalog constructor", () => {
 		expect(catalog.nodes).toBeInstanceOf(Map);
 		expect(catalog.heartbeatTimer).toBeNull();
 		expect(catalog.checkNodesTimer).toBeNull();
+		expect(catalog.offlineTimer).toBeNull();
 
 		expect(catalog.localNode).toBeDefined();
 		expect(catalog.localNode.id).toBe(broker.nodeID);
@@ -42,12 +43,14 @@ describe("Test NodeCatalog constructor", () => {
 
 		expect(catalog.heartbeatTimer).toBeDefined();
 		expect(catalog.checkNodesTimer).toBeDefined();
+		expect(catalog.offlineTimer).toBeDefined();
 		//expect(catalog.startHeartbeatTimers).toHaveBeenCalledTimes(1);
 
 		broker.broadcastLocal("$transporter.disconnected");
 
 		expect(catalog.heartbeatTimer).toBeNull();
 		expect(catalog.checkNodesTimer).toBeNull();
+		expect(catalog.offlineTimer).toBeNull();
 		///expect(catalog.stoptHeartbeatTimers).toHaveBeenCalledTimes(1);
 	});
 
@@ -323,6 +326,65 @@ describe("Test checkRemoteNodes", () => {
 		catalog.checkRemoteNodes();
 		expect(catalog.disconnected).toHaveBeenCalledTimes(0);
 		node.available = true;
+	});
+
+});
+
+describe("Test checkOfflineNodes", () => {
+	let broker = new ServiceBroker({ transporter: "fake" });
+	let catalog = new NodeCatalog(broker.registry, broker);
+
+	let payload1 = {
+		sender: "node-1",
+		services: []
+	};
+
+	let payload2 = {
+		sender: "node-2",
+		services: []
+	};
+
+	catalog.processNodeInfo(payload1);
+	catalog.processNodeInfo(payload2);
+
+	let node1 = catalog.get("node-1");
+	let node2 = catalog.get("node-2");
+
+	it("should not remove available nodes", () => {
+		catalog.checkOfflineNodes();
+		expect(catalog.nodes.size).toBe(3);
+
+		node2.lastHeartbeatTime -= 4 * 60 * 1000;
+		catalog.checkOfflineNodes();
+		expect(catalog.nodes.size).toBe(3);
+	});
+
+	it("should not remove local node", () => {
+		expect(catalog.nodes.size).toBe(3);
+		node1.local = true;
+		catalog.checkOfflineNodes();
+		expect(catalog.nodes.size).toBe(3);
+		node1.local = false;
+	});
+
+	it("should remove old offline nodes", () => {
+		node1.lastHeartbeatTime = Date.now();
+		node2.lastHeartbeatTime = Date.now();
+
+		catalog.checkOfflineNodes();
+		expect(catalog.nodes.size).toBe(3);
+
+		node2.available = false;
+		node2.lastHeartbeatTime -= 4 * 60 * 1000;
+		catalog.checkOfflineNodes();
+
+		expect(catalog.nodes.size).toBe(2);
+
+		node1.available = false;
+		node1.lastHeartbeatTime -= 4 * 60 * 1000;
+		catalog.checkOfflineNodes();
+
+		expect(catalog.nodes.size).toBe(1);
 	});
 
 });

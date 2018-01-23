@@ -34,6 +34,7 @@ class NodeCatalog {
 
 		this.heartbeatTimer = null;
 		this.checkNodesTimer = null;
+		this.offlineTimer = null;
 
 
 		this.createLocalNode();
@@ -63,6 +64,12 @@ class NodeCatalog {
 			this.checkRemoteNodes();
 		}, this.broker.options.heartbeatTimeout * 1000);
 		this.checkNodesTimer.unref();
+
+		/* istanbul ignore next */
+		this.offlineTimer = setInterval(() => {
+			this.checkOfflineNodes();
+		}, 30 * 1000); // 30 secs
+		this.offlineTimer.unref();
 	}
 
 	/**
@@ -79,6 +86,11 @@ class NodeCatalog {
 		if (this.checkNodesTimer) {
 			clearInterval(this.checkNodesTimer);
 			this.checkNodesTimer = null;
+		}
+
+		if (this.offlineTimer) {
+			clearInterval(this.offlineTimer);
+			this.offlineTimer = null;
 		}
 	}
 
@@ -195,6 +207,23 @@ class NodeCatalog {
 			if (now - (node.lastHeartbeatTime || 0) > this.broker.options.heartbeatTimeout * 1000) {
 				this.logger.warn(`Heartbeat is not received from '${node.id}' node.`);
 				this.disconnected(node.id, true);
+			}
+		});
+	}
+
+	/**
+	 * Check offline nodes. Remove which is older then 3 minutes.
+	 *
+	 * @memberOf Transit
+	 */
+	checkOfflineNodes() {
+		const now = Date.now();
+		this.nodes.forEach(node => {
+			if (node.local || node.available) return;
+
+			if (now - (node.lastHeartbeatTime || 0) > 3 * 60 * 1000) {
+				this.logger.warn(`Remove offline '${node.id}' node from registry because it hasn't submitted heartbeat signal for 180 seconds.`);
+				return this.nodes.delete(node.id);
 			}
 		});
 	}
