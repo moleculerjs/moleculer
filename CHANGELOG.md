@@ -214,7 +214,7 @@ There are two ways:
 
 2. **Use decorators**
 
-    Thanks for [@ColonelBundy](https://github.com/ColonelBundy), he is created decorators for Moleculer service: [moleculer-decorators](https://github.com/ColonelBundy/moleculer-decorators)
+    Thanks for [@ColonelBundy](https://github.com/ColonelBundy), he has created decorators for Moleculer service: [moleculer-decorators](https://github.com/ColonelBundy/moleculer-decorators)
     >This way, you need to use Typescript or Babel to compile decorators.
 
     **Example service**
