@@ -59,7 +59,7 @@
     "mqtt": "2.15.1",
     "msgpack5": "4.0.1",
     "nats": "0.7.24",
-    "nodemon": "1.14.11",
+    "nodemon": "1.14.7",
     "npm-check": "5.5.2",
     "pino": "4.10.3",
     "protobufjs": "6.8.4",

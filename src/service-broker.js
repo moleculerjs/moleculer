@@ -1292,6 +1292,9 @@ class ServiceBroker {
 	 * @memberOf ServiceBroker
 	 */
 	broadcastLocal(eventName, payload, groups = null) {
+		if (groups && !Array.isArray(groups))
+			groups = [groups];
+
 		this.logger.debug(`Broadcast '${eventName}' local event`+ (groups ? ` to '${groups.join(", ")}' group(s)` : "") + ".");
 
 		// Call internal subscribers
