@@ -3,6 +3,7 @@ sudo: false
 dist: precise
 services:
   - rabbitmq
+  - redis-server
 cache:
   directories:
   - node_modules
