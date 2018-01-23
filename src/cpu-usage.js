@@ -13,6 +13,7 @@
  */
 const os = require("os");
 
+/* istanbul ignore next */
 module.exports = function getCpuUsage(sampleTime = 100) {
 	return new Promise(resolve => {
 		const first = os.cpus().map(cpu => cpu.times);
