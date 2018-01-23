@@ -1,11 +1,21 @@
 <a name="0.12.0"></a>
 # [0.12.0](https://github.com/ice-services/moleculer/compare/v0.11.10...v0.12.0) (2018-xx-xx)
 
+# Breaking changes
+
+## Protocol changed
+The protocol is changed. The new version is `3`. [Check the changes.](https://github.com/ice-services/moleculer/blob/eecf1770d71da0e61c5dadb5937485fe64d64a8e/docs/PROTOCOL.md)
+
+**Changes:**
+- the `RESPONSE` packet has a new field `meta`.
+- the `EVENT` packet has a new field `broadcast`.
+- the `port` field is removed from `INFO` packet.
 # New
 
 ## New ServiceBroker options
-There are some new properties in ServiceBroker option.
-It is useful if you load your project with Moleculer Runner.
+There are some new properties in ServiceBroker option: `middlewares`, `created`, `started`, `stopped`.
+
+It is useful when you load your project with Moleculer Runner.
 
 ```js
 // moleculer.config.js
@@ -33,12 +43,274 @@ module.exports = {
 };
 ```
 
-## Broadcast event with group filter
-TODO
+## Broadcast events with group filter
+The `broker.broadcast` function has a third `groups` argument similar as `broker.emit`. 
+```js
+// Send to all "mail" service instances
+broker.broadcast("user.created", { user }, "mail");
+
+// Send to all "user" & "purchase" service instances.
+broker.broadcast("user.created", { user }, ["user", "purchase"]);
+```
+
+## CPU usage-based strategy
+There is a new `CpuUsageStrategy`. It is select a node which has the lowest CPU usage.
+Due to the node list can be very long, the Strategy gets some samples and selects the node with the lowest CPU usage from samples.
+There are 2 options for the strategy.
+- `sampleCount`: the count of samples. Default: `3`
+- `lowCpuUsage`: the low CPU usage. The node which has lower CPU usage than this value will be returned immediately. Default: `10`
+
+**Usage:**
+```js
+let broker = new ServiceBroker({
+    registry: {
+        strategy: "CpuUsage"
+    }
+});
+```
+
+**Usage with custom options**
+```js
+let broker = new ServiceBroker({
+    registry: {
+        strategy: "CpuUsage",
+        strategyOptions: {
+            sampleCount: 3,
+            lowCpuUsage: 10
+        }
+    }
+});
+```
+
+## Changed starting logic
+The broker & services starting logic has been changed. 
+
+Before: the `broker.start` starts transporter connecting. When it's done, starts all services (calls service `started` handlers). The disadvantage is that other nodes can send request to these services, while they are starting.
+
+After: the `broker.start` starts transporter connecting but they don't publish the local service list. When it's done, starts all services (calls service `started` handlers). Once all services started (all returned Promises are resolved), broker publish the registered & started service list to all other nodes. Therefore other nodes send request after all local service started properly.
+>Please note: you can make dead-locks when two services wait for each other. E.g.: `users` service has `dependencies: [posts]` and `posts` service has `dependencies: [users]`. To avoid it remove the concerned service from `dependencies` and use `waitForServices` method out of `started` handler instead.
+
+## Metadata is sent back to requester
+You can use it to send back extra meta information to the caller. E.g. send back response headers to Moleculer Web or fill it with user object after logged in user resolving.
+
+**Example to export & download a file:**
+```js
+// Export data
+export(ctx) {
+    const rows = this.adapter.find({});
+
+    // Set headers to download as a file
+    ctx.meta.headers = {
+        "Content-Type": "application/json; charset=utf-8",
+        "Content-Disposition": 'attachment; filename=\"book.json\"'
+    }
+
+    return rows;
+}
+```
+
+**Authenticate:**
+```js
+auth(ctx) {
+    let user = this.getUserByJWT(ctx.params.token);
+    if (user) {
+        ctx.meta.user = user;
+        ctx.meta.session = uuid.v4(); // Generate a session ID
+
+        return true;
+    }
+
+    throw new Forbidden();
+}
+```
+
+## Better ES6 class support
+If you like better ES6 classes than Moleculer service schema, now you can write your services as ES6 classes.
+
+There are two ways:
+
+1. **Native ES6 classes with schema parsing**
+    
+    Use class methods as `actions` and `events` handlers and call the `parseServiceSchema` method in constructor with schema definition where the handlers pointed to the class methods. 
+    ```js
+    const Service = require("moleculer").Service;
+
+    class GreeterService extends Service {
+
+        constructor(broker) {
+            super(broker);
+
+            this.parseServiceSchema({
+                name: "greeter",
+                version: "v2",
+                meta: {
+                    scalable: true
+                },
+                dependencies: [
+                    "auth",
+                    "users"
+                ],
+
+                settings: {
+                    upperCase: true
+                },
+                actions: {
+                    hello: this.hello,
+                    welcome: {
+                        cache: {
+                            keys: ["name"]
+                        },
+                        params: {
+                            name: "string"
+                        },
+                        handler: this.welcome
+                    }
+                },
+                events: {
+                    "user.created": this.userCreated
+                },
+                created: this.serviceCreated,
+                started: this.serviceStarted,
+                stopped: this.serviceStopped,
+            });
+        }
+
+        // Action handler
+        hello() {
+            return "Hello Moleculer";
+        }
+
+        // Action handler
+        welcome(ctx) {
+            return this.sayWelcome(ctx.params.name);
+        }
+
+        // Private method
+        sayWelcome(name) {
+            this.logger.info("Say hello to", name);
+            return `Welcome, ${this.settings.upperCase ? name.toUpperCase() : name}`;
+        }
+
+        // Event handler
+        userCreated(user) {
+            this.broker.call("mail.send", { user });
+        }
+
+        serviceCreated() {
+            this.logger.info("ES6 Service created.");
+        }
+
+        serviceStarted() {
+            this.logger.info("ES6 Service started.");
+        }
+
+        serviceStopped() {
+            this.logger.info("ES6 Service stopped.");
+        }
+    }
+
+    module.exports = GreeterService;
+    ```
+
+2. **Use decorators**
+
+    Thanks for [@ColonelBundy](https://github.com/ColonelBundy), he is created decorators for Moleculer service: [moleculer-decorators](https://github.com/ColonelBundy/moleculer-decorators)
+    >This way, you need to use Typescript or Babel to compile decorators.
+
+    **Example service**
+    ```js
+    const moleculer = require('moleculer');
+    const { Service, Action, Event, Method } = require('moleculer-decorators');
+    const web = require('moleculer-web');
+    const broker = new moleculer.ServiceBroker({
+    logger: console,
+    logLevel: "debug",
+    });
+
+    @Service({
+    mixins: [web],
+    settings: {
+        port: 3000,
+        routes: [
+        ...
+        ]
+    }
+    })
+    class ServiceName {
+    @Action()
+    Login(ctx) {
+        ...
+    }
+
+    // With options
+    @Action({
+        cache: false,
+        params: {
+        a: "number",
+        b: "number"
+        }
+    })
+    Login2(ctx) {
+        ...
+    }
+
+    @Event
+    'event.name'(payload, sender, eventName) {
+        ...
+    }
+
+    @Method
+    authorize(ctx, route, req, res) {
+        ...
+    }
+
+    hello() { // Private
+        ...
+    }
+
+    started() { // Reserved for moleculer, fired when started
+        ...
+    }
+
+    created() { // Reserved for moleculer, fired when created
+        ...
+    }
+
+    stopped() { // Reserved for moleculer, fired when stopped
+        ...
+    }
+    }
+
+    broker.createService(ServiceName);
+    broker.start();
+    ```
+
+## Event group option
+When you are using events, the broker is grouping the listeners by group name. The group name is same as the service name where your event handler is declared. But you can overwrite it:
+
+```js
+module.export = {
+    name: "payment",
+    events: {
+        "order.created": {
+            group: "other",
+            handler(payload) {
+                // ...
+            }
+        }
+    }
+}
+```
 
 # Changes
 - MemoryCacher clean cache entries after the transporter connected.
 - `broker.loadServices` file mask is changed from `*.service.js` to `**/*.service.js` to load all services from subfolders too.
+- `ServiceNotFoundError` and `ServiceNotAvailableError` errors are retryable errors.
+- `Strategy.select` method gets only available endpoint list.
+- broker removes old unavailable nodes in 3 minutes.
+- CPU usage in `HEARTBEAT` packet is working properly in Windows.
+- register middlewares before internal service (`$node.*`)
+- `broker.getAction` deprecated method is removed.
 
 # Fixes
 - handles invalid `dependencies` value in service schema [#164](https://github.com/ice-services/moleculer/pull/164)
