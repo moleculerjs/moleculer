@@ -156,6 +156,7 @@ describe("Test EndpointList.next", () => {
 		expect(list.next()).toBe(ep1);
 		expect(list.count()).toBe(1);
 
+		expect(list.select).toHaveBeenCalledTimes(0);
 	});
 	it("should return null if only one is not available", () => {
 		ep1.state = false;
@@ -188,6 +189,7 @@ describe("Test EndpointList.next", () => {
 		expect(list.next()).toBe(ep1);
 
 		expect(list.select).toHaveBeenCalledTimes(1);
+		expect(list.select).toHaveBeenCalledWith([ep1, ep2, ep4]);
 
 		ep3.state = true;
 	});
@@ -199,14 +201,11 @@ describe("Test EndpointList.next", () => {
 		expect(list.next()).toBe(ep1);
 
 		expect(list.select).toHaveBeenCalledTimes(1);
+		expect(list.select).toHaveBeenCalledWith([ep1, ep2, ep3, ep4]);
 	});
 
 	it("should find the first available ep", () => {
-		list.select = jest.fn()
-			.mockImplementationOnce(() => ep1)
-			.mockImplementationOnce(() => ep2)
-			.mockImplementationOnce(() => ep3)
-			.mockImplementation(() => ep4);
+		list.select = jest.fn(() => ep4);
 
 		ep1.state = false;
 		ep2.state = false;
@@ -214,15 +213,12 @@ describe("Test EndpointList.next", () => {
 		ep4.state = true;
 
 		expect(list.next()).toBe(ep4);
-		expect(list.select).toHaveBeenCalledTimes(4);
+		expect(list.select).toHaveBeenCalledTimes(1);
+		expect(list.select).toHaveBeenCalledWith([ep4]);
 	});
 
 	it("should return null, if no available ep", () => {
-		list.select = jest.fn()
-			.mockImplementationOnce(() => ep1)
-			.mockImplementationOnce(() => ep2)
-			.mockImplementationOnce(() => ep3)
-			.mockImplementation(() => ep4);
+		list.select.mockClear();
 
 		ep1.state = false;
 		ep2.state = false;
@@ -230,7 +226,7 @@ describe("Test EndpointList.next", () => {
 		ep4.state = false;
 
 		expect(list.next()).toBeNull();
-		expect(list.select).toHaveBeenCalledTimes(4);
+		expect(list.select).toHaveBeenCalledTimes(0);
 	});
 
 	it("should return null if internal & localEndpoint is not available", () => {
@@ -310,30 +306,28 @@ describe("Test EndpointList.nextLocal", () => {
 
 		expect(list.nextLocal()).toBe(ep1);
 		expect(list.select).toHaveBeenCalledTimes(1);
+		expect(list.select).toHaveBeenCalledWith([ep1, ep3]);
 	});
 
 	it("should find the first available ep", () => {
-		list.select = jest.fn()
-			.mockImplementationOnce(() => ep1)
-			.mockImplementationOnce(() => ep3);
+		list.select = jest.fn(() => ep3);
 
 		ep1.state = false;
 		ep3.state = true;
 
 		expect(list.nextLocal()).toBe(ep3);
-		expect(list.select).toHaveBeenCalledTimes(2);
+		expect(list.select).toHaveBeenCalledTimes(1);
+		expect(list.select).toHaveBeenCalledWith([ep3]);
 	});
 
 	it("should return null, if no available ep", () => {
-		list.select = jest.fn()
-			.mockImplementationOnce(() => ep1)
-			.mockImplementationOnce(() => ep3);
+		list.select = jest.fn();
 
 		ep1.state = false;
 		ep3.state = false;
 
 		expect(list.nextLocal()).toBeNull();
-		expect(list.select).toHaveBeenCalledTimes(2);
+		expect(list.select).toHaveBeenCalledTimes(0);
 	});
 
 });

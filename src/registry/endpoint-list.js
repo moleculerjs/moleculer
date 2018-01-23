@@ -116,17 +116,11 @@ class EndpointList {
 				return ep;
 		}
 
-		const max = this.endpoints.length;
-		let i = 0;
-		while (i < max) {
-			const ep = this.select(this.endpoints);
-			if (ep.isAvailable)
-				return ep;
+		const epList = this.endpoints.filter(ep => ep.isAvailable);
+		if (epList.length == 0)
+			return null;
 
-			i++;
-		}
-
-		return null;
+		return this.select(epList);
 	}
 
 	/**
@@ -151,17 +145,11 @@ class EndpointList {
 			return null;
 		}
 
-		const max = this.localEndpoints.length;
-		let i = 0;
-		while (i < max) {
-			const ep = this.select(this.localEndpoints);
-			if (ep.isAvailable)
-				return ep;
+		const epList = this.localEndpoints.filter(ep => ep.isAvailable);
+		if (epList.length == 0)
+			return null;
 
-			i++;
-		}
-
-		return null;
+		return this.select(epList);
 	}
 
 	/**
