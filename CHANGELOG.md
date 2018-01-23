@@ -31,13 +31,13 @@ module.exports = {
 
     // Fired when the broker is started
     started(broker) {
-        // You can return with Promise
+        // You can return Promise
         return broker.Promise.resolve();
     },
 
     // Fired when the broker is stopped
     stopped(broker) {
-        // You can return with Promise
+        // You can return Promise
         return broker.Promise.resolve();
     }
 };
@@ -355,7 +355,7 @@ module.exports = {
 }
 ```
 
-If the value is `true`, it adds all fields. If `Array`, it adds the specified fields. If `Function`, it calls with `params` or `meta`and you need to return with an `Object`.
+If the value is `true`, it adds all fields. If `Array`, it adds the specified fields. If `Function`, it calls with `params` or `meta`and you need to return an `Object`.
 
 --------------------------------------------------
 <a name="0.11.9"></a>
