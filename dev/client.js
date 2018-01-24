@@ -87,8 +87,7 @@ setTimeout(() => {
 }, 5000);*/
 
 let reqCount = 0;
-let lastIdx = null;
-let missingReqs = [];
+let pendingReqs = [];
 
 broker.start()
 	.then(() => broker.waitForServices("math"))
@@ -100,36 +99,27 @@ broker.start()
 				return;
 			}*/
 
+			let pendingInfo = "";
+			if (pendingReqs.length > 10) {
+				pendingInfo = ` [${pendingReqs.slice(0, 10).join(",")}] + ${pendingReqs.length - 10}`;
+			} else if (pendingReqs.length > 0) {
+				pendingInfo = ` [${pendingReqs.join(",")}]`;
+			}
+
 			let payload = { a: _.random(0, 100), b: _.random(0, 100), count: ++reqCount };
+			pendingReqs.push(reqCount);
 			let p = broker.call("math.add", payload);
-			if (p.ctx)
-				broker.logger.info(chalk.grey(`${reqCount}. Send request (${payload.a} + ${payload.b}) to ${p.ctx.nodeID ? p.ctx.nodeID : "some node"} (queue: ${broker.transit.pendingRequests.size})...`));
+			if (p.ctx) {
+				broker.logger.info(chalk.grey(`${reqCount}. Send request (${payload.a} + ${payload.b}) to ${p.ctx.nodeID ? p.ctx.nodeID : "some node"} (queue: ${broker.transit.pendingRequests.size})...`), chalk.yellow.bold(pendingInfo));
+			}
 			p.then(({ count, res }) => {
-				// Remove from missing
-				if (missingReqs.indexOf(count) !== -1)
-					missingReqs = missingReqs.filter(n => n != count);
+				// Remove from pending
+				if (pendingReqs.indexOf(count) !== -1)
+					pendingReqs = pendingReqs.filter(n => n != count);
+				else
+					broker.logger.warn(chalk.red.bold("Invalid coming request count: ", count));
 
-				// Check the sequence
-				if (lastIdx != null) {
-					if (count - lastIdx > 1) {
-						for (let i = 1; i < count - lastIdx; i++) {
-							missingReqs.push(lastIdx + i);
-						}
-					}
-				}
-
-				let missingInfo = "";
-				if (missingReqs.length > 20) {
-					missingInfo = ` [${missingReqs.slice(0, 20).join(",")}] + ${missingReqs.length - 20}`;
-				} else if (missingReqs.length > 0) {
-					missingInfo = ` [${missingReqs.join(",")}]`;
-				}
-
-				broker.logger.info(_.padEnd(`${count}. ${payload.a} + ${payload.b} = ${res}`, 20), `(from: ${p.ctx.nodeID})`, chalk.yellow.bold(missingInfo));
-
-				if (count > lastIdx || lastIdx == null)
-					lastIdx = count;
-
+				broker.logger.info(_.padEnd(`${count}. ${payload.a} + ${payload.b} = ${res}`, 20), `(from: ${p.ctx.nodeID})`);
 			}).catch(err => {
 				broker.logger.warn(chalk.red.bold(_.padEnd(`${payload.count}. ${payload.a} + ${payload.b} = ERROR! ${err.message}`)));
 			});
