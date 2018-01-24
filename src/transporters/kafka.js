@@ -6,9 +6,10 @@
 
 "use strict";
 
-const _				= require("lodash");
-const Promise		= require("bluebird");
-const Transporter 	= require("./base");
+const { defaultsDeep } 	= require("lodash");
+const chalk				= require("chalk");
+const Promise			= require("bluebird");
+const Transporter 		= require("./base");
 
 /**
  * Lightweight transporter for Kafka
@@ -36,7 +37,7 @@ class KafkaTransporter extends Transporter {
 			};
 		}
 
-		opts.kafka = _.defaultsDeep(opts.kafka, {
+		opts.kafka = defaultsDeep(opts.kafka, {
 			host: undefined,
 			client: {
 				zkOptions: undefined,
@@ -68,6 +69,8 @@ class KafkaTransporter extends Transporter {
 	 * @memberOf KafkaTransporter
 	 */
 	connect() {
+		this.logger.warn(chalk.yellow.bold("Kafka Transporter is an EXPERIMENTAL transporter. Do NOT use it in production!"));
+
 		const opts = this.opts.kafka;
 
 		return new Promise((resolve, reject) => {
