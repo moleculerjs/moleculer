@@ -151,7 +151,7 @@ class StanTransporter extends Transporter {
 	subscribe(cmd, nodeID) {
 		const t = this.getTopicName(cmd, nodeID);
 
-		const opts = this.client.subscriptionOptions().setStartWithLastReceived(); //.setDurableName(cmd); //No need durable
+		const opts = this.client.subscriptionOptions(); //.setStartWithLastReceived().setDurableName(cmd); //No need durable & receive old messages
 		const subscription = this.client.subscribe(t, opts);
 
 		subscription.on("message", msg => this.messageHandler(cmd, msg.getData()));

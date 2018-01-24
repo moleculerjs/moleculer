@@ -23,7 +23,7 @@ let broker = new ServiceBroker({
 	metrics: true,
 
 	transit: {
-		maxQueueSize: 10
+		//maxQueueSize: 10
 	},
 
 	registry: {
@@ -87,6 +87,8 @@ setTimeout(() => {
 }, 5000);*/
 
 let reqCount = 0;
+let lastIdx = null;
+let missingReqs = [];
 
 broker.start()
 	.then(() => broker.waitForServices("math"))
@@ -103,7 +105,31 @@ broker.start()
 			if (p.ctx)
 				broker.logger.info(chalk.grey(`${reqCount}. Send request (${payload.a} + ${payload.b}) to ${p.ctx.nodeID ? p.ctx.nodeID : "some node"} (queue: ${broker.transit.pendingRequests.size})...`));
 			p.then(({ count, res }) => {
-				broker.logger.info(_.padEnd(`${count}. ${payload.a} + ${payload.b} = ${res}`, 20), `(from: ${p.ctx.nodeID})`);
+				// Remove from missing
+				if (missingReqs.indexOf(count) !== -1)
+					missingReqs = missingReqs.filter(n => n != count);
+
+				// Check the sequence
+				if (lastIdx != null) {
+					if (count - lastIdx > 1) {
+						for (let i = 1; i < count - lastIdx; i++) {
+							missingReqs.push(lastIdx + i);
+						}
+					}
+				}
+
+				let missingInfo = "";
+				if (missingReqs.length > 20) {
+					missingInfo = ` [${missingReqs.slice(0, 20).join(",")}] + ${missingReqs.length - 20}`;
+				} else if (missingReqs.length > 0) {
+					missingInfo = ` [${missingReqs.join(",")}]`;
+				}
+
+				broker.logger.info(_.padEnd(`${count}. ${payload.a} + ${payload.b} = ${res}`, 20), `(from: ${p.ctx.nodeID})`, chalk.yellow.bold(missingInfo));
+
+				if (count > lastIdx || lastIdx == null)
+					lastIdx = count;
+
 			}).catch(err => {
 				broker.logger.warn(chalk.red.bold(_.padEnd(`${payload.count}. ${payload.a} + ${payload.b} = ERROR! ${err.message}`)));
 			});

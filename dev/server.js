@@ -15,7 +15,7 @@ let broker = new ServiceBroker({
 	//transporter: "amqp://192.168.0.181:5672",
 	//serializer: "ProtoBuf",
 
-	//disableBalancer: true,
+	disableBalancer: true,
 
 	logger: console,
 	//logLevel: "debug",
