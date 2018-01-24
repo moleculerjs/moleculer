@@ -44,8 +44,8 @@ class StanTransporter extends Transporter {
 
 			this.opts.stan.preserveBuffers = true;
 		}
-		if (!this.opts.clusterID)
-			this.opts.clusterID = "test-cluster"; // Default cluster ID in NATS Streaming server
+		if (!this.opts.stan.clusterID)
+			this.opts.stan.clusterID = "test-cluster"; // Default cluster ID in NATS Streaming server
 
 		this.hasBuiltInBalancer = true;
 		this.client = null;
@@ -69,7 +69,7 @@ class StanTransporter extends Transporter {
 				/* istanbul ignore next */
 				this.broker.fatal("The 'node-nats-streaming' package is missing! Please install it with 'npm install node-nats-streaming --save' command.", err, true);
 			}
-			const client = Stan.connect(this.opts.clusterID, this.nodeID, this.opts.stan);
+			const client = Stan.connect(this.opts.stan.clusterID, this.nodeID, this.opts.stan);
 			this._client = client; // For tests
 
 			client.on("connect", () => {
@@ -173,7 +173,7 @@ class StanTransporter extends Transporter {
 		const opts = this.client.subscriptionOptions().setDeliverAllAvailable().setDurableName(PACKET_REQUEST + "B");
 		const subscription = this.client.subscribe(topic, queue, opts);
 
-		subscription.on("message", msg => this.messageHandler(PACKET_REQUEST, msg.getData()));
+		subscription.on("message", msg => this.messageHandler(PACKET_REQUEST, msg.getRawData()));
 		this.subscriptions.push(subscription);
 	}
 
@@ -190,7 +190,7 @@ class StanTransporter extends Transporter {
 		const opts = this.client.subscriptionOptions().setDeliverAllAvailable().setDurableName(PACKET_EVENT + "B");
 		const subscription = this.client.subscribe(topic, group, opts);
 
-		subscription.on("message", msg => this.messageHandler(PACKET_EVENT, msg.getData()));
+		subscription.on("message", msg => this.messageHandler(PACKET_EVENT, msg.getRawData()));
 		this.subscriptions.push(subscription);
 	}
 
