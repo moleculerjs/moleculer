@@ -235,6 +235,8 @@ class ServiceBroker {
 				TransporterClass = Transporters.AMQP;
 			else if (opt.startsWith("kafka://"))
 				TransporterClass = Transporters.Kafka;
+			else if (opt.startsWith("stan://"))
+				TransporterClass = Transporters.STAN;
 
 			if (TransporterClass)
 				return new TransporterClass(opt);
