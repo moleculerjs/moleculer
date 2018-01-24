@@ -233,6 +233,8 @@ class ServiceBroker {
 				TransporterClass = Transporters.Redis;
 			else if (opt.startsWith("amqp://"))
 				TransporterClass = Transporters.AMQP;
+			else if (opt.startsWith("kafka://"))
+				TransporterClass = Transporters.Kafka;
 
 			if (TransporterClass)
 				return new TransporterClass(opt);

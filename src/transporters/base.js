@@ -96,6 +96,17 @@ class BaseTransporter {
 	}
 
 	/**
+	 * Subscribe to all topics
+	 *
+	 * @param {Array<Object>} topics
+	 *
+	 * @memberOf BaseTransporter
+	 */
+	makeSubscriptions(topics) {
+		return Promise.all(topics.map(({ cmd, nodeID }) => this.subscribe(cmd, nodeID)));
+	}
+
+	/**
 	 * Subscribe to a command
 	 *
 	 * @param {String} cmd

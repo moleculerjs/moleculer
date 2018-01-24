@@ -10,6 +10,7 @@ let hostname = os.hostname();
 
 // Create broker
 let broker = new ServiceBroker({
+	namespace: "loadtest",
 	nodeID: process.argv[2] || hostname + "-server",
 	transporter: process.env.TRANSPORTER || "NATS",
 	logger: console,

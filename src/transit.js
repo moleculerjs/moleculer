@@ -164,41 +164,42 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	makeSubscriptions() {
-		this.subscribing = Promise.all([
+		this.subscribing = this.tx.makeSubscriptions([
+
 			// Subscribe to broadcast events
-			this.subscribe(P.PACKET_EVENT, this.nodeID),
+			{ cmd: P.PACKET_EVENT, nodeID: this.nodeID },
 
 			// Subscribe to requests
-			this.subscribe(P.PACKET_REQUEST, this.nodeID),
+			{ cmd: P.PACKET_REQUEST, nodeID: this.nodeID },
 
 			// Subscribe to node responses of requests
-			this.subscribe(P.PACKET_RESPONSE, this.nodeID),
+			{ cmd: P.PACKET_RESPONSE, nodeID: this.nodeID },
 
 			// Discover handler
-			this.subscribe(P.PACKET_DISCOVER),
-			this.subscribe(P.PACKET_DISCOVER, this.nodeID),
+			{ cmd: P.PACKET_DISCOVER },
+			{ cmd: P.PACKET_DISCOVER, nodeID: this.nodeID },
 
 			// NodeInfo handler
-			this.subscribe(P.PACKET_INFO), // Broadcasted INFO. If a new node connected
-			this.subscribe(P.PACKET_INFO, this.nodeID), // Response INFO to DISCOVER packet
+			{ cmd: P.PACKET_INFO }, // Broadcasted INFO. If a new node connected
+			{ cmd: P.PACKET_INFO, nodeID: this.nodeID }, // Response INFO to DISCOVER packet
 
 			// Disconnect handler
-			this.subscribe(P.PACKET_DISCONNECT),
+			{ cmd: P.PACKET_DISCONNECT },
 
 			// Heartbeat handler
-			this.subscribe(P.PACKET_HEARTBEAT),
+			{ cmd: P.PACKET_HEARTBEAT },
 
 			// Ping handler
-			this.subscribe(P.PACKET_PING), // Broadcasted
-			this.subscribe(P.PACKET_PING, this.nodeID), // Targeted
+			{ cmd: P.PACKET_PING }, // Broadcasted
+			{ cmd: P.PACKET_PING, nodeID: this.nodeID }, // Targeted
 
 			// Pong handler
-			this.subscribe(P.PACKET_PONG, this.nodeID)
+			{ cmd: P.PACKET_PONG, nodeID: this.nodeID }
 
-		])
-			.then(() => {
-				this.subscribing = null;
-			});
+		]).then(() => {
+			this.subscribing = null;
+		});
+
 		return this.subscribing;
 	}
 
