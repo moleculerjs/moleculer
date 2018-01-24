@@ -6,9 +6,9 @@
 
 "use strict";
 
+const _				= require("lodash");
 const Promise		= require("bluebird");
 const Transporter 	= require("./base");
-const { MoleculerError } = require("../errors");
 
 /**
  * Lightweight transporter for Kafka
@@ -26,12 +26,17 @@ class KafkaTransporter extends Transporter {
 	 * @memberOf KafkaTransporter
 	 */
 	constructor(opts) {
-		if (typeof opts == "string")
+		if (typeof opts == "string") {
 			opts = { kafka: {
 				host: opts.replace("kafka://", "")
 			} };
+		} else if (!opts) {
+			opts = {
+				kafka: {}
+			};
+		}
 
-		opts.kafka = Object.assign({
+		opts.kafka = _.defaultsDeep(opts.kafka, {
 			host: undefined,
 			client: {
 				zkOptions: undefined,
@@ -41,27 +46,20 @@ class KafkaTransporter extends Transporter {
 			producer: {},
 			customPartitioner: undefined,
 
-			/*consumer: {
-				groupId: undefined, // No nodeID at here
-				encoding: "buffer",
-				fromOffset: false,
+			consumer: {
 			},
-			consumerPayloads: undefined,
-			*/
 
 			publish: {
 				partition: 0,
 				attributes: 0
 			}
-		}, opts.kafka);
+		});
 
 		super(opts);
 
 		this.client = null;
 		this.producer = null;
 		this.consumer = null;
-
-		this.topics = [];
 	}
 
 	/**
@@ -106,6 +104,7 @@ class KafkaTransporter extends Transporter {
 
 				// Create Producer
 				this.producer = new Kafka.Producer(this.client, opts.producer, opts.customPartitioner);
+				/* istanbul ignore next */
 				this.producer.on("error", e => {
 					this.logger.error("Kafka Producer error", e.message);
 					this.logger.debug(e);
@@ -115,6 +114,15 @@ class KafkaTransporter extends Transporter {
 				});
 
 				this.onConnected().then(resolve);
+			});
+
+			/* istanbul ignore next */
+			this.client.on("error", e => {
+				this.logger.error("Kafka Client error", e.message);
+				this.logger.debug(e);
+
+				if (!this.connected)
+					reject(e);
 			});
 
 		});
@@ -153,6 +161,7 @@ class KafkaTransporter extends Transporter {
 		return new Promise((resolve, reject) => {
 
 			this.producer.createTopics(topics, true, (err, data) => {
+				/* istanbul ignore next */
 				if (err) {
 					this.logger.error("Unable to create topics!", topics, err);
 					return reject(err);
@@ -169,6 +178,7 @@ class KafkaTransporter extends Transporter {
 				const Kafka = require("kafka-node");
 				this.consumer = new Kafka.ConsumerGroup(consumerOptions, topics);
 
+				/* istanbul ignore next */
 				this.consumer.on("error", e => {
 					this.logger.error("Kafka Consumer error", e.message);
 					this.logger.debug(e);
@@ -230,6 +240,7 @@ class KafkaTransporter extends Transporter {
 	 * @memberOf KafkaTransporter
 	 */
 	publish(packet) {
+		/* istanbul ignore next */
 		if (!this.producer) return Promise.resolve();
 
 		return new Promise((resolve, reject) => {
@@ -240,6 +251,7 @@ class KafkaTransporter extends Transporter {
 				partition: this.opts.kafka.publish.partition,
 				attributes: this.opts.kafka.publish.attributes,
 			}], (err, result) => {
+				/* istanbul ignore next */
 				if (err) {
 					this.logger.error("Publish error", err);
 					reject(err);

@@ -217,23 +217,25 @@ describe("Test Transit.makeSubscriptions", () => {
 	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
-	transit.subscribe = jest.fn(() => Promise.resolve());
+	transit.tx.makeSubscriptions = jest.fn(() => Promise.resolve());
 
-	it("should call subscribe with all topics", () => {
+	it("should call makeSubscriptions of transporter with all topics", () => {
 		return transit.makeSubscriptions().catch(protectReject).then(() => {
-			expect(transit.subscribe).toHaveBeenCalledTimes(12);
-			expect(transit.subscribe).toHaveBeenCalledWith("EVENT", "node1");
-			expect(transit.subscribe).toHaveBeenCalledWith("REQ", "node1");
-			expect(transit.subscribe).toHaveBeenCalledWith("RES", "node1");
-			expect(transit.subscribe).toHaveBeenCalledWith("DISCOVER");
-			expect(transit.subscribe).toHaveBeenCalledWith("DISCOVER", "node1");
-			expect(transit.subscribe).toHaveBeenCalledWith("INFO");
-			expect(transit.subscribe).toHaveBeenCalledWith("INFO", "node1");
-			expect(transit.subscribe).toHaveBeenCalledWith("DISCONNECT");
-			expect(transit.subscribe).toHaveBeenCalledWith("HEARTBEAT");
-			expect(transit.subscribe).toHaveBeenCalledWith("PING");
-			expect(transit.subscribe).toHaveBeenCalledWith("PING", "node1");
-			expect(transit.subscribe).toHaveBeenCalledWith("PONG", "node1");
+			expect(transit.tx.makeSubscriptions).toHaveBeenCalledTimes(1);
+			expect(transit.tx.makeSubscriptions).toHaveBeenCalledWith([
+				{"cmd": "EVENT",	"nodeID": "node1" },
+				{"cmd": "REQ",	"nodeID": "node1" },
+				{"cmd": "RES",	"nodeID": "node1" },
+				{"cmd": "DISCOVER" },
+				{"cmd": "DISCOVER",	"nodeID": "node1" },
+				{"cmd": "INFO" },
+				{"cmd": "INFO",	"nodeID": "node1" },
+				{"cmd": "DISCONNECT" },
+				{"cmd": "HEARTBEAT" },
+				{"cmd": "PING"},
+				{"cmd": "PING",	"nodeID": "node1" },
+				{"cmd": "PONG",	"nodeID": "node1" }
+			]);
 		});
 	});
 
