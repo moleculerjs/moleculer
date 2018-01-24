@@ -154,7 +154,9 @@ class StanTransporter extends Transporter {
 		const opts = this.client.subscriptionOptions(); //.setStartWithLastReceived().setDurableName(cmd); //No need durable & receive old messages
 		const subscription = this.client.subscribe(t, opts);
 
-		subscription.on("message", msg => this.messageHandler(cmd, msg.getData()));
+		subscription.on("message", msg => {
+			this.messageHandler(cmd, msg.getRawData());
+		});
 		return Promise.resolve();
 	}
 

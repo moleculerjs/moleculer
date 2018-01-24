@@ -15,10 +15,10 @@ let broker = new ServiceBroker({
 	transporter: "STAN",
 	//transporter: "kafka://192.168.51.29:2181",
 	//transporter: "amqp://192.168.0.181:5672",
-	//serializer: "ProtoBuf",
+	//serializer: "Avro",
 	//requestTimeout: 1000,
 
-	disableBalancer: true,
+	//disableBalancer: true,
 
 	metrics: true,
 
@@ -113,15 +113,17 @@ broker.start()
 				broker.logger.info(chalk.grey(`${reqCount}. Send request (${payload.a} + ${payload.b}) to ${p.ctx.nodeID ? p.ctx.nodeID : "some node"} (queue: ${broker.transit.pendingRequests.size})...`), chalk.yellow.bold(pendingInfo));
 			}
 			p.then(({ count, res }) => {
+				broker.logger.info(_.padEnd(`${count}. ${payload.a} + ${payload.b} = ${res}`, 20), `(from: ${p.ctx.nodeID})`);
+
 				// Remove from pending
 				if (pendingReqs.indexOf(count) !== -1)
 					pendingReqs = pendingReqs.filter(n => n != count);
 				else
 					broker.logger.warn(chalk.red.bold("Invalid coming request count: ", count));
-
-				broker.logger.info(_.padEnd(`${count}. ${payload.a} + ${payload.b} = ${res}`, 20), `(from: ${p.ctx.nodeID})`);
 			}).catch(err => {
 				broker.logger.warn(chalk.red.bold(_.padEnd(`${payload.count}. ${payload.a} + ${payload.b} = ERROR! ${err.message}`)));
+				if (pendingReqs.indexOf(payload.count) !== -1)
+					pendingReqs = pendingReqs.filter(n => n != payload.count);
 			});
 		}, 1000);
 

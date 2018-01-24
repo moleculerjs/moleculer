@@ -13,9 +13,9 @@ let broker = new ServiceBroker({
 	transporter: "STAN",
 	//transporter: "kafka://192.168.51.29:2181",
 	//transporter: "amqp://192.168.0.181:5672",
-	//serializer: "ProtoBuf",
+	//serializer: "Avro",
 
-	disableBalancer: true,
+	//disableBalancer: true,
 
 	logger: console,
 	//logLevel: "debug",
