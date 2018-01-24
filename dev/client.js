@@ -12,13 +12,13 @@ let ServiceBroker = require("../src/service-broker");
 let broker = new ServiceBroker({
 	namespace: "multi",
 	nodeID: process.argv[2] || "client-" + process.pid,
-	_transporter: "NATS",
-	transporter: "kafka://192.168.51.29:2181",
+	transporter: "STAN",
+	//transporter: "kafka://192.168.51.29:2181",
 	//transporter: "amqp://192.168.0.181:5672",
 	//serializer: "ProtoBuf",
 	//requestTimeout: 1000,
 
-	//disableBalancer: true,
+	disableBalancer: true,
 
 	metrics: true,
 
