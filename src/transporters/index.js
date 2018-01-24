@@ -12,5 +12,6 @@ module.exports = {
 	NATS: require("./nats"),
 	MQTT: require("./mqtt"),
 	Redis: require("./redis"),
-	AMQP: require("./amqp")
+	AMQP: require("./amqp"),
+	Kafka: require("./kafka")
 };

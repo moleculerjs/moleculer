@@ -8,9 +8,10 @@ let { MoleculerError } = require("../src/errors");
 
 // Create broker
 let broker = new ServiceBroker({
-	//namespace: "multi",
+	namespace: "multi",
 	nodeID: process.argv[2] || "server-" + process.pid,
-	transporter: "NATS",
+	_transporter: "NATS",
+	transporter: "kafka://192.168.51.29:2181",
 	//transporter: "amqp://192.168.0.181:5672",
 	//serializer: "ProtoBuf",
 
@@ -32,7 +33,7 @@ broker.createService({
 			//if (_.random(100) > 90)
 			//	return this.Promise.reject(new MoleculerError("Random error!", 510));
 
-			return this.Promise.resolve().delay(wait).then(() => ({
+			return this.Promise.resolve()./*delay(wait).*/then(() => ({
 				count: ctx.params.count,
 				res: Number(ctx.params.a) + Number(ctx.params.b)
 			}));

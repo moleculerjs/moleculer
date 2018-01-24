@@ -54,6 +54,7 @@
     "jest": "22.1.4",
     "jest-cli": "22.1.4",
     "joi": "11.3.4",
+    "kafka-node": "2.3.2",
     "lolex": "2.3.1",
     "moleculer-repl": "0.3.2",
     "mqtt": "2.15.1",
@@ -85,6 +86,11 @@
   "tonicExampleFilename": "docs/runkit/simple.js",
   "typings": "./index.d.ts",
   "jest": {
+    "coverageDirectory": "../coverage",
+    "coverageReporters": [
+      "text",
+      "lcov"
+    ],
     "coveragePathIgnorePatterns": [
       "/node_modules/",
       "/test/services/",

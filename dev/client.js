@@ -10,9 +10,10 @@ let ServiceBroker = require("../src/service-broker");
 
 // Create broker
 let broker = new ServiceBroker({
-	//namespace: "multi",
+	namespace: "multi",
 	nodeID: process.argv[2] || "client-" + process.pid,
-	transporter: "NATS",
+	_transporter: "NATS",
+	transporter: "kafka://192.168.51.29:2181",
 	//transporter: "amqp://192.168.0.181:5672",
 	//serializer: "ProtoBuf",
 	//requestTimeout: 1000,
@@ -108,4 +109,5 @@ broker.start()
 			});
 		}, 1000);
 
-	});
+	})
+	.then(() => broker.repl());

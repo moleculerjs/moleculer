@@ -79,6 +79,22 @@ describe("Test BaseTransporter", () => {
 		expect(transporter.getTopicName("REQ", "server-2")).toBe("MOL-beta-test.REQ.server-2");
 	});
 
+	it("should call subscribe with all topics", () => {
+		let broker = new ServiceBroker({ namespace: "beta-test", nodeID: "server1" });
+		let transporter = new BaseTransporter();
+		new Transit(broker, transporter);
+		transporter.subscribe = jest.fn(() => Promise.resolve());
+
+		return transporter.makeSubscriptions([
+			{ cmd: P.PACKET_DISCOVER },
+			{ cmd: P.PACKET_DISCOVER, nodeID: "node1" },
+		]).catch(protectReject).then(() => {
+			expect(transporter.subscribe).toHaveBeenCalledTimes(2);
+			expect(transporter.subscribe).toHaveBeenCalledWith("DISCOVER", undefined);
+			expect(transporter.subscribe).toHaveBeenCalledWith("DISCOVER", "node1");
+		});
+	});
+
 	it("check _makeServiceSpecificSubscriptions if hasBuiltInBalancer = FALSE", () => {
 		let broker = new ServiceBroker({ namespace: "beta-test", nodeID: "server1" });
 		let transporter = new BaseTransporter();

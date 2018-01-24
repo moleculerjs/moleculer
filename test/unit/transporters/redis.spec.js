@@ -19,7 +19,7 @@ Redis.mockImplementation(() => {
 });
 
 
-describe("Test NatsTransporter constructor", () => {
+describe("Test RedisTransporter constructor", () => {
 
 	it("check constructor", () => {
 		let transporter = new RedisTransporter();

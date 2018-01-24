@@ -8,6 +8,7 @@ let ServiceBroker = require("../../src/service-broker");
 
 // Create broker
 let broker = new ServiceBroker({
+	namespace: "loadtest",
 	nodeID: process.argv[2] || "client",
 	transporter: process.env.TRANSPORTER || "NATS",
 	logger: console,
