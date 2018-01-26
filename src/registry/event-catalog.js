@@ -189,12 +189,12 @@ class EventCatalog {
 	/**
 	 * Get a filtered list of events
 	 *
-	 * @param {Object} {onlyLocal = false, skipInternal = false, withEndpoints = false}
+	 * @param {Object} {onlyLocal = false, onlyAvailable = false, skipInternal = false, withEndpoints = false}
 	 * @returns {Array}
 	 *
 	 * @memberof EventCatalog
 	 */
-	list({onlyLocal = false, skipInternal = false, withEndpoints = false}) {
+	list({onlyLocal = false, onlyAvailable = false, skipInternal = false, withEndpoints = false}) {
 		let res = [];
 
 		this.events.forEach(list => {
@@ -205,10 +205,14 @@ class EventCatalog {
 			if (onlyLocal && !list.hasLocal())
 				return;
 
+			if (onlyAvailable && !list.hasAvailable())
+				return;
+
 			let item = {
 				name: list.name,
 				group: list.group,
 				count: list.count(),
+				//service: list.service,
 				hasLocal: list.hasLocal(),
 				available: list.hasAvailable()
 			};
@@ -224,7 +228,8 @@ class EventCatalog {
 					item.endpoints = list.endpoints.map(ep => {
 						return {
 							nodeID: ep.node.id,
-							state: ep.state
+							state: ep.state,
+							available: ep.node.available,
 						};
 					});
 				}

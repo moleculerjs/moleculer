@@ -32,6 +32,7 @@ broker.loadService("examples/es6.class.service");
 
 broker.start()
 	.then(() => broker.repl())
+	.then(() => broker.call("$node.events"));
 	/*.then(() => setInterval(() => {
 		broker.call("math.add", { a: 5, b: 3});
 	}, 5000));*/

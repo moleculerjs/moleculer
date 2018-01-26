@@ -79,12 +79,12 @@ class ServiceCatalog {
 	/**
 	 * Get a filtered list of services with actions
 	 *
-	 * @param {Object} {onlyLocal = false, skipInternal = false, withActions = false, withEvents = false}
+	 * @param {Object} {onlyLocal = false,  onlyAvailable = false, skipInternal = false, withActions = false, withEvents = false}
 	 * @returns {Array}
 	 *
 	 * @memberof Registry
 	 */
-	list({ onlyLocal = false, skipInternal = false, withActions = false, withEvents = false }) {
+	list({ onlyLocal = false, onlyAvailable = false, skipInternal = false, withActions = false, withEvents = false }) {
 		let res = [];
 		this.services.forEach(service => {
 			if (skipInternal && /^\$node/.test(service.name))
@@ -93,12 +93,16 @@ class ServiceCatalog {
 			if (onlyLocal && !service.local)
 				return;
 
+			if (onlyAvailable && !service.node.available)
+				return;
+
 			let item = {
 				name: service.name,
 				version: service.version,
 				settings: service.settings,
 				metadata: service.metadata,
-				nodeID: service.node.id
+				nodeID: service.node.id,
+				available: service.node.available,
 			};
 
 			if (withActions) {

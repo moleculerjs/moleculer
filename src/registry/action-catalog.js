@@ -112,12 +112,12 @@ class ActionCatalog {
 	/**
 	 * Get a filtered list of actions
 	 *
-	 * @param {Object} {onlyLocal = false, skipInternal = false, withEndpoints = false}
+	 * @param {Object} {onlyLocal = false, onlyAvailable = false, skipInternal = false, withEndpoints = false}
 	 * @returns {Array}
 	 *
 	 * @memberof ActionCatalog
 	 */
-	list({onlyLocal = false, skipInternal = false, withEndpoints = false}) {
+	list({onlyLocal = false, onlyAvailable = false, skipInternal = false, withEndpoints = false}) {
 		let res = [];
 
 		this.actions.forEach((list, key) => {
@@ -125,6 +125,9 @@ class ActionCatalog {
 				return;
 
 			if (onlyLocal && !list.hasLocal())
+				return;
+
+			if (onlyAvailable && !list.hasAvailable())
 				return;
 
 			let item = {
@@ -146,7 +149,8 @@ class ActionCatalog {
 					item.endpoints = list.endpoints.map(ep => {
 						return {
 							nodeID: ep.node.id,
-							state: ep.state
+							state: ep.state,
+							available: ep.node.available,
 						};
 					});
 				}
