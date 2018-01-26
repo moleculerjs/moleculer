@@ -306,6 +306,7 @@ describe("Test internal services", () => {
 				"available": true,
 				"count": 1,
 				"endpoints": [{
+					"available": true,
 					"nodeID": "node-master",
 					"state": true
 				}],
@@ -325,6 +326,7 @@ describe("Test internal services", () => {
 				"available": true,
 				"count": 1,
 				"endpoints": [{
+					"available": true,
 					"nodeID": "node-master",
 					"state": true
 				}],
@@ -339,6 +341,7 @@ describe("Test internal services", () => {
 				"available": true,
 				"count": 1,
 				"endpoints": [{
+					"available": true,
 					"nodeID": "node-master",
 					"state": true
 				}],
@@ -378,6 +381,7 @@ describe("Test internal services", () => {
 				"available": true,
 				"count": 1,
 				"endpoints": [{
+					"available": true,
 					"nodeID": "node-master",
 					"state": true
 				}],
@@ -391,6 +395,7 @@ describe("Test internal services", () => {
 				"available": true,
 				"count": 1,
 				"endpoints": [{
+					"available": true,
 					"nodeID": "node-master",
 					"state": true
 				}],

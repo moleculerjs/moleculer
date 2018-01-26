@@ -129,6 +129,7 @@ describe("Test EventCatalog methods", () => {
 				"count": 1,
 				"endpoints": [
 					{
+						"available": undefined,
 						"nodeID": "server-1",
 						"state": true
 					}
@@ -146,6 +147,7 @@ describe("Test EventCatalog methods", () => {
 				"count": 1,
 				"endpoints": [
 					{
+						"available": true,
 						"nodeID": broker.registry.nodes.localNode.id,
 						"state": true
 					}
