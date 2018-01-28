@@ -75,6 +75,13 @@ describe("Test mergeSchemas", () => {
 						keys: ["id"]
 					},
 					handler() {}
+				},
+				create() {},
+				update: {
+					use: [],
+					handler() {
+
+					}
 				}
 			},
 
@@ -126,6 +133,13 @@ describe("Test mergeSchemas", () => {
 					handler() {}
 				},
 				list() {},
+				create: {
+					cache: {
+						keys: ["id"]
+					}
+				},
+				update() {
+				},
 				remove() {}
 			},
 
@@ -178,9 +192,25 @@ describe("Test mergeSchemas", () => {
 		expect(res.dependencies).toEqual(["math", "posts", "users"]);
 
 		expect(res.actions.get).toBe(origSchema.actions.get);
-		expect(res.actions.find).toBe(newSchema.actions.find);
-		expect(res.actions.list).toBe(newSchema.actions.list);
-		expect(res.actions.remove).toBe(newSchema.actions.remove);
+		expect(res.actions.find.handler).toBe(newSchema.actions.find.handler);
+		expect(res.actions.find.cache).toBe(false);
+		expect(res.actions.list.handler).toBe(newSchema.actions.list);
+		expect(res.actions.remove.handler).toBe(newSchema.actions.remove);
+
+		// Merge action definition
+		expect(res.actions.create).toEqual({
+			cache: {
+				keys: ["id"]
+			},
+			handler: origSchema.actions.create
+		});
+		expect(res.actions.create.handler).toBe(origSchema.actions.create);
+
+		expect(res.actions.update).toEqual({
+			use: [],
+			handler: newSchema.actions.update
+		});
+		expect(res.actions.update.handler).toBe(newSchema.actions.update);
 
 		expect(res.events.created).toBeInstanceOf(Array);
 		expect(res.events.created[0]).toBe(origSchema.events.created);
