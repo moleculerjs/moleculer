@@ -539,7 +539,7 @@ class Transit {
 
 		let p = Promise.resolve();
 		if (!nodeID)
-			p = this.tx._makeServiceSpecificSubscriptions();
+			p = this.tx.makeBalancedSubscriptions();
 
 		return p.then(() => this.publish(new P.PacketInfo(this, nodeID, info)));
 	}

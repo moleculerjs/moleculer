@@ -770,7 +770,7 @@ describe("Test Transit.sendNodeInfo", () => {
 		services: []
 	}));
 
-	transit.tx._makeServiceSpecificSubscriptions = jest.fn(() => Promise.resolve());
+	transit.tx.makeBalancedSubscriptions = jest.fn(() => Promise.resolve());
 	transit.publish = jest.fn();
 
 	it("should not call publish while not connected", () => {
@@ -791,7 +791,7 @@ describe("Test Transit.sendNodeInfo", () => {
 	it("should call publish with correct params if has nodeID", () => {
 		transit.isReady = true;
 		return transit.sendNodeInfo("node2").then(() => {
-			expect(transit.tx._makeServiceSpecificSubscriptions).toHaveBeenCalledTimes(0);
+			expect(transit.tx.makeBalancedSubscriptions).toHaveBeenCalledTimes(0);
 			expect(transit.publish).toHaveBeenCalledTimes(1);
 			expect(broker.getLocalNodeInfo).toHaveBeenCalledTimes(1);
 			const packet = transit.publish.mock.calls[0][0];
@@ -806,7 +806,7 @@ describe("Test Transit.sendNodeInfo", () => {
 		broker.getLocalNodeInfo.mockClear();
 
 		return transit.sendNodeInfo().then(() => {
-			expect(transit.tx._makeServiceSpecificSubscriptions).toHaveBeenCalledTimes(1);
+			expect(transit.tx.makeBalancedSubscriptions).toHaveBeenCalledTimes(1);
 			expect(transit.publish).toHaveBeenCalledTimes(1);
 			expect(broker.getLocalNodeInfo).toHaveBeenCalledTimes(1);
 			const packet = transit.publish.mock.calls[0][0];

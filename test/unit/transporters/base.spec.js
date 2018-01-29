@@ -95,7 +95,7 @@ describe("Test BaseTransporter", () => {
 		});
 	});
 
-	it("check _makeServiceSpecificSubscriptions if hasBuiltInBalancer = FALSE", () => {
+	it("check makeBalancedSubscriptions if hasBuiltInBalancer = FALSE", () => {
 		let broker = new ServiceBroker({ namespace: "beta-test", nodeID: "server1" });
 		let transporter = new BaseTransporter();
 		new Transit(broker, transporter);
@@ -124,7 +124,7 @@ describe("Test BaseTransporter", () => {
 		transporter.subscribeBalancedEvent = jest.fn();
 		transporter.subscribeBalancedRequest = jest.fn();
 
-		return transporter._makeServiceSpecificSubscriptions().catch(protectReject).then(() => {
+		return transporter.makeBalancedSubscriptions().catch(protectReject).then(() => {
 			expect(transporter.unsubscribeFromBalancedCommands).toHaveBeenCalledTimes(0);
 			expect(broker.getLocalNodeInfo).toHaveBeenCalledTimes(0);
 			expect(transporter.subscribeBalancedRequest).toHaveBeenCalledTimes(0);
@@ -132,7 +132,7 @@ describe("Test BaseTransporter", () => {
 		});
 	});
 
-	it("check _makeServiceSpecificSubscriptions if hasBuiltInBalancer = TRUE", () => {
+	it("check makeBalancedSubscriptions if hasBuiltInBalancer = TRUE", () => {
 		let broker = new ServiceBroker({ namespace: "beta-test", nodeID: "server1" });
 		let transporter = new BaseTransporter();
 		new Transit(broker, transporter);
@@ -161,7 +161,7 @@ describe("Test BaseTransporter", () => {
 		transporter.subscribeBalancedEvent = jest.fn();
 		transporter.subscribeBalancedRequest = jest.fn();
 
-		return transporter._makeServiceSpecificSubscriptions().catch(protectReject).then(() => {
+		return transporter.makeBalancedSubscriptions().catch(protectReject).then(() => {
 			expect(transporter.unsubscribeFromBalancedCommands).toHaveBeenCalledTimes(1);
 
 			expect(broker.getLocalNodeInfo).toHaveBeenCalledTimes(1);

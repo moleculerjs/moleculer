@@ -209,7 +209,7 @@ class BaseTransporter {
 	 *
 	 * @memberOf AmqpTransporter
 	 */
-	_makeServiceSpecificSubscriptions() {
+	makeBalancedSubscriptions() {
 		if (!this.hasBuiltInBalancer) return Promise.resolve();
 
 		return this.unsubscribeFromBalancedCommands().then(() => {

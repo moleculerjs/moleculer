@@ -39,17 +39,23 @@ class KafkaTransporter extends Transporter {
 
 		opts.kafka = defaultsDeep(opts.kafka, {
 			host: undefined,
+
+			// KafkaClient options. More info: https://github.com/SOHU-Co/kafka-node#clientconnectionstring-clientid-zkoptions-noackbatchoptions-ssloptions
 			client: {
 				zkOptions: undefined,
 				noAckBatchOptions: undefined,
 				sslOptions: undefined,
 			},
+
+			// KafkaProducer options. More info: https://github.com/SOHU-Co/kafka-node#producerclient-options-custompartitioner
 			producer: {},
 			customPartitioner: undefined,
 
+			// ConsumerGroup options. More info: https://github.com/SOHU-Co/kafka-node#consumergroupoptions-topics
 			consumer: {
 			},
 
+			// Advanced options for `send`. More info: https://github.com/SOHU-Co/kafka-node#sendpayloads-cb
 			publish: {
 				partition: 0,
 				attributes: 0
