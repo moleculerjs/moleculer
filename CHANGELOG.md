@@ -10,6 +10,38 @@ The protocol is changed. The new version is `3`. [Check the changes.](https://gi
 - the `RESPONSE` packet has a new field `meta`.
 - the `EVENT` packet has a new field `broadcast`.
 - the `port` field is removed from `INFO` packet.
+
+## Mixin merging logic is changed
+To support [#188](https://github.com/ice-services/moleculer/issues/188), mixins `actions` merging logic is changed. Now it uses `defaultsDeep` for merging. It means, you can extend the actions definitions of mixins.
+
+**Add extra action properties but `handler` is ontuched**
+```js
+    // mixin.service.js
+    module.exports = {
+        actions: {
+            create(ctx) {
+
+            }
+        }
+    };
+```
+
+```js
+    // my.service.js
+    module.exports = {
+        mixins: [MixinService]
+        actions: {
+            create: {
+                // Add `params` to the `create` action from mixin service
+                params: {
+                    name: "string"
+                }
+            }
+        }
+
+    };
+```
+
 # New
 
 ## New ServiceBroker options
@@ -300,6 +332,93 @@ module.export = {
         }
     }
 }
+```
+
+## New experimental transporter for Kafka
+There is a new transporter for [Kafka](https://kafka.apache.org/). It is a very simple implementation. It transfer only Moleculer packets to consumers, there is no offset, replay...etc features.
+Please note, it is an **experimental** transporter. **Do not use it in production yet!**
+
+>To use, install `kafka-node` lib with `npm install kafka-node --save` command.
+
+**Connect to Zookeeper**
+```js
+let broker = new ServiceBroker({
+    logger: true,
+    transporter: "kafka://192.168.51.29:2181"
+});
+```
+
+**Connect to Zookeeper with custom options**
+```js
+let broker = new ServiceBroker({
+    logger: true,
+    transporter: {
+        type: "kafka",
+        options: {
+            kafka: {
+                host: "192.168.51.29:2181",
+
+                // KafkaClient options. More info: https://github.com/SOHU-Co/kafka-node#clientconnectionstring-clientid-zkoptions-noackbatchoptions-ssloptions
+                client: {
+                    zkOptions: undefined,
+                    noAckBatchOptions: undefined,
+                    sslOptions: undefined
+                },
+
+                // KafkaProducer options. More info: https://github.com/SOHU-Co/kafka-node#producerclient-options-custompartitioner
+                producer: {},
+                customPartitioner: undefined,
+
+                // ConsumerGroup options. More info: https://github.com/SOHU-Co/kafka-node#consumergroupoptions-topics
+                consumer: {
+                },
+
+                // Advanced options for `send`. More info: https://github.com/SOHU-Co/kafka-node#sendpayloads-cb
+                publish: {
+                    partition: 0,
+                    attributes: 0
+                }               
+            }
+        }
+    }
+    
+});
+```
+
+## New experimental transporter for NATS Streaming
+There is a new transporter for [NATS Streaming](https://nats.io/documentation/streaming/nats-streaming-intro/). It is a very simple implementation. It transfers only Moleculer packets to consumers, there is no offset, replay...etc features.
+Please note, it is an **experimental** transporter. **Do not use it in production yet!**
+
+>To use, install `node-nats-streaming` lib with `npm install node-nats-streaming --save` command.
+
+**Connect to NATS Streaming server**
+```js
+// Shorthand to local server
+let broker = new ServiceBroker({
+    logger: true,
+    transporter: "STAN"
+});
+
+// Shorthand
+let broker = new ServiceBroker({
+    logger: true,
+    transporter: "stan://192.168.0.120:4222"
+});
+
+// Shorthand with options
+let broker = new ServiceBroker({
+    logger: true,
+    transporter: {
+        type: "STAN",
+        options: {
+            stan: {
+                url: "stan://127.0.0.1:4222",
+                clusterID: "my-cluster"
+            }
+        }
+    }
+});
+
 ```
 
 # Changes
