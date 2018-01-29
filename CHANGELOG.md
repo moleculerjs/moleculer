@@ -258,62 +258,62 @@ There are two ways:
     const { Service, Action, Event, Method } = require('moleculer-decorators');
     const web = require('moleculer-web');
     const broker = new moleculer.ServiceBroker({
-    logger: console,
-    logLevel: "debug",
+        logger: console,
+        logLevel: "debug",
     });
 
     @Service({
-    mixins: [web],
-    settings: {
-        port: 3000,
-        routes: [
-        ...
-        ]
-    }
-    })
-    class ServiceName {
-    @Action()
-    Login(ctx) {
-        ...
-    }
-
-    // With options
-    @Action({
-        cache: false,
-        params: {
-        a: "number",
-        b: "number"
+        mixins: [web],
+        settings: {
+            port: 3000,
+            routes: [
+            ...
+            ]
         }
     })
-    Login2(ctx) {
-        ...
-    }
+    class ServiceName {
+        @Action()
+        Login(ctx) {
+            ...
+        }
 
-    @Event
-    'event.name'(payload, sender, eventName) {
-        ...
-    }
+        // With options
+        @Action({
+            cache: false,
+            params: {
+                a: "number",
+                b: "number"
+            }
+        })
+        Login2(ctx) {
+            ...
+        }
 
-    @Method
-    authorize(ctx, route, req, res) {
-        ...
-    }
+        @Event
+        'event.name'(payload, sender, eventName) {
+            ...
+        }
 
-    hello() { // Private
-        ...
-    }
+        @Method
+        authorize(ctx, route, req, res) {
+            ...
+        }
 
-    started() { // Reserved for moleculer, fired when started
-        ...
-    }
+        hello() { // Private
+            ...
+        }
 
-    created() { // Reserved for moleculer, fired when created
-        ...
-    }
+        started() { // Reserved for moleculer, fired when started
+            ...
+        }
 
-    stopped() { // Reserved for moleculer, fired when stopped
-        ...
-    }
+        created() { // Reserved for moleculer, fired when created
+            ...
+        }
+
+        stopped() { // Reserved for moleculer, fired when stopped
+            ...
+        }
     }
 
     broker.createService(ServiceName);
