@@ -31,7 +31,7 @@ describe("Test utils.isPromise", () => {
 describe("Test utils.getNodeID", () => {
 	let os = require("os");
 	it("should give the computer hostname", () => {
-		expect(utils.getNodeID()).toBe(os.hostname().toLowerCase());
+		expect(utils.getNodeID()).toBe(os.hostname().toLowerCase() + "-" + process.pid);
 	});
 });
 

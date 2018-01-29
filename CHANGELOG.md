@@ -42,6 +42,9 @@ To support [#188](https://github.com/ice-services/moleculer/issues/188), mixins 
     };
 ```
 
+## Default `nodeID` generator changed
+When you didn't define `nodeID` in broker options, the broker generated the `nodeID` from hostname (`os.hostname()`). It could cause a problem for many users when they tried to run multiple instances on the same node. Therefore, from now the broker generates the `nodeID` from hostname **and process PID**. The newly generated nodeID looks like `server-6874`.
+
 # New
 
 ## New ServiceBroker options
@@ -419,6 +422,36 @@ let broker = new ServiceBroker({
     }
 });
 
+```
+
+## Custom REPL commands in broker options
+You can define custom REPL commands.
+
+```js
+let broker = new ServiceBroker({
+    logger: true,
+    replCommands: [
+        {
+            command: "hello <name>",
+            description: "Call the greeter.hello service with name",
+            alias: "hi",
+            options: [
+                { option: "-u, --uppercase", description: "Uppercase the name" }
+            ],
+            types: {
+                string: ["name"],
+                boolean: ["u", "uppercase"]
+            },
+            //parse(command, args) {},
+            //validate(args) {},
+            //help(args) {},
+            allowUnknownOptions: true,
+            action(args) {
+                return broker.call("greeter.hello", { name: args.name }).then(console.log);
+            }
+        }
+    ]
+});
 ```
 
 # Changes

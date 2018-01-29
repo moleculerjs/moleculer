@@ -420,7 +420,7 @@ class ServiceBroker {
 		}
 
 		if (repl)
-			repl(this);
+			repl(this, this.options.replCommands);
 	}
 
 	/**

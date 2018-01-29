@@ -693,13 +693,23 @@ describe("Test broker.repl", () => {
 	let repl = require("moleculer-repl");
 	repl.mockImplementation(() => jest.fn());
 
-	let broker = new ServiceBroker();
-
 	it("should switch to repl mode", () => {
+		let broker = new ServiceBroker();
 		broker.repl();
 
 		expect(repl).toHaveBeenCalledTimes(1);
-		expect(repl).toHaveBeenCalledWith(broker);
+		expect(repl).toHaveBeenCalledWith(broker, undefined);
+	});
+
+	it("should switch to repl mode with custom commands", () => {
+		repl.mockClear();
+		let broker = new ServiceBroker({
+			replCommands: []
+		});
+		broker.repl();
+
+		expect(repl).toHaveBeenCalledTimes(1);
+		expect(repl).toHaveBeenCalledWith(broker, broker.options.replCommands);
 	});
 });
 

@@ -33,7 +33,7 @@ let utils = {
 	 * @returns
 	 */
 	getNodeID() {
-		return os.hostname().toLowerCase();// + "-" + process.pid;
+		return os.hostname().toLowerCase() + "-" + process.pid;
 	},
 
 	/**
