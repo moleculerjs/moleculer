@@ -86,11 +86,11 @@ broker.broadcast("user.created", { user }, ["user", "purchase"]);
 ```
 
 ## CPU usage-based strategy
-There is a new `CpuUsageStrategy`. It is select a node which has the lowest CPU usage.
-Due to the node list can be very long, the Strategy gets some samples and selects the node with the lowest CPU usage from samples.
+There is a new `CpuUsageStrategy`. It selects a node which has the lowest CPU usage.
+Due to the node list can be very long, it gets samples and selects the node with the lowest CPU usage from only samples.
 There are 2 options for the strategy.
 - `sampleCount`: the count of samples. Default: `3`
-- `lowCpuUsage`: the low CPU usage. The node which has lower CPU usage than this value will be returned immediately. Default: `10`
+- `lowCpuUsage`: the low CPU usage. The node which has lower CPU usage than this value is selected immediately. Default: `10`
 
 **Usage:**
 ```js
@@ -117,21 +117,21 @@ let broker = new ServiceBroker({
 ## Changed starting logic
 The broker & services starting logic has been changed. 
 
-Before: the `broker.start` starts transporter connecting. When it's done, starts all services (calls service `started` handlers). The disadvantage is that other nodes can send request to these services, while they are starting.
+**Before:** the `broker.start` starts transporter connecting. When it's done, starts all services (calls service `started` handlers). The disadvantage is that other nodes can send request to these services, while they are starting.
 
-After: the `broker.start` starts transporter connecting but they don't publish the local service list. When it's done, starts all services (calls service `started` handlers). Once all services started (all returned Promises are resolved), broker publish the registered & started service list to all other nodes. Therefore other nodes send request after all local service started properly.
+**After:** the `broker.start` starts transporter connecting but they don't publish the local service list. When it's done, starts all services (calls service `started` handlers). Once all services started (all returned Promises are resolved), broker publish the registered & started service list to all other nodes. Therefore other nodes send request after all local service started properly.
 >Please note: you can make dead-locks when two services wait for each other. E.g.: `users` service has `dependencies: [posts]` and `posts` service has `dependencies: [users]`. To avoid it remove the concerned service from `dependencies` and use `waitForServices` method out of `started` handler instead.
 
 ## Metadata is sent back to requester
-You can use it to send back extra meta information to the caller. E.g. send back response headers to Moleculer Web or fill it with user object after logged in user resolving.
+You can use it to send extra meta information back to the caller. E.g. send response headers back to Moleculer Web or fill it with user object after logged in user is resolved.
 
-**Example to export & download a file:**
+**Export & download a file with API gateway:**
 ```js
 // Export data
 export(ctx) {
     const rows = this.adapter.find({});
 
-    // Set headers to download as a file
+    // Set response headers to download it as a file
     ctx.meta.headers = {
         "Content-Type": "application/json; charset=utf-8",
         "Content-Disposition": 'attachment; filename=\"book.json\"'
@@ -145,7 +145,7 @@ export(ctx) {
 ```js
 auth(ctx) {
     let user = this.getUserByJWT(ctx.params.token);
-    if (user) {
+    if (ctx.meta.user) {
         ctx.meta.user = user;
         ctx.meta.session = uuid.v4(); // Generate a session ID
 
@@ -246,8 +246,8 @@ There are two ways:
 
 2. **Use decorators**
 
-    Thanks for [@ColonelBundy](https://github.com/ColonelBundy), he has created decorators for Moleculer service: [moleculer-decorators](https://github.com/ColonelBundy/moleculer-decorators)
-    >This way, you need to use Typescript or Babel to compile decorators.
+    Thanks for [@ColonelBundy](https://github.com/ColonelBundy), he created decorators for Moleculer service: [moleculer-decorators](https://github.com/ColonelBundy/moleculer-decorators)
+    >Please note, in this case you need to use Typescript or Babel to compile decorators.
 
     **Example service**
     ```js
@@ -335,7 +335,7 @@ module.export = {
 ```
 
 ## New experimental transporter for Kafka
-There is a new transporter for [Kafka](https://kafka.apache.org/). It is a very simple implementation. It transfer only Moleculer packets to consumers, there is no offset, replay...etc features.
+There is a new transporter for [Kafka](https://kafka.apache.org/). It is a very simple implementation. It transfers Moleculer packets to consumers. There is no offset, replay...etc features.
 Please note, it is an **experimental** transporter. **Do not use it in production yet!**
 
 >To use, install `kafka-node` lib with `npm install kafka-node --save` command.
@@ -386,7 +386,7 @@ let broker = new ServiceBroker({
 ```
 
 ## New experimental transporter for NATS Streaming
-There is a new transporter for [NATS Streaming](https://nats.io/documentation/streaming/nats-streaming-intro/). It is a very simple implementation. It transfers only Moleculer packets to consumers, there is no offset, replay...etc features.
+There is a new transporter for [NATS Streaming](https://nats.io/documentation/streaming/nats-streaming-intro/). It is a very simple implementation. It transfers Moleculer packets to consumers. There is no offset, replay...etc features.
 Please note, it is an **experimental** transporter. **Do not use it in production yet!**
 
 >To use, install `node-nats-streaming` lib with `npm install node-nats-streaming --save` command.
@@ -422,11 +422,11 @@ let broker = new ServiceBroker({
 ```
 
 # Changes
-- MemoryCacher clean cache entries after the transporter connected.
+- MemoryCacher clears cache entries after the transporter connected/reconnected.
 - `broker.loadServices` file mask is changed from `*.service.js` to `**/*.service.js` to load all services from subfolders too.
 - `ServiceNotFoundError` and `ServiceNotAvailableError` errors are retryable errors.
 - `Strategy.select` method gets only available endpoint list.
-- broker removes old unavailable nodes in 3 minutes.
+- broker removes old (> 3 mins) unavailable nodes.
 - CPU usage in `HEARTBEAT` packet is working properly in Windows.
 - register middlewares before internal service (`$node.*`)
 - `broker.getAction` deprecated method is removed.
