@@ -88,10 +88,6 @@
   "typings": "./index.d.ts",
   "jest": {
     "coverageDirectory": "../coverage",
-    "coverageReporters": [
-      "text",
-      "lcov"
-    ],
     "coveragePathIgnorePatterns": [
       "/node_modules/",
       "/test/services/",
