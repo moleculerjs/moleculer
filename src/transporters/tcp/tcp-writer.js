@@ -10,6 +10,8 @@ const net 			= require("net");
 const EventEmitter 	= require("events");
 const Promise		= require("bluebird");
 
+const HEADER_SIZE	= 6;
+
 /**
  * TCP Writer for TcpTransporter
  *
@@ -46,9 +48,18 @@ class TcpWriter extends EventEmitter {
 	 * @param {String} nodeID
 	 */
 	connect(nodeID) {
-		// TODO resolve host, port by nodeID
+		const nodeInfo = this.transporter.getNodeInfo(nodeID);
+		if (!nodeInfo)
+			throw new Error(`Missing node info for '${nodeID}'!`);
+
+		const host = nodeInfo.host;
+		const port = nodeInfo.port;
+
 		return new Promise((resolve, reject) => {
-			const socket = net.connect({ host, port }, () => resolve(socket));
+			const socket = net.connect({ host, port }, () => {
+				this.sockets.set(nodeID, socket);
+				resolve(socket);
+			});
 
 			socket.on("error", err => {
 				reject(err);
@@ -65,31 +76,32 @@ class TcpWriter extends EventEmitter {
 	 * @param {Buffer} data
 	 */
 	send(nodeID, type, data) {
-		return new Promise((resolve, reject) => {
+		return Promise.resolve()
+			.then(() => {
+				let socket = this.sockets.get(nodeID);
+				if (socket)
+					return socket;
 
-			let socket = this.sockets.get(nodeID);
-			if (socket)
-				return socket;
+				return this.connect(nodeID);
+			})
+			.then(socket => {
+				return new Promise(resolve => {
 
-			return this.connect(nodeID);
-		}).then(socket => {
-			return new Promise(resolve => {
+					// Create binary payload
+					const header = Buffer.alloc(HEADER_SIZE);
+					header.writeInt32BE(data.length + HEADER_SIZE, 1);
+					header.writeInt8(type, 5);
+					const crc = header[1] ^ header[2] ^ header[3] ^ header[4] ^ header[5];
+					header[0] = crc;
 
-				// Create binary payload
-				const header = Buffer.from(6);
-				header.writeInt32BE(data.length, 1);
-				header.writeInt8(type);
-				const crc = header[1] ^ header[2] ^ header[3] ^ header[4] ^ header[5];
-				header[0] = crc;
+					const payload = Buffer.concat([header, data]);
 
-				const payload = Buffer.concat([header, data]);
-
-				socket.write(payload, () => {
-					this.logger.info(`${type} packet sent to ${nodeID}.`);
-					resolve();
+					socket.write(payload, () => {
+						this.logger.info(`${type} packet sent to ${nodeID}.`);
+						resolve();
+					});
 				});
 			});
-		});
 	}
 
 	/**

@@ -9,7 +9,7 @@
 const net 			= require("net");
 const EventEmitter 	= require("events");
 const Promise		= require("bluebird");
-const Parser		= require("./tcp/parser");
+const Parser		= require("./parser");
 
 /**
  * TCP Reader for TcpTransporter
@@ -84,7 +84,7 @@ class TcpReader extends EventEmitter {
 			this.logger.info(`TCP client '${address}' data received. Type:`, type);
 			this.logger.info(message.toString());
 
-			this.messageHandler(type, message);
+			// TODO this.messageHandler(type, message);
 		});
 
 		parser.on("error", err => {

@@ -52,14 +52,15 @@ class Parser extends Writable {
 			if (crc !== packet[0]) {
 				cb(new Error("Invalid packet CRC!"));
 			}
-			const length = (packet[1] << 24) | (packet[1] << 16) | (packet[1] << 8) | (packet[1] & 0xff);
+
+			const length = packet.readInt32BE(1);
 
 			// The chunk contain a message
 			if (packet.length >= length) {
-				const msg = packet.slice(0, length);
+				const msg = packet.slice(6, length);
 				const type = resolvePacketType(packet[5]);
 
-				this.emit("packet", type, msg);
+				this.emit("data", type, msg);
 
 				// Remove processed message from incoming data
 				packet = packet.slice(length);

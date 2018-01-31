@@ -95,6 +95,13 @@
 		},
 		{
 			"type": "node",
+			"request": "launch",
+			"name": "Launch TCP test",
+			"program": "${workspaceRoot}\\src\\transporters\\tcp\\test.js",
+			"cwd": "${workspaceRoot}\\src\\transporters\\tcp"
+		},
+		{
+			"type": "node",
 			"request": "attach",
 			"name": "Attach to Process",
 			"port": 5858
