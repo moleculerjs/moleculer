@@ -411,9 +411,9 @@ describe("Test NodeCatalog.list", () => {
 				"cpu": null,
 				"id": broker.nodeID,
 				"ipList": catalog.localNode.ipList,
+				"hostname": catalog.localNode.hostname,
 				"lastHeartbeatTime": jasmine.any(Number),
-				"local": true,
-				"port": null
+				"local": true
 			},
 			{
 				"available": true,
@@ -422,9 +422,9 @@ describe("Test NodeCatalog.list", () => {
 				"cpu": null,
 				"id": "node-10",
 				"ipList": undefined,
+				"hostname": undefined,
 				"lastHeartbeatTime": jasmine.any(Number),
 				"local": false,
-				"port": null
 			}
 		]);
 
@@ -440,9 +440,9 @@ describe("Test NodeCatalog.list", () => {
 				"cpu": null,
 				"id": broker.nodeID,
 				"ipList": catalog.localNode.ipList,
+				"hostname": catalog.localNode.hostname,
 				"lastHeartbeatTime": jasmine.any(Number),
 				"local": true,
-				"port": null,
 				"services": []
 			},
 			{
@@ -454,7 +454,6 @@ describe("Test NodeCatalog.list", () => {
 				"ipList": undefined,
 				"lastHeartbeatTime": jasmine.any(Number),
 				"local": false,
-				"port": null,
 				"services": []
 			}
 		]);

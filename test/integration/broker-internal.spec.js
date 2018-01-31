@@ -1,5 +1,6 @@
 const ServiceBroker = require("../../src/service-broker");
 const Promise = require("bluebird");
+const { hostname } = require("os");
 
 describe("Test internal services", () => {
 
@@ -68,9 +69,9 @@ describe("Test internal services", () => {
 				"cpu": null,
 				"id": "node-master",
 				"ipList": localNode.ipList,
+				"hostname": hostname(),
 				"lastHeartbeatTime": localNode.lastHeartbeatTime,
-				"local": true,
-				"port": null
+				"local": true
 			}]);
 		});
 	});

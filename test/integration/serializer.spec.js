@@ -70,6 +70,7 @@ describe("Test JSON serializer", () => {
 				}}
 			],
 			ipList: [ "127.0.0.1" ],
+			hostname: "test-server",
 			client: {
 				type: "nodejs",
 				version: "1.2.3",
@@ -79,12 +80,13 @@ describe("Test JSON serializer", () => {
 		};
 		const packet = new P.PacketInfo(broker.transit, "test-2", info);
 		const s = packet.serialize();
-		expect(s).toBe("{\"ver\":\"3\",\"sender\":\"test-1\",\"services\":[{\"name\":\"users\",\"version\":\"2\",\"settings\":{},\"metadata\":{},\"actions\":{\"users.create\":{}},\"events\":{\"user.created\":{}}}],\"ipList\":[\"127.0.0.1\"],\"client\":{\"type\":\"nodejs\",\"version\":\"1.2.3\",\"langVersion\":\"6.10.2\"},\"config\":{}}");
+		expect(s).toBe("{\"ver\":\"3\",\"sender\":\"test-1\",\"services\":[{\"name\":\"users\",\"version\":\"2\",\"settings\":{},\"metadata\":{},\"actions\":{\"users.create\":{}},\"events\":{\"user.created\":{}}}],\"ipList\":[\"127.0.0.1\"],\"hostname\":\"test-server\",\"client\":{\"type\":\"nodejs\",\"version\":\"1.2.3\",\"langVersion\":\"6.10.2\"},\"config\":{}}");
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_INFO, s);
 		expect(res).toBeInstanceOf(P.PacketInfo);
 		expect(res.payload.services).toEqual(info.services);
 		expect(res.payload.ipList).toEqual(info.ipList);
+		expect(res.payload.hostname).toEqual(info.hostname);
 		expect(res.payload.client).toEqual(info.client);
 		expect(res.payload.config).toEqual(info.config);
 	});
@@ -250,6 +252,7 @@ describe("Test Avro serializer", () => {
 				}}
 			],
 			ipList: [ "127.0.0.1" ],
+			hostname: "test-server",
 			client: {
 				type: "nodejs",
 				version: "1.2.3",
@@ -259,12 +262,13 @@ describe("Test Avro serializer", () => {
 		};
 		const packet = new P.PacketInfo(broker.transit, "test-2", info);
 		const s = packet.serialize();
-		expect(s.length).toBe(165);
+		expect(s.length).toBe(177);
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_INFO, s);
 		expect(res).toBeInstanceOf(P.PacketInfo);
 		expect(res.payload.services).toEqual(info.services);
 		expect(res.payload.ipList).toEqual(info.ipList);
+		expect(res.payload.hostname).toEqual(info.hostname);
 		expect(res.payload.client).toEqual(info.client);
 		expect(res.payload.config).toEqual(info.config);
 	});
@@ -431,6 +435,7 @@ describe("Test MsgPack serializer", () => {
 				}}
 			],
 			ipList: [ "127.0.0.1" ],
+			hostname: "test-server",
 			client: {
 				type: "nodejs",
 				version: "1.2.3",
@@ -440,7 +445,7 @@ describe("Test MsgPack serializer", () => {
 		};
 		const packet = new P.PacketInfo(broker.transit, "test-2", info);
 		const s = packet.serialize();
-		expect(Buffer.byteLength(s, "binary")).toBe(197);
+		expect(Buffer.byteLength(s, "binary")).toBe(218);
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_INFO, s);
 		expect(res).toBeInstanceOf(P.PacketInfo);
@@ -609,6 +614,7 @@ describe("Test ProtoBuf serializer", () => {
 				}}
 			],
 			ipList: [ "127.0.0.1" ],
+			hostname: "test-server",
 			client: {
 				type: "nodejs",
 				version: "1.2.3",
@@ -618,7 +624,7 @@ describe("Test ProtoBuf serializer", () => {
 		};
 		const packet = new P.PacketInfo(broker.transit, "test-2", info);
 		const s = packet.serialize();
-		expect(s.length).toBe(172);
+		expect(s.length).toBe(185);
 
 		const res = P.Packet.deserialize(broker.transit, P.PACKET_INFO, s);
 		expect(res).toBeInstanceOf(P.PacketInfo);

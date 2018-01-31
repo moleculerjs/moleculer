@@ -16,7 +16,7 @@ describe("Test Node", () => {
 		expect(node.lastHeartbeatTime).toBeDefined();
 		expect(node.cpu).toBeNull();
 		expect(node.config).toEqual({});
-		expect(node.port).toBeNull();
+		expect(node.hostname).toBeNull();
 		expect(node.ipList).toBeNull();
 		expect(node.client).toBeNull();
 		expect(node.services).toEqual([]);
