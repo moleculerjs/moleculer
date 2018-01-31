@@ -1,4 +1,4 @@
-/*eslint-disable block-scoped-var, no-redeclare, no-control-regex, no-prototype-builtins*/
+/*eslint-disable block-scoped-let, no-redeclare, no-control-regex, no-prototype-builtins*/
 "use strict";
 
 let $protobuf = require("protobufjs/minimal");
@@ -9,7 +9,7 @@ let $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.ut
 // Exported root namespace
 let $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
 
-/* istanbul ignore next */
+/* istanbul ignore next*/
 $root.packets = (function() {
 
 	/**
@@ -1308,6 +1308,7 @@ $root.packets = (function() {
          * @property {string} services PacketInfo services
          * @property {string} config PacketInfo config
          * @property {Array.<string>|null} [ipList] PacketInfo ipList
+         * @property {string} hostname PacketInfo hostname
          * @property {packets.PacketInfo.IClient} client PacketInfo client
          */
 
@@ -1368,6 +1369,14 @@ $root.packets = (function() {
 		PacketInfo.prototype.ipList = $util.emptyArray;
 
 		/**
+         * PacketInfo hostname.
+         * @member {string} hostname
+         * @memberof packets.PacketInfo
+         * @instance
+         */
+		PacketInfo.prototype.hostname = "";
+
+		/**
          * PacketInfo client.
          * @member {packets.PacketInfo.IClient} client
          * @memberof packets.PacketInfo
@@ -1406,7 +1415,8 @@ $root.packets = (function() {
 			if (message.ipList != null && message.ipList.length)
 				for (let i = 0; i < message.ipList.length; ++i)
 					writer.uint32(/* id 5, wireType 2 =*/42).string(message.ipList[i]);
-			$root.packets.PacketInfo.Client.encode(message.client, writer.uint32(/* id 6, wireType 2 =*/50).fork()).ldelim();
+			writer.uint32(/* id 6, wireType 2 =*/50).string(message.hostname);
+			$root.packets.PacketInfo.Client.encode(message.client, writer.uint32(/* id 7, wireType 2 =*/58).fork()).ldelim();
 			return writer;
 		};
 
@@ -1459,6 +1469,9 @@ $root.packets = (function() {
 						message.ipList.push(reader.string());
 						break;
 					case 6:
+						message.hostname = reader.string();
+						break;
+					case 7:
 						message.client = $root.packets.PacketInfo.Client.decode(reader, reader.uint32());
 						break;
 					default:
@@ -1474,6 +1487,8 @@ $root.packets = (function() {
 				throw $util.ProtocolError("missing required 'services'", { instance: message });
 			if (!message.hasOwnProperty("config"))
 				throw $util.ProtocolError("missing required 'config'", { instance: message });
+			if (!message.hasOwnProperty("hostname"))
+				throw $util.ProtocolError("missing required 'hostname'", { instance: message });
 			if (!message.hasOwnProperty("client"))
 				throw $util.ProtocolError("missing required 'client'", { instance: message });
 			return message;
@@ -1521,6 +1536,8 @@ $root.packets = (function() {
 					if (!$util.isString(message.ipList[i]))
 						return "ipList: string[] expected";
 			}
+			if (!$util.isString(message.hostname))
+				return "hostname: string expected";
 			{
 				let error = $root.packets.PacketInfo.Client.verify(message.client);
 				if (error)
@@ -1556,6 +1573,8 @@ $root.packets = (function() {
 				for (let i = 0; i < object.ipList.length; ++i)
 					message.ipList[i] = String(object.ipList[i]);
 			}
+			if (object.hostname != null)
+				message.hostname = String(object.hostname);
 			if (object.client != null) {
 				if (typeof object.client !== "object")
 					throw TypeError(".packets.PacketInfo.client: object expected");
@@ -1584,6 +1603,7 @@ $root.packets = (function() {
 				object.sender = "";
 				object.services = "";
 				object.config = "";
+				object.hostname = "";
 				object.client = null;
 			}
 			if (message.ver != null && message.hasOwnProperty("ver"))
@@ -1599,6 +1619,8 @@ $root.packets = (function() {
 				for (let j = 0; j < message.ipList.length; ++j)
 					object.ipList[j] = message.ipList[j];
 			}
+			if (message.hostname != null && message.hasOwnProperty("hostname"))
+				object.hostname = message.hostname;
 			if (message.client != null && message.hasOwnProperty("client"))
 				object.client = $root.packets.PacketInfo.Client.toObject(message.client, options);
 			return object;

@@ -10,6 +10,7 @@ The protocol is changed. The new version is `3`. [Check the changes.](https://gi
 - the `RESPONSE` packet has a new field `meta`.
 - the `EVENT` packet has a new field `broadcast`.
 - the `port` field is removed from `INFO` packet.
+- the `INFO` packet has a new field `hostname`.
 
 ## Mixin merging logic is changed
 To support [#188](https://github.com/ice-services/moleculer/issues/188), mixins `actions` merging logic is changed. Now it uses `defaultsDeep` for merging. It means, you can extend the actions definitions of mixins.

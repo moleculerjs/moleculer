@@ -7,6 +7,7 @@
 "use strict";
 
 const _ 			= require("lodash");
+const os 			= require("os");
 const Node 			= require("./node");
 const { getIpList } = require("../utils");
 
@@ -104,6 +105,7 @@ class NodeCatalog {
 		const node = new Node(this.broker.nodeID);
 		node.local = true;
 		node.ipList = getIpList();
+		node.hostname = os.hostname();
 		node.client = {
 			type: "nodejs",
 			version: this.broker.MOLECULER_VERSION,

@@ -246,7 +246,7 @@ class Registry {
 	 * @memberof Registry
 	 */
 	getLocalNodeInfo() {
-		const res = _.pick(this.nodes.localNode, ["ipList", "client", "config", "port"]);
+		const res = _.pick(this.nodes.localNode, ["ipList", "hostname", "client", "config", "port"]);
 		res.services = this.services.list({ onlyLocal: true, withActions: true, withEvents: true });
 
 		return res;

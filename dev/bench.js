@@ -22,7 +22,7 @@ broker.createService({
 					return this.Promise.reject(new MoleculerError("Random error!", 510));
 
 				return "Hello Moleculer";
-				//return this.Promise.delay(1).then(() => "Hello Moleculer");
+				//return this.Promise.delay(100).then(() => "Hello Moleculer");
 			}
 		}
 	}

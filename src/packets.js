@@ -166,6 +166,7 @@ class PacketInfo extends Packet {
 		if (info) {
 			this.payload.services = info.services;
 			this.payload.ipList = info.ipList;
+			this.payload.hostname = info.hostname;
 			this.payload.client = info.client;
 			this.payload.config = info.config;
 		}

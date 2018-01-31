@@ -47,7 +47,8 @@ message PacketInfo {
 	required string config			= 4;
 
 	repeated string ipList			= 5;
-	required Client client 			= 6;
+	required string hostname		= 6;
+	required Client client 			= 7;
 
 	message Client {
 		required string type 			= 1;

@@ -82,6 +82,7 @@ function createSchemas() {
 				type: "array",
 				items: "string"
 			}},
+			{ name: "hostname", type: "string" },
 			{ name: "client", type: {
 				type: "record",
 				fields: [

@@ -367,6 +367,7 @@ declare namespace Moleculer {
 		getHealthStatus(): NodeHealthStatus;
 		getLocalNodeInfo(): {
 			ipList: string[];
+			hostname: string;
 			client: any;
 			config: any;
 			port: any;
@@ -443,8 +444,8 @@ declare namespace Moleculer {
 			payload: PacketPayload & {
 				services?: any;
 				ipList?: Array<string>;
+				hostname?: string;
 				client?: any;
-				port?: any;
 				config?: any;
 			}
 		}
