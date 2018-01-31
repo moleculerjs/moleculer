@@ -4,7 +4,7 @@
 # Breaking changes
 
 ## Protocol changed
-The protocol is changed. The new version is `3`. [Check the changes.](https://github.com/ice-services/moleculer/blob/eecf1770d71da0e61c5dadb5937485fe64d64a8e/docs/PROTOCOL.md)
+The protocol is changed. The new version is `3`. [Check the changes.](https://github.com/ice-services/moleculer/blob/aa56e0072f4726dcd3a72ef164c3e13ad377bfc2/docs/PROTOCOL.md)
 
 **Changes:**
 - the `RESPONSE` packet has a new field `meta`.
@@ -12,7 +12,7 @@ The protocol is changed. The new version is `3`. [Check the changes.](https://gi
 - the `port` field is removed from `INFO` packet.
 - the `INFO` packet has a new field `hostname`.
 
-## Mixin merging logic is changed
+## Mixins merging logic is changed
 To support [#188](https://github.com/ice-services/moleculer/issues/188), mixins `actions` merging logic is changed. Now it uses `defaultsDeep` for merging. It means, you can extend the actions definitions of mixins.
 
 **Add extra action properties but `handler` is ontuched**
