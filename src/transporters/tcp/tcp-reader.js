@@ -75,31 +75,36 @@ class TcpReader extends EventEmitter {
 
 		const address = socket.address().address;
 		//this.logger.info(address);
-		this.logger.info(`TCP client '${address}' is connected.`);
+		this.logger.info(`TCP client is connected from '${address}'`);
 
-		const parser = new Parser();
+		const parser = new Parser(undefined, this.opts.maxPacketSize);
 		socket.pipe(parser);
 
 		parser.on("data", (type, message) => {
-			this.logger.info(`TCP client '${address}' data received. Type:`, type);
+			this.logger.info(`TCP data received from '${address}'. Type:`, type);
 			this.logger.info(message.toString());
 
-			// TODO this.messageHandler(type, message);
+			this.transporter.onIncomingMessage(type, message);
 		});
 
 		parser.on("error", err => {
 			this.logger.warn("Packet parser error!", err);
+			this.closeSocket(socket, err);
 		});
 
 		socket.on("error", err => {
 			this.logger.warn(`TCP client '${address}' error!`, err);
-			this.removeSocket(socket);
+			this.closeSocket(socket, err);
 		});
 
 		socket.on("close", hadError => {
 			this.logger.info(`TCP client '${address}' is disconnected! Had error:`, hadError);
-			this.removeSocket(socket);
+			this.closeSocket(socket);
 		});
+	}
+
+	closeSocket(socket) {
+		socket.end();
 	}
 
 	/**

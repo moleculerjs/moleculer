@@ -55,7 +55,7 @@ class TcpServer extends EventEmitter {
 
 			server.listen(this.opts.tcpPort, () => {
 				this.opts.tcpPort = this.server.address().port;
-				this.logger.info(`TCP server is listening on ${this.opts.tcpPort}.`);
+				this.logger.info(`TCP server is listening on ${this.opts.tcpPort}`);
 				this.connected = true;
 
 				resolve(this.opts.tcpPort);

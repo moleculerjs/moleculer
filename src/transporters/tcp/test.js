@@ -3,9 +3,14 @@
 
 const TcpReader = require("./tcp-reader");
 const TcpWriter = require("./tcp-writer");
+const UdpServer	= require("./udp-broadcaster");
 
 const opts = {
-	port: 3210
+	port: 3210,
+
+	multicastHost: "230.0.0.0",
+	multicastPort: 4445,
+	multicastPeriod: 5,
 };
 
 let count = 0;
@@ -21,6 +26,11 @@ const tx = {
 			host: "localhost",
 			port: 3210
 		};
+	},
+	getLocalNodeInfo() {
+		return {
+			cpu: 12
+		};
 	}
 };
 
@@ -28,6 +38,9 @@ const tcpReader = new TcpReader(tx, opts);
 tcpReader.listen();
 
 const tcpWriter = new TcpWriter(tx, opts);
+
+const udpServer = new UdpServer(tx, opts);
+udpServer.bind();
 
 const data = Buffer.from("Hello TCP Moleculer");
 
@@ -52,7 +65,7 @@ setTimeout(() => {
 		// count = 0;
 		// startTime = Date.now();
 
-		doSend();
+		//doSend();
 	}, 1000);
 
 }, 1000);

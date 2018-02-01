@@ -19,8 +19,10 @@ class Parser extends Writable {
 	 *
 	 * @param {*} options
 	 */
-	constructor(options) {
+	constructor(options, maxPacketSize) {
 		super(options);
+
+		this.maxPacketSize = maxPacketSize;
 
 		this.buf = null;
 	}
@@ -43,8 +45,8 @@ class Parser extends Writable {
 				return cb();
 			}
 
-			if (packet.length > 2 * 1024 * 1024) { // TODO
-				cb(new Error(`Incoming packet is larger than the 'maxPacketSize' limit (${packet.length} > ${maxPacketSize})!`));
+			if (this.maxPacketSize && packet.length > this.maxPacketSize) {
+				cb(new Error(`Incoming packet is larger than the 'maxPacketSize' limit (${packet.length} > ${this.maxPacketSize})!`));
 			}
 
 			// Check the CRC

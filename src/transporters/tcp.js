@@ -10,10 +10,11 @@ const Promise		= require("bluebird");
 const Transporter 	= require("./base");
 
 const P 			= require("../packets");
+const { PacketGossipRequest, PACKET_GOSSIP_REQ, PACKET_GOSSIP_RES  } = require("./tcp/packets");
 const { resolvePacketID }	= require("./tcp/constants");
 
 const Parser		= require("./tcp/parser");
-//const UdpServer		= require("./tcp/udp-server");
+const UdpServer		= require("./tcp/udp-broadcaster");
 const TcpReader		= require("./tcp/tcp-reader");
 const TcpWriter		= require("./tcp/tcp-writer");
 
@@ -47,23 +48,30 @@ class TcpTransporter extends Transporter {
 			udpReuseAddr: true,
 
 			multicastHost: "230.0.0.0",
-			multicastPort: 55200,
-			multicastPeriod: 60,
+			multicastPort: 4445,
+			multicastTTL: 1,
+			multicastPeriod: 5,
 
 			// TCP options
 			port: null, // random port,
-			urls: null, // URLs of remote endpoints
-			useHostname: true,
+			urls: null, // TODO: URLs of remote endpoints
+			useHostname: true, // TODO:
 
 			gossipPeriod: 1, // 1 second
-			maxKeepAliveConnections: 0,
-			keepAliveTimeout: 60,
-			maxPacketSize: 64 * 1024 * 1024,
-			//ignoreGossipMessagesUntil : 500
+			maxKeepAliveConnections: 0, // TODO
+			keepAliveTimeout: 60, // TODO
+			maxPacketSize: 1 * 1024 * 1024
 		}, this.opts);
 
 		this.reader = null;
 		this.writer = null;
+		this.udpServer = null;
+
+		this.nodes = new Map();
+
+		this.gossipTimer = null;
+
+		// TODO: Disable heartbeat timers and increment offlineTimout in registry
 	}
 
 	/**
@@ -75,6 +83,7 @@ class TcpTransporter extends Transporter {
 		return Promise.resolve()
 			.then(() => this.startTcpServer())
 			.then(() => this.startUdpServer())
+			.then(() => this.startTimers())
 			.then(() => {
 				this.logger.info("TCP Transporter started.");
 				this.connected = true;
@@ -82,45 +91,159 @@ class TcpTransporter extends Transporter {
 			});
 	}
 
+	/**
+	 *
+	 */
 	startTcpServer() {
 		this.writer = new TcpWriter(this, this.opts);
 		this.reader = new TcpReader(this, this.opts);
 		return this.reader.listen();
 	}
 
+	/**
+	 *
+	 */
 	startUdpServer() {
-		/*this.udpServer = new UdpServer(this, this.opts);
+		this.udpServer = new UdpServer(this, this.opts);
 
-		this.udpServer.on("message", (message, rinfo) => {
-			const nodeID = message.getFrameData(C.MSG_FRAME_NODEID).toString();
+		this.udpServer.on("message", (nodeID, address, port) => {
 			if (nodeID && nodeID != this.nodeID) {
-				let socket = this.connections[nodeID];
-
-				if (!socket) {
-					const port = parseInt(message.getFrameData(C.MSG_FRAME_PORT).toString(), 10);
-					TcpServer.connect(rinfo.address, port)
-						.then(socket => {
-							socket.nodeID = nodeID;
-							this.connections[nodeID] = socket;
-
-							this.onTcpClientConnected(socket);
-
-							// Send DISCOVER to this node
-							const packet = new P.PacketDiscover(this.transit, nodeID);
-							this.publish(packet);
-						})
-						.catch(err => {
-							this.logger.warn(`Can't connect to '${nodeID}' on ${rinfo.address}:${port}`, err);
-						});
+				let node = this.nodes.get(nodeID);
+				if (!node) {
+					// Unknow node. Register as offline node
+					this.addOfflineNode(nodeID, address, port);
 				}
 			}
 		});
 
-		this.udpServer.on("message error", (err, msg, rinfo) => {
-			this.logger.warn("Invalid UDP packet received!", msg.toString(), rinfo);
+		return this.udpServer.bind();
+	}
+
+	/**
+	 *
+	 */
+	startTimers() {
+		this.gossipTimer = setInterval(() => this.sendGossipRequest(), Math.max(this.opts.gossipPeriod, 1) * 1000);
+	}
+
+	/**
+	 *
+	 */
+	stopTimers() {
+		if (this.gossipTimer)
+			clearInterval(this.gossipTimer);
+	}
+
+	/**
+	 *
+	 * @param {*} id
+	 * @param {*} address
+	 * @param {*} port
+	 */
+	addOfflineNode(id, address, port) {
+		let node = {
+			id,
+			address,
+			port,
+			when: 0,
+			offlineSince: Date.now()
+		};
+
+		this.nodes.set(id, node);
+
+		return node;
+	}
+
+	nodeOffline(id) {
+		let node = this.nodes.get(id);
+		node.offlineSince = Date.now();
+	}
+
+	/**
+	 *
+	 */
+	sendGossipRequest() {
+		const localNode = this.getLocalNodeInfo();
+
+		let packet = {
+			hostname: localNode.hostname,
+			port: this.opts.port,
+			online: {},
+			offline: {}
+		};
+
+		// Add local node as online
+		packet.online[localNode.id] = [localNode.when, localNode.cpuWhen /* TODO*/, localNode.cpu];
+
+		let onlineCount = 1; // With local
+		let offlineCount = 0;
+		this.nodes.forEach(node => {
+			if (node.offlineSince) {
+				packet.offline[node.id] = [node.when, node.offlineSince];
+				offlineCount++;
+			} else {
+				packet.online[node.id] = [node.when, node.cpuWhen /* TODO*/, node.cpu];
+				onlineCount++;
+			}
 		});
 
-		return this.udpServer.bind();*/
+		if (onlineCount > 0) {
+			// Send gossip message to a live endpoint
+			this.sendGossipToRandomEndpoint(packet, true);
+		}
+
+		if (offlineCount > 0) {
+			const ratio = offlineCount / (onlineCount + 1);
+
+			// Random number between 0.0 and 1.0
+			const random = Math.random();
+			if (random < ratio) {
+				// Send gossip message to an offline endpoint
+				this.sendGossipToRandomEndpoint(packet, false);
+			}
+		}
+	}
+
+	/**
+	 *
+	 * @param {Object} data
+	 * @param {boolean} toLive
+	 */
+	sendGossipToRandomEndpoint(data, toLive) {
+		const endpoints = [];
+		this.nodes.forEach(node => {
+			if (toLive && !node.offlineSince)
+				endpoints.push(node);
+			else if (!toLive && node.offlineSince)
+				endpoints.push(node);
+		});
+
+		const ep = endpoints[Math.floor(Math.random() * endpoints.length)];
+		if (ep) {
+			const packet = new PacketGossipRequest(this.transit, ep.id, data);
+			this.publish(packet);
+		}
+	}
+
+	/**
+	 *
+	 * @param {String} type
+	 * @param {Object} message
+	 */
+	onIncomingMessage(type, message) {
+		switch(type) {
+			case PACKET_GOSSIP_REQ: return this.processGossipRequest(message);
+			case PACKET_GOSSIP_RES: return this.processGossipResponse(message);
+			default: return this.messageHandler(type, message);
+		}
+	}
+
+	processGossipRequest(packet) {
+		// TODO
+	}
+
+	processGossipResponse(packet) {
+		// TODO
 	}
 
 	/**
@@ -133,7 +256,7 @@ class TcpTransporter extends Transporter {
 	 * @param {Socket} socket
 	 * @memberof TcpTransporter
 	 */
-	onTcpClientConnected(socket) {
+	/*onTcpClientConnected(socket) {
 		socket.setNoDelay();
 
 		const address = socket.address().address;
@@ -176,7 +299,7 @@ class TcpTransporter extends Transporter {
 			this.logger.info(`TCP client '${address}' is disconnected! Had error:`, hadError);
 			this.removeSocket(socket);
 		});
-	}
+	}*/
 
 	/**
 	 * Close TCP & UDP servers and destroy sockets.
@@ -186,6 +309,8 @@ class TcpTransporter extends Transporter {
 	disconnect() {
 		this.connected = false;
 
+		this.stopTimers();
+
 		if (this.reader)
 			this.reader.close();
 
@@ -194,6 +319,21 @@ class TcpTransporter extends Transporter {
 
 		if (this.udpServer)
 			this.udpServer.close();
+	}
+
+	/**
+	 *
+	 */
+	getLocalNodeInfo() {
+		return this.nodes.get(this.nodeID);
+	}
+
+	/**
+	 *
+	 * @param {*} nodeID
+	 */
+	getNodeInfo(nodeID) {
+		return this.nodes.get(nodeID);
 	}
 
 	/**
@@ -216,9 +356,24 @@ class TcpTransporter extends Transporter {
 	 * @memberOf TcpTransporter
 	 */
 	publish(packet) {
+		if (!packet.target || [
+			P.PACKET_EVENT,
+			P.PACKET_PING,
+			P.PACKET_PONG,
+			P.PACKET_REQUEST,
+			P.PACKET_RESPONSE,
+			PACKET_GOSSIP_REQ,
+			PACKET_GOSSIP_RES
+		].indexOf(packet.type) == -1)
+			return Promise.resolve();
+
 		const packetID = resolvePacketID(packet.type);
 		const data = packet.serialize();
-		return this.writer.send(packet.target, packetID, data);
+		return this.writer.send(packet.target, packetID, data)
+			.catch(err => {
+				this.nodeOffline(packet.target);
+				throw err;
+			});
 	}
 
 }

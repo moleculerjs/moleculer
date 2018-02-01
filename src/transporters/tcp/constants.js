@@ -6,7 +6,11 @@
 
 "use strict";
 
-const P 			= require("../../packets");
+const P = require("../../packets");
+const {
+	PACKET_GOSSIP_REQ,
+	PACKET_GOSSIP_RES
+} = require("./packets");
 
 module.exports = {
 
@@ -41,6 +45,10 @@ module.exports = {
 				return module.exports.PACKET_PING_ID;
 			case P.PACKET_PONG:
 				return module.exports.PACKET_PONG_ID;
+			case PACKET_GOSSIP_REQ:
+				return module.exports.PACKET_GOSSIP_REQ_ID;
+			case PACKET_GOSSIP_RES:
+				return module.exports.PACKET_GOSSIP_RES_ID;
 			default:
 				throw new Error("Unsupported packet type (" + type + ")!");
 		}
@@ -58,6 +66,10 @@ module.exports = {
 				return P.PACKET_PING;
 			case module.exports.PACKET_PONG_ID:
 				return P.PACKET_PONG;
+			case module.exports.PACKET_GOSSIP_REQ_ID:
+				return PACKET_GOSSIP_REQ;
+			case module.exports.PACKET_GOSSIP_RES_ID:
+				return PACKET_GOSSIP_RES;
 			default:
 				throw new Error("Unsupported packet ID (" + id + ")!");
 		}
