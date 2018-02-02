@@ -4,9 +4,11 @@
 
 let ServiceBroker = require("../src/service-broker");
 
+let nodeID = process.argv[2] || "node";
+
 // Create broker #1
 let broker1 = new ServiceBroker({
-	nodeID: "node-1",
+	nodeID: nodeID + "-1",
 	transporter: "TCP",
 	logger: console,
 	logFormatter: "simple",
@@ -17,7 +19,7 @@ let broker1 = new ServiceBroker({
 
 // Create broker #2
 let broker2 = new ServiceBroker({
-	nodeID: "node-2",
+	nodeID: nodeID + "-2",
 	transporter: "TCP",
 	logger: console,
 	logFormatter: "simple",
@@ -34,4 +36,6 @@ broker1.Promise.all([
 	setInterval(() => {
 
 	}, 2000);
+
+	broker1.repl();
 });

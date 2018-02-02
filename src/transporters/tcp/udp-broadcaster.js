@@ -100,7 +100,7 @@ class UdpServer extends EventEmitter {
 				this.logger.warn("Discover packet broadcast error.", err);
 				return;
 			}
-			this.logger.info(`Discover packet sent. Size: ${bytes}`);
+			//this.logger.info(`Discover packet sent. Size: ${bytes}`);
 		});
 	}
 
@@ -114,8 +114,8 @@ class UdpServer extends EventEmitter {
 	 */
 	onMessage(data, rinfo) {
 		const msg = data.toString();
-		this.logger.info(`UDP message received from ${rinfo.address}. Size: ${rinfo.size}`);
-		this.logger.info(data.toString());
+		//this.logger.info(`UDP message received from ${rinfo.address}. Size: ${rinfo.size}`);
+		//this.logger.info(data.toString());
 
 		// TODO: Can it receive multiple messages?
 		try {

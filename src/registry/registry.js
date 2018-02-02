@@ -244,7 +244,24 @@ class Registry {
 	 * @memberof Registry
 	 */
 	getLocalNodeInfo() {
-		const res = _.pick(this.nodes.localNode, ["ipList", "hostname", "client", "config", "port"]);
+		const res = _.pick(this.nodes.localNode, ["ipList", "hostname", "client", "config", "port", "when"]);
+		res.services = this.services.list({ onlyLocal: true, withActions: true, withEvents: true });
+
+		return res;
+	}
+
+	/**
+	 * Generate node info for INFO packets
+	 *
+	 * @returns
+	 * @memberof Registry
+	 */
+	getNodeInfo(nodeID) {
+		const node = this.nodes.get(nodeID);
+		if (!node)
+			return null;
+
+		const res = _.pick(node, ["ipList", "hostname", "client", "config", "port", "when"]);
 		res.services = this.services.list({ onlyLocal: true, withActions: true, withEvents: true });
 
 		return res;

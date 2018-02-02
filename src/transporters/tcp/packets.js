@@ -22,8 +22,23 @@ class PacketGossipRequest extends Packet {
 	constructor(transit, target, data) {
 		super(transit, PACKET_GOSSIP_REQ, target);
 
-		this.payload.hostname = data.hostname;
+		this.payload.host = data.host;
 		this.payload.port = data.port;
+		this.payload.online = data.online;
+		this.payload.offline = data.offline;
+	}
+}
+
+/**
+ * Packet for gossip response
+ *
+ * @class PacketGossipResponse
+ * @extends {Packet}
+ */
+class PacketGossipResponse extends Packet {
+	constructor(transit, target, data) {
+		super(transit, PACKET_GOSSIP_RES, target);
+
 		this.payload.online = data.online;
 		this.payload.offline = data.offline;
 	}
@@ -34,7 +49,8 @@ module.exports = {
 	PACKET_GOSSIP_REQ,
 	PACKET_GOSSIP_RES,
 
-	PacketGossipRequest
+	PacketGossipRequest,
+	PacketGossipResponse
 };
 
 /*

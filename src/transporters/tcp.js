@@ -8,13 +8,17 @@
 
 const Promise		= require("bluebird");
 const Transporter 	= require("./base");
+const chalk 		= require("chalk");
 
 const Node 			= require("../registry/node");
 const P 			= require("../packets");
-const { PacketGossipRequest, PACKET_GOSSIP_REQ, PACKET_GOSSIP_RES  } = require("./tcp/packets");
+const {
+	PacketGossipRequest,
+	PacketGossipResponse,
+	PACKET_GOSSIP_REQ,
+	PACKET_GOSSIP_RES  } = require("./tcp/packets");
 const { resolvePacketID }	= require("./tcp/constants");
 
-const Parser		= require("./tcp/parser");
 const UdpServer		= require("./tcp/udp-broadcaster");
 const TcpReader		= require("./tcp/tcp-reader");
 const TcpWriter		= require("./tcp/tcp-writer");
@@ -59,7 +63,7 @@ class TcpTransporter extends Transporter {
 			urls: null, // TODO: URLs of remote endpoints
 			useHostname: true, // TODO:
 
-			gossipPeriod: 1, // 1 second
+			gossipPeriod: 5, // 1 second
 			maxKeepAliveConnections: 0, // TODO
 			keepAliveTimeout: 60, // TODO
 			maxPacketSize: 1 * 1024 * 1024
@@ -135,6 +139,29 @@ class TcpTransporter extends Transporter {
 				if (!node) {
 					// Unknown node. Register as offline node
 					this.addOfflineNode(nodeID, address, port);
+				} else {
+					// TODO if address is changed, update it
+					/*
+						// Check hostname and port
+						boolean hostChanged = !host.equals(current.get("hostname", ""));
+						if (hostChanged) {
+							Tree ipList = current.get("ipList");
+							if (ipList != null) {
+								for (Tree ip : ipList) {
+									if (host.equals(ip.asString())) {
+										hostChanged = false;
+										break;
+									}
+								}
+							}
+						}
+						if (hostChanged || current.get("port", 0) != port) {
+
+							// Add to "nodeInfos" without services block,
+							// node's hostname or IP address changed
+							registerAsOffline(nodeID, host, port);
+						}
+					*/
 				}
 			}
 		});
@@ -182,7 +209,7 @@ class TcpTransporter extends Transporter {
 	 * Create and send a Gossip request packet
 	 */
 	sendGossipRequest() {
-		const localNode = this.getLocalNodeInfo();
+		const localNode = this.nodes.localNode;
 
 		let packet = {
 			host: localNode.hostname, // TODO
@@ -246,6 +273,8 @@ class TcpTransporter extends Transporter {
 		if (ep) {
 			const packet = new PacketGossipRequest(this.transit, ep.id, data);
 			this.publish(packet);
+
+			this.logger.info(chalk.bgYellow.black(`----- REQUEST ${this.nodeID} -> ${ep.id} -----`), packet.payload);
 		}
 	}
 
@@ -267,12 +296,106 @@ class TcpTransporter extends Transporter {
 		const packet = P.Packet.deserialize(this.transit, PACKET_GOSSIP_REQ, msg);
 		const payload = packet.payload;
 
+		this.logger.info(`----- REQUEST ${this.nodeID} <- ${payload.sender} -----`, payload);
 
+		const response = {
+			online: {},
+			offline: {}
+		};
+
+		const list = this.nodes.list(true);
+		list.forEach(node => {
+			const online = payload.online[node.id];
+			const offline = payload.offline[node.id];
+			let when, since, cpuWhen, cpu;
+
+			if (offline)
+				[when, since] = offline;
+			else if (online)
+				[when, cpuWhen, cpu] = online;
+
+			if (!when || when < node.when) {
+				// We have newer info or requester doesn't know it
+				if (node.available) {
+					const info = this.registry.getNodeInfo(node.id);
+					response.online[node.id] = [info, node.cpuWhen, node.cpu];
+				} else {
+					response.offline[node.id] = [node.when, node.offlineSince];
+				}
+
+				return;
+			}
+
+			if (offline) {
+				// Requester said it is OFFLINE
+
+				if (!node.available) {
+					// We also knew it as offline
+
+					// Update 'offlineSince' if it is older than us
+					if (since < node.offlineSince)
+						node.offlineSince = since;
+
+					return;
+
+				} else if (node.id !== this.nodeID) {
+					// We know it is online, so we change it to offline
+					this.nodes.disconnected(node.id, true);
+
+					// Update the 'offlineSince' to the received value
+					node.offlineSince = since;
+				}
+
+			} else if (online) {
+				// Requester said it is ONLINE
+
+				if (node.available) {
+					if (cpuWhen > node.cpuWhen) {
+						// We update our CPU info
+						node.heartbeat({
+							cpu,
+							cpuWhen
+						});
+					} else if (cpuWhen < node.cpuWhen) {
+						// We have newer CPU value, send back
+						response.online[node.id] = [node.cpuWhen, node.cpu];
+					}
+				}
+				else {
+					// We knew it as offline. We do nothing, because we'll request it and we'll receive its INFO.
+					return;
+				}
+			}
+		});
+
+		// Find newer online nodes
+		/*Object.keys(payload.online).forEach(nodeID => {
+			const node = this.nodes.get(nodeID);
+			if (!node) {
+				// We don't know this nodeID
+				// No address & port this.addOfflineNode(nodeID, address, port);
+			}
+		});*/
+
+		// We know the sender?
+		let sender = this.nodes.get(payload.sender);
+		if (!sender) {
+			// We add it, because we want to send the response back to sender.
+			sender = this.addOfflineNode(payload.sender, payload.host, payload.port);
+		}
+
+		// Send back the Gossip response to the sender
+		const rspPacket = new PacketGossipResponse(this.transit, sender.id, response);
+		this.publish(rspPacket);
+
+		this.logger.info(chalk.bgMagenta.black(`----- RESPONSE ${this.nodeID} -> ${sender.id} -----`), rspPacket.payload);
 	}
 
 	processGossipResponse(msg) {
 		const packet = P.Packet.deserialize(this.transit, PACKET_GOSSIP_RES, msg);
 		const payload = packet.payload;
+
+		this.logger.info(`----- RESPONSE ${this.nodeID} <- ${payload.sender} -----`, payload);
 
 	}
 
