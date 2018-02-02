@@ -221,32 +221,36 @@ class TcpTransporter extends Transporter {
 		// Add local node as online
 		packet.online[localNode.id] = [localNode.when || 0, localNode.cpuWhen || 0, localNode.cpu];
 
-		let onlineCount = 0;
-		let offlineCount = 0;
+		let onlineList = [];
+		let offlineList = [];
 		const list = this.nodes.list();
 		list.forEach(node => {
 			if (node.offlineSince) {
-				packet.offline[node.id] = [node.when || 0, node.offlineSince || 0];
-				offlineCount++;
+				if (node.when > 0) {
+					packet.offline[node.id] = [node.when || 0, node.offlineSince || 0];
+				}
+				offlineList.push(node);
 			} else {
-				packet.online[node.id] = [node.when || 0, node.cpuWhen || 0, node.cpu];
-				onlineCount++;
+				packet.online[node.id] = [node.when || 0, node.cpuWhen || 0, node.cpu || 0];
+
+				if (!node.local)
+					onlineList.push(node);
 			}
 		});
 
-		if (onlineCount > 0) {
+		if (onlineList.length > 0) {
 			// Send gossip message to a live endpoint
-			this.sendGossipToRandomEndpoint(packet, true);
+			this.sendGossipToRandomEndpoint(packet, onlineList);
 		}
 
-		if (offlineCount > 0) {
-			const ratio = offlineCount / (onlineCount + 1);
+		if (offlineList.length > 0) {
+			const ratio = offlineList.length / (onlineList.length + 1);
 
 			// Random number between 0.0 and 1.0
 			const random = Math.random();
 			if (random < ratio) {
 				// Send gossip message to an offline endpoint
-				this.sendGossipToRandomEndpoint(packet, false);
+				this.sendGossipToRandomEndpoint(packet, offlineList);
 			}
 		}
 	}
@@ -255,17 +259,9 @@ class TcpTransporter extends Transporter {
 	 * Send a Gossip request packet to a random endpoint
 	 *
 	 * @param {Object} data
-	 * @param {boolean} online
+	 * @param {Array} endpoints
 	 */
-	sendGossipToRandomEndpoint(data, online) {
-		const endpoints = this.nodes.list().filter(node => {
-			if (node.local)
-				return false; // Skip local node
-
-			if ((online && !node.offlineSince) || (!online && node.offlineSince))
-				return true;
-		});
-
+	sendGossipToRandomEndpoint(data, endpoints) {
 		if (endpoints.length == 0)
 			return;
 
@@ -318,7 +314,7 @@ class TcpTransporter extends Transporter {
 				// We have newer info or requester doesn't know it
 				if (node.available) {
 					const info = this.registry.getNodeInfo(node.id);
-					response.online[node.id] = [info, node.cpuWhen, node.cpu];
+					response.online[node.id] = [info, node.cpuWhen || 0, node.cpu || 0];
 				} else {
 					response.offline[node.id] = [node.when, node.offlineSince];
 				}
@@ -338,12 +334,17 @@ class TcpTransporter extends Transporter {
 
 					return;
 
-				} else if (node.id !== this.nodeID) {
+				} else if (!node.local) {
 					// We know it is online, so we change it to offline
 					this.nodes.disconnected(node.id, true);
 
 					// Update the 'offlineSince' to the received value
 					node.offlineSince = since;
+				} else if (node.local) {
+					// We send back that we are online
+					// TODO update to a newer 'when' if my is older
+					const info = this.registry.getNodeInfo(node.id);
+					response.online[node.id] = [info, node.cpuWhen || 0, node.cpu || 0];
 				}
 
 			} else if (online) {
@@ -358,7 +359,7 @@ class TcpTransporter extends Transporter {
 						});
 					} else if (cpuWhen < node.cpuWhen) {
 						// We have newer CPU value, send back
-						response.online[node.id] = [node.cpuWhen, node.cpu];
+						response.online[node.id] = [node.cpuWhen || 0, node.cpu || 0];
 					}
 				}
 				else {
@@ -368,7 +369,7 @@ class TcpTransporter extends Transporter {
 			}
 		});
 
-		// Find newer online nodes
+		// Find newer online nodes (need it?)
 		/*Object.keys(payload.online).forEach(nodeID => {
 			const node = this.nodes.get(nodeID);
 			if (!node) {
@@ -377,7 +378,9 @@ class TcpTransporter extends Transporter {
 			}
 		});*/
 
-		// We know the sender?
+		// TODO: don't send if online and offline are empty.
+
+		// Whether we know the sender
 		let sender = this.nodes.get(payload.sender);
 		if (!sender) {
 			// We add it, because we want to send the response back to sender.
@@ -397,6 +400,67 @@ class TcpTransporter extends Transporter {
 
 		this.logger.info(`----- RESPONSE ${this.nodeID} <- ${payload.sender} -----`, payload);
 
+		// Process online nodes
+		if (payload.online) {
+			Object.keys(payload.online).forEach(nodeID => {
+				// We don't process the self info. We know it better.
+				if (nodeID == this.nodeID) return;
+
+				const row = payload.online[nodeID];
+				if (!Array.isArray(row)) return;
+
+				let info, cpu, cpuWhen;
+
+				if (row.length == 1)
+					info = row[0];
+				else if (row.length == 2)
+					[cpuWhen, cpu] = row;
+				else if (row.length == 3)
+					[info, cpuWhen, cpu] = row;
+
+				const node = this.nodes.get(nodeID);
+				if (info && node && node.when < info.when) {
+					// Update 'info' block
+					info.sender = nodeID;
+					this.nodes.processNodeInfo(info);
+				}
+
+				if (cpuWhen && cpuWhen > node.cpuWhen) {
+					// We update our CPU info
+					node.heartbeat({
+						cpu,
+						cpuWhen
+					});
+				}
+			});
+		}
+
+		// Process offline nodes
+		if (payload.offline) {
+			Object.keys(payload.offline).forEach(nodeID => {
+				// We don't process the self info. We know it better.
+				if (nodeID == this.nodeID) return;
+
+				const row = payload.offline[nodeID];
+				if (!Array.isArray(row) || row.length < 2) return;
+
+				const [when, since] = row;
+
+				const node = this.nodes.get(nodeID);
+				if (!node) return;
+
+				if (node.when < when) {
+					if (node.available) {
+						// We know it is online, so we change it to offline
+						this.nodes.disconnected(node.id, true);
+					}
+
+					// Update the 'offlineSince' to the received value
+					node.offlineSince = since;
+				}
+
+			});
+		}
 	}
 
 	/**
@@ -443,7 +507,7 @@ class TcpTransporter extends Transporter {
 	 *
 	 * @memberOf TcpTransporter
 	 */
-	subscribe(cmd, nodeID) {
+	subscribe(/*cmd, nodeID*/) {
 		return Promise.resolve();
 	}
 
@@ -467,7 +531,7 @@ class TcpTransporter extends Transporter {
 			return Promise.resolve();
 
 		const packetID = resolvePacketID(packet.type);
-		const data = Buffer.from(packet.serialize()); // TODO
+		const data = Buffer.from(packet.serialize()); // TODO, check isBuffer
 		return this.writer.send(packet.target, packetID, data)
 			.catch(err => {
 				this.nodes.disconnected(packet.target, true);

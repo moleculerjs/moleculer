@@ -58,7 +58,7 @@ class Node {
 		// Process services & events
 		this.services = payload.services;
 
-		this.when = Date.now();
+		this.when = payload.when || Date.now();
 	}
 
 	/**
