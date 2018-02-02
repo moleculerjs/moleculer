@@ -261,10 +261,10 @@ class Registry {
 		if (!node)
 			return null;
 
-		const res = _.pick(node, ["ipList", "hostname", "client", "config", "port", "when"]);
-		res.services = this.services.list({ onlyLocal: true, withActions: true, withEvents: true });
+		if (node.local)
+			return this.getLocalNodeInfo();
 
-		return res;
+		return node.rawInfo;
 	}
 
 	/**

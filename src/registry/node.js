@@ -32,7 +32,7 @@ class Node {
 		this.ipList = null;
 		this.port = null;
 		this.hostname = null;
-
+		this.rawInfo = null;
 		this.services = [];
 
 		this.cpu = null;
@@ -57,6 +57,7 @@ class Node {
 
 		// Process services & events
 		this.services = payload.services;
+		this.rawInfo = payload;
 
 		this.when = payload.when || Date.now();
 	}
