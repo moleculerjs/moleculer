@@ -33,7 +33,6 @@ class TcpReader extends EventEmitter {
 		this.opts = opts;
 		this.transporter = transporter;
 		this.logger = transporter.logger;
-		//this.nodeID = transporter.nodeID;
 	}
 
 	/**
@@ -49,7 +48,9 @@ class TcpReader extends EventEmitter {
 
 			server.on("error", err => {
 				this.logger.error("Server error.", err);
-				reject(err);
+
+				if (reject)
+					reject(err);
 			});
 
 			server.listen(this.opts.port, () => {
@@ -58,6 +59,7 @@ class TcpReader extends EventEmitter {
 				this.connected = true;
 
 				resolve(this.opts.port);
+				reject = null;
 			});
 
 			this.server = server;
@@ -75,7 +77,7 @@ class TcpReader extends EventEmitter {
 
 		const address = socket.address().address;
 		//this.logger.info(address);
-		this.logger.info(`TCP client is connected from '${address}'`);
+		this.logger.debug(`New TCP client connected from '${address}'`);
 
 		const parser = new Parser(undefined, this.opts.maxPacketSize);
 		socket.pipe(parser);
@@ -93,16 +95,21 @@ class TcpReader extends EventEmitter {
 		});
 
 		socket.on("error", err => {
-			this.logger.warn(`TCP client '${address}' error!`, err);
+			this.logger.debug(`TCP client '${address}' error!`, err);
 			this.closeSocket(socket, err);
 		});
 
 		socket.on("close", hadError => {
-			this.logger.info(`TCP client '${address}' is disconnected! Had error:`, hadError);
+			this.logger.debug(`TCP client disconnected from '${address}'! Had error:`, !!hadError);
 			this.closeSocket(socket);
 		});
 	}
 
+	/**
+	 * Close a client socket
+	 *
+	 * @param {Socket} socket
+	 */
 	closeSocket(socket) {
 		socket.end();
 	}

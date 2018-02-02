@@ -180,7 +180,7 @@ class NodeCatalog {
 		// Update instance
 		node.update(payload);
 
-		if (node.services) {
+		if (payload.services) {
 			this.registry.registerServices(node, payload.services);
 		}
 

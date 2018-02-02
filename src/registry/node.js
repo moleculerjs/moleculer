@@ -27,7 +27,7 @@ class Node {
 		this.local = false;
 		this.lastHeartbeatTime = Date.now();
 		this.config = {};
-		this.client = null;
+		this.client = {};
 
 		this.ipList = null;
 		this.port = null;
@@ -53,7 +53,7 @@ class Node {
 		this.ipList = payload.ipList;
 		this.hostname = payload.hostname;
 		this.port = payload.port;
-		this.client = payload.client;
+		this.client = payload.client || {};
 
 		// Process services & events
 		this.services = payload.services;

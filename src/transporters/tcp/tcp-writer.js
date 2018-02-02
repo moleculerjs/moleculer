@@ -35,7 +35,6 @@ class TcpWriter extends EventEmitter {
 
 		this.transporter = transporter;
 		this.logger = transporter.logger;
-		//this.nodeID = transporter.nodeID;
 
 		// Start timeout handler
 		// if (maxConnections > 0 && keepAliveTimeout > 0) {
@@ -48,21 +47,32 @@ class TcpWriter extends EventEmitter {
 	 * @param {String} nodeID
 	 */
 	connect(nodeID) {
-		const nodeInfo = this.transporter.getNodeInfo(nodeID);
-		if (!nodeInfo)
+		const node = this.transporter.getNode(nodeID);
+		if (!node)
 			throw new Error(`Missing node info for '${nodeID}'!`);
 
-		const host = nodeInfo.host;
-		const port = nodeInfo.port;
+		const host = this.transporter.getNodeAddress(node);
+		const port = node.port;
+
+		this.logger.debug(`Connecting to '${nodeID}' via ${host}:${port}`);
 
 		return new Promise((resolve, reject) => {
 			const socket = net.connect({ host, port }, () => {
 				this.sockets.set(nodeID, socket);
+				socket.nodeID = nodeID;
+
+				this.logger.debug(`Connected successfully to '${nodeID}'.`);
+
 				resolve(socket);
+				reject = null;
 			});
 
 			socket.on("error", err => {
-				reject(err);
+				this.removeSocket(nodeID);
+				this.emit("error", err, nodeID);
+
+				if (reject)
+					reject(err);
 			});
 
 			socket.unref();
@@ -85,7 +95,7 @@ class TcpWriter extends EventEmitter {
 				return this.connect(nodeID);
 			})
 			.then(socket => {
-				return new Promise(resolve => {
+				return new Promise((resolve, reject) => {
 
 					// Create binary payload
 					const header = Buffer.alloc(HEADER_SIZE);
@@ -96,13 +106,28 @@ class TcpWriter extends EventEmitter {
 
 					const payload = Buffer.concat([header, data]);
 
-					socket.write(payload, () => {
-						//this.logger.info(`${type} packet sent to ${nodeID}.`);
-						//this.logger.info(data.toString()); // TODO
-						resolve();
-					});
+					try {
+
+						socket.write(payload, (asd) => {
+							//this.logger.info(`${type} packet sent to ${nodeID}.`);
+							//this.logger.info(data.toString()); // TODO
+							resolve();
+						});
+					} catch(err) {
+						this.removeSocket(nodeID);
+						reject(err);
+					}
 				});
 			});
+	}
+
+	/**
+	 * Remove socket by nodeID
+	 *
+	 * @param {String} nodeID
+	 */
+	removeSocket(nodeID) {
+		this.sockets.delete(nodeID);
 	}
 
 	/**

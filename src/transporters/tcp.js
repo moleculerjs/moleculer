@@ -61,7 +61,7 @@ class TcpTransporter extends Transporter {
 			// TCP options
 			port: null, // random port,
 			urls: null, // TODO: URLs of remote endpoints
-			useHostname: true, // TODO:
+			useHostname: true,
 
 			gossipPeriod: 5, // 1 second
 			maxKeepAliveConnections: 0, // TODO
@@ -74,6 +74,8 @@ class TcpTransporter extends Transporter {
 		this.udpServer = null;
 
 		this.gossipTimer = null;
+
+		this.GOSSIP_DEBUG = false;
 	}
 
 	/**
@@ -124,6 +126,12 @@ class TcpTransporter extends Transporter {
 	startTcpServer() {
 		this.writer = new TcpWriter(this, this.opts);
 		this.reader = new TcpReader(this, this.opts);
+
+		this.writer.on("error", (err, nodeID) => {
+			this.logger.debug(`TCP client error on '${nodeID}'`, err);
+			this.nodes.disconnected(nodeID, true);
+		});
+
 		return this.reader.listen();
 	}
 
@@ -138,31 +146,16 @@ class TcpTransporter extends Transporter {
 				let node = this.nodes.get(nodeID);
 				if (!node) {
 					// Unknown node. Register as offline node
-					this.addOfflineNode(nodeID, address, port);
-				} else {
-					// TODO if address is changed, update it
-					/*
-						// Check hostname and port
-						boolean hostChanged = !host.equals(current.get("hostname", ""));
-						if (hostChanged) {
-							Tree ipList = current.get("ipList");
-							if (ipList != null) {
-								for (Tree ip : ipList) {
-									if (host.equals(ip.asString())) {
-										hostChanged = false;
-										break;
-									}
-								}
-							}
-						}
-						if (hostChanged || current.get("port", 0) != port) {
+					node = this.addOfflineNode(nodeID, address, port);
+				} else if (!node.available) {
+					// Update connection data
+					node.port = port;
+					node.hostname = address;
 
-							// Add to "nodeInfos" without services block,
-							// node's hostname or IP address changed
-							registerAsOffline(nodeID, host, port);
-						}
-					*/
+					if (node.ipList.indexOf(address) == -1)
+						node.ipList.unshift = address;
 				}
+				node.udpAddress = address;
 			}
 		});
 
@@ -193,9 +186,9 @@ class TcpTransporter extends Transporter {
 	addOfflineNode(id, address, port) {
 		const node = new Node(id);
 		node.local = false;
+		node.hostname = address;
 		node.ipList = [address];
 		node.port = port;
-		node.hostname = address;
 		node.available = false;
 		node.when = 0;
 		node.offlineSince = Date.now();
@@ -206,13 +199,44 @@ class TcpTransporter extends Transporter {
 	}
 
 	/**
+	 * Wrapper for TCP writer
+	 *
+	 * @param {String} nodeID
+	 * @returns
+	 * @memberof TcpTransporter
+	 */
+	getNode(nodeID) {
+		return this.nodes.get(nodeID);
+	}
+
+	/**
+	 * Get address for node
+	 *
+	 * @param {Node} node
+	 * @returns
+	 * @memberof TcpTransporter
+	 */
+	getNodeAddress(node) {
+		if (node.udpAddress)
+			return node.udpAddress;
+
+		if (this.opts.useHostname && node.hostname)
+			return node.hostname;
+
+		if (node.ipList && node.ipList.length > 0)
+			return node.ipList[0];
+
+		this.logger.warn(`Node ${node.id} has no valid address`, node);
+	}
+
+	/**
 	 * Create and send a Gossip request packet
 	 */
 	sendGossipRequest() {
 		const localNode = this.nodes.localNode;
 
 		let packet = {
-			host: localNode.hostname, // TODO
+			host: this.getNodeAddress(localNode),
 			port: localNode.port,
 			online: {},
 			offline: {}
@@ -268,9 +292,9 @@ class TcpTransporter extends Transporter {
 		const ep = endpoints[Math.floor(Math.random() * endpoints.length)];
 		if (ep) {
 			const packet = new PacketGossipRequest(this.transit, ep.id, data);
-			this.publish(packet);
+			this.publish(packet).catch(() => {});
 
-			this.logger.info(chalk.bgYellow.black(`----- REQUEST ${this.nodeID} -> ${ep.id} -----`), packet.payload);
+			if (this.GOSSIP_DEBUG) this.logger.info(chalk.bgYellow.black(`----- REQUEST ${this.nodeID} -> ${ep.id} -----`), packet.payload);
 		}
 	}
 
@@ -292,7 +316,7 @@ class TcpTransporter extends Transporter {
 		const packet = P.Packet.deserialize(this.transit, PACKET_GOSSIP_REQ, msg);
 		const payload = packet.payload;
 
-		this.logger.info(`----- REQUEST ${this.nodeID} <- ${payload.sender} -----`, payload);
+		if (this.GOSSIP_DEBUG) this.logger.info(`----- REQUEST ${this.nodeID} <- ${payload.sender} -----`, payload);
 
 		const response = {
 			online: {},
@@ -341,8 +365,10 @@ class TcpTransporter extends Transporter {
 					// Update the 'offlineSince' to the received value
 					node.offlineSince = since;
 				} else if (node.local) {
-					// We send back that we are online
-					// TODO update to a newer 'when' if my is older
+					// Requested said I'm offline. We should send back that we are online!
+					// We need to update our `when` so that the requester update us
+					node.when = Date.now();
+
 					const info = this.registry.getNodeInfo(node.id);
 					response.online[node.id] = [info, node.cpuWhen || 0, node.cpu || 0];
 				}
@@ -380,7 +406,7 @@ class TcpTransporter extends Transporter {
 
 		// TODO: don't send if online and offline are empty.
 
-		// Whether we know the sender
+		// Whether we know the sender (we can get data from it earlier than the UDP broadcast message)
 		let sender = this.nodes.get(payload.sender);
 		if (!sender) {
 			// We add it, because we want to send the response back to sender.
@@ -389,16 +415,16 @@ class TcpTransporter extends Transporter {
 
 		// Send back the Gossip response to the sender
 		const rspPacket = new PacketGossipResponse(this.transit, sender.id, response);
-		this.publish(rspPacket);
+		this.publish(rspPacket).catch(() => {});
 
-		this.logger.info(chalk.bgMagenta.black(`----- RESPONSE ${this.nodeID} -> ${sender.id} -----`), rspPacket.payload);
+		if (this.GOSSIP_DEBUG) this.logger.info(chalk.bgMagenta.black(`----- RESPONSE ${this.nodeID} -> ${sender.id} -----`), rspPacket.payload);
 	}
 
 	processGossipResponse(msg) {
 		const packet = P.Packet.deserialize(this.transit, PACKET_GOSSIP_RES, msg);
 		const payload = packet.payload;
 
-		this.logger.info(`----- RESPONSE ${this.nodeID} <- ${payload.sender} -----`, payload);
+		if (this.GOSSIP_DEBUG) this.logger.info(`----- RESPONSE ${this.nodeID} <- ${payload.sender} -----`, payload);
 
 		// Process online nodes
 		if (payload.online) {
@@ -531,7 +557,10 @@ class TcpTransporter extends Transporter {
 			return Promise.resolve();
 
 		const packetID = resolvePacketID(packet.type);
-		const data = Buffer.from(packet.serialize()); // TODO, check isBuffer
+		let data = packet.serialize();
+		if (!Buffer.isBuffer(data))
+			data = Buffer.from(data);
+
 		return this.writer.send(packet.target, packetID, data)
 			.catch(err => {
 				this.nodes.disconnected(packet.target, true);

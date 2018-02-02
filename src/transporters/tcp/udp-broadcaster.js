@@ -95,12 +95,12 @@ class UdpServer extends EventEmitter {
 		const port = this.opts.multicastPort ? this.opts.multicastPort : (this.opts.broadcastPort || 4445);
 
 		// Send beacon
-		this.server.send(message, port, host, (err, bytes) => {
+		this.server.send(message, port, host, (err/*, bytes*/) => {
 			if (err) {
 				this.logger.warn("Discover packet broadcast error.", err);
 				return;
 			}
-			//this.logger.info(`Discover packet sent. Size: ${bytes}`);
+			this.logger.debug("UDP Discover packet sent.");
 		});
 	}
 
@@ -114,20 +114,19 @@ class UdpServer extends EventEmitter {
 	 */
 	onMessage(data, rinfo) {
 		const msg = data.toString();
-		//this.logger.info(`UDP message received from ${rinfo.address}. Size: ${rinfo.size}`);
-		//this.logger.info(data.toString());
+		this.logger.debug(`UDP message received from ${rinfo.address}.`, data.toString());
 
 		// TODO: Can it receive multiple messages?
 		try {
 			const parts = msg.split("|");
 			if (parts.length != 3) {
-				this.logger.warn("Malformed UDP packet received", msg);
+				this.logger.debug("Malformed UDP packet received", msg);
 			}
 			if (parts[0] == this.namespace)
-				this.emit("message", parts[1], rinfo.address, parts[2]);
+				this.emit("message", parts[1], rinfo.address, parseInt(parts[2], 10));
 
 		} catch(err) {
-			this.logger.warn("UDP packet process error!", err, msg, rinfo);
+			this.logger.debug("UDP packet process error!", err, msg, rinfo);
 		}
 	}
 

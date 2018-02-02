@@ -31,7 +31,7 @@ let broker2 = new ServiceBroker({
 
 broker1.Promise.all([
 	broker1.start(),
-	broker2.start()
+	//broker2.start()
 ]).delay(1000).then(() => {
 	setInterval(() => {
 

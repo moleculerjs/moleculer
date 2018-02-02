@@ -10,9 +10,9 @@ let ServiceBroker = require("../src/service-broker");
 
 // Create broker
 let broker = new ServiceBroker({
-	namespace: "multi",
+	namespace: "",
 	nodeID: process.argv[2] || "client-" + process.pid,
-	transporter: "STAN",
+	transporter: "TCP",
 	//transporter: "kafka://192.168.51.29:2181",
 	//transporter: "amqp://192.168.0.181:5672",
 	//serializer: "Avro",
@@ -27,7 +27,7 @@ let broker = new ServiceBroker({
 	},
 
 	registry: {
-		strategy: Strategies.Random
+		//strategy: Strategies.Random
 	},
 
 	circuitBreaker: {
