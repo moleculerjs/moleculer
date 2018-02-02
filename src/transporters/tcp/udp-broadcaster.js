@@ -68,11 +68,13 @@ class UdpServer extends EventEmitter {
 				} else {
 					server.setBroadcast(true);
 				}
-				this.startDiscovering();
-				resolve();
 
 				// Send first discover message after 1 sec
 				setTimeout(() => this.discover(), 1000);
+
+				this.startDiscovering();
+
+				resolve();
 			});
 
 			this.server = server;
@@ -119,7 +121,7 @@ class UdpServer extends EventEmitter {
 		try {
 			const parts = msg.split("|");
 			if (parts.length != 3) {
-				this.logger.debug("Malformed UDP packet received", msg);
+				this.logger.warn("Malformed UDP packet received", msg);
 			}
 			if (parts[0] == this.namespace)
 				this.emit("message", parts[1], rinfo.address, parts[2]);

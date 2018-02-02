@@ -9,6 +9,7 @@
 const Promise		= require("bluebird");
 const Transporter 	= require("./base");
 
+const Node 			= require("../registry/node");
 const P 			= require("../packets");
 const { PacketGossipRequest, PACKET_GOSSIP_REQ, PACKET_GOSSIP_RES  } = require("./tcp/packets");
 const { resolvePacketID }	= require("./tcp/constants");
@@ -42,6 +43,7 @@ class TcpTransporter extends Transporter {
 	 */
 	constructor(opts) {
 		super(opts);
+
 		this.opts = Object.assign({
 			// UDP options
 			udpDiscovery: true,
@@ -67,11 +69,27 @@ class TcpTransporter extends Transporter {
 		this.writer = null;
 		this.udpServer = null;
 
-		this.nodes = new Map();
-
 		this.gossipTimer = null;
+	}
 
-		// TODO: Disable heartbeat timers and increment offlineTimout in registry
+	/**
+	 * Init transporter
+	 *
+	 * @param {Transit} transit
+	 * @param {Function} messageHandler
+	 * @param {Function} afterConnect
+	 *
+	 * @memberOf BaseTransporter
+	 */
+	init(transit, messageHandler, afterConnect) {
+		super.init(transit, messageHandler, afterConnect);
+
+		if (this.broker) {
+			this.registry = this.broker.registry;
+			this.nodes = this.registry.nodes;
+			this.nodes.disableHeartbeatChecks = true;
+			// TODO: Disable heartbeat timers and increment offlineTimout in registry if UDP discovery enabled
+		}
 	}
 
 	/**
@@ -87,12 +105,17 @@ class TcpTransporter extends Transporter {
 			.then(() => {
 				this.logger.info("TCP Transporter started.");
 				this.connected = true;
+
+				// Set the opened TCP port (because it can be a random port)
+				const localNode = this.getLocalNodeInfo();
+				localNode.port = this.opts.port;
+
 				return this.onConnected();
 			});
 	}
 
 	/**
-	 *
+	 * Start a TCP server for incoming packets
 	 */
 	startTcpServer() {
 		this.writer = new TcpWriter(this, this.opts);
@@ -101,7 +124,7 @@ class TcpTransporter extends Transporter {
 	}
 
 	/**
-	 *
+	 * Start a UDP server for automatic discovery
 	 */
 	startUdpServer() {
 		this.udpServer = new UdpServer(this, this.opts);
@@ -110,7 +133,7 @@ class TcpTransporter extends Transporter {
 			if (nodeID && nodeID != this.nodeID) {
 				let node = this.nodes.get(nodeID);
 				if (!node) {
-					// Unknow node. Register as offline node
+					// Unknown node. Register as offline node
 					this.addOfflineNode(nodeID, address, port);
 				}
 			}
@@ -120,14 +143,14 @@ class TcpTransporter extends Transporter {
 	}
 
 	/**
-	 *
+	 * Start Gossip timers
 	 */
 	startTimers() {
 		this.gossipTimer = setInterval(() => this.sendGossipRequest(), Math.max(this.opts.gossipPeriod, 1) * 1000);
 	}
 
 	/**
-	 *
+	 * Stop Gossip timers
 	 */
 	stopTimers() {
 		if (this.gossipTimer)
@@ -141,48 +164,45 @@ class TcpTransporter extends Transporter {
 	 * @param {*} port
 	 */
 	addOfflineNode(id, address, port) {
-		let node = {
-			id,
-			address,
-			port,
-			when: 0,
-			offlineSince: Date.now()
-		};
+		const node = new Node(id);
+		node.local = false;
+		node.ipList = [address];
+		node.port = port;
+		node.hostname = address;
+		node.available = false;
+		node.when = 0;
+		node.offlineSince = Date.now();
 
-		this.nodes.set(id, node);
+		this.nodes.add(node.id, node);
 
 		return node;
 	}
 
-	nodeOffline(id) {
-		let node = this.nodes.get(id);
-		node.offlineSince = Date.now();
-	}
-
 	/**
-	 *
+	 * Create and send a Gossip request packet
 	 */
 	sendGossipRequest() {
 		const localNode = this.getLocalNodeInfo();
 
 		let packet = {
-			hostname: localNode.hostname,
-			port: this.opts.port,
+			host: localNode.hostname, // TODO
+			port: localNode.port,
 			online: {},
 			offline: {}
 		};
 
 		// Add local node as online
-		packet.online[localNode.id] = [localNode.when, localNode.cpuWhen /* TODO*/, localNode.cpu];
+		packet.online[localNode.id] = [localNode.when || 0, localNode.cpuWhen || 0, localNode.cpu];
 
-		let onlineCount = 1; // With local
+		let onlineCount = 0;
 		let offlineCount = 0;
-		this.nodes.forEach(node => {
+		const list = this.nodes.list();
+		list.forEach(node => {
 			if (node.offlineSince) {
-				packet.offline[node.id] = [node.when, node.offlineSince];
+				packet.offline[node.id] = [node.when || 0, node.offlineSince || 0];
 				offlineCount++;
 			} else {
-				packet.online[node.id] = [node.when, node.cpuWhen /* TODO*/, node.cpu];
+				packet.online[node.id] = [node.when || 0, node.cpuWhen || 0, node.cpu];
 				onlineCount++;
 			}
 		});
@@ -205,18 +225,22 @@ class TcpTransporter extends Transporter {
 	}
 
 	/**
+	 * Send a Gossip request packet to a random endpoint
 	 *
 	 * @param {Object} data
-	 * @param {boolean} toLive
+	 * @param {boolean} online
 	 */
-	sendGossipToRandomEndpoint(data, toLive) {
-		const endpoints = [];
-		this.nodes.forEach(node => {
-			if (toLive && !node.offlineSince)
-				endpoints.push(node);
-			else if (!toLive && node.offlineSince)
-				endpoints.push(node);
+	sendGossipToRandomEndpoint(data, online) {
+		const endpoints = this.nodes.list().filter(node => {
+			if (node.local)
+				return false; // Skip local node
+
+			if ((online && !node.offlineSince) || (!online && node.offlineSince))
+				return true;
 		});
+
+		if (endpoints.length == 0)
+			return;
 
 		const ep = endpoints[Math.floor(Math.random() * endpoints.length)];
 		if (ep) {
@@ -226,6 +250,7 @@ class TcpTransporter extends Transporter {
 	}
 
 	/**
+	 * Process incoming packets
 	 *
 	 * @param {String} type
 	 * @param {Object} message
@@ -238,68 +263,18 @@ class TcpTransporter extends Transporter {
 		}
 	}
 
-	processGossipRequest(packet) {
-		// TODO
+	processGossipRequest(msg) {
+		const packet = P.Packet.deserialize(this.transit, PACKET_GOSSIP_REQ, msg);
+		const payload = packet.payload;
+
+
 	}
 
-	processGossipResponse(packet) {
-		// TODO
+	processGossipResponse(msg) {
+		const packet = P.Packet.deserialize(this.transit, PACKET_GOSSIP_RES, msg);
+		const payload = packet.payload;
+
 	}
-
-	/**
-	 * New TCP socket client is received via TcpServer.
-	 * It happens if we broadcast a DISCOVER packet via UDP
-	 * and other nodes catch it and connect to our TCP server.
-	 * At this point we don't know the socket nodeID. We should
-	 * wait for the FIRST DISCOVER packet and expand the NodeID from it.
-	 *
-	 * @param {Socket} socket
-	 * @memberof TcpTransporter
-	 */
-	/*onTcpClientConnected(socket) {
-		socket.setNoDelay();
-
-		const address = socket.address().address;
-		//this.logger.info(address);
-		this.logger.info(`TCP client '${address}' is connected.`);
-
-		const parser = Message.getParser();
-		socket.pipe(parser);
-
-		parser.on("data", message => {
-			//this.logger.info(`TCP client '${address}' data received.`);
-			//this.logger.info(msg.toString());
-
-			const nodeID = message.getFrameData(C.MSG_FRAME_NODEID).toString();
-			if (!nodeID)
-				this.logger.warn("Missing nodeID!");
-
-			socket.nodeID = nodeID;
-			if (!this.connections[nodeID])
-				this.connections[nodeID] = socket;
-
-			const packetType = message.getFrameData(C.MSG_FRAME_PACKETTYPE);
-			const packetData = message.getFrameData(C.MSG_FRAME_PACKETDATA);
-			if (!packetType || !packetData)
-				this.logger.warn("Missing frames!");
-
-			this.messageHandler(packetType.toString(), packetData);
-		});
-
-		parser.on("error", err => {
-			this.logger.warn("Packet parser error!", err);
-		});
-
-		socket.on("error", err => {
-			this.logger.warn(`TCP client '${address}' error!`, err);
-			this.removeSocket(socket);
-		});
-
-		socket.on("close", hadError => {
-			this.logger.info(`TCP client '${address}' is disconnected! Had error:`, hadError);
-			this.removeSocket(socket);
-		});
-	}*/
 
 	/**
 	 * Close TCP & UDP servers and destroy sockets.
@@ -322,15 +297,16 @@ class TcpTransporter extends Transporter {
 	}
 
 	/**
-	 *
+	 * Get local node info instance
 	 */
 	getLocalNodeInfo() {
-		return this.nodes.get(this.nodeID);
+		return this.nodes.localNode;
 	}
 
 	/**
+	 * Get a node info instance by nodeID
 	 *
-	 * @param {*} nodeID
+	 * @param {String} nodeID
 	 */
 	getNodeInfo(nodeID) {
 		return this.nodes.get(nodeID);
@@ -368,10 +344,10 @@ class TcpTransporter extends Transporter {
 			return Promise.resolve();
 
 		const packetID = resolvePacketID(packet.type);
-		const data = packet.serialize();
+		const data = Buffer.from(packet.serialize()); // TODO
 		return this.writer.send(packet.target, packetID, data)
 			.catch(err => {
-				this.nodeOffline(packet.target);
+				this.nodes.disconnected(packet.target, true);
 				throw err;
 			});
 	}

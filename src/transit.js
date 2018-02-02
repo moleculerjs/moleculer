@@ -221,6 +221,7 @@ class Transit {
 
 			this.stat.packets.received = this.stat.packets.received + 1;
 
+			// TODO: move deserialize to transporter base
 			const packet = P.Packet.deserialize(this, cmd, msg);
 			const payload = packet.payload;
 

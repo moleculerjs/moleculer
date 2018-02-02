@@ -98,6 +98,7 @@ class TcpWriter extends EventEmitter {
 
 					socket.write(payload, () => {
 						this.logger.info(`${type} packet sent to ${nodeID}.`);
+						this.logger.info(data.toString); // TODO
 						resolve();
 					});
 				});

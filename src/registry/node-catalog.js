@@ -37,6 +37,7 @@ class NodeCatalog {
 		this.checkNodesTimer = null;
 		this.offlineTimer = null;
 
+		this.disableHeartbeatChecks = false;
 
 		this.createLocalNode();
 
@@ -173,6 +174,7 @@ class NodeCatalog {
 			isReconnected = true;
 			node.lastHeartbeatTime = Date.now();
 			node.available = true;
+			node.offlineSince = null;
 		}
 
 		// Update instance
@@ -202,6 +204,8 @@ class NodeCatalog {
 	 * @memberOf Transit
 	 */
 	checkRemoteNodes() {
+		if (this.disableHeartbeatChecks) return;
+
 		const now = Date.now();
 		this.nodes.forEach(node => {
 			if (node.local || !node.available) return;
@@ -214,11 +218,13 @@ class NodeCatalog {
 	}
 
 	/**
-	 * Check offline nodes. Remove which is older then 3 minutes.
+	 * Check offline nodes. Remove which is older than 3 minutes.
 	 *
 	 * @memberOf Transit
 	 */
 	checkOfflineNodes() {
+		if (this.disableHeartbeatChecks) return;
+
 		const now = Date.now();
 		this.nodes.forEach(node => {
 			if (node.local || node.available) return;

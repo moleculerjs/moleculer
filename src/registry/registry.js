@@ -13,8 +13,6 @@ const ServiceCatalog = require("./service-catalog");
 const EventCatalog = require("./event-catalog");
 const ActionCatalog = require("./action-catalog");
 
-const RoundRobinStrategy = require("../strategies").RoundRobin;
-
 /**
  * Service Registry
  *

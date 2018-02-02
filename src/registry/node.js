@@ -26,15 +26,20 @@ class Node {
 		this.available = true;
 		this.local = false;
 		this.lastHeartbeatTime = Date.now();
-		this.cpu = null;
 		this.config = {};
-		//this.port = null;
-		this.hostname = null;
-
-		this.ipList = null;
 		this.client = null;
 
+		this.ipList = null;
+		this.port = null;
+		this.hostname = null;
+
 		this.services = [];
+
+		this.cpu = null;
+		this.cpuWhen = null;
+
+		this.when = Date.now();
+		this.offlineSince = null;
 	}
 
 	/**
@@ -47,10 +52,13 @@ class Node {
 		// Update properties
 		this.ipList = payload.ipList;
 		this.hostname = payload.hostname;
+		this.port = payload.port;
 		this.client = payload.client;
 
 		// Process services & events
 		this.services = payload.services;
+
+		this.when = Date.now();
 	}
 
 	/**
@@ -60,7 +68,8 @@ class Node {
 	 */
 	updateLocalInfo() {
 		return cpuUsage().then(res => {
-			this.cpu = res.avg;
+			this.cpu = Math.round(res.avg);
+			this.cpuWhen = Date.now();
 		});
 	}
 
@@ -71,9 +80,16 @@ class Node {
 	 * @memberof Node
 	 */
 	heartbeat(payload) {
+		if (!this.available) {
+			this.available = true;
+			this.offlineSince = null;
+			this.when = Date.now();
+		}
+
 		this.cpu = payload.cpu;
+		this.cpuWhen = payload.cpuWhen || Date.now();
+
 		this.lastHeartbeatTime = Date.now();
-		this.available = true;
 	}
 
 	/**
@@ -83,6 +99,8 @@ class Node {
 	 */
 	disconnected() {
 		this.available = false;
+
+		this.offlineSince = Date.now();
 	}
 }
 
