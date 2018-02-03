@@ -35,16 +35,10 @@ class KafkaTransporter extends Transporter {
 	 */
 	constructor(opts) {
 		if (typeof opts == "string") {
-			opts = { kafka: {
-				host: opts.replace("kafka://", "")
-			} };
-		} else if (!opts) {
-			opts = {
-				kafka: {}
-			};
+			opts = { host: opts.replace("kafka://", "") };
 		}
 
-		opts.kafka = defaultsDeep(opts.kafka, {
+		opts = defaultsDeep(opts, {
 			host: undefined,
 
 			// KafkaClient options. More info: https://github.com/SOHU-Co/kafka-node#clientconnectionstring-clientid-zkoptions-noackbatchoptions-ssloptions
@@ -84,8 +78,6 @@ class KafkaTransporter extends Transporter {
 	connect() {
 		this.logger.warn(chalk.yellow.bold("Kafka Transporter is an EXPERIMENTAL transporter. Do NOT use it in production!"));
 
-		const opts = this.opts.kafka;
-
 		return new Promise((resolve, reject) => {
 			let Kafka;
 			try {
@@ -95,12 +87,12 @@ class KafkaTransporter extends Transporter {
 				this.broker.fatal("The 'kafka-node' package is missing. Please install it with 'npm install kafka-node --save' command.", err, true);
 			}
 
-			this.client = new Kafka.Client(opts.host,  opts.client.zkOptions, opts.client.noAckBatchOptions, opts.client.sslOptions);
+			this.client = new Kafka.Client(this.opts.host,  this.opts.client.zkOptions, this.opts.client.noAckBatchOptions, this.opts.client.sslOptions);
 			this.client.once("connect", () => {
 				/* Moved to ConsumerGroup
 				// Create Consumer
 
-				this.consumer = new Kafka.Consumer(this.client, opts.consumerPayloads || [], opts.consumer);
+				this.consumer = new Kafka.Consumer(this.client, this.opts.consumerPayloads || [], this.opts.consumer);
 
 				this.consumer.on("error", e => {
 					this.logger.error("Kafka Consumer error", e.message);
@@ -119,7 +111,7 @@ class KafkaTransporter extends Transporter {
 
 
 				// Create Producer
-				this.producer = new Kafka.Producer(this.client, opts.producer, opts.customPartitioner);
+				this.producer = new Kafka.Producer(this.client, this.opts.producer, this.opts.customPartitioner);
 				/* istanbul ignore next */
 				this.producer.on("error", e => {
 					this.logger.error("Kafka Producer error", e.message);
@@ -185,11 +177,11 @@ class KafkaTransporter extends Transporter {
 
 				const consumerOptions = Object.assign({
 					id: "default-kafka-consumer",
-					host: this.opts.kafka.host,
+					host: this.opts.host,
 					groupId: this.nodeID,
 					fromOffset: "latest",
 					encoding: "buffer",
-				}, this.opts.kafka.consumer);
+				}, this.opts.consumer);
 
 				const Kafka = require("kafka-node");
 				this.consumer = new Kafka.ConsumerGroup(consumerOptions, topics);
@@ -264,8 +256,8 @@ class KafkaTransporter extends Transporter {
 			this.producer.send([{
 				topic: this.getTopicName(packet.type, packet.target),
 				messages: [data],
-				partition: this.opts.kafka.publish.partition,
-				attributes: this.opts.kafka.publish.attributes,
+				partition: this.opts.publish.partition,
+				attributes: this.opts.publish.attributes,
 			}], (err, result) => {
 				/* istanbul ignore next */
 				if (err) {

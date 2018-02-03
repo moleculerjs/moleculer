@@ -33,19 +33,19 @@ class StanTransporter extends Transporter {
 	 */
 	constructor(opts) {
 		if (typeof opts == "string")
-			opts = { stan: { url: opts.replace("stan://", "nats://") } };
+			opts = { url: opts.replace("stan://", "nats://") };
 
 		super(opts);
 
 		// Use the 'preserveBuffers' option as true as default
-		if (!this.opts.stan || this.opts.stan.preserveBuffers !== false) {
-			if (!this.opts.stan)
-				this.opts.stan = {};
+		if (!this.opts || this.opts.preserveBuffers !== false) {
+			if (!this.opts)
+				this.opts = {};
 
-			this.opts.stan.preserveBuffers = true;
+			this.opts.preserveBuffers = true;
 		}
-		if (!this.opts.stan.clusterID)
-			this.opts.stan.clusterID = "test-cluster"; // Default cluster ID in NATS Streaming server
+		if (!this.opts.clusterID)
+			this.opts.clusterID = "test-cluster"; // Default cluster ID in NATS Streaming server
 
 		this.hasBuiltInBalancer = true;
 		this.client = null;
@@ -69,7 +69,7 @@ class StanTransporter extends Transporter {
 				/* istanbul ignore next */
 				this.broker.fatal("The 'node-nats-streaming' package is missing! Please install it with 'npm install node-nats-streaming --save' command.", err, true);
 			}
-			const client = Stan.connect(this.opts.stan.clusterID, this.nodeID, this.opts.stan);
+			const client = Stan.connect(this.opts.clusterID, this.nodeID, this.opts);
 			this._client = client; // For tests
 
 			client.on("connect", () => {

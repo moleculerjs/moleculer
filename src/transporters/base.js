@@ -25,7 +25,7 @@ class BaseTransporter {
 	 * @memberOf BaseTransporter
 	 */
 	constructor(opts) {
-		this.opts = opts || {};
+		this.opts = opts;
 		this.connected = false;
 		this.hasBuiltInBalancer = false;
 	}

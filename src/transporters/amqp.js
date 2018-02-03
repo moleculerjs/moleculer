@@ -46,30 +46,30 @@ class AmqpTransporter extends Transporter {
 	 */
 	constructor(opts) {
 		if (typeof opts === "string")
-			opts = { amqp: { url: opts } };
+			opts = { url: opts };
 
 		// Number of requests a broker will handle concurrently
-		if (typeof opts.amqp.prefetch !== "number")
-			opts.amqp.prefetch = 1;
+		if (typeof opts.prefetch !== "number")
+			opts.prefetch = 1;
 
 		// Number of milliseconds before an event expires
-		if (typeof opts.amqp.eventTimeToLive !== "number")
-			opts.amqp.eventTimeToLive = null;
+		if (typeof opts.eventTimeToLive !== "number")
+			opts.eventTimeToLive = null;
 
-		if (typeof opts.amqp.heartbeatTimeToLive !== "number")
-			opts.amqp.heartbeatTimeToLive = null;
+		if (typeof opts.heartbeatTimeToLive !== "number")
+			opts.heartbeatTimeToLive = null;
 
-		if (typeof opts.amqp.queueOptions !== "object")
-			opts.amqp.queueOptions = {};
+		if (typeof opts.queueOptions !== "object")
+			opts.queueOptions = {};
 
-		if (typeof opts.amqp.exchangeOptions !== "object")
-			opts.amqp.exchangeOptions = {};
+		if (typeof opts.exchangeOptions !== "object")
+			opts.exchangeOptions = {};
 
-		if (typeof opts.amqp.messageOptions !== "object")
-			opts.amqp.messageOptions = {};
+		if (typeof opts.messageOptions !== "object")
+			opts.messageOptions = {};
 
-		if (typeof opts.amqp.consumeOptions !== "object")
-			opts.amqp.consumeOptions = {};
+		if (typeof opts.consumeOptions !== "object")
+			opts.consumeOptions = {};
 
 		super(opts);
 
@@ -94,7 +94,7 @@ class AmqpTransporter extends Transporter {
 				this.broker.fatal("The 'amqplib' package is missing. Please install it with 'npm install amqplib --save' command.", err, true);
 			}
 
-			amqp.connect(this.opts.amqp.url)
+			amqp.connect(this.opts.url)
 				.then(connection => {
 					this.connection = connection;
 					this.logger.info("AMQP is connected.");
@@ -128,7 +128,7 @@ class AmqpTransporter extends Transporter {
 							this.onConnected().then(resolve);
 							this.logger.info("AMQP channel is created.");
 
-							channel.prefetch(this.opts.amqp.prefetch);
+							channel.prefetch(this.opts.prefetch);
 
 							/* istanbul ignore next*/
 							channel
@@ -215,16 +215,16 @@ class AmqpTransporter extends Transporter {
 			case PACKET_EVENT:
 				packetOptions = {};
 				// If eventTimeToLive is specified, add to options.
-				if (this.opts.amqp.eventTimeToLive)
-					packetOptions.messageTtl = this.opts.amqp.eventTimeToLive;
+				if (this.opts.eventTimeToLive)
+					packetOptions.messageTtl = this.opts.eventTimeToLive;
 				break;
 
 			// Packet types meant for internal use
 			case PACKET_HEARTBEAT:
 				packetOptions = { autoDelete: true };
 				// If heartbeatTimeToLive is specified, add to options.
-				if (this.opts.amqp.heartbeatTimeToLive)
-					packetOptions.messageTtl = this.opts.amqp.heartbeatTimeToLive;
+				if (this.opts.heartbeatTimeToLive)
+					packetOptions.messageTtl = this.opts.heartbeatTimeToLive;
 				break;
 			case PACKET_DISCOVER:
 			case PACKET_DISCONNECT:
@@ -236,7 +236,7 @@ class AmqpTransporter extends Transporter {
 				break;
 		}
 
-		return Object.assign(packetOptions, this.opts.amqp.queueOptions);
+		return Object.assign(packetOptions, this.opts.queueOptions);
 	}
 
 	/**
@@ -319,7 +319,7 @@ class AmqpTransporter extends Transporter {
 				.then(() => this.channel.consume(
 					topic,
 					this._consumeCB(cmd, needAck),
-					Object.assign({ noAck: !needAck }, this.opts.amqp.consumeOptions)
+					Object.assign({ noAck: !needAck }, this.opts.consumeOptions)
 				));
 
 		} else {
@@ -331,7 +331,7 @@ class AmqpTransporter extends Transporter {
 			this.bindings.push(bindingArgs);
 
 			return Promise.all([
-				this.channel.assertExchange(topic, "fanout", this.opts.amqp.exchangeOptions),
+				this.channel.assertExchange(topic, "fanout", this.opts.exchangeOptions),
 				this.channel.assertQueue(queueName, this._getQueueOptions(cmd)),
 			])
 				.then(() => Promise.all([
@@ -339,7 +339,7 @@ class AmqpTransporter extends Transporter {
 					this.channel.consume(
 						queueName,
 						this._consumeCB(cmd),
-						Object.assign({ noAck: true }, this.opts.amqp.consumeOptions)
+						Object.assign({ noAck: true }, this.opts.consumeOptions)
 					)
 				]));
 		}
@@ -357,7 +357,7 @@ class AmqpTransporter extends Transporter {
 			.then(() => this.channel.consume(
 				queue,
 				this._consumeCB(PACKET_REQUEST, true),
-				this.opts.amqp.consumeOptions
+				this.opts.consumeOptions
 			));
 	}
 
@@ -374,7 +374,7 @@ class AmqpTransporter extends Transporter {
 			.then(() => this.channel.consume(
 				queue,
 				this._consumeCB(PACKET_EVENT, true),
-				this.opts.amqp.consumeOptions
+				this.opts.consumeOptions
 			));
 	}
 
@@ -395,9 +395,9 @@ class AmqpTransporter extends Transporter {
 		const payload = Buffer.from(this.serialize(packet)); // amqp.node expects data to be a buffer
 
 		if (packet.target != null) {
-			this.channel.sendToQueue(topic, payload, this.opts.amqp.messageOptions);
+			this.channel.sendToQueue(topic, payload, this.opts.messageOptions);
 		} else {
-			this.channel.publish(topic, "", payload, this.opts.amqp.messageOptions);
+			this.channel.publish(topic, "", payload, this.opts.messageOptions);
 		}
 
 		return Promise.resolve();
@@ -416,7 +416,7 @@ class AmqpTransporter extends Transporter {
 
 		let queue = `${this.prefix}.${PACKET_EVENT}B.${group}.${packet.payload.event}`;
 		const payload = Buffer.from(this.serialize(packet)); // amqp.node expects data to be a buffer
-		this.channel.sendToQueue(queue, payload, this.opts.amqp.messageOptions);
+		this.channel.sendToQueue(queue, payload, this.opts.messageOptions);
 		return Promise.resolve();
 	}
 
@@ -432,7 +432,7 @@ class AmqpTransporter extends Transporter {
 
 		const payload = Buffer.from(this.serialize(packet)); // amqp.node expects data to be a buffer
 		const topic = `${this.prefix}.${PACKET_REQUEST}B.${packet.payload.action}`;
-		this.channel.sendToQueue(topic, payload, this.opts.amqp.messageOptions);
+		this.channel.sendToQueue(topic, payload, this.opts.messageOptions);
 		return Promise.resolve();
 	}
 }

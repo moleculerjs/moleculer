@@ -25,9 +25,6 @@ class MqttTransporter extends Transporter {
 	 * @memberOf MqttTransporter
 	 */
 	constructor(opts) {
-		if (typeof opts == "string")
-			opts = { mqtt: opts };
-
 		super(opts);
 
 		this.client = null;
@@ -48,7 +45,7 @@ class MqttTransporter extends Transporter {
 				this.broker.fatal("The 'mqtt' package is missing. Please install it with 'npm install mqtt --save' command.", err, true);
 			}
 
-			const client = mqtt.connect(this.opts.mqtt);
+			const client = mqtt.connect(this.opts);
 			this._client = client; // For tests
 
 			client.on("connect", () => {

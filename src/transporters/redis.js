@@ -25,9 +25,6 @@ class RedisTransporter extends Transporter {
 	 * @memberOf RedisTransporter
 	 */
 	constructor(opts) {
-		if (typeof opts == "string")
-			opts = { redis: opts };
-
 		super(opts);
 
 		this.clientPub = null;
@@ -49,13 +46,13 @@ class RedisTransporter extends Transporter {
 				this.broker.fatal("The 'ioredis' package is missing. Please install it with 'npm install ioredis --save' command.", err, true);
 			}
 
-			const clientSub = new Redis(this.opts.redis);
+			const clientSub = new Redis(this.opts);
 			this._clientSub = clientSub; // For tests
 
 			clientSub.on("connect", () => {
 				this.logger.info("Redis-sub client is connected.");
 
-				const clientPub = new Redis(this.opts.redis);
+				const clientPub = new Redis(this.opts);
 				this._clientPub = clientPub; // For tests
 
 				clientPub.on("connect", () => {
