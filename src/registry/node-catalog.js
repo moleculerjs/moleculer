@@ -197,6 +197,7 @@ class NodeCatalog {
 			this.logger.debug(`Node '${nodeID}' updated.`);
 		}
 
+		return node;
 	}
 
 	/**

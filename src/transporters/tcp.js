@@ -459,14 +459,14 @@ class TcpTransporter extends Transporter {
 				else if (row.length == 3)
 					[info, cpuWhen, cpu] = row;
 
-				const node = this.nodes.get(nodeID);
+				let node = this.nodes.get(nodeID);
 				if (info && node && node.when < info.when) {
 					// Update 'info' block
 					info.sender = nodeID;
-					this.nodes.processNodeInfo(info);
+					node = this.nodes.processNodeInfo(info);
 				}
 
-				if (cpuWhen && cpuWhen > node.cpuWhen) {
+				if (node && cpuWhen && cpuWhen > node.cpuWhen) {
 					// We update our CPU info
 					node.heartbeat({
 						cpu,

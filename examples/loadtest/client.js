@@ -24,14 +24,14 @@ function work() {
 	const p = broker.call("math.add", payload)
 		.then(() => broker._callCount++)
 		.catch(err => console.warn(err.message))
-		.then(() => setImmediate(work));
+		//.then(() => setImmediate(work));
 
-	/* Overload
-	if (broker.transit.pendingRequests.size < 60 * 1000)
+	//* Overload
+	if (broker.transit.pendingRequests.size < 20 * 1000)
 		setImmediate(work);
 	else
 		p.then(() => setImmediate(work));
-	*/
+
 }
 
 broker._callCount = 0;

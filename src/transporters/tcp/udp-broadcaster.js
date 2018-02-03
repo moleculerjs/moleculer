@@ -144,7 +144,7 @@ class UdpServer extends EventEmitter {
 				this.discover();
 
 				if (this.opts.maxUdpDiscovery && this.counter >= this.opts.maxUdpDiscovery)
-					this.close();
+					this.stopDiscovering();
 
 			}, (this.opts.multicastPeriod || 5) * 1000);
 
