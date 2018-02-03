@@ -114,7 +114,7 @@ class KafkaTransporter extends Transporter {
 					const topic = message.topic;
 					const cmd = topic.split(".")[1];
 					console.log(cmd);
-					this.imcomingMessage(cmd, message.value);
+					this.incomingMessage(cmd, message.value);
 				});*/
 
 
@@ -206,7 +206,7 @@ class KafkaTransporter extends Transporter {
 				this.consumer.on("message", message => {
 					const topic = message.topic;
 					const cmd = topic.split(".")[1];
-					this.imcomingMessage(cmd, message.value);
+					this.incomingMessage(cmd, message.value);
 				});
 
 				this.consumer.on("connect", () => {

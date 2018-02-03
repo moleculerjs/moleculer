@@ -86,7 +86,7 @@ class RedisTransporter extends Transporter {
 			clientSub.on("messageBuffer", (topicBuf, buf) => {
 				const topic = topicBuf.toString();
 				const cmd = topic.split(".")[1];
-				this.imcomingMessage(cmd, buf);
+				this.incomingMessage(cmd, buf);
 			});
 
 			/* istanbul ignore next */

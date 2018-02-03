@@ -249,7 +249,7 @@ class AmqpTransporter extends Transporter {
 	 */
 	_consumeCB(cmd, needAck = false) {
 		return (msg) => {
-			const result = this.imcomingMessage(cmd, msg.content);
+			const result = this.incomingMessage(cmd, msg.content);
 
 			// If a promise is returned, acknowledge the message after it has resolved.
 			// This means that if a worker dies after receiving a message but before responding, the

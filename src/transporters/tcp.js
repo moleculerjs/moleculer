@@ -311,10 +311,16 @@ class TcpTransporter extends Transporter {
 		switch(type) {
 			case P.PACKET_GOSSIP_REQ: return this.processGossipRequest(message);
 			case P.PACKET_GOSSIP_RES: return this.processGossipResponse(message);
-			default: return this.imcomingMessage(type, message);
+			default: return this.incomingMessage(type, message);
 		}
 	}
 
+	/**
+	 * Process incoming Gossip Request packet
+	 *
+	 * @param {Buffer} msg
+	 * @memberof TcpTransporter
+	 */
 	processGossipRequest(msg) {
 		const packet = this.deserialize(P.PACKET_GOSSIP_REQ, msg);
 		const payload = packet.payload;
@@ -424,9 +430,9 @@ class TcpTransporter extends Transporter {
 	}
 
 	/**
-	 * Process the incoming Gossip Response message
+	 * Process the incoming Gossip Response packet
 	 *
-	 * @param {any} msg
+	 * @param {Buffer} msg
 	 * @memberof TcpTransporter
 	 */
 	processGossipResponse(msg) {

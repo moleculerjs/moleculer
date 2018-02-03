@@ -111,7 +111,7 @@ class BaseTransporter {
 	 * @returns
 	 * @memberof BaseTransporter
 	 */
-	imcomingMessage(cmd, msg) {
+	incomingMessage(cmd, msg) {
 		if (!msg) return;
 
 		const packet = this.deserialize(cmd, msg);

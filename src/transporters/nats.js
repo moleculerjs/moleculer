@@ -148,7 +148,7 @@ class NatsTransporter extends Transporter {
 	subscribe(cmd, nodeID) {
 		const t = this.getTopicName(cmd, nodeID);
 
-		this.client.subscribe(t, msg => this.imcomingMessage(cmd, msg));
+		this.client.subscribe(t, msg => this.incomingMessage(cmd, msg));
 
 		return Promise.resolve();
 	}
@@ -163,7 +163,7 @@ class NatsTransporter extends Transporter {
 		const topic = `${this.prefix}.${PACKET_REQUEST}B.${action}`;
 		const queue = action;
 
-		this.subscriptions.push(this.client.subscribe(topic, { queue }, (msg) => this.imcomingMessage(PACKET_REQUEST, msg)));
+		this.subscriptions.push(this.client.subscribe(topic, { queue }, (msg) => this.incomingMessage(PACKET_REQUEST, msg)));
 	}
 
 	/**
@@ -176,7 +176,7 @@ class NatsTransporter extends Transporter {
 	subscribeBalancedEvent(event, group) {
 		const topic = `${this.prefix}.${PACKET_EVENT}B.${group}.${event}`;
 
-		this.subscriptions.push(this.client.subscribe(topic, { queue: group }, (msg) => this.imcomingMessage(PACKET_EVENT, msg)));
+		this.subscriptions.push(this.client.subscribe(topic, { queue: group }, (msg) => this.incomingMessage(PACKET_EVENT, msg)));
 	}
 
 	/**

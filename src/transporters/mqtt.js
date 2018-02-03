@@ -74,7 +74,7 @@ class MqttTransporter extends Transporter {
 
 			client.on("message", (topic, msg) => {
 				const cmd = topic.split(".")[1];
-				this.imcomingMessage(cmd, msg);
+				this.incomingMessage(cmd, msg);
 			});
 
 			/* istanbul ignore next */
