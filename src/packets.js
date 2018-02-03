@@ -62,57 +62,42 @@ class Packet {
 	/**
 	 * Creates an instance of Packet.
 	 *
-	 * @param {Transit} transit
 	 * @param {String} type
 	 * @param {any} target
 	 *
 	 * @memberOf Packet
 	 */
-	constructor(transit, type, target) {
-		this.transit = transit;
+	constructor(sender, type, target) {
 		this.type = type || PACKET_UNKNOW;
 		this.target = target;
 
 		this.payload = {
 			ver: PROTOCOL_VERSION,
-			sender: transit ? transit.nodeID : null
+			sender
 		};
 	}
 
 	/**
-	 * Serialize a packet
-	 *
-	 * @returns
-	 *
-	 * @memberOf Packet
-	 */
-	serialize() {
-		return this.transit.serialize(this.payload, this.type);
-	}
-
-	/**
-	 * Deserialize message to packet
+	 * Rebuild packet from incoming data
 	 *
 	 * @static
-	 * @param {any} transit
 	 * @param {any} type
-	 * @param {any} msg
+	 * @param {any} payload
 	 * @returns {Packet}
 	 *
 	 * @memberOf Packet
 	 */
-	static deserialize(transit, type, msg) {
+	static build(type, payload) {
 		try {
-			const payload = transit.deserialize(msg, type);
 			const packetClass = getPacketClassByType(type);
 
-			const packet = new packetClass(transit);
+			const packet = new packetClass();
 			packet.payload = payload;
 
 			return packet;
 		} catch(err) {
 			/* istanbul ignore next */
-			throw new E.InvalidPacketData(msg);
+			throw new E.InvalidPacketData(type, payload);
 		}
 	}
 }
@@ -124,8 +109,8 @@ class Packet {
  * @extends {Packet}
  */
 class PacketDisconnect extends Packet {
-	constructor(transit) {
-		super(transit, PACKET_DISCONNECT);
+	constructor(sender) {
+		super(sender, PACKET_DISCONNECT);
 	}
 }
 
@@ -136,8 +121,8 @@ class PacketDisconnect extends Packet {
  * @extends {Packet}
  */
 class PacketHeartbeat extends Packet {
-	constructor(transit, cpu) {
-		super(transit, PACKET_HEARTBEAT);
+	constructor(sender, cpu) {
+		super(sender, PACKET_HEARTBEAT);
 		this.payload.cpu = cpu;
 	}
 }
@@ -149,8 +134,8 @@ class PacketHeartbeat extends Packet {
  * @extends {Packet}
  */
 class PacketDiscover extends Packet {
-	constructor(transit, target) {
-		super(transit, PACKET_DISCOVER, target);
+	constructor(sender, target) {
+		super(sender, PACKET_DISCOVER, target);
 	}
 }
 
@@ -161,8 +146,8 @@ class PacketDiscover extends Packet {
  * @extends {Packet}
  */
 class PacketInfo extends Packet {
-	constructor(transit, target, info) {
-		super(transit, PACKET_INFO, target);
+	constructor(sender, target, info) {
+		super(sender, PACKET_INFO, target);
 		if (info) {
 			this.payload.services = info.services;
 			this.payload.ipList = info.ipList;
@@ -180,8 +165,8 @@ class PacketInfo extends Packet {
  * @extends {Packet}
  */
 class PacketEvent extends Packet {
-	constructor(transit, target, eventName, data = null, groups = null, broadcast = false) {
-		super(transit, PACKET_EVENT, target);
+	constructor(sender, target, eventName, data = null, groups = null, broadcast = false) {
+		super(sender, PACKET_EVENT, target);
 
 		this.payload.event = eventName;
 		this.payload.data = data;
@@ -197,8 +182,8 @@ class PacketEvent extends Packet {
  * @extends {Packet}
  */
 class PacketRequest extends Packet {
-	constructor(transit, target, ctx) {
-		super(transit, PACKET_REQUEST, target);
+	constructor(sender, target, ctx) {
+		super(sender, PACKET_REQUEST, target);
 
 		if (ctx) {
 			this.payload.id = ctx.id;
@@ -221,8 +206,8 @@ class PacketRequest extends Packet {
  * @extends {Packet}
  */
 class PacketResponse extends Packet {
-	constructor(transit, target, id, meta, data, err) {
-		super(transit, PACKET_RESPONSE, target);
+	constructor(sender, target, id, meta, data, err) {
+		super(sender, PACKET_RESPONSE, target);
 
 		this.payload.id = id;
 		this.payload.meta = meta;
@@ -251,8 +236,8 @@ class PacketResponse extends Packet {
  * @extends {Packet}
  */
 class PacketPing extends Packet {
-	constructor(transit, target, time) {
-		super(transit, PACKET_PING, target);
+	constructor(sender, target, time) {
+		super(sender, PACKET_PING, target);
 		this.payload.time = time;
 	}
 }
@@ -264,8 +249,8 @@ class PacketPing extends Packet {
  * @extends {Packet}
  */
 class PacketPong extends Packet {
-	constructor(transit, target, time, arrived) {
-		super(transit, PACKET_PONG, target);
+	constructor(sender, target, time, arrived) {
+		super(sender, PACKET_PONG, target);
 		this.payload.time = time;
 		this.payload.arrived = arrived;
 	}

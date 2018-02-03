@@ -199,13 +199,13 @@ describe("Test AmqpTransporter subscribe", () => {
 	it("should call channel.ack (async)", () => {
 		transporter.channel.ack = jest.fn();
 		transporter.channel.nack = jest.fn();
-		transporter.messageHandler = jest.fn(() => Promise.resolve());
+		transporter.imcomingMessage = jest.fn(() => Promise.resolve());
 
 		let cb = transporter._consumeCB("REQ", true);
 
 		let msg = { content: "msg" };
 		return cb(msg).catch(protectReject).then(() => {
-			expect(transporter.messageHandler).toHaveBeenCalledTimes(1);
+			expect(transporter.imcomingMessage).toHaveBeenCalledTimes(1);
 			expect(transporter.channel.ack).toHaveBeenCalledTimes(1);
 			expect(transporter.channel.ack).toHaveBeenCalledWith(msg);
 			expect(transporter.channel.nack).toHaveBeenCalledTimes(0);
@@ -215,13 +215,13 @@ describe("Test AmqpTransporter subscribe", () => {
 	it("should call channel.nack (async)", () => {
 		transporter.channel.ack = jest.fn();
 		transporter.channel.nack = jest.fn();
-		transporter.messageHandler = jest.fn(() => Promise.reject());
+		transporter.imcomingMessage = jest.fn(() => Promise.reject());
 
 		let cb = transporter._consumeCB("REQ", true);
 
 		let msg = { content: "msg" };
 		return cb(msg).catch(protectReject).then(() => {
-			expect(transporter.messageHandler).toHaveBeenCalledTimes(1);
+			expect(transporter.imcomingMessage).toHaveBeenCalledTimes(1);
 			expect(transporter.channel.nack).toHaveBeenCalledTimes(1);
 			expect(transporter.channel.nack).toHaveBeenCalledWith(msg);
 			expect(transporter.channel.ack).toHaveBeenCalledTimes(0);

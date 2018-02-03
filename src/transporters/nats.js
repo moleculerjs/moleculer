@@ -148,7 +148,8 @@ class NatsTransporter extends Transporter {
 	subscribe(cmd, nodeID) {
 		const t = this.getTopicName(cmd, nodeID);
 
-		this.client.subscribe(t, (msg) => this.messageHandler(cmd, msg));
+		this.client.subscribe(t, msg => this.imcomingMessage(cmd, msg));
+
 		return Promise.resolve();
 	}
 
@@ -162,7 +163,7 @@ class NatsTransporter extends Transporter {
 		const topic = `${this.prefix}.${PACKET_REQUEST}B.${action}`;
 		const queue = action;
 
-		this.subscriptions.push(this.client.subscribe(topic, { queue }, (msg) => this.messageHandler(PACKET_REQUEST, msg)));
+		this.subscriptions.push(this.client.subscribe(topic, { queue }, (msg) => this.imcomingMessage(PACKET_REQUEST, msg)));
 	}
 
 	/**
@@ -175,7 +176,7 @@ class NatsTransporter extends Transporter {
 	subscribeBalancedEvent(event, group) {
 		const topic = `${this.prefix}.${PACKET_EVENT}B.${group}.${event}`;
 
-		this.subscriptions.push(this.client.subscribe(topic, { queue: group }, (msg) => this.messageHandler(PACKET_EVENT, msg)));
+		this.subscriptions.push(this.client.subscribe(topic, { queue: group }, (msg) => this.imcomingMessage(PACKET_EVENT, msg)));
 	}
 
 	/**
@@ -204,7 +205,7 @@ class NatsTransporter extends Transporter {
 
 		return new Promise(resolve => {
 			let topic = this.getTopicName(packet.type, packet.target);
-			const payload = Buffer.from(packet.serialize());
+			const payload = Buffer.from(this.serialize(packet));
 
 			this.client.publish(topic, payload, resolve);
 		});
@@ -223,7 +224,7 @@ class NatsTransporter extends Transporter {
 
 		return new Promise(resolve => {
 			let topic = `${this.prefix}.${PACKET_EVENT}B.${group}.${packet.payload.event}`;
-			const payload = Buffer.from(packet.serialize());
+			const payload = Buffer.from(this.serialize(packet));
 
 			this.client.publish(topic, payload, resolve);
 		});
@@ -241,7 +242,7 @@ class NatsTransporter extends Transporter {
 
 		return new Promise(resolve => {
 			const topic = `${this.prefix}.${PACKET_REQUEST}B.${packet.payload.action}`;
-			const payload = Buffer.from(packet.serialize());
+			const payload = Buffer.from(this.serialize(packet));
 
 			this.client.publish(topic, payload, resolve);
 		});

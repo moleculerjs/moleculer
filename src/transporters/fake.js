@@ -69,7 +69,7 @@ class FakeTransporter extends Transporter {
 	 */
 	subscribe(cmd, nodeID) {
 		const t = this.getTopicName(cmd, nodeID);
-		this.bus.on(t, msg => this.messageHandler(cmd, msg));
+		this.bus.on(t, msg => this.imcomingMessage(cmd, msg));
 		return Promise.resolve();
 	}
 
@@ -102,8 +102,7 @@ class FakeTransporter extends Transporter {
 	 * @memberOf FakeTransporter
 	 */
 	publish(packet) {
-		const data = packet.serialize();
-		this.bus.emit(this.getTopicName(packet.type, packet.target), data);
+		this.bus.emit(this.getTopicName(packet.type, packet.target), this.serialize(packet));
 		return Promise.resolve();
 	}
 

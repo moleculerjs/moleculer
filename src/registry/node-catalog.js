@@ -112,6 +112,7 @@ class NodeCatalog {
 			version: this.broker.MOLECULER_VERSION,
 			langVersion: process.version
 		};
+		node.when = Date.now();
 
 		this.add(node.id, node);
 

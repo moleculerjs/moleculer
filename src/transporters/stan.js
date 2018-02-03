@@ -154,9 +154,7 @@ class StanTransporter extends Transporter {
 		const opts = this.client.subscriptionOptions(); //.setStartWithLastReceived().setDurableName(cmd); //No need durable & receive old messages
 		const subscription = this.client.subscribe(t, opts);
 
-		subscription.on("message", msg => {
-			this.messageHandler(cmd, msg.getRawData());
-		});
+		subscription.on("message", msg => this.imcomingMessage(cmd, msg.getRawData()));
 		return Promise.resolve();
 	}
 
@@ -173,7 +171,7 @@ class StanTransporter extends Transporter {
 		const opts = this.client.subscriptionOptions().setDeliverAllAvailable().setDurableName(PACKET_REQUEST + "B");
 		const subscription = this.client.subscribe(topic, queue, opts);
 
-		subscription.on("message", msg => this.messageHandler(PACKET_REQUEST, msg.getRawData()));
+		subscription.on("message", msg => this.imcomingMessage(PACKET_REQUEST, msg.getRawData()));
 		this.subscriptions.push(subscription);
 	}
 
@@ -190,7 +188,7 @@ class StanTransporter extends Transporter {
 		const opts = this.client.subscriptionOptions().setDeliverAllAvailable().setDurableName(PACKET_EVENT + "B");
 		const subscription = this.client.subscribe(topic, group, opts);
 
-		subscription.on("message", msg => this.messageHandler(PACKET_EVENT, msg.getRawData()));
+		subscription.on("message", msg => this.imcomingMessage(PACKET_EVENT, msg.getRawData()));
 		this.subscriptions.push(subscription);
 	}
 
@@ -221,7 +219,7 @@ class StanTransporter extends Transporter {
 
 		return new Promise(resolve => {
 			let topic = this.getTopicName(packet.type, packet.target);
-			const payload = Buffer.from(packet.serialize());
+			const payload = Buffer.from(this.serialize(packet));
 
 			this.client.publish(topic, payload, resolve);
 		});
@@ -240,7 +238,7 @@ class StanTransporter extends Transporter {
 
 		return new Promise(resolve => {
 			let topic = `${this.prefix}.${PACKET_EVENT}B.${group}.${packet.payload.event}`;
-			const payload = Buffer.from(packet.serialize());
+			const payload = Buffer.from(this.serialize(packet));
 
 			this.client.publish(topic, payload, resolve);
 		});
@@ -258,7 +256,7 @@ class StanTransporter extends Transporter {
 
 		return new Promise(resolve => {
 			const topic = `${this.prefix}.${PACKET_REQUEST}B.${packet.payload.action}`;
-			const payload = Buffer.from(packet.serialize());
+			const payload = Buffer.from(this.serialize(packet));
 
 			this.client.publish(topic, payload, resolve);
 		});

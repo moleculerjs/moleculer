@@ -155,7 +155,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendDisconnectPacket() {
-		return this.publish(new P.PacketDisconnect(this));
+		return this.publish(new P.PacketDisconnect(this.nodeID));
 	}
 
 	/**
@@ -212,18 +212,10 @@ class Transit {
 	 *
 	 * @memberOf Transit
 	 */
-	messageHandler(cmd, msg) {
+	messageHandler(cmd, packet) {
 		try {
-
-			if (msg == null) {
-				throw new E.MoleculerServerError("Missing packet.", 500, "MISSING_PACKET");
-			}
-
-			this.stat.packets.received = this.stat.packets.received + 1;
-
-			// TODO: move deserialize to transporter base
-			const packet = P.Packet.deserialize(this, cmd, msg);
 			const payload = packet.payload;
+			this.stat.packets.received = this.stat.packets.received + 1;
 
 			// Check payload
 			if (!payload) {
@@ -290,7 +282,7 @@ class Transit {
 
 			return true;
 		} catch(err) {
-			this.logger.error(err, cmd, msg);
+			this.logger.error(err, cmd, packet);
 		}
 		return false;
 	}
@@ -405,7 +397,7 @@ class Transit {
 			reject
 		};
 
-		const packet = new P.PacketRequest(this, ctx.nodeID, ctx);
+		const packet = new P.PacketRequest(this.nodeID, ctx.nodeID, ctx);
 
 		this.logger.debug(`Send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`);
 
@@ -428,7 +420,7 @@ class Transit {
 	sendBroadcastEvent(nodeID, eventName, data, groups) {
 		this.logger.debug(`Send '${eventName}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
 
-		this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups, true));
+		this.publish(new P.PacketEvent(this.nodeID, nodeID, eventName, data, groups, true));
 	}
 
 	/**
@@ -445,7 +437,7 @@ class Transit {
 		_.forIn(nodeGroups, (groups, nodeID) => {
 			this.logger.debug(`Send '${eventName}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
 
-			this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups, false));
+			this.publish(new P.PacketEvent(this.nodeID, nodeID, eventName, data, groups, false));
 		});
 	}
 
@@ -461,7 +453,7 @@ class Transit {
 	 */
 	sendEventToGroups(eventName, data, groups) {
 		this.logger.debug(`Send '${eventName}' event to '${groups.join(", ")}' group(s).`);
-		this.publish(new P.PacketEvent(this, null, eventName, data, groups, false));
+		this.publish(new P.PacketEvent(this.nodeID, null, eventName, data, groups, false));
 	}
 
 	/**
@@ -507,7 +499,7 @@ class Transit {
 	 */
 	sendResponse(nodeID, id, meta, data, err) {
 		// Publish the response
-		return this.publish(new P.PacketResponse(this, nodeID, id, meta, data, err));
+		return this.publish(new P.PacketResponse(this.nodeID, nodeID, id, meta, data, err));
 	}
 
 	/**
@@ -516,7 +508,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	discoverNodes() {
-		return this.publish(new P.PacketDiscover(this));
+		return this.publish(new P.PacketDiscover(this.nodeID, ));
 	}
 
 	/**
@@ -525,7 +517,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	discoverNode(nodeID) {
-		return this.publish(new P.PacketDiscover(this, nodeID));
+		return this.publish(new P.PacketDiscover(this.nodeID, nodeID));
 	}
 
 	/**
@@ -542,7 +534,7 @@ class Transit {
 		if (!nodeID)
 			p = this.tx.makeBalancedSubscriptions();
 
-		return p.then(() => this.publish(new P.PacketInfo(this, nodeID, info)));
+		return p.then(() => this.publish(new P.PacketInfo(this.nodeID, nodeID, info)));
 	}
 
 	/**
@@ -553,7 +545,7 @@ class Transit {
 	 * @memberof Transit
 	 */
 	sendPing(nodeID) {
-		return this.publish(new P.PacketPing(this, nodeID, Date.now()));
+		return this.publish(new P.PacketPing(this.nodeID, nodeID, Date.now()));
 	}
 
 	/**
@@ -564,7 +556,7 @@ class Transit {
 	 * @memberof Transit
 	 */
 	sendPong(payload) {
-		return this.publish(new P.PacketPong(this, payload.sender, payload.time, Date.now()));
+		return this.publish(new P.PacketPong(this.nodeID, payload.sender, payload.time, Date.now()));
 	}
 
 	/**
@@ -581,16 +573,16 @@ class Transit {
 
 		// this.logger.debug(`PING-PONG from '${payload.sender}' - Time: ${elapsedTime}ms, Time difference: ${timeDiff}ms`);
 
-		this.broker.broadcastLocal("$node.pong", { nodeID: payload.sender, elapsedTime, timeDiff }, payload.sender);
+		this.broker.broadcastLocal("$node.pong", { nodeID: payload.sender, elapsedTime, timeDiff });
 	}
 
 	/**
-	 * Send a node heart-beat. It will be called with timer
+	 * Send a node heartbeat. It will be called with timer
 	 *
 	 * @memberOf Transit
 	 */
 	sendHeartbeat(localNode) {
-		return this.publish(new P.PacketHeartbeat(this, localNode.cpu));
+		return this.publish(new P.PacketHeartbeat(this.nodeID, localNode.cpu));
 	}
 
 	/**
@@ -624,32 +616,6 @@ class Transit {
 		}
 		this.stat.packets.sent = this.stat.packets.sent + 1;
 		return this.tx.prepublish(packet);
-	}
-
-	/**
-	 * Serialize the object
-	 *
-	 * @param {Object} obj
-	 * @returns {Buffer}
-	 *
-	 * @memberOf Transit
-	 */
-	serialize(obj, type) {
-		return this.broker.serializer.serialize(obj, type);
-	}
-
-	/**
-	 * Deserialize the incoming Buffer to object
-	 *
-	 * @param {Buffer} buf
-	 * @returns {any}
-	 *
-	 * @memberOf Transit
-	 */
-	deserialize(buf, type) {
-		if (buf == null) return null;
-
-		return this.broker.serializer.deserialize(buf, type);
 	}
 
 }

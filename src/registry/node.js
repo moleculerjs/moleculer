@@ -38,7 +38,7 @@ class Node {
 		this.cpu = null;
 		this.cpuWhen = null;
 
-		this.when = Date.now();
+		this.when = null;
 		this.offlineSince = null;
 	}
 

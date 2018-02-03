@@ -356,12 +356,11 @@ declare namespace Moleculer {
 		 * @param {string} eventName
 		 * @param {any} payload
 		 * @param {Array<string>?} groups
-		 * @param {String?} nodeID
 		 * @returns
 		 *
 		 * @memberOf ServiceBroker
 		 */
-		broadcastLocal(eventName: string, payload?: any, groups?: string | Array<string>, nodeID?: string): void;
+		broadcastLocal(eventName: string, payload?: any, groups?: string | Array<string>): void;
 
 		sendPing(nodeID?: string): Bluebird<void>;
 		getHealthStatus(): NodeHealthStatus;
@@ -571,6 +570,11 @@ declare namespace Moleculer {
 			public getTopicName(cmd: string, nodeID: string): string;
 			public prepublish(packet: Packet): Bluebird<void>;
 
+			public serialize(obj: GenericObject, type: string): Buffer;
+			public deserialize(buf: Buffer, type: string): any;
+			public deserialize(buf: Buffer): any;
+
+
 			protected opts: GenericObject;
 			protected connected: boolean;
 			protected hasBuiltInBalancer: boolean;
@@ -704,9 +708,6 @@ declare namespace Moleculer {
 		sendHeartbeat(localNode: NodeHealthStatus): Bluebird<void>;
 		subscribe(topic: string, nodeID: string): Bluebird<void>;
 		publish(packet: Packet): Bluebird<void>;
-		serialize(obj: GenericObject, type: string): Buffer;
-		deserialize(buf: Buffer, type: string): any;
-		deserialize(buf: Buffer): any;
 
 		pendingRequests: Map<string, TransitRequest>
 		nodeID: string;

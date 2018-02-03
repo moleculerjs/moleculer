@@ -107,7 +107,7 @@ class KafkaTransporter extends Transporter {
 					const topic = message.topic;
 					const cmd = topic.split(".")[1];
 					console.log(cmd);
-					this.messageHandler(cmd, message.value);
+					this.imcomingMessage(cmd, message.value);
 				});*/
 
 
@@ -199,7 +199,7 @@ class KafkaTransporter extends Transporter {
 				this.consumer.on("message", message => {
 					const topic = message.topic;
 					const cmd = topic.split(".")[1];
-					this.messageHandler(cmd, message.value);
+					this.imcomingMessage(cmd, message.value);
 				});
 
 				this.consumer.on("connect", () => {
@@ -253,7 +253,7 @@ class KafkaTransporter extends Transporter {
 		if (!this.producer) return Promise.resolve();
 
 		return new Promise((resolve, reject) => {
-			const data = packet.serialize();
+			const data = this.serialize(packet);
 			this.producer.send([{
 				topic: this.getTopicName(packet.type, packet.target),
 				messages: [data],

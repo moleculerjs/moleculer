@@ -249,7 +249,7 @@ class AmqpTransporter extends Transporter {
 	 */
 	_consumeCB(cmd, needAck = false) {
 		return (msg) => {
-			const result = this.messageHandler(cmd, msg.content);
+			const result = this.imcomingMessage(cmd, msg.content);
 
 			// If a promise is returned, acknowledge the message after it has resolved.
 			// This means that if a worker dies after receiving a message but before responding, the
@@ -392,7 +392,7 @@ class AmqpTransporter extends Transporter {
 		if (!this.channel) return Promise.resolve();
 
 		let topic = this.getTopicName(packet.type, packet.target);
-		const payload = Buffer.from(packet.serialize()); // amqp.node expects data to be a buffer
+		const payload = Buffer.from(this.serialize(packet)); // amqp.node expects data to be a buffer
 
 		if (packet.target != null) {
 			this.channel.sendToQueue(topic, payload, this.opts.amqp.messageOptions);
@@ -415,7 +415,7 @@ class AmqpTransporter extends Transporter {
 		if (!this.channel) return Promise.resolve();
 
 		let queue = `${this.prefix}.${PACKET_EVENT}B.${group}.${packet.payload.event}`;
-		const payload = Buffer.from(packet.serialize()); // amqp.node expects data to be a buffer
+		const payload = Buffer.from(this.serialize(packet)); // amqp.node expects data to be a buffer
 		this.channel.sendToQueue(queue, payload, this.opts.amqp.messageOptions);
 		return Promise.resolve();
 	}
@@ -430,7 +430,7 @@ class AmqpTransporter extends Transporter {
 	publishBalancedRequest(packet) {
 		if (!this.channel) return Promise.resolve();
 
-		const payload = Buffer.from(packet.serialize()); // amqp.node expects data to be a buffer
+		const payload = Buffer.from(this.serialize(packet)); // amqp.node expects data to be a buffer
 		const topic = `${this.prefix}.${PACKET_REQUEST}B.${packet.payload.action}`;
 		this.channel.sendToQueue(topic, payload, this.opts.amqp.messageOptions);
 		return Promise.resolve();

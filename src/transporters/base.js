@@ -8,10 +8,7 @@
 
 const Promise		= require("bluebird");
 const _				= require("lodash");
-const {
-	PACKET_REQUEST,
-	PACKET_EVENT,
-} = require("../packets");
+const P = require("../packets");
 
 /**
  * Base Transporter class
@@ -104,6 +101,21 @@ class BaseTransporter {
 	 */
 	makeSubscriptions(topics) {
 		return Promise.all(topics.map(({ cmd, nodeID }) => this.subscribe(cmd, nodeID)));
+	}
+
+	/**
+	 * Process incoming messages
+	 *
+	 * @param {String} cmd
+	 * @param {Buffer} msg
+	 * @returns
+	 * @memberof BaseTransporter
+	 */
+	imcomingMessage(cmd, msg) {
+		if (!msg) return;
+
+		const packet = this.deserialize(cmd, msg);
+		this.messageHandler(cmd, packet);
 	}
 
 	/**
@@ -243,7 +255,7 @@ class BaseTransporter {
 	 * @memberof BaseTransporter
 	 */
 	prepublish(packet) {
-		if (packet.type === PACKET_EVENT && packet.target == null && packet.payload.groups) {
+		if (packet.type === P.PACKET_EVENT && packet.target == null && packet.payload.groups) {
 			let groups = packet.payload.groups;
 			// If the packet contains groups, we don't send the packet to
 			// the targetted node, but we push them to the event group queues
@@ -259,12 +271,41 @@ class BaseTransporter {
 			// If it's not contain, then it is a broadcasted event,
 			// we sent it in the normal way (exchange)
 
-		} else if (packet.type === PACKET_REQUEST && packet.target == null) {
+		} else if (packet.type === P.PACKET_REQUEST && packet.target == null) {
 			return this.publishBalancedRequest(packet);
 		}
 
 		// Normal packet publishing...
 		return this.publish(packet);
+	}
+
+	/**
+	 * Serialize the Packet to Buffer
+	 *
+	 * @param {Packet} packet
+	 * @returns {Buffer}
+	 *
+	 * @memberOf Transit
+	 */
+	serialize(packet) {
+		return this.broker.serializer.serialize(packet.payload, packet.type);
+	}
+
+	/**
+	 * Deserialize the incoming Buffer to Packet
+	 *
+	 * @param {String} type
+	 * @param {Buffer} buf
+	 * @returns {Packet}
+	 *
+	 * @memberOf Transit
+	 */
+	deserialize(type, buf) {
+		if (buf == null) return null;
+
+		const msg = this.broker.serializer.deserialize(buf, type);
+		return P.Packet.build(type, msg);
+
 	}
 }
 

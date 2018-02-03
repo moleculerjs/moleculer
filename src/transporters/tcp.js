@@ -299,7 +299,7 @@ class TcpTransporter extends Transporter {
 
 		const ep = endpoints[Math.floor(Math.random() * endpoints.length)];
 		if (ep) {
-			const packet = new PacketGossipRequest(this.transit, ep.id, data);
+			const packet = new PacketGossipRequest(this.nodeID, ep.id, data);
 			this.publish(packet).catch(() => {});
 
 			if (this.GOSSIP_DEBUG) this.logger.info(chalk.bgYellow.black(`----- REQUEST ${this.nodeID} -> ${ep.id} -----`), packet.payload);
@@ -316,12 +316,12 @@ class TcpTransporter extends Transporter {
 		switch(type) {
 			case PACKET_GOSSIP_REQ: return this.processGossipRequest(message);
 			case PACKET_GOSSIP_RES: return this.processGossipResponse(message);
-			default: return this.messageHandler(type, message);
+			default: return this.imcomingMessage(type, message);
 		}
 	}
 
 	processGossipRequest(msg) {
-		const packet = P.Packet.deserialize(this.transit, PACKET_GOSSIP_REQ, msg);
+		const packet = this.deserialize(PACKET_GOSSIP_REQ, msg);
 		const payload = packet.payload;
 
 		if (this.GOSSIP_DEBUG) this.logger.info(`----- REQUEST ${this.nodeID} <- ${payload.sender} -----`, payload);
@@ -419,7 +419,7 @@ class TcpTransporter extends Transporter {
 			}
 
 			// Send back the Gossip response to the sender
-			const rspPacket = new PacketGossipResponse(this.transit, sender.id, response);
+			const rspPacket = new PacketGossipResponse(this.nodeID, sender.id, response);
 			this.publish(rspPacket).catch(() => {});
 
 			if (this.GOSSIP_DEBUG) this.logger.info(chalk.bgMagenta.black(`----- RESPONSE ${this.nodeID} -> ${sender.id} -----`), rspPacket.payload);
@@ -435,7 +435,7 @@ class TcpTransporter extends Transporter {
 	 * @memberof TcpTransporter
 	 */
 	processGossipResponse(msg) {
-		const packet = P.Packet.deserialize(this.transit, PACKET_GOSSIP_RES, msg);
+		const packet = this.deserialize(PACKET_GOSSIP_RES, msg);
 		const payload = packet.payload;
 
 		if (this.GOSSIP_DEBUG) this.logger.info(`----- RESPONSE ${this.nodeID} <- ${payload.sender} -----`, payload);
@@ -571,7 +571,7 @@ class TcpTransporter extends Transporter {
 			return Promise.resolve();
 
 		const packetID = resolvePacketID(packet.type);
-		let data = packet.serialize();
+		let data = this.serialize(packet);
 		if (!Buffer.isBuffer(data))
 			data = Buffer.from(data);
 

@@ -336,12 +336,13 @@ class InvalidPacketData extends MoleculerError {
 	/**
 	 * Creates an instance of InvalidPacketData.
 	 *
-	 * @param {String} action
+	 * @param {String} type
+	 * @param {Object} payload
 	 *
 	 * @memberOf InvalidPacketData
 	 */
-	constructor(packet) {
-		super("Invalid packet data.", 500, null, { packet });
+	constructor(type, payload) {
+		super("Invalid packet data.", 500, null, { type, payload });
 	}
 }
 

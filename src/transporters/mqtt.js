@@ -74,7 +74,7 @@ class MqttTransporter extends Transporter {
 
 			client.on("message", (topic, msg) => {
 				const cmd = topic.split(".")[1];
-				this.messageHandler(cmd, msg);
+				this.imcomingMessage(cmd, msg);
 			});
 
 			/* istanbul ignore next */
@@ -119,7 +119,7 @@ class MqttTransporter extends Transporter {
 	 */
 	publish(packet) {
 		if (!this.client) return;
-		const data = packet.serialize();
+		const data = this.serialize(packet);
 
 		return new Promise((resolve, reject) => {
 			/* istanbul ignore next */

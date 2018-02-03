@@ -86,7 +86,7 @@ class RedisTransporter extends Transporter {
 			clientSub.on("messageBuffer", (topicBuf, buf) => {
 				const topic = topicBuf.toString();
 				const cmd = topic.split(".")[1];
-				this.messageHandler(cmd, buf);
+				this.imcomingMessage(cmd, buf);
 			});
 
 			/* istanbul ignore next */
@@ -143,7 +143,7 @@ class RedisTransporter extends Transporter {
 	 */
 	publish(packet) {
 		if (!this.clientPub) return;
-		const data = packet.serialize();
+		const data = this.serialize(packet);
 		this.clientPub.publish(this.getTopicName(packet.type, packet.target), data);
 		return Promise.resolve();
 	}
