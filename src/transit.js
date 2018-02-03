@@ -225,13 +225,12 @@ class Transit {
 
 			// Check protocol version
 			if (payload.ver != P.PROTOCOL_VERSION) {
-				throw new E.ProtocolVersionMismatchError(payload.sender,P.PROTOCOL_VERSION, payload.ver || "1");
+				throw new E.ProtocolVersionMismatchError(payload.sender,P.PROTOCOL_VERSION, payload.ver);
 			}
 
-			// Skip own packets (if built-in balancer disabled)
+			// Skip own packets (if only built-in balancer disabled)
 			if (payload.sender == this.nodeID && (cmd !== P.PACKET_EVENT && cmd !== P.PACKET_REQUEST && cmd !== P.PACKET_RESPONSE))
 				return;
-
 
 			this.logger.debug(`Incoming ${cmd} packet from '${payload.sender}'`);
 
@@ -508,7 +507,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	discoverNodes() {
-		return this.publish(new P.PacketDiscover(this.nodeID, ));
+		return this.publish(new P.PacketDiscover(this.nodeID));
 	}
 
 	/**

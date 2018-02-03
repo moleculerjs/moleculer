@@ -21,6 +21,9 @@ const PACKET_HEARTBEAT 		= "HEARTBEAT";
 const PACKET_PING 			= "PING";
 const PACKET_PONG 			= "PONG";
 
+const PACKET_GOSSIP_REQ		= "GOSSIP_REQ";
+const PACKET_GOSSIP_RES		= "GOSSIP_RES";
+
 const PROTOCOL_VERSION 		= "3";
 
 /**
@@ -48,6 +51,11 @@ function getPacketClassByType(type) {
 		return PacketPing;
 	if (type == PACKET_PONG)
 		return PacketPong;
+
+	if (type == PACKET_GOSSIP_REQ)
+		return PacketGossipRequest;
+	if (type == PACKET_GOSSIP_RES)
+		return PacketGossipResponse;
 
 	/* istanbul ignore next */
 	return Packet;
@@ -256,6 +264,48 @@ class PacketPong extends Packet {
 	}
 }
 
+/**
+ * Packet for gossip request
+ *
+ * @class PacketGossipRequest
+ * @extends {Packet}
+ */
+class PacketGossipRequest extends Packet {
+	constructor(transit, target, data) {
+		super(transit, PACKET_GOSSIP_REQ, target);
+
+		if (data) {
+			this.payload.host = data.host;
+			this.payload.port = data.port;
+
+			if (data.online)
+				this.payload.online = data.online;
+
+			if (data.offline)
+				this.payload.offline = data.offline;
+		}
+	}
+}
+
+/**
+ * Packet for gossip response
+ *
+ * @class PacketGossipResponse
+ * @extends {Packet}
+ */
+class PacketGossipResponse extends Packet {
+	constructor(transit, target, data) {
+		super(transit, PACKET_GOSSIP_RES, target);
+
+		if (data) {
+			if (data.online)
+				this.payload.online = data.online;
+
+			if (data.offline)
+				this.payload.offline = data.offline;
+		}
+	}
+}
 
 module.exports = {
 	PROTOCOL_VERSION,
@@ -270,6 +320,8 @@ module.exports = {
 	PACKET_HEARTBEAT,
 	PACKET_PING,
 	PACKET_PONG,
+	PACKET_GOSSIP_REQ,
+	PACKET_GOSSIP_RES,
 
 	Packet,
 	PacketEvent,
@@ -280,5 +332,7 @@ module.exports = {
 	PacketRequest,
 	PacketResponse,
 	PacketPing,
-	PacketPong
+	PacketPong,
+	PacketGossipRequest,
+	PacketGossipResponse
 };

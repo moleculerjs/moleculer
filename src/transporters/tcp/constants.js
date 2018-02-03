@@ -7,10 +7,6 @@
 "use strict";
 
 const P = require("../../packets");
-const {
-	PACKET_GOSSIP_REQ,
-	PACKET_GOSSIP_RES
-} = require("./packets");
 
 module.exports = {
 
@@ -45,9 +41,9 @@ module.exports = {
 				return module.exports.PACKET_PING_ID;
 			case P.PACKET_PONG:
 				return module.exports.PACKET_PONG_ID;
-			case PACKET_GOSSIP_REQ:
+			case P.PACKET_GOSSIP_REQ:
 				return module.exports.PACKET_GOSSIP_REQ_ID;
-			case PACKET_GOSSIP_RES:
+			case P.PACKET_GOSSIP_RES:
 				return module.exports.PACKET_GOSSIP_RES_ID;
 			default:
 				throw new Error("Unsupported packet type (" + type + ")!");
@@ -67,11 +63,46 @@ module.exports = {
 			case module.exports.PACKET_PONG_ID:
 				return P.PACKET_PONG;
 			case module.exports.PACKET_GOSSIP_REQ_ID:
-				return PACKET_GOSSIP_REQ;
+				return P.PACKET_GOSSIP_REQ;
 			case module.exports.PACKET_GOSSIP_RES_ID:
-				return PACKET_GOSSIP_RES;
+				return P.PACKET_GOSSIP_RES;
 			default:
 				throw new Error("Unsupported packet ID (" + id + ")!");
 		}
 	}
 };
+
+
+/*
+let REQUEST = {
+	"ver": 3,
+	"sender": "node-1",
+	"host": "host",
+	"port": 1234,
+	"online": {
+		"node-01": [1111, 3333, 3],  // when, cpuWhen, cpu
+		"node-02": [1111, 3333, 3],  // when, cpuWhen, cpu
+		"node-03": [1111, 3333, 3],  // when, cpuWhen, cpu
+	},
+	"offline": {
+		"node-10": [1111, 2222], // when, offlineSince
+		"node-11": [1111, 2222],
+		"node-12": [1111, 2222]
+	}
+};
+
+let RESPONSE = {
+	"ver": 3,
+	"sender": "node-1",
+	"online": {
+		"node-01": [3333, 3],   // cpuWhen, cpu
+		"node-02": [{}],   // INFO
+		"node-03": [{}, 3333, 3] // INFO, cpuWhen, cpu
+	},
+	"offline": {
+		"node-10": [1111, 2222], // when, offlineSince
+		"node-11": [1111, 2222],
+		"node-12": [1111, 2222]
+	}
+};
+*/

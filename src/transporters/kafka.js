@@ -14,6 +14,13 @@ const Transporter 		= require("./base");
 /**
  * Lightweight transporter for Kafka
  *
+ * For test:
+ *   1. clone https://github.com/wurstmeister/kafka-docker.git repo
+ *   2. follow instructions on https://github.com/wurstmeister/kafka-docker#pre-requisites
+ * 	 3. start containers with Docker Compose
+ *
+ * 			docker-compose -f docker-compose-single-broker.yml up -d
+ *
  * @class KafkaTransporter
  * @extends {Transporter}
  */
