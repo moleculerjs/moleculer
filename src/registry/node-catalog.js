@@ -178,10 +178,10 @@ class NodeCatalog {
 		}
 
 		// Update instance
-		node.update(payload);
+		const needRegister = node.update(payload);
 
-		if (payload.services) {
-			this.registry.registerServices(node, payload.services);
+		if (needRegister && node.services) {
+			this.registry.registerServices(node, node.services);
 		}
 
 		// Local notifications
@@ -223,8 +223,6 @@ class NodeCatalog {
 	 * @memberOf Transit
 	 */
 	checkOfflineNodes() {
-		if (this.disableHeartbeatChecks) return;
-
 		const now = Date.now();
 		this.nodes.forEach(node => {
 			if (node.local || node.available) return;

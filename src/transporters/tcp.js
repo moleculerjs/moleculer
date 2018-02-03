@@ -53,6 +53,8 @@ class TcpTransporter extends Transporter {
 			udpDiscovery: true,
 			udpReuseAddr: true,
 
+			maxUdpDiscovery: 10,
+
 			multicastHost: "230.0.0.0",
 			multicastPort: 4445,
 			multicastTTL: 1,
@@ -63,9 +65,9 @@ class TcpTransporter extends Transporter {
 			urls: null, // TODO: URLs of remote endpoints
 			useHostname: true,
 
-			gossipPeriod: 5, // 1 second
-			maxKeepAliveConnections: 0, // TODO
-			keepAliveTimeout: 60, // TODO
+			gossipPeriod: 5, // seconds
+			maxKeepAliveConnections: 100, // Max live TCP socket
+			keepAliveTimeout: 60, // seconds
 			maxPacketSize: 1 * 1024 * 1024
 		}, this.opts);
 
@@ -94,7 +96,6 @@ class TcpTransporter extends Transporter {
 			this.registry = this.broker.registry;
 			this.nodes = this.registry.nodes;
 			this.nodes.disableHeartbeatChecks = true;
-			// TODO: Disable heartbeat timers and increment offlineTimout in registry if UDP discovery enabled
 		}
 	}
 
@@ -112,9 +113,8 @@ class TcpTransporter extends Transporter {
 				this.logger.info("TCP Transporter started.");
 				this.connected = true;
 
-				// Set the opened TCP port (because it can be a random port)
-				const localNode = this.getLocalNodeInfo();
-				localNode.port = this.opts.port;
+				// Set the opened TCP port (because it is a random port by default)
+				this.nodes.localNode.port = this.opts.port;
 
 				return this.onConnected();
 			});
@@ -129,7 +129,7 @@ class TcpTransporter extends Transporter {
 
 		this.writer.on("error", (err, nodeID) => {
 			this.logger.debug(`TCP client error on '${nodeID}'`, err);
-			this.nodes.disconnected(nodeID, true);
+			this.nodes.disconnected(nodeID, false);
 		});
 
 		return this.reader.listen();
@@ -147,6 +147,7 @@ class TcpTransporter extends Transporter {
 				if (!node) {
 					// Unknown node. Register as offline node
 					node = this.addOfflineNode(nodeID, address, port);
+
 				} else if (!node.available) {
 					// Update connection data
 					node.port = port;
@@ -178,10 +179,11 @@ class TcpTransporter extends Transporter {
 	}
 
 	/**
+	 * Register a node as offline because we don't know all information about it
 	 *
-	 * @param {*} id
-	 * @param {*} address
-	 * @param {*} port
+	 * @param {String} id - NodeID
+	 * @param {String} address
+	 * @param {Number} port
 	 */
 	addOfflineNode(id, address, port) {
 		const node = new Node(id);
@@ -210,7 +212,7 @@ class TcpTransporter extends Transporter {
 	}
 
 	/**
-	 * Get address for node
+	 * Get address for node. It returns the hostname or IP address
 	 *
 	 * @param {Node} node
 	 * @returns
@@ -261,6 +263,12 @@ class TcpTransporter extends Transporter {
 					onlineList.push(node);
 			}
 		});
+
+		if (Object.keys(packet.offline).length == 0)
+			delete packet.offline;
+
+		if (Object.keys(packet.online).length == 0)
+			delete packet.online;
 
 		if (onlineList.length > 0) {
 			// Send gossip message to a live endpoint
@@ -325,8 +333,8 @@ class TcpTransporter extends Transporter {
 
 		const list = this.nodes.list(true);
 		list.forEach(node => {
-			const online = payload.online[node.id];
-			const offline = payload.offline[node.id];
+			const online = payload.online ? payload.online[node.id] : null;
+			const offline = payload.offline ? payload.offline[node.id] : null;
 			let when, since, cpuWhen, cpu;
 
 			if (offline)
@@ -360,7 +368,7 @@ class TcpTransporter extends Transporter {
 
 				} else if (!node.local) {
 					// We know it is online, so we change it to offline
-					this.nodes.disconnected(node.id, true);
+					this.nodes.disconnected(node.id, false);
 
 					// Update the 'offlineSince' to the received value
 					node.offlineSince = since;
@@ -395,31 +403,37 @@ class TcpTransporter extends Transporter {
 			}
 		});
 
-		// Find newer online nodes (need it?)
-		/*Object.keys(payload.online).forEach(nodeID => {
-			const node = this.nodes.get(nodeID);
-			if (!node) {
-				// We don't know this nodeID
-				// No address & port this.addOfflineNode(nodeID, address, port);
+		if (Object.keys(response.offline).length == 0)
+			delete response.offline;
+
+		if (Object.keys(response.online).length == 0)
+			delete response.online;
+
+		if (response.online || response.offline) {
+
+			// Whether we know the sender (we can get data from it earlier than the UDP broadcast message)
+			let sender = this.nodes.get(payload.sender);
+			if (!sender) {
+				// We add it, because we want to send the response back to sender.
+				sender = this.addOfflineNode(payload.sender, payload.host, payload.port);
 			}
-		});*/
 
-		// TODO: don't send if online and offline are empty.
+			// Send back the Gossip response to the sender
+			const rspPacket = new PacketGossipResponse(this.transit, sender.id, response);
+			this.publish(rspPacket).catch(() => {});
 
-		// Whether we know the sender (we can get data from it earlier than the UDP broadcast message)
-		let sender = this.nodes.get(payload.sender);
-		if (!sender) {
-			// We add it, because we want to send the response back to sender.
-			sender = this.addOfflineNode(payload.sender, payload.host, payload.port);
+			if (this.GOSSIP_DEBUG) this.logger.info(chalk.bgMagenta.black(`----- RESPONSE ${this.nodeID} -> ${sender.id} -----`), rspPacket.payload);
+		} else {
+			if (this.GOSSIP_DEBUG) this.logger.info(chalk.bgBlue.white(`----- EMPTY RESPONSE ${this.nodeID} -> ${payload.sender} -----`));
 		}
-
-		// Send back the Gossip response to the sender
-		const rspPacket = new PacketGossipResponse(this.transit, sender.id, response);
-		this.publish(rspPacket).catch(() => {});
-
-		if (this.GOSSIP_DEBUG) this.logger.info(chalk.bgMagenta.black(`----- RESPONSE ${this.nodeID} -> ${sender.id} -----`), rspPacket.payload);
 	}
 
+	/**
+	 * Process the incoming Gossip Response message
+	 *
+	 * @param {any} msg
+	 * @memberof TcpTransporter
+	 */
 	processGossipResponse(msg) {
 		const packet = P.Packet.deserialize(this.transit, PACKET_GOSSIP_RES, msg);
 		const payload = packet.payload;
@@ -478,7 +492,7 @@ class TcpTransporter extends Transporter {
 				if (node.when < when) {
 					if (node.available) {
 						// We know it is online, so we change it to offline
-						this.nodes.disconnected(node.id, true);
+						this.nodes.disconnected(node.id, false);
 					}
 
 					// Update the 'offlineSince' to the received value

@@ -84,7 +84,7 @@ class TcpReader extends EventEmitter {
 
 		parser.on("data", (type, message) => {
 			//this.logger.info(`TCP data received from '${address}'. Type:`, type);
-			//this.logger.info(message.toString()); // TODO
+			//this.logger.info(message.toString());
 
 			this.transporter.onIncomingMessage(type, message);
 		});

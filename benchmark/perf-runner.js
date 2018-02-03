@@ -83,7 +83,7 @@ function createBrokers(Transporter, opts) {
 	]).then(() => [b1, b2, b3]);
 }
 
-createBrokers(Transporters.Fake).then(([b1]) => {
+createBrokers(Transporters.NATS).then(([b1]) => {
 
 	let count = 0;
 	function doRequest() {
@@ -114,7 +114,7 @@ createBrokers(Transporters.Fake).then(([b1]) => {
 			startTime = Date.now();
 		}, 1000);
 
-		doRequest();
+		b1.waitForServices(["echo"]).then(() => doRequest());
 
 	}, 1000);
 

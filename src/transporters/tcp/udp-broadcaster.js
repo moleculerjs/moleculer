@@ -36,6 +36,8 @@ class UdpServer extends EventEmitter {
 		this.logger = transporter.logger;
 		this.nodeID = transporter.nodeID;
 		this.namespace = transporter.broker.namespace;
+
+		this.counter = 0;
 	}
 
 	/**
@@ -87,6 +89,8 @@ class UdpServer extends EventEmitter {
 	 * @memberof UdpServer
 	 */
 	discover() {
+		this.counter++;
+
 		// Create an UDP beacon message
 		const message = Buffer.from([this.namespace, this.nodeID, this.opts.port].join("|"));
 
@@ -100,7 +104,7 @@ class UdpServer extends EventEmitter {
 				this.logger.warn("Discover packet broadcast error.", err);
 				return;
 			}
-			this.logger.debug("UDP Discover packet sent.");
+			this.logger.debug("UDP Discover packet sent. Counter:", this.counter);
 		});
 	}
 
@@ -116,7 +120,6 @@ class UdpServer extends EventEmitter {
 		const msg = data.toString();
 		this.logger.debug(`UDP message received from ${rinfo.address}.`, data.toString());
 
-		// TODO: Can it receive multiple messages?
 		try {
 			const parts = msg.split("|");
 			if (parts.length != 3) {
@@ -136,8 +139,17 @@ class UdpServer extends EventEmitter {
 	 * @memberof UdpServer
 	 */
 	startDiscovering() {
-		if (!this.discoverTimer)
-			this.discoverTimer = setInterval(() => this.discover(), (this.opts.multicastPeriod || 60) * 1000);
+		if (!this.discoverTimer) {
+			this.discoverTimer = setInterval(() => {
+				this.discover();
+
+				if (this.opts.maxUdpDiscovery && this.counter >= this.opts.maxUdpDiscovery)
+					this.close();
+
+			}, (this.opts.multicastPeriod || 5) * 1000);
+
+			this.logger.info("UDP discovery started.");
+		}
 	}
 
 	/**
@@ -146,8 +158,12 @@ class UdpServer extends EventEmitter {
 	 * @memberof UdpServer
 	 */
 	stopDiscovering() {
-		if (this.discoverTimer)
+		if (this.discoverTimer) {
 			clearInterval(this.discoverTimer);
+
+			this.logger.info("UDP discovery stopped.");
+		}
+
 	}
 
 	/**
@@ -160,6 +176,7 @@ class UdpServer extends EventEmitter {
 
 		if (this.server)
 			this.server.close();
+			this.server = null;
 	}
 }
 

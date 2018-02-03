@@ -58,8 +58,8 @@ class Registry {
 		if (svc.events)
 			this.registerEvents(this.nodes.localNode, service, svc.events);
 
-
 		this.nodes.localNode.services.push(service);
+		this.nodes.localNode.when = Date.now();
 
 		this.logger.info(`'${svc.name}' service is registered.`);
 	}
@@ -188,6 +188,9 @@ class Registry {
 	 */
 	unregisterService(name, version, nodeID) {
 		this.services.remove(name, version, nodeID || this.broker.nodeID);
+
+		if (!nodeID || nodeID == this.broker.nodeID)
+			this.nodes.localNode.when = Date.now();
 	}
 
 	/**

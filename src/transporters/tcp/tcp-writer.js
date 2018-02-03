@@ -10,6 +10,8 @@ const net 			= require("net");
 const EventEmitter 	= require("events");
 const Promise		= require("bluebird");
 
+const { PACKET_GOSSIP_REQ_ID, PACKET_GOSSIP_RES_ID } = require("./constants");
+
 const HEADER_SIZE	= 6;
 
 /**
@@ -37,13 +39,14 @@ class TcpWriter extends EventEmitter {
 		this.logger = transporter.logger;
 
 		// Start timeout handler
-		// if (maxConnections > 0 && keepAliveTimeout > 0) {
-		// 	timer = scheduler.scheduleAtFixedRate(this::manageTimeouts, 1, 1, TimeUnit.SECONDS);
-		// }
+		if (opts.maxKeepAliveConnections > 0 && opts.keepAliveTimeout > 0) {
+			this.timer = setInterval(() => this.manageTimeouts(), 30 * 1000);
+		}
 	}
 
 	/**
 	 * Connect to a remote node
+	 *
 	 * @param {String} nodeID
 	 */
 	connect(nodeID) {
@@ -60,6 +63,7 @@ class TcpWriter extends EventEmitter {
 			const socket = net.connect({ host, port }, () => {
 				this.sockets.set(nodeID, socket);
 				socket.nodeID = nodeID;
+				socket.lastUsed = Date.now();
 
 				this.logger.debug(`Connected successfully to '${nodeID}'.`);
 
@@ -81,6 +85,7 @@ class TcpWriter extends EventEmitter {
 
 	/**
 	 * Send a message to a remote node
+	 *
 	 * @param {String} nodeID
 	 * @param {Number} type
 	 * @param {Buffer} data
@@ -95,6 +100,9 @@ class TcpWriter extends EventEmitter {
 				return this.connect(nodeID);
 			})
 			.then(socket => {
+				if ([PACKET_GOSSIP_REQ_ID, PACKET_GOSSIP_RES_ID].indexOf(type) == -1)
+					socket.lastUsed = Date.now();
+
 				return new Promise((resolve, reject) => {
 
 					// Create binary payload
@@ -107,10 +115,9 @@ class TcpWriter extends EventEmitter {
 					const payload = Buffer.concat([header, data]);
 
 					try {
-
-						socket.write(payload, (asd) => {
+						socket.write(payload, () => {
 							//this.logger.info(`${type} packet sent to ${nodeID}.`);
-							//this.logger.info(data.toString()); // TODO
+							//this.logger.info(data.toString());
 							resolve();
 						});
 					} catch(err) {
@@ -122,11 +129,37 @@ class TcpWriter extends EventEmitter {
 	}
 
 	/**
+	 * Manage maxKeepAliveConnections & keepAliveTimeout
+	 *
+	 * @memberof TcpWriter
+	 */
+	manageTimeouts() {
+		if (this.sockets.size <= this.opts.maxKeepAliveConnections)
+			return;
+
+		const timeLimit = Date.now() - (this.opts.keepAliveTimeout * 1000);
+
+		const removable = [];
+		this.sockets.forEach((socket, nodeID) => {
+			if (socket.lastUsed < timeLimit)
+				removable.push(nodeID);
+		});
+
+		this.logger.info("Close ${removable.length} timed out sockets.", removable); // TODO
+
+		removable.forEach(nodeID => this.removeSocket(nodeID));
+	}
+
+	/**
 	 * Remove socket by nodeID
 	 *
 	 * @param {String} nodeID
 	 */
 	removeSocket(nodeID) {
+		const socket = this.sockets.get(nodeID);
+		if (socket && !socket.destroyed)
+			socket.end();
+
 		this.sockets.delete(nodeID);
 	}
 
@@ -136,10 +169,15 @@ class TcpWriter extends EventEmitter {
 	 * @memberof TcpWriter
 	 */
 	close() {
-		// TODO Stop timeout handler
+		// Stop timeout handler
+		if (this.timer)
+			clearInterval(this.timer);
 
-		// Close live sockets
-		this.sockets.forEach((socket) => socket.end());
+		// Close all live sockets
+		this.sockets.forEach((socket) => {
+			if (!socket.destroyed)
+				socket.end();
+		});
 	}
 }
 

@@ -39,13 +39,13 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch demo: loadtest",
-			"program": "${workspaceRoot}\\examples\\loadtest\\client.js",
+			"program": "${workspaceRoot}\\examples\\loadtest\\clients.js",
 			"cwd": "${workspaceRoot}\\examples\\loadtest",
 			"env": {
 				"TRANSPORTER": "TCP"
 			},
 			"args": [
-				"client-debug"
+				//"client-debug"
 			]
 		},
 		{

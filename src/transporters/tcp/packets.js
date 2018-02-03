@@ -24,8 +24,12 @@ class PacketGossipRequest extends Packet {
 
 		this.payload.host = data.host;
 		this.payload.port = data.port;
-		this.payload.online = data.online;
-		this.payload.offline = data.offline;
+
+		if (data.online)
+			this.payload.online = data.online;
+
+		if (data.offline)
+			this.payload.offline = data.offline;
 	}
 }
 
@@ -39,8 +43,11 @@ class PacketGossipResponse extends Packet {
 	constructor(transit, target, data) {
 		super(transit, PACKET_GOSSIP_RES, target);
 
-		this.payload.online = data.online;
-		this.payload.offline = data.offline;
+		if (data.online)
+			this.payload.online = data.online;
+
+		if (data.offline)
+			this.payload.offline = data.offline;
 	}
 }
 
