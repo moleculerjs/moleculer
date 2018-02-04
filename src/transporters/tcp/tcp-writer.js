@@ -60,26 +60,32 @@ class TcpWriter extends EventEmitter {
 		this.logger.debug(`Connecting to '${nodeID}' via ${host}:${port}`);
 
 		return new Promise((resolve, reject) => {
-			const socket = net.connect({ host, port }, () => {
-				this.sockets.set(nodeID, socket);
-				socket.nodeID = nodeID;
-				socket.lastUsed = Date.now();
+			try {
+				const socket = net.connect({ host, port }, () => {
+					this.sockets.set(nodeID, socket);
+					socket.nodeID = nodeID;
+					socket.lastUsed = Date.now();
 
-				this.logger.debug(`Connected successfully to '${nodeID}'.`);
+					this.logger.debug(`Connected successfully to '${nodeID}'.`);
 
-				resolve(socket);
-				reject = null;
-			});
+					resolve(socket);
+					reject = null;
+				});
 
-			socket.on("error", err => {
-				this.removeSocket(nodeID);
-				this.emit("error", err, nodeID);
+				socket.on("error", err => {
+					this.removeSocket(nodeID);
+					this.emit("error", err, nodeID);
 
+					if (reject)
+						reject(err);
+				});
+
+				socket.unref();
+
+			} catch(err) {
 				if (reject)
 					reject(err);
-			});
-
-			socket.unref();
+			}
 		});
 	}
 

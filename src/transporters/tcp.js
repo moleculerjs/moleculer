@@ -376,7 +376,7 @@ class TcpTransporter extends Transporter {
 				} else if (node.local) {
 					// Requested said I'm offline. We should send back that we are online!
 					// We need to update our `when` so that the requester update us
-					node.when = Date.now();
+					//node.when = Date.now(); // TODO: Need it? We sent back that we are online in the response
 
 					const info = this.registry.getNodeInfo(node.id);
 					response.online[node.id] = [info, node.cpuWhen || 0, node.cpu || 0];
@@ -387,7 +387,7 @@ class TcpTransporter extends Transporter {
 
 				if (node.available) {
 					if (cpuWhen > node.cpuWhen) {
-						// We update our CPU info
+						// We update CPU info
 						node.heartbeat({
 							cpu,
 							cpuWhen
@@ -404,6 +404,7 @@ class TcpTransporter extends Transporter {
 			}
 		});
 
+		// Remove empty keys
 		if (Object.keys(response.offline).length == 0)
 			delete response.offline;
 
@@ -411,7 +412,6 @@ class TcpTransporter extends Transporter {
 			delete response.online;
 
 		if (response.online || response.offline) {
-
 			// Whether we know the sender (we can get data from it earlier than the UDP broadcast message)
 			let sender = this.nodes.get(payload.sender);
 			if (!sender) {

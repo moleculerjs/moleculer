@@ -162,6 +162,7 @@ class PacketInfo extends Packet {
 			this.payload.hostname = info.hostname;
 			this.payload.client = info.client;
 			this.payload.config = info.config;
+			this.payload.when = info.when;
 		}
 	}
 }

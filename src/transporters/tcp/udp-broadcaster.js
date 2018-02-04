@@ -61,14 +61,18 @@ class UdpServer extends EventEmitter {
 			const host = this.opts.udpBindAddress;
 			const port = this.opts.multicastPort ? this.opts.multicastPort : (this.opts.broadcastPort || 4445);
 
-			server.bind(port, host, () => {
+			server.bind({ port, host, exclusive: true }, () => {
 				this.logger.info(`UDP server is listening on ${port}`);
 
-				if (this.opts.multicastHost) {
-					server.addMembership(this.opts.multicastHost);
-					server.setMulticastTTL(this.opts.multicastTTL || 1);
-				} else {
-					server.setBroadcast(true);
+				try {
+					if (this.opts.multicastHost) {
+						server.addMembership(this.opts.multicastHost);
+						server.setMulticastTTL(this.opts.multicastTTL || 1);
+					} else {
+						server.setBroadcast(true);
+					}
+				} catch(err) {
+					// Silent exception. In cluster it throw error
 				}
 
 				// Send first discover message after 1 sec
