@@ -1372,11 +1372,13 @@ class ServiceBroker {
  * Version of Moleculer
  */
 ServiceBroker.MOLECULER_VERSION = require("../package.json").version;
+ServiceBroker.prototype.MOLECULER_VERSION = ServiceBroker.MOLECULER_VERSION;
 
 /**
- * Version of Moleculer
+ * Version of Protocol
  */
-ServiceBroker.prototype.MOLECULER_VERSION = ServiceBroker.MOLECULER_VERSION;
+ServiceBroker.PROTOCOL_VERSION = "3";
+ServiceBroker.prototype.PROTOCOL_VERSION = ServiceBroker.PROTOCOL_VERSION;
 
 /**
  * Default configuration

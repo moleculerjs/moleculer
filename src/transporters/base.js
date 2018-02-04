@@ -288,6 +288,8 @@ class BaseTransporter {
 	 * @memberOf Transit
 	 */
 	serialize(packet) {
+		packet.payload.ver = this.broker.PROTOCOL_VERSION;
+		packet.payload.sender = this.nodeID;
 		return this.broker.serializer.serialize(packet.payload, packet.type);
 	}
 
@@ -304,7 +306,7 @@ class BaseTransporter {
 		if (buf == null) return null;
 
 		const msg = this.broker.serializer.deserialize(buf, type);
-		return P.Packet.build(type, msg);
+		return new P.Packet(type, null, msg);
 
 	}
 }
