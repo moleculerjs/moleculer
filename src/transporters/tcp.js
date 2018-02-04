@@ -48,7 +48,7 @@ class TcpTransporter extends Transporter {
 			udpDiscovery: true,
 			udpReuseAddr: true,
 
-			maxUdpDiscovery: 10,
+			maxUdpDiscovery: 0, // 0 - Disabled
 
 			multicastHost: "230.0.0.0",
 			multicastPort: 4445,
