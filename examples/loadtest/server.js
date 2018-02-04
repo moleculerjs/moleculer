@@ -8,11 +8,13 @@ let { padStart } = require("lodash");
 let os = require("os");
 let hostname = os.hostname();
 
+let transporter = process.env.TRANSPORTER || "TCP";
+
 // Create broker
 let broker = new ServiceBroker({
 	namespace: "loadtest",
 	nodeID: process.argv[2] || hostname + "-server",
-	transporter: process.env.TRANSPORTER || "NATS",
+	transporter,
 	logger: console,
 	logLevel: "warn"
 	//metrics: true
@@ -32,7 +34,7 @@ broker.createService({
 
 broker.start();
 
-console.log("Server started. nodeID: ", broker.nodeID, ", PID:", process.pid);
+console.log("Server started. nodeID: ", broker.nodeID, " TRANSPORTER:", transporter, " PID:", process.pid);
 
 broker._callCount = 0;
 setInterval(() => {

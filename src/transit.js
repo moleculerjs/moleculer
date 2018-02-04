@@ -6,11 +6,12 @@
 
 "use strict";
 
-const Promise	= require("bluebird");
-const _ 		= require("lodash");
+const Promise		= require("bluebird");
+const _ 			= require("lodash");
 
-const P 		= require("./packets");
-const E 		= require("./errors");
+const P				= require("./packets");
+const { Packet }	= require("./packets");
+const E 			= require("./errors");
 
 /**
  * Transit class
@@ -155,7 +156,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendDisconnectPacket() {
-		return this.publish(new P.PacketDisconnect(this.nodeID));
+		return this.publish(new Packet(P.PACKET_DISCOVER));
 	}
 
 	/**
@@ -224,8 +225,8 @@ class Transit {
 			}
 
 			// Check protocol version
-			if (payload.ver != P.PROTOCOL_VERSION) {
-				throw new E.ProtocolVersionMismatchError(payload.sender,P.PROTOCOL_VERSION, payload.ver);
+			if (payload.ver != this.broker.PROTOCOL_VERSION) {
+				throw new E.ProtocolVersionMismatchError(payload.sender, this.broker.PROTOCOL_VERSION, payload.ver);
 			}
 
 			// Skip own packets (if only built-in balancer disabled)
@@ -396,7 +397,17 @@ class Transit {
 			reject
 		};
 
-		const packet = new P.PacketRequest(this.nodeID, ctx.nodeID, ctx);
+		const packet = new Packet(P.PACKET_REQUEST, ctx.nodeID, {
+			id: ctx.id,
+			action: ctx.action.name,
+			params: ctx.params,
+			meta: ctx.meta,
+			timeout: ctx.timeout,
+			level: ctx.level,
+			metrics: ctx.metrics,
+			parentID: ctx.parentID,
+			requestID: ctx.requestID
+		});
 
 		this.logger.debug(`Send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`);
 
@@ -411,32 +422,42 @@ class Transit {
 	 * Send a broadcast event to a remote node
 	 *
 	 * @param {String} nodeID
-	 * @param {String} eventName
+	 * @param {String} event
 	 * @param {any} data
 	 *
 	 * @memberOf Transit
 	 */
-	sendBroadcastEvent(nodeID, eventName, data, groups) {
-		this.logger.debug(`Send '${eventName}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
+	sendBroadcastEvent(nodeID, event, data, groups) {
+		this.logger.debug(`Send '${event}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
 
-		this.publish(new P.PacketEvent(this.nodeID, nodeID, eventName, data, groups, true));
+		this.publish(new Packet(P.PACKET_EVENT, nodeID, {
+			event,
+			data,
+			groups,
+			broadcast: true
+		}));
 	}
 
 	/**
 	 * Send a grouped event to remote nodes.
 	 * The event is balanced internally.
 	 *
-	 * @param {String} eventName
+	 * @param {String} event
 	 * @param {any} data
 	 * @param {Object} nodeGroups
 	 *
 	 * @memberOf Transit
 	 */
-	sendBalancedEvent(eventName, data, nodeGroups) {
+	sendBalancedEvent(event, data, nodeGroups) {
 		_.forIn(nodeGroups, (groups, nodeID) => {
-			this.logger.debug(`Send '${eventName}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
+			this.logger.debug(`Send '${event}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
 
-			this.publish(new P.PacketEvent(this.nodeID, nodeID, eventName, data, groups, false));
+			this.publish(new Packet(P.PACKET_EVENT, nodeID, {
+				event,
+				data,
+				groups,
+				broadcast: false
+			}));
 		});
 	}
 
@@ -444,15 +465,20 @@ class Transit {
 	 * Send an event to groups.
 	 * The event is balanced by transporter
 	 *
-	 * @param {String} eventName
+	 * @param {String} event
 	 * @param {any} data
 	 * @param {Object} groups
 	 *
 	 * @memberOf Transit
 	 */
-	sendEventToGroups(eventName, data, groups) {
-		this.logger.debug(`Send '${eventName}' event to '${groups.join(", ")}' group(s).`);
-		this.publish(new P.PacketEvent(this.nodeID, null, eventName, data, groups, false));
+	sendEventToGroups(event, data, groups) {
+		this.logger.debug(`Send '${event}' event to '${groups.join(", ")}' group(s).`);
+		this.publish(new Packet(P.PACKET_EVENT, null, {
+			event,
+			data,
+			groups,
+			broadcast: false
+		}));
 	}
 
 	/**
@@ -498,7 +524,26 @@ class Transit {
 	 */
 	sendResponse(nodeID, id, meta, data, err) {
 		// Publish the response
-		return this.publish(new P.PacketResponse(this.nodeID, nodeID, id, meta, data, err));
+		const payload = {
+			id: id,
+			meta: meta,
+			success: err == null,
+			data: data
+		};
+
+		if (err) {
+			payload.error = {
+				name: err.name,
+				message: err.message,
+				nodeID: err.nodeID || payload.sender,
+				code: err.code,
+				type: err.type,
+				stack: err.stack,
+				data: err.data
+			};
+		}
+
+		return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload));
 	}
 
 	/**
@@ -507,7 +552,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	discoverNodes() {
-		return this.publish(new P.PacketDiscover(this.nodeID));
+		return this.publish(new Packet(P.PACKET_DISCOVER));
 	}
 
 	/**
@@ -516,7 +561,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	discoverNode(nodeID) {
-		return this.publish(new P.PacketDiscover(this.nodeID, nodeID));
+		return this.publish(new Packet(P.PACKET_DISCOVER, nodeID));
 	}
 
 	/**
@@ -533,7 +578,14 @@ class Transit {
 		if (!nodeID)
 			p = this.tx.makeBalancedSubscriptions();
 
-		return p.then(() => this.publish(new P.PacketInfo(this.nodeID, nodeID, info)));
+		return p.then(() => this.publish(new Packet(P.PACKET_INFO, nodeID, {
+			services: info.services,
+			ipList: info.ipList,
+			hostname: info.hostname,
+			client: info.client,
+			config: info.config,
+			when: info.when
+		})));
 	}
 
 	/**
@@ -544,7 +596,7 @@ class Transit {
 	 * @memberof Transit
 	 */
 	sendPing(nodeID) {
-		return this.publish(new P.PacketPing(this.nodeID, nodeID, Date.now()));
+		return this.publish(new Packet(P.PACKET_PING, nodeID, { time: Date.now() }));
 	}
 
 	/**
@@ -555,7 +607,10 @@ class Transit {
 	 * @memberof Transit
 	 */
 	sendPong(payload) {
-		return this.publish(new P.PacketPong(this.nodeID, payload.sender, payload.time, Date.now()));
+		return this.publish(new Packet(P.PACKET_PONG, payload.sender, {
+			time: payload.time,
+			arrived: Date.now()
+		}));
 	}
 
 	/**
@@ -581,7 +636,9 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendHeartbeat(localNode) {
-		return this.publish(new P.PacketHeartbeat(this.nodeID, localNode.cpu));
+		return this.publish(new Packet(P.PACKET_HEARTBEAT, null, {
+			cpu: localNode.cpu
+		}));
 	}
 
 	/**

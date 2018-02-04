@@ -48,7 +48,7 @@ class TcpTransporter extends Transporter {
 			udpDiscovery: true,
 			udpReuseAddr: true,
 
-			maxUdpDiscovery: 10,
+			maxUdpDiscovery: 0, // 0 - Disabled
 
 			multicastHost: "230.0.0.0",
 			multicastPort: 4445,
@@ -60,7 +60,7 @@ class TcpTransporter extends Transporter {
 			urls: null, // TODO: URLs of remote endpoints
 			useHostname: true,
 
-			gossipPeriod: 5, // seconds
+			gossipPeriod: 2, // seconds
 			maxKeepAliveConnections: 100, // Max live TCP socket
 			keepAliveTimeout: 60, // seconds
 			maxPacketSize: 1 * 1024 * 1024
@@ -294,7 +294,7 @@ class TcpTransporter extends Transporter {
 
 		const ep = endpoints[Math.floor(Math.random() * endpoints.length)];
 		if (ep) {
-			const packet = new P.PacketGossipRequest(this.nodeID, ep.id, data);
+			const packet = new P.Packet(P.PACKET_GOSSIP_REQ, ep.id, data);
 			this.publish(packet).catch(() => {});
 
 			if (this.GOSSIP_DEBUG) this.logger.info(chalk.bgYellow.black(`----- REQUEST ${this.nodeID} -> ${ep.id} -----`), packet.payload);
@@ -420,7 +420,7 @@ class TcpTransporter extends Transporter {
 			}
 
 			// Send back the Gossip response to the sender
-			const rspPacket = new P.PacketGossipResponse(this.nodeID, sender.id, response);
+			const rspPacket = new P.Packet(P.PACKET_GOSSIP_RES, sender.id, response);
 			this.publish(rspPacket).catch(() => {});
 
 			if (this.GOSSIP_DEBUG) this.logger.info(chalk.bgMagenta.black(`----- RESPONSE ${this.nodeID} -> ${sender.id} -----`), rspPacket.payload);
