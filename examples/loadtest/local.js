@@ -11,15 +11,21 @@ let ServiceBroker = require("../../src/service-broker");
 // Create broker
 let broker = new ServiceBroker({
 	nodeID: process.argv[2] || hostname + "-server",
-	//logger: console
+	logger: null,
+	transporter: null,
 	//metrics: true
 });
 
-broker.loadService(__dirname + "/../math.service");
-
-broker.start();
-
-console.log("Server started. nodeID: ", broker.nodeID, ", PID:", process.pid);
+broker.createService({
+	name: "math",
+	actions: {
+		add: {
+			handler(ctx) {
+				return Number(ctx.params.a) + Number(ctx.params.b);
+			}
+		}
+	}
+});
 
 let payload = { a: random(0, 100), b: random(0, 100) };
 
@@ -39,20 +45,22 @@ function work() {
 	});
 }
 
-broker._callCount = 0;
-setTimeout(() => {
-	console.log("Client started. nodeID:", broker.nodeID, " PID:", process.pid);
+broker.start().then(() => {
+	broker._callCount = 0;
 
-	let startTime = Date.now();
-	work();
+	setTimeout(() => {
+		let startTime = Date.now();
+		work();
 
-	setInterval(() => {
-		if (broker._callCount > 0) {
-			let rps = broker._callCount / ((Date.now() - startTime) / 1000);
-			console.log(broker.nodeID, ":", Number(rps.toFixed(0)).toLocaleString(), "req/s");
-			broker._callCount = 0;
-			startTime = Date.now();
-		}
+		setInterval(() => {
+			if (broker._callCount > 0) {
+				let rps = broker._callCount / ((Date.now() - startTime) / 1000);
+				console.log(Number(rps.toFixed(0)).toLocaleString(), "req/s");
+				broker._callCount = 0;
+				startTime = Date.now();
+			}
+		}, 1000);
+
 	}, 1000);
 
-}, 1000);
+});

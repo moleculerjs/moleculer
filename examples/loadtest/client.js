@@ -6,32 +6,34 @@ let { times, random, padStart } = require("lodash");
 
 let ServiceBroker = require("../../src/service-broker");
 
+let transporter = process.env.TRANSPORTER || "TCP";
+
 // Create broker
 let broker = new ServiceBroker({
 	namespace: "loadtest",
 	nodeID: process.argv[2] || "client",
-	transporter: process.env.TRANSPORTER || "NATS",
+	transporter,
 	logger: console,
 	logLevel: "warn",
 	//metrics: true,
 	requestTimeout: 10000,
 });
 
-console.log("Client started. nodeID:", broker.nodeID, " PID:", process.pid);
+console.log("Client started. nodeID:", broker.nodeID, " TRANSPORTER:", transporter, " PID:", process.pid);
 
 function work() {
 	let payload = { a: random(0, 100), b: random(0, 100) };
 	const p = broker.call("math.add", payload)
 		.then(() => broker._callCount++)
 		.catch(err => console.warn(err.message))
-		.then(() => setImmediate(work));
+		//.then(() => setImmediate(work));
 
-	/* Overload
-	if (broker.transit.pendingRequests.size < 20 * 1000)
+	//* Overload
+	if (broker.transit.pendingRequests.size < 5 * 1000)
 		setImmediate(work);
 	else
 		p.then(() => setImmediate(work));
-	*/
+
 }
 
 broker._callCount = 0;
