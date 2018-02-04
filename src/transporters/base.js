@@ -116,6 +116,8 @@ class BaseTransporter {
 
 		const packet = this.deserialize(cmd, msg);
 		this.messageHandler(cmd, packet);
+
+		return packet;
 	}
 
 	/**

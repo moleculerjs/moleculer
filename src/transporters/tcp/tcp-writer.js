@@ -62,14 +62,18 @@ class TcpWriter extends EventEmitter {
 		return new Promise((resolve, reject) => {
 			try {
 				const socket = net.connect({ host, port }, () => {
-					this.sockets.set(nodeID, socket);
 					socket.nodeID = nodeID;
 					socket.lastUsed = Date.now();
 
-					this.logger.debug(`Connected successfully to '${nodeID}'.`);
+					this.addSocket(nodeID, socket, true);
+
+					this.logger.warn(`Connected successfully to '${nodeID}'.`);
 
 					resolve(socket);
 					reject = null;
+
+					// TODO: Hack to solve race problem at startup
+					this.transporter.reader.onTcpClientConnected(socket);
 				});
 
 				socket.on("error", err => {
@@ -100,7 +104,7 @@ class TcpWriter extends EventEmitter {
 		return Promise.resolve()
 			.then(() => {
 				let socket = this.sockets.get(nodeID);
-				if (socket)
+				if (socket && !socket.destroyed)
 					return socket;
 
 				return this.connect(nodeID);
@@ -154,6 +158,24 @@ class TcpWriter extends EventEmitter {
 		this.logger.info("Close ${removable.length} timed out sockets.", removable); // TODO
 
 		removable.forEach(nodeID => this.removeSocket(nodeID));
+	}
+
+	/**
+	 * Save a socket by nodeID
+	 *
+	 * @param {String} nodeID
+	 * @param {Socket} socket
+	 * @param {Boolean} force
+	 * @returns
+	 *
+	 * @memberof TcpWriter
+	 */
+	addSocket(nodeID, socket, force) {
+		const s = this.sockets.get(nodeID);
+		if (!force && s && !s.destroyed)
+			return;
+
+		this.sockets.set(nodeID, socket);
 	}
 
 	/**
