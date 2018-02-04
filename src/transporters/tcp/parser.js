@@ -46,13 +46,13 @@ class Parser extends Writable {
 			}
 
 			if (this.maxPacketSize && packet.length > this.maxPacketSize) {
-				cb(new Error(`Incoming packet is larger than the 'maxPacketSize' limit (${packet.length} > ${this.maxPacketSize})!`));
+				return cb(new Error(`Incoming packet is larger than the 'maxPacketSize' limit (${packet.length} > ${this.maxPacketSize})!`));
 			}
 
 			// Check the CRC
 			const crc = packet[1] ^ packet[2] ^ packet[3] ^ packet[4] ^ packet[5];
 			if (crc !== packet[0]) {
-				cb(new Error("Invalid packet CRC!"));
+				return cb(new Error("Invalid packet CRC!"));
 			}
 
 			const length = packet.readInt32BE(1);
