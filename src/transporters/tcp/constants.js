@@ -17,6 +17,7 @@ module.exports = {
 	PACKET_PONG_ID: 5,
 	PACKET_GOSSIP_REQ_ID: 6,
 	PACKET_GOSSIP_RES_ID: 7,
+	PACKET_GOSSIP_HELLO_ID: 8,
 
 	IGNORABLE_ERRORS: [
 		"ECONNREFUSED",
@@ -45,6 +46,8 @@ module.exports = {
 				return module.exports.PACKET_GOSSIP_REQ_ID;
 			case P.PACKET_GOSSIP_RES:
 				return module.exports.PACKET_GOSSIP_RES_ID;
+			case P.PACKET_GOSSIP_HELLO:
+				return module.exports.PACKET_GOSSIP_HELLO_ID;
 			default:
 				throw new Error("Unsupported packet type (" + type + ")!");
 		}
@@ -66,6 +69,8 @@ module.exports = {
 				return P.PACKET_GOSSIP_REQ;
 			case module.exports.PACKET_GOSSIP_RES_ID:
 				return P.PACKET_GOSSIP_RES;
+			case module.exports.PACKET_GOSSIP_HELLO_ID:
+				return P.PACKET_GOSSIP_HELLO;
 			default:
 				throw new Error("Unsupported packet ID (" + id + ")!");
 		}

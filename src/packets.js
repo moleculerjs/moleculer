@@ -20,6 +20,7 @@ const PACKET_PONG 			= "PONG";
 
 const PACKET_GOSSIP_REQ		= "GOSSIP_REQ";
 const PACKET_GOSSIP_RES		= "GOSSIP_RES";
+const PACKET_GOSSIP_HELLO	= "GOSSIP_HELLO";
 
 /**
  * Packet for transporters
@@ -56,6 +57,7 @@ module.exports = {
 	PACKET_PONG,
 	PACKET_GOSSIP_REQ,
 	PACKET_GOSSIP_RES,
+	PACKET_GOSSIP_HELLO,
 
 	Packet
 };

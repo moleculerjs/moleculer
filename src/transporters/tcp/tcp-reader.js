@@ -134,6 +134,7 @@ class TcpReader extends EventEmitter {
 		if (this.server && this.server.listening) {
 			this.server.close();
 
+			// Close all live sockets
 			this.sockets.forEach(socket => socket.destroy());
 			this.sockets = [];
 		}

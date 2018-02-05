@@ -7,7 +7,7 @@ const chalk = require("chalk");
 const ServiceBroker = require("../src/service-broker");
 const Promise = require("bluebird");
 
-const COUNT = process.argv[2] ? Number(process.argv[2]) : 10;
+const COUNT = process.argv[2] ? Number(process.argv[2]) : 20;
 const nodePrefix = process.argv[3] || "node";
 const namespace = "viz-" + Math.round(_.random(100));
 
@@ -24,7 +24,15 @@ function createBroker(nodeID) {
 	const broker = new ServiceBroker({
 		namespace,
 		nodeID,
-		transporter: "TCP",
+		//transporter: "NATS",
+		transporter: {
+			type: "TCP",
+			options: {
+				gossipPeriod: 2, // seconds
+				maxKeepAliveConnections: 10, // Max live TCP socket
+				keepAliveTimeout: 10, // seconds
+			}
+		},
 		//logger: console,
 		logLevel: "warn",
 		//logFormatter: "simple",
@@ -85,7 +93,7 @@ function printStatuses() {
 	}
 
 	let coverage = Math.floor((sum / liveNodes) / liveNodes * 100);
-	if (coverage > 100) coverage = 100 - (coverage - 100); // if node disappeared
+	if (coverage > 100) coverage = 100 - (coverage - 100); // if node disappeared it will be > 100
 
 	const duration = Math.floor((Date.now() - startTime) / 1000);
 
@@ -113,6 +121,9 @@ function printBrokerStatus({ nodeID, broker }) {
 			}
 		}
 		s += "│";
+
+		if (broker.transit.tx.constructor.name == "TcpTransporter")
+			s += ` ${_.padStart(broker.transit.tx.reader.sockets.length, 3)} <-|-> ${_.padStart(broker.transit.tx.writer.sockets.size, 3)}`;
 	} else {
 		s += "│" + _.padStart("", brokers.length) + "│";
 	}

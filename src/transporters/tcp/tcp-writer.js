@@ -67,10 +67,12 @@ class TcpWriter extends EventEmitter {
 
 					this.addSocket(nodeID, socket, true);
 
-					this.logger.warn(`Connected successfully to '${nodeID}'.`);
+					this.logger.debug(`Connected successfully to '${nodeID}'.`);
 
-					resolve(socket);
-					reject = null;
+					// Handle racing problem, we send first a HELLO packet with our connection info
+					this.transporter.sendHello(nodeID)
+						.then(() => resolve(socket))
+						.catch(() => reject());
 
 					// TODO: Hack to solve race problem at startup
 					//this.transporter.reader.onTcpClientConnected(socket);
@@ -155,7 +157,7 @@ class TcpWriter extends EventEmitter {
 				removable.push(nodeID);
 		});
 
-		this.logger.info("Close ${removable.length} timed out sockets.", removable); // TODO
+		this.logger.debug(`Close ${removable.length} timed out sockets.`, removable);
 
 		removable.forEach(nodeID => this.removeSocket(nodeID));
 	}
@@ -204,7 +206,7 @@ class TcpWriter extends EventEmitter {
 		// Close all live sockets
 		this.sockets.forEach((socket) => {
 			if (!socket.destroyed)
-				socket.destroy();
+				socket.end();
 		});
 	}
 }
