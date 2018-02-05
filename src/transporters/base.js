@@ -115,9 +115,7 @@ class BaseTransporter {
 		if (!msg) return;
 
 		const packet = this.deserialize(cmd, msg);
-		this.messageHandler(cmd, packet);
-
-		return packet;
+		return this.messageHandler(cmd, packet);
 	}
 
 	/**

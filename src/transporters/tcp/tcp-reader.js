@@ -90,12 +90,7 @@ class TcpReader extends EventEmitter {
 			//this.logger.info(`TCP data received from '${address}'. Type:`, type);
 			//this.logger.info(message.toString());
 
-			const packet = this.transporter.onIncomingMessage(type, message);
-
-			// TODO: Hack to solve race problem at startup
-			//if (packet && packet.payload && packet.payload.sender)
-			//	this.transporter.writer.addSocket(packet.payload.sender, socket);
-
+			this.transporter.onIncomingMessage(type, message);
 		});
 
 		parser.on("error", err => {
