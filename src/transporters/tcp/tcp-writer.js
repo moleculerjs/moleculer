@@ -73,7 +73,7 @@ class TcpWriter extends EventEmitter {
 					reject = null;
 
 					// TODO: Hack to solve race problem at startup
-					this.transporter.reader.onTcpClientConnected(socket);
+					//this.transporter.reader.onTcpClientConnected(socket);
 				});
 
 				socket.on("error", err => {
@@ -186,7 +186,7 @@ class TcpWriter extends EventEmitter {
 	removeSocket(nodeID) {
 		const socket = this.sockets.get(nodeID);
 		if (socket && !socket.destroyed)
-			socket.end();
+			socket.destroy();
 
 		this.sockets.delete(nodeID);
 	}
@@ -204,7 +204,7 @@ class TcpWriter extends EventEmitter {
 		// Close all live sockets
 		this.sockets.forEach((socket) => {
 			if (!socket.destroyed)
-				socket.end();
+				socket.destroy();
 		});
 	}
 }

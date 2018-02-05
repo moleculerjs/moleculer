@@ -33,6 +33,8 @@ class TcpReader extends EventEmitter {
 		this.opts = opts;
 		this.transporter = transporter;
 		this.logger = transporter.logger;
+
+		this.sockets = [];
 	}
 
 	/**
@@ -73,6 +75,8 @@ class TcpReader extends EventEmitter {
 	 * @memberof TcpReader
 	 */
 	onTcpClientConnected(socket) {
+		this.sockets.push(socket);
+
 		socket.setNoDelay();
 
 		const address = socket.address().address;
@@ -89,8 +93,8 @@ class TcpReader extends EventEmitter {
 			const packet = this.transporter.onIncomingMessage(type, message);
 
 			// TODO: Hack to solve race problem at startup
-			if (packet && packet.payload && packet.payload.sender)
-				this.transporter.writer.addSocket(packet.payload.sender, socket);
+			//if (packet && packet.payload && packet.payload.sender)
+			//	this.transporter.writer.addSocket(packet.payload.sender, socket);
 
 		});
 
@@ -116,7 +120,9 @@ class TcpReader extends EventEmitter {
 	 * @param {Socket} socket
 	 */
 	closeSocket(socket) {
-		socket.end();
+		socket.destroy();
+
+		this.sockets.splice(this.sockets.indexOf(socket), 1);
 	}
 
 	/**
@@ -125,8 +131,12 @@ class TcpReader extends EventEmitter {
 	 * @memberof TcpReader
 	 */
 	close() {
-		if (this.server && this.server.listening)
+		if (this.server && this.server.listening) {
 			this.server.close();
+
+			this.sockets.forEach(socket => socket.destroy());
+			this.sockets = [];
+		}
 	}
 }
 

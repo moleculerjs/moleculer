@@ -365,14 +365,20 @@ class TcpTransporter extends Transporter {
 					if (since < node.offlineSince)
 						node.offlineSince = since;
 
+					// Update 'when' if it is newer than us
+					if (when > node.when)
+						node.when = when;
+
 					return;
 
 				} else if (!node.local) {
 					// We know it is online, so we change it to offline
 					this.nodes.disconnected(node.id, false);
 
-					// Update the 'offlineSince' to the received value
+					// Update the 'offlineSince' & 'when' to the received value
 					node.offlineSince = since;
+					node.when = when;
+
 				} else if (node.local) {
 					// Requested said I'm offline. We should send back that we are online!
 					// We need to update our `when` so that the requester update us
@@ -498,6 +504,7 @@ class TcpTransporter extends Transporter {
 
 					// Update the 'offlineSince' to the received value
 					node.offlineSince = since;
+					node.when = when;
 				}
 
 			});

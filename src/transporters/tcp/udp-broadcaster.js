@@ -178,9 +178,10 @@ class UdpServer extends EventEmitter {
 	close() {
 		this.stopDiscovering();
 
-		if (this.server)
+		if (this.server) {
 			this.server.close();
 			this.server = null;
+		}
 	}
 }
 

@@ -103,9 +103,12 @@ class Node {
 	 * @memberof Node
 	 */
 	disconnected() {
-		this.available = false;
+		if (this.available)
+			this.offlineSince = Date.now();
 
-		this.offlineSince = Date.now();
+		this.when = Date.now();
+
+		this.available = false;
 	}
 }
 
