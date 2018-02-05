@@ -316,27 +316,25 @@ describe("Test option resolvers", () => {
 		});
 
 		it("should resolve NATSTransporter from obj without type", () => {
-			let options = { nats: { url: "nats://localhost:4222" } };
+			let options = { url: "nats://localhost:4222" };
 			let trans = broker._resolveTransporter({ options });
 			expect(trans).toBeInstanceOf(Transporters.NATS);
-			expect(trans.opts).toEqual({"nats": {"preserveBuffers": true, "url": "nats://localhost:4222"}});
+			expect(trans.opts).toEqual({"preserveBuffers": true, "url": "nats://localhost:4222"});
 		});
 
 		it("should resolve AMQPTransporter from obj", () => {
-			let options = { amqp: { url: "amqp://localhost" } };
+			let options = { url: "amqp://localhost" };
 			let trans = broker._resolveTransporter({ type: "AMQP", options });
 			expect(trans).toBeInstanceOf(Transporters.AMQP);
 			expect(trans.opts).toEqual({
-				amqp: {
-					prefetch: 1,
-					heartbeatTimeToLive: null,
-					eventTimeToLive: null,
-					url: "amqp://localhost",
-					exchangeOptions: {},
-					messageOptions: {},
-					queueOptions: {},
-					consumeOptions: {}
-				},
+				prefetch: 1,
+				heartbeatTimeToLive: null,
+				eventTimeToLive: null,
+				url: "amqp://localhost",
+				exchangeOptions: {},
+				messageOptions: {},
+				queueOptions: {},
+				consumeOptions: {}
 			});
 		});
 
