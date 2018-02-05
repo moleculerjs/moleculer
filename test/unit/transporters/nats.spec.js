@@ -1,6 +1,6 @@
 const ServiceBroker = require("../../../src/service-broker");
 const Transit = require("../../../src/transit");
-const { PacketInfo, PacketEvent, PacketRequest } = require("../../../src/packets");
+const P = require("../../../src/packets");
 const { protectReject } = require("../utils");
 
 // const lolex = require("lolex");
@@ -28,7 +28,7 @@ describe("Test NatsTransporter constructor", () => {
 	it("check constructor", () => {
 		let transporter = new NatsTransporter();
 		expect(transporter).toBeDefined();
-		expect(transporter.opts).toEqual({ nats: { preserveBuffers: true }});
+		expect(transporter.opts).toEqual({ preserveBuffers: true });
 		expect(transporter.connected).toBe(false);
 		expect(transporter.hasBuiltInBalancer).toBe(true);
 		expect(transporter.client).toBeNull();
@@ -36,19 +36,19 @@ describe("Test NatsTransporter constructor", () => {
 
 	it("check constructor with string param", () => {
 		let transporter = new NatsTransporter("nats://localhost");
-		expect(transporter.opts).toEqual({ nats: { preserveBuffers: true, url: "nats://localhost" }});
+		expect(transporter.opts).toEqual({ preserveBuffers: true, url: "nats://localhost" });
 	});
 
 	it("check constructor with options", () => {
-		let opts = { nats: { host: "localhost", port: 1234} };
+		let opts = { host: "localhost", port: 1234 };
 		let transporter = new NatsTransporter(opts);
-		expect(transporter.opts).toEqual({ nats: { host: "localhost", port: 1234, preserveBuffers: true } });
+		expect(transporter.opts).toEqual({ host: "localhost", port: 1234, preserveBuffers: true });
 	});
 
 	it("check constructor with disabled preserveBuffers", () => {
-		let opts = { nats: { preserveBuffers: false } };
+		let opts = { preserveBuffers: false };
 		let transporter = new NatsTransporter(opts);
-		expect(transporter.opts).toEqual({ nats: { preserveBuffers: false } });
+		expect(transporter.opts).toEqual({ preserveBuffers: false });
 	});
 });
 
@@ -128,7 +128,6 @@ describe("Test NatsTransporter connect & disconnect & reconnect", () => {
 
 describe("Test NatsTransporter subscribe & publish", () => {
 	let transporter;
-	let msgHandler;
 
 	const fakeTransit = {
 		nodeID: "node1",
@@ -136,9 +135,8 @@ describe("Test NatsTransporter subscribe & publish", () => {
 	};
 
 	beforeEach(() => {
-		msgHandler = jest.fn();
 		transporter = new NatsTransporter();
-		transporter.init(new Transit(new ServiceBroker({ namespace: "TEST" })), msgHandler);
+		transporter.init(new Transit(new ServiceBroker({ namespace: "TEST", nodeID: "node-123" })));
 
 		let p = transporter.connect();
 		transporter._client.onCallbacks.connect(); // Trigger the `resolve`
@@ -148,6 +146,7 @@ describe("Test NatsTransporter subscribe & publish", () => {
 	it("check subscribe", () => {
 		let subCb;
 		transporter.client.subscribe = jest.fn((name, cb) => subCb = cb);
+		transporter.incomingMessage = jest.fn();
 
 		transporter.subscribe("REQ", "node");
 
@@ -155,9 +154,9 @@ describe("Test NatsTransporter subscribe & publish", () => {
 		expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.REQ.node", jasmine.any(Function));
 
 		// Test subscribe callback
-		subCb("incoming data", null, "prefix,test,name");
-		expect(msgHandler).toHaveBeenCalledTimes(1);
-		expect(msgHandler).toHaveBeenCalledWith("REQ", "incoming data");
+		subCb("{ sender: \"node1\" }");
+		expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
+		expect(transporter.incomingMessage).toHaveBeenCalledWith("REQ", "{ sender: \"node1\" }");
 	});
 
 	it("check subscribeBalancedRequest", () => {
@@ -166,6 +165,7 @@ describe("Test NatsTransporter subscribe & publish", () => {
 			subCb = cb;
 			return 123;
 		});
+		transporter.incomingMessage = jest.fn();
 
 		transporter.subscribeBalancedRequest("posts.find");
 
@@ -173,9 +173,9 @@ describe("Test NatsTransporter subscribe & publish", () => {
 		expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.REQB.posts.find", { queue: "posts.find" }, jasmine.any(Function));
 
 		// Test subscribe callback
-		subCb("incoming data");
-		expect(msgHandler).toHaveBeenCalledTimes(1);
-		expect(msgHandler).toHaveBeenCalledWith("REQ", "incoming data");
+		subCb("{ sender: \"node1\" }");
+		expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
+		expect(transporter.incomingMessage).toHaveBeenCalledWith("REQ", "{ sender: \"node1\" }");
 		expect(transporter.subscriptions).toEqual([123]);
 	});
 
@@ -185,6 +185,7 @@ describe("Test NatsTransporter subscribe & publish", () => {
 			subCb = cb;
 			return 125;
 		});
+		transporter.incomingMessage = jest.fn();
 
 		transporter.subscribeBalancedEvent("user.created", "mail");
 
@@ -192,9 +193,9 @@ describe("Test NatsTransporter subscribe & publish", () => {
 		expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.EVENTB.mail.user.created", { queue: "mail" }, jasmine.any(Function));
 
 		// Test subscribe callback
-		subCb("incoming data");
-		expect(msgHandler).toHaveBeenCalledTimes(1);
-		expect(msgHandler).toHaveBeenCalledWith("EVENT", "incoming data");
+		subCb("{ sender: \"node1\" }");
+		expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
+		expect(transporter.incomingMessage).toHaveBeenCalledWith("EVENT", "{ sender: \"node1\" }");
 		expect(transporter.subscriptions).toEqual([125]);
 
 		// Test unsubscribeFromBalancedCommands
@@ -210,63 +211,80 @@ describe("Test NatsTransporter subscribe & publish", () => {
 	});
 
 	it("check publish with target", () => {
+		transporter.serialize = jest.fn(data => "json data");
 		transporter.client.publish = jest.fn((topic, payload, resolve) => resolve());
-		const packet = new PacketInfo(fakeTransit, "node2", {});
+		const packet = new P.Packet(P.PACKET_INFO, "node2", {});
 		return transporter.publish(packet)
 			.catch(protectReject).then(() => {
 				expect(transporter.client.publish).toHaveBeenCalledTimes(1);
 				expect(transporter.client.publish).toHaveBeenCalledWith(
 					"MOL-TEST.INFO.node2",
-					Buffer.from(JSON.stringify({"ver": "3", "sender": "node1"})),
+					Buffer.from("json data"),
 					expect.any(Function)
 				);
+
+				expect(transporter.serialize).toHaveBeenCalledTimes(1);
+				expect(transporter.serialize).toHaveBeenCalledWith(packet);
 			});
 	});
 
 	it("check publish without target", () => {
+		transporter.serialize = jest.fn(data => "json data");
 		transporter.client.publish = jest.fn((topic, payload, resolve) => resolve());
-		const packet = new PacketInfo(fakeTransit, null, {});
+		const packet = new P.Packet(P.PACKET_INFO, null, {});
 		return transporter.publish(packet)
 			.catch(protectReject).then(() => {
 				expect(transporter.client.publish).toHaveBeenCalledTimes(1);
 				expect(transporter.client.publish).toHaveBeenCalledWith(
 					"MOL-TEST.INFO",
-					Buffer.from(JSON.stringify({"ver": "3", "sender": "node1"})),
+					Buffer.from("json data"),
 					expect.any(Function)
 				);
+
+				expect(transporter.serialize).toHaveBeenCalledTimes(1);
+				expect(transporter.serialize).toHaveBeenCalledWith(packet);
 			});
 	});
 
 	it("check publishBalancedEvent", () => {
+		transporter.serialize = jest.fn(data => "json data");
 		transporter.client.publish = jest.fn((topic, payload, resolve) => resolve());
-		const packet = new PacketEvent(fakeTransit, null, "user.created", { id: 5 }, ["mail"]);
+		const packet = new P.Packet(P.PACKET_EVENT, null, {
+			event: "user.created",
+			data: { id: 5 },
+			groups: ["mail"]
+		});
 		return transporter.publishBalancedEvent(packet, "mail")
 			.catch(protectReject).then(() => {
 				expect(transporter.client.publish).toHaveBeenCalledTimes(1);
 				expect(transporter.client.publish).toHaveBeenCalledWith(
 					"MOL-TEST.EVENTB.mail.user.created",
-					Buffer.from(JSON.stringify({"ver": "3", "sender": "node1", "event": "user.created", "data": { id: 5 }, "groups": ["mail"], "broadcast": false })),
+					Buffer.from("json data"),
 					expect.any(Function)
 				);
+				expect(transporter.serialize).toHaveBeenCalledTimes(1);
+				expect(transporter.serialize).toHaveBeenCalledWith(packet);
 			});
 
 	});
 
 	it("check publishBalancedRequest", () => {
+		transporter.serialize = jest.fn(data => "json data");
 		transporter.client.publish = jest.fn((topic, payload, resolve) => resolve());
-		let ctx = {
-			action: { name: "posts.find" },
-			params: { a: 5 }
-		};
-		const packet = new PacketRequest(fakeTransit, null, ctx);
+		const packet = new P.Packet(P.PACKET_REQUEST, null, {
+			action: "posts.find"
+		});
 		return transporter.publishBalancedRequest(packet)
 			.catch(protectReject).then(() => {
 				expect(transporter.client.publish).toHaveBeenCalledTimes(1);
 				expect(transporter.client.publish).toHaveBeenCalledWith(
 					"MOL-TEST.REQB.posts.find",
-					Buffer.from(JSON.stringify({"ver": "3", "sender": "node1", "action": "posts.find", "params": { a: 5 }})),
+					Buffer.from("json data"),
 					expect.any(Function)
 				);
+
+				expect(transporter.serialize).toHaveBeenCalledTimes(1);
+				expect(transporter.serialize).toHaveBeenCalledWith(packet);
 			});
 
 	});
