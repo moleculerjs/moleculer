@@ -1,7 +1,7 @@
 const ServiceBroker = require("../../../src/service-broker");
 const Transit = require("../../../src/transit");
 const MqttTransporter = require("../../../src/transporters/mqtt");
-const { PacketInfo } = require("../../../src/packets");
+const P = require("../../../src/packets");
 
 jest.mock("mqtt");
 
@@ -24,14 +24,14 @@ describe("Test NatsTransporter constructor", () => {
 	it("check constructor", () => {
 		let transporter = new MqttTransporter();
 		expect(transporter).toBeDefined();
-		expect(transporter.opts).toEqual({});
+		expect(transporter.opts).toBeUndefined();
 		expect(transporter.connected).toBe(false);
 		expect(transporter.client).toBeNull();
 	});
 
 	it("check constructor with string param", () => {
 		let transporter = new MqttTransporter("mqtt://localhost");
-		expect(transporter.opts).toEqual({ mqtt: "mqtt://localhost"});
+		expect(transporter.opts).toEqual("mqtt://localhost");
 	});
 
 	it("check constructor with options", () => {
@@ -108,8 +108,10 @@ describe("Test MqttTransporter subscribe & publish", () => {
 	beforeEach(() => {
 		transporter = new MqttTransporter();
 		msgHandler = jest.fn();
+		transporter.serialize = jest.fn(() => "json data");
+		transporter.incomingMessage = jest.fn();
 
-		transporter.init(new Transit(new ServiceBroker({ namespace: "TEST" })), msgHandler);
+		transporter.init(new Transit(new ServiceBroker({ namespace: "TEST", nodeID: "node1" })), msgHandler);
 
 		let p = transporter.connect();
 		transporter._client.onCallbacks.connect(); // Trigger the `resolve`
@@ -127,15 +129,20 @@ describe("Test MqttTransporter subscribe & publish", () => {
 	it("check incoming message handler", () => {
 		// Test subscribe callback
 		transporter.client.onCallbacks.message("prefix.event.name", "incoming data");
-		expect(msgHandler).toHaveBeenCalledTimes(1);
-		expect(msgHandler).toHaveBeenCalledWith("event", "incoming data");
+		expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
+		expect(transporter.incomingMessage).toHaveBeenCalledWith("event", "incoming data");
 	});
 
 	it("check publish", () => {
 		transporter.client.publish.mockClear();
-		transporter.publish(new PacketInfo(fakeTransit, "node2", { services: {} }));
+
+		const packet = new P.Packet(P.PACKET_INFO, "node2", { services: {} });
+		transporter.publish(packet);
 
 		expect(transporter.client.publish).toHaveBeenCalledTimes(1);
-		expect(transporter.client.publish).toHaveBeenCalledWith("MOL-TEST.INFO.node2", "{\"ver\":\"3\",\"sender\":\"node1\",\"services\":{}}", jasmine.any(Function));
+		expect(transporter.client.publish).toHaveBeenCalledWith("MOL-TEST.INFO.node2", "json data", jasmine.any(Function));
+
+		expect(transporter.serialize).toHaveBeenCalledTimes(1);
+		expect(transporter.serialize).toHaveBeenCalledWith(packet);
 	});
 });
