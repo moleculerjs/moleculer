@@ -62,8 +62,7 @@ class TcpTransporter extends Transporter {
 			useHostname: true,
 
 			gossipPeriod: 2, // seconds
-			maxConnections: 32, // TOOD Max live TCP socket
-			//keepAliveTimeout: 60, // TODO seconds
+			maxConnections: 32, // Max live outgoing TCP connections
 			maxPacketSize: 1 * 1024 * 1024
 		}, this.opts);
 

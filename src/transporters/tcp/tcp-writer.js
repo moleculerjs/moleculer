@@ -37,11 +37,6 @@ class TcpWriter extends EventEmitter {
 
 		this.transporter = transporter;
 		this.logger = transporter.logger;
-
-		// Start timeout handler
-		if (opts.maxKeepAliveConnections > 0 && opts.keepAliveTimeout > 0) {
-			this.timer = setInterval(() => this.manageTimeouts(), 30 * 1000);
-		}
 	}
 
 	/**
@@ -74,8 +69,9 @@ class TcpWriter extends EventEmitter {
 						.then(() => resolve(socket))
 						.catch(() => reject());
 
-					// TODO: Hack to solve race problem at startup
-					//this.transporter.reader.onTcpClientConnected(socket);
+					if (this.sockets.size > this.opts.maxConnections)
+						this.manageConnections();
+
 				});
 
 				socket.on("error", err => {
@@ -141,25 +137,25 @@ class TcpWriter extends EventEmitter {
 	}
 
 	/**
-	 * Manage maxKeepAliveConnections & keepAliveTimeout
+	 * Manage maximum live connections
 	 *
 	 * @memberof TcpWriter
 	 */
-	manageTimeouts() {
-		if (this.sockets.size <= this.opts.maxKeepAliveConnections)
+	manageConnections() {
+		let count = this.sockets.size - this.opts.maxConnections;
+		if (count <= 0)
 			return;
 
-		const timeLimit = Date.now() - (this.opts.keepAliveTimeout * 1000);
+		const list = [];
+		this.sockets.forEach((socket, nodeID) => list.push({ nodeID, lastUsed: socket.lastUsed }));
+		list.sort((a,b) => a.lastUsed - b.lastUsed);
 
-		const removable = [];
-		this.sockets.forEach((socket, nodeID) => {
-			if (socket.lastUsed < timeLimit)
-				removable.push(nodeID);
-		});
+		count = Math.min(count, list.length - 1);
+		const removable = list.slice(0, count);
 
-		this.logger.debug(`Close ${removable.length} timed out sockets.`, removable);
+		this.logger.warn(`Close ${count} old sockets.`, removable);
 
-		removable.forEach(nodeID => this.removeSocket(nodeID));
+		removable.forEach(({ nodeID }) => this.removeSocket(nodeID));
 	}
 
 	/**
@@ -181,7 +177,7 @@ class TcpWriter extends EventEmitter {
 	}
 
 	/**
-	 * Remove socket by nodeID
+	 * Remove & close socket by nodeID
 	 *
 	 * @param {String} nodeID
 	 */
@@ -199,10 +195,6 @@ class TcpWriter extends EventEmitter {
 	 * @memberof TcpWriter
 	 */
 	close() {
-		// Stop timeout handler
-		if (this.timer)
-			clearInterval(this.timer);
-
 		// Close all live sockets
 		this.sockets.forEach((socket) => {
 			if (!socket.destroyed)

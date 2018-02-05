@@ -29,8 +29,7 @@ function createBroker(nodeID) {
 			type: "TCP",
 			options: {
 				gossipPeriod: 2, // seconds
-				maxKeepAliveConnections: 10, // Max live TCP socket
-				keepAliveTimeout: 10, // seconds
+				maxConnections: 10, // Max live TCP socket
 			}
 		},
 		//logger: console,
