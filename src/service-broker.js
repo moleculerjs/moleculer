@@ -393,6 +393,7 @@ class ServiceBroker {
 			})
 			.then(() => {
 				this.logger.info("ServiceBroker is stopped successfully. Good bye.");
+				this._started = false;
 
 				process.removeListener("beforeExit", this._closeFn);
 				process.removeListener("exit", this._closeFn);

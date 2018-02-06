@@ -131,8 +131,11 @@ class Transit {
 
 		if (this.tx.connected) {
 			return this.sendDisconnectPacket()
-				.then(() => this.tx.disconnect());
+				.then(() => this.tx.disconnect())
+				.then(() => this.disconnecting = false);
 		}
+
+		this.disconnecting = false;
 		/* istanbul ignore next */
 		return Promise.resolve();
 	}

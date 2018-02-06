@@ -11,6 +11,7 @@ function createNode(name, disableBalancer = false, service) {
 	const broker = new ServiceBroker({
 		namespace: "test-rpc",
 		nodeID: "rpc-" + name,
+		//logger: console,
 		transporter: process.env.AMQP_URI || "amqp://guest:guest@localhost:5672",
 		disableBalancer,
 		registry: {
@@ -202,11 +203,13 @@ describe("Test AMQPTransporter", () => {
 
 		const brokers = [client, worker1, worker2, worker3];
 
-		beforeEach(() => Promise.all(brokers.map(broker => broker.start())).delay(1000));
+		beforeEach(() => {
+			return Promise.all(brokers.map(broker => broker.start())).delay(1000);
+		});
 
 		afterEach(() => {
 			logs.length = 0;
-			return Promise.all(brokers.map(broker => broker.stop()));
+			return Promise.all(brokers.map(broker => broker.stop())).delay(1000);
 		});
 
 		runTestCases(logs, client, worker1, worker2, worker3, true);

@@ -87,6 +87,20 @@
 		{
 			"type": "node",
 			"request": "launch",
+			"name": "Jest AMQP integration",
+			"program": "${workspaceRoot}/node_modules/jest-cli/bin/jest.js",
+			"args": ["--runInBand", "--testMatch", "**/integration/amqp/**spc.js"],
+			"cwd": "${workspaceRoot}",
+			"runtimeArgs": [
+                "--nolazy"
+            ],
+			"env": {
+				"AMQP_URI": "amqp://192.168.51.29:5672"
+			}
+		},
+		{
+			"type": "node",
+			"request": "launch",
 			"name": "Moleculer-runner",
 			"program": "${workspaceRoot}/bin/moleculer-runner.js",
 			"cwd": "${workspaceRoot}",

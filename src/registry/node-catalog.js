@@ -181,7 +181,8 @@ class NodeCatalog {
 		// Update instance
 		const needRegister = node.update(payload);
 
-		if (needRegister && node.services) {
+		// Refresh services if 'when' is newer or it is a reconnected node
+		if ((needRegister || isReconnected) && node.services) {
 			this.registry.registerServices(node, node.services);
 		}
 

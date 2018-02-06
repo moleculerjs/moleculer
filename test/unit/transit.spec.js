@@ -142,13 +142,16 @@ describe("Test Transit.disconnect", () => {
 	const transporter = new FakeTransporter();
 	const transit = new Transit(broker, transporter);
 
-	transporter.disconnect = jest.fn(() => Promise.resolve());
 	transit.sendDisconnectPacket = jest.fn(() => Promise.resolve());
 	broker.broadcastLocal = jest.fn();
 
 	transit.connect();
 
 	it("should call transporter disconnect & sendDisconnectPacket", () => {
+		transporter.disconnect = jest.fn(() => {
+			expect(transit.disconnecting).toBe(true);
+			return Promise.resolve();
+		});
 		broker.broadcastLocal.mockClear();
 		expect(transit.connected).toBe(true);
 		expect(transit.disconnecting).toBe(false);
@@ -160,7 +163,7 @@ describe("Test Transit.disconnect", () => {
 			expect(broker.broadcastLocal).toHaveBeenCalledWith("$transporter.disconnected", { graceFul: true });
 
 			expect(transit.connected).toBe(false);
-			expect(transit.disconnecting).toBe(true);
+			expect(transit.disconnecting).toBe(false);
 		});
 	});
 

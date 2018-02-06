@@ -189,7 +189,8 @@ describe("Test NodeCatalog.processNodeInfo", () => {
 
 		let node = catalog.get("node-12");
 
-		expect(broker.registry.registerServices).toHaveBeenCalledTimes(0);
+		expect(broker.registry.registerServices).toHaveBeenCalledTimes(1);
+		expect(broker.registry.registerServices).toHaveBeenCalledWith(node, node.services);
 
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$node.connected", { node, reconnected: true });
