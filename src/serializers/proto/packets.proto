@@ -8,7 +8,7 @@ message PacketEvent {
 	required string event 	= 3;
 	required string data 	= 4;
 	repeated string groups 	= 5;
-	repeated bool broadcast	= 6;
+	required bool broadcast	= 6;
 }
 
 message PacketRequest {

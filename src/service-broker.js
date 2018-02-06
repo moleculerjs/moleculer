@@ -209,6 +209,7 @@ class ServiceBroker {
 	}
 
 	getModuleClass(obj, name) {
+		/* istanbul ignore next */
 		if (!name)
 			return null;
 

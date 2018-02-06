@@ -535,7 +535,7 @@ class Transit {
 			payload.error = {
 				name: err.name,
 				message: err.message,
-				nodeID: err.nodeID || payload.sender,
+				nodeID: err.nodeID || this.nodeID,
 				code: err.code,
 				type: err.type,
 				stack: err.stack,

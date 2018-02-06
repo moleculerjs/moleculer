@@ -36,6 +36,8 @@ class KafkaTransporter extends Transporter {
 	constructor(opts) {
 		if (typeof opts == "string") {
 			opts = { host: opts.replace("kafka://", "") };
+		} else if (opts == null) {
+			opts = {};
 		}
 
 		opts = defaultsDeep(opts, {

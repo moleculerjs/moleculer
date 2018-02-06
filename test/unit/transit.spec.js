@@ -206,7 +206,7 @@ describe("Test Transit.sendDisconnectPacket", () => {
 	it("should call publish iwth correct params", () => {
 		return transit.sendDisconnectPacket().catch(protectReject).then(() => {
 			expect(transit.publish).toHaveBeenCalledTimes(1);
-			expect(transit.publish).toHaveBeenCalledWith(jasmine.any(P.PacketDisconnect));
+			expect(transit.publish).toHaveBeenCalledWith(jasmine.any(P.Packet));
 		});
 	});
 
@@ -224,24 +224,24 @@ describe("Test Transit.makeSubscriptions", () => {
 			expect(transit.tx.makeSubscriptions).toHaveBeenCalledTimes(1);
 			expect(transit.tx.makeSubscriptions).toHaveBeenCalledWith([
 				{"cmd": "EVENT",	"nodeID": "node1" },
-				{"cmd": "REQ",	"nodeID": "node1" },
-				{"cmd": "RES",	"nodeID": "node1" },
+				{"cmd": "REQ",		"nodeID": "node1" },
+				{"cmd": "RES",		"nodeID": "node1" },
 				{"cmd": "DISCOVER" },
 				{"cmd": "DISCOVER",	"nodeID": "node1" },
 				{"cmd": "INFO" },
-				{"cmd": "INFO",	"nodeID": "node1" },
+				{"cmd": "INFO",		"nodeID": "node1" },
 				{"cmd": "DISCONNECT" },
 				{"cmd": "HEARTBEAT" },
 				{"cmd": "PING"},
-				{"cmd": "PING",	"nodeID": "node1" },
-				{"cmd": "PONG",	"nodeID": "node1" }
+				{"cmd": "PING",		"nodeID": "node1" },
+				{"cmd": "PONG",		"nodeID": "node1" }
 			]);
 		});
 	});
 
 });
 
-describe("Test Transit.sendEvent", () => {
+describe("Test Transit.sendBroadcastEvent", () => {
 
 	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
@@ -253,11 +253,13 @@ describe("Test Transit.sendEvent", () => {
 		transit.sendBroadcastEvent("node2", "user.created", user);
 		expect(transit.publish).toHaveBeenCalledTimes(1);
 		const packet = transit.publish.mock.calls[0][0];
-		expect(packet).toBeInstanceOf(P.PacketEvent);
+		expect(packet).toBeInstanceOf(P.Packet);
+		expect(packet.type).toBe(P.PACKET_EVENT);
 		expect(packet.target).toBe("node2");
 		expect(packet.payload.event).toBe("user.created");
 		expect(packet.payload.data).toBe(user);
-		expect(packet.payload.groups).toBeNull();
+		expect(packet.payload.groups).toBeUndefined();
+		expect(packet.payload.broadcast).toBe(true);
 	});
 
 	it("should call publish with correct params and with groups", () => {
@@ -266,11 +268,13 @@ describe("Test Transit.sendEvent", () => {
 		transit.sendBroadcastEvent("node2", "user.created", user, ["mail", "payment"]);
 		expect(transit.publish).toHaveBeenCalledTimes(1);
 		const packet = transit.publish.mock.calls[0][0];
-		expect(packet).toBeInstanceOf(P.PacketEvent);
+		expect(packet).toBeInstanceOf(P.Packet);
+		expect(packet.type).toBe(P.PACKET_EVENT);
 		expect(packet.target).toBe("node2");
 		expect(packet.payload.event).toBe("user.created");
 		expect(packet.payload.data).toBe(user);
 		expect(packet.payload.groups).toEqual(["mail", "payment"]);
+		expect(packet.payload.broadcast).toBe(true);
 	});
 
 });
@@ -291,18 +295,22 @@ describe("Test Transit.sendBalancedEvent", () => {
 		expect(transit.publish).toHaveBeenCalledTimes(2);
 
 		const packet1 = transit.publish.mock.calls[0][0];
-		expect(packet1).toBeInstanceOf(P.PacketEvent);
+		expect(packet1).toBeInstanceOf(P.Packet);
+		expect(packet1.type).toBe(P.PACKET_EVENT);
 		expect(packet1.target).toBe("node-2");
 		expect(packet1.payload.event).toBe("user.created");
 		expect(packet1.payload.data).toBe(user);
 		expect(packet1.payload.groups).toEqual(["users", "payments"]);
+		expect(packet1.payload.broadcast).toBe(false);
 
 		const packet2 = transit.publish.mock.calls[1][0];
-		expect(packet2).toBeInstanceOf(P.PacketEvent);
+		expect(packet2).toBeInstanceOf(P.Packet);
+		expect(packet2.type).toBe(P.PACKET_EVENT);
 		expect(packet2.target).toBe("node-4");
 		expect(packet2.payload.event).toBe("user.created");
 		expect(packet2.payload.data).toBe(user);
 		expect(packet2.payload.groups).toEqual(["mail"]);
+		expect(packet2.payload.broadcast).toBe(false);
 	});
 
 });
@@ -320,11 +328,13 @@ describe("Test Transit.sendEventToGroups", () => {
 		transit.sendEventToGroups("user.created", user, ["users", "mail"]);
 		expect(transit.publish).toHaveBeenCalledTimes(1);
 		const packet = transit.publish.mock.calls[0][0];
-		expect(packet).toBeInstanceOf(P.PacketEvent);
+		expect(packet).toBeInstanceOf(P.Packet);
+		expect(packet.type).toBe(P.PACKET_EVENT);
 		expect(packet.target).toBeNull();
 		expect(packet.payload.event).toBe("user.created");
 		expect(packet.payload.data).toBe(user);
 		expect(packet.payload.groups).toEqual(["users", "mail"]);
+		expect(packet.payload.broadcast).toBe(false);
 	});
 });
 
@@ -346,79 +356,79 @@ describe("Test Transit.messageHandler", () => {
 	});
 
 	it("should throw Error if version mismatch", () => {
-		expect(transit.messageHandler("EVENT", "{}")).toBe(false);
+		expect(transit.messageHandler("EVENT", { payload: {} })).toBe(false);
 	});
 
 	it("should throw Error if version mismatch", () => {
-		expect(transit.messageHandler("EVENT", "{\"ver\": \"1\"}")).toBe(false);
+		expect(transit.messageHandler("EVENT", { payload: { ver: "1"} })).toBe(false);
 	});
 
 	it("should call _requestHandler if topic is 'REQ' ", () => {
 		transit._requestHandler = jest.fn();
 
-		let msg = { ver: "3", sender: "remote", action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456", timeout: 567 };
-		transit.messageHandler("REQ", JSON.stringify(msg));
+		let payload = { ver: "3", sender: "remote", action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456", timeout: 567 };
+		transit.messageHandler("REQ", { payload });
 
 		expect(transit._requestHandler).toHaveBeenCalledTimes(1);
-		expect(transit._requestHandler).toHaveBeenCalledWith(msg);
+		expect(transit._requestHandler).toHaveBeenCalledWith(payload);
 	});
 
 	it("should call _requestHandler if topic is 'REQ' && sender is itself", () => {
 		transit._requestHandler = jest.fn();
 
-		let msg = { ver: "3", sender: broker.nodeID, action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456", timeout: 567 };
-		transit.messageHandler("REQ", JSON.stringify(msg));
+		let payload = { ver: "3", sender: broker.nodeID, action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456", timeout: 567 };
+		transit.messageHandler("REQ", { payload });
 
 		expect(transit._requestHandler).toHaveBeenCalledTimes(1);
-		expect(transit._requestHandler).toHaveBeenCalledWith(msg);
+		expect(transit._requestHandler).toHaveBeenCalledWith(payload);
 	});
 
 	it("should call _responseHandler if topic is 'RES' ", () => {
 		transit._responseHandler = jest.fn();
 
-		let msg = { ver: "3", sender: "remote", id: "12345" };
-		transit.messageHandler("RES", JSON.stringify(msg));
+		let payload = { ver: "3", sender: "remote", id: "12345" };
+		transit.messageHandler("RES", { payload });
 
 		expect(transit._responseHandler).toHaveBeenCalledTimes(1);
-		expect(transit._responseHandler).toHaveBeenCalledWith(msg);
+		expect(transit._responseHandler).toHaveBeenCalledWith(payload);
 	});
 
 	it("should call _responseHandler if topic is 'RES' && sender is itself", () => {
 		transit._responseHandler = jest.fn();
 
-		let msg = { ver: "3", sender: broker.nodeID, id: "12345" };
-		transit.messageHandler("RES", JSON.stringify(msg));
+		let payload = { ver: "3", sender: broker.nodeID, id: "12345" };
+		transit.messageHandler("RES", { payload });
 
 		expect(transit._responseHandler).toHaveBeenCalledTimes(1);
-		expect(transit._responseHandler).toHaveBeenCalledWith(msg);
+		expect(transit._responseHandler).toHaveBeenCalledWith(payload);
 	});
 
 	it("should call __eventHandler if topic is 'EVENT' ", () => {
 		transit._eventHandler = jest.fn();
 
-		let msg = { ver: "3", sender: "remote", event: "user.created", data: "John Doe" };
-		transit.messageHandler("EVENT", JSON.stringify(msg));
+		let payload = { ver: "3", sender: "remote", event: "user.created", data: "John Doe" };
+		transit.messageHandler("EVENT", { payload });
 
 		expect(transit._eventHandler).toHaveBeenCalledTimes(1);
-		expect(transit._eventHandler).toHaveBeenCalledWith(msg);
+		expect(transit._eventHandler).toHaveBeenCalledWith(payload);
 	});
 
 	it("should call __eventHandler if topic is 'EVENT' && sender is itself", () => {
 		transit._eventHandler = jest.fn();
 
-		let msg = { ver: "3", sender: broker.nodeID, event: "user.created", data: "John Doe" };
-		transit.messageHandler("EVENT", JSON.stringify(msg));
+		let payload = { ver: "3", sender: broker.nodeID, event: "user.created", data: "John Doe" };
+		transit.messageHandler("EVENT", { payload });
 
 		expect(transit._eventHandler).toHaveBeenCalledTimes(1);
-		expect(transit._eventHandler).toHaveBeenCalledWith(msg);
+		expect(transit._eventHandler).toHaveBeenCalledWith(payload);
 	});
 
 	it("should call broker.processNodeInfo & sendNodeInfo if topic is 'DISCOVER' ", () => {
 		broker.registry.nodes.processNodeInfo = jest.fn();
 		transit.sendNodeInfo = jest.fn();
 
-		let msg = { ver: "3", sender: "remote", services: JSON.stringify([]) };
-		transit.messageHandler("DISCOVER", JSON.stringify(msg));
+		let payload = { ver: "3", sender: "remote", services: JSON.stringify([]) };
+		transit.messageHandler("DISCOVER", { payload });
 		expect(transit.sendNodeInfo).toHaveBeenCalledTimes(1);
 		expect(transit.sendNodeInfo).toHaveBeenCalledWith("remote");
 	});
@@ -426,58 +436,58 @@ describe("Test Transit.messageHandler", () => {
 	it("should call broker.registry.nodes.processNodeInfo if topic is 'INFO' ", () => {
 		broker.registry.nodes.processNodeInfo = jest.fn();
 
-		let msg = { ver: "3", sender: "remote", services: [] };
-		transit.messageHandler("INFO", JSON.stringify(msg));
+		let payload = { ver: "3", sender: "remote", services: [] };
+		transit.messageHandler("INFO", { payload });
 
 		expect(broker.registry.nodes.processNodeInfo).toHaveBeenCalledTimes(1);
-		expect(broker.registry.nodes.processNodeInfo).toHaveBeenCalledWith(msg);
+		expect(broker.registry.nodes.processNodeInfo).toHaveBeenCalledWith(payload);
 	});
 
 	it("should call broker.registry.nodes.disconnected if topic is 'DISCONNECT' ", () => {
 		broker.registry.nodes.disconnected = jest.fn();
 
-		let msg = { ver: "3", sender: "remote" };
-		transit.messageHandler("DISCONNECT", JSON.stringify(msg));
+		let payload = { ver: "3", sender: "remote" };
+		transit.messageHandler("DISCONNECT", { payload });
 
 		expect(broker.registry.nodes.disconnected).toHaveBeenCalledTimes(1);
-		expect(broker.registry.nodes.disconnected).toHaveBeenCalledWith(msg.sender, false);
+		expect(broker.registry.nodes.disconnected).toHaveBeenCalledWith(payload.sender, false);
 	});
 
 	it("should call broker.registry.nodes.heartbeat if topic is 'HEARTBEAT' ", () => {
 		broker.registry.nodes.heartbeat = jest.fn();
 
-		let msg = { ver: "3", sender: "remote", cpu: 100 };
-		transit.messageHandler("HEARTBEAT", JSON.stringify(msg));
+		let payload = { ver: "3", sender: "remote", cpu: 100 };
+		transit.messageHandler("HEARTBEAT", { payload });
 
 		expect(broker.registry.nodes.heartbeat).toHaveBeenCalledTimes(1);
-		expect(broker.registry.nodes.heartbeat).toHaveBeenCalledWith(msg);
+		expect(broker.registry.nodes.heartbeat).toHaveBeenCalledWith(payload);
 	});
 
 	it("should call broker.registry.nodes.heartbeat if topic is 'PING' ", () => {
 		transit.sendPong = jest.fn();
 
-		let msg = { ver: "3", sender: "remote", time: 1234567 };
-		transit.messageHandler("PING", JSON.stringify(msg));
+		let payload = { ver: "3", sender: "remote", time: 1234567 };
+		transit.messageHandler("PING", { payload });
 
 		expect(transit.sendPong).toHaveBeenCalledTimes(1);
-		expect(transit.sendPong).toHaveBeenCalledWith(msg);
+		expect(transit.sendPong).toHaveBeenCalledWith(payload);
 	});
 
 	it("should call broker.registry.nodes.heartbeat if topic is 'PONG' ", () => {
 		transit.processPong = jest.fn();
 
-		let msg = { ver: "3", sender: "remote", time: 1234567, arrived: 7654321 };
-		transit.messageHandler("PONG", JSON.stringify(msg));
+		let payload = { ver: "3", sender: "remote", time: 1234567, arrived: 7654321 };
+		transit.messageHandler("PONG", { payload });
 
 		expect(transit.processPong).toHaveBeenCalledTimes(1);
-		expect(transit.processPong).toHaveBeenCalledWith(msg);
+		expect(transit.processPong).toHaveBeenCalledWith(payload);
 	});
 
 	it("should skip processing if sender is itself", () => {
 		transit.sendPong = jest.fn();
 
-		let msg = { ver: "3", sender: broker.nodeID, time: 1234567 };
-		transit.messageHandler("PING", JSON.stringify(msg));
+		let payload = { ver: "3", sender: broker.nodeID, time: 1234567 };
+		transit.messageHandler("PING", { payload });
 
 		expect(transit.sendPong).toHaveBeenCalledTimes(0);
 	});
@@ -666,7 +676,8 @@ describe("Test Transit.request", () => {
 			expect(transit.publish).toHaveBeenCalledTimes(1);
 
 			const packet = transit.publish.mock.calls[0][0];
-			expect(packet).toBeInstanceOf(P.PacketRequest);
+			expect(packet).toBeInstanceOf(P.Packet);
+			expect(packet.type).toBe(P.PACKET_REQUEST);
 			expect(packet.payload.id).toBe("12345");
 			expect(packet.payload.requestID).toBe("1111");
 			expect(packet.payload.action).toBe("users.find");
@@ -696,7 +707,8 @@ describe("Test Transit.sendResponse", () => {
 		transit.sendResponse("node2", "12345", meta, data);
 		expect(transit.publish).toHaveBeenCalledTimes(1);
 		const packet = transit.publish.mock.calls[0][0];
-		expect(packet).toBeInstanceOf(P.PacketResponse);
+		expect(packet).toBeInstanceOf(P.Packet);
+		expect(packet.type).toBe(P.PACKET_RESPONSE);
 		expect(packet.target).toBe("node2");
 		expect(packet.payload.id).toBe("12345");
 		expect(packet.payload.meta).toBe(meta);
@@ -709,7 +721,8 @@ describe("Test Transit.sendResponse", () => {
 		transit.sendResponse("node2", "12345", meta, null, new ValidationError("Not valid params", "ERR_INVALID_A_PARAM", { a: "Too small" }));
 		expect(transit.publish).toHaveBeenCalledTimes(1);
 		const packet = transit.publish.mock.calls[0][0];
-		expect(packet).toBeInstanceOf(P.PacketResponse);
+		expect(packet).toBeInstanceOf(P.Packet);
+		expect(packet.type).toBe(P.PACKET_RESPONSE);
 		expect(packet.target).toBe("node2");
 		expect(packet.payload.id).toBe("12345");
 		expect(packet.payload.meta).toBe(meta);
@@ -737,8 +750,9 @@ describe("Test Transit.discoverNodes", () => {
 		transit.discoverNodes();
 		expect(transit.publish).toHaveBeenCalledTimes(1);
 		const packet = transit.publish.mock.calls[0][0];
-		expect(packet).toBeInstanceOf(P.PacketDiscover);
-		expect(packet.payload).toEqual({ sender: "node1", ver: "3" });
+		expect(packet).toBeInstanceOf(P.Packet);
+		expect(packet.type).toBe(P.PACKET_DISCOVER);
+		expect(packet.payload).toEqual({});
 	});
 
 });
@@ -754,9 +768,10 @@ describe("Test Transit.discoverNode", () => {
 		transit.discoverNode("node-2");
 		expect(transit.publish).toHaveBeenCalledTimes(1);
 		const packet = transit.publish.mock.calls[0][0];
-		expect(packet).toBeInstanceOf(P.PacketDiscover);
+		expect(packet).toBeInstanceOf(P.Packet);
+		expect(packet.type).toBe(P.PACKET_DISCOVER);
 		expect(packet.target).toBe("node-2");
-		expect(packet.payload).toEqual({ sender: "node1", ver: "3" });
+		expect(packet.payload).toEqual({});
 	});
 
 });
@@ -795,7 +810,8 @@ describe("Test Transit.sendNodeInfo", () => {
 			expect(transit.publish).toHaveBeenCalledTimes(1);
 			expect(broker.getLocalNodeInfo).toHaveBeenCalledTimes(1);
 			const packet = transit.publish.mock.calls[0][0];
-			expect(packet).toBeInstanceOf(P.PacketInfo);
+			expect(packet).toBeInstanceOf(P.Packet);
+			expect(packet.type).toBe(P.PACKET_INFO);
 			expect(packet.target).toBe("node2");
 			expect(packet.payload.services).toEqual([]);
 		});
@@ -810,7 +826,8 @@ describe("Test Transit.sendNodeInfo", () => {
 			expect(transit.publish).toHaveBeenCalledTimes(1);
 			expect(broker.getLocalNodeInfo).toHaveBeenCalledTimes(1);
 			const packet = transit.publish.mock.calls[0][0];
-			expect(packet).toBeInstanceOf(P.PacketInfo);
+			expect(packet).toBeInstanceOf(P.Packet);
+			expect(packet.type).toBe(P.PACKET_INFO);
 			expect(packet.target).toBe();
 			expect(packet.payload.services).toEqual([]);
 		});
@@ -829,9 +846,10 @@ describe("Test Transit.sendPing", () => {
 		transit.sendPing("node-2");
 		expect(transit.publish).toHaveBeenCalledTimes(1);
 		const packet = transit.publish.mock.calls[0][0];
-		expect(packet).toBeInstanceOf(P.PacketPing);
+		expect(packet).toBeInstanceOf(P.Packet);
+		expect(packet.type).toBe(P.PACKET_PING);
 		expect(packet.target).toBe("node-2");
-		expect(packet.payload).toEqual({ sender: "node-1", ver: "3", time: jasmine.any(Number) });
+		expect(packet.payload).toEqual({ time: jasmine.any(Number) });
 	});
 
 });
@@ -847,9 +865,10 @@ describe("Test Transit.sendPong", () => {
 		transit.sendPong({ sender: "node-2", time: 123456 });
 		expect(transit.publish).toHaveBeenCalledTimes(1);
 		const packet = transit.publish.mock.calls[0][0];
-		expect(packet).toBeInstanceOf(P.PacketPong);
+		expect(packet).toBeInstanceOf(P.Packet);
+		expect(packet.type).toBe(P.PACKET_PONG);
 		expect(packet.target).toBe("node-2");
-		expect(packet.payload).toEqual({ sender: "node-1", ver: "3", time: 123456, arrived: jasmine.any(Number) });
+		expect(packet.payload).toEqual({ time: 123456, arrived: jasmine.any(Number) });
 	});
 
 });
@@ -866,7 +885,7 @@ describe("Test Transit.processPong", () => {
 		transit.processPong({ sender: "node-2", arrived: now, time: now - 500 });
 
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
-		expect(broker.broadcastLocal).toHaveBeenCalledWith("$node.pong", {"elapsedTime": jasmine.any(Number), "nodeID": "node-2", "timeDiff": jasmine.any(Number)}, "node-2");
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$node.pong", {"elapsedTime": jasmine.any(Number), "nodeID": "node-2", "timeDiff": jasmine.any(Number)});
 	});
 
 });
@@ -882,7 +901,8 @@ describe("Test Transit.sendHeartbeat", () => {
 		transit.sendHeartbeat({ cpu: 12 });
 		expect(transit.publish).toHaveBeenCalledTimes(1);
 		const packet = transit.publish.mock.calls[0][0];
-		expect(packet).toBeInstanceOf(P.PacketHeartbeat);
+		expect(packet).toBeInstanceOf(P.Packet);
+		expect(packet.type).toBe(P.PACKET_HEARTBEAT);
 		expect(packet.payload.cpu).toBe(12);
 	});
 
@@ -915,7 +935,7 @@ describe("Test Transit.publish", () => {
 
 	it("should call transporter.prepublish", () => {
 		expect(transit.stat.packets.sent).toBe(0);
-		let packet = new P.PacketEvent("user.created", { a: "John Doe" });
+		let packet = new P.Packet(P.PACKET_EVENT);
 		transit.publish(packet);
 		expect(transporter.prepublish).toHaveBeenCalledTimes(1);
 		const p = transporter.prepublish.mock.calls[0][0];
@@ -931,7 +951,7 @@ describe("Test Transit.publish", () => {
 
 		expect(transit.stat.packets.sent).toBe(0);
 
-		let packet = new P.PacketEvent("user.created", { a: "John Doe" });
+		let packet = new P.Packet(P.PACKET_EVENT);
 		let p = transit.publish(packet);
 
 		expect(transporter.prepublish).toHaveBeenCalledTimes(0);

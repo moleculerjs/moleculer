@@ -47,6 +47,8 @@ class AmqpTransporter extends Transporter {
 	constructor(opts) {
 		if (typeof opts === "string")
 			opts = { url: opts };
+		else if (opts == null)
+			opts = {};
 
 		// Number of requests a broker will handle concurrently
 		if (typeof opts.prefetch !== "number")
