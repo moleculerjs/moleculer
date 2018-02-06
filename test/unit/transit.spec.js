@@ -5,7 +5,7 @@ const ServiceBroker = require("../../src/service-broker");
 const Context = require("../../src/context");
 const Transit = require("../../src/transit");
 const FakeTransporter = require("../../src/transporters/fake");
-const { ValidationError, ProtocolVersionMismatchError } = require("../../src/errors");
+const { ValidationError, ProtocolVersionMismatchError, RequestRejected } = require("../../src/errors");
 const P = require("../../src/packets");
 
 describe("Test Transporter constructor", () => {
@@ -741,6 +741,59 @@ describe("Test Transit.sendResponse", () => {
 		expect(packet.payload.error.type).toBe("ERR_INVALID_A_PARAM");
 		expect(packet.payload.error.nodeID).toBe("node1");
 		expect(packet.payload.error.data).toEqual({ a: "Too small" });
+	});
+
+});
+
+describe("Test Transit.removePendingRequestByNodeID", () => {
+
+	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const transit = broker.transit;
+
+	transit.publish = jest.fn();
+
+	const resolve = jest.fn();
+	const reject = jest.fn();
+	const ctx = new Context(broker, { name: "users.create"});
+	ctx.id = 1;
+	ctx.nodeID = "node2";
+
+	const resolve2 = jest.fn();
+	const reject2 = jest.fn();
+	const ctx2 = new Context(broker, { name: "users.create"});
+	ctx.id = 2;
+	ctx2.nodeID = "node3";
+
+	it("should add to pendingRequest list", () => {
+		expect(transit.pendingRequests.size).toBe(0);
+
+		transit._sendRequest(ctx, resolve, reject);
+		expect(transit.pendingRequests.size).toBe(1);
+
+		transit._sendRequest(ctx2, resolve2, reject2);
+		expect(transit.pendingRequests.size).toBe(2);
+	});
+
+	it("should not remove if call with other nodeID", () => {
+		transit.removePendingRequestByNodeID("node1");
+		expect(transit.pendingRequests.size).toBe(2);
+	});
+
+	it("should reject pending orders by nodeID", () => {
+		transit.removePendingRequestByNodeID("node2");
+		expect(transit.pendingRequests.size).toBe(1);
+		expect(resolve).toHaveBeenCalledTimes(0);
+		expect(resolve2).toHaveBeenCalledTimes(0);
+		expect(reject).toHaveBeenCalledTimes(1);
+		expect(reject).toHaveBeenCalledWith(jasmine.any(RequestRejected));
+	});
+
+	it("should reject pending orders by nodeID #2", () => {
+		transit.removePendingRequestByNodeID("node3");
+		expect(transit.pendingRequests.size).toBe(0);
+		expect(resolve2).toHaveBeenCalledTimes(0);
+		expect(reject2).toHaveBeenCalledTimes(1);
+		expect(reject2).toHaveBeenCalledWith(jasmine.any(RequestRejected));
 	});
 
 });

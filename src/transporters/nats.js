@@ -201,6 +201,7 @@ class NatsTransporter extends Transporter {
 	 * @memberOf NatsTransporter
 	 */
 	publish(packet) {
+		/* istanbul ignore next*/
 		if (!this.client) return Promise.resolve();
 
 		return new Promise(resolve => {
@@ -220,6 +221,7 @@ class NatsTransporter extends Transporter {
 	 * @memberof AmqpTransporter
 	 */
 	publishBalancedEvent(packet, group) {
+		/* istanbul ignore next*/
 		if (!this.client) return Promise.resolve();
 
 		return new Promise(resolve => {
@@ -238,6 +240,7 @@ class NatsTransporter extends Transporter {
 	 * @memberof AmqpTransporter
 	 */
 	publishBalancedRequest(packet) {
+		/* istanbul ignore next*/
 		if (!this.client) return Promise.resolve();
 
 		return new Promise(resolve => {

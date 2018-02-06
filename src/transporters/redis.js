@@ -139,7 +139,9 @@ class RedisTransporter extends Transporter {
 	 * @memberOf RedisTransporter
 	 */
 	publish(packet) {
+		/* istanbul ignore next*/
 		if (!this.clientPub) return;
+
 		const data = this.serialize(packet);
 		this.clientPub.publish(this.getTopicName(packet.type, packet.target), data);
 		return Promise.resolve();

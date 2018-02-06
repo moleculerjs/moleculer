@@ -27,6 +27,7 @@ describe("Test NodeCatalog constructor", () => {
 
 		expect(catalog.localNode).toBeDefined();
 		expect(catalog.localNode.id).toBe(broker.nodeID);
+		expect(catalog.localNode.available).toBe(true);
 		expect(catalog.nodes.size).toBe(1);
 
 		expect(broker.localBus.on).toHaveBeenCalledTimes(2);
@@ -498,6 +499,28 @@ describe("Test NodeCatalog.list", () => {
 				"when": jasmine.any(Number),
 				"services": []
 			}
+		]);
+
+	});
+});
+
+describe("Test NodeCatalog.toArray", () => {
+	let broker = new ServiceBroker({ nodeID: "node-1", transporter: "fake" });
+	let catalog = new NodeCatalog(broker.registry, broker);
+	broker.transit.discoverNode = jest.fn();
+
+	let payload = {
+		sender: "node-10",
+		services: []
+	};
+
+	catalog.processNodeInfo(payload);
+
+	it("should return with node list array", () => {
+		let res = catalog.toArray();
+		expect(res).toEqual([
+			catalog.nodes.get("node-1"),
+			catalog.nodes.get("node-10"),
 		]);
 
 	});

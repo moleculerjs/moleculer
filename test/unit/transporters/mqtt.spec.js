@@ -2,6 +2,7 @@ const ServiceBroker = require("../../../src/service-broker");
 const Transit = require("../../../src/transit");
 const MqttTransporter = require("../../../src/transporters/mqtt");
 const P = require("../../../src/packets");
+const { protectReject } = require("../utils");
 
 jest.mock("mqtt");
 
@@ -12,7 +13,7 @@ MQTT.connect = jest.fn(() => {
 		on: jest.fn((event, cb) => onCallbacks[event] = cb),
 		end: jest.fn(),
 		subscribe: jest.fn(),
-		publish: jest.fn(),
+		publish: jest.fn((topic, data, cb) => cb()),
 
 		onCallbacks
 	};
@@ -100,11 +101,6 @@ describe("Test MqttTransporter subscribe & publish", () => {
 	let transporter;
 	let msgHandler;
 
-	const fakeTransit = {
-		nodeID: "node1",
-		serialize: jest.fn(msg => JSON.stringify(msg))
-	};
-
 	beforeEach(() => {
 		transporter = new MqttTransporter();
 		msgHandler = jest.fn();
@@ -137,12 +133,12 @@ describe("Test MqttTransporter subscribe & publish", () => {
 		transporter.client.publish.mockClear();
 
 		const packet = new P.Packet(P.PACKET_INFO, "node2", { services: {} });
-		transporter.publish(packet);
+		transporter.publish(packet).catch(protectReject).then(() => {
+			expect(transporter.client.publish).toHaveBeenCalledTimes(1);
+			expect(transporter.client.publish).toHaveBeenCalledWith("MOL-TEST.INFO.node2", "json data", jasmine.any(Function));
 
-		expect(transporter.client.publish).toHaveBeenCalledTimes(1);
-		expect(transporter.client.publish).toHaveBeenCalledWith("MOL-TEST.INFO.node2", "json data", jasmine.any(Function));
-
-		expect(transporter.serialize).toHaveBeenCalledTimes(1);
-		expect(transporter.serialize).toHaveBeenCalledWith(packet);
+			expect(transporter.serialize).toHaveBeenCalledTimes(1);
+			expect(transporter.serialize).toHaveBeenCalledWith(packet);
+		});
 	});
 });

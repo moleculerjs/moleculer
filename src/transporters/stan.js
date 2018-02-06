@@ -215,6 +215,7 @@ class StanTransporter extends Transporter {
 	 * @memberOf StanTransporter
 	 */
 	publish(packet) {
+		/* istanbul ignore next*/
 		if (!this.client) return Promise.resolve();
 
 		return new Promise(resolve => {
@@ -234,6 +235,7 @@ class StanTransporter extends Transporter {
 	 * @memberof AmqpTransporter
 	 */
 	publishBalancedEvent(packet, group) {
+		/* istanbul ignore next*/
 		if (!this.client) return Promise.resolve();
 
 		return new Promise(resolve => {
@@ -252,6 +254,7 @@ class StanTransporter extends Transporter {
 	 * @memberof AmqpTransporter
 	 */
 	publishBalancedRequest(packet) {
+		/* istanbul ignore next*/
 		if (!this.client) return Promise.resolve();
 
 		return new Promise(resolve => {

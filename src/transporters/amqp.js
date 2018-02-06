@@ -391,6 +391,7 @@ class AmqpTransporter extends Transporter {
 	 * Reasonings documented in the subscribe method.
 	 */
 	publish(packet) {
+		/* istanbul ignore next*/
 		if (!this.channel) return Promise.resolve();
 
 		let topic = this.getTopicName(packet.type, packet.target);
@@ -414,6 +415,7 @@ class AmqpTransporter extends Transporter {
 	 * @memberof AmqpTransporter
 	 */
 	publishBalancedEvent(packet, group) {
+		/* istanbul ignore next*/
 		if (!this.channel) return Promise.resolve();
 
 		let queue = `${this.prefix}.${PACKET_EVENT}B.${group}.${packet.payload.event}`;
@@ -430,6 +432,7 @@ class AmqpTransporter extends Transporter {
 	 * @memberof AmqpTransporter
 	 */
 	publishBalancedRequest(packet) {
+		/* istanbul ignore next*/
 		if (!this.channel) return Promise.resolve();
 
 		const payload = Buffer.from(this.serialize(packet)); // amqp.node expects data to be a buffer
