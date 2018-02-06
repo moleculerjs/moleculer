@@ -61,7 +61,7 @@ class Node {
 
 		const newWhen = payload.when || Date.now();
 		if (newWhen > this.when) {
-			this.when = payload.when || Date.now();
+			this.when = newWhen;
 			return true;
 		}
 	}
