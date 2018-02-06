@@ -301,6 +301,15 @@ class NodeCatalog {
 
 		return res;
 	}
+
+	/**
+	 * Get a copy from node list.
+	 */
+	toArray() {
+		let res = [];
+		this.nodes.forEach(node => res.push(node));
+		return res;
+	}
 }
 
 module.exports = NodeCatalog;

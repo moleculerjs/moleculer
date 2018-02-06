@@ -105,7 +105,7 @@ function printBrokerStatus({ nodeID, broker }) {
 	let s = _.padEnd(broker ? chalk.green(nodeID) : chalk.red(nodeID), 20);
 
 	if (broker) {
-		const list = broker.registry.nodes.list();
+		const list = broker.registry.nodes.toArray();
 
 		s += "│";
 		for(let i = 0; i < brokers.length; i++) {

@@ -242,7 +242,7 @@ class TcpTransporter extends Transporter {
 
 		let onlineList = [];
 		let offlineList = [];
-		const list = this.nodes.list();
+		const list = this.nodes.toArray();
 		list.forEach(node => {
 			if (node.offlineSince) {
 				if (node.when > 0) {
@@ -351,7 +351,7 @@ class TcpTransporter extends Transporter {
 			offline: {}
 		};
 
-		const list = this.nodes.list(true);
+		const list = this.nodes.toArray();
 		list.forEach(node => {
 			const online = payload.online ? payload.online[node.id] : null;
 			const offline = payload.offline ? payload.offline[node.id] : null;
