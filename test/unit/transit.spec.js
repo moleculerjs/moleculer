@@ -207,6 +207,9 @@ describe("Test Transit.sendDisconnectPacket", () => {
 		return transit.sendDisconnectPacket().catch(protectReject).then(() => {
 			expect(transit.publish).toHaveBeenCalledTimes(1);
 			expect(transit.publish).toHaveBeenCalledWith(jasmine.any(P.Packet));
+			const packet = transit.publish.mock.calls[0][0];
+			expect(packet.type).toBe(P.PACKET_DISCONNECT);
+			expect(packet.payload).toEqual({});
 		});
 	});
 

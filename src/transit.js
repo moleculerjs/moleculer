@@ -156,7 +156,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendDisconnectPacket() {
-		return this.publish(new Packet(P.PACKET_DISCOVER));
+		return this.publish(new Packet(P.PACKET_DISCONNECT));
 	}
 
 	/**

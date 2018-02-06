@@ -165,4 +165,13 @@ describe("Test service registry", () => {
 			expect(H.getActionNodes(master, "mail.send")).toEqual(["node-1"]);
 		});
 	});
+
+	it("destroy mail on-the-fly to node1", () => {
+		H.removeServices(node1, ["mail"]);
+
+		return Promise.resolve().delay(100).then(() => {
+			expect(H.hasService(master, "mail")).toBe(false);
+			expect(H.getActionNodes(master, "mail.send")).toEqual([]);
+		});
+	});
 });
