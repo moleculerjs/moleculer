@@ -8,7 +8,7 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch dev",
-			"program": "${workspaceRoot}\\dev\\index.js",
+			"program": "${workspaceRoot}/dev/index.js",
 			"cwd": "${workspaceRoot}",
 			"args": [
 				"gossip-viz"
@@ -18,29 +18,29 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch demo: caching",
-			"program": "${workspaceRoot}\\examples\\caching\\index.js",
-			"cwd": "${workspaceRoot}\\examples\\caching"
+			"program": "${workspaceRoot}/examples/caching/index.js",
+			"cwd": "${workspaceRoot}/examples/caching"
 		},
 		{
 			"type": "node",
 			"request": "launch",
 			"name": "Launch demo: simple",
-			"program": "${workspaceRoot}\\examples\\simple\\index.js",
-			"cwd": "${workspaceRoot}\\examples\\simple"
+			"program": "${workspaceRoot}/examples/simple/index.js",
+			"cwd": "${workspaceRoot}/examples/simple"
 		},
 		{
 			"type": "node",
 			"request": "launch",
 			"name": "Launch demo: transporter",
-			"program": "${workspaceRoot}\\examples\\transporter\\index.js",
-			"cwd": "${workspaceRoot}\\examples\\transporter"
+			"program": "${workspaceRoot}/examples/transporter/index.js",
+			"cwd": "${workspaceRoot}/examples/transporter"
 		},
 		{
 			"type": "node",
 			"request": "launch",
 			"name": "Launch demo: loadtest",
-			"program": "${workspaceRoot}\\examples\\loadtest\\client.js",
-			"cwd": "${workspaceRoot}\\examples\\loadtest",
+			"program": "${workspaceRoot}/examples/loadtest/client.js",
+			"cwd": "${workspaceRoot}/examples/loadtest",
 			"env": {
 				"TRANSPORTER": "TCP"
 			},
@@ -52,8 +52,8 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch demo: multi",
-			"program": "${workspaceRoot}\\examples\\multi-server\\client.js",
-			"cwd": "${workspaceRoot}\\examples\\multi-server",
+			"program": "${workspaceRoot}/examples/multi-server/client.js",
+			"cwd": "${workspaceRoot}/examples/multi-server",
 			"args": [
 				"client"
 			]
@@ -62,22 +62,22 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch benchmark",
-			"program": "${workspaceRoot}\\benchmark\\index.js",
+			"program": "${workspaceRoot}/benchmark/index.js",
 			"args": ["throughput"],
-			"cwd": "${workspaceRoot}\\benchmark"
+			"cwd": "${workspaceRoot}/benchmark"
 		},
 		{
 			"type": "node",
 			"request": "launch",
 			"name": "Launch perf",
-			"program": "${workspaceRoot}\\benchmark\\perf-runner.js",
-			"cwd": "${workspaceRoot}\\benchmark"
+			"program": "${workspaceRoot}/benchmark/perf-runner.js",
+			"cwd": "${workspaceRoot}/benchmark"
 		},
 		{
 			"type": "node",
 			"request": "launch",
 			"name": "Jest",
-			"program": "${workspaceRoot}\\node_modules\\jest-cli\\bin\\jest.js",
+			"program": "${workspaceRoot}/node_modules/jest-cli/bin/jest.js",
 			"args": ["--runInBand"],
 			"cwd": "${workspaceRoot}",
 			"runtimeArgs": [
@@ -88,7 +88,7 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Moleculer-runner",
-			"program": "${workspaceRoot}\\bin\\moleculer-runner.js",
+			"program": "${workspaceRoot}/bin/moleculer-runner.js",
 			"cwd": "${workspaceRoot}",
 			"args": [
 				"--hot",
@@ -100,8 +100,8 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch TCP test",
-			"program": "${workspaceRoot}\\src\\transporters\\tcp\\test.js",
-			"cwd": "${workspaceRoot}\\src\\transporters\\tcp"
+			"program": "${workspaceRoot}/src/transporters/tcp/test.js",
+			"cwd": "${workspaceRoot}/src/transporters/tcp"
 		},
 		{
 			"type": "node",
