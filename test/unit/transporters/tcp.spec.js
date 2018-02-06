@@ -677,4 +677,34 @@ describe("Test Gossip methods", () => {
 		});
 
 	});
+
+	describe("Test sendGossipToRandomEndpoint", () => {
+		const endpoints = [
+			{ id: "node-1" },
+			{ id: "node-2" },
+			{ id: "node-3" },
+			{ id: "node-4" },
+		];
+
+		const data = {
+			a: 5
+		};
+
+		it("should select a random endpoint and publish", () => {
+			Math.random = jest.fn(() => .6);
+			transporter.publish = jest.fn(() => Promise.resolve());
+
+			transporter.sendGossipToRandomEndpoint(data, endpoints);
+
+			expect(transporter.publish).toHaveBeenCalledTimes(1);
+			expect(transporter.publish).toHaveBeenCalledWith({
+				type: "GOSSIP_REQ",
+				target: "node-3",
+				payload: {
+					a: 5
+				}
+			});
+		});
+
+	});
 });
