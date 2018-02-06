@@ -20,7 +20,7 @@ declare namespace Moleculer {
 		trace(...args: any[]): void;
 	}
 
-	type ActionHandler = ((ctx: Context) => Bluebird<any> | any) & ThisType<Service>;
+	type ActionHandler<T> = ((ctx: Context) => Bluebird<T> | T) & ThisType<Service>;
 	type ActionParamSchema = { [key: string]: any };
 	type ActionParamTypes = "boolean" | "number" | "string" | "object" | "array" | ActionParamSchema;
 	type ActionParams = { [key: string]: ActionParamTypes };
@@ -63,7 +63,7 @@ declare namespace Moleculer {
 
 		generateID(): string;
 		setParams(newParams: GenericObject, cloning?: boolean): void;
-		call(actionName: string, params?: GenericObject, opts?: GenericObject): Bluebird<any>;
+		call<T>(actionName: string, params?: GenericObject, opts?: GenericObject): Bluebird<T>;
 		emit(eventName: string, data: any): void;
 
 		static create(broker: ServiceBroker, action: Action, nodeID: string, params: GenericObject, opts: GenericObject): Context;
@@ -290,7 +290,7 @@ declare namespace Moleculer {
 		 *
 		 * @memberOf ServiceBroker
 		 */
-		call(actionName: string, params?: GenericObject, opts?: CallOptions): Bluebird<any>;
+		call<T>(actionName: string, params?: GenericObject, opts?: CallOptions): Bluebird<T>;
 
 		/**
 		 * Multiple action calls.
@@ -325,7 +325,7 @@ declare namespace Moleculer {
 		 *
 		 * @memberOf ServiceBroker
 		 */
-		mcall(def: Array<GenericObject> | GenericObject): Bluebird<Array<any> | any>;
+		mcall<T>(def: Array<GenericObject> | GenericObject): Bluebird<Array<T> | T>;
 
 		/**
 		 * Emit an event (global & local)
