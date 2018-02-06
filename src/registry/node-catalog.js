@@ -293,9 +293,9 @@ class NodeCatalog {
 		let res = [];
 		this.nodes.forEach(node => {
 			if (withServices)
-				res.push(node);
+				res.push(_.omit(node, ["rawInfo"]));
 			else
-				res.push(_.omit(node, ["services"]));
+				res.push(_.omit(node, ["services", "rawInfo"]));
 		});
 
 		return res;

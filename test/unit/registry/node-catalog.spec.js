@@ -23,6 +23,8 @@ describe("Test NodeCatalog constructor", () => {
 		expect(catalog.checkNodesTimer).toBeNull();
 		expect(catalog.offlineTimer).toBeNull();
 
+		expect(catalog.disableHeartbeatChecks).toBe(false);
+
 		expect(catalog.localNode).toBeDefined();
 		expect(catalog.localNode.id).toBe(broker.nodeID);
 		expect(catalog.nodes.size).toBe(1);
@@ -44,14 +46,12 @@ describe("Test NodeCatalog constructor", () => {
 		expect(catalog.heartbeatTimer).toBeDefined();
 		expect(catalog.checkNodesTimer).toBeDefined();
 		expect(catalog.offlineTimer).toBeDefined();
-		//expect(catalog.startHeartbeatTimers).toHaveBeenCalledTimes(1);
 
 		broker.broadcastLocal("$transporter.disconnected");
 
 		expect(catalog.heartbeatTimer).toBeNull();
 		expect(catalog.checkNodesTimer).toBeNull();
 		expect(catalog.offlineTimer).toBeNull();
-		///expect(catalog.stoptHeartbeatTimers).toHaveBeenCalledTimes(1);
 	});
 
 });
@@ -66,13 +66,14 @@ describe("Test NodeCatalog localNode", () => {
 		expect(node.id).toBe(broker.nodeID);
 		expect(node.local).toBe(true);
 		expect(node.ipList).toBeInstanceOf(Array);
+		expect(node.hostname).toBeDefined();
 		expect(node.client).toEqual({
 			type: "nodejs",
 			version: broker.MOLECULER_VERSION,
 			langVersion: process.version
 		});
+		expect(node.when).toBeDefined();
 		expect(catalog.nodes.get(broker.nodeID)).toBe(node);
-
 	});
 
 });
@@ -109,7 +110,8 @@ describe("Test NodeCatalog.processNodeInfo", () => {
 	it("should add new nodes", () => {
 		let payload = {
 			sender: "node-12",
-			services: [{}, {}]
+			services: [{}, {}],
+			when: 123456
 		};
 
 		catalog.processNodeInfo(payload);
@@ -124,7 +126,7 @@ describe("Test NodeCatalog.processNodeInfo", () => {
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$node.connected", { node, reconnected: false });
 
-		node.update = jest.fn();
+		node.update = jest.fn(() => true);
 	});
 
 	it("should update exist node", () => {
@@ -133,16 +135,39 @@ describe("Test NodeCatalog.processNodeInfo", () => {
 
 		let payload = {
 			sender: "node-12",
-			services: [{}, {}, {}]
+			services: [{}, {}, {}],
+			when: 123460
+		};
+
+		let node = catalog.get("node-12");
+
+		catalog.processNodeInfo(payload);
+		expect(catalog.nodes.size).toBe(2);
+
+		expect(broker.registry.registerServices).toHaveBeenCalledTimes(1);
+		expect(broker.registry.registerServices).toHaveBeenCalledWith(node, node.services);
+
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$node.updated", { node });
+	});
+
+	it("should not update node services", () => {
+		broker.registry.registerServices.mockClear();
+		broker.broadcastLocal.mockClear();
+
+		let node = catalog.get("node-12");
+		node.update = jest.fn(() => false);
+
+		let payload = {
+			sender: "node-12",
+			services: [{}, {}, {}],
+			when: 123400
 		};
 
 		catalog.processNodeInfo(payload);
 		expect(catalog.nodes.size).toBe(2);
 
-		let node = catalog.get("node-12");
-
-		expect(broker.registry.registerServices).toHaveBeenCalledTimes(1);
-		expect(broker.registry.registerServices).toHaveBeenCalledWith(node, payload.services);
+		expect(broker.registry.registerServices).toHaveBeenCalledTimes(0);
 
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$node.updated", { node });
@@ -164,8 +189,7 @@ describe("Test NodeCatalog.processNodeInfo", () => {
 
 		let node = catalog.get("node-12");
 
-		expect(broker.registry.registerServices).toHaveBeenCalledTimes(1);
-		expect(broker.registry.registerServices).toHaveBeenCalledWith(node, payload.services);
+		expect(broker.registry.registerServices).toHaveBeenCalledTimes(0);
 
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$node.connected", { node, reconnected: true });
@@ -409,21 +433,29 @@ describe("Test NodeCatalog.list", () => {
 				"client": catalog.localNode.client,
 				"config": {},
 				"cpu": null,
+				"cpuWhen": null,
 				"id": broker.nodeID,
 				"ipList": catalog.localNode.ipList,
 				"hostname": catalog.localNode.hostname,
+				"port": null,
 				"lastHeartbeatTime": jasmine.any(Number),
+				"offlineSince": null,
+				"when": jasmine.any(Number),
 				"local": true
 			},
 			{
 				"available": true,
-				"client": undefined,
+				"client": {},
 				"config": {},
 				"cpu": null,
+				"cpuWhen": null,
 				"id": "node-10",
 				"ipList": undefined,
 				"hostname": undefined,
+				"port": undefined,
 				"lastHeartbeatTime": jasmine.any(Number),
+				"offlineSince": null,
+				"when": jasmine.any(Number),
 				"local": false,
 			}
 		]);
@@ -438,22 +470,31 @@ describe("Test NodeCatalog.list", () => {
 				"client": catalog.localNode.client,
 				"config": {},
 				"cpu": null,
+				"cpuWhen": null,
 				"id": broker.nodeID,
 				"ipList": catalog.localNode.ipList,
 				"hostname": catalog.localNode.hostname,
+				"port": null,
 				"lastHeartbeatTime": jasmine.any(Number),
 				"local": true,
+				"offlineSince": null,
+				"when": jasmine.any(Number),
 				"services": []
 			},
 			{
 				"available": true,
-				"client": undefined,
+				"client": {},
 				"config": {},
 				"cpu": null,
+				"cpuWhen": null,
 				"id": "node-10",
 				"ipList": undefined,
+				"hostname": undefined,
+				"port": undefined,
 				"lastHeartbeatTime": jasmine.any(Number),
 				"local": false,
+				"offlineSince": null,
+				"when": jasmine.any(Number),
 				"services": []
 			}
 		]);
