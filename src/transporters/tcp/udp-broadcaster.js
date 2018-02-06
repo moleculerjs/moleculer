@@ -164,6 +164,7 @@ class UdpServer extends EventEmitter {
 	stopDiscovering() {
 		if (this.discoverTimer) {
 			clearInterval(this.discoverTimer);
+			this.discoverTimer = null;
 
 			this.logger.info("UDP discovery stopped.");
 		}
