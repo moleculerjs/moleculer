@@ -145,24 +145,9 @@ describe("Test ActionCatalog methods", () => {
 			"name": "echo.reply"
 		}]);
 
-		res = catalog.list({ withEndpoints: true });
+		catalog.get("test.hello").hasAvailable = jest.fn(() => false);
+		res = catalog.list({ withEndpoints: true, onlyAvailable: true });
 		expect(res).toEqual([
-			{
-				"action": {
-					"name": "test.hello"
-				},
-				"available": true,
-				"count": 1,
-				"endpoints": [
-					{
-						"available": undefined,
-						"nodeID": "server-1",
-						"state": true
-					}
-				],
-				"hasLocal": false,
-				"name": "test.hello"
-			},
 			{
 				"action": {
 					"name": "echo.reply",

@@ -170,6 +170,22 @@ describe("Test EventCatalog methods", () => {
 			"hasLocal": true,
 			"name": "echo.reply"
 		}]);
+
+		catalog.get("hello", "test").hasAvailable = jest.fn(() => false);
+		res = catalog.list({ onlyAvailable: true });
+		expect(res).toEqual([
+			{
+				"event": {
+					"name": "echo.reply",
+					"cache": true
+				},
+				"available": true,
+				"count": 1,
+				"group": "echo",
+				"hasLocal": true,
+				"name": "echo.reply"
+			}
+		]);
 	});
 
 });
