@@ -7,4 +7,6 @@ describe("Test ProtoBufSerializer constructor", () => {
 		expect(serializer.serialize).toBeDefined();
 		expect(serializer.deserialize).toBeDefined();
 	});
+
+	// More tests in integration/serializers.spec.js
 });
