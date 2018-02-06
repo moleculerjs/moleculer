@@ -149,13 +149,28 @@ class TcpTransporter extends Transporter {
 					node.hostname = address;
 
 					if (node.ipList.indexOf(address) == -1)
-						node.ipList.unshift = address;
+						node.ipList.unshift(address);
 				}
 				node.udpAddress = address;
 			}
 		});
 
 		return this.udpServer.bind();
+	}
+
+	/**
+	 * Process incoming packets
+	 *
+	 * @param {String} type
+	 * @param {Object} message
+	 */
+	onIncomingMessage(type, message) {
+		switch(type) {
+			case P.PACKET_GOSSIP_HELLO: return this.processGossipHello(message);
+			case P.PACKET_GOSSIP_REQ: return this.processGossipRequest(message);
+			case P.PACKET_GOSSIP_RES: return this.processGossipResponse(message);
+			default: return this.incomingMessage(type, message);
+		}
 	}
 
 	/**
@@ -169,8 +184,10 @@ class TcpTransporter extends Transporter {
 	 * Stop Gossip timers
 	 */
 	stopTimers() {
-		if (this.gossipTimer)
+		if (this.gossipTimer) {
 			clearInterval(this.gossipTimer);
+			this.gossipTimer = null;
+		}
 	}
 
 	/**
@@ -224,25 +241,68 @@ class TcpTransporter extends Transporter {
 			return node.ipList[0];
 
 		this.logger.warn(`Node ${node.id} has no valid address`, node);
+
+		return null;
+	}
+
+	/**
+	 * Send a Gossip Hello to the remote node
+	 *
+	 * @param {String} nodeID
+	 */
+	sendHello(nodeID) {
+		const node = this.getNode(nodeID);
+		if (!node)
+			return Promise.reject(new MoleculerServerError(`Missing node info for '${nodeID}'`));
+
+		const localNode = this.nodes.localNode;
+		const packet = new P.Packet(P.PACKET_GOSSIP_HELLO, nodeID, {
+			host: this.getNodeAddress(localNode),
+			port: localNode.port,
+		});
+
+		if (this.GOSSIP_DEBUG) this.logger.info(chalk.bgCyan.black(`----- HELLO ${this.nodeID} -> ${nodeID} -----`), packet.payload);
+
+		return this.publish(packet);
+	}
+
+
+	/**
+	 * Process incoming Gossip Hello packet
+	 *
+	 * @param {Buffer} msg
+	 */
+	processGossipHello(msg) {
+		const packet = this.deserialize(P.PACKET_GOSSIP_REQ, msg);
+		const payload = packet.payload;
+		const nodeID = payload.sender;
+
+		if (this.GOSSIP_DEBUG) this.logger.info(`----- HELLO ${this.nodeID} <- ${payload.sender} -----`, payload);
+
+		let node = this.nodes.get(nodeID);
+		if (!node) {
+			// Unknown node. Register as offline node
+			node = this.addOfflineNode(nodeID, payload.host, payload.port);
+		}
+
 	}
 
 	/**
 	 * Create and send a Gossip request packet
 	 */
 	sendGossipRequest() {
-		const localNode = this.nodes.localNode;
+		const list = this.nodes.toArray();
+		if (list.length <= 1)
+			return;
 
 		let packet = {
 			online: {},
 			offline: {}
 		};
 
-		// Add local node as online
-		packet.online[localNode.id] = [localNode.when || 0, localNode.cpuWhen || 0, localNode.cpu];
-
 		let onlineList = [];
 		let offlineList = [];
-		const list = this.nodes.toArray();
+
 		list.forEach(node => {
 			if (node.offlineSince) {
 				if (node.when > 0) {
@@ -257,9 +317,11 @@ class TcpTransporter extends Transporter {
 			}
 		});
 
+		/* istanbul ignore next */
 		if (Object.keys(packet.offline).length == 0)
 			delete packet.offline;
 
+		/* istanbul ignore next */
 		if (Object.keys(packet.online).length == 0)
 			delete packet.online;
 
@@ -297,41 +359,6 @@ class TcpTransporter extends Transporter {
 
 			if (this.GOSSIP_DEBUG) this.logger.info(chalk.bgYellow.black(`----- REQUEST ${this.nodeID} -> ${ep.id} -----`), packet.payload);
 		}
-	}
-
-	/**
-	 * Process incoming packets
-	 *
-	 * @param {String} type
-	 * @param {Object} message
-	 */
-	onIncomingMessage(type, message) {
-		switch(type) {
-			case P.PACKET_GOSSIP_HELLO: return this.processGossipHello(message);
-			case P.PACKET_GOSSIP_REQ: return this.processGossipRequest(message);
-			case P.PACKET_GOSSIP_RES: return this.processGossipResponse(message);
-			default: return this.incomingMessage(type, message);
-		}
-	}
-
-	/**
-	 * Process incoming Gossip Hello packet
-	 *
-	 * @param {Buffer} msg
-	 */
-	processGossipHello(msg) {
-		const packet = this.deserialize(P.PACKET_GOSSIP_REQ, msg);
-		const payload = packet.payload;
-		const nodeID = payload.sender;
-
-		if (this.GOSSIP_DEBUG) this.logger.info(`----- HELLO ${this.nodeID} <- ${payload.sender} -----`, payload);
-
-		let node = this.nodes.get(nodeID);
-		if (!node) {
-			// Unknown node. Register as offline node
-			node = this.addOfflineNode(nodeID, payload.host, payload.port);
-		}
-
 	}
 
 	/**
@@ -530,26 +557,6 @@ class TcpTransporter extends Transporter {
 		}
 	}
 
-	/**
-	 * Send a Gossip Hello to the remote node
-	 *
-	 * @param {String} nodeID
-	 */
-	sendHello(nodeID) {
-		const node = this.getNode(nodeID);
-		if (!node)
-			return Promise.reject(new MoleculerServerError(`Missing node info for '${nodeID}'`));
-
-		const localNode = this.nodes.localNode;
-		const packet = new P.Packet(P.PACKET_GOSSIP_HELLO, nodeID, {
-			host: this.getNodeAddress(localNode),
-			port: localNode.port,
-		});
-
-		if (this.GOSSIP_DEBUG) this.logger.info(chalk.bgCyan.black(`----- HELLO ${this.nodeID} -> ${nodeID} -----`), packet.payload);
-
-		return this.publish(packet);
-	}
 
 	/**
 	 * Close TCP & UDP servers and destroy sockets.
@@ -596,6 +603,7 @@ class TcpTransporter extends Transporter {
 	 * @memberOf TcpTransporter
 	 */
 	subscribe(/*cmd, nodeID*/) {
+		/* istanbul ignore next */
 		return Promise.resolve();
 	}
 
