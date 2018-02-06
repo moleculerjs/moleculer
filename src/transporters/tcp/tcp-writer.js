@@ -10,6 +10,7 @@ const net 			= require("net");
 const EventEmitter 	= require("events");
 const Promise		= require("bluebird");
 
+const { MoleculerError } = require("../../errors");
 const { PACKET_GOSSIP_REQ_ID, PACKET_GOSSIP_RES_ID } = require("./constants");
 
 const HEADER_SIZE	= 6;
@@ -47,7 +48,7 @@ class TcpWriter extends EventEmitter {
 	connect(nodeID) {
 		const node = this.transporter.getNode(nodeID);
 		if (!node)
-			throw new Error(`Missing node info for '${nodeID}'!`);
+			return Promise.reject(new MoleculerError(`Missing node info for '${nodeID}'!`));
 
 		const host = this.transporter.getNodeAddress(node);
 		const port = node.port;
@@ -67,7 +68,7 @@ class TcpWriter extends EventEmitter {
 					// Handle racing problem, we send first a HELLO packet with our connection info
 					this.transporter.sendHello(nodeID)
 						.then(() => resolve(socket))
-						.catch(() => reject());
+						.catch(err => reject(err));
 
 					if (this.sockets.size > this.opts.maxConnections)
 						this.manageConnections();
@@ -200,6 +201,8 @@ class TcpWriter extends EventEmitter {
 			if (!socket.destroyed)
 				socket.end();
 		});
+
+		this.sockets.clear();
 	}
 }
 
