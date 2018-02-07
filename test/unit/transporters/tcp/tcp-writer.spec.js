@@ -1,3 +1,5 @@
+"use strict";
+
 const ServiceBroker = require("../../../../src/service-broker");
 const P = require("../../../../src/packets");
 const E = require("../../../../src/errors");

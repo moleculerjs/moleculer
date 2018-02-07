@@ -1,8 +1,7 @@
+"use strict";
+
 const ServiceBroker = require("../../../../src/service-broker");
-const P = require("../../../../src/packets");
-const E = require("../../../../src/errors");
 const { protectReject } = require("../../utils");
-const C = require("../../../../src/transporters/tcp/constants");
 
 const lolex = require("lolex");
 
@@ -36,64 +35,6 @@ describe("Test UdpServer constructor", () => {
 	});
 
 });
-/*
-describe("Test UdpServer.send", () => {
-	const broker = new ServiceBroker();
-	let transporter, writer;
-	let node = {
-		id: "node-2",
-		port: 2222
-	};
-
-	let socket = {
-		write: jest.fn((payload, cb) => cb()),
-		unref: jest.fn()
-	};
-
-	beforeEach(() => {
-		transporter = {
-			connect: jest.fn(() => Promise.resolve()),
-			logger: broker.logger
-		};
-
-		writer = new UdpServer(transporter, {});
-		writer.connect = jest.fn(() => Promise.resolve(socket));
-	});
-
-	it("should call connect if no socket", () => {
-		return writer.send("node-2", P.PACKET_REQUEST, Buffer.from("data")).catch(protectReject).error(err => {
-			expect(writer.connect).toHaveBeenCalledTimes(1);
-			expect(writer.connect).toHaveBeenCalledWith(node);
-			expect(socket.lastUsed).toBeDefined();
-		});
-	});
-
-	it("should reject error and call removeSocket if write throw error", () => {
-		writer.removeSocket = jest.fn();
-		socket.write = jest.fn(() => { throw new Error("Write error"); });
-		return writer.send("node-2", P.PACKET_REQUEST, Buffer.from("data")).then(protectReject).catch(err => {
-			expect(err).toBeInstanceOf(Error);
-
-			expect(writer.removeSocket).toHaveBeenCalledTimes(1);
-			expect(writer.removeSocket).toHaveBeenCalledWith("node-2");
-		});
-	});
-
-	it("should not call connect & call write", () => {
-		socket.write = jest.fn((data, cb) => cb());
-		writer.sockets.set("node-2", socket);
-		writer.connect.mockClear();
-
-		return writer.send("node-2", C.PACKET_GOSSIP_REQ_ID, Buffer.from("data")).catch(protectReject).then(() => {
-			expect(writer.connect).toHaveBeenCalledTimes(0);
-
-			expect(socket.write).toHaveBeenCalledTimes(1);
-			expect(socket.write).toHaveBeenCalledWith(Buffer.from([12, 0, 0, 0, 10, 6, 100, 97, 116, 97]), jasmine.any(Function));
-		});
-	});
-
-});
-*/
 
 describe("Test UdpServer.bind", () => {
 	const broker = new ServiceBroker({ namespace: "test", nodeID: "node-1", transporter: "Fake"});
