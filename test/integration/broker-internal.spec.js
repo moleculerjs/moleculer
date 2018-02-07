@@ -74,7 +74,7 @@ describe("Test internal services", () => {
 				"lastHeartbeatTime": localNode.lastHeartbeatTime,
 				"offlineSince": null,
 				"port": null,
-				"when": localNode.when,
+				"seq": localNode.seq,
 				"local": true
 			}]);
 		});

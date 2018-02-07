@@ -87,14 +87,14 @@ let REQUEST = {
 	"host": "host",
 	"port": 1234,
 	"online": {
-		"node-01": [1111, 3333, 3],  // when, cpuWhen, cpu
-		"node-02": [1111, 3333, 3],  // when, cpuWhen, cpu
-		"node-03": [1111, 3333, 3],  // when, cpuWhen, cpu
+		"node-01": [1, 3333, 3],  // seq, cpuWhen, cpu
+		"node-02": [1, 3333, 3],  // seq, cpuWhen, cpu
+		"node-03": [1, 3333, 3],  // seq, cpuWhen, cpu
 	},
 	"offline": {
-		"node-10": [1111, 2222], // when, offlineSince
-		"node-11": [1111, 2222],
-		"node-12": [1111, 2222]
+		"node-10": [1, 2222], // seq, offlineSince
+		"node-11": [1, 2222],
+		"node-12": [1, 2222]
 	}
 };
 
@@ -107,9 +107,9 @@ let RESPONSE = {
 		"node-03": [{}, 3333, 3] // INFO, cpuWhen, cpu
 	},
 	"offline": {
-		"node-10": [1111, 2222], // when, offlineSince
-		"node-11": [1111, 2222],
-		"node-12": [1111, 2222]
+		"node-10": [1, 2222], // seq, offlineSince
+		"node-11": [1, 2222],
+		"node-12": [1, 2222]
 	}
 };
 */

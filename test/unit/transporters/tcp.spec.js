@@ -50,10 +50,11 @@ describe("Test TcpTransporter constructor", () => {
 			udpDiscovery: true,
 			udpReuseAddr: true,
 			maxUdpDiscovery: 0,
-			multicastHost: "230.0.0.0",
-			multicastPort: 4445,
+			broadcastAddress: "255.255.255.255",
+			broadcastPort: 4445,
+			broadcastPeriod: 5,
+			multicastAddress: null,
 			multicastTTL: 1,
-			multicastPeriod: 5,
 			port: null,
 			urls: null,
 			useHostname: true,
@@ -82,10 +83,11 @@ describe("Test TcpTransporter constructor", () => {
 			udpDiscovery: false,
 			udpReuseAddr: true,
 			maxUdpDiscovery: 0,
-			multicastHost: "230.0.0.0",
-			multicastPort: 4445,
+			broadcastAddress: "255.255.255.255",
+			broadcastPort: 4445,
+			broadcastPeriod: 5,
+			multicastAddress: null,
 			multicastTTL: 1,
-			multicastPeriod: 5,
 			port: 5555,
 			urls: null,
 			useHostname: true,
@@ -299,7 +301,7 @@ describe("Test TcpTransporter nodes functions", () => {
 		expect(node.ipList).toEqual(["10.20.30.40"]);
 		expect(node.port).toBe(12345);
 		expect(node.available).toBe(false);
-		expect(node.when).toBe(0);
+		expect(node.seq).toBe(0);
 		expect(node.offlineSince).toBeDefined();
 
 		expect(transporter.getNode("node-123")).toBe(node);
@@ -611,11 +613,11 @@ describe("Test Gossip methods", () => {
 
 	describe("Test sendGossipRequest", () => {
 		const nodes = [
-			{ id: "node-1", when: 1000, cpu: 10, cpuWhen: 1010, local: true },
-			{ id: "node-2", when: 2000, cpu: 20, cpuWhen: 2020 },
-			{ id: "node-3", when: 3000, cpu: 30, cpuWhen: 3030 },
-			{ id: "node-4", when: 4000, offlineSince: 4040 },
-			{ id: "node-5", when: 5000, offlineSince: 5050 },
+			{ id: "node-1", seq: 1, cpu: 10, cpuWhen: 1010, local: true },
+			{ id: "node-2", seq: 2, cpu: 20, cpuWhen: 2020 },
+			{ id: "node-3", seq: 3, cpu: 30, cpuWhen: 3030 },
+			{ id: "node-4", seq: 4, offlineSince: 4040 },
+			{ id: "node-5", seq: 5, offlineSince: 5050 },
 		];
 		beforeEach(() => {
 			transporter.sendGossipToRandomEndpoint = jest.fn();
@@ -636,13 +638,13 @@ describe("Test Gossip methods", () => {
 			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledTimes(1);
 			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledWith({
 				online: {
-					"node-1": [1000, 1010, 10],
-					"node-2": [2000, 2020, 20],
-					"node-3": [3000, 3030, 30]
+					"node-1": [1, 1010, 10],
+					"node-2": [2, 2020, 20],
+					"node-3": [3, 3030, 30]
 				},
 				offline: {
-					"node-4": [4000, 4040],
-					"node-5": [5000, 5050]
+					"node-4": 4,
+					"node-5": 5
 				}
 			}, [nodes[1], nodes[2]]);
 		});
@@ -654,24 +656,24 @@ describe("Test Gossip methods", () => {
 			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledTimes(2);
 			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledWith({
 				online: {
-					"node-1": [1000, 1010, 10],
-					"node-2": [2000, 2020, 20],
-					"node-3": [3000, 3030, 30]
+					"node-1": [1, 1010, 10],
+					"node-2": [2, 2020, 20],
+					"node-3": [3, 3030, 30]
 				},
 				offline: {
-					"node-4": [4000, 4040],
-					"node-5": [5000, 5050]
+					"node-4": 4,
+					"node-5": 5
 				}
 			}, [nodes[1], nodes[2]]);
 			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledWith({
 				online: {
-					"node-1": [1000, 1010, 10],
-					"node-2": [2000, 2020, 20],
-					"node-3": [3000, 3030, 30]
+					"node-1": [1, 1010, 10],
+					"node-2": [2, 2020, 20],
+					"node-3": [3, 3030, 30]
 				},
 				offline: {
-					"node-4": [4000, 4040],
-					"node-5": [5000, 5050]
+					"node-4": 4,
+					"node-5": 5
 				}
 			}, [nodes[3], nodes[4]]);
 		});

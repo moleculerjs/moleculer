@@ -587,7 +587,7 @@ class Transit {
 			hostname: info.hostname,
 			client: info.client,
 			config: info.config,
-			when: info.when
+			seq: info.seq
 		})));
 	}
 

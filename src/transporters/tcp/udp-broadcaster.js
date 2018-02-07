@@ -61,14 +61,14 @@ class UdpServer extends EventEmitter {
 			});
 
 			const host = this.opts.udpBindAddress;
-			const port = this.opts.multicastPort ? this.opts.multicastPort : (this.opts.broadcastPort || 4445);
+			const port = this.opts.broadcastPort || 4445;
 
 			server.bind({ port, host, exclusive: true }, () => {
 				this.logger.info(`UDP server is listening on ${port}`);
 
 				try {
-					if (this.opts.multicastHost) {
-						server.addMembership(this.opts.multicastHost);
+					if (this.opts.multicastAddress) {
+						server.addMembership(this.opts.multicastAddress);
 						server.setMulticastTTL(this.opts.multicastTTL || 1);
 					} else {
 						server.setBroadcast(true);
@@ -103,8 +103,8 @@ class UdpServer extends EventEmitter {
 		const message = Buffer.from([this.namespace, this.nodeID, this.opts.port].join("|"));
 
 		// Get destination
-		const host = this.opts.multicastHost ? this.opts.multicastHost : this.opts.broadcastAddress;
-		const port = this.opts.multicastPort ? this.opts.multicastPort : (this.opts.broadcastPort || 4445);
+		const host = this.opts.multicastAddress ? this.opts.multicastAddress : this.opts.broadcastAddress;
+		const port = this.opts.broadcastPort || 4445;
 
 		// Send beacon
 		this.server.send(message, port, host, (err/*, bytes*/) => {
@@ -157,7 +157,7 @@ class UdpServer extends EventEmitter {
 				if (this.opts.maxUdpDiscovery && this.counter >= this.opts.maxUdpDiscovery)
 					this.stopDiscovering();
 
-			}, (this.opts.multicastPeriod || 5) * 1000);
+			}, (this.opts.broadcastPeriod || 5) * 1000);
 
 			this.discoverTimer.unref();
 

@@ -51,10 +51,13 @@ class TcpTransporter extends Transporter {
 
 			maxUdpDiscovery: 0, // 0 - Disabled
 
-			multicastHost: "230.0.0.0",
-			multicastPort: 4445,
+			broadcastAddress: "255.255.255.255",
+			broadcastPort: 4445,
+			broadcastPeriod: 5,
+
+			// Multicast settings
+			multicastAddress: null, //"230.0.0.0",
 			multicastTTL: 1,
-			multicastPeriod: 5,
 
 			// TCP options
 			port: null, // random port,
@@ -205,7 +208,7 @@ class TcpTransporter extends Transporter {
 		node.ipList = [address];
 		node.port = port;
 		node.available = false;
-		node.when = 0;
+		node.seq = 0;
 		node.offlineSince = Date.now();
 
 		this.nodes.add(node.id, node);
@@ -306,12 +309,12 @@ class TcpTransporter extends Transporter {
 
 		list.forEach(node => {
 			if (node.offlineSince) {
-				if (node.when > 0) {
-					packet.offline[node.id] = [node.when || 0, node.offlineSince || 0];
+				if (node.seq > 0) {
+					packet.offline[node.id] = node.seq;
 				}
 				offlineList.push(node);
 			} else {
-				packet.online[node.id] = [node.when || 0, node.cpuWhen || 0, node.cpu || 0];
+				packet.online[node.id] = [node.seq, node.cpuWhen || 0, node.cpu || 0];
 
 				if (!node.local)
 					onlineList.push(node);
@@ -383,20 +386,20 @@ class TcpTransporter extends Transporter {
 		list.forEach(node => {
 			const online = payload.online ? payload.online[node.id] : null;
 			const offline = payload.offline ? payload.offline[node.id] : null;
-			let when, since, cpuWhen, cpu;
+			let seq, cpuWhen, cpu;
 
 			if (offline)
-				[when, since] = offline;
+				seq = offline;
 			else if (online)
-				[when, cpuWhen, cpu] = online;
+				[seq, cpuWhen, cpu] = online;
 
-			if (!when || when < node.when) {
+			if (!seq || seq < node.seq) {
 				// We have newer info or requester doesn't know it
 				if (node.available) {
 					const info = this.registry.getNodeInfo(node.id);
 					response.online[node.id] = [info, node.cpuWhen || 0, node.cpu || 0];
 				} else {
-					response.offline[node.id] = [node.when, node.offlineSince];
+					response.offline[node.id] = node.seq;
 				}
 
 				return;
@@ -408,13 +411,9 @@ class TcpTransporter extends Transporter {
 				if (!node.available) {
 					// We also knew it as offline
 
-					// Update 'offlineSince' if it is older than us
-					if (since < node.offlineSince)
-						node.offlineSince = since;
-
-					// Update 'when' if it is newer than us
-					if (when > node.when)
-						node.when = when;
+					// Update 'seq' if it is newer than us
+					if (seq > node.seq)
+						node.seq = seq;
 
 					return;
 
@@ -422,14 +421,13 @@ class TcpTransporter extends Transporter {
 					// We know it is online, so we change it to offline
 					this.nodes.disconnected(node.id, false);
 
-					// Update the 'offlineSince' & 'when' to the received value
-					node.offlineSince = since;
-					node.when = when;
+					// Update the 'seq' to the received value
+					node.seq = seq;
 
 				} else if (node.local) {
 					// Requested said I'm offline. We should send back that we are online!
-					// We need to update our `when` so that the requester update us
-					//node.when = Date.now(); // TODO: Need it? We sent back that we are online in the response
+					// We need to increment the received `seq` so that the requester will update us
+					node.seq = seq + 1;
 
 					const info = this.registry.getNodeInfo(node.id);
 					response.online[node.id] = [info, node.cpuWhen || 0, node.cpu || 0];
@@ -513,7 +511,7 @@ class TcpTransporter extends Transporter {
 					[info, cpuWhen, cpu] = row;
 
 				let node = this.nodes.get(nodeID);
-				if (info && node && node.when < info.when) {
+				if (info && node && node.seq < info.seq) {
 					// Update 'info' block
 					info.sender = nodeID;
 					node = this.nodes.processNodeInfo(info);
@@ -535,23 +533,19 @@ class TcpTransporter extends Transporter {
 				// We don't process the self info. We know it better.
 				if (nodeID == this.nodeID) return;
 
-				const row = payload.offline[nodeID];
-				if (!Array.isArray(row) || row.length < 2) return;
-
-				const [when, since] = row;
+				const seq = payload.offline[nodeID];
 
 				const node = this.nodes.get(nodeID);
 				if (!node) return;
 
-				if (node.when < when) {
+				if (node.seq < seq) {
 					if (node.available) {
 						// We know it is online, so we change it to offline
 						this.nodes.disconnected(node.id, false);
 					}
 
-					// Update the 'offlineSince' to the received value
-					node.offlineSince = since;
-					node.when = when;
+					// Update the 'seq' to the received value
+					node.seq = seq;
 				}
 
 			});

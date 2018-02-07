@@ -38,7 +38,7 @@ class Node {
 		this.cpu = null;
 		this.cpuWhen = null;
 
-		this.when = null;
+		this.seq = 0;
 		this.offlineSince = null;
 	}
 
@@ -59,9 +59,9 @@ class Node {
 		this.services = payload.services;
 		this.rawInfo = payload;
 
-		const newWhen = payload.when || Date.now();
-		if (newWhen > this.when) {
-			this.when = newWhen;
+		const newSeq = payload.seq || 1;
+		if (newSeq > this.seq) {
+			this.seq = newSeq;
 			return true;
 		}
 	}
@@ -73,8 +73,11 @@ class Node {
 	 */
 	updateLocalInfo() {
 		return cpuUsage().then(res => {
-			this.cpu = Math.round(res.avg);
-			this.cpuWhen = Date.now();
+			const newVal = Math.round(res.avg);
+			if (this.cpu != newVal) {
+				this.cpu = Math.round(res.avg);
+				this.cpuWhen++;
+			}
 		});
 	}
 
@@ -88,11 +91,11 @@ class Node {
 		if (!this.available) {
 			this.available = true;
 			this.offlineSince = null;
-			this.when = Date.now();
+			// this.when = Date.now(); TODO
 		}
 
 		this.cpu = payload.cpu;
-		this.cpuWhen = payload.cpuWhen || Date.now();
+		this.cpuWhen = payload.cpuWhen || 1;
 
 		this.lastHeartbeatTime = Date.now();
 	}
@@ -103,10 +106,10 @@ class Node {
 	 * @memberof Node
 	 */
 	disconnected() {
-		if (this.available)
+		if (this.available) {
 			this.offlineSince = Date.now();
-
-		this.when = Date.now();
+			this.seq++;
+		}
 
 		this.available = false;
 	}

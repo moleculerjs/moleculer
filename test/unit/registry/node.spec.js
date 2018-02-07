@@ -25,7 +25,7 @@ describe("Test Node", () => {
 
 		expect(node.cpu).toBeNull();
 		expect(node.cpuWhen).toBeNull();
-		expect(node.when).toBeNull();
+		expect(node.seq).toBe(0);
 		expect(node.offlineSince).toBeNull();
 	});
 
@@ -39,7 +39,7 @@ describe("Test Node", () => {
 				port: 1234,
 				client: {},
 				services: [{}],
-				when: 1234567
+				seq: 6
 			};
 			node.update(payload);
 
@@ -51,25 +51,25 @@ describe("Test Node", () => {
 			expect(node.services).toBe(payload.services);
 			expect(node.rawInfo).toBe(payload);
 
-			expect(node.when).toBe(1234567);
+			expect(node.seq).toBe(6);
 		});
 
-		it("should update when if later", () => {
+		it("should update 'seq' if later", () => {
 			let payload = {
-				when: 1234580
+				seq: 8
 			};
 			node.update(payload);
 
-			expect(node.when).toBe(1234580);
+			expect(node.seq).toBe(8);
 		});
 
-		it("should update when if earlier", () => {
+		it("should not update 'seq' if earlier", () => {
 			let payload = {
-				when: 1234500
+				seq: 7
 			};
 			node.update(payload);
 
-			expect(node.when).toBe(1234580);
+			expect(node.seq).toBe(8);
 		});
 	});
 
@@ -87,7 +87,7 @@ describe("Test Node", () => {
 		let node = new Node("node-1");
 		node.available = false;
 		node.offlineSince = Date.now();
-		let oldWhen = node.when;
+		node.seq = 5;
 
 		let payload = {
 			cpu: 56.8,
@@ -99,22 +99,28 @@ describe("Test Node", () => {
 		expect(node.cpuWhen).toBe(12345678);
 		expect(node.available).toBe(true);
 		expect(node.offlineSince).toBeNull();
-		expect(node.when).not.toBe(oldWhen);
+		expect(node.seq).toBe(5);
 		expect(node.lastHeartbeatTime).toBeDefined();
 	});
 
 	it("should set unavailable", () => {
 		let node = new Node("node-1");
-		node.when = 123456;
+		node.seq = 5;
 		node.available = true;
 		node.offlineSince = null;
-		let oldWhen = node.when;
 
 		node.disconnected();
 
 		expect(node.available).toBe(false);
 		expect(node.offlineSince).toBeDefined();
-		expect(node.when).not.toBe(oldWhen);
+		expect(node.seq).toBe(6);
+
+		// Should not increment seq again
+		node.disconnected();
+
+		expect(node.available).toBe(false);
+		expect(node.offlineSince).toBeDefined();
+		expect(node.seq).toBe(6);
 	});
 
 });

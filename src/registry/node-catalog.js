@@ -112,7 +112,7 @@ class NodeCatalog {
 			version: this.broker.MOLECULER_VERSION,
 			langVersion: process.version
 		};
-		node.when = Date.now();
+		node.seq = 1;
 
 		this.add(node.id, node);
 
@@ -181,7 +181,7 @@ class NodeCatalog {
 		// Update instance
 		const needRegister = node.update(payload);
 
-		// Refresh services if 'when' is newer or it is a reconnected node
+		// Refresh services if 'seq' is greater or it is a reconnected node
 		if ((needRegister || isReconnected) && node.services) {
 			this.registry.registerServices(node, node.services);
 		}

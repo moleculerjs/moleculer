@@ -73,7 +73,7 @@ describe("Test NodeCatalog localNode", () => {
 			version: broker.MOLECULER_VERSION,
 			langVersion: process.version
 		});
-		expect(node.when).toBeDefined();
+		expect(node.seq).toBe(1);
 		expect(catalog.nodes.get(broker.nodeID)).toBe(node);
 	});
 
@@ -442,7 +442,7 @@ describe("Test NodeCatalog.list", () => {
 				"port": null,
 				"lastHeartbeatTime": jasmine.any(Number),
 				"offlineSince": null,
-				"when": jasmine.any(Number),
+				"seq": 1,
 				"local": true
 			},
 			{
@@ -457,7 +457,7 @@ describe("Test NodeCatalog.list", () => {
 				"port": undefined,
 				"lastHeartbeatTime": jasmine.any(Number),
 				"offlineSince": null,
-				"when": jasmine.any(Number),
+				"seq": 1,
 				"local": false,
 			}
 		]);
@@ -480,7 +480,7 @@ describe("Test NodeCatalog.list", () => {
 				"lastHeartbeatTime": jasmine.any(Number),
 				"local": true,
 				"offlineSince": null,
-				"when": jasmine.any(Number),
+				"seq": 1,
 				"services": []
 			},
 			{
@@ -496,7 +496,7 @@ describe("Test NodeCatalog.list", () => {
 				"lastHeartbeatTime": jasmine.any(Number),
 				"local": false,
 				"offlineSince": null,
-				"when": jasmine.any(Number),
+				"seq": 1,
 				"services": []
 			}
 		]);

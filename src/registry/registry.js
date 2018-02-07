@@ -59,7 +59,7 @@ class Registry {
 			this.registerEvents(this.nodes.localNode, service, svc.events);
 
 		this.nodes.localNode.services.push(service);
-		this.nodes.localNode.when = Date.now();
+		this.nodes.localNode.seq++;
 
 		this.logger.info(`'${svc.name}' service is registered.`);
 	}
@@ -190,7 +190,7 @@ class Registry {
 		this.services.remove(name, version, nodeID || this.broker.nodeID);
 
 		if (!nodeID || nodeID == this.broker.nodeID)
-			this.nodes.localNode.when = Date.now();
+			this.nodes.localNode.seq++;
 	}
 
 	/**
@@ -247,7 +247,7 @@ class Registry {
 	 * @memberof Registry
 	 */
 	getLocalNodeInfo() {
-		const res = _.pick(this.nodes.localNode, ["ipList", "hostname", "client", "config", "port", "when"]);
+		const res = _.pick(this.nodes.localNode, ["ipList", "hostname", "client", "config", "port", "seq"]);
 		res.services = this.services.list({ onlyLocal: true, withActions: true, withEvents: true });
 
 		return res;

@@ -66,6 +66,7 @@ class Parser extends Writable {
 
 				// Remove processed message from incoming data
 				packet = packet.slice(length);
+
 			} else {
 				// The chunk is not contain the whole message.
 				// Waiting for the next one.
@@ -74,7 +75,6 @@ class Parser extends Writable {
 			}
 
 		}
-
 		cb();
 	}
 }
