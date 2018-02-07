@@ -159,6 +159,8 @@ class UdpServer extends EventEmitter {
 
 			}, (this.opts.multicastPeriod || 5) * 1000);
 
+			this.discoverTimer.unref();
+
 			this.logger.info("UDP discovery started.");
 		}
 	}
