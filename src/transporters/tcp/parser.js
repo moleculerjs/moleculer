@@ -52,7 +52,7 @@ class Parser extends Writable {
 			// Check the CRC
 			const crc = packet[1] ^ packet[2] ^ packet[3] ^ packet[4] ^ packet[5];
 			if (crc !== packet[0]) {
-				return cb(new Error("Invalid packet CRC!"));
+				return cb(new Error("Invalid packet CRC! " + crc));
 			}
 
 			const length = packet.readInt32BE(1);

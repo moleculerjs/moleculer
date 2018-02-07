@@ -55,7 +55,9 @@ class UdpServer extends EventEmitter {
 
 			server.on("error", err => {
 				this.logger.error("UDP server binding error!", err);
-				reject(err);
+
+				if (reject)
+					reject(err);
 			});
 
 			const host = this.opts.udpBindAddress;
@@ -81,6 +83,8 @@ class UdpServer extends EventEmitter {
 				this.startDiscovering();
 
 				resolve();
+
+				reject = null;
 			});
 
 			this.server = server;
@@ -104,6 +108,7 @@ class UdpServer extends EventEmitter {
 
 		// Send beacon
 		this.server.send(message, port, host, (err/*, bytes*/) => {
+			/* istanbul ignore next*/
 			if (err) {
 				this.logger.warn("Discover packet broadcast error.", err);
 				return;
@@ -128,11 +133,13 @@ class UdpServer extends EventEmitter {
 			const parts = msg.split("|");
 			if (parts.length != 3) {
 				this.logger.debug("Malformed UDP packet received", msg);
+				return;
 			}
 			if (parts[0] == this.namespace)
 				this.emit("message", parts[1], rinfo.address, parseInt(parts[2], 10));
 
 		} catch(err) {
+			/* istanbul ignore next */
 			this.logger.debug("UDP packet process error!", err, msg, rinfo);
 		}
 	}

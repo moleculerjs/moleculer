@@ -30,8 +30,8 @@ module.exports = {
 		"ENOENT"
 	],
 
-	/* istanbul ignore next */
 	resolvePacketID(type) {
+		/* istanbul ignore next */
 		switch (type) {
 			case P.PACKET_EVENT:
 				return module.exports.PACKET_EVENT_ID;
@@ -54,8 +54,8 @@ module.exports = {
 		}
 	},
 
-	/* istanbul ignore next */
 	resolvePacketType(id) {
+		/* istanbul ignore next */
 		switch (id) {
 			case module.exports.PACKET_EVENT_ID:
 				return P.PACKET_EVENT;
