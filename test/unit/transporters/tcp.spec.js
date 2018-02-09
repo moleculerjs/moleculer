@@ -475,7 +475,7 @@ describe("Test TcpTransporter startUdpServer", () => {
 
 });
 
-describe("Test Gossip methods", () => {
+describe.only("Test Gossip methods", () => {
 	let broker = new ServiceBroker({ namespace: "TEST", nodeID: "node-1" });
 	let transit = new Transit(broker);
 	let transporter;
@@ -611,13 +611,13 @@ describe("Test Gossip methods", () => {
 
 	});
 
-	describe("Test sendGossipRequest", () => {
+	/*describe("Test sendGossipRequest", () => {
 		const nodes = [
-			{ id: "node-1", seq: 1, cpu: 10, cpuWhen: 1010, local: true },
-			{ id: "node-2", seq: 2, cpu: 20, cpuWhen: 2020 },
-			{ id: "node-3", seq: 3, cpu: 30, cpuWhen: 3030 },
-			{ id: "node-4", seq: 4, offlineSince: 4040 },
-			{ id: "node-5", seq: 5, offlineSince: 5050 },
+			{ id: "node-1", seq: 1, available: true, cpu: 10, cpuWhen: 1010, local: true },
+			{ id: "node-2", seq: 2, available: true, cpu: 20, cpuWhen: 2020 },
+			{ id: "node-3", seq: 3, available: true, cpu: 30, cpuWhen: 3030 },
+			{ id: "node-4", seq: 4, available: false },
+			{ id: "node-5", seq: 5, available: false },
 		];
 		beforeEach(() => {
 			transporter.sendGossipToRandomEndpoint = jest.fn();
@@ -680,6 +680,78 @@ describe("Test Gossip methods", () => {
 
 	});
 
+	describe("Test processGossipRequest", () => {
+		const nodes = [
+			{ id: "node-1", seq: 1, available: true, cpu: 10, cpuWhen: 1010, local: true },
+			{ id: "node-2", seq: 2, available: true, cpu: 20, cpuWhen: 2020 },
+			{ id: "node-3", seq: 3, available: true, cpu: 30, cpuWhen: 3030 },
+			{ id: "node-4", seq: 4, available: false },
+			{ id: "node-5", seq: 5, available: false },
+		];
+		beforeEach(() => {
+			transporter.deserialize = jest.fn((type, msg) => msg);
+			transporter.publish = jest.fn();
+			transporter.addOfflineNode = jest.fn();
+			transporter.nodes.toArray = jest.fn(() => nodes);
+			transporter.nodes.get = jest.fn(() => null);
+		});
+
+		it("should update local nodes and generate response", () => {
+			transporter.nodes.toArray = jest.fn(() => [nodes[0]]);
+			transporter.sendGossipRequest();
+
+			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledTimes(0);
+		});
+
+		it("should sendGossipToRandomEndpoint a GOSSIP_REQ packet to online node", () => {
+			Math.random = jest.fn(() => 100);
+			transporter.sendGossipRequest();
+
+			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledTimes(1);
+			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledWith({
+				online: {
+					"node-1": [1, 1010, 10],
+					"node-2": [2, 2020, 20],
+					"node-3": [3, 3030, 30]
+				},
+				offline: {
+					"node-4": 4,
+					"node-5": 5
+				}
+			}, [nodes[1], nodes[2]]);
+		});
+
+		it("should sendGossipToRandomEndpoint a GOSSIP_REQ packet to offline node", () => {
+			Math.random = jest.fn(() => 0);
+			transporter.sendGossipRequest();
+
+			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledTimes(2);
+			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledWith({
+				online: {
+					"node-1": [1, 1010, 10],
+					"node-2": [2, 2020, 20],
+					"node-3": [3, 3030, 30]
+				},
+				offline: {
+					"node-4": 4,
+					"node-5": 5
+				}
+			}, [nodes[1], nodes[2]]);
+			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledWith({
+				online: {
+					"node-1": [1, 1010, 10],
+					"node-2": [2, 2020, 20],
+					"node-3": [3, 3030, 30]
+				},
+				offline: {
+					"node-4": 4,
+					"node-5": 5
+				}
+			}, [nodes[3], nodes[4]]);
+		});
+
+	});	*/
+
 	describe("Test sendGossipToRandomEndpoint", () => {
 		const endpoints = [
 			{ id: "node-1" },
@@ -709,4 +781,297 @@ describe("Test Gossip methods", () => {
 		});
 
 	});
+
+	describe("Test sendGossipRequest", () => {
+
+		beforeEach(() => {
+			Math.random = jest.fn(() => 0);
+			transporter.sendGossipToRandomEndpoint = jest.fn();
+		});
+
+		it("should send nothing, if no other nodes", () => {
+			transporter.nodes.toArray = jest.fn(() => ([
+				{ id: "node-1", local: true }
+			]));
+
+			transporter.sendGossipRequest();
+
+			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledTimes(0);
+		});
+
+		it("should send info to online node", () => {
+			const nodes = [
+				{ id: "node-1", local: true, available: true,  seq: 5, cpu: 12, cpuWhen: 2 },
+				{ id: "node-2", local: false, available: true, seq: 3 },
+			];
+			transporter.nodes.toArray = jest.fn(() => nodes);
+
+			transporter.sendGossipRequest();
+
+			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledTimes(1);
+			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledWith({
+				online: {
+					"node-1": [5, 2, 12],
+					"node-2": [3, 0, 0]
+				}
+			},[ nodes[1]]);
+		});
+
+		it("should send info to offline node", () => {
+			const nodes = [
+				{ id: "node-1", local: true, available: true,  seq: 5, cpu: 12, cpuWhen: 2 },
+				{ id: "node-2", local: false, available: false, seq: 4 },
+			];
+			transporter.nodes.toArray = jest.fn(() => nodes);
+
+			transporter.sendGossipRequest();
+
+			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledTimes(1);
+			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledWith({
+				online: {
+					"node-1": [5, 2, 12]
+				},
+				offline: {
+					"node-2": 4
+				}
+			},[ nodes[1]]);
+		});
+
+		it("should send info to online & offline nodes", () => {
+			const nodes = [
+				{ id: "node-1", local: true,  available: true,  seq: 10, cpu: 11, cpuWhen: 100 },
+				{ id: "node-2", local: false, available: true,  seq: 20, cpu: 22, cpuWhen: 200 },
+				{ id: "node-3", local: false, available: true,  seq: 30, cpu: 33, cpuWhen: 300 },
+				{ id: "node-4", local: false, available: false, seq: 40, cpu: 44, cpuWhen: 400 },
+				{ id: "node-5", local: false, available: false, seq: 50, cpu: 55, cpuWhen: 500 },
+			];
+			transporter.nodes.toArray = jest.fn(() => nodes);
+
+			transporter.sendGossipRequest();
+
+			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledTimes(2);
+			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledWith({
+				online: {
+					"node-1": [10, 100, 11],
+					"node-2": [20, 200, 22],
+					"node-3": [30, 300, 33],
+				},
+				offline: {
+					"node-4": 40,
+					"node-5": 50,
+				}
+			},[ nodes[1], nodes[2]]);
+			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledWith({
+				online: {
+					"node-1": [10, 100, 11],
+					"node-2": [20, 200, 22],
+					"node-3": [30, 300, 33],
+				},
+				offline: {
+					"node-4": 40,
+					"node-5": 50,
+				}
+			},[ nodes[3], nodes[4]]);
+		});
+
+	});
+
+	describe("Test processGossipRequest", () => {
+
+		beforeEach(() => {
+			Math.random = jest.fn(() => 0);
+			transporter.deserialize = jest.fn((type, msg) => msg);
+			transporter.publish = jest.fn(() => Promise.resolve());
+			transporter.nodes.get = jest.fn(() => ({ id: "node-2" }));
+			transporter.nodes.disconnected = jest.fn(() => null);
+			transporter.registry.getNodeInfo = jest.fn(id => ({ info: id }));
+		});
+
+		it("should update local info and send new node info", () => {
+			const nodes = [
+				{ id: "node-1", local: true,  available: true,  seq: 10, cpu: 11, cpuWhen: 100 },
+				{ id: "node-2", local: false, available: true,  seq: 20, cpu: 22, cpuWhen: 200 },
+				{ id: "node-3", local: false, available: true,  seq: 30, cpu: 33, cpuWhen: 300 },
+				{ id: "node-4", local: false, available: false, seq: 40, cpu: 44, cpuWhen: 400 },
+				{ id: "node-5", local: false, available: false, seq: 50, cpu: 55, cpuWhen: 500 },
+				{ id: "node-6", local: false, available: false, seq: 60, cpu: 66, cpuWhen: 600 },
+			];
+			transporter.nodes.toArray = jest.fn(() => nodes);
+
+			transporter.processGossipRequest({
+				sender: "node-2",
+				payload: {
+					online: {
+						"node-1": [15, 100, 11], // Local - do nothing
+						"node-2": [18, 180, 10], // We got older info, send newer
+						"node-5": [48, 500, 55], // We got older info, send it is offline
+						"node-6": [66, 606, 6], // We got newer info, but we think it is offline, skip
+						"node-7": [70, 700, 77], // We don't know it, skip
+					},
+					offline: {
+						"node-4": 41, // Newer seq
+						"node-3": 33, // Newer seq, Gone to offline, we change it to offline
+						"node-8": 88, // We don't know it, skip
+					}
+				}
+			});
+
+			expect(transporter.registry.getNodeInfo).toHaveBeenCalledTimes(1);
+			expect(transporter.registry.getNodeInfo).toHaveBeenCalledWith("node-2");
+
+			expect(transporter.nodes.disconnected).toHaveBeenCalledTimes(1);
+			expect(transporter.nodes.disconnected).toHaveBeenCalledWith("node-3", false);
+			expect(nodes[2].seq).toBe(33);
+
+			expect(transporter.publish).toHaveBeenCalledTimes(1);
+			expect(transporter.publish).toHaveBeenCalledWith({
+				type: "GOSSIP_RES",
+				target: "node-2",
+				payload: {
+					"online": {
+						"node-2": [{"info": "node-2"}, 200, 22]
+					},
+					"offline": {
+						"node-5": 50
+					},
+				}
+			});
+		});
+
+		it("should update local info and send new node info and inc our seq", () => {
+			const heartbeat = jest.fn();
+			const nodes = [
+				{ id: "node-1", local: true,  available: true,  seq: 1, cpu: 11, cpuWhen: 100 },
+				{ id: "node-2", local: false, available: true,  seq: 20, cpu: 22, cpuWhen: 200, heartbeat },
+				{ id: "node-3", local: false, available: true,  seq: 30, cpu: 33, cpuWhen: 300 },
+				{ id: "node-4", local: false, available: false, seq: 40, cpu: 44, cpuWhen: 400 },
+				{ id: "node-5", local: false, available: false, seq: 50, cpu: 55, cpuWhen: 500 },
+				{ id: "node-6", local: false, available: false, seq: 60, cpu: 66, cpuWhen: 600 },
+				{ id: "node-7", local: false, available: true, seq: 70, cpu: null, cpuWhen: null },
+				{ id: "node-8", local: false, available: true, seq: 80, cpu: 88, cpuWhen: 800 },
+			];
+			transporter.nodes.toArray = jest.fn(() => nodes);
+			transporter.nodes.get = jest.fn(() => ({ id: "node-10" }));
+			transporter.registry.getNodeInfo = jest.fn(id => ({ info: id }));
+
+			transporter.processGossipRequest({
+				sender: "node-10",
+				payload: {
+					online: {
+						"node-2": [20, 220, 25], // We got newer CPU info, update local
+						"node-3": [30, 300, 33], // No changes, skip
+						// No node-7, send back with info
+						"node-8": [80, 777, 77], // Whet got older CPU info, send back newer
+					},
+					offline: {
+						"node-1": 33, // Local - inc seq & send we are online
+						// No "node-4", send back
+						// No "node-5", send back
+						"node-6": 60, // No changes, skip
+					}
+				}
+			});
+
+			// Local Seq Incremented
+			expect(nodes[0].seq).toBe(34);
+
+			expect(transporter.registry.getNodeInfo).toHaveBeenCalledTimes(2);
+			expect(transporter.registry.getNodeInfo).toHaveBeenCalledWith("node-1");
+			expect(transporter.registry.getNodeInfo).toHaveBeenCalledWith("node-7");
+
+			// Update 'node-2'
+			expect(heartbeat).toHaveBeenCalledTimes(1);
+			expect(heartbeat).toHaveBeenCalledWith({ cpu: 25, cpuWhen: 220 });
+
+			expect(transporter.nodes.disconnected).toHaveBeenCalledTimes(0);
+
+			expect(transporter.publish).toHaveBeenCalledTimes(1);
+			expect(transporter.publish).toHaveBeenCalledWith({
+				type: "GOSSIP_RES",
+				target: "node-10",
+				payload: {
+					online: {
+						"node-1": [{"info": "node-1"}, 100, 11],
+						"node-7": [{"info": "node-7"}, 0, 0],
+						"node-8": [800, 88]
+					},
+					offline: {
+						"node-4": 40,
+						"node-5": 50
+					},
+				}
+			});
+		});
+	});
+
+	describe("Test processGossipResponse", () => {
+
+		beforeEach(() => {
+			Math.random = jest.fn(() => 0);
+			transporter.deserialize = jest.fn((type, msg) => msg);
+			transporter.nodes.disconnected = jest.fn();
+			transporter.nodes.processNodeInfo = jest.fn();
+		});
+
+		it("should update local info and send new node info", () => {
+			const heartbeat = jest.fn();
+			const nodes = [
+				// Online nodes
+				{ id: "node-1", local: true,  available: true,  seq: 10, cpu: 11, cpuWhen: 100 },
+				{ id: "node-2", local: false, available: true,  seq: 20, cpu: 22, cpuWhen: 200 },
+				{ id: "node-3", local: false, available: true,  seq: 30, cpu: 33, cpuWhen: 300 },
+				{ id: "node-4", local: false, available: true,  seq: 40, cpu: 44, cpuWhen: 400 },
+				{ id: "node-5", local: false, available: true, seq: 50, cpu: 55, cpuWhen: 500, heartbeat },
+				//{ id: "node-6", local: false, available: true, seq: 60, cpu: 66, cpuWhen: 600 },
+
+				// Offline nodes
+				{ id: "node-7", local: false, available: false, seq: 70, cpu: 77, cpuWhen: 700 },
+				{ id: "node-8", local: false, available: false, seq: 80, cpu: 88, cpuWhen: 800 },
+				{ id: "node-9", local: false, available: false, seq: 90, cpu: 99, cpuWhen: 900 },
+				{ id: "node-10", local: false, available: true, seq: 100, cpu: 100, cpuWhen: 1000 },
+			];
+			transporter.nodes.toArray = jest.fn(() => nodes);
+			transporter.nodes.get = jest.fn(id => nodes.find(n => n.id == id));
+
+			transporter.processGossipResponse({
+				sender: "node-2",
+				payload: {
+					online: {
+						"node-1": [{ seq: 15 }, 100, 11], // Local - skip
+						"node-2": [{ seq: 18 }, 180, 10], // We got older info, skip
+						"node-5": [550, 5], // We got only new CPU info, update
+						"node-6": [{ seq: 66 }, 660, 6], // We got newer info from unknow node, update
+						"node-7": [{ seq: 77 }], // We got only new info from offline node, update
+					},
+					offline: {
+						"node-8": 88, // We got newer seq, update
+						"node-9": 33, // We got older seq, skip
+						"node-10": 101, // We got newer seq from online node, disconnect and save seq
+						"node-11": 110, // Unknow node, skip
+					}
+				}
+			});
+
+			// Update 'node-5' cpu
+			expect(heartbeat).toHaveBeenCalledTimes(1);
+			expect(heartbeat).toHaveBeenCalledWith({ cpu: 5, cpuWhen: 550 });
+
+			// Update 'node-6' & 'node-7'
+			expect(transporter.nodes.processNodeInfo).toHaveBeenCalledTimes(2);
+			expect(transporter.nodes.processNodeInfo).toHaveBeenCalledWith({"sender": "node-6", "seq": 66});
+			expect(transporter.nodes.processNodeInfo).toHaveBeenCalledWith({"sender": "node-7", "seq": 77});
+
+			// Update 'node-8' seq
+			expect(nodes[6].seq).toBe(88);
+
+			// Disconnect 'node-10'
+			expect(transporter.nodes.disconnected).toHaveBeenCalledTimes(1);
+			expect(transporter.nodes.disconnected).toHaveBeenCalledWith("node-10", false);
+			expect(nodes[8].seq).toBe(101);
+
+
+		});
+
+	});
+
 });

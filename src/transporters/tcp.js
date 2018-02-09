@@ -309,7 +309,7 @@ class TcpTransporter extends Transporter {
 		let offlineList = [];
 
 		list.forEach(node => {
-			if (node.offlineSince) {
+			if (!node.available) {
 				if (node.seq > 0) {
 					packet.offline[node.id] = node.seq;
 				}
@@ -339,8 +339,7 @@ class TcpTransporter extends Transporter {
 			const ratio = offlineList.length / (onlineList.length + 1);
 
 			// Random number between 0.0 and 1.0
-			const random = Math.random();
-			if (random < ratio) {
+			if (ratio >= 1 || Math.random() < ratio) {
 				// Send gossip message to an offline endpoint
 				this.sendGossipToRandomEndpoint(packet, offlineList);
 			}
@@ -357,7 +356,7 @@ class TcpTransporter extends Transporter {
 		if (endpoints.length == 0)
 			return;
 
-		const ep = endpoints[Math.floor(Math.random() * endpoints.length)];
+		const ep = endpoints.length == 1 ? endpoints[0] : endpoints[Math.floor(Math.random() * endpoints.length)];
 		if (ep) {
 			const packet = new P.Packet(P.PACKET_GOSSIP_REQ, ep.id, data);
 			this.publish(packet).catch(() => {});
@@ -410,7 +409,7 @@ class TcpTransporter extends Transporter {
 				// Requester said it is OFFLINE
 
 				if (!node.available) {
-					// We also knew it as offline
+					// We also know it as offline
 
 					// Update 'seq' if it is newer than us
 					if (seq > node.seq)
@@ -450,7 +449,7 @@ class TcpTransporter extends Transporter {
 					}
 				}
 				else {
-					// We knew it as offline. We do nothing, because we'll request it and we'll receive its INFO.
+					// We know it as offline. We do nothing, because we'll request it and we'll receive its INFO.
 					return;
 				}
 			}
@@ -464,12 +463,7 @@ class TcpTransporter extends Transporter {
 			delete response.online;
 
 		if (response.online || response.offline) {
-			// Whether we know the sender (we can get data from it earlier than the UDP broadcast message)
 			let sender = this.nodes.get(payload.sender);
-			if (!sender) {
-				// We add it, because we want to send the response back to sender.
-				sender = this.addOfflineNode(payload.sender, payload.host, payload.port);
-			}
 
 			// Send back the Gossip response to the sender
 			const rspPacket = new P.Packet(P.PACKET_GOSSIP_RES, sender.id, response);
@@ -512,14 +506,14 @@ class TcpTransporter extends Transporter {
 					[info, cpuWhen, cpu] = row;
 
 				let node = this.nodes.get(nodeID);
-				if (info && node && node.seq < info.seq) {
-					// Update 'info' block
+				if (info && (!node || node.seq < info.seq)) {
+					// If we don't know it, or know, but has smaller seq, update 'info'
 					info.sender = nodeID;
 					node = this.nodes.processNodeInfo(info);
 				}
 
 				if (node && cpuWhen && cpuWhen > node.cpuWhen) {
-					// We update our CPU info
+					// Update CPU
 					node.heartbeat({
 						cpu,
 						cpuWhen
