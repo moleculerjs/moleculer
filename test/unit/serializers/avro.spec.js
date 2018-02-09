@@ -95,7 +95,7 @@ describe("Test Avro serializer", () => {
 			broadcast: true
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(43);
+		expect(s.length).toBe(44);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).toEqual(Object.assign(obj, { groups: null }));
@@ -114,10 +114,24 @@ describe("Test Avro serializer", () => {
 			broadcast: false
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(60);
+		expect(s.length).toBe(61);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).toEqual(obj);
+	});
+
+	it("should serialize the event packet without data", () => {
+		const obj = {
+			ver: "3",
+			sender: "test-1",
+			event: "user.created",
+			broadcast: true
+		};
+		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
+		expect(s.length).toBe(25);
+
+		const res = serializer.deserialize(s, P.PACKET_EVENT);
+		expect(res).toEqual(Object.assign(obj, { groups: null, data: null }));
 	});
 
 	it("should serialize the request packet", () => {
@@ -225,6 +239,91 @@ describe("Test Avro serializer", () => {
 		expect(s.length).toBe(17);
 
 		const res = serializer.deserialize(s, P.PACKET_PONG);
+		expect(res).toEqual(obj);
+	});
+
+});
+
+describe("Test Avro serializer with Gossip packets", () => {
+
+	const serializer = new AvroSerializer();
+	serializer.init();
+
+	it("should serialize the hello packet", () => {
+		const obj = {
+			ver: "3",
+			sender: "test-1",
+			host: "server-host",
+			port: 45450,
+		};
+		const s = serializer.serialize(obj, P.PACKET_GOSSIP_HELLO);
+		expect(s.length).toBe(24);
+
+		const res = serializer.deserialize(s, P.PACKET_GOSSIP_HELLO);
+		expect(res).toEqual(obj);
+	});
+
+	it("should serialize the empty REQUEST packet", () => {
+		const obj = {
+			ver: "3",
+			sender: "test-1"
+		};
+		const s = serializer.serialize(cloneDeep(obj), P.PACKET_GOSSIP_REQ);
+		expect(s.length).toBe(11);
+
+		const res = serializer.deserialize(s, P.PACKET_GOSSIP_REQ);
+		expect(res).toEqual(Object.assign(obj, { online: null, offline: null }));
+	});
+
+	it("should serialize the full REQUEST packet", () => {
+		const obj = {
+			ver: "3",
+			sender: "test-1",
+			online: {
+				"node-1": [1, 2, 3],
+				"node-2": [150, 0, 0]
+			},
+			offline: {
+				"node-3": 23,
+				"node-4": 26854204
+			}
+		};
+		const s = serializer.serialize(cloneDeep(obj), P.PACKET_GOSSIP_REQ);
+		expect(s.length).toBe(81);
+
+		const res = serializer.deserialize(s, P.PACKET_GOSSIP_REQ);
+		expect(res).toEqual(obj);
+	});
+
+	it("should serialize the empty RESPONSE packet", () => {
+		const obj = {
+			ver: "3",
+			sender: "test-1"
+		};
+		const s = serializer.serialize(cloneDeep(obj), P.PACKET_GOSSIP_RES);
+		expect(s.length).toBe(11);
+
+		const res = serializer.deserialize(s, P.PACKET_GOSSIP_RES);
+		expect(res).toEqual(Object.assign(obj, { online: null, offline: null }));
+	});
+
+	it("should serialize the full RESPONSE packet", () => {
+		const obj = {
+			ver: "3",
+			sender: "test-1",
+			online: {
+				"node-1": [{ services: [] }, 2, 3],
+				"node-2": [13, 56]
+			},
+			offline: {
+				"node-3": 23,
+				"node-4": 26854204
+			}
+		};
+		const s = serializer.serialize(cloneDeep(obj), P.PACKET_GOSSIP_RES);
+		expect(s.length).toBe(93);
+
+		const res = serializer.deserialize(s, P.PACKET_GOSSIP_RES);
 		expect(res).toEqual(obj);
 	});
 

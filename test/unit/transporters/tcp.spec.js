@@ -581,7 +581,7 @@ describe("Test Gossip methods", () => {
 			transporter.processGossipHello("message");
 
 			expect(transporter.deserialize).toHaveBeenCalledTimes(1);
-			expect(transporter.deserialize).toHaveBeenCalledWith(P.PACKET_GOSSIP_REQ, "message");
+			expect(transporter.deserialize).toHaveBeenCalledWith(P.PACKET_GOSSIP_HELLO, "message");
 
 			expect(transporter.nodes.get).toHaveBeenCalledTimes(1);
 			expect(transporter.nodes.get).toHaveBeenCalledWith("node-2");
