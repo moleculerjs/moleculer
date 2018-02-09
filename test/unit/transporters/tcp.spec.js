@@ -475,7 +475,7 @@ describe("Test TcpTransporter startUdpServer", () => {
 
 });
 
-describe.only("Test Gossip methods", () => {
+describe("Test Gossip methods", () => {
 	let broker = new ServiceBroker({ namespace: "TEST", nodeID: "node-1" });
 	let transit = new Transit(broker);
 	let transporter;
