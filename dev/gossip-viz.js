@@ -100,6 +100,14 @@ function printStatuses() {
 	console.log("Time: " + _.padStart(duration, 5), "sec    Coverage:", _.padStart(sCov, 13));
 }
 
+function getMaxSeq(nodeID) {
+	return brokers.reduce((seq, { broker }) => {
+		if (!broker) return seq;
+		let n = broker.registry.nodes.toArray().find(n => n.id == nodeID);
+		return (n && n.seq && n.seq > seq) ? n.seq : seq;
+	}, 0);
+}
+
 function printBrokerStatus({ nodeID, broker }) {
 	let count = 0;
 	let s = _.padEnd(broker ? chalk.green(nodeID) : chalk.red(nodeID), 20);
@@ -113,7 +121,10 @@ function printBrokerStatus({ nodeID, broker }) {
 
 			const node = list.find(node => node.id == search);
 			if (node && node.available) {
-				s += chalk.green.bold("█");
+				//if (node.seq == getMaxSeq(node.id))
+					s += chalk.green.bold("█");
+				//else
+				//	s += chalk.yellow.bold("█");
 				count++;
 			} else {
 				s += chalk.red.bold("█");
