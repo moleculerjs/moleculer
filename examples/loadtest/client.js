@@ -10,7 +10,7 @@ let transporter = process.env.TRANSPORTER || "TCP";
 
 // Create broker
 let broker = new ServiceBroker({
-	namespace: "loadtest",
+	namespace: "",
 	nodeID: process.argv[2] || "client",
 	transporter,
 	logger: console,
@@ -36,6 +36,25 @@ function work() {
 
 }
 
+let counter = 0;
+
+function work2() {
+	let payload = { c: ++counter, id: broker.nodeID };
+	const p = broker.call("perf.reply", payload)
+		.then(() => broker._callCount++)
+		.catch(err => {
+			console.warn(err.message, " Counter:", payload.c);
+		})
+		//.then(() => setImmediate(work2));
+
+	//* Overload
+	if (broker.transit.pendingRequests.size < 2 * 1000)
+		setImmediate(work2);
+	else
+		p.then(() => setImmediate(work2));
+
+}
+
 broker._callCount = 0;
 
 broker.start()
@@ -43,7 +62,7 @@ broker.start()
 	.then(() => {
 		setTimeout(() => {
 			let startTime = Date.now();
-			work();
+			work2();
 
 			setInterval(() => {
 				if (broker._callCount > 0) {

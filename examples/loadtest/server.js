@@ -29,6 +29,15 @@ broker.createService({
 		}
 	}
 });
+
+broker.createService({
+	name: "perf",
+	actions: {
+		reply(ctx) {
+			return ctx.params;
+		}
+	}
+});
 //broker.loadService(__dirname + "/../rest.service");
 //broker.loadService(__dirname + "/../metrics.prometheus.service");
 

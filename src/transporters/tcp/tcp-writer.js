@@ -11,7 +11,7 @@ const EventEmitter 	= require("events");
 const Promise		= require("bluebird");
 
 const { MoleculerError } = require("../../errors");
-const { PACKET_GOSSIP_REQ_ID, PACKET_GOSSIP_RES_ID } = require("./constants");
+const { PACKET_GOSSIP_REQ_ID, PACKET_GOSSIP_RES_ID, PACKET_GOSSIP_HELLO_ID } = require("./constants");
 
 const HEADER_SIZE	= 6;
 
@@ -109,7 +109,7 @@ class TcpWriter extends EventEmitter {
 				return this.connect(nodeID);
 			})
 			.then(socket => {
-				if ([PACKET_GOSSIP_REQ_ID, PACKET_GOSSIP_RES_ID].indexOf(type) == -1)
+				if ([PACKET_GOSSIP_REQ_ID, PACKET_GOSSIP_RES_ID, PACKET_GOSSIP_HELLO_ID].indexOf(type) == -1)
 					socket.lastUsed = Date.now();
 
 				return new Promise((resolve, reject) => {

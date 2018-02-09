@@ -168,6 +168,7 @@ class TcpTransporter extends Transporter {
 	 * @param {Object} message
 	 */
 	onIncomingMessage(type, message) {
+		//console.log("<<", type, message.toString());
 		switch(type) {
 			case P.PACKET_GOSSIP_HELLO: return this.processGossipHello(message);
 			case P.PACKET_GOSSIP_REQ: return this.processGossipRequest(message);
@@ -277,7 +278,7 @@ class TcpTransporter extends Transporter {
 	 * @param {Buffer} msg
 	 */
 	processGossipHello(msg) {
-		const packet = this.deserialize(P.PACKET_GOSSIP_REQ, msg);
+		const packet = this.deserialize(P.PACKET_GOSSIP_HELLO, msg);
 		const payload = packet.payload;
 		const nodeID = payload.sender;
 
@@ -627,6 +628,7 @@ class TcpTransporter extends Transporter {
 		if (!Buffer.isBuffer(data))
 			data = Buffer.from(data);
 
+		//console.log(">>", packet.type, data.toString());
 		return this.writer.send(packet.target, packetID, data)
 			.catch(err => {
 				this.nodes.disconnected(packet.target, true);
