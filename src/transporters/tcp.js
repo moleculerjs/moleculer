@@ -57,7 +57,7 @@ class TcpTransporter extends Transporter {
 			udpDiscovery: true,
 			udpReuseAddr: true,
 
-			maxUdpDiscovery: 0, // 0 - Disabled
+			maxUdpDiscovery: 0, // 0 - No limit
 
 			broadcastAddress: "255.255.255.255",
 			broadcastPort: 4445,
