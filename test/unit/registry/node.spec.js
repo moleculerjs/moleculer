@@ -24,7 +24,7 @@ describe("Test Node", () => {
 		expect(node.services).toEqual([]);
 
 		expect(node.cpu).toBeNull();
-		expect(node.cpuWhen).toBeNull();
+		expect(node.cpuSeq).toBeNull();
 		expect(node.seq).toBe(0);
 		expect(node.offlineSince).toBeNull();
 	});
@@ -75,11 +75,11 @@ describe("Test Node", () => {
 
 	it("should update local info", () => {
 		let node = new Node("node-1");
-		node.cpuWhen = 1000;
+		node.cpuSeq = 1000;
 
 		return node.updateLocalInfo().then(() => {
 			expect(node.cpu).toBe(12);
-			expect(node.cpuWhen).not.toBe(1000);
+			expect(node.cpuSeq).not.toBe(1000);
 		});
 	});
 
@@ -91,12 +91,12 @@ describe("Test Node", () => {
 
 		let payload = {
 			cpu: 56.8,
-			cpuWhen: 12345678
+			cpuSeq: 12345678
 		};
 		node.heartbeat(payload);
 
 		expect(node.cpu).toBe(56.8);
-		expect(node.cpuWhen).toBe(12345678);
+		expect(node.cpuSeq).toBe(12345678);
 		expect(node.available).toBe(true);
 		expect(node.offlineSince).toBeNull();
 		expect(node.seq).toBe(5);

@@ -36,7 +36,7 @@ class Node {
 		this.services = [];
 
 		this.cpu = null;
-		this.cpuWhen = null;
+		this.cpuSeq = null;
 
 		this.seq = 0;
 		this.offlineSince = null;
@@ -76,7 +76,7 @@ class Node {
 			const newVal = Math.round(res.avg);
 			if (this.cpu != newVal) {
 				this.cpu = Math.round(res.avg);
-				this.cpuWhen++;
+				this.cpuSeq++;
 			}
 		});
 	}
@@ -91,11 +91,10 @@ class Node {
 		if (!this.available) {
 			this.available = true;
 			this.offlineSince = null;
-			// this.when = Date.now(); TODO
 		}
 
 		this.cpu = payload.cpu;
-		this.cpuWhen = payload.cpuWhen || 1;
+		this.cpuSeq = payload.cpuSeq || 1;
 
 		this.lastHeartbeatTime = Date.now();
 	}

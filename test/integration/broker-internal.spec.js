@@ -67,7 +67,7 @@ describe("Test internal services", () => {
 				},
 				"config": {},
 				"cpu": null,
-				"cpuWhen": null,
+				"cpuSeq": null,
 				"id": "node-master",
 				"ipList": localNode.ipList,
 				"hostname": hostname(),

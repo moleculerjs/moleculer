@@ -613,9 +613,9 @@ describe("Test Gossip methods", () => {
 
 	/*describe("Test sendGossipRequest", () => {
 		const nodes = [
-			{ id: "node-1", seq: 1, available: true, cpu: 10, cpuWhen: 1010, local: true },
-			{ id: "node-2", seq: 2, available: true, cpu: 20, cpuWhen: 2020 },
-			{ id: "node-3", seq: 3, available: true, cpu: 30, cpuWhen: 3030 },
+			{ id: "node-1", seq: 1, available: true, cpu: 10, cpuSeq: 1010, local: true },
+			{ id: "node-2", seq: 2, available: true, cpu: 20, cpuSeq: 2020 },
+			{ id: "node-3", seq: 3, available: true, cpu: 30, cpuSeq: 3030 },
 			{ id: "node-4", seq: 4, available: false },
 			{ id: "node-5", seq: 5, available: false },
 		];
@@ -682,9 +682,9 @@ describe("Test Gossip methods", () => {
 
 	describe("Test processGossipRequest", () => {
 		const nodes = [
-			{ id: "node-1", seq: 1, available: true, cpu: 10, cpuWhen: 1010, local: true },
-			{ id: "node-2", seq: 2, available: true, cpu: 20, cpuWhen: 2020 },
-			{ id: "node-3", seq: 3, available: true, cpu: 30, cpuWhen: 3030 },
+			{ id: "node-1", seq: 1, available: true, cpu: 10, cpuSeq: 1010, local: true },
+			{ id: "node-2", seq: 2, available: true, cpu: 20, cpuSeq: 2020 },
+			{ id: "node-3", seq: 3, available: true, cpu: 30, cpuSeq: 3030 },
 			{ id: "node-4", seq: 4, available: false },
 			{ id: "node-5", seq: 5, available: false },
 		];
@@ -801,7 +801,7 @@ describe("Test Gossip methods", () => {
 
 		it("should send info to online node", () => {
 			const nodes = [
-				{ id: "node-1", local: true, available: true,  seq: 5, cpu: 12, cpuWhen: 2 },
+				{ id: "node-1", local: true, available: true,  seq: 5, cpu: 12, cpuSeq: 2 },
 				{ id: "node-2", local: false, available: true, seq: 3 },
 			];
 			transporter.nodes.toArray = jest.fn(() => nodes);
@@ -819,7 +819,7 @@ describe("Test Gossip methods", () => {
 
 		it("should send info to offline node", () => {
 			const nodes = [
-				{ id: "node-1", local: true, available: true,  seq: 5, cpu: 12, cpuWhen: 2 },
+				{ id: "node-1", local: true, available: true,  seq: 5, cpu: 12, cpuSeq: 2 },
 				{ id: "node-2", local: false, available: false, seq: 4 },
 			];
 			transporter.nodes.toArray = jest.fn(() => nodes);
@@ -839,11 +839,11 @@ describe("Test Gossip methods", () => {
 
 		it("should send info to online & offline nodes", () => {
 			const nodes = [
-				{ id: "node-1", local: true,  available: true,  seq: 10, cpu: 11, cpuWhen: 100 },
-				{ id: "node-2", local: false, available: true,  seq: 20, cpu: 22, cpuWhen: 200 },
-				{ id: "node-3", local: false, available: true,  seq: 30, cpu: 33, cpuWhen: 300 },
-				{ id: "node-4", local: false, available: false, seq: 40, cpu: 44, cpuWhen: 400 },
-				{ id: "node-5", local: false, available: false, seq: 50, cpu: 55, cpuWhen: 500 },
+				{ id: "node-1", local: true,  available: true,  seq: 10, cpu: 11, cpuSeq: 100 },
+				{ id: "node-2", local: false, available: true,  seq: 20, cpu: 22, cpuSeq: 200 },
+				{ id: "node-3", local: false, available: true,  seq: 30, cpu: 33, cpuSeq: 300 },
+				{ id: "node-4", local: false, available: false, seq: 40, cpu: 44, cpuSeq: 400 },
+				{ id: "node-5", local: false, available: false, seq: 50, cpu: 55, cpuSeq: 500 },
 			];
 			transporter.nodes.toArray = jest.fn(() => nodes);
 
@@ -889,12 +889,12 @@ describe("Test Gossip methods", () => {
 
 		it("should update local info and send new node info", () => {
 			const nodes = [
-				{ id: "node-1", local: true,  available: true,  seq: 10, cpu: 11, cpuWhen: 100 },
-				{ id: "node-2", local: false, available: true,  seq: 20, cpu: 22, cpuWhen: 200 },
-				{ id: "node-3", local: false, available: true,  seq: 30, cpu: 33, cpuWhen: 300 },
-				{ id: "node-4", local: false, available: false, seq: 40, cpu: 44, cpuWhen: 400 },
-				{ id: "node-5", local: false, available: false, seq: 50, cpu: 55, cpuWhen: 500 },
-				{ id: "node-6", local: false, available: false, seq: 60, cpu: 66, cpuWhen: 600 },
+				{ id: "node-1", local: true,  available: true,  seq: 10, cpu: 11, cpuSeq: 100 },
+				{ id: "node-2", local: false, available: true,  seq: 20, cpu: 22, cpuSeq: 200 },
+				{ id: "node-3", local: false, available: true,  seq: 30, cpu: 33, cpuSeq: 300 },
+				{ id: "node-4", local: false, available: false, seq: 40, cpu: 44, cpuSeq: 400 },
+				{ id: "node-5", local: false, available: false, seq: 50, cpu: 55, cpuSeq: 500 },
+				{ id: "node-6", local: false, available: false, seq: 60, cpu: 66, cpuSeq: 600 },
 			];
 			transporter.nodes.toArray = jest.fn(() => nodes);
 
@@ -941,14 +941,14 @@ describe("Test Gossip methods", () => {
 		it("should update local info and send new node info and inc our seq", () => {
 			const heartbeat = jest.fn();
 			const nodes = [
-				{ id: "node-1", local: true,  available: true,  seq: 1, cpu: 11, cpuWhen: 100 },
-				{ id: "node-2", local: false, available: true,  seq: 20, cpu: 22, cpuWhen: 200, heartbeat },
-				{ id: "node-3", local: false, available: true,  seq: 30, cpu: 33, cpuWhen: 300 },
-				{ id: "node-4", local: false, available: false, seq: 40, cpu: 44, cpuWhen: 400 },
-				{ id: "node-5", local: false, available: false, seq: 50, cpu: 55, cpuWhen: 500 },
-				{ id: "node-6", local: false, available: false, seq: 60, cpu: 66, cpuWhen: 600 },
-				{ id: "node-7", local: false, available: true, seq: 70, cpu: null, cpuWhen: null },
-				{ id: "node-8", local: false, available: true, seq: 80, cpu: 88, cpuWhen: 800 },
+				{ id: "node-1", local: true,  available: true,  seq: 1, cpu: 11, cpuSeq: 100 },
+				{ id: "node-2", local: false, available: true,  seq: 20, cpu: 22, cpuSeq: 200, heartbeat },
+				{ id: "node-3", local: false, available: true,  seq: 30, cpu: 33, cpuSeq: 300 },
+				{ id: "node-4", local: false, available: false, seq: 40, cpu: 44, cpuSeq: 400 },
+				{ id: "node-5", local: false, available: false, seq: 50, cpu: 55, cpuSeq: 500 },
+				{ id: "node-6", local: false, available: false, seq: 60, cpu: 66, cpuSeq: 600 },
+				{ id: "node-7", local: false, available: true, seq: 70, cpu: null, cpuSeq: null },
+				{ id: "node-8", local: false, available: true, seq: 80, cpu: 88, cpuSeq: 800 },
 			];
 			transporter.nodes.toArray = jest.fn(() => nodes);
 			transporter.nodes.get = jest.fn(() => ({ id: "node-10" }));
@@ -981,7 +981,7 @@ describe("Test Gossip methods", () => {
 
 			// Update 'node-2'
 			expect(heartbeat).toHaveBeenCalledTimes(1);
-			expect(heartbeat).toHaveBeenCalledWith({ cpu: 25, cpuWhen: 220 });
+			expect(heartbeat).toHaveBeenCalledWith({ cpu: 25, cpuSeq: 220 });
 
 			expect(transporter.nodes.disconnected).toHaveBeenCalledTimes(0);
 
@@ -1017,18 +1017,18 @@ describe("Test Gossip methods", () => {
 			const heartbeat = jest.fn();
 			const nodes = [
 				// Online nodes
-				{ id: "node-1", local: true,  available: true,  seq: 10, cpu: 11, cpuWhen: 100 },
-				{ id: "node-2", local: false, available: true,  seq: 20, cpu: 22, cpuWhen: 200 },
-				{ id: "node-3", local: false, available: true,  seq: 30, cpu: 33, cpuWhen: 300 },
-				{ id: "node-4", local: false, available: true,  seq: 40, cpu: 44, cpuWhen: 400 },
-				{ id: "node-5", local: false, available: true, seq: 50, cpu: 55, cpuWhen: 500, heartbeat },
-				//{ id: "node-6", local: false, available: true, seq: 60, cpu: 66, cpuWhen: 600 },
+				{ id: "node-1", local: true,  available: true,  seq: 10, cpu: 11, cpuSeq: 100 },
+				{ id: "node-2", local: false, available: true,  seq: 20, cpu: 22, cpuSeq: 200 },
+				{ id: "node-3", local: false, available: true,  seq: 30, cpu: 33, cpuSeq: 300 },
+				{ id: "node-4", local: false, available: true,  seq: 40, cpu: 44, cpuSeq: 400 },
+				{ id: "node-5", local: false, available: true, seq: 50, cpu: 55, cpuSeq: 500, heartbeat },
+				//{ id: "node-6", local: false, available: true, seq: 60, cpu: 66, cpuSeq: 600 },
 
 				// Offline nodes
-				{ id: "node-7", local: false, available: false, seq: 70, cpu: 77, cpuWhen: 700 },
-				{ id: "node-8", local: false, available: false, seq: 80, cpu: 88, cpuWhen: 800 },
-				{ id: "node-9", local: false, available: false, seq: 90, cpu: 99, cpuWhen: 900 },
-				{ id: "node-10", local: false, available: true, seq: 100, cpu: 100, cpuWhen: 1000 },
+				{ id: "node-7", local: false, available: false, seq: 70, cpu: 77, cpuSeq: 700 },
+				{ id: "node-8", local: false, available: false, seq: 80, cpu: 88, cpuSeq: 800 },
+				{ id: "node-9", local: false, available: false, seq: 90, cpu: 99, cpuSeq: 900 },
+				{ id: "node-10", local: false, available: true, seq: 100, cpu: 100, cpuSeq: 1000 },
 			];
 			transporter.nodes.toArray = jest.fn(() => nodes);
 			transporter.nodes.get = jest.fn(id => nodes.find(n => n.id == id));
@@ -1054,7 +1054,7 @@ describe("Test Gossip methods", () => {
 
 			// Update 'node-5' cpu
 			expect(heartbeat).toHaveBeenCalledTimes(1);
-			expect(heartbeat).toHaveBeenCalledWith({ cpu: 5, cpuWhen: 550 });
+			expect(heartbeat).toHaveBeenCalledWith({ cpu: 5, cpuSeq: 550 });
 
 			// Update 'node-6' & 'node-7'
 			expect(transporter.nodes.processNodeInfo).toHaveBeenCalledTimes(2);

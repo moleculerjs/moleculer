@@ -29,6 +29,14 @@ const TcpWriter		= require("./tcp/tcp-writer");
  * truly horizontally scalable. This transporter aims to run on top of an
  * infrastructure of hundreds of nodes.
  *
+ * TODO:
+ * 	- urls
+ *  	- urls: ["192.168.0.1:3000/node-1", "tcp://192.168.0.2:3000/node-2", ...]
+ *  	- urls: { "node-1": "192.168.0.1:3000", "node-2: "tcp://192.168.0.2:3000", ...}
+ *  	- urls: "http://central-server/node-list.json" // Download endpoint list from URL
+ * 		- transporter: "tcp://192.168.0.1:3000/node-1, 192.168.0.2:3000/node-2"
+ *  - integration tests
+ *
  * @class TcpTransporter
  * @extends {Transporter}
  */
@@ -315,7 +323,7 @@ class TcpTransporter extends Transporter {
 				}
 				offlineList.push(node);
 			} else {
-				packet.online[node.id] = [node.seq, node.cpuWhen || 0, node.cpu || 0];
+				packet.online[node.id] = [node.seq, node.cpuSeq || 0, node.cpu || 0];
 
 				if (!node.local)
 					onlineList.push(node);
@@ -386,18 +394,18 @@ class TcpTransporter extends Transporter {
 		list.forEach(node => {
 			const online = payload.online ? payload.online[node.id] : null;
 			const offline = payload.offline ? payload.offline[node.id] : null;
-			let seq, cpuWhen, cpu;
+			let seq, cpuSeq, cpu;
 
 			if (offline)
 				seq = offline;
 			else if (online)
-				[seq, cpuWhen, cpu] = online;
+				[seq, cpuSeq, cpu] = online;
 
 			if (!seq || seq < node.seq) {
 				// We have newer info or requester doesn't know it
 				if (node.available) {
 					const info = this.registry.getNodeInfo(node.id);
-					response.online[node.id] = [info, node.cpuWhen || 0, node.cpu || 0];
+					response.online[node.id] = [info, node.cpuSeq || 0, node.cpu || 0];
 				} else {
 					response.offline[node.id] = node.seq;
 				}
@@ -430,22 +438,22 @@ class TcpTransporter extends Transporter {
 					node.seq = seq + 1;
 
 					const info = this.registry.getNodeInfo(node.id);
-					response.online[node.id] = [info, node.cpuWhen || 0, node.cpu || 0];
+					response.online[node.id] = [info, node.cpuSeq || 0, node.cpu || 0];
 				}
 
 			} else if (online) {
 				// Requester said it is ONLINE
 
 				if (node.available) {
-					if (cpuWhen > node.cpuWhen) {
+					if (cpuSeq > node.cpuSeq) {
 						// We update CPU info
 						node.heartbeat({
 							cpu,
-							cpuWhen
+							cpuSeq
 						});
-					} else if (cpuWhen < node.cpuWhen) {
+					} else if (cpuSeq < node.cpuSeq) {
 						// We have newer CPU value, send back
-						response.online[node.id] = [node.cpuWhen || 0, node.cpu || 0];
+						response.online[node.id] = [node.cpuSeq || 0, node.cpu || 0];
 					}
 				}
 				else {
@@ -496,14 +504,14 @@ class TcpTransporter extends Transporter {
 				const row = payload.online[nodeID];
 				if (!Array.isArray(row)) return;
 
-				let info, cpu, cpuWhen;
+				let info, cpu, cpuSeq;
 
 				if (row.length == 1)
 					info = row[0];
 				else if (row.length == 2)
-					[cpuWhen, cpu] = row;
+					[cpuSeq, cpu] = row;
 				else if (row.length == 3)
-					[info, cpuWhen, cpu] = row;
+					[info, cpuSeq, cpu] = row;
 
 				let node = this.nodes.get(nodeID);
 				if (info && (!node || node.seq < info.seq)) {
@@ -512,11 +520,11 @@ class TcpTransporter extends Transporter {
 					node = this.nodes.processNodeInfo(info);
 				}
 
-				if (node && cpuWhen && cpuWhen > node.cpuWhen) {
+				if (node && cpuSeq && cpuSeq > node.cpuSeq) {
 					// Update CPU
 					node.heartbeat({
 						cpu,
-						cpuWhen
+						cpuSeq
 					});
 				}
 			});
