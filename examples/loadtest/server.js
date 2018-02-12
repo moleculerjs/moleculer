@@ -34,6 +34,7 @@ broker.createService({
 	name: "perf",
 	actions: {
 		reply(ctx) {
+			broker._callCount++;
 			return ctx.params;
 		}
 	}
