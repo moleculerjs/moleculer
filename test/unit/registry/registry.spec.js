@@ -15,7 +15,7 @@ describe("Test Registry constructor", () => {
 		expect(registry.broker).toBe(broker);
 		expect(registry.logger).toBeDefined();
 
-		expect(registry.opts).toEqual({ "circuitBreaker": {"enabled": false, "failureOnReject": true, "failureOnTimeout": true, "halfOpenTime": 10000, "maxFailures": 3}, "preferLocal": true, strategy: Strategies.RoundRobin});
+		expect(registry.opts).toEqual({ "circuitBreaker": {"enabled": false, "failureOnReject": true, "failureOnTimeout": true, "halfOpenTime": 10000, "maxFailures": 3}, "preferLocal": true, strategy: "RoundRobin"});
 		expect(registry.StrategyFactory).toBe(Strategies.RoundRobin);
 		expect(registry.nodes).toBeDefined();
 		expect(registry.services).toBeDefined();
@@ -26,13 +26,13 @@ describe("Test Registry constructor", () => {
 	it("test different strategy", () => {
 		let broker = new ServiceBroker({
 			registry: {
-				strategy: Strategies.Random,
+				strategy: "Random",
 				preferLocal: false
 			}
 		});
 		let registry = new Registry(broker);
 
-		expect(registry.opts).toEqual({ "circuitBreaker": {"enabled": false, "failureOnReject": true, "failureOnTimeout": true, "halfOpenTime": 10000, "maxFailures": 3}, "preferLocal": false, strategy: Strategies.Random});
+		expect(registry.opts).toEqual({ "circuitBreaker": {"enabled": false, "failureOnReject": true, "failureOnTimeout": true, "halfOpenTime": 10000, "maxFailures": 3}, "preferLocal": false, strategy: "Random"});
 		expect(registry.StrategyFactory).toBe(Strategies.Random);
 	});
 
