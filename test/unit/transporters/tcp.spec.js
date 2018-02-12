@@ -130,6 +130,7 @@ describe("Test TcpTransporter connect & disconnect & reconnect", () => {
 		transporter.startUdpServer = jest.fn();
 		transporter.startTimers = jest.fn();
 		transporter.stopTimers = jest.fn();
+		transporter.loadUrls = jest.fn();
 	});
 
 	it("check connect", () => {
@@ -144,6 +145,27 @@ describe("Test TcpTransporter connect & disconnect & reconnect", () => {
 			expect(broker.registry.nodes.localNode.port).toBe(1234);
 
 			expect(transporter.onConnected).toHaveBeenCalledTimes(1);
+			expect(transporter.loadUrls).toHaveBeenCalledTimes(0);
+		});
+
+
+		return p;
+	});
+
+	it("check connect with loadUrls", () => {
+		transporter.onConnected = jest.fn(() => Promise.resolve());
+		transporter.opts.urls = [];
+
+		let p = transporter.connect().catch(protectReject).then(() => {
+			expect(transporter.connected).toBe(true);
+			expect(transporter.startTcpServer).toHaveBeenCalledTimes(1);
+			expect(transporter.startUdpServer).toHaveBeenCalledTimes(1);
+			expect(transporter.startTimers).toHaveBeenCalledTimes(1);
+
+			expect(broker.registry.nodes.localNode.port).toBe(1234);
+
+			expect(transporter.onConnected).toHaveBeenCalledTimes(1);
+			expect(transporter.loadUrls).toHaveBeenCalledTimes(1);
 		});
 
 
