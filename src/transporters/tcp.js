@@ -178,6 +178,11 @@ class TcpTransporter extends Transporter {
 	}
 
 	loadUrls() {
+		if (!this.opts.urls)
+			return Promise.resolve();
+		if (Array.isArray(this.opts.urls) && this.opts.urls.length == 0)
+			return Promise.resolve();
+
 		return Promise.resolve(this.opts.urls)
 			.then(str => {
 				if (_.isString(str) && str.startsWith("file://")) {
@@ -205,7 +210,6 @@ class TcpTransporter extends Transporter {
 				}
 
 				if (urls && urls.length > 0) {
-
 					urls.map(s => {
 						if (!s) return;
 
@@ -230,6 +234,8 @@ class TcpTransporter extends Transporter {
 							this.addOfflineNode(ep.nodeID, ep.host, ep.port);
 					});
 				}
+
+				this.nodes.disableOfflineNodeRemoving = true;
 			});
 	}
 

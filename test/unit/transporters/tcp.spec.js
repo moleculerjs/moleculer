@@ -514,6 +514,36 @@ describe("Test TcpTransporter loadUrls", () => {
 		return transporter.loadUrls().then(() => transporter);
 	}
 
+	it("check with null", () => {
+		return createTransporter({
+			urls: null
+		}).catch(protectReject).then(transporter => {
+			expect(transporter.addOfflineNode).toHaveBeenCalledTimes(0);
+			expect(transporter.logger.warn).toHaveBeenCalledTimes(0);
+			expect(transporter.nodes.disableOfflineNodeRemoving).toBe(false);
+		});
+	});
+
+	it("check with empty string", () => {
+		return createTransporter({
+			urls: ""
+		}).catch(protectReject).then(transporter => {
+			expect(transporter.addOfflineNode).toHaveBeenCalledTimes(0);
+			expect(transporter.logger.warn).toHaveBeenCalledTimes(0);
+			expect(transporter.nodes.disableOfflineNodeRemoving).toBe(false);
+		});
+	});
+
+	it("check with empty array", () => {
+		return createTransporter({
+			urls: []
+		}).catch(protectReject).then(transporter => {
+			expect(transporter.addOfflineNode).toHaveBeenCalledTimes(0);
+			expect(transporter.logger.warn).toHaveBeenCalledTimes(0);
+			expect(transporter.nodes.disableOfflineNodeRemoving).toBe(false);
+		});
+	});
+
 	it("check with string", () => {
 		return createTransporter({
 			urls: "tcp://192.168.0.1:5001/node-1, tcp://192.168.0.2:5002/node-2,192.168.0.3:5003/node-3,tcp://192.168.0.4:5004,tcp://192.168.0.123:5123/node-123,192.168.0.5/node-5"
@@ -526,6 +556,8 @@ describe("Test TcpTransporter loadUrls", () => {
 			expect(transporter.logger.warn).toHaveBeenCalledTimes(2);
 			expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing nodeID. URL:", "192.168.0.4:5004");
 			expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing port. URL:", "192.168.0.5/node-5");
+
+			expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
 		});
 	});
 
@@ -540,6 +572,8 @@ describe("Test TcpTransporter loadUrls", () => {
 				expect(transporter.logger.warn).toHaveBeenCalledTimes(2);
 				expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing nodeID. URL:", "192.168.0.4:5004");
 				expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing port. URL:", "192.168.0.5/node-5");
+
+				expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
 			});
 	});
 
@@ -562,6 +596,8 @@ describe("Test TcpTransporter loadUrls", () => {
 			expect(transporter.logger.warn).toHaveBeenCalledTimes(2);
 			expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing nodeID. URL:", "192.168.0.4:5004");
 			expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing port. URL:", "192.168.0.5/node-5");
+
+			expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
 		});
 	});
 
@@ -584,6 +620,8 @@ describe("Test TcpTransporter loadUrls", () => {
 
 			expect(transporter.logger.warn).toHaveBeenCalledTimes(1);
 			expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing port. URL:", "192.168.0.5/node-5");
+
+			expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
 		});
 	});
 
@@ -606,6 +644,8 @@ describe("Test TcpTransporter loadUrls", () => {
 				expect(transporter.logger.warn).toHaveBeenCalledTimes(2);
 				expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing nodeID. URL:", "192.168.0.4:5004");
 				expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing port. URL:", "192.168.0.5/node-5");
+
+				expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
 			});
 		});
 
@@ -637,6 +677,8 @@ describe("Test TcpTransporter loadUrls", () => {
 				expect(transporter.logger.warn).toHaveBeenCalledTimes(2);
 				expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing nodeID. URL:", "192.168.0.4:5004");
 				expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing port. URL:", "192.168.0.5/node-5");
+
+				expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
 			});
 		});
 	});

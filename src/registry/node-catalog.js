@@ -38,6 +38,7 @@ class NodeCatalog {
 		this.offlineTimer = null;
 
 		this.disableHeartbeatChecks = false;
+		this.disableOfflineNodeRemoving = false;
 
 		this.createLocalNode();
 
@@ -226,6 +227,8 @@ class NodeCatalog {
 	 * @memberOf Transit
 	 */
 	checkOfflineNodes() {
+		if (this.disableOfflineNodeRemoving) return;
+
 		const now = Date.now();
 		this.nodes.forEach(node => {
 			if (node.local || node.available) return;
