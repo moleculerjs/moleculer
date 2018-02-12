@@ -78,38 +78,3 @@ module.exports = {
 		}
 	}
 };
-
-
-/*
-let REQUEST = {
-	"ver": 3,
-	"sender": "node-1",
-	"host": "host",
-	"port": 1234,
-	"online": {
-		"node-01": [1, 3333, 3],  // seq, cpuSeq, cpu
-		"node-02": [1, 3333, 3],  // seq, cpuSeq, cpu
-		"node-03": [1, 3333, 3],  // seq, cpuSeq, cpu
-	},
-	"offline": {
-		"node-10": [1, 2222], // seq, offlineSince
-		"node-11": [1, 2222],
-		"node-12": [1, 2222]
-	}
-};
-
-let RESPONSE = {
-	"ver": 3,
-	"sender": "node-1",
-	"online": {
-		"node-01": [3333, 3],   // cpuSeq, cpu
-		"node-02": [{}],   // INFO
-		"node-03": [{}, 3333, 3] // INFO, cpuSeq, cpu
-	},
-	"offline": {
-		"node-10": [1, 2222], // seq, offlineSince
-		"node-11": [1, 2222],
-		"node-12": [1, 2222]
-	}
-};
-*/
