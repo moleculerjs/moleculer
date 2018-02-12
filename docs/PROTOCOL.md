@@ -175,8 +175,8 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `event` | `string` | ✔ | Event name. E.g.: `users.created` |
 | `data` | `object` |   | Event payload. (*) |
-| `groups` | `Array<string>` |   | Groups for balanced events. If `null` or empty, the event is broadcasted. |
-| `broadcast` | `boolean` | ✔ | Is it a broadcast message? |
+| `groups` | `Array<string>` |   | Groups for balanced events. |
+| `broadcast` | `boolean` | ✔ | Broadcast event |
 
 > (*) In case of `ProtoBuf`, `Avro` or any other schema-based serializer, the field value is encoded to JSON string.
 
