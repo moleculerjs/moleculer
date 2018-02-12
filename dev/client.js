@@ -15,13 +15,16 @@ let broker = new ServiceBroker({
 	transporter: {
 		type: "TCP",
 		options: {
+			udpDiscovery: false,
 			broadcastAddress: "255.255.255.255",
-			gossipPeriod: 5
+			gossipPeriod: 5,
+			port: 6001,
+			urls: "file://./dev/nodes.json"
 		}
 	},
 	//transporter: "kafka://192.168.0.181:2181",
 	//transporter: "amqp://192.168.0.181:5672",
-	serializer: "MsgPack",
+	//serializer: "MsgPack",
 	//requestTimeout: 1000,
 
 	//disableBalancer: true,

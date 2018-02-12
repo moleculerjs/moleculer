@@ -11,8 +11,9 @@
 			"program": "${workspaceRoot}/dev/index.js",
 			"cwd": "${workspaceRoot}",
 			"args": [
-				"gossip-viz"
-			]
+				"client",
+				"client-1"
+			],
 		},
 		{
 			"type": "node",

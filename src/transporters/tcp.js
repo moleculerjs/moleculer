@@ -9,6 +9,7 @@
 const Promise		= require("bluebird");
 const Transporter 	= require("./base");
 const _ 			= require("lodash");
+const fs 			= require("fs");
 const chalk 		= require("chalk");
 
 const Node 			= require("../registry/node");
@@ -51,6 +52,9 @@ class TcpTransporter extends Transporter {
 	 * @memberOf TcpTransporter
 	 */
 	constructor(opts) {
+		if (_.isString(opts))
+			opts = { urls: opts };
+
 		super(opts);
 
 		this.opts = Object.assign({
@@ -174,40 +178,59 @@ class TcpTransporter extends Transporter {
 	}
 
 	loadUrls() {
-		let urls;
-		if (Array.isArray(this.opts.urls)) {
-			urls = this.opts.urls;
-		} else if (_.isObject(this.opts.urls)) {
-			urls = [];
-			_.forIn(this.opts.urls, (s, nodeID) => urls.push(`${s}/${nodeID}`));
-		} else if (_.isString(this.opts.urls)) {
-			urls = this.opts.urls.split(",").map(s => s.trim());
-		}
+		return Promise.resolve(this.opts.urls)
+			.then(str => {
+				if (_.isString(str) && str.startsWith("file://")) {
+					const fName = str.replace("file://", "");
+					this.logger.debug(`Load nodes list from file '${fName}'...`);
+					let content = fs.readFileSync(fName);
+					if (content && content.length > 0) {
+						content = content.toString().trim();
+						if (content.startsWith("{") || content.startsWith("["))
+							return JSON.parse(content);
+						else
+							return content.split("\n").map(s => s.trim());
+					}
+				}
 
-		if (urls && urls.length > 0) {
+				return str;
+			})
+			.then(urls => {
+				if (_.isString(urls)) {
+					urls = urls.split(",").map(s => s.trim());
+				} else if (_.isObject(urls) && !Array.isArray(urls)) {
+					const list = [];
+					_.forIn(urls, (s, nodeID) => list.push(`${s}/${nodeID}`));
+					urls = list;
+				}
 
-			urls.map(s => {
-				if (s.startsWith("tcp://"))
-					s = s.replace("tcp://", "");
+				if (urls && urls.length > 0) {
 
-				const p = s.split("/");
-				if (p.length != 2)
-					return this.logger.warn("Invalid endpoint URL. Missing nodeID. URL:", s);
+					urls.map(s => {
+						if (!s) return;
 
-				const u = p[0].split(":");
-				if (u.length < 2)
-					return this.logger.warn("Invalid endpoint URL. Missing port. URL:", s);
+						if (s.startsWith("tcp://"))
+							s = s.replace("tcp://", "");
 
-				const nodeID = p[1];
-				const port = Number(u.pop());
-				const host = u.join(":"); // support IPv6 addresses
+						const p = s.split("/");
+						if (p.length != 2)
+							return this.logger.warn("Invalid endpoint URL. Missing nodeID. URL:", s);
 
-				return { nodeID, host, port };
-			}).forEach(ep => {
-				if (ep)
-					this.addOfflineNode(ep.nodeID, ep.host, ep.port);
+						const u = p[0].split(":");
+						if (u.length < 2)
+							return this.logger.warn("Invalid endpoint URL. Missing port. URL:", s);
+
+						const nodeID = p[1];
+						const port = Number(u.pop());
+						const host = u.join(":"); // support IPv6 addresses
+
+						return { nodeID, host, port };
+					}).forEach(ep => {
+						if (ep && ep.nodeID != this.nodeID)
+							this.addOfflineNode(ep.nodeID, ep.host, ep.port);
+					});
+				}
 			});
-		}
 	}
 
 	/**
