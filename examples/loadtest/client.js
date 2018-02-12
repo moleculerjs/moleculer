@@ -10,7 +10,7 @@ let transporter = process.env.TRANSPORTER || "TCP";
 
 // Create broker
 let broker = new ServiceBroker({
-	namespace: "",
+	namespace: "loadtest",
 	nodeID: process.argv[2] || "client",
 	transporter,
 	logger: console,
