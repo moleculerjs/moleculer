@@ -147,6 +147,20 @@ describe("Test UdpServer.bind", () => {
 		});
 
 	});
+
+	it("should not discovering", () => {
+		dgram.createSocket = jest.fn();
+
+		udp = new UdpServer(transporter, {
+			udpDiscovery: false
+		});
+
+		return udp.bind().catch(protectReject).then(() => {
+			expect(udp.server).toBeNull();
+			expect(dgram.createSocket).toHaveBeenCalledTimes(0);
+		});
+
+	});
 });
 
 describe("Test UdpServer.discover", () => {

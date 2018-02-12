@@ -69,7 +69,7 @@ class TcpTransporter extends Transporter {
 
 			// TCP options
 			port: null, // random port,
-			urls: null, // TODO: URLs of remote endpoints
+			urls: null, // Remote node addresses (if no UDP discovery)
 			useHostname: true,
 
 			gossipPeriod: 2, // seconds

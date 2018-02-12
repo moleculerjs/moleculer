@@ -48,46 +48,55 @@ class UdpServer extends EventEmitter {
 	 */
 	bind() {
 		return new Promise((resolve, reject) => {
+			if (this.opts.udpDiscovery === false)
+				return resolve();
 
-			const server = dgram.createSocket({type: "udp4", reuseAddr: this.opts.udpReuseAddr });
+			try {
+				const server = dgram.createSocket({type: "udp4", reuseAddr: this.opts.udpReuseAddr });
 
-			server.on("message", this.onMessage.bind(this));
+				server.on("message", this.onMessage.bind(this));
 
-			server.on("error", err => {
-				this.logger.error("UDP server binding error!", err);
+				server.on("error", err => {
+					this.logger.error("UDP server binding error!", err);
 
-				if (reject)
-					reject(err);
-			});
+					if (reject)
+						reject(err);
+				});
 
-			const host = this.opts.udpBindAddress;
-			const port = this.opts.broadcastPort || 4445;
+				const host = this.opts.udpBindAddress;
+				const port = this.opts.broadcastPort || 4445;
 
-			server.bind({ port, host, exclusive: true }, () => {
-				this.logger.info(`UDP server is listening on ${port}`);
+				server.bind({ port, host, exclusive: true }, () => {
+					this.logger.info(`UDP server is listening on ${port}`);
 
-				try {
-					if (this.opts.multicastAddress) {
-						server.addMembership(this.opts.multicastAddress);
-						server.setMulticastTTL(this.opts.multicastTTL || 1);
-					} else {
-						server.setBroadcast(true);
+					try {
+						if (this.opts.multicastAddress) {
+							server.addMembership(this.opts.multicastAddress);
+							server.setMulticastTTL(this.opts.multicastTTL || 1);
+						} else {
+							server.setBroadcast(true);
+						}
+					} catch(err) {
+						// Silent exception. In cluster it throw error
 					}
-				} catch(err) {
-					// Silent exception. In cluster it throw error
-				}
 
-				// Send first discover message after 1 sec
-				setTimeout(() => this.discover(), 1000);
+					// Send first discover message after 1 sec
+					setTimeout(() => this.discover(), 1000);
 
-				this.startDiscovering();
+					this.startDiscovering();
 
+					resolve();
+
+					reject = null;
+				});
+
+				this.server = server;
+
+			} catch(err) {
+				this.logger.warn("Unable to start UDP discovery server. Message:", err.message);
 				resolve();
+			}
 
-				reject = null;
-			});
-
-			this.server = server;
 		});
 	}
 

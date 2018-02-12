@@ -331,15 +331,18 @@ class Transit {
 		const id = packet.id;
 		const req = this.pendingRequests.get(id);
 
-		// If not exists (timed out), we skip to process the response
-		if (req == null) return;
+		// If not exists (timed out), we skip response processing
+		if (req == null) {
+			this.logger.debug("Orphaned response. Maybe the request timed out. ID:", packet.id, ", Sender:", packet.sender);
+			return;
+		}
 
 		// Remove pending request
 		this.removePendingRequest(id);
 
 		this.logger.debug(`Response '${req.action.name}' received from '${packet.sender}'.`);
 
-		// Update nodeID in context (if it use external balancer)
+		// Update nodeID in context (if it uses external balancer)
 		req.ctx.nodeID = packet.sender;
 
 		// Merge response meta with original meta

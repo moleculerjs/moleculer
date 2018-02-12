@@ -48,7 +48,7 @@ const defaultOptions = {
 	disableBalancer: false,
 
 	registry: {
-		strategy: Strategies.RoundRobin,
+		strategy: "RoundRobin",
 		preferLocal: true
 	},
 
