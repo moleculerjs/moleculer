@@ -24,6 +24,7 @@ describe("Test NodeCatalog constructor", () => {
 		expect(catalog.offlineTimer).toBeNull();
 
 		expect(catalog.disableHeartbeatChecks).toBe(false);
+		expect(catalog.disableOfflineNodeRemoving).toBe(false);
 
 		expect(catalog.localNode).toBeDefined();
 		expect(catalog.localNode.id).toBe(broker.nodeID);
