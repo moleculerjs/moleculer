@@ -685,7 +685,7 @@ describe("Test TcpTransporter loadUrls", () => {
 });
 
 
-describe("TODO Test TcpTransporter onIncomingMessage", () => {
+describe("Test TcpTransporter onIncomingMessage", () => {
 	let broker = new ServiceBroker({ namespace: "TEST", nodeID: "node-123" });
 	let transit = new Transit(broker);
 	let transporter;

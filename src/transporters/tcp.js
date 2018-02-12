@@ -31,14 +31,6 @@ const TcpWriter		= require("./tcp/tcp-writer");
  * truly horizontally scalable. This transporter aims to run on top of an
  * infrastructure of hundreds of nodes.
  *
- * TODO:
- * 	- urls
- *  	- urls: ["192.168.0.1:3000/node-1", "tcp://192.168.0.2:3000/node-2", ...]
- *  	- urls: { "node-1": "192.168.0.1:3000", "node-2: "tcp://192.168.0.2:3000", ...}
- *  	- urls: "http://central-server/node-list.json" // Download endpoint list from URL
- * 		- transporter: "tcp://192.168.0.1:3000/node-1, 192.168.0.2:3000/node-2"
- *  - integration tests
- *
  * @class TcpTransporter
  * @extends {Transporter}
  */
@@ -74,7 +66,7 @@ class TcpTransporter extends Transporter {
 
 			// TCP options
 			port: null, // random port,
-			urls: null, // Remote node addresses (if no UDP discovery)
+			urls: null, // Remote node addresses (when UDP discovery is not available)
 			useHostname: true,
 
 			gossipPeriod: 2, // seconds
