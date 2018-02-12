@@ -48,8 +48,10 @@ class UdpServer extends EventEmitter {
 	 */
 	bind() {
 		return new Promise((resolve, reject) => {
-			if (this.opts.udpDiscovery === false)
+			if (this.opts.udpDiscovery === false) {
+				this.logger.info("UDP Discovery is disabled.");
 				return resolve();
+			}
 
 			try {
 				const server = dgram.createSocket({type: "udp4", reuseAddr: this.opts.udpReuseAddr });
@@ -67,7 +69,7 @@ class UdpServer extends EventEmitter {
 				const port = this.opts.broadcastPort || 4445;
 
 				server.bind({ port, host, exclusive: true }, () => {
-					this.logger.info(`UDP server is listening on ${port}`);
+					this.logger.info(`UDP Discovery Server is listening on port ${port}`);
 
 					try {
 						if (this.opts.multicastAddress) {
@@ -93,7 +95,7 @@ class UdpServer extends EventEmitter {
 				this.server = server;
 
 			} catch(err) {
-				this.logger.warn("Unable to start UDP discovery server. Message:", err.message);
+				this.logger.warn("Unable to start UDP Discovery Server. Message:", err.message);
 				resolve();
 			}
 

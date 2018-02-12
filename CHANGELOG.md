@@ -5,6 +5,7 @@
 
 ## Protocol changed
 The protocol is changed. The new version is `3`. [Check the changes.](https://github.com/ice-services/moleculer/blob/aa56e0072f4726dcd3a72ef164c3e13ad377bfc2/docs/PROTOCOL.md)
+**It means, the >=0.12.x versions can't communicate with old <=0.11 versions.**
 
 **Changes:**
 - the `RESPONSE` packet has a new field `meta`.

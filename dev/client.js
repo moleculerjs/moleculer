@@ -18,8 +18,8 @@ let broker = new ServiceBroker({
 			udpDiscovery: false,
 			broadcastAddress: "255.255.255.255",
 			gossipPeriod: 5,
-			port: 6001,
-			urls: "file://./dev/nodes.json"
+			urls: "file://./dev/nodes.json",
+			debug: true
 		}
 	},
 	//transporter: "kafka://192.168.0.181:2181",

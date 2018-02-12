@@ -80,7 +80,7 @@ class TcpTransporter extends Transporter {
 
 		this.gossipTimer = null;
 
-		this.GOSSIP_DEBUG = false;
+		this.GOSSIP_DEBUG = !!this.opts.debug;
 	}
 
 	/**
@@ -109,6 +109,11 @@ class TcpTransporter extends Transporter {
 	 */
 	connect() {
 		return Promise.resolve()
+			.then(() => {
+				// Load offline nodes
+				if (this.opts.urls)
+					return this.loadUrls();
+			})
 			.then(() => this.startTcpServer())
 			.then(() => this.startUdpServer())
 			.then(() => this.startTimers())
@@ -118,10 +123,6 @@ class TcpTransporter extends Transporter {
 
 				// Set the opened TCP port (because it is a random port by default)
 				this.nodes.localNode.port = this.opts.port;
-
-				// Load offline nodes
-				if (this.opts.urls)
-					return this.loadUrls();
 			})
 			.then(() => this.onConnected());
 	}
@@ -222,8 +223,16 @@ class TcpTransporter extends Transporter {
 
 						return { nodeID, host, port };
 					}).forEach(ep => {
-						if (ep && ep.nodeID != this.nodeID)
+						if (!ep)
+							return;
+
+						if (ep.nodeID == this.nodeID) {
+							// Read port from urls
+							this.opts.port = ep.port;
+						} else {
+							// Create node as offline
 							this.addOfflineNode(ep.nodeID, ep.host, ep.port);
+						}
 					});
 				}
 
