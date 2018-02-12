@@ -475,6 +475,105 @@ describe("Test TcpTransporter startUdpServer", () => {
 
 });
 
+
+describe("Test TcpTransporter loadUrls", () => {
+	let broker = new ServiceBroker({ namespace: "TEST", nodeID: "node-123" });
+	let transit = new Transit(broker);
+
+	function createTransporter(opts) {
+		const transporter = new TcpTransporter(opts);
+		transporter.init(transit);
+		transporter.logger.warn = jest.fn();
+		transporter.addOfflineNode = jest.fn();
+		transporter.loadUrls();
+		return transporter;
+	}
+
+	it("check with string", () => {
+		const transporter = createTransporter({
+			urls: "tcp://192.168.0.1:5001/node-1, tcp://192.168.0.2:5002/node-2,192.168.0.3:5003/node-3,tcp://192.168.0.4:5004,192.168.0.5/node-5"
+		});
+
+		expect(transporter.addOfflineNode).toHaveBeenCalledTimes(3);
+		expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-1", "192.168.0.1", 5001);
+		expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-2", "192.168.0.2", 5002);
+		expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-3", "192.168.0.3", 5003);
+
+		expect(transporter.logger.warn).toHaveBeenCalledTimes(2);
+		expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing nodeID. URL:", "192.168.0.4:5004");
+		expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing port. URL:", "192.168.0.5/node-5");
+	});
+
+	it("check with array", () => {
+		const transporter = createTransporter({
+			urls: [
+				"tcp://192.168.0.1:5001/node-1",
+				"tcp://192.168.0.2:5002/node-2",
+				"192.168.0.3:5003/node-3",
+				"tcp://192.168.0.4:5004",
+				"192.168.0.5/node-5"
+			]
+		});
+
+		expect(transporter.addOfflineNode).toHaveBeenCalledTimes(3);
+		expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-1", "192.168.0.1", 5001);
+		expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-2", "192.168.0.2", 5002);
+		expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-3", "192.168.0.3", 5003);
+
+		expect(transporter.logger.warn).toHaveBeenCalledTimes(2);
+		expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing nodeID. URL:", "192.168.0.4:5004");
+		expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing port. URL:", "192.168.0.5/node-5");
+	});
+
+	it("check with object", () => {
+		const transporter = createTransporter({
+			urls: {
+				"node-1": "tcp://192.168.0.1:5001",
+				"node-2": "tcp://192.168.0.2:5002",
+				"node-3": "192.168.0.3:5003",
+				"node-4": "tcp://192.168.0.4:5004",
+				"node-5": "192.168.0.5"
+			}
+		});
+
+		expect(transporter.addOfflineNode).toHaveBeenCalledTimes(4);
+		expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-1", "192.168.0.1", 5001);
+		expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-2", "192.168.0.2", 5002);
+		expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-3", "192.168.0.3", 5003);
+		expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-4", "192.168.0.4", 5004);
+
+		expect(transporter.logger.warn).toHaveBeenCalledTimes(1);
+		expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing port. URL:", "192.168.0.5/node-5");
+	});
+
+});
+
+
+describe.skip("TODO Test TcpTransporter onIncomingMessage", () => {
+	/*let broker = new ServiceBroker({ namespace: "TEST", nodeID: "node-123" });
+	let transit = new Transit(broker);
+	let transporter;
+
+	beforeEach(() => {
+		transporter = new TcpTransporter();
+		transporter.init(transit);
+	});
+
+	it("check startTimers", () => {
+		expect(transporter.gossipTimer).toBeNull();
+		transporter.startTimers();
+		expect(transporter.gossipTimer).toBeDefined();
+	});
+
+	it("check startTimers", () => {
+		transporter.startTimers();
+		expect(transporter.gossipTimer).toBeDefined();
+		transporter.stopTimers();
+		expect(transporter.gossipTimer).toBeNull();
+	});*/
+
+});
+
 describe("Test Gossip methods", () => {
 	let broker = new ServiceBroker({ namespace: "TEST", nodeID: "node-1" });
 	let transit = new Transit(broker);

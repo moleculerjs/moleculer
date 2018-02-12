@@ -8,6 +8,7 @@
 
 const Promise		= require("bluebird");
 const Transporter 	= require("./base");
+const _ 			= require("lodash");
 const chalk 		= require("chalk");
 
 const Node 			= require("../registry/node");
@@ -122,8 +123,11 @@ class TcpTransporter extends Transporter {
 				// Set the opened TCP port (because it is a random port by default)
 				this.nodes.localNode.port = this.opts.port;
 
-				return this.onConnected();
-			});
+				// Load offline nodes
+				if (this.opts.urls)
+					return this.loadUrls();
+			})
+			.then(() => this.onConnected());
 	}
 
 	/**
@@ -167,6 +171,43 @@ class TcpTransporter extends Transporter {
 		});
 
 		return this.udpServer.bind();
+	}
+
+	loadUrls() {
+		let urls;
+		if (Array.isArray(this.opts.urls)) {
+			urls = this.opts.urls;
+		} else if (_.isObject(this.opts.urls)) {
+			urls = [];
+			_.forIn(this.opts.urls, (s, nodeID) => urls.push(`${s}/${nodeID}`));
+		} else if (_.isString(this.opts.urls)) {
+			urls = this.opts.urls.split(",").map(s => s.trim());
+		}
+
+		if (urls && urls.length > 0) {
+
+			urls.map(s => {
+				if (s.startsWith("tcp://"))
+					s = s.replace("tcp://", "");
+
+				const p = s.split("/");
+				if (p.length != 2)
+					return this.logger.warn("Invalid endpoint URL. Missing nodeID. URL:", s);
+
+				const u = p[0].split(":");
+				if (u.length < 2)
+					return this.logger.warn("Invalid endpoint URL. Missing port. URL:", s);
+
+				const nodeID = p[1];
+				const port = Number(u.pop());
+				const host = u.join(":"); // support IPv6 addresses
+
+				return { nodeID, host, port };
+			}).forEach(ep => {
+				if (ep)
+					this.addOfflineNode(ep.nodeID, ep.host, ep.port);
+			});
+		}
 	}
 
 	/**
