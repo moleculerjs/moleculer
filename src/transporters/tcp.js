@@ -228,7 +228,8 @@ class TcpTransporter extends Transporter {
 
 						if (ep.nodeID == this.nodeID) {
 							// Read port from urls
-							this.opts.port = ep.port;
+							if (!this.opts.port)
+								this.opts.port = ep.port;
 						} else {
 							// Create node as offline
 							this.addOfflineNode(ep.nodeID, ep.host, ep.port);

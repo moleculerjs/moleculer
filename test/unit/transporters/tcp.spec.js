@@ -546,7 +546,8 @@ describe("Test TcpTransporter loadUrls", () => {
 
 	it("check with string", () => {
 		return createTransporter({
-			urls: "tcp://192.168.0.1:5001/node-1, tcp://192.168.0.2:5002/node-2,192.168.0.3:5003/node-3,tcp://192.168.0.4:5004,tcp://192.168.0.123:5123/node-123,192.168.0.5/node-5"
+			urls: "tcp://192.168.0.1:5001/node-1, tcp://192.168.0.2:5002/node-2,192.168.0.3:5003/node-3,tcp://192.168.0.4:5004,tcp://192.168.0.123:5123/node-123,192.168.0.5/node-5",
+			port: 1234
 		}).catch(protectReject).then(transporter => {
 			expect(transporter.addOfflineNode).toHaveBeenCalledTimes(3);
 			expect(transporter.addOfflineNode).toHaveBeenCalledWith("node-1", "192.168.0.1", 5001);
@@ -557,6 +558,7 @@ describe("Test TcpTransporter loadUrls", () => {
 			expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing nodeID. URL:", "192.168.0.4:5004");
 			expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing port. URL:", "192.168.0.5/node-5");
 
+			expect(transporter.opts.port).toBe(1234);
 			expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
 		});
 	});
@@ -573,6 +575,7 @@ describe("Test TcpTransporter loadUrls", () => {
 				expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing nodeID. URL:", "192.168.0.4:5004");
 				expect(transporter.logger.warn).toHaveBeenCalledWith("Invalid endpoint URL. Missing port. URL:", "192.168.0.5/node-5");
 
+				expect(transporter.opts.port).toBe(5123);
 				expect(transporter.nodes.disableOfflineNodeRemoving).toBe(true);
 			});
 	});
@@ -871,147 +874,6 @@ describe("Test Gossip methods", () => {
 
 	});
 
-	/*describe("Test sendGossipRequest", () => {
-		const nodes = [
-			{ id: "node-1", seq: 1, available: true, cpu: 10, cpuSeq: 1010, local: true },
-			{ id: "node-2", seq: 2, available: true, cpu: 20, cpuSeq: 2020 },
-			{ id: "node-3", seq: 3, available: true, cpu: 30, cpuSeq: 3030 },
-			{ id: "node-4", seq: 4, available: false },
-			{ id: "node-5", seq: 5, available: false },
-		];
-		beforeEach(() => {
-			transporter.sendGossipToRandomEndpoint = jest.fn();
-			transporter.nodes.toArray = jest.fn(() => nodes);
-		});
-
-		it("should not call sendGossipToRandomEndpoint if no remote node", () => {
-			transporter.nodes.toArray = jest.fn(() => [nodes[0]]);
-			transporter.sendGossipRequest();
-
-			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledTimes(0);
-		});
-
-		it("should sendGossipToRandomEndpoint a GOSSIP_REQ packet to online node", () => {
-			Math.random = jest.fn(() => 100);
-			transporter.sendGossipRequest();
-
-			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledTimes(1);
-			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledWith({
-				online: {
-					"node-1": [1, 1010, 10],
-					"node-2": [2, 2020, 20],
-					"node-3": [3, 3030, 30]
-				},
-				offline: {
-					"node-4": 4,
-					"node-5": 5
-				}
-			}, [nodes[1], nodes[2]]);
-		});
-
-		it("should sendGossipToRandomEndpoint a GOSSIP_REQ packet to offline node", () => {
-			Math.random = jest.fn(() => 0);
-			transporter.sendGossipRequest();
-
-			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledTimes(2);
-			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledWith({
-				online: {
-					"node-1": [1, 1010, 10],
-					"node-2": [2, 2020, 20],
-					"node-3": [3, 3030, 30]
-				},
-				offline: {
-					"node-4": 4,
-					"node-5": 5
-				}
-			}, [nodes[1], nodes[2]]);
-			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledWith({
-				online: {
-					"node-1": [1, 1010, 10],
-					"node-2": [2, 2020, 20],
-					"node-3": [3, 3030, 30]
-				},
-				offline: {
-					"node-4": 4,
-					"node-5": 5
-				}
-			}, [nodes[3], nodes[4]]);
-		});
-
-	});
-
-	describe("Test processGossipRequest", () => {
-		const nodes = [
-			{ id: "node-1", seq: 1, available: true, cpu: 10, cpuSeq: 1010, local: true },
-			{ id: "node-2", seq: 2, available: true, cpu: 20, cpuSeq: 2020 },
-			{ id: "node-3", seq: 3, available: true, cpu: 30, cpuSeq: 3030 },
-			{ id: "node-4", seq: 4, available: false },
-			{ id: "node-5", seq: 5, available: false },
-		];
-		beforeEach(() => {
-			transporter.deserialize = jest.fn((type, msg) => msg);
-			transporter.publish = jest.fn();
-			transporter.addOfflineNode = jest.fn();
-			transporter.nodes.toArray = jest.fn(() => nodes);
-			transporter.nodes.get = jest.fn(() => null);
-		});
-
-		it("should update local nodes and generate response", () => {
-			transporter.nodes.toArray = jest.fn(() => [nodes[0]]);
-			transporter.sendGossipRequest();
-
-			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledTimes(0);
-		});
-
-		it("should sendGossipToRandomEndpoint a GOSSIP_REQ packet to online node", () => {
-			Math.random = jest.fn(() => 100);
-			transporter.sendGossipRequest();
-
-			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledTimes(1);
-			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledWith({
-				online: {
-					"node-1": [1, 1010, 10],
-					"node-2": [2, 2020, 20],
-					"node-3": [3, 3030, 30]
-				},
-				offline: {
-					"node-4": 4,
-					"node-5": 5
-				}
-			}, [nodes[1], nodes[2]]);
-		});
-
-		it("should sendGossipToRandomEndpoint a GOSSIP_REQ packet to offline node", () => {
-			Math.random = jest.fn(() => 0);
-			transporter.sendGossipRequest();
-
-			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledTimes(2);
-			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledWith({
-				online: {
-					"node-1": [1, 1010, 10],
-					"node-2": [2, 2020, 20],
-					"node-3": [3, 3030, 30]
-				},
-				offline: {
-					"node-4": 4,
-					"node-5": 5
-				}
-			}, [nodes[1], nodes[2]]);
-			expect(transporter.sendGossipToRandomEndpoint).toHaveBeenCalledWith({
-				online: {
-					"node-1": [1, 1010, 10],
-					"node-2": [2, 2020, 20],
-					"node-3": [3, 3030, 30]
-				},
-				offline: {
-					"node-4": 4,
-					"node-5": 5
-				}
-			}, [nodes[3], nodes[4]]);
-		});
-
-	});	*/
-
 	describe("Test sendGossipToRandomEndpoint", () => {
 		const endpoints = [
 			{ id: "node-1" },
@@ -1023,6 +885,14 @@ describe("Test Gossip methods", () => {
 		const data = {
 			a: 5
 		};
+
+		it("should not publish if no endpoint", () => {
+			transporter.publish = jest.fn(() => Promise.resolve());
+
+			transporter.sendGossipToRandomEndpoint(data, []);
+
+			expect(transporter.publish).toHaveBeenCalledTimes(0);
+		});
 
 		it("should select a random endpoint and publish", () => {
 			Math.random = jest.fn(() => .6);
