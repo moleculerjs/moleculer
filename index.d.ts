@@ -64,8 +64,12 @@ declare namespace Moleculer {
 		generateID(): string;
 		setParams(newParams: GenericObject, cloning?: boolean): void;
 		call(actionName: string, params?: GenericObject, opts?: GenericObject): Bluebird<any>;
-		emit(eventName: string, data: any, groups: any): void;
-		broadcast(eventName: string, data: any, groups: any): void;
+		emit(eventName: string, data: any, groups: Array<string>): void;
+		emit(eventName: string, data: any, groups: string): void;
+		emit(eventName: string, data: any): void;
+		broadcast(eventName: string, data: any, groups: Array<string>): void;
+		broadcast(eventName: string, data: any, groups: string): void;
+		broadcast(eventName: string, data: any): void;
 
 		static create(broker: ServiceBroker, action: Action, nodeID: string, params: GenericObject, opts: GenericObject): Context;
 		static create(broker: ServiceBroker, action: Action, nodeID: string, opts: GenericObject): Context;
@@ -92,6 +96,8 @@ declare namespace Moleculer {
 	type ServiceEvents = { [key: string]: ServiceEventHandler | ServiceLocalEventHandler };
 
 	type ServiceMethods = { [key: string]: ((...args: any[]) => any) } & ThisType<Service>;
+
+	type Middleware = (handler: ActionHandler, action: Action) => any;
 
 	interface ServiceSchema {
 		name: string;
@@ -191,11 +197,11 @@ declare namespace Moleculer {
 		ServiceFactory?: Service;
 		ContextFactory?: Context;
 
-		middlewares?: Array<Function>;
+		middlewares?: Array<Middleware>;
 
-		created?: Function;
-		started?: Function;
-		stopped?: Function;
+		created?: (broker: ServiceBroker) => void;
+		started?: (broker: ServiceBroker) => void;
+		stopped?: (broker: ServiceBroker) => void;
 	}
 
 	interface NodeHealthStatus {
