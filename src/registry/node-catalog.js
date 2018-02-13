@@ -233,8 +233,8 @@ class NodeCatalog {
 		this.nodes.forEach(node => {
 			if (node.local || node.available) return;
 
-			if (now - (node.lastHeartbeatTime || 0) > 3 * 60 * 1000) {
-				this.logger.warn(`Remove offline '${node.id}' node from registry because it hasn't submitted heartbeat signal for 180 seconds.`);
+			if (now - (node.lastHeartbeatTime || 0) > 10 * 60 * 1000) {
+				this.logger.warn(`Remove offline '${node.id}' node from registry because it hasn't submitted heartbeat signal for 10 minutes.`);
 				return this.nodes.delete(node.id);
 			}
 		});
