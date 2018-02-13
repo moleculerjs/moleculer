@@ -59,7 +59,9 @@ class Registry {
 			this.registerEvents(this.nodes.localNode, service, svc.events);
 
 		this.nodes.localNode.services.push(service);
-		this.nodes.localNode.seq++;
+
+		if (this.broker.started)
+			this.nodes.localNode.seq++;
 
 		this.logger.info(`'${svc.name}' service is registered.`);
 	}

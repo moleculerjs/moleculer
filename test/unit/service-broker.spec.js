@@ -58,7 +58,7 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.cacher).toBeNull();
 		expect(broker.serializer).toBeInstanceOf(Serializers.JSON);
 		expect(broker.validator).toBeDefined();
-		expect(broker.transit).toBeUndefined();
+		expect(broker.transit).toBeDefined();
 		expect(broker.statistics).toBeUndefined();
 
 		expect(broker.getLocalService("$node")).toBeDefined();
@@ -75,6 +75,7 @@ describe("Test ServiceBroker constructor", () => {
 		let broker = new ServiceBroker( {
 			namespace: "test",
 			nodeID: "server-12",
+			transporter: null,
 			heartbeatTimeout: 20,
 			metrics: true,
 			metricsRate: 0.5,
@@ -853,7 +854,7 @@ describe("Test broker.getLogger", () => {
 		let broker;
 
 		it("should call logger function with broker bindings", () => {
-			broker = new ServiceBroker({ internalServices: false, logger, namespace: "testing", nodeID: "test-pc" });
+			broker = new ServiceBroker({ internalServices: false, logger, namespace: "testing", nodeID: "test-pc", transporter: null });
 
 			expect(logger).toHaveBeenCalledTimes(2);
 			expect(logger).toHaveBeenCalledWith({"mod": "broker", "nodeID": "test-pc", "ns": "testing"});
@@ -2367,7 +2368,7 @@ describe("Test broker.shouldMetric", () => {
 });
 
 describe("Test broker.emit", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ transporter: null });
 	let handler = jest.fn();
 	broker.registry.events.getBalancedEndpoints = jest.fn(() => [
 		[{

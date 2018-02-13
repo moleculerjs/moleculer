@@ -12,16 +12,14 @@ let ServiceBroker = require("../src/service-broker");
 let broker = new ServiceBroker({
 	namespace: "",
 	nodeID: process.argv[2] || "client-" + process.pid,
-	transporter: {
+	/*transporter: {
 		type: "TCP",
 		options: {
-			udpDiscovery: false,
-			broadcastAddress: "255.255.255.255",
-			gossipPeriod: 5,
-			urls: "file://./dev/nodes.json",
+			//udpDiscovery: false,
+			//urls: "file://./dev/nodes.json",
 			debug: true
 		}
-	},
+	},*/
 	//transporter: "kafka://192.168.0.181:2181",
 	//transporter: "amqp://192.168.0.181:5672",
 	//serializer: "MsgPack",

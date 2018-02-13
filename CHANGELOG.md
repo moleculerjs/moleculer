@@ -35,9 +35,107 @@ To support [#188](https://github.com/ice-services/moleculer/issues/188), mixins 
 ```
 
 ## Removed extra wrapper from transporter options
-TODO
+If you are using transporter options, you will need to migrate them. We removed the transporter specific wrapper from options (`nats`, `redis`, `mqtt`, `amqp`).
 
+**Before**
+```js
+// NATS transporter
+let broker = new ServiceBroker({
+    transporter: {
+        type: "NATS",
+        options: {
+            nats: {
+                user: "admin",
+                pass: "1234"    
+            }
+        }
+    }
+});
 
+// Redis transporter
+let broker = new ServiceBroker({
+    transporter: {
+        type: "Redis",
+        options: {
+            redis: {
+                port: 6379,
+                db: 0
+            }
+        }
+    }
+});
+
+// MQTT transporter
+let broker = new ServiceBroker({
+    transporter: {
+        type: "MQTT",
+        options: {
+            mqtt: {
+                user: "admin",
+                pass: "1234"    
+            }
+        }
+    }
+});
+
+// AMQP transporter
+let broker = new ServiceBroker({
+    transporter: {
+        type: "AMQP",
+        options: {
+            amqp: {
+                prefetch: 1 
+            }
+        }
+    }
+});
+```
+
+**After**
+```js
+// NATS transporter
+let broker = new ServiceBroker({
+    transporter: {
+        type: "NATS",
+        options: {
+            user: "admin",
+            pass: "1234"    
+        }
+    }
+});
+
+// Redis transporter
+let broker = new ServiceBroker({
+    transporter: {
+        type: "Redis",
+        options: {
+            port: 6379,
+            db: 0
+        }
+    }
+});
+
+// MQTT transporter
+let broker = new ServiceBroker({
+    transporter: {
+        type: "MQTT",
+        options: {
+            user: "admin",
+            pass: "1234"    
+        }
+    }
+});
+
+// AMQP transporter
+let broker = new ServiceBroker({
+    transporter: {
+        type: "AMQP",
+        options: {
+            prefetch: 1 
+        }
+    }
+});
+```
 
 ## Default `nodeID` generator changed
 When you didn't define `nodeID` in broker options, the broker generated the `nodeID` from hostname (`os.hostname()`). It could cause a problem for many users when they tried to run multiple instances on the same node. Therefore, from now the broker generates the `nodeID` from hostname **and process PID**. The newly generated nodeID looks like `server-6874`.
@@ -347,8 +445,62 @@ module.export = {
 ```
 
 ## New experimental TCP zero-configuration transporter with UDP discovery
-TODO
+There is new built-in zero-configuration TCP transporter. It uses Gossip protocol to propagate node statuses, heartbeat and cpu usages. There is an integrated UDP discovery to detect remote nodes on the network. It can broadcast discovery messages. It supports multicast too.
+When broadcast is prohibited on your network, you can use `urls` option. It is a static list of remote endpoints (host/ip, port, nodeID). It can be a static list in your configuration or you can save it to a file.
+>Please note, you don't need to list all remote nodes. It's enought at least one node which is online. This can be a "serviceless" gossiper node, which does nothing, just shares other remote nodes addresses by gossip messages. So all nodes need to know the gossiper node address only to be able to communicate with other nodes.
 
+**This TCP transporter is the default transporter in Moleculer**.
+It means, you don't have to configure any transporter, just start the brokers/nodes, use same namespaces and the nodes will find each others.
+>If you don't want to use transporter, set `transporter: null` in broker options.
+
+**Use TCP transporter. Now it is the default**
+```js
+let broker = new ServiceBroker({
+    transporter: "TCP"
+});
+```
+
+**All TCP transporter options with default values**
+```js
+let broker = new ServiceBroker({
+    logger: true,
+    transporter: {
+        type: "TCP",
+        options: {
+            // Enable UDP discovery
+            udpDiscovery: true,
+            // Reusing UDP server socket
+            udpReuseAddr: true,
+
+            // Address for broadcast messages
+            broadcastAddress: "255.255.255.255",
+            // Broadcast port
+            broadcastPort: 4445,
+            // Broadcast sending period
+            broadcastPeriod: 5,
+
+            // Multicast address. If null it is not used.
+            multicastAddress: null,
+            // Multcast TTL setting
+            multicastTTL: 1,
+
+            // TCP server port. Null or 0 means random port
+            port: null,
+            // Static remote nodes address list (when UDP discovery is not available)
+            urls: null,
+            // Use hostname as preffered connection address
+            useHostname: true,
+
+            // Gossip sending period in seconds
+            gossipPeriod: 2,
+            // Maximum enabled outgoing connections. If reach, close the old connections
+            maxConnections: 32,
+            // Maximum TCP packet size
+            maxPacketSize: 1 * 1024 * 1024            
+        }
+    }
+});
+```
 
 ## New experimental transporter for Kafka
 There is a new transporter for [Kafka](https://kafka.apache.org/). It is a very simple implementation. It transfers Moleculer packets to consumers as pub/sub. There are not implemented offset, replay...etc features.
@@ -479,6 +631,7 @@ let broker = new ServiceBroker({
 - `PROTOCOL_VERSION` constant is available via broker as `ServiceBroker.PROTOCOL_VERSION` or `broker.PROTOCOL_VERSION`
 - serialization functions are moved from transit to transporter codebase.
 - `ctx.broadcast` shortcut created to send broadcast events
+- `broker.started` property to show that the broker is started.
 
 # Fixes
 - handles invalid `dependencies` value in service schema [#164](https://github.com/ice-services/moleculer/pull/164)

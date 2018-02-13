@@ -38,7 +38,7 @@ const defaultOptions = {
 	logLevel: null,
 	logFormatter: "default",
 
-	transporter: null,
+	transporter: "TCP",
 	requestTimeout: 0 * 1000,
 	requestRetry: 0,
 	maxCallLevel: 0,
@@ -103,7 +103,7 @@ class ServiceBroker {
 		this.Promise = Promise;
 
 		// Broker started flag
-		this._started = false;
+		this.started = false;
 
 		// Class factories
 		this.ServiceFactory = this.options.ServiceFactory || require("./service");
@@ -350,7 +350,7 @@ class ServiceBroker {
 			})
 			.then(() => {
 				this.logger.info(`ServiceBroker with ${this.services.length} service(s) is started successfully.`);
-				this._started = true;
+				this.started = true;
 			})
 			.then(() => {
 				if (this.transit)
@@ -393,7 +393,7 @@ class ServiceBroker {
 			})
 			.then(() => {
 				this.logger.info("ServiceBroker is stopped successfully. Good bye.");
-				this._started = false;
+				this.started = false;
 
 				process.removeListener("beforeExit", this._closeFn);
 				process.removeListener("exit", this._closeFn);
@@ -617,7 +617,7 @@ class ServiceBroker {
 
 		let service = new this.ServiceFactory(this, s);
 
-		if (this._started) {
+		if (this.started) {
 			// If broker started, should call the started lifecycle event
 			service.started.call(service).catch(err => this.logger.error("Unable to start service.", err));
 		}

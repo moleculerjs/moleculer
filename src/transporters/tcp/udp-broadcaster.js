@@ -108,6 +108,8 @@ class UdpServer extends EventEmitter {
 	 * @memberof UdpServer
 	 */
 	discover() {
+		if (!this.server) return;
+
 		this.counter++;
 
 		// Create an UDP beacon message
