@@ -3,8 +3,8 @@
 
 # Breaking changes
 
-## Mixins merging logic is changed
-To support [#188](https://github.com/ice-services/moleculer/issues/188), mixins `actions` merging logic is changed. Now it uses `defaultsDeep` for merging. It means, you can extend the actions definitions of mixins.
+## Mixin merging logic is changed
+To support [#188](https://github.com/ice-services/moleculer/issues/188), mixin merging logic is changed at `actions`. Now it uses `defaultsDeep` for merging. It means you can extend the actions definition of mixins, no need to redeclare the `handler`.
 
 **Add extra action properties but `handler` is ontuched**
 ```js
@@ -24,7 +24,7 @@ To support [#188](https://github.com/ice-services/moleculer/issues/188), mixins 
         mixins: [MixinService]
         actions: {
             create: {
-                // Add `params` to the `create` action from mixin service
+                // Change only `params` in the `create` action
                 params: {
                     name: "string"
                 }
@@ -34,8 +34,8 @@ To support [#188](https://github.com/ice-services/moleculer/issues/188), mixins 
     };
 ```
 
-## Removed extra wrapper from transporter options
-If you are using transporter options, you will need to migrate them. We removed the transporter specific wrapper from options (`nats`, `redis`, `mqtt`, `amqp`).
+## Wrapper removed from transporter options
+If you are using transporter options, you will need to migrate them. The transporter specific wrapper has been removed from options (`nats`, `redis`, `mqtt`, `amqp`).
 
 **Before**
 ```js
@@ -138,10 +138,11 @@ let broker = new ServiceBroker({
 ```
 
 ## Default `nodeID` generator changed
-When you didn't define `nodeID` in broker options, the broker generated the `nodeID` from hostname (`os.hostname()`). It could cause a problem for many users when they tried to run multiple instances on the same node. Therefore, from now the broker generates the `nodeID` from hostname **and process PID**. The newly generated nodeID looks like `server-6874`.
+When `nodeID` didn't define in broker options, the broker generated it from hostname (`os.hostname()`). It could cause problem for new users when they tried to start multiple instances on the same computer. Therefore, the broker generates `nodeID` from hostname **and process PID**. The newly generated nodeID looks like `server-6874` where `server` is the hostname and `6874` is the PID.
 
 ## Protocol changed
-The protocol is changed. The new version is `3`. [Check the changes.](https://github.com/ice-services/moleculer/blob/aa56e0072f4726dcd3a72ef164c3e13ad377bfc2/docs/PROTOCOL.md)
+The transport protocol is changed. The new version is `3`. [Check the changes.](https://github.com/ice-services/moleculer/blob/aa56e0072f4726dcd3a72ef164c3e13ad377bfc2/docs/PROTOCOL.md)
+
 **It means, the >=0.12.x versions can't communicate with old <=0.11 versions.**
 
 **Changes:**
@@ -150,12 +151,12 @@ The protocol is changed. The new version is `3`. [Check the changes.](https://gi
 - the `port` field is removed from `INFO` packet.
 - the `INFO` packet has a new field `hostname`.
 
-# New
+# New features
 
 ## New ServiceBroker options
 There are some new properties in ServiceBroker option: `middlewares`, `created`, `started`, `stopped`.
 
-It is useful when you load your project with Moleculer Runner.
+They can be useful when you use broker config file and start your project with Moleculer Runner.
 
 ```js
 // moleculer.config.js
@@ -165,17 +166,17 @@ module.exports = {
     // Add middlewares
     middlewares: [myMiddleware()],
 
-    // Fired when the broker is created
+    // Fired when the broker created
     created(broker) {
     },
 
-    // Fired when the broker is started
+    // Fired when the broker started
     started(broker) {
         // You can return Promise
         return broker.Promise.resolve();
     },
 
-    // Fired when the broker is stopped
+    // Fired when the broker stopped
     stopped(broker) {
         // You can return Promise
         return broker.Promise.resolve();
@@ -185,7 +186,7 @@ module.exports = {
 
 ## Broadcast events with group filter
 
-The `broker.broadcast` function has a third `groups` argument similar as for `broker.emit`. 
+The `broker.broadcast` function has a third `groups` argument similar to `broker.emit`. 
 ```js
 // Send to all "mail" service instances
 broker.broadcast("user.created", { user }, "mail");
@@ -195,10 +196,11 @@ broker.broadcast("user.created", { user }, ["user", "purchase"]);
 ```
 
 ## CPU usage-based strategy
-There is a new `CpuUsageStrategy`. It selects a node which has the lowest CPU usage.
+There is a new `CpuUsageStrategy` strategy. It selects a node which has the lowest CPU usage.
 Due to the node list can be very long, it gets samples and selects the node with the lowest CPU usage from only samples instead of the whole node list.
-There are 2 options for the strategy.
-- `sampleCount`: the count of samples. Default: `3`
+
+There are 2 options for the strategy:
+- `sampleCount`: the number of samples. Default: `3`
 - `lowCpuUsage`: the low CPU usage percent. The node which has lower CPU usage than this value is selected immediately. Default: `10`
 
 **Usage:**
@@ -226,13 +228,14 @@ let broker = new ServiceBroker({
 ## Starting logic is changed
 The broker & services starting logic has been changed. 
 
-**Before:** the `broker.start` starts transporter connecting. When it's done, starts all services (calls service `started` handlers). The disadvantage is that other nodes can send request to these services, while they are still starting and not ready.
+**Previous logic:** the broker starts transporter connecting. When it's done, it starts all services (calls service `started` handlers). It has a disadvantage because other nodes can send requests to these services, while they are still starting and not ready yet.
 
-**After:** the `broker.start` starts transporter connecting but they don't publish the local service list. When it's done, starts all services (calls service `started` handlers). Once all services started (all returned Promises are resolved), broker publish the registered & started service list to all other nodes. Therefore other nodes send request after all local service started properly.
+**New logic:** the broker starts transporter connecting but it doesn't publish the local service list to remote nodes. When it's done, it starts all services (calls service `started` handlers). Once all services start successfully, broker publish the local service list to remote nodes. Hence other nodes send requests only after all local service started properly.
 >Please note: you can make dead-locks when two services wait for each other. E.g.: `users` service has `dependencies: [posts]` and `posts` service has `dependencies: [users]`. To avoid it remove the concerned service from `dependencies` and use `waitForServices` method out of `started` handler instead.
 
 ## Metadata is sent back to requester
-You can use it to send extra meta information back to the caller. E.g. send response headers back to Moleculer Web or fill it with user object after logged in user is resolved.
+At requests, `ctx.meta` is sent back to the caller service. You can use it to send extra meta information back to the caller. 
+E.g.: send response headers back to API gateway or set resolved logged in user to metadata.
 
 **Export & download a file with API gateway:**
 ```js
@@ -256,7 +259,6 @@ auth(ctx) {
     let user = this.getUserByJWT(ctx.params.token);
     if (ctx.meta.user) {
         ctx.meta.user = user;
-        ctx.meta.session = uuid.v4(); // Generate a session ID
 
         return true;
     }
@@ -266,13 +268,13 @@ auth(ctx) {
 ```
 
 ## Better ES6 class support
-If you like better ES6 classes than Moleculer service schema, now you can write your services as ES6 classes.
+If you like better ES6 classes than Moleculer service schema, you can write your services in ES6 classes.
 
-There are two ways:
+There are two ways to do it:
 
 1. **Native ES6 classes with schema parsing**
     
-    Use class methods as `actions` and `events` handlers and call the `parseServiceSchema` method in constructor with schema definition where the handlers pointed to the class methods. 
+    Define `actions` and `events` handlers as class methods. Call the `parseServiceSchema` method in constructor with schema definition where the handlers pointed to these class methods. 
     ```js
     const Service = require("moleculer").Service;
 
@@ -355,9 +357,9 @@ There are two ways:
 
 2. **Use decorators**
 
-    Thanks for [@ColonelBundy](https://github.com/ColonelBundy), you can use ES7/TS decorators in services: [moleculer-decorators](https://github.com/ColonelBundy/moleculer-decorators)
+    Thanks for [@ColonelBundy](https://github.com/ColonelBundy), you can use ES7/TS decorators as well: [moleculer-decorators](https://github.com/ColonelBundy/moleculer-decorators)
     
-    >Please note, in this case you need to use Typescript or Babel to compile decorators.
+    >Please note, you need to use Typescript or Babel to compile decorators.
 
     **Example service**
     ```js
@@ -428,13 +430,14 @@ There are two ways:
     ```
 
 ## Event group option
-When you are using events, the broker is grouping the listeners by group name. The group name is same as the service name where your event handler is declared. But now you can overwrite it:
+The broker groups the event listeners by group name. The group name is name of the service where your event handler is declared. You can change it in event definition.
 
 ```js
 module.export = {
     name: "payment",
     events: {
         "order.created": {
+            // Register handler to "other" group instead of "payment" group.
             group: "other",
             handler(payload) {
                 // ...
@@ -444,10 +447,11 @@ module.export = {
 }
 ```
 
-## New experimental TCP zero-configuration transporter with UDP discovery
-There is new built-in zero-configuration TCP transporter. It uses Gossip protocol to propagate node statuses, heartbeat and cpu usages. There is an integrated UDP discovery to detect remote nodes on the network. It can broadcast discovery messages. It supports multicast too.
-When broadcast is prohibited on your network, you can use `urls` option. It is a static list of remote endpoints (host/ip, port, nodeID). It can be a static list in your configuration or you can save it to a file.
->Please note, you don't need to list all remote nodes. It's enought at least one node which is online. This can be a "serviceless" gossiper node, which does nothing, just shares other remote nodes addresses by gossip messages. So all nodes need to know the gossiper node address only to be able to communicate with other nodes.
+## New experimental TCP zero-config transporter with UDP discovery
+There is new built-in zero-config TCP transporter. It uses [Gossip protocol](https://en.wikipedia.org/wiki/Gossip_protocol) to disseminate node info, service list and heartbeats. It has an integrated UDP discovery to detect new nodes on the network. It broadcasts discovery messages
+If the UDP is prohibited on your network, you can use `urls` option. It is a list of remote endpoints (host/ip, port, nodeID). It can be a static list in your configuration or a file path which contains the list.
+
+>Please note, you don't need to list all remote nodes. It's enought at least one node which is online. For example you can create a "serviceless" gossiper node, which does nothing, just shares other remote nodes addresses by gossip messages. So all nodes need to know only the gossiper node address to be able to communicate with all other nodes.
 
 <!-- **This TCP transporter is the default transporter in Moleculer**.
 It means, you don't have to configure any transporter, just start the brokers/nodes, use same namespaces and the nodes will find each others.
@@ -482,7 +486,7 @@ let broker = new ServiceBroker({
 
             // Multicast address. If null it is not used.
             multicastAddress: null,
-            // Multcast TTL setting
+            // Multicast TTL setting
             multicastTTL: 1,
 
             // TCP server port. Null or 0 means random port
@@ -504,10 +508,10 @@ let broker = new ServiceBroker({
 ```
 
 ## New experimental transporter for Kafka
-There is a new transporter for [Kafka](https://kafka.apache.org/). It is a very simple implementation. It transfers Moleculer packets to consumers as pub/sub. There are not implemented offset, replay...etc features.
+There is a new transporter for [Kafka](https://kafka.apache.org/). It is a very simple implementation. It transfers Moleculer packets to consumers via pub/sub. There are not implemented offset, replay...etc features.
 Please note, it is an **experimental** transporter. **Do not use it in production yet!**
 
->To use, install `kafka-node` lib with `npm install kafka-node --save` command.
+>To use it, install `kafka-node` with `npm install kafka-node --save` command.
 
 **Connect to Zookeeper**
 ```js
@@ -555,10 +559,10 @@ let broker = new ServiceBroker({
 ```
 
 ## New experimental transporter for NATS Streaming
-There is a new transporter for [NATS Streaming](https://nats.io/documentation/streaming/nats-streaming-intro/). It is a very simple implementation. It transfers Moleculer packets to consumers as pub/sub. There are not implemented offset, replay...etc features.
+There is a new transporter for [NATS Streaming](https://nats.io/documentation/streaming/nats-streaming-intro/). It is a very simple implementation. It transfers Moleculer packets to consumers via pub/sub. There are not implemented offset, replay...etc features.
 Please note, it is an **experimental** transporter. **Do not use it in production yet!**
 
->To use, install `node-nats-streaming` lib with `npm install node-nats-streaming --save` command.
+>To use it, install `node-nats-streaming` with `npm install node-nats-streaming --save` command.
 
 **Connect to NATS Streaming server**
 ```js
@@ -591,7 +595,7 @@ let broker = new ServiceBroker({
 ```
 
 ## Define custom REPL commands in broker options
-You can define your custom REPL commands.
+You can define your custom REPL commands in broker options to extend Moleculer REPL commands.
 
 ```js
 let broker = new ServiceBroker({
@@ -618,21 +622,23 @@ let broker = new ServiceBroker({
         }
     ]
 });
+
+broker.repl();
 ```
 
 # Changes
-- MemoryCacher clears cache entries after the transporter connected/reconnected.
-- `broker.loadServices` file mask is changed from `*.service.js` to `**/*.service.js` to load all services from subfolders too.
+- MemoryCacher clears all cache entries after the transporter connected/reconnected.
+- `broker.loadServices` file mask is changed from `*.service.js` to `**/*.service.js` in order to load all services from subfolders too.
 - `ServiceNotFoundError` and `ServiceNotAvailableError` errors are retryable errors.
 - `Strategy.select` method gets only available endpoint list.
-- broker removes old (> 3 mins) unavailable nodes.
-- CPU usage in `HEARTBEAT` packet is working properly in Windows.
+- old unavailable nodes are removed from registry after 10 minutes.  
+- CPU usage in `HEARTBEAT` packet is working properly in Windows too.
 - register middlewares before load internal service (`$node.*`)
 - `broker.getAction` deprecated method is removed.
 - `PROTOCOL_VERSION` constant is available via broker as `ServiceBroker.PROTOCOL_VERSION` or `broker.PROTOCOL_VERSION`
 - serialization functions are moved from transit to transporter codebase.
-- `ctx.broadcast` shortcut created to send broadcast events
-- `broker.started` property to show that the broker is started.
+- `ctx.broadcast` shortcut method is created to send broadcast events
+- `broker.started` property is created to indicate broker starting state.
 
 # Fixes
 - handles invalid `dependencies` value in service schema [#164](https://github.com/ice-services/moleculer/pull/164)
