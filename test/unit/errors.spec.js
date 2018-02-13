@@ -222,15 +222,15 @@ describe("Test Errors", () => {
 	});
 
 	it("test InvalidPacketData", () => {
-		let packet = {};
-		let err = new errors.InvalidPacketData(packet);
+		let payload = {};
+		let err = new errors.InvalidPacketData("INFO", payload);
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err).toBeInstanceOf(errors.InvalidPacketData);
 		expect(err.code).toBe(500);
 		expect(err.name).toBe("InvalidPacketData");
 		expect(err.message).toBe("Invalid packet data.");
-		expect(err.data).toEqual({ packet });
+		expect(err.data).toEqual({ type: "INFO", payload });
 		expect(err.retryable).toBe(false);
 	});
 

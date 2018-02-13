@@ -37,6 +37,8 @@ class NodeCatalog {
 		this.checkNodesTimer = null;
 		this.offlineTimer = null;
 
+		this.disableHeartbeatChecks = false;
+		this.disableOfflineNodeRemoving = false;
 
 		this.createLocalNode();
 
@@ -111,6 +113,7 @@ class NodeCatalog {
 			version: this.broker.MOLECULER_VERSION,
 			langVersion: process.version
 		};
+		node.seq = 1;
 
 		this.add(node.id, node);
 
@@ -173,13 +176,15 @@ class NodeCatalog {
 			isReconnected = true;
 			node.lastHeartbeatTime = Date.now();
 			node.available = true;
+			node.offlineSince = null;
 		}
 
 		// Update instance
-		node.update(payload);
+		const needRegister = node.update(payload);
 
-		if (node.services) {
-			this.registry.registerServices(node, payload.services);
+		// Refresh services if 'seq' is greater or it is a reconnected node
+		if ((needRegister || isReconnected) && node.services) {
+			this.registry.registerServices(node, node.services);
 		}
 
 		// Local notifications
@@ -194,6 +199,7 @@ class NodeCatalog {
 			this.logger.debug(`Node '${nodeID}' updated.`);
 		}
 
+		return node;
 	}
 
 	/**
@@ -202,6 +208,8 @@ class NodeCatalog {
 	 * @memberOf Transit
 	 */
 	checkRemoteNodes() {
+		if (this.disableHeartbeatChecks) return;
+
 		const now = Date.now();
 		this.nodes.forEach(node => {
 			if (node.local || !node.available) return;
@@ -214,11 +222,13 @@ class NodeCatalog {
 	}
 
 	/**
-	 * Check offline nodes. Remove which is older then 3 minutes.
+	 * Check offline nodes. Remove which is older than 3 minutes.
 	 *
 	 * @memberOf Transit
 	 */
 	checkOfflineNodes() {
+		if (this.disableOfflineNodeRemoving) return;
+
 		const now = Date.now();
 		this.nodes.forEach(node => {
 			if (node.local || node.available) return;
@@ -287,11 +297,20 @@ class NodeCatalog {
 		let res = [];
 		this.nodes.forEach(node => {
 			if (withServices)
-				res.push(node);
+				res.push(_.omit(node, ["rawInfo"]));
 			else
-				res.push(_.omit(node, ["services"]));
+				res.push(_.omit(node, ["services", "rawInfo"]));
 		});
 
+		return res;
+	}
+
+	/**
+	 * Get a copy from node list.
+	 */
+	toArray() {
+		let res = [];
+		this.nodes.forEach(node => res.push(node));
 		return res;
 	}
 }

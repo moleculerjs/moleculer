@@ -6,11 +6,12 @@
 
 "use strict";
 
-const Promise	= require("bluebird");
-const _ 		= require("lodash");
+const Promise		= require("bluebird");
+const _ 			= require("lodash");
 
-const P 		= require("./packets");
-const E 		= require("./errors");
+const P				= require("./packets");
+const { Packet }	= require("./packets");
+const E 			= require("./errors");
 
 /**
  * Transit class
@@ -130,8 +131,11 @@ class Transit {
 
 		if (this.tx.connected) {
 			return this.sendDisconnectPacket()
-				.then(() => this.tx.disconnect());
+				.then(() => this.tx.disconnect())
+				.then(() => this.disconnecting = false);
 		}
+
+		this.disconnecting = false;
 		/* istanbul ignore next */
 		return Promise.resolve();
 	}
@@ -155,7 +159,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendDisconnectPacket() {
-		return this.publish(new P.PacketDisconnect(this));
+		return this.publish(new Packet(P.PACKET_DISCONNECT));
 	}
 
 	/**
@@ -212,17 +216,10 @@ class Transit {
 	 *
 	 * @memberOf Transit
 	 */
-	messageHandler(cmd, msg) {
+	messageHandler(cmd, packet) {
 		try {
-
-			if (msg == null) {
-				throw new E.MoleculerServerError("Missing packet.", 500, "MISSING_PACKET");
-			}
-
-			this.stat.packets.received = this.stat.packets.received + 1;
-
-			const packet = P.Packet.deserialize(this, cmd, msg);
 			const payload = packet.payload;
+			this.stat.packets.received = this.stat.packets.received + 1;
 
 			// Check payload
 			if (!payload) {
@@ -231,14 +228,13 @@ class Transit {
 			}
 
 			// Check protocol version
-			if (payload.ver != P.PROTOCOL_VERSION) {
-				throw new E.ProtocolVersionMismatchError(payload.sender,P.PROTOCOL_VERSION, payload.ver || "1");
+			if (payload.ver != this.broker.PROTOCOL_VERSION) {
+				throw new E.ProtocolVersionMismatchError(payload.sender, this.broker.PROTOCOL_VERSION, payload.ver);
 			}
 
-			// Skip own packets (if built-in balancer disabled)
+			// Skip own packets (if only built-in balancer disabled)
 			if (payload.sender == this.nodeID && (cmd !== P.PACKET_EVENT && cmd !== P.PACKET_REQUEST && cmd !== P.PACKET_RESPONSE))
 				return;
-
 
 			this.logger.debug(`Incoming ${cmd} packet from '${payload.sender}'`);
 
@@ -289,7 +285,7 @@ class Transit {
 
 			return true;
 		} catch(err) {
-			this.logger.error(err, cmd, msg);
+			this.logger.error(err, cmd, packet);
 		}
 		return false;
 	}
@@ -335,15 +331,18 @@ class Transit {
 		const id = packet.id;
 		const req = this.pendingRequests.get(id);
 
-		// If not exists (timed out), we skip to process the response
-		if (req == null) return;
+		// If not exists (timed out), we skip response processing
+		if (req == null) {
+			this.logger.debug("Orphaned response. Maybe the request timed out. ID:", packet.id, ", Sender:", packet.sender);
+			return;
+		}
 
 		// Remove pending request
 		this.removePendingRequest(id);
 
 		this.logger.debug(`Response '${req.action.name}' received from '${packet.sender}'.`);
 
-		// Update nodeID in context (if it use external balancer)
+		// Update nodeID in context (if it uses external balancer)
 		req.ctx.nodeID = packet.sender;
 
 		// Merge response meta with original meta
@@ -404,7 +403,17 @@ class Transit {
 			reject
 		};
 
-		const packet = new P.PacketRequest(this, ctx.nodeID, ctx);
+		const packet = new Packet(P.PACKET_REQUEST, ctx.nodeID, {
+			id: ctx.id,
+			action: ctx.action.name,
+			params: ctx.params,
+			meta: ctx.meta,
+			timeout: ctx.timeout,
+			level: ctx.level,
+			metrics: ctx.metrics,
+			parentID: ctx.parentID,
+			requestID: ctx.requestID
+		});
 
 		this.logger.debug(`Send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`);
 
@@ -419,32 +428,42 @@ class Transit {
 	 * Send a broadcast event to a remote node
 	 *
 	 * @param {String} nodeID
-	 * @param {String} eventName
+	 * @param {String} event
 	 * @param {any} data
 	 *
 	 * @memberOf Transit
 	 */
-	sendBroadcastEvent(nodeID, eventName, data, groups) {
-		this.logger.debug(`Send '${eventName}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
+	sendBroadcastEvent(nodeID, event, data, groups) {
+		this.logger.debug(`Send '${event}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
 
-		this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups, true));
+		this.publish(new Packet(P.PACKET_EVENT, nodeID, {
+			event,
+			data,
+			groups,
+			broadcast: true
+		}));
 	}
 
 	/**
 	 * Send a grouped event to remote nodes.
 	 * The event is balanced internally.
 	 *
-	 * @param {String} eventName
+	 * @param {String} event
 	 * @param {any} data
 	 * @param {Object} nodeGroups
 	 *
 	 * @memberOf Transit
 	 */
-	sendBalancedEvent(eventName, data, nodeGroups) {
+	sendBalancedEvent(event, data, nodeGroups) {
 		_.forIn(nodeGroups, (groups, nodeID) => {
-			this.logger.debug(`Send '${eventName}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
+			this.logger.debug(`Send '${event}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
 
-			this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups, false));
+			this.publish(new Packet(P.PACKET_EVENT, nodeID, {
+				event,
+				data,
+				groups,
+				broadcast: false
+			}));
 		});
 	}
 
@@ -452,15 +471,20 @@ class Transit {
 	 * Send an event to groups.
 	 * The event is balanced by transporter
 	 *
-	 * @param {String} eventName
+	 * @param {String} event
 	 * @param {any} data
 	 * @param {Object} groups
 	 *
 	 * @memberOf Transit
 	 */
-	sendEventToGroups(eventName, data, groups) {
-		this.logger.debug(`Send '${eventName}' event to '${groups.join(", ")}' group(s).`);
-		this.publish(new P.PacketEvent(this, null, eventName, data, groups, false));
+	sendEventToGroups(event, data, groups) {
+		this.logger.debug(`Send '${event}' event to '${groups.join(", ")}' group(s).`);
+		this.publish(new Packet(P.PACKET_EVENT, null, {
+			event,
+			data,
+			groups,
+			broadcast: false
+		}));
 	}
 
 	/**
@@ -506,7 +530,26 @@ class Transit {
 	 */
 	sendResponse(nodeID, id, meta, data, err) {
 		// Publish the response
-		return this.publish(new P.PacketResponse(this, nodeID, id, meta, data, err));
+		const payload = {
+			id: id,
+			meta: meta,
+			success: err == null,
+			data: data
+		};
+
+		if (err) {
+			payload.error = {
+				name: err.name,
+				message: err.message,
+				nodeID: err.nodeID || this.nodeID,
+				code: err.code,
+				type: err.type,
+				stack: err.stack,
+				data: err.data
+			};
+		}
+
+		return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload));
 	}
 
 	/**
@@ -515,7 +558,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	discoverNodes() {
-		return this.publish(new P.PacketDiscover(this));
+		return this.publish(new Packet(P.PACKET_DISCOVER));
 	}
 
 	/**
@@ -524,7 +567,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	discoverNode(nodeID) {
-		return this.publish(new P.PacketDiscover(this, nodeID));
+		return this.publish(new Packet(P.PACKET_DISCOVER, nodeID));
 	}
 
 	/**
@@ -541,7 +584,14 @@ class Transit {
 		if (!nodeID)
 			p = this.tx.makeBalancedSubscriptions();
 
-		return p.then(() => this.publish(new P.PacketInfo(this, nodeID, info)));
+		return p.then(() => this.publish(new Packet(P.PACKET_INFO, nodeID, {
+			services: info.services,
+			ipList: info.ipList,
+			hostname: info.hostname,
+			client: info.client,
+			config: info.config,
+			seq: info.seq
+		})));
 	}
 
 	/**
@@ -552,7 +602,7 @@ class Transit {
 	 * @memberof Transit
 	 */
 	sendPing(nodeID) {
-		return this.publish(new P.PacketPing(this, nodeID, Date.now()));
+		return this.publish(new Packet(P.PACKET_PING, nodeID, { time: Date.now() }));
 	}
 
 	/**
@@ -563,7 +613,10 @@ class Transit {
 	 * @memberof Transit
 	 */
 	sendPong(payload) {
-		return this.publish(new P.PacketPong(this, payload.sender, payload.time, Date.now()));
+		return this.publish(new Packet(P.PACKET_PONG, payload.sender, {
+			time: payload.time,
+			arrived: Date.now()
+		}));
 	}
 
 	/**
@@ -580,16 +633,18 @@ class Transit {
 
 		// this.logger.debug(`PING-PONG from '${payload.sender}' - Time: ${elapsedTime}ms, Time difference: ${timeDiff}ms`);
 
-		this.broker.broadcastLocal("$node.pong", { nodeID: payload.sender, elapsedTime, timeDiff }, payload.sender);
+		this.broker.broadcastLocal("$node.pong", { nodeID: payload.sender, elapsedTime, timeDiff });
 	}
 
 	/**
-	 * Send a node heart-beat. It will be called with timer
+	 * Send a node heartbeat. It will be called with timer
 	 *
 	 * @memberOf Transit
 	 */
 	sendHeartbeat(localNode) {
-		return this.publish(new P.PacketHeartbeat(this, localNode.cpu));
+		return this.publish(new Packet(P.PACKET_HEARTBEAT, null, {
+			cpu: localNode.cpu
+		}));
 	}
 
 	/**
@@ -623,32 +678,6 @@ class Transit {
 		}
 		this.stat.packets.sent = this.stat.packets.sent + 1;
 		return this.tx.prepublish(packet);
-	}
-
-	/**
-	 * Serialize the object
-	 *
-	 * @param {Object} obj
-	 * @returns {Buffer}
-	 *
-	 * @memberOf Transit
-	 */
-	serialize(obj, type) {
-		return this.broker.serializer.serialize(obj, type);
-	}
-
-	/**
-	 * Deserialize the incoming Buffer to object
-	 *
-	 * @param {Buffer} buf
-	 * @returns {any}
-	 *
-	 * @memberOf Transit
-	 */
-	deserialize(buf, type) {
-		if (buf == null) return null;
-
-		return this.broker.serializer.deserialize(buf, type);
 	}
 
 }

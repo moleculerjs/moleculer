@@ -114,7 +114,7 @@ createBrokers(Transporters.Fake).then(([b1]) => {
 			startTime = Date.now();
 		}, 1000);
 
-		doRequest();
+		b1.waitForServices(["echo"]).then(() => doRequest());
 
 	}, 1000);
 

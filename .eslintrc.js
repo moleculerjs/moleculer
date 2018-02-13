@@ -12,7 +12,10 @@ module.exports = {
 		"plugin:security/recommended"
 	],
 	"parserOptions": {
-		"sourceType": "module"
+		"sourceType": "module",
+		"ecmaFeatures": {
+			"experimentalObjectRestSpread": true
+		}
 	},
 	"plugins": [
 		"node",

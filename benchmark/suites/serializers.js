@@ -24,7 +24,9 @@ function createBrokers(Serializer, opts) {
 	return broker;
 }
 
+// TODO rewrite
 function runTest(dataName) {
+	throw new Error("NEED TO REWRITE!");
 
 	let data = getDataFile(dataName + ".json");
 	let payload = JSON.parse(data);
@@ -37,22 +39,38 @@ function runTest(dataName) {
 	let bench1 = benchmark.createSuite(`Serialize event packet with ${dataName}bytes`);
 
 	bench1.ref("JSON", () => {
-		const packet = new P.PacketEvent(brokerJSON.transit, "user.created", payload, true);
+		const packet = new P.PacketEvent(brokerJSON.transit, P.PACKET_EVENT, {
+			event: "user.created",
+			data: payload,
+			broadcast: true
+		});
 		return packet.serialize();
 	});
 
 	bench1.add("Avro", () => {
-		const packet = new P.PacketEvent(brokerAvro.transit, "user.created", payload, true);
+		const packet = new P.PacketEvent(brokerAvro.transit, P.PACKET_EVENT, {
+			event: "user.created",
+			data: payload,
+			broadcast: true
+		});
 		return packet.serialize();
 	});
 
 	bench1.add("MsgPack", () => {
-		const packet = new P.PacketEvent(brokerMsgPack.transit, "user.created", payload, true);
+		const packet = new P.PacketEvent(brokerMsgPack.transit, P.PACKET_EVENT, {
+			event: "user.created",
+			data: payload,
+			broadcast: true
+		});
 		return packet.serialize();
 	});
 
 	bench1.add("ProtoBuf", () => {
-		const packet = new P.PacketEvent(brokerProtoBuf.transit, "user.created", payload, true);
+		const packet = new P.PacketEvent(brokerProtoBuf.transit, P.PACKET_EVENT, {
+			event: "user.created",
+			data: payload,
+			broadcast: true
+		});
 		return packet.serialize();
 	});
 

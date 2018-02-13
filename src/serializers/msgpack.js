@@ -10,18 +10,18 @@ const BaseSerializer = require("./base");
 
 /**
  * MessagePack serializer for Moleculer
- * 
+ *
  * https://github.com/mcollina/msgpack5
- * 
+ *
  * @class MsgPackSerializer
  */
 class MsgPackSerializer extends BaseSerializer {
 
 	/**
 	 * Initialize Serializer
-	 * 
+	 *
 	 * @param {any} broker
-	 * 
+	 *
 	 * @memberOf Serializer
 	 */
 	init(broker) {
@@ -37,10 +37,10 @@ class MsgPackSerializer extends BaseSerializer {
 
 	/**
 	 * Serializer a JS object to Buffer
-	 * 
+	 *
 	 * @param {Object} obj
 	 * @returns {Buffer}
-	 * 
+	 *
 	 * @memberOf Serializer
 	 */
 	serialize(obj) {
@@ -50,10 +50,10 @@ class MsgPackSerializer extends BaseSerializer {
 
 	/**
 	 * Deserialize Buffer to JS object
-	 * 
+	 *
 	 * @param {Buffer} str
 	 * @returns {Object}
-	 * 
+	 *
 	 * @memberOf Serializer
 	 */
 	deserialize(buf) {

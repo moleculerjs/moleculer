@@ -48,7 +48,7 @@ const defaultOptions = {
 	disableBalancer: false,
 
 	registry: {
-		strategy: Strategies.RoundRobin,
+		strategy: "RoundRobin",
 		preferLocal: true
 	},
 
@@ -209,6 +209,7 @@ class ServiceBroker {
 	}
 
 	getModuleClass(obj, name) {
+		/* istanbul ignore next */
 		if (!name)
 			return null;
 
@@ -392,6 +393,7 @@ class ServiceBroker {
 			})
 			.then(() => {
 				this.logger.info("ServiceBroker is stopped successfully. Good bye.");
+				this._started = false;
 
 				process.removeListener("beforeExit", this._closeFn);
 				process.removeListener("exit", this._closeFn);
@@ -1372,11 +1374,13 @@ class ServiceBroker {
  * Version of Moleculer
  */
 ServiceBroker.MOLECULER_VERSION = require("../package.json").version;
+ServiceBroker.prototype.MOLECULER_VERSION = ServiceBroker.MOLECULER_VERSION;
 
 /**
- * Version of Moleculer
+ * Version of Protocol
  */
-ServiceBroker.prototype.MOLECULER_VERSION = ServiceBroker.MOLECULER_VERSION;
+ServiceBroker.PROTOCOL_VERSION = "3";
+ServiceBroker.prototype.PROTOCOL_VERSION = ServiceBroker.PROTOCOL_VERSION;
 
 /**
  * Default configuration

@@ -26,15 +26,20 @@ class Node {
 		this.available = true;
 		this.local = false;
 		this.lastHeartbeatTime = Date.now();
-		this.cpu = null;
 		this.config = {};
-		//this.port = null;
-		this.hostname = null;
+		this.client = {};
 
 		this.ipList = null;
-		this.client = null;
-
+		this.port = null;
+		this.hostname = null;
+		this.rawInfo = null;
 		this.services = [];
+
+		this.cpu = null;
+		this.cpuSeq = null;
+
+		this.seq = 0;
+		this.offlineSince = null;
 	}
 
 	/**
@@ -47,10 +52,18 @@ class Node {
 		// Update properties
 		this.ipList = payload.ipList;
 		this.hostname = payload.hostname;
-		this.client = payload.client;
+		this.port = payload.port;
+		this.client = payload.client || {};
 
 		// Process services & events
 		this.services = payload.services;
+		this.rawInfo = payload;
+
+		const newSeq = payload.seq || 1;
+		if (newSeq > this.seq) {
+			this.seq = newSeq;
+			return true;
+		}
 	}
 
 	/**
@@ -60,7 +73,11 @@ class Node {
 	 */
 	updateLocalInfo() {
 		return cpuUsage().then(res => {
-			this.cpu = res.avg;
+			const newVal = Math.round(res.avg);
+			if (this.cpu != newVal) {
+				this.cpu = Math.round(res.avg);
+				this.cpuSeq++;
+			}
 		});
 	}
 
@@ -71,9 +88,15 @@ class Node {
 	 * @memberof Node
 	 */
 	heartbeat(payload) {
+		if (!this.available) {
+			this.available = true;
+			this.offlineSince = null;
+		}
+
 		this.cpu = payload.cpu;
+		this.cpuSeq = payload.cpuSeq || 1;
+
 		this.lastHeartbeatTime = Date.now();
-		this.available = true;
 	}
 
 	/**
@@ -82,6 +105,11 @@ class Node {
 	 * @memberof Node
 	 */
 	disconnected() {
+		if (this.available) {
+			this.offlineSince = Date.now();
+			this.seq++;
+		}
+
 		this.available = false;
 	}
 }

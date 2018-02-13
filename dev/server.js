@@ -8,12 +8,20 @@ let { MoleculerError } = require("../src/errors");
 
 // Create broker
 let broker = new ServiceBroker({
-	namespace: "multi",
+	namespace: "",
 	nodeID: process.argv[2] || "server-" + process.pid,
-	transporter: "STAN",
-	//transporter: "kafka://192.168.51.29:2181",
+	transporter: {
+		type: "TCP",
+		options: {
+			udpDiscovery: false,
+			broadcastAddress: "255.255.255.255",
+			gossipPeriod: 5,
+			urls: "file://./dev/nodes.json"
+		}
+	},
+	//transporter: "kafka://192.168.0.181:2181",
 	//transporter: "amqp://192.168.0.181:5672",
-	//serializer: "Avro",
+	//serializer: "MsgPack",
 
 	//disableBalancer: true,
 

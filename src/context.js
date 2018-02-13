@@ -224,10 +224,11 @@ class Context {
 	}
 
 	/**
-	 * Call a global event (with broker.emit).
+	 * Emit an event (grouped & balanced global event)
 	 *
-	 * @param {String} eventName
-	 * @param {any} data
+	 * @param {string} eventName
+	 * @param {any} payload
+	 * @param {String|Array<String>=} groups
 	 * @returns
 	 *
 	 * @example
@@ -235,8 +236,25 @@ class Context {
 	 *
 	 * @memberOf Context
 	 */
-	emit(eventName, data) {
-		return this.broker.emit(eventName, data);
+	emit(eventName, data, groups) {
+		return this.broker.emit(eventName, data, groups);
+	}
+
+	/**
+	 * Emit an event for all local & remote services
+	 *
+	 * @param {string} eventName
+	 * @param {any} payload
+	 * @param {String|Array<String>=} groups
+	 * @returns
+	 *
+	 * @example
+	 * ctx.broadcast("user.created", { entity: user, creator: ctx.meta.user });
+	 *
+	 * @memberOf Context
+	 */
+	broadcast(eventName, data, groups) {
+		return this.broker.broadcast(eventName, data, groups);
 	}
 
 	/**

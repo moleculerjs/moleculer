@@ -1,4 +1,4 @@
-/*eslint-disable block-scoped-let, no-redeclare, no-control-regex, no-prototype-builtins*/
+/*eslint-disable block-scoped-var, no-redeclare, no-control-regex, no-prototype-builtins*/
 "use strict";
 
 let $protobuf = require("protobufjs/minimal");
@@ -9,7 +9,7 @@ let $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.ut
 // Exported root namespace
 let $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
 
-/* istanbul ignore next*/
+/* istanbul ignore next */
 $root.packets = (function() {
 
 	/**
@@ -28,9 +28,9 @@ $root.packets = (function() {
          * @property {string} ver PacketEvent ver
          * @property {string} sender PacketEvent sender
          * @property {string} event PacketEvent event
-         * @property {string} data PacketEvent data
+         * @property {string|null} [data] PacketEvent data
          * @property {Array.<string>|null} [groups] PacketEvent groups
-         * @property {Array.<boolean>|null} [broadcast] PacketEvent broadcast
+         * @property {boolean} broadcast PacketEvent broadcast
          */
 
 		/**
@@ -43,7 +43,6 @@ $root.packets = (function() {
          */
 		function PacketEvent(properties) {
 			this.groups = [];
-			this.broadcast = [];
 			if (properties)
 				for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
 					if (properties[keys[i]] != null)
@@ -92,11 +91,11 @@ $root.packets = (function() {
 
 		/**
          * PacketEvent broadcast.
-         * @member {Array.<boolean>} broadcast
+         * @member {boolean} broadcast
          * @memberof packets.PacketEvent
          * @instance
          */
-		PacketEvent.prototype.broadcast = $util.emptyArray;
+		PacketEvent.prototype.broadcast = false;
 
 		/**
          * Creates a new PacketEvent instance using the specified properties.
@@ -125,16 +124,12 @@ $root.packets = (function() {
 			writer.uint32(/* id 1, wireType 2 =*/10).string(message.ver);
 			writer.uint32(/* id 2, wireType 2 =*/18).string(message.sender);
 			writer.uint32(/* id 3, wireType 2 =*/26).string(message.event);
-			writer.uint32(/* id 4, wireType 2 =*/34).string(message.data);
+			if (message.data != null && message.hasOwnProperty("data"))
+				writer.uint32(/* id 4, wireType 2 =*/34).string(message.data);
 			if (message.groups != null && message.groups.length)
 				for (let i = 0; i < message.groups.length; ++i)
 					writer.uint32(/* id 5, wireType 2 =*/42).string(message.groups[i]);
-			if (message.broadcast != null && message.broadcast.length) {
-				writer.uint32(/* id 6, wireType 2 =*/50).fork();
-				for (let i = 0; i < message.broadcast.length; ++i)
-					writer.bool(message.broadcast[i]);
-				writer.ldelim();
-			}
+			writer.uint32(/* id 6, wireType 0 =*/48).bool(message.broadcast);
 			return writer;
 		};
 
@@ -187,14 +182,7 @@ $root.packets = (function() {
 						message.groups.push(reader.string());
 						break;
 					case 6:
-						if (!(message.broadcast && message.broadcast.length))
-							message.broadcast = [];
-						if ((tag & 7) === 2) {
-							let end2 = reader.uint32() + reader.pos;
-							while (reader.pos < end2)
-								message.broadcast.push(reader.bool());
-						} else
-							message.broadcast.push(reader.bool());
+						message.broadcast = reader.bool();
 						break;
 					default:
 						reader.skipType(tag & 7);
@@ -207,8 +195,8 @@ $root.packets = (function() {
 				throw $util.ProtocolError("missing required 'sender'", { instance: message });
 			if (!message.hasOwnProperty("event"))
 				throw $util.ProtocolError("missing required 'event'", { instance: message });
-			if (!message.hasOwnProperty("data"))
-				throw $util.ProtocolError("missing required 'data'", { instance: message });
+			if (!message.hasOwnProperty("broadcast"))
+				throw $util.ProtocolError("missing required 'broadcast'", { instance: message });
 			return message;
 		};
 
@@ -245,8 +233,9 @@ $root.packets = (function() {
 				return "sender: string expected";
 			if (!$util.isString(message.event))
 				return "event: string expected";
-			if (!$util.isString(message.data))
-				return "data: string expected";
+			if (message.data != null && message.hasOwnProperty("data"))
+				if (!$util.isString(message.data))
+					return "data: string expected";
 			if (message.groups != null && message.hasOwnProperty("groups")) {
 				if (!Array.isArray(message.groups))
 					return "groups: array expected";
@@ -254,13 +243,8 @@ $root.packets = (function() {
 					if (!$util.isString(message.groups[i]))
 						return "groups: string[] expected";
 			}
-			if (message.broadcast != null && message.hasOwnProperty("broadcast")) {
-				if (!Array.isArray(message.broadcast))
-					return "broadcast: array expected";
-				for (let i = 0; i < message.broadcast.length; ++i)
-					if (typeof message.broadcast[i] !== "boolean")
-						return "broadcast: boolean[] expected";
-			}
+			if (typeof message.broadcast !== "boolean")
+				return "broadcast: boolean expected";
 			return null;
 		};
 
@@ -291,13 +275,8 @@ $root.packets = (function() {
 				for (let i = 0; i < object.groups.length; ++i)
 					message.groups[i] = String(object.groups[i]);
 			}
-			if (object.broadcast) {
-				if (!Array.isArray(object.broadcast))
-					throw TypeError(".packets.PacketEvent.broadcast: array expected");
-				message.broadcast = [];
-				for (let i = 0; i < object.broadcast.length; ++i)
-					message.broadcast[i] = Boolean(object.broadcast[i]);
-			}
+			if (object.broadcast != null)
+				message.broadcast = Boolean(object.broadcast);
 			return message;
 		};
 
@@ -314,15 +293,14 @@ $root.packets = (function() {
 			if (!options)
 				options = {};
 			let object = {};
-			if (options.arrays || options.defaults) {
+			if (options.arrays || options.defaults)
 				object.groups = [];
-				object.broadcast = [];
-			}
 			if (options.defaults) {
 				object.ver = "";
 				object.sender = "";
 				object.event = "";
 				object.data = "";
+				object.broadcast = false;
 			}
 			if (message.ver != null && message.hasOwnProperty("ver"))
 				object.ver = message.ver;
@@ -337,11 +315,8 @@ $root.packets = (function() {
 				for (let j = 0; j < message.groups.length; ++j)
 					object.groups[j] = message.groups[j];
 			}
-			if (message.broadcast && message.broadcast.length) {
-				object.broadcast = [];
-				for (let j = 0; j < message.broadcast.length; ++j)
-					object.broadcast[j] = message.broadcast[j];
-			}
+			if (message.broadcast != null && message.hasOwnProperty("broadcast"))
+				object.broadcast = message.broadcast;
 			return object;
 		};
 
@@ -2840,6 +2815,768 @@ $root.packets = (function() {
 		};
 
 		return PacketPong;
+	})();
+
+	packets.PacketGossipHello = (function() {
+
+		/**
+         * Properties of a PacketGossipHello.
+         * @memberof packets
+         * @interface IPacketGossipHello
+         * @property {string} ver PacketGossipHello ver
+         * @property {string} sender PacketGossipHello sender
+         * @property {string} host PacketGossipHello host
+         * @property {number} port PacketGossipHello port
+         */
+
+		/**
+         * Constructs a new PacketGossipHello.
+         * @memberof packets
+         * @classdesc Represents a PacketGossipHello.
+         * @implements IPacketGossipHello
+         * @constructor
+         * @param {packets.IPacketGossipHello=} [properties] Properties to set
+         */
+		function PacketGossipHello(properties) {
+			if (properties)
+				for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+					if (properties[keys[i]] != null)
+						this[keys[i]] = properties[keys[i]];
+		}
+
+		/**
+         * PacketGossipHello ver.
+         * @member {string} ver
+         * @memberof packets.PacketGossipHello
+         * @instance
+         */
+		PacketGossipHello.prototype.ver = "";
+
+		/**
+         * PacketGossipHello sender.
+         * @member {string} sender
+         * @memberof packets.PacketGossipHello
+         * @instance
+         */
+		PacketGossipHello.prototype.sender = "";
+
+		/**
+         * PacketGossipHello host.
+         * @member {string} host
+         * @memberof packets.PacketGossipHello
+         * @instance
+         */
+		PacketGossipHello.prototype.host = "";
+
+		/**
+         * PacketGossipHello port.
+         * @member {number} port
+         * @memberof packets.PacketGossipHello
+         * @instance
+         */
+		PacketGossipHello.prototype.port = 0;
+
+		/**
+         * Creates a new PacketGossipHello instance using the specified properties.
+         * @function create
+         * @memberof packets.PacketGossipHello
+         * @static
+         * @param {packets.IPacketGossipHello=} [properties] Properties to set
+         * @returns {packets.PacketGossipHello} PacketGossipHello instance
+         */
+		PacketGossipHello.create = function create(properties) {
+			return new PacketGossipHello(properties);
+		};
+
+		/**
+         * Encodes the specified PacketGossipHello message. Does not implicitly {@link packets.PacketGossipHello.verify|verify} messages.
+         * @function encode
+         * @memberof packets.PacketGossipHello
+         * @static
+         * @param {packets.IPacketGossipHello} message PacketGossipHello message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+		PacketGossipHello.encode = function encode(message, writer) {
+			if (!writer)
+				writer = $Writer.create();
+			writer.uint32(/* id 1, wireType 2 =*/10).string(message.ver);
+			writer.uint32(/* id 2, wireType 2 =*/18).string(message.sender);
+			writer.uint32(/* id 3, wireType 2 =*/26).string(message.host);
+			writer.uint32(/* id 4, wireType 0 =*/32).int32(message.port);
+			return writer;
+		};
+
+		/**
+         * Encodes the specified PacketGossipHello message, length delimited. Does not implicitly {@link packets.PacketGossipHello.verify|verify} messages.
+         * @function encodeDelimited
+         * @memberof packets.PacketGossipHello
+         * @static
+         * @param {packets.IPacketGossipHello} message PacketGossipHello message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+		PacketGossipHello.encodeDelimited = function encodeDelimited(message, writer) {
+			return this.encode(message, writer).ldelim();
+		};
+
+		/**
+         * Decodes a PacketGossipHello message from the specified reader or buffer.
+         * @function decode
+         * @memberof packets.PacketGossipHello
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {packets.PacketGossipHello} PacketGossipHello
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+		PacketGossipHello.decode = function decode(reader, length) {
+			if (!(reader instanceof $Reader))
+				reader = $Reader.create(reader);
+			let end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.PacketGossipHello();
+			while (reader.pos < end) {
+				let tag = reader.uint32();
+				switch (tag >>> 3) {
+					case 1:
+						message.ver = reader.string();
+						break;
+					case 2:
+						message.sender = reader.string();
+						break;
+					case 3:
+						message.host = reader.string();
+						break;
+					case 4:
+						message.port = reader.int32();
+						break;
+					default:
+						reader.skipType(tag & 7);
+						break;
+				}
+			}
+			if (!message.hasOwnProperty("ver"))
+				throw $util.ProtocolError("missing required 'ver'", { instance: message });
+			if (!message.hasOwnProperty("sender"))
+				throw $util.ProtocolError("missing required 'sender'", { instance: message });
+			if (!message.hasOwnProperty("host"))
+				throw $util.ProtocolError("missing required 'host'", { instance: message });
+			if (!message.hasOwnProperty("port"))
+				throw $util.ProtocolError("missing required 'port'", { instance: message });
+			return message;
+		};
+
+		/**
+         * Decodes a PacketGossipHello message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof packets.PacketGossipHello
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @returns {packets.PacketGossipHello} PacketGossipHello
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+		PacketGossipHello.decodeDelimited = function decodeDelimited(reader) {
+			if (!(reader instanceof $Reader))
+				reader = new $Reader(reader);
+			return this.decode(reader, reader.uint32());
+		};
+
+		/**
+         * Verifies a PacketGossipHello message.
+         * @function verify
+         * @memberof packets.PacketGossipHello
+         * @static
+         * @param {Object.<string,*>} message Plain object to verify
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
+         */
+		PacketGossipHello.verify = function verify(message) {
+			if (typeof message !== "object" || message === null)
+				return "object expected";
+			if (!$util.isString(message.ver))
+				return "ver: string expected";
+			if (!$util.isString(message.sender))
+				return "sender: string expected";
+			if (!$util.isString(message.host))
+				return "host: string expected";
+			if (!$util.isInteger(message.port))
+				return "port: integer expected";
+			return null;
+		};
+
+		/**
+         * Creates a PacketGossipHello message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof packets.PacketGossipHello
+         * @static
+         * @param {Object.<string,*>} object Plain object
+         * @returns {packets.PacketGossipHello} PacketGossipHello
+         */
+		PacketGossipHello.fromObject = function fromObject(object) {
+			if (object instanceof $root.packets.PacketGossipHello)
+				return object;
+			let message = new $root.packets.PacketGossipHello();
+			if (object.ver != null)
+				message.ver = String(object.ver);
+			if (object.sender != null)
+				message.sender = String(object.sender);
+			if (object.host != null)
+				message.host = String(object.host);
+			if (object.port != null)
+				message.port = object.port | 0;
+			return message;
+		};
+
+		/**
+         * Creates a plain object from a PacketGossipHello message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof packets.PacketGossipHello
+         * @static
+         * @param {packets.PacketGossipHello} message PacketGossipHello
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
+         * @returns {Object.<string,*>} Plain object
+         */
+		PacketGossipHello.toObject = function toObject(message, options) {
+			if (!options)
+				options = {};
+			let object = {};
+			if (options.defaults) {
+				object.ver = "";
+				object.sender = "";
+				object.host = "";
+				object.port = 0;
+			}
+			if (message.ver != null && message.hasOwnProperty("ver"))
+				object.ver = message.ver;
+			if (message.sender != null && message.hasOwnProperty("sender"))
+				object.sender = message.sender;
+			if (message.host != null && message.hasOwnProperty("host"))
+				object.host = message.host;
+			if (message.port != null && message.hasOwnProperty("port"))
+				object.port = message.port;
+			return object;
+		};
+
+		/**
+         * Converts this PacketGossipHello to JSON.
+         * @function toJSON
+         * @memberof packets.PacketGossipHello
+         * @instance
+         * @returns {Object.<string,*>} JSON object
+         */
+		PacketGossipHello.prototype.toJSON = function toJSON() {
+			return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+		};
+
+		return PacketGossipHello;
+	})();
+
+	packets.PacketGossipRequest = (function() {
+
+		/**
+         * Properties of a PacketGossipRequest.
+         * @memberof packets
+         * @interface IPacketGossipRequest
+         * @property {string} ver PacketGossipRequest ver
+         * @property {string} sender PacketGossipRequest sender
+         * @property {string|null} [online] PacketGossipRequest online
+         * @property {string|null} [offline] PacketGossipRequest offline
+         */
+
+		/**
+         * Constructs a new PacketGossipRequest.
+         * @memberof packets
+         * @classdesc Represents a PacketGossipRequest.
+         * @implements IPacketGossipRequest
+         * @constructor
+         * @param {packets.IPacketGossipRequest=} [properties] Properties to set
+         */
+		function PacketGossipRequest(properties) {
+			if (properties)
+				for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+					if (properties[keys[i]] != null)
+						this[keys[i]] = properties[keys[i]];
+		}
+
+		/**
+         * PacketGossipRequest ver.
+         * @member {string} ver
+         * @memberof packets.PacketGossipRequest
+         * @instance
+         */
+		PacketGossipRequest.prototype.ver = "";
+
+		/**
+         * PacketGossipRequest sender.
+         * @member {string} sender
+         * @memberof packets.PacketGossipRequest
+         * @instance
+         */
+		PacketGossipRequest.prototype.sender = "";
+
+		/**
+         * PacketGossipRequest online.
+         * @member {string} online
+         * @memberof packets.PacketGossipRequest
+         * @instance
+         */
+		PacketGossipRequest.prototype.online = "";
+
+		/**
+         * PacketGossipRequest offline.
+         * @member {string} offline
+         * @memberof packets.PacketGossipRequest
+         * @instance
+         */
+		PacketGossipRequest.prototype.offline = "";
+
+		/**
+         * Creates a new PacketGossipRequest instance using the specified properties.
+         * @function create
+         * @memberof packets.PacketGossipRequest
+         * @static
+         * @param {packets.IPacketGossipRequest=} [properties] Properties to set
+         * @returns {packets.PacketGossipRequest} PacketGossipRequest instance
+         */
+		PacketGossipRequest.create = function create(properties) {
+			return new PacketGossipRequest(properties);
+		};
+
+		/**
+         * Encodes the specified PacketGossipRequest message. Does not implicitly {@link packets.PacketGossipRequest.verify|verify} messages.
+         * @function encode
+         * @memberof packets.PacketGossipRequest
+         * @static
+         * @param {packets.IPacketGossipRequest} message PacketGossipRequest message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+		PacketGossipRequest.encode = function encode(message, writer) {
+			if (!writer)
+				writer = $Writer.create();
+			writer.uint32(/* id 1, wireType 2 =*/10).string(message.ver);
+			writer.uint32(/* id 2, wireType 2 =*/18).string(message.sender);
+			if (message.online != null && message.hasOwnProperty("online"))
+				writer.uint32(/* id 3, wireType 2 =*/26).string(message.online);
+			if (message.offline != null && message.hasOwnProperty("offline"))
+				writer.uint32(/* id 4, wireType 2 =*/34).string(message.offline);
+			return writer;
+		};
+
+		/**
+         * Encodes the specified PacketGossipRequest message, length delimited. Does not implicitly {@link packets.PacketGossipRequest.verify|verify} messages.
+         * @function encodeDelimited
+         * @memberof packets.PacketGossipRequest
+         * @static
+         * @param {packets.IPacketGossipRequest} message PacketGossipRequest message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+		PacketGossipRequest.encodeDelimited = function encodeDelimited(message, writer) {
+			return this.encode(message, writer).ldelim();
+		};
+
+		/**
+         * Decodes a PacketGossipRequest message from the specified reader or buffer.
+         * @function decode
+         * @memberof packets.PacketGossipRequest
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {packets.PacketGossipRequest} PacketGossipRequest
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+		PacketGossipRequest.decode = function decode(reader, length) {
+			if (!(reader instanceof $Reader))
+				reader = $Reader.create(reader);
+			let end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.PacketGossipRequest();
+			while (reader.pos < end) {
+				let tag = reader.uint32();
+				switch (tag >>> 3) {
+					case 1:
+						message.ver = reader.string();
+						break;
+					case 2:
+						message.sender = reader.string();
+						break;
+					case 3:
+						message.online = reader.string();
+						break;
+					case 4:
+						message.offline = reader.string();
+						break;
+					default:
+						reader.skipType(tag & 7);
+						break;
+				}
+			}
+			if (!message.hasOwnProperty("ver"))
+				throw $util.ProtocolError("missing required 'ver'", { instance: message });
+			if (!message.hasOwnProperty("sender"))
+				throw $util.ProtocolError("missing required 'sender'", { instance: message });
+			return message;
+		};
+
+		/**
+         * Decodes a PacketGossipRequest message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof packets.PacketGossipRequest
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @returns {packets.PacketGossipRequest} PacketGossipRequest
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+		PacketGossipRequest.decodeDelimited = function decodeDelimited(reader) {
+			if (!(reader instanceof $Reader))
+				reader = new $Reader(reader);
+			return this.decode(reader, reader.uint32());
+		};
+
+		/**
+         * Verifies a PacketGossipRequest message.
+         * @function verify
+         * @memberof packets.PacketGossipRequest
+         * @static
+         * @param {Object.<string,*>} message Plain object to verify
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
+         */
+		PacketGossipRequest.verify = function verify(message) {
+			if (typeof message !== "object" || message === null)
+				return "object expected";
+			if (!$util.isString(message.ver))
+				return "ver: string expected";
+			if (!$util.isString(message.sender))
+				return "sender: string expected";
+			if (message.online != null && message.hasOwnProperty("online"))
+				if (!$util.isString(message.online))
+					return "online: string expected";
+			if (message.offline != null && message.hasOwnProperty("offline"))
+				if (!$util.isString(message.offline))
+					return "offline: string expected";
+			return null;
+		};
+
+		/**
+         * Creates a PacketGossipRequest message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof packets.PacketGossipRequest
+         * @static
+         * @param {Object.<string,*>} object Plain object
+         * @returns {packets.PacketGossipRequest} PacketGossipRequest
+         */
+		PacketGossipRequest.fromObject = function fromObject(object) {
+			if (object instanceof $root.packets.PacketGossipRequest)
+				return object;
+			let message = new $root.packets.PacketGossipRequest();
+			if (object.ver != null)
+				message.ver = String(object.ver);
+			if (object.sender != null)
+				message.sender = String(object.sender);
+			if (object.online != null)
+				message.online = String(object.online);
+			if (object.offline != null)
+				message.offline = String(object.offline);
+			return message;
+		};
+
+		/**
+         * Creates a plain object from a PacketGossipRequest message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof packets.PacketGossipRequest
+         * @static
+         * @param {packets.PacketGossipRequest} message PacketGossipRequest
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
+         * @returns {Object.<string,*>} Plain object
+         */
+		PacketGossipRequest.toObject = function toObject(message, options) {
+			if (!options)
+				options = {};
+			let object = {};
+			if (options.defaults) {
+				object.ver = "";
+				object.sender = "";
+				object.online = "";
+				object.offline = "";
+			}
+			if (message.ver != null && message.hasOwnProperty("ver"))
+				object.ver = message.ver;
+			if (message.sender != null && message.hasOwnProperty("sender"))
+				object.sender = message.sender;
+			if (message.online != null && message.hasOwnProperty("online"))
+				object.online = message.online;
+			if (message.offline != null && message.hasOwnProperty("offline"))
+				object.offline = message.offline;
+			return object;
+		};
+
+		/**
+         * Converts this PacketGossipRequest to JSON.
+         * @function toJSON
+         * @memberof packets.PacketGossipRequest
+         * @instance
+         * @returns {Object.<string,*>} JSON object
+         */
+		PacketGossipRequest.prototype.toJSON = function toJSON() {
+			return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+		};
+
+		return PacketGossipRequest;
+	})();
+
+	packets.PacketGossipResponse = (function() {
+
+		/**
+         * Properties of a PacketGossipResponse.
+         * @memberof packets
+         * @interface IPacketGossipResponse
+         * @property {string} ver PacketGossipResponse ver
+         * @property {string} sender PacketGossipResponse sender
+         * @property {string|null} [online] PacketGossipResponse online
+         * @property {string|null} [offline] PacketGossipResponse offline
+         */
+
+		/**
+         * Constructs a new PacketGossipResponse.
+         * @memberof packets
+         * @classdesc Represents a PacketGossipResponse.
+         * @implements IPacketGossipResponse
+         * @constructor
+         * @param {packets.IPacketGossipResponse=} [properties] Properties to set
+         */
+		function PacketGossipResponse(properties) {
+			if (properties)
+				for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+					if (properties[keys[i]] != null)
+						this[keys[i]] = properties[keys[i]];
+		}
+
+		/**
+         * PacketGossipResponse ver.
+         * @member {string} ver
+         * @memberof packets.PacketGossipResponse
+         * @instance
+         */
+		PacketGossipResponse.prototype.ver = "";
+
+		/**
+         * PacketGossipResponse sender.
+         * @member {string} sender
+         * @memberof packets.PacketGossipResponse
+         * @instance
+         */
+		PacketGossipResponse.prototype.sender = "";
+
+		/**
+         * PacketGossipResponse online.
+         * @member {string} online
+         * @memberof packets.PacketGossipResponse
+         * @instance
+         */
+		PacketGossipResponse.prototype.online = "";
+
+		/**
+         * PacketGossipResponse offline.
+         * @member {string} offline
+         * @memberof packets.PacketGossipResponse
+         * @instance
+         */
+		PacketGossipResponse.prototype.offline = "";
+
+		/**
+         * Creates a new PacketGossipResponse instance using the specified properties.
+         * @function create
+         * @memberof packets.PacketGossipResponse
+         * @static
+         * @param {packets.IPacketGossipResponse=} [properties] Properties to set
+         * @returns {packets.PacketGossipResponse} PacketGossipResponse instance
+         */
+		PacketGossipResponse.create = function create(properties) {
+			return new PacketGossipResponse(properties);
+		};
+
+		/**
+         * Encodes the specified PacketGossipResponse message. Does not implicitly {@link packets.PacketGossipResponse.verify|verify} messages.
+         * @function encode
+         * @memberof packets.PacketGossipResponse
+         * @static
+         * @param {packets.IPacketGossipResponse} message PacketGossipResponse message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+		PacketGossipResponse.encode = function encode(message, writer) {
+			if (!writer)
+				writer = $Writer.create();
+			writer.uint32(/* id 1, wireType 2 =*/10).string(message.ver);
+			writer.uint32(/* id 2, wireType 2 =*/18).string(message.sender);
+			if (message.online != null && message.hasOwnProperty("online"))
+				writer.uint32(/* id 3, wireType 2 =*/26).string(message.online);
+			if (message.offline != null && message.hasOwnProperty("offline"))
+				writer.uint32(/* id 4, wireType 2 =*/34).string(message.offline);
+			return writer;
+		};
+
+		/**
+         * Encodes the specified PacketGossipResponse message, length delimited. Does not implicitly {@link packets.PacketGossipResponse.verify|verify} messages.
+         * @function encodeDelimited
+         * @memberof packets.PacketGossipResponse
+         * @static
+         * @param {packets.IPacketGossipResponse} message PacketGossipResponse message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+		PacketGossipResponse.encodeDelimited = function encodeDelimited(message, writer) {
+			return this.encode(message, writer).ldelim();
+		};
+
+		/**
+         * Decodes a PacketGossipResponse message from the specified reader or buffer.
+         * @function decode
+         * @memberof packets.PacketGossipResponse
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {packets.PacketGossipResponse} PacketGossipResponse
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+		PacketGossipResponse.decode = function decode(reader, length) {
+			if (!(reader instanceof $Reader))
+				reader = $Reader.create(reader);
+			let end = length === undefined ? reader.len : reader.pos + length, message = new $root.packets.PacketGossipResponse();
+			while (reader.pos < end) {
+				let tag = reader.uint32();
+				switch (tag >>> 3) {
+					case 1:
+						message.ver = reader.string();
+						break;
+					case 2:
+						message.sender = reader.string();
+						break;
+					case 3:
+						message.online = reader.string();
+						break;
+					case 4:
+						message.offline = reader.string();
+						break;
+					default:
+						reader.skipType(tag & 7);
+						break;
+				}
+			}
+			if (!message.hasOwnProperty("ver"))
+				throw $util.ProtocolError("missing required 'ver'", { instance: message });
+			if (!message.hasOwnProperty("sender"))
+				throw $util.ProtocolError("missing required 'sender'", { instance: message });
+			return message;
+		};
+
+		/**
+         * Decodes a PacketGossipResponse message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof packets.PacketGossipResponse
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @returns {packets.PacketGossipResponse} PacketGossipResponse
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+		PacketGossipResponse.decodeDelimited = function decodeDelimited(reader) {
+			if (!(reader instanceof $Reader))
+				reader = new $Reader(reader);
+			return this.decode(reader, reader.uint32());
+		};
+
+		/**
+         * Verifies a PacketGossipResponse message.
+         * @function verify
+         * @memberof packets.PacketGossipResponse
+         * @static
+         * @param {Object.<string,*>} message Plain object to verify
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
+         */
+		PacketGossipResponse.verify = function verify(message) {
+			if (typeof message !== "object" || message === null)
+				return "object expected";
+			if (!$util.isString(message.ver))
+				return "ver: string expected";
+			if (!$util.isString(message.sender))
+				return "sender: string expected";
+			if (message.online != null && message.hasOwnProperty("online"))
+				if (!$util.isString(message.online))
+					return "online: string expected";
+			if (message.offline != null && message.hasOwnProperty("offline"))
+				if (!$util.isString(message.offline))
+					return "offline: string expected";
+			return null;
+		};
+
+		/**
+         * Creates a PacketGossipResponse message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof packets.PacketGossipResponse
+         * @static
+         * @param {Object.<string,*>} object Plain object
+         * @returns {packets.PacketGossipResponse} PacketGossipResponse
+         */
+		PacketGossipResponse.fromObject = function fromObject(object) {
+			if (object instanceof $root.packets.PacketGossipResponse)
+				return object;
+			let message = new $root.packets.PacketGossipResponse();
+			if (object.ver != null)
+				message.ver = String(object.ver);
+			if (object.sender != null)
+				message.sender = String(object.sender);
+			if (object.online != null)
+				message.online = String(object.online);
+			if (object.offline != null)
+				message.offline = String(object.offline);
+			return message;
+		};
+
+		/**
+         * Creates a plain object from a PacketGossipResponse message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof packets.PacketGossipResponse
+         * @static
+         * @param {packets.PacketGossipResponse} message PacketGossipResponse
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
+         * @returns {Object.<string,*>} Plain object
+         */
+		PacketGossipResponse.toObject = function toObject(message, options) {
+			if (!options)
+				options = {};
+			let object = {};
+			if (options.defaults) {
+				object.ver = "";
+				object.sender = "";
+				object.online = "";
+				object.offline = "";
+			}
+			if (message.ver != null && message.hasOwnProperty("ver"))
+				object.ver = message.ver;
+			if (message.sender != null && message.hasOwnProperty("sender"))
+				object.sender = message.sender;
+			if (message.online != null && message.hasOwnProperty("online"))
+				object.online = message.online;
+			if (message.offline != null && message.hasOwnProperty("offline"))
+				object.offline = message.offline;
+			return object;
+		};
+
+		/**
+         * Converts this PacketGossipResponse to JSON.
+         * @function toJSON
+         * @memberof packets.PacketGossipResponse
+         * @instance
+         * @returns {Object.<string,*>} JSON object
+         */
+		PacketGossipResponse.prototype.toJSON = function toJSON() {
+			return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+		};
+
+		return PacketGossipResponse;
 	})();
 
 	return packets;

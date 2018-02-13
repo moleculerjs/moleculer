@@ -14,5 +14,6 @@ module.exports = {
 	Redis: require("./redis"),
 	AMQP: require("./amqp"),
 	Kafka: require("./kafka"),
-	STAN: require("./stan")
+	STAN: require("./stan"),
+	TCP: require("./tcp")
 };

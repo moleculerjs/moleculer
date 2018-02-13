@@ -48,22 +48,6 @@ class Cacher {
 
 
 			broker.use(this.middleware());
-
-			/* TODO
-			this.broker.on("cache.clean", payload => {
-				if (Array.isArray(payload))
-					payload.forEach(match => this.clean(match));
-				else
-					this.clean(payload);
-			});
-
-			this.broker.on("cache.del", payload => {
-				if (Array.isArray(payload))
-					payload.forEach(key => this.del(key));
-				else
-					this.del(payload);
-			});
-			*/
 		}
 	}
 

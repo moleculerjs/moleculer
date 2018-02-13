@@ -290,9 +290,11 @@ describe("Test option resolvers", () => {
 			expect(trans).toBeInstanceOf(Transporters.NATS);
 		});
 
-		it("should resolve AMQPTransporter from connection string", () => {
-			let trans = broker._resolveTransporter("amqp://localhost:5672");
-			expect(trans).toBeInstanceOf(Transporters.AMQP);
+		it("should resolve NATSTransporter from obj without type", () => {
+			let options = { url: "nats://localhost:4222" };
+			let trans = broker._resolveTransporter({ options });
+			expect(trans).toBeInstanceOf(Transporters.NATS);
+			expect(trans.opts).toEqual({"preserveBuffers": true, "url": "nats://localhost:4222"});
 		});
 
 		it("should resolve MQTTTransporter from connection string", () => {
@@ -305,6 +307,13 @@ describe("Test option resolvers", () => {
 			expect(trans).toBeInstanceOf(Transporters.MQTT);
 		});
 
+		it("should resolve MQTTransporter from obj", () => {
+			let options = { mqtt: "mqtt://localhost" };
+			let trans = broker._resolveTransporter({ type: "mqtt", options });
+			expect(trans).toBeInstanceOf(Transporters.MQTT);
+			expect(trans.opts).toEqual({ mqtt: "mqtt://localhost" });
+		});
+
 		it("should resolve RedisTransporter from connection string", () => {
 			let trans = broker._resolveTransporter("redis://localhost");
 			expect(trans).toBeInstanceOf(Transporters.Redis);
@@ -315,43 +324,88 @@ describe("Test option resolvers", () => {
 			expect(trans).toBeInstanceOf(Transporters.Redis);
 		});
 
-		it("should resolve NATSTransporter from obj without type", () => {
-			let options = { nats: { url: "nats://localhost:4222" } };
-			let trans = broker._resolveTransporter({ options });
-			expect(trans).toBeInstanceOf(Transporters.NATS);
-			expect(trans.opts).toEqual({"nats": {"preserveBuffers": true, "url": "nats://localhost:4222"}});
-		});
-
-		it("should resolve AMQPTransporter from obj", () => {
-			let options = { amqp: { url: "amqp://localhost" } };
-			let trans = broker._resolveTransporter({ type: "AMQP", options });
-			expect(trans).toBeInstanceOf(Transporters.AMQP);
-			expect(trans.opts).toEqual({
-				amqp: {
-					prefetch: 1,
-					heartbeatTimeToLive: null,
-					eventTimeToLive: null,
-					url: "amqp://localhost",
-					exchangeOptions: {},
-					messageOptions: {},
-					queueOptions: {},
-					consumeOptions: {}
-				},
-			});
-		});
-
-		it("should resolve MQTTransporter from obj", () => {
-			let options = { mqtt: "mqtt://localhost" };
-			let trans = broker._resolveTransporter({ type: "mqtt", options });
-			expect(trans).toBeInstanceOf(Transporters.MQTT);
-			expect(trans.opts).toEqual({ mqtt: "mqtt://localhost" });
-		});
-
 		it("should resolve RedisTransporter from obj with Redis type", () => {
 			let options = { redis: { db: 3 } };
 			let trans = broker._resolveTransporter({ type: "Redis", options });
 			expect(trans).toBeInstanceOf(Transporters.Redis);
 			expect(trans.opts).toEqual({ redis: { db: 3 } });
+		});
+
+		it("should resolve AMQPTransporter from connection string", () => {
+			let trans = broker._resolveTransporter("amqp");
+			expect(trans).toBeInstanceOf(Transporters.AMQP);
+		});
+
+		it("should resolve AMQPTransporter from connection string", () => {
+			let trans = broker._resolveTransporter("amqp://localhost:5672");
+			expect(trans).toBeInstanceOf(Transporters.AMQP);
+		});
+
+		it("should resolve AMQPTransporter from obj", () => {
+			let options = { url: "amqp://localhost" };
+			let trans = broker._resolveTransporter({ type: "AMQP", options });
+			expect(trans).toBeInstanceOf(Transporters.AMQP);
+			expect(trans.opts).toEqual({
+				prefetch: 1,
+				heartbeatTimeToLive: null,
+				eventTimeToLive: null,
+				url: "amqp://localhost",
+				exchangeOptions: {},
+				messageOptions: {},
+				queueOptions: {},
+				consumeOptions: {}
+			});
+		});
+
+		it("should resolve KafkaTransporter from connection string", () => {
+			let trans = broker._resolveTransporter("kafka");
+			expect(trans).toBeInstanceOf(Transporters.Kafka);
+		});
+
+		it("should resolve KafkaTransporter from connection string", () => {
+			let trans = broker._resolveTransporter("kafka://localhost:2181");
+			expect(trans).toBeInstanceOf(Transporters.Kafka);
+			expect(trans.opts).toEqual({
+				"host": "localhost:2181",
+				"client": {
+					"noAckBatchOptions": undefined,
+					"sslOptions": undefined,
+					"zkOptions": undefined
+				},
+				"consumer": {},
+				"customPartitioner": undefined,
+				"producer": {},
+				"publish": {
+					"attributes": 0,
+					"partition": 0
+				}
+			});
+		});
+
+		it("should resolve KafkaTransporter from obj", () => {
+			let options = {
+				host: "localhost:2181",
+				publish: {
+					partition: 2
+				}
+			};
+			let trans = broker._resolveTransporter({ type: "Kafka", options });
+			expect(trans).toBeInstanceOf(Transporters.Kafka);
+			expect(trans.opts).toEqual({
+				"host": "localhost:2181",
+				"client": {
+					"noAckBatchOptions": undefined,
+					"sslOptions": undefined,
+					"zkOptions": undefined
+				},
+				"consumer": {},
+				"customPartitioner": undefined,
+				"producer": {},
+				"publish": {
+					"attributes": 0,
+					"partition": 2
+				}
+			});
 		});
 
 		it("should throw error if type if not correct", () => {
@@ -364,6 +418,26 @@ describe("Test option resolvers", () => {
 			}).toThrowError(MoleculerError);
 		});
 
+		it("should resolve NatsStreamingTransporter from connection string", () => {
+			let trans = broker._resolveTransporter("stan://localhost:4222");
+			expect(trans).toBeInstanceOf(Transporters.STAN);
+		});
+
+		it("should resolve NatsStreamingTransporter from string", () => {
+			let trans = broker._resolveTransporter("STAN");
+			expect(trans).toBeInstanceOf(Transporters.STAN);
+		});
+
+		it("should resolve NatsStreamingTransporter from obj without type", () => {
+			let options = { url: "stan://localhost:4222" };
+			let trans = broker._resolveTransporter({ type: "STAN", options });
+			expect(trans).toBeInstanceOf(Transporters.STAN);
+			expect(trans.opts).toEqual({
+				"clusterID": "test-cluster",
+				"preserveBuffers": true,
+				"url": "stan://localhost:4222"
+			});
+		});
 	});
 
 	describe("Test _resolveCacher", () => {

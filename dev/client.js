@@ -10,12 +10,21 @@ let ServiceBroker = require("../src/service-broker");
 
 // Create broker
 let broker = new ServiceBroker({
-	namespace: "multi",
+	namespace: "",
 	nodeID: process.argv[2] || "client-" + process.pid,
-	transporter: "STAN",
-	//transporter: "kafka://192.168.51.29:2181",
+	transporter: {
+		type: "TCP",
+		options: {
+			udpDiscovery: false,
+			broadcastAddress: "255.255.255.255",
+			gossipPeriod: 5,
+			urls: "file://./dev/nodes.json",
+			debug: true
+		}
+	},
+	//transporter: "kafka://192.168.0.181:2181",
 	//transporter: "amqp://192.168.0.181:5672",
-	//serializer: "Avro",
+	//serializer: "MsgPack",
 	//requestTimeout: 1000,
 
 	//disableBalancer: true,
@@ -27,7 +36,7 @@ let broker = new ServiceBroker({
 	},
 
 	registry: {
-		strategy: Strategies.Random
+		//strategy: Strategies.Random
 	},
 
 	circuitBreaker: {
@@ -90,6 +99,7 @@ let reqCount = 0;
 let pendingReqs = [];
 
 broker.start()
+	.then(() => broker.repl())
 	.then(() => broker.waitForServices("math"))
 	.then(() => {
 		setInterval(() => {
@@ -127,5 +137,4 @@ broker.start()
 			});
 		}, 1000);
 
-	})
-	.then(() => broker.repl());
+	});

@@ -9,14 +9,14 @@
 const BaseSerializer  	= require("./base");
 /**
  * JSON serializer for Moleculer
- * 
+ *
  * @class JSONSerializer
  */
 class JSONSerializer extends BaseSerializer {
 
 	/**
 	 * Creates an instance of JSONSerializer.
-	 * 
+	 *
 	 * @memberOf JSONSerializer
 	 */
 	constructor() {
@@ -25,11 +25,11 @@ class JSONSerializer extends BaseSerializer {
 
 	/**
 	 * Serializer a JS object to Buffer
-	 * 
+	 *
 	 * @param {Object} obj
 	 * @param {String} type of packet
 	 * @returns {Buffer}
-	 * 
+	 *
 	 * @memberOf Serializer
 	 */
 	serialize(obj) {
@@ -38,11 +38,11 @@ class JSONSerializer extends BaseSerializer {
 
 	/**
 	 * Deserialize Buffer to JS object
-	 * 
+	 *
 	 * @param {Buffer} buf
 	 * @param {String} type of packet
 	 * @returns {Object}
-	 * 
+	 *
 	 * @memberOf Serializer
 	 */
 	deserialize(buf) {

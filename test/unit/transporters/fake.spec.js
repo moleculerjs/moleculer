@@ -1,7 +1,7 @@
 const ServiceBroker = require("../../../src/service-broker");
 const Transit = require("../../../src/transit");
 const FakeTransporter = require("../../../src/transporters/fake");
-const { PacketInfo } = require("../../../src/packets");
+const P = require("../../../src/packets");
 
 const { isPromise } = require("../../../src/utils");
 
@@ -41,6 +41,7 @@ describe("Test FakeTransporter", () => {
 
 		let subCb;
 		transporter.bus.on = jest.fn((name, cb) => subCb = cb);
+		transporter.incomingMessage = jest.fn();
 
 		transporter.subscribe("REQ", "node");
 
@@ -48,22 +49,27 @@ describe("Test FakeTransporter", () => {
 		expect(transporter.bus.on).toHaveBeenCalledWith("MOL-TEST.REQ.node", jasmine.any(Function));
 
 		// Test subscribe callback
-		//subCb.call({ event: "event.test.name" }, "incoming data");
-		subCb("incoming data");
-		expect(msgHandler).toHaveBeenCalledTimes(1);
-		//expect(msgHandler).toHaveBeenCalledWith(["test", "name"], "incoming data");
-		expect(msgHandler).toHaveBeenCalledWith("REQ", "incoming data");
+		subCb("{ sender: \"node1\" }");
+		expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
+		expect(transporter.incomingMessage).toHaveBeenCalledWith("REQ", "{ sender: \"node1\" }");
+
 	});
 
 	it("check publish", () => {
 		let transporter = new FakeTransporter();
-		transporter.init(new Transit(new ServiceBroker()));
+		transporter.init(new Transit(new ServiceBroker({ nodeID: "node1"})));
 		transporter.bus.emit = jest.fn();
+		transporter.serialize = jest.fn(() => "serialized data");
 
-		transporter.publish(new PacketInfo(fakeTransit, "node2", { services: {} }));
+		const packet = new P.Packet(P.PACKET_INFO, "node2", { services: {} });
+		transporter.publish(packet);
 
 		expect(transporter.bus.emit).toHaveBeenCalledTimes(1);
-		expect(transporter.bus.emit).toHaveBeenCalledWith("MOL.INFO.node2", "{\"ver\":\"3\",\"sender\":\"node1\",\"services\":{}}");
+		expect(transporter.bus.emit).toHaveBeenCalledWith("MOL.INFO.node2", "serialized data");
+
+		expect(transporter.serialize).toHaveBeenCalledTimes(1);
+		expect(transporter.serialize).toHaveBeenCalledWith(packet);
+
 	});
 
 });

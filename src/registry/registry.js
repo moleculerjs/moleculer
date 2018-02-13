@@ -13,8 +13,6 @@ const ServiceCatalog = require("./service-catalog");
 const EventCatalog = require("./event-catalog");
 const ActionCatalog = require("./action-catalog");
 
-const RoundRobinStrategy = require("../strategies").RoundRobin;
-
 /**
  * Service Registry
  *
@@ -60,8 +58,8 @@ class Registry {
 		if (svc.events)
 			this.registerEvents(this.nodes.localNode, service, svc.events);
 
-
 		this.nodes.localNode.services.push(service);
+		this.nodes.localNode.seq++;
 
 		this.logger.info(`'${svc.name}' service is registered.`);
 	}
@@ -190,6 +188,9 @@ class Registry {
 	 */
 	unregisterService(name, version, nodeID) {
 		this.services.remove(name, version, nodeID || this.broker.nodeID);
+
+		if (!nodeID || nodeID == this.broker.nodeID)
+			this.nodes.localNode.seq++;
 	}
 
 	/**
@@ -246,10 +247,27 @@ class Registry {
 	 * @memberof Registry
 	 */
 	getLocalNodeInfo() {
-		const res = _.pick(this.nodes.localNode, ["ipList", "hostname", "client", "config", "port"]);
+		const res = _.pick(this.nodes.localNode, ["ipList", "hostname", "client", "config", "port", "seq"]);
 		res.services = this.services.list({ onlyLocal: true, withActions: true, withEvents: true });
 
 		return res;
+	}
+
+	/**
+	 * Generate node info for INFO packets
+	 *
+	 * @returns
+	 * @memberof Registry
+	 */
+	getNodeInfo(nodeID) {
+		const node = this.nodes.get(nodeID);
+		if (!node)
+			return null;
+
+		if (node.local)
+			return this.getLocalNodeInfo();
+
+		return node.rawInfo;
 	}
 
 	/**

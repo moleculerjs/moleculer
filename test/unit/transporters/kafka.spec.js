@@ -1,6 +1,6 @@
 const ServiceBroker = require("../../../src/service-broker");
 const Transit = require("../../../src/transit");
-const { PacketInfo } = require("../../../src/packets");
+const P = require("../../../src/packets");
 
 jest.mock("kafka-node");
 
@@ -46,20 +46,18 @@ describe("Test KafkaTransporter constructor", () => {
 		let transporter = new KafkaTransporter();
 		expect(transporter).toBeDefined();
 		expect(transporter.opts).toEqual({
-			"kafka": {
-				"host": undefined,
-				"client": {
-					"noAckBatchOptions": undefined,
-					"sslOptions": undefined,
-					"zkOptions": undefined
-				},
-				"customPartitioner": undefined,
-				"producer": {},
-				"consumer": {},
-				"publish": {
-					"attributes": 0,
-					"partition": 0
-				}
+			"host": undefined,
+			"client": {
+				"noAckBatchOptions": undefined,
+				"sslOptions": undefined,
+				"zkOptions": undefined
+			},
+			"customPartitioner": undefined,
+			"producer": {},
+			"consumer": {},
+			"publish": {
+				"attributes": 0,
+				"partition": 0
 			}
 		});
 		expect(transporter.connected).toBe(false);
@@ -71,44 +69,40 @@ describe("Test KafkaTransporter constructor", () => {
 	it("check constructor with string param", () => {
 		let transporter = new KafkaTransporter("localhost:2181");
 		expect(transporter.opts).toEqual({
-			"kafka": {
-				"host": "localhost:2181",
-				"client": {
-					"noAckBatchOptions": undefined,
-					"sslOptions": undefined,
-					"zkOptions": undefined
-				},
-				"customPartitioner": undefined,
-				"producer": {},
-				"consumer": {},
-				"publish": {
-					"attributes": 0,
-					"partition": 0
-				}
+			"host": "localhost:2181",
+			"client": {
+				"noAckBatchOptions": undefined,
+				"sslOptions": undefined,
+				"zkOptions": undefined
+			},
+			"customPartitioner": undefined,
+			"producer": {},
+			"consumer": {},
+			"publish": {
+				"attributes": 0,
+				"partition": 0
 			}
 		});
 	});
 
 	it("check constructor with options", () => {
-		let opts = { kafka: { host: "localhost:2181", publish: {
+		let opts = { host: "localhost:2181", publish: {
 			partition: 1
-		}} };
+		}};
 		let transporter = new KafkaTransporter(opts);
 		expect(transporter.opts).toEqual({
-			"kafka": {
-				"host": "localhost:2181",
-				"client": {
-					"noAckBatchOptions": undefined,
-					"sslOptions": undefined,
-					"zkOptions": undefined
-				},
-				"customPartitioner": undefined,
-				"producer": {},
-				"consumer": {},
-				"publish": {
-					"attributes": 0,
-					"partition": 1
-				}
+			"host": "localhost:2181",
+			"client": {
+				"noAckBatchOptions": undefined,
+				"sslOptions": undefined,
+				"zkOptions": undefined
+			},
+			"customPartitioner": undefined,
+			"producer": {},
+			"consumer": {},
+			"publish": {
+				"attributes": 0,
+				"partition": 1
 			}
 		});
 	});
@@ -187,6 +181,7 @@ describe("Test KafkaTransporter makeSubscriptions", () => {
 
 		let p = transporter.connect();
 		transporter.client.callbacks.connect(); // Trigger the `resolve`
+		transporter.incomingMessage = jest.fn();
 		return p;
 	});
 
@@ -221,8 +216,8 @@ describe("Test KafkaTransporter makeSubscriptions", () => {
 			topic: "MOL.INFO.node-2",
 			value: "{ ver: \"3\" }"
 		});
-		expect(msgHandler).toHaveBeenCalledTimes(1);
-		expect(msgHandler).toHaveBeenCalledWith("INFO", "{ ver: \"3\" }");
+		expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
+		expect(transporter.incomingMessage).toHaveBeenCalledWith("INFO", "{ ver: \"3\" }");
 
 	});
 });
@@ -231,15 +226,11 @@ describe("Test KafkaTransporter subscribe & publish", () => {
 	let transporter;
 	let msgHandler;
 
-	const fakeTransit = {
-		nodeID: "node1",
-		serialize: jest.fn(msg => JSON.stringify(msg))
-	};
-
 	beforeEach(() => {
 		msgHandler = jest.fn();
 		transporter = new KafkaTransporter();
-		transporter.init(new Transit(new ServiceBroker({ namespace: "TEST" })), msgHandler);
+		transporter.init(new Transit(new ServiceBroker({ namespace: "TEST", nodeID: "node1" })), msgHandler);
+		transporter.serialize = jest.fn(() => "json data");
 
 		let p = transporter.connect();
 		transporter.client.callbacks.connect(); // Trigger the `resolve`
@@ -248,15 +239,20 @@ describe("Test KafkaTransporter subscribe & publish", () => {
 
 	it("check publish", () => {
 		transporter.producer.send.mockClear();
-		transporter.publish(new PacketInfo(fakeTransit, "node2", { services: {} }));
+		const packet = new P.Packet(P.PACKET_INFO, "node2", { services: {} });
+		transporter.publish(packet);
 
 		expect(transporter.producer.send).toHaveBeenCalledTimes(1);
 		expect(transporter.producer.send).toHaveBeenCalledWith([{
 			topic: "MOL-TEST.INFO.node2",
-			messages: ["{\"ver\":\"3\",\"sender\":\"node1\",\"services\":{}}"],
+			messages: ["json data"],
 			partition: 0,
 			attributes: 0
 		}], jasmine.any(Function));
+
+		expect(transporter.serialize).toHaveBeenCalledTimes(1);
+		expect(transporter.serialize).toHaveBeenCalledWith(packet);
+
 	});
 });
 

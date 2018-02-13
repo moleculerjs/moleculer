@@ -50,6 +50,9 @@ class ProtoBufSerializer extends BaseSerializer {
 			case P.PACKET_HEARTBEAT: return this.packets.PacketHeartbeat;
 			case P.PACKET_PING: return this.packets.PacketPing;
 			case P.PACKET_PONG: return this.packets.PacketPong;
+			case P.PACKET_GOSSIP_HELLO: return this.packets.PacketGossipHello;
+			case P.PACKET_GOSSIP_REQ: return this.packets.PacketGossipRequest;
+			case P.PACKET_GOSSIP_RES: return this.packets.PacketGossipResponse;
 		}
 	}
 

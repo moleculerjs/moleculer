@@ -10,7 +10,7 @@ describe("Test BaseTransporter", () => {
 	it("check constructor", () => {
 		let transporter = new BaseTransporter();
 		expect(transporter).toBeDefined();
-		expect(transporter.opts).toBeDefined();
+		expect(transporter.opts).toBeUndefined();
 		expect(transporter.connected).toBe(false);
 		expect(transporter.hasBuiltInBalancer).toBe(false);
 
@@ -26,6 +26,8 @@ describe("Test BaseTransporter", () => {
 		expect(transporter.publish).toBeDefined();
 		expect(transporter.publishBalancedEvent).toBeDefined();
 		expect(transporter.publishBalancedRequest).toBeDefined();
+		expect(transporter.serialize).toBeDefined();
+		expect(transporter.deserialize).toBeDefined();
 	});
 
 	it("check constructor with options", () => {
@@ -68,6 +70,21 @@ describe("Test BaseTransporter", () => {
 		transporter.onConnected(true);
 		expect(afterConnect).toHaveBeenCalledTimes(1);
 		expect(afterConnect).toHaveBeenCalledWith(true);
+	});
+
+	it("check incomingMessage", () => {
+		let transporter = new BaseTransporter();
+		let p = {};
+		transporter.deserialize = jest.fn(() => p);
+		transporter.messageHandler = jest.fn();
+
+		transporter.incomingMessage("MOL.DISCOVER" , "msg");
+
+		expect(transporter.deserialize).toHaveBeenCalledTimes(1);
+		expect(transporter.deserialize).toHaveBeenCalledWith("MOL.DISCOVER", "msg");
+
+		expect(transporter.messageHandler).toHaveBeenCalledTimes(1);
+		expect(transporter.messageHandler).toHaveBeenCalledWith("MOL.DISCOVER", p);
 	});
 
 	it("check getTopicName", () => {
@@ -190,7 +207,7 @@ describe("Test BaseTransporter", () => {
 			transporter.publish.mockClear();
 			transporter.publishBalancedEvent.mockClear();
 
-			let packet = new P.PacketEvent(transit, "server-2", "user.created");
+			let packet = new P.Packet(P.PACKET_EVENT, "server-2", { event: "user.created" });
 			return transporter.prepublish(packet).catch(protectReject).then(() => {
 				expect(transporter.publish).toHaveBeenCalledTimes(1);
 				expect(transporter.publishBalancedEvent).toHaveBeenCalledTimes(0);
@@ -201,7 +218,11 @@ describe("Test BaseTransporter", () => {
 			transporter.publish.mockClear();
 			transporter.publishBalancedEvent.mockClear();
 
-			let packet = new P.PacketEvent(transit, "server-2", "user.created", null, ["users", "payments"]);
+			let packet = new P.Packet(P.PACKET_EVENT, "server-2", {
+				event: "user.created",
+				data: null,
+				groups: ["users", "payments"]
+			});
 			return transporter.prepublish(packet).catch(protectReject).then(() => {
 				expect(transporter.publish).toHaveBeenCalledTimes(1);
 				expect(transporter.publishBalancedEvent).toHaveBeenCalledTimes(0);
@@ -212,7 +233,7 @@ describe("Test BaseTransporter", () => {
 			transporter.publish.mockClear();
 			transporter.publishBalancedEvent.mockClear();
 
-			let packet = new P.PacketEvent(transit, null, "user.created");
+			let packet = new P.Packet(P.PACKET_EVENT, null, "user.created");
 			return transporter.prepublish(packet).catch(protectReject).then(() => {
 				expect(transporter.publish).toHaveBeenCalledTimes(1);
 				expect(transporter.publishBalancedEvent).toHaveBeenCalledTimes(0);
@@ -223,7 +244,11 @@ describe("Test BaseTransporter", () => {
 			transporter.publish.mockClear();
 			transporter.publishBalancedEvent.mockClear();
 
-			let packet = new P.PacketEvent(transit, null, "user.created", null, ["users", "payments"]);
+			let packet = new P.Packet(P.PACKET_EVENT, null, {
+				event: "user.created",
+				data: null,
+				groups: ["users", "payments"]
+			});
 			return transporter.prepublish(packet).catch(protectReject).then(() => {
 				expect(transporter.publish).toHaveBeenCalledTimes(0);
 				expect(transporter.publishBalancedEvent).toHaveBeenCalledTimes(2);
@@ -235,7 +260,7 @@ describe("Test BaseTransporter", () => {
 			transporter.publish.mockClear();
 			transporter.publishBalancedRequest.mockClear();
 
-			let packet = new P.PacketRequest(transit, null);
+			let packet = new P.Packet(P.PACKET_REQUEST, null);
 			return transporter.prepublish(packet).catch(protectReject).then(() => {
 				expect(transporter.publish).toHaveBeenCalledTimes(0);
 				expect(transporter.publishBalancedRequest).toHaveBeenCalledTimes(1);
@@ -246,11 +271,45 @@ describe("Test BaseTransporter", () => {
 			transporter.publish.mockClear();
 			transporter.publishBalancedRequest.mockClear();
 
-			let packet = new P.PacketRequest(transit, "server-2");
+			let packet = new P.Packet(P.PACKET_REQUEST, "server-2");
 			return transporter.prepublish(packet).catch(protectReject).then(() => {
 				expect(transporter.publish).toHaveBeenCalledTimes(1);
 				expect(transporter.publishBalancedRequest).toHaveBeenCalledTimes(0);
 			});
+		});
+	});
+
+	describe("Test serialize", () => {
+		const broker = new ServiceBroker({ namespace: "beta-test", nodeID: "server1" });
+		const transporter = new BaseTransporter();
+		new Transit(broker, transporter);
+
+		broker.serializer.serialize = jest.fn(() => "serialized");
+
+		it("should set ver & sender in payload", () => {
+
+			let packet = new P.Packet(P.PACKET_EVENT);
+			expect(transporter.serialize(packet)).toBe("serialized");
+			expect(broker.serializer.serialize).toHaveBeenCalledTimes(1);
+			expect(broker.serializer.serialize).toHaveBeenCalledWith({"sender": "server1", "ver": "3"}, P.PACKET_EVENT);
+		});
+	});
+
+	describe("Test deserialize", () => {
+		const broker = new ServiceBroker({ namespace: "beta-test", nodeID: "server1" });
+		const transporter = new BaseTransporter();
+		new Transit(broker, transporter);
+
+		broker.serializer.deserialize = jest.fn(() => ({ type: P.PACKET_INFO, msg: "deserialized" }));
+
+		it("should call deserialize", () => {
+			const msg = "incoming data";
+			let packet = transporter.deserialize(P.PACKET_INFO, msg);
+			expect(packet).toBeDefined();
+			expect(packet.type).toBe("INFO");
+			expect(packet.payload).toEqual({"msg": "deserialized", "type": "INFO"});
+			expect(broker.serializer.deserialize).toHaveBeenCalledTimes(1);
+			expect(broker.serializer.deserialize).toHaveBeenCalledWith("incoming data", P.PACKET_INFO);
 		});
 	});
 

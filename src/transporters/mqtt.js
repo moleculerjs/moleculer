@@ -25,9 +25,6 @@ class MqttTransporter extends Transporter {
 	 * @memberOf MqttTransporter
 	 */
 	constructor(opts) {
-		if (typeof opts == "string")
-			opts = { mqtt: opts };
-
 		super(opts);
 
 		this.client = null;
@@ -48,7 +45,7 @@ class MqttTransporter extends Transporter {
 				this.broker.fatal("The 'mqtt' package is missing. Please install it with 'npm install mqtt --save' command.", err, true);
 			}
 
-			const client = mqtt.connect(this.opts.mqtt);
+			const client = mqtt.connect(this.opts);
 			this._client = client; // For tests
 
 			client.on("connect", () => {
@@ -74,7 +71,7 @@ class MqttTransporter extends Transporter {
 
 			client.on("message", (topic, msg) => {
 				const cmd = topic.split(".")[1];
-				this.messageHandler(cmd, msg);
+				this.incomingMessage(cmd, msg);
 			});
 
 			/* istanbul ignore next */
@@ -118,14 +115,16 @@ class MqttTransporter extends Transporter {
 	 * @memberOf MqttTransporter
 	 */
 	publish(packet) {
+		/* istanbul ignore next*/
 		if (!this.client) return;
-		const data = packet.serialize();
 
 		return new Promise((resolve, reject) => {
-			/* istanbul ignore next */
+			const data = this.serialize(packet);
 			this.client.publish(this.getTopicName(packet.type, packet.target), data, err => {
+				/* istanbul ignore next*/
 				if (err)
 					return reject(err);
+
 				resolve();
 			});
 		});

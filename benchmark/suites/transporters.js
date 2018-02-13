@@ -55,11 +55,13 @@ function runTest(dataName) {
 		createBrokers("Redis"),
 		createBrokers("MQTT"),
 		//createBrokers("amqp://192.168.51.29:5672")
+		createBrokers("TCP"),
 	]).delay(1000).then(([
 		[fake1, fake2],
 		[nats1, nats2],
 		[redis1, redis2],
 		[mqtt1, mqtt2],
+		[tcp1, tcp2],
 		//[amqp1, amqp2],
 	]) => {
 		bench.ref("Fake", done => {
@@ -82,6 +84,10 @@ function runTest(dataName) {
 			return amqp1.call("echo.reply", payload).then(done);
 		});*/
 
+		bench.add("TCP", done => {
+			return tcp1.call("echo.reply", payload).then(done);
+		});
+
 		bench.run().then(() => {
 			return Promise.all([
 				fake1.stop(),
@@ -98,6 +104,9 @@ function runTest(dataName) {
 
 				// amqp1.stop(),
 				// amqp2.stop()
+
+				tcp1.stop(),
+				tcp2.stop(),
 			]).then(() => {
 				if (dataFiles.length > 0)
 					runTest(dataFiles.shift());
@@ -116,20 +125,22 @@ runTest(dataFiles.shift());
 Platform info:
 ==============
    Windows_NT 6.1.7601 x64
-   Node.JS: 6.10.0
-   V8: 5.1.281.93
+   Node.JS: 8.9.4
+   V8: 6.1.534.50
    Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
 
 Suite: Transport with 10bytes
-√ Fake*            74,742 rps
-√ NATS*             8,651 rps
-√ Redis*            7,897 rps
-√ MQTT*             7,992 rps
+√ Fake*            55,626 rps
+√ NATS*             8,729 rps
+√ Redis*            8,590 rps
+√ MQTT*             8,103 rps
+√ TCP*             11,249 rps
 
-   Fake* (#)        0%         (74,742 rps)   (avg: 13μs)
-   NATS*       -88.43%          (8,651 rps)   (avg: 115μs)
-   Redis*      -89.43%          (7,897 rps)   (avg: 126μs)
-   MQTT*       -89.31%          (7,992 rps)   (avg: 125μs)
+   Fake* (#)        0%         (55,626 rps)   (avg: 17μs)
+   NATS*       -84.31%          (8,729 rps)   (avg: 114μs)
+   Redis*      -84.56%          (8,590 rps)   (avg: 116μs)
+   MQTT*       -85.43%          (8,103 rps)   (avg: 123μs)
+   TCP*        -79.78%         (11,249 rps)   (avg: 88μs)
 -----------------------------------------------------------------------
 
 */

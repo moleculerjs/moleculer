@@ -67,10 +67,14 @@ describe("Test internal services", () => {
 				},
 				"config": {},
 				"cpu": null,
+				"cpuSeq": null,
 				"id": "node-master",
 				"ipList": localNode.ipList,
 				"hostname": hostname(),
 				"lastHeartbeatTime": localNode.lastHeartbeatTime,
+				"offlineSince": null,
+				"port": null,
+				"seq": localNode.seq,
 				"local": true
 			}]);
 		});

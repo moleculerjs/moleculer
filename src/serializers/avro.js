@@ -20,7 +20,7 @@ function createSchemas() {
 			{ name: "ver", type: "string" },
 			{ name: "sender", type: "string" },
 			{ name: "event", type: "string" },
-			{ name: "data", type: "string" },
+			{ name: "data", type: [ "null", "string"], default: null },
 			{ name: "groups", type: [ "null", {
 				type: "array",
 				items: "string"
@@ -131,6 +131,39 @@ function createSchemas() {
 			{ name: "sender", type: "string" },
 			{ name: "time", type: "long" },
 			{ name: "arrived", type: "long" }
+		]
+	});
+
+	schemas[P.PACKET_GOSSIP_HELLO] = avro.Type.forSchema({
+		name: P.PACKET_GOSSIP_HELLO,
+		type: "record",
+		fields: [
+			{ name: "ver", type: "string" },
+			{ name: "sender", type: "string" },
+			{ name: "host", type: "string" },
+			{ name: "port", type: "int" }
+		]
+	});
+
+	schemas[P.PACKET_GOSSIP_REQ] = avro.Type.forSchema({
+		name: P.PACKET_GOSSIP_REQ,
+		type: "record",
+		fields: [
+			{ name: "ver", type: "string" },
+			{ name: "sender", type: "string" },
+			{ name: "online", type: [ "null", "string"], default: null },
+			{ name: "offline", type: [ "null", "string"], default: null },
+		]
+	});
+
+	schemas[P.PACKET_GOSSIP_RES] = avro.Type.forSchema({
+		name: P.PACKET_GOSSIP_RES,
+		type: "record",
+		fields: [
+			{ name: "ver", type: "string" },
+			{ name: "sender", type: "string" },
+			{ name: "online", type: [ "null", "string"], default: null },
+			{ name: "offline", type: [ "null", "string"], default: null },
 		]
 	});
 
