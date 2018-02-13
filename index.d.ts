@@ -586,11 +586,11 @@ declare namespace Moleculer {
 		class MoleculerServerError extends MoleculerRetryableError { }
 		class MoleculerClientError extends MoleculerError { }
 
-		class ServiceNotFoundError extends MoleculerError {
+		class ServiceNotFoundError extends MoleculerRetryableError {
 			constructor(action: string, nodeID: string);
 			constructor(action: string);
 		}
-		class ServiceNotAvailable extends MoleculerError {
+		class ServiceNotAvailable extends MoleculerRetryableError {
 			constructor(action: string, nodeID: string);
 			constructor(action: string);
 		}

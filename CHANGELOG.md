@@ -478,6 +478,7 @@ let broker = new ServiceBroker({
 - `broker.getAction` deprecated method is removed.
 - `PROTOCOL_VERSION` constant is available via broker as `ServiceBroker.PROTOCOL_VERSION` or `broker.PROTOCOL_VERSION`
 - serialization functions are moved from transit to transporter codebase.
+- `ctx.broadcast` shortcut created to send broadcast events
 
 # Fixes
 - handles invalid `dependencies` value in service schema [#164](https://github.com/ice-services/moleculer/pull/164)
