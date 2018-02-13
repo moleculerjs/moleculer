@@ -6,7 +6,7 @@
 ## Mixin merging logic is changed
 To support [#188](https://github.com/ice-services/moleculer/issues/188), mixin merging logic is changed at `actions`. Now it uses `defaultsDeep` for merging. It means you can extend the actions definition of mixins, no need to redeclare the `handler`.
 
-**Add extra action properties but `handler` is ontuched**
+**Add extra action properties but `handler` is untouched**
 ```js
     // mixin.service.js
     module.exports = {
@@ -230,7 +230,7 @@ The broker & services starting logic has been changed.
 
 **Previous logic:** the broker starts transporter connecting. When it's done, it starts all services (calls service `started` handlers). It has a disadvantage because other nodes can send requests to these services, while they are still starting and not ready yet.
 
-**New logic:** the broker starts transporter connecting but it doesn't publish the local service list to remote nodes. When it's done, it starts all services (calls service `started` handlers). Once all services start successfully, broker publish the local service list to remote nodes. Hence other nodes send requests only after all local service started properly.
+**New logic:** the broker starts transporter connecting but it doesn't publish the local service list to remote nodes. When it's done, it starts all services (calls service `started` handlers). Once all services start successfully, broker publishes the local service list to remote nodes. Hence other nodes send requests only after all local service started properly.
 >Please note: you can make dead-locks when two services wait for each other. E.g.: `users` service has `dependencies: [posts]` and `posts` service has `dependencies: [users]`. To avoid it remove the concerned service from `dependencies` and use `waitForServices` method out of `started` handler instead.
 
 ## Metadata is sent back to requester
@@ -430,7 +430,7 @@ There are two ways to do it:
     ```
 
 ## Event group option
-The broker groups the event listeners by group name. The group name is name of the service where your event handler is declared. You can change it in event definition.
+The broker groups the event listeners by group name. The group name is the name of the service where your event handler is declared. You can change it in the event definition.
 
 ```js
 module.export = {
@@ -451,7 +451,7 @@ module.export = {
 There is new built-in zero-config TCP transporter. It uses [Gossip protocol](https://en.wikipedia.org/wiki/Gossip_protocol) to disseminate node info, service list and heartbeats. It has an integrated UDP discovery to detect new nodes on the network. It broadcasts discovery messages
 If the UDP is prohibited on your network, you can use `urls` option. It is a list of remote endpoints (host/ip, port, nodeID). It can be a static list in your configuration or a file path which contains the list.
 
->Please note, you don't need to list all remote nodes. It's enought at least one node which is online. For example you can create a "serviceless" gossiper node, which does nothing, just shares other remote nodes addresses by gossip messages. So all nodes need to know only the gossiper node address to be able to communicate with all other nodes.
+>Please note, you don't need to list all remote nodes. It's enough at least one node which is online. For example, you can create a "serviceless" gossiper node, which does nothing, just shares other remote nodes addresses by gossip messages. So all nodes need to know only the gossiper node address to be able to communicate with all other nodes.
 
 <!-- **This TCP transporter is the default transporter in Moleculer**.
 It means, you don't have to configure any transporter, just start the brokers/nodes, use same namespaces and the nodes will find each others.
