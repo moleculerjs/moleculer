@@ -78,7 +78,7 @@ class KafkaTransporter extends Transporter {
 	 * @memberOf KafkaTransporter
 	 */
 	connect() {
-		this.logger.warn(chalk.yellow.bold("Kafka Transporter is an EXPERIMENTAL transporter. Do NOT use it in production!"));
+		this.logger.warn(chalk.yellow.bold("Kafka Transporter is an EXPERIMENTAL transporter. Do NOT use it in production yet!"));
 
 		return new Promise((resolve, reject) => {
 			let Kafka;

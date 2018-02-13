@@ -58,7 +58,7 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.cacher).toBeNull();
 		expect(broker.serializer).toBeInstanceOf(Serializers.JSON);
 		expect(broker.validator).toBeDefined();
-		expect(broker.transit).toBeDefined();
+		expect(broker.transit).toBeUndefined();
 		expect(broker.statistics).toBeUndefined();
 
 		expect(broker.getLocalService("$node")).toBeDefined();

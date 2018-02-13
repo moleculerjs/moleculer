@@ -449,11 +449,12 @@ There is new built-in zero-configuration TCP transporter. It uses Gossip protoco
 When broadcast is prohibited on your network, you can use `urls` option. It is a static list of remote endpoints (host/ip, port, nodeID). It can be a static list in your configuration or you can save it to a file.
 >Please note, you don't need to list all remote nodes. It's enought at least one node which is online. This can be a "serviceless" gossiper node, which does nothing, just shares other remote nodes addresses by gossip messages. So all nodes need to know the gossiper node address only to be able to communicate with other nodes.
 
-**This TCP transporter is the default transporter in Moleculer**.
+<!-- **This TCP transporter is the default transporter in Moleculer**.
 It means, you don't have to configure any transporter, just start the brokers/nodes, use same namespaces and the nodes will find each others.
->If you don't want to use transporter, set `transporter: null` in broker options.
+>If you don't want to use transporter, set `transporter: null` in broker options. 
+-->
 
-**Use TCP transporter. Now it is the default**
+**Use TCP transporter with default options**
 ```js
 let broker = new ServiceBroker({
     transporter: "TCP"

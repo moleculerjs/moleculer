@@ -108,6 +108,8 @@ class TcpTransporter extends Transporter {
 	 * @memberOf TcpTransporter
 	 */
 	connect() {
+		this.logger.warn(chalk.yellow.bold("TCP Transporter is an EXPERIMENTAL transporter. Do NOT use it in production yet!"));
+
 		return Promise.resolve()
 			.then(() => {
 				// Load offline nodes

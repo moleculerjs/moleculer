@@ -59,7 +59,7 @@ class StanTransporter extends Transporter {
 	 * @memberOf StanTransporter
 	 */
 	connect() {
-		this.logger.warn(chalk.yellow.bold("NATS Streaming Transporter is an EXPERIMENTAL transporter. Do NOT use it in production!"));
+		this.logger.warn(chalk.yellow.bold("NATS Streaming Transporter is an EXPERIMENTAL transporter. Do NOT use it in production yet!"));
 
 		return new Promise((resolve, reject) => {
 			let Stan;

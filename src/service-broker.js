@@ -38,7 +38,7 @@ const defaultOptions = {
 	logLevel: null,
 	logFormatter: "default",
 
-	transporter: "TCP",
+	transporter: null, //"TCP",
 	requestTimeout: 0 * 1000,
 	requestRetry: 0,
 	maxCallLevel: 0,
