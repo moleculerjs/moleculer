@@ -402,13 +402,13 @@ describe("Test checkOfflineNodes", () => {
 		expect(catalog.nodes.size).toBe(3);
 
 		node2.available = false;
-		node2.lastHeartbeatTime -= 4 * 60 * 1000;
+		node2.lastHeartbeatTime -= 11 * 60 * 1000;
 		catalog.checkOfflineNodes();
 
 		expect(catalog.nodes.size).toBe(2);
 
 		node1.available = false;
-		node1.lastHeartbeatTime -= 4 * 60 * 1000;
+		node1.lastHeartbeatTime -= 11 * 60 * 1000;
 		catalog.checkOfflineNodes();
 
 		expect(catalog.nodes.size).toBe(1);
