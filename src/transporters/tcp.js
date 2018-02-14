@@ -248,11 +248,12 @@ class TcpTransporter extends Transporter {
 	 *
 	 * @param {String} type
 	 * @param {Object} message
+	 * @param {Socket} socket
 	 */
-	onIncomingMessage(type, message) {
+	onIncomingMessage(type, message, socket) {
 		//console.log("<<", type, message.toString());
 		switch(type) {
-			case P.PACKET_GOSSIP_HELLO: return this.processGossipHello(message);
+			case P.PACKET_GOSSIP_HELLO: return this.processGossipHello(message, socket);
 			case P.PACKET_GOSSIP_REQ: return this.processGossipRequest(message);
 			case P.PACKET_GOSSIP_RES: return this.processGossipResponse(message);
 			default: return this.incomingMessage(type, message);
@@ -358,8 +359,9 @@ class TcpTransporter extends Transporter {
 	 * Process incoming Gossip Hello packet
 	 *
 	 * @param {Buffer} msg
+	 * @param {Socket} socket
 	 */
-	processGossipHello(msg) {
+	processGossipHello(msg, socket) {
 		const packet = this.deserialize(P.PACKET_GOSSIP_HELLO, msg);
 		const payload = packet.payload;
 		const nodeID = payload.sender;
@@ -370,6 +372,8 @@ class TcpTransporter extends Transporter {
 		if (!node) {
 			// Unknown node. Register as offline node
 			node = this.addOfflineNode(nodeID, payload.host, payload.port);
+			if (!node.udpAddress)
+				node.udpAddress = socket.address().address;
 		}
 
 	}

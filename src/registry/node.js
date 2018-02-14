@@ -32,6 +32,8 @@ class Node {
 		this.ipList = null;
 		this.port = null;
 		this.hostname = null;
+		this.udpAddress = null;
+
 		this.rawInfo = null;
 		this.services = [];
 

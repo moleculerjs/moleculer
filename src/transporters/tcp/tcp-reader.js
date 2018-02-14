@@ -55,7 +55,14 @@ class TcpReader extends EventEmitter {
 					reject(err);
 			});
 
-			server.listen({ port: this.opts.port, exclusive: true }, () => {
+			let h = this.opts.port;
+
+			// Node >= 8.x support exclusive port mapping for clustering
+			if (process.versions.node.split(".")[0] >= 8)
+				h = { port: this.opts.port, exclusive: true };
+
+			// Listening
+			server.listen(h, () => {
 				this.opts.port = this.server.address().port;
 				this.logger.info(`TCP server is listening on port ${this.opts.port}`);
 				this.connected = true;
@@ -90,7 +97,7 @@ class TcpReader extends EventEmitter {
 			//this.logger.info(`TCP data received from '${address}'. Type:`, type);
 			//this.logger.info(message.toString());
 
-			this.transporter.onIncomingMessage(type, message);
+			this.transporter.onIncomingMessage(type, message, socket);
 		});
 
 		parser.on("error", err => {
@@ -107,6 +114,8 @@ class TcpReader extends EventEmitter {
 			this.logger.debug(`TCP client disconnected from '${address}'! Had error:`, !!hadError);
 			this.closeSocket(socket);
 		});
+
+		this.emit("connect", socket);
 	}
 
 	/**
