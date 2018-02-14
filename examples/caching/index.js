@@ -10,11 +10,11 @@ let ServiceBroker = require("../../src/service-broker");
 // Create broker
 let broker = new ServiceBroker({
 	namespace: "demo",
+	transporter: null,
 	logger: console,
 	logLevel: "debug",
 	metrics: true,
 	cacher: true,
-	//cacher: "redis://192.168.51.29:6379"
 });
 
 broker.loadService("./examples/post.service.js");
