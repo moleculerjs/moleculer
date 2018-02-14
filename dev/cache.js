@@ -33,7 +33,7 @@ broker.start()
 	})
 
 	.then(() => {
-		console.log(chalk.bold(">> Get user.5 (found in the cache)"));
+		console.log(chalk.bold(">> Get user.5 (not found in the cache)"));
 		return broker.call("v2.users.get", {
 			id: 5
 		});

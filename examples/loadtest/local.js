@@ -31,7 +31,7 @@ let payload = { a: random(0, 100), b: random(0, 100) };
 
 function work() {
 	broker.call("math.add", payload).then(res => {
-		if (broker._callCount++ % 10000) {
+		if (broker._callCount++ % 10 * 1000) {
 			// Fast cycle
 			work();
 		} else {

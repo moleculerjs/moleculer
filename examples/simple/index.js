@@ -3,7 +3,10 @@
 let ServiceBroker = require("../../src/service-broker");
 
 // Create broker
-let broker = new ServiceBroker({ logger: console });
+let broker = new ServiceBroker({
+	logger: console,
+	transporter: null
+});
 
 // Load service
 broker.loadService(__dirname + "/../math.service.js");
@@ -20,7 +23,7 @@ broker.call("math.add", { a: 5, b: 3 }).then(res => broker.logger.info("  5 + 3 
 		return broker.call("math.div", { a: 8, b: 4 }).then(res => broker.logger.info("  8 / 4 =", res));
 	})
 	.then(() => {
-		// Divide by zero!
+		// Divide by zero! Throw error...
 		return broker.call("math.div", { a: 5, b: 0 }).then(res => broker.logger.info("  5 / 0 =", res));
 	})
 	.catch(err => {
@@ -30,3 +33,5 @@ broker.call("math.add", { a: 5, b: 3 }).then(res => broker.logger.info("  5 + 3 
 	});
 
 //broker.repl();
+
+// Please note, the process will exit because we didn't define transporter or API gateway.

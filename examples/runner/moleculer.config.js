@@ -15,5 +15,5 @@
 
 module.exports = {
 	logger: true,
-	cacher: "redis://192.168.51.29:6379"
+	transporter: "TCP"
 };
