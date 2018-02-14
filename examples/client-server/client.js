@@ -21,6 +21,7 @@ let broker = new ServiceBroker({
 		maxFailures: 3
 	},
 	logger: console,
+	logLevel: process.env.LOGLEVEL,
 	logFormatter: "simple"
 });
 
@@ -85,5 +86,11 @@ broker.start()
 					pendingReqs = pendingReqs.filter(n => n != payload.count);
 			});
 		}, 1000);
+
+		setInterval(() => {
+			const fs = require("fs");
+			const list = broker.registry.nodes.toArray().map(node => _.pick(node, ["id", "seq", "offlineSince", "available"]));
+			fs.writeFileSync("./" + broker.nodeID + "-nodes.json", JSON.stringify(list, null, 2));
+		}, 5 * 1000);
 
 	});
