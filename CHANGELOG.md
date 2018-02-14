@@ -528,30 +528,28 @@ let broker = new ServiceBroker({
     transporter: {
         type: "kafka",
         options: {
-            kafka: {
-                host: "192.168.51.29:2181",
+            host: "192.168.51.29:2181",
 
-                // KafkaClient options. More info: https://github.com/SOHU-Co/kafka-node#clientconnectionstring-clientid-zkoptions-noackbatchoptions-ssloptions
-                client: {
-                    zkOptions: undefined,
-                    noAckBatchOptions: undefined,
-                    sslOptions: undefined
-                },
+            // KafkaClient options. More info: https://github.com/SOHU-Co/kafka-node#clientconnectionstring-clientid-zkoptions-noackbatchoptions-ssloptions
+            client: {
+                zkOptions: undefined,
+                noAckBatchOptions: undefined,
+                sslOptions: undefined
+            },
 
-                // KafkaProducer options. More info: https://github.com/SOHU-Co/kafka-node#producerclient-options-custompartitioner
-                producer: {},
-                customPartitioner: undefined,
+            // KafkaProducer options. More info: https://github.com/SOHU-Co/kafka-node#producerclient-options-custompartitioner
+            producer: {},
+            customPartitioner: undefined,
 
-                // ConsumerGroup options. More info: https://github.com/SOHU-Co/kafka-node#consumergroupoptions-topics
-                consumer: {
-                },
+            // ConsumerGroup options. More info: https://github.com/SOHU-Co/kafka-node#consumergroupoptions-topics
+            consumer: {
+            },
 
-                // Advanced options for `send`. More info: https://github.com/SOHU-Co/kafka-node#sendpayloads-cb
-                publish: {
-                    partition: 0,
-                    attributes: 0
-                }               
-            }
+            // Advanced options for `send`. More info: https://github.com/SOHU-Co/kafka-node#sendpayloads-cb
+            publish: {
+                partition: 0,
+                attributes: 0
+            }               
         }
     }
     
@@ -584,10 +582,8 @@ let broker = new ServiceBroker({
     transporter: {
         type: "STAN",
         options: {
-            stan: {
-                url: "stan://127.0.0.1:4222",
-                clusterID: "my-cluster"
-            }
+            url: "stan://127.0.0.1:4222",
+            clusterID: "my-cluster"
         }
     }
 });
