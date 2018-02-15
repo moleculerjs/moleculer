@@ -61,7 +61,7 @@ describe("Test TcpTransporter constructor", () => {
 			multicastTTL: 1,
 			port: null,
 			urls: null,
-			useHostname: false,
+			useHostname: true,
 			gossipPeriod: 2,
 			maxConnections: 32,
 			maxPacketSize: 1 * 1024 * 1024
@@ -94,7 +94,7 @@ describe("Test TcpTransporter constructor", () => {
 			multicastTTL: 1,
 			port: 5555,
 			urls: null,
-			useHostname: false,
+			useHostname: true,
 			gossipPeriod: 2,
 			maxConnections: 32,
 			maxPacketSize: 1 * 1024 * 1024
@@ -340,7 +340,6 @@ describe("Test TcpTransporter nodes functions", () => {
 
 		expect(transporter.getNodeAddress(node)).toBe("udp-address");
 
-		transporter.opts.useHostname = true;
 		node.udpAddress = null;
 		expect(transporter.getNodeAddress(node)).toBe("server-host");
 
@@ -816,7 +815,7 @@ describe("Test Gossip methods", () => {
 				ipList: ["192.168.1.2"]
 			}));
 			transporter.publish = jest.fn(() => Promise.resolve());
-			//transporter.getNodeAddress = jest.fn(() => "node-1-host");
+			transporter.getNodeAddress = jest.fn(() => "node-1-host");
 
 			transporter.sendHello("node-2");
 
@@ -825,8 +824,7 @@ describe("Test Gossip methods", () => {
 				type: "GOSSIP_HELLO",
 				target: "node-2",
 				payload: {
-					//host: "node-1-host",
-					host: "192.168.1.2",
+					host: "node-1-host",
 					port: null
 				}
 			});

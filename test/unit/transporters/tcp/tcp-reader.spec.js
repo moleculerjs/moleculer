@@ -132,7 +132,7 @@ describe("Test TcpReader.onTcpClientConnected", () => {
 		socket = {
 			on: jest.fn((type, cb) => socketCallbacks[type] = cb),
 			pipe: jest.fn(parser => socket.parser = parser),
-			address: jest.fn(() => ({ address: "192.168.1.2" })),
+			remoteAddress: "192.168.1.2",
 			setNoDelay: jest.fn(),
 			__callbacks: socketCallbacks
 		};
@@ -148,7 +148,6 @@ describe("Test TcpReader.onTcpClientConnected", () => {
 		expect(socket.on).toHaveBeenCalledWith("close", jasmine.any(Function));
 
 		expect(socket.setNoDelay).toHaveBeenCalledTimes(1);
-		expect(socket.address).toHaveBeenCalledTimes(1);
 
 		expect(socket.pipe).toHaveBeenCalledTimes(1);
 		expect(socket.pipe).toHaveBeenCalledWith(socket.parser);

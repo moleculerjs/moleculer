@@ -67,7 +67,7 @@ class TcpTransporter extends Transporter {
 			// TCP options
 			port: null, // random port,
 			urls: null, // Remote node addresses (when UDP discovery is not available)
-			useHostname: false,
+			useHostname: true,
 
 			gossipPeriod: 2, // seconds
 			maxConnections: 32, // Max live outgoing TCP connections
@@ -344,10 +344,8 @@ class TcpTransporter extends Transporter {
 			return Promise.reject(new MoleculerServerError(`Missing node info for '${nodeID}'`));
 
 		const localNode = this.nodes.localNode;
-		const host = (this.opts.useHostname && localNode.hostname) ? localNode.hostname : node.ipList[0];
-
 		const packet = new P.Packet(P.PACKET_GOSSIP_HELLO, nodeID, {
-			host,
+			host: this.getNodeAddress(localNode),
 			port: localNode.port,
 		});
 
