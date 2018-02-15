@@ -78,7 +78,12 @@ describe("Test TcpReader.listen", () => {
 			expect(server.on).toHaveBeenCalledWith("error", jasmine.any(Function));
 
 			expect(server.listen).toHaveBeenCalledTimes(1);
-			expect(server.listen).toHaveBeenCalledWith({port: 1234, exclusive: true }, jasmine.any(Function));
+
+			if (process.versions.node.split(".")[0] >= 8) {
+				expect(server.listen).toHaveBeenCalledWith({port: 1234, exclusive: true }, jasmine.any(Function));
+			} else {
+				expect(server.listen).toHaveBeenCalledWith(1234, jasmine.any(Function));
+			}
 
 			expect(reader.opts.port).toBe(5000);
 			expect(reader.connected).toBe(true);
