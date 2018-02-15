@@ -51,8 +51,8 @@ broker.start()
 		setInterval(() => broker.broadcast("echo.broadcast"), 5 * 1000);
 		setInterval(() => {
 			const fs = require("fs");
-			const list = broker.registry.nodes.toArray().map(node => _.pick(node, ["id", "seq", "offlineSince", "available"]));
+			const list = broker.registry.nodes.toArray().map(node => _.pick(node, ["id", "seq", "offlineSince", "available", "hostname", "port", "ipList", "udpAddress"]));
 			fs.writeFileSync("./" + broker.nodeID + "-nodes.json", JSON.stringify(list, null, 2));
-		}, 5 * 1000);
+		}, 1000);
 	})
 	.then(() => broker.repl());
