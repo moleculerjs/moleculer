@@ -113,9 +113,13 @@ class BaseTransporter {
 	 */
 	incomingMessage(cmd, msg) {
 		if (!msg) return;
-
-		const packet = this.deserialize(cmd, msg);
-		return this.messageHandler(cmd, packet);
+		try {
+			const packet = this.deserialize(cmd, msg);
+			return this.messageHandler(cmd, packet);
+		} catch(err) {
+			this.logger.warn("Invalid incoming packet. Type:", cmd);
+			this.logger.debug("Content:", msg.toString);
+		}
 	}
 
 	/**

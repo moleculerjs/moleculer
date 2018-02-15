@@ -13,11 +13,11 @@ let broker = new ServiceBroker({
 	namespace: "multi",
 	nodeID: process.argv[2] || "client-" + process.pid,
 	transporter,
-	serializer: "ProtoBuf",
+	//serializer: "ProtoBuf",
 	requestTimeout: 1000,
 
 	circuitBreaker: {
-		enabled: true,
+		enabled: false,
 		maxFailures: 3
 	},
 	logger: console,

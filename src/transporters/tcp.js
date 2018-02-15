@@ -56,7 +56,7 @@ class TcpTransporter extends Transporter {
 
 			maxUdpDiscovery: 0, // 0 - No limit
 
-			broadcastAddress: "255.255.255.255",
+			broadcastAddress: "192.168.2.255",
 			broadcastPort: 4445,
 			broadcastPeriod: 5,
 
@@ -351,7 +351,9 @@ class TcpTransporter extends Transporter {
 
 		if (this.GOSSIP_DEBUG) this.logger.info(chalk.bgCyan.black(`----- HELLO ${this.nodeID} -> ${nodeID} -----`), packet.payload);
 
-		return this.publish(packet);
+		return this.publish(packet).catch(() => {
+			this.logger.debug(`Unable to send Gossip HELLO packet to ${nodeID}.`);
+		});
 	}
 
 
@@ -362,20 +364,25 @@ class TcpTransporter extends Transporter {
 	 * @param {Socket} socket
 	 */
 	processGossipHello(msg, socket) {
-		const packet = this.deserialize(P.PACKET_GOSSIP_HELLO, msg);
-		const payload = packet.payload;
-		const nodeID = payload.sender;
+		try {
+			const packet = this.deserialize(P.PACKET_GOSSIP_HELLO, msg);
+			const payload = packet.payload;
+			const nodeID = payload.sender;
 
-		if (this.GOSSIP_DEBUG) this.logger.info(`----- HELLO ${this.nodeID} <- ${payload.sender} -----`, payload);
+			if (this.GOSSIP_DEBUG) this.logger.info(`----- HELLO ${this.nodeID} <- ${payload.sender} -----`, payload);
 
-		let node = this.nodes.get(nodeID);
-		if (!node) {
-			// Unknown node. Register as offline node
-			node = this.addOfflineNode(nodeID, payload.host, payload.port);
+			let node = this.nodes.get(nodeID);
+			if (!node) {
+				// Unknown node. Register as offline node
+				node = this.addOfflineNode(nodeID, payload.host, payload.port);
+			}
 			if (!node.udpAddress)
 				node.udpAddress = socket.address().address;
-		}
 
+		} catch(err) {
+			this.logger.warn("Invalid incoming GOSSIP_HELLO packet");
+			this.logger.debug("Content:", msg.toString());
+		}
 	}
 
 	/**
@@ -383,7 +390,7 @@ class TcpTransporter extends Transporter {
 	 */
 	sendGossipRequest() {
 		const list = this.nodes.toArray();
-		if (list.length <= 1)
+		if (!list || list.length <= 1)
 			return;
 
 		let packet = {
@@ -445,7 +452,9 @@ class TcpTransporter extends Transporter {
 		const ep = endpoints.length == 1 ? endpoints[0] : endpoints[Math.floor(Math.random() * endpoints.length)];
 		if (ep) {
 			const packet = new P.Packet(P.PACKET_GOSSIP_REQ, ep.id, data);
-			this.publish(packet).catch(() => {});
+			this.publish(packet).catch(() => {
+				this.logger.debug(`Unable to send Gossip packet to ${ep.id}.`);
+			});
 
 			if (this.GOSSIP_DEBUG) this.logger.info(chalk.bgYellow.black(`----- REQUEST ${this.nodeID} -> ${ep.id} -----`), packet.payload);
 		}
@@ -458,106 +467,112 @@ class TcpTransporter extends Transporter {
 	 * @memberof TcpTransporter
 	 */
 	processGossipRequest(msg) {
-		const packet = this.deserialize(P.PACKET_GOSSIP_REQ, msg);
-		const payload = packet.payload;
+		try {
+			const packet = this.deserialize(P.PACKET_GOSSIP_REQ, msg);
+			const payload = packet.payload;
 
-		if (this.GOSSIP_DEBUG) this.logger.info(`----- REQUEST ${this.nodeID} <- ${payload.sender} -----`, payload);
+			if (this.GOSSIP_DEBUG) this.logger.info(`----- REQUEST ${this.nodeID} <- ${payload.sender} -----`, payload);
 
-		const response = {
-			online: {},
-			offline: {}
-		};
+			const response = {
+				online: {},
+				offline: {}
+			};
 
-		const list = this.nodes.toArray();
-		list.forEach(node => {
-			const online = payload.online ? payload.online[node.id] : null;
-			const offline = payload.offline ? payload.offline[node.id] : null;
-			let seq, cpuSeq, cpu;
+			const list = this.nodes.toArray();
+			list.forEach(node => {
+				const online = payload.online ? payload.online[node.id] : null;
+				const offline = payload.offline ? payload.offline[node.id] : null;
+				let seq, cpuSeq, cpu;
 
-			if (offline)
-				seq = offline;
-			else if (online)
-				[seq, cpuSeq, cpu] = online;
+				if (offline)
+					seq = offline;
+				else if (online)
+					[seq, cpuSeq, cpu] = online;
 
-			if (!seq || seq < node.seq) {
-				// We have newer info or requester doesn't know it
-				if (node.available) {
-					const info = this.registry.getNodeInfo(node.id);
-					response.online[node.id] = [info, node.cpuSeq || 0, node.cpu || 0];
-				} else {
-					response.offline[node.id] = node.seq;
+				if (!seq || seq < node.seq) {
+					// We have newer info or requester doesn't know it
+					if (node.available) {
+						const info = this.registry.getNodeInfo(node.id);
+						response.online[node.id] = [info, node.cpuSeq || 0, node.cpu || 0];
+					} else {
+						response.offline[node.id] = node.seq;
+					}
+
+					return;
 				}
 
-				return;
-			}
+				if (offline) {
+					// Requester said it is OFFLINE
 
-			if (offline) {
-				// Requester said it is OFFLINE
+					if (!node.available) {
+						// We also know it as offline
 
-				if (!node.available) {
-					// We also know it as offline
+						// Update 'seq' if it is newer than us
+						if (seq > node.seq)
+							node.seq = seq;
 
-					// Update 'seq' if it is newer than us
-					if (seq > node.seq)
+						return;
+
+					} else if (!node.local) {
+						// We know it is online, so we change it to offline
+						this.nodes.disconnected(node.id, false);
+
+						// Update the 'seq' to the received value
 						node.seq = seq;
 
-					return;
+					} else if (node.local) {
+						// Requested said I'm offline. We should send back that we are online!
+						// We need to increment the received `seq` so that the requester will update us
+						node.seq = seq + 1;
 
-				} else if (!node.local) {
-					// We know it is online, so we change it to offline
-					this.nodes.disconnected(node.id, false);
+						const info = this.registry.getNodeInfo(node.id);
+						response.online[node.id] = [info, node.cpuSeq || 0, node.cpu || 0];
+					}
 
-					// Update the 'seq' to the received value
-					node.seq = seq;
+				} else if (online) {
+					// Requester said it is ONLINE
 
-				} else if (node.local) {
-					// Requested said I'm offline. We should send back that we are online!
-					// We need to increment the received `seq` so that the requester will update us
-					node.seq = seq + 1;
-
-					const info = this.registry.getNodeInfo(node.id);
-					response.online[node.id] = [info, node.cpuSeq || 0, node.cpu || 0];
-				}
-
-			} else if (online) {
-				// Requester said it is ONLINE
-
-				if (node.available) {
-					if (cpuSeq > node.cpuSeq) {
-						// We update CPU info
-						node.heartbeat({
-							cpu,
-							cpuSeq
-						});
-					} else if (cpuSeq < node.cpuSeq) {
-						// We have newer CPU value, send back
-						response.online[node.id] = [node.cpuSeq || 0, node.cpu || 0];
+					if (node.available) {
+						if (cpuSeq > node.cpuSeq) {
+							// We update CPU info
+							node.heartbeat({
+								cpu,
+								cpuSeq
+							});
+						} else if (cpuSeq < node.cpuSeq) {
+							// We have newer CPU value, send back
+							response.online[node.id] = [node.cpuSeq || 0, node.cpu || 0];
+						}
+					}
+					else {
+						// We know it as offline. We do nothing, because we'll request it and we'll receive its INFO.
+						return;
 					}
 				}
-				else {
-					// We know it as offline. We do nothing, because we'll request it and we'll receive its INFO.
-					return;
-				}
+			});
+
+			// Remove empty keys
+			if (Object.keys(response.offline).length == 0)
+				delete response.offline;
+
+			if (Object.keys(response.online).length == 0)
+				delete response.online;
+
+			if (response.online || response.offline) {
+				let sender = this.nodes.get(payload.sender);
+
+				// Send back the Gossip response to the sender
+				const rspPacket = new P.Packet(P.PACKET_GOSSIP_RES, sender.id, response);
+				this.publish(rspPacket).catch(() => {});
+
+				if (this.GOSSIP_DEBUG) this.logger.info(chalk.bgMagenta.black(`----- RESPONSE ${this.nodeID} -> ${sender.id} -----`), rspPacket.payload);
+			} else {
+				if (this.GOSSIP_DEBUG) this.logger.info(chalk.bgBlue.white(`----- EMPTY RESPONSE ${this.nodeID} -> ${payload.sender} -----`));
 			}
-		});
 
-		// Remove empty keys
-		if (Object.keys(response.offline).length == 0)
-			delete response.offline;
-
-		if (Object.keys(response.online).length == 0)
-			delete response.online;
-
-		if (response.online || response.offline) {
-			let sender = this.nodes.get(payload.sender);
-
-			// Send back the Gossip response to the sender
-			const rspPacket = new P.Packet(P.PACKET_GOSSIP_RES, sender.id, response);
-			this.publish(rspPacket).catch(() => {});
-
-			if (this.GOSSIP_DEBUG) this.logger.info(chalk.bgMagenta.black(`----- RESPONSE ${this.nodeID} -> ${sender.id} -----`), rspPacket.payload);
-		} else {
-			if (this.GOSSIP_DEBUG) this.logger.info(chalk.bgBlue.white(`----- EMPTY RESPONSE ${this.nodeID} -> ${payload.sender} -----`));
+		} catch(err) {
+			this.logger.warn("Invalid incoming GOSSIP_REQ packet");
+			this.logger.debug("Content:", msg.toString());
 		}
 	}
 
@@ -568,68 +583,73 @@ class TcpTransporter extends Transporter {
 	 * @memberof TcpTransporter
 	 */
 	processGossipResponse(msg) {
-		const packet = this.deserialize(P.PACKET_GOSSIP_RES, msg);
-		const payload = packet.payload;
+		try {
+			const packet = this.deserialize(P.PACKET_GOSSIP_RES, msg);
+			const payload = packet.payload;
 
-		if (this.GOSSIP_DEBUG) this.logger.info(`----- RESPONSE ${this.nodeID} <- ${payload.sender} -----`, payload);
+			if (this.GOSSIP_DEBUG) this.logger.info(`----- RESPONSE ${this.nodeID} <- ${payload.sender} -----`, payload);
 
-		// Process online nodes
-		if (payload.online) {
-			Object.keys(payload.online).forEach(nodeID => {
-				// We don't process the self info. We know it better.
-				if (nodeID == this.nodeID) return;
+			// Process online nodes
+			if (payload.online) {
+				Object.keys(payload.online).forEach(nodeID => {
+					// We don't process the self info. We know it better.
+					if (nodeID == this.nodeID) return;
 
-				const row = payload.online[nodeID];
-				if (!Array.isArray(row)) return;
+					const row = payload.online[nodeID];
+					if (!Array.isArray(row)) return;
 
-				let info, cpu, cpuSeq;
+					let info, cpu, cpuSeq;
 
-				if (row.length == 1)
-					info = row[0];
-				else if (row.length == 2)
-					[cpuSeq, cpu] = row;
-				else if (row.length == 3)
-					[info, cpuSeq, cpu] = row;
+					if (row.length == 1)
+						info = row[0];
+					else if (row.length == 2)
+						[cpuSeq, cpu] = row;
+					else if (row.length == 3)
+						[info, cpuSeq, cpu] = row;
 
-				let node = this.nodes.get(nodeID);
-				if (info && (!node || node.seq < info.seq)) {
-					// If we don't know it, or know, but has smaller seq, update 'info'
-					info.sender = nodeID;
-					node = this.nodes.processNodeInfo(info);
-				}
-
-				if (node && cpuSeq && cpuSeq > node.cpuSeq) {
-					// Update CPU
-					node.heartbeat({
-						cpu,
-						cpuSeq
-					});
-				}
-			});
-		}
-
-		// Process offline nodes
-		if (payload.offline) {
-			Object.keys(payload.offline).forEach(nodeID => {
-				// We don't process the self info. We know it better.
-				if (nodeID == this.nodeID) return;
-
-				const seq = payload.offline[nodeID];
-
-				const node = this.nodes.get(nodeID);
-				if (!node) return;
-
-				if (node.seq < seq) {
-					if (node.available) {
-						// We know it is online, so we change it to offline
-						this.nodes.disconnected(node.id, false);
+					let node = this.nodes.get(nodeID);
+					if (info && (!node || node.seq < info.seq)) {
+						// If we don't know it, or know, but has smaller seq, update 'info'
+						info.sender = nodeID;
+						node = this.nodes.processNodeInfo(info);
 					}
 
-					// Update the 'seq' to the received value
-					node.seq = seq;
-				}
+					if (node && cpuSeq && cpuSeq > node.cpuSeq) {
+						// Update CPU
+						node.heartbeat({
+							cpu,
+							cpuSeq
+						});
+					}
+				});
+			}
 
-			});
+			// Process offline nodes
+			if (payload.offline) {
+				Object.keys(payload.offline).forEach(nodeID => {
+					// We don't process the self info. We know it better.
+					if (nodeID == this.nodeID) return;
+
+					const seq = payload.offline[nodeID];
+
+					const node = this.nodes.get(nodeID);
+					if (!node) return;
+
+					if (node.seq < seq) {
+						if (node.available) {
+							// We know it is online, so we change it to offline
+							this.nodes.disconnected(node.id, false);
+						}
+
+						// Update the 'seq' to the received value
+						node.seq = seq;
+					}
+
+				});
+			}
+		} catch(err) {
+			this.logger.warn("Invalid incoming GOSSIP_RES packet");
+			this.logger.debug("Content:", msg.toString());
 		}
 	}
 

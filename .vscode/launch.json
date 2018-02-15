@@ -18,9 +18,9 @@
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Launch demo: caching",
-			"program": "${workspaceRoot}/examples/caching/index.js",
-			"cwd": "${workspaceRoot}/examples/caching"
+			"name": "Launch demo: client-server",
+			"program": "${workspaceRoot}/examples/client-server/client.js",
+			"cwd": "${workspaceRoot}/examples/client-server"
 		},
 		{
 			"type": "node",
@@ -47,16 +47,6 @@
 			},
 			"args": [
 				"client-debug"
-			]
-		},
-		{
-			"type": "node",
-			"request": "launch",
-			"name": "Launch demo: multi",
-			"program": "${workspaceRoot}/examples/multi-server/client.js",
-			"cwd": "${workspaceRoot}/examples/multi-server",
-			"args": [
-				"client"
 			]
 		},
 		{
