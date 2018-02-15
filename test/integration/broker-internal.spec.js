@@ -76,7 +76,8 @@ describe("Test internal services", () => {
 				"offlineSince": null,
 				"port": null,
 				"seq": localNode.seq,
-				"local": true
+				"local": true,
+				"udpAddress": null
 			}]);
 		});
 	});

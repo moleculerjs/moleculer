@@ -56,7 +56,7 @@ class TcpTransporter extends Transporter {
 
 			maxUdpDiscovery: 0, // 0 - No limit
 
-			broadcastAddress: "192.168.2.255",
+			broadcastAddress: "255.255.255.255",
 			broadcastPort: 4445,
 			broadcastPeriod: 5,
 

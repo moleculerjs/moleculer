@@ -157,7 +157,7 @@ describe("Test TcpReader.onTcpClientConnected", () => {
 		socket.parser.__callbacks.data("REQ", "message");
 
 		expect(transporter.onIncomingMessage).toHaveBeenCalledTimes(1);
-		expect(transporter.onIncomingMessage).toHaveBeenCalledWith("REQ", "message");
+		expect(transporter.onIncomingMessage).toHaveBeenCalledWith("REQ", "message", socket);
 	});
 
 	it("should call closeSocket on parser error", () => {

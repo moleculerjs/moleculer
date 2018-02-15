@@ -5,6 +5,7 @@ const ServiceBroker = require("../../../src/service-broker");
 const Transit = require("../../../src/transit");
 const P = require("../../../src/packets");
 const E = require("../../../src/errors");
+const net = require("net");
 const { protectReject } = require("../utils");
 
 // const lolex = require("lolex");
@@ -704,10 +705,11 @@ describe("Test TcpTransporter onIncomingMessage", () => {
 	});
 
 	it("should call processGossipHello", () => {
-		transporter.onIncomingMessage(P.PACKET_GOSSIP_HELLO, "message");
+		let socket = {};
+		transporter.onIncomingMessage(P.PACKET_GOSSIP_HELLO, "message", socket);
 
 		expect(transporter.processGossipHello).toHaveBeenCalledTimes(1);
-		expect(transporter.processGossipHello).toHaveBeenCalledWith("message");
+		expect(transporter.processGossipHello).toHaveBeenCalledWith("message", socket);
 	});
 
 	it("should call processGossipRequest", () => {
@@ -752,12 +754,13 @@ describe("Test Gossip methods", () => {
 
 		it("should call processGossipHello", () => {
 			const msg = {};
+			const socket = {};
 			transporter.processGossipHello = jest.fn();
 
-			transporter.onIncomingMessage(P.PACKET_GOSSIP_HELLO, msg);
+			transporter.onIncomingMessage(P.PACKET_GOSSIP_HELLO, msg, socket);
 
 			expect(transporter.processGossipHello).toHaveBeenCalledTimes(1);
-			expect(transporter.processGossipHello).toHaveBeenCalledWith(msg);
+			expect(transporter.processGossipHello).toHaveBeenCalledWith(msg, socket);
 		});
 
 		it("should call processGossipRequest", () => {
@@ -810,7 +813,7 @@ describe("Test Gossip methods", () => {
 			transporter.getNode = jest.fn(() => ({
 				id: "node-2"
 			}));
-			transporter.publish = jest.fn();
+			transporter.publish = jest.fn(() => Promise.resolve());
 			transporter.getNodeAddress = jest.fn(() => "node-1-host");
 
 			transporter.sendHello("node-2");

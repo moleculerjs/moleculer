@@ -444,7 +444,8 @@ describe("Test NodeCatalog.list", () => {
 				"lastHeartbeatTime": jasmine.any(Number),
 				"offlineSince": null,
 				"seq": 1,
-				"local": true
+				"local": true,
+				"udpAddress": null
 			},
 			{
 				"available": true,
@@ -460,6 +461,7 @@ describe("Test NodeCatalog.list", () => {
 				"offlineSince": null,
 				"seq": 1,
 				"local": false,
+				"udpAddress": null
 			}
 		]);
 
@@ -482,7 +484,8 @@ describe("Test NodeCatalog.list", () => {
 				"local": true,
 				"offlineSince": null,
 				"seq": 1,
-				"services": []
+				"services": [],
+				"udpAddress": null
 			},
 			{
 				"available": true,
@@ -498,7 +501,8 @@ describe("Test NodeCatalog.list", () => {
 				"local": false,
 				"offlineSince": null,
 				"seq": 1,
-				"services": []
+				"services": [],
+				"udpAddress": null
 			}
 		]);
 
