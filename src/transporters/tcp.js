@@ -377,7 +377,7 @@ class TcpTransporter extends Transporter {
 				node = this.addOfflineNode(nodeID, payload.host, payload.port);
 			}
 			if (!node.udpAddress)
-				node.udpAddress = socket.address().address;
+				node.udpAddress = socket.remoteAddress;
 
 		} catch(err) {
 			this.logger.warn("Invalid incoming GOSSIP_HELLO packet");
