@@ -87,9 +87,9 @@ describe("Test UdpServer.bind", () => {
 		dgram.createSocket.mockClear();
 
 		udp = new UdpServer(transporter, {
-			multicastAddress: "230.0.0.2",
-			broadcastPort: 4545,
-			multicastTTL: 2,
+			udpAddress: "230.0.0.2",
+			udpPort: 4545,
+			udpTTL: 2,
 			udpReuseAddr: true
 		});
 		udp.discover = jest.fn();
@@ -134,9 +134,9 @@ describe("Test UdpServer.bind", () => {
 		});
 
 		udp = new UdpServer(transporter, {
-			multicastAddress: "230.0.0.2",
-			broadcastPort: 4545,
-			multicastTTL: 2,
+			udpAddress: "230.0.0.2",
+			udpPort: 4545,
+			udpTTL: 2,
 			udpReuseAddr: true
 		});
 
@@ -181,7 +181,7 @@ describe("Test UdpServer.discover", () => {
 			};
 		});
 
-		udp = new UdpServer(transporter, { udpReuseAddr: true, multicastAddress: "230.0.0.1", port: 1234 });
+		udp = new UdpServer(transporter, { udpReuseAddr: true, udpAddress: "230.0.0.1", port: 1234 });
 		return udp.bind();
 	});
 
@@ -285,7 +285,7 @@ describe("Test UdpServer.startDiscovering & stopDiscovering", () => {
 		});
 
 		clock = lolex.install();
-		udp = new UdpServer(transporter, { udpReuseAddr: true, broadcastPeriod: 1 });
+		udp = new UdpServer(transporter, { udpReuseAddr: true, udpPeriod: 1 });
 		udp.discover = jest.fn();
 		return udp.bind();
 	});
@@ -323,7 +323,7 @@ describe("Test UdpServer.close", () => {
 	let udp;
 
 	beforeAll(() => {
-		udp = new UdpServer(transporter, { udpReuseAddr: true, broadcastPeriod: 1 });
+		udp = new UdpServer(transporter, { udpReuseAddr: true, udpPeriod: 1 });
 		udp.discover = jest.fn();
 	});
 

@@ -26,7 +26,7 @@ TcpWriter.mockImplementation(() => {
 		on: jest.fn((name, cb) => {
 			callbacks[name] = cb;
 		}),
-	__callbacks: callbacks
+		__callbacks: callbacks
 	};
 });
 
@@ -53,12 +53,11 @@ describe("Test TcpTransporter constructor", () => {
 		expect(transporter.opts).toEqual({
 			udpDiscovery: true,
 			udpReuseAddr: true,
-			maxUdpDiscovery: 0,
-			broadcastAddress: "255.255.255.255",
-			broadcastPort: 4445,
-			broadcastPeriod: 5,
-			multicastAddress: null,
-			multicastTTL: 1,
+			udpMaxDiscovery: 0,
+			udpPort: 4445,
+			udpPeriod: 5,
+			udpAddress: "230.0.0.0",
+			udpTTL: 1,
 			port: null,
 			urls: null,
 			useHostname: true,
@@ -86,12 +85,11 @@ describe("Test TcpTransporter constructor", () => {
 		expect(transporter.opts).toEqual({
 			udpDiscovery: false,
 			udpReuseAddr: true,
-			maxUdpDiscovery: 0,
-			broadcastAddress: "255.255.255.255",
-			broadcastPort: 4445,
-			broadcastPeriod: 5,
-			multicastAddress: null,
-			multicastTTL: 1,
+			udpMaxDiscovery: 0,
+			udpPort: 4445,
+			udpPeriod: 5,
+			udpAddress: "230.0.0.0",
+			udpTTL: 1,
 			port: 5555,
 			urls: null,
 			useHostname: true,

@@ -32,5 +32,6 @@ module.exports = {
 	CIRCUIT_HALF_OPEN,
 	CIRCUIT_OPEN,
 
-	MOLECULER_VERSION: require("./src/service-broker").MOLECULER_VERSION
+	MOLECULER_VERSION: require("./src/service-broker").MOLECULER_VERSION,
+	PROTOCOL_VERSION: require("./src/service-broker").PROTOCOL_VERSION
 };

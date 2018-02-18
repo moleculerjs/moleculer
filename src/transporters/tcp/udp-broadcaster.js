@@ -66,15 +66,15 @@ class UdpServer extends EventEmitter {
 				});
 
 				const host = this.opts.udpBindAddress;
-				const port = this.opts.broadcastPort || 4445;
+				const port = this.opts.udpPort || 4445;
 
 				server.bind({ port, host, exclusive: true }, () => {
 					this.logger.info(`UDP Discovery Server is listening on port ${port}`);
 
 					try {
-						if (this.opts.multicastAddress) {
-							server.addMembership(this.opts.multicastAddress);
-							server.setMulticastTTL(this.opts.multicastTTL || 1);
+						if (this.opts.udpAddress) {
+							server.addMembership(this.opts.udpAddress);
+							server.setMulticastTTL(this.opts.udpTTL || 1);
 						} else {
 							server.setBroadcast(true);
 						}
@@ -116,8 +116,8 @@ class UdpServer extends EventEmitter {
 		const message = Buffer.from([this.namespace, this.nodeID, this.opts.port].join("|"));
 
 		// Get destination
-		const host = this.opts.multicastAddress ? this.opts.multicastAddress : this.opts.broadcastAddress;
-		const port = this.opts.broadcastPort || 4445;
+		const host = this.opts.udpAddress ? this.opts.udpAddress : this.opts.broadcastAddress;
+		const port = this.opts.udpPort || 4445;
 
 		// Send beacon
 		this.server.send(message, port, host, (err/*, bytes*/) => {
@@ -167,10 +167,10 @@ class UdpServer extends EventEmitter {
 			this.discoverTimer = setInterval(() => {
 				this.discover();
 
-				if (this.opts.maxUdpDiscovery && this.counter >= this.opts.maxUdpDiscovery)
+				if (this.opts.udpMaxDiscovery && this.counter >= this.opts.udpMaxDiscovery)
 					this.stopDiscovering();
 
-			}, (this.opts.broadcastPeriod || 5) * 1000);
+			}, (this.opts.udpPeriod || 5) * 1000);
 
 			this.discoverTimer.unref();
 

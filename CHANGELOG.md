@@ -448,7 +448,7 @@ module.export = {
 ```
 
 ## New experimental TCP zero-config transporter with UDP discovery
-There is new built-in zero-config TCP transporter. It uses [Gossip protocol](https://en.wikipedia.org/wiki/Gossip_protocol) to disseminate node info, service list and heartbeats. It has an integrated UDP discovery to detect new nodes on the network. It broadcasts discovery messages
+There is a new built-in zero-config TCP transporter. It uses [Gossip protocol](https://en.wikipedia.org/wiki/Gossip_protocol) to disseminate node info, service list and heartbeats. It has an integrated UDP discovery to detect new nodes on the network. It broadcasts discovery messages
 If the UDP is prohibited on your network, you can use `urls` option. It is a list of remote endpoints (host/ip, port, nodeID). It can be a static list in your configuration or a file path which contains the list.
 
 >Please note, you don't need to list all remote nodes. It's enough at least one node which is online. For example, you can create a "serviceless" gossiper node, which does nothing, just shares other remote nodes addresses by gossip messages. So all nodes need to know only the gossiper node address to be able to communicate with all other nodes.
@@ -465,6 +465,31 @@ let broker = new ServiceBroker({
 });
 ```
 
+**Use TCP transporter with static node list**
+```js
+let broker = new ServiceBroker({
+    transporter: "tcp://172.17.0.1:6000/node-1,172.17.0.2:6000/node-2"
+});
+```
+or 
+```js
+let broker = new ServiceBroker({
+    nodeID: "node-1",
+    transporter: {
+        type: "TCP",
+        options: {
+            udpDiscovery: false,
+            urls: [
+                "172.17.0.1:6000/node-1",
+                "172.17.0.2:6000/node-2"
+                "172.17.0.3:6000/node-3"
+            ]
+        }
+    }
+});
+```
+
+
 **All TCP transporter options with default values**
 ```js
 let broker = new ServiceBroker({
@@ -477,17 +502,15 @@ let broker = new ServiceBroker({
             // Reusing UDP server socket
             udpReuseAddr: true,
 
-            // Address for broadcast messages
-            broadcastAddress: "255.255.255.255",
-            // Broadcast port
-            broadcastPort: 4445,
-            // Broadcast sending period
-            broadcastPeriod: 5,
+            // UDP port
+            udpPort: 4445,
+            // UDP sending period
+            udpPeriod: 5,
 
-            // Multicast address. If null it is not used.
-            multicastAddress: null,
+            // Multicast address.
+            udpAddress: "230.0.0.0",
             // Multicast TTL setting
-            multicastTTL: 1,
+            udpTTL: 1,
 
             // TCP server port. Null or 0 means random port
             port: null,
