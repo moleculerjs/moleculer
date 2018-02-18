@@ -154,7 +154,7 @@ class TcpTransporter extends Transporter {
 
 		this.udpServer.on("message", (nodeID, address, port) => {
 			if (nodeID && nodeID != this.nodeID) {
-				this.logger.info(`UDP discovery received from ${address} on ${nodeID}.`);
+				//this.logger.info(`UDP discovery received from ${address} on ${nodeID}.`);
 				let node = this.nodes.get(nodeID);
 				if (!node) {
 					// Unknown node. Register as offline node

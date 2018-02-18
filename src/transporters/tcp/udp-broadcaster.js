@@ -10,7 +10,7 @@ const EventEmitter 	= require("events");
 const Promise		= require("bluebird");
 const os 			= require("os");
 const dgram 		= require("dgram");
-const ipaddr 		= require('ipaddr.js');
+const ipaddr 		= require("ipaddr.js");
 /**
  * UDP Discovery Server for TcpTransporter
  *
@@ -258,10 +258,8 @@ class UdpServer extends EventEmitter {
 	close() {
 		this.stopDiscovering();
 
-		if (this.server) {
-			this.server.close();
-			this.server = null;
-		}
+		this.servers.forEach(server => server.close());
+		this.servers = [];
 	}
 }
 
