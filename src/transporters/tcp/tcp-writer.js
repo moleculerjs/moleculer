@@ -83,6 +83,11 @@ class TcpWriter extends EventEmitter {
 						reject(err);
 				});
 
+				socket.on("end", () => {
+					this.removeSocket(nodeID);
+					this.logger.debug(`Connection ended from '${nodeID}'`);
+				});
+
 				socket.unref();
 
 			} catch(err) {
