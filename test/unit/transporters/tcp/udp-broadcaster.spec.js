@@ -87,7 +87,7 @@ describe("Test UdpServer.bind", () => {
 		dgram.createSocket.mockClear();
 
 		udp = new UdpServer(transporter, {
-			udpAddress: "230.0.0.2",
+			udpMulticast: "230.0.0.2",
 			udpPort: 4545,
 			udpTTL: 2,
 			udpReuseAddr: true
@@ -134,7 +134,7 @@ describe("Test UdpServer.bind", () => {
 		});
 
 		udp = new UdpServer(transporter, {
-			udpAddress: "230.0.0.2",
+			udpMulticast: "230.0.0.2",
 			udpPort: 4545,
 			udpTTL: 2,
 			udpReuseAddr: true
@@ -181,7 +181,7 @@ describe("Test UdpServer.discover", () => {
 			};
 		});
 
-		udp = new UdpServer(transporter, { udpReuseAddr: true, udpAddress: "230.0.0.1", port: 1234 });
+		udp = new UdpServer(transporter, { udpReuseAddr: true, udpMulticast: "230.0.0.1", port: 1234 });
 		return udp.bind();
 	});
 

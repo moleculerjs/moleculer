@@ -507,8 +507,11 @@ let broker = new ServiceBroker({
             // UDP sending period
             udpPeriod: 5,
 
+            // Broadcasting (Boolean, String, Array<String>)
+            udpBroadcast: true,
+
             // Multicast address.
-            udpAddress: "230.0.0.0",
+            udpMulticast: "230.0.0.0",
             // Multicast TTL setting
             udpTTL: 1,
 

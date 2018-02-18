@@ -42,7 +42,7 @@ let broker = new ServiceBroker({
 		maxFailures: 3
 	},
 	logger: console,
-	//logLevel: "debug",
+	logLevel: "debug",
 	logFormatter: "simple"
 });
 

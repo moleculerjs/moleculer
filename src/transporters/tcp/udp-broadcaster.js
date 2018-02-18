@@ -8,8 +8,9 @@
 
 const EventEmitter 	= require("events");
 const Promise		= require("bluebird");
+const os 			= require("os");
 const dgram 		= require("dgram");
-
+const ipaddr 		= require('ipaddr.js');
 /**
  * UDP Discovery Server for TcpTransporter
  *
@@ -28,7 +29,7 @@ class UdpServer extends EventEmitter {
 	constructor(transporter, opts) {
 		super();
 
-		this.server = null;
+		this.servers = [];
 		this.discoverTimer = null;
 
 		this.opts = opts;
@@ -47,12 +48,61 @@ class UdpServer extends EventEmitter {
 	 * @memberof UdpServer
 	 */
 	bind() {
-		return new Promise((resolve, reject) => {
-			if (this.opts.udpDiscovery === false) {
-				this.logger.info("UDP Discovery is disabled.");
-				return resolve();
-			}
+		if (this.opts.udpDiscovery === false) {
+			this.logger.info("UDP Discovery is disabled.");
+			return Promise.resolve();
+		}
 
+		return Promise.resolve()
+			.then(() => {
+				// Start broadcast listener
+				if (this.opts.udpBroadcast)
+					this.startServer(this.opts.udpBindAddress, this.opts.udpPort);
+			})
+			.then(() => {
+				// Start multicast listener
+				if (this.opts.udpMulticast) {
+					this.startServer(this.opts.udpBindAddress, this.opts.udpPort, this.opts.udpMulticast, this.opts.udpTTL);
+				}
+			})
+			.then(() => {
+				// Send first discover message after 1 sec
+				setTimeout(() => this.discover(), 1000);
+
+				this.startDiscovering();
+			});
+	}
+
+	/**
+	 * Get IPv4 broadcast addresses for all interfaces
+	 *
+	 * @returns {Array<String>}
+	 * @memberof UdpServer
+	 */
+	getBroadcastAddresses() {
+		const list = [];
+		const interfaces = os.networkInterfaces();
+		for (let iface in interfaces) {
+			for (let i in interfaces[iface]) {
+				const f = interfaces[iface][i];
+				if (f.family === "IPv4" && !f.internal) {
+					list.push(ipaddr.IPv4.broadcastAddressFromCIDR(f.cidr).toString());
+				}
+			}
+		}
+		return list;
+	}
+
+	/**
+	 * Start an UDP broadcast/multicast server
+	 *
+	 * @param {String?} host
+	 * @param {Number?} port
+	 * @param {String?} multicastAddress
+	 * @param {Number?} ttl
+	 */
+	startServer(host, port, multicastAddress, ttl) {
+		return new Promise((resolve, reject) => {
 			try {
 				const server = dgram.createSocket({type: "udp4", reuseAddr: this.opts.udpReuseAddr });
 
@@ -65,30 +115,35 @@ class UdpServer extends EventEmitter {
 						reject(err);
 				});
 
-				const host = this.opts.udpBindAddress;
-				const port = this.opts.udpPort || 4445;
+				host = host || "0.0.0.0";
+				port = port || 4445;
 
 				server.bind({ port, host, exclusive: true }, () => {
-					this.logger.info(`UDP Discovery Server is listening on port ${port}`);
+					this.logger.info(`UDP Discovery Server is listening on ${host}:${port}`);
 
 					try {
-						if (this.opts.udpAddress) {
-							server.addMembership(this.opts.udpAddress);
-							server.setMulticastTTL(this.opts.udpTTL || 1);
+						if (multicastAddress) {
+							// TODO: Multicast interface problem: https://stackoverflow.com/a/31039214/129346
+							server.addMembership(multicastAddress);
+							server.setMulticastTTL(ttl || 1);
+							server.destinations = [multicastAddress];
 						} else {
 							server.setBroadcast(true);
+
+							if (typeof this.opts.udpBroadcast == "string")
+								server.destinations = [this.opts.udpBroadcast];
+							else if (Array.isArray(this.opts.udpBroadcast))
+								server.destinations = this.opts.udpBroadcast;
+							else
+								server.destinations = this.getBroadcastAddresses();
 						}
 					} catch(err) {
 						// Silent exception. In cluster it throw error
 					}
 
-					// Send first discover message after 1 sec
-					setTimeout(() => this.discover(), 1000);
-
-					this.startDiscovering();
+					this.servers.push(server);
 
 					resolve();
-
 					reject = null;
 				});
 
@@ -98,7 +153,6 @@ class UdpServer extends EventEmitter {
 				this.logger.warn("Unable to start UDP Discovery Server. Message:", err.message);
 				resolve();
 			}
-
 		});
 	}
 
@@ -112,21 +166,24 @@ class UdpServer extends EventEmitter {
 
 		this.counter++;
 
-		// Create an UDP beacon message
+		// Create an UDP discover message
 		const message = Buffer.from([this.namespace, this.nodeID, this.opts.port].join("|"));
-
-		// Get destination
-		const host = this.opts.udpAddress ? this.opts.udpAddress : this.opts.broadcastAddress;
 		const port = this.opts.udpPort || 4445;
 
-		// Send beacon
-		this.server.send(message, port, host, (err/*, bytes*/) => {
-			/* istanbul ignore next*/
-			if (err) {
-				this.logger.warn("Discover packet broadcast error.", err);
-				return;
-			}
-			this.logger.debug("UDP Discover packet sent. Counter:", this.counter);
+		this.servers.forEach(server => {
+			if (!server.destinations) return;
+
+			server.destinations.forEach(host => {
+				// Send discover message
+				server.send(message, port, host, (err/*, bytes*/) => {
+					/* istanbul ignore next*/
+					if (err) {
+						this.logger.warn(`Discovery packet broadcast error to '${host}:${port}'. Error`, err);
+						return;
+					}
+					this.logger.debug(`Discovery packet sent to '${host}:${port}'`);
+				});
+			});
 		});
 	}
 
