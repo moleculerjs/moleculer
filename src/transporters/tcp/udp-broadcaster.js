@@ -94,6 +94,20 @@ class UdpServer extends EventEmitter {
 		return list;
 	}
 
+	getInterfaceAddresses() {
+		const list = [];
+		const interfaces = os.networkInterfaces();
+		for (let iface in interfaces) {
+			for (let i in interfaces[iface]) {
+				const f = interfaces[iface][i];
+				if (f.family === "IPv4" && !f.internal) {
+					list.push(f.address);
+				}
+			}
+		}
+		return list;
+	}
+
 	/**
 	 * Start an UDP broadcast/multicast server
 	 *
@@ -122,8 +136,8 @@ class UdpServer extends EventEmitter {
 
 					try {
 						if (multicastAddress) {
-							// TODO: Multicast interface problem: https://stackoverflow.com/a/31039214/129346
-							server.addMembership(multicastAddress);
+							// Multicast interface problem: https://stackoverflow.com/a/31039214/129346
+							this.getInterfaceAddresses().forEach(ip => server.addMembership(multicastAddress, ip));
 							server.setMulticastTTL(ttl || 1);
 							server.destinations = [multicastAddress];
 						} else {
@@ -139,6 +153,7 @@ class UdpServer extends EventEmitter {
 					} catch(err) {
 						// In cluster it throw error
 						this.logger.debug("UDP multicast membership error. Message:", err.message);
+						console.log("UDP multicast membership error. Message:", err.message);
 					}
 
 					this.servers.push(server);

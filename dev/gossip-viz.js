@@ -30,8 +30,9 @@ function createBroker(nodeID) {
 			options: {
 				gossipPeriod: 2, // seconds
 				maxConnections: 10, // Max live TCP socket
-				udpBroadcast: "192.168.2.255",
-				udpMulticast: null,
+				udpBroadcast: false,
+				//udpBroadcast: "192.168.2.255",
+				//udpMulticast: null,
 			}
 		},
 		//logger: console,
@@ -122,11 +123,13 @@ function printBrokerStatus({ nodeID, broker }) {
 			const search = brokers[i].nodeID;
 
 			const node = list.find(node => node.id == search);
-			if (node && node.available) {
-				//if (node.seq == getMaxSeq(node.id))
+			if (node) {
+				if (node.available)
 					s += chalk.green.bold("█");
-				//else
-				//	s += chalk.yellow.bold("█");
+				else if (node.seq == 0)
+					s += chalk.yellow("█");
+				else
+					s += chalk.red.bold("█");
 				count++;
 			} else {
 				s += chalk.red.bold("█");
