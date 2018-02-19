@@ -132,15 +132,18 @@ class UdpServer extends EventEmitter {
 				port = port || 4445;
 
 				server.bind({ port, host, exclusive: true }, () => {
-					this.logger.info(`UDP Discovery Server is listening on ${host}:${port}`);
-
 					try {
 						if (multicastAddress) {
+							this.logger.info(`UDP Multicast Server is listening on ${host}:${port}`);
 							// Multicast interface problem: https://stackoverflow.com/a/31039214/129346
-							this.getInterfaceAddresses().forEach(ip => server.addMembership(multicastAddress, ip));
+							this.getInterfaceAddresses().forEach(ip => {
+								this.logger.info(`    Join to ${multicastAddress} on ${ip} interface.`);
+								server.addMembership(multicastAddress, ip);
+							});
 							server.setMulticastTTL(ttl || 1);
 							server.destinations = [multicastAddress];
 						} else {
+							this.logger.info(`UDP Broadcast Server is listening on ${host}:${port}`);
 							server.setBroadcast(true);
 
 							if (typeof this.opts.udpBroadcast == "string")
@@ -149,11 +152,13 @@ class UdpServer extends EventEmitter {
 								server.destinations = this.opts.udpBroadcast;
 							else
 								server.destinations = this.getBroadcastAddresses();
+
+							this.logger.info("    Broadcast addresses:", server.destinations.join(", "));
+
 						}
 					} catch(err) {
 						// In cluster it throw error
 						this.logger.debug("UDP multicast membership error. Message:", err.message);
-						console.log("UDP multicast membership error. Message:", err.message);
 					}
 
 					this.servers.push(server);
