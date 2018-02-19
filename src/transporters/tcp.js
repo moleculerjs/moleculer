@@ -141,6 +141,11 @@ class TcpTransporter extends Transporter {
 			this.nodes.disconnected(nodeID, false);
 		});
 
+		this.writer.on("end", nodeID => {
+			this.logger.debug(`TCP connection ended with '${nodeID}'`);
+			this.nodes.disconnected(nodeID, false);
+		});
+
 		return this.reader.listen();
 	}
 

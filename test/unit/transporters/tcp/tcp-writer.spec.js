@@ -96,10 +96,10 @@ describe("Test TcpWriter.connect", () => {
 		port: 2222
 	};
 
-	let socketErrorCb;
+	let socketCallbacks = {};
 	let socket = {
 		on: jest.fn((type, cb) => {
-			socketErrorCb = cb;
+			socketCallbacks[type] = cb;
 		}),
 		unref: jest.fn()
 	};
@@ -151,21 +151,33 @@ describe("Test TcpWriter.connect", () => {
 
 			expect(writer.manageConnections).toHaveBeenCalledTimes(0);
 
-			expect(socket.on).toHaveBeenCalledTimes(1);
+			expect(socket.on).toHaveBeenCalledTimes(2);
 			expect(socket.on).toHaveBeenCalledWith("error", jasmine.any(Function));
+			expect(socket.on).toHaveBeenCalledWith("end", jasmine.any(Function));
 
 			expect(socket.unref).toHaveBeenCalledTimes(1);
 
 			// Fire socket error
 			writer.emit = jest.fn();
 
-			socketErrorCb(new Error());
+			socketCallbacks.error(new Error());
 
 			expect(writer.removeSocket).toHaveBeenCalledTimes(1);
 			expect(writer.removeSocket).toHaveBeenCalledWith("node-2");
 
 			expect(writer.emit).toHaveBeenCalledTimes(1);
 			expect(writer.emit).toHaveBeenCalledWith("error", jasmine.any(Error), "node-2");
+
+			// Socket end
+			writer.emit.mockClear();
+			writer.removeSocket.mockClear();
+			socketCallbacks.end();
+
+			expect(writer.removeSocket).toHaveBeenCalledTimes(1);
+			expect(writer.removeSocket).toHaveBeenCalledWith("node-2");
+
+			expect(writer.emit).toHaveBeenCalledTimes(1);
+			expect(writer.emit).toHaveBeenCalledWith("end", "node-2");
 		});
 
 		netConnectCB();

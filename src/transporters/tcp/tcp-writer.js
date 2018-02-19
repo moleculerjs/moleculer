@@ -85,8 +85,10 @@ class TcpWriter extends EventEmitter {
 
 				socket.on("end", () => {
 					this.removeSocket(nodeID);
-					this.logger.debug(`TCP connection ended with '${nodeID}'`);
-					this.transporter.nodes.disconnected(nodeID, true);
+					this.emit("end", nodeID);
+
+					if (reject)
+						reject(new Error("Connection closed"));
 				});
 
 				socket.unref();

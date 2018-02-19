@@ -5,8 +5,10 @@ const { protectReject } = require("../../utils");
 
 const lolex = require("lolex");
 
-jest.mock("dgram");
+const os = require("os");
+const ipaddr = require("ipaddr.js");
 
+jest.mock("dgram");
 const dgram = require("dgram");
 
 const UdpServer = require("../../../../src/transporters/tcp/udp-broadcaster");
@@ -27,7 +29,7 @@ describe("Test UdpServer constructor", () => {
 		expect(udp.transporter).toBe(transporter);
 		expect(udp.opts).toBe(opts);
 
-		expect(udp.server).toBeNull();
+		expect(udp.servers).toEqual([]);
 		expect(udp.discoverTimer).toBeNull();
 
 		expect(udp.nodeID).toBe("node-1");
@@ -36,7 +38,73 @@ describe("Test UdpServer constructor", () => {
 
 });
 
-describe("Test UdpServer.bind", () => {
+describe("Test UdpServer getBroadcastAddresses", () => {
+	//ipaddr.IPv4.broadcastAddressFromCIDR = jest.fn(() => "10.20.30.40");
+	os.networkInterfaces = jest.fn(() => ({
+		"Local": [
+			{
+				address: "fe80::29a9:ffeb:4a65:9f82",
+				netmask: "ffff:ffff:ffff:ffff::",
+				family: "IPv6",
+				internal: false,
+				cidr: "fe80::29a9:ffeb:4a65:9f82/64"
+			},
+			{ address: "192.168.2.100",
+				netmask: "255.255.255.0",
+				family: "IPv4",
+				internal: false,
+				cidr: "192.168.2.100/24"
+			}
+		],
+		"Loopback Pseudo-Interface 1": [
+			{
+				address: "::1",
+				netmask: "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+				family: "IPv6",
+				internal: true,
+				cidr: "::1/128"
+			},
+			{
+				address: "127.0.0.1",
+				netmask: "255.0.0.0",
+				family: "IPv4",
+				internal: true,
+				cidr: "127.0.0.1/8"
+			}
+		],
+		"VMware Network Adapter VMnet1": [
+			{
+				address: "fe80::3c63:fab8:e6be:8059",
+				netmask: "ffff:ffff:ffff:ffff::",
+				family: "IPv6",
+				internal: false,
+				cidr: "fe80::3c63:fab8:e6be:8059/64"
+			},
+			{
+				address: "192.168.232.1",
+				netmask: "255.255.255.0",
+				family: "IPv4",
+				internal: false,
+				cidr: "192.168.232.1/24"
+			}
+		]
+	}));
+
+	it("check constructor", () => {
+		let transporter = {
+			nodeID: "node-1",
+			logger: jest.fn(),
+			broker: {
+				namespace: "test"
+			}
+		};
+		let udp = new UdpServer(transporter);
+		expect(udp.getBroadcastAddresses()).toEqual(["192.168.2.255", "192.168.232.255"]);
+	});
+
+});
+
+describe("Test UdpServer.startServer", () => {
 	const broker = new ServiceBroker({ namespace: "test", nodeID: "node-1", transporter: "Fake"});
 	let transporter = broker.transit.tx;
 	let udp;
@@ -54,75 +122,64 @@ describe("Test UdpServer.bind", () => {
 		};
 	});
 
-	let clock;
-	beforeAll(() => clock = lolex.install());
-	afterAll(() => clock.uninstall());
-
 	it("should bind UDP with broadcast", () => {
 		udp = new UdpServer(transporter, { udpBindAddress: "127.0.0.1", udpReuseAddr: true });
-		udp.discover = jest.fn();
-		udp.startDiscovering = jest.fn();
+		udp.getBroadcastAddresses = jest.fn(() => (["192.168.100.255", "192.168.200.255"]));
 
-		return udp.bind().catch(protectReject).then(() => {
-			expect(udp.server).toBeDefined();
+		return udp.startServer("127.0.0.1", 4567).catch(protectReject).then(() => {
+			expect(udp.servers.length).toBe(1);
+			const server = udp.servers[0];
 
 			expect(dgram.createSocket).toHaveBeenCalledTimes(1);
 			expect(dgram.createSocket).toHaveBeenCalledWith({"reuseAddr": true, "type": "udp4"});
 
-			expect(udp.server.bind).toHaveBeenCalledTimes(1);
-			expect(udp.server.bind).toHaveBeenCalledWith({"exclusive": true, "host": "127.0.0.1", "port": 4445}, jasmine.any(Function));
+			expect(server.bind).toHaveBeenCalledTimes(1);
+			expect(server.bind).toHaveBeenCalledWith({"exclusive": true, "host": "127.0.0.1", "port": 4567}, jasmine.any(Function));
 
-			expect(udp.server.on).toHaveBeenCalledTimes(2);
-			expect(udp.server.on).toHaveBeenCalledWith("error", jasmine.any(Function));
-			expect(udp.server.on).toHaveBeenCalledWith("message", jasmine.any(Function));
+			expect(server.on).toHaveBeenCalledTimes(2);
+			expect(server.on).toHaveBeenCalledWith("error", jasmine.any(Function));
+			expect(server.on).toHaveBeenCalledWith("message", jasmine.any(Function));
 
-			expect(udp.server.setBroadcast).toHaveBeenCalledTimes(1);
-			expect(udp.server.setBroadcast).toHaveBeenCalledWith(true);
+			expect(server.setBroadcast).toHaveBeenCalledTimes(1);
+			expect(server.setBroadcast).toHaveBeenCalledWith(true);
 
-			expect(udp.startDiscovering).toHaveBeenCalledTimes(1);
+			expect(server.destinations).toEqual(["192.168.100.255", "192.168.200.255"]);
+
+			expect(udp.getBroadcastAddresses).toHaveBeenCalledTimes(1);
 		});
 	});
 
 	it("should bind UDP with multicast", () => {
 		dgram.createSocket.mockClear();
 
-		udp = new UdpServer(transporter, {
-			udpMulticast: "230.0.0.2",
-			udpPort: 4545,
-			udpMulticastTTL: 2,
-			udpReuseAddr: true
-		});
-		udp.discover = jest.fn();
-		udp.startDiscovering = jest.fn();
+		udp = new UdpServer(transporter, { udpReuseAddr: true });
 
-		return udp.bind().catch(protectReject).then(() => {
-			expect(udp.server).toBeDefined();
+		return udp.startServer("127.0.0.1", 4567, "239.0.0.2", 2).catch(protectReject).then(() => {
+			expect(udp.servers.length).toBe(1);
+			const server = udp.servers[0];
 
 			expect(dgram.createSocket).toHaveBeenCalledTimes(1);
 			expect(dgram.createSocket).toHaveBeenCalledWith({"reuseAddr": true, "type": "udp4"});
 
-			expect(udp.server.bind).toHaveBeenCalledTimes(1);
-			expect(udp.server.bind).toHaveBeenCalledWith({"exclusive": true, "host": undefined, "port": 4545}, jasmine.any(Function));
+			expect(server.bind).toHaveBeenCalledTimes(1);
+			expect(server.bind).toHaveBeenCalledWith({"exclusive": true, "host": "127.0.0.1", "port": 4567}, jasmine.any(Function));
 
-			expect(udp.server.on).toHaveBeenCalledTimes(2);
-			expect(udp.server.on).toHaveBeenCalledWith("error", jasmine.any(Function));
-			expect(udp.server.on).toHaveBeenCalledWith("message", jasmine.any(Function));
+			expect(server.on).toHaveBeenCalledTimes(2);
+			expect(server.on).toHaveBeenCalledWith("error", jasmine.any(Function));
+			expect(server.on).toHaveBeenCalledWith("message", jasmine.any(Function));
 
-			expect(udp.server.addMembership).toHaveBeenCalledTimes(1);
-			expect(udp.server.addMembership).toHaveBeenCalledWith("230.0.0.2");
+			expect(server.addMembership).toHaveBeenCalledTimes(1);
+			expect(server.addMembership).toHaveBeenCalledWith("239.0.0.2");
 
-			expect(udp.server.setMulticastTTL).toHaveBeenCalledTimes(1);
-			expect(udp.server.setMulticastTTL).toHaveBeenCalledWith(2);
+			expect(server.setMulticastTTL).toHaveBeenCalledTimes(1);
+			expect(server.setMulticastTTL).toHaveBeenCalledWith(2);
 
-			expect(udp.startDiscovering).toHaveBeenCalledTimes(1);
-			expect(udp.discover).toHaveBeenCalledTimes(0);
+			expect(server.destinations).toEqual(["239.0.0.2"]);
 
-			clock.tick(1100);
-			expect(udp.discover).toHaveBeenCalledTimes(1);
 		});
 	});
 
-	it("should reject bind when server throws error", () => {
+	it("should not reject bind when server throws error", () => {
 		let err = new Error("Server error");
 		dgram.createSocket = jest.fn(() => {
 			let callbacks = {};
@@ -140,12 +197,72 @@ describe("Test UdpServer.bind", () => {
 			udpReuseAddr: true
 		});
 
-		return udp.bind().then(protectReject).catch(err => {
-			expect(udp.server).toBeDefined();
+		return udp.startServer("127.0.0.1", 4567).then(protectReject).catch(err => {
+			expect(udp.servers.length).toBe(0);
 			expect(err).toBeInstanceOf(Error);
 			expect(err.message).toBe("Server error");
 		});
 
+	});
+
+});
+
+describe("Test UdpServer.bind", () => {
+	const broker = new ServiceBroker({ namespace: "test", nodeID: "node-1", transporter: "Fake"});
+	let transporter = broker.transit.tx;
+	let udp;
+
+	let clock;
+	beforeAll(() => clock = lolex.install());
+	afterAll(() => clock.uninstall());
+
+	it("should not call startServer", () => {
+		udp = new UdpServer(transporter, { udpBindAddress: "192.168.0.100", udpPort: 4445, udpReuseAddr: true, udpBroadcast: false, udpMulticast: null, udpMulticastTTL: 2 });
+		udp.startServer = jest.fn();
+		udp.discover = jest.fn();
+		udp.startDiscovering = jest.fn();
+
+		return udp.bind().catch(protectReject).then(() => {
+
+			expect(udp.startServer).toHaveBeenCalledTimes(0);
+			expect(udp.startDiscovering).toHaveBeenCalledTimes(0);
+		});
+	});
+
+	it("should call startServer once", () => {
+		udp = new UdpServer(transporter, { udpBindAddress: "192.168.0.100", udpPort: 4445, udpReuseAddr: true, udpBroadcast: true });
+		udp.startServer = jest.fn(() => udp.servers.push({}));
+		udp.discover = jest.fn();
+		udp.startDiscovering = jest.fn();
+
+		return udp.bind().catch(protectReject).then(() => {
+
+			expect(udp.startServer).toHaveBeenCalledTimes(1);
+			expect(udp.startServer).toHaveBeenCalledWith("192.168.0.100", 4445);
+
+			expect(udp.startDiscovering).toHaveBeenCalledTimes(1);
+		});
+	});
+
+	it("should call startServer twice", () => {
+		udp = new UdpServer(transporter, { udpBindAddress: "192.168.0.100", udpPort: 4445, udpReuseAddr: true, udpBroadcast: true, udpMulticast: "239.0.0.1", udpMulticastTTL: 2 });
+		udp.startServer = jest.fn(() => udp.servers.push({}));
+		udp.discover = jest.fn();
+		udp.startDiscovering = jest.fn();
+
+		return udp.bind().catch(protectReject).then(() => {
+
+			expect(udp.startServer).toHaveBeenCalledTimes(2);
+			expect(udp.startServer).toHaveBeenCalledWith("192.168.0.100", 4445);
+			expect(udp.startServer).toHaveBeenCalledWith("192.168.0.100", 4445, "239.0.0.1", 2);
+
+			expect(udp.startDiscovering).toHaveBeenCalledTimes(1);
+			expect(udp.discover).toHaveBeenCalledTimes(0);
+
+			clock.tick(1100);
+			expect(udp.discover).toHaveBeenCalledTimes(1);
+
+		});
 	});
 
 	it("should not discovering", () => {
@@ -154,10 +271,11 @@ describe("Test UdpServer.bind", () => {
 		udp = new UdpServer(transporter, {
 			udpDiscovery: false
 		});
+		udp.startServer = jest.fn(() => udp.servers.push({}));
 
 		return udp.bind().catch(protectReject).then(() => {
-			expect(udp.server).toBeNull();
-			expect(dgram.createSocket).toHaveBeenCalledTimes(0);
+			expect(udp.servers.length).toBe(0);
+			expect(udp.startServer).toHaveBeenCalledTimes(0);
 		});
 
 	});
@@ -181,18 +299,29 @@ describe("Test UdpServer.discover", () => {
 			};
 		});
 
-		udp = new UdpServer(transporter, { udpReuseAddr: true, udpMulticast: "230.0.0.1", port: 1234 });
-		return udp.bind();
+		udp = new UdpServer(transporter, { port: 1234 });
 	});
 
 	it("should send broadcast message", () => {
-		udp.server.send = jest.fn((msg, port, host, cb) => cb());
+		udp.servers = [
+			{
+				destinations: ["192.168.100.255", "192.168.200.255"],
+				send: jest.fn((msg, port, host, cb) => cb())
+			},
+			{
+				destinations: ["239.0.0.2"],
+				send: jest.fn((msg, port, host, cb) => cb())
+			}
+		];
 
 		udp.discover();
-		expect(udp.server).toBeDefined();
 
-		expect(udp.server.send).toHaveBeenCalledTimes(1);
-		expect(udp.server.send).toHaveBeenCalledWith(Buffer.from("test|node-1|1234"), 4445, "230.0.0.1", jasmine.any(Function));
+		expect(udp.servers[0].send).toHaveBeenCalledTimes(2);
+		expect(udp.servers[0].send).toHaveBeenCalledWith(Buffer.from("test|node-1|1234"), 4445, "192.168.100.255", jasmine.any(Function));
+		expect(udp.servers[0].send).toHaveBeenCalledWith(Buffer.from("test|node-1|1234"), 4445, "192.168.200.255", jasmine.any(Function));
+
+		expect(udp.servers[1].send).toHaveBeenCalledTimes(1);
+		expect(udp.servers[1].send).toHaveBeenCalledWith(Buffer.from("test|node-1|1234"), 4445, "239.0.0.2", jasmine.any(Function));
 	});
 });
 
@@ -331,14 +460,14 @@ describe("Test UdpServer.close", () => {
 		let server = {
 			close: jest.fn()
 		};
-		udp.server = server;
+		udp.servers = [server, server];
 		udp.stopDiscovering = jest.fn();
 
 		udp.close();
 
 		expect(udp.stopDiscovering).toHaveBeenCalledTimes(1);
-		expect(server.close).toHaveBeenCalledTimes(1);
-		expect(udp.server).toBeNull();
+		expect(server.close).toHaveBeenCalledTimes(2);
+		expect(udp.servers.length).toBe(0);
 	});
 
 });

@@ -42,7 +42,7 @@ class UdpServer extends EventEmitter {
 	}
 
 	/**
-	 * Bind an UDP port
+	 * Bind UDP port
 	 *
 	 * @returns {Promise}
 	 * @memberof UdpServer
@@ -66,10 +66,12 @@ class UdpServer extends EventEmitter {
 				}
 			})
 			.then(() => {
-				// Send first discover message after 1 sec
-				setTimeout(() => this.discover(), 1000);
+				if (this.servers.length > 0) {
+					// Send first discover message after 1 sec
+					setTimeout(() => this.discover(), 1000);
 
-				this.startDiscovering();
+					this.startDiscovering();
+				}
 			});
 	}
 
@@ -148,8 +150,6 @@ class UdpServer extends EventEmitter {
 					reject = null;
 				});
 
-				this.server = server;
-
 			} catch(err) {
 				this.logger.warn("Unable to start UDP Discovery Server. Message:", err.message);
 				resolve();
@@ -163,7 +163,7 @@ class UdpServer extends EventEmitter {
 	 * @memberof UdpServer
 	 */
 	discover() {
-		if (!this.server) return;
+		if (this.servers.length == 0) return;
 
 		this.counter++;
 

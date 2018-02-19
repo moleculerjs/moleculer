@@ -56,6 +56,7 @@ describe("Test TcpTransporter constructor", () => {
 			udpMaxDiscovery: 0,
 			udpPort: 4445,
 			udpPeriod: 5,
+			udpBroadcast: true,
 			udpMulticast: "230.0.0.0",
 			udpMulticastTTL: 1,
 			port: null,
@@ -88,6 +89,7 @@ describe("Test TcpTransporter constructor", () => {
 			udpMaxDiscovery: 0,
 			udpPort: 4445,
 			udpPeriod: 5,
+			udpBroadcast: true,
 			udpMulticast: "230.0.0.0",
 			udpMulticastTTL: 1,
 			port: 5555,
@@ -373,8 +375,9 @@ describe("Test TcpTransporter startTcpServer", () => {
 		expect(TcpReader).toHaveBeenCalledTimes(1);
 		expect(TcpReader).toHaveBeenCalledWith(transporter, transporter.opts);
 
-		expect(transporter.writer.on).toHaveBeenCalledTimes(1);
+		expect(transporter.writer.on).toHaveBeenCalledTimes(2);
 		expect(transporter.writer.on).toHaveBeenCalledWith("error", jasmine.any(Function));
+		expect(transporter.writer.on).toHaveBeenCalledWith("end", jasmine.any(Function));
 
 		expect(transporter.reader.listen).toHaveBeenCalledTimes(1);
 		expect(transporter.reader.listen).toHaveBeenCalledWith();
@@ -385,6 +388,16 @@ describe("Test TcpTransporter startTcpServer", () => {
 		transporter.nodes.disconnected = jest.fn();
 
 		transporter.writer.__callbacks.error(null, "node-2");
+
+		expect(transporter.nodes.disconnected).toHaveBeenCalledTimes(1);
+		expect(transporter.nodes.disconnected).toHaveBeenCalledWith("node-2", false);
+	});
+
+	it("check writer end handler", () => {
+		transporter.startTcpServer();
+		transporter.nodes.disconnected = jest.fn();
+
+		transporter.writer.__callbacks.end("node-2");
 
 		expect(transporter.nodes.disconnected).toHaveBeenCalledTimes(1);
 		expect(transporter.nodes.disconnected).toHaveBeenCalledWith("node-2", false);
