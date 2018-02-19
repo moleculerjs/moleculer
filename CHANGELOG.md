@@ -447,11 +447,11 @@ module.export = {
 }
 ```
 
-## New experimental TCP zero-config transporter with UDP discovery
-There is a new built-in zero-config TCP transporter. It uses [Gossip protocol](https://en.wikipedia.org/wiki/Gossip_protocol) to disseminate node info, service list and heartbeats. It has an integrated UDP discovery to detect new nodes on the network. It broadcasts discovery messages
+## New experimental TCP transporter with UDP discovery
+There is a new built-in zero-config TCP transporter. It uses [Gossip protocol](https://en.wikipedia.org/wiki/Gossip_protocol) to disseminate node info, service list and heartbeats. It has an integrated UDP discovery to detect new nodes on the network. It uses multicast discovery messages.
 If the UDP is prohibited on your network, you can use `urls` option. It is a list of remote endpoints (host/ip, port, nodeID). It can be a static list in your configuration or a file path which contains the list.
 
->Please note, you don't need to list all remote nodes. It's enough at least one node which is online. For example, you can create a "serviceless" gossiper node, which does nothing, just shares other remote nodes addresses by gossip messages. So all nodes need to know only the gossiper node address to be able to communicate with all other nodes.
+>Please note, you don't need to list all remote nodes. It's enough at least one node which is online. For example, you can create a "serviceless" gossiper node, which does nothing, just shares remote nodes addresses by gossip messages. So all nodes need to know only the gossiper node address to be able to detect all other nodes.
 
 <!-- **This TCP transporter is the default transporter in Moleculer**.
 It means, you don't have to configure any transporter, just start the brokers/nodes, use same namespaces and the nodes will find each others.
@@ -504,16 +504,18 @@ let broker = new ServiceBroker({
 
             // UDP port
             udpPort: 4445,
+            // UDP bind address
+            udpBindAddress: null,
             // UDP sending period
             udpPeriod: 5,
-
-            // Broadcasting (Boolean, String, Array<String>)
-            udpBroadcast: true,
 
             // Multicast address.
             udpMulticast: "239.0.0.0",
             // Multicast TTL setting
             udpMulticastTTL: 1,
+
+            // Send broadcast (Boolean, String, Array<String>)
+            udpBroadcast: false,
 
             // TCP server port. Null or 0 means random port
             port: null,
