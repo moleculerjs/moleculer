@@ -54,11 +54,12 @@ describe("Test TcpTransporter constructor", () => {
 			udpDiscovery: true,
 			udpReuseAddr: true,
 			udpMaxDiscovery: 0,
+			udpBindAddress: null,
 			udpPort: 4445,
 			udpPeriod: 5,
-			udpBroadcast: true,
 			udpMulticast: "239.0.0.0",
 			udpMulticastTTL: 1,
+			udpBroadcast: false,
 			port: null,
 			urls: null,
 			useHostname: true,
@@ -81,12 +82,13 @@ describe("Test TcpTransporter constructor", () => {
 	// });
 
 	it("check constructor with options", () => {
-		let opts = { udpDiscovery: false, port: 5555 };
+		let opts = { udpDiscovery: false, udpBindAddress: "10.0.0.4", port: 5555, udpBroadcast: true };
 		let transporter = new TcpTransporter(opts);
 		expect(transporter.opts).toEqual({
 			udpDiscovery: false,
 			udpReuseAddr: true,
 			udpMaxDiscovery: 0,
+			udpBindAddress: "10.0.0.4",
 			udpPort: 4445,
 			udpPeriod: 5,
 			udpBroadcast: true,

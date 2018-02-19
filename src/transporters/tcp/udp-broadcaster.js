@@ -81,46 +81,6 @@ class UdpServer extends EventEmitter {
 	}
 
 	/**
-	 * Get IPv4 broadcast addresses for all interfaces
-	 *
-	 * @returns {Array<String>}
-	 * @memberof UdpServer
-	 */
-	getBroadcastAddresses() {
-		const list = [];
-		const interfaces = os.networkInterfaces();
-		for (let iface in interfaces) {
-			for (let i in interfaces[iface]) {
-				const f = interfaces[iface][i];
-				if (f.family === "IPv4" && !f.internal) {
-					list.push(ipaddr.IPv4.broadcastAddressFromCIDR(f.cidr).toString());
-				}
-			}
-		}
-		return list;
-	}
-
-	/**
-	 * Get all interface IPv4 addresses
-	 *
-	 * @returns {Array<String>}
-	 * @memberof UdpServer
-	 */
-	getInterfaceAddresses() {
-		const list = [];
-		const interfaces = os.networkInterfaces();
-		for (let iface in interfaces) {
-			for (let i in interfaces[iface]) {
-				const f = interfaces[iface][i];
-				if (f.family === "IPv4" && !f.internal) {
-					list.push(f.address);
-				}
-			}
-		}
-		return list;
-	}
-
-	/**
 	 * Start an UDP broadcast/multicast server
 	 *
 	 * @param {String?} host
@@ -286,6 +246,46 @@ class UdpServer extends EventEmitter {
 
 		this.servers.forEach(server => server.close());
 		this.servers = [];
+	}
+
+	/**
+	 * Get IPv4 broadcast addresses for all interfaces
+	 *
+	 * @returns {Array<String>}
+	 * @memberof UdpServer
+	 */
+	getBroadcastAddresses() {
+		const list = [];
+		const interfaces = os.networkInterfaces();
+		for (let iface in interfaces) {
+			for (let i in interfaces[iface]) {
+				const f = interfaces[iface][i];
+				if (f.family === "IPv4" && !f.internal) {
+					list.push(ipaddr.IPv4.broadcastAddressFromCIDR(f.cidr).toString());
+				}
+			}
+		}
+		return list;
+	}
+
+	/**
+	 * Get all interface IPv4 addresses
+	 *
+	 * @returns {Array<String>}
+	 * @memberof UdpServer
+	 */
+	getInterfaceAddresses() {
+		const list = [];
+		const interfaces = os.networkInterfaces();
+		for (let iface in interfaces) {
+			for (let i in interfaces[iface]) {
+				const f = interfaces[iface][i];
+				if (f.family === "IPv4" && !f.internal) {
+					list.push(f.address);
+				}
+			}
+		}
+		return list;
 	}
 }
 
