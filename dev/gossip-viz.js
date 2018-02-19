@@ -30,6 +30,8 @@ function createBroker(nodeID) {
 			options: {
 				gossipPeriod: 2, // seconds
 				maxConnections: 10, // Max live TCP socket
+				udpBroadcast: "192.168.2.255",
+				udpMulticast: null,
 			}
 		},
 		//logger: console,

@@ -11,6 +11,7 @@ const Promise		= require("bluebird");
 const os 			= require("os");
 const dgram 		= require("dgram");
 const ipaddr 		= require("ipaddr.js");
+const _ 			= require("lodash");
 /**
  * UDP Discovery Server for TcpTransporter
  *
@@ -57,21 +58,19 @@ class UdpServer extends EventEmitter {
 			.then(() => {
 				// Start broadcast listener
 				if (this.opts.udpBroadcast)
-					this.startServer(this.opts.udpBindAddress, this.opts.udpPort);
+					return this.startServer(this.opts.udpBindAddress, this.opts.udpPort);
 			})
 			.then(() => {
 				// Start multicast listener
 				if (this.opts.udpMulticast) {
-					this.startServer(this.opts.udpBindAddress, this.opts.udpPort, this.opts.udpMulticast, this.opts.udpMulticastTTL);
+					return this.startServer(this.opts.udpBindAddress, this.opts.udpPort, this.opts.udpMulticast, this.opts.udpMulticastTTL);
 				}
 			})
 			.then(() => {
-				if (this.servers.length > 0) {
-					// Send first discover message after 1 sec
-					setTimeout(() => this.discover(), 1000);
+				// Send first discover message after ~1 sec
+				setTimeout(() => this.discover(), _.random(500) + 500);
 
-					this.startDiscovering();
-				}
+				this.startDiscovering();
 			});
 	}
 
@@ -104,17 +103,14 @@ class UdpServer extends EventEmitter {
 	 * @param {Number?} ttl
 	 */
 	startServer(host, port, multicastAddress, ttl) {
-		return new Promise((resolve, reject) => {
+		return new Promise(resolve => {
 			try {
 				const server = dgram.createSocket({type: "udp4", reuseAddr: this.opts.udpReuseAddr });
 
 				server.on("message", this.onMessage.bind(this));
 
 				server.on("error", err => {
-					this.logger.error("UDP server binding error!", err);
-
-					if (reject)
-						reject(err);
+					this.logger.warn("UDP server binding error!", err);
 				});
 
 				host = host || "0.0.0.0";
@@ -147,7 +143,6 @@ class UdpServer extends EventEmitter {
 					this.servers.push(server);
 
 					resolve();
-					reject = null;
 				});
 
 			} catch(err) {

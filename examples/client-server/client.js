@@ -16,8 +16,8 @@ let broker = new ServiceBroker({
 	transporter: {
 		type: "TCP",
 		options: {
-			udpMulticast: null
-			//udpBroadcast: false
+			//udpMulticast: null
+			udpBroadcast: false
 		}
 	},
 	//serializer: "ProtoBuf",

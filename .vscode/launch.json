@@ -20,7 +20,10 @@
 			"request": "launch",
 			"name": "Launch demo: client-server",
 			"program": "${workspaceRoot}/examples/client-server/client.js",
-			"cwd": "${workspaceRoot}/examples/client-server"
+			"cwd": "${workspaceRoot}/examples/client-server",
+			"env": {
+				"LOGLEVEL": "debug"
+			}
 		},
 		{
 			"type": "node",
