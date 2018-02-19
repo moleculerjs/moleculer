@@ -197,10 +197,8 @@ describe("Test UdpServer.startServer", () => {
 			udpReuseAddr: true
 		});
 
-		return udp.startServer("127.0.0.1", 4567).then(protectReject).catch(err => {
+		return udp.startServer("127.0.0.1", 4567).catch(protectReject).then(() => {
 			expect(udp.servers.length).toBe(0);
-			expect(err).toBeInstanceOf(Error);
-			expect(err.message).toBe("Server error");
 		});
 
 	});
@@ -225,7 +223,7 @@ describe("Test UdpServer.bind", () => {
 		return udp.bind().catch(protectReject).then(() => {
 
 			expect(udp.startServer).toHaveBeenCalledTimes(0);
-			expect(udp.startDiscovering).toHaveBeenCalledTimes(0);
+			expect(udp.startDiscovering).toHaveBeenCalledTimes(1);
 		});
 	});
 
@@ -259,7 +257,7 @@ describe("Test UdpServer.bind", () => {
 			expect(udp.startDiscovering).toHaveBeenCalledTimes(1);
 			expect(udp.discover).toHaveBeenCalledTimes(0);
 
-			clock.tick(1100);
+			clock.tick(1600);
 			expect(udp.discover).toHaveBeenCalledTimes(1);
 
 		});

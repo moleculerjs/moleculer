@@ -111,6 +111,7 @@ class UdpServer extends EventEmitter {
 
 				server.on("error", err => {
 					this.logger.warn("UDP server binding error!", err);
+					resolve();
 				});
 
 				host = host || "0.0.0.0";

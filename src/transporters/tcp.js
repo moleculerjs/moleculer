@@ -61,7 +61,7 @@ class TcpTransporter extends Transporter {
 			udpBroadcast: true,
 
 			// Multicast settings
-			udpMulticast: "230.0.0.0",
+			udpMulticast: "239.0.0.0",
 			udpMulticastTTL: 1,
 
 			// TCP options

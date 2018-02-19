@@ -511,7 +511,7 @@ let broker = new ServiceBroker({
             udpBroadcast: true,
 
             // Multicast address.
-            udpMulticast: "230.0.0.0",
+            udpMulticast: "239.0.0.0",
             // Multicast TTL setting
             udpMulticastTTL: 1,
 
