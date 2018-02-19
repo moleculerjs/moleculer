@@ -513,7 +513,7 @@ let broker = new ServiceBroker({
             // Multicast address.
             udpMulticast: "230.0.0.0",
             // Multicast TTL setting
-            udpTTL: 1,
+            udpMulticastTTL: 1,
 
             // TCP server port. Null or 0 means random port
             port: null,

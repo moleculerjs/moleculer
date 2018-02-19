@@ -52,19 +52,17 @@ class TcpTransporter extends Transporter {
 		this.opts = Object.assign({
 			// UDP discovery options
 			udpDiscovery: true,
-			udpReuseAddr: true,
-
-			udpMaxDiscovery: 0, // 0 - No limit
-
 			udpPort: 4445,
 			udpPeriod: 5,
+			udpReuseAddr: true,
+			udpMaxDiscovery: 0, // 0 - No limit
 
 			// Broadcast settings
 			udpBroadcast: true,
 
 			// Multicast settings
 			udpMulticast: "230.0.0.0",
-			udpTTL: 1,
+			udpMulticastTTL: 1,
 
 			// TCP options
 			port: null, // random port,
@@ -105,7 +103,7 @@ class TcpTransporter extends Transporter {
 	}
 
 	/**
-	 * Connect to the server
+	 * Start UDP & TCP servers
 	 *
 	 * @memberOf TcpTransporter
 	 */

@@ -89,7 +89,7 @@ describe("Test UdpServer.bind", () => {
 		udp = new UdpServer(transporter, {
 			udpMulticast: "230.0.0.2",
 			udpPort: 4545,
-			udpTTL: 2,
+			udpMulticastTTL: 2,
 			udpReuseAddr: true
 		});
 		udp.discover = jest.fn();
@@ -136,7 +136,7 @@ describe("Test UdpServer.bind", () => {
 		udp = new UdpServer(transporter, {
 			udpMulticast: "230.0.0.2",
 			udpPort: 4545,
-			udpTTL: 2,
+			udpMulticastTTL: 2,
 			udpReuseAddr: true
 		});
 

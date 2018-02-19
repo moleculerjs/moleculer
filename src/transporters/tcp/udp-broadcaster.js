@@ -62,7 +62,7 @@ class UdpServer extends EventEmitter {
 			.then(() => {
 				// Start multicast listener
 				if (this.opts.udpMulticast) {
-					this.startServer(this.opts.udpBindAddress, this.opts.udpPort, this.opts.udpMulticast, this.opts.udpTTL);
+					this.startServer(this.opts.udpBindAddress, this.opts.udpPort, this.opts.udpMulticast, this.opts.udpMulticastTTL);
 				}
 			})
 			.then(() => {
@@ -138,7 +138,8 @@ class UdpServer extends EventEmitter {
 								server.destinations = this.getBroadcastAddresses();
 						}
 					} catch(err) {
-						// Silent exception. In cluster it throw error
+						// In cluster it throw error
+						this.logger.debug("UDP multicast membership error. Message:", err.message);
 					}
 
 					this.servers.push(server);
