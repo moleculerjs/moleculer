@@ -56,15 +56,21 @@ class UdpServer extends EventEmitter {
 
 		return Promise.resolve()
 			.then(() => {
+				// Start multicast listener
+				if (this.opts.udpMulticast) {
+					// Bind only one interface
+					if (this.opts.udpBindAddress)
+						return this.startServer(this.opts.udpBindAddress, this.opts.udpPort, this.opts.udpMulticast, this.opts.udpMulticastTTL);
+
+					// Binding all interfaces
+					const ipList = this.getInterfaceAddresses();
+					return Promise.all(ipList.map(ip => this.startServer(ip, this.opts.udpPort, this.opts.udpMulticast, this.opts.udpMulticastTTL)));
+				}
+			})
+			.then(() => {
 				// Start broadcast listener
 				if (this.opts.udpBroadcast)
 					return this.startServer(this.opts.udpBindAddress, this.opts.udpPort);
-			})
-			.then(() => {
-				// Start multicast listener
-				if (this.opts.udpMulticast) {
-					return this.startServer(this.opts.udpBindAddress, this.opts.udpPort, this.opts.udpMulticast, this.opts.udpMulticastTTL);
-				}
 			})
 			.then(() => {
 				// Send first discover message after ~1 sec
@@ -94,6 +100,12 @@ class UdpServer extends EventEmitter {
 		return list;
 	}
 
+	/**
+	 * Get all interface IPv4 addresses
+	 *
+	 * @returns {Array<String>}
+	 * @memberof UdpServer
+	 */
 	getInterfaceAddresses() {
 		const list = [];
 		const interfaces = os.networkInterfaces();
@@ -134,12 +146,8 @@ class UdpServer extends EventEmitter {
 				server.bind({ port, host, exclusive: true }, () => {
 					try {
 						if (multicastAddress) {
-							this.logger.info(`UDP Multicast Server is listening on ${host}:${port}`);
-							// Multicast interface problem: https://stackoverflow.com/a/31039214/129346
-							this.getInterfaceAddresses().forEach(ip => {
-								this.logger.info(`    Join to ${multicastAddress} on ${ip} interface.`);
-								server.addMembership(multicastAddress, ip);
-							});
+							this.logger.info(`UDP Multicast Server is listening on ${host}:${port}. Membership: ${multicastAddress}`);
+							server.addMembership(multicastAddress, host);
 							server.setMulticastTTL(ttl || 1);
 							server.destinations = [multicastAddress];
 						} else {

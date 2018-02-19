@@ -57,12 +57,12 @@ class TcpTransporter extends Transporter {
 			udpReuseAddr: true,
 			udpMaxDiscovery: 0, // 0 - No limit
 
-			// Broadcast settings
-			udpBroadcast: true,
-
 			// Multicast settings
 			udpMulticast: "239.0.0.0",
 			udpMulticastTTL: 1,
+
+			// Broadcast settings
+			udpBroadcast: false,
 
 			// TCP options
 			port: null, // random port,
