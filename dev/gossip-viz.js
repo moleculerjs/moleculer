@@ -33,7 +33,7 @@ function createBroker(nodeID) {
 				udpBroadcast: false,
 				//udpBroadcast: "192.168.2.255",
 				//udpMulticast: null,
-				//udpBindAddress: "192.168.2.100"
+				udpBindAddress: "192.168.2.100"
 			}
 		},
 		//logger: console,

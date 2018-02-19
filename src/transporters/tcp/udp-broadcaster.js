@@ -147,6 +147,7 @@ class UdpServer extends EventEmitter {
 					try {
 						if (multicastAddress) {
 							this.logger.info(`UDP Multicast Server is listening on ${host}:${port}. Membership: ${multicastAddress}`);
+							server.setMulticastInterface(host);
 							server.addMembership(multicastAddress, host);
 							server.setMulticastTTL(ttl || 1);
 							server.destinations = [multicastAddress];
