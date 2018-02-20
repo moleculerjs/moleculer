@@ -8,31 +8,17 @@ let broker = new ServiceBroker({
 	nodeID: "dev-" + process.pid,
 	logger: true,
 	//logLevel: "debug",
-	transporter: "NATS",
-	cacher: "memory"
+	transporter: "TCP",
 });
 
-broker.createService({
-	name: "math",
-	dependencies: [],
-	actions: {
-		add: {
-			cache: {
-				keys: ["a", "b", "#c"],
-				ttl: 5
-			},
-			handler(ctx) {
-				return Number(ctx.params.a) + Number(ctx.params.b) + Number(ctx.meta.c || 0);
-			}
-		}
-	}
-});
-
-broker.loadService("examples/es6.class.service");
+let svc = broker.loadService("examples/hot.service");
 
 broker.start()
 	.then(() => broker.repl())
-	.then(() => broker.call("$node.events"));
-	/*.then(() => setInterval(() => {
-		broker.call("math.add", { a: 5, b: 3});
-	}, 5000));*/
+	.delay(2000)
+	.then(() => {
+		console.log("Destroy hot service");
+		broker.destroyService(svc);
+	})
+	.delay(1000)
+	.then(() => broker.call("$node.actions", { onlyAvailable: true }).then(res => broker.logger.info(res)));
