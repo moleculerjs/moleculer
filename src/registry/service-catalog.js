@@ -133,6 +133,49 @@ class ServiceCatalog {
 	}
 
 	/**
+	 * Get local service list for INFO packet
+	 *
+	 * @returns {Object}
+	 * @memberof ServiceCatalog
+	 */
+	getLocalNodeServices() {
+		let res = [];
+		this.services.forEach(service => {
+			if (!service.local)
+				return;
+
+			let item = {
+				name: service.name,
+				version: service.version,
+				settings: service.settings,
+				metadata: service.metadata,
+				dependencies: service.dependencies
+			};
+
+			item.actions = {};
+
+			_.forIn(service.actions, action => {
+				if (action.protected) return;
+
+				item.actions[action.name] = _.omit(action, ["handler", "service"]);
+			});
+
+			item.events = {};
+
+			_.forIn(service.events, event => {
+				// Skip internal event handlers
+				if (/^\$/.test(event.name)) return;
+
+				item.events[event.name] = _.omit(event, ["handler", "service"]);
+			});
+
+			res.push(item);
+		});
+
+		return res;
+	}
+
+	/**
 	 * Remove all endpoints by nodeID
 	 *
 	 * @param {String} nodeID

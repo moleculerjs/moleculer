@@ -63,6 +63,8 @@ class Registry {
 		if (this.broker.started)
 			this.nodes.localNode.seq++;
 
+		this.regenerateLocalRawInfo();
+
 		this.logger.info(`'${svc.name}' service is registered.`);
 	}
 
@@ -191,8 +193,11 @@ class Registry {
 	unregisterService(name, version, nodeID) {
 		this.services.remove(name, version, nodeID || this.broker.nodeID);
 
-		if (!nodeID || nodeID == this.broker.nodeID)
+		if (!nodeID || nodeID == this.broker.nodeID) {
 			this.nodes.localNode.seq++;
+
+			this.regenerateLocalRawInfo();
+		}
 	}
 
 	/**
@@ -243,16 +248,29 @@ class Registry {
 	}
 
 	/**
+	 * Generate local raw info for INFO packet
+	 *
+	 * @memberof Registry
+	 */
+	regenerateLocalRawInfo() {
+		let node = this.nodes.localNode;
+		node.rawInfo = _.pick(node, ["ipList", "hostname", "client", "config", "port", "seq"]);
+		node.rawInfo.services = this.services.getLocalNodeServices();
+
+		return node.rawInfo;
+	}
+
+	/**
 	 * Generate local node info for INFO packets
 	 *
 	 * @returns
 	 * @memberof Registry
 	 */
 	getLocalNodeInfo() {
-		const res = _.pick(this.nodes.localNode, ["ipList", "hostname", "client", "config", "port", "seq"]);
-		res.services = this.services.list({ onlyLocal: true, withActions: true, withEvents: true });
+		if (!this.nodes.localNode.rawInfo)
+			return this.regenerateLocalRawInfo();
 
-		return res;
+		return this.nodes.localNode.rawInfo;
 	}
 
 	/**
@@ -347,6 +365,16 @@ class Registry {
 	 */
 	getEventList(opts) {
 		return this.events.list(opts);
+	}
+
+	/**
+	 * Get a raw info list from nodes
+	 *
+	 * @returns {Array<Object>}
+	 * @memberof Registry
+	 */
+	getNodeRawList() {
+		return this.nodes.toArray().map(node => node.rawInfo);
 	}
 }
 
