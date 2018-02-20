@@ -15,7 +15,7 @@ describe("Test load services", () => {
 			}
 		});
 
-		expect(broker.getLocalService("mailer")).toBeDefined();
+		expect(broker.getLocalService("mailer", 2)).toBeDefined();
 		expect(broker.registry.actions.isAvailable("v2.mailer.send")).toBe(true);
 
 		broker.call("v2.mailer.send").then(() => {
