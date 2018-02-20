@@ -125,13 +125,13 @@ function printBrokerStatus({ nodeID, broker }) {
 
 			const node = list.find(node => node.id == search);
 			if (node) {
-				if (node.available)
+				if (node.available) {
 					s += chalk.green.bold("█");
-				else if (node.seq == 0)
+					count++;
+				} else if (node.seq == 0)
 					s += chalk.yellow("█");
 				else
 					s += chalk.red.bold("█");
-				count++;
 			} else {
 				s += chalk.red.bold("█");
 			}
