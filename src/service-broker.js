@@ -78,6 +78,8 @@ const defaultOptions = {
 
 	middlewares: null,
 
+	replCommands: null,
+
 	// ServiceFactory: null,
 	// ContextFactory: null
 };
@@ -711,13 +713,13 @@ class ServiceBroker {
 	/**
 	 * Get a local service by name
 	 *
-	 * @param {String} serviceName
+	 * @param {String} name
 	 * @returns {Service}
 	 *
 	 * @memberOf ServiceBroker
 	 */
-	getLocalService(serviceName) {
-		return this.services.find(service => service.name == serviceName);
+	getLocalService(name, version) {
+		return this.services.find(service => service.name == name && service.version == version);
 	}
 
 	/**

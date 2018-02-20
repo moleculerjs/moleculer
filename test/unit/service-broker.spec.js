@@ -141,7 +141,8 @@ describe("Test ServiceBroker constructor", () => {
 			validator: null,
 			internalServices: false,
 			hotReload: true,
-			middlewares: null
+			middlewares: null,
+			replCommands: null
 		});
 
 		expect(broker.services).toBeInstanceOf(Array);
@@ -773,7 +774,7 @@ describe("Test broker.repl", () => {
 		broker.repl();
 
 		expect(repl).toHaveBeenCalledTimes(1);
-		expect(repl).toHaveBeenCalledWith(broker, undefined);
+		expect(repl).toHaveBeenCalledWith(broker, null);
 	});
 
 	it("should switch to repl mode with custom commands", () => {
@@ -1233,14 +1234,39 @@ describe("Test broker.registerInternalServices", () => {
 });
 
 describe("Test broker.getLocalService", () => {
-	let broker = new ServiceBroker();
-	let service = broker.createService({
-		name: "posts"
+
+	describe("without version", () => {
+		let broker = new ServiceBroker();
+		let service = broker.createService({
+			name: "posts"
+		});
+
+		it("should find the service by name", () => {
+			expect(broker.getLocalService("posts")).toBe(service);
+			expect(broker.getLocalService("other")).toBeUndefined();
+		});
 	});
 
-	it("should find the service by name", () => {
-		expect(broker.getLocalService("posts")).toBe(service);
-		expect(broker.getLocalService("other")).toBeUndefined();
+	describe("with version", () => {
+		let broker = new ServiceBroker();
+		let service1 = broker.createService({
+			name: "posts",
+			version: 1
+		});
+
+		let service2 = broker.createService({
+			name: "posts",
+			version: 2
+		});
+
+		it("should find the service by name", () => {
+			expect(broker.getLocalService("posts")).toBe(undefined);
+		});
+
+		it("should find the service by name & version", () => {
+			expect(broker.getLocalService("posts", 2)).toBe(service2);
+			expect(broker.getLocalService("posts", 1)).toBe(service1);
+		});
 	});
 
 });
