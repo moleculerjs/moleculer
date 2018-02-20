@@ -40,7 +40,7 @@ If you are using transporter options, you will need to migrate them. The transpo
 **Before**
 ```js
 // NATS transporter
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     transporter: {
         type: "NATS",
         options: {
@@ -53,7 +53,7 @@ let broker = new ServiceBroker({
 });
 
 // Redis transporter
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     transporter: {
         type: "Redis",
         options: {
@@ -66,7 +66,7 @@ let broker = new ServiceBroker({
 });
 
 // MQTT transporter
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     transporter: {
         type: "MQTT",
         options: {
@@ -79,7 +79,7 @@ let broker = new ServiceBroker({
 });
 
 // AMQP transporter
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     transporter: {
         type: "AMQP",
         options: {
@@ -94,7 +94,7 @@ let broker = new ServiceBroker({
 **After**
 ```js
 // NATS transporter
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     transporter: {
         type: "NATS",
         options: {
@@ -105,7 +105,7 @@ let broker = new ServiceBroker({
 });
 
 // Redis transporter
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     transporter: {
         type: "Redis",
         options: {
@@ -116,7 +116,7 @@ let broker = new ServiceBroker({
 });
 
 // MQTT transporter
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     transporter: {
         type: "MQTT",
         options: {
@@ -127,7 +127,7 @@ let broker = new ServiceBroker({
 });
 
 // AMQP transporter
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     transporter: {
         type: "AMQP",
         options: {
@@ -205,7 +205,7 @@ There are 2 options for the strategy:
 
 **Usage:**
 ```js
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     registry: {
         strategy: "CpuUsage"
     }
@@ -214,7 +214,7 @@ let broker = new ServiceBroker({
 
 **Usage with custom options**
 ```js
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     registry: {
         strategy: "CpuUsage",
         strategyOptions: {
@@ -460,20 +460,20 @@ It means, you don't have to configure any transporter, just start the brokers/no
 
 **Use TCP transporter with default options**
 ```js
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     transporter: "TCP"
 });
 ```
 
 **Use TCP transporter with static node list**
 ```js
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     transporter: "tcp://172.17.0.1:6000/node-1,172.17.0.2:6000/node-2"
 });
 ```
 or 
 ```js
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     nodeID: "node-1",
     transporter: {
         type: "TCP",
@@ -481,7 +481,7 @@ let broker = new ServiceBroker({
             udpDiscovery: false,
             urls: [
                 "172.17.0.1:6000/node-1",
-                "172.17.0.2:6000/node-2"
+                "172.17.0.2:6000/node-2",
                 "172.17.0.3:6000/node-3"
             ]
         }
@@ -492,7 +492,7 @@ let broker = new ServiceBroker({
 
 **All TCP transporter options with default values**
 ```js
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     logger: true,
     transporter: {
         type: "TCP",
@@ -504,7 +504,7 @@ let broker = new ServiceBroker({
 
             // UDP port
             udpPort: 4445,
-            // UDP bind address
+            // UDP bind address (if null, bind on all interfaces)
             udpBindAddress: null,
             // UDP sending period
             udpPeriod: 5,
@@ -543,7 +543,7 @@ Please note, it is an **experimental** transporter. **Do not use it in productio
 
 **Connect to Zookeeper**
 ```js
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     logger: true,
     transporter: "kafka://192.168.51.29:2181"
 });
@@ -551,7 +551,7 @@ let broker = new ServiceBroker({
 
 **Connect to Zookeeper with custom options**
 ```js
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     logger: true,
     transporter: {
         type: "kafka",
@@ -593,19 +593,19 @@ Please note, it is an **experimental** transporter. **Do not use it in productio
 **Connect to NATS Streaming server**
 ```js
 // Shorthand to local server
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     logger: true,
     transporter: "STAN"
 });
 
 // Shorthand
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     logger: true,
     transporter: "stan://192.168.0.120:4222"
 });
 
 // Shorthand with options
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     logger: true,
     transporter: {
         type: "STAN",
@@ -622,7 +622,7 @@ let broker = new ServiceBroker({
 You can define your custom REPL commands in broker options to extend Moleculer REPL commands.
 
 ```js
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     logger: true,
     replCommands: [
         {
@@ -720,7 +720,7 @@ If the value is `true`, it adds all fields. If `Array`, it adds the specified fi
 
 ServiceBroker can resolve the `strategy` from a string.
 ```js
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     registry: {
         strategy: "Random"
         // strategy: "RoundRobin"
@@ -793,7 +793,7 @@ broker.createService({
 
 You can override the cacher default TTL setting in action definition.
 ```js
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     cacher: {
         type: "memory",
         options: {
@@ -818,7 +818,7 @@ broker.createService({
 
 You can change the built-in cacher keygen function to your own one.
 ```js
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     cacher: {
         type: "memory",
         options: {
@@ -892,7 +892,7 @@ The `started` service handler is called once the `likes`, `users` and `comments`
 The `ServiceBroker` has a new `maxQueueSize` option under `transit` key. The broker protects the process to avoid crash during a high load with it. The `maxQueueSize` default value is 50,000. If pending request queue size reaches it, broker rejects the request with a `QueueIsFull` (retryable) error.
 
 ```js
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     transporter: "NATS",
     transit: {
         maxQueueSize: 10 * 1000
@@ -940,7 +940,7 @@ broker.createService({
 The NATS transporter has been changed. It supports to use the NATS built-in balancer instead of Moleculer balancer. In this case every `call` & `emit` will be transferred through NATS message broker.
 
 ```js
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     transporter: "NATS",
     disableBalancer: true
 });
@@ -1130,7 +1130,7 @@ By @WoLfulus, the service registry balancer strategy is now pluggable.
 ```js
 let Strategies = require("moleculer").Strategies;
 
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     registry: {        
         strategy: new Strategies.RoundRobin()
     }
@@ -1150,7 +1150,7 @@ class CustomStrategy extends BaseStrategy {
     }
 };
 
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     registry: {        
         strategy: new CustomStrategy()
     }
@@ -1208,7 +1208,7 @@ The ServiceBroker supports hot reloading services. If you enable it broker will 
 **Usage**
 
 ```js
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     logger: console,
     hotReload: true
 });
@@ -1231,11 +1231,11 @@ Moleculer protocol documentation is available in [docs/PROTOCOL.md](docs/PROTOCO
 By @Nathan-Schwartz, AMQP (for RabbitMQ) transporter added to Moleculer project.
 
 ```js
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     transporter: "amqp://guest:guest@rabbitmq-server:5672"
 });
 
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     transporter: new AmqpTransporter({
         amqp: {
             url: "amqp://guest:guest@localhost:5672",
@@ -1547,7 +1547,7 @@ $ moleculer-runner
 - fixed Redis cacher option resolver in ServiceBroker. Now it accepts connection string.
 
     ```js
-    let broker = new ServiceBroker({
+    const broker = new ServiceBroker({
         cacher: "redis://localhost"
     });
     ```
@@ -1588,17 +1588,17 @@ Some new resolvers are implemented in broker options to support shorthand config
 **Usage for transporters**
 ```js
 // Connect to the NATS default (localhost) server
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     transporter: "NATS"
 });
 
 // Connect to a NATS server with connection string
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     transporter: "nats://nats-server:4222"
 });
 
 // Connect to a NATS server with transporter options
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     transporter: {
         type: "NATS",
         options: {
@@ -1616,19 +1616,19 @@ let broker = new ServiceBroker({
 **Usage for cachers**
 ```js
 // Use a memory cacher
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     cacher: true
     // or
     // cacher: "Memory"
 });
 
 // Use a Redis cacher with default options
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     cacher: "Redis"
 });
 
 // Use a Redis cacher with options
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     cacher: {
         type: "Redis",
         options: {
@@ -1641,12 +1641,12 @@ let broker = new ServiceBroker({
 **Usage for serializers**
 ```js
 // Use the Avro serializer
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     serializers: "Avro"
 });
 
 // Use the Protocol Buffer serializer
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     serializers: {
         type: "ProtoBuf"
     }
@@ -1659,7 +1659,7 @@ You only need to enable it in broker options.
 
 **Usage**
 ```js
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     circuitBreaker: {
         enabled: true, // Enable this feature
         maxFailures: 5, // Trip breaker on 5 failures
@@ -1682,7 +1682,7 @@ You can change the load balancing strategies of Service Registry via broker opti
 ```js
 const { STRATEGY_ROUND_ROBIN, STRATEGY_RANDOM } = require("moleculer");
 
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     registry: {
         strategy: STRATEGY_ROUND_ROBIN, // Load balancing strategy
         preferLocal: true // First call local service if available
@@ -1696,7 +1696,7 @@ Broker module has an interactive REPL mode. You can call actions, load services,
 
 **Start REPL mode**
 ```js
-let broker = new ServiceBroker({ logger: console });
+const broker = new ServiceBroker({ logger: console });
 
 // Start REPL
 broker.repl();
@@ -1851,7 +1851,7 @@ module.exports = {
 You can protect your app against calling loop with the new `maxCallLevel` option. If the `ctx.level` value reaches this limit, it throwns a `MaxCallLevelError` error.
 
 ```js
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     maxCallLevel: 100
 });
 ```
@@ -1974,7 +1974,7 @@ Built-in serializers:
 ```js
 let JSONSerializer = require("moleculer").Serializers.JSON;
 
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     serializer: new JSONSerializer(),
     transporter: new Transporter(),
     nodeID: "node-1"	
@@ -1992,7 +1992,7 @@ Added `metricsRate` options to broker. This property sets the rate of sampled ca
 
 **Usage**
 ```js
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
     metrics: true,
     metricsRate: 0.1
 });
