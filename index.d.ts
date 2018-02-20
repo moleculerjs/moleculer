@@ -20,7 +20,7 @@ declare namespace Moleculer {
 		trace(...args: any[]): void;
 	}
 
-	type ActionHandler = ((ctx: Context) => Bluebird<any> | any) & ThisType<Service>;
+	type ActionHandler<T> = ((ctx: Context) => Bluebird<T> | T) & ThisType<Service>;
 	type ActionParamSchema = { [key: string]: any };
 	type ActionParamTypes = "boolean" | "number" | "string" | "object" | "array" | ActionParamSchema;
 	type ActionParams = { [key: string]: ActionParamTypes };
@@ -63,7 +63,7 @@ declare namespace Moleculer {
 
 		generateID(): string;
 		setParams(newParams: GenericObject, cloning?: boolean): void;
-		call(actionName: string, params?: GenericObject, opts?: GenericObject): Bluebird<any>;
+		call<T, P extends GenericObject>(actionName: string, params?: P, opts?: GenericObject): Bluebird<T>;
 		emit(eventName: string, data: any, groups: Array<string>): void;
 		emit(eventName: string, data: any, groups: string): void;
 		emit(eventName: string, data: any): void;
@@ -261,6 +261,11 @@ declare namespace Moleculer {
 		meta?: GenericObject;
 	}
 
+	type CallDefinition<P extends GenericObject> = {
+		action: string;
+		params: P;
+	};
+
 	class ServiceBroker {
 		constructor(options?: BrokerOptions);
 
@@ -305,12 +310,12 @@ declare namespace Moleculer {
 		 *
 		 * @memberOf ServiceBroker
 		 */
-		call(actionName: string, params?: GenericObject, opts?: CallOptions): Bluebird<any>;
+		call<T, P extends GenericObject>(actionName: string, params?: P, opts?: CallOptions): Bluebird<T>;
 
 		/**
 		 * Multiple action calls.
 		 *
-		 * @param {Array<GenericObject>|GenericObject} def Calling definitions.
+		 * @param {Array<CallDefinition> | { [name: string]: CallDefinition }} def Calling definitions.
 		 * @returns {Bluebird<Array<GenericObject>|GenericObject>}
 		 * | (broker: ServiceBroker): Service)
 		 * @example
@@ -340,7 +345,7 @@ declare namespace Moleculer {
 		 *
 		 * @memberOf ServiceBroker
 		 */
-		mcall(def: Array<GenericObject> | GenericObject): Bluebird<Array<any> | any>;
+		mcall<T>(def: Array<CallDefinition> | { [name: string]: CallDefinition }): Bluebird<Array<T> | T>;
 
 		/**
 		 * Emit an event (global & local)
