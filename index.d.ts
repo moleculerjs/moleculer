@@ -588,6 +588,11 @@ declare namespace Moleculer {
 
 	namespace Errors {
 		class MoleculerError extends Error {
+			public code: number;
+			public type: string;
+			public data: any;
+			public retryable: boolean;
+
 			constructor(message: string, code: number, type: string, data: any);
 			constructor(message: string, code: number, type: string);
 			constructor(message: string, code: number);
