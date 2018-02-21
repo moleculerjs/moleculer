@@ -577,6 +577,23 @@ describe("Test Registry.getEventList", () => {
 	});
 });
 
+describe("Test Registry.getNodeRawList", () => {
+	let broker = new ServiceBroker();
+	let registry = broker.registry;
+
+	registry.nodes.toArray = jest.fn(() => [
+		{rawInfo: { a: 5 } },
+		{rawInfo: { b: 10 } },
+	]);
+
+	it("should call registry.events.list method", () => {
+		expect(registry.getNodeRawList()).toEqual([{ a: 5 }, { b: 10 }]);
+
+		expect(registry.nodes.toArray).toHaveBeenCalledTimes(1);
+		expect(registry.nodes.toArray).toHaveBeenCalledWith();
+	});
+});
+
 describe("Test Registry.hasService", () => {
 	let broker = new ServiceBroker();
 	let registry = broker.registry;
