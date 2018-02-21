@@ -4,26 +4,6 @@
 
 let ServiceBroker = require("../src/service-broker");
 
-// Create broker #1
-let broker1 = new ServiceBroker({
-	nodeID: "node-1",
-	transporter: "NATS",
-	logger: console,
-	logFormatter: "simple"
-});
-
-broker1.createService({
-	name: "test",
-	actions: {
-		async hello(ctx) {
-			this.logger.info("Meta before", ctx.meta);
-			await ctx.call("auth.login");
-			this.logger.info("Meta after", ctx.meta);
-			return `Hello ${ctx.meta.user ? ctx.meta.user.name : 'Anonymous'}`
-		}
-	}
-});
-
 // Create broker #2
 let broker2 = new ServiceBroker({
 	nodeID: "node-2",
@@ -42,10 +22,4 @@ broker2.createService({
 	}
 });
 
-broker1.Promise.all([
-	broker1.start(),
-	broker2.start()
-]).delay(1000).then(() => {
-	const p = broker1.call("test.hello", {}, { meta: { token: "123456" }})
-	p.then(res => broker1.logger.info(res));
-});
+broker2.start();

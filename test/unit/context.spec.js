@@ -160,6 +160,7 @@ describe("Test call method", () => {
 
 describe("Test call with meta merge", () => {
 	let broker = new ServiceBroker({ maxCallLevel: 5 });
+	let err = new Error("Subcall error");
 
 	broker.call = jest.fn()
 		.mockImplementationOnce(() => {
@@ -172,7 +173,7 @@ describe("Test call with meta merge", () => {
 			return p;
 		})
 		.mockImplementationOnce(() => {
-			const p = broker.Promise.reject();
+			const p = broker.Promise.reject(err);
 			p.ctx = {
 				meta: {
 					b: 5
@@ -198,7 +199,8 @@ describe("Test call with meta merge", () => {
 		ctx.meta.a = "Hello";
 		ctx.meta.b = 1;
 		ctx._metricStart();
-		return ctx.call("posts.find", {}).then(protectReject).catch(err => {
+		return ctx.call("posts.find", {}).then(protectReject).catch(e => {
+			expect(e).toBe(err);
 			expect(broker.call).toHaveBeenCalledTimes(1);
 			expect(ctx.meta).toEqual({ a: "Hello", b: 5 });
 		});

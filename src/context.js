@@ -199,7 +199,6 @@ class Context {
 				return Promise.reject(new RequestSkippedError(actionName, this.broker.nodeID));
 			}
 			opts.timeout = distTimeout;
-
 		}
 
 		// Max calling level check to avoid calling loops
@@ -207,20 +206,18 @@ class Context {
 			return Promise.reject(new MaxCallLevelError(this.broker.nodeID, this.level));
 		}
 
-		const p = this.broker.call(actionName, params, opts);
+		let p = this.broker.call(actionName, params, opts);
 
 		// Merge metadata with sub context metadata
-		p.then(res => {
+		return p.then(res => {
 			if (p.ctx)
 				this._mergeMeta(p.ctx.meta);
 			return res;
 		}).catch(err => {
 			if (p.ctx)
 				this._mergeMeta(p.ctx.meta);
-			return err;
+			return Promise.reject(err);
 		});
-
-		return p;
 	}
 
 	/**

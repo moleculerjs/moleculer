@@ -8,7 +8,7 @@ let ServiceBroker = require("../src/service-broker");
 		nodeID: "consumer",
 		logger: true,
 		//logLevel: "debug",
-		transporter: "NATS"
+		transporter: "TCP"
 	});
 
 	broker.createService({
@@ -37,7 +37,7 @@ let ServiceBroker = require("../src/service-broker");
 	const broker = new ServiceBroker({
 		nodeID: "producer",
 		logger: true,
-		transporter: "NATS"
+		transporter: "TCP"
 	});
 
 	broker.createService({
