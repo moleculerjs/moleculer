@@ -1,10 +1,6 @@
 "use strict";
 
 const hostname = require("os").hostname();
-const fs = require("fs");
-const _ = require("lodash");
-
-let filename;
 
 module.exports = {
 	namespace: "docker",
@@ -14,12 +10,10 @@ module.exports = {
 	transporter: {
 		type: "TCP",
 		options: {
-			//debug: true
 		}
 	},
 
 	started(broker) {
-		filename = "./" + broker.nodeID + "-nodes.json";
 		let reqCount = 0;
 		broker.waitForServices("worker").then(() => {
 			setInterval(() => {
@@ -37,13 +31,7 @@ module.exports = {
 					broker.logger.warn(`${reqCount}. Request 'fibo(${payload.n})' ERROR! ${err.message}`);
 				});
 
-				const list = broker.registry.nodes.toArray().map(node => _.pick(node, ["id", "seq", "offlineSince", "available", "hostname", "port", "ipList", "udpAddress"]));
-				fs.writeFileSync(filename, JSON.stringify(list, null, 2));
 			}, 1000);
 		});
-	},
-
-	stopped(broker) {
-		fs.unlink(filename);
 	}
 };

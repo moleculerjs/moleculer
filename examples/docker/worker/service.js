@@ -20,6 +20,8 @@ module.exports = {
 					num--;
 				}
 
+				this.logger.info(`'fibo' request received from ${ctx.callerNodeID}. Reply result:`, b);
+
 				return b;
 			}
 		}

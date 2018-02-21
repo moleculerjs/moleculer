@@ -1,0 +1,31 @@
+version: "3.0"
+
+services:
+
+  client:
+    build:
+      context: ./client
+    image: moleculer-client
+    environment:
+      LOGGER: "true"
+      LOGLEVEL: "info"
+
+    restart: always
+    # networks:
+    #  - moleculer
+
+  worker:
+    build:
+      context: ./worker
+    image: moleculer-worker
+    environment:
+      LOGGER: "true"
+      LOGLEVEL: "info"
+
+    restart: always
+    # networks:
+    #  - moleculer
+
+# networks:
+#   moleculer:
+#     driver: overlay
