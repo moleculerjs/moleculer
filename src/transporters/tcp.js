@@ -126,6 +126,9 @@ class TcpTransporter extends Transporter {
 
 				// Set the opened TCP port (because it is a random port by default)
 				this.nodes.localNode.port = this.opts.port;
+
+				// Regenerate local node INFO because port changed
+				this.registry.regenerateLocalRawInfo();
 			})
 			.then(() => this.onConnected());
 	}
@@ -532,7 +535,7 @@ class TcpTransporter extends Transporter {
 						// We need to increment the received `seq` so that the requester will update us
 						node.seq = seq + 1;
 
-						const info = this.registry.getNodeInfo(node.id);
+						const info = this.registry.getLocalNodeInfo(true);
 						response.online[node.id] = [info, node.cpuSeq || 0, node.cpu || 0];
 					}
 

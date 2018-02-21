@@ -141,6 +141,7 @@ describe("Test TcpTransporter connect & disconnect & reconnect", () => {
 
 	it("check connect", () => {
 		transporter.onConnected = jest.fn(() => Promise.resolve());
+		broker.registry.regenerateLocalRawInfo = jest.fn();
 
 		let p = transporter.connect().catch(protectReject).then(() => {
 			expect(transporter.connected).toBe(true);
@@ -149,6 +150,8 @@ describe("Test TcpTransporter connect & disconnect & reconnect", () => {
 			expect(transporter.startTimers).toHaveBeenCalledTimes(1);
 
 			expect(broker.registry.nodes.localNode.port).toBe(1234);
+
+			expect(broker.registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(1);
 
 			expect(transporter.onConnected).toHaveBeenCalledTimes(1);
 			expect(transporter.loadUrls).toHaveBeenCalledTimes(0);
@@ -1100,6 +1103,7 @@ describe("Test Gossip methods", () => {
 			transporter.nodes.toArray = jest.fn(() => nodes);
 			transporter.nodes.get = jest.fn(() => ({ id: "node-10" }));
 			transporter.registry.getNodeInfo = jest.fn(id => ({ info: id }));
+			transporter.registry.getLocalNodeInfo = jest.fn(() => ({ info: "node-1" }));
 
 			transporter.processGossipRequest({
 				sender: "node-10",
@@ -1122,9 +1126,11 @@ describe("Test Gossip methods", () => {
 			// Local Seq Incremented
 			expect(nodes[0].seq).toBe(34);
 
-			expect(transporter.registry.getNodeInfo).toHaveBeenCalledTimes(2);
-			expect(transporter.registry.getNodeInfo).toHaveBeenCalledWith("node-1");
+			expect(transporter.registry.getNodeInfo).toHaveBeenCalledTimes(1);
 			expect(transporter.registry.getNodeInfo).toHaveBeenCalledWith("node-7");
+
+			expect(transporter.registry.getLocalNodeInfo).toHaveBeenCalledTimes(1);
+			expect(transporter.registry.getLocalNodeInfo).toHaveBeenCalledWith(true);
 
 			// Update 'node-2'
 			expect(heartbeat).toHaveBeenCalledTimes(1);

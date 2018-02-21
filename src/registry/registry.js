@@ -266,8 +266,8 @@ class Registry {
 	 * @returns
 	 * @memberof Registry
 	 */
-	getLocalNodeInfo() {
-		if (!this.nodes.localNode.rawInfo)
+	getLocalNodeInfo(force) {
+		if (force || !this.nodes.localNode.rawInfo)
 			return this.regenerateLocalRawInfo();
 
 		return this.nodes.localNode.rawInfo;

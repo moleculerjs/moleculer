@@ -379,7 +379,7 @@ declare namespace Moleculer {
 
 		sendPing(nodeID?: string): Bluebird<void>;
 		getHealthStatus(): NodeHealthStatus;
-		getLocalNodeInfo(): {
+		getLocalNodeInfo(force?: boolean): {
 			ipList: string[];
 			hostname: string;
 			client: any;

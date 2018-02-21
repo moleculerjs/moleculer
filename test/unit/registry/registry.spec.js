@@ -427,6 +427,15 @@ describe("Test Registry.getLocalNodeInfo", () => {
 		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(0);
 	});
 
+	it("should call registry.regenerateLocalRawInfo if has rawInfo && force", () => {
+		registry.regenerateLocalRawInfo.mockClear();
+		localNode.rawInfo = rawInfo;
+		expect(registry.getLocalNodeInfo(true)).toBe(rawInfo);
+
+		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(1);
+		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledWith();
+	});
+
 });
 
 describe("Test Registry.getNodeInfo", () => {
