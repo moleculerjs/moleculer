@@ -388,7 +388,7 @@ describe("Test Registry.regenerateLocalRawInfo", () => {
 
 	it("should call registry getLocalNodeServices and return with local rawInfo", () => {
 		expect(registry.regenerateLocalRawInfo()).toEqual({
-			"client": {"langVersion": "v8.9.4", "type": "nodejs", "version": "0.12.0-beta2"},
+			"client": localNode.client,
 			"config": {},
 			"hostname": localNode.hostname,
 			"ipList": localNode.ipList,
