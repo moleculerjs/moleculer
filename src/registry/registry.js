@@ -130,7 +130,7 @@ class Registry {
 	}
 
 	/**
-	 * Register service action
+	 * Register service actions
 	 *
 	 * @param {Node} node
 	 * @param {Service} service
@@ -158,7 +158,7 @@ class Registry {
 	}
 
 	/**
-	 * Get endpoint list for an action by name
+	 * Get endpoint list of action by name
 	 *
 	 * @param {String} actionName
 	 * @returns {EndpointList}
@@ -169,7 +169,7 @@ class Registry {
 	}
 
 	/**
-	 * Get an endpoint for an action on a specified node
+	 * Get an endpoint of action on a specified node
 	 *
 	 * @param {String} actionName
 	 * @param {String} nodeID

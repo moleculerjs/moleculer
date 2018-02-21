@@ -3,6 +3,7 @@
 let Registry = require("../../../src/registry/registry");
 let ServiceBroker = require("../../../src/service-broker");
 let Strategies = require("../../../src/strategies");
+const { protectReject } = require("../utils");
 
 describe("Test Registry constructor", () => {
 
@@ -42,12 +43,14 @@ describe("Test Registry.registerLocalService", () => {
 
 	let broker = new ServiceBroker();
 	let registry = broker.registry;
+	let seq = registry.nodes.localNode.seq;
 
 	let service = {};
 
 	registry.services.add = jest.fn(() => service);
 	registry.registerActions = jest.fn();
 	registry.registerEvents = jest.fn();
+	registry.regenerateLocalRawInfo = jest.fn();
 
 	it("should call register methods", () => {
 		let svc = {
@@ -69,12 +72,18 @@ describe("Test Registry.registerLocalService", () => {
 
 		expect(registry.registerEvents).toHaveBeenCalledTimes(1);
 		expect(registry.registerEvents).toHaveBeenCalledWith(registry.nodes.localNode, service, svc.events);
+
+		expect(registry.nodes.localNode.seq).toBe(seq);
+
+		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(1);
+		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledWith();
 	});
 
-	it("should not call register methods", () => {
+	it("should not call register methods, but increment seq", () => {
 		registry.services.add.mockClear();
 		registry.registerActions.mockClear();
 		registry.registerEvents.mockClear();
+		registry.regenerateLocalRawInfo.mockClear();
 
 		let svc = {
 			name: "users",
@@ -83,14 +92,21 @@ describe("Test Registry.registerLocalService", () => {
 			metadata: {}
 		};
 
-		registry.registerLocalService(svc);
+		return broker.start().catch(protectReject).then(() => {
+			registry.registerLocalService(svc);
 
-		expect(registry.services.add).toHaveBeenCalledTimes(1);
-		expect(registry.services.add).toHaveBeenCalledWith(registry.nodes.localNode, "users", 2, svc.settings, svc.metadata);
+			expect(registry.services.add).toHaveBeenCalledTimes(1);
+			expect(registry.services.add).toHaveBeenCalledWith(registry.nodes.localNode, "users", 2, svc.settings, svc.metadata);
 
-		expect(registry.registerActions).toHaveBeenCalledTimes(0);
+			expect(registry.registerActions).toHaveBeenCalledTimes(0);
 
-		expect(registry.registerEvents).toHaveBeenCalledTimes(0);
+			expect(registry.registerEvents).toHaveBeenCalledTimes(0);
+
+			expect(registry.nodes.localNode.seq).toBe(seq + 1);
+
+			expect(registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(1);
+			expect(registry.regenerateLocalRawInfo).toHaveBeenCalledWith();
+		});
 	});
 });
 
@@ -236,15 +252,20 @@ describe("Test Registry.unregisterService & unregisterServicesByNode", () => {
 
 	let broker = new ServiceBroker();
 	let registry = broker.registry;
+	let seq = registry.nodes.localNode.seq;
 
 	registry.services.remove = jest.fn();
 	registry.services.removeAllByNodeID = jest.fn();
+	registry.regenerateLocalRawInfo = jest.fn();
 
 	it("should call services remove method", () => {
 		registry.unregisterService("posts", 2, "node-11");
 
 		expect(registry.services.remove).toHaveBeenCalledTimes(1);
 		expect(registry.services.remove).toHaveBeenCalledWith("posts", 2, "node-11");
+
+		expect(registry.nodes.localNode.seq).toBe(seq);
+		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(0);
 	});
 
 	it("should call services remove method with local nodeID", () => {
@@ -254,6 +275,10 @@ describe("Test Registry.unregisterService & unregisterServicesByNode", () => {
 
 		expect(registry.services.remove).toHaveBeenCalledTimes(1);
 		expect(registry.services.remove).toHaveBeenCalledWith("posts", 2, broker.nodeID);
+
+		expect(registry.nodes.localNode.seq).toBe(seq + 1);
+		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(1);
+		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledWith();
 	});
 
 	it("should call services removeAllByNodeID method", () => {
@@ -350,6 +375,56 @@ describe("Test Registry.unregisterEvent", () => {
 
 		expect(registry.events.remove).toHaveBeenCalledTimes(1);
 		expect(registry.events.remove).toHaveBeenCalledWith("posts.find", "node-11");
+	});
+
+});
+
+describe("Test Registry.regenerateLocalRawInfo", () => {
+	let broker = new ServiceBroker({ nodeID: "node-1" });
+	let registry = broker.registry;
+	let localNode = registry.nodes.localNode;
+
+	registry.services.getLocalNodeServices = jest.fn(() => []);
+
+	it("should call registry getLocalNodeServices and return with local rawInfo", () => {
+		expect(registry.regenerateLocalRawInfo()).toEqual({
+			"client": {"langVersion": "v8.9.4", "type": "nodejs", "version": "0.12.0-beta2"},
+			"config": {},
+			"hostname": localNode.hostname,
+			"ipList": localNode.ipList,
+			"port": null,
+			"seq": 1,
+			"services": []
+		});
+
+		expect(registry.services.getLocalNodeServices).toHaveBeenCalledTimes(1);
+		expect(registry.services.getLocalNodeServices).toHaveBeenCalledWith();
+	});
+
+});
+
+describe("Test Registry.getLocalNodeInfo", () => {
+	let broker = new ServiceBroker({ nodeID: "node-1" });
+	let registry = broker.registry;
+	let localNode = registry.nodes.localNode;
+	let rawInfo = { a: 5 };
+	localNode.rawInfo = null;
+
+	registry.regenerateLocalRawInfo = jest.fn(() => rawInfo);
+
+	it("should call registry.regenerateLocalRawInfo if no rawInfo", () => {
+		expect(registry.getLocalNodeInfo()).toBe(rawInfo);
+
+		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(1);
+		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledWith();
+	});
+
+	it("should not call registry.regenerateLocalRawInfo if has rawInfo", () => {
+		registry.regenerateLocalRawInfo.mockClear();
+		localNode.rawInfo = rawInfo;
+		expect(registry.getLocalNodeInfo()).toBe(rawInfo);
+
+		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(0);
 	});
 
 });

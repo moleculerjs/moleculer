@@ -1,6 +1,8 @@
 <a name="0.12.0"></a>
 # [0.12.0](https://github.com/ice-services/moleculer/compare/v0.11.10...v0.12.0) (2018-xx-xx)
 
+This version contains the most changes in the history of Moleculer! ~200 commits and a lot of features.
+
 # Breaking changes
 
 ## Mixin merging logic is changed
