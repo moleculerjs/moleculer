@@ -12,14 +12,7 @@ let transporter = process.env.TRANSPORTER || "TCP";
 let broker = new ServiceBroker({
 	namespace: "multi",
 	nodeID: process.argv[2] || "client-" + process.pid,
-	//transporter,
-	transporter: {
-		type: "TCP",
-		options: {
-			//udpMulticast: null
-			udpBroadcast: false
-		}
-	},
+	transporter,
 	//serializer: "ProtoBuf",
 	requestTimeout: 1000,
 
@@ -63,13 +56,13 @@ let pendingReqs = [];
 
 broker.start()
 	.then(() => broker.repl())
-	.then(() => {
+	/*.then(() => {
 		setInterval(() => {
 			const fs = require("fs");
 			const list = broker.registry.nodes.toArray().map(node => _.pick(node, ["id", "seq", "offlineSince", "available", "hostname", "port", "ipList", "udpAddress"]));
-			//fs.writeFileSync("./" + broker.nodeID + "-nodes.json", JSON.stringify(list, null, 2));
+			fs.writeFileSync("./" + broker.nodeID + "-nodes.json", JSON.stringify(list, null, 2));
 		}, 1000);
-	})
+	})*/
 	.then(() => broker.waitForServices("math"))
 	.then(() => {
 		setInterval(() => {

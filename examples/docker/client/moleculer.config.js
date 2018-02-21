@@ -8,7 +8,7 @@ let filename;
 
 module.exports = {
 	namespace: "docker",
-	nodeID: `client-${hostname}-${process.pid}`,
+	nodeID: `client-${hostname}`,
 	logger: true,
 	logLevel: "info",
 	transporter: {

@@ -1,4 +1,4 @@
-FROM node:6
+FROM node:8
 
 RUN mkdir /app
 WORKDIR /app
@@ -11,6 +11,7 @@ RUN npm install --production
 
 COPY moleculer.config.js service.js ./
 
+EXPOSE 4445
 EXPOSE 9229
 
 CMD ["npm", "start"]
