@@ -213,7 +213,7 @@ class UdpServer extends EventEmitter {
 				if (this.opts.udpMaxDiscovery && this.counter >= this.opts.udpMaxDiscovery)
 					this.stopDiscovering();
 
-			}, (this.opts.udpPeriod || 5) * 1000);
+			}, (this.opts.udpPeriod || 30) * 1000);
 
 			this.discoverTimer.unref();
 

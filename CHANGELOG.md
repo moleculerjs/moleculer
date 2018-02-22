@@ -508,8 +508,8 @@ const broker = new ServiceBroker({
             udpPort: 4445,
             // UDP bind address (if null, bind on all interfaces)
             udpBindAddress: null,
-            // UDP sending period
-            udpPeriod: 5,
+            // UDP sending period (seconds)
+            udpPeriod: 30,
 
             // Multicast address.
             udpMulticast: "239.0.0.0",
