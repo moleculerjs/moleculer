@@ -4,6 +4,7 @@
 
 let { times, random, padStart } = require("lodash");
 
+let chalk = require("chalk");
 let ServiceBroker = require("../../src/service-broker");
 const humanize 			= require("tiny-human-time").short;
 
@@ -43,6 +44,8 @@ function work() {
 let counter = 0;
 let errorCount = 0;
 
+const flood = process.env.FLOOD || 0;
+
 function work2() {
 	const startTime = process.hrtime();
 	let payload = { c: ++counter/*, id: broker.nodeID*/ };
@@ -60,17 +63,26 @@ function work2() {
 			console.warn(err.message, " Counter:", payload.c);
 			errorCount++;
 		});
-		//.then(() => setImmediate(work2));
 
-	//* Overload
-	if (broker.transit.pendingRequests.size < 1 * 1000)
+	// Overload
+	if (flood > 0 && broker.transit.pendingRequests.size < flood)
 		setImmediate(work2);
 	else
 		p.then(() => setImmediate(work2));
-
 }
 
 broker._callCount = 0;
+
+function color(text, pad, value, green, red) {
+	let c;
+	if (value <= green)
+		c = chalk.green.bold;
+	else if (value >= red)
+		c = chalk.red.bold;
+	else
+		c = chalk.yellow.bold;
+	return c(padStart(text, pad));
+}
 
 broker.start()
 	.then(() => broker.waitForServices("perf"))
@@ -82,12 +94,16 @@ broker.start()
 			setInterval(() => {
 				if (broker._callCount > 0) {
 					let rps = broker._callCount / ((Date.now() - startTime) / 1000);
+
+					let queueSize = broker.transit.pendingRequests.size;
+					let latency = sumTime/broker._callCount;
+
 					console.log(broker.nodeID, ":",
 						padStart(Number(rps.toFixed(0)).toLocaleString(), 8), "req/s",
-						"    Queue:", padStart(Number(broker.transit.pendingRequests.size.toFixed(0)).toLocaleString(), 8),
-						"   Errors:", padStart(Number(errorCount).toFixed(0).toLocaleString(), 8),
-						"   Latency:", padStart(humanize(sumTime/broker._callCount), 6),
-						"   Max:", padStart(humanize(maxTime), 6)
+						"  Q:", color(Number(queueSize.toFixed(0)).toLocaleString(), 4, queueSize, 100, flood ? flood*.8 : 100),
+						"  E:", color(Number(errorCount.toFixed(0)).toLocaleString(), 4, errorCount, 0, 1),
+						"  L:", color(humanize(latency), 6, latency, 500, 5000),
+						"  ML:", color(humanize(maxTime), 6, maxTime, 1000, 5000)
 					);
 					broker._callCount = 0;
 					sumTime = 0;
