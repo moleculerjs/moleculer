@@ -24,93 +24,83 @@ function createBrokers(Serializer, opts) {
 	return broker;
 }
 
-// TODO rewrite
 function runTest(dataName) {
-	throw new Error("NEED TO REWRITE!");
 
 	let data = getDataFile(dataName + ".json");
 	let payload = JSON.parse(data);
 
-	let brokerJSON = createBrokers(Serializers.JSON);
-	let brokerAvro = createBrokers(Serializers.Avro);
-	let brokerMsgPack = createBrokers(Serializers.MsgPack);
-	let brokerProtoBuf = createBrokers(Serializers.ProtoBuf);
+	const broker = new ServiceBroker();
 
-	let bench1 = benchmark.createSuite(`Serialize event packet with ${dataName}bytes`);
+	let JsonSer = new Serializers.JSON();
+	let AvroSer = new Serializers.Avro();
+	let MsgPackSer = new Serializers.MsgPack();
+	let protoBufSer = new Serializers.ProtoBuf();
+
+	JsonSer.init(broker);
+	AvroSer.init(broker);
+	MsgPackSer.init(broker);
+	protoBufSer.init(broker);
+
+	let bench1 = benchmark.createSuite(`Serialize packet with ${dataName}bytes`);
+
+	const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
+		ver:"3",
+		sender: "node-100",
+		event: "user.created",
+		data: payload,
+		broadcast: true
+	});
 
 	bench1.ref("JSON", () => {
-		const packet = new P.PacketEvent(brokerJSON.transit, P.PACKET_EVENT, {
+		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
+			ver:"3",
+			sender: "node-100",
 			event: "user.created",
 			data: payload,
 			broadcast: true
 		});
-		return packet.serialize();
+		return JsonSer.serialize(packet.payload, packet.type);
 	});
 
 	bench1.add("Avro", () => {
-		const packet = new P.PacketEvent(brokerAvro.transit, P.PACKET_EVENT, {
+		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
+			ver:"3",
+			sender: "node-100",
 			event: "user.created",
 			data: payload,
 			broadcast: true
 		});
-		return packet.serialize();
+		return AvroSer.serialize(packet.payload, packet.type);
 	});
 
 	bench1.add("MsgPack", () => {
-		const packet = new P.PacketEvent(brokerMsgPack.transit, P.PACKET_EVENT, {
+		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
+			ver:"3",
+			sender: "node-100",
 			event: "user.created",
 			data: payload,
 			broadcast: true
 		});
-		return packet.serialize();
+		return MsgPackSer.serialize(packet.payload, packet.type);
 	});
 
 	bench1.add("ProtoBuf", () => {
-		const packet = new P.PacketEvent(brokerProtoBuf.transit, P.PACKET_EVENT, {
+		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
+			ver:"3",
+			sender: "node-100",
 			event: "user.created",
 			data: payload,
 			broadcast: true
 		});
-		return packet.serialize();
+		return protoBufSer.serialize(packet.payload, packet.type);
 	});
 
-	let bench2 = benchmark.createSuite(`Serialize request packet with ${dataName}bytes`);
-
-	const ctx = new Context();
-	ctx.id = "dcfef88f-7dbe-4eed-87f1-aba340279f4f";
-	ctx.action = {
-		name: "posts.update"
-	};
-	ctx.nodeID = "node-2-12345";
-	ctx.params = payload;
-
-	console.log("JSON length:", (new P.PacketRequest(brokerJSON.transit, "node-2-12345", ctx)).serialize().length);
-	console.log("Avro length:", (new P.PacketRequest(brokerAvro.transit, "node-2-12345", ctx)).serialize().length);
-	console.log("MsgPack length:", (new P.PacketRequest(brokerMsgPack.transit, "node-2-12345", ctx)).serialize().length);
-	console.log("ProtoBuf length:", (new P.PacketRequest(brokerProtoBuf.transit, "node-2-12345", ctx)).serialize().length);
-
-	bench2.ref("JSON", () => {
-		const packet = new P.PacketRequest(brokerJSON.transit, "node-2-12345", ctx);
-		return packet.serialize();
-	});
-
-	bench2.add("Avro", () => {
-		const packet = new P.PacketRequest(brokerAvro.transit, "node-2-12345", ctx);
-		return packet.serialize();
-	});
-
-	bench2.add("MsgPack", () => {
-		const packet = new P.PacketRequest(brokerMsgPack.transit, "node-2-12345", ctx);
-		return packet.serialize();
-	});
-
-	bench2.add("ProtoBuf", () => {
-		const packet = new P.PacketRequest(brokerProtoBuf.transit, "node-2-12345", ctx);
-		return packet.serialize();
-	});
+	console.log("JSON length:", JsonSer.serialize(packet.payload, packet.type).length);
+	console.log("Avro length:", AvroSer.serialize(packet.payload, packet.type).length);
+	console.log("MsgPack length:", MsgPackSer.serialize(packet.payload, packet.type).length);
+	console.log("ProtoBuf length:", protoBufSer.serialize(packet.payload, packet.type).length);
 
 	return bench1.run()
-		.then(() => bench2.run())
 		.then(() => {
 			if (dataFiles.length > 0)
 				return runTest(dataFiles.shift());
