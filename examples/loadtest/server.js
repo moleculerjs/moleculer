@@ -10,6 +10,9 @@ let hostname = os.hostname();
 
 let transporter = process.env.TRANSPORTER || "TCP";
 
+let sum = 0;
+let maxTime = null;
+
 // Create broker
 let broker = new ServiceBroker({
 	namespace: "loadtest",
@@ -49,7 +52,7 @@ console.log("Server started. nodeID: ", broker.nodeID, " TRANSPORTER:", transpor
 broker._callCount = 0;
 setInterval(() => {
 	if (broker._callCount > 0) {
-		console.log(broker.nodeID, ":", padStart(Number(broker._callCount.toFixed(0)).toLocaleString(), 10), "req/s");
+		console.log(broker.nodeID, ":", padStart(Number(broker._callCount.toFixed(0)).toLocaleString(), 8), "req/s");
 		broker._callCount = 0;
 	}
 }, 1000);

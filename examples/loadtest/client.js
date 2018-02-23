@@ -5,8 +5,12 @@
 let { times, random, padStart } = require("lodash");
 
 let ServiceBroker = require("../../src/service-broker");
+const humanize 			= require("tiny-human-time").short;
 
 let transporter = process.env.TRANSPORTER || "TCP";
+
+let sumTime = 0;
+let maxTime = null;
 
 // Create broker
 let broker = new ServiceBroker({
@@ -40,9 +44,18 @@ let counter = 0;
 let errorCount = 0;
 
 function work2() {
+	const startTime = process.hrtime();
 	let payload = { c: ++counter/*, id: broker.nodeID*/ };
 	const p = broker.call("perf.reply", payload)
-		.then(() => broker._callCount++)
+		.then(() => {
+			broker._callCount++;
+
+			const diff = process.hrtime(startTime);
+			const dur = (diff[0] + diff[1] / 1e9) * 1000;
+			sumTime += dur;
+			if (maxTime == null || maxTime < dur)
+				maxTime = dur;
+		})
 		.catch(err => {
 			console.warn(err.message, " Counter:", payload.c);
 			errorCount++;
@@ -70,11 +83,15 @@ broker.start()
 				if (broker._callCount > 0) {
 					let rps = broker._callCount / ((Date.now() - startTime) / 1000);
 					console.log(broker.nodeID, ":",
-						padStart(Number(rps.toFixed(0)).toLocaleString(), 10), "req/s",
+						padStart(Number(rps.toFixed(0)).toLocaleString(), 8), "req/s",
 						"    Queue:", padStart(Number(broker.transit.pendingRequests.size.toFixed(0)).toLocaleString(), 8),
-						"   Errors:", padStart(Number(errorCount.toFixed(0)).toLocaleString(), 8)
+						"   Errors:", padStart(Number(errorCount).toFixed(0).toLocaleString(), 8),
+						"   Latency:", padStart(humanize(sumTime/broker._callCount), 6),
+						"   Max:", padStart(humanize(maxTime), 6)
 					);
 					broker._callCount = 0;
+					sumTime = 0;
+					maxTime = 0;
 					startTime = Date.now();
 				}
 			}, 1000);
