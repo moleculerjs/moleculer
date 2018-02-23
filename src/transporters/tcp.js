@@ -54,7 +54,7 @@ class TcpTransporter extends Transporter {
 			udpDiscovery: true,
 			udpPort: 4445,
 			udpBindAddress: null,
-			udpPeriod: 30,
+			udpPeriod: 5,
 			udpReuseAddr: true,
 			udpMaxDiscovery: 0, // 0 - No limit
 

@@ -159,7 +159,7 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	sendDisconnectPacket() {
-		return this.publish(new Packet(P.PACKET_DISCONNECT));
+		return this.publish(new Packet(P.PACKET_DISCONNECT)).catch(err => this.logger.debug("Unable to send DISCONNECT packet.", err));
 	}
 
 	/**
@@ -421,7 +421,10 @@ class Transit {
 		this.pendingRequests.set(ctx.id, request);
 
 		// Publish request
-		this.publish(packet);
+		this.publish(packet).catch(err => {
+			this.logger.error(`Unable to send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, err);
+			reject(err);
+		});
 	}
 
 	/**
@@ -441,7 +444,7 @@ class Transit {
 			data,
 			groups,
 			broadcast: true
-		}));
+		})).catch(err => this.logger.error(`Unable to send '${event}' broadcast event to '${nodeID}' node.`, err));
 	}
 
 	/**
@@ -463,7 +466,7 @@ class Transit {
 				data,
 				groups,
 				broadcast: false
-			}));
+			})).catch(err => this.logger.error(`Unable to send '${event}' event to '${nodeID}' node.`, err));
 		});
 	}
 
@@ -484,7 +487,7 @@ class Transit {
 			data,
 			groups,
 			broadcast: false
-		}));
+		})).catch(err => this.logger.error(`Unable to send '${event}' event to groups.`, err));
 	}
 
 	/**
@@ -549,7 +552,8 @@ class Transit {
 			};
 		}
 
-		return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload));
+		return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
+			.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
 	}
 
 	/**
@@ -558,7 +562,8 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	discoverNodes() {
-		return this.publish(new Packet(P.PACKET_DISCOVER));
+		return this.publish(new Packet(P.PACKET_DISCOVER))
+			.catch(err => this.logger.error("Unable to send DISCOVER packet.", err));
 	}
 
 	/**
@@ -567,7 +572,8 @@ class Transit {
 	 * @memberOf Transit
 	 */
 	discoverNode(nodeID) {
-		return this.publish(new Packet(P.PACKET_DISCOVER, nodeID));
+		return this.publish(new Packet(P.PACKET_DISCOVER, nodeID))
+			.catch(err => this.logger.error(`Unable to send DISCOVER packet to '${nodeID}' node.`, err));
 	}
 
 	/**
@@ -591,7 +597,8 @@ class Transit {
 			client: info.client,
 			config: info.config,
 			seq: info.seq
-		})));
+		}))).catch(err => this.logger.error(`Unable to send INFO packet to '${nodeID}' node.`, err));
+
 	}
 
 	/**
@@ -602,7 +609,8 @@ class Transit {
 	 * @memberof Transit
 	 */
 	sendPing(nodeID) {
-		return this.publish(new Packet(P.PACKET_PING, nodeID, { time: Date.now() }));
+		return this.publish(new Packet(P.PACKET_PING, nodeID, { time: Date.now() }))
+			.catch(err => this.logger.error(`Unable to send PING packet to '${nodeID}' node.`, err));
 	}
 
 	/**
@@ -616,7 +624,7 @@ class Transit {
 		return this.publish(new Packet(P.PACKET_PONG, payload.sender, {
 			time: payload.time,
 			arrived: Date.now()
-		}));
+		})).catch(err => this.logger.error(`Unable to send PONG packet to '${payload.sender}' node.`, err));
 	}
 
 	/**
@@ -644,7 +652,8 @@ class Transit {
 	sendHeartbeat(localNode) {
 		return this.publish(new Packet(P.PACKET_HEARTBEAT, null, {
 			cpu: localNode.cpu
-		}));
+		})).catch(err => this.logger.error("Unable to send HEARTBEAT packet.", err));
+
 	}
 
 	/**
