@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 "use strict";
 
 const
@@ -26,7 +24,7 @@ if (cluster.isMaster) {
 	const workerCount = process.env.NODE_CLUSTER_WORKERS || os.cpus().length;
 	console.log(`Starting ${workerCount} workers...`);
 	for (let i = 0; i < workerCount; i++) {
-		let worker = cluster.fork();
+		const worker = cluster.fork();
 	}
 
 	if (production) {
@@ -42,9 +40,8 @@ if (cluster.isMaster) {
 		});
 	}
 } else {
-	let worker = cluster.worker;
-	//console.log(worker);
-	let hostname = os.hostname();
+	const worker = cluster.worker;
+	const hostname = os.hostname();
 	worker.process.argv.push(hostname + "-client-" + worker.id);
 
 	require("./client.js");

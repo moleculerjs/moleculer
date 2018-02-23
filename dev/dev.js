@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 "use strict";
 
 const ServiceBroker = require("../src/service-broker");

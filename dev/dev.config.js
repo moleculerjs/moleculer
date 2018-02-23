@@ -1,11 +1,22 @@
 "use strict";
 
+/*
+	To test run:
+
+		node bin/moleculer-runner.js --config dev/dev.config.js --repl
+
+	Call the service and you will see middleware messages in console
+
+		mol $ call test.hello
+
+*/
+
 function myMiddleware() {
-	return function (handler) {
-		return function mw1(ctx) {
-			ctx.broker.logger.warn("MW1 (from config)");
-			return handler(ctx);
-		};
+	return handler => async ctx => {
+		ctx.broker.logger.warn(">> MW1-before (from config)");
+		const res = await handler(ctx);
+		ctx.broker.logger.warn("<< MW1-after (from config)");
+		return res;
 	};
 }
 

@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 "use strict";
 
 const ServiceBroker = require("../src/service-broker");
@@ -41,7 +39,7 @@ function createBroker(options) {
 			return level.toUpperCase() + " " + meta.nodeID + ": " + args.join(" ");
 		},*/
 		transporter: "NATS",
-		cacher: "Redis"
+		cacher: "Memory"
 	});
 	logging(broker);
 	broker.start();
@@ -53,7 +51,7 @@ function createBroker(options) {
 	const broker = createBroker({
 		logger: bindings => pino.child(bindings),
 		transporter: "NATS",
-		cacher: "Redis"
+		cacher: "Memory"
 	});
 	logging(broker);
 	broker.start();
@@ -66,7 +64,7 @@ function createBroker(options) {
 	const broker = createBroker({
 		logger: bindings => logger.child(bindings),
 		transporter: "NATS",
-		cacher: "Redis"
+		cacher: "Memory"
 	});
 
 	logging(broker);
@@ -87,7 +85,7 @@ function createBroker(options) {
 			]
 		})),
 		transporter: "NATS",
-		cacher: "Redis"
+		cacher: "Memory"
 	});
 	logging(broker);
 	broker.start();
@@ -100,7 +98,7 @@ function createBroker(options) {
 	const broker = createBroker({
 		logger: bindings => extend(new WinstonContext(winston, "", bindings)),
 		transporter: "NATS",
-		cacher: "Redis"
+		cacher: "Memory"
 	});
 	logging(broker);
 	broker.start();

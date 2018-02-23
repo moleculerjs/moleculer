@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 "use strict";
 
 let _ = require("lodash");
