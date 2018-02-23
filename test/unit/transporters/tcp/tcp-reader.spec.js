@@ -148,6 +148,7 @@ describe("Test TcpReader.onTcpClientConnected", () => {
 		expect(socket.on).toHaveBeenCalledWith("close", jasmine.any(Function));
 
 		expect(socket.setNoDelay).toHaveBeenCalledTimes(1);
+		expect(socket.setNoDelay).toHaveBeenCalledWith(true);
 
 		expect(socket.pipe).toHaveBeenCalledTimes(1);
 		expect(socket.pipe).toHaveBeenCalledWith(socket.parser);

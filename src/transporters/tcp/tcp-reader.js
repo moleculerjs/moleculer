@@ -84,7 +84,7 @@ class TcpReader extends EventEmitter {
 	onTcpClientConnected(socket) {
 		this.sockets.push(socket);
 
-		socket.setNoDelay();
+		socket.setNoDelay(true);
 
 		const address = socket.remoteAddress;
 		//this.logger.info(address);

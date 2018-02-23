@@ -5,7 +5,6 @@
 let ServiceBroker = require("../src/service-broker");
 let Cacher = require("../src/cachers/memory");
 let Transporters = require("../src/transporters");
-let Serializer = require("../src/serializers/json");
 
 function createBrokers(Transporter, opts) {
 	let b1 = new ServiceBroker({
@@ -13,7 +12,6 @@ function createBrokers(Transporter, opts) {
 		//requestTimeout: 0,
 		//logger: console,
 		//logLevel: "debug",
-		serializer: new Serializer(),
 		nodeID: "node-1",
 
 	});
@@ -24,7 +22,6 @@ function createBrokers(Transporter, opts) {
 		//requestTimeout: 0,
 		//logger: console,
 		//logLevel: "debug",
-		serializer: new Serializer(),
 		nodeID: "node-2"
 	});
 
@@ -53,7 +50,6 @@ function createBrokers(Transporter, opts) {
 		//requestTimeout: 0,
 		//logger: console,
 		//logLevel: "debug",
-		serializer: new Serializer(),
 		nodeID: "node-3"
 	});
 
@@ -83,7 +79,7 @@ function createBrokers(Transporter, opts) {
 	]).then(() => [b1, b2, b3]);
 }
 
-createBrokers(Transporters.Fake).then(([b1]) => {
+createBrokers(Transporters.Fake).then(([b1, b2]) => {
 
 	let count = 0;
 	function doRequest() {

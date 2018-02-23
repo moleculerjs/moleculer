@@ -61,6 +61,8 @@ class TcpWriter extends EventEmitter {
 					socket.nodeID = nodeID;
 					socket.lastUsed = Date.now();
 
+					socket.setNoDelay(true);
+
 					this.addSocket(nodeID, socket, true);
 
 					this.logger.debug(`Connected successfully to '${nodeID}'.`);

@@ -101,7 +101,8 @@ describe("Test TcpWriter.connect", () => {
 		on: jest.fn((type, cb) => {
 			socketCallbacks[type] = cb;
 		}),
-		unref: jest.fn()
+		unref: jest.fn(),
+		setNoDelay: jest.fn()
 	};
 
 	let netConnectCB;
@@ -139,6 +140,9 @@ describe("Test TcpWriter.connect", () => {
 			expect(socket).toBe(s);
 			expect(socket.nodeID).toBe("node-2");
 			expect(socket.lastUsed).toBeDefined();
+
+			expect(socket.setNoDelay).toHaveBeenCalledTimes(1);
+			expect(socket.setNoDelay).toHaveBeenCalledWith(true);
 
 			expect(transporter.getNodeAddress).toHaveBeenCalledTimes(1);
 			expect(transporter.getNodeAddress).toHaveBeenCalledWith(node);
