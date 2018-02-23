@@ -605,12 +605,18 @@ describe("Test broker.start", () => {
 		broker.createService(schema);
 
 		broker.transit.connect = jest.fn(() => Promise.resolve());
+		broker.transit.ready = jest.fn(() => Promise.resolve());
+		broker.localBus.emit = jest.fn();
 
 		beforeAll(() => broker.start());
 
 		it("should call started of services", () => {
 			expect(schema.started).toHaveBeenCalledTimes(1);
 			expect(broker.transit.connect).toHaveBeenCalledTimes(1);
+			expect(broker.started).toBe(true);
+			expect(broker.localBus.emit).toHaveBeenCalledTimes(1);
+			expect(broker.localBus.emit).toHaveBeenCalledWith("$broker.started");
+			expect(broker.transit.ready).toHaveBeenCalledTimes(1);
 		});
 	});
 
@@ -627,12 +633,18 @@ describe("Test broker.start", () => {
 		broker.createService(schema);
 
 		broker.transit.connect = jest.fn(() => Promise.resolve());
+		broker.transit.ready = jest.fn(() => Promise.resolve());
+		broker.localBus.emit = jest.fn();
 
 		beforeAll(() => broker.start());
 
 		it("should call started of services", () => {
 			expect(schema.started).toHaveBeenCalledTimes(1);
 			expect(broker.transit.connect).toHaveBeenCalledTimes(1);
+			expect(broker.started).toBe(true);
+			expect(broker.localBus.emit).toHaveBeenCalledTimes(1);
+			expect(broker.localBus.emit).toHaveBeenCalledWith("$broker.started");
+			expect(broker.transit.ready).toHaveBeenCalledTimes(1);
 		});
 	});
 
@@ -649,6 +661,8 @@ describe("Test broker.start", () => {
 		broker.createService(schema);
 
 		broker.transit.connect = jest.fn(() => Promise.resolve());
+		broker.transit.ready = jest.fn(() => Promise.resolve());
+		broker.localBus.emit = jest.fn();
 
 		it("should reject", () => {
 			return expect(broker.start()).rejects.toBeDefined();
@@ -657,6 +671,9 @@ describe("Test broker.start", () => {
 		it("should call started of services", () => {
 			expect(broker.transit.connect).toHaveBeenCalledTimes(1);
 			expect(schema.started).toHaveBeenCalledTimes(1);
+			expect(broker.started).toBe(false);
+			expect(broker.localBus.emit).toHaveBeenCalledTimes(0);
+			expect(broker.transit.ready).toHaveBeenCalledTimes(0);
 		});
 	});
 
@@ -681,6 +698,7 @@ describe("Test broker.stop", () => {
 
 			broker.transit.connect = jest.fn(() => Promise.resolve());
 			broker.transit.disconnect = jest.fn(() => Promise.resolve());
+			broker.localBus.emit = jest.fn();
 
 			broker.cacher = {
 				close: jest.fn(() => Promise.resolve())
@@ -693,6 +711,10 @@ describe("Test broker.stop", () => {
 			expect(schema.stopped).toHaveBeenCalledTimes(1);
 			expect(broker.transit.disconnect).toHaveBeenCalledTimes(1);
 			expect(broker.cacher.close).toHaveBeenCalledTimes(1);
+
+			expect(broker.started).toBe(false);
+			expect(broker.localBus.emit).toHaveBeenCalledTimes(2);
+			expect(broker.localBus.emit).toHaveBeenCalledWith("$broker.stopped");
 		});
 
 	});
@@ -715,6 +737,7 @@ describe("Test broker.stop", () => {
 
 		broker.transit.connect = jest.fn(() => Promise.resolve());
 		broker.transit.disconnect = jest.fn(() => Promise.resolve());
+		broker.localBus.emit = jest.fn();
 
 		broker.cacher = {
 			close: jest.fn(() => Promise.resolve())
@@ -726,6 +749,10 @@ describe("Test broker.stop", () => {
 			expect(schema.stopped).toHaveBeenCalledTimes(1);
 			expect(broker.transit.disconnect).toHaveBeenCalledTimes(1);
 			expect(broker.cacher.close).toHaveBeenCalledTimes(1);
+
+			expect(broker.started).toBe(false);
+			expect(broker.localBus.emit).toHaveBeenCalledTimes(2);
+			expect(broker.localBus.emit).toHaveBeenCalledWith("$broker.stopped");
 		});
 	});
 
@@ -747,6 +774,7 @@ describe("Test broker.stop", () => {
 
 		broker.transit.connect = jest.fn(() => Promise.resolve());
 		broker.transit.disconnect = jest.fn(() => Promise.resolve());
+		broker.localBus.emit = jest.fn();
 
 		broker.cacher = {
 			close: jest.fn(() => Promise.resolve())
@@ -758,6 +786,10 @@ describe("Test broker.stop", () => {
 			expect(schema.stopped).toHaveBeenCalledTimes(1);
 			expect(broker.transit.disconnect).toHaveBeenCalledTimes(1);
 			expect(broker.cacher.close).toHaveBeenCalledTimes(1);
+
+			expect(broker.started).toBe(false);
+			expect(broker.localBus.emit).toHaveBeenCalledTimes(2);
+			expect(broker.localBus.emit).toHaveBeenCalledWith("$broker.stopped");
 		});
 	});
 
