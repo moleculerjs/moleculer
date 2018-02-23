@@ -63,7 +63,7 @@ function work2() {
 		//.then(() => setImmediate(work2));
 
 	//* Overload
-	if (broker.transit.pendingRequests.size < 2 * 1000)
+	if (broker.transit.pendingRequests.size < 1 * 1000)
 		setImmediate(work2);
 	else
 		p.then(() => setImmediate(work2));
