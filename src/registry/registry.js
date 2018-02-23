@@ -41,6 +41,13 @@ class Registry {
 		this.services = new ServiceCatalog(this, broker);
 		this.actions = new ActionCatalog(this, broker, this.StrategyFactory);
 		this.events = new EventCatalog(this, broker, this.StrategyFactory);
+
+		this.broker.localBus.on("$broker.started", () => {
+			if (this.nodes.localNode) {
+				this.nodes.localNode.seq++;
+				this.regenerateLocalRawInfo();
+			}
+		});
 	}
 
 	/**
@@ -255,7 +262,10 @@ class Registry {
 	regenerateLocalRawInfo() {
 		let node = this.nodes.localNode;
 		node.rawInfo = _.pick(node, ["ipList", "hostname", "client", "config", "port", "seq"]);
-		node.rawInfo.services = this.services.getLocalNodeServices();
+		if (this.broker.started)
+			node.rawInfo.services = this.services.getLocalNodeServices();
+		else
+			node.rawInfo.services = [];
 
 		return node.rawInfo;
 	}

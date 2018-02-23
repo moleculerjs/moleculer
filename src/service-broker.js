@@ -353,6 +353,8 @@ class ServiceBroker {
 			.then(() => {
 				this.logger.info(`ServiceBroker with ${this.services.length} service(s) is started successfully.`);
 				this.started = true;
+
+				this.localBus.emit("$broker.started");
 			})
 			.then(() => {
 				if (this.transit)
@@ -396,6 +398,8 @@ class ServiceBroker {
 			.then(() => {
 				this.logger.info("ServiceBroker is stopped successfully. Good bye.");
 				this.started = false;
+
+				this.localBus.emit("$broker.stopped");
 
 				process.removeListener("beforeExit", this._closeFn);
 				process.removeListener("exit", this._closeFn);
