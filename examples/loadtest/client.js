@@ -100,8 +100,8 @@ broker.start()
 
 					console.log(broker.nodeID, ":",
 						padStart(Number(rps.toFixed(0)).toLocaleString(), 8), "req/s",
-						"  Q:", color(Number(queueSize.toFixed(0)).toLocaleString(), 4, queueSize, 100, flood ? flood*.8 : 100),
-						"  E:", color(Number(errorCount.toFixed(0)).toLocaleString(), 4, errorCount, 0, 1),
+						"  Q:", color(Number(queueSize.toFixed(0)).toLocaleString(), 5, queueSize, 100, flood ? flood*.8 : 100),
+						"  E:", color(Number(errorCount.toFixed(0)).toLocaleString(), 5, errorCount, 0, 1),
 						"  L:", color(humanize(latency), 6, latency, 500, 5000),
 						"  ML:", color(humanize(maxTime), 6, maxTime, 1000, 5000)
 					);

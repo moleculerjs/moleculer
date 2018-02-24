@@ -252,7 +252,7 @@ describe("Test Transit.sendBroadcastEvent", () => {
 	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
-	transit.publish = jest.fn();
+	transit.publish = jest.fn(() => Promise.resolve());
 
 	it("should call publish with correct params and without groups", () => {
 		const user = { id: 5, name: "Jameson" };
@@ -290,7 +290,7 @@ describe("Test Transit.sendBalancedEvent", () => {
 	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
-	transit.publish = jest.fn();
+	transit.publish = jest.fn(() => Promise.resolve());
 
 	it("should call publish with correct params", () => {
 		const user = { id: 5, name: "Jameson" };
@@ -326,7 +326,7 @@ describe("Test Transit.sendEventToGroups", () => {
 	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
-	transit.publish = jest.fn();
+	transit.publish = jest.fn(() => Promise.resolve());
 
 	it("should call publish with groups", () => {
 		transit.publish.mockClear();
@@ -705,7 +705,7 @@ describe("Test Transit.sendResponse", () => {
 	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
-	transit.publish = jest.fn();
+	transit.publish = jest.fn(() => Promise.resolve());
 
 	const meta = { headers: ["header"] };
 	it("should call publish with the data", () => {
@@ -750,7 +750,7 @@ describe("Test Transit.removePendingRequestByNodeID", () => {
 	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
-	transit.publish = jest.fn();
+	transit.publish = jest.fn(() => Promise.resolve());
 
 	const resolve = jest.fn();
 	const reject = jest.fn();
@@ -803,7 +803,7 @@ describe("Test Transit.discoverNodes", () => {
 	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
-	transit.publish = jest.fn();
+	transit.publish = jest.fn(() => Promise.resolve());
 
 	it("should call publish with correct params", () => {
 		transit.discoverNodes();
@@ -821,7 +821,7 @@ describe("Test Transit.discoverNode", () => {
 	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
-	transit.publish = jest.fn();
+	transit.publish = jest.fn(() => Promise.resolve());
 
 	it("should call publish with correct params", () => {
 		transit.discoverNode("node-2");
@@ -845,7 +845,7 @@ describe("Test Transit.sendNodeInfo", () => {
 	}));
 
 	transit.tx.makeBalancedSubscriptions = jest.fn(() => Promise.resolve());
-	transit.publish = jest.fn();
+	transit.publish = jest.fn(() => Promise.resolve());
 
 	it("should not call publish while not connected", () => {
 		return transit.sendNodeInfo("node2").then(() => {
@@ -899,7 +899,7 @@ describe("Test Transit.sendPing", () => {
 	const broker = new ServiceBroker({ nodeID: "node-1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
-	transit.publish = jest.fn();
+	transit.publish = jest.fn(() => Promise.resolve());
 
 	it("should call publish with correct params", () => {
 		transit.sendPing("node-2");
@@ -918,7 +918,7 @@ describe("Test Transit.sendPong", () => {
 	const broker = new ServiceBroker({ nodeID: "node-1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
-	transit.publish = jest.fn();
+	transit.publish = jest.fn(() => Promise.resolve());
 
 	it("should call publish with correct params", () => {
 		transit.sendPong({ sender: "node-2", time: 123456 });
@@ -954,7 +954,7 @@ describe("Test Transit.sendHeartbeat", () => {
 	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
-	transit.publish = jest.fn();
+	transit.publish = jest.fn(() => Promise.resolve());
 
 	it("should call publish with correct params", () => {
 		transit.sendHeartbeat({ cpu: 12 });
