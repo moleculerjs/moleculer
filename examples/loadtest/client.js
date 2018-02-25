@@ -22,10 +22,11 @@ let broker = new ServiceBroker({
 	logLevel: "warn",
 	//metrics: true,
 	requestTimeout: 10000,
+	retryCount: 3,
 });
 
 console.log("Client started. nodeID:", broker.nodeID, " TRANSPORTER:", transporter, " PID:", process.pid);
-
+/*
 function work() {
 	let payload = { a: random(0, 100), b: random(0, 100) };
 	const p = broker.call("math.add", payload)
@@ -40,12 +41,12 @@ function work() {
 		p.then(() => setImmediate(work));
 
 }
-
+*/
 let counter = 0;
 let errorCount = 0;
 
 const flood = process.env.FLOOD || 0;
-/*
+
 function work() {
 	const startTime = process.hrtime();
 	let payload = { c: ++counter };
@@ -66,11 +67,11 @@ function work() {
 
 	// Overload
 	if (flood > 0 && broker.transit.pendingRequests.size < flood)
-		setImmediate(work2);
+		setImmediate(work);
 	else
-		p.then(() => setImmediate(work2));
+		p.then(() => setImmediate(work));
 }
-*/
+
 broker._callCount = 0;
 
 function color(text, pad, value, green, red) {
