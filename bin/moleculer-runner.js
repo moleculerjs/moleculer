@@ -350,7 +350,7 @@ function startBroker() {
 
 	loadServices();
 
-	broker.start()
+	return broker.start()
 		.then(() => {
 			if (flags.repl && (!worker || worker.id === 1))
 				broker.repl();
