@@ -22,7 +22,7 @@ let broker = new ServiceBroker({
 	logLevel: "warn"
 	//metrics: true
 });
-/*
+
 broker.createService({
 	name: "math",
 	actions: {
@@ -31,7 +31,7 @@ broker.createService({
 			return Number(ctx.params.a) + Number(ctx.params.b);
 		}
 	}
-});*/
+});
 
 broker.createService({
 	name: "perf",

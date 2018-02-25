@@ -25,7 +25,7 @@ let broker = new ServiceBroker({
 });
 
 console.log("Client started. nodeID:", broker.nodeID, " TRANSPORTER:", transporter, " PID:", process.pid);
-/*
+
 function work() {
 	let payload = { a: random(0, 100), b: random(0, 100) };
 	const p = broker.call("math.add", payload)
@@ -39,16 +39,16 @@ function work() {
 	else
 		p.then(() => setImmediate(work));
 
-}*/
+}
 
 let counter = 0;
 let errorCount = 0;
 
 const flood = process.env.FLOOD || 0;
-
-function work2() {
+/*
+function work() {
 	const startTime = process.hrtime();
-	let payload = { c: ++counter/*, id: broker.nodeID*/ };
+	let payload = { c: ++counter };
 	const p = broker.call("perf.reply", payload)
 		.then(() => {
 			broker._callCount++;
@@ -70,7 +70,7 @@ function work2() {
 	else
 		p.then(() => setImmediate(work2));
 }
-
+*/
 broker._callCount = 0;
 
 function color(text, pad, value, green, red) {
@@ -89,7 +89,7 @@ broker.start()
 	.then(() => {
 		setTimeout(() => {
 			let startTime = Date.now();
-			work2();
+			work();
 
 			setInterval(() => {
 				if (broker._callCount > 0) {
