@@ -1,0 +1,8 @@
+version: "3.0"
+
+services:
+
+  nats:
+    image: nats
+    ports:
+      - "4222:4222"
