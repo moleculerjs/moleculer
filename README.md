@@ -13,7 +13,7 @@
 
 # Moleculer [![NPM version](https://img.shields.io/npm/v/moleculer.svg)](https://www.npmjs.com/package/moleculer)
 
-Moleculer is a fast, modern and powerful microservices framework for NodeJS (>= v6.x).
+Moleculer is a fast, modern and powerful microservices framework for Node.js (>= v6.x).
 <!--
 ![](https://img.shields.io/badge/performance-%2B50%25-brightgreen.svg)
 ![](https://img.shields.io/badge/performance-%2B5%25-green.svg)

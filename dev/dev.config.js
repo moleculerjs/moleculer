@@ -22,6 +22,7 @@ function myMiddleware() {
 
 module.exports = {
 	namespace: "config-test",
+	transporter: "TCP",
 	logger: true,
 	logLevel: "debug",
 
@@ -50,5 +51,27 @@ module.exports = {
 	stopped(broker) {
 		return broker.Promise.delay(2000)
 			.then(() => broker.logger.warn("--- Broker stopped"));
-	}
+	},
+	replCommands: [
+		{
+			command: "hello <name>",
+			description: "Call the greeter.hello service with name",
+			alias: "hi",
+			options: [
+				{ option: "-u, --uppercase", description: "Uppercase the name" }
+			],
+			types: {
+				string: ["name"],
+				boolean: ["u", "uppercase"]
+			},
+			//parse(command, args) {},
+			//validate(args) {},
+			//help(args) {},
+			allowUnknownOptions: true,
+			action(broker, args) {
+				const name = args.options.uppercase ? args.name.toUpperCase() : args.name;
+				return broker.call("greeter.hello", { name }).then(console.log);
+			}
+		}
+	]
 };
