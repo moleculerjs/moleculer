@@ -208,6 +208,7 @@ class ServiceBroker {
 		process.on("beforeExit", this._closeFn);
 		process.on("exit", this._closeFn);
 		process.on("SIGINT", this._closeFn);
+		process.on("SIGTERM", this._closeFn);
 	}
 
 	getModuleClass(obj, name) {
@@ -404,6 +405,7 @@ class ServiceBroker {
 				process.removeListener("beforeExit", this._closeFn);
 				process.removeListener("exit", this._closeFn);
 				process.removeListener("SIGINT", this._closeFn);
+				process.removeListener("SIGTERM", this._closeFn);
 			});
 	}
 

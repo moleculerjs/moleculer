@@ -14,7 +14,7 @@ To support [#188](https://github.com/ice-services/moleculer/issues/188), mixin m
     module.exports = {
         actions: {
             create(ctx) {
-
+                // Action handler without `params`
             }
         }
     };
@@ -26,7 +26,8 @@ To support [#188](https://github.com/ice-services/moleculer/issues/188), mixin m
         mixins: [MixinService]
         actions: {
             create: {
-                // Change only `params` in the `create` action
+                // Add only `params` property to the `create` action
+                // The handler is merged from mixin
                 params: {
                     name: "string"
                 }
@@ -642,7 +643,7 @@ const broker = new ServiceBroker({
             //validate(args) {},
             //help(args) {},
             allowUnknownOptions: true,
-            action(args) {
+            action(broker, args) {
                 const name = args.options.uppercase ? args.name.toUpperCase() : args.name;
                 return broker.call("greeter.hello", { name }).then(console.log);
             }
@@ -660,11 +661,11 @@ broker.repl();
 - `Strategy.select` method gets only available endpoint list.
 - old unavailable nodes are removed from registry after 10 minutes.  
 - CPU usage in `HEARTBEAT` packet is working properly in Windows too.
-- register middlewares before load internal service (`$node.*`)
+- register middlewares before internal service (`$node.*`) loading.
 - `broker.getAction` deprecated method is removed.
 - `PROTOCOL_VERSION` constant is available via broker as `ServiceBroker.PROTOCOL_VERSION` or `broker.PROTOCOL_VERSION`
 - serialization functions are moved from transit to transporter codebase.
-- `ctx.broadcast` shortcut method is created to send broadcast events
+- `ctx.broadcast` shortcut method is created to send broadcast events from action handler.
 - `broker.started` property is created to indicate broker starting state.
 
 # Fixes
