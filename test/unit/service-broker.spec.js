@@ -440,6 +440,45 @@ describe("Test option resolvers", () => {
 				"url": "stan://localhost:4222"
 			});
 		});
+
+		it("should resolve TcpTransporter from connection string", () => {
+			let trans = broker._resolveTransporter("tcp://192.168.0.100:6000");
+			expect(trans).toBeInstanceOf(Transporters.TCP);
+			expect(trans.opts.urls).toBe("tcp://192.168.0.100:6000");
+		});
+
+		it("should resolve TcpTransporter from string", () => {
+			let trans = broker._resolveTransporter("TCP");
+			expect(trans).toBeInstanceOf(Transporters.TCP);
+		});
+
+		it("should resolve TcpTransporter from obj without type", () => {
+			let options = {
+				port: 1234,
+				udpPeriod: 5,
+				udpBroadcast: true,
+				udpBindAddress: "192.168.0.100"
+			};
+			let trans = broker._resolveTransporter({ type: "TCP", options });
+			expect(trans).toBeInstanceOf(Transporters.TCP);
+			expect(trans.opts).toEqual({
+				"gossipPeriod": 2,
+				"maxConnections": 32,
+				"maxPacketSize": 1048576,
+				"port": 1234,
+				"udpBindAddress": "192.168.0.100",
+				"udpBroadcast": true,
+				"udpDiscovery": true,
+				"udpMaxDiscovery": 0,
+				"udpMulticast": "239.0.0.0",
+				"udpMulticastTTL": 1,
+				"udpPeriod": 5,
+				"udpPort": 4445,
+				"udpReuseAddr": true,
+				"urls": null,
+				"useHostname": true
+			});
+		});
 	});
 
 	describe("Test _resolveCacher", () => {

@@ -241,6 +241,8 @@ class ServiceBroker {
 				TransporterClass = Transporters.Kafka;
 			else if (opt.startsWith("stan://"))
 				TransporterClass = Transporters.STAN;
+			else if (opt.startsWith("tcp://"))
+				TransporterClass = Transporters.TCP;
 
 			if (TransporterClass)
 				return new TransporterClass(opt);
