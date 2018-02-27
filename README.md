@@ -12,7 +12,8 @@
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bhttps%3A%2F%2Fgithub.com%2Fice-services%2Fmoleculer.svg?type=shield)](https://app.fossa.io/projects/git%2Bhttps%3A%2F%2Fgithub.com%2Fice-services%2Fmoleculer?ref=badge_shield)
 [![Patreon](docs/assets/patreon.svg)][patreon] [![PayPal](docs/assets/paypal_donate.svg)][paypal]
 
-# Moleculer [![NPM version](https://img.shields.io/npm/v/moleculer.svg)](https://www.npmjs.com/package/moleculer) [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Moleculer%20is%20a%20modern%20microservices%20framework%20for%20Node.js&url=https://github.com/ice-services/moleculer&via=MoleculerJS&hashtags=nodejs,javascript,microservices)
+# Moleculer [![NPM version](https://img.shields.io/npm/v/moleculer.svg)](https://www.npmjs.com/package/moleculer) [![Twitter URL](https://img.shields.io/twitter/url/http/shields.io.svg?style=social&logo=twitter)](https://twitter.com/intent/tweet?text=Moleculer%20is%20a%20modern%20microservices%20framework%20for%20Node.js&url=https://github.com/ice-services/moleculer&via=MoleculerJS&hashtags=nodejs,javascript,microservices)
+
 
 Moleculer is a fast, modern and powerful microservices framework for Node.js (>= v6.x).
 <!--
@@ -112,7 +113,9 @@ Use the Moleculer CLI tool to create a new Moleculer based microservices project
 We have many official modules for Moleculer. [Check our list!](https://moleculer.services/docs/modules.html)
 
 # Supporting
-Moleculer is an open source project. It is free to use for your personal or commercial projects. However, developing it takes up all my free time to make it better and better on a daily basis. If you like Moleculer framework, **[please support it][patreon]**. Thank you very much!
+Moleculer is an open source project. It is free to use for your personal or commercial projects. However, developing it takes up all my free time to make it better and better on a daily basis. If you like Moleculer framework, **[please support it][patreon]**. 
+
+Thank you very much!
 
 # Documentation
 You can find here [the documentation](https://moleculer.services/docs).
