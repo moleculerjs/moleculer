@@ -57,24 +57,24 @@ benchmark.run([bench1, bench2]).then(() => {
 Platform info:
 ==============
    Windows_NT 6.1.7601 x64
-   Node.JS: 6.11.4
-   V8: 5.1.281.108
+   Node.JS: 8.9.4
+   V8: 6.1.534.50
    Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
 
 Suite: Set & get 1k data with cacher
-√ Memory*        1,434,441 rps
-√ Redis*            11,464 rps
+√ Memory*        2,066,824 rps
+√ Redis*            10,915 rps
 
-   Memory*           0%      (1,434,441 rps)   (avg: 697ns)
-   Redis*        -99.2%         (11,464 rps)   (avg: 87μs)
+   Memory*           0%      (2,066,824 rps)   (avg: 483ns)
+   Redis*       -99.47%         (10,915 rps)   (avg: 91μs)
 -----------------------------------------------------------------------
 
 Suite: Test getCacheKey
-√ Dynamic           535,623 rps
-√ Static          4,159,573 rps
+√ Dynamic           679,228 rps
+√ Static          5,981,643 rps
 
-   Dynamic       -87.12%        (535,623 rps)   (avg: 1μs)
-   Static             0%      (4,159,573 rps)   (avg: 240ns)
+   Dynamic       -88.64%        (679,228 rps)   (avg: 1μs)
+   Static             0%      (5,981,643 rps)   (avg: 167ns)
 -----------------------------------------------------------------------
 
 

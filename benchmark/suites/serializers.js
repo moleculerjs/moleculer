@@ -119,204 +119,104 @@ runTest(dataFiles.shift());
 Platform info:
 ==============
    Windows_NT 6.1.7601 x64
-   Node.JS: 6.10.0
-   V8: 5.1.281.93
+   Node.JS: 8.9.4
+   V8: 6.1.534.50
    Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
 
-JSON length: 177
-Avro length: 75
-MsgPack length: 137
-ProtoBuf length: 82
-Suite: Serialize event packet with 10bytes
-√ JSON             1,127,978 rps
-√ Avro               921,266 rps
-√ MsgPack             98,007 rps
-√ ProtoBuf           826,795 rps
+JSON length: 89
+Avro length: 38
+MsgPack length: 69
+ProtoBuf length: 45
+Suite: Serialize packet with 10bytes
+√ JSON             1,276,006 rps
+√ Avro               608,887 rps
+√ MsgPack             61,587 rps
+√ ProtoBuf           927,611 rps
 
-   JSON (#)            0%      (1,127,978 rps)   (avg: 886ns)
-   Avro           -18.33%        (921,266 rps)   (avg: 1μs)
-   MsgPack        -91.31%         (98,007 rps)   (avg: 10μs)
-   ProtoBuf        -26.7%        (826,795 rps)   (avg: 1μs)
+   JSON (#)            0%      (1,276,006 rps)   (avg: 783ns)
+   Avro           -52.28%        (608,887 rps)   (avg: 1μs)
+   MsgPack        -95.17%         (61,587 rps)   (avg: 16μs)
+   ProtoBuf        -27.3%        (927,611 rps)   (avg: 1μs)
 -----------------------------------------------------------------------
 
-Suite: Serialize request packet with 10bytes
-√ JSON               621,247 rps
-√ Avro               585,392 rps
-√ MsgPack             53,962 rps
-√ ProtoBuf           476,540 rps
+JSON length: 1131
+Avro length: 1081
+MsgPack length: 1113
+ProtoBuf length: 1170
+Suite: Serialize packet with 1kbytes
+√ JSON               205,813 rps
+√ Avro               123,731 rps
+√ MsgPack             12,661 rps
+√ ProtoBuf           147,930 rps
 
-   JSON (#)            0%        (621,247 rps)   (avg: 1μs)
-   Avro            -5.77%        (585,392 rps)   (avg: 1μs)
-   MsgPack        -91.31%         (53,962 rps)   (avg: 18μs)
-   ProtoBuf       -23.29%        (476,540 rps)   (avg: 2μs)
+   JSON (#)            0%        (205,813 rps)   (avg: 4μs)
+   Avro           -39.88%        (123,731 rps)   (avg: 8μs)
+   MsgPack        -93.85%         (12,661 rps)   (avg: 78μs)
+   ProtoBuf       -28.12%        (147,930 rps)   (avg: 6μs)
 -----------------------------------------------------------------------
 
-JSON length: 331
-Avro length: 216
-MsgPack length: 278
-ProtoBuf length: 223
-Suite: Serialize event packet with 150bytes
-√ JSON               461,563 rps
-√ Avro               351,653 rps
-√ MsgPack             80,712 rps
-√ ProtoBuf           377,706 rps
+JSON length: 10528
+Avro length: 10479
+MsgPack length: 10510
+ProtoBuf length: 11213
+Suite: Serialize packet with 10kbytes
+√ JSON                26,892 rps
+√ Avro                18,671 rps
+√ MsgPack              1,642 rps
+√ ProtoBuf            20,388 rps
 
-   JSON (#)            0%        (461,563 rps)   (avg: 2μs)
-   Avro           -23.81%        (351,653 rps)   (avg: 2μs)
-   MsgPack        -82.51%         (80,712 rps)   (avg: 12μs)
-   ProtoBuf       -18.17%        (377,706 rps)   (avg: 2μs)
+   JSON (#)            0%         (26,892 rps)   (avg: 37μs)
+   Avro           -30.57%         (18,671 rps)   (avg: 53μs)
+   MsgPack        -93.89%          (1,642 rps)   (avg: 608μs)
+   ProtoBuf       -24.18%         (20,388 rps)   (avg: 49μs)
 -----------------------------------------------------------------------
 
-Suite: Serialize request packet with 150bytes
-√ JSON               346,086 rps
-√ Avro               292,872 rps
-√ MsgPack             44,776 rps
-√ ProtoBuf           277,967 rps
+JSON length: 50601
+Avro length: 50552
+MsgPack length: 50583
+ProtoBuf length: 54187
+Suite: Serialize packet with 50kbytes
+√ JSON                 5,851 rps
+√ Avro                 4,065 rps
+√ MsgPack                338 rps
+√ ProtoBuf             4,455 rps
 
-   JSON (#)            0%        (346,086 rps)   (avg: 2μs)
-   Avro           -15.38%        (292,872 rps)   (avg: 3μs)
-   MsgPack        -87.06%         (44,776 rps)   (avg: 22μs)
-   ProtoBuf       -19.68%        (277,967 rps)   (avg: 3μs)
+   JSON (#)            0%          (5,851 rps)   (avg: 170μs)
+   Avro           -30.53%          (4,065 rps)   (avg: 246μs)
+   MsgPack        -94.22%            (338 rps)   (avg: 2ms)
+   ProtoBuf       -23.86%          (4,455 rps)   (avg: 224μs)
 -----------------------------------------------------------------------
 
-JSON length: 1301
-Avro length: 1118
-MsgPack length: 1181
-ProtoBuf length: 1125
-Suite: Serialize event packet with 1kbytes
-√ JSON               122,647 rps
-√ Avro               104,191 rps
-√ MsgPack             57,945 rps
-√ ProtoBuf           141,024 rps
+JSON length: 101100
+Avro length: 101051
+MsgPack length: 101084
+ProtoBuf length: 108312
+Suite: Serialize packet with 100kbytes
+√ JSON                 2,980 rps
+√ Avro                 2,075 rps
+√ MsgPack                169 rps
+√ ProtoBuf             2,254 rps
 
-   JSON (#)            0%        (122,647 rps)   (avg: 8μs)
-   Avro           -15.05%        (104,191 rps)   (avg: 9μs)
-   MsgPack        -52.75%         (57,945 rps)   (avg: 17μs)
-   ProtoBuf       +14.98%        (141,024 rps)   (avg: 7μs)
+   JSON (#)            0%          (2,980 rps)   (avg: 335μs)
+   Avro           -30.36%          (2,075 rps)   (avg: 481μs)
+   MsgPack        -94.34%            (169 rps)   (avg: 5ms)
+   ProtoBuf       -24.39%          (2,254 rps)   (avg: 443μs)
 -----------------------------------------------------------------------
 
-Suite: Serialize request packet with 1kbytes
-√ JSON               112,659 rps
-√ Avro                99,252 rps
-√ MsgPack             38,276 rps
-√ ProtoBuf           121,798 rps
+JSON length: 1010082
+Avro length: 1010033
+MsgPack length: 1010066
+ProtoBuf length: 1082562
+Suite: Serialize packet with 1Mbytes
+√ JSON                   300 rps
+√ Avro                   188 rps
+√ MsgPack                 16 rps
+√ ProtoBuf               199 rps
 
-   JSON (#)            0%        (112,659 rps)   (avg: 8μs)
-   Avro            -11.9%         (99,252 rps)   (avg: 10μs)
-   MsgPack        -66.02%         (38,276 rps)   (avg: 26μs)
-   ProtoBuf        +8.11%        (121,798 rps)   (avg: 8μs)
------------------------------------------------------------------------
-
-JSON length: 11344
-Avro length: 10516
-MsgPack length: 10578
-ProtoBuf length: 10522
-Suite: Serialize event packet with 10kbytes
-√ JSON                14,996 rps
-√ Avro                13,267 rps
-√ MsgPack             14,009 rps
-√ ProtoBuf            21,902 rps
-
-   JSON (#)            0%         (14,996 rps)   (avg: 66μs)
-   Avro           -11.53%         (13,267 rps)   (avg: 75μs)
-   MsgPack         -6.58%         (14,009 rps)   (avg: 71μs)
-   ProtoBuf       +46.05%         (21,902 rps)   (avg: 45μs)
------------------------------------------------------------------------
-
-Suite: Serialize request packet with 10kbytes
-√ JSON                15,310 rps
-√ Avro                12,822 rps
-√ MsgPack             12,595 rps
-√ ProtoBuf            20,763 rps
-
-   JSON (#)            0%         (15,310 rps)   (avg: 65μs)
-   Avro           -16.25%         (12,822 rps)   (avg: 77μs)
-   MsgPack        -17.73%         (12,595 rps)   (avg: 79μs)
-   ProtoBuf       +35.61%         (20,763 rps)   (avg: 48μs)
------------------------------------------------------------------------
-
-JSON length: 54317
-Avro length: 50589
-MsgPack length: 50651
-ProtoBuf length: 50596
-Suite: Serialize event packet with 50kbytes
-√ JSON                 3,319 rps
-√ Avro                 2,893 rps
-√ MsgPack              3,657 rps
-√ ProtoBuf             4,549 rps
-
-   JSON (#)            0%          (3,319 rps)   (avg: 301μs)
-   Avro           -12.83%          (2,893 rps)   (avg: 345μs)
-   MsgPack        +10.19%          (3,657 rps)   (avg: 273μs)
-   ProtoBuf       +37.06%          (4,549 rps)   (avg: 219μs)
------------------------------------------------------------------------
-
-Suite: Serialize request packet with 50kbytes
-√ JSON                 3,307 rps
-√ Avro                 2,872 rps
-√ MsgPack              3,478 rps
-√ ProtoBuf             4,527 rps
-
-   JSON (#)            0%          (3,307 rps)   (avg: 302μs)
-   Avro           -13.14%          (2,872 rps)   (avg: 348μs)
-   MsgPack         +5.19%          (3,478 rps)   (avg: 287μs)
-   ProtoBuf       +36.89%          (4,527 rps)   (avg: 220μs)
------------------------------------------------------------------------
-
-JSON length: 108442
-Avro length: 101088
-MsgPack length: 101152
-ProtoBuf length: 101095
-Suite: Serialize event packet with 100kbytes
-√ JSON                 1,679 rps
-√ Avro                 1,462 rps
-√ MsgPack              1,936 rps
-√ ProtoBuf             2,325 rps
-
-   JSON (#)            0%          (1,679 rps)   (avg: 595μs)
-   Avro           -12.97%          (1,462 rps)   (avg: 684μs)
-   MsgPack        +15.26%          (1,936 rps)   (avg: 516μs)
-   ProtoBuf       +38.42%          (2,325 rps)   (avg: 430μs)
------------------------------------------------------------------------
-
-Suite: Serialize request packet with 100kbytes
-√ JSON                 1,683 rps
-√ Avro                 1,464 rps
-√ MsgPack              1,890 rps
-√ ProtoBuf             2,357 rps
-
-   JSON (#)            0%          (1,683 rps)   (avg: 594μs)
-   Avro              -13%          (1,464 rps)   (avg: 682μs)
-   MsgPack        +12.32%          (1,890 rps)   (avg: 529μs)
-   ProtoBuf       +40.08%          (2,357 rps)   (avg: 424μs)
------------------------------------------------------------------------
-
-JSON length: 1082692
-Avro length: 1010070
-MsgPack length: 1010134
-ProtoBuf length: 1010077
-Suite: Serialize event packet with 1Mbytes
-√ JSON                   158 rps
-√ Avro                   131 rps
-√ MsgPack                191 rps
-√ ProtoBuf               193 rps
-
-   JSON (#)            0%            (158 rps)   (avg: 6ms)
-   Avro           -17.29%            (131 rps)   (avg: 7ms)
-   MsgPack        +21.13%            (191 rps)   (avg: 5ms)
-   ProtoBuf       +22.28%            (193 rps)   (avg: 5ms)
------------------------------------------------------------------------
-
-Suite: Serialize request packet with 1Mbytes
-√ JSON                   157 rps
-√ Avro                   131 rps
-√ MsgPack                190 rps
-√ ProtoBuf               192 rps
-
-   JSON (#)            0%            (157 rps)   (avg: 6ms)
-   Avro           -16.91%            (131 rps)   (avg: 7ms)
-   MsgPack        +21.22%            (190 rps)   (avg: 5ms)
-   ProtoBuf       +22.22%            (192 rps)   (avg: 5ms)
+   JSON (#)            0%            (300 rps)   (avg: 3ms)
+   Avro           -37.21%            (188 rps)   (avg: 5ms)
+   MsgPack        -94.51%             (16 rps)   (avg: 60ms)
+   ProtoBuf       -33.69%            (199 rps)   (avg: 5ms)
 -----------------------------------------------------------------------
 
 */

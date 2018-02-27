@@ -115,32 +115,32 @@ Platform info:
    Windows_NT 6.1.7601 x64
    Node.JS: 8.9.4
    V8: 6.1.534.50
-   Intel(R) Core(TM) i5-2400 CPU @ 3.10GHz × 4
+   Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
 
 'Fake' transporter with 10bytes payload:
 ===============================================
 Messages  : 20,000 msgs
-Throughput: 29,197 msgs/sec
+Throughput: 40,567 msgs/sec
 
 'TCP' transporter with 10bytes payload:
 ===============================================
 Messages  : 20,000 msgs
-Throughput: 15,384 msgs/sec
+Throughput: 22,962 msgs/sec
 
 'MQTT' transporter with 10bytes payload:
 ===============================================
-(node:7112) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 1001 drain listeners added. Use emitter.setMaxListeners() to increase limit
+(node:11052) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 1001 drain listeners added. Use emitter.setMaxListeners() to increase limit
 Messages  : 20,000 msgs
-Throughput: 3,353 msgs/sec
+Throughput: 6,170 msgs/sec
 
 'Redis' transporter with 10bytes payload:
 ===============================================
 Messages  : 20,000 msgs
-Throughput: 9,675 msgs/sec
+Throughput: 15,576 msgs/sec
 
 'NATS' transporter with 10bytes payload:
 ===============================================
 Messages  : 20,000 msgs
-Throughput: 12,804 msgs/sec
+Throughput: 19,550 msgs/sec
 
 */

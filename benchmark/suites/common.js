@@ -136,42 +136,42 @@ module.exports = benchmark.run([bench1, bench2, bench3, bench4]);
 Platform info:
 ==============
    Windows_NT 6.1.7601 x64
-   Node.JS: 6.10.0
-   V8: 5.1.281.93
+   Node.JS: 8.9.4
+   V8: 6.1.534.50
    Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
 
 Suite: Local call
-√ broker.call (normal)*             1,329,946 rps
-√ broker.call (with params)*        1,242,043 rps
+√ broker.call (normal)*             1,654,091 rps
+√ broker.call (with params)*        1,846,689 rps
 
-   broker.call (normal)* (#)            0%      (1,329,946 rps)   (avg: 751ns)
-   broker.call (with params)*       -6.61%      (1,242,043 rps)   (avg: 805ns)
+   broker.call (normal)* (#)            0%      (1,654,091 rps)   (avg: 604ns)
+   broker.call (with params)*      +11.64%      (1,846,689 rps)   (avg: 541ns)
 -----------------------------------------------------------------------
 
 Suite: Call with middlewares
-√ No middlewares*        1,212,999 rps
-√ 5 middlewares*         1,234,193 rps
+√ No middlewares*        1,660,456 rps
+√ 5 middlewares*         1,588,124 rps
 
-   No middlewares* (#)       0%      (1,212,999 rps)   (avg: 824ns)
-   5 middlewares*        +1.75%      (1,234,193 rps)   (avg: 810ns)
+   No middlewares* (#)       0%      (1,660,456 rps)   (avg: 602ns)
+   5 middlewares*        -4.36%      (1,588,124 rps)   (avg: 629ns)
 -----------------------------------------------------------------------
 
 Suite: Call with statistics & metrics
-√ No statistics*                    1,234,234 rps
-√ With metrics*                       384,631 rps
-√ With statistics*                    549,852 rps
-√ With metrics & statistics*          272,172 rps
+√ No statistics*                    1,616,265 rps
+√ With metrics*                       549,124 rps
+√ With statistics*                    768,617 rps
+√ With metrics & statistics*          408,013 rps
 
-   No statistics* (#)                   0%      (1,234,234 rps)   (avg: 810ns)
-   With metrics*                   -68.84%        (384,631 rps)   (avg: 2μs)
-   With statistics*                -55.45%        (549,852 rps)   (avg: 1μs)
-   With metrics & statistics*      -77.95%        (272,172 rps)   (avg: 3μs)
+   No statistics* (#)                   0%      (1,616,265 rps)   (avg: 618ns)
+   With metrics*                   -66.03%        (549,124 rps)   (avg: 1μs)
+   With statistics*                -52.44%        (768,617 rps)   (avg: 1μs)
+   With metrics & statistics*      -74.76%        (408,013 rps)   (avg: 2μs)
 -----------------------------------------------------------------------
 
 Suite: Remote call with FakeTransporter
-√ Remote call echo.reply*           44,055 rps
+√ Remote call echo.reply*           45,987 rps
 
-   Remote call echo.reply*           0%         (44,055 rps)   (avg: 22μs)
+   Remote call echo.reply*           0%         (45,987 rps)   (avg: 21μs)
 -----------------------------------------------------------------------
 
 */
