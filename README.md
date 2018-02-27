@@ -10,8 +10,9 @@
 
 [![Downloads](https://img.shields.io/npm/dm/moleculer.svg)](https://www.npmjs.com/package/moleculer)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bhttps%3A%2F%2Fgithub.com%2Fice-services%2Fmoleculer.svg?type=shield)](https://app.fossa.io/projects/git%2Bhttps%3A%2F%2Fgithub.com%2Fice-services%2Fmoleculer?ref=badge_shield)
+[![Patreon](docs/assets/patreon.svg)][patreon] [![PayPal](docs/assets/paypal_donate.svg)][paypal]
 
-# Moleculer [![NPM version](https://img.shields.io/npm/v/moleculer.svg)](https://www.npmjs.com/package/moleculer)
+# Moleculer [![NPM version](https://img.shields.io/npm/v/moleculer.svg)](https://www.npmjs.com/package/moleculer) [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Moleculer%20is%20a%20modern%20microservices%20framework%20for%20Node.js&url=https://github.com/ice-services/moleculer&via=MoleculerJS&hashtags=nodejs,javascript,microservices)
 
 Moleculer is a fast, modern and powerful microservices framework for Node.js (>= v6.x).
 <!--
@@ -110,14 +111,14 @@ Use the Moleculer CLI tool to create a new Moleculer based microservices project
 # Official modules
 We have many official modules for Moleculer. [Check our list!](https://moleculer.services/docs/modules.html)
 
+# Supporting
+Moleculer is an open source project. It is free to use for your personal or commercial projects. However, developing it takes up all my free time to make it better and better on a daily basis. If you like Moleculer framework, **[please support it][patreon]**. Thank you very much!
+
 # Documentation
 You can find here [the documentation](https://moleculer.services/docs).
 
 # Changelog
 See [CHANGELOG.md](CHANGELOG.md).
-
-# Roadmap
-See [ROADMAP.md](ROADMAP.md).
 
 # Contributions
 We welcome you to join to the development of Moleculer. Please read our [contribution guide](http://moleculer.services/docs/contributing.html).
@@ -128,6 +129,9 @@ Moleculer is available under the [MIT license](https://tldrlegal.com/license/mit
 [3rd party licenses](https://app.fossa.io/reports/833f0d1b-462b-4eff-a4e4-e030115439fe)
 
 # Contact
-Copyright (c) 2016-2017 Ice Services
+Copyright (c) 2016-2018 Ice Services
 
 [![@ice-services](https://img.shields.io/badge/github-ice--services-green.svg)](https://github.com/ice-services) [![@MoleculerJS](https://img.shields.io/badge/twitter-MoleculerJS-blue.svg)](https://twitter.com/MoleculerJS)
+
+[paypal]: https://paypal.me/meregnorbert/50usd
+[patreon]: https://www.patreon.com/bePatron?u=6245171
