@@ -222,7 +222,7 @@ class NodeCatalog {
 	}
 
 	/**
-	 * Check offline nodes. Remove which is older than 3 minutes.
+	 * Check offline nodes. Remove which is older than 10 minutes.
 	 *
 	 * @memberof Transit
 	 */

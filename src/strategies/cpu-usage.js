@@ -50,9 +50,6 @@ class CpuUsageStrategy extends BaseStrategy {
 		let minEp = null;
 
 		const sampleCount = this.opts.sampleCount;
-
-		//console.log(list.map(ep => `${ep.node.id}: ${ep.node.cpu ? ep.node.cpu.toFixed(0) + "%": "-"}`).join(" | "));
-
 		const count = sampleCount <= 0 || sampleCount > list.length ? list.length : sampleCount;
 		for (let i = 0; i < count; i++) {
 			let ep;
@@ -63,8 +60,6 @@ class CpuUsageStrategy extends BaseStrategy {
 				ep = list[random(0, list.length - 1)];
 			}
 			const cpu = ep.node.cpu;
-
-			//console.log("  Check ", ep.node.id, ", CPU", cpu ? cpu.toFixed(0) + "%" : "-");
 
 			// Check CPU usage of endpoint
 			if (cpu != null) {
@@ -80,7 +75,6 @@ class CpuUsageStrategy extends BaseStrategy {
 
 		// Return the lowest CPU
 		if (minEp) {
-			//console.log("Selected: ", minEp.node.id, ", CPU", minEp.node.cpu ? minEp.node.cpu.toFixed(0) + "%" : "-");
 			return minEp;
 		}
 
