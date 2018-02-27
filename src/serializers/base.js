@@ -18,7 +18,7 @@ class Serializer {
 	/**
 	 * Creates an instance of Serializer.
 	 *
-	 * @memberOf Serializer
+	 * @memberof Serializer
 	 */
 	constructor() {
 	}
@@ -28,7 +28,7 @@ class Serializer {
 	 *
 	 * @param {any} broker
 	 *
-	 * @memberOf Serializer
+	 * @memberof Serializer
 	 */
 	init(broker) {
 		this.broker = broker;
@@ -44,7 +44,7 @@ class Serializer {
 	 * @param {String} type of packet
 	 * @returns {Buffer}
 	 *
-	 * @memberOf Serializer
+	 * @memberof Serializer
 	 */
 	serialize(/*obj, type*/) {
 		/* istanbul ignore next */
@@ -58,7 +58,7 @@ class Serializer {
 	 * @param {String} type of packet
 	 * @returns {Object}
 	 *
-	 * @memberOf Serializer
+	 * @memberof Serializer
 	 */
 	deserialize(/*buf, type*/) {
 		/* istanbul ignore next */
@@ -74,7 +74,8 @@ class Serializer {
 				break;
 			}
 			case P.PACKET_EVENT: {
-				obj.data = JSON.stringify(obj.data);
+				if (obj.data)
+					obj.data = JSON.stringify(obj.data);
 				break;
 			}
 			case P.PACKET_REQUEST: {
@@ -83,10 +84,25 @@ class Serializer {
 				break;
 			}
 			case P.PACKET_RESPONSE: {
+				obj.meta = JSON.stringify(obj.meta);
 				if (obj.data)
 					obj.data = JSON.stringify(obj.data);
 				if (obj.error)
 					obj.error = JSON.stringify(obj.error);
+				break;
+			}
+			case P.PACKET_GOSSIP_REQ: {
+				if (obj.online)
+					obj.online = JSON.stringify(obj.online);
+				if (obj.offline)
+					obj.offline = JSON.stringify(obj.offline);
+				break;
+			}
+			case P.PACKET_GOSSIP_RES: {
+				if (obj.online)
+					obj.online = JSON.stringify(obj.online);
+				if (obj.offline)
+					obj.offline = JSON.stringify(obj.offline);
 				break;
 			}
 		}
@@ -103,7 +119,8 @@ class Serializer {
 				break;
 			}
 			case P.PACKET_EVENT: {
-				obj.data = JSON.parse(obj.data);
+				if (obj.data)
+					obj.data = JSON.parse(obj.data);
 				break;
 			}
 			case P.PACKET_REQUEST: {
@@ -112,10 +129,25 @@ class Serializer {
 				break;
 			}
 			case P.PACKET_RESPONSE: {
+				obj.meta = JSON.parse(obj.meta);
 				if (obj.data)
 					obj.data = JSON.parse(obj.data);
 				if (obj.error)
 					obj.error = JSON.parse(obj.error);
+				break;
+			}
+			case P.PACKET_GOSSIP_REQ: {
+				if (obj.online)
+					obj.online = JSON.parse(obj.online);
+				if (obj.offline)
+					obj.offline = JSON.parse(obj.offline);
+				break;
+			}
+			case P.PACKET_GOSSIP_RES: {
+				if (obj.online)
+					obj.online = JSON.parse(obj.online);
+				if (obj.offline)
+					obj.offline = JSON.parse(obj.offline);
 				break;
 			}
 		}

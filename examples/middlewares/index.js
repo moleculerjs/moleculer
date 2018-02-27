@@ -11,7 +11,8 @@ let ServiceBroker = require("../../src/service-broker");
 let broker = new ServiceBroker({
 	logger: console,
 	logLevel: "info",
-	cacher: true
+	transporter: null,
+	cacher: true,
 });
 
 function middleware1() {
@@ -28,6 +29,7 @@ function middleware1() {
 	};
 }
 
+// Promise example
 function middleware2() {
 	return function (handler) {
 
@@ -49,22 +51,22 @@ function middleware2() {
 	};
 }
 
+// Async/await example
 function middleware3() {
 	return function mw3(handler) {
 
-		return function mw3(ctx) {
+		return async function mw3(ctx) {
 			broker.logger.info(chalk.cyan("mw3 before", ctx.action.name));
 			//return broker.Promise.resolve("data from mw3");
-			return handler(ctx).then(res => {
-				broker.logger.info(chalk.cyan("mw3 after", ctx.action.name));
-				if (res) {
-					if (ctx.action.name == "users.get")
-						delete res.gravatar;
-					if (ctx.action.name == "posts.get")
-						delete res.content;
-				}
-				return res;
-			});
+			const res = await handler(ctx);
+			broker.logger.info(chalk.cyan("mw3 after", ctx.action.name));
+			if (res) {
+				if (ctx.action.name == "users.get")
+					delete res.gravatar;
+				if (ctx.action.name == "posts.get")
+					delete res.content;
+			}
+			return res;
 		};
 	};
 }
@@ -92,7 +94,7 @@ broker.start().then(() => {
 
 	return broker.call("posts.get", { id: 3 }).then(res => broker.logger.info(res))
 		.then(() => {
-			console.log(chalk.bold("\nNEXT CALL FROM CACHE"));
+			console.log(chalk.bold("\n--- NEXT CALL FROM CACHE ---\n"));
 			return broker.call("posts.get", { id: 3 }).then(res => broker.logger.info(res));
 		});
 

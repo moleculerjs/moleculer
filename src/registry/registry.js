@@ -13,8 +13,6 @@ const ServiceCatalog = require("./service-catalog");
 const EventCatalog = require("./event-catalog");
 const ActionCatalog = require("./action-catalog");
 
-const RoundRobinStrategy = require("../strategies").RoundRobin;
-
 /**
  * Service Registry
  *
@@ -43,6 +41,13 @@ class Registry {
 		this.services = new ServiceCatalog(this, broker);
 		this.actions = new ActionCatalog(this, broker, this.StrategyFactory);
 		this.events = new EventCatalog(this, broker, this.StrategyFactory);
+
+		this.broker.localBus.on("$broker.started", () => {
+			if (this.nodes.localNode) {
+				this.nodes.localNode.seq++;
+				this.regenerateLocalRawInfo();
+			}
+		});
 	}
 
 	/**
@@ -60,8 +65,12 @@ class Registry {
 		if (svc.events)
 			this.registerEvents(this.nodes.localNode, service, svc.events);
 
-
 		this.nodes.localNode.services.push(service);
+
+		if (this.broker.started)
+			this.nodes.localNode.seq++;
+
+		this.regenerateLocalRawInfo();
 
 		this.logger.info(`'${svc.name}' service is registered.`);
 	}
@@ -128,7 +137,7 @@ class Registry {
 	}
 
 	/**
-	 * Register service action
+	 * Register service actions
 	 *
 	 * @param {Node} node
 	 * @param {Service} service
@@ -156,7 +165,7 @@ class Registry {
 	}
 
 	/**
-	 * Get endpoint list for an action by name
+	 * Get endpoint list of action by name
 	 *
 	 * @param {String} actionName
 	 * @returns {EndpointList}
@@ -167,7 +176,7 @@ class Registry {
 	}
 
 	/**
-	 * Get an endpoint for an action on a specified node
+	 * Get an endpoint of action on a specified node
 	 *
 	 * @param {String} actionName
 	 * @param {String} nodeID
@@ -190,6 +199,12 @@ class Registry {
 	 */
 	unregisterService(name, version, nodeID) {
 		this.services.remove(name, version, nodeID || this.broker.nodeID);
+
+		if (!nodeID || nodeID == this.broker.nodeID) {
+			this.nodes.localNode.seq++;
+
+			this.regenerateLocalRawInfo();
+		}
 	}
 
 	/**
@@ -240,16 +255,49 @@ class Registry {
 	}
 
 	/**
+	 * Generate local raw info for INFO packet
+	 *
+	 * @memberof Registry
+	 */
+	regenerateLocalRawInfo() {
+		let node = this.nodes.localNode;
+		node.rawInfo = _.pick(node, ["ipList", "hostname", "client", "config", "port", "seq"]);
+		if (this.broker.started)
+			node.rawInfo.services = this.services.getLocalNodeServices();
+		else
+			node.rawInfo.services = [];
+
+		return node.rawInfo;
+	}
+
+	/**
 	 * Generate local node info for INFO packets
 	 *
 	 * @returns
 	 * @memberof Registry
 	 */
-	getLocalNodeInfo() {
-		const res = _.pick(this.nodes.localNode, ["ipList", "client", "config", "port"]);
-		res.services = this.services.list({ onlyLocal: true, withActions: true, withEvents: true });
+	getLocalNodeInfo(force) {
+		if (force || !this.nodes.localNode.rawInfo)
+			return this.regenerateLocalRawInfo();
 
-		return res;
+		return this.nodes.localNode.rawInfo;
+	}
+
+	/**
+	 * Generate node info for INFO packets
+	 *
+	 * @returns
+	 * @memberof Registry
+	 */
+	getNodeInfo(nodeID) {
+		const node = this.nodes.get(nodeID);
+		if (!node)
+			return null;
+
+		if (node.local)
+			return this.getLocalNodeInfo();
+
+		return node.rawInfo;
 	}
 
 	/**
@@ -327,6 +375,16 @@ class Registry {
 	 */
 	getEventList(opts) {
 		return this.events.list(opts);
+	}
+
+	/**
+	 * Get a raw info list from nodes
+	 *
+	 * @returns {Array<Object>}
+	 * @memberof Registry
+	 */
+	getNodeRawList() {
+		return this.nodes.toArray().map(node => node.rawInfo);
 	}
 }
 

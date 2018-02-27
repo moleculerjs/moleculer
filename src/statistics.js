@@ -16,18 +16,18 @@ https://github.com/RisingStack/trace-nodejs/blob/master/lib/agent/metrics/rpm/in
 const defaultsDeep = require("lodash/defaultsDeep");
 
 /**
- * 
- * 
+ *
+ *
  * @class StatRequestStore
  */
 class StatRequestStore {
 	/**
 	 * Creates an instance of StatRequestStore.
-	 * 
+	 *
 	 * @param {any} name
 	 * @param {any} bucketCount
-	 * 
-	 * @memberOf StatRequestStore
+	 *
+	 * @memberof StatRequestStore
 	 */
 	constructor(name, bucketCount) {
 		this.name = name;
@@ -43,12 +43,12 @@ class StatRequestStore {
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @param {any} latency
 	 * @param {any} errCode
-	 * 
-	 * @memberOf StatRequestStore
+	 *
+	 * @memberof StatRequestStore
 	 */
 	append(latency, errCode) {
 		this.dirty = true;
@@ -62,10 +62,10 @@ class StatRequestStore {
 	}
 
 	/**
-	 * 
-	 * 
-	 * 
-	 * @memberOf StatRequestStore
+	 *
+	 *
+	 *
+	 * @memberof StatRequestStore
 	 */
 	cycle() {
 		this.lastTimeBucket = {
@@ -85,11 +85,11 @@ class StatRequestStore {
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @returns
-	 * 
-	 * @memberOf StatRequestStore
+	 *
+	 * @memberof StatRequestStore
 	 */
 	calculateRps() {
 		const now = Date.now();
@@ -116,11 +116,11 @@ class StatRequestStore {
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @returns
-	 * 
-	 * @memberOf StatRequestStore
+	 *
+	 * @memberof StatRequestStore
 	 */
 	calculate() {
 		if (this.dirty || !this.stat) {
@@ -149,17 +149,18 @@ class StatRequestStore {
 			this.dirty = false;
 		} else {
 			// Calculate req/sec
+			/* istanbul ignore next */
 			this.stat.rps = this.calculateRps();
 		}
 		return this.stat;
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @returns
-	 * 
-	 * @memberOf StatRequestStore
+	 *
+	 * @memberof StatRequestStore
 	 */
 	snapshot() {
 		if (!this.stat)
@@ -170,18 +171,18 @@ class StatRequestStore {
 }
 
 /**
- * 
- * 
+ *
+ *
  * @class RequestStatistics
  */
 class RequestStatistics {
 
 	/**
 	 * Creates an instance of RequestStatistics.
-	 * 
+	 *
 	 * @param {any} options
-	 * 
-	 * @memberOf RequestStatistics
+	 *
+	 * @memberof RequestStatistics
 	 */
 	constructor(options) {
 		this.options = defaultsDeep({}, options, {
@@ -200,13 +201,13 @@ class RequestStatistics {
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @param {any} actionName
 	 * @param {any} latency
 	 * @param {any} errCode
-	 * 
-	 * @memberOf RequestStatistics
+	 *
+	 * @memberof RequestStatistics
 	 */
 	append(actionName, latency, errCode) {
 		this.total.append(latency, errCode);
@@ -219,10 +220,10 @@ class RequestStatistics {
 	}
 
 	/**
-	 * 
-	 * 
-	 * 
-	 * @memberOf RequestStatistics
+	 *
+	 *
+	 *
+	 * @memberof RequestStatistics
 	 */
 	cycle() {
 		this.total.cycle();
@@ -230,11 +231,11 @@ class RequestStatistics {
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @returns
-	 * 
-	 * @memberOf RequestStatistics
+	 *
+	 * @memberof RequestStatistics
 	 */
 	snapshot() {
 		let snapshot = {
@@ -249,18 +250,18 @@ class RequestStatistics {
 }
 
 /**
- * 
- * 
+ *
+ *
  * @class BrokerStatistics
  */
 class BrokerStatistics {
 	/**
 	 * Creates an instance of BrokerStatistics.
-	 * 
+	 *
 	 * @param {any} broker
 	 * @param {any} options
-	 * 
-	 * @memberOf BrokerStatistics
+	 *
+	 * @memberof BrokerStatistics
 	 */
 	constructor(broker, options) {
 		this.broker = broker;
@@ -270,24 +271,24 @@ class BrokerStatistics {
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @param {any} actionName
 	 * @param {any} latency
 	 * @param {any} errCode
-	 * 
-	 * @memberOf BrokerStatistics
+	 *
+	 * @memberof BrokerStatistics
 	 */
 	addRequest(actionName, latency, errCode) {
 		this.requests.append(actionName, latency, errCode);
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @returns
-	 * 
-	 * @memberOf BrokerStatistics
+	 *
+	 * @memberof BrokerStatistics
 	 */
 	snapshot() {
 		return {

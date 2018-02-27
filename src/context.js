@@ -38,7 +38,7 @@ class Context {
 	 * @example
 	 * let ctx2 = new Context(broker, action);
 	 *
-	 * @memberOf Context
+	 * @memberof Context
 	 */
 	constructor(broker, action) {
 		this.id = null;
@@ -150,7 +150,7 @@ class Context {
 	 * @param {Object} newParams
 	 * @param {Boolean} cloning
 	 *
-	 * @memberOf Context
+	 * @memberof Context
 	 */
 	setParams(newParams, cloning = false) {
 		if (cloning && newParams)
@@ -160,7 +160,21 @@ class Context {
 	}
 
 	/**
-	 * Call an other action. It will be create a sub-context.
+	 * Merge metadata
+	 *
+	 * @param {Object} newMeta
+	 *
+	 * @private
+	 * @memberof Context
+	 */
+	_mergeMeta(newMeta) {
+		if (newMeta)
+			_.assign(this.meta, newMeta);
+		return this.meta;
+	}
+
+	/**
+	 * Call an other action. It creates a sub-context.
 	 *
 	 * @param {String} actionName
 	 * @param {Object?} params
@@ -170,7 +184,7 @@ class Context {
 	 * @example <caption>Call an other service with params & options</caption>
 	 * ctx.call("posts.get", { id: 12 }, { timeout: 1000 });
 	 *
-	 * @memberOf Context
+	 * @memberof Context
 	 */
 	call(actionName, params, opts = {}) {
 		opts.parentCtx = this;
@@ -185,7 +199,6 @@ class Context {
 				return Promise.reject(new RequestSkippedError(actionName, this.broker.nodeID));
 			}
 			opts.timeout = distTimeout;
-
 		}
 
 		// Max calling level check to avoid calling loops
@@ -193,23 +206,52 @@ class Context {
 			return Promise.reject(new MaxCallLevelError(this.broker.nodeID, this.level));
 		}
 
-		return this.broker.call(actionName, params, opts);
+		let p = this.broker.call(actionName, params, opts);
+
+		// Merge metadata with sub context metadata
+		return p.then(res => {
+			if (p.ctx)
+				this._mergeMeta(p.ctx.meta);
+			return res;
+		}).catch(err => {
+			if (p.ctx)
+				this._mergeMeta(p.ctx.meta);
+			return Promise.reject(err);
+		});
 	}
 
 	/**
-	 * Call a global event (with broker.emit).
+	 * Emit an event (grouped & balanced global event)
 	 *
-	 * @param {String} eventName
-	 * @param {any} data
+	 * @param {string} eventName
+	 * @param {any} payload
+	 * @param {String|Array<String>=} groups
 	 * @returns
 	 *
 	 * @example
 	 * ctx.emit("user.created", { entity: user, creator: ctx.meta.user });
 	 *
-	 * @memberOf Context
+	 * @memberof Context
 	 */
-	emit(eventName, data) {
-		return this.broker.emit(eventName, data);
+	emit(eventName, data, groups) {
+		return this.broker.emit(eventName, data, groups);
+	}
+
+	/**
+	 * Emit an event for all local & remote services
+	 *
+	 * @param {string} eventName
+	 * @param {any} payload
+	 * @param {String|Array<String>=} groups
+	 * @returns
+	 *
+	 * @example
+	 * ctx.broadcast("user.created", { entity: user, creator: ctx.meta.user });
+	 *
+	 * @memberof Context
+	 */
+	broadcast(eventName, data, groups) {
+		return this.broker.broadcast(eventName, data, groups);
 	}
 
 	/**
@@ -218,7 +260,7 @@ class Context {
 	 * @param {boolean} emitEvent
 	 *
 	 * @private
-	 * @memberOf Context
+	 * @memberof Context
 	 */
 	_metricStart(emitEvent) {
 		this.startTime = Date.now();
@@ -260,7 +302,7 @@ class Context {
 	 * @param {boolean} emitEvent
 	 *
 	 * @private
-	 * @memberOf Context
+	 * @memberof Context
 	 */
 	_metricFinish(error, emitEvent) {
 		if (this.startHrTime) {

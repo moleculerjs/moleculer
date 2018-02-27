@@ -20,11 +20,12 @@ function createSchemas() {
 			{ name: "ver", type: "string" },
 			{ name: "sender", type: "string" },
 			{ name: "event", type: "string" },
-			{ name: "data", type: "string" },
+			{ name: "data", type: [ "null", "string"], default: null },
 			{ name: "groups", type: [ "null", {
 				type: "array",
 				items: "string"
-			}], default: null }
+			}], default: null },
+			{ name: "broadcast", type: "boolean" }
 		]
 	});
 
@@ -55,7 +56,8 @@ function createSchemas() {
 			{ name: "id", type: "string" },
 			{ name: "success", type: "boolean" },
 			{ name: "data", type: [ "null", "string"], default: null },
-			{ name: "error", type: [ "null", "string"], default: null }
+			{ name: "error", type: [ "null", "string"], default: null },
+			{ name: "meta", type: "string" },
 		]
 	});
 
@@ -80,7 +82,7 @@ function createSchemas() {
 				type: "array",
 				items: "string"
 			}},
-			{ name: "port", type: [ "null", "int"], default: null },
+			{ name: "hostname", type: "string" },
 			{ name: "client", type: {
 				type: "record",
 				fields: [
@@ -132,6 +134,39 @@ function createSchemas() {
 		]
 	});
 
+	schemas[P.PACKET_GOSSIP_HELLO] = avro.Type.forSchema({
+		name: P.PACKET_GOSSIP_HELLO,
+		type: "record",
+		fields: [
+			{ name: "ver", type: "string" },
+			{ name: "sender", type: "string" },
+			{ name: "host", type: "string" },
+			{ name: "port", type: "int" }
+		]
+	});
+
+	schemas[P.PACKET_GOSSIP_REQ] = avro.Type.forSchema({
+		name: P.PACKET_GOSSIP_REQ,
+		type: "record",
+		fields: [
+			{ name: "ver", type: "string" },
+			{ name: "sender", type: "string" },
+			{ name: "online", type: [ "null", "string"], default: null },
+			{ name: "offline", type: [ "null", "string"], default: null },
+		]
+	});
+
+	schemas[P.PACKET_GOSSIP_RES] = avro.Type.forSchema({
+		name: P.PACKET_GOSSIP_RES,
+		type: "record",
+		fields: [
+			{ name: "ver", type: "string" },
+			{ name: "sender", type: "string" },
+			{ name: "online", type: [ "null", "string"], default: null },
+			{ name: "offline", type: [ "null", "string"], default: null },
+		]
+	});
+
 	return schemas;
 }
 
@@ -149,7 +184,7 @@ class AvroSerializer extends BaseSerializer {
 	 *
 	 * @param {any} broker
 	 *
-	 * @memberOf Serializer
+	 * @memberof Serializer
 	 */
 	init(broker) {
 		super.init(broker);
@@ -171,7 +206,7 @@ class AvroSerializer extends BaseSerializer {
 	 * @param {String} type of packet
 	 * @returns {Buffer}
 	 *
-	 * @memberOf Serializer
+	 * @memberof Serializer
 	 */
 	serialize(obj, type) {
 		this.serializeCustomFields(type, obj);
@@ -188,7 +223,7 @@ class AvroSerializer extends BaseSerializer {
 	 * @param {String} type of packet
 	 * @returns {Object}
 	 *
-	 * @memberOf Serializer
+	 * @memberof Serializer
 	 */
 	deserialize(buf, type) {
 		const obj = this.schemas[type].fromBuffer(buf);

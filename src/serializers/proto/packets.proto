@@ -6,8 +6,9 @@ message PacketEvent {
 	required string ver 	= 1;
 	required string sender 	= 2;
 	required string event 	= 3;
-	required string data 	= 4;
+	optional string data 	= 4;
 	repeated string groups 	= 5;
+	required bool broadcast	= 6;
 }
 
 message PacketRequest {
@@ -31,6 +32,7 @@ message PacketResponse {
 	required bool success 		= 4;
 	optional string data 		= 5;
 	optional string error 		= 6;
+	required string meta 		= 7;
 }
 
 message PacketDiscover {
@@ -45,7 +47,7 @@ message PacketInfo {
 	required string config			= 4;
 
 	repeated string ipList			= 5;
-	optional int32 port				= 6;
+	required string hostname		= 6;
 	required Client client 			= 7;
 
 	message Client {
@@ -77,4 +79,25 @@ message PacketPong {
 	required string sender 		= 2;
 	required int64 time 		= 3;
 	required int64 arrived 		= 4;
+}
+
+message PacketGossipHello {
+	required string ver 		= 1;
+	required string sender 		= 2;
+	required string host 		= 3;
+	required int32 port 		= 4;
+}
+
+message PacketGossipRequest {
+	required string ver 			= 1;
+	required string sender 			= 2;
+	optional string online			= 3;
+	optional string offline			= 4;
+}
+
+message PacketGossipResponse {
+	required string ver 			= 1;
+	required string sender 			= 2;
+	optional string online			= 3;
+	optional string offline			= 4;
 }

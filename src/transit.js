@@ -6,11 +6,12 @@
 
 "use strict";
 
-const Promise	= require("bluebird");
-const _ 		= require("lodash");
+const Promise		= require("bluebird");
+const _ 			= require("lodash");
 
-const P 		= require("./packets");
-const E 		= require("./errors");
+const P				= require("./packets");
+const { Packet }	= require("./packets");
+const E 			= require("./errors");
 
 /**
  * Transit class
@@ -26,7 +27,7 @@ class Transit {
 	 * @param {Transporter} Transporter instance
 	 * @param {Object?} opts
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	constructor(broker, transporter, opts) {
 		this.broker = broker;
@@ -46,6 +47,7 @@ class Transit {
 
 		this.connected = false;
 		this.disconnecting = false;
+		this.isReady = false;
 
 		if (this.tx) {
 			this.tx.init(this, this.messageHandler.bind(this), this.afterConnect.bind(this));
@@ -71,8 +73,7 @@ class Transit {
 			})
 
 			.then(() => this.discoverNodes())
-			.then(() => this.sendNodeInfo())
-			.delay(200) // Waiting for incoming INFO packets
+			.delay(500) // Waiting for incoming INFO packets
 
 			.then(() => {
 				this.connected = true;
@@ -89,7 +90,7 @@ class Transit {
 	/**
 	 * Connect with transporter. If failed, try again after 5 sec.
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	connect() {
 		this.logger.info("Connecting to the transporter...");
@@ -119,20 +120,35 @@ class Transit {
 	/**
 	 * Disconnect with transporter
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	disconnect() {
 		this.connected = false;
+		this.isReady = false;
 		this.disconnecting = true;
 
 		this.broker.broadcastLocal("$transporter.disconnected", { graceFul: true });
 
 		if (this.tx.connected) {
 			return this.sendDisconnectPacket()
-				.then(() => this.tx.disconnect());
+				.then(() => this.tx.disconnect())
+				.then(() => this.disconnecting = false);
 		}
+
+		this.disconnecting = false;
 		/* istanbul ignore next */
 		return Promise.resolve();
+	}
+
+	/**
+	 * Local broker is ready (all services loaded).
+	 * Send INFO packet to all other nodes
+	 */
+	ready() {
+		if (this.connected) {
+			this.isReady = true;
+			return this.sendNodeInfo();
+		}
 	}
 
 	/**
@@ -140,53 +156,54 @@ class Transit {
 	 *
 	 * @returns {Promise}
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	sendDisconnectPacket() {
-		return this.publish(new P.PacketDisconnect(this));
+		return this.publish(new Packet(P.PACKET_DISCONNECT)).catch(err => this.logger.debug("Unable to send DISCONNECT packet.", err));
 	}
 
 	/**
 	 * Subscribe to topics for transportation
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	makeSubscriptions() {
-		this.subscribing = Promise.all([
+		this.subscribing = this.tx.makeSubscriptions([
+
 			// Subscribe to broadcast events
-			this.subscribe(P.PACKET_EVENT, this.nodeID),
+			{ cmd: P.PACKET_EVENT, nodeID: this.nodeID },
 
 			// Subscribe to requests
-			this.subscribe(P.PACKET_REQUEST, this.nodeID),
+			{ cmd: P.PACKET_REQUEST, nodeID: this.nodeID },
 
 			// Subscribe to node responses of requests
-			this.subscribe(P.PACKET_RESPONSE, this.nodeID),
+			{ cmd: P.PACKET_RESPONSE, nodeID: this.nodeID },
 
 			// Discover handler
-			this.subscribe(P.PACKET_DISCOVER),
-			this.subscribe(P.PACKET_DISCOVER, this.nodeID),
+			{ cmd: P.PACKET_DISCOVER },
+			{ cmd: P.PACKET_DISCOVER, nodeID: this.nodeID },
 
 			// NodeInfo handler
-			this.subscribe(P.PACKET_INFO), // Broadcasted INFO. If a new node connected
-			this.subscribe(P.PACKET_INFO, this.nodeID), // Response INFO to DISCOVER packet
+			{ cmd: P.PACKET_INFO }, // Broadcasted INFO. If a new node connected
+			{ cmd: P.PACKET_INFO, nodeID: this.nodeID }, // Response INFO to DISCOVER packet
 
 			// Disconnect handler
-			this.subscribe(P.PACKET_DISCONNECT),
+			{ cmd: P.PACKET_DISCONNECT },
 
 			// Heartbeat handler
-			this.subscribe(P.PACKET_HEARTBEAT),
+			{ cmd: P.PACKET_HEARTBEAT },
 
 			// Ping handler
-			this.subscribe(P.PACKET_PING), // Broadcasted
-			this.subscribe(P.PACKET_PING, this.nodeID), // Targeted
+			{ cmd: P.PACKET_PING }, // Broadcasted
+			{ cmd: P.PACKET_PING, nodeID: this.nodeID }, // Targeted
 
 			// Pong handler
-			this.subscribe(P.PACKET_PONG, this.nodeID)
+			{ cmd: P.PACKET_PONG, nodeID: this.nodeID }
 
-		])
-			.then(() => {
-				this.subscribing = null;
-			});
+		]).then(() => {
+			this.subscribing = null;
+		});
+
 		return this.subscribing;
 	}
 
@@ -197,19 +214,12 @@ class Transit {
 	 * @param {String} msg
 	 * @returns {Boolean} If packet is processed return with `true`
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
-	messageHandler(cmd, msg) {
+	messageHandler(cmd, packet) {
 		try {
-
-			if (msg == null) {
-				throw new E.MoleculerServerError("Missing packet.", 500, "MISSING_PACKET");
-			}
-
-			this.stat.packets.received = this.stat.packets.received + 1;
-
-			const packet = P.Packet.deserialize(this, cmd, msg);
 			const payload = packet.payload;
+			this.stat.packets.received = this.stat.packets.received + 1;
 
 			// Check payload
 			if (!payload) {
@@ -218,14 +228,13 @@ class Transit {
 			}
 
 			// Check protocol version
-			if (payload.ver != P.PROTOCOL_VERSION) {
-				throw new E.ProtocolVersionMismatchError(payload.sender,P.PROTOCOL_VERSION, payload.ver || "1");
+			if (payload.ver != this.broker.PROTOCOL_VERSION) {
+				throw new E.ProtocolVersionMismatchError(payload.sender, this.broker.PROTOCOL_VERSION, payload.ver);
 			}
 
-			// Skip own packets (if built-in balancer disabled)
+			// Skip own packets (if only built-in balancer disabled)
 			if (payload.sender == this.nodeID && (cmd !== P.PACKET_EVENT && cmd !== P.PACKET_REQUEST && cmd !== P.PACKET_RESPONSE))
 				return;
-
 
 			this.logger.debug(`Incoming ${cmd} packet from '${payload.sender}'`);
 
@@ -276,7 +285,7 @@ class Transit {
 
 			return true;
 		} catch(err) {
-			this.logger.error(err, cmd, msg);
+			this.logger.error(err, cmd, packet);
 		}
 		return false;
 	}
@@ -290,7 +299,7 @@ class Transit {
 	_eventHandler(payload) {
 		this.logger.debug(`Event '${payload.event}' received from '${payload.sender}' node` + (payload.groups ? ` in '${payload.groups.join(", ")}' group(s)` : "") + ".");
 
-		this.broker.emitLocalServices(payload.event, payload.data, payload.groups, payload.sender);
+		this.broker.emitLocalServices(payload.event, payload.data, payload.groups, payload.sender, payload.broadcast);
 	}
 
 	/**
@@ -298,7 +307,7 @@ class Transit {
 	 *
 	 * @param {Object} payload
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	_requestHandler(payload) {
 		this.logger.debug(`Request '${payload.action}' received from '${payload.sender}' node.`);
@@ -307,8 +316,8 @@ class Transit {
 		const ctx = this.broker.ContextFactory.createFromPayload(this.broker, payload);
 
 		return this.broker._handleRemoteRequest(ctx)
-			.then(res => this.sendResponse(payload.sender, payload.id,  res, null))
-			.catch(err => this.sendResponse(payload.sender, payload.id, null, err));
+			.then(res => this.sendResponse(payload.sender, payload.id,  ctx.meta, res, null))
+			.catch(err => this.sendResponse(payload.sender, payload.id, ctx.meta, null, err));
 	}
 
 	/**
@@ -316,21 +325,28 @@ class Transit {
 	 *
 	 * @param {Object} packet
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	_responseHandler(packet) {
 		const id = packet.id;
 		const req = this.pendingRequests.get(id);
 
-		// If not exists (timed out), we skip to process the response
-		if (req == null) return;
+		// If not exists (timed out), we skip response processing
+		if (req == null) {
+			this.logger.warn("Orphaned response. Maybe the request timed out. ID:", packet.id, ", Sender:", packet.sender);
+			return;
+		}
 
 		// Remove pending request
 		this.removePendingRequest(id);
 
 		this.logger.debug(`Response '${req.action.name}' received from '${packet.sender}'.`);
-		// Update nodeID in context (if it use external balancer)
+
+		// Update nodeID in context (if it uses external balancer)
 		req.ctx.nodeID = packet.sender;
+
+		// Merge response meta with original meta
+		_.assign(req.ctx.meta, packet.meta);
 
 		if (!packet.success) {
 			// Recreate exception object
@@ -359,7 +375,7 @@ class Transit {
 	 * @param {<Context>} ctx			Context of request
 	 * @returns	{Promise}
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	request(ctx) {
 		if (this.opts.maxQueueSize && this.pendingRequests.size > this.opts.maxQueueSize)
@@ -376,7 +392,7 @@ class Transit {
 	 * @param {Function} resolve 	Resolve of Promise
 	 * @param {Function} reject 	Reject of Promise
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	_sendRequest(ctx, resolve, reject) {
 		const request = {
@@ -387,71 +403,91 @@ class Transit {
 			reject
 		};
 
-		const packet = new P.PacketRequest(this, ctx.nodeID, ctx);
+		const packet = new Packet(P.PACKET_REQUEST, ctx.nodeID, {
+			id: ctx.id,
+			action: ctx.action.name,
+			params: ctx.params,
+			meta: ctx.meta,
+			timeout: ctx.timeout,
+			level: ctx.level,
+			metrics: ctx.metrics,
+			parentID: ctx.parentID,
+			requestID: ctx.requestID
+		});
 
 		this.logger.debug(`Send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`);
 
 		// Add to pendings
 		this.pendingRequests.set(ctx.id, request);
 
-		//return resolve(ctx.params);
-
 		// Publish request
-		this.publish(packet);
+		this.publish(packet).catch(err => {
+			this.logger.error(`Unable to send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, err);
+			reject(err);
+		});
 	}
 
 	/**
-	 * Send an event to a remote node
+	 * Send a broadcast event to a remote node
 	 *
 	 * @param {String} nodeID
-	 * @param {String} eventName
+	 * @param {String} event
 	 * @param {any} data
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
-	sendEvent(nodeID, eventName, data) {
-		this.logger.debug(`Send '${eventName}' event to '${nodeID}'.`);
+	sendBroadcastEvent(nodeID, event, data, groups) {
+		this.logger.debug(`Send '${event}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
 
-		this.publish(new P.PacketEvent(this, nodeID, eventName, data));
+		this.publish(new Packet(P.PACKET_EVENT, nodeID, {
+			event,
+			data,
+			groups,
+			broadcast: true
+		})).catch(err => this.logger.error(`Unable to send '${event}' broadcast event to '${nodeID}' node.`, err));
 	}
 
 	/**
 	 * Send a grouped event to remote nodes.
 	 * The event is balanced internally.
 	 *
-	 * @param {String} eventName
+	 * @param {String} event
 	 * @param {any} data
 	 * @param {Object} nodeGroups
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
-	sendBalancedEvent(eventName, data, nodeGroups) {
+	sendBalancedEvent(event, data, nodeGroups) {
 		_.forIn(nodeGroups, (groups, nodeID) => {
-			this.logger.debug(`Send '${eventName}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
+			this.logger.debug(`Send '${event}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
 
-			this.publish(new P.PacketEvent(this, nodeID, eventName, data, groups));
+			this.publish(new Packet(P.PACKET_EVENT, nodeID, {
+				event,
+				data,
+				groups,
+				broadcast: false
+			})).catch(err => this.logger.error(`Unable to send '${event}' event to '${nodeID}' node.`, err));
 		});
 	}
 
 	/**
 	 * Send an event to groups.
-	 * The transporter should make balancing
+	 * The event is balanced by transporter
 	 *
-	 * @param {String} eventName
+	 * @param {String} event
 	 * @param {any} data
 	 * @param {Object} groups
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
-	sendEventToGroups(eventName, data, groups) {
-		if (!groups || groups.length == 0)
-			groups = this.broker.getEventGroups(eventName);
-
-		if (groups.length == 0)
-			return;
-
-		this.logger.debug(`Send '${eventName}' event to '${groups.join(", ")}' group(s).`);
-		this.publish(new P.PacketEvent(this, null, eventName, data, groups));
+	sendEventToGroups(event, data, groups) {
+		this.logger.debug(`Send '${event}' event to '${groups.join(", ")}' group(s).`);
+		this.publish(new Packet(P.PACKET_EVENT, null, {
+			event,
+			data,
+			groups,
+			broadcast: false
+		})).catch(err => this.logger.error(`Unable to send '${event}' event to groups.`, err));
 	}
 
 	/**
@@ -459,7 +495,7 @@ class Transit {
 	 *
 	 * @param {any} id
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	removePendingRequest(id) {
 		this.pendingRequests.delete(id);
@@ -470,7 +506,7 @@ class Transit {
 	 *
 	 * @param {String} nodeID
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	removePendingRequestByNodeID(nodeID) {
 		this.logger.debug("Remove pending requests");
@@ -489,48 +525,80 @@ class Transit {
 	 *
 	 * @param {String} nodeID
 	 * @param {String} id
+	 * @param {any} meta
 	 * @param {any} data
 	 * @param {Error} err
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
-	sendResponse(nodeID, id, data, err) {
+	sendResponse(nodeID, id, meta, data, err) {
 		// Publish the response
-		return this.publish(new P.PacketResponse(this, nodeID, id, data, err));
+		const payload = {
+			id: id,
+			meta: meta,
+			success: err == null,
+			data: data
+		};
+
+		if (err) {
+			payload.error = {
+				name: err.name,
+				message: err.message,
+				nodeID: err.nodeID || this.nodeID,
+				code: err.code,
+				type: err.type,
+				stack: err.stack,
+				data: err.data
+			};
+		}
+
+		return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
+			.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
 	}
 
 	/**
 	 * Discover other nodes. It will be called after success connect.
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	discoverNodes() {
-		return this.publish(new P.PacketDiscover(this));
+		return this.publish(new Packet(P.PACKET_DISCOVER))
+			.catch(err => this.logger.error("Unable to send DISCOVER packet.", err));
 	}
 
 	/**
-	 * Discover a node. It will be called if we got message from a node
-	 * what we don't know.
+	 * Discover a node. It will be called if we got message from an unknown node.
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	discoverNode(nodeID) {
-		return this.publish(new P.PacketDiscover(this, nodeID));
+		return this.publish(new Packet(P.PACKET_DISCOVER, nodeID))
+			.catch(err => this.logger.error(`Unable to send DISCOVER packet to '${nodeID}' node.`, err));
 	}
 
 	/**
 	 * Send node info package to other nodes.
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	sendNodeInfo(nodeID) {
+		if (!this.connected || !this.isReady) return Promise.resolve();
+
 		const info = this.broker.getLocalNodeInfo();
 
 		let p = Promise.resolve();
 		if (!nodeID)
-			p = this.tx._makeServiceSpecificSubscriptions();
+			p = this.tx.makeBalancedSubscriptions();
 
-		return p.then(() => this.publish(new P.PacketInfo(this, nodeID, info)));
+		return p.then(() => this.publish(new Packet(P.PACKET_INFO, nodeID, {
+			services: info.services,
+			ipList: info.ipList,
+			hostname: info.hostname,
+			client: info.client,
+			config: info.config,
+			seq: info.seq
+		}))).catch(err => this.logger.error(`Unable to send INFO packet to '${nodeID}' node.`, err));
+
 	}
 
 	/**
@@ -541,7 +609,8 @@ class Transit {
 	 * @memberof Transit
 	 */
 	sendPing(nodeID) {
-		return this.publish(new P.PacketPing(this, nodeID, Date.now()));
+		return this.publish(new Packet(P.PACKET_PING, nodeID, { time: Date.now() }))
+			.catch(err => this.logger.error(`Unable to send PING packet to '${nodeID}' node.`, err));
 	}
 
 	/**
@@ -552,7 +621,10 @@ class Transit {
 	 * @memberof Transit
 	 */
 	sendPong(payload) {
-		return this.publish(new P.PacketPong(this, payload.sender, payload.time, Date.now()));
+		return this.publish(new Packet(P.PACKET_PONG, payload.sender, {
+			time: payload.time,
+			arrived: Date.now()
+		})).catch(err => this.logger.error(`Unable to send PONG packet to '${payload.sender}' node.`, err));
 	}
 
 	/**
@@ -569,16 +641,19 @@ class Transit {
 
 		// this.logger.debug(`PING-PONG from '${payload.sender}' - Time: ${elapsedTime}ms, Time difference: ${timeDiff}ms`);
 
-		this.broker.broadcastLocal("$node.pong", { nodeID: payload.sender, elapsedTime, timeDiff }, payload.sender);
+		this.broker.broadcastLocal("$node.pong", { nodeID: payload.sender, elapsedTime, timeDiff });
 	}
 
 	/**
-	 * Send a node heart-beat. It will be called with timer
+	 * Send a node heartbeat. It will be called with timer
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	sendHeartbeat(localNode) {
-		return this.publish(new P.PacketHeartbeat(this, localNode.cpu));
+		return this.publish(new Packet(P.PACKET_HEARTBEAT, null, {
+			cpu: localNode.cpu
+		})).catch(err => this.logger.error("Unable to send HEARTBEAT packet.", err));
+
 	}
 
 	/**
@@ -587,7 +662,7 @@ class Transit {
 	 * @param {String} topic
 	 * @param {String=} nodeID
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	subscribe(topic, nodeID) {
 		return this.tx.subscribe(topic, nodeID);
@@ -598,7 +673,7 @@ class Transit {
 	 *
 	 * @param {Packet} Packet
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	publish(packet) {
 		this.logger.debug(`Send ${packet.type} packet to '${packet.target || "all nodes"}'`);
@@ -612,32 +687,6 @@ class Transit {
 		}
 		this.stat.packets.sent = this.stat.packets.sent + 1;
 		return this.tx.prepublish(packet);
-	}
-
-	/**
-	 * Serialize the object
-	 *
-	 * @param {Object} obj
-	 * @returns {Buffer}
-	 *
-	 * @memberOf Transit
-	 */
-	serialize(obj, type) {
-		return this.broker.serializer.serialize(obj, type);
-	}
-
-	/**
-	 * Deserialize the incoming Buffer to object
-	 *
-	 * @param {Buffer} buf
-	 * @returns {any}
-	 *
-	 * @memberOf Transit
-	 */
-	deserialize(buf, type) {
-		if (buf == null) return null;
-
-		return this.broker.serializer.deserialize(buf, type);
 	}
 
 }

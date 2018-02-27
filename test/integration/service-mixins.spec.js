@@ -1,4 +1,5 @@
-let ServiceBroker = require("../../src/service-broker");
+const ServiceBroker = require("../../src/service-broker");
+const _ = require("lodash");
 
 describe("Test Service mixins", () => {
 
@@ -28,6 +29,22 @@ describe("Test Service mixins", () => {
 			},
 
 			beta: {
+				handler() {
+					return "From mixinL2";
+				}
+			},
+
+			charlie(ctx) {
+				return {
+					msg: "From mixinL2",
+					action: _.omit(ctx.action, ["handler", "service", "metrics"])
+				};
+			},
+
+			echo: {
+				params: {
+					id: "string"
+				},
 				handler() {
 					return "From mixinL2";
 				}
@@ -68,6 +85,13 @@ describe("Test Service mixins", () => {
 
 			gamma() {
 				return "From mixin1L1";
+			},
+
+			echo(ctx) {
+				return {
+					msg: "From mixin1L1",
+					action: _.omit(ctx.action, ["handler", "service", "metrics"])
+				};
 			}
 		},
 
@@ -102,6 +126,11 @@ describe("Test Service mixins", () => {
 
 			delta() {
 				return "From mixin2L1";
+			},
+			charlie: {
+				cache: {
+					keys: ["name"]
+				}
 			}
 		},
 
@@ -145,6 +174,11 @@ describe("Test Service mixins", () => {
 		actions: {
 			tango() {
 				return "From main";
+			},
+			charlie: {
+				params: {
+					name: "string"
+				}
 			}
 		},
 
@@ -243,6 +277,34 @@ describe("Test Service mixins", () => {
 	it("should call 'tango' action", () => {
 		return broker.call("main.tango").then(res => {
 			expect(res).toBe("From main");
+		});
+	});
+
+	it("should call 'charlie' action", () => {
+		return broker.call("main.charlie", { name: "John" }).then(res => {
+			expect(res.msg).toBe("From mixinL2");
+			expect(res.action).toEqual({
+				cache: {
+					keys: ["name"]
+				},
+				name: "main.charlie",
+				params: {
+					"name": "string"
+				}
+			});
+		});
+	});
+
+	it("should call 'echo' action", () => {
+		return broker.call("main.echo", { id: "1" }).then(res => {
+			expect(res.msg).toBe("From mixin1L1");
+			expect(res.action).toEqual({
+				cache: false,
+				name: "main.echo",
+				params: {
+					"id": "string"
+				}
+			});
 		});
 	});
 

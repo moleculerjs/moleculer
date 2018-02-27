@@ -1,13 +1,16 @@
-/* eslint-disable no-console */
-
 "use strict";
 
 let ServiceBroker = require("../src/service-broker");
 
 // Create broker
 let broker = new ServiceBroker({
-	nodeID: "dep-" + process.pid,
-	transporter: "NATS",
+	nodeID: "dep2",
+	transporter: {
+		type: "TCP",
+		options: {
+			//debug: true
+		}
+	},
 	logger: console,
 	//logLevel: "debug",
 	//hotReload: true

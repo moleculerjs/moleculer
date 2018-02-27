@@ -1,11 +1,13 @@
 const ServiceBroker = require("../../src/service-broker");
 const Promise = require("bluebird");
+const { hostname } = require("os");
 
 describe("Test internal services", () => {
 
 	const broker = new ServiceBroker({
 		nodeID: "node-master",
 		statistics: true,
+		transporter: null,
 		internalServices: true
 	});
 
@@ -66,11 +68,16 @@ describe("Test internal services", () => {
 				},
 				"config": {},
 				"cpu": null,
+				"cpuSeq": null,
 				"id": "node-master",
 				"ipList": localNode.ipList,
+				"hostname": hostname(),
 				"lastHeartbeatTime": localNode.lastHeartbeatTime,
+				"offlineSince": null,
+				"port": null,
+				"seq": localNode.seq,
 				"local": true,
-				"port": null
+				"udpAddress": null
 			}]);
 		});
 	});
@@ -306,6 +313,7 @@ describe("Test internal services", () => {
 				"available": true,
 				"count": 1,
 				"endpoints": [{
+					"available": true,
 					"nodeID": "node-master",
 					"state": true
 				}],
@@ -325,6 +333,7 @@ describe("Test internal services", () => {
 				"available": true,
 				"count": 1,
 				"endpoints": [{
+					"available": true,
 					"nodeID": "node-master",
 					"state": true
 				}],
@@ -339,6 +348,7 @@ describe("Test internal services", () => {
 				"available": true,
 				"count": 1,
 				"endpoints": [{
+					"available": true,
 					"nodeID": "node-master",
 					"state": true
 				}],
@@ -378,6 +388,7 @@ describe("Test internal services", () => {
 				"available": true,
 				"count": 1,
 				"endpoints": [{
+					"available": true,
 					"nodeID": "node-master",
 					"state": true
 				}],
@@ -391,6 +402,7 @@ describe("Test internal services", () => {
 				"available": true,
 				"count": 1,
 				"endpoints": [{
+					"available": true,
 					"nodeID": "node-master",
 					"state": true
 				}],

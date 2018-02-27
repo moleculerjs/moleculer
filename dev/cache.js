@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 "use strict";
 
 let chalk = require("chalk");
@@ -10,11 +8,11 @@ let ServiceBroker = require("../../src/service-broker");
 // Create broker
 let broker = new ServiceBroker({
 	namespace: "demo",
+	transporter: null,
 	logger: console,
 	logLevel: "debug",
 	metrics: true,
 	cacher: true,
-	//cacher: "redis://192.168.51.29:6379"
 });
 
 broker.loadService("./examples/post.service.js");
@@ -33,7 +31,7 @@ broker.start()
 	})
 
 	.then(() => {
-		console.log(chalk.bold(">> Get user.5 (found in the cache)"));
+		console.log(chalk.bold(">> Get user.5 (not found in the cache)"));
 		return broker.call("v2.users.get", {
 			id: 5
 		});

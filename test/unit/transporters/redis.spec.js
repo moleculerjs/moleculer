@@ -1,7 +1,7 @@
 const ServiceBroker = require("../../../src/service-broker");
 const Transit = require("../../../src/transit");
 const RedisTransporter = require("../../../src/transporters/redis");
-const { PacketInfo } = require("../../../src/packets");
+const P = require("../../../src/packets");
 
 jest.mock("ioredis");
 
@@ -19,12 +19,12 @@ Redis.mockImplementation(() => {
 });
 
 
-describe("Test NatsTransporter constructor", () => {
+describe("Test RedisTransporter constructor", () => {
 
 	it("check constructor", () => {
 		let transporter = new RedisTransporter();
 		expect(transporter).toBeDefined();
-		expect(transporter.opts).toEqual({});
+		expect(transporter.opts).toBeUndefined();
 		expect(transporter.connected).toBe(false);
 		expect(transporter.clientPub).toBeNull();
 		expect(transporter.clientSub).toBeNull();
@@ -32,11 +32,11 @@ describe("Test NatsTransporter constructor", () => {
 
 	it("check constructor with string param", () => {
 		let transporter = new RedisTransporter("redis://localhost");
-		expect(transporter.opts).toEqual({ redis: "redis://localhost"});
+		expect(transporter.opts).toEqual("redis://localhost");
 	});
 
 	it("check constructor with options", () => {
-		let opts = { redis: { host: "localhost", port: 1234} };
+		let opts = { host: "localhost", port: 1234 };
 		let transporter = new RedisTransporter(opts);
 		expect(transporter.opts).toBe(opts);
 	});
@@ -121,6 +121,8 @@ describe("Test RedisTransporter subscribe & publish", () => {
 		msgHandler = jest.fn();
 		transporter = new RedisTransporter();
 		transporter.init(new Transit(new ServiceBroker({ namespace: "TEST" })), msgHandler);
+		transporter.serialize = jest.fn(() => "json data");
+		transporter.incomingMessage = jest.fn();
 
 		let p = transporter.connect();
 		transporter._clientSub.onCallbacks.connect(); // Trigger the `resolve`
@@ -140,15 +142,20 @@ describe("Test RedisTransporter subscribe & publish", () => {
 		// Test subscribe callback
 		const buf = Buffer.from("incoming data");
 		transporter.clientSub.onCallbacks.messageBuffer("prefix.event", buf);
-		expect(msgHandler).toHaveBeenCalledTimes(1);
-		expect(msgHandler).toHaveBeenCalledWith("event", buf);
+		expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
+		expect(transporter.incomingMessage).toHaveBeenCalledWith("event", buf);
 	});
 
 	it("check publish", () => {
 		transporter.clientPub.publish.mockClear();
-		transporter.publish(new PacketInfo(fakeTransit, "node2", { services: {} }));
+
+		const packet = new P.Packet(P.PACKET_INFO, "node2", { services: {} });
+		transporter.publish(packet);
 
 		expect(transporter.clientPub.publish).toHaveBeenCalledTimes(1);
-		expect(transporter.clientPub.publish).toHaveBeenCalledWith("MOL-TEST.INFO.node2", "{\"ver\":\"2\",\"sender\":\"node1\",\"services\":{}}");
+		expect(transporter.clientPub.publish).toHaveBeenCalledWith("MOL-TEST.INFO.node2", "json data");
+
+		expect(transporter.serialize).toHaveBeenCalledTimes(1);
+		expect(transporter.serialize).toHaveBeenCalledWith(packet);
 	});
 });

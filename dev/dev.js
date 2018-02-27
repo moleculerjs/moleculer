@@ -1,53 +1,28 @@
-/* eslint-disable no-console */
-
 "use strict";
 
-let fs = require("fs");
-let ServiceBroker = require("../src/service-broker");
-let S = require("../src/strategies");
+const ServiceBroker = require("../src/service-broker");
+const util = require("util");
 
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
+	nodeID: "dev-" + process.pid,
 	logger: true,
-	logLevel: "debug",
-	registry: {
-		strategy: "Random"
-	},
-	transporter: {
-		type: "NATS",
-		options: {
-			nats: {
-				port: 4222,
-				/*tls: {
-					ca: [fs.readFileSync(__dirname + "/nats-cert.pem")]
-				}*/
-			}
-		}
-	},
-	cacher: {
-		type: "memory",
-		/*options: {
-			keygen(name, params, meta, keys) {
-				console.log("Keygen...");
-				return "asd";
-			}
-		}*/
-	}
+	//logLevel: "debug",
+	transporter: "TCP",
 });
 
-broker.createService({
-	name: "math",
-	actions: {
-		add: {
-			cache: {
-				keys: ["a", "b", "#c"],
-				ttl: 5
-			},
-			handler(ctx) {
-				return Number(ctx.params.a) + Number(ctx.params.b) + Number(ctx.meta.c || 0);
-			}
-		}
-	}
-});
+const svc = broker.loadService("examples/hot.service");
 
 broker.start()
-	.then(() => broker.repl());
+	.then(() => broker.repl())
+	/*.delay(2000)
+	.then(() => {
+		console.log("Destroy hot service");
+		broker.destroyService(svc);
+	})*/
+	.delay(1000)
+	//.then(() => broker.call("$node.actions", { onlyAvailable: false }).then(res => broker.logger.info(res)));
+	.then(() => {
+		const info = broker.registry.getLocalNodeInfo();
+		console.log(util.inspect(info, { showHidden: false, depth: 5, colors: true }))
+
+	});

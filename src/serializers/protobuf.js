@@ -24,7 +24,7 @@ class ProtoBufSerializer extends BaseSerializer {
 	 *
 	 * @param {any} broker
 	 *
-	 * @memberOf Serializer
+	 * @memberof Serializer
 	 */
 	init(broker) {
 		super.init(broker);
@@ -50,6 +50,9 @@ class ProtoBufSerializer extends BaseSerializer {
 			case P.PACKET_HEARTBEAT: return this.packets.PacketHeartbeat;
 			case P.PACKET_PING: return this.packets.PacketPing;
 			case P.PACKET_PONG: return this.packets.PacketPong;
+			case P.PACKET_GOSSIP_HELLO: return this.packets.PacketGossipHello;
+			case P.PACKET_GOSSIP_REQ: return this.packets.PacketGossipRequest;
+			case P.PACKET_GOSSIP_RES: return this.packets.PacketGossipResponse;
 		}
 	}
 
@@ -60,7 +63,7 @@ class ProtoBufSerializer extends BaseSerializer {
 	 * @param {String} type of packet
 	 * @returns {Buffer}
 	 *
-	 * @memberOf Serializer
+	 * @memberof Serializer
 	 */
 	serialize(obj, type) {
 		const p = this.getPacketFromType(type);
@@ -82,7 +85,7 @@ class ProtoBufSerializer extends BaseSerializer {
 	 * @param {String} type of packet
 	 * @returns {Object}
 	 *
-	 * @memberOf Serializer
+	 * @memberof Serializer
 	 */
 	deserialize(buf, type) {
 		const p = this.getPacketFromType(type);

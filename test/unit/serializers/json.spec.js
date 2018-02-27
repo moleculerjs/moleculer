@@ -1,4 +1,5 @@
-const ServiceBroker = require("../../../src/service-broker");
+const { cloneDeep } = require("lodash");
+const P = require("../../../src/packets");
 const JSONSerializer = require("../../../src/serializers/json");
 
 
@@ -11,34 +12,27 @@ describe("Test JSONSerializer constructor", () => {
 	});
 });
 
-describe("Test JSONSerializer serialize", () => {
+describe("Test JSONSerializer", () => {
 
-	let broker = new ServiceBroker();
 	let serializer = new JSONSerializer();
-	serializer.init(broker);
+	serializer.init();
 
-	let data1 = {
-		a: 1,
-		b: false,
-		c: "Test",
-		d: {
-			e: 55
-		}
-	};
+	it("should serialize the event packet", () => {
+		const obj = {
+			ver: "3",
+			sender: "test-1",
+			event: "user.created",
+			data: {
+				a: 5,
+				b: "Test"
+			},
+			broadcast: true
+		};
+		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
+		expect(s.length).toBe(95);
 
-	it("should convert data to JSON string", () => {
-		const res = serializer.serialize(data1);
-		expect(res).toBe("{\"a\":1,\"b\":false,\"c\":\"Test\",\"d\":{\"e\":55}}");
-	});
-
-	it("should give undefined if data is not defined", () => {
-		const res = serializer.serialize();
-		expect(res).toBe(undefined);
-	});
-
-	it("should give null if data is null", () => {
-		const res = serializer.serialize(null);
-		expect(res).toBe("null");
+		const res = serializer.deserialize(s, P.PACKET_EVENT);
+		expect(res).toEqual(obj);
 	});
 
 });

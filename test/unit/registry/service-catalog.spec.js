@@ -85,12 +85,13 @@ describe("Test ServiceCatalog methods", () => {
 		expect(catalog.services.length).toBe(0);
 	});
 
-	it("should return with action list", () => {
-		catalog.add({ id: broker.nodeID }, "$node", undefined);
+	it("should return with service list", () => {
+		catalog.add({ id: broker.nodeID, available: true }, "$node", undefined);
 
-		catalog.add({ id: "server-2" }, "$node", undefined);
+		let node2 = { id: "server-2", available: true };
+		catalog.add(node2, "$node", undefined);
 
-		let svc = catalog.add({ id: "server-2" }, "posts", 2, { a: 5 }, { priority:  5 });
+		let svc = catalog.add(node2, "posts", 2, { a: 5 }, { priority:  5 });
 		svc.addAction({ name: "posts.find" });
 		svc.addEvent({ name: "user.created" });
 		svc.addEvent({ name: "$services.changed" }); // internal
@@ -101,13 +102,15 @@ describe("Test ServiceCatalog methods", () => {
 			"nodeID": broker.nodeID,
 			"settings": undefined,
 			"metadata": {},
-			"version": undefined
+			"version": undefined,
+			"available": true
 		}, {
 			"name": "$node",
 			"nodeID": "server-2",
 			"settings": undefined,
 			"metadata": {},
-			"version": undefined
+			"version": undefined,
+			"available": true
 		}, {
 			"name": "posts",
 			"nodeID": "server-2",
@@ -115,7 +118,8 @@ describe("Test ServiceCatalog methods", () => {
 				"a": 5
 			},
 			"metadata": { priority: 5 },
-			"version": 2
+			"version": 2,
+			"available": true
 		}]);
 
 		res = catalog.list({ onlyLocal: true });
@@ -124,7 +128,8 @@ describe("Test ServiceCatalog methods", () => {
 			"nodeID": broker.nodeID,
 			"settings": undefined,
 			"metadata": {},
-			"version": undefined
+			"version": undefined,
+			"available": true
 		}]);
 
 		res = catalog.list({ skipInternal: true, withActions: true, withEvents: true });
@@ -147,7 +152,60 @@ describe("Test ServiceCatalog methods", () => {
 			"metadata": {
 				"priority": 5
 			},
-			"version": 2
+			"version": 2,
+			"available": true
+		}]);
+
+		svc.node.available = false;
+		res = catalog.list({ onlyAvailable : true });
+		expect(res).toEqual([{
+			"name": "$node",
+			"nodeID": broker.nodeID,
+			"settings": undefined,
+			"metadata": {},
+			"version": undefined,
+			"available": true
+		}]);
+
+	});
+	it("should return with service list for info", () => {
+		let node2 = { id: "server-2", available: true };
+		catalog.add(node2, "$node", undefined);
+
+		let svc = catalog.add({ id: broker.nodeID, available: true }, "posts", 2, { a: 5 }, { priority:  5 });
+		svc.addAction({ name: "posts.find" });
+		svc.addEvent({ name: "user.created" });
+		svc.addEvent({ name: "$services.changed" }); // internal
+
+		let res = catalog.getLocalNodeServices();
+		expect(res).toEqual([{
+			"name": "$node",
+			"actions": {},
+			"dependencies": undefined,
+			"events": {},
+			"metadata": {},
+			"settings": undefined,
+			"version": undefined
+		}, {
+			"name": "posts",
+			"version": 2,
+			"settings": {
+				"a": 5
+			},
+			"actions": {
+				"posts.find": {
+					"name": "posts.find"
+				}
+			},
+			"dependencies": undefined,
+			"events": {
+				"user.created": {
+					"name": "user.created"
+				}
+			},
+			"metadata": {
+				"priority": 5
+			},
 		}]);
 
 	});

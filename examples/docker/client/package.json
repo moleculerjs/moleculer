@@ -1,0 +1,17 @@
+{
+  "name": "client",
+  "version": "1.0.0",
+  "description": "Client node for Docker example",
+  "main": "index.js",
+  "scripts": {
+    "dev": "moleculer-runner --repl",
+    "start": "node --inspect=0.0.0.0:9229 node_modules/moleculer/bin/moleculer-runner",
+    "docker": "docker build -t moleculer-client ."
+  },
+  "keywords": [],
+  "author": "Icebob",
+  "license": "MIT",
+  "dependencies": {
+    "moleculer": "github:ice-services/moleculer#next"
+  }
+}

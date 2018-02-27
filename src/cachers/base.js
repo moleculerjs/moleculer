@@ -21,7 +21,7 @@ class Cacher {
 	 *
 	 * @param {object} opts
 	 *
-	 * @memberOf Cacher
+	 * @memberof Cacher
 	 */
 	constructor(opts) {
 		this.opts = _.defaultsDeep(opts, {
@@ -35,7 +35,7 @@ class Cacher {
 	 *
 	 * @param {any} broker
 	 *
-	 * @memberOf Cacher
+	 * @memberof Cacher
 	 */
 	init(broker) {
 		this.broker = broker;
@@ -48,29 +48,13 @@ class Cacher {
 
 
 			broker.use(this.middleware());
-
-			/* TODO
-			this.broker.on("cache.clean", payload => {
-				if (Array.isArray(payload))
-					payload.forEach(match => this.clean(match));
-				else
-					this.clean(payload);
-			});
-
-			this.broker.on("cache.del", payload => {
-				if (Array.isArray(payload))
-					payload.forEach(key => this.del(key));
-				else
-					this.del(payload);
-			});
-			*/
 		}
 	}
 
 	/**
 	 * Close cacher
 	 *
-	 * @memberOf Cacher
+	 * @memberof Cacher
 	 */
 	close() {
 		/* istanbul ignore next */
@@ -82,7 +66,7 @@ class Cacher {
 	 *
 	 * @param {any} key
 	 *
-	 * @memberOf Cacher
+	 * @memberof Cacher
 	 */
 	get(/*key*/) {
 		/* istanbul ignore next */
@@ -96,7 +80,7 @@ class Cacher {
 	 * @param {any} data
 	 * @param {Number?} ttl
 	 *
-	 * @memberOf Cacher
+	 * @memberof Cacher
 	 */
 	set(/*key, data, ttl*/) {
 		/* istanbul ignore next */
@@ -108,7 +92,7 @@ class Cacher {
 	 *
 	 * @param {any} key
 	 *
-	 * @memberOf Cacher
+	 * @memberof Cacher
 	 */
 	del(/*key*/) {
 		/* istanbul ignore next */
@@ -121,7 +105,7 @@ class Cacher {
 	 * @param {any} match string. Default is "**"
 	 * @returns {Promise}
 	 *
-	 * @memberOf Cacher
+	 * @memberof Cacher
 	 */
 	clean(/*match = "**"*/) {
 		/* istanbul ignore next */
@@ -199,7 +183,7 @@ class Cacher {
 	/**
 	 * Register cacher as a middleware
 	 *
-	 * @memberOf Cacher
+	 * @memberof Cacher
 	 */
 	middleware() {
 		return (handler, action) => {

@@ -38,7 +38,7 @@ class ParamValidator {
 	/**
 	 * Register validator as a middleware
 	 *
-	 * @memberOf ParamValidator
+	 * @memberof ParamValidator
 	 */
 	middleware() {
 		return function validatorMiddleware(handler, action) {

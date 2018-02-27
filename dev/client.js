@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 "use strict";
 
 let _ = require("lodash");
@@ -10,11 +9,19 @@ let ServiceBroker = require("../src/service-broker");
 
 // Create broker
 let broker = new ServiceBroker({
-	//namespace: "multi",
+	namespace: "",
 	nodeID: process.argv[2] || "client-" + process.pid,
-	transporter: "NATS",
+	transporter: {
+		type: "TCP",
+		options: {
+			//udpDiscovery: false,
+			//urls: "file://./dev/nodes.json",
+			//debug: true
+		}
+	},
+	//transporter: "kafka://192.168.0.181:2181",
 	//transporter: "amqp://192.168.0.181:5672",
-	//serializer: "ProtoBuf",
+	//serializer: "MsgPack",
 	//requestTimeout: 1000,
 
 	//disableBalancer: true,
@@ -22,11 +29,11 @@ let broker = new ServiceBroker({
 	metrics: true,
 
 	transit: {
-		maxQueueSize: 10
+		//maxQueueSize: 10
 	},
 
 	registry: {
-		strategy: Strategies.Random
+		//strategy: Strategies.Random
 	},
 
 	circuitBreaker: {
@@ -34,7 +41,7 @@ let broker = new ServiceBroker({
 		maxFailures: 3
 	},
 	logger: console,
-	//logLevel: "debug",
+	logLevel: "debug",
 	logFormatter: "simple"
 });
 
@@ -86,8 +93,10 @@ setTimeout(() => {
 }, 5000);*/
 
 let reqCount = 0;
+let pendingReqs = [];
 
 broker.start()
+	.then(() => broker.repl())
 	.then(() => broker.waitForServices("math"))
 	.then(() => {
 		setInterval(() => {
@@ -97,14 +106,31 @@ broker.start()
 				return;
 			}*/
 
+			let pendingInfo = "";
+			if (pendingReqs.length > 10) {
+				pendingInfo = ` [${pendingReqs.slice(0, 10).join(",")}] + ${pendingReqs.length - 10}`;
+			} else if (pendingReqs.length > 0) {
+				pendingInfo = ` [${pendingReqs.join(",")}]`;
+			}
+
 			let payload = { a: _.random(0, 100), b: _.random(0, 100), count: ++reqCount };
+			pendingReqs.push(reqCount);
 			let p = broker.call("math.add", payload);
-			if (p.ctx)
-				broker.logger.info(chalk.grey(`${reqCount}. Send request (${payload.a} + ${payload.b}) to ${p.ctx.nodeID ? p.ctx.nodeID : "some node"} (queue: ${broker.transit.pendingRequests.size})...`));
+			if (p.ctx) {
+				broker.logger.info(chalk.grey(`${reqCount}. Send request (${payload.a} + ${payload.b}) to ${p.ctx.nodeID ? p.ctx.nodeID : "some node"} (queue: ${broker.transit.pendingRequests.size})...`), chalk.yellow.bold(pendingInfo));
+			}
 			p.then(({ count, res }) => {
 				broker.logger.info(_.padEnd(`${count}. ${payload.a} + ${payload.b} = ${res}`, 20), `(from: ${p.ctx.nodeID})`);
+
+				// Remove from pending
+				if (pendingReqs.indexOf(count) !== -1)
+					pendingReqs = pendingReqs.filter(n => n != count);
+				else
+					broker.logger.warn(chalk.red.bold("Invalid coming request count: ", count));
 			}).catch(err => {
 				broker.logger.warn(chalk.red.bold(_.padEnd(`${payload.count}. ${payload.a} + ${payload.b} = ERROR! ${err.message}`)));
+				if (pendingReqs.indexOf(payload.count) !== -1)
+					pendingReqs = pendingReqs.filter(n => n != payload.count);
 			});
 		}, 1000);
 

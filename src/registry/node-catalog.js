@@ -7,6 +7,7 @@
 "use strict";
 
 const _ 			= require("lodash");
+const os 			= require("os");
 const Node 			= require("./node");
 const { getIpList } = require("../utils");
 
@@ -34,7 +35,10 @@ class NodeCatalog {
 
 		this.heartbeatTimer = null;
 		this.checkNodesTimer = null;
+		this.offlineTimer = null;
 
+		this.disableHeartbeatChecks = false;
+		this.disableOfflineNodeRemoving = false;
 
 		this.createLocalNode();
 
@@ -48,20 +52,27 @@ class NodeCatalog {
 	 * @memberof NodeCatalog
 	 */
 	startHeartbeatTimers() {
+		/* istanbul ignore next */
 		this.heartbeatTimer = setInterval(() => {
-			this.localNode.updateLocalInfo();
-			/* istanbul ignore next */
-			if (this.broker.transit)
-				this.broker.transit.sendHeartbeat(this.localNode);
+			this.localNode.updateLocalInfo().then(() => {
+				if (this.broker.transit)
+					this.broker.transit.sendHeartbeat(this.localNode);
+			});
 
 		}, this.broker.options.heartbeatInterval * 1000);
 		this.heartbeatTimer.unref();
 
+		/* istanbul ignore next */
 		this.checkNodesTimer = setInterval(() => {
-			/* istanbul ignore next */
 			this.checkRemoteNodes();
 		}, this.broker.options.heartbeatTimeout * 1000);
 		this.checkNodesTimer.unref();
+
+		/* istanbul ignore next */
+		this.offlineTimer = setInterval(() => {
+			this.checkOfflineNodes();
+		}, 30 * 1000); // 30 secs
+		this.offlineTimer.unref();
 	}
 
 	/**
@@ -79,6 +90,11 @@ class NodeCatalog {
 			clearInterval(this.checkNodesTimer);
 			this.checkNodesTimer = null;
 		}
+
+		if (this.offlineTimer) {
+			clearInterval(this.offlineTimer);
+			this.offlineTimer = null;
+		}
 	}
 
 	/**
@@ -91,11 +107,13 @@ class NodeCatalog {
 		const node = new Node(this.broker.nodeID);
 		node.local = true;
 		node.ipList = getIpList();
+		node.hostname = os.hostname();
 		node.client = {
 			type: "nodejs",
 			version: this.broker.MOLECULER_VERSION,
 			langVersion: process.version
 		};
+		node.seq = 1;
 
 		this.add(node.id, node);
 
@@ -158,13 +176,15 @@ class NodeCatalog {
 			isReconnected = true;
 			node.lastHeartbeatTime = Date.now();
 			node.available = true;
+			node.offlineSince = null;
 		}
 
 		// Update instance
-		node.update(payload);
+		const needRegister = node.update(payload);
 
-		if (node.services) {
-			this.registry.registerServices(node, payload.services);
+		// Refresh services if 'seq' is greater or it is a reconnected node
+		if ((needRegister || isReconnected) && node.services) {
+			this.registry.registerServices(node, node.services);
 		}
 
 		// Local notifications
@@ -179,14 +199,17 @@ class NodeCatalog {
 			this.logger.debug(`Node '${nodeID}' updated.`);
 		}
 
+		return node;
 	}
 
 	/**
 	 * Check all registered remote nodes are available.
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	checkRemoteNodes() {
+		if (this.disableHeartbeatChecks) return;
+
 		const now = Date.now();
 		this.nodes.forEach(node => {
 			if (node.local || !node.available) return;
@@ -194,6 +217,25 @@ class NodeCatalog {
 			if (now - (node.lastHeartbeatTime || 0) > this.broker.options.heartbeatTimeout * 1000) {
 				this.logger.warn(`Heartbeat is not received from '${node.id}' node.`);
 				this.disconnected(node.id, true);
+			}
+		});
+	}
+
+	/**
+	 * Check offline nodes. Remove which is older than 10 minutes.
+	 *
+	 * @memberof Transit
+	 */
+	checkOfflineNodes() {
+		if (this.disableOfflineNodeRemoving) return;
+
+		const now = Date.now();
+		this.nodes.forEach(node => {
+			if (node.local || node.available) return;
+
+			if (now - (node.lastHeartbeatTime || 0) > 10 * 60 * 1000) {
+				this.logger.warn(`Remove offline '${node.id}' node from registry because it hasn't submitted heartbeat signal for 10 minutes.`);
+				return this.nodes.delete(node.id);
 			}
 		});
 	}
@@ -255,11 +297,20 @@ class NodeCatalog {
 		let res = [];
 		this.nodes.forEach(node => {
 			if (withServices)
-				res.push(node);
+				res.push(_.omit(node, ["rawInfo"]));
 			else
-				res.push(_.omit(node, ["services"]));
+				res.push(_.omit(node, ["services", "rawInfo"]));
 		});
 
+		return res;
+	}
+
+	/**
+	 * Get a copy from node list.
+	 */
+	toArray() {
+		let res = [];
+		this.nodes.forEach(node => res.push(node));
 		return res;
 	}
 }

@@ -33,7 +33,7 @@ let utils = {
 	 * @returns
 	 */
 	getNodeID() {
-		return os.hostname().toLowerCase();// + "-" + process.pid;
+		return os.hostname().toLowerCase() + "-" + process.pid;
 	},
 
 	/**
@@ -85,18 +85,29 @@ let utils = {
 	 * @param {Object} mods
 	 * @returns
 	 */
-	mergeSchemas(schema, mods) {
+	mergeSchemas(schema, modSchema) {
 		function updateProp(propName, target, source) {
 			if (source[propName] !== undefined)
 				target[propName] = source[propName];
 		}
 
 		const res = _.cloneDeep(schema);
+		const mods = _.cloneDeep(modSchema);
 
 		Object.keys(mods).forEach(key => {
 			if (["settings", "metadata"].indexOf(key) !== -1) {
 				res[key] = _.defaultsDeep(mods[key], res[key]);
-			} else if (["actions", "methods"].indexOf(key) !== -1) {
+			} else if (["actions"].indexOf(key) !== -1) {
+				if (res[key] == null)
+					res[key] = {};
+
+				Object.keys(mods[key]).forEach(k => {
+					res[key][k] = _.defaultsDeep(
+						_.isFunction(mods[key][k]) ? { handler: mods[key][k] } : mods[key][k],
+						_.isFunction(res[key][k]) ? { handler: res[key][k] } : res[key][k]
+					);
+				});
+			} else if (["methods"].indexOf(key) !== -1) {
 				res[key] = _.assign(res[key], mods[key]);
 			} else if (["events"].indexOf(key) !== -1) {
 				if (res[key] == null)

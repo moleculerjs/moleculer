@@ -1,4 +1,4 @@
-title: Protocol v2
+title: Protocol v3
 ---
 
 This documentation describes the communication protocol between Moleculer nodes. 
@@ -31,15 +31,15 @@ After the client is connected to the message broker (NATS, Redis, MQTT), it subs
 | Pong | `MOL.PONG.<nodeID>` |
 | Disconnect | `MOL.DISCONNECT` |
 
-> If `namespace` is defined, the topic prefix is `MOL-namespace` instead of `MOL`. For example: `MOL-dev.EVENT` if namespace is `dev`.
+> If `namespace` is defined, the topic prefix is `MOL-namespace` instead of `MOL`. For example: `MOL-dev.EVENT` if the namespace is `dev`.
 
 ## Discovering
-After subscriptions, the client broadcasts a `DISCOVER` packet. In response to this all connected nodes send back `INFO` packet to the sender node. From these responses the client builds its own service registry. At last, the client broadcasts also own INFO packet to all other nodes.
+After subscriptions, the client broadcasts a `DISCOVER` packet. In response to this, all connected nodes send back `INFO` packet to the sender node. From these responses, the client builds its own service registry. At last, the client broadcasts own INFO packet to all other nodes.
 ![](http://moleculer.services/images/protocol-v2/moleculer_protocol_discover.png)
 
 ## Heartbeat
-The client has to broadcast `HEARTBEAT` packets periodically. The period value comes from broker options (`heartbeatInterval`). Default value is 5 secs. 
-If the client doesn't receive `HEARTBEAT` for `heartbeatTimeout` seconds from a node, marks it to broken and doesn't route requests to this node.
+The client has to broadcast `HEARTBEAT` packets periodically. The period value comes from broker options (`heartbeatInterval`). The default value is 5 secs. 
+If the client does not receive `HEARTBEAT` for `heartbeatTimeout` seconds from a node, marks it broken and doesn't route requests to this node.
 ![](http://moleculer.services/images/protocol-v2/moleculer_protocol_heartbeat.png)
 
 ## Request-reply
@@ -47,7 +47,7 @@ When you call the `broker.call` method, the broker sends a `REQUEST` packet to t
 ![](http://moleculer.services/images/protocol-v2/moleculer_protocol_request.png)
 
 ## Event
-When you call the `broker.emit` method, the broker sends an `EVENT` packet to the subscribed nodes. The broker groups & balances the subscribers, so only one instance per service receives the event.
+When you call the `broker.emit` method, the broker sends an `EVENT` packet to the subscriber nodes. The broker groups & balances the subscribers, so only one instance per service receives the event. If you call the `broker.broadcast` method, the broker sends an `ĘVENT` packet to all subscriber nodes. It doesn't group & balance the subscribers.
 ![](http://moleculer.services/images/protocol-v2/moleculer_protocol_event.png)
 
 ## Ping-pong
@@ -71,7 +71,7 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
-| `ver` | `string` | ✔ | Protocol version. Current: `'2'`. |
+| `ver` | `string` | ✔ | Protocol version. Current: `'3'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
 
 
@@ -86,12 +86,12 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
-| `ver` | `string` | ✔ | Protocol version. Current: `'2'`. |
+| `ver` | `string` | ✔ | Protocol version. Current: `'3'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `services` | `object` | ✔ | Services list. (*) |
 | `config` | `object` | ✔ | Client configuration. (*) |
 | `ipList` | `[string]` | ✔ | IP address list of node |
-| `port` | `int32` |   | Port number |
+| `hostname` | `string` | ✔ | Hostname of node |
 | `client` | `object` | ✔ | Client information |
 |   `client.type` | `string` | ✔ | Type of client implementation(`nodejs`, `java`, `go`) |
 |   `client.version` | `string` | ✔ | Client (Moleculer) version |
@@ -109,7 +109,7 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
-| `ver` | `string` | ✔ | Protocol version. Current: `'2'`. |
+| `ver` | `string` | ✔ | Protocol version. Current: `'3'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `cpu` | `double` | ✔ | Current CPU utilization (percentage). |
 
@@ -125,7 +125,7 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
-| `ver` | `string` | ✔ | Protocol version. Current: `'2'`. |
+| `ver` | `string` | ✔ | Protocol version. Current: `'3'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `id` | `string` | ✔ | Context ID. |
 | `action` | `string` | ✔ | Action name. E.g.: `posts.find` |
@@ -149,12 +149,13 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
-| `ver` | `string` | ✔ | Protocol version. Current: `'2'`. |
+| `ver` | `string` | ✔ | Protocol version. Current: `'3'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `id` | `string` | ✔ | Context ID (from `REQUEST`). |
 | `success` | `boolean` | ✔ | Is it a success response? |
 | `data` | `object` |  | Response data if success. (*) |
 | `error` | `object` |  | Error object if not success. (*) |
+| `meta` | `object` | ✔ | `ctx.meta` object. (*) |
 
 > (*) In case of `ProtoBuf`, `Avro` or any other schema-based serializer, the field value is encoded to JSON string.
 
@@ -170,11 +171,12 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
-| `ver` | `string` | ✔ | Protocol version. Current: `'2'`. |
+| `ver` | `string` | ✔ | Protocol version. Current: `'3'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `event` | `string` | ✔ | Event name. E.g.: `users.created` |
-| `data` | `object` | ✔ | Event payload. (*) |
-| `groups` | `Array<string>` | ✔ | Groups for balanced events. If `null` or empty, the event is broadcasted. |
+| `data` | `object` |   | Event payload. (*) |
+| `groups` | `Array<string>` |   | Groups for balanced events. |
+| `broadcast` | `boolean` | ✔ | Broadcast event |
 
 > (*) In case of `ProtoBuf`, `Avro` or any other schema-based serializer, the field value is encoded to JSON string.
 
@@ -190,7 +192,7 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
-| `ver` | `string` | ✔ | Protocol version. Current: `'2'`. |
+| `ver` | `string` | ✔ | Protocol version. Current: `'3'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `time` | `int64` | ✔ | Time of sent. (*) |
 
@@ -206,7 +208,7 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
-| `ver` | `string` | ✔ | Protocol version. Current: `'2'`. |
+| `ver` | `string` | ✔ | Protocol version. Current: `'3'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `time` | `int64` | ✔ | Timestamp of sent. (*) |
 | `arrived` | `int64` | ✔ | Timestamp of arrived. (*) |
@@ -223,6 +225,6 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
-| `ver` | `string` | ✔ | Protocol version. Current: `'2'`. |
+| `ver` | `string` | ✔ | Protocol version. Current: `'3'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
 

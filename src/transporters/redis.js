@@ -22,12 +22,9 @@ class RedisTransporter extends Transporter {
 	 *
 	 * @param {any} opts
 	 *
-	 * @memberOf RedisTransporter
+	 * @memberof RedisTransporter
 	 */
 	constructor(opts) {
-		if (typeof opts == "string")
-			opts = { redis: opts };
-
 		super(opts);
 
 		this.clientPub = null;
@@ -37,7 +34,7 @@ class RedisTransporter extends Transporter {
 	/**
 	 * Connect to the server
 	 *
-	 * @memberOf RedisTransporter
+	 * @memberof RedisTransporter
 	 */
 	connect() {
 		return new Promise((resolve, reject) => {
@@ -49,13 +46,13 @@ class RedisTransporter extends Transporter {
 				this.broker.fatal("The 'ioredis' package is missing. Please install it with 'npm install ioredis --save' command.", err, true);
 			}
 
-			const clientSub = new Redis(this.opts.redis);
+			const clientSub = new Redis(this.opts);
 			this._clientSub = clientSub; // For tests
 
 			clientSub.on("connect", () => {
 				this.logger.info("Redis-sub client is connected.");
 
-				const clientPub = new Redis(this.opts.redis);
+				const clientPub = new Redis(this.opts);
 				this._clientPub = clientPub; // For tests
 
 				clientPub.on("connect", () => {
@@ -86,7 +83,7 @@ class RedisTransporter extends Transporter {
 			clientSub.on("messageBuffer", (topicBuf, buf) => {
 				const topic = topicBuf.toString();
 				const cmd = topic.split(".")[1];
-				this.messageHandler(cmd, buf);
+				this.incomingMessage(cmd, buf);
 			});
 
 			/* istanbul ignore next */
@@ -107,7 +104,7 @@ class RedisTransporter extends Transporter {
 	/**
 	 * Disconnect from the server
 	 *
-	 * @memberOf RedisTransporter
+	 * @memberof RedisTransporter
 	 */
 	disconnect() {
 		if (this.clientSub) {
@@ -127,7 +124,7 @@ class RedisTransporter extends Transporter {
 	 * @param {String} cmd
 	 * @param {String} nodeID
 	 *
-	 * @memberOf RedisTransporter
+	 * @memberof RedisTransporter
 	 */
 	subscribe(cmd, nodeID) {
 		this.clientSub.subscribe(this.getTopicName(cmd, nodeID));
@@ -139,11 +136,13 @@ class RedisTransporter extends Transporter {
 	 *
 	 * @param {Packet} packet
 	 *
-	 * @memberOf RedisTransporter
+	 * @memberof RedisTransporter
 	 */
 	publish(packet) {
+		/* istanbul ignore next*/
 		if (!this.clientPub) return;
-		const data = packet.serialize();
+
+		const data = this.serialize(packet);
 		this.clientPub.publish(this.getTopicName(packet.type, packet.target), data);
 		return Promise.resolve();
 	}

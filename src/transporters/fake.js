@@ -30,7 +30,7 @@ class FakeTransporter extends Transporter {
 	 *
 	 * @param {any} opts
 	 *
-	 * @memberOf FakeTransporter
+	 * @memberof FakeTransporter
 	 */
 	constructor(opts) {
 		super(opts);
@@ -43,7 +43,7 @@ class FakeTransporter extends Transporter {
 	/**
 	 * Connect to a NATS server
 	 *
-	 * @memberOf FakeTransporter
+	 * @memberof FakeTransporter
 	 */
 	connect() {
 		return this.onConnected();
@@ -52,7 +52,7 @@ class FakeTransporter extends Transporter {
 	/**
 	 * Disconnect from a NATS server
 	 *
-	 * @memberOf FakeTransporter
+	 * @memberof FakeTransporter
 	 */
 	disconnect() {
 		this.connected = false;
@@ -65,11 +65,11 @@ class FakeTransporter extends Transporter {
 	 * @param {String} cmd
 	 * @param {String} nodeID
 	 *
-	 * @memberOf FakeTransporter
+	 * @memberof FakeTransporter
 	 */
 	subscribe(cmd, nodeID) {
 		const t = this.getTopicName(cmd, nodeID);
-		this.bus.on(t, msg => this.messageHandler(cmd, msg));
+		this.bus.on(t, msg => this.incomingMessage(cmd, msg));
 		return Promise.resolve();
 	}
 
@@ -99,11 +99,10 @@ class FakeTransporter extends Transporter {
 	 *
 	 * @param {Packet} packet
 	 *
-	 * @memberOf FakeTransporter
+	 * @memberof FakeTransporter
 	 */
 	publish(packet) {
-		const data = packet.serialize();
-		this.bus.emit(this.getTopicName(packet.type, packet.target), data);
+		this.bus.emit(this.getTopicName(packet.type, packet.target), this.serialize(packet));
 		return Promise.resolve();
 	}
 
@@ -114,9 +113,10 @@ class FakeTransporter extends Transporter {
 	 * @param {String} group
 	 * @returns {Promise}
 	 *
-	 * @memberOf BaseTransporter
+	 * @memberof BaseTransporter
 	 */
 	publishBalancedEvent(/*packet, group*/) {
+		/* istanbul ignore next */
 		return Promise.resolve();
 	}
 
@@ -126,9 +126,10 @@ class FakeTransporter extends Transporter {
 	 * @param {Packet} packet
 	 * @returns {Promise}
 	 *
-	 * @memberOf BaseTransporter
+	 * @memberof BaseTransporter
 	 */
 	publishBalancedRequest(/*packet*/) {
+		/* istanbul ignore next */
 		return Promise.resolve();
 	}
 

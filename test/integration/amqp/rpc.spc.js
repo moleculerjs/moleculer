@@ -11,6 +11,7 @@ function createNode(name, disableBalancer = false, service) {
 	const broker = new ServiceBroker({
 		namespace: "test-rpc",
 		nodeID: "rpc-" + name,
+		//logger: console,
 		transporter: process.env.AMQP_URI || "amqp://guest:guest@localhost:5672",
 		disableBalancer,
 		registry: {
@@ -152,7 +153,7 @@ const runTestCases = (logs, client, worker1, worker2, worker3, builtInBalancer) 
 			});
 		});
 
-		it.skip("Messages that haven't finished processing should be retryable by other nodes.", () => {
+		it("Messages that haven't finished processing should be retryable by other nodes.", () => {
 			// This requires all requests to be made to a single queue.
 			// This test also requires messages to be acked after the action handler finishes.
 			// All broker's should consume from the same queue so that messages aren't abandoned in
@@ -202,11 +203,13 @@ describe("Test AMQPTransporter", () => {
 
 		const brokers = [client, worker1, worker2, worker3];
 
-		beforeEach(() => Promise.all(brokers.map(broker => broker.start())));
+		beforeEach(() => {
+			return Promise.all(brokers.map(broker => broker.start())).delay(1000);
+		});
 
 		afterEach(() => {
 			logs.length = 0;
-			return Promise.all(brokers.map(broker => broker.stop()));
+			return Promise.all(brokers.map(broker => broker.stop())).delay(1000);
 		});
 
 		runTestCases(logs, client, worker1, worker2, worker3, true);
@@ -224,7 +227,7 @@ describe("Test AMQPTransporter", () => {
 
 		const brokers = [client, worker1, worker2, worker3];
 
-		beforeEach(() => Promise.all(brokers.map(broker => broker.start())));
+		beforeEach(() => Promise.all(brokers.map(broker => broker.start())).delay(1000));
 
 		afterEach(() => {
 			logs.length = 0;

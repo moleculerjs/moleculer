@@ -1,7 +1,4 @@
-//let _ = require("lodash");
 let fakerator = require("fakerator")();
-let Promise	= require("bluebird");
-
 let Service = require("../src/service");
 
 module.exports = function(broker) {
@@ -50,8 +47,8 @@ module.exports = function(broker) {
 				handler(ctx) {
 					return users.find(user => user.id == ctx.params.id);
 				}
-			},			
-			
+			},
+
 			empty(ctx) {
 				return [];
 			}

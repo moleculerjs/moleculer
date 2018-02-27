@@ -9,6 +9,7 @@
 
 const Moleculer 	= require("../");
 const utils			= require("../src/utils");
+const Promise		= require("bluebird");
 const fs 			= require("fs");
 const path 			= require("path");
 const _ 			= require("lodash");
@@ -48,13 +49,13 @@ const logger = {
  * Process command line arguments
  *
  * Available options:
- * 		-c, --config <file> - Load an external configuration files (.js or .json)
- * 		-H, --hot  			- Hot reload services if changed
- * 		-r, --repl  		- After broker started, switch to REPL mode
- * 		-s , --silent 		- Silent mode. Disable logger, no console messages.
- * 		-e, --env 			- Load envorinment variables from the '.env' file from the current folder.
- * 		-E, --envfile 		- Load envorinment variables from the specified file.
- * 		-i, --instances     - Launch [number] instances node (load balanced)
+ * 		-c, --config <file> 	- Load an external configuration files (.js or .json)
+ * 		-H, --hot  				- Hot reload services if changed
+ * 		-r, --repl  			- After broker started, switch to REPL mode
+ * 		-s , --silent 			- Silent mode. Disable logger, no console messages.
+ * 		-e, --env 				- Load envorinment variables from the '.env' file from the current folder.
+ * 		-E, --envfile <file>	- Load envorinment variables from the specified file.
+ * 		-i, --instances     	- Launch [number] instances node (load balanced)
  */
 function processFlags() {
 	Args
@@ -248,7 +249,7 @@ function loadServices() {
 		let svcDir = process.env.SERVICEDIR || "";
 
 		if (fs.existsSync(svcDir) && !process.env.SERVICES) {
-			// Load all services from directory
+			// Load all services from directory (from subfolders too)
 			broker.loadServices(path.isAbsolute(svcDir) ? svcDir : path.resolve(process.cwd(), svcDir));
 		}
 
@@ -282,7 +283,7 @@ function loadServices() {
 }
 
 /*
- * Start workers
+ * Start cluster workers
  */
 function startWorkers(instances) {
 	let stopping = false;
@@ -349,11 +350,11 @@ function startBroker() {
 
 	loadServices();
 
-	broker.start().then(() => {
-
-		if (flags.repl && (!worker || worker.id === 1))
-			broker.repl();
-	});
+	return broker.start()
+		.then(() => {
+			if (flags.repl && (!worker || worker.id === 1))
+				broker.repl();
+		});
 }
 
 /**

@@ -61,39 +61,55 @@ describe("Test Errors", () => {
 	});
 
 	it("test ServiceNotFoundError", () => {
+		let err = new errors.ServiceNotFoundError("posts.find");
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(Error);
+		expect(err).toBeInstanceOf(errors.MoleculerRetryableError);
+		expect(err).toBeInstanceOf(errors.ServiceNotFoundError);
+		expect(err.code).toBe(404);
+		expect(err.name).toBe("ServiceNotFoundError");
+		expect(err.message).toBe("Service 'posts.find' is not found.");
+		expect(err.data).toEqual({ action: "posts.find" });
+		expect(err.retryable).toBe(true);
+	});
+
+	it("test ServiceNotFoundError with nodeID", () => {
 		let err = new errors.ServiceNotFoundError("posts.find", "node-2");
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
+		expect(err).toBeInstanceOf(errors.MoleculerRetryableError);
 		expect(err).toBeInstanceOf(errors.ServiceNotFoundError);
 		expect(err.code).toBe(404);
 		expect(err.name).toBe("ServiceNotFoundError");
 		expect(err.message).toBe("Service 'posts.find' is not found on 'node-2' node.");
 		expect(err.data).toEqual({ action: "posts.find", nodeID: "node-2" });
-		expect(err.retryable).toBe(false);
+		expect(err.retryable).toBe(true);
 	});
 
 	it("test ServiceNotAvailable", () => {
-		let err = new errors.ServiceNotAvailable("posts.find", "node-2");
+		let err = new errors.ServiceNotAvailable("posts.find");
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
+		expect(err).toBeInstanceOf(errors.MoleculerRetryableError);
 		expect(err).toBeInstanceOf(errors.ServiceNotAvailable);
 		expect(err.code).toBe(404);
 		expect(err.name).toBe("ServiceNotAvailable");
-		expect(err.message).toBe("Service 'posts.find' is not available on 'node-2' node.");
-		expect(err.data).toEqual({ action: "posts.find", nodeID: "node-2" });
-		expect(err.retryable).toBe(false);
+		expect(err.message).toBe("Service 'posts.find' is not available.");
+		expect(err.data).toEqual({ action: "posts.find" });
+		expect(err.retryable).toBe(true);
 	});
 
 	it("test ServiceNotAvailable with NodeID", () => {
 		let err = new errors.ServiceNotAvailable("posts.find", "server-2");
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
+		expect(err).toBeInstanceOf(errors.MoleculerRetryableError);
 		expect(err).toBeInstanceOf(errors.ServiceNotAvailable);
 		expect(err.code).toBe(404);
 		expect(err.name).toBe("ServiceNotAvailable");
 		expect(err.message).toBe("Service 'posts.find' is not available on 'server-2' node.");
 		expect(err.data).toEqual({ action: "posts.find", nodeID: "server-2" });
-		expect(err.retryable).toBe(false);
+		expect(err.retryable).toBe(true);
 	});
 
 	it("test RequestTimeoutError", () => {
@@ -206,15 +222,15 @@ describe("Test Errors", () => {
 	});
 
 	it("test InvalidPacketData", () => {
-		let packet = {};
-		let err = new errors.InvalidPacketData(packet);
+		let payload = {};
+		let err = new errors.InvalidPacketData("INFO", payload);
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err).toBeInstanceOf(errors.InvalidPacketData);
 		expect(err.code).toBe(500);
 		expect(err.name).toBe("InvalidPacketData");
 		expect(err.message).toBe("Invalid packet data.");
-		expect(err.data).toEqual({ packet });
+		expect(err.data).toEqual({ type: "INFO", payload });
 		expect(err.retryable).toBe(false);
 	});
 

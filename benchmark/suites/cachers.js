@@ -1,15 +1,11 @@
 "use strict";
 
-//let _ = require("lodash");
-
-let Promise	= require("bluebird");
 let { getDataFile } = require("../utils");
 
 let Benchmarkify = require("benchmarkify");
 let benchmark = new Benchmarkify("Cachers benchmark").printHeader();
 
 let Moleculer = require("../../");
-let MemoryCacher = require("../../src/cachers/memory");
 
 let key = "TESTKEY-12345";
 

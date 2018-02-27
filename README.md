@@ -13,7 +13,7 @@
 
 # Moleculer [![NPM version](https://img.shields.io/npm/v/moleculer.svg)](https://www.npmjs.com/package/moleculer)
 
-Moleculer is a fast, modern and powerful microservices framework for NodeJS (>= v6.x).
+Moleculer is a fast, modern and powerful microservices framework for Node.js (>= v6.x).
 <!--
 ![](https://img.shields.io/badge/performance-%2B50%25-brightgreen.svg)
 ![](https://img.shields.io/badge/performance-%2B5%25-green.svg)
@@ -30,13 +30,14 @@ Moleculer is a fast, modern and powerful microservices framework for NodeJS (>= 
 - Promise-based solution
 - request-reply concept
 - support event driven architecture with balancing
-- built-in service registry & auto discovery
-- load balanced requests & events (round-robin, random, custom)
+- built-in service registry
+- dynamic service discovery
+- load balanced requests & events (round-robin, random, cpu-usage)
 - supports middlewares
 - service mixins
 - multiple services on a node/server
 - built-in caching solution (memory, Redis)
-- pluggable transporters (NATS, MQTT, Redis)
+- pluggable transporters (TCP, NATS, MQTT, Redis, NATS Streaming, Kafka)
 - pluggable serializers (JSON, Avro, MsgPack, Protocol Buffer)
 - pluggable validator
 - all nodes are equal, no master/leader node

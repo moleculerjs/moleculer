@@ -49,7 +49,7 @@ class ActionCatalog {
 		let list = this.actions.get(action.name);
 		if (!list) {
 			// Create a new EndpointList
-			list = new EndpointList(this.registry, this.broker, action.name, null, this.EndpointFactory, new this.StrategyFactory());
+			list = new EndpointList(this.registry, this.broker, action.name, null, this.EndpointFactory, this.StrategyFactory);
 			this.actions.set(action.name, list);
 		}
 
@@ -112,12 +112,12 @@ class ActionCatalog {
 	/**
 	 * Get a filtered list of actions
 	 *
-	 * @param {Object} {onlyLocal = false, skipInternal = false, withEndpoints = false}
+	 * @param {Object} {onlyLocal = false, onlyAvailable = false, skipInternal = false, withEndpoints = false}
 	 * @returns {Array}
 	 *
 	 * @memberof ActionCatalog
 	 */
-	list({onlyLocal = false, skipInternal = false, withEndpoints = false}) {
+	list({onlyLocal = false, onlyAvailable = false, skipInternal = false, withEndpoints = false}) {
 		let res = [];
 
 		this.actions.forEach((list, key) => {
@@ -125,6 +125,9 @@ class ActionCatalog {
 				return;
 
 			if (onlyLocal && !list.hasLocal())
+				return;
+
+			if (onlyAvailable && !list.hasAvailable())
 				return;
 
 			let item = {
@@ -139,14 +142,15 @@ class ActionCatalog {
 				if (ep)
 					item.action = _.omit(ep.action, ["handler", "service"]);
 			}
-			if (item.action == null || item.action.protected === true) return;
+			if (item.action && item.action.protected === true) return;
 
 			if (withEndpoints) {
 				if (item.count > 0) {
 					item.endpoints = list.endpoints.map(ep => {
 						return {
 							nodeID: ep.node.id,
-							state: ep.state
+							state: ep.state,
+							available: ep.node.available,
 						};
 					});
 				}

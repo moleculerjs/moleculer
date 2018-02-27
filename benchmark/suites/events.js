@@ -21,7 +21,14 @@ let bench = benchmark.createSuite("Emit event");
 	// Create broker
 	let broker = new ServiceBroker();
 
-	broker.on("event", p => p);
+	broker.createService({
+		name: "handler",
+		events: {
+			"event"(p) {
+				return p;
+			}
+		}
+	});
 
 	bench.add("Emit simple event to 1 subscribers", () => {
 		return broker.emit("event", ["param1", { a: 1, b: "Teszt"}, 500]);
@@ -33,8 +40,15 @@ let bench = benchmark.createSuite("Emit event");
 	// Create broker
 	let broker = new ServiceBroker();
 
-	for(let i = 0; i < 20; i++) 
-		broker.on("event", p => p);
+	for (let i = 0; i < 20; i++)
+		broker.createService({
+			name: `handler-${i}`,
+			events: {
+				"event"(p) {
+					return p;
+				}
+			}
+		});
 
 	bench.add("Emit simple event to 20 subscribers", () => {
 		return broker.emit("event", ["param1", { a: 1, b: "Teszt"}, 500]);
@@ -46,8 +60,15 @@ let bench = benchmark.createSuite("Emit event");
 	// Create broker
 	let broker = new ServiceBroker();
 
-	for(let i = 0; i < 20; i++) 
-		broker.on("event.*", p => p);
+	for (let i = 0; i < 20; i++)
+		broker.createService({
+			name: `handler-${i}`,
+			events: {
+				"event.*"(p) {
+					return p;
+				}
+			}
+		});
 
 	bench.add("Emit wildcard event to 20 subscribers", () => {
 		return broker.emit("event.target", ["param1", { a: 1, b: "Teszt"}, 500]);
@@ -59,8 +80,15 @@ let bench = benchmark.createSuite("Emit event");
 	// Create broker
 	let broker = new ServiceBroker();
 
-	for(let i = 0; i < 20; i++) 
-		broker.on("event.**", p => p);
+	for (let i = 0; i < 20; i++)
+		broker.createService({
+			name: `handler-${i}`,
+			events: {
+				"event.**"(p) {
+					return p;
+				}
+			}
+		});
 
 	bench.add("Emit multi-wildcard event to 20 subscribers without params", () => {
 		return broker.emit("event.target.name");
@@ -72,8 +100,15 @@ let bench = benchmark.createSuite("Emit event");
 	// Create broker
 	let broker = new ServiceBroker();
 
-	for(let i = 0; i < 20; i++) 
-		broker.on("event.**", p => p);
+	for (let i = 0; i < 20; i++)
+		broker.createService({
+			name: `handler-${i}`,
+			events: {
+				"event.**"(p) {
+					return p;
+				}
+			}
+		});
 
 	bench.add("Emit multi-wildcard event to 20 subscribers with params", () => {
 		return broker.emit("event.target.name", ["param1", { a: 1, b: "Teszt"}, 500]);

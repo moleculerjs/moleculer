@@ -88,7 +88,7 @@ describe("Test setParams", () => {
 
 describe("Test call method", () => {
 	let broker = new ServiceBroker({ maxCallLevel: 5 });
-	broker.call = jest.fn();
+	broker.call = jest.fn(() => broker.Promise.resolve());
 
 	it("should call broker.call method with itself", () => {
 		let ctx = new Context(broker);
@@ -158,6 +158,55 @@ describe("Test call method", () => {
 	});
 });
 
+describe("Test call with meta merge", () => {
+	let broker = new ServiceBroker({ maxCallLevel: 5 });
+	let err = new Error("Subcall error");
+
+	broker.call = jest.fn()
+		.mockImplementationOnce(() => {
+			const p = broker.Promise.resolve();
+			p.ctx = {
+				meta: {
+					b: 5
+				}
+			};
+			return p;
+		})
+		.mockImplementationOnce(() => {
+			const p = broker.Promise.reject(err);
+			p.ctx = {
+				meta: {
+					b: 5
+				}
+			};
+			return p;
+		});
+
+	it("should merge meta from sub-context if resolved", () => {
+		let ctx = new Context(broker);
+		ctx.meta.a = "Hello";
+		ctx.meta.b = 1;
+		ctx._metricStart();
+		return ctx.call("posts.find", {}).catch(protectReject).then(() => {
+			expect(broker.call).toHaveBeenCalledTimes(1);
+			expect(ctx.meta).toEqual({ a: "Hello", b: 5 });
+		});
+	});
+
+	it("should merge meta from sub-context if rejected", () => {
+		broker.call.mockClear();
+		let ctx = new Context(broker);
+		ctx.meta.a = "Hello";
+		ctx.meta.b = 1;
+		ctx._metricStart();
+		return ctx.call("posts.find", {}).then(protectReject).catch(e => {
+			expect(e).toBe(err);
+			expect(broker.call).toHaveBeenCalledTimes(1);
+			expect(ctx.meta).toEqual({ a: "Hello", b: 5 });
+		});
+	});
+});
+
 describe("Test emit method", () => {
 	let broker = new ServiceBroker();
 	broker.emit = jest.fn();
@@ -169,14 +218,50 @@ describe("Test emit method", () => {
 		ctx.emit("request.rest", data);
 
 		expect(broker.emit).toHaveBeenCalledTimes(1);
-		expect(broker.emit).toHaveBeenCalledWith("request.rest", data);
+		expect(broker.emit).toHaveBeenCalledWith("request.rest", data, undefined);
 	});
 
 	it("should call broker.emit method with string param", () => {
 		broker.emit.mockClear();
 		ctx.emit("request.rest", "string-data");
 		expect(broker.emit).toHaveBeenCalledTimes(1);
-		expect(broker.emit).toHaveBeenCalledWith("request.rest", "string-data");
+		expect(broker.emit).toHaveBeenCalledWith("request.rest", "string-data", undefined);
+	});
+
+	it("should call broker.emit method without payload & groups", () => {
+		broker.emit.mockClear();
+		ctx.emit("request.rest", null, ["mail"]);
+		expect(broker.emit).toHaveBeenCalledTimes(1);
+		expect(broker.emit).toHaveBeenCalledWith("request.rest", null, ["mail"]);
+	});
+});
+
+describe("Test broadcast method", () => {
+	let broker = new ServiceBroker();
+	broker.broadcast = jest.fn();
+
+	let ctx = new Context(broker);
+
+	it("should call broker.broadcast method with object param", () => {
+		let data = { id: 5 };
+		ctx.broadcast("request.rest", data);
+
+		expect(broker.broadcast).toHaveBeenCalledTimes(1);
+		expect(broker.broadcast).toHaveBeenCalledWith("request.rest", data, undefined);
+	});
+
+	it("should call broker.broadcast method with string param", () => {
+		broker.broadcast.mockClear();
+		ctx.broadcast("request.rest", "string-data");
+		expect(broker.broadcast).toHaveBeenCalledTimes(1);
+		expect(broker.broadcast).toHaveBeenCalledWith("request.rest", "string-data", undefined);
+	});
+
+	it("should call broker.broadcast method without payload & groups", () => {
+		broker.broadcast.mockClear();
+		ctx.broadcast("request.rest", null, ["mail"]);
+		expect(broker.broadcast).toHaveBeenCalledTimes(1);
+		expect(broker.broadcast).toHaveBeenCalledWith("request.rest", null, ["mail"]);
 	});
 });
 

@@ -10,27 +10,26 @@ describe("Test EndpointList constructor", () => {
 
 	let broker = new ServiceBroker();
 	let registry = broker.registry;
-	let strategy = new Strategy();
 	let list;
 
 	it("should create a new list", () => {
-		list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, strategy);
+		list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
 
 		expect(list).toBeDefined();
 		expect(list.registry).toBe(registry);
 		expect(list.broker).toBe(broker);
 		expect(list.logger).toBe(registry.logger);
-		expect(list.strategy).toBe(strategy);
+		expect(list.strategy).toBeInstanceOf(Strategy);
 		expect(list.name).toBe("listName");
 		expect(list.group).toBe("groupName");
 		expect(list.internal).toBe(false);
 		expect(list.EndPointFactory).toBe(ActionEndpoint);
 		expect(list.endpoints).toBeInstanceOf(Array);
-		expect(list.localEndpoint).toBeNull();
+		expect(list.localEndpoints).toEqual([]);
 	});
 
 	it("should set internal flag", () => {
-		let list = new EndpointList(registry, broker, "$listName", "groupName", ActionEndpoint, strategy);
+		let list = new EndpointList(registry, broker, "$listName", "groupName", ActionEndpoint, Strategy);
 
 		expect(list).toBeDefined();
 		expect(list.name).toBe("$listName");
@@ -42,13 +41,12 @@ describe("Test EndpointList constructor", () => {
 describe("Test EndpointList.add", () => {
 	let broker = new ServiceBroker();
 	let registry = broker.registry;
-	let strategy = new Strategy();
 
 	let node = { id: "server-1" };
 	let service = { name: "test" };
 	let action = { name: "test.hello" };
 
-	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, strategy);
+	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
 
 	let epUpdate = jest.fn();
 	list.EndPointFactory = jest.fn((registry, broker, node, service, action) => ({ local: false, update: epUpdate, node, service, action }));
@@ -63,7 +61,7 @@ describe("Test EndpointList.add", () => {
 		expect(list.EndPointFactory).toHaveBeenCalledWith(registry, broker, node, service, action);
 		expect(list.endpoints.length).toBe(1);
 		expect(list.endpoints[0]).toBe(ep);
-		expect(list.localEndpoint).toBeNull();
+		expect(list.localEndpoints).toEqual([]);
 	});
 
 	it("should add a new local Endpoint", () => {
@@ -77,7 +75,8 @@ describe("Test EndpointList.add", () => {
 		expect(list.EndPointFactory).toHaveBeenCalledWith(registry, broker, node2, service, action);
 		expect(list.endpoints.length).toBe(2);
 		expect(list.endpoints[1]).toBe(ep);
-		expect(list.localEndpoint).toBe(ep);
+		expect(list.localEndpoints).toEqual([ep]);
+		expect(list.hasLocal()).toBe(true);
 	});
 
 	it("should update action on existing endpoint", () => {
@@ -100,23 +99,28 @@ describe("Test EndpointList.select", () => {
 	let broker = new ServiceBroker();
 	let registry = broker.registry;
 	let ep = {};
-	let strategy = {
-		select: jest.fn(() => ep)
+	let select = jest.fn(() => ep);
+	let MockStrategy = function() {
+		return {
+			select
+		};
 	};
 
-	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, strategy);
+	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, MockStrategy);
+
+	let arr = [{}, ep];
 
 	it("should call strategy select", () => {
-		let res = list.select();
+		let res = list.select(arr);
 		expect(res).toBe(ep);
-		expect(strategy.select).toHaveBeenCalledTimes(1);
-		expect(strategy.select).toHaveBeenCalledWith(list.endpoints);
+		expect(select).toHaveBeenCalledTimes(1);
+		expect(select).toHaveBeenCalledWith(arr);
 	});
 
 	it("should throw exception if select return with null", () => {
-		strategy.select = jest.fn();
+		list.strategy.select = jest.fn();
 		expect(() => {
-			list.select();
+			list.select(arr);
 		}).toThrowError(MoleculerError);
 	});
 
@@ -125,7 +129,6 @@ describe("Test EndpointList.select", () => {
 describe("Test EndpointList.next", () => {
 	let broker = new ServiceBroker();
 	let registry = broker.registry;
-	let strategy = new Strategy();
 
 	let ep1, ep2, ep3, ep4;
 
@@ -133,7 +136,7 @@ describe("Test EndpointList.next", () => {
 	let service = { name: "test" };
 	let action = { name: "test.hello" };
 
-	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, strategy);
+	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
 
 	list.select = jest.fn(() => ep1);
 
@@ -153,6 +156,7 @@ describe("Test EndpointList.next", () => {
 		expect(list.next()).toBe(ep1);
 		expect(list.count()).toBe(1);
 
+		expect(list.select).toHaveBeenCalledTimes(0);
 	});
 	it("should return null if only one is not available", () => {
 		ep1.state = false;
@@ -170,7 +174,7 @@ describe("Test EndpointList.next", () => {
 
 		expect(list.count()).toBe(4);
 		expect(ep3.local).toBe(true);
-		expect(list.localEndpoint).toBe(ep3);
+		expect(list.localEndpoints).toEqual([ep3]);
 
 		expect(list.next()).toBe(ep3);
 		expect(list.next()).toBe(ep3);
@@ -185,6 +189,7 @@ describe("Test EndpointList.next", () => {
 		expect(list.next()).toBe(ep1);
 
 		expect(list.select).toHaveBeenCalledTimes(1);
+		expect(list.select).toHaveBeenCalledWith([ep1, ep2, ep4]);
 
 		ep3.state = true;
 	});
@@ -196,14 +201,11 @@ describe("Test EndpointList.next", () => {
 		expect(list.next()).toBe(ep1);
 
 		expect(list.select).toHaveBeenCalledTimes(1);
+		expect(list.select).toHaveBeenCalledWith([ep1, ep2, ep3, ep4]);
 	});
 
 	it("should find the first available ep", () => {
-		list.select = jest.fn()
-			.mockImplementationOnce(() => ep1)
-			.mockImplementationOnce(() => ep2)
-			.mockImplementationOnce(() => ep3)
-			.mockImplementation(() => ep4);
+		list.select = jest.fn(() => ep4);
 
 		ep1.state = false;
 		ep2.state = false;
@@ -211,15 +213,12 @@ describe("Test EndpointList.next", () => {
 		ep4.state = true;
 
 		expect(list.next()).toBe(ep4);
-		expect(list.select).toHaveBeenCalledTimes(4);
+		expect(list.select).toHaveBeenCalledTimes(1);
+		expect(list.select).toHaveBeenCalledWith([ep4]);
 	});
 
 	it("should return null, if no available ep", () => {
-		list.select = jest.fn()
-			.mockImplementationOnce(() => ep1)
-			.mockImplementationOnce(() => ep2)
-			.mockImplementationOnce(() => ep3)
-			.mockImplementation(() => ep4);
+		list.select.mockClear();
 
 		ep1.state = false;
 		ep2.state = false;
@@ -227,12 +226,22 @@ describe("Test EndpointList.next", () => {
 		ep4.state = false;
 
 		expect(list.next()).toBeNull();
-		expect(list.select).toHaveBeenCalledTimes(4);
+		expect(list.select).toHaveBeenCalledTimes(0);
+	});
+
+	it("should return null if internal & localEndpoint is not available", () => {
+		list.select.mockClear();
+		list.internal = true;
+
+		expect(list.next()).toBe(null);
+		expect(list.select).toHaveBeenCalledTimes(0);
 	});
 
 	it("should return always localEndpoint if internal", () => {
 		list.select.mockClear();
 		list.internal = true;
+
+		ep3.state = true;
 
 		expect(list.next()).toBe(ep3);
 		expect(list.next()).toBe(ep3);
@@ -243,18 +252,94 @@ describe("Test EndpointList.next", () => {
 		list.internal = false;
 	});
 
+});
+
+describe("Test EndpointList.nextLocal", () => {
+	let broker = new ServiceBroker();
+	let registry = broker.registry;
+
+	let ep1, ep2, ep3, ep4;
+
+	let node = { id: broker.nodeID };
+	let service = { name: "test" };
+	let action = { name: "test.hello" };
+
+	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
+	list.select = jest.fn(() => ep1);
+
+	it("should return null if no endpoints", () => {
+		expect(list.endpoints.length).toBe(0);
+
+		let ep = list.nextLocal();
+
+		expect(ep).toBeNull();
+		expect(list.select).toHaveBeenCalledTimes(0);
+		expect(list.count()).toBe(0);
+		expect(list.localEndpoints.length).toBe(0);
+	});
+
+	it("should return only one ep", () => {
+		ep1 = list.add(node, service, action);
+
+		expect(list.nextLocal()).toBe(ep1);
+		expect(list.count()).toBe(1);
+		expect(list.localEndpoints.length).toBe(1);
+	});
+
+	it("should return null if only one is not available", () => {
+		ep1.state = false;
+		expect(list.nextLocal()).toBeNull();
+
+		expect(list.select).toHaveBeenCalledTimes(0);
+
+		ep1.state = true;
+	});
+
+	it("should call select if there are more ep", () => {
+		ep2 = list.add({ id: "node-2" }, service, action);
+		ep3 = list.add(node, { name: "test2" }, action);
+		ep4 = list.add({ id: "node-3" }, service, action);
+
+		expect(list.localEndpoints.length).toBe(2);
+		expect(ep3.local).toBe(true);
+		expect(list.localEndpoints).toEqual([ep1, ep3]);
+
+		expect(list.nextLocal()).toBe(ep1);
+		expect(list.select).toHaveBeenCalledTimes(1);
+		expect(list.select).toHaveBeenCalledWith([ep1, ep3]);
+	});
+
+	it("should find the first available ep", () => {
+		list.select = jest.fn(() => ep3);
+
+		ep1.state = false;
+		ep3.state = true;
+
+		expect(list.nextLocal()).toBe(ep3);
+		expect(list.select).toHaveBeenCalledTimes(1);
+		expect(list.select).toHaveBeenCalledWith([ep3]);
+	});
+
+	it("should return null, if no available ep", () => {
+		list.select = jest.fn();
+
+		ep1.state = false;
+		ep3.state = false;
+
+		expect(list.nextLocal()).toBeNull();
+		expect(list.select).toHaveBeenCalledTimes(0);
+	});
 
 });
 
 describe("Test EndpointList.hasAvailable", () => {
 	let broker = new ServiceBroker();
 	let registry = broker.registry;
-	let strategy = new Strategy();
 
 	let service = { name: "test" };
 	let action = { name: "test.hello" };
 
-	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, strategy);
+	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
 
 	let ep1 = list.add({ id: "node-1" }, service, action);
 	let ep2 = list.add({ id: broker.nodeID }, service, action);
@@ -274,12 +359,11 @@ describe("Test EndpointList.hasAvailable", () => {
 describe("Test EndpointList.hasLocal", () => {
 	let broker = new ServiceBroker();
 	let registry = broker.registry;
-	let strategy = new Strategy();
 
 	let service = { name: "test" };
 	let action = { name: "test.hello" };
 
-	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, strategy);
+	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
 
 	list.add({ id: "node-1" }, service, action);
 	list.add({ id: broker.nodeID }, service, action);
@@ -287,7 +371,7 @@ describe("Test EndpointList.hasLocal", () => {
 	it("should return the correct value", () => {
 		expect(list.hasLocal()).toBe(true);
 
-		list.localEndpoint = null;
+		list.localEndpoints = [];
 		expect(list.hasLocal()).toBe(false);
 	});
 
@@ -296,12 +380,11 @@ describe("Test EndpointList.hasLocal", () => {
 describe("Test EndpointList.getEndpointByNodeID", () => {
 	let broker = new ServiceBroker();
 	let registry = broker.registry;
-	let strategy = new Strategy();
 
 	let service = { name: "test" };
 	let action = { name: "test.hello" };
 
-	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, strategy);
+	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
 
 	let ep1 = list.add({ id: "node-1" }, service, action);
 	let ep2 = list.add({ id: broker.nodeID }, service, action);
@@ -322,12 +405,11 @@ describe("Test EndpointList.getEndpointByNodeID", () => {
 describe("Test EndpointList.hasNodeID", () => {
 	let broker = new ServiceBroker();
 	let registry = broker.registry;
-	let strategy = new Strategy();
 
 	let service = { name: "test" };
 	let action = { name: "test.hello" };
 
-	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, strategy);
+	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
 
 	list.add({ id: "node-1" }, service, action);
 	list.add({ id: broker.nodeID }, service, action);
@@ -343,13 +425,12 @@ describe("Test EndpointList.hasNodeID", () => {
 describe("Test EndpointList.removeByService", () => {
 	let broker = new ServiceBroker();
 	let registry = broker.registry;
-	let strategy = new Strategy();
 
 	let service1 = { name: "test" };
 	let service2 = { name: "test2" };
 	let action = { name: "test.hello" };
 
-	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, strategy);
+	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
 
 	list.add({ id: "node-1" }, service1, action);
 	list.add({ id: broker.nodeID }, service2, action);
@@ -375,13 +456,12 @@ describe("Test EndpointList.removeByService", () => {
 describe("Test EndpointList.removeByNodeID", () => {
 	let broker = new ServiceBroker();
 	let registry = broker.registry;
-	let strategy = new Strategy();
 
 	let service1 = { name: "test" };
 	let service2 = { name: "test2" };
 	let action = { name: "test.hello" };
 
-	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, strategy);
+	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
 
 	list.add({ id: "node-1" }, service1, action);
 	list.add({ id: broker.nodeID }, service2, action);
@@ -402,29 +482,28 @@ describe("Test EndpointList.removeByNodeID", () => {
 
 });
 
-describe("Test EndpointList.setLocalEndpoint", () => {
+describe("Test EndpointList.setLocalEndpoints", () => {
 	let broker = new ServiceBroker();
 	let registry = broker.registry;
-	let strategy = new Strategy();
 
 	let service1 = { name: "test" };
 	let service2 = { name: "test2" };
 	let action = { name: "test.hello" };
 
-	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, strategy);
+	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
 
 	list.add({ id: "node-1" }, service1, action);
 	let ep2 = list.add({ id: broker.nodeID }, service2, action);
 
 	it("should remove endpoints for service-1", () => {
-		expect(list.localEndpoint).toBe(ep2);
-		list.localEndpoint = null;
+		expect(list.localEndpoints).toEqual([ep2]);
+		list.localEndpoints = [];
 
-		list.setLocalEndpoint();
-		expect(list.localEndpoint).toBe(ep2);
+		list.setLocalEndpoints();
+		expect(list.localEndpoints).toEqual([ep2]);
 
 		list.removeByNodeID(broker.nodeID);
-		expect(list.localEndpoint).toBeNull();
+		expect(list.localEndpoints).toEqual([]);
 	});
 
 });

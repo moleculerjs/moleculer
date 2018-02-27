@@ -129,6 +129,7 @@ describe("Test EventCatalog methods", () => {
 				"count": 1,
 				"endpoints": [
 					{
+						"available": undefined,
 						"nodeID": "server-1",
 						"state": true
 					}
@@ -146,6 +147,7 @@ describe("Test EventCatalog methods", () => {
 				"count": 1,
 				"endpoints": [
 					{
+						"available": true,
 						"nodeID": broker.registry.nodes.localNode.id,
 						"state": true
 					}
@@ -168,6 +170,22 @@ describe("Test EventCatalog methods", () => {
 			"hasLocal": true,
 			"name": "echo.reply"
 		}]);
+
+		catalog.get("hello", "test").hasAvailable = jest.fn(() => false);
+		res = catalog.list({ onlyAvailable: true });
+		expect(res).toEqual([
+			{
+				"event": {
+					"name": "echo.reply",
+					"cache": true
+				},
+				"available": true,
+				"count": 1,
+				"group": "echo",
+				"hasLocal": true,
+				"name": "echo.reply"
+			}
+		]);
 	});
 
 });
@@ -242,6 +260,15 @@ describe("Test EventCatalog.getBalancedEndpoints & getAllEndpoints", () => {
 
 	});
 
+	it("should return all endpoint with groups", () => {
+		let res = catalog.getAllEndpoints("user.created", ["mail"]);
+
+		expect(res.length).toBe(2);
+		expect(res[0].id).toEqual("node-2");
+		expect(res[1].id).toEqual("node-3");
+
+	});
+
 	it("should return all endpoint with matches", () => {
 		let res = catalog.getAllEndpoints("user.removed");
 
@@ -281,25 +308,24 @@ describe("Test getGroups", () => {
 });
 
 describe("Test EventCatalog.emitLocalServices", () => {
-	let broker = new ServiceBroker({ nodeID: "node-2" });
+	let broker = new ServiceBroker({ nodeID: "node-1" });
 	let catalog = new EventCatalog(broker.registry, broker, Strategy);
 
 	let usersEvent = { name: "user.created", handler: jest.fn() };
 	let paymentEvent = { name: "user.created", handler: jest.fn() };
 	let mailEvent = { name: "user.*", handler: jest.fn() };
+	let otherEvent = { name: "user.created", group: "payment", handler: jest.fn() };
 
 	catalog.add({ id: "node-1" }, { name: "users" }, usersEvent);
 	catalog.add({ id: "node-1" }, { name: "payment" }, paymentEvent);
-	catalog.add({ id: "node-2" }, { name: "users" }, usersEvent);
-	catalog.add({ id: "node-2" }, { name: "payment" }, paymentEvent);
-	catalog.add({ id: "node-2" }, { name: "mail" }, mailEvent);
-	catalog.add({ id: "node-3" }, { name: "mail" }, mailEvent);
+	catalog.add({ id: "node-1" }, { name: "other" }, otherEvent);
+	catalog.add({ id: "node-1" }, { name: "mail" }, mailEvent);
 
-	it("should call local handlers", () => {
+	it("should broadcast local handlers without groups", () => {
 		expect(catalog.events.length).toBe(3);
 
 		let payload = { a: 5 };
-		catalog.emitLocalServices("user.created", payload, null, "node-99");
+		catalog.emitLocalServices("user.created", payload, null, "node-99", true);
 
 		expect(usersEvent.handler).toHaveBeenCalledTimes(1);
 		expect(usersEvent.handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
@@ -307,7 +333,63 @@ describe("Test EventCatalog.emitLocalServices", () => {
 		expect(paymentEvent.handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
 		expect(mailEvent.handler).toHaveBeenCalledTimes(1);
 		expect(mailEvent.handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
+		expect(otherEvent.handler).toHaveBeenCalledTimes(1);
+		expect(otherEvent.handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
 
+	});
+
+	it("should broadcast local handlers with groups", () => {
+		usersEvent.handler.mockClear();
+		paymentEvent.handler.mockClear();
+		mailEvent.handler.mockClear();
+		otherEvent.handler.mockClear();
+
+		let payload = { a: 5 };
+		catalog.emitLocalServices("user.created", payload, ["mail", "payment"], "node-99", true);
+
+		expect(usersEvent.handler).toHaveBeenCalledTimes(0);
+		expect(paymentEvent.handler).toHaveBeenCalledTimes(1);
+		expect(paymentEvent.handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
+		expect(mailEvent.handler).toHaveBeenCalledTimes(1);
+		expect(mailEvent.handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
+		expect(otherEvent.handler).toHaveBeenCalledTimes(1);
+		expect(otherEvent.handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
+
+	});
+
+	it("should balance local handlers without groups", () => {
+		usersEvent.handler.mockClear();
+		paymentEvent.handler.mockClear();
+		mailEvent.handler.mockClear();
+		otherEvent.handler.mockClear();
+
+		let payload = { a: 5 };
+		catalog.emitLocalServices("user.created", payload, null, "node-99", false);
+
+		expect(usersEvent.handler).toHaveBeenCalledTimes(1);
+		expect(usersEvent.handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
+		expect(paymentEvent.handler).toHaveBeenCalledTimes(1);
+		expect(paymentEvent.handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
+		expect(mailEvent.handler).toHaveBeenCalledTimes(1);
+		expect(mailEvent.handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
+		expect(otherEvent.handler).toHaveBeenCalledTimes(0); // Balanced
+	});
+
+	it("should balance local handlers with groups", () => {
+		usersEvent.handler.mockClear();
+		paymentEvent.handler.mockClear();
+		mailEvent.handler.mockClear();
+		otherEvent.handler.mockClear();
+
+		let payload = { a: 5 };
+		catalog.emitLocalServices("user.created", payload, ["mail", "payment"], "node-99", false);
+
+		expect(usersEvent.handler).toHaveBeenCalledTimes(0);
+		expect(paymentEvent.handler).toHaveBeenCalledTimes(0); // Balanced
+		expect(mailEvent.handler).toHaveBeenCalledTimes(1);
+		expect(mailEvent.handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
+		expect(otherEvent.handler).toHaveBeenCalledTimes(1);
+		expect(otherEvent.handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
 	});
 });
 

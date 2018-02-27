@@ -10,4 +10,5 @@ module.exports = {
 	Base: require("./base"),
 	RoundRobin: require("./round-robin"),
 	Random: require("./random"),
+	CpuUsage: require("./cpu-usage"),
 };
