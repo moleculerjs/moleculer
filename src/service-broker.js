@@ -94,7 +94,7 @@ class ServiceBroker {
 	/**
 	 * Creates an instance of ServiceBroker.
 	 *
-	 * @param {any} options
+	 * @param {Object} options
 	 *
 	 * @memberof ServiceBroker
 	 */
