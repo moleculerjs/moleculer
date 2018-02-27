@@ -27,7 +27,7 @@ class Transit {
 	 * @param {Transporter} Transporter instance
 	 * @param {Object?} opts
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	constructor(broker, transporter, opts) {
 		this.broker = broker;
@@ -90,7 +90,7 @@ class Transit {
 	/**
 	 * Connect with transporter. If failed, try again after 5 sec.
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	connect() {
 		this.logger.info("Connecting to the transporter...");
@@ -120,7 +120,7 @@ class Transit {
 	/**
 	 * Disconnect with transporter
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	disconnect() {
 		this.connected = false;
@@ -156,7 +156,7 @@ class Transit {
 	 *
 	 * @returns {Promise}
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	sendDisconnectPacket() {
 		return this.publish(new Packet(P.PACKET_DISCONNECT)).catch(err => this.logger.debug("Unable to send DISCONNECT packet.", err));
@@ -165,7 +165,7 @@ class Transit {
 	/**
 	 * Subscribe to topics for transportation
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	makeSubscriptions() {
 		this.subscribing = this.tx.makeSubscriptions([
@@ -214,7 +214,7 @@ class Transit {
 	 * @param {String} msg
 	 * @returns {Boolean} If packet is processed return with `true`
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	messageHandler(cmd, packet) {
 		try {
@@ -307,7 +307,7 @@ class Transit {
 	 *
 	 * @param {Object} payload
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	_requestHandler(payload) {
 		this.logger.debug(`Request '${payload.action}' received from '${payload.sender}' node.`);
@@ -325,7 +325,7 @@ class Transit {
 	 *
 	 * @param {Object} packet
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	_responseHandler(packet) {
 		const id = packet.id;
@@ -375,7 +375,7 @@ class Transit {
 	 * @param {<Context>} ctx			Context of request
 	 * @returns	{Promise}
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	request(ctx) {
 		if (this.opts.maxQueueSize && this.pendingRequests.size > this.opts.maxQueueSize)
@@ -392,7 +392,7 @@ class Transit {
 	 * @param {Function} resolve 	Resolve of Promise
 	 * @param {Function} reject 	Reject of Promise
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	_sendRequest(ctx, resolve, reject) {
 		const request = {
@@ -434,7 +434,7 @@ class Transit {
 	 * @param {String} event
 	 * @param {any} data
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	sendBroadcastEvent(nodeID, event, data, groups) {
 		this.logger.debug(`Send '${event}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
@@ -455,7 +455,7 @@ class Transit {
 	 * @param {any} data
 	 * @param {Object} nodeGroups
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	sendBalancedEvent(event, data, nodeGroups) {
 		_.forIn(nodeGroups, (groups, nodeID) => {
@@ -478,7 +478,7 @@ class Transit {
 	 * @param {any} data
 	 * @param {Object} groups
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	sendEventToGroups(event, data, groups) {
 		this.logger.debug(`Send '${event}' event to '${groups.join(", ")}' group(s).`);
@@ -495,7 +495,7 @@ class Transit {
 	 *
 	 * @param {any} id
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	removePendingRequest(id) {
 		this.pendingRequests.delete(id);
@@ -506,7 +506,7 @@ class Transit {
 	 *
 	 * @param {String} nodeID
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	removePendingRequestByNodeID(nodeID) {
 		this.logger.debug("Remove pending requests");
@@ -529,7 +529,7 @@ class Transit {
 	 * @param {any} data
 	 * @param {Error} err
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	sendResponse(nodeID, id, meta, data, err) {
 		// Publish the response
@@ -559,7 +559,7 @@ class Transit {
 	/**
 	 * Discover other nodes. It will be called after success connect.
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	discoverNodes() {
 		return this.publish(new Packet(P.PACKET_DISCOVER))
@@ -569,7 +569,7 @@ class Transit {
 	/**
 	 * Discover a node. It will be called if we got message from an unknown node.
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	discoverNode(nodeID) {
 		return this.publish(new Packet(P.PACKET_DISCOVER, nodeID))
@@ -579,7 +579,7 @@ class Transit {
 	/**
 	 * Send node info package to other nodes.
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	sendNodeInfo(nodeID) {
 		if (!this.connected || !this.isReady) return Promise.resolve();
@@ -647,7 +647,7 @@ class Transit {
 	/**
 	 * Send a node heartbeat. It will be called with timer
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	sendHeartbeat(localNode) {
 		return this.publish(new Packet(P.PACKET_HEARTBEAT, null, {
@@ -662,7 +662,7 @@ class Transit {
 	 * @param {String} topic
 	 * @param {String=} nodeID
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	subscribe(topic, nodeID) {
 		return this.tx.subscribe(topic, nodeID);
@@ -673,7 +673,7 @@ class Transit {
 	 *
 	 * @param {Packet} Packet
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	publish(packet) {
 		this.logger.debug(`Send ${packet.type} packet to '${packet.target || "all nodes"}'`);

@@ -21,7 +21,7 @@ class RedisCacher extends BaseCacher {
 	 *
 	 * @param {object} opts
 	 *
-	 * @memberOf RedisCacher
+	 * @memberof RedisCacher
 	 */
 	constructor(opts) {
 		if (typeof opts == "string")
@@ -35,7 +35,7 @@ class RedisCacher extends BaseCacher {
 	 *
 	 * @param {any} broker
 	 *
-	 * @memberOf RedisCacher
+	 * @memberof RedisCacher
 	 */
 	init(broker) {
 		super.init(broker);
@@ -75,7 +75,7 @@ class RedisCacher extends BaseCacher {
 	/**
 	 * Close Redis client connection
 	 *
-	 * @memberOf RedisCacher
+	 * @memberof RedisCacher
 	 */
 	close() {
 		return this.client.quit();
@@ -87,7 +87,7 @@ class RedisCacher extends BaseCacher {
 	 * @param {any} key
 	 * @returns {Promise}
 	 *
-	 * @memberOf Cacher
+	 * @memberof Cacher
 	 */
 	get(key) {
 		this.logger.debug(`GET ${key}`);
@@ -112,7 +112,7 @@ class RedisCacher extends BaseCacher {
 	 * @param {Number} ttl Optional Time-to-Live
 	 * @returns {Promise}
 	 *
-	 * @memberOf Cacher
+	 * @memberof Cacher
 	 */
 	set(key, data, ttl) {
 		data = JSON.stringify(data);
@@ -134,7 +134,7 @@ class RedisCacher extends BaseCacher {
 	 * @param {any} key
 	 * @returns {Promise}
 	 *
-	 * @memberOf Cacher
+	 * @memberof Cacher
 	 */
 	del(key) {
 		this.logger.debug(`DELETE ${key}`);
@@ -152,7 +152,7 @@ class RedisCacher extends BaseCacher {
 	 * @param {any} match Match string for SCAN. Default is "*"
 	 * @returns {Promise}
 	 *
-	 * @memberOf Cacher
+	 * @memberof Cacher
 	 */
 	clean(match = "*") {
 		return new Promise((resolve, reject) => {

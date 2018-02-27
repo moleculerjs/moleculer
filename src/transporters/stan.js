@@ -29,7 +29,7 @@ class StanTransporter extends Transporter {
 	 *
 	 * @param {any} opts
 	 *
-	 * @memberOf StanTransporter
+	 * @memberof StanTransporter
 	 */
 	constructor(opts) {
 		if (typeof opts == "string")
@@ -56,7 +56,7 @@ class StanTransporter extends Transporter {
 	/**
 	 * Connect to a NATS Streaming server
 	 *
-	 * @memberOf StanTransporter
+	 * @memberof StanTransporter
 	 */
 	connect() {
 		this.logger.warn(chalk.yellow.bold("NATS Streaming Transporter is an EXPERIMENTAL transporter. Do NOT use it in production yet!"));
@@ -119,7 +119,7 @@ class StanTransporter extends Transporter {
 	/**
 	 * Disconnect from a NATS Streaming server
 	 *
-	 * @memberOf StanTransporter
+	 * @memberof StanTransporter
 	 */
 	disconnect() {
 		if (this.client) {
@@ -131,7 +131,7 @@ class StanTransporter extends Transporter {
 	/**
 	 * Reconnect to server after x seconds
 	 *
-	 * @memberOf BaseTransporter
+	 * @memberof BaseTransporter
 	 */
 	/*reconnectAfterTime() {
 		//this.logger.info("Reconnecting after 5 sec...");
@@ -146,7 +146,7 @@ class StanTransporter extends Transporter {
 	 * @param {String} cmd
 	 * @param {String} nodeID
 	 *
-	 * @memberOf StanTransporter
+	 * @memberof StanTransporter
 	 */
 	subscribe(cmd, nodeID) {
 		const t = this.getTopicName(cmd, nodeID);
@@ -212,7 +212,7 @@ class StanTransporter extends Transporter {
 	 *
 	 * @param {Packet} packet
 	 *
-	 * @memberOf StanTransporter
+	 * @memberof StanTransporter
 	 */
 	publish(packet) {
 		/* istanbul ignore next*/

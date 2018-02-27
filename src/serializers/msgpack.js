@@ -22,7 +22,7 @@ class MsgPackSerializer extends BaseSerializer {
 	 *
 	 * @param {any} broker
 	 *
-	 * @memberOf Serializer
+	 * @memberof Serializer
 	 */
 	init(broker) {
 		super.init(broker);
@@ -41,7 +41,7 @@ class MsgPackSerializer extends BaseSerializer {
 	 * @param {Object} obj
 	 * @returns {Buffer}
 	 *
-	 * @memberOf Serializer
+	 * @memberof Serializer
 	 */
 	serialize(obj) {
 		const res = this.msgpack.encode(obj);
@@ -54,7 +54,7 @@ class MsgPackSerializer extends BaseSerializer {
 	 * @param {Buffer} str
 	 * @returns {Object}
 	 *
-	 * @memberOf Serializer
+	 * @memberof Serializer
 	 */
 	deserialize(buf) {
 		const res = this.msgpack.decode(buf);

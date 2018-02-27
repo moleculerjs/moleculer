@@ -42,7 +42,7 @@ class AmqpTransporter extends Transporter {
 	 *
 	 * @param {any} opts
 	 *
-	 * @memberOf AmqpTransporter
+	 * @memberof AmqpTransporter
 	 */
 	constructor(opts) {
 		if (typeof opts === "string")
@@ -84,7 +84,7 @@ class AmqpTransporter extends Transporter {
 	/**
 	 * Connect to a AMQP server
 	 *
-	 * @memberOf AmqpTransporter
+	 * @memberof AmqpTransporter
 	 */
 	connect() {
 		return new Promise((resolve, reject) => {
@@ -174,7 +174,7 @@ class AmqpTransporter extends Transporter {
 	/**
 	 * Disconnect from an AMQP server
 	 *
-	 * @memberOf AmqpTransporter
+	 * @memberof AmqpTransporter
 	 * @description Close the connection and unbind this node's queues.
 	 * This prevents messages from being broadcasted to a dead node.
 	 * Note: Some methods of ending a node process don't allow disconnect to fire, meaning that
@@ -200,7 +200,7 @@ class AmqpTransporter extends Transporter {
 	 *
 	 * @param {String} packetType
 	 *
-	 * @memberOf AmqpTransporter
+	 * @memberof AmqpTransporter
 	 */
 	_getQueueOptions(packetType) {
 		let packetOptions;
@@ -247,7 +247,7 @@ class AmqpTransporter extends Transporter {
 	 * @param {String} cmd
 	 * @param {Boolean} needAck
 	 *
-	 * @memberOf AmqpTransporter
+	 * @memberof AmqpTransporter
 	 */
 	_consumeCB(cmd, needAck = false) {
 		return (msg) => {
@@ -284,7 +284,7 @@ class AmqpTransporter extends Transporter {
 	 * @param {String} cmd
 	 * @param {String} nodeID
 	 *
-	 * @memberOf AmqpTransporter
+	 * @memberof AmqpTransporter
 	 * @description Initialize queues and exchanges for all packet types except Request.
 	 *
 	 * All packets that should reach multiple nodes have a dedicated qeuue per node, and a single
@@ -385,7 +385,7 @@ class AmqpTransporter extends Transporter {
 	 *
 	 * @param {Packet} packet
 	 *
-	 * @memberOf AmqpTransporter
+	 * @memberof AmqpTransporter
 	 * @description Send packets to their intended queues / exchanges.
 	 *
 	 * Reasonings documented in the subscribe method.

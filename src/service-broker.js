@@ -96,7 +96,7 @@ class ServiceBroker {
 	 *
 	 * @param {any} options
 	 *
-	 * @memberOf ServiceBroker
+	 * @memberof ServiceBroker
 	 */
 	constructor(options) {
 		this.options = _.defaultsDeep(options, defaultOptions);
@@ -334,7 +334,7 @@ class ServiceBroker {
 	/**
 	 * Start broker. If has transporter, transporter.connect will be called.
 	 *
-	 * @memberOf ServiceBroker
+	 * @memberof ServiceBroker
 	 */
 	start() {
 		return Promise.resolve()
@@ -370,7 +370,7 @@ class ServiceBroker {
 	/**
 	 * Stop broker. If has transporter, transporter.disconnect will be called.
 	 *
-	 * @memberOf ServiceBroker
+	 * @memberof ServiceBroker
 	 */
 	stop() {
 		return Promise.resolve()
@@ -415,7 +415,7 @@ class ServiceBroker {
 	 * @example
 	 * broker.start().then(() => broker.repl());
 	 *
-	 * @memberOf ServiceBroker
+	 * @memberof ServiceBroker
 	 */
 	repl() {
 		let repl;
@@ -441,7 +441,7 @@ class ServiceBroker {
 	 * @param {String|Number} version	Service version
 	 * @returns {Logger}
 	 *
-	 * @memberOf ServiceBroker
+	 * @memberof ServiceBroker
 	 */
 	getLogger(module, service, version) {
 		let bindings = {
@@ -478,7 +478,7 @@ class ServiceBroker {
 	 * @param {Error?} err
 	 * @param {boolean} [needExit=true]
 	 *
-	 * @memberOf ServiceBroker
+	 * @memberof ServiceBroker
 	 */
 	fatal(message, err, needExit = true) {
 		if (err)
@@ -498,7 +498,7 @@ class ServiceBroker {
 	 * @param {string} [fileMask="**\/*.service.js"]	Service filename mask
 	 * @returns	{Number}							Number of found services
 	 *
-	 * @memberOf ServiceBroker
+	 * @memberof ServiceBroker
 	 */
 	loadServices(folder = "./services", fileMask = "**/*.service.js") {
 		this.logger.debug(`Search services in '${folder}/${fileMask}'...`);
@@ -524,7 +524,7 @@ class ServiceBroker {
 	 * @param {string} 		Path of service
 	 * @returns	{Service}	Loaded service
 	 *
-	 * @memberOf ServiceBroker
+	 * @memberof ServiceBroker
 	 */
 	loadService(filePath) {
 		let fName = path.resolve(filePath);
@@ -616,7 +616,7 @@ class ServiceBroker {
 	 * @param {any=} schemaMods	Modified schema
 	 * @returns {Service}
 	 *
-	 * @memberOf ServiceBroker
+	 * @memberof ServiceBroker
 	 */
 	createService(schema, schemaMods) {
 		let s = schema;
@@ -691,7 +691,7 @@ class ServiceBroker {
 	 *
 	 * @param {any} action
 	 *
-	 * @memberOf ServiceBroker
+	 * @memberof ServiceBroker
 	 */
 	wrapAction(action) {
 		let handler = action.handler;
@@ -710,7 +710,7 @@ class ServiceBroker {
 	/**
 	 * Register internal services
 	 *
-	 * @memberOf ServiceBroker
+	 * @memberof ServiceBroker
 	 */
 	registerInternalServices() {
 		this.createService(require("./internals")(this));
@@ -722,7 +722,7 @@ class ServiceBroker {
 	 * @param {String} name
 	 * @returns {Service}
 	 *
-	 * @memberOf ServiceBroker
+	 * @memberof ServiceBroker
 	 */
 	getLocalService(name, version) {
 		return this.services.find(service => service.name == name && service.version == version);
@@ -777,7 +777,7 @@ class ServiceBroker {
 	 *
 	 * @param {Function} mws
 	 *
-	 * @memberOf ServiceBroker
+	 * @memberof ServiceBroker
 	 */
 	use(...mws) {
 		mws.forEach(mw => {
@@ -838,7 +838,7 @@ class ServiceBroker {
 	 * @returns {Promise}
 	 *
 	 * @performance-critical
-	 * @memberOf ServiceBroker
+	 * @memberof ServiceBroker
 	 */
 	call(actionName, params, opts = {}) {
 		const endpoint = this.findNextActionEndpoint(actionName, opts);
@@ -1070,7 +1070,7 @@ class ServiceBroker {
 	 * @param {Object} opts
 	 * @returns
 	 *
-	 * @memberOf ServiceBroker
+	 * @memberof ServiceBroker
 	 */
 	_callErrorHandler(err, ctx, endpoint, opts) {
 		const actionName = ctx.action.name;
@@ -1183,7 +1183,7 @@ class ServiceBroker {
 	 *
 	 * @returns
 	 *
-	 * @memberOf ServiceBroker
+	 * @memberof ServiceBroker
 	 */
 	shouldMetric() {
 		if (this.options.metrics) {
@@ -1205,7 +1205,7 @@ class ServiceBroker {
 	 * @param {String|Array<String>=} groups
 	 * @returns
 	 *
-	 * @memberOf ServiceBroker
+	 * @memberof ServiceBroker
 	 */
 	emit(eventName, payload, groups) {
 		if (groups && !Array.isArray(groups))
@@ -1269,7 +1269,7 @@ class ServiceBroker {
 	 * @param {String|Array<String>=} groups
 	 * @returns
 	 *
-	 * @memberOf ServiceBroker
+	 * @memberof ServiceBroker
 	 */
 	broadcast(eventName, payload, groups = null) {
 		if (groups && !Array.isArray(groups))
@@ -1303,7 +1303,7 @@ class ServiceBroker {
 	 * @param {String?} nodeID
 	 * @returns
 	 *
-	 * @memberOf ServiceBroker
+	 * @memberof ServiceBroker
 	 */
 	broadcastLocal(eventName, payload, groups = null) {
 		if (groups && !Array.isArray(groups))

@@ -21,7 +21,7 @@ class MemoryCacher extends BaseCacher {
 	 *
 	 * @param {object} opts
 	 *
-	 * @memberOf MemoryCacher
+	 * @memberof MemoryCacher
 	 */
 	constructor(opts) {
 		super(opts);
@@ -43,7 +43,7 @@ class MemoryCacher extends BaseCacher {
 	 *
 	 * @param {any} broker
 	 *
-	 * @memberOf Cacher
+	 * @memberof Cacher
 	 */
 	init(broker) {
 		super.init(broker);
@@ -60,7 +60,7 @@ class MemoryCacher extends BaseCacher {
 	 * @param {any} key
 	 * @returns {Promise}
 	 *
-	 * @memberOf MemoryCacher
+	 * @memberof MemoryCacher
 	 */
 	get(key) {
 		this.logger.debug(`GET ${key}`);
@@ -87,7 +87,7 @@ class MemoryCacher extends BaseCacher {
 	 * @param {Number} ttl Optional Time-to-Live
 	 * @returns {Promise}
 	 *
-	 * @memberOf MemoryCacher
+	 * @memberof MemoryCacher
 	 */
 	set(key, data, ttl) {
 		if (ttl == null)
@@ -107,7 +107,7 @@ class MemoryCacher extends BaseCacher {
 	 * @param {any} key
 	 * @returns {Promise}
 	 *
-	 * @memberOf MemoryCacher
+	 * @memberof MemoryCacher
 	 */
 	del(key) {
 		this.cache.delete(key);
@@ -120,7 +120,7 @@ class MemoryCacher extends BaseCacher {
 	 * @param {any} match string. Default is "**"
 	 * @returns {Promise}
 	 *
-	 * @memberOf Cacher
+	 * @memberof Cacher
 	 */
 	clean(match = "**") {
 		this.logger.debug(`CLEAN ${match}`);
@@ -138,7 +138,7 @@ class MemoryCacher extends BaseCacher {
 	/**
 	 * Check & remove the expired cache items
 	 *
-	 * @memberOf MemoryCacher
+	 * @memberof MemoryCacher
 	 */
 	checkTTL() {
 		let now = Date.now();

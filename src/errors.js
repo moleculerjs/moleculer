@@ -49,7 +49,7 @@ class MoleculerRetryableError extends MoleculerError {
 	 * @param {String?} type
 	 * @param {any} data
 	 *
-	 * @memberOf MoleculerRetryableError
+	 * @memberof MoleculerRetryableError
 	 */
 	constructor(message, code, type, data) {
 		super(message);
@@ -84,7 +84,7 @@ class MoleculerClientError extends MoleculerError {
 	 * @param {String?} type
 	 * @param {any} data
 	 *
-	 * @memberOf MoleculerClientError
+	 * @memberof MoleculerClientError
 	 */
 	constructor(message, code, type, data) {
 		super(message, code || 400, type, data);
@@ -105,7 +105,7 @@ class ServiceNotFoundError extends MoleculerRetryableError {
 	 * @param {String} action
 	 * @param {String} nodeID
 	 *
-	 * @memberOf ServiceNotFoundError
+	 * @memberof ServiceNotFoundError
 	 */
 	constructor(action, nodeID) {
 		let msg;
@@ -134,7 +134,7 @@ class ServiceNotAvailable extends MoleculerRetryableError {
 	 * @param {String} action
 	 * @param {String} nodeID
 	 *
-	 * @memberOf ServiceNotAvailable
+	 * @memberof ServiceNotAvailable
 	 */
 	constructor(action, nodeID) {
 		let msg;
@@ -163,7 +163,7 @@ class RequestTimeoutError extends MoleculerRetryableError {
 	 * @param {String} action
 	 * @param {String} nodeID
 	 *
-	 * @memberOf RequestTimeoutError
+	 * @memberof RequestTimeoutError
 	 */
 	constructor(action, nodeID) {
 		super(`Request is timed out when call '${action}' action on '${nodeID}' node.`, 504, null, {
@@ -186,7 +186,7 @@ class RequestSkippedError extends MoleculerError {
 	 * @param {String} action
 	 * @param {String} nodeID
 	 *
-	 * @memberOf RequestSkippedError
+	 * @memberof RequestSkippedError
 	 */
 	constructor(action, nodeID) {
 		super(`Calling '${action}' is skipped because timeout reached on '${nodeID}' node.`, 514, null, {
@@ -210,7 +210,7 @@ class RequestRejected extends MoleculerRetryableError {
 	 * @param {String} action
 	 * @param {String} nodeID
 	 *
-	 * @memberOf RequestRejected
+	 * @memberof RequestRejected
 	 */
 	constructor(action, nodeID) {
 		super(`Request is rejected when call '${action}' action on '${nodeID}' node.`, 503, null, {
@@ -235,7 +235,7 @@ class QueueIsFull extends MoleculerRetryableError {
 	 * @param {Number} size
 	 * @param {Number} limit
 	 *
-	 * @memberOf QueueIsFull
+	 * @memberof QueueIsFull
 	 */
 	constructor(action, nodeID, size, limit) {
 		super(`Queue is full. Request '${action}' action on '${nodeID}' node is rejected.`, 429, null, {
@@ -261,7 +261,7 @@ class ValidationError extends MoleculerClientError {
 	 * @param {String} type
 	 * @param {any} data
 	 *
-	 * @memberOf ValidationError
+	 * @memberof ValidationError
 	 */
 	constructor(message, type, data) {
 		super(message, 422, type, data);
@@ -281,7 +281,7 @@ class MaxCallLevelError extends MoleculerError {
 	 * @param {String} nodeID
 	 * @param {Number} level
 	 *
-	 * @memberOf MaxCallLevelError
+	 * @memberof MaxCallLevelError
 	 */
 	constructor(nodeID, level) {
 		super(`Request level is reached the limit (${level}) on '${nodeID}' node.`, 500, null, { level });
@@ -319,7 +319,7 @@ class ProtocolVersionMismatchError extends MoleculerError {
 	 *
 	 * @param {String} action
 	 *
-	 * @memberOf ProtocolVersionMismatchError
+	 * @memberof ProtocolVersionMismatchError
 	 */
 	constructor(nodeID, actual, received) {
 		super("Protocol version mismatch.", 500, null, { nodeID, actual, received });
@@ -339,7 +339,7 @@ class InvalidPacketData extends MoleculerError {
 	 * @param {String} type
 	 * @param {Object} payload
 	 *
-	 * @memberOf InvalidPacketData
+	 * @memberof InvalidPacketData
 	 */
 	constructor(type, payload) {
 		super("Invalid packet data.", 500, null, { type, payload });

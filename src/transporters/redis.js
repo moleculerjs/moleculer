@@ -22,7 +22,7 @@ class RedisTransporter extends Transporter {
 	 *
 	 * @param {any} opts
 	 *
-	 * @memberOf RedisTransporter
+	 * @memberof RedisTransporter
 	 */
 	constructor(opts) {
 		super(opts);
@@ -34,7 +34,7 @@ class RedisTransporter extends Transporter {
 	/**
 	 * Connect to the server
 	 *
-	 * @memberOf RedisTransporter
+	 * @memberof RedisTransporter
 	 */
 	connect() {
 		return new Promise((resolve, reject) => {
@@ -104,7 +104,7 @@ class RedisTransporter extends Transporter {
 	/**
 	 * Disconnect from the server
 	 *
-	 * @memberOf RedisTransporter
+	 * @memberof RedisTransporter
 	 */
 	disconnect() {
 		if (this.clientSub) {
@@ -124,7 +124,7 @@ class RedisTransporter extends Transporter {
 	 * @param {String} cmd
 	 * @param {String} nodeID
 	 *
-	 * @memberOf RedisTransporter
+	 * @memberof RedisTransporter
 	 */
 	subscribe(cmd, nodeID) {
 		this.clientSub.subscribe(this.getTopicName(cmd, nodeID));
@@ -136,7 +136,7 @@ class RedisTransporter extends Transporter {
 	 *
 	 * @param {Packet} packet
 	 *
-	 * @memberOf RedisTransporter
+	 * @memberof RedisTransporter
 	 */
 	publish(packet) {
 		/* istanbul ignore next*/

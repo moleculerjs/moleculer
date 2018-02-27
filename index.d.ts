@@ -308,7 +308,7 @@ declare namespace Moleculer {
 		 * @param {any} opts		options of call (optional)
 		 * @returns
 		 *
-		 * @memberOf ServiceBroker
+		 * @memberof ServiceBroker
 		 */
 		call<T, P extends GenericObject>(actionName: string, params?: P, opts?: CallOptions): Bluebird<T>;
 
@@ -343,7 +343,7 @@ declare namespace Moleculer {
 		 * ```
 		 * @throws MoleculerError - If the `def` is not an `Array` and not an `Object`.
 		 *
-		 * @memberOf ServiceBroker
+		 * @memberof ServiceBroker
 		 */
 		mcall<T>(def: Array<CallDefinition> | { [name: string]: CallDefinition }): Bluebird<Array<T> | T>;
 
@@ -354,7 +354,7 @@ declare namespace Moleculer {
 		 * @param {any} payload
 		 * @returns
 		 *
-		 * @memberOf ServiceBroker
+		 * @memberof ServiceBroker
 		 */
 		emit(eventName: string, payload?: any, groups?: string | Array<string>): void;
 
@@ -366,7 +366,7 @@ declare namespace Moleculer {
 		 * @param {Array<string>?} groups
 		 * @returns
 		 *
-		 * @memberOf ServiceBroker
+		 * @memberof ServiceBroker
 		 */
 		broadcast(eventName: string, payload?: any, groups?: string | Array<string>): void
 
@@ -378,7 +378,7 @@ declare namespace Moleculer {
 		 * @param {Array<string>?} groups
 		 * @returns
 		 *
-		 * @memberOf ServiceBroker
+		 * @memberof ServiceBroker
 		 */
 		broadcastLocal(eventName: string, payload?: any, groups?: string | Array<string>): void;
 

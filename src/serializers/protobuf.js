@@ -24,7 +24,7 @@ class ProtoBufSerializer extends BaseSerializer {
 	 *
 	 * @param {any} broker
 	 *
-	 * @memberOf Serializer
+	 * @memberof Serializer
 	 */
 	init(broker) {
 		super.init(broker);
@@ -63,7 +63,7 @@ class ProtoBufSerializer extends BaseSerializer {
 	 * @param {String} type of packet
 	 * @returns {Buffer}
 	 *
-	 * @memberOf Serializer
+	 * @memberof Serializer
 	 */
 	serialize(obj, type) {
 		const p = this.getPacketFromType(type);
@@ -85,7 +85,7 @@ class ProtoBufSerializer extends BaseSerializer {
 	 * @param {String} type of packet
 	 * @returns {Object}
 	 *
-	 * @memberOf Serializer
+	 * @memberof Serializer
 	 */
 	deserialize(buf, type) {
 		const p = this.getPacketFromType(type);

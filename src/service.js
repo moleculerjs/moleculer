@@ -29,7 +29,7 @@ class Service {
 	 * @param {ServiceBroker} 	broker	broker of service
 	 * @param {Object} 			schema	schema of service
 	 *
-	 * @memberOf Service
+	 * @memberof Service
 	 */
 	constructor(broker, schema) {
 		if (!isObject(broker))
@@ -222,7 +222,7 @@ class Service {
 	 * @returns
 	 *
 	 * @private
-	 * @memberOf Service
+	 * @memberof Service
 	 */
 	_createAction(actionDef, name) {
 		let action;

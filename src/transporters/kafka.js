@@ -31,7 +31,7 @@ class KafkaTransporter extends Transporter {
 	 *
 	 * @param {any} opts
 	 *
-	 * @memberOf KafkaTransporter
+	 * @memberof KafkaTransporter
 	 */
 	constructor(opts) {
 		if (typeof opts == "string") {
@@ -75,7 +75,7 @@ class KafkaTransporter extends Transporter {
 	/**
 	 * Connect to the server
 	 *
-	 * @memberOf KafkaTransporter
+	 * @memberof KafkaTransporter
 	 */
 	connect() {
 		this.logger.warn(chalk.yellow.bold("Kafka Transporter is an EXPERIMENTAL transporter. Do NOT use it in production yet!"));
@@ -141,7 +141,7 @@ class KafkaTransporter extends Transporter {
 	/**
 	 * Disconnect from the server
 	 *
-	 * @memberOf KafkaTransporter
+	 * @memberof KafkaTransporter
 	 */
 	disconnect() {
 		if (this.client) {
@@ -163,7 +163,7 @@ class KafkaTransporter extends Transporter {
 	 *
 	 * @param {Array<Object>} topics
 	 *
-	 * @memberOf BaseTransporter
+	 * @memberof BaseTransporter
 	 */
 	makeSubscriptions(topics) {
 		topics = topics.map(({ cmd, nodeID }) => this.getTopicName(cmd, nodeID));
@@ -216,7 +216,7 @@ class KafkaTransporter extends Transporter {
 	 * @param {String} cmd
 	 * @param {String} nodeID
 	 *
-	 * @memberOf KafkaTransporter
+	 * @memberof KafkaTransporter
 	 */
 	/*
 	subscribe(cmd, nodeID) {
@@ -247,7 +247,7 @@ class KafkaTransporter extends Transporter {
 	 *
 	 * @param {Packet} packet
 	 *
-	 * @memberOf KafkaTransporter
+	 * @memberof KafkaTransporter
 	 */
 	publish(packet) {
 		/* istanbul ignore next */

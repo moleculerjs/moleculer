@@ -28,7 +28,7 @@ class NatsTransporter extends Transporter {
 	 *
 	 * @param {any} opts
 	 *
-	 * @memberOf NatsTransporter
+	 * @memberof NatsTransporter
 	 */
 	constructor(opts) {
 		if (typeof opts == "string")
@@ -53,7 +53,7 @@ class NatsTransporter extends Transporter {
 	/**
 	 * Connect to a NATS server
 	 *
-	 * @memberOf NatsTransporter
+	 * @memberof NatsTransporter
 	 */
 	connect() {
 		return new Promise((resolve, reject) => {
@@ -114,7 +114,7 @@ class NatsTransporter extends Transporter {
 	/**
 	 * Disconnect from a NATS server
 	 *
-	 * @memberOf NatsTransporter
+	 * @memberof NatsTransporter
 	 */
 	disconnect() {
 		if (this.client) {
@@ -128,7 +128,7 @@ class NatsTransporter extends Transporter {
 	/**
 	 * Reconnect to server after x seconds
 	 *
-	 * @memberOf BaseTransporter
+	 * @memberof BaseTransporter
 	 */
 	/*reconnectAfterTime() {
 		//this.logger.info("Reconnecting after 5 sec...");
@@ -143,7 +143,7 @@ class NatsTransporter extends Transporter {
 	 * @param {String} cmd
 	 * @param {String} nodeID
 	 *
-	 * @memberOf NatsTransporter
+	 * @memberof NatsTransporter
 	 */
 	subscribe(cmd, nodeID) {
 		const t = this.getTopicName(cmd, nodeID);
@@ -198,7 +198,7 @@ class NatsTransporter extends Transporter {
 	 *
 	 * @param {Packet} packet
 	 *
-	 * @memberOf NatsTransporter
+	 * @memberof NatsTransporter
 	 */
 	publish(packet) {
 		/* istanbul ignore next*/

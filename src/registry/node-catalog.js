@@ -205,7 +205,7 @@ class NodeCatalog {
 	/**
 	 * Check all registered remote nodes are available.
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	checkRemoteNodes() {
 		if (this.disableHeartbeatChecks) return;
@@ -224,7 +224,7 @@ class NodeCatalog {
 	/**
 	 * Check offline nodes. Remove which is older than 3 minutes.
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	checkOfflineNodes() {
 		if (this.disableOfflineNodeRemoving) return;

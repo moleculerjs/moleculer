@@ -184,7 +184,7 @@ class AvroSerializer extends BaseSerializer {
 	 *
 	 * @param {any} broker
 	 *
-	 * @memberOf Serializer
+	 * @memberof Serializer
 	 */
 	init(broker) {
 		super.init(broker);
@@ -206,7 +206,7 @@ class AvroSerializer extends BaseSerializer {
 	 * @param {String} type of packet
 	 * @returns {Buffer}
 	 *
-	 * @memberOf Serializer
+	 * @memberof Serializer
 	 */
 	serialize(obj, type) {
 		this.serializeCustomFields(type, obj);
@@ -223,7 +223,7 @@ class AvroSerializer extends BaseSerializer {
 	 * @param {String} type of packet
 	 * @returns {Object}
 	 *
-	 * @memberOf Serializer
+	 * @memberof Serializer
 	 */
 	deserialize(buf, type) {
 		const obj = this.schemas[type].fromBuffer(buf);

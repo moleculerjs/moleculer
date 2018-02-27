@@ -22,7 +22,7 @@ class MqttTransporter extends Transporter {
 	 *
 	 * @param {any} opts
 	 *
-	 * @memberOf MqttTransporter
+	 * @memberof MqttTransporter
 	 */
 	constructor(opts) {
 		super(opts);
@@ -33,7 +33,7 @@ class MqttTransporter extends Transporter {
 	/**
 	 * Connect to the server
 	 *
-	 * @memberOf MqttTransporter
+	 * @memberof MqttTransporter
 	 */
 	connect() {
 		return new Promise((resolve, reject) => {
@@ -85,7 +85,7 @@ class MqttTransporter extends Transporter {
 	/**
 	 * Disconnect from the server
 	 *
-	 * @memberOf MqttTransporter
+	 * @memberof MqttTransporter
 	 */
 	disconnect() {
 		if (this.client) {
@@ -100,7 +100,7 @@ class MqttTransporter extends Transporter {
 	 * @param {String} cmd
 	 * @param {String} nodeID
 	 *
-	 * @memberOf MqttTransporter
+	 * @memberof MqttTransporter
 	 */
 	subscribe(cmd, nodeID) {
 		this.client.subscribe(this.getTopicName(cmd, nodeID));
@@ -112,7 +112,7 @@ class MqttTransporter extends Transporter {
 	 *
 	 * @param {Packet} packet
 	 *
-	 * @memberOf MqttTransporter
+	 * @memberof MqttTransporter
 	 */
 	publish(packet) {
 		/* istanbul ignore next*/

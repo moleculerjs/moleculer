@@ -22,7 +22,7 @@ class BaseTransporter {
 	 *
 	 * @param {any} opts
 	 *
-	 * @memberOf BaseTransporter
+	 * @memberof BaseTransporter
 	 */
 	constructor(opts) {
 		this.opts = opts;
@@ -37,7 +37,7 @@ class BaseTransporter {
 	 * @param {Function} messageHandler
 	 * @param {Function} afterConnect
 	 *
-	 * @memberOf BaseTransporter
+	 * @memberof BaseTransporter
 	 */
 	init(transit, messageHandler, afterConnect) {
 		if (transit) {
@@ -58,7 +58,7 @@ class BaseTransporter {
 	/**
 	 * Connect to the transporter server
 	 *
-	 * @memberOf BaseTransporter
+	 * @memberof BaseTransporter
 	 */
 	connect() {
 		/* istanbul ignore next */
@@ -85,7 +85,7 @@ class BaseTransporter {
 	/**
 	 * Disconnect from the transporter server
 	 *
-	 * @memberOf BaseTransporter
+	 * @memberof BaseTransporter
 	 */
 	disconnect() {
 		/* istanbul ignore next */
@@ -97,7 +97,7 @@ class BaseTransporter {
 	 *
 	 * @param {Array<Object>} topics
 	 *
-	 * @memberOf BaseTransporter
+	 * @memberof BaseTransporter
 	 */
 	makeSubscriptions(topics) {
 		return Promise.all(topics.map(({ cmd, nodeID }) => this.subscribe(cmd, nodeID)));
@@ -128,7 +128,7 @@ class BaseTransporter {
 	 * @param {String} cmd
 	 * @param {String} nodeID
 	 *
-	 * @memberOf BaseTransporter
+	 * @memberof BaseTransporter
 	 */
 	subscribe(/*cmd, nodeID*/) {
 		/* istanbul ignore next */
@@ -174,7 +174,7 @@ class BaseTransporter {
 	 * @param {Packet} packet
 	 * @returns {Promise}
 	 *
-	 * @memberOf BaseTransporter
+	 * @memberof BaseTransporter
 	 */
 	publish(/*packet*/) {
 		/* istanbul ignore next */
@@ -188,7 +188,7 @@ class BaseTransporter {
 	 * @param {String} group
 	 * @returns {Promise}
 	 *
-	 * @memberOf BaseTransporter
+	 * @memberof BaseTransporter
 	 */
 	publishBalancedEvent(/*packet, group*/) {
 		/* istanbul ignore next */
@@ -201,7 +201,7 @@ class BaseTransporter {
 	 * @param {Packet} packet
 	 * @returns {Promise}
 	 *
-	 * @memberOf BaseTransporter
+	 * @memberof BaseTransporter
 	 */
 	publishBalancedRequest(/*packet*/) {
 		/* istanbul ignore next */
@@ -214,7 +214,7 @@ class BaseTransporter {
 	 * @param {any} cmd
 	 * @param {any} nodeID
 	 *
-	 * @memberOf BaseTransporter
+	 * @memberof BaseTransporter
 	 */
 	getTopicName(cmd, nodeID) {
 		return this.prefix + "." + cmd + (nodeID ? "." + nodeID : "");
@@ -223,7 +223,7 @@ class BaseTransporter {
 	/**
 	 * Initialize queues for REQUEST & EVENT packets.
 	 *
-	 * @memberOf AmqpTransporter
+	 * @memberof AmqpTransporter
 	 */
 	makeBalancedSubscriptions() {
 		if (!this.hasBuiltInBalancer) return Promise.resolve();
@@ -289,7 +289,7 @@ class BaseTransporter {
 	 * @param {Packet} packet
 	 * @returns {Buffer}
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	serialize(packet) {
 		packet.payload.ver = this.broker.PROTOCOL_VERSION;
@@ -304,7 +304,7 @@ class BaseTransporter {
 	 * @param {Buffer} buf
 	 * @returns {Packet}
 	 *
-	 * @memberOf Transit
+	 * @memberof Transit
 	 */
 	deserialize(type, buf) {
 		if (buf == null) return null;

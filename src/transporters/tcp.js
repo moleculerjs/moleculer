@@ -41,7 +41,7 @@ class TcpTransporter extends Transporter {
 	 *
 	 * @param {any} opts
 	 *
-	 * @memberOf TcpTransporter
+	 * @memberof TcpTransporter
 	 */
 	constructor(opts) {
 		if (_.isString(opts))
@@ -91,7 +91,7 @@ class TcpTransporter extends Transporter {
 	 * @param {Function} messageHandler
 	 * @param {Function} afterConnect
 	 *
-	 * @memberOf BaseTransporter
+	 * @memberof BaseTransporter
 	 */
 	init(transit, messageHandler, afterConnect) {
 		super.init(transit, messageHandler, afterConnect);
@@ -106,7 +106,7 @@ class TcpTransporter extends Transporter {
 	/**
 	 * Start UDP & TCP servers
 	 *
-	 * @memberOf TcpTransporter
+	 * @memberof TcpTransporter
 	 */
 	connect() {
 		this.logger.warn(chalk.yellow.bold("TCP Transporter is an EXPERIMENTAL transporter. Do NOT use it in production yet!"));
@@ -667,7 +667,7 @@ class TcpTransporter extends Transporter {
 	/**
 	 * Close TCP & UDP servers and destroy sockets.
 	 *
-	 * @memberOf TcpTransporter
+	 * @memberof TcpTransporter
 	 */
 	disconnect() {
 		this.connected = false;
@@ -706,7 +706,7 @@ class TcpTransporter extends Transporter {
 	 * @param {String} cmd
 	 * @param {String} nodeID
 	 *
-	 * @memberOf TcpTransporter
+	 * @memberof TcpTransporter
 	 */
 	subscribe(/*cmd, nodeID*/) {
 		/* istanbul ignore next */
@@ -718,7 +718,7 @@ class TcpTransporter extends Transporter {
 	 *
 	 * @param {Packet} packet
 	 *
-	 * @memberOf TcpTransporter
+	 * @memberof TcpTransporter
 	 */
 	publish(packet) {
 		if (!packet.target || [

@@ -18,7 +18,7 @@ class Serializer {
 	/**
 	 * Creates an instance of Serializer.
 	 *
-	 * @memberOf Serializer
+	 * @memberof Serializer
 	 */
 	constructor() {
 	}
@@ -28,7 +28,7 @@ class Serializer {
 	 *
 	 * @param {any} broker
 	 *
-	 * @memberOf Serializer
+	 * @memberof Serializer
 	 */
 	init(broker) {
 		this.broker = broker;
@@ -44,7 +44,7 @@ class Serializer {
 	 * @param {String} type of packet
 	 * @returns {Buffer}
 	 *
-	 * @memberOf Serializer
+	 * @memberof Serializer
 	 */
 	serialize(/*obj, type*/) {
 		/* istanbul ignore next */
@@ -58,7 +58,7 @@ class Serializer {
 	 * @param {String} type of packet
 	 * @returns {Object}
 	 *
-	 * @memberOf Serializer
+	 * @memberof Serializer
 	 */
 	deserialize(/*buf, type*/) {
 		/* istanbul ignore next */

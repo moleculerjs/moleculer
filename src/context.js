@@ -38,7 +38,7 @@ class Context {
 	 * @example
 	 * let ctx2 = new Context(broker, action);
 	 *
-	 * @memberOf Context
+	 * @memberof Context
 	 */
 	constructor(broker, action) {
 		this.id = null;
@@ -150,7 +150,7 @@ class Context {
 	 * @param {Object} newParams
 	 * @param {Boolean} cloning
 	 *
-	 * @memberOf Context
+	 * @memberof Context
 	 */
 	setParams(newParams, cloning = false) {
 		if (cloning && newParams)
@@ -165,7 +165,7 @@ class Context {
 	 * @param {Object} newMeta
 	 *
 	 * @private
-	 * @memberOf Context
+	 * @memberof Context
 	 */
 	_mergeMeta(newMeta) {
 		if (newMeta)
@@ -184,7 +184,7 @@ class Context {
 	 * @example <caption>Call an other service with params & options</caption>
 	 * ctx.call("posts.get", { id: 12 }, { timeout: 1000 });
 	 *
-	 * @memberOf Context
+	 * @memberof Context
 	 */
 	call(actionName, params, opts = {}) {
 		opts.parentCtx = this;
@@ -231,7 +231,7 @@ class Context {
 	 * @example
 	 * ctx.emit("user.created", { entity: user, creator: ctx.meta.user });
 	 *
-	 * @memberOf Context
+	 * @memberof Context
 	 */
 	emit(eventName, data, groups) {
 		return this.broker.emit(eventName, data, groups);
@@ -248,7 +248,7 @@ class Context {
 	 * @example
 	 * ctx.broadcast("user.created", { entity: user, creator: ctx.meta.user });
 	 *
-	 * @memberOf Context
+	 * @memberof Context
 	 */
 	broadcast(eventName, data, groups) {
 		return this.broker.broadcast(eventName, data, groups);
@@ -260,7 +260,7 @@ class Context {
 	 * @param {boolean} emitEvent
 	 *
 	 * @private
-	 * @memberOf Context
+	 * @memberof Context
 	 */
 	_metricStart(emitEvent) {
 		this.startTime = Date.now();
@@ -302,7 +302,7 @@ class Context {
 	 * @param {boolean} emitEvent
 	 *
 	 * @private
-	 * @memberOf Context
+	 * @memberof Context
 	 */
 	_metricFinish(error, emitEvent) {
 		if (this.startHrTime) {
