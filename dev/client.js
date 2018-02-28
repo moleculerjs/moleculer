@@ -11,7 +11,7 @@ let ServiceBroker = require("../src/service-broker");
 let broker = new ServiceBroker({
 	namespace: "",
 	nodeID: process.argv[2] || "client-" + process.pid,
-	transporter: {
+	_transporter: {
 		type: "TCP",
 		options: {
 			//udpDiscovery: false,
@@ -19,7 +19,7 @@ let broker = new ServiceBroker({
 			//debug: true
 		}
 	},
-	//transporter: "kafka://192.168.0.181:2181",
+	transporter: "kafka://192.168.51.29:2181",
 	//transporter: "amqp://192.168.0.181:5672",
 	//serializer: "MsgPack",
 	//requestTimeout: 1000,
@@ -41,7 +41,7 @@ let broker = new ServiceBroker({
 		maxFailures: 3
 	},
 	logger: console,
-	logLevel: "debug",
+	logLevel: "info",
 	logFormatter: "simple"
 });
 

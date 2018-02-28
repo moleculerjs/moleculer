@@ -123,6 +123,8 @@ class KafkaTransporter extends Transporter {
 						reject(e);
 				});
 
+				this.logger.info("Kafka client is connected.");
+
 				this.onConnected().then(resolve);
 			});
 
