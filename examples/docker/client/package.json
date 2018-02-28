@@ -12,6 +12,6 @@
   "author": "Icebob",
   "license": "MIT",
   "dependencies": {
-    "moleculer": "github:ice-services/moleculer#next"
+    "moleculer": "github:moleculerjs/moleculer#next"
   }
 }

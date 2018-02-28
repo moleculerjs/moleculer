@@ -1,12 +1,12 @@
 <a name="0.12.0"></a>
-# [0.12.0](https://github.com/ice-services/moleculer/compare/v0.11.10...v0.12.0) (2018-xx-xx)
+# [0.12.0](https://github.com/moleculerjs/moleculer/compare/v0.11.10...v0.12.0) (2018-xx-xx)
 
 This version contains the most changes in the history of Moleculer! More than 200 commits with 17k additions and a lot of new features.
 
 # Breaking changes
 
 ## Mixin merging logic is changed
-To support [#188](https://github.com/ice-services/moleculer/issues/188), mixin merging logic is changed at `actions`. Now it uses `defaultsDeep` for merging. It means you can extend the actions definition of mixins, no need to redeclare the `handler`.
+To support [#188](https://github.com/moleculerjs/moleculer/issues/188), mixin merging logic is changed at `actions`. Now it uses `defaultsDeep` for merging. It means you can extend the actions definition of mixins, no need to redeclare the `handler`.
 
 **Add extra action properties but `handler` is untouched**
 ```js
@@ -144,7 +144,7 @@ const broker = new ServiceBroker({
 When `nodeID` didn't define in broker options, the broker generated it from hostname (`os.hostname()`). It could cause problem for new users when they tried to start multiple instances on the same computer. Therefore, the broker generates `nodeID` from hostname **and process PID**. The newly generated nodeID looks like `server-6874` where `server` is the hostname and `6874` is the PID.
 
 ## Protocol changed
-The transport protocol is changed. The new version is `3`. [Check the changes.](https://github.com/ice-services/moleculer/blob/aa56e0072f4726dcd3a72ef164c3e13ad377bfc2/docs/PROTOCOL.md)
+The transport protocol is changed. The new version is `3`. [Check the changes.](https://github.com/moleculerjs/moleculer/blob/aa56e0072f4726dcd3a72ef164c3e13ad377bfc2/docs/PROTOCOL.md)
 
 **It means, the >=0.12.x versions can't communicate with old <=0.11 versions.**
 
@@ -669,16 +669,16 @@ broker.repl();
 - `broker.started` property is created to indicate broker starting state.
 
 # Fixes
-- handles invalid `dependencies` value in service schema [#164](https://github.com/ice-services/moleculer/pull/164)
+- handles invalid `dependencies` value in service schema [#164](https://github.com/moleculerjs/moleculer/pull/164)
 - fix event emit error if payload is `null`,
 
 --------------------------------------------------
 <a name="0.11.10"></a>
-# [0.11.10](https://github.com/ice-services/moleculer/compare/v0.11.9...v0.11.10) (2018-01-19)
+# [0.11.10](https://github.com/moleculerjs/moleculer/compare/v0.11.9...v0.11.10) (2018-01-19)
 
 # New
 
-## Built-in clustering in Moleculer Runner [#169](https://github.com/ice-services/moleculer/pull/169)
+## Built-in clustering in Moleculer Runner [#169](https://github.com/moleculerjs/moleculer/pull/169)
 By [@tinchoz49](https://github.com/tinchoz49 ) Moleculer Runner has a new built-in clustering function. With it, you can start multiple instances from your broker.
 
 Example to start all services from the `services` folder in 4 instances.
@@ -688,7 +688,7 @@ $ moleculer-runner --instances 4 services
 > Please note, the `nodeID` will be suffixed with the worker ID.
 
 
-## Context meta & params in metrics events [#166](https://github.com/ice-services/moleculer/pull/166)
+## Context meta & params in metrics events [#166](https://github.com/moleculerjs/moleculer/pull/166)
 By [@dani8art](https://github.com/dani8art) you can set that the broker put some `ctx.meta` and `ctx.params` fields to the metrics events.
 You can define it in the action definition:
 
@@ -716,7 +716,7 @@ If the value is `true`, it adds all fields. If `Array`, it adds the specified fi
 
 --------------------------------------------------
 <a name="0.11.9"></a>
-# [0.11.9](https://github.com/ice-services/moleculer/compare/v0.11.8...v0.11.9) (2018-01-08)
+# [0.11.9](https://github.com/moleculerjs/moleculer/compare/v0.11.8...v0.11.9) (2018-01-08)
 
 # New
 
@@ -737,7 +737,7 @@ You can set it via env variables as well, if you are using the Moleculer Runner:
 $ REGISTRY_STRATEGY=random
 ```
 
-## Load env files in Moleculer Runner [#158](https://github.com/ice-services/moleculer/issues/158)
+## Load env files in Moleculer Runner [#158](https://github.com/moleculerjs/moleculer/issues/158)
 Moleculer runner can load `.env` file at starting. There are two new cli options to load env file:
 
 * `-e, --env` - Load envorinment variables from the '.env' file from the current folder.
@@ -753,27 +753,27 @@ $ moleculer-runner --envfile .my-env
 ```
 
 # Fixes
-- fixed hot reloading after broken service files by @askuzminov ([#155](https://github.com/ice-services/moleculer/pull/155))
+- fixed hot reloading after broken service files by @askuzminov ([#155](https://github.com/moleculerjs/moleculer/pull/155))
 - allow fallbackResponse to be falsy values
 
 
 --------------------------------------------------
 <a name="0.11.8"></a>
-# [0.11.8](https://github.com/ice-services/moleculer/compare/v0.11.7...v0.11.8) (2017-12-15)
+# [0.11.8](https://github.com/moleculerjs/moleculer/compare/v0.11.7...v0.11.8) (2017-12-15)
 
 # Changes
 - `d.ts` has been improved.
 
 --------------------------------------------------
 <a name="0.11.7"></a>
-# [0.11.7](https://github.com/ice-services/moleculer/compare/v0.11.6...v0.11.7) (2017-12-05)
+# [0.11.7](https://github.com/moleculerjs/moleculer/compare/v0.11.6...v0.11.7) (2017-12-05)
 
 # Changes
 - `d.ts` has been improved.
 
 --------------------------------------------------
 <a name="0.11.6"></a>
-# [0.11.6](https://github.com/ice-services/moleculer/compare/v0.11.5...v0.11.6) (2017-11-07)
+# [0.11.6](https://github.com/moleculerjs/moleculer/compare/v0.11.5...v0.11.6) (2017-11-07)
 
 # New
 
@@ -840,24 +840,24 @@ const broker = new ServiceBroker({
 
 --------------------------------------------------
 <a name="0.11.5"></a>
-# [0.11.5](https://github.com/ice-services/moleculer/compare/v0.11.4...v0.11.5) (2017-10-12)
+# [0.11.5](https://github.com/moleculerjs/moleculer/compare/v0.11.4...v0.11.5) (2017-10-12)
 
 # Changes
-- `strategy` option has been fixed in broker option [#121](https://github.com/ice-services/moleculer/pull/121)
+- `strategy` option has been fixed in broker option [#121](https://github.com/moleculerjs/moleculer/pull/121)
 
 
 --------------------------------------------------
 <a name="0.11.4"></a>
-# [0.11.4](https://github.com/ice-services/moleculer/compare/v0.11.3...v0.11.4) (2017-10-11)
+# [0.11.4](https://github.com/moleculerjs/moleculer/compare/v0.11.3...v0.11.4) (2017-10-11)
 
 # Changes
 - Moleculer Runner arguments have been fixed (`services` arg)
-- update AMQP default queue options by @Nathan-Schwartz [#119](https://github.com/ice-services/moleculer/pull/119)
+- update AMQP default queue options by @Nathan-Schwartz [#119](https://github.com/moleculerjs/moleculer/pull/119)
 
 
 --------------------------------------------------
 <a name="0.11.3"></a>
-# [0.11.3](https://github.com/ice-services/moleculer/compare/v0.11.2...v0.11.3) (2017-10-10)
+# [0.11.3](https://github.com/moleculerjs/moleculer/compare/v0.11.2...v0.11.3) (2017-10-10)
 
 # Changes
 - The `ack` handling has been fixed in AMQP transporter.
@@ -866,11 +866,11 @@ const broker = new ServiceBroker({
 
 --------------------------------------------------
 <a name="0.11.2"></a>
-# [0.11.2](https://github.com/ice-services/moleculer/compare/v0.11.1...v0.11.2) (2017-10-06)
+# [0.11.2](https://github.com/moleculerjs/moleculer/compare/v0.11.1...v0.11.2) (2017-10-06)
 
 # New
 
-## Service dependencies [#102](https://github.com/ice-services/moleculer/issues/102)
+## Service dependencies [#102](https://github.com/moleculerjs/moleculer/issues/102)
 The `Service` schema has a new `dependencies` property. The serice can wait for other dependening ones when it starts. This way you don't need to call `waitForServices` in `started` any longer.
 
 ```js
@@ -892,7 +892,7 @@ module.exports = {
 ```
 The `started` service handler is called once the `likes`, `users` and `comments` services are registered (on the local or remote nodes).
 
-## Pending request queue size limit [#111](https://github.com/ice-services/moleculer/issues/111)
+## Pending request queue size limit [#111](https://github.com/moleculerjs/moleculer/issues/111)
 The `ServiceBroker` has a new `maxQueueSize` option under `transit` key. The broker protects the process to avoid crash during a high load with it. The `maxQueueSize` default value is 50,000. If pending request queue size reaches it, broker rejects the request with a `QueueIsFull` (retryable) error.
 
 ```js
@@ -906,7 +906,7 @@ const broker = new ServiceBroker({
 
 # Changes
 
-## The `waitForServices` method supports service versions [#112](https://github.com/ice-services/moleculer/issues/112)
+## The `waitForServices` method supports service versions [#112](https://github.com/moleculerjs/moleculer/issues/112)
 By [@imatefx](https://github.com/imatefx), the `waitForServices` broker & service methods support service versions. Use the following formats to define version in a dependency:
 
 ```js
@@ -918,11 +918,11 @@ module.exports = {
 
 --------------------------------------------------
 <a name="0.11.1"></a>
-# [0.11.1](https://github.com/ice-services/moleculer/compare/v0.11.0...v0.11.1) (2017-09-27)
+# [0.11.1](https://github.com/moleculerjs/moleculer/compare/v0.11.0...v0.11.1) (2017-09-27)
 
 # New
 
-## Service metadata [#91](https://github.com/ice-services/moleculer/issues/91)
+## Service metadata [#91](https://github.com/moleculerjs/moleculer/issues/91)
 The `Service` schema has a new `metadata` property. The Moleculer modules doesn't use it, so you can use it whatever you want.
 
 ```js
@@ -958,13 +958,13 @@ const broker = new ServiceBroker({
 
 --------------------------------------------------
 <a name="0.11.0"></a>
-# [0.11.0](https://github.com/ice-services/moleculer/compare/v0.10.0...v0.11.0) (2017-09-12)
+# [0.11.0](https://github.com/moleculerjs/moleculer/compare/v0.10.0...v0.11.0) (2017-09-12)
 
 # Breaking changes
 
-## Protocol changed [#86](https://github.com/ice-services/moleculer/issues/86)
+## Protocol changed [#86](https://github.com/moleculerjs/moleculer/issues/86)
 The Moleculer transportation protocol has been changed. It means, **the new (>= v0.11) versions can't communicate with the old (<= v0.10.x) ones.**
-You can find more information about changes in [#86](https://github.com/ice-services/moleculer/issues/86) issue.
+You can find more information about changes in [#86](https://github.com/moleculerjs/moleculer/issues/86) issue.
 
 ## Balanced events
 The whole event handling has been rewritten. By now Moleculer supports [event driven architecture](http://microservices.io/patterns/data/event-driven-architecture.html). It means that event emits are balanced like action calls are.
@@ -1073,7 +1073,7 @@ We added some new Moleculer error classes.
 
 --------------------------------------------------
 <a name="0.10.0"></a>
-# [0.10.0](https://github.com/ice-services/moleculer/compare/v0.9.0...v0.10.0) (2017-08-20)
+# [0.10.0](https://github.com/moleculerjs/moleculer/compare/v0.9.0...v0.10.0) (2017-08-20)
 
 # Breaking changes
 
@@ -1127,7 +1127,7 @@ let ctx = broker.ContextFactory.create(broker, action, nodeID, params, opts);
 ## Removed `LOCAL_NODE_ID` constant
 The recently added `LOCAL_NODE_ID` constant is removed. If you want to check the nodeID is local, please use the `if (nodeID == broker.nodeID)` syntax.
 
-## Class based pluggable Service registry strategies [#75](https://github.com/ice-services/moleculer/pull/75)
+## Class based pluggable Service registry strategies [#75](https://github.com/moleculerjs/moleculer/pull/75)
 By @WoLfulus, the service registry balancer strategy is now pluggable.
 
 **New syntax:**
@@ -1203,7 +1203,7 @@ The metrics payload contains `remoteCall` and `callerNodeID` properties. The `re
 
 # New
 
-## Hot reload services [#82](https://github.com/ice-services/moleculer/pull/82)
+## Hot reload services [#82](https://github.com/moleculerjs/moleculer/pull/82)
 The ServiceBroker supports hot reloading services. If you enable it broker will watch file changes. If you modify service file, broker will reload it on-the-fly.
 [Demo video](https://www.youtube.com/watch?v=l9FsAvje4F4)
 
@@ -1231,7 +1231,7 @@ $ moleculer-runner --hot ./services/test.service.js
 ## Protocol documentation
 Moleculer protocol documentation is available in [docs/PROTOCOL.md](docs/PROTOCOL.md) file.
 
-# AMQP transporter [#72](https://github.com/ice-services/moleculer/pull/72)
+# AMQP transporter [#72](https://github.com/moleculerjs/moleculer/pull/72)
 By @Nathan-Schwartz, AMQP (for RabbitMQ) transporter added to Moleculer project.
 
 ```js
@@ -1253,11 +1253,11 @@ const broker = new ServiceBroker({
 --------------------------------------------------
 
 <a name="0.9.0"></a>
-# [0.9.0](https://github.com/ice-services/moleculer/compare/v0.8.5...v0.9.0) (2017-08-10)
+# [0.9.0](https://github.com/moleculerjs/moleculer/compare/v0.8.5...v0.9.0) (2017-08-10)
 
 # Breaking changes
 
-## Namespace support, removed `prefix` options [#57](https://github.com/ice-services/moleculer/issues/57)
+## Namespace support, removed `prefix` options [#57](https://github.com/moleculerjs/moleculer/issues/57)
 The broker has a new `namespace` option to segment your services. For example, you are running development & production services (or more production services) on the same transporter. If you are using different `namespace` you can avoid collisions between different environments.
 
 > You can reach it in your services as `this.broker.namespace`.
@@ -1306,8 +1306,8 @@ broker.createService({
 });
 ```
 
-## Changed versioned action names [#58](https://github.com/ice-services/moleculer/issues/58)
-Based on [#58](https://github.com/ice-services/moleculer/issues/58) if service version is a `String`, the version in action names won't be prefixed with `v`, expect if it is a `Number`.
+## Changed versioned action names [#58](https://github.com/moleculerjs/moleculer/issues/58)
+Based on [#58](https://github.com/moleculerjs/moleculer/issues/58) if service version is a `String`, the version in action names won't be prefixed with `v`, expect if it is a `Number`.
 
 **Example**
 ```js
@@ -1335,7 +1335,7 @@ The module log level is not supported. The `logLevel` option can be only `String
 
 # New 
 
-## Better logging [#61](https://github.com/ice-services/moleculer/issues/61)
+## Better logging [#61](https://github.com/moleculerjs/moleculer/issues/61)
 The whole Moleculer logger is rewritten. It supports better the external loggers. The built-in log message format is also changed.
 
 ### Built-in `console` logger
@@ -1466,7 +1466,7 @@ broker.start().then(() => {
 });
 ```
 
-## Multiple service calls [#31](https://github.com/ice-services/moleculer/issues/31)
+## Multiple service calls [#31](https://github.com/moleculerjs/moleculer/issues/31)
 With `broker.mcall` method you can call multiple actions (in parallel). 
 
 **Example with `Array`**
@@ -1495,22 +1495,22 @@ broker.mcall({
 
 --------------------------------------------------
 <a name="0.8.5"></a>
-# [0.8.5](https://github.com/ice-services/moleculer/compare/v0.8.4...v0.8.5) (2017-08-06)
+# [0.8.5](https://github.com/moleculerjs/moleculer/compare/v0.8.4...v0.8.5) (2017-08-06)
 
 # Fixes
 - fixed logger method bindings.
-- fixed transporter shutdown errors [#62](https://github.com/ice-services/moleculer/issues/62)
+- fixed transporter shutdown errors [#62](https://github.com/moleculerjs/moleculer/issues/62)
 
 --------------------------------------------------
 <a name="0.8.4"></a>
-# [0.8.4](https://github.com/ice-services/moleculer/compare/v0.8.3...v0.8.4) (2017-07-24)
+# [0.8.4](https://github.com/moleculerjs/moleculer/compare/v0.8.3...v0.8.4) (2017-07-24)
 
 # Fixes
 - fixed `Calling error! TypeError : Cannot read property 'requestID' of undefined` error when you call a local action from other one directly.
 
 --------------------------------------------------
 <a name="0.8.3"></a>
-# [0.8.3](https://github.com/ice-services/moleculer/compare/v0.8.2...v0.8.3) (2017-07-24)
+# [0.8.3](https://github.com/moleculerjs/moleculer/compare/v0.8.2...v0.8.3) (2017-07-24)
 
 # New
 
@@ -1545,7 +1545,7 @@ $ moleculer-runner
 
 --------------------------------------------------
 <a name="0.8.2"></a>
-# [0.8.2](https://github.com/ice-services/moleculer/compare/v0.8.1...v0.8.2) (2017-07-06)
+# [0.8.2](https://github.com/moleculerjs/moleculer/compare/v0.8.1...v0.8.2) (2017-07-06)
 
 # Fixes
 - fixed Redis cacher option resolver in ServiceBroker. Now it accepts connection string.
@@ -1563,11 +1563,11 @@ The fastest-validator is updated to [v0.5.0](https://github.com/icebob/fastest-v
 
 --------------------------------------------------
 <a name="0.8.1"></a>
-# [0.8.1](https://github.com/ice-services/moleculer/compare/v0.8.0...v0.8.1) (2017-07-03)
+# [0.8.1](https://github.com/moleculerjs/moleculer/compare/v0.8.0...v0.8.1) (2017-07-03)
 
 # New
 
-## Improved mixin's merge logic [#50](https://github.com/ice-services/moleculer/issues/50/)
+## Improved mixin's merge logic [#50](https://github.com/moleculerjs/moleculer/issues/50/)
 The mixins merge logic is handle better events & lifecycle events. If you have a `created`, `started`, `stopped` lifecycle event or any other service event handler in your services, but your mixin has the same event, Moleculer will call all of them in your service and in mixins. 
 
 [Read more about mixins](http://moleculer.services/docs/service.html#Mixins)
@@ -1575,7 +1575,7 @@ The mixins merge logic is handle better events & lifecycle events. If you have a
 --------------------------------------------------
 
 <a name="0.8.0"></a>
-# [0.8.0](https://github.com/ice-services/moleculer/compare/v0.7.0...v0.8.0) (2017-06-21)
+# [0.8.0](https://github.com/moleculerjs/moleculer/compare/v0.7.0...v0.8.0) (2017-06-21)
 
 # New
 
@@ -1657,7 +1657,7 @@ const broker = new ServiceBroker({
 });
 ```
 
-## Built-in circuit breaker [#22](https://github.com/ice-services/moleculer/issues/22/)
+## Built-in circuit breaker [#22](https://github.com/moleculerjs/moleculer/issues/22/)
 A better circuit breaker solution has recently been implemented. As a result of this improvement every call (local and remote) is protected by the built-in circuit breaker.
 You only need to enable it in broker options.
 
@@ -1694,9 +1694,9 @@ const broker = new ServiceBroker({
 });
 ```
 
-## REPL mode [#30](https://github.com/ice-services/moleculer/issues/30/)
+## REPL mode [#30](https://github.com/moleculerjs/moleculer/issues/30/)
 Broker module has an interactive REPL mode. You can call actions, load services, also emit events, subscribe to & unsubscribe from events from your console. You can list registered nodes & actions.
-> To use REPL mode please install the [moleculer-repl](https://github.com/ice-services/moleculer-repl) module with `npm install moleculer-repl --save` command.
+> To use REPL mode please install the [moleculer-repl](https://github.com/moleculerjs/moleculer-repl) module with `npm install moleculer-repl --save` command.
 
 **Start REPL mode**
 ```js
@@ -1887,15 +1887,15 @@ Moleculer doesn't contain dependencies for NATS, Redis, MQTT, MsgPack, Avro and 
 If you want to create a Moleculer project which communicates via NATS and your Redis cacher, you have to install `npm install moleculer nats redis --save`
 
 ## Changed code of ServiceNotFoundError
-The code of `ServiceNotFoundError` is changed from `501` to `404`. [More info](https://github.com/ice-services/moleculer-web/issues/7)
+The code of `ServiceNotFoundError` is changed from `501` to `404`. [More info](https://github.com/moleculerjs/moleculer-web/issues/7)
 
 ## Using Nanomatch instead of micromatch
 Memory cacher is using [nanomatch](https://github.com/micromatch/nanomatch) instead of [micromatch](https://github.com/micromatch/micromatch). The `nanomatch` is ~10x faster.
 
-## Removed `metricsSendInterval` option [#24](https://github.com/ice-services/moleculer/issues/24/)
+## Removed `metricsSendInterval` option [#24](https://github.com/moleculerjs/moleculer/issues/24/)
 The `metricsSendInterval` option is removed from broker options. If you want to access statistics & health info, call the `$node.health` and `$node.stats` actions.
 
-## Metrics & Statistics separated [#24](https://github.com/ice-services/moleculer/issues/24/)
+## Metrics & Statistics separated [#24](https://github.com/moleculerjs/moleculer/issues/24/)
 The metrics & statistics features separated. You can use just metrics or just statistics.
 
 ## Metrics nodeID
@@ -1966,7 +1966,7 @@ try {
 # 0.7.0 (2017-04-24)
 
 # New
-## Serializers for transporters [#10](https://github.com/ice-services/moleculer/issues/10/)
+## Serializers for transporters [#10](https://github.com/moleculerjs/moleculer/issues/10/)
 Implemented pluggable serializers.
 Built-in serializers:
 - [x] JSON (default)
@@ -1985,7 +1985,7 @@ const broker = new ServiceBroker({
 });
 ```
 
-## Typescript definition file [#5](https://github.com/ice-services/moleculer/issues/5)
+## Typescript definition file [#5](https://github.com/moleculerjs/moleculer/issues/5)
 Created an index.d.ts file. I'm not familiar in Typescript, so if you found error please help me and open a PR with fix. Thank you!
 
 ## Metrics rate option
@@ -2002,7 +2002,7 @@ const broker = new ServiceBroker({
 });
 ```
 
-## Context meta data ([#16](https://github.com/ice-services/moleculer/pull/16))
+## Context meta data ([#16](https://github.com/moleculerjs/moleculer/pull/16))
 Added `meta` prop to `Context`. The `meta` will be merged if has parent context.
 In case of remote calls the metadata will be transfered to the target service.
 

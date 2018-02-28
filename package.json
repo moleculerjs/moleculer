@@ -31,7 +31,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/ice-services/moleculer.git"
+    "url": "https://github.com/moleculerjs/moleculer.git"
   },
   "bin": {
     "moleculer-runner": "./bin/moleculer-runner.js"
