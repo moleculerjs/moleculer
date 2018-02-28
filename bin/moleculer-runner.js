@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /* moleculer
- * Copyright (c) 2018 Ice Services (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
