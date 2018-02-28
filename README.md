@@ -129,7 +129,7 @@ We welcome you to join to the development of Moleculer. Please read our [contrib
 # License
 Moleculer is available under the [MIT license](https://tldrlegal.com/license/mit-license).
 
-[3rd party licenses](https://app.fossa.io/reports/833f0d1b-462b-4eff-a4e4-e030115439fe)
+[3rd party licenses](https://app.fossa.io/reports/09fc5b4f-d321-4f68-b859-8c61fe3eb6dc)
 
 # Contact
 Copyright (c) 2016-2018 MoleculerJS
