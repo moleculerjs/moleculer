@@ -10,14 +10,14 @@ let { MoleculerError } = require("../src/errors");
 let broker = new ServiceBroker({
 	namespace: "",
 	nodeID: process.argv[2] || "server-" + process.pid,
-	_transporter: {
+	transporter: {
 		type: "TCP",
 		options: {
 			//udpDiscovery: false,
 			//urls: "file://./dev/nodes.json"
 		}
 	},
-	transporter: "kafka://192.168.51.29:2181",
+	//transporter: "kafka://192.168.51.29:2181",
 	//transporter: "amqp://192.168.0.181:5672",
 	//serializer: "MsgPack",
 
