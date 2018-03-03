@@ -110,7 +110,7 @@ Use the Moleculer CLI tool to create a new Moleculer based microservices project
 :tada:**Congratulations! Your first Moleculer based microservices project is created. Read our [documentation](https://moleculer.services/docs) to learn more about Moleculer.**
 
 # Official modules
-We have many official modules for Moleculer. [Check our list!](https://moleculer.services/docs/modules.html)
+We have many official modules for Moleculer. [Check our list!](https://moleculer.services/0.12/docs/modules.html)
 
 # Supporting
 Moleculer is an open source project. It is free to use for your personal or commercial projects. However, developing it takes up all my free time to make it better and better on a daily basis. If you like Moleculer framework, **[please support it][patreon]**. 

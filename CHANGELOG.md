@@ -1,9 +1,16 @@
 <a name="0.12.0"></a>
-# [0.12.0](https://github.com/moleculerjs/moleculer/compare/v0.11.10...v0.12.0) (2018-xx-xx)
+# [0.12.0](https://github.com/moleculerjs/moleculer/compare/v0.11.10...v0.12.0) (2018-03-03)
 
 This version contains the most changes in the history of Moleculer! More than 200 commits with 17k additions and a lot of new features.
 
 # Breaking changes
+
+## Github organization is renamed
+The Github organization name (Ice Services) has been rename to MoleculerJS. Please update your bookmarks.
+
+* Github organization: https://github.com/moleculerjs
+* Website: https://moleculer.services or http://moleculerjs.com/
+* Gitter chat: https://gitter.im/moleculerjs/moleculer
 
 ## Mixin merging logic is changed
 To support [#188](https://github.com/moleculerjs/moleculer/issues/188), mixin merging logic is changed at `actions`. Now it uses `defaultsDeep` for merging. It means you can extend the actions definition of mixins, no need to redeclare the `handler`.
