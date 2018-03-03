@@ -92,7 +92,7 @@ Use the Moleculer CLI tool to create a new Moleculer based microservices project
     ```
 2. Create a new project (named `first-demo`)
     ```bash
-    $ moleculer init project-simple first-demo
+    $ moleculer init project first-demo
     ```
     > Press Y on API Gateway & `npm install`
     
