@@ -31,12 +31,12 @@ declare namespace Moleculer {
 		params?: ActionParams;
 		service?: Service;
 		cache?: boolean;
-		handler: ActionHandler;
+		handler: ActionHandler<any>;
 		metrics?: MetricsOptions;
 		[key: string]: any;
 	}
 
-	type Actions = { [key: string]: Action | ActionHandler; };
+	type Actions = { [key: string]: Action | ActionHandler<any>; };
 
 	class Context {
 		constructor(broker: ServiceBroker, action: Action);
@@ -97,7 +97,7 @@ declare namespace Moleculer {
 
 	type ServiceMethods = { [key: string]: ((...args: any[]) => any) } & ThisType<Service>;
 
-	type Middleware = (handler: ActionHandler, action: Action) => any;
+	type Middleware = (handler: ActionHandler<any>, action: Action) => any;
 
 	interface ServiceSchema {
 		name: string;
@@ -345,7 +345,7 @@ declare namespace Moleculer {
 		 *
 		 * @memberof ServiceBroker
 		 */
-		mcall<T>(def: Array<CallDefinition> | { [name: string]: CallDefinition }): Bluebird<Array<T> | T>;
+		mcall<T>(def: Array<CallDefinition<any>> | { [name: string]: CallDefinition<any> }): Bluebird<Array<T> | T>;
 
 		/**
 		 * Emit an event (global & local)
