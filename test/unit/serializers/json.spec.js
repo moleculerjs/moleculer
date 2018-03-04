@@ -35,4 +35,25 @@ describe("Test JSONSerializer", () => {
 		expect(res).toEqual(obj);
 	});
 
+	it("should serialize the data contains a circular reference", () => {
+		const data = {
+			a: 5,
+			b: "Test"
+		};
+		data.c = data;
+		const obj = {
+			ver: "3",
+			sender: "test-1",
+			event: "user.created",
+			data,
+			broadcast: true
+		};
+		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
+		expect(s.length).toBe(112);
+
+		// Deserializing can't be equal to the preserialized object due to replacements
+		const res = serializer.deserialize(s, P.PACKET_EVENT);
+		expect(res).not.toEqual(obj);
+	});
+
 });
