@@ -1,9 +1,10 @@
 "use strict";
 
-let ServiceBroker = require("../src/service-broker");
-let BaseValidator = require("../src/validator");
-let { ValidationError } = require("../src/errors");
-let Joi = require("joi");
+const ServiceBroker = require("../src/service-broker");
+const BaseValidator = require("../src/validator");
+const { ValidationError } = require("../src/errors");
+const Joi = require("joi");
+const SafeJSONSerializer = require("./SafeJsonSerializer");
 
 // --- JOI VALIDATOR CLASS ---
 class JoiValidator extends BaseValidator {
@@ -27,8 +28,10 @@ class JoiValidator extends BaseValidator {
 
 let broker = new ServiceBroker({
 	logger: true,
+	transporter: "TCP",
 	validation: true,
-	validator: new JoiValidator
+	validator: new JoiValidator,
+	serializer: new SafeJSONSerializer()
 });
 
 // --- TEST BROKER ---

@@ -62,6 +62,30 @@ function runTest(dataName) {
 		return JsonSer.serialize(packet.payload, packet.type);
 	});
 
+	/*function circularSerialize(obj) {
+		const cache = new WeakSet();
+		return JSON.stringify(obj, (key, value) => {
+			if (typeof value === "object" && value !== null) {
+				if (cache.has(value)) {
+					return "[Circular]";
+				}
+				cache.add(value);
+			}
+			return value;
+		});
+	}
+
+	bench1.add("JSON (circular)", () => {
+		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
+			ver:"3",
+			sender: "node-100",
+			event: "user.created",
+			data: payload,
+			broadcast: true
+		});
+		return circularSerialize(packet.payload, packet.type);
+	});*/
+
 	bench1.add("Avro", () => {
 		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
 			ver:"3",
