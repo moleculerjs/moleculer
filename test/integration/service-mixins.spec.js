@@ -57,7 +57,9 @@ describe("Test Service mixins", () => {
 		},
 
 		events: {
-			"oxygen": jest.fn()
+			"oxygen": {
+				handler: jest.fn()
+			}
 		},
 
 		created: jest.fn(() => flowCreated.push("mixinL2")),
@@ -102,7 +104,11 @@ describe("Test Service mixins", () => {
 
 		events: {
 			"oxygen": jest.fn(),
-			"hydrogen": jest.fn()
+			"hydrogen": jest.fn(),
+			"nitrogen": {
+				group: "pnictogen",
+				handler: jest.fn()
+			}
 		},
 
 		created: jest.fn(() => flowCreated.push("mixin1L1")),
@@ -189,6 +195,7 @@ describe("Test Service mixins", () => {
 		events: {
 			"oxygen": jest.fn(),
 			"carbon": jest.fn(),
+			"nitrogen": jest.fn()
 		},
 
 		created: jest.fn(() => flowCreated.push("main")),
@@ -346,8 +353,8 @@ describe("Test Service mixins", () => {
 		expect(mixin2L1.events.oxygen).toHaveBeenCalledTimes(1);
 		expect(mixin2L1.events.oxygen).toHaveBeenCalledWith(payload, broker.nodeID, "oxygen");
 
-		expect(mixinL2.events.oxygen).toHaveBeenCalledTimes(2);
-		expect(mixinL2.events.oxygen).toHaveBeenCalledWith(payload, broker.nodeID, "oxygen");
+		expect(mixinL2.events.oxygen.handler).toHaveBeenCalledTimes(2);
+		expect(mixinL2.events.oxygen.handler).toHaveBeenCalledWith(payload, broker.nodeID, "oxygen");
 	});
 
 	it("should call 'carbon' event handlers", () => {
@@ -367,6 +374,42 @@ describe("Test Service mixins", () => {
 
 		expect(mixin2L1.events.hydrogen).toHaveBeenCalledTimes(1);
 		expect(mixin2L1.events.hydrogen).toHaveBeenCalledWith(payload, broker.nodeID, "hydrogen");
+	});
+
+	it("should call 'nitrogen' event handlers without group", () => {
+		let payload = { a: 5 };
+		broker.broadcastLocal("nitrogen", payload);
+
+		expect(mixin1L1.events.nitrogen.handler).toHaveBeenCalledTimes(1);
+		expect(mixin1L1.events.nitrogen.handler).toHaveBeenCalledWith(payload, broker.nodeID, "nitrogen");
+
+		expect(mainSchema.events.nitrogen).toHaveBeenCalledTimes(1);
+		expect(mainSchema.events.nitrogen).toHaveBeenCalledWith(payload, broker.nodeID, "nitrogen");
+	});
+
+	it("should call 'nitrogen' event handlers with group", () => {
+		mixin1L1.events.nitrogen.handler.mockClear();
+		mainSchema.events.nitrogen.mockClear();
+
+		let payload = { a: 5 };
+		broker.broadcastLocal("nitrogen", payload, "pnictogen");
+
+		expect(mixin1L1.events.nitrogen.handler).toHaveBeenCalledTimes(1);
+		expect(mixin1L1.events.nitrogen.handler).toHaveBeenCalledWith(payload, broker.nodeID, "nitrogen");
+
+		expect(mainSchema.events.nitrogen).toHaveBeenCalledTimes(1);
+		expect(mainSchema.events.nitrogen).toHaveBeenCalledWith(payload, broker.nodeID, "nitrogen");
+	});
+
+	it("should call 'nitrogen' event handlers with wrong group", () => {
+		mixin1L1.events.nitrogen.handler.mockClear();
+		mainSchema.events.nitrogen.mockClear();
+
+		let payload = { a: 5 };
+		broker.broadcastLocal("nitrogen", payload, "other");
+
+		expect(mixin1L1.events.nitrogen.handler).toHaveBeenCalledTimes(0);
+		expect(mainSchema.events.nitrogen).toHaveBeenCalledTimes(0);
 	});
 
 	it("calling broker.stop", () => {

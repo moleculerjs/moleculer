@@ -684,7 +684,12 @@ describe("Test mergeSchemas", () => {
 
 			events: {
 				"created"() {},
-				"updated"() {}
+				"updated"() {},
+				"removed": {
+					group: "mail",
+					handler: () => {}
+				},
+				"inserted"() {}
 			},
 
 			methods: {
@@ -742,7 +747,12 @@ describe("Test mergeSchemas", () => {
 
 			events: {
 				"created"() {},
-				"removed"() {}
+				"removed"() {},
+				"cleared"() {},
+				"inserted": {
+					group: "payment",
+					handler: () => {}
+				},
 			},
 
 			methods: {
@@ -788,6 +798,7 @@ describe("Test mergeSchemas", () => {
 		});
 		expect(res.dependencies).toEqual(["math", "posts", "users"]);
 
+		// Actions
 		expect(res.actions.get).toBe(origSchema.actions.get);
 		expect(res.actions.find.handler).toBe(newSchema.actions.find.handler);
 		expect(res.actions.find.cache).toBe(false);
@@ -809,18 +820,31 @@ describe("Test mergeSchemas", () => {
 		});
 		expect(res.actions.update.handler).toBe(newSchema.actions.update);
 
+		// Events
 		expect(res.events.created.handler).toBeInstanceOf(Array);
 		expect(res.events.created.handler[0]).toBe(origSchema.events.created);
 		expect(res.events.created.handler[1]).toBe(newSchema.events.created);
 
 		expect(res.events.updated).toBe(origSchema.events.updated);
-		expect(res.events.removed.handler).toBeInstanceOf(Array);
-		expect(res.events.removed.handler[0]).toBe(newSchema.events.removed);
 
+		expect(res.events.removed.handler).toBeInstanceOf(Array);
+		expect(res.events.removed.handler[0]).toBe(origSchema.events.removed.handler);
+		expect(res.events.removed.handler[1]).toBe(newSchema.events.removed);
+		expect(res.events.removed.group).toBe("mail");
+
+		expect(res.events.cleared.handler[0]).toBe(newSchema.events.cleared);
+
+		expect(res.events.inserted.handler).toBeInstanceOf(Array);
+		expect(res.events.inserted.handler[0]).toBe(origSchema.events.inserted);
+		expect(res.events.inserted.handler[1]).toBe(newSchema.events.inserted.handler);
+		expect(res.events.inserted.group).toBe("payment");
+
+		// Methods
 		expect(res.methods.getByID).toBe(newSchema.methods.getByID);
 		expect(res.methods.notify).toBe(origSchema.methods.notify);
 		expect(res.methods.checkPermission).toBe(newSchema.methods.checkPermission);
 
+		// Lifecycle handlers
 		expect(res.created).toBeInstanceOf(Array);
 		expect(res.started).toBeInstanceOf(Array);
 		expect(res.stopped).toBeInstanceOf(Array);
@@ -838,7 +862,7 @@ describe("Test mergeSchemas", () => {
 
 	});
 
-	it("should concat tlifecycle events", () => {
+	it("should concat lifecycle events", () => {
 
 		let origSchema = {
 			created: jest.fn(),
