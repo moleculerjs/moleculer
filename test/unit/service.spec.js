@@ -1,9 +1,5 @@
 "use strict";
 
-jest.mock("../../src/utils");
-const utils = require("../../src/utils");
-utils.mergeSchemas = jest.fn(s1 => s1);
-
 const Service = require("../../src/service");
 const ServiceBroker = require("../../src/service-broker");
 
@@ -410,57 +406,6 @@ describe("Test constructor with mixins", () => {
 	});
 });
 
-describe("Test applyMixins", () => {
-	let mixin1 = { name: "mixin1" };
-	let mixin2 = { name: "mixin2" };
-	let mixin3 = { name: "mixin3", mixins: mixin2 };
-
-	it("should call utils.mergeSchemas with mixins", () => {
-		utils.mergeSchemas.mockClear();
-		let schema = {
-			name: "posts",
-			mixins: [
-				mixin1,
-				mixin2
-			]
-		};
-		Service.applyMixins(schema);
-
-		expect(utils.mergeSchemas).toHaveBeenCalledTimes(3);
-		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, mixin1);
-		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, mixin2);
-		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, schema);
-	});
-
-	it("should call utils.mergeSchemas with mixin", () => {
-		utils.mergeSchemas.mockClear();
-		let schema = {
-			name: "posts",
-			mixins: mixin2
-		};
-		Service.applyMixins(schema);
-
-		expect(utils.mergeSchemas).toHaveBeenCalledTimes(2);
-		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, mixin2);
-		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, schema);
-	});
-
-	it("should call utils.mergeSchemas with two level mixins", () => {
-		utils.mergeSchemas.mockClear();
-		let schema = {
-			name: "posts",
-			mixins: mixin3
-		};
-		Service.applyMixins(schema);
-
-		expect(utils.mergeSchemas).toHaveBeenCalledTimes(4);
-		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, {});
-		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, mixin3);
-		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, mixin2);
-		expect(utils.mergeSchemas).toHaveBeenCalledWith({}, schema);
-	});
-});
-
 describe("Test lifecycle event handlers", () => {
 	describe("with simple handlers", () => {
 
@@ -631,6 +576,295 @@ describe("Test dependencies", () => {
 
 			return broker.stop();
 		});
+	});
+
+});
+
+
+describe("Test applyMixins", () => {
+	let mixin1 = { name: "mixin1" };
+	let mixin2 = { name: "mixin2" };
+	let mixin3 = { name: "mixin3", mixins: mixin2 };
+
+	const oldMerge = Service.mergeSchemas;
+	beforeAll(() => Service.mergeSchemas = jest.fn(s1 => s1));
+	afterAll(() => Service.mergeSchemas = oldMerge);
+
+	it("should call Service.mergeSchemas with mixins", () => {
+		Service.mergeSchemas.mockClear();
+		let schema = {
+			name: "posts",
+			mixins: [
+				mixin1,
+				mixin2
+			]
+		};
+		Service.applyMixins(schema);
+
+		expect(Service.mergeSchemas).toHaveBeenCalledTimes(2);
+		expect(Service.mergeSchemas).toHaveBeenCalledWith(mixin2, mixin1);
+		expect(Service.mergeSchemas).toHaveBeenCalledWith(mixin2, schema);
+	});
+
+	it("should call Service.mergeSchemas with mixin", () => {
+		Service.mergeSchemas.mockClear();
+		let schema = {
+			name: "posts",
+			mixins: mixin2
+		};
+		Service.applyMixins(schema);
+
+		expect(Service.mergeSchemas).toHaveBeenCalledTimes(1);
+		expect(Service.mergeSchemas).toHaveBeenCalledWith(mixin2, schema);
+	});
+
+	it("should call Service.mergeSchemas with two level mixins", () => {
+		Service.mergeSchemas.mockClear();
+		let schema = {
+			name: "posts",
+			mixins: mixin3
+		};
+		Service.applyMixins(schema);
+
+		expect(Service.mergeSchemas).toHaveBeenCalledTimes(2);
+		expect(Service.mergeSchemas).toHaveBeenCalledWith(mixin2, mixin3);
+		expect(Service.mergeSchemas).toHaveBeenCalledWith(mixin2, schema);
+	});
+});
+
+describe("Test mergeSchemas", () => {
+
+	it("should merge two schemas", () => {
+
+		let origSchema = {
+			name: "posts",
+			settings: {
+				a: 5,
+				b: "10",
+				nested: {
+					id: 10
+				},
+				array: [
+					"first"
+				]
+			},
+
+			dependencies: [
+				"posts",
+				"users"
+			],
+
+			metadata: {
+				a: "a",
+				b: 33,
+				d: true,
+				nested: {
+					old: 1,
+					tag: "old"
+				}
+			},
+
+			actions: {
+				get() {},
+				find() {},
+				list: {
+					cache: {
+						keys: ["id"]
+					},
+					handler() {}
+				},
+				create() {},
+				update: {
+					use: [],
+					handler() {
+
+					}
+				}
+			},
+
+			events: {
+				"created"() {},
+				"updated"() {}
+			},
+
+			methods: {
+				getByID() {},
+				notify() {}
+			},
+
+			created: jest.fn(),
+			started: jest.fn(),
+			stopped: jest.fn()
+		};
+
+		let newSchema = {
+			name: "users",
+			version: 2,
+			settings: {
+				b: 100,
+				c: true,
+				nested: {
+					name: "John"
+				},
+				array: [
+					"second",
+					"third"
+				]
+			},
+
+			dependencies: "math",
+
+			metadata: {
+				a: "aaa",
+				b: 25,
+				c: "metadata",
+				nested: {
+					tag: "new",
+					res: "test"
+				}
+			},
+
+			actions: {
+				find: {
+					cache: false,
+					handler() {}
+				},
+				list() {},
+				create: {
+					cache: {
+						keys: ["id"]
+					}
+				},
+				update() {
+				},
+				remove() {}
+			},
+
+			events: {
+				"created"() {},
+				"removed"() {}
+			},
+
+			methods: {
+				getByID() {},
+				checkPermission() {}
+			},
+
+			created: jest.fn(),
+			started: jest.fn(),
+			stopped: jest.fn(),
+
+			customProp: "test"
+		};
+
+		let res = Service.mergeSchemas(origSchema, newSchema);
+
+		expect(res).toBeDefined();
+		expect(res.name).toBe("users");
+		expect(res.version).toBe(2);
+		expect(res.settings).toEqual({
+			a: 5,
+			b: 100,
+			c: true,
+			nested: {
+				id: 10,
+				name: "John"
+			},
+			array: [
+				"second",
+				"third"
+			]
+		});
+		expect(res.metadata).toEqual({
+			a: "aaa",
+			b: 25,
+			c: "metadata",
+			d: true,
+			nested: {
+				old: 1,
+				tag: "new",
+				res: "test"
+			}
+		});
+		expect(res.dependencies).toEqual(["math", "posts", "users"]);
+
+		expect(res.actions.get).toBe(origSchema.actions.get);
+		expect(res.actions.find.handler).toBe(newSchema.actions.find.handler);
+		expect(res.actions.find.cache).toBe(false);
+		expect(res.actions.list.handler).toBe(newSchema.actions.list);
+		expect(res.actions.remove.handler).toBe(newSchema.actions.remove);
+
+		// Merge action definition
+		expect(res.actions.create).toEqual({
+			cache: {
+				keys: ["id"]
+			},
+			handler: origSchema.actions.create
+		});
+		expect(res.actions.create.handler).toBe(origSchema.actions.create);
+
+		expect(res.actions.update).toEqual({
+			use: [],
+			handler: newSchema.actions.update
+		});
+		expect(res.actions.update.handler).toBe(newSchema.actions.update);
+
+		expect(res.events.created.handler).toBeInstanceOf(Array);
+		expect(res.events.created.handler[0]).toBe(origSchema.events.created);
+		expect(res.events.created.handler[1]).toBe(newSchema.events.created);
+
+		expect(res.events.updated).toBe(origSchema.events.updated);
+		expect(res.events.removed.handler).toBeInstanceOf(Array);
+		expect(res.events.removed.handler[0]).toBe(newSchema.events.removed);
+
+		expect(res.methods.getByID).toBe(newSchema.methods.getByID);
+		expect(res.methods.notify).toBe(origSchema.methods.notify);
+		expect(res.methods.checkPermission).toBe(newSchema.methods.checkPermission);
+
+		expect(res.created).toBeInstanceOf(Array);
+		expect(res.started).toBeInstanceOf(Array);
+		expect(res.stopped).toBeInstanceOf(Array);
+
+		expect(res.created[0]).toBe(origSchema.created);
+		expect(res.created[1]).toBe(newSchema.created);
+
+		expect(res.started[0]).toBe(origSchema.started);
+		expect(res.started[1]).toBe(newSchema.started);
+
+		expect(res.stopped[0]).toBe(origSchema.stopped);
+		expect(res.stopped[1]).toBe(newSchema.stopped);
+
+		expect(res.customProp).toBe("test");
+
+	});
+
+	it("should concat tlifecycle events", () => {
+
+		let origSchema = {
+			created: jest.fn(),
+			started: jest.fn()
+		};
+
+		let newSchema = {
+			created: jest.fn(),
+			stopped: jest.fn()
+		};
+
+		let res = Service.mergeSchemas(origSchema, newSchema);
+
+		expect(res).toBeDefined();
+
+		expect(res.created).toBeInstanceOf(Array);
+		expect(res.created.length).toBe(2);
+		expect(res.created[0]).toBe(origSchema.created);
+		expect(res.created[1]).toBe(newSchema.created);
+
+		expect(res.started).toBe(origSchema.started);
+
+		expect(res.stopped).toBeInstanceOf(Array);
+		expect(res.stopped.length).toBe(1);
+		expect(res.stopped[0]).toBe(newSchema.stopped);
+
 	});
 
 });

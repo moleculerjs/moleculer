@@ -6,12 +6,7 @@
 
 "use strict";
 
-const isFunction = require("lodash/isFunction");
-const forIn = require("lodash/forIn");
-const isObject = require("lodash/isObject");
-const isNumber = require("lodash/isNumber");
-const cloneDeep = require("lodash/cloneDeep");
-const defaultsDeep = require("lodash/defaultsDeep");
+const _ = require("lodash");
 const utils = require("./utils");
 
 const { ServiceSchemaError } = require("./errors");
@@ -32,7 +27,7 @@ class Service {
 	 * @memberof Service
 	 */
 	constructor(broker, schema) {
-		if (!isObject(broker))
+		if (!_.isObject(broker))
 			throw new ServiceSchemaError("Must set a ServiceBroker instance!");
 
 		this.broker = broker;
@@ -50,7 +45,7 @@ class Service {
 	 * @param {Object} schema of Service
 	 */
 	parseServiceSchema(schema) {
-		if (!isObject(schema))
+		if (!_.isObject(schema))
 			throw new ServiceSchemaError("Must pass a service schema in constructor!");
 
 		if (schema.mixins) {
@@ -82,9 +77,9 @@ class Service {
 		};
 
 		// Register actions
-		if (isObject(schema.actions)) {
+		if (_.isObject(schema.actions)) {
 
-			forIn(schema.actions, (action, name) => {
+			_.forIn(schema.actions, (action, name) => {
 				if (action === false)
 					return;
 
@@ -103,10 +98,10 @@ class Service {
 		}
 
 		// Event subscriptions
-		if (isObject(schema.events)) {
+		if (_.isObject(schema.events)) {
 
-			forIn(schema.events, (event, name) => {
-				if (isFunction(event) || Array.isArray(event)) {
+			_.forIn(schema.events, (event, name) => {
+				if (_.isFunction(event) || Array.isArray(event)) {
 					event = {
 						handler: event
 					};
@@ -122,7 +117,7 @@ class Service {
 				const handler = event.handler;
 				const self = this;
 				event.handler = function (payload, sender, eventName) {
-					if (isFunction(handler)) {
+					if (_.isFunction(handler)) {
 						const p = handler.apply(self, [payload, sender, eventName]);
 
 						// Handle async-await returns
@@ -152,9 +147,9 @@ class Service {
 		}
 
 		// Register methods
-		if (isObject(schema.methods)) {
+		if (_.isObject(schema.methods)) {
 
-			forIn(schema.methods, (method, name) => {
+			_.forIn(schema.methods, (method, name) => {
 				/* istanbul ignore next */
 				if (["name", "version", "settings", "metadata", "dependencies", "schema", "broker", "actions", "logger", "created", "started", "stopped"].indexOf(name) != -1) {
 					throw new ServiceSchemaError(`Invalid method name '${name}' in '${this.name}' service!`);
@@ -170,7 +165,7 @@ class Service {
 
 		// Create lifecycle runner methods
 		this.created = () => {
-			if (isFunction(this.schema.created)) {
+			if (_.isFunction(this.schema.created)) {
 				this.schema.created.call(this);
 			} else if (Array.isArray(this.schema.created)) {
 				this.schema.created.forEach(fn => fn.call(this));
@@ -185,7 +180,7 @@ class Service {
 						return this.waitForServices(this.schema.dependencies, this.settings.$dependencyTimeout || 0);
 				})
 				.then(() => {
-					if (isFunction(this.schema.started))
+					if (_.isFunction(this.schema.started))
 						return this.Promise.method(this.schema.started).call(this);
 
 					if (Array.isArray(this.schema.started)) {
@@ -197,7 +192,7 @@ class Service {
 		};
 
 		this.stopped = () => {
-			if (isFunction(this.schema.stopped))
+			if (_.isFunction(this.schema.stopped))
 				return this.Promise.method(this.schema.stopped).call(this);
 
 			if (Array.isArray(this.schema.stopped)) {
@@ -226,19 +221,19 @@ class Service {
 	 */
 	_createAction(actionDef, name) {
 		let action;
-		if (isFunction(actionDef)) {
+		if (_.isFunction(actionDef)) {
 			// Wrap to an object
 			action = {
 				handler: actionDef
 			};
-		} else if (isObject(actionDef)) {
-			action = cloneDeep(actionDef);
+		} else if (_.isObject(actionDef)) {
+			action = _.cloneDeep(actionDef);
 		} else {
 			throw new ServiceSchemaError(`Invalid action definition in '${name}' action in '${this.name}' service!`);
 		}
 
 		let handler = action.handler;
-		if (!isFunction(handler)) {
+		if (!_.isFunction(handler)) {
 			throw new ServiceSchemaError(`Missing action handler on '${name}' action in '${this.name}' service!`);
 		}
 
@@ -248,7 +243,7 @@ class Service {
 			action.name = action.name || name;
 
 		if (this.version && this.settings.$noVersionPrefix !== true) {
-			if (isNumber(this.version))
+			if (_.isNumber(this.version))
 				action.name = `v${this.version}.${action.name}`;
 			else
 				action.name = `${this.version}.${action.name}`;
@@ -260,7 +255,7 @@ class Service {
 		action.handler = this.Promise.method(handler.bind(this));
 
 		// action metrics options by default
-		action.metrics = defaultsDeep(action.metrics, { params: false, meta: true });
+		action.metrics = _.defaultsDeep(action.metrics, { params: false, meta: true });
 
 		return action;
 	}
@@ -294,15 +289,93 @@ class Service {
 				if (mixin.mixins)
 					mixin = Service.applyMixins(mixin);
 
-				return utils.mergeSchemas(s, mixin);
-			}, {});
+				return s ? Service.mergeSchemas(s, mixin) : mixin;
+			}, null);
 
-			return utils.mergeSchemas(mixedSchema, schema);
+			return Service.mergeSchemas(mixedSchema, schema);
 		}
 
 		/* istanbul ignore next */
 		return schema;
 	}
+
+	/**
+	 * Merge two Service schema
+	 *
+	 * @param {Object} mixinSchema		Mixin schema
+	 * @param {Object} svcSchema 		Service schema
+	 * @returns {Object} Mixed schema
+	 *
+	 * @memberof Service
+	 */
+	static mergeSchemas(mixinSchema, svcSchema) {
+		function updateProp(propName, target, source) {
+			if (source[propName] !== undefined)
+				target[propName] = source[propName];
+		}
+
+		const wrapToHander = function wrapToHander(o) {
+			return _._.isFunction(o) ? { handler: o } : o;
+		};
+
+		const res = _.cloneDeep(mixinSchema);
+		const mods = _.cloneDeep(svcSchema);
+
+		Object.keys(mods).forEach(key => {
+			if (["settings", "metadata"].indexOf(key) !== -1) {
+				// Merge with defaultsDeep
+				res[key] = _.defaultsDeep(mods[key], res[key]);
+
+			} else if (["actions"].indexOf(key) !== -1) {
+				// Merge with defaultsDeep
+				if (res[key] == null)
+					res[key] = {};
+
+				Object.keys(mods[key]).forEach(k => {
+					const modAction = wrapToHander(mods[key][k]);
+					const resAction = wrapToHander(res[key][k]);
+
+					res[key][k] = _.defaultsDeep(modAction, resAction);
+				});
+
+			} else if (["methods"].indexOf(key) !== -1) {
+				// Overwrite
+				res[key] = _.assign(res[key], mods[key]);
+
+			} else if (["events"].indexOf(key) !== -1) {
+				// Merge & concat by groups
+				if (res[key] == null)
+					res[key] = {};
+
+				Object.keys(mods[key]).forEach(k => {
+//					res[key][k] = _.compact(_.flatten([res[key][k], mods[key][k]]));
+
+					const modEvent = wrapToHander(mods[key][k]);
+					const resEvent = wrapToHander(res[key][k]);
+
+					const handler = _.compact(_.flatten([resEvent ? resEvent.handler : null, modEvent ? modEvent.handler : null]));
+
+					res[key][k] = _.defaultsDeep(modEvent, resEvent);
+					res[key][k].handler = handler;
+
+				});
+			} else if (["created", "started", "stopped"].indexOf(key) !== -1) {
+				// Concat lifecycle event handlers
+				res[key] = _.compact(_.flatten([res[key], mods[key]]));
+
+			} else if (["mixins", "dependencies"].indexOf(key) !== -1) {
+				// Concat mixins
+				res[key] = _.compact(_.flatten([mods[key], res[key]]));
+
+			} else {
+				// Overwrite
+				updateProp(key, res, mods);
+			}
+		});
+
+		return res;
+	}
+
 }
 
 module.exports = Service;

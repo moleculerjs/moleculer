@@ -1,0 +1,34 @@
+[
+    {
+        "ipList": [
+            "192.168.2.100",
+            "192.168.232.1",
+            "192.168.130.1",
+            "192.168.56.1",
+            "192.168.99.1"
+        ],
+        "hostname": "Norbi-PC2",
+        "client": {
+            "type": "nodejs",
+            "version": "0.12.1",
+            "langVersion": "v8.9.4"
+        },
+        "config": {},
+        "port": null,
+        "seq": 2,
+        "services": [
+            {
+                "name": "svc",
+                "settings": {},
+                "metadata": {},
+                "actions": {},
+                "events": {
+                    "user.created": {
+                        "group": "other",
+                        "name": "user.created"
+                    }
+                }
+            }
+        ]
+    }
+]

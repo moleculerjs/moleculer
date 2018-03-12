@@ -1,3 +1,14 @@
+--------------------------------------------------
+<a name="0.12.2"></a>
+# [0.12.2](https://github.com/moleculerjs/moleculer/compare/v0.12.0...v0.12.2) (2018-xx-xx)
+
+# Changes
+- fix `d.ts` issues
+- fix event `group` handling in mixins ([#217](https://github.com/moleculerjs/moleculer/issues/217))
+- move `mergeSchemas` from `utils` to `Service` static method. It can be overwritten with custom ServiceFactory
+
+
+--------------------------------------------------
 <a name="0.12.0"></a>
 # [0.12.0](https://github.com/moleculerjs/moleculer/compare/v0.11.10...v0.12.0) (2018-03-03)
 

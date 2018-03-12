@@ -623,7 +623,7 @@ class ServiceBroker {
 	createService(schema, schemaMods) {
 		let s = schema;
 		if (schemaMods)
-			s = utils.mergeSchemas(schema, schemaMods);
+			s = this.ServiceFactory.mergeSchemas(schema, schemaMods);
 
 		let service = new this.ServiceFactory(this, s);
 

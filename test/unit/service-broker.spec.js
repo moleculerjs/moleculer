@@ -1098,6 +1098,7 @@ describe("Test broker.createService", () => {
 
 	let broker = new ServiceBroker();
 	broker.ServiceFactory = jest.fn((broker, schema) => schema);
+	broker.ServiceFactory.mergeSchemas = jest.fn();
 
 	it("should load math service", () => {
 		let schema = {
@@ -1114,7 +1115,7 @@ describe("Test broker.createService", () => {
 	});
 
 	it("should call mergeSchema if give schema mods param", () => {
-		utils.mergeSchemas = jest.fn(s1 => s1);
+		broker.ServiceFactory.mergeSchemas = jest.fn(s1 => s1);
 		let schema = {
 			name: "test",
 			actions: {
@@ -1128,8 +1129,8 @@ describe("Test broker.createService", () => {
 		};
 
 		broker.createService(schema, mods);
-		expect(utils.mergeSchemas).toHaveBeenCalledTimes(1);
-		expect(utils.mergeSchemas).toHaveBeenCalledWith(schema, mods);
+		expect(broker.ServiceFactory.mergeSchemas).toHaveBeenCalledTimes(1);
+		expect(broker.ServiceFactory.mergeSchemas).toHaveBeenCalledWith(schema, mods);
 	});
 
 });
