@@ -365,7 +365,8 @@ class Transit {
 			else{
 				//create a new pass stream
 				pass = new Transform({
-					transform:function(chuck,encoding,done){
+					transform:function(chunck,encoding,done){
+						this.push(chunck);
 						return done();
 					}
 				});
