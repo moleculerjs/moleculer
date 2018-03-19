@@ -13,7 +13,7 @@ const P				= require("./packets");
 const { Packet }	= require("./packets");
 const E 			= require("./errors");
 
-const {PassThrough, Readable} = require('stream');
+const {Tramsform, Readable} = require('stream');
 
 /**
  * Transit class
@@ -364,7 +364,11 @@ class Transit {
 			}
 			else{
 				//create a new pass stream
-				pass = new PassThrough();
+				pass = new Tramsform({
+					transform:function(chuck,encoding,done){
+						return done();
+					}
+				});
 				this.pendingStreams.set(id,pass);
 				return req.resolve(pass);
 			}
