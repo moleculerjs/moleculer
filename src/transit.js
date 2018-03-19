@@ -352,7 +352,7 @@ class Transit {
 			let writable = this.pendingStreams.get(id);
 			if(!packet.stream){
 				//end of  stream
-				if(writable) writable.close();
+				if(writable) writable.end();
 				// Remove pending request
 				this.removePendingRequest(id);
 				this.pendingStreams.delete(id);
@@ -578,9 +578,10 @@ class Transit {
 		if(data && typeof data.on === 'function' && typeof data.read === 'function' && typeof data.pipe === 'function'){
 			//readable
 			payload.stream = true;
-			payload.data
+			data
 			.on('data',(chunck)=>{
 				payload.stream = true;
+				payload.data = chunck;
 				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
 					.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
 			})
@@ -590,6 +591,7 @@ class Transit {
 					.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
 			})
 			.on('error',(e)=>{
+				payload.stream = false;
 				payload.error=e;
 				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
 					.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
