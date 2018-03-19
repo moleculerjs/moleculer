@@ -364,7 +364,12 @@ class Transit {
 			}
 			else{
 				//create a new writable stream
-				writable = new Writable();
+				writable = new Writable({
+					write(chunck,encoding,done){
+						return done();
+					}
+				});
+				writable.prototype._write = 
 				this.pendingStreams.set(id,writable);
 				return req.resolve(writable);
 			}
