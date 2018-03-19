@@ -360,8 +360,7 @@ class Transit {
 			if(packet.stream && writable){
 				//on stream chunk
 				this.logger.debug(`Packet with stream chuck type: ${typeof packet.data}` );
-				console.log(packet.data);
-				writable.write(packet.data);
+				writable.write(packet.data.type === "Buffer" ? new Buffer(packet.data.data):packet.data);
 			}
 			else{
 				//create a new writable stream
