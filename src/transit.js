@@ -369,7 +369,6 @@ class Transit {
 						return done();
 					}
 				});
-				writable.prototype._write = 
 				this.pendingStreams.set(id,writable);
 				return req.resolve(writable);
 			}
