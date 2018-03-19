@@ -13,6 +13,8 @@ const P				= require("./packets");
 const { Packet }	= require("./packets");
 const E 			= require("./errors");
 
+const {Writable, Readable} = require('stream');
+
 /**
  * Transit class
  *
@@ -37,7 +39,7 @@ class Transit {
 		this.opts = opts;
 
 		this.pendingRequests = new Map();
-
+		this.pendingStreams = new Map();
 		this.stat = {
 			packets: {
 				sent: 0,
@@ -337,9 +339,6 @@ class Transit {
 			return;
 		}
 
-		// Remove pending request
-		this.removePendingRequest(id);
-
 		this.logger.debug(`Response '${req.action.name}' received from '${packet.sender}'.`);
 
 		// Update nodeID in context (if it uses external balancer)
@@ -347,6 +346,31 @@ class Transit {
 
 		// Merge response meta with original meta
 		_.assign(req.ctx.meta, packet.meta);
+		//Stream case
+		//get the underlined stream for id
+		if(packet.stream !== undefined && packet.stream !== "undefined"){
+			let writable = this.pendingStreams.get(id);
+			if(!packet.stream){
+				//end of  stream
+				if(writable) writable.close();
+				// Remove pending request
+				this.removePendingRequest(id);
+				this.pendingStreams.delete(id);
+			}
+			if(writable){
+				//on stream chunk
+				writable.write(packet.data);
+			}
+			else{
+				//create a new writable stream
+				writable = new Writable();
+				this.pendingStreams.set(id,writable);
+				return req.resolve(writable);
+			}
+			return req.resolve(packet.data);
+		}
+		// Remove pending request
+		this.removePendingRequest(id);
 
 		if (!packet.success) {
 			// Recreate exception object
@@ -551,7 +575,27 @@ class Transit {
 				data: err.data
 			};
 		}
+		if(data && typeof data.on === 'function' && typeof data.read === 'function' && typeof data.pipe === 'function'){
+			//readable
+			playload.stream = true;
+			payload.data
+			.on('data',(chunck)=>{
+				playload.stream = true;
+				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
+					.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
+			})
+			.on('end',()=>{
+				playload.stream = false;
+				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
+					.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
+			})
+			.on('error',(e)=>{
+				playload.error=e;
+				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
+					.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
+			})
 
+		}
 		return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
 			.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
 	}
