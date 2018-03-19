@@ -13,7 +13,7 @@ const P				= require("./packets");
 const { Packet }	= require("./packets");
 const E 			= require("./errors");
 
-const {Tramsform, Readable} = require('stream');
+const {Transform, Readable} = require('stream');
 
 /**
  * Transit class
@@ -364,7 +364,7 @@ class Transit {
 			}
 			else{
 				//create a new pass stream
-				pass = new Tramsform({
+				pass = new Transform({
 					transform:function(chuck,encoding,done){
 						return done();
 					}
