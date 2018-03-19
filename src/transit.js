@@ -602,7 +602,10 @@ class Transit {
 
 		}
 		return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
-			.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
+		.then(()=>{
+			if(payload.stream) data.resume();
+		})
+		.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
 	}
 
 	/**
