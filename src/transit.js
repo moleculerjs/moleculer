@@ -13,7 +13,7 @@ const P				= require("./packets");
 const { Packet }	= require("./packets");
 const E 			= require("./errors");
 
-const {Writable, Readable} = require('stream');
+const {PassThrough, Readable} = require('stream');
 
 /**
  * Transit class
@@ -349,28 +349,24 @@ class Transit {
 		//Stream case
 		//get the underlined stream for id
 		if(packet.stream !== undefined && packet.stream !== "undefined"){
-			let writable = this.pendingStreams.get(id);
-			if(!packet.stream && writable){
+			let pass = this.pendingStreams.get(id);
+			if(!packet.stream && pass){
 				//end of  stream
-				writable.end();
+				pass.end();
 				// Remove pending request
 				this.removePendingRequest(id);
 				this.pendingStreams.delete(id);
 			}
-			if(packet.stream && writable){
+			if(packet.stream && pass){
 				//on stream chunk
 				this.logger.debug(`Packet with stream chuck type: ${typeof packet.data}` );
-				writable.write(packet.data.type === "Buffer" ? new Buffer(packet.data.data):packet.data);
+				pass.write(packet.data.type === "Buffer" ? new Buffer(packet.data.data):packet.data);
 			}
 			else{
-				//create a new writable stream
-				writable = new Writable({
-					write(chunck,encoding,done){
-						return done();
-					}
-				});
-				this.pendingStreams.set(id,writable);
-				return req.resolve(writable);
+				//create a new pass stream
+				pass = new PassThrough();
+				this.pendingStreams.set(id,pass);
+				return req.resolve(pass);
 			}
 			return req.resolve(packet.data);
 		}
