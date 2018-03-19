@@ -577,20 +577,20 @@ class Transit {
 		}
 		if(data && typeof data.on === 'function' && typeof data.read === 'function' && typeof data.pipe === 'function'){
 			//readable
-			playload.stream = true;
+			payload.stream = true;
 			payload.data
 			.on('data',(chunck)=>{
-				playload.stream = true;
+				payload.stream = true;
 				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
 					.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
 			})
 			.on('end',()=>{
-				playload.stream = false;
+				payload.stream = false;
 				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
 					.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
 			})
 			.on('error',(e)=>{
-				playload.error=e;
+				payload.error=e;
 				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
 					.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
 			})
