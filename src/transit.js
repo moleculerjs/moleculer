@@ -347,8 +347,8 @@ class Transit {
 		// Merge response meta with original meta
 		_.assign(req.ctx.meta, packet.meta);
 		//Stream case
-		//get the underlined stream for id
-		if(packet.stream !== undefined && packet.stream !== "undefined"){
+		if(packet.stream !== undefined){
+			//get the underlined stream for id
 			let pass = this.pendingStreams.get(id);
 			if(!packet.stream && pass){
 				//end of  stream
@@ -358,7 +358,7 @@ class Transit {
 				this.pendingStreams.delete(id);
 			}
 			if(packet.stream && pass){
-				//on stream chunk
+				//on stream chunck
 				pass.write(packet.data.type === "Buffer" ? new Buffer.from(packet.data.data):packet.data);
 			}
 			else{
