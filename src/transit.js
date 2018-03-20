@@ -359,7 +359,6 @@ class Transit {
 			}
 			if(packet.stream && pass){
 				//on stream chunk
-				this.logger.debug(`Packet with stream chuck type: ${typeof packet.data}` );
 				pass.write(packet.data.type === "Buffer" ? new Buffer(packet.data.data):packet.data);
 			}
 			else{
@@ -377,7 +376,7 @@ class Transit {
 		}
 		// Remove pending request
 		this.removePendingRequest(id);
-
+		this.pendingStreams.delete(id);//just make sure to remove pending stream if any
 		if (!packet.success) {
 			// Recreate exception object
 			let err = new Error(packet.error.message + ` (NodeID: ${packet.sender})`);
