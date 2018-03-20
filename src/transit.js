@@ -13,7 +13,7 @@ const P				= require("./packets");
 const { Packet }	= require("./packets");
 const E 			= require("./errors");
 
-const {Transform, Readable} = require('stream');
+const {Transform} = require("stream");
 
 /**
  * Transit class
@@ -359,7 +359,7 @@ class Transit {
 			}
 			if(packet.stream && pass){
 				//on stream chunk
-				pass.write(packet.data.type === "Buffer" ? new Buffer(packet.data.data):packet.data);
+				pass.write(packet.data.type === "Buffer" ? new Buffer.from(packet.data.data):packet.data);
 			}
 			else{
 				//create a new pass stream
@@ -580,35 +580,35 @@ class Transit {
 				data: err.data
 			};
 		}
-		if(data && typeof data.on === 'function' && typeof data.read === 'function' && typeof data.pipe === 'function'){
+		if(data && typeof data.on === "function" && typeof data.read === "function" && typeof data.pipe === "function"){
 			//readable
 			payload.stream = true;
 			data
-			.on('data',(chunck)=>{
-				payload.stream = true;
-				payload.data = chunck;
-				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
-					.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
-			})
-			.on('end',()=>{
-				payload.data = null;
-				payload.stream = false;
-				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
-					.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
-			})
-			.on('error',(e)=>{
-				payload.stream = false;
-				payload.error=e;
-				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
-					.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
-			})
+				.on("data",(chunck)=>{
+					payload.stream = true;
+					payload.data = chunck;
+					return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
+						.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
+				})
+				.on("end",()=>{
+					payload.data = null;
+					payload.stream = false;
+					return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
+						.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
+				})
+				.on("error",(e)=>{
+					payload.stream = false;
+					payload.error=e;
+					return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
+						.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
+				});
 
 		}
 		return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
-		.then(()=>{
-			if(payload.stream) data.resume();
-		})
-		.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
+			.then(()=>{
+				if(payload.stream) data.resume();
+			})
+			.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
 	}
 
 	/**
