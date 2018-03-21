@@ -587,7 +587,9 @@ class Transit {
 				.on("data",(chunk)=>{
 					payload.stream = true;
 					payload.data = chunk;
+					data.pause();
 					return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
+						.then(() => data.resume())
 						.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
 				})
 				.on("end",()=>{
