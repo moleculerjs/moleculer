@@ -358,14 +358,14 @@ class Transit {
 				this.pendingStreams.delete(id);
 			}
 			if(packet.stream && pass){
-				//on stream chunck
+				//on stream chunk
 				pass.write(packet.data.type === "Buffer" ? new Buffer.from(packet.data.data):packet.data);
 			}
 			else{
 				//create a new pass stream
 				pass = new Transform({
-					transform:function(chunck,encoding,done){
-						this.push(chunck);
+					transform:function(chunk,encoding,done){
+						this.push(chunk);
 						return done();
 					}
 				});
@@ -584,9 +584,9 @@ class Transit {
 			//readable
 			payload.stream = true;
 			data
-				.on("data",(chunck)=>{
+				.on("data",(chunk)=>{
 					payload.stream = true;
-					payload.data = chunck;
+					payload.data = chunk;
 					return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
 						.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
 				})
