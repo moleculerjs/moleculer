@@ -3,25 +3,37 @@
 const ServiceBroker = require("../src/service-broker");
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 
 // Create broker
 const broker = new ServiceBroker({
 	nodeID: "streaming-sender",
-	transporter: {
-		type: "NATS",
-		options: {
-			//debug: true
-		}
-	},
+	transporter: "NATS",
 	logger: console,
-	logLevel: "debug"
+	logLevel: "info"
 });
 
 broker.createService({
 	name: "file",
 	actions: {
 		get(ctx) {
-			const stream = fs.createReadStream("d://www.zip");
+			const fileName = "d://src.zip";
+			const stat = fs.statSync(fileName);
+			let uploadedSize = 0;
+
+			const stream = fs.createReadStream(fileName);
+
+			stream.on("data", chunk => {
+				uploadedSize += chunk.length;
+				this.logger.info("SEND: ", Number(uploadedSize / stat.size * 100).toFixed(0) + "%");
+			});
+
+			stream.on("close", () => {
+				getSHA(fileName).then(hash => {
+					broker.logger.info("File sent! SHA:", hash);
+				});
+			});
+
 			return stream;
 		}
 	}
@@ -30,3 +42,13 @@ broker.createService({
 broker.start().then(() => {
 	broker.repl();
 });
+
+function getSHA(fileName) {
+	return new Promise((resolve, reject) => {
+		let hash = crypto.createHash("sha1");
+		let stream = fs.createReadStream(fileName);
+		stream.on("error", err => reject(err));
+		stream.on("data", chunk => hash.update(chunk));
+		stream.on("end", () => resolve(hash.digest("hex")));
+	});
+}
