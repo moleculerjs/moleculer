@@ -8,13 +8,15 @@ const crypto = require("crypto");
 // Create broker
 const broker = new ServiceBroker({
 	nodeID: "streaming-receiver",
-	transporter: "NATS",
+	transporter: "TCP",
 	logger: console,
 	logLevel: "info"
 });
 
 broker.start().then(() => {
 	broker.repl();
+
+	return broker.waitForServices("file");
 
 }).delay(1000).then(() => {
 	const fileName = "d://src.zip";
@@ -27,6 +29,7 @@ broker.start().then(() => {
 			broker.logger.info("Open file");
 			const s = fs.createWriteStream(fileName);
 			stream.pipe(s);
+			const startTime = Date.now();
 
 			stream.on("data", chunk => {
 				uploadedSize += chunk.length;
@@ -35,7 +38,10 @@ broker.start().then(() => {
 
 			s.on("close", () => {
 				getSHA(fileName).then(hash => {
-					broker.logger.info("File received! SHA:", hash);
+					broker.logger.info("File received.");
+					broker.logger.info("Size:", uploadedSize);
+					broker.logger.info("SHA:", hash);
+					broker.logger.info("Time:", Date.now() - startTime + "ms");
 				});
 			});
 

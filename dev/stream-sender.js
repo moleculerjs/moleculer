@@ -8,7 +8,7 @@ const crypto = require("crypto");
 // Create broker
 const broker = new ServiceBroker({
 	nodeID: "streaming-sender",
-	transporter: "NATS",
+	transporter: "TCP",
 	logger: console,
 	logLevel: "info"
 });
@@ -30,7 +30,9 @@ broker.createService({
 
 			stream.on("close", () => {
 				getSHA(fileName).then(hash => {
-					broker.logger.info("File sent! SHA:", hash);
+					broker.logger.info("File sent.");
+					broker.logger.info("SHA:", hash);
+					broker.logger.info("Size:", stat.size);
 				});
 			});
 
