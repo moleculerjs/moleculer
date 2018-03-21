@@ -13,6 +13,8 @@ const P				= require("./packets");
 const { Packet }	= require("./packets");
 const E 			= require("./errors");
 
+const {Transform} = require("stream");
+
 /**
  * Transit class
  *
@@ -37,7 +39,7 @@ class Transit {
 		this.opts = opts;
 
 		this.pendingRequests = new Map();
-
+		this.pendingStreams = new Map();
 		this.stat = {
 			packets: {
 				sent: 0,
@@ -337,9 +339,6 @@ class Transit {
 			return;
 		}
 
-		// Remove pending request
-		this.removePendingRequest(id);
-
 		this.logger.debug(`Response '${req.action.name}' received from '${packet.sender}'.`);
 
 		// Update nodeID in context (if it uses external balancer)
@@ -347,6 +346,41 @@ class Transit {
 
 		// Merge response meta with original meta
 		_.assign(req.ctx.meta, packet.meta);
+
+		// Handle stream repose
+		if (packet.stream !== undefined) {
+			//get the underlined stream for id
+			let pass = this.pendingStreams.get(id);
+			if (!packet.stream && pass) {
+				// End of stream
+				pass.end();
+
+				// Remove pending request
+				this.removePendingRequest(id);
+				this.pendingStreams.delete(id);
+			}
+
+			if (packet.stream && pass) {
+				// stream chunk
+				pass.write(packet.data.type === "Buffer" ? new Buffer.from(packet.data.data):packet.data);
+
+			} else {
+				// Create a new pass stream
+				pass = new Transform({
+					transform: function (chunk, encoding, done) {
+						this.push(chunk);
+						return done();
+					}
+				});
+				this.pendingStreams.set(id, pass);
+				return req.resolve(pass);
+			}
+			return req.resolve(packet.data);
+		}
+
+		// Remove pending request
+		this.removePendingRequest(id);
+		this.pendingStreams.delete(id);//just make sure to remove pending stream if any
 
 		if (!packet.success) {
 			// Recreate exception object
@@ -550,6 +584,45 @@ class Transit {
 				stack: err.stack,
 				data: err.data
 			};
+		}
+		if (data && typeof data.on === "function" && typeof data.read === "function" && typeof data.pipe === "function") {
+			// Streaming response
+			payload.stream = true;
+
+			data.on("data", chunk => {
+				payload.stream = true;
+				payload.data = chunk;
+				data.pause();
+
+				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
+					.then(() => data.resume())
+					.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
+			});
+
+			data.on("end", () => {
+				payload.data = null;
+				payload.stream = false;
+
+				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
+					.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
+			});
+
+			data.on("error", e => {
+				payload.stream = false;
+				payload.error = e;
+
+				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
+					.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
+			});
+
+			payload.data = null;
+			return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
+				.then(() => {
+					if (payload.stream)
+						data.resume();
+				})
+				.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
+
 		}
 
 		return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
