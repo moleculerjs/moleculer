@@ -110,7 +110,7 @@ class LatencyStrategy extends BaseStrategy {
 	// Slave
 	updateLatency(payload) {
 		this.broker.logger.debug("Latency update received", payload);
-		this.nodeLatency[payload.nodeID] = payload.avgLatency
+		this.nodeLatency[payload.nodeID] = payload.avgLatency;
 	}
 
 	// Master & Slave

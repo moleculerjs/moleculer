@@ -21,13 +21,15 @@ describe("Test LatencyStrategy", () => {
 		}, broker);
 
 		const list = [
-			{ a: "hello" },
-			{ b: "world" },
+			{ a: "hello", node: { id: 'a' } },
+			{ b: "world", node: { id: 'b' } },
 		];
 
 		expect(strategy.select(list)).toBeAnyOf(list);
 		expect(strategy.select(list)).toBeAnyOf(list);
 		expect(strategy.select(list)).toBeAnyOf(list);
 	});
+
+	// need a more comprehensive test with two nodes setup (similar to integration)
 
 });
