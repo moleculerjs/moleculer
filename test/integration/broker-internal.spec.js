@@ -69,10 +69,12 @@ describe("Test internal services", () => {
 				"config": {},
 				"cpu": null,
 				"cpuSeq": null,
+				"historicLatency": [],
 				"id": "node-master",
 				"ipList": localNode.ipList,
 				"hostname": hostname(),
 				"lastHeartbeatTime": localNode.lastHeartbeatTime,
+				"latency": 0,
 				"offlineSince": null,
 				"port": null,
 				"seq": localNode.seq,
@@ -457,4 +459,3 @@ describe("Test internal services", () => {
 	});
 
 });
-

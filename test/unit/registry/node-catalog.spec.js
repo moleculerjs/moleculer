@@ -31,9 +31,10 @@ describe("Test NodeCatalog constructor", () => {
 		expect(catalog.localNode.available).toBe(true);
 		expect(catalog.nodes.size).toBe(1);
 
-		expect(broker.localBus.on).toHaveBeenCalledTimes(2);
+		expect(broker.localBus.on).toHaveBeenCalledTimes(3);
 		expect(broker.localBus.on).toHaveBeenCalledWith("$transporter.connected", jasmine.any(Function));
 		expect(broker.localBus.on).toHaveBeenCalledWith("$transporter.disconnected", jasmine.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$node.pong", jasmine.any(Function));
 	});
 
 	it("should call startHeartbeatTimers & stortHeartbeatTimers", () => {
@@ -437,11 +438,13 @@ describe("Test NodeCatalog.list", () => {
 				"config": {},
 				"cpu": null,
 				"cpuSeq": null,
+				"historicLatency": [],
 				"id": broker.nodeID,
 				"ipList": catalog.localNode.ipList,
 				"hostname": catalog.localNode.hostname,
 				"port": null,
 				"lastHeartbeatTime": jasmine.any(Number),
+				"latency": 0,
 				"offlineSince": null,
 				"seq": 1,
 				"local": true,
@@ -453,11 +456,13 @@ describe("Test NodeCatalog.list", () => {
 				"config": {},
 				"cpu": null,
 				"cpuSeq": null,
+				"historicLatency": [],
 				"id": "node-10",
 				"ipList": undefined,
 				"hostname": undefined,
 				"port": undefined,
 				"lastHeartbeatTime": jasmine.any(Number),
+				"latency": 0,
 				"offlineSince": null,
 				"seq": 1,
 				"local": false,
@@ -476,11 +481,13 @@ describe("Test NodeCatalog.list", () => {
 				"config": {},
 				"cpu": null,
 				"cpuSeq": null,
+				"historicLatency": jasmine.any(Array),
 				"id": broker.nodeID,
 				"ipList": catalog.localNode.ipList,
 				"hostname": catalog.localNode.hostname,
 				"port": null,
 				"lastHeartbeatTime": jasmine.any(Number),
+				"latency": jasmine.any(Number),
 				"local": true,
 				"offlineSince": null,
 				"seq": 1,
@@ -493,11 +500,13 @@ describe("Test NodeCatalog.list", () => {
 				"config": {},
 				"cpu": null,
 				"cpuSeq": null,
+				"historicLatency": jasmine.any(Array),
 				"id": "node-10",
 				"ipList": undefined,
 				"hostname": undefined,
 				"port": undefined,
 				"lastHeartbeatTime": jasmine.any(Number),
+				"latency": jasmine.any(Number),
 				"local": false,
 				"offlineSince": null,
 				"seq": 1,
