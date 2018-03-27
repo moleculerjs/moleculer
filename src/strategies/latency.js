@@ -51,22 +51,25 @@ class LatencyStrategy extends BaseStrategy {
 		// Slave
 		this.nodeLatency = Object.create(null);
 
+		// short circuit
+		if (!this.broker.transit) return;
+
 		if (this.broker.localBus.listenerCount("$node.latencyMaster") === 0) {
-			this.broker.logger.debug("Latency: We are MASTER");
+			//this.broker.logger.debug("Latency: We are MASTER");
 			this.broker.localBus.on("$node.latencyMaster", function() {});
 			this.broker.localBus.on("$node.pong", this.processPong.bind(this));
-			this.broker.localBus.on("$node.disconnected", this.cleanUp.bind(this));
 			this.pingTimer();
 		} else {
-			this.broker.logger.debug("Latency: We are SLAVE");
+			//this.broker.logger.debug("Latency: We are SLAVE");
 		}
 
 		this.broker.localBus.on("$node.latencySlave", this.updateLatency.bind(this));
+		this.broker.localBus.on("$node.disconnected", this.cleanUp.bind(this));
 	}
 
 	// Master
 	ping() {
-		this.broker.logger.debug("Latency: Sending ping");
+		//this.broker.logger.debug("Latency: Sending ping");
 		this.broker.transit.sendPing().then(function() {
 			setTimeout(this.ping.bind(this), 1000 * this.opts.pingInterval);
 		}.bind(this));
@@ -74,9 +77,6 @@ class LatencyStrategy extends BaseStrategy {
 
 	// Master
 	pingTimer() {
-		// only one instance
-		if (!this.broker.transit) return;
-
 		this.broker.localBus.on("$broker.started", this.ping.bind(this));
 	}
 
@@ -85,7 +85,7 @@ class LatencyStrategy extends BaseStrategy {
 		let nodeID = payload.nodeID;
 		let avgLatency = null;
 
-		this.broker.logger.debug("Latency: Process incoming pong");
+		//this.broker.logger.debug("Latency: Process incoming pong");
 
 		if (typeof this.historicLatency[nodeID] === "undefined")
 			this.historicLatency[nodeID] = [];
@@ -99,7 +99,7 @@ class LatencyStrategy extends BaseStrategy {
 			return sum + latency;
 		}, 0) / this.historicLatency[nodeID].length;
 
-		this.broker.logger.debug("Latency: Broadcasting latency update");
+		//this.broker.logger.debug("Latency: Broadcasting latency update");
 
 		this.broker.localBus.emit("$node.latencySlave", {
 			nodeID: nodeID,
@@ -109,13 +109,13 @@ class LatencyStrategy extends BaseStrategy {
 
 	// Slave
 	updateLatency(payload) {
-		this.broker.logger.debug("Latency update received", payload);
+		//this.broker.logger.debug("Latency update received", payload);
 		this.nodeLatency[payload.nodeID] = payload.avgLatency;
 	}
 
 	// Master & Slave
 	cleanUp(payload) {
-		this.broker.logger.debug("Deleting historic latency", payload.node.id);
+		//this.broker.logger.debug("Deleting historic latency", payload.node.id);
 		delete this.historicLatency[payload.node.id];
 		delete this.nodeLatency[payload.node.id];
 	}
@@ -151,11 +151,11 @@ class LatencyStrategy extends BaseStrategy {
 
 		// Return the lowest latency
 		if (minEp) {
-			this.broker.logger.debug("Latency: Select", minEp.node.id, minLatency);
+			//this.broker.logger.debug("Latency: Select", minEp.node.id, minLatency);
 			return minEp;
 		}
 
-		this.broker.logger.debug("Latency: Select random");
+		//this.broker.logger.debug("Latency: Select random");
 
 		// Return a random item (no latency data)
 		return list[random(0, list.length - 1)];
