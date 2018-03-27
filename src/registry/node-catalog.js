@@ -44,6 +44,7 @@ class NodeCatalog {
 
 		this.broker.localBus.on("$transporter.connected", this.startHeartbeatTimers.bind(this));
 		this.broker.localBus.on("$transporter.disconnected", this.stopHeartbeatTimers.bind(this));
+		this.broker.localBus.on("$node.pong", this.updateLatency.bind(this));
 	}
 
 	/**
@@ -283,6 +284,20 @@ class NodeCatalog {
 		} else {
 			// Unknow node. Request an INFO from node
 			this.broker.transit.discoverNode(payload.sender);
+		}
+	}
+
+	/**
+	 * Update latency in local node registry
+	 *
+	 * @param {any} payload
+	 * @memberof NodeCatalog
+	 */
+	updateLatency(payload) {
+		const node = this.get(payload.nodeID);
+
+		if (node) {
+			node.updateLatency(payload);
 		}
 	}
 
