@@ -3,7 +3,6 @@
  * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
-
 "use strict";
 
 const _ = require("lodash");
@@ -25,10 +24,10 @@ const BaseStrategy = require("./base");
  * 	registry: {
  * 		strategy: "LatencyStrategy",
  * 		strategyOptions: {
- *			sampleCount: 5,
+ * 			sampleCount: 5,
  * 			lowLatency: 10,
- *          collectCount: 5,
- *          pingInterval: 10
+ * 			collectCount: 5,
+ * 			pingInterval: 10
  * 		}
  * 	}
  * });
@@ -43,83 +42,83 @@ class LatencyStrategy extends BaseStrategy {
 		this.opts = _.defaultsDeep(registry.opts.strategyOptions, {
 			sampleCount: 5,
 			lowLatency: 10,
-            collectCount: 5,
-            pingInterval: 10
+			collectCount: 5,
+			pingInterval: 10
 		});
 
 		// Master
-        this.historicLatency = Object.create(null);
+		this.historicLatency = Object.create(null);
 		// Slave
 		this.nodeLatency = Object.create(null);
 
-        if (this.broker.localBus.listenerCount("$node.latencyMaster") === 0) {
-            this.broker.logger.debug("Latency: We are MASTER");
-            this.broker.localBus.on("$node.latencyMaster", function() {});
-            this.broker.localBus.on("$node.pong", this.processPong.bind(this));
-            this.broker.localBus.on("$node.disconnected", this.cleanUp.bind(this));
-            this.pingTimer();
-        }else{
-            this.broker.logger.debug("Latency: We are SLAVE");
-        }
+		if (this.broker.localBus.listenerCount("$node.latencyMaster") === 0) {
+			this.broker.logger.debug("Latency: We are MASTER");
+			this.broker.localBus.on("$node.latencyMaster", function() {});
+			this.broker.localBus.on("$node.pong", this.processPong.bind(this));
+			this.broker.localBus.on("$node.disconnected", this.cleanUp.bind(this));
+			this.pingTimer();
+		} else {
+			this.broker.logger.debug("Latency: We are SLAVE");
+		}
 
-        this.broker.localBus.on("$node.latencySlave", this.updateLatency.bind(this));
+		this.broker.localBus.on("$node.latencySlave", this.updateLatency.bind(this));
 	}
 
 	// Master
-    ping() {
-        this.broker.logger.debug("Latency: Sending ping");
-        this.broker.transit.sendPing().then(function() {
-            setTimeout(this.ping.bind(this), 1000 * this.opts.pingInterval);
-        }.bind(this));
-    }
+	ping() {
+		this.broker.logger.debug("Latency: Sending ping");
+		this.broker.transit.sendPing().then(function() {
+			setTimeout(this.ping.bind(this), 1000 * this.opts.pingInterval);
+		}.bind(this));
+	}
 
 	// Master
-    pingTimer() {
-        // only one instance
-        if (!this.broker.transit) return;
+	pingTimer() {
+		// only one instance
+		if (!this.broker.transit) return;
 
-        this.broker.localBus.on("$broker.started", this.ping.bind(this));
-    }
+		this.broker.localBus.on("$broker.started", this.ping.bind(this));
+	}
 
 	// Master
-    processPong(payload) {
-        let nodeID = payload.nodeID;
-        let avgLatency = null;
+	processPong(payload) {
+		let nodeID = payload.nodeID;
+		let avgLatency = null;
 
-        this.broker.logger.debug("Latency: Process incoming pong");
+		this.broker.logger.debug("Latency: Process incoming pong");
 
-        if (typeof this.historicLatency[nodeID] === "undefined")
-            this.historicLatency[nodeID] = [];
+		if (typeof this.historicLatency[nodeID] === "undefined")
+			this.historicLatency[nodeID] = [];
 
-        if (this.historicLatency[nodeID].length > (this.opts.collectCount - 1))
-            this.historicLatency[nodeID].shift();
+		if (this.historicLatency[nodeID].length > (this.opts.collectCount - 1))
+			this.historicLatency[nodeID].shift();
 
-        this.historicLatency[nodeID].push(payload.elapsedTime);
+		this.historicLatency[nodeID].push(payload.elapsedTime);
 
-        avgLatency = this.historicLatency[nodeID].reduce(function(sum, latency) {
-            return sum + latency;
-        }, 0) / this.historicLatency[nodeID].length;
+		avgLatency = this.historicLatency[nodeID].reduce(function(sum, latency) {
+			return sum + latency;
+		}, 0) / this.historicLatency[nodeID].length;
 
-        this.broker.logger.debug("Latency: Broadcasting latency update");
+		this.broker.logger.debug("Latency: Broadcasting latency update");
 
-        this.broker.localBus.emit("$node.latencySlave", {
+		this.broker.localBus.emit("$node.latencySlave", {
 			nodeID: nodeID,
-            avgLatency: avgLatency
-        });
-    }
+			avgLatency: avgLatency
+		});
+	}
 
 	// Slave
-    updateLatency(payload) {
-        this.broker.logger.debug("Latency update received", payload);
+	updateLatency(payload) {
+		this.broker.logger.debug("Latency update received", payload);
 		this.nodeLatency[payload.nodeID] = payload.avgLatency
-    }
+	}
 
 	// Master & Slave
-    cleanUp(payload) {
-        this.broker.logger.debug("Deleting historic latency", payload.node.id);
+	cleanUp(payload) {
+		this.broker.logger.debug("Deleting historic latency", payload.node.id);
 		delete this.historicLatency[payload.node.id];
-        delete this.nodeLatency[payload.node.id];
-    }
+		delete this.nodeLatency[payload.node.id];
+	}
 
 	select(list) {
 		let minEp = null;
