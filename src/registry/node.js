@@ -37,6 +37,9 @@ class Node {
 		this.rawInfo = null;
 		this.services = [];
 
+		this.historicLatency = [];
+		this.latency = 0;
+
 		this.cpu = null;
 		this.cpuSeq = null;
 
@@ -99,6 +102,21 @@ class Node {
 		this.cpuSeq = payload.cpuSeq || 1;
 
 		this.lastHeartbeatTime = Date.now();
+	}
+
+	/**
+	 * Update latency properties
+	 *
+	 * @param {any} payload
+	 * @memberof Node
+	 */
+	updateLatency(payload) {
+		if (this.historicLatency.length > 50) this.historicLatency.unshift();
+		this.historicLatency.push(payload.elapsedTime);
+
+		this.latency = this.historicLatency.reduce(function(total, latency) {
+			return total + latency;
+		}) / this.historicLatency.length;
 	}
 
 	/**

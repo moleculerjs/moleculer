@@ -44,7 +44,7 @@ describe("Test Registry constructor", () => {
 
 		let registry = new Registry(broker);
 
-		expect(broker.localBus.on).toHaveBeenCalledTimes(3);
+		expect(broker.localBus.on).toHaveBeenCalledTimes(4);
 		expect(broker.localBus.on).toHaveBeenCalledWith("$broker.started", jasmine.any(Function));
 
 		let seq = registry.nodes.localNode.seq;

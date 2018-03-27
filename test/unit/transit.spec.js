@@ -958,11 +958,16 @@ describe("Test Transit.sendHeartbeat", () => {
 
 	it("should call publish with correct params", () => {
 		transit.sendHeartbeat({ cpu: 12 });
-		expect(transit.publish).toHaveBeenCalledTimes(1);
-		const packet = transit.publish.mock.calls[0][0];
-		expect(packet).toBeInstanceOf(P.Packet);
-		expect(packet.type).toBe(P.PACKET_HEARTBEAT);
-		expect(packet.payload.cpu).toBe(12);
+		expect(transit.publish).toHaveBeenCalledTimes(2);
+
+		const pingPacket = transit.publish.mock.calls[0][0];
+		expect(pingPacket).toBeInstanceOf(P.Packet);
+		expect(pingPacket.type).toBe(P.PACKET_PING);
+		
+		const heartbeatPacket = transit.publish.mock.calls[1][0];
+		expect(heartbeatPacket).toBeInstanceOf(P.Packet);
+		expect(heartbeatPacket.type).toBe(P.PACKET_HEARTBEAT);
+		expect(heartbeatPacket.payload.cpu).toBe(12);
 	});
 
 });
@@ -1025,4 +1030,3 @@ describe("Test Transit.publish", () => {
 	});
 
 });
-

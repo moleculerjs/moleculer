@@ -645,11 +645,14 @@ class Transit {
 	}
 
 	/**
-	 * Send a node heartbeat. It will be called with timer
+	 * Send a node heartbeat + Ping other nodes. It will be called with timer
 	 *
 	 * @memberof Transit
 	 */
 	sendHeartbeat(localNode) {
+
+		this.sendPing();
+
 		return this.publish(new Packet(P.PACKET_HEARTBEAT, null, {
 			cpu: localNode.cpu
 		})).catch(err => this.logger.error("Unable to send HEARTBEAT packet.", err));
