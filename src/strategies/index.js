@@ -11,5 +11,5 @@ module.exports = {
 	RoundRobin: require("./round-robin"),
 	Random: require("./random"),
 	CpuUsage: require("./cpu-usage"),
-	Latency: require('./latency')
+	Latency: require("./latency")
 };
