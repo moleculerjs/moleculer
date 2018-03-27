@@ -50,11 +50,13 @@ class LatencyStrategy extends BaseStrategy {
         this.bestNode = null;
 
         if (this.broker.localBus.listenerCount("$node.latencyMaster") === 0) {
-            this.broker.logger.debug("Latency: We are master");
+            this.broker.logger.debug("Latency: We are MASTER");
             this.broker.localBus.on("$node.latencyMaster", function() {});
             this.broker.localBus.on("$node.pong", this.processPong.bind(this));
             this.broker.localBus.on("$node.disconnected", this.cleanUp.bind(this));
             this.pingTimer();
+        }else{
+            this.broker.logger.debug("Latency: We are SLAVE");
         }
 
         this.broker.localBus.on("$node.latencySlave", this.updateLatency.bind(this));
@@ -110,7 +112,7 @@ class LatencyStrategy extends BaseStrategy {
     updateLatency(payload) {
         this.broker.logger.debug("Latency update received", payload);
         this.bestNode = payload.bestNode;
-        this.minLatency = this.minLatency;
+        this.minLatency = payload.minLatency;
     }
 
     cleanUp(payload) {
