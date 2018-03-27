@@ -42,13 +42,13 @@ const defaultOptions = {
 	requestTimeout: 0 * 1000,
 	requestRetry: 0,
 	maxCallLevel: 0,
-	heartbeatInterval: 10,
-	heartbeatTimeout: 30,
+	heartbeatInterval: 5,
+	heartbeatTimeout: 15,
 
 	disableBalancer: false,
 
 	registry: {
-		strategy: "Latency",
+		strategy: "RoundRobin",
 		preferLocal: true
 	},
 
