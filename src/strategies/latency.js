@@ -58,7 +58,7 @@ class LatencyStrategy extends BaseStrategy {
 			//this.broker.logger.debug("Latency: We are MASTER");
 			this.broker.localBus.on("$node.latencyMaster", function() {});
 			this.broker.localBus.on("$node.pong", this.processPong.bind(this));
-			this.pingTimer();
+			this.broker.localBus.on("$broker.started", this.sendPing.bind(this));
 		} else {
 			//this.broker.logger.debug("Latency: We are SLAVE");
 		}
@@ -68,16 +68,11 @@ class LatencyStrategy extends BaseStrategy {
 	}
 
 	// Master
-	ping() {
+	sendPing() {
 		//this.broker.logger.debug("Latency: Sending ping");
 		this.broker.transit.sendPing().then(function() {
-			setTimeout(this.ping.bind(this), 1000 * this.opts.pingInterval);
+			setTimeout(this.sendPing.bind(this), 1000 * this.opts.pingInterval);
 		}.bind(this));
-	}
-
-	// Master
-	pingTimer() {
-		this.broker.localBus.on("$broker.started", this.ping.bind(this));
 	}
 
 	// Master
