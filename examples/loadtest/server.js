@@ -43,7 +43,6 @@ broker.createService({
 	}
 });
 //broker.loadService(__dirname + "/../rest.service");
-//broker.loadService(__dirname + "/../metrics.prometheus.service");
 
 broker.start();
 
