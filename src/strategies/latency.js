@@ -64,8 +64,7 @@ class LatencyStrategy extends BaseStrategy {
 
 			/* hostMap contains:
 				hostname => {
-					nodeID: null,
-					nodeCounter: 1
+					nodeList: []
 				}
 			*/
 			this.hostMap = new Map();
@@ -111,8 +110,8 @@ class LatencyStrategy extends BaseStrategy {
 		}
 
 		this.broker.Promise.map(hosts, function(host) {
-			this.broker.logger.debug("Latency: Sending ping to", host.nodeID);
-			return this.broker.transit.sendPing(host.nodeID);
+			this.broker.logger.debug("Latency: Sending ping to", host.nodeList[0]);
+			return this.broker.transit.sendPing(host.nodeList[0]);
 		}.bind(this), { concurrency: 5 }).then(function() {
 			setTimeout(this.pingHosts.bind(this), 1000 * this.opts.pingInterval);
 		}.bind(this));
@@ -159,8 +158,7 @@ class LatencyStrategy extends BaseStrategy {
 
 		if (typeof this.hostMap.get(node.hostname) === "undefined") {
 			this.hostMap.set(node.hostname, {
-				nodeID: node.id,
-				nodeCounter: 1
+				nodeList: [ node.id ]
 			});
 		}
 	}
@@ -174,7 +172,10 @@ class LatencyStrategy extends BaseStrategy {
 
 		this.mapNode(node);
 		// each host may have multiple nodes
-		this.hostMap.get(node.hostname).nodeCounter++;
+		let hostMap = this.hostMap.get(node.hostname);
+		if (hostMap.nodeList.indexOf(node.id) === -1) {
+			hostMap.nodeList.push(node.id);
+		}
 
 		this.broker.logger.debug("Latency: ", node.hostname, "has", this.hostMap.get(node.hostname).nodeCounter, "nodes");
 	}
@@ -183,8 +184,13 @@ class LatencyStrategy extends BaseStrategy {
 	removeHostMap(payload) {
 		let node = payload.node;
 
-		this.hostMap.get(node.hostname).nodeCounter--;
-		if (this.hostMap.get(node.hostname).nodeCounter > 1) return;
+		let hostMap = this.hostMap.get(node.hostname);
+		let nodeIndex = hostMap.nodeList.indexOf(node.id);
+		if (nodeIndex > -1) {
+			hostMap.nodeList.splice(nodeIndex, 1);
+		}
+
+		if (hostMap.nodeList.length > 0) return;
 
 		// only remove the host if the last node disconnected
 
