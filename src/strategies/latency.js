@@ -46,6 +46,8 @@ class LatencyStrategy extends BaseStrategy {
 			pingInterval: 10
 		});
 
+		this.brokerStopped = false;
+
 		this.hostLatency = new Map();
 
 		/* hostMap contains:
@@ -72,6 +74,8 @@ class LatencyStrategy extends BaseStrategy {
 			this.broker.localBus.on("$node.disconnected", this.removeHostMap.bind(this));
 			// try to discovery all nodes on start up
 			this.broker.localBus.on("$broker.started", this.discovery.bind(this));
+			// clean up ourselves
+			this.broker.localBus.on("$broker.stopped", () => this.brokerStopped = true);
 		} else {
 			this.broker.logger.debug("Latency: We are SLAVE");
 			// remove node if we are told by master
@@ -90,6 +94,9 @@ class LatencyStrategy extends BaseStrategy {
 
 	// Master
 	pingHosts() {
+
+		if (this.brokerStopped) return;
+
 		this.broker.logger.debug("Latency: Sending ping to hosts");
 		/*
 			Smart Ping: only ping the host, not the nodes (which may be many)
