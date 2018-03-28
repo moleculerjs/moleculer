@@ -112,7 +112,7 @@ class LatencyStrategy extends BaseStrategy {
 
 	// Master
 	processPong(payload) {
-		let node = this.registry.nodes.get(payload.nodeID)
+		let node = this.registry.nodes.get(payload.nodeID);
 		if (!node) return;
 
 		let avgLatency = null;
@@ -172,7 +172,7 @@ class LatencyStrategy extends BaseStrategy {
 		let node = payload.node;
 
 		let hostMap = this.hostMap.get(node.hostname);
-		if (typeof hostMap === 'undefined') return;
+		if (typeof hostMap === "undefined") return;
 
 		let nodeIndex = hostMap.nodeList.indexOf(node.id);
 		if (nodeIndex > -1) {
