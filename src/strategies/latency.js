@@ -62,8 +62,6 @@ class LatencyStrategy extends BaseStrategy {
 		if (!this.broker.transit) return;
 
 		if (this.broker.localBus.listenerCount("$node.latencyMaster") === 0) {
-			this.broker.logger.debug("Latency: We are MASTER");
-
 			// claim as master
 			this.broker.localBus.on("$node.latencyMaster", function() {});
 			// respond to PONG
@@ -77,7 +75,6 @@ class LatencyStrategy extends BaseStrategy {
 			// clean up ourselves
 			this.broker.localBus.on("$broker.stopped", () => this.brokerStopped = true);
 		} else {
-			this.broker.logger.debug("Latency: We are SLAVE");
 			// remove node if we are told by master
 			this.broker.localBus.on("$node.latencySlave.removeHost", this.removeHostLatency.bind(this));
 		}
@@ -96,8 +93,6 @@ class LatencyStrategy extends BaseStrategy {
 	pingHosts() {
 
 		if (this.brokerStopped) return;
-
-		this.broker.logger.debug("Latency: Sending ping to hosts");
 		/*
 			Smart Ping: only ping the host, not the nodes (which may be many)
 
@@ -110,7 +105,6 @@ class LatencyStrategy extends BaseStrategy {
 		}
 
 		this.broker.Promise.map(hosts, function(host) {
-			this.broker.logger.debug("Latency: Sending ping to", host.nodeList[0]);
 			return this.broker.transit.sendPing(host.nodeList[0]);
 		}.bind(this), { concurrency: 5 }).then(function() {
 			setTimeout(this.pingHosts.bind(this), 1000 * this.opts.pingInterval);
@@ -124,8 +118,6 @@ class LatencyStrategy extends BaseStrategy {
 
 		let avgLatency = null;
 
-		this.broker.logger.debug("Latency: Process incoming pong");
-
 		this.mapNode(node);
 
 		let hostMap = this.hostMap.get(node.hostname);
@@ -138,8 +130,6 @@ class LatencyStrategy extends BaseStrategy {
 		avgLatency = hostMap.historicLatency.reduce(function(sum, latency) {
 			return sum + latency;
 		}, 0) / hostMap.historicLatency.length;
-
-		this.broker.logger.debug("Latency: Broadcasting latency update");
 
 		this.broker.localBus.emit("$node.latencySlave", {
 			hostname: node.hostname,
@@ -159,9 +149,6 @@ class LatencyStrategy extends BaseStrategy {
 
 	// Master
 	addNode(payload) {
-
-		this.broker.logger.debug("Latency: adding new node");
-
 		let node = payload.node;
 
 		this.mapNode(node);
@@ -170,8 +157,6 @@ class LatencyStrategy extends BaseStrategy {
 		if (hostMap.nodeList.indexOf(node.id) === -1) {
 			hostMap.nodeList.push(node.id);
 		}
-
-		this.broker.logger.debug("Latency: ", node.hostname, "has", hostMap.nodeList.length, "nodes");
 	}
 
 	// Master
@@ -190,15 +175,12 @@ class LatencyStrategy extends BaseStrategy {
 
 		// only remove the host if the last node disconnected
 
-		this.broker.logger.debug("Latency: removing host", node.hostname);
-
 		this.broker.localBus.emit("$node.latencySlave.removeHost", node.hostname);
 		this.hostMap.delete(node.hostname);
 	}
 
 	// Slave
 	updateLatency(payload) {
-		this.broker.logger.debug("Latency update received", payload);
 		this.hostLatency.set(payload.hostname, payload.avgLatency);
 	}
 
@@ -238,11 +220,8 @@ class LatencyStrategy extends BaseStrategy {
 
 		// Return the lowest latency
 		if (minEp) {
-			this.broker.logger.debug("Latency: Select", minEp.node.hostname, minLatency);
 			return minEp;
 		}
-
-		this.broker.logger.debug("Latency: Select random");
 
 		// Return a random item (no latency data)
 		return list[random(0, list.length - 1)];
