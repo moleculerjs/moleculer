@@ -48,26 +48,19 @@ class LatencyStrategy extends BaseStrategy {
 
 		this.hostLatency = new Map();
 
+		/* hostMap contains:
+			hostname => {
+				historicLatency: [],
+				nodeList: []
+			}
+		*/
+		this.hostMap = new Map();
+
 		// short circuit
 		if (!this.broker.transit) return;
 
 		if (this.broker.localBus.listenerCount("$node.latencyMaster") === 0) {
 			this.broker.logger.debug("Latency: We are MASTER");
-
-			/* nodeMap contains:
-				nodeID => {
-					historicLatency: [],
-					hostname: null
-				}
-			*/
-			this.nodeMap = new Map();
-
-			/* hostMap contains:
-				hostname => {
-					nodeList: []
-				}
-			*/
-			this.hostMap = new Map();
 
 			// claim as master
 			this.broker.localBus.on("$node.latencyMaster", function() {});
@@ -128,16 +121,16 @@ class LatencyStrategy extends BaseStrategy {
 
 		this.mapNode(node);
 
-		let nodeMap = this.nodeMap.get(node.id);
+		let hostMap = this.hostMap.get(node.hostname);
 
-		if (nodeMap.historicLatency.length > (this.opts.collectCount - 1))
-			nodeMap.historicLatency.shift();
+		if (hostMap.historicLatency.length > (this.opts.collectCount - 1))
+			hostMap.historicLatency.shift();
 
-		nodeMap.historicLatency.push(payload.elapsedTime);
+		hostMap.historicLatency.push(payload.elapsedTime);
 
-		avgLatency = nodeMap.historicLatency.reduce(function(sum, latency) {
+		avgLatency = hostMap.historicLatency.reduce(function(sum, latency) {
 			return sum + latency;
-		}, 0) / nodeMap.historicLatency.length;
+		}, 0) / hostMap.historicLatency.length;
 
 		this.broker.logger.debug("Latency: Broadcasting latency update");
 
@@ -149,15 +142,9 @@ class LatencyStrategy extends BaseStrategy {
 
 	// Master
 	mapNode(node) {
-		if (typeof this.nodeMap.get(node.id) === "undefined") {
-			this.nodeMap.set(node.id, {
-				historicLatency: [],
-				hostname: node.hostname
-			});
-		}
-
 		if (typeof this.hostMap.get(node.hostname) === "undefined") {
 			this.hostMap.set(node.hostname, {
+				historicLatency: [],
 				nodeList: [ node.id ]
 			});
 		}
@@ -185,6 +172,8 @@ class LatencyStrategy extends BaseStrategy {
 		let node = payload.node;
 
 		let hostMap = this.hostMap.get(node.hostname);
+		if (typeof hostMap === 'undefined') return;
+
 		let nodeIndex = hostMap.nodeList.indexOf(node.id);
 		if (nodeIndex > -1) {
 			hostMap.nodeList.splice(nodeIndex, 1);
@@ -197,7 +186,6 @@ class LatencyStrategy extends BaseStrategy {
 		this.broker.logger.debug("Latency: removing host", node.hostname);
 
 		this.broker.localBus.emit("$node.latencySlave.removeHost", node.hostname);
-		this.nodeMap.delete(node.id);
 		this.hostMap.delete(node.hostname);
 	}
 
