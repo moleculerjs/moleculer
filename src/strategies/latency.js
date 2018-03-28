@@ -177,7 +177,7 @@ class LatencyStrategy extends BaseStrategy {
 			hostMap.nodeList.push(node.id);
 		}
 
-		this.broker.logger.debug("Latency: ", node.hostname, "has", this.hostMap.get(node.hostname).nodeCounter, "nodes");
+		this.broker.logger.debug("Latency: ", node.hostname, "has", hostMap.nodeList.length, "nodes");
 	}
 
 	// Master
