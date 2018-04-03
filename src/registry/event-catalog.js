@@ -7,7 +7,7 @@
 "use strict";
 
 const _ 			= require("lodash");
-const nanomatch  	= require("nanomatch");
+const utils			= require("../utils");
 const EndpointList 	= require("./endpoint-list");
 const EventEndpoint = require("./endpoint-event");
 
@@ -85,7 +85,7 @@ class EventCatalog {
 		const res = [];
 
 		this.events.forEach(list => {
-			if (!nanomatch.isMatch(eventName, list.name)) return;
+			if (!utils.match(eventName, list.name)) return;
 			if (groups == null || groups.length == 0 || groups.indexOf(list.group) != -1) {
 				// Use built-in balancer, get the next endpoint
 				const ep = list.next();
@@ -105,7 +105,7 @@ class EventCatalog {
 	 * @memberof EventCatalog
 	 */
 	getGroups(eventName) {
-		return _.uniq(this.events.filter(list => nanomatch.isMatch(eventName, list.name)).map(item => item.group));
+		return _.uniq(this.events.filter(list => utils.match(eventName, list.name)).map(item => item.group));
 	}
 
 	/**
@@ -119,7 +119,7 @@ class EventCatalog {
 	getAllEndpoints(eventName, groupNames) {
 		const res = [];
 		this.events.forEach(list => {
-			if (!nanomatch.isMatch(eventName, list.name)) return;
+			if (!utils.match(eventName, list.name)) return;
 			if (groupNames == null || groupNames.length == 0 || groupNames.indexOf(list.group) !== -1) {
 				list.endpoints.forEach(ep => {
 					if (ep.isAvailable)
@@ -144,7 +144,7 @@ class EventCatalog {
 	 */
 	emitLocalServices(eventName, payload, groupNames, nodeID, broadcast) {
 		this.events.forEach(list => {
-			if (!nanomatch.isMatch(eventName, list.name)) return;
+			if (!utils.match(eventName, list.name)) return;
 			if (groupNames == null || groupNames.length == 0 || groupNames.indexOf(list.group) !== -1) {
 				if (broadcast) {
 					list.endpoints.forEach(ep => {

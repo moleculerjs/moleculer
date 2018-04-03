@@ -63,6 +63,14 @@ describe("Test BaseCacher", () => {
 		expect(cacher.prefix).toBe("MOL-uat-test-");
 	});
 
+	it("check init with prefix", () => {
+		let broker = new ServiceBroker({ namespace: "uat-test" });
+		let cacher = new Cacher({ prefix: "other" });
+		cacher.init(broker);
+
+		expect(cacher.prefix).toBe("other-");
+	});
+
 
 	it("check getCacheKey", () => {
 		let broker = new ServiceBroker();
