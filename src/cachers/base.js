@@ -42,10 +42,13 @@ class Cacher {
 		if (this.broker) {
 			this.logger = broker.getLogger("cacher");
 
-			this.prefix = "MOL-";
-			if (this.broker.namespace)
-				this.prefix += this.broker.namespace + "-";
-
+			if (this.opts.prefix) {
+				this.prefix = this.opts.prefix + "-";
+			} else {
+				this.prefix = "MOL-";
+				if (this.broker.namespace)
+					this.prefix += this.broker.namespace + "-";
+			}
 
 			broker.use(this.middleware());
 		}

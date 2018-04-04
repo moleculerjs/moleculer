@@ -22,7 +22,7 @@ broker1.createService({
 	}
 });
 
-broker1.loadService("./examples/metrics.zipkin.service");
+//broker1.loadService("./examples/metrics.zipkin.service");
 
 // ----------------------------------------------------------------------
 

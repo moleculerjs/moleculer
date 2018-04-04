@@ -77,7 +77,12 @@ describe("Test LatencyStrategy", () => {
 
 		let strategy = new LatencyStrategy({
 			opts: {
-				strategyOptions: {}
+				strategyOptions: {
+					sampleCount: 5,
+		            lowLatency: 10,
+		            collectCount: 10,
+		            pingInterval: 1
+				}
 			}
 		}, brokerWithNoTransit);
 
@@ -101,7 +106,12 @@ describe("Test LatencyStrategy", () => {
 
 		let strategy = new LatencyStrategy({
 			opts: {
-				strategyOptions: {}
+				strategyOptions: {
+					sampleCount: 5,
+		            lowLatency: 10,
+		            collectCount: 10,
+		            pingInterval: 1
+				}
 			}
 		}, brokerWithNoTransit);
 
@@ -127,7 +137,12 @@ describe("Test LatencyStrategy", () => {
 
 		let strategy = new LatencyStrategy({
 			opts: {
-				strategyOptions: {}
+				strategyOptions: {
+					sampleCount: 5,
+		            lowLatency: 10,
+		            collectCount: 10,
+		            pingInterval: 1
+				}
 			}
 		}, brokerWithNoTransit);
 
@@ -154,7 +169,12 @@ describe("Test LatencyStrategy", () => {
 
 		let strategy = new LatencyStrategy({
 			opts: {
-				strategyOptions: {}
+				strategyOptions: {
+					sampleCount: 5,
+		            lowLatency: 10,
+		            collectCount: 10,
+		            pingInterval: 1
+				}
 			}
 		}, brokerWithNoTransit);
 
@@ -192,6 +212,9 @@ describe("Test LatencyStrategy", () => {
 		        strategy: 'Latency',
 				preferLocal: false,
 		        strategyOptions: {
+					sampleCount: 5,
+		            lowLatency: 10,
+		            collectCount: 2,
 		            pingInterval: 1
 		        }
 		    }
@@ -213,6 +236,9 @@ describe("Test LatencyStrategy", () => {
 		        strategy: 'Latency',
 				preferLocal: false,
 		        strategyOptions: {
+					sampleCount: 5,
+		            lowLatency: 10,
+		            collectCount: 2,
 		            pingInterval: 1
 		        }
 		    }
@@ -234,6 +260,9 @@ describe("Test LatencyStrategy", () => {
 		        strategy: 'Latency',
 				preferLocal: false,
 		        strategyOptions: {
+					sampleCount: 5,
+		            lowLatency: 10,
+		            collectCount: 2,
 		            pingInterval: 1
 		        }
 		    }
@@ -255,7 +284,10 @@ describe("Test LatencyStrategy", () => {
 				strategy: 'Latency',
 				preferLocal: false,
 				strategyOptions: {
-					pingInterval: 1
+					sampleCount: 5,
+		            lowLatency: 10,
+		            collectCount: 2,
+		            pingInterval: 1
 				}
 			}
 		});
@@ -266,6 +298,7 @@ describe("Test LatencyStrategy", () => {
 			C.start().delay(500),
 			caller.start().delay(500)
 		])
+		.delay(1000)
 		.then(function() {
 			return Promise.map(new Array(10), () => {
 				return caller.call('Svc.echo').then((res) => {
@@ -273,7 +306,7 @@ describe("Test LatencyStrategy", () => {
 				});
 			})
 		})
-		.then(() => B.stop())
+		.then(() => B.stop()).delay(1000)
 		.then(function() {
 			return Promise.map(new Array(10), () => {
 				return caller.call('Svc.echo').then((res) => {
@@ -281,7 +314,7 @@ describe("Test LatencyStrategy", () => {
 				});
 			})
 		})
-		.then(() => A.stop())
+		.then(() => A.stop()).delay(1000)
 		.then(function() {
 			return Promise.map(new Array(10), () => {
 				return caller.call('Svc.echo').then((res) => {

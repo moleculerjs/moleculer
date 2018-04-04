@@ -28,8 +28,6 @@ let broker = new ServiceBroker({
 	logFormatter: "simple"
 });
 
-//broker.loadService(path.join(__dirname, "..", "metrics.prometheus.service"));
-
 broker.createService({
 	name: "math",
 	actions: {
