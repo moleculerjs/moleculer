@@ -7,7 +7,7 @@ const crypto = require("crypto");
 
 // Create broker
 const broker = new ServiceBroker({
-	nodeID: "streaming-receiver",
+	nodeID: "streaming-receiver-" + process.pid,
 	transporter: "NATS",
 	logger: console,
 	logLevel: "info"
