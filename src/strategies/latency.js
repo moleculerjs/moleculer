@@ -84,9 +84,9 @@ class LatencyStrategy extends BaseStrategy {
 
 	// Master
 	discovery() {
-		return this.broker.transit.sendPing().then(function() {
-			setTimeout(this.pingHosts.bind(this), 1000 * this.opts.pingInterval);
-		}.bind(this));
+		return this.broker.transit.sendPing().then(() => {
+			setTimeout(() => this.pingHosts(), 1000 * this.opts.pingInterval);
+		});
 	}
 
 	// Master
@@ -99,16 +99,13 @@ class LatencyStrategy extends BaseStrategy {
 			Although, if that particular node on the host is overloaded,
 			the measurement may be skewed.
 		*/
-		let hosts = [];
-		if (this.hostMap.size > 0) {
-			hosts = this.hostMap.values();
-		}
+		let hosts = this.hostMap.values();
 
-		this.broker.Promise.map(hosts, function(host) {
+		this.broker.Promise.map(hosts, (host) => {
 			return this.broker.transit.sendPing(host.nodeList[0]);
-		}.bind(this), { concurrency: 5 }).then(function() {
-			setTimeout(this.pingHosts.bind(this), 1000 * this.opts.pingInterval);
-		}.bind(this));
+		}, { concurrency: 5 }).then(() => {
+			setTimeout(() => this.pingHosts(), 1000 * this.opts.pingInterval);
+		});
 	}
 
 	// Master
@@ -127,7 +124,7 @@ class LatencyStrategy extends BaseStrategy {
 
 		hostMap.historicLatency.push(payload.elapsedTime);
 
-		avgLatency = hostMap.historicLatency.reduce(function(sum, latency) {
+		avgLatency = hostMap.historicLatency.reduce((sum, latency) => {
 			return sum + latency;
 		}, 0) / hostMap.historicLatency.length;
 
@@ -164,12 +161,21 @@ class LatencyStrategy extends BaseStrategy {
 		let node = payload.node;
 
 		let hostMap = this.hostMap.get(node.hostname);
+		// This exists to make sure that we don't get an "undefined",
+		// 	therefore the test coverage here is unnecessary.
+		/* istanbul ignore next */
 		if (typeof hostMap === "undefined") return;
 
 		let nodeIndex = hostMap.nodeList.indexOf(node.id);
+		// This exists to make sure that we find the index of the node,
+		//	therefore the test coverage here is unnecessary.
+		/* istanbul ignore else */
 		if (nodeIndex > -1) {
 			hostMap.nodeList.splice(nodeIndex, 1);
 		}
+
+		// ^ There was actually an debate about this:
+		// https://github.com/gotwarlost/istanbul/issues/35
 
 		if (hostMap.nodeList.length > 0) return;
 
