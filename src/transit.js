@@ -39,7 +39,9 @@ class Transit {
 		this.opts = opts;
 
 		this.pendingRequests = new Map();
-		this.pendingStreams = new Map();
+		this.pendingReqStreams = new Map();
+		this.pendingResStreams = new Map();
+
 		this.stat = {
 			packets: {
 				sent: 0,
@@ -314,8 +316,45 @@ class Transit {
 	_requestHandler(payload) {
 		this.logger.debug(`Request '${payload.action}' received from '${payload.sender}' node.`);
 
+		let pass;
+		if (payload.stream !== undefined) {
+			pass = this.pendingReqStreams.get(payload.id);
+			if (!payload.stream && pass) {
+				// End of stream
+				pass.end();
+
+				// Remove pending request
+				this.removePendingRequest(payload.id);
+				this.pendingReqStreams.delete(payload.id);
+
+				return;
+			}
+
+			if (payload.stream && pass) {
+				// stream chunk received
+				pass.write(payload.params.type === "Buffer" ? new Buffer.from(payload.params.data):payload.params);
+
+				return;
+
+			} else {
+				// Create a new pass stream
+				pass = new Transform({
+					transform: function (chunk, encoding, done) {
+						this.push(chunk);
+						return done();
+					}
+				});
+				this.pendingReqStreams.set(payload.id, pass);
+			}
+
+		}
+
 		// Recreate caller context
 		const ctx = this.broker.ContextFactory.createFromPayload(this.broker, payload);
+
+		// Set stream as `ctx.params`
+		if (pass)
+			ctx.params = pass;
 
 		return this.broker._handleRemoteRequest(ctx)
 			.then(res => this.sendResponse(payload.sender, payload.id,  ctx.meta, res, null))
@@ -350,14 +389,14 @@ class Transit {
 		// Handle stream repose
 		if (packet.stream !== undefined) {
 			//get the underlined stream for id
-			let pass = this.pendingStreams.get(id);
+			let pass = this.pendingResStreams.get(id);
 			if (!packet.stream && pass) {
 				// End of stream
 				pass.end();
 
 				// Remove pending request
 				this.removePendingRequest(id);
-				this.pendingStreams.delete(id);
+				this.pendingResStreams.delete(id);
 			}
 
 			if (packet.stream && pass) {
@@ -372,7 +411,7 @@ class Transit {
 						return done();
 					}
 				});
-				this.pendingStreams.set(id, pass);
+				this.pendingResStreams.set(id, pass);
 				return req.resolve(pass);
 			}
 			return req.resolve(packet.data);
@@ -380,7 +419,7 @@ class Transit {
 
 		// Remove pending request
 		this.removePendingRequest(id);
-		this.pendingStreams.delete(id);//just make sure to remove pending stream if any
+		this.pendingResStreams.delete(id);//just make sure to remove pending stream if any
 
 		if (!packet.success) {
 			// Recreate exception object
@@ -429,25 +468,31 @@ class Transit {
 	 * @memberof Transit
 	 */
 	_sendRequest(ctx, resolve, reject) {
+		const isStream = ctx.params && typeof ctx.params.on === "function" && typeof ctx.params.read === "function" && typeof ctx.params.pipe === "function";
+
 		const request = {
 			action: ctx.action,
 			nodeID: ctx.nodeID,
 			ctx,
 			resolve,
-			reject
+			reject,
+			stream: isStream // ???
 		};
 
-		const packet = new Packet(P.PACKET_REQUEST, ctx.nodeID, {
+		const payload = {
 			id: ctx.id,
 			action: ctx.action.name,
-			params: ctx.params,
+			params: isStream ? null : ctx.params,
 			meta: ctx.meta,
 			timeout: ctx.timeout,
 			level: ctx.level,
 			metrics: ctx.metrics,
 			parentID: ctx.parentID,
-			requestID: ctx.requestID
-		});
+			requestID: ctx.requestID,
+			stream: isStream
+		};
+
+		const packet = new Packet(P.PACKET_REQUEST, ctx.nodeID, payload);
 
 		this.logger.debug(`Send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`);
 
@@ -455,10 +500,43 @@ class Transit {
 		this.pendingRequests.set(ctx.id, request);
 
 		// Publish request
-		this.publish(packet).catch(err => {
-			this.logger.error(`Unable to send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, err);
-			reject(err);
-		});
+		this.publish(packet)
+			.then(() => {
+				if (isStream) {
+					const data = ctx.params;
+
+					data.on("data", chunk => {
+						payload.stream = true;
+						payload.params = chunk;
+						data.pause();
+
+						return this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, payload))
+							.then(() => data.resume())
+							.catch(err => this.logger.error(`Unable to send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, err));
+					});
+
+					data.on("end", () => {
+						payload.params = null;
+						payload.stream = false;
+
+						return this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, payload))
+							.catch(err => this.logger.error(`Unable to send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, err));
+					});
+
+					data.on("error", e => {
+						payload.stream = false;
+						//payload.error = e;
+						payload.params = null;
+
+						return this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, payload))
+							.catch(err => this.logger.error(`Unable to send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, err));
+					});
+				}
+			})
+			.catch(err => {
+				this.logger.error(`Unable to send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, err);
+				reject(err);
+			});
 	}
 
 	/**
