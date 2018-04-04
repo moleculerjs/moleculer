@@ -20,7 +20,7 @@ declare namespace Moleculer {
 		trace(...args: any[]): void;
 	}
 
-	type ActionHandler<T> = ((ctx: Context) => Bluebird<T> | T) & ThisType<Service>;
+	type ActionHandler<T = any> = ((ctx: Context) => Bluebird<T> | T) & ThisType<Service>;
 	type ActionParamSchema = { [key: string]: any };
 	type ActionParamTypes = "boolean" | "number" | "string" | "object" | "array" | ActionParamSchema;
 	type ActionParams = { [key: string]: ActionParamTypes };
@@ -31,14 +31,14 @@ declare namespace Moleculer {
 		params?: ActionParams;
 		service?: Service;
 		cache?: boolean;
-		handler: ActionHandler<any>;
+		handler: ActionHandler;
 		metrics?: MetricsOptions;
 		[key: string]: any;
 	}
 
-	type Actions = { [key: string]: Action | ActionHandler<any>; };
+	type Actions = { [key: string]: Action | ActionHandler; };
 
-	class Context {
+	class Context<P = GenericObject, M = GenericObject> {
 		constructor(broker: ServiceBroker, action: Action);
 		id: string;
 		broker: ServiceBroker;
@@ -52,8 +52,8 @@ declare namespace Moleculer {
 		timeout: number;
 		retryCount: number;
 
-		params: GenericObject;
-		meta: GenericObject;
+		params: P;
+		meta: M;
 
 		requestID?: string;
 		callerNodeID?: string;
@@ -62,8 +62,8 @@ declare namespace Moleculer {
 		cachedResult: boolean;
 
 		generateID(): string;
-		setParams(newParams: GenericObject, cloning?: boolean): void;
-		call<T, P extends GenericObject>(actionName: string, params?: P, opts?: GenericObject): Bluebird<T>;
+		setParams(newParams: P, cloning?: boolean): void;
+		call<T = any, P extends GenericObject = GenericObject>(actionName: string, params?: P, opts?: GenericObject): Bluebird<T>;
 		emit(eventName: string, data: any, groups: Array<string>): void;
 		emit(eventName: string, data: any, groups: string): void;
 		emit(eventName: string, data: any): void;
@@ -97,7 +97,7 @@ declare namespace Moleculer {
 
 	type ServiceMethods = { [key: string]: ((...args: any[]) => any) } & ThisType<Service>;
 
-	type Middleware = (handler: ActionHandler<any>, action: Action) => any;
+	type Middleware = (handler: ActionHandler, action: Action) => any;
 
 	interface ServiceSchema {
 		name: string;
@@ -117,7 +117,9 @@ declare namespace Moleculer {
 	}
 
 	class Service implements ServiceSchema {
-		constructor(broker: ServiceBroker, schema: ServiceSchema);
+		constructor(broker: ServiceBroker, schema?: ServiceSchema);
+
+		protected parseServiceSchema(schema: ServiceSchema);
 
 		name: string;
 		version?: string | number;
@@ -261,7 +263,7 @@ declare namespace Moleculer {
 		meta?: GenericObject;
 	}
 
-	type CallDefinition<P extends GenericObject> = {
+	type CallDefinition<P extends GenericObject = GenericObject> = {
 		action: string;
 		params: P;
 	};
@@ -310,7 +312,7 @@ declare namespace Moleculer {
 		 *
 		 * @memberof ServiceBroker
 		 */
-		call<T, P extends GenericObject>(actionName: string, params?: P, opts?: CallOptions): Bluebird<T>;
+		call<T = any, P extends GenericObject = GenericObject>(actionName: string, params?: P, opts?: CallOptions): Bluebird<T>;
 
 		/**
 		 * Multiple action calls.
@@ -345,7 +347,7 @@ declare namespace Moleculer {
 		 *
 		 * @memberof ServiceBroker
 		 */
-		mcall<T>(def: Array<CallDefinition<any>> | { [name: string]: CallDefinition<any> }): Bluebird<Array<T> | T>;
+		mcall<T = any>(def: Array<CallDefinition> | { [name: string]: CallDefinition }): Bluebird<Array<T> | T>;
 
 		/**
 		 * Emit an event (global & local)
