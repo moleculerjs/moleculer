@@ -28,6 +28,8 @@ module.exports = {
 
 	Strategies: require("./src/strategies"),
 
+	Utils: require("./src/utils"),
+
 	CIRCUIT_CLOSE,
 	CIRCUIT_HALF_OPEN,
 	CIRCUIT_OPEN,
