@@ -5,6 +5,7 @@
  */
 "use strict";
 
+const Promise = require("bluebird");
 const _ = require("lodash");
 
 const { random } = require("lodash");
@@ -48,7 +49,7 @@ class LatencyStrategy extends BaseStrategy {
 
 		this.brokerStopped = false;
 
-		this.hostLatency = new Map();
+		this.hostAvgLatency = new Map();
 
 		/* hostMap contains:
 			hostname => {
@@ -101,9 +102,7 @@ class LatencyStrategy extends BaseStrategy {
 		*/
 		let hosts = this.hostMap.values();
 
-		this.broker.Promise.map(hosts, (host) => {
-			return this.broker.transit.sendPing(host.nodeList[0]);
-		}, { concurrency: 5 }).then(() => {
+		Promise.map(hosts, host => this.broker.transit.sendPing(host.nodeList[0]), { concurrency: 5 }).then(() => {
 			setTimeout(() => this.pingHosts(), 1000 * this.opts.pingInterval);
 		});
 	}
@@ -113,20 +112,14 @@ class LatencyStrategy extends BaseStrategy {
 		let node = this.registry.nodes.get(payload.nodeID);
 		if (!node) return;
 
-		let avgLatency = null;
+		let info = this.getHostLatency(node);
 
-		this.mapNode(node);
+		if (info.historicLatency.length > (this.opts.collectCount - 1))
+			info.historicLatency.shift();
 
-		let hostMap = this.hostMap.get(node.hostname);
+		info.historicLatency.push(payload.elapsedTime);
 
-		if (hostMap.historicLatency.length > (this.opts.collectCount - 1))
-			hostMap.historicLatency.shift();
-
-		hostMap.historicLatency.push(payload.elapsedTime);
-
-		avgLatency = hostMap.historicLatency.reduce((sum, latency) => {
-			return sum + latency;
-		}, 0) / hostMap.historicLatency.length;
+		const avgLatency = info.historicLatency.reduce((sum, latency) => sum + latency, 0) / info.historicLatency.length;
 
 		this.broker.localBus.emit("$node.latencySlave", {
 			hostname: node.hostname,
@@ -135,24 +128,26 @@ class LatencyStrategy extends BaseStrategy {
 	}
 
 	// Master
-	mapNode(node) {
-		if (typeof this.hostMap.get(node.hostname) === "undefined") {
-			this.hostMap.set(node.hostname, {
+	getHostLatency(node) {
+		let info = this.hostMap.get(node.hostname);
+		if (typeof info === "undefined") {
+			info = {
 				historicLatency: [],
 				nodeList: [ node.id ]
-			});
+			};
+			this.hostMap.set(node.hostname, info);
 		}
+		return info;
 	}
 
 	// Master
 	addNode(payload) {
 		let node = payload.node;
 
-		this.mapNode(node);
 		// each host may have multiple nodes
-		let hostMap = this.hostMap.get(node.hostname);
-		if (hostMap.nodeList.indexOf(node.id) === -1) {
-			hostMap.nodeList.push(node.id);
+		let info = this.getHostLatency(node);
+		if (info.nodeList.indexOf(node.id) === -1) {
+			info.nodeList.push(node.id);
 		}
 	}
 
@@ -160,41 +155,38 @@ class LatencyStrategy extends BaseStrategy {
 	removeHostMap(payload) {
 		let node = payload.node;
 
-		let hostMap = this.hostMap.get(node.hostname);
+		let info = this.hostMap.get(node.hostname);
 		// This exists to make sure that we don't get an "undefined",
 		// 	therefore the test coverage here is unnecessary.
 		/* istanbul ignore next */
-		if (typeof hostMap === "undefined") return;
+		if (typeof info === "undefined") return;
 
-		let nodeIndex = hostMap.nodeList.indexOf(node.id);
-		// This exists to make sure that we find the index of the node,
-		//	therefore the test coverage here is unnecessary.
-		/* istanbul ignore else */
-		if (nodeIndex > -1) {
-			hostMap.nodeList.splice(nodeIndex, 1);
+		info.nodeList = info.nodeList.filter(id => id !== node.id);
+
+		if (info.nodeList.length == 0) {
+			// only remove the host if the last node disconnected
+			this.broker.localBus.emit("$node.latencySlave.removeHost", node.hostname);
+			this.hostMap.delete(node.hostname);
 		}
-
-		// ^ There was actually an debate about this:
-		// https://github.com/gotwarlost/istanbul/issues/35
-
-		if (hostMap.nodeList.length > 0) return;
-
-		// only remove the host if the last node disconnected
-
-		this.broker.localBus.emit("$node.latencySlave.removeHost", node.hostname);
-		this.hostMap.delete(node.hostname);
 	}
 
-	// Slave
+	// Master + Slave
 	updateLatency(payload) {
-		this.hostLatency.set(payload.hostname, payload.avgLatency);
+		this.hostAvgLatency.set(payload.hostname, payload.avgLatency);
 	}
 
 	// Slave
 	removeHostLatency(hostname) {
-		this.hostLatency.delete(hostname);
+		this.hostAvgLatency.delete(hostname);
 	}
 
+	/**
+	 * Select an endpoint by network latency
+	 *
+	 * @param {Array<Endpoint>} list
+	 * @returns {Endpoint}
+	 * @memberof LatencyStrategy
+	 */
 	select(list) {
 		let minEp = null;
 		let minLatency = null;
@@ -209,7 +201,7 @@ class LatencyStrategy extends BaseStrategy {
 			} else {
 				ep = list[random(0, list.length - 1)];
 			}
-			const epLatency = this.hostLatency.get(ep.node.hostname);
+			const epLatency = this.hostAvgLatency.get(ep.node.hostname);
 
 			// Check latency of endpoint
 			if (typeof epLatency !== "undefined") {
