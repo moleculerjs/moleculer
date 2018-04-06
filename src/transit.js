@@ -325,7 +325,6 @@ class Transit {
 
 				// Remove pending request
 				this.removePendingRequest(payload.id);
-				this.pendingReqStreams.delete(payload.id);
 
 				return;
 			}
@@ -396,7 +395,6 @@ class Transit {
 
 				// Remove pending request
 				this.removePendingRequest(id);
-				this.pendingResStreams.delete(id);
 			}
 
 			if (packet.stream && pass) {
@@ -419,7 +417,6 @@ class Transit {
 
 		// Remove pending request
 		this.removePendingRequest(id);
-		this.pendingResStreams.delete(id);//just make sure to remove pending stream if any
 
 		if (!packet.success) {
 			// Recreate exception object
@@ -611,10 +608,13 @@ class Transit {
 	 */
 	removePendingRequest(id) {
 		this.pendingRequests.delete(id);
+
+		this.pendingReqStreams.delete(id);
+		this.pendingResStreams.delete(id);
 	}
 
 	/**
-	 * Remove a pending request
+	 * Remove a pending request & streams
 	 *
 	 * @param {String} nodeID
 	 *
@@ -628,6 +628,9 @@ class Transit {
 
 				// Reject the request
 				req.reject(new E.RequestRejected(req.action.name, req.nodeID));
+
+				this.pendingReqStreams.delete(id);
+				this.pendingResStreams.delete(id);
 			}
 		});
 	}
