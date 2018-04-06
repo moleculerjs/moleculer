@@ -28,7 +28,7 @@ describe("Test LatencyStrategy", () => {
 
 		return brokerWithTransit.start().then(() => {
 			expect(strategy.hostMap.size).toBe(0);
-			expect(strategy.hostLatency.size).toBe(0);
+			expect(strategy.hostAvgLatency.size).toBe(0);
 		}).then(() => {
 			return brokerWithTransit.stop();
 		});
@@ -87,9 +87,9 @@ describe("Test LatencyStrategy", () => {
 		}, brokerWithNoTransit);
 
 		const list = [
-			{ a: "hello", node: { id: 'a' } },
-			{ b: "world", node: { id: 'b' } },
-			{ b: "now", node: { id: 'c' } }
+			{ a: "hello", node: { id: "a" } },
+			{ b: "world", node: { id: "b" } },
+			{ b: "now", node: { id: "c" } }
 		];
 
 		return brokerWithNoTransit.start().then(() => {
@@ -115,13 +115,13 @@ describe("Test LatencyStrategy", () => {
 			}
 		}, brokerWithNoTransit);
 
-		strategy.hostLatency.set("a", 5);
-		strategy.hostLatency.set("b", 20);
-		strategy.hostLatency.set("c", 100);
+		strategy.hostAvgLatency.set("a", 5);
+		strategy.hostAvgLatency.set("b", 20);
+		strategy.hostAvgLatency.set("c", 100);
 
 		const list = [
 			{ a: "hello", node: { hostname: "a" } },
-			{ b: "world", node: { hostname: 'b' } },
+			{ b: "world", node: { hostname: "b" } },
 			{ b: "now", node: { hostname: "c" } }
 		];
 
@@ -146,14 +146,14 @@ describe("Test LatencyStrategy", () => {
 			}
 		}, brokerWithNoTransit);
 
-		strategy.hostLatency.set("a", 50);
-		strategy.hostLatency.set("b", 20);
-		strategy.hostLatency.set("c", 100);
-		strategy.hostLatency.set("d", 1000);
+		strategy.hostAvgLatency.set("a", 50);
+		strategy.hostAvgLatency.set("b", 20);
+		strategy.hostAvgLatency.set("c", 100);
+		strategy.hostAvgLatency.set("d", 1000);
 
 		const list = [
 			{ a: "hello", node: { hostname: "a" } },
-			{ b: "world", node: { hostname: 'b' } },
+			{ b: "world", node: { hostname: "b" } },
 			{ b: "now", node: { hostname: "c" } }
 		];
 
@@ -178,23 +178,23 @@ describe("Test LatencyStrategy", () => {
 			}
 		}, brokerWithNoTransit);
 
-		strategy.hostLatency.set("a", 50);
-		strategy.hostLatency.set("b", 20);
-		strategy.hostLatency.set("c", 100);
-		strategy.hostLatency.set("d", 1000);
+		strategy.hostAvgLatency.set("a", 50);
+		strategy.hostAvgLatency.set("b", 20);
+		strategy.hostAvgLatency.set("c", 100);
+		strategy.hostAvgLatency.set("d", 1000);
 
 		const list = [
 			{ a: "hello", node: { hostname: "a" } },
-			{ b: "world", node: { hostname: 'b' } },
+			{ b: "world", node: { hostname: "b" } },
 			{ b: "12345", node: { hostname: "c" } },
 			{ a: "olleh", node: { hostname: "a" } },
-			{ b: "dlorw", node: { hostname: 'b' } },
+			{ b: "dlorw", node: { hostname: "b" } },
 			{ b: "54321", node: { hostname: "c" } },
 			{ a: "ooooo", node: { hostname: "a" } },
-			{ b: "ppppp", node: { hostname: 'b' } },
+			{ b: "ppppp", node: { hostname: "b" } },
 			{ b: "wwwww", node: { hostname: "c" } },
 			{ a: "aaaaa", node: { hostname: "a" } },
-			{ b: "bbbbb", node: { hostname: 'b' } },
+			{ b: "bbbbb", node: { hostname: "b" } },
 			{ b: "ccccc", node: { hostname: "c" } }
 		];
 
@@ -209,7 +209,7 @@ describe("Test LatencyStrategy", () => {
 			nodeID: "node-A",
 			transporter: "fake",
 			registry: {
-		        strategy: 'Latency',
+		        strategy: "Latency",
 				preferLocal: false,
 		        strategyOptions: {
 					sampleCount: 5,
@@ -221,7 +221,7 @@ describe("Test LatencyStrategy", () => {
 		});
 
 		A.createService({
-			name: 'Svc',
+			name: "Svc",
 			actions: {
 				echo: function(ctx) {
 					return "A";
@@ -233,7 +233,7 @@ describe("Test LatencyStrategy", () => {
 			nodeID: "node-B",
 			transporter: "fake",
 			registry: {
-		        strategy: 'Latency',
+		        strategy: "Latency",
 				preferLocal: false,
 		        strategyOptions: {
 					sampleCount: 5,
@@ -245,7 +245,7 @@ describe("Test LatencyStrategy", () => {
 		});
 
 		B.createService({
-			name: 'Svc',
+			name: "Svc",
 			actions: {
 				echo: function(ctx) {
 					return "B";
@@ -257,7 +257,7 @@ describe("Test LatencyStrategy", () => {
 			nodeID: "node-C",
 			transporter: "fake",
 			registry: {
-		        strategy: 'Latency',
+		        strategy: "Latency",
 				preferLocal: false,
 		        strategyOptions: {
 					sampleCount: 5,
@@ -269,7 +269,7 @@ describe("Test LatencyStrategy", () => {
 		});
 
 		C.createService({
-			name: 'Svc',
+			name: "Svc",
 			actions: {
 				echo: function(ctx) {
 					return "C";
@@ -281,7 +281,7 @@ describe("Test LatencyStrategy", () => {
 			nodeID: "node-caller",
 			transporter: "fake",
 			registry: {
-				strategy: 'Latency',
+				strategy: "Latency",
 				preferLocal: false,
 				strategyOptions: {
 					sampleCount: 5,
@@ -298,36 +298,36 @@ describe("Test LatencyStrategy", () => {
 			C.start().delay(500),
 			caller.start().delay(500)
 		])
-		.delay(1000)
-		.then(function() {
-			return Promise.map(new Array(10), () => {
-				return caller.call('Svc.echo').then((res) => {
-					expect(["A", "B", "C"]).toContain(res);
+			.delay(1000)
+			.then(function() {
+				return Promise.map(new Array(10), () => {
+					return caller.call("Svc.echo").then((res) => {
+						expect(["A", "B", "C"]).toContain(res);
+					});
 				});
 			})
-		})
-		.then(() => B.stop()).delay(1000)
-		.then(function() {
-			return Promise.map(new Array(10), () => {
-				return caller.call('Svc.echo').then((res) => {
-					expect(["A", "C"]).toContain(res);
+			.then(() => B.stop()).delay(1000)
+			.then(function() {
+				return Promise.map(new Array(10), () => {
+					return caller.call("Svc.echo").then((res) => {
+						expect(["A", "C"]).toContain(res);
+					});
 				});
 			})
-		})
-		.then(() => A.stop()).delay(1000)
-		.then(function() {
-			return Promise.map(new Array(10), () => {
-				return caller.call('Svc.echo').then((res) => {
-					expect(["C"]).toContain(res);
+			.then(() => A.stop()).delay(1000)
+			.then(function() {
+				return Promise.map(new Array(10), () => {
+					return caller.call("Svc.echo").then((res) => {
+						expect(["C"]).toContain(res);
+					});
 				});
 			})
-		})
-		.then(() => {
-			return Promise.all([
-				C.stop(),
-				caller.stop()
-			])
-		})
+			.then(() => {
+				return Promise.all([
+					C.stop(),
+					caller.stop()
+				]);
+			});
 	});
 
 });
