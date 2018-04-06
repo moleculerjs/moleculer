@@ -103,7 +103,9 @@ class LatencyStrategy extends BaseStrategy {
 		let hosts = this.hostMap.values();
 
 		Promise.map(hosts, host => {
-			return this.broker.transit.sendPing(host.nodeList[0]);
+			// Select a nodeID randomly
+			const nodeID = host.nodeList[random(0, host.nodeList.length - 1)];
+			return this.broker.transit.sendPing(nodeID);
 		}, { concurrency: 5 }).then(() => {
 			setTimeout(() => this.pingHosts(), 1000 * this.opts.pingInterval);
 		});
