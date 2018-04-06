@@ -1,48 +1,82 @@
 "use strict";
 
 let LatencyStrategy = require("../../../src/strategies/latency");
-let { extendExpect } = require("../utils");
+let { extendExpect, protectReject } = require("../utils");
 const ServiceBroker = require("../../../src/service-broker");
 const Promise = require("bluebird");
 
+const lolex = require("lolex");
+
 extendExpect(expect);
 
-describe("Test LatencyStrategy", () => {
+describe("Test LatencyStrategy constructor", () => {
 
-	it("should have properties", () => {
+	it("should be the master", () => {
 
-		const brokerWithTransit = new ServiceBroker({ nodeID: "node-1", transporter: "fake" });
+		const broker = new ServiceBroker({ nodeID: "node-1", transporter: "fake" });
+		broker.localBus.listenerCount = jest.fn(() => 0);
+		broker.localBus.on = jest.fn();
 
 		let strategy = new LatencyStrategy({
 			opts: {
 				strategyOptions: {}
 			}
-		}, brokerWithTransit);
+		}, broker);
 
-		expect(brokerWithTransit.localBus.listenerCount("$broker.started")).toBe(2);
-		expect(brokerWithTransit.localBus.listenerCount("$node.latencyMaster")).toBe(1);
-		expect(brokerWithTransit.localBus.listenerCount("$node.latencySlave")).toBe(1);
-		expect(brokerWithTransit.localBus.listenerCount("$node.pong")).toBe(1);
-		expect(brokerWithTransit.localBus.listenerCount("$node.connected")).toBe(1);
-		expect(brokerWithTransit.localBus.listenerCount("$node.disconnected")).toBe(1);
+		expect(broker.localBus.on).toHaveBeenCalledTimes(7);
+		expect(broker.localBus.on).toHaveBeenCalledWith("$broker.started", jasmine.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencyMaster", jasmine.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencySlave", jasmine.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$node.pong", jasmine.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$node.connected", jasmine.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$node.disconnected", jasmine.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencySlave", jasmine.any(Function));
 
-		return brokerWithTransit.start().then(() => {
+		return broker.start().catch(protectReject).then(() => {
+			expect(strategy.brokerStopped).toBe(false);
 			expect(strategy.hostMap.size).toBe(0);
 			expect(strategy.hostAvgLatency.size).toBe(0);
-		}).then(() => {
-			return brokerWithTransit.stop();
+
+			return broker.stop();
 		});
 	});
 
-	it("test without options", () => {
+	it("should be the slave", () => {
 
-		const brokerWithNoTransit = new ServiceBroker();
+		const broker = new ServiceBroker({ nodeID: "node-1", transporter: "fake" });
+		broker.localBus.listenerCount = jest.fn(() => 1);
+		broker.localBus.on = jest.fn();
 
 		let strategy = new LatencyStrategy({
 			opts: {
 				strategyOptions: {}
 			}
-		}, brokerWithNoTransit);
+		}, broker);
+
+		expect(broker.localBus.on).toHaveBeenCalledTimes(2);
+		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencySlave.removeHost", jasmine.any(Function));
+		expect(broker.localBus.on).toHaveBeenCalledWith("$node.latencySlave", jasmine.any(Function));
+
+		return broker.start().catch(protectReject).then(() => {
+			expect(strategy.hostMap.size).toBe(0);
+			expect(strategy.hostAvgLatency.size).toBe(0);
+
+			return broker.stop();
+		});
+	});
+
+	it("test without options & transporter", () => {
+
+		const broker = new ServiceBroker();
+		broker.localBus.on = jest.fn();
+
+		let strategy = new LatencyStrategy({
+			opts: {
+				strategyOptions: {}
+			}
+		}, broker);
+
+		expect(broker.localBus.on).toHaveBeenCalledTimes(0);
 
 		expect(strategy.opts.pingInterval).toBe(10);
 		expect(strategy.opts.sampleCount).toBe(5);
@@ -52,39 +86,42 @@ describe("Test LatencyStrategy", () => {
 
 	it("test with options", () => {
 
-		const brokerWithNoTransit = new ServiceBroker();
+		const broker = new ServiceBroker();
 
 		let strategy = new LatencyStrategy({
 			opts: {
 				strategyOptions: {
-		            sampleCount: 15,
-		            lowLatency: 20,
-		            collectCount: 10,
-		            pingInterval: 15
+					sampleCount: 15,
+					lowLatency: 20,
+					collectCount: 10,
+					pingInterval: 15
 				}
 			}
-		}, brokerWithNoTransit);
+		}, broker);
 
 		expect(strategy.opts.pingInterval).toBe(15);
 		expect(strategy.opts.sampleCount).toBe(15);
 		expect(strategy.opts.lowLatency).toBe(20);
 		expect(strategy.opts.collectCount).toBe(10);
 	});
+});
 
-	it("test without latency data", () => {
+describe("Test LatencyStrategy.select method", () => {
 
-		const brokerWithNoTransit = new ServiceBroker();
+	it("test without latency data (random)", () => {
+
+		const broker = new ServiceBroker();
 
 		let strategy = new LatencyStrategy({
 			opts: {
 				strategyOptions: {
 					sampleCount: 5,
-		            lowLatency: 10,
-		            collectCount: 10,
-		            pingInterval: 1
+					lowLatency: 10,
+					collectCount: 10,
+					pingInterval: 1
 				}
 			}
-		}, brokerWithNoTransit);
+		}, broker);
 
 		const list = [
 			{ a: "hello", node: { id: "a" } },
@@ -92,31 +129,33 @@ describe("Test LatencyStrategy", () => {
 			{ b: "now", node: { id: "c" } }
 		];
 
-		return brokerWithNoTransit.start().then(() => {
+		return broker.start().catch(protectReject).then(() => {
 			expect(strategy.select(list)).toBeAnyOf(list);
 			expect(strategy.select(list)).toBeAnyOf(list);
 			expect(strategy.select(list)).toBeAnyOf(list);
+
+			return broker.stop;
 		});
 
 	});
 
 	it("test with latency data (where node has a low latency)", () => {
 
-		const brokerWithNoTransit = new ServiceBroker();
+		const broker = new ServiceBroker();
 
 		let strategy = new LatencyStrategy({
 			opts: {
 				strategyOptions: {
 					sampleCount: 5,
-		            lowLatency: 10,
-		            collectCount: 10,
-		            pingInterval: 1
+					lowLatency: 10,
+					collectCount: 10,
+					pingInterval: 1
 				}
 			}
-		}, brokerWithNoTransit);
+		}, broker);
 
-		strategy.hostAvgLatency.set("a", 5);
-		strategy.hostAvgLatency.set("b", 20);
+		strategy.hostAvgLatency.set("a", 20);
+		strategy.hostAvgLatency.set("b", 5);
 		strategy.hostAvgLatency.set("c", 100);
 
 		const list = [
@@ -125,26 +164,26 @@ describe("Test LatencyStrategy", () => {
 			{ b: "now", node: { hostname: "c" } }
 		];
 
-		expect(strategy.select(list)).toBe(list[0]);
-		expect(strategy.select(list)).toBe(list[0]);
-		expect(strategy.select(list)).toBe(list[0]);
+		expect(strategy.select(list)).toBe(list[1]);
+		expect(strategy.select(list)).toBe(list[1]);
+		expect(strategy.select(list)).toBe(list[1]);
 
 	});
 
 	it("test with latency data (where all nodes have some latency)", () => {
 
-		const brokerWithNoTransit = new ServiceBroker();
+		const broker = new ServiceBroker();
 
 		let strategy = new LatencyStrategy({
 			opts: {
 				strategyOptions: {
 					sampleCount: 5,
-		            lowLatency: 10,
-		            collectCount: 10,
-		            pingInterval: 1
+					lowLatency: 10,
+					collectCount: 10,
+					pingInterval: 1
 				}
 			}
-		}, brokerWithNoTransit);
+		}, broker);
 
 		strategy.hostAvgLatency.set("a", 50);
 		strategy.hostAvgLatency.set("b", 20);
@@ -165,18 +204,18 @@ describe("Test LatencyStrategy", () => {
 
 	it("test with latency data (where all we have lots of nodes)", () => {
 
-		const brokerWithNoTransit = new ServiceBroker();
+		const broker = new ServiceBroker();
 
 		let strategy = new LatencyStrategy({
 			opts: {
 				strategyOptions: {
 					sampleCount: 5,
-		            lowLatency: 10,
-		            collectCount: 10,
-		            pingInterval: 1
+					lowLatency: 10,
+					collectCount: 10,
+					pingInterval: 1
 				}
 			}
-		}, brokerWithNoTransit);
+		}, broker);
 
 		strategy.hostAvgLatency.set("a", 50);
 		strategy.hostAvgLatency.set("b", 20);
@@ -198,10 +237,27 @@ describe("Test LatencyStrategy", () => {
 			{ b: "ccccc", node: { hostname: "c" } }
 		];
 
-		expect(strategy.select(list)).toBeAnyOf(list);
-		expect(strategy.select(list)).toBeAnyOf(list);
-		expect(strategy.select(list)).toBeAnyOf(list);
+		expect(strategy.select(list)).toBeAnyOf([list[1], list[4], list[7], list[10] ]);
+		expect(strategy.select(list)).toBeAnyOf([list[1], list[4], list[7], list[10] ]);
+		expect(strategy.select(list)).toBeAnyOf([list[1], list[4], list[7], list[10] ]);
 
+	});
+});
+
+// TODO: add more unit tests to cover
+// discovery, pingHosts, processPong, getHostLatency, addNode, removeHostMap,
+// updateLatency, removeHostLatency methods
+
+// TODO: make it better
+describe.skip("Test LatencyStrategy #2", () => {
+	let clock;
+
+	beforeAll(() => {
+		clock = lolex.install();
+	});
+
+	afterAll(() => {
+		clock.uninstall();
 	});
 
 	it("test with three nodes", () => {
@@ -209,21 +265,21 @@ describe("Test LatencyStrategy", () => {
 			nodeID: "node-A",
 			transporter: "fake",
 			registry: {
-		        strategy: "Latency",
+				strategy: "Latency",
 				preferLocal: false,
-		        strategyOptions: {
+				strategyOptions: {
 					sampleCount: 5,
-		            lowLatency: 10,
-		            collectCount: 2,
-		            pingInterval: 1
-		        }
-		    }
+					lowLatency: 10,
+					collectCount: 2,
+					pingInterval: 1
+				}
+			}
 		});
 
 		A.createService({
 			name: "Svc",
 			actions: {
-				echo: function(ctx) {
+				echo(ctx) {
 					return "A";
 				}
 			}
@@ -233,21 +289,21 @@ describe("Test LatencyStrategy", () => {
 			nodeID: "node-B",
 			transporter: "fake",
 			registry: {
-		        strategy: "Latency",
+				strategy: "Latency",
 				preferLocal: false,
-		        strategyOptions: {
+				strategyOptions: {
 					sampleCount: 5,
-		            lowLatency: 10,
-		            collectCount: 2,
-		            pingInterval: 1
-		        }
-		    }
+					lowLatency: 10,
+					collectCount: 2,
+					pingInterval: 1
+				}
+			}
 		});
 
 		B.createService({
 			name: "Svc",
 			actions: {
-				echo: function(ctx) {
+				echo(ctx) {
 					return "B";
 				}
 			}
@@ -257,21 +313,21 @@ describe("Test LatencyStrategy", () => {
 			nodeID: "node-C",
 			transporter: "fake",
 			registry: {
-		        strategy: "Latency",
+				strategy: "Latency",
 				preferLocal: false,
-		        strategyOptions: {
+				strategyOptions: {
 					sampleCount: 5,
-		            lowLatency: 10,
-		            collectCount: 2,
-		            pingInterval: 1
-		        }
-		    }
+					lowLatency: 10,
+					collectCount: 2,
+					pingInterval: 1
+				}
+			}
 		});
 
 		C.createService({
 			name: "Svc",
 			actions: {
-				echo: function(ctx) {
+				echo(ctx) {
 					return "C";
 				}
 			}
@@ -285,21 +341,21 @@ describe("Test LatencyStrategy", () => {
 				preferLocal: false,
 				strategyOptions: {
 					sampleCount: 5,
-		            lowLatency: 10,
-		            collectCount: 2,
-		            pingInterval: 1
+					lowLatency: 10,
+					collectCount: 2,
+					pingInterval: 1
 				}
 			}
 		});
 
 		return Promise.all([
-			A.start().delay(500),
-			B.start().delay(500),
-			C.start().delay(500),
-			caller.start().delay(500)
+			A.start(),
+			B.start(),
+			C.start(),
+			caller.start()
 		])
-			.delay(1000)
 			.then(function() {
+				clock.tick(1500);
 				return Promise.map(new Array(10), () => {
 					return caller.call("Svc.echo").then((res) => {
 						expect(["A", "B", "C"]).toContain(res);
@@ -327,7 +383,8 @@ describe("Test LatencyStrategy", () => {
 					C.stop(),
 					caller.stop()
 				]);
-			});
+			})
+			.catch(protectReject);
 	});
 
 });
