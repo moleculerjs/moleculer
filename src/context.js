@@ -75,6 +75,8 @@ class Context {
 	/**
 	 * Create a new Context instance.
 	 *
+	 * TODO: cover with unit tests
+	 *
 	 * @param {ServiceBroker} broker
 	 * @param {Object} action
 	 * @param {String?} nodeID
@@ -86,7 +88,7 @@ class Context {
 	 * @memberof Context
 	 */
 	static create(broker, action, nodeID, params, opts) {
-		const ctx = new Context(broker, action);
+		const ctx = new broker.ContextFactory(broker, action);
 
 		ctx.nodeID = nodeID;
 		ctx.setParams(params);
@@ -128,8 +130,9 @@ class Context {
 		return ctx;
 	}
 
+	// TODO: cover with unit tests
 	static createFromPayload(broker, payload) {
-		const ctx = new Context(broker, { name: payload.action, metrics: { params: false, meta: true } });
+		const ctx = new broker.ContextFactory(broker, { name: payload.action, metrics: { params: false, meta: true } });
 		ctx.id = payload.id;
 		ctx.setParams(payload.params);
 		ctx.parentID = payload.parentID;

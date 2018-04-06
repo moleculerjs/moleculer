@@ -6,7 +6,12 @@
 - fix `d.ts` issues
 - fix event `group` handling in mixins ([#217](https://github.com/moleculerjs/moleculer/issues/217))
 - move `mergeSchemas` from `utils` to `Service` static method. It can be overwritten with custom ServiceFactory
-
+- improve `d.ts`
+- fix `prefix` option in Redis Cacher ([223](https://github.com/moleculerjs/moleculer/issues/223))
+- remove `nanomatch` dependency, use own implementation
+- fix ContextFactory issue ([235](https://github.com/moleculerjs/moleculer/issues/235))
+- expose utility functions as `require("moleculer").Utils`
+- overwritable `mergeSchemas` static method in `Service` class.
 
 --------------------------------------------------
 <a name="0.12.0"></a>
