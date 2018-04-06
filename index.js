@@ -13,20 +13,21 @@ const {
 } = require("./src/constants");
 
 module.exports = {
-	Context: require("./src/context"),
-	Service: require("./src/service"),
 	ServiceBroker: require("./src/service-broker"),
 	Logger: require("./src/logger"),
+	Service: require("./src/service"),
+	Context: require("./src/context"),
+
+	Cachers: require("./src/cachers"),
 
 	Transporters: require("./src/transporters"),
-	Cachers: require("./src/cachers"),
 	Serializers: require("./src/serializers"),
-
+	Strategies: require("./src/strategies"),
 	Validator: require("./src/validator"),
 
 	Errors: require("./src/errors"),
 
-	Strategies: require("./src/strategies"),
+	Utils: require("./src/utils"),
 
 	CIRCUIT_CLOSE,
 	CIRCUIT_HALF_OPEN,
