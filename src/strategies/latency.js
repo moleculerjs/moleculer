@@ -94,6 +94,7 @@ class LatencyStrategy extends BaseStrategy {
 	// Master
 	pingHosts() {
 
+		/* istanbul ignore next */
 		if (this.brokerStopped) return;
 		/*
 			Smart Ping: only ping the host, not the nodes (which may be many)
@@ -103,7 +104,7 @@ class LatencyStrategy extends BaseStrategy {
 		*/
 		let hosts = this.hostMap.values();
 
-		Promise.map(hosts, host => {
+		return Promise.map(hosts, host => {
 			// Select a nodeID randomly
 			const nodeID = host.nodeList[random(0, host.nodeList.length - 1)];
 			return this.broker.transit.sendPing(nodeID);
@@ -116,6 +117,8 @@ class LatencyStrategy extends BaseStrategy {
 	// Master
 	processPong(payload) {
 		let node = this.registry.nodes.get(payload.nodeID);
+
+		/* istanbul ignore next */
 		if (!node) return;
 
 		let info = this.getHostLatency(node);
@@ -205,6 +208,7 @@ class LatencyStrategy extends BaseStrategy {
 			if (count == list.length) {
 				ep = list[i];
 			} else {
+				/* istanbul ignore next */
 				ep = list[random(0, list.length - 1)];
 			}
 			const epLatency = this.hostAvgLatency.get(ep.node.hostname);
