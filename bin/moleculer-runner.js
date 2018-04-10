@@ -212,11 +212,11 @@ function mergeOptions() {
 /**
  * Load services from files or directories
  *
- * 1. first check the CLI arguments. If it find filename(s), load it/them
- * 2. If find directory(ies), load it/them
- * 3. If find `SERVICEDIR` env var and not find `SERVICES` env var, load all services from the `SERVICEDIR` directory
- * 4. If find `SERVICEDIR` env var and `SERVICES` env var, load the specified services from the `SERVICEDIR` directory
- * 5. If not find `SERVICEDIR` env var but find `SERVICES` env var, load the specified services from the current directory
+ * 1. If find `SERVICEDIR` env var and not find `SERVICES` env var, load all services from the `SERVICEDIR` directory
+ * 2. If find `SERVICEDIR` env var and `SERVICES` env var, load the specified services from the `SERVICEDIR` directory
+ * 3. If not find `SERVICEDIR` env var but find `SERVICES` env var, load the specified services from the current directory
+ * 4. check the CLI arguments. If it find filename(s), load it/them
+ * 5. If find directory(ies), load it/them
  *
  * Please note: you can use shorthand names for `SERVICES` env var.
  * 	E.g.
@@ -229,7 +229,43 @@ function mergeOptions() {
 function loadServices() {
 	const fileMask = flags.mask;
 
-	if (servicePaths.length > 0) {
+	if (process.env.SERVICES || process.env.SERVICEDIR) {
+		let svcDir = process.env.SERVICEDIR || "";
+
+		if (fs.existsSync(svcDir) && !process.env.SERVICES) {
+			// Load all services from directory (from subfolders too)
+			broker.loadServices(path.isAbsolute(svcDir) ? svcDir : path.resolve(process.cwd(), svcDir), fileMask);
+		}
+
+		if (process.env.SERVICES) {
+			// Load services from env list
+			let services = Array.isArray(process.env.SERVICES) ? process.env.SERVICES : process.env.SERVICES.split(",");
+			let dir = path.isAbsolute(svcDir) ? svcDir : path.resolve(process.cwd(), svcDir || "");
+
+			services.map(s => s.trim()).forEach(p => {
+				let name = p;
+
+				if (name.startsWith("npm:")) {
+					// Load from NPM module
+					loadNpmModule(p.slice(4));
+
+				} else {
+					// Load from local files
+					let svcPath = path.resolve(dir, name);
+					if (!fs.existsSync(svcPath)) {
+						name = name + ".service.js";
+						svcPath = path.resolve(dir, name);
+					}
+
+					if (!fs.existsSync(svcPath))
+						throw new Error(`Path not found: '${path.resolve(dir, p)}' and '${svcPath}'`);
+
+					broker.loadService(svcPath);
+				}
+			});
+		}
+
+	} else if (servicePaths.length > 0) {
 		servicePaths.forEach(p => {
 			if (!p) return;
 
@@ -252,39 +288,6 @@ function loadServices() {
 			}
 		});
 
-	} else if (process.env.SERVICES || process.env.SERVICEDIR) {
-		let svcDir = process.env.SERVICEDIR || "";
-
-		if (fs.existsSync(svcDir) && !process.env.SERVICES) {
-			// Load all services from directory (from subfolders too)
-			broker.loadServices(path.isAbsolute(svcDir) ? svcDir : path.resolve(process.cwd(), svcDir), fileMask);
-		}
-
-		if (process.env.SERVICES) {
-			// Load services from env list
-			let services = Array.isArray(process.env.SERVICES) ? process.env.SERVICES : process.env.SERVICES.split(",");
-			let dir = path.isAbsolute(svcDir) ? svcDir : path.resolve(process.cwd(), svcDir || "");
-
-			services.map(s => s.trim()).forEach(p => {
-				let name = p;
-
-				if (name.startsWith("npm:")) {
-					// Load from NPM module
-					loadNpmModule(p.slice(4));
-
-				} else {
-					// Load from local files
-					if (!name.endsWith(".service.js") && !name.endsWith(".js"))
-						name = name + ".service.js";
-
-					const svcPath = path.resolve(dir, name);
-					if (!fs.existsSync(svcPath))
-						throw new Error(`Path not found: ${svcPath}`);
-
-					broker.loadService(svcPath);
-				}
-			});
-		}
 	}
 
 }
