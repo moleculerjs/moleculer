@@ -1,6 +1,6 @@
 --------------------------------------------------
 <a name="0.12.2"></a>
-# [0.12.2](https://github.com/moleculerjs/moleculer/compare/v0.12.0...v0.12.2) (2018-xx-xx)
+# [0.12.2](https://github.com/moleculerjs/moleculer/compare/v0.12.0...v0.12.2) (2018-04-11)
 
 # New
 
@@ -44,11 +44,14 @@ let broker = new ServiceBroker({
 There is a new Moleculer Runner option `--mask` to define filemask when load all services from folders. 
 
 **Example**
-`$ moleculer-runner.js -r --mask **/user*.service.js examples`
+```
+$ moleculer-runner.js -r --mask **/user*.service.js examples
+```
 
-Or to load Typescript services: 
-
-`$ node -r ts-node/register node_modules/moleculer/bin/moleculer-runner --hot --repl --mask **/*.service.ts services`
+**Example to load Typescript services** 
+```
+$ node -r ts-node/register node_modules/moleculer/bin/moleculer-runner --hot --repl --mask **/*.service.ts services
+```
 
 # Changes
 - fix `d.ts` issues
