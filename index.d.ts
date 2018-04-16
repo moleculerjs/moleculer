@@ -119,7 +119,7 @@ declare namespace Moleculer {
 	class Service implements ServiceSchema {
 		constructor(broker: ServiceBroker, schema?: ServiceSchema);
 
-		protected parseServiceSchema(schema: ServiceSchema);
+		protected parseServiceSchema(schema: ServiceSchema): void;
 
 		name: string;
 		version?: string | number;
