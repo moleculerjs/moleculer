@@ -285,14 +285,16 @@ class Service {
 	static applyMixins(schema) {
 		if (schema.mixins) {
 			const mixins = Array.isArray(schema.mixins) ? schema.mixins : [schema.mixins];
-			const mixedSchema = mixins.reverse().reduce((s, mixin) => {
-				if (mixin.mixins)
-					mixin = Service.applyMixins(mixin);
+			if (mixins.length > 0) {
+				const mixedSchema = mixins.reverse().reduce((s, mixin) => {
+					if (mixin.mixins)
+						mixin = Service.applyMixins(mixin);
 
-				return s ? Service.mergeSchemas(s, mixin) : mixin;
-			}, null);
+					return s ? Service.mergeSchemas(s, mixin) : mixin;
+				}, null);
 
-			return Service.mergeSchemas(mixedSchema, schema);
+				return Service.mergeSchemas(mixedSchema, schema);
+			}
 		}
 
 		/* istanbul ignore next */
@@ -348,7 +350,7 @@ class Service {
 					res[key] = {};
 
 				Object.keys(mods[key]).forEach(k => {
-//					res[key][k] = _.compact(_.flatten([res[key][k], mods[key][k]]));
+					//					res[key][k] = _.compact(_.flatten([res[key][k], mods[key][k]]));
 
 					const modEvent = wrapToHander(mods[key][k]);
 					const resEvent = wrapToHander(res[key][k]);
