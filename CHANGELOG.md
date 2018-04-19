@@ -1,4 +1,12 @@
 --------------------------------------------------
+<a name="0.12.3"></a>
+# [0.12.3](https://github.com/moleculerjs/moleculer/compare/v0.12.2...v0.12.3) (2018-04-19)
+
+# Changes
+- fix empty service mixins issue (`mixins: []`).
+- update index.d.ts
+
+--------------------------------------------------
 <a name="0.12.2"></a>
 # [0.12.2](https://github.com/moleculerjs/moleculer/compare/v0.12.0...v0.12.2) (2018-04-11)
 
