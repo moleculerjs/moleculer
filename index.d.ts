@@ -295,7 +295,7 @@ declare namespace Moleculer {
 		createService(schema: ServiceSchema): Service;
 		destroyService(service: Service): Bluebird<void>;
 
-		getLocalService(serviceName: string): Service;
+		getLocalService(serviceName: string, version?: string | number): Service;
 		waitForServices(serviceNames: string | Array<string>, timeout?: number, interval?: number, logger?: LoggerInstance): Bluebird<void>;
 
 		use(...mws: Array<Function>): void;
