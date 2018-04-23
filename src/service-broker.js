@@ -376,6 +376,7 @@ class ServiceBroker {
 	 */
 	stop() {
 		return Promise.resolve()
+			// TODO: Close subscriber to stop accepting requests
 			.then(() => {
 				// Call service `stopped` handlers
 				return Promise.all(this.services.map(svc => svc.stopped.call(svc)));
@@ -984,6 +985,11 @@ class ServiceBroker {
 		// Pointer to Context
 		p.ctx = ctx;
 
+		// Remove the context from the active contexts list
+		p.finally(() => {
+			ctx.dispose();
+		});
+
 		return p;
 	}
 
@@ -1020,6 +1026,11 @@ class ServiceBroker {
 
 		// Pointer to Context
 		p.ctx = ctx;
+
+		// Remove the context from the active contexts list
+		p.finally(() => {
+			ctx.dispose();
+		});
 
 		return p;
 	}
