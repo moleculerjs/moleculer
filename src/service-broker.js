@@ -45,6 +45,8 @@ const defaultOptions = {
 	heartbeatInterval: 5,
 	heartbeatTimeout: 15,
 
+	trackContext: false,
+
 	disableBalancer: false,
 
 	registry: {
@@ -844,7 +846,7 @@ class ServiceBroker {
 	 * @performance-critical
 	 * @memberof ServiceBroker
 	 */
-	call(actionName, params, opts = {}) {
+	call(actionName, params, opts = { trackContext: this.options.trackContext }) {
 		const endpoint = this.findNextActionEndpoint(actionName, opts);
 		if (endpoint instanceof Error)
 			return Promise.reject(endpoint);
@@ -892,7 +894,7 @@ class ServiceBroker {
 	 * @private
 	 * @memberof ServiceBroker
 	 */
-	callWithoutBalancer(actionName, params, opts = {}) {
+	callWithoutBalancer(actionName, params, opts = { trackContext: this.options.trackContext }) {
 		if (opts.timeout == null)
 			opts.timeout = this.options.requestTimeout || 0;
 
@@ -987,7 +989,9 @@ class ServiceBroker {
 
 		// Remove the context from the active contexts list
 		p.finally(() => {
-			ctx.dispose();
+			if (opts.trackContext) {
+				ctx.dispose();
+			}
 		});
 
 		return p;
@@ -1029,7 +1033,9 @@ class ServiceBroker {
 
 		// Remove the context from the active contexts list
 		p.finally(() => {
-			ctx.dispose();
+			if (opts.trackContext) {
+				ctx.dispose();
+			}
 		});
 
 		return p;
