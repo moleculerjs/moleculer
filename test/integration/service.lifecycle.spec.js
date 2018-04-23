@@ -91,7 +91,7 @@ describe("Test Service handlers after broker.start", () => {
 
 
 describe("Test Service handlerswith delayed shutdown", () => {
-	const broker = new ServiceBroker({ nodeID: "node-1", logger: console, logLevel: "debug" });
+	const broker = new ServiceBroker({ nodeID: "node-1" });
 
 	const schema = {
 		name: "delayed",

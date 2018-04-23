@@ -91,7 +91,9 @@ class Service {
 				this.actions[name] = (params, opts) => {
 					const ctx = this.broker.ContextFactory.create(this.broker, innerAction, null, params, opts || {});
 					return innerAction.handler(ctx).finally(() => {
-						ctx.dispose();
+						if (opts.trackContext) {
+							ctx.dispose();
+						}
 					});
 				};
 

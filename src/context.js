@@ -168,7 +168,9 @@ class Context {
 				ctx.requestID = ctx.id;
 		}
 
-		ctx._trackContext(action.service || broker);
+		if (opts.tackContext) {
+			ctx._trackContext(action.service || broker);
+		}
 
 		return ctx;
 	}

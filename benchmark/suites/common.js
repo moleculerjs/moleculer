@@ -123,8 +123,22 @@ let bench4 = benchmark.createSuite("Remote call with FakeTransporter");
 		return b1.call("echo.reply", { a: c++ }).then(done);
 	});
 })();
+// ----------------------------------------------------------------
 
-module.exports = benchmark.run([bench1, bench2, bench3, bench4]);
+let bench5 = benchmark.createSuite("Context tracking");
+(function() {
+	let broker = createBroker();
+	bench5.ref("broker.call (normal)", done => {
+		return broker.call("math.add", { a: 4, b: 2 }).then(done);
+	});
+
+	bench5.add("broker.call (with trackContext)", done => {
+		return broker.call("math.add", { a: 4, b: 2 }, { trackContext: true }).then(done);
+	});
+
+})();
+
+module.exports = benchmark.run([bench1, bench2, bench3, bench4, bench5]);
 
 
 /*
