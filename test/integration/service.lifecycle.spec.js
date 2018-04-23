@@ -88,3 +88,38 @@ describe("Test Service handlers after broker.start", () => {
 		});
 	});
 });
+
+
+describe("Test Service handlerswith delayed shutdown", () => {
+	const broker = new ServiceBroker({ nodeID: "node-1", logger: console, logLevel: "debug" });
+
+	const schema = {
+		name: "delayed",
+
+		actions: {
+			test: jest.fn()
+		},
+
+		stopped: jest.fn()
+	};
+
+	it("should called stopped", () => {
+		const service = broker.createService(schema);
+		service.schema.actions.test.mockResolvedValue(service.Promise.delay(110));
+		const getActiveContextsSpy = jest.spyOn(service, "_getActiveContexts");
+		// const trackContextsSpy = jest.spyOn(service, "_trackContext");
+		return broker.start()
+			.then(() => {
+				broker.call("delayed.test", {});
+				return service.Promise.delay(10);
+			})
+			.then(() => broker.stop())
+			.then(() => {
+				expect(schema.actions.test).toHaveBeenCalledTimes(1);
+				expect(getActiveContextsSpy).toHaveBeenCalledTimes(2);
+
+				getActiveContextsSpy.mockReset();
+				getActiveContextsSpy.mockRestore();
+			});
+	});
+});
