@@ -10,7 +10,7 @@ const password = "moleculer";
 // Create broker #1
 const broker1 = new ServiceBroker({
 	nodeID: "client-" + process.pid,
-	transporter: "NATS",
+	transporter: "TCP",
 	logger: console,
 	logLevel: "info"
 });
@@ -19,7 +19,7 @@ const broker1 = new ServiceBroker({
 // Create broker #2
 const broker2 = new ServiceBroker({
 	nodeID: "encrypter-" + process.pid,
-	transporter: "NATS",
+	transporter: "TCP",
 	logger: console,
 	logLevel: "info"
 });
@@ -44,13 +44,15 @@ broker2.createService({
 broker1.Promise.all([broker1.start(), broker2.start()])
 	.delay(2000)
 	.then(() => {
-		broker1.repl();
+		//broker1.repl();
 
 		const fileName = "d://src.zip";
 		const fileName2 = "d://received-src.zip";
 
 		return getSHA(fileName).then(hash1 => {
 			broker1.logger.info("Original SHA:", hash1);
+
+			const startTime = Date.now();
 
 			const stream = fs.createReadStream(fileName);
 
@@ -59,11 +61,17 @@ broker1.Promise.all([broker1.start(), broker2.start()])
 				.then(stream => {
 					const s = fs.createWriteStream(fileName2);
 					stream.pipe(s);
-					s.on("close", () => getSHA(fileName2).then(hash => broker1.logger.info("Received SHA:", hash)));
+					s.on("close", () => {
+						broker1.logger.info("Time:", Date.now() - startTime + "ms");
+						getSHA(fileName2).then(hash => broker1.logger.info("Received SHA:", hash));
+
+						broker2.stop();
+						broker1.stop();
+					});
 				});
 		});
 
-});
+	});
 
 function getSHA(fileName) {
 	return new Promise((resolve, reject) => {

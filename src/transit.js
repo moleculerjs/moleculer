@@ -319,23 +319,24 @@ class Transit {
 		let pass;
 		if (payload.stream !== undefined) {
 			pass = this.pendingReqStreams.get(payload.id);
-			if (!payload.stream && pass) {
-				// End of stream
-				pass.end();
+			if (pass) {
+				if (!payload.stream) {
+					// End of stream
+					pass.end();
 
-				// Remove pending request
-				this.removePendingRequest(payload.id);
+					// Remove pending request
+					this.removePendingRequest(payload.id);
 
-				return;
-			}
+					return;
 
-			if (payload.stream && pass) {
-				// stream chunk received
-				pass.write(payload.params.type === "Buffer" ? new Buffer.from(payload.params.data):payload.params);
+				} else {
+					// stream chunk received
+					pass.write(payload.params.type === "Buffer" ? new Buffer.from(payload.params.data):payload.params);
 
-				return;
+					return;
+				}
 
-			} else {
+			} else if (payload.stream) {
 				// Create a new pass stream
 				pass = new Transform({
 					transform: function (chunk, encoding, done) {
@@ -389,19 +390,19 @@ class Transit {
 		if (packet.stream !== undefined) {
 			//get the underlined stream for id
 			let pass = this.pendingResStreams.get(id);
-			if (!packet.stream && pass) {
-				// End of stream
-				pass.end();
+			if (pass) {
+				if (!packet.stream) {
+					// End of stream
+					pass.end();
 
-				// Remove pending request
-				this.removePendingRequest(id);
-			}
+					// Remove pending request
+					this.removePendingRequest(id);
 
-			if (packet.stream && pass) {
-				// stream chunk
-				pass.write(packet.data.type === "Buffer" ? new Buffer.from(packet.data.data):packet.data);
-
-			} else {
+				} else {
+					// stream chunk
+					pass.write(packet.data.type === "Buffer" ? new Buffer.from(packet.data.data):packet.data);
+				}
+			} else if (packet.stream) {
 				// Create a new pass stream
 				pass = new Transform({
 					transform: function (chunk, encoding, done) {
