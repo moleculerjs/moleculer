@@ -49,13 +49,16 @@ const logger = {
  * Process command line arguments
  *
  * Available options:
- * 		-c, --config <file> 	- Load an external configuration files (.js or .json)
- * 		-H, --hot  				- Hot reload services if changed
- * 		-r, --repl  			- After broker started, switch to REPL mode
- * 		-s , --silent 			- Silent mode. Disable logger, no console messages.
- * 		-e, --env 				- Load envorinment variables from the '.env' file from the current folder.
- * 		-E, --envfile <file>	- Load envorinment variables from the specified file.
- * 		-i, --instances     	- Launch [number] instances node (load balanced)
+    -c, --config     Load the configuration from a file
+    -e, --env        Load .env file from the current directory
+    -E, --envfile    Load a specified .env file
+    -h, --help       Output usage information
+    -H, --hot        Hot reload services if changed (disabled by default)
+    -i, --instances  Launch [number] instances node (load balanced)
+    -m, --mask       Filemask for service loading
+    -r, --repl       Start REPL mode (disabled by default)
+    -s, --silent     Silent mode. No logger (disabled by default)
+    -v, --version    Output the version number
  */
 function processFlags() {
 	Args
@@ -65,7 +68,8 @@ function processFlags() {
 		.option("silent", "Silent mode. No logger", false)
 		.option("env", "Load .env file from the current directory")
 		.option("envfile", "Load a specified .env file")
-		.option("instances", "Launch [number] instances node (load balanced)");
+		.option("instances", "Launch [number] instances node (load balanced)")
+		.option("mask", "Filemask for service loading");
 
 	flags = Args.parse(process.argv, {
 		mri: {
@@ -76,10 +80,11 @@ function processFlags() {
 				s: "silent",
 				e: "env",
 				E: "envfile",
-				i: "instances"
+				i: "instances",
+				m: "mask"
 			},
 			boolean: ["repl", "silent", "hot", "env"],
-			string: ["config", "envfile"]
+			string: ["config", "envfile", "mask"]
 		}
 	});
 
@@ -207,11 +212,11 @@ function mergeOptions() {
 /**
  * Load services from files or directories
  *
- * 1. first check the CLI arguments. If it find filename(s), load it/them
- * 2. If find directory(ies), load it/them
- * 3. If find `SERVICEDIR` env var and not find `SERVICES` env var, load all services from the `SERVICEDIR` directory
- * 4. If find `SERVICEDIR` env var and `SERVICES` env var, load the specified services from the `SERVICEDIR` directory
- * 5. If not find `SERVICEDIR` env var but find `SERVICES` env var, load the specified services from the current directory
+ * 1. If find `SERVICEDIR` env var and not find `SERVICES` env var, load all services from the `SERVICEDIR` directory
+ * 2. If find `SERVICEDIR` env var and `SERVICES` env var, load the specified services from the `SERVICEDIR` directory
+ * 3. If not find `SERVICEDIR` env var but find `SERVICES` env var, load the specified services from the current directory
+ * 4. check the CLI arguments. If it find filename(s), load it/them
+ * 5. If find directory(ies), load it/them
  *
  * Please note: you can use shorthand names for `SERVICES` env var.
  * 	E.g.
@@ -222,35 +227,14 @@ function mergeOptions() {
  *
  */
 function loadServices() {
-	if (servicePaths.length > 0) {
-		servicePaths.forEach(p => {
-			if (!p) return;
+	const fileMask = flags.mask;
 
-			if (p.startsWith("npm:")) {
-				// Load from NPM module
-				loadNpmModule(p.slice(4));
-
-			} else {
-				// Load file or dir
-				const svcPath = path.isAbsolute(p) ? p : path.resolve(process.cwd(), p);
-				if (!fs.existsSync(svcPath))
-					throw new Error(`Path not found: ${svcPath}`);
-
-				const isDir = fs.lstatSync(svcPath).isDirectory();
-				if (isDir) {
-					broker.loadServices(svcPath);
-				} else {
-					broker.loadService(svcPath);
-				}
-			}
-		});
-
-	} else if (process.env.SERVICES || process.env.SERVICEDIR) {
+	if (process.env.SERVICES || process.env.SERVICEDIR) {
 		let svcDir = process.env.SERVICEDIR || "";
 
 		if (fs.existsSync(svcDir) && !process.env.SERVICES) {
 			// Load all services from directory (from subfolders too)
-			broker.loadServices(path.isAbsolute(svcDir) ? svcDir : path.resolve(process.cwd(), svcDir));
+			broker.loadServices(path.isAbsolute(svcDir) ? svcDir : path.resolve(process.cwd(), svcDir), fileMask);
 		}
 
 		if (process.env.SERVICES) {
@@ -267,17 +251,43 @@ function loadServices() {
 
 				} else {
 					// Load from local files
-					if (!name.endsWith(".service.js") && !name.endsWith(".js"))
+					let svcPath = path.resolve(dir, name);
+					if (!fs.existsSync(svcPath)) {
 						name = name + ".service.js";
+						svcPath = path.resolve(dir, name);
+					}
 
-					const svcPath = path.resolve(dir, name);
 					if (!fs.existsSync(svcPath))
-						throw new Error(`Path not found: ${svcPath}`);
+						throw new Error(`Path not found: '${path.resolve(dir, p)}' and '${svcPath}'`);
 
 					broker.loadService(svcPath);
 				}
 			});
 		}
+
+	} else if (servicePaths.length > 0) {
+		servicePaths.forEach(p => {
+			if (!p) return;
+
+			if (p.startsWith("npm:")) {
+				// Load from NPM module
+				loadNpmModule(p.slice(4));
+
+			} else {
+				// Load file or dir
+				const svcPath = path.isAbsolute(p) ? p : path.resolve(process.cwd(), p);
+				if (!fs.existsSync(svcPath))
+					throw new Error(`Path not found: ${svcPath}`);
+
+				const isDir = fs.lstatSync(svcPath).isDirectory();
+				if (isDir) {
+					broker.loadServices(svcPath, fileMask);
+				} else {
+					broker.loadService(svcPath);
+				}
+			}
+		});
+
 	}
 
 }

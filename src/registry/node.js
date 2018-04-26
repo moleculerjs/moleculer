@@ -80,7 +80,7 @@ class Node {
 				this.cpu = Math.round(res.avg);
 				this.cpuSeq++;
 			}
-		});
+		}).catch(() => { /* silent */ });
 	}
 
 	/**

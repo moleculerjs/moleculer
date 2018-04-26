@@ -67,6 +67,16 @@ describe("Test Service constructor", () => {
 		expect(service.stopped).toBeInstanceOf(Function);
 	});
 
+	it("check empty properties", () => {
+		let service = new Service(broker, {
+			name: "empty",
+			mixins: [],
+			dependencies: []
+		});
+		expect(service.name).toBe("empty");
+		expect(service.broker).toBe(broker);
+	});
+
 });
 
 describe("Test action creation", () => {

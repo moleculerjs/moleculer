@@ -10,19 +10,21 @@ const broker = new ServiceBroker({
 	transporter: "TCP",
 });
 
-const svc = broker.loadService("examples/hot.service");
+broker.createService({
+	name: "test",
+	actions: {
+		empty(ctx) {
+
+		},
+
+
+	}
+});
+
 
 broker.start()
 	.then(() => broker.repl())
-	/*.delay(2000)
-	.then(() => {
-		console.log("Destroy hot service");
-		broker.destroyService(svc);
-	})*/
 	.delay(1000)
-	//.then(() => broker.call("$node.actions", { onlyAvailable: false }).then(res => broker.logger.info(res)));
-	.then(() => {
-		const info = broker.registry.getLocalNodeInfo();
-		console.log(util.inspect(info, { showHidden: false, depth: 5, colors: true }))
-
-	});
+	.then(() => broker.call("test.empty"))
+	.then(res => broker.logger.info(res))
+	.catch(err => broker.logger.error(err));

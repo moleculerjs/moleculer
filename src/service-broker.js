@@ -722,6 +722,7 @@ class ServiceBroker {
 	 * Get a local service by name
 	 *
 	 * @param {String} name
+	 * @param {String|Number} version
 	 * @returns {Service}
 	 *
 	 * @memberof ServiceBroker

@@ -1,17 +1,77 @@
 --------------------------------------------------
+<a name="0.12.3"></a>
+# [0.12.3](https://github.com/moleculerjs/moleculer/compare/v0.12.2...v0.12.3) (2018-04-19)
+
+# Changes
+- fix empty service mixins issue (`mixins: []`).
+- update index.d.ts
+
+--------------------------------------------------
 <a name="0.12.2"></a>
-# [0.12.2](https://github.com/moleculerjs/moleculer/compare/v0.12.0...v0.12.2) (2018-xx-xx)
+# [0.12.2](https://github.com/moleculerjs/moleculer/compare/v0.12.0...v0.12.2) (2018-04-11)
+
+# New
+
+## Latency strategy
+This strategy selects a node which has the lowest latency, measured by periodic `PING`. Notice that the strategy only ping one of nodes from a single host. Due to the node list can be very long, it gets samples and selects the host with the lowest latency from only samples instead of the whole node list.
+
+**Usage**
+```js
+let broker = new ServiceBroker({
+    registry: {
+        strategy: "Latency"
+    }
+});
+```
+
+**Strategy options**
+
+| Name | Type | Default | Description |
+| ---- | ---- | --------| ----------- |
+| `sampleCount` | `Number` | `5` | the number of samples. If you have a lot of hosts/nodes, it's recommended to *increase* the value. |
+| `lowLatency` | `Number` | `10` | the low latency (ms). The node which has lower latency than this value is selected immediately. |
+| `collectCount` | `Number` | `5` | the number of measured latency per host to keep in order to calculate the average latency. |
+| `pingInterval` | `Number` | `10` | ping interval (s). If you have a lot of host/nodes, it's recommended to *increase* the value. |
+
+**Usage with custom options**
+```js
+let broker = new ServiceBroker({
+    registry: {
+        strategy: "Latency",
+        strategyOptions: {
+            sampleCount: 15,
+            lowLatency: 20,
+            collectCount: 10,
+            pingInterval: 15
+        }
+    }
+});
+```
+
+## Filemask for Moleculer Runner
+There is a new Moleculer Runner option `--mask` to define filemask when load all services from folders. 
+
+**Example**
+```
+$ moleculer-runner.js -r --mask **/user*.service.js examples
+```
+
+**Example to load Typescript services** 
+```
+$ node -r ts-node/register node_modules/moleculer/bin/moleculer-runner --hot --repl --mask **/*.service.ts services
+```
 
 # Changes
 - fix `d.ts` issues
 - fix event `group` handling in mixins ([#217](https://github.com/moleculerjs/moleculer/issues/217))
-- move `mergeSchemas` from `utils` to `Service` static method. It can be overwritten with custom ServiceFactory
+- move `mergeSchemas` from `utils` to `Service` static method. It can be overwritten in a custom ServiceFactory
 - improve `d.ts`
 - fix `prefix` option in Redis Cacher ([223](https://github.com/moleculerjs/moleculer/issues/223))
 - remove `nanomatch` dependency, use own implementation
 - fix ContextFactory issue ([235](https://github.com/moleculerjs/moleculer/issues/235))
 - expose utility functions as `require("moleculer").Utils`
 - overwritable `mergeSchemas` static method in `Service` class.
+- Moleculer Runner precedence order is changed. The `SERVICES` & `SERVICEDIR` env vars overwrites the paths in CLI arguments.
 
 --------------------------------------------------
 <a name="0.12.0"></a>
@@ -22,7 +82,7 @@ This version contains the most changes in the history of Moleculer! More than 20
 # Breaking changes
 
 ## Github organization is renamed
-The Github organization name (Ice Services) has been rename to MoleculerJS. Please update your bookmarks.
+The Github organization name (Ice Services) has been renamed to MoleculerJS. Please update your bookmarks.
 
 * Github organization: https://github.com/moleculerjs
 * Website: https://moleculer.services or http://moleculerjs.com/
