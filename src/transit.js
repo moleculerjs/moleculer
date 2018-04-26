@@ -321,6 +321,12 @@ class Transit {
 			pass = this.pendingReqStreams.get(payload.id);
 			if (pass) {
 				if (!payload.stream) {
+
+					// Check stream error
+					if (payload.meta["$streamError"]) {
+						pass.emit("error", this._createErrFromPayload(payload.meta["$streamError"], payload.sender));
+					}
+
 					// End of stream
 					pass.end();
 
@@ -361,18 +367,18 @@ class Transit {
 			.catch(err => this.sendResponse(payload.sender, payload.id, ctx.meta, null, err));
 	}
 
-	_createErrFromPayload(packet) {
-		const err = new Error(packet.error.message + ` (NodeID: ${packet.sender})`);
+	_createErrFromPayload(error, sender) {
+		const err = new Error(error.message + ` (NodeID: ${sender})`);
 		// TODO create the original error object if it's available
-		//   let constructor = errors[packet.error.name]
+		//   let constructor = errors[error.name]
 		//   let error = Object.create(constructor.prototype);
-		err.name = packet.error.name;
-		err.code = packet.error.code;
-		err.type = packet.error.type;
-		err.nodeID = packet.error.nodeID || packet.sender;
-		err.data = packet.error.data;
-		if (packet.error.stack)
-			err.stack = packet.error.stack;
+		err.name = error.name;
+		err.code = error.code;
+		err.type = error.type;
+		err.nodeID = error.nodeID || sender;
+		err.data = error.data;
+		if (error.stack)
+			err.stack = error.stack;
 		return err;
 	}
 
@@ -409,7 +415,7 @@ class Transit {
 				if (!packet.stream) {
 					// Received error?
 					if (!packet.success)
-						pass.emit("error", this._createErrFromPayload(packet));
+						pass.emit("error", this._createErrFromPayload(packet.error, packet.sender));
 
 					// End of stream
 					pass.end();
@@ -439,7 +445,7 @@ class Transit {
 		this.removePendingRequest(id);
 
 		if (!packet.success) {
-			req.reject(this._createErrFromPayload(packet));
+			req.reject(this._createErrFromPayload(packet.error, packet.sender));
 		} else {
 			req.resolve(packet.data);
 		}
@@ -507,8 +513,10 @@ class Transit {
 		this.publish(packet)
 			.then(() => {
 				if (isStream) {
-					const data = ctx.params;
+					// Skip to send ctx.meta with chunks because it doesn't appear on the remote side.
+					payload.meta = {};
 
+					const data = ctx.params;
 					data.on("data", chunk => {
 						payload.stream = true;
 						payload.params = chunk;
@@ -527,9 +535,9 @@ class Transit {
 							.catch(err => this.logger.error(`Unable to send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, err));
 					});
 
-					data.on("error", e => {
+					data.on("error", err => {
 						payload.stream = false;
-						//payload.error = e;
+						payload.meta["$streamError"] = this._createPayloadErrorField(err);
 						payload.params = null;
 
 						return this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, payload))

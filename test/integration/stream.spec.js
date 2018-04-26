@@ -17,23 +17,25 @@ describe("Test to send stream as ctx.param", () => {
 	});
 
 	let FLOW = [];
+	let stream = new Stream.Readable({
+		read() {}
+	});
 
 	b2.createService({
 		name: "file",
 		actions: {
 			save(ctx) {
+				expect(FLOW).toEqual([]);
 				expect(ctx.params).toBeInstanceOf(Stream.Readable);
 				ctx.params.on("data", msg => FLOW.push(msg.toString()));
-				ctx.params.on("error", err => FLOW.push("<ERROR:" + err.message + ">"));
+				ctx.params.on("error", err => {
+					FLOW.push("<ERROR:" + err.message + ">");
+				});
 				ctx.params.on("end", () => FLOW.push("<END>"));
 
 				return "OK";
 			}
 		}
-	});
-
-	const stream = new Stream.Readable({
-		read() {}
 	});
 
 	beforeAll(() => Promise.all([b1.start(), b2.start()]));
@@ -70,8 +72,12 @@ describe("Test to send stream as ctx.param", () => {
 			});
 	});
 
-	it.skip("should receive stream & handle error", () => {
+	it("should receive stream & handle error", () => {
 		FLOW = [];
+		stream = new Stream.Readable({
+			read() {}
+		});
+
 		return b1.Promise.resolve()
 			.then(() => b1.call("file.save", stream))
 			.then(res => expect(res).toBe("OK"))
@@ -87,15 +93,7 @@ describe("Test to send stream as ctx.param", () => {
 			.then(() => {
 				expect(FLOW).toEqual([
 					"first chunk",
-					"<ERROR>"
-				]);
-				stream.emit("end");
-			})
-			.delay(100)
-			.then(() => {
-				expect(FLOW).toEqual([
-					"first chunk",
-					"second chunk",
+					"<ERROR:Something happened (NodeID: node-1)>",
 					"<END>"
 				]);
 			});
@@ -213,10 +211,6 @@ describe("Test duplex streaming", () => {
 		nodeID: "node-2"
 	});
 
-	const stream = new Stream.Readable({
-		read() {}
-	});
-
 	b2.createService({
 		name: "file",
 		actions: {
@@ -227,6 +221,7 @@ describe("Test duplex streaming", () => {
 						return done();
 					}
 				});
+				ctx.params.on("error", err => pass.emit("error", err));
 				return ctx.params.pipe(pass);
 			}
 		}
@@ -237,6 +232,10 @@ describe("Test duplex streaming", () => {
 
 	it("should send & receive stream", () => {
 		const FLOW = [];
+		const stream = new Stream.Readable({
+			read() {}
+		});
+
 		return b1.Promise.resolve()
 			.then(() => b1.call("file.convert", stream))
 			.then(res => {
@@ -271,10 +270,13 @@ describe("Test duplex streaming", () => {
 			});
 	});
 
-	it.skip("should receive stream & handle error", () => {
+	it("should receive stream & handle error", () => {
 		const FLOW = [];
+		const stream = new Stream.Readable({
+			read() {}
+		});
 		return b1.Promise.resolve()
-			.then(() => b1.call("file.convert"))
+			.then(() => b1.call("file.convert", stream))
 			.then(res => {
 				expect(res).toBeInstanceOf(Stream.Readable);
 				res.on("data", msg => FLOW.push(msg.toString()));
@@ -285,15 +287,15 @@ describe("Test duplex streaming", () => {
 			.delay(100)
 			.then(() => {
 				expect(FLOW).toEqual([
-					"first chunk"
+					"FIRST CHUNK"
 				]);
 				stream.emit("error", new Error("Something happened"));
 			})
 			.delay(100)
 			.then(() => {
 				expect(FLOW).toEqual([
-					"first chunk",
-					"<ERROR:Something happened (NodeID: node-2)>",
+					"FIRST CHUNK",
+					"<ERROR:Something happened (NodeID: node-1) (NodeID: node-2)>",
 					"<END>"
 				]);
 			});
