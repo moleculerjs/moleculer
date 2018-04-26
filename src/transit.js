@@ -361,6 +361,21 @@ class Transit {
 			.catch(err => this.sendResponse(payload.sender, payload.id, ctx.meta, null, err));
 	}
 
+	_createErrFromPayload(packet) {
+		const err = new Error(packet.error.message + ` (NodeID: ${packet.sender})`);
+		// TODO create the original error object if it's available
+		//   let constructor = errors[packet.error.name]
+		//   let error = Object.create(constructor.prototype);
+		err.name = packet.error.name;
+		err.code = packet.error.code;
+		err.type = packet.error.type;
+		err.nodeID = packet.error.nodeID || packet.sender;
+		err.data = packet.error.data;
+		if (packet.error.stack)
+			err.stack = packet.error.stack;
+		return err;
+	}
+
 	/**
 	 * Process incoming response of request
 	 *
@@ -392,23 +407,9 @@ class Transit {
 			let pass = this.pendingResStreams.get(id);
 			if (pass) {
 				if (!packet.stream) {
-
-					if (!packet.success) {
-						// Recreate exception object
-						let err = new Error(packet.error.message + ` (NodeID: ${packet.sender})`);
-						// TODO create the original error object if it's available
-						//   let constructor = errors[packet.error.name]
-						//   let error = Object.create(constructor.prototype);
-						err.name = packet.error.name;
-						err.code = packet.error.code;
-						err.type = packet.error.type;
-						err.nodeID = packet.error.nodeID || packet.sender;
-						err.data = packet.error.data;
-						if (packet.error.stack)
-							err.stack = packet.error.stack;
-
-						pass.emit("error", err);
-					}
+					// Received error?
+					if (!packet.success)
+						pass.emit("error", this._createErrFromPayload(packet));
 
 					// End of stream
 					pass.end();
@@ -438,20 +439,7 @@ class Transit {
 		this.removePendingRequest(id);
 
 		if (!packet.success) {
-			// Recreate exception object
-			let err = new Error(packet.error.message + ` (NodeID: ${packet.sender})`);
-			// TODO create the original error object if it's available
-			//   let constructor = errors[packet.error.name]
-			//   let error = Object.create(constructor.prototype);
-			err.name = packet.error.name;
-			err.code = packet.error.code;
-			err.type = packet.error.type;
-			err.nodeID = packet.error.nodeID || packet.sender;
-			err.data = packet.error.data;
-			if (packet.error.stack)
-				err.stack = packet.error.stack;
-
-			req.reject(err);
+			req.reject(this._createErrFromPayload(packet));
 		} else {
 			req.resolve(packet.data);
 		}
@@ -654,6 +642,18 @@ class Transit {
 		});
 	}
 
+	_createPayloadErrorField(err) {
+		return {
+			name: err.name,
+			message: err.message,
+			nodeID: err.nodeID || this.nodeID,
+			code: err.code,
+			type: err.type,
+			stack: err.stack,
+			data: err.data
+		};
+	}
+
 	/**
 	 * Send back the response of request
 	 *
@@ -674,17 +674,9 @@ class Transit {
 			data: data
 		};
 
-		if (err) {
-			payload.error = {
-				name: err.name,
-				message: err.message,
-				nodeID: err.nodeID || this.nodeID,
-				code: err.code,
-				type: err.type,
-				stack: err.stack,
-				data: err.data
-			};
-		}
+		if (err)
+			payload.error = this._createPayloadErrorField(err);
+
 		if (data && typeof data.on === "function" && typeof data.read === "function" && typeof data.pipe === "function") {
 			// Streaming response
 			payload.stream = true;
@@ -711,15 +703,7 @@ class Transit {
 				payload.stream = false;
 				if (err) {
 					payload.success = false;
-					payload.error = {
-						name: err.name,
-						message: err.message,
-						nodeID: err.nodeID || this.nodeID,
-						code: err.code,
-						type: err.type,
-						stack: err.stack,
-						data: err.data
-					};
+					payload.error = this._createPayloadErrorField(err);
 				}
 
 				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
