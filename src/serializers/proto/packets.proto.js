@@ -9,7 +9,6 @@ let $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.ut
 // Exported root namespace
 let $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
 
-/* istanbul ignore next */
 $root.packets = (function() {
 
 	/**
@@ -351,6 +350,7 @@ $root.packets = (function() {
          * @property {boolean} metrics PacketRequest metrics
          * @property {string|null} [parentID] PacketRequest parentID
          * @property {string|null} [requestID] PacketRequest requestID
+         * @property {boolean|null} [stream] PacketRequest stream
          */
 
 		/**
@@ -457,6 +457,14 @@ $root.packets = (function() {
 		PacketRequest.prototype.requestID = "";
 
 		/**
+         * PacketRequest stream.
+         * @member {boolean} stream
+         * @memberof packets.PacketRequest
+         * @instance
+         */
+		PacketRequest.prototype.stream = false;
+
+		/**
          * Creates a new PacketRequest instance using the specified properties.
          * @function create
          * @memberof packets.PacketRequest
@@ -493,6 +501,8 @@ $root.packets = (function() {
 				writer.uint32(/* id 10, wireType 2 =*/82).string(message.parentID);
 			if (message.requestID != null && message.hasOwnProperty("requestID"))
 				writer.uint32(/* id 11, wireType 2 =*/90).string(message.requestID);
+			if (message.stream != null && message.hasOwnProperty("stream"))
+				writer.uint32(/* id 12, wireType 0 =*/96).bool(message.stream);
 			return writer;
 		};
 
@@ -559,6 +569,9 @@ $root.packets = (function() {
 						break;
 					case 11:
 						message.requestID = reader.string();
+						break;
+					case 12:
+						message.stream = reader.bool();
 						break;
 					default:
 						reader.skipType(tag & 7);
@@ -637,6 +650,9 @@ $root.packets = (function() {
 			if (message.requestID != null && message.hasOwnProperty("requestID"))
 				if (!$util.isString(message.requestID))
 					return "requestID: string expected";
+			if (message.stream != null && message.hasOwnProperty("stream"))
+				if (typeof message.stream !== "boolean")
+					return "stream: boolean expected";
 			return null;
 		};
 
@@ -674,6 +690,8 @@ $root.packets = (function() {
 				message.parentID = String(object.parentID);
 			if (object.requestID != null)
 				message.requestID = String(object.requestID);
+			if (object.stream != null)
+				message.stream = Boolean(object.stream);
 			return message;
 		};
 
@@ -702,6 +720,7 @@ $root.packets = (function() {
 				object.metrics = false;
 				object.parentID = "";
 				object.requestID = "";
+				object.stream = false;
 			}
 			if (message.ver != null && message.hasOwnProperty("ver"))
 				object.ver = message.ver;
@@ -725,6 +744,8 @@ $root.packets = (function() {
 				object.parentID = message.parentID;
 			if (message.requestID != null && message.hasOwnProperty("requestID"))
 				object.requestID = message.requestID;
+			if (message.stream != null && message.hasOwnProperty("stream"))
+				object.stream = message.stream;
 			return object;
 		};
 
@@ -755,6 +776,7 @@ $root.packets = (function() {
          * @property {string|null} [data] PacketResponse data
          * @property {string|null} [error] PacketResponse error
          * @property {string} meta PacketResponse meta
+         * @property {boolean|null} [stream] PacketResponse stream
          */
 
 		/**
@@ -829,6 +851,14 @@ $root.packets = (function() {
 		PacketResponse.prototype.meta = "";
 
 		/**
+         * PacketResponse stream.
+         * @member {boolean} stream
+         * @memberof packets.PacketResponse
+         * @instance
+         */
+		PacketResponse.prototype.stream = false;
+
+		/**
          * Creates a new PacketResponse instance using the specified properties.
          * @function create
          * @memberof packets.PacketResponse
@@ -861,6 +891,8 @@ $root.packets = (function() {
 			if (message.error != null && message.hasOwnProperty("error"))
 				writer.uint32(/* id 6, wireType 2 =*/50).string(message.error);
 			writer.uint32(/* id 7, wireType 2 =*/58).string(message.meta);
+			if (message.stream != null && message.hasOwnProperty("stream"))
+				writer.uint32(/* id 8, wireType 0 =*/64).bool(message.stream);
 			return writer;
 		};
 
@@ -915,6 +947,9 @@ $root.packets = (function() {
 						break;
 					case 7:
 						message.meta = reader.string();
+						break;
+					case 8:
+						message.stream = reader.bool();
 						break;
 					default:
 						reader.skipType(tag & 7);
@@ -977,6 +1012,9 @@ $root.packets = (function() {
 					return "error: string expected";
 			if (!$util.isString(message.meta))
 				return "meta: string expected";
+			if (message.stream != null && message.hasOwnProperty("stream"))
+				if (typeof message.stream !== "boolean")
+					return "stream: boolean expected";
 			return null;
 		};
 
@@ -1006,6 +1044,8 @@ $root.packets = (function() {
 				message.error = String(object.error);
 			if (object.meta != null)
 				message.meta = String(object.meta);
+			if (object.stream != null)
+				message.stream = Boolean(object.stream);
 			return message;
 		};
 
@@ -1030,6 +1070,7 @@ $root.packets = (function() {
 				object.data = "";
 				object.error = "";
 				object.meta = "";
+				object.stream = false;
 			}
 			if (message.ver != null && message.hasOwnProperty("ver"))
 				object.ver = message.ver;
@@ -1045,6 +1086,8 @@ $root.packets = (function() {
 				object.error = message.error;
 			if (message.meta != null && message.hasOwnProperty("meta"))
 				object.meta = message.meta;
+			if (message.stream != null && message.hasOwnProperty("stream"))
+				object.stream = message.stream;
 			return object;
 		};
 

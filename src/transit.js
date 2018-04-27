@@ -518,29 +518,32 @@ class Transit {
 
 					const data = ctx.params;
 					data.on("data", chunk => {
-						payload.stream = true;
-						payload.params = chunk;
+						const copy = Object.assign({}, payload);
+						copy.stream = true;
+						copy.params = chunk;
 						data.pause();
 
-						return this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, payload))
+						return this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, copy))
 							.then(() => data.resume())
 							.catch(err => this.logger.error(`Unable to send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, err));
 					});
 
 					data.on("end", () => {
-						payload.params = null;
-						payload.stream = false;
+						const copy = Object.assign({}, payload);
+						copy.params = null;
+						copy.stream = false;
 
-						return this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, payload))
+						return this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, copy))
 							.catch(err => this.logger.error(`Unable to send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, err));
 					});
 
 					data.on("error", err => {
-						payload.stream = false;
-						payload.meta["$streamError"] = this._createPayloadErrorField(err);
-						payload.params = null;
+						const copy = Object.assign({}, payload);
+						copy.stream = false;
+						copy.meta["$streamError"] = this._createPayloadErrorField(err);
+						copy.params = null;
 
-						return this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, payload))
+						return this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, copy))
 							.catch(err => this.logger.error(`Unable to send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, err));
 					});
 				}
@@ -688,33 +691,37 @@ class Transit {
 		if (data && typeof data.on === "function" && typeof data.read === "function" && typeof data.pipe === "function") {
 			// Streaming response
 			payload.stream = true;
+			data.pause();
 
 			data.on("data", chunk => {
-				payload.stream = true;
-				payload.data = chunk;
+				const copy = Object.assign({}, payload);
+				copy.stream = true;
+				copy.data = chunk;
 				data.pause();
 
-				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
+				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, copy))
 					.then(() => data.resume())
 					.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
 			});
 
 			data.on("end", () => {
-				payload.data = null;
-				payload.stream = false;
+				const copy = Object.assign({}, payload);
+				copy.data = null;
+				copy.stream = false;
 
-				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
+				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, copy))
 					.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
 			});
 
 			data.on("error", err => {
-				payload.stream = false;
+				const copy = Object.assign({}, payload);
+				copy.stream = false;
 				if (err) {
-					payload.success = false;
-					payload.error = this._createPayloadErrorField(err);
+					copy.success = false;
+					copy.error = this._createPayloadErrorField(err);
 				}
 
-				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
+				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, copy))
 					.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
 			});
 

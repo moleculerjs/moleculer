@@ -8,7 +8,8 @@ const crypto = require("crypto");
 // Create broker
 const broker = new ServiceBroker({
 	nodeID: "streaming-receiver-" + process.pid,
-	transporter: "NATS",
+	transporter: "TCP",
+	serializer: "ProtoBuf",
 	logger: console,
 	logLevel: "info"
 });
@@ -18,7 +19,7 @@ broker.createService({
 	actions: {
 		save(ctx) {
 			const stream = ctx.params;
-			const fileName = "d://received-src.zip";
+			const fileName = "d:/received-src.zip";
 			broker.logger.info("Open file");
 			const s = fs.createWriteStream(fileName);
 			stream.pipe(s);
@@ -26,7 +27,7 @@ broker.createService({
 
 			stream.on("data", chunk => {
 				this.uploadedSize += chunk.length;
-				broker.logger.info("RECV: ", Number(this.uploadedSize / this.stat.size * 100).toFixed(0) + "%");
+				broker.logger.info("RECV: ", Number(this.uploadedSize / this.stat.size * 100).toFixed(0) + `% (${chunk.length})`);
 			});
 
 			s.on("close", () => {
@@ -45,7 +46,7 @@ broker.createService({
 	},
 
 	created() {
-		this.fileName = "d://src.zip";
+		this.fileName = "d:/src.zip";
 		this.stat = fs.statSync(this.fileName);
 		this.uploadedSize = 0;
 	}
@@ -57,15 +58,14 @@ broker.start().then(() => {
 	return broker.waitForServices("file");
 
 }).delay(1000).then(() => {
-	return;
 
-	const fileName = "d://src.zip";
+	const fileName = "d:/src.zip";
 	const stat = fs.statSync(fileName);
 	let uploadedSize = 0;
 
 	broker.call("file.get")
 		.then(stream => {
-			const fileName = "d://received-src.zip";
+			const fileName = "d:/received-src.zip";
 			broker.logger.info("Open file");
 			const s = fs.createWriteStream(fileName);
 			stream.pipe(s);
@@ -73,7 +73,7 @@ broker.start().then(() => {
 
 			stream.on("data", chunk => {
 				uploadedSize += chunk.length;
-				broker.logger.info("RECV: ", Number(uploadedSize / stat.size * 100).toFixed(0) + "%");
+				broker.logger.info("RECV: ", Number(uploadedSize / stat.size * 100).toFixed(0) + `% (${chunk.length})`);
 			});
 
 			s.on("close", () => {

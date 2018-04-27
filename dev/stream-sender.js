@@ -8,7 +8,8 @@ const crypto = require("crypto");
 // Create broker
 const broker = new ServiceBroker({
 	nodeID: "streaming-sender",
-	transporter: "NATS",
+	transporter: "TCP",
+	serializer: "ProtoBuf",
 	logger: console,
 	logLevel: "info"
 });
@@ -17,7 +18,7 @@ broker.createService({
 	name: "file",
 	actions: {
 		get(ctx) {
-			const fileName = "d://src.zip";
+			const fileName = "d:/src.zip";
 			const stat = fs.statSync(fileName);
 			let uploadedSize = 0;
 
@@ -25,7 +26,7 @@ broker.createService({
 
 			stream.on("data", chunk => {
 				uploadedSize += chunk.length;
-				this.logger.info("SEND: ", Number(uploadedSize / stat.size * 100).toFixed(0) + "%");
+				this.logger.info("SEND: ", Number(uploadedSize / stat.size * 100).toFixed(0) + `% (${chunk.length})`);
 			});
 
 			stream.on("close", () => {
@@ -48,8 +49,8 @@ broker.start().then(() => {
 
 	return broker.waitForServices("file2");
 }).delay(1000).then(() => {
-
-	const fileName = "d://src.zip";
+/*
+	const fileName = "d:/src.zip";
 	const stat = fs.statSync(fileName);
 	let uploadedSize = 0;
 
@@ -57,7 +58,7 @@ broker.start().then(() => {
 
 	stream.on("data", chunk => {
 		uploadedSize += chunk.length;
-		broker.logger.info("SEND: ", Number(uploadedSize / stat.size * 100).toFixed(0) + "%");
+		broker.logger.info("SEND: ", Number(uploadedSize / stat.size * 100).toFixed(0) + `% (${chunk.length})`);
 	});
 
 	stream.on("close", () => {
@@ -68,7 +69,7 @@ broker.start().then(() => {
 		});
 	});
 
-	broker.call("file2.save", stream);
+	broker.call("file2.save", stream);*/
 });
 
 function getSHA(fileName) {
