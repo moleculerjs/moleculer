@@ -151,10 +151,11 @@ describe("Test ProtoBuf serializer", () => {
 			level: 4,
 			metrics: true,
 			parentID: "999",
-			requestID: "12345"
+			requestID: "12345",
+			stream: false
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_REQUEST);
-		expect(s.length).toBe(100);
+		expect(s.length).toBe(102);
 
 		const res = serializer.deserialize(s, P.PACKET_REQUEST);
 		expect(res).toEqual(obj);
@@ -175,10 +176,11 @@ describe("Test ProtoBuf serializer", () => {
 					id: 1,
 					roles: [ "admin" ]
 				}
-			}
+			},
+			stream: false
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(106);
+		expect(s.length).toBe(108);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).toEqual(obj);
@@ -206,10 +208,11 @@ describe("Test ProtoBuf serializer", () => {
 					id: 1,
 					roles: [ "admin" ]
 				}
-			}
+			},
+			stream: true
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(208);
+		expect(s.length).toBe(210);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).toEqual(obj);

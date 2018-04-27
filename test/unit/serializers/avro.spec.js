@@ -151,10 +151,11 @@ describe("Test Avro serializer", () => {
 			level: 4,
 			metrics: true,
 			parentID: "999",
-			requestID: "12345"
+			requestID: "12345",
+			stream: false
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_REQUEST);
-		expect(s.length).toBe(91);
+		expect(s.length).toBe(93);
 
 		const res = serializer.deserialize(s, P.PACKET_REQUEST);
 		expect(res).toEqual(obj);
@@ -175,10 +176,11 @@ describe("Test Avro serializer", () => {
 					id: 1,
 					roles: [ "admin" ]
 				}
-			}
+			},
+			stream: false
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(102);
+		expect(s.length).toBe(104);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).toEqual(Object.assign(obj, { error: null }));
@@ -206,10 +208,11 @@ describe("Test Avro serializer", () => {
 					id: 1,
 					roles: [ "admin" ]
 				}
-			}
+			},
+			stream: true
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(204);
+		expect(s.length).toBe(206);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).toEqual(Object.assign(obj, { data: null }));

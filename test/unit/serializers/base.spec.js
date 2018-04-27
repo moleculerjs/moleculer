@@ -80,13 +80,15 @@ describe("Test serializer.serializeCustomFields", () => {
 			meta: {
 				token: "12345"
 			},
-			requestID: "1111"
+			requestID: "1111",
+			stream: false
 		})).toEqual({
 			"action": "users.create",
 			"meta": "{\"token\":\"12345\"}",
 			"params": "{\"name\":\"John\"}",
 			"requestID": "1111",
-			"sender": "node-1"
+			"sender": "node-1",
+			"stream": false
 		});
 	});
 
@@ -103,12 +105,14 @@ describe("Test serializer.serializeCustomFields", () => {
 			meta: {
 				token: "12345"
 			},
+			stream: false
 		})).toEqual({
 			"data": "{\"id\":5}",
 			"error": "{\"name\":\"SomeError\"}",
 			"id": "12345",
 			"meta": "{\"token\":\"12345\"}",
-			"sender": "node-1"
+			"sender": "node-1",
+			"stream": false
 		});
 	});
 
