@@ -201,7 +201,7 @@ class Service {
 			return new this.Promise((resolve, reject) => {
 				const timeout = setTimeout(reject, 2000);
 				const checkForContexts = () => {
-					if (this._getActiveContexts().size === 0) {
+					if (this._getActiveContexts().length === 0) {
 						clearTimeout(timeout);
 						resolve();
 					} else {
@@ -289,7 +289,7 @@ class Service {
 		if (_.isFunction(this.broker.ContextFactory.getActiveContexts)) {
 			return this.broker.ContextFactory.getActiveContexts(this);
 		}
-		return new Set();
+		return [];
 	}
 
 	/**

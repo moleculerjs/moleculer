@@ -846,8 +846,13 @@ class ServiceBroker {
 	 * @performance-critical
 	 * @memberof ServiceBroker
 	 */
-	call(actionName, params, opts = { trackContext: this.options.trackContext }) {
+	call(actionName, params, opts = {}) {
 		const endpoint = this.findNextActionEndpoint(actionName, opts);
+
+		// Add trackContext option from broker options
+		if (opts.trackContext === undefined && this.options.trackContext)
+			opts.trackContext = this.options.trackContext;
+
 		if (endpoint instanceof Error)
 			return Promise.reject(endpoint);
 
@@ -894,7 +899,11 @@ class ServiceBroker {
 	 * @private
 	 * @memberof ServiceBroker
 	 */
-	callWithoutBalancer(actionName, params, opts = { trackContext: this.options.trackContext }) {
+	callWithoutBalancer(actionName, params, opts = {}) {
+		// Add trackContext option from broker options
+		if (opts.trackContext === undefined && this.options.trackContext)
+			opts.trackContext = this.options.trackContext;
+
 		if (opts.timeout == null)
 			opts.timeout = this.options.requestTimeout || 0;
 
@@ -982,7 +991,7 @@ class ServiceBroker {
 		}
 
 		// Remove the context from the active contexts list
-		if (opts.trackContext) {
+		if (ctx.trackedBy) {
 			p.then(res => {
 				ctx.dispose();
 				return res;
@@ -1019,7 +1028,7 @@ class ServiceBroker {
 			p = p.timeout(ctx.timeout);
 
 		// Remove the context from the active contexts list
-		if (opts.trackContext) {
+		if (ctx.trackedBy) {
 			p.then(res => {
 				ctx.dispose();
 				return res;
