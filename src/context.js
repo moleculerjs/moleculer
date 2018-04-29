@@ -11,9 +11,6 @@ const _ = require("lodash");
 const { generateToken } = require("./utils");
 const { RequestSkippedError, MaxCallLevelError } = require("./errors");
 
-
-const ContextMap = new WeakMap();
-
 /**
  * Context class for action calls
  *
@@ -80,11 +77,11 @@ class Context {
 	 * @memberof Service
 	 */
 	_trackContext(service) {
-		if ( !ContextMap.has(service) ) {
-			ContextMap.set(service, new Set());
+		if ( !service.activeContexts ) {
+			service.activeContexts = new Set();
 		}
-		const contextList = ContextMap.get(service);
-		contextList.add(this);
+		service.activeContexts.add(this);
+		this.trackedBy = service;
 	}
 
 	/**
@@ -96,9 +93,8 @@ class Context {
 	 * @memberof Service
 	 */
 	dispose() {
-		const key = this.action.service || this.broker;
-		if ( ContextMap.has(key) ) {
-			const contextList = ContextMap.get(key);
+		if ( this.trackedBy && this.trackedBy.activeContexts ) {
+			const contextList = this.trackedBy.activeContexts;
 			if (contextList.has(this) ) {
 				contextList.delete(this);
 			}
@@ -106,7 +102,7 @@ class Context {
 	}
 
 	static getActiveContexts(service) {
-		return ContextMap.get(service) || new Set();
+		return service.activeContexts || new Set();
 	}
 
 	generateID() {
