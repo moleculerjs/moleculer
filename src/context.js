@@ -78,9 +78,9 @@ class Context {
 	 */
 	_trackContext(service) {
 		if ( !service.activeContexts ) {
-			service.activeContexts = new Set();
+			service.activeContexts = [];
 		}
-		service.activeContexts.add(this);
+		service.activeContexts.push(this);
 		this.trackedBy = service;
 	}
 
@@ -95,14 +95,15 @@ class Context {
 	dispose() {
 		if ( this.trackedBy && this.trackedBy.activeContexts ) {
 			const contextList = this.trackedBy.activeContexts;
-			if (contextList.has(this) ) {
-				contextList.delete(this);
+			const contextIndex = contextList.indexOf(this);
+			if (contextIndex !== -1) {
+				contextList.splice(contextIndex, 1);
 			}
 		}
 	}
 
 	static getActiveContexts(service) {
-		return service.activeContexts || new Set();
+		return service.activeContexts || [];
 	}
 
 	generateID() {
@@ -164,7 +165,7 @@ class Context {
 				ctx.requestID = ctx.id;
 		}
 
-		if (opts.tackContext) {
+		if (opts.trackContext) {
 			ctx._trackContext(action.service || broker);
 		}
 
