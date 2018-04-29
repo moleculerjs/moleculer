@@ -981,18 +981,19 @@ class ServiceBroker {
 			});
 		}
 
+		// Remove the context from the active contexts list
+		if (opts.trackContext) {
+			p.then(res => {
+				ctx.dispose();
+				return res;
+			});
+		}
+
 		// Error handler
 		p = p.catch(err => this._callErrorHandler(err, ctx, endpoint, opts));
 
 		// Pointer to Context
 		p.ctx = ctx;
-
-		// Remove the context from the active contexts list
-		p.finally(() => {
-			if (opts.trackContext) {
-				ctx.dispose();
-			}
-		});
 
 		return p;
 	}
@@ -1017,6 +1018,14 @@ class ServiceBroker {
 		if (ctx.timeout > 0 && p.timeout)
 			p = p.timeout(ctx.timeout);
 
+		// Remove the context from the active contexts list
+		if (opts.trackContext) {
+			p.then(res => {
+				ctx.dispose();
+				return res;
+			});
+		}
+
 		// Handle half-open state in circuit breaker
 		if (this.options.circuitBreaker.enabled && endpoint) {
 			p = p.then(res => {
@@ -1030,13 +1039,6 @@ class ServiceBroker {
 
 		// Pointer to Context
 		p.ctx = ctx;
-
-		// Remove the context from the active contexts list
-		p.finally(() => {
-			if (opts.trackContext) {
-				ctx.dispose();
-			}
-		});
 
 		return p;
 	}
@@ -1103,6 +1105,10 @@ class ServiceBroker {
 			err = new E.RequestTimeoutError(actionName, nodeID);
 
 		err.ctx = ctx;
+
+		if (opts.trackContext) {
+			ctx.dispose();
+		}
 
 		if (nodeID != this.nodeID) {
 			// Remove pending request (if the request didn't reached the target service)
