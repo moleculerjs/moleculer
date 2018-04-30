@@ -119,8 +119,13 @@ let bench4 = benchmark.createSuite("Remote call with FakeTransporter");
 	b1.start().then(() => b2.start());
 
 	let c = 0;
-	bench4.add("Remote call echo.reply", done => {
+	bench4.ref("Remote call echo.reply", done => {
 		return b1.call("echo.reply", { a: c++ }).then(done);
+	});
+
+	bench4.add("Remote call echo.reply with tracking", done => {
+		b2.options.trackContext = true;
+		return b1.call("echo.reply", { a: c++ }, { trackContext: true }).then(done);
 	});
 })();
 // ----------------------------------------------------------------
