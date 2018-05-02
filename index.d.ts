@@ -1,4 +1,4 @@
-import * as Bluebird from "bluebird";
+import Bluebird from "bluebird";
 declare namespace Moleculer {
 	type GenericObject = { [name: string]: any };
 
@@ -132,7 +132,7 @@ declare namespace Moleculer {
 		actions?: Actions;
 		mixins?: Array<ServiceSchema>;
 		methods?: ServiceMethods;
-		Promise: Bluebird<any>;
+		Promise: typeof Bluebird;
 
 		waitForServices(serviceNames: string | Array<string>, timeout?: number, interval?: number): Bluebird<void>;
 
@@ -271,7 +271,7 @@ declare namespace Moleculer {
 	class ServiceBroker {
 		constructor(options?: BrokerOptions);
 
-		Promise: Bluebird<any>;
+		Promise: typeof Bluebird;
 
 		namespace: string;
 		nodeID: string;
