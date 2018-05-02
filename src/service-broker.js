@@ -46,6 +46,7 @@ const defaultOptions = {
 	heartbeatTimeout: 15,
 
 	trackContext: false,
+	gracefulStopTimeout: 2000,
 
 	disableBalancer: false,
 

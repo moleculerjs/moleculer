@@ -90,11 +90,17 @@ class Service {
 				// Expose to call `service.actions.find({ ...params })`
 				this.actions[name] = (params, opts) => {
 					const ctx = this.broker.ContextFactory.create(this.broker, innerAction, null, params, opts || {});
-					return innerAction.handler(ctx).finally(() => {
+					const contextDispose = (ret) => {
 						if (opts.trackContext) {
 							ctx.dispose();
 						}
-					});
+
+						return ret;
+					};
+					const contextDisposeCatch = (ret) => {
+						return this.Promise.reject(contextDispose(ret));
+					};
+					return innerAction.handler(ctx).then(contextDispose, contextDisposeCatch);
 				};
 
 			});
@@ -199,7 +205,7 @@ class Service {
 
 		this.stopped = () => {
 			return new this.Promise((resolve, reject) => {
-				const timeout = setTimeout(reject, 2000);
+				const timeout = setTimeout(reject, this.settings.gracefulStopTimeout || this.broker.options.gracefulStopTimeout);
 				const checkForContexts = () => {
 					if (this._getActiveContexts().length === 0) {
 						clearTimeout(timeout);
@@ -208,7 +214,7 @@ class Service {
 						setTimeout(checkForContexts, 100);
 					}
 				};
-				setTimeout(checkForContexts, 0);
+				setImmediate(checkForContexts);
 			}).finally(() => {
 				if (_.isFunction(this.schema.stopped))
 					return this.Promise.method(this.schema.stopped).call(this);
@@ -286,10 +292,7 @@ class Service {
 	 * @memberof Service
 	 */
 	_getActiveContexts() {
-		if (_.isFunction(this.broker.ContextFactory.getActiveContexts)) {
-			return this.broker.ContextFactory.getActiveContexts(this);
-		}
-		return [];
+		return this.activeContexts || [];
 	}
 
 	/**

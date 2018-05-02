@@ -102,10 +102,6 @@ class Context {
 		}
 	}
 
-	static getActiveContexts(service) {
-		return service.activeContexts || [];
-	}
-
 	generateID() {
 		this.id = generateToken();
 	}
