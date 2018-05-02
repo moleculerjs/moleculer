@@ -105,7 +105,7 @@ describe("Test Service handlerswith delayed shutdown", () => {
 
 	it("should called stopped", () => {
 		const service = broker.createService(schema);
-		service.schema.actions.test.mockResolvedValue(service.Promise.delay(110));
+		service.schema.actions.test.mockResolvedValue(service.Promise.delay(80));
 		const getActiveContextsSpy = jest.spyOn(service, "_getActiveContexts");
 		// const trackContextsSpy = jest.spyOn(service, "_trackContext");
 		return broker.start()

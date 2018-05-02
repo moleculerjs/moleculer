@@ -116,6 +116,7 @@ describe("Test ServiceBroker constructor", () => {
 			heartbeatTimeout : 20,
 			heartbeatInterval: 5,
 			trackContext: false,
+			gracefulStopTimeout: 2000,
 
 			disableBalancer: true,
 			registry: {
