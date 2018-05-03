@@ -43,7 +43,8 @@ function createSchemas() {
 			{ name: "level", type: "int" },
 			{ name: "metrics", type: "boolean" },
 			{ name: "parentID", type: [ "null", "string"], default: null },
-			{ name: "requestID", type: [ "null", "string"], default: null }
+			{ name: "requestID", type: [ "null", "string"], default: null },
+			{ name: "stream", type: [ "null", "boolean"], default: null }
 		]
 	});
 
@@ -58,6 +59,7 @@ function createSchemas() {
 			{ name: "data", type: [ "null", "string"], default: null },
 			{ name: "error", type: [ "null", "string"], default: null },
 			{ name: "meta", type: "string" },
+			{ name: "stream", type: [ "null", "boolean"], default: null }
 		]
 	});
 

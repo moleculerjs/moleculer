@@ -1,4 +1,4 @@
-title: Protocol v3
+title: Protocol v3 (rev. 2)
 ---
 
 This documentation describes the communication protocol between Moleculer nodes. 
@@ -136,6 +136,7 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `metrics` | `boolean` | ✔ | Need to send metrics events. |
 | `parentID` | `string` |  | Parent context ID. |
 | `requestID` | `string` |  | Request ID from `ctx.requestID`. |
+| `stream` | `boolean` | ✔ | Stream request. |
 
 > (*) In case of `ProtoBuf`, `Avro` or any other schema-based serializer, the field value is encoded to JSON string.
 
@@ -156,6 +157,7 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `data` | `object` |  | Response data if success. (*) |
 | `error` | `object` |  | Error object if not success. (*) |
 | `meta` | `object` | ✔ | `ctx.meta` object. (*) |
+| `stream` | `boolean` | ✔ | Stream request. |
 
 > (*) In case of `ProtoBuf`, `Avro` or any other schema-based serializer, the field value is encoded to JSON string.
 
