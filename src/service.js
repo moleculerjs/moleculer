@@ -100,7 +100,7 @@ class Service {
 					const contextDisposeCatch = (ret) => {
 						return this.Promise.reject(contextDispose(ret));
 					};
-					return innerAction.handler(ctx).then(contextDispose, contextDisposeCatch);
+					return innerAction.handler(ctx).then(contextDispose).catch(contextDisposeCatch);
 				};
 
 			});
@@ -205,7 +205,7 @@ class Service {
 
 		this.stopped = () => {
 			return new this.Promise((resolve, reject) => {
-				const timeout = setTimeout(reject, this.settings.gracefulStopTimeout || this.broker.options.gracefulStopTimeout);
+				const timeout = setTimeout(reject, this.settings.$gracefulStopTimeout || this.broker.options.$gracefulStopTimeout);
 				const checkForContexts = () => {
 					if (this._getActiveContexts().length === 0) {
 						clearTimeout(timeout);
@@ -292,7 +292,7 @@ class Service {
 	 * @memberof Service
 	 */
 	_getActiveContexts() {
-		return this.activeContexts || [];
+		return this._activeContexts || [];
 	}
 
 	/**

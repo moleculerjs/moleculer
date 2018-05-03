@@ -77,10 +77,10 @@ class Context {
 	 * @memberof Service
 	 */
 	_trackContext(service) {
-		if ( !service.activeContexts ) {
-			service.activeContexts = [];
+		if ( !service._activeContexts ) {
+			service._activeContexts = [];
 		}
-		service.activeContexts.push(this);
+		service._activeContexts.push(this);
 		this.trackedBy = service;
 	}
 
@@ -93,8 +93,8 @@ class Context {
 	 * @memberof Service
 	 */
 	dispose() {
-		if ( this.trackedBy && this.trackedBy.activeContexts ) {
-			const contextList = this.trackedBy.activeContexts;
+		if ( this.trackedBy && this.trackedBy._activeContexts ) {
+			const contextList = this.trackedBy._activeContexts;
 			const contextIndex = contextList.indexOf(this);
 			if (contextIndex !== -1) {
 				contextList.splice(contextIndex, 1);
