@@ -239,7 +239,9 @@ class Context {
 			if (distTimeout <= 0) {
 				return Promise.reject(new RequestSkippedError(actionName, this.broker.nodeID));
 			}
-			opts.timeout = distTimeout;
+
+			if (!opts.timeout || distTimeout < opts.timeout)
+				opts.timeout = distTimeout;
 		}
 
 		// Max calling level check to avoid calling loops
