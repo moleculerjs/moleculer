@@ -1,4 +1,5 @@
-let ServiceBroker = require("../../src/service-broker");
+const ServiceBroker = require("../../src/service-broker");
+const { protectReject } = require("../unit/utils");
 
 describe("Test Service handlers", () => {
 
@@ -107,7 +108,6 @@ describe("Test Service handlerswith delayed shutdown", () => {
 		const service = broker.createService(schema);
 		service.schema.actions.test.mockResolvedValue(service.Promise.delay(80));
 		const getActiveContextsSpy = jest.spyOn(service, "_getActiveContexts");
-		// const trackContextsSpy = jest.spyOn(service, "_trackContext");
 		return broker.start()
 			.then(() => {
 				broker.call("delayed.test", {});
@@ -120,6 +120,6 @@ describe("Test Service handlerswith delayed shutdown", () => {
 
 				getActiveContextsSpy.mockReset();
 				getActiveContextsSpy.mockRestore();
-			});
+			}).catch(protectReject);
 	});
 });

@@ -205,7 +205,7 @@ class Service {
 
 		this.stopped = () => {
 			return new this.Promise((resolve, reject) => {
-				const timeout = setTimeout(reject, this.settings.$gracefulStopTimeout || this.broker.options.$gracefulStopTimeout);
+				const timeout = setTimeout(reject, this.settings.$gracefulStopTimeout || this.broker.options.gracefulStopTimeout);
 				const checkForContexts = () => {
 					if (this._getActiveContexts().length === 0) {
 						clearTimeout(timeout);
