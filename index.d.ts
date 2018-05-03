@@ -2,15 +2,6 @@ import * as Bluebird from "bluebird";
 declare namespace Moleculer {
 	type GenericObject = { [name: string]: any };
 
-	interface Logger {
-		fatal?: (...args: any[]) => void;
-		error: (...args: any[]) => void;
-		warn: (...args: any[]) => void;
-		info: (...args: any[]) => void;
-		debug?: (...args: any[]) => void;
-		trace?: (...args: any[]) => void;
-	}
-
 	class LoggerInstance {
 		fatal(...args: any[]): void;
 		error(...args: any[]): void;
@@ -503,7 +494,7 @@ declare namespace Moleculer {
 		validate(params: GenericObject, schema: GenericObject): boolean;
 	}
 
-	class LoggerHelper {
+	class Logger {
 		static extend(logger: LoggerInstance): LoggerInstance;
 		static createDefaultLogger(baseLogger: LoggerInstance, bindings: GenericObject, logLevel?: string, logFormatter?: Function): LoggerInstance;
 		static createDefaultLogger(bindings: GenericObject, logLevel?: string, logFormatter?: Function): LoggerInstance;
