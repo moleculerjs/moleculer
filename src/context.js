@@ -68,6 +68,40 @@ class Context {
 		this.cachedResult = false;
 	}
 
+	/**
+	 * Add a context to be tracked as active
+	 *
+	 * @param {Context} context
+	 *
+	 * @private
+	 * @memberof Service
+	 */
+	_trackContext(service) {
+		if ( !service._activeContexts ) {
+			service._activeContexts = [];
+		}
+		service._activeContexts.push(this);
+		this.trackedBy = service;
+	}
+
+	/**
+	 * Remove a context from the list of active context
+	 *
+	 * @param {Context} context
+	 *
+	 * @private
+	 * @memberof Service
+	 */
+	dispose() {
+		if ( this.trackedBy && this.trackedBy._activeContexts ) {
+			const contextList = this.trackedBy._activeContexts;
+			const contextIndex = contextList.indexOf(this);
+			if (contextIndex !== -1) {
+				contextList.splice(contextIndex, 1);
+			}
+		}
+	}
+
 	generateID() {
 		this.id = generateToken();
 	}
@@ -125,6 +159,10 @@ class Context {
 			ctx.generateID();
 			if (!ctx.requestID)
 				ctx.requestID = ctx.id;
+		}
+
+		if (opts.trackContext) {
+			ctx._trackContext(action.service || broker);
 		}
 
 		return ctx;

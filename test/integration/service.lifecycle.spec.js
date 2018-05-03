@@ -1,4 +1,5 @@
-let ServiceBroker = require("../../src/service-broker");
+const ServiceBroker = require("../../src/service-broker");
+const { protectReject } = require("../unit/utils");
 
 describe("Test Service handlers", () => {
 
@@ -86,5 +87,39 @@ describe("Test Service handlers after broker.start", () => {
 		return broker.stop().then(() => {
 			expect(stoppedHandler).toHaveBeenCalledTimes(1);
 		});
+	});
+});
+
+
+describe("Test Service handlerswith delayed shutdown", () => {
+	const broker = new ServiceBroker({ nodeID: "node-1", trackContext: true });
+
+	const schema = {
+		name: "delayed",
+
+		actions: {
+			test: jest.fn()
+		},
+
+		stopped: jest.fn()
+	};
+
+	it("should called stopped", () => {
+		const service = broker.createService(schema);
+		service.schema.actions.test.mockResolvedValue(service.Promise.delay(80));
+		const getActiveContextsSpy = jest.spyOn(service, "_getActiveContexts");
+		return broker.start()
+			.then(() => {
+				broker.call("delayed.test", {});
+				return service.Promise.delay(10);
+			})
+			.then(() => broker.stop())
+			.then(() => {
+				expect(schema.actions.test).toHaveBeenCalledTimes(1);
+				expect(getActiveContextsSpy).toHaveBeenCalledTimes(2);
+
+				getActiveContextsSpy.mockReset();
+				getActiveContextsSpy.mockRestore();
+			}).catch(protectReject);
 	});
 });

@@ -45,6 +45,9 @@ const defaultOptions = {
 	heartbeatInterval: 5,
 	heartbeatTimeout: 15,
 
+	trackContext: false,
+	gracefulStopTimeout: 2000,
+
 	disableBalancer: false,
 
 	registry: {
@@ -376,6 +379,7 @@ class ServiceBroker {
 	 */
 	stop() {
 		return Promise.resolve()
+			// TODO: Close subscriber to stop accepting requests
 			.then(() => {
 				// Call service `stopped` handlers
 				return Promise.all(this.services.map(svc => svc.stopped.call(svc)));
@@ -845,6 +849,11 @@ class ServiceBroker {
 	 */
 	call(actionName, params, opts = {}) {
 		const endpoint = this.findNextActionEndpoint(actionName, opts);
+
+		// Add trackContext option from broker options
+		if (opts.trackContext === undefined && this.options.trackContext)
+			opts.trackContext = this.options.trackContext;
+
 		if (endpoint instanceof Error)
 			return Promise.reject(endpoint);
 
@@ -892,6 +901,10 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	callWithoutBalancer(actionName, params, opts = {}) {
+		// Add trackContext option from broker options
+		if (opts.trackContext === undefined && this.options.trackContext)
+			opts.trackContext = this.options.trackContext;
+
 		if (opts.timeout == null)
 			opts.timeout = this.options.requestTimeout || 0;
 
@@ -978,6 +991,14 @@ class ServiceBroker {
 			});
 		}
 
+		// Remove the context from the active contexts list
+		if (ctx.trackedBy) {
+			p.then(res => {
+				ctx.dispose();
+				return res;
+			});
+		}
+
 		// Error handler
 		p = p.catch(err => this._callErrorHandler(err, ctx, endpoint, opts));
 
@@ -1006,6 +1027,14 @@ class ServiceBroker {
 		// Timeout handler
 		if (ctx.timeout > 0 && p.timeout)
 			p = p.timeout(ctx.timeout);
+
+		// Remove the context from the active contexts list
+		if (ctx.trackedBy) {
+			p.then(res => {
+				ctx.dispose();
+				return res;
+			});
+		}
 
 		// Handle half-open state in circuit breaker
 		if (this.options.circuitBreaker.enabled && endpoint) {
@@ -1086,6 +1115,10 @@ class ServiceBroker {
 			err = new E.RequestTimeoutError(actionName, nodeID);
 
 		err.ctx = ctx;
+
+		if (opts.trackContext) {
+			ctx.dispose();
+		}
 
 		if (nodeID != this.nodeID) {
 			// Remove pending request (if the request didn't reached the target service)

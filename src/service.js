@@ -90,7 +90,17 @@ class Service {
 				// Expose to call `service.actions.find({ ...params })`
 				this.actions[name] = (params, opts) => {
 					const ctx = this.broker.ContextFactory.create(this.broker, innerAction, null, params, opts || {});
-					return innerAction.handler(ctx);
+					const contextDispose = (ret) => {
+						if (opts.trackContext) {
+							ctx.dispose();
+						}
+
+						return ret;
+					};
+					const contextDisposeCatch = (ret) => {
+						return this.Promise.reject(contextDispose(ret));
+					};
+					return innerAction.handler(ctx).then(contextDispose).catch(contextDisposeCatch);
 				};
 
 			});
@@ -119,22 +129,24 @@ class Service {
 				event.handler = function (payload, sender, eventName) {
 					if (_.isFunction(handler)) {
 						const p = handler.apply(self, [payload, sender, eventName]);
+						// TODO: Track event handler started
 
 						// Handle async-await returns
 						if (utils.isPromise(p)) {
 							/* istanbul ignore next */
 							p.catch(err => self.logger.error(err));
-						}
+						} // TODO: Cleanup event tracking
 
 					} else if (Array.isArray(handler)) {
 						handler.forEach(fn => {
 							const p = fn.apply(self, [payload, sender, eventName]);
+							// TODO: Track event handler started
 
 							// Handle async-await returns
 							if (utils.isPromise(p)) {
 								/* istanbul ignore next */
 								p.catch(err => self.logger.error(err));
-							}
+							} // TODO: Cleanup event tracking
 						});
 					}
 
@@ -192,17 +204,30 @@ class Service {
 		};
 
 		this.stopped = () => {
-			if (_.isFunction(this.schema.stopped))
-				return this.Promise.method(this.schema.stopped).call(this);
+			return new this.Promise((resolve, reject) => {
+				const timeout = setTimeout(reject, this.settings.$gracefulStopTimeout || this.broker.options.gracefulStopTimeout);
+				const checkForContexts = () => {
+					if (this._getActiveContexts().length === 0) {
+						clearTimeout(timeout);
+						resolve();
+					} else {
+						setTimeout(checkForContexts, 100);
+					}
+				};
+				setImmediate(checkForContexts);
+			}).finally(() => {
+				if (_.isFunction(this.schema.stopped))
+					return this.Promise.method(this.schema.stopped).call(this);
 
-			if (Array.isArray(this.schema.stopped)) {
-				return this.schema.stopped
-					.reverse()
-					.map(fn => this.Promise.method(fn.bind(this)))
-					.reduce((p, fn) => p.then(fn), this.Promise.resolve());
-			}
+				if (Array.isArray(this.schema.stopped)) {
+					return this.schema.stopped
+						.reverse()
+						.map(fn => this.Promise.method(fn.bind(this)))
+						.reduce((p, fn) => p.then(fn), this.Promise.resolve());
+				}
 
-			return this.Promise.resolve();
+				return this.Promise.resolve();
+			});
 		};
 
 		// Call the created event handler
@@ -258,6 +283,16 @@ class Service {
 		action.metrics = _.defaultsDeep(action.metrics, { params: false, meta: true });
 
 		return action;
+	}
+
+	/**
+	 * Retrieve list of active contexts for the service
+	 * @returns {Set}
+	 * @private
+	 * @memberof Service
+	 */
+	_getActiveContexts() {
+		return this._activeContexts || [];
 	}
 
 	/**
