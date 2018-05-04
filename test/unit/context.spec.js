@@ -15,6 +15,7 @@ describe("Test Context", () => {
 		expect(ctx.id).toBeNull();
 		expect(ctx.broker).not.toBeDefined();
 		expect(ctx.action).not.toBeDefined();
+		expect(ctx.service).toBeNull();
 		expect(ctx.nodeID).toBeNull();
 		expect(ctx.parentID).toBeNull();
 
@@ -33,6 +34,8 @@ describe("Test Context", () => {
 		expect(ctx.stopTime).toBeNull();
 		expect(ctx.duration).toBe(0);
 
+		expect(ctx.tracked).toBe(false);
+
 		expect(ctx.cachedResult).toBe(false);
 	});
 
@@ -47,6 +50,24 @@ describe("Test Context", () => {
 
 		expect(ctx.broker).toBe(broker);
 		expect(ctx.action).toBe(action);
+		expect(ctx.nodeID).toBe(broker.nodeID);
+	});
+
+	it("test with constructor params & service", () => {
+
+		let broker = new ServiceBroker();
+		let action = {
+			name: "posts.find",
+			service: {
+				name: "posts"
+			}
+		};
+
+		let ctx = new Context(broker, action);
+
+		expect(ctx.broker).toBe(broker);
+		expect(ctx.action).toBe(action);
+		expect(ctx.service).toBe(action.service);
 		expect(ctx.nodeID).toBe(broker.nodeID);
 	});
 });
@@ -85,6 +106,44 @@ describe("Test setParams", () => {
 	});
 });
 
+
+describe("Test tracking", () => {
+
+	let broker = new ServiceBroker({ trackContext: true });
+	let action = {
+		name: "posts.find",
+		service: {
+			name: "posts",
+			_addActiveContext: jest.fn(),
+			_removeActiveContext: jest.fn()
+		}
+	};
+
+	it("should call service._addActiveContext", () => {
+		const ctx = new Context(broker, action);
+		ctx._trackContext();
+
+		expect(ctx.tracked).toBe(true);
+		expect(action.service._addActiveContext).toHaveBeenCalledTimes(1);
+		expect(action.service._addActiveContext).toHaveBeenCalledWith(ctx);
+
+		ctx.dispose();
+
+		expect(action.service._removeActiveContext).toHaveBeenCalledTimes(1);
+		expect(action.service._removeActiveContext).toHaveBeenCalledWith(ctx);
+	});
+
+	it("should be tracked if opts.trackContext is true", () => {
+		const ctx = Context.create(broker, action, broker.nodeID, {}, { trackContext: true });
+		expect(ctx.tracked).toBe(true);
+	});
+
+	it("should not be tracked if opts.trackContext is false", () => {
+		const ctx = Context.create(broker, action, broker.nodeID, {}, { trackContext: false });
+		expect(ctx.tracked).toBe(false);
+	});
+
+});
 
 describe("Test call method", () => {
 	let broker = new ServiceBroker({ maxCallLevel: 5 });
@@ -267,7 +326,7 @@ describe("Test broadcast method", () => {
 
 describe("Test _metricStart method", () => {
 	let broker = new ServiceBroker({ metrics: true, nodeID: "master" });
-	let ctx = new Context(broker, { name: "users.get", metrics: false });
+	let ctx = new Context(broker, { name: "users.get", metrics: false, service: { name: "users", version: 2 } });
 	ctx.requestID = "abcdef";
 	ctx.parentID = 123;
 	ctx.metrics = true;
@@ -295,7 +354,7 @@ describe("Test _metricStart method", () => {
 		expect(ctx.duration).toBe(0);
 
 		expect(broker.emit).toHaveBeenCalledTimes(1);
-		expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", { "action": { "name": "users.get" }, "id": ctx.id, "level": 1, "parent": 123, "remoteCall": true, "requestID": "abcdef", "startTime": ctx.startTime, "nodeID": broker.nodeID, "callerNodeID": "remote-node" });
+		expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", { "action": { "name": "users.get" }, "service": {"name": "users", "version": 2}, "id": ctx.id, "level": 1, "parent": 123, "remoteCall": true, "requestID": "abcdef", "startTime": ctx.startTime, "nodeID": broker.nodeID, "callerNodeID": "remote-node" });
 	});
 
 	it("should have been called with params and meta", () => {
@@ -396,7 +455,7 @@ describe("Test _metricStart method", () => {
 
 describe("Test _metricFinish method", () => {
 	let broker = new ServiceBroker({ metrics: true });
-	let ctx = new Context(broker, { name: "users.get", metrics: false });
+	let ctx = new Context(broker, { name: "users.get", metrics: false, service: { name: "users", version: 2 }  });
 	ctx.callerNodeID = "server-2";
 	ctx.parentID = 123;
 	ctx.metrics = true;
@@ -415,7 +474,7 @@ describe("Test _metricFinish method", () => {
 				expect(ctx.duration).toBeGreaterThan(0);
 
 				expect(broker.emit).toHaveBeenCalledTimes(1);
-				expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.finish", { "action": { "name": "users.get" }, "duration": ctx.duration, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "startTime": ctx.startTime, "endTime": ctx.stopTime, "fromCache": false, "level": 1, "remoteCall": true, "nodeID": broker.nodeID, "callerNodeID": "server-2" });
+				expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.finish", { "action": { "name": "users.get" }, "service": {"name": "users", "version": 2}, "duration": ctx.duration, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "startTime": ctx.startTime, "endTime": ctx.stopTime, "fromCache": false, "level": 1, "remoteCall": true, "nodeID": broker.nodeID, "callerNodeID": "server-2" });
 
 				resolve();
 			}, 100);
@@ -430,7 +489,7 @@ describe("Test _metricFinish method", () => {
 			expect(ctx.stopTime).toBeGreaterThan(0);
 
 			expect(broker.emit).toHaveBeenCalledTimes(1);
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.finish", { "action": { "name": "users.get" }, "duration": ctx.duration, "error": { "message": "Some error!", "name": "MoleculerError", "code": 511, "type": "ERR_CUSTOM" }, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "startTime": ctx.startTime, "endTime": ctx.stopTime, "fromCache": false, "level": 1, "remoteCall": true, "nodeID": broker.nodeID, "callerNodeID": "server-2" });
+			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.finish", { "action": { "name": "users.get" }, "service": {"name": "users", "version": 2}, "duration": ctx.duration, "error": { "message": "Some error!", "name": "MoleculerError", "code": 511, "type": "ERR_CUSTOM" }, "id": ctx.id, "parent": 123, "requestID": ctx.requestID, "startTime": ctx.startTime, "endTime": ctx.stopTime, "fromCache": false, "level": 1, "remoteCall": true, "nodeID": broker.nodeID, "callerNodeID": "server-2" });
 
 			resolve();
 		});

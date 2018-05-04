@@ -1,6 +1,7 @@
 "use strict";
 
 const Service = require("../../src/service");
+const Context = require("../../src/context");
 const ServiceBroker = require("../../src/service-broker");
 
 describe("Test Service constructor", () => {
@@ -519,6 +520,28 @@ describe("Test broker.waitForServices", () => {
 		});
 		expect(broker.waitForServices).toHaveBeenCalledTimes(1);
 		expect(broker.waitForServices).toHaveBeenCalledWith("posts", 5000, 500, svc.logger);
+	});
+
+});
+
+describe("Test active context tracking", () => {
+	let broker = new ServiceBroker();
+
+	it("should store context", () => {
+		let svc = broker.createService({
+			name: "test"
+		});
+
+		const ctx = new Context(broker, { name: "test", service: svc });
+
+		expect(svc._activeContexts.length).toBe(0);
+
+		svc._addActiveContext(ctx);
+		expect(svc._activeContexts.length).toBe(1);
+		expect(svc._activeContexts[0]).toBe(ctx);
+
+		svc._removeActiveContext(ctx);
+		expect(svc._activeContexts.length).toBe(0);
 	});
 
 });

@@ -1928,6 +1928,22 @@ describe("Test broker._localCall", () => {
 
 		});
 
+		it("should not call metricsStart & metricsFinish if no metrics", () => {
+			broker._finishCall.mockClear();
+			action.handler.mockClear();
+
+			let ctx = new Context(broker, action);
+			ctx.tracked = true;
+			ctx.dispose = jest.fn();
+
+			return broker._localCall(ctx).catch(protectReject).then(() => {
+				expect(action.handler).toHaveBeenCalledTimes(1);
+				expect(action.handler).toHaveBeenCalledWith(ctx);
+				expect(ctx.dispose).toHaveBeenCalledTimes(1);
+			});
+
+		});
+
 		it("should call endpoint.success if circuitBreaker is enabled", () => {
 			action.handler.mockClear();
 
@@ -2035,6 +2051,23 @@ describe("Test broker._remoteCall", () => {
 				expect(transit.request).toHaveBeenCalledTimes(1);
 				expect(transit.request).toHaveBeenCalledWith(ctx);
 				expect(broker._finishCall).toHaveBeenCalledTimes(0);
+			});
+
+		});
+
+		it("should call ctx.dispose", () => {
+			broker._finishCall.mockClear();
+			transit.request.mockClear();
+
+			let ctx = new Context(broker, action);
+			ctx.tracked = true;
+			ctx.dispose = jest.fn();
+			broker._finishCall = jest.fn();
+
+			return broker._remoteCall(ctx).catch(protectReject).then(() => {
+				expect(transit.request).toHaveBeenCalledTimes(1);
+				expect(transit.request).toHaveBeenCalledWith(ctx);
+				expect(ctx.dispose).toHaveBeenCalledTimes(1);
 			});
 
 		});
@@ -2369,6 +2402,14 @@ describe("Test broker._callErrorHandler", () => {
 			expect(broker.call).toHaveBeenCalledTimes(0);
 
 			expect(ctx._metricFinish).toHaveBeenCalledTimes(0);
+		});
+	});
+
+	it("should call ctx.dispose if ctx is tracked", () => {
+		ctx.tracked = true;
+		ctx.dispose = jest.fn();
+		return broker._callErrorHandler(new Promise.TimeoutError, ctx, endpoint, {}).then(protectReject).catch(() => {
+			expect(ctx.dispose).toHaveBeenCalledTimes(1);
 		});
 	});
 });
