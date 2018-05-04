@@ -116,7 +116,7 @@ describe("Test ServiceBroker constructor", () => {
 			heartbeatTimeout : 20,
 			heartbeatInterval: 5,
 			trackContext: false,
-			gracefulStopTimeout: 2000,
+			gracefulStopTimeout: 5000,
 
 			disableBalancer: true,
 			registry: {
@@ -2087,6 +2087,48 @@ describe("Test broker._remoteCall", () => {
 	});
 });
 
+describe("Test broker._getLocalActionEndpoint", () => {
+	let broker = new ServiceBroker({ internalServices: false, metrics: true });
+
+	let ep = {
+		id: broker.nodeID,
+		local: true,
+		action: {
+			name: "posts.find"
+		}
+	};
+
+	let epList = {
+		hasLocal: () => true,
+		nextLocal: () => ep
+	};
+
+	broker.registry.getActionEndpoints = jest.fn(() => epList);
+
+	it("should call getActionEndpoints", () => {
+		const res = broker._getLocalActionEndpoint("posts.find");
+		expect(res).toBe(ep);
+	});
+
+	it("should throw ServiceNotFoundError if there is no endpoint list", () => {
+		broker.registry.getActionEndpoints = jest.fn();
+
+		expect(() => broker._getLocalActionEndpoint("posts.find")).toThrowError(ServiceNotFoundError);
+	});
+
+	it("should throw ServiceNotFoundError if there is no local endpoint", () => {
+		broker.registry.getActionEndpoints = jest.fn(() => ({ hasLocal: () => false }));
+
+		expect(() => broker._getLocalActionEndpoint("posts.find")).toThrowError(ServiceNotFoundError);
+	});
+
+	it("should throw ServiceNotAvailable if there is no next endpoint", () => {
+		broker.registry.getActionEndpoints = jest.fn(() => ({ hasLocal: () => true, nextLocal: () => null }));
+
+		expect(() => broker._getLocalActionEndpoint("posts.find")).toThrowError(ServiceNotAvailable);
+	});
+});
+
 describe("Test broker._handleRemoteRequest", () => {
 	let broker = new ServiceBroker({ internalServices: false, metrics: true });
 
@@ -2110,7 +2152,7 @@ describe("Test broker._handleRemoteRequest", () => {
 	it("should call _localCall with passed Context", () => {
 		let ctx = new Context(broker, ep.action);
 
-		return broker._handleRemoteRequest(ctx).catch(protectReject).then(res => {
+		return broker._handleRemoteRequest(ctx, ep).catch(protectReject).then(res => {
 			expect(res).toBe(ctx);
 			expect(res.broker).toBe(broker);
 			expect(res.action).toBe(ep.action);
@@ -2126,7 +2168,7 @@ describe("Test broker._handleRemoteRequest", () => {
 		let ctx = new Context(broker, ep.action);
 		ctx.timeout = 380;
 
-		return broker._handleRemoteRequest(ctx).catch(protectReject).then(res => {
+		return broker._handleRemoteRequest(ctx, ep).catch(protectReject).then(res => {
 			expect(res).toBe(ctx);
 			expect(res.broker).toBe(broker);
 			expect(res.action).toBe(ep.action);
@@ -2136,7 +2178,7 @@ describe("Test broker._handleRemoteRequest", () => {
 			expect(broker._localCall).toHaveBeenCalledWith(ctx, ep, {"timeout": 380});
 		});
 	});
-
+	/*
 	it("should throw ServiceNotFoundError if there is no endpoint list", () => {
 		broker._localCall.mockClear();
 		broker.registry.getActionEndpoints = jest.fn();
@@ -2184,7 +2226,7 @@ describe("Test broker._handleRemoteRequest", () => {
 			expect(broker._localCall).toHaveBeenCalledTimes(0);
 		});
 	});
-
+	*/
 });
 
 describe("Test broker.mcall", () => {

@@ -91,14 +91,20 @@ describe("Test Service handlers after broker.start", () => {
 });
 
 
-describe("Test Service handlerswith delayed shutdown", () => {
+describe("Test Service handlers with delayed shutdown", () => {
 	const broker = new ServiceBroker({ nodeID: "node-1", trackContext: true });
+
+	const FLOW = [];
 
 	const schema = {
 		name: "delayed",
 
 		actions: {
-			test: jest.fn()
+			test() {
+				FLOW.push("start");
+				return this.Promise.delay(80)
+					.then(() => FLOW.push("end"));
+			}
 		},
 
 		stopped: jest.fn()
@@ -106,20 +112,16 @@ describe("Test Service handlerswith delayed shutdown", () => {
 
 	it("should called stopped", () => {
 		const service = broker.createService(schema);
-		service.schema.actions.test.mockResolvedValue(service.Promise.delay(80));
-		const getActiveContextsSpy = jest.spyOn(service, "_getActiveContexts");
 		return broker.start()
 			.then(() => {
 				broker.call("delayed.test", {});
 				return service.Promise.delay(10);
 			})
 			.then(() => broker.stop())
+			.catch(protectReject)
 			.then(() => {
-				expect(schema.actions.test).toHaveBeenCalledTimes(1);
-				expect(getActiveContextsSpy).toHaveBeenCalledTimes(2);
-
-				getActiveContextsSpy.mockReset();
-				getActiveContextsSpy.mockRestore();
-			}).catch(protectReject);
+				expect(FLOW).toEqual(["start", "end"]);
+				expect(schema.stopped).toHaveBeenCalledTimes(1);
+			});
 	});
 });
