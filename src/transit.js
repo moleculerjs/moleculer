@@ -336,7 +336,7 @@ class Transit {
 				.catch(err => this.sendResponse(payload.sender, payload.id, ctx.meta, null, err));
 
 		} catch(err) {
-			this.sendResponse(payload.sender, payload.id, payload.meta, null, err);
+			return this.sendResponse(payload.sender, payload.id, payload.meta, null, err);
 		}
 	}
 
