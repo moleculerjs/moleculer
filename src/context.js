@@ -45,6 +45,7 @@ class Context {
 
 		this.broker = broker;
 		this.action = action;
+		this.service = action ? action.service : null;
 		this.nodeID = broker ? broker.nodeID : null;
 		this.parentID = null;
 		this.callerNodeID = null;
@@ -71,26 +72,22 @@ class Context {
 	/**
 	 * Add a context to be tracked as active
 	 *
-	 * @param {Context} context
-	 *
 	 * @private
-	 * @memberof Service
+	 * @memberof Context
 	 */
-	_trackContext(service) {
-		if ( !service._activeContexts ) {
-			service._activeContexts = [];
+	_trackContext() {
+		const trackedBy = this.service || this.broker;
+		if ( !trackedBy._activeContexts ) {
+			trackedBy._activeContexts = [];
 		}
-		service._activeContexts.push(this);
-		this.trackedBy = service;
+		trackedBy._activeContexts.push(this);
 	}
 
 	/**
 	 * Remove a context from the list of active context
 	 *
-	 * @param {Context} context
-	 *
 	 * @private
-	 * @memberof Service
+	 * @memberof Context
 	 */
 	dispose() {
 		if ( this.trackedBy && this.trackedBy._activeContexts ) {
@@ -162,25 +159,8 @@ class Context {
 		}
 
 		if (opts.trackContext) {
-			ctx._trackContext(action.service || broker);
+			ctx._trackContext();
 		}
-
-		return ctx;
-	}
-
-	// TODO: cover with unit tests
-	static createFromPayload(broker, payload) {
-		const ctx = new broker.ContextFactory(broker, { name: payload.action, metrics: { params: false, meta: true } });
-		ctx.id = payload.id;
-		ctx.setParams(payload.params);
-		ctx.parentID = payload.parentID;
-		ctx.requestID = payload.requestID;
-		ctx.meta = payload.meta || {};
-
-		ctx.timeout = payload.timeout || 0;
-		ctx.level = payload.level;
-		ctx.metrics = payload.metrics;
-		ctx.callerNodeID = payload.sender;
 
 		return ctx;
 	}
@@ -327,6 +307,13 @@ class Context {
 					name: this.action.name
 				};
 			}
+			if (this.service) {
+				payload.service = {
+					name: this.service.name,
+					version: this.service.version
+				};
+			}
+
 			if (this.parentID)
 				payload.parent = this.parentID;
 
@@ -374,6 +361,13 @@ class Context {
 					name: this.action.name
 				};
 			}
+			if (this.service) {
+				payload.service = {
+					name: this.service.name,
+					version: this.service.version
+				};
+			}
+
 			if (this.parentID)
 				payload.parent = this.parentID;
 

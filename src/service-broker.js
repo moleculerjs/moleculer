@@ -1053,6 +1053,24 @@ class ServiceBroker {
 		return p;
 	}
 
+	_getLocalActionEndpoint(actionName) {
+		// Find action by name
+		let epList = this.registry.getActionEndpoints(actionName);
+		if (epList == null || !epList.hasLocal()) {
+			this.logger.warn(`Service '${actionName}' is not registered locally.`);
+			throw new E.ServiceNotFoundError(actionName, this.nodeID);
+		}
+
+		// Get local endpoint
+		let endpoint = epList.nextLocal();
+		if (!endpoint) {
+			this.logger.warn(`Service '${actionName}' is not available locally.`);
+			throw new E.ServiceNotAvailable(actionName, this.nodeID);
+		}
+
+		return endpoint;
+	}
+
 	/**
 	 * Handle a remote request (call a local action).
 	 * It's called from Transit if a request is received
@@ -1064,24 +1082,7 @@ class ServiceBroker {
 	 * @private
 	 * @memberof ServiceBroker
 	 */
-	_handleRemoteRequest(ctx) {
-		let actionName = ctx.action.name;
-		// Find action by name
-		let epList = this.registry.getActionEndpoints(actionName);
-		if (epList == null || !epList.hasLocal()) {
-			this.logger.warn(`Service '${actionName}' is not registered locally.`);
-			return Promise.reject(new E.ServiceNotFoundError(actionName, this.nodeID));
-		}
-
-		// Get local endpoint
-		let endpoint = epList.nextLocal();
-		if (!endpoint) {
-			this.logger.warn(`Service '${actionName}' is not available locally.`);
-			return Promise.reject(new E.ServiceNotAvailable(actionName, this.nodeID));
-		}
-
-		ctx.action = endpoint.action;
-
+	_handleRemoteRequest(ctx, endpoint) {
 		// Load opts
 		let opts = {
 			timeout: ctx.timeout || this.options.requestTimeout || 0

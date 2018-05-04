@@ -313,11 +313,28 @@ class Transit {
 		this.logger.debug(`Request '${payload.action}' received from '${payload.sender}' node.`);
 
 		// Recreate caller context
-		const ctx = this.broker.ContextFactory.createFromPayload(this.broker, payload);
+		try {
+			const endpoint = this.broker._getLocalActionEndpoint(payload.action);
 
-		return this.broker._handleRemoteRequest(ctx)
-			.then(res => this.sendResponse(payload.sender, payload.id,  ctx.meta, res, null))
-			.catch(err => this.sendResponse(payload.sender, payload.id, ctx.meta, null, err));
+			const ctx = new this.broker.ContextFactory(this.broker, endpoint.action);
+			ctx.id = payload.id;
+			ctx.setParams(payload.params);
+			ctx.parentID = payload.parentID;
+			ctx.requestID = payload.requestID;
+			ctx.meta = payload.meta || {};
+
+			ctx.timeout = payload.timeout || 0;
+			ctx.level = payload.level;
+			ctx.metrics = !!payload.metrics;
+			ctx.callerNodeID = payload.sender;
+
+			return this.broker._handleRemoteRequest(ctx, endpoint)
+				.then(res => this.sendResponse(payload.sender, payload.id,  ctx.meta, res, null))
+				.catch(err => this.sendResponse(payload.sender, payload.id, ctx.meta, null, err));
+
+		} catch(err) {
+			this.sendResponse(payload.sender, payload.id, payload.meta, null, err);
+		}
 	}
 
 	/**
