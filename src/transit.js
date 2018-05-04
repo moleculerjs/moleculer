@@ -299,6 +299,10 @@ class Transit {
 	_eventHandler(payload) {
 		this.logger.debug(`Event '${payload.event}' received from '${payload.sender}' node` + (payload.groups ? ` in '${payload.groups.join(", ")}' group(s)` : "") + ".");
 
+		if (!this.broker.started) {
+			this.logger.warn(`Incoming '${payload.event}' event from '${payload.sender}' node is dropped, because broker is not running.`);
+		}
+
 		this.broker.emitLocalServices(payload.event, payload.data, payload.groups, payload.sender, payload.broadcast);
 	}
 
@@ -312,10 +316,15 @@ class Transit {
 	_requestHandler(payload) {
 		this.logger.debug(`Request '${payload.action}' received from '${payload.sender}' node.`);
 
-		// Recreate caller context
 		try {
+			if (!this.broker.started) {
+				this.logger.warn(`Incoming '${payload.action}' request from '${payload.sender}' node is dropped, because broker is not running.`);
+				throw new E.ServiceNotAvailable(payload.action, this.nodeID);
+			}
+
 			const endpoint = this.broker._getLocalActionEndpoint(payload.action);
 
+			// Recreate caller context
 			const ctx = new this.broker.ContextFactory(this.broker, endpoint.action);
 			ctx.id = payload.id;
 			ctx.setParams(payload.params);

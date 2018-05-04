@@ -406,8 +406,6 @@ class ServiceBroker {
 				}
 			})
 			.then(() => {
-				this.services.length = 0;
-
 				if (_.isFunction(this.options.stopped))
 					return this.options.stopped(this);
 			})
