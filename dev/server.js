@@ -11,7 +11,7 @@ let broker = new ServiceBroker({
 	namespace: "",
 	nodeID: process.argv[2] || "server-" + process.pid,
 	transporter: {
-		type: "TCP",
+		type: "NATS",
 		options: {
 			//udpDiscovery: false,
 			//urls: "file://./dev/nodes.json"
@@ -77,4 +77,4 @@ broker.start()
 		setInterval(() => broker.sendPing(), 10 * 1000);
 		setInterval(() => broker.broadcast("echo.broadcast"), 5 * 1000);
 	})
-	.then(() => broker.repl());
+	.then(() => broker.stop());

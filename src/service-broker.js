@@ -349,7 +349,7 @@ class ServiceBroker {
 			})
 			.then(() => {
 				// Call service `started` handlers
-				return Promise.all(this.services.map(svc => svc.started.call(svc)));
+				return Promise.all(this.services.map(svc => svc._start.call(svc)));
 			})
 			.catch(err => {
 				/* istanbul ignore next */
@@ -378,11 +378,18 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	stop() {
+		this.started = false;
 		return Promise.resolve()
-			// TODO: Close subscriber to stop accepting requests
+			.then(() => {
+				if (this.transit) {
+					this.registry.regenerateLocalRawInfo(true);
+					// Send empty node info in order to block incoming requests
+					return this.transit.sendNodeInfo();
+				}
+			})
 			.then(() => {
 				// Call service `stopped` handlers
-				return Promise.all(this.services.map(svc => svc.stopped.call(svc)));
+				return Promise.all(this.services.map(svc => svc._stop.call(svc)));
 			})
 			.catch(err => {
 				/* istanbul ignore next */
@@ -404,7 +411,6 @@ class ServiceBroker {
 			})
 			.then(() => {
 				this.logger.info("ServiceBroker is stopped successfully. Good bye.");
-				this.started = false;
 
 				this.localBus.emit("$broker.stopped");
 
@@ -633,7 +639,7 @@ class ServiceBroker {
 
 		if (this.started) {
 			// If broker started, should call the started lifecycle event
-			service.started.call(service).catch(err => this.logger.error("Unable to start service.", err));
+			service._start.call(service).catch(err => this.logger.error("Unable to start service.", err));
 		}
 
 		this.servicesChanged(true);
@@ -642,14 +648,22 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Add & register a local service instance
+	 * Add a local service instance
 	 *
 	 * @param {Service} service
+	 * @memberof ServiceBroker
+	 */
+	addLocalService(service) {
+		this.services.push(service);
+	}
+
+	/**
+	 * Register a local service to Service Registry
+	 *
 	 * @param {Object} registryItem
 	 * @memberof ServiceBroker
 	 */
-	registerLocalService(service, registryItem) {
-		this.services.push(service);
+	registerLocalService(registryItem) {
 		this.registry.registerLocalService(registryItem);
 	}
 
@@ -661,7 +675,7 @@ class ServiceBroker {
 	 */
 	destroyService(service) {
 		return Promise.resolve()
-			.then(() => service.stopped.call(service))
+			.then(() => service._stop.call(service))
 			.catch(err => {
 				/* istanbul ignore next */
 				this.logger.error(`Unable to stop service '${service.name}'.`, err);

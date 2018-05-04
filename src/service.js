@@ -69,7 +69,7 @@ class Service {
 		this.actions = {}; // external access to actions
 
 		//Service item for Registry
-		const registryItem = {
+		const serviceSpecification = {
 			name: this.name,
 			version: this.version,
 			settings: this.settings,
@@ -87,7 +87,7 @@ class Service {
 
 				let innerAction = this._createAction(action, name);
 
-				registryItem.actions[innerAction.name] = this.broker.wrapAction(innerAction);
+				serviceSpecification.actions[innerAction.name] = this.broker.wrapAction(innerAction);
 
 				// Expose to call `service.actions.find({ ...params })`
 				this.actions[name] = (params, opts) => {
@@ -155,7 +155,7 @@ class Service {
 					return null;
 				};
 
-				registryItem.events[event.name] = event;
+				serviceSpecification.events[event.name] = event;
 			});
 
 		}
@@ -165,84 +165,106 @@ class Service {
 
 			_.forIn(schema.methods, (method, name) => {
 				/* istanbul ignore next */
-				if (["name", "version", "settings", "metadata", "dependencies", "schema", "broker", "actions", "logger", "created", "started", "stopped"].indexOf(name) != -1) {
+				if (["name", "version", "settings", "metadata", "dependencies", "schema", "broker", "actions", "logger", "created", "started", "stopped", "_start", "_stop", "_init"].indexOf(name) != -1) {
 					throw new ServiceSchemaError(`Invalid method name '${name}' in '${this.name}' service!`);
 				}
 				this[name] = method.bind(this);
 			});
-
 		}
 
-		// Register service
-		this.broker.registerLocalService(this, registryItem);
+		this._serviceSpecification = serviceSpecification;
 
+		// Initialize
+		this._init();
+	}
 
-		// Create lifecycle runner methods
-		this.created = () => {
-			if (_.isFunction(this.schema.created)) {
-				this.schema.created.call(this);
-			} else if (Array.isArray(this.schema.created)) {
-				this.schema.created.forEach(fn => fn.call(this));
-			}
-		};
+	/**
+	 * Initialize service. It called `created` handler in schema
+	 *
+	 * @private
+	 * @memberof Service
+	 */
+	_init() {
+		if (_.isFunction(this.schema.created)) {
+			this.schema.created.call(this);
+		} else if (Array.isArray(this.schema.created)) {
+			this.schema.created.forEach(fn => fn.call(this));
+		}
 
-		this.started = () => {
-			return this.Promise.resolve()
-				.then(() => {
-					// Wait for dependent services
-					if (this.schema.dependencies)
-						return this.waitForServices(this.schema.dependencies, this.settings.$dependencyTimeout || 0);
-				})
-				.then(() => {
-					if (_.isFunction(this.schema.started))
-						return this.Promise.method(this.schema.started).call(this);
+		this.broker.addLocalService(this);
+	}
 
-					if (Array.isArray(this.schema.started)) {
-						return this.schema.started
-							.map(fn => this.Promise.method(fn.bind(this)))
-							.reduce((p, fn) => p.then(fn), this.Promise.resolve());
-					}
-				});
-		};
+	/**
+	 * Start service
+	 *
+	 * @returns {Promise}
+	 * @private
+	 * @memberof Service
+	 */
+	_start() {
+		return this.Promise.resolve()
+			.then(() => {
+				// Wait for dependent services
+				if (this.schema.dependencies)
+					return this.waitForServices(this.schema.dependencies, this.settings.$dependencyTimeout || 0);
+			})
+			.then(() => {
+				if (_.isFunction(this.schema.started))
+					return this.Promise.method(this.schema.started).call(this);
 
-		this.stopped = () => {
-			return new this.Promise((resolve) => {
-				const timeout = setTimeout(() => {
-					this.logger.error(new GracefulStopTimeoutError(this));
-					resolve();
-				}, this.settings.$gracefulStopTimeout || this.broker.options.gracefulStopTimeout);
-
-				let first = true;
-				const checkForContexts = () => {
-					if (this._activeContexts.length === 0) {
-						clearTimeout(timeout);
-						resolve();
-					} else {
-						if (first) {
-							this.logger.warn(`Waiting for ${this._activeContexts.length} active context(s)...`);
-							first = false;
-						}
-						setTimeout(checkForContexts, 100);
-					}
-				};
-				setImmediate(checkForContexts);
-			}).finally(() => {
-				if (_.isFunction(this.schema.stopped))
-					return this.Promise.method(this.schema.stopped).call(this);
-
-				if (Array.isArray(this.schema.stopped)) {
-					return this.schema.stopped
-						.reverse()
+				if (Array.isArray(this.schema.started)) {
+					return this.schema.started
 						.map(fn => this.Promise.method(fn.bind(this)))
 						.reduce((p, fn) => p.then(fn), this.Promise.resolve());
 				}
-
-				return this.Promise.resolve();
+			})
+			.then(() => {
+				// Register service
+				this.broker.registerLocalService(this._serviceSpecification);
 			});
-		};
+	}
 
-		// Call the created event handler
-		this.created();
+	/**
+	 * Stop service
+	 *
+	 * @returns {Promise}
+	 * @private
+	 * @memberof Service
+	 */
+	_stop() {
+		return new this.Promise((resolve) => {
+			const timeout = setTimeout(() => {
+				this.logger.error(new GracefulStopTimeoutError(this));
+				resolve();
+			}, this.settings.$gracefulStopTimeout || this.broker.options.gracefulStopTimeout);
+
+			let first = true;
+			const checkForContexts = () => {
+				if (this._activeContexts.length === 0) {
+					clearTimeout(timeout);
+					resolve();
+				} else {
+					if (first) {
+						this.logger.warn(`Waiting for ${this._activeContexts.length} active context(s)...`);
+						first = false;
+					}
+					setTimeout(checkForContexts, 100);
+				}
+			};
+			setImmediate(checkForContexts);
+		}).finally(() => {
+			if (_.isFunction(this.schema.stopped))
+				return this.Promise.method(this.schema.stopped).call(this);
+
+			if (Array.isArray(this.schema.stopped)) {
+				return this.schema.stopped
+					.reverse()
+					.map(fn => this.Promise.method(fn.bind(this)))
+					.reduce((p, fn) => p.then(fn), this.Promise.resolve());
+			}
+
+			return this.Promise.resolve();
+		});
 	}
 
 	/**
@@ -403,8 +425,6 @@ class Service {
 					res[key] = {};
 
 				Object.keys(mods[key]).forEach(k => {
-					//					res[key][k] = _.compact(_.flatten([res[key][k], mods[key][k]]));
-
 					const modEvent = wrapToHander(mods[key][k]);
 					const resEvent = wrapToHander(res[key][k]);
 

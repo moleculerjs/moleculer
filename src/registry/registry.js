@@ -44,8 +44,7 @@ class Registry {
 
 		this.broker.localBus.on("$broker.started", () => {
 			if (this.nodes.localNode) {
-				this.nodes.localNode.seq++;
-				this.regenerateLocalRawInfo();
+				this.regenerateLocalRawInfo(true);
 			}
 		});
 	}
@@ -67,10 +66,7 @@ class Registry {
 
 		this.nodes.localNode.services.push(service);
 
-		if (this.broker.started)
-			this.nodes.localNode.seq++;
-
-		this.regenerateLocalRawInfo();
+		this.regenerateLocalRawInfo(this.broker.started);
 
 		this.logger.info(`'${svc.name}' service is registered.`);
 	}
@@ -110,7 +106,7 @@ class Registry {
 			if (svc.events)
 				this.registerEvents(node, service, svc.events);
 
-			// remove old actions which is not exist
+			// remove old events which is not exist
 			if (prevEvents) {
 				_.forIn(prevEvents, (event, name) => {
 					if (!svc.events[name])
@@ -120,7 +116,9 @@ class Registry {
 		});
 
 		// remove old services which is not exist in new serviceList
-		this.services.services.forEach(service => {
+		// Please note! Firstly copy the array because you can't remove items inside forEach
+		const prevServices = Array.from(this.services.services);
+		prevServices.forEach(service => {
 			if (service.node != node) return;
 
 			let exist = false;
@@ -129,10 +127,9 @@ class Registry {
 					exist = true;
 			});
 
-			if (!exist) {
-				// This service is removed on remote node!
+			// This service is removed on remote node!
+			if (!exist)
 				this.unregisterService(service.name, service.version, node.id);
-			}
 		});
 	}
 
@@ -201,9 +198,7 @@ class Registry {
 		this.services.remove(name, version, nodeID || this.broker.nodeID);
 
 		if (!nodeID || nodeID == this.broker.nodeID) {
-			this.nodes.localNode.seq++;
-
-			this.regenerateLocalRawInfo();
+			this.regenerateLocalRawInfo(true);
 		}
 	}
 
@@ -259,8 +254,11 @@ class Registry {
 	 *
 	 * @memberof Registry
 	 */
-	regenerateLocalRawInfo() {
+	regenerateLocalRawInfo(incSeq) {
 		let node = this.nodes.localNode;
+		if (incSeq)
+			node.seq++;
+
 		node.rawInfo = _.pick(node, ["ipList", "hostname", "client", "config", "port", "seq"]);
 		if (this.broker.started)
 			node.rawInfo.services = this.services.getLocalNodeServices();

@@ -6,12 +6,13 @@ let ServiceBroker = require("../src/service-broker");
 let broker = new ServiceBroker({
 	nodeID: "dep2",
 	transporter: {
-		type: "TCP",
+		type: "NATS",
 		options: {
 			//debug: true
 		}
 	},
 	logger: console,
+	//internalServices: false,
 	//logLevel: "debug",
 	//hotReload: true
 });
@@ -20,7 +21,7 @@ broker.createService({
 	name: "math",
 	actions: {
 		add(ctx) {
-			this.logger.info("Call add...");
+			this.logger.info("Adding...");
 			return this.calc(ctx.params.a, ctx.params.b);
 		}
 	},
@@ -30,6 +31,14 @@ broker.createService({
 			this.calc = (a, b) => Number(a) + Number(b);
 
 			this.logger.info("Service started!");
+		});
+	},
+	stopped() {
+		this.logger.info("Stopping service...");
+		this.calc = null;
+		return this.Promise.delay(10 * 1000).then(() => {
+
+			this.logger.info("Service stopped!");
 		});
 	}
 });
@@ -47,4 +56,6 @@ broker.start().then(() => {
 	broker.logger.info("!!! BROKER STARTED !!!");
 
 	//broker.repl();
+
+	setTimeout(() => broker.stop(), 10 * 1000);
 });
