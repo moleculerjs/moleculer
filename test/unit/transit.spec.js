@@ -504,6 +504,7 @@ describe("Test Transit._requestHandler", () => {
 
 	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter(), trackContext: true });
 	const transit = broker.transit;
+	broker.started = true;
 
 	transit.sendResponse = jest.fn(() => Promise.resolve());
 
