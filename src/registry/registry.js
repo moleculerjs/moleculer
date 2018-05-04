@@ -56,19 +56,21 @@ class Registry {
 	 * @memberof Registry
 	 */
 	registerLocalService(svc) {
-		const service = this.services.add(this.nodes.localNode, svc.name, svc.version, svc.settings, svc.metadata);
+		if (!this.services.has(svc.name, svc.version, this.broker.nodeID)) {
+			const service = this.services.add(this.nodes.localNode, svc.name, svc.version, svc.settings, svc.metadata);
 
-		if (svc.actions)
-			this.registerActions(this.nodes.localNode, service, svc.actions);
+			if (svc.actions)
+				this.registerActions(this.nodes.localNode, service, svc.actions);
 
-		if (svc.events)
-			this.registerEvents(this.nodes.localNode, service, svc.events);
+			if (svc.events)
+				this.registerEvents(this.nodes.localNode, service, svc.events);
 
-		this.nodes.localNode.services.push(service);
+			this.nodes.localNode.services.push(service);
 
-		this.regenerateLocalRawInfo(this.broker.started);
+			this.regenerateLocalRawInfo(this.broker.started);
 
-		this.logger.info(`'${svc.name}' service is registered.`);
+			this.logger.info(`'${svc.name}' service is registered.`);
+		}
 	}
 
 	/**

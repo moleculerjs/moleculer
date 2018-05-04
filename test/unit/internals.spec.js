@@ -6,6 +6,9 @@ const { protectReject } = require("./utils");
 describe("Test health status methods", () => {
 	const broker = new ServiceBroker({ transporter: "fake", statistics: true });
 
+	beforeAll(() => broker.start());
+	afterAll(() => broker.stop());
+
 	it("should call getNodeList", () => {
 		broker.registry.getNodeList = jest.fn();
 

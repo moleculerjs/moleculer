@@ -63,7 +63,7 @@ const mailService = {
 const master = H.createNode("master", []);
 const node1 = H.createNode("node-1", [userService]);
 
-const node2 = H.createNode("node-2", [userService, paymentService]);
+let node2 = H.createNode("node-2", [userService, paymentService]);
 
 describe("Test service registry", () => {
 	beforeAll(() => master.start());
@@ -115,10 +115,10 @@ describe("Test service registry", () => {
 
 	it("stop node2", () => {
 		return node2.stop().delay(100).then(() => {
-			let node2 = H.getNode(master, "node-2");
-			expect(node2).toBeDefined();
-			expect(node2.available).toBe(false);
-			expect(H.hasService(master, "payments")).toBe(true);
+			let infoNode2 = H.getNode(master, "node-2");
+			expect(infoNode2).toBeDefined();
+			expect(infoNode2.available).toBe(false);
+			expect(H.hasService(master, "payments")).toBe(false);
 			expect(H.getActionNodes(master, "payments.charge")).toEqual([]);
 			expect(H.getActionNodes(master, "payments.checkCard")).toEqual([]);
 			expect(H.getActionNodes(node1, "payments.checkCard")).toEqual([]);
@@ -133,15 +133,14 @@ describe("Test service registry", () => {
 		});
 	});
 
-	it("node2 remove user, payment & add posts, paymentMod", () => {
-		H.removeServices(node2, ["users", "payments"]);
-		H.addServices(node2, [paymentModService, postService]);
+	it("node2 recreate with posts, paymentMod", () => {
+		node2 = H.createNode("node-2", [paymentModService, postService]);
 
 		return node2.start().delay(100).then(() => {
-			let node2 = H.getNode(master, "node-2");
-			expect(node2).toBeDefined();
-			expect(node2.services.length).toBe(3);
-			expect(node2.available).toBe(true);
+			let infoNode2 = H.getNode(master, "node-2");
+			expect(infoNode2).toBeDefined();
+			expect(infoNode2.services.length).toBe(3);
+			expect(infoNode2.available).toBe(true);
 			expect(H.hasService(master, "payments")).toBe(true);
 			expect(H.getActionNodes(master, "payments.charge")).toEqual(["node-2"]);
 			expect(H.getActionNodes(master, "payments.checkCreditCard")).toEqual(["node-2"]);

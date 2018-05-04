@@ -406,6 +406,8 @@ class ServiceBroker {
 				}
 			})
 			.then(() => {
+				this.services.length = 0;
+
 				if (_.isFunction(this.options.stopped))
 					return this.options.stopped(this);
 			})
@@ -639,10 +641,9 @@ class ServiceBroker {
 
 		if (this.started) {
 			// If broker started, should call the started lifecycle event
-			service._start.call(service).catch(err => this.logger.error("Unable to start service.", err));
+			service._start.call(service)
+				.catch(err => this.logger.error("Unable to start service.", err));
 		}
-
-		this.servicesChanged(true);
 
 		return service;
 	}
@@ -665,6 +666,7 @@ class ServiceBroker {
 	 */
 	registerLocalService(registryItem) {
 		this.registry.registerLocalService(registryItem);
+		this.servicesChanged(true);
 	}
 
 	/**
@@ -701,7 +703,7 @@ class ServiceBroker {
 		this.broadcastLocal("$services.changed", { localService });
 
 		// Should notify remote nodes, because our service list is changed.
-		if (localService && this.transit) {
+		if (this.started && localService && this.transit) {
 			this.transit.sendNodeInfo();
 		}
 	}

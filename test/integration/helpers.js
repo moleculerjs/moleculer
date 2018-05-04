@@ -12,7 +12,7 @@ const H = {
 	},
 
 	addServices(broker, services) {
-		services.forEach(service =>broker.createService(_.cloneDeep(service)));
+		services.forEach(service => broker.createService(_.cloneDeep(service)));
 	},
 
 	removeServices(broker, serviceNames) {
