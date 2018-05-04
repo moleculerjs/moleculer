@@ -65,38 +65,33 @@ class Context {
 		this.stopTime = null;
 		this.duration = 0;
 
+		this.tracked = false;
 		//this.error = null;
 		this.cachedResult = false;
 	}
 
 	/**
-	 * Add a context to be tracked as active
+	 * Add to the list of active context
 	 *
 	 * @private
 	 * @memberof Context
 	 */
 	_trackContext() {
-		const trackedBy = this.service || this.broker;
-		if ( !trackedBy._activeContexts ) {
-			trackedBy._activeContexts = [];
+		if (this.service) {
+			this.tracked = true;
+			this.service._addActiveContext(this);
 		}
-		trackedBy._activeContexts.push(this);
 	}
 
 	/**
-	 * Remove a context from the list of active context
+	 * Remove from the list of active context
 	 *
 	 * @private
 	 * @memberof Context
 	 */
 	dispose() {
-		if ( this.trackedBy && this.trackedBy._activeContexts ) {
-			const contextList = this.trackedBy._activeContexts;
-			const contextIndex = contextList.indexOf(this);
-			if (contextIndex !== -1) {
-				contextList.splice(contextIndex, 1);
-			}
-		}
+		if (this.service && this.tracked)
+			this.service._removeActiveContext(this);
 	}
 
 	generateID() {

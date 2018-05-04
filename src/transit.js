@@ -328,6 +328,9 @@ class Transit {
 			ctx.metrics = !!payload.metrics;
 			ctx.callerNodeID = payload.sender;
 
+			if (this.broker.options.trackContext)
+				ctx._trackContext();
+
 			return this.broker._handleRemoteRequest(ctx, endpoint)
 				.then(res => this.sendResponse(payload.sender, payload.id,  ctx.meta, res, null))
 				.catch(err => this.sendResponse(payload.sender, payload.id, ctx.meta, null, err));

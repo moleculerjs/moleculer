@@ -23,6 +23,8 @@ let broker = new ServiceBroker({
 
 	//disableBalancer: true,
 
+	trackContext: true,
+
 	logger: console,
 	//logLevel: "debug",
 	logFormatter: "simple"

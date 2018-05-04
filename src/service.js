@@ -9,7 +9,7 @@
 const _ = require("lodash");
 const utils = require("./utils");
 
-const { ServiceSchemaError } = require("./errors");
+const { ServiceSchemaError, GracefulStopTimeoutError } = require("./errors");
 
 /**
  * Main Service class
@@ -64,6 +64,8 @@ class Service {
 
 		this.logger = this.broker.getLogger("service", this.name, this.version);
 
+		this._activeContexts = [];
+
 		this.actions = {}; // external access to actions
 
 		//Service item for Registry
@@ -91,16 +93,16 @@ class Service {
 				this.actions[name] = (params, opts) => {
 					const ctx = this.broker.ContextFactory.create(this.broker, innerAction, null, params, opts || {});
 					const contextDispose = (ret) => {
-						if (opts.trackContext) {
+						if (ctx.tracked)
 							ctx.dispose();
-						}
 
 						return ret;
 					};
-					const contextDisposeCatch = (ret) => {
-						return this.Promise.reject(contextDispose(ret));
-					};
-					return innerAction.handler(ctx).then(contextDispose).catch(contextDisposeCatch);
+					const contextDisposeCatch = (ret) => this.Promise.reject(contextDispose(ret));
+
+					return innerAction.handler(ctx)
+						.then(contextDispose)
+						.catch(contextDisposeCatch);
 				};
 
 			});
@@ -204,13 +206,22 @@ class Service {
 		};
 
 		this.stopped = () => {
-			return new this.Promise((resolve, reject) => {
-				const timeout = setTimeout(reject, this.settings.$gracefulStopTimeout || this.broker.options.gracefulStopTimeout);
+			return new this.Promise((resolve) => {
+				const timeout = setTimeout(() => {
+					this.logger.error(new GracefulStopTimeoutError(this));
+					resolve();
+				}, this.settings.$gracefulStopTimeout || this.broker.options.gracefulStopTimeout);
+
+				let first = true;
 				const checkForContexts = () => {
-					if (this._getActiveContexts().length === 0) {
+					if (this._activeContexts.length === 0) {
 						clearTimeout(timeout);
 						resolve();
 					} else {
+						if (first) {
+							this.logger.warn(`Waiting for ${this._activeContexts.length} active context(s)...`);
+							first = false;
+						}
 						setTimeout(checkForContexts, 100);
 					}
 				};
@@ -285,14 +296,21 @@ class Service {
 		return action;
 	}
 
+	_addActiveContext(ctx) {
+		this._activeContexts.push(ctx);
+	}
+
 	/**
-	 * Retrieve list of active contexts for the service
-	 * @returns {Set}
+	 * Remove active context from the list
+	 * @param {Context} ctx
 	 * @private
 	 * @memberof Service
 	 */
-	_getActiveContexts() {
-		return this._activeContexts || [];
+	_removeActiveContext(ctx) {
+		const idx = this._activeContexts.indexOf(ctx);
+		if (idx !== -1) {
+			this._activeContexts.splice(idx, 1);
+		}
 	}
 
 	/**

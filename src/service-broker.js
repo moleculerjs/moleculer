@@ -46,7 +46,7 @@ const defaultOptions = {
 	heartbeatTimeout: 15,
 
 	trackContext: false,
-	gracefulStopTimeout: 2000,
+	gracefulStopTimeout: 5000,
 
 	disableBalancer: false,
 
@@ -992,7 +992,7 @@ class ServiceBroker {
 		}
 
 		// Remove the context from the active contexts list
-		if (ctx.trackedBy) {
+		if (ctx.tracked) {
 			p.then(res => {
 				ctx.dispose();
 				return res;
@@ -1029,7 +1029,7 @@ class ServiceBroker {
 			p = p.timeout(ctx.timeout);
 
 		// Remove the context from the active contexts list
-		if (ctx.trackedBy) {
+		if (ctx.tracked) {
 			p.then(res => {
 				ctx.dispose();
 				return res;
@@ -1117,7 +1117,7 @@ class ServiceBroker {
 
 		err.ctx = ctx;
 
-		if (opts.trackContext) {
+		if (ctx.tracked) {
 			ctx.dispose();
 		}
 
