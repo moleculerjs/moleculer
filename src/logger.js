@@ -48,8 +48,8 @@ module.exports = {
 	createDefaultLogger(baseLogger, bindings, logLevel, logFormatter) {
 		const noop = function() {};
 
-		let mod = bindings.mod ? bindings.mod.toUpperCase() : "";
-		const moduleName = bindings.nodeID + "/" + mod;
+		const mod = (bindings && bindings.mod) ? bindings.mod.toUpperCase() : "";
+		const moduleName = bindings ? bindings.nodeID + "/" + mod : "";
 
 		const getColor = type => {
 			switch(type) {
