@@ -15,7 +15,7 @@ const LOG_LEVELS = ["fatal", "error", "warn", "info", "debug", "trace"];
 module.exports = {
 
 	/**
-	 * Extend a logger class if missing log level methods
+	 * Extend a logger class if missing common log level methods
 	 *
 	 * @param {Object} logger
 	 * @returns {Object} logger
@@ -48,13 +48,8 @@ module.exports = {
 		const noop = function() {};
 
 		const getModuleName = () => {
-			let mod;
-			if (bindings.svc) {
-				mod = bindings.svc.toUpperCase();
-				if (bindings.ver) {
-					mod += ":" + (typeof(bindings.ver) == "number" ? "v" + bindings.ver : bindings.ver);
-				}
-			} else if (bindings.mod)
+			let mod = "";
+			if (bindings.mod)
 				mod = bindings.mod.toUpperCase();
 
 			return bindings.nodeID + "/" + mod;

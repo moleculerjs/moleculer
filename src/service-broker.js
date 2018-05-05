@@ -455,18 +455,15 @@ class ServiceBroker {
 	 *
 	 * @memberof ServiceBroker
 	 */
-	getLogger(module, service, version) {
-		let bindings = {
+	getLogger(module, props) {
+		if (_.isString(props))
+			props = { mod: props };
+
+		let bindings = Object.assign({
 			nodeID: this.nodeID,
-			ns: this.namespace
-		};
-		if (service) {
-			bindings.svc = service;
-			if (version)
-				bindings.ver = version;
-		}
-		else
-			bindings.mod = module;
+			ns: this.namespace,
+			mod: module
+		}, props);
 
 		// Call logger creator
 		if (_.isFunction(this.options.logger))

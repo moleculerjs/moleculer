@@ -5,7 +5,6 @@ const util = require("util");
 
 const broker = new ServiceBroker({
 	nodeID: "dev-" + process.pid,
-	logger: true,
 	//logLevel: "debug",
 	transporter: "TCP",
 });

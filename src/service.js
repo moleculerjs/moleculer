@@ -62,7 +62,12 @@ class Service {
 
 		this.schema = schema;
 
-		this.logger = this.broker.getLogger("service", this.name, this.version);
+		const versionedName = (this.version ? (typeof(this.version) == "number" ? "v" + this.version : this.version) + "." : "") + this.name;
+
+		this.logger = this.broker.getLogger(versionedName, {
+			svc: this.name,
+			ver: this.version
+		});
 
 		this._activeContexts = [];
 
