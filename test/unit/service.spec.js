@@ -79,6 +79,31 @@ describe("Test Service constructor", () => {
 		expect(service.broker).toBe(broker);
 	});
 
+	it("check logger with string version", () => {
+		broker.getLogger = jest.fn();
+		new Service(broker, {
+			name: "posts",
+			version: "stage"
+		});
+		expect(broker.getLogger).toHaveBeenCalledTimes(1);
+		expect(broker.getLogger).toHaveBeenCalledWith("stage.posts", {
+			svc: "posts",
+			ver: "stage"
+		});
+	});
+
+	it("check logger without version", () => {
+		broker.getLogger = jest.fn();
+		new Service(broker, {
+			name: "likes"
+		});
+		expect(broker.getLogger).toHaveBeenCalledTimes(1);
+		expect(broker.getLogger).toHaveBeenCalledWith("likes", {
+			svc: "likes",
+			ver: undefined
+		});
+	});
+
 });
 
 describe("Test action creation", () => {
