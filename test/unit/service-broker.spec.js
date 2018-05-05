@@ -970,20 +970,28 @@ describe("Test broker.getLogger", () => {
 			expect(logger).toHaveBeenCalledWith({"mod": "broker", "nodeID": "test-pc", "ns": "testing"});
 		});
 
-		it("should call creator function with service bindings", () => {
+		it("should call creator function with custom module", () => {
 			logger.mockClear();
-			broker.getLogger("service", "posts");
+			broker.getLogger("my-module");
 
 			expect(logger).toHaveBeenCalledTimes(1);
-			expect(logger).toHaveBeenCalledWith({"svc": "posts", "nodeID": "test-pc", "ns": "testing"});
+			expect(logger).toHaveBeenCalledWith({"mod": "my-module", "nodeID": "test-pc", "ns": "testing"});
 		});
 
 		it("should call creator function with versioned service bindings", () => {
 			logger.mockClear();
-			broker.getLogger("service", "posts", 2);
+			broker.getLogger("v1.posts", { svc: "posts", ver: 2 });
 
 			expect(logger).toHaveBeenCalledTimes(1);
-			expect(logger).toHaveBeenCalledWith({"svc": "posts", "ver": 2, "nodeID": "test-pc", "ns": "testing"});
+			expect(logger).toHaveBeenCalledWith({"mod": "v1.posts", "svc": "posts", "ver": 2, "nodeID": "test-pc", "ns": "testing"});
+		});
+
+		it("should call creator function with versioned service bindings", () => {
+			logger.mockClear();
+			broker.getLogger("my.module.network.io", { custom: "abc" });
+
+			expect(logger).toHaveBeenCalledTimes(1);
+			expect(logger).toHaveBeenCalledWith({"mod": "my.module.network.io", "custom": "abc", "nodeID": "test-pc", "ns": "testing"});
 		});
 
 	});

@@ -104,6 +104,7 @@ describe("Test createDefaultLogger", () => {
 		};
 
 		let bindings = {
+			mod: "v2.posts",
 			svc: "posts",
 			ver: 2,
 			nodeID: "server-2",
@@ -121,7 +122,7 @@ describe("Test createDefaultLogger", () => {
 		callLogMethods(logger);
 
 		expect(con.info).toHaveBeenCalledTimes(4);
-		expect(con.info).toHaveBeenCalledWith("[1970-01-01T00:00:00.000Z]", "INFO ", "server-2/POSTS:v2:", "info level");
+		expect(con.info).toHaveBeenCalledWith("[1970-01-01T00:00:00.000Z]", "INFO ", "server-2/V2.POSTS:", "info level");
 	});
 
 	it("should create a full logger with logFormatter", () => {

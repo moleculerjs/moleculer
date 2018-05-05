@@ -34,6 +34,7 @@ describe("Test Service constructor", () => {
 	});
 
 	it("check local properties", () => {
+		broker.getLogger = jest.fn(() => ({}));
 		let service = new Service(broker, schema);
 		expect(service.name).toBe("users");
 		expect(service.version).toBe(2);
@@ -44,6 +45,12 @@ describe("Test Service constructor", () => {
 
 		expect(service.logger).toBeDefined();
 		expect(service.actions).toEqual({});
+
+		expect(broker.getLogger).toHaveBeenCalledTimes(1);
+		expect(broker.getLogger).toHaveBeenCalledWith("v2.users", {
+			svc: "users",
+			ver: 2
+		});
 	});
 
 	it("check local properties with metadata", () => {
