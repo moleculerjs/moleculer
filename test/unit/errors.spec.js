@@ -209,6 +209,21 @@ describe("Test Errors", () => {
 		expect(err.data).toBeUndefined();
 	});
 
+	it("test GracefulStopTimeoutError", () => {
+		let err = new errors.GracefulStopTimeoutError({ name: "posts", version: 2 });
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(Error);
+		expect(err).toBeInstanceOf(errors.GracefulStopTimeoutError);
+		expect(err.name).toBe("GracefulStopTimeoutError");
+		expect(err.message).toBe("Unable to stop 'posts' service gracefully.");
+		expect(err.code).toBe(500);
+		expect(err.type).toBeNull();
+		expect(err.data).toEqual({
+			name: "posts",
+			version: 2
+		});
+	});
+
 	it("test ProtocolVersionMismatchError", () => {
 		let err = new errors.ProtocolVersionMismatchError("server-2", "2", "1");
 		expect(err).toBeDefined();

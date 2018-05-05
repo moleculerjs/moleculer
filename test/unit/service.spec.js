@@ -1,7 +1,9 @@
 "use strict";
 
 const Service = require("../../src/service");
+const Context = require("../../src/context");
 const ServiceBroker = require("../../src/service-broker");
+const { protectReject } = require("./utils");
 
 describe("Test Service constructor", () => {
 
@@ -21,9 +23,10 @@ describe("Test Service constructor", () => {
 			new Service();
 		}).toThrowError("Must set a ServiceBroker instance!");
 
-		// expect(() => {
-		// 	new Service({});
-		// }).toThrowError("Must pass a service schema in constructor!");
+		expect(() => {
+			const svc = new Service({});
+			svc.parseServiceSchema();
+		}).toThrowError("Must pass a service schema in constructor!");
 
 		expect(() => {
 			new Service({}, {});
@@ -41,10 +44,6 @@ describe("Test Service constructor", () => {
 
 		expect(service.logger).toBeDefined();
 		expect(service.actions).toEqual({});
-
-		expect(service.created).toBeInstanceOf(Function);
-		expect(service.started).toBeInstanceOf(Function);
-		expect(service.stopped).toBeInstanceOf(Function);
 	});
 
 	it("check local properties with metadata", () => {
@@ -61,10 +60,6 @@ describe("Test Service constructor", () => {
 
 		expect(service.logger).toBeDefined();
 		expect(service.actions).toEqual({});
-
-		expect(service.created).toBeInstanceOf(Function);
-		expect(service.started).toBeInstanceOf(Function);
-		expect(service.stopped).toBeInstanceOf(Function);
 	});
 
 	it("check empty properties", () => {
@@ -98,44 +93,58 @@ describe("Test action creation", () => {
 	};
 
 	it("should register service & actions", () => {
+		broker.addLocalService = jest.fn();
 		broker.registerLocalService = jest.fn();
 
 		let service = broker.createService(schema);
 
 		expect(service).toBeDefined();
 
-		expect(broker.registerLocalService).toHaveBeenCalledTimes(1);
-		expect(broker.registerLocalService.mock.calls[0][0]).toBe(service);
-		const svc = broker.registerLocalService.mock.calls[0][1];
-		expect(svc.name).toBe("posts");
-		expect(svc.version).toBeUndefined();
-		expect(svc.settings).toEqual({});
-		expect(svc.metadata).toEqual({});
-		expect(svc.actions["posts.find"]).toBeDefined();
-		expect(svc.actions["posts.get"]).toBeDefined();
-		expect(svc.events).toEqual({});
+		expect(broker.addLocalService).toHaveBeenCalledTimes(1);
+		expect(broker.addLocalService.mock.calls[0][0]).toBe(service);
 
-		expect(service.actions.find).toBeDefined();
-		expect(service.actions.get).toBeDefined();
+		return service._start()
+			.catch(protectReject)
+			.then(() => {
+				expect(broker.registerLocalService).toHaveBeenCalledTimes(1);
+				expect(broker.registerLocalService.mock.calls[0][0]).toBe(service._serviceSpecification);
 
-		let ctx = {
-			setParams: jest.fn()
-		};
-		let oldCreate = broker.ContextFactory.create;
-		broker.ContextFactory.create = jest.fn(() => ctx);
+				const spec = service._serviceSpecification;
+				expect(spec).toEqual({
+					name: "posts",
+					version: undefined,
+					settings: {},
+					metadata: {},
+					actions: {
+						"posts.find": jasmine.any(Object),
+						"posts.get": jasmine.any(Object)
+					},
+					events: {}
+				});
 
-		service.actions.find({ a: 5 }, { timeout: 1000 });
+				expect(service.actions.find).toBeDefined();
+				expect(service.actions.get).toBeDefined();
 
-		expect(broker.ContextFactory.create).toHaveBeenCalledTimes(1);
-		expect(broker.ContextFactory.create).toHaveBeenCalledWith(broker, jasmine.any(Object), null, { a: 5 }, { timeout: 1000 });
+				let ctx = {
+					setParams: jest.fn()
+				};
+				let oldCreate = broker.ContextFactory.create;
+				broker.ContextFactory.create = jest.fn(() => ctx);
 
-		expect(schema.actions.find).toHaveBeenCalledTimes(1);
-		expect(schema.actions.find).toHaveBeenCalledWith(ctx);
+				service.actions.find({ a: 5 }, { timeout: 1000 });
 
-		broker.ContextFactory.create = oldCreate;
+				expect(broker.ContextFactory.create).toHaveBeenCalledTimes(1);
+				expect(broker.ContextFactory.create).toHaveBeenCalledWith(broker, jasmine.any(Object), null, { a: 5 }, { timeout: 1000 });
+
+				expect(schema.actions.find).toHaveBeenCalledTimes(1);
+				expect(schema.actions.find).toHaveBeenCalledWith(ctx);
+
+				broker.ContextFactory.create = oldCreate;
+			});
+
 	});
 
-	it("should throw error if action is not object nor function", () => {
+	it("should throw error if action is neither object nor function", () => {
 		expect(() => {
 			broker.createService({
 				name: "test",
@@ -150,7 +159,8 @@ describe("Test action creation", () => {
 describe("Test events creation", () => {
 	it("should register event handler to broker", () => {
 		let broker = new ServiceBroker({ internalServices: false });
-		broker.registry.registerLocalService = jest.fn();
+		broker.registerLocalService = jest.fn();
+		broker.addLocalService = jest.fn();
 
 		let service = broker.createService({
 			name: "posts",
@@ -164,17 +174,25 @@ describe("Test events creation", () => {
 
 		expect(service).toBeDefined();
 
-		expect(broker.registry.registerLocalService).toHaveBeenCalledTimes(1);
-		expect(broker.registry.registerLocalService).toHaveBeenCalledTimes(1);
-		const svc = broker.registry.registerLocalService.mock.calls[0][0];
-		expect(svc.events["posts.updated"]).toBeDefined();
-		expect(svc.events["user.*"]).toBeDefined();
-		expect(svc.actions).toEqual({});
+		expect(broker.addLocalService).toHaveBeenCalledTimes(1);
+
+		return service._start()
+			.catch(protectReject)
+			.then(() => {
+				expect(broker.registerLocalService).toHaveBeenCalledTimes(1);
+				expect(broker.registerLocalService.mock.calls[0][0]).toBe(service._serviceSpecification);
+
+				const spec = service._serviceSpecification;
+				expect(spec.events["posts.updated"]).toBeDefined();
+				expect(spec.events["user.*"]).toBeDefined();
+				expect(spec.actions).toEqual({});
+			});
 	});
 
 	it("should register event handler with mixins", () => {
 		let broker = new ServiceBroker({ internalServices: false });
-		broker.registry.registerLocalService = jest.fn();
+		broker.addLocalService = jest.fn();
+		broker.registerLocalService = jest.fn();
 
 		let cb1 = jest.fn();
 		let cb2 = jest.fn();
@@ -191,19 +209,25 @@ describe("Test events creation", () => {
 
 		expect(service).toBeDefined();
 
-		expect(broker.registry.registerLocalService).toHaveBeenCalledTimes(1);
-		expect(broker.registry.registerLocalService).toHaveBeenCalledTimes(1);
-		const svc = broker.registry.registerLocalService.mock.calls[0][0];
-		expect(svc.events["posts.updated"]).toBeDefined();
-		expect(svc.events["user.*"]).toBeDefined();
-		expect(svc.actions).toEqual({});
+		expect(broker.addLocalService).toHaveBeenCalledTimes(1);
+		return service._start()
+			.catch(protectReject)
+			.then(() => {
+				expect(broker.registerLocalService).toHaveBeenCalledTimes(1);
+				expect(broker.registerLocalService.mock.calls[0][0]).toBe(service._serviceSpecification);
 
-		svc.events["posts.updated"].handler();
-		expect(cb3).toHaveBeenCalledTimes(1);
+				const spec = service._serviceSpecification;
+				expect(spec.events["posts.updated"]).toBeDefined();
+				expect(spec.events["user.*"]).toBeDefined();
+				expect(spec.actions).toEqual({});
 
-		svc.events["user.*"].handler();
-		expect(cb1).toHaveBeenCalledTimes(1);
-		expect(cb2).toHaveBeenCalledTimes(1);
+				spec.events["posts.updated"].handler();
+				expect(cb3).toHaveBeenCalledTimes(1);
+
+				spec.events["user.*"].handler();
+				expect(cb1).toHaveBeenCalledTimes(1);
+				expect(cb2).toHaveBeenCalledTimes(1);
+			});
 	});
 
 	it("should throw error because no handler of event", () => {
@@ -519,6 +543,28 @@ describe("Test broker.waitForServices", () => {
 		});
 		expect(broker.waitForServices).toHaveBeenCalledTimes(1);
 		expect(broker.waitForServices).toHaveBeenCalledWith("posts", 5000, 500, svc.logger);
+	});
+
+});
+
+describe("Test active context tracking", () => {
+	let broker = new ServiceBroker();
+
+	it("should store context", () => {
+		let svc = broker.createService({
+			name: "test"
+		});
+
+		const ctx = new Context(broker, { name: "test", service: svc });
+
+		expect(svc._activeContexts.length).toBe(0);
+
+		svc._addActiveContext(ctx);
+		expect(svc._activeContexts.length).toBe(1);
+		expect(svc._activeContexts[0]).toBe(ctx);
+
+		svc._removeActiveContext(ctx);
+		expect(svc._activeContexts.length).toBe(0);
 	});
 
 });

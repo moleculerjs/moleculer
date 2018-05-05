@@ -308,6 +308,27 @@ class ServiceSchemaError extends MoleculerError {
 }
 
 /**
+ * Custom Moleculer Error class for Graceful stopping
+ *
+ * @class GracefulStopTimeoutError
+ * @extends {Error}
+ */
+class GracefulStopTimeoutError extends MoleculerError {
+	/**
+	 * Creates an instance of GracefulStopTimeoutError.
+	 *
+	 * @param {Service} service
+	 * @memberof GracefulStopTimeoutError
+	 */
+	constructor(service) {
+		super(`Unable to stop '${service.name}' service gracefully.`, 500, null, {
+			name: service.name,
+			version: service.version
+		});
+	}
+}
+
+/**
  * Protocol version is mismatch
  *
  * @class ProtocolVersionMismatchError
@@ -364,6 +385,7 @@ module.exports = {
 	MaxCallLevelError,
 
 	ServiceSchemaError,
+	GracefulStopTimeoutError,
 
 	ProtocolVersionMismatchError,
 	InvalidPacketData

@@ -186,6 +186,7 @@ class ServiceCatalog {
 			if (service.node.id == nodeID) {
 				this.registry.actions.removeByService(service);
 				this.registry.events.removeByService(service);
+				return true;
 			}
 		});
 	}

@@ -1,6 +1,7 @@
 const ServiceBroker = require("../../src/service-broker");
 const MemoryCacher = require("../../src/cachers/memory");
 const Context = require("../../src/context");
+const { protectReject } = require("../unit/utils");
 
 describe("Test load services", () => {
 	let broker = new ServiceBroker();
@@ -15,23 +16,26 @@ describe("Test load services", () => {
 			}
 		});
 
-		expect(broker.getLocalService("mailer", 2)).toBeDefined();
-		expect(broker.registry.actions.isAvailable("v2.mailer.send")).toBe(true);
-
-		broker.call("v2.mailer.send").then(() => {
-			expect(handler).toHaveBeenCalledTimes(1);
-		});
+		return broker.start().catch(protectReject).then(() => {
+			expect(broker.getLocalService("mailer", 2)).toBeDefined();
+			expect(broker.registry.actions.isAvailable("v2.mailer.send")).toBe(true);
+		}).then(() => {
+			return broker.call("v2.mailer.send").then(() => {
+				expect(handler).toHaveBeenCalledTimes(1);
+			});
+		}).catch(protectReject).then(() => broker.stop());
 	});
 
 	it("should load all services", () => {
 		let count = broker.loadServices("./test/services");
 		expect(count).toBe(4);
 
-		//expect(broker.getLocalService("greeter")).toBeDefined();
-		expect(broker.getLocalService("math")).toBeDefined();
-		expect(broker.getLocalService("posts")).toBeDefined();
-		expect(broker.getLocalService("users")).toBeDefined();
-		expect(broker.getLocalService("test")).toBeDefined();
+		return broker.start().catch(protectReject).then(() => {
+			expect(broker.getLocalService("math")).toBeDefined();
+			expect(broker.getLocalService("posts")).toBeDefined();
+			expect(broker.getLocalService("users")).toBeDefined();
+			expect(broker.getLocalService("test")).toBeDefined();
+		}).then(() => broker.stop());
 	});
 });
 
@@ -52,6 +56,10 @@ describe("Test local call", () => {
 			export: exportHandler
 		}
 	});
+
+	beforeAll(() => broker.start());
+	afterAll(() => broker.stop());
+
 
 	it("should return context & call the action handler", () => {
 		return broker.call("posts.find").then(ctx => {
@@ -179,6 +187,9 @@ describe("Test versioned action registration", () => {
 		}
 	});
 
+	beforeAll(() => broker.start());
+	afterAll(() => broker.stop());
+
 	it("should call the v1 handler", () => {
 		return broker.call("v1.posts.find").then(() => {
 			expect(findV1).toHaveBeenCalledTimes(1);
@@ -214,6 +225,9 @@ describe("Test cachers", () => {
 			}
 		}
 	});
+
+	beforeAll(() => broker.start());
+	afterAll(() => broker.stop());
 
 	it("should call action handler because the cache is empty", () => {
 		return broker.call("user.get").then(res => {

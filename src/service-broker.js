@@ -46,7 +46,7 @@ const defaultOptions = {
 	heartbeatTimeout: 15,
 
 	trackContext: false,
-	gracefulStopTimeout: 2000,
+	gracefulStopTimeout: 5000,
 
 	disableBalancer: false,
 
@@ -349,7 +349,7 @@ class ServiceBroker {
 			})
 			.then(() => {
 				// Call service `started` handlers
-				return Promise.all(this.services.map(svc => svc.started.call(svc)));
+				return Promise.all(this.services.map(svc => svc._start.call(svc)));
 			})
 			.catch(err => {
 				/* istanbul ignore next */
@@ -378,11 +378,18 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	stop() {
+		this.started = false;
 		return Promise.resolve()
-			// TODO: Close subscriber to stop accepting requests
+			.then(() => {
+				if (this.transit) {
+					this.registry.regenerateLocalRawInfo(true);
+					// Send empty node info in order to block incoming requests
+					return this.transit.sendNodeInfo();
+				}
+			})
 			.then(() => {
 				// Call service `stopped` handlers
-				return Promise.all(this.services.map(svc => svc.stopped.call(svc)));
+				return Promise.all(this.services.map(svc => svc._stop.call(svc)));
 			})
 			.catch(err => {
 				/* istanbul ignore next */
@@ -404,7 +411,6 @@ class ServiceBroker {
 			})
 			.then(() => {
 				this.logger.info("ServiceBroker is stopped successfully. Good bye.");
-				this.started = false;
 
 				this.localBus.emit("$broker.stopped");
 
@@ -633,24 +639,32 @@ class ServiceBroker {
 
 		if (this.started) {
 			// If broker started, should call the started lifecycle event
-			service.started.call(service).catch(err => this.logger.error("Unable to start service.", err));
+			service._start.call(service)
+				.catch(err => this.logger.error("Unable to start service.", err));
 		}
-
-		this.servicesChanged(true);
 
 		return service;
 	}
 
 	/**
-	 * Add & register a local service instance
+	 * Add a local service instance
 	 *
 	 * @param {Service} service
+	 * @memberof ServiceBroker
+	 */
+	addLocalService(service) {
+		this.services.push(service);
+	}
+
+	/**
+	 * Register a local service to Service Registry
+	 *
 	 * @param {Object} registryItem
 	 * @memberof ServiceBroker
 	 */
-	registerLocalService(service, registryItem) {
-		this.services.push(service);
+	registerLocalService(registryItem) {
 		this.registry.registerLocalService(registryItem);
+		this.servicesChanged(true);
 	}
 
 	/**
@@ -661,7 +675,7 @@ class ServiceBroker {
 	 */
 	destroyService(service) {
 		return Promise.resolve()
-			.then(() => service.stopped.call(service))
+			.then(() => service._stop.call(service))
 			.catch(err => {
 				/* istanbul ignore next */
 				this.logger.error(`Unable to stop service '${service.name}'.`, err);
@@ -687,7 +701,7 @@ class ServiceBroker {
 		this.broadcastLocal("$services.changed", { localService });
 
 		// Should notify remote nodes, because our service list is changed.
-		if (localService && this.transit) {
+		if (this.started && localService && this.transit) {
 			this.transit.sendNodeInfo();
 		}
 	}
@@ -992,7 +1006,7 @@ class ServiceBroker {
 		}
 
 		// Remove the context from the active contexts list
-		if (ctx.trackedBy) {
+		if (ctx.tracked) {
 			p.then(res => {
 				ctx.dispose();
 				return res;
@@ -1029,7 +1043,7 @@ class ServiceBroker {
 			p = p.timeout(ctx.timeout);
 
 		// Remove the context from the active contexts list
-		if (ctx.trackedBy) {
+		if (ctx.tracked) {
 			p.then(res => {
 				ctx.dispose();
 				return res;
@@ -1053,6 +1067,24 @@ class ServiceBroker {
 		return p;
 	}
 
+	_getLocalActionEndpoint(actionName) {
+		// Find action by name
+		let epList = this.registry.getActionEndpoints(actionName);
+		if (epList == null || !epList.hasLocal()) {
+			this.logger.warn(`Service '${actionName}' is not registered locally.`);
+			throw new E.ServiceNotFoundError(actionName, this.nodeID);
+		}
+
+		// Get local endpoint
+		let endpoint = epList.nextLocal();
+		if (!endpoint) {
+			this.logger.warn(`Service '${actionName}' is not available locally.`);
+			throw new E.ServiceNotAvailable(actionName, this.nodeID);
+		}
+
+		return endpoint;
+	}
+
 	/**
 	 * Handle a remote request (call a local action).
 	 * It's called from Transit if a request is received
@@ -1064,24 +1096,7 @@ class ServiceBroker {
 	 * @private
 	 * @memberof ServiceBroker
 	 */
-	_handleRemoteRequest(ctx) {
-		let actionName = ctx.action.name;
-		// Find action by name
-		let epList = this.registry.getActionEndpoints(actionName);
-		if (epList == null || !epList.hasLocal()) {
-			this.logger.warn(`Service '${actionName}' is not registered locally.`);
-			return Promise.reject(new E.ServiceNotFoundError(actionName, this.nodeID));
-		}
-
-		// Get local endpoint
-		let endpoint = epList.nextLocal();
-		if (!endpoint) {
-			this.logger.warn(`Service '${actionName}' is not available locally.`);
-			return Promise.reject(new E.ServiceNotAvailable(actionName, this.nodeID));
-		}
-
-		ctx.action = endpoint.action;
-
+	_handleRemoteRequest(ctx, endpoint) {
 		// Load opts
 		let opts = {
 			timeout: ctx.timeout || this.options.requestTimeout || 0
@@ -1116,7 +1131,7 @@ class ServiceBroker {
 
 		err.ctx = ctx;
 
-		if (opts.trackContext) {
+		if (ctx.tracked) {
 			ctx.dispose();
 		}
 

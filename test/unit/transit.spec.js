@@ -5,7 +5,7 @@ const ServiceBroker = require("../../src/service-broker");
 const Context = require("../../src/context");
 const Transit = require("../../src/transit");
 const FakeTransporter = require("../../src/transporters/fake");
-const { ValidationError, ProtocolVersionMismatchError, RequestRejected } = require("../../src/errors");
+const E = require("../../src/errors");
 const P = require("../../src/packets");
 
 describe("Test Transporter constructor", () => {
@@ -502,61 +502,105 @@ describe("Test Transit.messageHandler", () => {
 
 describe("Test Transit._requestHandler", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter(), trackContext: true });
 	const transit = broker.transit;
+	broker.started = true;
 
-	transit.sendResponse = jest.fn();
+	transit.sendResponse = jest.fn(() => Promise.resolve());
+
+	let ep = {
+		id: broker.nodeID,
+		local: true,
+		action: {
+			name: "posts.find",
+			service: {
+				name: "posts",
+				_addActiveContext: jest.fn()
+			}
+		}
+	};
 
 	it("should call broker._handleRemoteRequest & sendResponse with result", () => {
 		let response = [1, 5, 8];
+		broker._getLocalActionEndpoint = jest.fn(() => ep);
 		broker._handleRemoteRequest = jest.fn(() => Promise.resolve(response));
 
 		let payload = { ver: "3", sender: "remote", action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456", timeout: 567 };
 
-		transit._requestHandler(payload);
-		const ctx = broker._handleRemoteRequest.mock.calls[0][0];
+		return transit._requestHandler(payload).catch(protectReject).then(() => {
 
-		expect(broker._handleRemoteRequest).toHaveBeenCalledTimes(1);
-		expect(broker._handleRemoteRequest).toHaveBeenCalledWith(ctx);
+			expect(broker._handleRemoteRequest).toHaveBeenCalledTimes(1);
+			const ctx = broker._handleRemoteRequest.mock.calls[0][0];
+			expect(broker._handleRemoteRequest).toHaveBeenCalledWith(ctx, ep);
 
-		// Check context props
-		expect(ctx).toBeInstanceOf(Context);
-		expect(ctx.id).toBe("123");
-		expect(ctx.parentID).toBe("555");
-		expect(ctx.requestID).toBe("123456");
-		expect(ctx.action.name).toBe("posts.find");
-		expect(ctx.params).toEqual({ limit: 5 });
-		expect(ctx.meta).toEqual({ b: 100 });
-		expect(ctx.metrics).toBe(true);
-		expect(ctx.level).toBe(5);
-		expect(ctx.timeout).toBe(567);
+			// Check context props
+			expect(ctx).toBeInstanceOf(Context);
+			expect(ctx.id).toBe("123");
+			expect(ctx.parentID).toBe("555");
+			expect(ctx.requestID).toBe("123456");
+			expect(ctx.action.name).toBe("posts.find");
+			expect(ctx.params).toEqual({ limit: 5 });
+			expect(ctx.meta).toEqual({ b: 100 });
+			expect(ctx.metrics).toBe(true);
+			expect(ctx.level).toBe(5);
+			expect(ctx.timeout).toBe(567);
+			expect(ctx.tracked).toBe(true);
 
-		//expect(transit.sendResponse).toHaveBeenCalledTimes(1);
-		//expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", [1, 5, 8], null);
-
+			expect(transit.sendResponse).toHaveBeenCalledTimes(1);
+			expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", { b: 100 }, [1, 5, 8], null);
+		});
 	});
 
 	it("should call broker._handleRemoteRequest & sendResponse with error", () => {
 		transit.sendResponse.mockClear();
-		broker._handleRemoteRequest = jest.fn(() => Promise.reject(new ValidationError("Not valid params")));
+		broker._handleRemoteRequest = jest.fn(() => Promise.reject(new E.ValidationError("Not valid params")));
 
-		let payload = { ver: "3", sender: "remote", action: "posts.create", id: "123", params: { title: "Hello" }, meta: {} };
-		transit._requestHandler(payload);
-		const ctx = broker._handleRemoteRequest.mock.calls[0][0];
+		let payload = { ver: "3", sender: "remote", action: "posts.create", id: "123", params: { title: "Hello" }, meta: { b: 100 } };
+		return transit._requestHandler(payload).then(protectReject).catch(() => {
 
-		expect(broker._handleRemoteRequest).toHaveBeenCalledTimes(1);
-		expect(broker._handleRemoteRequest).toHaveBeenCalledWith(ctx);
+			expect(broker._handleRemoteRequest).toHaveBeenCalledTimes(1);
+			const ctx = broker._handleRemoteRequest.mock.calls[0][0];
+			expect(broker._handleRemoteRequest).toHaveBeenCalledWith(ctx, ep);
 
-		// Check context props
-		expect(ctx).toBeInstanceOf(Context);
-		expect(ctx.id).toBe("123");
-		expect(ctx.params).toEqual({"title": "Hello"});
-		expect(ctx.meta).toEqual({});
+			// Check context props
+			expect(ctx).toBeInstanceOf(Context);
+			expect(ctx.id).toBe("123");
+			expect(ctx.params).toEqual({"title": "Hello"});
+			expect(ctx.meta).toEqual({ b: 100 });
 
-		/*return promise.catch(protectReject).then(() => {
 			expect(transit.sendResponse).toHaveBeenCalledTimes(1);
-			expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", null, jasmine.any(ValidationError));
-		});*/
+			expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", { b: 100 }, null, jasmine.any(E.ValidationError));
+		});
+	});
+
+	it("should call sendResponse with error if no endpoint", () => {
+		transit.sendResponse.mockClear();
+		broker._getLocalActionEndpoint = jest.fn(() => { throw new E.ServiceNotFoundError("posts.find", broker.nodeID); });
+		broker._handleRemoteRequest = jest.fn(() => Promise.reject(new E.ValidationError("Not valid params")));
+
+		let payload = { ver: "3", sender: "remote", action: "posts.create", id: "123", params: { title: "Hello" }, meta: { b: 100 } };
+		return transit._requestHandler(payload).then(protectReject).catch(() => {
+
+			expect(broker._handleRemoteRequest).toHaveBeenCalledTimes(0);
+			expect(transit.sendResponse).toHaveBeenCalledTimes(1);
+			expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", { b: 100 }, null, jasmine.any(E.ServiceNotFoundError));
+		});
+	});
+
+	it("should call sendResponse with error if broker stopped", () => {
+		broker.started = false;
+
+		broker._getLocalActionEndpoint.mockClear();
+		broker._handleRemoteRequest.mockClear();
+		transit.sendResponse.mockClear();
+
+		let payload = { ver: "3", sender: "remote", action: "posts.create", id: "123", params: { title: "Hello" }, meta: { b: 100 } };
+		return transit._requestHandler(payload).then(protectReject).catch(() => {
+			expect(broker._getLocalActionEndpoint).toHaveBeenCalledTimes(0);
+			expect(broker._handleRemoteRequest).toHaveBeenCalledTimes(0);
+			expect(transit.sendResponse).toHaveBeenCalledTimes(1);
+			expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", { b: 100 }, null, jasmine.any(E.ServiceNotAvailable));
+		});
 	});
 });
 
@@ -609,7 +653,7 @@ describe("Test Transit._responseHandler", () => {
 		transit.pendingRequests.set(id, req);
 
 		let payload = { ver: "3", sender: "remote", id, success: false, error: {
-			name: "ValidationError",
+			name: "E.ValidationError",
 			code: 422,
 			data: { a: 5 },
 			stack: "STACK-TRACE"
@@ -621,7 +665,7 @@ describe("Test Transit._responseHandler", () => {
 		expect(req.resolve).toHaveBeenCalledTimes(0);
 		expect(req.ctx.nodeID).toBe("remote");
 
-		expect(err.name).toBe("ValidationError");
+		expect(err.name).toBe("E.ValidationError");
 		expect(err.code).toBe(422);
 		expect(err.data).toEqual({ a: 5 });
 		expect(err.stack).toBe("STACK-TRACE");
@@ -724,7 +768,7 @@ describe("Test Transit.sendResponse", () => {
 
 	it("should call publish with the error", () => {
 		transit.publish.mockClear();
-		transit.sendResponse("node2", "12345", meta, null, new ValidationError("Not valid params", "ERR_INVALID_A_PARAM", { a: "Too small" }));
+		transit.sendResponse("node2", "12345", meta, null, new E.ValidationError("Not valid params", "ERR_INVALID_A_PARAM", { a: "Too small" }));
 		expect(transit.publish).toHaveBeenCalledTimes(1);
 		const packet = transit.publish.mock.calls[0][0];
 		expect(packet).toBeInstanceOf(P.Packet);
@@ -785,7 +829,7 @@ describe("Test Transit.removePendingRequestByNodeID", () => {
 		expect(resolve).toHaveBeenCalledTimes(0);
 		expect(resolve2).toHaveBeenCalledTimes(0);
 		expect(reject).toHaveBeenCalledTimes(1);
-		expect(reject).toHaveBeenCalledWith(jasmine.any(RequestRejected));
+		expect(reject).toHaveBeenCalledWith(jasmine.any(E.RequestRejected));
 	});
 
 	it("should reject pending orders by nodeID #2", () => {
@@ -793,7 +837,7 @@ describe("Test Transit.removePendingRequestByNodeID", () => {
 		expect(transit.pendingRequests.size).toBe(0);
 		expect(resolve2).toHaveBeenCalledTimes(0);
 		expect(reject2).toHaveBeenCalledTimes(1);
-		expect(reject2).toHaveBeenCalledWith(jasmine.any(RequestRejected));
+		expect(reject2).toHaveBeenCalledWith(jasmine.any(E.RequestRejected));
 	});
 
 });

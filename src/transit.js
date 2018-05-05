@@ -303,6 +303,10 @@ class Transit {
 	_eventHandler(payload) {
 		this.logger.debug(`Event '${payload.event}' received from '${payload.sender}' node` + (payload.groups ? ` in '${payload.groups.join(", ")}' group(s)` : "") + ".");
 
+		if (!this.broker.started) {
+			this.logger.warn(`Incoming '${payload.event}' event from '${payload.sender}' node is dropped, because broker is not running.`);
+		}
+
 		this.broker.emitLocalServices(payload.event, payload.data, payload.groups, payload.sender, payload.broadcast);
 	}
 
@@ -316,55 +320,75 @@ class Transit {
 	_requestHandler(payload) {
 		this.logger.debug(`Request '${payload.action}' received from '${payload.sender}' node.`);
 
-		let pass;
-		if (payload.stream !== undefined) {
-			pass = this.pendingReqStreams.get(payload.id);
-			if (pass) {
-				if (!payload.stream) {
-
-					// Check stream error
-					if (payload.meta["$streamError"]) {
-						pass.emit("error", this._createErrFromPayload(payload.meta["$streamError"], payload.sender));
-					}
-
-					// End of stream
-					pass.end();
-
-					// Remove pending request
-					this.removePendingRequest(payload.id);
-
-					return;
-
-				} else {
-					// stream chunk received
-					pass.write(payload.params.type === "Buffer" ? new Buffer.from(payload.params.data):payload.params);
-
-					return;
-				}
-
-			} else if (payload.stream) {
-				// Create a new pass stream
-				pass = new Transform({
-					transform: function (chunk, encoding, done) {
-						this.push(chunk);
-						return done();
-					}
-				});
-				this.pendingReqStreams.set(payload.id, pass);
+		try {
+			if (!this.broker.started) {
+				this.logger.warn(`Incoming '${payload.action}' request from '${payload.sender}' node is dropped, because broker is not running.`);
+				throw new E.ServiceNotAvailable(payload.action, this.nodeID);
 			}
+      
+      let pass;
+      if (payload.stream !== undefined) {
+        pass = this.pendingReqStreams.get(payload.id);
+        if (pass) {
+          if (!payload.stream) {
 
-		}
+            // Check stream error
+            if (payload.meta["$streamError"]) {
+              pass.emit("error", this._createErrFromPayload(payload.meta["$streamError"], payload.sender));
+            }
 
-		// Recreate caller context
-		const ctx = this.broker.ContextFactory.createFromPayload(this.broker, payload);
+            // End of stream
+            pass.end();
 
-		// Set stream as `ctx.params`
-		if (pass)
-			ctx.params = pass;
+            // Remove pending request
+            this.removePendingRequest(payload.id);
 
-		return this.broker._handleRemoteRequest(ctx)
-			.then(res => this.sendResponse(payload.sender, payload.id,  ctx.meta, res, null))
-			.catch(err => this.sendResponse(payload.sender, payload.id, ctx.meta, null, err));
+            return;
+
+          } else {
+            // stream chunk received
+            pass.write(payload.params.type === "Buffer" ? new Buffer.from(payload.params.data):payload.params);
+
+            return;
+          }
+
+        } else if (payload.stream) {
+          // Create a new pass stream
+          pass = new Transform({
+            transform: function (chunk, encoding, done) {
+              this.push(chunk);
+              return done();
+            }
+          });
+          this.pendingReqStreams.set(payload.id, pass);
+        }
+      }
+
+			const endpoint = this.broker._getLocalActionEndpoint(payload.action);
+
+			// Recreate caller context
+			const ctx = new this.broker.ContextFactory(this.broker, endpoint.action);
+			ctx.id = payload.id;
+			ctx.setParams(pass ? pass: payload.params);
+			ctx.parentID = payload.parentID;
+			ctx.requestID = payload.requestID;
+			ctx.meta = payload.meta || {};
+
+			ctx.timeout = payload.timeout || 0;
+			ctx.level = payload.level;
+			ctx.metrics = !!payload.metrics;
+			ctx.callerNodeID = payload.sender;
+
+			if (this.broker.options.trackContext)
+				ctx._trackContext();
+
+			return this.broker._handleRemoteRequest(ctx, endpoint)
+        .then(res => this.sendResponse(payload.sender, payload.id,  ctx.meta, res, null))
+        .catch(err => this.sendResponse(payload.sender, payload.id, ctx.meta, null, err));
+      
+		} catch(err) {
+			return this.sendResponse(payload.sender, payload.id, payload.meta, null, err);
+		}      
 	}
 
 	_createErrFromPayload(error, sender) {

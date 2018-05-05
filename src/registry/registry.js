@@ -44,8 +44,7 @@ class Registry {
 
 		this.broker.localBus.on("$broker.started", () => {
 			if (this.nodes.localNode) {
-				this.nodes.localNode.seq++;
-				this.regenerateLocalRawInfo();
+				this.regenerateLocalRawInfo(true);
 			}
 		});
 	}
@@ -57,22 +56,21 @@ class Registry {
 	 * @memberof Registry
 	 */
 	registerLocalService(svc) {
-		const service = this.services.add(this.nodes.localNode, svc.name, svc.version, svc.settings, svc.metadata);
+		if (!this.services.has(svc.name, svc.version, this.broker.nodeID)) {
+			const service = this.services.add(this.nodes.localNode, svc.name, svc.version, svc.settings, svc.metadata);
 
-		if (svc.actions)
-			this.registerActions(this.nodes.localNode, service, svc.actions);
+			if (svc.actions)
+				this.registerActions(this.nodes.localNode, service, svc.actions);
 
-		if (svc.events)
-			this.registerEvents(this.nodes.localNode, service, svc.events);
+			if (svc.events)
+				this.registerEvents(this.nodes.localNode, service, svc.events);
 
-		this.nodes.localNode.services.push(service);
+			this.nodes.localNode.services.push(service);
 
-		if (this.broker.started)
-			this.nodes.localNode.seq++;
+			this.regenerateLocalRawInfo(this.broker.started);
 
-		this.regenerateLocalRawInfo();
-
-		this.logger.info(`'${svc.name}' service is registered.`);
+			this.logger.info(`'${svc.name}' service is registered.`);
+		}
 	}
 
 	/**
@@ -110,7 +108,7 @@ class Registry {
 			if (svc.events)
 				this.registerEvents(node, service, svc.events);
 
-			// remove old actions which is not exist
+			// remove old events which is not exist
 			if (prevEvents) {
 				_.forIn(prevEvents, (event, name) => {
 					if (!svc.events[name])
@@ -120,7 +118,9 @@ class Registry {
 		});
 
 		// remove old services which is not exist in new serviceList
-		this.services.services.forEach(service => {
+		// Please note! Firstly copy the array because you can't remove items inside forEach
+		const prevServices = Array.from(this.services.services);
+		prevServices.forEach(service => {
 			if (service.node != node) return;
 
 			let exist = false;
@@ -129,10 +129,9 @@ class Registry {
 					exist = true;
 			});
 
-			if (!exist) {
-				// This service is removed on remote node!
+			// This service is removed on remote node!
+			if (!exist)
 				this.unregisterService(service.name, service.version, node.id);
-			}
 		});
 	}
 
@@ -201,9 +200,7 @@ class Registry {
 		this.services.remove(name, version, nodeID || this.broker.nodeID);
 
 		if (!nodeID || nodeID == this.broker.nodeID) {
-			this.nodes.localNode.seq++;
-
-			this.regenerateLocalRawInfo();
+			this.regenerateLocalRawInfo(true);
 		}
 	}
 
@@ -259,8 +256,11 @@ class Registry {
 	 *
 	 * @memberof Registry
 	 */
-	regenerateLocalRawInfo() {
+	regenerateLocalRawInfo(incSeq) {
 		let node = this.nodes.localNode;
+		if (incSeq)
+			node.seq++;
+
 		node.rawInfo = _.pick(node, ["ipList", "hostname", "client", "config", "port", "seq"]);
 		if (this.broker.started)
 			node.rawInfo.services = this.services.getLocalNodeServices();

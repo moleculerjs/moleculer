@@ -49,6 +49,9 @@ describe("Test middleware system", () => {
 			}
 		});
 
+		beforeAll(() => broker.start());
+		afterAll(() => broker.stop());
+
 		it("should register plugins", () => {
 			expect(broker.middlewares.length).toBe(2);
 		});
@@ -109,6 +112,9 @@ describe("Test middleware system", () => {
 				foo: master
 			}
 		});
+
+		beforeAll(() => broker.start());
+		afterAll(() => broker.stop());
 
 		it("should register plugins", () => {
 			expect(broker.middlewares.length).toBe(3);
@@ -175,6 +181,9 @@ describe("Test middleware system", () => {
 			}
 		});
 
+		beforeAll(() => broker.start());
+		afterAll(() => broker.stop());
+
 		it("should register plugins", () => {
 			expect(broker.middlewares.length).toBe(3);
 		});
@@ -225,6 +234,9 @@ describe("Test middleware system", () => {
 				foo: master
 			}
 		});
+
+		beforeAll(() => broker.start());
+		afterAll(() => broker.stop());
 
 		it("should call only mw1 & mw2 middlewares functions", () => {
 			let p = broker.call("test.foo");
