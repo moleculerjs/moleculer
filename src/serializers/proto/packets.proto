@@ -23,6 +23,7 @@ message PacketRequest {
 	required bool metrics 		= 9;
 	optional string parentID 	= 10;
 	optional string requestID 	= 11;
+	optional bool stream 		= 12;
 }
 
 message PacketResponse {
@@ -33,6 +34,7 @@ message PacketResponse {
 	optional string data 		= 5;
 	optional string error 		= 6;
 	required string meta 		= 7;
+	optional bool stream 		= 8;
 }
 
 message PacketDiscover {

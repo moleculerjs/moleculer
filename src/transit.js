@@ -13,6 +13,8 @@ const P				= require("./packets");
 const { Packet }	= require("./packets");
 const E 			= require("./errors");
 
+const {Transform} = require("stream");
+
 /**
  * Transit class
  *
@@ -37,6 +39,8 @@ class Transit {
 		this.opts = opts;
 
 		this.pendingRequests = new Map();
+		this.pendingReqStreams = new Map();
+		this.pendingResStreams = new Map();
 
 		this.stat = {
 			packets: {
@@ -321,13 +325,51 @@ class Transit {
 				this.logger.warn(`Incoming '${payload.action}' request from '${payload.sender}' node is dropped, because broker is not running.`);
 				throw new E.ServiceNotAvailable(payload.action, this.nodeID);
 			}
+      
+      let pass;
+      if (payload.stream !== undefined) {
+        pass = this.pendingReqStreams.get(payload.id);
+        if (pass) {
+          if (!payload.stream) {
+
+            // Check stream error
+            if (payload.meta["$streamError"]) {
+              pass.emit("error", this._createErrFromPayload(payload.meta["$streamError"], payload.sender));
+            }
+
+            // End of stream
+            pass.end();
+
+            // Remove pending request
+            this.removePendingRequest(payload.id);
+
+            return;
+
+          } else {
+            // stream chunk received
+            pass.write(payload.params.type === "Buffer" ? new Buffer.from(payload.params.data):payload.params);
+
+            return;
+          }
+
+        } else if (payload.stream) {
+          // Create a new pass stream
+          pass = new Transform({
+            transform: function (chunk, encoding, done) {
+              this.push(chunk);
+              return done();
+            }
+          });
+          this.pendingReqStreams.set(payload.id, pass);
+        }
+      }
 
 			const endpoint = this.broker._getLocalActionEndpoint(payload.action);
 
 			// Recreate caller context
 			const ctx = new this.broker.ContextFactory(this.broker, endpoint.action);
 			ctx.id = payload.id;
-			ctx.setParams(payload.params);
+			ctx.setParams(pass ? pass: payload.params);
 			ctx.parentID = payload.parentID;
 			ctx.requestID = payload.requestID;
 			ctx.meta = payload.meta || {};
@@ -341,12 +383,27 @@ class Transit {
 				ctx._trackContext();
 
 			return this.broker._handleRemoteRequest(ctx, endpoint)
-				.then(res => this.sendResponse(payload.sender, payload.id,  ctx.meta, res, null))
-				.catch(err => this.sendResponse(payload.sender, payload.id, ctx.meta, null, err));
-
+        .then(res => this.sendResponse(payload.sender, payload.id,  ctx.meta, res, null))
+        .catch(err => this.sendResponse(payload.sender, payload.id, ctx.meta, null, err));
+      
 		} catch(err) {
 			return this.sendResponse(payload.sender, payload.id, payload.meta, null, err);
-		}
+		}      
+	}
+
+	_createErrFromPayload(error, sender) {
+		const err = new Error(error.message + ` (NodeID: ${sender})`);
+		// TODO create the original error object if it's available
+		//   let constructor = errors[error.name]
+		//   let error = Object.create(constructor.prototype);
+		err.name = error.name;
+		err.code = error.code;
+		err.type = error.type;
+		err.nodeID = error.nodeID || sender;
+		err.data = error.data;
+		if (error.stack)
+			err.stack = error.stack;
+		return err;
 	}
 
 	/**
@@ -366,9 +423,6 @@ class Transit {
 			return;
 		}
 
-		// Remove pending request
-		this.removePendingRequest(id);
-
 		this.logger.debug(`Response '${req.action.name}' received from '${packet.sender}'.`);
 
 		// Update nodeID in context (if it uses external balancer)
@@ -377,21 +431,45 @@ class Transit {
 		// Merge response meta with original meta
 		_.assign(req.ctx.meta, packet.meta);
 
-		if (!packet.success) {
-			// Recreate exception object
-			let err = new Error(packet.error.message + ` (NodeID: ${packet.sender})`);
-			// TODO create the original error object if it's available
-			//   let constructor = errors[packet.error.name]
-			//   let error = Object.create(constructor.prototype);
-			err.name = packet.error.name;
-			err.code = packet.error.code;
-			err.type = packet.error.type;
-			err.nodeID = packet.error.nodeID || packet.sender;
-			err.data = packet.error.data;
-			if (packet.error.stack)
-				err.stack = packet.error.stack;
+		// Handle stream repose
+		if (packet.stream !== undefined) {
+			//get the underlined stream for id
+			let pass = this.pendingResStreams.get(id);
+			if (pass) {
+				if (!packet.stream) {
+					// Received error?
+					if (!packet.success)
+						pass.emit("error", this._createErrFromPayload(packet.error, packet.sender));
 
-			req.reject(err);
+					// End of stream
+					pass.end();
+
+					// Remove pending request
+					this.removePendingRequest(id);
+
+				} else {
+					// stream chunk
+					pass.write(packet.data.type === "Buffer" ? new Buffer.from(packet.data.data):packet.data);
+				}
+			} else if (packet.stream) {
+				// Create a new pass stream
+				pass = new Transform({
+					transform: function (chunk, encoding, done) {
+						this.push(chunk);
+						return done();
+					}
+				});
+				this.pendingResStreams.set(id, pass);
+				return req.resolve(pass);
+			}
+			return req.resolve(packet.data);
+		}
+
+		// Remove pending request
+		this.removePendingRequest(id);
+
+		if (!packet.success) {
+			req.reject(this._createErrFromPayload(packet.error, packet.sender));
 		} else {
 			req.resolve(packet.data);
 		}
@@ -424,25 +502,31 @@ class Transit {
 	 * @memberof Transit
 	 */
 	_sendRequest(ctx, resolve, reject) {
+		const isStream = ctx.params && typeof ctx.params.on === "function" && typeof ctx.params.read === "function" && typeof ctx.params.pipe === "function";
+
 		const request = {
 			action: ctx.action,
 			nodeID: ctx.nodeID,
 			ctx,
 			resolve,
-			reject
+			reject,
+			stream: isStream // ???
 		};
 
-		const packet = new Packet(P.PACKET_REQUEST, ctx.nodeID, {
+		const payload = {
 			id: ctx.id,
 			action: ctx.action.name,
-			params: ctx.params,
+			params: isStream ? null : ctx.params,
 			meta: ctx.meta,
 			timeout: ctx.timeout,
 			level: ctx.level,
 			metrics: ctx.metrics,
 			parentID: ctx.parentID,
-			requestID: ctx.requestID
-		});
+			requestID: ctx.requestID,
+			stream: isStream
+		};
+
+		const packet = new Packet(P.PACKET_REQUEST, ctx.nodeID, payload);
 
 		this.logger.debug(`Send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`);
 
@@ -450,10 +534,48 @@ class Transit {
 		this.pendingRequests.set(ctx.id, request);
 
 		// Publish request
-		this.publish(packet).catch(err => {
-			this.logger.error(`Unable to send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, err);
-			reject(err);
-		});
+		this.publish(packet)
+			.then(() => {
+				if (isStream) {
+					// Skip to send ctx.meta with chunks because it doesn't appear on the remote side.
+					payload.meta = {};
+
+					const data = ctx.params;
+					data.on("data", chunk => {
+						const copy = Object.assign({}, payload);
+						copy.stream = true;
+						copy.params = chunk;
+						data.pause();
+
+						return this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, copy))
+							.then(() => data.resume())
+							.catch(err => this.logger.error(`Unable to send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, err));
+					});
+
+					data.on("end", () => {
+						const copy = Object.assign({}, payload);
+						copy.params = null;
+						copy.stream = false;
+
+						return this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, copy))
+							.catch(err => this.logger.error(`Unable to send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, err));
+					});
+
+					data.on("error", err => {
+						const copy = Object.assign({}, payload);
+						copy.stream = false;
+						copy.meta["$streamError"] = this._createPayloadErrorField(err);
+						copy.params = null;
+
+						return this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, copy))
+							.catch(err => this.logger.error(`Unable to send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, err));
+					});
+				}
+			})
+			.catch(err => {
+				this.logger.error(`Unable to send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, err);
+				reject(err);
+			});
 	}
 
 	/**
@@ -528,10 +650,13 @@ class Transit {
 	 */
 	removePendingRequest(id) {
 		this.pendingRequests.delete(id);
+
+		this.pendingReqStreams.delete(id);
+		this.pendingResStreams.delete(id);
 	}
 
 	/**
-	 * Remove a pending request
+	 * Remove a pending request & streams
 	 *
 	 * @param {String} nodeID
 	 *
@@ -545,8 +670,23 @@ class Transit {
 
 				// Reject the request
 				req.reject(new E.RequestRejected(req.action.name, req.nodeID));
+
+				this.pendingReqStreams.delete(id);
+				this.pendingResStreams.delete(id);
 			}
 		});
+	}
+
+	_createPayloadErrorField(err) {
+		return {
+			name: err.name,
+			message: err.message,
+			nodeID: err.nodeID || this.nodeID,
+			code: err.code,
+			type: err.type,
+			stack: err.stack,
+			data: err.data
+		};
 	}
 
 	/**
@@ -569,16 +709,54 @@ class Transit {
 			data: data
 		};
 
-		if (err) {
-			payload.error = {
-				name: err.name,
-				message: err.message,
-				nodeID: err.nodeID || this.nodeID,
-				code: err.code,
-				type: err.type,
-				stack: err.stack,
-				data: err.data
-			};
+		if (err)
+			payload.error = this._createPayloadErrorField(err);
+
+		if (data && typeof data.on === "function" && typeof data.read === "function" && typeof data.pipe === "function") {
+			// Streaming response
+			payload.stream = true;
+			data.pause();
+
+			data.on("data", chunk => {
+				const copy = Object.assign({}, payload);
+				copy.stream = true;
+				copy.data = chunk;
+				data.pause();
+
+				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, copy))
+					.then(() => data.resume())
+					.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
+			});
+
+			data.on("end", () => {
+				const copy = Object.assign({}, payload);
+				copy.data = null;
+				copy.stream = false;
+
+				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, copy))
+					.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
+			});
+
+			data.on("error", err => {
+				const copy = Object.assign({}, payload);
+				copy.stream = false;
+				if (err) {
+					copy.success = false;
+					copy.error = this._createPayloadErrorField(err);
+				}
+
+				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, copy))
+					.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
+			});
+
+			payload.data = null;
+			return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
+				.then(() => {
+					if (payload.stream)
+						data.resume();
+				})
+				.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
+
 		}
 
 		return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
