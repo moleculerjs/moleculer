@@ -38,7 +38,7 @@ describe("Test UdpServer constructor", () => {
 });
 
 describe("Test UdpServer.startServer", () => {
-	const broker = new ServiceBroker({ namespace: "test", nodeID: "node-1", transporter: "Fake"});
+	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake"});
 	let transporter = broker.transit.tx;
 	let udp;
 
@@ -143,7 +143,7 @@ describe("Test UdpServer.startServer", () => {
 });
 
 describe("Test UdpServer.bind", () => {
-	const broker = new ServiceBroker({ namespace: "test", nodeID: "node-1", transporter: "Fake"});
+	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake"});
 	let transporter = broker.transit.tx;
 	let udp;
 
@@ -257,7 +257,7 @@ describe("Test UdpServer.bind", () => {
 });
 
 describe("Test UdpServer.discover", () => {
-	const broker = new ServiceBroker({ namespace: "test", nodeID: "node-1", transporter: "Fake"});
+	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake"});
 	let transporter = broker.transit.tx;
 	let udp;
 
@@ -301,7 +301,7 @@ describe("Test UdpServer.discover", () => {
 });
 
 describe("Test UdpServer.onMessage", () => {
-	const broker = new ServiceBroker({ namespace: "test", nodeID: "node-1", transporter: "Fake"});
+	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake"});
 	let transporter = broker.transit.tx;
 	let udp;
 
@@ -370,7 +370,7 @@ describe("Test UdpServer.onMessage", () => {
 });
 
 describe("Test UdpServer.startDiscovering & stopDiscovering", () => {
-	const broker = new ServiceBroker({ namespace: "test", nodeID: "node-1", transporter: "Fake"});
+	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake"});
 	let transporter = broker.transit.tx;
 	let udp;
 
@@ -422,7 +422,7 @@ describe("Test UdpServer.startDiscovering & stopDiscovering", () => {
 });
 
 describe("Test UdpServer.close", () => {
-	const broker = new ServiceBroker({ namespace: "test", nodeID: "node-1", transporter: "Fake"});
+	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake"});
 	let transporter = broker.transit.tx;
 	let udp;
 

@@ -56,7 +56,7 @@ let otherService = {
 };
 
 function createNodes(ns) {
-	const logger = null;//console;
+	const logger = false;
 	// Create nodes
 	const master = new ServiceBroker({ namespace: ns, nodeID: "master", transporter: "Fake", logger });
 	master.createService(_.cloneDeep(otherService));
@@ -301,12 +301,12 @@ describe("Test event balancing", () => {
 });
 
 describe("Test multiple handler in the same group balancing", () => {
-	const master = new ServiceBroker({ namespace: "groups", nodeID: "master", transporter: "Fake", logger: null });
+	const master = new ServiceBroker({ namespace: "groups", nodeID: "master", transporter: "Fake", logger: false });
 	master.createService(_.cloneDeep(paymentService));
 	master.createService(_.cloneDeep(stripeService));
 	master.createService(_.cloneDeep(userService));
 
-	const nodePay1 = new ServiceBroker({ namespace: "groups", nodeID: "pay-1", transporter: "Fake", logger: null });
+	const nodePay1 = new ServiceBroker({ namespace: "groups", nodeID: "pay-1", transporter: "Fake", logger: false });
 	nodePay1.createService(_.cloneDeep(paymentService));
 	nodePay1.createService(_.cloneDeep(stripeService));
 

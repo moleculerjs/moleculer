@@ -4,7 +4,7 @@ let BrokerStatistics = require("../../src/statistics");
 let ServiceBroker = require("../../src/service-broker");
 
 describe("Test Statistics constructor", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 
 	it("should create default options", () => {
 		let stat = new BrokerStatistics(broker);

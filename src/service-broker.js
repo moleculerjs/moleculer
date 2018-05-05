@@ -476,11 +476,12 @@ class ServiceBroker {
 		if (_.isObject(this.options.logger) && this.options.logger !== console)
 			return Logger.extend(this.options.logger);
 
-		// Create console logger
-		if (this.options.logger === true || this.options.logger === console)
-			return Logger.createDefaultLogger(console, bindings, this.options.logLevel || "info", this.options.logFormatter);
+		// Disable logging
+		if (this.options.logger === false)
+			return Logger.createDefaultLogger();
 
-		return Logger.createDefaultLogger();
+		// Create console logger
+		return Logger.createDefaultLogger(console, bindings, this.options.logLevel || "info", this.options.logFormatter);
 	}
 
 	/**

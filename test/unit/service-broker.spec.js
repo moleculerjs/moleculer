@@ -34,6 +34,8 @@ jest.mock("../../src/utils", () => ({
 describe("Test ServiceBroker constructor", () => {
 
 	it("should set default options", () => {
+		console.info = jest.fn();
+
 		let broker = new ServiceBroker();
 		expect(broker).toBeDefined();
 		expect(broker.options).toEqual(ServiceBroker.defaultOptions);
@@ -162,6 +164,7 @@ describe("Test ServiceBroker constructor", () => {
 
 	it("should create transit if transporter into options", () => {
 		let broker = new ServiceBroker( {
+			logger: false,
 			transporter: "Fake"
 		});
 
@@ -174,6 +177,7 @@ describe("Test ServiceBroker constructor", () => {
 		let cacher = new Cachers.Memory();
 		cacher.init = jest.fn();
 		let broker = new ServiceBroker( {
+			logger: false,
 			cacher
 		});
 
@@ -187,6 +191,7 @@ describe("Test ServiceBroker constructor", () => {
 		let serializer = new Serializers.JSON();
 		serializer.init = jest.fn();
 		let broker = new ServiceBroker( {
+			logger: false,
 			serializer
 		});
 
@@ -197,7 +202,7 @@ describe("Test ServiceBroker constructor", () => {
 	});
 
 	it("should set validator", () => {
-		let broker = new ServiceBroker();
+		let broker = new ServiceBroker({ logger: false });
 		expect(broker.validator).toBeDefined();
 	});
 
@@ -208,6 +213,7 @@ describe("Test ServiceBroker constructor", () => {
 
 	it("should disable balancer if transporter has no built-in balancer", () => {
 		let broker = new ServiceBroker( {
+			logger: false,
 			transporter: "Fake",
 			disableBalancer: true
 		});
@@ -220,6 +226,7 @@ describe("Test ServiceBroker constructor", () => {
 		tx.hasBuiltInBalancer = false;
 
 		let broker = new ServiceBroker( {
+			logger: false,
 			transporter: tx,
 			disableBalancer: true
 		});
@@ -231,6 +238,7 @@ describe("Test ServiceBroker constructor", () => {
 		let mw1 = jest.fn(handler => handler);
 		let mw2 = jest.fn(handler => handler);
 		let broker = new ServiceBroker( {
+			logger: false,
 			middlewares: [mw1, mw2],
 			validation: false
 		});
@@ -246,6 +254,7 @@ describe("Test ServiceBroker constructor", () => {
 		let stopped = jest.fn();
 
 		let broker = new ServiceBroker( {
+			logger: false,
 			created,
 			started,
 			stopped
@@ -277,7 +286,7 @@ describe("Test option resolvers", () => {
 
 	describe("Test _resolveTransporter", () => {
 
-		let broker = new ServiceBroker();
+		let broker = new ServiceBroker({ logger: false });
 
 		it("should resolve null from undefined", () => {
 			let trans = broker._resolveTransporter();
@@ -485,7 +494,7 @@ describe("Test option resolvers", () => {
 
 	describe("Test _resolveCacher", () => {
 
-		let broker = new ServiceBroker();
+		let broker = new ServiceBroker({ logger: false });
 
 		it("should resolve null from undefined", () => {
 			let cacher = broker._resolveCacher();
@@ -554,7 +563,7 @@ describe("Test option resolvers", () => {
 
 	describe("Test _resolveSerializer", () => {
 
-		let broker = new ServiceBroker();
+		let broker = new ServiceBroker({ logger: false });
 
 		it("should resolve null from undefined", () => {
 			let serializer = broker._resolveSerializer();
@@ -590,7 +599,7 @@ describe("Test option resolvers", () => {
 
 	describe("Test _resolveStrategy", () => {
 
-		let broker = new ServiceBroker();
+		let broker = new ServiceBroker({ logger: false });
 
 		it("should resolve null from undefined", () => {
 			let Strategy = broker._resolveStrategy();
@@ -640,6 +649,7 @@ describe("Test broker.start", () => {
 		};
 
 		let broker = new ServiceBroker({
+			logger: false,
 			transporter: "fake"
 		});
 
@@ -668,6 +678,7 @@ describe("Test broker.start", () => {
 		};
 
 		let broker = new ServiceBroker({
+			logger: false,
 			transporter: "Fake"
 		});
 
@@ -696,6 +707,7 @@ describe("Test broker.start", () => {
 		};
 
 		let broker = new ServiceBroker({
+			logger: false,
 			transporter: "Fake",
 			internalServices: false
 		});
@@ -733,6 +745,7 @@ describe("Test broker.stop", () => {
 
 		beforeAll(() => {
 			broker = new ServiceBroker({
+				logger: false,
 				transporter: "Fake"
 			});
 
@@ -773,6 +786,7 @@ describe("Test broker.stop", () => {
 		};
 
 		broker = new ServiceBroker({
+			logger: false,
 			metrics: true,
 			statistics: true,
 			transporter: "Fake"
@@ -813,6 +827,7 @@ describe("Test broker.stop", () => {
 		};
 
 		broker = new ServiceBroker({
+			logger: false,
 			metrics: true,
 			statistics: true,
 			transporter: "Fake"
@@ -853,7 +868,7 @@ describe("Test broker.repl", () => {
 	repl.mockImplementation(() => jest.fn());
 
 	it("should switch to repl mode", () => {
-		let broker = new ServiceBroker();
+		let broker = new ServiceBroker({ logger: false });
 		broker.repl();
 
 		expect(repl).toHaveBeenCalledTimes(1);
@@ -863,6 +878,7 @@ describe("Test broker.repl", () => {
 	it("should switch to repl mode with custom commands", () => {
 		repl.mockClear();
 		let broker = new ServiceBroker({
+			logger: false,
 			replCommands: []
 		});
 		broker.repl();
@@ -881,12 +897,22 @@ describe("Test broker.getLogger", () => {
 	console.error = jest.fn();
 
 	it("should not use any logger", () => {
-		let broker = new ServiceBroker();
+		let broker = new ServiceBroker({ logger: false });
 
 		console.info.mockClear();
 		broker.logger.info("Teszt");
 
 		expect(console.info).toHaveBeenCalledTimes(0);
+	});
+
+	it("should create default console logger", () => {
+		let broker = new ServiceBroker();
+
+		console.info.mockClear();
+		broker.logger.info("Teszt");
+
+		expect(console.info).toHaveBeenCalledTimes(1);
+		expect(console.info).toHaveBeenCalledWith("[1970-01-01T00:00:00.000Z]", "INFO ", "node-1234/BROKER:", "Teszt");
 	});
 
 	it("should create default console logger", () => {
@@ -987,7 +1013,7 @@ describe("Test broker.getLogger", () => {
 
 describe("Test broker.fatal", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 
 	broker.logger.fatal = jest.fn();
 	broker.logger.debug = jest.fn();
@@ -1026,7 +1052,7 @@ describe("Test broker.fatal", () => {
 
 describe("Test loadServices", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	broker.loadService = jest.fn();
 
 	it("should load 3 services", () => {
@@ -1068,7 +1094,7 @@ describe("Test loadServices", () => {
 
 describe("Test broker.loadService", () => {
 
-	let broker = new ServiceBroker({ hotReload: true });
+	let broker = new ServiceBroker({ logger: false, hotReload: true });
 	broker.createService = jest.fn(svc => svc);
 	broker.servicesChanged = jest.fn();
 	broker.watchService = jest.fn();
@@ -1108,7 +1134,7 @@ describe("Test broker.loadService", () => {
 
 describe("Test broker.createService", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	broker.ServiceFactory = jest.fn((broker, schema) => schema);
 	broker.ServiceFactory.mergeSchemas = jest.fn();
 
@@ -1149,7 +1175,7 @@ describe("Test broker.createService", () => {
 
 describe("Test broker.addLocalService", () => {
 
-	let broker = new ServiceBroker({ internalServices: false });
+	let broker = new ServiceBroker({ logger: false, internalServices: false });
 
 	it("should add service to local services list", () => {
 		let svc = { name: "test" };
@@ -1163,7 +1189,7 @@ describe("Test broker.addLocalService", () => {
 
 describe("Test broker.registerLocalService", () => {
 
-	let broker = new ServiceBroker({ internalServices: false });
+	let broker = new ServiceBroker({ logger: false, internalServices: false });
 
 	it("should call registry.registerLocalService", () => {
 		let svc = { name: "test" };
@@ -1178,7 +1204,7 @@ describe("Test broker.registerLocalService", () => {
 describe("Test broker.destroyService", () => {
 
 	let stopped = jest.fn();
-	let broker = new ServiceBroker({ internalServices: false });
+	let broker = new ServiceBroker({ logger: false, internalServices: false });
 	let service = broker.createService({
 		name: "greeter",
 		actions: {
@@ -1214,6 +1240,7 @@ describe("Test broker.servicesChanged", () => {
 	let broker;
 
 	broker = new ServiceBroker({
+		logger: false,
 		transporter: "Fake"
 	});
 
@@ -1250,7 +1277,7 @@ describe("Test broker.servicesChanged", () => {
 
 describe("Test broker.wrapAction", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 
 	it("should not change handler if no middlewares", () => {
 		let origHandler = jest.fn();
@@ -1289,6 +1316,7 @@ describe("Test broker.registerInternalServices", () => {
 
 	it("should register internal action without statistics", () => {
 		let broker = new ServiceBroker({
+			logger: false,
 			statistics: false,
 			internalServices: false
 		});
@@ -1308,6 +1336,7 @@ describe("Test broker.registerInternalServices", () => {
 
 	it("should register internal action with statistics", () => {
 		let broker = new ServiceBroker({
+			logger: false,
 			statistics: true,
 			internalServices: false
 		});
@@ -1330,7 +1359,7 @@ describe("Test broker.registerInternalServices", () => {
 describe("Test broker.getLocalService", () => {
 
 	describe("without version", () => {
-		let broker = new ServiceBroker();
+		let broker = new ServiceBroker({ logger: false });
 		let service = broker.createService({
 			name: "posts"
 		});
@@ -1342,7 +1371,7 @@ describe("Test broker.getLocalService", () => {
 	});
 
 	describe("with version", () => {
-		let broker = new ServiceBroker();
+		let broker = new ServiceBroker({ logger: false });
 		let service1 = broker.createService({
 			name: "posts",
 			version: 1
@@ -1366,7 +1395,7 @@ describe("Test broker.getLocalService", () => {
 });
 
 describe("Test broker.waitForServices", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let res = false;
 	broker.registry.hasService = jest.fn(() => res);
 
@@ -1500,6 +1529,7 @@ describe("Test broker.waitForServices", () => {
 
 describe("Test broker.use (middleware)", () => {
 	let broker = new ServiceBroker({
+		logger: false,
 		validation: false
 	});
 
@@ -1523,7 +1553,7 @@ describe("Test broker.use (middleware)", () => {
 });
 
 describe("Test broker.findNextActionEndpoint", () => {
-	let broker = new ServiceBroker({ internalServices: false });
+	let broker = new ServiceBroker({ logger: false, internalServices: false });
 	let actionHandler = jest.fn(ctx => ctx);
 	broker.createService({
 		name: "posts",
@@ -1585,7 +1615,7 @@ describe("Test broker.findNextActionEndpoint", () => {
 });
 
 describe("Test broker.call", () => {
-	let broker = new ServiceBroker({ internalServices: false, metrics: true });
+	let broker = new ServiceBroker({ logger: false, internalServices: false, metrics: true });
 	let action = {
 		name: "posts.find",
 		handler: jest.fn(ctx => ctx)
@@ -1725,7 +1755,7 @@ describe("Test broker.call", () => {
 });
 
 describe("Test broker.callWithoutBalancer", () => {
-	let broker = new ServiceBroker({ internalServices: false, metrics: true });
+	let broker = new ServiceBroker({ logger: false, internalServices: false, metrics: true });
 	let action = {
 		name: "posts.find"
 	};
@@ -1887,7 +1917,7 @@ describe("Test broker.callWithoutBalancer", () => {
 describe("Test broker._localCall", () => {
 
 	describe("Test with success handler", () => {
-		let broker = new ServiceBroker({ internalServices: false, metrics: true });
+		let broker = new ServiceBroker({ logger: false, internalServices: false, metrics: true });
 
 		let action = {
 			name: "posts.find",
@@ -1987,7 +2017,7 @@ describe("Test broker._localCall", () => {
 	});
 
 	describe("Test with fail handler", () => {
-		let broker = new ServiceBroker({ internalServices: false });
+		let broker = new ServiceBroker({ logger: false, internalServices: false });
 		broker._finishCall = jest.fn();
 		broker._callErrorHandler = jest.fn(err => Promise.reject(err));
 
@@ -2020,7 +2050,7 @@ describe("Test broker._localCall", () => {
 describe("Test broker._remoteCall", () => {
 
 	describe("Test with success handler", () => {
-		let broker = new ServiceBroker({ transporter: "Fake", internalServices: false });
+		let broker = new ServiceBroker({ logger: false, transporter: "Fake", internalServices: false });
 		let transit = broker.transit;
 
 		let action = {
@@ -2115,7 +2145,7 @@ describe("Test broker._remoteCall", () => {
 	});
 
 	describe("Test with fail handler", () => {
-		let broker = new ServiceBroker({ transporter: "Fake", internalServices: false });
+		let broker = new ServiceBroker({ logger: false, transporter: "Fake", internalServices: false });
 		let transit = broker.transit;
 		broker._callErrorHandler = jest.fn(err => Promise.reject(err));
 
@@ -2144,7 +2174,7 @@ describe("Test broker._remoteCall", () => {
 });
 
 describe("Test broker._getLocalActionEndpoint", () => {
-	let broker = new ServiceBroker({ internalServices: false, metrics: true });
+	let broker = new ServiceBroker({ logger: false, internalServices: false, metrics: true });
 
 	let ep = {
 		id: broker.nodeID,
@@ -2186,7 +2216,7 @@ describe("Test broker._getLocalActionEndpoint", () => {
 });
 
 describe("Test broker._handleRemoteRequest", () => {
-	let broker = new ServiceBroker({ internalServices: false, metrics: true });
+	let broker = new ServiceBroker({ logger: false, internalServices: false, metrics: true });
 
 	let ep = {
 		id: broker.nodeID,
@@ -2287,7 +2317,7 @@ describe("Test broker._handleRemoteRequest", () => {
 
 describe("Test broker.mcall", () => {
 
-	let broker = new ServiceBroker({ internalServices: false });
+	let broker = new ServiceBroker({ logger: false, internalServices: false });
 	broker.call = jest.fn(action => Promise.resolve(action));
 
 	it("should call both action & return an array", () => {
@@ -2329,6 +2359,7 @@ describe("Test broker.mcall", () => {
 describe("Test broker._callErrorHandler", () => {
 
 	let broker = new ServiceBroker({
+		logger: false,
 		transporter: "Fake",
 		metrics: true,
 		circuitBreaker: {
@@ -2440,7 +2471,7 @@ describe("Test broker._callErrorHandler", () => {
 describe("Test broker._finishCall", () => {
 
 	describe("metrics enabled", () => {
-		let broker = new ServiceBroker({ metrics: true });
+		let broker = new ServiceBroker({ logger: false, metrics: true });
 		let ctx = new Context(broker, { name: "user.create" });
 		ctx.nodeID = "server-2";
 		ctx.metrics = true;
@@ -2465,7 +2496,7 @@ describe("Test broker._finishCall", () => {
 	});
 
 	describe("statistics enabled", () => {
-		let broker = new ServiceBroker({ metrics: false, statistics: true });
+		let broker = new ServiceBroker({ logger: false, metrics: false, statistics: true });
 		broker.statistics.addRequest = jest.fn();
 		let ctx = new Context(broker, { name: "user.create" });
 		ctx.nodeID = "server-2";
@@ -2498,7 +2529,7 @@ describe("Test broker._finishCall", () => {
 	});
 
 	describe("metrics & statistics enabled", () => {
-		let broker = new ServiceBroker({ metrics: true, statistics: true });
+		let broker = new ServiceBroker({ logger: false, metrics: true, statistics: true });
 		broker.statistics.addRequest = jest.fn();
 		let ctx = new Context(broker, { name: "user.create" });
 		ctx.nodeID = "server-2";
@@ -2533,7 +2564,7 @@ describe("Test broker._finishCall", () => {
 describe("Test broker.shouldMetric", () => {
 
 	describe("Test broker.shouldMetric with 0.25", () => {
-		let broker = new ServiceBroker({ transporter: "Fake", metrics: true, metricsRate: 0.25 });
+		let broker = new ServiceBroker({ logger: false, transporter: "Fake", metrics: true, metricsRate: 0.25 });
 
 		it("should return true only all 1/4 calls", () => {
 			expect(broker.shouldMetric()).toBe(false);
@@ -2653,7 +2684,7 @@ describe("Test broker.emit", () => {
 });
 
 describe("Test broker.emit with transporter", () => {
-	let broker = new ServiceBroker({ transporter: "Fake" });
+	let broker = new ServiceBroker({ logger: false, transporter: "Fake" });
 	broker.transit.sendBalancedEvent = jest.fn();
 	broker.transit.sendEventToGroups = jest.fn();
 	let handler = jest.fn();
@@ -2748,7 +2779,7 @@ describe("Test broker.emit with transporter", () => {
 });
 
 describe("Test broker broadcast", () => {
-	let broker = new ServiceBroker({ nodeID: "server-1", transporter: "Fake" });
+	let broker = new ServiceBroker({ logger: false, nodeID: "server-1", transporter: "Fake" });
 	broker.broadcastLocal = jest.fn();
 	broker.transit.sendBroadcastEvent = jest.fn();
 
@@ -2824,7 +2855,7 @@ describe("Test broker broadcast", () => {
 });
 
 describe("Test broker broadcastLocal", () => {
-	let broker = new ServiceBroker({ nodeID: "server-1" });
+	let broker = new ServiceBroker({ logger: false, nodeID: "server-1" });
 	broker.emitLocalServices = jest.fn();
 	broker.localBus.emit = jest.fn();
 
@@ -2868,6 +2899,7 @@ describe("Test hot-reload feature", () => {
 
 	describe("Test loadService with hot reload", () => {
 		let broker = new ServiceBroker({
+			logger: false,
 			hotReload: true
 		});
 
@@ -2899,6 +2931,7 @@ describe("Test hot-reload feature", () => {
 		});
 
 		let broker = new ServiceBroker({
+			logger: false,
 			hotReload: true
 		});
 
@@ -2940,6 +2973,7 @@ describe("Test hot-reload feature", () => {
 		utils.clearRequireCache = jest.fn();
 
 		let broker = new ServiceBroker({
+			logger: false,
 			hotReload: true
 		});
 
@@ -2984,7 +3018,7 @@ describe("Test broker sendPing", () => {
 });
 
 describe("Test broker getHealthStatus", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 
 	it("should call H.getHealthStatus", () => {
 		broker.getHealthStatus();
@@ -2995,7 +3029,7 @@ describe("Test broker getHealthStatus", () => {
 });
 
 describe("Test registry links", () => {
-	let broker = new ServiceBroker({ transporter: "Fake" });
+	let broker = new ServiceBroker({ logger: false, transporter: "Fake" });
 
 	broker.registry.getLocalNodeInfo = jest.fn();
 	broker.registry.events.getGroups = jest.fn();

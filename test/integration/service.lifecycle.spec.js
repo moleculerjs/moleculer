@@ -8,7 +8,7 @@ describe("Test Service handlers", () => {
 	let stoppedHandler = jest.fn();
 	let eventHandler = jest.fn();
 
-	let broker = new ServiceBroker({ nodeID: "node-1" });
+	let broker = new ServiceBroker({ logger: false, nodeID: "node-1" });
 
 	broker.createService({
 		name: "posts",
@@ -52,7 +52,7 @@ describe("Test Service handlers after broker.start", () => {
 	let stoppedHandler = jest.fn();
 	let eventHandler = jest.fn();
 
-	let broker = new ServiceBroker({ nodeID: "node-1" });
+	let broker = new ServiceBroker({ logger: false, nodeID: "node-1" });
 
 	beforeAll(() => broker.start());
 
@@ -92,7 +92,7 @@ describe("Test Service handlers after broker.start", () => {
 
 
 describe("Test Service handlers with delayed shutdown", () => {
-	const broker = new ServiceBroker({ nodeID: "node-1", trackContext: true });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node-1", trackContext: true });
 
 	const FLOW = [];
 
@@ -127,8 +127,8 @@ describe("Test Service handlers with delayed shutdown", () => {
 });
 
 describe("Test Service requesting during stopping", () => {
-	const broker1 = new ServiceBroker({ nodeID: "node-1", transporter: "Fake" });
-	const broker2 = new ServiceBroker({ nodeID: "node-2", transporter: "Fake" });
+	const broker1 = new ServiceBroker({ logger: false, nodeID: "node-1", transporter: "Fake" });
+	const broker2 = new ServiceBroker({ logger: false, nodeID: "node-2", transporter: "Fake" });
 
 	let resolver = null;
 

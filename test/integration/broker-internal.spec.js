@@ -6,6 +6,7 @@ describe("Test internal services", () => {
 
 	const broker = new ServiceBroker({
 		nodeID: "node-master",
+		logger: false,
 		statistics: true,
 		transporter: null,
 		internalServices: true

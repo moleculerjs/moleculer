@@ -9,7 +9,7 @@ let ServiceBroker = require("../../../src/service-broker");
 
 describe("Test ActionCatalog constructor", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	it("test without CB", () => {
@@ -40,7 +40,7 @@ describe("Test ActionCatalog constructor", () => {
 });
 
 describe("Test ActionCatalog methods", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let catalog = new ActionCatalog(broker.registry, broker, Strategy);
 	let list;
 	let service = { name: "test" };

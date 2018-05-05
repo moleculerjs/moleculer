@@ -8,7 +8,7 @@ const { CIRCUIT_CLOSE, CIRCUIT_HALF_OPEN, CIRCUIT_OPEN } = require("../../../src
 
 describe("Test ActionEndpoint", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	let node = { id: "server-1" };
@@ -40,6 +40,7 @@ describe("Test ActionEndpoint", () => {
 describe("Test ActionEndpoint circuit-breaker", () => {
 
 	let broker = new ServiceBroker({
+		logger: false,
 		circuitBreaker: {
 			maxFailures: 2,
 			halfOpenTime: 5 * 1000

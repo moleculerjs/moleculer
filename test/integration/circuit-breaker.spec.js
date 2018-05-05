@@ -9,6 +9,7 @@ describe("Test circuit breaker", () => {
 	let clock;
 
 	const master1 = new ServiceBroker({
+		logger: false,
 		transporter: new FakeTransporter(),
 		nodeID: "master-1",
 		circuitBreaker: {
@@ -20,6 +21,7 @@ describe("Test circuit breaker", () => {
 	});
 
 	const slave1 = new ServiceBroker({
+		logger: false,
 		transporter: new FakeTransporter(),
 		nodeID: "slave-1",
 	});

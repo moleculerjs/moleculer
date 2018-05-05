@@ -86,7 +86,7 @@ describe("Test AmqpTransporter constructor", () => {
 });
 
 describe("Test AmqpTransporter connect & disconnect", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let transit = new Transit(broker);
 	let msgHandler = jest.fn();
 	let transporter;
@@ -153,7 +153,7 @@ describe("Test AmqpTransporter subscribe", () => {
 	let broker;
 
 	beforeEach(() => {
-		broker = new ServiceBroker({ namespace: "TEST", nodeID: "node", internalServices: false });
+		broker = new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node", internalServices: false });
 		msgHandler = jest.fn();
 		transporter = new AmqpTransporter({ url: "amqp://localhost", eventTimeToLive: 3000 });
 		transporter.init(new Transit(broker), msgHandler);
@@ -232,7 +232,7 @@ describe("Test AmqpTransporter subscribe", () => {
 	let broker;
 
 	beforeEach(() => {
-		broker = new ServiceBroker({ namespace: "TEST", nodeID: "node", internalServices: false });
+		broker = new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node", internalServices: false });
 		msgHandler = jest.fn();
 		transporter = new AmqpTransporter({
 			url: "amqp://localhost",
@@ -433,7 +433,7 @@ describe("Test AmqpTransporter publish", () => {
 	beforeEach(() => {
 		msgHandler = jest.fn();
 		transporter = new AmqpTransporter({ url: "amqp://localhost", eventTimeToLive: 3000 });
-		transporter.init(new Transit(new ServiceBroker({ namespace: "TEST" })), msgHandler);
+		transporter.init(new Transit(new ServiceBroker({ logger: false, namespace: "TEST" })), msgHandler);
 		transporter.serialize = jest.fn(() => "json data");
 		return transporter.connect();
 	});

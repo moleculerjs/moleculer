@@ -109,7 +109,7 @@ describe("Test KafkaTransporter constructor", () => {
 });
 
 describe("Test KafkaTransporter connect & disconnect", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let transit = new Transit(broker);
 	let msgHandler = jest.fn();
 	let transporter;
@@ -177,7 +177,7 @@ describe("Test KafkaTransporter makeSubscriptions", () => {
 	beforeEach(() => {
 		msgHandler = jest.fn();
 		transporter = new KafkaTransporter("kafka://kafka-server:1234");
-		transporter.init(new Transit(new ServiceBroker({ namespace: "TEST", nodeID: "node-1" })), msgHandler);
+		transporter.init(new Transit(new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-1" })), msgHandler);
 
 		let p = transporter.connect();
 		transporter.client.callbacks.connect(); // Trigger the `resolve`
@@ -229,7 +229,7 @@ describe("Test KafkaTransporter subscribe & publish", () => {
 	beforeEach(() => {
 		msgHandler = jest.fn();
 		transporter = new KafkaTransporter();
-		transporter.init(new Transit(new ServiceBroker({ namespace: "TEST", nodeID: "node1" })), msgHandler);
+		transporter.init(new Transit(new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node1" })), msgHandler);
 		transporter.serialize = jest.fn(() => "json data");
 
 		let p = transporter.connect();

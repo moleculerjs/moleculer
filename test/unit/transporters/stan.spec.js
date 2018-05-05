@@ -65,7 +65,7 @@ describe("Test StanTransporter constructor", () => {
 });
 
 describe("Test StanTransporter connect & disconnect & reconnect", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let transit = new Transit(broker);
 	let msgHandler = jest.fn();
 	let transporter;
@@ -145,7 +145,7 @@ describe("Test StanTransporter subscribe & publish", () => {
 	beforeEach(() => {
 		msgHandler = jest.fn();
 		transporter = new StanTransporter();
-		transporter.init(new Transit(new ServiceBroker({ namespace: "TEST" })), msgHandler);
+		transporter.init(new Transit(new ServiceBroker({ logger: false, namespace: "TEST" })), msgHandler);
 
 		let p = transporter.connect();
 		transporter._client.callbacks.connect(); // Trigger the `resolve`

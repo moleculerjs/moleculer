@@ -13,6 +13,7 @@ function createNode(name, serviceName = "emit-handler", disableBalancer = false)
 	const broker = new ServiceBroker({
 		namespace: "test-emit",
 		nodeID: "event-" + name,
+		logger: false,
 		//logger: console,
 		//logLevel: name == "pub"? "debug" : "error",
 		transporter: process.env.AMQP_URI || "amqp://guest:guest@localhost:5672",

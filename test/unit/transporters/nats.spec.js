@@ -53,7 +53,7 @@ describe("Test NatsTransporter constructor", () => {
 });
 
 describe("Test NatsTransporter connect & disconnect & reconnect", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let transit = new Transit(broker);
 	let msgHandler = jest.fn();
 	let transporter;
@@ -136,7 +136,7 @@ describe("Test NatsTransporter subscribe & publish", () => {
 
 	beforeEach(() => {
 		transporter = new NatsTransporter();
-		transporter.init(new Transit(new ServiceBroker({ namespace: "TEST", nodeID: "node-123" })));
+		transporter.init(new Transit(new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-123" })));
 
 		let p = transporter.connect();
 		transporter._client.onCallbacks.connect(); // Trigger the `resolve`

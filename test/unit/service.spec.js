@@ -7,7 +7,7 @@ const { protectReject } = require("./utils");
 
 describe("Test Service constructor", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 
 	let schema = {
 		name: "users",
@@ -75,7 +75,7 @@ describe("Test Service constructor", () => {
 });
 
 describe("Test action creation", () => {
-	let broker = new ServiceBroker({ internalServices: false });
+	let broker = new ServiceBroker({ logger: false, internalServices: false });
 
 	let schema = {
 		name: "posts",
@@ -158,7 +158,7 @@ describe("Test action creation", () => {
 
 describe("Test events creation", () => {
 	it("should register event handler to broker", () => {
-		let broker = new ServiceBroker({ internalServices: false });
+		let broker = new ServiceBroker({ logger: false, internalServices: false });
 		broker.registerLocalService = jest.fn();
 		broker.addLocalService = jest.fn();
 
@@ -190,7 +190,7 @@ describe("Test events creation", () => {
 	});
 
 	it("should register event handler with mixins", () => {
-		let broker = new ServiceBroker({ internalServices: false });
+		let broker = new ServiceBroker({ logger: false, internalServices: false });
 		broker.addLocalService = jest.fn();
 		broker.registerLocalService = jest.fn();
 
@@ -231,7 +231,7 @@ describe("Test events creation", () => {
 	});
 
 	it("should throw error because no handler of event", () => {
-		let broker = new ServiceBroker({ internalServices: false });
+		let broker = new ServiceBroker({ logger: false, internalServices: false });
 		expect(() => {
 			broker.createService({
 				name: "test",
@@ -245,7 +245,7 @@ describe("Test events creation", () => {
 
 describe("Test methods creation", () => {
 	it("should create method in Service instance", () => {
-		let broker = new ServiceBroker({ internalServices: false });
+		let broker = new ServiceBroker({ logger: false, internalServices: false });
 		let service = broker.createService({
 			name: "posts",
 			methods: {
@@ -262,7 +262,7 @@ describe("Test methods creation", () => {
 	});
 
 	it("should throw error because method name is reserved", () => {
-		let broker = new ServiceBroker({ internalServices: false });
+		let broker = new ServiceBroker({ logger: false, internalServices: false });
 		expect(() => {
 			broker.createService({
 				name: "test",
@@ -275,7 +275,7 @@ describe("Test methods creation", () => {
 });
 
 describe("Test created event handler", () => {
-	let broker = new ServiceBroker({ internalServices: false });
+	let broker = new ServiceBroker({ logger: false, internalServices: false });
 
 	let schema = {
 		name: "posts",
@@ -289,7 +289,7 @@ describe("Test created event handler", () => {
 });
 
 describe("Test _createAction function", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 
 	const handler = jest.fn();
 
@@ -414,7 +414,7 @@ describe("Test _createAction function", () => {
 
 
 describe("Test constructor with mixins", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 
 	let mixin1 = { name: "mixin1" };
 	let mixin2 = { name: "mixin2" };
@@ -443,7 +443,7 @@ describe("Test constructor with mixins", () => {
 describe("Test lifecycle event handlers", () => {
 	describe("with simple handlers", () => {
 
-		let broker = new ServiceBroker();
+		let broker = new ServiceBroker({ logger: false });
 
 		let schema = {
 			name: "simple",
@@ -474,7 +474,7 @@ describe("Test lifecycle event handlers", () => {
 
 	describe("with multiple handlers (from mixins)", () => {
 
-		let broker = new ServiceBroker();
+		let broker = new ServiceBroker({ logger: false });
 
 		let FLOW = [];
 
@@ -531,7 +531,7 @@ describe("Test lifecycle event handlers", () => {
 });
 
 describe("Test broker.waitForServices", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	broker.waitForServices = jest.fn();
 
 	it("should call waitForServices", () => {
@@ -548,7 +548,7 @@ describe("Test broker.waitForServices", () => {
 });
 
 describe("Test active context tracking", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 
 	it("should store context", () => {
 		let svc = broker.createService({
@@ -573,7 +573,7 @@ describe("Test dependencies", () => {
 
 	describe("with one dependency", () => {
 
-		let broker = new ServiceBroker();
+		let broker = new ServiceBroker({ logger: false });
 
 		let schema = {
 			name: "simple",
@@ -604,7 +604,7 @@ describe("Test dependencies", () => {
 
 	describe("with multi dependency & $dependencyTimeout ", () => {
 
-		let broker = new ServiceBroker();
+		let broker = new ServiceBroker({ logger: false });
 
 		let schema = {
 			name: "simple",

@@ -4,7 +4,7 @@ const Context = require("../../src/context");
 const { protectReject } = require("../unit/utils");
 
 describe("Test load services", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 
 	it("should create service from schema", () => {
 		let handler = jest.fn();
@@ -41,7 +41,7 @@ describe("Test load services", () => {
 
 describe("Test local call", () => {
 
-	let broker = new ServiceBroker({ metrics: true });
+	let broker = new ServiceBroker({ logger: false, metrics: true });
 
 	let actionHandler = jest.fn(ctx => ctx);
 	let exportHandler = jest.fn(ctx => {
@@ -164,7 +164,7 @@ describe("Test local call", () => {
 
 describe("Test versioned action registration", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 
 	let findV1 = jest.fn(ctx => ctx);
 	let findV2 = jest.fn(ctx => ctx);
@@ -207,6 +207,7 @@ describe("Test versioned action registration", () => {
 describe("Test cachers", () => {
 
 	let broker = new ServiceBroker({
+		logger: false,
 		cacher: new MemoryCacher()
 	});
 

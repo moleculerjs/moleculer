@@ -14,7 +14,7 @@ describe("Test BaseSerializer", () => {
 	});
 
 	it("check init", () => {
-		let broker = new ServiceBroker();
+		let broker = new ServiceBroker({ logger: false });
 		let serializer = new Serializer();
 
 		serializer.init(broker);
@@ -26,7 +26,7 @@ describe("Test serializer.serializeCustomFields", () => {
 	let serializer;
 
 	beforeEach(() => {
-		let broker = new ServiceBroker();
+		let broker = new ServiceBroker({ logger: false });
 		serializer = new Serializer();
 
 		serializer.init(broker);
@@ -122,7 +122,7 @@ describe("Test serializer.deserializeCustomFields", () => {
 	let serializer;
 
 	beforeEach(() => {
-		let broker = new ServiceBroker();
+		let broker = new ServiceBroker({ logger: false });
 		serializer = new Serializer();
 
 		serializer.init(broker);

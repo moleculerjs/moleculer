@@ -6,7 +6,7 @@ let ServiceBroker = require("../../../src/service-broker");
 describe("Test NodeCatalog constructor", () => {
 
 	it("test properties", () => {
-		let broker = new ServiceBroker();
+		let broker = new ServiceBroker({ logger: false });
 		let registry = broker.registry;
 
 		broker.localBus.on = jest.fn();
@@ -37,7 +37,7 @@ describe("Test NodeCatalog constructor", () => {
 	});
 
 	it("should call startHeartbeatTimers & stortHeartbeatTimers", () => {
-		let broker = new ServiceBroker();
+		let broker = new ServiceBroker({ logger: false });
 		let catalog = new NodeCatalog(broker.registry, broker);
 
 		catalog.startHeartbeatTimers = jest.fn();
@@ -59,7 +59,7 @@ describe("Test NodeCatalog constructor", () => {
 });
 
 describe("Test NodeCatalog localNode", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let catalog = new NodeCatalog(broker.registry, broker);
 
 	it("should load local values", () => {
@@ -81,7 +81,7 @@ describe("Test NodeCatalog localNode", () => {
 });
 
 describe("Test NodeCatalog.add & has & get", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let catalog = new NodeCatalog(broker.registry, broker);
 
 	it("should add new nodes", () => {
@@ -104,7 +104,7 @@ describe("Test NodeCatalog.add & has & get", () => {
 });
 
 describe("Test NodeCatalog.processNodeInfo", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let catalog = new NodeCatalog(broker.registry, broker);
 	broker.registry.registerServices = jest.fn();
 	broker.broadcastLocal = jest.fn();
@@ -200,7 +200,7 @@ describe("Test NodeCatalog.processNodeInfo", () => {
 });
 
 describe("Test NodeCatalog.disconnected", () => {
-	let broker = new ServiceBroker({ transporter: "Fake" });
+	let broker = new ServiceBroker({ logger: false, transporter: "Fake" });
 	let catalog = new NodeCatalog(broker.registry, broker);
 	broker.registry.unregisterServicesByNode = jest.fn();
 	broker.broadcastLocal = jest.fn();
@@ -261,7 +261,7 @@ describe("Test NodeCatalog.disconnected", () => {
 });
 
 describe("Test NodeCatalog.heartbeat", () => {
-	let broker = new ServiceBroker({ transporter: "fake" });
+	let broker = new ServiceBroker({ logger: false, transporter: "fake" });
 	let catalog = new NodeCatalog(broker.registry, broker);
 	broker.transit.discoverNode = jest.fn();
 
@@ -314,7 +314,7 @@ describe("Test NodeCatalog.heartbeat", () => {
 });
 
 describe("Test checkRemoteNodes", () => {
-	let broker = new ServiceBroker({ transporter: "fake" });
+	let broker = new ServiceBroker({ logger: false, transporter: "fake" });
 	let catalog = new NodeCatalog(broker.registry, broker);
 
 	let payload = {
@@ -358,7 +358,7 @@ describe("Test checkRemoteNodes", () => {
 });
 
 describe("Test checkOfflineNodes", () => {
-	let broker = new ServiceBroker({ transporter: "fake" });
+	let broker = new ServiceBroker({ logger: false, transporter: "fake" });
 	let catalog = new NodeCatalog(broker.registry, broker);
 
 	let payload1 = {
@@ -417,7 +417,7 @@ describe("Test checkOfflineNodes", () => {
 });
 
 describe("Test NodeCatalog.list", () => {
-	let broker = new ServiceBroker({ transporter: "fake" });
+	let broker = new ServiceBroker({ logger: false, transporter: "fake" });
 	let catalog = new NodeCatalog(broker.registry, broker);
 	broker.transit.discoverNode = jest.fn();
 
@@ -510,7 +510,7 @@ describe("Test NodeCatalog.list", () => {
 });
 
 describe("Test NodeCatalog.toArray", () => {
-	let broker = new ServiceBroker({ nodeID: "node-1", transporter: "fake" });
+	let broker = new ServiceBroker({ logger: false, nodeID: "node-1", transporter: "fake" });
 	let catalog = new NodeCatalog(broker.registry, broker);
 	broker.transit.discoverNode = jest.fn();
 

@@ -43,7 +43,7 @@ describe("Test NatsTransporter constructor", () => {
 });
 
 describe("Test MqttTransporter connect & disconnect", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let transit = new Transit(broker);
 	let msgHandler = jest.fn();
 	let transporter;
@@ -107,7 +107,7 @@ describe("Test MqttTransporter subscribe & publish", () => {
 		transporter.serialize = jest.fn(() => "json data");
 		transporter.incomingMessage = jest.fn();
 
-		transporter.init(new Transit(new ServiceBroker({ namespace: "TEST", nodeID: "node1" })), msgHandler);
+		transporter.init(new Transit(new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node1" })), msgHandler);
 
 		let p = transporter.connect();
 		transporter._client.onCallbacks.connect(); // Trigger the `resolve`

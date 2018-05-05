@@ -10,7 +10,7 @@ const P = require("../../src/packets");
 
 describe("Test Transporter constructor", () => {
 
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ logger: false });
 	const transporter = new FakeTransporter();
 
 	it("create instance", () => {
@@ -52,7 +52,7 @@ describe("Test Transporter constructor", () => {
 
 describe("Test Transit.connect", () => {
 
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ logger: false });
 	const transporter = new FakeTransporter();
 	const transit = new Transit(broker, transporter);
 
@@ -93,7 +93,7 @@ describe("Test Transit.connect", () => {
 
 describe("Test Transit.afterConnect", () => {
 
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ logger: false });
 	const transporter = new FakeTransporter();
 	const transit = new Transit(broker, transporter);
 
@@ -138,7 +138,7 @@ describe("Test Transit.afterConnect", () => {
 
 describe("Test Transit.disconnect", () => {
 
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ logger: false });
 	const transporter = new FakeTransporter();
 	const transit = new Transit(broker, transporter);
 
@@ -171,7 +171,7 @@ describe("Test Transit.disconnect", () => {
 
 describe("Test Transit.ready", () => {
 
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ logger: false });
 	const transporter = new FakeTransporter();
 	const transit = new Transit(broker, transporter);
 
@@ -201,7 +201,7 @@ describe("Test Transit.ready", () => {
 
 describe("Test Transit.sendDisconnectPacket", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	transit.publish = jest.fn(() => Promise.resolve());
@@ -220,7 +220,7 @@ describe("Test Transit.sendDisconnectPacket", () => {
 
 describe("Test Transit.makeSubscriptions", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	transit.tx.makeSubscriptions = jest.fn(() => Promise.resolve());
@@ -249,7 +249,7 @@ describe("Test Transit.makeSubscriptions", () => {
 
 describe("Test Transit.sendBroadcastEvent", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	transit.publish = jest.fn(() => Promise.resolve());
@@ -287,7 +287,7 @@ describe("Test Transit.sendBroadcastEvent", () => {
 
 describe("Test Transit.sendBalancedEvent", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	transit.publish = jest.fn(() => Promise.resolve());
@@ -323,7 +323,7 @@ describe("Test Transit.sendBalancedEvent", () => {
 
 describe("Test Transit.sendEventToGroups", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	transit.publish = jest.fn(() => Promise.resolve());
@@ -352,7 +352,7 @@ describe("Test Transit.messageHandler", () => {
 	// transit.subscribe = jest.fn();
 
 	beforeEach(() => {
-		broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+		broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 		transit = broker.transit;
 	});
 
@@ -502,7 +502,7 @@ describe("Test Transit.messageHandler", () => {
 
 describe("Test Transit._requestHandler", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter(), trackContext: true });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter(), trackContext: true });
 	const transit = broker.transit;
 	broker.started = true;
 
@@ -606,7 +606,7 @@ describe("Test Transit._requestHandler", () => {
 
 describe("Test Transit._responseHandler", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	let id = "12345";
@@ -678,7 +678,7 @@ describe("Test Transit._responseHandler", () => {
 
 describe("Test Transit._eventHandler", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	broker.emitLocalServices = jest.fn();
@@ -699,7 +699,7 @@ describe("Test Transit._eventHandler", () => {
 
 describe("Test Transit.request", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	it("should create packet", () => {
@@ -746,7 +746,7 @@ describe("Test Transit.request", () => {
 
 describe("Test Transit.sendResponse", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	transit.publish = jest.fn(() => Promise.resolve());
@@ -791,7 +791,7 @@ describe("Test Transit.sendResponse", () => {
 
 describe("Test Transit.removePendingRequestByNodeID", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	transit.publish = jest.fn(() => Promise.resolve());
@@ -844,7 +844,7 @@ describe("Test Transit.removePendingRequestByNodeID", () => {
 
 describe("Test Transit.discoverNodes", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	transit.publish = jest.fn(() => Promise.resolve());
@@ -862,7 +862,7 @@ describe("Test Transit.discoverNodes", () => {
 
 describe("Test Transit.discoverNode", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	transit.publish = jest.fn(() => Promise.resolve());
@@ -881,7 +881,7 @@ describe("Test Transit.discoverNode", () => {
 
 describe("Test Transit.sendNodeInfo", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter(), internalServices: false });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter(), internalServices: false });
 	const transit = broker.transit;
 	broker.getLocalNodeInfo = jest.fn(() => ({
 		id: "node2",
@@ -940,7 +940,7 @@ describe("Test Transit.sendNodeInfo", () => {
 
 describe("Test Transit.sendPing", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node-1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node-1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	transit.publish = jest.fn(() => Promise.resolve());
@@ -959,7 +959,7 @@ describe("Test Transit.sendPing", () => {
 
 describe("Test Transit.sendPong", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node-1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node-1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	transit.publish = jest.fn(() => Promise.resolve());
@@ -978,7 +978,7 @@ describe("Test Transit.sendPong", () => {
 
 describe("Test Transit.processPong", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node-1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node-1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	broker.broadcastLocal = jest.fn();
@@ -995,7 +995,7 @@ describe("Test Transit.processPong", () => {
 
 describe("Test Transit.sendHeartbeat", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	transit.publish = jest.fn(() => Promise.resolve());
@@ -1013,7 +1013,7 @@ describe("Test Transit.sendHeartbeat", () => {
 
 describe("Test Transit.subscribe", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 	const transporter = transit.tx;
 
@@ -1029,7 +1029,7 @@ describe("Test Transit.subscribe", () => {
 
 describe("Test Transit.publish", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 	const transporter = transit.tx;
 

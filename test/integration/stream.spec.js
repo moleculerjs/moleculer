@@ -5,12 +5,14 @@ const Stream = require("stream");
 describe("Test to send stream as ctx.param", () => {
 
 	let b1 = new ServiceBroker({
+		logger: false,
 		namespace: "test-1",
 		transporter: "Fake",
 		nodeID: "node-1"
 	});
 
 	let b2 = new ServiceBroker({
+		logger: false,
 		namespace: "test-1",
 		transporter: "Fake",
 		nodeID: "node-2"
@@ -104,12 +106,14 @@ describe("Test to send stream as ctx.param", () => {
 describe("Test to receive a stream as response", () => {
 
 	let b1 = new ServiceBroker({
+		logger: false,
 		namespace: "test-2",
 		transporter: "Fake",
 		nodeID: "node-1"
 	});
 
 	let b2 = new ServiceBroker({
+		logger: false,
 		namespace: "test-2",
 		transporter: "Fake",
 		nodeID: "node-2"
@@ -200,12 +204,14 @@ describe("Test to receive a stream as response", () => {
 describe("Test duplex streaming", () => {
 
 	let b1 = new ServiceBroker({
+		logger: false,
 		namespace: "test-3",
 		transporter: "Fake",
 		nodeID: "node-1"
 	});
 
 	let b2 = new ServiceBroker({
+		logger: false,
 		namespace: "test-3",
 		transporter: "Fake",
 		nodeID: "node-2"

@@ -36,7 +36,7 @@ describe("Test BaseCacher", () => {
 	});
 
 	it("check init", () => {
-		let broker = new ServiceBroker();
+		let broker = new ServiceBroker({ logger: false });
 		broker.on = jest.fn();
 		broker.use = jest.fn();
 		let cacher = new Cacher();
@@ -56,7 +56,7 @@ describe("Test BaseCacher", () => {
 	});
 
 	it("check init with namespace", () => {
-		let broker = new ServiceBroker({ namespace: "uat-test" });
+		let broker = new ServiceBroker({ logger: false, namespace: "uat-test" });
 		let cacher = new Cacher();
 		cacher.init(broker);
 
@@ -64,7 +64,7 @@ describe("Test BaseCacher", () => {
 	});
 
 	it("check init with prefix", () => {
-		let broker = new ServiceBroker({ namespace: "uat-test" });
+		let broker = new ServiceBroker({ logger: false, namespace: "uat-test" });
 		let cacher = new Cacher({ prefix: "other" });
 		cacher.init(broker);
 
@@ -73,7 +73,7 @@ describe("Test BaseCacher", () => {
 
 
 	it("check getCacheKey", () => {
-		let broker = new ServiceBroker();
+		let broker = new ServiceBroker({ logger: false });
 		let cacher = new Cacher();
 
 		cacher.init(broker);
@@ -167,7 +167,7 @@ describe("Test BaseCacher", () => {
 	});
 
 	it("check getCacheKey with custom keygen", () => {
-		let broker = new ServiceBroker();
+		let broker = new ServiceBroker({ logger: false });
 		let keygen = jest.fn(() => "custom");
 		let cacher = new Cacher({ keygen });
 
@@ -185,6 +185,7 @@ describe("Test middleware", () => {
 
 	let cacher = new Cacher();
 	let broker = new ServiceBroker({
+		logger: false,
 		cacher
 	});
 
@@ -293,6 +294,7 @@ describe("Test middleware", () => {
 describe("Test cache.clean & cache.del events", () => {
 	let cacher = new Cacher();
 	let broker = new ServiceBroker({
+		logger: false,
 		cacher
 	});
 

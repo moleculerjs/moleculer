@@ -41,7 +41,7 @@ describe("Test Context", () => {
 
 	it("test with constructor params", () => {
 
-		let broker = new ServiceBroker();
+		let broker = new ServiceBroker({ logger: false });
 		let action = {
 			name: "posts.find"
 		};
@@ -55,7 +55,7 @@ describe("Test Context", () => {
 
 	it("test with constructor params & service", () => {
 
-		let broker = new ServiceBroker();
+		let broker = new ServiceBroker({ logger: false });
 		let action = {
 			name: "posts.find",
 			service: {
@@ -109,7 +109,7 @@ describe("Test setParams", () => {
 
 describe("Test tracking", () => {
 
-	let broker = new ServiceBroker({ trackContext: true });
+	let broker = new ServiceBroker({ logger: false, trackContext: true });
 	let action = {
 		name: "posts.find",
 		service: {
@@ -146,7 +146,7 @@ describe("Test tracking", () => {
 });
 
 describe("Test call method", () => {
-	let broker = new ServiceBroker({ maxCallLevel: 5 });
+	let broker = new ServiceBroker({ logger: false, maxCallLevel: 5 });
 	broker.call = jest.fn(() => broker.Promise.resolve());
 
 	it("should call broker.call method with itself", () => {
@@ -218,7 +218,7 @@ describe("Test call method", () => {
 });
 
 describe("Test call with meta merge", () => {
-	let broker = new ServiceBroker({ maxCallLevel: 5 });
+	let broker = new ServiceBroker({ logger: false, maxCallLevel: 5 });
 	let err = new Error("Subcall error");
 
 	broker.call = jest.fn()
@@ -267,7 +267,7 @@ describe("Test call with meta merge", () => {
 });
 
 describe("Test emit method", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	broker.emit = jest.fn();
 
 	let ctx = new Context(broker);
@@ -296,7 +296,7 @@ describe("Test emit method", () => {
 });
 
 describe("Test broadcast method", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	broker.broadcast = jest.fn();
 
 	let ctx = new Context(broker);
@@ -325,7 +325,7 @@ describe("Test broadcast method", () => {
 });
 
 describe("Test _metricStart method", () => {
-	let broker = new ServiceBroker({ metrics: true, nodeID: "master" });
+	let broker = new ServiceBroker({ logger: false, metrics: true, nodeID: "master" });
 	let ctx = new Context(broker, { name: "users.get", metrics: false, service: { name: "users", version: 2 } });
 	ctx.requestID = "abcdef";
 	ctx.parentID = 123;
@@ -454,7 +454,7 @@ describe("Test _metricStart method", () => {
 });
 
 describe("Test _metricFinish method", () => {
-	let broker = new ServiceBroker({ metrics: true });
+	let broker = new ServiceBroker({ logger: false, metrics: true });
 	let ctx = new Context(broker, { name: "users.get", metrics: false, service: { name: "users", version: 2 }  });
 	ctx.callerNodeID = "server-2";
 	ctx.parentID = 123;

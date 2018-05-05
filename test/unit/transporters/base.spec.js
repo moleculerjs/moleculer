@@ -38,7 +38,7 @@ describe("Test BaseTransporter", () => {
 	});
 
 	it("check init", () => {
-		let broker = new ServiceBroker({ namespace: "beta-test", nodeID: "server1" });
+		let broker = new ServiceBroker({ logger: false, namespace: "beta-test", nodeID: "server1" });
 		let transporter = new BaseTransporter();
 		let transit = new Transit(broker, transporter);
 		let handler = jest.fn();
@@ -88,7 +88,7 @@ describe("Test BaseTransporter", () => {
 	});
 
 	it("check getTopicName", () => {
-		let broker = new ServiceBroker({ namespace: "beta-test", nodeID: "server1" });
+		let broker = new ServiceBroker({ logger: false, namespace: "beta-test", nodeID: "server1" });
 		let transporter = new BaseTransporter();
 		new Transit(broker, transporter);
 
@@ -97,7 +97,7 @@ describe("Test BaseTransporter", () => {
 	});
 
 	it("should call subscribe with all topics", () => {
-		let broker = new ServiceBroker({ namespace: "beta-test", nodeID: "server1" });
+		let broker = new ServiceBroker({ logger: false, namespace: "beta-test", nodeID: "server1" });
 		let transporter = new BaseTransporter();
 		new Transit(broker, transporter);
 		transporter.subscribe = jest.fn(() => Promise.resolve());
@@ -113,7 +113,7 @@ describe("Test BaseTransporter", () => {
 	});
 
 	it("check makeBalancedSubscriptions if hasBuiltInBalancer = FALSE", () => {
-		let broker = new ServiceBroker({ namespace: "beta-test", nodeID: "server1" });
+		let broker = new ServiceBroker({ logger: false, namespace: "beta-test", nodeID: "server1" });
 		let transporter = new BaseTransporter();
 		new Transit(broker, transporter);
 		transporter.hasBuiltInBalancer = false;
@@ -150,7 +150,7 @@ describe("Test BaseTransporter", () => {
 	});
 
 	it("check makeBalancedSubscriptions if hasBuiltInBalancer = TRUE", () => {
-		let broker = new ServiceBroker({ namespace: "beta-test", nodeID: "server1" });
+		let broker = new ServiceBroker({ logger: false, namespace: "beta-test", nodeID: "server1" });
 		let transporter = new BaseTransporter();
 		new Transit(broker, transporter);
 		transporter.hasBuiltInBalancer = true;
@@ -195,7 +195,7 @@ describe("Test BaseTransporter", () => {
 
 	describe("Test prepublish", () => {
 
-		const broker = new ServiceBroker({ namespace: "beta-test", nodeID: "server1" });
+		const broker = new ServiceBroker({ logger: false, namespace: "beta-test", nodeID: "server1" });
 		const transporter = new BaseTransporter();
 		const transit = new Transit(broker, transporter);
 
@@ -280,7 +280,7 @@ describe("Test BaseTransporter", () => {
 	});
 
 	describe("Test serialize", () => {
-		const broker = new ServiceBroker({ namespace: "beta-test", nodeID: "server1" });
+		const broker = new ServiceBroker({ logger: false, namespace: "beta-test", nodeID: "server1" });
 		const transporter = new BaseTransporter();
 		new Transit(broker, transporter);
 
@@ -296,7 +296,7 @@ describe("Test BaseTransporter", () => {
 	});
 
 	describe("Test deserialize", () => {
-		const broker = new ServiceBroker({ namespace: "beta-test", nodeID: "server1" });
+		const broker = new ServiceBroker({ logger: false, namespace: "beta-test", nodeID: "server1" });
 		const transporter = new BaseTransporter();
 		new Transit(broker, transporter);
 

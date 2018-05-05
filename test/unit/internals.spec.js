@@ -4,7 +4,7 @@ const ServiceBroker = require("../../src/service-broker");
 const { protectReject } = require("./utils");
 
 describe("Test health status methods", () => {
-	const broker = new ServiceBroker({ transporter: "fake", statistics: true });
+	const broker = new ServiceBroker({ logger: false, transporter: "fake", statistics: true });
 
 	beforeAll(() => broker.start());
 	afterAll(() => broker.stop());

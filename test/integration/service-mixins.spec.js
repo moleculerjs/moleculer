@@ -203,7 +203,7 @@ describe("Test Service mixins", () => {
 		stopped: jest.fn(() => flowStopped.push("main"))
 	};
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 
 	let svc = broker.createService(mainSchema);
 	svc.waitForServices = jest.fn(() => Promise.resolve());

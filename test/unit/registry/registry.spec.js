@@ -7,7 +7,7 @@ const { protectReject } = require("../utils");
 
 describe("Test Registry constructor", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	broker.localBus.on = jest.fn();
 
 	it("test properties", () => {
@@ -27,6 +27,7 @@ describe("Test Registry constructor", () => {
 
 	it("test different strategy", () => {
 		let broker = new ServiceBroker({
+			logger: false,
 			registry: {
 				strategy: "Random",
 				preferLocal: false
@@ -61,7 +62,7 @@ describe("Test Registry constructor", () => {
 
 describe("Test Registry.registerLocalService", () => {
 
-	let broker = new ServiceBroker({ internalServices: false });
+	let broker = new ServiceBroker({ logger: false, internalServices: false });
 	let registry = broker.registry;
 	let seq = registry.nodes.localNode.seq;
 
@@ -134,7 +135,7 @@ describe("Test Registry.registerLocalService", () => {
 
 describe("Test Registry.registerServices", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	let node = { id: "node-11" };
@@ -272,7 +273,7 @@ describe("Test Registry.registerServices", () => {
 
 describe("Test Registry.unregisterService & unregisterServicesByNode", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 	let seq = registry.nodes.localNode.seq;
 
@@ -322,7 +323,7 @@ describe("Test Registry.unregisterService & unregisterServicesByNode", () => {
 
 describe("Test Registry.registerActions", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	registry.actions.add = jest.fn();
@@ -349,7 +350,7 @@ describe("Test Registry.registerActions", () => {
 
 describe("Test Registry.unregisterAction", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	registry.actions.remove = jest.fn();
@@ -365,7 +366,7 @@ describe("Test Registry.unregisterAction", () => {
 
 describe("Test Registry.registerEvents", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	registry.events.add = jest.fn();
@@ -393,7 +394,7 @@ describe("Test Registry.registerEvents", () => {
 
 describe("Test Registry.unregisterEvent", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	registry.events.remove = jest.fn();
@@ -408,7 +409,7 @@ describe("Test Registry.unregisterEvent", () => {
 });
 
 describe("Test Registry.regenerateLocalRawInfo", () => {
-	let broker = new ServiceBroker({ nodeID: "node-1" });
+	let broker = new ServiceBroker({ logger: false, nodeID: "node-1" });
 	let registry = broker.registry;
 	let localNode = registry.nodes.localNode;
 
@@ -463,7 +464,7 @@ describe("Test Registry.regenerateLocalRawInfo", () => {
 });
 
 describe("Test Registry.getLocalNodeInfo", () => {
-	let broker = new ServiceBroker({ nodeID: "node-1" });
+	let broker = new ServiceBroker({ logger: false, nodeID: "node-1" });
 	let registry = broker.registry;
 	let localNode = registry.nodes.localNode;
 	let rawInfo = { a: 5 };
@@ -498,7 +499,7 @@ describe("Test Registry.getLocalNodeInfo", () => {
 });
 
 describe("Test Registry.getNodeInfo", () => {
-	let broker = new ServiceBroker({ nodeID: "node-1" });
+	let broker = new ServiceBroker({ logger: false, nodeID: "node-1" });
 	let registry = broker.registry;
 	let node = { id: "node-11", rawInfo: { services: [] } };
 
@@ -541,7 +542,7 @@ describe("Test Registry.getNodeInfo", () => {
 });
 
 describe("Test Registry.processNodeInfo", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	registry.nodes.processNodeInfo = jest.fn();
@@ -556,7 +557,7 @@ describe("Test Registry.processNodeInfo", () => {
 });
 
 describe("Test Registry.nodeDisconnected", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	registry.nodes.disconnected = jest.fn();
@@ -571,7 +572,7 @@ describe("Test Registry.nodeDisconnected", () => {
 });
 
 describe("Test Registry.nodeHeartbeat", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	registry.nodes.heartbeat = jest.fn();
@@ -586,7 +587,7 @@ describe("Test Registry.nodeHeartbeat", () => {
 });
 
 describe("Test Registry.getNodeList", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	registry.nodes.list = jest.fn();
@@ -601,7 +602,7 @@ describe("Test Registry.getNodeList", () => {
 });
 
 describe("Test Registry.getServiceList", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	registry.services.list = jest.fn();
@@ -616,7 +617,7 @@ describe("Test Registry.getServiceList", () => {
 });
 
 describe("Test Registry.getActionList", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	registry.actions.list = jest.fn();
@@ -631,7 +632,7 @@ describe("Test Registry.getActionList", () => {
 });
 
 describe("Test Registry.getEventList", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	registry.events.list = jest.fn();
@@ -646,7 +647,7 @@ describe("Test Registry.getEventList", () => {
 });
 
 describe("Test Registry.getNodeRawList", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	registry.nodes.toArray = jest.fn(() => [
@@ -663,7 +664,7 @@ describe("Test Registry.getNodeRawList", () => {
 });
 
 describe("Test Registry.hasService", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	registry.services.has = jest.fn();

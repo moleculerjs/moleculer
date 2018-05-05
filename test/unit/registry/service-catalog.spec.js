@@ -6,7 +6,7 @@ let ServiceBroker = require("../../../src/service-broker");
 
 describe("Test ServiceCatalog constructor", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	it("test without CB", () => {
@@ -22,7 +22,7 @@ describe("Test ServiceCatalog constructor", () => {
 });
 
 describe("Test ServiceCatalog methods", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let catalog = new ServiceCatalog(broker.registry, broker);
 	let node = { id: "server-1" };
 	let svc;

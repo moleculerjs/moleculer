@@ -5,7 +5,7 @@ let ServiceBroker = require("../../src/service-broker");
 const lolex = require("lolex");
 
 describe("Test Broker Statistics snapshot", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 
 	let clock;
 	beforeAll(() => {

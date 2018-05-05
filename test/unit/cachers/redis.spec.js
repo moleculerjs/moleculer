@@ -37,7 +37,7 @@ describe("Test RedisCacher constructor", () => {
 
 describe("Test RedisCacher set & get without prefix", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let cacher = new RedisCacher();
 	cacher.init(broker);
 
@@ -106,7 +106,7 @@ describe("Test RedisCacher set & get without prefix", () => {
 
 describe("Test RedisCacher set & get with namespace & ttl", () => {
 
-	let broker = new ServiceBroker({ namespace: "uat" });
+	let broker = new ServiceBroker({ logger: false, namespace: "uat" });
 	let cacher = new RedisCacher({
 		ttl: 60
 	});
@@ -153,7 +153,7 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 });
 
 describe("Test RedisCacher close", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let cacher = new RedisCacher();
 	cacher.init(broker); // for empty logger
 

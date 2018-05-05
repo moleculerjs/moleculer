@@ -33,7 +33,7 @@ describe("Test middleware system", () => {
 			};
 		};
 
-		let broker = new ServiceBroker({ validation: false });
+		let broker = new ServiceBroker({ logger: false, validation: false });
 		broker.use(mw2Async);
 		broker.use(mw1Sync);
 
@@ -103,7 +103,7 @@ describe("Test middleware system", () => {
 			return { user: "icebob" };
 		});
 
-		let broker = new ServiceBroker({ validation: false });
+		let broker = new ServiceBroker({ logger: false, validation: false });
 		broker.use(mw3, mw2, mw1);
 
 		broker.createService({
@@ -171,7 +171,7 @@ describe("Test middleware system", () => {
 
 		});
 
-		let broker = new ServiceBroker({ validation: false });
+		let broker = new ServiceBroker({ logger: false, validation: false });
 		broker.use(mw3, mw2, mw1);
 
 		broker.createService({
@@ -225,7 +225,7 @@ describe("Test middleware system", () => {
 			});
 		});
 
-		let broker = new ServiceBroker({ validation: false });
+		let broker = new ServiceBroker({ logger: false, validation: false });
 		broker.use(mw2, mw1);
 
 		broker.createService({

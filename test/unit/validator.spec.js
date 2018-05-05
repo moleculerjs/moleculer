@@ -14,7 +14,7 @@ describe("Test constructor", () => {
 	});
 
 	it("should register itself as middleware", () => {
-		let broker = new ServiceBroker();
+		let broker = new ServiceBroker({ logger: false });
 		broker.use = jest.fn();
 		let v = new Validator();
 
