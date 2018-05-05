@@ -125,6 +125,40 @@ describe("Test createDefaultLogger", () => {
 		expect(con.info).toHaveBeenCalledWith("[1970-01-01T00:00:00.000Z]", "INFO ", "server-2/V2.POSTS:", "info level");
 	});
 
+	it("should create a logger with simple log formatter", () => {
+		let con = {
+			info: jest.fn()
+		};
+
+		let bindings = {
+			mod: "broker",
+			nodeID: "server-2",
+			ns: ""
+		};
+
+		let logger = createDefaultLogger(con, bindings, "info", "simple");
+		callLogMethods(logger);
+		expect(con.info).toHaveBeenCalledTimes(4);
+		expect(con.info).toHaveBeenCalledWith("INFO ", "-", "info level");
+	});
+
+	it("should create a logger with short log formatter", () => {
+		let con = {
+			info: jest.fn()
+		};
+
+		let bindings = {
+			mod: "broker",
+			nodeID: "server-2",
+			ns: ""
+		};
+
+		let logger = createDefaultLogger(con, bindings, "info", "short");
+		callLogMethods(logger);
+		expect(con.info).toHaveBeenCalledTimes(4);
+		expect(con.info).toHaveBeenCalledWith("[00:00:00.000Z]", "INFO ", "BROKER:", "info level");
+	});
+
 	it("should create a full logger with logFormatter", () => {
 		let con = {
 			info: jest.fn()
@@ -145,6 +179,80 @@ describe("Test createDefaultLogger", () => {
 
 		expect(logFormatter).toHaveBeenCalledTimes(1);
 		expect(logFormatter).toHaveBeenCalledWith("info", ["info level"], {"nodeID": "server-2", "ns": "", "svc": "posts", "ver": 2});
+	});
+
+	it("should create a filtered-level logger (module error)", () => {
+		let con = {
+			trace: jest.fn(),
+			debug: jest.fn(),
+			info: jest.fn(),
+			warn: jest.fn(),
+			error: jest.fn(),
+			fatal: jest.fn(),
+		};
+		let logger = createDefaultLogger(con, {
+			mod: "CTX"
+		}, {
+			"*": "debug",
+			"CTX": "error"
+		});
+
+		callLogMethods(logger);
+		expect(con.debug).toHaveBeenCalledTimes(0);
+		expect(con.info).toHaveBeenCalledTimes(0);
+		expect(con.warn).toHaveBeenCalledTimes(0);
+		expect(con.error).toHaveBeenCalledTimes(1);
+		expect(con.fatal).toHaveBeenCalledTimes(1);
+	});
+
+	it("should create a filtered-level logger ('*' info)", () => {
+		let con = {
+			trace: jest.fn(),
+			debug: jest.fn(),
+			info: jest.fn(),
+			warn: jest.fn(),
+			error: jest.fn(),
+			fatal: jest.fn(),
+		};
+		let logger = createDefaultLogger(con, {
+			mod: "OTHER"
+		}, {
+			"*": "info",
+			"CTX": "error"
+		});
+
+		callLogMethods(logger);
+		expect(con.trace).toHaveBeenCalledTimes(0);
+		expect(con.debug).toHaveBeenCalledTimes(0);
+		expect(con.info).toHaveBeenCalledTimes(1);
+		expect(con.warn).toHaveBeenCalledTimes(1);
+		expect(con.error).toHaveBeenCalledTimes(1);
+		expect(con.fatal).toHaveBeenCalledTimes(1);
+	});
+
+	it("should create an empty logger (false with wildcard)", () => {
+		let con = {
+			trace: jest.fn(),
+			debug: jest.fn(),
+			info: jest.fn(),
+			warn: jest.fn(),
+			error: jest.fn(),
+			fatal: jest.fn()
+		};
+		let logger = createDefaultLogger(con, {
+			mod: "SVC.POSTS.OTHER"
+		}, {
+			"SVC.**": false,
+			"**": "info",
+		});
+
+		callLogMethods(logger);
+		expect(con.trace).toHaveBeenCalledTimes(0);
+		expect(con.debug).toHaveBeenCalledTimes(0);
+		expect(con.info).toHaveBeenCalledTimes(0);
+		expect(con.warn).toHaveBeenCalledTimes(0);
+		expect(con.error).toHaveBeenCalledTimes(0);
+		expect(con.fatal).toHaveBeenCalledTimes(0);
 	});
 
 });

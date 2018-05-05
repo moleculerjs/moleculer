@@ -9,6 +9,7 @@
 const chalk 	= require("chalk");
 const _ 		= require("lodash");
 const util 		= require("util");
+const { match }	= require("./utils");
 
 const LOG_LEVELS = ["fatal", "error", "warn", "info", "debug", "trace"];
 
@@ -47,13 +48,8 @@ module.exports = {
 	createDefaultLogger(baseLogger, bindings, logLevel, logFormatter) {
 		const noop = function() {};
 
-		const getModuleName = () => {
-			let mod = "";
-			if (bindings.mod)
-				mod = bindings.mod.toUpperCase();
-
-			return bindings.nodeID + "/" + mod;
-		};
+		let mod = bindings.mod ? bindings.mod.toUpperCase() : "";
+		const moduleName = bindings.nodeID + "/" + mod;
 
 		const getColor = type => {
 			switch(type) {
@@ -67,9 +63,27 @@ module.exports = {
 		};
 		const getType = type => getColor(type)(_.padEnd(type.toUpperCase(), 5));
 
+		let levelIdx = -1;
+		if (_.isString(logLevel))
+			levelIdx = LOG_LEVELS.indexOf(logLevel);
+		else if (_.isObject(logLevel)) {
+			let customLevel = logLevel[mod];
+			if (customLevel == null) {
+				// Find with matching
+				const key = Object.keys(logLevel).find(m => match(mod, m));
+				if (key)
+					customLevel = logLevel[key];
+			}
+
+			if (customLevel == null || customLevel === false)
+				levelIdx = -1;
+			else
+				levelIdx = LOG_LEVELS.indexOf(customLevel);
+		}
+
 		let logger = {};
 		LOG_LEVELS.forEach((type, i) => {
-			if (!baseLogger || (logLevel && i > LOG_LEVELS.indexOf(logLevel))) {
+			if (!baseLogger || (i > levelIdx)) {
 				logger[type] = noop;
 				return;
 			}
@@ -103,8 +117,10 @@ module.exports = {
 
 				if (format == "simple") {
 					method.call(baseLogger, getType(type), "-", ...pargs);
+				} else if (format == "short") {
+					method.call(baseLogger, chalk.grey(`[${new Date().toISOString().substr(11)}]`), getType(type), chalk.grey(mod + ":"), ...pargs);
 				} else {
-					method.call(baseLogger, chalk.grey(`[${new Date().toISOString()}]`), getType(type), chalk.grey(getModuleName() + ":"), ...pargs);
+					method.call(baseLogger, chalk.grey(`[${new Date().toISOString()}]`), getType(type), chalk.grey(moduleName + ":"), ...pargs);
 				}
 
 			}.bind(baseLogger);
