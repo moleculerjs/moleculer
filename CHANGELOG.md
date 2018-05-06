@@ -70,7 +70,7 @@ const broker = new ServiceBroker({
 ```
 
 ## Graceful shutdown
-Thanks for [@rmccallum81](https://github.com/rmccallum81), ServiceBroker supports graceful shutdown. You can enable it with `trackContext` broker option. If you enable it, all services wait for all running local contexts before shutdowning. You can also define a timeout.
+Thanks for [@rmccallum81](https://github.com/rmccallum81), ServiceBroker supports graceful shutdown. You can enable it with `trackContext` broker option. If you enable it, all services wait for all local running contexts before shutdowning. You can also define a timeout value with `gracefulStopTimeout`.
 
 ```js
 const broker = new ServiceBroker({
@@ -78,6 +78,8 @@ const broker = new ServiceBroker({
     gracefulStopTimeout: 5 * 1000 // waiting max 5 sec
 });
 ```
+
+_This timeout can be overwrite in service settings with `$gracefulStopTimeout` property._
 
 # Changes
 
