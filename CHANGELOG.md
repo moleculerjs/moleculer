@@ -50,9 +50,9 @@ const broker = new ServiceBroker({
 });
 ```
 
-Internal modules: `BROKER`, `TRANS`, `TX`, `CACHER`, `REGISTRY`.
+>Internal modules: `BROKER`, `TRANS`, `TX`, `CACHER`, `REGISTRY`.
 
-**Please note, it works only with default console logger. If you uses external logger (Pino, Windows, Bunyan, ...etc) you need to handle log levels.
+**Please note, it works only with default console logger. If you uses external logger (Pino, Windows, Bunyan, ...etc) you need to handle log levels.**
 
 ## New `short` log formatter
 
@@ -65,7 +65,7 @@ const broker = new ServiceBroker({
 ```
 
 **Output**
-```js
+```
 [19:42:49.055Z] INFO  MATH: Service started.
 ```
 
