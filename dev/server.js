@@ -10,24 +10,15 @@ let { MoleculerError } = require("../src/errors");
 let broker = new ServiceBroker({
 	namespace: "",
 	nodeID: process.argv[2] || "server-" + process.pid,
-	transporter: {
-		type: "NATS",
-		options: {
-			//udpDiscovery: false,
-			//urls: "file://./dev/nodes.json"
-		}
-	},
-	//transporter: "kafka://192.168.51.29:2181",
-	//transporter: "amqp://192.168.0.181:5672",
-	//serializer: "MsgPack",
+	transporter: "NATS",
 
 	//disableBalancer: true,
 
 	trackContext: true,
 
 	logger: console,
-	//logLevel: "debug",
-	logFormatter: "simple"
+	logLevel: "info",
+	logFormatter: "short"
 });
 
 broker.createService({
@@ -74,7 +65,7 @@ broker.createService({
 
 broker.start()
 	.then(() => {
-		setInterval(() => broker.sendPing(), 10 * 1000);
-		setInterval(() => broker.broadcast("echo.broadcast"), 5 * 1000);
-	})
-	.then(() => broker.stop());
+		broker.repl();
+		//setInterval(() => broker.sendPing(), 10 * 1000);
+		//setInterval(() => broker.broadcast("echo.broadcast"), 5 * 1000);
+	});

@@ -323,6 +323,12 @@ class Service {
 		return action;
 	}
 
+	/**
+	 * Add active context to the list
+	 *
+	 * @param {Context} ctx
+	 * @memberof Service
+	 */
 	_addActiveContext(ctx) {
 		this._activeContexts.push(ctx);
 	}

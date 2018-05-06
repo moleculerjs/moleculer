@@ -971,7 +971,7 @@ class ServiceBroker {
 	_localCall(ctx, endpoint, opts) {
 		let action = ctx.action;
 
-		this.logger.debug(`Call '${ctx.action.name}' action locally.`);
+		this.logger.debug(`Call '${ctx.action.name}' action locally.`, { requestID: ctx.requestID });
 
 		// Add metrics start
 		if (ctx.metrics === true || ctx.timeout > 0 || this.statistics)
@@ -1032,7 +1032,7 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	_remoteCall(ctx, endpoint, opts) {
-		this.logger.debug(`Call '${ctx.action.name}' action on '${ctx.nodeID ? ctx.nodeID : "some"}' node.`);
+		this.logger.debug(`Call '${ctx.action.name}' action on '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, { requestID: ctx.requestID });
 
 		let p = this.transit.request(ctx);
 
@@ -1147,19 +1147,21 @@ class ServiceBroker {
 		if (err.retryable) {
 			// Retry request
 			if (ctx.retryCount-- > 0) {
-				this.logger.warn(`Action '${actionName}' timed out on '${nodeID}'.`);
-				this.logger.warn(`Retry to call '${actionName}' action (${ctx.retryCount + 1})...`);
+				this.logger.warn(`Action '${actionName}' timed out on '${nodeID}'.`, { requestID: ctx.requestID });
+				this.logger.warn(`Retry to call '${actionName}' action (${ctx.retryCount + 1})...`, { requestID: ctx.requestID });
 
 				opts.ctx = ctx; // Reuse this context
 				return this.call(actionName, ctx.params, opts);
 			}
 		}
 
+		this.logger.debug(`Call '${ctx.action.name}' action is rejected.`, { requestID: ctx.requestID }, err);
+
 		this._finishCall(ctx, err);
 
 		// Handle fallback response
 		if (opts.fallbackResponse) {
-			this.logger.warn(`Action '${actionName}' returns with fallback response.`);
+			this.logger.warn(`Calling '${actionName}' action returns with fallback response.`, { requestID: ctx.requestID });
 			if (_.isFunction(opts.fallbackResponse))
 				return opts.fallbackResponse(ctx, err);
 			else
@@ -1371,12 +1373,66 @@ class ServiceBroker {
 	 * Send ping to a node (or all nodes if nodeID is null)
 	 *
 	 * @param {String?} nodeID
-	 * @returns
+	 * @returns {Promise}
 	 * @memberof ServiceBroker
 	 */
-	sendPing(nodeID) {
-		if (this.transit && this.transit.connected)
-			return this.transit.sendPing(nodeID);
+	sendPing(nodeID, timeout = 2000) {
+		if (this.transit && this.transit.connected) {
+			if (_.isString(nodeID)) {
+				// Ping a single node
+				return new Promise(resolve => {
+
+					const timer = setTimeout(() => resolve(null), timeout);
+
+					const handler = pong => {
+						if (pong.nodeID == nodeID) {
+							clearTimeout(timer);
+							this.localBus.off("$node.pong", handler);
+							resolve(pong);
+						}
+					};
+
+					this.localBus.on("$node.pong", handler);
+
+					this.transit.sendPing(nodeID);
+				});
+
+			} else {
+				const pongs = {};
+				let nodes = nodeID;
+				if (!nodes) {
+					nodes = this.registry.getNodeList()
+						.filter(node => node.id != this.nodeID && node.available)
+						.map(node => node.id);
+				}
+
+				nodes.forEach(id => pongs[id] = null);
+				const processing = new Set(nodes);
+
+				// Ping multiple nodes
+				return new Promise(resolve => {
+
+					const timer = setTimeout(() => resolve(pongs), timeout);
+
+					const handler = pong => {
+						pongs[pong.nodeID] = pong;
+						processing.delete(pong.nodeID);
+
+						if (processing.size == 0) {
+							clearTimeout(timer);
+							this.localBus.off("$node.pong", handler);
+							resolve(pongs);
+						}
+					};
+
+					this.localBus.on("$node.pong", handler);
+
+					nodes.forEach(id => this.transit.sendPing(id));
+				});
+			}
+		}
+
+		return this.Promise.resolve(nodeID ? null : []);
 	}
 
 	/**

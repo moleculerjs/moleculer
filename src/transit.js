@@ -304,7 +304,7 @@ class Transit {
 		this.logger.debug(`Event '${payload.event}' received from '${payload.sender}' node` + (payload.groups ? ` in '${payload.groups.join(", ")}' group(s)` : "") + ".");
 
 		if (!this.broker.started) {
-			this.logger.warn(`Incoming '${payload.event}' event from '${payload.sender}' node is dropped, because broker is not running.`);
+			this.logger.warn(`Incoming '${payload.event}' event from '${payload.sender}' node is dropped, because broker is stopped.`);
 		}
 
 		this.broker.emitLocalServices(payload.event, payload.data, payload.groups, payload.sender, payload.broadcast);
@@ -322,47 +322,47 @@ class Transit {
 
 		try {
 			if (!this.broker.started) {
-				this.logger.warn(`Incoming '${payload.action}' request from '${payload.sender}' node is dropped, because broker is not running.`);
+				this.logger.warn(`Incoming '${payload.action}' request from '${payload.sender}' node is dropped, because broker is stopped.`);
 				throw new E.ServiceNotAvailable(payload.action, this.nodeID);
 			}
-      
-      let pass;
-      if (payload.stream !== undefined) {
-        pass = this.pendingReqStreams.get(payload.id);
-        if (pass) {
-          if (!payload.stream) {
 
-            // Check stream error
-            if (payload.meta["$streamError"]) {
-              pass.emit("error", this._createErrFromPayload(payload.meta["$streamError"], payload.sender));
-            }
+			let pass;
+			if (payload.stream !== undefined) {
+				pass = this.pendingReqStreams.get(payload.id);
+				if (pass) {
+					if (!payload.stream) {
 
-            // End of stream
-            pass.end();
+						// Check stream error
+						if (payload.meta["$streamError"]) {
+							pass.emit("error", this._createErrFromPayload(payload.meta["$streamError"], payload.sender));
+						}
 
-            // Remove pending request
-            this.removePendingRequest(payload.id);
+						// End of stream
+						pass.end();
 
-            return;
+						// Remove pending request
+						this.removePendingRequest(payload.id);
 
-          } else {
-            // stream chunk received
-            pass.write(payload.params.type === "Buffer" ? new Buffer.from(payload.params.data):payload.params);
+						return;
 
-            return;
-          }
+					} else {
+						// stream chunk received
+						pass.write(payload.params.type === "Buffer" ? new Buffer.from(payload.params.data):payload.params);
 
-        } else if (payload.stream) {
-          // Create a new pass stream
-          pass = new Transform({
-            transform: function (chunk, encoding, done) {
-              this.push(chunk);
-              return done();
-            }
-          });
-          this.pendingReqStreams.set(payload.id, pass);
-        }
-      }
+						return;
+					}
+
+				} else if (payload.stream) {
+					// Create a new pass stream
+					pass = new Transform({
+						transform: function (chunk, encoding, done) {
+							this.push(chunk);
+							return done();
+						}
+					});
+					this.pendingReqStreams.set(payload.id, pass);
+				}
+			}
 
 			const endpoint = this.broker._getLocalActionEndpoint(payload.action);
 
@@ -383,12 +383,12 @@ class Transit {
 				ctx._trackContext();
 
 			return this.broker._handleRemoteRequest(ctx, endpoint)
-        .then(res => this.sendResponse(payload.sender, payload.id,  ctx.meta, res, null))
-        .catch(err => this.sendResponse(payload.sender, payload.id, ctx.meta, null, err));
-      
+				.then(res => this.sendResponse(payload.sender, payload.id,  ctx.meta, res, null))
+				.catch(err => this.sendResponse(payload.sender, payload.id, ctx.meta, null, err));
+
 		} catch(err) {
 			return this.sendResponse(payload.sender, payload.id, payload.meta, null, err);
-		}      
+		}
 	}
 
 	_createErrFromPayload(error, sender) {
@@ -419,7 +419,7 @@ class Transit {
 
 		// If not exists (timed out), we skip response processing
 		if (req == null) {
-			this.logger.warn("Orphaned response. Maybe the request timed out. ID:", packet.id, ", Sender:", packet.sender);
+			this.logger.debug("Orphan response. Maybe the request timed out. ID:", packet.id, ", Sender:", packet.sender);
 			return;
 		}
 
@@ -530,6 +530,8 @@ class Transit {
 
 		this.logger.debug(`Send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`);
 
+		const publishCatch = err => this.logger.error(`Unable to send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, err);
+
 		// Add to pendings
 		this.pendingRequests.set(ctx.id, request);
 
@@ -549,7 +551,7 @@ class Transit {
 
 						return this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, copy))
 							.then(() => data.resume())
-							.catch(err => this.logger.error(`Unable to send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, err));
+							.catch(publishCatch);
 					});
 
 					data.on("end", () => {
@@ -558,7 +560,7 @@ class Transit {
 						copy.stream = false;
 
 						return this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, copy))
-							.catch(err => this.logger.error(`Unable to send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, err));
+							.catch(publishCatch);
 					});
 
 					data.on("error", err => {
@@ -568,12 +570,12 @@ class Transit {
 						copy.params = null;
 
 						return this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, copy))
-							.catch(err => this.logger.error(`Unable to send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, err));
+							.catch(publishCatch);
 					});
 				}
 			})
 			.catch(err => {
-				this.logger.error(`Unable to send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, err);
+				publishCatch(err);
 				reject(err);
 			});
 	}
@@ -663,7 +665,7 @@ class Transit {
 	 * @memberof Transit
 	 */
 	removePendingRequestByNodeID(nodeID) {
-		this.logger.debug("Remove pending requests");
+		this.logger.debug(`Remove pending requests of '${nodeID}' node.`);
 		this.pendingRequests.forEach((req, id) => {
 			if (req.nodeID == nodeID) {
 				this.pendingRequests.delete(id);
@@ -677,6 +679,13 @@ class Transit {
 		});
 	}
 
+	/**
+	 * Create error field in outgoing payload
+	 *
+	 * @param {Error} err
+	 * @returns {Object}
+	 * @memberof Transit
+	 */
 	_createPayloadErrorField(err) {
 		return {
 			name: err.name,
@@ -712,6 +721,8 @@ class Transit {
 		if (err)
 			payload.error = this._createPayloadErrorField(err);
 
+		const publishCatch = err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err);
+
 		if (data && typeof data.on === "function" && typeof data.read === "function" && typeof data.pipe === "function") {
 			// Streaming response
 			payload.stream = true;
@@ -725,7 +736,7 @@ class Transit {
 
 				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, copy))
 					.then(() => data.resume())
-					.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
+					.catch(publishCatch);
 			});
 
 			data.on("end", () => {
@@ -734,7 +745,7 @@ class Transit {
 				copy.stream = false;
 
 				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, copy))
-					.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
+					.catch(publishCatch);
 			});
 
 			data.on("error", err => {
@@ -746,7 +757,7 @@ class Transit {
 				}
 
 				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, copy))
-					.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
+					.catch(publishCatch);
 			});
 
 			payload.data = null;
@@ -755,12 +766,12 @@ class Transit {
 					if (payload.stream)
 						data.resume();
 				})
-				.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
+				.catch(publishCatch);
 
 		}
 
 		return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
-			.catch(err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err));
+			.catch(publishCatch);
 	}
 
 	/**
@@ -811,7 +822,7 @@ class Transit {
 	/**
 	 * Send ping to a node (or all nodes if nodeID is null)
 	 *
-	 * @param {String?} nodeID
+	 * @param {String} nodeID
 	 * @returns
 	 * @memberof Transit
 	 */
@@ -883,7 +894,7 @@ class Transit {
 	 * @memberof Transit
 	 */
 	publish(packet) {
-		this.logger.debug(`Send ${packet.type} packet to '${packet.target || "all nodes"}'`);
+		this.logger.debug(`Send ${packet.type} packet to '${packet.target || "<all nodes>"}'`);
 
 		if (this.subscribing) {
 			return this.subscribing

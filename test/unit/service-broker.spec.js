@@ -3012,16 +3012,110 @@ describe("Test hot-reload feature", () => {
 });
 
 describe("Test broker sendPing", () => {
-	let broker = new ServiceBroker({ transporter: "Fake" });
+	let broker = new ServiceBroker({ logger: false, nodeID: "node-1", transporter: "Fake" });
 
-	beforeAll(() => broker.start());
+	let clock;
+	beforeAll(() => {
+		return broker.start()
+			.then(() => clock = lolex.install());
+	});
+	afterAll(() => {
+		clock.uninstall();
+		return broker.stop();
+	});
+
 	broker.transit.sendPing = jest.fn();
+	broker.transit.connected = true;
 
-	it("should call transit.sendPing", () => {
-		broker.sendPing("node-2");
+	it("should ping one node", () => {
+		let p = broker.sendPing("node-2").catch(protectReject);
 
-		expect(broker.transit.sendPing).toHaveBeenCalledTimes(1);
-		expect(broker.transit.sendPing).toHaveBeenCalledWith("node-2");
+		broker.localBus.emit("$node.pong", { nodeID: "node-2", elapsedTime: 5, timeDiff: 3 });
+
+		return p.then(res => {
+			expect(res).toEqual({ nodeID: "node-2", elapsedTime: 5, timeDiff: 3 });
+			expect(broker.transit.sendPing).toHaveBeenCalledTimes(1);
+			expect(broker.transit.sendPing).toHaveBeenCalledWith("node-2");
+		});
+	});
+
+	it("should ping one node with timeout", () => {
+		broker.transit.sendPing.mockClear();
+
+		let p = broker.sendPing("node-2", 500).catch(protectReject);
+
+		clock.tick(600);
+
+		return p.then(res => {
+			expect(res).toEqual(null);
+			expect(broker.transit.sendPing).toHaveBeenCalledTimes(1);
+			expect(broker.transit.sendPing).toHaveBeenCalledWith("node-2");
+		});
+	});
+
+	it("should ping multiple node", () => {
+		broker.transit.sendPing.mockClear();
+
+		let p = broker.sendPing(["node-2", "node-3"]).catch(protectReject);
+
+		broker.localBus.emit("$node.pong", { nodeID: "node-2", elapsedTime: 5, timeDiff: 3 });
+		broker.localBus.emit("$node.pong", { nodeID: "node-3", elapsedTime: 50, timeDiff: 30 });
+
+		return p.then(res => {
+			expect(res).toEqual({
+				"node-2": { "elapsedTime": 5, "nodeID": "node-2", "timeDiff": 3 },
+				"node-3": { "elapsedTime": 50, "nodeID": "node-3", "timeDiff": 30 }
+			});
+			expect(broker.transit.sendPing).toHaveBeenCalledTimes(2);
+			expect(broker.transit.sendPing).toHaveBeenCalledWith("node-2");
+			expect(broker.transit.sendPing).toHaveBeenCalledWith("node-3");
+		});
+	});
+
+	it("should ping multiple node with timeout", () => {
+		broker.transit.sendPing.mockClear();
+
+		let p = broker.sendPing(["node-2", "node-3"], 1000).catch(protectReject);
+
+		broker.localBus.emit("$node.pong", { nodeID: "node-3", elapsedTime: 50, timeDiff: 30 });
+
+		clock.tick(1100);
+
+		return p.then(res => {
+			expect(res).toEqual({
+				"node-2": null,
+				"node-3": { "elapsedTime": 50, "nodeID": "node-3", "timeDiff": 30 }
+			});
+			expect(broker.transit.sendPing).toHaveBeenCalledTimes(2);
+			expect(broker.transit.sendPing).toHaveBeenCalledWith("node-2");
+			expect(broker.transit.sendPing).toHaveBeenCalledWith("node-3");
+		});
+	});
+
+	it("should ping all available nodes (except local)", () => {
+		broker.transit.sendPing.mockClear();
+
+		broker.registry.getNodeList = jest.fn(() => ([
+			{ id: "node-1", local: true, available: true },
+			{ id: "node-2", local: false, available: false },
+			{ id: "node-3", local: false, available: true },
+			{ id: "node-4", local: false, available: true },
+		]));
+
+		let p = broker.sendPing().catch(protectReject);
+
+		broker.localBus.emit("$node.pong", { nodeID: "node-3", elapsedTime: 30, timeDiff: 33 });
+		broker.localBus.emit("$node.pong", { nodeID: "node-4", elapsedTime: 40, timeDiff: 44 });
+
+		return p.then(res => {
+			expect(res).toEqual({
+				"node-3": { "elapsedTime": 30, "nodeID": "node-3", "timeDiff": 33 },
+				"node-4": { "elapsedTime": 40, "nodeID": "node-4", "timeDiff": 44 }
+			});
+			expect(broker.transit.sendPing).toHaveBeenCalledTimes(2);
+			expect(broker.transit.sendPing).toHaveBeenCalledWith("node-3");
+			expect(broker.transit.sendPing).toHaveBeenCalledWith("node-4");
+		});
 	});
 });
 

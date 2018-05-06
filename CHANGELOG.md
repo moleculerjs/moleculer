@@ -1,4 +1,32 @@
 --------------------------------------------------
+<a name="0.13.0"></a>
+# [0.13.0](https://github.com/moleculerjs/moleculer/compare/v0.12.3...v0.13.0) (2018-xx-xx)
+
+# Breaking changes
+
+## Streaming support
+
+## Better Service & Broker lifecycle handling
+
+## Enhanced ping method
+
+```js
+broker.sendPing().then(console.log);
+```
+
+```js
+broker.sendPing("node-123", 1000).then(console.log);
+```
+
+# New
+
+## Graceful shutdown
+
+
+# Changes
+
+
+--------------------------------------------------
 <a name="0.12.3"></a>
 # [0.12.3](https://github.com/moleculerjs/moleculer/compare/v0.12.2...v0.12.3) (2018-04-19)
 

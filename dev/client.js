@@ -41,8 +41,8 @@ let broker = new ServiceBroker({
 		maxFailures: 3
 	},
 	logger: console,
-	logLevel: "info",
-	logFormatter: "simple"
+	logLevel: "debug",
+	logFormatter: "short"
 });
 
 broker.createService({
