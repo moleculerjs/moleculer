@@ -185,17 +185,15 @@ describe("Test BaseCacher", () => {
 
 		cacher.opts.maxKeyLength = 44;
 		res = cacher.getCacheKey("abc.def", bigObj);
-		expect(res).toBe("abc.def:TfvZ8TKvsujXJdXPcDpmkT4/iIoY/oIDmvVYtwTqUe0=");
+		expect(res).toBe("abc.def:leEVLQOr1sLXP4804uTspK48flzqbi4vFr1VUuBrf20=");
 
 		cacher.opts.maxKeyLength = 72;
 		res = cacher.getCacheKey("abc.def", bigObj);
-		expect(res).toBe("abc.def:A|C0|0|4|6|C1|true|CleEVLQOr1sLXP4804uTspK48flzqbi4vFr1");
+		expect(res).toBe("abc.def:A|C0|0|4|6|C1|true|CleEVLQOr1sLXP4804uTspK48flzqbi4vFr1VUuBrf20=");
 
 		cacher.opts.maxKeyLength = 771;
 		res = cacher.getCacheKey("abc.def", bigObj);
-		expect(res).toBe("abc.def:A|C0|0|4|6|C1|true|C2|3342|C3|5530af6f0cb29229|C4|643ded40b0da2745|B|C0|5a75b699c41d9a75|C1|false|C2|true|C3|14e77e2edd0dcb98|C4|true|C|C0|5|9|7|C1|true|C2|6|9|2|C3|false|C4|9|5|0|D|C0|true|C1|883|C2|false|C3|5645|C4|2633|E|C0|4119cd276d9db0d1|C1|50ed180e9583e17d|C2|true|C3|false|C4|8|2|9|F|C0|42146325b8cbca02|C1|false|C2|true|C3|5434|C4|55997c3e66920def|G|C0|false|C1|false|C2|4|6|3|C3|41782dd5a2348223|C4|true|H|C0|2337|C1|6906|C2|false|C3|40d74a450b623175|C4|true|I|C0|true|C1|2|8|4|C2|1|8|7|C3|false|C4|true|J|C0|true|C1|false|C2|4e96dbf3f282df0c|C3|2548|C4|3aa6fb7043976492|K|C0|394e2f2f68f510b7|C1|5776|C2|1|0|1|C3|248693f7ff03ae|C4|true|L|C0|8210|C1|true|C2|false|C3|true|C4|true|M|C0|5|5|3|C1|3579|C2|2352|C3|true|C4|TfvZ8TKvsujXJdXPcDpmkT4/iIoY/oIDmvVYtwTqUe0=");
-		//				  abc.def:A|C0|0|4|6|C1|true|C2|3342|C3|5530af6f0cb29229|C4|643ded40b0da2745|B|C0|5a75b699c41d9a75|C1|false|C2|true|C3|14e77e2edd0dcb98|C4|true|C|C0|5|9|7|C1|true|C2|6|9|2|C3|false|C4|9|5|0|D|C0|true|C1|883|C2|false|C3|5645|C4|2633|E|C0|4119cd276d9db0d1|C1|50ed180e9583e17d|C2|true|C3|false|C4|8|2|9|F|C0|42146325b8cbca02|C1|false|C2|true|C3|5434|C4|55997c3e66920def|G|C0|false|C1|false|C2|4|6|3|C3|41782dd5a2348223|C4|true|H|C0|2337|C1|6906|C2|false|C3|40d74a450b623175|C4|true|I|C0|true|C1|2|8|4|C2|1|8|7|C3|false|C4|true|J|C0|true|C1|false|C2|4e96dbf3f282df0c|C3|2548|C4|3aa6fb7043976492|K|C0|394e2f2f68f510b7|C1|5776|C2|1|0|1|C3|248693f7ff03ae|C4|true|L|C0|8210|C1|true|C2|false|C3|true|C4|true|M|C0|5|5|3|C1|3579|C2|2352|C3|leEVLQOr1sLXP4804uTspK48flzqbi4vFr1VUuBrf20=
-
+		expect(res).toBe("abc.def:A|C0|0|4|6|C1|true|C2|3342|C3|5530af6f0cb29229|C4|643ded40b0da2745|B|C0|5a75b699c41d9a75|C1|false|C2|true|C3|14e77e2edd0dcb98|C4|true|C|C0|5|9|7|C1|true|C2|6|9|2|C3|false|C4|9|5|0|D|C0|true|C1|883|C2|false|C3|5645|C4|2633|E|C0|4119cd276d9db0d1|C1|50ed180e9583e17d|C2|true|C3|false|C4|8|2|9|F|C0|42146325b8cbca02|C1|false|C2|true|C3|5434|C4|55997c3e66920def|G|C0|false|C1|false|C2|4|6|3|C3|41782dd5a2348223|C4|true|H|C0|2337|C1|6906|C2|false|C3|40d74a450b623175|C4|true|I|C0|true|C1|2|8|4|C2|1|8|7|C3|false|C4|true|J|C0|true|C1|false|C2|4e96dbf3f282df0c|C3|2548|C4|3aa6fb7043976492|K|C0|394e2f2f68f510b7|C1|5776|C2|1|0|1|C3|248693f7ff03ae|C4|true|L|C0|8210|C1|true|C2|false|C3|true|C4|true|M|C0|5|5|3|C1|3579|C2|2352|C3|leEVLQOr1sLXP4804uTspK48flzqbi4vFr1VUuBrf20=");
 	});
 
 	it("check getCacheKey with custom keygen", () => {

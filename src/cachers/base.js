@@ -150,27 +150,25 @@ class Cacher {
 				if (keys.length == 1) {
 					// Fast solution for ['id'] key
 					const val = this.getParamMetaValue(keys[0], params, meta);
-					return keyPrefix + (_.isObject(val) ? this._hashObj(val) : val);
+					return keyPrefix + (_.isObject(val) ? this._hashedKey(this._generateKeyFromObject(val)) : val);
 				}
 
 				if (keys.length > 0) {
 					return keys.reduce((a, key, i) => {
 						const val = this.getParamMetaValue(key, params, meta);
-						return a + (i ? "|" : "") + (_.isObject(val) || Array.isArray(val) ? this._hashObj(val) : val);
+						return a + (i ? "|" : "") + (_.isObject(val) || Array.isArray(val) ? this._hashedKey(this._generateKeyFromObject(val)) : val);
 					}, keyPrefix);
 				}
 			}
 			else {
-				return keyPrefix + this._hashObj(params);
+				return keyPrefix + this._hashedKey(this._generateKeyFromObject(params));
 			}
 		}
 		return actionName;
 	}
 
-	_hashObj(obj) {
-		const maxKeyLength = this.opts.maxKeyLength || 44;
-		const key = this._generateKeyFromObject(obj);
-
+	_hashedKey(key) {
+		const maxKeyLength = this.opts.maxKeyLength;
 		if (maxKeyLength < 44 || key.length <= maxKeyLength)
 			return key;
 
