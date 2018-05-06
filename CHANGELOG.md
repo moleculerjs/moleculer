@@ -40,13 +40,13 @@ There is a new module-based log level configuration. You can set log levels for 
 
 ```js
 const broker = new ServiceBroker({
-	logger: console,
-	logLevel: {
-		"MY.**": false, // Disable logs
-		"TRANS*": "warn",
-		"*.GREETER": "debug",
-		"**": "debug", // All other modules use this level
-	}
+    logger: console,
+    logLevel: {
+        "MY.**": false, // Disable logs
+        "TRANS*": "warn",
+        "*.GREETER": "debug",
+        "**": "debug", // All other modules use this level
+    }
 });
 ```
 
@@ -60,7 +60,7 @@ There is a new `short` log formatter. It's similar as the default, but doesn't p
 
 ```js
 const broker = new ServiceBroker({
-	logFormatter: "short"
+    logFormatter: "short"
 });
 ```
 
@@ -74,7 +74,7 @@ Thanks for [@rmccallum81](https://github.com/rmccallum81), ServiceBroker support
 
 ```js
 const broker = new ServiceBroker({
-	trackContext: true,
+    trackContext: true,
     gracefulStopTimeout: 5 * 1000 // waiting max 5 sec
 });
 ```
