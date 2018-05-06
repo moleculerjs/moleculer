@@ -31,6 +31,7 @@ Moleculer is a fast, modern and powerful microservices framework for Node.js (>=
 
 - Promise-based solution
 - request-reply concept
+- support streams
 - support event driven architecture with balancing
 - built-in service registry
 - dynamic service discovery
@@ -59,12 +60,14 @@ $ yarn add moleculer
 ```
 
 # Create your first microservice
-This example shows you how to create a small service with an `add` action which can add two numbers.
+This example shows you how to create a small service with an `add` action which can add two numbers and how to call it.
 ```js
 const { ServiceBroker } = require("moleculer");
 
+// Create a broker
 let broker = new ServiceBroker({ logger: console });
 
+// Create a service
 broker.createService({
     name: "math",
     actions: {
@@ -74,10 +77,10 @@ broker.createService({
     }
 });
 
-broker.start();
-
-// Call service
-broker.call("math.add", { a: 5, b: 3 })
+// Start broker
+broker.start()
+    // Call service
+    .then(() => broker.call("math.add", { a: 5, b: 3 })
     .then(res => console.log("5 + 3 =", res))
     .catch(err => console.error(`Error occured! ${err.message}`));
 ```
