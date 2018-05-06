@@ -5,10 +5,13 @@
 # Breaking changes
 
 ## Streaming support
+TODO
 
 ## Better Service & Broker lifecycle handling
+TODO
 
 ## Enhanced ping method
+It returns Promise with results of ping responses.
 
 ```js
 broker.sendPing().then(console.log);
@@ -18,10 +21,63 @@ broker.sendPing().then(console.log);
 broker.sendPing("node-123", 1000).then(console.log);
 ```
 
+## Default console logger
+No need to set `logger: console` in broker options, because ServiceBroker uses `console` as default logger.
+
+```js
+const broker = new ServiceBroker();
+```
+
+**Disable loggging**
+```js
+const broker = new ServiceBroker({ logger: false });
+```
+
 # New
 
-## Graceful shutdown
+## Enhanced log level configuration 
+There is a new module-based log level configuration. You can set log levels for every Moleculer module. You can use wildcard too.
 
+```js
+const broker = new ServiceBroker({
+	logger: console,
+	logLevel: {
+		"MY.**": false, // Disable logs
+		"TRANS*": "warn",
+		"*.GREETER": "debug",
+		"**": "debug", // All other modules use this level
+	}
+});
+```
+
+Internal modules: `BROKER`, `TRANS`, `TX`, `CACHER`, `REGISTRY`.
+
+**Please note, it works only with default console logger. If you uses external logger (Pino, Windows, Bunyan, ...etc) you need to handle log levels.
+
+## New `short` log formatter
+
+There is a new `short` log formatter. It's similar as the default, but doesn't print the date and `nodeID`.
+
+```js
+const broker = new ServiceBroker({
+	logFormatter: "short"
+});
+```
+
+**Output**
+```js
+[19:42:49.055Z] INFO  MATH: Service started.
+```
+
+## Graceful shutdown
+Thanks for [@rmccallum81](https://github.com/rmccallum81), ServiceBroker supports graceful shutdown. You can enable it with `trackContext` broker option. If you enable it, all services wait for all running local contexts before shutdowning. You can also define a timeout.
+
+```js
+const broker = new ServiceBroker({
+	trackContext: true,
+    gracefulStopTimeout: 5 * 1000 // waiting max 5 sec
+});
+```
 
 # Changes
 
