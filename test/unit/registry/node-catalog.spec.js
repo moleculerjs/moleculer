@@ -183,13 +183,16 @@ describe("Test NodeCatalog.processNodeInfo", () => {
 
 		let payload = {
 			sender: "node-12",
-			services: [{}, {}, {}]
+			services: [{}, {}, {}],
+			seq: 4
 		};
 
 		catalog.processNodeInfo(payload);
 		expect(catalog.nodes.size).toBe(2);
 
 		let node = catalog.get("node-12");
+
+		expect(node.seq).toBe(4);
 
 		expect(broker.registry.registerServices).toHaveBeenCalledTimes(1);
 		expect(broker.registry.registerServices).toHaveBeenCalledWith(node, node.services);
