@@ -177,7 +177,7 @@ class NodeCatalog {
 			node.lastHeartbeatTime = Date.now();
 			node.available = true;
 			node.offlineSince = null;
-			node.seq = payload.seq
+			node.seq = payload.seq;
 		}
 
 		// Update instance
