@@ -71,6 +71,15 @@ describe("Test Node", () => {
 
 			expect(node.seq).toBe(8);
 		});
+
+		it("should update 'seq' if reconnected", () => {
+			let payload = {
+				seq: 2
+			};
+			node.update(payload, true);
+
+			expect(node.seq).toBe(2);
+		});
 	});
 
 	it("should update local info", () => {
