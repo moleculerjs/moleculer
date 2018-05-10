@@ -114,6 +114,7 @@ class NodeCatalog {
 			langVersion: process.version
 		};
 		node.seq = 1;
+		node.meta=this.broker.options.nodeMeta;
 
 		this.add(node.id, node);
 
