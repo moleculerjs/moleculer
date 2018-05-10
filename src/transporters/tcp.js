@@ -50,6 +50,8 @@ class TcpTransporter extends Transporter {
 		super(opts);
 
 		this.opts = Object.assign({
+			/****************************/
+
 			// UDP discovery options
 			udpDiscovery: true,
 			udpPort: 4445,
@@ -57,6 +59,7 @@ class TcpTransporter extends Transporter {
 			udpPeriod: 30,
 			udpReuseAddr: true,
 			udpMaxDiscovery: 0, // 0 - No limit
+			udpCallMeansOnline: false,
 
 			// Multicast settings
 			udpMulticast: "239.0.0.0",
@@ -65,11 +68,17 @@ class TcpTransporter extends Transporter {
 			// Broadcast settings
 			udpBroadcast: false,
 
-			// TCP options
+			/****************************************/
+
+			// TCP trasport options
 			port: null, // random port,
 			urls: null, // Remote node addresses (when UDP discovery is not available)
 			useHostname: true,
 
+			/****************************************/
+
+			// TCP discovery soptions
+			tcpDiscovery: false,
 			gossipPeriod: 2, // seconds
 			maxConnections: 32, // Max live outgoing TCP connections
 			maxPacketSize: 1 * 1024 * 1024
@@ -164,8 +173,13 @@ class TcpTransporter extends Transporter {
 				//this.logger.info(`UDP discovery received from ${address} on ${nodeID}.`);
 				let node = this.nodes.get(nodeID);
 				if (!node) {
-					// Unknown node. Register as offline node
-					node = this.addOfflineNode(nodeID, address, port);
+					// Unknown node!
+					if (this.opts.udpCallMeansOnline){
+						//Register as online because it call us directly. So, its alive!
+						node = this.addOnlineNode(nodeID, address, port);
+					} else{
+						node = this.addOfflineNode(nodeID, address, port);
+					}
 
 				} else if (!node.available) {
 					// Update connection data
@@ -274,8 +288,10 @@ class TcpTransporter extends Transporter {
 	 * Start Gossip timers
 	 */
 	startTimers() {
-		this.gossipTimer = setInterval(() => this.sendGossipRequest(), Math.max(this.opts.gossipPeriod, 1) * 1000);
-		this.gossipTimer.unref();
+		if (this.opts.tcpDiscovery){
+			this.gossipTimer = setInterval(() => this.sendGossipRequest(), Math.max(this.opts.gossipPeriod, 1) * 1000);
+			this.gossipTimer.unref();
+		}
 	}
 
 	/**
@@ -304,6 +320,30 @@ class TcpTransporter extends Transporter {
 		node.available = false;
 		node.seq = 0;
 		node.offlineSince = Date.now();
+
+		this.nodes.add(node.id, node);
+
+		return node;
+	}
+
+	/**
+	 * Register a node as online because it call us directly
+	 *
+	 * @param {String} id - NodeID
+	 * @param {String} address
+	 * @param {Number} port
+	 */
+	addOnlineNode(id, address, port) {
+		const node = new Node(id);
+		node.local = false;
+		node.hostname = address;
+		node.ipList = [address];
+		node.port = port;
+		node.available = true;
+		node.seq = 0;
+		node.offlineSince = null;
+		node.isReconnected = true;
+		node.lastHeartbeatTime = Date.now();
 
 		this.nodes.add(node.id, node);
 

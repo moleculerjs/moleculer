@@ -8,26 +8,38 @@ const Promise = require("bluebird");
 const COUNT = process.argv[2] ? Number(process.argv[2]) : 20;
 const nodePrefix = process.argv[3] || "node";
 const namespace = "viz-" + Math.round(_.random(100));
+const udpDiscovery = process.argv[4] == "udp" ? true : (process.argv[5] == "udp" ? true : false);
+let tcpDiscovery = process.argv[4] == "tcp" ? true : (process.argv[5] == "tcp" ? true : false);
+
+if (!tcpDiscovery && !udpDiscovery){
+	tcpDiscovery = true;
+}
 
 console.log(`Create ${COUNT} nodes...`);
 
 const brokers = [];
+const port = 6000;
+const urls = ["tcp://localhost:6000/" + nodePrefix +"-1" ];
+
 for(let i = 0; i < COUNT; i++) {
 	const nodeID = nodePrefix + "-" + (i + 1);
-	const broker = createBroker(nodeID);
+	const broker = createBroker(nodeID, port+i);
 	brokers.push({ nodeID, broker });
 }
 
-function createBroker(nodeID) {
+function createBroker(nodeID, port) {
 	const broker = new ServiceBroker({
 		namespace,
 		nodeID,
-		//transporter: "NATS",
 		transporter: {
 			type: "TCP",
 			options: {
-				gossipPeriod: 2, // seconds
-				maxConnections: 10, // Max live TCP socket
+				port: port,
+				urls: tcpDiscovery ? urls : null,
+				udpDiscovery: udpDiscovery,
+				tcpDiscovery: tcpDiscovery,
+				gossipPeriod: 1,
+				udpCallMeansOnline: (udpDiscovery && !tcpDiscovery)
 				//udpBroadcast: true,
 				//udpBroadcast: "192.168.2.255",
 				//udpMulticast: null,
@@ -47,6 +59,11 @@ let startTime = Date.now();
 
 Promise.all(brokers.map(({ broker }) => broker.start())).then(() => {
 	console.log("All nodes started.");
+
+	if (tcpDiscovery)
+		console.log("Discovery using TCP (gossip) strategy enable.");
+	if (udpDiscovery)
+		console.log("Discovery using UDP strategy enable.");
 
 	console.log("\x1b[2J");
 
