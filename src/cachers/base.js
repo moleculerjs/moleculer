@@ -27,7 +27,7 @@ class Cacher {
 		this.opts = _.defaultsDeep(opts, {
 			ttl: null,
 			keygen: null,
-			maxKeyLength: null
+			maxParamsLength: null
 		});
 	}
 
@@ -168,11 +168,11 @@ class Cacher {
 	}
 
 	_hashedKey(key) {
-		const maxKeyLength = this.opts.maxKeyLength;
-		if (!maxKeyLength || maxKeyLength < 44 || key.length <= maxKeyLength)
+		const maxParamsLength = this.opts.maxParamsLength;
+		if (!maxParamsLength || maxParamsLength < 44 || key.length <= maxParamsLength)
 			return key;
 
-		const prefixLength = maxKeyLength - 44;
+		const prefixLength = maxParamsLength - 44;
 
 		const base64Hash = crypto.createHash("sha256").update(key).digest("base64");
 		if (prefixLength < 1)

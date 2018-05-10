@@ -25,16 +25,16 @@ describe("Test BaseCacher", () => {
 		let cacher = new Cacher(opts);
 		expect(cacher.opts).toBeDefined();
 		expect(cacher.opts.ttl).toBeNull();
-		expect(cacher.opts.maxKeyLength).toBeNull();
+		expect(cacher.opts.maxParamsLength).toBeNull();
 	});
 
 	it("check constructor with options", () => {
-		let opts = { ttl: 500, maxKeyLength: 128 };
+		let opts = { ttl: 500, maxParamsLength: 128 };
 		let cacher = new Cacher(opts);
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toEqual(opts);
 		expect(cacher.opts.ttl).toBe(500);
-		expect(cacher.opts.maxKeyLength).toBe(128);
+		expect(cacher.opts.maxParamsLength).toBe(128);
 	});
 
 	it("check init", () => {
@@ -183,23 +183,23 @@ describe("Test BaseCacher", () => {
 
 		cacher.init(broker);
 
-		const bigObj = {"A":{"C0":[0,4,6],"C1":true,"C2":3342,"C3":"5530af6f0cb29229","C4":"643ded40b0da2745"},"B":{"C0":"5a75b699c41d9a75","C1":false,"C2":true,"C3":"14e77e2edd0dcb98","C4":true},"C":{"C0":[5,9,7],"C1":true,"C2":[6,9,2],"C3":false,"C4":[9,5,0]},"D":{"C0":true,"C1":883,"C2":false,"C3":5645,"C4":2633},"E":{"C0":"4119cd276d9db0d1","C1":"50ed180e9583e17d","C2":true,"C3":false,"C4":[8,2,9]},"F":{"C0":"42146325b8cbca02","C1":false,"C2":true,"C3":5434,"C4":"55997c3e66920def"},"G":{"C0":false,"C1":false,"C2":[4,6,3],"C3":"41782dd5a2348223","C4":true},"H":{"C0":2337,"C1":6906,"C2":false,"C3":"40d74a450b623175","C4":true},"I":{"C0":true,"C1":[2,8,4],"C2":[1,8,7],"C3":false,"C4":true},"J":{"C0":true,"C1":false,"C2":"4e96dbf3f282df0c","C3":2548,"C4":"3aa6fb7043976492"},"K":{"C0":"394e2f2f68f510b7","C1":5776,"C2":[1,0,1],"C3":"248693f7ff03ae","C4":true},"L":{"C0":8210,"C1":true,"C2":false,"C3":true,"C4":true},"M":{"C0":[5,5,3],"C1":3579,"C2":2352,"C3":true,"C4":false},"N":{"C0":[8,3,8],"C1":6946,"C2":true,"C3":true,"C4":[8,3,5]},"O":{"C0":false,"C1":true,"C2":[3,4,5],"C3":false,"C4":7694},"P":{"C0":true,"C1":[9,5,3],"C2":false,"C3":"160aff0aa355691c","C4":"1e1ac668a9ce211c"},"Q":{"C0":"226ed51c1a3ab8ba","C1":[4,3,0],"C2":8623,"C3":true,"C4":"6d8d97befef92ca7"},"R":{"C0":true,"C1":"49fdbe5c79a9392e","C2":9540,"C3":[0,6,5],"C4":[9,6,7]},"S":{"C0":"7de076f622f9c370","C1":[6,6,5],"C2":"5a341d690938b35b","C3":false,"C4":true},"T":{"C0":7086,"C1":false,"C2":"18c0266dd067362d","C3":[2,9,8],"C4":true},"U":{"C0":false,"C1":6132,"C2":false,"C3":false,"C4":false},"V":{"C0":"33736e82b9b2a3f7","C1":false,"C2":8390,"C3":351,"C4":"1f19281ac4924648"},"W":{"C0":[1,9,3],"C1":973,"C2":[5,7,2],"C3":true,"C4":false},"X":{"C0":true,"C1":"4c311f7f595e47bb","C2":true,"C3":false,"C4":true},"Y":{"C0":false,"C1":"542e39e1c1fc1691","C2":true,"C3":[3,5,2],"C4":"1a8499f7dd494ff4"}};
+		const bigObj = {"A":{"C0":false,"C1":true,"C2":true,"C3":"495f761d77d6294f","C4":true},"B":{"C0":true,"C1":false,"C2":true,"C3":"5721c26bfddb7927","C4":false},"C":{"C0":"5d9e85c124d5d09e","C1":true,"C2":5366,"C3":false,"C4":false},"D":{"C0":false,"C1":true,"C2":"704473bca1242604","C3":false,"C4":"6fc56107e69be769"},"E":{"C0":true,"C1":true,"C2":4881,"C3":true,"C4":1418},"F":{"C0":true,"C1":false,"C2":false,"C3":false,"C4":true},"G":{"C0":false,"C1":true,"C2":false,"C3":6547,"C4":9565},"H":{"C0":true,"C1":1848,"C2":"232e6552d0b8aa98","C3":"1d50627abe5c0463","C4":5251},"I":{"C0":"ecd0e4eae08e4f","C1":"197bcb312fc17f60","C2":4755,"C3":true,"C4":9552},"J":{"C0":false,"C1":"1cc45cadbbf240f","C2":"4dbb352b21c3c2f3","C3":5065,"C4":"792b19631c78d4f6"},"K":{"C0":"13c23a525adf9e1f","C1":true,"C2":true,"C3":"589d3499abbf6765","C4":true},"L":{"C0":false,"C1":true,"C2":4350,"C3":"72f6c4f0e9beb03c","C4":"434b74b5ff500609"},"M":{"C0":9228,"C1":"5254b36ec238c266","C2":true,"C3":"27b040089b057684","C4":true},"N":{"C0":"35d3c608ef8aac5e","C1":"23fbdbd520d5ae7d","C2":false,"C3":9061,"C4":true},"O":{"C0":true,"C1":true,"C2":"2382f9fe7834e0cc","C3":true,"C4":false},"P":{"C0":true,"C1":false,"C2":"38c0d40b91a9d1f6","C3":false,"C4":5512},"Q":{"C0":true,"C1":true,"C2":true,"C3":true,"C4":true},"R":{"C0":"70bd27c06b067734","C1":true,"C2":"5213493253b98636","C3":8272,"C4":1264},"S":{"C0":"61044125008e634c","C1":9175,"C2":true,"C3":"225e3d912bfbc338","C4":false},"T":{"C0":"38edc77387da030a","C1":false,"C2":"38d8b9e2525413fc","C3":true,"C4":false},"U":{"C0":false,"C1":"4b3962c3d26bddd0","C2":"1e66b069bad46643","C3":3642,"C4":9225},"V":{"C0":"1c40e44b54486080","C1":"5a560d81078bab02","C2":"1c131259e1e9aa61","C3":true,"C4":9335},"W":{"C0":false,"C1":"7089b0ad438df2cb","C2":"216aec98f513ac08","C3":true,"C4":false},"X":{"C0":"3b749354aac19f24","C1":9626,"C2":true,"C3":false,"C4":false},"Y":{"C0":298,"C1":"224075dadd108ef9","C2":3450,"C3":2548,"C4":true}};
 
-		cacher.opts.maxKeyLength = 44;
+		cacher.opts.maxParamsLength = 44;
 		res = cacher.getCacheKey("abc.def", bigObj);
-		expect(res).toBe("abc.def:TfvZ8TKvsujXJdXPcDpmkT4/iIoY/oIDmvVYtwTqUe0=");
+		expect(res).toBe("abc.def:/18CtAt7Z+barI7S7Ef+WTFQ23yVQ4VM8o+riN95sjo=");
 
-		cacher.opts.maxKeyLength = 72;
+		cacher.opts.maxParamsLength = 94;
 		res = cacher.getCacheKey("abc.def", bigObj);
-		expect(res).toBe("abc.def:A|C0|0|4|6|C1|true|C2|3342|CTfvZ8TKvsujXJdXPcDpmkT4/iIoY/oIDmvVYtwTqUe0=");
+		expect(res).toBe("abc.def:A|C0|false|C1|true|C2|true|C3|495f761d77d6294f|C4|/18CtAt7Z+barI7S7Ef+WTFQ23yVQ4VM8o+riN95sjo=");
 
-		cacher.opts.maxKeyLength = 771;
+		cacher.opts.maxParamsLength = 485;
 		res = cacher.getCacheKey("abc.def", bigObj);
-		expect(res).toBe("abc.def:A|C0|0|4|6|C1|true|C2|3342|C3|5530af6f0cb29229|C4|643ded40b0da2745|B|C0|5a75b699c41d9a75|C1|false|C2|true|C3|14e77e2edd0dcb98|C4|true|C|C0|5|9|7|C1|true|C2|6|9|2|C3|false|C4|9|5|0|D|C0|true|C1|883|C2|false|C3|5645|C4|2633|E|C0|4119cd276d9db0d1|C1|50ed180e9583e17d|C2|true|C3|false|C4|8|2|9|F|C0|42146325b8cbca02|C1|false|C2|true|C3|5434|C4|55997c3e66920def|G|C0|false|C1|false|C2|4|6|3|C3|41782dd5a2348223|C4|true|H|C0|2337|C1|6906|C2|false|C3|40d74a450b623175|C4|true|I|C0|true|C1|2|8|4|C2|1|8|7|C3|false|C4|true|J|C0|true|C1|false|C2|4e96dbf3f282df0c|C3|2548|C4|3aa6fb7043976492|K|C0|394e2f2f68f510b7|C1|5776|C2|1|0|1|C3|248693f7ff03ae|C4|true|L|C0|8210|C1|true|C2|false|C3|true|C4|true|M|C0|5|5|3|C1|3579|C2|2352|C3|true|C4|TfvZ8TKvsujXJdXPcDpmkT4/iIoY/oIDmvVYtwTqUe0=");
+		expect(res).toBe("abc.def:A|C0|false|C1|true|C2|true|C3|495f761d77d6294f|C4|true|B|C0|true|C1|false|C2|true|C3|5721c26bfddb7927|C4|false|C|C0|5d9e85c124d5d09e|C1|true|C2|5366|C3|false|C4|false|D|C0|false|C1|true|C2|704473bca1242604|C3|false|C4|6fc56107e69be769|E|C0|true|C1|true|C2|4881|C3|true|C4|1418|F|C0|true|C1|false|C2|false|C3|false|C4|true|G|C0|false|C1|true|C2|false|C3|6547|C4|9565|H|C0|true|C1|1848|C2|232e6552d0b8aa98|C3|1d50627abe5c0463|C4|5251|I|C0|ecd0/18CtAt7Z+barI7S7Ef+WTFQ23yVQ4VM8o+riN95sjo=");
 
-		cacher.opts.maxKeyLength = null;
+		cacher.opts.maxParamsLength = null;
 		res = cacher.getCacheKey("abc.def", bigObj);
-		expect(res).toBe("abc.def:A|C0|0|4|6|C1|true|C2|3342|C3|5530af6f0cb29229|C4|643ded40b0da2745|B|C0|5a75b699c41d9a75|C1|false|C2|true|C3|14e77e2edd0dcb98|C4|true|C|C0|5|9|7|C1|true|C2|6|9|2|C3|false|C4|9|5|0|D|C0|true|C1|883|C2|false|C3|5645|C4|2633|E|C0|4119cd276d9db0d1|C1|50ed180e9583e17d|C2|true|C3|false|C4|8|2|9|F|C0|42146325b8cbca02|C1|false|C2|true|C3|5434|C4|55997c3e66920def|G|C0|false|C1|false|C2|4|6|3|C3|41782dd5a2348223|C4|true|H|C0|2337|C1|6906|C2|false|C3|40d74a450b623175|C4|true|I|C0|true|C1|2|8|4|C2|1|8|7|C3|false|C4|true|J|C0|true|C1|false|C2|4e96dbf3f282df0c|C3|2548|C4|3aa6fb7043976492|K|C0|394e2f2f68f510b7|C1|5776|C2|1|0|1|C3|248693f7ff03ae|C4|true|L|C0|8210|C1|true|C2|false|C3|true|C4|true|M|C0|5|5|3|C1|3579|C2|2352|C3|true|C4|false|N|C0|8|3|8|C1|6946|C2|true|C3|true|C4|8|3|5|O|C0|false|C1|true|C2|3|4|5|C3|false|C4|7694|P|C0|true|C1|9|5|3|C2|false|C3|160aff0aa355691c|C4|1e1ac668a9ce211c|Q|C0|226ed51c1a3ab8ba|C1|4|3|0|C2|8623|C3|true|C4|6d8d97befef92ca7|R|C0|true|C1|49fdbe5c79a9392e|C2|9540|C3|0|6|5|C4|9|6|7|S|C0|7de076f622f9c370|C1|6|6|5|C2|5a341d690938b35b|C3|false|C4|true|T|C0|7086|C1|false|C2|18c0266dd067362d|C3|2|9|8|C4|true|U|C0|false|C1|6132|C2|false|C3|false|C4|false|V|C0|33736e82b9b2a3f7|C1|false|C2|8390|C3|351|C4|1f19281ac4924648|W|C0|1|9|3|C1|973|C2|5|7|2|C3|true|C4|false|X|C0|true|C1|4c311f7f595e47bb|C2|true|C3|false|C4|true|Y|C0|false|C1|542e39e1c1fc1691|C2|true|C3|3|5|2|C4|1a8499f7dd494ff4");
+		expect(res).toBe("abc.def:A|C0|false|C1|true|C2|true|C3|495f761d77d6294f|C4|true|B|C0|true|C1|false|C2|true|C3|5721c26bfddb7927|C4|false|C|C0|5d9e85c124d5d09e|C1|true|C2|5366|C3|false|C4|false|D|C0|false|C1|true|C2|704473bca1242604|C3|false|C4|6fc56107e69be769|E|C0|true|C1|true|C2|4881|C3|true|C4|1418|F|C0|true|C1|false|C2|false|C3|false|C4|true|G|C0|false|C1|true|C2|false|C3|6547|C4|9565|H|C0|true|C1|1848|C2|232e6552d0b8aa98|C3|1d50627abe5c0463|C4|5251|I|C0|ecd0e4eae08e4f|C1|197bcb312fc17f60|C2|4755|C3|true|C4|9552|J|C0|false|C1|1cc45cadbbf240f|C2|4dbb352b21c3c2f3|C3|5065|C4|792b19631c78d4f6|K|C0|13c23a525adf9e1f|C1|true|C2|true|C3|589d3499abbf6765|C4|true|L|C0|false|C1|true|C2|4350|C3|72f6c4f0e9beb03c|C4|434b74b5ff500609|M|C0|9228|C1|5254b36ec238c266|C2|true|C3|27b040089b057684|C4|true|N|C0|35d3c608ef8aac5e|C1|23fbdbd520d5ae7d|C2|false|C3|9061|C4|true|O|C0|true|C1|true|C2|2382f9fe7834e0cc|C3|true|C4|false|P|C0|true|C1|false|C2|38c0d40b91a9d1f6|C3|false|C4|5512|Q|C0|true|C1|true|C2|true|C3|true|C4|true|R|C0|70bd27c06b067734|C1|true|C2|5213493253b98636|C3|8272|C4|1264|S|C0|61044125008e634c|C1|9175|C2|true|C3|225e3d912bfbc338|C4|false|T|C0|38edc77387da030a|C1|false|C2|38d8b9e2525413fc|C3|true|C4|false|U|C0|false|C1|4b3962c3d26bddd0|C2|1e66b069bad46643|C3|3642|C4|9225|V|C0|1c40e44b54486080|C1|5a560d81078bab02|C2|1c131259e1e9aa61|C3|true|C4|9335|W|C0|false|C1|7089b0ad438df2cb|C2|216aec98f513ac08|C3|true|C4|false|X|C0|3b749354aac19f24|C1|9626|C2|true|C3|false|C4|false|Y|C0|298|C1|224075dadd108ef9|C2|3450|C3|2548|C4|true");
 	});
 
 	it("check getCacheKey with custom keygen", () => {
