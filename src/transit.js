@@ -596,7 +596,8 @@ class Transit {
 			hostname: info.hostname,
 			client: info.client,
 			config: info.config,
-			seq: info.seq
+			seq: info.seq,
+			meta: info.meta
 		}))).catch(err => this.logger.error(`Unable to send INFO packet to '${nodeID}' node.`, err));
 
 	}
