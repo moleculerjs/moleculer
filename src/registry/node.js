@@ -60,13 +60,13 @@ class Node {
 		// Process services & events
 		this.services = payload.services;
 		this.rawInfo = payload;
-
+		if (payload.meta) this.meta=payload.meta;
+		
 		const newSeq = payload.seq || 1;
 		if (newSeq > this.seq) {
 			this.seq = newSeq;
 			return true;
 		}
-		if (payload.meta) this.meta=payload.meta;
 	}
 
 	/**
