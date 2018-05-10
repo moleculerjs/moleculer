@@ -78,7 +78,7 @@ class TcpTransporter extends Transporter {
 			/****************************************/
 
 			// TCP discovery soptions
-			tcpDiscovery: false,
+			tcpDiscovery: true,
 			gossipPeriod: 2, // seconds
 			maxConnections: 32, // Max live outgoing TCP connections
 			maxPacketSize: 1 * 1024 * 1024

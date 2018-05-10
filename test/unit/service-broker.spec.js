@@ -481,6 +481,8 @@ describe("Test option resolvers", () => {
 				"udpBroadcast": true,
 				"udpDiscovery": true,
 				"udpMaxDiscovery": 0,
+				"udpCallMeansOnline": false,
+				"tcpDiscovery": true,
 				"udpMulticast": "239.0.0.0",
 				"udpMulticastTTL": 1,
 				"udpPeriod": 5,
