@@ -10,7 +10,7 @@ let ServiceBroker = require("../../src/service-broker");
 
 function createBroker(opts) {
 	// Create broker
-	let broker = new ServiceBroker(opts);
+	let broker = new ServiceBroker(Object.assign({ logger: false }, opts));
 
 	broker.loadService(__dirname + "/../user.service");
 

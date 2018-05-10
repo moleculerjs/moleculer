@@ -11,7 +11,7 @@ let ServiceBroker = require("../../src/service-broker");
 let bench = benchmark.createSuite("Middleware test");
 
 (function() {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	broker.loadService(__dirname + "/../user.service");
 
 	bench.ref("Without middlewares", done => {
@@ -20,7 +20,7 @@ let bench = benchmark.createSuite("Middleware test");
 })();
 
 (function() {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 
 	// Add middlewares
 	broker.use(handler => {
@@ -35,7 +35,7 @@ let bench = benchmark.createSuite("Middleware test");
 })();
 
 (function() {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	broker.loadService(__dirname + "/../user.service");
 
 	// Add 10 middlewares

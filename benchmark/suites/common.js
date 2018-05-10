@@ -8,9 +8,9 @@ let benchmark = new Benchmarkify("Moleculer common benchmarks").printHeader();
 
 let ServiceBroker = require("../../src/service-broker");
 
-function createBroker(opts) {
+function createBroker(opts = {}) {
 	// Create broker
-	let broker = new ServiceBroker(opts);
+	let broker = new ServiceBroker(Object.assign({ logger: false }, opts));
 	broker.loadService(__dirname + "/../user.service");
 	broker.loadService(__dirname + "/../math.service");
 	broker.start();
@@ -94,6 +94,7 @@ let bench4 = benchmark.createSuite("Remote call with FakeTransporter");
 	let Serializer = require("../../src/serializers/json");
 
 	let b1 = new ServiceBroker({
+		logger: false,
 		transporter: new Transporter(),
 		requestTimeout: 0,
 		serializer: new Serializer(),
@@ -101,6 +102,7 @@ let bench4 = benchmark.createSuite("Remote call with FakeTransporter");
 	});
 
 	let b2 = new ServiceBroker({
+		logger: false,
 		transporter: new Transporter(),
 		requestTimeout: 0,
 		serializer: new Serializer(),
@@ -143,7 +145,7 @@ let bench5 = benchmark.createSuite("Context tracking");
 
 })();
 
-module.exports = benchmark.run([bench1, bench2, bench3, bench4, bench5]);
+module.exports = Promise.delay(1000).then(() => benchmark.run([bench1, bench2, bench3, bench4, bench5]));
 
 
 /*

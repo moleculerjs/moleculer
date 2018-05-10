@@ -12,7 +12,7 @@ let key = "TESTKEY-12345";
 let bench1 = benchmark.createSuite("Set & get 1k data with cacher");
 let data = JSON.parse(getDataFile("1k.json"));
 
-let broker = new Moleculer.ServiceBroker();
+let broker = new Moleculer.ServiceBroker({ logger: false });
 
 let memCacher = new Moleculer.Cachers.Memory();
 memCacher.init(broker);

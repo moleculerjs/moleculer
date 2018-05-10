@@ -16,6 +16,7 @@ let dataFiles = ["10", "150", "1k", "10k", "50k", "100k", "1M"];
 
 function createBrokers(Serializer, opts) {
 	const broker = new ServiceBroker({
+		logger: false,
 		nodeID: "node-1",
 		transporter: new FakeTransporter(),
 		serializer: new Serializer(opts)
@@ -29,7 +30,7 @@ function runTest(dataName) {
 	let data = getDataFile(dataName + ".json");
 	let payload = JSON.parse(data);
 
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ logger: false });
 
 	let JsonSer = new Serializers.JSON();
 	let AvroSer = new Serializers.Avro();
