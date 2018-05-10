@@ -1,4 +1,28 @@
 --------------------------------------------------
+<a name="0.12.4"></a>
+# [0.12.4](https://github.com/moleculerjs/moleculer/compare/v0.12.3...v0.12.4) (2018-05-10)
+
+# New 
+
+## Graceful shutdown
+Thanks for [@rmccallum81](https://github.com/rmccallum81), ServiceBroker supports graceful shutdown. You can enable it with `trackContext` broker option. If you enable it, all services wait for all running contexts before shutdowning. You can also define a timeout value with `gracefulStopTimeout` broker option.
+
+```js
+const broker = new ServiceBroker({
+    trackContext: true,
+    gracefulStopTimeout: 5 * 1000 // waiting max 5 sec
+});
+```
+
+_This timeout can be overwrite in service settings with `$gracefulStopTimeout` property._
+
+# Changes
+- fix service registry update after reconnecting. [#262](https://github.com/moleculerjs/moleculer/issues/262)
+- update index.d.ts
+- update dependencies
+- fix distributed timeout handling
+
+--------------------------------------------------
 <a name="0.12.3"></a>
 # [0.12.3](https://github.com/moleculerjs/moleculer/compare/v0.12.2...v0.12.3) (2018-04-19)
 
