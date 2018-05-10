@@ -181,6 +181,9 @@ describe("Test NodeCatalog.processNodeInfo", () => {
 		broker.registry.registerServices.mockClear();
 		broker.broadcastLocal.mockClear();
 
+		let node = catalog.get("node-12");
+		node.update = jest.fn(() => true);
+
 		let payload = {
 			sender: "node-12",
 			services: [{}, {}, {}]
@@ -188,8 +191,6 @@ describe("Test NodeCatalog.processNodeInfo", () => {
 
 		catalog.processNodeInfo(payload);
 		expect(catalog.nodes.size).toBe(2);
-
-		let node = catalog.get("node-12");
 
 		expect(broker.registry.registerServices).toHaveBeenCalledTimes(1);
 		expect(broker.registry.registerServices).toHaveBeenCalledWith(node, node.services);

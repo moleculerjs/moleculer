@@ -4,7 +4,7 @@ let ServiceBroker = require("../src/service-broker");
 
 // Create broker
 let broker = new ServiceBroker({
-	nodeID: "hot-" + process.pid,
+	nodeID: "hot",
 	transporter: "TCP",
 	logger: console,
 	//logLevel: "debug",

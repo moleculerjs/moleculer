@@ -180,10 +180,10 @@ class NodeCatalog {
 		}
 
 		// Update instance
-		const needRegister = node.update(payload);
+		const needRegister = node.update(payload, isReconnected);
 
 		// Refresh services if 'seq' is greater or it is a reconnected node
-		if ((needRegister || isReconnected) && node.services) {
+		if (needRegister && node.services) {
 			this.registry.registerServices(node, node.services);
 		}
 

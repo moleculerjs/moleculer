@@ -47,10 +47,11 @@ class Node {
 	/**
 	 * Update properties
 	 *
-	 * @param {any} payload
+	 * @param {object} payload
+	 * @param {boolean} isReconnected
 	 * @memberof Node
 	 */
-	update(payload) {
+	update(payload, isReconnected) {
 		// Update properties
 		this.ipList = payload.ipList;
 		this.hostname = payload.hostname;
@@ -62,7 +63,7 @@ class Node {
 		this.rawInfo = payload;
 
 		const newSeq = payload.seq || 1;
-		if (newSeq > this.seq) {
+		if (newSeq > this.seq || isReconnected) {
 			this.seq = newSeq;
 			return true;
 		}

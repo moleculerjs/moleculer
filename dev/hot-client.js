@@ -4,8 +4,8 @@ let ServiceBroker = require("../src/service-broker");
 
 // Create broker
 let broker = new ServiceBroker({
-	nodeID: "client-" + process.pid,
-	transporter: "NATS",
+	nodeID: "hot-client",
+	transporter: "TCP",
 	logger: console
 });
 
@@ -13,8 +13,9 @@ let broker = new ServiceBroker({
 
 let c = 0;
 broker.start().then(() => {
+	broker.repl();
 
-	setInterval(() => {
+	/*setInterval(() => {
 		broker.call("test.hello")
 			.then(res => broker.logger.info("Result:", res))
 			.catch(err => broker.logger.warn(err.message));
@@ -22,5 +23,6 @@ broker.start().then(() => {
 
 		broker.emit("test.event", ++c);
 	}, 1000);
+	*/
 
 });
