@@ -8,7 +8,7 @@ module.exports = {
 	},
 
 	actions: {
-		hello() {
+		hello2() {
 			return "Hello Moleculer!!!";
 		}
 	},
