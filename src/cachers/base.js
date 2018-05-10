@@ -27,7 +27,7 @@ class Cacher {
 		this.opts = _.defaultsDeep(opts, {
 			ttl: null,
 			keygen: null,
-			maxKeyLength: 44
+			maxKeyLength: null
 		});
 	}
 
@@ -169,7 +169,7 @@ class Cacher {
 
 	_hashedKey(key) {
 		const maxKeyLength = this.opts.maxKeyLength;
-		if (maxKeyLength < 44 || key.length <= maxKeyLength)
+		if (!maxKeyLength || maxKeyLength < 44 || key.length <= maxKeyLength)
 			return key;
 
 		const prefixLength = maxKeyLength - 44;

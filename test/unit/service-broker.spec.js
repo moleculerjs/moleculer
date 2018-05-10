@@ -520,28 +520,28 @@ describe("Test option resolvers", () => {
 			let options = { ttl: 100 };
 			let cacher = broker._resolveCacher({ options });
 			expect(cacher).toBeInstanceOf(Cachers.Memory);
-			expect(cacher.opts).toEqual({ keygen: null, ttl: 100});
+			expect(cacher.opts).toEqual({ keygen: null, maxKeyLength: null, ttl: 100});
 		});
 
 		it("should resolve MemoryCacher from obj", () => {
 			let options = { ttl: 100 };
 			let cacher = broker._resolveCacher({ type: "Memory", options });
 			expect(cacher).toBeInstanceOf(Cachers.Memory);
-			expect(cacher.opts).toEqual({ keygen: null, ttl: 100});
+			expect(cacher.opts).toEqual({ keygen: null, maxKeyLength: null, ttl: 100});
 		});
 
 		it("should resolve RedisCacher from obj with Redis type", () => {
 			let options = { ttl: 100 };
 			let cacher = broker._resolveCacher({ type: "Redis", options });
 			expect(cacher).toBeInstanceOf(Cachers.Redis);
-			expect(cacher.opts).toEqual({ keygen: null, ttl: 100});
+			expect(cacher.opts).toEqual({ keygen: null, maxKeyLength: null, ttl: 100});
 		});
 
 		it("should resolve RedisCacher from obj with Redis type", () => {
 			let options = { ttl: 80, redis: { db: 3 } };
 			let cacher = broker._resolveCacher({ type: "redis", options });
 			expect(cacher).toBeInstanceOf(Cachers.Redis);
-			expect(cacher.opts).toEqual({ keygen: null, ttl: 80, redis: { db: 3 } });
+			expect(cacher.opts).toEqual({ keygen: null, maxKeyLength: null, ttl: 80, redis: { db: 3 } });
 		});
 
 		it("should resolve RedisCacher from connection string", () => {

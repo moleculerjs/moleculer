@@ -12,14 +12,16 @@ describe("Test RedisCacher constructor", () => {
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toBeDefined();
 		expect(cacher.opts.ttl).toBeNull();
+		expect(cacher.opts.maxKeyLength).toBeNull();
 	});
 
 	it("should create a timer if set ttl option", () => {
-		let opts = { ttl: 500 };
+		let opts = { ttl: 500, maxKeyLength: 1024 };
 		let cacher = new RedisCacher(opts);
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toEqual(opts);
 		expect(cacher.opts.ttl).toBe(500);
+		expect(cacher.opts.maxKeyLength).toBe(1024);
 	});
 
 	it("should create with redis opts from string", () => {
@@ -29,6 +31,7 @@ describe("Test RedisCacher constructor", () => {
 		expect(cacher.opts).toEqual({
 			keygen: null,
 			ttl: null,
+			maxKeyLength: null,
 			redis: opts
 		});
 	});
