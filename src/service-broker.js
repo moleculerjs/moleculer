@@ -825,7 +825,7 @@ class ServiceBroker {
 				}
 
 				// Get the next available endpoint
-				const endpoint = epList.next();
+				const endpoint = epList.next(opts);
 				if (!endpoint) {
 					const errMsg = `Service '${actionName}' is not available.`;
 					this.logger.warn(errMsg);
