@@ -129,7 +129,7 @@ class EndpointList {
 	 * @returns
 	 * @memberof EndpointList
 	 */
-	nextLocal() {
+	nextLocal(ctx) {
 		// No items
 		if (this.localEndpoints.length === 0) {
 			return null;
@@ -149,7 +149,7 @@ class EndpointList {
 		if (epList.length == 0)
 			return null;
 
-		return this.select(epList);
+		return this.select(epList, ctx);
 	}
 
 	/**
