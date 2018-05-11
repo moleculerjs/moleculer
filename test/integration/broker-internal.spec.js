@@ -166,7 +166,17 @@ describe("Test internal services", () => {
 				"action": {
 					"cache": false,
 					"name": "$node.list",
-					"metrics": { "meta": true, "params": false }
+					"metrics": { "meta": true, "params": false },
+					"params": {
+						"onlyAvailable": {
+							"optional": true,
+							"type": "boolean"
+						},
+						"withServices": {
+							"optional": true,
+							"type": "boolean"
+						}
+					}
 				},
 				"available": true,
 				"count": 1,
@@ -179,6 +189,10 @@ describe("Test internal services", () => {
 					"metrics": { "meta": true, "params": false },
 					"params": {
 						"onlyLocal": {
+							"optional": true,
+							"type": "boolean"
+						},
+						"onlyAvailable": {
 							"optional": true,
 							"type": "boolean"
 						},
@@ -206,6 +220,10 @@ describe("Test internal services", () => {
 							"optional": true,
 							"type": "boolean"
 						},
+						"onlyAvailable": {
+							"optional": true,
+							"type": "boolean"
+						},
 						"skipInternal": {
 							"optional": true,
 							"type": "boolean"
@@ -227,6 +245,10 @@ describe("Test internal services", () => {
 					"metrics": { "meta": true, "params": false },
 					"params": {
 						"onlyLocal": {
+							"optional": true,
+							"type": "boolean"
+						},
+						"onlyAvailable": {
 							"optional": true,
 							"type": "boolean"
 						},

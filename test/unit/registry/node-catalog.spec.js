@@ -430,7 +430,7 @@ describe("Test NodeCatalog.list", () => {
 	catalog.processNodeInfo(payload);
 
 	it("should return with node list", () => {
-		let res = catalog.list();
+		let res = catalog.list({});
 		expect(res).toEqual([
 			{
 				"available": true,
@@ -469,7 +469,7 @@ describe("Test NodeCatalog.list", () => {
 	});
 
 	it("should return node list with services", () => {
-		let res = catalog.list(true);
+		let res = catalog.list({ withServices: true });
 		expect(res).toEqual([
 			{
 				"available": true,
@@ -503,6 +503,30 @@ describe("Test NodeCatalog.list", () => {
 				"offlineSince": null,
 				"seq": 1,
 				"services": [],
+				"udpAddress": null
+			}
+		]);
+
+	});
+
+	it("should return node list with services", () => {
+		catalog.disconnected("node-10");
+		let res = catalog.list({ onlyAvailable: true });
+		expect(res).toEqual([
+			{
+				"available": true,
+				"client": catalog.localNode.client,
+				"config": {},
+				"cpu": null,
+				"cpuSeq": null,
+				"id": broker.nodeID,
+				"ipList": catalog.localNode.ipList,
+				"hostname": catalog.localNode.hostname,
+				"port": null,
+				"lastHeartbeatTime": jasmine.any(Number),
+				"local": true,
+				"offlineSince": null,
+				"seq": 1,
 				"udpAddress": null
 			}
 		]);
