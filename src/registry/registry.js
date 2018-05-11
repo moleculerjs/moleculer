@@ -336,7 +336,7 @@ class Registry {
 	/**
 	 * Get list of registered nodes
 	 *
-	 * @param {any} opts
+	 * @param {object} opts
 	 * @returns
 	 * @memberof Registry
 	 */
@@ -347,7 +347,7 @@ class Registry {
 	/**
 	 * Get list of registered services
 	 *
-	 * @param {any} opts
+	 * @param {object} opts
 	 * @returns
 	 * @memberof Registry
 	 */
@@ -358,7 +358,7 @@ class Registry {
 	/**
 	 * Get list of registered actions
 	 *
-	 * @param {any} opts
+	 * @param {object} opts
 	 * @returns
 	 * @memberof Registry
 	 */
@@ -369,7 +369,7 @@ class Registry {
 	/**
 	 * Get list of registered events
 	 *
-	 * @param {any} opts
+	 * @param {object} opts
 	 * @returns
 	 * @memberof Registry
 	 */

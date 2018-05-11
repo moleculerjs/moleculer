@@ -12,7 +12,7 @@ let broker = new ServiceBroker({
 	namespace: "",
 	nodeID: process.argv[2] || "client-" + process.pid,
 	transporter: {
-		type: "TCP",
+		type: "NATS",
 		options: {
 			//udpDiscovery: false,
 			//urls: "file://./dev/nodes.json",
