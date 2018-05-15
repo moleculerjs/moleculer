@@ -1,4 +1,4 @@
-import Bluebird from "bluebird";
+import * as Bluebird from "bluebird";
 declare namespace Moleculer {
 	type GenericObject = { [name: string]: any };
 
