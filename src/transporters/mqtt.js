@@ -58,7 +58,7 @@ class MqttTransporter extends Transporter {
 			/* istanbul ignore next */
 			client.on("error", (e) => {
 				this.logger.error("MQTT error.", e.message);
-				this.logger.dbug(e);
+				this.logger.debug(e);
 
 				if (!client.connected)
 					reject(e);
