@@ -261,7 +261,7 @@ class Registry {
 	 */
 	regenerateLocalRawInfo() {
 		let node = this.nodes.localNode;
-		node.rawInfo = _.pick(node, ["ipList", "hostname", "client", "config", "port", "seq"]);
+		node.rawInfo = _.pick(node, ["ipList", "hostname", "client", "config", "port", "seq", "meta"]);
 		if (this.broker.started)
 			node.rawInfo.services = this.services.getLocalNodeServices();
 		else

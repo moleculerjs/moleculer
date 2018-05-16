@@ -61,7 +61,8 @@ class Node {
 		// Process services & events
 		this.services = payload.services;
 		this.rawInfo = payload;
-
+		if (payload.meta) this.meta=payload.meta;
+		
 		const newSeq = payload.seq || 1;
 		if (newSeq > this.seq || isReconnected) {
 			this.seq = newSeq;
