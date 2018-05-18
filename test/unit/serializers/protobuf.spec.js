@@ -196,6 +196,7 @@ describe("Test ProtoBuf serializer", () => {
 				code: 422,
 				nodeID: "test-1",
 				type: "ERR_INVALID_A",
+				retryable: true,
 				stack: "STACK_PLACEHOLDER",
 				data: {
 					a: 5
@@ -209,7 +210,7 @@ describe("Test ProtoBuf serializer", () => {
 			}
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(208);
+		expect(s.length).toBe(225);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).toEqual(obj);

@@ -611,6 +611,7 @@ describe("Test Transit._responseHandler", () => {
 		let payload = { ver: "3", sender: "remote", id, success: false, error: {
 			name: "ValidationError",
 			code: 422,
+			retryable: true,
 			data: { a: 5 },
 			stack: "STACK-TRACE"
 		}};
@@ -621,8 +622,10 @@ describe("Test Transit._responseHandler", () => {
 		expect(req.resolve).toHaveBeenCalledTimes(0);
 		expect(req.ctx.nodeID).toBe("remote");
 
+		expect(err).toBeInstanceOf(Error);
 		expect(err.name).toBe("ValidationError");
 		expect(err.code).toBe(422);
+		expect(err.retryable).toBe(true);
 		expect(err.data).toEqual({ a: 5 });
 		expect(err.stack).toBe("STACK-TRACE");
 		expect(err.nodeID).toBe("remote");
