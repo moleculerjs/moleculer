@@ -357,6 +357,7 @@ class Transit {
 			err.name = packet.error.name;
 			err.code = packet.error.code;
 			err.type = packet.error.type;
+			err.retryable = packet.error.retryable;
 			err.nodeID = packet.error.nodeID || packet.sender;
 			err.data = packet.error.data;
 			if (packet.error.stack)
@@ -547,6 +548,7 @@ class Transit {
 				nodeID: err.nodeID || this.nodeID,
 				code: err.code,
 				type: err.type,
+				retryable: err.retryable,
 				stack: err.stack,
 				data: err.data
 			};
