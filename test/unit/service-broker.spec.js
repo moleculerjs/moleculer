@@ -1135,6 +1135,15 @@ describe("Test broker.createService", () => {
 		expect(broker.ServiceFactory.mergeSchemas).toHaveBeenCalledWith(schema, mods);
 	});
 
+	it("should load es6 class service", () => {
+		const es6Service = require("../services/greeter.es6._ervice");
+		Object.setPrototypeOf(es6Service, broker.ServiceFactory);
+		es6Service.prototype.parseServiceSchema = jest.fn();
+
+		let service = broker.createService(es6Service);
+		expect(service).toBeInstanceOf(es6Service);
+	});
+
 });
 
 describe("Test broker.registerLocalService", () => {
