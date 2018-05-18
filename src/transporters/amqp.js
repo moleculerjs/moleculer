@@ -79,6 +79,9 @@ class AmqpTransporter extends Transporter {
 		this.connection = null;
 		this.channel = null;
 		this.bindings = [];
+
+		this.channelDisconnecting = false;
+		this.connectionDisconnecting = false;
 	}
 
 	/**
@@ -111,7 +114,7 @@ class AmqpTransporter extends Transporter {
 						.on("close", (err) => {
 							this.connected = false;
 							reject(err);
-							if (!this.transit.disconnecting)
+							if (!this.connectionDisconnecting)
 								this.logger.error("AMQP connection is closed.");
 							else
 								this.logger.info("AMQP connection is closed gracefully.");
@@ -138,7 +141,7 @@ class AmqpTransporter extends Transporter {
 									this.connected = false;
 									this.channel = null;
 									reject();
-									if (!this.transit.disconnecting)
+									if (!this.channelDisconnecting)
 										this.logger.warn("AMQP channel is closed.");
 									else
 										this.logger.info("AMQP channel is closed gracefully.");
@@ -184,6 +187,10 @@ class AmqpTransporter extends Transporter {
 	disconnect() {
 		if (this.connection && this.channel && this.bindings) {
 			return Promise.all(this.bindings.map(binding => this.channel.unbindQueue(...binding)))
+				.then(() => {
+					this.channelDisconnecting = this.transit.disconnecting;
+					this.connectionDisconnecting = this.transit.disconnecting;
+				})
 				.then(() => this.channel.close())
 				.then(() => this.connection.close())
 				.then(() => {

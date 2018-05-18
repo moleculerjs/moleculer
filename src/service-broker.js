@@ -622,18 +622,24 @@ class ServiceBroker {
 	/**
 	 * Create a new service by schema
 	 *
-	 * @param {any} schema	Schema of service
+	 * @param {any} schema	Schema of service or a Service class
 	 * @param {any=} schemaMods	Modified schema
 	 * @returns {Service}
 	 *
 	 * @memberof ServiceBroker
 	 */
 	createService(schema, schemaMods) {
-		let s = schema;
-		if (schemaMods)
-			s = this.ServiceFactory.mergeSchemas(schema, schemaMods);
+		let service;
 
-		let service = new this.ServiceFactory(this, s);
+		if (this.ServiceFactory.isPrototypeOf(schema)) {
+			service = new schema(this);
+		} else {
+			let s = schema;
+			if (schemaMods)
+				s = this.ServiceFactory.mergeSchemas(schema, schemaMods);
+
+			service = new this.ServiceFactory(this, s);
+		}
 
 		if (this.started) {
 			// If broker started, should call the started lifecycle event
