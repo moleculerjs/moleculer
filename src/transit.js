@@ -399,6 +399,7 @@ class Transit {
 		err.name = error.name;
 		err.code = error.code;
 		err.type = error.type;
+		err.retryable = error.retryable;
 		err.nodeID = error.nodeID || sender;
 		err.data = error.data;
 		if (error.stack)
@@ -693,6 +694,7 @@ class Transit {
 			nodeID: err.nodeID || this.nodeID,
 			code: err.code,
 			type: err.type,
+			retryable: err.retryable,
 			stack: err.stack,
 			data: err.data
 		};
