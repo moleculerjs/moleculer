@@ -1011,7 +1011,7 @@ class ServiceBroker {
 
 		// Remove the context from the active contexts list
 		if (ctx.tracked) {
-			p.then(res => {
+			p = p.then(res => {
 				ctx.dispose();
 				return res;
 			});
@@ -1048,7 +1048,7 @@ class ServiceBroker {
 
 		// Remove the context from the active contexts list
 		if (ctx.tracked) {
-			p.then(res => {
+			p = p.then(res => {
 				ctx.dispose();
 				return res;
 			});
