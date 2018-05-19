@@ -57,7 +57,9 @@ const defaultOptions = {
 
 	circuitBreaker: {
 		enabled: false,
-		maxFailures: 3,
+		threshold: 0.5,
+		windowTime: 60,
+		minRequestCount: 20,
 		halfOpenTime: 10 * 1000,
 		failureOnTimeout: true,
 		failureOnReject: true

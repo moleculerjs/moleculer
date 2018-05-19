@@ -6,6 +6,7 @@
 
 "use strict";
 
+const _ = require("lodash");
 const { CIRCUIT_CLOSE, CIRCUIT_HALF_OPEN, CIRCUIT_OPEN } = require("../constants");
 const { RequestTimeoutError } = require("../errors");
 
@@ -31,12 +32,22 @@ class ActionEndpointCB extends ActionEndpoint {
 	constructor(registry, broker, node, service, action) {
 		super(registry, broker, node, service, action);
 
-		this.opts = this.registry.opts.circuitBreaker;
+		this.opts = _.defaultsDeep(this.registry.opts.circuitBreaker, {
+			threshold: 0.5,
+			windowTime: 60,
+			minRequestCount: 20,
+		});
 
 		this.state = CIRCUIT_CLOSE;
 		this.failures = 0;
+		this.passes = 0;
 
 		this.cbTimer = null;
+		// FIXME: optimize timers
+		this.windowTimer = setInterval(() => {
+			this.failures = 0;
+			this.passes = 0;
+		}, (this.opts.windowTime || 60) * 1000);
 	}
 
 	/**
@@ -64,18 +75,22 @@ class ActionEndpointCB extends ActionEndpoint {
 				this.failures++;
 			}
 
-			if (this.failures >= this.opts.maxFailures) {
-				this.circuitOpen();
+			if (this.failures + this.passes > this.opts.minRequestCount) {
+				const rate = this.failures / (this.failures + this.passes);
+				if (rate > this.opts.threshold)
+					this.circuitOpen();
 			}
 		}
 	}
 
 	/**
-	 *
+	 * Increment passes counter and switch CB to CLOSE if it is on HALF_OPEN.
 	 *
 	 * @memberof ActionEndpointCB
 	 */
 	success() {
+		this.passes++;
+
 		if (this.state === CIRCUIT_HALF_OPEN)
 			this.circuitClose();
 	}
@@ -93,10 +108,10 @@ class ActionEndpointCB extends ActionEndpoint {
 
 		this.cbTimer.unref();
 
-		this.broker.broadcastLocal("$circuit-breaker.opened", { node: this.node, action: this.action, failures: this.failures });
+		this.broker.broadcastLocal("$circuit-breaker.opened", { node: this.node, action: this.action, failures: this.failures, passes: this.passes });
 
 		if (this.broker.options.metrics)
-			this.broker.emit("metrics.circuit-breaker.opened", { nodeID: this.node.id, action: this.action.name, failures: this.failures });
+			this.broker.emit("metrics.circuit-breaker.opened", { nodeID: this.node.id, action: this.action.name, failures: this.failures, passes: this.passes });
 	}
 
 	/**
@@ -120,10 +135,10 @@ class ActionEndpointCB extends ActionEndpoint {
 	circuitClose() {
 		this.state = CIRCUIT_CLOSE;
 		this.failures = 0;
+		this.passes = 0;
 		this.broker.broadcastLocal("$circuit-breaker.closed", { node: this.node, action: this.action });
 		if (this.broker.options.metrics)
 			this.broker.emit("metrics.circuit-breaker.closed", { nodeID: this.node.id, action: this.action.name });
-
 	}
 }
 
