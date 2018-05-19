@@ -2,6 +2,7 @@ const Promise = require("bluebird");
 const ServiceBroker = require("../../src/service-broker");
 const FakeTransporter = require("../../src/transporters/fake");
 const { MoleculerError, ServiceNotAvailable } = require("../../src/errors");
+const { protectReject } = require("../unit/utils");
 
 const lolex = require("lolex");
 
@@ -14,11 +15,16 @@ describe("Test circuit breaker", () => {
 		nodeID: "master-1",
 		circuitBreaker: {
 			enabled: true,
-			maxFailures: 2,
+			threshold: 0.5,
+			minRequestCount: 5,
+			windowTime: 30,
 			halfOpenTime: 5 * 1000,
 			failureOnReject: true
 		}
 	});
+
+	const cbOpenedHandler = jest.fn();
+	master1.localBus.on("$circuit-breaker.opened", cbOpenedHandler);
 
 	const slave1 = new ServiceBroker({
 		logger: false,
@@ -68,50 +74,112 @@ describe("Test circuit breaker", () => {
 			.then(res => expect(res).toBe("OK"));
 	});
 
-	it("should return 'angry' with MoleculerError", () => {
+	it("should call 'angry' and throw MoleculerError", () => {
 		return master1.call("cb.angry")
+			.then(protectReject)
+			.catch(err => expect(err.name).toBe("MoleculerError"))
+
+			.then(() => master1.call("cb.angry"))
+			.then(protectReject)
+			.catch(err => expect(err.name).toBe("MoleculerError"))
+
+			.then(() => master1.call("cb.angry", { please: true }))
+			.then(res => expect(res).toBe("Just for you!"))
+			.catch(protectReject)
+
+			.then(() => master1.call("cb.angry", { please: true }))
+			.then(res => expect(res).toBe("Just for you!"))
+			.catch(protectReject)
+
+			.then(() => master1.call("cb.angry"))
+			.then(protectReject)
+			.catch(err => expect(err.name).toBe("MoleculerError"))
+
+			.then(() => master1.call("cb.angry"))
+			.then(protectReject)
 			.catch(err => {
-				expect(err.name).toBe("MoleculerError");
-				return master1.call("cb.angry");
-			})
-			.catch(err => {
-				expect(err.name).toBe("MoleculerError");
-				return master1.call("cb.angry");
-			})
-			// Circuit-breaker opened
-			.catch(err => {
-				expect(err).toBeInstanceOf(ServiceNotAvailable);
-				return "done";
-			})
-			.then(res => {
-				expect(res).toBe("done");
+				expect(err.name).toBe("ServiceNotAvailable");
+				expect(cbOpenedHandler).toHaveBeenCalledTimes(1);
+				expect(cbOpenedHandler).toHaveBeenCalledWith({
+					node: jasmine.any(Object),
+					action: jasmine.any(Object),
+					failures: 3,
+					passes: 2,
+				});
 			});
 	});
 
 	it("should switched to half-open and again open", () => {
 		clock.tick(6000);
 		return master1.call("cb.angry")
-			.catch(err => {
-				expect(err.name).toBe("MoleculerError");
-				return "done";
-			})
-			.then(res => expect(res).toBe("done"))
+			.then(protectReject)
+			.catch(err => expect(err.name).toBe("MoleculerError"))
 
 			.then(() => master1.call("cb.angry", { please: true }))
-			.catch(err => {
-				expect(err).toBeInstanceOf(ServiceNotAvailable);
-				return "done2";
-			})
-			.then(res => expect(res).toBe("done2"));
+			.then(protectReject)
+			.catch(err => expect(err.name).toBe("ServiceNotAvailable"));
 	});
 
 	it("should switched to half-open and close", () => {
 		clock.tick(6000);
 		return master1.call("cb.angry", { please: true })
-			.then(res => {
-				expect(res).toBe("Just for you!");
+			.then(res => expect(res).toBe("Just for you!"))
+			.catch(protectReject);
+	});
+
+	/*
+		TODO: Not working because timer created before lolex install.
+
+	it("should reset values by window timer", () => {
+		return master1.call("cb.angry")
+			.then(protectReject)
+			.catch(err => expect(err.name).toBe("MoleculerError"))
+
+			.then(() => master1.call("cb.angry"))
+			.then(protectReject)
+			.catch(err => expect(err.name).toBe("MoleculerError"))
+
+			.then(() => master1.call("cb.angry"))
+			.then(protectReject)
+			.catch(err => expect(err.name).toBe("MoleculerError"))
+
+			.then(() => master1.call("cb.angry"))
+			.then(protectReject)
+			.catch(err => expect(err.name).toBe("MoleculerError"))
+
+			// Reset
+			.then(() => clock.tick(35 * 1000))
+
+			.then(() => master1.call("cb.angry"))
+			.then(protectReject)
+			.catch(err => expect(err.name).toBe("MoleculerError"))
+
+			.then(() => master1.call("cb.angry"))
+			.then(protectReject)
+			.catch(err => expect(err.name).toBe("MoleculerError"))
+
+			.then(() => master1.call("cb.angry"))
+			.then(protectReject)
+			.catch(err => expect(err.name).toBe("MoleculerError"))
+
+			.then(() => master1.call("cb.angry"))
+			.then(protectReject)
+			.catch(err => expect(err.name).toBe("MoleculerError"))
+
+			.then(() => master1.call("cb.angry"))
+			.then(protectReject)
+			.catch(err => {
+				expect(err.message).toBe("ServiceNotAvailable");
+				expect(cbOpenedHandler).toHaveBeenCalledTimes(1);
+				expect(cbOpenedHandler).toHaveBeenCalledWith({
+					node: jasmine.any(Object),
+					action: jasmine.any(Object),
+					failures: 4,
+					passes: 2,
+				});
 			});
 	});
 
+*/
 });
 

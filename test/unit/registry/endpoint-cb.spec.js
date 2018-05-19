@@ -28,10 +28,11 @@ describe("Test ActionEndpoint", () => {
 		expect(ep.service).toBe(service);
 		expect(ep.action).toBe(action);
 
-		expect(ep.opts).toBe(registry.opts.circuitBreaker);
+		expect(ep.opts).toEqual({"enabled": false, "failureOnReject": true, "failureOnTimeout": true, "halfOpenTime": 10000, "minRequestCount": 20, "threshold": 0.5, "windowTime": 60});
 		expect(ep.state).toBe(CIRCUIT_CLOSE);
 		expect(ep.failures).toBe(0);
 		expect(ep.cbTimer).toBeNull();
+		expect(ep.windowTimer).toBeDefined();
 
 		expect(ep.isAvailable).toBe(true);
 	});
@@ -42,7 +43,8 @@ describe("Test ActionEndpoint circuit-breaker", () => {
 	let broker = new ServiceBroker({
 		logger: false,
 		circuitBreaker: {
-			maxFailures: 2,
+			threshold: 0.5,
+			minRequestCount: 2,
 			halfOpenTime: 5 * 1000
 		},
 		metrics: true
@@ -105,11 +107,127 @@ describe("Test ActionEndpoint circuit-breaker", () => {
 		expect(ep.circuitOpen).toHaveBeenCalledTimes(1);
 	});
 
+	it("test failure min request count", () => {
+		ep.opts.minRequestCount = 5;
+		ep.opts.failureOnReject = true;
+
+		ep.circuitOpen = jest.fn();
+
+		expect(ep.failures).toBe(0);
+		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
+
+		ep.failure(new MoleculerError());
+		expect(ep.failures).toBe(1);
+		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
+
+		ep.failure(new MoleculerError());
+		expect(ep.failures).toBe(2);
+		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
+
+		ep.failure(new MoleculerError());
+		expect(ep.failures).toBe(3);
+		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
+
+		ep.failure(new MoleculerError());
+		expect(ep.failures).toBe(4);
+		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
+
+		ep.failure(new MoleculerError());
+		expect(ep.failures).toBe(5);
+		expect(ep.circuitOpen).toHaveBeenCalledTimes(1);
+	});
+
+	it("test failure threshold", () => {
+		ep.opts.minRequestCount = 5;
+		ep.opts.threshold = 0.3;
+		ep.opts.failureOnReject = true;
+
+		ep.circuitOpen = jest.fn();
+
+		expect(ep.failures).toBe(0);
+		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
+
+		ep.failure(new MoleculerError());
+		expect(ep.failures).toBe(1);
+		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
+
+		ep.failure(new MoleculerError());
+		expect(ep.failures).toBe(2);
+		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
+
+		ep.success();
+		expect(ep.passes).toBe(1);
+		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
+
+		ep.success();
+		expect(ep.passes).toBe(2);
+		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
+
+		ep.success();
+		expect(ep.passes).toBe(3);
+		expect(ep.circuitOpen).toHaveBeenCalledTimes(1);
+	});
+
+	it("test window reset", () => {
+		const clock = lolex.install();
+
+		const ep = new ActionEndpointCB(registry, broker, node, service, action);
+		ep.opts.minRequestCount = 5;
+		ep.opts.threshold = 0.5;
+		ep.opts.failureOnReject = true;
+
+		ep.circuitOpen = jest.fn();
+
+		expect(ep.failures).toBe(0);
+		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
+
+		ep.failure(new MoleculerError());
+		expect(ep.failures).toBe(1);
+		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
+
+		ep.failure(new MoleculerError());
+		expect(ep.failures).toBe(2);
+		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
+
+		ep.failure(new MoleculerError());
+		expect(ep.failures).toBe(3);
+		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
+
+		clock.tick(62 * 1000);
+		expect(ep.failures).toBe(0);
+		expect(ep.passes).toBe(0);
+
+		ep.failure(new MoleculerError());
+		expect(ep.failures).toBe(1);
+		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
+
+		ep.failure(new MoleculerError());
+		expect(ep.failures).toBe(2);
+		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
+
+		ep.failure(new MoleculerError());
+		expect(ep.failures).toBe(3);
+		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
+
+		ep.failure(new MoleculerError());
+		expect(ep.failures).toBe(4);
+		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
+
+		ep.failure(new MoleculerError());
+		expect(ep.failures).toBe(5);
+		expect(ep.circuitOpen).toHaveBeenCalledTimes(1);
+
+		clock.uninstall();
+	});
+
 	it("test circuitOpen", () => {
 		const clock = lolex.install();
 
 		ep.state = CIRCUIT_CLOSE;
 		ep.circuitHalfOpen = jest.fn();
+
+		ep.failures = 3;
+		ep.passes = 2;
 
 		ep.circuitOpen();
 
@@ -117,9 +235,9 @@ describe("Test ActionEndpoint circuit-breaker", () => {
 		expect(ep.isAvailable).toBe(false);
 		expect(ep.cbTimer).toBeDefined();
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
-		expect(broker.broadcastLocal).toHaveBeenCalledWith("$circuit-breaker.opened", { node, action, failures: 0 });
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$circuit-breaker.opened", { node, action, failures: 3, passes: 2 });
 		expect(broker.emit).toHaveBeenCalledTimes(1);
-		expect(broker.emit).toHaveBeenCalledWith("metrics.circuit-breaker.opened", { nodeID: "server-1", action: "user.list", failures: 0 });
+		expect(broker.emit).toHaveBeenCalledWith("metrics.circuit-breaker.opened", { nodeID: "server-1", action: "user.list", failures: 3, passes: 2 });
 
 		// circuitHalfOpen
 		expect(ep.circuitHalfOpen).toHaveBeenCalledTimes(0);

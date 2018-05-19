@@ -48,6 +48,8 @@ class ActionEndpointCB extends ActionEndpoint {
 			this.failures = 0;
 			this.passes = 0;
 		}, (this.opts.windowTime || 60) * 1000);
+
+		// TODO destroy timer if action is destroyed
 	}
 
 	/**
@@ -75,11 +77,7 @@ class ActionEndpointCB extends ActionEndpoint {
 				this.failures++;
 			}
 
-			if (this.failures + this.passes > this.opts.minRequestCount) {
-				const rate = this.failures / (this.failures + this.passes);
-				if (rate > this.opts.threshold)
-					this.circuitOpen();
-			}
+			this.checkThreshold();
 		}
 	}
 
@@ -93,6 +91,16 @@ class ActionEndpointCB extends ActionEndpoint {
 
 		if (this.state === CIRCUIT_HALF_OPEN)
 			this.circuitClose();
+		else
+			this.checkThreshold();
+	}
+
+	checkThreshold() {
+		if (this.failures + this.passes >= this.opts.minRequestCount) {
+			const rate = this.failures / (this.failures + this.passes);
+			if (rate > this.opts.threshold)
+				this.circuitOpen();
+		}
 	}
 
 	/**
