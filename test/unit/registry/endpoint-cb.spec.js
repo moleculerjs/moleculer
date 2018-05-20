@@ -308,7 +308,7 @@ describe("Test ActionEndpoint circuit-breaker", () => {
 		expect(ep.reqCount).toBe(1);
 		expect(ep.isAvailable).toBe(true);
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
-		expect(broker.broadcastLocal).toHaveBeenCalledWith("$circuit-breaker.closed", { node, action });
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$circuit-breaker.closed", { nodeID: "server-1", action: "user.list" });
 		expect(broker.emit).toHaveBeenCalledTimes(1);
 		expect(broker.emit).toHaveBeenCalledWith("metrics.circuit-breaker.closed", { nodeID: "server-1", action: "user.list" });
 

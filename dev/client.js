@@ -51,15 +51,15 @@ broker.createService({
 	name: "event-handler",
 	events: {
 		"$circuit-breaker.opened"(payload) {
-			broker.logger.warn(chalk.yellow.bold(`---  Circuit breaker opened on '${payload.node.id}'! (${payload.failures}/${payload.passes})`));
+			broker.logger.warn(chalk.yellow.bold(`---  Circuit breaker opened on '${payload.nodeID}'! (${payload.rate})`));
 		},
 
 		"$circuit-breaker.half-opened"(payload) {
-			broker.logger.warn(chalk.green(`---  Circuit breaker half-opened on '${payload.node.id}'!`));
+			broker.logger.warn(chalk.green(`---  Circuit breaker half-opened on '${payload.nodeID}'!`));
 		},
 
 		"$circuit-breaker.closed"(payload) {
-			broker.logger.warn(chalk.green.bold(`---  Circuit breaker closed on '${payload.node.id}'!`));
+			broker.logger.warn(chalk.green.bold(`---  Circuit breaker closed on '${payload.nodeID}'!`));
 		},
 
 		"reply.event"(data, sender) {
