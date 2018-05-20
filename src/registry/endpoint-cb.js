@@ -155,7 +155,7 @@ class ActionEndpointCB extends ActionEndpoint {
 		this.state = CIRCUIT_CLOSE;
 		this.failures = 0;
 		this.passes = 0;
-		this.broker.broadcastLocal("$circuit-breaker.closed", { node: this.node, action: this.action });
+		this.broker.broadcastLocal("$circuit-breaker.closed", { nodeID: this.node.id, action: this.action.name });
 		if (this.broker.options.metrics)
 			this.broker.emit("metrics.circuit-breaker.closed", { nodeID: this.node.id, action: this.action.name });
 	}
