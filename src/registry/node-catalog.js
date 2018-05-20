@@ -54,7 +54,7 @@ class NodeCatalog {
 	startHeartbeatTimers() {
 		/* istanbul ignore next */
 		this.heartbeatTimer = setInterval(() => {
-			this.localNode.updateLocalInfo().then(() => {
+			this.localNode.updateLocalInfo(this.broker.getCpuUsage).then(() => {
 				if (this.broker.transit)
 					this.broker.transit.sendHeartbeat(this.localNode);
 			});

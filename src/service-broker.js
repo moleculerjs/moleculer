@@ -25,6 +25,7 @@ const Transporters 			= require("./transporters");
 const Serializers 			= require("./serializers");
 const Strategies		 	= require("./strategies");
 const H 					= require("./health");
+const cpuUsage 				= require("./cpu-usage");
 
 const { CIRCUIT_HALF_OPEN } = require("./constants");
 
@@ -1487,6 +1488,15 @@ class ServiceBroker {
 		return this.registry.events.emitLocalServices(event, payload, groups, sender, broadcast);
 	}
 
+	/**
+	 * Get node overall CPU usage
+	 *
+	 * @returns {Promise<object>}
+	 * @memberof ServiceBroker
+	 */
+	getCpuUsage() {
+		return cpuUsage();
+	}
 }
 
 /**
