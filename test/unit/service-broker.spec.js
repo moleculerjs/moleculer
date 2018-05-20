@@ -95,7 +95,8 @@ describe("Test ServiceBroker constructor", () => {
 			},
 			circuitBreaker: {
 				enabled: true,
-				maxFailures: 2,
+				threshold: 0.3,
+				minRequestCount: 10,
 				failureOnReject: false
 			},
 			validation: false,
@@ -128,7 +129,9 @@ describe("Test ServiceBroker constructor", () => {
 
 			circuitBreaker: {
 				enabled: true,
-				maxFailures: 2,
+				threshold: 0.3,
+				windowTime: 60,
+				minRequestCount: 10,
 				halfOpenTime: 10 * 1000,
 				failureOnTimeout: true,
 				failureOnReject: false

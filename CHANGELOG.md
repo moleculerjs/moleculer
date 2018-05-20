@@ -33,6 +33,27 @@ const broker = new ServiceBroker();
 const broker = new ServiceBroker({ logger: false });
 ```
 
+## Improved Circuit Breaker
+Threshold-based circuit-breaker solution has been implemented.
+
+```js
+const broker = new ServiceBroker({
+    nodeID: "node-1",
+    circuitBreaker: {
+        enabled: true,
+        threshold: 0.5,
+        minRequestCount: 20,
+        windowTime: 60, // in seconds
+        halfOpenTime: 5 * 1000,
+        failureOnReject: true,
+        failureOnTimeout: true
+    }
+});
+```
+
+>Circuit-breaker events payload is changed as well.
+
+
 # New
 
 ## Enhanced log level configuration 

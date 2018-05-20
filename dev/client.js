@@ -38,10 +38,12 @@ let broker = new ServiceBroker({
 
 	circuitBreaker: {
 		enabled: true,
-		maxFailures: 3
+		threshold: 0.3,
+		windowTime: 30,
+		minRequestCount: 10
 	},
 	logger: console,
-	logLevel: "debug",
+	logLevel: "info",
 	logFormatter: "short"
 });
 
@@ -49,7 +51,7 @@ broker.createService({
 	name: "event-handler",
 	events: {
 		"$circuit-breaker.opened"(payload) {
-			broker.logger.warn(chalk.yellow.bold(`---  Circuit breaker opened on '${payload.node.id}'!`));
+			broker.logger.warn(chalk.yellow.bold(`---  Circuit breaker opened on '${payload.node.id}'! (${payload.failures}/${payload.passes})`));
 		},
 
 		"$circuit-breaker.half-opened"(payload) {

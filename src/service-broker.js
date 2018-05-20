@@ -27,6 +27,8 @@ const Serializers 			= require("./serializers");
 const Strategies		 	= require("./strategies");
 const H 					= require("./health");
 
+const { CIRCUIT_HALF_OPEN } = require("./constants");
+
 /**
  * Default broker options
  */
@@ -57,7 +59,9 @@ const defaultOptions = {
 
 	circuitBreaker: {
 		enabled: false,
-		maxFailures: 3,
+		threshold: 0.5,
+		windowTime: 60,
+		minRequestCount: 20,
 		halfOpenTime: 10 * 1000,
 		failureOnTimeout: true,
 		failureOnReject: true
@@ -894,6 +898,11 @@ class ServiceBroker {
 			ctx = this.ContextFactory.create(this, endpoint.action, endpoint.id, params, opts);
 		}
 
+		// Handle half-open state in circuit breaker
+		if (this.options.circuitBreaker.enabled && endpoint.state == CIRCUIT_HALF_OPEN) {
+			endpoint.circuitHalfOpenWait();
+		}
+
 		if (endpoint.local) {
 			// Local call
 			return this._localCall(ctx, endpoint, opts);
@@ -1011,7 +1020,7 @@ class ServiceBroker {
 
 		// Remove the context from the active contexts list
 		if (ctx.tracked) {
-			p.then(res => {
+			p = p.then(res => {
 				ctx.dispose();
 				return res;
 			});
@@ -1048,7 +1057,7 @@ class ServiceBroker {
 
 		// Remove the context from the active contexts list
 		if (ctx.tracked) {
-			p.then(res => {
+			p = p.then(res => {
 				ctx.dispose();
 				return res;
 			});
@@ -1140,12 +1149,11 @@ class ServiceBroker {
 		}
 
 		if (nodeID != this.nodeID) {
-			// Remove pending request (if the request didn't reached the target service)
+			// Remove pending request (the request didn't reach the target service)
 			this.transit.removePendingRequest(ctx.id);
 		}
 
-		// Only failure if error came from the direct requested node.
-		// TODO if no endpoint?
+		// Only failure if error received from the direct requested node.
 		if (this.options.circuitBreaker.enabled && endpoint && (!err.nodeID || err.nodeID == ctx.nodeID)) {
 			endpoint.failure(err);
 		}

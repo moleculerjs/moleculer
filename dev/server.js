@@ -27,8 +27,8 @@ broker.createService({
 		add(ctx) {
 			const wait = _.random(5000, 15000);
 			broker.logger.info(_.padEnd(`${ctx.params.count}. Add ${ctx.params.a} + ${ctx.params.b}`, 20), `(from: ${ctx.callerNodeID})`);
-			//if (_.random(100) > 90)
-			//	return this.Promise.reject(new MoleculerError("Random error!", 510));
+			if (_.random(100) > 70)
+				return this.Promise.reject(new MoleculerError("Random error!", 510));
 
 			return this.Promise.resolve()./*delay(wait).*/then(() => ({
 				count: ctx.params.count,
@@ -39,8 +39,10 @@ broker.createService({
 
 	events: {
 		"echo.event"(data, sender) {
+			/*
 			this.logger.info(`<< MATH: Echo event received from ${sender}. Counter: ${data.counter}. Send reply...`);
 			this.broker.emit("reply.event", data);
+			*/
 		}
 	},
 

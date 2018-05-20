@@ -6,7 +6,8 @@
 
 "use strict";
 
-const { CIRCUIT_CLOSE, CIRCUIT_HALF_OPEN, CIRCUIT_OPEN } = require("../constants");
+const _ = require("lodash");
+const { CIRCUIT_CLOSE, CIRCUIT_HALF_OPEN, CIRCUIT_HALF_OPEN_WAIT, CIRCUIT_OPEN } = require("../constants");
 const { RequestTimeoutError } = require("../errors");
 
 const ActionEndpoint = require("./endpoint-action");
@@ -31,12 +32,24 @@ class ActionEndpointCB extends ActionEndpoint {
 	constructor(registry, broker, node, service, action) {
 		super(registry, broker, node, service, action);
 
-		this.opts = this.registry.opts.circuitBreaker;
+		this.opts = _.defaultsDeep(this.registry.opts.circuitBreaker, {
+			threshold: 0.5,
+			windowTime: 60,
+			minRequestCount: 20,
+		});
 
 		this.state = CIRCUIT_CLOSE;
 		this.failures = 0;
+		this.reqCount = 0;
 
 		this.cbTimer = null;
+		// FIXME: optimize timers
+		this.windowTimer = setInterval(() => {
+			this.failures = 0;
+			this.reqCount = 0;
+		}, (this.opts.windowTime || 60) * 1000);
+
+		// TODO destroy timer if action is destroyed
 	}
 
 	/**
@@ -55,6 +68,7 @@ class ActionEndpointCB extends ActionEndpoint {
 	 * @memberof ActionEndpointCB
 	 */
 	failure(err) {
+		this.reqCount++;
 		if (err) {
 			if (err instanceof RequestTimeoutError) {
 				if (this.opts.failureOnTimeout)
@@ -64,20 +78,30 @@ class ActionEndpointCB extends ActionEndpoint {
 				this.failures++;
 			}
 
-			if (this.failures >= this.opts.maxFailures) {
-				this.circuitOpen();
-			}
+			this.checkThreshold();
 		}
 	}
 
 	/**
-	 *
+	 * Increment request counter and switch CB to CLOSE if it is on HALF_OPEN_WAIT.
 	 *
 	 * @memberof ActionEndpointCB
 	 */
 	success() {
-		if (this.state === CIRCUIT_HALF_OPEN)
+		this.reqCount++;
+
+		if (this.state === CIRCUIT_HALF_OPEN_WAIT)
 			this.circuitClose();
+		else
+			this.checkThreshold();
+	}
+
+	checkThreshold() {
+		if (this.reqCount >= this.opts.minRequestCount) {
+			const rate = this.failures / this.reqCount;
+			if (rate >= this.opts.threshold)
+				this.circuitOpen();
+		}
 	}
 
 	/**
@@ -93,10 +117,11 @@ class ActionEndpointCB extends ActionEndpoint {
 
 		this.cbTimer.unref();
 
-		this.broker.broadcastLocal("$circuit-breaker.opened", { node: this.node, action: this.action, failures: this.failures });
+		const rate = this.reqCount > 0 ? this.failures / this.reqCount : 0;
+		this.broker.broadcastLocal("$circuit-breaker.opened", { nodeID: this.node.id, action: this.action.name, failures: this.failures, reqCount: this.reqCount, rate });
 
 		if (this.broker.options.metrics)
-			this.broker.emit("metrics.circuit-breaker.opened", { nodeID: this.node.id, action: this.action.name, failures: this.failures });
+			this.broker.emit("metrics.circuit-breaker.opened", { nodeID: this.node.id, action: this.action.name, failures: this.failures, reqCount: this.reqCount, rate });
 	}
 
 	/**
@@ -107,9 +132,18 @@ class ActionEndpointCB extends ActionEndpoint {
 	circuitHalfOpen() {
 		this.state = CIRCUIT_HALF_OPEN;
 
-		this.broker.broadcastLocal("$circuit-breaker.half-opened", { node: this.node, action: this.action });
+		this.broker.broadcastLocal("$circuit-breaker.half-opened", { nodeID: this.node.id, action: this.action.name });
 		if (this.broker.options.metrics)
 			this.broker.emit("metrics.circuit-breaker.half-opened", { nodeID: this.node.id, action: this.action.name });
+	}
+
+	/**
+	 * Change circuit-breaker status to half-open waiting. First request is invoked after half-open.
+	 *
+	 * @memberof ActionEndpointCB
+	 */
+	circuitHalfOpenWait() {
+		this.state = CIRCUIT_HALF_OPEN_WAIT;
 	}
 
 	/**
@@ -120,10 +154,10 @@ class ActionEndpointCB extends ActionEndpoint {
 	circuitClose() {
 		this.state = CIRCUIT_CLOSE;
 		this.failures = 0;
+		this.passes = 0;
 		this.broker.broadcastLocal("$circuit-breaker.closed", { node: this.node, action: this.action });
 		if (this.broker.options.metrics)
 			this.broker.emit("metrics.circuit-breaker.closed", { nodeID: this.node.id, action: this.action.name });
-
 	}
 }
 
