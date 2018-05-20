@@ -4,7 +4,7 @@ const lolex = require("lolex");
 let ActionEndpointCB = require("../../../src/registry/endpoint-cb");
 let ServiceBroker = require("../../../src/service-broker");
 let { RequestTimeoutError, MoleculerError } = require("../../../src/errors");
-const { CIRCUIT_CLOSE, CIRCUIT_HALF_OPEN, CIRCUIT_OPEN } = require("../../../src/constants");
+const { CIRCUIT_CLOSE, CIRCUIT_HALF_OPEN, CIRCUIT_HALF_OPEN_WAIT, CIRCUIT_OPEN } = require("../../../src/constants");
 
 describe("Test ActionEndpoint", () => {
 
@@ -31,6 +31,7 @@ describe("Test ActionEndpoint", () => {
 		expect(ep.opts).toEqual({"enabled": false, "failureOnReject": true, "failureOnTimeout": true, "halfOpenTime": 10000, "minRequestCount": 20, "threshold": 0.5, "windowTime": 60});
 		expect(ep.state).toBe(CIRCUIT_CLOSE);
 		expect(ep.failures).toBe(0);
+		expect(ep.reqCount).toBe(0);
 		expect(ep.cbTimer).toBeNull();
 		expect(ep.windowTimer).toBeDefined();
 
@@ -66,6 +67,9 @@ describe("Test ActionEndpoint circuit-breaker", () => {
 		ep.state = CIRCUIT_HALF_OPEN;
 		expect(ep.isAvailable).toBe(true);
 
+		ep.state = CIRCUIT_HALF_OPEN_WAIT;
+		expect(ep.isAvailable).toBe(false);
+
 		ep.state = CIRCUIT_OPEN;
 		expect(ep.isAvailable).toBe(false);
 
@@ -73,7 +77,21 @@ describe("Test ActionEndpoint circuit-breaker", () => {
 		expect(ep.isAvailable).toBe(true);
 	});
 
+	it("test reqCount", () => {
+		expect(ep.reqCount).toBe(0);
+
+		ep.success();
+		expect(ep.reqCount).toBe(1);
+
+		ep.success();
+		expect(ep.reqCount).toBe(2);
+
+		ep.failure();
+		expect(ep.reqCount).toBe(3);
+	});
+
 	it("test failure", () => {
+		ep.opts.minRequestCount = 5;
 		ep.circuitOpen = jest.fn();
 
 		expect(ep.failures).toBe(0);
@@ -104,6 +122,14 @@ describe("Test ActionEndpoint circuit-breaker", () => {
 		ep.opts.failureOnReject = true;
 		ep.failure(new MoleculerError("Server error"));
 		expect(ep.failures).toBe(2);
+		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
+
+		ep.failure(new MoleculerError("Server error"));
+		expect(ep.failures).toBe(3);
+		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
+
+		ep.failure(new MoleculerError("Server error"));
+		expect(ep.failures).toBe(4);
 		expect(ep.circuitOpen).toHaveBeenCalledTimes(1);
 	});
 
@@ -144,27 +170,30 @@ describe("Test ActionEndpoint circuit-breaker", () => {
 
 		ep.circuitOpen = jest.fn();
 
+		expect(ep.reqCount).toBe(0);
 		expect(ep.failures).toBe(0);
 		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
 
 		ep.failure(new MoleculerError());
+		expect(ep.reqCount).toBe(1);
 		expect(ep.failures).toBe(1);
 		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
 
 		ep.failure(new MoleculerError());
+		expect(ep.reqCount).toBe(2);
 		expect(ep.failures).toBe(2);
 		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
 
 		ep.success();
-		expect(ep.passes).toBe(1);
+		expect(ep.reqCount).toBe(3);
 		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
 
 		ep.success();
-		expect(ep.passes).toBe(2);
+		expect(ep.reqCount).toBe(4);
 		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
 
 		ep.success();
-		expect(ep.passes).toBe(3);
+		expect(ep.reqCount).toBe(5);
 		expect(ep.circuitOpen).toHaveBeenCalledTimes(1);
 	});
 
@@ -195,7 +224,7 @@ describe("Test ActionEndpoint circuit-breaker", () => {
 
 		clock.tick(62 * 1000);
 		expect(ep.failures).toBe(0);
-		expect(ep.passes).toBe(0);
+		expect(ep.reqCount).toBe(0);
 
 		ep.failure(new MoleculerError());
 		expect(ep.failures).toBe(1);
@@ -227,7 +256,7 @@ describe("Test ActionEndpoint circuit-breaker", () => {
 		ep.circuitHalfOpen = jest.fn();
 
 		ep.failures = 3;
-		ep.passes = 2;
+		ep.reqCount = 6;
 
 		ep.circuitOpen();
 
@@ -235,9 +264,9 @@ describe("Test ActionEndpoint circuit-breaker", () => {
 		expect(ep.isAvailable).toBe(false);
 		expect(ep.cbTimer).toBeDefined();
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
-		expect(broker.broadcastLocal).toHaveBeenCalledWith("$circuit-breaker.opened", { node, action, failures: 3, passes: 2 });
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$circuit-breaker.opened", { nodeID: "server-1", action: "user.list", failures: 3, reqCount: 6, rate: 0.5 });
 		expect(broker.emit).toHaveBeenCalledTimes(1);
-		expect(broker.emit).toHaveBeenCalledWith("metrics.circuit-breaker.opened", { nodeID: "server-1", action: "user.list", failures: 3, passes: 2 });
+		expect(broker.emit).toHaveBeenCalledWith("metrics.circuit-breaker.opened", { nodeID: "server-1", action: "user.list", failures: 3, reqCount: 6, rate: 0.5 });
 
 		// circuitHalfOpen
 		expect(ep.circuitHalfOpen).toHaveBeenCalledTimes(0);
@@ -259,23 +288,24 @@ describe("Test ActionEndpoint circuit-breaker", () => {
 		expect(ep.state).toBe(CIRCUIT_HALF_OPEN);
 		expect(ep.isAvailable).toBe(true);
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
-		expect(broker.broadcastLocal).toHaveBeenCalledWith("$circuit-breaker.half-opened", { node, action });
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$circuit-breaker.half-opened", { nodeID: "server-1", action: "user.list" });
 		expect(broker.emit).toHaveBeenCalledTimes(1);
 		expect(broker.emit).toHaveBeenCalledWith("metrics.circuit-breaker.half-opened", { nodeID: "server-1", action: "user.list" });
 
 	});
 
-	it("test circuitOpen", () => {
+	it("test circuitClose", () => {
 		broker.broadcastLocal.mockClear();
 		broker.emit.mockClear();
 
-		ep.state = CIRCUIT_HALF_OPEN;
+		ep.state = CIRCUIT_HALF_OPEN_WAIT;
 		ep.failures = 5;
 
 		ep.success();
 
 		expect(ep.state).toBe(CIRCUIT_CLOSE);
 		expect(ep.failures).toBe(0);
+		expect(ep.reqCount).toBe(1);
 		expect(ep.isAvailable).toBe(true);
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$circuit-breaker.closed", { node, action });

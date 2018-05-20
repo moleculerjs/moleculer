@@ -101,15 +101,17 @@ describe("Test circuit breaker", () => {
 				expect(err.name).toBe("ServiceNotAvailable");
 				expect(cbOpenedHandler).toHaveBeenCalledTimes(1);
 				expect(cbOpenedHandler).toHaveBeenCalledWith({
-					node: jasmine.any(Object),
-					action: jasmine.any(Object),
+					nodeID: "slave-1",
+					action: "cb.angry",
 					failures: 3,
-					passes: 2,
+					reqCount: 5,
+					rate: 0.6
 				});
 			});
 	});
 
 	it("should switched to half-open and again open", () => {
+		cbOpenedHandler.mockClear();
 		clock.tick(6000);
 		return master1.call("cb.angry")
 			.then(protectReject)
@@ -117,12 +119,26 @@ describe("Test circuit breaker", () => {
 
 			.then(() => master1.call("cb.angry", { please: true }))
 			.then(protectReject)
-			.catch(err => expect(err.name).toBe("ServiceNotAvailable"));
+			.catch(err => {
+				expect(err.name).toBe("ServiceNotAvailable");
+				expect(cbOpenedHandler).toHaveBeenCalledTimes(1);
+				expect(cbOpenedHandler).toHaveBeenCalledWith({
+					nodeID: "slave-1",
+					action: "cb.angry",
+					failures: 4,
+					reqCount: 6,
+					rate: 0.6666666666666666
+				});
+			});
 	});
 
 	it("should switched to half-open and close", () => {
 		clock.tick(6000);
 		return master1.call("cb.angry", { please: true })
+			.then(res => expect(res).toBe("Just for you!"))
+			.catch(protectReject)
+
+			.then(() => master1.call("cb.angry", { please: true }))
 			.then(res => expect(res).toBe("Just for you!"))
 			.catch(protectReject);
 	});
