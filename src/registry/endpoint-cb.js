@@ -44,12 +44,21 @@ class ActionEndpointCB extends ActionEndpoint {
 
 		this.cbTimer = null;
 		// FIXME: optimize timers
-		this.windowTimer = setInterval(() => {
-			this.failures = 0;
-			this.reqCount = 0;
-		}, (this.opts.windowTime || 60) * 1000);
+		this.windowTimer = setInterval(() => this.resetStat(), (this.opts.windowTime || 60) * 1000);
+		this.windowTimer.unref();
+	}
 
-		// TODO destroy timer if action is destroyed
+	destroy() {
+		if (this.cbTimer) {
+			clearTimeout(this.cbTimer);
+			this.cbTimer = null;
+		}
+		if (this.windowTimer) {
+			clearInterval(this.windowTimer);
+			this.windowTimer = null;
+		}
+
+		super.destroy();
 	}
 
 	/**
@@ -96,6 +105,21 @@ class ActionEndpointCB extends ActionEndpoint {
 			this.checkThreshold();
 	}
 
+	/**
+	 * Reset request statistics. Triggered by window timer.
+	 *
+	 * @memberof ActionEndpointCB
+	 */
+	resetStat() {
+		this.failures = 0;
+		this.reqCount = 0;
+	}
+
+	/**
+	 * Check circuit-breaker failure threshold
+	 *
+	 * @memberof ActionEndpointCB
+	 */
 	checkThreshold() {
 		if (this.reqCount >= this.opts.minRequestCount) {
 			const rate = this.failures / this.reqCount;

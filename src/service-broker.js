@@ -867,13 +867,12 @@ class ServiceBroker {
 	 */
 	call(actionName, params, opts = {}) {
 		const endpoint = this.findNextActionEndpoint(actionName, opts);
+		if (endpoint instanceof Error)
+			return Promise.reject(endpoint);
 
 		// Add trackContext option from broker options
 		if (opts.trackContext === undefined && this.options.trackContext)
 			opts.trackContext = this.options.trackContext;
-
-		if (endpoint instanceof Error)
-			return Promise.reject(endpoint);
 
 		// Load opts with default values
 		if (opts.timeout == null)

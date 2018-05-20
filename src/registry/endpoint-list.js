@@ -224,7 +224,12 @@ class EndpointList {
 	 * @memberof EndpointList
 	 */
 	removeByService(service) {
-		_.remove(this.endpoints, ep => ep.service == service);
+		_.remove(this.endpoints, ep => {
+			if (ep.service == service) {
+				ep.destroy();
+				return true;
+			}
+		});
 
 		this.setLocalEndpoints();
 	}
@@ -236,7 +241,12 @@ class EndpointList {
 	 * @memberof EndpointList
 	 */
 	removeByNodeID(nodeID) {
-		_.remove(this.endpoints, ep => ep.id == nodeID);
+		_.remove(this.endpoints, ep => {
+			if (ep.id == nodeID) {
+				ep.destroy();
+				return true;
+			}
+		});
 
 		this.setLocalEndpoints();
 	}
