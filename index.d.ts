@@ -191,7 +191,6 @@ declare namespace Moleculer {
 		validator?: Validator;
 		metrics?: boolean;
 		metricsRate?: number;
-		statistics?: boolean;
 		internalServices?: boolean;
 
 		hotReload?: boolean;

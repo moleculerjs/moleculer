@@ -102,14 +102,5 @@ module.exports = function(broker) {
 		}
 	};
 
-	if (broker.statistics) {
-		schema.actions.stats = {
-			cache: false,
-			handler() {
-				return this.broker.statistics.snapshot();
-			}
-		};
-	}
-
 	return schema;
 };

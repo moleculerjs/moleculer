@@ -19,7 +19,6 @@ const E 					= require("./errors");
 const utils 				= require("./utils");
 const Logger 				= require("./logger");
 const Validator 			= require("./validator");
-const BrokerStatistics 		= require("./statistics");
 
 const Cachers 				= require("./cachers");
 const Transporters 			= require("./transporters");
@@ -78,7 +77,6 @@ const defaultOptions = {
 	validator: null,
 	metrics: false,
 	metricsRate: 1,
-	statistics: false,
 	internalServices: true,
 
 	hotReload: false,
@@ -189,9 +187,6 @@ class ServiceBroker {
 
 		// Counter for metricsRate
 		this._sampleCount = 0;
-
-		if (this.options.statistics)
-			this.statistics = new BrokerStatistics(this);
 
 		// Register middlewares
 		if (Array.isArray(this.options.middlewares) && this.options.middlewares.length > 0)
@@ -989,7 +984,7 @@ class ServiceBroker {
 		this.logger.debug(`Call '${ctx.action.name}' action locally.`, { requestID: ctx.requestID });
 
 		// Add metrics start
-		if (ctx.metrics === true || ctx.timeout > 0 || this.statistics)
+		if (ctx.metrics === true || ctx.timeout > 0)
 			ctx._metricStart(ctx.metrics);
 
 		let p = action.handler(ctx);
@@ -998,8 +993,8 @@ class ServiceBroker {
 		if (ctx.timeout > 0 && p.timeout)
 			p = p.timeout(ctx.timeout);
 
-		if (ctx.metrics === true || this.statistics) {
-			// Add metrics & statistics
+		if (ctx.metrics === true) {
+			// Add metrics
 			p = p.then(res => {
 				this._finishCall(ctx, null);
 				return res;
@@ -1186,12 +1181,9 @@ class ServiceBroker {
 	}
 
 	_finishCall(ctx, err) {
-		if (ctx.metrics || this.statistics) {
+		if (ctx.metrics) {
 			ctx._metricFinish(err, ctx.metrics);
 		}
-
-		if (this.statistics)
-			this.statistics.addRequest(ctx.action.name, ctx.duration, err ? err.code || 500 : null);
 	}
 
 	/**

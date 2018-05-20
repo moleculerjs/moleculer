@@ -120,11 +120,11 @@ let bench4 = benchmark.createSuite("Call with param validator");
 })();
 
 // ----------------------------------------------------------------
-let bench5 = benchmark.createSuite("Call with statistics & metrics");
+let bench5 = benchmark.createSuite("Call with metrics");
 
 (function() {
 	let broker = createBroker();
-	bench5.ref("No statistics", done => {
+	bench5.ref("No metrics", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
@@ -132,20 +132,6 @@ let bench5 = benchmark.createSuite("Call with statistics & metrics");
 (function() {
 	let broker = createBroker({ metrics: true });
 	bench5.add("With metrics", done => {
-		return broker.call("users.empty").then(done);
-	});
-})();
-
-(function() {
-	let broker = createBroker({ statistics: true });
-	bench3.add("With statistics", done => {
-		return broker.call("users.empty").then(done);
-	});
-})();
-
-(function() {
-	let broker = createBroker({ metrics: true, statistics: true });
-	bench5.add("With metrics & statistics", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();

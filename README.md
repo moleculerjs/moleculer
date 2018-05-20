@@ -46,7 +46,7 @@ Moleculer is a fast, modern and powerful microservices framework for Node.js (>=
 - all nodes are equal, no master/leader node
 - parameter validation with [fastest-validator](https://github.com/icebob/fastest-validator)
 - distributed timeout handling with fallback response
-- health monitoring, metrics & statistics
+- health monitoring & metrics
 - supports versioned services
 - official [API gateway module](https://github.com/moleculerjs/moleculer-web) and many other modules...
 

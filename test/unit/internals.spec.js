@@ -4,7 +4,7 @@ const ServiceBroker = require("../../src/service-broker");
 const { protectReject } = require("./utils");
 
 describe("Test health status methods", () => {
-	const broker = new ServiceBroker({ logger: false, transporter: "fake", statistics: true });
+	const broker = new ServiceBroker({ logger: false, transporter: "fake" });
 
 	beforeAll(() => broker.start());
 	afterAll(() => broker.stop());
@@ -103,12 +103,5 @@ describe("Test health status methods", () => {
 		});
 	});
 
-	it("should call statistics.snapshot", () => {
-		broker.statistics.snapshot = jest.fn();
-
-		return broker.call("$node.stats").catch(protectReject).then(() => {
-			expect(broker.statistics.snapshot).toHaveBeenCalledTimes(1);
-		});
-	});
 
 });

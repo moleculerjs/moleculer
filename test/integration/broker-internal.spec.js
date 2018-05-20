@@ -7,7 +7,6 @@ describe("Test internal services", () => {
 	const broker = new ServiceBroker({
 		nodeID: "node-master",
 		logger: false,
-		statistics: true,
 		transporter: null,
 		internalServices: true
 	});
@@ -53,7 +52,6 @@ describe("Test internal services", () => {
 		expect(broker.registry.actions.isAvailable("$node.actions")).toBe(true);
 		expect(broker.registry.actions.isAvailable("$node.events")).toBe(true);
 		expect(broker.registry.actions.isAvailable("$node.health")).toBe(true);
-		expect(broker.registry.actions.isAvailable("$node.stats")).toBe(true);
 	});
 
 	it("should return node list", () => {
@@ -276,16 +274,6 @@ describe("Test internal services", () => {
 				"count": 1,
 				"hasLocal": true,
 				"name": "$node.health"
-			}, {
-				"action": {
-					"cache": false,
-					"name": "$node.stats",
-					"metrics": { "meta": true, "params": false },
-				},
-				"available": true,
-				"count": 1,
-				"hasLocal": true,
-				"name": "$node.stats"
 			}, {
 				"action": {
 					"cache": false,

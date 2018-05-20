@@ -61,7 +61,6 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.serializer).toBeInstanceOf(Serializers.JSON);
 		expect(broker.validator).toBeDefined();
 		expect(broker.transit).toBeUndefined();
-		expect(broker.statistics).toBeUndefined();
 
 		expect(broker.getLocalService("$node")).toBeDefined();
 
@@ -81,7 +80,6 @@ describe("Test ServiceBroker constructor", () => {
 			heartbeatTimeout: 20,
 			metrics: true,
 			metricsRate: 0.5,
-			statistics: true,
 			logLevel: "debug",
 			logFormatter: "simple",
 			requestRetry: 3,
@@ -115,7 +113,6 @@ describe("Test ServiceBroker constructor", () => {
 			transporter: null,
 			metrics: true,
 			metricsRate: 0.5,
-			statistics: true,
 			heartbeatTimeout : 20,
 			heartbeatInterval: 5,
 			trackContext: false,
@@ -155,7 +152,6 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.services).toBeInstanceOf(Array);
 		expect(broker.registry).toBeInstanceOf(Registry);
 		expect(broker.transit).toBeUndefined();
-		expect(broker.statistics).toBeDefined();
 		expect(broker.validator).toBeUndefined();
 		expect(broker.serializer).toBeInstanceOf(Serializers.JSON);
 		expect(broker.namespace).toBe("test");
@@ -791,7 +787,6 @@ describe("Test broker.stop", () => {
 		broker = new ServiceBroker({
 			logger: false,
 			metrics: true,
-			statistics: true,
 			transporter: "Fake"
 		});
 
@@ -832,7 +827,6 @@ describe("Test broker.stop", () => {
 		broker = new ServiceBroker({
 			logger: false,
 			metrics: true,
-			statistics: true,
 			transporter: "Fake"
 		});
 
@@ -1334,10 +1328,9 @@ describe("Test broker.wrapAction", () => {
 
 describe("Test broker.registerInternalServices", () => {
 
-	it("should register internal action without statistics", () => {
+	it("should register internal action", () => {
 		let broker = new ServiceBroker({
 			logger: false,
-			statistics: false,
 			internalServices: false
 		});
 
@@ -1351,27 +1344,6 @@ describe("Test broker.registerInternalServices", () => {
 			actions: jasmine.any(Object),
 			events: jasmine.any(Object),
 			health: jasmine.any(Object),
-		} });
-	});
-
-	it("should register internal action with statistics", () => {
-		let broker = new ServiceBroker({
-			logger: false,
-			statistics: true,
-			internalServices: false
-		});
-
-		broker.createService = jest.fn();
-		broker.registerInternalServices();
-
-		expect(broker.createService).toHaveBeenCalledTimes(1);
-		expect(broker.createService).toHaveBeenCalledWith({ name: "$node", actions: {
-			list: jasmine.any(Object),
-			services: jasmine.any(Object),
-			actions: jasmine.any(Object),
-			events: jasmine.any(Object),
-			health: jasmine.any(Object),
-			stats: jasmine.any(Object),
 		} });
 	});
 });
@@ -2512,71 +2484,6 @@ describe("Test broker._finishCall", () => {
 
 			expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
 			expect(ctx._metricFinish).toHaveBeenCalledWith(err, true);
-		});
-	});
-
-	describe("statistics enabled", () => {
-		let broker = new ServiceBroker({ logger: false, metrics: false, statistics: true });
-		broker.statistics.addRequest = jest.fn();
-		let ctx = new Context(broker, { name: "user.create" });
-		ctx.nodeID = "server-2";
-		ctx.metrics = false;
-		ctx._metricFinish = jest.fn();
-
-		it("should call ctx._metricFinish", () => {
-			broker._finishCall(ctx, null);
-
-			expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
-			expect(ctx._metricFinish).toHaveBeenCalledWith(null, false);
-
-			expect(broker.statistics.addRequest).toHaveBeenCalledTimes(1);
-			expect(broker.statistics.addRequest).toHaveBeenCalledWith("user.create", 0, null);
-		});
-
-		it("should call ctx._metricFinish with error", () => {
-			ctx._metricFinish.mockClear();
-			broker.statistics.addRequest.mockClear();
-
-			let err = new MoleculerError("", 505);
-			broker._finishCall(ctx, err);
-
-			expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
-			expect(ctx._metricFinish).toHaveBeenCalledWith(err, false);
-
-			expect(broker.statistics.addRequest).toHaveBeenCalledTimes(1);
-			expect(broker.statistics.addRequest).toHaveBeenCalledWith("user.create", 0, 505);
-		});
-	});
-
-	describe("metrics & statistics enabled", () => {
-		let broker = new ServiceBroker({ logger: false, metrics: true, statistics: true });
-		broker.statistics.addRequest = jest.fn();
-		let ctx = new Context(broker, { name: "user.create" });
-		ctx.nodeID = "server-2";
-		ctx.metrics = true;
-		ctx._metricFinish = jest.fn();
-
-		it("should call statistics.addRequest", () => {
-			broker._finishCall(ctx, null);
-
-			expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
-			expect(ctx._metricFinish).toHaveBeenCalledWith(null, true);
-
-			expect(broker.statistics.addRequest).toHaveBeenCalledTimes(1);
-			expect(broker.statistics.addRequest).toHaveBeenCalledWith("user.create", 0, null);
-		});
-
-		it("should call statistics.addRequest with error", () => {
-			ctx._metricFinish.mockClear();
-			broker.statistics.addRequest.mockClear();
-			let err = new MoleculerError("", 505);
-			broker._finishCall(ctx, err);
-
-			expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
-			expect(ctx._metricFinish).toHaveBeenCalledWith(err, true);
-
-			expect(broker.statistics.addRequest).toHaveBeenCalledTimes(1);
-			expect(broker.statistics.addRequest).toHaveBeenCalledWith("user.create", 0, 505);
 		});
 	});
 });

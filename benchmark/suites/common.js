@@ -55,11 +55,11 @@ let bench2 = benchmark.createSuite("Call with middlewares");
 })();
 
 // ----------------------------------------------------------------
-let bench3 = benchmark.createSuite("Call with statistics & metrics");
+let bench3 = benchmark.createSuite("Call with metrics");
 
 (function() {
 	let broker = createBroker();
-	bench3.ref("No statistics", done => {
+	bench3.ref("No metrics", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
@@ -67,20 +67,6 @@ let bench3 = benchmark.createSuite("Call with statistics & metrics");
 (function() {
 	let broker = createBroker({ metrics: true });
 	bench3.add("With metrics", done => {
-		return broker.call("users.empty").then(done);
-	});
-})();
-
-(function() {
-	let broker = createBroker({ statistics: true });
-	bench3.add("With statistics", done => {
-		return broker.call("users.empty").then(done);
-	});
-})();
-
-(function() {
-	let broker = createBroker({ metrics: true, statistics: true });
-	bench3.add("With metrics & statistics", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
