@@ -54,6 +54,9 @@ const broker = new ServiceBroker({
 >Circuit-breaker events payload is changed as well.
 
 
+## Internal statistics module is removed
+The internal statistics module (`$node.stats`) is removed. We will release it as a separated single Moleculer service in the future.
+
 # New
 
 ## Enhanced log level configuration 
@@ -73,7 +76,7 @@ const broker = new ServiceBroker({
 
 >Internal modules: `BROKER`, `TRANS`, `TX`, `CACHER`, `REGISTRY`.
 
-**Please note, it works only with default console logger. If you uses external logger (Pino, Windows, Bunyan, ...etc) you need to handle log levels.**
+**Please note, it works only with default console logger. In case of external loggers (Pino, Windows, Bunyan, ...etc) you need to handle log levels.**
 
 ## New `short` log formatter
 
