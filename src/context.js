@@ -54,7 +54,7 @@ class Context {
 		this.level = 1;
 
 		this.timeout = 0;
-		this.retryCount = 0;
+		this.retries = 0;
 
 		this.params = {};
 		this.meta = {};
@@ -133,7 +133,7 @@ class Context {
 
 		// Timeout
 		ctx.timeout = opts.timeout;
-		ctx.retryCount = opts.retryCount;
+		ctx.retries = opts.retries;
 
 		if (opts.parentCtx != null) {
 			ctx.parentID = opts.parentCtx.id;

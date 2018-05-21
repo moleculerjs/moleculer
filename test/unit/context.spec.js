@@ -23,7 +23,7 @@ describe("Test Context", () => {
 		expect(ctx.level).toBe(1);
 
 		expect(ctx.timeout).toBe(0);
-		expect(ctx.retryCount).toBe(0);
+		expect(ctx.retries).toBe(0);
 
 		expect(ctx.params).toEqual({});
 		expect(ctx.meta).toEqual({});

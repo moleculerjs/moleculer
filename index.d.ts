@@ -50,7 +50,7 @@ declare namespace Moleculer {
 		level?: number;
 
 		timeout: number;
-		retryCount: number;
+		retries: number;
 
 		params: P;
 		meta: M;
@@ -256,7 +256,7 @@ declare namespace Moleculer {
 
 	interface CallOptions {
 		timeout?: number;
-		retryCount?: number;
+		retries?: number;
 		fallbackResponse?: FallbackResponse | Array<FallbackResponse> | FallbackResponseHandler;
 		nodeID?: string;
 		meta?: GenericObject;

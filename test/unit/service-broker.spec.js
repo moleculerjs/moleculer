@@ -1637,7 +1637,7 @@ describe("Test broker.call", () => {
 			expect(ctx.timeout).toBe(0);
 
 			expect(broker._localCall).toHaveBeenCalledTimes(1);
-			expect(broker._localCall).toHaveBeenCalledWith(ctx, ep, {"retryCount": 0, "timeout": 0});
+			expect(broker._localCall).toHaveBeenCalledWith(ctx, ep, {"retries": 0, "timeout": 0});
 		});
 	});
 
@@ -1650,7 +1650,7 @@ describe("Test broker.call", () => {
 			expect(ctx.params).toEqual(params);
 
 			expect(broker._localCall).toHaveBeenCalledTimes(1);
-			expect(broker._localCall).toHaveBeenCalledWith(ctx, ep, {"retryCount": 0, "timeout": 0});
+			expect(broker._localCall).toHaveBeenCalledWith(ctx, ep, {"retries": 0, "timeout": 0});
 		});
 	});
 
@@ -1774,7 +1774,7 @@ describe("Test broker.callWithoutBalancer", () => {
 			expect(ctx.timeout).toBe(0);
 
 			expect(broker._remoteCall).toHaveBeenCalledTimes(1);
-			expect(broker._remoteCall).toHaveBeenCalledWith(ctx, null, {"retryCount": 0, "timeout": 0});
+			expect(broker._remoteCall).toHaveBeenCalledWith(ctx, null, {"retries": 0, "timeout": 0});
 		});
 	});
 
@@ -1805,7 +1805,7 @@ describe("Test broker.callWithoutBalancer", () => {
 			expect(ctx.timeout).toBe(0);
 
 			expect(broker._remoteCall).toHaveBeenCalledTimes(1);
-			expect(broker._remoteCall).toHaveBeenCalledWith(ctx, null, {"retryCount": 0, "timeout": 0});
+			expect(broker._remoteCall).toHaveBeenCalledWith(ctx, null, {"retries": 0, "timeout": 0});
 		});
 	});
 
@@ -1818,7 +1818,7 @@ describe("Test broker.callWithoutBalancer", () => {
 			expect(ctx.params).toEqual(params);
 
 			expect(broker._remoteCall).toHaveBeenCalledTimes(1);
-			expect(broker._remoteCall).toHaveBeenCalledWith(ctx, null, {"retryCount": 0, "timeout": 0});
+			expect(broker._remoteCall).toHaveBeenCalledWith(ctx, null, {"retries": 0, "timeout": 0});
 		});
 	});
 
@@ -2372,7 +2372,7 @@ describe("Test broker._callErrorHandler", () => {
 	let endpoint = new Registry.Endpoint(broker, ctx.nodeID, ctx.action);
 	endpoint.failure = jest.fn();
 
-	it("should return error without retryCount & fallbackResponse", () => {
+	it("should return error without retries & fallbackResponse", () => {
 		return broker._callErrorHandler(customErr, ctx, endpoint, {}).then(protectReject).catch(err => {
 			expect(err).toBe(customErr);
 			expect(broker.call).toHaveBeenCalledTimes(0);
@@ -2407,15 +2407,15 @@ describe("Test broker._callErrorHandler", () => {
 		});
 	});
 
-	it("should retry call if retryCount > 0", () => {
+	it("should retry call if retries > 0", () => {
 		ctx._metricFinish.mockClear();
-		ctx.retryCount = 2;
+		ctx.retries = 2;
 
 		return broker._callErrorHandler(timeoutErr, ctx, endpoint, {}).catch(protectReject).then(() => {
 			expect(broker.call).toHaveBeenCalledTimes(1);
 			expect(broker.call).toHaveBeenCalledWith("user.create", {}, { ctx });
 
-			expect(ctx.retryCount).toBe(1);
+			expect(ctx.retries).toBe(1);
 			expect(ctx._metricFinish).toHaveBeenCalledTimes(0);
 		});
 	});

@@ -41,8 +41,17 @@ const defaultOptions = {
 	logFormatter: "default",
 
 	transporter: null, //"TCP",
+
 	requestTimeout: 0 * 1000,
-	requestRetry: 0,
+	retryPolicy: {
+		enabled: false,
+		retries: 5,
+		delay: 100,
+		maxDelay: 1000,
+		factor: 2,
+		check: err => !!err.retryable
+	},
+
 	maxCallLevel: 0,
 	heartbeatInterval: 5,
 	heartbeatTimeout: 15,
@@ -722,7 +731,7 @@ class ServiceBroker {
 		if (this.middlewares.length) {
 			let mws = Array.from(this.middlewares);
 			handler = mws.reduce((handler, mw) => {
-				return mw(handler, action);
+				return mw.call(this, handler, action);
 			}, handler);
 		}
 
@@ -878,9 +887,6 @@ class ServiceBroker {
 		if (opts.timeout == null)
 			opts.timeout = this.options.requestTimeout || 0;
 
-		if (opts.retryCount == null)
-			opts.retryCount = this.options.requestRetry || 0;
-
 		// Create context
 		let ctx;
 		if (opts.ctx != null) {
@@ -929,9 +935,6 @@ class ServiceBroker {
 
 		if (opts.timeout == null)
 			opts.timeout = this.options.requestTimeout || 0;
-
-		if (opts.retryCount == null)
-			opts.retryCount = this.options.requestRetry || 0;
 
 		let nodeID = null;
 		if (typeof actionName !== "string") {
@@ -996,7 +999,9 @@ class ServiceBroker {
 		if (ctx.metrics === true) {
 			// Add metrics
 			p = p.then(res => {
-				this._finishCall(ctx, null);
+				if (ctx.metrics)
+					ctx._metricFinish(null, ctx.metrics);
+
 				return res;
 			});
 		}
@@ -1134,8 +1139,10 @@ class ServiceBroker {
 		if (!(err instanceof Error)) {
 			err = new E.MoleculerError(err, 500);
 		}
-		if (err instanceof Promise.TimeoutError)
+		if (err instanceof Promise.TimeoutError) {
+			this.logger.warn(`Action '${actionName}' timed out on '${nodeID}'.`, { requestID: ctx.requestID });
 			err = new E.RequestTimeoutError(actionName, nodeID);
+		}
 
 		err.ctx = ctx;
 
@@ -1153,24 +1160,14 @@ class ServiceBroker {
 			endpoint.failure(err);
 		}
 
-		if (err.retryable) {
-			// Retry request
-			if (ctx.retryCount-- > 0) {
-				this.logger.warn(`Action '${actionName}' timed out on '${nodeID}'.`, { requestID: ctx.requestID });
-				this.logger.warn(`Retry to call '${actionName}' action (${ctx.retryCount + 1})...`, { requestID: ctx.requestID });
+		this.logger.debug(`The '${ctx.action.name}' request is rejected.`, { requestID: ctx.requestID }, err);
 
-				opts.ctx = ctx; // Reuse this context
-				return this.call(actionName, ctx.params, opts);
-			}
-		}
-
-		this.logger.debug(`Call '${ctx.action.name}' action is rejected.`, { requestID: ctx.requestID }, err);
-
-		this._finishCall(ctx, err);
+		if (ctx.metrics)
+			ctx._metricFinish(err, ctx.metrics);
 
 		// Handle fallback response
 		if (opts.fallbackResponse) {
-			this.logger.warn(`Calling '${actionName}' action returns with fallback response.`, { requestID: ctx.requestID });
+			this.logger.warn(`The '${actionName}' request returns fallback response.`, { requestID: ctx.requestID });
 			if (_.isFunction(opts.fallbackResponse))
 				return opts.fallbackResponse(ctx, err);
 			else
@@ -1178,12 +1175,6 @@ class ServiceBroker {
 		}
 
 		return Promise.reject(err);
-	}
-
-	_finishCall(ctx, err) {
-		if (ctx.metrics) {
-			ctx._metricFinish(err, ctx.metrics);
-		}
 	}
 
 	/**

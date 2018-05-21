@@ -22,7 +22,7 @@ let broker = new ServiceBroker({
 	logLevel: "warn",
 	//metrics: true,
 	requestTimeout: 10000,
-	retryCount: 3,
+	retries: 3,
 });
 
 console.log("Client started. nodeID:", broker.nodeID, " TRANSPORTER:", transporter, " PID:", process.pid);
