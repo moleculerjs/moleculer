@@ -13,6 +13,10 @@ module.exports = function middleware() {
 		if (this.broker.options.trackContext) {
 			return function trackContextMiddleware(ctx) {
 
+				/*if (opts.trackContext) {
+					ctx._trackContext();
+				}*/
+
 				// Call the handler
 				return handler(ctx)
 					.then(res => {

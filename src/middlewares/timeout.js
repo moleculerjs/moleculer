@@ -6,6 +6,8 @@
 
 "use strict";
 
+const { RequestTimeoutError } = require("../errors");
+
 module.exports = function middleware() {
 
 	const wrapTimeoutMiddleware = function wrapTimeoutMiddleware(handler, action) {
@@ -20,7 +22,7 @@ module.exports = function middleware() {
 					.catch(err => {
 						if (err instanceof Promise.TimeoutError) {
 							this.logger.warn(`Action '${actionName}' timed out on '${nodeID}'.`, { requestID: ctx.requestID });
-							err = new E.RequestTimeoutError(actionName, nodeID);
+							err = new RequestTimeoutError(actionName, nodeID);
 						}
 						return this.Promise.reject(err);
 					});

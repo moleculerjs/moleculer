@@ -12,15 +12,13 @@ module.exports = function middleware(globalOptions) {
 
 		if (this.metrics) {
 			return function metricsMiddleware(ctx) {
-				const isLocal = ctx.nodeID == this.broker.nodeID;
-
-				if (isLocal && (ctx.metrics === true || ctx.timeout > 0))
+				if (ctx.metrics === true || ctx.timeout > 0)
 					ctx._metricStart(ctx.metrics);
 
 				// Call the handler
 				let p = handler(ctx);
 
-				if (isLocal && ctx.metrics === true) {
+				if (ctx.metrics === true) {
 					// Call metrics finish
 					p = p.then(res => {
 						if (ctx.metrics)
@@ -40,7 +38,6 @@ module.exports = function middleware(globalOptions) {
 	};
 
 	return {
-		localAction: wrapMetricsMiddleware,
-		remoteAction: wrapMetricsMiddleware
+		localAction: wrapMetricsMiddleware
 	};
 };
