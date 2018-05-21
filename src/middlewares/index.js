@@ -7,5 +7,9 @@
 "use strict";
 
 module.exports = {
+	CircuitBreaker: require("./circuit-breaker"),
+	Metrics: require("./metrics"),
 	Retry: require("./retry"),
+	Timeout: require("./timeout"),
+	TrackContext: require("./track-context"),
 };
