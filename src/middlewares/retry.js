@@ -1,7 +1,8 @@
 "use strict";
 
 module.exports = function middleware(globalOptions) {
-	return function wrapReplyMiddleware(handler, action) {
+
+	const wrapReplyMiddleware = function wrapReplyMiddleware(handler, action) {
 		// Merge retryPolicy from action option with broker options
 		const policy = Object.assign({}, globalOptions, action.retryPolicy || {});
 		if (policy.enabled) {
@@ -33,5 +34,10 @@ module.exports = function middleware(globalOptions) {
 		}
 
 		return handler;
+	};
+
+	return {
+		localAction: wrapReplyMiddleware,
+		remoteAction: wrapReplyMiddleware
 	};
 };

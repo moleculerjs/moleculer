@@ -92,7 +92,7 @@ class Service {
 
 				let innerAction = this._createAction(action, name);
 
-				serviceSpecification.actions[innerAction.name] = this.broker.wrapAction(innerAction);
+				serviceSpecification.actions[innerAction.name] = this.broker.middlewares.wrapLocalAction(innerAction, innerAction.handler);
 
 				// Expose to call `service.actions.find({ ...params })`
 				this.actions[name] = (params, opts) => {

@@ -4,7 +4,7 @@ let path = require("path");
 let _ = require("lodash");
 let chalk = require("chalk");
 let ServiceBroker = require("../src/service-broker");
-let { MoleculerError } = require("../src/errors");
+let { MoleculerRetryableError } = require("../src/errors");
 
 // Create broker
 let broker = new ServiceBroker({
@@ -28,7 +28,7 @@ broker.createService({
 			const wait = _.random(5000, 15000);
 			broker.logger.info(_.padEnd(`${ctx.params.count}. Add ${ctx.params.a} + ${ctx.params.b}`, 20), `(from: ${ctx.callerNodeID})`);
 			if (_.random(100) > 70)
-				return this.Promise.reject(new MoleculerError("Random error!", 510));
+				return this.Promise.reject(new MoleculerRetryableError("Random error!", 510));
 
 			return this.Promise.resolve()./*delay(wait).*/then(() => ({
 				count: ctx.params.count,

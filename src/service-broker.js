@@ -25,6 +25,7 @@ const Transporters 			= require("./transporters");
 const Serializers 			= require("./serializers");
 const Strategies		 	= require("./strategies");
 const H 					= require("./health");
+const MiddlewareHandler		= require("./middleware");
 const cpuUsage 				= require("./cpu-usage");
 
 const { CIRCUIT_HALF_OPEN } = require("./constants");
@@ -152,7 +153,7 @@ class ServiceBroker {
 		this.registry = new Registry(this);
 
 		// Middlewares
-		this.middlewares = [];
+		this.middlewares = new MiddlewareHandler(this);
 
 		// Cacher
 		this.cacher = this._resolveCacher(this.options.cacher);
@@ -720,27 +721,6 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Wrap action handler for middlewares
-	 *
-	 * @param {any} action
-	 *
-	 * @memberof ServiceBroker
-	 */
-	wrapAction(action) {
-		let handler = action.handler;
-		if (this.middlewares.length) {
-			let mws = Array.from(this.middlewares);
-			handler = mws.reduce((handler, mw) => {
-				return mw.call(this, handler, action);
-			}, handler);
-		}
-
-		action.handler = handler;
-
-		return action;
-	}
-
-	/**
 	 * Register internal services
 	 *
 	 * @memberof ServiceBroker
@@ -814,10 +794,7 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	use(...mws) {
-		mws.forEach(mw => {
-			if (mw)
-				this.middlewares.push(mw);
-		});
+		mws.forEach(mw => this.middlewares.add(mw));
 	}
 
 	/**
@@ -1047,9 +1024,11 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	_remoteCall(ctx, endpoint, opts) {
+		let action = ctx.action;
+
 		this.logger.debug(`Call '${ctx.action.name}' action on '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, { requestID: ctx.requestID });
 
-		let p = this.transit.request(ctx);
+		let p = action.handler(ctx);
 
 		// Timeout handler
 		if (ctx.timeout > 0 && p.timeout)
