@@ -1,4 +1,14 @@
 --------------------------------------------------
+<a name="0.12.5"></a>
+# [0.12.5](https://github.com/moleculerjs/moleculer/compare/v0.12.4...v0.12.5) (2018-05-21)
+
+# Changes
+- fix AMQP logs. [#270](https://github.com/moleculerjs/moleculer/issues/270)
+- fix transferred retryable error handling
+- `broker.createService` supports ES6 classes
+- fix broken promise chain if trackContext is enabled
+
+--------------------------------------------------
 <a name="0.12.4"></a>
 # [0.12.4](https://github.com/moleculerjs/moleculer/compare/v0.12.3...v0.12.4) (2018-05-10)
 
