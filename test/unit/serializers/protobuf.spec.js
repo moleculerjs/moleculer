@@ -27,6 +27,7 @@ describe("Test ProtoBuf serializer", () => {
 		expect(s.length).toBe(11);
 
 		const res = serializer.deserialize(s, P.PACKET_DISCONNECT);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
 
@@ -40,6 +41,7 @@ describe("Test ProtoBuf serializer", () => {
 		expect(s.length).toBe(20);
 
 		const res = serializer.deserialize(s, P.PACKET_HEARTBEAT);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
 
@@ -52,6 +54,7 @@ describe("Test ProtoBuf serializer", () => {
 		expect(s.length).toBe(11);
 
 		const res = serializer.deserialize(s, P.PACKET_DISCOVER);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
 
@@ -79,6 +82,7 @@ describe("Test ProtoBuf serializer", () => {
 		expect(s.length).toBe(185);
 
 		const res = serializer.deserialize(s, P.PACKET_INFO);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 
 	});
@@ -98,6 +102,7 @@ describe("Test ProtoBuf serializer", () => {
 		expect(s.length).toBe(47);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(Object.assign(obj, { groups: []}));
 	});
 
@@ -117,6 +122,7 @@ describe("Test ProtoBuf serializer", () => {
 		expect(s.length).toBe(64);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
 
@@ -131,6 +137,7 @@ describe("Test ProtoBuf serializer", () => {
 		expect(s.length).toBe(27);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(Object.assign(obj, { groups: []}));
 	});
 
@@ -158,6 +165,7 @@ describe("Test ProtoBuf serializer", () => {
 		expect(s.length).toBe(102);
 
 		const res = serializer.deserialize(s, P.PACKET_REQUEST);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
 
@@ -183,6 +191,7 @@ describe("Test ProtoBuf serializer", () => {
 		expect(s.length).toBe(108);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
 
@@ -216,6 +225,7 @@ describe("Test ProtoBuf serializer", () => {
 		expect(s.length).toBe(227);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
 
@@ -229,6 +239,7 @@ describe("Test ProtoBuf serializer", () => {
 		expect(s.length).toBe(15);
 
 		const res = serializer.deserialize(s, P.PACKET_PING);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(Object.assign(obj, {
 			time: {
 				high: 0,
@@ -249,6 +260,7 @@ describe("Test ProtoBuf serializer", () => {
 		expect(s.length).toBe(20);
 
 		const res = serializer.deserialize(s, P.PACKET_PONG);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(Object.assign(obj, {
 			time: {
 				high: 0,

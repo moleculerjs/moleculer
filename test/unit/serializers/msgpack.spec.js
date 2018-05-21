@@ -32,7 +32,9 @@ describe("Test MsgPackSerializer", () => {
 		expect(s.length).toBe(67);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
+
 	});
 
 });

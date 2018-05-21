@@ -27,6 +27,7 @@ describe("Test Avro serializer", () => {
 		expect(s.length).toBe(9);
 
 		const res = serializer.deserialize(s, P.PACKET_DISCONNECT);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
 
@@ -40,6 +41,7 @@ describe("Test Avro serializer", () => {
 		expect(s.length).toBe(17);
 
 		const res = serializer.deserialize(s, P.PACKET_HEARTBEAT);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
 
@@ -52,6 +54,7 @@ describe("Test Avro serializer", () => {
 		expect(s.length).toBe(9);
 
 		const res = serializer.deserialize(s, P.PACKET_DISCOVER);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
 
@@ -79,6 +82,7 @@ describe("Test Avro serializer", () => {
 		expect(s.length).toBe(177);
 
 		const res = serializer.deserialize(s, P.PACKET_INFO);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 
 	});
@@ -98,6 +102,7 @@ describe("Test Avro serializer", () => {
 		expect(s.length).toBe(44);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(Object.assign(obj, { groups: null }));
 	});
 
@@ -117,6 +122,7 @@ describe("Test Avro serializer", () => {
 		expect(s.length).toBe(61);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
 
@@ -131,6 +137,7 @@ describe("Test Avro serializer", () => {
 		expect(s.length).toBe(25);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(Object.assign(obj, { groups: null, data: null }));
 	});
 
@@ -158,6 +165,7 @@ describe("Test Avro serializer", () => {
 		expect(s.length).toBe(93);
 
 		const res = serializer.deserialize(s, P.PACKET_REQUEST);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
 
@@ -183,6 +191,7 @@ describe("Test Avro serializer", () => {
 		expect(s.length).toBe(104);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(Object.assign(obj, { error: null }));
 	});
 
@@ -216,6 +225,7 @@ describe("Test Avro serializer", () => {
 		expect(s.length).toBe(223);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(Object.assign(obj, { data: null }));
 	});
 
@@ -229,6 +239,7 @@ describe("Test Avro serializer", () => {
 		expect(s.length).toBe(13);
 
 		const res = serializer.deserialize(s, P.PACKET_PING);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
 
@@ -243,6 +254,7 @@ describe("Test Avro serializer", () => {
 		expect(s.length).toBe(17);
 
 		const res = serializer.deserialize(s, P.PACKET_PONG);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
 
@@ -264,6 +276,7 @@ describe("Test Avro serializer with Gossip packets", () => {
 		expect(s.length).toBe(24);
 
 		const res = serializer.deserialize(s, P.PACKET_GOSSIP_HELLO);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
 
@@ -276,6 +289,7 @@ describe("Test Avro serializer with Gossip packets", () => {
 		expect(s.length).toBe(11);
 
 		const res = serializer.deserialize(s, P.PACKET_GOSSIP_REQ);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(Object.assign(obj, { online: null, offline: null }));
 	});
 
@@ -296,6 +310,7 @@ describe("Test Avro serializer with Gossip packets", () => {
 		expect(s.length).toBe(81);
 
 		const res = serializer.deserialize(s, P.PACKET_GOSSIP_REQ);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
 
@@ -308,6 +323,7 @@ describe("Test Avro serializer with Gossip packets", () => {
 		expect(s.length).toBe(11);
 
 		const res = serializer.deserialize(s, P.PACKET_GOSSIP_RES);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(Object.assign(obj, { online: null, offline: null }));
 	});
 
@@ -328,6 +344,7 @@ describe("Test Avro serializer with Gossip packets", () => {
 		expect(s.length).toBe(93);
 
 		const res = serializer.deserialize(s, P.PACKET_GOSSIP_RES);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
 

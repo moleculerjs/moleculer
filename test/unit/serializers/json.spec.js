@@ -32,6 +32,7 @@ describe("Test JSONSerializer", () => {
 		expect(s.length).toBe(95);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
+		expect(res).not.toBe(obj);
 		expect(res).toEqual(obj);
 	});
 
