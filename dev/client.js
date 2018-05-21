@@ -4,7 +4,7 @@ let _ = require("lodash");
 let chalk = require("chalk");
 let { MoleculerError } = require("../src/errors");
 let Strategies = require("../").Strategies;
-const RetryMiddleware = require("../src/middlewares/retry");
+const Middlewares = require("..").Middlewares;
 
 let ServiceBroker = require("../src/service-broker");
 
@@ -53,7 +53,7 @@ let broker = new ServiceBroker({
 	logFormatter: "short"
 });
 
-broker.use(RetryMiddleware(broker.options.retryPolicy));
+broker.use(Middlewares.Retry(broker.options.retryPolicy));
 
 broker.createService({
 	name: "event-handler",

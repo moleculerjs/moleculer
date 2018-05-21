@@ -26,6 +26,8 @@ module.exports = {
 	Strategies: require("./src/strategies"),
 	Validator: require("./src/validator"),
 
+	Middlewares: require("./src/middlewares"),
+
 	Errors: require("./src/errors"),
 
 	Utils: require("./src/utils"),
