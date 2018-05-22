@@ -33,6 +33,23 @@ Please provide detailed steps for reproducing the issue.
 2. step 2
 3. you get it...
 
+### Reproduce code snippet
+```js
+const broker = new ServiceBroker({
+    logger: console,
+    transporter: "NATS"
+});
+
+broker.createService({
+    name: "test",
+    actions: {
+        empty(ctx) {
+            return "Hello"
+        }
+    }
+});
+```
+
 ### Context
 
 Please provide any relevant information about your setup. This is important in case the issue is not reproducible except for under certain conditions.
@@ -42,5 +59,6 @@ Please provide any relevant information about your setup. This is important in c
 * Operating System:
 
 ### Failure Logs
+```
 
-<!-- Please include any relevant log snippets or files here. -->
+```
