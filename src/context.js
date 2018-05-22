@@ -30,25 +30,20 @@ class Context {
 	 * Creates an instance of Context.
 	 *
 	 * @param {ServiceBroker} broker - Broker instance
-	 * @param {Action} action - Action definition
-	 *
-	 * @example
-	 * let ctx = new Context(broker, action);
-	 *
-	 * @example
-	 * let ctx2 = new Context(broker, action);
+	 * @param {Endpoint} endpoint - Endpoint (action & nodeID)
 	 *
 	 * @memberof Context
 	 */
-	constructor(broker, action) {
+	constructor(broker, endpoint) {
 		this.id = null;
 
 		this.broker = broker;
-		this.action = action;
-		this.service = action ? action.service : null;
-		this.nodeID = broker ? broker.nodeID : null;
+		this.endpoint = endpoint;
+		this.action = endpoint ? endpoint.action : null;
+		this.service = this.action ? this.action.service : null;
+		this.nodeID = endpoint ? endpoint.nodeID : null;
+		this.callingOpts = null;
 		this.parentID = null;
-		this.callerNodeID = null;
 
 		this.metrics = false;
 		this.level = 1;
@@ -104,8 +99,7 @@ class Context {
 	 * TODO: cover with unit tests
 	 *
 	 * @param {ServiceBroker} broker
-	 * @param {Object} action
-	 * @param {String?} nodeID
+	 * @param {Endpoint} endpoint
 	 * @param {Object?} params
 	 * @param {Object} opts
 	 * @returns {Context}
@@ -113,11 +107,12 @@ class Context {
 	 * @static
 	 * @memberof Context
 	 */
-	static create(broker, action, nodeID, params, opts) {
-		const ctx = new broker.ContextFactory(broker, action);
+	static create(broker, endpoint, params, opts) {
+		const ctx = new broker.ContextFactory(broker, endpoint);
 
-		ctx.nodeID = nodeID;
 		ctx.setParams(params);
+
+		ctx.callingOpts = opts;
 
 		// RequestID
 		if (opts.requestID != null)
@@ -147,14 +142,10 @@ class Context {
 			ctx.metrics = broker.shouldMetric();
 
 		// ID, parentID, level
-		if (ctx.metrics || nodeID != broker.nodeID) {
+		if (ctx.metrics || ctx.nodeID != broker.nodeID) {
 			ctx.generateID();
 			if (!ctx.requestID)
 				ctx.requestID = ctx.id;
-		}
-
-		if (opts.trackContext) {
-			ctx._trackContext();
 		}
 
 		return ctx;
@@ -291,7 +282,7 @@ class Context {
 				requestID: this.requestID,
 				level: this.level,
 				startTime: this.startTime,
-				remoteCall: !!this.callerNodeID
+				remoteCall: this.nodeID != this.broker.nodeID
 			};
 
 			// Process extra metrics
@@ -313,8 +304,6 @@ class Context {
 				payload.parent = this.parentID;
 
 			payload.nodeID = this.nodeID;
-			if (this.callerNodeID)
-				payload.callerNodeID = this.callerNodeID;
 
 			this.broker.emit("metrics.trace.span.start", payload);
 		}
@@ -344,7 +333,7 @@ class Context {
 				startTime: this.startTime,
 				endTime: this.stopTime,
 				duration: this.duration,
-				remoteCall: !!this.callerNodeID,
+				remoteCall: this.nodeID != this.broker.nodeID,
 				fromCache: this.cachedResult
 			};
 
@@ -367,8 +356,6 @@ class Context {
 				payload.parent = this.parentID;
 
 			payload.nodeID = this.nodeID;
-			if (this.callerNodeID)
-				payload.callerNodeID = this.callerNodeID;
 
 			if (error) {
 				payload.error = {

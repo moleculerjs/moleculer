@@ -6,11 +6,12 @@
 
 "use strict";
 
-module.exports = function middleware(globalOptions) {
+module.exports = function ReplyMiddleware(options) {
+	const opts = options || this.options.retryPolicy;
 
-	const wrapReplyMiddleware = function wrapReplyMiddleware(handler, action) {
+	const wrapReplyMiddleware = function(handler, action) {
 		// Merge retryPolicy from action option with broker options
-		const policy = Object.assign({}, globalOptions, action.retryPolicy || {});
+		const policy = Object.assign({}, opts, action.retryPolicy || {});
 		if (policy.enabled) {
 			return function retryMiddleware(ctx) {
 				const attempts = ctx.retries ? ctx.retries : policy.retries;

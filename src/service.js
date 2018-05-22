@@ -96,7 +96,9 @@ class Service {
 
 				// Expose to call `service.actions.find({ ...params })`
 				this.actions[name] = (params, opts) => {
-					const ctx = this.broker.ContextFactory.create(this.broker, innerAction, null, params, opts || {});
+					const endpoint = this.broker._getLocalActionEndpoint(innerAction.name);
+					// TODO find endpoint
+					const ctx = this.broker.ContextFactory.create(this.broker, endpoint, params, opts || {});
 					const contextDispose = (ret) => {
 						if (ctx.tracked)
 							ctx.dispose();

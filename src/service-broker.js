@@ -203,6 +203,21 @@ class ServiceBroker {
 		if (Array.isArray(this.options.middlewares) && this.options.middlewares.length > 0)
 			this.use(...this.options.middlewares);
 
+		// TODO Register internal middlewares
+
+		/*
+			1. Handler
+			2. User middlewares
+			3. Cacher
+			4. Tracker
+			5. CircuitBreaker
+			6. Validator
+			7. Timeout
+			8. Retry
+			9. ErrorHandler
+			10. Metrics
+		 */
+
 		// Register internal actions
 		if (this.options.internalServices)
 			this.registerInternalServices();
@@ -555,7 +570,7 @@ class ServiceBroker {
 		try {
 			schema = require(fName);
 		} catch (e) {
-			this.logger.error(`Fail load service '${path.basename(fName)}'`, e);
+			this.logger.error(`Failed to load service '${fName}'`, e);
 		}
 
 		let svc;
@@ -869,25 +884,15 @@ class ServiceBroker {
 		if (opts.ctx != null) {
 			// Reused context
 			ctx = opts.ctx;
+			ctx.endpoint = endpoint;
 			ctx.nodeID = endpoint.id;
 			ctx.action = endpoint.action;
 		} else {
 			// New root context
-			ctx = this.ContextFactory.create(this, endpoint.action, endpoint.id, params, opts);
+			ctx = this.ContextFactory.create(this, endpoint, params, opts);
 		}
 
-		// Handle half-open state in circuit breaker
-		if (this.options.circuitBreaker.enabled && endpoint.state == CIRCUIT_HALF_OPEN) {
-			endpoint.circuitHalfOpenWait();
-		}
-
-		if (endpoint.local) {
-			// Local call
-			return this._localCall(ctx, endpoint, opts);
-		} else {
-			// Remote call
-			return this._remoteCall(ctx, endpoint, opts);
-		}
+		return this._innerCall(ctx);
 	}
 
 	/**
@@ -941,10 +946,10 @@ class ServiceBroker {
 			ctx.action = { name: actionName };
 		} else {
 			// New root context
-			ctx = this.ContextFactory.create(this, action, nodeID, params, opts);
+			ctx = this.ContextFactory.create(this, { action, nodeID }, params, opts);
 		}
 
-		return this._remoteCall(ctx, null, opts);
+		return this._innerCall(ctx);
 	}
 
 	/**
@@ -958,100 +963,15 @@ class ServiceBroker {
 	 * @performance-critical
 	 * @memberof ServiceBroker
 	 */
-	_localCall(ctx, endpoint, opts) {
+	_innerCall(ctx) {
 		let action = ctx.action;
 
-		this.logger.debug(`Call '${ctx.action.name}' action locally.`, { requestID: ctx.requestID });
-
-		// Add metrics start
-		if (ctx.metrics === true || ctx.timeout > 0)
-			ctx._metricStart(ctx.metrics);
-
-		let p = action.handler(ctx);
-
-		// Timeout handler
-		if (ctx.timeout > 0 && p.timeout)
-			p = p.timeout(ctx.timeout);
-
-		if (ctx.metrics === true) {
-			// Add metrics
-			p = p.then(res => {
-				if (ctx.metrics)
-					ctx._metricFinish(null, ctx.metrics);
-
-				return res;
-			});
-		}
-
-		// Timeout handler
-		if (ctx.timeout > 0 && p.timeout)
-			p = p.timeout(ctx.timeout);
-
-		// Handle half-open state in circuit breaker
-		if (this.options.circuitBreaker.enabled) {
-			p = p.then(res => {
-				endpoint.success();
-				return res;
-			});
-		}
-
-		// Remove the context from the active contexts list
-		if (ctx.tracked) {
-			p = p.then(res => {
-				ctx.dispose();
-				return res;
-			});
-		}
-
-		// Error handler
-		p = p.catch(err => this._callErrorHandler(err, ctx, endpoint, opts));
-
-		// Pointer to Context
-		p.ctx = ctx;
-
-		return p;
-	}
-
-	/**
-	 * Call the context on a remote node
-	 *
-	 * @param {Context} ctx
-	 * @param {Endpoint} endpoint
-	 * @param {Object} opts
-	 * @returns {Promise}
-	 *
-	 * @performance-critical
-	 * @memberof ServiceBroker
-	 */
-	_remoteCall(ctx, endpoint, opts) {
-		let action = ctx.action;
-
-		this.logger.debug(`Call '${ctx.action.name}' action on '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, { requestID: ctx.requestID });
+		if (ctx.nodeID != this.nodeID)
+			this.logger.debug(`Call '${ctx.action.name}' action on '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, { requestID: ctx.requestID });
+		else
+			this.logger.debug(`Call '${ctx.action.name}' action locally.`, { requestID: ctx.requestID });
 
 		let p = action.handler(ctx);
-
-		// Timeout handler
-		if (ctx.timeout > 0 && p.timeout)
-			p = p.timeout(ctx.timeout);
-
-		// Remove the context from the active contexts list
-		if (ctx.tracked) {
-			p = p.then(res => {
-				ctx.dispose();
-				return res;
-			});
-		}
-
-		// Handle half-open state in circuit breaker
-		if (this.options.circuitBreaker.enabled && endpoint) {
-			p = p.then(res => {
-				endpoint.success();
-				return res;
-			});
-		}
-
-		// Error handler
-		p = p.catch(err => this._callErrorHandler(err, ctx, endpoint, opts));
 
 		// Pointer to Context
 		p.ctx = ctx;
@@ -1075,85 +995,6 @@ class ServiceBroker {
 		}
 
 		return endpoint;
-	}
-
-	/**
-	 * Handle a remote request (call a local action).
-	 * It's called from Transit if a request is received
-	 * from a remote node.
-	 *
-	 * @param {Context} ctx
-	 * @returns {Promise}
-	 *
-	 * @private
-	 * @memberof ServiceBroker
-	 */
-	_handleRemoteRequest(ctx, endpoint) {
-		// Load opts
-		let opts = {
-			timeout: ctx.timeout || this.options.requestTimeout || 0
-		};
-
-		// Local call
-		const p = this._localCall(ctx, endpoint, opts);
-
-		return p;
-	}
-
-	/**
-	 * Error handler for `call` method
-	 *
-	 * @param {Error} err
-	 * @param {Context} ctx
-	 * @param {Endpoint} endpoint
-	 * @param {Object} opts
-	 * @returns
-	 *
-	 * @memberof ServiceBroker
-	 */
-	_callErrorHandler(err, ctx, endpoint, opts) {
-		const actionName = ctx.action.name;
-		const nodeID = ctx.nodeID;
-
-		if (!(err instanceof Error)) {
-			err = new E.MoleculerError(err, 500);
-		}
-		if (err instanceof Promise.TimeoutError) {
-			this.logger.warn(`Action '${actionName}' timed out on '${nodeID}'.`, { requestID: ctx.requestID });
-			err = new E.RequestTimeoutError(actionName, nodeID);
-		}
-
-		err.ctx = ctx;
-
-		if (ctx.tracked) {
-			ctx.dispose();
-		}
-
-		if (nodeID != this.nodeID) {
-			// Remove pending request (the request didn't reach the target service)
-			this.transit.removePendingRequest(ctx.id);
-		}
-
-		// Only failure if error received from the direct requested node.
-		if (this.options.circuitBreaker.enabled && endpoint && (!err.nodeID || err.nodeID == ctx.nodeID)) {
-			endpoint.failure(err);
-		}
-
-		this.logger.debug(`The '${ctx.action.name}' request is rejected.`, { requestID: ctx.requestID }, err);
-
-		if (ctx.metrics)
-			ctx._metricFinish(err, ctx.metrics);
-
-		// Handle fallback response
-		if (opts.fallbackResponse) {
-			this.logger.warn(`The '${actionName}' request returns fallback response.`, { requestID: ctx.requestID });
-			if (_.isFunction(opts.fallbackResponse))
-				return opts.fallbackResponse(ctx, err);
-			else
-				return Promise.resolve(opts.fallbackResponse);
-		}
-
-		return Promise.reject(err);
 	}
 
 	/**

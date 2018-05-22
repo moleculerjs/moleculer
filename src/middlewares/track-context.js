@@ -6,26 +6,31 @@
 
 "use strict";
 
-module.exports = function middleware() {
+module.exports = function TrackContextMiddleware() {
 
-	const wrapTrackMiddleware = function wrapReplyMiddleware(handler, action) {
+	const wrapTrackMiddleware = function(handler, action) {
 
 		if (this.broker.options.trackContext) {
 			return function trackContextMiddleware(ctx) {
 
-				/*if (opts.trackContext) {
+				if (ctx.callingOpts.trackContext) {
 					ctx._trackContext();
-				}*/
+				}
 
 				// Call the handler
-				return handler(ctx)
-					.then(res => {
+				let p = handler(ctx);
+
+				if (ctx.tracked) {
+					p = p.then(res => {
 						ctx.dispose();
 						return res;
 					}).catch(err => {
 						ctx.dispose();
 						return this.Promise.reject(err);
 					});
+				}
+
+				return p;
 			}.bind(this);
 		}
 

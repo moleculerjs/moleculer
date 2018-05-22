@@ -8,7 +8,7 @@
 
 const { RequestTimeoutError } = require("../errors");
 
-module.exports = function middleware() {
+module.exports = function() {
 
 	const wrapTimeoutMiddleware = function wrapTimeoutMiddleware(handler, action) {
 		return function timeoutMiddleware(ctx) {

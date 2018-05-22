@@ -6,21 +6,29 @@
 
 "use strict";
 
-module.exports = function middleware(globalOptions) {
+const { CIRCUIT_HALF_OPEN } = require("./constants");
 
-	const wrapCBMiddleware = function wrapCBMiddleware(handler, action) {
+module.exports = function CircuitBreakermiddleware(options) {
+	const opts = options || this.options.circuitBreaker;
 
-		if (this.options.circuitBreaker.enabled) {
+	const wrapCBMiddleware = function(handler, action) {
+
+		if (opts.enabled) {
 			return function circuitBreakerMiddleware(ctx) {
+
+			// Handle half-open state in circuit breaker
+				if (ctx.endpoint.state == CIRCUIT_HALF_OPEN) {
+					ctx.endpoint.circuitHalfOpenWait();
+				}
 
 				// Call the handler
 				return handler(ctx).then(res => {
-					// TODO: need ctx.endpoint
-					ctx.endpoint.success();
+					if (ctx.endpoint)
+						ctx.endpoint.success();
 					return res;
 				}).catch(err => {
 					// Only if local error
-					if (!err.nodeID || err.nodeID == this.broker.nodeID)
+					if (ctx.endpoint && (!err.nodeID || err.nodeID == this.broker.nodeID))
 						ctx.endpoint.failure(err);
 
 					return this.Promise.reject(err);

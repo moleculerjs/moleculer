@@ -367,14 +367,14 @@ class Transit {
 			const endpoint = this.broker._getLocalActionEndpoint(payload.action);
 
 			// Recreate caller context
-			const ctx = new this.broker.ContextFactory(this.broker, endpoint.action);
+			const ctx = new this.broker.ContextFactory(this.broker, endpoint);
 			ctx.id = payload.id;
 			ctx.setParams(pass ? pass: payload.params);
 			ctx.parentID = payload.parentID;
 			ctx.requestID = payload.requestID;
 			ctx.meta = payload.meta || {};
 
-			ctx.timeout = payload.timeout || 0;
+			ctx.timeout = payload.timeout || this.broker.options.requestTimeout || 0;
 			ctx.level = payload.level;
 			ctx.metrics = !!payload.metrics;
 			ctx.callerNodeID = payload.sender;
@@ -382,7 +382,7 @@ class Transit {
 			if (this.broker.options.trackContext)
 				ctx._trackContext();
 
-			return this.broker._handleRemoteRequest(ctx, endpoint)
+			return this.broker._innerCall(ctx)
 				.then(res => this.sendResponse(payload.sender, payload.id,  ctx.meta, res, null))
 				.catch(err => this.sendResponse(payload.sender, payload.id, ctx.meta, null, err));
 

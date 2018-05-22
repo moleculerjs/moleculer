@@ -6,9 +6,9 @@
 
 "use strict";
 
-module.exports = function middleware(globalOptions) {
+module.exports = function MetricsMiddleware() {
 
-	const wrapMetricsMiddleware = function wrapMetricsMiddleware(handler, action) {
+	const wrapMetricsMiddleware = function(handler, action) {
 
 		if (this.metrics) {
 			return function metricsMiddleware(ctx) {
@@ -21,15 +21,12 @@ module.exports = function middleware(globalOptions) {
 				if (ctx.metrics === true) {
 					// Call metrics finish
 					p = p.then(res => {
-						if (ctx.metrics)
-							ctx._metricFinish(null, ctx.metrics);
-
+						ctx._metricFinish(null, ctx.metrics);
 						return res;
 					}).catch(err => ctx._metricFinish(err, ctx.metrics));
 				}
 
 				return p;
-
 
 			}.bind(this);
 		}
