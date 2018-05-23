@@ -156,13 +156,13 @@ class ServiceBroker {
 		this.middlewares = new MiddlewareHandler(this);
 
 		// Cacher
-		this.cacher = this._resolveCacher(this.options.cacher);
+		this.cacher = Cachers.resolve(this.options.cacher);
 		if (this.cacher) {
 			this.cacher.init(this);
 		}
 
 		// Serializer
-		this.serializer = this._resolveSerializer(this.options.serializer);
+		this.serializer = Serializers.resolve(this.options.serializer);
 		this.serializer.init(this);
 
 		// Validation
@@ -175,7 +175,7 @@ class ServiceBroker {
 
 		// Transit & Transporter
 		if (this.options.transporter) {
-			const tx = this._resolveTransporter(this.options.transporter);
+			const tx = Transporters.resolve(this.options.transporter);
 			this.transit = new Transit(this, tx, this.options.transit);
 
 			const txName = tx.constructor.name;
@@ -228,19 +228,6 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	registerMiddlewares(userMiddlewares) {
-		/*
-			1. Handler
-			2. User middlewares
-			3. Cacher
-			4. Tracker
-			5. CircuitBreaker
-			6. Validator
-			7. Timeout
-			8. Retry
-			9. ErrorHandler
-			10. Metrics
-		 */
-
 		// Register user middlewares
 		if (Array.isArray(userMiddlewares) && userMiddlewares.length > 0)
 			this.use(...userMiddlewares);
@@ -248,19 +235,19 @@ class ServiceBroker {
 		if (this.options.internalMiddlewares) {
 			// Register internal middlewares
 
-			// 1. Cacher
+			// 1. Validator
+			if (this.validator && _.isFunction(this.validator.middleware))
+				this.use(this.validator.middleware());
+
+			// 2. Cacher
 			if (this.cacher && _.isFunction(this.cacher.middleware))
 				this.use(this.cacher.middleware());
 
-			// 2. Context tracker
+			// 3. Context tracker
 			this.use(Middlewares.TrackContext.call(this));
 
-			// 3. CircuitBreaker
+			// 4. CircuitBreaker
 			this.use(Middlewares.CircuitBreaker.call(this));
-
-			// 4. Validator
-			if (this.validator && _.isFunction(this.validator.middleware))
-				this.use(this.validator.middleware());
 
 			// 5. Timeout
 			this.use(Middlewares.Timeout.call(this));
@@ -287,118 +274,6 @@ class ServiceBroker {
 		let n = Object.keys(obj).find(n => n.toLowerCase() == name.toLowerCase());
 		if (n)
 			return obj[n];
-	}
-
-	_resolveTransporter(opt) {
-		if (opt instanceof Transporters.Base) {
-			return opt;
-		} else if (_.isString(opt)) {
-			let TransporterClass = this.getModuleClass(Transporters, opt);
-			if (TransporterClass)
-				return new TransporterClass();
-
-			if (opt.startsWith("nats://"))
-				TransporterClass = Transporters.NATS;
-			else if (opt.startsWith("mqtt://"))
-				TransporterClass = Transporters.MQTT;
-			else if (opt.startsWith("redis://"))
-				TransporterClass = Transporters.Redis;
-			else if (opt.startsWith("amqp://"))
-				TransporterClass = Transporters.AMQP;
-			else if (opt.startsWith("kafka://"))
-				TransporterClass = Transporters.Kafka;
-			else if (opt.startsWith("stan://"))
-				TransporterClass = Transporters.STAN;
-			else if (opt.startsWith("tcp://"))
-				TransporterClass = Transporters.TCP;
-
-			if (TransporterClass)
-				return new TransporterClass(opt);
-			else
-				throw new E.MoleculerServerError(`Invalid transporter type '${opt}'.`, null, "INVALID_TRANSPORTER_TYPE", { type: opt });
-
-		} else if (_.isObject(opt)) {
-			let TransporterClass = this.getModuleClass(Transporters, opt.type || "NATS");
-
-			//let TransporterClass = Transporters[];
-			if (TransporterClass)
-				return new TransporterClass(opt.options);
-			else
-				throw new E.MoleculerServerError(`Invalid transporter type '${opt.type}'.`, null, "INVALID_TRANSPORTER_TYPE", { type: opt.type });
-		}
-
-		return null;
-	}
-
-	_resolveCacher(opt) {
-		if (opt instanceof Cachers.Base) {
-			return opt;
-		} else if (opt === true) {
-			return new Cachers.Memory();
-		} else if (_.isString(opt)) {
-			let CacherClass = this.getModuleClass(Cachers, opt);
-			if (CacherClass)
-				return new CacherClass();
-
-			if (opt.startsWith("redis://"))
-				CacherClass = Cachers.Redis;
-
-			if (CacherClass)
-				return new CacherClass(opt);
-			else
-				throw new E.MoleculerServerError(`Invalid cacher type '${opt}'.`, null, "INVALID_CACHER_TYPE", { type: opt });
-
-		} else if (_.isObject(opt)) {
-			let CacherClass = this.getModuleClass(Cachers, opt.type || "Memory");
-			if (CacherClass)
-				return new CacherClass(opt.options);
-			else
-				throw new E.MoleculerServerError(`Invalid cacher type '${opt.type}'.`, null, "INVALID_CACHER_TYPE", { type: opt.type });
-		}
-
-		return null;
-	}
-
-	_resolveSerializer(opt) {
-		if (opt instanceof Serializers.Base) {
-			return opt;
-		} else if (_.isString(opt)) {
-			let SerializerClass = this.getModuleClass(Serializers, opt);
-			if (SerializerClass)
-				return new SerializerClass();
-			else
-				throw new E.MoleculerServerError(`Invalid serializer type '${opt}'.`, null, "INVALID_SERIALIZER_TYPE", { type: opt });
-
-		} else if (_.isObject(opt)) {
-			let SerializerClass = this.getModuleClass(Serializers, opt.type || "JSON");
-			if (SerializerClass)
-				return new SerializerClass(opt.options);
-			else
-				throw new E.MoleculerServerError(`Invalid serializer type '${opt.type}'.`, null, "INVALID_SERIALIZER_TYPE", { type: opt.type });
-		}
-
-		return new Serializers.JSON();
-	}
-
-	_resolveStrategy(opt) {
-		if (Strategies.Base.isPrototypeOf(opt)) {
-			return opt;
-		} else if (_.isString(opt)) {
-			let SerializerClass = this.getModuleClass(Strategies, opt);
-			if (SerializerClass)
-				return SerializerClass;
-			else
-				throw new E.MoleculerServerError(`Invalid strategy type '${opt}'.`, null, "INVALID_STRATEGY_TYPE", { type: opt });
-
-		} else if (_.isObject(opt)) {
-			let SerializerClass = this.getModuleClass(Strategies, opt.type || "RoundRobin");
-			if (SerializerClass)
-				return SerializerClass;
-			else
-				throw new E.MoleculerServerError(`Invalid strategy type '${opt.type}'.`, null, "INVALID_STRATEGY_TYPE", { type: opt.type });
-		}
-
-		return Strategies.RoundRobin;
 	}
 
 	/**

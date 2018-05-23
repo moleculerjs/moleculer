@@ -23,7 +23,7 @@ let broker = new ServiceBroker({
 	//transporter: "kafka://192.168.51.29:2181",
 	//transporter: "amqp://192.168.0.181:5672",
 	//serializer: "MsgPack",
-	//requestTimeout: 1000,
+	requestTimeout: 1000,
 
 	//disableBalancer: true,
 
@@ -38,12 +38,12 @@ let broker = new ServiceBroker({
 	},
 
 	retryPolicy: {
-		enabled: false,
+		enabled: true,
 		retries: 3
 	},
 
 	circuitBreaker: {
-		enabled: true,
+		enabled: false,
 		threshold: 0.3,
 		windowTime: 30,
 		minRequestCount: 10
@@ -85,18 +85,6 @@ broker.createService({
 			broker.logger.info(`>> Send echo event. Counter: ${this.counter}.`);
 			broker.emit("echo.event", { counter: this.counter++ });
 		}, 5000);
-	}
-});
-
-broker.createService({
-	name: "math",
-	actions: {
-		add(ctx) {
-			if (_.random(100) > 90)
-				return this.Promise.reject(new MoleculerError("Random error!", 510));
-
-			return Number(ctx.params.a) + Number(ctx.params.b);
-		},
 	}
 });
 

@@ -28,7 +28,6 @@ function createBrokers(Transporter, opts) {
 		// logLevel: "debug",
 		// metrics: true,
 		nodeID: "node-2",
-		internalMiddlewares: false,
 	});
 
 	b2.createService({

@@ -8,6 +8,7 @@
 
 const _ = require("lodash");
 
+const Strategies = require("../strategies");
 const NodeCatalog = require("./node-catalog");
 const ServiceCatalog = require("./service-catalog");
 const EventCatalog = require("./event-catalog");
@@ -33,7 +34,7 @@ class Registry {
 		this.opts = Object.assign({}, broker.options.registry);
 		this.opts.circuitBreaker = broker.options.circuitBreaker || {};
 
-		this.StrategyFactory = broker._resolveStrategy(this.opts.strategy);
+		this.StrategyFactory = Strategies.resolve(this.opts.strategy);
 
 		this.logger.info("Strategy:", this.StrategyFactory.name);
 
