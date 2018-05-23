@@ -28,8 +28,6 @@ const H 					= require("./health");
 const MiddlewareHandler		= require("./middleware");
 const cpuUsage 				= require("./cpu-usage");
 
-const { CIRCUIT_HALF_OPEN } = require("./constants");
-
 /**
  * Default broker options
  */

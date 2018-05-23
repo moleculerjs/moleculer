@@ -130,6 +130,7 @@ class Context {
 		ctx.timeout = opts.timeout;
 		ctx.retries = opts.retries;
 
+		// ParentID, Level
 		if (opts.parentCtx != null) {
 			ctx.parentID = opts.parentCtx.id;
 			ctx.level = opts.parentCtx.level + 1;
@@ -141,7 +142,7 @@ class Context {
 		else
 			ctx.metrics = broker.shouldMetric();
 
-		// ID, parentID, level
+		// ID, RequestID
 		if (ctx.metrics || ctx.nodeID != broker.nodeID) {
 			ctx.generateID();
 			if (!ctx.requestID)
