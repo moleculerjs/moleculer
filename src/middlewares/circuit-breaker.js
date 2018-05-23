@@ -27,9 +27,11 @@ module.exports = function(options) {
 						ctx.endpoint.success();
 					return res;
 				}).catch(err => {
-					// Only if local error
-					if (ctx.endpoint && (!err.nodeID || err.nodeID == ctx.nodeID))
-						ctx.endpoint.failure(err);
+					if (opts.check && opts.check(err)) {
+						// Only if local error
+						if (ctx.endpoint && (!err.nodeID || err.nodeID == ctx.nodeID))
+							ctx.endpoint.failure(err);
+					}
 
 					return this.Promise.reject(err);
 				});

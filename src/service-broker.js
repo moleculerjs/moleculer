@@ -23,7 +23,6 @@ const Validator 			= require("./validator");
 const Cachers 				= require("./cachers");
 const Transporters 			= require("./transporters");
 const Serializers 			= require("./serializers");
-const Strategies		 	= require("./strategies");
 const Middlewares			= require("./middlewares");
 const H 					= require("./health");
 const MiddlewareHandler		= require("./middleware");
@@ -72,8 +71,7 @@ const defaultOptions = {
 		windowTime: 60,
 		minRequestCount: 20,
 		halfOpenTime: 10 * 1000,
-		failureOnTimeout: true,
-		failureOnReject: true
+		check: err => err.code >= 500
 	},
 
 	transit: {
