@@ -79,6 +79,15 @@ class MiddlewareHandler {
 		return action;
 	}
 
+	/**
+	 * Get count of registered middlewares
+	 *
+	 * @returns {Number}
+	 * @memberof MiddlewareHandler
+	 */
+	count() {
+		return this.list.length;
+	}
 }
 
 module.exports = MiddlewareHandler;

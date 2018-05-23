@@ -24,6 +24,7 @@ const Cachers 				= require("./cachers");
 const Transporters 			= require("./transporters");
 const Serializers 			= require("./serializers");
 const Strategies		 	= require("./strategies");
+const Middlewares			= require("./middlewares");
 const H 					= require("./health");
 const MiddlewareHandler		= require("./middleware");
 const cpuUsage 				= require("./cpu-usage");
@@ -187,7 +188,6 @@ class ServiceBroker {
 					this.options.disableBalancer = false;
 				}
 			}
-
 		}
 
 		if (this.options.disableBalancer) {
@@ -198,23 +198,7 @@ class ServiceBroker {
 		this._sampleCount = 0;
 
 		// Register middlewares
-		if (Array.isArray(this.options.middlewares) && this.options.middlewares.length > 0)
-			this.use(...this.options.middlewares);
-
-		// TODO Register internal middlewares
-
-		/*
-			1. Handler
-			2. User middlewares
-			3. Cacher
-			4. Tracker
-			5. CircuitBreaker
-			6. Validator
-			7. Timeout
-			8. Retry
-			9. ErrorHandler
-			10. Metrics
-		 */
+		this.registerMiddlewares(this.options.middlewares);
 
 		// Register internal actions
 		if (this.options.internalServices)
@@ -235,6 +219,61 @@ class ServiceBroker {
 		process.on("exit", this._closeFn);
 		process.on("SIGINT", this._closeFn);
 		process.on("SIGTERM", this._closeFn);
+	}
+
+	/**
+	 * Register middlewares (user & internal)
+	 *
+	 * @memberof ServiceBroker
+	 */
+	registerMiddlewares(userMiddlewares) {
+		/*
+			1. Handler
+			2. User middlewares
+			3. Cacher
+			4. Tracker
+			5. CircuitBreaker
+			6. Validator
+			7. Timeout
+			8. Retry
+			9. ErrorHandler
+			10. Metrics
+		 */
+
+		// Register user middlewares
+		if (Array.isArray(userMiddlewares) && userMiddlewares.length > 0)
+			this.use(...userMiddlewares);
+
+		// Register internal middlewares
+
+		// 1. Cacher
+		if (this.cacher && _.isFunction(this.cacher.middleware))
+			this.use(this.cacher.middleware());
+
+		// 2. Context tracker
+		this.use(Middlewares.TrackContext.call(this));
+
+		// 3. CircuitBreaker
+		this.use(Middlewares.CircuitBreaker.call(this));
+
+		// 4. Validator
+		if (this.validator && _.isFunction(this.validator.middleware))
+			this.use(this.validator.middleware());
+
+		// 5. Timeout
+		this.use(Middlewares.Timeout.call(this));
+
+		// 6. Retry
+		this.use(Middlewares.Retry.call(this));
+
+		// 7. Error handler
+		this.use(Middlewares.ErrorHandler.call(this));
+
+		// 8. Metrics
+		this.use(Middlewares.Metrics.call(this));
+
+		this.logger.info(`Registered ${this.middlewares.count()} middleware(s).`);
+
 	}
 
 	getModuleClass(obj, name) {
@@ -814,22 +853,22 @@ class ServiceBroker {
 	 * Find the next available endpoint for action
 	 *
 	 * @param {String} actionName
-	 * @param {Object} opts
+	 * @param {String?} nodeID
 	 * @returns {Endpoint|Error}
 	 *
 	 * @performance-critical
 	 * @memberof ServiceBroker
 	 */
-	findNextActionEndpoint(actionName, opts = {}) {
+	findNextActionEndpoint(actionName, nodeID) {
 		if (typeof actionName !== "string") {
 			return actionName;
 		} else {
-			if (opts.nodeID) {
+			if (nodeID) {
 				// Direct call
-				const endpoint = this.registry.getActionEndpointByNodeId(actionName, opts.nodeID);
+				const endpoint = this.registry.getActionEndpointByNodeId(actionName, nodeID);
 				if (!endpoint) {
-					this.logger.warn(`Service '${actionName}' is not found on '${opts.nodeID}' node.`);
-					return new E.ServiceNotFoundError(actionName, opts.nodeID);
+					this.logger.warn(`Service '${actionName}' is not found on '${nodeID}' node.`);
+					return new E.ServiceNotFoundError(actionName, nodeID);
 				}
 				return endpoint;
 
@@ -858,39 +897,41 @@ class ServiceBroker {
 	 *
 	 * @param {String} actionName	name of action
 	 * @param {Object?} params		params of action
-	 * @param {Object?} opts		options of call (optional)
+	 * @param {Object?} callingOpts		options of call (optional)
 	 * @returns {Promise}
 	 *
 	 * @performance-critical
 	 * @memberof ServiceBroker
 	 */
-	call(actionName, params, opts = {}) {
-		const endpoint = this.findNextActionEndpoint(actionName, opts);
+	call(actionName, params, callingOpts = {}) {
+		const endpoint = this.findNextActionEndpoint(actionName, callingOpts.nodeID);
 		if (endpoint instanceof Error)
 			return Promise.reject(endpoint);
 
-		// Add trackContext option from broker options
-		if (opts.trackContext === undefined && this.options.trackContext)
-			opts.trackContext = this.options.trackContext;
-
-		// Load opts with default values
-		if (opts.timeout == null)
-			opts.timeout = this.options.requestTimeout || 0;
-
 		// Create context
 		let ctx;
-		if (opts.ctx != null) {
+		if (callingOpts.ctx != null) {
 			// Reused context
-			ctx = opts.ctx;
+			ctx = callingOpts.ctx;
 			ctx.endpoint = endpoint;
 			ctx.nodeID = endpoint.id;
 			ctx.action = endpoint.action;
 		} else {
 			// New root context
-			ctx = this.ContextFactory.create(this, endpoint, params, opts);
+			ctx = this.ContextFactory.create(this, endpoint, params, callingOpts);
 		}
 
-		return this._innerCall(ctx);
+		if (ctx.endpoint.local)
+			this.logger.debug("Call action locally.", { action: ctx.action.name, requestID: ctx.requestID });
+		else
+			this.logger.debug("Call action on remote node.", { action: ctx.action.name, nodeID: ctx.nodeID, requestID: ctx.requestID });
+
+		let p = endpoint.action.handler(ctx);
+
+		// Pointer to Context
+		p.ctx = ctx;
+
+		return p;
 	}
 
 	/**
@@ -901,29 +942,22 @@ class ServiceBroker {
 	 *
 	 * @param {String} actionName	name of action
 	 * @param {Object?} params		params of action
-	 * @param {Object?} opts		options of call (optional)
+	 * @param {Object?} callingOpts options of call (optional)
 	 * @returns {Promise}
 	 * @returns {Promise}
 	 *
 	 * @private
 	 * @memberof ServiceBroker
 	 */
-	callWithoutBalancer(actionName, params, opts = {}) {
-		// Add trackContext option from broker options
-		if (opts.trackContext === undefined && this.options.trackContext)
-			opts.trackContext = this.options.trackContext;
-
-		if (opts.timeout == null)
-			opts.timeout = this.options.requestTimeout || 0;
-
+	callWithoutBalancer(actionName, params, callingOpts = {}) {
 		let nodeID = null;
 		if (typeof actionName !== "string") {
 			const endpoint = actionName;
 			actionName = endpoint.action.name;
 			nodeID = endpoint.id;
 		} else {
-			if (opts.nodeID) {
-				nodeID = opts.nodeID;
+			if (callingOpts.nodeID) {
+				nodeID = callingOpts.nodeID;
 			} else {
 				// Get endpoint list by action name
 				const epList = this.registry.getActionEndpoints(actionName);
@@ -937,44 +971,18 @@ class ServiceBroker {
 		// Create context
 		let ctx;
 		let action = { name: actionName };
-		if (opts.ctx != null) {
+		if (callingOpts.ctx != null) {
 			// Reused context
-			ctx = opts.ctx;
+			ctx = callingOpts.ctx;
 			ctx.nodeID = nodeID;
 			ctx.action = { name: actionName };
 		} else {
 			// New root context
-			ctx = this.ContextFactory.create(this, { action, nodeID }, params, opts);
+			ctx = this.ContextFactory.create(this, { action, nodeID }, params, callingOpts);
 		}
 
-		return this._innerCall(ctx);
-	}
-
-	/**
-	 * Call the context locally
-	 *
-	 * @param {Context} ctx
-	 * @param {Endpoint} endpoint
-	 * @param {Object} opts
-	 * @returns {Promise}
-	 *
-	 * @performance-critical
-	 * @memberof ServiceBroker
-	 */
-	_innerCall(ctx) {
-		let action = ctx.action;
-
-		if (ctx.nodeID != this.nodeID)
-			this.logger.debug(`Call '${ctx.action.name}' action on '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, { requestID: ctx.requestID });
-		else
-			this.logger.debug(`Call '${ctx.action.name}' action locally.`, { requestID: ctx.requestID });
-
-		let p = action.handler(ctx);
-
-		// Pointer to Context
-		p.ctx = ctx;
-
-		return p;
+		// TODO: no handler
+		// Call transit.request, but we need to run middlewares too.
 	}
 
 	_getLocalActionEndpoint(actionName) {

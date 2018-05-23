@@ -12,8 +12,10 @@ module.exports = function() {
 
 	const wrapTimeoutMiddleware = function wrapTimeoutMiddleware(handler, action) {
 		return function timeoutMiddleware(ctx) {
-			const actionName = ctx.action.name;
-			const nodeID = ctx.nodeID;
+
+			// Load opts with default values
+			if (ctx.timeout == null && this.options.requestTimeout)
+				ctx.timeout = this.options.requestTimeout || 0;
 
 			// Call the handler
 			const p = handler(ctx);
@@ -21,6 +23,8 @@ module.exports = function() {
 				return p.timeout(ctx.timeout)
 					.catch(err => {
 						if (err instanceof Promise.TimeoutError) {
+							const actionName = ctx.action.name;
+							const nodeID = ctx.nodeID;
 							this.logger.warn(`Action '${actionName}' timed out on '${nodeID}'.`, { requestID: ctx.requestID });
 							err = new RequestTimeoutError(actionName, nodeID);
 						}

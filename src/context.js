@@ -41,9 +41,10 @@ class Context {
 		this.endpoint = endpoint;
 		this.action = endpoint ? endpoint.action : null;
 		this.service = this.action ? this.action.service : null;
-		this.nodeID = endpoint ? endpoint.nodeID : null;
-		this.callingOpts = null;
+		this.nodeID = endpoint && endpoint.node ? endpoint.node.id : this.broker.nodeID;
+		this.callingOpts = {};
 		this.parentID = null;
+		this.callerNodeID = null;
 
 		this.metrics = false;
 		this.level = 1;
@@ -66,34 +67,6 @@ class Context {
 	}
 
 	/**
-	 * Add to the list of active context
-	 *
-	 * @private
-	 * @memberof Context
-	 */
-	_trackContext() {
-		if (this.service) {
-			this.tracked = true;
-			this.service._addActiveContext(this);
-		}
-	}
-
-	/**
-	 * Remove from the list of active context
-	 *
-	 * @private
-	 * @memberof Context
-	 */
-	dispose() {
-		if (this.service && this.tracked)
-			this.service._removeActiveContext(this);
-	}
-
-	generateID() {
-		this.id = generateToken();
-	}
-
-	/**
 	 * Create a new Context instance.
 	 *
 	 * TODO: cover with unit tests
@@ -107,7 +80,7 @@ class Context {
 	 * @static
 	 * @memberof Context
 	 */
-	static create(broker, endpoint, params, opts) {
+	static create(broker, endpoint, params, opts = {}) {
 		const ctx = new broker.ContextFactory(broker, endpoint);
 
 		ctx.setParams(params);
@@ -145,11 +118,39 @@ class Context {
 		// ID, RequestID
 		if (ctx.metrics || ctx.nodeID != broker.nodeID) {
 			ctx.generateID();
-			if (!ctx.requestID)
-				ctx.requestID = ctx.id;
 		}
 
 		return ctx;
+	}
+
+	/**
+	 * Add to the list of active context
+	 *
+	 * @private
+	 * @memberof Context
+	 */
+	_trackContext() {
+		if (this.service) {
+			this.tracked = true;
+			this.service._addActiveContext(this);
+		}
+	}
+
+	/**
+	 * Remove from the list of active context
+	 *
+	 * @private
+	 * @memberof Context
+	 */
+	dispose() {
+		if (this.service && this.tracked)
+			this.service._removeActiveContext(this);
+	}
+
+	generateID() {
+		this.id = generateToken();
+		if (!this.requestID)
+			this.requestID = this.id;
 	}
 
 	/**
@@ -278,36 +279,43 @@ class Context {
 		this.duration = 0;
 
 		if (emitEvent) {
-			let payload = {
-				id: this.id,
-				requestID: this.requestID,
-				level: this.level,
-				startTime: this.startTime,
-				remoteCall: this.nodeID != this.broker.nodeID
-			};
-
-			// Process extra metrics
-			this._processExtraMetrics(payload);
-
-			if (this.action) {
-				payload.action = {
-					name: this.action.name
-				};
-			}
-			if (this.service) {
-				payload.service = {
-					name: this.service.name,
-					version: this.service.version
-				};
-			}
-
-			if (this.parentID)
-				payload.parent = this.parentID;
-
-			payload.nodeID = this.nodeID;
-
+			const payload = this._generateMetricPayload();
 			this.broker.emit("metrics.trace.span.start", payload);
 		}
+	}
+
+	_generateMetricPayload() {
+		let payload = {
+			id: this.id,
+			requestID: this.requestID,
+			level: this.level,
+			startTime: this.startTime,
+			remoteCall: !!this.callerNodeID
+		};
+
+		// Process extra metrics
+		this._processExtraMetrics(payload);
+
+		if (this.action) {
+			payload.action = {
+				name: this.action.name
+			};
+		}
+		if (this.service) {
+			payload.service = {
+				name: this.service.name,
+				version: this.service.version
+			};
+		}
+
+		if (this.parentID)
+			payload.parent = this.parentID;
+
+		payload.nodeID = this.nodeID;
+		if (this.callerNodeID)
+			payload.callerNodeID = this.callerNodeID;
+
+		return payload;
 	}
 
 	/**
@@ -327,36 +335,10 @@ class Context {
 		this.stopTime = this.startTime + this.duration;
 
 		if (emitEvent) {
-			let payload = {
-				id: this.id,
-				requestID: this.requestID,
-				level: this.level,
-				startTime: this.startTime,
-				endTime: this.stopTime,
-				duration: this.duration,
-				remoteCall: this.nodeID != this.broker.nodeID,
-				fromCache: this.cachedResult
-			};
-
-			// Process extra metrics
-			this._processExtraMetrics(payload);
-
-			if (this.action) {
-				payload.action = {
-					name: this.action.name
-				};
-			}
-			if (this.service) {
-				payload.service = {
-					name: this.service.name,
-					version: this.service.version
-				};
-			}
-
-			if (this.parentID)
-				payload.parent = this.parentID;
-
-			payload.nodeID = this.nodeID;
+			const payload = this._generateMetricPayload();
+			payload.endTime = this.stopTime;
+			payload.duration = this.duration;
+			payload.fromCache = this.cachedResult;
 
 			if (error) {
 				payload.error = {
@@ -366,6 +348,7 @@ class Context {
 					message: error.message
 				};
 			}
+
 			this.broker.emit("metrics.trace.span.finish", payload);
 		}
 	}

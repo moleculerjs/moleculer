@@ -38,12 +38,12 @@ let broker = new ServiceBroker({
 	},
 
 	retryPolicy: {
-		enabled: true,
+		enabled: false,
 		retries: 3
 	},
 
 	circuitBreaker: {
-		enabled: false,
+		enabled: true,
 		threshold: 0.3,
 		windowTime: 30,
 		minRequestCount: 10
@@ -87,20 +87,18 @@ broker.createService({
 		}, 5000);
 	}
 });
-/*
-setTimeout(() => {
-	broker.createService({
-		name: "math",
-		actions: {
-			add(ctx) {
-				if (_.random(100) > 90)
-					return this.Promise.reject(new MoleculerError("Random error!", 510));
 
-				return Number(ctx.params.a) + Number(ctx.params.b);
-			},
-		}
-	});
-}, 5000);*/
+broker.createService({
+	name: "math",
+	actions: {
+		add(ctx) {
+			if (_.random(100) > 90)
+				return this.Promise.reject(new MoleculerError("Random error!", 510));
+
+			return Number(ctx.params.a) + Number(ctx.params.b);
+		},
+	}
+});
 
 let reqCount = 0;
 let pendingReqs = [];

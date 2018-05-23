@@ -379,10 +379,11 @@ class Transit {
 			ctx.metrics = !!payload.metrics;
 			ctx.callerNodeID = payload.sender;
 
-			if (this.broker.options.trackContext)
-				ctx._trackContext();
+			const p = endpoint.action.handler(ctx);
+			// Pointer to Context
+			p.ctx = ctx;
 
-			return this.broker._innerCall(ctx)
+			return p
 				.then(res => this.sendResponse(payload.sender, payload.id,  ctx.meta, res, null))
 				.catch(err => this.sendResponse(payload.sender, payload.id, ctx.meta, null, err));
 

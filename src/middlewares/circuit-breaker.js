@@ -6,9 +6,9 @@
 
 "use strict";
 
-const { CIRCUIT_HALF_OPEN } = require("./constants");
+const { CIRCUIT_HALF_OPEN } = require("../constants");
 
-module.exports = function CircuitBreakermiddleware(options) {
+module.exports = function(options) {
 	const opts = options || this.options.circuitBreaker;
 
 	const wrapCBMiddleware = function(handler, action) {
@@ -28,7 +28,7 @@ module.exports = function CircuitBreakermiddleware(options) {
 					return res;
 				}).catch(err => {
 					// Only if local error
-					if (ctx.endpoint && (!err.nodeID || err.nodeID == this.broker.nodeID))
+					if (ctx.endpoint && (!err.nodeID || err.nodeID == ctx.nodeID))
 						ctx.endpoint.failure(err);
 
 					return this.Promise.reject(err);

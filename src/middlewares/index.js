@@ -12,4 +12,5 @@ module.exports = {
 	Retry: require("./retry"),
 	Timeout: require("./timeout"),
 	TrackContext: require("./track-context"),
+	ErrorHandler: require("./error-handler"),
 };

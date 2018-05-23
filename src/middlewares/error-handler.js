@@ -31,7 +31,7 @@ module.exports = function() {
 
 					// Handle fallback response
 					if (ctx.callingOpts.fallbackResponse) {
-						this.logger.warn(`The '${ctx.action.name}' request returns fallback response.`, { requestID: ctx.requestID });
+						this.logger.warn(`The '${ctx.action.name}' request is failed. Returns fallback response.`, { requestID: ctx.requestID });
 						if (_.isFunction(ctx.callingOpts.fallbackResponse))
 							return ctx.callingOpts.fallbackResponse(ctx, err);
 						else

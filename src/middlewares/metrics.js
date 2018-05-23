@@ -10,7 +10,7 @@ module.exports = function MetricsMiddleware() {
 
 	const wrapMetricsMiddleware = function(handler, action) {
 
-		if (this.metrics) {
+		if (this.options.metrics) {
 			return function metricsMiddleware(ctx) {
 				if (ctx.metrics === true || ctx.timeout > 0)
 					ctx._metricStart(ctx.metrics);

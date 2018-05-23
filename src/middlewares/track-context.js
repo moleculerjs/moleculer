@@ -10,8 +10,12 @@ module.exports = function TrackContextMiddleware() {
 
 	const wrapTrackMiddleware = function(handler, action) {
 
-		if (this.broker.options.trackContext) {
+		if (this.options.trackContext) {
 			return function trackContextMiddleware(ctx) {
+
+				// Add trackContext option from broker options
+				if (ctx.callingOpts.trackContext === undefined && this.options.trackContext)
+					ctx.callingOpts.trackContext = this.options.trackContext;
 
 				if (ctx.callingOpts.trackContext) {
 					ctx._trackContext();
