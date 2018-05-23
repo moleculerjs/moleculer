@@ -284,6 +284,12 @@ class Context {
 		}
 	}
 
+	/**
+	 * Generate metrics payload
+	 *
+	 * @returns {Object}
+	 * @memberof Context
+	 */
 	_generateMetricPayload() {
 		let payload = {
 			id: this.id,

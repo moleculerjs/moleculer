@@ -88,6 +88,7 @@ const defaultOptions = {
 	metrics: false,
 	metricsRate: 1,
 	internalServices: true,
+	internalMiddlewares: true,
 
 	hotReload: false,
 
@@ -244,33 +245,35 @@ class ServiceBroker {
 		if (Array.isArray(userMiddlewares) && userMiddlewares.length > 0)
 			this.use(...userMiddlewares);
 
-		// Register internal middlewares
+		if (this.options.internalMiddlewares) {
+			// Register internal middlewares
 
-		// 1. Cacher
-		if (this.cacher && _.isFunction(this.cacher.middleware))
-			this.use(this.cacher.middleware());
+			// 1. Cacher
+			if (this.cacher && _.isFunction(this.cacher.middleware))
+				this.use(this.cacher.middleware());
 
-		// 2. Context tracker
-		this.use(Middlewares.TrackContext.call(this));
+			// 2. Context tracker
+			this.use(Middlewares.TrackContext.call(this));
 
-		// 3. CircuitBreaker
-		this.use(Middlewares.CircuitBreaker.call(this));
+			// 3. CircuitBreaker
+			this.use(Middlewares.CircuitBreaker.call(this));
 
-		// 4. Validator
-		if (this.validator && _.isFunction(this.validator.middleware))
-			this.use(this.validator.middleware());
+			// 4. Validator
+			if (this.validator && _.isFunction(this.validator.middleware))
+				this.use(this.validator.middleware());
 
-		// 5. Timeout
-		this.use(Middlewares.Timeout.call(this));
+			// 5. Timeout
+			this.use(Middlewares.Timeout.call(this));
 
-		// 6. Retry
-		this.use(Middlewares.Retry.call(this));
+			// 6. Retry
+			this.use(Middlewares.Retry.call(this));
 
-		// 7. Error handler
-		this.use(Middlewares.ErrorHandler.call(this));
+			// 7. Error handler
+			this.use(Middlewares.ErrorHandler.call(this));
 
-		// 8. Metrics
-		this.use(Middlewares.Metrics.call(this));
+			// 8. Metrics
+			this.use(Middlewares.Metrics.call(this));
+		}
 
 		this.logger.info(`Registered ${this.middlewares.count()} middleware(s).`);
 
