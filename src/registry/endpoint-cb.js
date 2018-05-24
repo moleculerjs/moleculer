@@ -78,17 +78,9 @@ class ActionEndpointCB extends ActionEndpoint {
 	 */
 	failure(err) {
 		this.reqCount++;
-		if (err) {
-			if (err instanceof RequestTimeoutError) {
-				if (this.opts.failureOnTimeout)
-					this.failures++;
+		this.failures++;
 
-			} else if (err.code >= 500 && this.opts.failureOnReject) {
-				this.failures++;
-			}
-
-			this.checkThreshold();
-		}
+		this.checkThreshold();
 	}
 
 	/**

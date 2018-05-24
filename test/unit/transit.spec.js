@@ -708,7 +708,7 @@ describe("Test Transit.request", () => {
 	const transit = broker.transit;
 
 	it("should create packet", () => {
-		let ctx = new Context(broker, { name: "users.find" });
+		let ctx = new Context(broker, { action: { name: "users.find" } });
 		ctx.nodeID = "remote";
 		ctx.params = { a: 5 };
 		ctx.meta = {
@@ -717,7 +717,7 @@ describe("Test Transit.request", () => {
 				roles: [ "user" ]
 			}
 		},
-		ctx.timeout = 500;
+		ctx.options.timeout = 500;
 		ctx.id = "12345";
 		ctx.requestID = "1111";
 

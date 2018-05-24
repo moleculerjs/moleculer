@@ -17,7 +17,18 @@ describe("Test Registry constructor", () => {
 		expect(registry.broker).toBe(broker);
 		expect(registry.logger).toBeDefined();
 
-		expect(registry.opts).toEqual({ "circuitBreaker": {"enabled": false, "threshold": 0.5, "windowTime": 60, "minRequestCount": 20, "failureOnReject": true, "failureOnTimeout": true, "halfOpenTime": 10000}, "preferLocal": true, strategy: "RoundRobin"});
+		expect(registry.opts).toEqual({
+			circuitBreaker: {
+				enabled: false,
+				threshold: 0.5,
+				windowTime: 60,
+				minRequestCount: 20,
+				halfOpenTime: 10000,
+				check: jasmine.any(Function),
+			},
+			preferLocal: true,
+			strategy: "RoundRobin"
+		});
 		expect(registry.StrategyFactory).toBe(Strategies.RoundRobin);
 		expect(registry.nodes).toBeDefined();
 		expect(registry.services).toBeDefined();
@@ -35,7 +46,18 @@ describe("Test Registry constructor", () => {
 		});
 		let registry = new Registry(broker);
 
-		expect(registry.opts).toEqual({ "circuitBreaker": {"enabled": false, "threshold": 0.5, "windowTime": 60, "minRequestCount": 20, "failureOnReject": true, "failureOnTimeout": true, "halfOpenTime": 10000}, "preferLocal": false, strategy: "Random"});
+		expect(registry.opts).toEqual({
+			circuitBreaker: {
+				enabled: false,
+				threshold: 0.5,
+				windowTime: 60,
+				minRequestCount: 20,
+				halfOpenTime: 10000,
+				check: jasmine.any(Function),
+			},
+			preferLocal: false,
+			strategy: "Random"
+		});
 		expect(registry.StrategyFactory).toBe(Strategies.Random);
 	});
 
@@ -323,7 +345,7 @@ describe("Test Registry.unregisterService & unregisterServicesByNode", () => {
 
 describe("Test Registry.registerActions", () => {
 
-	let broker = new ServiceBroker({ logger: false });
+	let broker = new ServiceBroker({ logger: false, transporter: "Fake" });
 	let registry = broker.registry;
 
 	registry.actions.add = jest.fn();
@@ -331,6 +353,9 @@ describe("Test Registry.registerActions", () => {
 		addAction: jest.fn()
 	};
 	let node = { id: "node-11" };
+
+	broker.middlewares.wrapRemoteAction = jest.fn();
+	broker.transit.request = jest.fn();
 
 	it("should call actions add & service addAction methods", () => {
 		registry.registerActions(node, service, {
@@ -345,6 +370,9 @@ describe("Test Registry.registerActions", () => {
 		expect(service.addAction).toHaveBeenCalledTimes(2);
 		expect(service.addAction).toHaveBeenCalledWith({"name": "users.find"});
 		expect(service.addAction).toHaveBeenCalledWith({"name": "users.save"});
+
+		expect(broker.middlewares.wrapRemoteAction).toHaveBeenCalledTimes(2);
+		expect(broker.middlewares.wrapRemoteAction).toHaveBeenCalledWith({"name": "users.find"}, jasmine.any(Function));
 	});
 });
 
