@@ -41,7 +41,7 @@ describe("Test TimeoutMiddleware", () => {
 
 		return newHandler(ctx).catch(protectReject).then(res => {
 			expect(res).toBe("Result");
-			expect(ctx.options.timeout).toBe(null);
+			expect(ctx.options.timeout).toBeUndefined();
 			expect(handler).toHaveBeenCalledTimes(1);
 		});
 	});

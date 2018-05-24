@@ -40,21 +40,12 @@ describe("Test BaseCacher", () => {
 	it("check init", () => {
 		let broker = new ServiceBroker({ logger: false });
 		broker.on = jest.fn();
-		broker.use = jest.fn();
 		let cacher = new Cacher();
 
 		cacher.init(broker);
 		expect(cacher.broker).toBe(broker);
 		expect(cacher.logger).toBeDefined();
 		expect(cacher.prefix).toBe("MOL-");
-
-		expect(broker.use).toHaveBeenCalledTimes(1);
-
-		/*
-		expect(broker.on).toHaveBeenCalledTimes(2);
-		expect(broker.on).toHaveBeenCalledWith("cache.clean", jasmine.any(Function));
-		expect(broker.on).toHaveBeenCalledWith("cache.del", jasmine.any(Function));
-		*/
 	});
 
 	it("check init with namespace", () => {
