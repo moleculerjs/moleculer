@@ -23,7 +23,7 @@ let broker = new ServiceBroker({
 	//transporter: "kafka://192.168.51.29:2181",
 	//transporter: "amqp://192.168.0.181:5672",
 	//serializer: "MsgPack",
-	requestTimeout: 1000,
+	//requestTimeout: 1000,
 
 	//disableBalancer: true,
 
@@ -52,8 +52,6 @@ let broker = new ServiceBroker({
 	logLevel: "info",
 	logFormatter: "short"
 });
-
-broker.use(Middlewares.Retry(broker.options.retryPolicy));
 
 broker.createService({
 	name: "event-handler",

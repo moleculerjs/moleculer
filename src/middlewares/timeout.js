@@ -31,7 +31,7 @@ module.exports = function() {
 						if (err instanceof Promise.TimeoutError) {
 							const actionName = ctx.action.name;
 							const nodeID = ctx.nodeID;
-							this.logger.warn(`Action '${actionName}' timed out on '${nodeID}'.`, { requestID: ctx.requestID });
+							this.logger.warn(`Request '${actionName}' is timed out.`, { requestID: ctx.requestID, nodeID, timeout: ctx.options.timeout });
 							err = new RequestTimeoutError(actionName, nodeID);
 						}
 						return this.Promise.reject(err);

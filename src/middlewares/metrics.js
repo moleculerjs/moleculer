@@ -160,7 +160,7 @@ function processExtraMetrics(ctx, payload) {
 	}
 }
 
-function wrapMetricsMiddleware(handler, action) {
+function wrapLocalMetricsMiddleware(handler, action) {
 
 	if (this.options.metrics) {
 		return function metricsMiddleware(ctx) {
@@ -190,8 +190,24 @@ function wrapMetricsMiddleware(handler, action) {
 	return handler;
 }
 
+function wrapRemoteMetricsMiddleware(handler, action) {
+
+	if (this.options.metrics) {
+		return function metricsMiddleware(ctx) {
+			if (ctx.metrics == null) {
+				ctx.metrics = shouldMetric(ctx);
+			}
+			return handler(ctx);
+
+		}.bind(this);
+	}
+
+	return handler;
+}
+
 module.exports = function MetricsMiddleware() {
 	return {
-		localAction: wrapMetricsMiddleware
+		localAction: wrapLocalMetricsMiddleware,
+		remoteAction: wrapRemoteMetricsMiddleware
 	};
 };
