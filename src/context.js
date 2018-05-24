@@ -49,7 +49,7 @@ class Context {
 	 * @memberof Context
 	 */
 	constructor(broker, endpoint) {
-		this.id = null;
+		this._id = null;
 
 		this.broker = broker;
 		this.endpoint = endpoint;
@@ -59,6 +59,8 @@ class Context {
 			this.nodeID = endpoint.node.id;
 		else if (this.broker)
 			this.nodeID = this.broker.nodeID;
+		else
+			this.nodeID = null;
 
 		this.options = {
 			timeout: null,
@@ -103,7 +105,8 @@ class Context {
 
 		ctx.setParams(params);
 
-		Object.assign(ctx.options, opts);
+		//Object.assign(ctx.options, opts);
+		ctx.options = opts;
 
 		// RequestID
 		if (opts.requestID != null)
@@ -127,18 +130,31 @@ class Context {
 		if (opts.parentCtx != null)
 			ctx.metrics = opts.parentCtx.metrics;
 
-		// ID, RequestID
-		if (ctx.nodeID != broker.nodeID) {
-			ctx.generateID();
-		}
-
 		return ctx;
 	}
 
-	generateID() {
-		this.id = generateToken();
-		if (!this.requestID)
-			this.requestID = this.id;
+	/**
+	 * Context ID getter
+	 *
+	 * @readonly
+	 * @memberof Context
+	 */
+	get id() {
+		if (!this._id) {
+			this._id = generateToken();
+			if (!this.requestID)
+				this.requestID = this._id;
+		}
+		return this._id;
+	}
+
+	/**
+	 * Context ID setter
+	 *
+	 * @memberof Context
+	 */
+	set id(val) {
+		this._id = val;
 	}
 
 	/**

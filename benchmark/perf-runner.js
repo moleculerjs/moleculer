@@ -26,7 +26,7 @@ function createBrokers(Transporter, opts) {
 		// },
 		// logger: console,
 		// logLevel: "debug",
-		// metrics: true,
+		//metrics: true,
 		nodeID: "node-2",
 	});
 

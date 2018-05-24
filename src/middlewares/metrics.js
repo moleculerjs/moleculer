@@ -169,8 +169,6 @@ function wrapMetricsMiddleware(handler, action) {
 			}
 
 			if (ctx.metrics === true) {
-				if (!ctx.id)
-					ctx.generateID();
 
 				metricStart(ctx);
 
