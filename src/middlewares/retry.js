@@ -7,9 +7,9 @@
 "use strict";
 
 module.exports = function ReplyMiddleware(options) {
-	const opts = options || this.options.retryPolicy;
-
 	const wrapReplyMiddleware = function(handler, action) {
+		const opts = options || this.options.retryPolicy;
+
 		// Merge retryPolicy from action option with broker options
 		const policy = Object.assign({}, opts, action.retryPolicy || {});
 		if (policy.enabled) {

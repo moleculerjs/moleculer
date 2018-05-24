@@ -48,6 +48,7 @@ describe("Test TrackContextMiddleware", () => {
 		return newHandler(ctx).catch(protectReject).then(res => {
 			expect(res).toBe("Result");
 			expect(ctx.tracked).toBe(false);
+			expect(handler).toHaveBeenCalledTimes(1);
 
 			expect(ctx._trackContext).toHaveBeenCalledTimes(0);
 			expect(ctx.dispose).toHaveBeenCalledTimes(0);

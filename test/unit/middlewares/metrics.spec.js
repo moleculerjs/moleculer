@@ -48,6 +48,8 @@ describe("Test MetricsMiddleware", () => {
 
 		return newHandler(ctx).catch(protectReject).then(res => {
 			expect(res).toBe("Result");
+			expect(handler).toHaveBeenCalledTimes(1);
+
 			expect(ctx._metricStart).toHaveBeenCalledTimes(1);
 			expect(ctx._metricStart).toHaveBeenCalledWith(false);
 
@@ -56,6 +58,7 @@ describe("Test MetricsMiddleware", () => {
 	});
 
 	it("should call metricStart & metricFinish if handler is resolved", () => {
+		handler.mockClear();
 		const newHandler = mw.localAction.call(broker, handler, action);
 
 		const ctx = Context.create(broker, endpoint);
@@ -64,6 +67,8 @@ describe("Test MetricsMiddleware", () => {
 
 		return newHandler(ctx).catch(protectReject).then(res => {
 			expect(res).toBe("Result");
+			expect(handler).toHaveBeenCalledTimes(1);
+
 			expect(ctx._metricStart).toHaveBeenCalledTimes(1);
 			expect(ctx._metricStart).toHaveBeenCalledWith(true);
 
@@ -83,6 +88,8 @@ describe("Test MetricsMiddleware", () => {
 
 		return newHandler(ctx).then(protectReject).catch(res => {
 			expect(res).toBe(err);
+			expect(handler).toHaveBeenCalledTimes(1);
+
 			expect(ctx._metricStart).toHaveBeenCalledTimes(1);
 			expect(ctx._metricStart).toHaveBeenCalledWith(true);
 

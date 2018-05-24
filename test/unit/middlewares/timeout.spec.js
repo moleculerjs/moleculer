@@ -42,6 +42,7 @@ describe("Test TimeoutMiddleware", () => {
 		return newHandler(ctx).catch(protectReject).then(res => {
 			expect(res).toBe("Result");
 			expect(ctx.timeout).toBeUndefined();
+			expect(handler).toHaveBeenCalledTimes(1);
 		});
 	});
 
@@ -61,6 +62,8 @@ describe("Test TimeoutMiddleware", () => {
 
 		return p.then(protectReject).catch(err => {
 			expect(ctx.timeout).toBe(5000);
+			expect(handler).toHaveBeenCalledTimes(1);
+
 			expect(err).toBeInstanceOf(Error);
 			expect(err).toBeInstanceOf(RequestTimeoutError);
 			expect(err.message).toBe("Request is timed out when call 'posts.find' action on 'server-1' node.");
