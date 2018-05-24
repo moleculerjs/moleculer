@@ -97,6 +97,13 @@ describe("Test MiddlewareHandler", () => {
 
 			middlewares.wrapActionHandler("localAction", action, handler);
 
+			expect(mw1.localAction).toHaveBeenCalledTimes(1);
+			expect(mw1.localAction).toHaveBeenCalledWith(handler, action);
+
+			expect(mw3.localAction).toHaveBeenCalledTimes(1);
+			expect(mw3.localAction).toHaveBeenCalledWith(jasmine.any(Function), action);
+			expect(mw3.remoteAction).toHaveBeenCalledTimes(0);
+
 			return action.handler().then(res => {
 				expect(res).toBe("John");
 
@@ -112,8 +119,16 @@ describe("Test MiddlewareHandler", () => {
 		});
 
 		it("should wrap remote action", () => {
+			mw1.localAction.mockClear();
+			mw3.localAction.mockClear();
+
 			FLOW = [];
 			middlewares.wrapActionHandler("remoteAction", action, handler);
+
+			expect(mw1.localAction).toHaveBeenCalledTimes(0);
+			expect(mw3.localAction).toHaveBeenCalledTimes(0);
+			expect(mw3.remoteAction).toHaveBeenCalledTimes(1);
+			expect(mw3.remoteAction).toHaveBeenCalledWith(jasmine.any(Function), action);
 
 			return action.handler().then(res => {
 				expect(res).toBe("John");

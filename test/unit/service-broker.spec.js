@@ -307,6 +307,44 @@ describe("Test ServiceBroker constructor", () => {
 		});
 	});
 
+	it("should not register internal middlewares", () => {
+		let broker = new ServiceBroker( {
+			logger: false,
+			internalMiddlewares: false
+		});
+
+		expect(broker.middlewares.count()).toBe(0);
+	});
+
+	it("should register user middlewares", () => {
+		let broker = new ServiceBroker( {
+			logger: false,
+			internalMiddlewares: false,
+			middlewares: [
+				{},
+				{}
+			]
+		});
+
+		expect(broker.middlewares.count()).toBe(2);
+	});
+
+	it("should register internal middlewares", () => {
+		let broker = new ServiceBroker( {
+			logger: false,
+			cacher: "memory",
+			requestTimeout: 5000,
+			trackContext: true,
+			circuitBreaker: {
+				enabled: true
+			},
+			retryPolicy: {
+				enabled: true,
+			}
+		});
+
+		expect(broker.middlewares.count()).toBe(8);
+	});
 });
 
 describe("Test broker.start", () => {
@@ -956,43 +994,6 @@ describe("Test broker.servicesChanged", () => {
 
 		expect(broker.transit.sendNodeInfo).toHaveBeenCalledTimes(1);
 	});
-});
-
-describe.skip("Test broker.wrapAction", () => {
-
-	let broker = new ServiceBroker({ logger: false, internalMiddlewares: false });
-
-	it("should not change handler if no middlewares", () => {
-		let origHandler = jest.fn();
-		let action = {
-			name: "list",
-			handler: origHandler
-		};
-
-		broker.wrapAction(action);
-		expect(action.handler).toBe(origHandler);
-	});
-
-	it("should wrap middlewares", () => {
-		let action = {
-			name: "list",
-			handler: jest.fn()
-		};
-
-		let mw1 = jest.fn(handler => handler);
-		let mw2 = jest.fn(handler => handler);
-
-		broker.use(mw1);
-		broker.use(mw2);
-
-		broker.wrapAction(action);
-		expect(mw1).toHaveBeenCalledTimes(1);
-		expect(mw1).toHaveBeenCalledWith(action.handler, action);
-
-		expect(mw2).toHaveBeenCalledTimes(1);
-		expect(mw2).toHaveBeenCalledWith(action.handler, action);
-	});
-
 });
 
 describe("Test broker.registerInternalServices", () => {

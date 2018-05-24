@@ -264,16 +264,6 @@ class ServiceBroker {
 
 	}
 
-	getModuleClass(obj, name) {
-		/* istanbul ignore next */
-		if (!name)
-			return null;
-
-		let n = Object.keys(obj).find(n => n.toLowerCase() == name.toLowerCase());
-		if (n)
-			return obj[n];
-	}
-
 	/**
 	 * Start broker. If has transporter, transporter.connect will be called.
 	 *
@@ -925,25 +915,6 @@ class ServiceBroker {
 			return Promise.all(p).then(() => results);
 		} else
 			throw new E.MoleculerServerError("Invalid calling definition.", 500, "INVALID_PARAMETERS");
-	}
-
-	/**
-	 * Check should metric the current call
-	 *
-	 * @returns
-	 *
-	 * @memberof ServiceBroker
-	 */
-	shouldMetric() {
-		if (this.options.metrics) {
-			this._sampleCount++;
-			if (this._sampleCount * this.options.metricsRate >= 1.0) {
-				this._sampleCount = 0;
-				return true;
-			}
-
-		}
-		return false;
 	}
 
 	/**
