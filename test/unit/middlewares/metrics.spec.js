@@ -3,7 +3,7 @@ const Context = require("../../../src/context");
 const Middleware = require("../../../src/middlewares").Metrics;
 const { protectReject } = require("../utils");
 
-describe("Test middleware", () => {
+describe("Test MetricsMiddleware", () => {
 	const broker = new ServiceBroker({ nodeID: "server-1", logger: false });
 	const handler = jest.fn(() => Promise.resolve("Result"));
 	const action = {
@@ -35,6 +35,24 @@ describe("Test middleware", () => {
 
 		const newHandler = mw.localAction.call(broker, handler, action);
 		expect(newHandler).not.toBe(handler);
+	});
+
+
+	it("should call metricStart only if has timeout", () => {
+		const newHandler = mw.localAction.call(broker, handler, action);
+
+		const ctx = Context.create(broker, endpoint, null, { timeout: 5000 });
+		ctx._metricStart = jest.fn();
+		ctx._metricFinish = jest.fn();
+		ctx.metrics = false;
+
+		return newHandler(ctx).catch(protectReject).then(res => {
+			expect(res).toBe("Result");
+			expect(ctx._metricStart).toHaveBeenCalledTimes(1);
+			expect(ctx._metricStart).toHaveBeenCalledWith(false);
+
+			expect(ctx._metricFinish).toHaveBeenCalledTimes(0);
+		});
 	});
 
 	it("should call metricStart & metricFinish if handler is resolved", () => {
@@ -73,3 +91,5 @@ describe("Test middleware", () => {
 		});
 	});
 });
+
+

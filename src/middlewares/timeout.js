@@ -6,6 +6,7 @@
 
 "use strict";
 
+const Promise = require("bluebird");
 const { RequestTimeoutError } = require("../errors");
 
 module.exports = function() {

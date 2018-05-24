@@ -8,6 +8,10 @@
 
 module.exports = function MetricsMiddleware() {
 
+	/*
+		TODO: move here broker.shouldMetrics
+	*/
+
 	const wrapMetricsMiddleware = function(handler, action) {
 
 		if (this.options.metrics) {
