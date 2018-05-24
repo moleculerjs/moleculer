@@ -9,9 +9,8 @@
 const { CIRCUIT_HALF_OPEN } = require("../constants");
 
 module.exports = function(options) {
-	const opts = options || this.options.circuitBreaker;
-
 	const wrapCBMiddleware = function(handler, action) {
+		const opts = options || this.options.circuitBreaker;
 
 		if (opts.enabled) {
 			return function circuitBreakerMiddleware(ctx) {

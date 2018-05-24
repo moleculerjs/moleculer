@@ -70,6 +70,9 @@ describe("Test RetryMiddleware", () => {
 
 			expect(broker.Promise.delay).toHaveBeenCalledTimes(1);
 			expect(broker.Promise.delay).toHaveBeenCalledWith(100);
+
+			expect(broker.options.retryPolicy.check).toHaveBeenCalledTimes(1);
+			expect(broker.options.retryPolicy.check).toHaveBeenCalledWith(error);
 		});
 	});
 
