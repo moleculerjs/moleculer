@@ -373,11 +373,11 @@ class Transit {
 			ctx.parentID = payload.parentID;
 			ctx.requestID = payload.requestID;
 			ctx.meta = payload.meta || {};
-
-			ctx.timeout = payload.timeout || this.broker.options.requestTimeout || 0;
 			ctx.level = payload.level;
 			ctx.metrics = !!payload.metrics;
 			ctx.callerNodeID = payload.sender;
+
+			ctx.options.timeout = payload.timeout || this.broker.options.requestTimeout || 0;
 
 			const p = endpoint.action.handler(ctx);
 			// Pointer to Context
@@ -520,7 +520,7 @@ class Transit {
 			action: ctx.action.name,
 			params: isStream ? null : ctx.params,
 			meta: ctx.meta,
-			timeout: ctx.timeout,
+			timeout: ctx.options.timeout,
 			level: ctx.level,
 			metrics: ctx.metrics,
 			parentID: ctx.parentID,

@@ -1,12 +1,14 @@
-const ServiceBroker = require("../../../src/service-broker");
-const Context = require("../../../src/context");
-const Middleware = require("../../../src/middlewares").Metrics;
-const { protectReject } = require("../utils");
+const ServiceBroker 			= require("../../../src/service-broker");
+const { MoleculerError }		= require("../../../src/errors");
+const Context 					= require("../../../src/context");
+const Middleware 				= require("../../../src/middlewares").Metrics;
+const { protectReject }			= require("../utils");
 
 describe("Test MetricsMiddleware", () => {
 	const broker = new ServiceBroker({ nodeID: "server-1", logger: false });
 	const handler = jest.fn(() => Promise.resolve("Result"));
 	const action = {
+		name: "posts.find",
 		handler
 	};
 	const endpoint = {
@@ -38,63 +40,79 @@ describe("Test MetricsMiddleware", () => {
 	});
 
 
-	it("should call metricStart only if has timeout", () => {
-		const newHandler = mw.localAction.call(broker, handler, action);
-
-		const ctx = Context.create(broker, endpoint, null, { timeout: 5000 });
-		ctx._metricStart = jest.fn();
-		ctx._metricFinish = jest.fn();
-		ctx.metrics = false;
-
-		return newHandler(ctx).catch(protectReject).then(res => {
-			expect(res).toBe("Result");
-			expect(handler).toHaveBeenCalledTimes(1);
-
-			expect(ctx._metricStart).toHaveBeenCalledTimes(1);
-			expect(ctx._metricStart).toHaveBeenCalledWith(false);
-
-			expect(ctx._metricFinish).toHaveBeenCalledTimes(0);
-		});
-	});
-
-	it("should call metricStart & metricFinish if handler is resolved", () => {
+	it("should send metric events if handler is resolved", () => {
+		broker.options.metrics = true;
 		handler.mockClear();
 		const newHandler = mw.localAction.call(broker, handler, action);
+		broker.emit = jest.fn();
 
 		const ctx = Context.create(broker, endpoint);
-		ctx._metricStart = jest.fn();
-		ctx._metricFinish = jest.fn();
 
 		return newHandler(ctx).catch(protectReject).then(res => {
 			expect(res).toBe("Result");
 			expect(handler).toHaveBeenCalledTimes(1);
 
-			expect(ctx._metricStart).toHaveBeenCalledTimes(1);
-			expect(ctx._metricStart).toHaveBeenCalledWith(true);
+			expect(broker.emit).toHaveBeenCalledTimes(2);
+			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
+				"id": ctx.id,
+				"nodeID": "server-1",
+				"action": {"name": "posts.find" },
+				"level": 1,
+				"remoteCall": false,
+				"requestID": ctx.requestID,
+				"startTime": ctx.startTime
+			});
 
-			expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
-			expect(ctx._metricFinish).toHaveBeenCalledWith(null, true);
+			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.finish", {
+				"id": ctx.id,
+				"nodeID": "server-1",
+				"action": {"name": "posts.find" },
+				"startTime": ctx.startTime,
+				"endTime": ctx.stopTime,
+				"duration": ctx.duration,
+				"fromCache": false,
+				"level": 1,
+				"remoteCall": false,
+				"requestID": ctx.requestID,
+			});
 		});
 	});
 
-	it("should call metricStart & metricFinish if handler is rejected", () => {
-		let err = new Error("Some error");
+	it("should send metric events if handler is rejected", () => {
+		let err = new MoleculerError("Some error", 502, "SOME_ERROR", { a: 5 });
 		let handler = jest.fn(() => Promise.reject(err));
 		const newHandler = mw.localAction.call(broker, handler, action);
+		broker.emit = jest.fn();
 
 		const ctx = Context.create(broker, endpoint);
-		ctx._metricStart = jest.fn();
-		ctx._metricFinish = jest.fn();
-
 		return newHandler(ctx).then(protectReject).catch(res => {
 			expect(res).toBe(err);
 			expect(handler).toHaveBeenCalledTimes(1);
 
-			expect(ctx._metricStart).toHaveBeenCalledTimes(1);
-			expect(ctx._metricStart).toHaveBeenCalledWith(true);
+			expect(broker.emit).toHaveBeenCalledTimes(2);
+			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
+				"id": ctx.id,
+				"nodeID": "server-1",
+				"action": {"name": "posts.find" },
+				"level": 1,
+				"remoteCall": false,
+				"requestID": ctx.requestID,
+				"startTime": ctx.startTime
+			});
 
-			expect(ctx._metricFinish).toHaveBeenCalledTimes(1);
-			expect(ctx._metricFinish).toHaveBeenCalledWith(res, true);
+			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.finish", {
+				"id": ctx.id,
+				"nodeID": "server-1",
+				"action": {"name": "posts.find" },
+				"startTime": ctx.startTime,
+				"endTime": ctx.stopTime,
+				"duration": ctx.duration,
+				"fromCache": false,
+				"level": 1,
+				"remoteCall": false,
+				"requestID": ctx.requestID,
+				"error": {"code": 502, "message": "Some error", "name": "MoleculerError", "type": "SOME_ERROR" }
+			});
 		});
 	});
 });

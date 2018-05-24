@@ -6,41 +6,193 @@
 
 "use strict";
 
-module.exports = function MetricsMiddleware() {
+const _ = require("lodash");
 
-	/*
-		TODO: move here broker.shouldMetrics
-	*/
+let sampleCounter = 0;
 
-	const wrapMetricsMiddleware = function(handler, action) {
-
-		if (this.options.metrics) {
-			return function metricsMiddleware(ctx) {
-				if (ctx.metrics === true || ctx.timeout > 0)
-					ctx._metricStart(ctx.metrics);
-
-				// Call the handler
-				let p = handler(ctx);
-
-				if (ctx.metrics === true) {
-					// Call metrics finish
-					p = p.then(res => {
-						ctx._metricFinish(null, ctx.metrics);
-						return res;
-					}).catch(err => {
-						ctx._metricFinish(err, ctx.metrics);
-						return this.Promise.reject(err);
-					});
-				}
-
-				return p;
-
-			}.bind(this);
+/**
+ * Check should metric the current context
+ *
+ * @param {Context} ctx
+ * @returns {Boolean}
+ *
+ * @memberof ServiceBroker
+ */
+function shouldMetric(ctx) {
+	if (ctx.broker.options.metrics) {
+		sampleCounter++;
+		if (sampleCounter * ctx.broker.options.metricsRate >= 1.0) {
+			sampleCounter = 0;
+			return true;
 		}
 
-		return handler;
+	}
+	return false;
+}
+
+/**
+ * Start metrics & send metric event.
+ *
+ * @param {Context} ctx
+ *
+ * @private
+ */
+function metricStart(ctx) {
+	ctx.startTime = Date.now();
+	ctx.startHrTime = process.hrtime();
+	ctx.duration = 0;
+
+	if (ctx.metrics) {
+		const payload = generateMetricPayload(ctx);
+		ctx.broker.emit("metrics.trace.span.start", payload);
+	}
+}
+
+/**
+ * Generate metrics payload
+ *
+ * @param {Context} ctx
+ * @returns {Object}
+ */
+function generateMetricPayload(ctx) {
+	let payload = {
+		id: ctx.id,
+		requestID: ctx.requestID,
+		level: ctx.level,
+		startTime: ctx.startTime,
+		remoteCall: !!ctx.callerNodeID
 	};
 
+	// Process extra metrics
+	processExtraMetrics(ctx, payload);
+
+	if (ctx.action) {
+		payload.action = {
+			name: ctx.action.name
+		};
+	}
+	if (ctx.service) {
+		payload.service = {
+			name: ctx.service.name,
+			version: ctx.service.version
+		};
+	}
+
+	if (ctx.parentID)
+		payload.parent = ctx.parentID;
+
+	payload.nodeID = ctx.nodeID;
+	if (ctx.callerNodeID)
+		payload.callerNodeID = ctx.callerNodeID;
+
+	return payload;
+}
+
+/**
+ * Stop metrics & send finish metric event.
+ *
+ * @param {Context} ctx
+ * @param {Error} error
+ *
+ * @private
+ */
+function metricFinish(ctx, error) {
+	if (ctx.startHrTime) {
+		let diff = process.hrtime(ctx.startHrTime);
+		ctx.duration = (diff[0] * 1e3) + (diff[1] / 1e6); // milliseconds
+	}
+	ctx.stopTime = ctx.startTime + ctx.duration;
+
+	if (ctx.metrics) {
+		const payload = generateMetricPayload(ctx);
+		payload.endTime = ctx.stopTime;
+		payload.duration = ctx.duration;
+		payload.fromCache = ctx.cachedResult;
+
+		if (error) {
+			payload.error = {
+				name: error.name,
+				code: error.code,
+				type: error.type,
+				message: error.message
+			};
+		}
+
+		ctx.broker.emit("metrics.trace.span.finish", payload);
+	}
+}
+
+/**
+ * Assign extra metrics taking into account action definitions
+ *
+ * @param {Context} ctx
+ * @param {string} name Field of the context to be assigned.
+ * @param {any} payload Object for assignement.
+ *
+ * @private
+ */
+function assignExtraMetrics(ctx, name, payload) {
+	let def = ctx.action.metrics[name];
+	// if metrics definitions is boolean do default, metrics=true
+	if (def === true) {
+		payload[name] = ctx[name];
+	} else if (_.isArray(def)) {
+		payload[name] = _.pick(ctx[name], def);
+	} else if (_.isFunction(def)) {
+		payload[name] = def(ctx[name]);
+	}
+}
+
+/**
+ * Decide and process extra metrics taking into account action definitions
+ *
+ * @param {Context} ctx
+ * @param {any} payload Object for assignement.
+ *
+ * @private
+ */
+function processExtraMetrics(ctx, payload) {
+	// extra metrics (params and meta)
+	if (_.isObject(ctx.action.metrics)) {
+		// custom metrics def
+		assignExtraMetrics(ctx, "params", payload);
+		assignExtraMetrics(ctx, "meta", payload);
+	}
+}
+
+function wrapMetricsMiddleware(handler, action) {
+
+	if (this.options.metrics) {
+		return function metricsMiddleware(ctx) {
+			if (ctx.metrics == null) {
+				ctx.metrics = shouldMetric(ctx);
+			}
+
+			if (ctx.metrics === true) {
+				if (!ctx.id)
+					ctx.generateID();
+
+				metricStart(ctx);
+
+				// Call the handler
+				return handler(ctx).then(res => {
+					metricFinish(ctx, null);
+					return res;
+				}).catch(err => {
+					metricFinish(ctx, err);
+					return this.Promise.reject(err);
+				});
+			}
+
+			return handler(ctx);
+
+		}.bind(this);
+	}
+
+	return handler;
+}
+
+module.exports = function MetricsMiddleware() {
 	return {
 		localAction: wrapMetricsMiddleware
 	};

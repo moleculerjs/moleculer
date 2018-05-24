@@ -30,12 +30,12 @@ module.exports = function() {
 					this.logger.debug(`The '${ctx.action.name}' request is rejected.`, { requestID: ctx.requestID }, err);
 
 					// Handle fallback response
-					if (ctx.callingOpts.fallbackResponse) {
+					if (ctx.options.fallbackResponse) {
 						this.logger.warn(`The '${ctx.action.name}' request is failed. Returns fallback response.`, { requestID: ctx.requestID });
-						if (_.isFunction(ctx.callingOpts.fallbackResponse))
-							return ctx.callingOpts.fallbackResponse(ctx, err);
+						if (_.isFunction(ctx.options.fallbackResponse))
+							return ctx.options.fallbackResponse(ctx, err);
 						else
-							return Promise.resolve(ctx.callingOpts.fallbackResponse);
+							return Promise.resolve(ctx.options.fallbackResponse);
 					}
 
 					return Promise.reject(err);

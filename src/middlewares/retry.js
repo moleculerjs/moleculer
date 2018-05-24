@@ -14,7 +14,7 @@ module.exports = function ReplyMiddleware(options) {
 		const policy = Object.assign({}, opts, action.retryPolicy || {});
 		if (policy.enabled) {
 			return function retryMiddleware(ctx) {
-				const attempts = ctx.retries ? ctx.retries : policy.retries;
+				const attempts = ctx.options.retries ? ctx.options.retries : policy.retries;
 				if (ctx._retryAttempts == null)
 					ctx._retryAttempts = 0;
 

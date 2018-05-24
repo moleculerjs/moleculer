@@ -88,6 +88,7 @@ describe("Test ErrorHandlerMiddleware", () => {
 
 		const newHandler = mw.localAction.call(broker, handler, action);
 		const ctx = Context.create(broker, endpoint, null, { fallbackResponse });
+		expect(ctx.options.fallbackResponse).toBe(fallbackResponse);
 
 		return newHandler(ctx).catch(protectReject).then(res => {
 			expect(res).toBe("fallback response");

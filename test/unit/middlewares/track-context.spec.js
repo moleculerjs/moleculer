@@ -6,8 +6,13 @@ const { protectReject } = require("../utils");
 describe("Test TrackContextMiddleware", () => {
 	const broker = new ServiceBroker({ nodeID: "server-1", logger: false });
 	const handler = jest.fn(() => Promise.resolve("Result"));
+	const service = {
+		_addActiveContext: jest.fn(),
+		_removeActiveContext: jest.fn()
+	};
 	const action = {
-		handler
+		handler,
+		service
 	};
 	const endpoint = {
 		action,
@@ -42,16 +47,14 @@ describe("Test TrackContextMiddleware", () => {
 		const newHandler = mw.localAction.call(broker, handler, action);
 
 		const ctx = Context.create(broker, endpoint, null, { trackContext: false });
-		ctx._trackContext = jest.fn(() => ctx.tracked = true);
-		ctx.dispose = jest.fn();
 
 		return newHandler(ctx).catch(protectReject).then(res => {
 			expect(res).toBe("Result");
-			expect(ctx.tracked).toBe(false);
+			expect(ctx.tracked).toBeUndefined();
 			expect(handler).toHaveBeenCalledTimes(1);
 
-			expect(ctx._trackContext).toHaveBeenCalledTimes(0);
-			expect(ctx.dispose).toHaveBeenCalledTimes(0);
+			expect(service._addActiveContext).toHaveBeenCalledTimes(0);
+			expect(service._removeActiveContext).toHaveBeenCalledTimes(0);
 		});
 	});
 
@@ -59,40 +62,36 @@ describe("Test TrackContextMiddleware", () => {
 		const newHandler = mw.localAction.call(broker, handler, action);
 
 		const ctx = Context.create(broker, endpoint);
-		ctx._trackContext = jest.fn(() => ctx.tracked = true);
-		ctx.dispose = jest.fn();
-
 		return newHandler(ctx).catch(protectReject).then(res => {
 			expect(res).toBe("Result");
 			expect(ctx.tracked).toBe(true);
 
-			expect(ctx._trackContext).toHaveBeenCalledTimes(1);
-			expect(ctx._trackContext).toHaveBeenCalledWith();
+			expect(service._addActiveContext).toHaveBeenCalledTimes(1);
+			expect(service._addActiveContext).toHaveBeenCalledWith(ctx);
 
-			expect(ctx.dispose).toHaveBeenCalledTimes(1);
-			expect(ctx.dispose).toHaveBeenCalledWith();
+			expect(service._removeActiveContext).toHaveBeenCalledTimes(1);
+			expect(service._removeActiveContext).toHaveBeenCalledWith(ctx);
 		});
 	});
 
 	it("should call _trackContext & dispose if handler is rejected", () => {
+		service._addActiveContext.mockClear();
+		service._removeActiveContext.mockClear();
+
 		let err = new Error("Some error");
 		let handler = jest.fn(() => Promise.reject(err));
 		const newHandler = mw.localAction.call(broker, handler, action);
 
 		const ctx = Context.create(broker, endpoint);
-		ctx._trackContext = jest.fn(() => ctx.tracked = true);
-		ctx.dispose = jest.fn();
-
-
 		return newHandler(ctx).then(protectReject).catch(res => {
 			expect(res).toBe(err);
 			expect(ctx.tracked).toBe(true);
 
-			expect(ctx._trackContext).toHaveBeenCalledTimes(1);
-			expect(ctx._trackContext).toHaveBeenCalledWith();
+			expect(service._addActiveContext).toHaveBeenCalledTimes(1);
+			expect(service._addActiveContext).toHaveBeenCalledWith(ctx);
 
-			expect(ctx.dispose).toHaveBeenCalledTimes(1);
-			expect(ctx.dispose).toHaveBeenCalledWith();
+			expect(service._removeActiveContext).toHaveBeenCalledTimes(1);
+			expect(service._removeActiveContext).toHaveBeenCalledWith(ctx);
 		});
 	});
 });

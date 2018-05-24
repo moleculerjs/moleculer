@@ -14,11 +14,14 @@ module.exports = function TrackContextMiddleware() {
 			return function trackContextMiddleware(ctx) {
 
 				// Add trackContext option from broker options
-				if (ctx.callingOpts.trackContext === undefined && this.options.trackContext)
-					ctx.callingOpts.trackContext = this.options.trackContext;
+				if (ctx.options.trackContext === undefined && this.options.trackContext)
+					ctx.options.trackContext = this.options.trackContext;
 
-				if (ctx.callingOpts.trackContext) {
-					ctx._trackContext();
+				if (ctx.options.trackContext) {
+					if (ctx.service) {
+						ctx.tracked = true;
+						ctx.service._addActiveContext(ctx);
+					}
 				}
 
 				// Call the handler
@@ -26,10 +29,14 @@ module.exports = function TrackContextMiddleware() {
 
 				if (ctx.tracked) {
 					p = p.then(res => {
-						ctx.dispose();
+						if (ctx.service && ctx.tracked)
+							ctx.service._removeActiveContext(ctx);
+
 						return res;
 					}).catch(err => {
-						ctx.dispose();
+						if (ctx.service && ctx.tracked)
+							ctx.service._removeActiveContext(ctx);
+
 						return this.Promise.reject(err);
 					});
 				}

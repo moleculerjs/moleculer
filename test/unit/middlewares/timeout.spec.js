@@ -33,7 +33,7 @@ describe("Test TimeoutMiddleware", () => {
 		expect(newHandler).not.toBe(handler);
 	});
 
-	it("should not set ctx.timeout if requestTimeout is 0", () => {
+	it("should not be timeout if requestTimeout is 0", () => {
 		broker.options.requestTimeout = 0;
 		const newHandler = mw.localAction.call(broker, handler, action);
 
@@ -41,7 +41,7 @@ describe("Test TimeoutMiddleware", () => {
 
 		return newHandler(ctx).catch(protectReject).then(res => {
 			expect(res).toBe("Result");
-			expect(ctx.timeout).toBeUndefined();
+			expect(ctx.options.timeout).toBe(null);
 			expect(handler).toHaveBeenCalledTimes(1);
 		});
 	});
@@ -61,7 +61,8 @@ describe("Test TimeoutMiddleware", () => {
 		clock.tick(5500);
 
 		return p.then(protectReject).catch(err => {
-			expect(ctx.timeout).toBe(5000);
+			expect(ctx.startHrTime).toBeDefined();
+			expect(ctx.options.timeout).toBe(5000);
 			expect(handler).toHaveBeenCalledTimes(1);
 
 			expect(err).toBeInstanceOf(Error);
@@ -82,7 +83,7 @@ describe("Test TimeoutMiddleware", () => {
 		const ctx = Context.create(broker, endpoint);
 
 		return newHandler(ctx).then(protectReject).catch(res => {
-			expect(ctx.timeout).toBe(5000);
+			expect(ctx.options.timeout).toBe(5000);
 			expect(res).toBe(err);
 		});
 	});

@@ -773,28 +773,28 @@ class ServiceBroker {
 	 *
 	 * @param {String} actionName	name of action
 	 * @param {Object?} params		params of action
-	 * @param {Object?} callingOpts		options of call (optional)
+	 * @param {Object?} opts		options of call (optional)
 	 * @returns {Promise}
 	 *
 	 * @performance-critical
 	 * @memberof ServiceBroker
 	 */
-	call(actionName, params, callingOpts = {}) {
-		const endpoint = this.findNextActionEndpoint(actionName, callingOpts.nodeID);
+	call(actionName, params, opts = {}) {
+		const endpoint = this.findNextActionEndpoint(actionName, opts.nodeID);
 		if (endpoint instanceof Error)
 			return Promise.reject(endpoint);
 
 		// Create context
 		let ctx;
-		if (callingOpts.ctx != null) {
+		if (opts.ctx != null) {
 			// Reused context
-			ctx = callingOpts.ctx;
+			ctx = opts.ctx;
 			ctx.endpoint = endpoint;
 			ctx.nodeID = endpoint.id;
 			ctx.action = endpoint.action;
 		} else {
 			// New root context
-			ctx = this.ContextFactory.create(this, endpoint, params, callingOpts);
+			ctx = this.ContextFactory.create(this, endpoint, params, opts);
 		}
 
 		if (ctx.endpoint.local)
@@ -818,22 +818,21 @@ class ServiceBroker {
 	 *
 	 * @param {String} actionName	name of action
 	 * @param {Object?} params		params of action
-	 * @param {Object?} callingOpts options of call (optional)
-	 * @returns {Promise}
+	 * @param {Object?} opts 		options of call (optional)
 	 * @returns {Promise}
 	 *
 	 * @private
 	 * @memberof ServiceBroker
 	 */
-	callWithoutBalancer(actionName, params, callingOpts = {}) {
+	callWithoutBalancer(actionName, params, opts = {}) {
 		let nodeID = null;
 		if (typeof actionName !== "string") {
 			const endpoint = actionName;
 			actionName = endpoint.action.name;
 			nodeID = endpoint.id;
 		} else {
-			if (callingOpts.nodeID) {
-				nodeID = callingOpts.nodeID;
+			if (opts.nodeID) {
+				nodeID = opts.nodeID;
 			} else {
 				// Get endpoint list by action name
 				const epList = this.registry.getActionEndpoints(actionName);
@@ -847,14 +846,14 @@ class ServiceBroker {
 		// Create context
 		let ctx;
 		let action = { name: actionName };
-		if (callingOpts.ctx != null) {
+		if (opts.ctx != null) {
 			// Reused context
-			ctx = callingOpts.ctx;
+			ctx = opts.ctx;
 			ctx.nodeID = nodeID;
 			ctx.action = { name: actionName };
 		} else {
 			// New root context
-			ctx = this.ContextFactory.create(this, { action, nodeID }, params, callingOpts);
+			ctx = this.ContextFactory.create(this, { action, nodeID }, params, opts);
 		}
 
 		// TODO: no handler

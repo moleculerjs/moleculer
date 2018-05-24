@@ -8,6 +8,10 @@
 
 const { CIRCUIT_HALF_OPEN } = require("../constants");
 
+/*
+	TODO: move here CB logic from EndpointCB
+*/
+
 module.exports = function(options) {
 	const wrapCBMiddleware = function(handler, action) {
 		const opts = options || this.options.circuitBreaker;

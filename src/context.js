@@ -12,6 +12,20 @@ const { generateToken } = require("./utils");
 const { RequestSkippedError, MaxCallLevelError } = require("./errors");
 
 /**
+ * Merge metadata
+ *
+ * @param {Object} newMeta
+ *
+ * @private
+ * @memberof Context
+ */
+function mergeMeta(ctx, newMeta) {
+	if (newMeta)
+		_.assign(ctx.meta, newMeta);
+	return ctx.meta;
+}
+
+/**
  * Context class for action calls
  *
  * @property {String} id - Context ID
@@ -41,16 +55,21 @@ class Context {
 		this.endpoint = endpoint;
 		this.action = endpoint ? endpoint.action : null;
 		this.service = this.action ? this.action.service : null;
-		this.nodeID = endpoint && endpoint.node ? endpoint.node.id : this.broker.nodeID;
-		this.callingOpts = {};
+		if (endpoint && endpoint.node)
+			this.nodeID = endpoint.node.id;
+		else if (this.broker)
+			this.nodeID = this.broker.nodeID;
+
+		this.options = {
+			timeout: null,
+			retries: null,
+		};
+
 		this.parentID = null;
 		this.callerNodeID = null;
 
-		this.metrics = false;
+		this.metrics = null;
 		this.level = 1;
-
-		this.timeout = 0;
-		this.retries = 0;
 
 		this.params = {};
 		this.meta = {};
@@ -61,7 +80,6 @@ class Context {
 		this.stopTime = null;
 		this.duration = 0;
 
-		this.tracked = false;
 		//this.error = null;
 		this.cachedResult = false;
 	}
@@ -85,7 +103,7 @@ class Context {
 
 		ctx.setParams(params);
 
-		ctx.callingOpts = opts;
+		Object.assign(ctx.options, opts);
 
 		// RequestID
 		if (opts.requestID != null)
@@ -99,10 +117,6 @@ class Context {
 		else if (opts.meta != null)
 			ctx.meta = opts.meta;
 
-		// Timeout
-		ctx.timeout = opts.timeout;
-		ctx.retries = opts.retries;
-
 		// ParentID, Level
 		if (opts.parentCtx != null) {
 			ctx.parentID = opts.parentCtx.id;
@@ -112,39 +126,13 @@ class Context {
 		// Metrics
 		if (opts.parentCtx != null)
 			ctx.metrics = opts.parentCtx.metrics;
-		else
-			ctx.metrics = broker.shouldMetric();
 
 		// ID, RequestID
-		if (ctx.metrics || ctx.nodeID != broker.nodeID) {
+		if (ctx.nodeID != broker.nodeID) {
 			ctx.generateID();
 		}
 
 		return ctx;
-	}
-
-	/**
-	 * Add to the list of active context
-	 *
-	 * @private
-	 * @memberof Context
-	 */
-	_trackContext() {
-		if (this.service) {
-			this.tracked = true;
-			this.service._addActiveContext(this);
-		}
-	}
-
-	/**
-	 * Remove from the list of active context
-	 *
-	 * @private
-	 * @memberof Context
-	 */
-	dispose() {
-		if (this.service && this.tracked)
-			this.service._removeActiveContext(this);
 	}
 
 	generateID() {
@@ -169,20 +157,6 @@ class Context {
 	}
 
 	/**
-	 * Merge metadata
-	 *
-	 * @param {Object} newMeta
-	 *
-	 * @private
-	 * @memberof Context
-	 */
-	_mergeMeta(newMeta) {
-		if (newMeta)
-			_.assign(this.meta, newMeta);
-		return this.meta;
-	}
-
-	/**
 	 * Call an other action. It creates a sub-context.
 	 *
 	 * @param {String} actionName
@@ -197,12 +171,12 @@ class Context {
 	 */
 	call(actionName, params, opts = {}) {
 		opts.parentCtx = this;
-		if (this.timeout > 0 && this.startHrTime) {
+		if (this.options.timeout > 0 && this.startHrTime) {
 			// Distributed timeout handling. Decrementing the timeout value with the elapsed time.
 			// If the timeout below 0, skip the call.
 			const diff = process.hrtime(this.startHrTime);
 			const duration = (diff[0] * 1e3) + (diff[1] / 1e6);
-			const distTimeout = this.timeout - duration;
+			const distTimeout = this.options.timeout - duration;
 
 			if (distTimeout <= 0) {
 				return Promise.reject(new RequestSkippedError(actionName, this.broker.nodeID));
@@ -222,11 +196,13 @@ class Context {
 		// Merge metadata with sub context metadata
 		return p.then(res => {
 			if (p.ctx)
-				this._mergeMeta(p.ctx.meta);
+				mergeMeta(this, p.ctx.meta);
+
 			return res;
 		}).catch(err => {
 			if (p.ctx)
-				this._mergeMeta(p.ctx.meta);
+				mergeMeta(this, p.ctx.meta);
+
 			return Promise.reject(err);
 		});
 	}
@@ -265,137 +241,6 @@ class Context {
 		return this.broker.broadcast(eventName, data, groups);
 	}
 
-	/**
-	 * Send start event to metrics system.
-	 *
-	 * @param {boolean} emitEvent
-	 *
-	 * @private
-	 * @memberof Context
-	 */
-	_metricStart(emitEvent) {
-		this.startTime = Date.now();
-		this.startHrTime = process.hrtime();
-		this.duration = 0;
-
-		if (emitEvent) {
-			const payload = this._generateMetricPayload();
-			this.broker.emit("metrics.trace.span.start", payload);
-		}
-	}
-
-	/**
-	 * Generate metrics payload
-	 *
-	 * @returns {Object}
-	 * @memberof Context
-	 */
-	_generateMetricPayload() {
-		let payload = {
-			id: this.id,
-			requestID: this.requestID,
-			level: this.level,
-			startTime: this.startTime,
-			remoteCall: !!this.callerNodeID
-		};
-
-		// Process extra metrics
-		this._processExtraMetrics(payload);
-
-		if (this.action) {
-			payload.action = {
-				name: this.action.name
-			};
-		}
-		if (this.service) {
-			payload.service = {
-				name: this.service.name,
-				version: this.service.version
-			};
-		}
-
-		if (this.parentID)
-			payload.parent = this.parentID;
-
-		payload.nodeID = this.nodeID;
-		if (this.callerNodeID)
-			payload.callerNodeID = this.callerNodeID;
-
-		return payload;
-	}
-
-	/**
-	 * Send finish event to metrics system.
-	 *
-	 * @param {Error} error
-	 * @param {boolean} emitEvent
-	 *
-	 * @private
-	 * @memberof Context
-	 */
-	_metricFinish(error, emitEvent) {
-		if (this.startHrTime) {
-			let diff = process.hrtime(this.startHrTime);
-			this.duration = (diff[0] * 1e3) + (diff[1] / 1e6); // milliseconds
-		}
-		this.stopTime = this.startTime + this.duration;
-
-		if (emitEvent) {
-			const payload = this._generateMetricPayload();
-			payload.endTime = this.stopTime;
-			payload.duration = this.duration;
-			payload.fromCache = this.cachedResult;
-
-			if (error) {
-				payload.error = {
-					name: error.name,
-					code: error.code,
-					type: error.type,
-					message: error.message
-				};
-			}
-
-			this.broker.emit("metrics.trace.span.finish", payload);
-		}
-	}
-
-	/**
-	 * Assign extra metrics taking into account action definitions
-	 *
-	 * @param {string} name Field of the context to be assigned.
-	 * @param {any} payload Object for assignement.
-	 *
-	 * @private
-	 * @memberof Context
-	 */
-	_assignExtraMetrics(name, payload) {
-		let def = this.action.metrics[name];
-		// if metrics definitions is boolean do default, metrics=true
-		if (def === true) {
-			payload[name] = this[name];
-		} else if (_.isArray(def)) {
-			payload[name] = _.pick(this[name], def);
-		} else if (_.isFunction(def)) {
-			payload[name] = def(this[name]);
-		}
-	}
-
-	/**
-	 * Decide and process extra metrics taking into account action definitions
-	 *
-	 * @param {any} payload Object for assignement.
-	 *
-	 * @private
-	 * @memberof Context
-	 */
-	_processExtraMetrics(payload) {
-		// extra metrics (params and meta)
-		if (_.isObject(this.action.metrics)) {
-			// custom metrics def
-			this._assignExtraMetrics("params", payload);
-			this._assignExtraMetrics("meta", payload);
-		}
-	}
 }
 
 module.exports = Context;
