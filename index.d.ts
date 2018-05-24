@@ -36,32 +36,49 @@ declare namespace Moleculer {
 		[key: string]: any;
 	}
 
+	interface Node {
+		id: string;
+		available: boolean;
+		local: boolean;
+		hostname: boolean;
+	}
+
+	interface Endpoint {
+		action?: Action;
+		node?: Node;
+		id?: string;
+		local: boolean;
+		state: boolean;
+	}
+
 	type Actions = { [key: string]: Action | ActionHandler; };
 
 	class Context<P = GenericObject, M = GenericObject> {
-		constructor(broker: ServiceBroker, action: Action);
+		constructor(broker: ServiceBroker, endpoint: Endpoint);
 		id: string;
 		broker: ServiceBroker;
+		endpoint: Endpoint;
 		action: Action;
+		service: Service;
 		nodeID?: string;
 		parentID?: string;
 
-		metrics: boolean;
-		level?: number;
+		options: GenericObject;
 
-		timeout: number;
-		retries: number;
+		parentID?: string;
+		callerNodeID?: string;
+
+		metrics?: boolean;
+		level?: number;
 
 		params: P;
 		meta: M;
 
 		requestID?: string;
-		callerNodeID?: string;
 		duration: number;
 
 		cachedResult: boolean;
 
-		generateID(): string;
 		setParams(newParams: P, cloning?: boolean): void;
 		call<T = any, P extends GenericObject = GenericObject>(actionName: string, params?: P, opts?: GenericObject): Bluebird<T>;
 		emit(eventName: string, data: any, groups: Array<string>): void;
@@ -71,11 +88,9 @@ declare namespace Moleculer {
 		broadcast(eventName: string, data: any, groups: string): void;
 		broadcast(eventName: string, data: any): void;
 
-		static create(broker: ServiceBroker, action: Action, nodeID: string, params: GenericObject, opts: GenericObject): Context;
-		static create(broker: ServiceBroker, action: Action, nodeID: string, opts: GenericObject): Context;
-		static create(broker: ServiceBroker, action: Action, opts: GenericObject): Context;
-
-		static createFromPayload(broker: ServiceBroker, payload: GenericObject): Context;
+		static create(broker: ServiceBroker, endpoint: Endpoint, params: GenericObject, opts: GenericObject): Context;
+		static create(broker: ServiceBroker, endpoint: Endpoint, params: GenericObject): Context;
+		static create(broker: ServiceBroker, endpoint: Endpoint): Context;
 	}
 
 	interface ServiceSettingSchema {
