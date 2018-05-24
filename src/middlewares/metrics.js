@@ -23,7 +23,10 @@ module.exports = function MetricsMiddleware() {
 					p = p.then(res => {
 						ctx._metricFinish(null, ctx.metrics);
 						return res;
-					}).catch(err => ctx._metricFinish(err, ctx.metrics));
+					}).catch(err => {
+						ctx._metricFinish(err, ctx.metrics);
+						return this.Promise.reject(err);
+					});
 				}
 
 				return p;
