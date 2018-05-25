@@ -124,17 +124,17 @@ class ServiceNotFoundError extends MoleculerRetryableError {
 /**
  * 'Service not available' Error message
  *
- * @class ServiceNotAvailable
+ * @class ServiceNotAvailableError
  * @extends {MoleculerRetryableError}
  */
-class ServiceNotAvailable extends MoleculerRetryableError {
+class ServiceNotAvailableError extends MoleculerRetryableError {
 	/**
-	 * Creates an instance of ServiceNotAvailable.
+	 * Creates an instance of ServiceNotAvailableError.
 	 *
 	 * @param {String} action
 	 * @param {String} nodeID
 	 *
-	 * @memberof ServiceNotAvailable
+	 * @memberof ServiceNotAvailableError
 	 */
 	constructor(action, nodeID) {
 		let msg;
@@ -200,17 +200,17 @@ class RequestSkippedError extends MoleculerError {
 /**
  * 'Request rejected' Error message. Retryable.
  *
- * @class RequestRejected
+ * @class RequestRejectedError
  * @extends {MoleculerRetryableError}
  */
-class RequestRejected extends MoleculerRetryableError {
+class RequestRejectedError extends MoleculerRetryableError {
 	/**
-	 * Creates an instance of RequestRejected.
+	 * Creates an instance of RequestRejectedError.
 	 *
 	 * @param {String} action
 	 * @param {String} nodeID
 	 *
-	 * @memberof RequestRejected
+	 * @memberof RequestRejectedError
 	 */
 	constructor(action, nodeID) {
 		super(`Request is rejected when call '${action}' action on '${nodeID}' node.`, 503, null, {
@@ -223,19 +223,19 @@ class RequestRejected extends MoleculerRetryableError {
 /**
  * 'Queue is full' error message. Retryable.
  *
- * @class QueueIsFull
+ * @class QueueIsFullError
  * @extends {MoleculerRetryableError}
  */
-class QueueIsFull extends MoleculerRetryableError {
+class QueueIsFullError extends MoleculerRetryableError {
 	/**
-	 * Creates an instance of QueueIsFull.
+	 * Creates an instance of QueueIsFullError.
 	 *
 	 * @param {String} action
 	 * @param {String} nodeID
 	 * @param {Number} size
 	 * @param {Number} limit
 	 *
-	 * @memberof QueueIsFull
+	 * @memberof QueueIsFullError
 	 */
 	constructor(action, nodeID, size, limit) {
 		super(`Queue is full. Request '${action}' action on '${nodeID}' node is rejected.`, 429, null, {
@@ -350,17 +350,17 @@ class ProtocolVersionMismatchError extends MoleculerError {
 /**
  * Invalid packet format error
  *
- * @class InvalidPacketData
+ * @class InvalidPacketDataError
  * @extends {Error}
  */
-class InvalidPacketData extends MoleculerError {
+class InvalidPacketDataError extends MoleculerError {
 	/**
-	 * Creates an instance of InvalidPacketData.
+	 * Creates an instance of InvalidPacketDataError.
 	 *
 	 * @param {String} type
 	 * @param {Object} payload
 	 *
-	 * @memberof InvalidPacketData
+	 * @memberof InvalidPacketDataError
 	 */
 	constructor(type, payload) {
 		super("Invalid packet data.", 500, null, { type, payload });
@@ -375,18 +375,18 @@ module.exports = {
 	MoleculerClientError,
 
 	ServiceNotFoundError,
-	ServiceNotAvailable,
+	ServiceNotAvailableError,
 
 	ValidationError,
 	RequestTimeoutError,
 	RequestSkippedError,
-	RequestRejected,
-	QueueIsFull,
+	RequestRejectedError,
+	QueueIsFullError,
 	MaxCallLevelError,
 
 	ServiceSchemaError,
 	GracefulStopTimeoutError,
 
 	ProtocolVersionMismatchError,
-	InvalidPacketData
+	InvalidPacketDataError
 };

@@ -23,7 +23,7 @@ const Serializers = require("../../src/serializers");
 const Transporters = require("../../src/transporters");
 const Strategies = require("../../src/strategies");
 const MiddlewareHandler = require("../../src/middleware");
-const { MoleculerError, ServiceNotFoundError, ServiceNotAvailable } = require("../../src/errors");
+const { MoleculerError, ServiceNotFoundError, ServiceNotAvailableError } = require("../../src/errors");
 
 jest.mock("../../src/utils", () => ({
 	getNodeID() { return "node-1234"; },
@@ -1246,7 +1246,7 @@ describe("Test broker.findNextActionEndpoint", () => {
 		broker.registry.unregisterAction({ id: broker.nodeID }, "posts.noHandler");
 		const err = broker.findNextActionEndpoint("posts.noHandler");
 		expect(err).toBeDefined();
-		expect(err).toBeInstanceOf(ServiceNotAvailable);
+		expect(err).toBeInstanceOf(ServiceNotAvailableError);
 		expect(err.message).toBe("Service 'posts.noHandler' is not available.");
 		expect(err.data).toEqual({ action: "posts.noHandler", nodeID: undefined });
 	});
@@ -1402,7 +1402,7 @@ describe("Test broker.callWithoutBalancer", () => {
 		}));
 		return broker.callWithoutBalancer("posts.noaction", {}).then(protectReject).catch(err => {
 			expect(err).toBeDefined();
-			expect(err).toBeInstanceOf(ServiceNotAvailable);
+			expect(err).toBeInstanceOf(ServiceNotAvailableError);
 			expect(err.message).toBe("Service 'posts.noaction' is not available.");
 			expect(err.data).toEqual({ action: "posts.noaction", nodeID: undefined });
 		});
@@ -1577,10 +1577,10 @@ describe("Test broker._getLocalActionEndpoint", () => {
 		expect(() => broker._getLocalActionEndpoint("posts.find")).toThrowError(ServiceNotFoundError);
 	});
 
-	it("should throw ServiceNotAvailable if there is no next endpoint", () => {
+	it("should throw ServiceNotAvailableError if there is no next endpoint", () => {
 		broker.registry.getActionEndpoints = jest.fn(() => ({ hasLocal: () => true, nextLocal: () => null }));
 
-		expect(() => broker._getLocalActionEndpoint("posts.find")).toThrowError(ServiceNotAvailable);
+		expect(() => broker._getLocalActionEndpoint("posts.find")).toThrowError(ServiceNotAvailableError);
 	});
 });
 

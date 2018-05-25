@@ -86,27 +86,27 @@ describe("Test Errors", () => {
 		expect(err.retryable).toBe(true);
 	});
 
-	it("test ServiceNotAvailable", () => {
-		let err = new errors.ServiceNotAvailable("posts.find");
+	it("test ServiceNotAvailableError", () => {
+		let err = new errors.ServiceNotAvailableError("posts.find");
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err).toBeInstanceOf(errors.MoleculerRetryableError);
-		expect(err).toBeInstanceOf(errors.ServiceNotAvailable);
+		expect(err).toBeInstanceOf(errors.ServiceNotAvailableError);
 		expect(err.code).toBe(404);
-		expect(err.name).toBe("ServiceNotAvailable");
+		expect(err.name).toBe("ServiceNotAvailableError");
 		expect(err.message).toBe("Service 'posts.find' is not available.");
 		expect(err.data).toEqual({ action: "posts.find" });
 		expect(err.retryable).toBe(true);
 	});
 
-	it("test ServiceNotAvailable with NodeID", () => {
-		let err = new errors.ServiceNotAvailable("posts.find", "server-2");
+	it("test ServiceNotAvailableError with NodeID", () => {
+		let err = new errors.ServiceNotAvailableError("posts.find", "server-2");
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err).toBeInstanceOf(errors.MoleculerRetryableError);
-		expect(err).toBeInstanceOf(errors.ServiceNotAvailable);
+		expect(err).toBeInstanceOf(errors.ServiceNotAvailableError);
 		expect(err.code).toBe(404);
-		expect(err.name).toBe("ServiceNotAvailable");
+		expect(err.name).toBe("ServiceNotAvailableError");
 		expect(err.message).toBe("Service 'posts.find' is not available on 'server-2' node.");
 		expect(err.data).toEqual({ action: "posts.find", nodeID: "server-2" });
 		expect(err.retryable).toBe(true);
@@ -139,28 +139,28 @@ describe("Test Errors", () => {
 		expect(err.retryable).toBe(false);
 	});
 
-	it("test RequestRejected", () => {
-		let err = new errors.RequestRejected("posts.find", "server-3");
+	it("test RequestRejectedError", () => {
+		let err = new errors.RequestRejectedError("posts.find", "server-3");
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err).toBeInstanceOf(errors.MoleculerRetryableError);
-		expect(err).toBeInstanceOf(errors.RequestRejected);
+		expect(err).toBeInstanceOf(errors.RequestRejectedError);
 		expect(err.code).toBe(503);
-		expect(err.name).toBe("RequestRejected");
+		expect(err.name).toBe("RequestRejectedError");
 		expect(err.message).toBe("Request is rejected when call 'posts.find' action on 'server-3' node.");
 		expect(err.data.action).toBe("posts.find");
 		expect(err.data.nodeID).toBe("server-3");
 		expect(err.retryable).toBe(true);
 	});
 
-	it("test QueueIsFull", () => {
-		let err = new errors.QueueIsFull("posts.find", "server-3", 100, 50);
+	it("test QueueIsFullError", () => {
+		let err = new errors.QueueIsFullError("posts.find", "server-3", 100, 50);
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err).toBeInstanceOf(errors.MoleculerRetryableError);
-		expect(err).toBeInstanceOf(errors.QueueIsFull);
+		expect(err).toBeInstanceOf(errors.QueueIsFullError);
 		expect(err.code).toBe(429);
-		expect(err.name).toBe("QueueIsFull");
+		expect(err.name).toBe("QueueIsFullError");
 		expect(err.message).toBe("Queue is full. Request 'posts.find' action on 'server-3' node is rejected.");
 		expect(err.data.action).toBe("posts.find");
 		expect(err.data.nodeID).toBe("server-3");
@@ -236,14 +236,14 @@ describe("Test Errors", () => {
 		expect(err.retryable).toBe(false);
 	});
 
-	it("test InvalidPacketData", () => {
+	it("test InvalidPacketDataError", () => {
 		let payload = {};
-		let err = new errors.InvalidPacketData("INFO", payload);
+		let err = new errors.InvalidPacketDataError("INFO", payload);
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
-		expect(err).toBeInstanceOf(errors.InvalidPacketData);
+		expect(err).toBeInstanceOf(errors.InvalidPacketDataError);
 		expect(err.code).toBe(500);
-		expect(err.name).toBe("InvalidPacketData");
+		expect(err.name).toBe("InvalidPacketDataError");
 		expect(err.message).toBe("Invalid packet data.");
 		expect(err.data).toEqual({ type: "INFO", payload });
 		expect(err.retryable).toBe(false);

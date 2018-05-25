@@ -172,13 +172,13 @@ describe("Test Service requesting during stopping", () => {
 			.then(() => broker1.call("posts.find"))
 			.then(protectReject)
 			.catch(err => {
-				expect(err.name).toBe("ServiceNotAvailable");
+				expect(err.name).toBe("ServiceNotAvailableError");
 				expect(schema1.actions.find).toHaveBeenCalledTimes(0);
 			})
 			.then(() => broker1.call("users.find"))
 			.then(protectReject)
 			.catch(err => {
-				expect(err.name).toBe("ServiceNotAvailable");
+				expect(err.name).toBe("ServiceNotAvailableError");
 				expect(schema2.actions.find).toHaveBeenCalledTimes(0);
 
 				resolver();

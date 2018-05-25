@@ -751,7 +751,7 @@ class ServiceBroker {
 				if (!endpoint) {
 					const errMsg = `Service '${actionName}' is not available.`;
 					this.logger.warn(errMsg);
-					return new E.ServiceNotAvailable(actionName);
+					return new E.ServiceNotAvailableError(actionName);
 				}
 				return endpoint;
 			}
@@ -841,7 +841,7 @@ class ServiceBroker {
 				if (endpoint == null) {
 					const errMsg = `Service '${actionName}' is not available.`;
 					this.logger.warn(errMsg);
-					return Promise.reject(new E.ServiceNotAvailable(actionName));
+					return Promise.reject(new E.ServiceNotAvailableError(actionName));
 				}
 			}
 		}
@@ -881,7 +881,7 @@ class ServiceBroker {
 		let endpoint = epList.nextLocal();
 		if (!endpoint) {
 			this.logger.warn(`Service '${actionName}' is not available locally.`);
-			throw new E.ServiceNotAvailable(actionName, this.nodeID);
+			throw new E.ServiceNotAvailableError(actionName, this.nodeID);
 		}
 
 		return endpoint;

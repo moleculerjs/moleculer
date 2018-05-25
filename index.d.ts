@@ -537,6 +537,9 @@ declare namespace Moleculer {
 	class CpuUsageStrategy extends BaseStrategy {
 	}
 
+	class LatencyStrategy extends BaseStrategy {
+	}
+
 	namespace Transporters {
 		type MessageHandler = ((cmd: string, msg: any) => Bluebird<void>) & ThisType<Base>;
 		type AfterConnectHandler = ((wasReconnect?: boolean) => Bluebird<void>) & ThisType<Base>;
@@ -622,7 +625,7 @@ declare namespace Moleculer {
 			constructor(action: string, nodeID: string);
 			constructor(action: string);
 		}
-		class ServiceNotAvailable extends MoleculerRetryableError {
+		class ServiceNotAvailableError extends MoleculerRetryableError {
 			constructor(action: string, nodeID: string);
 			constructor(action: string);
 		}
@@ -633,11 +636,11 @@ declare namespace Moleculer {
 		class RequestSkippedError extends MoleculerError {
 			constructor(action: string, nodeID: string);
 		}
-		class RequestRejected extends MoleculerRetryableError {
+		class RequestRejectedError extends MoleculerRetryableError {
 			constructor(action: string, nodeID: string);
 		}
 
-		class QueueIsFull extends MoleculerRetryableError {
+		class QueueIsFullError extends MoleculerRetryableError {
 			constructor(action: string, nodeID: string, size: number, limit: number);
 		}
 		class ValidationError extends MoleculerClientError {
@@ -656,7 +659,7 @@ declare namespace Moleculer {
 		class ProtocolVersionMismatchError extends MoleculerError {
 			constructor(nodeID: string, actual: string, received: string);
 		}
-		class InvalidPacketData extends MoleculerError {
+		class InvalidPacketDataError extends MoleculerError {
 			constructor(type: string, packet: Packet);
 		}
 	}
@@ -674,6 +677,9 @@ declare namespace Moleculer {
 		}
 
 		class CpuUsageStrategy extends BaseStrategy {
+		}
+
+		class LatencyStrategy extends BaseStrategy {
 		}
 	}
 

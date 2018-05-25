@@ -1,7 +1,7 @@
 const Promise = require("bluebird");
 const ServiceBroker = require("../../src/service-broker");
 const FakeTransporter = require("../../src/transporters/fake");
-const { MoleculerError, ServiceNotAvailable } = require("../../src/errors");
+const { MoleculerError, ServiceNotAvailableError } = require("../../src/errors");
 const { protectReject } = require("../unit/utils");
 
 const lolex = require("lolex");
@@ -98,7 +98,7 @@ describe("Test circuit breaker", () => {
 			.then(() => master1.call("cb.angry"))
 			.then(protectReject)
 			.catch(err => {
-				expect(err.name).toBe("ServiceNotAvailable");
+				expect(err.name).toBe("ServiceNotAvailableError");
 				expect(cbOpenedHandler).toHaveBeenCalledTimes(1);
 				expect(cbOpenedHandler).toHaveBeenCalledWith({
 					nodeID: "slave-1",
@@ -120,7 +120,7 @@ describe("Test circuit breaker", () => {
 			.then(() => master1.call("cb.angry", { please: true }))
 			.then(protectReject)
 			.catch(err => {
-				expect(err.name).toBe("ServiceNotAvailable");
+				expect(err.name).toBe("ServiceNotAvailableError");
 				expect(cbOpenedHandler).toHaveBeenCalledTimes(1);
 				expect(cbOpenedHandler).toHaveBeenCalledWith({
 					nodeID: "slave-1",
@@ -185,7 +185,7 @@ describe("Test circuit breaker", () => {
 			.then(() => master1.call("cb.angry"))
 			.then(protectReject)
 			.catch(err => {
-				expect(err.message).toBe("ServiceNotAvailable");
+				expect(err.message).toBe("ServiceNotAvailableError");
 				expect(cbOpenedHandler).toHaveBeenCalledTimes(1);
 				expect(cbOpenedHandler).toHaveBeenCalledWith({
 					node: jasmine.any(Object),

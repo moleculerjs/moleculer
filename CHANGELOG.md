@@ -87,6 +87,13 @@ broker.call("posts.find", {}, { retries: 3 });
 
 TODO action level settings
 
+## Renamed errors
+Some errors have been renamed in order to follow name conventions.
+- `ServiceNotAvailable` -> `ServiceNotAvailableError`
+- `RequestRejected` -> `RequestRejectedError`
+- `QueueIsFull` -> `QueueIsFullError`
+- `InvalidPacketData` -> `InvalidPacketDataError`
+
 # New
 
 ## Enhanced log level configuration 

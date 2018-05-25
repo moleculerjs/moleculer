@@ -323,7 +323,7 @@ class Transit {
 		try {
 			if (!this.broker.started) {
 				this.logger.warn(`Incoming '${payload.action}' request from '${payload.sender}' node is dropped, because broker is stopped.`);
-				throw new E.ServiceNotAvailable(payload.action, this.nodeID);
+				throw new E.ServiceNotAvailableError(payload.action, this.nodeID);
 			}
 
 			let pass;
@@ -488,7 +488,7 @@ class Transit {
 	 */
 	request(ctx) {
 		if (this.opts.maxQueueSize && this.pendingRequests.size > this.opts.maxQueueSize)
-			return Promise.reject(new E.QueueIsFull(ctx.action.name, ctx.nodeID, this.pendingRequests.length, this.opts.maxQueueSize));
+			return Promise.reject(new E.QueueIsFullError(ctx.action.name, ctx.nodeID, this.pendingRequests.length, this.opts.maxQueueSize));
 
 		// Expanded the code that v8 can optimize it.  (TryCatchStatement disable optimizing)
 		return new Promise((resolve, reject) => this._sendRequest(ctx, resolve, reject));
@@ -673,7 +673,7 @@ class Transit {
 				this.pendingRequests.delete(id);
 
 				// Reject the request
-				req.reject(new E.RequestRejected(req.action.name, req.nodeID));
+				req.reject(new E.RequestRejectedError(req.action.name, req.nodeID));
 
 				this.pendingReqStreams.delete(id);
 				this.pendingResStreams.delete(id);

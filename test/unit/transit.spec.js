@@ -601,7 +601,7 @@ describe("Test Transit._requestHandler", () => {
 			expect(broker._getLocalActionEndpoint).toHaveBeenCalledTimes(0);
 			expect(broker._handleRemoteRequest).toHaveBeenCalledTimes(0);
 			expect(transit.sendResponse).toHaveBeenCalledTimes(1);
-			expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", { b: 100 }, null, jasmine.any(E.ServiceNotAvailable));
+			expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", { b: 100 }, null, jasmine.any(E.ServiceNotAvailableError));
 		});
 	});
 });
@@ -835,7 +835,7 @@ describe("Test Transit.removePendingRequestByNodeID", () => {
 		expect(resolve).toHaveBeenCalledTimes(0);
 		expect(resolve2).toHaveBeenCalledTimes(0);
 		expect(reject).toHaveBeenCalledTimes(1);
-		expect(reject).toHaveBeenCalledWith(jasmine.any(E.RequestRejected));
+		expect(reject).toHaveBeenCalledWith(jasmine.any(E.RequestRejectedError));
 	});
 
 	it("should reject pending orders by nodeID #2", () => {
@@ -843,7 +843,7 @@ describe("Test Transit.removePendingRequestByNodeID", () => {
 		expect(transit.pendingRequests.size).toBe(0);
 		expect(resolve2).toHaveBeenCalledTimes(0);
 		expect(reject2).toHaveBeenCalledTimes(1);
-		expect(reject2).toHaveBeenCalledWith(jasmine.any(E.RequestRejected));
+		expect(reject2).toHaveBeenCalledWith(jasmine.any(E.RequestRejectedError));
 	});
 
 });
