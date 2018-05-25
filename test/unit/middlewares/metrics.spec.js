@@ -135,7 +135,7 @@ describe("Test params & meta in events", () => {
 		broker.emit.mockClear();
 		ctx.parentID = 123;
 		ctx.requestID = "abcdef";
-		ctx.callerNodeID = "remote-node";
+		ctx.nodeID = "remote-node";
 
 		return newHandler(ctx).catch(protectReject).then(() => {
 			expect(broker.emit).toHaveBeenCalledTimes(2);

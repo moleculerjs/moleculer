@@ -25,7 +25,6 @@ describe("Test Context", () => {
 		});
 
 		expect(ctx.parentID).toBeNull();
-		expect(ctx.callerNodeID).toBeNull();
 
 		expect(ctx.metrics).toBeNull();
 		expect(ctx.level).toBe(1);
@@ -105,7 +104,6 @@ describe("Test Context.create", () => {
 		expect(ctx.options).toEqual({});
 
 		expect(ctx.parentID).toBeNull();
-		expect(ctx.callerNodeID).toBeNull();
 
 		expect(ctx.metrics).toBeNull();
 		expect(ctx.level).toBe(1);
@@ -160,7 +158,6 @@ describe("Test Context.create", () => {
 		expect(ctx.options).toEqual(opts);
 
 		expect(ctx.parentID).toBe(100);
-		expect(ctx.callerNodeID).toBeNull();
 
 		expect(ctx.metrics).toBe(true);
 		expect(ctx.level).toBe(6);

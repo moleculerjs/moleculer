@@ -60,7 +60,7 @@ function generateMetricPayload(ctx) {
 		requestID: ctx.requestID,
 		level: ctx.level,
 		startTime: ctx.startTime,
-		remoteCall: !!ctx.callerNodeID
+		remoteCall: ctx.nodeID != ctx.broker.nodeID
 	};
 
 	// Process extra metrics
@@ -81,9 +81,9 @@ function generateMetricPayload(ctx) {
 	if (ctx.parentID)
 		payload.parent = ctx.parentID;
 
-	payload.nodeID = ctx.nodeID;
-	if (ctx.callerNodeID)
-		payload.callerNodeID = ctx.callerNodeID;
+	payload.nodeID = ctx.broker.nodeID;
+	if (payload.remoteCall)
+		payload.callerNodeID = ctx.nodeID;
 
 	return payload;
 }

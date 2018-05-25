@@ -90,7 +90,7 @@ broker.createService({
 	name: "math",
 	actions: {
 		add(ctx) {
-			broker.logger.info(_.padEnd(`${ctx.params.count}. Add ${ctx.params.a} + ${ctx.params.b}`, 20), `(from: ${ctx.callerNodeID})`);
+			broker.logger.info(_.padEnd(`${ctx.params.count}. Add ${ctx.params.a} + ${ctx.params.b}`, 20), `(from: ${ctx.nodeID})`);
 			if (_.random(100) > 70)
 				return this.Promise.reject(new MoleculerRetryableError("Random error!", 510));
 

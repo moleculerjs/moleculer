@@ -94,6 +94,9 @@ Some errors have been renamed in order to follow name conventions.
 - `QueueIsFull` -> `QueueIsFullError`
 - `InvalidPacketData` -> `InvalidPacketDataError`
 
+## Context nodeID changes
+The `ctx.callerNodeID` has been removed. The `ctx.nodeID` always contains the target or caller nodeID. If you need the current nodeID, use `ctx.broker.nodeID`.
+
 # New
 
 ## Enhanced log level configuration 

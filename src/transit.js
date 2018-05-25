@@ -375,7 +375,7 @@ class Transit {
 			ctx.meta = payload.meta || {};
 			ctx.level = payload.level;
 			ctx.metrics = !!payload.metrics;
-			ctx.callerNodeID = payload.sender;
+			ctx.nodeID = payload.sender;
 
 			ctx.options.timeout = payload.timeout || this.broker.options.requestTimeout || 0;
 
@@ -488,7 +488,7 @@ class Transit {
 	 */
 	request(ctx) {
 		if (this.opts.maxQueueSize && this.pendingRequests.size > this.opts.maxQueueSize)
-			return Promise.reject(new E.QueueIsFullError(ctx.action.name, ctx.nodeID, this.pendingRequests.length, this.opts.maxQueueSize));
+			return Promise.reject(new E.QueueIsFullError(ctx.action.name, this.nodeID, this.pendingRequests.length, this.opts.maxQueueSize));
 
 		// Expanded the code that v8 can optimize it.  (TryCatchStatement disable optimizing)
 		return new Promise((resolve, reject) => this._sendRequest(ctx, resolve, reject));
@@ -530,9 +530,10 @@ class Transit {
 
 		const packet = new Packet(P.PACKET_REQUEST, ctx.nodeID, payload);
 
-		this.logger.debug(`Send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "a"}' node.`);
+		const nodeName = ctx.nodeID ? `'${ctx.nodeID}'` : "someone";
+		this.logger.debug(`Send '${ctx.action.name}' request to ${nodeName} node.`);
 
-		const publishCatch = err => this.logger.error(`Unable to send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "a"}' node.`, err);
+		const publishCatch = err => this.logger.error(`Unable to send '${ctx.action.name}' request to ${nodeName} node.`, err);
 
 		// Add to pendings
 		this.pendingRequests.set(ctx.id, request);
