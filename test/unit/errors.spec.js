@@ -61,7 +61,7 @@ describe("Test Errors", () => {
 	});
 
 	it("test ServiceNotFoundError", () => {
-		let err = new errors.ServiceNotFoundError("posts.find");
+		let err = new errors.ServiceNotFoundError({ action: "posts.find" });
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err).toBeInstanceOf(errors.MoleculerRetryableError);
@@ -74,7 +74,7 @@ describe("Test Errors", () => {
 	});
 
 	it("test ServiceNotFoundError with nodeID", () => {
-		let err = new errors.ServiceNotFoundError("posts.find", "node-2");
+		let err = new errors.ServiceNotFoundError({ action: "posts.find", nodeID: "node-2" });
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err).toBeInstanceOf(errors.MoleculerRetryableError);
@@ -87,7 +87,7 @@ describe("Test Errors", () => {
 	});
 
 	it("test ServiceNotAvailableError", () => {
-		let err = new errors.ServiceNotAvailableError("posts.find");
+		let err = new errors.ServiceNotAvailableError({ action: "posts.find" });
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err).toBeInstanceOf(errors.MoleculerRetryableError);
@@ -100,7 +100,7 @@ describe("Test Errors", () => {
 	});
 
 	it("test ServiceNotAvailableError with NodeID", () => {
-		let err = new errors.ServiceNotAvailableError("posts.find", "server-2");
+		let err = new errors.ServiceNotAvailableError({ action: "posts.find", nodeID: "server-2" });
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err).toBeInstanceOf(errors.MoleculerRetryableError);

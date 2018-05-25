@@ -87,9 +87,7 @@ class Context {
 	}
 
 	/**
-	 * Create a new Context instance.
-	 *
-	 * TODO: cover with unit tests
+	 * Create a new Context instance
 	 *
 	 * @param {ServiceBroker} broker
 	 * @param {Endpoint} endpoint

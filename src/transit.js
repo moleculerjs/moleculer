@@ -323,7 +323,7 @@ class Transit {
 		try {
 			if (!this.broker.started) {
 				this.logger.warn(`Incoming '${payload.action}' request from '${payload.sender}' node is dropped, because broker is stopped.`);
-				throw new E.ServiceNotAvailableError(payload.action, this.nodeID);
+				throw new E.ServiceNotAvailableError({ action: payload.action, nodeID: this.nodeID });
 			}
 
 			let pass;

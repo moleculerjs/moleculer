@@ -8,6 +8,13 @@
 
 const ExtendableError = require("es6-error");
 
+/*
+	TODO:
+		- consolidate error arguments
+				If not Moleculer*Error, args is data always
+		- add recreate from payload method
+*/
+
 /**
  * Custom Moleculer Error class
  *
@@ -102,22 +109,18 @@ class ServiceNotFoundError extends MoleculerRetryableError {
 	/**
 	 * Creates an instance of ServiceNotFoundError.
 	 *
-	 * @param {String} action
-	 * @param {String} nodeID
+	 * @param {Object} data
 	 *
 	 * @memberof ServiceNotFoundError
 	 */
-	constructor(action, nodeID) {
+	constructor(data = {}) {
 		let msg;
-		if (nodeID)
-			msg = `Service '${action}' is not found on '${nodeID}' node.`;
+		if (data.nodeID)
+			msg = `Service '${data.action}' is not found on '${data.nodeID}' node.`;
 		else
-			msg = `Service '${action}' is not found.`;
+			msg = `Service '${data.action}' is not found.`;
 
-		super(msg, 404, null, {
-			action,
-			nodeID
-		});
+		super(msg, 404, "SERVICE_NOT_FOUND", data);
 	}
 }
 
@@ -131,22 +134,18 @@ class ServiceNotAvailableError extends MoleculerRetryableError {
 	/**
 	 * Creates an instance of ServiceNotAvailableError.
 	 *
-	 * @param {String} action
-	 * @param {String} nodeID
+	 * @param {Object} data
 	 *
 	 * @memberof ServiceNotAvailableError
 	 */
-	constructor(action, nodeID) {
+	constructor(data) {
 		let msg;
-		if (nodeID)
-			msg = `Service '${action}' is not available on '${nodeID}' node.`;
+		if (data.nodeID)
+			msg = `Service '${data.action}' is not available on '${data.nodeID}' node.`;
 		else
-			msg = `Service '${action}' is not available.`;
+			msg = `Service '${data.action}' is not available.`;
 
-		super(msg, 404, null, {
-			action,
-			nodeID
-		});
+		super(msg, 404, "SERVICE_NOT_AVAILABLE", data);
 	}
 }
 

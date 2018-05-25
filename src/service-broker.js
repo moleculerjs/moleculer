@@ -734,7 +734,7 @@ class ServiceBroker {
 				const endpoint = this.registry.getActionEndpointByNodeId(actionName, nodeID);
 				if (!endpoint) {
 					this.logger.warn(`Service '${actionName}' is not found on '${nodeID}' node.`);
-					return new E.ServiceNotFoundError(actionName, nodeID);
+					return new E.ServiceNotFoundError({ action: actionName, nodeID });
 				}
 				return endpoint;
 
@@ -743,7 +743,7 @@ class ServiceBroker {
 				const epList = this.registry.getActionEndpoints(actionName);
 				if (!epList) {
 					this.logger.warn(`Service '${actionName}' is not registered.`);
-					return new E.ServiceNotFoundError(actionName);
+					return new E.ServiceNotFoundError({ action: actionName });
 				}
 
 				// Get the next available endpoint
@@ -751,7 +751,7 @@ class ServiceBroker {
 				if (!endpoint) {
 					const errMsg = `Service '${actionName}' is not available.`;
 					this.logger.warn(errMsg);
-					return new E.ServiceNotAvailableError(actionName);
+					return new E.ServiceNotAvailableError({ action: actionName });
 				}
 				return endpoint;
 			}
@@ -827,21 +827,21 @@ class ServiceBroker {
 				endpoint = this.registry.getActionEndpointByNodeId(actionName, nodeID);
 				if (!endpoint) {
 					this.logger.warn(`Service '${actionName}' is not found on '${nodeID}' node.`);
-					return Promise.reject(new E.ServiceNotFoundError(actionName, nodeID));
+					return Promise.reject(new E.ServiceNotFoundError({ action: actionName, nodeID }));
 				}
 			} else {
 				// Get endpoint list by action name
 				const epList = this.registry.getActionEndpoints(actionName);
 				if (epList == null) {
 					this.logger.warn(`Service '${actionName}' is not registered.`);
-					return Promise.reject(new E.ServiceNotFoundError(actionName));
+					return Promise.reject(new E.ServiceNotFoundError({ action: actionName }));
 				}
 
 				endpoint = epList.getFirst();
 				if (endpoint == null) {
 					const errMsg = `Service '${actionName}' is not available.`;
 					this.logger.warn(errMsg);
-					return Promise.reject(new E.ServiceNotAvailableError(actionName));
+					return Promise.reject(new E.ServiceNotAvailableError({ action: actionName }));
 				}
 			}
 		}
@@ -874,14 +874,14 @@ class ServiceBroker {
 		let epList = this.registry.getActionEndpoints(actionName);
 		if (epList == null || !epList.hasLocal()) {
 			this.logger.warn(`Service '${actionName}' is not registered locally.`);
-			throw new E.ServiceNotFoundError(actionName, this.nodeID);
+			throw new E.ServiceNotFoundError({ action: actionName, nodeID: this.nodeID });
 		}
 
 		// Get local endpoint
 		let endpoint = epList.nextLocal();
 		if (!endpoint) {
 			this.logger.warn(`Service '${actionName}' is not available locally.`);
-			throw new E.ServiceNotAvailableError(actionName, this.nodeID);
+			throw new E.ServiceNotAvailableError({ action: actionName, nodeID: this.nodeID });
 		}
 
 		return endpoint;
