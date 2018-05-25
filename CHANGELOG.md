@@ -45,8 +45,7 @@ const broker = new ServiceBroker({
         minRequestCount: 20,
         windowTime: 60, // in seconds
         halfOpenTime: 5 * 1000,
-        failureOnReject: true,
-        failureOnTimeout: true
+        check: err => err && err.code >= 500
     }
 });
 ```
@@ -56,6 +55,37 @@ const broker = new ServiceBroker({
 
 ## Internal statistics module is removed
 The internal statistics module (`$node.stats`) is removed. We will release it as a separated single Moleculer service in the future.
+
+## Some internal feature is exposed to internal middlewares
+- Timeout
+- Retry
+- Circuit Breaker
+- Metrics
+- Context tracking
+
+`broker.options.internalMiddlewares = false`
+
+## Improved request retry feature (with exponential backoff)
+
+```js
+const broker = new ServiceBroker({
+    nodeID: "node-1",
+	retryPolicy: {
+		enabled: true,
+		retries: 5,
+		delay: 100,
+		maxDelay: 2000,
+		factor: 2,
+		check: err => err && !!err.retryable
+	}
+});
+```
+
+```js
+broker.call("posts.find", {}, { retries: 3 });
+```
+
+TODO action level settings
 
 # New
 
@@ -94,6 +124,10 @@ const broker = new ServiceBroker({
 ```
 
 # Changes
+
+- `Context.create` & `new Context` signature is changed.
+- Context metrics methods is removed.
+- `ctx.timeout` is moved to `ctx.options.timeout`
 
 --------------------------------------------------
 <a name="0.12.4"></a>
