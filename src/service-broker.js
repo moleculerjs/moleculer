@@ -48,7 +48,7 @@ const defaultOptions = {
 		delay: 100,
 		maxDelay: 1000,
 		factor: 2,
-		check: err => !!err.retryable
+		check: err => err && !!err.retryable
 	},
 
 	maxCallLevel: 0,
@@ -71,7 +71,7 @@ const defaultOptions = {
 		windowTime: 60,
 		minRequestCount: 20,
 		halfOpenTime: 10 * 1000,
-		check: err => err.code >= 500
+		check: err => err && err.code >= 500
 	},
 
 	transit: {
