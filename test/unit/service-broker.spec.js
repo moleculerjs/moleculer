@@ -1288,6 +1288,11 @@ describe("Test broker.call", () => {
 	};
 	broker.findNextActionEndpoint = jest.fn(() => ep);
 
+	let oldContextCreate;
+
+	beforeAll(() => oldContextCreate = broker.ContextFactory.create);
+	afterAll(() => broker.ContextFactory.create = oldContextCreate);
+
 	it("should create new Context & call handler", () => {
 		let context = {
 			action,
@@ -1353,10 +1358,11 @@ describe("Test broker.call", () => {
 
 });
 
-describe.skip("Test broker.callWithoutBalancer", () => {
+describe("Test broker.callWithoutBalancer", () => {
 	let broker = new ServiceBroker({ logger: false, internalServices: false, metrics: true });
 	let action = {
-		name: "posts.find"
+		name: "posts.find",
+		remoteHandler: jest.fn(ctx => Promise.resolve(ctx))
 	};
 
 	let ep = {
@@ -1366,22 +1372,17 @@ describe.skip("Test broker.callWithoutBalancer", () => {
 	};
 	broker.registry.getActionEndpoints = jest.fn(() => []);
 
-	broker._remoteCall = jest.fn(ctx => Promise.resolve(ctx));
-
-	it("should call remoteCall if actionName is an endpoint", () => {
+	it("should call remoteHandler if actionName is an endpoint", () => {
 		let p = broker.callWithoutBalancer(ep);
 		return p.catch(protectReject).then(ctx => {
 			expect(ctx).toBeDefined();
 			expect(ctx.nodeID).toBe("node-11");
 			expect(ctx.level).toBe(1);
-			expect(ctx.requestID).toBe(ctx.id);
 			expect(ctx.action.name).toBe("posts.find");
 			expect(ctx.params).toEqual({});
-			expect(ctx.metrics).toBe(true);
-			expect(ctx.timeout).toBe(0);
 
-			expect(broker._remoteCall).toHaveBeenCalledTimes(1);
-			expect(broker._remoteCall).toHaveBeenCalledWith(ctx, null, {"retries": 0, "timeout": 0});
+			expect(action.remoteHandler).toHaveBeenCalledTimes(1);
+			expect(action.remoteHandler).toHaveBeenCalledWith(ctx);
 		});
 	});
 
@@ -1390,14 +1391,28 @@ describe.skip("Test broker.callWithoutBalancer", () => {
 		return broker.callWithoutBalancer("posts.noaction", {}).then(protectReject).catch(err => {
 			expect(err).toBeDefined();
 			expect(err).toBeInstanceOf(ServiceNotFoundError);
-			expect(err.message).toBe("Service 'posts.noaction' is not found on 'node-1234' node.");
-			expect(err.data).toEqual({ action: "posts.noaction", nodeID: broker.nodeID });
+			expect(err.message).toBe("Service 'posts.noaction' is not found.");
+			expect(err.data).toEqual({ action: "posts.noaction", nodeID: undefined });
+		});
+	});
+
+	it("should reject if no endpoint", () => {
+		broker.registry.getActionEndpoints = jest.fn(() => ({
+			getFirst: () => null
+		}));
+		return broker.callWithoutBalancer("posts.noaction", {}).then(protectReject).catch(err => {
+			expect(err).toBeDefined();
+			expect(err).toBeInstanceOf(ServiceNotAvailable);
+			expect(err.message).toBe("Service 'posts.noaction' is not available.");
+			expect(err.data).toEqual({ action: "posts.noaction", nodeID: undefined });
 		});
 	});
 
 	it("should call _remoteCall with new Context without params", () => {
-		broker._remoteCall.mockClear();
-		broker.registry.getActionEndpoints = jest.fn(() => []);
+		action.remoteHandler.mockClear();
+		broker.registry.getActionEndpoints = jest.fn(() => ({
+			getFirst: () => ep
+		}));
 
 		let p = broker.callWithoutBalancer("posts.find");
 		return p.catch(protectReject).then(ctx => {
@@ -1405,47 +1420,61 @@ describe.skip("Test broker.callWithoutBalancer", () => {
 			expect(ctx.broker).toBe(broker);
 			expect(ctx.nodeID).toBe(null);
 			expect(ctx.level).toBe(1);
-			expect(ctx.requestID).toBe(ctx.id);
 			expect(ctx.action.name).toBe("posts.find");
 			expect(ctx.params).toEqual({});
-			expect(ctx.metrics).toBe(true);
-			expect(ctx.timeout).toBe(0);
 
-			expect(broker._remoteCall).toHaveBeenCalledTimes(1);
-			expect(broker._remoteCall).toHaveBeenCalledWith(ctx, null, {"retries": 0, "timeout": 0});
+			expect(action.remoteHandler).toHaveBeenCalledTimes(1);
+			expect(action.remoteHandler).toHaveBeenCalledWith(ctx);
 		});
 	});
 
 	it("should call _remoteCall with new Context with params", () => {
-		broker._remoteCall.mockClear();
+		action.remoteHandler.mockClear();
 		let params = { limit: 5, search: "John" };
 		return broker.callWithoutBalancer("posts.find", params).catch(protectReject).then(ctx => {
 			expect(ctx).toBeDefined();
 			expect(ctx.action.name).toBe("posts.find");
 			expect(ctx.params).toEqual(params);
 
-			expect(broker._remoteCall).toHaveBeenCalledTimes(1);
-			expect(broker._remoteCall).toHaveBeenCalledWith(ctx, null, {"retries": 0, "timeout": 0});
+			expect(action.remoteHandler).toHaveBeenCalledTimes(1);
+			expect(action.remoteHandler).toHaveBeenCalledWith(ctx);
 		});
 	});
 
 	it("should call _remoteCall with specified nodeID", () => {
-		broker._remoteCall.mockClear();
+		action.remoteHandler.mockClear();
 		let params = { limit: 5, search: "John" };
 		let opts = { nodeID: "node-10" };
+		broker.registry.getActionEndpointByNodeId = jest.fn(() => ep);
 		return broker.callWithoutBalancer("posts.find", params, opts).catch(protectReject).then(ctx => {
 			expect(ctx).toBeDefined();
 			expect(ctx.action.name).toBe("posts.find");
 			expect(ctx.params).toEqual(params);
 			expect(ctx.nodeID).toBe("node-10");
 
-			expect(broker._remoteCall).toHaveBeenCalledTimes(1);
-			expect(broker._remoteCall).toHaveBeenCalledWith(ctx, null, opts);
+			expect(broker.registry.getActionEndpointByNodeId).toHaveBeenCalledTimes(1);
+			expect(broker.registry.getActionEndpointByNodeId).toHaveBeenCalledWith("posts.find", "node-10");
+
+			expect(action.remoteHandler).toHaveBeenCalledTimes(1);
+			expect(action.remoteHandler).toHaveBeenCalledWith(ctx);
+		});
+	});
+
+	it("should reject if no endpoint on specified node", () => {
+		broker.registry.getActionEndpointByNodeId = jest.fn(() => null);
+
+		let params = { limit: 5, search: "John" };
+		let opts = { nodeID: "node-10" };
+		return broker.callWithoutBalancer("posts.find", params, opts).then(protectReject).catch(err => {
+			expect(err).toBeDefined();
+			expect(err).toBeInstanceOf(ServiceNotFoundError);
+			expect(err.message).toBe("Service 'posts.find' is not found on 'node-10' node.");
+			expect(err.data).toEqual({ action: "posts.find", nodeID: "node-10" });
 		});
 	});
 
 	it("should call _remoteCall with new Context with requestID & meta", () => {
-		broker._remoteCall.mockClear();
+		action.remoteHandler.mockClear();
 		let params = { limit: 5, search: "John" };
 		let opts = { requestID: "123", meta: { a: 5 } };
 		return broker.callWithoutBalancer("posts.find", params, opts).catch(protectReject).then(ctx => {
@@ -1454,13 +1483,13 @@ describe.skip("Test broker.callWithoutBalancer", () => {
 			expect(ctx.requestID).toBe("123"); // need enabled `metrics`
 			expect(ctx.meta).toEqual({ a: 5 });
 
-			expect(broker._remoteCall).toHaveBeenCalledTimes(1);
-			expect(broker._remoteCall).toHaveBeenCalledWith(ctx, null, opts);
+			expect(action.remoteHandler).toHaveBeenCalledTimes(1);
+			expect(action.remoteHandler).toHaveBeenCalledWith(ctx);
 		});
 	});
 
 	it("should call _remoteCall with a sub Context", () => {
-		broker._remoteCall.mockClear();
+		action.remoteHandler.mockClear();
 		let parentCtx = new Context(broker);
 		parentCtx.params = { a: 5 };
 		parentCtx.requestID = "555";
@@ -1480,13 +1509,13 @@ describe.skip("Test broker.callWithoutBalancer", () => {
 			expect(ctx.meta).toEqual({ a: 123, b: "Adam" });
 			expect(ctx.metrics).toBe(true);
 
-			expect(broker._remoteCall).toHaveBeenCalledTimes(1);
-			expect(broker._remoteCall).toHaveBeenCalledWith(ctx, null, opts);
+			expect(action.remoteHandler).toHaveBeenCalledTimes(1);
+			expect(action.remoteHandler).toHaveBeenCalledWith(ctx);
 		});
 	});
 
 	it("should call _remoteCall with a reused Context", () => {
-		broker._remoteCall.mockClear();
+		action.remoteHandler.mockClear();
 		let preCtx = new Context(broker, { name: "posts.find" });
 		preCtx.params = { a: 5 };
 		preCtx.requestID = "555";
@@ -1506,8 +1535,8 @@ describe.skip("Test broker.callWithoutBalancer", () => {
 			expect(ctx.meta).toEqual({ a: 123 });
 			expect(ctx.metrics).toBe(true);
 
-			expect(broker._remoteCall).toHaveBeenCalledTimes(1);
-			expect(broker._remoteCall).toHaveBeenCalledWith(ctx, null, opts);
+			expect(action.remoteHandler).toHaveBeenCalledTimes(1);
+			expect(action.remoteHandler).toHaveBeenCalledWith(ctx);
 		});
 	});
 

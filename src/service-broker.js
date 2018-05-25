@@ -816,38 +816,57 @@ class ServiceBroker {
 	 */
 	callWithoutBalancer(actionName, params, opts = {}) {
 		let nodeID = null;
+		let endpoint = null;
 		if (typeof actionName !== "string") {
-			const endpoint = actionName;
+			endpoint = actionName;
 			actionName = endpoint.action.name;
 			nodeID = endpoint.id;
 		} else {
 			if (opts.nodeID) {
 				nodeID = opts.nodeID;
+				endpoint = this.registry.getActionEndpointByNodeId(actionName, nodeID);
+				if (!endpoint) {
+					this.logger.warn(`Service '${actionName}' is not found on '${nodeID}' node.`);
+					return Promise.reject(new E.ServiceNotFoundError(actionName, nodeID));
+				}
 			} else {
 				// Get endpoint list by action name
 				const epList = this.registry.getActionEndpoints(actionName);
 				if (epList == null) {
 					this.logger.warn(`Service '${actionName}' is not registered.`);
-					return Promise.reject(new E.ServiceNotFoundError(actionName, this.nodeID));
+					return Promise.reject(new E.ServiceNotFoundError(actionName));
+				}
+
+				endpoint = epList.getFirst();
+				if (endpoint == null) {
+					const errMsg = `Service '${actionName}' is not available.`;
+					this.logger.warn(errMsg);
+					return Promise.reject(new E.ServiceNotAvailable(actionName));
 				}
 			}
 		}
 
 		// Create context
 		let ctx;
-		let action = { name: actionName };
 		if (opts.ctx != null) {
 			// Reused context
 			ctx = opts.ctx;
-			ctx.nodeID = nodeID;
-			ctx.action = { name: actionName };
+			ctx.endpoint = endpoint;
+			ctx.action = endpoint.action;
 		} else {
 			// New root context
-			ctx = this.ContextFactory.create(this, { action, nodeID }, params, opts);
+			ctx = this.ContextFactory.create(this, endpoint, params, opts);
 		}
+		ctx.nodeID = nodeID;
 
-		// TODO: no handler
-		// Call transit.request, but we need to run middlewares too.
+		this.logger.debug("Call action on a node.", { action: ctx.action.name, nodeID: ctx.nodeID, requestID: ctx.requestID });
+
+		let p = endpoint.action.remoteHandler(ctx);
+
+		// Pointer to Context
+		p.ctx = ctx;
+
+		return p;
 	}
 
 	_getLocalActionEndpoint(actionName) {

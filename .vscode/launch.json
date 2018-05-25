@@ -83,7 +83,7 @@
 			"request": "launch",
 			"name": "Jest AMQP integration",
 			"program": "${workspaceRoot}/node_modules/jest-cli/bin/jest.js",
-			"args": ["--runInBand", "--testMatch", "**/integration/amqp/**spc.js"],
+			"args": ["--runInBand", "--testMatch", "**/integration/transporters/**/**spc.js"],
 			"cwd": "${workspaceRoot}",
 			"runtimeArgs": [
                 "--nolazy"

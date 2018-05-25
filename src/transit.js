@@ -530,9 +530,9 @@ class Transit {
 
 		const packet = new Packet(P.PACKET_REQUEST, ctx.nodeID, payload);
 
-		this.logger.debug(`Send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`);
+		this.logger.debug(`Send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "a"}' node.`);
 
-		const publishCatch = err => this.logger.error(`Unable to send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, err);
+		const publishCatch = err => this.logger.error(`Unable to send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "a"}' node.`, err);
 
 		// Add to pendings
 		this.pendingRequests.set(ctx.id, request);

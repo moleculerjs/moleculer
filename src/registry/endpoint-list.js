@@ -68,6 +68,19 @@ class EndpointList {
 	}
 
 	/**
+	 * Get first endpoint
+	 *
+	 * @returns {Endpoint}
+	 * @memberof EndpointList
+	 */
+	getFirst() {
+		if (this.endpoints.length > 0)
+			return this.endpoints[0];
+
+		return null;
+	}
+
+	/**
 	 * Select next endpoint with balancer strategy
 	 *
 	 * @returns

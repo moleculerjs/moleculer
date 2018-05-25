@@ -140,7 +140,7 @@ class ActionCatalog {
 			if (item.count > 0) {
 				const ep = list.endpoints[0];
 				if (ep)
-					item.action = _.omit(ep.action, ["handler", "service"]);
+					item.action = _.omit(ep.action, ["handler", "remoteHandler", "service"]);
 			}
 			if (item.action && item.action.protected === true) return;
 

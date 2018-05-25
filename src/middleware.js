@@ -34,7 +34,7 @@ class MiddlewareHandler {
 	 *
 	 * @param {Action} action
 	 * @param {Function} handler
-	 * @returns {Action}
+	 * @returns {Function}
 	 * @memberof MiddlewareHandler
 	 */
 	wrapLocalAction(action, handler) {
@@ -46,7 +46,7 @@ class MiddlewareHandler {
 	 *
 	 * @param {Action} action
 	 * @param {Function} handler
-	 * @returns {Action}
+	 * @returns {Function}
 	 * @memberof MiddlewareHandler
 	 */
 	wrapRemoteAction(action, handler) {
@@ -59,7 +59,7 @@ class MiddlewareHandler {
 	 * @param {string} method
 	 * @param {ActionDef} action
 	 * @param {Function} handler
-	 * @returns {ActionDef}
+	 * @returns {Function}
 	 * @memberof MiddlewareHandler
 	 */
 	wrapActionHandler(method, action, handler) {
@@ -73,10 +73,7 @@ class MiddlewareHandler {
 			}, handler);
 		}
 
-		// Overwrite with the new wrapper handler
-		action.handler = handler;
-
-		return action;
+		return handler;
 	}
 
 	/**
