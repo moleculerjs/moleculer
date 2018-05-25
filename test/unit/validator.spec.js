@@ -15,12 +15,10 @@ describe("Test constructor", () => {
 
 	it("should register itself as middleware", () => {
 		let broker = new ServiceBroker({ logger: false });
-		broker.use = jest.fn();
 		let v = new Validator();
 
 		v.init(broker);
 		expect(v.broker).toBe(broker);
-		expect(broker.use).toHaveBeenCalledTimes(1);
 	});
 });
 

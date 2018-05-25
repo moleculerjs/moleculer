@@ -50,8 +50,6 @@ class Cacher {
 				if (this.broker.namespace)
 					this.prefix += this.broker.namespace + "-";
 			}
-
-			broker.use(this.middleware());
 		}
 	}
 

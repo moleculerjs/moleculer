@@ -2,8 +2,9 @@
 
 let _ = require("lodash");
 let chalk = require("chalk");
-let { MoleculerError } = require("../src/errors");
+let { MoleculerError, MoleculerRetryableError } = require("../src/errors");
 let Strategies = require("../").Strategies;
+const Middlewares = require("..").Middlewares;
 
 let ServiceBroker = require("../src/service-broker");
 
@@ -24,7 +25,7 @@ let broker = new ServiceBroker({
 	//serializer: "MsgPack",
 	//requestTimeout: 1000,
 
-	//disableBalancer: true,
+	disableBalancer: true,
 
 	metrics: true,
 
@@ -36,8 +37,13 @@ let broker = new ServiceBroker({
 		//strategy: Strategies.Random
 	},
 
-	circuitBreaker: {
+	retryPolicy: {
 		enabled: true,
+		retries: 3
+	},
+
+	circuitBreaker: {
+		enabled: false,
 		threshold: 0.3,
 		windowTime: 30,
 		minRequestCount: 10
@@ -80,19 +86,21 @@ broker.createService({
 	}
 });
 /*
-setTimeout(() => {
-	broker.createService({
-		name: "math",
-		actions: {
-			add(ctx) {
-				if (_.random(100) > 90)
-					return this.Promise.reject(new MoleculerError("Random error!", 510));
+broker.createService({
+	name: "math",
+	actions: {
+		add(ctx) {
+			broker.logger.info(_.padEnd(`${ctx.params.count}. Add ${ctx.params.a} + ${ctx.params.b}`, 20), `(from: ${ctx.callerNodeID})`);
+			if (_.random(100) > 70)
+				return this.Promise.reject(new MoleculerRetryableError("Random error!", 510));
 
-				return Number(ctx.params.a) + Number(ctx.params.b);
-			},
-		}
-	});
-}, 5000);*/
+			return {
+				count: ctx.params.count,
+				res: Number(ctx.params.a) + Number(ctx.params.b)
+			};
+		},
+	}
+});*/
 
 let reqCount = 0;
 let pendingReqs = [];

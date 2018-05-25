@@ -367,22 +367,23 @@ class Transit {
 			const endpoint = this.broker._getLocalActionEndpoint(payload.action);
 
 			// Recreate caller context
-			const ctx = new this.broker.ContextFactory(this.broker, endpoint.action);
+			const ctx = new this.broker.ContextFactory(this.broker, endpoint);
 			ctx.id = payload.id;
 			ctx.setParams(pass ? pass: payload.params);
 			ctx.parentID = payload.parentID;
 			ctx.requestID = payload.requestID;
 			ctx.meta = payload.meta || {};
-
-			ctx.timeout = payload.timeout || 0;
 			ctx.level = payload.level;
 			ctx.metrics = !!payload.metrics;
 			ctx.callerNodeID = payload.sender;
 
-			if (this.broker.options.trackContext)
-				ctx._trackContext();
+			ctx.options.timeout = payload.timeout || this.broker.options.requestTimeout || 0;
 
-			return this.broker._handleRemoteRequest(ctx, endpoint)
+			const p = endpoint.action.handler(ctx);
+			// Pointer to Context
+			p.ctx = ctx;
+
+			return p
 				.then(res => this.sendResponse(payload.sender, payload.id,  ctx.meta, res, null))
 				.catch(err => this.sendResponse(payload.sender, payload.id, ctx.meta, null, err));
 
@@ -519,7 +520,7 @@ class Transit {
 			action: ctx.action.name,
 			params: isStream ? null : ctx.params,
 			meta: ctx.meta,
-			timeout: ctx.timeout,
+			timeout: ctx.options.timeout,
 			level: ctx.level,
 			metrics: ctx.metrics,
 			parentID: ctx.parentID,
@@ -529,9 +530,9 @@ class Transit {
 
 		const packet = new Packet(P.PACKET_REQUEST, ctx.nodeID, payload);
 
-		this.logger.debug(`Send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`);
+		this.logger.debug(`Send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "a"}' node.`);
 
-		const publishCatch = err => this.logger.error(`Unable to send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, err);
+		const publishCatch = err => this.logger.error(`Unable to send '${ctx.action.name}' request to '${ctx.nodeID ? ctx.nodeID : "a"}' node.`, err);
 
 		// Add to pendings
 		this.pendingRequests.set(ctx.id, request);

@@ -28,7 +28,14 @@ describe("Test ActionEndpoint", () => {
 		expect(ep.service).toBe(service);
 		expect(ep.action).toBe(action);
 
-		expect(ep.opts).toEqual({"enabled": false, "failureOnReject": true, "failureOnTimeout": true, "halfOpenTime": 10000, "minRequestCount": 20, "threshold": 0.5, "windowTime": 60});
+		expect(ep.opts).toEqual({
+			"enabled": false,
+			"halfOpenTime": 10000,
+			"minRequestCount": 20,
+			"threshold": 0.5,
+			"windowTime": 60,
+			check: jasmine.any(Function),
+		});
 		expect(ep.state).toBe(CIRCUIT_CLOSE);
 		expect(ep.failures).toBe(0);
 		expect(ep.reqCount).toBe(0);
@@ -97,40 +104,13 @@ describe("Test ActionEndpoint circuit-breaker", () => {
 		expect(ep.failures).toBe(0);
 		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
 
-		ep.failure();
-		expect(ep.failures).toBe(0);
-		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
-
-		ep.failure(new RequestTimeoutError());
-		expect(ep.failures).toBe(1);
-		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
-
-		ep.opts.failureOnTimeout = false;
 		ep.failure(new RequestTimeoutError());
 		expect(ep.failures).toBe(1);
 		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
 
 		ep.failure(new MoleculerError("Client error", 404));
-		expect(ep.failures).toBe(1);
-		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
-
-		ep.opts.failureOnReject = false;
-		ep.failure(new MoleculerError("Server error"));
-		expect(ep.failures).toBe(1);
-		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
-
-		ep.opts.failureOnReject = true;
-		ep.failure(new MoleculerError("Server error"));
 		expect(ep.failures).toBe(2);
 		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
-
-		ep.failure(new MoleculerError("Server error"));
-		expect(ep.failures).toBe(3);
-		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
-
-		ep.failure(new MoleculerError("Server error"));
-		expect(ep.failures).toBe(4);
-		expect(ep.circuitOpen).toHaveBeenCalledTimes(1);
 	});
 
 	it("test failure min request count", () => {

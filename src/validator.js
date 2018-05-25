@@ -18,9 +18,6 @@ class ParamValidator {
 
 	init(broker) {
 		this.broker = broker;
-		if (this.broker) {
-			broker.use(this.middleware());
-		}
 	}
 
 	compile(schema) {

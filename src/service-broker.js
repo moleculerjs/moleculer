@@ -23,11 +23,10 @@ const Validator 			= require("./validator");
 const Cachers 				= require("./cachers");
 const Transporters 			= require("./transporters");
 const Serializers 			= require("./serializers");
-const Strategies		 	= require("./strategies");
+const Middlewares			= require("./middlewares");
 const H 					= require("./health");
+const MiddlewareHandler		= require("./middleware");
 const cpuUsage 				= require("./cpu-usage");
-
-const { CIRCUIT_HALF_OPEN } = require("./constants");
 
 /**
  * Default broker options
@@ -41,8 +40,17 @@ const defaultOptions = {
 	logFormatter: "default",
 
 	transporter: null, //"TCP",
+
 	requestTimeout: 0 * 1000,
-	requestRetry: 0,
+	retryPolicy: {
+		enabled: false,
+		retries: 5,
+		delay: 100,
+		maxDelay: 1000,
+		factor: 2,
+		check: err => err && !!err.retryable
+	},
+
 	maxCallLevel: 0,
 	heartbeatInterval: 5,
 	heartbeatTimeout: 15,
@@ -63,8 +71,7 @@ const defaultOptions = {
 		windowTime: 60,
 		minRequestCount: 20,
 		halfOpenTime: 10 * 1000,
-		failureOnTimeout: true,
-		failureOnReject: true
+		check: err => err && err.code >= 500
 	},
 
 	transit: {
@@ -79,6 +86,7 @@ const defaultOptions = {
 	metrics: false,
 	metricsRate: 1,
 	internalServices: true,
+	internalMiddlewares: true,
 
 	hotReload: false,
 
@@ -143,16 +151,16 @@ class ServiceBroker {
 		this.registry = new Registry(this);
 
 		// Middlewares
-		this.middlewares = [];
+		this.middlewares = new MiddlewareHandler(this);
 
 		// Cacher
-		this.cacher = this._resolveCacher(this.options.cacher);
+		this.cacher = Cachers.resolve(this.options.cacher);
 		if (this.cacher) {
 			this.cacher.init(this);
 		}
 
 		// Serializer
-		this.serializer = this._resolveSerializer(this.options.serializer);
+		this.serializer = Serializers.resolve(this.options.serializer);
 		this.serializer.init(this);
 
 		// Validation
@@ -165,7 +173,7 @@ class ServiceBroker {
 
 		// Transit & Transporter
 		if (this.options.transporter) {
-			const tx = this._resolveTransporter(this.options.transporter);
+			const tx = Transporters.resolve(this.options.transporter);
 			this.transit = new Transit(this, tx, this.options.transit);
 
 			const txName = tx.constructor.name;
@@ -179,7 +187,6 @@ class ServiceBroker {
 					this.options.disableBalancer = false;
 				}
 			}
-
 		}
 
 		if (this.options.disableBalancer) {
@@ -190,8 +197,7 @@ class ServiceBroker {
 		this._sampleCount = 0;
 
 		// Register middlewares
-		if (Array.isArray(this.options.middlewares) && this.options.middlewares.length > 0)
-			this.use(...this.options.middlewares);
+		this.registerMiddlewares(this.options.middlewares);
 
 		// Register internal actions
 		if (this.options.internalServices)
@@ -214,126 +220,48 @@ class ServiceBroker {
 		process.on("SIGTERM", this._closeFn);
 	}
 
-	getModuleClass(obj, name) {
-		/* istanbul ignore next */
-		if (!name)
-			return null;
+	/**
+	 * Register middlewares (user & internal)
+	 *
+	 * @memberof ServiceBroker
+	 */
+	registerMiddlewares(userMiddlewares) {
+		// Register user middlewares
+		if (Array.isArray(userMiddlewares) && userMiddlewares.length > 0)
+			this.use(...userMiddlewares);
 
-		let n = Object.keys(obj).find(n => n.toLowerCase() == name.toLowerCase());
-		if (n)
-			return obj[n];
-	}
+		if (this.options.internalMiddlewares) {
+			// Register internal middlewares
 
-	_resolveTransporter(opt) {
-		if (opt instanceof Transporters.Base) {
-			return opt;
-		} else if (_.isString(opt)) {
-			let TransporterClass = this.getModuleClass(Transporters, opt);
-			if (TransporterClass)
-				return new TransporterClass();
+			// 1. Validator
+			if (this.validator && _.isFunction(this.validator.middleware))
+				this.use(this.validator.middleware());
 
-			if (opt.startsWith("nats://"))
-				TransporterClass = Transporters.NATS;
-			else if (opt.startsWith("mqtt://"))
-				TransporterClass = Transporters.MQTT;
-			else if (opt.startsWith("redis://"))
-				TransporterClass = Transporters.Redis;
-			else if (opt.startsWith("amqp://"))
-				TransporterClass = Transporters.AMQP;
-			else if (opt.startsWith("kafka://"))
-				TransporterClass = Transporters.Kafka;
-			else if (opt.startsWith("stan://"))
-				TransporterClass = Transporters.STAN;
-			else if (opt.startsWith("tcp://"))
-				TransporterClass = Transporters.TCP;
+			// 2. Cacher
+			if (this.cacher && _.isFunction(this.cacher.middleware))
+				this.use(this.cacher.middleware());
 
-			if (TransporterClass)
-				return new TransporterClass(opt);
-			else
-				throw new E.MoleculerServerError(`Invalid transporter type '${opt}'.`, null, "INVALID_TRANSPORTER_TYPE", { type: opt });
+			// 3. Context tracker
+			this.use(Middlewares.TrackContext.call(this));
 
-		} else if (_.isObject(opt)) {
-			let TransporterClass = this.getModuleClass(Transporters, opt.type || "NATS");
+			// 4. CircuitBreaker
+			this.use(Middlewares.CircuitBreaker.call(this));
 
-			//let TransporterClass = Transporters[];
-			if (TransporterClass)
-				return new TransporterClass(opt.options);
-			else
-				throw new E.MoleculerServerError(`Invalid transporter type '${opt.type}'.`, null, "INVALID_TRANSPORTER_TYPE", { type: opt.type });
+			// 5. Timeout
+			this.use(Middlewares.Timeout.call(this));
+
+			// 6. Retry
+			this.use(Middlewares.Retry.call(this));
+
+			// 7. Error handler
+			this.use(Middlewares.ErrorHandler.call(this));
+
+			// 8. Metrics
+			this.use(Middlewares.Metrics.call(this));
 		}
 
-		return null;
-	}
+		this.logger.info(`Registered ${this.middlewares.count()} middleware(s).`);
 
-	_resolveCacher(opt) {
-		if (opt instanceof Cachers.Base) {
-			return opt;
-		} else if (opt === true) {
-			return new Cachers.Memory();
-		} else if (_.isString(opt)) {
-			let CacherClass = this.getModuleClass(Cachers, opt);
-			if (CacherClass)
-				return new CacherClass();
-
-			if (opt.startsWith("redis://"))
-				CacherClass = Cachers.Redis;
-
-			if (CacherClass)
-				return new CacherClass(opt);
-			else
-				throw new E.MoleculerServerError(`Invalid cacher type '${opt}'.`, null, "INVALID_CACHER_TYPE", { type: opt });
-
-		} else if (_.isObject(opt)) {
-			let CacherClass = this.getModuleClass(Cachers, opt.type || "Memory");
-			if (CacherClass)
-				return new CacherClass(opt.options);
-			else
-				throw new E.MoleculerServerError(`Invalid cacher type '${opt.type}'.`, null, "INVALID_CACHER_TYPE", { type: opt.type });
-		}
-
-		return null;
-	}
-
-	_resolveSerializer(opt) {
-		if (opt instanceof Serializers.Base) {
-			return opt;
-		} else if (_.isString(opt)) {
-			let SerializerClass = this.getModuleClass(Serializers, opt);
-			if (SerializerClass)
-				return new SerializerClass();
-			else
-				throw new E.MoleculerServerError(`Invalid serializer type '${opt}'.`, null, "INVALID_SERIALIZER_TYPE", { type: opt });
-
-		} else if (_.isObject(opt)) {
-			let SerializerClass = this.getModuleClass(Serializers, opt.type || "JSON");
-			if (SerializerClass)
-				return new SerializerClass(opt.options);
-			else
-				throw new E.MoleculerServerError(`Invalid serializer type '${opt.type}'.`, null, "INVALID_SERIALIZER_TYPE", { type: opt.type });
-		}
-
-		return new Serializers.JSON();
-	}
-
-	_resolveStrategy(opt) {
-		if (Strategies.Base.isPrototypeOf(opt)) {
-			return opt;
-		} else if (_.isString(opt)) {
-			let SerializerClass = this.getModuleClass(Strategies, opt);
-			if (SerializerClass)
-				return SerializerClass;
-			else
-				throw new E.MoleculerServerError(`Invalid strategy type '${opt}'.`, null, "INVALID_STRATEGY_TYPE", { type: opt });
-
-		} else if (_.isObject(opt)) {
-			let SerializerClass = this.getModuleClass(Strategies, opt.type || "RoundRobin");
-			if (SerializerClass)
-				return SerializerClass;
-			else
-				throw new E.MoleculerServerError(`Invalid strategy type '${opt.type}'.`, null, "INVALID_STRATEGY_TYPE", { type: opt.type });
-		}
-
-		return Strategies.RoundRobin;
 	}
 
 	/**
@@ -545,7 +473,7 @@ class ServiceBroker {
 		try {
 			schema = require(fName);
 		} catch (e) {
-			this.logger.error(`Fail load service '${path.basename(fName)}'`, e);
+			this.logger.error(`Failed to load service '${fName}'`, e);
 		}
 
 		let svc;
@@ -711,27 +639,6 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Wrap action handler for middlewares
-	 *
-	 * @param {any} action
-	 *
-	 * @memberof ServiceBroker
-	 */
-	wrapAction(action) {
-		let handler = action.handler;
-		if (this.middlewares.length) {
-			let mws = Array.from(this.middlewares);
-			handler = mws.reduce((handler, mw) => {
-				return mw(handler, action);
-			}, handler);
-		}
-
-		action.handler = handler;
-
-		return action;
-	}
-
-	/**
 	 * Register internal services
 	 *
 	 * @memberof ServiceBroker
@@ -805,32 +712,29 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	use(...mws) {
-		mws.forEach(mw => {
-			if (mw)
-				this.middlewares.push(mw);
-		});
+		mws.forEach(mw => this.middlewares.add(mw));
 	}
 
 	/**
 	 * Find the next available endpoint for action
 	 *
 	 * @param {String} actionName
-	 * @param {Object} opts
+	 * @param {String?} nodeID
 	 * @returns {Endpoint|Error}
 	 *
 	 * @performance-critical
 	 * @memberof ServiceBroker
 	 */
-	findNextActionEndpoint(actionName, opts = {}) {
+	findNextActionEndpoint(actionName, nodeID) {
 		if (typeof actionName !== "string") {
 			return actionName;
 		} else {
-			if (opts.nodeID) {
+			if (nodeID) {
 				// Direct call
-				const endpoint = this.registry.getActionEndpointByNodeId(actionName, opts.nodeID);
+				const endpoint = this.registry.getActionEndpointByNodeId(actionName, nodeID);
 				if (!endpoint) {
-					this.logger.warn(`Service '${actionName}' is not found on '${opts.nodeID}' node.`);
-					return new E.ServiceNotFoundError(actionName, opts.nodeID);
+					this.logger.warn(`Service '${actionName}' is not found on '${nodeID}' node.`);
+					return new E.ServiceNotFoundError(actionName, nodeID);
 				}
 				return endpoint;
 
@@ -866,45 +770,34 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	call(actionName, params, opts = {}) {
-		const endpoint = this.findNextActionEndpoint(actionName, opts);
+		const endpoint = this.findNextActionEndpoint(actionName, opts.nodeID);
 		if (endpoint instanceof Error)
 			return Promise.reject(endpoint);
-
-		// Add trackContext option from broker options
-		if (opts.trackContext === undefined && this.options.trackContext)
-			opts.trackContext = this.options.trackContext;
-
-		// Load opts with default values
-		if (opts.timeout == null)
-			opts.timeout = this.options.requestTimeout || 0;
-
-		if (opts.retryCount == null)
-			opts.retryCount = this.options.requestRetry || 0;
 
 		// Create context
 		let ctx;
 		if (opts.ctx != null) {
 			// Reused context
 			ctx = opts.ctx;
+			ctx.endpoint = endpoint;
 			ctx.nodeID = endpoint.id;
 			ctx.action = endpoint.action;
 		} else {
 			// New root context
-			ctx = this.ContextFactory.create(this, endpoint.action, endpoint.id, params, opts);
+			ctx = this.ContextFactory.create(this, endpoint, params, opts);
 		}
 
-		// Handle half-open state in circuit breaker
-		if (this.options.circuitBreaker.enabled && endpoint.state == CIRCUIT_HALF_OPEN) {
-			endpoint.circuitHalfOpenWait();
-		}
+		if (ctx.endpoint.local)
+			this.logger.debug("Call action locally.", { action: ctx.action.name, requestID: ctx.requestID });
+		else
+			this.logger.debug("Call action on remote node.", { action: ctx.action.name, nodeID: ctx.nodeID, requestID: ctx.requestID });
 
-		if (endpoint.local) {
-			// Local call
-			return this._localCall(ctx, endpoint, opts);
-		} else {
-			// Remote call
-			return this._remoteCall(ctx, endpoint, opts);
-		}
+		let p = endpoint.action.handler(ctx);
+
+		// Pointer to Context
+		p.ctx = ctx;
+
+		return p;
 	}
 
 	/**
@@ -915,159 +808,60 @@ class ServiceBroker {
 	 *
 	 * @param {String} actionName	name of action
 	 * @param {Object?} params		params of action
-	 * @param {Object?} opts		options of call (optional)
-	 * @returns {Promise}
+	 * @param {Object?} opts 		options of call (optional)
 	 * @returns {Promise}
 	 *
 	 * @private
 	 * @memberof ServiceBroker
 	 */
 	callWithoutBalancer(actionName, params, opts = {}) {
-		// Add trackContext option from broker options
-		if (opts.trackContext === undefined && this.options.trackContext)
-			opts.trackContext = this.options.trackContext;
-
-		if (opts.timeout == null)
-			opts.timeout = this.options.requestTimeout || 0;
-
-		if (opts.retryCount == null)
-			opts.retryCount = this.options.requestRetry || 0;
-
 		let nodeID = null;
+		let endpoint = null;
 		if (typeof actionName !== "string") {
-			const endpoint = actionName;
+			endpoint = actionName;
 			actionName = endpoint.action.name;
 			nodeID = endpoint.id;
 		} else {
 			if (opts.nodeID) {
 				nodeID = opts.nodeID;
+				endpoint = this.registry.getActionEndpointByNodeId(actionName, nodeID);
+				if (!endpoint) {
+					this.logger.warn(`Service '${actionName}' is not found on '${nodeID}' node.`);
+					return Promise.reject(new E.ServiceNotFoundError(actionName, nodeID));
+				}
 			} else {
 				// Get endpoint list by action name
 				const epList = this.registry.getActionEndpoints(actionName);
 				if (epList == null) {
 					this.logger.warn(`Service '${actionName}' is not registered.`);
-					return Promise.reject(new E.ServiceNotFoundError(actionName, this.nodeID));
+					return Promise.reject(new E.ServiceNotFoundError(actionName));
+				}
+
+				endpoint = epList.getFirst();
+				if (endpoint == null) {
+					const errMsg = `Service '${actionName}' is not available.`;
+					this.logger.warn(errMsg);
+					return Promise.reject(new E.ServiceNotAvailable(actionName));
 				}
 			}
 		}
 
 		// Create context
 		let ctx;
-		let action = { name: actionName };
 		if (opts.ctx != null) {
 			// Reused context
 			ctx = opts.ctx;
-			ctx.nodeID = nodeID;
-			ctx.action = { name: actionName };
+			ctx.endpoint = endpoint;
+			ctx.action = endpoint.action;
 		} else {
 			// New root context
-			ctx = this.ContextFactory.create(this, action, nodeID, params, opts);
+			ctx = this.ContextFactory.create(this, endpoint, params, opts);
 		}
+		ctx.nodeID = nodeID;
 
-		return this._remoteCall(ctx, null, opts);
-	}
+		this.logger.debug("Call action on a node.", { action: ctx.action.name, nodeID: ctx.nodeID, requestID: ctx.requestID });
 
-	/**
-	 * Call the context locally
-	 *
-	 * @param {Context} ctx
-	 * @param {Endpoint} endpoint
-	 * @param {Object} opts
-	 * @returns {Promise}
-	 *
-	 * @performance-critical
-	 * @memberof ServiceBroker
-	 */
-	_localCall(ctx, endpoint, opts) {
-		let action = ctx.action;
-
-		this.logger.debug(`Call '${ctx.action.name}' action locally.`, { requestID: ctx.requestID });
-
-		// Add metrics start
-		if (ctx.metrics === true || ctx.timeout > 0)
-			ctx._metricStart(ctx.metrics);
-
-		let p = action.handler(ctx);
-
-		// Timeout handler
-		if (ctx.timeout > 0 && p.timeout)
-			p = p.timeout(ctx.timeout);
-
-		if (ctx.metrics === true) {
-			// Add metrics
-			p = p.then(res => {
-				this._finishCall(ctx, null);
-				return res;
-			});
-		}
-
-		// Timeout handler
-		if (ctx.timeout > 0 && p.timeout)
-			p = p.timeout(ctx.timeout);
-
-		// Handle half-open state in circuit breaker
-		if (this.options.circuitBreaker.enabled) {
-			p = p.then(res => {
-				endpoint.success();
-				return res;
-			});
-		}
-
-		// Remove the context from the active contexts list
-		if (ctx.tracked) {
-			p = p.then(res => {
-				ctx.dispose();
-				return res;
-			});
-		}
-
-		// Error handler
-		p = p.catch(err => this._callErrorHandler(err, ctx, endpoint, opts));
-
-		// Pointer to Context
-		p.ctx = ctx;
-
-		return p;
-	}
-
-	/**
-	 * Call the context on a remote node
-	 *
-	 * @param {Context} ctx
-	 * @param {Endpoint} endpoint
-	 * @param {Object} opts
-	 * @returns {Promise}
-	 *
-	 * @performance-critical
-	 * @memberof ServiceBroker
-	 */
-	_remoteCall(ctx, endpoint, opts) {
-		this.logger.debug(`Call '${ctx.action.name}' action on '${ctx.nodeID ? ctx.nodeID : "some"}' node.`, { requestID: ctx.requestID });
-
-		let p = this.transit.request(ctx);
-
-		// Timeout handler
-		if (ctx.timeout > 0 && p.timeout)
-			p = p.timeout(ctx.timeout);
-
-		// Remove the context from the active contexts list
-		if (ctx.tracked) {
-			p = p.then(res => {
-				ctx.dispose();
-				return res;
-			});
-		}
-
-		// Handle half-open state in circuit breaker
-		if (this.options.circuitBreaker.enabled && endpoint) {
-			p = p.then(res => {
-				endpoint.success();
-				return res;
-			});
-		}
-
-		// Error handler
-		p = p.catch(err => this._callErrorHandler(err, ctx, endpoint, opts));
+		let p = endpoint.action.remoteHandler(ctx);
 
 		// Pointer to Context
 		p.ctx = ctx;
@@ -1091,99 +885,6 @@ class ServiceBroker {
 		}
 
 		return endpoint;
-	}
-
-	/**
-	 * Handle a remote request (call a local action).
-	 * It's called from Transit if a request is received
-	 * from a remote node.
-	 *
-	 * @param {Context} ctx
-	 * @returns {Promise}
-	 *
-	 * @private
-	 * @memberof ServiceBroker
-	 */
-	_handleRemoteRequest(ctx, endpoint) {
-		// Load opts
-		let opts = {
-			timeout: ctx.timeout || this.options.requestTimeout || 0
-		};
-
-		// Local call
-		const p = this._localCall(ctx, endpoint, opts);
-
-		return p;
-	}
-
-	/**
-	 * Error handler for `call` method
-	 *
-	 * @param {Error} err
-	 * @param {Context} ctx
-	 * @param {Endpoint} endpoint
-	 * @param {Object} opts
-	 * @returns
-	 *
-	 * @memberof ServiceBroker
-	 */
-	_callErrorHandler(err, ctx, endpoint, opts) {
-		const actionName = ctx.action.name;
-		const nodeID = ctx.nodeID;
-
-		if (!(err instanceof Error)) {
-			err = new E.MoleculerError(err, 500);
-		}
-		if (err instanceof Promise.TimeoutError)
-			err = new E.RequestTimeoutError(actionName, nodeID);
-
-		err.ctx = ctx;
-
-		if (ctx.tracked) {
-			ctx.dispose();
-		}
-
-		if (nodeID != this.nodeID) {
-			// Remove pending request (the request didn't reach the target service)
-			this.transit.removePendingRequest(ctx.id);
-		}
-
-		// Only failure if error received from the direct requested node.
-		if (this.options.circuitBreaker.enabled && endpoint && (!err.nodeID || err.nodeID == ctx.nodeID)) {
-			endpoint.failure(err);
-		}
-
-		if (err.retryable) {
-			// Retry request
-			if (ctx.retryCount-- > 0) {
-				this.logger.warn(`Action '${actionName}' timed out on '${nodeID}'.`, { requestID: ctx.requestID });
-				this.logger.warn(`Retry to call '${actionName}' action (${ctx.retryCount + 1})...`, { requestID: ctx.requestID });
-
-				opts.ctx = ctx; // Reuse this context
-				return this.call(actionName, ctx.params, opts);
-			}
-		}
-
-		this.logger.debug(`Call '${ctx.action.name}' action is rejected.`, { requestID: ctx.requestID }, err);
-
-		this._finishCall(ctx, err);
-
-		// Handle fallback response
-		if (opts.fallbackResponse) {
-			this.logger.warn(`Calling '${actionName}' action returns with fallback response.`, { requestID: ctx.requestID });
-			if (_.isFunction(opts.fallbackResponse))
-				return opts.fallbackResponse(ctx, err);
-			else
-				return Promise.resolve(opts.fallbackResponse);
-		}
-
-		return Promise.reject(err);
-	}
-
-	_finishCall(ctx, err) {
-		if (ctx.metrics) {
-			ctx._metricFinish(err, ctx.metrics);
-		}
 	}
 
 	/**
@@ -1233,25 +934,6 @@ class ServiceBroker {
 			return Promise.all(p).then(() => results);
 		} else
 			throw new E.MoleculerServerError("Invalid calling definition.", 500, "INVALID_PARAMETERS");
-	}
-
-	/**
-	 * Check should metric the current call
-	 *
-	 * @returns
-	 *
-	 * @memberof ServiceBroker
-	 */
-	shouldMetric() {
-		if (this.options.metrics) {
-			this._sampleCount++;
-			if (this._sampleCount * this.options.metricsRate >= 1.0) {
-				this._sampleCount = 0;
-				return true;
-			}
-
-		}
-		return false;
 	}
 
 	/**

@@ -508,6 +508,7 @@ describe("Test Transit._requestHandler", () => {
 
 	transit.sendResponse = jest.fn(() => Promise.resolve());
 
+	let handler = jest.fn(() => Promise.resolve([1, 5, 8]));
 	let ep = {
 		id: broker.nodeID,
 		local: true,
@@ -516,22 +517,21 @@ describe("Test Transit._requestHandler", () => {
 			service: {
 				name: "posts",
 				_addActiveContext: jest.fn()
-			}
+			},
+			handler
 		}
 	};
 
-	it("should call broker._handleRemoteRequest & sendResponse with result", () => {
-		let response = [1, 5, 8];
+	it("should call handler & sendResponse with result", () => {
 		broker._getLocalActionEndpoint = jest.fn(() => ep);
-		broker._handleRemoteRequest = jest.fn(() => Promise.resolve(response));
 
 		let payload = { ver: "3", sender: "remote", action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456", timeout: 567 };
 
 		return transit._requestHandler(payload).catch(protectReject).then(() => {
 
-			expect(broker._handleRemoteRequest).toHaveBeenCalledTimes(1);
-			const ctx = broker._handleRemoteRequest.mock.calls[0][0];
-			expect(broker._handleRemoteRequest).toHaveBeenCalledWith(ctx, ep);
+			expect(handler).toHaveBeenCalledTimes(1);
+			const ctx = handler.mock.calls[0][0];
+			expect(handler).toHaveBeenCalledWith(ctx);
 
 			// Check context props
 			expect(ctx).toBeInstanceOf(Context);
@@ -543,30 +543,32 @@ describe("Test Transit._requestHandler", () => {
 			expect(ctx.meta).toEqual({ b: 100 });
 			expect(ctx.metrics).toBe(true);
 			expect(ctx.level).toBe(5);
-			expect(ctx.timeout).toBe(567);
-			expect(ctx.tracked).toBe(true);
+			expect(ctx.options.timeout).toBe(567);
 
 			expect(transit.sendResponse).toHaveBeenCalledTimes(1);
 			expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", { b: 100 }, [1, 5, 8], null);
 		});
 	});
 
-	it("should call broker._handleRemoteRequest & sendResponse with error", () => {
+	it("should call handler & sendResponse with error", () => {
 		transit.sendResponse.mockClear();
-		broker._handleRemoteRequest = jest.fn(() => Promise.reject(new E.ValidationError("Not valid params")));
+		handler = jest.fn(() => Promise.reject(new E.ValidationError("Not valid params")));
+		ep.action.handler = handler;
+		broker.options.requestTimeout = 2600;
 
 		let payload = { ver: "3", sender: "remote", action: "posts.create", id: "123", params: { title: "Hello" }, meta: { b: 100 } };
 		return transit._requestHandler(payload).then(protectReject).catch(() => {
 
-			expect(broker._handleRemoteRequest).toHaveBeenCalledTimes(1);
-			const ctx = broker._handleRemoteRequest.mock.calls[0][0];
-			expect(broker._handleRemoteRequest).toHaveBeenCalledWith(ctx, ep);
+			expect(handler).toHaveBeenCalledTimes(1);
+			const ctx = handler.mock.calls[0][0];
+			expect(handler).toHaveBeenCalledWith(ctx);
 
 			// Check context props
 			expect(ctx).toBeInstanceOf(Context);
 			expect(ctx.id).toBe("123");
 			expect(ctx.params).toEqual({"title": "Hello"});
 			expect(ctx.meta).toEqual({ b: 100 });
+			expect(ctx.options.timeout).toBe(2600);
 
 			expect(transit.sendResponse).toHaveBeenCalledTimes(1);
 			expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", { b: 100 }, null, jasmine.any(E.ValidationError));
@@ -706,7 +708,7 @@ describe("Test Transit.request", () => {
 	const transit = broker.transit;
 
 	it("should create packet", () => {
-		let ctx = new Context(broker, { name: "users.find" });
+		let ctx = new Context(broker, { action: { name: "users.find" } });
 		ctx.nodeID = "remote";
 		ctx.params = { a: 5 };
 		ctx.meta = {
@@ -715,7 +717,7 @@ describe("Test Transit.request", () => {
 				roles: [ "user" ]
 			}
 		},
-		ctx.timeout = 500;
+		ctx.options.timeout = 500;
 		ctx.id = "12345";
 		ctx.requestID = "1111";
 
@@ -801,13 +803,14 @@ describe("Test Transit.removePendingRequestByNodeID", () => {
 
 	const resolve = jest.fn();
 	const reject = jest.fn();
-	const ctx = new Context(broker, { name: "users.create"});
+	const ep = { action: { name: "users.create"}, node: { id: "node1" }};
+	const ctx = new Context(broker, ep);
 	ctx.id = 1;
 	ctx.nodeID = "node2";
 
 	const resolve2 = jest.fn();
 	const reject2 = jest.fn();
-	const ctx2 = new Context(broker, { name: "users.create"});
+	const ctx2 = new Context(broker, ep);
 	ctx.id = 2;
 	ctx2.nodeID = "node3";
 

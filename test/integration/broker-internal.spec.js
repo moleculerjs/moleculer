@@ -46,7 +46,7 @@ describe("Test internal services", () => {
 	beforeAll(() => Promise.all([broker.start()]));
 	afterAll(() => Promise.all([broker.stop()]));
 
-	it("should register $node.stats internal action", () => {
+	it("should register $node internal actions", () => {
 		expect(broker.registry.actions.isAvailable("$node.list")).toBe(true);
 		expect(broker.registry.actions.isAvailable("$node.services")).toBe(true);
 		expect(broker.registry.actions.isAvailable("$node.actions")).toBe(true);
