@@ -159,16 +159,12 @@ class RequestTimeoutError extends MoleculerRetryableError {
 	/**
 	 * Creates an instance of RequestTimeoutError.
 	 *
-	 * @param {String} action
-	 * @param {String} nodeID
+	 * @param {Object} data
 	 *
 	 * @memberof RequestTimeoutError
 	 */
-	constructor(action, nodeID) {
-		super(`Request is timed out when call '${action}' action on '${nodeID}' node.`, 504, null, {
-			action,
-			nodeID
-		});
+	constructor(data) {
+		super(`Request is timed out when call '${data.action}' action on '${data.nodeID}' node.`, 504, "REQUEST_TIMEOUT", data);
 	}
 }
 
@@ -182,16 +178,12 @@ class RequestSkippedError extends MoleculerError {
 	/**
 	 * Creates an instance of RequestSkippedError.
 	 *
-	 * @param {String} action
-	 * @param {String} nodeID
+	 * @param {Object} data
 	 *
 	 * @memberof RequestSkippedError
 	 */
-	constructor(action, nodeID) {
-		super(`Calling '${action}' is skipped because timeout reached on '${nodeID}' node.`, 514, null, {
-			action,
-			nodeID
-		});
+	constructor(data) {
+		super(`Calling '${data.action}' is skipped because timeout reached on '${data.nodeID}' node.`, 514, "REQUEST_SKIPPED", data);
 		this.retryable = false;
 	}
 }
@@ -206,16 +198,12 @@ class RequestRejectedError extends MoleculerRetryableError {
 	/**
 	 * Creates an instance of RequestRejectedError.
 	 *
-	 * @param {String} action
-	 * @param {String} nodeID
+	 * @param {Object} data
 	 *
 	 * @memberof RequestRejectedError
 	 */
-	constructor(action, nodeID) {
-		super(`Request is rejected when call '${action}' action on '${nodeID}' node.`, 503, null, {
-			action,
-			nodeID
-		});
+	constructor(data) {
+		super(`Request is rejected when call '${data.action}' action on '${data.nodeID}' node.`, 503, "REQUEST_REJECTED", data);
 	}
 }
 
@@ -229,20 +217,12 @@ class QueueIsFullError extends MoleculerRetryableError {
 	/**
 	 * Creates an instance of QueueIsFullError.
 	 *
-	 * @param {String} action
-	 * @param {String} nodeID
-	 * @param {Number} size
-	 * @param {Number} limit
+	 * @param {Object} data
 	 *
 	 * @memberof QueueIsFullError
 	 */
-	constructor(action, nodeID, size, limit) {
-		super(`Queue is full. Request '${action}' action on '${nodeID}' node is rejected.`, 429, null, {
-			action,
-			nodeID,
-			size,
-			limit
-		});
+	constructor(data) {
+		super(`Queue is full. Request '${data.action}' action on '${data.nodeID}' node is rejected.`, 429, "QUEUE_FULL", data);
 	}
 }
 
@@ -263,7 +243,7 @@ class ValidationError extends MoleculerClientError {
 	 * @memberof ValidationError
 	 */
 	constructor(message, type, data) {
-		super(message, 422, type, data);
+		super(message, 422, type || "VALIDATION_ERROR", data);
 	}
 }
 
@@ -277,13 +257,12 @@ class MaxCallLevelError extends MoleculerError {
 	/**
 	 * Creates an instance of MaxCallLevelError.
 	 *
-	 * @param {String} nodeID
-	 * @param {Number} level
+	 * @param {Object} data
 	 *
 	 * @memberof MaxCallLevelError
 	 */
-	constructor(nodeID, level) {
-		super(`Request level is reached the limit (${level}) on '${nodeID}' node.`, 500, null, { level });
+	constructor(data) {
+		super(`Request level is reached the limit (${data.level}) on '${data.nodeID}' node.`, 500, "MAX_CALL_LEVEL", data);
 		this.retryable = false;
 	}
 }
@@ -302,7 +281,7 @@ class ServiceSchemaError extends MoleculerError {
 	 * @memberof ServiceSchemaError
 	 */
 	constructor(msg) {
-		super(msg, 500, null);
+		super(msg, 500, "SERVICE_SCHEMA_ERROR");
 	}
 }
 
@@ -316,13 +295,13 @@ class GracefulStopTimeoutError extends MoleculerError {
 	/**
 	 * Creates an instance of GracefulStopTimeoutError.
 	 *
-	 * @param {Service} service
+	 * @param {Object} data
 	 * @memberof GracefulStopTimeoutError
 	 */
-	constructor(service) {
-		super(`Unable to stop '${service.name}' service gracefully.`, 500, null, {
-			name: service.name,
-			version: service.version
+	constructor(data) {
+		super(`Unable to stop '${data.service.name}' service gracefully.`, 500, "GRACEFUL_STOP_TIMEOUT", {
+			name: data.service.name,
+			version: data.service.version
 		});
 	}
 }
@@ -337,12 +316,12 @@ class ProtocolVersionMismatchError extends MoleculerError {
 	/**
 	 * Creates an instance of ProtocolVersionMismatchError.
 	 *
-	 * @param {String} action
+	 * @param {Object} data
 	 *
 	 * @memberof ProtocolVersionMismatchError
 	 */
-	constructor(nodeID, actual, received) {
-		super("Protocol version mismatch.", 500, null, { nodeID, actual, received });
+	constructor(data) {
+		super("Protocol version mismatch.", 500, "PROTOCOL_VERSION_MISMATCH", data);
 	}
 }
 
@@ -356,13 +335,12 @@ class InvalidPacketDataError extends MoleculerError {
 	/**
 	 * Creates an instance of InvalidPacketDataError.
 	 *
-	 * @param {String} type
-	 * @param {Object} payload
+	 * @param {Object} data
 	 *
 	 * @memberof InvalidPacketDataError
 	 */
-	constructor(type, payload) {
-		super("Invalid packet data.", 500, null, { type, payload });
+	constructor(data) {
+		super("Invalid packet data.", 500, "INVALID_PACKET_DATA", data);
 	}
 }
 

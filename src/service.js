@@ -231,7 +231,7 @@ class Service {
 	_stop() {
 		return new this.Promise((resolve) => {
 			const timeout = setTimeout(() => {
-				this.logger.error(new GracefulStopTimeoutError(this));
+				this.logger.error(new GracefulStopTimeoutError({ service: this }));
 				resolve();
 			}, this.settings.$gracefulStopTimeout || this.broker.options.gracefulStopTimeout);
 

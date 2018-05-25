@@ -8,7 +8,6 @@
 
 const _ = require("lodash");
 const { CIRCUIT_CLOSE, CIRCUIT_HALF_OPEN, CIRCUIT_HALF_OPEN_WAIT, CIRCUIT_OPEN } = require("../constants");
-const { RequestTimeoutError } = require("../errors");
 
 const ActionEndpoint = require("./endpoint-action");
 

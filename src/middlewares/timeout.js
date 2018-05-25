@@ -30,7 +30,7 @@ function wrapTimeoutMiddleware(handler, action) {
 						const actionName = ctx.action.name;
 						const nodeID = ctx.nodeID;
 						this.logger.warn(`Request '${actionName}' is timed out.`, { requestID: ctx.requestID, nodeID, timeout: ctx.options.timeout });
-						err = new RequestTimeoutError(actionName, nodeID);
+						err = new RequestTimeoutError({ action: actionName, nodeID });
 					}
 					return this.Promise.reject(err);
 				});

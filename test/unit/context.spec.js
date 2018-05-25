@@ -268,7 +268,7 @@ describe("Test call method", () => {
 			expect(broker.call).toHaveBeenCalledTimes(0);
 			expect(err).toBeInstanceOf(MaxCallLevelError);
 			expect(err.code).toBe(500);
-			expect(err.data).toEqual({ level: 5 });
+			expect(err.data).toEqual({ nodeID: broker.nodeID, level: 5 });
 		});
 	});
 });

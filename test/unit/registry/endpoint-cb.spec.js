@@ -104,7 +104,7 @@ describe("Test ActionEndpoint circuit-breaker", () => {
 		expect(ep.failures).toBe(0);
 		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
 
-		ep.failure(new RequestTimeoutError());
+		ep.failure(new RequestTimeoutError({}));
 		expect(ep.failures).toBe(1);
 		expect(ep.circuitOpen).toHaveBeenCalledTimes(0);
 

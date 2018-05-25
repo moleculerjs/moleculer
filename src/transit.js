@@ -233,7 +233,7 @@ class Transit {
 
 			// Check protocol version
 			if (payload.ver != this.broker.PROTOCOL_VERSION) {
-				throw new E.ProtocolVersionMismatchError(payload.sender, this.broker.PROTOCOL_VERSION, payload.ver);
+				throw new E.ProtocolVersionMismatchError({ nodeID: payload.sender, actual: this.broker.PROTOCOL_VERSION, received: payload.ver });
 			}
 
 			// Skip own packets (if only built-in balancer disabled)
@@ -488,7 +488,7 @@ class Transit {
 	 */
 	request(ctx) {
 		if (this.opts.maxQueueSize && this.pendingRequests.size > this.opts.maxQueueSize)
-			return Promise.reject(new E.QueueIsFullError(ctx.action.name, this.nodeID, this.pendingRequests.length, this.opts.maxQueueSize));
+			return Promise.reject(new E.QueueIsFullError({ action: ctx.action.name, nodeID: this.nodeID, size: this.pendingRequests.length, limit: this.opts.maxQueueSize }));
 
 		// Expanded the code that v8 can optimize it.  (TryCatchStatement disable optimizing)
 		return new Promise((resolve, reject) => this._sendRequest(ctx, resolve, reject));
@@ -674,7 +674,7 @@ class Transit {
 				this.pendingRequests.delete(id);
 
 				// Reject the request
-				req.reject(new E.RequestRejectedError(req.action.name, req.nodeID));
+				req.reject(new E.RequestRejectedError({ action: req.action.name, nodeID: req.nodeID }));
 
 				this.pendingReqStreams.delete(id);
 				this.pendingResStreams.delete(id);

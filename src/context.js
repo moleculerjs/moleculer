@@ -193,7 +193,7 @@ class Context {
 			const distTimeout = this.options.timeout - duration;
 
 			if (distTimeout <= 0) {
-				return Promise.reject(new RequestSkippedError(actionName, this.broker.nodeID));
+				return Promise.reject(new RequestSkippedError({ action: actionName, nodeID: this.broker.nodeID }));
 			}
 
 			if (!opts.timeout || distTimeout < opts.timeout)
@@ -202,7 +202,7 @@ class Context {
 
 		// Max calling level check to avoid calling loops
 		if (this.broker.options.maxCallLevel > 0 && this.level >= this.broker.options.maxCallLevel) {
-			return Promise.reject(new MaxCallLevelError(this.broker.nodeID, this.level));
+			return Promise.reject(new MaxCallLevelError({ nodeID: this.broker.nodeID, level: this.level }));
 		}
 
 		let p = this.broker.call(actionName, params, opts);

@@ -68,6 +68,7 @@ describe("Test Errors", () => {
 		expect(err).toBeInstanceOf(errors.ServiceNotFoundError);
 		expect(err.code).toBe(404);
 		expect(err.name).toBe("ServiceNotFoundError");
+		expect(err.type).toBe("SERVICE_NOT_FOUND");
 		expect(err.message).toBe("Service 'posts.find' is not found.");
 		expect(err.data).toEqual({ action: "posts.find" });
 		expect(err.retryable).toBe(true);
@@ -82,6 +83,7 @@ describe("Test Errors", () => {
 		expect(err.code).toBe(404);
 		expect(err.name).toBe("ServiceNotFoundError");
 		expect(err.message).toBe("Service 'posts.find' is not found on 'node-2' node.");
+		expect(err.type).toBe("SERVICE_NOT_FOUND");
 		expect(err.data).toEqual({ action: "posts.find", nodeID: "node-2" });
 		expect(err.retryable).toBe(true);
 	});
@@ -95,6 +97,7 @@ describe("Test Errors", () => {
 		expect(err.code).toBe(404);
 		expect(err.name).toBe("ServiceNotAvailableError");
 		expect(err.message).toBe("Service 'posts.find' is not available.");
+		expect(err.type).toBe("SERVICE_NOT_AVAILABLE");
 		expect(err.data).toEqual({ action: "posts.find" });
 		expect(err.retryable).toBe(true);
 	});
@@ -108,12 +111,13 @@ describe("Test Errors", () => {
 		expect(err.code).toBe(404);
 		expect(err.name).toBe("ServiceNotAvailableError");
 		expect(err.message).toBe("Service 'posts.find' is not available on 'server-2' node.");
+		expect(err.type).toBe("SERVICE_NOT_AVAILABLE");
 		expect(err.data).toEqual({ action: "posts.find", nodeID: "server-2" });
 		expect(err.retryable).toBe(true);
 	});
 
 	it("test RequestTimeoutError", () => {
-		let err = new errors.RequestTimeoutError("posts.find", "server-2");
+		let err = new errors.RequestTimeoutError({ action: "posts.find", nodeID: "server-2" });
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err).toBeInstanceOf(errors.MoleculerRetryableError);
@@ -121,12 +125,13 @@ describe("Test Errors", () => {
 		expect(err.code).toBe(504);
 		expect(err.name).toBe("RequestTimeoutError");
 		expect(err.message).toBe("Request is timed out when call 'posts.find' action on 'server-2' node.");
+		expect(err.type).toBe("REQUEST_TIMEOUT");
 		expect(err.data.nodeID).toBe("server-2");
 		expect(err.retryable).toBe(true);
 	});
 
 	it("test RequestSkippedError", () => {
-		let err = new errors.RequestSkippedError("posts.find", "server-3");
+		let err = new errors.RequestSkippedError({ action: "posts.find", nodeID: "server-3" });
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err).toBeInstanceOf(errors.MoleculerError);
@@ -134,13 +139,14 @@ describe("Test Errors", () => {
 		expect(err.code).toBe(514);
 		expect(err.name).toBe("RequestSkippedError");
 		expect(err.message).toBe("Calling 'posts.find' is skipped because timeout reached on 'server-3' node.");
+		expect(err.type).toBe("REQUEST_SKIPPED");
 		expect(err.data.action).toBe("posts.find");
 		expect(err.data.nodeID).toBe("server-3");
 		expect(err.retryable).toBe(false);
 	});
 
 	it("test RequestRejectedError", () => {
-		let err = new errors.RequestRejectedError("posts.find", "server-3");
+		let err = new errors.RequestRejectedError({ action: "posts.find", nodeID: "server-3" });
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err).toBeInstanceOf(errors.MoleculerRetryableError);
@@ -148,13 +154,14 @@ describe("Test Errors", () => {
 		expect(err.code).toBe(503);
 		expect(err.name).toBe("RequestRejectedError");
 		expect(err.message).toBe("Request is rejected when call 'posts.find' action on 'server-3' node.");
+		expect(err.type).toBe("REQUEST_REJECTED");
 		expect(err.data.action).toBe("posts.find");
 		expect(err.data.nodeID).toBe("server-3");
 		expect(err.retryable).toBe(true);
 	});
 
 	it("test QueueIsFullError", () => {
-		let err = new errors.QueueIsFullError("posts.find", "server-3", 100, 50);
+		let err = new errors.QueueIsFullError({ action: "posts.find", nodeID: "server-3", size: 100, limit: 50 });
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err).toBeInstanceOf(errors.MoleculerRetryableError);
@@ -162,6 +169,7 @@ describe("Test Errors", () => {
 		expect(err.code).toBe(429);
 		expect(err.name).toBe("QueueIsFullError");
 		expect(err.message).toBe("Queue is full. Request 'posts.find' action on 'server-3' node is rejected.");
+		expect(err.type).toBe("QUEUE_FULL");
 		expect(err.data.action).toBe("posts.find");
 		expect(err.data.nodeID).toBe("server-3");
 		expect(err.data.size).toBe(100);
@@ -185,15 +193,16 @@ describe("Test Errors", () => {
 	});
 
 	it("test MaxCallLevelError", () => {
-		let err = new errors.MaxCallLevelError("server-2", 10);
+		let err = new errors.MaxCallLevelError({ nodeID: "server-2", level: 10 });
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err).toBeInstanceOf(errors.MoleculerError);
 		expect(err).toBeInstanceOf(errors.MaxCallLevelError);
 		expect(err.code).toBe(500);
 		expect(err.name).toBe("MaxCallLevelError");
+		expect(err.type).toBe("MAX_CALL_LEVEL");
 		expect(err.message).toBe("Request level is reached the limit (10) on 'server-2' node.");
-		expect(err.data).toEqual({ level: 10 });
+		expect(err.data).toEqual({ nodeID: "server-2", level: 10 });
 		expect(err.retryable).toBe(false);
 	});
 
@@ -205,19 +214,19 @@ describe("Test Errors", () => {
 		expect(err.name).toBe("ServiceSchemaError");
 		expect(err.message).toBe("Invalid schema def.");
 		expect(err.code).toBe(500);
-		expect(err.type).toBeNull();
+		expect(err.type).toBe("SERVICE_SCHEMA_ERROR");
 		expect(err.data).toBeUndefined();
 	});
 
 	it("test GracefulStopTimeoutError", () => {
-		let err = new errors.GracefulStopTimeoutError({ name: "posts", version: 2 });
+		let err = new errors.GracefulStopTimeoutError({ service: { name: "posts", version: 2 }});
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err).toBeInstanceOf(errors.GracefulStopTimeoutError);
 		expect(err.name).toBe("GracefulStopTimeoutError");
 		expect(err.message).toBe("Unable to stop 'posts' service gracefully.");
 		expect(err.code).toBe(500);
-		expect(err.type).toBeNull();
+		expect(err.type).toBe("GRACEFUL_STOP_TIMEOUT");
 		expect(err.data).toEqual({
 			name: "posts",
 			version: 2
@@ -225,25 +234,27 @@ describe("Test Errors", () => {
 	});
 
 	it("test ProtocolVersionMismatchError", () => {
-		let err = new errors.ProtocolVersionMismatchError("server-2", "2", "1");
+		let err = new errors.ProtocolVersionMismatchError({ nodeID: "server-2", actual: "2", received: "1" });
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err).toBeInstanceOf(errors.ProtocolVersionMismatchError);
 		expect(err.code).toBe(500);
 		expect(err.name).toBe("ProtocolVersionMismatchError");
 		expect(err.message).toBe("Protocol version mismatch.");
+		expect(err.type).toBe("PROTOCOL_VERSION_MISMATCH");
 		expect(err.data).toEqual({ nodeID: "server-2", actual: "2", received: "1" });
 		expect(err.retryable).toBe(false);
 	});
 
 	it("test InvalidPacketDataError", () => {
 		let payload = {};
-		let err = new errors.InvalidPacketDataError("INFO", payload);
+		let err = new errors.InvalidPacketDataError({ type: "INFO", payload });
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err).toBeInstanceOf(errors.InvalidPacketDataError);
 		expect(err.code).toBe(500);
 		expect(err.name).toBe("InvalidPacketDataError");
+		expect(err.type).toBe("INVALID_PACKET_DATA");
 		expect(err.message).toBe("Invalid packet data.");
 		expect(err.data).toEqual({ type: "INFO", payload });
 		expect(err.retryable).toBe(false);
