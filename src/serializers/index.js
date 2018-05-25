@@ -55,7 +55,4 @@ function resolve(opt) {
 	return new Serializers.JSON();
 }
 
-module.exports = {
-	...Serializers,
-	resolve
-};
+module.exports = Object.assign({ resolve }, Serializers);

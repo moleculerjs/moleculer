@@ -77,7 +77,4 @@ function resolve(opt) {
 	return null;
 }
 
-module.exports = {
-	...Transporters,
-	resolve
-};
+module.exports = Object.assign({ resolve }, Transporters);

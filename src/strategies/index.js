@@ -55,7 +55,5 @@ function resolve(opt) {
 	return Strategies.RoundRobin;
 }
 
-module.exports = {
-	...Strategies,
-	resolve
-};
+module.exports = Object.assign({ resolve }, Strategies);
+
