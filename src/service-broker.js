@@ -203,6 +203,8 @@ class ServiceBroker {
 		if (this.options.internalServices)
 			this.registerInternalServices();
 
+		this.middlewares.callSyncHandlers("created", [this]);
+
 		// Call `created` event handler
 		if (_.isFunction(this.options.created))
 			this.options.created(this);
@@ -272,6 +274,9 @@ class ServiceBroker {
 	start() {
 		return Promise.resolve()
 			.then(() => {
+				return this.middlewares.callHandlers("starting", [this]);
+			})
+			.then(() => {
 				if (this.transit)
 					return this.transit.connect();
 			})
@@ -295,6 +300,9 @@ class ServiceBroker {
 					return this.transit.ready();
 			})
 			.then(() => {
+				return this.middlewares.callHandlers("started", [this]);
+			})
+			.then(() => {
 				if (_.isFunction(this.options.started))
 					return this.options.started(this);
 			});
@@ -308,6 +316,9 @@ class ServiceBroker {
 	stop() {
 		this.started = false;
 		return Promise.resolve()
+			.then(() => {
+				return this.middlewares.callHandlers("stopping", [this]);
+			})
 			.then(() => {
 				if (this.transit) {
 					this.registry.regenerateLocalRawInfo(true);
@@ -332,6 +343,9 @@ class ServiceBroker {
 				if (this.cacher) {
 					return this.cacher.close();
 				}
+			})
+			.then(() => {
+				return this.middlewares.callHandlers("stopped", [this]);
 			})
 			.then(() => {
 				if (_.isFunction(this.options.stopped))
@@ -570,7 +584,7 @@ class ServiceBroker {
 		}
 
 		if (this.started) {
-			// If broker started, should call the started lifecycle event
+			// If broker started, should call the started lifecycle event of service
 			service._start.call(service)
 				.catch(err => this.logger.error("Unable to start service.", err));
 		}

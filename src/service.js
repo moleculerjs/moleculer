@@ -189,6 +189,8 @@ class Service {
 		}
 
 		this.broker.addLocalService(this);
+
+		this.broker.middlewares.callSyncHandlers("serviceCreated", [this]);
 	}
 
 	/**
@@ -218,6 +220,9 @@ class Service {
 			.then(() => {
 				// Register service
 				this.broker.registerLocalService(this._serviceSpecification);
+			})
+			.then(() => {
+				return this.broker.middlewares.callHandlers("serviceStarted", [this]);
 			});
 	}
 
@@ -261,7 +266,11 @@ class Service {
 			}
 
 			return this.Promise.resolve();
-		});
+		})
+			.then(() => {
+				return this.broker.middlewares.callHandlers("serviceStopped", [this]);
+			});
+
 	}
 
 	/**

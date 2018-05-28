@@ -6,6 +6,7 @@
 
 "use strict";
 
+const Promise = require("bluebird");
 const _ = require("lodash");
 
 class MiddlewareHandler {
@@ -64,8 +65,7 @@ class MiddlewareHandler {
 	 */
 	wrapActionHandler(method, action, handler) {
 		if (this.list.length) {
-			let mws = Array.from(this.list);
-			handler = mws.reduce((handler, mw) => {
+			handler = this.list.reduce((handler, mw) => {
 				if (_.isFunction(mw[method]))
 					return mw[method].call(this.broker, handler, action);
 				else
@@ -74,6 +74,45 @@ class MiddlewareHandler {
 		}
 
 		return handler;
+	}
+
+	/**
+	 * Call a handler asynchronously in all middlewares
+	 *
+	 * @param {String} method
+	 * @param {Array<any>} args
+	 * @returns {Promise}
+	 * @memberof MiddlewareHandler
+	 */
+	callHandlers(method, args) {
+		if (this.list.length) {
+			return this.list
+				.filter(mw => _.isFunction(mw[method]))
+				.map(mw => mw[method])
+				.reduce((p, fn) => p.then(fn.apply(this.broker, args)), Promise.resolve());
+		}
+
+		return Promise.resolve();
+	}
+
+	/**
+	 * Call a handler synchronously in all middlewares
+	 *
+	 * @param {String} method
+	 * @param {Array<any>} args
+	 * @returns
+	 * @memberof MiddlewareHandler
+	 */
+	callSyncHandlers(method, args) {
+		if (this.list.length) {
+			this.list
+				.filter(mw => _.isFunction(mw[method]))
+				.forEach(mw => mw[method].apply(this.broker, args));
+
+			return;
+		}
+
+		return Promise.resolve();
 	}
 
 	/**
