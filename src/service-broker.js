@@ -723,6 +723,7 @@ class ServiceBroker {
 	 *
 	 * @param {Function} mws
 	 *
+	 * @deprecated
 	 * @memberof ServiceBroker
 	 */
 	use(...mws) {
