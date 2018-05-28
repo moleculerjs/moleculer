@@ -584,7 +584,7 @@ class ServiceBroker {
 		}
 
 		if (this.started) {
-			// If broker started, should call the started lifecycle event of service
+			// If broker is started, call the started lifecycle event of service
 			service._start.call(service)
 				.catch(err => this.logger.error("Unable to start service.", err));
 		}
@@ -723,6 +723,7 @@ class ServiceBroker {
 	 *
 	 * @param {Function} mws
 	 *
+	 * @deprecated
 	 * @memberof ServiceBroker
 	 */
 	use(...mws) {
