@@ -2110,7 +2110,6 @@ describe("Test broker sendPing", () => {
 
 		broker.registry.getNodeList = jest.fn(() => ([
 			{ id: "node-1", local: true, available: true },
-			{ id: "node-2", local: false, available: false },
 			{ id: "node-3", local: false, available: true },
 			{ id: "node-4", local: false, available: true },
 		]));
