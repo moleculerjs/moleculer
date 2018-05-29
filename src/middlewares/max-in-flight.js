@@ -36,7 +36,7 @@ function wrapMaxInFlightMiddleware(handler, action) {
 				});
 		};
 
-		return function MaxInFlightMiddleware(ctx) {
+		return function maxInFlightMiddleware(ctx) {
 			// Call handler without waiting
 			if (currentInFlight < opts.limit) {
 				currentInFlight++;
@@ -67,7 +67,7 @@ function wrapMaxInFlightMiddleware(handler, action) {
 	return handler;
 }
 
-module.exports = function MaxInFlightMiddleware() {
+module.exports = function maxInFlightMiddleware() {
 	return {
 		localAction: wrapMaxInFlightMiddleware
 	};
