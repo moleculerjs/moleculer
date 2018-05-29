@@ -13,10 +13,11 @@ const broker = new ServiceBroker({
 		factor: 2,
 		retries: 5,
 		//check: err => err.code >= 500
-	}
+	},
+	middlewares: [
+		RetryMiddleware(broker.options.retryPolicy)
+	]
 });
-
-broker.use(RetryMiddleware(broker.options.retryPolicy));
 
 broker.createService({
 	name: "test",

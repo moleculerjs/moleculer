@@ -42,12 +42,13 @@ let bench2 = benchmark.createSuite("Call with middlewares");
 })();
 
 (function() {
-	let broker = createBroker();
-
 	let mw1 = handler => {
-		return ctx => Promise.resolve().then(() => handler(ctx).then(res => res));
+		return ctx => handler(ctx).then(res => res);
 	};
-	broker.use(mw1, mw1, mw1, mw1, mw1);
+
+	const broker = createBroker({
+		middlewares: Array(5).fill(mw1)
+	});
 
 	bench2.add("5 middlewares", done => {
 		return broker.call("users.empty").then(done);
@@ -120,9 +121,9 @@ let bench4 = benchmark.createSuite("Remote call with FakeTransporter");
 
 let bench5 = benchmark.createSuite("Context tracking");
 (function() {
-	let broker = createBroker();
+	let broker = createBroker( { trackContext: true });
 	bench5.ref("broker.call (normal)", done => {
-		return broker.call("math.add", { a: 4, b: 2 }).then(done);
+		return broker.call("math.add", { a: 4, b: 2 }, { trackContext: false }).then(done);
 	});
 
 	bench5.add("broker.call (with trackContext)", done => {

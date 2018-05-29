@@ -1189,6 +1189,7 @@ describe("Test broker.waitForServices", () => {
 
 });
 
+/* Deprecated
 describe("Test broker.use (middleware)", () => {
 	let broker = new ServiceBroker({
 		logger: false,
@@ -1210,7 +1211,7 @@ describe("Test broker.use (middleware)", () => {
 
 		expect(broker.middlewares.add).toHaveBeenCalledTimes(3);
 	});
-});
+});*/
 
 describe("Test broker.findNextActionEndpoint", () => {
 	let broker = new ServiceBroker({ logger: false, internalServices: false });

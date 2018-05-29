@@ -230,36 +230,36 @@ class ServiceBroker {
 	registerMiddlewares(userMiddlewares) {
 		// Register user middlewares
 		if (Array.isArray(userMiddlewares) && userMiddlewares.length > 0)
-			this.use(...userMiddlewares);
+			userMiddlewares.forEach(mw => this.middlewares.add(mw));
 
 		if (this.options.internalMiddlewares) {
 			// Register internal middlewares
 
 			// 1. Validator
 			if (this.validator && _.isFunction(this.validator.middleware))
-				this.use(this.validator.middleware());
+				this.middlewares.add(this.validator.middleware());
 
 			// 2. Cacher
 			if (this.cacher && _.isFunction(this.cacher.middleware))
-				this.use(this.cacher.middleware());
+				this.middlewares.add(this.cacher.middleware());
 
 			// 3. Context tracker
-			this.use(Middlewares.TrackContext.call(this));
+			this.middlewares.add(Middlewares.TrackContext.call(this));
 
 			// 4. CircuitBreaker
-			this.use(Middlewares.CircuitBreaker.call(this));
+			this.middlewares.add(Middlewares.CircuitBreaker.call(this));
 
 			// 5. Timeout
-			this.use(Middlewares.Timeout.call(this));
+			this.middlewares.add(Middlewares.Timeout.call(this));
 
 			// 6. Retry
-			this.use(Middlewares.Retry.call(this));
+			this.middlewares.add(Middlewares.Retry.call(this));
 
 			// 7. Error handler
-			this.use(Middlewares.ErrorHandler.call(this));
+			this.middlewares.add(Middlewares.ErrorHandler.call(this));
 
 			// 8. Metrics
-			this.use(Middlewares.Metrics.call(this));
+			this.middlewares.add(Middlewares.Metrics.call(this));
 		}
 
 		this.logger.info(`Registered ${this.middlewares.count()} middleware(s).`);
@@ -727,6 +727,7 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	use(...mws) {
+		utils.deprecate("The 'broker.use()' has been deprecated since v0.13. Use 'middlewares: [...]' in broker options instead.");
 		mws.forEach(mw => this.middlewares.add(mw));
 	}
 

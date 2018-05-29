@@ -33,9 +33,7 @@ describe("Test middleware system", () => {
 			};
 		};
 
-		let broker = new ServiceBroker({ logger: false, validation: false, internalMiddlewares: false });
-		broker.use(mw2Async);
-		broker.use(mw1Sync);
+		let broker = new ServiceBroker({ logger: false, validation: false, internalMiddlewares: false, middlewares: [mw2Async, mw1Sync] });
 
 		let master = jest.fn(() => {
 			flow.push("MASTER");
@@ -103,8 +101,7 @@ describe("Test middleware system", () => {
 			return { user: "icebob" };
 		});
 
-		let broker = new ServiceBroker({ logger: false, validation: false, internalMiddlewares: false });
-		broker.use(mw3, mw2, mw1);
+		let broker = new ServiceBroker({ logger: false, validation: false, internalMiddlewares: false, middlewares: [mw3, mw2, mw1] });
 
 		broker.createService({
 			name: "test",
@@ -171,8 +168,7 @@ describe("Test middleware system", () => {
 
 		});
 
-		let broker = new ServiceBroker({ logger: false, validation: false, internalMiddlewares: false });
-		broker.use(mw3, mw2, mw1);
+		let broker = new ServiceBroker({ logger: false, validation: false, internalMiddlewares: false, middlewares: [mw3, mw2, mw1] });
 
 		broker.createService({
 			name: "test",
@@ -225,8 +221,7 @@ describe("Test middleware system", () => {
 			});
 		});
 
-		let broker = new ServiceBroker({ logger: false, validation: false });
-		broker.use(mw2, mw1);
+		let broker = new ServiceBroker({ logger: false, validation: false, middlewares: [mw2, mw1] });
 
 		broker.createService({
 			name: "test",
