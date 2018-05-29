@@ -12,5 +12,6 @@ module.exports = {
 	Retry: require("./retry"),
 	Timeout: require("./timeout"),
 	TrackContext: require("./track-context"),
+	MaxInFlight: require("./max-in-flight"),
 	ErrorHandler: require("./error-handler"),
 };

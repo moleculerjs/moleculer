@@ -245,26 +245,29 @@ class ServiceBroker {
 			if (this.validator && _.isFunction(this.validator.middleware))
 				this.middlewares.add(this.validator.middleware());
 
-			// 2. Cacher
+			// 2. MaxInFlight
+			this.middlewares.add(Middlewares.MaxInFlight.call(this));
+
+			// 3. Cacher
 			if (this.cacher && _.isFunction(this.cacher.middleware))
 				this.middlewares.add(this.cacher.middleware());
 
-			// 3. Context tracker
+			// 4. Context tracker
 			this.middlewares.add(Middlewares.TrackContext.call(this));
 
-			// 4. CircuitBreaker
+			// 5. CircuitBreaker
 			this.middlewares.add(Middlewares.CircuitBreaker.call(this));
 
-			// 5. Timeout
+			// 6. Timeout
 			this.middlewares.add(Middlewares.Timeout.call(this));
 
-			// 6. Retry
+			// 7. Retry
 			this.middlewares.add(Middlewares.Retry.call(this));
 
-			// 7. Error handler
+			// 8. Error handler
 			this.middlewares.add(Middlewares.ErrorHandler.call(this));
 
-			// 8. Metrics
+			// 9. Metrics
 			this.middlewares.add(Middlewares.Metrics.call(this));
 		}
 

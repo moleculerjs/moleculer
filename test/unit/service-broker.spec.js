@@ -101,6 +101,10 @@ describe("Test ServiceBroker constructor", () => {
 				threshold: 0.3,
 				minRequestCount: 10
 			},
+			maxInFlight: {
+				enabled: true,
+				limit: 2,
+			},
 			validation: false,
 			internalServices: false,
 			hotReload: true });
@@ -135,6 +139,12 @@ describe("Test ServiceBroker constructor", () => {
 				minRequestCount: 10,
 				halfOpenTime: 10 * 1000,
 				check: jasmine.any(Function)
+			},
+
+			maxInFlight: {
+				enabled: true,
+				limit: 2,
+				maxQueueSize: 100,
 			},
 
 			transit: {
