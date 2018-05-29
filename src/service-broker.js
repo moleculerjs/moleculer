@@ -1104,8 +1104,8 @@ class ServiceBroker {
 				const pongs = {};
 				let nodes = nodeID;
 				if (!nodes) {
-					nodes = this.registry.getNodeList()
-						.filter(node => node.id != this.nodeID && node.available)
+					nodes = this.registry.getNodeList({ onlyAvailable: true })
+						.filter(node => node.id != this.nodeID)
 						.map(node => node.id);
 				}
 
