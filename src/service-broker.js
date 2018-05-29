@@ -74,6 +74,12 @@ const defaultOptions = {
 		check: err => err && err.code >= 500
 	},
 
+	maxInFlight: {
+		enabled: false,
+		limit: 10,
+		maxQueueSize: 100,
+	},
+
 	transit: {
 		maxQueueSize: 50 * 1000 // 50k ~ 400MB
 	},
@@ -937,19 +943,17 @@ class ServiceBroker {
 	 */
 	mcall(def) {
 		if (Array.isArray(def)) {
-			let p = def.map(item => this.call(item.action, item.params, item.options));
-			return Promise.all(p);
+			return Promise.all(def.map(item => this.call(item.action, item.params, item.options)));
 
 		} else if (_.isObject(def)) {
 			let results = {};
-			let p = Object.keys(def).map(name => {
+			return Promise.all(Object.keys(def).map(name => {
 				const item = def[name];
-
 				return this.call(item.action, item.params, item.options).then(res => results[name] = res);
-			});
-			return Promise.all(p).then(() => results);
-		} else
+			})).then(() => results);
+		} else {
 			throw new E.MoleculerServerError("Invalid calling definition.", 500, "INVALID_PARAMETERS");
+		}
 	}
 
 	/**
@@ -1006,8 +1010,12 @@ class ServiceBroker {
 			}
 
 		} else if (this.transit && !/^\$/.test(eventName)) {
-			if (!groups || groups.length == 0)
+			// Disabled balancer case
+
+			if (!groups || groups.length == 0) {
+				// Apply to all groups
 				groups = this.getEventGroups(eventName);
+			}
 
 			if (groups.length == 0)
 				return;
@@ -1017,7 +1025,7 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Emit an event for all local & remote services
+	 * Broadcast an event for all local & remote services
 	 *
 	 * @param {string} eventName
 	 * @param {any} payload
@@ -1050,7 +1058,7 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Emit an event for all local services
+	 * Broadcast an event for all local services
 	 *
 	 * @param {string} eventName
 	 * @param {any} payload
@@ -1177,7 +1185,8 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Emit event to local nodes
+	 * Emit event to local nodes. It is called from transit when a remote event received
+	 * or from `broadcastLocal`
 	 *
 	 * @param {String} event
 	 * @param {any} payload

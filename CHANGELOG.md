@@ -139,6 +139,10 @@ const broker = new ServiceBroker({
 - Context metrics methods is removed.
 - `ctx.timeout` is moved to `ctx.options.timeout`
 
+# Deprecations
+
+- The `broker.use()` has been deprecated. Use `middlewares: [...]` in broker options instead.
+
 --------------------------------------------------
 <a name="0.12.4"></a>
 # [0.12.4](https://github.com/moleculerjs/moleculer/compare/v0.12.3...v0.12.4) (2018-05-10)
