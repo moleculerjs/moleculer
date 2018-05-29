@@ -3,7 +3,7 @@
 const Promise = require("bluebird");
 const MiddlewareHandler = require("../../src/middleware");
 const ServiceBroker = require("../../src/service-broker");
-//const { protectReject } = require("./utils");
+const { protectReject } = require("./utils");
 
 describe("Test MiddlewareHandler", () => {
 
@@ -104,7 +104,7 @@ describe("Test MiddlewareHandler", () => {
 			expect(mw3.localAction).toHaveBeenCalledWith(jasmine.any(Function), action);
 			expect(mw3.remoteAction).toHaveBeenCalledTimes(0);
 
-			return newHandler().then(res => {
+			return newHandler().catch(protectReject).then(res => {
 				expect(res).toBe("John");
 
 				expect(FLOW).toEqual([
@@ -130,7 +130,7 @@ describe("Test MiddlewareHandler", () => {
 			expect(mw3.remoteAction).toHaveBeenCalledTimes(1);
 			expect(mw3.remoteAction).toHaveBeenCalledWith(jasmine.any(Function), action);
 
-			return newHandler().then(res => {
+			return newHandler().catch(protectReject).then(res => {
 				expect(res).toBe("John");
 
 				expect(FLOW).toEqual([
@@ -158,6 +158,66 @@ describe("Test MiddlewareHandler", () => {
 
 			expect(middlewares.wrapActionHandler).toHaveBeenCalledTimes(1);
 			expect(middlewares.wrapActionHandler).toHaveBeenCalledWith("remoteAction", action, handler);
+		});
+	});
+
+	describe("Test calling handlers", () => {
+
+		let middlewares = new MiddlewareHandler(broker);
+
+		let FLOW = [];
+
+		let mw1 = {
+			created: jest.fn(() => FLOW.push("MW1-created"))
+		};
+
+		let mw2 = {
+			started: jest.fn(() => Promise.resolve(FLOW.push("MW2-started")))
+		};
+
+		let mw3 = {
+			created: jest.fn(() => FLOW.push("MW3-created")),
+			started: jest.fn(() => Promise.resolve(FLOW.push("MW3-started")))
+		};
+
+		middlewares.add(mw1);
+		middlewares.add(mw2);
+		middlewares.add(mw3);
+
+		it("should call sync handlers", () => {
+			const obj = {};
+
+			middlewares.callSyncHandlers("created", [obj]);
+
+			expect(mw1.created).toHaveBeenCalledTimes(1);
+			expect(mw1.created).toHaveBeenCalledWith(obj);
+
+			expect(mw3.created).toHaveBeenCalledTimes(1);
+			expect(mw3.created).toHaveBeenCalledWith(obj);
+
+			expect(FLOW).toEqual([
+				"MW1-created",
+				"MW3-created"
+			]);
+		});
+
+		it("should wrap remote action", () => {
+			FLOW = [];
+
+			const obj = {};
+
+			return middlewares.callHandlers("started", [obj]).catch(protectReject).then(() => {
+				expect(mw2.started).toHaveBeenCalledTimes(1);
+				expect(mw2.started).toHaveBeenCalledWith(obj);
+
+				expect(mw3.started).toHaveBeenCalledTimes(1);
+				expect(mw3.started).toHaveBeenCalledWith(obj);
+
+				expect(FLOW).toEqual([
+					"MW2-started",
+					"MW3-started"
+				]);
+			});
 		});
 	});
 });
