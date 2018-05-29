@@ -1085,7 +1085,10 @@ class ServiceBroker {
 				// Ping a single node
 				return new Promise(resolve => {
 
-					const timer = setTimeout(() => resolve(null), timeout);
+					const timer = setTimeout(() => {
+						this.localBus.off("$node.pong", handler);
+						resolve(null);
+					}, timeout);
 
 					const handler = pong => {
 						if (pong.nodeID == nodeID) {
@@ -1115,7 +1118,10 @@ class ServiceBroker {
 				// Ping multiple nodes
 				return new Promise(resolve => {
 
-					const timer = setTimeout(() => resolve(pongs), timeout);
+					const timer = setTimeout(() => {
+						this.localBus.off("$node.pong", handler);
+						resolve(pongs);
+					}, timeout);
 
 					const handler = pong => {
 						pongs[pong.nodeID] = pong;
