@@ -25,8 +25,8 @@ function shouldMetric(ctx) {
 			sampleCounter = 0;
 			return true;
 		}
-
 	}
+
 	return false;
 }
 

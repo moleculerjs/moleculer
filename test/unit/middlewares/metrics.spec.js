@@ -4,7 +4,7 @@ const Context 					= require("../../../src/context");
 const Middleware 				= require("../../../src/middlewares").Metrics;
 const { protectReject }			= require("../utils");
 
-describe("Test MetricsMiddleware", () => {
+describe("Test MetricsMiddleware localAction", () => {
 	const broker = new ServiceBroker({ nodeID: "server-1", logger: false });
 	const handler = jest.fn(() => Promise.resolve("Result"));
 	const action = {
@@ -30,13 +30,38 @@ describe("Test MetricsMiddleware", () => {
 		const newHandler = mw.localAction.call(broker, handler, action);
 
 		expect(newHandler).toBe(handler);
+
+		const ctx = Context.create(broker, endpoint);
+		return newHandler(ctx).catch(protectReject).then(() => {
+			expect(ctx.metrics).toBeNull();
+		});
+	});
+
+	it("should not wrap handler if metrics is disabled", () => {
+		broker.options.metrics = true;
+		broker.options.metricsRate = 0.01;
+
+		const newHandler = mw.localAction.call(broker, handler, action);
+
+		expect(newHandler).not.toBe(handler);
+
+		const ctx = Context.create(broker, endpoint);
+		return newHandler(ctx).catch(protectReject).then(() => {
+			expect(ctx.metrics).toBe(false);
+		});
 	});
 
 	it("should wrap handler if metrics is enabled", () => {
 		broker.options.metrics = true;
+		broker.options.metricsRate = 1;
 
 		const newHandler = mw.localAction.call(broker, handler, action);
 		expect(newHandler).not.toBe(handler);
+
+		const ctx = Context.create(broker, endpoint);
+		return newHandler(ctx).catch(protectReject).then(() => {
+			expect(ctx.metrics).toBe(true);
+		});
 	});
 
 
@@ -115,6 +140,84 @@ describe("Test MetricsMiddleware", () => {
 			});
 		});
 	});
+});
+
+describe("Test MetricsMiddleware remoteAction", () => {
+	const broker = new ServiceBroker({ nodeID: "server-1", logger: false });
+	const handler = jest.fn(() => Promise.resolve("Result"));
+	const action = {
+		name: "posts.find",
+		handler
+	};
+	const endpoint = {
+		action,
+		node: {
+			id: broker.nodeID
+		}
+	};
+
+	const mw = Middleware();
+
+	it("should register hooks", () => {
+		expect(mw.remoteAction).toBeInstanceOf(Function);
+	});
+
+	it("should not set metrics if it's disabled", () => {
+		broker.options.metrics = false;
+
+		const newHandler = mw.remoteAction.call(broker, handler, action);
+
+		expect(newHandler).toBe(handler);
+
+		const ctx = Context.create(broker, endpoint);
+		ctx.metrics = null;
+		return newHandler(ctx).catch(protectReject).then(() => {
+			expect(ctx.metrics).toBe(null);
+		});
+	});
+
+	it("should not set metrics if it's set earlier", () => {
+		broker.options.metrics = true;
+
+		const newHandler = mw.remoteAction.call(broker, handler, action);
+
+		expect(newHandler).not.toBe(handler);
+
+		const ctx = Context.create(broker, endpoint);
+		ctx.metrics = false;
+		return newHandler(ctx).catch(protectReject).then(() => {
+			expect(ctx.metrics).toBe(false);
+		});
+	});
+
+	it("should not set metrics if it's set earlier", () => {
+		broker.options.metrics = true;
+
+		const newHandler = mw.remoteAction.call(broker, handler, action);
+
+		expect(newHandler).not.toBe(handler);
+
+		const ctx = Context.create(broker, endpoint);
+		ctx.metrics = true;
+		return newHandler(ctx).catch(protectReject).then(() => {
+			expect(ctx.metrics).toBe(true);
+		});
+	});
+
+	it("should set metrics if it's not set earlier", () => {
+		broker.options.metrics = true;
+
+		const newHandler = mw.remoteAction.call(broker, handler, action);
+
+		expect(newHandler).not.toBe(handler);
+
+		const ctx = Context.create(broker, endpoint);
+		ctx.metrics = null;
+		return newHandler(ctx).catch(protectReject).then(() => {
+			expect(ctx.metrics).toBe(true);
+		});
+	});
+
 });
 
 
