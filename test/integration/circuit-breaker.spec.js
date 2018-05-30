@@ -104,7 +104,7 @@ describe("Test circuit breaker", () => {
 					nodeID: "slave-1",
 					action: "cb.angry",
 					failures: 3,
-					reqCount: 5,
+					count: 5,
 					rate: 0.6
 				});
 			});
@@ -126,7 +126,7 @@ describe("Test circuit breaker", () => {
 					nodeID: "slave-1",
 					action: "cb.angry",
 					failures: 4,
-					reqCount: 6,
+					count: 6,
 					rate: 0.6666666666666666
 				});
 			});

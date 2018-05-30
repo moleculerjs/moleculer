@@ -12,7 +12,7 @@
 			"cwd": "${workspaceRoot}",
 			"args": [
 				"client",
-				"client"
+				"client-dev"
 			],
 		},
 		{

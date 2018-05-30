@@ -37,10 +37,10 @@ let broker = new ServiceBroker({
 		//strategy: Strategies.Random
 	},
 
-	/*retryPolicy: {
+	retryPolicy: {
 		enabled: true,
 		retries: 3
-	},*/
+	},
 
 	circuitBreaker: {
 		enabled: true,
