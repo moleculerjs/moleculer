@@ -17,7 +17,10 @@ function wrapMaxInFlightMiddleware(handler, action) {
 
 		// Call the next request from the queue
 		const callNext = function callNext() {
+			/* istanbul ignore next */
 			if (queue.length == 0) return;
+
+			/* istanbul ignore next */
 			if (currentInFlight >= opts.limit) return;
 
 			const item = queue.shift();
@@ -49,7 +52,7 @@ function wrapMaxInFlightMiddleware(handler, action) {
 					.catch(err => {
 						currentInFlight--;
 						callNext();
-						return err;
+						return Promise.reject(err);
 					});
 			}
 
