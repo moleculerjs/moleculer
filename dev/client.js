@@ -25,7 +25,7 @@ let broker = new ServiceBroker({
 	//serializer: "MsgPack",
 	//requestTimeout: 1000,
 
-	disableBalancer: true,
+	//disableBalancer: true,
 
 	metrics: true,
 
@@ -37,13 +37,13 @@ let broker = new ServiceBroker({
 		//strategy: Strategies.Random
 	},
 
-	retryPolicy: {
+	/*retryPolicy: {
 		enabled: true,
 		retries: 3
-	},
+	},*/
 
 	circuitBreaker: {
-		enabled: false,
+		enabled: true,
 		threshold: 0.3,
 		windowTime: 30,
 		minRequestCount: 10

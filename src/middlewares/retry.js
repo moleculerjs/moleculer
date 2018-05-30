@@ -7,22 +7,22 @@
 "use strict";
 
 function wrapRetryMiddleware(handler, action) {
-	// Merge retryPolicy from action option with broker options
-	const policy = Object.assign({}, this.options.retryPolicy, action.retryPolicy || {});
-	if (policy.enabled) {
+	// Merge action option and broker options
+	const opts = Object.assign({}, this.options.retryPolicy, action.retryPolicy || {});
+	if (opts.enabled) {
 		return function retryMiddleware(ctx) {
-			const attempts = ctx.options.retries ? ctx.options.retries : policy.retries;
+			const attempts = ctx.options.retries ? ctx.options.retries : opts.retries;
 			if (ctx._retryAttempts == null)
 				ctx._retryAttempts = 0;
 
 			// Call the handler
 			return handler(ctx).catch(err => {
-				if (ctx._retryAttempts++ < attempts && policy.check(err)) {
+				if (ctx._retryAttempts++ < attempts && opts.check(err)) {
 					// Retry call
 					const actionName = ctx.action.name;
 
 					// Calculate next delay
-					const delay = Math.min(policy.delay * Math.pow(policy.factor, ctx._retryAttempts - 1), policy.maxDelay);
+					const delay = Math.min(opts.delay * Math.pow(opts.factor, ctx._retryAttempts - 1), opts.maxDelay);
 
 					this.logger.warn(`Retry to call '${actionName}' action after ${delay} ms...`, { requestID: ctx.requestID, attempts: ctx._retryAttempts });
 

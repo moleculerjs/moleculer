@@ -12,9 +12,9 @@ let broker = new ServiceBroker({
 	nodeID: process.argv[2] || "server-" + process.pid,
 	transporter: "NATS",
 
-	disableBalancer: true,
+	//disableBalancer: true,
 
-	trackContext: true,
+	//trackContext: true,
 
 	metrics: true,
 
