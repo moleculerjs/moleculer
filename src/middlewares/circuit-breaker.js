@@ -22,7 +22,8 @@ module.exports = function() {
 	 */
 	function createWindowTimer(windowTime) {
 		if (!windowTimer) {
-			windowTimer = setInterval(() => resetStore(), (windowTime || 60) * 1000).unref();
+			windowTimer = setInterval(() => resetStore(), (windowTime || 60) * 1000);
+			windowTimer.unref();
 		}
 	}
 
@@ -127,7 +128,8 @@ module.exports = function() {
 			item.cbTimer = null;
 		}
 
-		item.cbTimer = setTimeout(() => circuitHalfOpen(item, ctx), item.opts.halfOpenTime).unref();
+		item.cbTimer = setTimeout(() => circuitHalfOpen(item, ctx), item.opts.halfOpenTime);
+		item.cbTimer.unref();
 
 		const rate = item.count > 0 ? item.failures / item.count : 0;
 		logger.debug(`Circuit breaker has been opened on '${item.ep.name}' endpoint.`, { nodeID: item.ep.id, action: item.ep.action.name, failures: item.failures, count: item.count, rate });
@@ -165,7 +167,8 @@ module.exports = function() {
 		item.ep.state = false;
 
 		// Anti-stick protection
-		item.cbTimer = setTimeout(() => circuitHalfOpen(item, ctx), item.opts.halfOpenTime).unref();
+		item.cbTimer = setTimeout(() => circuitHalfOpen(item, ctx), item.opts.halfOpenTime);
+		item.cbTimer.unref();
 	}
 
 	/**

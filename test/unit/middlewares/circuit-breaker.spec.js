@@ -127,7 +127,7 @@ describe("Test CircuitBreakerMiddleware logic", () => {
 		broker.broadcast.mockClear();
 		clock.tick(11 * 1000);
 		expect(endpoint.state).toBe(true);
-		expect(broker.broadcast).toHaveBeenCalledTimes(2); // ???
+		expect(broker.broadcast).toHaveBeenCalledTimes(1);
 		expect(broker.broadcast).toHaveBeenCalledWith("$circuit-breaker.half-opened", {action: "likes.count", nodeID: broker.nodeID});
 	});
 
@@ -143,16 +143,34 @@ describe("Test CircuitBreakerMiddleware logic", () => {
 		});
 	});
 
-	// Stick protection change state to "half-open"
-	it.skip("should reset stat after windowTime", () => {
+	it("should reset stat after windowTime", () => {
 		clock.tick(62 * 1000);
 		expect(endpoint.state).toBe(true);
 		broker.broadcast.mockClear();
 		return Promise.all([
-			newHandler(Context.create(broker, endpoint, { crash: true })).then(protectReject).catch(err => { expect(err.message).toBe("Crashed"); expect(endpoint.state).toBe(true); }),
-			newHandler(Context.create(broker, endpoint, { crash: true })).then(protectReject).catch(err => { expect(err.message).toBe("Crashed"); expect(endpoint.state).toBe(true); }),
-			newHandler(Context.create(broker, endpoint, { crash: true })).then(protectReject).catch(err => { expect(err.message).toBe("Crashed"); expect(endpoint.state).toBe(true); }),
-			newHandler(Context.create(broker, endpoint, { crash: true })).then(protectReject).catch(err => { expect(err.message).toBe("Crashed"); expect(endpoint.state).toBe(true); }),
+			newHandler(Context.create(broker, endpoint, { crash: true })).then(protectReject).catch(err => expect(err.message).toBe("Crashed")),
+			newHandler(Context.create(broker, endpoint, { crash: true })).then(protectReject).catch(err => expect(err.message).toBe("Crashed")),
+			newHandler(Context.create(broker, endpoint, { crash: true })).then(protectReject).catch(err => expect(err.message).toBe("Crashed")),
+			newHandler(Context.create(broker, endpoint, { crash: true })).then(protectReject).catch(err => expect(err.message).toBe("Crashed")),
+		]).catch(protectReject).then(() => {
+			expect(endpoint.state).toBe(true);
+			expect(broker.broadcast).toHaveBeenCalledTimes(0);
+		});
+	});
+
+	it("should reset stat after windowTime", () => {
+		clock.tick(62 * 1000);
+		expect(endpoint.state).toBe(true);
+		broker.broadcast.mockClear();
+		return Promise.all([
+			newHandler(Context.create(broker, endpoint, { crash: false })).catch(protectReject).then(res => expect(res).toBe("Result")),
+			newHandler(Context.create(broker, endpoint, { crash: false })).catch(protectReject).then(res => expect(res).toBe("Result")),
+			newHandler(Context.create(broker, endpoint, { crash: false })).catch(protectReject).then(res => expect(res).toBe("Result")),
+			newHandler(Context.create(broker, endpoint, { crash: false })).catch(protectReject).then(res => expect(res).toBe("Result")),
+			newHandler(Context.create(broker, endpoint, { crash: false })).catch(protectReject).then(res => expect(res).toBe("Result")),
+			newHandler(Context.create(broker, endpoint, { crash: false })).catch(protectReject).then(res => expect(res).toBe("Result")),
+			newHandler(Context.create(broker, endpoint, { crash: false })).catch(protectReject).then(res => expect(res).toBe("Result")),
+			newHandler(Context.create(broker, endpoint, { crash: false })).catch(protectReject).then(res => expect(res).toBe("Result")),
 		]).catch(protectReject).then(() => {
 			expect(endpoint.state).toBe(true);
 			expect(broker.broadcast).toHaveBeenCalledTimes(0);
