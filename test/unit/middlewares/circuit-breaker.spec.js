@@ -1,8 +1,10 @@
-const ServiceBroker = require("../../../src/service-broker");
-const Context = require("../../../src/context");
-const C = require("../../../src/constants");
-const Middleware = require("../../../src/middlewares").CircuitBreaker;
-const { protectReject } = require("../utils");
+const ServiceBroker 		= require("../../../src/service-broker");
+const Context 				= require("../../../src/context");
+const { MoleculerError } 	= require("../../../src/errors");
+const C 					= require("../../../src/constants");
+const Middleware 			= require("../../../src/middlewares").CircuitBreaker;
+const lolex 				= require("lolex");
+const { protectReject } 	= require("../utils");
 
 describe("Test CircuitBreakerMiddleware", () => {
 	const broker = new ServiceBroker({ nodeID: "server-1", logger: false });
@@ -12,13 +14,7 @@ describe("Test CircuitBreakerMiddleware", () => {
 	};
 	const endpoint = {
 		action,
-		node: {
-			id: broker.nodeID
-		},
-		state: C.CIRCUIT_CLOSE,
-		success: jest.fn(),
-		failure: jest.fn(),
-		circuitHalfOpenWait: jest.fn()
+		node: { id: broker.nodeID }
 	};
 
 	const mw = Middleware();
@@ -49,6 +45,120 @@ describe("Test CircuitBreakerMiddleware", () => {
 	});
 
 	// TODO more tests
+
+});
+
+
+describe("Test CircuitBreakerMiddleware logic", () => {
+	const broker = new ServiceBroker({
+		nodeID: "server-1",
+		logger: false,
+		circuitBreaker: {
+			enabled: true,
+			threshold: 0.5,
+			minRequestCount: 5,
+			windowTime: 60,
+		},
+		internalMiddlewares: false
+	});
+	const handler = jest.fn(ctx => ctx.params.crash ? Promise.reject(new MoleculerError("Crashed")) : Promise.resolve("Result"));
+	const action = {
+		name: "likes.count",
+		handler
+	};
+	const node = { id: broker.nodeID };
+	const endpoint = { name: "server-1:likes.count", action, node, id: node.id, state: true };
+	broker.broadcast = jest.fn();
+
+	let clock, newHandler;
+	const mw = Middleware();
+	beforeAll(() => {
+		clock = lolex.install();
+		mw.created(broker);
+		newHandler = mw.localAction.call(broker, handler, action);
+	});
+	afterAll(() => {
+		clock.uninstall();
+		mw.stopped();
+	});
+
+	it("should not open CB", () => {
+		return Promise.all([
+			newHandler(Context.create(broker, endpoint, { crash: true })).then(protectReject).catch(err => expect(err.message).toBe("Crashed")),
+			newHandler(Context.create(broker, endpoint, { crash: true })).then(protectReject).catch(err => expect(err.message).toBe("Crashed")),
+			newHandler(Context.create(broker, endpoint, { crash: true })).then(protectReject).catch(err => expect(err.message).toBe("Crashed")),
+			newHandler(Context.create(broker, endpoint, { crash: false })).catch(protectReject).then(res => expect(res).toBe("Result")),
+		]).catch(protectReject).then(() => {
+			expect(broker.broadcast).toHaveBeenCalledTimes(0);
+			expect(endpoint.state).toBe(true);
+		});
+	});
+
+	it("should open CB", () => {
+		return Promise.all([
+			newHandler(Context.create(broker, endpoint, { crash: false })).catch(protectReject).then(res => expect(res).toBe("Result")),
+		]).catch(protectReject).then(() => {
+			expect(broker.broadcast).toHaveBeenCalledTimes(1);
+			expect(broker.broadcast).toHaveBeenCalledWith("$circuit-breaker.opened", {action: "likes.count", count: 5, failures: 3, nodeID: broker.nodeID, rate: 0.6});
+			expect(endpoint.state).toBe(false);
+		});
+	});
+
+	it("should half-open", () => {
+		broker.broadcast.mockClear();
+		clock.tick(12 * 1000);
+		expect(endpoint.state).toBe(true);
+		expect(broker.broadcast).toHaveBeenCalledTimes(1);
+		expect(broker.broadcast).toHaveBeenCalledWith("$circuit-breaker.half-opened", {action: "likes.count", nodeID: broker.nodeID});
+	});
+
+	it("should reopen CB", () => {
+		broker.broadcast.mockClear();
+		return Promise.all([
+			newHandler(Context.create(broker, endpoint, { crash: true })).then(protectReject).catch(err => expect(err.message).toBe("Crashed")),
+		]).catch(protectReject).then(() => {
+			expect(broker.broadcast).toHaveBeenCalledTimes(1);
+			expect(broker.broadcast).toHaveBeenCalledWith("$circuit-breaker.opened", {action: "likes.count", count: 6, failures: 4, nodeID: broker.nodeID, rate: 0.6666666666666666});
+			expect(endpoint.state).toBe(false);
+		});
+	});
+
+	it("should half-open again", () => {
+		broker.broadcast.mockClear();
+		clock.tick(11 * 1000);
+		expect(endpoint.state).toBe(true);
+		expect(broker.broadcast).toHaveBeenCalledTimes(2); // ???
+		expect(broker.broadcast).toHaveBeenCalledWith("$circuit-breaker.half-opened", {action: "likes.count", nodeID: broker.nodeID});
+	});
+
+	it("should close CB", () => {
+		broker.broadcast.mockClear();
+		return Promise.all([
+			newHandler(Context.create(broker, endpoint, { crash: false })).catch(protectReject).then(res => expect(res).toBe("Result")),
+			newHandler(Context.create(broker, endpoint, { crash: false })).catch(protectReject).then(res => expect(res).toBe("Result")),
+		]).catch(protectReject).then(() => {
+			expect(broker.broadcast).toHaveBeenCalledTimes(1);
+			expect(broker.broadcast).toHaveBeenCalledWith("$circuit-breaker.closed", {action: "likes.count", nodeID: broker.nodeID});
+			expect(endpoint.state).toBe(true);
+		});
+	});
+
+	// Stick protection change state to "half-open"
+	it.skip("should reset stat after windowTime", () => {
+		clock.tick(62 * 1000);
+		expect(endpoint.state).toBe(true);
+		broker.broadcast.mockClear();
+		return Promise.all([
+			newHandler(Context.create(broker, endpoint, { crash: true })).then(protectReject).catch(err => { expect(err.message).toBe("Crashed"); expect(endpoint.state).toBe(true); }),
+			newHandler(Context.create(broker, endpoint, { crash: true })).then(protectReject).catch(err => { expect(err.message).toBe("Crashed"); expect(endpoint.state).toBe(true); }),
+			newHandler(Context.create(broker, endpoint, { crash: true })).then(protectReject).catch(err => { expect(err.message).toBe("Crashed"); expect(endpoint.state).toBe(true); }),
+			newHandler(Context.create(broker, endpoint, { crash: true })).then(protectReject).catch(err => { expect(err.message).toBe("Crashed"); expect(endpoint.state).toBe(true); }),
+		]).catch(protectReject).then(() => {
+			expect(endpoint.state).toBe(true);
+			expect(broker.broadcast).toHaveBeenCalledTimes(0);
+		});
+	});
+
 
 });
 

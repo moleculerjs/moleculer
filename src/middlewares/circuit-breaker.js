@@ -30,6 +30,8 @@ module.exports = function() {
 	 * Clear endpoint state store
 	 */
 	function resetStore() {
+		if (!logger) return;
+
 		logger.debug("Reset circuit-breaker endpoint states...");
 		store.forEach((item, key) => {
 			if (item.count == 0) {
@@ -199,8 +201,6 @@ module.exports = function() {
 		// Merge action option and broker options
 		const opts = Object.assign({}, this.options.circuitBreaker || {}, action.circuitBreaker || {});
 		if (opts.enabled) {
-			createWindowTimer(opts.windowTime);
-
 			return function circuitBreakerMiddleware(ctx) {
 				// Get endpoint state item
 				const ep = ctx.endpoint;
@@ -239,9 +239,20 @@ module.exports = function() {
 		created(_broker) {
 			broker = _broker;
 			logger = _broker.getLogger("circuit-breaker");
+
+			const opts = broker.options.circuitBreaker;
+			if (opts.enabled)
+				createWindowTimer(opts.windowTime);
 		},
 
 		localAction: wrapCBMiddleware,
-		remoteAction: wrapCBMiddleware
+		remoteAction: wrapCBMiddleware,
+
+		stopped() {
+			if (windowTimer) {
+				clearInterval(windowTimer);
+			}
+
+		}
 	};
 };

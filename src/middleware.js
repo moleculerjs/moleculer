@@ -160,23 +160,38 @@ module.exports = MiddlewareHandler;
 
     },
 
+	// After a new local service created
+	serviceCreated(service) {
+
+	},
+
+	// After a local service started
+	serviceStarted(service) {
+
+	},
+
+	// After a local service stopped
+	serviceStopped(service) {
+
+	},
+
     // Before broker starting
-    beforeBrokerStart(broker) {
+    starting(broker) {
 
     },
 
     // After broker started
-    afterBrokerStart(broker) {
+    started(broker) {
 
     },
 
     // Before broker stopping
-    beforeBrokerStop(broker) {
+    stopping(broker) {
 
     },
 
     // After broker stopped
-    afterBrokerStop(broker) {
+    stopped(broker) {
 
     },
 
