@@ -87,7 +87,7 @@ describe("Test MaxInFlightMiddleware", () => {
 
 		FLOW = [];
 
-		return broker.Promise.delay(300).catch(protectReject).then(() => {
+		return broker.Promise.delay(500).catch(protectReject).then(() => {
 			expect(FLOW).toEqual(expect.arrayContaining([
 				"handler-4",
 				"handler-5",
@@ -127,7 +127,7 @@ describe("Test MaxInFlightMiddleware", () => {
 
 		FLOW = [];
 
-		return p.delay(300).catch(protectReject).then(() => {
+		return p.delay(500).catch(protectReject).then(() => {
 			expect(FLOW).toEqual(expect.arrayContaining([
 				"handler-4",
 				"QueueIsFullError-9",
@@ -170,7 +170,7 @@ describe("Test MaxInFlightMiddleware", () => {
 
 		FLOW = [];
 
-		return p.delay(300).catch(protectReject).then(() => {
+		return p.delay(500).catch(protectReject).then(() => {
 			expect(FLOW).toEqual(expect.arrayContaining([
 				"handler-4",
 				"Error-2",
