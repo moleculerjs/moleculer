@@ -139,7 +139,7 @@ describe("Test StanTransporter subscribe & publish", () => {
 
 	const fakeTransit = {
 		nodeID: "node1",
-		serialize: jest.fn(msg => JSON.stringify(msg))
+		serialize: jest.fn(msg => Buffer.from(JSON.stringify(msg)))
 	};
 
 	beforeEach(() => {
@@ -273,7 +273,7 @@ describe("Test StanTransporter subscribe & publish", () => {
 	});
 
 	it("check publish with target", () => {
-		transporter.serialize = jest.fn(() => "json data");
+		transporter.serialize = jest.fn(() => Buffer.from("json data"));
 		transporter.client.publish = jest.fn((topic, payload, resolve) => resolve());
 		const packet = new P.Packet(P.PACKET_INFO, "node2", {});
 		return transporter.publish(packet)
@@ -288,7 +288,7 @@ describe("Test StanTransporter subscribe & publish", () => {
 	});
 
 	it("check publish without target", () => {
-		transporter.serialize = jest.fn(() => "json data");
+		transporter.serialize = jest.fn(() => Buffer.from("json data"));
 		transporter.client.publish = jest.fn((topic, payload, resolve) => resolve());
 		const packet = new P.Packet(P.PACKET_INFO, null, {});
 		return transporter.publish(packet)
@@ -303,7 +303,7 @@ describe("Test StanTransporter subscribe & publish", () => {
 	});
 
 	it("check publishBalancedEvent", () => {
-		transporter.serialize = jest.fn(() => "json data");
+		transporter.serialize = jest.fn(() => Buffer.from("json data"));
 		transporter.client.publish = jest.fn((topic, payload, resolve) => resolve());
 		const packet = new P.Packet(P.PACKET_EVENT, null, {
 			event: "user.created",
@@ -323,7 +323,7 @@ describe("Test StanTransporter subscribe & publish", () => {
 	});
 
 	it("check publishBalancedRequest", () => {
-		transporter.serialize = jest.fn(() => "json data");
+		transporter.serialize = jest.fn(() => Buffer.from("json data"));
 		transporter.client.publish = jest.fn((topic, payload, resolve) => resolve());
 		const packet = new P.Packet(P.PACKET_REQUEST, null, {
 			action: "posts.find"

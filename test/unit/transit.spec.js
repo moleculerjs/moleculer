@@ -22,8 +22,14 @@ describe("Test Transporter constructor", () => {
 		expect(transit.pendingRequests).toBeInstanceOf(Map);
 		expect(transit.stat).toEqual({
 			packets: {
-				sent: 0,
-				received: 0
+				sent: {
+					count: 0,
+					bytes: 0
+				},
+				received: {
+					count: 0,
+					bytes: 0
+				}
 			}
 		});
 
@@ -357,7 +363,7 @@ describe("Test Transit.messageHandler", () => {
 	});
 
 	it("should throw Error if msg not valid", () => {
-		expect(transit.stat.packets.received).toBe(0);
+		expect(transit.stat.packets.received).toEqual({ count: 0, bytes: 0 });
 		expect(transit.messageHandler("EVENT")).toBe(false);
 	});
 
@@ -1043,13 +1049,11 @@ describe("Test Transit.publish", () => {
 	broker.serializer.serialize = jest.fn(o => JSON.stringify(o));
 
 	it("should call transporter.prepublish", () => {
-		expect(transit.stat.packets.sent).toBe(0);
 		let packet = new P.Packet(P.PACKET_EVENT);
 		transit.publish(packet);
 		expect(transporter.prepublish).toHaveBeenCalledTimes(1);
 		const p = transporter.prepublish.mock.calls[0][0];
 		expect(p).toBe(packet);
-		expect(transit.stat.packets.sent).toBe(1);
 	});
 
 	it("should call transporter.prepublish after subscribing", () => {
@@ -1057,8 +1061,6 @@ describe("Test Transit.publish", () => {
 		transit.stat.packets.sent = 0;
 		let resolve;
 		transit.subscribing = new Promise(r => resolve = r);
-
-		expect(transit.stat.packets.sent).toBe(0);
 
 		let packet = new P.Packet(P.PACKET_EVENT);
 		let p = transit.publish(packet);
@@ -1070,7 +1072,6 @@ describe("Test Transit.publish", () => {
 			expect(transporter.prepublish).toHaveBeenCalledTimes(1);
 			const p = transporter.prepublish.mock.calls[0][0];
 			expect(p).toBe(packet);
-			expect(transit.stat.packets.sent).toBe(1);
 		});
 	});
 

@@ -44,8 +44,14 @@ class Transit {
 
 		this.stat = {
 			packets: {
-				sent: 0,
-				received: 0
+				sent: {
+					count: 0,
+					bytes: 0
+				},
+				received: {
+					count: 0,
+					bytes: 0
+				}
 			}
 		};
 
@@ -223,7 +229,6 @@ class Transit {
 	messageHandler(cmd, packet) {
 		try {
 			const payload = packet.payload;
-			this.stat.packets.received = this.stat.packets.received + 1;
 
 			// Check payload
 			if (!payload) {
@@ -434,7 +439,7 @@ class Transit {
 		_.assign(req.ctx.meta, packet.meta);
 
 		// Handle stream repose
-		if (packet.stream !== undefined) {
+		if (packet.stream != null) {
 			//get the underlined stream for id
 			let pass = this.pendingResStreams.get(id);
 			if (pass) {
@@ -453,6 +458,8 @@ class Transit {
 					// stream chunk
 					pass.write(packet.data.type === "Buffer" ? new Buffer.from(packet.data.data):packet.data);
 				}
+				return req.resolve(packet.data);
+
 			} else if (packet.stream) {
 				// Create a new pass stream
 				pass = new Transform({
@@ -464,7 +471,6 @@ class Transit {
 				this.pendingResStreams.set(id, pass);
 				return req.resolve(pass);
 			}
-			return req.resolve(packet.data);
 		}
 
 		// Remove pending request
@@ -903,11 +909,9 @@ class Transit {
 		if (this.subscribing) {
 			return this.subscribing
 				.then(() => {
-					this.stat.packets.sent = this.stat.packets.sent + 1;
 					return this.tx.prepublish(packet);
 				});
 		}
-		this.stat.packets.sent = this.stat.packets.sent + 1;
 		return this.tx.prepublish(packet);
 	}
 
