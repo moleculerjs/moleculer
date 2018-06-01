@@ -85,7 +85,6 @@ class Service {
 
 		// Register actions
 		if (_.isObject(schema.actions)) {
-
 			_.forIn(schema.actions, (action, name) => {
 				if (action === false)
 					return;
@@ -103,58 +102,14 @@ class Service {
 				};
 
 			});
-
 		}
 
 		// Event subscriptions
 		if (_.isObject(schema.events)) {
-
 			_.forIn(schema.events, (event, name) => {
-				if (_.isFunction(event) || Array.isArray(event)) {
-					event = {
-						handler: event
-					};
-				}
-				if (!event.name)
-					event.name = name;
-
-				if (!event.handler) {
-					throw new ServiceSchemaError(`Missing event handler on '${name}' event in '${this.name}' service!`);
-				}
-
-				event.service = this;
-				const handler = event.handler;
-				const self = this;
-				event.handler = function (payload, sender, eventName) {
-					if (_.isFunction(handler)) {
-						const p = handler.apply(self, [payload, sender, eventName]);
-						// TODO: Track event handler started
-
-						// Handle async-await returns
-						if (utils.isPromise(p)) {
-							/* istanbul ignore next */
-							p.catch(err => self.logger.error(err));
-						} // TODO: Cleanup event tracking
-
-					} else if (Array.isArray(handler)) {
-						handler.forEach(fn => {
-							const p = fn.apply(self, [payload, sender, eventName]);
-							// TODO: Track event handler started
-
-							// Handle async-await returns
-							if (utils.isPromise(p)) {
-								/* istanbul ignore next */
-								p.catch(err => self.logger.error(err));
-							} // TODO: Cleanup event tracking
-						});
-					}
-
-					return null;
-				};
-
-				serviceSpecification.events[event.name] = event;
+				const innerEvent = this._createEvent(event, name);
+				serviceSpecification.events[innerEvent.name] = innerEvent;
 			});
-
 		}
 
 		// Register methods
@@ -276,9 +231,9 @@ class Service {
 	/**
 	 * Create an external action handler for broker (internal command!)
 	 *
-	 * @param {any} actionDef
-	 * @param {any} name
-	 * @returns
+	 * @param {Object|Function} actionDef
+	 * @param {String} name
+	 * @returns {Object}
 	 *
 	 * @private
 	 * @memberof Service
@@ -322,6 +277,67 @@ class Service {
 		action.metrics = _.defaultsDeep(action.metrics, { params: false, meta: true });
 
 		return action;
+	}
+
+	/**
+	 * Create an event subscription for broker
+	 *
+	 * @param {Object|Function} eventDef
+	 * @param {String} name
+	 * @returns {Object}
+	 *
+	 * @private
+	 * @memberof Service
+	 */
+	_createEvent(eventDef, name) {
+		let event;
+		if (_.isFunction(eventDef) || Array.isArray(eventDef)) {
+			event = {
+				handler: eventDef
+			};
+		} else if (_.isObject(eventDef)) {
+			event = _.cloneDeep(eventDef);
+		} else {
+			throw new ServiceSchemaError(`Invalid event definition in '${name}' event in '${this.name}' service!`);
+		}
+
+		const handler = event.handler;
+		if (!handler) {
+			throw new ServiceSchemaError(`Missing event handler on '${name}' event in '${this.name}' service!`);
+		}
+
+		if (!event.name)
+			event.name = name;
+
+		event.service = this;
+		const self = this;
+		if (_.isFunction(handler)) {
+			event.handler = function () {
+				const p = handler.apply(self, arguments);
+
+				// Handle async-await returns
+				if (utils.isPromise(p)) {
+					/* istanbul ignore next */
+					p.catch(err => self.logger.error(err));
+				}
+				return null;
+			};
+		} else if (Array.isArray(handler)) {
+			event.handler = function () {
+				handler.forEach(fn => {
+					const p = fn.apply(self, arguments);
+
+					// Handle async-await returns
+					if (utils.isPromise(p)) {
+						/* istanbul ignore next */
+						p.catch(err => self.logger.error(err));
+					}
+					return null;
+				});
+			};
+		}
+
+		return event;
 	}
 
 	/**
