@@ -102,7 +102,7 @@ module.exports = {
 				// Format arguments (inspect & colorize the objects & array)
 				let pargs = args.map(p => {
 					if (_.isObject(p) || _.isArray(p))
-						return util.inspect(p, { showHidden: false, depth: 2, colors: chalk.enabled });
+						return util.inspect(p, { showHidden: false, depth: 2, colors: chalk.enabled, breakLength: Number.POSITIVE_INFINITY });
 					return p;
 				});
 
