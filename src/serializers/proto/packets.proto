@@ -16,11 +16,11 @@ message PacketRequest {
 	required string sender 		= 2;
 	required string id 			= 3;
 	required string action 		= 4;
-	required string params 		= 5;
+	optional bytes params 		= 5;
 	required string meta 		= 6;
 	required double timeout		= 7;
 	required int32 level 		= 8;
-	required bool metrics 		= 9;
+	optional bool metrics 		= 9;
 	optional string parentID 	= 10;
 	optional string requestID 	= 11;
 	optional bool stream 		= 12;
@@ -31,7 +31,7 @@ message PacketResponse {
 	required string sender 		= 2;
 	required string id 			= 3;
 	required bool success 		= 4;
-	optional string data 		= 5;
+	optional bytes data 		= 5;
 	optional string error 		= 6;
 	required string meta 		= 7;
 	optional bool stream 		= 8;

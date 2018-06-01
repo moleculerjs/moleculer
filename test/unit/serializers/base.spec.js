@@ -92,6 +92,26 @@ describe("Test serializer.serializeCustomFields", () => {
 		});
 	});
 
+	it("check with PACKET_REQUEST with stream", () => {
+		expect(serializer.serializeCustomFields(P.PACKET_REQUEST, {
+			sender: "node-1",
+			action: "users.create",
+			params: Buffer.from("binary data"),
+			meta: {
+				token: "12345"
+			},
+			requestID: "1111",
+			stream: true
+		})).toEqual({
+			"action": "users.create",
+			"meta": "{\"token\":\"12345\"}",
+			"params": Buffer.from("binary data"),
+			"requestID": "1111",
+			"sender": "node-1",
+			"stream": true
+		});
+	});
+
 	it("check with PACKET_RESPONSE", () => {
 		expect(serializer.serializeCustomFields(P.PACKET_RESPONSE, {
 			sender: "node-1",
@@ -113,6 +133,28 @@ describe("Test serializer.serializeCustomFields", () => {
 			"meta": "{\"token\":\"12345\"}",
 			"sender": "node-1",
 			"stream": false
+		});
+	});
+
+	it("check with PACKET_RESPONSE with stream", () => {
+		expect(serializer.serializeCustomFields(P.PACKET_RESPONSE, {
+			sender: "node-1",
+			id: "12345",
+			data: Buffer.from("binary data"),
+			error: {
+				name: "SomeError"
+			},
+			meta: {
+				token: "12345"
+			},
+			stream: true
+		})).toEqual({
+			"data": Buffer.from("binary data"),
+			"error": "{\"name\":\"SomeError\"}",
+			"id": "12345",
+			"meta": "{\"token\":\"12345\"}",
+			"sender": "node-1",
+			"stream": true
 		});
 	});
 
@@ -186,6 +228,26 @@ describe("Test serializer.deserializeCustomFields", () => {
 		});
 	});
 
+	it("check with PACKET_REQUEST with stream", () => {
+		expect(serializer.deserializeCustomFields(P.PACKET_REQUEST, {
+			"action": "users.create",
+			"meta": "{\"token\":\"12345\"}",
+			"params": Buffer.from("binary data"),
+			"requestID": "1111",
+			"stream": true,
+			"sender": "node-1"
+		})).toEqual({
+			sender: "node-1",
+			action: "users.create",
+			params: Buffer.from("binary data"),
+			meta: {
+				token: "12345"
+			},
+			stream: true,
+			requestID: "1111"
+		});
+	});
+
 	it("check with PACKET_RESPONSE", () => {
 		expect(serializer.deserializeCustomFields(P.PACKET_RESPONSE, {
 			"data": "{\"id\":5}",
@@ -205,6 +267,28 @@ describe("Test serializer.deserializeCustomFields", () => {
 			meta: {
 				token: "12345"
 			},
+		});
+	});
+
+	it("check with PACKET_RESPONSE with stream", () => {
+		expect(serializer.deserializeCustomFields(P.PACKET_RESPONSE, {
+			"data": Buffer.from("binary data"),
+			"error": "{\"name\":\"SomeError\"}",
+			"id": "12345",
+			"meta": "{\"token\":\"12345\"}",
+			"stream": true,
+			"sender": "node-1"
+		})).toEqual({
+			sender: "node-1",
+			id: "12345",
+			data: Buffer.from("binary data"),
+			error: {
+				name: "SomeError"
+			},
+			meta: {
+				token: "12345"
+			},
+			stream: true
 		});
 	});
 

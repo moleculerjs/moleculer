@@ -236,7 +236,7 @@ describe("Test TcpTransporter subscribe & publish", () => {
 		transporter.startTimers = jest.fn();
 		transporter.stopTimers = jest.fn();
 
-		transporter.serialize = jest.fn(() => "json data");
+		transporter.serialize = jest.fn(() => Buffer.from("json data"));
 
 		return transporter.connect();
 	});

@@ -11,6 +11,7 @@ let broker = new ServiceBroker({
 	namespace: "",
 	nodeID: process.argv[2] || "server-" + process.pid,
 	transporter: "NATS",
+	//serializer: "MsgPack",
 
 	//disableBalancer: true,
 

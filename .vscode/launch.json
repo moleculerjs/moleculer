@@ -11,8 +11,7 @@
 			"program": "${workspaceRoot}/dev/index.js",
 			"cwd": "${workspaceRoot}",
 			"args": [
-				"client",
-				"client-dev"
+				"duplex-streaming"
 			],
 		},
 		{

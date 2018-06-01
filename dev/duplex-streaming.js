@@ -11,6 +11,7 @@ const password = "moleculer";
 const broker1 = new ServiceBroker({
 	nodeID: "client-" + process.pid,
 	transporter: "TCP",
+	serializer: "ProtoBuf",
 	logger: console,
 	logLevel: "info"
 });
@@ -20,6 +21,7 @@ const broker1 = new ServiceBroker({
 const broker2 = new ServiceBroker({
 	nodeID: "encrypter-" + process.pid,
 	transporter: "TCP",
+	serializer: "ProtoBuf",
 	logger: console,
 	logLevel: "info"
 });
@@ -29,14 +31,12 @@ broker2.createService({
 	actions: {
 		encrypt(ctx) {
 			const encrypt = crypto.createCipher("aes-256-ctr", password);
-
 			return ctx.params.pipe(encrypt);
 		},
 
 		decrypt(ctx) {
 			const decrypt = crypto.createDecipher("aes-256-ctr", password);
-
-			return ctx.params.pipe(decrypt );
+			return ctx.params.pipe(decrypt);
 		}
 	}
 });
@@ -46,8 +46,8 @@ broker1.Promise.all([broker1.start(), broker2.start()])
 	.then(() => {
 		//broker1.repl();
 
-		const fileName = "d://src.zip";
-		const fileName2 = "d://received-src.zip";
+		const fileName = "d://1.pdf";
+		const fileName2 = "d://2.pdf";
 
 		return getSHA(fileName).then(hash1 => {
 			broker1.logger.info("Original SHA:", hash1);
