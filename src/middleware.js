@@ -81,15 +81,19 @@ class MiddlewareHandler {
 	 *
 	 * @param {String} method
 	 * @param {Array<any>} args
+	 * @param {Boolean} revert
 	 * @returns {Promise}
 	 * @memberof MiddlewareHandler
 	 */
-	callHandlers(method, args) {
+	callHandlers(method, args, revert = false) {
 		if (this.list.length) {
-			return this.list
+			const list = revert ? Array.from(this.list).reverse() : this.list;
+			const arr = list
 				.filter(mw => _.isFunction(mw[method]))
-				.map(mw => mw[method])
-				.reduce((p, fn) => p.then(fn.apply(this.broker, args)), Promise.resolve());
+				.map(mw => mw[method]);
+
+			if (arr.length)
+				return arr.reduce((p, fn) => p.then(() => fn.apply(this.broker, args)), Promise.resolve());
 		}
 
 		return Promise.resolve();
@@ -100,19 +104,19 @@ class MiddlewareHandler {
 	 *
 	 * @param {String} method
 	 * @param {Array<any>} args
+	 * @param {Boolean} revert
 	 * @returns
 	 * @memberof MiddlewareHandler
 	 */
-	callSyncHandlers(method, args) {
+	callSyncHandlers(method, args, revert = false) {
 		if (this.list.length) {
-			this.list
+			const list = revert ? Array.from(this.list).reverse() : this.list;
+			list
 				.filter(mw => _.isFunction(mw[method]))
-				.forEach(mw => mw[method].apply(this.broker, args));
-
-			return;
+				.map(mw => mw[method])
+				.forEach(fn => fn.apply(this.broker, args));
 		}
-
-		return Promise.resolve();
+		return;
 	}
 
 	/**
@@ -165,8 +169,18 @@ module.exports = MiddlewareHandler;
 
 	},
 
+	// Before a local service started
+	serviceStarting(service) {
+
+	},
+
 	// After a local service started
 	serviceStarted(service) {
+
+	},
+
+	// Before a local service stopping
+	serviceStopping(service) {
 
 	},
 

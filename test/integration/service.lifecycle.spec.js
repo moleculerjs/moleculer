@@ -91,41 +91,6 @@ describe("Test Service handlers after broker.start", () => {
 });
 
 
-describe("Test Service handlers with delayed shutdown", () => {
-	const broker = new ServiceBroker({ logger: false, nodeID: "node-1", trackContext: true });
-
-	const FLOW = [];
-
-	const schema = {
-		name: "delayed",
-
-		actions: {
-			test() {
-				FLOW.push("start");
-				return this.Promise.delay(80)
-					.then(() => FLOW.push("end"));
-			}
-		},
-
-		stopped: jest.fn()
-	};
-
-	it("should called stopped", () => {
-		const service = broker.createService(schema);
-		return broker.start()
-			.then(() => {
-				broker.call("delayed.test", {});
-				return service.Promise.delay(10);
-			})
-			.then(() => broker.stop())
-			.catch(protectReject)
-			.then(() => {
-				expect(FLOW).toEqual(["start", "end"]);
-				expect(schema.stopped).toHaveBeenCalledTimes(1);
-			});
-	});
-});
-
 describe("Test Service requesting during stopping", () => {
 	const broker1 = new ServiceBroker({ logger: false, nodeID: "node-1", transporter: "Fake" });
 	const broker2 = new ServiceBroker({ logger: false, nodeID: "node-2", transporter: "Fake" });

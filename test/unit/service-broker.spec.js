@@ -946,6 +946,9 @@ describe("Test broker.destroyService", () => {
 		stopped
 	});
 
+	beforeAll(() => broker.start());
+	afterAll(() => broker.stop());
+
 	it("should destroy service", () => {
 		broker.registry.unregisterService = jest.fn();
 		broker.servicesChanged = jest.fn();

@@ -172,12 +172,12 @@ describe("Test MiddlewareHandler", () => {
 		};
 
 		let mw2 = {
-			started: jest.fn(() => Promise.resolve(FLOW.push("MW2-started")))
+			started: jest.fn(() => Promise.delay(20).then(() => FLOW.push("MW2-started")))
 		};
 
 		let mw3 = {
 			created: jest.fn(() => FLOW.push("MW3-created")),
-			started: jest.fn(() => Promise.resolve(FLOW.push("MW3-started")))
+			started: jest.fn(() => Promise.delay(20).then(() => FLOW.push("MW3-started")))
 		};
 
 		middlewares.add(mw1);
@@ -201,7 +201,28 @@ describe("Test MiddlewareHandler", () => {
 			]);
 		});
 
-		it("should wrap remote action", () => {
+		it("should call reverted sync handlers", () => {
+			mw1.created.mockClear();
+			mw3.created.mockClear();
+
+			FLOW = [];
+			const obj = {};
+
+			middlewares.callSyncHandlers("created", [obj], true);
+
+			expect(mw1.created).toHaveBeenCalledTimes(1);
+			expect(mw1.created).toHaveBeenCalledWith(obj);
+
+			expect(mw3.created).toHaveBeenCalledTimes(1);
+			expect(mw3.created).toHaveBeenCalledWith(obj);
+
+			expect(FLOW).toEqual([
+				"MW3-created",
+				"MW1-created",
+			]);
+		});
+
+		it("should call async handlers", () => {
 			FLOW = [];
 
 			const obj = {};
@@ -216,6 +237,28 @@ describe("Test MiddlewareHandler", () => {
 				expect(FLOW).toEqual([
 					"MW2-started",
 					"MW3-started"
+				]);
+			});
+		});
+
+		it("should call reverted async handlers", () => {
+			mw2.started.mockClear();
+			mw3.started.mockClear();
+
+			FLOW = [];
+
+			const obj = {};
+
+			return middlewares.callHandlers("started", [obj], true).catch(protectReject).then(() => {
+				expect(mw2.started).toHaveBeenCalledTimes(1);
+				expect(mw2.started).toHaveBeenCalledWith(obj);
+
+				expect(mw3.started).toHaveBeenCalledTimes(1);
+				expect(mw3.started).toHaveBeenCalledWith(obj);
+
+				expect(FLOW).toEqual([
+					"MW3-started",
+					"MW2-started",
 				]);
 			});
 		});

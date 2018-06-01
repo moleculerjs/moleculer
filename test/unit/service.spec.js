@@ -38,6 +38,7 @@ describe("Test Service constructor", () => {
 		let service = new Service(broker, schema);
 		expect(service.name).toBe("users");
 		expect(service.version).toBe(2);
+		expect(service.fullName).toBe("v2.users");
 		expect(service.settings).toBe(schema.settings);
 		expect(service.metadata).toEqual({});
 		expect(service.schema).toBe(schema);
@@ -81,10 +82,11 @@ describe("Test Service constructor", () => {
 
 	it("check logger with string version", () => {
 		broker.getLogger = jest.fn();
-		new Service(broker, {
+		const service = new Service(broker, {
 			name: "posts",
 			version: "stage"
 		});
+		expect(service.fullName).toBe("stage.posts");
 		expect(broker.getLogger).toHaveBeenCalledTimes(1);
 		expect(broker.getLogger).toHaveBeenCalledWith("stage.posts", {
 			svc: "posts",
@@ -92,11 +94,29 @@ describe("Test Service constructor", () => {
 		});
 	});
 
+	it("check logger with string version but disabled versionPrefix", () => {
+		broker.getLogger = jest.fn();
+		const service = new Service(broker, {
+			name: "posts",
+			version: "stage",
+			settings: {
+				$noVersionPrefix: true
+			}
+		});
+		expect(service.fullName).toBe("posts");
+		expect(broker.getLogger).toHaveBeenCalledTimes(1);
+		expect(broker.getLogger).toHaveBeenCalledWith("posts", {
+			svc: "posts",
+			ver: "stage"
+		});
+	});
+
 	it("check logger without version", () => {
 		broker.getLogger = jest.fn();
-		new Service(broker, {
+		const service = new Service(broker, {
 			name: "likes"
 		});
+		expect(service.fullName).toBe("likes");
 		expect(broker.getLogger).toHaveBeenCalledTimes(1);
 		expect(broker.getLogger).toHaveBeenCalledWith("likes", {
 			svc: "likes",
@@ -579,28 +599,6 @@ describe("Test broker.waitForServices", () => {
 		});
 		expect(broker.waitForServices).toHaveBeenCalledTimes(1);
 		expect(broker.waitForServices).toHaveBeenCalledWith("posts", 5000, 500, svc.logger);
-	});
-
-});
-
-describe("Test active context tracking", () => {
-	let broker = new ServiceBroker({ logger: false });
-
-	it("should store context", () => {
-		let svc = broker.createService({
-			name: "test"
-		});
-
-		const ctx = new Context(broker, { name: "test", service: svc });
-
-		expect(svc._activeContexts.length).toBe(0);
-
-		svc._addActiveContext(ctx);
-		expect(svc._activeContexts.length).toBe(1);
-		expect(svc._activeContexts[0]).toBe(ctx);
-
-		svc._removeActiveContext(ctx);
-		expect(svc._activeContexts.length).toBe(0);
 	});
 
 });

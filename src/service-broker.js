@@ -326,7 +326,7 @@ class ServiceBroker {
 		this.started = false;
 		return Promise.resolve()
 			.then(() => {
-				return this.middlewares.callHandlers("stopping", [this]);
+				return this.middlewares.callHandlers("stopping", [this], true);
 			})
 			.then(() => {
 				if (this.transit) {
@@ -354,7 +354,7 @@ class ServiceBroker {
 				}
 			})
 			.then(() => {
-				return this.middlewares.callHandlers("stopped", [this]);
+				return this.middlewares.callHandlers("stopped", [this], true);
 			})
 			.then(() => {
 				if (_.isFunction(this.options.stopped))
@@ -630,10 +630,10 @@ class ServiceBroker {
 	 */
 	destroyService(service) {
 		return Promise.resolve()
-			.then(() => service._stop.call(service))
+			.then(() => service._stop())
 			.catch(err => {
 				/* istanbul ignore next */
-				this.logger.error(`Unable to stop service '${service.name}'.`, err);
+				this.logger.error(`Unable to stop '${service.name}' service.`, err);
 			})
 			.then(() => {
 				_.remove(this.services, svc => svc == service);

@@ -9,7 +9,7 @@
 const _ = require("lodash");
 const utils = require("./utils");
 
-const { ServiceSchemaError, GracefulStopTimeoutError } = require("./errors");
+const { ServiceSchemaError } = require("./errors");
 
 /**
  * Main Service class
@@ -59,17 +59,17 @@ class Service {
 		this.version = schema.version;
 		this.settings = schema.settings || {};
 		this.metadata = schema.metadata || {};
-
 		this.schema = schema;
 
-		const versionedName = (this.version ? (typeof(this.version) == "number" ? "v" + this.version : this.version) + "." : "") + this.name;
+		if (this.version && this.settings.$noVersionPrefix !== true)
+			this.fullName = (typeof(this.version) == "number" ? "v" + this.version : this.version) + "." + this.name;
+		else
+			this.fullName = this.name;
 
-		this.logger = this.broker.getLogger(versionedName, {
+		this.logger = this.broker.getLogger(this.fullName, {
 			svc: this.name,
 			ver: this.version
 		});
-
-		this._activeContexts = [];
 
 		this.actions = {}; // external access to actions
 
@@ -158,6 +158,9 @@ class Service {
 	_start() {
 		return this.Promise.resolve()
 			.then(() => {
+				return this.broker.middlewares.callHandlers("serviceStarting", [this]);
+			})
+			.then(() => {
 				// Wait for dependent services
 				if (this.schema.dependencies)
 					return this.waitForServices(this.schema.dependencies, this.settings.$dependencyTimeout || 0);
@@ -189,43 +192,26 @@ class Service {
 	 * @memberof Service
 	 */
 	_stop() {
-		return new this.Promise((resolve) => {
-			const timeout = setTimeout(() => {
-				this.logger.error(new GracefulStopTimeoutError({ service: this }));
-				resolve();
-			}, this.settings.$gracefulStopTimeout || this.broker.options.gracefulStopTimeout);
-
-			let first = true;
-			const checkForContexts = () => {
-				if (this._activeContexts.length === 0) {
-					clearTimeout(timeout);
-					resolve();
-				} else {
-					if (first) {
-						this.logger.warn(`Waiting for ${this._activeContexts.length} active context(s)...`);
-						first = false;
-					}
-					setTimeout(checkForContexts, 100);
-				}
-			};
-			setImmediate(checkForContexts);
-		}).finally(() => {
-			if (_.isFunction(this.schema.stopped))
-				return this.Promise.method(this.schema.stopped).call(this);
-
-			if (Array.isArray(this.schema.stopped)) {
-				return this.schema.stopped
-					.reverse()
-					.map(fn => this.Promise.method(fn.bind(this)))
-					.reduce((p, fn) => p.then(fn), this.Promise.resolve());
-			}
-
-			return this.Promise.resolve();
-		})
+		return this.Promise.resolve()
 			.then(() => {
-				return this.broker.middlewares.callHandlers("serviceStopped", [this]);
-			});
+				return this.broker.middlewares.callHandlers("serviceStopping", [this], true);
+			})
+			.then(() => {
+				if (_.isFunction(this.schema.stopped))
+					return this.Promise.method(this.schema.stopped).call(this);
 
+				if (Array.isArray(this.schema.stopped)) {
+					const arr = this.schema.stopped.reverse();
+					return arr
+						.map(fn => this.Promise.method(fn.bind(this)))
+						.reduce((p, fn) => p.then(fn), this.Promise.resolve());
+				}
+
+				return this.Promise.resolve();
+			})
+			.then(() => {
+				return this.broker.middlewares.callHandlers("serviceStopped", [this], true);
+			});
 	}
 
 	/**
@@ -257,16 +243,9 @@ class Service {
 		}
 
 		if (this.settings.$noServiceNamePrefix !== true)
-			action.name = this.name + "." + (action.name || name);
+			action.name = this.fullName + "." + (action.name || name);
 		else
 			action.name = action.name || name;
-
-		if (this.version && this.settings.$noVersionPrefix !== true) {
-			if (_.isNumber(this.version))
-				action.name = `v${this.version}.${action.name}`;
-			else
-				action.name = `${this.version}.${action.name}`;
-		}
 
 		//action.origName = name;
 		action.service = this;
@@ -338,29 +317,6 @@ class Service {
 		}
 
 		return event;
-	}
-
-	/**
-	 * Add active context to the list
-	 *
-	 * @param {Context} ctx
-	 * @memberof Service
-	 */
-	_addActiveContext(ctx) {
-		this._activeContexts.push(ctx);
-	}
-
-	/**
-	 * Remove active context from the list
-	 * @param {Context} ctx
-	 * @private
-	 * @memberof Service
-	 */
-	_removeActiveContext(ctx) {
-		const idx = this._activeContexts.indexOf(ctx);
-		if (idx !== -1) {
-			this._activeContexts.splice(idx, 1);
-		}
 	}
 
 	/**
