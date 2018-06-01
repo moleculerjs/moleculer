@@ -317,15 +317,15 @@ class BaseTransporter {
 
 	incStatSent(len) {
 		if (len > 0) {
-			this.transit.stat.packets.sent++;
-			this.transit.stat.packets.sentBytes += len;
+			this.transit.stat.packets.sent.count++;
+			this.transit.stat.packets.sent.bytes += len;
 		}
 	}
 
 	incStatReceived(len) {
 		if (len > 0) {
-			this.transit.stat.packets.received++;
-			this.transit.stat.packets.receivedBytes += len;
+			this.transit.stat.packets.received.count++;
+			this.transit.stat.packets.received.bytes += len;
 		}
 	}
 }
