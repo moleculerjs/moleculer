@@ -81,13 +81,13 @@ class MiddlewareHandler {
 	 *
 	 * @param {String} method
 	 * @param {Array<any>} args
-	 * @param {Boolean} revert
+	 * @param {Boolean} reverse
 	 * @returns {Promise}
 	 * @memberof MiddlewareHandler
 	 */
-	callHandlers(method, args, revert = false) {
+	callHandlers(method, args, reverse = false) {
 		if (this.list.length) {
-			const list = revert ? Array.from(this.list).reverse() : this.list;
+			const list = reverse ? Array.from(this.list).reverse() : this.list;
 			const arr = list
 				.filter(mw => _.isFunction(mw[method]))
 				.map(mw => mw[method]);
@@ -104,13 +104,13 @@ class MiddlewareHandler {
 	 *
 	 * @param {String} method
 	 * @param {Array<any>} args
-	 * @param {Boolean} revert
+	 * @param {Boolean} reverse
 	 * @returns
 	 * @memberof MiddlewareHandler
 	 */
-	callSyncHandlers(method, args, revert = false) {
+	callSyncHandlers(method, args, reverse = false) {
 		if (this.list.length) {
-			const list = revert ? Array.from(this.list).reverse() : this.list;
+			const list = reverse ? Array.from(this.list).reverse() : this.list;
 			list
 				.filter(mw => _.isFunction(mw[method]))
 				.map(mw => mw[method])
