@@ -27,6 +27,8 @@ let broker = new ServiceBroker({
 
 	//disableBalancer: true,
 
+	cacher: true,
+
 	metrics: true,
 
 	transit: {

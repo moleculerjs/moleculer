@@ -1,9 +1,9 @@
 const ServiceBroker = require("../../../src/service-broker");
 const Context = require("../../../src/context");
-const Middleware = require("../../../src/middlewares").TrackContext;
+const Middleware = require("../../../src/middlewares").ContextTracker;
 const { protectReject } = require("../utils");
 
-describe("Test TrackContextMiddleware", () => {
+describe("Test ContextTrackerMiddleware", () => {
 	const broker = new ServiceBroker({ nodeID: "server-1", logger: false });
 	const handler = jest.fn(() => Promise.resolve("Result"));
 	const service = {

@@ -11,7 +11,7 @@ module.exports = {
 	Metrics: require("./metrics"),
 	Retry: require("./retry"),
 	Timeout: require("./timeout"),
-	TrackContext: require("./track-context"),
+	ContextTracker: require("./context-tracker"),
 	MaxInFlight: require("./max-in-flight"),
 	ErrorHandler: require("./error-handler"),
 };

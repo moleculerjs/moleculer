@@ -17,7 +17,7 @@ function wrapTrackMiddleware(handler, action) {
 			}
 		};
 
-		return function trackContextMiddleware(ctx) {
+		return function ContextTrackerMiddleware(ctx) {
 
 			// Add trackContext option from broker options
 			if (ctx.options.trackContext === undefined && this.options.trackContext)
@@ -54,7 +54,7 @@ function wrapTrackMiddleware(handler, action) {
 	return handler;
 }
 
-module.exports = function TrackContextMiddleware() {
+module.exports = function ContextTrackerMiddleware() {
 	return {
 		localAction: wrapTrackMiddleware,
 
@@ -81,7 +81,7 @@ module.exports = function TrackContextMiddleware() {
 						resolve();
 					} else {
 						if (first) {
-							service.logger.warn(`Waiting for ${service._activeContexts.length} active context(s)...`);
+							service.logger.warn(`Waiting for ${service._activeContexts.length} running context(s)...`);
 							first = false;
 						}
 						setTimeout(checkForContexts, 100);

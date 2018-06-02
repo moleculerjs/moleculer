@@ -156,18 +156,24 @@ class ServiceBroker {
 		// Service registry
 		this.registry = new Registry(this);
 
-		// Middlewares
+		// Middleware handler
 		this.middlewares = new MiddlewareHandler(this);
 
 		// Cacher
 		this.cacher = Cachers.resolve(this.options.cacher);
 		if (this.cacher) {
 			this.cacher.init(this);
+
+			const name = this.cacher.constructor.name;
+			this.logger.info("Cacher:", name);
 		}
 
 		// Serializer
 		this.serializer = Serializers.resolve(this.options.serializer);
 		this.serializer.init(this);
+
+		const serializerName = this.serializer.constructor.name;
+		this.logger.info("Serializer:", serializerName);
 
 		// Validation
 		if (this.options.validation !== false) {
@@ -218,7 +224,9 @@ class ServiceBroker {
 		// Graceful exit
 		this._closeFn = () => {
 			/* istanbul ignore next */
-			this.stop().then(() => process.exit(0));
+			this.stop()
+				.catch(err => this.logger.error(err))
+				.then(() => process.exit(0));
 		};
 
 		process.setMaxListeners(0);
@@ -235,11 +243,15 @@ class ServiceBroker {
 	 */
 	registerMiddlewares(userMiddlewares) {
 		// Register user middlewares
-		if (Array.isArray(userMiddlewares) && userMiddlewares.length > 0)
+		if (Array.isArray(userMiddlewares) && userMiddlewares.length > 0) {
 			userMiddlewares.forEach(mw => this.middlewares.add(mw));
+
+			this.logger.info(`Registered ${this.middlewares.count()} custom middleware(s).`);
+		}
 
 		if (this.options.internalMiddlewares) {
 			// Register internal middlewares
+			const prevCount = this.middlewares.count();
 
 			// 1. Validator
 			if (this.validator && _.isFunction(this.validator.middleware))
@@ -253,7 +265,7 @@ class ServiceBroker {
 				this.middlewares.add(this.cacher.middleware());
 
 			// 4. Context tracker
-			this.middlewares.add(Middlewares.TrackContext.call(this));
+			this.middlewares.add(Middlewares.ContextTracker.call(this));
 
 			// 5. CircuitBreaker
 			this.middlewares.add(Middlewares.CircuitBreaker.call(this));
@@ -269,10 +281,9 @@ class ServiceBroker {
 
 			// 9. Metrics
 			this.middlewares.add(Middlewares.Metrics.call(this));
+
+			this.logger.info(`Registered ${this.middlewares.count() - prevCount} internal middleware(s).`);
 		}
-
-		this.logger.info(`Registered ${this.middlewares.count()} middleware(s).`);
-
 	}
 
 	/**
@@ -360,8 +371,12 @@ class ServiceBroker {
 				if (_.isFunction(this.options.stopped))
 					return this.options.stopped(this);
 			})
+			.catch(err => {
+				/* istanbul ignore next */
+				this.logger.error(err);
+			})
 			.then(() => {
-				this.logger.info("ServiceBroker is stopped successfully. Good bye.");
+				this.logger.info("ServiceBroker is stopped. Good bye.");
 
 				this.localBus.emit("$broker.stopped");
 
