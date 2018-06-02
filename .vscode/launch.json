@@ -72,6 +72,7 @@
 			"name": "Jest",
 			"program": "${workspaceRoot}/node_modules/jest-cli/bin/jest.js",
 			"args": ["--runInBand"],
+			"console": "internalConsole",
 			"cwd": "${workspaceRoot}",
 			"runtimeArgs": [
                 "--nolazy"
@@ -84,6 +85,7 @@
 			"program": "${workspaceRoot}/node_modules/jest-cli/bin/jest.js",
 			"args": ["--runInBand", "--testMatch", "**/integration/transporters/**/**spc.js"],
 			"cwd": "${workspaceRoot}",
+			"console": "internalConsole",
 			"runtimeArgs": [
                 "--nolazy"
             ],
