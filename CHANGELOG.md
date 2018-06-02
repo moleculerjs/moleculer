@@ -10,17 +10,6 @@ TODO
 ## Better Service & Broker lifecycle handling
 TODO
 
-## Enhanced ping method
-It returns Promise with results of ping responses.
-
-```js
-broker.sendPing().then(console.log);
-```
-
-```js
-broker.sendPing("node-123", 1000).then(console.log);
-```
-
 ## Default console logger
 No need to set `logger: console` in broker options, because ServiceBroker uses `console` as default logger.
 
@@ -97,7 +86,13 @@ Some errors have been renamed in order to follow name conventions.
 ## Context nodeID changes
 The `ctx.callerNodeID` has been removed. The `ctx.nodeID` always contains the target or caller nodeID. If you need the current nodeID, use `ctx.broker.nodeID`.
 
+## Internal event sending logic is changed
+The `$` prefixed internal events will be transferred if they are called by `emit` or `broadcast`. 
+
 # New
+
+## New extended middlewares
+TODO
 
 ## Enhanced log level configuration 
 There is a new module-based log level configuration. You can set log levels for every Moleculer module. You can use wildcard too.
@@ -114,7 +109,7 @@ const broker = new ServiceBroker({
 });
 ```
 
->Internal modules: `BROKER`, `TRANS`, `TX`, `CACHER`, `REGISTRY`.
+>Internal modules: `BROKER`, `TRANS`, `TX` (transporter), `CACHER`, `REGISTRY`.
 
 **Please note, it works only with default console logger. In case of external loggers (Pino, Windows, Bunyan, ...etc) you need to handle log levels.**
 
@@ -131,6 +126,17 @@ const broker = new ServiceBroker({
 **Output**
 ```
 [19:42:49.055Z] INFO  MATH: Service started.
+```
+
+## Enhanced ping method
+It returns Promise with results of ping responses.
+
+```js
+broker.sendPing().then(console.log);
+```
+
+```js
+broker.sendPing("node-123", 1000).then(console.log);
 ```
 
 # Changes

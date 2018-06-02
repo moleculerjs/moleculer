@@ -53,6 +53,15 @@ describe("Test MiddlewareHandler", () => {
 						return res;
 					});
 				};
+			}),
+			localEvent: jest.fn(handler => {
+				return () => {
+					FLOW.push("MW1-local-event-pre");
+					return handler(arguments).then(res => {
+						FLOW.push("MW1-local-event-post");
+						return res;
+					});
+				};
 			})
 		};
 
@@ -93,9 +102,17 @@ describe("Test MiddlewareHandler", () => {
 			handler
 		};
 
+		let event = {
+			name: "user.created",
+			handler: jest.fn(() => {
+				FLOW.push("EVENT-HANDLER");
+				return Promise.resolve();
+			})
+		};
+
 		it("should wrap local action", () => {
 
-			const newHandler = middlewares.wrapActionHandler("localAction", action, handler);
+			const newHandler = middlewares.wrapHandler("localAction", handler, action);
 
 			expect(mw1.localAction).toHaveBeenCalledTimes(1);
 			expect(mw1.localAction).toHaveBeenCalledWith(handler, action);
@@ -123,7 +140,7 @@ describe("Test MiddlewareHandler", () => {
 			mw3.localAction.mockClear();
 
 			FLOW = [];
-			const newHandler = middlewares.wrapActionHandler("remoteAction", action, handler);
+			const newHandler = middlewares.wrapHandler("remoteAction", handler, action);
 
 			expect(mw1.localAction).toHaveBeenCalledTimes(0);
 			expect(mw3.localAction).toHaveBeenCalledTimes(0);
@@ -142,22 +159,21 @@ describe("Test MiddlewareHandler", () => {
 			});
 		});
 
-		it("should call wrapActionHandler", () => {
-			middlewares.wrapActionHandler = jest.fn();
+		it("should wrap local event", () => {
+			FLOW = [];
+			const newHandler = middlewares.wrapHandler("localEvent", event.handler, event);
 
-			middlewares.wrapLocalAction(action, handler);
+			expect(mw1.localEvent).toHaveBeenCalledTimes(1);
+			expect(mw1.localEvent).toHaveBeenCalledWith(event.handler, event);
 
-			expect(middlewares.wrapActionHandler).toHaveBeenCalledTimes(1);
-			expect(middlewares.wrapActionHandler).toHaveBeenCalledWith("localAction", action, handler);
-		});
+			return newHandler().catch(protectReject).then(() => {
+				expect(FLOW).toEqual([
+					"MW1-local-event-pre",
+					"EVENT-HANDLER",
+					"MW1-local-event-post",
+				]);
 
-		it("should call wrapActionHandler", () => {
-			middlewares.wrapActionHandler = jest.fn();
-
-			middlewares.wrapRemoteAction(action, handler);
-
-			expect(middlewares.wrapActionHandler).toHaveBeenCalledTimes(1);
-			expect(middlewares.wrapActionHandler).toHaveBeenCalledWith("remoteAction", action, handler);
+			});
 		});
 	});
 

@@ -93,7 +93,7 @@ class Service {
 
 				serviceSpecification.actions[innerAction.name] = innerAction;
 
-				const wrappedHandler = this.broker.middlewares.wrapLocalAction(innerAction, innerAction.handler);
+				const wrappedHandler = this.broker.middlewares.wrapHandler("localAction", innerAction.handler, innerAction);
 				// Expose to call `service.actions.find({ ...params })`
 				this.actions[name] = (params, opts) => {
 					const endpoint = this.broker._getLocalActionEndpoint(innerAction.name);
@@ -280,10 +280,15 @@ class Service {
 			throw new ServiceSchemaError(`Invalid event definition in '${name}' event in '${this.name}' service!`);
 		}
 
-		const handler = event.handler;
-		if (!handler) {
+		if (!event.handler) {
 			throw new ServiceSchemaError(`Missing event handler on '${name}' event in '${this.name}' service!`);
 		}
+
+		let handler;
+		if (_.isFunction(event.handler))
+			handler = this.Promise.method(event.handler);
+		else if (Array.isArray(event.handler))
+			handler = event.handler.map(h => this.Promise.method(h));
 
 		if (!event.name)
 			event.name = name;
@@ -292,27 +297,18 @@ class Service {
 		const self = this;
 		if (_.isFunction(handler)) {
 			event.handler = function () {
-				const p = handler.apply(self, arguments);
-
-				// Handle async-await returns
-				if (utils.isPromise(p)) {
-					/* istanbul ignore next */
-					p.catch(err => self.logger.error(err));
-				}
+				handler.apply(self, arguments)
+					.catch(err => self.logger.error(err));
 				return null;
 			};
 		} else if (Array.isArray(handler)) {
 			event.handler = function () {
 				handler.forEach(fn => {
-					const p = fn.apply(self, arguments);
-
-					// Handle async-await returns
-					if (utils.isPromise(p)) {
-						/* istanbul ignore next */
-						p.catch(err => self.logger.error(err));
-					}
+					fn.apply(self, arguments)
+						.catch(err => self.logger.error(err));
 					return null;
 				});
+				return null;
 			};
 		}
 

@@ -354,13 +354,13 @@ describe("Test Registry.registerActions", () => {
 	};
 	let node = { id: "node-11" };
 
-	broker.middlewares.wrapRemoteAction = jest.fn();
+	broker.middlewares.wrapHandler = jest.fn();
 	broker.transit.request = jest.fn();
 
 	it("should call actions add & service addAction methods", () => {
 		registry.registerActions(node, service, {
-			"users.find": { name: "users.find" },
-			"users.save": { name: "users.save" },
+			"users.find": { name: "users.find", handler: jest.fn() },
+			"users.save": { name: "users.save", handler: jest.fn() },
 		});
 
 		expect(registry.actions.add).toHaveBeenCalledTimes(2);
@@ -371,8 +371,9 @@ describe("Test Registry.registerActions", () => {
 		expect(service.addAction).toHaveBeenCalledWith({"name": "users.find"});
 		expect(service.addAction).toHaveBeenCalledWith({"name": "users.save"});
 
-		expect(broker.middlewares.wrapRemoteAction).toHaveBeenCalledTimes(2);
-		expect(broker.middlewares.wrapRemoteAction).toHaveBeenCalledWith({"name": "users.find"}, jasmine.any(Function));
+		expect(broker.middlewares.wrapHandler).toHaveBeenCalledTimes(2);
+		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("remoteAction", jasmine.any(Function), {"name": "users.find"});
+		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("remoteAction", jasmine.any(Function), {"name": "users.save"});
 	});
 });
 
@@ -401,12 +402,14 @@ describe("Test Registry.registerEvents", () => {
 	let service = {
 		addEvent: jest.fn()
 	};
-	let node = { id: "node-11" };
+	let node = { id: "node-11", local: true };
+
+	broker.middlewares.wrapHandler = jest.fn();
 
 	it("should call events add & service addEvent methods", () => {
 		registry.registerEvents(node, service, {
-			"user.created": { name: "user.created" },
-			"user.removed": { name: "user.removed" },
+			"user.created": { name: "user.created", handler: jest.fn() },
+			"user.removed": { name: "user.removed", handler: jest.fn() },
 		});
 
 		expect(registry.events.add).toHaveBeenCalledTimes(2);
@@ -416,8 +419,11 @@ describe("Test Registry.registerEvents", () => {
 		expect(service.addEvent).toHaveBeenCalledTimes(2);
 		expect(service.addEvent).toHaveBeenCalledWith({"name": "user.created"});
 		expect(service.addEvent).toHaveBeenCalledWith({"name": "user.removed"});
-	});
 
+		expect(broker.middlewares.wrapHandler).toHaveBeenCalledTimes(2);
+		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("localEvent", jasmine.any(Function), {"name": "user.created"});
+		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("localEvent", jasmine.any(Function), {"name": "user.removed"});
+	});
 });
 
 describe("Test Registry.unregisterEvent", () => {

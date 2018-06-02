@@ -31,43 +31,19 @@ class MiddlewareHandler {
 	}
 
 	/**
-	 * Wrap local action handler
-	 *
-	 * @param {Action} action
-	 * @param {Function} handler
-	 * @returns {Function}
-	 * @memberof MiddlewareHandler
-	 */
-	wrapLocalAction(action, handler) {
-		return this.wrapActionHandler("localAction", action, handler);
-	}
-
-	/**
-	 * Wrap remote action handler
-	 *
-	 * @param {Action} action
-	 * @param {Function} handler
-	 * @returns {Function}
-	 * @memberof MiddlewareHandler
-	 */
-	wrapRemoteAction(action, handler) {
-		return this.wrapActionHandler("remoteAction", action, handler);
-	}
-
-	/**
-	 * Wrap an action handler
+	 * Wrap a handler
 	 *
 	 * @param {string} method
-	 * @param {ActionDef} action
 	 * @param {Function} handler
+	 * @param {Object} def
 	 * @returns {Function}
 	 * @memberof MiddlewareHandler
 	 */
-	wrapActionHandler(method, action, handler) {
+	wrapHandler(method, handler, def) {
 		if (this.list.length) {
 			handler = this.list.reduce((handler, mw) => {
 				if (_.isFunction(mw[method]))
-					return mw[method].call(this.broker, handler, action);
+					return mw[method].call(this.broker, handler, def);
 				else
 					return handler;
 			}, handler);
@@ -139,15 +115,20 @@ module.exports = MiddlewareHandler;
 
     },
 
-    // Wrap local action calls (legacy middleware handler)
+    // Wrap local action handlers (legacy middleware handler)
     localAction(handler, action) {
 
     },
 
-    // Wrap remote action calls
+    // Wrap remote action handlers
     remoteAction(handler, action) {
 
     },
+
+	// Wrap local event handlers
+	localEvent(handler, event) {
+
+	}
 
     // When event is emitted
     emit(eventName, payload) {

@@ -1794,7 +1794,7 @@ describe("Test broker.emit with transporter", () => {
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(0);
 	});
 
-	it("should not call sendEventToGroups if it is a local event", () => {
+	it("should call sendEventToGroups if it is an internal event", () => {
 		handler.mockClear();
 		broker.localBus.emit.mockClear();
 		broker.transit.sendEventToGroups.mockClear();
@@ -1808,7 +1808,9 @@ describe("Test broker.emit with transporter", () => {
 		expect(broker.localBus.emit).toHaveBeenCalledWith("$user.event", { name: "John" });
 
 		expect(handler).toHaveBeenCalledTimes(0);
-		expect(broker.transit.sendEventToGroups).toHaveBeenCalledTimes(0);
+		expect(broker.transit.sendEventToGroups).toHaveBeenCalledTimes(1);
+		expect(broker.transit.sendEventToGroups).toHaveBeenCalledWith("$user.event", {"name": "John"}, ["users", "mail"]);
+
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(0);
 	});
 });
@@ -1873,7 +1875,7 @@ describe("Test broker broadcast", () => {
 		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledWith("user.event", ["mail", "payment"]);
 	});
 
-	it("should not call sendBroadcastEvent if local event", () => {
+	it("should call sendBroadcastEvent if internal event", () => {
 		broker.broadcastLocal.mockClear();
 		broker.transit.sendBroadcastEvent.mockClear();
 		broker.registry.events.getAllEndpoints.mockClear();
@@ -1883,8 +1885,12 @@ describe("Test broker broadcast", () => {
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$user.event", { name: "John" }, null);
 
-		expect(broker.transit.sendBroadcastEvent).toHaveBeenCalledTimes(0);
-		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledTimes(0);
+		expect(broker.transit.sendBroadcastEvent).toHaveBeenCalledTimes(2);
+		expect(broker.transit.sendBroadcastEvent).toHaveBeenCalledWith("node-2", "$user.event", { name: "John" }, null);
+		expect(broker.transit.sendBroadcastEvent).toHaveBeenCalledWith("node-3", "$user.event", { name: "John" }, null);
+
+		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledTimes(1);
+		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledWith("$user.event", null);
 	});
 
 });

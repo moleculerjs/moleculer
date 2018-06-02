@@ -1012,7 +1012,7 @@ class ServiceBroker {
 				return this.transit.sendBalancedEvent(eventName, payload, groupedEP);
 			}
 
-		} else if (this.transit && !/^\$/.test(eventName)) {
+		} else if (this.transit) {
 			// Disabled balancer case
 
 			if (!groups || groups.length == 0) {
@@ -1044,16 +1044,14 @@ class ServiceBroker {
 		this.logger.debug(`Broadcast '${eventName}' event`+ (groups ? ` to '${groups.join(", ")}' group(s)` : "") + ".");
 
 		if (this.transit) {
-			if (!/^\$/.test(eventName)) {
-				const endpoints = this.registry.events.getAllEndpoints(eventName, groups);
+			const endpoints = this.registry.events.getAllEndpoints(eventName, groups);
 
-				// Send to remote services
-				endpoints.forEach(ep => {
-					if (ep.id != this.nodeID) {
-						return this.transit.sendBroadcastEvent(ep.id, eventName, payload, groups);
-					}
-				});
-			}
+			// Send to remote services
+			endpoints.forEach(ep => {
+				if (ep.id != this.nodeID) {
+					return this.transit.sendBroadcastEvent(ep.id, eventName, payload, groups);
+				}
+			});
 		}
 
 		// Send to local services

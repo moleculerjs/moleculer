@@ -148,12 +148,12 @@ class Registry {
 		_.forIn(actions, action => {
 
 			if (node.local) {
-				action.handler = this.broker.middlewares.wrapLocalAction(action, action.handler);
+				action.handler = this.broker.middlewares.wrapHandler("localAction", action.handler, action);
 			} else {
-				action.handler = this.broker.middlewares.wrapRemoteAction(action, this.broker.transit.request.bind(this.broker.transit));
+				action.handler = this.broker.middlewares.wrapHandler("remoteAction", this.broker.transit.request.bind(this.broker.transit), action);
 			}
 			if (this.broker.options.disableBalancer)
-				action.remoteHandler = this.broker.middlewares.wrapRemoteAction(action, this.broker.transit.request.bind(this.broker.transit));
+				action.remoteHandler = this.broker.middlewares.wrapHandler("remoteAction", this.broker.transit.request.bind(this.broker.transit), action);
 
 			this.actions.add(node, service, action);
 			service.addAction(action);
@@ -245,6 +245,10 @@ class Registry {
 	 */
 	registerEvents(node, service, events) {
 		_.forIn(events, event => {
+
+			if (node.local)
+				event.handler = this.broker.middlewares.wrapHandler("localEvent", event.handler, event);
+
 			this.events.add(node, service, event);
 			service.addEvent(event);
 		});
