@@ -7,6 +7,7 @@
 "use strict";
 
 module.exports = {
+	ActionHook: require("./action-hook"),
 	CircuitBreaker: require("./circuit-breaker"),
 	Metrics: require("./metrics"),
 	Retry: require("./retry"),

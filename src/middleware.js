@@ -130,18 +130,38 @@ module.exports = MiddlewareHandler;
 
 	}
 
-    // When event is emitted
-    emit(eventName, payload) {
+	// Wrap broker.createService method
+	createService(next) {
+
+	}
+
+	// Wrap broker.destroyService method
+	destroyService(next) {
+
+	}
+
+	// Wrap broker.call method
+	call(next) {
+
+	}
+
+	// Wrap broker.mcall method
+	mcall(next) {
+
+	}
+
+    // Wrap broker.emit method
+    emit(next) {
 
     },
 
-    // When broadcast event is emitted
-    broadcast(eventName, payload, groups) {
+    // Wrap broker.broadcast method
+    broadcast(next) {
 
     },
 
-    // When local broadcast event is emitted
-    broadcastLocal(eventName, payload, groups) {
+    // Wrap broker.broadcastLocal method
+    broadcastLocal(next) {
 
     },
 

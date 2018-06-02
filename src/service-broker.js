@@ -253,6 +253,9 @@ class ServiceBroker {
 			// Register internal middlewares
 			const prevCount = this.middlewares.count();
 
+			// 0. ActionHook
+			this.middlewares.add(Middlewares.ActionHook.call(this));
+
 			// 1. Validator
 			if (this.validator && _.isFunction(this.validator.middleware))
 				this.middlewares.add(this.validator.middleware());
@@ -547,7 +550,7 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Watch a service file and hot reload if it changed.
+	 * Watch a service file and hot reload if it's changed.
 	 *
 	 * @param {Service} service
 	 * @memberof ServiceBroker
