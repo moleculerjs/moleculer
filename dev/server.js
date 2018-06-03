@@ -4,7 +4,7 @@ let path = require("path");
 let _ = require("lodash");
 let chalk = require("chalk");
 let ServiceBroker = require("../src/service-broker");
-let { MoleculerRetryableError } = require("../src/errors");
+let { MoleculerError, MoleculerRetryableError } = require("../src/errors");
 
 // Create broker
 let broker = new ServiceBroker({
@@ -28,15 +28,35 @@ broker.createService({
 	name: "math",
 
 	hooks: {
-		"math.add": {
+		add: {
+			// Call it before 'add' handler. You have access to `ctx`
 			before(ctx) {
-				this.logger.info("Before add", ctx.params);
+				this.logger.info(chalk.magenta("Before add 2"), ctx.params);
+				if (ctx.params.a > 80)
+					throw new MoleculerError("The 'a' value is too big! Value: " + ctx.params.a);
 			},
-			after(ctx, res) {
-				this.logger.info("After add", res);
-			},
+
+			// Call them after 'add' handerl. You have access to `ctx` and result.
+			// Note: You can use multiple hooks
+			after: [
+				function(ctx, res) {
+					// Modify the result
+					res.f = 55;
+					this.logger.info(chalk.magenta("After add 1"), res);
+					// You must return the result
+					return res;
+				},
+				function(ctx, res) {
+					res.g = 66;
+					this.logger.info(chalk.magenta("After add 2"), res);
+					return res;
+				},
+			],
+			// Error handler hook.
 			error(ctx, err) {
-				this.logger.info("Error in add", err.name);
+				this.logger.info(chalk.magenta("Error in add"), err.message);
+				// Throw further the error
+				throw err;
 			}
 		}
 	},

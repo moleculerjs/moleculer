@@ -131,14 +131,14 @@ broker.start()
 			if (p.ctx) {
 				broker.logger.info(chalk.grey(`${reqCount}. Send request (${payload.a} + ${payload.b}) to ${p.ctx.nodeID ? p.ctx.nodeID : "some node"} (queue: ${broker.transit.pendingRequests.size})...`), chalk.yellow.bold(pendingInfo));
 			}
-			p.then(({ count, res }) => {
-				broker.logger.info(_.padEnd(`${count}. ${payload.a} + ${payload.b} = ${res}`, 20), `(from: ${p.ctx.nodeID})`);
+			p.then(r => {
+				broker.logger.info(_.padEnd(`${r.count}. ${payload.a} + ${payload.b} = ${r.res}`, 20), `(from: ${p.ctx.nodeID})`);
 
 				// Remove from pending
-				if (pendingReqs.indexOf(count) !== -1)
-					pendingReqs = pendingReqs.filter(n => n != count);
+				if (pendingReqs.indexOf(r.count) !== -1)
+					pendingReqs = pendingReqs.filter(n => n != r.count);
 				else
-					broker.logger.warn(chalk.red.bold("Invalid coming request count: ", count));
+					broker.logger.warn(chalk.red.bold("Invalid coming request count: ", r.count));
 			}).catch(err => {
 				broker.logger.warn(chalk.red.bold(_.padEnd(`${payload.count}. ${payload.a} + ${payload.b} = ERROR! ${err.message}`)));
 				if (pendingReqs.indexOf(payload.count) !== -1)

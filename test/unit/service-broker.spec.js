@@ -259,7 +259,7 @@ describe("Test ServiceBroker constructor", () => {
 			logger: false
 		});
 
-		expect(broker.middlewares.count()).toBe(8);
+		expect(broker.middlewares.count()).toBe(9);
 	});
 
 	it("should not load internal middlewares", () => {
@@ -353,7 +353,7 @@ describe("Test ServiceBroker constructor", () => {
 			}
 		});
 
-		expect(broker.middlewares.count()).toBe(9);
+		expect(broker.middlewares.count()).toBe(10);
 	});
 });
 
