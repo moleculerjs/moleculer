@@ -771,7 +771,7 @@ describe("Test loadServices", () => {
 	let broker = new ServiceBroker({ logger: false });
 	broker.loadService = jest.fn();
 
-	it("should load 3 services", () => {
+	it("should load 4 services", () => {
 		let count = broker.loadServices("./test/services");
 		expect(count).toBe(4);
 		expect(broker.loadService).toHaveBeenCalledTimes(4);

@@ -297,6 +297,8 @@ class ServiceBroker {
 
 			this.logger.info(`Registered ${this.middlewares.count() - prevCount} internal middleware(s).`);
 		}
+
+		this.middlewares.wrapBrokerMethods();
 	}
 
 	/**

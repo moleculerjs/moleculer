@@ -21,19 +21,65 @@ const MW = {
 		return handler;
 	},
 
+	// Wrap broker.createService method
+	createService(next) {
+		return function() {
+			console.log("MW createService is fired.");
+			return next(...arguments);
+		};
+	},
+
+	// Wrap broker.destroyService method
+	destroyService(next) {
+		return function() {
+			console.log("MW destroyService is fired.");
+			return next(...arguments);
+		};
+	},
+
+	// Wrap broker.call method
+	call(next) {
+		return function() {
+			console.log("MW call before is fired.", arguments);
+			return next(...arguments).then(res => {
+				console.log("MW call after is fired.", res);
+				return res;
+			});
+		};
+	},
+
+	// Wrap broker.mcall method
+	mcall(next) {
+		return function() {
+			console.log("MW call before is fired.");
+			return next(...arguments).then(res => {
+				console.log("MW call after is fired.");
+			});
+		};
+	},
+
 	// When event is emitted
-	emit(eventName, payload) {
-		console.log("MW emit is fired.", eventName);
+	emit(next) {
+		return function(eventName, payload, groups) {
+			console.log("MW emit is fired.", eventName);
+			return next(eventName, payload, groups);
+		};
 	},
 
 	// When broadcast event is emitted
-	broadcast(eventName, payload, groups) {
-		console.log("MW broadcast is fired.", eventName);
+	broadcast(next) {
+		return function(eventName, payload, groups) {
+			console.log("MW broadcast is fired.", eventName);
+			return next(eventName, payload, groups);
+		};
 	},
 
 	// When local broadcast event is emitted
-	broadcastLocal(eventName, payload, groups) {
-		console.log("MW broadcastLocal is fired.", eventName);
+	broadcastLocal(next) {
+		return function(eventName, payload, groups) {
+			console.log("MW broadcastLocal is fired.", eventName);
+			return next.call(this, eventName, payload, groups);
+		};
 	},
 
 	// After a new local service created
@@ -87,7 +133,7 @@ broker.createService({
 	name: "test",
 	actions: {
 		hello(ctx) {
-			return "Hello Moleculer";
+			return `Hello ${ctx.params.name}`;
 		},
 	},
 	events: {
@@ -103,4 +149,6 @@ broker.start()
 	.then(() => {
 		broker.emit("test.emitted.event", { a: 5 });
 		broker.broadcast("test.broadcasted.event", { b: "John" });
+		broker.call("test.hello", { name: "John" })
+			.then(res => broker.logger.info("Res:", res));
 	});

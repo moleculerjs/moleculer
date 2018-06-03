@@ -104,6 +104,40 @@ class MiddlewareHandler {
 	count() {
 		return this.list.length;
 	}
+
+	/**
+	 * Wrap some broker method
+	 *
+	 * @param {*} broker
+	 * @memberof MiddlewareHandler
+	 */
+	wrapBrokerMethods() {
+		this.broker.createService = this.wrapMethod("createService", this.broker.createService);
+		this.broker.destroyService = this.wrapMethod("destroyService", this.broker.destroyService);
+		this.broker.call = this.wrapMethod("call", this.broker.call);
+		this.broker.mcall = this.wrapMethod("mcall", this.broker.mcall);
+		this.broker.emit = this.wrapMethod("emit", this.broker.emit);
+		this.broker.broadcast = this.wrapMethod("broadcast", this.broker.broadcast);
+		this.broker.broadcastLocal = this.wrapMethod("broadcastLocal", this.broker.broadcastLocal);
+	}
+
+	/**
+	 * Wrap a broker method
+	 *
+	 * @param {string} method
+	 * @returns {Function}
+	 * @memberof MiddlewareHandler
+	 */
+	wrapMethod(method, handler, bindTo = this.broker) {
+		if (this.list.length) {
+			const list = this.list.filter(mw => !!mw[method]);
+			if (list.length > 0) {
+				handler = list.reduce((next, mw) => mw[method].call(this.broker, next), handler.bind(bindTo));
+			}
+		}
+
+		return handler;
+	}
 }
 
 module.exports = MiddlewareHandler;

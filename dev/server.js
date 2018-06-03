@@ -10,7 +10,7 @@ let { MoleculerError, MoleculerRetryableError } = require("../src/errors");
 let broker = new ServiceBroker({
 	namespace: "",
 	nodeID: process.argv[2] || "server-" + process.pid,
-	transporter: "NATSSS",
+	transporter: "NATS",
 	//serializer: "MsgPack",
 
 	//disableBalancer: true,
