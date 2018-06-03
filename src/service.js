@@ -242,12 +242,12 @@ class Service {
 			throw new ServiceSchemaError(`Missing action handler on '${name}' action in '${this.name}' service!`);
 		}
 
+		action.rawName = action.name || name;
 		if (this.settings.$noServiceNamePrefix !== true)
-			action.name = this.fullName + "." + (action.name || name);
+			action.name = this.fullName + "." + action.rawName;
 		else
-			action.name = action.name || name;
+			action.name = action.rawName;
 
-		//action.origName = name;
 		action.service = this;
 		action.cache = action.cache !== undefined ? action.cache : (this.settings.$cache || false);
 		action.handler = this.Promise.method(handler.bind(this));

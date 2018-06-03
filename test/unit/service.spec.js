@@ -354,6 +354,7 @@ describe("Test _createAction function", () => {
 
 		let action = service._createAction({ handler }, "find");
 		expect(action.name).toBe("users.find");
+		expect(action.rawName).toBe("find");
 		expect(action.cache).toBe(false);
 		expect(action.handler).toBeInstanceOf(Function);
 		expect(action.service).toBe(service);
@@ -364,6 +365,7 @@ describe("Test _createAction function", () => {
 
 		let action = service._createAction({ handler, myProp: "teszt" }, "find");
 		expect(action.name).toBe("v3.users.find");
+		expect(action.rawName).toBe("find");
 		expect(action.myProp).toBe("teszt");
 	});
 
@@ -372,6 +374,7 @@ describe("Test _createAction function", () => {
 
 		let action = service._createAction({ handler }, "find");
 		expect(action.name).toBe("staging.users.find");
+		expect(action.rawName).toBe("find");
 	});
 
 	it("should create action without version", () => {
@@ -379,6 +382,7 @@ describe("Test _createAction function", () => {
 
 		let action = service._createAction({ handler }, "find");
 		expect(action.name).toBe("users.find");
+		expect(action.rawName).toBe("find");
 	});
 
 	it("should create action with different name", () => {
@@ -386,6 +390,7 @@ describe("Test _createAction function", () => {
 
 		let action = service._createAction({ handler, name: "list" }, "find");
 		expect(action.name).toBe("users.list");
+		expect(action.rawName).toBe("list");
 	});
 
 	it("should create action without service name", () => {
@@ -398,6 +403,7 @@ describe("Test _createAction function", () => {
 
 		let action = service._createAction({ handler }, "find");
 		expect(action.name).toBe("find");
+		expect(action.rawName).toBe("find");
 	});
 
 
