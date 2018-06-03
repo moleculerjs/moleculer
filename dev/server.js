@@ -28,17 +28,24 @@ broker.createService({
 	name: "math",
 
 	hooks: {
-		add: {
+		before: {
 			// Call it before 'add' handler. You have access to `ctx`
-			before(ctx) {
-				this.logger.info(chalk.magenta("Before add 2"), ctx.params);
+			add(ctx) {
+				// `this` is pointed to Service instance
+				this.logger.info(chalk.magenta("Before add"), ctx.params);
 				if (ctx.params.a > 80)
 					throw new MoleculerError("The 'a' value is too big! Value: " + ctx.params.a);
 			},
 
+			// Hook for all actions in this service
+			"*"(ctx) {
+				this.logger.info(chalk.magenta("Before all"), ctx.params);
+			},
+		},
+		after: {
 			// Call them after 'add' handerl. You have access to `ctx` and result.
 			// Note: You can use multiple hooks
-			after: [
+			add: [
 				function(ctx, res) {
 					// Modify the result
 					res.f = 55;
@@ -52,9 +59,24 @@ broker.createService({
 					return res;
 				},
 			],
+
+			// Hook for all actions in this service
+			"*"(ctx, res) {
+				this.logger.info(chalk.magenta("After all"), res);
+				return res;
+			},
+		},
+		error: {
 			// Error handler hook.
-			error(ctx, err) {
+			add(ctx, err) {
 				this.logger.info(chalk.magenta("Error in add"), err.message);
+				// Throw further the error
+				throw err;
+			},
+
+			// Hook for all actions in this service
+			"*"(ctx, err) {
+				this.logger.info(chalk.magenta("Error in all"), err.message);
 				// Throw further the error
 				throw err;
 			}

@@ -31,15 +31,49 @@ function callErrorHook(hook, service, ctx, err) {
 }
 
 function wrapActionHookMiddleware(handler, action) {
-	const hooks = action.service && action.service.schema &&  action.service.schema.hooks ? action.service.schema.hooks[action.rawName || action.name] : null;
+	const name = action.rawName || action.name;
+	const hooks = action.service && action.service.schema ? action.service.schema.hooks : null;
 	if (hooks) {
-		if (hooks.before || hooks.after || hooks.error) {
+		const beforeAllHook = hooks.before ? hooks.before["*"] : null;
+		const afterAllHook = hooks.after ? hooks.after["*"] : null;
+		const errorAllHook = hooks.error ? hooks.error["*"] : null;
+
+		const beforeHook = hooks.before ? hooks.before[name] : null;
+		const afterHook = hooks.after ? hooks.after[name] : null;
+		const errorHook = hooks.error ? hooks.error[name] : null;
+
+		if (beforeAllHook || beforeHook || afterAllHook || afterHook || errorAllHook || errorHook) {
 			return function actionHookMiddleware(ctx) {
-				return Promise.resolve()
-					.then(() => hooks.before ? callHook(hooks.before, ctx.service, ctx) : null)
-					.then(() => handler(ctx))
-					.then(res => hooks.after ? callHook(hooks.after, ctx.service, ctx, res) : res)
-					.catch(err => hooks.error ? callErrorHook(hooks.error, ctx.service, ctx, err) : Promise.reject(err));
+				let p = Promise.resolve();
+
+				// Before all
+				if (beforeAllHook)
+					p = p.then(() => callHook(beforeAllHook, ctx.service, ctx));
+
+				// Before
+				if (beforeHook)
+					p = p.then(() => callHook(beforeHook, ctx.service, ctx));
+
+				// Action handler
+				p = p.then(() => handler(ctx));
+
+				// After
+				if (afterHook)
+					p = p.then(res => callHook(afterHook, ctx.service, ctx, res));
+
+				// After all
+				if (afterAllHook)
+					p = p.then(res => callHook(afterAllHook, ctx.service, ctx, res));
+
+				// Error
+				if (errorHook)
+					p = p.catch(err => callErrorHook(errorHook, ctx.service, ctx, err));
+
+				// Error all
+				if (errorAllHook)
+					p = p.catch(err => callErrorHook(errorAllHook, ctx.service, ctx, err));
+
+				return p;
 			};
 		}
 	}
