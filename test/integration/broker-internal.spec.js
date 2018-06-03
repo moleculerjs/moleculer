@@ -119,11 +119,13 @@ describe("Test internal services", () => {
 					"greeter.hello": {
 						"cache": false,
 						"name": "greeter.hello",
+						"rawName": "hello",
 						"metrics": { "meta": true, "params": false }
 					},
 					"greeter.welcome": {
 						"cache": true,
 						"name": "greeter.welcome",
+						"rawName": "welcome",
 						"metrics": { "meta": true, "params": false },
 						"params": {
 							"name": {
@@ -146,6 +148,7 @@ describe("Test internal services", () => {
 					"alpha.echo.reply": {
 						"cache": false,
 						"name": "alpha.echo.reply",
+						"rawName": "reply",
 						"metrics": { "meta": true, "params": false }
 					}
 				},
@@ -164,6 +167,7 @@ describe("Test internal services", () => {
 				"action": {
 					"cache": false,
 					"name": "$node.list",
+					"rawName": "list",
 					"metrics": { "meta": true, "params": false },
 					"params": {
 						"onlyAvailable": {
@@ -184,6 +188,7 @@ describe("Test internal services", () => {
 				"action": {
 					"cache": false,
 					"name": "$node.services",
+					"rawName": "services",
 					"metrics": { "meta": true, "params": false },
 					"params": {
 						"onlyLocal": {
@@ -212,6 +217,7 @@ describe("Test internal services", () => {
 				"action": {
 					"cache": false,
 					"name": "$node.actions",
+					"rawName": "actions",
 					"metrics": { "meta": true, "params": false },
 					"params": {
 						"onlyLocal": {
@@ -240,6 +246,7 @@ describe("Test internal services", () => {
 				"action": {
 					"cache": false,
 					"name": "$node.events",
+					"rawName": "events",
 					"metrics": { "meta": true, "params": false },
 					"params": {
 						"onlyLocal": {
@@ -268,6 +275,7 @@ describe("Test internal services", () => {
 				"action": {
 					"cache": false,
 					"name": "$node.health",
+					"rawName": "health",
 					"metrics": { "meta": true, "params": false },
 				},
 				"available": true,
@@ -278,6 +286,7 @@ describe("Test internal services", () => {
 				"action": {
 					"cache": false,
 					"name": "greeter.hello",
+					"rawName": "hello",
 					"metrics": { "meta": true, "params": false },
 				},
 				"available": true,
@@ -288,6 +297,7 @@ describe("Test internal services", () => {
 				"action": {
 					"cache": true,
 					"name": "greeter.welcome",
+					"rawName": "welcome",
 					"metrics": { "meta": true, "params": false },
 					"params": {
 						"name": {
@@ -303,6 +313,7 @@ describe("Test internal services", () => {
 				"action": {
 					"cache": false,
 					"name": "alpha.echo.reply",
+					"rawName": "reply",
 					"metrics": { "meta": true, "params": false }
 				},
 				"available": true,
@@ -319,6 +330,7 @@ describe("Test internal services", () => {
 				"action": {
 					"cache": false,
 					"name": "greeter.hello",
+					"rawName": "hello",
 					"metrics": { "meta": true, "params": false }
 				},
 				"available": true,
@@ -334,6 +346,7 @@ describe("Test internal services", () => {
 				"action": {
 					"cache": true,
 					"name": "greeter.welcome",
+					"rawName": "welcome",
 					"metrics": { "meta": true, "params": false },
 					"params": {
 						"name": {
@@ -354,6 +367,7 @@ describe("Test internal services", () => {
 				"action": {
 					"cache": false,
 					"name": "alpha.echo.reply",
+					"rawName": "reply",
 					"metrics": { "meta": true, "params": false }
 				},
 				"available": true,

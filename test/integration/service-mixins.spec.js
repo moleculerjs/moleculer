@@ -295,6 +295,7 @@ describe("Test Service mixins", () => {
 					keys: ["name"]
 				},
 				name: "main.charlie",
+				rawName: "charlie",
 				params: {
 					"name": "string"
 				}
@@ -308,6 +309,7 @@ describe("Test Service mixins", () => {
 			expect(res.action).toEqual({
 				cache: false,
 				name: "main.echo",
+				rawName: "echo",
 				params: {
 					"id": "string"
 				}
