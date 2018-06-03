@@ -11,8 +11,7 @@ const _ = require("lodash");
 
 /*
 	TODO:
-		- support array of function hooks
-		- hook action name without service name
+		- add hooks to service mixin merge
 */
 
 function callHook(hook, service, ctx, res) {
@@ -20,6 +19,14 @@ function callHook(hook, service, ctx, res) {
 		return hook.call(service, ctx, res);
 	} else if (Array.isArray(hook)) {
 		return hook.reduce((p, fn) => p.then(res => fn.call(service, ctx, res)), Promise.resolve(res));
+	}
+}
+
+function callErrorHook(hook, service, ctx, err) {
+	if (_.isFunction(hook)) {
+		return hook.call(service, ctx, err);
+	} else if (Array.isArray(hook)) {
+		return hook.reduce((p, fn) => p.catch(err => fn.call(service, ctx, err)), Promise.reject(err));
 	}
 }
 
@@ -32,7 +39,7 @@ function wrapActionHookMiddleware(handler, action) {
 					.then(() => hooks.before ? callHook(hooks.before, ctx.service, ctx) : null)
 					.then(() => handler(ctx))
 					.then(res => hooks.after ? callHook(hooks.after, ctx.service, ctx, res) : res)
-					.catch(err => hooks.error ? callHook(hooks.error, ctx.service, ctx, err) : Promise.reject(err));
+					.catch(err => hooks.error ? callErrorHook(hooks.error, ctx.service, ctx, err) : Promise.reject(err));
 			};
 		}
 	}
