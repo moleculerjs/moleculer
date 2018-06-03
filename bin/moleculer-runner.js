@@ -190,7 +190,7 @@ function mergeOptions() {
 			}
 
 			if (_.isPlainObject(obj[key]))
-				obj[key] = overwriteFromEnv(obj[key], key);
+				obj[key] = overwriteFromEnv(obj[key], (prefix ? prefix + "_" : "") + key);
 		});
 
 		return obj;
