@@ -7,7 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
-const { MoleculerServerError } = require("../errors");
+const { BrokerOptionsError } = require("../errors");
 
 const Cachers = {
 	Base: require("./base"),
@@ -47,14 +47,14 @@ function resolve(opt) {
 		if (CacherClass)
 			return new CacherClass(opt);
 		else
-			throw new MoleculerServerError(`Invalid cacher type '${opt}'.`, null, "INVALID_CACHER_TYPE", { type: opt });
+			throw new BrokerOptionsError(`Invalid cacher type '${opt}'.`, { type: opt });
 
 	} else if (_.isObject(opt)) {
 		let CacherClass = getByName(opt.type || "Memory");
 		if (CacherClass)
 			return new CacherClass(opt.options);
 		else
-			throw new MoleculerServerError(`Invalid cacher type '${opt.type}'.`, null, "INVALID_CACHER_TYPE", { type: opt.type });
+			throw new BrokerOptionsError(`Invalid cacher type '${opt.type}'.`, { type: opt.type });
 	}
 
 	return null;

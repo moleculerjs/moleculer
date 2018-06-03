@@ -7,7 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
-const { MoleculerServerError } = require("../errors");
+const { BrokerOptionsError } = require("../errors");
 
 const Strategies = {
 	Base: require("./base"),
@@ -42,14 +42,14 @@ function resolve(opt) {
 		if (SerializerClass)
 			return SerializerClass;
 		else
-			throw new MoleculerServerError(`Invalid strategy type '${opt}'.`, null, "INVALID_STRATEGY_TYPE", { type: opt });
+			throw new BrokerOptionsError(`Invalid strategy type '${opt}'.`, { type: opt });
 
 	} else if (_.isObject(opt)) {
 		let SerializerClass = getByName(opt.type || "RoundRobin");
 		if (SerializerClass)
 			return SerializerClass;
 		else
-			throw new MoleculerServerError(`Invalid strategy type '${opt.type}'.`, null, "INVALID_STRATEGY_TYPE", { type: opt.type });
+			throw new BrokerOptionsError(`Invalid strategy type '${opt.type}'.`, { type: opt.type });
 	}
 
 	return Strategies.RoundRobin;

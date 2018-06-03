@@ -10,8 +10,6 @@ const ExtendableError = require("es6-error");
 
 /*
 	TODO:
-		- consolidate error arguments
-				If not Moleculer*Error, args is data always
 		- add recreate from payload method
 */
 
@@ -172,7 +170,7 @@ class RequestTimeoutError extends MoleculerRetryableError {
  * 'Request skipped for timeout' Error message
  *
  * @class RequestSkippedError
- * @extends {Error}
+ * @extends {MoleculerError}
  */
 class RequestSkippedError extends MoleculerError {
 	/**
@@ -286,6 +284,25 @@ class ServiceSchemaError extends MoleculerError {
 }
 
 /**
+ * Custom Moleculer Error class for broker option errors
+ *
+ * @class BrokerOptionsError
+ * @extends {Error}
+ */
+class BrokerOptionsError extends MoleculerError {
+	/**
+	 * Creates an instance of BrokerOptionsError.
+	 *
+	 * @param {String} msg
+	 * @param {Object} data
+	 * @memberof BrokerOptionsError
+	 */
+	constructor(msg, data) {
+		super(msg, 500, "BROKER_OPTIONS_ERROR", data);
+	}
+}
+
+/**
  * Custom Moleculer Error class for Graceful stopping
  *
  * @class GracefulStopTimeoutError
@@ -362,6 +379,7 @@ module.exports = {
 	MaxCallLevelError,
 
 	ServiceSchemaError,
+	BrokerOptionsError,
 	GracefulStopTimeoutError,
 
 	ProtocolVersionMismatchError,

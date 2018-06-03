@@ -748,10 +748,7 @@ describe("Test broker.fatal", () => {
 		broker.fatal("Fatal error happened!");
 
 		expect(broker.logger.fatal).toHaveBeenCalledTimes(1);
-		expect(broker.logger.fatal).toHaveBeenCalledWith("Fatal error happened!");
-		expect(console.error).toHaveBeenCalledTimes(1);
-		expect(console.error).toHaveBeenCalledWith("Fatal error happened!");
-		expect(broker.logger.debug).toHaveBeenCalledTimes(0);
+		expect(broker.logger.fatal).toHaveBeenCalledWith("Fatal error happened!", undefined);
 		expect(process.exit).toHaveBeenCalledTimes(1);
 		expect(process.exit).toHaveBeenCalledWith(1);
 	});
@@ -764,11 +761,7 @@ describe("Test broker.fatal", () => {
 		broker.fatal("Fatal error happened!", err, false);
 
 		expect(broker.logger.fatal).toHaveBeenCalledTimes(1);
-		expect(broker.logger.fatal).toHaveBeenCalledWith("Fatal error happened!");
-		expect(console.error).toHaveBeenCalledTimes(1);
-		expect(console.error).toHaveBeenCalledWith("Fatal error happened!");
-		expect(broker.logger.debug).toHaveBeenCalledTimes(1);
-		expect(broker.logger.debug).toHaveBeenCalledWith("ERROR", err);
+		expect(broker.logger.fatal).toHaveBeenCalledWith("Fatal error happened!", err);
 		expect(process.exit).toHaveBeenCalledTimes(0);
 	});
 });

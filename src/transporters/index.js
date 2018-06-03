@@ -7,7 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
-const { MoleculerServerError } = require("../errors");
+const { BrokerOptionsError } = require("../errors");
 
 const Transporters = {
 	Base: require("./base"),
@@ -63,7 +63,7 @@ function resolve(opt) {
 		if (TransporterClass)
 			return new TransporterClass(opt);
 		else
-			throw new MoleculerServerError(`Invalid transporter type '${opt}'.`, null, "INVALID_TRANSPORTER_TYPE", { type: opt });
+			throw new BrokerOptionsError(`Invalid transporter type '${opt}'.`, { type: opt });
 
 	} else if (_.isObject(opt)) {
 		let TransporterClass = getByName(opt.type || "NATS");
@@ -71,7 +71,7 @@ function resolve(opt) {
 		if (TransporterClass)
 			return new TransporterClass(opt.options);
 		else
-			throw new MoleculerServerError(`Invalid transporter type '${opt.type}'.`, null, "INVALID_TRANSPORTER_TYPE", { type: opt.type });
+			throw new BrokerOptionsError(`Invalid transporter type '${opt.type}'.`, { type: opt.type });
 	}
 
 	return null;

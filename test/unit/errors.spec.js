@@ -218,6 +218,18 @@ describe("Test Errors", () => {
 		expect(err.data).toBeUndefined();
 	});
 
+	it("test BrokerOptionsError", () => {
+		let err = new errors.BrokerOptionsError("Invalid broker config.", { a: 5 });
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(Error);
+		expect(err).toBeInstanceOf(errors.BrokerOptionsError);
+		expect(err.name).toBe("BrokerOptionsError");
+		expect(err.message).toBe("Invalid broker config.");
+		expect(err.code).toBe(500);
+		expect(err.type).toBe("BROKER_OPTIONS_ERROR");
+		expect(err.data).toEqual({ a: 5 });
+	});
+
 	it("test GracefulStopTimeoutError", () => {
 		let err = new errors.GracefulStopTimeoutError({ service: { name: "posts", version: 2 }});
 		expect(err).toBeDefined();

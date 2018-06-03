@@ -119,121 +119,131 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	constructor(options) {
-		this.options = _.defaultsDeep(options, defaultOptions);
+		try {
+			this.options = _.defaultsDeep(options, defaultOptions);
 
-		// Promise constructor
-		this.Promise = Promise;
+			// Promise constructor
+			this.Promise = Promise;
 
-		// Broker started flag
-		this.started = false;
+			// Broker started flag
+			this.started = false;
 
-		// Class factories
-		this.ServiceFactory = this.options.ServiceFactory || require("./service");
-		this.ContextFactory = this.options.ContextFactory || require("./context");
+			// Class factories
+			this.ServiceFactory = this.options.ServiceFactory || require("./service");
+			this.ContextFactory = this.options.ContextFactory || require("./context");
 
-		// Namespace
-		this.namespace = this.options.namespace || "";
+			// Namespace
+			this.namespace = this.options.namespace || "";
 
-		// Self nodeID
-		this.nodeID = this.options.nodeID || utils.getNodeID();
+			// Self nodeID
+			this.nodeID = this.options.nodeID || utils.getNodeID();
 
-		// Logger
-		this.logger = this.getLogger("broker");
+			// Logger
+			this.logger = this.getLogger("broker");
 
-		this.logger.info(`Moleculer v${this.MOLECULER_VERSION} is starting...`);
-		this.logger.info("Node ID:", this.nodeID);
-		this.logger.info("Namespace:", this.namespace || "<not defined>");
+			this.logger.info(`Moleculer v${this.MOLECULER_VERSION} is starting...`);
+			this.logger.info("Node ID:", this.nodeID);
+			this.logger.info("Namespace:", this.namespace || "<not defined>");
 
-		// Internal event bus
-		this.localBus = new EventEmitter2({
-			wildcard: true,
-			maxListeners: 100
-		});
+			// Internal event bus
+			this.localBus = new EventEmitter2({
+				wildcard: true,
+				maxListeners: 100
+			});
 
-		// Internal maps
-		this.services = [];
+			// Internal maps
+			this.services = [];
 
-		// Service registry
-		this.registry = new Registry(this);
+			// Service registry
+			this.registry = new Registry(this);
 
-		// Middleware handler
-		this.middlewares = new MiddlewareHandler(this);
+			// Middleware handler
+			this.middlewares = new MiddlewareHandler(this);
 
-		// Cacher
-		this.cacher = Cachers.resolve(this.options.cacher);
-		if (this.cacher) {
-			this.cacher.init(this);
+			// Cacher
+			this.cacher = Cachers.resolve(this.options.cacher);
+			if (this.cacher) {
+				this.cacher.init(this);
 
-			const name = this.cacher.constructor.name;
-			this.logger.info("Cacher:", name);
-		}
-
-		// Serializer
-		this.serializer = Serializers.resolve(this.options.serializer);
-		this.serializer.init(this);
-
-		const serializerName = this.serializer.constructor.name;
-		this.logger.info("Serializer:", serializerName);
-
-		// Validation
-		if (this.options.validation !== false) {
-			this.validator = this.options.validator ? this.options.validator : new Validator();
-			if (this.validator) {
-				this.validator.init(this);
+				const name = this.cacher.constructor.name;
+				this.logger.info("Cacher:", name);
 			}
-		}
 
-		// Transit & Transporter
-		if (this.options.transporter) {
-			const tx = Transporters.resolve(this.options.transporter);
-			this.transit = new Transit(this, tx, this.options.transit);
+			// Serializer
+			this.serializer = Serializers.resolve(this.options.serializer);
+			this.serializer.init(this);
 
-			const txName = tx.constructor.name;
-			this.logger.info("Transporter:", txName);
+			const serializerName = this.serializer.constructor.name;
+			this.logger.info("Serializer:", serializerName);
 
-			if (this.options.disableBalancer) {
-				if (tx.hasBuiltInBalancer) {
-					this.logger.info("The broker built-in balancer is DISABLED.");
-				} else {
-					this.logger.warn(`The ${txName} has no built-in balancer. Broker balancer is ENABLED.`);
-					this.options.disableBalancer = false;
+			// Validation
+			if (this.options.validation !== false) {
+				this.validator = this.options.validator ? this.options.validator : new Validator();
+				if (this.validator) {
+					this.validator.init(this);
 				}
 			}
+
+			// Transit & Transporter
+			if (this.options.transporter) {
+				const tx = Transporters.resolve(this.options.transporter);
+				this.transit = new Transit(this, tx, this.options.transit);
+
+				const txName = tx.constructor.name;
+				this.logger.info("Transporter:", txName);
+
+				if (this.options.disableBalancer) {
+					if (tx.hasBuiltInBalancer) {
+						this.logger.info("The broker built-in balancer is DISABLED.");
+					} else {
+						this.logger.warn(`The ${txName} has no built-in balancer. Broker balancer is ENABLED.`);
+						this.options.disableBalancer = false;
+					}
+				}
+			}
+
+			if (this.options.disableBalancer) {
+				this.call = this.callWithoutBalancer;
+			}
+
+			// Counter for metricsRate
+			this._sampleCount = 0;
+
+			// Register middlewares
+			this.registerMiddlewares(this.options.middlewares);
+
+			// Register internal actions
+			if (this.options.internalServices)
+				this.registerInternalServices();
+
+			this.middlewares.callSyncHandlers("created", [this]);
+
+			// Call `created` event handler
+			if (_.isFunction(this.options.created))
+				this.options.created(this);
+
+			// Graceful exit
+			this._closeFn = () => {
+				/* istanbul ignore next */
+				this.stop()
+					.catch(err => this.logger.error(err))
+					.then(() => process.exit(0));
+			};
+
+			process.setMaxListeners(0);
+			process.on("beforeExit", this._closeFn);
+			process.on("exit", this._closeFn);
+			process.on("SIGINT", this._closeFn);
+			process.on("SIGTERM", this._closeFn);
+		} catch(err) {
+			if (this.logger)
+				this.fatal("Unable to create ServiceBroker.", err, true);
+			else {
+				/* eslint-disable-next-line no-console */
+				console.error("Unable to create ServiceBroker.", err);
+			}
 		}
 
-		if (this.options.disableBalancer) {
-			this.call = this.callWithoutBalancer;
-		}
-
-		// Counter for metricsRate
-		this._sampleCount = 0;
-
-		// Register middlewares
-		this.registerMiddlewares(this.options.middlewares);
-
-		// Register internal actions
-		if (this.options.internalServices)
-			this.registerInternalServices();
-
-		this.middlewares.callSyncHandlers("created", [this]);
-
-		// Call `created` event handler
-		if (_.isFunction(this.options.created))
-			this.options.created(this);
-
-		// Graceful exit
-		this._closeFn = () => {
-			/* istanbul ignore next */
-			this.stop()
-				.catch(err => this.logger.error(err))
-				.then(() => process.exit(0));
-		};
-
-		process.setMaxListeners(0);
-		process.on("beforeExit", this._closeFn);
-		process.on("exit", this._closeFn);
-		process.on("SIGINT", this._closeFn);
-		process.on("SIGTERM", this._closeFn);
 	}
 
 	/**
@@ -460,11 +470,11 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	fatal(message, err, needExit = true) {
-		if (err)
-			this.logger.debug("ERROR", err);
 
-		console.error(message); // eslint-disable-line no-console
-		this.logger.fatal(message);
+		if (this.logger)
+			this.logger.fatal(message, err);
+		else
+			console.error(message, err); // eslint-disable-line no-console
 
 		if (needExit)
 			process.exit(1);

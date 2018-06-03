@@ -7,7 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
-const { MoleculerServerError } = require("../errors");
+const { BrokerOptionsError } = require("../errors");
 
 const Serializers = {
 	Base: require("./base"),
@@ -42,14 +42,14 @@ function resolve(opt) {
 		if (SerializerClass)
 			return new SerializerClass();
 		else
-			throw new MoleculerServerError(`Invalid serializer type '${opt}'.`, null, "INVALID_SERIALIZER_TYPE", { type: opt });
+			throw new BrokerOptionsError(`Invalid serializer type '${opt}'.`, { type: opt });
 
 	} else if (_.isObject(opt)) {
 		let SerializerClass = getByName(opt.type || "JSON");
 		if (SerializerClass)
 			return new SerializerClass(opt.options);
 		else
-			throw new MoleculerServerError(`Invalid serializer type '${opt.type}'.`, null, "INVALID_SERIALIZER_TYPE", { type: opt.type });
+			throw new BrokerOptionsError(`Invalid serializer type '${opt.type}'.`, { type: opt.type });
 	}
 
 	return new Serializers.JSON();
