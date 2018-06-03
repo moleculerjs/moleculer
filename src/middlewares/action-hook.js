@@ -9,11 +9,6 @@
 const Promise = require("bluebird");
 const _ = require("lodash");
 
-/*
-	TODO:
-		- add hooks to service mixin merge
-*/
-
 function callHook(hook, service, ctx, res) {
 	if (_.isFunction(hook)) {
 		return hook.call(service, ctx, res);

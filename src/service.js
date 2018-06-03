@@ -372,7 +372,11 @@ class Service {
 		}
 
 		const wrapToHander = function wrapToHander(o) {
-			return _._.isFunction(o) ? { handler: o } : o;
+			return _.isFunction(o) ? { handler: o } : o;
+		};
+
+		const wrapToArray = function wrapToArray(o) {
+			return Array.isArray(o) ? o : [o];
 		};
 
 		const res = _.cloneDeep(mixinSchema);
@@ -382,6 +386,23 @@ class Service {
 			if (["settings", "metadata"].indexOf(key) !== -1) {
 				// Merge with defaultsDeep
 				res[key] = _.defaultsDeep(mods[key], res[key]);
+
+			} else if (["hooks"].indexOf(key) !== -1) {
+				// Merge & concat
+				if (res[key] == null)
+					res[key] = {};
+
+				Object.keys(mods[key]).forEach(k => {
+					if (res[key][k] == null)
+						res[key][k] = {};
+
+					Object.keys(mods[key][k]).forEach(k2 => {
+						const modHook = wrapToArray(mods[key][k][k2]);
+						const resHook = wrapToArray(res[key][k][k2]);
+
+						res[key][k][k2] = _.compact(_.flatten(k == "before" ? [resHook, modHook] : [modHook, resHook]));
+					});
+				});
 
 			} else if (["actions"].indexOf(key) !== -1) {
 				// Merge with defaultsDeep
