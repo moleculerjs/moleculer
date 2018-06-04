@@ -98,7 +98,16 @@ module.exports = function(broker) {
 				handler() {
 					return this.broker.getHealthStatus();
 				}
-			}
+			},
+
+			options: {
+				cache: true,
+				params: {
+				},
+				handler(ctx) {
+					return _.cloneDeep(this.broker.options);
+				}
+			},
 		}
 	};
 

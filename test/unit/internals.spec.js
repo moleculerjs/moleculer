@@ -103,5 +103,9 @@ describe("Test health status methods", () => {
 		});
 	});
 
-
+	it("should return broker.options", () => {
+		return broker.call("$node.options").catch(protectReject).then(res => {
+			expect(res).toEqual(broker.options);
+		});
+	});
 });
