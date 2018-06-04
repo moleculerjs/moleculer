@@ -79,7 +79,7 @@
     "glob": "7.1.2",
     "ipaddr.js": "1.7.0",
     "lodash": "4.17.10",
-    "node-object-hash": "1.3.0"
+    "node-object-hash": "^1.4.1"
   },
   "engines": {
     "node": ">= 6.x.x"
