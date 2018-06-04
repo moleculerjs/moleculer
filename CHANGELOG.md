@@ -123,6 +123,32 @@ const broker = new ServiceBroker({
 });
 ```
 
+## Cloning in MemoryCacher
+
+**Enable cloning**
+```js
+const broker = new ServiceBroker({ 
+    cacher: {
+        type: "Memory",
+        options: {
+            clone: true
+        }
+    }
+});
+```
+
+**Custom clone function**
+```js
+const broker = new ServiceBroker({ 
+    cacher: {
+        type: "Memory",
+        options: {
+            clone: data => JSON.parse(JSON.stringify(data))
+        }
+    }
+});
+```
+
 **Output**
 ```
 [19:42:49.055Z] INFO  MATH: Service started.
