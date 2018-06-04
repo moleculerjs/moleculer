@@ -30,7 +30,7 @@ before_script:
   - ./gnatsd-v1.1.0-linux-amd64/gnatsd &
 
 script:
-  - npm test && npm run test:trans
+  - npm run test:travis
 
 after_success:
   - npm run coverall
