@@ -10,12 +10,20 @@ const broker = new ServiceBroker({
 broker.loadService(path.join(__dirname, "greeter.service.ts"));
 
 (async function() {
-	await broker.start();
+	try {
+		await broker.start();
 
-	const res = await broker.call("greeter.welcome", { name: "Typescript"});
-	broker.logger.info("");
-	broker.logger.info("Result: ", res);
-	broker.logger.info("");
+		const res = await broker.call("greeter.welcome", { name: "Typescript"});
+		broker.logger.info("");
+		broker.logger.info("Result: ", res);
+		broker.logger.info("");
+		if (res != "Welcome, Typescript!")
+			throw new Error("Result is mismatch!");
+		else
+			await broker.stop();
 
-	await broker.stop();
+	} catch(err) {
+		console.log(err);
+		process.exit(1);
+	}
 })();

@@ -61,7 +61,6 @@ declare namespace Moleculer {
 		action: Action;
 		service: Service;
 		nodeID?: string;
-		parentID?: string;
 
 		options: GenericObject;
 

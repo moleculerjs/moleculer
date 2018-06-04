@@ -11,7 +11,7 @@
         "declaration": false,
         "noImplicitAny": false,
         "removeComments": true,
-        //"noLib": false,
+        "noLib": false,
         "preserveConstEnums": true,
         "suppressImplicitAnyIndexErrors": true,
         "outDir": "./out",
