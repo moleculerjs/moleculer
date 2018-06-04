@@ -276,10 +276,11 @@ class ServiceSchemaError extends MoleculerError {
 	 * Creates an instance of ServiceSchemaError.
 	 *
 	 * @param {String} msg
+	 * @param {Object} data
 	 * @memberof ServiceSchemaError
 	 */
-	constructor(msg) {
-		super(msg, 500, "SERVICE_SCHEMA_ERROR");
+	constructor(msg, data) {
+		super(msg, 500, "SERVICE_SCHEMA_ERROR", data);
 	}
 }
 
@@ -361,6 +362,40 @@ class InvalidPacketDataError extends MoleculerError {
 	}
 }
 
+/**
+ * Recreate an error from a transferred payload `err`
+ *
+ * @param {Error} err
+ * @returns {MoleculerError}
+ */
+function recreateError(err) {
+	const Class = module.exports[err.name];
+	if (Class) {
+		switch(err.name) {
+			case "MoleculerError": return new Class(err.message, err.code, err.type, err.data);
+			case "MoleculerRetryableError": return new Class(err.message, err.code, err.type, err.data);
+			case "MoleculerServerError": return new Class(err.message, err.code, err.type, err.data);
+			case "MoleculerClientError": return new Class(err.message, err.code, err.type, err.data);
+
+			case "ValidationError": return new Class(err.message, err.type, err.data);
+
+			case "ServiceNotFoundError": return new Class(err.data);
+			case "ServiceNotAvailableError": return new Class(err.data);
+			case "RequestTimeoutError": return new Class(err.data);
+			case "RequestSkippedError": return new Class(err.data);
+			case "RequestRejectedError": return new Class(err.data);
+			case "QueueIsFullError": return new Class(err.data);
+			case "MaxCallLevelError": return new Class(err.data);
+			case "GracefulStopTimeoutError": return new Class(err.data);
+			case "ProtocolVersionMismatchError": return new Class(err.data);
+			case "InvalidPacketDataError": return new Class(err.data);
+
+			case "ServiceSchemaError":
+			case "BrokerOptionsError": return new Class(err.message, err.data);
+		}
+	}
+}
+
 
 module.exports = {
 	MoleculerError,
@@ -383,5 +418,7 @@ module.exports = {
 	GracefulStopTimeoutError,
 
 	ProtocolVersionMismatchError,
-	InvalidPacketDataError
+	InvalidPacketDataError,
+
+	recreateError
 };

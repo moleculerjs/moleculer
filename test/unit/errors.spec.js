@@ -273,3 +273,78 @@ describe("Test Errors", () => {
 	});
 
 });
+
+describe("Test Errors.recreateError", () => {
+
+	it("should recreate MoleculerError", () => {
+		let err = errors.recreateError({
+			name: "MoleculerError",
+			message: "Something went wrong",
+			code: 501,
+			type: "SOMETHING_ERROR",
+			data: { a: 5 }
+		});
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(errors.MoleculerError);
+		expect(err.name).toBe("MoleculerError");
+		expect(err.message).toBe("Something went wrong");
+		expect(err.code).toBe(501);
+		expect(err.type).toBe("SOMETHING_ERROR");
+		expect(err.data).toEqual({ a: 5 });
+	});
+
+	it("should recreate ValidationError", () => {
+		let err = errors.recreateError({
+			name: "ValidationError",
+			message: "Parameters wrong",
+			type: "PARAM_VALIDATION_ERROR",
+			data: { a: "must be string" }
+		});
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(errors.ValidationError);
+		expect(err.name).toBe("ValidationError");
+		expect(err.message).toBe("Parameters wrong");
+		expect(err.code).toBe(422);
+		expect(err.type).toBe("PARAM_VALIDATION_ERROR");
+		expect(err.data).toEqual({ a: "must be string" });
+	});
+
+	it("should recreate ServiceNotFoundError", () => {
+		let err = errors.recreateError({
+			name: "ServiceNotFoundError",
+			data: { action: "posts.find", nodeID: "node-2" }
+		});
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(errors.ServiceNotFoundError);
+		expect(err.name).toBe("ServiceNotFoundError");
+		expect(err.message).toBe("Service 'posts.find' is not found on 'node-2' node.");
+		expect(err.code).toBe(404);
+		expect(err.type).toBe("SERVICE_NOT_FOUND");
+		expect(err.data).toEqual({ action: "posts.find", nodeID: "node-2" });
+	});
+
+	it("should recreate BrokerOptionsError", () => {
+		let err = errors.recreateError({
+			name: "BrokerOptionsError",
+			message: "Something wrong in broker options",
+			data: { a: 5 }
+		});
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(errors.BrokerOptionsError);
+		expect(err.name).toBe("BrokerOptionsError");
+		expect(err.message).toBe("Something wrong in broker options");
+		expect(err.code).toBe(500);
+		expect(err.type).toBe("BROKER_OPTIONS_ERROR");
+		expect(err.data).toEqual({ a: 5 });
+	});
+
+	it("should return null if not known error", () => {
+		let err = errors.recreateError({
+			name: "MyCustomError",
+			message: "Something wrong in broker options",
+			data: { a: 5 }
+		});
+		expect(err).toBeUndefined();
+	});
+
+});

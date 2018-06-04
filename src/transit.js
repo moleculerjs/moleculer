@@ -398,18 +398,20 @@ class Transit {
 	}
 
 	_createErrFromPayload(error, sender) {
-		const err = new Error(error.message + ` (NodeID: ${sender})`);
-		// TODO create the original error object if it's available
-		//   let constructor = errors[error.name]
-		//   let error = Object.create(constructor.prototype);
-		err.name = error.name;
-		err.code = error.code;
-		err.type = error.type;
+		let err = E.recreateError(error);
+		if (!err) {
+			err = new Error(error.message);
+			err.name = error.name;
+			err.code = error.code;
+			err.type = error.type;
+			err.data = error.data;
+		}
+		err.message += ` (NodeID: ${sender})`;
 		err.retryable = error.retryable;
 		err.nodeID = error.nodeID || sender;
-		err.data = error.data;
 		if (error.stack)
 			err.stack = error.stack;
+
 		return err;
 	}
 

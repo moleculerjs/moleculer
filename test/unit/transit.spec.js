@@ -675,11 +675,48 @@ describe("Test Transit._responseHandler", () => {
 		expect(req.ctx.nodeID).toBe("remote");
 
 		expect(err).toBeInstanceOf(Error);
+		expect(err).toBeInstanceOf(E.ValidationError);
 		expect(err.name).toBe("ValidationError");
 		expect(err.code).toBe(422);
 		expect(err.retryable).toBe(true);
 		expect(err.data).toEqual({ a: 5 });
 		expect(err.stack).toBe("STACK-TRACE");
+		expect(err.nodeID).toBe("remote");
+
+		expect(transit.pendingRequests.size).toBe(0);
+
+	});
+
+	it("should call reject with custom error", () => {
+		let err;
+		let req = {
+			action: { name: "posts.find" },
+			ctx: { nodeID: null },
+			resolve: jest.fn(),
+			reject: jest.fn(e => err = e)
+		};
+		transit.pendingRequests.set(id, req);
+
+		let payload = { ver: "3", sender: "remote", id, success: false, error: {
+			name: "MyCustomError",
+			code: 456,
+			retryable: true,
+			data: { a: 5 },
+			stack: "MY-STACK-TRACE"
+		}};
+
+		transit._responseHandler(payload);
+		expect(req.reject).toHaveBeenCalledTimes(1);
+		expect(req.reject).toHaveBeenCalledWith(err);
+		expect(req.resolve).toHaveBeenCalledTimes(0);
+		expect(req.ctx.nodeID).toBe("remote");
+
+		expect(err).toBeInstanceOf(Error);
+		expect(err.name).toBe("MyCustomError");
+		expect(err.code).toBe(456);
+		expect(err.retryable).toBe(true);
+		expect(err.data).toEqual({ a: 5 });
+		expect(err.stack).toBe("MY-STACK-TRACE");
 		expect(err.nodeID).toBe("remote");
 
 		expect(transit.pendingRequests.size).toBe(0);
