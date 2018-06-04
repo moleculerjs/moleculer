@@ -284,6 +284,18 @@ describe("Test internal services", () => {
 				"name": "$node.health"
 			}, {
 				"action": {
+					"cache": true,
+					"name": "$node.options",
+					"rawName": "options",
+					"metrics": { "meta": true, "params": false },
+					"params": {}
+				},
+				"available": true,
+				"count": 1,
+				"hasLocal": true,
+				"name": "$node.options"
+			}, {
+				"action": {
 					"cache": false,
 					"name": "greeter.hello",
 					"rawName": "hello",

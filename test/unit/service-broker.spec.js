@@ -281,8 +281,8 @@ describe("Test ServiceBroker constructor", () => {
 		});
 
 		expect(broker.middlewares.count()).toBe(2);
-		expect(mw1).toHaveBeenCalledTimes(5);
-		expect(mw2).toHaveBeenCalledTimes(5);
+		expect(mw1).toHaveBeenCalledTimes(6);
+		expect(mw2).toHaveBeenCalledTimes(6);
 	});
 
 	it("should call lifecycle handlers", () => {
@@ -1020,6 +1020,7 @@ describe("Test broker.registerInternalServices", () => {
 			actions: jasmine.any(Object),
 			events: jasmine.any(Object),
 			health: jasmine.any(Object),
+			options: jasmine.any(Object),
 		} });
 	});
 });
