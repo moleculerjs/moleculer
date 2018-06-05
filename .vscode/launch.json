@@ -102,7 +102,10 @@
 			"args": [
 				"--hot",
 				"--repl",
-				"examples"
+				"!examples",
+				"examples/user*.service.js",
+				"examples/user.service.js",
+				"examples/math.service.js"
 			]
 		},
 		{
