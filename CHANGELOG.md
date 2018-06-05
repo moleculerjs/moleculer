@@ -123,6 +123,19 @@ const broker = new ServiceBroker({
 });
 ```
 
+## Load services with glob patterns
+Moleculer Runner is able to load services from glob patterns too. It could be useful if you want to load all services, but skip some other ones.
+
+```bash
+$ moleculer-runner services !services/others/**/*.service.js services/mandatory/main.service.js
+```
+
+- `services` - legacy mode. Load all services from the `services` folder with `**/*.service.js` file mask
+- `!services/others/**/*.service.js` - skip services in the `services/others` folder and sub-folders.
+- `services/mandatory/main.service.js` - load the certain service
+
+The glob patterns work in the `SERVICES` enviroment variables as well.
+
 ## Cloning in MemoryCacher
 
 **Enable cloning**
