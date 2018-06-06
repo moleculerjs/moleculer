@@ -147,7 +147,7 @@ describe("Test createDefaultLogger", () => {
 		expect(logFormatter).toHaveBeenCalledWith("info", ["info level"], {"nodeID": "server-2", "ns": "", "svc": "posts", "ver": 2});
 	});
 
-	it("should use default logObjectPrinter", () => {
+	it("should use custom logObjectPrinter", () => {
 		let con = {
 			info: jest.fn()
 		};
@@ -175,7 +175,7 @@ describe("Test createDefaultLogger", () => {
 		);
 	});
 
-	it("should use custom logObjectPrinter", () => {
+	it("should use default logObjectPrinter", () => {
 		let con = {
 			info: jest.fn()
 		};
