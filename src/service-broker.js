@@ -472,7 +472,7 @@ class ServiceBroker {
 
 		// Create console logger
 		if (this.options.logger === true || this.options.logger === console)
-			return Logger.createDefaultLogger(console, bindings, this.options.logLevel || "info", this.options.logFormatter);
+			return Logger.createDefaultLogger(console, bindings, this.options.logLevel || "info", this.options.logFormatter, this.options.logObjectPrinter);
 
 		return Logger.createDefaultLogger();
 	}
