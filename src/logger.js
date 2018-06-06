@@ -42,9 +42,10 @@ module.exports = {
 	 * @param {Object} bindings
 	 * @param {String?} logLevel
 	 * @param {Function?} logFormatter Custom log formatter function
+	 * @param {Function?} logObjectPrinter Custom object formatter function
 	 * @returns {Object} logger
 	 */
-	createDefaultLogger(baseLogger, bindings, logLevel, logFormatter) {
+	createDefaultLogger(baseLogger, bindings, logLevel, logFormatter, logObjectPrinter) {
 		const noop = function() {};
 
 		const getModuleName = () => {
@@ -99,10 +100,12 @@ module.exports = {
 				if (_.isFunction(format))
 					return method.call(baseLogger, logFormatter(type, args, bindings));
 
+				const defaultLogObjectPrinter = o => util.inspect(o, { showHidden: false, depth: 2, colors: chalk.enabled, breakLength: Number.POSITIVE_INFINITY });
+
 				// Format arguments (inspect & colorize the objects & array)
 				let pargs = args.map(p => {
 					if (_.isObject(p) || _.isArray(p))
-						return util.inspect(p, { showHidden: false, depth: 2, colors: chalk.enabled, breakLength: Number.POSITIVE_INFINITY });
+						return _.isFunction(logObjectPrinter) ? logObjectPrinter(p) : defaultLogObjectPrinter(p);
 					return p;
 				});
 
