@@ -1,4 +1,21 @@
 --------------------------------------------------
+<a name="0.12.6"></a>
+# [0.12.6](https://github.com/moleculerjs/moleculer/compare/v0.12.5...v0.12.6) (2018-06-07)
+
+# Changes
+- update dependencies
+- The `breakLength` is changed to `Infinity` (single-line printing) for better log processing when logger prints objects and arrays.
+- adds ability to customise console object/array printing [#285](https://github.com/moleculerjs/moleculer/issues/285)
+    ```js
+    const util = require("util");
+
+    const broker = new ServiceBroker({
+        logger: true,
+        logObjectPrinter: o => util.inspect(o, { depth: 4, colors: false, breakLength: 50 }) // `breakLength: 50` activates multi-line object
+    });    
+    ```
+
+--------------------------------------------------
 <a name="0.12.5"></a>
 # [0.12.5](https://github.com/moleculerjs/moleculer/compare/v0.12.4...v0.12.5) (2018-05-21)
 
