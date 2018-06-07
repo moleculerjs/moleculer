@@ -459,7 +459,7 @@ class ServiceBroker {
 			return Logger.createDefaultLogger();
 
 		// Create console logger
-		return Logger.createDefaultLogger(console, bindings, this.options.logLevel || "info", this.options.logFormatter);
+		return Logger.createDefaultLogger(console, bindings, this.options.logLevel || "info", this.options.logFormatter, this.options.logObjectPrinter);
 	}
 
 	/**

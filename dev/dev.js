@@ -7,7 +7,8 @@ const broker = new ServiceBroker({
 	nodeID: "dev-" + process.pid,
 	transporter: "NATS",
 	//logLevel: "debug",
-	logFormatter: "short",
+	logObjectPrinter: o => util.inspect(o, { depth: 2, colors: true, breakLength: 100 }), // `breakLength: 50` activates multi-line object
+	transporter: "TCP",
 });
 
 broker.createService({
@@ -24,13 +25,7 @@ broker.createService({
 
 broker.start()
 	.then(() => broker.repl())
-	.then(() => {
-		setInterval(() => {
-			broker.sendPing().then(res => broker.logger.info("Ping result:", res));
-
-		}, 2500);
-	});
-/*.delay(1000)
-	.then(() => broker.call("test.empty"))
+	.delay(1000)
+	.then(() => broker.call("$node.health"))
 	.then(res => broker.logger.info(res))
-	.catch(err => broker.logger.error(err));*/
+	.catch(err => broker.logger.error(err));

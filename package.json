@@ -51,7 +51,7 @@
     "eslint": "4.19.1",
     "eslint-plugin-node": "6.0.1",
     "eslint-plugin-promise": "3.8.0",
-    "eslint-plugin-security": "^1.4.0",
+    "eslint-plugin-security": "1.4.0",
     "fakerator": "0.3.0",
     "ioredis": "3.2.2",
     "jest": "23.1.0",
@@ -80,7 +80,7 @@
     "chalk": "2.4.1",
     "es6-error": "4.1.1",
     "eventemitter2": "5.0.1",
-    "fastest-validator": "0.6.7",
+    "fastest-validator": "0.6.9",
     "glob": "7.1.2",
     "ipaddr.js": "1.7.0",
     "lodash": "4.17.10"

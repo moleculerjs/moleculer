@@ -1,6 +1,7 @@
 "use strict";
 
 const chalk = require("chalk");
+const util = require("util");
 chalk.enabled = false;
 
 const { extend, createDefaultLogger } = require("../../src/logger");
@@ -255,4 +256,58 @@ describe("Test createDefaultLogger", () => {
 		expect(con.fatal).toHaveBeenCalledTimes(0);
 	});
 
+	it("should use custom logObjectPrinter", () => {
+		let con = {
+			info: jest.fn()
+		};
+
+		let bindings = {
+			svc: "posts",
+			ver: 2,
+			nodeID: "server-2",
+			ns: ""
+		};
+
+		let logObjectPrinter =  o => util.inspect(o, { depth: 4, colors: false, breakLength: 5 })
+		let logger = createDefaultLogger(con, bindings, "info", undefined, logObjectPrinter);
+		const obj = {a: "a".repeat(20), b: "b".repeat(20), c: "c".repeat(20)}
+
+		logger.info("with object", obj);
+
+		expect(con.info).toHaveBeenCalledTimes(1);
+		expect(con.info).toHaveBeenCalledWith(
+			"[1970-01-01T00:00:00.000Z]",
+			"INFO ",
+			"server-2/POSTS:v2:",
+			"with object",
+			"{ a: 'aaaaaaaaaaaaaaaaaaaa',\n  b: 'bbbbbbbbbbbbbbbbbbbb',\n  c: 'cccccccccccccccccccc' }"
+		);
+	});
+
+	it("should use default logObjectPrinter", () => {
+		let con = {
+			info: jest.fn()
+		};
+
+		let bindings = {
+			svc: "posts",
+			ver: 2,
+			nodeID: "server-2",
+			ns: ""
+		};
+
+		let logger = createDefaultLogger(con, bindings, "info");
+		const obj = {a: "a".repeat(20), b: "b".repeat(20), c: "c".repeat(20)}
+
+		logger.info("with object", obj);
+
+		expect(con.info).toHaveBeenCalledTimes(1);
+		expect(con.info).toHaveBeenCalledWith(
+			"[1970-01-01T00:00:00.000Z]",
+			"INFO ",
+			"server-2/POSTS:v2:",
+			"with object",
+			"{ a: 'aaaaaaaaaaaaaaaaaaaa', b: 'bbbbbbbbbbbbbbbbbbbb', c: 'cccccccccccccccccccc' }"
+		);
+	});
 });
