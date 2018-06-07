@@ -138,11 +138,8 @@ describe("Test BaseCacher", () => {
 		res = cacher.getCacheKey("user", {a: 5, b: 3}, null, []);
 		expect(res).toBe("user");
 
-		// An issue with prototype-less objects
-		// https://github.com/moleculerjs/moleculer/issues/290
-		// https://github.com/SkeLLLa/node-object-hash/issues/11
 		res = cacher.getCacheKey("user", {a: Object.create(null)}, null, ["a"]);
-		expect(res).toBe("user:79886a320023a4bd56dfb4a153137f589f8004771969f94d14abddedd3b5e840");
+		expect(res).toBe("user:");
 
 		// Test with meta
 		res = cacher.getCacheKey("user", {a: 5}, { user: "bob" });

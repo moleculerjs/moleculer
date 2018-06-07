@@ -262,15 +262,16 @@ describe("Test createDefaultLogger", () => {
 		};
 
 		let bindings = {
+			mod: "v2.posts",
 			svc: "posts",
 			ver: 2,
 			nodeID: "server-2",
 			ns: ""
 		};
 
-		let logObjectPrinter =  o => util.inspect(o, { depth: 4, colors: false, breakLength: 5 })
+		let logObjectPrinter =  o => util.inspect(o, { depth: 4, colors: false, breakLength: 5 });
 		let logger = createDefaultLogger(con, bindings, "info", undefined, logObjectPrinter);
-		const obj = {a: "a".repeat(20), b: "b".repeat(20), c: "c".repeat(20)}
+		const obj = {a: "a".repeat(20), b: "b".repeat(20), c: "c".repeat(20)};
 
 		logger.info("with object", obj);
 
@@ -278,7 +279,7 @@ describe("Test createDefaultLogger", () => {
 		expect(con.info).toHaveBeenCalledWith(
 			"[1970-01-01T00:00:00.000Z]",
 			"INFO ",
-			"server-2/POSTS:v2:",
+			"server-2/V2.POSTS:",
 			"with object",
 			"{ a: 'aaaaaaaaaaaaaaaaaaaa',\n  b: 'bbbbbbbbbbbbbbbbbbbb',\n  c: 'cccccccccccccccccccc' }"
 		);
@@ -290,6 +291,7 @@ describe("Test createDefaultLogger", () => {
 		};
 
 		let bindings = {
+			mod: "v2.posts",
 			svc: "posts",
 			ver: 2,
 			nodeID: "server-2",
@@ -297,7 +299,7 @@ describe("Test createDefaultLogger", () => {
 		};
 
 		let logger = createDefaultLogger(con, bindings, "info");
-		const obj = {a: "a".repeat(20), b: "b".repeat(20), c: "c".repeat(20)}
+		const obj = {a: "a".repeat(20), b: "b".repeat(20), c: "c".repeat(20)};
 
 		logger.info("with object", obj);
 
@@ -305,7 +307,7 @@ describe("Test createDefaultLogger", () => {
 		expect(con.info).toHaveBeenCalledWith(
 			"[1970-01-01T00:00:00.000Z]",
 			"INFO ",
-			"server-2/POSTS:v2:",
+			"server-2/V2.POSTS:",
 			"with object",
 			"{ a: 'aaaaaaaaaaaaaaaaaaaa', b: 'bbbbbbbbbbbbbbbbbbbb', c: 'cccccccccccccccccccc' }"
 		);
