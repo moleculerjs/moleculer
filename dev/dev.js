@@ -8,7 +8,6 @@ const broker = new ServiceBroker({
 	transporter: "NATS",
 	//logLevel: "debug",
 	logObjectPrinter: o => util.inspect(o, { depth: 2, colors: true, breakLength: 100 }), // `breakLength: 50` activates multi-line object
-	transporter: "TCP",
 });
 
 broker.createService({
