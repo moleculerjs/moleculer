@@ -81,6 +81,21 @@
 		{
 			"type": "node",
 			"request": "launch",
+			"name": "Jest transporter",
+			"program": "${workspaceRoot}/node_modules/jest-cli/bin/jest.js",
+			"args": ["--runInBand", "--testMatch", "**/transporters/**/**spc.js"],
+			"cwd": "${workspaceRoot}",
+			"console": "internalConsole",
+			"runtimeArgs": [
+                "--nolazy"
+            ],
+			"env": {
+				"AMQP_URI": "amqp://192.168.51.29:5672"
+			}
+		},
+		{
+			"type": "node",
+			"request": "launch",
 			"name": "Jest AMQP integration",
 			"program": "${workspaceRoot}/node_modules/jest-cli/bin/jest.js",
 			"args": ["--runInBand", "--testMatch", "**/integration/transporters/**/**spc.js"],

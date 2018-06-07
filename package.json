@@ -19,7 +19,8 @@
     "test:travis": "npm test && npm run test:trans && npm run test:ts",
     "test:unit": "jest --testMatch \"**/unit/**spec.js\" --coverage --no-cache",
     "test:int": "jest --testMatch \"**/integration/**spec.js\" --coverage --no-cache",
-    "test:trans": "jest --testMatch \"**/integration/transporters/**/**spc.js\" --runInBand",
+    "test:trans": "jest --testMatch \"**/transporters/**/**spc.js\" --runInBand",
+    "test:x": "jest --testMatch \"**/transporters/index.spc.js\" --watch",
     "test:ts": "tsc -p test/typescript/hello-world && ts-node -P test/typescript/hello-world/tsconfig.json test/typescript/hello-world/index.ts"
   },
   "keywords": [
