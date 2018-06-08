@@ -24,7 +24,9 @@ declare namespace Moleculer {
 	type ActionParamSchema = { [key: string]: any };
 	type ActionParamTypes = "boolean" | "number" | "string" | "object" | "array" | ActionParamSchema;
 	type ActionParams = { [key: string]: ActionParamTypes };
-	type MetricsOptions = { params?: boolean | string[] | function, meta?: boolean | string[] | function };
+	type MetricsParamsFuncType= (params: object) => object;
+	type MetricsMetaFuncType= (meta: object) => object;
+	type MetricsOptions = { params?: boolean | string[] | MetricsParamsFuncType , meta?: boolean | string[] | MetricsMetaFuncType };
 
 	interface Action {
 		name: string;
