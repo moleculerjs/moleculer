@@ -1,6 +1,11 @@
 "use strict";
 
 import { Service } from "../../../";
+import { Context } from "../../../";
+
+type GreeterWelcomeParams = {
+	name: string
+};
 
 class GreeterService extends Service {
 	constructor(broker) {
@@ -29,7 +34,7 @@ class GreeterService extends Service {
 	 *
 	 * @param {String} name - User name
 	 */
-	welcome(ctx) {
+	welcome(ctx: Context<GreeterWelcomeParams>) {
 		return `Welcome, ${ctx.params.name}!`;
 	}
 };

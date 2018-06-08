@@ -342,6 +342,8 @@ class Transit {
 							pass.emit("error", this._createErrFromPayload(payload.meta["$streamError"], payload.sender));
 						}
 
+						this.logger.debug(`Stream closing is received from '${payload.sender}'.`);
+
 						// End of stream
 						pass.end();
 
@@ -351,6 +353,7 @@ class Transit {
 						return;
 
 					} else {
+						this.logger.debug(`Stream chunk is received from '${payload.sender}'.`);
 						// stream chunk received
 						pass.write(payload.params.type === "Buffer" ? new Buffer.from(payload.params.data):payload.params);
 
@@ -358,6 +361,8 @@ class Transit {
 					}
 
 				} else if (payload.stream) {
+					this.logger.debug(`New stream is received from '${payload.sender}'.`);
+
 					// Create a new pass stream
 					pass = new Transform({
 						transform: function (chunk, encoding, done) {
@@ -432,7 +437,7 @@ class Transit {
 			return;
 		}
 
-		this.logger.debug(`Response '${req.action.name}' received from '${packet.sender}'.`);
+		this.logger.debug(`Response '${req.action.name}' is received from '${packet.sender}'.`);
 
 		// Update nodeID in context (if it uses external balancer)
 		req.ctx.nodeID = packet.sender;
@@ -450,6 +455,8 @@ class Transit {
 					if (!packet.success)
 						pass.emit("error", this._createErrFromPayload(packet.error, packet.sender));
 
+					this.logger.debug(`Stream closing is received from '${packet.sender}'`);
+
 					// End of stream
 					pass.end();
 
@@ -458,12 +465,15 @@ class Transit {
 
 				} else {
 					// stream chunk
+					this.logger.debug(`Stream chunk is received from '${packet.sender}'`);
 					pass.write(packet.data.type === "Buffer" ? new Buffer.from(packet.data.data):packet.data);
 				}
 				return req.resolve(packet.data);
 
 			} else if (packet.stream) {
 				// Create a new pass stream
+				this.logger.debug(`New stream is received from '${packet.sender}'`);
+
 				pass = new Transform({
 					transform: function (chunk, encoding, done) {
 						this.push(chunk);
@@ -553,32 +563,38 @@ class Transit {
 					// Skip to send ctx.meta with chunks because it doesn't appear on the remote side.
 					payload.meta = {};
 
-					const data = ctx.params;
-					data.on("data", chunk => {
+					const stream = ctx.params;
+					stream.on("data", chunk => {
 						const copy = Object.assign({}, payload);
 						copy.stream = true;
 						copy.params = chunk;
-						data.pause();
+						stream.pause();
+
+						this.logger.debug(`Send stream chunk to ${nodeName} node.`);
 
 						return this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, copy))
-							.then(() => data.resume())
+							.then(() => stream.resume())
 							.catch(publishCatch);
 					});
 
-					data.on("end", () => {
+					stream.on("end", () => {
 						const copy = Object.assign({}, payload);
 						copy.params = null;
 						copy.stream = false;
 
+						this.logger.debug(`Send stream ending to ${nodeName} node.`);
+
 						return this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, copy))
 							.catch(publishCatch);
 					});
 
-					data.on("error", err => {
+					stream.on("error", err => {
 						const copy = Object.assign({}, payload);
 						copy.stream = false;
 						copy.meta["$streamError"] = this._createPayloadErrorField(err);
 						copy.params = null;
+
+						this.logger.debug(`Send stream error to ${nodeName} node.`, copy.meta["$streamError"]);
 
 						return this.publish(new Packet(P.PACKET_REQUEST, ctx.nodeID, copy))
 							.catch(publishCatch);
@@ -738,35 +754,42 @@ class Transit {
 		if (data && typeof data.on === "function" && typeof data.read === "function" && typeof data.pipe === "function") {
 			// Streaming response
 			payload.stream = true;
-			data.pause();
+			const stream = data;
+			stream.pause();
 
-			data.on("data", chunk => {
+			stream.on("data", chunk => {
 				const copy = Object.assign({}, payload);
 				copy.stream = true;
 				copy.data = chunk;
-				data.pause();
+				stream.pause();
+
+				this.logger.debug(`Send stream chunk to ${nodeID} node.`);
 
 				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, copy))
-					.then(() => data.resume())
+					.then(() => stream.resume())
 					.catch(publishCatch);
 			});
 
-			data.on("end", () => {
+			stream.on("end", () => {
 				const copy = Object.assign({}, payload);
 				copy.data = null;
 				copy.stream = false;
 
+				this.logger.debug(`Send stream ending to ${nodeID} node.`);
+
 				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, copy))
 					.catch(publishCatch);
 			});
 
-			data.on("error", err => {
+			stream.on("error", err => {
 				const copy = Object.assign({}, payload);
 				copy.stream = false;
 				if (err) {
 					copy.success = false;
 					copy.error = this._createPayloadErrorField(err);
 				}
+
+				this.logger.debug(`Send stream error to ${nodeID} node.`, copy.error);
 
 				return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, copy))
 					.catch(publishCatch);
@@ -776,7 +799,7 @@ class Transit {
 			return this.publish(new Packet(P.PACKET_RESPONSE, nodeID, payload))
 				.then(() => {
 					if (payload.stream)
-						data.resume();
+						stream.resume();
 				})
 				.catch(publishCatch);
 

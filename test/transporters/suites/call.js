@@ -2,9 +2,9 @@
 
 const Promise 							= require("bluebird");
 const _ 								= require("lodash");
-//const { ServiceBroker } 				= require("../../");
-const { createBrokers } 				= require("./helper");
-let { extendExpect, protectReject } 	= require("../unit/utils");
+//const { ServiceBroker } 				= require("../../../");
+const { createBrokers } 				= require("../helper");
+let { extendExpect, protectReject } 	= require("../../unit/utils");
 
 extendExpect(expect);
 

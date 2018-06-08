@@ -1,6 +1,7 @@
 "use strict";
 
-const CommonTester = require("./common");
+const CallingSuite = require("./suites/call");
+const StreamingSuite = require("./suites/streaming");
 
 const TRANSPORTERS = [
 	{ name: "NATS", transporter: process.env.TEST_NATS_URI || "nats://127.0.0.1:4222" },
@@ -23,7 +24,8 @@ SERIALIZERS.forEach(ss => {
 	TRANSPORTERS.forEach(tt => {
 		const meta = { transporter: tt.name, serializer: ss.name };
 		describe(`Test '${tt.name}' + '${ss.name}'`, () => {
-			CommonTester(tt.transporter, ss.serializer, meta);
+			//CallingSuite(tt.transporter, ss.serializer, meta);
+			StreamingSuite(tt.transporter, ss.serializer, meta);
 		});
 	});
 });

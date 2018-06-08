@@ -10,7 +10,7 @@ const H = {
 	},
 
 	createBrokers(nodeIDs, opts) {
-		return nodeIDs.map(nodeID => H.createBroker(_.defaultsDeep({ nodeID, logger: false }, opts)));
+		return nodeIDs.map(nodeID => H.createBroker(_.defaultsDeep({}, opts, { nodeID, logger: false })));
 	}
 };
 
