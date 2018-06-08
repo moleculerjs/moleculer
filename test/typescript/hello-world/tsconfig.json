@@ -12,6 +12,7 @@
         "noImplicitAny": false,
         "removeComments": true,
         "noLib": false,
+		"strict": true,
         "preserveConstEnums": true,
         "suppressImplicitAnyIndexErrors": true,
         "outDir": "./out",
