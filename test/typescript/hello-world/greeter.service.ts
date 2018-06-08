@@ -9,7 +9,7 @@ type GreeterWelcomeParams = {
 
 class GreeterService extends Service {
 	constructor(broker) {
-		super(broker, null);
+		super(broker);
 
 		this.parseServiceSchema({
 			name: "greeter",
