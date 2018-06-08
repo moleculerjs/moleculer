@@ -24,7 +24,7 @@ SERIALIZERS.forEach(ss => {
 	TRANSPORTERS.forEach(tt => {
 		const meta = { transporter: tt.name, serializer: ss.name };
 		describe(`Test '${tt.name}' + '${ss.name}'`, () => {
-			//CallingSuite(tt.transporter, ss.serializer, meta);
+			CallingSuite(tt.transporter, ss.serializer, meta);
 			StreamingSuite(tt.transporter, ss.serializer, meta);
 		});
 	});
