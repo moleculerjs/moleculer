@@ -101,9 +101,9 @@ describe("Test ServiceBroker constructor", () => {
 				threshold: 0.3,
 				minRequestCount: 10
 			},
-			maxInFlight: {
+			bulkhead: {
 				enabled: true,
-				limit: 2,
+				concurrency: 2,
 			},
 			validation: false,
 			internalServices: false,
@@ -141,9 +141,9 @@ describe("Test ServiceBroker constructor", () => {
 				check: jasmine.any(Function)
 			},
 
-			maxInFlight: {
+			bulkhead: {
 				enabled: true,
-				limit: 2,
+				concurrency: 2,
 				maxQueueSize: 100,
 			},
 

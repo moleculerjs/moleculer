@@ -91,8 +91,21 @@ The `$` prefixed internal events will be transferred if they are called by `emit
 
 # New
 
-## New extended middlewares
+## New advanced middlewares
 TODO
+
+## Bulkhead feature
+TODO
+
+```js
+const broker = new ServiceBroker({
+	bulkhead: {
+		enabled: true,
+		concurrency: 3,
+		maxQueueSize: 10,
+	}
+});
+```
 
 ## Enhanced log level configuration 
 There is a new module-based log level configuration. You can set log levels for every Moleculer module. You can use wildcard too.

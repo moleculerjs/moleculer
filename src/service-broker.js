@@ -74,9 +74,9 @@ const defaultOptions = {
 		check: err => err && err.code >= 500
 	},
 
-	maxInFlight: {
+	bulkhead: {
 		enabled: false,
-		limit: 10,
+		concurrency: 10,
 		maxQueueSize: 100,
 	},
 
@@ -270,8 +270,8 @@ class ServiceBroker {
 			if (this.validator && _.isFunction(this.validator.middleware))
 				this.middlewares.add(this.validator.middleware());
 
-			// 2. MaxInFlight
-			this.middlewares.add(Middlewares.MaxInFlight.call(this));
+			// 2. Bulkhead
+			this.middlewares.add(Middlewares.Bulkhead.call(this));
 
 			// 3. Cacher
 			if (this.cacher && _.isFunction(this.cacher.middleware))

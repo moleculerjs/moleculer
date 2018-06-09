@@ -3,17 +3,17 @@
 const _ = require("lodash");
 const ServiceBroker = require("../src/service-broker");
 const E = require("../src/errors");
-const MaxInFlightMiddleware = require("../src/middlewares/max-in-flight");
+const BulkHeadMiddleware = require("../src/middlewares/bulkhead");
 
 const broker = new ServiceBroker({
 	logFormatter: "short",
-	maxInFlight: {
+	bulkhead: {
 		enabled: false,
-		limit: 3,
+		concurrency: 3,
 		maxQueueSize: 100,
 	},
 	middlewares: [
-		MaxInFlightMiddleware()
+		BulkHeadMiddleware()
 	]
 });
 
@@ -21,9 +21,9 @@ broker.createService({
 	name: "test",
 	actions: {
 		first: {
-			maxInFlight: {
+			bulkhead: {
 				enabled: true,
-				limit: 1
+				concurrency: 1
 			},
 			async handler(ctx) {
 
@@ -36,9 +36,9 @@ broker.createService({
 		},
 
 		second: {
-			maxInFlight: {
+			bulkhead: {
 				enabled: true,
-				limit: 1
+				concurrency: 1
 			},
 			async handler(ctx) {
 

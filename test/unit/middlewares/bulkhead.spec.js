@@ -1,16 +1,16 @@
 const _ = require("lodash");
 const ServiceBroker = require("../../../src/service-broker");
 const Context = require("../../../src/context");
-const Middleware = require("../../../src/middlewares").MaxInFlight;
+const Middleware = require("../../../src/middlewares").Bulkhead;
 const { protectReject } = require("../utils");
 
-describe("Test MaxInFlightMiddleware", () => {
+describe("Test BulkheadMiddleware", () => {
 	const broker = new ServiceBroker({ nodeID: "server-1", logger: false });
 	const handler = jest.fn(() => Promise.resolve("Result"));
 	const service = {};
 	const action = {
 		name: "posts.find",
-		maxInFlight: {
+		bulkhead: {
 			enabled: false
 		},
 		handler,
@@ -29,32 +29,32 @@ describe("Test MaxInFlightMiddleware", () => {
 		expect(mw.localAction).toBeInstanceOf(Function);
 	});
 
-	it("should not wrap handler if maxInFlight is disabled", () => {
-		broker.options.maxInFlight.enabled = false;
+	it("should not wrap handler if bulkhead is disabled", () => {
+		broker.options.bulkhead.enabled = false;
 
 		const newHandler = mw.localAction.call(broker, handler, action);
 
 		expect(newHandler).toBe(handler);
 	});
 
-	it("should wrap handler if maxInFlight is disabled but in action is enabled", () => {
-		broker.options.maxInFlight.enabled = false;
-		action.maxInFlight.enabled = true;
+	it("should wrap handler if bulkhead is disabled but in action is enabled", () => {
+		broker.options.bulkhead.enabled = false;
+		action.bulkhead.enabled = true;
 
 		const newHandler = mw.localAction.call(broker, handler, action);
 		expect(newHandler).not.toBe(handler);
 	});
 
-	it("should wrap handler if maxInFlight is enabled", () => {
-		broker.options.maxInFlight.enabled = true;
+	it("should wrap handler if bulkhead is enabled", () => {
+		broker.options.bulkhead.enabled = true;
 
 		const newHandler = mw.localAction.call(broker, handler, action);
 		expect(newHandler).not.toBe(handler);
 	});
 
-	it("should not wrap handler if maxInFlight is enabled but in action is disabled", () => {
-		broker.options.maxInFlight.enabled = true;
-		action.maxInFlight.enabled = false;
+	it("should not wrap handler if bulkhead is enabled but in action is disabled", () => {
+		broker.options.bulkhead.enabled = true;
+		action.bulkhead.enabled = false;
 
 		const newHandler = mw.localAction.call(broker, handler, action);
 		expect(newHandler).toBe(handler);
@@ -62,9 +62,9 @@ describe("Test MaxInFlightMiddleware", () => {
 
 
 	it("should call 3 times immediately & 7 times after some delay (queueing)", () => {
-		action.maxInFlight.enabled = true;
-		action.maxInFlight.limit = 3;
-		action.maxInFlight.maxQueueSize = 10;
+		action.bulkhead.enabled = true;
+		action.bulkhead.concurrency = 3;
+		action.bulkhead.maxQueueSize = 10;
 
 		let FLOW = [];
 
@@ -102,9 +102,9 @@ describe("Test MaxInFlightMiddleware", () => {
 	});
 
 	it("should call 3 times immediately & 5 times after some delay (queueing) and throw error because 2 are out of queue size", () => {
-		action.maxInFlight.enabled = true;
-		action.maxInFlight.limit = 3;
-		action.maxInFlight.maxQueueSize = 5;
+		action.bulkhead.enabled = true;
+		action.bulkhead.concurrency = 3;
+		action.bulkhead.maxQueueSize = 5;
 
 		let FLOW = [];
 
@@ -142,9 +142,9 @@ describe("Test MaxInFlightMiddleware", () => {
 	});
 
 	it("should call 3 times immediately & 7 times after some delay (queueing) and some request rejected", () => {
-		action.maxInFlight.enabled = true;
-		action.maxInFlight.limit = 3;
-		action.maxInFlight.maxQueueSize = 10;
+		action.bulkhead.enabled = true;
+		action.bulkhead.concurrency = 3;
+		action.bulkhead.maxQueueSize = 10;
 
 		let FLOW = [];
 

@@ -33,7 +33,7 @@ describe("Test ActionHookMiddleware", () => {
 	});
 
 	it("should not wrap handler if no hooks", () => {
-		broker.options.maxInFlight.enabled = false;
+		broker.options.bulkhead.enabled = false;
 
 		const newHandler = mw.localAction.call(broker, handler, action);
 

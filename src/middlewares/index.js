@@ -13,6 +13,6 @@ module.exports = {
 	Retry: require("./retry"),
 	Timeout: require("./timeout"),
 	ContextTracker: require("./context-tracker"),
-	MaxInFlight: require("./max-in-flight"),
+	Bulkhead: require("./bulkhead"),
 	ErrorHandler: require("./error-handler"),
 };

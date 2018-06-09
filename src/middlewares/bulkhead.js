@@ -9,8 +9,8 @@
 const Promise = require("bluebird");
 const { QueueIsFullError } = require("../errors");
 
-function wrapMaxInFlightMiddleware(handler, action) {
-	const opts = Object.assign({}, this.options.maxInFlight || {}, action.maxInFlight || {});
+function wrapBulkheadMiddleware(handler, action) {
+	const opts = Object.assign({}, this.options.bulkhead || {}, action.bulkhead || {});
 	if (opts.enabled) {
 		const queue = [];
 		let currentInFlight = 0;
@@ -21,7 +21,7 @@ function wrapMaxInFlightMiddleware(handler, action) {
 			if (queue.length == 0) return;
 
 			/* istanbul ignore next */
-			if (currentInFlight >= opts.limit) return;
+			if (currentInFlight >= opts.concurrency) return;
 
 			const item = queue.shift();
 
@@ -39,9 +39,9 @@ function wrapMaxInFlightMiddleware(handler, action) {
 				});
 		};
 
-		return function maxInFlightMiddleware(ctx) {
+		return function bulkheadMiddleware(ctx) {
 			// Call handler without waiting
-			if (currentInFlight < opts.limit) {
+			if (currentInFlight < opts.concurrency) {
 				currentInFlight++;
 				return handler(ctx)
 					.then(res => {
@@ -70,8 +70,8 @@ function wrapMaxInFlightMiddleware(handler, action) {
 	return handler;
 }
 
-module.exports = function maxInFlightMiddleware() {
+module.exports = function bulkheadMiddleware() {
 	return {
-		localAction: wrapMaxInFlightMiddleware
+		localAction: wrapBulkheadMiddleware
 	};
 };
