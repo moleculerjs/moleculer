@@ -109,17 +109,17 @@ module.exports = function() {
 		if (item.count >= item.opts.minRequestCount) {
 			const rate = item.failures / item.count;
 			if (rate >= item.opts.threshold)
-				circuitOpen(item, ctx);
+				trip(item, ctx);
 		}
 	}
 
 	/**
-	 * Change circuit-breaker status to open
+	 * Trip the circuit-breaker, change the status to open
 	 *
 	 * @param {Object} item
 	 * @param {Context} ctx
 	 */
-	function circuitOpen(item, ctx) {
+	function trip(item, ctx) {
 		item.state = C.CIRCUIT_OPEN;
 		item.ep.state = false;
 
@@ -128,7 +128,7 @@ module.exports = function() {
 			item.cbTimer = null;
 		}
 
-		item.cbTimer = setTimeout(() => circuitHalfOpen(item, ctx), item.opts.halfOpenTime);
+		item.cbTimer = setTimeout(() => halfOpen(item, ctx), item.opts.halfOpenTime);
 		item.cbTimer.unref();
 
 		const rate = item.count > 0 ? item.failures / item.count : 0;
@@ -142,7 +142,7 @@ module.exports = function() {
 	 * @param {Object} item
 	 * @param {Context} ctx
 	 */
-	function circuitHalfOpen(item, ctx) {
+	function halfOpen(item, ctx) {
 		item.state = C.CIRCUIT_HALF_OPEN;
 		item.ep.state = true;
 
@@ -162,12 +162,12 @@ module.exports = function() {
 	 * @param {Object} item
 	 * @param {Context} ctx
 	*/
-	function circuitHalfOpenWait(item, ctx) {
+	function halfOpenWait(item, ctx) {
 		item.state = C.CIRCUIT_HALF_OPEN_WAIT;
 		item.ep.state = false;
 
 		// Anti-stick protection
-		item.cbTimer = setTimeout(() => circuitHalfOpen(item, ctx), item.opts.halfOpenTime);
+		item.cbTimer = setTimeout(() => halfOpen(item, ctx), item.opts.halfOpenTime);
 		item.cbTimer.unref();
 	}
 
@@ -211,7 +211,7 @@ module.exports = function() {
 
 				// Handle half-open state in circuit breaker
 				if (item.state == C.CIRCUIT_HALF_OPEN) {
-					circuitHalfOpenWait(item, ctx);
+					halfOpenWait(item, ctx);
 				}
 
 				// Call the handler
