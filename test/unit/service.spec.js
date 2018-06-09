@@ -30,7 +30,7 @@ describe("Test Service constructor", () => {
 
 		expect(() => {
 			new Service({}, {});
-		}).toThrowError("Service name can't be empty!");
+		}).toThrowError("Service name can't be empty! Maybe it is not a valid Service schema.");
 	});
 
 	it("check local properties", () => {

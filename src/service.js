@@ -53,7 +53,7 @@ class Service {
 		}
 
 		if (!schema.name)
-			throw new ServiceSchemaError("Service name can't be empty!");
+			throw new ServiceSchemaError("Service name can't be empty! Maybe it is not a valid Service schema.");
 
 		this.name = schema.name;
 		this.version = schema.version;
