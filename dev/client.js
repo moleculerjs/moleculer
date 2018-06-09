@@ -22,7 +22,7 @@ let broker = new ServiceBroker({
 	},
 	//transporter: "kafka://192.168.51.29:2181",
 	//transporter: "amqp://192.168.0.181:5672",
-	//serializer: "MsgPack",
+	serializer: "Thrift",
 	//requestTimeout: 1000,
 
 	//disableBalancer: true,
