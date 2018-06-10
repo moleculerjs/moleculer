@@ -17,7 +17,7 @@ const SERIALIZERS = [
 	{ name: "JSON", serializer: "JSON" },
 	{ name: "ProtoBuf", serializer: "ProtoBuf" },
 	{ name: "Avro", serializer: "Avro" },
-	{ name: "MsgPack", serializer: "MsgPack" }
+	{ name: "MsgPack", serializer: "MsgPack" },
 	{ name: "Thrift", serializer: "Thrift" },
 ];
 
