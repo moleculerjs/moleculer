@@ -59,14 +59,14 @@ The internal statistics module (`$node.stats`) is removed. We will release it as
 ```js
 const broker = new ServiceBroker({
     nodeID: "node-1",
-	retryPolicy: {
-		enabled: true,
-		retries: 5,
-		delay: 100,
-		maxDelay: 2000,
-		factor: 2,
-		check: err => err && !!err.retryable
-	}
+    retryPolicy: {
+        enabled: true,
+        retries: 5,
+        delay: 100,
+        maxDelay: 2000,
+        factor: 2,
+        check: err => err && !!err.retryable
+    }
 });
 ```
 
@@ -89,6 +89,37 @@ The `ctx.callerNodeID` has been removed. The `ctx.nodeID` always contains the ta
 ## Internal event sending logic is changed
 The `$` prefixed internal events will be transferred if they are called by `emit` or `broadcast`. 
 
+## Enhanced ping method
+It returns `Promise` with results of ping responses. Moreover, the method is renamed to `broker.ping`.
+
+**Ping a node with 1sec timeout**
+```js
+broker.ping("node-123", 1000).then(res => broker.logger.info(res));
+```
+Output:
+```js
+{ 
+    nodeID: 'server', 
+    elapsedTime: 16, 
+    timeDiff: -3 
+}
+```
+
+**Ping all known nodes**
+```js
+broker.ping().then(res => broker.logger.info(res));
+```
+Output:
+```js
+{ 
+    server: { 
+        nodeID: 'server', 
+        elapsedTime: 10, 
+        timeDiff: -2 
+    } 
+}
+```
+
 # New
 
 ## New advanced middlewares
@@ -99,11 +130,11 @@ TODO
 
 ```js
 const broker = new ServiceBroker({
-	bulkhead: {
-		enabled: true,
-		concurrency: 3,
-		maxQueueSize: 10,
-	}
+    bulkhead: {
+        enabled: true,
+        concurrency: 3,
+        maxQueueSize: 10,
+    }
 });
 ```
 
@@ -180,15 +211,20 @@ const broker = new ServiceBroker({
 [19:42:49.055Z] INFO  MATH: Service started.
 ```
 
-## Enhanced ping method
-It returns Promise with results of ping responses.
+## Private "local-only" actions
 
 ```js
-broker.sendPing().then(console.log);
-```
-
-```js
-broker.sendPing("node-123", 1000).then(console.log);
+module.exports = {
+    name: "math",
+    actions: {
+        add: {
+            private: true,
+            handler(ctx) {
+                // You can't call it from remote nodes, just locally.
+            }
+        }
+    }
+}
 ```
 
 # Changes
