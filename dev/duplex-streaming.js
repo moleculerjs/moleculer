@@ -11,8 +11,8 @@ const password = "moleculer";
 const broker1 = new ServiceBroker({
 	namespace: "streaming",
 	nodeID: "client-" + process.pid,
-	transporter: "nats://127.0.0.1:4222",
-	// serializer: "ProtoBuf",
+	transporter: "NATS",
+	serializer: "Thrift",
 	logger: console,
 	logLevel: "info"
 });
@@ -22,8 +22,8 @@ const broker1 = new ServiceBroker({
 const broker2 = new ServiceBroker({
 	namespace: "streaming",
 	nodeID: "encrypter-" + process.pid,
-	transporter: "nats://127.0.0.1:4222",
-	// serializer: "ProtoBuf",
+	transporter: "NATS",
+	serializer: "Thrift",
 	logger: console,
 	logLevel: "info"
 });

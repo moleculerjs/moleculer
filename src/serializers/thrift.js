@@ -15,6 +15,8 @@ const { MoleculerServerError } = require("../errors");
  *
  * http://thrift.apache.org/
  *
+ * Download Thrift compiler: https://thrift.apache.org/download
+ *
  * @class ThriftSerializer
  */
 class ThriftSerializer extends BaseSerializer {
