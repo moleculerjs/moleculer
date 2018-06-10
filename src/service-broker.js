@@ -1119,7 +1119,7 @@ class ServiceBroker {
 	 * @returns {Promise}
 	 * @memberof ServiceBroker
 	 */
-	sendPing(nodeID, timeout = 2000) {
+	ping(nodeID, timeout = 2000) {
 		if (this.transit && this.transit.connected) {
 			if (_.isString(nodeID)) {
 				// Ping a single node

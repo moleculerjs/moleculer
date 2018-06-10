@@ -15,7 +15,7 @@ broker.start()
 	.then(() => broker.repl())
 	.then(() => {
 		/*setInterval(() => {
-			broker.sendPing().then(res => broker.logger.info("Ping result:", res));
+			broker.ping().then(res => broker.logger.info("Ping result:", res));
 
 		}, 2000);*/
 	});

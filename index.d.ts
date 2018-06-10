@@ -397,7 +397,10 @@ declare namespace Moleculer {
 		 */
 		broadcastLocal(eventName: string, payload?: any, groups?: string | Array<string>): void;
 
-		sendPing(nodeID?: string): Bluebird<void>;
+		ping(): Bluebird<any>;
+		ping(nodeID: string): Bluebird<any>;
+		ping(nodeID: Array<string>): Bluebird<any>;
+
 		getHealthStatus(): NodeHealthStatus;
 		getLocalNodeInfo(force?: boolean): {
 			ipList: string[];

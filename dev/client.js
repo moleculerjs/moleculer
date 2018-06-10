@@ -84,6 +84,8 @@ broker.createService({
 		setInterval(() => {
 			broker.logger.info(`>> Send echo event. Counter: ${this.counter}.`);
 			broker.emit("echo.event", { counter: this.counter++ });
+
+			broker.ping("server").then(res => broker.logger.info(res));
 		}, 5000);
 	}
 });

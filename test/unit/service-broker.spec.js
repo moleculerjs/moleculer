@@ -2038,7 +2038,7 @@ describe("Test hot-reload feature", () => {
 	});
 });
 
-describe("Test broker sendPing", () => {
+describe("Test broker ping", () => {
 	let broker = new ServiceBroker({ logger: false, nodeID: "node-1", transporter: "Fake" });
 
 	let clock;
@@ -2055,7 +2055,7 @@ describe("Test broker sendPing", () => {
 	broker.transit.connected = true;
 
 	it("should ping one node", () => {
-		let p = broker.sendPing("node-2").catch(protectReject);
+		let p = broker.ping("node-2").catch(protectReject);
 
 		broker.localBus.emit("$node.pong", { nodeID: "node-2", elapsedTime: 5, timeDiff: 3 });
 
@@ -2069,7 +2069,7 @@ describe("Test broker sendPing", () => {
 	it("should ping one node with timeout", () => {
 		broker.transit.sendPing.mockClear();
 
-		let p = broker.sendPing("node-2", 500).catch(protectReject);
+		let p = broker.ping("node-2", 500).catch(protectReject);
 
 		clock.tick(600);
 
@@ -2083,7 +2083,7 @@ describe("Test broker sendPing", () => {
 	it("should ping multiple node", () => {
 		broker.transit.sendPing.mockClear();
 
-		let p = broker.sendPing(["node-2", "node-3"]).catch(protectReject);
+		let p = broker.ping(["node-2", "node-3"]).catch(protectReject);
 
 		broker.localBus.emit("$node.pong", { nodeID: "node-2", elapsedTime: 5, timeDiff: 3 });
 		broker.localBus.emit("$node.pong", { nodeID: "node-3", elapsedTime: 50, timeDiff: 30 });
@@ -2102,7 +2102,7 @@ describe("Test broker sendPing", () => {
 	it("should ping multiple node with timeout", () => {
 		broker.transit.sendPing.mockClear();
 
-		let p = broker.sendPing(["node-2", "node-3"], 1000).catch(protectReject);
+		let p = broker.ping(["node-2", "node-3"], 1000).catch(protectReject);
 
 		broker.localBus.emit("$node.pong", { nodeID: "node-3", elapsedTime: 50, timeDiff: 30 });
 
@@ -2128,7 +2128,7 @@ describe("Test broker sendPing", () => {
 			{ id: "node-4", local: false, available: true },
 		]));
 
-		let p = broker.sendPing().catch(protectReject);
+		let p = broker.ping().catch(protectReject);
 
 		broker.localBus.emit("$node.pong", { nodeID: "node-3", elapsedTime: 30, timeDiff: 33 });
 		broker.localBus.emit("$node.pong", { nodeID: "node-4", elapsedTime: 40, timeDiff: 44 });
