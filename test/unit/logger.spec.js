@@ -105,6 +105,7 @@ describe("Test createDefaultLogger", () => {
 		};
 
 		let bindings = {
+			mod: "v2.posts",
 			svc: "posts",
 			ver: 2,
 			nodeID: "server-2",
@@ -122,7 +123,41 @@ describe("Test createDefaultLogger", () => {
 		callLogMethods(logger);
 
 		expect(con.info).toHaveBeenCalledTimes(4);
-		expect(con.info).toHaveBeenCalledWith("[1970-01-01T00:00:00.000Z]", "INFO ", "server-2/POSTS:v2:", "info level");
+		expect(con.info).toHaveBeenCalledWith("[1970-01-01T00:00:00.000Z]", "INFO ", "server-2/V2.POSTS:", "info level");
+	});
+
+	it("should create a logger with simple log formatter", () => {
+		let con = {
+			info: jest.fn()
+		};
+
+		let bindings = {
+			mod: "broker",
+			nodeID: "server-2",
+			ns: ""
+		};
+
+		let logger = createDefaultLogger(con, bindings, "info", "simple");
+		callLogMethods(logger);
+		expect(con.info).toHaveBeenCalledTimes(4);
+		expect(con.info).toHaveBeenCalledWith("INFO ", "-", "info level");
+	});
+
+	it("should create a logger with short log formatter", () => {
+		let con = {
+			info: jest.fn()
+		};
+
+		let bindings = {
+			mod: "broker",
+			nodeID: "server-2",
+			ns: ""
+		};
+
+		let logger = createDefaultLogger(con, bindings, "info", "short");
+		callLogMethods(logger);
+		expect(con.info).toHaveBeenCalledTimes(4);
+		expect(con.info).toHaveBeenCalledWith("[00:00:00.000Z]", "INFO ", "BROKER:", "info level");
 	});
 
 	it("should create a full logger with logFormatter", () => {
@@ -147,32 +182,78 @@ describe("Test createDefaultLogger", () => {
 		expect(logFormatter).toHaveBeenCalledWith("info", ["info level"], {"nodeID": "server-2", "ns": "", "svc": "posts", "ver": 2});
 	});
 
-	it("should use custom logObjectPrinter", () => {
+	it("should create a filtered-level logger (module error)", () => {
 		let con = {
-			info: jest.fn()
+			trace: jest.fn(),
+			debug: jest.fn(),
+			info: jest.fn(),
+			warn: jest.fn(),
+			error: jest.fn(),
+			fatal: jest.fn(),
 		};
+		let logger = createDefaultLogger(con, {
+			mod: "CTX"
+		}, {
+			"*": "debug",
+			"CTX": "error"
+		});
 
-		let bindings = {
-			svc: "posts",
-			ver: 2,
-			nodeID: "server-2",
-			ns: ""
+		callLogMethods(logger);
+		expect(con.debug).toHaveBeenCalledTimes(0);
+		expect(con.info).toHaveBeenCalledTimes(0);
+		expect(con.warn).toHaveBeenCalledTimes(0);
+		expect(con.error).toHaveBeenCalledTimes(1);
+		expect(con.fatal).toHaveBeenCalledTimes(1);
+	});
+
+	it("should create a filtered-level logger ('*' info)", () => {
+		let con = {
+			trace: jest.fn(),
+			debug: jest.fn(),
+			info: jest.fn(),
+			warn: jest.fn(),
+			error: jest.fn(),
+			fatal: jest.fn(),
 		};
+		let logger = createDefaultLogger(con, {
+			mod: "OTHER"
+		}, {
+			"*": "info",
+			"CTX": "error"
+		});
 
-		let logObjectPrinter =  o => util.inspect(o, { depth: 4, colors: false, breakLength: 5 })
-		let logger = createDefaultLogger(con, bindings, "info", undefined, logObjectPrinter);
-		const obj = {a: "a".repeat(20), b: "b".repeat(20), c: "c".repeat(20)}
-
-		logger.info("with object", obj);
-
+		callLogMethods(logger);
+		expect(con.trace).toHaveBeenCalledTimes(0);
+		expect(con.debug).toHaveBeenCalledTimes(0);
 		expect(con.info).toHaveBeenCalledTimes(1);
-		expect(con.info).toHaveBeenCalledWith(
-			"[1970-01-01T00:00:00.000Z]",
-			"INFO ",
-			"server-2/POSTS:v2:",
-			"with object",
-			"{ a: 'aaaaaaaaaaaaaaaaaaaa',\n  b: 'bbbbbbbbbbbbbbbbbbbb',\n  c: 'cccccccccccccccccccc' }"
-		);
+		expect(con.warn).toHaveBeenCalledTimes(1);
+		expect(con.error).toHaveBeenCalledTimes(1);
+		expect(con.fatal).toHaveBeenCalledTimes(1);
+	});
+
+	it("should create an empty logger (false with wildcard)", () => {
+		let con = {
+			trace: jest.fn(),
+			debug: jest.fn(),
+			info: jest.fn(),
+			warn: jest.fn(),
+			error: jest.fn(),
+			fatal: jest.fn()
+		};
+		let logger = createDefaultLogger(con, {
+			mod: "SVC.POSTS.OTHER"
+		}, {
+			"SVC.**": false,
+			"**": "info",
+		});
+
+		callLogMethods(logger);
+		expect(con.trace).toHaveBeenCalledTimes(0);
+		expect(con.debug).toHaveBeenCalledTimes(0);
+		expect(con.info).toHaveBeenCalledTimes(0);
+		expect(con.warn).toHaveBeenCalledTimes(0);
+		expect(con.error).toHaveBeenCalledTimes(0);
+		expect(con.fatal).toHaveBeenCalledTimes(0);
 	});
 
 	it("should use default logObjectPrinter", () => {
@@ -181,6 +262,7 @@ describe("Test createDefaultLogger", () => {
 		};
 
 		let bindings = {
+			mod: "v2.posts",
 			svc: "posts",
 			ver: 2,
 			nodeID: "server-2",
@@ -188,7 +270,7 @@ describe("Test createDefaultLogger", () => {
 		};
 
 		let logger = createDefaultLogger(con, bindings, "info");
-		const obj = {a: "a".repeat(20), b: "b".repeat(20), c: "c".repeat(20)}
+		const obj = {a: "a".repeat(20), b: "b".repeat(20), c: "c".repeat(20)};
 
 		logger.info("with object", obj);
 
@@ -196,9 +278,41 @@ describe("Test createDefaultLogger", () => {
 		expect(con.info).toHaveBeenCalledWith(
 			"[1970-01-01T00:00:00.000Z]",
 			"INFO ",
-			"server-2/POSTS:v2:",
+			"server-2/V2.POSTS:",
 			"with object",
 			"{ a: 'aaaaaaaaaaaaaaaaaaaa', b: 'bbbbbbbbbbbbbbbbbbbb', c: 'cccccccccccccccccccc' }"
 		);
 	});
+
+	if (process.versions.node.split(".")[0] < 10) {
+		// Skip it on Node 10, because the util.inspect gives different output
+		it("should use custom logObjectPrinter", () => {
+			let con = {
+				info: jest.fn()
+			};
+
+			let bindings = {
+				mod: "v2.posts",
+				svc: "posts",
+				ver: 2,
+				nodeID: "server-2",
+				ns: ""
+			};
+
+			let logObjectPrinter =  o => util.inspect(o, { depth: 4, colors: false, breakLength: 5 });
+			let logger = createDefaultLogger(con, bindings, "info", undefined, logObjectPrinter);
+			const obj = {a: "a".repeat(20), b: "b".repeat(20), c: "c".repeat(20)};
+
+			logger.info("with object", obj);
+
+			expect(con.info).toHaveBeenCalledTimes(1);
+			expect(con.info).toHaveBeenCalledWith(
+				"[1970-01-01T00:00:00.000Z]",
+				"INFO ",
+				"server-2/V2.POSTS:",
+				"with object",
+				"{ a: 'aaaaaaaaaaaaaaaaaaaa',\n  b: 'bbbbbbbbbbbbbbbbbbbb',\n  c: 'cccccccccccccccccccc' }"
+			);
+		});
+	}
 });

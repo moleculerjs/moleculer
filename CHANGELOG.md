@@ -1,4 +1,207 @@
 --------------------------------------------------
+<a name="0.13.0"></a>
+# [0.13.0](https://github.com/moleculerjs/moleculer/compare/v0.12.4...v0.13.0) (2018-xx-xx)
+
+# Breaking changes
+
+## Streaming support
+TODO
+
+## Better Service & Broker lifecycle handling
+TODO
+
+## Default console logger
+No need to set `logger: console` in broker options, because ServiceBroker uses `console` as default logger.
+
+```js
+const broker = new ServiceBroker();
+```
+
+**Disable loggging**
+```js
+const broker = new ServiceBroker({ logger: false });
+```
+
+## Improved Circuit Breaker
+Threshold-based circuit-breaker solution has been implemented.
+
+```js
+const broker = new ServiceBroker({
+    nodeID: "node-1",
+    circuitBreaker: {
+        enabled: true,
+        threshold: 0.5,
+        minRequestCount: 20,
+        windowTime: 60, // in seconds
+        halfOpenTime: 5 * 1000,
+        check: err => err && err.code >= 500
+    }
+});
+```
+
+>Circuit-breaker events payload is changed as well.
+
+
+## Internal statistics module is removed
+The internal statistics module (`$node.stats`) is removed. We will release it as a separated single Moleculer service in the future.
+
+## Some internal feature is exposed to internal middlewares
+- Timeout
+- Retry
+- Circuit Breaker
+- Metrics
+- Context tracking
+
+`broker.options.internalMiddlewares = false`
+
+## Improved request retry feature (with exponential backoff)
+
+```js
+const broker = new ServiceBroker({
+    nodeID: "node-1",
+	retryPolicy: {
+		enabled: true,
+		retries: 5,
+		delay: 100,
+		maxDelay: 2000,
+		factor: 2,
+		check: err => err && !!err.retryable
+	}
+});
+```
+
+```js
+broker.call("posts.find", {}, { retries: 3 });
+```
+
+TODO action level settings
+
+## Renamed errors
+Some errors have been renamed in order to follow name conventions.
+- `ServiceNotAvailable` -> `ServiceNotAvailableError`
+- `RequestRejected` -> `RequestRejectedError`
+- `QueueIsFull` -> `QueueIsFullError`
+- `InvalidPacketData` -> `InvalidPacketDataError`
+
+## Context nodeID changes
+The `ctx.callerNodeID` has been removed. The `ctx.nodeID` always contains the target or caller nodeID. If you need the current nodeID, use `ctx.broker.nodeID`.
+
+## Internal event sending logic is changed
+The `$` prefixed internal events will be transferred if they are called by `emit` or `broadcast`. 
+
+# New
+
+## New advanced middlewares
+TODO
+
+## Bulkhead feature
+TODO
+
+```js
+const broker = new ServiceBroker({
+	bulkhead: {
+		enabled: true,
+		concurrency: 3,
+		maxQueueSize: 10,
+	}
+});
+```
+
+## Enhanced log level configuration 
+There is a new module-based log level configuration. You can set log levels for every Moleculer module. You can use wildcard too.
+
+```js
+const broker = new ServiceBroker({
+    logger: console,
+    logLevel: {
+        "MY.**": false, // Disable logs
+        "TRANS*": "warn",
+        "*.GREETER": "debug",
+        "**": "debug", // All other modules use this level
+    }
+});
+```
+
+>Internal modules: `BROKER`, `TRANS`, `TX` (transporter), `CACHER`, `REGISTRY`.
+
+**Please note, it works only with default console logger. In case of external loggers (Pino, Windows, Bunyan, ...etc) you need to handle log levels.**
+
+## New `short` log formatter
+
+There is a new `short` log formatter. It's similar as the default, but doesn't print the date and `nodeID`.
+
+```js
+const broker = new ServiceBroker({
+    logFormatter: "short"
+});
+```
+
+## Load services with glob patterns
+Moleculer Runner is able to load services from glob patterns too. It could be useful if you want to load all services, but skip some other ones.
+
+```bash
+$ moleculer-runner services !services/others/**/*.service.js services/mandatory/main.service.js
+```
+
+- `services` - legacy mode. Load all services from the `services` folder with `**/*.service.js` file mask
+- `!services/others/**/*.service.js` - skip services in the `services/others` folder and sub-folders.
+- `services/mandatory/main.service.js` - load the certain service
+
+The glob patterns work in the `SERVICES` enviroment variables as well.
+
+## Cloning in MemoryCacher
+
+**Enable cloning**
+```js
+const broker = new ServiceBroker({ 
+    cacher: {
+        type: "Memory",
+        options: {
+            clone: true
+        }
+    }
+});
+```
+
+**Custom clone function**
+```js
+const broker = new ServiceBroker({ 
+    cacher: {
+        type: "Memory",
+        options: {
+            clone: data => JSON.parse(JSON.stringify(data))
+        }
+    }
+});
+```
+
+**Output**
+```
+[19:42:49.055Z] INFO  MATH: Service started.
+```
+
+## Enhanced ping method
+It returns Promise with results of ping responses.
+
+```js
+broker.sendPing().then(console.log);
+```
+
+```js
+broker.sendPing("node-123", 1000).then(console.log);
+```
+
+# Changes
+
+- `Context.create` & `new Context` signature is changed.
+- Context metrics methods is removed.
+- `ctx.timeout` is moved to `ctx.options.timeout`
+
+# Deprecations
+
+- The `broker.use()` has been deprecated. Use `middlewares: [...]` in broker options instead.
+
+--------------------------------------------------
 <a name="0.12.6"></a>
 # [0.12.6](https://github.com/moleculerjs/moleculer/compare/v0.12.5...v0.12.6) (2018-06-07)
 

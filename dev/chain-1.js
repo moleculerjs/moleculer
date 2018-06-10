@@ -13,7 +13,9 @@ let broker = new ServiceBroker({
 	logFormatter: "simple",
 	circuitBreaker: {
 		enabled: true,
-		maxFailures: 1
+		threshold: 0.1,
+		windowTime: 30,
+		minRequestCount: 5
 	},
 });
 
@@ -24,21 +26,21 @@ broker.createService({
 			this.logger.info("Call test2.hello");
 			this.broker.call("test2.hello")
 				.then(res => this.logger.info(res))
-				.catch(err => this.logger.error(err.nodeID, err.message));
+				.catch(err => this.logger.error(err.nodeID, err.stack));
 		}, 2000);
 	},
 
 	events: {
 		"$circuit-breaker.opened"(payload) {
-			broker.logger.warn(chalk.yellow.bold(`---  Circuit breaker opened on '${payload.node.id}'!`));
+			broker.logger.warn(chalk.yellow.bold(`---  Circuit breaker opened on '${payload.nodeID}'!`));
 		},
 
 		"$circuit-breaker.half-opened"(payload) {
-			broker.logger.warn(chalk.green(`---  Circuit breaker half-opened on '${payload.node.id}'!`));
+			broker.logger.warn(chalk.green(`---  Circuit breaker half-opened on '${payload.nodeID}'!`));
 		},
 
 		"$circuit-breaker.closed"(payload) {
-			broker.logger.warn(chalk.green.bold(`---  Circuit breaker closed on '${payload.node.id}'!`));
+			broker.logger.warn(chalk.green.bold(`---  Circuit breaker closed on '${payload.nodeID}'!`));
 		},
 	}
 });

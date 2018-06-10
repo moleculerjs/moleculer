@@ -8,7 +8,7 @@ describe("Test Service handlers", () => {
 	let stoppedHandler = jest.fn();
 	let eventHandler = jest.fn();
 
-	let broker = new ServiceBroker({ nodeID: "node-1" });
+	let broker = new ServiceBroker({ logger: false, nodeID: "node-1" });
 
 	broker.createService({
 		name: "posts",
@@ -52,7 +52,7 @@ describe("Test Service handlers after broker.start", () => {
 	let stoppedHandler = jest.fn();
 	let eventHandler = jest.fn();
 
-	let broker = new ServiceBroker({ nodeID: "node-1" });
+	let broker = new ServiceBroker({ logger: false, nodeID: "node-1" });
 
 	beforeAll(() => broker.start());
 
@@ -91,35 +91,63 @@ describe("Test Service handlers after broker.start", () => {
 });
 
 
-describe("Test Service handlerswith delayed shutdown", () => {
-	const broker = new ServiceBroker({ nodeID: "node-1", trackContext: true });
+describe("Test Service requesting during stopping", () => {
+	const broker1 = new ServiceBroker({ logger: false, nodeID: "node-1", transporter: "Fake" });
+	const broker2 = new ServiceBroker({ logger: false, nodeID: "node-2", transporter: "Fake" });
 
-	const schema = {
-		name: "delayed",
+	let resolver = null;
+
+	const schema1 = {
+		name: "posts",
 
 		actions: {
-			test: jest.fn()
+			find: jest.fn()
 		},
 
-		stopped: jest.fn()
+		stopped() {
+			return new this.Promise((resolve) => {
+				resolver = resolve;
+			});
+		}
 	};
+	const svc = broker2.createService(schema1);
 
-	it("should called stopped", () => {
-		const service = broker.createService(schema);
-		service.schema.actions.test.mockResolvedValue(service.Promise.delay(80));
-		const getActiveContextsSpy = jest.spyOn(service, "_getActiveContexts");
-		return broker.start()
+	const schema2 = {
+		name: "users",
+		actions: {
+			find: jest.fn()
+		}
+	};
+	broker2.createService(schema2);
+
+	beforeAll(() => Promise.all([broker1.start(), broker2.start()]));
+
+	it("should call action", () => {
+		return broker1.call("posts.find")
+			.catch(protectReject)
 			.then(() => {
-				broker.call("delayed.test", {});
-				return service.Promise.delay(10);
+				expect(schema1.actions.find).toHaveBeenCalledTimes(1);
+			});
+	});
+
+	it("should not call action after stopping", () => {
+		schema1.actions.find.mockClear();
+		broker2.stop();
+		return broker1.Promise.delay(500)
+			.then(() => broker1.call("posts.find"))
+			.then(protectReject)
+			.catch(err => {
+				expect(err.name).toBe("ServiceNotAvailableError");
+				expect(schema1.actions.find).toHaveBeenCalledTimes(0);
 			})
-			.then(() => broker.stop())
-			.then(() => {
-				expect(schema.actions.test).toHaveBeenCalledTimes(1);
-				expect(getActiveContextsSpy).toHaveBeenCalledTimes(2);
+			.then(() => broker1.call("users.find"))
+			.then(protectReject)
+			.catch(err => {
+				expect(err.name).toBe("ServiceNotAvailableError");
+				expect(schema2.actions.find).toHaveBeenCalledTimes(0);
 
-				getActiveContextsSpy.mockReset();
-				getActiveContextsSpy.mockRestore();
-			}).catch(protectReject);
+				resolver();
+				return broker1.stop();
+			});
 	});
 });

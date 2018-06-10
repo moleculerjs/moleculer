@@ -6,8 +6,9 @@
 
 "use strict";
 
-const Promise		= require("bluebird");
-const Transporter 	= require("./base");
+const Promise				= require("bluebird");
+const { MoleculerError } 	= require("../errors");
+const Transporter 			= require("./base");
 
 /**
  * Transporter for Redis
@@ -140,9 +141,10 @@ class RedisTransporter extends Transporter {
 	 */
 	publish(packet) {
 		/* istanbul ignore next*/
-		if (!this.clientPub) return;
+		if (!this.clientPub) return Promise.reject(new MoleculerError("Redis Client is not available"));
 
 		const data = this.serialize(packet);
+		this.incStatSent(data.length);
 		this.clientPub.publish(this.getTopicName(packet.type, packet.target), data);
 		return Promise.resolve();
 	}

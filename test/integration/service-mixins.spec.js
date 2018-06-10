@@ -1,11 +1,14 @@
 const ServiceBroker = require("../../src/service-broker");
+const { MoleculerError } = require("../../src/errors");
 const _ = require("lodash");
+const { protectReject } = require("../unit/utils");
 
 describe("Test Service mixins", () => {
 
 	let flowCreated = [];
 	let flowStarted = [];
 	let flowStopped = [];
+	let flowHooks = [];
 
 	let mixinL2 = {
 		name: "mixinL2",
@@ -19,6 +22,23 @@ describe("Test Service mixins", () => {
 		metadata: {
 			priority: 5,
 			tag: "other"
+		},
+
+		hooks: {
+			before: {
+				"*"() {
+					flowHooks.push("mixinL2-before-all");
+				},
+				beta() {
+					flowHooks.push("mixinL2-before-beta");
+				}
+			},
+			after: {
+				beta() {
+					flowHooks.push("mixinsL2-after-beta");
+					return "Change result";
+				}
+			}
 		},
 
 		actions: {
@@ -80,6 +100,19 @@ describe("Test Service mixins", () => {
 			priority: 3
 		},
 
+		hooks: {
+			after: {
+				beta(ctx, res) {
+					flowHooks.push("mixin1L1-after-beta");
+					return res;
+				},
+				"*"(ctx, res) {
+					flowHooks.push("mixin1L1-after-all");
+					return res;
+				}
+			}
+		},
+
 		actions: {
 			beta() {
 				return "From mixin1L1";
@@ -124,6 +157,21 @@ describe("Test Service mixins", () => {
 		},
 
 		dependencies: "math",
+
+		hooks: {
+			error: {
+				"*": [
+					function(ctx, err) {
+						flowHooks.push("mixin2L1-error-all-1");
+						throw err;
+					},
+					function(ctx, err) {
+						flowHooks.push("mixin2L1-error-all-2");
+						throw err;
+					}
+				]
+			}
+		},
 
 		actions: {
 			gamma() {
@@ -177,6 +225,33 @@ describe("Test Service mixins", () => {
 			minMemory: "2g"
 		},
 
+		hooks: {
+			before: {
+				"*"(ctx) {
+					flowHooks.push("main-before-all");
+				},
+				beta() {
+					flowHooks.push("main-before-beta");
+				}
+			},
+			after: {
+				beta(ctx, res) {
+					flowHooks.push("main-after-beta");
+					return res;
+				}
+			},
+			error: {
+				"*"(ctx, err) {
+					flowHooks.push("main-error-all");
+					throw err;
+				},
+				zulu(ctx, err) {
+					flowHooks.push("main-error-zulu");
+					throw err;
+				}
+			}
+		},
+
 		actions: {
 			tango() {
 				return "From main";
@@ -185,6 +260,9 @@ describe("Test Service mixins", () => {
 				params: {
 					name: "string"
 				}
+			},
+			zulu() {
+				throw new MoleculerError("Zulu error");
 			}
 		},
 
@@ -203,7 +281,7 @@ describe("Test Service mixins", () => {
 		stopped: jest.fn(() => flowStopped.push("main"))
 	};
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 
 	let svc = broker.createService(mainSchema);
 	svc.waitForServices = jest.fn(() => Promise.resolve());
@@ -258,60 +336,134 @@ describe("Test Service mixins", () => {
 	});
 
 	it("should call 'beta' action", () => {
-		return broker.call("main.beta").then(res => {
-			expect(res).toBe("From mixin1L1");
+		flowHooks = [];
+		return broker.call("main.beta").catch(protectReject).then(res => {
+			expect(res).toBe("Change result");
+			expect(flowHooks).toEqual([
+				"mixinL2-before-all",
+				"mixinL2-before-all",
+				"main-before-all",
+				"mixinL2-before-beta",
+				"mixinL2-before-beta",
+				"main-before-beta",
+				"main-after-beta",
+				"mixin1L1-after-beta",
+				"mixinsL2-after-beta",
+				"mixinsL2-after-beta",
+				"mixin1L1-after-all"
+			]);
 		});
 	});
 
 	it("should call 'delta' action", () => {
-		return broker.call("main.delta").then(res => {
+		flowHooks = [];
+		return broker.call("main.delta").catch(protectReject).then(res => {
 			expect(res).toBe("From mixin2L1");
+			expect(flowHooks).toEqual([
+				"mixinL2-before-all",
+				"mixinL2-before-all",
+				"main-before-all",
+				"mixin1L1-after-all"
+			]);
 		});
 	});
 
 	it("should call 'gamma' action", () => {
-		return broker.call("main.gamma").then(res => {
+		flowHooks = [];
+		return broker.call("main.gamma").catch(protectReject).then(res => {
 			expect(res).toBe("From mixin1L1");
+			expect(flowHooks).toEqual([
+				"mixinL2-before-all",
+				"mixinL2-before-all",
+				"main-before-all",
+				"mixin1L1-after-all"
+			]);
 		});
 	});
 
 	it("should call 'alpha' action", () => {
-		return broker.call("main.alpha").then(res => {
+		flowHooks = [];
+		return broker.call("main.alpha").catch(protectReject).then(res => {
 			expect(res).toBe("From mixinL2");
+			expect(flowHooks).toEqual([
+				"mixinL2-before-all",
+				"mixinL2-before-all",
+				"main-before-all",
+				"mixin1L1-after-all"
+			]);
 		});
 	});
 
 	it("should call 'tango' action", () => {
-		return broker.call("main.tango").then(res => {
+		flowHooks = [];
+		return broker.call("main.tango").catch(protectReject).then(res => {
 			expect(res).toBe("From main");
+			expect(flowHooks).toEqual([
+				"mixinL2-before-all",
+				"mixinL2-before-all",
+				"main-before-all",
+				"mixin1L1-after-all"
+			]);
 		});
 	});
 
 	it("should call 'charlie' action", () => {
-		return broker.call("main.charlie", { name: "John" }).then(res => {
+		flowHooks = [];
+		return broker.call("main.charlie", { name: "John" }).catch(protectReject).then(res => {
 			expect(res.msg).toBe("From mixinL2");
 			expect(res.action).toEqual({
 				cache: {
 					keys: ["name"]
 				},
 				name: "main.charlie",
+				rawName: "charlie",
 				params: {
 					"name": "string"
 				}
 			});
+			expect(flowHooks).toEqual([
+				"mixinL2-before-all",
+				"mixinL2-before-all",
+				"main-before-all",
+				"mixin1L1-after-all"
+			]);
 		});
 	});
 
 	it("should call 'echo' action", () => {
-		return broker.call("main.echo", { id: "1" }).then(res => {
+		flowHooks = [];
+		return broker.call("main.echo", { id: "1" }).catch(protectReject).then(res => {
 			expect(res.msg).toBe("From mixin1L1");
 			expect(res.action).toEqual({
 				cache: false,
 				name: "main.echo",
+				rawName: "echo",
 				params: {
 					"id": "string"
 				}
 			});
+			expect(flowHooks).toEqual([
+				"mixinL2-before-all",
+				"mixinL2-before-all",
+				"main-before-all",
+				"mixin1L1-after-all"
+			]);
+		});
+	});
+
+	it("should call 'zulu' action", () => {
+		flowHooks = [];
+		return broker.call("main.zulu").then(protectReject).catch(err => {
+			expect(err.message).toBe("Zulu error");
+			expect(flowHooks).toEqual([
+				"mixinL2-before-all",
+				"mixinL2-before-all",
+				"main-before-all",
+				"main-error-zulu",
+				"main-error-all",
+				"mixin2L1-error-all-1",
+				"mixin2L1-error-all-2",
+			]);
 		});
 	});
 

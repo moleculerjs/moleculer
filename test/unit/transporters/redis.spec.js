@@ -43,7 +43,7 @@ describe("Test RedisTransporter constructor", () => {
 });
 
 describe("Test RedisTransporter connect & disconnect", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let transit = new Transit(broker);
 	let msgHandler = jest.fn();
 	let transporter;
@@ -114,13 +114,13 @@ describe("Test RedisTransporter subscribe & publish", () => {
 
 	const fakeTransit = {
 		nodeID: "node1",
-		serialize: jest.fn(msg => JSON.stringify(msg))
+		serialize: jest.fn(msg => Buffer.from(JSON.stringify(msg)))
 	};
 
 	beforeEach(() => {
 		msgHandler = jest.fn();
 		transporter = new RedisTransporter();
-		transporter.init(new Transit(new ServiceBroker({ namespace: "TEST" })), msgHandler);
+		transporter.init(new Transit(new ServiceBroker({ logger: false, namespace: "TEST" })), msgHandler);
 		transporter.serialize = jest.fn(() => "json data");
 		transporter.incomingMessage = jest.fn();
 

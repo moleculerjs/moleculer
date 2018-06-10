@@ -7,14 +7,6 @@ let chalk = require("chalk");
 
 let ServiceBroker = require("../../src/service-broker");
 
-// Create broker
-let broker = new ServiceBroker({
-	logger: console,
-	logLevel: "info",
-	transporter: null,
-	cacher: true,
-});
-
 function middleware1() {
 	return function (handler) {
 
@@ -71,10 +63,18 @@ function middleware3() {
 	};
 }
 
-
-broker.use(middleware1());
-broker.use(middleware2());
-broker.use(middleware3());
+// Create broker
+let broker = new ServiceBroker({
+	logger: console,
+	logLevel: "info",
+	transporter: null,
+	cacher: true,
+	middlewares: [
+		middleware1(),
+		middleware2(),
+		middleware3()
+	]
+});
 
 /* Execution order
 

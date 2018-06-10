@@ -8,7 +8,7 @@ let ServiceBroker = require("../../../src/service-broker");
 
 describe("Test EventCatalog constructor", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	it("test without CB", () => {
@@ -26,7 +26,7 @@ describe("Test EventCatalog constructor", () => {
 });
 
 describe("Test EventCatalog methods", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let catalog = new EventCatalog(broker.registry, broker, Strategy);
 	let list;
 	let service = { name: "test" };
@@ -191,7 +191,7 @@ describe("Test EventCatalog methods", () => {
 });
 
 describe("Test EventCatalog.getBalancedEndpoints & getAllEndpoints", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let catalog = new EventCatalog(broker.registry, broker, Strategy);
 
 	let event1 = { name: "user.created" };
@@ -286,7 +286,7 @@ describe("Test EventCatalog.getBalancedEndpoints & getAllEndpoints", () => {
 });
 
 describe("Test getGroups", () => {
-	let broker = new ServiceBroker({ nodeID: "node-2" });
+	let broker = new ServiceBroker({ logger: false, nodeID: "node-2" });
 	let catalog = new EventCatalog(broker.registry, broker, Strategy);
 
 	let usersEvent = { name: "user.created", handler: jest.fn() };
@@ -308,7 +308,7 @@ describe("Test getGroups", () => {
 });
 
 describe("Test EventCatalog.emitLocalServices", () => {
-	let broker = new ServiceBroker({ nodeID: "node-1" });
+	let broker = new ServiceBroker({ logger: false, nodeID: "node-1" });
 	let catalog = new EventCatalog(broker.registry, broker, Strategy);
 
 	let usersEvent = { name: "user.created", handler: jest.fn() };

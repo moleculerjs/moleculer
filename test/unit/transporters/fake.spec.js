@@ -37,7 +37,7 @@ describe("Test FakeTransporter", () => {
 		let opts = {};
 		let msgHandler = jest.fn();
 		let transporter = new FakeTransporter(opts);
-		transporter.init(new Transit(new ServiceBroker({ namespace: "TEST" })), msgHandler);
+		transporter.init(new Transit(new ServiceBroker({ logger: false, namespace: "TEST" })), msgHandler);
 
 		let subCb;
 		transporter.bus.on = jest.fn((name, cb) => subCb = cb);
@@ -57,7 +57,7 @@ describe("Test FakeTransporter", () => {
 
 	it("check publish", () => {
 		let transporter = new FakeTransporter();
-		transporter.init(new Transit(new ServiceBroker({ nodeID: "node1"})));
+		transporter.init(new Transit(new ServiceBroker({ logger: false, nodeID: "node1"})));
 		transporter.bus.emit = jest.fn();
 		transporter.serialize = jest.fn(() => "serialized data");
 

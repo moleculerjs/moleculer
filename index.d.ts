@@ -36,32 +36,48 @@ declare namespace Moleculer {
 		[key: string]: any;
 	}
 
+	interface Node {
+		id: string;
+		available: boolean;
+		local: boolean;
+		hostname: boolean;
+	}
+
+	interface Endpoint {
+		action?: Action;
+		node?: Node;
+		id?: string;
+		local: boolean;
+		state: boolean;
+	}
+
 	type Actions = { [key: string]: Action | ActionHandler; };
 
 	class Context<P = GenericObject, M = GenericObject> {
-		constructor(broker: ServiceBroker, action: Action);
+		constructor(broker: ServiceBroker, endpoint: Endpoint);
 		id: string;
 		broker: ServiceBroker;
+		endpoint: Endpoint;
 		action: Action;
+		service: Service;
 		nodeID?: string;
+
+		options: GenericObject;
+
 		parentID?: string;
+		callerNodeID?: string;
 
-		metrics: boolean;
+		metrics?: boolean;
 		level?: number;
-
-		timeout: number;
-		retryCount: number;
 
 		params: P;
 		meta: M;
 
 		requestID?: string;
-		callerNodeID?: string;
 		duration: number;
 
 		cachedResult: boolean;
 
-		generateID(): string;
 		setParams(newParams: P, cloning?: boolean): void;
 		call<T = any, P extends GenericObject = GenericObject>(actionName: string, params?: P, opts?: GenericObject): Bluebird<T>;
 		emit(eventName: string, data: any, groups: Array<string>): void;
@@ -71,11 +87,9 @@ declare namespace Moleculer {
 		broadcast(eventName: string, data: any, groups: string): void;
 		broadcast(eventName: string, data: any): void;
 
-		static create(broker: ServiceBroker, action: Action, nodeID: string, params: GenericObject, opts: GenericObject): Context;
-		static create(broker: ServiceBroker, action: Action, nodeID: string, opts: GenericObject): Context;
-		static create(broker: ServiceBroker, action: Action, opts: GenericObject): Context;
-
-		static createFromPayload(broker: ServiceBroker, payload: GenericObject): Context;
+		static create(broker: ServiceBroker, endpoint: Endpoint, params: GenericObject, opts: GenericObject): Context;
+		static create(broker: ServiceBroker, endpoint: Endpoint, params: GenericObject): Context;
+		static create(broker: ServiceBroker, endpoint: Endpoint): Context;
 	}
 
 	interface ServiceSettingSchema {
@@ -191,7 +205,6 @@ declare namespace Moleculer {
 		validator?: Validator;
 		metrics?: boolean;
 		metricsRate?: number;
-		statistics?: boolean;
 		internalServices?: boolean;
 
 		hotReload?: boolean;
@@ -257,7 +270,7 @@ declare namespace Moleculer {
 
 	interface CallOptions {
 		timeout?: number;
-		retryCount?: number;
+		retries?: number;
 		fallbackResponse?: FallbackResponse | Array<FallbackResponse> | FallbackResponseHandler;
 		nodeID?: string;
 		meta?: GenericObject;
@@ -523,6 +536,9 @@ declare namespace Moleculer {
 	class CpuUsageStrategy extends BaseStrategy {
 	}
 
+	class LatencyStrategy extends BaseStrategy {
+	}
+
 	namespace Transporters {
 		type MessageHandler = ((cmd: string, msg: any) => Bluebird<void>) & ThisType<Base>;
 		type AfterConnectHandler = ((wasReconnect?: boolean) => Bluebird<void>) & ThisType<Base>;
@@ -608,7 +624,7 @@ declare namespace Moleculer {
 			constructor(action: string, nodeID: string);
 			constructor(action: string);
 		}
-		class ServiceNotAvailable extends MoleculerRetryableError {
+		class ServiceNotAvailableError extends MoleculerRetryableError {
 			constructor(action: string, nodeID: string);
 			constructor(action: string);
 		}
@@ -619,11 +635,11 @@ declare namespace Moleculer {
 		class RequestSkippedError extends MoleculerError {
 			constructor(action: string, nodeID: string);
 		}
-		class RequestRejected extends MoleculerRetryableError {
+		class RequestRejectedError extends MoleculerRetryableError {
 			constructor(action: string, nodeID: string);
 		}
 
-		class QueueIsFull extends MoleculerRetryableError {
+		class QueueIsFullError extends MoleculerRetryableError {
 			constructor(action: string, nodeID: string, size: number, limit: number);
 		}
 		class ValidationError extends MoleculerClientError {
@@ -642,7 +658,7 @@ declare namespace Moleculer {
 		class ProtocolVersionMismatchError extends MoleculerError {
 			constructor(nodeID: string, actual: string, received: string);
 		}
-		class InvalidPacketData extends MoleculerError {
+		class InvalidPacketDataError extends MoleculerError {
 			constructor(type: string, packet: Packet);
 		}
 	}
@@ -660,6 +676,9 @@ declare namespace Moleculer {
 		}
 
 		class CpuUsageStrategy extends BaseStrategy {
+		}
+
+		class LatencyStrategy extends BaseStrategy {
 		}
 	}
 

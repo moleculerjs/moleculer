@@ -735,10 +735,8 @@ class TcpTransporter extends Transporter {
 
 		const packetID = resolvePacketID(packet.type);
 		let data = this.serialize(packet);
-		if (!Buffer.isBuffer(data))
-			data = Buffer.from(data);
 
-		//console.log(">>", packet.type, data.toString());
+		this.incStatSent(data.length);
 		return this.writer.send(packet.target, packetID, data)
 			.catch(err => {
 				this.nodes.disconnected(packet.target, true);

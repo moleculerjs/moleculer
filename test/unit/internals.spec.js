@@ -4,7 +4,10 @@ const ServiceBroker = require("../../src/service-broker");
 const { protectReject } = require("./utils");
 
 describe("Test health status methods", () => {
-	const broker = new ServiceBroker({ transporter: "fake", statistics: true });
+	const broker = new ServiceBroker({ logger: false, transporter: "fake" });
+
+	beforeAll(() => broker.start());
+	afterAll(() => broker.stop());
 
 	it("should call getNodeList", () => {
 		broker.registry.getNodeList = jest.fn();
@@ -100,12 +103,9 @@ describe("Test health status methods", () => {
 		});
 	});
 
-	it("should call statistics.snapshot", () => {
-		broker.statistics.snapshot = jest.fn();
-
-		return broker.call("$node.stats").catch(protectReject).then(() => {
-			expect(broker.statistics.snapshot).toHaveBeenCalledTimes(1);
+	it("should return broker.options", () => {
+		return broker.call("$node.options").catch(protectReject).then(res => {
+			expect(res).toEqual(broker.options);
 		});
 	});
-
 });

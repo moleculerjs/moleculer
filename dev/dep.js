@@ -6,11 +6,12 @@ let ServiceBroker = require("../src/service-broker");
 let broker = new ServiceBroker({
 	nodeID: "dep1",
 	transporter: {
-		type: "TCP",
+		type: "NATS",
 		options: {
 			//debug: true
 		}
 	},
+	internalServices: false,
 	logger: console,
 	//logLevel: "debug",
 	//hotReload: true
@@ -29,8 +30,8 @@ broker.createService({
 	methods: {
 		work() {
 			return broker.call("math.add", { a: 5, b: 3 })
-				.then(res => broker.logger.info(res))
-				.catch(err => broker.logger.error(err));
+				.then(res => broker.logger.info("Res: ", res))
+				.catch(err => broker.logger.error("Error: ",err.message));
 		}
 	},
 

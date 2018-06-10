@@ -6,7 +6,7 @@ let ServiceBroker = require("../../../src/service-broker");
 
 describe("Test ServiceCatalog constructor", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	it("test without CB", () => {
@@ -22,15 +22,16 @@ describe("Test ServiceCatalog constructor", () => {
 });
 
 describe("Test ServiceCatalog methods", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let catalog = new ServiceCatalog(broker.registry, broker);
+	let node = { id: "server-1" };
+	let svc;
 
 	it("should create a ServiceItem and add to 'events'", () => {
-		let node = { id: "server-1" };
 
 		expect(catalog.services.length).toBe(0);
 
-		let svc = catalog.add(node, "test", undefined, { a: 5 });
+		svc = catalog.add(node, "test", undefined, { a: 5 });
 
 		expect(catalog.services.length).toBe(1);
 		expect(svc).toBeInstanceOf(ServiceItem);
@@ -60,17 +61,18 @@ describe("Test ServiceCatalog methods", () => {
 
 		catalog.removeAllByNodeID("server-1");
 		expect(broker.registry.actions.removeByService).toHaveBeenCalledTimes(1);
-		expect(broker.registry.actions.removeByService).toHaveBeenCalledWith(catalog.services[0]);
+		expect(broker.registry.actions.removeByService).toHaveBeenCalledWith(svc);
 		expect(broker.registry.events.removeByService).toHaveBeenCalledTimes(1);
-		expect(broker.registry.events.removeByService).toHaveBeenCalledWith(catalog.services[0]);
+		expect(broker.registry.events.removeByService).toHaveBeenCalledWith(svc);
 
-		expect(catalog.services.length).toBe(1);
+		expect(catalog.services.length).toBe(0);
 	});
 
 	it("should remove actions & events by service", () => {
 		broker.registry.actions.removeByService = jest.fn();
 		broker.registry.events.removeByService = jest.fn();
-		let svc = catalog.services[0];
+
+		svc = catalog.add(node, "test", undefined, { a: 5 });
 
 		catalog.remove("test", undefined, "server-2");
 		expect(broker.registry.actions.removeByService).toHaveBeenCalledTimes(0);

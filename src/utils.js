@@ -7,6 +7,7 @@
 "use strict";
 
 const Promise 	= require("bluebird");
+const chalk		= require("chalk");
 const os 	 	= require("os");
 const _			= require("lodash");
 
@@ -14,6 +15,8 @@ const lut = [];
 for (let i=0; i<256; i++) { lut[i] = (i<16?"0":"")+(i).toString(16); }
 
 const RegexCache = new Map();
+
+const deprecateList = [];
 
 let utils = {
 
@@ -93,6 +96,13 @@ let utils = {
 		});
 	},
 
+	/**
+	 * String matcher to handle dot-separated event/action names.
+	 *
+	 * @param {String} text
+	 * @param {String} pattern
+	 * @returns {Boolean}
+	 */
 	match(text, pattern) {
 		// Simple patterns
 		if (pattern.indexOf("?") == -1) {
@@ -147,6 +157,23 @@ let utils = {
 			RegexCache.set(pattern, regex);
 		}
 		return regex.test(text);
+	},
+
+	/**
+	 * Deprecate a method or property
+	 *
+	 * @param {Object|Function|String} prop
+	 * @param {String} msg
+	 */
+	deprecate(prop, msg) {
+		if (arguments.length == 1)
+			msg = prop;
+
+		if (deprecateList.indexOf(prop) === -1) {
+			// eslint-disable-next-line no-console
+			console.warn(chalk.yellow.bold(`DeprecationWarning: ${msg}`));
+			deprecateList.push(prop);
+		}
 	}
 
 };

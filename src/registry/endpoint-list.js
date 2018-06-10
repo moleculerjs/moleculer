@@ -68,6 +68,19 @@ class EndpointList {
 	}
 
 	/**
+	 * Get first endpoint
+	 *
+	 * @returns {Endpoint}
+	 * @memberof EndpointList
+	 */
+	getFirst() {
+		if (this.endpoints.length > 0)
+			return this.endpoints[0];
+
+		return null;
+	}
+
+	/**
 	 * Select next endpoint with balancer strategy
 	 *
 	 * @returns
@@ -224,7 +237,12 @@ class EndpointList {
 	 * @memberof EndpointList
 	 */
 	removeByService(service) {
-		_.remove(this.endpoints, ep => ep.service == service);
+		_.remove(this.endpoints, ep => {
+			if (ep.service == service) {
+				ep.destroy();
+				return true;
+			}
+		});
 
 		this.setLocalEndpoints();
 	}
@@ -236,7 +254,12 @@ class EndpointList {
 	 * @memberof EndpointList
 	 */
 	removeByNodeID(nodeID) {
-		_.remove(this.endpoints, ep => ep.id == nodeID);
+		_.remove(this.endpoints, ep => {
+			if (ep.id == nodeID) {
+				ep.destroy();
+				return true;
+			}
+		});
 
 		this.setLocalEndpoints();
 	}

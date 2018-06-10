@@ -5,7 +5,7 @@ let ServiceBroker = require("../../../src/service-broker");
 
 describe("Test Endpoint", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	let node = { id: "server-1" };

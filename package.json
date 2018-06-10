@@ -1,6 +1,6 @@
 {
   "name": "moleculer",
-  "version": "0.12.6",
+  "version": "0.13.0-beta2",
   "description": "Fast & powerful microservices framework for Node.JS",
   "main": "index.js",
   "scripts": {
@@ -15,10 +15,14 @@
     "perf": "nodemon --allow-natives-syntax benchmark/perf-runner.js",
     "pperf": "node --inspect --expose-gc benchmark/perf-runner.js",
     "proto": "pbjs -t static-module -w commonjs -o src/serializers/proto/packets.proto.js src/serializers/proto/packets.proto",
+    "thrift": "thrift -gen js:node -o src\\serializers\\thrift src\\serializers\\thrift\\packets.thrift",
     "test": "jest --coverage --no-cache",
+    "test:travis": "npm test && npm run test:trans && npm run test:amqp && npm run test:ts",
     "test:unit": "jest --testMatch \"**/unit/**spec.js\" --coverage --no-cache",
     "test:int": "jest --testMatch \"**/integration/**spec.js\" --coverage --no-cache",
-    "test:amqp": "jest --testMatch \"**/integration/amqp/**spc.js\" --runInBand"
+    "test:amqp": "jest --testMatch \"**/transporters/amqp/**spc.js\" --runInBand",
+    "test:trans": "jest --testMatch \"**/transporters/index.spc.js\"",
+    "test:ts": "tsc -p test/typescript/hello-world && ts-node -P test/typescript/hello-world/tsconfig.json test/typescript/hello-world/index.ts"
   },
   "keywords": [
     "microservices",
@@ -39,6 +43,7 @@
   "author": "Ice Services",
   "license": "MIT",
   "devDependencies": {
+    "@types/node": "10.3.0",
     "amqplib": "0.5.2",
     "avsc": "5.2.3",
     "benchmarkify": "2.1.0",
@@ -65,6 +70,9 @@
     "npm-check": "5.7.1",
     "pino": "4.17.3",
     "protobufjs": "6.8.6",
+    "thrift": "0.11.0",
+    "ts-node": "6.1.0",
+    "typescript": "2.9.1",
     "v8-natives": "1.1.0",
     "winston": "2.4.2",
     "winston-context": "0.0.7"
@@ -78,8 +86,7 @@
     "fastest-validator": "0.6.9",
     "glob": "7.1.2",
     "ipaddr.js": "1.7.0",
-    "lodash": "4.17.10",
-    "node-object-hash": "1.4.1"
+    "lodash": "4.17.10"
   },
   "engines": {
     "node": ">= 6.x.x"
@@ -91,6 +98,7 @@
     "coveragePathIgnorePatterns": [
       "/node_modules/",
       "/test/services/",
+      "/test/typescript/",
       "/test/unit/utils.js"
     ],
     "testEnvironment": "node",

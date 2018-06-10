@@ -2,6 +2,12 @@
 
 "use strict";
 
+let Promise = require("bluebird");
+
+Promise.config({
+	longStackTraces: true
+});
+
 let ServiceBroker = require("../../src/service-broker");
 let { padStart } = require("lodash");
 
@@ -10,6 +16,7 @@ let hostname = os.hostname();
 
 let transporter = process.env.TRANSPORTER || "TCP";
 
+let count = 0;
 let sum = 0;
 let maxTime = null;
 
@@ -27,7 +34,7 @@ broker.createService({
 	name: "math",
 	actions: {
 		add(ctx) {
-			broker._callCount++;
+			count++;
 			return Number(ctx.params.a) + Number(ctx.params.b);
 		}
 	}
@@ -37,7 +44,7 @@ broker.createService({
 	name: "perf",
 	actions: {
 		reply(ctx) {
-			broker._callCount++;
+			count++;
 			return ctx.params;
 		}
 	}
@@ -48,10 +55,9 @@ broker.start();
 
 console.log("Server started. nodeID: ", broker.nodeID, " TRANSPORTER:", transporter, " PID:", process.pid);
 
-broker._callCount = 0;
 setInterval(() => {
-	if (broker._callCount > 0) {
-		console.log(broker.nodeID, ":", padStart(Number(broker._callCount.toFixed(0)).toLocaleString(), 8), "req/s");
-		broker._callCount = 0;
+	if (count > 0) {
+		console.log(broker.nodeID, ":", padStart(Number(count.toFixed(0)).toLocaleString(), 8), "req/s");
+		count = 0;
 	}
 }, 1000);

@@ -37,13 +37,14 @@ function createSchemas() {
 			{ name: "sender", type: "string" },
 			{ name: "id", type: "string" },
 			{ name: "action", type: "string" },
-			{ name: "params", type: "string" },
+			{ name: "params", type: ["null", "string", "bytes"], default: null },
 			{ name: "meta", type: "string" },
-			{ name: "timeout", type: "double" },
+			{ name: "timeout", type: [ "null", "double"], default: null },
 			{ name: "level", type: "int" },
-			{ name: "metrics", type: "boolean" },
+			{ name: "metrics", type: [ "null", "boolean"], default: null },
 			{ name: "parentID", type: [ "null", "string"], default: null },
-			{ name: "requestID", type: [ "null", "string"], default: null }
+			{ name: "requestID", type: [ "null", "string"], default: null },
+			{ name: "stream", type: [ "null", "boolean"], default: null }
 		]
 	});
 
@@ -55,9 +56,10 @@ function createSchemas() {
 			{ name: "sender", type: "string" },
 			{ name: "id", type: "string" },
 			{ name: "success", type: "boolean" },
-			{ name: "data", type: [ "null", "string"], default: null },
+			{ name: "data", type: [ "null", "string", "bytes"], default: null },
 			{ name: "error", type: [ "null", "string"], default: null },
 			{ name: "meta", type: "string" },
+			{ name: "stream", type: [ "null", "boolean"], default: null }
 		]
 	});
 
