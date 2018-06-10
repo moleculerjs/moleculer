@@ -147,6 +147,9 @@ class Registry {
 	registerActions(node, service, actions) {
 		_.forIn(actions, action => {
 
+			if (action.private === true && !node.local)
+				return;
+
 			if (node.local) {
 				action.handler = this.broker.middlewares.wrapHandler("localAction", action.handler, action);
 			} else {
