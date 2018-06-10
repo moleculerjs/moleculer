@@ -36,11 +36,13 @@ function runTest(dataName) {
 	let AvroSer = new Serializers.Avro();
 	let MsgPackSer = new Serializers.MsgPack();
 	let protoBufSer = new Serializers.ProtoBuf();
+	let thriftSer = new Serializers.Thrift();
 
 	JsonSer.init(broker);
 	AvroSer.init(broker);
 	MsgPackSer.init(broker);
 	protoBufSer.init(broker);
+	thriftSer.init(broker);
 
 	let bench1 = benchmark.createSuite(`Serialize packet with ${dataName}bytes`);
 
@@ -120,10 +122,22 @@ function runTest(dataName) {
 		return protoBufSer.serialize(packet.payload, packet.type);
 	});
 
+	bench1.add("Thrift", () => {
+		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
+			ver:"3",
+			sender: "node-100",
+			event: "user.created",
+			data: payload,
+			broadcast: true
+		});
+		return thriftSer.serialize(packet.payload, packet.type);
+	});
+
 	console.log("JSON length:", JsonSer.serialize(packet.payload, packet.type).length);
 	console.log("Avro length:", AvroSer.serialize(packet.payload, packet.type).length);
 	console.log("MsgPack length:", MsgPackSer.serialize(packet.payload, packet.type).length);
 	console.log("ProtoBuf length:", protoBufSer.serialize(packet.payload, packet.type).length);
+	console.log("Thrift length:", thriftSer.serialize(packet.payload, packet.type).length);
 
 	return bench1.run()
 		.then(() => {
