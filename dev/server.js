@@ -30,7 +30,6 @@ broker.createService({
 
 	actions: {
 		add: {
-			private: true,
 			handler(ctx) {
 				const wait = _.random(500, 1500);
 				this.logger.info(_.padEnd(`${ctx.params.count}. Add ${ctx.params.a} + ${ctx.params.b}`, 20), `(from: ${ctx.nodeID})`);

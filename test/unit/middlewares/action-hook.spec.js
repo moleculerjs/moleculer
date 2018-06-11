@@ -6,11 +6,21 @@ const Middleware = require("../../../src/middlewares").ActionHook;
 const { protectReject } = require("../utils");
 
 describe("Test ActionHookMiddleware", () => {
+	let FLOW = [];
+
 	const broker = new ServiceBroker({ nodeID: "server-1", logger: false });
 	const handler = jest.fn(() => Promise.resolve("Result"));
 	const service = {
 		schema: {
-			hooks: {}
+			hooks: {},
+		},
+		beforeHookMethod(ctx) {
+			FLOW.push(`method-before-hook-${ctx.action.rawName}`);
+			ctx.params.second = 2;
+		},
+		afterHookMethod(ctx, res) {
+			FLOW.push(`method-after-hook-${ctx.action.rawName}`);
+			return Object.assign(res, { b: 200 });
 		}
 	};
 	const action = {
@@ -64,7 +74,7 @@ describe("Test ActionHookMiddleware", () => {
 			}
 		};
 
-		let FLOW = [];
+		FLOW = [];
 
 		const handler = jest.fn(ctx => {
 			FLOW.push("handler-" + ctx.params.first + "-" + ctx.params.second);
@@ -111,7 +121,7 @@ describe("Test ActionHookMiddleware", () => {
 			}
 		};
 
-		let FLOW = [];
+		FLOW = [];
 		const error = new MoleculerError("Simple error");
 
 		const handler = jest.fn(ctx => {
@@ -184,7 +194,7 @@ describe("Test ActionHookMiddleware", () => {
 			}
 		};
 
-		let FLOW = [];
+		FLOW = [];
 
 		const handler = jest.fn(ctx => {
 			FLOW.push("handler-" + ctx.params.first + "-" + ctx.params.second + "-" + ctx.params.third);
@@ -249,7 +259,7 @@ describe("Test ActionHookMiddleware", () => {
 			}
 		};
 
-		let FLOW = [];
+		FLOW = [];
 		const error = new MoleculerError("Simple error");
 
 		const handler = jest.fn(ctx => {
@@ -274,6 +284,49 @@ describe("Test ActionHookMiddleware", () => {
 				"error-hook-2",
 				"error-all-hook-1",
 				"error-all-hook-2",
+			]);
+			expect(handler).toHaveBeenCalledTimes(1);
+		});
+	});
+
+	it("should call service method hooks if the hook is a 'string'", () => {
+		service.schema.hooks = {
+			before: {
+				find: [
+					function(ctx) {
+						FLOW.push("before-hook-1");
+						ctx.params.second = 2;
+					},
+					"beforeHookMethod"
+				],
+			},
+			after: {
+				find: "afterHookMethod"
+			}
+		};
+
+		FLOW = [];
+
+		const handler = jest.fn(ctx => {
+			FLOW.push("handler-" + ctx.params.first + "-" + ctx.params.second);
+			return broker.Promise.resolve({ a: 100 });
+		});
+
+		const newHandler = mw.localAction.call(broker, handler, action);
+
+		const ctx = Context.create(broker, endpoint, { first: 1 });
+
+		return newHandler.call(broker, ctx).catch(protectReject).then(res => {
+			expect(res).toEqual({
+				a: 100,
+				b: 200
+			});
+
+			expect(FLOW).toEqual([
+				"before-hook-1",
+				"method-before-hook-find",
+				"handler-1-2",
+				"method-after-hook-find",
 			]);
 			expect(handler).toHaveBeenCalledTimes(1);
 		});
