@@ -138,6 +138,12 @@ const broker = new ServiceBroker({
 });
 ```
 
+## Action hooks
+TODO
+- Before, after, error hooks for every actions
+- '*' special hook for all actions
+- Function, String, Array<Function|String>
+
 ## Enhanced log level configuration 
 There is a new module-based log level configuration. You can set log levels for every Moleculer module. You can use wildcard too.
 
