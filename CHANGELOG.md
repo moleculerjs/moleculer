@@ -138,6 +138,17 @@ const broker = new ServiceBroker({
 });
 ```
 
+## Action visibility
+The action has a new `visibility` property. With this, you can control the visibility & callability of service actions.
+
+**Available values:**
+- `published` or `null`: public action. It can be called locally, remotely and can be published via API Gateway
+- `public`: public action, can be called locally & remotely but not published via API GW
+- `protected`: can be called only locally (from local services)
+- `private`: can be called only internally (via `this.actions.xy()` inside service)
+
+The default values is `null` due to backward compatibility.
+
 ## Action hooks
 TODO
 - Before, after, error hooks for every actions

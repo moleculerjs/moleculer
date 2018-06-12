@@ -375,6 +375,57 @@ describe("Test Registry.registerActions", () => {
 		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("remoteAction", jasmine.any(Function), {"name": "users.find"});
 		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("remoteAction", jasmine.any(Function), {"name": "users.save"});
 	});
+
+	it("should not call actions add & service addAction methods if has visibility", () => {
+		registry.actions.add.mockClear();
+		service.addAction.mockClear();
+		broker.middlewares.wrapHandler.mockClear();
+		registry.checkActionVisibility = jest.fn(() => false);
+
+		registry.registerActions(node, service, {
+			"users.find": { name: "users.find", handler: jest.fn() },
+			"users.save": { name: "users.save", handler: jest.fn() },
+		});
+
+		expect(registry.checkActionVisibility).toHaveBeenCalledTimes(2);
+		expect(registry.checkActionVisibility).toHaveBeenCalledWith({ name: "users.save", handler: jasmine.any(Function) }, node);
+		expect(registry.checkActionVisibility).toHaveBeenCalledWith({ name: "users.find", handler: jasmine.any(Function) }, node);
+
+		expect(registry.actions.add).toHaveBeenCalledTimes(0);
+		expect(service.addAction).toHaveBeenCalledTimes(0);
+		expect(broker.middlewares.wrapHandler).toHaveBeenCalledTimes(0);
+	});
+});
+
+describe("Test Registry.checkActionVisibility", () => {
+
+	let broker = new ServiceBroker({ logger: false, transporter: "Fake" });
+	let registry = broker.registry;
+
+	it("check if not set visibility", () => {
+		expect(registry.checkActionVisibility({}, { local: true })).toBe(true);
+		expect(registry.checkActionVisibility({}, { local: false })).toBe(true);
+	});
+
+	it("check if set visibility to 'published'", () => {
+		expect(registry.checkActionVisibility({ visibility: "published" }, { local: true })).toBe(true);
+		expect(registry.checkActionVisibility({ visibility: "published" }, { local: false })).toBe(true);
+	});
+
+	it("check if set visibility to 'public'", () => {
+		expect(registry.checkActionVisibility({ visibility: "public" }, { local: true })).toBe(true);
+		expect(registry.checkActionVisibility({ visibility: "public" }, { local: false })).toBe(true);
+	});
+
+	it("check if set visibility to 'protected'", () => {
+		expect(registry.checkActionVisibility({ visibility: "protected" }, { local: true })).toBe(true);
+		expect(registry.checkActionVisibility({ visibility: "protected" }, { local: false })).toBe(false);
+	});
+
+	it("check if set visibility to 'private'", () => {
+		expect(registry.checkActionVisibility({ visibility: "private" }, { local: true })).toBe(false);
+		expect(registry.checkActionVisibility({ visibility: "private" }, { local: false })).toBe(false);
+	});
 });
 
 describe("Test Registry.unregisterAction", () => {

@@ -13,6 +13,7 @@ const NodeCatalog = require("./node-catalog");
 const ServiceCatalog = require("./service-catalog");
 const EventCatalog = require("./event-catalog");
 const ActionCatalog = require("./action-catalog");
+const ActionEndpoint = require("./endpoint-action");
 
 /**
  * Service Registry
@@ -137,6 +138,30 @@ class Registry {
 	}
 
 	/**
+	 * Check the action visiblity.
+	 *
+	 * 	Available values:
+	 * 		- "published" or `null`: public action and can be published via API Gateway
+	 * 		- "public": public action, can be called remotely but not published via API GW
+	 * 		- "protected": can be called from local services
+	 * 		- "private": can be called from internally via `this.actions.xy()` inside Service
+	 *
+	 * @param {*} action
+	 * @param {*} node
+	 * @returns
+	 * @memberof Registry
+	 */
+	checkActionVisibility(action, node) {
+		if (action.visibility == null || action.visibility == "published" || action.visibility == "public")
+			return true;
+
+		if (action.visibility == "protected" && node.local)
+			return true;
+
+		return false;
+	}
+
+	/**
 	 * Register service actions
 	 *
 	 * @param {Node} node
@@ -147,7 +172,7 @@ class Registry {
 	registerActions(node, service, actions) {
 		_.forIn(actions, action => {
 
-			if (action.private === true && !node.local)
+			if (!this.checkActionVisibility(action, node))
 				return;
 
 			if (node.local) {
@@ -161,6 +186,17 @@ class Registry {
 			this.actions.add(node, service, action);
 			service.addAction(action);
 		});
+	}
+
+	/**
+	 * Create a local Endpoint for private actions
+	 *
+	 * @param {Action} action
+	 * @returns {ActionEndpoint}
+	 * @memberof Registry
+	 */
+	createPrivateActionEndpoint(action) {
+		return new ActionEndpoint(this, this.broker, this.nodes.localNode, action.service, action);
 	}
 
 	/**

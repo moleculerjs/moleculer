@@ -47,14 +47,6 @@ class Endpoint {
 	update() {
 
 	}
-
-	failure() {
-
-	}
-
-	success() {
-
-	}
 }
 
 module.exports = Endpoint;

@@ -4,8 +4,8 @@ const _ = require("lodash");
 const ServiceBroker = require("../../src/service-broker");
 
 const H = {
-	createNode(nodeID, services) {
-		let node = new ServiceBroker({ logger: false, nodeID, transporter: "Fake" });
+	createNode(namespace, nodeID, services) {
+		let node = new ServiceBroker({ namespace, logger: false, nodeID, transporter: "Fake" });
 		if (services)
 			H.addServices(node, services);
 		return node;

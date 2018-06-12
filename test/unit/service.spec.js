@@ -148,7 +148,12 @@ describe("Test action creation", () => {
 		broker.addLocalService = jest.fn();
 		broker.registerLocalService = jest.fn();
 
+		const ep = {};
+		broker.registry.createPrivateActionEndpoint = jest.fn(() => ep);
+
 		let service = broker.createService(schema);
+
+		expect(broker.registry.createPrivateActionEndpoint).toHaveBeenCalledTimes(2);
 
 		expect(service).toBeDefined();
 
@@ -177,17 +182,11 @@ describe("Test action creation", () => {
 				expect(service.actions.find).toBeDefined();
 				expect(service.actions.get).toBeDefined();
 
-				const ep = {};
-				broker._getLocalActionEndpoint = jest.fn(() => ep);
-
 				let ctx = new Context(broker);
 				let oldCreate = broker.ContextFactory.create;
 				broker.ContextFactory.create = jest.fn(() => ctx);
 
 				service.actions.find({ a: 5 }, { timeout: 1000 });
-
-				expect(broker._getLocalActionEndpoint).toHaveBeenCalledTimes(1);
-				expect(broker._getLocalActionEndpoint).toHaveBeenCalledWith("posts.find");
 
 				expect(broker.ContextFactory.create).toHaveBeenCalledTimes(1);
 				expect(broker.ContextFactory.create).toHaveBeenCalledWith(broker, ep, { a: 5 }, { timeout: 1000 });

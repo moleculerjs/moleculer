@@ -94,11 +94,11 @@ class Service {
 				serviceSpecification.actions[innerAction.name] = innerAction;
 
 				const wrappedHandler = this.broker.middlewares.wrapHandler("localAction", innerAction.handler, innerAction);
-				// Expose to call `service.actions.find({ ...params })`
+
+				// Expose to be callable as `this.actions.find({ ...params })`
+				const ep = this.broker.registry.createPrivateActionEndpoint(innerAction);
 				this.actions[name] = (params, opts) => {
-					const endpoint = this.broker._getLocalActionEndpoint(innerAction.name);
-					const ctx = this.broker.ContextFactory.create(this.broker, endpoint, params, opts || {});
-					return wrappedHandler(ctx);
+					return wrappedHandler(this.broker.ContextFactory.create(this.broker, ep, params, opts || {}));
 				};
 
 			});
