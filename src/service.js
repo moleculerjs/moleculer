@@ -352,7 +352,7 @@ class Service {
 		}
 
 		const wrapToHander = function wrapToHander(o) {
-			return _._.isFunction(o) ? { handler: o } : o;
+			return _.isFunction(o) ? { handler: o } : o;
 		};
 
 		const res = _.cloneDeep(mixinSchema);
