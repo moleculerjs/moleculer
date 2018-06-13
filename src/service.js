@@ -369,6 +369,11 @@ class Service {
 					res[key] = {};
 
 				Object.keys(mods[key]).forEach(k => {
+					if (mods[key][k] === false && res[key][k]) {
+						delete res[key][k];
+						return;
+					}
+
 					const modAction = wrapToHander(mods[key][k]);
 					const resAction = wrapToHander(res[key][k]);
 

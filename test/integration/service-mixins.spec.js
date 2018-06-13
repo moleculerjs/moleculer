@@ -94,6 +94,9 @@ describe("Test Service mixins", () => {
 					msg: "From mixin1L1",
 					action: _.omit(ctx.action, ["handler", "service", "metrics"])
 				};
+			},
+			foxtrot() {
+				return "From mixin1L1";
 			}
 		},
 
@@ -185,7 +188,8 @@ describe("Test Service mixins", () => {
 				params: {
 					name: "string"
 				}
-			}
+			},
+			foxtrot: false
 		},
 
 		methods: {
@@ -312,6 +316,12 @@ describe("Test Service mixins", () => {
 					"id": "string"
 				}
 			});
+		});
+	});
+
+	it("should call 'foxtrot' action", () => {
+		return broker.call("main.foxtrot").catch(err => {
+			expect(err.name).toBe("ServiceNotFoundError");
 		});
 	});
 
