@@ -319,7 +319,7 @@ describe("Test Service mixins", () => {
 		});
 	});
 
-	it("should call 'foxtrot' action", () => {
+	it("should not call 'foxtrot' action", () => {
 		return broker.call("main.foxtrot").catch(err => {
 			expect(err.name).toBe("ServiceNotFoundError");
 		});
