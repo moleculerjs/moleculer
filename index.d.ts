@@ -46,14 +46,6 @@ declare namespace Moleculer {
 		hostname: boolean;
 	}
 
-	interface Endpoint {
-		action?: Action;
-		node?: Node;
-		id?: string;
-		local: boolean;
-		state: boolean;
-	}
-
 	type Actions = { [key: string]: Action | ActionHandler; };
 
 	class Context<P = GenericObject, M = GenericObject> {
@@ -331,7 +323,7 @@ declare namespace Moleculer {
 
 		use(...mws: Array<Function>): void;
 
-		findNextActionEndpoint(actionName: string, opts?: GenericObject): ActionEndpoint | MoleculerRetryableError;
+		findNextActionEndpoint(actionName: string, opts?: GenericObject): ActionEndpoint | Errors.MoleculerRetryableError;
 
 		/**
 		 * Call an action (local or global)
