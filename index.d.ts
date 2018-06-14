@@ -318,7 +318,7 @@ declare namespace Moleculer {
 
 		use(...mws: Array<Function>): void;
 
-		findNextActionEndpoint(actionName: string, opts?: GenericObject): ActionEndpoint | MoleculerRetryableError;
+		findNextActionEndpoint(actionName: string, opts?: GenericObject): ActionEndpoint | Errors.MoleculerRetryableError;
 
 		/**
 		 * Call an action (local or global)
