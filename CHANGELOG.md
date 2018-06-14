@@ -5,6 +5,7 @@
 # Changes
 - fix action disabling with mixins [#298](https://github.com/moleculerjs/moleculer/issues/298)
 - Fix metrics options and add findNextActionEndpoint to index.d.ts
+- update dependencies
 
 --------------------------------------------------
 <a name="0.12.6"></a>
