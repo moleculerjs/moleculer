@@ -24,7 +24,10 @@ declare namespace Moleculer {
 	type ActionParamSchema = { [key: string]: any };
 	type ActionParamTypes = "boolean" | "number" | "string" | "object" | "array" | ActionParamSchema;
 	type ActionParams = { [key: string]: ActionParamTypes };
-	type MetricsOptions = { params?: "boolean" | "array" | "function", meta?: "boolean" | "array" | "function" };
+
+	type MetricsParamsFuncType= (params: ActionParams) => any;
+	type MetricsMetaFuncType= (meta: object) => any;
+	type MetricsOptions = { params?: boolean | string[] | MetricsParamsFuncType, meta?: boolean | string[] | MetricsMetaFuncType };
 
 	interface Action {
 		name: string;
@@ -268,6 +271,21 @@ declare namespace Moleculer {
 		params: P;
 	};
 
+	interface Endpoint {
+		broker: ServiceBroker;
+
+		id: string;
+		node: GenericObject;
+
+		local: boolean;
+		state:boolean;
+	}
+
+	interface ActionEndpoint extends Endpoint {
+		service: Service;
+		action: Action;
+	}
+
 	class ServiceBroker {
 		constructor(options?: BrokerOptions);
 
@@ -300,7 +318,7 @@ declare namespace Moleculer {
 
 		use(...mws: Array<Function>): void;
 
-		findNextActionEndpoint(actionName: string, opts?: GenericObject): string;
+		findNextActionEndpoint(actionName: string, opts?: GenericObject): ActionEndpoint | MoleculerRetryableError;
 
 		/**
 		 * Call an action (local or global)
