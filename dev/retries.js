@@ -42,6 +42,6 @@ broker.createService({
 broker.start()
 	.then(() => broker.repl())
 	.then(() => broker.Promise.delay(1000))
-	.then(() => broker.call("test.wrong", null, { requestID: "123", retries: 3, _fallbackResponse: "Fallback" }))
+	.then(() => broker.call("test.wrong", null, { requestID: "123", retries: 3 }))
 	.then(res => broker.logger.info(res))
 	.catch(err => broker.logger.error(err.message));

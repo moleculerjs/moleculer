@@ -29,13 +29,29 @@ declare namespace Moleculer {
 	type MetricsMetaFuncType= (meta: object) => any;
 	type MetricsOptions = { params?: boolean | string[] | MetricsParamsFuncType, meta?: boolean | string[] | MetricsMetaFuncType };
 
+	type BulkheadOptions = {
+		enabled?: boolean,
+		concurrency?: number,
+		maxQueueSize?: number
+	};
+
+	type ActionCacheOptions = {
+		ttl?: number;
+		keys?: Array<string>;
+	};
+
 	interface Action {
-		name: string;
+		name?: string;
 		params?: ActionParams;
 		service?: Service;
-		cache?: boolean;
+		cache?: boolean | ActionCacheOptions;
 		handler: ActionHandler;
 		metrics?: MetricsOptions;
+		bulkhead?: BulkheadOptions;
+		circuitBreaker?: BrokerCircuitBreakerOptions;
+		retryPolicy?: RetryPolicyOptions;
+		fallback?: string | FallbackHandler;
+
 		[key: string]: any;
 	}
 
@@ -48,6 +64,8 @@ declare namespace Moleculer {
 
 	type Actions = { [key: string]: Action | ActionHandler; };
 
+
+
 	class Context<P = GenericObject, M = GenericObject> {
 		constructor(broker: ServiceBroker, endpoint: Endpoint);
 		id: string;
@@ -57,13 +75,12 @@ declare namespace Moleculer {
 		service: Service;
 		nodeID?: string;
 
-		options: GenericObject;
+		options: CallOptions;
 
 		parentID?: string;
-		callerNodeID?: string;
 
 		metrics?: boolean;
-		level?: number;
+		level: number;
 
 		params: P;
 		meta: M;
@@ -152,12 +169,24 @@ declare namespace Moleculer {
 		[name: string]: any;
 	}
 
+	type CheckerFunc = (err: Error) => boolean;
+
 	interface BrokerCircuitBreakerOptions {
-		enabled?: boolean;
-		maxFailures?: number;
+		enabled?: boolean,
+		threshold?: number;
+		windowTime?: number;
+		minRequestCount?: number;
 		halfOpenTime?: number;
-		failureOnTimeout?: boolean;
-		failureOnReject?: boolean;
+		check?: CheckerFunc;
+	}
+
+	interface RetryPolicyOptions {
+		enabled?: boolean,
+		retries?: number;
+		delay?: number;
+		maxDelay?: number;
+		factor?: number;
+		check: CheckerFunc;
 	}
 
 	interface BrokerRegistryOptions {
@@ -192,6 +221,10 @@ declare namespace Moleculer {
 		registry?: BrokerRegistryOptions;
 
 		circuitBreaker?: BrokerCircuitBreakerOptions;
+
+		retryPolicy?: RetryPolicyOptions;
+
+		bulkhead?: BulkheadOptions;
 
 		cacher?: Cacher | string | GenericObject;
 		serializer?: Serializer | string | GenericObject;
@@ -260,6 +293,7 @@ declare namespace Moleculer {
 		};
 	}
 
+	type FallbackHandler = (ctx: Context, err: Errors.MoleculerError) => Bluebird<any>;
 	type FallbackResponse = string | number | GenericObject;
 	type FallbackResponseHandler = (ctx: Context, err: Errors.MoleculerError) => Bluebird<any>;
 

@@ -45,11 +45,12 @@ const broker = new ServiceBroker({
 ## Internal statistics module is removed
 The internal statistics module (`$node.stats`) is removed. We will release it as a separated single Moleculer service in the future.
 
-## Some internal feature is exposed to internal middlewares
+## Some internal features are exposed to internal middlewares
 - Timeout
 - Retry
 - Circuit Breaker
 - Metrics
+- Fallback
 - Context tracking
 
 `broker.options.internalMiddlewares = false`
@@ -87,7 +88,7 @@ Some errors have been renamed in order to follow name conventions.
 The `ctx.callerNodeID` has been removed. The `ctx.nodeID` always contains the target or caller nodeID. If you need the current nodeID, use `ctx.broker.nodeID`.
 
 ## Internal event sending logic is changed
-The `$` prefixed internal events will be transferred if they are called by `emit` or `broadcast`. 
+The `$` prefixed internal events will be transferred if they are called by `emit` or `broadcast`. If you don't want to transfer it, call with `broadcastLocal`.
 
 ## Enhanced ping method
 It returns `Promise` with results of ping responses. Moreover, the method is renamed to `broker.ping`.
@@ -138,6 +139,47 @@ const broker = new ServiceBroker({
 });
 ```
 
+## Fallback in action definition
+
+**Fallback function**
+```js
+module.exports = {
+	name: "recommends",
+	actions: {
+		add: {
+			fallback: (ctx, err) => "Some cached result",
+			//fallback: "fakeResult",
+			handler(ctx) {
+				// Do something
+			}
+		}
+	}
+};
+```
+
+**Fallback with method**
+```js
+module.exports = {
+	name: "recommends",
+	actions: {
+		add: {
+            // Call the 'getCachedResult' method when error occured
+			fallback: "getCachedResult",
+			handler(ctx) {
+				// Do something
+			}
+		}
+	},
+
+	methods: {
+		getCachedResult(ctx, err) {
+			return "Some cached result";
+		}
+	}
+};
+```
+
+
 ## Action visibility
 The action has a new `visibility` property. With this, you can control the visibility & callability of service actions.
 
@@ -184,6 +226,12 @@ const broker = new ServiceBroker({
 });
 ```
 
+**Output**
+```
+[19:42:49.055Z] INFO  MATH: Service started.
+```
+
+
 ## Load services with glob patterns
 Moleculer Runner is able to load services from glob patterns too. It could be useful if you want to load all services, but skip some other ones.
 
@@ -223,32 +271,12 @@ const broker = new ServiceBroker({
 });
 ```
 
-**Output**
-```
-[19:42:49.055Z] INFO  MATH: Service started.
-```
-
-## Private "local-only" actions
-
-```js
-module.exports = {
-    name: "math",
-    actions: {
-        add: {
-            private: true,
-            handler(ctx) {
-                // You can't call it from remote nodes, just locally.
-            }
-        }
-    }
-}
-```
-
 # Changes
 
 - `Context.create` & `new Context` signature is changed.
-- Context metrics methods is removed.
-- `ctx.timeout` is moved to `ctx.options.timeout`
+- Context metrics methods is moved to an internal middleware.
+- `ctx.timeout` is moved to `ctx.options.timeout`.
+- `ctx.callerNodeID` is removed.
 
 # Deprecations
 

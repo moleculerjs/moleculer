@@ -68,7 +68,6 @@ class Context {
 		};
 
 		this.parentID = null;
-		this.callerNodeID = null;
 
 		this.metrics = null;
 		this.level = 1;

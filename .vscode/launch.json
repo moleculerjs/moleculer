@@ -11,8 +11,8 @@
 			"program": "${workspaceRoot}/dev/index.js",
 			"cwd": "${workspaceRoot}",
 			"args": [
-				"client",
-				"client"
+				"server",
+				"server-2"
 			],
 		},
 		{

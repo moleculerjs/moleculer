@@ -14,5 +14,6 @@ module.exports = {
 	Timeout: require("./timeout"),
 	ContextTracker: require("./context-tracker"),
 	Bulkhead: require("./bulkhead"),
+	Fallback: require("./fallback"),
 	ErrorHandler: require("./error-handler"),
 };

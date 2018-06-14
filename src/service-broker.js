@@ -289,10 +289,13 @@ class ServiceBroker {
 			// 7. Retry
 			this.middlewares.add(Middlewares.Retry.call(this));
 
-			// 8. Error handler
+			// 8. Fallback
+			this.middlewares.add(Middlewares.Fallback.call(this));
+
+			// 9. Error handler
 			this.middlewares.add(Middlewares.ErrorHandler.call(this));
 
-			// 9. Metrics
+			// 10. Metrics
 			this.middlewares.add(Middlewares.Metrics.call(this));
 
 			this.logger.info(`Registered ${this.middlewares.count() - prevCount} internal middleware(s).`);

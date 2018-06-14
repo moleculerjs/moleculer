@@ -67,33 +67,4 @@ describe("Test ErrorHandlerMiddleware", () => {
 		});
 	});
 
-	it("should return fallbackResponse (native type)", () => {
-		let error = new MoleculerError("Some error");
-		let handler = jest.fn(() => Promise.reject(error));
-
-		const newHandler = mw.localAction.call(broker, handler, action);
-		const ctx = Context.create(broker, endpoint, null, {
-			fallbackResponse: "fallback response"
-		});
-
-		return newHandler(ctx).catch(protectReject).then(res => {
-			expect(res).toBe("fallback response");
-		});
-	});
-
-	it("should return fallbackResponse (function)", () => {
-		let error = new MoleculerError("Some error");
-		let handler = jest.fn(() => Promise.reject(error));
-		let fallbackResponse = jest.fn(() => "fallback response");
-
-		const newHandler = mw.localAction.call(broker, handler, action);
-		const ctx = Context.create(broker, endpoint, null, { fallbackResponse });
-		expect(ctx.options.fallbackResponse).toBe(fallbackResponse);
-
-		return newHandler(ctx).catch(protectReject).then(res => {
-			expect(res).toBe("fallback response");
-			expect(fallbackResponse).toHaveBeenCalledTimes(1);
-			expect(fallbackResponse).toHaveBeenCalledWith(ctx, error);
-		});
-	});
 });

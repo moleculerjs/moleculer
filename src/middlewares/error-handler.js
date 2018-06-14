@@ -14,11 +14,8 @@ function wrapErrorHandler(handler, action) {
 		// Call the handler
 		return handler(ctx)
 			.catch(err => {
-				if (!(err instanceof Error)) {
+				if (!(err instanceof Error))
 					err = new MoleculerError(err, 500);
-				}
-
-				err.ctx = ctx;
 
 				if (ctx.nodeID != this.nodeID) {
 					// Remove pending request (the request didn't reach the target service)
@@ -27,17 +24,9 @@ function wrapErrorHandler(handler, action) {
 
 				this.logger.debug(`The '${ctx.action.name}' request is rejected.`, { requestID: ctx.requestID }, err);
 
-				// Handle fallback response
-				if (ctx.options.fallbackResponse) {
-					this.logger.warn(`The '${ctx.action.name}' request is failed. Returns fallback response.`, { requestID: ctx.requestID });
-					if (_.isFunction(ctx.options.fallbackResponse))
-						return ctx.options.fallbackResponse(ctx, err);
-					else
-						return Promise.resolve(ctx.options.fallbackResponse);
-				}
+				err.ctx = ctx;
 
 				return Promise.reject(err);
-
 			});
 
 	}.bind(this);
