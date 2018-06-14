@@ -36,13 +36,15 @@ class NatsTransporter extends Transporter {
 
 		super(opts);
 
-		// Use the 'preserveBuffers' option as true as default
-		if (!this.opts || this.opts.preserveBuffers !== false) {
-			if (!this.opts)
-				this.opts = {};
+		if (!this.opts)
+			this.opts = {};
 
+		// Use the 'preserveBuffers' option as true as default
+		if (this.opts.preserveBuffers !== false)
 			this.opts.preserveBuffers = true;
-		}
+
+		if (this.opts.maxReconnectAttempts == null)
+			this.opts.maxReconnectAttempts = -1;
 
 		this.hasBuiltInBalancer = true;
 		this.client = null;

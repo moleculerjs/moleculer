@@ -24,7 +24,7 @@ describe("Test Transporter resolver", () => {
 			let options = { url: "nats://localhost:4222" };
 			let trans = Transporters.resolve({ options });
 			expect(trans).toBeInstanceOf(Transporters.NATS);
-			expect(trans.opts).toEqual({"preserveBuffers": true, "url": "nats://localhost:4222"});
+			expect(trans.opts).toEqual({"maxReconnectAttempts": -1, "preserveBuffers": true, "url": "nats://localhost:4222"});
 		});
 	});
 

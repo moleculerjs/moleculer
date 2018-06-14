@@ -255,6 +255,16 @@ module.exports = {
 - The `broker.use()` has been deprecated. Use `middlewares: [...]` in broker options instead.
 
 --------------------------------------------------
+<a name="0.12.7"></a>
+# [0.12.7](https://github.com/moleculerjs/moleculer/compare/v0.12.6...v0.12.7) (2018-06-14)
+
+# Changes
+- fix action disabling with mixins [#298](https://github.com/moleculerjs/moleculer/issues/298)
+- Fix metrics options and add findNextActionEndpoint to index.d.ts
+- update dependencies
+- set `maxReconnectAttempts` to `-1` in NATS client to try reconnecting continuously
+
+--------------------------------------------------
 <a name="0.12.6"></a>
 # [0.12.6](https://github.com/moleculerjs/moleculer/compare/v0.12.5...v0.12.6) (2018-06-07)
 

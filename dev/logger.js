@@ -75,13 +75,14 @@ function createBroker(options) {
 	console.log(chalk.yellow.bold("\n--- WINSTON ---"));
 	const winston = require("winston");
 	const broker = createBroker({
-		logger: bindings => extend(new winston.Logger({
+		logger: bindings => extend(winston.createLogger({
+			format: winston.format.combine(
+				winston.format.label({ label: bindings }),
+				winston.format.timestamp(),
+				winston.format.json(),
+			),
 			transports: [
-				new (winston.transports.Console)({
-					timestamp: true,
-					colorize: true,
-					prettyPrint: true
-				})
+				new winston.transports.Console()
 			]
 		})),
 		transporter: "NATS",
@@ -90,13 +91,21 @@ function createBroker(options) {
 	logging(broker);
 	broker.start();
 })();
-
+/*
 (function() {
 	console.log(chalk.yellow.bold("\n--- WINSTON CONTEXT ---"));
 	const WinstonContext = require("winston-context");
 	const winston = require("winston");
 	const broker = createBroker({
-		logger: bindings => extend(new WinstonContext(winston, "", bindings)),
+		logger: bindings => extend(new WinstonContext(winston.createLogger({
+			transports: [
+				new winston.transports.Console({
+					timestamp: true,
+					colorize: true,
+					prettyPrint: true
+				})
+			]
+		}), "", bindings)),
 		transporter: "NATS",
 		cacher: "Memory"
 	});
@@ -104,4 +113,5 @@ function createBroker(options) {
 	broker.start();
 })();
 
+*/
 console.log(chalk.yellow.bold("-----------------\n"));

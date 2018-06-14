@@ -774,7 +774,8 @@ describe("Test mergeSchemas", () => {
 					handler() {
 
 					}
-				}
+				},
+				clean() {}
 			},
 
 			events: {
@@ -837,7 +838,8 @@ describe("Test mergeSchemas", () => {
 				},
 				update() {
 				},
-				remove() {}
+				remove() {},
+				clean: false
 			},
 
 			events: {
@@ -899,6 +901,7 @@ describe("Test mergeSchemas", () => {
 		expect(res.actions.find.cache).toBe(false);
 		expect(res.actions.list.handler).toBe(newSchema.actions.list);
 		expect(res.actions.remove.handler).toBe(newSchema.actions.remove);
+		expect(res.actions.clean).toBeUndefined();
 
 		// Merge action definition
 		expect(res.actions.create).toEqual({
