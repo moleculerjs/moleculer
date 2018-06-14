@@ -116,6 +116,7 @@ describe("Test ServiceBroker constructor", () => {
 			logger: null,
 			logLevel: "debug",
 			logFormatter: "simple",
+			logObjectPrinter: null,
 			cacher: null,
 			serializer: null,
 			transporter: null,

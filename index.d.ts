@@ -72,10 +72,10 @@ declare namespace Moleculer {
 		broker: ServiceBroker;
 		endpoint: Endpoint;
 		action: Action;
-		service: Service;
+		service?: Service;
 		nodeID?: string;
 
-		options: CallOptions;
+		options: CallingOptions;
 
 		parentID?: string;
 
@@ -107,19 +107,19 @@ declare namespace Moleculer {
 	interface ServiceSettingSchema {
 		$noVersionPrefix?: boolean;
 		$noServiceNamePrefix?: boolean;
+		$dependencyTimeout?: number;
 		[name: string]: any;
 	}
 
 	type ServiceEventHandler = ((payload: any, sender: string, eventName: string) => void) & ThisType<Service>;
-	type ServiceLocalEventHandler = ((node: GenericObject) => void) & ThisType<Service>;
 
 	interface ServiceEvent {
-		name: string;
+		name?: string;
 		group?: string;
-		handler: ServiceEventHandler | ServiceLocalEventHandler;
+		handler: ServiceEventHandler;
 	}
 
-	type ServiceEvents = { [key: string]: ServiceEventHandler | ServiceLocalEventHandler };
+	type ServiceEvents = { [key: string]: ServiceEventHandler | ServiceEvent };
 
 	type ServiceMethods = { [key: string]: ((...args: any[]) => any) } & ThisType<Service>;
 
@@ -156,16 +156,13 @@ declare namespace Moleculer {
 		broker: ServiceBroker;
 		logger: LoggerInstance;
 		actions?: Actions;
-		mixins?: Array<ServiceSchema>;
-		methods?: ServiceMethods;
 		Promise: typeof Bluebird;
 
 		waitForServices(serviceNames: string | Array<string>, timeout?: number, interval?: number): Bluebird<void>;
 
-		events?: ServiceEvents;
-		created: () => void;
-		started: () => Bluebird<void>;
-		stopped: () => Bluebird<void>;
+		_init: () => void;
+		_start: () => Bluebird<void>;
+		_stop: () => Bluebird<void>;
 		[name: string]: any;
 	}
 
@@ -204,27 +201,30 @@ declare namespace Moleculer {
 		nodeID?: string;
 
 		logger?: Logger | boolean;
-		logLevel?: string;
+		logLevel?: string | GenericObject;
 		logFormatter?: Function | string;
+		logObjectPrinter?: Function;
 
 		transporter?: Transporter | string | GenericObject;
 		requestTimeout?: number;
-		requestRetry?: number;
+		retryPolicy?: RetryPolicyOptions;
+
 		maxCallLevel?: number;
 		heartbeatInterval?: number;
 		heartbeatTimeout?: number;
 
-		disableBalancer?: boolean;
+		trackContext?: boolean;
+		gracefulStopTimeout?: number;
 
-		transit?: BrokerTransitOptions;
+		disableBalancer?: boolean;
 
 		registry?: BrokerRegistryOptions;
 
 		circuitBreaker?: BrokerCircuitBreakerOptions;
 
-		retryPolicy?: RetryPolicyOptions;
-
 		bulkhead?: BulkheadOptions;
+
+		transit?: BrokerTransitOptions;
 
 		cacher?: Cacher | string | GenericObject;
 		serializer?: Serializer | string | GenericObject;
@@ -234,13 +234,15 @@ declare namespace Moleculer {
 		metrics?: boolean;
 		metricsRate?: number;
 		internalServices?: boolean;
+		internalMiddlewares?: boolean;
 
 		hotReload?: boolean;
 
+		middlewares?: Array<Middleware>;
+		replCommands?: Array<GenericObject>;
+
 		ServiceFactory?: Service;
 		ContextFactory?: Context;
-
-		middlewares?: Array<Middleware>;
 
 		created?: (broker: ServiceBroker) => void;
 		started?: (broker: ServiceBroker) => void;
@@ -297,12 +299,14 @@ declare namespace Moleculer {
 	type FallbackResponse = string | number | GenericObject;
 	type FallbackResponseHandler = (ctx: Context, err: Errors.MoleculerError) => Bluebird<any>;
 
-	interface CallOptions {
+	interface CallingOptions {
 		timeout?: number;
 		retries?: number;
 		fallbackResponse?: FallbackResponse | Array<FallbackResponse> | FallbackResponseHandler;
 		nodeID?: string;
 		meta?: GenericObject;
+		parentCtx?: Context;
+		requestID?: string;
 	}
 
 	type CallDefinition<P extends GenericObject = GenericObject> = {
@@ -325,6 +329,12 @@ declare namespace Moleculer {
 		action: Action;
 	}
 
+	interface PongResponse {
+		nodeID: string;
+		elapsedTime: number;
+		timeDiff: number
+	}
+
 	class ServiceBroker {
 		constructor(options?: BrokerOptions);
 
@@ -337,27 +347,33 @@ declare namespace Moleculer {
 		serializer?: Serializer;
 		validator?: Validator;
 		transit: GenericObject;
+		middlewares: GenericObject;
 
 		start(): Bluebird<void>;
 		stop(): Bluebird<void>;
 
 		repl(): void;
 
-		getLogger(module: string, service?: string, version?: number | string): LoggerInstance;
+		getLogger(module: string, props?: string | GenericObject): LoggerInstance;
 		fatal(message: string, err?: Error, needExit?: boolean): void;
 		loadServices(folder?: string, fileMask?: string): number;
 		loadService(filePath: string): Service;
 		watchService(service: Service): void;
 		hotReloadService(service: Service): Service;
-		createService(schema: ServiceSchema): Service;
+		createService(schema: ServiceSchema, schemaMods?: ServiceSchema): Service;
 		destroyService(service: Service): Bluebird<void>;
 
 		getLocalService(serviceName: string, version?: string | number): Service;
 		waitForServices(serviceNames: string | Array<string>, timeout?: number, interval?: number, logger?: LoggerInstance): Bluebird<void>;
 
+		/**
+		 *
+		 * @param mws
+		 * @deprecated
+		 */
 		use(...mws: Array<Function>): void;
 
-		findNextActionEndpoint(actionName: string, opts?: GenericObject): ActionEndpoint | Errors.MoleculerRetryableError;
+		findNextActionEndpoint(actionName: string, nodeID?: string): ActionEndpoint | Errors.MoleculerRetryableError;
 
 		/**
 		 * Call an action (local or global)
@@ -369,7 +385,7 @@ declare namespace Moleculer {
 		 *
 		 * @memberof ServiceBroker
 		 */
-		call<T = any, P extends GenericObject = GenericObject>(actionName: string, params?: P, opts?: CallOptions): Bluebird<T>;
+		call<T = any, P extends GenericObject = GenericObject>(actionName: string, params?: P, opts?: CallingOptions): Bluebird<T>;
 
 		/**
 		 * Multiple action calls.
@@ -441,12 +457,12 @@ declare namespace Moleculer {
 		 */
 		broadcastLocal(eventName: string, payload?: any, groups?: string | Array<string>): void;
 
-		ping(): Bluebird<any>;
-		ping(nodeID: string): Bluebird<any>;
-		ping(nodeID: Array<string>): Bluebird<any>;
+		ping(): Bluebird<Array<PongResponse>>;
+		ping(nodeID: string, timeout?: number): Bluebird<PongResponse>;
+		ping(nodeID: Array<string>, timeout?: number): Bluebird<Array<PongResponse>>;
 
 		getHealthStatus(): NodeHealthStatus;
-		getLocalNodeInfo(force?: boolean): {
+		getLocalNodeInfo(): {
 			ipList: string[];
 			hostname: string;
 			client: any;
@@ -454,6 +470,8 @@ declare namespace Moleculer {
 			port: any;
 			services: Array<any>;
 		};
+
+		getCpuUsage(): Bluebird<any>;
 
 		MOLECULER_VERSION: string;
 		PROTOCOL_VERSION: string;
@@ -516,13 +534,11 @@ declare namespace Moleculer {
 
 	class Transporter {
 		constructor(opts?: GenericObject);
-		init(broker: ServiceBroker, messageHandler: (cmd: string, msg: string) => void): void;
+		init(transit: Transit, messageHandler: (cmd: string, msg: string) => void, afterConnect: (wasReconnect: boolean) => void): void;
 		connect(): Bluebird<any>;
 		disconnect(): Bluebird<any>;
 
-		getTopicName(cmd: string, nodeID?: string): string;
 		makeSubscriptions(topics: Array<GenericObject>): Bluebird<void>;
-		makeBalancedSubscriptions(): Bluebird<void>;
 		subscribe(cmd: string, nodeID?: string): Bluebird<void>;
 		subscribeBalancedRequest(action: string): Bluebird<void>;
 		subscribeBalancedEvent(event: string, group: string): Bluebird<void>;
@@ -535,6 +551,9 @@ declare namespace Moleculer {
 		publishBalancedEvent(packet: Packet, group: string): Bluebird<void>;
 		publishBalancedRequest(packet: Packet): Bluebird<void>;
 
+		getTopicName(cmd: string, nodeID?: string): string;
+		makeBalancedSubscriptions(): Bluebird<void>;
+
 		serialize(packet: Packet): Buffer;
 		deserialize(type: string, data: Buffer): Packet;
 	}
@@ -544,7 +563,7 @@ declare namespace Moleculer {
 		init(broker: ServiceBroker): void;
 		close(): Bluebird<any>;
 		get(key: string): Bluebird<null | GenericObject>;
-		set(key: string, data: any): Bluebird<any>;
+		set(key: string, data: any, ttl?: number): Bluebird<any>;
 		del(key: string): Bluebird<any>;
 		clean(match?: string): Bluebird<any>;
 	}
@@ -552,8 +571,8 @@ declare namespace Moleculer {
 	class Serializer {
 		constructor();
 		init(broker: ServiceBroker): void;
-		serialize(obj: GenericObject, type: string): string | Buffer;
-		deserialize(str: Buffer | string, type: string): string;
+		serialize(obj: GenericObject, type: string): Buffer;
+		deserialize(buf: Buffer, type: string): string;
 	}
 
 	class Validator {
@@ -648,7 +667,8 @@ declare namespace Moleculer {
 		JSON: Serializer,
 		Avro: Serializer,
 		MsgPack: Serializer,
-		ProtoBuf: Serializer
+		ProtoBuf: Serializer,
+		Thrift: Serializer
 	};
 
 	namespace Errors {
@@ -668,26 +688,24 @@ declare namespace Moleculer {
 		class MoleculerClientError extends MoleculerError { }
 
 		class ServiceNotFoundError extends MoleculerRetryableError {
-			constructor(action: string, nodeID: string);
-			constructor(action: string);
+			constructor(data: any);
 		}
 		class ServiceNotAvailableError extends MoleculerRetryableError {
-			constructor(action: string, nodeID: string);
-			constructor(action: string);
+			constructor(data: any);
 		}
 
 		class RequestTimeoutError extends MoleculerRetryableError {
-			constructor(action: string, nodeID: string);
+			constructor(data: any);
 		}
 		class RequestSkippedError extends MoleculerError {
-			constructor(action: string, nodeID: string);
+			constructor(data: any);
 		}
 		class RequestRejectedError extends MoleculerRetryableError {
-			constructor(action: string, nodeID: string);
+			constructor(data: any);
 		}
 
 		class QueueIsFullError extends MoleculerRetryableError {
-			constructor(action: string, nodeID: string, size: number, limit: number);
+			constructor(data: any);
 		}
 		class ValidationError extends MoleculerClientError {
 			constructor(message: string, type: string, data: GenericObject);
@@ -695,19 +713,30 @@ declare namespace Moleculer {
 			constructor(message: string);
 		}
 		class MaxCallLevelError extends MoleculerError {
-			constructor(nodeID: string, level: number);
+			constructor(data: any);
 		}
 
 		class ServiceSchemaError extends MoleculerError {
-			constructor(message: string);
+			constructor(message: string, data: any);
+		}
+
+		class BrokerOptionsError extends MoleculerError {
+			constructor(message: string, data: any);
+		}
+
+		class GracefulStopTimeoutError extends MoleculerError {
+			constructor(data: any);
 		}
 
 		class ProtocolVersionMismatchError extends MoleculerError {
-			constructor(nodeID: string, actual: string, received: string);
+			constructor(data: any);
 		}
+
 		class InvalidPacketDataError extends MoleculerError {
-			constructor(type: string, packet: Packet);
+			constructor(data: any);
 		}
+
+
 	}
 
 	namespace Strategies {

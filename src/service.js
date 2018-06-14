@@ -6,13 +6,11 @@
 
 "use strict";
 
-const _ = require("lodash");
-const utils = require("./utils");
-
-const { ServiceSchemaError } = require("./errors");
+const _ 						= require("lodash");
+const { ServiceSchemaError } 	= require("./errors");
 
 /**
- * Main Service class
+ * Service class
  *
  * @class Service
  */
@@ -42,6 +40,7 @@ class Service {
 
 	/**
 	 * Parse Service schema & register as local service
+	 *
 	 * @param {Object} schema of Service
 	 */
 	parseServiceSchema(schema) {

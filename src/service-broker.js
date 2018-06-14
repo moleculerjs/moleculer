@@ -38,6 +38,7 @@ const defaultOptions = {
 	logger: null,
 	logLevel: null,
 	logFormatter: "default",
+	logObjectPrinter: null,
 
 	transporter: null, //"TCP",
 
@@ -205,9 +206,6 @@ class ServiceBroker {
 			if (this.options.disableBalancer) {
 				this.call = this.callWithoutBalancer;
 			}
-
-			// Counter for metricsRate
-			this._sampleCount = 0;
 
 			// Register middlewares
 			this.registerMiddlewares(this.options.middlewares);
@@ -433,8 +431,7 @@ class ServiceBroker {
 	 * Get a custom logger for sub-modules (service, transporter, cacher, context...etc)
 	 *
 	 * @param {String} module	Name of module
-	 * @param {String} service	Service name
-	 * @param {String|Number} version	Service version
+	 * @param {String|object} props	Module properties (service name, version, ...etc
 	 * @returns {Logger}
 	 *
 	 * @memberof ServiceBroker
@@ -1118,7 +1115,8 @@ class ServiceBroker {
 	/**
 	 * Send ping to a node (or all nodes if nodeID is null)
 	 *
-	 * @param {String?} nodeID
+	 * @param {String|Array<String>?} nodeID
+	 * @param {Number?} timeout
 	 * @returns {Promise}
 	 * @memberof ServiceBroker
 	 */
