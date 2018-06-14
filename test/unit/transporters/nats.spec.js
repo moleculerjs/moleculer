@@ -28,7 +28,7 @@ describe("Test NatsTransporter constructor", () => {
 	it("check constructor", () => {
 		let transporter = new NatsTransporter();
 		expect(transporter).toBeDefined();
-		expect(transporter.opts).toEqual({ preserveBuffers: true });
+		expect(transporter.opts).toEqual({ preserveBuffers: true, maxReconnectAttempts: -1 });
 		expect(transporter.connected).toBe(false);
 		expect(transporter.hasBuiltInBalancer).toBe(true);
 		expect(transporter.client).toBeNull();
@@ -36,19 +36,19 @@ describe("Test NatsTransporter constructor", () => {
 
 	it("check constructor with string param", () => {
 		let transporter = new NatsTransporter("nats://localhost");
-		expect(transporter.opts).toEqual({ preserveBuffers: true, url: "nats://localhost" });
+		expect(transporter.opts).toEqual({ preserveBuffers: true, maxReconnectAttempts: -1, url: "nats://localhost" });
 	});
 
 	it("check constructor with options", () => {
 		let opts = { host: "localhost", port: 1234 };
 		let transporter = new NatsTransporter(opts);
-		expect(transporter.opts).toEqual({ host: "localhost", port: 1234, preserveBuffers: true });
+		expect(transporter.opts).toEqual({ host: "localhost", port: 1234, preserveBuffers: true, maxReconnectAttempts: -1 });
 	});
 
-	it("check constructor with disabled preserveBuffers", () => {
-		let opts = { preserveBuffers: false };
+	it("check constructor with disabled preserveBuffers & maxReconnectAttempts", () => {
+		let opts = { preserveBuffers: false, maxReconnectAttempts: 3 };
 		let transporter = new NatsTransporter(opts);
-		expect(transporter.opts).toEqual({ preserveBuffers: false });
+		expect(transporter.opts).toEqual({ preserveBuffers: false, maxReconnectAttempts: 3 });
 	});
 });
 

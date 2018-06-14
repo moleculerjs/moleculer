@@ -298,7 +298,7 @@ describe("Test option resolvers", () => {
 			let options = { url: "nats://localhost:4222" };
 			let trans = broker._resolveTransporter({ options });
 			expect(trans).toBeInstanceOf(Transporters.NATS);
-			expect(trans.opts).toEqual({"preserveBuffers": true, "url": "nats://localhost:4222"});
+			expect(trans.opts).toEqual({"preserveBuffers": true, "maxReconnectAttempts": -1, "url": "nats://localhost:4222"});
 		});
 
 		it("should resolve MQTTTransporter from connection string", () => {
