@@ -283,8 +283,8 @@ const broker = new ServiceBroker({
 - The `broker.use()` has been deprecated. Use `middlewares: [...]` in broker options instead.
 
 --------------------------------------------------
-<a name="0.12.7"></a>
-# [0.12.7](https://github.com/moleculerjs/moleculer/compare/v0.12.6...v0.12.7) (2018-06-14)
+<a name="0.12.8"></a>
+# [0.12.8](https://github.com/moleculerjs/moleculer/compare/v0.12.6...v0.12.8) (2018-06-14)
 
 # Changes
 - fix action disabling with mixins [#298](https://github.com/moleculerjs/moleculer/issues/298)
