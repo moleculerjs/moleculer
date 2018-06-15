@@ -5,25 +5,154 @@
 # Breaking changes
 
 ## Streaming support
-TODO
+Built-in streaming support has been implemented. Node.js streams can be transferred as request `params` or as response. You can use it to transfer uploaded file from a gateway or encode/decode or compress/decompress streams.
+
+>**Why is it a breaking change?**
+>
+> Because the protocol has been extended with a new field and it caused breaking change in schema-based serializators (ProtoBuf, Avro). Therefore, if you use ProtoBuf or Avro as serializers, you won't able to communicate with the old (<=0.12) brokers. If you use JSON or MsgPack serializer, you have to do nothing.
+
+### Examples
+
+**Send a file to a service as a stream**
+```js
+const stream = fs.createReadStream(fileName);
+
+broker.call("storage.save", stream, { meta: { filename: "avatar-123.jpg" }});
+```
+
+Please note, the `params` should be the stream, you can't pass any variables to the request. If you need, use the `meta` property.
+
+**Receiving a stream in a service**
+```js
+module.exports = {
+    name: "storage",
+    actions: {
+        save(ctx) {
+            const s = fs.createWriteStream(`/tmp/${ctx.meta.filename}`);
+            ctx.params.pipe(s);
+        }
+    }
+};
+```
+
+**Return a stream as response in a service**
+```js
+module.exports = {
+    name: "storage",
+    actions: {
+        get: {
+            params: {
+                filename: "string"
+            },
+            handler(ctx) {
+                return fs.createReadStream(`/tmp/${ctx.params.filename}`);
+            }
+        }
+    }
+};
+```
+
+**Process received stream on the calling side**
+```js
+const filename = "avatar-123.jpg";
+broker.call("storage.get", { filename })
+    .then(stream => {
+        const s = fs.createWriteStream(`./${filename}`);
+        stream.pipe(s);
+        s.on("close", () => broker.logger.info("File has been received"));
+    })
+```
+
+**AES encode/decode example service**
+```js
+const crypto = require("crypto");
+const password = "moleculer";
+
+module.exports = {
+	name: "aes",
+	actions: {
+		encrypt(ctx) {
+			const encrypt = crypto.createCipher("aes-256-ctr", password);
+			return ctx.params.pipe(encrypt);
+		},
+
+		decrypt(ctx) {
+			const decrypt = crypto.createDecipher("aes-256-ctr", password);
+			return ctx.params.pipe(decrypt);
+		}
+	}
+};
+```
 
 ## Better Service & Broker lifecycle handling
-TODO
+The ServiceBroker & Service lifecycle handler logic has been changed. The problem was that when you loaded more services locally, they could call each other actions before `started` executed. It could cause problems if database connecting has been started in the `started` event handler. 
+
+This problem has been fixed but it will cause errors (mostly in unit tests) if you call the local services without `broker.start()`.
+
+**It works in the previous version**
+```js
+const { ServiceBroker } = require("moleculer");
+
+const broker = new ServiceBroker();
+
+broker.loadService("./math.service.js");
+
+broker.call("math.add", { a: 5, b: 3 }).then(res => console.log);
+// Prints: 8
+```
+Since v0.13 it will throw a `ServiceNotFoundError` exception, because the service is only loaded but not started.
+
+**Correct logic**
+```js
+const { ServiceBroker } = require("moleculer");
+
+const broker = new ServiceBroker();
+
+broker.loadService("./math.service.js");
+
+broker.start().then(() => {
+    broker.call("math.add", { a: 5, b: 3 }).then(res => console.log);
+    // Prints: 8
+});
+```
+
+or with await
+
+```js
+broker.loadService("./math.service.js");
+
+await broker.start();
+
+const res = await broker.call("math.add", { a: 5, b: 3 });
+console.log(res);
+// Prints: 8
+```
+
+Similar issue has been fixed at broker shutdowning. When you stopped a broker, which was starting to stop local services, the broker still acccepts incoming requests from remote nodes to local services which was under stopping and it caused errors.
+
+The shutdown logic is changed. When you call `broker.stop`, at first broker will unpublish the local services to remote nodes, so they will able to route the requests to other instances.
+
 
 ## Default console logger
-No need to set `logger: console` in broker options, because ServiceBroker uses `console` as default logger.
+No more need to set `logger: console` in broker options, because ServiceBroker uses `console` as default logger.
 
 ```js
 const broker = new ServiceBroker();
+// It will print log messages to the console
 ```
 
-**Disable loggging**
+**Disable loggging (e.g. in tests)**
 ```js
 const broker = new ServiceBroker({ logger: false });
 ```
 
+## Internal event sending logic is changed
+The `$` prefixed internal events will be transferred if they are called by `emit` or `broadcast`. If you don't want to transfer it, use the `broadcastLocal` method.
+
+> Since v0.13, the `$` prefixed events means built-in core events instead of internal "only-local" events.
+
 ## Improved Circuit Breaker
-Threshold-based circuit-breaker solution has been implemented.
+Threshold-based circuit-breaker solution has been implemented. It uses a time window to check the failed request rate. If the `threshold` value has been reached, it trips the circuit breaker.
 
 ```js
 const broker = new ServiceBroker({
@@ -39,23 +168,33 @@ const broker = new ServiceBroker({
 });
 ```
 
->Circuit-breaker events payload is changed as well.
+Instead of `failureOnTimeout` and `failureOnReject` properties, there is a new `check()` function property in the options. It is used by circuit breaker in order to detect what error counts as a failed request.
 
+You can override these global options in action definition as well.
 
-## Internal statistics module is removed
-The internal statistics module (`$node.stats`) is removed. We will release it as a separated single Moleculer service in the future.
+```js
+module.export = {
+    name: "users",
+    actions: {
+        create: {
+            circuitBreaker: {
+                // All CB options can be overwritten from broker options.
+                threshold: 0.3,
+                windowTime: 30
+            },
+            handler(ctx) {}
+        }
+    }
+};
+```
 
-## Some internal features are exposed to internal middlewares
-- Timeout
-- Retry
-- Circuit Breaker
-- Metrics
-- Fallback
-- Context tracking
+### CB metrics events removed
+The metrics circuit breaker events have been removed due to internal event logic changing.
+Use the `$circuit-breaker.*` events instead of `metrics.circuit-breaker.*` events.
 
-`broker.options.internalMiddlewares = false`
-
-## Improved request retry feature (with exponential backoff)
+## Improved Retry feature (with exponential backoff)
+The old retry feature has been improved. Now it uses exponential backoff for retries. The old solution retries the request immediately in case of fails.
+The retry options has also been changed in the broker options. Every options are under the `retryPolicy` property.
 
 ```js
 const broker = new ServiceBroker({
@@ -71,11 +210,40 @@ const broker = new ServiceBroker({
 });
 ```
 
+**Change the `retries` value in calling option**
 ```js
 broker.call("posts.find", {}, { retries: 3 });
 ```
 
-TODO action level settings
+There is a new `check()` function property in the options. It is used by the Retry middleware in order to detect what error counts as a failed request and need to retry. The default function checks the `retryable` property of errors.
+
+You can override these global options in action definition as well.
+
+```js
+module.export = {
+    name: "users",
+    actions: {
+        find: {
+            retryPolicy: {
+                // All Retry policy options can be overwritten from broker options.
+                retries: 3,
+                delay: 500
+            },
+            handler(ctx) {}
+        },
+        create: {
+            retryPolicy: {
+                // Disable retries for this action
+                enabled: false
+            },
+            handler(ctx) {}
+        }
+    }
+};
+```
+
+## Internal statistics module is removed
+The internal statistics module (`$node.stats`) is removed. If you need it, download from [here](https://gist.github.com/icebob/99dc388ee29ae165f879233c2a9faf63), load as a service and call the `stat.snapshot` to receive the collected statistics.
 
 ## Renamed errors
 Some errors have been renamed in order to follow name conventions.
@@ -86,9 +254,6 @@ Some errors have been renamed in order to follow name conventions.
 
 ## Context nodeID changes
 The `ctx.callerNodeID` has been removed. The `ctx.nodeID` always contains the target or caller nodeID. If you need the current nodeID, use `ctx.broker.nodeID`.
-
-## Internal event sending logic is changed
-The `$` prefixed internal events will be transferred if they are called by `emit` or `broadcast`. If you don't want to transfer it, call with `broadcastLocal`.
 
 ## Enhanced ping method
 It returns `Promise` with results of ping responses. Moreover, the method is renamed to `broker.ping`.
@@ -126,6 +291,32 @@ Output:
 ## New advanced middlewares
 TODO
 
+## Many internal features are exposed to internal middlewares
+Thanks to the new advanced middlewares, we could expose many integrated features to middlewares. They are available under `require("moleculer").Middlewares` property, but they are loaded automatically.
+
+**New internal middlewares:**
+- Action hook handling
+- Validator
+- Bulkhead
+- Cacher
+- Context tracker
+- Circuit Breaker
+- Timeout
+- Retry
+- Fallback
+- Error handling
+- Metrics
+
+> You can turn off the automatically loading with the `internalMiddlewares: false` broker option. In this case you have to add them in the `middlewares: []` broker option.
+
+> The `broker.use` method is deprecated. Use the `middlewares: []` in the broker options instead.
+
+## Action hooks
+TODO
+- Before, after, error hooks for every actions
+- '*' special hook for all actions
+- Function, String, Array<Function|String>
+
 ## Bulkhead feature
 TODO
 
@@ -140,8 +331,11 @@ const broker = new ServiceBroker({
 ```
 
 ## Fallback in action definition
+Thanks to the exposed Fallback middleware, you can set fallback response in the action definition too.
 
-**Fallback function**
+> Please note, this fallback response will be used only if the error is created inside action handler. If the request is called from a remote node and the request is timed out on the remote node, the fallback response won't be used. In this case, use the old `fallbackResponse` calling option.
+
+**Fallback as function**
 ```js
 module.exports = {
 	name: "recommends",
@@ -157,7 +351,7 @@ module.exports = {
 };
 ```
 
-**Fallback with method**
+**Fallback as method name string**
 ```js
 module.exports = {
 	name: "recommends",
@@ -179,7 +373,6 @@ module.exports = {
 };
 ```
 
-
 ## Action visibility
 The action has a new `visibility` property. With this, you can control the visibility & callability of service actions.
 
@@ -189,35 +382,62 @@ The action has a new `visibility` property. With this, you can control the visib
 - `protected`: can be called only locally (from local services)
 - `private`: can be called only internally (via `this.actions.xy()` inside service)
 
-The default values is `null` due to backward compatibility.
+```js
+module.exports = {
+    name: "posts",
+    actions: {
+        // It's published by default
+        find(ctx) {},
+        clean: {
+            // Callable only via `this.actions.clean`
+            visibility: "private",
+            handler(ctx) {}
+        }
+    },
+    methods: {
+        cleanEntities() {
+            // Call the action directly
+            return this.actions.clean();
+        }
+    }
+}
+```
 
-## Action hooks
-TODO
-- Before, after, error hooks for every actions
-- '*' special hook for all actions
-- Function, String, Array<Function|String>
+> The default values is `null` (means published) due to backward compatibility.
 
 ## Enhanced log level configuration 
-There is a new module-based log level configuration. You can set log levels for every Moleculer module. You can use wildcard too.
+There is a new module-based log level configuration. The log level can be set for every Moleculer module. Wildcard usage is allowed.
 
 ```js
 const broker = new ServiceBroker({
     logger: console,
     logLevel: {
-        "MY.**": false, // Disable logs
-        "TRANS*": "warn",
-        "*.GREETER": "debug",
-        "**": "debug", // All other modules use this level
+        "MY.**": false,         // Disable logs
+        "TRANS": "warn",        // Only 'warn ' and 'error' log entries
+        "*.GREETER": "debug",   // All log entries
+        "**": "debug",          // All other modules use this level
     }
 });
 ```
 
->Internal modules: `BROKER`, `TRANS`, `TX` (transporter), `CACHER`, `REGISTRY`.
+**Please note, it works only with default console logger. In case of external loggers (Pino, Windows, Bunyan, ...etc) you need to apply these log levels.**
 
-**Please note, it works only with default console logger. In case of external loggers (Pino, Windows, Bunyan, ...etc) you need to handle log levels.**
+> This settings is evaluated from top to bottom, so the `**` level need to be the last property.
+
+> Internal modules: `BROKER`, `TRANS`, `TX` as transporter, `CACHER`, `REGISTRY`.
+>
+> For services, the name comes from the service name. E.g. `POSTS`. 
+> If version is used it is used as prefix. E.g. `V2.POSTS`
+
+The old global log level settings works as well.
+```js
+const broker = new ServiceBroker({
+    logger: console,
+    logLevel: "warn"
+});
+```
 
 ## New `short` log formatter
-
 There is a new `short` log formatter. It's similar as the default, but doesn't print the date and `nodeID`.
 
 ```js
@@ -231,21 +451,23 @@ const broker = new ServiceBroker({
 [19:42:49.055Z] INFO  MATH: Service started.
 ```
 
-
-## Load services with glob patterns
+## Load services also with glob patterns
 Moleculer Runner is able to load services from glob patterns too. It could be useful if you want to load all services, but skip some other ones.
 
 ```bash
 $ moleculer-runner services !services/others/**/*.service.js services/mandatory/main.service.js
 ```
 
+**Explanations:**
 - `services` - legacy mode. Load all services from the `services` folder with `**/*.service.js` file mask
-- `!services/others/**/*.service.js` - skip services in the `services/others` folder and sub-folders.
-- `services/mandatory/main.service.js` - load the certain service
+- `!services/others/**/*.service.js` - skip all services in the `services/others` folder and sub-folders.
+- `services/mandatory/main.service.js` - load the exact service
 
 The glob patterns work in the `SERVICES` enviroment variables as well.
 
-## Cloning in MemoryCacher
+## MemoryCacher cloning
+There is a new `clone` property in the `MemoryCacher` options. If it's `true`, the cacher clones the cached data before returns it.
+It's mandatory if you manipulate the received value, however it cuts down the performance.
 
 **Enable cloning**
 ```js
@@ -259,7 +481,9 @@ const broker = new ServiceBroker({
 });
 ```
 
-**Custom clone function**
+This feature uses the lodash `_.cloneDeep` method. If you know better cloning method, you can change it if you set a `Function` to the `clone` option instead of a `Boolean`.
+
+**Custom clone function with JSON parse & stringify**
 ```js
 const broker = new ServiceBroker({ 
     cacher: {
@@ -274,7 +498,7 @@ const broker = new ServiceBroker({
 # Changes
 
 - `Context.create` & `new Context` signature is changed.
-- Context metrics methods is moved to an internal middleware.
+- Context metrics methods are removed. All metrics feature is moved to the `Metrics` middleware.
 - `ctx.timeout` is moved to `ctx.options.timeout`.
 - `ctx.callerNodeID` is removed.
 

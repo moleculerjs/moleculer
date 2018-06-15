@@ -335,6 +335,10 @@ declare namespace Moleculer {
 		timeDiff: number
 	}
 
+	interface PongResponses {
+		[name: string]: PongResponse;
+	}
+
 	class ServiceBroker {
 		constructor(options?: BrokerOptions);
 
@@ -457,9 +461,9 @@ declare namespace Moleculer {
 		 */
 		broadcastLocal(eventName: string, payload?: any, groups?: string | Array<string>): void;
 
-		ping(): Bluebird<Array<PongResponse>>;
+		ping(): Bluebird<PongResponses>;
 		ping(nodeID: string, timeout?: number): Bluebird<PongResponse>;
-		ping(nodeID: Array<string>, timeout?: number): Bluebird<Array<PongResponse>>;
+		ping(nodeID: Array<string>, timeout?: number): Bluebird<PongResponses>;
 
 		getHealthStatus(): NodeHealthStatus;
 		getLocalNodeInfo(): {

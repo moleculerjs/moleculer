@@ -8,11 +8,6 @@
 
 const ExtendableError = require("es6-error");
 
-/*
-	TODO:
-		- add recreate from payload method
-*/
-
 /**
  * Custom Moleculer Error class
  *
