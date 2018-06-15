@@ -22,15 +22,20 @@ let broker = new ServiceBroker({
 	logLevel: "warn",
 	//metrics: true,
 	requestTimeout: 10000,
-	retries: 3,
+	retryPolicy: {
+		enabled: true,
+		retries: 3
+	}
 });
+
+let callCount = 0;
 
 console.log("Client started. nodeID:", broker.nodeID, " TRANSPORTER:", transporter, " PID:", process.pid);
 /*
 function work() {
 	let payload = { a: random(0, 100), b: random(0, 100) };
 	const p = broker.call("math.add", payload)
-		.then(() => broker._callCount++)
+		.then(() => callCount++)
 		.catch(err => console.warn(err.message));
 		//.then(() => setImmediate(work));
 
@@ -52,7 +57,7 @@ function work() {
 	let payload = { c: ++counter };
 	const p = broker.call("perf.reply", payload)
 		.then(() => {
-			broker._callCount++;
+			callCount++;
 
 			const diff = process.hrtime(startTime);
 			const dur = (diff[0] + diff[1] / 1e9) * 1000;
@@ -72,7 +77,7 @@ function work() {
 		p.then(() => setImmediate(work));
 }
 
-broker._callCount = 0;
+callCount = 0;
 
 function color(text, pad, value, green, red) {
 	let c;
@@ -93,11 +98,11 @@ broker.start()
 			work();
 
 			setInterval(() => {
-				if (broker._callCount > 0) {
-					let rps = broker._callCount / ((Date.now() - startTime) / 1000);
+				if (callCount > 0) {
+					let rps = callCount / ((Date.now() - startTime) / 1000);
 
 					let queueSize = broker.transit.pendingRequests.size;
-					let latency = sumTime/broker._callCount;
+					let latency = sumTime/callCount;
 
 					console.log(broker.nodeID, ":",
 						padStart(Number(rps.toFixed(0)).toLocaleString(), 8), "req/s",
@@ -106,7 +111,7 @@ broker.start()
 						"  L:", color(humanize(latency), 6, latency, 500, 5000),
 						"  ML:", color(humanize(maxTime), 6, maxTime, 1000, 5000)
 					);
-					broker._callCount = 0;
+					callCount = 0;
 					sumTime = 0;
 					maxTime = 0;
 					startTime = Date.now();

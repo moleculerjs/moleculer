@@ -29,9 +29,11 @@ broker.createService({
 
 let payload = { a: random(0, 100), b: random(0, 100) };
 
+let count = 0;
+
 function work() {
 	broker.call("math.add", payload).then(res => {
-		if (broker._callCount++ % 10 * 1000) {
+		if (count++ % 10 * 1000) {
 			// Fast cycle
 			work();
 		} else {
@@ -46,17 +48,17 @@ function work() {
 }
 
 broker.start().then(() => {
-	broker._callCount = 0;
+	count = 0;
 
 	setTimeout(() => {
 		let startTime = Date.now();
 		work();
 
 		setInterval(() => {
-			if (broker._callCount > 0) {
-				let rps = broker._callCount / ((Date.now() - startTime) / 1000);
+			if (count > 0) {
+				let rps = count / ((Date.now() - startTime) / 1000);
 				console.log(Number(rps.toFixed(0)).toLocaleString(), "req/s");
-				broker._callCount = 0;
+				count = 0;
 				startTime = Date.now();
 			}
 		}, 1000);

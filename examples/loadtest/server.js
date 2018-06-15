@@ -2,12 +2,6 @@
 
 "use strict";
 
-let Promise = require("bluebird");
-
-Promise.config({
-	longStackTraces: true
-});
-
 let ServiceBroker = require("../../src/service-broker");
 let { padStart } = require("lodash");
 

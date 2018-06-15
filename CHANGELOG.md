@@ -210,7 +210,9 @@ const broker = new ServiceBroker({
 });
 ```
 
-**Change the `retries` value in calling option**
+**Overwrite the `retries` value in calling option**
+The `retryCount` calling options has been renamed to `retries`.
+
 ```js
 broker.call("posts.find", {}, { retries: 3 });
 ```
@@ -241,6 +243,26 @@ module.export = {
     }
 };
 ```
+
+## Changes in context tracker
+There are some changes in context tracker configuration. 
+
+```js
+const broker = new ServiceBroker({
+    nodeID: "node-1",
+    tracking: {
+        enabled: true,
+        shutdownTimeout: 5000
+    }
+});
+```
+
+**Disable tracking in calling option at calling**
+
+```js
+broker.call("posts.find", {}, { tracking: false });
+```
+
 
 ## Internal statistics module is removed
 The internal statistics module (`$node.stats`) is removed. If you need it, download from [here](https://gist.github.com/icebob/99dc388ee29ae165f879233c2a9faf63), load as a service and call the `stat.snapshot` to receive the collected statistics.
@@ -284,6 +306,28 @@ Output:
         timeDiff: -2 
     } 
 }
+```
+
+## Cacher key generation logic is changed
+When you didn't define `keys` at caching, the cacher hashed the whole `ctx.params` and used as a key to store the content. This method was too slow and difficult to implement to other platforms. Therefore we have changed it. The new method more simple, the key generator concatenates all property names & values from `ctx.params`.
+
+However, the problem with this new logic is that the length of key can be very large. It can cause performance issues when you use too long keys to get or save cache entries. To avoid it, there is a `maxParamsLength` option to limit the key length. If the length is bigger than the configured limit, the cacher calculates a hash (SHA256) from the full key and add it to the end of key.
+
+> The minimum of `maxParamsLength` is `44` (SHA 256 hash length in Base64).
+> 
+> To disable this feature, set it to `0` or `null`.
+
+**Generate a full key from the whole params**
+```js
+cacher.getCacheKey("posts.find", { id: 2, title: "New post", content: "It can be very very looooooooooooooooooong content. So this key will also be too long" });
+// Key: 'posts.find:id|2|title|New post|content|It can be very very looooooooooooooooooong content. So this key will also be too long'
+```
+
+**Generate a limited key with hash**
+```js
+cacher.opts.maxParamsLength = 60;
+cacher.getCacheKey("abc.def", bigObj);
+// Key: 'posts.find:id|2|title|New pL4ozUU24FATnNpDt1B0t1T5KP/T5/Y+JTIznKDspjT0='
 ```
 
 # New
