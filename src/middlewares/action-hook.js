@@ -32,7 +32,7 @@ function callErrorHook(hook, service, ctx, err) {
  * @param {Service?} service
  * @returns
  */
-function sanitizaHooks(hooks, service) {
+function sanitizeHooks(hooks, service) {
 	if (_.isString(hooks))
 		return service && _.isFunction(service[hooks]) ? service[hooks] : null;
 
@@ -52,13 +52,13 @@ function wrapActionHookMiddleware(handler, action) {
 	const name = action.rawName || action.name;
 	const hooks = action.service && action.service.schema ? action.service.schema.hooks : null;
 	if (hooks) {
-		const beforeAllHook = hooks.before ? sanitizaHooks(hooks.before["*"], action.service) : null;
-		const afterAllHook = hooks.after ? sanitizaHooks(hooks.after["*"], action.service) : null;
-		const errorAllHook = hooks.error ? sanitizaHooks(hooks.error["*"], action.service) : null;
+		const beforeAllHook = hooks.before ? sanitizeHooks(hooks.before["*"], action.service) : null;
+		const afterAllHook = hooks.after ? sanitizeHooks(hooks.after["*"], action.service) : null;
+		const errorAllHook = hooks.error ? sanitizeHooks(hooks.error["*"], action.service) : null;
 
-		const beforeHook = hooks.before ? sanitizaHooks(hooks.before[name], action.service) : null;
-		const afterHook = hooks.after ? sanitizaHooks(hooks.after[name], action.service) : null;
-		const errorHook = hooks.error ? sanitizaHooks(hooks.error[name], action.service) : null;
+		const beforeHook = hooks.before ? sanitizeHooks(hooks.before[name], action.service) : null;
+		const afterHook = hooks.after ? sanitizeHooks(hooks.after[name], action.service) : null;
+		const errorHook = hooks.error ? sanitizeHooks(hooks.error[name], action.service) : null;
 
 		if (beforeAllHook || beforeHook || afterAllHook || afterHook || errorAllHook || errorHook) {
 			return function actionHookMiddleware(ctx) {

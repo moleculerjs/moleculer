@@ -433,7 +433,7 @@ class Transit {
 
 		// If not exists (timed out), we skip response processing
 		if (req == null) {
-			this.logger.debug("Orphan response. Maybe the request timed out. ID:", packet.id, ", Sender:", packet.sender);
+			this.logger.debug("Orphan response is received. Maybe the request is timed out earlier. ID:", packet.id, ", Sender:", packet.sender);
 			return;
 		}
 

@@ -17,7 +17,7 @@ function wrapTimeoutMiddleware(handler, action) {
 			ctx.options.timeout = this.options.requestTimeout || 0;
 
 		if (ctx.options.timeout > 0 && !ctx.startHrTime) {
-			// For distributed calls
+			// For distributed timeout calculation need to be set
 			ctx.startHrTime = process.hrtime();
 		}
 

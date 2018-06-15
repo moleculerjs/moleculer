@@ -353,14 +353,14 @@ class ServiceBroker {
 		this.started = false;
 		return Promise.resolve()
 			.then(() => {
-				return this.middlewares.callHandlers("stopping", [this], true);
-			})
-			.then(() => {
 				if (this.transit) {
 					this.registry.regenerateLocalRawInfo(true);
 					// Send empty node info in order to block incoming requests
 					return this.transit.sendNodeInfo();
 				}
+			})
+			.then(() => {
+				return this.middlewares.callHandlers("stopping", [this], true);
 			})
 			.then(() => {
 				// Call service `stopped` handlers

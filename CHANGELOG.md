@@ -330,6 +330,31 @@ cacher.getCacheKey("abc.def", bigObj);
 // Key: 'posts.find:id|2|title|New pL4ozUU24FATnNpDt1B0t1T5KP/T5/Y+JTIznKDspjT0='
 ```
 
+Of course, you can use your custom solution with `keygen` cacher options as before.
+
+## Moleculer errors signature is changed
+The following Moleculer Error classes constructor arguments is changed to `constructor(data)`:
+- `ServiceNotFoundError`
+- `ServiceNotAvailableError`
+- `RequestTimeoutError`
+- `RequestSkippedError`
+- `RequestRejectedError`
+- `QueueIsFullError`
+- `MaxCallLevelError`
+- `ProtocolVersionMismatchError`
+- `InvalidPacketDataError`
+
+**Before**
+```js
+throw new ServiceNotFoundError("posts.find", "node-123");
+```
+
+**Now**
+```js
+throw new ServiceNotFoundError({ action: "posts.find",  nodeID: "node-123" });
+```
+
+
 # New
 
 ## New advanced middlewares
@@ -918,11 +943,19 @@ const broker = new ServiceBroker({
 ```
 
 # Changes
-
+- service instances has a new property named `fullName`. It contains service version & service name.
+- the `Action` has a `rawName` property which contains the action name without service name.
+- new `$node.options` internal action to get the current broker options.
 - `Context.create` & `new Context` signature is changed.
 - Context metrics methods are removed. All metrics feature is moved to the `Metrics` middleware.
 - `ctx.timeout` is moved to `ctx.options.timeout`.
 - `ctx.callerNodeID` is removed.
+- `ctx.endpoint` is a new property. It is pointed to the target `Endpoint`. For example you can check with `ctx.endpoint.local` flag that the request will be a remote or a local request.
+- `ctx.id` has been lazy generated. It means that it will be only generated when you access it. At the same time the `ctx.generateID()` has been removed.
+- service lifecycle methods are renamed in service instances (not in service schema!)
+- `broker.findNextActionEndpoint` method second argument changed from `opts` to `nodeID`.
+- `transit.stat.packets` has been extended with byte-based statistics.
+- `utils.deprecate` method is created for deprecation.
 
 # Deprecations
 
