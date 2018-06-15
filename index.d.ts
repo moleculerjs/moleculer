@@ -170,14 +170,18 @@ declare namespace Moleculer {
 
 		logger?: Logger | boolean;
 		logLevel?: string;
-		logFormatter?: Function | string;
+        logFormatter?: Function | string;
+        logObjectPrinter?: Function
 
 		transporter?: Transporter | string | GenericObject;
 		requestTimeout?: number;
 		requestRetry?: number;
 		maxCallLevel?: number;
 		heartbeatInterval?: number;
-		heartbeatTimeout?: number;
+        heartbeatTimeout?: number
+    
+        trackContext?: boolean
+        gracefulStopTimeout?: number
 
 		disableBalancer?: boolean;
 
