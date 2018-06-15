@@ -289,7 +289,221 @@ Output:
 # New
 
 ## New advanced middlewares
-TODO
+We have been improved the current middleware handler and extend it with a lot of useful features. As a result, you can hack more internal flow logic with custom middlewares (e.g. event sending, service creating, service starting...etc)
+
+The new middleware is an `Object` with hooks instead of a simple `Function`. However the new solution is backward compatible, so you don't need to migrate your old middlewares. 
+
+**A new middleware with all available hooks**
+```js
+const MyCustomMiddleware = {
+    // After broker is created
+    created(broker) {
+
+    },
+
+    // Wrap local action handlers (legacy middleware handler)
+    localAction(next, action) {
+
+    },
+
+    // Wrap remote action handlers
+    remoteAction(next, action) {
+
+    },
+
+	// Wrap local event handlers
+	localEvent(next, event) {
+
+	}
+
+	// Wrap broker.createService method
+	createService(next) {
+
+	}
+
+	// Wrap broker.destroyService method
+	destroyService(next) {
+
+	}
+
+	// Wrap broker.call method
+	call(next) {
+
+	}
+
+	// Wrap broker.mcall method
+	mcall(next) {
+
+	}
+
+    // Wrap broker.emit method
+    emit(next) {
+
+    },
+
+    // Wrap broker.broadcast method
+    broadcast(next) {
+
+    },
+
+    // Wrap broker.broadcastLocal method
+    broadcastLocal(next) {
+
+    },
+
+	// After a new local service created
+	serviceCreated(service) {
+
+	},
+
+	// Before a local service started
+	serviceStarting(service) {
+
+	},
+
+	// After a local service started
+	serviceStarted(service) {
+
+	},
+
+	// Before a local service stopping
+	serviceStopping(service) {
+
+	},
+
+	// After a local service stopped
+	serviceStopped(service) {
+
+	},
+
+    // Before broker starting
+    starting(broker) {
+
+    },
+
+    // After broker started
+    started(broker) {
+
+    },
+
+    // Before broker stopping
+    stopping(broker) {
+
+    },
+
+    // After broker stopped
+    stopped(broker) {
+
+    }
+}
+```
+
+**Use it in broker options**
+```js
+const broker = new ServiceBroker({
+    middlewares: [
+        MyCustomMiddleware
+    ]
+});
+```
+
+### Wrapping handlers
+Some hooks are wrappers. It means, you need to wrap the original handler and return with a new Function.
+You have to wrap hooks where the first parameter is `next`.
+
+**Wrap local action handler**
+```js
+const MyDoSomethingMiddleware = {
+    localAction(next, action) {
+        if (action.myFunc) {
+            // Wrap the handler
+
+            return function(ctx) {
+                doSomethingBeforeHandler(ctx);
+
+                return handler(ctx)
+                    .then(res => {
+                        doSomethingAfterHandler(res);
+                        // Return the original result
+                        return res;
+                    })
+                    .catch(err => {
+                        doSomethingAfterHandlerIfFailed(err);
+
+                        // Throw further the error
+                        throw err;
+                    });
+            }
+        }
+
+        // If the feature is disabled we don't wrap it, return the original handler
+        // So it won't cut down the performance for actions where the feature is disabled.
+        return handler;
+    }
+};
+```
+
+### Decorate broker (extend functionality)
+With other hooks are help you to decorate new features ServiceBroker & services.
+
+**Decorate broker with a new `allCall` method**
+```js
+const broker = new ServiceBroker({
+    middlewares: [
+        {
+            // After broker is created
+            created(broker) {
+                // Call action on all available nodes
+                broker.allCall = function(action, params, opts = {}) {
+                    const nodeIDs = this.registry.getNodeList({ onlyAvailable: true })
+                        .map(node => node.id);
+
+                    // Make direct call to the given Node ID
+                    return Promise.all(nodeIDs.map(nodeID => broker.call(action, params, Object.assign({ nodeID }, opts))));
+                }
+            }
+        }
+    ]
+});
+
+await broker.start();
+
+// Call `$node.health` on every nodes & collect results
+const res = await broker.allCall("$node.health");
+```
+
+**Decorate services with a new method**
+```js
+const broker = new ServiceBroker({
+    middlewares: [
+        {
+            // After a new local service created
+            serviceCreated(service) {
+                // Call action on all available nodes
+                service.customFunc = function() {
+                    // Do something
+                }.bind(service);
+            }
+        }
+    ]
+});
+```
+
+In service schema:
+
+```js
+module.export = {
+    name: "users",
+    actions: {
+        find(ctx) {
+            // Call the new custom function
+            this.customFunc();
+        }
+    }
+};
+```
+
+> The mixins can do similar things, so we prefer mixins to this decorating.
 
 ## Many internal features are exposed to internal middlewares
 Thanks to the new advanced middlewares, we could expose many integrated features to middlewares. They are available under `require("moleculer").Middlewares` property, but they are loaded automatically.
@@ -312,14 +526,152 @@ Thanks to the new advanced middlewares, we could expose many integrated features
 > The `broker.use` method is deprecated. Use the `middlewares: []` in the broker options instead.
 
 ## Action hooks
-TODO
-- Before, after, error hooks for every actions
-- '*' special hook for all actions
-- Function, String, Array<Function|String>
+You can define action hooks to wrap certain actions which comes from mixins.
+There are `before`, `after` and `error` hooks. You can assign it to a specified action or all actions (`*`) in service.
+The hook can be a `Function` or a `String`. In the latter case, it must be a local service method name, what you would like to call.
 
-## Bulkhead feature
-TODO
+**Before hooks**
 
+```js
+const DbService = require("moleculer-db");
+
+module.exports = {
+    name: "posts",
+    mixins: [DbService]
+    hooks: {
+        before: {
+            // Define a global hook for all actions
+            // The hook will call the `resolveLoggedUser` method.
+            "*": "resolveLoggedUser",
+
+            // Define multiple hooks
+            remove: [
+                function isAuthenticated(ctx) {
+                    if (!ctx.user)
+                        throw new Error("Forbidden");
+                },
+                function isOwner(ctx) {
+                    if (!this.checkOwner(ctx.params.id, ctx.user.id))
+                        throw new Error("Only owner can remove it.");
+                }
+            ]
+        }
+    },
+
+    methods: {
+        async resolveLoggedUser(ctx) {
+            if (ctx.meta.user)
+                ctx.user = await ctx.call("users.get", { id: ctx.meta.user.id });
+        }
+    }
+}
+```
+
+**After & Error hooks**
+
+```js
+const DbService = require("moleculer-db");
+
+module.exports = {
+    name: "users",
+    mixins: [DbService]
+    hooks: {
+        after: {
+            // Define a global hook for all actions to remove sensitive data
+            "*": function(ctx, res) {
+                // Remove password
+                delete res.password;
+
+                // Please note, must return result (either the original or a new)
+                return res;
+            },
+            get: [
+                // Add a new virtual field to the entity
+                async function (ctx, res) {
+                    res.friends = await ctx.call("friends.count", { query: { follower: res._id }});
+
+                    return res;
+                },
+                // Populate the `referrer` field
+                async function (ctx, res) {
+                    if (res.referrer)
+                        res.referrer = await ctx.call("users.get", { id: res._id });
+
+                    return res;
+                }
+            ]
+        },
+        error: {
+            // Global error handler
+            "*": function(ctx, err) {
+                this.logger.error(`Error occured when '${ctx.action.name}' action was called`, err);
+
+                // Throw further the error
+                throw err;
+            }
+        }
+    }
+};
+```
+
+The recommended use case is that you create mixins which fill up the service with methods and in `hooks` you just sets method names what you want to be called.
+
+**Mixin**
+```js
+module.exports = {
+    methods: {
+        checkIsAuthenticated(ctx) {
+            if (!ctx.meta.user)
+                throw new Error("Unauthenticated");
+        },
+        checkUserRole(ctx) {
+            if (ctx.action.role && ctx.meta.user.role != ctx.action.role)
+                throw new Error("Forbidden");
+        },
+        checkOwner(ctx) {
+            // Check the owner of entity
+        }
+    }
+}
+```
+
+**Use mixin methods in hooks**
+```js
+const MyAuthMixin = require("./my.mixin");
+
+module.exports = {
+    name: "posts",
+    mixins: [MyAuthMixin]
+    hooks: {
+        before: {
+            "*": ["checkIsAuthenticated"],
+            create: ["checkUserRole"],
+            update: ["checkUserRole", "checkOwner"],
+            remove: ["checkUserRole", "checkOwner"]
+        }
+    },
+
+    actions: {
+        find: {
+            // No required role
+            handler(ctx) {}
+        },
+        create: {
+            role: "admin",
+            handler(ctx) {}
+        },
+        update: {
+            role: "user",
+            handler(ctx) {}
+        }
+    }
+};
+```
+
+## New Bulkhead fault-tolerance feature
+Bulkhead feature is implemented to the Moleculer as an internal middleware. You can use it to control the concurrent request handling of actions.
+
+**Global settings in the broker options.** _Applied to all registered local actions._
 ```js
 const broker = new ServiceBroker({
     bulkhead: {
@@ -328,6 +680,32 @@ const broker = new ServiceBroker({
         maxQueueSize: 10,
     }
 });
+```
+
+The `concurrency` value restricts the concurrent request executions. If the `maxQueueSize` is bigger than 0, broker stores the additional requests in a queue if all slots are taken. If the queue size reaches the `maxQueueSize` limit or it is 0, broker will throw `QueueIsFull` exception for every addition requests.
+
+You can override these global options in action definition as well.
+
+```js
+module.export = {
+    name: "users",
+    actions: {
+        find: {
+            bulkhead: {
+                enabled: false
+            },
+            handler(ctx) {}
+        },
+        create: {
+            bulkhead: {
+                // Increment the concurrency value
+                // for this action
+                concurrency: 10
+            },
+            handler(ctx) {}
+        }
+    }
+};
 ```
 
 ## Fallback in action definition

@@ -150,17 +150,17 @@ module.exports = MiddlewareHandler;
     },
 
     // Wrap local action handlers (legacy middleware handler)
-    localAction(handler, action) {
+    localAction(next, action) {
 
     },
 
     // Wrap remote action handlers
-    remoteAction(handler, action) {
+    remoteAction(next, action) {
 
     },
 
 	// Wrap local event handlers
-	localEvent(handler, event) {
+	localEvent(next, event) {
 
 	}
 
