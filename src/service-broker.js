@@ -776,17 +776,18 @@ class ServiceBroker {
 	 * Find the next available endpoint for action
 	 *
 	 * @param {String} actionName
-	 * @param {String?} nodeID
+	 * @param {Object?} opts
 	 * @returns {Endpoint|Error}
 	 *
 	 * @performance-critical
 	 * @memberof ServiceBroker
 	 */
-	findNextActionEndpoint(actionName, nodeID) {
+	findNextActionEndpoint(actionName, opts) {
 		if (typeof actionName !== "string") {
 			return actionName;
 		} else {
-			if (nodeID) {
+			if (opts && opts.nodeID) {
+				const nodeID = opts.nodeID;
 				// Direct call
 				const endpoint = this.registry.getActionEndpointByNodeId(actionName, nodeID);
 				if (!endpoint) {
@@ -827,7 +828,7 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	call(actionName, params, opts = {}) {
-		const endpoint = this.findNextActionEndpoint(actionName, opts.nodeID);
+		const endpoint = this.findNextActionEndpoint(actionName, opts);
 		if (endpoint instanceof Error)
 			return Promise.reject(endpoint);
 

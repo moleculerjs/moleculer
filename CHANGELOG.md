@@ -955,7 +955,6 @@ const broker = new ServiceBroker({
 - `ctx.endpoint` is a new property. It is pointed to the target `Endpoint`. For example you can check with `ctx.endpoint.local` flag that the request will be a remote or a local request.
 - `ctx.id` has been lazy generated. It means that it will be only generated when you access it. At the same time the `ctx.generateID()` has been removed.
 - service lifecycle methods are renamed in service instances (not in service schema!)
-- `broker.findNextActionEndpoint` method second argument changed from `opts` to `nodeID`.
 - `transit.stat.packets` has been extended with byte-based statistics.
 - `utils.deprecate` method is created for deprecation.
 

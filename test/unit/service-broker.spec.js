@@ -1202,30 +1202,6 @@ describe("Test broker.waitForServices", () => {
 
 });
 
-/* Deprecated
-describe("Test broker.use (middleware)", () => {
-	let broker = new ServiceBroker({
-		logger: false,
-		validation: false
-	});
-
-	broker.middlewares.add = jest.fn();
-
-	it("should be called 2 times", () => {
-		broker.use(jest.fn());
-		broker.use(jest.fn());
-
-		expect(broker.middlewares.add).toHaveBeenCalledTimes(2);
-	});
-
-	it("should be called 2 times", () => {
-		broker.middlewares.add.mockClear();
-		broker.use(jest.fn(), jest.fn(), null);
-
-		expect(broker.middlewares.add).toHaveBeenCalledTimes(3);
-	});
-});*/
-
 describe("Test broker.findNextActionEndpoint", () => {
 	let broker = new ServiceBroker({ logger: false, internalServices: false });
 	let actionHandler = jest.fn(ctx => ctx);
@@ -1266,7 +1242,7 @@ describe("Test broker.findNextActionEndpoint", () => {
 	});
 
 	it("should reject if no action on node", () => {
-		const err = broker.findNextActionEndpoint("posts.noHandler", "node-123");
+		const err = broker.findNextActionEndpoint("posts.noHandler", { nodeID: "node-123" });
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(ServiceNotFoundError);
 		expect(err.message).toBe("Service 'posts.noHandler' is not found on 'node-123' node.");
@@ -1274,7 +1250,7 @@ describe("Test broker.findNextActionEndpoint", () => {
 	});
 
 	it("should find the endpoint with nodeID", () => {
-		let ep = broker.findNextActionEndpoint("posts.find", broker.nodeID);
+		let ep = broker.findNextActionEndpoint("posts.find", { nodeID: broker.nodeID });
 		expect(ep).toBeDefined();
 		expect(ep.action).toBeDefined();
 		expect(ep.id).toBe(broker.nodeID);
