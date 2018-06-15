@@ -56,8 +56,10 @@ const defaultOptions = {
 	heartbeatInterval: 5,
 	heartbeatTimeout: 15,
 
-	trackContext: false,
-	gracefulStopTimeout: 5000,
+	tracking: {
+		enabled: false,
+		shutdownTimeout: 5000,
+	},
 
 	disableBalancer: false,
 

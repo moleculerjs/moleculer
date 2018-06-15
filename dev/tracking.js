@@ -8,7 +8,9 @@ let broker1 = new ServiceBroker({
 	transporter: "NATS",
 	logger: console,
 	//logFormatter: "simple",
-	trackContext: true,
+	tracking: {
+		enabled: true
+	}
 });
 
 let c1 = 0;
@@ -35,7 +37,9 @@ let broker2 = new ServiceBroker({
 	transporter: "NATS",
 	logger: console,
 	//logFormatter: "simple",
-	trackContext: true,
+	tracking: {
+		enabled: true
+	}
 });
 
 let c2 = 0;
@@ -62,7 +66,8 @@ broker1.Promise.all([
 ]).then(async () => {
 	//broker1.repl();
 
-	broker1.call("first.5");
+	//broker1.call("first.5");
+	broker1.call("slow.5");
 
 	await broker1.Promise.delay(2 * 1000);
 

@@ -89,7 +89,10 @@ describe("Test ServiceBroker constructor", () => {
 			},
 			requestTimeout: 5000,
 			maxCallLevel: 10,
-			trackContext: true,
+
+			tracking: {
+				enabled: true,
+			},
 
 			disableBalancer: true,
 			registry: {
@@ -124,8 +127,10 @@ describe("Test ServiceBroker constructor", () => {
 			metricsRate: 0.5,
 			heartbeatTimeout : 20,
 			heartbeatInterval: 5,
-			trackContext: true,
-			gracefulStopTimeout: 5000,
+			tracking: {
+				enabled: true,
+				shutdownTimeout: 5000,
+			},
 
 			disableBalancer: true,
 			registry: {

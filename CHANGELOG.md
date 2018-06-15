@@ -263,6 +263,8 @@ const broker = new ServiceBroker({
 broker.call("posts.find", {}, { tracking: false });
 ```
 
+_The shutdown timeout can be overwritten by `$shutdownTimeout` property in service settings._
+
 
 ## Internal statistics module is removed
 The internal statistics module (`$node.stats`) is removed. If you need it, download from [here](https://gist.github.com/icebob/99dc388ee29ae165f879233c2a9faf63), load as a service and call the `stat.snapshot` to receive the collected statistics.
@@ -365,11 +367,6 @@ The new middleware is an `Object` with hooks instead of a simple `Function`. How
 **A new middleware with all available hooks**
 ```js
 const MyCustomMiddleware = {
-    // After broker is created
-    created(broker) {
-
-    },
-
     // Wrap local action handlers (legacy middleware handler)
     localAction(next, action) {
 
@@ -420,47 +417,52 @@ const MyCustomMiddleware = {
 
     },
 
-	// After a new local service created
+	// After a new local service created (sync)
 	serviceCreated(service) {
 
 	},
 
-	// Before a local service started
+	// Before a local service started (async)
 	serviceStarting(service) {
 
 	},
 
-	// After a local service started
+	// After a local service started (async)
 	serviceStarted(service) {
 
 	},
 
-	// Before a local service stopping
+	// Before a local service stopping (async)
 	serviceStopping(service) {
 
 	},
 
-	// After a local service stopped
+	// After a local service stopped (async)
 	serviceStopped(service) {
 
 	},
 
-    // Before broker starting
+    // After broker is created (async)
+    created(broker) {
+
+    },
+
+    // Before broker starting (async)
     starting(broker) {
 
     },
 
-    // After broker started
+    // After broker started (async)
     started(broker) {
 
     },
 
-    // Before broker stopping
+    // Before broker stopping (async)
     stopping(broker) {
 
     },
 
-    // After broker stopped
+    // After broker stopped (async)
     stopped(broker) {
 
     }

@@ -196,6 +196,11 @@ declare namespace Moleculer {
 		maxQueueSize?: number;
 	}
 
+	interface BrokerTrackingOptions {
+		enabled?: boolean;
+		shutdownTimeout?: number;
+	}
+
 	interface BrokerOptions {
 		namespace?: string;
 		nodeID?: string;
@@ -213,8 +218,7 @@ declare namespace Moleculer {
 		heartbeatInterval?: number;
 		heartbeatTimeout?: number;
 
-		trackContext?: boolean;
-		gracefulStopTimeout?: number;
+		tracking?: BrokerTrackingOptions;
 
 		disableBalancer?: boolean;
 
