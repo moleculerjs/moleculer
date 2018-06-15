@@ -171,7 +171,7 @@ declare namespace Moleculer {
 		logger?: Logger | boolean;
 		logLevel?: string;
         logFormatter?: Function | string;
-        logObjectPrinter?: Function
+        logObjectPrinter?: Function;
 
 		transporter?: Transporter | string | GenericObject;
 		requestTimeout?: number;
@@ -180,8 +180,8 @@ declare namespace Moleculer {
 		heartbeatInterval?: number;
         heartbeatTimeout?: number
     
-        trackContext?: boolean
-        gracefulStopTimeout?: number
+        trackContext?: boolean;
+        gracefulStopTimeout?: number;
 
 		disableBalancer?: boolean;
 
