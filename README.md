@@ -82,7 +82,7 @@ broker.start()
     // Call service
     .then(() => broker.call("math.add", { a: 5, b: 3 })
     .then(res => console.log("5 + 3 =", res))
-    .catch(err => console.error(`Error occured! ${err.message}`));
+    .catch(err => console.error(`Error occurred! ${err.message}`));
 ```
 [Try it on Runkit](https://runkit.com/icebob/moleculer-quick-example)
 

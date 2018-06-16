@@ -675,7 +675,7 @@ module.exports = {
         error: {
             // Global error handler
             "*": function(ctx, err) {
-                this.logger.error(`Error occured when '${ctx.action.name}' action was called`, err);
+                this.logger.error(`Error occurred when '${ctx.action.name}' action was called`, err);
 
                 // Throw further the error
                 throw err;
@@ -806,7 +806,7 @@ module.exports = {
 	name: "recommends",
 	actions: {
 		add: {
-            // Call the 'getCachedResult' method when error occured
+            // Call the 'getCachedResult' method when error occurred
 			fallback: "getCachedResult",
 			handler(ctx) {
 				// Do something

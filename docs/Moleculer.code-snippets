@@ -158,7 +158,7 @@
 			"                    $3",
 			"                    return res;",
 			"                }).catch(err => {",
-			"                    // Do something when error occured,,,",
+			"                    // Do something when error occurred,,,",
 			"                    $4",
 			"                    return this.Promise.reject(err);",
 			"                });",
