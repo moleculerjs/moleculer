@@ -69,18 +69,18 @@ const crypto = require("crypto");
 const password = "moleculer";
 
 module.exports = {
-	name: "aes",
-	actions: {
-		encrypt(ctx) {
-			const encrypt = crypto.createCipher("aes-256-ctr", password);
-			return ctx.params.pipe(encrypt);
-		},
+    name: "aes",
+    actions: {
+        encrypt(ctx) {
+            const encrypt = crypto.createCipher("aes-256-ctr", password);
+            return ctx.params.pipe(encrypt);
+        },
 
-		decrypt(ctx) {
-			const decrypt = crypto.createDecipher("aes-256-ctr", password);
-			return ctx.params.pipe(decrypt);
-		}
-	}
+        decrypt(ctx) {
+            const decrypt = crypto.createDecipher("aes-256-ctr", password);
+            return ctx.params.pipe(decrypt);
+        }
+    }
 };
 ```
 
@@ -377,30 +377,30 @@ const MyCustomMiddleware = {
 
     },
 
-	// Wrap local event handlers
-	localEvent(next, event) {
+    // Wrap local event handlers
+    localEvent(next, event) {
 
-	}
+    }
 
-	// Wrap broker.createService method
-	createService(next) {
+    // Wrap broker.createService method
+    createService(next) {
 
-	}
+    }
 
-	// Wrap broker.destroyService method
-	destroyService(next) {
+    // Wrap broker.destroyService method
+    destroyService(next) {
 
-	}
+    }
 
-	// Wrap broker.call method
-	call(next) {
+    // Wrap broker.call method
+    call(next) {
 
-	}
+    }
 
-	// Wrap broker.mcall method
-	mcall(next) {
+    // Wrap broker.mcall method
+    mcall(next) {
 
-	}
+    }
 
     // Wrap broker.emit method
     emit(next) {
@@ -417,30 +417,30 @@ const MyCustomMiddleware = {
 
     },
 
-	// After a new local service created (sync)
-	serviceCreated(service) {
+    // After a new local service created (sync)
+    serviceCreated(service) {
 
-	},
+    },
 
-	// Before a local service started (async)
-	serviceStarting(service) {
+    // Before a local service started (async)
+    serviceStarting(service) {
 
-	},
+    },
 
-	// After a local service started (async)
-	serviceStarted(service) {
+    // After a local service started (async)
+    serviceStarted(service) {
 
-	},
+    },
 
-	// Before a local service stopping (async)
-	serviceStopping(service) {
+    // Before a local service stopping (async)
+    serviceStopping(service) {
 
-	},
+    },
 
-	// After a local service stopped (async)
-	serviceStopped(service) {
+    // After a local service stopped (async)
+    serviceStopped(service) {
 
-	},
+    },
 
     // After broker is created (async)
     created(broker) {
@@ -787,38 +787,38 @@ Thanks to the exposed Fallback middleware, you can set fallback response in the 
 **Fallback as function**
 ```js
 module.exports = {
-	name: "recommends",
-	actions: {
-		add: {
-			fallback: (ctx, err) => "Some cached result",
-			//fallback: "fakeResult",
-			handler(ctx) {
-				// Do something
-			}
-		}
-	}
+    name: "recommends",
+    actions: {
+        add: {
+            fallback: (ctx, err) => "Some cached result",
+            //fallback: "fakeResult",
+            handler(ctx) {
+                // Do something
+            }
+        }
+    }
 };
 ```
 
 **Fallback as method name string**
 ```js
 module.exports = {
-	name: "recommends",
-	actions: {
-		add: {
+    name: "recommends",
+    actions: {
+        add: {
             // Call the 'getCachedResult' method when error occurred
-			fallback: "getCachedResult",
-			handler(ctx) {
-				// Do something
-			}
-		}
-	},
+            fallback: "getCachedResult",
+            handler(ctx) {
+                // Do something
+            }
+        }
+    },
 
-	methods: {
-		getCachedResult(ctx, err) {
-			return "Some cached result";
-		}
-	}
+    methods: {
+        getCachedResult(ctx, err) {
+            return "Some cached result";
+        }
+    }
 };
 ```
 
