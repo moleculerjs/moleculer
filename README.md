@@ -36,18 +36,18 @@ Moleculer is a fast, modern and powerful microservices framework for Node.js (>=
 - built-in service registry
 - dynamic service discovery
 - load balanced requests & events (round-robin, random, cpu-usage)
+- many fault tolerance features (Circuit Breaker, Bulkhead, Retry, Timeout, Fallback)
 - supports middlewares
+- supports versioned services
 - service mixins
-- multiple services on a node/server
 - built-in caching solution (memory, Redis)
 - pluggable transporters (TCP, NATS, MQTT, Redis, NATS Streaming, Kafka)
 - pluggable serializers (JSON, Avro, MsgPack, Protocol Buffer)
 - pluggable validator
+- multiple services on a node/server
 - all nodes are equal, no master/leader node
 - parameter validation with [fastest-validator](https://github.com/icebob/fastest-validator)
-- distributed timeout handling with fallback response
-- health monitoring & metrics
-- supports versioned services
+- built-in health monitoring & metrics
 - official [API gateway module](https://github.com/moleculerjs/moleculer-web) and many other modules...
 
 # Installation
@@ -116,7 +116,7 @@ Use the Moleculer CLI tool to create a new Moleculer based microservices project
 We have many official modules for Moleculer. [Check our list!](https://moleculer.services/0.12/docs/modules.html)
 
 # Supporting
-Moleculer is an open source project. It is free to use for your personal or commercial projects. However, developing it takes up all my free time to make it better and better on a daily basis. If you like Moleculer framework, **[please support it][patreon]**. 
+Moleculer is an open source project. It is free to use for your personal or commercial projects. However, developing it takes up all my free time to make it better and better on a daily basis. If you like Moleculer framework, **[please support it](https://moleculer.services/0.12/docs/support.html)**.
 
 Thank you very much!
 
