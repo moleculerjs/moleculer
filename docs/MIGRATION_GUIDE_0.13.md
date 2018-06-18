@@ -17,7 +17,7 @@ broker.loadService("./math.service.js");
 broker.call("math.add", { a: 5, b: 3 }).then(res => console.log);
 // Prints: 8
 ```
-Since v0.13 it will throw a `ServiceNotFoundError` exception, because the service is only loaded but not started yet.
+Since v0.13 it will throw a `ServiceNotFoundError` exception because the service is only loaded but not started yet.
 
 **Correct logic**
 ```js
@@ -47,6 +47,7 @@ describe("Test 'posts.find' action", () => {
         }
     });
 
+    /* The important part! */
     beforeAll(() => broker.start());
     afterAll(() => broker.stop());
 
@@ -63,21 +64,22 @@ describe("Test 'posts.find' action", () => {
 
 
 ## 2. `console` is the new default logger
-No more need to set `logger: console` in broker options, because ServiceBroker uses `console` as default logger.
+No more need to set `logger: console` in broker options because ServiceBroker uses `console` as default logger.
+
 **Side effect:** broker instances in your tests will print log messages. 
 
-To disable logging what was the default behavior in previous version, set `logger: false` in broker options.
+To disable logging (default behavior in previous version) set `logger: false` in broker options.
 
 
-**Disable loggging (e.g. in tests)**
+**Disable loggging**
 ```js
 const broker = new ServiceBroker({ logger: false });
 ```
 
 ## 3. Internal event sending logic is changed
-If you used `$` prefixed custom events in your project, be careful because now these events will be transferred to remote nodes too if you emit them with `broker.emit` or `broker.broadcast` methods. To previous behavior emit them with `broker.broadcastLocal` method.
+If you use `$` prefixed custom events in your project, be careful because now these events will be transferred to remote nodes too if you emit them with `broker.emit` or `broker.broadcast` methods. To previous behavior emit them with `broker.broadcastLocal` method.
 
-By the way, we don't recommend to use `$` custom events, because the prefix is reserved for core modules & features.
+**By the way, we don't recommend to use `$` custom events because the prefix is reserved for core modules & features.**
 
 ## 4. Circuit Breaker logic & options have been changed
 
@@ -161,6 +163,32 @@ Overwrite the retries value in calling option The `retryCount` calling options h
 broker.call("posts.find", {}, { retries: 3 });
 ```
 
+> **Tips**
+>
+> All options can be overwritten in action:
+>    ```js
+>    module.export = {
+>        name: "users",
+>        actions: {
+>            find: {
+>                retryPolicy: {
+>                    // All Retry policy options can be overwritten from broker options.
+>                    retries: 3,
+>                    delay: 500
+>                },
+>                handler(ctx) {}
+>            },
+>            create: {
+>                retryPolicy: {
+>                    // Disable retries for this action
+>                    enabled: false
+>                },
+>                handler(ctx) {}
+>            }
+>        }
+>    };
+>    ```
+
 ## 7. Context tracking changes
 
 **Old options**
@@ -200,10 +228,11 @@ Some errors have been renamed in order to follow name conventions.
 
 If you check the `err.name` or `instanceof` in your code, you should check these parts and update to the new error names.
 
-##10.  Context nodeID changes
+## 10. Context nodeID changes
 The `ctx.callerNodeID` has been removed. The `ctx.nodeID` always contains the target or caller nodeID. 
 
-Search `callerNodeID` in your project and change them to `ctx.nodeID`.
+**Steps:**
+1. Search `callerNodeID` in your project and change them to `ctx.nodeID`.
 
 ## 11. Enhanced ping method
 It returns `Promise` with results of ping responses. Moreover, the method is renamed to `broker.ping`.
@@ -212,7 +241,8 @@ It returns `Promise` with results of ping responses. Moreover, the method is ren
 ```js
 broker.ping().then(res => broker.logger.info(res));
 ```
-Output:
+
+**Output:**
 ```js
 { 
     server: { 
@@ -223,20 +253,24 @@ Output:
 }
 ```
 
-If you uses `broker.sendPing` in your project, rename it to `broker.ping` and handle the returned `Promise`. 
+**Steps:**
+1. If you uses `broker.sendPing` in your project, rename it to `broker.ping` and handle the returned `Promise`. 
 
 ## 12. Cacher key generation logic has been changed
 The cacher key generation has been changed. If you uses Redis cacher, the old <=0.12 cacher won't find the new 0.13 cache entries.
 
 ## 13. Moleculer errors signature has been changed
-Some Moleculer Error class constructor signature has been changed. If you create Moleculer errors in your projects, please check the constructor signature of these errors.
+Some Moleculer Error class constructor signature has been changed. 
+
+**Steps:**
+1. If you create Moleculer errors in your projects, please check the constructor signature of these errors.
 
 ## 13 + 1. Migrate your middleware to Middleware v2 (optional)
-> It's not a breaking change, because old middleware works with Moleculer v0.13, but it's recommended to do.
+> It's not a breaking change because old middleware works with Moleculer v0.13, but it's recommended to do.
 
-The new middleware is an Object with hooks instead of a simple Function.
+The new middleware is an `Object` with hooks instead of a simple `Function`.
 
-**Legacy middleware**
+**Legacy old middleware**
 
 ```js
 const broker = new ServiceBroker({
@@ -248,7 +282,7 @@ const broker = new ServiceBroker({
 });
 ```
 
-**Migrated middleware**
+**Migrated new middleware**
 
 ```js
 const broker = new ServiceBroker({
@@ -265,7 +299,7 @@ const broker = new ServiceBroker({
 > The `broker.use` method to register middlewares has been deprecated. Please use `middlewares:[]` in broker options instead.
 
 
-**Look how many new hooks are available in new middlewares:**
+**List of all available hooks in new middlewares:**
 ```js
 const MyCustomMiddleware = {
     // Wrap local action handlers (legacy middleware handler)
@@ -373,4 +407,4 @@ const MyCustomMiddleware = {
 
 **:tada: Well, you are done! :clap:**
 
-Happy coding in your brand new Moleculer project. If you need help, join to [Gitter chat](https://gitter.im/moleculerjs/moleculer) and ask.
+Happy coding in your brand new Moleculer project. If you need help, join to [Gitter chat](https://gitter.im/moleculerjs/moleculer) and don't hesitate to ask Moleculer community.
