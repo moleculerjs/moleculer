@@ -1,11 +1,7 @@
 # Migration guide to v0.13.x
 This documentation leads you how you can migrate your project to be compatible with the Moleculer v0.13.x versions.
 
-<<<<<<< HEAD
 > Please note! The previous version of `moleculer-web` doesn't work with Moleculer 0.13. You need to upgrade it to 0.8.x version too.
-=======
-> Warning! The previous version of `moleculer-web` doesn't work with Moleculer 0.13. You need to upgrade it to 0.8.x version.
->>>>>>> 34c9aa6f832dd18d5a4f9a0b6614dd09c1b827f8
 
 ## 1. Always start the broker before call services
 > If you are using [Moleculer Runner](http://moleculer.services/0.12/docs/runner.html) with `moleculer.config.js`, skip this part.
