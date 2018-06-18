@@ -100,7 +100,7 @@ broker.loadService("./math.service.js");
 broker.call("math.add", { a: 5, b: 3 }).then(res => console.log);
 // Prints: 8
 ```
-Since v0.13 it will throw a `ServiceNotFoundError` exception, because the service is only loaded but not started.
+Since v0.13 it will throw a `ServiceNotFoundError` exception, because the service is only loaded but not started yet.
 
 **Correct logic**
 ```js
