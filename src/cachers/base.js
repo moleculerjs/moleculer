@@ -148,14 +148,14 @@ class Cacher {
 				if (keys.length == 1) {
 					// Fast solution for ['id'] key
 					const val = this.getParamMetaValue(keys[0], params, meta);
-					return keyPrefix + (_.isObject(val) ? this._hashedKey(this._generateKeyFromObject(val)) : val);
+					return keyPrefix + this._hashedKey(_.isObject(val) ? this._hashedKey(this._generateKeyFromObject(val)) : val);
 				}
 
 				if (keys.length > 0) {
-					return keys.reduce((a, key, i) => {
+					return keyPrefix + this._hashedKey(keys.reduce((a, key, i) => {
 						const val = this.getParamMetaValue(key, params, meta);
 						return a + (i ? "|" : "") + (_.isObject(val) || Array.isArray(val) ? this._hashedKey(this._generateKeyFromObject(val)) : val);
-					}, keyPrefix);
+					}, ""));
 				}
 			}
 			else {

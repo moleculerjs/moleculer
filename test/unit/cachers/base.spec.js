@@ -194,6 +194,14 @@ describe("Test BaseCacher", () => {
 		cacher.opts.maxParamsLength = null;
 		res = cacher.getCacheKey("abc.def", bigObj);
 		expect(res).toBe("abc.def:A|C0|false|C1|true|C2|true|C3|495f761d77d6294f|C4|true|B|C0|true|C1|false|C2|true|C3|5721c26bfddb7927|C4|false|C|C0|5d9e85c124d5d09e|C1|true|C2|5366|C3|false|C4|false|D|C0|false|C1|true|C2|704473bca1242604|C3|false|C4|6fc56107e69be769|E|C0|true|C1|true|C2|4881|C3|true|C4|1418|F|C0|true|C1|false|C2|false|C3|false|C4|true|G|C0|false|C1|true|C2|false|C3|6547|C4|9565|H|C0|true|C1|1848|C2|232e6552d0b8aa98|C3|1d50627abe5c0463|C4|5251|I|C0|ecd0e4eae08e4f|C1|197bcb312fc17f60|C2|4755|C3|true|C4|9552|J|C0|false|C1|1cc45cadbbf240f|C2|4dbb352b21c3c2f3|C3|5065|C4|792b19631c78d4f6|K|C0|13c23a525adf9e1f|C1|true|C2|true|C3|589d3499abbf6765|C4|true|L|C0|false|C1|true|C2|4350|C3|72f6c4f0e9beb03c|C4|434b74b5ff500609|M|C0|9228|C1|5254b36ec238c266|C2|true|C3|27b040089b057684|C4|true|N|C0|35d3c608ef8aac5e|C1|23fbdbd520d5ae7d|C2|false|C3|9061|C4|true|O|C0|true|C1|true|C2|2382f9fe7834e0cc|C3|true|C4|false|P|C0|true|C1|false|C2|38c0d40b91a9d1f6|C3|false|C4|5512|Q|C0|true|C1|true|C2|true|C3|true|C4|true|R|C0|70bd27c06b067734|C1|true|C2|5213493253b98636|C3|8272|C4|1264|S|C0|61044125008e634c|C1|9175|C2|true|C3|225e3d912bfbc338|C4|false|T|C0|38edc77387da030a|C1|false|C2|38d8b9e2525413fc|C3|true|C4|false|U|C0|false|C1|4b3962c3d26bddd0|C2|1e66b069bad46643|C3|3642|C4|9225|V|C0|1c40e44b54486080|C1|5a560d81078bab02|C2|1c131259e1e9aa61|C3|true|C4|9335|W|C0|false|C1|7089b0ad438df2cb|C2|216aec98f513ac08|C3|true|C4|false|X|C0|3b749354aac19f24|C1|9626|C2|true|C3|false|C4|false|Y|C0|298|C1|224075dadd108ef9|C2|3450|C3|2548|C4|true");
+
+		cacher.opts.maxParamsLength = 44;
+		res = cacher.getCacheKey("users.list", { token: "eyJpZCI6Im9SMU1sS1hCdVVjSGlnM3QiLCJ1c2VybmFtZSI6ImljZWJvYiIsImV4cCI6MTUzNDYyMTk1MCwiaWF0IjoxNTI5NDM3OTUwfQ" }, {}, ["token"]);
+		expect(res).toBe("users.list:YUgoMlSXRyzkAI98NgGKRqakaZdCSJiITaRJWHyaJlU=");
+
+		cacher.opts.maxParamsLength = 44;
+		res = cacher.getCacheKey("users.list", { id: 123, token: "eyJpZCI6Im9SMU1sS1hCdVVjSGlnM3QiLCJ1c2VybmFtZSI6ImljZWJvYiIsImV4cCI6MTUzNDYyMTk1MCwiaWF0IjoxNTI5NDM3OTUwfQ" }, {}, ["id", "token"]);
+		expect(res).toBe("users.list:jVksjHDWP+LfXPCxdnQC9Sa10+12yis9AhWmSOwCWfY=");
 	});
 
 	it("check getCacheKey with custom keygen", () => {
