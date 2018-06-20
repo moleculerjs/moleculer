@@ -281,12 +281,12 @@ function loadServices() {
 				if (isDirectory(svcPath)) {
 					files = glob(svcPath + "/" + fileMask, { absolute: true });
 					if (files.length == 0)
-						return broker.logger.warn(`There is no service files in directory: '${svcPath}'`);
+						return broker.logger.warn(chalk.yellow.bold(`There is no service files in directory: '${svcPath}'`));
 				} else {
 					// Load with glob
 					files = glob(p, { cwd: svcDir, absolute: true });
 					if (files.length == 0)
-						broker.logger.warn(`There is no matched file for pattern: '${p}'`);
+						broker.logger.warn(chalk.yellow.bold(`There is no matched file for pattern: '${p}'`));
 				}
 
 				if (files.length > 0) {

@@ -334,6 +334,9 @@ cacher.getCacheKey("abc.def", bigObj);
 
 Of course, you can use your custom solution with `keygen` cacher options as before.
 
+## Cacher matcher is changed
+The cacher matcher code is changed in `cacher.clean` method. The previous (wrong) matcher didn't handle dots (.) properly in patterns. E.g the `posts.*` pattern cleaned the `posts.find.something` keys too. Now it has been fixed, but it means that you should use `posts.**` pattern because the `params` and `meta` values can contain dots.
+
 ## Moleculer errors signature is changed
 The following Moleculer Error classes constructor arguments is changed to `constructor(data)`:
 - `ServiceNotFoundError`

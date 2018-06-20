@@ -258,8 +258,13 @@ broker.ping().then(res => broker.logger.info(res));
 **Steps:**
 1. If you uses `broker.sendPing` in your project, rename it to `broker.ping` and handle the returned `Promise`. 
 
-## 12. Cacher key generation logic has been changed
+## 12. Cacher changes
+
+### Cacher key generation logic has been changed
 The cacher key generation has been changed. If you uses Redis cacher, the old <=0.12 cacher won't find the new 0.13 cache entries.
+
+### Cacher matcher has been changed
+The cacher matcher code is changed in `cacher.clean` method. The previous (wrong) matcher didn't handle dots (.) properly in patterns. E.g the `posts.*` pattern cleaned the `posts.find.something` keys too. Now it has been fixed, but it means that you should use `posts.**` pattern because the `params` and `meta` values can contain dots.
 
 ## 13. Moleculer errors signature has been changed
 Some Moleculer Error class constructor signature has been changed. 
