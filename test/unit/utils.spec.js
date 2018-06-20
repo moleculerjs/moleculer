@@ -57,6 +57,11 @@ describe("Test match", () => {
 	expect(utils.match("bb.cc", "bb.*")).toBe(true);
 	expect(utils.match("dd", "*")).toBe(true);
 
+	expect(utils.match("abcd", "*d")).toBe(true);
+	expect(utils.match("abcd", "*d*")).toBe(true);
+	expect(utils.match("abcd", "*a*")).toBe(true);
+	expect(utils.match("abcd", "a*")).toBe(true);
+
 	// --- DOUBLE STARS CASES ---
 
 	expect(utils.match("aa.bb.cc", "aa.*")).toBe(false);
@@ -75,8 +80,10 @@ describe("Test match", () => {
 	expect(utils.match("aa.bb.cc.dd", "**.bb.**")).toBe(true);
 	expect(utils.match("aa.bb.cc.dd", "**.cc.**")).toBe(true);
 
+	expect(utils.match("aa.bb.cc.dd", "**aa**")).toBe(true);
 	expect(utils.match("aa.bb.cc.dd", "**bb**")).toBe(true);
 	expect(utils.match("aa.bb.cc.dd", "**cc**")).toBe(true);
+	expect(utils.match("aa.bb.cc.dd", "**dd**")).toBe(true);
 
 	expect(utils.match("aa.bb.cc.dd", "**b**")).toBe(true);
 	expect(utils.match("aa.bb.cc.dd", "**c**")).toBe(true);

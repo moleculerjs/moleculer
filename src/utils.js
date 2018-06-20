@@ -147,8 +147,9 @@ let utils = {
 				pattern = "\\" + pattern;
 			}
 			pattern = pattern.replace(/\?/g, ".");
-			pattern = pattern.replace(/\*\*/g, ".+");
-			pattern = pattern.replace(/\*/g, "[^\\.]+");
+			pattern = pattern.replace(/\*\*/g, "§§§");
+			pattern = pattern.replace(/\*/g, "[^\\.]*");
+			pattern = pattern.replace(/§§§/g, ".*");
 
 			pattern = "^" + pattern + "$";
 
