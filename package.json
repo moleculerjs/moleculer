@@ -44,7 +44,7 @@
   "author": "Ice Services",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "10.3.3",
+    "@types/node": "10.3.4",
     "amqplib": "0.5.2",
     "avsc": "5.3.0",
     "benchmarkify": "2.1.0",
@@ -65,7 +65,7 @@
     "moleculer-repl": "0.4.0",
     "mqtt": "2.18.1",
     "msgpack5": "4.2.0",
-    "nats": "0.8.10",
+    "nats": "1.0.0",
     "node-nats-streaming": "0.0.40",
     "nodemon": "1.17.5",
     "npm-check": "5.7.1",
@@ -79,7 +79,7 @@
     "winston-context": "0.0.7"
   },
   "dependencies": {
-    "args": "4.0.0",
+    "args": "5.0.0",
     "bluebird": "3.5.1",
     "chalk": "2.4.1",
     "es6-error": "4.1.1",
