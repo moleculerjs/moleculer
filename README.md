@@ -108,7 +108,7 @@ Use the Moleculer CLI tool to create a new Moleculer based microservices project
     ```bash
     $ npm run dev
     ```
-5. Open the http://localhost:3000/greeter/welcome?name=world link in your browser. It will call the `welcome` action of `greeter` service with a `name` param via [API gateway](https://github.com/moleculerjs/moleculer-web) and returns with the result.
+5. Open the http://localhost:3000/api/greeter/welcome?name=world link in your browser. It will call the `welcome` action of `greeter` service with a `name` param via [API gateway](https://github.com/moleculerjs/moleculer-web) and returns with the result.
 
 :tada:**Congratulations! Your first Moleculer based microservices project is created. Read our [documentation](https://moleculer.services/docs) to learn more about Moleculer.**
 
