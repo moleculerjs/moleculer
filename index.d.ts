@@ -206,15 +206,9 @@ declare namespace Moleculer {
 		nodeID?: string;
 
 		logger?: Logger | boolean;
-<<<<<<< HEAD
 		logLevel?: string | GenericObject;
 		logFormatter?: Function | string;
 		logObjectPrinter?: Function;
-=======
-		logLevel?: string;
-        logFormatter?: Function | string;
-        logObjectPrinter?: Function;
->>>>>>> master
 
 		transporter?: Transporter | string | GenericObject;
 		requestTimeout?: number;
@@ -223,7 +217,7 @@ declare namespace Moleculer {
 		maxCallLevel?: number;
 		heartbeatInterval?: number;
         heartbeatTimeout?: number
-    
+
         trackContext?: boolean;
         gracefulStopTimeout?: number;
 
