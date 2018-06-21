@@ -5,11 +5,11 @@
 # Breaking changes
 
 ## Streaming support
-Built-in streaming support has been implemented. Node.js streams can be transferred as request `params` or as response. You can use it to transfer uploaded file from a gateway or encode/decode or compress/decompress streams.
+Built-in streaming support has just been implemented. Node.js streams can be transferred as request `params` or as response. You can use it to transfer uploaded file from a gateway or encode/decode or compress/decompress streams.
 
 >**Why is it a breaking change?**
 >
-> Because the protocol has been extended with a new field and it caused breaking change in schema-based serializators (ProtoBuf, Avro). Therefore, if you use ProtoBuf or Avro as serializers, you won't able to communicate with the old (<=0.12) brokers. If you use JSON or MsgPack serializer, you have to do nothing.
+> Because the protocol has been extended with a new field and it caused a breaking change in schema-based serializators (ProtoBuf, Avro). Therefore, if you use ProtoBuf or Avro, you won't able to communicate with the previous (<=0.12) brokers. Using JSON or MsgPack serializer, there is nothing extra to do.
 
 ### Examples
 
@@ -20,7 +20,7 @@ const stream = fs.createReadStream(fileName);
 broker.call("storage.save", stream, { meta: { filename: "avatar-123.jpg" }});
 ```
 
-Please note, the `params` should be the stream, you can't pass any variables to the request. If you need, use the `meta` property.
+Please note, the `params` should be a stream, you cannot add any more variables to the request. Use the `meta` property to transfer additional data.
 
 **Receiving a stream in a service**
 ```js
@@ -52,7 +52,7 @@ module.exports = {
 };
 ```
 
-**Process received stream on the calling side**
+**Process received stream on the caller side**
 ```js
 const filename = "avatar-123.jpg";
 broker.call("storage.get", { filename })
@@ -85,9 +85,9 @@ module.exports = {
 ```
 
 ## Better Service & Broker lifecycle handling
-The ServiceBroker & Service lifecycle handler logic has been changed. The problem was that when you loaded more services locally, they could call each other actions before `started` executed. It could cause problems if database connecting has been started in the `started` event handler. 
+The ServiceBroker & Service lifecycle handler logic has already been improved. The reason for amendment was a problem occuring during loading more services locally; they could call each others' actions before `started` execution. It generally causes errors if database connecting process started in the `started` event handler.
 
-This problem has been fixed but it will cause errors (mostly in unit tests) if you call the local services without `broker.start()`.
+This problem has been fixed with a probable side effect: causing errors (mostly in unit tests) if you call the local services without `broker.start()`.
 
 **It works in the previous version**
 ```js
@@ -100,7 +100,7 @@ broker.loadService("./math.service.js");
 broker.call("math.add", { a: 5, b: 3 }).then(res => console.log);
 // Prints: 8
 ```
-Since v0.13 it will throw a `ServiceNotFoundError` exception, because the service is only loaded but not started yet.
+From v0.13 it throws a `ServiceNotFoundError` exception, because the service is only loaded but not started yet.
 
 **Correct logic**
 ```js
@@ -128,13 +128,13 @@ console.log(res);
 // Prints: 8
 ```
 
-Similar issue has been fixed at broker shutdowning. When you stopped a broker, which was starting to stop local services, the broker still acccepts incoming requests from remote nodes to local services which was under stopping and it caused errors.
+Similar issue has been fixed at broker shutdown. Previously when you stopped a broker, which while started to stop local services, it still acccepted incoming requests from remote nodes.
 
-The shutdown logic is changed. When you call `broker.stop`, at first broker will unpublish the local services to remote nodes, so they will able to route the requests to other instances.
+The shutdown logic has also been changed. When you call `broker.stop`, at first broker publishes an empty service list to remote nodes, so they route the requests to other instances.
 
 
 ## Default console logger
-No more need to set `logger: console` in broker options, because ServiceBroker uses `console` as default logger.
+No longer need to set `logger: console` in broker options, because ServiceBroker uses `console` as default logger.
 
 ```js
 const broker = new ServiceBroker();
@@ -146,13 +146,13 @@ const broker = new ServiceBroker();
 const broker = new ServiceBroker({ logger: false });
 ```
 
-## Internal event sending logic is changed
-The `$` prefixed internal events will be transferred if they are called by `emit` or `broadcast`. If you don't want to transfer it, use the `broadcastLocal` method.
+## Changes in internal event sending logic
+The `$` prefixed internal events will be transferred if they are called by `emit` or `broadcast`. If you don't want to transfer them, use the `broadcastLocal` method.
 
-> Since v0.13, the `$` prefixed events means built-in core events instead of internal "only-local" events.
+> From v0.13, the `$` prefixed events mean built-in core events instead of internal "only-local" events.
 
 ## Improved Circuit Breaker
-Threshold-based circuit-breaker solution has been implemented. It uses a time window to check the failed request rate. If the `threshold` value has been reached, it trips the circuit breaker.
+Threshold-based circuit-breaker solution has been implemented. It uses a time window to check the failed request rate. Once the `threshold` value is reached, it trips the circuit breaker.
 
 ```js
 const broker = new ServiceBroker({
@@ -168,9 +168,9 @@ const broker = new ServiceBroker({
 });
 ```
 
-Instead of `failureOnTimeout` and `failureOnReject` properties, there is a new `check()` function property in the options. It is used by circuit breaker in order to detect what error counts as a failed request.
+Instead of `failureOnTimeout` and `failureOnReject` properties, there is a new `check()` function property in the options. It is used by circuit breaker in order to detect which error is considered as a failed request.
 
-You can override these global options in action definition as well.
+You can override these global options in action definition, as well.
 
 ```js
 module.export = {
@@ -189,12 +189,12 @@ module.export = {
 ```
 
 ### CB metrics events removed
-The metrics circuit breaker events have been removed due to internal event logic changing.
+The metrics circuit breaker events have been removed due to internal event logic changes.
 Use the `$circuit-breaker.*` events instead of `metrics.circuit-breaker.*` events.
 
 ## Improved Retry feature (with exponential backoff)
-The old retry feature has been improved. Now it uses exponential backoff for retries. The old solution retries the request immediately in case of fails.
-The retry options has also been changed in the broker options. Every options are under the `retryPolicy` property.
+The old retry feature has been improved. Now it uses exponential backoff for retries. The old solution retries the request immediately in failures.
+The retry options have also been changed in the broker options. Every option is under the `retryPolicy` property.
 
 ```js
 const broker = new ServiceBroker({
@@ -217,7 +217,7 @@ The `retryCount` calling options has been renamed to `retries`.
 broker.call("posts.find", {}, { retries: 3 });
 ```
 
-There is a new `check()` function property in the options. It is used by the Retry middleware in order to detect what error counts as a failed request and need to retry. The default function checks the `retryable` property of errors.
+There is a new `check()` function property in the options. It is used by the Retry middleware in order to detect which error is a failed request and needs a retry. The default function checks the `retryable` property of errors.
 
 You can override these global options in action definition as well.
 
@@ -245,7 +245,7 @@ module.export = {
 ```
 
 ## Changes in context tracker
-There are some changes in context tracker configuration. 
+There are also some changes in context tracker configuration. 
 
 ```js
 const broker = new ServiceBroker({
@@ -266,8 +266,8 @@ broker.call("posts.find", {}, { tracking: false });
 _The shutdown timeout can be overwritten by `$shutdownTimeout` property in service settings._
 
 
-## Internal statistics module is removed
-The internal statistics module (`$node.stats`) is removed. If you need it, download from [here](https://gist.github.com/icebob/99dc388ee29ae165f879233c2a9faf63), load as a service and call the `stat.snapshot` to receive the collected statistics.
+## Removed internal statistics module
+The internal statistics module (`$node.stats`) is removed. Yet you need it, download from [here](https://gist.github.com/icebob/99dc388ee29ae165f879233c2a9faf63), load as a service and call the `stat.snapshot` to receive the collected statistics.
 
 ## Renamed errors
 Some errors have been renamed in order to follow name conventions.
@@ -277,7 +277,7 @@ Some errors have been renamed in order to follow name conventions.
 - `InvalidPacketData` -> `InvalidPacketDataError`
 
 ## Context nodeID changes
-The `ctx.callerNodeID` has been removed. The `ctx.nodeID` always contains the target or caller nodeID. If you need the current nodeID, use `ctx.broker.nodeID`.
+The `ctx.callerNodeID` has been removed. The `ctx.nodeID` contains the target or caller nodeID. If you need the current nodeID, use `ctx.broker.nodeID`.
 
 ## Enhanced ping method
 It returns `Promise` with results of ping responses. Moreover, the method is renamed to `broker.ping`.
@@ -310,10 +310,10 @@ Output:
 }
 ```
 
-## Cacher key generation logic is changed
-When you didn't define `keys` at caching, the cacher hashed the whole `ctx.params` and used as a key to store the content. This method was too slow and difficult to implement to other platforms. Therefore we have changed it. The new method more simple, the key generator concatenates all property names & values from `ctx.params`.
+## Amended cacher key generation logic
+When you didn't define `keys` at caching, the cacher hashed the whole `ctx.params` and used as a key to store the content. This method was too slow and difficult to implement to other platforms. Therefore we have changed it. The new method is simpler, the key generator concatenates all property names & values from `ctx.params`.
 
-However, the problem with this new logic is that the length of key can be very large. It can cause performance issues when you use too long keys to get or save cache entries. To avoid it, there is a `maxParamsLength` option to limit the key length. If the length is bigger than the configured limit, the cacher calculates a hash (SHA256) from the full key and add it to the end of key.
+However, the problem with this new logic is that the key can be very long. It can cause performance issues when you use too long keys to get or save cache entries. To avoid it, there is a `maxParamsLength` option to limit the key length. If it is longer than the configured limit, the cacher calculates a hash (SHA256) from the full key and add it to the end of key.
 
 > The minimum of `maxParamsLength` is `44` (SHA 256 hash length in Base64).
 > 
@@ -332,12 +332,12 @@ cacher.getCacheKey("abc.def", bigObj);
 // Key: 'posts.find:id|2|title|New pL4ozUU24FATnNpDt1B0t1T5KP/T5/Y+JTIznKDspjT0='
 ```
 
-Of course, you can use your custom solution with `keygen` cacher options as before.
+Of course, you can use your custom solution with `keygen` cacher options like earlier.
 
-## Cacher matcher is changed
-The cacher matcher code is changed in `cacher.clean` method. The previous (wrong) matcher didn't handle dots (.) properly in patterns. E.g the `posts.*` pattern cleaned the `posts.find.something` keys too. Now it has been fixed, but it means that you should use `posts.**` pattern because the `params` and `meta` values can contain dots.
+## Cacher matcher changed
+The cacher matcher code also changed in `cacher.clean` method. The previous (wrong) matcher couldn't handle dots (.) properly in patterns. E.g the `posts.*` pattern cleaned the `posts.find.something` keys too. Now it has been fixed, but it means that you should use `posts.**` pattern because the `params` and `meta` values can contain dots.
 
-## Moleculer errors signature is changed
+## Changed Moleculer errors signature
 The following Moleculer Error classes constructor arguments is changed to `constructor(data)`:
 - `ServiceNotFoundError`
 - `ServiceNotAvailableError`
@@ -362,10 +362,10 @@ throw new ServiceNotFoundError({ action: "posts.find",  nodeID: "node-123" });
 
 # New
 
-## New advanced middlewares
-We have been improved the current middleware handler and extend it with a lot of useful features. As a result, you can hack more internal flow logic with custom middlewares (e.g. event sending, service creating, service starting...etc)
+## New state-of-the-art middlewares
+We have been improved the current middleware handler and enriched it with a lot of useful features. As a result, you can hack more internal flow logic with custom middlewares (e.g. event sending, service creating, service starting...etc)
 
-The new middleware is an `Object` with hooks instead of a simple `Function`. However the new solution is backward compatible, so you don't need to migrate your old middlewares. 
+The new middleware is an `Object` with hooks instead of a simple `Function`. However, the new solution is backward compatible, so you don't need to migrate your old middlewares. 
 
 **A new middleware with all available hooks**
 ```js
