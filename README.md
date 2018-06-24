@@ -33,16 +33,15 @@ Moleculer is a progressive microservices framework for Node.js.
 - request-reply concept
 - support streams
 - support event driven architecture with balancing
-- built-in service registry
-- dynamic service discovery
-- load balanced requests & events (round-robin, random, cpu-usage)
+- built-in service registry & dynamic service discovery
+- load balanced requests & events (round-robin, random, cpu-usage, latency)
 - many fault tolerance features (Circuit Breaker, Bulkhead, Retry, Timeout, Fallback)
 - supports middlewares
 - supports versioned services
 - service mixins
 - built-in caching solution (memory, Redis)
 - pluggable transporters (TCP, NATS, MQTT, Redis, NATS Streaming, Kafka)
-- pluggable serializers (JSON, Avro, MsgPack, Protocol Buffer)
+- pluggable serializers (JSON, Avro, MsgPack, Protocol Buffer, Thrift)
 - pluggable validator
 - multiple services on a node/server
 - all nodes are equal, no master/leader node
@@ -113,10 +112,10 @@ Use the Moleculer CLI tool to create a new Moleculer based microservices project
 :tada:**Congratulations! Your first Moleculer based microservices project is created. Read our [documentation](https://moleculer.services/docs) to learn more about Moleculer.**
 
 # Official modules
-We have many official modules for Moleculer. [Check our list!](https://moleculer.services/0.12/docs/modules.html)
+We have many official modules for Moleculer. [Check our list!](https://moleculer.services/modules.html)
 
 # Supporting
-Moleculer is an open source project. It is free to use for your personal or commercial projects. However, developing it takes up all my free time to make it better and better on a daily basis. If you like Moleculer framework, **[please support it](https://moleculer.services/0.12/docs/support.html)**.
+Moleculer is an open source project. It is free to use for your personal or commercial projects. However, developing it takes up all my free time to make it better and better on a daily basis. If you like Moleculer framework, **[please support it](https://moleculer.services/support.html)**.
 
 Thank you very much!
 
