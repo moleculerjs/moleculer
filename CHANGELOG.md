@@ -857,7 +857,7 @@ module.exports = {
 
 > The default values is `null` (means `published`) due to backward compatibility.
 
-## New Trift serializer
+## New Thrift serializer
 There is a new built-in [Thrift](http://thrift.apache.org/) serializer.
 
 ```js
