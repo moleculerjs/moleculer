@@ -855,7 +855,17 @@ module.exports = {
 }
 ```
 
-> The default values is `null` (means published) due to backward compatibility.
+> The default values is `null` (means `published`) due to backward compatibility.
+
+## New Trift serializer
+There is a new built-in [Thrift](http://thrift.apache.org/) serializer.
+
+```js
+const broker = new ServiceBroker({
+    serializer: "Thrift"
+});
+```
+> To use this serializer install the `thrift` module with `npm install thrift --save` command.
 
 ## Enhanced log level configuration 
 There is a new module-based log level configuration. The log level can be set for every Moleculer module. Wildcard usage is allowed.
