@@ -21,6 +21,15 @@ const MW = {
 		return handler;
 	},
 
+	// Wrap local event handlers
+	localEvent(next, event) {
+		return function(payload, sender, eventName) {
+			console.log("MW localEvent is fired.", eventName);
+			payload.$joker = "MW";
+			return next(payload, sender, eventName);
+		};
+	},
+
 	// Wrap broker.createService method
 	createService(next) {
 		return function() {
@@ -78,7 +87,7 @@ const MW = {
 	broadcastLocal(next) {
 		return function(eventName, payload, groups) {
 			console.log("MW broadcastLocal is fired.", eventName);
-			return next.call(this, eventName, payload, groups);
+			return next(eventName, payload, groups);
 		};
 	},
 
