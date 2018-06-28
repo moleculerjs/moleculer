@@ -785,7 +785,7 @@ module.export = {
 ## Fallback in action definition
 Thanks to the exposed Fallback middleware, you can set fallback response in the action definition too.
 
-> Please note, this fallback response will be used only if the error is created inside action handler. If the request is called from a remote node and the request is timed out on the remote node, the fallback response won't be used. In this case, use the old `fallbackResponse` calling option.
+> Please note, this fallback response will be used only if the error is created inside action handler. If the request is called from a remote node and the request is timed out on the remote node, the fallback response won't be used. In this case, use the `fallbackResponse` in calling option.
 
 **Fallback as function**
 ```js
