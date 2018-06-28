@@ -35,6 +35,11 @@ describe("Test Transporter resolver", () => {
 			expect(trans).toBeInstanceOf(Transporters.MQTT);
 		});
 
+		it("should resolve MQTTTransporter from SSL connection string", () => {
+			let trans = Transporters.resolve("mqtt+ssl://localhost");
+			expect(trans).toBeInstanceOf(Transporters.MQTT);
+		});
+
 		it("should resolve MQTTTransporter from string", () => {
 			let trans = Transporters.resolve("mqtt");
 			expect(trans).toBeInstanceOf(Transporters.MQTT);
@@ -55,6 +60,11 @@ describe("Test Transporter resolver", () => {
 			expect(trans).toBeInstanceOf(Transporters.Redis);
 		});
 
+		it("should resolve RedisTransporter from SSL connection string", () => {
+			let trans = Transporters.resolve("rediss://localhost");
+			expect(trans).toBeInstanceOf(Transporters.Redis);
+		});
+
 		it("should resolve RedisTransporter from string", () => {
 			let trans = Transporters.resolve("Redis");
 			expect(trans).toBeInstanceOf(Transporters.Redis);
@@ -70,12 +80,17 @@ describe("Test Transporter resolver", () => {
 
 	describe("Resolve AMQP transporter", () => {
 
-		it("should resolve AMQPTransporter from connection string", () => {
+		it("should resolve AMQPTransporter from class name", () => {
 			let trans = Transporters.resolve("amqp");
 			expect(trans).toBeInstanceOf(Transporters.AMQP);
 		});
 
 		it("should resolve AMQPTransporter from connection string", () => {
+			let trans = Transporters.resolve("amqps://localhost:5672");
+			expect(trans).toBeInstanceOf(Transporters.AMQP);
+		});
+
+		it("should resolve AMQPTransporter from SSLconnection string", () => {
 			let trans = Transporters.resolve("amqp://localhost:5672");
 			expect(trans).toBeInstanceOf(Transporters.AMQP);
 		});

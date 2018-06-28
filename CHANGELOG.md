@@ -970,6 +970,7 @@ const broker = new ServiceBroker({
 - service lifecycle methods are renamed in service instances (not in service schema!)
 - `transit.stat.packets` has been extended with byte-based statistics.
 - `utils.deprecate` method is created for deprecation.
+- Transporter supports `mqtt+ssl://`, `rediss://` & `amqps://` protocols in connection URIs.
 
 # Deprecations
 

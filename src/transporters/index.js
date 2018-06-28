@@ -47,11 +47,11 @@ function resolve(opt) {
 
 		if (opt.startsWith("nats://"))
 			TransporterClass = Transporters.NATS;
-		else if (opt.startsWith("mqtt://"))
+		else if (opt.startsWith("mqtt://") || opt.startsWith("mqtt+ssl://"))
 			TransporterClass = Transporters.MQTT;
-		else if (opt.startsWith("redis://"))
+		else if (opt.startsWith("redis://") || opt.startsWith("rediss://"))
 			TransporterClass = Transporters.Redis;
-		else if (opt.startsWith("amqp://"))
+		else if (opt.startsWith("amqp://") || opt.startsWith("amqps://"))
 			TransporterClass = Transporters.AMQP;
 		else if (opt.startsWith("kafka://"))
 			TransporterClass = Transporters.Kafka;
