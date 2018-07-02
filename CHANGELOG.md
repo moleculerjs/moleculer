@@ -289,7 +289,7 @@ broker.ping("node-123", 1000).then(res => broker.logger.info(res));
 Output:
 ```js
 { 
-    nodeID: 'server', 
+    nodeID: 'node-123', 
     elapsedTime: 16, 
     timeDiff: -3 
 }
@@ -302,10 +302,20 @@ broker.ping().then(res => broker.logger.info(res));
 Output:
 ```js
 { 
-    server: { 
-        nodeID: 'server', 
+    "node-100": { 
+        nodeID: 'node-100', 
         elapsedTime: 10, 
         timeDiff: -2 
+    } ,
+    "node-101": { 
+        nodeID: 'node-101', 
+        elapsedTime: 18, 
+        timeDiff: 32 
+    }, 
+    "node-102": { 
+        nodeID: 'node-102', 
+        elapsedTime: 250, 
+        timeDiff: 850 
     } 
 }
 ```
@@ -327,8 +337,17 @@ cacher.getCacheKey("posts.find", { id: 2, title: "New post", content: "It can be
 
 **Generate a limited key with hash**
 ```js
-cacher.opts.maxParamsLength = 60;
-cacher.getCacheKey("abc.def", bigObj);
+const broker = new ServiceBroker({
+    logger: console,
+    cacher: {
+        type: "Memory",
+        options: {
+            maxParamsLength: 60
+        }
+    }
+});
+
+cacher.getCacheKey("posts.find", { id: 2, title: "New post", content: "It can be very very looooooooooooooooooong content. So this key will also be too long" });
 // Key: 'posts.find:id|2|title|New pL4ozUU24FATnNpDt1B0t1T5KP/T5/Y+JTIznKDspjT0='
 ```
 
