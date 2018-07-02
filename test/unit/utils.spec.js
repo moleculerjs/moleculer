@@ -110,3 +110,51 @@ describe("Test match", () => {
 	expect(utils.match("$aa.bb.cc", "**")).toBe(true);
 	expect(utils.match("$aa.bb.cc", "*")).toBe(false);
 });
+
+describe("Test utils.safetyObject", () => {
+
+	it("should return a same object", () => {
+		const obj = {
+			a: 5,
+			b: "Hello",
+			c: [0,1,2],
+			d: {
+				e: false,
+				f: 1.23
+			}
+		};
+		const res = utils.safetyObject(obj);
+		expect(res).not.toBe(obj);
+		expect(res).toEqual(obj);
+	});
+
+	it("should return a same object without circular refs & Function", () => {
+		const obj = {
+			a: 5,
+			b: "Hello",
+			c: [0,1,2],
+			d: {
+				e: false,
+				f: 1.23
+			},
+			h: (ctx) => ctx
+		};
+		obj.d.g = obj;
+
+		const res = utils.safetyObject(obj);
+		expect(res).not.toBe(obj);
+		expect(res).toEqual({
+			a: 5,
+			b: "Hello",
+			c: [0,1,2],
+			d: {
+				e: false,
+				f: 1.23
+			}
+		});
+
+		expect(obj.d.g).toBeDefined();
+		expect(obj.h).toBeInstanceOf(Function);
+	});
+
+});

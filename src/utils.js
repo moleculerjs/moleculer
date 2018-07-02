@@ -18,7 +18,21 @@ const RegexCache = new Map();
 
 const deprecateList = [];
 
-let utils = {
+function circularReplacer() {
+	const seen = new WeakSet();
+	return function(key, value) {
+		if (typeof value === "object" && value !== null) {
+			if (seen.has(value)) {
+				//delete this[key];
+				return;
+			}
+			seen.add(value);
+		}
+		return value;
+	};
+}
+
+const utils = {
 
 	// Fast UUID generator: e7 https://jsperf.com/uuid-generator-opt/18
 	generateToken() {
@@ -175,6 +189,16 @@ let utils = {
 			console.warn(chalk.yellow.bold(`DeprecationWarning: ${msg}`));
 			deprecateList.push(prop);
 		}
+	},
+
+	/**
+	 * Remove circular references & Functions from the JS object
+	 *
+	 * @param {Object|Array} obj
+	 * @returns {Object|Array}
+	 */
+	safetyObject(obj) {
+		return JSON.parse(JSON.stringify(obj, circularReplacer()));
 	}
 
 };

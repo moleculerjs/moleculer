@@ -29,6 +29,7 @@ jest.mock("../../src/utils", () => ({
 	getNodeID() { return "node-1234"; },
 	generateToken() { return "1"; },
 	getIpList() { return []; },
+	safetyObject(obj) { return obj; },
 	isPromise(p) {return p.then != null; }
 }));
 

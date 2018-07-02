@@ -498,7 +498,20 @@ describe("Test Registry.regenerateLocalRawInfo", () => {
 	let registry = broker.registry;
 	let localNode = registry.nodes.localNode;
 
-	registry.services.getLocalNodeServices = jest.fn(() => [{}, {}]);
+	const svc1 = {
+		name: "svc1",
+		prop: {}
+	};
+
+	const svc2 = {
+		name: "svc2",
+		prop: {}
+	};
+
+	// Make some circular references
+	svc1.prop.a = svc1;
+
+	registry.services.getLocalNodeServices = jest.fn(() => [svc1, svc2]);
 
 	it("should not call registry getLocalNodeServices if broker is not started", () => {
 		broker.started = false;
@@ -539,7 +552,13 @@ describe("Test Registry.regenerateLocalRawInfo", () => {
 			"ipList": localNode.ipList,
 			"port": null,
 			"seq": 2,
-			"services": [{}, {}]
+			"services": [{
+				name: "svc1",
+				prop: {},
+			}, {
+				name: "svc2",
+				prop: {}
+			}]
 		});
 
 		expect(registry.services.getLocalNodeServices).toHaveBeenCalledTimes(1);

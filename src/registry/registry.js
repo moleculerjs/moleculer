@@ -8,6 +8,7 @@
 
 const _ = require("lodash");
 
+const utils = require("../utils");
 const Strategies = require("../strategies");
 const NodeCatalog = require("./node-catalog");
 const ServiceCatalog = require("./service-catalog");
@@ -314,11 +315,14 @@ class Registry {
 		if (incSeq)
 			node.seq++;
 
-		node.rawInfo = _.pick(node, ["ipList", "hostname", "client", "config", "port", "seq"]);
+		const rawInfo = _.pick(node, ["ipList", "hostname", "client", "config", "port", "seq"]);
 		if (this.broker.started)
-			node.rawInfo.services = this.services.getLocalNodeServices();
+			rawInfo.services = this.services.getLocalNodeServices();
 		else
-			node.rawInfo.services = [];
+			rawInfo.services = [];
+
+		// Make to be safety
+		node.rawInfo = utils.safetyObject(rawInfo);
 
 		return node.rawInfo;
 	}
