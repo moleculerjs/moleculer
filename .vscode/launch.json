@@ -114,13 +114,15 @@
 			"name": "Moleculer-runner",
 			"program": "${workspaceRoot}/bin/moleculer-runner.js",
 			"cwd": "${workspaceRoot}",
+			/*"env": {
+				"SERVICEDIR": "examples",
+				"SERVICES": "*.service.js,!silent,!stat"
+			},*/
 			"args": [
 				"--hot",
 				"--repl",
-				"!examples",
-				"examples/user*.service.js",
-				"examples/user.service.js",
-				"examples/math.service.js"
+				"examples",
+				"!examples/user*.service.js",
 			]
 		},
 		{

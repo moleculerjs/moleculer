@@ -226,6 +226,21 @@ function isDirectory(p) {
 }
 
 /**
+ * Check the given path whether a file or not
+ *
+ * @param {String} p
+ * @returns {Boolean}
+ */
+function isServiceFile(p) {
+	try {
+		return !fs.lstatSync(p).isDirectory();
+	} catch(_) {
+		// ignore
+	}
+	return false;
+}
+
+/**
  * Load services from files or directories
  *
  * 1. If find `SERVICEDIR` env var and not find `SERVICES` env var, load all services from the `SERVICEDIR` directory
@@ -282,6 +297,10 @@ function loadServices() {
 					files = glob(svcPath + "/" + fileMask, { absolute: true });
 					if (files.length == 0)
 						return broker.logger.warn(chalk.yellow.bold(`There is no service files in directory: '${svcPath}'`));
+				} else if (isServiceFile(svcPath)) {
+					files = [svcPath.replace(/\\/g, "/")];
+				} else if (isServiceFile(svcPath + ".service.js")) {
+					files = [svcPath.replace(/\\/g, "/") + ".service.js"];
 				} else {
 					// Load with glob
 					files = glob(p, { cwd: svcDir, absolute: true });
@@ -289,7 +308,7 @@ function loadServices() {
 						broker.logger.warn(chalk.yellow.bold(`There is no matched file for pattern: '${p}'`));
 				}
 
-				if (files.length > 0) {
+				if (files && files.length > 0) {
 					if (skipping)
 						serviceFiles = serviceFiles.filter(f => files.indexOf(f) === -1);
 					else
