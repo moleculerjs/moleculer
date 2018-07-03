@@ -103,7 +103,7 @@ brokerListen.createService({
 });
 
 brokerClient.Promise.all([brokerClient.start(), broker1.start(), broker2.start(), broker3.start(), brokerListen.start()])
-	.delay(10000)
+	.delay(5000)
 	/*.then(async () => {
 
 		let startTime = Date.now();
