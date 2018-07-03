@@ -1,9 +1,11 @@
 const { ServiceBroker } = require("../");
 
+const transporter = "TCP";
+
 // Create broker Client
 const brokerClient = new ServiceBroker({
 	nodeID: "client",
-	transporter: "NATS",
+	transporter,
 	logger: console,
 	logLevel: "info"
 });
@@ -11,7 +13,7 @@ const brokerClient = new ServiceBroker({
 // Create broker #1
 const broker1 = new ServiceBroker({
 	nodeID: "demo1",
-	transporter: "NATS",
+	transporter,
 	logger: console,
 	logLevel: "info"
 });
@@ -19,7 +21,7 @@ const broker1 = new ServiceBroker({
 // Create broker #2
 const broker2 = new ServiceBroker({
 	nodeID: "demo2",
-	transporter: "NATS",
+	transporter,
 	logger: console,
 	logLevel: "info"
 });
@@ -27,7 +29,7 @@ const broker2 = new ServiceBroker({
 // Create broker #3
 const broker3 = new ServiceBroker({
 	nodeID: "demo3",
-	transporter: "NATS",
+	transporter,
 	logger: console,
 	logLevel: "info"
 });
@@ -35,7 +37,7 @@ const broker3 = new ServiceBroker({
 // Create brokerListen
 const brokerListen = new ServiceBroker({
 	nodeID: "listen",
-	transporter: "NATS",
+	transporter,
 	logger: console,
 	logLevel: "info"
 });
@@ -44,12 +46,12 @@ broker1.createService({
 	name: "demo1",
 	actions: {
 		hello1(ctx) {
-			console.log("call demo1.hello1 at: ", Date.now());
+			// console.log("call demo1.hello1 at: ", Date.now());
 			return ctx.call("demo2.hello2");
 		},
 		hello1WithEvent(ctx) {
 			broker1.emit("t1", { a: "abc", b: 123, c: true });
-			console.log("call demo1.hello1WithEvent at: ", Date.now());
+			// console.log("call demo1.hello1WithEvent at: ", Date.now());
 			return ctx.call("demo2.hello2WithEvent");
 		}
 	}
@@ -59,12 +61,12 @@ broker2.createService({
 	name: "demo2",
 	actions: {
 		hello2(ctx) {
-			console.log("call demo2.hello2 at: ", Date.now());
+			// console.log("call demo2.hello2 at: ", Date.now());
 			return ctx.call("demo3.hello3");
 		},
 		hello2WithEvent(ctx) {
 			broker2.emit("t2", { a: "abc", b: 123, c: true });
-			console.log("call demo2.hello2WithEvent at: ", Date.now());
+			// console.log("call demo2.hello2WithEvent at: ", Date.now());
 			return ctx.call("demo3.hello3WithEvent");
 		}
 	}
@@ -74,12 +76,12 @@ broker3.createService({
 	name: "demo3",
 	actions: {
 		hello3(ctx) {
-			console.log("call demo3.hello3 at: ", Date.now());
+			// console.log("call demo3.hello3 at: ", Date.now());
 			return "hello from demo3";
 		},
 		hello3WithEvent(ctx) {
 			broker3.emit("t3", { a: "abc", b: 123, c: true });
-			console.log("call demo3.hello3WithEvent at: ", Date.now());
+			//console.log("call demo3.hello3WithEvent at: ", Date.now());
 			return "hello from hello3WithEvent";
 		}
 	}
@@ -89,20 +91,20 @@ brokerListen.createService({
 	name: "listen",
 	events: {
 		t1: (ctx) => {
-			console.log("listen t1 at: ", Date.now());
+			//console.log("listen t1 at: ", Date.now());
 		},
 		t2: (ctx) => {
-			console.log("listen t2 at: ", Date.now());
+			//console.log("listen t2 at: ", Date.now());
 		},
 		t3: (ctx) => {
-			console.log("listen t3 at: ", Date.now());
+			//console.log("listen t3 at: ", Date.now());
 		},
 	}
 });
 
 brokerClient.Promise.all([brokerClient.start(), broker1.start(), broker2.start(), broker3.start(), brokerListen.start()])
-	.delay(2000)
-	.then(async () => {
+	.delay(10000)
+	/*.then(async () => {
 
 		let startTime = Date.now();
 		await brokerClient.call("demo1.hello1");
@@ -119,4 +121,34 @@ brokerClient.Promise.all([brokerClient.start(), broker1.start(), broker2.start()
 		// endTime = Date.now()
 		// console.log("call demo1.hello1WithEvent again use time = ", endTime - startTime)
 
+	});*/
+
+	.then(() => {
+
+		let count = 0;
+		function doRequest() {
+			count++;
+			//return brokerClient.call("demo1.hello1")
+			return brokerClient.call("demo1.hello1WithEvent")
+				.then(() => {
+					if (count % 10000) {
+						// Fast cycle
+						doRequest();
+					} else {
+						// Slow cycle
+						setImmediate(() => doRequest());
+					}
+				});
+		}
+
+		let startTime = Date.now();
+
+		setInterval(() => {
+			let rps = count / ((Date.now() - startTime) / 1000);
+			console.log("RPS:", rps.toLocaleString("hu-HU", {maximumFractionDigits: 0}), "req/s");
+			count = 0;
+			startTime = Date.now();
+		}, 1000);
+
+		doRequest();
 	});
