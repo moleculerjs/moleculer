@@ -1,49 +1,26 @@
 const { ServiceBroker } = require("../");
 
-const transporter = "TCP";
+const transporter = "NATS";
 
-// Create broker Client
-const brokerClient = new ServiceBroker({
-	nodeID: "client",
-	transporter,
-	logger: console,
-	logLevel: "info"
-});
+function createBroker(nodeID) {
+	return new ServiceBroker({
+		nodeID,
+		transporter,
+		logger: console,
+		logLevel: "info"
+	});
+}
 
-// Create broker #1
-const broker1 = new ServiceBroker({
-	nodeID: "demo1",
-	transporter,
-	logger: console,
-	logLevel: "info"
-});
-
-// Create broker #2
-const broker2 = new ServiceBroker({
-	nodeID: "demo2",
-	transporter,
-	logger: console,
-	logLevel: "info"
-});
-
-// Create broker #3
-const broker3 = new ServiceBroker({
-	nodeID: "demo3",
-	transporter,
-	logger: console,
-	logLevel: "info"
-});
-
-// Create brokerListen
-const brokerListen = new ServiceBroker({
-	nodeID: "listen",
-	transporter,
-	logger: console,
-	logLevel: "info"
-});
+// Create brokers
+const brokerClient = createBroker("client");
+const broker1 = createBroker("demo1");
+const broker2 = createBroker("demo2");
+const broker3 = createBroker("demo3");
+const brokerListen = createBroker("listen");
 
 broker1.createService({
 	name: "demo1",
+	dependencies: ["demo2"],
 	actions: {
 		hello1(ctx) {
 			// console.log("call demo1.hello1 at: ", Date.now());
@@ -59,6 +36,7 @@ broker1.createService({
 
 broker2.createService({
 	name: "demo2",
+	dependencies: ["demo3"],
 	actions: {
 		hello2(ctx) {
 			// console.log("call demo2.hello2 at: ", Date.now());
@@ -74,6 +52,7 @@ broker2.createService({
 
 broker3.createService({
 	name: "demo3",
+	dependencies: ["listen"],
 	actions: {
 		hello3(ctx) {
 			// console.log("call demo3.hello3 at: ", Date.now());
@@ -103,7 +82,8 @@ brokerListen.createService({
 });
 
 brokerClient.Promise.all([brokerClient.start(), broker1.start(), broker2.start(), broker3.start(), brokerListen.start()])
-	.delay(5000)
+	.delay(1000)
+	.then(() => brokerClient.waitForServices("demo1"))
 	/*.then(async () => {
 
 		let startTime = Date.now();
