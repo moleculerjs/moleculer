@@ -4,7 +4,7 @@ const ServiceBroker = require("../src/service-broker");
 const util = require("util");
 
 const broker = new ServiceBroker({
-	nodeID: "dev",// + process.pid,
+	nodeID: "dev-metric",// + process.pid,
 	transporter: "NATS",
 	metrics: true,
 	//logLevel: "debug",
@@ -12,10 +12,13 @@ const broker = new ServiceBroker({
 });
 
 broker.createService({
-	name: "test",
-	actions: {
-		hello(ctx) {
-			return "Hello Moleculer";
+	name: "test-metric",
+	events: {
+		"metrics.trace.span.start"(payload) {
+			console.log("Metric start event received:", payload.action.name);
+		},
+		"metrics.trace.span.finish"(payload) {
+			console.log("Metric finish event received:", payload.action.name);
 		}
 	}
 });
