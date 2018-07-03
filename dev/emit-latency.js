@@ -1,6 +1,6 @@
 const { ServiceBroker } = require("../");
 
-const transporter = "NATS";
+const transporter = process.env.TRANSPORTER || "NATS";
 
 function createBroker(nodeID) {
 	return new ServiceBroker({
