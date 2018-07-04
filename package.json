@@ -18,7 +18,8 @@
     "test": "jest --coverage --no-cache",
     "test:unit": "jest --testMatch \"**/unit/**spec.js\" --coverage --no-cache",
     "test:int": "jest --testMatch \"**/integration/**spec.js\" --coverage --no-cache",
-    "test:amqp": "jest --testMatch \"**/integration/amqp/**spc.js\" --runInBand"
+    "test:amqp": "jest --testMatch \"**/integration/amqp/**spc.js\" --runInBand",
+    "postinstall": "opencollective postinstall"
   },
   "keywords": [
     "microservices",
@@ -79,7 +80,8 @@
     "glob": "7.1.2",
     "ipaddr.js": "1.7.0",
     "lodash": "4.17.10",
-    "node-object-hash": "1.4.1"
+    "node-object-hash": "1.4.1",
+    "opencollective": "^1.0.3"
   },
   "engines": {
     "node": ">= 6.x.x"
@@ -98,5 +100,9 @@
     "roots": [
       "../test"
     ]
+  },
+  "collective": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/moleculer"
   }
 }

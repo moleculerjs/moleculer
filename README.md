@@ -11,6 +11,8 @@
 [![Downloads](https://img.shields.io/npm/dm/moleculer.svg)](https://www.npmjs.com/package/moleculer)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fmoleculerjs%2Fmoleculer.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fmoleculerjs%2Fmoleculer?ref=badge_shield)
 [![Patreon](docs/assets/patreon.svg)][patreon] [![PayPal](docs/assets/paypal_donate.svg)][paypal]
+[![Backers on Open Collective](https://opencollective.com/moleculer/backers/badge.svg)](#backers) 
+[![Sponsors on Open Collective](https://opencollective.com/moleculer/sponsors/badge.svg)](#sponsors) 
 
 # Moleculer [![NPM version](https://img.shields.io/npm/v/moleculer.svg)](https://www.npmjs.com/package/moleculer) [![Twitter URL](https://img.shields.io/twitter/url/http/shields.io.svg?style=social&logo=twitter)](https://twitter.com/intent/tweet?text=Moleculer%20is%20a%20modern%20microservices%20framework%20for%20Node.js&url=https://github.com/moleculerjs/moleculer&via=MoleculerJS&hashtags=nodejs,javascript,microservices)
 
@@ -125,6 +127,36 @@ See [CHANGELOG.md](CHANGELOG.md).
 
 # Contributions
 We welcome you to join to the development of Moleculer. Please read our [contribution guide](http://moleculer.services/docs/contributing.html).
+
+## Contributors
+
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+<a href="graphs/contributors"><img src="https://opencollective.com/moleculer/contributors.svg?width=890&button=false" /></a>
+
+
+## Backers
+
+Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/moleculer#backer)]
+
+<a href="https://opencollective.com/moleculer#backers" target="_blank"><img src="https://opencollective.com/moleculer/backers.svg?width=890"></a>
+
+
+## Sponsors
+
+Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/moleculer#sponsor)]
+
+<a href="https://opencollective.com/moleculer/sponsor/0/website" target="_blank"><img src="https://opencollective.com/moleculer/sponsor/0/avatar.svg"></a>
+<a href="https://opencollective.com/moleculer/sponsor/1/website" target="_blank"><img src="https://opencollective.com/moleculer/sponsor/1/avatar.svg"></a>
+<a href="https://opencollective.com/moleculer/sponsor/2/website" target="_blank"><img src="https://opencollective.com/moleculer/sponsor/2/avatar.svg"></a>
+<a href="https://opencollective.com/moleculer/sponsor/3/website" target="_blank"><img src="https://opencollective.com/moleculer/sponsor/3/avatar.svg"></a>
+<a href="https://opencollective.com/moleculer/sponsor/4/website" target="_blank"><img src="https://opencollective.com/moleculer/sponsor/4/avatar.svg"></a>
+<a href="https://opencollective.com/moleculer/sponsor/5/website" target="_blank"><img src="https://opencollective.com/moleculer/sponsor/5/avatar.svg"></a>
+<a href="https://opencollective.com/moleculer/sponsor/6/website" target="_blank"><img src="https://opencollective.com/moleculer/sponsor/6/avatar.svg"></a>
+<a href="https://opencollective.com/moleculer/sponsor/7/website" target="_blank"><img src="https://opencollective.com/moleculer/sponsor/7/avatar.svg"></a>
+<a href="https://opencollective.com/moleculer/sponsor/8/website" target="_blank"><img src="https://opencollective.com/moleculer/sponsor/8/avatar.svg"></a>
+<a href="https://opencollective.com/moleculer/sponsor/9/website" target="_blank"><img src="https://opencollective.com/moleculer/sponsor/9/avatar.svg"></a>
+
+
 
 # License
 Moleculer is available under the [MIT license](https://tldrlegal.com/license/mit-license).
