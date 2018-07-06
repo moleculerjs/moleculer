@@ -994,7 +994,7 @@ const broker = new ServiceBroker({
 
 # Deprecations
 
-- The `broker.use()` has been deprecated. Use `middlewares: [...]` in broker options instead.
+- `broker.use()` has been deprecated. Use `middlewares: [...]` in broker options instead.
 
 --------------------------------------------------
 <a name="0.12.8"></a>
