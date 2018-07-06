@@ -69,13 +69,13 @@ class NatsTransporter extends Transporter {
 			const client = Nats.connect(this.opts);
 			this._client = client; // For tests
 
-			//Woraround, while https://github.com/nats-io/node-nats/issues/229 will be fixed in NATS library.
-			if (client.stream)
-				client.stream.setNoDelay(true);
-
 			client.on("connect", () => {
 				this.client = client;
 				this.logger.info("NATS client is connected.");
+
+				//Woraround, while https://github.com/nats-io/node-nats/issues/229 will be fixed in NATS library.
+				if (client.stream)
+					client.stream.setNoDelay(true);
 
 				this.onConnected().then(resolve);
 			});
@@ -83,6 +83,11 @@ class NatsTransporter extends Transporter {
 			/* istanbul ignore next */
 			client.on("reconnect", () => {
 				this.logger.info("NATS client is reconnected.");
+
+				//Woraround, while https://github.com/nats-io/node-nats/issues/229 will be fixed in NATS library.
+				if (client.stream)
+					client.stream.setNoDelay(true);
+
 				this.onConnected(true);
 			});
 
