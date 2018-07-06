@@ -219,7 +219,7 @@ broker.call("posts.find", {}, { retries: 3 });
 
 There is a new `check()` function property in the options. It is used by the Retry middleware in order to detect which error is a failed request and needs a retry. The default function checks the `retryable` property of errors.
 
-You can override these global options in action definition as well.
+These global options can be overridden in action definition, as well.
 
 ```js
 module.export = {
@@ -354,7 +354,7 @@ cacher.getCacheKey("posts.find", { id: 2, title: "New post", content: "It can be
 Of course, you can use your custom solution with `keygen` cacher options like earlier.
 
 ## Cacher matcher changed
-The cacher matcher code also changed in `cacher.clean` method. The previous (wrong) matcher couldn't handle dots (.) properly in patterns. E.g the `posts.*` pattern cleaned the `posts.find.something` keys too. Now it has been fixed, but it means that you should use `posts.**` pattern because the `params` and `meta` values can contain dots.
+The cacher matcher code also changed in `cacher.clean` method. The previous (wrong) matcher couldn't handle dots (.) properly in patterns. E.g the `posts.*` pattern cleaned the `posts.find.something` keys, too. Now it has been fixed, but it means that you should use `posts.**` pattern because the `params` and `meta` values can contain dots.
 
 ## Changed Moleculer errors signature
 The following Moleculer Error classes constructor arguments is changed to `constructor(data)`:
@@ -384,7 +384,7 @@ throw new ServiceNotFoundError({ action: "posts.find",  nodeID: "node-123" });
 ## New state-of-the-art middlewares
 We have been improved the current middleware handler and enriched it with a lot of useful features. As a result, you can hack more internal flow logic with custom middlewares (e.g. event sending, service creating, service starting...etc)
 
-The new middleware is an `Object` with hooks instead of a simple `Function`. However, the new solution is backward compatible, so you don't need to migrate your old middlewares. 
+The new one is an `Object` with hooks instead of a simple `Function`. However, the new solution is backward compatible, so you don't need to migrate your old middlewares. 
 
 **A new middleware with all available hooks**
 ```js
@@ -501,8 +501,8 @@ const broker = new ServiceBroker({
 ```
 
 ### Wrapping handlers
-Some hooks are wrappers. It means, you need to wrap the original handler and return with a new Function.
-You have to wrap hooks where the first parameter is `next`.
+Some hooks are wrappers. It means you need to wrap the original handler and return a new Function.
+Wrap hooks where the first parameter is `next`.
 
 **Wrap local action handler**
 ```js
@@ -536,8 +536,8 @@ const MyDoSomethingMiddleware = {
 };
 ```
 
-### Decorate broker (extend functionality)
-With other hooks are help you to decorate new features ServiceBroker & services.
+### Decorate broker (to extend functions)
+Other hooks are to help you to decorate new features in ServiceBroker & services.
 
 **Decorate broker with a new `allCall` method**
 ```js
@@ -599,7 +599,7 @@ module.export = {
 > The mixins can do similar things, so we prefer mixins to this decorating.
 
 ## Many internal features are exposed to internal middlewares
-Thanks to the new advanced middlewares, we could expose many integrated features to middlewares. They are available under `require("moleculer").Middlewares` property, but they are loaded automatically.
+Due to the new advanced middlewares, we could bring out many integrated features to middlewares. They are available under `require("moleculer").Middlewares` property, but they load automatically.
 
 **New internal middlewares:**
 - Action hook handling
@@ -614,14 +614,14 @@ Thanks to the new advanced middlewares, we could expose many integrated features
 - Error handling
 - Metrics
 
-> You can turn off the automatically loading with the `internalMiddlewares: false` broker option. In this case you have to add them in the `middlewares: []` broker option.
+> Turn off the automatic loading with `internalMiddlewares: false` broker option. In this case you have to add them to `middlewares: []` broker option.
 
-> The `broker.use` method is deprecated. Use the `middlewares: []` in the broker options instead.
+> The `broker.use` method is deprecated. Use `middlewares: []` in the broker options instead.
 
 ## Action hooks
-You can define action hooks to wrap certain actions which comes from mixins.
-There are `before`, `after` and `error` hooks. You can assign it to a specified action or all actions (`*`) in service.
-The hook can be a `Function` or a `String`. In the latter case, it must be a local service method name, what you would like to call.
+Define action hooks to wrap certain actions coming from mixins.
+There are `before`, `after` and `error` hooks. Assign it to a specified action or all actions (`*`) in service.
+The hook can be a `Function` or a `String`. The latter must be a local service method name.
 
 **Before hooks**
 
@@ -707,7 +707,7 @@ module.exports = {
 };
 ```
 
-The recommended use case is that you create mixins which fill up the service with methods and in `hooks` you just sets method names what you want to be called.
+The recommended use case is to create mixins filling up the service with methods and in `hooks` set method names.
 
 **Mixin**
 ```js
@@ -762,7 +762,7 @@ module.exports = {
 ```
 
 ## New Bulkhead fault-tolerance feature
-Bulkhead feature is implemented to the Moleculer as an internal middleware. You can use it to control the concurrent request handling of actions.
+Bulkhead feature is an internal middleware in Moleculer. Use it to control the concurrent request handling of actions.
 
 **Global settings in the broker options.** _Applied to all registered local actions._
 ```js
@@ -775,9 +775,9 @@ const broker = new ServiceBroker({
 });
 ```
 
-The `concurrency` value restricts the concurrent request executions. If the `maxQueueSize` is bigger than 0, broker stores the additional requests in a queue if all slots are taken. If the queue size reaches the `maxQueueSize` limit or it is 0, broker will throw `QueueIsFull` exception for every addition requests.
+The `concurrency` value restricts the concurrent request executions. If `maxQueueSize` is bigger than 0, broker queues additional requests, if all slots are taken. If queue size reaches `maxQueueSize` limit or it is 0, broker will throw `QueueIsFull` error for every addition request.
 
-You can override these global options in action definition as well.
+These global options can be overriden in action definition, as well.
 
 ```js
 module.export = {
@@ -802,9 +802,9 @@ module.export = {
 ```
 
 ## Fallback in action definition
-Thanks to the exposed Fallback middleware, you can set fallback response in the action definition too.
+Due to the exposed Fallback middleware, fallback response can be set in the action definition, too.
 
-> Please note, this fallback response will be used only if the error is created inside action handler. If the request is called from a remote node and the request is timed out on the remote node, the fallback response won't be used. In this case, use the `fallbackResponse` in calling option.
+> Please note, this fallback response will only be used if the error occurs within action handler. If the request is called from a remote node and the request is timed out on the remote node, the fallback response is not be used. In this case, use the `fallbackResponse` in calling option.
 
 **Fallback as function**
 ```js
@@ -845,13 +845,13 @@ module.exports = {
 ```
 
 ## Action visibility
-The action has a new `visibility` property. With this, you can control the visibility & callability of service actions.
+The action has a new `visibility` property to control the visibility & callability of service actions.
 
 **Available values:**
 - `published` or `null`: public action. It can be called locally, remotely and can be published via API Gateway
 - `public`: public action, can be called locally & remotely but not published via API GW
 - `protected`: can be called only locally (from local services)
-- `private`: can be called only internally (via `this.actions.xy()` inside service)
+- `private`: can be called only internally (via `this.actions.xy()` within service)
 
 ```js
 module.exports = {
@@ -874,7 +874,7 @@ module.exports = {
 }
 ```
 
-> The default values is `null` (means `published`) due to backward compatibility.
+> The default value is `null` (means `published`) due to backward compatibility.
 
 ## New Thrift serializer
 There is a new built-in [Thrift](http://thrift.apache.org/) serializer.
@@ -887,7 +887,7 @@ const broker = new ServiceBroker({
 > To use this serializer install the `thrift` module with `npm install thrift --save` command.
 
 ## Enhanced log level configuration 
-There is a new module-based log level configuration. The log level can be set for every Moleculer module. Wildcard usage is allowed.
+A new module-based log level configuration was added. The log level can be set for every Moleculer module. Use of wildcard is allowed.
 
 ```js
 const broker = new ServiceBroker({
@@ -901,16 +901,16 @@ const broker = new ServiceBroker({
 });
 ```
 
-**Please note, it works only with default console logger. In case of external loggers (Pino, Windows, Bunyan, ...etc) you need to apply these log levels.**
+**Please note, it works only with default console logger. In case of external loggers (Pino, Windows, Bunyan, ...etc), these log levels must be applied.**
 
-> This settings is evaluated from top to bottom, so the `**` level need to be the last property.
+> These settings are evaluated from top to bottom, so the `**` level must be the last property.
 
 > Internal modules: `BROKER`, `TRANS`, `TX` as transporter, `CACHER`, `REGISTRY`.
 >
 > For services, the name comes from the service name. E.g. `POSTS`. 
-> If version is used it is used as prefix. E.g. `V2.POSTS`
+> A version is used as a prefix. E.g. `V2.POSTS`
 
-The old global log level settings works as well.
+The old global log level settings works, as well.
 ```js
 const broker = new ServiceBroker({
     logger: console,
@@ -919,7 +919,7 @@ const broker = new ServiceBroker({
 ```
 
 ## New `short` log formatter
-There is a new `short` log formatter. It's similar as the default, but doesn't print the date and `nodeID`.
+A new `short` log formatter was also added. It is similar to the default, but doesn't print the date and `nodeID`.
 
 ```js
 const broker = new ServiceBroker({
@@ -933,7 +933,7 @@ const broker = new ServiceBroker({
 ```
 
 ## Load services also with glob patterns
-Moleculer Runner is able to load services from glob patterns too. It could be useful if you want to load all services, but skip some other ones.
+Moleculer Runner loads services also from glob patterns. It is useful when loading all services except certain ones.
 
 ```bash
 $ moleculer-runner services !services/others/**/*.service.js services/others/mandatory/main.service.js
@@ -944,11 +944,11 @@ $ moleculer-runner services !services/others/**/*.service.js services/others/man
 - `!services/others/**/*.service.js` - skip all services in the `services/others` folder and sub-folders.
 - `services/others/mandatory/main.service.js` - load the exact service
 
-> The glob patterns work in the `SERVICES` enviroment variables as well.
+> Glob patterns work in the `SERVICES` enviroment variables, as well.
 
 ## MemoryCacher cloning
-There is a new `clone` property in the `MemoryCacher` options. If it's `true`, the cacher clones the cached data before returns it.
-It's mandatory if you manipulate the received value, however it cuts down the performance.
+There is a new `clone` property in the `MemoryCacher` options. If it's `true`, the cacher clones the cached data before returning.
+If received value is modified, enable this option. Note: it cuts down the performance.
 
 **Enable cloning**
 ```js
@@ -962,9 +962,9 @@ const broker = new ServiceBroker({
 });
 ```
 
-This feature uses the lodash `_.cloneDeep` method. If you know better cloning method, you can change it if you set a `Function` to the `clone` option instead of a `Boolean`.
+This feature uses the lodash `_.cloneDeep` method. To change cloning method set a `Function` to the `clone` option instead of a `Boolean`.
 
-**Custom clone function with JSON parse & stringify**
+**Custom clone function with JSON parse & stringify:**
 ```js
 const broker = new ServiceBroker({ 
     cacher: {
@@ -977,20 +977,20 @@ const broker = new ServiceBroker({
 ```
 
 # Changes
-- service instances has a new property named `fullName`. It contains service version & service name.
-- the `Action` has a `rawName` property which contains the action name without service name.
+- service instances has a new property named `fullName` containing service version & service name.
+- the `Action` has a `rawName` property containing action name without service name.
 - new `$node.options` internal action to get the current broker options.
-- `Context.create` & `new Context` signature is changed.
-- Context metrics methods are removed. All metrics feature is moved to the `Metrics` middleware.
-- `ctx.timeout` is moved to `ctx.options.timeout`.
-- `ctx.callerNodeID` is removed.
-- `ctx.endpoint` is a new property. It is pointed to the target `Endpoint`. For example you can check with `ctx.endpoint.local` flag that the request will be a remote or a local request.
-- `ctx.id` has been lazy generated. It means that it will be only generated when you access it. At the same time the `ctx.generateID()` has been removed.
-- service lifecycle methods are renamed in service instances (not in service schema!)
-- `transit.stat.packets` has been extended with byte-based statistics.
-- `utils.deprecate` method is created for deprecation.
+- `Context.create` & `new Context` signature changed.
+- removed Context metrics methods. All metrics feature moved to the `Metrics` middleware.
+- `ctx.timeout` moved to `ctx.options.timeout`.
+- removed `ctx.callerNodeID`.
+- `ctx.endpoint` is a new property pointing to target `Endpoint`. For example you can check with `ctx.endpoint.local` flag whether the request is remote or local.
+- lazily generated `ctx.id`, i.e. only generated at access. `ctx.generateID()` was removed.
+- renamed service lifecycle methods in service instances (not in service schema!)
+- extended `transit.stat.packets` with byte-based statistics.
+- `utils.deprecate` method was created for deprecation.
 - Transporter supports `mqtt+ssl://`, `rediss://` & `amqps://` protocols in connection URIs.
-- fixes circular objects in service schema (e.g.: Joi validator problem)
+- fixed circular objects handling in service schema (e.g.: Joi validator problem)
 
 # Deprecations
 
@@ -1798,11 +1798,11 @@ broker.repl();
 
 # Changes
 - MemoryCacher clears all cache entries after the transporter connected/reconnected.
-- `broker.loadServices` file mask is changed from `*.service.js` to `**/*.service.js` in order to load all services from subfolders too.
+- `broker.loadServices` file mask is changed from `*.service.js` to `**/*.service.js` in order to load all services from subfolders, too.
 - `ServiceNotFoundError` and `ServiceNotAvailableError` errors are retryable errors.
 - `Strategy.select` method gets only available endpoint list.
 - old unavailable nodes are removed from registry after 10 minutes.  
-- CPU usage in `HEARTBEAT` packet is working properly in Windows too.
+- CPU usage in `HEARTBEAT` packet is working properly in Windows, too.
 - register middlewares before internal service (`$node.*`) loading.
 - `broker.getAction` deprecated method is removed.
 - `PROTOCOL_VERSION` constant is available via broker as `ServiceBroker.PROTOCOL_VERSION` or `broker.PROTOCOL_VERSION`
