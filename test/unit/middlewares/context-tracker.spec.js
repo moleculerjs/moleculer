@@ -201,7 +201,7 @@ describe("Test broker delayed shutdown with remote calls", () => {
 				broker1.call("delayed.test", {});
 				return broker1.Promise.delay(10);
 			})
-			.then(() => broker1.Promise.all([broker1.stop(), broker2.stop()]))
+			.then(() => broker1.Promise.all([broker2.stop(), broker1.stop()]))
 			.catch(protectReject)
 			.then(() => {
 				expect(FLOW).toEqual([
