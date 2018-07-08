@@ -1,6 +1,8 @@
 --------------------------------------------------
 <a name="0.13.0"></a>
-# [0.13.0](https://github.com/moleculerjs/moleculer/compare/v0.12.4...v0.13.0) (2018-xx-xx)
+# [0.13.0](https://github.com/moleculerjs/moleculer/compare/v0.12.8...v0.13.0) (2018-07-08)
+
+**Migration guide from v0.12.x to v0.13.x is [here](docs/MIGRATION_GUIDE_0.13.md).**
 
 # Breaking changes
 

@@ -4,7 +4,7 @@ This documentation leads you how you can migrate your project to be compatible w
 > Please note! The previous version of `moleculer-web` doesn't work with Moleculer 0.13. You need to upgrade it to 0.8.x version too.
 
 ## 1. Always start the broker before call services
-> If you are using [Moleculer Runner](http://moleculer.services/0.12/docs/runner.html) with `moleculer.config.js`, skip this part.
+> If you are using [Moleculer Runner](http://moleculer.services/docs/0.12/runner.html) with `moleculer.config.js`, skip this part.
 
 The ServiceBroker & Service lifecycle handler logic has been changed.
 
