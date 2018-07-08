@@ -184,7 +184,7 @@ describe("Test broker delayed shutdown with remote calls", () => {
 		actions: {
 			test() {
 				FLOW.push("start");
-				return this.Promise.delay(80)
+				return this.Promise.delay(200)
 					.then(() => FLOW.push("end"));
 			}
 		},
@@ -193,7 +193,7 @@ describe("Test broker delayed shutdown with remote calls", () => {
 		stopped: jest.fn(() => FLOW.push("service-stop"))
 	});
 
-	beforeAll(() => broker1.Promise.all([broker1.start(), broker2.start()]));
+	beforeAll(() => broker1.start().then(() => broker2.start()));
 
 	it("should called stopped", () => {
 		return broker1.Promise.resolve()
@@ -205,8 +205,8 @@ describe("Test broker delayed shutdown with remote calls", () => {
 			.catch(protectReject)
 			.then(() => {
 				expect(FLOW).toEqual([
-					"service-start",
 					"broker1-start",
+					"service-start",
 					"broker2-start",
 					"start",
 					"end",
