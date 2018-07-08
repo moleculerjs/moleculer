@@ -8,9 +8,9 @@ let benchmark = new Benchmarkify("Moleculer common benchmarks").printHeader();
 
 let ServiceBroker = require("../../src/service-broker");
 
-function createBroker(opts) {
+function createBroker(opts = {}) {
 	// Create broker
-	let broker = new ServiceBroker(opts);
+	let broker = new ServiceBroker(Object.assign({ logger: false }, opts));
 	broker.loadService(__dirname + "/../user.service");
 	broker.loadService(__dirname + "/../math.service");
 	broker.start();
@@ -42,12 +42,13 @@ let bench2 = benchmark.createSuite("Call with middlewares");
 })();
 
 (function() {
-	let broker = createBroker();
-
 	let mw1 = handler => {
-		return ctx => Promise.resolve().then(() => handler(ctx).then(res => res));
+		return ctx => handler(ctx).then(res => res);
 	};
-	broker.use(mw1, mw1, mw1, mw1, mw1);
+
+	const broker = createBroker({
+		middlewares: Array(5).fill(mw1)
+	});
 
 	bench2.add("5 middlewares", done => {
 		return broker.call("users.empty").then(done);
@@ -55,11 +56,11 @@ let bench2 = benchmark.createSuite("Call with middlewares");
 })();
 
 // ----------------------------------------------------------------
-let bench3 = benchmark.createSuite("Call with statistics & metrics");
+let bench3 = benchmark.createSuite("Call with metrics");
 
 (function() {
 	let broker = createBroker();
-	bench3.ref("No statistics", done => {
+	bench3.ref("No metrics", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
@@ -67,20 +68,6 @@ let bench3 = benchmark.createSuite("Call with statistics & metrics");
 (function() {
 	let broker = createBroker({ metrics: true });
 	bench3.add("With metrics", done => {
-		return broker.call("users.empty").then(done);
-	});
-})();
-
-(function() {
-	let broker = createBroker({ statistics: true });
-	bench3.add("With statistics", done => {
-		return broker.call("users.empty").then(done);
-	});
-})();
-
-(function() {
-	let broker = createBroker({ metrics: true, statistics: true });
-	bench3.add("With metrics & statistics", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
@@ -94,6 +81,7 @@ let bench4 = benchmark.createSuite("Remote call with FakeTransporter");
 	let Serializer = require("../../src/serializers/json");
 
 	let b1 = new ServiceBroker({
+		logger: false,
 		transporter: new Transporter(),
 		requestTimeout: 0,
 		serializer: new Serializer(),
@@ -101,6 +89,7 @@ let bench4 = benchmark.createSuite("Remote call with FakeTransporter");
 	});
 
 	let b2 = new ServiceBroker({
+		logger: false,
 		transporter: new Transporter(),
 		requestTimeout: 0,
 		serializer: new Serializer(),
@@ -132,9 +121,9 @@ let bench4 = benchmark.createSuite("Remote call with FakeTransporter");
 
 let bench5 = benchmark.createSuite("Context tracking");
 (function() {
-	let broker = createBroker();
+	let broker = createBroker( { trackContext: true });
 	bench5.ref("broker.call (normal)", done => {
-		return broker.call("math.add", { a: 4, b: 2 }).then(done);
+		return broker.call("math.add", { a: 4, b: 2 }, { trackContext: false }).then(done);
 	});
 
 	bench5.add("broker.call (with trackContext)", done => {
@@ -143,7 +132,7 @@ let bench5 = benchmark.createSuite("Context tracking");
 
 })();
 
-module.exports = benchmark.run([bench1, bench2, bench3, bench4, bench5]);
+module.exports = Promise.delay(1000).then(() => benchmark.run([bench1, bench2, bench3, bench4, bench5]));
 
 
 /*

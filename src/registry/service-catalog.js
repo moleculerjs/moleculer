@@ -111,7 +111,7 @@ class ServiceCatalog {
 				_.forIn(service.actions, action => {
 					if (action.protected) return;
 
-					item.actions[action.name] = _.omit(action, ["handler", "service"]);
+					item.actions[action.name] = _.omit(action, ["handler", "remoteHandler", "service"]);
 				});
 			}
 
@@ -122,7 +122,7 @@ class ServiceCatalog {
 					// Skip internal event handlers
 					if (/^\$/.test(event.name)) return;
 
-					item.events[event.name] = _.omit(event, ["handler", "service"]);
+					item.events[event.name] = _.omit(event, ["handler", "remoteHandler", "service"]);
 				});
 			}
 
@@ -157,7 +157,7 @@ class ServiceCatalog {
 			_.forIn(service.actions, action => {
 				if (action.protected) return;
 
-				item.actions[action.name] = _.omit(action, ["handler", "service"]);
+				item.actions[action.name] = _.omit(action, ["handler", "remoteHandler", "service"]);
 			});
 
 			item.events = {};
@@ -166,7 +166,7 @@ class ServiceCatalog {
 				// Skip internal event handlers
 				if (/^\$/.test(event.name)) return;
 
-				item.events[event.name] = _.omit(event, ["handler", "service"]);
+				item.events[event.name] = _.omit(event, ["handler", "remoteHandler", "service"]);
 			});
 
 			res.push(item);
@@ -186,6 +186,7 @@ class ServiceCatalog {
 			if (service.node.id == nodeID) {
 				this.registry.actions.removeByService(service);
 				this.registry.events.removeByService(service);
+				return true;
 			}
 		});
 	}

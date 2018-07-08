@@ -1,0 +1,29 @@
+"use strict";
+
+import * as path from "path";
+import { ServiceBroker } from "../../../";
+
+const broker = new ServiceBroker({
+	logger: true
+});
+
+broker.loadService(path.join(__dirname, "greeter.service.ts"));
+
+(async function() {
+	try {
+		await broker.start();
+
+		const res = await broker.call("greeter.welcome", { name: "Typescript"});
+		broker.logger.info("");
+		broker.logger.info("Result: ", res);
+		broker.logger.info("");
+		if (res != "Welcome, Typescript!")
+			throw new Error("Result is mismatch!");
+		else
+			await broker.stop();
+
+	} catch(err) {
+		console.log(err);
+		process.exit(1);
+	}
+})();

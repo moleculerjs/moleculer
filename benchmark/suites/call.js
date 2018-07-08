@@ -1,16 +1,13 @@
 "use strict";
 
-//let _ = require("lodash");
-let Promise	= require("bluebird");
+const Benchmarkify = require("benchmarkify");
+const benchmark = new Benchmarkify("Broker call benchmarks").printHeader();
 
-let Benchmarkify = require("benchmarkify");
-let benchmark = new Benchmarkify("Broker call benchmarks").printHeader();
-
-let ServiceBroker = require("../../src/service-broker");
+const ServiceBroker = require("../../src/service-broker");
 
 function createBroker(opts) {
 	// Create broker
-	let broker = new ServiceBroker(opts);
+	const broker = new ServiceBroker(Object.assign({ logger: false }, opts));
 
 	broker.loadService(__dirname + "/../user.service");
 
@@ -18,9 +15,9 @@ function createBroker(opts) {
 	return broker;
 }
 
-let bench1 = benchmark.createSuite("Call methods");
+const bench1 = benchmark.createSuite("Call methods");
 (function() {
-	let broker = createBroker();
+	const broker = createBroker();
 
 	bench1.ref("broker.call (normal)", done => {
 		broker.call("users.empty").then(done);
@@ -33,22 +30,23 @@ let bench1 = benchmark.createSuite("Call methods");
 })();
 
 // ----------------------------------------------------------------
-let bench2 = benchmark.createSuite("Call with middlewares");
+const bench2 = benchmark.createSuite("Call with middlewares");
 
 (function() {
-	let broker = createBroker();
+	const broker = createBroker();
 	bench2.ref("Call without middlewares", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
 
 (function() {
-	let broker = createBroker();
-
-	let mw1 = handler => {
+	const mw1 = handler => {
 		return ctx => handler(ctx).then(res => res);
 	};
-	broker.use(mw1);
+
+	const broker = createBroker({
+		middlewares: [mw1]
+	});
 
 	bench2.add("Call with 1 middleware", done => {
 		return broker.call("users.empty").then(done);
@@ -56,12 +54,12 @@ let bench2 = benchmark.createSuite("Call with middlewares");
 })();
 
 (function() {
-	let broker = createBroker();
-
-	let mw1 = handler => {
+	const mw1 = handler => {
 		return ctx => handler(ctx).then(res => res);
 	};
-	broker.use(mw1, mw1, mw1, mw1, mw1);
+	const broker = createBroker({
+		middlewares: [mw1, mw1, mw1, mw1, mw1]
+	});
 
 	bench2.add("Call with 5 middlewares", done => {
 		return broker.call("users.empty").then(done);
@@ -69,50 +67,50 @@ let bench2 = benchmark.createSuite("Call with middlewares");
 })();
 
 // ----------------------------------------------------------------
-let bench3 = benchmark.createSuite("Call with cachers");
+const bench3 = benchmark.createSuite("Call with cachers");
 
-let MemoryCacher = require("../../src/cachers").Memory;
+const MemoryCacher = require("../../src/cachers").Memory;
 
 (function() {
-	let broker = createBroker();
+	const broker = createBroker();
 	bench3.ref("No cacher", done => {
 		return broker.call("users.get", { id: 5 }).then(done);
 	});
 })();
 
 (function() {
-	let broker = createBroker({ cacher: new MemoryCacher() });
+	const broker = createBroker({ cacher: new MemoryCacher() });
 	bench3.add("Built-in cacher", done => {
 		return broker.call("users.get", { id: 5 }).then(done);
 	});
 })();
 
 (function() {
-	let broker = createBroker({ cacher: new MemoryCacher() });
+	const broker = createBroker({ cacher: new MemoryCacher() });
 	bench3.add("Built-in cacher (keys filter)", done => {
 		return broker.call("users.get2", { id: 5 }).then(done);
 	});
 })();
 
 // ----------------------------------------------------------------
-let bench4 = benchmark.createSuite("Call with param validator");
+const bench4 = benchmark.createSuite("Call with param validator");
 
 (function() {
-	let broker = createBroker();
+	const broker = createBroker();
 	bench4.ref("No validator", done => {
 		return broker.call("users.get", { id: 5 }).then(done);
 	});
 })();
 
 (function() {
-	let broker = createBroker();
+	const broker = createBroker();
 	bench4.add("With validator passes", done => {
 		return broker.call("users.validate", { id: 5 }).then(done);
 	});
 })();
 
 (function() {
-	let broker = createBroker();
+	const broker = createBroker();
 	bench4.add("With validator fail", done => {
 		return broker.call("users.validate", { id: "a5" })
 			.catch(done);
@@ -120,32 +118,18 @@ let bench4 = benchmark.createSuite("Call with param validator");
 })();
 
 // ----------------------------------------------------------------
-let bench5 = benchmark.createSuite("Call with statistics & metrics");
+const bench5 = benchmark.createSuite("Call with metrics");
 
 (function() {
-	let broker = createBroker();
-	bench5.ref("No statistics", done => {
+	const broker = createBroker();
+	bench5.ref("No metrics", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
 
 (function() {
-	let broker = createBroker({ metrics: true });
+	const broker = createBroker({ metrics: true });
 	bench5.add("With metrics", done => {
-		return broker.call("users.empty").then(done);
-	});
-})();
-
-(function() {
-	let broker = createBroker({ statistics: true });
-	bench3.add("With statistics", done => {
-		return broker.call("users.empty").then(done);
-	});
-})();
-
-(function() {
-	let broker = createBroker({ metrics: true, statistics: true });
-	bench5.add("With metrics & statistics", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();

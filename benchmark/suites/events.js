@@ -9,7 +9,7 @@ let bench = benchmark.createSuite("Emit event");
 
 (function() {
 	// Create broker
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 
 	bench.ref("Emit event without subscribers", () => {
 		return broker.emit("event", ["param1", { a: 1, b: "Teszt"}, 500]);
@@ -19,7 +19,7 @@ let bench = benchmark.createSuite("Emit event");
 
 (function() {
 	// Create broker
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 
 	broker.createService({
 		name: "handler",
@@ -38,7 +38,7 @@ let bench = benchmark.createSuite("Emit event");
 
 (function() {
 	// Create broker
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 
 	for (let i = 0; i < 20; i++)
 		broker.createService({
@@ -58,7 +58,7 @@ let bench = benchmark.createSuite("Emit event");
 
 (function() {
 	// Create broker
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 
 	for (let i = 0; i < 20; i++)
 		broker.createService({
@@ -78,7 +78,7 @@ let bench = benchmark.createSuite("Emit event");
 
 (function() {
 	// Create broker
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 
 	for (let i = 0; i < 20; i++)
 		broker.createService({
@@ -98,7 +98,7 @@ let bench = benchmark.createSuite("Emit event");
 
 (function() {
 	// Create broker
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 
 	for (let i = 0; i < 20; i++)
 		broker.createService({

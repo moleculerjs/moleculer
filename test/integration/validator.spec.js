@@ -19,9 +19,12 @@ describe("Test broker validator with actions", () => {
 		}
 	};
 
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ logger: false });
 	broker.validator.validate = jest.fn();
 	broker.createService(schema);
+
+	beforeAll(() => broker.start());
+	afterAll(() => broker.stop());
 
 	it("shouldn't wrap validation, if action can't contain params settings", () => {
 		return broker.call("test.withoutValidation")

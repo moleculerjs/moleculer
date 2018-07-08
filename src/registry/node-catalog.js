@@ -54,7 +54,7 @@ class NodeCatalog {
 	startHeartbeatTimers() {
 		/* istanbul ignore next */
 		this.heartbeatTimer = setInterval(() => {
-			this.localNode.updateLocalInfo().then(() => {
+			this.localNode.updateLocalInfo(this.broker.getCpuUsage).then(() => {
 				if (this.broker.transit)
 					this.broker.transit.sendHeartbeat(this.localNode);
 			});
@@ -289,13 +289,16 @@ class NodeCatalog {
 	/**
 	 * Get a node list
 	 *
-	 * @param {boolean} withServices
+	 * @param {Object} {onlyAvailable = false, withServices = false}
 	 * @returns
 	 * @memberof NodeCatalog
 	 */
-	list(withServices = false) {
+	list({ onlyAvailable = false, withServices = false }) {
 		let res = [];
 		this.nodes.forEach(node => {
+			if (onlyAvailable && !node.available)
+				return;
+
 			if (withServices)
 				res.push(_.omit(node, ["rawInfo"]));
 			else

@@ -65,6 +65,14 @@ class Serializer {
 		throw new Error("Not implemented method!");
 	}
 
+	/**
+	 * Serialize custom fields (stringify)
+	 *
+	 * @param {String} type
+	 * @param {Packet} obj
+	 * @returns {Packet}
+	 * @memberof Serializer
+	 */
 	serializeCustomFields(type, obj) {
 		switch(type) {
 			case P.PACKET_INFO: {
@@ -79,14 +87,22 @@ class Serializer {
 				break;
 			}
 			case P.PACKET_REQUEST: {
-				obj.params = JSON.stringify(obj.params);
+				if (obj.stream)
+					obj.params = obj.params;
+				else
+					obj.params = JSON.stringify(obj.params);
+
 				obj.meta = JSON.stringify(obj.meta);
 				break;
 			}
 			case P.PACKET_RESPONSE: {
 				obj.meta = JSON.stringify(obj.meta);
-				if (obj.data)
-					obj.data = JSON.stringify(obj.data);
+				if (obj.data) {
+					if (obj.stream)
+						obj.data = obj.data;
+					else
+						obj.data = JSON.stringify(obj.data);
+				}
 				if (obj.error)
 					obj.error = JSON.stringify(obj.error);
 				break;
@@ -110,6 +126,14 @@ class Serializer {
 		return obj;
 	}
 
+	/**
+	 * Deserialize custom fields
+	 *
+	 * @param {String} type
+	 * @param {Packet} obj
+	 * @returns {Packet}
+	 * @memberof Serializer
+	 */
 	deserializeCustomFields(type, obj) {
 		switch(type) {
 			case P.PACKET_INFO: {
@@ -124,14 +148,22 @@ class Serializer {
 				break;
 			}
 			case P.PACKET_REQUEST: {
-				obj.params = JSON.parse(obj.params);
+				if (obj.stream)
+					obj.params = obj.params;
+				else
+					obj.params = JSON.parse(obj.params);
+
 				obj.meta = JSON.parse(obj.meta);
 				break;
 			}
 			case P.PACKET_RESPONSE: {
 				obj.meta = JSON.parse(obj.meta);
-				if (obj.data)
-					obj.data = JSON.parse(obj.data);
+				if (obj.data) {
+					if (obj.stream)
+						obj.data = obj.data;
+					else
+						obj.data = JSON.parse(obj.data);
+				}
 				if (obj.error)
 					obj.error = JSON.parse(obj.error);
 				break;

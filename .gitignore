@@ -6,3 +6,4 @@ npm-debug.log
 stats.json
 yarn-error.log
 benchmark/results
+*.exe

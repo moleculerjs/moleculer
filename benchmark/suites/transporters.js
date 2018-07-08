@@ -15,7 +15,7 @@ function createBrokers(transporter) {
 	let b1 = new ServiceBroker({
 		transporter,
 		//requestTimeout: 0,
-		//logger: console,
+		logger: false,
 		//logLevel: "debug",
 		nodeID: "node-1"
 	});
@@ -23,7 +23,7 @@ function createBrokers(transporter) {
 	let b2 = new ServiceBroker({
 		transporter,
 		//requestTimeout: 0,
-		//logger: console,
+		logger: false,
 		//logLevel: "debug",
 		nodeID: "node-2"
 	});

@@ -73,12 +73,21 @@ class NatsTransporter extends Transporter {
 				this.client = client;
 				this.logger.info("NATS client is connected.");
 
+				//Woraround, while https://github.com/nats-io/node-nats/issues/229 will be fixed in NATS library.
+				if (client.stream)
+					client.stream.setNoDelay(true);
+
 				this.onConnected().then(resolve);
 			});
 
 			/* istanbul ignore next */
 			client.on("reconnect", () => {
 				this.logger.info("NATS client is reconnected.");
+
+				//Woraround, while https://github.com/nats-io/node-nats/issues/229 will be fixed in NATS library.
+				if (client.stream)
+					client.stream.setNoDelay(true);
+
 				this.onConnected(true);
 			});
 
@@ -208,9 +217,10 @@ class NatsTransporter extends Transporter {
 
 		return new Promise(resolve => {
 			let topic = this.getTopicName(packet.type, packet.target);
-			const payload = Buffer.from(this.serialize(packet));
+			const data = this.serialize(packet);
 
-			this.client.publish(topic, payload, resolve);
+			this.incStatSent(data.length);
+			this.client.publish(topic, data, resolve);
 		});
 	}
 
@@ -228,9 +238,10 @@ class NatsTransporter extends Transporter {
 
 		return new Promise(resolve => {
 			let topic = `${this.prefix}.${PACKET_EVENT}B.${group}.${packet.payload.event}`;
-			const payload = Buffer.from(this.serialize(packet));
+			const data = this.serialize(packet);
 
-			this.client.publish(topic, payload, resolve);
+			this.incStatSent(data.length);
+			this.client.publish(topic, data, resolve);
 		});
 	}
 
@@ -247,9 +258,10 @@ class NatsTransporter extends Transporter {
 
 		return new Promise(resolve => {
 			const topic = `${this.prefix}.${PACKET_REQUEST}B.${packet.payload.action}`;
-			const payload = Buffer.from(this.serialize(packet));
+			const data = this.serialize(packet);
 
-			this.client.publish(topic, payload, resolve);
+			this.incStatSent(data.length);
+			this.client.publish(topic, data, resolve);
 		});
 	}
 

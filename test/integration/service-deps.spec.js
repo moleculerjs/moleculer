@@ -2,8 +2,8 @@ const ServiceBroker = require("../../src/service-broker");
 
 describe("Test Service dependencies", () => {
 
-	const broker1 = new ServiceBroker({ nodeID: "node-1", transporter: "fake" });
-	const broker2 = new ServiceBroker({ nodeID: "node-2", transporter: "fake" });
+	const broker1 = new ServiceBroker({ logger: false, nodeID: "node-1", transporter: "fake" });
+	const broker2 = new ServiceBroker({ logger: false, nodeID: "node-2", transporter: "fake" });
 
 	const startedMain = jest.fn();
 	broker1.createService({

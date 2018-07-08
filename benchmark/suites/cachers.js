@@ -12,10 +12,13 @@ let key = "TESTKEY-12345";
 let bench1 = benchmark.createSuite("Set & get 1k data with cacher");
 let data = JSON.parse(getDataFile("1k.json"));
 
-let broker = new Moleculer.ServiceBroker();
+let broker = new Moleculer.ServiceBroker({ logger: false });
 
 let memCacher = new Moleculer.Cachers.Memory();
 memCacher.init(broker);
+
+let memCacherCloning = new Moleculer.Cachers.Memory({ clone: true });
+memCacherCloning.init(broker);
 
 let redisCacher = new Moleculer.Cachers.Redis({
 	redis: {
@@ -44,7 +47,19 @@ bench2.add("Static", () => {
 	return memCacher.getCacheKey("user", { id: 5 }, null, ["id"]);
 });
 
-benchmark.run([bench1, bench2]).then(() => {
+let bench3 = benchmark.createSuite("Test cloning on MemoryCacher");
+memCacher.set(key, data);
+memCacherCloning.set(key, data);
+
+bench3.add("Without cloning", done => {
+	memCacher.get(key).then(done);
+});
+
+bench3.add("With cloning", done => {
+	memCacherCloning.get(key).then(done);
+});
+
+benchmark.run([/*bench1, bench2, */bench3]).then(() => {
 	redisCacher.close();
 });
 

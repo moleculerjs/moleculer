@@ -30,6 +30,10 @@ class Endpoint {
 		this.state = true;
 	}
 
+	destroy() {
+
+	}
+
 	/**
 	 * Get availability
 	 *
@@ -41,13 +45,6 @@ class Endpoint {
 	}
 
 	update() {
-	}
-
-	failure() {
-
-	}
-
-	success() {
 
 	}
 }

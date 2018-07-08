@@ -33,9 +33,7 @@ describe("Test middleware system", () => {
 			};
 		};
 
-		let broker = new ServiceBroker({ validation: false });
-		broker.use(mw2Async);
-		broker.use(mw1Sync);
+		let broker = new ServiceBroker({ logger: false, validation: false, internalMiddlewares: false, middlewares: [mw2Async, mw1Sync] });
 
 		let master = jest.fn(() => {
 			flow.push("MASTER");
@@ -49,8 +47,11 @@ describe("Test middleware system", () => {
 			}
 		});
 
+		beforeAll(() => broker.start());
+		afterAll(() => broker.stop());
+
 		it("should register plugins", () => {
-			expect(broker.middlewares.length).toBe(2);
+			expect(broker.middlewares.count()).toBe(2);
 		});
 
 		it("should call all middlewares functions & master", () => {
@@ -100,8 +101,7 @@ describe("Test middleware system", () => {
 			return { user: "icebob" };
 		});
 
-		let broker = new ServiceBroker({ validation: false });
-		broker.use(mw3, mw2, mw1);
+		let broker = new ServiceBroker({ logger: false, validation: false, internalMiddlewares: false, middlewares: [mw3, mw2, mw1] });
 
 		broker.createService({
 			name: "test",
@@ -110,8 +110,11 @@ describe("Test middleware system", () => {
 			}
 		});
 
+		beforeAll(() => broker.start());
+		afterAll(() => broker.stop());
+
 		it("should register plugins", () => {
-			expect(broker.middlewares.length).toBe(3);
+			expect(broker.middlewares.count()).toBe(3);
 		});
 
 		it("should call only mw1 & mw2 middlewares functions", () => {
@@ -165,8 +168,7 @@ describe("Test middleware system", () => {
 
 		});
 
-		let broker = new ServiceBroker({ validation: false });
-		broker.use(mw3, mw2, mw1);
+		let broker = new ServiceBroker({ logger: false, validation: false, internalMiddlewares: false, middlewares: [mw3, mw2, mw1] });
 
 		broker.createService({
 			name: "test",
@@ -175,8 +177,11 @@ describe("Test middleware system", () => {
 			}
 		});
 
+		beforeAll(() => broker.start());
+		afterAll(() => broker.stop());
+
 		it("should register plugins", () => {
-			expect(broker.middlewares.length).toBe(3);
+			expect(broker.middlewares.count()).toBe(3);
 		});
 
 		it("should call only mw1 & mw2 middlewares functions", () => {
@@ -216,8 +221,7 @@ describe("Test middleware system", () => {
 			});
 		});
 
-		let broker = new ServiceBroker({ validation: false });
-		broker.use(mw2, mw1);
+		let broker = new ServiceBroker({ logger: false, validation: false, middlewares: [mw2, mw1] });
 
 		broker.createService({
 			name: "test",
@@ -225,6 +229,9 @@ describe("Test middleware system", () => {
 				foo: master
 			}
 		});
+
+		beforeAll(() => broker.start());
+		afterAll(() => broker.stop());
 
 		it("should call only mw1 & mw2 middlewares functions", () => {
 			let p = broker.call("test.foo");

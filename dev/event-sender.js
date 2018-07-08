@@ -26,7 +26,7 @@ broker.createService({
 		}, 2000);
 
 		setInterval(() => {
-			this.broker.sendPing();
+			this.broker.ping();
 		}, 5000);
 	},
 

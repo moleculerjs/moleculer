@@ -8,7 +8,7 @@ let ServiceBroker = require("../../../src/service-broker");
 
 describe("Test EndpointList constructor", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 	let list;
 
@@ -39,7 +39,7 @@ describe("Test EndpointList constructor", () => {
 });
 
 describe("Test EndpointList.add", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	let node = { id: "server-1" };
@@ -96,7 +96,7 @@ describe("Test EndpointList.add", () => {
 });
 
 describe("Test EndpointList.select", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 	let ep = {};
 	let select = jest.fn(() => ep);
@@ -127,7 +127,7 @@ describe("Test EndpointList.select", () => {
 });
 
 describe("Test EndpointList.next", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	let ep1, ep2, ep3, ep4;
@@ -255,7 +255,7 @@ describe("Test EndpointList.next", () => {
 });
 
 describe("Test EndpointList.nextLocal", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	let ep1, ep2, ep3, ep4;
@@ -333,7 +333,7 @@ describe("Test EndpointList.nextLocal", () => {
 });
 
 describe("Test EndpointList.hasAvailable", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	let service = { name: "test" };
@@ -357,7 +357,7 @@ describe("Test EndpointList.hasAvailable", () => {
 });
 
 describe("Test EndpointList.hasLocal", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	let service = { name: "test" };
@@ -378,7 +378,7 @@ describe("Test EndpointList.hasLocal", () => {
 });
 
 describe("Test EndpointList.getEndpointByNodeID", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	let service = { name: "test" };
@@ -403,7 +403,7 @@ describe("Test EndpointList.getEndpointByNodeID", () => {
 });
 
 describe("Test EndpointList.hasNodeID", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	let service = { name: "test" };
@@ -423,7 +423,7 @@ describe("Test EndpointList.hasNodeID", () => {
 });
 
 describe("Test EndpointList.removeByService", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	let service1 = { name: "test" };
@@ -454,7 +454,7 @@ describe("Test EndpointList.removeByService", () => {
 });
 
 describe("Test EndpointList.removeByNodeID", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	let service1 = { name: "test" };
@@ -483,7 +483,7 @@ describe("Test EndpointList.removeByNodeID", () => {
 });
 
 describe("Test EndpointList.setLocalEndpoints", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
 	let service1 = { name: "test" };

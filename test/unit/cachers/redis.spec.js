@@ -12,14 +12,16 @@ describe("Test RedisCacher constructor", () => {
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toBeDefined();
 		expect(cacher.opts.ttl).toBeNull();
+		expect(cacher.opts.maxParamsLength).toBeNull();
 	});
 
 	it("should create a timer if set ttl option", () => {
-		let opts = { ttl: 500 };
+		let opts = { ttl: 500, maxParamsLength: 1024 };
 		let cacher = new RedisCacher(opts);
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toEqual(opts);
 		expect(cacher.opts.ttl).toBe(500);
+		expect(cacher.opts.maxParamsLength).toBe(1024);
 	});
 
 	it("should create with redis opts from string", () => {
@@ -29,6 +31,7 @@ describe("Test RedisCacher constructor", () => {
 		expect(cacher.opts).toEqual({
 			keygen: null,
 			ttl: null,
+			maxParamsLength: null,
 			redis: opts
 		});
 	});
@@ -37,7 +40,7 @@ describe("Test RedisCacher constructor", () => {
 
 describe("Test RedisCacher set & get without prefix", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let cacher = new RedisCacher();
 	cacher.init(broker);
 
@@ -106,7 +109,7 @@ describe("Test RedisCacher set & get without prefix", () => {
 
 describe("Test RedisCacher set & get with namespace & ttl", () => {
 
-	let broker = new ServiceBroker({ namespace: "uat" });
+	let broker = new ServiceBroker({ logger: false, namespace: "uat" });
 	let cacher = new RedisCacher({
 		ttl: 60
 	});
@@ -153,7 +156,7 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 });
 
 describe("Test RedisCacher close", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let cacher = new RedisCacher();
 	cacher.init(broker); // for empty logger
 

@@ -19,12 +19,12 @@ broker.createService({
 	name: "testservice",
 	async started() {
 		broker.waitForServices(["vidispine"],3000).then(()=>{
-			broker.call("vidispine.getApprovalRequestedSavedSearch",null,{retryCount:5})
+			broker.call("vidispine.getApprovalRequestedSavedSearch",null,{retries:5})
 				.then(broker.logger.info)
 				.catch(((e)=>{
 					broker.logger.error({
 						error: e.name,
-						retryCount: e.ctx.retryCount,
+						retries: e.ctx.retries,
 					});
 				}));
 		});

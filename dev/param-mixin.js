@@ -44,9 +44,9 @@ function paramConverterMiddleware(handler, action) {
 
 const broker = new ServiceBroker({
 	logger: true,
-	validation: true
+	validation: false,
+	middlewares: [paramConverterMiddleware]
 });
-broker.use(paramConverterMiddleware);
 
 // --- CREATE A TEST SERVICE ---
 broker.createService({

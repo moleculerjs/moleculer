@@ -5,6 +5,7 @@ describe("Test RPC", () => {
 
 	let b1 = new ServiceBroker({
 		transporter: "Fake",
+		logger: false,
 		nodeID: "node-1"
 	});
 
@@ -25,6 +26,7 @@ describe("Test RPC", () => {
 
 	let b2 = new ServiceBroker({
 		transporter: "Fake",
+		logger: false,
 		nodeID: "node-2"
 	});
 

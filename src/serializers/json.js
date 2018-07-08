@@ -33,7 +33,7 @@ class JSONSerializer extends BaseSerializer {
 	 * @memberof Serializer
 	 */
 	serialize(obj) {
-		return JSON.stringify(obj);
+		return Buffer.from(JSON.stringify(obj));
 	}
 
 	/**

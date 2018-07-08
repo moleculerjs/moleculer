@@ -8,10 +8,13 @@
 
 const _ = require("lodash");
 
+const utils = require("../utils");
+const Strategies = require("../strategies");
 const NodeCatalog = require("./node-catalog");
 const ServiceCatalog = require("./service-catalog");
 const EventCatalog = require("./event-catalog");
 const ActionCatalog = require("./action-catalog");
+const ActionEndpoint = require("./endpoint-action");
 
 /**
  * Service Registry
@@ -33,7 +36,7 @@ class Registry {
 		this.opts = Object.assign({}, broker.options.registry);
 		this.opts.circuitBreaker = broker.options.circuitBreaker || {};
 
-		this.StrategyFactory = broker._resolveStrategy(this.opts.strategy);
+		this.StrategyFactory = Strategies.resolve(this.opts.strategy);
 
 		this.logger.info("Strategy:", this.StrategyFactory.name);
 
@@ -44,8 +47,7 @@ class Registry {
 
 		this.broker.localBus.on("$broker.started", () => {
 			if (this.nodes.localNode) {
-				this.nodes.localNode.seq++;
-				this.regenerateLocalRawInfo();
+				this.regenerateLocalRawInfo(true);
 			}
 		});
 	}
@@ -57,22 +59,21 @@ class Registry {
 	 * @memberof Registry
 	 */
 	registerLocalService(svc) {
-		const service = this.services.add(this.nodes.localNode, svc.name, svc.version, svc.settings, svc.metadata);
+		if (!this.services.has(svc.name, svc.version, this.broker.nodeID)) {
+			const service = this.services.add(this.nodes.localNode, svc.name, svc.version, svc.settings, svc.metadata);
 
-		if (svc.actions)
-			this.registerActions(this.nodes.localNode, service, svc.actions);
+			if (svc.actions)
+				this.registerActions(this.nodes.localNode, service, svc.actions);
 
-		if (svc.events)
-			this.registerEvents(this.nodes.localNode, service, svc.events);
+			if (svc.events)
+				this.registerEvents(this.nodes.localNode, service, svc.events);
 
-		this.nodes.localNode.services.push(service);
+			this.nodes.localNode.services.push(service);
 
-		if (this.broker.started)
-			this.nodes.localNode.seq++;
+			this.regenerateLocalRawInfo(this.broker.started);
 
-		this.regenerateLocalRawInfo();
-
-		this.logger.info(`'${svc.name}' service is registered.`);
+			this.logger.info(`'${svc.name}' service is registered.`);
+		}
 	}
 
 	/**
@@ -110,7 +111,7 @@ class Registry {
 			if (svc.events)
 				this.registerEvents(node, service, svc.events);
 
-			// remove old actions which is not exist
+			// remove old events which is not exist
 			if (prevEvents) {
 				_.forIn(prevEvents, (event, name) => {
 					if (!svc.events[name])
@@ -120,7 +121,9 @@ class Registry {
 		});
 
 		// remove old services which is not exist in new serviceList
-		this.services.services.forEach(service => {
+		// Please note! Firstly copy the array because you can't remove items inside forEach
+		const prevServices = Array.from(this.services.services);
+		prevServices.forEach(service => {
 			if (service.node != node) return;
 
 			let exist = false;
@@ -129,11 +132,34 @@ class Registry {
 					exist = true;
 			});
 
-			if (!exist) {
-				// This service is removed on remote node!
+			// This service is removed on remote node!
+			if (!exist)
 				this.unregisterService(service.name, service.version, node.id);
-			}
 		});
+	}
+
+	/**
+	 * Check the action visiblity.
+	 *
+	 * 	Available values:
+	 * 		- "published" or `null`: public action and can be published via API Gateway
+	 * 		- "public": public action, can be called remotely but not published via API GW
+	 * 		- "protected": can be called from local services
+	 * 		- "private": can be called from internally via `this.actions.xy()` inside Service
+	 *
+	 * @param {*} action
+	 * @param {*} node
+	 * @returns
+	 * @memberof Registry
+	 */
+	checkActionVisibility(action, node) {
+		if (action.visibility == null || action.visibility == "published" || action.visibility == "public")
+			return true;
+
+		if (action.visibility == "protected" && node.local)
+			return true;
+
+		return false;
 	}
 
 	/**
@@ -146,9 +172,32 @@ class Registry {
 	 */
 	registerActions(node, service, actions) {
 		_.forIn(actions, action => {
+
+			if (!this.checkActionVisibility(action, node))
+				return;
+
+			if (node.local) {
+				action.handler = this.broker.middlewares.wrapHandler("localAction", action.handler, action);
+			} else {
+				action.handler = this.broker.middlewares.wrapHandler("remoteAction", this.broker.transit.request.bind(this.broker.transit), action);
+			}
+			if (this.broker.options.disableBalancer)
+				action.remoteHandler = this.broker.middlewares.wrapHandler("remoteAction", this.broker.transit.request.bind(this.broker.transit), action);
+
 			this.actions.add(node, service, action);
 			service.addAction(action);
 		});
+	}
+
+	/**
+	 * Create a local Endpoint for private actions
+	 *
+	 * @param {Action} action
+	 * @returns {ActionEndpoint}
+	 * @memberof Registry
+	 */
+	createPrivateActionEndpoint(action) {
+		return new ActionEndpoint(this, this.broker, this.nodes.localNode, action.service, action);
 	}
 
 	/**
@@ -201,9 +250,7 @@ class Registry {
 		this.services.remove(name, version, nodeID || this.broker.nodeID);
 
 		if (!nodeID || nodeID == this.broker.nodeID) {
-			this.nodes.localNode.seq++;
-
-			this.regenerateLocalRawInfo();
+			this.regenerateLocalRawInfo(true);
 		}
 	}
 
@@ -238,6 +285,10 @@ class Registry {
 	 */
 	registerEvents(node, service, events) {
 		_.forIn(events, event => {
+
+			if (node.local)
+				event.handler = this.broker.middlewares.wrapHandler("localEvent", event.handler, event);
+
 			this.events.add(node, service, event);
 			service.addEvent(event);
 		});
@@ -259,13 +310,19 @@ class Registry {
 	 *
 	 * @memberof Registry
 	 */
-	regenerateLocalRawInfo() {
+	regenerateLocalRawInfo(incSeq) {
 		let node = this.nodes.localNode;
-		node.rawInfo = _.pick(node, ["ipList", "hostname", "client", "config", "port", "seq"]);
+		if (incSeq)
+			node.seq++;
+
+		const rawInfo = _.pick(node, ["ipList", "hostname", "client", "config", "port", "seq"]);
 		if (this.broker.started)
-			node.rawInfo.services = this.services.getLocalNodeServices();
+			rawInfo.services = this.services.getLocalNodeServices();
 		else
-			node.rawInfo.services = [];
+			rawInfo.services = [];
+
+		// Make to be safety
+		node.rawInfo = utils.safetyObject(rawInfo);
 
 		return node.rawInfo;
 	}
@@ -336,7 +393,7 @@ class Registry {
 	/**
 	 * Get list of registered nodes
 	 *
-	 * @param {any} opts
+	 * @param {object} opts
 	 * @returns
 	 * @memberof Registry
 	 */
@@ -347,7 +404,7 @@ class Registry {
 	/**
 	 * Get list of registered services
 	 *
-	 * @param {any} opts
+	 * @param {object} opts
 	 * @returns
 	 * @memberof Registry
 	 */
@@ -358,7 +415,7 @@ class Registry {
 	/**
 	 * Get list of registered actions
 	 *
-	 * @param {any} opts
+	 * @param {object} opts
 	 * @returns
 	 * @memberof Registry
 	 */
@@ -369,7 +426,7 @@ class Registry {
 	/**
 	 * Get list of registered events
 	 *
-	 * @param {any} opts
+	 * @param {object} opts
 	 * @returns
 	 * @memberof Registry
 	 */
