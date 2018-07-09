@@ -127,24 +127,24 @@ bench.run();
 Platform info:
 ==============
    Windows_NT 6.1.7601 x64
-   Node.JS: 8.9.4
-   V8: 6.1.534.50
+   Node.JS: 8.11.0
+   V8: 6.2.414.50
    Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
 
 Suite: Emit event
-√ Emit event without subscribers                                     7,450,694 rps
-√ Emit simple event to 1 subscribers                                   663,669 rps
-√ Emit simple event to 20 subscribers                                   41,231 rps
-√ Emit wildcard event to 20 subscribers                                 30,902 rps
-√ Emit multi-wildcard event to 20 subscribers without params            30,608 rps
-√ Emit multi-wildcard event to 20 subscribers with params               30,355 rps
+√ Emit event without subscribers                                     7,093,574 rps
+√ Emit simple event to 1 subscribers                                 6,318,996 rps
+√ Emit simple event to 20 subscribers                                6,428,321 rps
+√ Emit wildcard event to 20 subscribers                              6,684,002 rps
+√ Emit multi-wildcard event to 20 subscribers without params         7,176,790 rps
+√ Emit multi-wildcard event to 20 subscribers with params            6,577,082 rps
 
-   Emit event without subscribers (#)                                    0%      (7,450,694 rps)   (avg: 134ns)
-   Emit simple event to 1 subscribers                               -91.09%        (663,669 rps)   (avg: 1μs)
-   Emit simple event to 20 subscribers                              -99.45%         (41,231 rps)   (avg: 24μs)
-   Emit wildcard event to 20 subscribers                            -99.59%         (30,902 rps)   (avg: 32μs)
-   Emit multi-wildcard event to 20 subscribers without params       -99.59%         (30,608 rps)   (avg: 32μs)
-   Emit multi-wildcard event to 20 subscribers with params          -99.59%         (30,355 rps)   (avg: 32μs)
+   Emit event without subscribers (#)                                    0%      (7,093,574 rps)   (avg: 140ns)
+   Emit simple event to 1 subscribers                               -10.92%      (6,318,996 rps)   (avg: 158ns)
+   Emit simple event to 20 subscribers                               -9.38%      (6,428,321 rps)   (avg: 155ns)
+   Emit wildcard event to 20 subscribers                             -5.77%      (6,684,002 rps)   (avg: 149ns)
+   Emit multi-wildcard event to 20 subscribers without params        +1.17%      (7,176,790 rps)   (avg: 139ns)
+   Emit multi-wildcard event to 20 subscribers with params           -7.28%      (6,577,082 rps)   (avg: 152ns)
 -----------------------------------------------------------------------
 
 */

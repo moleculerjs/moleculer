@@ -113,34 +113,34 @@ runTest(dataFiles.shift());
 Platform info:
 ==============
    Windows_NT 6.1.7601 x64
-   Node.JS: 8.9.4
-   V8: 6.1.534.50
+   Node.JS: 8.11.0
+   V8: 6.2.414.50
    Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
 
 'Fake' transporter with 10bytes payload:
 ===============================================
 Messages  : 20,000 msgs
-Throughput: 40,567 msgs/sec
+Throughput: 38,986 msgs/sec
 
 'TCP' transporter with 10bytes payload:
 ===============================================
 Messages  : 20,000 msgs
-Throughput: 22,962 msgs/sec
+Throughput: 26,420 msgs/sec
 
 'MQTT' transporter with 10bytes payload:
 ===============================================
-(node:11052) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 1001 drain listeners added. Use emitter.setMaxListeners() to increase limit
+(node:7768) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 1001 drain listeners added. Use emitter.setMaxListeners() to increase limit
 Messages  : 20,000 msgs
-Throughput: 6,170 msgs/sec
+Throughput: 5,767 msgs/sec
 
 'Redis' transporter with 10bytes payload:
 ===============================================
 Messages  : 20,000 msgs
-Throughput: 15,576 msgs/sec
+Throughput: 12,562 msgs/sec
 
 'NATS' transporter with 10bytes payload:
 ===============================================
 Messages  : 20,000 msgs
-Throughput: 19,550 msgs/sec
+Throughput: 22,805 msgs/sec
 
 */

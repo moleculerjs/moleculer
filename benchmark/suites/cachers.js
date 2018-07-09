@@ -59,7 +59,7 @@ bench3.add("With cloning", done => {
 	memCacherCloning.get(key).then(done);
 });
 
-benchmark.run([/*bench1, bench2, */bench3]).then(() => {
+benchmark.run([bench1, bench2, bench3]).then(() => {
 	redisCacher.close();
 });
 
@@ -72,24 +72,32 @@ benchmark.run([/*bench1, bench2, */bench3]).then(() => {
 Platform info:
 ==============
    Windows_NT 6.1.7601 x64
-   Node.JS: 8.9.4
-   V8: 6.1.534.50
+   Node.JS: 8.11.0
+   V8: 6.2.414.50
    Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
 
 Suite: Set & get 1k data with cacher
-√ Memory*        2,066,824 rps
-√ Redis*            10,915 rps
+√ Memory*        2,233,922 rps
+√ Redis*            10,729 rps
 
-   Memory*           0%      (2,066,824 rps)   (avg: 483ns)
-   Redis*       -99.47%         (10,915 rps)   (avg: 91μs)
+   Memory*           0%      (2,233,922 rps)   (avg: 447ns)
+   Redis*       -99.52%         (10,729 rps)   (avg: 93μs)
 -----------------------------------------------------------------------
 
 Suite: Test getCacheKey
-√ Dynamic           679,228 rps
-√ Static          5,981,643 rps
+√ Dynamic         2,783,031 rps
+√ Static          6,787,824 rps
 
-   Dynamic       -88.64%        (679,228 rps)   (avg: 1μs)
-   Static             0%      (5,981,643 rps)   (avg: 167ns)
+   Dynamic          -59%      (2,783,031 rps)   (avg: 359ns)
+   Static             0%      (6,787,824 rps)   (avg: 147ns)
+-----------------------------------------------------------------------
+
+Suite: Test cloning on MemoryCacher
+√ Without cloning*        4,608,810 rps
+√ With cloning*             182,449 rps
+
+   Without cloning*           0%      (4,608,810 rps)   (avg: 216ns)
+   With cloning*         -96.04%        (182,449 rps)   (avg: 5μs)
 -----------------------------------------------------------------------
 
 
