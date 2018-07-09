@@ -2,13 +2,10 @@ import * as Bluebird from "bluebird";
 declare namespace Moleculer {
 	type GenericObject = { [name: string]: any };
 
+	type LogLevels = "fatal" | "error" | "warn" | "info" | "debug" | "trace";
+
 	interface Logger {
-		fatal?: (...args: any[]) => void;
-		error: (...args: any[]) => void;
-		warn: (...args: any[]) => void;
-		info: (...args: any[]) => void;
-		debug?: (...args: any[]) => void;
-		trace?: (...args: any[]) => void;
+		[level: LogLevels]: (...args: any[]) => void;
 	}
 
 	class LoggerInstance {
@@ -29,13 +26,13 @@ declare namespace Moleculer {
 	type MetricsMetaFuncType= (meta: object) => any;
 	type MetricsOptions = { params?: boolean | string[] | MetricsParamsFuncType, meta?: boolean | string[] | MetricsMetaFuncType };
 
-	type BulkheadOptions = {
-		enabled?: boolean,
-		concurrency?: number,
-		maxQueueSize?: number
+	interface BulkheadOptions {
+		enabled?: boolean;
+		concurrency?: number;
+		maxQueueSize?: number;
 	};
 
-	type ActionCacheOptions = {
+	interface ActionCacheOptions {
 		ttl?: number;
 		keys?: Array<string>;
 	};
@@ -55,7 +52,7 @@ declare namespace Moleculer {
 		[key: string]: any;
 	}
 
-	interface Node {
+	interface BrokerNode {
 		id: string;
 		available: boolean;
 		local: boolean;
@@ -63,7 +60,6 @@ declare namespace Moleculer {
 	}
 
 	type Actions = { [key: string]: Action | ActionHandler; };
-
 
 
 	class Context<P = GenericObject, M = GenericObject> {
@@ -125,6 +121,20 @@ declare namespace Moleculer {
 
 	type Middleware = (handler: ActionHandler, action: Action) => any;
 
+	class MiddlewareHandler {
+		list: Middleware[];
+
+		constructor(broker);
+
+		add(mw: Middleware): void;
+		wrapHandler(method: string, handler: ActionHandler, def: GenericObject): typeof handler;
+		callHandlers(method: string, args: any[], reverse: boolean): Promise<void>;
+		callSyncHandlers(method: string, args: any[], reverse: boolean): void;
+		count(): number;
+		wrapBrokerMethods(): void;
+		wrapMethod(method: string, handler: ActionHandler, bindTo: any): typeof handler;
+	}
+
 	interface ServiceSchema {
 		name: string;
 		version?: string | number;
@@ -160,13 +170,12 @@ declare namespace Moleculer {
 
 		waitForServices(serviceNames: string | Array<string>, timeout?: number, interval?: number): Bluebird<void>;
 
-		_init: () => void;
-		_start: () => Bluebird<void>;
-		_stop: () => Bluebird<void>;
-		[name: string]: any;
+		_init(): void;
+		_start(): Bluebird<void>;
+		_stop(): Bluebird<void>;
 	}
 
-	type CheckerFunc = (err: Error) => boolean;
+	type CheckRetryable = (err: Error) => boolean;
 
 	interface BrokerCircuitBreakerOptions {
 		enabled?: boolean,
@@ -174,7 +183,7 @@ declare namespace Moleculer {
 		windowTime?: number;
 		minRequestCount?: number;
 		halfOpenTime?: number;
-		check?: CheckerFunc;
+		check?: CheckRetryable;
 	}
 
 	interface RetryPolicyOptions {
@@ -183,7 +192,7 @@ declare namespace Moleculer {
 		delay?: number;
 		maxDelay?: number;
 		factor?: number;
-		check: CheckerFunc;
+		check: CheckRetryable;
 	}
 
 	interface BrokerRegistryOptions {
@@ -201,12 +210,16 @@ declare namespace Moleculer {
 		shutdownTimeout?: number;
 	}
 
+	interface LogLevelConfig {
+		[module: string]: boolean | LogLevels;
+	}
+
 	interface BrokerOptions {
 		namespace?: string;
 		nodeID?: string;
 
 		logger?: Logger | boolean;
-		logLevel?: string | GenericObject;
+		logLevel?: LogLevels | LogLevelConfig;
 		logFormatter?: Function | string;
 		logObjectPrinter?: Function;
 
