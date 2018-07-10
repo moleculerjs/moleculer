@@ -41,7 +41,7 @@
   "bin": {
     "moleculer-runner": "./bin/moleculer-runner.js"
   },
-  "author": "Ice Services",
+  "author": "Icebob",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "10.5.2",
