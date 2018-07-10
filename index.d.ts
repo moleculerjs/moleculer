@@ -121,10 +121,8 @@ declare namespace Moleculer {
 
 	type Middleware = (handler: ActionHandler, action: Action) => any;
 
-	class MiddlewareHandler {
+	interface MiddlewareHandler {
 		list: Middleware[];
-
-		constructor(broker);
 
 		add(mw: Middleware): void;
 		wrapHandler(method: string, handler: ActionHandler, def: GenericObject): typeof handler;
@@ -371,7 +369,7 @@ declare namespace Moleculer {
 		serializer?: Serializer;
 		validator?: Validator;
 		transit: GenericObject;
-		middlewares: GenericObject;
+		middlewares: MiddlewareHandler;
 
 		start(): Bluebird<void>;
 		stop(): Bluebird<void>;
