@@ -171,6 +171,7 @@ declare namespace Moleculer {
 		_init(): void;
 		_start(): Bluebird<void>;
 		_stop(): Bluebird<void>;
+		[name: string]: any;
 	}
 
 	type CheckRetryable = (err: Error) => boolean;
