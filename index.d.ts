@@ -5,7 +5,12 @@ declare namespace Moleculer {
 	type LogLevels = "fatal" | "error" | "warn" | "info" | "debug" | "trace";
 
 	interface Logger {
-		[level: LogLevels]: (...args: any[]) => void;
+		fatal: (...args: any[]) => void;
+		error: (...args: any[]) => void;
+		warn: (...args: any[]) => void;
+		info: (...args: any[]) => void;
+		debug: (...args: any[]) => void;
+		trace: (...args: any[]) => void;
 	}
 
 	class LoggerInstance {
@@ -30,12 +35,12 @@ declare namespace Moleculer {
 		enabled?: boolean;
 		concurrency?: number;
 		maxQueueSize?: number;
-	};
+	}
 
 	interface ActionCacheOptions {
 		ttl?: number;
 		keys?: Array<string>;
-	};
+	}
 
 	interface Action {
 		name?: string;
