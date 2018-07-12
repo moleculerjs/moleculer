@@ -522,7 +522,7 @@ class Transit {
 	 * @memberof Transit
 	 */
 	_sendRequest(ctx, resolve, reject) {
-		const isStream = ctx.params && typeof ctx.params.on === "function" && typeof ctx.params.read === "function" && typeof ctx.params.pipe === "function";
+		const isStream = ctx.params && ctx.params.readable === true && typeof ctx.params.on === "function" && typeof ctx.params.pipe === "function";
 
 		const request = {
 			action: ctx.action,
@@ -751,7 +751,7 @@ class Transit {
 
 		const publishCatch = err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err);
 
-		if (data && typeof data.on === "function" && typeof data.read === "function" && typeof data.pipe === "function") {
+		if (data && data.readable === true && typeof data.on === "function" && typeof data.pipe === "function") {
 			// Streaming response
 			payload.stream = true;
 			const stream = data;
