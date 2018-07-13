@@ -1,4 +1,13 @@
 --------------------------------------------------
+<a name="0.13.1"></a>
+# [0.13.1](https://github.com/moleculerjs/moleculer/compare/v0.13.0...v0.13.1) (2018-07-13)
+
+# Changes
+- improve `index.d.ts`
+- support Duplex streams [#325](https://github.com/moleculerjs/moleculer/issues/325)
+- update dependencies
+
+--------------------------------------------------
 <a name="0.13.0"></a>
 # [0.13.0](https://github.com/moleculerjs/moleculer/compare/v0.12.8...v0.13.0) (2018-07-08)
 

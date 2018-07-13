@@ -2,6 +2,7 @@
 
 const ServiceBroker = require("../src/service-broker");
 const fs = require("fs");
+const Promise = require("bluebird");
 const path = require("path");
 const crypto = require("crypto");
 
@@ -11,7 +12,7 @@ const password = "moleculer";
 const broker1 = new ServiceBroker({
 	namespace: "streaming",
 	nodeID: "client-" + process.pid,
-	transporter: "NATS",
+	transporter: "TCP",
 	serializer: "Thrift",
 	logger: console,
 	logLevel: "info"
@@ -22,7 +23,7 @@ const broker1 = new ServiceBroker({
 const broker2 = new ServiceBroker({
 	namespace: "streaming",
 	nodeID: "encrypter-" + process.pid,
-	transporter: "NATS",
+	transporter: "TCP",
 	serializer: "Thrift",
 	logger: console,
 	logLevel: "info"
