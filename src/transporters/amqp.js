@@ -99,7 +99,7 @@ class AmqpTransporter extends Transporter {
 				this.broker.fatal("The 'amqplib' package is missing. Please install it with 'npm install amqplib --save' command.", err, true);
 			}
 
-			amqp.connect(this.opts.url)
+			amqp.connect(this.opts.url, this.opts.socketOptions)
 				.then(connection => {
 					this.connection = connection;
 					this.logger.info("AMQP is connected.");
