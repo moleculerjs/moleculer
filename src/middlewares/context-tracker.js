@@ -64,7 +64,7 @@ function wrapTrackerMiddleware(handler, action) {
 }
 
 function waitingForActiveContexts(list, logger, time) {
-	if (list.length === 0)
+	if (!list || list.length === 0)
 		return Promise.resolve();
 
 	return new Promise((resolve) => {

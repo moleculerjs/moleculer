@@ -130,7 +130,6 @@ class AmqpTransporter extends Transporter {
 						.createChannel()
 						.then((channel) => {
 							this.channel = channel;
-							this.onConnected().then(resolve);
 							this.logger.info("AMQP channel is created.");
 
 							channel.prefetch(this.opts.prefetch);
@@ -157,7 +156,10 @@ class AmqpTransporter extends Transporter {
 								.on("return", (msg) => {
 									this.logger.warn("AMQP channel returned a message.", msg);
 								});
+
+							return this.onConnected()
 						})
+						.then(resolve)
 						.catch((err) => {
 							/* istanbul ignore next*/
 							this.logger.error("AMQP failed to create channel.");
