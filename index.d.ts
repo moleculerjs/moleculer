@@ -271,6 +271,12 @@ declare namespace Moleculer {
 		created?: (broker: ServiceBroker) => void;
 		started?: (broker: ServiceBroker) => void;
 		stopped?: (broker: ServiceBroker) => void;
+		
+		/**
+		 * If true, process.on("beforeExit/exit/SIGINT/SIGTERM", ...) handler won't be registered!
+		 * You have to register this manually and stop broker in this case!
+		 */
+		skipProcessEventRegistration?: boolean;
 	}
 
 	interface NodeHealthStatus {
