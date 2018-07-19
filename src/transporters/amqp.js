@@ -157,7 +157,7 @@ class AmqpTransporter extends Transporter {
 									this.logger.warn("AMQP channel returned a message.", msg);
 								});
 
-							return this.onConnected(false)
+							return this.onConnected()
 						})
 						.then(resolve)
 						.catch((err) => {
