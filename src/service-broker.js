@@ -231,10 +231,12 @@ class ServiceBroker {
 			};
 
 			process.setMaxListeners(0);
-			process.on("beforeExit", this._closeFn);
-			process.on("exit", this._closeFn);
-			process.on("SIGINT", this._closeFn);
-			process.on("SIGTERM", this._closeFn);
+			if ((this.options.skipProcessEventRegistration || false) !== true) {
+				process.on("beforeExit", this._closeFn);
+				process.on("exit", this._closeFn);
+				process.on("SIGINT", this._closeFn);
+				process.on("SIGTERM", this._closeFn);
+			}
 		} catch(err) {
 			if (this.logger)
 				this.fatal("Unable to create ServiceBroker.", err, true);
@@ -398,10 +400,12 @@ class ServiceBroker {
 
 				this.localBus.emit("$broker.stopped");
 
-				process.removeListener("beforeExit", this._closeFn);
-				process.removeListener("exit", this._closeFn);
-				process.removeListener("SIGINT", this._closeFn);
-				process.removeListener("SIGTERM", this._closeFn);
+				if ((this.options.skipProcessEventRegistration || false) !== true) {
+					process.removeListener("beforeExit", this._closeFn);
+					process.removeListener("exit", this._closeFn);
+					process.removeListener("SIGINT", this._closeFn);
+					process.removeListener("SIGTERM", this._closeFn);
+				}
 			});
 	}
 
