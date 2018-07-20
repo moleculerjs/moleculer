@@ -445,7 +445,7 @@ class Service {
 
 			} else if (["mixins", "dependencies"].indexOf(key) !== -1) {
 				// Concat mixins
-				res[key] = _.compact(_.flatten([mods[key], res[key]]));
+				res[key] = _.uniqWith(_.compact(_.flatten([mods[key], res[key]])), _.isEqual);
 
 			} else {
 				// Overwrite
