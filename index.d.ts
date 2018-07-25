@@ -271,7 +271,7 @@ declare namespace Moleculer {
 		created?: (broker: ServiceBroker) => void;
 		started?: (broker: ServiceBroker) => void;
 		stopped?: (broker: ServiceBroker) => void;
-		
+
 		/**
 		 * If true, process.on("beforeExit/exit/SIGINT/SIGTERM", ...) handler won't be registered!
 		 * You have to register this manually and stop broker in this case!
@@ -702,7 +702,8 @@ declare namespace Moleculer {
 		Avro: Serializer,
 		MsgPack: Serializer,
 		ProtoBuf: Serializer,
-		Thrift: Serializer
+		Thrift: Serializer,
+		Notepack: Serializer
 	};
 
 	namespace Errors {
