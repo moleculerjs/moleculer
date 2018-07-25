@@ -2,33 +2,20 @@
 "use strict";
 
 const ServiceBroker = require("../../src/service-broker");
-const FakeTransporter = require("../../src/transporters/fake");
-const Context = require("../../src/context");
 const Serializers = require("../../src/serializers");
 const P = require("../../src/packets");
+const crypto = require("crypto");
 
 const { getDataFile } = require("../utils");
 
 const Benchmarkify = require("benchmarkify");
 const benchmark = new Benchmarkify("Serializers benchmark").printHeader();
 
-let dataFiles = ["10", "150", "1k", "10k", "50k", "100k", "1M"];
-
-function createBrokers(Serializer, opts) {
-	const broker = new ServiceBroker({
-		logger: false,
-		nodeID: "node-1",
-		transporter: new FakeTransporter(),
-		serializer: new Serializer(opts)
-	});
-
-	return broker;
-}
+let dataFiles = ["10", "1k", "50k", "100k", "buf-10240", "buf-102400"];
 
 function runTest(dataName) {
 
-	let data = getDataFile(dataName + ".json");
-	let payload = JSON.parse(data);
+	let payload = !dataName.startsWith("buf-") ? JSON.parse(getDataFile(dataName + ".json")) : crypto.randomBytes(parseInt(dataName.substr(4)));
 
 	const broker = new ServiceBroker({ logger: false });
 
@@ -37,12 +24,14 @@ function runTest(dataName) {
 	let MsgPackSer = new Serializers.MsgPack();
 	let protoBufSer = new Serializers.ProtoBuf();
 	let thriftSer = new Serializers.Thrift();
+	let notepackSer = new Serializers.Notepack();
 
 	JsonSer.init(broker);
 	AvroSer.init(broker);
 	MsgPackSer.init(broker);
 	protoBufSer.init(broker);
 	thriftSer.init(broker);
+	notepackSer.init(broker);
 
 	let bench1 = benchmark.createSuite(`Serialize packet with ${dataName}bytes`);
 
@@ -133,11 +122,23 @@ function runTest(dataName) {
 		return thriftSer.serialize(packet.payload, packet.type);
 	});
 
+	bench1.add("Notepack", () => {
+		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
+			ver:"3",
+			sender: "node-100",
+			event: "user.created",
+			data: payload,
+			broadcast: true
+		});
+		return notepackSer.serialize(packet.payload, packet.type);
+	});
+
 	console.log("JSON length:", JsonSer.serialize(packet.payload, packet.type).length);
 	console.log("Avro length:", AvroSer.serialize(packet.payload, packet.type).length);
 	console.log("MsgPack length:", MsgPackSer.serialize(packet.payload, packet.type).length);
 	console.log("ProtoBuf length:", protoBufSer.serialize(packet.payload, packet.type).length);
 	console.log("Thrift length:", thriftSer.serialize(packet.payload, packet.type).length);
+	console.log("Notepack length:", notepackSer.serialize(packet.payload, packet.type).length);
 
 	return bench1.run()
 		.then(() => {

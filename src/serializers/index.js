@@ -15,7 +15,8 @@ const Serializers = {
 	Avro: require("./avro"),
 	MsgPack: require("./msgpack"),
 	ProtoBuf: require("./protobuf"),
-	Thrift: require("./thrift")
+	Thrift: require("./thrift"),
+	Notepack: require("./notepack")
 };
 
 function getByName(name) {
