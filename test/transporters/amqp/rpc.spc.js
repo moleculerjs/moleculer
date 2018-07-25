@@ -11,7 +11,7 @@ function createNode(name, disableBalancer = false, service) {
 	const broker = new ServiceBroker({
 		namespace: "test-rpc",
 		nodeID: "rpc-" + name,
-		//logger: console,
+		logger: false,
 		transporter: process.env.AMQP_URI || "amqp://guest:guest@localhost:5672",
 		disableBalancer,
 		registry: {

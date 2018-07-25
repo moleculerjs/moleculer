@@ -1,7 +1,5 @@
 "use strict";
 
-let cpuUsage = jest.mock("../../../src/cpu-usage", () => () => Promise.resolve({ avg: 12 }));
-
 let Node = require("../../../src/registry/node");
 
 describe("Test Node", () => {
@@ -86,9 +84,14 @@ describe("Test Node", () => {
 		let node = new Node("node-1");
 		node.cpuSeq = 1000;
 
-		return node.updateLocalInfo().then(() => {
+		const cpu = jest.fn(() => Promise.resolve({ avg: 12 }));
+
+		return node.updateLocalInfo(cpu).then(() => {
 			expect(node.cpu).toBe(12);
 			expect(node.cpuSeq).not.toBe(1000);
+
+			expect(cpu).toHaveBeenCalledTimes(1);
+			expect(cpu).toHaveBeenCalledWith();
 		});
 	});
 

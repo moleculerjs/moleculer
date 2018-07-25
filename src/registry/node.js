@@ -6,8 +6,6 @@
 
 "use strict";
 
-const cpuUsage 	= require("../cpu-usage");
-
 /**
  * Node class
  *
@@ -74,7 +72,7 @@ class Node {
 	 *
 	 * @memberof Node
 	 */
-	updateLocalInfo() {
+	updateLocalInfo(cpuUsage) {
 		return cpuUsage().then(res => {
 			const newVal = Math.round(res.avg);
 			if (this.cpu != newVal) {

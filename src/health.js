@@ -72,7 +72,7 @@ const getNetworkInterfacesInfo = () => {
 const getTransitStatus = (broker) => {
 	if (broker.transit) {
 		return {
-			stat: _.clone(broker.transit.stat)
+			stat: _.cloneDeep(broker.transit.stat)
 		};
 	}
 

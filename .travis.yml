@@ -1,17 +1,36 @@
 language: node_js
 sudo: false
 dist: precise
-services:
-  - rabbitmq
-  - redis-server
-cache:
-  directories:
-  - node_modules
+
 node_js:
+    - "10"
     - "9"
     - "8"
     - "6"
+
+cache:
+  directories:
+  - node_modules
+
+services:
+  - rabbitmq
+  - redis-server
+
+addons:
+  apt:
+    sources:
+      - sourceline: 'ppa:mosquitto-dev/mosquitto-ppa'
+    packages:
+      - mosquitto
+
+before_script:
+  # install NATS server
+  - wget https://github.com/nats-io/gnatsd/releases/download/v1.1.0/gnatsd-v1.1.0-linux-amd64.zip -qO gnatsd.zip
+  - unzip gnatsd.zip
+  - ./gnatsd-v1.1.0-linux-amd64/gnatsd &
+
 script:
-  - npm test && npm run test:amqp
+  - npm run test:travis
+
 after_success:
   - npm run coverall

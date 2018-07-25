@@ -114,6 +114,7 @@ class BaseTransporter {
 	incomingMessage(cmd, msg) {
 		if (!msg) return;
 		try {
+			this.incStatReceived(msg.length);
 			const packet = this.deserialize(cmd, msg);
 			return this.messageHandler(cmd, packet);
 		} catch(err) {
@@ -312,6 +313,20 @@ class BaseTransporter {
 		const msg = this.broker.serializer.deserialize(buf, type);
 		return new P.Packet(type, null, msg);
 
+	}
+
+	incStatSent(len) {
+		if (len > 0) {
+			this.transit.stat.packets.sent.count++;
+			this.transit.stat.packets.sent.bytes += len;
+		}
+	}
+
+	incStatReceived(len) {
+		if (len > 0) {
+			this.transit.stat.packets.received.count++;
+			this.transit.stat.packets.received.bytes += len;
+		}
 	}
 }
 

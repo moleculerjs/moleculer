@@ -9,6 +9,7 @@
 const {
 	CIRCUIT_CLOSE,
 	CIRCUIT_HALF_OPEN,
+	CIRCUIT_HALF_OPEN_WAIT,
 	CIRCUIT_OPEN
 } = require("./src/constants");
 
@@ -25,12 +26,15 @@ module.exports = {
 	Strategies: require("./src/strategies"),
 	Validator: require("./src/validator"),
 
+	Middlewares: require("./src/middlewares"),
+
 	Errors: require("./src/errors"),
 
 	Utils: require("./src/utils"),
 
 	CIRCUIT_CLOSE,
 	CIRCUIT_HALF_OPEN,
+	CIRCUIT_HALF_OPEN_WAIT,
 	CIRCUIT_OPEN,
 
 	MOLECULER_VERSION: require("./src/service-broker").MOLECULER_VERSION,

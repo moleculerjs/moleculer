@@ -57,6 +57,11 @@ describe("Test match", () => {
 	expect(utils.match("bb.cc", "bb.*")).toBe(true);
 	expect(utils.match("dd", "*")).toBe(true);
 
+	expect(utils.match("abcd", "*d")).toBe(true);
+	expect(utils.match("abcd", "*d*")).toBe(true);
+	expect(utils.match("abcd", "*a*")).toBe(true);
+	expect(utils.match("abcd", "a*")).toBe(true);
+
 	// --- DOUBLE STARS CASES ---
 
 	expect(utils.match("aa.bb.cc", "aa.*")).toBe(false);
@@ -75,8 +80,10 @@ describe("Test match", () => {
 	expect(utils.match("aa.bb.cc.dd", "**.bb.**")).toBe(true);
 	expect(utils.match("aa.bb.cc.dd", "**.cc.**")).toBe(true);
 
+	expect(utils.match("aa.bb.cc.dd", "**aa**")).toBe(true);
 	expect(utils.match("aa.bb.cc.dd", "**bb**")).toBe(true);
 	expect(utils.match("aa.bb.cc.dd", "**cc**")).toBe(true);
+	expect(utils.match("aa.bb.cc.dd", "**dd**")).toBe(true);
 
 	expect(utils.match("aa.bb.cc.dd", "**b**")).toBe(true);
 	expect(utils.match("aa.bb.cc.dd", "**c**")).toBe(true);
@@ -102,4 +109,52 @@ describe("Test match", () => {
 	expect(utils.match("$aa.bb.cc", "**.cc")).toBe(true);
 	expect(utils.match("$aa.bb.cc", "**")).toBe(true);
 	expect(utils.match("$aa.bb.cc", "*")).toBe(false);
+});
+
+describe("Test utils.safetyObject", () => {
+
+	it("should return a same object", () => {
+		const obj = {
+			a: 5,
+			b: "Hello",
+			c: [0,1,2],
+			d: {
+				e: false,
+				f: 1.23
+			}
+		};
+		const res = utils.safetyObject(obj);
+		expect(res).not.toBe(obj);
+		expect(res).toEqual(obj);
+	});
+
+	it("should return a same object without circular refs & Function", () => {
+		const obj = {
+			a: 5,
+			b: "Hello",
+			c: [0,1,2],
+			d: {
+				e: false,
+				f: 1.23
+			},
+			h: (ctx) => ctx
+		};
+		obj.d.g = obj;
+
+		const res = utils.safetyObject(obj);
+		expect(res).not.toBe(obj);
+		expect(res).toEqual({
+			a: 5,
+			b: "Hello",
+			c: [0,1,2],
+			d: {
+				e: false,
+				f: 1.23
+			}
+		});
+
+		expect(obj.d.g).toBeDefined();
+		expect(obj.h).toBeInstanceOf(Function);
+	});
+
 });

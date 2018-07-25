@@ -25,38 +25,31 @@ describe("Test BaseCacher", () => {
 		let cacher = new Cacher(opts);
 		expect(cacher.opts).toBeDefined();
 		expect(cacher.opts.ttl).toBeNull();
+		expect(cacher.opts.maxParamsLength).toBeNull();
 	});
 
 	it("check constructor with options", () => {
-		let opts = { ttl: 500 };
+		let opts = { ttl: 500, maxParamsLength: 128 };
 		let cacher = new Cacher(opts);
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toEqual(opts);
 		expect(cacher.opts.ttl).toBe(500);
+		expect(cacher.opts.maxParamsLength).toBe(128);
 	});
 
 	it("check init", () => {
-		let broker = new ServiceBroker();
+		let broker = new ServiceBroker({ logger: false });
 		broker.on = jest.fn();
-		broker.use = jest.fn();
 		let cacher = new Cacher();
 
 		cacher.init(broker);
 		expect(cacher.broker).toBe(broker);
 		expect(cacher.logger).toBeDefined();
 		expect(cacher.prefix).toBe("MOL-");
-
-		expect(broker.use).toHaveBeenCalledTimes(1);
-
-		/*
-		expect(broker.on).toHaveBeenCalledTimes(2);
-		expect(broker.on).toHaveBeenCalledWith("cache.clean", jasmine.any(Function));
-		expect(broker.on).toHaveBeenCalledWith("cache.del", jasmine.any(Function));
-		*/
 	});
 
 	it("check init with namespace", () => {
-		let broker = new ServiceBroker({ namespace: "uat-test" });
+		let broker = new ServiceBroker({ logger: false, namespace: "uat-test" });
 		let cacher = new Cacher();
 		cacher.init(broker);
 
@@ -64,7 +57,7 @@ describe("Test BaseCacher", () => {
 	});
 
 	it("check init with prefix", () => {
-		let broker = new ServiceBroker({ namespace: "uat-test" });
+		let broker = new ServiceBroker({ logger: false, namespace: "uat-test" });
 		let cacher = new Cacher({ prefix: "other" });
 		cacher.init(broker);
 
@@ -72,14 +65,14 @@ describe("Test BaseCacher", () => {
 	});
 
 
-	it("check getCacheKey", () => {
-		let broker = new ServiceBroker();
+	it("check getCacheKey with keys", () => {
+		let broker = new ServiceBroker({ logger: false });
 		let cacher = new Cacher();
 
 		cacher.init(broker);
 		// Check result
 		let res = cacher.getCacheKey("posts.find.model", { id: 1, name: "Bob" });
-		expect(res).toBe("posts.find.model:db2f5d71b3715e65c4f31a1cc510a90ed93b4f99abc4579da7f34cd4976ab79e");
+		expect(res).toBe("posts.find.model:id|1|name|Bob");
 
 		// Same result, with same params
 		let res2 = cacher.getCacheKey("posts.find.model", { id: 1, name: "Bob" });
@@ -88,7 +81,7 @@ describe("Test BaseCacher", () => {
 		// Different result, with different params
 		let res3 = cacher.getCacheKey("posts.find.model", { id: 2, name: "Bob" });
 		expect(res3).not.toEqual(res);
-		expect(res3).toBe("posts.find.model:f67b30a6ce5a28452217cb3b63a28d9db412e70de5ec1938ad373b36fa98073f");
+		expect(res3).toBe("posts.find.model:id|2|name|Bob");
 
 		res = cacher.getCacheKey();
 		expect(res).toBe(undefined);
@@ -97,19 +90,25 @@ describe("Test BaseCacher", () => {
 		expect(res).toBe("posts.find");
 
 		res = cacher.getCacheKey("user", {});
-		expect(res).toBe("user:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a");
+		expect(res).toBe("user:");
 
 		res = cacher.getCacheKey("user", {a: 5});
-		expect(res).toBe("user:b0a7093990109d1355dc833dcddecae4de9624d2226b9499d459b8ef94353942");
+		expect(res).toBe("user:a|5");
+
+		res = cacher.getCacheKey("user", {a: []});
+		expect(res).toBe("user:a|");
+
+		res = cacher.getCacheKey("user", {a: null});
+		expect(res).toBe("user:a|null");
 
 		res = cacher.getCacheKey("user", {a: 5}, null, ["a"]);
 		expect(res).toBe("user:5");
 
 		res = cacher.getCacheKey("user", {a: { id: 5 }}, null, ["a"]);
-		expect(res).toBe("user:609885e768b9fe49724d1765ef39f50770a553a1b6b2bf2524eb4d170de6ef38");
+		expect(res).toBe("user:id|5");
 
 		res = cacher.getCacheKey("user", { a: [1,3,5] }, null, ["a"]);
-		expect(res).toBe("user:7338883e2772613ee984693e6707038578abce9fc9ea0b789d06a8d5e8f99457");
+		expect(res).toBe("user:1|3|5");
 
 		res = cacher.getCacheKey("user", {a: 5, b: 3, c: 5}, null, ["a"]);
 		expect(res).toBe("user:5");
@@ -125,7 +124,7 @@ describe("Test BaseCacher", () => {
 
 
 		res = cacher.getCacheKey("user", {a: 5, b: { id: 3 }}, null, ["a", "c", "b"]);
-		expect(res).toBe("user:5|undefined|7cd0bff03436177b21566f74101e93f73b7295a6d7855339e540f044af12d469");
+		expect(res).toBe("user:5|undefined|id|3");
 
 		res = cacher.getCacheKey("user", {a: 5, b: { id: 3, other: { status: true } }}, null, ["a", "c", "b.id"]);
 		expect(res).toBe("user:5|undefined|3");
@@ -133,18 +132,18 @@ describe("Test BaseCacher", () => {
 		res = cacher.getCacheKey("user", {a: 5, b: { id: 3, other: { status: true } }}, null, ["a", "b.id", "b.other.status"]);
 		expect(res).toBe("user:5|3|true");
 
+		res = cacher.getCacheKey("user", {a: 5, b: { id: 3, other: { status: true } }});
+		expect(res).toBe("user:a|5|b|id|3|other|status|true");
+
 		res = cacher.getCacheKey("user", {a: 5, b: 3}, null, []);
 		expect(res).toBe("user");
 
-		// An issue with prototype-less objects
-		// https://github.com/moleculerjs/moleculer/issues/290
-		// https://github.com/SkeLLLa/node-object-hash/issues/11
 		res = cacher.getCacheKey("user", {a: Object.create(null)}, null, ["a"]);
-		expect(res).toBe("user:79886a320023a4bd56dfb4a153137f589f8004771969f94d14abddedd3b5e840");
+		expect(res).toBe("user:");
 
 		// Test with meta
 		res = cacher.getCacheKey("user", {a: 5}, { user: "bob" });
-		expect(res).toBe("user:b0a7093990109d1355dc833dcddecae4de9624d2226b9499d459b8ef94353942");
+		expect(res).toBe("user:a|5");
 
 		res = cacher.getCacheKey("user", {a: 5}, { user: "bob" }, ["a"]);
 		expect(res).toBe("user:5");
@@ -169,11 +168,44 @@ describe("Test BaseCacher", () => {
 
 		res = cacher.getCacheKey("user", null, {a: { b: { c: "nested" }}}, ["#a.b.c"]);
 		expect(res).toBe("user:nested");
+	});
 
+	it("check getCacheKey with hashing", () => {
+		let broker = new ServiceBroker({ logger: false });
+		let cacher = new Cacher();
+		let res;
+
+		cacher.init(broker);
+
+		const bigObj = {"A":{"C0":false,"C1":true,"C2":true,"C3":"495f761d77d6294f","C4":true},"B":{"C0":true,"C1":false,"C2":true,"C3":"5721c26bfddb7927","C4":false},"C":{"C0":"5d9e85c124d5d09e","C1":true,"C2":5366,"C3":false,"C4":false},"D":{"C0":false,"C1":true,"C2":"704473bca1242604","C3":false,"C4":"6fc56107e69be769"},"E":{"C0":true,"C1":true,"C2":4881,"C3":true,"C4":1418},"F":{"C0":true,"C1":false,"C2":false,"C3":false,"C4":true},"G":{"C0":false,"C1":true,"C2":false,"C3":6547,"C4":9565},"H":{"C0":true,"C1":1848,"C2":"232e6552d0b8aa98","C3":"1d50627abe5c0463","C4":5251},"I":{"C0":"ecd0e4eae08e4f","C1":"197bcb312fc17f60","C2":4755,"C3":true,"C4":9552},"J":{"C0":false,"C1":"1cc45cadbbf240f","C2":"4dbb352b21c3c2f3","C3":5065,"C4":"792b19631c78d4f6"},"K":{"C0":"13c23a525adf9e1f","C1":true,"C2":true,"C3":"589d3499abbf6765","C4":true},"L":{"C0":false,"C1":true,"C2":4350,"C3":"72f6c4f0e9beb03c","C4":"434b74b5ff500609"},"M":{"C0":9228,"C1":"5254b36ec238c266","C2":true,"C3":"27b040089b057684","C4":true},"N":{"C0":"35d3c608ef8aac5e","C1":"23fbdbd520d5ae7d","C2":false,"C3":9061,"C4":true},"O":{"C0":true,"C1":true,"C2":"2382f9fe7834e0cc","C3":true,"C4":false},"P":{"C0":true,"C1":false,"C2":"38c0d40b91a9d1f6","C3":false,"C4":5512},"Q":{"C0":true,"C1":true,"C2":true,"C3":true,"C4":true},"R":{"C0":"70bd27c06b067734","C1":true,"C2":"5213493253b98636","C3":8272,"C4":1264},"S":{"C0":"61044125008e634c","C1":9175,"C2":true,"C3":"225e3d912bfbc338","C4":false},"T":{"C0":"38edc77387da030a","C1":false,"C2":"38d8b9e2525413fc","C3":true,"C4":false},"U":{"C0":false,"C1":"4b3962c3d26bddd0","C2":"1e66b069bad46643","C3":3642,"C4":9225},"V":{"C0":"1c40e44b54486080","C1":"5a560d81078bab02","C2":"1c131259e1e9aa61","C3":true,"C4":9335},"W":{"C0":false,"C1":"7089b0ad438df2cb","C2":"216aec98f513ac08","C3":true,"C4":false},"X":{"C0":"3b749354aac19f24","C1":9626,"C2":true,"C3":false,"C4":false},"Y":{"C0":298,"C1":"224075dadd108ef9","C2":3450,"C3":2548,"C4":true}};
+
+		cacher.opts.maxParamsLength = 44;
+		res = cacher.getCacheKey("abc.def", bigObj);
+		expect(res).toBe("abc.def:/18CtAt7Z+barI7S7Ef+WTFQ23yVQ4VM8o+riN95sjo=");
+
+		cacher.opts.maxParamsLength = 94;
+		res = cacher.getCacheKey("abc.def", bigObj);
+		expect(res).toBe("abc.def:A|C0|false|C1|true|C2|true|C3|495f761d77d6294f|C4|/18CtAt7Z+barI7S7Ef+WTFQ23yVQ4VM8o+riN95sjo=");
+
+		cacher.opts.maxParamsLength = 485;
+		res = cacher.getCacheKey("abc.def", bigObj);
+		expect(res).toBe("abc.def:A|C0|false|C1|true|C2|true|C3|495f761d77d6294f|C4|true|B|C0|true|C1|false|C2|true|C3|5721c26bfddb7927|C4|false|C|C0|5d9e85c124d5d09e|C1|true|C2|5366|C3|false|C4|false|D|C0|false|C1|true|C2|704473bca1242604|C3|false|C4|6fc56107e69be769|E|C0|true|C1|true|C2|4881|C3|true|C4|1418|F|C0|true|C1|false|C2|false|C3|false|C4|true|G|C0|false|C1|true|C2|false|C3|6547|C4|9565|H|C0|true|C1|1848|C2|232e6552d0b8aa98|C3|1d50627abe5c0463|C4|5251|I|C0|ecd0/18CtAt7Z+barI7S7Ef+WTFQ23yVQ4VM8o+riN95sjo=");
+
+		cacher.opts.maxParamsLength = null;
+		res = cacher.getCacheKey("abc.def", bigObj);
+		expect(res).toBe("abc.def:A|C0|false|C1|true|C2|true|C3|495f761d77d6294f|C4|true|B|C0|true|C1|false|C2|true|C3|5721c26bfddb7927|C4|false|C|C0|5d9e85c124d5d09e|C1|true|C2|5366|C3|false|C4|false|D|C0|false|C1|true|C2|704473bca1242604|C3|false|C4|6fc56107e69be769|E|C0|true|C1|true|C2|4881|C3|true|C4|1418|F|C0|true|C1|false|C2|false|C3|false|C4|true|G|C0|false|C1|true|C2|false|C3|6547|C4|9565|H|C0|true|C1|1848|C2|232e6552d0b8aa98|C3|1d50627abe5c0463|C4|5251|I|C0|ecd0e4eae08e4f|C1|197bcb312fc17f60|C2|4755|C3|true|C4|9552|J|C0|false|C1|1cc45cadbbf240f|C2|4dbb352b21c3c2f3|C3|5065|C4|792b19631c78d4f6|K|C0|13c23a525adf9e1f|C1|true|C2|true|C3|589d3499abbf6765|C4|true|L|C0|false|C1|true|C2|4350|C3|72f6c4f0e9beb03c|C4|434b74b5ff500609|M|C0|9228|C1|5254b36ec238c266|C2|true|C3|27b040089b057684|C4|true|N|C0|35d3c608ef8aac5e|C1|23fbdbd520d5ae7d|C2|false|C3|9061|C4|true|O|C0|true|C1|true|C2|2382f9fe7834e0cc|C3|true|C4|false|P|C0|true|C1|false|C2|38c0d40b91a9d1f6|C3|false|C4|5512|Q|C0|true|C1|true|C2|true|C3|true|C4|true|R|C0|70bd27c06b067734|C1|true|C2|5213493253b98636|C3|8272|C4|1264|S|C0|61044125008e634c|C1|9175|C2|true|C3|225e3d912bfbc338|C4|false|T|C0|38edc77387da030a|C1|false|C2|38d8b9e2525413fc|C3|true|C4|false|U|C0|false|C1|4b3962c3d26bddd0|C2|1e66b069bad46643|C3|3642|C4|9225|V|C0|1c40e44b54486080|C1|5a560d81078bab02|C2|1c131259e1e9aa61|C3|true|C4|9335|W|C0|false|C1|7089b0ad438df2cb|C2|216aec98f513ac08|C3|true|C4|false|X|C0|3b749354aac19f24|C1|9626|C2|true|C3|false|C4|false|Y|C0|298|C1|224075dadd108ef9|C2|3450|C3|2548|C4|true");
+
+		cacher.opts.maxParamsLength = 44;
+		res = cacher.getCacheKey("users.list", { token: "eyJpZCI6Im9SMU1sS1hCdVVjSGlnM3QiLCJ1c2VybmFtZSI6ImljZWJvYiIsImV4cCI6MTUzNDYyMTk1MCwiaWF0IjoxNTI5NDM3OTUwfQ" }, {}, ["token"]);
+		expect(res).toBe("users.list:YUgoMlSXRyzkAI98NgGKRqakaZdCSJiITaRJWHyaJlU=");
+
+		cacher.opts.maxParamsLength = 44;
+		res = cacher.getCacheKey("users.list", { id: 123, token: "eyJpZCI6Im9SMU1sS1hCdVVjSGlnM3QiLCJ1c2VybmFtZSI6ImljZWJvYiIsImV4cCI6MTUzNDYyMTk1MCwiaWF0IjoxNTI5NDM3OTUwfQ" }, {}, ["id", "token"]);
+		expect(res).toBe("users.list:jVksjHDWP+LfXPCxdnQC9Sa10+12yis9AhWmSOwCWfY=");
 	});
 
 	it("check getCacheKey with custom keygen", () => {
-		let broker = new ServiceBroker();
+		let broker = new ServiceBroker({ logger: false });
 		let keygen = jest.fn(() => "custom");
 		let cacher = new Cacher({ keygen });
 
@@ -191,6 +223,7 @@ describe("Test middleware", () => {
 
 	let cacher = new Cacher();
 	let broker = new ServiceBroker({
+		logger: false,
 		cacher
 	});
 
@@ -213,7 +246,7 @@ describe("Test middleware", () => {
 
 		return cachedHandler(ctx).then(response => {
 			expect(broker.cacher.get).toHaveBeenCalledTimes(1);
-			expect(broker.cacher.get).toHaveBeenCalledWith("posts.find:60b51087180be386e8a4917dd118a422b72faf4bc5bb58c0628c8382356595b2");
+			expect(broker.cacher.get).toHaveBeenCalledWith("posts.find:id|3|name|Antsa");
 			expect(mockAction.handler).toHaveBeenCalledTimes(0);
 			expect(broker.cacher.set).toHaveBeenCalledTimes(0);
 			expect(response).toBe(cachedData);
@@ -294,44 +327,3 @@ describe("Test middleware", () => {
 	});
 
 });
-
-/*
-describe("Test cache.clean & cache.del events", () => {
-	let cacher = new Cacher();
-	let broker = new ServiceBroker({
-		cacher
-	});
-
-	cacher.clean = jest.fn(),
-	cacher.del = jest.fn();
-
-	it("should call clean method", () => {
-		broker.emit("cache.clean", "users.*");
-		expect(cacher.clean).toHaveBeenCalledTimes(1);
-		expect(cacher.clean).toHaveBeenCalledWith("users.*");
-	});
-
-	it("should call del method", () => {
-		broker.emit("cache.del", "users.model.123");
-		expect(cacher.del).toHaveBeenCalledTimes(1);
-		expect(cacher.del).toHaveBeenCalledWith("users.model.123");
-	});
-
-	it("should call clean method multiple times", () => {
-		cacher.clean.mockClear();
-		broker.emit("cache.clean", ["users.*", "posts.*"]);
-		expect(cacher.clean).toHaveBeenCalledTimes(2);
-		expect(cacher.clean).toHaveBeenCalledWith("users.*");
-		expect(cacher.clean).toHaveBeenCalledWith("posts.*");
-	});
-
-	it("should call del method multiple times", () => {
-		cacher.del.mockClear();
-		broker.emit("cache.del", ["users.model.123", "users.model.222"]);
-		expect(cacher.del).toHaveBeenCalledTimes(2);
-		expect(cacher.del).toHaveBeenCalledWith("users.model.123");
-		expect(cacher.del).toHaveBeenCalledWith("users.model.222");
-	});
-});
-
-*/

@@ -6,7 +6,7 @@
 	Start Broker
 
 		Windows:
-			node bin\moleculer-runner.js -c examples\runner\moleculer.config.js -r examples\user.service.js
+			node bin\moleculer-runner.js -c examples\runner\moleculer.config.js -r examples/user.service.js
 
 		Linux:
 			node ./bin/moleculer-runner -c examples/runner/moleculer.config.js -r examples/user.service.js

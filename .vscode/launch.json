@@ -11,7 +11,7 @@
 			"program": "${workspaceRoot}/dev/index.js",
 			"cwd": "${workspaceRoot}",
 			"args": [
-				"mixin-217"
+				"circular"
 			],
 		},
 		{
@@ -56,7 +56,7 @@
 			"request": "launch",
 			"name": "Launch benchmark",
 			"program": "${workspaceRoot}/benchmark/index.js",
-			"args": ["serializers"],
+			"args": ["cachers"],
 			"cwd": "${workspaceRoot}/benchmark"
 		},
 		{
@@ -72,6 +72,7 @@
 			"name": "Jest",
 			"program": "${workspaceRoot}/node_modules/jest-cli/bin/jest.js",
 			"args": ["--runInBand"],
+			"console": "internalConsole",
 			"cwd": "${workspaceRoot}",
 			"runtimeArgs": [
                 "--nolazy"
@@ -80,10 +81,26 @@
 		{
 			"type": "node",
 			"request": "launch",
+			"name": "Jest transporter",
+			"program": "${workspaceRoot}/node_modules/jest-cli/bin/jest.js",
+			"args": ["--runInBand", "--testMatch", "**/transporters/**/**spc.js"],
+			"cwd": "${workspaceRoot}",
+			"console": "internalConsole",
+			"runtimeArgs": [
+                "--nolazy"
+            ],
+			"env": {
+				"AMQP_URI": "amqp://192.168.51.29:5672"
+			}
+		},
+		{
+			"type": "node",
+			"request": "launch",
 			"name": "Jest AMQP integration",
 			"program": "${workspaceRoot}/node_modules/jest-cli/bin/jest.js",
-			"args": ["--runInBand", "--testMatch", "**/integration/amqp/**spc.js"],
+			"args": ["--runInBand", "--testMatch", "**/integration/transporters/**/**spc.js"],
 			"cwd": "${workspaceRoot}",
+			"console": "internalConsole",
 			"runtimeArgs": [
                 "--nolazy"
             ],
@@ -97,18 +114,16 @@
 			"name": "Moleculer-runner",
 			"program": "${workspaceRoot}/bin/moleculer-runner.js",
 			"cwd": "${workspaceRoot}",
+			/*"env": {
+				"SERVICEDIR": "examples",
+				"SERVICES": "*.service.js,!silent,!stat"
+			},*/
 			"args": [
 				"--hot",
 				"--repl",
-				"examples"
+				"examples",
+				"!examples/user*.service.js",
 			]
-		},
-		{
-			"type": "node",
-			"request": "launch",
-			"name": "Launch TCP test",
-			"program": "${workspaceRoot}/src/transporters/tcp/test.js",
-			"cwd": "${workspaceRoot}/src/transporters/tcp"
 		},
 		{
 			"type": "node",

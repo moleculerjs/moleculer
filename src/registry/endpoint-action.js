@@ -30,6 +30,8 @@ class ActionEndpoint extends Endpoint {
 
 		this.service = service;
 		this.action = action;
+
+		this.name = `${this.id}:${this.action.name}`;
 	}
 
 	/**

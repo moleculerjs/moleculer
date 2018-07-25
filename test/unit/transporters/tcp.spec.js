@@ -107,7 +107,7 @@ describe("Test TcpTransporter constructor", () => {
 
 
 describe("Test TcpTransporter init", () => {
-	const broker = new ServiceBroker({ transporter: "fake" });
+	const broker = new ServiceBroker({ logger: false, transporter: "fake" });
 	const transporter = new TcpTransporter({});
 
 	it("check init", () => {
@@ -123,7 +123,7 @@ describe("Test TcpTransporter init", () => {
 
 
 describe("Test TcpTransporter connect & disconnect & reconnect", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let transit = new Transit(broker);
 	let msgHandler = jest.fn();
 	let transporter;
@@ -199,7 +199,7 @@ describe("Test TcpTransporter connect & disconnect & reconnect", () => {
 });
 
 describe("Test TcpTransporter getLocalNodeInfo & getNodeInfo", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let transit = new Transit(broker);
 	let msgHandler = jest.fn();
 	let transporter = new TcpTransporter({ port: 1234 });
@@ -225,7 +225,7 @@ describe("Test TcpTransporter subscribe & publish", () => {
 
 	beforeEach(() => {
 		transporter = new TcpTransporter();
-		transporter.init(new Transit(new ServiceBroker({ namespace: "TEST", nodeID: "node-123" })));
+		transporter.init(new Transit(new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-123" })));
 
 		transporter.writer = {
 			send: jest.fn(() => Promise.resolve())
@@ -236,7 +236,7 @@ describe("Test TcpTransporter subscribe & publish", () => {
 		transporter.startTimers = jest.fn();
 		transporter.stopTimers = jest.fn();
 
-		transporter.serialize = jest.fn(() => "json data");
+		transporter.serialize = jest.fn(() => Buffer.from("json data"));
 
 		return transporter.connect();
 	});
@@ -306,7 +306,7 @@ describe("Test TcpTransporter subscribe & publish", () => {
 });
 
 describe("Test TcpTransporter nodes functions", () => {
-	let broker = new ServiceBroker({ namespace: "TEST", nodeID: "node-123" });
+	let broker = new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-123" });
 	let transit = new Transit(broker);
 	let transporter;
 
@@ -362,7 +362,7 @@ describe("Test TcpTransporter nodes functions", () => {
 
 
 describe("Test TcpTransporter startTcpServer", () => {
-	let broker = new ServiceBroker({ namespace: "TEST", nodeID: "node-123" });
+	let broker = new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-123" });
 	let transit = new Transit(broker);
 	let transporter;
 
@@ -411,7 +411,7 @@ describe("Test TcpTransporter startTcpServer", () => {
 });
 
 describe("Test TcpTransporter startUdpServer", () => {
-	let broker = new ServiceBroker({ namespace: "TEST", nodeID: "node-123" });
+	let broker = new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-123" });
 	let transit = new Transit(broker);
 	let transporter;
 
@@ -493,7 +493,7 @@ describe("Test TcpTransporter startUdpServer", () => {
 });
 
 describe("Test TcpTransporter startUdpServer", () => {
-	let broker = new ServiceBroker({ namespace: "TEST", nodeID: "node-123" });
+	let broker = new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-123" });
 	let transit = new Transit(broker);
 	let transporter;
 
@@ -519,7 +519,7 @@ describe("Test TcpTransporter startUdpServer", () => {
 
 
 describe("Test TcpTransporter loadUrls", () => {
-	let broker = new ServiceBroker({ namespace: "TEST", nodeID: "node-123" });
+	let broker = new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-123" });
 	let transit = new Transit(broker);
 
 	function createTransporter(opts) {
@@ -706,7 +706,7 @@ describe("Test TcpTransporter loadUrls", () => {
 
 
 describe("Test TcpTransporter onIncomingMessage", () => {
-	let broker = new ServiceBroker({ namespace: "TEST", nodeID: "node-123" });
+	let broker = new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-123" });
 	let transit = new Transit(broker);
 	let transporter;
 
@@ -757,7 +757,7 @@ describe("Test TcpTransporter onIncomingMessage", () => {
 });
 
 describe("Test Gossip methods", () => {
-	let broker = new ServiceBroker({ namespace: "TEST", nodeID: "node-1" });
+	let broker = new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-1" });
 	let transit = new Transit(broker);
 	let transporter;
 

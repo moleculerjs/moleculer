@@ -5,12 +5,12 @@ const ServiceBroker = require("../../src/service-broker");
 const Context = require("../../src/context");
 const Transit = require("../../src/transit");
 const FakeTransporter = require("../../src/transporters/fake");
-const { ValidationError, ProtocolVersionMismatchError, RequestRejected } = require("../../src/errors");
+const E = require("../../src/errors");
 const P = require("../../src/packets");
 
 describe("Test Transporter constructor", () => {
 
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ logger: false });
 	const transporter = new FakeTransporter();
 
 	it("create instance", () => {
@@ -22,8 +22,14 @@ describe("Test Transporter constructor", () => {
 		expect(transit.pendingRequests).toBeInstanceOf(Map);
 		expect(transit.stat).toEqual({
 			packets: {
-				sent: 0,
-				received: 0
+				sent: {
+					count: 0,
+					bytes: 0
+				},
+				received: {
+					count: 0,
+					bytes: 0
+				}
 			}
 		});
 
@@ -52,7 +58,7 @@ describe("Test Transporter constructor", () => {
 
 describe("Test Transit.connect", () => {
 
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ logger: false });
 	const transporter = new FakeTransporter();
 	const transit = new Transit(broker, transporter);
 
@@ -93,7 +99,7 @@ describe("Test Transit.connect", () => {
 
 describe("Test Transit.afterConnect", () => {
 
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ logger: false });
 	const transporter = new FakeTransporter();
 	const transit = new Transit(broker, transporter);
 
@@ -138,7 +144,7 @@ describe("Test Transit.afterConnect", () => {
 
 describe("Test Transit.disconnect", () => {
 
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ logger: false });
 	const transporter = new FakeTransporter();
 	const transit = new Transit(broker, transporter);
 
@@ -171,7 +177,7 @@ describe("Test Transit.disconnect", () => {
 
 describe("Test Transit.ready", () => {
 
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ logger: false });
 	const transporter = new FakeTransporter();
 	const transit = new Transit(broker, transporter);
 
@@ -201,7 +207,7 @@ describe("Test Transit.ready", () => {
 
 describe("Test Transit.sendDisconnectPacket", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	transit.publish = jest.fn(() => Promise.resolve());
@@ -220,7 +226,7 @@ describe("Test Transit.sendDisconnectPacket", () => {
 
 describe("Test Transit.makeSubscriptions", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	transit.tx.makeSubscriptions = jest.fn(() => Promise.resolve());
@@ -249,7 +255,7 @@ describe("Test Transit.makeSubscriptions", () => {
 
 describe("Test Transit.sendBroadcastEvent", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	transit.publish = jest.fn(() => Promise.resolve());
@@ -287,7 +293,7 @@ describe("Test Transit.sendBroadcastEvent", () => {
 
 describe("Test Transit.sendBalancedEvent", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	transit.publish = jest.fn(() => Promise.resolve());
@@ -323,7 +329,7 @@ describe("Test Transit.sendBalancedEvent", () => {
 
 describe("Test Transit.sendEventToGroups", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	transit.publish = jest.fn(() => Promise.resolve());
@@ -352,12 +358,12 @@ describe("Test Transit.messageHandler", () => {
 	// transit.subscribe = jest.fn();
 
 	beforeEach(() => {
-		broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+		broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 		transit = broker.transit;
 	});
 
 	it("should throw Error if msg not valid", () => {
-		expect(transit.stat.packets.received).toBe(0);
+		expect(transit.stat.packets.received).toEqual({ count: 0, bytes: 0 });
 		expect(transit.messageHandler("EVENT")).toBe(false);
 	});
 
@@ -502,67 +508,113 @@ describe("Test Transit.messageHandler", () => {
 
 describe("Test Transit._requestHandler", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter(), trackContext: true });
 	const transit = broker.transit;
+	broker.started = true;
 
-	transit.sendResponse = jest.fn();
+	transit.sendResponse = jest.fn(() => Promise.resolve());
 
-	it("should call broker._handleRemoteRequest & sendResponse with result", () => {
-		let response = [1, 5, 8];
-		broker._handleRemoteRequest = jest.fn(() => Promise.resolve(response));
+	let handler = jest.fn(() => Promise.resolve([1, 5, 8]));
+	let ep = {
+		id: broker.nodeID,
+		local: true,
+		action: {
+			name: "posts.find",
+			service: {
+				name: "posts",
+				_addActiveContext: jest.fn()
+			},
+			handler
+		}
+	};
+
+	it("should call handler & sendResponse with result", () => {
+		broker._getLocalActionEndpoint = jest.fn(() => ep);
 
 		let payload = { ver: "3", sender: "remote", action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456", timeout: 567 };
 
-		transit._requestHandler(payload);
-		const ctx = broker._handleRemoteRequest.mock.calls[0][0];
+		return transit._requestHandler(payload).catch(protectReject).then(() => {
 
-		expect(broker._handleRemoteRequest).toHaveBeenCalledTimes(1);
-		expect(broker._handleRemoteRequest).toHaveBeenCalledWith(ctx);
+			expect(handler).toHaveBeenCalledTimes(1);
+			const ctx = handler.mock.calls[0][0];
+			expect(handler).toHaveBeenCalledWith(ctx);
 
-		// Check context props
-		expect(ctx).toBeInstanceOf(Context);
-		expect(ctx.id).toBe("123");
-		expect(ctx.parentID).toBe("555");
-		expect(ctx.requestID).toBe("123456");
-		expect(ctx.action.name).toBe("posts.find");
-		expect(ctx.params).toEqual({ limit: 5 });
-		expect(ctx.meta).toEqual({ b: 100 });
-		expect(ctx.metrics).toBe(true);
-		expect(ctx.level).toBe(5);
-		expect(ctx.timeout).toBe(567);
+			// Check context props
+			expect(ctx).toBeInstanceOf(Context);
+			expect(ctx.id).toBe("123");
+			expect(ctx.parentID).toBe("555");
+			expect(ctx.requestID).toBe("123456");
+			expect(ctx.action.name).toBe("posts.find");
+			expect(ctx.params).toEqual({ limit: 5 });
+			expect(ctx.meta).toEqual({ b: 100 });
+			expect(ctx.metrics).toBe(true);
+			expect(ctx.level).toBe(5);
+			expect(ctx.options.timeout).toBe(567);
 
-		//expect(transit.sendResponse).toHaveBeenCalledTimes(1);
-		//expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", [1, 5, 8], null);
-
+			expect(transit.sendResponse).toHaveBeenCalledTimes(1);
+			expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", { b: 100 }, [1, 5, 8], null);
+		});
 	});
 
-	it("should call broker._handleRemoteRequest & sendResponse with error", () => {
+	it("should call handler & sendResponse with error", () => {
 		transit.sendResponse.mockClear();
-		broker._handleRemoteRequest = jest.fn(() => Promise.reject(new ValidationError("Not valid params")));
+		handler = jest.fn(() => Promise.reject(new E.ValidationError("Not valid params")));
+		ep.action.handler = handler;
+		broker.options.requestTimeout = 2600;
 
-		let payload = { ver: "3", sender: "remote", action: "posts.create", id: "123", params: { title: "Hello" }, meta: {} };
-		transit._requestHandler(payload);
-		const ctx = broker._handleRemoteRequest.mock.calls[0][0];
+		let payload = { ver: "3", sender: "remote", action: "posts.create", id: "123", params: { title: "Hello" }, meta: { b: 100 } };
+		return transit._requestHandler(payload).then(protectReject).catch(() => {
 
-		expect(broker._handleRemoteRequest).toHaveBeenCalledTimes(1);
-		expect(broker._handleRemoteRequest).toHaveBeenCalledWith(ctx);
+			expect(handler).toHaveBeenCalledTimes(1);
+			const ctx = handler.mock.calls[0][0];
+			expect(handler).toHaveBeenCalledWith(ctx);
 
-		// Check context props
-		expect(ctx).toBeInstanceOf(Context);
-		expect(ctx.id).toBe("123");
-		expect(ctx.params).toEqual({"title": "Hello"});
-		expect(ctx.meta).toEqual({});
+			// Check context props
+			expect(ctx).toBeInstanceOf(Context);
+			expect(ctx.id).toBe("123");
+			expect(ctx.params).toEqual({"title": "Hello"});
+			expect(ctx.meta).toEqual({ b: 100 });
+			expect(ctx.options.timeout).toBe(2600);
 
-		/*return promise.catch(protectReject).then(() => {
 			expect(transit.sendResponse).toHaveBeenCalledTimes(1);
-			expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", null, jasmine.any(ValidationError));
-		});*/
+			expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", { b: 100 }, null, jasmine.any(E.ValidationError));
+		});
+	});
+
+	it("should call sendResponse with error if no endpoint", () => {
+		transit.sendResponse.mockClear();
+		broker._getLocalActionEndpoint = jest.fn(() => { throw new E.ServiceNotFoundError("posts.find", broker.nodeID); });
+		broker._handleRemoteRequest = jest.fn(() => Promise.reject(new E.ValidationError("Not valid params")));
+
+		let payload = { ver: "3", sender: "remote", action: "posts.create", id: "123", params: { title: "Hello" }, meta: { b: 100 } };
+		return transit._requestHandler(payload).then(protectReject).catch(() => {
+
+			expect(broker._handleRemoteRequest).toHaveBeenCalledTimes(0);
+			expect(transit.sendResponse).toHaveBeenCalledTimes(1);
+			expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", { b: 100 }, null, jasmine.any(E.ServiceNotFoundError));
+		});
+	});
+
+	it("should call sendResponse with error if broker stopped", () => {
+		broker.started = false;
+
+		broker._getLocalActionEndpoint.mockClear();
+		broker._handleRemoteRequest.mockClear();
+		transit.sendResponse.mockClear();
+
+		let payload = { ver: "3", sender: "remote", action: "posts.create", id: "123", params: { title: "Hello" }, meta: { b: 100 } };
+		return transit._requestHandler(payload).then(protectReject).catch(() => {
+			expect(broker._getLocalActionEndpoint).toHaveBeenCalledTimes(0);
+			expect(broker._handleRemoteRequest).toHaveBeenCalledTimes(0);
+			expect(transit.sendResponse).toHaveBeenCalledTimes(1);
+			expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", { b: 100 }, null, jasmine.any(E.ServiceNotAvailableError));
+		});
 	});
 });
 
 describe("Test Transit._responseHandler", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	let id = "12345";
@@ -623,6 +675,7 @@ describe("Test Transit._responseHandler", () => {
 		expect(req.ctx.nodeID).toBe("remote");
 
 		expect(err).toBeInstanceOf(Error);
+		expect(err).toBeInstanceOf(E.ValidationError);
 		expect(err.name).toBe("ValidationError");
 		expect(err.code).toBe(422);
 		expect(err.retryable).toBe(true);
@@ -633,11 +686,47 @@ describe("Test Transit._responseHandler", () => {
 		expect(transit.pendingRequests.size).toBe(0);
 
 	});
+
+	it("should call reject with custom error", () => {
+		let err;
+		let req = {
+			action: { name: "posts.find" },
+			ctx: { nodeID: null },
+			resolve: jest.fn(),
+			reject: jest.fn(e => err = e)
+		};
+		transit.pendingRequests.set(id, req);
+
+		let payload = { ver: "3", sender: "remote", id, success: false, error: {
+			name: "MyCustomError",
+			code: 456,
+			retryable: true,
+			data: { a: 5 },
+			stack: "MY-STACK-TRACE"
+		}};
+
+		transit._responseHandler(payload);
+		expect(req.reject).toHaveBeenCalledTimes(1);
+		expect(req.reject).toHaveBeenCalledWith(err);
+		expect(req.resolve).toHaveBeenCalledTimes(0);
+		expect(req.ctx.nodeID).toBe("remote");
+
+		expect(err).toBeInstanceOf(Error);
+		expect(err.name).toBe("MyCustomError");
+		expect(err.code).toBe(456);
+		expect(err.retryable).toBe(true);
+		expect(err.data).toEqual({ a: 5 });
+		expect(err.stack).toBe("MY-STACK-TRACE");
+		expect(err.nodeID).toBe("remote");
+
+		expect(transit.pendingRequests.size).toBe(0);
+
+	});
 });
 
 describe("Test Transit._eventHandler", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	broker.emitLocalServices = jest.fn();
@@ -658,11 +747,11 @@ describe("Test Transit._eventHandler", () => {
 
 describe("Test Transit.request", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	it("should create packet", () => {
-		let ctx = new Context(broker, { name: "users.find" });
+		let ctx = new Context(broker, { action: { name: "users.find" } });
 		ctx.nodeID = "remote";
 		ctx.params = { a: 5 };
 		ctx.meta = {
@@ -671,7 +760,7 @@ describe("Test Transit.request", () => {
 				roles: [ "user" ]
 			}
 		},
-		ctx.timeout = 500;
+		ctx.options.timeout = 500;
 		ctx.id = "12345";
 		ctx.requestID = "1111";
 
@@ -705,7 +794,7 @@ describe("Test Transit.request", () => {
 
 describe("Test Transit.sendResponse", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	transit.publish = jest.fn(() => Promise.resolve());
@@ -727,7 +816,7 @@ describe("Test Transit.sendResponse", () => {
 
 	it("should call publish with the error", () => {
 		transit.publish.mockClear();
-		transit.sendResponse("node2", "12345", meta, null, new ValidationError("Not valid params", "ERR_INVALID_A_PARAM", { a: "Too small" }));
+		transit.sendResponse("node2", "12345", meta, null, new E.ValidationError("Not valid params", "ERR_INVALID_A_PARAM", { a: "Too small" }));
 		expect(transit.publish).toHaveBeenCalledTimes(1);
 		const packet = transit.publish.mock.calls[0][0];
 		expect(packet).toBeInstanceOf(P.Packet);
@@ -750,20 +839,21 @@ describe("Test Transit.sendResponse", () => {
 
 describe("Test Transit.removePendingRequestByNodeID", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	transit.publish = jest.fn(() => Promise.resolve());
 
 	const resolve = jest.fn();
 	const reject = jest.fn();
-	const ctx = new Context(broker, { name: "users.create"});
+	const ep = { action: { name: "users.create"}, node: { id: "node1" }};
+	const ctx = new Context(broker, ep);
 	ctx.id = 1;
 	ctx.nodeID = "node2";
 
 	const resolve2 = jest.fn();
 	const reject2 = jest.fn();
-	const ctx2 = new Context(broker, { name: "users.create"});
+	const ctx2 = new Context(broker, ep);
 	ctx.id = 2;
 	ctx2.nodeID = "node3";
 
@@ -788,7 +878,7 @@ describe("Test Transit.removePendingRequestByNodeID", () => {
 		expect(resolve).toHaveBeenCalledTimes(0);
 		expect(resolve2).toHaveBeenCalledTimes(0);
 		expect(reject).toHaveBeenCalledTimes(1);
-		expect(reject).toHaveBeenCalledWith(jasmine.any(RequestRejected));
+		expect(reject).toHaveBeenCalledWith(jasmine.any(E.RequestRejectedError));
 	});
 
 	it("should reject pending orders by nodeID #2", () => {
@@ -796,14 +886,14 @@ describe("Test Transit.removePendingRequestByNodeID", () => {
 		expect(transit.pendingRequests.size).toBe(0);
 		expect(resolve2).toHaveBeenCalledTimes(0);
 		expect(reject2).toHaveBeenCalledTimes(1);
-		expect(reject2).toHaveBeenCalledWith(jasmine.any(RequestRejected));
+		expect(reject2).toHaveBeenCalledWith(jasmine.any(E.RequestRejectedError));
 	});
 
 });
 
 describe("Test Transit.discoverNodes", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	transit.publish = jest.fn(() => Promise.resolve());
@@ -821,7 +911,7 @@ describe("Test Transit.discoverNodes", () => {
 
 describe("Test Transit.discoverNode", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	transit.publish = jest.fn(() => Promise.resolve());
@@ -840,7 +930,7 @@ describe("Test Transit.discoverNode", () => {
 
 describe("Test Transit.sendNodeInfo", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter(), internalServices: false });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter(), internalServices: false });
 	const transit = broker.transit;
 	broker.getLocalNodeInfo = jest.fn(() => ({
 		id: "node2",
@@ -899,7 +989,7 @@ describe("Test Transit.sendNodeInfo", () => {
 
 describe("Test Transit.sendPing", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node-1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node-1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	transit.publish = jest.fn(() => Promise.resolve());
@@ -918,7 +1008,7 @@ describe("Test Transit.sendPing", () => {
 
 describe("Test Transit.sendPong", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node-1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node-1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	transit.publish = jest.fn(() => Promise.resolve());
@@ -937,7 +1027,7 @@ describe("Test Transit.sendPong", () => {
 
 describe("Test Transit.processPong", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node-1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node-1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	broker.broadcastLocal = jest.fn();
@@ -954,7 +1044,7 @@ describe("Test Transit.processPong", () => {
 
 describe("Test Transit.sendHeartbeat", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 
 	transit.publish = jest.fn(() => Promise.resolve());
@@ -972,7 +1062,7 @@ describe("Test Transit.sendHeartbeat", () => {
 
 describe("Test Transit.subscribe", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 	const transporter = transit.tx;
 
@@ -988,7 +1078,7 @@ describe("Test Transit.subscribe", () => {
 
 describe("Test Transit.publish", () => {
 
-	const broker = new ServiceBroker({ nodeID: "node1", transporter: new FakeTransporter() });
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
 	const transporter = transit.tx;
 
@@ -996,13 +1086,11 @@ describe("Test Transit.publish", () => {
 	broker.serializer.serialize = jest.fn(o => JSON.stringify(o));
 
 	it("should call transporter.prepublish", () => {
-		expect(transit.stat.packets.sent).toBe(0);
 		let packet = new P.Packet(P.PACKET_EVENT);
 		transit.publish(packet);
 		expect(transporter.prepublish).toHaveBeenCalledTimes(1);
 		const p = transporter.prepublish.mock.calls[0][0];
 		expect(p).toBe(packet);
-		expect(transit.stat.packets.sent).toBe(1);
 	});
 
 	it("should call transporter.prepublish after subscribing", () => {
@@ -1010,8 +1098,6 @@ describe("Test Transit.publish", () => {
 		transit.stat.packets.sent = 0;
 		let resolve;
 		transit.subscribing = new Promise(r => resolve = r);
-
-		expect(transit.stat.packets.sent).toBe(0);
 
 		let packet = new P.Packet(P.PACKET_EVENT);
 		let p = transit.publish(packet);
@@ -1023,7 +1109,6 @@ describe("Test Transit.publish", () => {
 			expect(transporter.prepublish).toHaveBeenCalledTimes(1);
 			const p = transporter.prepublish.mock.calls[0][0];
 			expect(p).toBe(packet);
-			expect(transit.stat.packets.sent).toBe(1);
 		});
 	});
 

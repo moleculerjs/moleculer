@@ -14,7 +14,7 @@ describe("Test LatencyStrategy constructor", () => {
 	it("should be the master", () => {
 		const callbacks = {};
 
-		const broker = new ServiceBroker({ nodeID: "node-1", transporter: "fake" });
+		const broker = new ServiceBroker({ logger: false, nodeID: "node-1", transporter: "fake" });
 		broker.localBus.listenerCount = jest.fn(() => 0);
 		broker.localBus.on = jest.fn((name, fn) => callbacks[name] = fn);
 
@@ -51,7 +51,7 @@ describe("Test LatencyStrategy constructor", () => {
 
 	it("should be the slave", () => {
 
-		const broker = new ServiceBroker({ nodeID: "node-1", transporter: "fake" });
+		const broker = new ServiceBroker({ logger: false, nodeID: "node-1", transporter: "fake" });
 		broker.localBus.listenerCount = jest.fn(() => 1);
 		broker.localBus.on = jest.fn();
 
@@ -75,7 +75,7 @@ describe("Test LatencyStrategy constructor", () => {
 
 	it("test without options & transporter", () => {
 
-		const broker = new ServiceBroker();
+		const broker = new ServiceBroker({ logger: false });
 		broker.localBus.on = jest.fn();
 
 		let strategy = new LatencyStrategy({
@@ -94,7 +94,7 @@ describe("Test LatencyStrategy constructor", () => {
 
 	it("test with options", () => {
 
-		const broker = new ServiceBroker();
+		const broker = new ServiceBroker({ logger: false });
 
 		let strategy = new LatencyStrategy({
 			opts: {
@@ -121,7 +121,7 @@ describe("Test LatencyStrategy.discovery method", () => {
 	afterAll(() => clock.uninstall());
 
 	it("should call sendPing in transit", () => {
-		const broker = new ServiceBroker({ transporter: "Fake" });
+		const broker = new ServiceBroker({ logger: false, transporter: "Fake" });
 
 		let strategy = new LatencyStrategy({
 			opts: {
@@ -158,7 +158,7 @@ describe("Test LatencyStrategy.pingHosts method", () => {
 	afterAll(() => clock.uninstall());
 
 	it("should call sendPing in transit", () => {
-		const broker = new ServiceBroker({ transporter: "Fake" });
+		const broker = new ServiceBroker({ logger: false, transporter: "Fake" });
 
 		let strategy = new LatencyStrategy({
 			opts: {
@@ -195,7 +195,7 @@ describe("Test LatencyStrategy.pingHosts method", () => {
 });
 
 describe("Test LatencyStrategy.processPong method", () => {
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ logger: false });
 	const strategy = new LatencyStrategy(broker.registry, broker);
 
 	it("should calc avg latency and send to slaves", () => {
@@ -231,7 +231,7 @@ describe("Test LatencyStrategy.processPong method", () => {
 });
 
 describe("Test LatencyStrategy.getHostLatency method", () => {
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ logger: false });
 	const strategy = new LatencyStrategy(broker.registry, broker);
 
 	it("should create new info item", () => {
@@ -304,7 +304,7 @@ describe("Test LatencyStrategy.getHostLatency method", () => {
 });
 
 describe("Test LatencyStrategy.removeHostMap method", () => {
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ logger: false });
 	const strategy = new LatencyStrategy(broker.registry, broker);
 
 	broker.localBus.emit = jest.fn();
@@ -354,7 +354,7 @@ describe("Test LatencyStrategy.removeHostMap method", () => {
 });
 
 describe("Test LatencyStrategy.updateLatency & removeHostLatency method", () => {
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ logger: false });
 	const strategy = new LatencyStrategy(broker.registry, broker);
 
 	it("should set latency data", () => {
@@ -381,7 +381,7 @@ describe("Test LatencyStrategy.select method", () => {
 
 	it("test without latency data (random)", () => {
 
-		const broker = new ServiceBroker();
+		const broker = new ServiceBroker({ logger: false });
 
 		let strategy = new LatencyStrategy({
 			opts: {
@@ -412,7 +412,7 @@ describe("Test LatencyStrategy.select method", () => {
 
 	it("test with latency data (where node has a low latency)", () => {
 
-		const broker = new ServiceBroker();
+		const broker = new ServiceBroker({ logger: false });
 
 		let strategy = new LatencyStrategy({
 			opts: {
@@ -443,7 +443,7 @@ describe("Test LatencyStrategy.select method", () => {
 
 	it("test with latency data (where all nodes have some latency)", () => {
 
-		const broker = new ServiceBroker();
+		const broker = new ServiceBroker({ logger: false });
 
 		let strategy = new LatencyStrategy({
 			opts: {
@@ -475,7 +475,7 @@ describe("Test LatencyStrategy.select method", () => {
 
 	it("test with latency data (where all we have lots of nodes)", () => {
 
-		const broker = new ServiceBroker();
+		const broker = new ServiceBroker({ logger: false });
 
 		let strategy = new LatencyStrategy({
 			opts: {

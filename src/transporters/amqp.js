@@ -99,7 +99,7 @@ class AmqpTransporter extends Transporter {
 				this.broker.fatal("The 'amqplib' package is missing. Please install it with 'npm install amqplib --save' command.", err, true);
 			}
 
-			amqp.connect(this.opts.url)
+			amqp.connect(this.opts.url, this.opts.socketOptions)
 				.then(connection => {
 					this.connection = connection;
 					this.logger.info("AMQP is connected.");
@@ -130,7 +130,6 @@ class AmqpTransporter extends Transporter {
 						.createChannel()
 						.then((channel) => {
 							this.channel = channel;
-							this.onConnected().then(resolve);
 							this.logger.info("AMQP channel is created.");
 
 							channel.prefetch(this.opts.prefetch);
@@ -157,7 +156,10 @@ class AmqpTransporter extends Transporter {
 								.on("return", (msg) => {
 									this.logger.warn("AMQP channel returned a message.", msg);
 								});
+
+							return this.onConnected();
 						})
+						.then(resolve)
 						.catch((err) => {
 							/* istanbul ignore next*/
 							this.logger.error("AMQP failed to create channel.");
@@ -402,12 +404,13 @@ class AmqpTransporter extends Transporter {
 		if (!this.channel) return Promise.resolve();
 
 		let topic = this.getTopicName(packet.type, packet.target);
-		const payload = Buffer.from(this.serialize(packet)); // amqp.node expects data to be a buffer
+		const data = this.serialize(packet);
 
+		this.incStatSent(data.length);
 		if (packet.target != null) {
-			this.channel.sendToQueue(topic, payload, this.opts.messageOptions);
+			this.channel.sendToQueue(topic, data, this.opts.messageOptions);
 		} else {
-			this.channel.publish(topic, "", payload, this.opts.messageOptions);
+			this.channel.publish(topic, "", data, this.opts.messageOptions);
 		}
 
 		return Promise.resolve();
@@ -426,8 +429,9 @@ class AmqpTransporter extends Transporter {
 		if (!this.channel) return Promise.resolve();
 
 		let queue = `${this.prefix}.${PACKET_EVENT}B.${group}.${packet.payload.event}`;
-		const payload = Buffer.from(this.serialize(packet)); // amqp.node expects data to be a buffer
-		this.channel.sendToQueue(queue, payload, this.opts.messageOptions);
+		const data = this.serialize(packet);
+		this.incStatSent(data.length);
+		this.channel.sendToQueue(queue, data, this.opts.messageOptions);
 		return Promise.resolve();
 	}
 
@@ -442,9 +446,11 @@ class AmqpTransporter extends Transporter {
 		/* istanbul ignore next*/
 		if (!this.channel) return Promise.resolve();
 
-		const payload = Buffer.from(this.serialize(packet)); // amqp.node expects data to be a buffer
 		const topic = `${this.prefix}.${PACKET_REQUEST}B.${packet.payload.action}`;
-		this.channel.sendToQueue(topic, payload, this.opts.messageOptions);
+
+		const data = this.serialize(packet);
+		this.incStatSent(data.length);
+		this.channel.sendToQueue(topic, data, this.opts.messageOptions);
 		return Promise.resolve();
 	}
 }

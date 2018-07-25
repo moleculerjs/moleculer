@@ -1,4 +1,4 @@
-title: Protocol v3
+title: Protocol v3 (rev. 2)
 ---
 
 This documentation describes the communication protocol between Moleculer nodes. 
@@ -51,7 +51,7 @@ When you call the `broker.emit` method, the broker sends an `EVENT` packet to th
 ![](http://moleculer.services/images/protocol-v2/moleculer_protocol_event.png)
 
 ## Ping-pong
-When you call the `broker.transit.sendPing` method, the broker sends a `PING` packet to the targetted node. If node is not defined, it sends to all nodes. If the client receives the `PING` packet, sends back a `PONG` response packet. If it receives, broker broadcasts a local `$node.pong` event to the local services.
+When you call the `broker.ping` method, the broker sends a `PING` packet to the targetted node. If node is not defined, it sends to all nodes. If the client receives the `PING` packet, sends back a `PONG` response packet. If it receives, broker broadcasts a local `$node.pong` event to the local services.
 ![](http://moleculer.services/images/protocol-v2/moleculer_protocol_pong.png)
 
 ## Disconnect
@@ -136,6 +136,7 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `metrics` | `boolean` | ✔ | Need to send metrics events. |
 | `parentID` | `string` |  | Parent context ID. |
 | `requestID` | `string` |  | Request ID from `ctx.requestID`. |
+| `stream` | `boolean` | ✔ | Stream request. |
 
 > (*) In case of `ProtoBuf`, `Avro` or any other schema-based serializer, the field value is encoded to JSON string.
 
@@ -156,6 +157,7 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `data` | `object` |  | Response data if success. (*) |
 | `error` | `object` |  | Error object if not success. (*) |
 | `meta` | `object` | ✔ | `ctx.meta` object. (*) |
+| `stream` | `boolean` | ✔ | Stream request. |
 
 > (*) In case of `ProtoBuf`, `Avro` or any other schema-based serializer, the field value is encoded to JSON string.
 

@@ -220,9 +220,10 @@ class StanTransporter extends Transporter {
 
 		return new Promise(resolve => {
 			let topic = this.getTopicName(packet.type, packet.target);
-			const payload = Buffer.from(this.serialize(packet));
+			const data = this.serialize(packet);
 
-			this.client.publish(topic, payload, resolve);
+			this.incStatSent(data.length);
+			this.client.publish(topic, data, resolve);
 		});
 	}
 
@@ -240,9 +241,10 @@ class StanTransporter extends Transporter {
 
 		return new Promise(resolve => {
 			let topic = `${this.prefix}.${PACKET_EVENT}B.${group}.${packet.payload.event}`;
-			const payload = Buffer.from(this.serialize(packet));
+			const data = this.serialize(packet);
 
-			this.client.publish(topic, payload, resolve);
+			this.incStatSent(data.length);
+			this.client.publish(topic, data, resolve);
 		});
 	}
 
@@ -259,9 +261,10 @@ class StanTransporter extends Transporter {
 
 		return new Promise(resolve => {
 			const topic = `${this.prefix}.${PACKET_REQUEST}B.${packet.payload.action}`;
-			const payload = Buffer.from(this.serialize(packet));
+			const data = this.serialize(packet);
 
-			this.client.publish(topic, payload, resolve);
+			this.incStatSent(data.length);
+			this.client.publish(topic, data, resolve);
 		});
 	}
 

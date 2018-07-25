@@ -220,7 +220,7 @@ class EventCatalog {
 			if (item.count > 0) {
 				const ep = list.endpoints[0];
 				if (ep)
-					item.event = _.omit(ep.event, ["handler", "service"]);
+					item.event = _.omit(ep.event, ["handler", "remoteHandler", "service"]);
 			}
 
 			if (withEndpoints) {

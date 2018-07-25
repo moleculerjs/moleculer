@@ -41,7 +41,7 @@ describe("Test TcpReader constructor", () => {
 });
 
 describe("Test TcpReader.listen", () => {
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ logger: false });
 	let transporter, reader;
 
 	let listenCb, serverErrorCb;
@@ -117,7 +117,7 @@ describe("Test TcpReader.listen", () => {
 });
 
 describe("Test TcpReader.onTcpClientConnected", () => {
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ logger: false });
 	let transporter, socket, reader;
 
 	beforeEach(() => {
@@ -204,7 +204,7 @@ describe("Test TcpReader.onTcpClientConnected", () => {
 
 
 describe("Test TcpReader.close", () => {
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ logger: false });
 	let transporter, reader;
 
 	beforeEach(() => {
