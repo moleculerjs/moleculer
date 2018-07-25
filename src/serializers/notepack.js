@@ -32,7 +32,7 @@ class NotepackSerializer extends BaseSerializer {
    * @memberof Serializer
    */
 	serialize(obj) {
-    return this.codec.encode(obj);
+		return this.codec.encode(obj);
 	}
 
 	/**
