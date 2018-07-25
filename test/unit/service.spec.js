@@ -989,4 +989,43 @@ describe("Test mergeSchemas", () => {
 
 	});
 
+	describe("merge schemas with unique dependencies", () => {
+		it("should merge dependencies defined in shorthand notation", () => {
+			const origSchema = {
+				dependencies: ["users", "mail"]
+			};
+			const mixinSchema = {
+				dependencies: ["users", "posts"]
+			};
+
+			const result = Service.mergeSchemas(origSchema, mixinSchema);
+			expect(result.dependencies).toEqual(["users", "posts", "mail"]);
+		});
+
+		it("should merge versioned dependencies", () => {
+			const origSchema = {
+				dependencies: [{ name: "users", version: 1 }, { name: "mail", version: "staging" }]
+			};
+			const mixinSchema = {
+				dependencies: [{ name: "users", version: 1 }, { name: "posts", version: "v2" }]
+			};
+
+			const result = Service.mergeSchemas(origSchema, mixinSchema);
+			expect(result.dependencies).toEqual([{ name: "users", version: 1 }, { name: "posts", version: "v2" }, { name: "mail", version: "staging" }]);
+		});
+
+		it("should merge mixed", () => {
+			const origSchema = {
+				dependencies: [{ name: "users", version: 1 }, "mail"]
+			};
+			const mixinSchema = {
+				dependencies: ["users", { name: "posts", version: "v2" }]
+			};
+
+			const result = Service.mergeSchemas(origSchema, mixinSchema);
+			expect(result.dependencies).toEqual(["users", { name: "posts", version: "v2" }, { name: "users", version: 1 }, "mail"]);
+		});
+
+	});
+
 });
