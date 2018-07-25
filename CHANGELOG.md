@@ -1,4 +1,16 @@
 --------------------------------------------------
+<a name="0.13.2"></a>
+# [0.13.2](https://github.com/moleculerjs/moleculer/compare/v0.13.1...v0.13.2) (2018-07-25)
+
+# Changes
+- update dependencies
+- add Notepack (other MsgPack) serializer
+- `skipProcessEventRegistration` broker option to disable `process.on` shutdown event handlers which stop broker.
+- make unique service dependencies
+- add `socketOptions` to AMQP transporter options.
+- fix unhandled promise in AMQP transporter `connect` method.
+
+--------------------------------------------------
 <a name="0.13.1"></a>
 # [0.13.1](https://github.com/moleculerjs/moleculer/compare/v0.13.0...v0.13.1) (2018-07-13)
 
