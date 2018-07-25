@@ -168,37 +168,21 @@ Avro length: 38
 MsgPack length: 69
 ProtoBuf length: 45
 Thrift length: 76
+Notepack length: 81
 Suite: Serialize packet with 10bytes
-√ JSON               811,290 rps
-√ Avro               624,283 rps
-√ MsgPack             76,703 rps
-√ ProtoBuf           770,425 rps
-√ Thrift             110,583 rps
+√ JSON               803,696 rps
+√ Avro               578,574 rps
+√ MsgPack             75,582 rps
+√ ProtoBuf           745,775 rps
+√ Thrift             110,671 rps
+√ Notepack           652,254 rps
 
-   JSON (#)            0%        (811,290 rps)   (avg: 1μs)
-   Avro           -23.05%        (624,283 rps)   (avg: 1μs)
-   MsgPack        -90.55%         (76,703 rps)   (avg: 13μs)
-   ProtoBuf        -5.04%        (770,425 rps)   (avg: 1μs)
-   Thrift         -86.37%        (110,583 rps)   (avg: 9μs)
------------------------------------------------------------------------
-
-JSON length: 229
-Avro length: 179
-MsgPack length: 210
-ProtoBuf length: 200
-Thrift length: 258
-Suite: Serialize packet with 150bytes
-√ JSON               437,439 rps
-√ Avro               348,092 rps
-√ MsgPack             63,000 rps
-√ ProtoBuf           408,807 rps
-√ Thrift              93,022 rps
-
-   JSON (#)            0%        (437,439 rps)   (avg: 2μs)
-   Avro           -20.42%        (348,092 rps)   (avg: 2μs)
-   MsgPack         -85.6%         (63,000 rps)   (avg: 15μs)
-   ProtoBuf        -6.55%        (408,807 rps)   (avg: 2μs)
-   Thrift         -78.73%         (93,022 rps)   (avg: 10μs)
+   JSON (#)            0%        (803,696 rps)   (avg: 1μs)
+   Avro           -28.01%        (578,574 rps)   (avg: 1μs)
+   MsgPack         -90.6%         (75,582 rps)   (avg: 13μs)
+   ProtoBuf        -7.21%        (745,775 rps)   (avg: 1μs)
+   Thrift         -86.23%        (110,671 rps)   (avg: 9μs)
+   Notepack       -18.84%        (652,254 rps)   (avg: 1μs)
 -----------------------------------------------------------------------
 
 JSON length: 1131
@@ -206,37 +190,21 @@ Avro length: 1081
 MsgPack length: 1113
 ProtoBuf length: 1170
 Thrift length: 1364
+Notepack length: 1371
 Suite: Serialize packet with 1kbytes
-√ JSON               148,417 rps
-√ Avro               125,403 rps
-√ MsgPack             17,387 rps
-√ ProtoBuf           143,478 rps
-√ Thrift              63,276 rps
+√ JSON               148,192 rps
+√ Avro               120,391 rps
+√ MsgPack             17,091 rps
+√ ProtoBuf           139,487 rps
+√ Thrift              56,970 rps
+√ Notepack            96,203 rps
 
-   JSON (#)            0%        (148,417 rps)   (avg: 6μs)
-   Avro           -15.51%        (125,403 rps)   (avg: 7μs)
-   MsgPack        -88.29%         (17,387 rps)   (avg: 57μs)
-   ProtoBuf        -3.33%        (143,478 rps)   (avg: 6μs)
-   Thrift         -57.37%         (63,276 rps)   (avg: 15μs)
------------------------------------------------------------------------
-
-JSON length: 10528
-Avro length: 10479
-MsgPack length: 10510
-ProtoBuf length: 11213
-Thrift length: 12699
-Suite: Serialize packet with 10kbytes
-√ JSON                19,147 rps
-√ Avro                18,598 rps
-√ MsgPack              2,343 rps
-√ ProtoBuf            20,118 rps
-√ Thrift              14,284 rps
-
-   JSON (#)            0%         (19,147 rps)   (avg: 52μs)
-   Avro            -2.86%         (18,598 rps)   (avg: 53μs)
-   MsgPack        -87.77%          (2,343 rps)   (avg: 426μs)
-   ProtoBuf        +5.07%         (20,118 rps)   (avg: 49μs)
-   Thrift         -25.39%         (14,284 rps)   (avg: 70μs)
+   JSON (#)            0%        (148,192 rps)   (avg: 6μs)
+   Avro           -18.76%        (120,391 rps)   (avg: 8μs)
+   MsgPack        -88.47%         (17,091 rps)   (avg: 58μs)
+   ProtoBuf        -5.87%        (139,487 rps)   (avg: 7μs)
+   Thrift         -61.56%         (56,970 rps)   (avg: 17μs)
+   Notepack       -35.08%         (96,203 rps)   (avg: 10μs)
 -----------------------------------------------------------------------
 
 JSON length: 50601
@@ -244,18 +212,21 @@ Avro length: 50552
 MsgPack length: 50583
 ProtoBuf length: 54187
 Thrift length: 61472
+Notepack length: 61479
 Suite: Serialize packet with 50kbytes
-√ JSON                 4,110 rps
-√ Avro                 4,032 rps
-√ MsgPack                481 rps
-√ ProtoBuf             4,362 rps
-√ Thrift               3,401 rps
+√ JSON                 4,056 rps
+√ Avro                 3,984 rps
+√ MsgPack                474 rps
+√ ProtoBuf             4,301 rps
+√ Thrift               3,370 rps
+√ Notepack             2,455 rps
 
-   JSON (#)            0%          (4,110 rps)   (avg: 243μs)
-   Avro             -1.9%          (4,032 rps)   (avg: 248μs)
-   MsgPack         -88.3%            (481 rps)   (avg: 2ms)
-   ProtoBuf        +6.13%          (4,362 rps)   (avg: 229μs)
-   Thrift         -17.26%          (3,401 rps)   (avg: 294μs)
+   JSON (#)            0%          (4,056 rps)   (avg: 246μs)
+   Avro            -1.79%          (3,984 rps)   (avg: 251μs)
+   MsgPack        -88.32%            (474 rps)   (avg: 2ms)
+   ProtoBuf        +6.05%          (4,301 rps)   (avg: 232μs)
+   Thrift         -16.91%          (3,370 rps)   (avg: 296μs)
+   Notepack       -39.48%          (2,455 rps)   (avg: 407μs)
 -----------------------------------------------------------------------
 
 JSON length: 101100
@@ -263,37 +234,65 @@ Avro length: 101051
 MsgPack length: 101084
 ProtoBuf length: 108312
 Thrift length: 122849
+Notepack length: 122858
 Suite: Serialize packet with 100kbytes
-√ JSON                 2,075 rps
-√ Avro                 2,045 rps
-√ MsgPack                234 rps
-√ ProtoBuf             2,202 rps
-√ Thrift               1,752 rps
+√ JSON                 2,045 rps
+√ Avro                 2,024 rps
+√ MsgPack                235 rps
+√ ProtoBuf             2,181 rps
+√ Thrift               1,733 rps
+√ Notepack             1,240 rps
 
-   JSON (#)            0%          (2,075 rps)   (avg: 481μs)
-   Avro            -1.47%          (2,045 rps)   (avg: 488μs)
-   MsgPack        -88.73%            (234 rps)   (avg: 4ms)
-   ProtoBuf         +6.1%          (2,202 rps)   (avg: 454μs)
-   Thrift         -15.57%          (1,752 rps)   (avg: 570μs)
+   JSON (#)            0%          (2,045 rps)   (avg: 489μs)
+   Avro            -1.02%          (2,024 rps)   (avg: 494μs)
+   MsgPack        -88.51%            (235 rps)   (avg: 4ms)
+   ProtoBuf        +6.65%          (2,181 rps)   (avg: 458μs)
+   Thrift         -15.26%          (1,733 rps)   (avg: 577μs)
+   Notepack       -39.38%          (1,240 rps)   (avg: 806μs)
 -----------------------------------------------------------------------
 
-JSON length: 1010082
-Avro length: 1010033
-MsgPack length: 1010066
-ProtoBuf length: 1082562
-Thrift length: 1227635
-Suite: Serialize packet with 1Mbytes
-√ JSON                   187 rps
-√ Avro                   184 rps
-√ MsgPack                 22 rps
-√ ProtoBuf               195 rps
-√ Thrift                 156 rps
+JSON length: 36774
+Avro length: 36725
+MsgPack length: 36756
+ProtoBuf length: 36736
+Thrift length: 36773
+Notepack length: 36780
+Suite: Serialize packet with buf-10240bytes
+√ JSON                 2,059 rps
+√ Avro                 2,026 rps
+√ MsgPack             35,863 rps
+√ ProtoBuf             2,109 rps
+√ Thrift               1,905 rps
+√ Notepack           106,605 rps
 
-   JSON (#)            0%            (187 rps)   (avg: 5ms)
-   Avro            -1.81%            (184 rps)   (avg: 5ms)
-   MsgPack        -88.04%             (22 rps)   (avg: 44ms)
-   ProtoBuf        +4.44%            (195 rps)   (avg: 5ms)
-   Thrift         -16.75%            (156 rps)   (avg: 6ms)
+   JSON (#)            0%          (2,059 rps)   (avg: 485μs)
+   Avro            -1.57%          (2,026 rps)   (avg: 493μs)
+   MsgPack       +1,641.94%         (35,863 rps)   (avg: 27μs)
+   ProtoBuf        +2.44%          (2,109 rps)   (avg: 474μs)
+   Thrift          -7.46%          (1,905 rps)   (avg: 524μs)
+   Notepack      +5,077.95%        (106,605 rps)   (avg: 9μs)
+-----------------------------------------------------------------------
+
+JSON length: 365859
+Avro length: 365810
+MsgPack length: 365843
+ProtoBuf length: 365821
+Thrift length: 365858
+Notepack length: 365867
+Suite: Serialize packet with buf-102400bytes
+√ JSON                   181 rps
+√ Avro                   185 rps
+√ MsgPack              7,451 rps
+√ ProtoBuf               187 rps
+√ Thrift                 172 rps
+√ Notepack            13,976 rps
+
+   JSON (#)            0%            (181 rps)   (avg: 5ms)
+   Avro            +2.22%            (185 rps)   (avg: 5ms)
+   MsgPack       +4,022.8%          (7,451 rps)   (avg: 134μs)
+   ProtoBuf        +3.42%            (187 rps)   (avg: 5ms)
+   Thrift          -4.59%            (172 rps)   (avg: 5ms)
+   Notepack      +7,633.56%         (13,976 rps)   (avg: 71μs)
 -----------------------------------------------------------------------
 
 
