@@ -12,6 +12,20 @@ const { generateToken } = require("./utils");
 const { RequestSkippedError, MaxCallLevelError } = require("./errors");
 
 /**
+ * Merge metadata
+ *
+ * @param {Object} newMeta
+ *
+ * @private
+ * @memberof Context
+ */
+function mergeMeta(ctx, newMeta) {
+	if (newMeta)
+		_.assign(ctx.meta, newMeta);
+	return ctx.meta;
+}
+
+/**
  * Context class for action calls
  *
  * @property {String} id - Context ID
@@ -30,30 +44,33 @@ class Context {
 	 * Creates an instance of Context.
 	 *
 	 * @param {ServiceBroker} broker - Broker instance
-	 * @param {Action} action - Action definition
-	 *
-	 * @example
-	 * let ctx = new Context(broker, action);
-	 *
-	 * @example
-	 * let ctx2 = new Context(broker, action);
+	 * @param {Endpoint} endpoint - Endpoint (action & nodeID)
 	 *
 	 * @memberof Context
 	 */
-	constructor(broker, action) {
-		this.id = null;
+	constructor(broker, endpoint) {
+		this._id = null;
 
 		this.broker = broker;
-		this.action = action;
-		this.nodeID = broker ? broker.nodeID : null;
+		this.endpoint = endpoint;
+		this.action = endpoint ? endpoint.action : null;
+		this.service = this.action ? this.action.service : null;
+		if (endpoint && endpoint.node)
+			this.nodeID = endpoint.node.id;
+		else if (this.broker)
+			this.nodeID = this.broker.nodeID;
+		else
+			this.nodeID = null;
+
+		this.options = {
+			timeout: null,
+			retries: null,
+		};
+
 		this.parentID = null;
-		this.callerNodeID = null;
 
-		this.metrics = false;
+		this.metrics = null;
 		this.level = 1;
-
-		this.timeout = 0;
-		this.retryCount = 0;
 
 		this.params = {};
 		this.meta = {};
@@ -69,51 +86,10 @@ class Context {
 	}
 
 	/**
-	 * Add a context to be tracked as active
-	 *
-	 * @param {Context} context
-	 *
-	 * @private
-	 * @memberof Service
-	 */
-	_trackContext(service) {
-		if ( !service._activeContexts ) {
-			service._activeContexts = [];
-		}
-		service._activeContexts.push(this);
-		this.trackedBy = service;
-	}
-
-	/**
-	 * Remove a context from the list of active context
-	 *
-	 * @param {Context} context
-	 *
-	 * @private
-	 * @memberof Service
-	 */
-	dispose() {
-		if ( this.trackedBy && this.trackedBy._activeContexts ) {
-			const contextList = this.trackedBy._activeContexts;
-			const contextIndex = contextList.indexOf(this);
-			if (contextIndex !== -1) {
-				contextList.splice(contextIndex, 1);
-			}
-		}
-	}
-
-	generateID() {
-		this.id = generateToken();
-	}
-
-	/**
-	 * Create a new Context instance.
-	 *
-	 * TODO: cover with unit tests
+	 * Create a new Context instance
 	 *
 	 * @param {ServiceBroker} broker
-	 * @param {Object} action
-	 * @param {String?} nodeID
+	 * @param {Endpoint} endpoint
 	 * @param {Object?} params
 	 * @param {Object} opts
 	 * @returns {Context}
@@ -121,11 +97,13 @@ class Context {
 	 * @static
 	 * @memberof Context
 	 */
-	static create(broker, action, nodeID, params, opts) {
-		const ctx = new broker.ContextFactory(broker, action);
+	static create(broker, endpoint, params, opts = {}) {
+		const ctx = new broker.ContextFactory(broker, endpoint);
 
-		ctx.nodeID = nodeID;
 		ctx.setParams(params);
+
+		//Object.assign(ctx.options, opts);
+		ctx.options = opts;
 
 		// RequestID
 		if (opts.requestID != null)
@@ -139,10 +117,7 @@ class Context {
 		else if (opts.meta != null)
 			ctx.meta = opts.meta;
 
-		// Timeout
-		ctx.timeout = opts.timeout;
-		ctx.retryCount = opts.retryCount;
-
+		// ParentID, Level
 		if (opts.parentCtx != null) {
 			ctx.parentID = opts.parentCtx.id;
 			ctx.level = opts.parentCtx.level + 1;
@@ -151,38 +126,32 @@ class Context {
 		// Metrics
 		if (opts.parentCtx != null)
 			ctx.metrics = opts.parentCtx.metrics;
-		else
-			ctx.metrics = broker.shouldMetric();
-
-		// ID, parentID, level
-		if (ctx.metrics || nodeID != broker.nodeID) {
-			ctx.generateID();
-			if (!ctx.requestID)
-				ctx.requestID = ctx.id;
-		}
-
-		if (opts.trackContext) {
-			ctx._trackContext(action.service || broker);
-		}
 
 		return ctx;
 	}
 
-	// TODO: cover with unit tests
-	static createFromPayload(broker, payload) {
-		const ctx = new broker.ContextFactory(broker, { name: payload.action, metrics: { params: false, meta: true } });
-		ctx.id = payload.id;
-		ctx.setParams(payload.params);
-		ctx.parentID = payload.parentID;
-		ctx.requestID = payload.requestID;
-		ctx.meta = payload.meta || {};
+	/**
+	 * Context ID getter
+	 *
+	 * @readonly
+	 * @memberof Context
+	 */
+	get id() {
+		if (!this._id) {
+			this._id = generateToken();
+			if (!this.requestID)
+				this.requestID = this._id;
+		}
+		return this._id;
+	}
 
-		ctx.timeout = payload.timeout || 0;
-		ctx.level = payload.level;
-		ctx.metrics = payload.metrics;
-		ctx.callerNodeID = payload.sender;
-
-		return ctx;
+	/**
+	 * Context ID setter
+	 *
+	 * @memberof Context
+	 */
+	set id(val) {
+		this._id = val;
 	}
 
 	/**
@@ -201,20 +170,6 @@ class Context {
 	}
 
 	/**
-	 * Merge metadata
-	 *
-	 * @param {Object} newMeta
-	 *
-	 * @private
-	 * @memberof Context
-	 */
-	_mergeMeta(newMeta) {
-		if (newMeta)
-			_.assign(this.meta, newMeta);
-		return this.meta;
-	}
-
-	/**
 	 * Call an other action. It creates a sub-context.
 	 *
 	 * @param {String} actionName
@@ -229,15 +184,15 @@ class Context {
 	 */
 	call(actionName, params, opts = {}) {
 		opts.parentCtx = this;
-		if (this.timeout > 0 && this.startHrTime) {
+		if (this.options.timeout > 0 && this.startHrTime) {
 			// Distributed timeout handling. Decrementing the timeout value with the elapsed time.
 			// If the timeout below 0, skip the call.
 			const diff = process.hrtime(this.startHrTime);
 			const duration = (diff[0] * 1e3) + (diff[1] / 1e6);
-			const distTimeout = this.timeout - duration;
+			const distTimeout = this.options.timeout - duration;
 
 			if (distTimeout <= 0) {
-				return Promise.reject(new RequestSkippedError(actionName, this.broker.nodeID));
+				return Promise.reject(new RequestSkippedError({ action: actionName, nodeID: this.broker.nodeID }));
 			}
 
 			if (!opts.timeout || distTimeout < opts.timeout)
@@ -246,7 +201,7 @@ class Context {
 
 		// Max calling level check to avoid calling loops
 		if (this.broker.options.maxCallLevel > 0 && this.level >= this.broker.options.maxCallLevel) {
-			return Promise.reject(new MaxCallLevelError(this.broker.nodeID, this.level));
+			return Promise.reject(new MaxCallLevelError({ nodeID: this.broker.nodeID, level: this.level }));
 		}
 
 		let p = this.broker.call(actionName, params, opts);
@@ -254,11 +209,13 @@ class Context {
 		// Merge metadata with sub context metadata
 		return p.then(res => {
 			if (p.ctx)
-				this._mergeMeta(p.ctx.meta);
+				mergeMeta(this, p.ctx.meta);
+
 			return res;
 		}).catch(err => {
 			if (p.ctx)
-				this._mergeMeta(p.ctx.meta);
+				mergeMeta(this, p.ctx.meta);
+
 			return Promise.reject(err);
 		});
 	}
@@ -297,139 +254,6 @@ class Context {
 		return this.broker.broadcast(eventName, data, groups);
 	}
 
-	/**
-	 * Send start event to metrics system.
-	 *
-	 * @param {boolean} emitEvent
-	 *
-	 * @private
-	 * @memberof Context
-	 */
-	_metricStart(emitEvent) {
-		this.startTime = Date.now();
-		this.startHrTime = process.hrtime();
-		this.duration = 0;
-
-		if (emitEvent) {
-			let payload = {
-				id: this.id,
-				requestID: this.requestID,
-				level: this.level,
-				startTime: this.startTime,
-				remoteCall: !!this.callerNodeID
-			};
-
-			// Process extra metrics
-			this._processExtraMetrics(payload);
-
-			if (this.action) {
-				payload.action = {
-					name: this.action.name
-				};
-			}
-			if (this.parentID)
-				payload.parent = this.parentID;
-
-			payload.nodeID = this.nodeID;
-			if (this.callerNodeID)
-				payload.callerNodeID = this.callerNodeID;
-
-			this.broker.emit("metrics.trace.span.start", payload);
-		}
-	}
-
-	/**
-	 * Send finish event to metrics system.
-	 *
-	 * @param {Error} error
-	 * @param {boolean} emitEvent
-	 *
-	 * @private
-	 * @memberof Context
-	 */
-	_metricFinish(error, emitEvent) {
-		if (this.startHrTime) {
-			let diff = process.hrtime(this.startHrTime);
-			this.duration = (diff[0] * 1e3) + (diff[1] / 1e6); // milliseconds
-		}
-		this.stopTime = this.startTime + this.duration;
-
-		if (emitEvent) {
-			let payload = {
-				id: this.id,
-				requestID: this.requestID,
-				level: this.level,
-				startTime: this.startTime,
-				endTime: this.stopTime,
-				duration: this.duration,
-				remoteCall: !!this.callerNodeID,
-				fromCache: this.cachedResult
-			};
-
-			// Process extra metrics
-			this._processExtraMetrics(payload);
-
-			if (this.action) {
-				payload.action = {
-					name: this.action.name
-				};
-			}
-			if (this.parentID)
-				payload.parent = this.parentID;
-
-			payload.nodeID = this.nodeID;
-			if (this.callerNodeID)
-				payload.callerNodeID = this.callerNodeID;
-
-			if (error) {
-				payload.error = {
-					name: error.name,
-					code: error.code,
-					type: error.type,
-					message: error.message
-				};
-			}
-			this.broker.emit("metrics.trace.span.finish", payload);
-		}
-	}
-
-	/**
-	 * Assign extra metrics taking into account action definitions
-	 *
-	 * @param {string} name Field of the context to be assigned.
-	 * @param {any} payload Object for assignement.
-	 *
-	 * @private
-	 * @memberof Context
-	 */
-	_assignExtraMetrics(name, payload) {
-		let def = this.action.metrics[name];
-		// if metrics definitions is boolean do default, metrics=true
-		if (def === true) {
-			payload[name] = this[name];
-		} else if (_.isArray(def)) {
-			payload[name] = _.pick(this[name], def);
-		} else if (_.isFunction(def)) {
-			payload[name] = def(this[name]);
-		}
-	}
-
-	/**
-	 * Decide and process extra metrics taking into account action definitions
-	 *
-	 * @param {any} payload Object for assignement.
-	 *
-	 * @private
-	 * @memberof Context
-	 */
-	_processExtraMetrics(payload) {
-		// extra metrics (params and meta)
-		if (_.isObject(this.action.metrics)) {
-			// custom metrics def
-			this._assignExtraMetrics("params", payload);
-			this._assignExtraMetrics("meta", payload);
-		}
-	}
 }
 
 module.exports = Context;

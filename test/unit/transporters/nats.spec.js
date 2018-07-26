@@ -53,7 +53,7 @@ describe("Test NatsTransporter constructor", () => {
 });
 
 describe("Test NatsTransporter connect & disconnect & reconnect", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let transit = new Transit(broker);
 	let msgHandler = jest.fn();
 	let transporter;
@@ -131,12 +131,12 @@ describe("Test NatsTransporter subscribe & publish", () => {
 
 	const fakeTransit = {
 		nodeID: "node1",
-		serialize: jest.fn(msg => JSON.stringify(msg))
+		serialize: jest.fn(msg => Buffer.from(JSON.stringify(msg)))
 	};
 
 	beforeEach(() => {
 		transporter = new NatsTransporter();
-		transporter.init(new Transit(new ServiceBroker({ namespace: "TEST", nodeID: "node-123" })));
+		transporter.init(new Transit(new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-123" })));
 
 		let p = transporter.connect();
 		transporter._client.onCallbacks.connect(); // Trigger the `resolve`
@@ -211,7 +211,7 @@ describe("Test NatsTransporter subscribe & publish", () => {
 	});
 
 	it("check publish with target", () => {
-		transporter.serialize = jest.fn(() => "json data");
+		transporter.serialize = jest.fn(() => Buffer.from("json data"));
 		transporter.client.publish = jest.fn((topic, payload, resolve) => resolve());
 		const packet = new P.Packet(P.PACKET_INFO, "node2", {});
 		return transporter.publish(packet)
@@ -229,7 +229,7 @@ describe("Test NatsTransporter subscribe & publish", () => {
 	});
 
 	it("check publish without target", () => {
-		transporter.serialize = jest.fn(() => "json data");
+		transporter.serialize = jest.fn(() => Buffer.from("json data"));
 		transporter.client.publish = jest.fn((topic, payload, resolve) => resolve());
 		const packet = new P.Packet(P.PACKET_INFO, null, {});
 		return transporter.publish(packet)
@@ -247,7 +247,7 @@ describe("Test NatsTransporter subscribe & publish", () => {
 	});
 
 	it("check publishBalancedEvent", () => {
-		transporter.serialize = jest.fn(() => "json data");
+		transporter.serialize = jest.fn(() => Buffer.from("json data"));
 		transporter.client.publish = jest.fn((topic, payload, resolve) => resolve());
 		const packet = new P.Packet(P.PACKET_EVENT, null, {
 			event: "user.created",
@@ -269,7 +269,7 @@ describe("Test NatsTransporter subscribe & publish", () => {
 	});
 
 	it("check publishBalancedRequest", () => {
-		transporter.serialize = jest.fn(() => "json data");
+		transporter.serialize = jest.fn(() => Buffer.from("json data"));
 		transporter.client.publish = jest.fn((topic, payload, resolve) => resolve());
 		const packet = new P.Packet(P.PACKET_REQUEST, null, {
 			action: "posts.find"

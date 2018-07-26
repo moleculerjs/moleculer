@@ -6,6 +6,7 @@
 
 "use strict";
 
+const _ 			= require("lodash");
 const Promise 		= require("bluebird");
 const utils			= require("../utils");
 const BaseCacher  	= require("./base");
@@ -34,6 +35,9 @@ class MemoryCacher extends BaseCacher {
 			/* istanbul ignore next */
 			this.checkTTL();
 		}, 30 * 1000);
+
+		// Set cloning
+		this.clone = this.opts.clone === true ? _.cloneDeep : this.opts.clone;
 
 		this.timer.unref();
 	}
@@ -75,7 +79,7 @@ class MemoryCacher extends BaseCacher {
 				// Update expire time (hold in the cache if we are using it)
 				item.expire = Date.now() + this.opts.ttl * 1000;
 			}
-			return Promise.resolve(item.data);
+			return Promise.resolve(this.clone ? this.clone(item.data) : item.data);
 		}
 		return Promise.resolve(null);
 	}

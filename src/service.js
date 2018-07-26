@@ -6,13 +6,11 @@
 
 "use strict";
 
-const _ = require("lodash");
-const utils = require("./utils");
-
-const { ServiceSchemaError } = require("./errors");
+const _ 						= require("lodash");
+const { ServiceSchemaError } 	= require("./errors");
 
 /**
- * Main Service class
+ * Service class
  *
  * @class Service
  */
@@ -42,6 +40,7 @@ class Service {
 
 	/**
 	 * Parse Service schema & register as local service
+	 *
 	 * @param {Object} schema of Service
 	 */
 	parseServiceSchema(schema) {
@@ -53,21 +52,28 @@ class Service {
 		}
 
 		if (!schema.name)
-			throw new ServiceSchemaError("Service name can't be empty!");
+			throw new ServiceSchemaError("Service name can't be empty! Maybe it is not a valid Service schema.");
 
 		this.name = schema.name;
 		this.version = schema.version;
 		this.settings = schema.settings || {};
 		this.metadata = schema.metadata || {};
-
 		this.schema = schema;
 
-		this.logger = this.broker.getLogger("service", this.name, this.version);
+		if (this.version && this.settings.$noVersionPrefix !== true)
+			this.fullName = (typeof(this.version) == "number" ? "v" + this.version : this.version) + "." + this.name;
+		else
+			this.fullName = this.name;
+
+		this.logger = this.broker.getLogger(this.fullName, {
+			svc: this.name,
+			ver: this.version
+		});
 
 		this.actions = {}; // external access to actions
 
 		//Service item for Registry
-		const registryItem = {
+		const serviceSpecification = {
 			name: this.name,
 			version: this.version,
 			settings: this.settings,
@@ -78,84 +84,31 @@ class Service {
 
 		// Register actions
 		if (_.isObject(schema.actions)) {
-
 			_.forIn(schema.actions, (action, name) => {
 				if (action === false)
 					return;
 
 				let innerAction = this._createAction(action, name);
 
-				registryItem.actions[innerAction.name] = this.broker.wrapAction(innerAction);
+				serviceSpecification.actions[innerAction.name] = innerAction;
 
-				// Expose to call `service.actions.find({ ...params })`
+				const wrappedHandler = this.broker.middlewares.wrapHandler("localAction", innerAction.handler, innerAction);
+
+				// Expose to be callable as `this.actions.find({ ...params })`
+				const ep = this.broker.registry.createPrivateActionEndpoint(innerAction);
 				this.actions[name] = (params, opts) => {
-					const ctx = this.broker.ContextFactory.create(this.broker, innerAction, null, params, opts || {});
-					const contextDispose = (ret) => {
-						if (opts.trackContext) {
-							ctx.dispose();
-						}
-
-						return ret;
-					};
-					const contextDisposeCatch = (ret) => {
-						return this.Promise.reject(contextDispose(ret));
-					};
-					return innerAction.handler(ctx).then(contextDispose).catch(contextDisposeCatch);
+					return wrappedHandler(this.broker.ContextFactory.create(this.broker, ep, params, opts || {}));
 				};
 
 			});
-
 		}
 
 		// Event subscriptions
 		if (_.isObject(schema.events)) {
-
 			_.forIn(schema.events, (event, name) => {
-				if (_.isFunction(event) || Array.isArray(event)) {
-					event = {
-						handler: event
-					};
-				}
-				if (!event.name)
-					event.name = name;
-
-				if (!event.handler) {
-					throw new ServiceSchemaError(`Missing event handler on '${name}' event in '${this.name}' service!`);
-				}
-
-				event.service = this;
-				const handler = event.handler;
-				const self = this;
-				event.handler = function (payload, sender, eventName) {
-					if (_.isFunction(handler)) {
-						const p = handler.apply(self, [payload, sender, eventName]);
-						// TODO: Track event handler started
-
-						// Handle async-await returns
-						if (utils.isPromise(p)) {
-							/* istanbul ignore next */
-							p.catch(err => self.logger.error(err));
-						} // TODO: Cleanup event tracking
-
-					} else if (Array.isArray(handler)) {
-						handler.forEach(fn => {
-							const p = fn.apply(self, [payload, sender, eventName]);
-							// TODO: Track event handler started
-
-							// Handle async-await returns
-							if (utils.isPromise(p)) {
-								/* istanbul ignore next */
-								p.catch(err => self.logger.error(err));
-							} // TODO: Cleanup event tracking
-						});
-					}
-
-					return null;
-				};
-
-				registryItem.events[event.name] = event;
+				const innerEvent = this._createEvent(event, name);
+				serviceSpecification.events[innerEvent.name] = innerEvent;
 			});
-
 		}
 
 		// Register methods
@@ -163,83 +116,109 @@ class Service {
 
 			_.forIn(schema.methods, (method, name) => {
 				/* istanbul ignore next */
-				if (["name", "version", "settings", "metadata", "dependencies", "schema", "broker", "actions", "logger", "created", "started", "stopped"].indexOf(name) != -1) {
+				if (["name", "version", "settings", "metadata", "dependencies", "schema", "broker", "actions", "logger", "created", "started", "stopped", "_start", "_stop", "_init"].indexOf(name) != -1) {
 					throw new ServiceSchemaError(`Invalid method name '${name}' in '${this.name}' service!`);
 				}
 				this[name] = method.bind(this);
 			});
-
 		}
 
-		// Register service
-		this.broker.registerLocalService(this, registryItem);
+		this._serviceSpecification = serviceSpecification;
 
+		// Initialize
+		this._init();
+	}
 
-		// Create lifecycle runner methods
-		this.created = () => {
-			if (_.isFunction(this.schema.created)) {
-				this.schema.created.call(this);
-			} else if (Array.isArray(this.schema.created)) {
-				this.schema.created.forEach(fn => fn.call(this));
-			}
-		};
+	/**
+	 * Initialize service. It called `created` handler in schema
+	 *
+	 * @private
+	 * @memberof Service
+	 */
+	_init() {
+		if (_.isFunction(this.schema.created)) {
+			this.schema.created.call(this);
+		} else if (Array.isArray(this.schema.created)) {
+			this.schema.created.forEach(fn => fn.call(this));
+		}
 
-		this.started = () => {
-			return this.Promise.resolve()
-				.then(() => {
-					// Wait for dependent services
-					if (this.schema.dependencies)
-						return this.waitForServices(this.schema.dependencies, this.settings.$dependencyTimeout || 0);
-				})
-				.then(() => {
-					if (_.isFunction(this.schema.started))
-						return this.Promise.method(this.schema.started).call(this);
+		this.broker.addLocalService(this);
 
-					if (Array.isArray(this.schema.started)) {
-						return this.schema.started
-							.map(fn => this.Promise.method(fn.bind(this)))
-							.reduce((p, fn) => p.then(fn), this.Promise.resolve());
-					}
-				});
-		};
+		this.broker.middlewares.callSyncHandlers("serviceCreated", [this]);
+	}
 
-		this.stopped = () => {
-			return new this.Promise((resolve, reject) => {
-				const timeout = setTimeout(reject, this.settings.$gracefulStopTimeout || this.broker.options.gracefulStopTimeout);
-				const checkForContexts = () => {
-					if (this._getActiveContexts().length === 0) {
-						clearTimeout(timeout);
-						resolve();
-					} else {
-						setTimeout(checkForContexts, 100);
-					}
-				};
-				setImmediate(checkForContexts);
-			}).finally(() => {
+	/**
+	 * Start service
+	 *
+	 * @returns {Promise}
+	 * @private
+	 * @memberof Service
+	 */
+	_start() {
+		return this.Promise.resolve()
+			.then(() => {
+				return this.broker.middlewares.callHandlers("serviceStarting", [this]);
+			})
+			.then(() => {
+				// Wait for dependent services
+				if (this.schema.dependencies)
+					return this.waitForServices(this.schema.dependencies, this.settings.$dependencyTimeout || 0);
+			})
+			.then(() => {
+				if (_.isFunction(this.schema.started))
+					return this.Promise.method(this.schema.started).call(this);
+
+				if (Array.isArray(this.schema.started)) {
+					return this.schema.started
+						.map(fn => this.Promise.method(fn.bind(this)))
+						.reduce((p, fn) => p.then(fn), this.Promise.resolve());
+				}
+			})
+			.then(() => {
+				// Register service
+				this.broker.registerLocalService(this._serviceSpecification);
+			})
+			.then(() => {
+				return this.broker.middlewares.callHandlers("serviceStarted", [this]);
+			});
+	}
+
+	/**
+	 * Stop service
+	 *
+	 * @returns {Promise}
+	 * @private
+	 * @memberof Service
+	 */
+	_stop() {
+		return this.Promise.resolve()
+			.then(() => {
+				return this.broker.middlewares.callHandlers("serviceStopping", [this], true);
+			})
+			.then(() => {
 				if (_.isFunction(this.schema.stopped))
 					return this.Promise.method(this.schema.stopped).call(this);
 
 				if (Array.isArray(this.schema.stopped)) {
-					return this.schema.stopped
-						.reverse()
+					const arr = this.schema.stopped.reverse();
+					return arr
 						.map(fn => this.Promise.method(fn.bind(this)))
 						.reduce((p, fn) => p.then(fn), this.Promise.resolve());
 				}
 
 				return this.Promise.resolve();
+			})
+			.then(() => {
+				return this.broker.middlewares.callHandlers("serviceStopped", [this], true);
 			});
-		};
-
-		// Call the created event handler
-		this.created();
 	}
 
 	/**
 	 * Create an external action handler for broker (internal command!)
 	 *
-	 * @param {any} actionDef
-	 * @param {any} name
-	 * @returns
+	 * @param {Object|Function} actionDef
+	 * @param {String} name
+	 * @returns {Object}
 	 *
 	 * @private
 	 * @memberof Service
@@ -262,19 +241,12 @@ class Service {
 			throw new ServiceSchemaError(`Missing action handler on '${name}' action in '${this.name}' service!`);
 		}
 
+		action.rawName = action.name || name;
 		if (this.settings.$noServiceNamePrefix !== true)
-			action.name = this.name + "." + (action.name || name);
+			action.name = this.fullName + "." + action.rawName;
 		else
-			action.name = action.name || name;
+			action.name = action.rawName;
 
-		if (this.version && this.settings.$noVersionPrefix !== true) {
-			if (_.isNumber(this.version))
-				action.name = `v${this.version}.${action.name}`;
-			else
-				action.name = `${this.version}.${action.name}`;
-		}
-
-		//action.origName = name;
 		action.service = this;
 		action.cache = action.cache !== undefined ? action.cache : (this.settings.$cache || false);
 		action.handler = this.Promise.method(handler.bind(this));
@@ -286,13 +258,60 @@ class Service {
 	}
 
 	/**
-	 * Retrieve list of active contexts for the service
-	 * @returns {Set}
+	 * Create an event subscription for broker
+	 *
+	 * @param {Object|Function} eventDef
+	 * @param {String} name
+	 * @returns {Object}
+	 *
 	 * @private
 	 * @memberof Service
 	 */
-	_getActiveContexts() {
-		return this._activeContexts || [];
+	_createEvent(eventDef, name) {
+		let event;
+		if (_.isFunction(eventDef) || Array.isArray(eventDef)) {
+			event = {
+				handler: eventDef
+			};
+		} else if (_.isObject(eventDef)) {
+			event = _.cloneDeep(eventDef);
+		} else {
+			throw new ServiceSchemaError(`Invalid event definition in '${name}' event in '${this.name}' service!`);
+		}
+
+		if (!event.handler) {
+			throw new ServiceSchemaError(`Missing event handler on '${name}' event in '${this.name}' service!`);
+		}
+
+		let handler;
+		if (_.isFunction(event.handler))
+			handler = this.Promise.method(event.handler);
+		else if (Array.isArray(event.handler))
+			handler = event.handler.map(h => this.Promise.method(h));
+
+		if (!event.name)
+			event.name = name;
+
+		event.service = this;
+		const self = this;
+		if (_.isFunction(handler)) {
+			event.handler = function () {
+				handler.apply(self, arguments)
+					.catch(err => self.logger.error(err));
+				return null;
+			};
+		} else if (Array.isArray(handler)) {
+			event.handler = function () {
+				handler.forEach(fn => {
+					fn.apply(self, arguments)
+						.catch(err => self.logger.error(err));
+					return null;
+				});
+				return null;
+			};
+		}
+
+		return event;
 	}
 
 	/**
@@ -355,6 +374,10 @@ class Service {
 			return _.isFunction(o) ? { handler: o } : o;
 		};
 
+		const wrapToArray = function wrapToArray(o) {
+			return Array.isArray(o) ? o : [o];
+		};
+
 		const res = _.cloneDeep(mixinSchema);
 		const mods = _.cloneDeep(svcSchema);
 
@@ -362,6 +385,23 @@ class Service {
 			if (["settings", "metadata"].indexOf(key) !== -1) {
 				// Merge with defaultsDeep
 				res[key] = _.defaultsDeep(mods[key], res[key]);
+
+			} else if (["hooks"].indexOf(key) !== -1) {
+				// Merge & concat
+				if (res[key] == null)
+					res[key] = {};
+
+				Object.keys(mods[key]).forEach(k => {
+					if (res[key][k] == null)
+						res[key][k] = {};
+
+					Object.keys(mods[key][k]).forEach(k2 => {
+						const modHook = wrapToArray(mods[key][k][k2]);
+						const resHook = wrapToArray(res[key][k][k2]);
+
+						res[key][k][k2] = _.compact(_.flatten(k == "before" ? [resHook, modHook] : [modHook, resHook]));
+					});
+				});
 
 			} else if (["actions"].indexOf(key) !== -1) {
 				// Merge with defaultsDeep
@@ -390,8 +430,6 @@ class Service {
 					res[key] = {};
 
 				Object.keys(mods[key]).forEach(k => {
-					//					res[key][k] = _.compact(_.flatten([res[key][k], mods[key][k]]));
-
 					const modEvent = wrapToHander(mods[key][k]);
 					const resEvent = wrapToHander(res[key][k]);
 

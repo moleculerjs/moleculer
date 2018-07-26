@@ -1,17 +1,4 @@
-/*
- * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
- * MIT Licensed
- */
-
 "use strict";
-
-/*
-
-https://github.com/awolden/brakes/blob/master/lib/Stats.js
-
-https://github.com/RisingStack/trace-nodejs/blob/master/lib/agent/metrics/rpm/index.js
-*/
 
 const defaultsDeep = require("lodash/defaultsDeep");
 
@@ -249,52 +236,31 @@ class RequestStatistics {
 	}
 }
 
-/**
- *
- *
- * @class BrokerStatistics
- */
-class BrokerStatistics {
-	/**
-	 * Creates an instance of BrokerStatistics.
-	 *
-	 * @param {any} broker
-	 * @param {any} options
-	 *
-	 * @memberof BrokerStatistics
-	 */
-	constructor(broker, options) {
-		this.broker = broker;
-		this.options = defaultsDeep({}, options);
+module.exports = {
+	name: "stat",
+	actions: {
+		snapshot(ctx) {
+			return this.snapshot(ctx.params);
+		}
+	},
+	events: {
+		"metrics.trace.span.finish"(payload) {
+			if (payload.error)
+				this.requests.append(payload.action.name, payload.duration, payload.error.code || 500);
+			else
+				this.requests.append(payload.action.name, payload.duration);
+		}
+	},
 
-		this.requests = new RequestStatistics(this.options);
+	methods: {
+		snapshot(opts) {
+			return {
+				requests: this.requests.snapshot(opts)
+			};
+		}
+	},
+
+	created() {
+		this.requests = new RequestStatistics(defaultsDeep({}, this.broker.options));
 	}
-
-	/**
-	 *
-	 *
-	 * @param {any} actionName
-	 * @param {any} latency
-	 * @param {any} errCode
-	 *
-	 * @memberof BrokerStatistics
-	 */
-	addRequest(actionName, latency, errCode) {
-		this.requests.append(actionName, latency, errCode);
-	}
-
-	/**
-	 *
-	 *
-	 * @returns
-	 *
-	 * @memberof BrokerStatistics
-	 */
-	snapshot() {
-		return {
-			requests: this.requests.snapshot()
-		};
-	}
-}
-
-module.exports = BrokerStatistics;
+};

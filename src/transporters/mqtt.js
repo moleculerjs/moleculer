@@ -133,6 +133,7 @@ class MqttTransporter extends Transporter {
 
 		return new Promise((resolve, reject) => {
 			const data = this.serialize(packet);
+			this.incStatSent(data.length);
 			const topic = this.getTopicName(packet.type, packet.target);
 			const opts = this.opts.qosZero ? {qos: 0} : {qos: 1};
 			this.client.publish(topic, data, opts, err => {

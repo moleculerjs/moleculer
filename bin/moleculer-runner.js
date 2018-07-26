@@ -12,6 +12,7 @@ const utils			= require("../src/utils");
 const Promise		= require("bluebird");
 const fs 			= require("fs");
 const path 			= require("path");
+const glob 			= require("glob").sync;
 const _ 			= require("lodash");
 const Args 			= require("args");
 const os			= require("os");
@@ -36,11 +37,11 @@ let broker;
  */
 const logger = {
 	info(message) {
-		/* eslint-disable no-console */
+		/* eslint-disable-next-line no-console */
 		console.log(chalk.green.bold(message));
 	},
 	error(message) {
-		/* eslint-disable no-console */
+		/* eslint-disable-next-line no-console */
 		console.error(chalk.red.bold(message));
 	}
 };
@@ -210,6 +211,36 @@ function mergeOptions() {
 }
 
 /**
+ * Check the given path whether directory or not
+ *
+ * @param {String} p
+ * @returns {Boolean}
+ */
+function isDirectory(p) {
+	try {
+		return fs.lstatSync(p).isDirectory();
+	} catch(_) {
+		// ignore
+	}
+	return false;
+}
+
+/**
+ * Check the given path whether a file or not
+ *
+ * @param {String} p
+ * @returns {Boolean}
+ */
+function isServiceFile(p) {
+	try {
+		return !fs.lstatSync(p).isDirectory();
+	} catch(_) {
+		// ignore
+	}
+	return false;
+}
+
+/**
  * Load services from files or directories
  *
  * 1. If find `SERVICEDIR` env var and not find `SERVICES` env var, load all services from the `SERVICEDIR` directory
@@ -227,69 +258,67 @@ function mergeOptions() {
  *
  */
 function loadServices() {
-	const fileMask = flags.mask;
+	const fileMask = flags.mask || "**/*.service.js";
+
+	const serviceDir = process.env.SERVICEDIR || "";
+	const svcDir = path.isAbsolute(serviceDir) ? serviceDir : path.resolve(process.cwd(), serviceDir);
+
+	let patterns = servicePaths;
 
 	if (process.env.SERVICES || process.env.SERVICEDIR) {
-		let svcDir = process.env.SERVICEDIR || "";
 
-		if (fs.existsSync(svcDir) && !process.env.SERVICES) {
+		if (isDirectory(svcDir) && !process.env.SERVICES) {
 			// Load all services from directory (from subfolders too)
-			broker.loadServices(path.isAbsolute(svcDir) ? svcDir : path.resolve(process.cwd(), svcDir), fileMask);
-		}
+			broker.loadServices(svcDir, fileMask);
 
-		if (process.env.SERVICES) {
+		} else if (process.env.SERVICES) {
 			// Load services from env list
-			let services = Array.isArray(process.env.SERVICES) ? process.env.SERVICES : process.env.SERVICES.split(",");
-			let dir = path.isAbsolute(svcDir) ? svcDir : path.resolve(process.cwd(), svcDir || "");
-
-			services.map(s => s.trim()).forEach(p => {
-				let name = p;
-
-				if (name.startsWith("npm:")) {
-					// Load from NPM module
-					loadNpmModule(p.slice(4));
-
-				} else {
-					// Load from local files
-					let svcPath = path.resolve(dir, name);
-					if (!fs.existsSync(svcPath)) {
-						name = name + ".service.js";
-						svcPath = path.resolve(dir, name);
-					}
-
-					if (!fs.existsSync(svcPath))
-						throw new Error(`Path not found: '${path.resolve(dir, p)}' and '${svcPath}'`);
-
-					broker.loadService(svcPath);
-				}
-			});
+			patterns = Array.isArray(process.env.SERVICES) ? process.env.SERVICES : process.env.SERVICES.split(",");
 		}
+	}
 
-	} else if (servicePaths.length > 0) {
-		servicePaths.forEach(p => {
-			if (!p) return;
+	if (patterns.length > 0) {
+		let serviceFiles = [];
+
+		patterns.map(s => s.trim()).forEach(p => {
+			const skipping = p[0] == "!";
+			if (skipping)
+				p = p.slice(1);
 
 			if (p.startsWith("npm:")) {
-				// Load from NPM module
+				// Load NPM module
 				loadNpmModule(p.slice(4));
 
 			} else {
-				// Load file or dir
-				const svcPath = path.isAbsolute(p) ? p : path.resolve(process.cwd(), p);
-				if (!fs.existsSync(svcPath))
-					throw new Error(`Path not found: ${svcPath}`);
-
-				const isDir = fs.lstatSync(svcPath).isDirectory();
-				if (isDir) {
-					broker.loadServices(svcPath, fileMask);
+				let files;
+				const svcPath = path.isAbsolute(p) ? p : path.resolve(svcDir, p);
+				// Check is it a directory?
+				if (isDirectory(svcPath)) {
+					files = glob(svcPath + "/" + fileMask, { absolute: true });
+					if (files.length == 0)
+						return broker.logger.warn(chalk.yellow.bold(`There is no service files in directory: '${svcPath}'`));
+				} else if (isServiceFile(svcPath)) {
+					files = [svcPath.replace(/\\/g, "/")];
+				} else if (isServiceFile(svcPath + ".service.js")) {
+					files = [svcPath.replace(/\\/g, "/") + ".service.js"];
 				} else {
-					broker.loadService(svcPath);
+					// Load with glob
+					files = glob(p, { cwd: svcDir, absolute: true });
+					if (files.length == 0)
+						broker.logger.warn(chalk.yellow.bold(`There is no matched file for pattern: '${p}'`));
+				}
+
+				if (files && files.length > 0) {
+					if (skipping)
+						serviceFiles = serviceFiles.filter(f => files.indexOf(f) === -1);
+					else
+						serviceFiles.push(...files);
 				}
 			}
 		});
 
+		_.uniq(serviceFiles).forEach(f => broker.loadService(f));
 	}
-
 }
 
 /*

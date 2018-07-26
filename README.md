@@ -15,7 +15,7 @@
 # Moleculer [![NPM version](https://img.shields.io/npm/v/moleculer.svg)](https://www.npmjs.com/package/moleculer) [![Twitter URL](https://img.shields.io/twitter/url/http/shields.io.svg?style=social&logo=twitter)](https://twitter.com/intent/tweet?text=Moleculer%20is%20a%20modern%20microservices%20framework%20for%20Node.js&url=https://github.com/moleculerjs/moleculer&via=MoleculerJS&hashtags=nodejs,javascript,microservices)
 
 
-Moleculer is a fast, modern and powerful microservices framework for Node.js (>= v6.x).
+Moleculer is a progressive microservices framework for Node.js.
 <!--
 ![](https://img.shields.io/badge/performance-%2B50%25-brightgreen.svg)
 ![](https://img.shields.io/badge/performance-%2B5%25-green.svg)
@@ -31,22 +31,22 @@ Moleculer is a fast, modern and powerful microservices framework for Node.js (>=
 
 - Promise-based solution
 - request-reply concept
+- support streams
 - support event driven architecture with balancing
-- built-in service registry
-- dynamic service discovery
-- load balanced requests & events (round-robin, random, cpu-usage)
+- built-in service registry & dynamic service discovery
+- load balanced requests & events (round-robin, random, cpu-usage, latency)
+- many fault tolerance features (Circuit Breaker, Bulkhead, Retry, Timeout, Fallback)
 - supports middlewares
+- supports versioned services
 - service mixins
-- multiple services on a node/server
 - built-in caching solution (memory, Redis)
 - pluggable transporters (TCP, NATS, MQTT, Redis, NATS Streaming, Kafka)
-- pluggable serializers (JSON, Avro, MsgPack, Protocol Buffer)
+- pluggable serializers (JSON, Avro, MsgPack, Protocol Buffer, Thrift)
 - pluggable validator
+- multiple services on a node/server
 - all nodes are equal, no master/leader node
 - parameter validation with [fastest-validator](https://github.com/icebob/fastest-validator)
-- distributed timeout handling with fallback response
-- health monitoring, metrics & statistics
-- supports versioned services
+- built-in health monitoring & metrics
 - official [API gateway module](https://github.com/moleculerjs/moleculer-web) and many other modules...
 
 # Installation
@@ -59,12 +59,14 @@ $ yarn add moleculer
 ```
 
 # Create your first microservice
-This example shows you how to create a small service with an `add` action which can add two numbers.
+This example shows you how to create a small service with an `add` action which can add two numbers and how to call it.
 ```js
 const { ServiceBroker } = require("moleculer");
 
+// Create a broker
 let broker = new ServiceBroker({ logger: console });
 
+// Create a service
 broker.createService({
     name: "math",
     actions: {
@@ -74,12 +76,12 @@ broker.createService({
     }
 });
 
-broker.start();
-
-// Call service
-broker.call("math.add", { a: 5, b: 3 })
+// Start broker
+broker.start()
+    // Call service
+    .then(() => broker.call("math.add", { a: 5, b: 3 }))
     .then(res => console.log("5 + 3 =", res))
-    .catch(err => console.error(`Error occured! ${err.message}`));
+    .catch(err => console.error(`Error occurred! ${err.message}`));
 ```
 [Try it on Runkit](https://runkit.com/icebob/moleculer-quick-example)
 
@@ -105,15 +107,15 @@ Use the Moleculer CLI tool to create a new Moleculer based microservices project
     ```bash
     $ npm run dev
     ```
-5. Open the http://localhost:3000/greeter/welcome?name=world link in your browser. It will call the `welcome` action of `greeter` service with a `name` param via [API gateway](https://github.com/moleculerjs/moleculer-web) and returns with the result.
+5. Open the [http://localhost:3000/](http://localhost:3000/) link in your browser. It shows a start page which contains two links to call the `greeter` service via [API gateway](https://github.com/moleculerjs/moleculer-web).
 
 :tada:**Congratulations! Your first Moleculer based microservices project is created. Read our [documentation](https://moleculer.services/docs) to learn more about Moleculer.**
 
 # Official modules
-We have many official modules for Moleculer. [Check our list!](https://moleculer.services/0.12/docs/modules.html)
+We have many official modules for Moleculer. [Check our list!](https://moleculer.services/modules.html)
 
 # Supporting
-Moleculer is an open source project. It is free to use for your personal or commercial projects. However, developing it takes up all my free time to make it better and better on a daily basis. If you like Moleculer framework, **[please support it][patreon]**. 
+Moleculer is an open source project. It is free to use for your personal or commercial projects. However, developing it takes up all my free time to make it better and better on a daily basis. If you like Moleculer framework, **[please support it](https://moleculer.services/support.html)**.
 
 Thank you very much!
 
@@ -125,6 +127,7 @@ See [CHANGELOG.md](CHANGELOG.md).
 
 # Contributions
 We welcome you to join to the development of Moleculer. Please read our [contribution guide](http://moleculer.services/docs/contributing.html).
+<a href="graphs/contributors"><img src="https://opencollective.com/moleculer/contributors.svg?width=890&button=false" /></a>
 
 # License
 Moleculer is available under the [MIT license](https://tldrlegal.com/license/mit-license).

@@ -9,7 +9,6 @@
 const _ = require("lodash");
 const EndpointList = require("./endpoint-list");
 const ActionEndpoint = require("./endpoint-action");
-const ActionEndpointCB = require("./endpoint-cb");
 
 /**
  * Catalog class to store service actions
@@ -34,7 +33,7 @@ class ActionCatalog {
 
 		this.actions = new Map();
 
-		this.EndpointFactory = this.registry.opts.circuitBreaker && this.registry.opts.circuitBreaker.enabled ? ActionEndpointCB : ActionEndpoint;
+		this.EndpointFactory = ActionEndpoint;
 	}
 
 	/**
@@ -140,7 +139,7 @@ class ActionCatalog {
 			if (item.count > 0) {
 				const ep = list.endpoints[0];
 				if (ep)
-					item.action = _.omit(ep.action, ["handler", "service"]);
+					item.action = _.omit(ep.action, ["handler", "remoteHandler", "service"]);
 			}
 			if (item.action && item.action.protected === true) return;
 

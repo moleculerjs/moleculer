@@ -32,7 +32,7 @@ describe("Test TcpWriter constructor", () => {
 });
 
 describe("Test TcpWriter.send", () => {
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ logger: false });
 	let transporter, writer;
 	let node = {
 		id: "node-2",
@@ -89,7 +89,7 @@ describe("Test TcpWriter.send", () => {
 });
 
 describe("Test TcpWriter.connect", () => {
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ logger: false });
 	let transporter, writer;
 	let node = {
 		id: "node-2",
@@ -239,7 +239,7 @@ describe("Test TcpWriter.connect", () => {
 });
 
 describe("Test TcpWriter.manageConnections", () => {
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ logger: false });
 	let transporter, writer;
 
 	beforeEach(() => {
@@ -284,7 +284,7 @@ describe("Test TcpWriter.manageConnections", () => {
 });
 
 describe("Test TcpWriter.addSocket & removeSocket", () => {
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ logger: false });
 	let transporter = {
 		logger: broker.logger
 	};
@@ -362,7 +362,7 @@ describe("Test TcpWriter.addSocket & removeSocket", () => {
 
 
 describe("Test TcpWriter.close", () => {
-	const broker = new ServiceBroker();
+	const broker = new ServiceBroker({ logger: false });
 	let transporter = {
 		logger: broker.logger
 	};

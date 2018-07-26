@@ -4,7 +4,6 @@ const ServiceBroker = require("../src/service-broker");
 const BaseValidator = require("../src/validator");
 const { ValidationError } = require("../src/errors");
 const Joi = require("joi");
-const SafeJSONSerializer = require("./SafeJsonSerializer");
 
 // --- JOI VALIDATOR CLASS ---
 class JoiValidator extends BaseValidator {
@@ -30,8 +29,7 @@ let broker = new ServiceBroker({
 	logger: true,
 	transporter: "TCP",
 	validation: true,
-	validator: new JoiValidator,
-	serializer: new SafeJSONSerializer()
+	validator: new JoiValidator
 });
 
 // --- TEST BROKER ---

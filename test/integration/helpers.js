@@ -4,15 +4,15 @@ const _ = require("lodash");
 const ServiceBroker = require("../../src/service-broker");
 
 const H = {
-	createNode(nodeID, services) {
-		let node = new ServiceBroker({ nodeID, transporter: "Fake" });
+	createNode(namespace, nodeID, services) {
+		let node = new ServiceBroker({ namespace, logger: false, nodeID, transporter: "Fake" });
 		if (services)
 			H.addServices(node, services);
 		return node;
 	},
 
 	addServices(broker, services) {
-		services.forEach(service =>broker.createService(_.cloneDeep(service)));
+		services.forEach(service => broker.createService(_.cloneDeep(service)));
 	},
 
 	removeServices(broker, serviceNames) {

@@ -15,8 +15,12 @@ module.exports = function(broker) {
 		actions: {
 			list: {
 				cache: false,
-				handler() {
-					return this.broker.registry.getNodeList();
+				params: {
+					withServices: { type: "boolean", optional: true },
+					onlyAvailable: { type: "boolean", optional: true },
+				},
+				handler(ctx) {
+					return this.broker.registry.getNodeList(ctx.params);
 				}
 			},
 
@@ -25,7 +29,8 @@ module.exports = function(broker) {
 				params: {
 					onlyLocal: { type: "boolean", optional: true },
 					skipInternal: { type: "boolean", optional: true },
-					withActions: { type: "boolean", optional: true }
+					withActions: { type: "boolean", optional: true },
+					onlyAvailable: { type: "boolean", optional: true },
 				},
 				handler(ctx) {
 					let res = [];
@@ -67,7 +72,8 @@ module.exports = function(broker) {
 				params: {
 					onlyLocal: { type: "boolean", optional: true },
 					skipInternal: { type: "boolean", optional: true },
-					withEndpoints: { type: "boolean", optional: true }
+					withEndpoints: { type: "boolean", optional: true },
+					onlyAvailable: { type: "boolean", optional: true },
 				},
 				handler(ctx) {
 					return this.broker.registry.getActionList(ctx.params);
@@ -79,7 +85,8 @@ module.exports = function(broker) {
 				params: {
 					onlyLocal: { type: "boolean", optional: true },
 					skipInternal: { type: "boolean", optional: true },
-					withEndpoints: { type: "boolean", optional: true }
+					withEndpoints: { type: "boolean", optional: true },
+					onlyAvailable: { type: "boolean", optional: true },
 				},
 				handler(ctx) {
 					return this.broker.registry.getEventList(ctx.params);
@@ -91,18 +98,18 @@ module.exports = function(broker) {
 				handler() {
 					return this.broker.getHealthStatus();
 				}
-			}
+			},
+
+			options: {
+				cache: true,
+				params: {
+				},
+				handler(ctx) {
+					return _.cloneDeep(this.broker.options);
+				}
+			},
 		}
 	};
-
-	if (broker.statistics) {
-		schema.actions.stats = {
-			cache: false,
-			handler() {
-				return this.broker.statistics.snapshot();
-			}
-		};
-	}
 
 	return schema;
 };

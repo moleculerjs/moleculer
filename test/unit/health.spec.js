@@ -4,7 +4,10 @@ const H = require("../../src/health");
 const ServiceBroker = require("../../src/service-broker");
 
 describe("Test health status methods", () => {
-	const broker = new ServiceBroker({ transporter: "fake" });
+	const broker = new ServiceBroker({ logger: false, transporter: "fake" });
+
+	beforeAll(() => broker.start());
+	afterAll(() => broker.stop());
 
 	it("should return health status", () => {
 		let res = H.getHealthStatus(broker);

@@ -4,15 +4,14 @@ let Strategy = require("../../../src/strategies").RoundRobin;
 let ActionCatalog = require("../../../src/registry/action-catalog");
 let EndpointList = require("../../../src/registry/endpoint-list");
 let ActionEndpoint = require("../../../src/registry/endpoint-action");
-let ActionEndpointCB = require("../../../src/registry/endpoint-cb");
 let ServiceBroker = require("../../../src/service-broker");
 
 describe("Test ActionCatalog constructor", () => {
 
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
-	it("test without CB", () => {
+	it("test constructor", () => {
 		let catalog = new ActionCatalog(registry, broker, Strategy);
 
 		expect(catalog).toBeDefined();
@@ -24,23 +23,10 @@ describe("Test ActionCatalog constructor", () => {
 		expect(catalog.EndpointFactory).toBe(ActionEndpoint);
 	});
 
-	it("test with CB", () => {
-		registry.opts.circuitBreaker.enabled = true;
-		let catalog = new ActionCatalog(registry, broker, Strategy);
-
-		expect(catalog).toBeDefined();
-		expect(catalog.registry).toBe(registry);
-		expect(catalog.broker).toBe(broker);
-		expect(catalog.logger).toBe(registry.logger);
-		expect(catalog.StrategyFactory).toBe(Strategy);
-		expect(catalog.actions).toBeInstanceOf(Map);
-		expect(catalog.EndpointFactory).toBe(ActionEndpointCB);
-	});
-
 });
 
 describe("Test ActionCatalog methods", () => {
-	let broker = new ServiceBroker();
+	let broker = new ServiceBroker({ logger: false });
 	let catalog = new ActionCatalog(broker.registry, broker, Strategy);
 	let list;
 	let service = { name: "test" };

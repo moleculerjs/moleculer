@@ -15,7 +15,7 @@ function createBrokers(transporter) {
 	let b1 = new ServiceBroker({
 		transporter,
 		//requestTimeout: 0,
-		//logger: console,
+		logger: false,
 		//logLevel: "debug",
 		nodeID: "node-1"
 	});
@@ -23,7 +23,7 @@ function createBrokers(transporter) {
 	let b2 = new ServiceBroker({
 		transporter,
 		//requestTimeout: 0,
-		//logger: console,
+		logger: false,
 		//logLevel: "debug",
 		nodeID: "node-2"
 	});
@@ -125,22 +125,23 @@ runTest(dataFiles.shift());
 Platform info:
 ==============
    Windows_NT 6.1.7601 x64
-   Node.JS: 8.9.4
-   V8: 6.1.534.50
+   Node.JS: 8.11.0
+   V8: 6.2.414.50
    Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
 
 Suite: Transport with 10bytes
-√ Fake*            55,626 rps
-√ NATS*             8,729 rps
-√ Redis*            8,590 rps
-√ MQTT*             8,103 rps
-√ TCP*             11,249 rps
+√ Fake*            40,182 rps
+√ NATS*             8,182 rps
+√ Redis*            6,922 rps
+√ MQTT*             6,985 rps
+√ TCP*             10,639 rps
 
-   Fake* (#)        0%         (55,626 rps)   (avg: 17μs)
-   NATS*       -84.31%          (8,729 rps)   (avg: 114μs)
-   Redis*      -84.56%          (8,590 rps)   (avg: 116μs)
-   MQTT*       -85.43%          (8,103 rps)   (avg: 123μs)
-   TCP*        -79.78%         (11,249 rps)   (avg: 88μs)
+   Fake* (#)        0%         (40,182 rps)   (avg: 24μs)
+   NATS*       -79.64%          (8,182 rps)   (avg: 122μs)
+   Redis*      -82.77%          (6,922 rps)   (avg: 144μs)
+   MQTT*       -82.62%          (6,985 rps)   (avg: 143μs)
+   TCP*        -73.52%         (10,639 rps)   (avg: 93μs)
 -----------------------------------------------------------------------
+
 
 */

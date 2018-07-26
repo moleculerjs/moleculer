@@ -257,6 +257,7 @@ class KafkaTransporter extends Transporter {
 
 		return new Promise((resolve, reject) => {
 			const data = this.serialize(packet);
+			this.incStatSent(data.length);
 			this.producer.send([{
 				topic: this.getTopicName(packet.type, packet.target),
 				messages: [data],

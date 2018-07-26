@@ -7,7 +7,7 @@
 "use strict";
 
 const _ 		= require("lodash");
-const { hash } 	= require("node-object-hash")({ sort: false, coerce: false});
+const crypto	= require("crypto");
 
 /**
  * Abstract cacher class
@@ -26,7 +26,8 @@ class Cacher {
 	constructor(opts) {
 		this.opts = _.defaultsDeep(opts, {
 			ttl: null,
-			keygen: null
+			keygen: null,
+			maxParamsLength: null
 		});
 	}
 
@@ -49,8 +50,6 @@ class Cacher {
 				if (this.broker.namespace)
 					this.prefix += this.broker.namespace + "-";
 			}
-
-			broker.use(this.middleware());
 		}
 	}
 
@@ -149,21 +148,49 @@ class Cacher {
 				if (keys.length == 1) {
 					// Fast solution for ['id'] key
 					const val = this.getParamMetaValue(keys[0], params, meta);
-					return keyPrefix + (_.isObject(val) ? hash(val) : val);
+					return keyPrefix + this._hashedKey(_.isObject(val) ? this._hashedKey(this._generateKeyFromObject(val)) : val);
 				}
 
 				if (keys.length > 0) {
-					return keys.reduce((a, key, i) => {
+					return keyPrefix + this._hashedKey(keys.reduce((a, key, i) => {
 						const val = this.getParamMetaValue(key, params, meta);
-						return a + (i ? "|" : "") + (_.isObject(val) ? hash(val) : val);
-					}, keyPrefix);
+						return a + (i ? "|" : "") + (_.isObject(val) || Array.isArray(val) ? this._hashedKey(this._generateKeyFromObject(val)) : val);
+					}, ""));
 				}
 			}
 			else {
-				return keyPrefix + hash(params);
+				return keyPrefix + this._hashedKey(this._generateKeyFromObject(params));
 			}
 		}
 		return actionName;
+	}
+
+	_hashedKey(key) {
+		const maxParamsLength = this.opts.maxParamsLength;
+		if (!maxParamsLength || maxParamsLength < 44 || key.length <= maxParamsLength)
+			return key;
+
+		const prefixLength = maxParamsLength - 44;
+
+		const base64Hash = crypto.createHash("sha256").update(key).digest("base64");
+		if (prefixLength < 1)
+			return base64Hash;
+
+		return key.substring(0, prefixLength) + base64Hash;
+	}
+
+	_generateKeyFromObject(obj) {
+		if (Array.isArray(obj)) {
+			return obj.map(o => this._generateKeyFromObject(o)).join("|");
+		}
+		else if (_.isObject(obj)) {
+			return Object.keys(obj).map(key => [key, this._generateKeyFromObject(obj[key])].join("|")).join("|");
+		}
+		else if (obj != null) {
+			return obj.toString();
+		} else {
+			return "null";
+		}
 	}
 
 	/**

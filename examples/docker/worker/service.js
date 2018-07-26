@@ -20,7 +20,7 @@ module.exports = {
 					num--;
 				}
 
-				this.logger.info(`'fibo' request received from ${ctx.callerNodeID}. Reply result:`, b);
+				this.logger.info(`'fibo' request received from ${ctx.nodeID}. Reply result:`, b);
 
 				return b;
 			}
