@@ -211,20 +211,28 @@ class AmqpTransporter extends Transporter {
 	 *
 	 * @memberof AmqpTransporter
 	 */
-	_getQueueOptions(packetType) {
+	_getQueueOptions(packetType, balancedQueue) {
 		let packetOptions;
 		switch(packetType) {
 			// Requests and responses don't expire.
 			case PACKET_REQUEST:
+				packetOptions = this.opts.autoDeleteQueues === true && !balancedQueue
+					? { autoDelete: true }
+					: {};
+				break;
 			case PACKET_RESPONSE:
-				packetOptions = {};
+				packetOptions = this.opts.autoDeleteQueues === true
+					? { autoDelete: true }
+					: {};
 				break;
 
 			// Consumers can decide how long events live
 			// Load-balanced/grouped events
 			case PACKET_EVENT + "LB":
 			case PACKET_EVENT:
-				packetOptions = {};
+				packetOptions = this.opts.autoDeleteQueues === true
+					? { autoDelete: true }
+					: {};
 				// If eventTimeToLive is specified, add to options.
 				if (this.opts.eventTimeToLive)
 					packetOptions.messageTtl = this.opts.eventTimeToLive;
@@ -364,7 +372,7 @@ class AmqpTransporter extends Transporter {
 	 */
 	subscribeBalancedRequest(action) {
 		const queue = `${this.prefix}.${PACKET_REQUEST}B.${action}`;
-		return this.channel.assertQueue(queue, this._getQueueOptions(PACKET_REQUEST))
+		return this.channel.assertQueue(queue, this._getQueueOptions(PACKET_REQUEST, true))
 			.then(() => this.channel.consume(
 				queue,
 				this._consumeCB(PACKET_REQUEST, true),
@@ -381,7 +389,7 @@ class AmqpTransporter extends Transporter {
 	 */
 	subscribeBalancedEvent(event, group) {
 		const queue = `${this.prefix}.${PACKET_EVENT}B.${group}.${event}`;
-		return this.channel.assertQueue(queue, this._getQueueOptions(PACKET_EVENT + "LB"))
+		return this.channel.assertQueue(queue, this._getQueueOptions(PACKET_EVENT + "LB", true))
 			.then(() => this.channel.consume(
 				queue,
 				this._consumeCB(PACKET_EVENT, true),
