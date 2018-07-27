@@ -119,12 +119,12 @@ describe("Test MqttTransporter subscribe & publish", () => {
 		transporter.subscribe("REQ", "node");
 
 		expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-		expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.REQ.node");
+		expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST/REQ/node");
 	});
 
 	it("check incoming message handler", () => {
 		// Test subscribe callback
-		transporter.client.onCallbacks.message("prefix.event.name", "incoming data");
+		transporter.client.onCallbacks.message("prefix/event/name", "incoming data");
 		expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
 		expect(transporter.incomingMessage).toHaveBeenCalledWith("event", "incoming data");
 	});
@@ -135,7 +135,7 @@ describe("Test MqttTransporter subscribe & publish", () => {
 		const packet = new P.Packet(P.PACKET_INFO, "node2", { services: {} });
 		transporter.publish(packet).catch(protectReject).then(() => {
 			expect(transporter.client.publish).toHaveBeenCalledTimes(1);
-			expect(transporter.client.publish).toHaveBeenCalledWith("MOL-TEST.INFO.node2", "json data", jasmine.any(Function));
+			expect(transporter.client.publish).toHaveBeenCalledWith("MOL-TEST/INFO/node2", "json data", jasmine.any(Function));
 
 			expect(transporter.serialize).toHaveBeenCalledTimes(1);
 			expect(transporter.serialize).toHaveBeenCalledWith(packet);
