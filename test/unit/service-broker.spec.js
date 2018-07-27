@@ -24,6 +24,7 @@ const Transporters = require("../../src/transporters");
 const Strategies = require("../../src/strategies");
 const MiddlewareHandler = require("../../src/middleware");
 const { MoleculerError, ServiceNotFoundError, ServiceNotAvailableError } = require("../../src/errors");
+const esm = require("esm")(module);
 
 jest.mock("../../src/utils", () => ({
 	getNodeID() { return "node-1234"; },
@@ -778,15 +779,16 @@ describe("Test loadServices", () => {
 	let broker = new ServiceBroker({ logger: false });
 	broker.loadService = jest.fn();
 
-	it("should load 4 services", () => {
+	it("should load 6 services", () => {
 		let count = broker.loadServices("./test/services");
-		expect(count).toBe(4);
-		expect(broker.loadService).toHaveBeenCalledTimes(4);
+		expect(count).toBe(6);
+		expect(broker.loadService).toHaveBeenCalledTimes(6);
 		expect(broker.loadService).toHaveBeenCalledWith("test/services/users.service.js");
 		expect(broker.loadService).toHaveBeenCalledWith("test/services/posts.service.js");
 		expect(broker.loadService).toHaveBeenCalledWith("test/services/math.service.js");
 		expect(broker.loadService).toHaveBeenCalledWith("test/services/utils/util.service.js");
-		//expect(broker.loadService).toHaveBeenCalledWith("test/services/greeter.es6.service.js");
+		expect(broker.loadService).toHaveBeenCalledWith("test/services/greeter.es6.service.js");
+		expect(broker.loadService).toHaveBeenCalledWith("test/services/greeter.es6.module.service.js");
 	});
 
 	it("should load 1 services", () => {
@@ -895,7 +897,7 @@ describe("Test broker.createService", () => {
 	});
 
 	it("should load es6 class service", () => {
-		const es6Service = require("../services/greeter.es6._ervice");
+		const es6Service = require("../services/greeter.es6.service");
 		Object.setPrototypeOf(es6Service, broker.ServiceFactory);
 		es6Service.prototype.parseServiceSchema = jest.fn();
 
@@ -903,6 +905,14 @@ describe("Test broker.createService", () => {
 		expect(service).toBeInstanceOf(es6Service);
 	});
 
+	it("should load es6 module class service", () => {
+		const es6Service = esm("../services/greeter.es6.module.service"); // broker will do the same!
+		Object.setPrototypeOf(es6Service.default, broker.ServiceFactory);
+		es6Service.default.prototype.parseServiceSchema = jest.fn();
+
+		let service = broker.createService(es6Service);
+		expect(service).toBeInstanceOf(es6Service.default);
+	});
 });
 
 describe("Test broker.addLocalService", () => {
@@ -1934,9 +1944,9 @@ describe("Test hot-reload feature", () => {
 			broker.watchService.mockClear();
 
 			let count = broker.loadServices("./test/services");
-			expect(count).toBe(4);
+			expect(count).toBe(6);
 
-			expect(broker.watchService).toHaveBeenCalledTimes(4);
+			expect(broker.watchService).toHaveBeenCalledTimes(6);
 		});
 	});
 

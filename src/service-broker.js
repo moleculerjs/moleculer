@@ -27,6 +27,7 @@ const Middlewares			= require("./middlewares");
 const H 					= require("./health");
 const MiddlewareHandler		= require("./middleware");
 const cpuUsage 				= require("./cpu-usage");
+const esm					= require("esm")(module);
 
 /**
  * Default broker options
@@ -530,17 +531,19 @@ class ServiceBroker {
 		this.logger.debug(`Load service '${path.basename(fName)}'...`);
 
 		try {
-			schema = require(fName);
+			schema = esm(fName);
+			if (schema.default)
+				schema = schema.default;
 		} catch (e) {
 			this.logger.error(`Failed to load service '${fName}'`, e);
 		}
 
 		let svc;
-		if (this.ServiceFactory.isPrototypeOf(schema)) {
+		let schemaConstructor = this.getConstructorName(schema.__proto__);
+		if (schemaConstructor && schemaConstructor === this.getConstructorName(this.ServiceFactory)) {
 			// Service implementation
 			svc = new schema(this);
 			this.servicesChanged(true);
-
 		} else if (_.isFunction(schema)) {
 			// Function
 			svc = schema(this);
@@ -617,8 +620,11 @@ class ServiceBroker {
 	 */
 	createService(schema, schemaMods) {
 		let service;
+		if (schema.default)
+			schema = schema.default;
 
-		if (this.ServiceFactory.isPrototypeOf(schema)) {
+		let schemaConstructor = this.getConstructorName(schema.__proto__);
+		if (schemaConstructor && schemaConstructor === this.getConstructorName(this.ServiceFactory)) {
 			service = new schema(this);
 		} else {
 			let s = schema;
@@ -1247,6 +1253,20 @@ class ServiceBroker {
 	 */
 	getCpuUsage() {
 		return cpuUsage();
+	}
+
+	/**
+	 * Get the Constructor name of any object if it exists
+	 *
+	 * @param {any} obj
+	 * @returns {string}
+	 *
+	 */
+	getConstructorName(obj) {
+		if (!!obj.prototype && !!obj.prototype.constructor && !!obj.prototype.constructor.name){
+			return obj.prototype.constructor.name;
+		}
+		return undefined;
 	}
 }
 
