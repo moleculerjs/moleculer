@@ -107,7 +107,8 @@ describe("Test Transporter resolver", () => {
 				exchangeOptions: {},
 				messageOptions: {},
 				queueOptions: {},
-				consumeOptions: {}
+				consumeOptions: {},
+				autoDeleteQueues: -1
 			});
 		});
 	});

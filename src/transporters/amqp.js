@@ -73,6 +73,12 @@ class AmqpTransporter extends Transporter {
 		if (typeof opts.consumeOptions !== "object")
 			opts.consumeOptions = {};
 
+		opts.autoDeleteQueues =
+			opts.autoDeleteQueues === true ? 2*60*1000 :
+				typeof opts.autoDeleteQueues === "number" ? opts.autoDeleteQueues :
+					opts.autoDeleteQueues === false ? -1 :
+						-1; // Eventually we could change default
+
 		super(opts);
 
 		this.hasBuiltInBalancer = true;
@@ -216,13 +222,13 @@ class AmqpTransporter extends Transporter {
 		switch(packetType) {
 			// Requests and responses don't expire.
 			case PACKET_REQUEST:
-				packetOptions = this.opts.autoDeleteQueues === true && !balancedQueue
-					? { autoDelete: true }
+				packetOptions = this.opts.autoDeleteQueues >= 0 && !balancedQueue
+					? { expires: this.opts.autoDeleteQueues }
 					: {};
 				break;
 			case PACKET_RESPONSE:
-				packetOptions = this.opts.autoDeleteQueues === true
-					? { autoDelete: true }
+				packetOptions = this.opts.autoDeleteQueues >= 0
+					? { expires: this.opts.autoDeleteQueues }
 					: {};
 				break;
 
@@ -230,8 +236,8 @@ class AmqpTransporter extends Transporter {
 			// Load-balanced/grouped events
 			case PACKET_EVENT + "LB":
 			case PACKET_EVENT:
-				packetOptions = this.opts.autoDeleteQueues === true
-					? { autoDelete: true }
+				packetOptions = this.opts.autoDeleteQueues >= 0
+					? { expires: this.opts.autoDeleteQueues }
 					: {};
 				// If eventTimeToLive is specified, add to options.
 				if (this.opts.eventTimeToLive)

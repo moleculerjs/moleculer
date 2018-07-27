@@ -60,7 +60,8 @@ describe("Test AmqpTransporter constructor", () => {
 			exchangeOptions: {},
 			messageOptions: {},
 			queueOptions: {},
-			consumeOptions: {}
+			consumeOptions: {},
+			autoDeleteQueues: -1
 		});
 		expect(transporter.connected).toBe(false);
 		expect(transporter.hasBuiltInBalancer).toBe(true);
@@ -78,7 +79,8 @@ describe("Test AmqpTransporter constructor", () => {
 			exchangeOptions: { alternateExchange: "retry" },
 			messageOptions: { expiration: 120000, persistent: true, mandatory: true },
 			queueOptions: { deadLetterExchange: "dlx", maxLength: 100 },
-			consumeOptions: { priority: 5 }
+			consumeOptions: { priority: 5 },
+			autoDeleteQueues: -1
 		};
 		let transporter = new AmqpTransporter(opts);
 		expect(transporter.opts).toEqual(opts);
