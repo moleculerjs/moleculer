@@ -1,8 +1,4 @@
-/**
- * IT IS NOT WORKING WITH THE LATEST JEST VERSION
- *
- */
-const Service = require("../../src/service");
+import Service from "../../src/service";
 
 class GreeterService extends Service {
 
@@ -78,4 +74,4 @@ class GreeterService extends Service {
 	}
 }
 
-module.exports = GreeterService;
+export default GreeterService;

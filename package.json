@@ -84,6 +84,7 @@
     "bluebird": "3.5.1",
     "chalk": "2.4.1",
     "es6-error": "4.1.1",
+    "esm": "3.0.72",
     "eventemitter2": "5.0.1",
     "fastest-validator": "0.6.10",
     "glob": "7.1.2",
