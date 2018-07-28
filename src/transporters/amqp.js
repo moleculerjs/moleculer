@@ -73,6 +73,12 @@ class AmqpTransporter extends Transporter {
 		if (typeof opts.consumeOptions !== "object")
 			opts.consumeOptions = {};
 
+		opts.autoDeleteQueues =
+			opts.autoDeleteQueues === true ? 2*60*1000 :
+				typeof opts.autoDeleteQueues === "number" ? opts.autoDeleteQueues :
+					opts.autoDeleteQueues === false ? -1 :
+						-1; // Eventually we could change default
+
 		super(opts);
 
 		this.hasBuiltInBalancer = true;
@@ -211,20 +217,28 @@ class AmqpTransporter extends Transporter {
 	 *
 	 * @memberof AmqpTransporter
 	 */
-	_getQueueOptions(packetType) {
+	_getQueueOptions(packetType, balancedQueue) {
 		let packetOptions;
 		switch(packetType) {
 			// Requests and responses don't expire.
 			case PACKET_REQUEST:
+				packetOptions = this.opts.autoDeleteQueues >= 0 && !balancedQueue
+					? { expires: this.opts.autoDeleteQueues }
+					: {};
+				break;
 			case PACKET_RESPONSE:
-				packetOptions = {};
+				packetOptions = this.opts.autoDeleteQueues >= 0
+					? { expires: this.opts.autoDeleteQueues }
+					: {};
 				break;
 
 			// Consumers can decide how long events live
 			// Load-balanced/grouped events
 			case PACKET_EVENT + "LB":
 			case PACKET_EVENT:
-				packetOptions = {};
+				packetOptions = this.opts.autoDeleteQueues >= 0
+					? { expires: this.opts.autoDeleteQueues }
+					: {};
 				// If eventTimeToLive is specified, add to options.
 				if (this.opts.eventTimeToLive)
 					packetOptions.messageTtl = this.opts.eventTimeToLive;
@@ -364,7 +378,7 @@ class AmqpTransporter extends Transporter {
 	 */
 	subscribeBalancedRequest(action) {
 		const queue = `${this.prefix}.${PACKET_REQUEST}B.${action}`;
-		return this.channel.assertQueue(queue, this._getQueueOptions(PACKET_REQUEST))
+		return this.channel.assertQueue(queue, this._getQueueOptions(PACKET_REQUEST, true))
 			.then(() => this.channel.consume(
 				queue,
 				this._consumeCB(PACKET_REQUEST, true),
@@ -381,7 +395,7 @@ class AmqpTransporter extends Transporter {
 	 */
 	subscribeBalancedEvent(event, group) {
 		const queue = `${this.prefix}.${PACKET_EVENT}B.${group}.${event}`;
-		return this.channel.assertQueue(queue, this._getQueueOptions(PACKET_EVENT + "LB"))
+		return this.channel.assertQueue(queue, this._getQueueOptions(PACKET_EVENT + "LB", true))
 			.then(() => this.channel.consume(
 				queue,
 				this._consumeCB(PACKET_EVENT, true),
