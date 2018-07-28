@@ -70,7 +70,7 @@ class MqttTransporter extends Transporter {
 			});
 
 			client.on("message", (topic, msg) => {
-				const cmd = topic.split(".")[1];
+				const cmd = topic.split("/")[1];
 				this.incomingMessage(cmd, msg);
 			});
 
@@ -92,6 +92,18 @@ class MqttTransporter extends Transporter {
 			this.client.end();
 			this.client = null;
 		}
+	}
+
+	/**
+	 * Get topic name from command & target nodeID
+	 *
+	 * @param {any} cmd
+	 * @param {any} nodeID
+	 *
+	 * @memberof MqttTransporter
+	 */
+	getTopicName(cmd, nodeID) {
+		return this.prefix + "/" + cmd + (nodeID ? "/" + nodeID : "");
 	}
 
 	/**
