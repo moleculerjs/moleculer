@@ -536,6 +536,7 @@ class ServiceBroker {
 		}
 
 		let svc;
+		schema = this.normalizeSchemaConstructor(schema);
 		if (this.ServiceFactory.isPrototypeOf(schema)) {
 			// Service implementation
 			svc = new schema(this);
@@ -618,6 +619,7 @@ class ServiceBroker {
 	createService(schema, schemaMods) {
 		let service;
 
+		schema = this.normalizeSchemaConstructor(schema);
 		if (this.ServiceFactory.isPrototypeOf(schema)) {
 			service = new schema(this);
 		} else {
@@ -1247,6 +1249,61 @@ class ServiceBroker {
 	 */
 	getCpuUsage() {
 		return cpuUsage();
+	}
+
+
+	/**
+	 * Get the Constructor name of any object if it exists
+	 * @param {any} obj
+	 * @returns {string}
+	 *
+	 */
+	getConstructorName(obj) {
+		let target = obj.prototype;
+		if (target && target.constructor && target.constructor.name){
+			return target.constructor.name;
+		}
+		if (obj.constructor && obj.constructor.name){
+			return obj.constructor.name;
+		}
+		return undefined;
+	}
+
+	/**
+	 * Ensure the service schema will be prototype of ServiceFactory;
+	 *
+	 * @param {any} schema
+	 * @returns {string}
+	 *
+	 */
+	normalizeSchemaConstructor(schema) {
+		if (this.ServiceFactory.isPrototypeOf(schema)){
+			return schema;
+		}
+		// Sometimes the schame was loaded from another node_module or is a object copy.
+		// Then we will check if the constructor name is the same, asume that is a derivate object
+		// and adjust the prototype of the schema.
+		let serviceName = this.getConstructorName(this.ServiceFactory);
+		let target = this.getConstructorName(schema);
+		if (serviceName === target){
+			Object.setPrototypeOf(schema, this.ServiceFactory);
+			return schema;
+		}
+		// Depending how the schema was create the correct constructor name (from base class) will be locate on __proto__.
+		target = this.getConstructorName(schema.__proto__);
+		if (serviceName === target){
+			Object.setPrototypeOf(schema.__proto__, this.ServiceFactory);
+			return schema;
+		}
+		// This is just to handle some idiosyncrasies from Jest.
+		if (schema._isMockFunction){
+			target = this.getConstructorName(schema.prototype.__proto__);
+			if (serviceName === target){
+				Object.setPrototypeOf(schema, this.ServiceFactory);
+				return schema;
+			}
+		}
+		return schema;
 	}
 }
 
