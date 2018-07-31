@@ -8,7 +8,7 @@
 
 const Promise = require("bluebird");
 const Transporter = require("./base");
-const {defaultsDeep, omit} = require("lodash");
+const { isObject } = require("lodash");
 
 /**
  * Transporter for MQTT
@@ -26,11 +26,16 @@ class MqttTransporter extends Transporter {
 	 * @memberof MqttTransporter
 	 */
 	constructor(opts) {
-		opts = defaultsDeep(opts, {
-			qosZero: true,
-		});
-
 		super(opts);
+
+		this.qos = 0;
+
+		if (isObject(this.opts)) {
+			if (this.opts.qos !== undefined) {
+				this.qos = this.opts.qos;
+				delete this.opts.qos;
+			}
+		}
 
 		this.client = null;
 	}
@@ -50,8 +55,7 @@ class MqttTransporter extends Transporter {
 				this.broker.fatal("The 'mqtt' package is missing. Please install it with 'npm install mqtt --save' command.", err, true);
 			}
 
-			const opts = omit(this.opts, ["qosZero"]);
-			const client = mqtt.connect(opts);
+			const client = mqtt.connect(this.opts);
 			this._client = client; // For tests
 
 			client.on("connect", () => {
@@ -113,8 +117,7 @@ class MqttTransporter extends Transporter {
 	subscribe(cmd, nodeID) {
 		return new Promise((resolve, reject) => {
 			const topic = this.getTopicName(cmd, nodeID);
-			const opts = this.opts.qosZero ? {qos: 0} : {qos: 1};
-			this.client.subscribe(topic, opts, err => {
+			this.client.subscribe(topic, { qos: this.qos }, err => {
 				if (err)
 					return reject(err);
 				resolve();
@@ -137,8 +140,7 @@ class MqttTransporter extends Transporter {
 			const data = this.serialize(packet);
 			this.incStatSent(data.length);
 			const topic = this.getTopicName(packet.type, packet.target);
-			const opts = this.opts.qosZero ? {qos: 0} : {qos: 1};
-			this.client.publish(topic, data, opts, err => {
+			this.client.publish(topic, data, { qos: this.qos }, err => {
 				/* istanbul ignore next*/
 				if (err)
 					return reject(err);

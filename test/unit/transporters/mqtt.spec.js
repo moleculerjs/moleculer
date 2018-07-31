@@ -25,7 +25,7 @@ describe("Test MqttTransporter constructor", () => {
 	it("check constructor", () => {
 		let transporter = new MqttTransporter();
 		expect(transporter).toBeDefined();
-		expect(transporter.opts).toEqual({qosZero: true});
+		expect(transporter.opts).toBeUndefined();
 		expect(transporter.connected).toBe(false);
 		expect(transporter.client).toBeNull();
 	});
@@ -36,7 +36,7 @@ describe("Test MqttTransporter constructor", () => {
 	});
 
 	it("check constructor with options", () => {
-		let opts = { mqtt: { host: "localhost", port: 1234} };
+		let opts = { host: "localhost", port: 1234, qos: 1 };
 		let transporter = new MqttTransporter(opts);
 		expect(transporter.opts).toBe(opts);
 	});
@@ -143,12 +143,12 @@ describe("Test MqttTransporter subscribe & publish", () => {
 	});
 });
 
-describe("Test MqttTransporter subscribe & publish without qosZero", () => {
+describe("Test MqttTransporter subscribe & publish with different QoS", () => {
 	let transporter;
 	let msgHandler;
 
 	beforeEach(() => {
-		transporter = new MqttTransporter({qosZero:false});
+		transporter = new MqttTransporter({ qos: 1 });
 		msgHandler = jest.fn();
 		transporter.serialize = jest.fn(() => "json data");
 		transporter.incomingMessage = jest.fn();

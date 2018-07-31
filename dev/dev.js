@@ -5,7 +5,14 @@ const util = require("util");
 
 const broker = new ServiceBroker({
 	nodeID: "dev",// + process.pid,
-	transporter: "NATS",
+	//transporter: "mqtt://localhost:1833",
+	transporter: {
+		type: "MQTT",
+		options: {
+			host: "localhost",
+			qos: 1
+		}
+	},
 	metrics: true,
 	//logLevel: "debug",
 	//logObjectPrinter: o => util.inspect(o, { depth: 4, colors: true, breakLength: 50 }), // `breakLength: 50` activates multi-line object

@@ -46,10 +46,10 @@ describe("Test Transporter resolver", () => {
 		});
 
 		it("should resolve MQTTransporter from obj", () => {
-			let options = { mqtt: "mqtt://localhost" };
+			let options = { host: "localhost", port: 1833 };
 			let trans = Transporters.resolve({ type: "mqtt", options });
 			expect(trans).toBeInstanceOf(Transporters.MQTT);
-			expect(trans.opts).toEqual({ mqtt: "mqtt://localhost", qosZero: true });
+			expect(trans.opts).toEqual({ host: "localhost", port: 1833 });
 		});
 	});
 
@@ -71,10 +71,10 @@ describe("Test Transporter resolver", () => {
 		});
 
 		it("should resolve RedisTransporter from obj with Redis type", () => {
-			let options = { redis: { db: 3 } };
+			let options = { db: 3 };
 			let trans = Transporters.resolve({ type: "Redis", options });
 			expect(trans).toBeInstanceOf(Transporters.Redis);
-			expect(trans.opts).toEqual({ redis: { db: 3 } });
+			expect(trans.opts).toEqual({ db: 3 });
 		});
 	});
 
