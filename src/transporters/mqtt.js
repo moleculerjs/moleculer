@@ -8,6 +8,7 @@
 
 const Promise		= require("bluebird");
 const Transporter 	= require("./base");
+const _				= require("lodash");
 
 /**
  * Transporter for MQTT
@@ -28,6 +29,8 @@ class MqttTransporter extends Transporter {
 		super(opts);
 
 		this.client = null;
+
+		this.topicSeperator = _.hasIn(this, "opts.topicSeperator") ? this.opts.topicSeperator : ".";
 	}
 
 	/**
@@ -70,7 +73,7 @@ class MqttTransporter extends Transporter {
 			});
 
 			client.on("message", (topic, msg) => {
-				const cmd = topic.split("/")[1];
+				const cmd = topic.split(this.topicSeperator)[1];
 				this.incomingMessage(cmd, msg);
 			});
 
@@ -103,7 +106,7 @@ class MqttTransporter extends Transporter {
 	 * @memberof MqttTransporter
 	 */
 	getTopicName(cmd, nodeID) {
-		return this.prefix + "/" + cmd + (nodeID ? "/" + nodeID : "");
+		return this.prefix + this.topicSeperator + cmd + (nodeID ? this.topicSeperator + nodeID : "");
 	}
 
 	/**
