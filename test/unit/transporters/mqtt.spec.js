@@ -36,7 +36,7 @@ describe("Test MqttTransporter constructor", () => {
 	});
 
 	it("check constructor with options", () => {
-		let opts = { host: "localhost", port: 1234, qos: 1 };
+		let opts = { host: "localhost", port: 1234, qos: 1, topicSeparator: "/" };
 		let transporter = new MqttTransporter(opts);
 		expect(transporter.opts).toBe(opts);
 	});
@@ -133,9 +133,9 @@ describe("Test MqttTransporter subscribe & publish", () => {
 		transporter.client.publish.mockClear();
 
 		const packet = new P.Packet(P.PACKET_INFO, "node2", { services: {} });
-		transporter.publish(packet).catch(protectReject).then(() => {
+		return transporter.publish(packet).catch(protectReject).then(() => {
 			expect(transporter.client.publish).toHaveBeenCalledTimes(1);
-			expect(transporter.client.publish).toHaveBeenCalledWith("MOL-TEST.INFO.node2", "json data", {qos: 0}, jasmine.any(Function));
+			expect(transporter.client.publish).toHaveBeenCalledWith("MOL-TEST.INFO.node2", Buffer.from("json data"), {qos: 0}, jasmine.any(Function));
 
 			expect(transporter.serialize).toHaveBeenCalledTimes(1);
 			expect(transporter.serialize).toHaveBeenCalledWith(packet);
@@ -153,7 +153,7 @@ describe("Test MqttTransporter subscribe & publish with different QoS", () => {
 		transporter.serialize = jest.fn(() => "json data");
 		transporter.incomingMessage = jest.fn();
 
-		transporter.init(new Transit(new ServiceBroker({ namespace: "TEST", nodeID: "node1" })), msgHandler);
+		transporter.init(new Transit(new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node1" })), msgHandler);
 
 		let p = transporter.connect();
 		transporter._client.onCallbacks.connect(); // Trigger the `resolve`
@@ -188,4 +188,50 @@ describe("Test MqttTransporter subscribe & publish with different QoS", () => {
 		return expect(transporter.publish(packet)).rejects.toBe("error");
 	});
 
+});
+
+describe("Test MqttTransporter subscribe & publish with different topicSeparator", () => {
+	let transporter;
+	let msgHandler;
+
+	beforeEach(() => {
+		transporter = new MqttTransporter({ topicSeparator: "/" });
+		msgHandler = jest.fn();
+		transporter.serialize = jest.fn(() => Buffer.from("json data"));
+		transporter.incomingMessage = jest.fn();
+
+		transporter.init(new Transit(new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node1" })), msgHandler);
+
+		let p = transporter.connect();
+		transporter._client.onCallbacks.connect(); // Trigger the `resolve`
+		return p;
+	});
+
+	it("check subscribe", () => {
+		transporter.client.subscribe.mockClear();
+		transporter.subscribe("REQ", "node");
+
+		expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
+		expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST/REQ/node", {qos: 0}, jasmine.any(Function));
+	});
+
+	it("check incoming message handler", () => {
+		// Test subscribe callback
+		transporter.client.onCallbacks.message("prefix/event/name", "incoming data");
+		expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
+		expect(transporter.incomingMessage).toHaveBeenCalledWith("event", "incoming data");
+	});
+
+	it("check publish", () => {
+		transporter.client.publish.mockClear();
+
+		const packet = new P.Packet(P.PACKET_INFO, "node2", { services: {} });
+		return transporter.publish(packet).catch(protectReject).then(() => {
+			expect(transporter.client.publish).toHaveBeenCalledTimes(1);
+			expect(transporter.client.publish).toHaveBeenCalledWith("MOL-TEST/INFO/node2", Buffer.from("json data"), {qos: 0}, jasmine.any(Function));
+
+			expect(transporter.serialize).toHaveBeenCalledTimes(1);
+			expect(transporter.serialize).toHaveBeenCalledWith(packet);
+		});
+	});
 });

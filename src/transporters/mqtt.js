@@ -29,11 +29,16 @@ class MqttTransporter extends Transporter {
 		super(opts);
 
 		this.qos = 0;
+		this.topicSeparator = ".";
 
 		if (isObject(this.opts)) {
 			if (this.opts.qos !== undefined) {
 				this.qos = this.opts.qos;
 				delete this.opts.qos;
+			}
+			if (this.opts.topicSeparator !== undefined) {
+				this.topicSeparator = this.opts.topicSeparator;
+				delete this.opts.topicSeparator;
 			}
 		}
 
@@ -80,7 +85,7 @@ class MqttTransporter extends Transporter {
 			});
 
 			client.on("message", (topic, msg) => {
-				const cmd = topic.split(".")[1];
+				const cmd = topic.split(this.topicSeparator)[1];
 				this.incomingMessage(cmd, msg);
 			});
 
@@ -104,6 +109,18 @@ class MqttTransporter extends Transporter {
 				this.client = null;
 			});
 		}
+	}
+
+	/**
+	 * Get topic name from command & target nodeID
+	 *
+	 * @param {any} cmd
+	 * @param {any} nodeID
+	 *
+	 * @memberof MqttTransporter
+	 */
+	getTopicName(cmd, nodeID) {
+		return this.prefix + this.topicSeparator + cmd + (nodeID ? this.topicSeparator + nodeID : "");
 	}
 
 	/**

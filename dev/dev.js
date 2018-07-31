@@ -10,7 +10,8 @@ const broker = new ServiceBroker({
 		type: "MQTT",
 		options: {
 			host: "localhost",
-			qos: 1
+			qos: 1,
+			topicSeparator: "/"
 		}
 	},
 	metrics: true,
