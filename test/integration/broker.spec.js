@@ -28,7 +28,7 @@ describe("Test load services", () => {
 
 	it("should load all services", () => {
 		let count = broker.loadServices("./test/services");
-		expect(count).toBe(4);
+		expect(count).toBe(5);
 
 		return broker.start().catch(protectReject).then(() => {
 			expect(broker.getLocalService("math")).toBeDefined();

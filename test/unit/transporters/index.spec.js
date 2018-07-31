@@ -49,7 +49,7 @@ describe("Test Transporter resolver", () => {
 			let options = { mqtt: "mqtt://localhost" };
 			let trans = Transporters.resolve({ type: "mqtt", options });
 			expect(trans).toBeInstanceOf(Transporters.MQTT);
-			expect(trans.opts).toEqual({ mqtt: "mqtt://localhost" });
+			expect(trans.opts).toEqual({ mqtt: "mqtt://localhost", qosZero: true });
 		});
 	});
 
@@ -107,7 +107,8 @@ describe("Test Transporter resolver", () => {
 				exchangeOptions: {},
 				messageOptions: {},
 				queueOptions: {},
-				consumeOptions: {}
+				consumeOptions: {},
+				autoDeleteQueues: -1
 			});
 		});
 	});

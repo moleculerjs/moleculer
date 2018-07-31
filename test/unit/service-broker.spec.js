@@ -778,15 +778,15 @@ describe("Test loadServices", () => {
 	let broker = new ServiceBroker({ logger: false });
 	broker.loadService = jest.fn();
 
-	it("should load 4 services", () => {
+	it("should load 5 services", () => {
 		let count = broker.loadServices("./test/services");
-		expect(count).toBe(4);
-		expect(broker.loadService).toHaveBeenCalledTimes(4);
+		expect(count).toBe(5);
+		expect(broker.loadService).toHaveBeenCalledTimes(5);
 		expect(broker.loadService).toHaveBeenCalledWith("test/services/users.service.js");
 		expect(broker.loadService).toHaveBeenCalledWith("test/services/posts.service.js");
 		expect(broker.loadService).toHaveBeenCalledWith("test/services/math.service.js");
 		expect(broker.loadService).toHaveBeenCalledWith("test/services/utils/util.service.js");
-		//expect(broker.loadService).toHaveBeenCalledWith("test/services/greeter.es6.service.js");
+		expect(broker.loadService).toHaveBeenCalledWith("test/services/greeter.es6.service.js");
 	});
 
 	it("should load 1 services", () => {
@@ -895,10 +895,10 @@ describe("Test broker.createService", () => {
 	});
 
 	it("should load es6 class service", () => {
-		const es6Service = require("../services/greeter.es6._ervice");
-		Object.setPrototypeOf(es6Service, broker.ServiceFactory);
+		const es6Service = require("../services/greeter.es6.service");
 		es6Service.prototype.parseServiceSchema = jest.fn();
 
+		Object.setPrototypeOf(es6Service, broker.ServiceFactory);
 		let service = broker.createService(es6Service);
 		expect(service).toBeInstanceOf(es6Service);
 	});
@@ -1934,9 +1934,9 @@ describe("Test hot-reload feature", () => {
 			broker.watchService.mockClear();
 
 			let count = broker.loadServices("./test/services");
-			expect(count).toBe(4);
+			expect(count).toBe(5);
 
-			expect(broker.watchService).toHaveBeenCalledTimes(4);
+			expect(broker.watchService).toHaveBeenCalledTimes(5);
 		});
 	});
 
