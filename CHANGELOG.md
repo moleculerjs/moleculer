@@ -1,14 +1,19 @@
 --------------------------------------------------
 <a name="0.13.2"></a>
-# [0.13.2](https://github.com/moleculerjs/moleculer/compare/v0.13.1...v0.13.2) (2018-07-25)
+# [0.13.2](https://github.com/moleculerjs/moleculer/compare/v0.13.1...v0.13.2) (2018-xx-xx)
 
 # Changes
 - update dependencies
 - add Notepack (other MsgPack) serializer
 - `skipProcessEventRegistration` broker option to disable `process.on` shutdown event handlers which stop broker.
 - make unique service dependencies
-- add `socketOptions` to AMQP transporter options.
+- add `socketOptions` to AMQP transporter options. [#330](https://github.com/moleculerjs/moleculer/pull/330)
 - fix unhandled promise in AMQP transporter `connect` method.
+- add `autoDeleteQueues` option to AMQP transporter. [#341](https://github.com/moleculerjs/moleculer/pull/341)
+- ES6 support has improved. [#348](https://github.com/moleculerjs/moleculer/pull/348)
+- add `qos` transporter option to MQTT transporter. Default: `0`
+- add `topicSeparator` transporter option to MQTT transporter. Default: `.`
+- fix MQTT transporter disconnect logic (waiting for in-flight messages) 
 
 --------------------------------------------------
 <a name="0.13.1"></a>
