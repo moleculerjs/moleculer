@@ -89,8 +89,10 @@ class MqttTransporter extends Transporter {
 	 */
 	disconnect() {
 		if (this.client) {
-			this.client.end();
-			this.client = null;
+			return new Promise(resolve => {
+				this.client.end(false, resolve);
+				this.client = null;
+			});
 		}
 	}
 
