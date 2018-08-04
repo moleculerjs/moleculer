@@ -195,7 +195,6 @@ function mergeOptions() {
 				obj[key] = overwriteFromEnv(obj[key], (prefix ? prefix + "_" : "") + key);
 		});
 
-		const dots = {};
 		const moleculerPrefix = "MOLECULER_";
 		Object.keys(process.env)
 			.filter(key => key.startsWith(moleculerPrefix))
@@ -220,10 +219,10 @@ function mergeOptions() {
 							.join("")
 					)
 					.join(".");
-				dots[dotted] = normalizeEnvValue(process.env[variable.key]);
+				obj = utils.dotSet(obj, dotted, normalizeEnvValue(process.env[variable.key]));
 			});
 
-		return Object.assign(obj, utils.dotSet(dots));
+		return obj;
 	}
 
 	config = overwriteFromEnv(config);
