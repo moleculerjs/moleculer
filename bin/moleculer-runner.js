@@ -31,18 +31,21 @@ let config;
 let servicePaths;
 let broker;
 
+/* eslint-disable no-console */
+
 /**
  * Logger helper
  *
  */
 const logger = {
 	info(message) {
-		/* eslint-disable-next-line no-console */
 		console.log(chalk.green.bold(message));
 	},
-	error(message) {
-		/* eslint-disable-next-line no-console */
-		console.error(chalk.red.bold(message));
+	error(err) {
+		if (err instanceof Error)
+			console.error(chalk.red.bold(err.message), err);
+		else
+			console.error(chalk.red.bold(err));
 	}
 };
 
@@ -195,7 +198,7 @@ function mergeOptions() {
 				obj[key] = overwriteFromEnv(obj[key], (prefix ? prefix + "_" : "") + key);
 		});
 
-		const moleculerPrefix = "MOLECULER_";
+		const moleculerPrefix = "MOL_";
 		Object.keys(process.env)
 			.filter(key => key.startsWith(moleculerPrefix))
 			.map(key => ({
