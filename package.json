@@ -83,7 +83,6 @@
     "args": "5.0.0",
     "bluebird": "3.5.1",
     "chalk": "2.4.1",
-    "dot-object": "^1.7.0",
     "es6-error": "4.1.1",
     "eventemitter2": "5.0.1",
     "fastest-validator": "0.6.10",

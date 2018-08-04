@@ -18,7 +18,6 @@ const Args 			= require("args");
 const os			= require("os");
 const cluster		= require("cluster");
 const chalk			= require("chalk");
-const dot 			= require("dot-object");
 
 const stopSignals = [
 	"SIGHUP", "SIGINT", "SIGQUIT", "SIGILL", "SIGTRAP", "SIGABRT",
@@ -224,7 +223,7 @@ function mergeOptions() {
 				dots[dotted] = normalizeEnvValue(process.env[variable.key]);
 			});
 
-		return Object.assign(obj, dot.object(dots));
+		return Object.assign(obj, utils.dotSet(dots));
 	}
 
 	config = overwriteFromEnv(config);
