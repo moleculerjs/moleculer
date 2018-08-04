@@ -245,7 +245,7 @@ class Transit {
 			if (payload.sender == this.nodeID && (cmd !== P.PACKET_EVENT && cmd !== P.PACKET_REQUEST && cmd !== P.PACKET_RESPONSE))
 				return;
 
-			this.logger.debug(`Incoming ${cmd} packet from '${payload.sender}'`);
+			this.logger.trace(`Incoming ${cmd} packet from '${payload.sender}'`);
 
 			// Request
 			if (cmd === P.PACKET_REQUEST) {
@@ -929,7 +929,7 @@ class Transit {
 	 * @memberof Transit
 	 */
 	publish(packet) {
-		this.logger.debug(`Send ${packet.type} packet to '${packet.target || "<all nodes>"}'`);
+		this.logger.trace(`Send ${packet.type} packet to '${packet.target || "<all nodes>"}'`);
 
 		if (this.subscribing) {
 			return this.subscribing
