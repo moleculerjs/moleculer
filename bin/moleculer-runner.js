@@ -171,28 +171,56 @@ function mergeOptions() {
 	if (config.logger == null && !flags.silent)
 		config.logger = console;
 
+	function normalizeEnvValue(value) {
+		if (value.toLowerCase() === "true" || value.toLowerCase() === "false") {
+			// Convert to boolean
+			value = value === "true";
+		} else if (!isNaN(value)) {
+			// Convert to number
+			value = Number(value);
+		}
+		return value;
+	}
+
 	function overwriteFromEnv(obj, prefix) {
 		Object.keys(obj).forEach(key => {
 
 			const envName = ((prefix ? prefix + "_" : "") + key).toUpperCase();
 
 			if (process.env[envName]) {
-				let v = process.env[envName];
-
-				if (v.toLowerCase() === "true" || v.toLowerCase() === "false") {
-					// Convert to boolean
-					v = v === "true";
-				} else if (!isNaN(v)) {
-					// Convert to number
-					v = Number(v);
-				}
-
-				obj[key] = v;
+				obj[key] = normalizeEnvValue(process.env[envName]);
 			}
 
 			if (_.isPlainObject(obj[key]))
 				obj[key] = overwriteFromEnv(obj[key], (prefix ? prefix + "_" : "") + key);
 		});
+
+		const moleculerPrefix = "MOLECULER_";
+		Object.keys(process.env)
+			.filter(key => key.startsWith(moleculerPrefix))
+			.map(key => ({
+				key,
+				withoutPrefix: key.substr(moleculerPrefix.length)
+			}))
+			.forEach(variable => {
+				const dotted = variable.withoutPrefix
+					.split("__")
+					.map(level => level.toLocaleLowerCase())
+					.map(level =>
+						level
+							.split("_")
+							.map((value, index) => {
+								if (index == 0) {
+									return value;
+								} else {
+									return value[0].toUpperCase() + value.substring(1);
+								}
+							})
+							.join("")
+					)
+					.join(".");
+				obj = utils.dotSet(obj, dotted, normalizeEnvValue(process.env[variable.key]));
+			});
 
 		return obj;
 	}
