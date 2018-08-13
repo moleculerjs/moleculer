@@ -145,8 +145,8 @@ class ServiceBroker {
 			this.logger = this.getLogger("broker");
 
 			this.logger.info(`Moleculer v${this.MOLECULER_VERSION} is starting...`);
-			this.logger.info("Node ID:", this.nodeID);
-			this.logger.info("Namespace:", this.namespace || "<not defined>");
+			this.logger.info(`Node ID: ${this.nodeID}`);
+			this.logger.info(`Namespace: ${this.namespace || "<not defined>"}`);
 
 			// Internal event bus
 			this.localBus = new EventEmitter2({
@@ -169,7 +169,7 @@ class ServiceBroker {
 				this.cacher.init(this);
 
 				const name = this.cacher.constructor.name;
-				this.logger.info("Cacher:", name);
+				this.logger.info(`Cacher: ${name}`);
 			}
 
 			// Serializer
@@ -177,7 +177,7 @@ class ServiceBroker {
 			this.serializer.init(this);
 
 			const serializerName = this.serializer.constructor.name;
-			this.logger.info("Serializer:", serializerName);
+			this.logger.info(`Serializer: ${serializerName}`);
 
 			// Validation
 			if (this.options.validation !== false) {
@@ -193,7 +193,7 @@ class ServiceBroker {
 				this.transit = new Transit(this, tx, this.options.transit);
 
 				const txName = tx.constructor.name;
-				this.logger.info("Transporter:", txName);
+				this.logger.info(`Transporter: ${txName}`);
 
 				if (this.options.disableBalancer) {
 					if (tx.hasBuiltInBalancer) {
