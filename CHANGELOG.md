@@ -1,6 +1,6 @@
 --------------------------------------------------
 <a name="0.13.2"></a>
-# [0.13.2](https://github.com/moleculerjs/moleculer/compare/v0.13.1...v0.13.2) (2018-xx-xx)
+# [0.13.2](https://github.com/moleculerjs/moleculer/compare/v0.13.1...v0.13.2) (2018-08-16)
 
 # Changes
 - update dependencies
@@ -14,6 +14,8 @@
 - add `qos` transporter option to MQTT transporter. Default: `0`
 - add `topicSeparator` transporter option to MQTT transporter. Default: `.`
 - fix MQTT transporter disconnect logic (waiting for in-flight messages) 
+- add support for non-defined defaultOptions variables [#350](https://github.com/moleculerjs/moleculer/pull/350)
+- update ioredis to v4
 
 --------------------------------------------------
 <a name="0.13.1"></a>
