@@ -60,6 +60,10 @@ class NodeCatalog {
 			});
 
 		}, this.broker.options.heartbeatInterval * 1000);
+
+		if (typeof this.heartbeatTimer === "number") throw new Error("heartbeatTimer should not be a number. See issue [#362] for details.");
+
+
 		this.heartbeatTimer.unref();
 
 		/* istanbul ignore next */
