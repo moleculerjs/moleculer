@@ -540,8 +540,8 @@ class ServiceBroker {
 		if (this.ServiceFactory.isPrototypeOf(schema)) {
 			// Service implementation
 			svc = new schema(this);
-			this.servicesChanged(true);
 
+			// If broker is started, call the started lifecycle event of service
 			if (this.started)
 				this._restartService(svc);
 
@@ -551,9 +551,7 @@ class ServiceBroker {
 			if (!(svc instanceof this.ServiceFactory)) {
 				svc = this.createService(svc);
 			} else {
-				// Should call changed because we didn't call the `createService`.
-				this.servicesChanged(true);
-
+				// If broker is started, call the started lifecycle event of service
 				if (this.started)
 					this._restartService(svc);
 			}
@@ -636,6 +634,7 @@ class ServiceBroker {
 			service = new this.ServiceFactory(this, s);
 		}
 
+		// If broker is started, call the started lifecycle event of service
 		if (this.started)
 			this._restartService(service);
 
@@ -651,7 +650,6 @@ class ServiceBroker {
 	 * @private
 	 */
 	_restartService(service) {
-		// If broker is started, call the started lifecycle event of service
 		return service._start.call(service)
 			.catch(err => this.logger.error("Unable to start service.", err));
 	}
