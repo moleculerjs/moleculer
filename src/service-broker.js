@@ -542,6 +542,9 @@ class ServiceBroker {
 			svc = new schema(this);
 			this.servicesChanged(true);
 
+			if (this.started)
+				this._restartService(svc);
+
 		} else if (_.isFunction(schema)) {
 			// Function
 			svc = schema(this);
@@ -550,6 +553,9 @@ class ServiceBroker {
 			} else {
 				// Should call changed because we didn't call the `createService`.
 				this.servicesChanged(true);
+
+				if (this.started)
+					this._restartService(svc);
 			}
 
 		} else if (schema) {
@@ -630,13 +636,24 @@ class ServiceBroker {
 			service = new this.ServiceFactory(this, s);
 		}
 
-		if (this.started) {
-			// If broker is started, call the started lifecycle event of service
-			service._start.call(service)
-				.catch(err => this.logger.error("Unable to start service.", err));
-		}
+		if (this.started)
+			this._restartService(service);
 
 		return service;
+	}
+
+	/**
+	 * Restart a hot-reloaded service after creation.
+	 *
+	 * @param {Service} service
+	 * @returns {Promise}
+	 * @memberof ServiceBroker
+	 * @private
+	 */
+	_restartService(service) {
+		// If broker is started, call the started lifecycle event of service
+		return service._start.call(service)
+			.catch(err => this.logger.error("Unable to start service.", err));
 	}
 
 	/**
