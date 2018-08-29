@@ -15,6 +15,11 @@ const E 			= require("./errors");
 
 const {Transform} = require("stream");
 
+const defaultOptions = {
+	maxQueueSize: 50 * 1000, // 50k ~ 400MB
+	packetLogFilter: [],
+};
+
 /**
  * Transit class
  *
@@ -36,7 +41,7 @@ class Transit {
 		this.logger = broker.getLogger("transit");
 		this.nodeID = broker.nodeID;
 		this.tx = transporter;
-		this.opts = opts;
+		this.opts = _.defaultsDeep(opts, defaultOptions);
 
 		this.pendingRequests = new Map();
 		this.pendingReqStreams = new Map();
@@ -245,7 +250,9 @@ class Transit {
 			if (payload.sender == this.nodeID && (cmd !== P.PACKET_EVENT && cmd !== P.PACKET_REQUEST && cmd !== P.PACKET_RESPONSE))
 				return;
 
+			if (!this.opts.packetLogFilter.includes(cmd)) {
 			this.logger.debug(`Incoming ${cmd} packet from '${payload.sender}'`);
+			}
 
 			// Request
 			if (cmd === P.PACKET_REQUEST) {
@@ -929,7 +936,9 @@ class Transit {
 	 * @memberof Transit
 	 */
 	publish(packet) {
+		if (!this.opts.packetLogFilter.includes(packet.type)) {
 		this.logger.debug(`Send ${packet.type} packet to '${packet.target || "<all nodes>"}'`);
+		}
 
 		if (this.subscribing) {
 			return this.subscribing

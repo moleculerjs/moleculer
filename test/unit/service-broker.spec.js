@@ -155,7 +155,8 @@ describe("Test ServiceBroker constructor", () => {
 			},
 
 			transit: {
-				maxQueueSize: 50 * 1000
+				maxQueueSize: 50 * 1000,
+				packetLogFilter: []
 			},
 
 			retryPolicy: {
