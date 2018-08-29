@@ -141,7 +141,8 @@ function loadConfigFile() {
 		const ext = path.extname(filePath);
 		switch (ext) {
 			case ".json":
-			case ".js": {
+			case ".js":
+			case ".ts": {
 				configFile = require(filePath);
 				break;
 			}
