@@ -134,9 +134,12 @@ class MqttTransporter extends Transporter {
 	subscribe(cmd, nodeID) {
 		return new Promise((resolve, reject) => {
 			const topic = this.getTopicName(cmd, nodeID);
-			this.client.subscribe(topic, { qos: this.qos }, err => {
+			this.client.subscribe(topic, { qos: this.qos }, (err, granted) => {
 				if (err)
 					return reject(err);
+
+				this.logger.info("MQTT server granted", granted);
+
 				resolve();
 			});
 		});
