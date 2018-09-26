@@ -1,4 +1,15 @@
 --------------------------------------------------
+<a name="0.13.3"></a>
+# [0.13.3](https://github.com/moleculerjs/moleculer/compare/v0.13.2...v0.13.3) (2018-09-26)
+
+# Changes
+- update dependencies
+- fix MQTTS connection string protocol from `mqtt+ssl://` to `mqtts://`
+- Moleculer Runner supports typescript configuration file `moleculer.config.ts`
+- fix to call service start after hot-reloading.
+
+
+--------------------------------------------------
 <a name="0.13.2"></a>
 # [0.13.2](https://github.com/moleculerjs/moleculer/compare/v0.13.1...v0.13.2) (2018-08-16)
 
@@ -1019,7 +1030,7 @@ const broker = new ServiceBroker({
 - renamed service lifecycle methods in service instances (not in service schema!)
 - extended `transit.stat.packets` with byte-based statistics.
 - `utils.deprecate` method was created for deprecation.
-- Transporter supports `mqtts://`, `rediss://` & `amqps://` protocols in connection URIs.
+- Transporter supports `mqtt+ssl://`, `rediss://` & `amqps://` protocols in connection URIs.
 - fixed circular objects handling in service schema (e.g.: Joi validator problem)
 
 # Deprecations
