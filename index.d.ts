@@ -171,7 +171,7 @@ declare namespace Moleculer {
 		actions?: Actions;
 		Promise: typeof Bluebird;
 
-		waitForServices(serviceNames: string | Array<string>, timeout?: number, interval?: number): Bluebird<void>;
+		waitForServices(serviceNames: string | Array<string> | Array<GenericObject>, timeout?: number, interval?: number): Bluebird<void>;
 
 		_init(): void;
 		_start(): Bluebird<void>;
@@ -398,7 +398,7 @@ declare namespace Moleculer {
 		destroyService(service: Service): Bluebird<void>;
 
 		getLocalService(serviceName: string, version?: string | number): Service;
-		waitForServices(serviceNames: string | Array<string>, timeout?: number, interval?: number, logger?: LoggerInstance): Bluebird<void>;
+		waitForServices(serviceNames: string | Array<string> | Array<GenericObject>, timeout?: number, interval?: number, logger?: LoggerInstance): Bluebird<void>;
 
 		/**
 		 *

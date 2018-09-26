@@ -4,9 +4,11 @@
 
 # Changes
 - update dependencies
-- fix MQTTS connection string protocol from `mqtt+ssl://` to `mqtts://`
+- fix MQTTS connection string protocol from `mqtt+ssl://` to `mqtts://` by [@AndreMaz](https://github.com/AndreMaz)
 - Moleculer Runner supports typescript configuration file `moleculer.config.ts`
 - fix to call service start after hot-reloading.
+- fix Bluebird warning in service loading [#381](https://github.com/moleculerjs/moleculer/issues/381) by [@faeron](https://github.com/faeron)
+- fix `waitForServices` definition in `index.d.ts` [#358](https://github.com/moleculerjs/moleculer/issues/358)
 
 
 --------------------------------------------------
