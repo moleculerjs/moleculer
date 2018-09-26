@@ -36,7 +36,7 @@ describe("Test Transporter resolver", () => {
 		});
 
 		it("should resolve MQTTTransporter from SSL connection string", () => {
-			let trans = Transporters.resolve("mqtt+ssl://localhost");
+			let trans = Transporters.resolve("mqtts://localhost");
 			expect(trans).toBeInstanceOf(Transporters.MQTT);
 		});
 
