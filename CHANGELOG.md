@@ -1,6 +1,6 @@
 --------------------------------------------------
 <a name="0.13.3"></a>
-# [0.13.3](https://github.com/moleculerjs/moleculer/compare/v0.13.2...v0.13.3) (2018-09-26)
+# [0.13.3](https://github.com/moleculerjs/moleculer/compare/v0.13.2...v0.13.3) (2018-09-27)
 
 # Changes
 - update dependencies
@@ -9,6 +9,7 @@
 - fix to call service start after hot-reloading.
 - fix Bluebird warning in service loading [#381](https://github.com/moleculerjs/moleculer/issues/381) by [@faeron](https://github.com/faeron)
 - fix `waitForServices` definition in `index.d.ts` [#358](https://github.com/moleculerjs/moleculer/issues/358)
+- fix `cpuUsage` issue [#379](https://github.com/moleculerjs/moleculer/issues/379) by [@faeron](https://github.com/faeron)
 
 
 --------------------------------------------------
