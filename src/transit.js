@@ -115,10 +115,12 @@ class Transit {
 					this.logger.warn("Connection is failed.", err.message);
 					this.logger.debug(err);
 
-					setTimeout(() => {
-						this.logger.info("Reconnecting...");
-						doConnect();
-					}, 5 * 1000);
+					if (this.tx.opts && this.tx.opts.protocolId !== "MQTT") {
+						setTimeout(() => {
+							this.logger.info("Reconnecting...");
+							doConnect();
+						}, 5 * 1000);
+					}
 				});
 			};
 
