@@ -125,7 +125,7 @@
 			"    describe(\"Test '$1.hello' action\", () => {",
 			"",
 			"        it(\"should return with 'Hello Moleculer'\", () => {",
-			"            expect(broker.call(\"$1.hello\")).resolves.toBe(\"Hello Moleculer\");",
+			"            return expect(broker.call(\"$1.hello\")).resolves.toBe(\"Hello Moleculer\");",
 			"        });",
 			"",
 			"    });",
