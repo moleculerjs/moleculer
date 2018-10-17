@@ -6,6 +6,7 @@
 
 "use strict";
 
+const url = require("url");
 const Promise		= require("bluebird");
 const Transporter 	= require("./base");
 const { isPromise }	= require("../utils");
@@ -79,6 +80,13 @@ class AmqpTransporter extends Transporter {
 					opts.autoDeleteQueues === false ? -1 :
 						-1; // Eventually we could change default
 
+		// Support for multiple URLs (clusters)
+		opts.url = Array.isArray(opts.url)
+			? opts.url
+			: !opts.url
+				? ['']
+				: opts.url.split(';').filter(s => !!s)
+
 		super(opts);
 
 		this.hasBuiltInBalancer = true;
@@ -105,7 +113,16 @@ class AmqpTransporter extends Transporter {
 				this.broker.fatal("The 'amqplib' package is missing. Please install it with 'npm install amqplib --save' command.", err, true);
 			}
 
-			amqp.connect(this.opts.url, this.opts.socketOptions)
+			// Pick url
+			this.connectAttempt = (this.connectAttempt||0)+1;
+			const urlIndex = (this.connectAttempt-1) % this.opts.url.length;
+			const uri = this.opts.url[urlIndex];
+			const urlParsed = url.parse(uri);
+
+			amqp.connect(uri, {
+				...(this.opts.socketOptions || {}),
+				servername: urlParsed.hostname
+			})
 				.then(connection => {
 					this.connection = connection;
 					this.logger.info("AMQP is connected.");
