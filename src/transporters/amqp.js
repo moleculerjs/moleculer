@@ -103,8 +103,18 @@ class AmqpTransporter extends Transporter {
 	 *
 	 * @memberof AmqpTransporter
 	 */
-	connect() {
-		return new Promise((resolve, reject) => {
+	connect(errorCallback) {
+		return new Promise((_resolve, _reject) => {
+			let _isResolved = false;
+			const resolve = () => {
+				_isResolved = true;
+				_resolve();
+			};
+			const reject = (err) => {
+				_reject(err);
+				if (_isResolved) errorCallback(err);
+			};
+
 			let amqp;
 			try {
 				amqp = require("amqplib");
@@ -130,9 +140,11 @@ class AmqpTransporter extends Transporter {
 					/* istanbul ignore next*/
 					connection
 						.on("error", (err) => {
-							this.connected = false;
-							reject(err);
-							this.logger.error("AMQP connection error.");
+							// No need to reject here since close event will be fired after
+							// if not connected at all connection promise will be rejected
+							// this.connected = false;
+							// reject(err);
+							this.logger.error("AMQP connection error.", err);
 						})
 						.on("close", (err) => {
 							this.connected = false;
@@ -160,17 +172,19 @@ class AmqpTransporter extends Transporter {
 							/* istanbul ignore next*/
 							channel
 								.on("close", () => {
-									this.connected = false;
 									this.channel = null;
-									reject();
+									// No need to reject here since close event on connection will handle
+									// this.connected = false;
+									// reject();
 									if (!this.channelDisconnecting)
 										this.logger.warn("AMQP channel is closed.");
 									else
 										this.logger.info("AMQP channel is closed gracefully.");
 								})
 								.on("error", (err) => {
-									this.connected = false;
-									reject(err);
+									// No need to reject here since close event will be fired after
+									// this.connected = false;
+									// reject(err);
 									this.logger.error("AMQP channel error.", err);
 								})
 								.on("drain", () => {

@@ -108,18 +108,22 @@ class Transit {
 			this.__connectResolve = resolve;
 
 			const doConnect = () => {
-				/* istanbul ignore next */
-				this.tx.connect().catch(err => {
+				let reconnectStarted = false;
+				const errorHandler = (err) => {
 					if (this.disconnecting) return;
+					if (reconnectStarted) return;
 
-					this.logger.warn("Connection is failed.", err.message);
+					this.logger.warn("Connection is failed.", err && err.message || 'Unknown error');
 					this.logger.debug(err);
 
+					reconnectStarted = true;
 					setTimeout(() => {
 						this.logger.info("Reconnecting...");
 						doConnect();
 					}, 5 * 1000);
-				});
+				};
+				/* istanbul ignore next */
+				this.tx.connect(errorHandler).catch(errorHandler);
 			};
 
 			doConnect();
