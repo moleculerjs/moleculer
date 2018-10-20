@@ -48,7 +48,7 @@ const getUserInfo = () => {
 	} catch (e) {
 		return {};
 	}
-}
+};
 
 const getOsInfo = () => {
 	return {
