@@ -42,6 +42,14 @@ const getMemoryInfo = () => {
 	return mem;
 };
 
+const getUserInfo = () => {
+	try {
+		return os.userInfo();
+	} catch (e) {
+		return {};
+	}
+}
+
 const getOsInfo = () => {
 	return {
 		uptime: os.uptime(),
@@ -50,7 +58,7 @@ const getOsInfo = () => {
 		hostname: os.hostname(),
 		arch: os.arch(),
 		platform: os.platform(),
-		user: os.userInfo()
+		user: getUserInfo()
 	};
 };
 
