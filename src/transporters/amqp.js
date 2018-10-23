@@ -148,11 +148,12 @@ class AmqpTransporter extends Transporter {
 						})
 						.on("close", (err) => {
 							this.connected = false;
-							reject(err);
-							if (!this.connectionDisconnecting)
+							if (!this.connectionDisconnecting) {
 								this.logger.error("AMQP connection is closed.");
-							else
+								reject(err);
+							} else {
 								this.logger.info("AMQP connection is closed gracefully.");
+							}
 						})
 						.on("blocked", (reason) => {
 							this.logger.warn("AMQP connection is blocked.", reason);
