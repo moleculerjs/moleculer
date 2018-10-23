@@ -129,10 +129,10 @@ class AmqpTransporter extends Transporter {
 			const uri = this.opts.url[urlIndex];
 			const urlParsed = url.parse(uri);
 
-			amqp.connect(uri, {
-				...(this.opts.socketOptions || {}),
-				servername: urlParsed.hostname
-			})
+			amqp.connect(uri, Object.assign({},
+				(this.opts.socketOptions || {}),
+				{servername: urlParsed.hostname}
+			))
 				.then(connection => {
 					this.connection = connection;
 					this.logger.info("AMQP is connected.");
