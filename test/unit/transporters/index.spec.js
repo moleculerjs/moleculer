@@ -49,7 +49,7 @@ describe("Test Transporter resolver", () => {
 			let options = { host: "localhost", port: 1833 };
 			let trans = Transporters.resolve({ type: "mqtt", options });
 			expect(trans).toBeInstanceOf(Transporters.MQTT);
-			expect(trans.opts).toEqual({ host: "localhost", port: 1833 });
+			expect(trans.opts).toEqual({ host: "localhost", "noReconnect": true, port: 1833 });
 		});
 	});
 
