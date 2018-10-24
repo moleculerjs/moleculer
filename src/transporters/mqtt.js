@@ -42,7 +42,7 @@ class MqttTransporter extends Transporter {
 			}
 
 			if (!this.opts.noReconnect) {
-				this.opts.noReconnect = true
+				this.opts.noReconnect = true;
 			}
 		}
 
