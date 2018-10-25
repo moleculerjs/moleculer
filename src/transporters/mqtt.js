@@ -40,10 +40,6 @@ class MqttTransporter extends Transporter {
 				this.topicSeparator = this.opts.topicSeparator;
 				delete this.opts.topicSeparator;
 			}
-
-			if (!this.opts.noReconnect) {
-				this.opts.noReconnect = true;
-			}
 		}
 
 		this.client = null;

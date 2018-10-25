@@ -115,7 +115,7 @@ class Transit {
 					this.logger.warn("Connection is failed.", err.message);
 					this.logger.debug(err);
 
-					if (this.tx.opts && this.tx.opts.noReconnect) {
+					if (this.opts.disableReconnect) {
 						return;
 					}
 
