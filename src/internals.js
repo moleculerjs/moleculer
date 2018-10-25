@@ -6,9 +6,9 @@
 
 "use strict";
 
-const _ 					= require("lodash");
+const _ = require("lodash");
 
-module.exports = function(broker) {
+module.exports = function() {
 	const schema = {
 		name: "$node",
 
@@ -104,7 +104,7 @@ module.exports = function(broker) {
 				cache: true,
 				params: {
 				},
-				handler(ctx) {
+				handler() {
 					return _.cloneDeep(this.broker.options);
 				}
 			},
