@@ -1,13 +1,13 @@
 "use strict";
 
-const os = require('os');
-jest.mock('os');
+const os = require("os");
+jest.mock("os");
 jest.useFakeTimers();
 
-const getCpuUsage = require('../../src/cpu-usage');
+const getCpuUsage = require("../../src/cpu-usage");
 
-describe('getCpuUsage', () => {
-	it('should report cpu usage', () => {
+describe("getCpuUsage", () => {
+	it("should report cpu usage", () => {
 		os.cpus = jest.fn()
 			.mockImplementationOnce(() => [{
 				times: {
@@ -43,7 +43,7 @@ describe('getCpuUsage', () => {
 		return expect(result).resolves.toEqual({ avg: 70, usages: [70] });
 	});
 
-	it('should return rejected promise on missing cpu data', () => {
+	it("should return rejected promise on missing cpu data", () => {
 		os.cpus = jest.fn().mockImplementationOnce(() => undefined);
 
 		const result = getCpuUsage(100);

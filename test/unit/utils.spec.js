@@ -172,7 +172,7 @@ describe("Test utils.dotSet", () => {
 		const result = utils.dotSet(obj, "nested.variable", "hello world");
 		expect(result.nested.variable).toBe("hello world");
 	});
-	
+
 	it("should not change other variables", () => {
 		const obj = {
 			a: 1,
@@ -185,7 +185,7 @@ describe("Test utils.dotSet", () => {
 		expect(result.b.c).toBe(2);
 		expect(result.nested.variable).toBe("hello world");
 	});
-	
+
 	it("should replace values", () => {
 		const obj = {
 			hello: {
@@ -195,7 +195,7 @@ describe("Test utils.dotSet", () => {
 		const result = utils.dotSet(obj, "hello.world", "?");
 		expect(result.hello.world).toBe("?");
 	});
-	
+
 	it("should throw when not on leaf", (done) => {
 		const obj = {
 			level1: {
@@ -209,5 +209,5 @@ describe("Test utils.dotSet", () => {
 			done();
 		}
 	});
-	
+
 });
