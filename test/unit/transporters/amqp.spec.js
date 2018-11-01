@@ -53,7 +53,7 @@ describe("Test AmqpTransporter constructor", () => {
 		let transporter = new AmqpTransporter("amqp://localhost");
 		expect(transporter).toBeDefined();
 		expect(transporter.opts).toEqual({
-			url: "amqp://localhost",
+			url: ["amqp://localhost"],
 			prefetch: 1,
 			eventTimeToLive: null,
 			heartbeatTimeToLive: null,
@@ -72,7 +72,7 @@ describe("Test AmqpTransporter constructor", () => {
 
 	it("check constructor with options", () => {
 		let opts = {
-			url: "amqp://localhost",
+			url: ["amqp://localhost"],
 			prefetch: 3,
 			eventTimeToLive: 10000,
 			heartbeatTimeToLive: 30000,
