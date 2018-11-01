@@ -1,4 +1,18 @@
 --------------------------------------------------
+<a name="0.13.4"></a>
+# [0.13.4](https://github.com/moleculerjs/moleculer/compare/v0.13.3...v0.13.4) (2018-11-xx)
+
+# Changes
+- catch errors in `getCpuUsage()` method.
+- support multiple urls in AMQP transporter by [@urossmolnik](https://github.com/urossmolnik)
+- fix AMQP connection recovery by [@urossmolnik](https://github.com/urossmolnik)
+- add `transit.disableReconnect` option to disable reconnecting logic at broker starting by [@Gadi-Manor](https://github.com/Gadi-Manor)
+- catch `os.userInfo` errors in health action by [@katsanva](https://github.com/katsanva)
+- allow specifying 0 as `retries` [#404](https://github.com/moleculerjs/moleculer/issues/404) by [@urossmolnik](https://github.com/urossmolnik)
+- fix `GraceFulTimeoutError` bug [#400](https://github.com/moleculerjs/moleculer/issues/400)
+- fix event return handling to avoid localEvent error handling issue in middleware [#403](https://github.com/moleculerjs/moleculer/issues/403)
+
+--------------------------------------------------
 <a name="0.13.3"></a>
 # [0.13.3](https://github.com/moleculerjs/moleculer/compare/v0.13.2...v0.13.3) (2018-09-27)
 
