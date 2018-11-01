@@ -1,4 +1,5 @@
 const ServiceBroker = require("../../../src/service-broker");
+const { GracefulStopTimeoutError } = require("../../../src/errors");
 const Context = require("../../../src/context");
 const Middleware = require("../../../src/middlewares").ContextTracker;
 const { protectReject } = require("../utils");
@@ -153,6 +154,61 @@ describe("Test Service stopping with delayed shutdown", () => {
 	});
 });
 
+describe("Test Service throw GraceFulTimeoutError", () => {
+	const FLOW = [];
+
+	const broker = new ServiceBroker({
+		logger: false,
+		nodeID: "node-1",
+		tracking: {
+			enabled: true
+		},
+		started: () => FLOW.push("broker-start"),
+		stopped: () => FLOW.push("broker-stop")
+	});
+
+
+	const schema = {
+		name: "delayed",
+		settings: {
+			$shutdownTimeout: 100
+		},
+
+		actions: {
+			test() {
+				FLOW.push("start");
+				return this.Promise.delay(2000)
+					.then(() => FLOW.push("end"));
+			}
+		},
+
+		started: jest.fn(() => FLOW.push("service-start")),
+		stopped: jest.fn(() => FLOW.push("service-stop"))
+	};
+
+	it("should called stopped", () => {
+		const service = broker.createService(schema);
+		return broker.start()
+			.then(() => {
+				broker.call("delayed.test", {});
+				return service.Promise.delay(10);
+			})
+			.then(() => broker.stop())
+			.catch(protectReject)
+			.then(() => {
+				expect(FLOW).toEqual([
+					"service-start",
+					"broker-start",
+					"start",
+					"service-stop",
+					"broker-stop"
+				]);
+				expect(schema.stopped).toHaveBeenCalledTimes(1);
+			});
+	});
+});
+
+
 describe("Test broker delayed shutdown with remote calls", () => {
 	const FLOW = [];
 
@@ -214,6 +270,72 @@ describe("Test broker delayed shutdown with remote calls", () => {
 					"service-stop",
 					"broker2-stop",
 					"broker1-stop",
+				]);
+			});
+	});
+});
+
+describe("Test broker delayed throw GraceFulTimeoutError", () => {
+	const FLOW = [];
+
+	const broker1 = new ServiceBroker({
+		transporter: "Fake",
+		logger: false,
+		nodeID: "node-1",
+		tracking: {
+			enabled: true,
+			shutdownTimeout: 100
+		},
+		started: () => FLOW.push("broker1-start"),
+		stopped: () => FLOW.push("broker1-stop")
+	});
+
+	const broker2 = new ServiceBroker({
+		transporter: "Fake",
+		logger: false,
+		nodeID: "node-2",
+		tracking: {
+			enabled: true,
+			shutdownTimeout: 200
+		},
+		started: () => FLOW.push("broker2-start"),
+		stopped: () => FLOW.push("broker2-stop")
+	});
+
+	broker2.createService({
+		name: "delayed",
+
+		actions: {
+			test() {
+				FLOW.push("start");
+				return this.Promise.delay(2000)
+					.then(() => FLOW.push("end"));
+			}
+		},
+
+		started: jest.fn(() => FLOW.push("service-start")),
+		stopped: jest.fn(() => FLOW.push("service-stop"))
+	});
+
+	beforeAll(() => broker1.start().then(() => broker2.start()));
+
+	it("should called stopped", () => {
+		return broker1.Promise.resolve()
+			.then(() => {
+				broker1.call("delayed.test", {});
+				return broker1.Promise.delay(10);
+			})
+			.then(() => broker1.Promise.all([broker2.stop(), broker1.stop()]))
+			.catch(protectReject)
+			.then(() => {
+				expect(FLOW).toEqual([
+					"broker1-start",
+					"service-start",
+					"broker2-start",
+					"start",
+					"broker1-stop",
+					"service-stop",
+					"broker2-stop",
 				]);
 			});
 	});

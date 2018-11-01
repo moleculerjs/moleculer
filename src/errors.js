@@ -308,14 +308,18 @@ class GracefulStopTimeoutError extends MoleculerError {
 	/**
 	 * Creates an instance of GracefulStopTimeoutError.
 	 *
-	 * @param {Object} data
+	 * @param {Object?} data
 	 * @memberof GracefulStopTimeoutError
 	 */
 	constructor(data) {
-		super(`Unable to stop '${data.service.name}' service gracefully.`, 500, "GRACEFUL_STOP_TIMEOUT", {
-			name: data.service.name,
-			version: data.service.version
-		});
+		if (data && data.service)  {
+			super(`Unable to stop '${data.service.name}' service gracefully.`, 500, "GRACEFUL_STOP_TIMEOUT", data && data.service ? {
+				name: data.service.name,
+				version: data.service.version
+			} : null);
+		} else {
+			super("Unable to stop ServiceBroker gracefully.", 500, "GRACEFUL_STOP_TIMEOUT");
+		}
 	}
 }
 

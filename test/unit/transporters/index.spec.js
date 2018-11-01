@@ -103,7 +103,7 @@ describe("Test Transporter resolver", () => {
 				prefetch: 1,
 				heartbeatTimeToLive: null,
 				eventTimeToLive: null,
-				url: "amqp://localhost",
+				url: ["amqp://localhost"],
 				exchangeOptions: {},
 				messageOptions: {},
 				queueOptions: {},

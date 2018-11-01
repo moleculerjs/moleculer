@@ -57,7 +57,7 @@ describe("Test MiddlewareHandler", () => {
 			localEvent: jest.fn(handler => {
 				return () => {
 					FLOW.push("MW1-local-event-pre");
-					return handler(arguments).then(res => {
+					return handler().then(res => {
 						FLOW.push("MW1-local-event-post");
 						return res;
 					});

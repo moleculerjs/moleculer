@@ -6,6 +6,7 @@
 
 "use strict";
 
+const url = require("url");
 const Promise		= require("bluebird");
 const Transporter 	= require("./base");
 const { isPromise }	= require("../utils");
@@ -79,6 +80,13 @@ class AmqpTransporter extends Transporter {
 					opts.autoDeleteQueues === false ? -1 :
 						-1; // Eventually we could change default
 
+		// Support for multiple URLs (clusters)
+		opts.url = Array.isArray(opts.url)
+			? opts.url
+			: !opts.url
+				? ['']
+				: opts.url.split(';').filter(s => !!s)
+
 		super(opts);
 
 		this.hasBuiltInBalancer = true;
@@ -95,8 +103,18 @@ class AmqpTransporter extends Transporter {
 	 *
 	 * @memberof AmqpTransporter
 	 */
-	connect() {
-		return new Promise((resolve, reject) => {
+	connect(errorCallback) {
+		return new Promise((_resolve, _reject) => {
+			let _isResolved = false;
+			const resolve = () => {
+				_isResolved = true;
+				_resolve();
+			};
+			const reject = (err) => {
+				_reject(err);
+				if (_isResolved) errorCallback(err);
+			};
+
 			let amqp;
 			try {
 				amqp = require("amqplib");
@@ -105,7 +123,16 @@ class AmqpTransporter extends Transporter {
 				this.broker.fatal("The 'amqplib' package is missing. Please install it with 'npm install amqplib --save' command.", err, true);
 			}
 
-			amqp.connect(this.opts.url, this.opts.socketOptions)
+			// Pick url
+			this.connectAttempt = (this.connectAttempt||0)+1;
+			const urlIndex = (this.connectAttempt-1) % this.opts.url.length;
+			const uri = this.opts.url[urlIndex];
+			const urlParsed = url.parse(uri);
+
+			amqp.connect(uri, Object.assign({},
+				(this.opts.socketOptions || {}),
+				{servername: urlParsed.hostname}
+			))
 				.then(connection => {
 					this.connection = connection;
 					this.logger.info("AMQP is connected.");
@@ -113,17 +140,20 @@ class AmqpTransporter extends Transporter {
 					/* istanbul ignore next*/
 					connection
 						.on("error", (err) => {
-							this.connected = false;
-							reject(err);
-							this.logger.error("AMQP connection error.");
+							// No need to reject here since close event will be fired after
+							// if not connected at all connection promise will be rejected
+							// this.connected = false;
+							// reject(err);
+							this.logger.error("AMQP connection error.", err);
 						})
 						.on("close", (err) => {
 							this.connected = false;
-							reject(err);
-							if (!this.connectionDisconnecting)
+							if (!this.connectionDisconnecting) {
 								this.logger.error("AMQP connection is closed.");
-							else
+								reject(err);
+							} else {
 								this.logger.info("AMQP connection is closed gracefully.");
+							}
 						})
 						.on("blocked", (reason) => {
 							this.logger.warn("AMQP connection is blocked.", reason);
@@ -143,17 +173,19 @@ class AmqpTransporter extends Transporter {
 							/* istanbul ignore next*/
 							channel
 								.on("close", () => {
-									this.connected = false;
 									this.channel = null;
-									reject();
+									// No need to reject here since close event on connection will handle
+									// this.connected = false;
+									// reject();
 									if (!this.channelDisconnecting)
 										this.logger.warn("AMQP channel is closed.");
 									else
 										this.logger.info("AMQP channel is closed gracefully.");
 								})
 								.on("error", (err) => {
-									this.connected = false;
-									reject(err);
+									// No need to reject here since close event will be fired after
+									// this.connected = false;
+									// reject(err);
 									this.logger.error("AMQP channel error.", err);
 								})
 								.on("drain", () => {
