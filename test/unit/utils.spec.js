@@ -158,3 +158,56 @@ describe("Test utils.safetyObject", () => {
 	});
 
 });
+
+describe("Test utils.dotSet", () => {
+
+	it("should set variable", () => {
+		const obj = {};
+		const result = utils.dotSet(obj, "variable", "hello world");
+		expect(result.variable).toBe("hello world");
+	});
+
+	it("should set nested variable", () => {
+		const obj = {};
+		const result = utils.dotSet(obj, "nested.variable", "hello world");
+		expect(result.nested.variable).toBe("hello world");
+	});
+
+	it("should not change other variables", () => {
+		const obj = {
+			a: 1,
+			b: {
+				c: 2,
+			},
+		};
+		const result = utils.dotSet(obj, "nested.variable", "hello world");
+		expect(result.a).toBe(1);
+		expect(result.b.c).toBe(2);
+		expect(result.nested.variable).toBe("hello world");
+	});
+
+	it("should replace values", () => {
+		const obj = {
+			hello: {
+				world: "!",
+			},
+		};
+		const result = utils.dotSet(obj, "hello.world", "?");
+		expect(result.hello.world).toBe("?");
+	});
+
+	it("should throw when not on leaf", (done) => {
+		const obj = {
+			level1: {
+				level2: "hello",
+			},
+		};
+		try {
+			utils.dotSet(obj, "level1.level2.level3", "?");
+			done.fail(new Error("Should have raised an error"));
+		} catch(err) {
+			done();
+		}
+	});
+
+});

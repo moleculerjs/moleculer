@@ -38,7 +38,7 @@ class Registry {
 
 		this.StrategyFactory = Strategies.resolve(this.opts.strategy);
 
-		this.logger.info("Strategy:", this.StrategyFactory.name);
+		this.logger.info(`Strategy: ${this.StrategyFactory.name}`);
 
 		this.nodes = new NodeCatalog(this, broker);
 		this.services = new ServiceCatalog(this, broker);

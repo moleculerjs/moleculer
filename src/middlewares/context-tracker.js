@@ -63,13 +63,13 @@ function wrapTrackerMiddleware(handler, action) {
 	return handler;
 }
 
-function waitingForActiveContexts(list, logger, time) {
-	if (list.length === 0)
+function waitingForActiveContexts(list, logger, time, service) {
+	if (!list || list.length === 0)
 		return Promise.resolve();
 
 	return new Promise((resolve) => {
 		const timeout = setTimeout(() => {
-			logger.error(new GracefulStopTimeoutError());
+			logger.error(new GracefulStopTimeoutError({ service }));
 			resolve();
 		}, time);
 
@@ -107,7 +107,7 @@ module.exports = function ContextTrackerMiddleware() {
 
 		// Before a local service stopping
 		serviceStopping(service) {
-			return waitingForActiveContexts(service._trackedContexts, service.logger, service.settings.$shutdownTimeout || service.broker.options.tracking.shutdownTimeout);
+			return waitingForActiveContexts(service._trackedContexts, service.logger, service.settings.$shutdownTimeout || service.broker.options.tracking.shutdownTimeout, service);
 		},
 
 		// Before broker stopping

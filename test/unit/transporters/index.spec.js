@@ -36,7 +36,7 @@ describe("Test Transporter resolver", () => {
 		});
 
 		it("should resolve MQTTTransporter from SSL connection string", () => {
-			let trans = Transporters.resolve("mqtt+ssl://localhost");
+			let trans = Transporters.resolve("mqtts://localhost");
 			expect(trans).toBeInstanceOf(Transporters.MQTT);
 		});
 
@@ -46,10 +46,10 @@ describe("Test Transporter resolver", () => {
 		});
 
 		it("should resolve MQTTransporter from obj", () => {
-			let options = { mqtt: "mqtt://localhost" };
+			let options = { host: "localhost", port: 1833 };
 			let trans = Transporters.resolve({ type: "mqtt", options });
 			expect(trans).toBeInstanceOf(Transporters.MQTT);
-			expect(trans.opts).toEqual({ mqtt: "mqtt://localhost" });
+			expect(trans.opts).toEqual({ host: "localhost", port: 1833 });
 		});
 	});
 
@@ -71,10 +71,10 @@ describe("Test Transporter resolver", () => {
 		});
 
 		it("should resolve RedisTransporter from obj with Redis type", () => {
-			let options = { redis: { db: 3 } };
+			let options = { db: 3 };
 			let trans = Transporters.resolve({ type: "Redis", options });
 			expect(trans).toBeInstanceOf(Transporters.Redis);
-			expect(trans.opts).toEqual({ redis: { db: 3 } });
+			expect(trans.opts).toEqual({ db: 3 });
 		});
 	});
 
@@ -103,11 +103,12 @@ describe("Test Transporter resolver", () => {
 				prefetch: 1,
 				heartbeatTimeToLive: null,
 				eventTimeToLive: null,
-				url: "amqp://localhost",
+				url: ["amqp://localhost"],
 				exchangeOptions: {},
 				messageOptions: {},
 				queueOptions: {},
-				consumeOptions: {}
+				consumeOptions: {},
+				autoDeleteQueues: -1
 			});
 		});
 	});

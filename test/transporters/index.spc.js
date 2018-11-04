@@ -19,6 +19,7 @@ const SERIALIZERS = [
 	{ name: "Avro", serializer: "Avro" },
 	{ name: "MsgPack", serializer: "MsgPack" },
 	{ name: "Thrift", serializer: "Thrift" },
+	{ name: "Notepack", serializer: "Notepack" },
 ];
 
 SERIALIZERS.forEach(ss => {

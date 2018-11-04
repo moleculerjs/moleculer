@@ -156,7 +156,8 @@ describe("Test ServiceBroker constructor", () => {
 
 			transit: {
 				maxQueueSize: 50 * 1000,
-				packetLogFilter: []
+				packetLogFilter: [],
+				maxQueueSize: 50 * 1000
 			},
 
 			retryPolicy: {
@@ -779,15 +780,15 @@ describe("Test loadServices", () => {
 	let broker = new ServiceBroker({ logger: false });
 	broker.loadService = jest.fn();
 
-	it("should load 4 services", () => {
+	it("should load 5 services", () => {
 		let count = broker.loadServices("./test/services");
-		expect(count).toBe(4);
-		expect(broker.loadService).toHaveBeenCalledTimes(4);
+		expect(count).toBe(5);
+		expect(broker.loadService).toHaveBeenCalledTimes(5);
 		expect(broker.loadService).toHaveBeenCalledWith("test/services/users.service.js");
 		expect(broker.loadService).toHaveBeenCalledWith("test/services/posts.service.js");
 		expect(broker.loadService).toHaveBeenCalledWith("test/services/math.service.js");
 		expect(broker.loadService).toHaveBeenCalledWith("test/services/utils/util.service.js");
-		//expect(broker.loadService).toHaveBeenCalledWith("test/services/greeter.es6.service.js");
+		expect(broker.loadService).toHaveBeenCalledWith("test/services/greeter.es6.service.js");
 	});
 
 	it("should load 1 services", () => {
@@ -820,7 +821,7 @@ describe("Test broker.loadService", () => {
 
 	let broker = new ServiceBroker({ logger: false, hotReload: true });
 	broker.createService = jest.fn(svc => svc);
-	broker.servicesChanged = jest.fn();
+	broker._restartService = jest.fn();
 	broker.watchService = jest.fn();
 
 	it("should load service from schema", () => {
@@ -829,6 +830,7 @@ describe("Test broker.loadService", () => {
 		expect(service).toBeDefined();
 		expect(service.__filename).toBeDefined();
 		expect(broker.createService).toHaveBeenCalledTimes(1);
+		expect(broker._restartService).toHaveBeenCalledTimes(0);
 		expect(broker.watchService).toHaveBeenCalledTimes(1);
 		expect(broker.watchService).toHaveBeenCalledWith(service);
 	});
@@ -836,10 +838,11 @@ describe("Test broker.loadService", () => {
 	it("should call function which returns Service instance", () => {
 		broker.createService.mockClear();
 		broker.watchService.mockClear();
+		broker._restartService.mockClear();
 		let service = broker.loadService("./test/services/users.service.js");
 		expect(service).toBeInstanceOf(broker.ServiceFactory);
 		expect(broker.createService).toHaveBeenCalledTimes(0);
-		expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
+		expect(broker._restartService).toHaveBeenCalledTimes(0);
 		expect(broker.watchService).toHaveBeenCalledTimes(1);
 		expect(broker.watchService).toHaveBeenCalledWith(service);
 	});
@@ -847,9 +850,84 @@ describe("Test broker.loadService", () => {
 	it("should call function which returns schema", () => {
 		broker.createService.mockClear();
 		broker.watchService.mockClear();
+		broker._restartService.mockClear();
 		let service = broker.loadService("./test/services/posts.service.js");
 		expect(service).toBeDefined();
 		expect(broker.createService).toHaveBeenCalledTimes(1);
+		expect(broker._restartService).toHaveBeenCalledTimes(0);
+		expect(broker.watchService).toHaveBeenCalledTimes(1);
+		expect(broker.watchService).toHaveBeenCalledWith(service);
+	});
+
+	it("should load ES6 class", () => {
+		broker.createService.mockClear();
+		broker.watchService.mockClear();
+		broker._restartService.mockClear();
+		let service = broker.loadService("./test/services/greeter.es6.service.js");
+		expect(service).toBeDefined();
+		expect(broker.createService).toHaveBeenCalledTimes(0);
+		expect(broker._restartService).toHaveBeenCalledTimes(0);
+		expect(broker.watchService).toHaveBeenCalledTimes(1);
+		expect(broker.watchService).toHaveBeenCalledWith(service);
+	});
+
+});
+
+describe("Test broker.loadService after broker started", () => {
+
+	let broker = new ServiceBroker({ logger: false, hotReload: true });
+	broker.createService = jest.fn(svc => svc);
+	broker._restartService = jest.fn();
+	broker.watchService = jest.fn();
+
+	beforeAll(() => broker.start());
+	afterAll(() => broker.stop());
+
+	it("should load service from schema", () => {
+		// Load schema
+		let service = broker.loadService("./test/services/math.service.js");
+		expect(service).toBeDefined();
+		expect(service.__filename).toBeDefined();
+		expect(broker.createService).toHaveBeenCalledTimes(1);
+		expect(broker._restartService).toHaveBeenCalledTimes(0);
+		expect(broker.watchService).toHaveBeenCalledTimes(1);
+		expect(broker.watchService).toHaveBeenCalledWith(service);
+	});
+
+	it("should call function which returns Service instance", () => {
+		broker.createService.mockClear();
+		broker.watchService.mockClear();
+		broker._restartService.mockClear();
+		let service = broker.loadService("./test/services/users.service.js");
+		expect(service).toBeInstanceOf(broker.ServiceFactory);
+		expect(broker.createService).toHaveBeenCalledTimes(0);
+		expect(broker._restartService).toHaveBeenCalledTimes(1);
+		expect(broker._restartService).toHaveBeenCalledWith(service);
+		expect(broker.watchService).toHaveBeenCalledTimes(1);
+		expect(broker.watchService).toHaveBeenCalledWith(service);
+	});
+
+	it("should call function which returns schema", () => {
+		broker.createService.mockClear();
+		broker.watchService.mockClear();
+		broker._restartService.mockClear();
+		let service = broker.loadService("./test/services/posts.service.js");
+		expect(service).toBeDefined();
+		expect(broker.createService).toHaveBeenCalledTimes(1);
+		expect(broker._restartService).toHaveBeenCalledTimes(0);
+		expect(broker.watchService).toHaveBeenCalledTimes(1);
+		expect(broker.watchService).toHaveBeenCalledWith(service);
+	});
+
+	it("should load ES6 class", () => {
+		broker.createService.mockClear();
+		broker.watchService.mockClear();
+		broker._restartService.mockClear();
+		let service = broker.loadService("./test/services/greeter.es6.service.js");
+		expect(service).toBeDefined();
+		expect(broker.createService).toHaveBeenCalledTimes(0);
+		expect(broker._restartService).toHaveBeenCalledTimes(1);
+		expect(broker._restartService).toHaveBeenCalledWith(service);
 		expect(broker.watchService).toHaveBeenCalledTimes(1);
 		expect(broker.watchService).toHaveBeenCalledWith(service);
 	});
@@ -896,10 +974,10 @@ describe("Test broker.createService", () => {
 	});
 
 	it("should load es6 class service", () => {
-		const es6Service = require("../services/greeter.es6._ervice");
-		Object.setPrototypeOf(es6Service, broker.ServiceFactory);
+		const es6Service = require("../services/greeter.es6.service");
 		es6Service.prototype.parseServiceSchema = jest.fn();
 
+		Object.setPrototypeOf(es6Service, broker.ServiceFactory);
 		let service = broker.createService(es6Service);
 		expect(service).toBeInstanceOf(es6Service);
 	});
@@ -1935,9 +2013,9 @@ describe("Test hot-reload feature", () => {
 			broker.watchService.mockClear();
 
 			let count = broker.loadServices("./test/services");
-			expect(count).toBe(4);
+			expect(count).toBe(5);
 
-			expect(broker.watchService).toHaveBeenCalledTimes(4);
+			expect(broker.watchService).toHaveBeenCalledTimes(5);
 		});
 	});
 

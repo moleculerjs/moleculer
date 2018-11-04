@@ -11,7 +11,7 @@
 			"program": "${workspaceRoot}/dev/index.js",
 			"cwd": "${workspaceRoot}",
 			"args": [
-				"circular"
+				"dev"
 			],
 		},
 		{
@@ -114,15 +114,13 @@
 			"name": "Moleculer-runner",
 			"program": "${workspaceRoot}/bin/moleculer-runner.js",
 			"cwd": "${workspaceRoot}",
-			/*"env": {
-				"SERVICEDIR": "examples",
-				"SERVICES": "*.service.js,!silent,!stat"
-			},*/
+			"env": {
+				"NAMESPACE": "test",
+				"MOLECULER_NAMESPACE": "long",
+				"MOLECULER_LOG_LEVEL": "debug",
+				"MOLECULER_REGISTRY__STRATEGY": "random"
+			},
 			"args": [
-				"--hot",
-				"--repl",
-				"examples",
-				"!examples/user*.service.js",
 			]
 		},
 		{

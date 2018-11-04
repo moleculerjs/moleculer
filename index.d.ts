@@ -171,7 +171,7 @@ declare namespace Moleculer {
 		actions?: Actions;
 		Promise: typeof Bluebird;
 
-		waitForServices(serviceNames: string | Array<string>, timeout?: number, interval?: number): Bluebird<void>;
+		waitForServices(serviceNames: string | Array<string> | Array<GenericObject>, timeout?: number, interval?: number): Bluebird<void>;
 
 		_init(): void;
 		_start(): Bluebird<void>;
@@ -271,6 +271,12 @@ declare namespace Moleculer {
 		created?: (broker: ServiceBroker) => void;
 		started?: (broker: ServiceBroker) => void;
 		stopped?: (broker: ServiceBroker) => void;
+
+		/**
+		 * If true, process.on("beforeExit/exit/SIGINT/SIGTERM", ...) handler won't be registered!
+		 * You have to register this manually and stop broker in this case!
+		 */
+		skipProcessEventRegistration?: boolean;
 	}
 
 	interface NodeHealthStatus {
@@ -392,7 +398,7 @@ declare namespace Moleculer {
 		destroyService(service: Service): Bluebird<void>;
 
 		getLocalService(serviceName: string, version?: string | number): Service;
-		waitForServices(serviceNames: string | Array<string>, timeout?: number, interval?: number, logger?: LoggerInstance): Bluebird<void>;
+		waitForServices(serviceNames: string | Array<string> | Array<GenericObject>, timeout?: number, interval?: number, logger?: LoggerInstance): Bluebird<void>;
 
 		/**
 		 *
@@ -696,7 +702,8 @@ declare namespace Moleculer {
 		Avro: Serializer,
 		MsgPack: Serializer,
 		ProtoBuf: Serializer,
-		Thrift: Serializer
+		Thrift: Serializer,
+		Notepack: Serializer
 	};
 
 	namespace Errors {

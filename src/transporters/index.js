@@ -47,7 +47,7 @@ function resolve(opt) {
 
 		if (opt.startsWith("nats://"))
 			TransporterClass = Transporters.NATS;
-		else if (opt.startsWith("mqtt://") || opt.startsWith("mqtt+ssl://"))
+		else if (opt.startsWith("mqtt://") || opt.startsWith("mqtts://"))
 			TransporterClass = Transporters.MQTT;
 		else if (opt.startsWith("redis://") || opt.startsWith("rediss://"))
 			TransporterClass = Transporters.Redis;

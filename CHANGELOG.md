@@ -1,4 +1,53 @@
 --------------------------------------------------
+<a name="0.13.4"></a>
+# [0.13.4](https://github.com/moleculerjs/moleculer/compare/v0.13.3...v0.13.4) (2018-11-04)
+
+# Changes
+- catch errors in `getCpuUsage()` method.
+- support multiple urls in AMQP transporter by [@urossmolnik](https://github.com/urossmolnik)
+- fix AMQP connection recovery by [@urossmolnik](https://github.com/urossmolnik)
+- add `transit.disableReconnect` option to disable reconnecting logic at broker starting by [@Gadi-Manor](https://github.com/Gadi-Manor)
+- catch `os.userInfo` errors in health action by [@katsanva](https://github.com/katsanva)
+- allow specifying 0 as `retries` [#404](https://github.com/moleculerjs/moleculer/issues/404) by [@urossmolnik](https://github.com/urossmolnik)
+- fix `GraceFulTimeoutError` bug [#400](https://github.com/moleculerjs/moleculer/issues/400)
+- fix event return handling to avoid localEvent error handling issue in middleware [#403](https://github.com/moleculerjs/moleculer/issues/403)
+- update [fastest-validator](https://github.com/icebob/fastest-validator) to the 0.6.12 version
+- update all dependencies
+
+--------------------------------------------------
+<a name="0.13.3"></a>
+# [0.13.3](https://github.com/moleculerjs/moleculer/compare/v0.13.2...v0.13.3) (2018-09-27)
+
+# Changes
+- update dependencies
+- fix MQTTS connection string protocol from `mqtt+ssl://` to `mqtts://` by [@AndreMaz](https://github.com/AndreMaz)
+- Moleculer Runner supports typescript configuration file `moleculer.config.ts`
+- fix to call service start after hot-reloading.
+- fix Bluebird warning in service loading [#381](https://github.com/moleculerjs/moleculer/issues/381) by [@faeron](https://github.com/faeron)
+- fix `waitForServices` definition in `index.d.ts` [#358](https://github.com/moleculerjs/moleculer/issues/358)
+- fix `cpuUsage` issue [#379](https://github.com/moleculerjs/moleculer/issues/379) by [@faeron](https://github.com/faeron)
+
+
+--------------------------------------------------
+<a name="0.13.2"></a>
+# [0.13.2](https://github.com/moleculerjs/moleculer/compare/v0.13.1...v0.13.2) (2018-08-16)
+
+# Changes
+- update dependencies
+- add Notepack (other MsgPack) serializer
+- `skipProcessEventRegistration` broker option to disable `process.on` shutdown event handlers which stop broker.
+- make unique service dependencies
+- add `socketOptions` to AMQP transporter options. [#330](https://github.com/moleculerjs/moleculer/pull/330)
+- fix unhandled promise in AMQP transporter `connect` method.
+- add `autoDeleteQueues` option to AMQP transporter. [#341](https://github.com/moleculerjs/moleculer/pull/341)
+- ES6 support has improved. [#348](https://github.com/moleculerjs/moleculer/pull/348)
+- add `qos` transporter option to MQTT transporter. Default: `0`
+- add `topicSeparator` transporter option to MQTT transporter. Default: `.`
+- fix MQTT transporter disconnect logic (waiting for in-flight messages) 
+- add support for non-defined defaultOptions variables [#350](https://github.com/moleculerjs/moleculer/pull/350)
+- update ioredis to v4
+
+--------------------------------------------------
 <a name="0.13.1"></a>
 # [0.13.1](https://github.com/moleculerjs/moleculer/compare/v0.13.0...v0.13.1) (2018-07-13)
 

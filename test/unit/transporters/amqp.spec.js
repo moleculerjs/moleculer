@@ -53,14 +53,15 @@ describe("Test AmqpTransporter constructor", () => {
 		let transporter = new AmqpTransporter("amqp://localhost");
 		expect(transporter).toBeDefined();
 		expect(transporter.opts).toEqual({
-			url: "amqp://localhost",
+			url: ["amqp://localhost"],
 			prefetch: 1,
 			eventTimeToLive: null,
 			heartbeatTimeToLive: null,
 			exchangeOptions: {},
 			messageOptions: {},
 			queueOptions: {},
-			consumeOptions: {}
+			consumeOptions: {},
+			autoDeleteQueues: -1
 		});
 		expect(transporter.connected).toBe(false);
 		expect(transporter.hasBuiltInBalancer).toBe(true);
@@ -71,14 +72,15 @@ describe("Test AmqpTransporter constructor", () => {
 
 	it("check constructor with options", () => {
 		let opts = {
-			url: "amqp://localhost",
+			url: ["amqp://localhost"],
 			prefetch: 3,
 			eventTimeToLive: 10000,
 			heartbeatTimeToLive: 30000,
 			exchangeOptions: { alternateExchange: "retry" },
 			messageOptions: { expiration: 120000, persistent: true, mandatory: true },
 			queueOptions: { deadLetterExchange: "dlx", maxLength: 100 },
-			consumeOptions: { priority: 5 }
+			consumeOptions: { priority: 5 },
+			autoDeleteQueues: -1
 		};
 		let transporter = new AmqpTransporter(opts);
 		expect(transporter.opts).toEqual(opts);

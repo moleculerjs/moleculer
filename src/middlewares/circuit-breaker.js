@@ -142,7 +142,7 @@ module.exports = function() {
 	 * @param {Object} item
 	 * @param {Context} ctx
 	 */
-	function halfOpen(item, ctx) {
+	function halfOpen(item) {
 		item.state = C.CIRCUIT_HALF_OPEN;
 		item.ep.state = true;
 
@@ -177,7 +177,7 @@ module.exports = function() {
 	 * @param {Object} item
 	 * @param {Context} ctx
 	 */
-	function circuitClose(item, ctx) {
+	function circuitClose(item) {
 		item.state = C.CIRCUIT_CLOSE;
 		item.ep.state = true;
 		item.failures = 0;

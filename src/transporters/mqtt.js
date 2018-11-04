@@ -6,8 +6,9 @@
 
 "use strict";
 
-const Promise		= require("bluebird");
-const Transporter 	= require("./base");
+const Promise = require("bluebird");
+const Transporter = require("./base");
+const { isObject } = require("lodash");
 
 /**
  * Transporter for MQTT
@@ -26,6 +27,20 @@ class MqttTransporter extends Transporter {
 	 */
 	constructor(opts) {
 		super(opts);
+
+		this.qos = 0;
+		this.topicSeparator = ".";
+
+		if (isObject(this.opts)) {
+			if (this.opts.qos !== undefined) {
+				this.qos = this.opts.qos;
+				delete this.opts.qos;
+			}
+			if (this.opts.topicSeparator !== undefined) {
+				this.topicSeparator = this.opts.topicSeparator;
+				delete this.opts.topicSeparator;
+			}
+		}
 
 		this.client = null;
 	}
@@ -70,7 +85,7 @@ class MqttTransporter extends Transporter {
 			});
 
 			client.on("message", (topic, msg) => {
-				const cmd = topic.split(".")[1];
+				const cmd = topic.split(this.topicSeparator)[1];
 				this.incomingMessage(cmd, msg);
 			});
 
@@ -89,9 +104,23 @@ class MqttTransporter extends Transporter {
 	 */
 	disconnect() {
 		if (this.client) {
-			this.client.end();
-			this.client = null;
+			return new Promise(resolve => {
+				this.client.end(false, resolve);
+				this.client = null;
+			});
 		}
+	}
+
+	/**
+	 * Get topic name from command & target nodeID
+	 *
+	 * @param {any} cmd
+	 * @param {any} nodeID
+	 *
+	 * @memberof MqttTransporter
+	 */
+	getTopicName(cmd, nodeID) {
+		return this.prefix + this.topicSeparator + cmd + (nodeID ? this.topicSeparator + nodeID : "");
 	}
 
 	/**
@@ -103,8 +132,17 @@ class MqttTransporter extends Transporter {
 	 * @memberof MqttTransporter
 	 */
 	subscribe(cmd, nodeID) {
-		this.client.subscribe(this.getTopicName(cmd, nodeID));
-		return Promise.resolve();
+		return new Promise((resolve, reject) => {
+			const topic = this.getTopicName(cmd, nodeID);
+			this.client.subscribe(topic, { qos: this.qos }, (err, granted) => {
+				if (err)
+					return reject(err);
+
+				this.logger.info("MQTT server granted", granted);
+
+				resolve();
+			});
+		});
 	}
 
 	/**
@@ -121,7 +159,8 @@ class MqttTransporter extends Transporter {
 		return new Promise((resolve, reject) => {
 			const data = this.serialize(packet);
 			this.incStatSent(data.length);
-			this.client.publish(this.getTopicName(packet.type, packet.target), data, err => {
+			const topic = this.getTopicName(packet.type, packet.target);
+			this.client.publish(topic, data, { qos: this.qos }, err => {
 				/* istanbul ignore next*/
 				if (err)
 					return reject(err);

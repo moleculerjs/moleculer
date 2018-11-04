@@ -9,7 +9,6 @@
 const Promise 	= require("bluebird");
 const chalk		= require("chalk");
 const os 	 	= require("os");
-const _			= require("lodash");
 
 const lut = [];
 for (let i=0; i<256; i++) { lut[i] = (i<16?"0":"")+(i).toString(16); }
@@ -199,6 +198,32 @@ const utils = {
 	 */
 	safetyObject(obj) {
 		return JSON.parse(JSON.stringify(obj, circularReplacer()));
+	},
+
+	/**
+	 * Sets a variable on an object based on its dot path.
+	 *
+	 * @param {Object} obj
+	 * @param {String} path
+	 * @param {*} value
+	 * @returns {Object}
+	 */
+	dotSet(obj, path, value) {
+		const parts = path.split(".");
+		const part = parts.shift();
+		if (parts.length > 0) {
+			if (!(part in obj)) {
+				obj[part] = {};
+			} else {
+				if (typeof obj[part] !== "object") {
+					throw new Error("Value already set and it's not an object");
+				}
+			}
+			obj[part] = utils.dotSet(obj[part], parts.join("."), value);
+			return obj;
+		}
+		obj[path] = value;
+		return obj;
 	}
 
 };

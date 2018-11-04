@@ -86,6 +86,7 @@ const defaultOptions = {
 	transit: {
 		maxQueueSize: 50 * 1000, // 50k ~ 400MB,
 		packetLogFilter: [],
+		disableReconnect: false
 	},
 
 	cacher: null,
@@ -146,8 +147,8 @@ class ServiceBroker {
 			this.logger = this.getLogger("broker");
 
 			this.logger.info(`Moleculer v${this.MOLECULER_VERSION} is starting...`);
-			this.logger.info("Node ID:", this.nodeID);
-			this.logger.info("Namespace:", this.namespace || "<not defined>");
+			this.logger.info(`Node ID: ${this.nodeID}`);
+			this.logger.info(`Namespace: ${this.namespace || "<not defined>"}`);
 
 			// Internal event bus
 			this.localBus = new EventEmitter2({
@@ -170,7 +171,7 @@ class ServiceBroker {
 				this.cacher.init(this);
 
 				const name = this.cacher.constructor.name;
-				this.logger.info("Cacher:", name);
+				this.logger.info(`Cacher: ${name}`);
 			}
 
 			// Serializer
@@ -178,7 +179,7 @@ class ServiceBroker {
 			this.serializer.init(this);
 
 			const serializerName = this.serializer.constructor.name;
-			this.logger.info("Serializer:", serializerName);
+			this.logger.info(`Serializer: ${serializerName}`);
 
 			// Validation
 			if (this.options.validation !== false) {
@@ -194,7 +195,7 @@ class ServiceBroker {
 				this.transit = new Transit(this, tx, this.options.transit);
 
 				const txName = tx.constructor.name;
-				this.logger.info("Transporter:", txName);
+				this.logger.info(`Transporter: ${txName}`);
 
 				if (this.options.disableBalancer) {
 					if (tx.hasBuiltInBalancer) {
@@ -232,10 +233,12 @@ class ServiceBroker {
 			};
 
 			process.setMaxListeners(0);
-			process.on("beforeExit", this._closeFn);
-			process.on("exit", this._closeFn);
-			process.on("SIGINT", this._closeFn);
-			process.on("SIGTERM", this._closeFn);
+			if ((this.options.skipProcessEventRegistration || false) !== true) {
+				process.on("beforeExit", this._closeFn);
+				process.on("exit", this._closeFn);
+				process.on("SIGINT", this._closeFn);
+				process.on("SIGTERM", this._closeFn);
+			}
 		} catch(err) {
 			if (this.logger)
 				this.fatal("Unable to create ServiceBroker.", err, true);
@@ -399,10 +402,12 @@ class ServiceBroker {
 
 				this.localBus.emit("$broker.stopped");
 
-				process.removeListener("beforeExit", this._closeFn);
-				process.removeListener("exit", this._closeFn);
-				process.removeListener("SIGINT", this._closeFn);
-				process.removeListener("SIGTERM", this._closeFn);
+				if ((this.options.skipProcessEventRegistration || false) !== true) {
+					process.removeListener("beforeExit", this._closeFn);
+					process.removeListener("exit", this._closeFn);
+					process.removeListener("SIGINT", this._closeFn);
+					process.removeListener("SIGTERM", this._closeFn);
+				}
 			});
 	}
 
@@ -533,10 +538,14 @@ class ServiceBroker {
 		}
 
 		let svc;
+		schema = this.normalizeSchemaConstructor(schema);
 		if (this.ServiceFactory.isPrototypeOf(schema)) {
 			// Service implementation
 			svc = new schema(this);
-			this.servicesChanged(true);
+
+			// If broker is started, call the started lifecycle event of service
+			if (this.started)
+				this._restartService(svc);
 
 		} else if (_.isFunction(schema)) {
 			// Function
@@ -544,8 +553,9 @@ class ServiceBroker {
 			if (!(svc instanceof this.ServiceFactory)) {
 				svc = this.createService(svc);
 			} else {
-				// Should call changed because we didn't call the `createService`.
-				this.servicesChanged(true);
+				// If broker is started, call the started lifecycle event of service
+				if (this.started)
+					this._restartService(svc);
 			}
 
 		} else if (schema) {
@@ -615,6 +625,7 @@ class ServiceBroker {
 	createService(schema, schemaMods) {
 		let service;
 
+		schema = this.normalizeSchemaConstructor(schema);
 		if (this.ServiceFactory.isPrototypeOf(schema)) {
 			service = new schema(this);
 		} else {
@@ -625,13 +636,24 @@ class ServiceBroker {
 			service = new this.ServiceFactory(this, s);
 		}
 
-		if (this.started) {
-			// If broker is started, call the started lifecycle event of service
-			service._start.call(service)
-				.catch(err => this.logger.error("Unable to start service.", err));
-		}
+		// If broker is started, call the started lifecycle event of service
+		if (this.started)
+			this._restartService(service);
 
 		return service;
+	}
+
+	/**
+	 * Restart a hot-reloaded service after creation.
+	 *
+	 * @param {Service} service
+	 * @returns {Promise}
+	 * @memberof ServiceBroker
+	 * @private
+	 */
+	_restartService(service) {
+		return service._start.call(service)
+			.catch(err => this.logger.error("Unable to start service.", err));
 	}
 
 	/**
@@ -1244,6 +1266,61 @@ class ServiceBroker {
 	 */
 	getCpuUsage() {
 		return cpuUsage();
+	}
+
+
+	/**
+	 * Get the Constructor name of any object if it exists
+	 * @param {any} obj
+	 * @returns {string}
+	 *
+	 */
+	getConstructorName(obj) {
+		let target = obj.prototype;
+		if (target && target.constructor && target.constructor.name){
+			return target.constructor.name;
+		}
+		if (obj.constructor && obj.constructor.name){
+			return obj.constructor.name;
+		}
+		return undefined;
+	}
+
+	/**
+	 * Ensure the service schema will be prototype of ServiceFactory;
+	 *
+	 * @param {any} schema
+	 * @returns {string}
+	 *
+	 */
+	normalizeSchemaConstructor(schema) {
+		if (this.ServiceFactory.isPrototypeOf(schema)){
+			return schema;
+		}
+		// Sometimes the schame was loaded from another node_module or is a object copy.
+		// Then we will check if the constructor name is the same, asume that is a derivate object
+		// and adjust the prototype of the schema.
+		let serviceName = this.getConstructorName(this.ServiceFactory);
+		let target = this.getConstructorName(schema);
+		if (serviceName === target){
+			Object.setPrototypeOf(schema, this.ServiceFactory);
+			return schema;
+		}
+		// Depending how the schema was create the correct constructor name (from base class) will be locate on __proto__.
+		target = this.getConstructorName(schema.__proto__);
+		if (serviceName === target){
+			Object.setPrototypeOf(schema.__proto__, this.ServiceFactory);
+			return schema;
+		}
+		// This is just to handle some idiosyncrasies from Jest.
+		if (schema._isMockFunction){
+			target = this.getConstructorName(schema.prototype.__proto__);
+			if (serviceName === target){
+				Object.setPrototypeOf(schema, this.ServiceFactory);
+				return schema;
+			}
+		}
+		return schema;
 	}
 }
 

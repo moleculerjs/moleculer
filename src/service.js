@@ -177,6 +177,7 @@ class Service {
 			.then(() => {
 				// Register service
 				this.broker.registerLocalService(this._serviceSpecification);
+				return null;
 			})
 			.then(() => {
 				return this.broker.middlewares.callHandlers("serviceStarted", [this]);
@@ -296,18 +297,11 @@ class Service {
 		const self = this;
 		if (_.isFunction(handler)) {
 			event.handler = function () {
-				handler.apply(self, arguments)
-					.catch(err => self.logger.error(err));
-				return null;
+				return handler.apply(self, arguments);
 			};
 		} else if (Array.isArray(handler)) {
 			event.handler = function () {
-				handler.forEach(fn => {
-					fn.apply(self, arguments)
-						.catch(err => self.logger.error(err));
-					return null;
-				});
-				return null;
+				return Promise.all(handler.map(fn => fn.apply(self, arguments)));
 			};
 		}
 

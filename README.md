@@ -127,7 +127,7 @@ See [CHANGELOG.md](CHANGELOG.md).
 
 # Contributions
 We welcome you to join to the development of Moleculer. Please read our [contribution guide](http://moleculer.services/docs/contributing.html).
-<a href="graphs/contributors"><img src="https://opencollective.com/moleculer/contributors.svg?width=890&button=false" /></a>
+<a href="https://github.com/moleculerjs/moleculer/graphs/contributors"><img src="https://opencollective.com/moleculer/contributors.svg?width=890&button=false" /></a>
 
 # License
 Moleculer is available under the [MIT license](https://tldrlegal.com/license/mit-license).
