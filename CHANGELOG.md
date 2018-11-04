@@ -1,6 +1,6 @@
 --------------------------------------------------
 <a name="0.13.4"></a>
-# [0.13.4](https://github.com/moleculerjs/moleculer/compare/v0.13.3...v0.13.4) (2018-11-xx)
+# [0.13.4](https://github.com/moleculerjs/moleculer/compare/v0.13.3...v0.13.4) (2018-11-04)
 
 # Changes
 - catch errors in `getCpuUsage()` method.
@@ -11,6 +11,8 @@
 - allow specifying 0 as `retries` [#404](https://github.com/moleculerjs/moleculer/issues/404) by [@urossmolnik](https://github.com/urossmolnik)
 - fix `GraceFulTimeoutError` bug [#400](https://github.com/moleculerjs/moleculer/issues/400)
 - fix event return handling to avoid localEvent error handling issue in middleware [#403](https://github.com/moleculerjs/moleculer/issues/403)
+- update [fastest-validator](https://github.com/icebob/fastest-validator) to the 0.6.12 version
+- update all dependencies
 
 --------------------------------------------------
 <a name="0.13.3"></a>
