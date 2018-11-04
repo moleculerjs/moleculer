@@ -1014,6 +1014,7 @@ class ServiceBroker {
 		}
 	}
 
+
 	/**
 	 * Emit an event (grouped & balanced global event)
 	 *
@@ -1045,7 +1046,7 @@ class ServiceBroker {
 				if (ep) {
 					if (ep.id == this.nodeID) {
 						// Local service, call handler
-						ep.event.handler(payload, this.nodeID, eventName);
+						this.registry.events.callEventHandler(ep.event.handler, payload, this.nodeID, eventName);
 					} else {
 						// Remote service
 						const e = groupedEP[ep.id];

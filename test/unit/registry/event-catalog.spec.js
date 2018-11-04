@@ -5,6 +5,7 @@ let EventCatalog = require("../../../src/registry/event-catalog");
 let EndpointList = require("../../../src/registry/endpoint-list");
 let EventEndpoint = require("../../../src/registry/endpoint-event");
 let ServiceBroker = require("../../../src/service-broker");
+const { protectReject } = require("../utils");
 
 describe("Test EventCatalog constructor", () => {
 
@@ -311,6 +312,8 @@ describe("Test EventCatalog.emitLocalServices", () => {
 	let broker = new ServiceBroker({ logger: false, nodeID: "node-1" });
 	let catalog = new EventCatalog(broker.registry, broker, Strategy);
 
+	catalog.callEventHandler = jest.fn();
+
 	let usersEvent = { name: "user.created", handler: jest.fn() };
 	let paymentEvent = { name: "user.created", handler: jest.fn() };
 	let mailEvent = { name: "user.*", handler: jest.fn() };
@@ -327,69 +330,102 @@ describe("Test EventCatalog.emitLocalServices", () => {
 		let payload = { a: 5 };
 		catalog.emitLocalServices("user.created", payload, null, "node-99", true);
 
-		expect(usersEvent.handler).toHaveBeenCalledTimes(1);
-		expect(usersEvent.handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
-		expect(paymentEvent.handler).toHaveBeenCalledTimes(1);
-		expect(paymentEvent.handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
-		expect(mailEvent.handler).toHaveBeenCalledTimes(1);
-		expect(mailEvent.handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
-		expect(otherEvent.handler).toHaveBeenCalledTimes(1);
-		expect(otherEvent.handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
-
+		expect(catalog.callEventHandler).toHaveBeenCalledTimes(4);
+		expect(catalog.callEventHandler).toHaveBeenCalledWith(usersEvent.handler, payload, "node-99", "user.created");
+		expect(catalog.callEventHandler).toHaveBeenCalledWith(paymentEvent.handler, payload, "node-99", "user.created");
+		expect(catalog.callEventHandler).toHaveBeenCalledWith(otherEvent.handler, payload, "node-99", "user.created");
+		expect(catalog.callEventHandler).toHaveBeenCalledWith(mailEvent.handler, payload, "node-99", "user.created");
 	});
 
 	it("should broadcast local handlers with groups", () => {
-		usersEvent.handler.mockClear();
-		paymentEvent.handler.mockClear();
-		mailEvent.handler.mockClear();
-		otherEvent.handler.mockClear();
+		catalog.callEventHandler.mockClear();
 
 		let payload = { a: 5 };
 		catalog.emitLocalServices("user.created", payload, ["mail", "payment"], "node-99", true);
 
-		expect(usersEvent.handler).toHaveBeenCalledTimes(0);
-		expect(paymentEvent.handler).toHaveBeenCalledTimes(1);
-		expect(paymentEvent.handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
-		expect(mailEvent.handler).toHaveBeenCalledTimes(1);
-		expect(mailEvent.handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
-		expect(otherEvent.handler).toHaveBeenCalledTimes(1);
-		expect(otherEvent.handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
-
+		expect(catalog.callEventHandler).toHaveBeenCalledTimes(3);
+		expect(catalog.callEventHandler).toHaveBeenCalledWith(paymentEvent.handler, payload, "node-99", "user.created");
+		expect(catalog.callEventHandler).toHaveBeenCalledWith(otherEvent.handler, payload, "node-99", "user.created");
+		expect(catalog.callEventHandler).toHaveBeenCalledWith(mailEvent.handler, payload, "node-99", "user.created");
 	});
 
 	it("should balance local handlers without groups", () => {
-		usersEvent.handler.mockClear();
-		paymentEvent.handler.mockClear();
-		mailEvent.handler.mockClear();
-		otherEvent.handler.mockClear();
+		catalog.callEventHandler.mockClear();
 
 		let payload = { a: 5 };
 		catalog.emitLocalServices("user.created", payload, null, "node-99", false);
 
-		expect(usersEvent.handler).toHaveBeenCalledTimes(1);
-		expect(usersEvent.handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
-		expect(paymentEvent.handler).toHaveBeenCalledTimes(1);
-		expect(paymentEvent.handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
-		expect(mailEvent.handler).toHaveBeenCalledTimes(1);
-		expect(mailEvent.handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
-		expect(otherEvent.handler).toHaveBeenCalledTimes(0); // Balanced
+		expect(catalog.callEventHandler).toHaveBeenCalledTimes(3);
+		expect(catalog.callEventHandler).toHaveBeenCalledWith(paymentEvent.handler, payload, "node-99", "user.created");
+		expect(catalog.callEventHandler).toHaveBeenCalledWith(usersEvent.handler, payload, "node-99", "user.created");
+		expect(catalog.callEventHandler).toHaveBeenCalledWith(mailEvent.handler, payload, "node-99", "user.created");
+
 	});
 
 	it("should balance local handlers with groups", () => {
-		usersEvent.handler.mockClear();
-		paymentEvent.handler.mockClear();
-		mailEvent.handler.mockClear();
-		otherEvent.handler.mockClear();
+		catalog.callEventHandler.mockClear();
 
 		let payload = { a: 5 };
 		catalog.emitLocalServices("user.created", payload, ["mail", "payment"], "node-99", false);
 
-		expect(usersEvent.handler).toHaveBeenCalledTimes(0);
-		expect(paymentEvent.handler).toHaveBeenCalledTimes(0); // Balanced
-		expect(mailEvent.handler).toHaveBeenCalledTimes(1);
-		expect(mailEvent.handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
-		expect(otherEvent.handler).toHaveBeenCalledTimes(1);
-		expect(otherEvent.handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
+		expect(catalog.callEventHandler).toHaveBeenCalledTimes(2);
+		expect(catalog.callEventHandler).toHaveBeenCalledWith(otherEvent.handler, payload, "node-99", "user.created");
+		expect(catalog.callEventHandler).toHaveBeenCalledWith(mailEvent.handler, payload, "node-99", "user.created");
+
+	});
+});
+
+describe("Test EventCatalog.callEventHandler", () => {
+	let broker = new ServiceBroker({ logger: false, nodeID: "node-1" });
+	let catalog = new EventCatalog(broker.registry, broker, Strategy);
+
+	it("should add catch handler to result", () => {
+		let payload = { a: 5 };
+
+		let resolver;
+		const handler = jest.fn(() => new Promise(res => resolver = res));
+
+		const p = catalog.callEventHandler(handler, payload, "node-99", "user.created");
+
+		expect(handler).toHaveBeenCalledTimes(1);
+		expect(handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
+
+		resolver();
+
+		return p;
+	});
+
+	it("should catch error", () => {
+		let payload = { a: 5 };
+
+		let rejecter;
+		const handler = jest.fn(() => new Promise((res, rej) => rejecter = rej));
+		broker.logger.error = jest.fn();
+
+		const p = catalog.callEventHandler(handler, payload, "node-99", "user.created");
+
+		expect(handler).toHaveBeenCalledTimes(1);
+		expect(handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
+
+		const err = new Error("Something went wrong");
+		rejecter(err);
+
+		return p.catch(protectReject).then(() => {
+			expect(broker.logger.error).toHaveBeenCalledTimes(1);
+			expect(broker.logger.error).toHaveBeenCalledWith(err);
+		});
+
+	});
+
+	it("should do nothing if result is not Promise", () => {
+		let payload = { a: 5 };
+
+		const handler = jest.fn(() => 5);
+		const res = catalog.callEventHandler(handler, payload, "node-99", "user.created");
+
+		expect(res).toBe(5);
+		expect(handler).toHaveBeenCalledTimes(1);
+		expect(handler).toHaveBeenCalledWith(payload, "node-99", "user.created");
 	});
 });
 
