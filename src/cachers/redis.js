@@ -156,47 +156,47 @@ class RedisCacher extends BaseCacher {
 	 */
 	clean(match = "*") {
 		return new Promise((resolve, reject) => {
-			match = this.prefix + match.replace(/\*\*/g, "*");
+			const cleaningPatterns = Array.isArray(match) ? match : [match];
+			const normalizedPatters = cleaningPatterns.map(match => this.prefix + match.replace(/\*\*/g, "*"));
 			this.logger.debug(`CLEAN ${match}`);
-			let self = this;
-			let scanDel = function (cursor, cb) {
-				/* istanbul ignore next */
-				self.client.scan(cursor, "MATCH", match, "COUNT", 100, function (err, resp) {
-					if (err) {
-						return cb(err);
-					}
-					let nextCursor = parseInt(resp[0]);
-					let keys = resp[1];
-					// no next cursor and no keys to delete
-
-					if (!keys.length) {
-						if (!nextCursor)
-							return cb(null);
-
-						return scanDel(nextCursor, cb);
-					}
-
-					self.client.del(keys, function (err) {
-						if (err) {
-							return cb(err);
-						}
-						if (!nextCursor) {
-							return cb(null);
-						}
-						scanDel(nextCursor, cb);
-					});
-				});
-			};
-
 			/* istanbul ignore next */
-			scanDel(0, (err) => {
-				if (err) {
-					this.logger.error("Redis `scanDel` error.", match, err);
 
-					return reject(err);
-				}
+			normalizedPatters.forEach(pattern => {
+				this._scanDel(this, pattern, 0, (err) => {
+					if (err) {
+						this.logger.error("Redis `scanDel` error.", pattern, err);
 
+						return reject(err);
+					}
+				});
 				resolve();
+			});
+		});
+	}
+	_scanDel(cacher, match, cursor, cb){
+		cacher.client.scan(cursor, "MATCH", match, "COUNT", 100, (err, resp) => {
+			if (err) {
+				return cb(err);
+			}
+			let nextCursor = parseInt(resp[0]);
+			let keys = resp[1];
+			// no next cursor and no keys to delete
+
+			if (!keys.length) {
+				if (!nextCursor)
+					return cb(null);
+
+				return this._scanDel(nextCursor, cb);
+			}
+
+			cacher.client.del(keys, (err) => {
+				if (err) {
+					return cb(err);
+				}
+				if (!nextCursor) {
+					return cb(null);
+				}
+				this._scanDel(nextCursor, cb);
 			});
 		});
 	}

@@ -16,7 +16,7 @@ describe("Test RedisCacher constructor", () => {
 	});
 
 	it("should create a timer if set ttl option", () => {
-		let opts = { ttl: 500, maxParamsLength: 1024 };
+		let opts = {ttl: 500, maxParamsLength: 1024};
 		let cacher = new RedisCacher(opts);
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toEqual(opts);
@@ -40,7 +40,7 @@ describe("Test RedisCacher constructor", () => {
 
 describe("Test RedisCacher set & get without prefix", () => {
 
-	let broker = new ServiceBroker({ logger: false });
+	let broker = new ServiceBroker({logger: false});
 	let cacher = new RedisCacher();
 	cacher.init(broker);
 
@@ -109,7 +109,7 @@ describe("Test RedisCacher set & get without prefix", () => {
 
 describe("Test RedisCacher set & get with namespace & ttl", () => {
 
-	let broker = new ServiceBroker({ logger: false, namespace: "uat" });
+	let broker = new ServiceBroker({logger: false, namespace: "uat"});
 	let cacher = new RedisCacher({
 		ttl: 60
 	});
@@ -129,6 +129,13 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 	};
 
 	let prefix = "MOL-uat-";
+
+	beforeEach(() => {
+		cacher.client.get.mockClear();
+		cacher.client.del.mockClear();
+		cacher.client.scan.mockClear();
+	});
+
 
 	it("should call client.setex with key & data", () => {
 		cacher.set(key, data1);
@@ -153,10 +160,30 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 		expect(cacher.client.scan).toHaveBeenCalledTimes(1);
 		expect(cacher.client.scan).toHaveBeenCalledWith(0, "MATCH", "MOL-uat-*", "COUNT", 100, jasmine.any(Function));
 	});
+
+	it("should call client.scan with service key", () => {
+		cacher.clean("service-name.*");
+		expect(cacher.client.scan).toHaveBeenCalledTimes(1);
+		expect(cacher.client.scan).toHaveBeenCalledWith(0, "MATCH", "MOL-uat-service-name.*", "COUNT", 100, jasmine.any(Function));
+	});
+
+	it("should call client.scan if provided as array service key in array", () => {
+		cacher.clean(["service-name.*"]);
+		expect(cacher.client.scan).toHaveBeenCalledTimes(1);
+		expect(cacher.client.scan).toHaveBeenCalledWith(0, "MATCH", "MOL-uat-service-name.*", "COUNT", 100, jasmine.any(Function));
+	});
+
+	it("should call client.scan for each array element", () => {
+		cacher.clean(["service-name.*", "service2-name.*"]);
+		expect(cacher.client.scan).toHaveBeenCalledTimes(2);
+		expect(cacher.client.scan).toHaveBeenCalledWith(0, "MATCH", "MOL-uat-service-name.*", "COUNT", 100, jasmine.any(Function));
+		expect(cacher.client.scan).toHaveBeenCalledWith(0, "MATCH", "MOL-uat-service2-name.*", "COUNT", 100, jasmine.any(Function));
+	});
 });
 
+
 describe("Test RedisCacher close", () => {
-	let broker = new ServiceBroker({ logger: false });
+	let broker = new ServiceBroker({logger: false});
 	let cacher = new RedisCacher();
 	cacher.init(broker); // for empty logger
 
