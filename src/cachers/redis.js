@@ -131,14 +131,16 @@ class RedisCacher extends BaseCacher {
 	/**
 	 * Delete a key from cache
 	 *
-	 * @param {any} key
+	 * @param {any} deleteTargets
 	 * @returns {Promise}
 	 *
 	 * @memberof Cacher
 	 */
-	del (key) {
-		this.logger.debug(`DELETE ${key}`);
-		return this.client.del(this.prefix + key).catch(err => {
+	del (deleteTargets) {
+		deleteTargets = Array.isArray(deleteTargets) ? deleteTargets : [deleteTargets];
+		const keysToDelete = deleteTargets.map(key => this.prefix + key);
+		this.logger.debug(`DELETE ${keysToDelete}`);
+		return this.client.del(keysToDelete).catch(err => {
 			/* istanbul ignore next */
 			this.logger.error("Redis `del` error.", key, err);
 		});

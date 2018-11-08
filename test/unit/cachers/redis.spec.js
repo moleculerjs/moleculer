@@ -105,7 +105,13 @@ describe("Test RedisCacher set & get without prefix", () => {
 	it("should call client.del with key", () => {
 		cacher.del(key);
 		expect(cacher.client.del).toHaveBeenCalledTimes(1);
-		expect(cacher.client.del).toHaveBeenCalledWith(prefix + key);
+		expect(cacher.client.del).toHaveBeenCalledWith([prefix + key]);
+	});
+
+	it("should delete an array of keys", () => {
+		cacher.del(["key1", "key2"]);
+		expect(cacher.client.del).toHaveBeenCalledTimes(1);
+		expect(cacher.client.del).toHaveBeenCalledWith([prefix + "key1", prefix + "key2"]);
 	});
 
 	it("should call client.scanStream & del", () => {
@@ -179,7 +185,7 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 	it("should call client.del with key", () => {
 		cacher.del(key);
 		expect(cacher.client.del).toHaveBeenCalledTimes(1);
-		expect(cacher.client.del).toHaveBeenCalledWith(prefix + key);
+		expect(cacher.client.del).toHaveBeenCalledWith([prefix + key]);
 	});
 
 	it("should call client.scanStream", () => {
