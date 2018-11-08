@@ -7,20 +7,6 @@ const broker = new ServiceBroker({
 	//transporter: "mqtt://localhost:1833",
 	transporter: "TCP",
 	metrics: true,
-	cacher: {
-		type: 'Redis',
-		options: {
-			prefix: 'COM',
-			ttl: 1,
-			redis: {
-				port: 30598,
-				host: 'localhost',
-				environment: 'dev',
-				namespace: 'chatToken',
-				expire: 60 * 60 * 24
-			}
-		}
-	}
 	//logLevel: "debug",
 	//logObjectPrinter: o => util.inspect(o, { depth: 4, colors: true, breakLength: 50 }), // `breakLength: 50` activates multi-line object
 });
