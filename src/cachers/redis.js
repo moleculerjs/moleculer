@@ -174,7 +174,7 @@ class RedisCacher extends BaseCacher {
 
 	_scanDel (match) {
 		return new Promise((resolve, reject) => {
-			const stream = new this.client.scanStream({
+			const stream = this.client.scanStream({
 				match,
 				count: 100
 			});

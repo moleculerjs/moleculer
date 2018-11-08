@@ -1,29 +1,22 @@
-"use strict";
+const ApiGateway = require
 const ServiceBroker = require("../src/service-broker");
 const util = require("util");
 
 const broker = new ServiceBroker({
 	nodeID: "dev",// + process.pid,
 	//transporter: "mqtt://localhost:1833",
-	transporter: {
-		type: 'NATS',
-		options: {
-			url: 'nats://10.0.0.1:31002',
-			user: 'nats_client',
-			pass: 'v0LAHfyyZV'
-		}
-	},
+	transporter: "TCP",
 	metrics: true,
-	logger: true,
-	logLevel: 'info',
 	cacher: {
 		type: 'Redis',
 		options: {
 			prefix: 'COM',
-			ttl: 111111,
+			ttl: 1,
 			redis: {
-				port: 32488,
+				port: 30598,
 				host: 'localhost',
+				environment: 'dev',
+				namespace: 'chatToken',
 				expire: 60 * 60 * 24
 			}
 		}
@@ -34,18 +27,10 @@ const broker = new ServiceBroker({
 
 broker.createService({
 	name: "test",
-	params: {
-		receivingUserId: 'string'
-	},
-	settings: {
-		cacher: true
-	},
 	actions: {
 		async hello(ctx) {
-			this.logger.info('-indie--');
-			// this.broker.cacher.set("test." + ctx.params.receivingUserId, ctx.params.receivingUserId);
-			await this.broker.cacher.clean(['test.*']);
-			return "Hello " + ctx.params.receivingUserId;
+			await this.broker.cacher.del('test.*');
+			return "Hello Moleculer";
 		}
 	}
 });
