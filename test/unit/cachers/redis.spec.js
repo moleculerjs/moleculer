@@ -115,9 +115,6 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 	});
 	cacher.init(broker); // for empty logger
 
-	cacher.client.get = jest.fn(() => Promise.resolve());
-	cacher.client.del = jest.fn(() => Promise.resolve());
-
 	let key = "tst123";
 	let data1 = {
 		a: 1,
@@ -131,9 +128,10 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 	let prefix = "MOL-uat-";
 
 	beforeEach(() => {
-		cacher.client.get.mockClear();
-		cacher.client.del.mockClear();
-		cacher.client.scan.mockClear();
+		cacher.client.scan.mockReset();
+		cacher.client.get = jest.fn(() => Promise.resolve());
+		cacher.client.del = jest.fn(() => Promise.resolve());
+
 	});
 
 
@@ -161,10 +159,11 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 		expect(cacher.client.scan).toHaveBeenCalledWith(0, "MATCH", "MOL-uat-*", "COUNT", 100, jasmine.any(Function));
 	});
 
-	it("should call client.scan with service key", () => {
+	fit("should call client.scan with service key", () => {
 		cacher.clean("service-name.*");
 		expect(cacher.client.scan).toHaveBeenCalledTimes(1);
 		expect(cacher.client.scan).toHaveBeenCalledWith(0, "MATCH", "MOL-uat-service-name.*", "COUNT", 100, jasmine.any(Function));
+		expect(cacher.client.del).toHaveBeenCalledTimes(1);
 	});
 
 	it("should call client.scan if provided as array service key in array", () => {
@@ -178,6 +177,13 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 		expect(cacher.client.scan).toHaveBeenCalledTimes(2);
 		expect(cacher.client.scan).toHaveBeenCalledWith(0, "MATCH", "MOL-uat-service-name.*", "COUNT", 100, jasmine.any(Function));
 		expect(cacher.client.scan).toHaveBeenCalledWith(0, "MATCH", "MOL-uat-service2-name.*", "COUNT", 100, jasmine.any(Function));
+	});
+
+	fit("should call client.del for each cursor batch", () => {
+		// cacher.client.scan = jest.fn()
+		// 	.mockReturnValueOnce(((cursor, cmd, match, count, n, cb) => cb(null, [0, ["key1", "key2"]])));
+		cacher.clean("service-name.*");
+		expect(cacher.client.del).toHaveBeenCalledTimes(2);
 	});
 });
 

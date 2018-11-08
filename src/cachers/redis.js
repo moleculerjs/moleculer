@@ -178,6 +178,7 @@ class RedisCacher extends BaseCacher {
 			if (err) {
 				return cb(err);
 			}
+			console.log(resp)
 			let nextCursor = parseInt(resp[0]);
 			let keys = resp[1];
 			// no next cursor and no keys to delete
