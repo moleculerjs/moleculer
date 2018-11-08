@@ -142,7 +142,7 @@ class RedisCacher extends BaseCacher {
 		this.logger.debug(`DELETE ${keysToDelete}`);
 		return this.client.del(keysToDelete).catch(err => {
 			/* istanbul ignore next */
-			this.logger.error("Redis `del` error.", key, err);
+			this.logger.error("Redis `del` error.", keysToDelete, err);
 		});
 	}
 
