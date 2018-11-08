@@ -6,8 +6,8 @@
 
 "use strict";
 
-const Promise		= require("bluebird");
-const BaseCacher 	= require("./base");
+const Promise = require("bluebird");
+const BaseCacher = require("./base");
 
 /**
  * Cacher factory for Redis
@@ -23,9 +23,9 @@ class RedisCacher extends BaseCacher {
 	 *
 	 * @memberof RedisCacher
 	 */
-	constructor(opts) {
+	constructor (opts) {
 		if (typeof opts == "string")
-			opts = { redis: opts };
+			opts = {redis: opts};
 
 		super(opts);
 	}
@@ -37,13 +37,13 @@ class RedisCacher extends BaseCacher {
 	 *
 	 * @memberof RedisCacher
 	 */
-	init(broker) {
+	init (broker) {
 		super.init(broker);
 
 		let Redis;
 		try {
 			Redis = require("ioredis");
-		} catch(err) {
+		} catch (err) {
 			/* istanbul ignore next */
 			this.broker.fatal("The 'ioredis' package is missing. Please install it with 'npm install ioredis --save' command.", err, true);
 		}
@@ -77,7 +77,7 @@ class RedisCacher extends BaseCacher {
 	 *
 	 * @memberof RedisCacher
 	 */
-	close() {
+	close () {
 		return this.client.quit();
 	}
 
@@ -89,7 +89,7 @@ class RedisCacher extends BaseCacher {
 	 *
 	 * @memberof Cacher
 	 */
-	get(key) {
+	get (key) {
 		this.logger.debug(`GET ${key}`);
 		return this.client.get(this.prefix + key).then((data) => {
 			if (data) {
@@ -114,7 +114,7 @@ class RedisCacher extends BaseCacher {
 	 *
 	 * @memberof Cacher
 	 */
-	set(key, data, ttl) {
+	set (key, data, ttl) {
 		data = JSON.stringify(data);
 		this.logger.debug(`SET ${key}`);
 
@@ -136,7 +136,7 @@ class RedisCacher extends BaseCacher {
 	 *
 	 * @memberof Cacher
 	 */
-	del(key) {
+	del (key) {
 		this.logger.debug(`DELETE ${key}`);
 		return this.client.del(this.prefix + key).catch(err => {
 			/* istanbul ignore next */
@@ -146,61 +146,52 @@ class RedisCacher extends BaseCacher {
 
 	/**
 	 * Clean cache. Remove every key by prefix
-	 * 		http://stackoverflow.com/questions/4006324/how-to-atomically-delete-keys-matching-a-pattern-using-redis
+	 *        http://stackoverflow.com/questions/4006324/how-to-atomically-delete-keys-matching-a-pattern-using-redis
 	 * alternative solution:
-	 * 		https://github.com/cayasso/cacheman-redis/blob/master/lib/index.js#L125
+	 *        https://github.com/cayasso/cacheman-redis/blob/master/lib/index.js#L125
 	 * @param {any} match Match string for SCAN. Default is "*"
 	 * @returns {Promise}
 	 *
 	 * @memberof Cacher
 	 */
-	clean(match = "*") {
+	async clean (match = "*") {
+		const cleaningPatterns = Array.isArray(match) ? match : [match];
+		const normalizedPatters = cleaningPatterns.map(match => this.prefix + match.replace(/\*\*/g, "*"));
+		this.logger.debug(`CLEAN ${match}`);
+		/* istanbul ignore next */
+
+		for (let index = 0; index < normalizedPatters.length; index++) {
+			const pattern = normalizedPatters[index];
+			try {
+				await this._scanDel(pattern);
+			} catch (err) {
+				this.logger.error("Redis `scanDel` error.", pattern, err);
+				throw err;
+			}
+		}
+
+	}
+
+	_scanDel (match) {
 		return new Promise((resolve, reject) => {
-			const cleaningPatterns = Array.isArray(match) ? match : [match];
-			const normalizedPatters = cleaningPatterns.map(match => this.prefix + match.replace(/\*\*/g, "*"));
-			this.logger.debug(`CLEAN ${match}`);
-			/* istanbul ignore next */
-
-			normalizedPatters.forEach(pattern => {
-				this._scanDel(this, pattern, 0, (err) => {
-					if (err) {
-						this.logger.error("Redis `scanDel` error.", pattern, err);
-
-						return reject(err);
-					}
-				});
+			const stream = new this.client.scanStream({
+				match,
+				count: 100
+			});
+			stream.on("data", async (keys) => {
+				stream.pause();
+				try {
+					await this.client.del(keys);
+				} catch (err) {
+					reject(err);
+				}
+				stream.resume();
+			});
+			stream.on("end", () => {
 				resolve();
 			});
 		});
 	}
-	_scanDel(cacher, match, cursor, cb){
-		cacher.client.scan(cursor, "MATCH", match, "COUNT", 100, (err, resp) => {
-			if (err) {
-				return cb(err);
-			}
-			console.log(resp)
-			let nextCursor = parseInt(resp[0]);
-			let keys = resp[1];
-			// no next cursor and no keys to delete
-
-			if (!keys.length) {
-				if (!nextCursor)
-					return cb(null);
-
-				return this._scanDel(nextCursor, cb);
-			}
-
-			cacher.client.del(keys, (err) => {
-				if (err) {
-					return cb(err);
-				}
-				if (!nextCursor) {
-					return cb(null);
-				}
-				this._scanDel(nextCursor, cb);
-			});
-		});
-	}
-
 }
+
 module.exports = RedisCacher;

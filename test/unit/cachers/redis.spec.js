@@ -56,10 +56,25 @@ describe("Test RedisCacher set & get without prefix", () => {
 
 	let prefix = "MOL-";
 
-	cacher.client.get = jest.fn(() => Promise.resolve(JSON.stringify(data1)));
-	cacher.client.set = jest.fn(() => Promise.resolve());
-	cacher.client.del = jest.fn(() => Promise.resolve());
 
+	beforeEach(() => {
+		const dataEvent = (eventType, callback) => {
+			if (eventType === "data") {
+				callback(["key1", "key2"]);
+			}
+			if (eventType === "end") {
+				callback();
+			}
+		};
+		cacher.client.scanStream = jest.fn(() => ({
+			on: dataEvent,
+			pause: jest.fn(),
+			resume: jest.fn()
+		}));
+		cacher.client.get = jest.fn(() => Promise.resolve(JSON.stringify(data1)));
+		cacher.client.set = jest.fn(() => Promise.resolve());
+		cacher.client.del = jest.fn(() => Promise.resolve());
+	});
 	it("should call client.set with key & data", () => {
 		cacher.set(key, data1);
 		expect(cacher.client.set).toHaveBeenCalledTimes(1);
@@ -93,16 +108,16 @@ describe("Test RedisCacher set & get without prefix", () => {
 		expect(cacher.client.del).toHaveBeenCalledWith(prefix + key);
 	});
 
-	it("should call client.scan & del", () => {
-		cacher.client.del.mockClear();
-		cacher.client.scan = jest.fn((cursor, cmd, match, count, n, cb) => cb(null, [0, ["key1", "key2"]]));
-
+	it("should call client.scanStream & del", () => {
 		cacher.clean();
-		expect(cacher.client.scan).toHaveBeenCalledTimes(1);
-		expect(cacher.client.scan).toHaveBeenCalledWith(0, "MATCH", "MOL-*", "COUNT", 100, jasmine.any(Function));
+		expect(cacher.client.scanStream).toHaveBeenCalledTimes(1);
+		expect(cacher.client.scanStream).toHaveBeenCalledWith({
+			match: "MOL-*",
+			count: 100
+		});
 
 		expect(cacher.client.del).toHaveBeenCalledTimes(1);
-		expect(cacher.client.del).toHaveBeenCalledWith(["key1", "key2"], jasmine.any(Function));
+		expect(cacher.client.del).toHaveBeenCalledWith(["key1", "key2"]);
 	});
 
 });
@@ -128,7 +143,21 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 	let prefix = "MOL-uat-";
 
 	beforeEach(() => {
-		cacher.client.scan.mockReset();
+		const dataEvent = (eventType, callback) => {
+			if (eventType === "data") {
+				callback(["key1", "key2"]);
+			}
+			if (eventType === "end") {
+				setTimeout(() => {
+					callback();
+				}, 500);
+			}
+		};
+		cacher.client.scanStream = jest.fn(() => ({
+			on: dataEvent,
+			pause: jest.fn(),
+			resume: jest.fn()
+		}));
 		cacher.client.get = jest.fn(() => Promise.resolve());
 		cacher.client.del = jest.fn(() => Promise.resolve());
 
@@ -153,37 +182,53 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 		expect(cacher.client.del).toHaveBeenCalledWith(prefix + key);
 	});
 
-	it("should call client.scan", () => {
+	it("should call client.scanStream", () => {
 		cacher.clean();
-		expect(cacher.client.scan).toHaveBeenCalledTimes(1);
-		expect(cacher.client.scan).toHaveBeenCalledWith(0, "MATCH", "MOL-uat-*", "COUNT", 100, jasmine.any(Function));
+		expect(cacher.client.scanStream).toHaveBeenCalledTimes(1);
+		expect(cacher.client.scanStream).toHaveBeenCalledWith({
+			match: "MOL-uat-*",
+			count: 100
+		});
 	});
 
-	fit("should call client.scan with service key", () => {
+	it("should call client.scanStream with service key", () => {
 		cacher.clean("service-name.*");
-		expect(cacher.client.scan).toHaveBeenCalledTimes(1);
-		expect(cacher.client.scan).toHaveBeenCalledWith(0, "MATCH", "MOL-uat-service-name.*", "COUNT", 100, jasmine.any(Function));
-		expect(cacher.client.del).toHaveBeenCalledTimes(1);
+		expect(cacher.client.scanStream).toHaveBeenCalledTimes(1);
+		expect(cacher.client.scanStream).toHaveBeenCalledWith({
+			match: "MOL-uat-service-name.*",
+			count: 100
+		});
 	});
 
-	it("should call client.scan if provided as array service key in array", () => {
+	it("should call client.scanStream if provided as array service key in array", () => {
 		cacher.clean(["service-name.*"]);
-		expect(cacher.client.scan).toHaveBeenCalledTimes(1);
-		expect(cacher.client.scan).toHaveBeenCalledWith(0, "MATCH", "MOL-uat-service-name.*", "COUNT", 100, jasmine.any(Function));
+		expect(cacher.client.scanStream).toHaveBeenCalledTimes(1);
+		expect(cacher.client.scanStream).toHaveBeenCalledWith({
+			match: "MOL-uat-service-name.*",
+			count: 100
+		});
 	});
 
-	it("should call client.scan for each array element", () => {
-		cacher.clean(["service-name.*", "service2-name.*"]);
-		expect(cacher.client.scan).toHaveBeenCalledTimes(2);
-		expect(cacher.client.scan).toHaveBeenCalledWith(0, "MATCH", "MOL-uat-service-name.*", "COUNT", 100, jasmine.any(Function));
-		expect(cacher.client.scan).toHaveBeenCalledWith(0, "MATCH", "MOL-uat-service2-name.*", "COUNT", 100, jasmine.any(Function));
+	it("should call client.scanStream for each array element", async () => {
+		await cacher.clean(["service-name.*", "service2-name.*"]);
+		expect(cacher.client.scanStream).toHaveBeenCalledTimes(2);
+		expect(cacher.client.scanStream).toHaveBeenCalledWith({
+			match: "MOL-uat-service-name.*",
+			count: 100
+		});
+		expect(cacher.client.scanStream).toHaveBeenCalledWith({
+			match: "MOL-uat-service2-name.*",
+			count: 100
+		});
 	});
 
-	fit("should call client.del for each cursor batch", () => {
-		// cacher.client.scan = jest.fn()
-		// 	.mockReturnValueOnce(((cursor, cmd, match, count, n, cb) => cb(null, [0, ["key1", "key2"]])));
-		cacher.clean("service-name.*");
-		expect(cacher.client.del).toHaveBeenCalledTimes(2);
+	it("should not call second pattern if failed on first", async () => {
+		try {
+			cacher.client.del = jest.fn().mockRejectedValueOnce(new Error("Redis delete error"));
+			await cacher.clean(["service-name.*", "service2-name.*"]);
+		} catch (e) {
+			expect(cacher.client.scanStream).toHaveBeenCalledTimes(1);
+		}
 	});
 });
 
