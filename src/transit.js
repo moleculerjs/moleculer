@@ -13,12 +13,7 @@ const P				= require("./packets");
 const { Packet }	= require("./packets");
 const E 			= require("./errors");
 
-const {Transform} = require("stream");
-
-const defaultOptions = {
-	maxQueueSize: 50 * 1000, // 50k ~ 400MB
-	packetLogFilter: [],
-};
+const { Transform } = require("stream");
 
 /**
  * Transit class
@@ -41,7 +36,7 @@ class Transit {
 		this.logger = broker.getLogger("transit");
 		this.nodeID = broker.nodeID;
 		this.tx = transporter;
-		this.opts = _.defaultsDeep(opts, defaultOptions);
+		this.opts = opts;
 
 		this.pendingRequests = new Map();
 		this.pendingReqStreams = new Map();
