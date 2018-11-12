@@ -23,9 +23,9 @@ class RedisCacher extends BaseCacher {
 	 *
 	 * @memberof RedisCacher
 	 */
-	constructor (opts) {
+	constructor(opts) {
 		if (typeof opts === "string")
-			opts = {redis: opts};
+			opts = { redis: opts };
 
 		super(opts);
 	}
@@ -37,7 +37,7 @@ class RedisCacher extends BaseCacher {
 	 *
 	 * @memberof RedisCacher
 	 */
-	init (broker) {
+	init(broker) {
 		super.init(broker);
 
 		let Redis;
@@ -77,7 +77,7 @@ class RedisCacher extends BaseCacher {
 	 *
 	 * @memberof RedisCacher
 	 */
-	close () {
+	close() {
 		return this.client.quit();
 	}
 
@@ -89,7 +89,7 @@ class RedisCacher extends BaseCacher {
 	 *
 	 * @memberof Cacher
 	 */
-	get (key) {
+	get(key) {
 		this.logger.debug(`GET ${key}`);
 		return this.client.get(this.prefix + key).then((data) => {
 			if (data) {
@@ -114,7 +114,7 @@ class RedisCacher extends BaseCacher {
 	 *
 	 * @memberof Cacher
 	 */
-	set (key, data, ttl) {
+	set(key, data, ttl) {
 		data = JSON.stringify(data);
 		this.logger.debug(`SET ${key}`);
 
@@ -136,7 +136,7 @@ class RedisCacher extends BaseCacher {
 	 *
 	 * @memberof Cacher
 	 */
-	del (deleteTargets) {
+	del(deleteTargets) {
 		deleteTargets = Array.isArray(deleteTargets) ? deleteTargets : [deleteTargets];
 		const keysToDelete = deleteTargets.map(key => this.prefix + key);
 		this.logger.debug(`DELETE ${keysToDelete}`);
@@ -155,7 +155,7 @@ class RedisCacher extends BaseCacher {
 	 *
 	 * @memberof Cacher
 	 */
-	clean (match = "*") {
+	clean(match = "*") {
 		const cleaningPatterns = Array.isArray(match) ? match : [match];
 		const normalizedPatterns = cleaningPatterns.map(match => this.prefix + match.replace(/\*\*/g, "*"));
 		this.logger.debug(`CLEAN ${match}`);
@@ -173,7 +173,7 @@ class RedisCacher extends BaseCacher {
 		}, Promise.resolve());
 	}
 
-	_scanDel (pattern) {
+	_scanDel(pattern) {
 		return new Promise((resolve, reject) => {
 			const stream = this.client.scanStream({
 				match: pattern,

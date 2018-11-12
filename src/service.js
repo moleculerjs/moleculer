@@ -296,11 +296,11 @@ class Service {
 		event.service = this;
 		const self = this;
 		if (_.isFunction(handler)) {
-			event.handler = function () {
+			event.handler = function() {
 				return handler.apply(self, arguments);
 			};
 		} else if (Array.isArray(handler)) {
-			event.handler = function () {
+			event.handler = function() {
 				return Promise.all(handler.map(fn => fn.apply(self, arguments)));
 			};
 		}

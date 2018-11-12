@@ -116,7 +116,7 @@ class ActionCatalog {
 	 *
 	 * @memberof ActionCatalog
 	 */
-	list({onlyLocal = false, onlyAvailable = false, skipInternal = false, withEndpoints = false}) {
+	list({ onlyLocal = false, onlyAvailable = false, skipInternal = false, withEndpoints = false }) {
 		let res = [];
 
 		this.actions.forEach((list, key) => {
