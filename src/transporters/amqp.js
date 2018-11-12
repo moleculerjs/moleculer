@@ -84,8 +84,8 @@ class AmqpTransporter extends Transporter {
 		opts.url = Array.isArray(opts.url)
 			? opts.url
 			: !opts.url
-				? ['']
-				: opts.url.split(';').filter(s => !!s)
+				? [""]
+				: opts.url.split(";").filter(s => !!s);
 
 		super(opts);
 

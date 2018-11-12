@@ -31,7 +31,7 @@ function removeContext(ctx) {
 	}
 }
 
-function wrapTrackerMiddleware(handler, action) {
+function wrapTrackerMiddleware(handler) {
 	if (this.options.tracking && this.options.tracking.enabled) {
 
 		return function ContextTrackerMiddleware(ctx) {

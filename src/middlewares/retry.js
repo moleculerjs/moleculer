@@ -11,7 +11,7 @@ function wrapRetryMiddleware(handler, action) {
 	const opts = Object.assign({}, this.options.retryPolicy, action.retryPolicy || {});
 	if (opts.enabled) {
 		return function retryMiddleware(ctx) {
-			const attempts = typeof ctx.options.retries === 'number' ? ctx.options.retries : opts.retries;
+			const attempts = typeof ctx.options.retries === "number" ? ctx.options.retries : opts.retries;
 			if (ctx._retryAttempts == null)
 				ctx._retryAttempts = 0;
 

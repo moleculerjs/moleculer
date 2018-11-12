@@ -34,7 +34,7 @@ class KafkaTransporter extends Transporter {
 	 * @memberof KafkaTransporter
 	 */
 	constructor(opts) {
-		if (typeof opts == "string") {
+		if (typeof opts === "string") {
 			opts = { host: opts.replace("kafka://", "") };
 		} else if (opts == null) {
 			opts = {};
@@ -172,7 +172,7 @@ class KafkaTransporter extends Transporter {
 
 		return new Promise((resolve, reject) => {
 
-			this.producer.createTopics(topics, true, (err, data) => {
+			this.producer.createTopics(topics, true, (err) => {
 				/* istanbul ignore next */
 				if (err) {
 					this.logger.error("Unable to create topics!", topics, err);
@@ -263,7 +263,7 @@ class KafkaTransporter extends Transporter {
 				messages: [data],
 				partition: this.opts.publish.partition,
 				attributes: this.opts.publish.attributes,
-			}], (err, result) => {
+			}], (err) => {
 				/* istanbul ignore next */
 				if (err) {
 					this.logger.error("Publish error", err);
