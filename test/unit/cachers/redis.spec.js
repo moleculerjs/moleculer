@@ -133,10 +133,10 @@ describe("Test RedisCacher set & get without prefix", () => {
 
 describe("Test RedisCacher set & get with namespace & ttl", () => {
 
-	// const logger = {};
-	// ["fatal", "error", "info", "debug"].forEach((level) => logger[level] = jest.fn());
-	// let broker = new ServiceBroker({logger: () => logger, namespace: "uat"});
-	let broker = new ServiceBroker({logger: false, namespace: "uat"});
+	const logger = {};
+	["fatal", "error", "info", "debug"].forEach((level) => logger[level] = jest.fn());
+	const broker = new ServiceBroker({logger: () => logger, namespace: "uat"});
+	// let broker = new ServiceBroker({logger: false, namespace: "uat"});
 	let cacher = new RedisCacher({
 		ttl: 60
 	});
@@ -172,7 +172,7 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 		}));
 		cacher.client.get = jest.fn(() => Promise.resolve());
 		cacher.client.del = jest.fn(() => Promise.resolve());
-		// ["error", "fatal", "debug"].forEach((level) => logger[level].mockClear());
+		["error", "fatal", "debug"].forEach((level) => logger[level].mockClear());
 
 	});
 
@@ -256,8 +256,8 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 		cacher.clean(["service-name.*", "service2-name.*"])
 			.catch(() => {
 				expect(cacher.client.scanStream).toHaveBeenCalledTimes(1);
-				// expect(logger.error).toHaveBeenCalledTimes(1);
-				// expect(logger.error).toHaveBeenCalledWith("Redis `scanDel` error.", "MOL-uat-service-name.*", expect.anything());
+				expect(logger.error).toHaveBeenCalledTimes(1);
+				expect(logger.error).toHaveBeenCalledWith("Redis `scanDel` error.", "MOL-uat-service-name.*", expect.anything());
 				done();
 			});
 	});
