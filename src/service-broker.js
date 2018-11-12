@@ -84,8 +84,9 @@ const defaultOptions = {
 	},
 
 	transit: {
-		maxQueueSize: 50 * 1000, // 50k ~ 400MB
-		disableReconnect: false,
+		maxQueueSize: 50 * 1000, // 50k ~ 400MB,
+		packetLogFilter: [],
+		disableReconnect: false
 	},
 
 	cacher: null,
