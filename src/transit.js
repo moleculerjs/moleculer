@@ -13,7 +13,7 @@ const P				= require("./packets");
 const { Packet }	= require("./packets");
 const E 			= require("./errors");
 
-const {Transform} = require("stream");
+const { Transform } = require("stream");
 
 /**
  * Transit class
@@ -254,7 +254,10 @@ class Transit {
 			if (payload.sender == this.nodeID && (cmd !== P.PACKET_EVENT && cmd !== P.PACKET_REQUEST && cmd !== P.PACKET_RESPONSE))
 				return;
 
+			// log only if packet type was not disabled by options
+			if (!this.opts.packetLogFilter.includes(cmd)) {
 			this.logger.debug(`Incoming ${cmd} packet from '${payload.sender}'`);
+			}
 
 			// Request
 			if (cmd === P.PACKET_REQUEST) {
@@ -938,7 +941,10 @@ class Transit {
 	 * @memberof Transit
 	 */
 	publish(packet) {
+		// log only if packet type was not disabled by options
+		if (!this.opts.packetLogFilter.includes(packet.type)) {
 		this.logger.debug(`Send ${packet.type} packet to '${packet.target || "<all nodes>"}'`);
+		}
 
 		if (this.subscribing) {
 			return this.subscribing
