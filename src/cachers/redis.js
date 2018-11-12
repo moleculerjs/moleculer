@@ -24,7 +24,7 @@ class RedisCacher extends BaseCacher {
 	 * @memberof RedisCacher
 	 */
 	constructor (opts) {
-		if (typeof opts == "string")
+		if (typeof opts === "string")
 			opts = {redis: opts};
 
 		super(opts);
