@@ -141,7 +141,6 @@ class RedisCacher extends BaseCacher {
 		const keysToDelete = deleteTargets.map(key => this.prefix + key);
 		this.logger.debug(`DELETE ${keysToDelete}`);
 		return this.client.del(keysToDelete).catch(err => {
-			/* istanbul ignore next */
 			this.logger.error("Redis `del` error.", keysToDelete, err);
 		});
 	}
@@ -156,38 +155,40 @@ class RedisCacher extends BaseCacher {
 	 *
 	 * @memberof Cacher
 	 */
-	async clean (match = "*") {
+	clean (match = "*") {
 		const cleaningPatterns = Array.isArray(match) ? match : [match];
-		const normalizedPatters = cleaningPatterns.map(match => this.prefix + match.replace(/\*\*/g, "*"));
+		const normalizedPatterns = cleaningPatterns.map(match => this.prefix + match.replace(/\*\*/g, "*"));
 		this.logger.debug(`CLEAN ${match}`);
-		/* istanbul ignore next */
-
-		for (let index = 0; index < normalizedPatters.length; index++) {
-			const pattern = normalizedPatters[index];
-			try {
-				await this._scanDel(pattern);
-			} catch (err) {
-				this.logger.error("Redis `scanDel` error.", pattern, err);
+		return this._sequentialPromises(normalizedPatterns)
+			.catch((err) => {
+				this.logger.error("Redis `scanDel` error.", err.pattern, err);
 				throw err;
-			}
-		}
+			});
 
 	}
 
-	_scanDel (match) {
+	_sequentialPromises(elements) {
+		return elements.reduce((chain, element) => {
+			return chain.then(() => this._scanDel(element));
+		}, Promise.resolve());
+	}
+
+	_scanDel (pattern) {
 		return new Promise((resolve, reject) => {
 			const stream = this.client.scanStream({
-				match,
+				match: pattern,
 				count: 100
 			});
-			stream.on("data", async (keys) => {
+			stream.on("data", (keys) => {
 				stream.pause();
-				try {
-					await this.client.del(keys);
-				} catch (err) {
-					reject(err);
-				}
-				stream.resume();
+				this.client.del(keys)
+					.then(() => {
+						stream.resume();
+					})
+					.catch((err) => {
+						err.pattern = pattern;
+						return reject(err);
+					});
 			});
 			stream.on("end", () => {
 				resolve();
