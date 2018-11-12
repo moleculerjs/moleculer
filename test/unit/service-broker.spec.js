@@ -2047,6 +2047,10 @@ describe("Test hot-reload feature", () => {
 			name: "test"
 		});
 
+		beforeEach(() => {
+			fs.watch.mockClear();
+		});
+
 		it("should not call fs.watch because no __filename", () => {
 
 			broker.watchService(svc);

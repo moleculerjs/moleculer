@@ -1,19 +1,11 @@
-"use strict";
-
+const ApiGateway = require
 const ServiceBroker = require("../src/service-broker");
 const util = require("util");
 
 const broker = new ServiceBroker({
 	nodeID: "dev",// + process.pid,
 	//transporter: "mqtt://localhost:1833",
-	transporter: {
-		type: "MQTT",
-		options: {
-			host: "localhost",
-			qos: 1,
-			topicSeparator: "/"
-		}
-	},
+	transporter: "TCP",
 	metrics: true,
 	//logLevel: "debug",
 	//logObjectPrinter: o => util.inspect(o, { depth: 4, colors: true, breakLength: 50 }), // `breakLength: 50` activates multi-line object
@@ -22,7 +14,8 @@ const broker = new ServiceBroker({
 broker.createService({
 	name: "test",
 	actions: {
-		hello(ctx) {
+		async hello(ctx) {
+			await this.broker.cacher.del('test.*');
 			return "Hello Moleculer";
 		}
 	}

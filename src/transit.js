@@ -113,7 +113,7 @@ class Transit {
 					if (this.disconnecting) return;
 					if (reconnectStarted) return;
 
-					this.logger.warn("Connection is failed.", err && err.message || 'Unknown error');
+					this.logger.warn("Connection is failed.", err && err.message || "Unknown error");
 					this.logger.debug(err);
 
 					if (this.opts.disableReconnect) {
@@ -122,7 +122,7 @@ class Transit {
 
 					reconnectStarted = true;
 
-          setTimeout(() => {
+					setTimeout(() => {
 						this.logger.info("Reconnecting...");
 						doConnect();
 					}, 5 * 1000);
