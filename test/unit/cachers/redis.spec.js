@@ -125,7 +125,7 @@ describe("Test RedisCacher set & get without prefix", () => {
 
 				expect(cacher.client.del).toHaveBeenCalledTimes(1);
 				expect(cacher.client.del).toHaveBeenCalledWith(["key1", "key2"]);
-				done()
+				done();
 			});
 	});
 
@@ -136,7 +136,6 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 	const logger = {};
 	["fatal", "error", "info", "debug"].forEach((level) => logger[level] = jest.fn());
 	const broker = new ServiceBroker({logger: () => logger, namespace: "uat"});
-	// let broker = new ServiceBroker({logger: false, namespace: "uat"});
 	let cacher = new RedisCacher({
 		ttl: 60
 	});
