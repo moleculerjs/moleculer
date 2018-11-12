@@ -68,7 +68,7 @@ describe("Test TimeoutMiddleware", () => {
 			expect(err).toBeInstanceOf(Error);
 			expect(err).toBeInstanceOf(RequestTimeoutError);
 			expect(err.message).toBe("Request is timed out when call 'posts.find' action on 'server-1' node.");
-			expect(err.data).toEqual({ action: "posts.find", nodeID: "server-1"});
+			expect(err.data).toEqual({ action: "posts.find", nodeID: "server-1" });
 
 			clock.uninstall();
 		});

@@ -98,7 +98,7 @@ describe("Test Context.create", () => {
 		expect(ctx.service).toBe(endpoint.action.service);
 		expect(ctx.nodeID).toBe("server-123");
 
-		expect(ctx.params).toEqual({ a: 5});
+		expect(ctx.params).toEqual({ a: 5 });
 		expect(ctx.meta).toEqual({});
 
 		expect(ctx.options).toEqual({});

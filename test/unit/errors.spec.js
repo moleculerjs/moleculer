@@ -14,7 +14,7 @@ describe("Test Errors", () => {
 		expect(err.message).toBe("Something went wrong!");
 		expect(err.code).toBe(555);
 		expect(err.type).toBe("ERR_TYPE");
-		expect(err.data).toEqual({ a: 5});
+		expect(err.data).toEqual({ a: 5 });
 		expect(err.retryable).toBe(false);
 	});
 
@@ -28,7 +28,7 @@ describe("Test Errors", () => {
 		expect(err.message).toBe("Something went wrong!");
 		expect(err.code).toBe(555);
 		expect(err.type).toBe("ERR_TYPE");
-		expect(err.data).toEqual({ a: 5});
+		expect(err.data).toEqual({ a: 5 });
 		expect(err.retryable).toBe(true);
 	});
 
@@ -43,7 +43,7 @@ describe("Test Errors", () => {
 		expect(err.message).toBe("Something went wrong!");
 		expect(err.code).toBe(555);
 		expect(err.type).toBe("ERR_TYPE");
-		expect(err.data).toEqual({ a: 5});
+		expect(err.data).toEqual({ a: 5 });
 		expect(err.retryable).toBe(true);
 	});
 
@@ -231,7 +231,7 @@ describe("Test Errors", () => {
 	});
 
 	it("test GracefulStopTimeoutError", () => {
-		let err = new errors.GracefulStopTimeoutError({ service: { name: "posts", version: 2 }});
+		let err = new errors.GracefulStopTimeoutError({ service: { name: "posts", version: 2 } });
 		expect(err).toBeDefined();
 		expect(err).toBeInstanceOf(Error);
 		expect(err).toBeInstanceOf(errors.GracefulStopTimeoutError);

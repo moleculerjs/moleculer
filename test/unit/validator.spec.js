@@ -84,7 +84,7 @@ describe("Test middleware", () => {
 		expect(typeof wrapped).toBe("function");
 
 		expect(v.compile).toHaveBeenCalledTimes(1);
-		expect(v.compile).toHaveBeenCalledWith({"id": "number", "name": "string"});
+		expect(v.compile).toHaveBeenCalledWith({ "id": "number", "name": "string" });
 
 
 		// Create fake context
@@ -93,7 +93,7 @@ describe("Test middleware", () => {
 		// Call wrapped function
 		return wrapped(ctx).then(() => {
 			expect(__checkGood).toHaveBeenCalledTimes(1);
-			expect(__checkGood).toHaveBeenCalledWith({"id": 5, "name": "John"});
+			expect(__checkGood).toHaveBeenCalledWith({ "id": 5, "name": "John" });
 			expect(mockAction.handler).toHaveBeenCalledTimes(1);
 		});
 	});

@@ -465,9 +465,9 @@ describe("Test _createAction function", () => {
 
 		it("cache is TRUE, if schema cache is TRUE and action cache is Object", () => {
 			let service = broker.createService({ name: "test", settings: { $cache: true } });
-			let action = service._createAction({ handler, cache: { keys: [ "id" ]} }, "find");
+			let action = service._createAction({ handler, cache: { keys: [ "id" ] } }, "find");
 
-			expect(action.cache).toEqual({ keys: [ "id" ]});
+			expect(action.cache).toEqual({ keys: [ "id" ] });
 		});
 
 	});

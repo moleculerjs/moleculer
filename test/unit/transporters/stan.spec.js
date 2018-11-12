@@ -52,7 +52,7 @@ describe("Test StanTransporter constructor", () => {
 	});
 
 	it("check constructor with options", () => {
-		let opts = { host: "localhost", port: 1234};
+		let opts = { host: "localhost", port: 1234 };
 		let transporter = new StanTransporter(opts);
 		expect(transporter.opts).toEqual({ clusterID: "test-cluster", host: "localhost", port: 1234, preserveBuffers: true } );
 	});

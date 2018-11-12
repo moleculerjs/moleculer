@@ -23,7 +23,7 @@ module.exports = function() {
 
 					// Resolve authors
 					let promises = result.map(post => {
-						return ctx.call("users.get", { id: post.author}).then(user => post.author = _.pick(user, ["userName", "email", "id", "firstName", "lastName"]));
+						return ctx.call("users.get", { id: post.author }).then(user => post.author = _.pick(user, ["userName", "email", "id", "firstName", "lastName"]));
 					});
 
 					return Promise.all(promises).then(() => {

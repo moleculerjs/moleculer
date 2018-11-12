@@ -63,11 +63,7 @@ module.exports = {
 		],
 		"object-curly-spacing": [
 			"warn",
-			"always",
-			{
-				"objectsInObjects": false,
-				"arraysInObjects": false
-			}
+			"always"
 		]
 	}
 };

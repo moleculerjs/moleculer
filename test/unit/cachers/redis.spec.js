@@ -16,7 +16,7 @@ describe("Test RedisCacher constructor", () => {
 	});
 
 	it("should create a timer if set ttl option", () => {
-		let opts = {ttl: 500, maxParamsLength: 1024};
+		let opts = { ttl: 500, maxParamsLength: 1024 };
 		let cacher = new RedisCacher(opts);
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toEqual(opts);
@@ -40,7 +40,7 @@ describe("Test RedisCacher constructor", () => {
 
 describe("Test RedisCacher set & get without prefix", () => {
 
-	let broker = new ServiceBroker({logger: false});
+	let broker = new ServiceBroker({ logger: false });
 	let cacher = new RedisCacher();
 	cacher.init(broker);
 
@@ -135,7 +135,7 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 
 	const logger = {};
 	["fatal", "error", "info", "debug"].forEach((level) => logger[level] = jest.fn());
-	const broker = new ServiceBroker({logger: () => logger, namespace: "uat"});
+	const broker = new ServiceBroker({ logger: () => logger, namespace: "uat" });
 	let cacher = new RedisCacher({
 		ttl: 60
 	});
@@ -264,7 +264,7 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 
 
 describe("Test RedisCacher close", () => {
-	let broker = new ServiceBroker({logger: false});
+	let broker = new ServiceBroker({ logger: false });
 	let cacher = new RedisCacher();
 	cacher.init(broker); // for empty logger
 

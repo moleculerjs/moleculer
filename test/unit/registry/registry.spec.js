@@ -364,16 +364,16 @@ describe("Test Registry.registerActions", () => {
 		});
 
 		expect(registry.actions.add).toHaveBeenCalledTimes(2);
-		expect(registry.actions.add).toHaveBeenCalledWith(node, service, {"name": "users.find"});
-		expect(registry.actions.add).toHaveBeenCalledWith(node, service, {"name": "users.save"});
+		expect(registry.actions.add).toHaveBeenCalledWith(node, service, { "name": "users.find" });
+		expect(registry.actions.add).toHaveBeenCalledWith(node, service, { "name": "users.save" });
 
 		expect(service.addAction).toHaveBeenCalledTimes(2);
-		expect(service.addAction).toHaveBeenCalledWith({"name": "users.find"});
-		expect(service.addAction).toHaveBeenCalledWith({"name": "users.save"});
+		expect(service.addAction).toHaveBeenCalledWith({ "name": "users.find" });
+		expect(service.addAction).toHaveBeenCalledWith({ "name": "users.save" });
 
 		expect(broker.middlewares.wrapHandler).toHaveBeenCalledTimes(2);
-		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("remoteAction", jasmine.any(Function), {"name": "users.find"});
-		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("remoteAction", jasmine.any(Function), {"name": "users.save"});
+		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("remoteAction", jasmine.any(Function), { "name": "users.find" });
+		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("remoteAction", jasmine.any(Function), { "name": "users.save" });
 	});
 
 	it("should not call actions add & service addAction methods if has visibility", () => {
@@ -464,16 +464,16 @@ describe("Test Registry.registerEvents", () => {
 		});
 
 		expect(registry.events.add).toHaveBeenCalledTimes(2);
-		expect(registry.events.add).toHaveBeenCalledWith(node, service, {"name": "user.created"});
-		expect(registry.events.add).toHaveBeenCalledWith(node, service, {"name": "user.removed"});
+		expect(registry.events.add).toHaveBeenCalledWith(node, service, { "name": "user.created" });
+		expect(registry.events.add).toHaveBeenCalledWith(node, service, { "name": "user.removed" });
 
 		expect(service.addEvent).toHaveBeenCalledTimes(2);
-		expect(service.addEvent).toHaveBeenCalledWith({"name": "user.created"});
-		expect(service.addEvent).toHaveBeenCalledWith({"name": "user.removed"});
+		expect(service.addEvent).toHaveBeenCalledWith({ "name": "user.created" });
+		expect(service.addEvent).toHaveBeenCalledWith({ "name": "user.removed" });
 
 		expect(broker.middlewares.wrapHandler).toHaveBeenCalledTimes(2);
-		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("localEvent", jasmine.any(Function), {"name": "user.created"});
-		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("localEvent", jasmine.any(Function), {"name": "user.removed"});
+		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("localEvent", jasmine.any(Function), { "name": "user.created" });
+		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("localEvent", jasmine.any(Function), { "name": "user.removed" });
 	});
 });
 
@@ -755,8 +755,8 @@ describe("Test Registry.getNodeRawList", () => {
 	let registry = broker.registry;
 
 	registry.nodes.toArray = jest.fn(() => [
-		{rawInfo: { a: 5 } },
-		{rawInfo: { b: 10 } },
+		{ rawInfo: { a: 5 } },
+		{ rawInfo: { b: 10 } },
 	]);
 
 	it("should call registry.events.list method", () => {

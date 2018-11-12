@@ -317,7 +317,7 @@ describe("Test LatencyStrategy.removeHostMap method", () => {
 		strategy.removeHostMap({ node: {
 			hostname: "host-b",
 			id: "node-3"
-		}});
+		} });
 
 		expect(strategy.hostMap.get("host-a")).toEqual({
 			nodeList: ["node-1", "node-2"]
@@ -330,7 +330,7 @@ describe("Test LatencyStrategy.removeHostMap method", () => {
 		strategy.removeHostMap({ node: {
 			hostname: "host-a",
 			id: "node-1"
-		}});
+		} });
 
 		expect(strategy.hostMap.get("host-a")).toEqual({
 			nodeList: ["node-2"]
@@ -343,7 +343,7 @@ describe("Test LatencyStrategy.removeHostMap method", () => {
 		strategy.removeHostMap({ node: {
 			hostname: "host-a",
 			id: "node-2"
-		}});
+		} });
 
 		expect(strategy.hostMap.get("host-a")).toBeUndefined();
 

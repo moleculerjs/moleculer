@@ -35,7 +35,7 @@ describe("Test ServiceItem without version", () => {
 	});
 
 	it("should update props", () => {
-		svc.update({ version: 2, settings: { b: 3 }, metadata: { scalable: true }});
+		svc.update({ version: 2, settings: { b: 3 }, metadata: { scalable: true } });
 		expect(svc.version).toBe(2);
 		expect(svc.settings).toEqual({ b: 3 });
 		expect(svc.metadata).toEqual({ scalable: true });
@@ -89,7 +89,7 @@ describe("Test ServiceItem with version", () => {
 	});
 
 	it("should update props", () => {
-		svc.update({ version: 2, settings: { b: 3 }, metadata: { scalable: true }});
+		svc.update({ version: 2, settings: { b: 3 }, metadata: { scalable: true } });
 		expect(svc.version).toBe(2);
 		expect(svc.settings).toEqual({ b: 3 });
 		expect(svc.metadata).toEqual({ scalable: true });
