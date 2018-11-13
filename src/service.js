@@ -60,7 +60,7 @@ class Service {
 		this.metadata = schema.metadata || {};
 		this.schema = schema;
 
-		if (this.version && this.settings.$noVersionPrefix !== true)
+		if (this.version != null && this.settings.$noVersionPrefix !== true)
 			this.fullName = (typeof(this.version) == "number" ? "v" + this.version : this.version) + "." + this.name;
 		else
 			this.fullName = this.name;

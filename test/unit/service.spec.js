@@ -368,6 +368,14 @@ describe("Test _createAction function", () => {
 		expect(action.myProp).toBe("teszt");
 	});
 
+	it("should create action with version 0", () => {
+		let service = broker.createService({ name: "users", version: 0 });
+
+		let action = service._createAction({ handler }, "find");
+		expect(action.name).toBe("v0.users.find");
+		expect(action.rawName).toBe("find");
+	});
+
 	it("should create action with version string", () => {
 		let service = broker.createService({ name: "users", version: "staging" });
 
