@@ -206,6 +206,7 @@ declare namespace Moleculer {
 	}
 
 	interface BrokerTransitOptions {
+		disableReconnect?: boolean;
 		maxQueueSize?: number;
 	}
 
