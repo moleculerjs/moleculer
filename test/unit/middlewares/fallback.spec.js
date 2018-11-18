@@ -12,7 +12,7 @@ describe("Test FallbackMiddleware", () => {
 		handler,
 		service: {
 			logger: broker.getLogger(),
-			someFallbackMethod: jest.fn((ctx, err) => "Fallback response from method")
+			someFallbackMethod: jest.fn(() => "Fallback response from method")
 		}
 	};
 	const endpoint = {

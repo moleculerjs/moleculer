@@ -258,7 +258,7 @@ describe("Test EndpointList.nextLocal", () => {
 	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
 
-	let ep1, ep2, ep3, ep4;
+	let ep1, ep3;
 
 	let node = { id: broker.nodeID };
 	let service = { name: "test" };
@@ -296,9 +296,9 @@ describe("Test EndpointList.nextLocal", () => {
 	});
 
 	it("should call select if there are more ep", () => {
-		ep2 = list.add({ id: "node-2" }, service, action);
+		list.add({ id: "node-2" }, service, action);
 		ep3 = list.add(node, { name: "test2" }, action);
-		ep4 = list.add({ id: "node-3" }, service, action);
+		list.add({ id: "node-3" }, service, action);
 
 		expect(list.localEndpoints.length).toBe(2);
 		expect(ep3.local).toBe(true);
