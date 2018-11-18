@@ -20,7 +20,7 @@ const mathService = {
 	}
 };
 
-module.exports = function(transporter, serializer, meta)  {
+module.exports = function(transporter, serializer)  {
 
 	describe("Test normal calling", () => {
 

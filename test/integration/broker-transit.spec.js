@@ -1,5 +1,4 @@
 const ServiceBroker = require("../../src/service-broker");
-const { RequestTimeoutError } = require("../../src/errors");
 
 describe("Test RPC", () => {
 

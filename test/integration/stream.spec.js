@@ -126,7 +126,7 @@ describe("Test to receive a stream as response", () => {
 	b2.createService({
 		name: "file",
 		actions: {
-			get(ctx) {
+			get() {
 				return stream;
 			}
 		}

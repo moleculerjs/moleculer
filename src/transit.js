@@ -10,10 +10,10 @@ const Promise = require("bluebird");
 const _ = require("lodash");
 
 const P = require("./packets");
-const {Packet} = require("./packets");
+const { Packet } = require("./packets");
 const E = require("./errors");
 
-const {Transform} = require("stream");
+const { Transform } = require("stream");
 
 /**
  * Transit class
@@ -31,7 +31,7 @@ class Transit {
 	 *
 	 * @memberof Transit
 	 */
-	constructor (broker, transporter, opts) {
+	constructor(broker, transporter, opts) {
 		this.broker = broker;
 		this.logger = broker.getLogger("transit");
 		this.nodeID = broker.nodeID;
@@ -74,7 +74,7 @@ class Transit {
 	 *
 	 * @memberof Transit
 	 */
-	afterConnect (wasReconnect) {
+	afterConnect(wasReconnect) {
 		return Promise.resolve()
 
 			.then(() => {
@@ -102,7 +102,7 @@ class Transit {
 	 *
 	 * @memberof Transit
 	 */
-	connect () {
+	connect() {
 		this.logger.info("Connecting to the transporter...");
 		return new Promise(resolve => {
 			this.__connectResolve = resolve;
@@ -141,12 +141,12 @@ class Transit {
 	 *
 	 * @memberof Transit
 	 */
-	disconnect () {
+	disconnect() {
 		this.connected = false;
 		this.isReady = false;
 		this.disconnecting = true;
 
-		this.broker.broadcastLocal("$transporter.disconnected", {graceFul: true});
+		this.broker.broadcastLocal("$transporter.disconnected", { graceFul: true });
 
 		if (this.tx.connected) {
 			return this.sendDisconnectPacket()
@@ -163,7 +163,7 @@ class Transit {
 	 * Local broker is ready (all services loaded).
 	 * Send INFO packet to all other nodes
 	 */
-	ready () {
+	ready() {
 		if (this.connected) {
 			this.isReady = true;
 			return this.sendNodeInfo();
@@ -177,7 +177,7 @@ class Transit {
 	 *
 	 * @memberof Transit
 	 */
-	sendDisconnectPacket () {
+	sendDisconnectPacket() {
 		return this.publish(new Packet(P.PACKET_DISCONNECT)).catch(err => this.logger.debug("Unable to send DISCONNECT packet.", err));
 	}
 
@@ -186,38 +186,38 @@ class Transit {
 	 *
 	 * @memberof Transit
 	 */
-	makeSubscriptions () {
+	makeSubscriptions() {
 		this.subscribing = this.tx.makeSubscriptions([
 
 			// Subscribe to broadcast events
-			{cmd: P.PACKET_EVENT, nodeID: this.nodeID},
+			{ cmd: P.PACKET_EVENT, nodeID: this.nodeID },
 
 			// Subscribe to requests
-			{cmd: P.PACKET_REQUEST, nodeID: this.nodeID},
+			{ cmd: P.PACKET_REQUEST, nodeID: this.nodeID },
 
 			// Subscribe to node responses of requests
-			{cmd: P.PACKET_RESPONSE, nodeID: this.nodeID},
+			{ cmd: P.PACKET_RESPONSE, nodeID: this.nodeID },
 
 			// Discover handler
-			{cmd: P.PACKET_DISCOVER},
-			{cmd: P.PACKET_DISCOVER, nodeID: this.nodeID},
+			{ cmd: P.PACKET_DISCOVER },
+			{ cmd: P.PACKET_DISCOVER, nodeID: this.nodeID },
 
 			// NodeInfo handler
-			{cmd: P.PACKET_INFO}, // Broadcasted INFO. If a new node connected
-			{cmd: P.PACKET_INFO, nodeID: this.nodeID}, // Response INFO to DISCOVER packet
+			{ cmd: P.PACKET_INFO }, // Broadcasted INFO. If a new node connected
+			{ cmd: P.PACKET_INFO, nodeID: this.nodeID }, // Response INFO to DISCOVER packet
 
 			// Disconnect handler
-			{cmd: P.PACKET_DISCONNECT},
+			{ cmd: P.PACKET_DISCONNECT },
 
 			// Heartbeat handler
-			{cmd: P.PACKET_HEARTBEAT},
+			{ cmd: P.PACKET_HEARTBEAT },
 
 			// Ping handler
-			{cmd: P.PACKET_PING}, // Broadcasted
-			{cmd: P.PACKET_PING, nodeID: this.nodeID}, // Targeted
+			{ cmd: P.PACKET_PING }, // Broadcasted
+			{ cmd: P.PACKET_PING, nodeID: this.nodeID }, // Targeted
 
 			// Pong handler
-			{cmd: P.PACKET_PONG, nodeID: this.nodeID}
+			{ cmd: P.PACKET_PONG, nodeID: this.nodeID }
 
 		]).then(() => {
 			this.subscribing = null;
@@ -235,7 +235,7 @@ class Transit {
 	 *
 	 * @memberof Transit
 	 */
-	messageHandler (cmd, packet) {
+	messageHandler(cmd, packet) {
 		try {
 			const payload = packet.payload;
 
@@ -321,7 +321,7 @@ class Transit {
 	 * @param {any} payload
 	 * @memberof Transit
 	 */
-	_eventHandler (payload) {
+	_eventHandler(payload) {
 		this.logger.debug(`Event '${payload.event}' received from '${payload.sender}' node` + (payload.groups ? ` in '${payload.groups.join(", ")}' group(s)` : "") + ".");
 
 		if (!this.broker.started) {
@@ -338,13 +338,13 @@ class Transit {
 	 *
 	 * @memberof Transit
 	 */
-	_requestHandler (payload) {
+	_requestHandler(payload) {
 		this.logger.debug(`Request '${payload.action}' received from '${payload.sender}' node.`);
 
 		try {
 			if (!this.broker.started) {
 				this.logger.warn(`Incoming '${payload.action}' request from '${payload.sender}' node is dropped, because broker is stopped.`);
-				throw new E.ServiceNotAvailableError({action: payload.action, nodeID: this.nodeID});
+				throw new E.ServiceNotAvailableError({ action: payload.action, nodeID: this.nodeID });
 			}
 
 			let pass;
@@ -418,7 +418,7 @@ class Transit {
 		}
 	}
 
-	_createErrFromPayload (error, sender) {
+	_createErrFromPayload(error, sender) {
 		let err = E.recreateError(error);
 		if (!err) {
 			err = new Error(error.message);
@@ -443,7 +443,7 @@ class Transit {
 	 *
 	 * @memberof Transit
 	 */
-	_responseHandler (packet) {
+	_responseHandler(packet) {
 		const id = packet.id;
 		const req = this.pendingRequests.get(id);
 
@@ -520,7 +520,7 @@ class Transit {
 	 *
 	 * @memberof Transit
 	 */
-	request (ctx) {
+	request(ctx) {
 		if (this.opts.maxQueueSize && this.pendingRequests.size > this.opts.maxQueueSize)
 			return Promise.reject(new E.QueueIsFullError({
 				action: ctx.action.name,
@@ -542,7 +542,7 @@ class Transit {
 	 *
 	 * @memberof Transit
 	 */
-	_sendRequest (ctx, resolve, reject) {
+	_sendRequest(ctx, resolve, reject) {
 		const isStream = ctx.params && ctx.params.readable === true && typeof ctx.params.on === "function" && typeof ctx.params.pipe === "function";
 
 		const request = {
@@ -637,7 +637,7 @@ class Transit {
 	 *
 	 * @memberof Transit
 	 */
-	sendBroadcastEvent (nodeID, event, data, groups) {
+	sendBroadcastEvent(nodeID, event, data, groups) {
 		this.logger.debug(`Send '${event}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
 
 		this.publish(new Packet(P.PACKET_EVENT, nodeID, {
@@ -658,7 +658,7 @@ class Transit {
 	 *
 	 * @memberof Transit
 	 */
-	sendBalancedEvent (event, data, nodeGroups) {
+	sendBalancedEvent(event, data, nodeGroups) {
 		_.forIn(nodeGroups, (groups, nodeID) => {
 			this.logger.debug(`Send '${event}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
 
@@ -681,7 +681,7 @@ class Transit {
 	 *
 	 * @memberof Transit
 	 */
-	sendEventToGroups (event, data, groups) {
+	sendEventToGroups(event, data, groups) {
 		this.logger.debug(`Send '${event}' event to '${groups.join(", ")}' group(s).`);
 		this.publish(new Packet(P.PACKET_EVENT, null, {
 			event,
@@ -698,7 +698,7 @@ class Transit {
 	 *
 	 * @memberof Transit
 	 */
-	removePendingRequest (id) {
+	removePendingRequest(id) {
 		this.pendingRequests.delete(id);
 
 		this.pendingReqStreams.delete(id);
@@ -712,7 +712,7 @@ class Transit {
 	 *
 	 * @memberof Transit
 	 */
-	removePendingRequestByNodeID (nodeID) {
+	removePendingRequestByNodeID(nodeID) {
 		this.logger.debug(`Remove pending requests of '${nodeID}' node.`);
 		this.pendingRequests.forEach((req, id) => {
 			if (req.nodeID === nodeID) {
@@ -737,7 +737,7 @@ class Transit {
 	 * @returns {Object}
 	 * @memberof Transit
 	 */
-	_createPayloadErrorField (err) {
+	_createPayloadErrorField(err) {
 		return {
 			name: err.name,
 			message: err.message,
@@ -761,7 +761,7 @@ class Transit {
 	 *
 	 * @memberof Transit
 	 */
-	sendResponse (nodeID, id, meta, data, err) {
+	sendResponse(nodeID, id, meta, data, err) {
 		// Publish the response
 		const payload = {
 			id: id,
@@ -838,7 +838,7 @@ class Transit {
 	 *
 	 * @memberof Transit
 	 */
-	discoverNodes () {
+	discoverNodes() {
 		return this.publish(new Packet(P.PACKET_DISCOVER))
 			.catch(err => this.logger.error("Unable to send DISCOVER packet.", err));
 	}
@@ -848,7 +848,7 @@ class Transit {
 	 *
 	 * @memberof Transit
 	 */
-	discoverNode (nodeID) {
+	discoverNode(nodeID) {
 		return this.publish(new Packet(P.PACKET_DISCOVER, nodeID))
 			.catch(err => this.logger.error(`Unable to send DISCOVER packet to '${nodeID}' node.`, err));
 	}
@@ -858,7 +858,7 @@ class Transit {
 	 *
 	 * @memberof Transit
 	 */
-	sendNodeInfo (nodeID) {
+	sendNodeInfo(nodeID) {
 		if (!this.connected || !this.isReady) return Promise.resolve();
 
 		const info = this.broker.getLocalNodeInfo();
@@ -885,8 +885,8 @@ class Transit {
 	 * @returns
 	 * @memberof Transit
 	 */
-	sendPing (nodeID) {
-		return this.publish(new Packet(P.PACKET_PING, nodeID, {time: Date.now()}))
+	sendPing(nodeID) {
+		return this.publish(new Packet(P.PACKET_PING, nodeID, { time: Date.now() }))
 			.catch(err => this.logger.error(`Unable to send PING packet to '${nodeID}' node.`, err));
 	}
 
@@ -897,7 +897,7 @@ class Transit {
 	 * @returns
 	 * @memberof Transit
 	 */
-	sendPong (payload) {
+	sendPong(payload) {
 		return this.publish(new Packet(P.PACKET_PONG, payload.sender, {
 			time: payload.time,
 			arrived: Date.now()
@@ -911,14 +911,14 @@ class Transit {
 	 * @param {Object} payload
 	 * @memberof Transit
 	 */
-	processPong (payload) {
+	processPong(payload) {
 		const now = Date.now();
 		const elapsedTime = now - payload.time;
 		const timeDiff = Math.round(now - payload.arrived - elapsedTime / 2);
 
 		// this.logger.debug(`PING-PONG from '${payload.sender}' - Time: ${elapsedTime}ms, Time difference: ${timeDiff}ms`);
 
-		this.broker.broadcastLocal("$node.pong", {nodeID: payload.sender, elapsedTime, timeDiff});
+		this.broker.broadcastLocal("$node.pong", { nodeID: payload.sender, elapsedTime, timeDiff });
 	}
 
 	/**
@@ -926,7 +926,7 @@ class Transit {
 	 *
 	 * @memberof Transit
 	 */
-	sendHeartbeat (localNode) {
+	sendHeartbeat(localNode) {
 		return this.publish(new Packet(P.PACKET_HEARTBEAT, null, {
 			cpu: localNode.cpu
 		})).catch(err => this.logger.error("Unable to send HEARTBEAT packet.", err));
@@ -941,7 +941,7 @@ class Transit {
 	 *
 	 * @memberof Transit
 	 */
-	subscribe (topic, nodeID) {
+	subscribe(topic, nodeID) {
 		return this.tx.subscribe(topic, nodeID);
 	}
 
@@ -952,7 +952,7 @@ class Transit {
 	 *
 	 * @memberof Transit
 	 */
-	publish (packet) {
+	publish(packet) {
 		// log only if packet type was not disabled by options
 		if (!this.opts.packetLogFilter.includes(packet.type)) {
 			this.logger.debug(`Send ${packet.type} packet to '${packet.target || "<all nodes>"}'`);

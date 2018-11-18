@@ -20,7 +20,7 @@ class Serializer {
 	 *
 	 * @memberof Serializer
 	 */
-	constructor () {
+	constructor() {
 	}
 
 	/**
@@ -30,7 +30,7 @@ class Serializer {
 	 *
 	 * @memberof Serializer
 	 */
-	init (broker) {
+	init(broker) {
 		this.broker = broker;
 		/*if (this.broker) {
 			this.logger = broker.getLogger("serializer");
@@ -46,7 +46,7 @@ class Serializer {
 	 *
 	 * @memberof Serializer
 	 */
-	serialize (/*obj, type*/) {
+	serialize(/*obj, type*/) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
 	}
@@ -60,7 +60,7 @@ class Serializer {
 	 *
 	 * @memberof Serializer
 	 */
-	deserialize (/*buf, type*/) {
+	deserialize(/*buf, type*/) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
 	}
@@ -73,7 +73,7 @@ class Serializer {
 	 * @returns {Packet}
 	 * @memberof Serializer
 	 */
-	serializeCustomFields (type, obj) {
+	serializeCustomFields(type, obj) {
 		switch (type) {
 			case P.PACKET_INFO: {
 				obj.services = JSON.stringify(obj.services);
@@ -132,7 +132,7 @@ class Serializer {
 	 * @returns {Packet}
 	 * @memberof Serializer
 	 */
-	deserializeCustomFields (type, obj) {
+	deserializeCustomFields(type, obj) {
 		switch (type) {
 			case P.PACKET_INFO: {
 				obj.services = JSON.parse(obj.services);

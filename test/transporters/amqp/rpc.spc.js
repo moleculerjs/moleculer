@@ -102,7 +102,7 @@ const runTestCases = (logs, client, worker1, worker2, worker3, builtInBalancer) 
 			worker3.stop(),
 		])
 			.then(() => Promise.all(Array(3).fill().map(callShortDelay)))
-			.catch(protectReject).then(res => {
+			.catch(protectReject).then(() => {
 				const getType = a => a.type;
 				const getTime = a => a.timestamp;
 
@@ -164,7 +164,7 @@ const runTestCases = (logs, client, worker1, worker2, worker3, builtInBalancer) 
 			};
 
 			return Promise.all(Array(9).fill().map(crashRequest))
-				.catch(protectReject).then((res) => {
+				.catch(protectReject).then(() => {
 					// The responses that failed initially won't show up in res, but the messages are still in
 					// AMQP. If the messages are not ack'ed until processed, then another node will be able to
 					// handle them instead.
