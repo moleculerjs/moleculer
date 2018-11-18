@@ -38,7 +38,7 @@ describe("Test UdpServer constructor", () => {
 });
 
 describe("Test UdpServer.startServer", () => {
-	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake"});
+	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake" });
 	let transporter = broker.transit.tx;
 	let udp;
 
@@ -65,10 +65,10 @@ describe("Test UdpServer.startServer", () => {
 			const server = udp.servers[0];
 
 			expect(dgram.createSocket).toHaveBeenCalledTimes(1);
-			expect(dgram.createSocket).toHaveBeenCalledWith({"reuseAddr": true, "type": "udp4"});
+			expect(dgram.createSocket).toHaveBeenCalledWith({ "reuseAddr": true, "type": "udp4" });
 
 			expect(server.bind).toHaveBeenCalledTimes(1);
-			expect(server.bind).toHaveBeenCalledWith({"exclusive": true, "host": "127.0.0.1", "port": 4567}, jasmine.any(Function));
+			expect(server.bind).toHaveBeenCalledWith({ "exclusive": true, "host": "127.0.0.1", "port": 4567 }, jasmine.any(Function));
 
 			expect(server.on).toHaveBeenCalledTimes(2);
 			expect(server.on).toHaveBeenCalledWith("error", jasmine.any(Function));
@@ -93,10 +93,10 @@ describe("Test UdpServer.startServer", () => {
 			const server = udp.servers[0];
 
 			expect(dgram.createSocket).toHaveBeenCalledTimes(1);
-			expect(dgram.createSocket).toHaveBeenCalledWith({"reuseAddr": true, "type": "udp4"});
+			expect(dgram.createSocket).toHaveBeenCalledWith({ "reuseAddr": true, "type": "udp4" });
 
 			expect(server.bind).toHaveBeenCalledTimes(1);
-			expect(server.bind).toHaveBeenCalledWith({"exclusive": true, "host": "10.0.0.4", "port": 4567}, jasmine.any(Function));
+			expect(server.bind).toHaveBeenCalledWith({ "exclusive": true, "host": "10.0.0.4", "port": 4567 }, jasmine.any(Function));
 
 			expect(server.on).toHaveBeenCalledTimes(2);
 			expect(server.on).toHaveBeenCalledWith("error", jasmine.any(Function));
@@ -143,7 +143,7 @@ describe("Test UdpServer.startServer", () => {
 });
 
 describe("Test UdpServer.bind", () => {
-	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake"});
+	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake" });
 	let transporter = broker.transit.tx;
 	let udp;
 
@@ -257,7 +257,7 @@ describe("Test UdpServer.bind", () => {
 });
 
 describe("Test UdpServer.discover", () => {
-	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake"});
+	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake" });
 	let transporter = broker.transit.tx;
 	let udp;
 
@@ -301,7 +301,7 @@ describe("Test UdpServer.discover", () => {
 });
 
 describe("Test UdpServer.onMessage", () => {
-	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake"});
+	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake" });
 	let transporter = broker.transit.tx;
 	let udp;
 
@@ -370,7 +370,7 @@ describe("Test UdpServer.onMessage", () => {
 });
 
 describe("Test UdpServer.startDiscovering & stopDiscovering", () => {
-	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake"});
+	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake" });
 	let transporter = broker.transit.tx;
 	let udp;
 
@@ -422,7 +422,7 @@ describe("Test UdpServer.startDiscovering & stopDiscovering", () => {
 });
 
 describe("Test UdpServer.close", () => {
-	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake"});
+	const broker = new ServiceBroker({ logger: false, namespace: "test", nodeID: "node-1", transporter: "Fake" });
 	let transporter = broker.transit.tx;
 	let udp;
 

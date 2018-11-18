@@ -160,7 +160,7 @@ const runTestCases = (logs, client, worker1, worker2, worker3, builtInBalancer) 
 			// node-specific queues, or tried out of order.
 			const crashRequest = () => {
 				return client.call("test.hello", { delay: 20, crash: true })
-					.catch(err => ({ message: err.message, type: "error"}));
+					.catch(err => ({ message: err.message, type: "error" }));
 			};
 
 			return Promise.all(Array(9).fill().map(crashRequest))

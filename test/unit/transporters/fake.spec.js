@@ -57,7 +57,7 @@ describe("Test FakeTransporter", () => {
 
 	it("check publish", () => {
 		let transporter = new FakeTransporter();
-		transporter.init(new Transit(new ServiceBroker({ logger: false, nodeID: "node1"})));
+		transporter.init(new Transit(new ServiceBroker({ logger: false, nodeID: "node1" })));
 		transporter.bus.emit = jest.fn();
 		transporter.serialize = jest.fn(() => "serialized data");
 

@@ -84,8 +84,8 @@ class AmqpTransporter extends Transporter {
 		opts.url = Array.isArray(opts.url)
 			? opts.url
 			: !opts.url
-				? ['']
-				: opts.url.split(';').filter(s => !!s)
+				? [""]
+				: opts.url.split(";").filter(s => !!s);
 
 		super(opts);
 
@@ -131,7 +131,7 @@ class AmqpTransporter extends Transporter {
 
 			amqp.connect(uri, Object.assign({},
 				(this.opts.socketOptions || {}),
-				{servername: urlParsed.hostname}
+				{ servername: urlParsed.hostname }
 			))
 				.then(connection => {
 					this.connection = connection;

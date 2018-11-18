@@ -9,7 +9,7 @@
 const Promise = require("bluebird");
 const { RequestTimeoutError } = require("../errors");
 
-function wrapTimeoutMiddleware(handler, action) {
+function wrapTimeoutMiddleware(handler) {
 	return function timeoutMiddleware(ctx) {
 
 		// Load opts with default values

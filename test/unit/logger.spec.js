@@ -179,7 +179,7 @@ describe("Test createDefaultLogger", () => {
 		logger.info("info level");
 
 		expect(logFormatter).toHaveBeenCalledTimes(1);
-		expect(logFormatter).toHaveBeenCalledWith("info", ["info level"], {"nodeID": "server-2", "ns": "", "svc": "posts", "ver": 2});
+		expect(logFormatter).toHaveBeenCalledWith("info", ["info level"], { "nodeID": "server-2", "ns": "", "svc": "posts", "ver": 2 });
 	});
 
 	it("should create a filtered-level logger (module error)", () => {
@@ -270,7 +270,7 @@ describe("Test createDefaultLogger", () => {
 		};
 
 		let logger = createDefaultLogger(con, bindings, "info");
-		const obj = {a: "a".repeat(20), b: "b".repeat(20), c: "c".repeat(20)};
+		const obj = { a: "a".repeat(20), b: "b".repeat(20), c: "c".repeat(20) };
 
 		logger.info("with object", obj);
 
@@ -301,7 +301,7 @@ describe("Test createDefaultLogger", () => {
 
 			let logObjectPrinter =  o => util.inspect(o, { depth: 4, colors: false, breakLength: 5 });
 			let logger = createDefaultLogger(con, bindings, "info", undefined, logObjectPrinter);
-			const obj = {a: "a".repeat(20), b: "b".repeat(20), c: "c".repeat(20)};
+			const obj = { a: "a".repeat(20), b: "b".repeat(20), c: "c".repeat(20) };
 
 			logger.info("with object", obj);
 

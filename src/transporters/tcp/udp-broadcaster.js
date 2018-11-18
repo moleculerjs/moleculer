@@ -91,7 +91,7 @@ class UdpServer extends EventEmitter {
 	startServer(host, port, multicastAddress, ttl) {
 		return new Promise(resolve => {
 			try {
-				const server = dgram.createSocket({type: "udp4", reuseAddr: this.opts.udpReuseAddr });
+				const server = dgram.createSocket({ type: "udp4", reuseAddr: this.opts.udpReuseAddr });
 
 				server.on("message", this.onMessage.bind(this));
 

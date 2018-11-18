@@ -211,7 +211,7 @@ class EventCatalog {
 	 *
 	 * @memberof EventCatalog
 	 */
-	list({onlyLocal = false, onlyAvailable = false, skipInternal = false, withEndpoints = false}) {
+	list({ onlyLocal = false, onlyAvailable = false, skipInternal = false, withEndpoints = false }) {
 		let res = [];
 
 		this.events.forEach(list => {

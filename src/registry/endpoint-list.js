@@ -90,7 +90,7 @@ class EndpointList {
 		const ret = this.strategy.select(list);
 		if (!ret) {
 			/* istanbul ignore next */
-			throw new MoleculerServerError("Strategy returned an invalid endpoint.", 500, "INVALID_ENDPOINT", { strategy: typeof(this.strategy)});
+			throw new MoleculerServerError("Strategy returned an invalid endpoint.", 500, "INVALID_ENDPOINT", { strategy: typeof(this.strategy) });
 		}
 		return ret;
 	}

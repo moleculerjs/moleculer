@@ -27,21 +27,21 @@ describe("Test Cacher resolver", () => {
 		let options = { ttl: 100 };
 		let cacher = Cachers.resolve({ options });
 		expect(cacher).toBeInstanceOf(Cachers.Memory);
-		expect(cacher.opts).toEqual({ keygen: null, maxParamsLength: null, ttl: 100});
+		expect(cacher.opts).toEqual({ keygen: null, maxParamsLength: null, ttl: 100 });
 	});
 
 	it("should resolve MemoryCacher from obj", () => {
 		let options = { ttl: 100 };
 		let cacher = Cachers.resolve({ type: "Memory", options });
 		expect(cacher).toBeInstanceOf(Cachers.Memory);
-		expect(cacher.opts).toEqual({ keygen: null, maxParamsLength: null, ttl: 100});
+		expect(cacher.opts).toEqual({ keygen: null, maxParamsLength: null, ttl: 100 });
 	});
 
 	it("should resolve RedisCacher from obj with Redis type", () => {
 		let options = { ttl: 100 };
 		let cacher = Cachers.resolve({ type: "Redis", options });
 		expect(cacher).toBeInstanceOf(Cachers.Redis);
-		expect(cacher.opts).toEqual({ keygen: null, maxParamsLength: null, ttl: 100});
+		expect(cacher.opts).toEqual({ keygen: null, maxParamsLength: null, ttl: 100 });
 	});
 
 	it("should resolve RedisCacher from obj with Redis type", () => {

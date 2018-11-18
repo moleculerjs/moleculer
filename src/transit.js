@@ -113,7 +113,7 @@ class Transit {
 					if (this.disconnecting) return;
 					if (reconnectStarted) return;
 
-					this.logger.warn("Connection is failed.", err && err.message || 'Unknown error');
+					this.logger.warn("Connection is failed.", err && err.message || "Unknown error");
 					this.logger.debug(err);
 
 					if (this.opts.disableReconnect) {
@@ -122,7 +122,7 @@ class Transit {
 
 					reconnectStarted = true;
 
-          setTimeout(() => {
+					setTimeout(() => {
 						this.logger.info("Reconnecting...");
 						doConnect();
 					}, 5 * 1000);
@@ -256,7 +256,7 @@ class Transit {
 
 			// log only if packet type was not disabled by options
 			if (!this.opts.packetLogFilter.includes(cmd)) {
-			this.logger.debug(`Incoming ${cmd} packet from '${payload.sender}'`);
+				this.logger.debug(`Incoming ${cmd} packet from '${payload.sender}'`);
 			}
 
 			// Request
@@ -377,7 +377,7 @@ class Transit {
 
 					// Create a new pass stream
 					pass = new Transform({
-						transform: function (chunk, encoding, done) {
+						transform: function(chunk, encoding, done) {
 							this.push(chunk);
 							return done();
 						}
@@ -487,7 +487,7 @@ class Transit {
 				this.logger.debug(`New stream is received from '${packet.sender}'`);
 
 				pass = new Transform({
-					transform: function (chunk, encoding, done) {
+					transform: function(chunk, encoding, done) {
 						this.push(chunk);
 						return done();
 					}
@@ -943,7 +943,7 @@ class Transit {
 	publish(packet) {
 		// log only if packet type was not disabled by options
 		if (!this.opts.packetLogFilter.includes(packet.type)) {
-		this.logger.debug(`Send ${packet.type} packet to '${packet.target || "<all nodes>"}'`);
+			this.logger.debug(`Send ${packet.type} packet to '${packet.target || "<all nodes>"}'`);
 		}
 
 		if (this.subscribing) {

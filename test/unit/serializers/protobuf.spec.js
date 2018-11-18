@@ -67,7 +67,7 @@ describe("Test ProtoBuf serializer", () => {
 					"users.create": {}
 				}, events: {
 					"user.created": {}
-				}}
+				} }
 			],
 			config: {},
 			ipList: [ "127.0.0.1" ],
@@ -103,7 +103,7 @@ describe("Test ProtoBuf serializer", () => {
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
-		expect(res).toEqual(Object.assign(obj, { groups: []}));
+		expect(res).toEqual(Object.assign(obj, { groups: [] }));
 	});
 
 	it("should serialize the event packet with groups", () => {
@@ -138,7 +138,7 @@ describe("Test ProtoBuf serializer", () => {
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
-		expect(res).toEqual(Object.assign(obj, { groups: []}));
+		expect(res).toEqual(Object.assign(obj, { groups: [] }));
 	});
 
 	it("should serialize the request packet", () => {
