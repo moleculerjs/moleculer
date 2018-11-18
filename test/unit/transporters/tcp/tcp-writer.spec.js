@@ -55,7 +55,7 @@ describe("Test TcpWriter.send", () => {
 	});
 
 	it("should call connect if no socket", () => {
-		return writer.send("node-2", P.PACKET_REQUEST, Buffer.from("data")).catch(protectReject).error(err => {
+		return writer.send("node-2", P.PACKET_REQUEST, Buffer.from("data")).catch(protectReject).error(() => {
 			expect(writer.connect).toHaveBeenCalledTimes(1);
 			expect(writer.connect).toHaveBeenCalledWith(node);
 			expect(socket.lastUsed).toBeDefined();
@@ -202,7 +202,7 @@ describe("Test TcpWriter.connect", () => {
 		writer.sockets.set(4, null);
 		writer.sockets.set(5, null);
 
-		let p = writer.connect("node-2").catch(protectReject).then(s => {
+		let p = writer.connect("node-2").catch(protectReject).then(() => {
 			expect(writer.manageConnections).toHaveBeenCalledTimes(1);
 		});
 
