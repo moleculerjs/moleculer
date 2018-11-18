@@ -67,7 +67,7 @@ describe("Test Avro serializer", () => {
 					"users.create": {}
 				}, events: {
 					"user.created": {}
-				}}
+				} }
 			],
 			config: {},
 			ipList: [ "127.0.0.1" ],

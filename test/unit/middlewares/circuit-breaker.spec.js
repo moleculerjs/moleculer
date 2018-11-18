@@ -99,7 +99,7 @@ describe("Test CircuitBreakerMiddleware logic", () => {
 			newHandler(Context.create(broker, endpoint, { crash: false })).catch(protectReject).then(res => expect(res).toBe("Result")),
 		]).catch(protectReject).then(() => {
 			expect(broker.broadcast).toHaveBeenCalledTimes(1);
-			expect(broker.broadcast).toHaveBeenCalledWith("$circuit-breaker.opened", {action: "likes.count", count: 5, failures: 3, nodeID: broker.nodeID, rate: 0.6});
+			expect(broker.broadcast).toHaveBeenCalledWith("$circuit-breaker.opened", { action: "likes.count", count: 5, failures: 3, nodeID: broker.nodeID, rate: 0.6 });
 			expect(endpoint.state).toBe(false);
 		});
 	});
@@ -109,7 +109,7 @@ describe("Test CircuitBreakerMiddleware logic", () => {
 		clock.tick(12 * 1000);
 		expect(endpoint.state).toBe(true);
 		expect(broker.broadcast).toHaveBeenCalledTimes(1);
-		expect(broker.broadcast).toHaveBeenCalledWith("$circuit-breaker.half-opened", {action: "likes.count", nodeID: broker.nodeID});
+		expect(broker.broadcast).toHaveBeenCalledWith("$circuit-breaker.half-opened", { action: "likes.count", nodeID: broker.nodeID });
 	});
 
 	it("should reopen CB", () => {
@@ -118,7 +118,7 @@ describe("Test CircuitBreakerMiddleware logic", () => {
 			newHandler(Context.create(broker, endpoint, { crash: true })).then(protectReject).catch(err => expect(err.message).toBe("Crashed")),
 		]).catch(protectReject).then(() => {
 			expect(broker.broadcast).toHaveBeenCalledTimes(1);
-			expect(broker.broadcast).toHaveBeenCalledWith("$circuit-breaker.opened", {action: "likes.count", count: 6, failures: 4, nodeID: broker.nodeID, rate: 0.6666666666666666});
+			expect(broker.broadcast).toHaveBeenCalledWith("$circuit-breaker.opened", { action: "likes.count", count: 6, failures: 4, nodeID: broker.nodeID, rate: 0.6666666666666666 });
 			expect(endpoint.state).toBe(false);
 		});
 	});
@@ -128,7 +128,7 @@ describe("Test CircuitBreakerMiddleware logic", () => {
 		clock.tick(11 * 1000);
 		expect(endpoint.state).toBe(true);
 		expect(broker.broadcast).toHaveBeenCalledTimes(1);
-		expect(broker.broadcast).toHaveBeenCalledWith("$circuit-breaker.half-opened", {action: "likes.count", nodeID: broker.nodeID});
+		expect(broker.broadcast).toHaveBeenCalledWith("$circuit-breaker.half-opened", { action: "likes.count", nodeID: broker.nodeID });
 	});
 
 	it("should close CB", () => {
@@ -138,7 +138,7 @@ describe("Test CircuitBreakerMiddleware logic", () => {
 			newHandler(Context.create(broker, endpoint, { crash: false })).catch(protectReject).then(res => expect(res).toBe("Result")),
 		]).catch(protectReject).then(() => {
 			expect(broker.broadcast).toHaveBeenCalledTimes(1);
-			expect(broker.broadcast).toHaveBeenCalledWith("$circuit-breaker.closed", {action: "likes.count", nodeID: broker.nodeID});
+			expect(broker.broadcast).toHaveBeenCalledWith("$circuit-breaker.closed", { action: "likes.count", nodeID: broker.nodeID });
 			expect(endpoint.state).toBe(true);
 		});
 	});

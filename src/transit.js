@@ -381,7 +381,7 @@ class Transit {
 
 					// Create a new pass stream
 					pass = new Transform({
-						transform: function (chunk, encoding, done) {
+						transform: function(chunk, encoding, done) {
 							this.push(chunk);
 							return done();
 						}
@@ -491,7 +491,7 @@ class Transit {
 				this.logger.debug(`New stream is received from '${packet.sender}'`);
 
 				pass = new Transform({
-					transform: function (chunk, encoding, done) {
+					transform: function(chunk, encoding, done) {
 						this.push(chunk);
 						return done();
 					}

@@ -131,7 +131,7 @@ class AmqpTransporter extends Transporter {
 
 			amqp.connect(uri, Object.assign({},
 				(this.opts.socketOptions || {}),
-				{servername: urlParsed.hostname}
+				{ servername: urlParsed.hostname }
 			))
 				.then(connection => {
 					this.connection = connection;

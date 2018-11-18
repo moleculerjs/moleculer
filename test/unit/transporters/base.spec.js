@@ -140,7 +140,7 @@ describe("Test BaseTransporter", () => {
 			{
 				// Empty
 			}
-		]}));
+		] }));
 
 		transporter.subscribeBalancedEvent = jest.fn();
 		transporter.subscribeBalancedRequest = jest.fn();
@@ -177,7 +177,7 @@ describe("Test BaseTransporter", () => {
 			{
 				// Empty
 			}
-		]}));
+		] }));
 
 		transporter.subscribeBalancedEvent = jest.fn();
 		transporter.subscribeBalancedRequest = jest.fn();
@@ -295,7 +295,7 @@ describe("Test BaseTransporter", () => {
 			let packet = new P.Packet(P.PACKET_EVENT);
 			expect(transporter.serialize(packet)).toBe("serialized");
 			expect(broker.serializer.serialize).toHaveBeenCalledTimes(1);
-			expect(broker.serializer.serialize).toHaveBeenCalledWith({"sender": "server1", "ver": "3"}, P.PACKET_EVENT);
+			expect(broker.serializer.serialize).toHaveBeenCalledWith({ "sender": "server1", "ver": "3" }, P.PACKET_EVENT);
 		});
 	});
 
@@ -311,7 +311,7 @@ describe("Test BaseTransporter", () => {
 			let packet = transporter.deserialize(P.PACKET_INFO, msg);
 			expect(packet).toBeDefined();
 			expect(packet.type).toBe("INFO");
-			expect(packet.payload).toEqual({"msg": "deserialized", "type": "INFO"});
+			expect(packet.payload).toEqual({ "msg": "deserialized", "type": "INFO" });
 			expect(broker.serializer.deserialize).toHaveBeenCalledTimes(1);
 			expect(broker.serializer.deserialize).toHaveBeenCalledWith("incoming data", P.PACKET_INFO);
 		});

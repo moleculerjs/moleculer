@@ -88,7 +88,7 @@ describe("Test KafkaTransporter constructor", () => {
 	it("check constructor with options", () => {
 		let opts = { host: "localhost:2181", publish: {
 			partition: 1
-		}};
+		} };
 		let transporter = new KafkaTransporter(opts);
 		expect(transporter.opts).toEqual({
 			"host": "localhost:2181",

@@ -81,7 +81,7 @@ describe("Test MetricsMiddleware localAction", () => {
 			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
 				"id": ctx.id,
 				"nodeID": "server-1",
-				"action": {"name": "posts.find" },
+				"action": { "name": "posts.find" },
 				"level": 1,
 				"remoteCall": false,
 				"requestID": ctx.requestID,
@@ -91,7 +91,7 @@ describe("Test MetricsMiddleware localAction", () => {
 			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.finish", {
 				"id": ctx.id,
 				"nodeID": "server-1",
-				"action": {"name": "posts.find" },
+				"action": { "name": "posts.find" },
 				"startTime": ctx.startTime,
 				"endTime": ctx.stopTime,
 				"duration": ctx.duration,
@@ -118,7 +118,7 @@ describe("Test MetricsMiddleware localAction", () => {
 			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
 				"id": ctx.id,
 				"nodeID": "server-1",
-				"action": {"name": "posts.find" },
+				"action": { "name": "posts.find" },
 				"level": 1,
 				"remoteCall": false,
 				"requestID": ctx.requestID,
@@ -128,7 +128,7 @@ describe("Test MetricsMiddleware localAction", () => {
 			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.finish", {
 				"id": ctx.id,
 				"nodeID": "server-1",
-				"action": {"name": "posts.find" },
+				"action": { "name": "posts.find" },
 				"startTime": ctx.startTime,
 				"endTime": ctx.stopTime,
 				"duration": ctx.duration,
@@ -136,7 +136,7 @@ describe("Test MetricsMiddleware localAction", () => {
 				"level": 1,
 				"remoteCall": false,
 				"requestID": ctx.requestID,
-				"error": {"code": 502, "message": "Some error", "name": "MoleculerError", "type": "SOME_ERROR" }
+				"error": { "code": 502, "message": "Some error", "name": "MoleculerError", "type": "SOME_ERROR" }
 			});
 		});
 	});
@@ -227,7 +227,7 @@ describe("Test params & meta in events", () => {
 
 	const mw = Middleware();
 	const action = { name: "users.get", metrics: false, service: { name: "users", version: 2 } };
-	const endpoint = { action, node: { id: broker.nodeID }};
+	const endpoint = { action, node: { id: broker.nodeID } };
 
 	const handler = jest.fn(() => Promise.resolve());
 	const newHandler = mw.localAction.call(broker, handler, action);
@@ -244,7 +244,7 @@ describe("Test params & meta in events", () => {
 			expect(broker.emit).toHaveBeenCalledTimes(2);
 			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
 				"id": ctx.id,
-				"service": {"name": "users", "version": 2},
+				"service": { "name": "users", "version": 2 },
 				"action": { "name": "users.get" },
 				"level": 1,
 				"parent": 123,
@@ -265,13 +265,13 @@ describe("Test params & meta in events", () => {
 			metrics: { params: true, meta: true }
 		};
 		ctx.params = { username: "user", pass: "pass" };
-		ctx.meta = { user: { id: 4 }};
+		ctx.meta = { user: { id: 4 } };
 
 		return newHandler(ctx).catch(protectReject).then(() => {
 			expect(broker.emit).toHaveBeenCalledTimes(2);
 			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
 				"id": ctx.id,
-				"service": {"name": "users", "version": 2},
+				"service": { "name": "users", "version": 2 },
 				"action": { "name": "users.get" },
 				"level": 1,
 				"parent": 123,
@@ -281,7 +281,7 @@ describe("Test params & meta in events", () => {
 				"nodeID": broker.nodeID,
 				"callerNodeID": "remote-node",
 				"params": { "pass": "pass", "username": "user" },
-				"meta": { user: { id: 4 }},
+				"meta": { user: { id: 4 } },
 			});
 		});
 	});
@@ -294,13 +294,13 @@ describe("Test params & meta in events", () => {
 		};
 
 		ctx.params = { username: "user", pass: "pass" };
-		ctx.meta = { user: { id: 4 }};
+		ctx.meta = { user: { id: 4 } };
 
 		return newHandler(ctx).catch(protectReject).then(() => {
 			expect(broker.emit).toHaveBeenCalledTimes(2);
 			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
 				"id": ctx.id,
-				"service": {"name": "users", "version": 2},
+				"service": { "name": "users", "version": 2 },
 				"action": { "name": "users.get" },
 				"level": 1,
 				"parent": 123,
@@ -326,7 +326,7 @@ describe("Test params & meta in events", () => {
 			expect(broker.emit).toHaveBeenCalledTimes(2);
 			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
 				"id": ctx.id,
-				"service": {"name": "users", "version": 2},
+				"service": { "name": "users", "version": 2 },
 				"action": { "name": "users.get" },
 				"level": 1,
 				"parent": 123,
@@ -357,7 +357,7 @@ describe("Test params & meta in events", () => {
 			expect(broker.emit).toHaveBeenCalledTimes(2);
 			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
 				"id": ctx.id,
-				"service": {"name": "users", "version": 2},
+				"service": { "name": "users", "version": 2 },
 				"action": { "name": "users.get" },
 				"level": 1,
 				"parent": 123,
@@ -383,7 +383,7 @@ describe("Test params & meta in events", () => {
 			expect(broker.emit).toHaveBeenCalledTimes(2);
 			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
 				"id": ctx.id,
-				"service": {"name": "users", "version": 2},
+				"service": { "name": "users", "version": 2 },
 				"action": { "name": "users.get" },
 				"level": 1,
 				"parent": 123,
@@ -414,7 +414,7 @@ describe("Test params & meta in events", () => {
 			expect(broker.emit).toHaveBeenCalledTimes(2);
 			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
 				"id": ctx.id,
-				"service": {"name": "users", "version": 2},
+				"service": { "name": "users", "version": 2 },
 				"action": { "name": "users.get" },
 				"level": 1,
 				"parent": 123,
