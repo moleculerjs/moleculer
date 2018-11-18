@@ -1,4 +1,3 @@
-const _ = require("lodash");
 const ServiceBroker = require("../../../src/service-broker");
 const { MoleculerError } = require("../../../src/errors");
 const Context = require("../../../src/context");
@@ -124,7 +123,7 @@ describe("Test ActionHookMiddleware", () => {
 		FLOW = [];
 		const error = new MoleculerError("Simple error");
 
-		const handler = jest.fn(ctx => {
+		const handler = jest.fn(() => {
 			FLOW.push("handler");
 			return broker.Promise.reject(error);
 		});
@@ -262,7 +261,7 @@ describe("Test ActionHookMiddleware", () => {
 		FLOW = [];
 		const error = new MoleculerError("Simple error");
 
-		const handler = jest.fn(ctx => {
+		const handler = jest.fn(() => {
 			FLOW.push("handler");
 			return broker.Promise.reject(error);
 		});
