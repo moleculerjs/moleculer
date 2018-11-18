@@ -199,7 +199,7 @@ describe("Test BaseTransporter", () => {
 
 	describe("Test prepublish", () => {
 
-		const broker = new ServiceBroker({ logger: false, namespace: "beta-test", nodeID: "server1" });
+		new ServiceBroker({ logger: false, namespace: "beta-test", nodeID: "server1" });
 		const transporter = new BaseTransporter();
 		transporter.publish = jest.fn(() => Promise.resolve());
 		transporter.publishBalancedEvent = jest.fn(() => Promise.resolve());

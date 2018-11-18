@@ -1,5 +1,4 @@
 const ServiceBroker = require("../../../src/service-broker");
-const { GracefulStopTimeoutError } = require("../../../src/errors");
 const Context = require("../../../src/context");
 const Middleware = require("../../../src/middlewares").ContextTracker;
 const { protectReject } = require("../utils");
