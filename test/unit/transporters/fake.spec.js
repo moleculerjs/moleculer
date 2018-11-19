@@ -8,11 +8,6 @@ const { isPromise } = require("../../../src/utils");
 
 describe("Test FakeTransporter", () => {
 
-	const fakeTransit = {
-		nodeID: "node1",
-		serialize: jest.fn(msg => JSON.stringify(msg))
-	};
-
 	it("check constructor", () => {
 		let transporter = new FakeTransporter();
 		expect(transporter).toBeDefined();
@@ -57,7 +52,7 @@ describe("Test FakeTransporter", () => {
 
 	it("check publish", () => {
 		let transporter = new FakeTransporter();
-		transporter.init(new Transit(new ServiceBroker({ logger: false, nodeID: "node1"})));
+		transporter.init(new Transit(new ServiceBroker({ logger: false, nodeID: "node1" })));
 		transporter.bus.emit = jest.fn();
 		transporter.serialize = jest.fn(() => "serialized data");
 

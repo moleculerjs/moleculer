@@ -76,7 +76,7 @@ describe("Test local call", () => {
 	it("should set params to context", () => {
 		let params = { a: 1 };
 		return broker.call("posts.find", params).then(ctx => {
-			expect(ctx.params).toEqual({ a: 1});
+			expect(ctx.params).toEqual({ a: 1 });
 		});
 	});
 

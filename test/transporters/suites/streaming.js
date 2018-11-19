@@ -31,7 +31,7 @@ const AESService = {
 const filename = __dirname + "/assets/banner.png";
 const filename2 = __dirname + "/assets/received.png";
 
-module.exports = function(transporter, serializer, meta)  {
+module.exports = function(transporter, serializer)  {
 
 	describe("Test streaming", () => {
 

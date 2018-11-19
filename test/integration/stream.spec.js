@@ -126,7 +126,7 @@ describe("Test to receive a stream as response", () => {
 	b2.createService({
 		name: "file",
 		actions: {
-			get(ctx) {
+			get() {
 				return stream;
 			}
 		}
@@ -222,7 +222,7 @@ describe("Test duplex streaming", () => {
 		actions: {
 			convert(ctx) {
 				const pass = new Stream.Transform({
-					transform: function (chunk, encoding, done) {
+					transform: function(chunk, encoding, done) {
 						this.push(chunk.toString().toUpperCase());
 						return done();
 					}

@@ -303,7 +303,7 @@ describe("Test NodeCatalog.heartbeat", () => {
 		node.heartbeat.mockClear();
 		broker.transit.discoverNode.mockClear();
 
-		let newPayload = { sender: "node-15"};
+		let newPayload = { sender: "node-15" };
 		catalog.heartbeat(newPayload);
 
 		expect(node.heartbeat).toHaveBeenCalledTimes(0);

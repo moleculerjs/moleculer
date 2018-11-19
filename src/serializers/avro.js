@@ -83,7 +83,7 @@ function createSchemas() {
 			{ name: "ipList", type: {
 				type: "array",
 				items: "string"
-			}},
+			} },
 			{ name: "hostname", type: "string" },
 			{ name: "client", type: {
 				type: "record",
@@ -92,7 +92,7 @@ function createSchemas() {
 					{ name: "version", type: "string" },
 					{ name: "langVersion", type: "string" }
 				]
-			}}
+			} }
 		]
 	});
 

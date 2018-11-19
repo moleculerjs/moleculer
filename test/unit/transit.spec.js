@@ -237,18 +237,18 @@ describe("Test Transit.makeSubscriptions", () => {
 		return transit.makeSubscriptions().catch(protectReject).then(() => {
 			expect(transit.tx.makeSubscriptions).toHaveBeenCalledTimes(1);
 			expect(transit.tx.makeSubscriptions).toHaveBeenCalledWith([
-				{"cmd": "EVENT",	"nodeID": "node1" },
-				{"cmd": "REQ",		"nodeID": "node1" },
-				{"cmd": "RES",		"nodeID": "node1" },
-				{"cmd": "DISCOVER" },
-				{"cmd": "DISCOVER",	"nodeID": "node1" },
-				{"cmd": "INFO" },
-				{"cmd": "INFO",		"nodeID": "node1" },
-				{"cmd": "DISCONNECT" },
-				{"cmd": "HEARTBEAT" },
-				{"cmd": "PING"},
-				{"cmd": "PING",		"nodeID": "node1" },
-				{"cmd": "PONG",		"nodeID": "node1" }
+				{ "cmd": "EVENT",	"nodeID": "node1" },
+				{ "cmd": "REQ",		"nodeID": "node1" },
+				{ "cmd": "RES",		"nodeID": "node1" },
+				{ "cmd": "DISCOVER" },
+				{ "cmd": "DISCOVER",	"nodeID": "node1" },
+				{ "cmd": "INFO" },
+				{ "cmd": "INFO",		"nodeID": "node1" },
+				{ "cmd": "DISCONNECT" },
+				{ "cmd": "HEARTBEAT" },
+				{ "cmd": "PING" },
+				{ "cmd": "PING",		"nodeID": "node1" },
+				{ "cmd": "PONG",		"nodeID": "node1" }
 			]);
 		});
 	});
@@ -374,7 +374,7 @@ describe("Test Transit.messageHandler", () => {
 	});
 
 	it("should throw Error if version mismatch", () => {
-		expect(transit.messageHandler("EVENT", { payload: { ver: "1"} })).toBe(false);
+		expect(transit.messageHandler("EVENT", { payload: { ver: "1" } })).toBe(false);
 	});
 
 	it("should call _requestHandler if topic is 'REQ' ", () => {
@@ -574,7 +574,7 @@ describe("Test Transit._requestHandler", () => {
 			// Check context props
 			expect(ctx).toBeInstanceOf(Context);
 			expect(ctx.id).toBe("123");
-			expect(ctx.params).toEqual({"title": "Hello"});
+			expect(ctx.params).toEqual({ "title": "Hello" });
 			expect(ctx.meta).toEqual({ b: 100 });
 			expect(ctx.options.timeout).toBe(2600);
 
@@ -668,7 +668,7 @@ describe("Test Transit._responseHandler", () => {
 			retryable: true,
 			data: { a: 5 },
 			stack: "STACK-TRACE"
-		}};
+		} };
 
 		transit._responseHandler(payload);
 		expect(req.reject).toHaveBeenCalledTimes(1);
@@ -705,7 +705,7 @@ describe("Test Transit._responseHandler", () => {
 			retryable: true,
 			data: { a: 5 },
 			stack: "MY-STACK-TRACE"
-		}};
+		} };
 
 		transit._responseHandler(payload);
 		expect(req.reject).toHaveBeenCalledTimes(1);
@@ -742,7 +742,7 @@ describe("Test Transit._eventHandler", () => {
 		});
 
 		expect(broker.emitLocalServices).toHaveBeenCalledTimes(1);
-		expect(broker.emitLocalServices).toHaveBeenCalledWith("user.created", {"a": 5}, ["users"], "node-1", true);
+		expect(broker.emitLocalServices).toHaveBeenCalledWith("user.created", { "a": 5 }, ["users"], "node-1", true);
 	});
 
 });
@@ -848,7 +848,7 @@ describe("Test Transit.removePendingRequestByNodeID", () => {
 
 	const resolve = jest.fn();
 	const reject = jest.fn();
-	const ep = { action: { name: "users.create"}, node: { id: "node1" }};
+	const ep = { action: { name: "users.create" }, node: { id: "node1" } };
 	const ctx = new Context(broker, ep);
 	ctx.id = 1;
 	ctx.nodeID = "node2";
@@ -1039,7 +1039,7 @@ describe("Test Transit.processPong", () => {
 		transit.processPong({ sender: "node-2", arrived: now, time: now - 500 });
 
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
-		expect(broker.broadcastLocal).toHaveBeenCalledWith("$node.pong", {"elapsedTime": jasmine.any(Number), "nodeID": "node-2", "timeDiff": jasmine.any(Number)});
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$node.pong", { "elapsedTime": jasmine.any(Number), "nodeID": "node-2", "timeDiff": jasmine.any(Number) });
 	});
 
 });

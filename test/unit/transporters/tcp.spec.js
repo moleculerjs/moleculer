@@ -5,7 +5,6 @@ const ServiceBroker = require("../../../src/service-broker");
 const Transit = require("../../../src/transit");
 const P = require("../../../src/packets");
 const E = require("../../../src/errors");
-const net = require("net");
 const { protectReject } = require("../utils");
 
 // const lolex = require("lolex");
@@ -1079,7 +1078,7 @@ describe("Test Gossip methods", () => {
 				target: "node-2",
 				payload: {
 					"online": {
-						"node-2": [{"info": "node-2"}, 200, 22]
+						"node-2": [{ "info": "node-2" }, 200, 22]
 					},
 					"offline": {
 						"node-5": 50
@@ -1144,8 +1143,8 @@ describe("Test Gossip methods", () => {
 				target: "node-10",
 				payload: {
 					online: {
-						"node-1": [{"info": "node-1"}, 100, 11],
-						"node-7": [{"info": "node-7"}, 0, 0],
+						"node-1": [{ "info": "node-1" }, 100, 11],
+						"node-7": [{ "info": "node-7" }, 0, 0],
 						"node-8": [800, 88]
 					},
 					offline: {
@@ -1211,8 +1210,8 @@ describe("Test Gossip methods", () => {
 
 			// Update 'node-6' & 'node-7'
 			expect(transporter.nodes.processNodeInfo).toHaveBeenCalledTimes(2);
-			expect(transporter.nodes.processNodeInfo).toHaveBeenCalledWith({"sender": "node-6", "seq": 66});
-			expect(transporter.nodes.processNodeInfo).toHaveBeenCalledWith({"sender": "node-7", "seq": 77});
+			expect(transporter.nodes.processNodeInfo).toHaveBeenCalledWith({ "sender": "node-6", "seq": 66 });
+			expect(transporter.nodes.processNodeInfo).toHaveBeenCalledWith({ "sender": "node-7", "seq": 77 });
 
 			// Update 'node-8' seq
 			expect(nodes[6].seq).toBe(88);

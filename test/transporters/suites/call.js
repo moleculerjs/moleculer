@@ -20,7 +20,7 @@ const mathService = {
 	}
 };
 
-module.exports = function(transporter, serializer, meta)  {
+module.exports = function(transporter, serializer)  {
 
 	describe("Test normal calling", () => {
 
@@ -90,7 +90,7 @@ module.exports = function(transporter, serializer, meta)  {
 
 		it("should direct call action on the specified node", () => {
 			return master.waitForServices("math")
-				.then(() => Promise.all(_.times(6, () => master.call("math.add", { a: 20, b: 30 }, { nodeID: "slaveB"}))))
+				.then(() => Promise.all(_.times(6, () => master.call("math.add", { a: 20, b: 30 }, { nodeID: "slaveB" }))))
 				.catch(protectReject)
 				.then(res => {
 					//console.log(res);

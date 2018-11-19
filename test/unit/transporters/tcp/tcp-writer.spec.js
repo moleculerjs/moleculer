@@ -55,7 +55,7 @@ describe("Test TcpWriter.send", () => {
 	});
 
 	it("should call connect if no socket", () => {
-		return writer.send("node-2", P.PACKET_REQUEST, Buffer.from("data")).catch(protectReject).error(err => {
+		return writer.send("node-2", P.PACKET_REQUEST, Buffer.from("data")).catch(protectReject).error(() => {
 			expect(writer.connect).toHaveBeenCalledTimes(1);
 			expect(writer.connect).toHaveBeenCalledWith(node);
 			expect(socket.lastUsed).toBeDefined();
@@ -202,7 +202,7 @@ describe("Test TcpWriter.connect", () => {
 		writer.sockets.set(4, null);
 		writer.sockets.set(5, null);
 
-		let p = writer.connect("node-2").catch(protectReject).then(s => {
+		let p = writer.connect("node-2").catch(protectReject).then(() => {
 			expect(writer.manageConnections).toHaveBeenCalledTimes(1);
 		});
 
@@ -251,9 +251,9 @@ describe("Test TcpWriter.manageConnections", () => {
 
 	it("should not call removeSocket", () => {
 		writer = new TcpWriter(transporter, { maxConnections: 5 });
-		writer.sockets.set("node-2", { lastUsed: 4});
-		writer.sockets.set("node-3", { lastUsed: 1});
-		writer.sockets.set("node-4", { lastUsed: 6});
+		writer.sockets.set("node-2", { lastUsed: 4 });
+		writer.sockets.set("node-3", { lastUsed: 1 });
+		writer.sockets.set("node-4", { lastUsed: 6 });
 
 		writer.removeSocket = jest.fn();
 
@@ -265,11 +265,11 @@ describe("Test TcpWriter.manageConnections", () => {
 
 	it("should call removeSocket", () => {
 		writer = new TcpWriter(transporter, { maxConnections: 3 });
-		writer.sockets.set("node-2", { lastUsed: 4});
-		writer.sockets.set("node-3", { lastUsed: 1});
-		writer.sockets.set("node-4", { lastUsed: 6});
-		writer.sockets.set("node-5", { lastUsed: 2});
-		writer.sockets.set("node-6", { lastUsed: 5});
+		writer.sockets.set("node-2", { lastUsed: 4 });
+		writer.sockets.set("node-3", { lastUsed: 1 });
+		writer.sockets.set("node-4", { lastUsed: 6 });
+		writer.sockets.set("node-5", { lastUsed: 2 });
+		writer.sockets.set("node-6", { lastUsed: 5 });
 
 		writer.removeSocket = jest.fn();
 

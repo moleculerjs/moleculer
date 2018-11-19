@@ -75,7 +75,7 @@ describe("Test ServiceBroker constructor", () => {
 
 	it("should merge options", () => {
 
-		let broker = new ServiceBroker( {
+		let broker = new ServiceBroker({
 			namespace: "test",
 			nodeID: "server-12",
 			transporter: null,
@@ -192,7 +192,7 @@ describe("Test ServiceBroker constructor", () => {
 	});
 
 	it("should create transit if transporter into options", () => {
-		let broker = new ServiceBroker( {
+		let broker = new ServiceBroker({
 			logger: false,
 			transporter: "Fake"
 		});
@@ -205,7 +205,7 @@ describe("Test ServiceBroker constructor", () => {
 	it("should create cacher and call init", () => {
 		let cacher = new Cachers.Memory();
 		cacher.init = jest.fn();
-		let broker = new ServiceBroker( {
+		let broker = new ServiceBroker({
 			logger: false,
 			cacher
 		});
@@ -219,7 +219,7 @@ describe("Test ServiceBroker constructor", () => {
 	it("should set serializer and call init", () => {
 		let serializer = new Serializers.JSON();
 		serializer.init = jest.fn();
-		let broker = new ServiceBroker( {
+		let broker = new ServiceBroker({
 			logger: false,
 			serializer
 		});
@@ -241,7 +241,7 @@ describe("Test ServiceBroker constructor", () => {
 	});
 
 	it("should disable balancer if transporter has no built-in balancer", () => {
-		let broker = new ServiceBroker( {
+		let broker = new ServiceBroker({
 			logger: false,
 			transporter: "Fake",
 			disableBalancer: true
@@ -254,7 +254,7 @@ describe("Test ServiceBroker constructor", () => {
 		let tx = new Transporters.Fake();
 		tx.hasBuiltInBalancer = false;
 
-		let broker = new ServiceBroker( {
+		let broker = new ServiceBroker({
 			logger: false,
 			transporter: tx,
 			disableBalancer: true
@@ -264,7 +264,7 @@ describe("Test ServiceBroker constructor", () => {
 	});
 
 	it("should load internal middlewares", () => {
-		let broker = new ServiceBroker( {
+		let broker = new ServiceBroker({
 			logger: false
 		});
 
@@ -272,7 +272,7 @@ describe("Test ServiceBroker constructor", () => {
 	});
 
 	it("should not load internal middlewares", () => {
-		let broker = new ServiceBroker( {
+		let broker = new ServiceBroker({
 			logger: false,
 			internalMiddlewares: false
 		});
@@ -283,7 +283,7 @@ describe("Test ServiceBroker constructor", () => {
 	it("should load middlewares", () => {
 		let mw1 = jest.fn(handler => handler);
 		let mw2 = jest.fn(handler => handler);
-		let broker = new ServiceBroker( {
+		let broker = new ServiceBroker({
 			logger: false,
 			internalMiddlewares: false,
 			middlewares: [mw1, mw2]
@@ -299,7 +299,7 @@ describe("Test ServiceBroker constructor", () => {
 		let started = jest.fn();
 		let stopped = jest.fn();
 
-		let broker = new ServiceBroker( {
+		let broker = new ServiceBroker({
 			logger: false,
 			created,
 			started,
@@ -327,7 +327,7 @@ describe("Test ServiceBroker constructor", () => {
 	});
 
 	it("should not register internal middlewares", () => {
-		let broker = new ServiceBroker( {
+		let broker = new ServiceBroker({
 			logger: false,
 			internalMiddlewares: false
 		});
@@ -336,7 +336,7 @@ describe("Test ServiceBroker constructor", () => {
 	});
 
 	it("should register user middlewares", () => {
-		let broker = new ServiceBroker( {
+		let broker = new ServiceBroker({
 			logger: false,
 			internalMiddlewares: false,
 			middlewares: [
@@ -349,7 +349,7 @@ describe("Test ServiceBroker constructor", () => {
 	});
 
 	it("should register internal middlewares", () => {
-		let broker = new ServiceBroker( {
+		let broker = new ServiceBroker({
 			logger: false,
 			cacher: "memory",
 			requestTimeout: 5000,
@@ -680,7 +680,7 @@ describe("Test broker.getLogger", () => {
 		broker.logger.info("Teszt", { a: 5 });
 
 		expect(logFormatter).toHaveBeenCalledTimes(1);
-		expect(logFormatter).toHaveBeenCalledWith("info", ["Teszt", { a: 5 }], {"mod": "broker", "nodeID": "node-1234", "ns": ""});
+		expect(logFormatter).toHaveBeenCalledWith("info", ["Teszt", { a: 5 }], { "mod": "broker", "nodeID": "node-1234", "ns": "" });
 	});
 
 	describe("Test logger creator", () => {
@@ -691,7 +691,7 @@ describe("Test broker.getLogger", () => {
 			broker = new ServiceBroker({ internalServices: false, logger, namespace: "testing", nodeID: "test-pc", transporter: null, internalMiddlewares: false });
 
 			expect(logger).toHaveBeenCalledTimes(2);
-			expect(logger).toHaveBeenCalledWith({"mod": "broker", "nodeID": "test-pc", "ns": "testing"});
+			expect(logger).toHaveBeenCalledWith({ "mod": "broker", "nodeID": "test-pc", "ns": "testing" });
 		});
 
 		it("should call creator function with custom module", () => {
@@ -699,7 +699,7 @@ describe("Test broker.getLogger", () => {
 			broker.getLogger("my-module");
 
 			expect(logger).toHaveBeenCalledTimes(1);
-			expect(logger).toHaveBeenCalledWith({"mod": "my-module", "nodeID": "test-pc", "ns": "testing"});
+			expect(logger).toHaveBeenCalledWith({ "mod": "my-module", "nodeID": "test-pc", "ns": "testing" });
 		});
 
 		it("should call creator function with versioned service bindings", () => {
@@ -707,7 +707,7 @@ describe("Test broker.getLogger", () => {
 			broker.getLogger("v1.posts", { svc: "posts", ver: 2 });
 
 			expect(logger).toHaveBeenCalledTimes(1);
-			expect(logger).toHaveBeenCalledWith({"mod": "v1.posts", "svc": "posts", "ver": 2, "nodeID": "test-pc", "ns": "testing"});
+			expect(logger).toHaveBeenCalledWith({ "mod": "v1.posts", "svc": "posts", "ver": 2, "nodeID": "test-pc", "ns": "testing" });
 		});
 
 		it("should call creator function with versioned service bindings", () => {
@@ -715,7 +715,7 @@ describe("Test broker.getLogger", () => {
 			broker.getLogger("my.module.network.io", { custom: "abc" });
 
 			expect(logger).toHaveBeenCalledTimes(1);
-			expect(logger).toHaveBeenCalledWith({"mod": "my.module.network.io", "custom": "abc", "nodeID": "test-pc", "ns": "testing"});
+			expect(logger).toHaveBeenCalledWith({ "mod": "my.module.network.io", "custom": "abc", "nodeID": "test-pc", "ns": "testing" });
 		});
 
 	});
@@ -1667,8 +1667,8 @@ describe("Test broker.mcall", () => {
 			expect(res).toEqual(["posts.find", "users.find"]);
 
 			expect(broker.call).toHaveBeenCalledTimes(2);
-			expect(broker.call).toHaveBeenCalledWith("posts.find", { limit: 2, offset: 0}, { timeout: 500 });
-			expect(broker.call).toHaveBeenCalledWith("users.find", { limit: 2, sort: "username"}, undefined);
+			expect(broker.call).toHaveBeenCalledWith("posts.find", { limit: 2, offset: 0 }, { timeout: 500 });
+			expect(broker.call).toHaveBeenCalledWith("users.find", { limit: 2, sort: "username" }, undefined);
 		});
 	});
 
@@ -1679,11 +1679,11 @@ describe("Test broker.mcall", () => {
 			posts: { action: "posts.find", params: { limit: 2, offset: 0 }, options: { timeout: 500 } },
 			users: { action: "users.find", params: { limit: 2, sort: "username" } }
 		}).catch(protectReject).then(res => {
-			expect(res).toEqual({ posts: "posts.find", users: "users.find"});
+			expect(res).toEqual({ posts: "posts.find", users: "users.find" });
 
 			expect(broker.call).toHaveBeenCalledTimes(2);
-			expect(broker.call).toHaveBeenCalledWith("posts.find", { limit: 2, offset: 0}, { timeout: 500 });
-			expect(broker.call).toHaveBeenCalledWith("users.find", { limit: 2, sort: "username"}, undefined);
+			expect(broker.call).toHaveBeenCalledWith("posts.find", { limit: 2, offset: 0 }, { timeout: 500 });
+			expect(broker.call).toHaveBeenCalledWith("users.find", { limit: 2, sort: "username" }, undefined);
 		});
 	});
 
@@ -1735,7 +1735,7 @@ describe("Test broker.emit", () => {
 		expect(broker.registry.events.callEventHandler).toHaveBeenCalledWith(handler, { a: 5 }, broker.nodeID, "$test.event");
 
 		expect(broker.localBus.emit).toHaveBeenCalledTimes(1);
-		expect(broker.localBus.emit).toHaveBeenCalledWith("$test.event", {a : 5});
+		expect(broker.localBus.emit).toHaveBeenCalledWith("$test.event", { a : 5 });
 
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(1);
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith("$test.event", undefined);
@@ -1813,7 +1813,7 @@ describe("Test broker.emit with transporter", () => {
 		expect(broker.registry.events.callEventHandler).toHaveBeenCalledWith(handler, { name: "John" }, broker.nodeID, "user.event");
 
 		expect(broker.transit.sendBalancedEvent).toHaveBeenCalledTimes(1);
-		expect(broker.transit.sendBalancedEvent).toHaveBeenCalledWith("user.event", {"name": "John"}, {"node-2": ["payment", "mail"], "node-3": ["users"]});
+		expect(broker.transit.sendBalancedEvent).toHaveBeenCalledWith("user.event", { "name": "John" }, { "node-2": ["payment", "mail"], "node-3": ["users"] });
 
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(1);
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledWith("user.event", undefined);
@@ -1835,7 +1835,7 @@ describe("Test broker.emit with transporter", () => {
 		expect(broker.getEventGroups).toHaveBeenCalledWith("user.event");
 
 		expect(broker.transit.sendEventToGroups).toHaveBeenCalledTimes(1);
-		expect(broker.transit.sendEventToGroups).toHaveBeenCalledWith("user.event", {"name": "John"}, ["mail", "payment"]);
+		expect(broker.transit.sendEventToGroups).toHaveBeenCalledWith("user.event", { "name": "John" }, ["mail", "payment"]);
 
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(0);
 	});
@@ -1854,7 +1854,7 @@ describe("Test broker.emit with transporter", () => {
 		expect(broker.getEventGroups).toHaveBeenCalledTimes(0);
 
 		expect(broker.transit.sendEventToGroups).toHaveBeenCalledTimes(1);
-		expect(broker.transit.sendEventToGroups).toHaveBeenCalledWith("user.event", {"name": "John"}, ["users", "mail"]);
+		expect(broker.transit.sendEventToGroups).toHaveBeenCalledWith("user.event", { "name": "John" }, ["users", "mail"]);
 
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(0);
 	});
@@ -1874,7 +1874,7 @@ describe("Test broker.emit with transporter", () => {
 
 		expect(broker.registry.events.callEventHandler).toHaveBeenCalledTimes(0);
 		expect(broker.transit.sendEventToGroups).toHaveBeenCalledTimes(1);
-		expect(broker.transit.sendEventToGroups).toHaveBeenCalledWith("$user.event", {"name": "John"}, ["users", "mail"]);
+		expect(broker.transit.sendEventToGroups).toHaveBeenCalledWith("$user.event", { "name": "John" }, ["users", "mail"]);
 
 		expect(broker.registry.events.getBalancedEndpoints).toHaveBeenCalledTimes(0);
 	});
@@ -2045,6 +2045,10 @@ describe("Test hot-reload feature", () => {
 
 		let svc = broker.createService({
 			name: "test"
+		});
+
+		beforeEach(() => {
+			fs.watch.mockClear();
 		});
 
 		it("should not call fs.watch because no __filename", () => {

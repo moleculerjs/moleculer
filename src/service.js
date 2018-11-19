@@ -60,7 +60,7 @@ class Service {
 		this.metadata = schema.metadata || {};
 		this.schema = schema;
 
-		if (this.version && this.settings.$noVersionPrefix !== true)
+		if (this.version != null && this.settings.$noVersionPrefix !== true)
 			this.fullName = (typeof(this.version) == "number" ? "v" + this.version : this.version) + "." + this.name;
 		else
 			this.fullName = this.name;
@@ -296,11 +296,11 @@ class Service {
 		event.service = this;
 		const self = this;
 		if (_.isFunction(handler)) {
-			event.handler = function () {
+			event.handler = function() {
 				return handler.apply(self, arguments);
 			};
 		} else if (Array.isArray(handler)) {
-			event.handler = function () {
+			event.handler = function() {
 				return Promise.all(handler.map(fn => fn.apply(self, arguments)));
 			};
 		}

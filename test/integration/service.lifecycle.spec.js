@@ -110,7 +110,7 @@ describe("Test Service requesting during stopping", () => {
 			});
 		}
 	};
-	const svc = broker2.createService(schema1);
+	broker2.createService(schema1);
 
 	const schema2 = {
 		name: "users",

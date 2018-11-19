@@ -3,7 +3,6 @@ const { MoleculerRetryableError }	= require("../../../src/errors");
 const Context 						= require("../../../src/context");
 const Middleware 					= require("../../../src/middlewares").Retry;
 const { protectReject } 			= require("../utils");
-const lolex							= require("lolex");
 
 describe("Test RetryMiddleware", () => {
 	const broker = new ServiceBroker({ nodeID: "server-1", logger: false, transporter: "Fake" });
