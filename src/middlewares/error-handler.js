@@ -6,10 +6,9 @@
 
 "use strict";
 
-const _ = require("lodash");
 const { MoleculerError } = require("../errors");
 
-function wrapErrorHandler(handler, action) {
+function wrapErrorHandler(handler) {
 	return function errorHandlerMiddleware(ctx) {
 		// Call the handler
 		return handler(ctx)
@@ -17,7 +16,7 @@ function wrapErrorHandler(handler, action) {
 				if (!(err instanceof Error))
 					err = new MoleculerError(err, 500);
 
-				if (ctx.nodeID != this.nodeID) {
+				if (ctx.nodeID !== this.nodeID) {
 					// Remove pending request (the request didn't reach the target service)
 					this.transit.removePendingRequest(ctx.id);
 				}

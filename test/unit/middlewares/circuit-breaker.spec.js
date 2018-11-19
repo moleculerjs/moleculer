@@ -1,7 +1,6 @@
 const ServiceBroker 		= require("../../../src/service-broker");
 const Context 				= require("../../../src/context");
 const { MoleculerError } 	= require("../../../src/errors");
-const C 					= require("../../../src/constants");
 const Middleware 			= require("../../../src/middlewares").CircuitBreaker;
 const lolex 				= require("lolex");
 const { protectReject } 	= require("../utils");
@@ -11,10 +10,6 @@ describe("Test CircuitBreakerMiddleware", () => {
 	const handler = jest.fn(() => Promise.resolve("Result"));
 	const action = {
 		handler
-	};
-	const endpoint = {
-		action,
-		node: { id: broker.nodeID }
 	};
 
 	const mw = Middleware();

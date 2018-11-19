@@ -6,12 +6,12 @@
 
 "use strict";
 
-const Promise		= require("bluebird");
-const _ 			= require("lodash");
+const Promise = require("bluebird");
+const _ = require("lodash");
 
-const P				= require("./packets");
-const { Packet }	= require("./packets");
-const E 			= require("./errors");
+const P = require("./packets");
+const { Packet } = require("./packets");
+const E = require("./errors");
 
 const { Transform } = require("stream");
 
@@ -246,12 +246,16 @@ class Transit {
 			}
 
 			// Check protocol version
-			if (payload.ver != this.broker.PROTOCOL_VERSION) {
-				throw new E.ProtocolVersionMismatchError({ nodeID: payload.sender, actual: this.broker.PROTOCOL_VERSION, received: payload.ver });
+			if (payload.ver !== this.broker.PROTOCOL_VERSION) {
+				throw new E.ProtocolVersionMismatchError({
+					nodeID: payload.sender,
+					actual: this.broker.PROTOCOL_VERSION,
+					received: payload.ver
+				});
 			}
 
 			// Skip own packets (if only built-in balancer disabled)
-			if (payload.sender == this.nodeID && (cmd !== P.PACKET_EVENT && cmd !== P.PACKET_REQUEST && cmd !== P.PACKET_RESPONSE))
+			if (payload.sender === this.nodeID && (cmd !== P.PACKET_EVENT && cmd !== P.PACKET_REQUEST && cmd !== P.PACKET_RESPONSE))
 				return;
 
 			// log only if packet type was not disabled by options
@@ -305,7 +309,7 @@ class Transit {
 			}
 
 			return true;
-		} catch(err) {
+		} catch (err) {
 			this.logger.error(err, cmd, packet);
 		}
 		return false;
@@ -367,7 +371,7 @@ class Transit {
 					} else {
 						this.logger.debug(`Stream chunk is received from '${payload.sender}'.`);
 						// stream chunk received
-						pass.write(payload.params.type === "Buffer" ? new Buffer.from(payload.params.data):payload.params);
+						pass.write(payload.params.type === "Buffer" ? new Buffer.from(payload.params.data) : payload.params);
 
 						return;
 					}
@@ -391,7 +395,7 @@ class Transit {
 			// Recreate caller context
 			const ctx = new this.broker.ContextFactory(this.broker, endpoint);
 			ctx.id = payload.id;
-			ctx.setParams(pass ? pass: payload.params);
+			ctx.setParams(pass ? pass : payload.params);
 			ctx.parentID = payload.parentID;
 			ctx.requestID = payload.requestID;
 			ctx.meta = payload.meta || {};
@@ -406,10 +410,10 @@ class Transit {
 			p.ctx = ctx;
 
 			return p
-				.then(res => this.sendResponse(payload.sender, payload.id,  ctx.meta, res, null))
+				.then(res => this.sendResponse(payload.sender, payload.id, ctx.meta, res, null))
 				.catch(err => this.sendResponse(payload.sender, payload.id, ctx.meta, null, err));
 
-		} catch(err) {
+		} catch (err) {
 			return this.sendResponse(payload.sender, payload.id, payload.meta, null, err);
 		}
 	}
@@ -478,7 +482,7 @@ class Transit {
 				} else {
 					// stream chunk
 					this.logger.debug(`Stream chunk is received from '${packet.sender}'`);
-					pass.write(packet.data.type === "Buffer" ? new Buffer.from(packet.data.data):packet.data);
+					pass.write(packet.data.type === "Buffer" ? new Buffer.from(packet.data.data) : packet.data);
 				}
 				return req.resolve(packet.data);
 
@@ -511,14 +515,19 @@ class Transit {
 	 * Send a request to a remote service. It returns a Promise
 	 * what will be resolved when the response received.
 	 *
-	 * @param {<Context>} ctx			Context of request
-	 * @returns	{Promise}
+	 * @param {<Context>} ctx            Context of request
+	 * @returns    {Promise}
 	 *
 	 * @memberof Transit
 	 */
 	request(ctx) {
 		if (this.opts.maxQueueSize && this.pendingRequests.size > this.opts.maxQueueSize)
-			return Promise.reject(new E.QueueIsFullError({ action: ctx.action.name, nodeID: this.nodeID, size: this.pendingRequests.length, limit: this.opts.maxQueueSize }));
+			return Promise.reject(new E.QueueIsFullError({
+				action: ctx.action.name,
+				nodeID: this.nodeID,
+				size: this.pendingRequests.length,
+				limit: this.opts.maxQueueSize
+			}));
 
 		// Expanded the code that v8 can optimize it.  (TryCatchStatement disable optimizing)
 		return new Promise((resolve, reject) => this._sendRequest(ctx, resolve, reject));
@@ -527,9 +536,9 @@ class Transit {
 	/**
 	 * Send a remote request
 	 *
-	 * @param {<Context>} ctx 		Context of request
-	 * @param {Function} resolve 	Resolve of Promise
-	 * @param {Function} reject 	Reject of Promise
+	 * @param {<Context>} ctx        Context of request
+	 * @param {Function} resolve    Resolve of Promise
+	 * @param {Function} reject    Reject of Promise
 	 *
 	 * @memberof Transit
 	 */
@@ -706,11 +715,14 @@ class Transit {
 	removePendingRequestByNodeID(nodeID) {
 		this.logger.debug(`Remove pending requests of '${nodeID}' node.`);
 		this.pendingRequests.forEach((req, id) => {
-			if (req.nodeID == nodeID) {
+			if (req.nodeID === nodeID) {
 				this.pendingRequests.delete(id);
 
 				// Reject the request
-				req.reject(new E.RequestRejectedError({ action: req.action.name, nodeID: req.nodeID }));
+				req.reject(new E.RequestRejectedError({
+					action: req.action.name,
+					nodeID: req.nodeID
+				}));
 
 				this.pendingReqStreams.delete(id);
 				this.pendingResStreams.delete(id);

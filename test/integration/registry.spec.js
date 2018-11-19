@@ -27,7 +27,7 @@ let userService = {
 				return "Removed";
 			}
 		},
-		removeWrap(ctx) {
+		removeWrap() {
 			return this.actions.remove();
 		}
 	},

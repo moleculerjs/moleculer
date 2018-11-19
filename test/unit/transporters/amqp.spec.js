@@ -427,11 +427,6 @@ describe("Test AmqpTransporter publish", () => {
 	let transporter;
 	let msgHandler;
 
-	const fakeTransit = {
-		nodeID: "node1",
-		serialize: jest.fn(msg => Buffer.from(JSON.stringify(msg)))
-	};
-
 	beforeEach(() => {
 		msgHandler = jest.fn();
 		transporter = new AmqpTransporter({ url: "amqp://localhost", eventTimeToLive: 3000 });

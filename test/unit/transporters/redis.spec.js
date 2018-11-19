@@ -112,11 +112,6 @@ describe("Test RedisTransporter subscribe & publish", () => {
 	let transporter;
 	let msgHandler;
 
-	const fakeTransit = {
-		nodeID: "node1",
-		serialize: jest.fn(msg => Buffer.from(JSON.stringify(msg)))
-	};
-
 	beforeEach(() => {
 		msgHandler = jest.fn();
 		transporter = new RedisTransporter();

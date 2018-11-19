@@ -5,7 +5,6 @@ const ServiceBroker = require("../../../src/service-broker");
 const Transit = require("../../../src/transit");
 const P = require("../../../src/packets");
 const E = require("../../../src/errors");
-const net = require("net");
 const { protectReject } = require("../utils");
 
 // const lolex = require("lolex");

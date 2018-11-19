@@ -230,7 +230,7 @@ describe("Test Service mixins", () => {
 
 		hooks: {
 			before: {
-				"*"(ctx) {
+				"*"() {
 					flowHooks.push("main-before-all");
 				},
 				beta() {

@@ -60,7 +60,7 @@ function generateMetricPayload(ctx) {
 		requestID: ctx.requestID,
 		level: ctx.level,
 		startTime: ctx.startTime,
-		remoteCall: ctx.nodeID != ctx.broker.nodeID
+		remoteCall: ctx.nodeID !== ctx.broker.nodeID
 	};
 
 	// Process extra metrics
@@ -160,7 +160,7 @@ function processExtraMetrics(ctx, payload) {
 	}
 }
 
-function wrapLocalMetricsMiddleware(handler, action) {
+function wrapLocalMetricsMiddleware(handler) {
 
 	if (this.options.metrics) {
 		return function metricsMiddleware(ctx) {
@@ -190,7 +190,7 @@ function wrapLocalMetricsMiddleware(handler, action) {
 	return handler;
 }
 
-function wrapRemoteMetricsMiddleware(handler, action) {
+function wrapRemoteMetricsMiddleware(handler) {
 
 	if (this.options.metrics) {
 		return function metricsMiddleware(ctx) {

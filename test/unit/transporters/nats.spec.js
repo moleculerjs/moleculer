@@ -129,11 +129,6 @@ describe("Test NatsTransporter connect & disconnect & reconnect", () => {
 describe("Test NatsTransporter subscribe & publish", () => {
 	let transporter;
 
-	const fakeTransit = {
-		nodeID: "node1",
-		serialize: jest.fn(msg => Buffer.from(JSON.stringify(msg)))
-	};
-
 	beforeEach(() => {
 		transporter = new NatsTransporter();
 		transporter.init(new Transit(new ServiceBroker({ logger: false, namespace: "TEST", nodeID: "node-123" })));
