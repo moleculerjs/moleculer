@@ -332,6 +332,87 @@ class Transit {
 	}
 
 	/**
+	 * Handle incoming request stream.
+	 *
+	 * @param {Object} payload
+	 * @returns {Stream}
+	 */
+	_handleIncomingRequestStream(payload) {
+		let pass = this.pendingReqStreams.get(payload.id);
+		let isNew = false;
+
+		if (!pass) {
+			isNew = true;
+			this.logger.debug(`<= New stream is received from '${payload.sender}'. Seq: ${payload.seq}`);
+
+			// Create a new pass stream
+			pass = new Transform({
+				transform: function(chunk, encoding, done) {
+					this.push(chunk);
+					return done();
+				}
+			});
+
+			pass.$prevSeq = -1;
+			pass.$pool = new Map();
+
+			this.pendingReqStreams.set(payload.id, pass);
+		}
+
+		if (payload.seq > pass.$prevSeq + 1) {
+			// Some chunks are late. Store these chunks.
+			this.logger.info(`Put the chunk into pool (size: ${pass.$pool.size()}). Seq: ${payload.seq}`);
+
+			pass.$pool.set("" + payload.seq, payload);
+
+			// TODO: start timer.
+			// TODO: check length of pool.
+
+			return;
+		}
+
+		// the next stream chunk received
+		pass.$prevSeq = payload.seq;
+
+		if (pass.$prevSeq > 0) {
+			if (!payload.stream) {
+
+				// Check stream error
+				if (payload.meta["$streamError"]) {
+					pass.emit("error", this._createErrFromPayload(payload.meta["$streamError"], payload.sender));
+				}
+
+				this.logger.debug(`<= Stream closing is received from '${payload.sender}'. Seq: ${payload.seq}`);
+
+				// End of stream
+				pass.end();
+
+				// Remove pending request
+				this.removePendingRequest(payload.id);
+
+				return;
+
+			} else {
+				this.logger.debug(`<= Stream chunk is received from '${payload.sender}'. Seq: ${payload.seq}`);
+				pass.write(payload.params.type === "Buffer" ? new Buffer.from(payload.params.data) : payload.params);
+			}
+		}
+
+		// Check newer chunks in the pool
+		if (pass.$pool.size > 0) {
+			this.logger.warn(`Has stored packets. Size: ${pass.$pool.size}`);
+			const nextSeq = pass.$prevSeq + 1;
+			const nextPacket = pass.$pool.get(nextSeq);
+			if (nextPacket) {
+				pass.$pool.delete(nextSeq);
+				setImmediate(() => this._requestHandler(nextPacket));
+			}
+		}
+
+		return isNew ? pass : null;
+	}
+
+	/**
 	 * Handle incoming request
 	 *
 	 * @param {Object} payload
@@ -343,51 +424,15 @@ class Transit {
 
 		try {
 			if (!this.broker.started) {
-				this.logger.warn(`Incoming '${payload.action}' request from '${payload.sender}' node is dropped, because broker is stopped.`);
+				this.logger.warn(`Incoming '${payload.action}' request from '${payload.sender}' node is dropped because broker is stopped.`);
 				throw new E.ServiceNotAvailableError({ action: payload.action, nodeID: this.nodeID });
 			}
 
 			let pass;
 			if (payload.stream !== undefined) {
-				pass = this.pendingReqStreams.get(payload.id);
-				if (pass) {
-					if (!payload.stream) {
-
-						// Check stream error
-						if (payload.meta["$streamError"]) {
-							pass.emit("error", this._createErrFromPayload(payload.meta["$streamError"], payload.sender));
-						}
-
-						this.logger.debug(`<= Stream closing is received from '${payload.sender}'. Seq: ${payload.seq}`);
-
-						// End of stream
-						pass.end();
-
-						// Remove pending request
-						this.removePendingRequest(payload.id);
-
-						return;
-
-					} else {
-						this.logger.debug(`<= Stream chunk is received from '${payload.sender}'. Seq: ${payload.seq}`);
-						// stream chunk received
-						pass.write(payload.params.type === "Buffer" ? new Buffer.from(payload.params.data) : payload.params);
-
-						return;
-					}
-
-				} else if (payload.stream) {
-					this.logger.debug(`<= New stream is received from '${payload.sender}'. Seq: ${payload.seq}`);
-
-					// Create a new pass stream
-					pass = new Transform({
-						transform: function(chunk, encoding, done) {
-							this.push(chunk);
-							return done();
-						}
-					});
-					this.pendingReqStreams.set(payload.id, pass);
-				}
+				pass = this._handleIncomingRequestStream(payload);
+				if (!pass)
+					return;
 			}
 
 			const endpoint = this.broker._getLocalActionEndpoint(payload.action);
@@ -418,6 +463,11 @@ class Transit {
 		}
 	}
 
+	/**
+	 * Create an Error instance from payload ata
+	 * @param {Object} error
+	 * @param {String} sender
+	 */
 	_createErrFromPayload(error, sender) {
 		let err = E.recreateError(error);
 		if (!err) {
@@ -434,6 +484,83 @@ class Transit {
 			err.stack = error.stack;
 
 		return err;
+	}
+
+	/**
+	 * Handle incoming response stream.
+	 *
+	 * @param {Object} packet
+	 * @param {Object} req
+	 */
+	_handleIncomingResponseStream(packet, req) {
+		let pass = this.pendingResStreams.get(packet.id);
+		if (!pass) {
+			this.logger.debug(`<= New stream is received from '${packet.sender}'. Seq: ${packet.seq}`);
+
+			pass = new Transform({
+				transform: function(chunk, encoding, done) {
+					this.push(chunk);
+					return done();
+				}
+			});
+
+			pass.$prevSeq = -1;
+			pass.$pool = new Map();
+
+			this.pendingResStreams.set(packet.id, pass);
+
+			req.resolve(pass);
+		}
+
+		if (packet.seq > pass.$prevSeq + 1) {
+			// Some chunks are late. Store these chunks.
+			this.logger.info(`Put the chunk into pool (size: ${pass.$pool.size()}). Seq: ${packet.seq}`);
+
+			pass.$pool.set("" + packet.seq, packet);
+
+			// TODO: start timer.
+			// TODO: check length of pool.
+
+			return;
+		}
+
+		// the next stream chunk received
+		pass.$prevSeq = packet.seq;
+
+		if (pass.$prevSeq > 0) {
+
+			if (!packet.stream) {
+				// Received error?
+				if (!packet.success)
+					pass.emit("error", this._createErrFromPayload(packet.error, packet.sender));
+
+				this.logger.debug(`<= Stream closing is received from '${packet.sender}'. Seq: ${packet.seq}`);
+
+				// End of stream
+				pass.end();
+
+				// Remove pending request
+				this.removePendingRequest(packet.id);
+
+				return;
+
+			} else {
+				// stream chunk
+				this.logger.debug(`<= Stream chunk is received from '${packet.sender}'. Seq: ${packet.seq}`);
+				pass.write(packet.data.type === "Buffer" ? new Buffer.from(packet.data.data):packet.data);
+			}
+		}
+
+		// Check newer chunks in the pool
+		if (pass.$pool.size > 0) {
+			this.logger.warn(`Has stored packets. Size: ${pass.$pool.size}`);
+			const nextSeq = pass.$prevSeq + 1;
+			const nextPacket = pass.$pool.get(nextSeq);
+			if (nextPacket) {
+				pass.$pool.delete(nextSeq);
+				setImmediate(() => this._responseHandler(nextPacket));
+			}
+		}
 	}
 
 	/**
@@ -461,44 +588,9 @@ class Transit {
 		// Merge response meta with original meta
 		_.assign(req.ctx.meta, packet.meta);
 
-		// Handle stream repose
+		// Handle stream response
 		if (packet.stream != null) {
-			//get the underlined stream for id
-			let pass = this.pendingResStreams.get(id);
-			if (pass) {
-				if (!packet.stream) {
-					// Received error?
-					if (!packet.success)
-						pass.emit("error", this._createErrFromPayload(packet.error, packet.sender));
-
-					this.logger.debug(`<= Stream closing is received from '${packet.sender}'. Seq: ${packet.seq}`);
-
-					// End of stream
-					pass.end();
-
-					// Remove pending request
-					this.removePendingRequest(id);
-
-				} else {
-					// stream chunk
-					this.logger.debug(`<= Stream chunk is received from '${packet.sender}'. Seq: ${packet.seq}`);
-					pass.write(packet.data.type === "Buffer" ? new Buffer.from(packet.data.data):packet.data);
-				}
-				return req.resolve(packet.data);
-
-			} else if (packet.stream) {
-				// Create a new pass stream
-				this.logger.debug(`<= New stream is received from '${packet.sender}'. Seq: ${packet.seq}`);
-
-				pass = new Transform({
-					transform: function(chunk, encoding, done) {
-						this.push(chunk);
-						return done();
-					}
-				});
-				this.pendingResStreams.set(id, pass);
-				return req.resolve(pass);
-			}
+			return this._handleIncomingResponseStream(packet, req);
 		}
 
 		// Remove pending request
@@ -591,7 +683,7 @@ class Transit {
 					const stream = ctx.params;
 					stream.on("data", chunk => {
 						const copy = Object.assign({}, payload);
-						copy.seq = payload.seq++;
+						copy.seq = ++payload.seq;
 						copy.stream = true;
 						copy.params = chunk;
 						stream.pause();
@@ -605,7 +697,7 @@ class Transit {
 
 					stream.on("end", () => {
 						const copy = Object.assign({}, payload);
-						copy.seq = payload.seq++;
+						copy.seq = ++payload.seq;
 						copy.params = null;
 						copy.stream = false;
 
@@ -617,7 +709,7 @@ class Transit {
 
 					stream.on("error", err => {
 						const copy = Object.assign({}, payload);
-						copy.seq = payload.seq++;
+						copy.seq = ++payload.seq;
 						copy.stream = false;
 						copy.meta["$streamError"] = this._createPayloadErrorField(err);
 						copy.params = null;
@@ -793,7 +885,7 @@ class Transit {
 			stream.on("data", chunk => {
 				const copy = Object.assign({}, payload);
 				copy.stream = true;
-				copy.seq = payload.seq++;
+				copy.seq = ++payload.seq;
 				copy.data = chunk;
 				stream.pause();
 
@@ -807,7 +899,7 @@ class Transit {
 			stream.on("end", () => {
 				const copy = Object.assign({}, payload);
 				copy.stream = false;
-				copy.seq = payload.seq++;
+				copy.seq = ++payload.seq;
 				copy.data = null;
 
 				this.logger.debug(`=> Send stream closing to ${nodeID} node. Seq: ${copy.seq}`);
@@ -819,7 +911,7 @@ class Transit {
 			stream.on("error", err => {
 				const copy = Object.assign({}, payload);
 				copy.stream = false;
-				copy.seq = payload.seq++;
+				copy.seq = ++payload.seq;
 				if (err) {
 					copy.success = false;
 					copy.error = this._createPayloadErrorField(err);

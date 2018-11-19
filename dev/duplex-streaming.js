@@ -4,6 +4,7 @@ const ServiceBroker = require("../src/service-broker");
 const fs = require("fs");
 const Promise = require("bluebird");
 const path = require("path");
+const chalk = require("chalk");
 const crypto = require("crypto");
 
 const password = "moleculer";
@@ -44,6 +45,8 @@ broker2.createService({
 	}
 });
 
+let origHash;
+
 broker1.Promise.all([broker1.start(), broker2.start()])
 	.delay(2000)
 	.then(() => {
@@ -53,6 +56,7 @@ broker1.Promise.all([broker1.start(), broker2.start()])
 		const fileName2 = "d://2.pdf";
 
 		return getSHA(fileName).then(hash1 => {
+			origHash = hash1;
 			broker1.logger.info("Original SHA:", hash1);
 
 			const startTime = Date.now();
@@ -66,7 +70,15 @@ broker1.Promise.all([broker1.start(), broker2.start()])
 					stream.pipe(s);
 					s.on("close", () => {
 						broker1.logger.info("Time:", Date.now() - startTime + "ms");
-						getSHA(fileName2).then(hash => broker1.logger.info("Received SHA:", hash));
+						getSHA(fileName2).then(hash => {
+							broker1.logger.info("Received SHA:", hash);
+
+							if (hash != origHash) {
+								broker1.logger.error(chalk.red.bold("Hash mismatch!"));
+							} else {
+								broker1.logger.info(chalk.green.bold("Hash OK!"));
+							}
+						});
 
 						broker2.stop();
 						broker1.stop();
