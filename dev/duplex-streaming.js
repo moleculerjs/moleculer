@@ -14,7 +14,7 @@ const broker1 = new ServiceBroker({
 	namespace: "streaming",
 	nodeID: "client-" + process.pid,
 	transporter: "TCP",
-	//serializer: "Thrift",
+	serializer: "MsgPack",
 	logger: console,
 	logLevel: "info"
 });
@@ -25,7 +25,7 @@ const broker2 = new ServiceBroker({
 	namespace: "streaming",
 	nodeID: "encrypter-" + process.pid,
 	transporter: "TCP",
-	//serializer: "Thrift",
+	serializer: "MsgPack",
 	logger: console,
 	logLevel: "info"
 });
