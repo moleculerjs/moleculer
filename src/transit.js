@@ -378,7 +378,7 @@ class Transit {
 			if (!payload.stream) {
 
 				// Check stream error
-				if (payload.meta["$streamError"]) {
+				if (payload.meta && payload.meta["$streamError"]) {
 					pass.emit("error", this._createErrFromPayload(payload.meta["$streamError"], payload.sender));
 				}
 
