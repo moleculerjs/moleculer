@@ -1,32 +1,45 @@
-const ApiGateway = require
 const ServiceBroker = require("../src/service-broker");
-const util = require("util");
 
 const broker = new ServiceBroker({
-	nodeID: "dev",// + process.pid,
-	//transporter: "mqtt://localhost:1833",
-	transporter: "TCP",
-	metrics: true,
-	//logLevel: "debug",
-	//logObjectPrinter: o => util.inspect(o, { depth: 4, colors: true, breakLength: 50 }), // `breakLength: 50` activates multi-line object
+	namespace: "test",
+	nodeID: "broker-1",
+	middlewares: [
+		{
+			localCall: (next) => {
+				return function(ctx) {
+					console.log("The \"call\" is called.", ctx.action.name);
+					return next(ctx).then(res => {
+						console.log("Response:", res);
+						return res;
+					});
+				};
+			},
+		},
+	],
 });
 
 broker.createService({
-	name: "test",
+	name: "test1",
 	actions: {
-		async hello(ctx) {
-			await this.broker.cacher.del('test.*');
-			return "Hello Moleculer";
-		}
-	}
+		test: (ctx) => {
+			ctx.meta.x = 3;
+			return "Hello World";
+		},
+	},
 });
 
-//broker.loadService("./examples/stat.service.js");
+broker.createService({
+	name: "test2",
+	actions: {
+		test: (ctx) => {
+			return ctx.call("test1.test");
+		},
+	},
+});
 
-broker.start()
-	.then(() => broker.repl());
-/*	.delay(1000)
-	.then(() => broker.call("stat.snapshot"))
-	.then(res => broker.logger.info(res))
-	.catch(err => broker.logger.error(err));
-*/
+broker.start().then(() => {
+	const meta = { x: 2 };
+	broker.call("test2.test", {}, { meta }).then((msg) => {
+		console.log(msg, meta);
+	});
+});
