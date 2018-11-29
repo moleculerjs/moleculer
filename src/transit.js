@@ -341,6 +341,11 @@ class Transit {
 		let pass = this.pendingReqStreams.get(payload.id);
 		let isNew = false;
 
+		if (!payload.stream && !pass) {
+			// It is not a stream data
+			return;
+		}
+
 		if (!pass) {
 			isNew = true;
 			this.logger.debug(`<= New stream is received from '${payload.sender}'. Seq: ${payload.seq}`);
