@@ -44,8 +44,8 @@
   "author": "Icebob",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "10.12.10",
-    "amqplib": "0.5.2",
+    "@types/node": "10.12.12",
+    "amqplib": "0.5.3",
     "avsc": "5.4.7",
     "benchmarkify": "2.1.0",
     "bunyan": "1.8.12",
@@ -74,7 +74,7 @@
     "protobufjs": "6.8.8",
     "thrift": "0.11.0",
     "ts-node": "7.0.1",
-    "typescript": "3.1.6",
+    "typescript": "3.2.1",
     "v8-natives": "1.1.0",
     "winston": "3.1.0",
     "winston-context": "0.0.7"
