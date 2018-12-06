@@ -509,11 +509,9 @@ class ServiceBroker {
 		else
 			serviceFiles = glob.sync(path.join(folder, fileMask));
 
-		if (serviceFiles) {
-			serviceFiles.forEach(filename => {
-				this.loadService(filename);
-			});
-		}
+		if (serviceFiles)
+			serviceFiles.forEach(filename => this.loadService(filename));
+
 		return serviceFiles.length;
 	}
 
@@ -535,6 +533,7 @@ class ServiceBroker {
 			schema = require(fName);
 		} catch (e) {
 			this.logger.error(`Failed to load service '${fName}'`, e);
+			throw e;
 		}
 
 		let svc;
