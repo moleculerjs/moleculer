@@ -1,4 +1,11 @@
 --------------------------------------------------
+<a name="0.13.5"></a>
+# [0.13.5](https://github.com/moleculerjs/moleculer/compare/v0.13.4...v0.13.5) (2018-xx-xx)
+
+# Changes
+- throw further the error in `loadService` method.
+
+--------------------------------------------------
 <a name="0.13.4"></a>
 # [0.13.4](https://github.com/moleculerjs/moleculer/compare/v0.13.3...v0.13.4) (2018-11-04)
 
