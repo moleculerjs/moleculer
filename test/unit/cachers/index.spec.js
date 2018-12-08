@@ -18,6 +18,11 @@ describe("Test Cacher resolver", () => {
 		expect(cacher).toBeInstanceOf(Cachers.Memory);
 	});
 
+	it("should resolve MemoryLRUCacher from string", () => {
+		let cacher = Cachers.resolve("MemoryLRU");
+		expect(cacher).toBeInstanceOf(Cachers.MemoryLRU);
+	});
+
 	it("should resolve RedisCacher from string", () => {
 		let cacher = Cachers.resolve("Redis");
 		expect(cacher).toBeInstanceOf(Cachers.Redis);
@@ -35,6 +40,13 @@ describe("Test Cacher resolver", () => {
 		let cacher = Cachers.resolve({ type: "Memory", options });
 		expect(cacher).toBeInstanceOf(Cachers.Memory);
 		expect(cacher.opts).toEqual({ keygen: null, maxParamsLength: null, ttl: 100 });
+	});
+
+	it("should resolve MemoryLRUCacher from obj", () => {
+		let options = { ttl: 100, max: 1000 };
+		let cacher = Cachers.resolve({ type: "MemoryLRU", options });
+		expect(cacher).toBeInstanceOf(Cachers.MemoryLRU);
+		expect(cacher.opts).toEqual({ keygen: null, maxParamsLength: null, ttl: 100, max: 1000 });
 	});
 
 	it("should resolve RedisCacher from obj with Redis type", () => {
