@@ -1884,6 +1884,7 @@ describe("Test broker broadcast", () => {
 	let broker = new ServiceBroker({ logger: false, nodeID: "server-1", transporter: "Fake" });
 	broker.broadcastLocal = jest.fn();
 	broker.transit.sendBroadcastEvent = jest.fn();
+	broker.getEventGroups = jest.fn();
 
 	broker.registry.events.getAllEndpoints = jest.fn(() => [
 		{ id: "node-2" },
@@ -1956,6 +1957,29 @@ describe("Test broker broadcast", () => {
 
 		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledTimes(1);
 		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledWith("$user.event", null);
+	});
+
+	it("should call sendBroadcastEvent without nodeID if no registry balancing", () => {
+		broker.registry.events.getAllEndpoints.mockClear();
+		broker.getEventGroups.mockClear();
+		broker.broadcastLocal.mockClear();
+		broker.transit.sendBroadcastEvent.mockClear();
+		broker.getEventGroups = jest.fn(() => ["payments"]);
+
+		broker.options.disableBalancer = true;
+
+		broker.broadcast("$user.event", { name: "John" });
+
+
+		expect(broker.getEventGroups).toHaveBeenCalledTimes(1);
+		expect(broker.getEventGroups).toHaveBeenCalledWith("$user.event");
+
+		expect(broker.transit.sendBroadcastEvent).toHaveBeenCalledTimes(1);
+		expect(broker.transit.sendBroadcastEvent).toHaveBeenCalledWith(null, "$user.event", { name: "John" }, ["payments"]);
+
+		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledTimes(0);
+
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(0);
 	});
 
 });

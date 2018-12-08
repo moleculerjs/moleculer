@@ -1123,7 +1123,6 @@ class ServiceBroker {
 					return;
 
 				return this.transit.sendBroadcastEvent(null, eventName, payload, groups);
-
 			}
 		}
 
