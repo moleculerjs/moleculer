@@ -65,6 +65,7 @@ declare namespace Moleculer {
 	}
 
 	type ServiceActions = { [key: string]: Action | ActionHandler; };
+	type Actions = ServiceActions;
 
 
 	class Context<P = GenericObject, M = GenericObject> {
