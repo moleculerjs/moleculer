@@ -10,7 +10,7 @@ let broker = new ServiceBroker({
 		type: "MemoryLRU",
 		options: {
 			max: 100,
-			//ttl: 10
+			ttl: 3
 		}
 	}
 });
@@ -51,6 +51,13 @@ broker.start()
 			}
 		}
 
+		broker.logger.info("Length:", broker.cacher.cache.length);
+		broker.logger.info("keys:", broker.cacher.cache.keys().join(","));
+	})
+
+	.delay(5 * 1000)
+	.then(() => {
+		broker.logger.info("=========================================");
 		broker.logger.info("Length:", broker.cacher.cache.length);
 		broker.logger.info("keys:", broker.cacher.cache.keys().join(","));
 	})

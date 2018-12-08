@@ -35,8 +35,16 @@ class MemoryLRUCacher extends BaseCacher {
 			updateAgeOnGet: !!this.opts.ttl
 		});
 
+		// Start TTL timer
+		this.timer = setInterval(() => {
+			/* istanbul ignore next */
+			this.checkTTL();
+		}, 30 * 1000);
+
 		// Set cloning
 		this.clone = this.opts.clone === true ? _.cloneDeep : this.opts.clone;
+
+		this.timer.unref();
 	}
 
 	/**
@@ -132,6 +140,15 @@ class MemoryLRUCacher extends BaseCacher {
 		});
 
 		return Promise.resolve();
+	}
+
+	/**
+	 * Check & remove the expired cache items
+	 *
+	 * @memberof MemoryCacher
+	 */
+	checkTTL() {
+		this.cache.prune();
 	}
 }
 
