@@ -217,9 +217,23 @@ class Cacher {
 	 */
 	middleware() {
 		return (handler, action) => {
-			if (action.cache) {
+			const opts = _.defaultsDeep({}, _.isObject(action.cache) ? action.cache : { enabled: !!action.cache });
+			if (opts.enabled !== false) {
+				const isEnabledFunction = _.isFunction(opts.enabled);
+
 				return function cacherMiddleware(ctx) {
-					const cacheKey = this.getCacheKey(action.name, ctx.params, ctx.meta, action.cache.keys);
+					if (isEnabledFunction) {
+						if (!opts.enabled.call(ctx.service, ctx)) {
+							// Cache is disabled. Call the handler only.
+							return handler(ctx);
+						}
+					}
+
+					// Disable caching with `ctx.meta.$cache = false`
+					if (ctx.meta["$cache"] === false)
+						return handler(ctx);
+
+					const cacheKey = this.getCacheKey(action.name, ctx.params, ctx.meta, opts.keys);
 					return this.get(cacheKey).then(content => {
 						if (content != null) {
 							// Found in the cache! Don't call handler, return with the content
@@ -230,7 +244,7 @@ class Cacher {
 						// Call the handler
 						return handler(ctx).then(result => {
 							// Save the result to the cache
-							this.set(cacheKey, result, action.cache.ttl);
+							this.set(cacheKey, result, opts.ttl);
 
 							return result;
 						});
