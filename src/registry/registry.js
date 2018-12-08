@@ -133,7 +133,7 @@ class Registry {
 		});
 
 		// remove old services which is not exist in new serviceList
-		// Please note! Firstly copy the array because you can't remove items inside forEach
+		// Please note! At first, copy the array because you can't remove items inside forEach
 		const prevServices = Array.from(this.services.services);
 		prevServices.forEach(service => {
 			if (service.node != node) return;
