@@ -930,8 +930,10 @@ class ServiceBroker {
 		if (opts.ctx != null) {
 			// Reused context
 			ctx = opts.ctx;
-			ctx.endpoint = endpoint;
-			ctx.action = endpoint.action;
+			if (endpoint) {
+				ctx.endpoint = endpoint;
+				ctx.action = endpoint.action;
+			}
 		} else {
 			// New root context
 			ctx = this.ContextFactory.create(this, endpoint, params, opts);
@@ -1099,14 +1101,27 @@ class ServiceBroker {
 		this.logger.debug(`Broadcast '${eventName}' event`+ (groups ? ` to '${groups.join(", ")}' group(s)` : "") + ".");
 
 		if (this.transit) {
-			const endpoints = this.registry.events.getAllEndpoints(eventName, groups);
+			if (!this.options.disableBalancer) {
+				const endpoints = this.registry.events.getAllEndpoints(eventName, groups);
 
-			// Send to remote services
-			endpoints.forEach(ep => {
-				if (ep.id != this.nodeID) {
-					return this.transit.sendBroadcastEvent(ep.id, eventName, payload, groups);
+				// Send to remote services
+				endpoints.forEach(ep => {
+					if (ep.id != this.nodeID) {
+						return this.transit.sendBroadcastEvent(ep.id, eventName, payload, groups);
+					}
+				});
+			} else {
+				// Disabled balancer case
+				if (!groups || groups.length == 0) {
+					// Apply to all groups
+					groups = this.getEventGroups(eventName);
 				}
-			});
+
+				if (groups.length == 0)
+					return;
+
+				return this.transit.sendBroadcastEvent(null, eventName, payload, groups);
+			}
 		}
 
 		// Send to local services
