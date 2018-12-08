@@ -207,7 +207,19 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 			});
 	});
 
-
+	it("should throw error", () => {
+		const error = new Error("Redis delete error");
+		cacher.client.del = jest.fn(() => Promise.reject(error));
+		return cacher.del(["key1"])
+			.then(protectReject)
+			.catch(err => {
+				expect(err).toBe(error);
+				expect(cacher.client.del).toHaveBeenCalledTimes(1);
+				expect(cacher.client.del).toHaveBeenCalledWith([prefix + "key1"]);
+				expect(logger.error).toHaveBeenCalledTimes(1);
+				expect(logger.error).toHaveBeenCalledWith("Redis 'del' error. Key: MOL-uat-key1", error);
+			});
+	});
 
 	it("should call client.scanStream", () => {
 		return cacher.clean()
@@ -273,6 +285,7 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 			.catch(err => {
 				expect(err).toBe(error);
 				expect(cacher.client.scanStream).toHaveBeenCalledTimes(1);
+				expect(cacher.client.scanStream).toHaveBeenCalledWith({ count: 100, match: "MOL-uat-service-name.*" });
 				expect(logger.error).toHaveBeenCalledTimes(1);
 				expect(logger.error).toHaveBeenCalledWith("Redis 'scanDel' error. Pattern: MOL-uat-service-name.*", error);
 			});
