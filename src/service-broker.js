@@ -673,7 +673,6 @@ class ServiceBroker {
 	 */
 	registerLocalService(registryItem) {
 		this.registry.registerLocalService(registryItem);
-		this.servicesChanged(true);
 	}
 
 	/**

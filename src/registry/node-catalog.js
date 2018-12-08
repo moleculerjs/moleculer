@@ -264,8 +264,6 @@ class NodeCatalog {
 
 			if (this.broker.transit)
 				this.broker.transit.removePendingRequestByNodeID(nodeID);
-
-			this.broker.servicesChanged(false);
 		}
 	}
 

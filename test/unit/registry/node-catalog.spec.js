@@ -239,7 +239,7 @@ describe("Test NodeCatalog.disconnected", () => {
 		expect(broker.registry.unregisterServicesByNode).toHaveBeenCalledWith(node.id);
 	});
 
-	it("should call disconnected & unregister services (unexpected", () => {
+	it("should call disconnected & unregister services (unexpected)", () => {
 		broker.broadcastLocal.mockClear();
 		broker.registry.unregisterServicesByNode.mockClear();
 		node.disconnected.mockClear();
@@ -253,8 +253,8 @@ describe("Test NodeCatalog.disconnected", () => {
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$node.disconnected", { node, unexpected: true });
 
-		expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
-		expect(broker.servicesChanged).toHaveBeenCalledWith(false);
+		// expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
+		// expect(broker.servicesChanged).toHaveBeenCalledWith(false);
 
 		expect(broker.registry.unregisterServicesByNode).toHaveBeenCalledTimes(1);
 		expect(broker.registry.unregisterServicesByNode).toHaveBeenCalledWith(node.id);

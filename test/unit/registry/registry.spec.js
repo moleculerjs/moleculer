@@ -18,14 +18,6 @@ describe("Test Registry constructor", () => {
 		expect(registry.logger).toBeDefined();
 
 		expect(registry.opts).toEqual({
-			circuitBreaker: {
-				enabled: false,
-				threshold: 0.5,
-				windowTime: 60,
-				minRequestCount: 20,
-				halfOpenTime: 10000,
-				check: jasmine.any(Function),
-			},
 			preferLocal: true,
 			strategy: "RoundRobin"
 		});
@@ -47,14 +39,6 @@ describe("Test Registry constructor", () => {
 		let registry = new Registry(broker);
 
 		expect(registry.opts).toEqual({
-			circuitBreaker: {
-				enabled: false,
-				threshold: 0.5,
-				windowTime: 60,
-				minRequestCount: 20,
-				halfOpenTime: 10000,
-				check: jasmine.any(Function),
-			},
 			preferLocal: false,
 			strategy: "Random"
 		});

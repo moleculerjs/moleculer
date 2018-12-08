@@ -1,8 +1,9 @@
 const ServiceBroker = require("../src/service-broker");
 
 const broker = new ServiceBroker({
-	namespace: "test",
+	//namespace: "test",
 	nodeID: "broker-1",
+	transporter: "NATS",
 	middlewares: [
 		{
 			localCall: (next) => {
@@ -20,10 +21,16 @@ const broker = new ServiceBroker({
 
 broker.createService({
 	name: "test1",
+	settings: {
+		rest: true
+	},
 	actions: {
-		test: (ctx) => {
-			ctx.meta.x = 3;
-			return "Hello World";
+		test: {
+			rest: "hello",
+			handler(ctx) {
+				ctx.meta.x = 3;
+				return "Hello World";
+			}
 		},
 	},
 });
