@@ -6,7 +6,13 @@ let ServiceBroker = require("../src/service-broker");
 // Create broker
 let broker = new ServiceBroker({
 	logLevel: "debug",
-	cacher: true,
+	cacher: {
+		type: "MemoryLRU",
+		options: {
+			max: 100,
+			//ttl: 10
+		}
+	}
 });
 
 broker.createService({
@@ -32,6 +38,22 @@ broker.start()
 	.then(() => broker.call("greeter.hello", { name: "Moleculer", noCache: true }))
 	.then(() => broker.call("greeter.hello", { name: "Moleculer" }))
 	.then(() => broker.call("greeter.hello", { name: "Moleculer" }, { meta: { $cache: false }}))
+
+	.then(() => {
+		for(let i = 0; i < 1000; i++) {
+			broker.cacher.set(`key-${i}`, i);
+			if (i % 10 == 0) {
+				broker.cacher.get(`key-${100}`);
+				broker.cacher.get(`key-${200}`);
+				broker.cacher.get(`key-${500}`);
+				broker.cacher.get(`key-${400}`);
+				broker.cacher.get(`key-${300}`);
+			}
+		}
+
+		broker.logger.info("Length:", broker.cacher.cache.length);
+		broker.logger.info("keys:", broker.cacher.cache.keys().join(","));
+	})
 
 	.catch(err => broker.logger.error(err))
 	.then(() => broker.stop());

@@ -10,36 +10,33 @@ const _ 			= require("lodash");
 const Promise 		= require("bluebird");
 const utils			= require("../utils");
 const BaseCacher  	= require("./base");
+const LRU 			= require("lru-cache");
 /**
  * Cacher factory for memory cache
  *
- * @class MemoryCacher
+ * @class MemoryLRUCacher
  */
-class MemoryCacher extends BaseCacher {
+class MemoryLRUCacher extends BaseCacher {
 
 	/**
-	 * Creates an instance of MemoryCacher.
+	 * Creates an instance of MemoryLRUCacher.
 	 *
 	 * @param {object} opts
 	 *
-	 * @memberof MemoryCacher
+	 * @memberof MemoryLRUCacher
 	 */
 	constructor(opts) {
 		super(opts);
 
 		// Cache container
-		this.cache = new Map();
-
-		// Start TTL timer
-		this.timer = setInterval(() => {
-			/* istanbul ignore next */
-			this.checkTTL();
-		}, 30 * 1000);
+		this.cache = new LRU({
+			max: this.opts.max,
+			maxAge: this.opts.ttl ? this.opts.ttl * 1000 : null,
+			updateAgeOnGet: !!this.opts.ttl
+		});
 
 		// Set cloning
 		this.clone = this.opts.clone === true ? _.cloneDeep : this.opts.clone;
-
-		this.timer.unref();
 	}
 
 	/**
@@ -47,7 +44,7 @@ class MemoryCacher extends BaseCacher {
 	 *
 	 * @param {any} broker
 	 *
-	 * @memberof MemoryCacher
+	 * @memberof MemoryLRUCacher
 	 */
 	init(broker) {
 		super.init(broker);
@@ -65,7 +62,7 @@ class MemoryCacher extends BaseCacher {
 	 * @param {any} key
 	 * @returns {Promise}
 	 *
-	 * @memberof MemoryCacher
+	 * @memberof MemoryLRUCacher
 	 */
 	get(key) {
 		this.logger.debug(`GET ${key}`);
@@ -75,11 +72,7 @@ class MemoryCacher extends BaseCacher {
 
 			let item = this.cache.get(key);
 
-			if (this.opts.ttl) {
-				// Update expire time (hold in the cache if we are using it)
-				item.expire = Date.now() + this.opts.ttl * 1000;
-			}
-			return Promise.resolve(this.clone ? this.clone(item.data) : item.data);
+			return Promise.resolve(this.clone ? this.clone(item) : item);
 		}
 		return Promise.resolve(null);
 	}
@@ -92,16 +85,13 @@ class MemoryCacher extends BaseCacher {
 	 * @param {Number} ttl Optional Time-to-Live
 	 * @returns {Promise}
 	 *
-	 * @memberof MemoryCacher
+	 * @memberof MemoryLRUCacher
 	 */
 	set(key, data, ttl) {
 		if (ttl == null)
 			ttl = this.opts.ttl;
 
-		this.cache.set(key, {
-			data,
-			expire: ttl ? Date.now() + ttl * 1000 : null
-		});
+		this.cache.set(key, data, ttl ? ttl * 1000 : null);
 		this.logger.debug(`SET ${key}`);
 		return Promise.resolve(data);
 	}
@@ -112,12 +102,12 @@ class MemoryCacher extends BaseCacher {
 	 * @param {string|Array<string>} key
 	 * @returns {Promise}
 	 *
-	 * @memberof MemoryCacher
+	 * @memberof MemoryLRUCacher
 	 */
 	del(keys) {
 		keys = Array.isArray(keys) ? keys : [keys];
 		keys.forEach(key => {
-			this.cache.delete(key);
+			this.cache.del(key);
 			this.logger.debug(`REMOVE ${key}`);
 		});
 		return Promise.resolve();
@@ -128,38 +118,21 @@ class MemoryCacher extends BaseCacher {
 	 * @param {string|Array<string>} match string. Default is "**"
 	 * @returns {Promise}
 	 *
-	 * @memberof MemoryCacher
+	 * @memberof MemoryLRUCacher
 	 */
 	clean(match = "**") {
 		const matches = Array.isArray(match) ? match : [match];
 		this.logger.debug(`CLEAN ${matches.join(", ")}`);
 
-		this.cache.forEach((value, key) => {
+		this.cache.keys().forEach(key => {
 			if (matches.some(match => utils.match(key, match))) {
 				this.logger.debug(`REMOVE ${key}`);
-				this.cache.delete(key);
+				this.cache.del(key);
 			}
 		});
 
 		return Promise.resolve();
 	}
-
-	/**
-	 * Check & remove the expired cache items
-	 *
-	 * @memberof MemoryCacher
-	 */
-	checkTTL() {
-		let now = Date.now();
-		this.cache.forEach((value, key) => {
-			let item = this.cache.get(key);
-
-			if (item.expire && item.expire < now) {
-				this.logger.debug(`EXPIRED ${key}`);
-				this.cache.delete(key);
-			}
-		});
-	}
 }
 
-module.exports = MemoryCacher;
+module.exports = MemoryLRUCacher;

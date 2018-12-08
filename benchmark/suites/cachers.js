@@ -9,13 +9,18 @@ let Moleculer = require("../../");
 
 let key = "TESTKEY-12345";
 
-let bench1 = benchmark.createSuite("Set & get 1k data with cacher");
+let bench1 = benchmark.createSuite("Set & get 1k data with same key");
+let bench2 = benchmark.createSuite("Set & get 1k data with new keys");
+
 let data = JSON.parse(getDataFile("1k.json"));
 
 let broker = new Moleculer.ServiceBroker({ logger: false });
 
 let memCacher = new Moleculer.Cachers.Memory();
 memCacher.init(broker);
+
+let memLruCacher = new Moleculer.Cachers.MemoryLRU();
+memLruCacher.init(broker);
 
 let memCacherCloning = new Moleculer.Cachers.Memory({ clone: true });
 memCacherCloning.init(broker);
@@ -28,38 +33,60 @@ let redisCacher = new Moleculer.Cachers.Redis({
 });
 redisCacher.init(broker);
 
+
 // ----
 bench1.add("Memory", done => {
 	memCacher.set(key, data).then(() => memCacher.get(key)).then(done);
+});
+
+bench1.add("Memory LRU", done => {
+	memLruCacher.set(key, data).then(() => memLruCacher.get(key)).then(done);
 });
 
 bench1.add("Redis", done => {
 	redisCacher.set(key, data).then(() => redisCacher.get(key)).then(done);
 });
 
-let bench2 = benchmark.createSuite("Test getCacheKey");
+let c = 1000000;
 
-bench2.add("Dynamic", () => {
+bench2.add("Memory", done => {
+	let key = "TESTKEY-" + (c++);
+	memCacher.set(key, data).then(() => memCacher.get(key)).then(done);
+});
+
+bench2.add("Memory LRU", done => {
+	let key = "TESTKEY-" + (c++);
+	memLruCacher.set(key, data).then(() => memLruCacher.get(key)).then(done);
+});
+
+bench2.add("Redis", done => {
+	let key = "TESTKEY-" + (c++);
+	redisCacher.set(key, data).then(() => redisCacher.get(key)).then(done);
+});
+
+let bench3 = benchmark.createSuite("Test getCacheKey");
+
+bench3.add("Dynamic", () => {
 	return memCacher.getCacheKey("user", { id: 5 }, null);
 });
 
-bench2.add("Static", () => {
+bench3.add("Static", () => {
 	return memCacher.getCacheKey("user", { id: 5 }, null, ["id"]);
 });
 
-let bench3 = benchmark.createSuite("Test cloning on MemoryCacher");
+let bench4 = benchmark.createSuite("Test cloning on MemoryCacher");
 memCacher.set(key, data);
 memCacherCloning.set(key, data);
 
-bench3.add("Without cloning", done => {
+bench4.add("Without cloning", done => {
 	memCacher.get(key).then(done);
 });
 
-bench3.add("With cloning", done => {
+bench4.add("With cloning", done => {
 	memCacherCloning.get(key).then(done);
 });
 
-benchmark.run([bench1, bench2, bench3]).then(() => {
+benchmark.run([bench1, bench2, bench3, bench4]).then(() => {
 	redisCacher.close();
 });
 
