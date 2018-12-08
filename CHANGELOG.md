@@ -3,7 +3,10 @@
 # [0.13.5](https://github.com/moleculerjs/moleculer/compare/v0.13.4...v0.13.5) (2018-xx-xx)
 
 # Changes
-- throw further the error in `loadService` method.
+- throw the error further in `loadService` method.
+- new `packetLogFilter` transit option to filter packets in debug logs (e.g. HEARTBEAT packets) by [@faeron](https://github.com/faeron)
+- the `cacher.clean` handles array parameter by [@dkuida](https://github.com/dkuida)
+- fix to handle `version: 0` as a valid version number by [@ngraef](https://github.com/ngraef)
 
 --------------------------------------------------
 <a name="0.13.4"></a>
