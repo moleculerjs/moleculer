@@ -85,14 +85,11 @@ class Registry {
 	 * @memberof Registry
 	 */
 	registerServices(node, serviceList) {
-		let hasChanges = false;
-
 		serviceList.forEach(svc => {
 			let prevActions, prevEvents;
 			let service = this.services.get(svc.name, svc.version, node.id);
 			if (!service) {
 				service = this.services.add(node, svc.name, svc.version, svc.settings, svc.metadata);
-				hasChanges = true;
 			} else {
 				prevActions = Object.assign({}, service.actions);
 				prevEvents = Object.assign({}, service.events);
@@ -110,7 +107,6 @@ class Registry {
 				_.forIn(prevActions, (action, name) => {
 					if (!svc.actions[name]) {
 						this.unregisterAction(node, name);
-						hasChanges = true;
 					}
 				});
 			}
@@ -118,7 +114,6 @@ class Registry {
 			//Register events
 			if (svc.events) {
 				this.registerEvents(node, service, svc.events);
-				// TODO: has changes?
 			}
 
 			// remove old events which is not exist
@@ -126,7 +121,6 @@ class Registry {
 				_.forIn(prevEvents, (event, name) => {
 					if (!svc.events[name]) {
 						this.unregisterEvent(node, name);
-						hasChanges = true;
 					}
 				});
 			}
@@ -147,12 +141,10 @@ class Registry {
 			// This service is removed on remote node!
 			if (!exist) {
 				this.unregisterService(service.name, service.version, node.id);
-				hasChanges = true;
 			}
 		});
 
-		if (hasChanges)
-			this.broker.servicesChanged(false);
+		this.broker.servicesChanged(false);
 	}
 
 	/**

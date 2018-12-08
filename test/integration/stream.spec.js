@@ -95,7 +95,7 @@ describe("Test to send stream as ctx.param", () => {
 			.then(() => {
 				expect(FLOW).toEqual([
 					"first chunk",
-					"<ERROR:Something happened (NodeID: node-1)>",
+					"<ERROR:Something happened>",
 					"<END>"
 				]);
 			});
@@ -193,7 +193,7 @@ describe("Test to receive a stream as response", () => {
 			.then(() => {
 				expect(FLOW).toEqual([
 					"first chunk",
-					"<ERROR:Something happened (NodeID: node-2)>",
+					"<ERROR:Something happened>",
 					"<END>"
 				]);
 			});
@@ -301,7 +301,7 @@ describe("Test duplex streaming", () => {
 			.then(() => {
 				expect(FLOW).toEqual([
 					"FIRST CHUNK",
-					"<ERROR:Something happened (NodeID: node-1) (NodeID: node-2)>",
+					"<ERROR:Something happened>",
 					"<END>"
 				]);
 			});
