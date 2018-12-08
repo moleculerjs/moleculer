@@ -131,7 +131,7 @@ class RedisCacher extends BaseCacher {
 	/**
 	 * Delete a key from cache
 	 *
-	 * @param {any} deleteTargets
+	 * @param {string|Array<string>} deleteTargets
 	 * @returns {Promise}
 	 *
 	 * @memberof Cacher
@@ -141,7 +141,8 @@ class RedisCacher extends BaseCacher {
 		const keysToDelete = deleteTargets.map(key => this.prefix + key);
 		this.logger.debug(`DELETE ${keysToDelete}`);
 		return this.client.del(keysToDelete).catch(err => {
-			this.logger.error("Redis `del` error.", keysToDelete, err);
+			this.logger.error(`Redis 'del' error. Key: ${keysToDelete}`, err);
+			throw err;
 		});
 	}
 
@@ -150,7 +151,7 @@ class RedisCacher extends BaseCacher {
 	 *        http://stackoverflow.com/questions/4006324/how-to-atomically-delete-keys-matching-a-pattern-using-redis
 	 * alternative solution:
 	 *        https://github.com/cayasso/cacheman-redis/blob/master/lib/index.js#L125
-	 * @param {any} match Match string for SCAN. Default is "*"
+	 * @param {String|Array<String>} match Match string for SCAN. Default is "*"
 	 * @returns {Promise}
 	 *
 	 * @memberof Cacher
@@ -161,7 +162,7 @@ class RedisCacher extends BaseCacher {
 		this.logger.debug(`CLEAN ${match}`);
 		return this._sequentialPromises(normalizedPatterns)
 			.catch((err) => {
-				this.logger.error("Redis `scanDel` error.", err.pattern, err);
+				this.logger.error(`Redis 'scanDel' error. Pattern: ${err.pattern}`, err);
 				throw err;
 			});
 
