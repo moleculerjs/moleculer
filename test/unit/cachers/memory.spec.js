@@ -177,6 +177,18 @@ describe("Test MemoryCacher delete", () => {
 		});
 	});
 
+	it("should delete multiple keys", () => {
+		cacher.set("key1", "value1");
+		cacher.set("key2", "value2");
+		cacher.set("key3", "value3");
+
+		cacher.del(["key1", "key3"]);
+
+		expect(cacher.cache.get("key1")).toBeUndefined();
+		expect(cacher.cache.get("key2")).toEqual({ data: "value2", expire: null });
+		expect(cacher.cache.get("key3")).toBeUndefined();
+	});
+
 });
 
 describe("Test MemoryCacher clean", () => {
@@ -232,6 +244,25 @@ describe("Test MemoryCacher clean", () => {
 		return cacher.get(key1).then(obj => {
 			expect(obj).toBeNull();
 		});
+	});
+
+	it("should clean by multiple patterns", () => {
+		cacher.set("key.1", "value1");
+		cacher.set("key.2", "value2");
+		cacher.set("key.3", "value3");
+
+		cacher.set("other.1", "value1");
+		cacher.set("other.2", "value2");
+		cacher.set("other.3", "value3");
+
+		cacher.clean(["key.*", "*.2"]);
+
+		expect(cacher.cache.get("key.1")).toBeUndefined();
+		expect(cacher.cache.get("key.2")).toBeUndefined();
+		expect(cacher.cache.get("key.3")).toBeUndefined();
+		expect(cacher.cache.get("other.1")).toBeDefined();
+		expect(cacher.cache.get("other.2")).toBeUndefined();
+		expect(cacher.cache.get("other.3")).toBeDefined();
 	});
 
 });

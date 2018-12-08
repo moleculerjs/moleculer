@@ -92,7 +92,7 @@ class Cacher {
 	/**
 	 * Delete a content by key from cache
 	 *
-	 * @param {any} key
+	 * @param {string|Array<string>} key
 	 *
 	 * @memberof Cacher
 	 */
@@ -104,7 +104,7 @@ class Cacher {
 
 	/**
 	 * Clean cache. Remove every key by match
-	 * @param {any} match string. Default is "**"
+	 * @param {string|Array<string>} match string. Default is "**"
 	 * @returns {Promise}
 	 *
 	 * @memberof Cacher

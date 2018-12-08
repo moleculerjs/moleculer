@@ -109,29 +109,33 @@ class MemoryCacher extends BaseCacher {
 	/**
 	 * Delete a key from cache
 	 *
-	 * @param {any} key
+	 * @param {string|Array<string>} key
 	 * @returns {Promise}
 	 *
 	 * @memberof MemoryCacher
 	 */
-	del(key) {
-		this.cache.delete(key);
-		this.logger.debug(`REMOVE ${key}`);
+	del(keys) {
+		keys = Array.isArray(keys) ? keys : [keys];
+		keys.forEach(key => {
+			this.cache.delete(key);
+			this.logger.debug(`REMOVE ${key}`);
+		});
 		return Promise.resolve();
 	}
 
 	/**
 	 * Clean cache. Remove every key by match
-	 * @param {any} match string. Default is "**"
+	 * @param {string|Array<string>} match string. Default is "**"
 	 * @returns {Promise}
 	 *
 	 * @memberof Cacher
 	 */
 	clean(match = "**") {
-		this.logger.debug(`CLEAN ${match}`);
+		const matches = Array.isArray(match) ? match : [match];
+		this.logger.debug(`CLEAN ${matches.join(", ")}`);
 
 		this.cache.forEach((value, key) => {
-			if (utils.match(key, match)) {
+			if (matches.some(match => utils.match(key, match))) {
 				this.logger.debug(`REMOVE ${key}`);
 				this.cache.delete(key);
 			}
