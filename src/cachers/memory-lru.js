@@ -59,8 +59,7 @@ class MemoryLRUCacher extends BaseCacher {
 
 		broker.localBus.on("$transporter.connected", () => {
 			// Clear all entries after transporter connected. Maybe we missed some "cache.clear" events.
-			this.clean();
-			return; // Due to bluebird warning
+			return this.clean();
 		});
 	}
 
