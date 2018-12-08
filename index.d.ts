@@ -64,7 +64,8 @@ declare namespace Moleculer {
 		hostname: boolean;
 	}
 
-	type Actions = { [key: string]: Action | ActionHandler; };
+	type ServiceActions = { [key: string]: Action | ActionHandler; };
+	type Actions = ServiceActions;
 
 
 	class Context<P = GenericObject, M = GenericObject> {
@@ -144,7 +145,7 @@ declare namespace Moleculer {
 		settings?: ServiceSettingSchema;
 		dependencies?: string | GenericObject | Array<string> | Array<GenericObject>;
 		metadata?: GenericObject;
-		actions?: Actions;
+		actions?: ServiceActions;
 		mixins?: Array<ServiceSchema>;
 		methods?: ServiceMethods;
 
@@ -168,7 +169,7 @@ declare namespace Moleculer {
 		schema: ServiceSchema;
 		broker: ServiceBroker;
 		logger: LoggerInstance;
-		actions?: Actions;
+		actions?: ServiceActions;
 		Promise: typeof Bluebird;
 
 		waitForServices(serviceNames: string | Array<string> | Array<GenericObject>, timeout?: number, interval?: number): Bluebird<void>;
