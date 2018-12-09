@@ -1,6 +1,6 @@
 --------------------------------------------------
 <a name="0.13.5"></a>
-# [0.13.5](https://github.com/moleculerjs/moleculer/compare/v0.13.4...v0.13.5) (2018-xx-xx)
+# [0.13.5](https://github.com/moleculerjs/moleculer/compare/v0.13.4...v0.13.5) (2018-12-09)
 
 # New
 
