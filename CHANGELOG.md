@@ -63,9 +63,10 @@ let broker = new ServiceBroker({
 
 
 # Changes
-- throw the error further in `loadService` method.
+- throw the error further in `loadService` method so that Runner prints the correct error stack.
 - new `packetLogFilter` transit option to filter packets in debug logs (e.g. HEARTBEAT packets) by [@faeron](https://github.com/faeron)
-- the `cacher.clean` handles array parameter by [@dkuida](https://github.com/dkuida)
+- the Redis cacher `clean` & `del` methods handle array parameter by [@dkuida](https://github.com/dkuida)
+- the Memory cacher `clean` & `del` methods handle array parameter by [@icebob](https://github.com/icebob)
 - fix to handle `version: 0` as a valid version number by [@ngraef](https://github.com/ngraef)
 
 --------------------------------------------------
