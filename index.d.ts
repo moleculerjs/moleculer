@@ -210,8 +210,9 @@ declare namespace Moleculer {
 	}
 
 	interface BrokerTransitOptions {
-		disableReconnect?: boolean;
 		maxQueueSize?: number;
+		packetLogFilter?: Array<string>;
+		disableReconnect?: boolean;
 	}
 
 	interface BrokerTrackingOptions {
@@ -603,8 +604,8 @@ declare namespace Moleculer {
 		close(): Bluebird<any>;
 		get(key: string): Bluebird<null | GenericObject>;
 		set(key: string, data: any, ttl?: number): Bluebird<any>;
-		del(key: string): Bluebird<any>;
-		clean(match?: string): Bluebird<any>;
+		del(key: string|Array<string>): Bluebird<any>;
+		clean(match?: string|Array<string>): Bluebird<any>;
 	}
 
 	class Serializer {

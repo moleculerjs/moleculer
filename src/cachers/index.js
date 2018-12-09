@@ -12,6 +12,7 @@ const { BrokerOptionsError } = require("../errors");
 const Cachers = {
 	Base: require("./base"),
 	Memory: require("./memory"),
+	MemoryLRU: require("./memory-lru"),
 	Redis: require("./redis")
 };
 
