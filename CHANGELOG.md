@@ -2,6 +2,66 @@
 <a name="0.13.5"></a>
 # [0.13.5](https://github.com/moleculerjs/moleculer/compare/v0.13.4...v0.13.5) (2018-xx-xx)
 
+# New
+
+## Conditional caching
+It's a common issue that you set caching for an action but sometimes you don't want to get data from cache. To solve it you may set `ctx.meta.$cache = false` before calling and the cacher won't send cached responses.
+
+**Example**
+```js
+// Turn off caching for this request
+broker.call("greeter.hello", { name: "Moleculer" }, { meta: { $cache: false }}))
+```
+
+Other solution is that you can use a custom function which returns whether cacher is enabled or disabled for the given request.
+
+**Example**
+
+```js
+// greeter.service.js
+module.exports = {
+    name: "greeter",
+    actions: {
+        hello: {
+            cache: {
+                enabled: ctx => ctx.params.noCache !== true
+            },
+            handler(ctx) {
+                this.logger.debug(chalk.yellow("Execute handler"));
+                return `Hello ${ctx.params.name}`;
+            }
+        }
+    }
+};
+
+// Use custom `enabled` function to turn off caching for this request
+broker.call("greeter.hello", { name: "Moleculer", noCache: true }))
+```
+
+## LRU memory cacher
+An LRU memory cacher has been added to the core modules. It uses the familiar [lru-cache](https://github.com/isaacs/node-lru-cache) library.
+
+**Example**
+```js
+let broker = new ServiceBroker({ cacher: "MemoryLRU" });
+```
+
+```js
+let broker = new ServiceBroker({
+    logLevel: "debug",
+    cacher: {
+        type: "MemoryLRU",
+        options: {
+            // Maximum items
+            max: 100,
+            // Time-to-Live
+            ttl: 3
+        }
+    }
+});
+```
+
+
 # Changes
 - throw the error further in `loadService` method.
 - new `packetLogFilter` transit option to filter packets in debug logs (e.g. HEARTBEAT packets) by [@faeron](https://github.com/faeron)
