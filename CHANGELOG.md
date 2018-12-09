@@ -5,7 +5,7 @@
 # New
 
 ## Conditional caching
-It's a common issue that you set caching for an action but sometimes you don't want to get data from cache. To solve it you may set `ctx.meta.$cache = false` before calling and the cacher won't send cached responses.
+It's a common issue that you enable caching for an action but sometimes you don't want to get data from cache. To solve it you may set `ctx.meta.$cache = false` before calling and the cacher won't send cached responses.
 
 **Example**
 ```js
@@ -13,10 +13,9 @@ It's a common issue that you set caching for an action but sometimes you don't w
 broker.call("greeter.hello", { name: "Moleculer" }, { meta: { $cache: false }}))
 ```
 
-Other solution is that you can use a custom function which returns whether cacher is enabled or disabled for the given request.
+Other solution is that you use a custom function which enables or disables caching for every request. The function gets the `ctx` Context instance so it has access any params or meta data.
 
 **Example**
-
 ```js
 // greeter.service.js
 module.exports = {
@@ -24,7 +23,8 @@ module.exports = {
     actions: {
         hello: {
             cache: {
-                enabled: ctx => ctx.params.noCache !== true
+                enabled: ctx => ctx.params.noCache !== true,
+                keys: ["name"]
             },
             handler(ctx) {
                 this.logger.debug(chalk.yellow("Execute handler"));
