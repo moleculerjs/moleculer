@@ -55,18 +55,19 @@ describe("Test RedisCacher set & get without prefix", () => {
 		}
 	};
 
-	let prefix = "MOL-";
+    let prefix = "MOL-";
+    let dataEvent;
 
 
 	beforeEach(() => {
-		const dataEvent = (eventType, callback) => {
+        dataEvent = jest.fn().mockImplementation((eventType, callback) => {
 			if (eventType === "data") {
 				callback(["key1", "key2"]);
 			}
 			if (eventType === "end") {
 				callback();
 			}
-		};
+		});
 		cacher.client.scanStream = jest.fn(() => ({
 			on: dataEvent,
 			pause: jest.fn(),
@@ -127,6 +128,29 @@ describe("Test RedisCacher set & get without prefix", () => {
 
 				expect(cacher.client.del).toHaveBeenCalledTimes(1);
 				expect(cacher.client.del).toHaveBeenCalledWith(["key1", "key2"]);
+			});
+	});
+
+	it("should not call del if data returns an empty array", () => {
+        dataEvent.mockImplementationOnce((eventType, callback) => {
+			if (eventType === "data") {
+				callback([]);
+			}
+			if (eventType === "end") {
+				callback();
+			}
+        });
+
+		return cacher.clean()
+			.catch(protectReject)
+			.then(() => {
+				expect(cacher.client.scanStream).toHaveBeenCalledTimes(1);
+				expect(cacher.client.scanStream).toHaveBeenCalledWith({
+					match: "MOL-*",
+					count: 100
+				});
+
+				expect(cacher.client.del).not.toBeCalled();
 			});
 	});
 
