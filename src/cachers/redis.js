@@ -180,10 +180,10 @@ class RedisCacher extends BaseCacher {
 				match: pattern,
 				count: 100
 			});
-            stream.on("data", (keys = []) => {
-                if (!keys.length) {
-                    return;
-                }
+			stream.on("data", (keys = []) => {
+				if (!keys.length) {
+					return;
+				}
 
 				stream.pause();
 				this.client.del(keys)
