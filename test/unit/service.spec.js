@@ -1037,3 +1037,147 @@ describe("Test mergeSchemas", () => {
 	});
 
 });
+
+
+describe("Test $secureSettings", () => {
+
+	let schema = {
+		name: "demo",
+		settings: {
+			jwtSecret: "12345",
+			other: "some",
+			topSecret: {
+				name: "John",
+				password: "password",
+				age: 33
+			}
+		},
+	};
+
+	let broker;
+
+	function createService(schema) {
+		broker = new ServiceBroker({ logger: false });
+		const svc = broker.createService(schema);
+		return broker.start().then(() => svc);
+	}
+
+	afterEach(() => broker ? broker.stop() : null);
+
+	it("should leave all settings", () => {
+		return createService(schema).catch(protectReject).then(svc => {
+			expect(svc.settings).toEqual({
+				jwtSecret: "12345",
+				other: "some",
+				topSecret: {
+					name: "John",
+					password: "password",
+					age: 33
+				}
+			});
+
+			const list = broker.registry.services.list({ onlyLocal: true, skipInternal: true });
+			expect(list[0].settings).toEqual({
+				jwtSecret: "12345",
+				other: "some",
+				topSecret: {
+					name: "John",
+					password: "password",
+					age: 33
+				}
+			});
+		});
+	});
+
+	it("should omit protected settings", () => {
+		schema.settings.$secureSettings = ["jwtSecret", "topSecret"];
+
+		return createService(schema).catch(protectReject).then(svc => {
+			expect(svc.settings).toEqual({
+				$secureSettings: ["jwtSecret", "topSecret"],
+				jwtSecret: "12345",
+				other: "some",
+				topSecret: {
+					name: "John",
+					password: "password",
+					age: 33
+				}
+			});
+
+			const list = broker.registry.services.list({ onlyLocal: true, skipInternal: true });
+			expect(list[0].settings).toEqual({
+				other: "some"
+			});
+		});
+	});
+
+	it("should omit protected nested settings", () => {
+		schema.settings.$secureSettings = ["jwtSecret", "topSecret.password"];
+
+		return createService(schema).catch(protectReject).then(svc => {
+			expect(svc.settings).toEqual({
+				$secureSettings: ["jwtSecret", "topSecret.password"],
+				jwtSecret: "12345",
+				other: "some",
+				topSecret: {
+					name: "John",
+					password: "password",
+					age: 33
+				}
+			});
+
+			const list = broker.registry.services.list({ onlyLocal: true, skipInternal: true });
+			expect(list[0].settings).toEqual({
+				other: "some",
+				topSecret: {
+					name: "John",
+					age: 33
+				}
+			});
+		});
+	});
+
+	it("should merge $secureSettings from mixins & omit protected settings", () => {
+		schema.mixins = [{
+			settings: {
+				$secureSettings: ["topSecret.password"]
+			}
+		}];
+		schema.settings.$secureSettings = ["jwtSecret"];
+
+		return createService(schema).catch(protectReject).then(svc => {
+			expect(svc.settings).toEqual({
+				$secureSettings: ["jwtSecret", "topSecret.password"],
+				jwtSecret: "12345",
+				other: "some",
+				topSecret: {
+					name: "John",
+					password: "password",
+					age: 33
+				}
+			});
+
+			const list = broker.registry.services.list({ onlyLocal: true, skipInternal: true });
+			expect(list[0].settings).toEqual({
+				other: "some",
+				topSecret: {
+					name: "John",
+					age: 33
+				}
+			});
+		});
+	});
+
+
+	it("should handle undefined settings", () => {
+		delete schema.settings;
+		delete schema.mixins;
+
+		return createService(schema).catch(protectReject).then(svc => {
+			expect(svc.settings).toEqual({});
+
+			const list = broker.registry.services.list({ onlyLocal: true, skipInternal: true });
+			expect(list[0].settings).toEqual({});
+		});
+	});
+});
