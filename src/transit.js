@@ -8,6 +8,7 @@
 
 const Promise = require("bluebird");
 const _ = require("lodash");
+const { generateToken } = require("./utils");
 
 const P = require("./packets");
 const { Packet } = require("./packets");
@@ -991,11 +992,12 @@ class Transit {
 	 * Send ping to a node (or all nodes if nodeID is null)
 	 *
 	 * @param {String} nodeID
+	 * @param {String} id
 	 * @returns
 	 * @memberof Transit
 	 */
-	sendPing(nodeID) {
-		return this.publish(new Packet(P.PACKET_PING, nodeID, { time: Date.now() }))
+	sendPing(nodeID, id) {
+		return this.publish(new Packet(P.PACKET_PING, nodeID, { time: Date.now(), id: id || generateToken() }))
 			.catch(err => this.logger.error(`Unable to send PING packet to '${nodeID}' node.`, err));
 	}
 
@@ -1009,6 +1011,7 @@ class Transit {
 	sendPong(payload) {
 		return this.publish(new Packet(P.PACKET_PONG, payload.sender, {
 			time: payload.time,
+			id: payload.id,
 			arrived: Date.now()
 		})).catch(err => this.logger.error(`Unable to send PONG packet to '${payload.sender}' node.`, err));
 	}
@@ -1027,7 +1030,7 @@ class Transit {
 
 		// this.logger.debug(`PING-PONG from '${payload.sender}' - Time: ${elapsedTime}ms, Time difference: ${timeDiff}ms`);
 
-		this.broker.broadcastLocal("$node.pong", { nodeID: payload.sender, elapsedTime, timeDiff });
+		this.broker.broadcastLocal("$node.pong", { nodeID: payload.sender, elapsedTime, timeDiff, id: payload.id });
 	}
 
 	/**
