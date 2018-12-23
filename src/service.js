@@ -384,6 +384,7 @@ class Service {
 	/**
 	 * Merge two Service schema
 	 *
+	 * @static
 	 * @param {Object} mixinSchema		Mixin schema
 	 * @param {Object} svcSchema 		Service schema
 	 * @returns {Object} Mixed schema
@@ -446,6 +447,8 @@ class Service {
 
 	/**
 	 * Merge `settings` property in schema
+	 *
+	 * @static
 	 * @param {Object} src Source schema property
 	 * @param {Object} target Target schema property
 	 *
@@ -460,6 +463,8 @@ class Service {
 
 	/**
 	 * Merge `metadata` property in schema
+	 *
+	 * @static
 	 * @param {Object} src Source schema property
 	 * @param {Object} target Target schema property
 	 *
@@ -471,6 +476,8 @@ class Service {
 
 	/**
 	 * Merge `mixins` property in schema
+	 *
+	 * @static
 	 * @param {Object} src Source schema property
 	 * @param {Object} target Target schema property
 	 *
@@ -482,6 +489,8 @@ class Service {
 
 	/**
 	 * Merge `dependencies` property in schema
+	 *
+	 * @static
 	 * @param {Object} src Source schema property
 	 * @param {Object} target Target schema property
 	 *
@@ -493,6 +502,8 @@ class Service {
 
 	/**
 	 * Merge `hooks` property in schema
+	 *
+	 * @static
 	 * @param {Object} src Source schema property
 	 * @param {Object} target Target schema property
 	 *
@@ -516,6 +527,8 @@ class Service {
 
 	/**
 	 * Merge `actions` property in schema
+	 *
+	 * @static
 	 * @param {Object} src Source schema property
 	 * @param {Object} target Target schema property
 	 *
@@ -539,6 +552,8 @@ class Service {
 
 	/**
 	 * Merge `methods` property in schema
+	 *
+	 * @static
 	 * @param {Object} src Source schema property
 	 * @param {Object} target Target schema property
 	 *
@@ -549,6 +564,8 @@ class Service {
 	}
 
 	/**
+	 *
+	 * @static
 	 * Merge `events` property in schema
 	 * @param {Object} src Source schema property
 	 * @param {Object} target Target schema property
@@ -572,6 +589,8 @@ class Service {
 
 	/**
 	 * Merge `started`, `stopped`, `created` event handler properties in schema
+	 *
+	 * @static
 	 * @param {Object} src Source schema property
 	 * @param {Object} target Target schema property
 	 *
@@ -583,6 +602,8 @@ class Service {
 
 	/**
 	 * Merge unknown properties in schema
+	 *
+	 * @static
 	 * @param {Object} src Source schema property
 	 * @param {Object} target Target schema property
 	 *
