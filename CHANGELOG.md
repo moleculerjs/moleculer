@@ -1,4 +1,75 @@
 --------------------------------------------------
+<a name="0.13.5"></a>
+# [0.13.5](https://github.com/moleculerjs/moleculer/compare/v0.13.4...v0.13.5) (2018-12-09)
+
+# New
+
+## Conditional caching
+It's a common issue that you enable caching for an action but sometimes you don't want to get data from cache. To solve it you may set `ctx.meta.$cache = false` before calling and the cacher won't send cached responses.
+
+**Example**
+```js
+// Turn off caching for this request
+broker.call("greeter.hello", { name: "Moleculer" }, { meta: { $cache: false }}))
+```
+
+Other solution is that you use a custom function which enables or disables caching for every request. The function gets the `ctx` Context instance so it has access any params or meta data.
+
+**Example**
+```js
+// greeter.service.js
+module.exports = {
+    name: "greeter",
+    actions: {
+        hello: {
+            cache: {
+                enabled: ctx => ctx.params.noCache !== true,
+                keys: ["name"]
+            },
+            handler(ctx) {
+                this.logger.debug(chalk.yellow("Execute handler"));
+                return `Hello ${ctx.params.name}`;
+            }
+        }
+    }
+};
+
+// Use custom `enabled` function to turn off caching for this request
+broker.call("greeter.hello", { name: "Moleculer", noCache: true }))
+```
+
+## LRU memory cacher
+An LRU memory cacher has been added to the core modules. It uses the familiar [lru-cache](https://github.com/isaacs/node-lru-cache) library.
+
+**Example**
+```js
+let broker = new ServiceBroker({ cacher: "MemoryLRU" });
+```
+
+```js
+let broker = new ServiceBroker({
+    logLevel: "debug",
+    cacher: {
+        type: "MemoryLRU",
+        options: {
+            // Maximum items
+            max: 100,
+            // Time-to-Live
+            ttl: 3
+        }
+    }
+});
+```
+
+
+# Changes
+- throw the error further in `loadService` method so that Runner prints the correct error stack.
+- new `packetLogFilter` transit option to filter packets in debug logs (e.g. HEARTBEAT packets) by [@faeron](https://github.com/faeron)
+- the Redis cacher `clean` & `del` methods handle array parameter by [@dkuida](https://github.com/dkuida)
+- the Memory cacher `clean` & `del` methods handle array parameter by [@icebob](https://github.com/icebob)
+- fix to handle `version: 0` as a valid version number by [@ngraef](https://github.com/ngraef)
+
+--------------------------------------------------
 <a name="0.13.4"></a>
 # [0.13.4](https://github.com/moleculerjs/moleculer/compare/v0.13.3...v0.13.4) (2018-11-04)
 

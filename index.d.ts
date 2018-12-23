@@ -27,8 +27,8 @@ declare namespace Moleculer {
 	type ActionParamTypes = "boolean" | "number" | "string" | "object" | "array" | ActionParamSchema;
 	type ActionParams = { [key: string]: ActionParamTypes };
 
-	type MetricsParamsFuncType= (params: ActionParams) => any;
-	type MetricsMetaFuncType= (meta: object) => any;
+	type MetricsParamsFuncType = (params: ActionParams) => any;
+	type MetricsMetaFuncType = (meta: object) => any;
 	type MetricsOptions = { params?: boolean | string[] | MetricsParamsFuncType, meta?: boolean | string[] | MetricsMetaFuncType };
 
 	interface BulkheadOptions {
@@ -42,8 +42,11 @@ declare namespace Moleculer {
 		keys?: Array<string>;
 	}
 
+	type ActionVisibility = "published" | "public" | "protected" | "private"
+
 	interface Action {
 		name?: string;
+		visibility?: ActionVisibility;
 		params?: ActionParams;
 		service?: Service;
 		cache?: boolean | ActionCacheOptions;
@@ -64,7 +67,8 @@ declare namespace Moleculer {
 		hostname: boolean;
 	}
 
-	type Actions = { [key: string]: Action | ActionHandler; };
+	type ServiceActions = { [key: string]: Action | ActionHandler; };
+	type Actions = ServiceActions;
 
 
 	class Context<P = GenericObject, M = GenericObject> {
@@ -144,7 +148,7 @@ declare namespace Moleculer {
 		settings?: ServiceSettingSchema;
 		dependencies?: string | GenericObject | Array<string> | Array<GenericObject>;
 		metadata?: GenericObject;
-		actions?: Actions;
+		actions?: ServiceActions;
 		mixins?: Array<ServiceSchema>;
 		methods?: ServiceMethods;
 
@@ -168,7 +172,7 @@ declare namespace Moleculer {
 		schema: ServiceSchema;
 		broker: ServiceBroker;
 		logger: LoggerInstance;
-		actions?: Actions;
+		actions?: ServiceActions;
 		Promise: typeof Bluebird;
 
 		waitForServices(serviceNames: string | Array<string> | Array<GenericObject>, timeout?: number, interval?: number): Bluebird<void>;
@@ -206,8 +210,9 @@ declare namespace Moleculer {
 	}
 
 	interface BrokerTransitOptions {
-		disableReconnect?: boolean;
 		maxQueueSize?: number;
+		packetLogFilter?: Array<string>;
+		disableReconnect?: boolean;
 	}
 
 	interface BrokerTrackingOptions {
@@ -234,10 +239,10 @@ declare namespace Moleculer {
 
 		maxCallLevel?: number;
 		heartbeatInterval?: number;
-        heartbeatTimeout?: number
+		heartbeatTimeout?: number
 
-        trackContext?: boolean;
-        gracefulStopTimeout?: number;
+		trackContext?: boolean;
+		gracefulStopTimeout?: number;
 
 		tracking?: BrokerTrackingOptions;
 
@@ -352,7 +357,7 @@ declare namespace Moleculer {
 		node: GenericObject;
 
 		local: boolean;
-		state:boolean;
+		state: boolean;
 	}
 
 	interface ActionEndpoint extends Endpoint {
@@ -599,8 +604,8 @@ declare namespace Moleculer {
 		close(): Bluebird<any>;
 		get(key: string): Bluebird<null | GenericObject>;
 		set(key: string, data: any, ttl?: number): Bluebird<any>;
-		del(key: string): Bluebird<any>;
-		clean(match?: string): Bluebird<any>;
+		del(key: string|Array<string>): Bluebird<any>;
+		clean(match?: string|Array<string>): Bluebird<any>;
 	}
 
 	class Serializer {

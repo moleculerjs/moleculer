@@ -34,7 +34,6 @@ class Registry {
 		this.logger = broker.getLogger("registry");
 
 		this.opts = Object.assign({}, broker.options.registry);
-		this.opts.circuitBreaker = broker.options.circuitBreaker || {};
 
 		this.StrategyFactory = Strategies.resolve(this.opts.strategy);
 
@@ -73,6 +72,8 @@ class Registry {
 			this.regenerateLocalRawInfo(this.broker.started);
 
 			this.logger.info(`'${svc.name}' service is registered.`);
+
+			this.broker.servicesChanged(true);
 		}
 	}
 
@@ -96,32 +97,37 @@ class Registry {
 			}
 
 			//Register actions
-			if (svc.actions)
+			if (svc.actions) {
 				this.registerActions(node, service, svc.actions);
+				// TODO: has changes?
+			}
 
 			// remove old actions which is not exist
 			if (prevActions) {
 				_.forIn(prevActions, (action, name) => {
-					if (!svc.actions[name])
+					if (!svc.actions[name]) {
 						this.unregisterAction(node, name);
+					}
 				});
 			}
 
 			//Register events
-			if (svc.events)
+			if (svc.events) {
 				this.registerEvents(node, service, svc.events);
+			}
 
 			// remove old events which is not exist
 			if (prevEvents) {
 				_.forIn(prevEvents, (event, name) => {
-					if (!svc.events[name])
+					if (!svc.events[name]) {
 						this.unregisterEvent(node, name);
+					}
 				});
 			}
 		});
 
 		// remove old services which is not exist in new serviceList
-		// Please note! Firstly copy the array because you can't remove items inside forEach
+		// Please note! At first, copy the array because you can't remove items inside forEach
 		const prevServices = Array.from(this.services.services);
 		prevServices.forEach(service => {
 			if (service.node != node) return;
@@ -133,9 +139,12 @@ class Registry {
 			});
 
 			// This service is removed on remote node!
-			if (!exist)
+			if (!exist) {
 				this.unregisterService(service.name, service.version, node.id);
+			}
 		});
+
+		this.broker.servicesChanged(false);
 	}
 
 	/**

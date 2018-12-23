@@ -326,4 +326,103 @@ describe("Test middleware", () => {
 
 	});
 
+	it("should not call cacher.get & set if cache = { enabled: false }", () => {
+		let action = {
+			name: "posts.get",
+			cache: {
+				enabled: false
+			},
+			handler: jest.fn(() => Promise.resolve(cachedData))
+		};
+		cacher.get.mockClear();
+		cacher.set.mockClear();
+
+		let ctx = new Context();
+		ctx.setParams(params);
+
+		let cachedHandler = cacher.middleware()(action.handler, action);
+		expect(typeof cachedHandler).toBe("function");
+
+		return cachedHandler(ctx).then(() => {
+			expect(cachedHandler).toBe(action.handler);
+			expect(broker.cacher.get).toHaveBeenCalledTimes(0);
+			expect(action.handler).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.set).toHaveBeenCalledTimes(0);
+		});
+
+	});
+
+	it("should call custom enabled function", () => {
+		let action = {
+			name: "posts.get",
+			cache: {
+				enabled: ctx => ctx.params.cache !== false
+			},
+			handler: jest.fn(() => Promise.resolve(cachedData))
+		};
+		cacher.get.mockClear();
+		cacher.set.mockClear();
+
+		let ctx = new Context();
+		ctx.setParams(params);
+
+		let cachedHandler = cacher.middleware()(action.handler, action);
+		expect(typeof cachedHandler).toBe("function");
+
+		return cachedHandler(ctx).then(() => {
+			expect(broker.cacher.get).toHaveBeenCalledTimes(1);
+			expect(action.handler).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.set).toHaveBeenCalledTimes(1);
+
+
+			ctx.setParams({ cache: false });
+			cacher.get.mockClear();
+			cacher.set.mockClear();
+			action.handler.mockClear();
+
+			return cachedHandler(ctx).then(() => {
+				expect(broker.cacher.get).toHaveBeenCalledTimes(0);
+				expect(action.handler).toHaveBeenCalledTimes(1);
+				expect(broker.cacher.set).toHaveBeenCalledTimes(0);
+			});
+		});
+
+	});
+
+	it("should not use cache if ctx.meta.$cache === false", () => {
+		let action = {
+			name: "posts.get",
+			cache: {
+				enabled: true
+			},
+			handler: jest.fn(() => Promise.resolve(cachedData))
+		};
+		cacher.get.mockClear();
+		cacher.set.mockClear();
+
+		let ctx = new Context();
+		ctx.setParams(params);
+
+		let cachedHandler = cacher.middleware()(action.handler, action);
+		expect(typeof cachedHandler).toBe("function");
+
+		return cachedHandler(ctx).then(() => {
+			expect(broker.cacher.get).toHaveBeenCalledTimes(1);
+			expect(action.handler).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.set).toHaveBeenCalledTimes(1);
+
+
+			ctx.meta.$cache = false;
+			cacher.get.mockClear();
+			cacher.set.mockClear();
+			action.handler.mockClear();
+
+			return cachedHandler(ctx).then(() => {
+				expect(broker.cacher.get).toHaveBeenCalledTimes(0);
+				expect(action.handler).toHaveBeenCalledTimes(1);
+				expect(broker.cacher.set).toHaveBeenCalledTimes(0);
+			});
+		});
+
+	});
 });

@@ -1,4 +1,5 @@
 const ServiceBroker = require("../../../src/service-broker");
+const { protectReject } = require("../utils");
 
 jest.mock("ioredis");
 
@@ -55,17 +56,18 @@ describe("Test RedisCacher set & get without prefix", () => {
 	};
 
 	let prefix = "MOL-";
+	let dataEvent;
 
 
 	beforeEach(() => {
-		const dataEvent = (eventType, callback) => {
+		dataEvent = jest.fn().mockImplementation((eventType, callback) => {
 			if (eventType === "data") {
 				callback(["key1", "key2"]);
 			}
 			if (eventType === "end") {
 				callback();
 			}
-		};
+		});
 		cacher.client.scanStream = jest.fn(() => ({
 			on: dataEvent,
 			pause: jest.fn(),
@@ -86,7 +88,7 @@ describe("Test RedisCacher set & get without prefix", () => {
 		let p = cacher.get(key);
 		expect(cacher.client.get).toHaveBeenCalledTimes(1);
 		expect(cacher.client.get).toHaveBeenCalledWith(prefix + key);
-		return p.then((d) => {
+		return p.catch(protectReject).then((d) => {
 			expect(d).toEqual(data1);
 		});
 	});
@@ -97,7 +99,7 @@ describe("Test RedisCacher set & get without prefix", () => {
 		let p = cacher.get(key);
 		expect(cacher.client.get).toHaveBeenCalledTimes(1);
 		expect(cacher.client.get).toHaveBeenCalledWith(prefix + key);
-		return p.then((d) => {
+		return p.catch(protectReject).then((d) => {
 			expect(d).toBeNull();
 		});
 	});
@@ -114,8 +116,9 @@ describe("Test RedisCacher set & get without prefix", () => {
 		expect(cacher.client.del).toHaveBeenCalledWith([prefix + "key1", prefix + "key2"]);
 	});
 
-	it("should call client.scanStream & del", (done) => {
-		cacher.clean()
+	it("should call client.scanStream & del", () => {
+		return cacher.clean()
+			.catch(protectReject)
 			.then(() => {
 				expect(cacher.client.scanStream).toHaveBeenCalledTimes(1);
 				expect(cacher.client.scanStream).toHaveBeenCalledWith({
@@ -125,7 +128,29 @@ describe("Test RedisCacher set & get without prefix", () => {
 
 				expect(cacher.client.del).toHaveBeenCalledTimes(1);
 				expect(cacher.client.del).toHaveBeenCalledWith(["key1", "key2"]);
-				done();
+			});
+	});
+
+	it("should not call del if data returns an empty array", () => {
+		dataEvent.mockImplementationOnce((eventType, callback) => {
+			if (eventType === "data") {
+				callback([]);
+			}
+			if (eventType === "end") {
+				callback();
+			}
+		});
+
+		return cacher.clean()
+			.catch(protectReject)
+			.then(() => {
+				expect(cacher.client.scanStream).toHaveBeenCalledTimes(1);
+				expect(cacher.client.scanStream).toHaveBeenCalledWith({
+					match: "MOL-*",
+					count: 100
+				});
+
+				expect(cacher.client.del).not.toBeCalled();
 			});
 	});
 
@@ -189,52 +214,79 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 	});
 
 	it("should call client.del with key", () => {
-		cacher.del(key);
-		expect(cacher.client.del).toHaveBeenCalledTimes(1);
-		expect(cacher.client.del).toHaveBeenCalledWith([prefix + key]);
+		return cacher.del(key)
+			.catch(protectReject)
+			.then(() => {
+				expect(cacher.client.del).toHaveBeenCalledTimes(1);
+				expect(cacher.client.del).toHaveBeenCalledWith([prefix + key]);
+			});
 	});
 
-	it("should call client.scanStream", (done) => {
-		cacher.clean()
+	it("should call client.del with multiple keys", () => {
+		return cacher.del(["key1", "key2"])
+			.catch(protectReject)
+			.then(() => {
+				expect(cacher.client.del).toHaveBeenCalledTimes(1);
+				expect(cacher.client.del).toHaveBeenCalledWith([prefix + "key1", prefix + "key2"]);
+			});
+	});
+
+	it("should throw error", () => {
+		const error = new Error("Redis delete error");
+		cacher.client.del = jest.fn(() => Promise.reject(error));
+		return cacher.del(["key1"])
+			.then(protectReject)
+			.catch(err => {
+				expect(err).toBe(error);
+				expect(cacher.client.del).toHaveBeenCalledTimes(1);
+				expect(cacher.client.del).toHaveBeenCalledWith([prefix + "key1"]);
+				expect(logger.error).toHaveBeenCalledTimes(1);
+				expect(logger.error).toHaveBeenCalledWith("Redis 'del' error. Key: MOL-uat-key1", error);
+			});
+	});
+
+	it("should call client.scanStream", () => {
+		return cacher.clean()
+			.catch(protectReject)
 			.then(() => {
 				expect(cacher.client.scanStream).toHaveBeenCalledTimes(1);
 				expect(cacher.client.scanStream).toHaveBeenCalledWith({
 					match: "MOL-uat-*",
 					count: 100
 				});
-				done();
 			});
 
 	});
 
-	it("should call client.scanStream with service key", (done) => {
-		cacher.clean("service-name.*")
+	it("should call client.scanStream with service key", () => {
+		return cacher.clean("service-name.*")
+			.catch(protectReject)
 			.then(() => {
 				expect(cacher.client.scanStream).toHaveBeenCalledTimes(1);
 				expect(cacher.client.scanStream).toHaveBeenCalledWith({
 					match: "MOL-uat-service-name.*",
 					count: 100
 				});
-				done();
 			});
 
 	});
 
-	it("should call client.scanStream if provided as array service key in array", (done) => {
-		cacher.clean(["service-name.*"])
+	it("should call client.scanStream if provided as array service key in array", () => {
+		return cacher.clean(["service-name.*"])
+			.catch(protectReject)
 			.then(() => {
 				expect(cacher.client.scanStream).toHaveBeenCalledTimes(1);
 				expect(cacher.client.scanStream).toHaveBeenCalledWith({
 					match: "MOL-uat-service-name.*",
 					count: 100
 				});
-				done();
 			});
 
 	});
 
-	it("should call client.scanStream for each array element", (done) => {
-		cacher.clean(["service-name.*", "service2-name.*"])
+	it("should call client.scanStream for each array element", () => {
+		return cacher.clean(["service-name.*", "service2-name.*"])
+			.catch(protectReject)
 			.then(() => {
 				expect(cacher.client.scanStream).toHaveBeenCalledTimes(2);
 				expect(cacher.client.scanStream).toHaveBeenCalledWith({
@@ -245,19 +297,21 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 					match: "MOL-uat-service2-name.*",
 					count: 100
 				});
-				done();
 			});
 
 	});
 
-	it("should not call second pattern if failed on first", (done) => {
-		cacher.client.del = jest.fn().mockRejectedValueOnce(new Error("Redis delete error"));
-		cacher.clean(["service-name.*", "service2-name.*"])
-			.catch(() => {
+	it("should not call second pattern if failed on first", () => {
+		const error = new Error("Redis delete error");
+		cacher.client.del = jest.fn().mockRejectedValueOnce(error);
+		return cacher.clean(["service-name.*", "service2-name.*"])
+			.then(protectReject)
+			.catch(err => {
+				expect(err).toBe(error);
 				expect(cacher.client.scanStream).toHaveBeenCalledTimes(1);
+				expect(cacher.client.scanStream).toHaveBeenCalledWith({ count: 100, match: "MOL-uat-service-name.*" });
 				expect(logger.error).toHaveBeenCalledTimes(1);
-				expect(logger.error).toHaveBeenCalledWith("Redis `scanDel` error.", "MOL-uat-service-name.*", expect.anything());
-				done();
+				expect(logger.error).toHaveBeenCalledWith("Redis 'scanDel' error. Pattern: MOL-uat-service-name.*", error);
 			});
 	});
 });

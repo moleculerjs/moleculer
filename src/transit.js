@@ -482,9 +482,9 @@ class Transit {
 			err.type = error.type;
 			err.data = error.data;
 		}
-		err.message += ` (NodeID: ${sender})`;
 		err.retryable = error.retryable;
 		err.nodeID = error.nodeID || sender;
+
 		if (error.stack)
 			err.stack = error.stack;
 
