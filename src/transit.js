@@ -500,6 +500,9 @@ class Transit {
 	 */
 	_handleIncomingResponseStream(packet, req) {
 		let pass = this.pendingResStreams.get(packet.id);
+		if (!pass && !packet.stream)
+			return false;
+
 		if (!pass) {
 			this.logger.debug(`<= New stream is received from '${packet.sender}'. Seq: ${packet.seq}`);
 
@@ -527,7 +530,7 @@ class Transit {
 			// TODO: start timer.
 			// TODO: check length of pool.
 
-			return;
+			return true;
 		}
 
 		// the next stream chunk received
@@ -548,7 +551,7 @@ class Transit {
 				// Remove pending request
 				this.removePendingRequest(packet.id);
 
-				return;
+				return true;
 
 			} else {
 				// stream chunk
@@ -567,6 +570,8 @@ class Transit {
 				setImmediate(() => this._responseHandler(nextPacket));
 			}
 		}
+
+		return true;
 	}
 
 	/**
@@ -596,7 +601,8 @@ class Transit {
 
 		// Handle stream response
 		if (packet.stream != null) {
-			return this._handleIncomingResponseStream(packet, req);
+			if (this._handleIncomingResponseStream(packet, req))
+				return;
 		}
 
 		// Remove pending request

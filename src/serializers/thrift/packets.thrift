@@ -23,6 +23,7 @@ struct PacketRequest {
 	10: optional string parentID,
 	11: optional string requestID,
 	12: optional bool stream,
+	13: optional i32 seq,
 }
 
 struct PacketResponse {
@@ -34,6 +35,7 @@ struct PacketResponse {
 	6: optional string error,
 	7: string meta,
 	8: optional bool stream,
+	9: optional i32 seq,
 }
 
 struct PacketDiscover {
@@ -73,6 +75,7 @@ struct PacketPing {
 	1: string ver,
 	2: string sender,
 	3: i64 time,
+	4: string id,
 }
 
 struct PacketPong {
@@ -80,6 +83,7 @@ struct PacketPong {
 	2: string sender,
 	3: i64 time,
 	4: i64 arrived,
+	5: string id,
 }
 
 struct PacketGossipHello {

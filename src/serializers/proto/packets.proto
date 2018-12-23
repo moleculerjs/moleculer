@@ -24,6 +24,7 @@ message PacketRequest {
 	optional string parentID 	= 10;
 	optional string requestID 	= 11;
 	optional bool stream 		= 12;
+	optional int32 seq 			= 13;
 }
 
 message PacketResponse {
@@ -35,6 +36,7 @@ message PacketResponse {
 	optional string error 		= 6;
 	required string meta 		= 7;
 	optional bool stream 		= 8;
+	optional int32 seq 			= 9;
 }
 
 message PacketDiscover {
@@ -74,6 +76,7 @@ message PacketPing {
 	required string ver 		= 1;
 	required string sender 		= 2;
 	required int64 time 		= 3;
+	optional string id			= 4;
 }
 
 message PacketPong {
@@ -81,6 +84,7 @@ message PacketPong {
 	required string sender 		= 2;
 	required int64 time 		= 3;
 	required int64 arrived 		= 4;
+	optional string id			= 5;
 }
 
 message PacketGossipHello {
