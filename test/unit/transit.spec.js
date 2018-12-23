@@ -1003,7 +1003,7 @@ describe("Test Transit.sendPing", () => {
 		expect(packet).toBeInstanceOf(P.Packet);
 		expect(packet.type).toBe(P.PACKET_PING);
 		expect(packet.target).toBe("node-2");
-		expect(packet.payload).toEqual({ time: jasmine.any(Number) });
+		expect(packet.payload).toEqual({ time: jasmine.any(Number), id: jasmine.any(String) });
 	});
 
 });
@@ -1126,13 +1126,13 @@ describe("Test packetLogFilter option", () => {
 		let payload = { ver: "3", sender: "remote", cpu: 100 };
 
 		transit.messageHandler("DISCOVER", { payload });
-		expect(logger.debug).toHaveBeenCalledWith("Incoming DISCOVER packet from 'remote'");
+		expect(logger.debug).toHaveBeenCalledWith("<= Incoming DISCOVER packet from 'remote'");
 
 		transit.messageHandler("HEARTBEAT", { payload });
-		expect(logger.debug).not.toHaveBeenCalledWith("Incoming HEARTBEAT packet from 'remote'");
+		expect(logger.debug).not.toHaveBeenCalledWith("<= Incoming HEARTBEAT packet from 'remote'");
 
 		transit.messageHandler("INFO", { payload });
-		expect(logger.debug).not.toHaveBeenCalledWith("Incoming INFO packet from 'remote'");
+		expect(logger.debug).not.toHaveBeenCalledWith("<= Incoming INFO packet from 'remote'");
 
 		transit.publish(new P.Packet("HEARTBEAT", "remote", payload));
 		expect(logger.debug).not.toHaveBeenCalledWith("Send  packet to 'remote'");
@@ -1146,11 +1146,11 @@ describe("Test packetLogFilter option", () => {
 
 		let payload = { ver: "3", sender: "remote", services: JSON.stringify([]) };
 		transit.publish(new P.Packet("DISCOVER", "remote", { payload }));
-		expect(logger.debug).toHaveBeenCalledWith("Send DISCOVER packet to 'remote'");
+		expect(logger.debug).toHaveBeenCalledWith("=> Send DISCOVER packet to 'remote'");
 
 		payload = { ver: "3", sender: "remote", cpu: 100 };
 		transit.publish(new P.Packet("HEARTBEAT", "remote", payload));
-		expect(logger.debug).not.toHaveBeenCalledWith("Send HEARTBEAT packet to 'remote'");
+		expect(logger.debug).not.toHaveBeenCalledWith("=> Send HEARTBEAT packet to 'remote'");
 	});
 });
 

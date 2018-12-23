@@ -159,7 +159,8 @@ describe("Test ProtoBuf serializer", () => {
 			metrics: true,
 			parentID: "999",
 			requestID: "12345",
-			stream: false
+			stream: false,
+			seq: null
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_REQUEST);
 		expect(s.length).toBe(154);
@@ -187,11 +188,12 @@ describe("Test ProtoBuf serializer", () => {
 			metrics: true,
 			parentID: "999",
 			requestID: "12345",
-			stream: true
+			stream: true,
+			seq: 6
 		};
 
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_REQUEST);
-		expect(s.length).toBe(157);
+		expect(s.length).toBe(164);
 
 		const res = serializer.deserialize(s, P.PACKET_REQUEST);
 		expect(res).not.toBe(obj);
@@ -214,7 +216,8 @@ describe("Test ProtoBuf serializer", () => {
 					roles: [ "admin" ]
 				}
 			},
-			stream: false
+			stream: false,
+			seq: null
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
 		expect(s.length).toBe(138);
@@ -237,10 +240,11 @@ describe("Test ProtoBuf serializer", () => {
 					roles: [ "admin" ]
 				}
 			},
-			stream: true
+			stream: true,
+			seq: 6
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(102);
+		expect(s.length).toBe(109);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).not.toBe(obj);
@@ -271,10 +275,11 @@ describe("Test ProtoBuf serializer", () => {
 					roles: [ "admin" ]
 				}
 			},
-			stream: false
+			stream: false,
+			seq: 0
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(256);
+		expect(s.length).toBe(263);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).not.toBe(obj);
@@ -285,10 +290,11 @@ describe("Test ProtoBuf serializer", () => {
 		const obj = {
 			ver: "3",
 			sender: "test-1",
-			time: 1234567
+			time: 1234567,
+			id: "123"
 		};
 		const s = serializer.serialize(obj, P.PACKET_PING);
-		expect(s.length).toBe(33);
+		expect(s.length).toBe(43);
 
 		const res = serializer.deserialize(s, P.PACKET_PING);
 		expect(res).not.toBe(obj);
@@ -301,11 +307,12 @@ describe("Test ProtoBuf serializer", () => {
 		const obj = {
 			ver: "3",
 			sender: "test-1",
+			id: "123",
 			time: 1234567,
 			arrived: 7654321,
 		};
 		const s = serializer.serialize(obj, P.PACKET_PONG);
-		expect(s.length).toBe(44);
+		expect(s.length).toBe(54);
 
 		const res = serializer.deserialize(s, P.PACKET_PONG);
 		expect(res).not.toBe(obj);

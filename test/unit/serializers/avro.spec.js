@@ -159,10 +159,11 @@ describe("Test Avro serializer", () => {
 			metrics: true,
 			parentID: "999",
 			requestID: "12345",
-			stream: false
+			stream: false,
+			seq: null
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_REQUEST);
-		expect(s.length).toBe(96);
+		expect(s.length).toBe(97);
 
 		const res = serializer.deserialize(s, P.PACKET_REQUEST);
 		expect(res).not.toBe(obj);
@@ -187,11 +188,12 @@ describe("Test Avro serializer", () => {
 			metrics: true,
 			parentID: "999",
 			requestID: "12345",
-			stream: true
+			stream: true,
+			seq: 6
 		};
 
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_REQUEST);
-		expect(s.length).toBe(99);
+		expect(s.length).toBe(101);
 
 		const res = serializer.deserialize(s, P.PACKET_REQUEST);
 		expect(res).not.toBe(obj);
@@ -214,10 +216,11 @@ describe("Test Avro serializer", () => {
 					roles: [ "admin" ]
 				}
 			},
-			stream: false
+			stream: false,
+			seq: null
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(104);
+		expect(s.length).toBe(105);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).not.toBe(obj);
@@ -237,10 +240,11 @@ describe("Test Avro serializer", () => {
 					roles: [ "admin" ]
 				}
 			},
-			stream: true
+			stream: true,
+			seq: 6
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(68);
+		expect(s.length).toBe(70);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).not.toBe(obj);
@@ -271,10 +275,11 @@ describe("Test Avro serializer", () => {
 					roles: [ "admin" ]
 				}
 			},
-			stream: false
+			stream: false,
+			seq: null
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(223);
+		expect(s.length).toBe(224);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).not.toBe(obj);
@@ -285,10 +290,11 @@ describe("Test Avro serializer", () => {
 		const obj = {
 			ver: "3",
 			sender: "test-1",
+			id: "123",
 			time: 1234567
 		};
 		const s = serializer.serialize(obj, P.PACKET_PING);
-		expect(s.length).toBe(13);
+		expect(s.length).toBe(18);
 
 		const res = serializer.deserialize(s, P.PACKET_PING);
 		expect(res).not.toBe(obj);
@@ -300,10 +306,11 @@ describe("Test Avro serializer", () => {
 			ver: "3",
 			sender: "test-1",
 			time: 1234567,
+			id: "123",
 			arrived: 7654321,
 		};
 		const s = serializer.serialize(obj, P.PACKET_PONG);
-		expect(s.length).toBe(17);
+		expect(s.length).toBe(22);
 
 		const res = serializer.deserialize(s, P.PACKET_PONG);
 		expect(res).not.toBe(obj);
