@@ -110,6 +110,8 @@ class Transit {
 
 			const doConnect = () => {
 				let reconnectStarted = false;
+
+				/* istanbul ignore next */
 				const errorHandler = (err) => {
 					if (this.disconnecting) return;
 					if (reconnectStarted) return;
@@ -179,7 +181,7 @@ class Transit {
 	 * @memberof Transit
 	 */
 	sendDisconnectPacket() {
-		return this.publish(new Packet(P.PACKET_DISCONNECT)).catch(err => this.logger.debug("Unable to send DISCONNECT packet.", err));
+		return this.publish(new Packet(P.PACKET_DISCONNECT)).catch(/* istanbul ignore next */ err => this.logger.debug("Unable to send DISCONNECT packet.", err));
 	}
 
 	/**
@@ -367,14 +369,14 @@ class Transit {
 
 		if (payload.seq > pass.$prevSeq + 1) {
 			// Some chunks are late. Store these chunks.
-			this.logger.info(`Put the chunk into pool (size: ${pass.$pool.size()}). Seq: ${payload.seq}`);
+			this.logger.info(`Put the chunk into pool (size: ${pass.$pool.size}). Seq: ${payload.seq}`);
 
-			pass.$pool.set("" + payload.seq, payload);
+			pass.$pool.set(payload.seq, payload);
 
 			// TODO: start timer.
 			// TODO: check length of pool.
 
-			return null;
+			return isNew ? pass : null;
 		}
 
 		// the next stream chunk received
@@ -400,7 +402,7 @@ class Transit {
 
 			} else {
 				this.logger.debug(`<= Stream chunk is received from '${payload.sender}'. Seq: ${payload.seq}`);
-				pass.write(payload.params.type === "Buffer" ? new Buffer.from(payload.params.data) : payload.params);
+				pass.write(payload.params.type === "Buffer" ? Buffer.from(payload.params.data) : payload.params);
 			}
 		}
 
@@ -438,7 +440,7 @@ class Transit {
 			if (payload.stream !== undefined) {
 				pass = this._handleIncomingRequestStream(payload);
 				if (pass === null)
-					return;
+					return Promise.resolve();
 			}
 
 			const endpoint = this.broker._getLocalActionEndpoint(payload.action);
@@ -523,9 +525,9 @@ class Transit {
 
 		if (packet.seq > pass.$prevSeq + 1) {
 			// Some chunks are late. Store these chunks.
-			this.logger.info(`Put the chunk into pool (size: ${pass.$pool.size()}). Seq: ${packet.seq}`);
+			this.logger.info(`Put the chunk into pool (size: ${pass.$pool.size}). Seq: ${packet.seq}`);
 
-			pass.$pool.set("" + packet.seq, packet);
+			pass.$pool.set(packet.seq, packet);
 
 			// TODO: start timer.
 			// TODO: check length of pool.
@@ -556,7 +558,7 @@ class Transit {
 			} else {
 				// stream chunk
 				this.logger.debug(`<= Stream chunk is received from '${packet.sender}'. Seq: ${packet.seq}`);
-				pass.write(packet.data.type === "Buffer" ? new Buffer.from(packet.data.data):packet.data);
+				pass.write(packet.data.type === "Buffer" ? Buffer.from(packet.data.data):packet.data);
 			}
 		}
 
@@ -626,6 +628,7 @@ class Transit {
 	 */
 	request(ctx) {
 		if (this.opts.maxQueueSize && this.pendingRequests.size > this.opts.maxQueueSize)
+			/* istanbul ignore next */
 			return Promise.reject(new E.QueueIsFullError({
 				action: ctx.action.name,
 				nodeID: this.nodeID,
@@ -680,7 +683,7 @@ class Transit {
 		const nodeName = ctx.nodeID ? `'${ctx.nodeID}'` : "someone";
 		this.logger.debug(`=> Send '${ctx.action.name}' request to ${nodeName} node.`);
 
-		const publishCatch = err => this.logger.error(`Unable to send '${ctx.action.name}' request to ${nodeName} node.`, err);
+		const publishCatch = /* istanbul ignore next */ err => this.logger.error(`Unable to send '${ctx.action.name}' request to ${nodeName} node.`, err);
 
 		// Add to pendings
 		this.pendingRequests.set(ctx.id, request);
@@ -756,7 +759,7 @@ class Transit {
 			data,
 			groups,
 			broadcast: true
-		})).catch(err => this.logger.error(`Unable to send '${event}' broadcast event to '${nodeID}' node.`, err));
+		})).catch(/* istanbul ignore next */ err => this.logger.error(`Unable to send '${event}' broadcast event to '${nodeID}' node.`, err));
 	}
 
 	/**
@@ -778,7 +781,7 @@ class Transit {
 				data,
 				groups,
 				broadcast: false
-			})).catch(err => this.logger.error(`Unable to send '${event}' event to '${nodeID}' node.`, err));
+			})).catch(/* istanbul ignore next */ err => this.logger.error(`Unable to send '${event}' event to '${nodeID}' node.`, err));
 		});
 	}
 
@@ -799,7 +802,7 @@ class Transit {
 			data,
 			groups,
 			broadcast: false
-		})).catch(err => this.logger.error(`Unable to send '${event}' event to groups.`, err));
+		})).catch(/* istanbul ignore next */ err => this.logger.error(`Unable to send '${event}' event to groups.`, err));
 	}
 
 	/**
@@ -884,7 +887,7 @@ class Transit {
 		if (err)
 			payload.error = this._createPayloadErrorField(err);
 
-		const publishCatch = err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err);
+		const publishCatch = /* istanbul ignore next */ err => this.logger.error(`Unable to send '${id}' response to '${nodeID}' node.`, err);
 
 		if (data && data.readable === true && typeof data.on === "function" && typeof data.pipe === "function") {
 			// Streaming response
@@ -956,7 +959,7 @@ class Transit {
 	 */
 	discoverNodes() {
 		return this.publish(new Packet(P.PACKET_DISCOVER))
-			.catch(err => this.logger.error("Unable to send DISCOVER packet.", err));
+			.catch(/* istanbul ignore next */ err => this.logger.error("Unable to send DISCOVER packet.", err));
 	}
 
 	/**
@@ -966,7 +969,7 @@ class Transit {
 	 */
 	discoverNode(nodeID) {
 		return this.publish(new Packet(P.PACKET_DISCOVER, nodeID))
-			.catch(err => this.logger.error(`Unable to send DISCOVER packet to '${nodeID}' node.`, err));
+			.catch(/* istanbul ignore next */ err => this.logger.error(`Unable to send DISCOVER packet to '${nodeID}' node.`, err));
 	}
 
 	/**
@@ -990,7 +993,7 @@ class Transit {
 			client: info.client,
 			config: info.config,
 			seq: info.seq
-		}))).catch(err => this.logger.error(`Unable to send INFO packet to '${nodeID}' node.`, err));
+		}))).catch(/* istanbul ignore next */ err => this.logger.error(`Unable to send INFO packet to '${nodeID}' node.`, err));
 
 	}
 
@@ -1004,7 +1007,7 @@ class Transit {
 	 */
 	sendPing(nodeID, id) {
 		return this.publish(new Packet(P.PACKET_PING, nodeID, { time: Date.now(), id: id || generateToken() }))
-			.catch(err => this.logger.error(`Unable to send PING packet to '${nodeID}' node.`, err));
+			.catch(/* istanbul ignore next */ err => this.logger.error(`Unable to send PING packet to '${nodeID}' node.`, err));
 	}
 
 	/**
@@ -1019,7 +1022,7 @@ class Transit {
 			time: payload.time,
 			id: payload.id,
 			arrived: Date.now()
-		})).catch(err => this.logger.error(`Unable to send PONG packet to '${payload.sender}' node.`, err));
+		})).catch(/* istanbul ignore next */ err => this.logger.error(`Unable to send PONG packet to '${payload.sender}' node.`, err));
 	}
 
 	/**
@@ -1047,7 +1050,7 @@ class Transit {
 	sendHeartbeat(localNode) {
 		return this.publish(new Packet(P.PACKET_HEARTBEAT, null, {
 			cpu: localNode.cpu
-		})).catch(err => this.logger.error("Unable to send HEARTBEAT packet.", err));
+		})).catch(/* istanbul ignore next */ err => this.logger.error("Unable to send HEARTBEAT packet.", err));
 
 	}
 
