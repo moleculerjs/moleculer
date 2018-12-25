@@ -10,7 +10,7 @@ describe("Test circuit breaker", () => {
 	let clock;
 
 	const master1 = new ServiceBroker({
-		logger: false,
+		logger: true,
 		transporter: new FakeTransporter(),
 		nodeID: "master-1",
 		circuitBreaker: {
@@ -27,7 +27,7 @@ describe("Test circuit breaker", () => {
 	master1.localBus.on("$circuit-breaker.opened", cbOpenedHandler);
 
 	const slave1 = new ServiceBroker({
-		logger: false,
+		logger: true,
 		transporter: new FakeTransporter(),
 		nodeID: "slave-1",
 	});
@@ -66,12 +66,14 @@ describe("Test circuit breaker", () => {
 	});
 
 	it("should call 'happy' x5 without problem", () => {
+		debugger;
 		return master1.call("cb.happy")
 			.then(() => master1.call("cb.happy"))
 			.then(() => master1.call("cb.happy"))
 			.then(() => master1.call("cb.happy"))
 			.then(() => master1.call("cb.happy"))
-			.then(res => expect(res).toBe("OK"));
+			.then(res => expect(res).toBe("OK"))
+			.catch(protectReject);
 	});
 
 	it("should call 'angry' and throw MoleculerError", () => {

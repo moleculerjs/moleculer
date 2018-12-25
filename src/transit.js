@@ -344,7 +344,7 @@ class Transit {
 
 		if (!payload.stream && !pass) {
 			// It is not a stream data
-			return;
+			return false;
 		}
 
 		if (!pass) {
@@ -374,7 +374,7 @@ class Transit {
 			// TODO: start timer.
 			// TODO: check length of pool.
 
-			return;
+			return null;
 		}
 
 		// the next stream chunk received
@@ -396,7 +396,7 @@ class Transit {
 				// Remove pending request
 				this.removePendingRequest(payload.id);
 
-				return;
+				return null;
 
 			} else {
 				this.logger.debug(`<= Stream chunk is received from '${payload.sender}'. Seq: ${payload.seq}`);
@@ -437,7 +437,7 @@ class Transit {
 			let pass;
 			if (payload.stream !== undefined) {
 				pass = this._handleIncomingRequestStream(payload);
-				if (!pass)
+				if (pass === null)
 					return;
 			}
 
