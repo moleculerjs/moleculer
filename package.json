@@ -65,7 +65,6 @@
     "joi": "14.3.0",
     "kafka-node": "3.0.1",
     "lolex": "3.0.0",
-    "memwatch-next": "0.3.0",
     "moleculer-repl": "0.5.4",
     "mqtt": "2.18.8",
     "msgpack5": "4.2.1",
