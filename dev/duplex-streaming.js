@@ -47,46 +47,50 @@ broker2.createService({
 
 let origHash;
 
+const fileName = "d://1.pdf";
+const fileName2 = "d://2.pdf";
+
 broker1.Promise.all([broker1.start(), broker2.start()])
 	.delay(2000)
 	.then(() => {
-		//broker1.repl();
-
-		const fileName = "d://1.pdf";
-		const fileName2 = "d://2.pdf";
+		broker1.repl();
 
 		return getSHA(fileName).then(hash1 => {
 			origHash = hash1;
 			broker1.logger.info("Original SHA:", hash1);
 
-			const startTime = Date.now();
-
-			const stream = fs.createReadStream(fileName);
-
-			broker1.call("aes.encrypt", stream)
-				.then(stream => broker1.call("aes.decrypt", stream))
-				.then(stream => {
-					const s = fs.createWriteStream(fileName2);
-					stream.pipe(s);
-					s.on("close", () => {
-						broker1.logger.info("Time:", Date.now() - startTime + "ms");
-						getSHA(fileName2).then(hash => {
-							broker1.logger.info("Received SHA:", hash);
-
-							if (hash != origHash) {
-								broker1.logger.error(chalk.red.bold("Hash mismatch!"));
-							} else {
-								broker1.logger.info(chalk.green.bold("Hash OK!"));
-							}
-						});
-
-						broker2.stop();
-						broker1.stop();
-					});
-				});
+			callAES();
 		});
 
 	});
+
+function callAES() {
+	const startTime = Date.now();
+
+	const stream = fs.createReadStream(fileName);
+
+	broker1.call("aes.encrypt", stream)
+		.then(stream => broker1.call("aes.decrypt", stream))
+		.then(stream => {
+			const s = fs.createWriteStream(fileName2);
+			stream.pipe(s);
+			s.on("close", () => {
+				broker1.logger.info("Time:", Date.now() - startTime + "ms");
+				getSHA(fileName2).then(hash => {
+					broker1.logger.info("Received SHA:", hash);
+
+					if (hash != origHash) {
+						broker1.logger.error(chalk.red.bold("Hash mismatch!"));
+					} else {
+						broker1.logger.info(chalk.green.bold("Hash OK!"));
+					}
+
+					setImmediate(() => callAES());
+				});
+			});
+		})
+		.catch(err => broker1.logger.error(err));
+}
 
 function getSHA(fileName) {
 	return new Promise((resolve, reject) => {
