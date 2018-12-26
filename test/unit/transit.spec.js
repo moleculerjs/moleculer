@@ -942,7 +942,6 @@ describe("Test Transit._responseHandler", () => {
 	it("should not call resolve if stream chunk is received", () => {
 		transit._handleIncomingResponseStream = jest.fn(() => true);
 
-		let data = { id: 5, name: "John" };
 		let req = {
 			action: { name: "posts.find" },
 			ctx: { nodeID: null },
@@ -963,7 +962,7 @@ describe("Test Transit._responseHandler", () => {
 	});
 });
 
-describe.only("Test Transit._handleIncomingResponseStream", () => {
+describe("Test Transit._handleIncomingResponseStream", () => {
 
 	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
@@ -977,6 +976,7 @@ describe.only("Test Transit._handleIncomingResponseStream", () => {
 			resolve: jest.fn(() => Promise.resolve()),
 			reject: jest.fn(() => Promise.resolve())
 		};
+		transit.pendingRequests.set("123", req);
 
 		it("should return false", () => {
 			const pass = transit._handleIncomingResponseStream({ ...payload, stream: false, seq: 0 }, req);
@@ -996,13 +996,14 @@ describe.only("Test Transit._handleIncomingResponseStream", () => {
 
 	describe("Test with sequential chunks", () => {
 		let STORE = [];
-		const payload = { ver: "3", sender: "remote", id: "123", success: true };
+		const payload = { ver: "3", sender: "remote", id: "124", success: true };
 		let req = {
 			action: { name: "posts.find" },
 			ctx: { nodeID: null },
 			resolve: jest.fn(() => Promise.resolve()),
 			reject: jest.fn(() => Promise.resolve())
 		};
+		transit.pendingRequests.set("124", req);
 
 		it("should create new stream", () => {
 			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 0 }, req)).toBe(true);
@@ -1041,7 +1042,7 @@ describe.only("Test Transit._handleIncomingResponseStream", () => {
 
 	describe("Test with sequential chunks & error", () => {
 		let STORE = [];
-		const payload = { ver: "3", sender: "remote", id: "123", success: true };
+		const payload = { ver: "3", sender: "remote", id: "125", success: true };
 		let req = {
 			action: { name: "posts.find" },
 			ctx: { nodeID: null },
@@ -1049,6 +1050,7 @@ describe.only("Test Transit._handleIncomingResponseStream", () => {
 			reject: jest.fn(() => Promise.resolve())
 		};
 		const errorHandler = jest.fn(() => STORE.push("-- ERROR --"));
+		transit.pendingRequests.set("125", req);
 
 		it("should create new stream", () => {
 			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 0 }, req)).toBe(true);
@@ -1061,8 +1063,8 @@ describe.only("Test Transit._handleIncomingResponseStream", () => {
 		});
 
 		it("should add chunks", () => {
-			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 1, data: "CHUNK-1" })).toBe(true);
-			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 2, data: "CHUNK-2" })).toBe(true);
+			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 1, data: "CHUNK-1" }, req)).toBe(true);
+			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 2, data: "CHUNK-2" }, req)).toBe(true);
 			expect(STORE).toEqual([
 				"CHUNK-1",
 				"CHUNK-2"
@@ -1070,7 +1072,7 @@ describe.only("Test Transit._handleIncomingResponseStream", () => {
 		});
 
 		it("should got error", () => {
-			expect(transit._handleIncomingResponseStream({ ...payload, success: false, stream: false, seq: 3, error: { name: "MoleculerError", message: "Some stream error" } })).toBe(true);
+			expect(transit._handleIncomingResponseStream({ ...payload, success: false, stream: false, seq: 3, error: { name: "MoleculerError", message: "Some stream error" } }, req)).toBe(true);
 			return broker.Promise.delay(100).then(() => {
 				expect(STORE).toEqual([
 					"CHUNK-1",
@@ -1084,27 +1086,37 @@ describe.only("Test Transit._handleIncomingResponseStream", () => {
 			});
 		});
 	});
-	/*
+
 	describe("Test with random order inside chunks", () => {
 		let STORE = [];
-		const payload = { ver: "3", sender: "remote", action: "posts.import", id: "123" };
+		const payload = { ver: "3", sender: "remote", id: "126", success: true };
+		let req = {
+			action: { name: "posts.find" },
+			ctx: { nodeID: null },
+			resolve: jest.fn(() => Promise.resolve()),
+			reject: jest.fn(() => Promise.resolve())
+		};
+		transit.pendingRequests.set("126", req);
+		const errorHandler = jest.fn(() => STORE.push("-- ERROR --"));
 
 		it("should create new stream", () => {
-			const pass = transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 0 });
+			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 0 }, req)).toBe(true);
+			expect(req.resolve).toHaveBeenCalledTimes(1);
+			const pass = req.resolve.mock.calls[0][0];
 			expect(pass).toBeInstanceOf(Transform);
 			pass.on("data", data => STORE.push(data.toString()));
-			pass.on("error", () => STORE.push("-- ERROR --"));
+			pass.on("error", errorHandler);
 			pass.on("end", () => STORE.push("-- END --"));
 		});
 
 		it("should reorder chunks", () => {
-			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 1, params: "CHUNK-1" })).toBeNull();
-			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 4, params: "CHUNK-4" })).toBeNull();
-			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 3, params: "CHUNK-3" })).toBeNull();
-			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 2, params: "CHUNK-2" })).toBeNull();
-			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 6, params: "CHUNK-6" })).toBeNull();
-			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 5, params: "CHUNK-5" })).toBeNull();
-			expect(transit._handleIncomingResponseStream({ ...payload, stream: false, seq: 7 })).toBeNull();
+			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 1, data: "CHUNK-1" }, req)).toBe(true);
+			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 4, data: "CHUNK-4" }, req)).toBe(true);
+			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 3, data: "CHUNK-3" }, req)).toBe(true);
+			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 2, data: "CHUNK-2" }, req)).toBe(true);
+			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 6, data: "CHUNK-6" }, req)).toBe(true);
+			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 5, data: "CHUNK-5" }, req)).toBe(true);
+			expect(transit._handleIncomingResponseStream({ ...payload, stream: false, seq: 7 }, req)).toBe(true);
 
 			return broker.Promise.delay(100).then(() => {
 				expect(STORE).toEqual([
@@ -1122,24 +1134,34 @@ describe.only("Test Transit._handleIncomingResponseStream", () => {
 
 	describe("Test with wrong first & last chunks orders", () => {
 		let STORE = [];
-		const payload = { ver: "3", sender: "remote", action: "posts.import", id: "124" };
+		const payload = { ver: "3", sender: "remote", id: "127", success: true };
+		let req = {
+			action: { name: "posts.find" },
+			ctx: { nodeID: null },
+			resolve: jest.fn(() => Promise.resolve()),
+			reject: jest.fn(() => Promise.resolve())
+		};
+		transit.pendingRequests.set("127", req);
+		const errorHandler = jest.fn(() => STORE.push("-- ERROR --"));
 
 		it("should create new stream", () => {
-			const pass = transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 1, params: "CHUNK-1" });
+			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 1, data: "CHUNK-1" }, req)).toBe(true);
+			expect(req.resolve).toHaveBeenCalledTimes(1);
+			const pass = req.resolve.mock.calls[0][0];
 			expect(pass).toBeInstanceOf(Transform);
 			pass.on("data", data => STORE.push(data.toString()));
-			pass.on("error", () => STORE.push("-- ERROR --"));
+			pass.on("error", errorHandler);
 			pass.on("end", () => STORE.push("-- END --"));
 		});
 
 		it("should reorder chunks", () => {
-			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 0 })).toBeNull();
-			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 4, params: "CHUNK-4" })).toBeNull();
-			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 3, params: "CHUNK-3" })).toBeNull();
-			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 2, params: "CHUNK-2" })).toBeNull();
-			expect(transit._handleIncomingResponseStream({ ...payload, stream: false, seq: 7 })).toBeNull();
-			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 6, params: "CHUNK-6" })).toBeNull();
-			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 5, params: "CHUNK-5" })).toBeNull();
+			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 0 }, req)).toBe(true);
+			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 4, data: "CHUNK-4" }, req)).toBe(true);
+			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 3, data: "CHUNK-3" }, req)).toBe(true);
+			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 2, data: "CHUNK-2" }, req)).toBe(true);
+			expect(transit._handleIncomingResponseStream({ ...payload, stream: false, seq: 7 }, req)).toBe(true);
+			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 6, data: "CHUNK-6" }, req)).toBe(true);
+			expect(transit._handleIncomingResponseStream({ ...payload, stream: true, seq: 5, data: "CHUNK-5" }, req)).toBe(true);
 
 			return broker.Promise.delay(100).then(() => {
 				expect(STORE).toEqual([
@@ -1153,9 +1175,8 @@ describe.only("Test Transit._handleIncomingResponseStream", () => {
 				]);
 			});
 		});
-	});*/
+	});
 });
-
 
 
 describe("Test Transit._eventHandler", () => {
