@@ -13,10 +13,7 @@ module.exports = {
 	],
 	"parserOptions": {
 		"sourceType": "module",
-		"ecmaVersion": "2017",
-		"ecmaFeatures": {
-            "experimentalObjectRestSpread": true
-        }
+		"ecmaVersion": "2017"
 	},
 	"plugins": [
 		"node",
