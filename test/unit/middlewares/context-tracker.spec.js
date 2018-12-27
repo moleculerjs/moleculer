@@ -1,3 +1,4 @@
+// const why = require("why-is-node-running");
 const ServiceBroker = require("../../../src/service-broker");
 const Context = require("../../../src/context");
 const Middleware = require("../../../src/middlewares").ContextTracker;
@@ -207,7 +208,7 @@ describe("Test Service throw GraceFulTimeoutError", () => {
 	});
 });
 
-/* The result is not exact. Sometimes it's failed randomly on Travis CI
+// The result is not exact. Sometimes it's failed randomly on Travis CI
 describe("Test broker delayed shutdown with remote calls", () => {
 	const FLOW = [];
 
@@ -272,14 +273,13 @@ describe("Test broker delayed shutdown with remote calls", () => {
 			});
 	});
 });
-*/
 
 describe("Test broker delayed throw GraceFulTimeoutError", () => {
 	const FLOW = [];
 
 	const broker1 = new ServiceBroker({
 		transporter: "Fake",
-		logger: true,
+		logger: false,
 		nodeID: "node-5",
 		tracking: {
 			enabled: true,
@@ -291,7 +291,7 @@ describe("Test broker delayed throw GraceFulTimeoutError", () => {
 
 	const broker2 = new ServiceBroker({
 		transporter: "Fake",
-		logger: true,
+		logger: false,
 		nodeID: "node-6",
 		tracking: {
 			enabled: true,
@@ -307,8 +307,13 @@ describe("Test broker delayed throw GraceFulTimeoutError", () => {
 		actions: {
 			test() {
 				FLOW.push("start");
-				return this.Promise.delay(2000)
-					.then(() => FLOW.push("end"));
+				return new this.Promise(resolve => {
+					const timer = setTimeout(() => {
+						FLOW.push("end");
+						resolve();
+					}, 2000);
+					timer.unref();
+				});
 			}
 		},
 
@@ -336,12 +341,6 @@ describe("Test broker delayed throw GraceFulTimeoutError", () => {
 					"service-stop",
 					"broker2-stop",
 				]);
-				setTimeout(() => {
-					console.log("!!!!!!!!!!!!!!!!!!", process._getActiveHandles().length);
-					const handles = process._getActiveHandles();
-					handles.forEach(handler => broker1.logger.info(handler));
-
-				},5678);
 			});
 	});
 });

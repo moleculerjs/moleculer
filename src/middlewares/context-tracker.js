@@ -72,6 +72,7 @@ function waitingForActiveContexts(list, logger, time, service) {
 		const timeout = setTimeout(() => {
 			timedOut = true;
 			logger.error(new GracefulStopTimeoutError({ service }));
+			list.length = 0; // Clear pointers
 			resolve();
 		}, time);
 
