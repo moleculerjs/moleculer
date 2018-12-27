@@ -20,7 +20,7 @@ describe("Test ProtoBuf serializer", () => {
 
 	it("should serialize the disconnect packet", () => {
 		const obj = {
-			ver: "3",
+			ver: "4",
 			sender: "test-1",
 		};
 		const s = serializer.serialize(obj, P.PACKET_DISCONNECT);
@@ -33,7 +33,7 @@ describe("Test ProtoBuf serializer", () => {
 
 	it("should serialize the heartbeat packet", () => {
 		const obj = {
-			ver: "3",
+			ver: "4",
 			sender: "test-1",
 			cpu: 12.5
 		};
@@ -47,7 +47,7 @@ describe("Test ProtoBuf serializer", () => {
 
 	it("should serialize the discover packet", () => {
 		const obj = {
-			ver: "3",
+			ver: "4",
 			sender: "test-1",
 		};
 		const s = serializer.serialize(obj, P.PACKET_DISCOVER);
@@ -60,7 +60,7 @@ describe("Test ProtoBuf serializer", () => {
 
 	it("should serialize the info packet", () => {
 		const obj = {
-			ver: "3",
+			ver: "4",
 			sender: "test-1",
 			services: [
 				{ name: "users", version: "2", settings: {}, metadata: {}, actions: {
@@ -89,7 +89,7 @@ describe("Test ProtoBuf serializer", () => {
 
 	it("should serialize the event packet", () => {
 		const obj = {
-			ver: "3",
+			ver: "4",
 			sender: "test-1",
 			event: "user.created",
 			data: {
@@ -108,7 +108,7 @@ describe("Test ProtoBuf serializer", () => {
 
 	it("should serialize the event packet with groups", () => {
 		const obj = {
-			ver: "3",
+			ver: "4",
 			sender: "test-1",
 			event: "user.created",
 			data: {
@@ -128,7 +128,7 @@ describe("Test ProtoBuf serializer", () => {
 
 	it("should serialize the event packet without data", () => {
 		const obj = {
-			ver: "3",
+			ver: "4",
 			sender: "test-1",
 			event: "user.created",
 			broadcast: true
@@ -143,7 +143,7 @@ describe("Test ProtoBuf serializer", () => {
 
 	it("should serialize the request packet", () => {
 		const obj = {
-			ver: "3",
+			ver: "4",
 			sender: "test-1",
 			id: "100",
 			action: "posts.find",
@@ -172,7 +172,7 @@ describe("Test ProtoBuf serializer", () => {
 
 	it("should serialize the request packet with buffer", () => {
 		const obj = {
-			ver: "3",
+			ver: "4",
 			sender: "test-1",
 			id: "100",
 			action: "posts.find",
@@ -202,7 +202,7 @@ describe("Test ProtoBuf serializer", () => {
 
 	it("should serialize the response packet with data", () => {
 		const obj = {
-			ver: "3",
+			ver: "4",
 			sender: "test-1",
 			id: "12345",
 			success: true,
@@ -229,7 +229,7 @@ describe("Test ProtoBuf serializer", () => {
 
 	it("should serialize the response packet with buffer data", () => {
 		const obj = {
-			ver: "3",
+			ver: "4",
 			sender: "test-1",
 			id: "12345",
 			success: true,
@@ -253,7 +253,7 @@ describe("Test ProtoBuf serializer", () => {
 
 	it("should serialize the response packet with error", () => {
 		const obj = {
-			ver: "3",
+			ver: "4",
 			sender: "test-1",
 			id: "12345",
 			success: false,
@@ -288,7 +288,7 @@ describe("Test ProtoBuf serializer", () => {
 
 	it("should serialize the ping packet", () => {
 		const obj = {
-			ver: "3",
+			ver: "4",
 			sender: "test-1",
 			time: 1234567,
 			id: "123"
@@ -309,7 +309,7 @@ describe("Test ProtoBuf serializer", () => {
 
 	it("should serialize the pong packet", () => {
 		const obj = {
-			ver: "3",
+			ver: "4",
 			sender: "test-1",
 			time: 1234567,
 			arrived: 7654321,
@@ -343,7 +343,7 @@ describe("Test ProtoBuf serializer with Gossip packets", () => {
 
 	it("should serialize the hello packet", () => {
 		const obj = {
-			ver: "3",
+			ver: "4",
 			sender: "test-1",
 			host: "server-host",
 			port: 45450,
@@ -357,7 +357,7 @@ describe("Test ProtoBuf serializer with Gossip packets", () => {
 
 	it("should serialize the empty REQUEST packet", () => {
 		const obj = {
-			ver: "3",
+			ver: "4",
 			sender: "test-1"
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_GOSSIP_REQ);
@@ -369,7 +369,7 @@ describe("Test ProtoBuf serializer with Gossip packets", () => {
 
 	it("should serialize the full REQUEST packet", () => {
 		const obj = {
-			ver: "3",
+			ver: "4",
 			sender: "test-1",
 			online: {
 				"node-1": [1, 2, 3],
@@ -389,7 +389,7 @@ describe("Test ProtoBuf serializer with Gossip packets", () => {
 
 	it("should serialize the empty RESPONSE packet", () => {
 		const obj = {
-			ver: "3",
+			ver: "4",
 			sender: "test-1"
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_GOSSIP_RES);
@@ -401,7 +401,7 @@ describe("Test ProtoBuf serializer with Gossip packets", () => {
 
 	it("should serialize the full RESPONSE packet", () => {
 		const obj = {
-			ver: "3",
+			ver: "4",
 			sender: "test-1",
 			online: {
 				"node-1": [{ services: [] }, 2, 3],

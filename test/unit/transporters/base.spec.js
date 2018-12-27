@@ -293,7 +293,7 @@ describe("Test BaseTransporter", () => {
 			let packet = new P.Packet(P.PACKET_EVENT);
 			expect(transporter.serialize(packet)).toBe("serialized");
 			expect(broker.serializer.serialize).toHaveBeenCalledTimes(1);
-			expect(broker.serializer.serialize).toHaveBeenCalledWith({ "sender": "server1", "ver": "3" }, P.PACKET_EVENT);
+			expect(broker.serializer.serialize).toHaveBeenCalledWith({ "sender": "server1", "ver": "4" }, P.PACKET_EVENT);
 		});
 	});
 

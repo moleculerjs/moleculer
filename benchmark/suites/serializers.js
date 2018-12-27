@@ -36,7 +36,7 @@ function runTest(dataName) {
 	let bench1 = benchmark.createSuite(`Serialize packet with ${dataName}bytes`);
 
 	const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
-		ver:"3",
+		ver:"2",
 		sender: "node-100",
 		event: "user.created",
 		data: payload,
@@ -45,7 +45,7 @@ function runTest(dataName) {
 
 	bench1.ref("JSON", () => {
 		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
-			ver:"3",
+			ver:"2",
 			sender: "node-100",
 			event: "user.created",
 			data: payload,
@@ -69,7 +69,7 @@ function runTest(dataName) {
 
 	bench1.add("JSON (circular)", () => {
 		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
-			ver:"3",
+			ver:"2",
 			sender: "node-100",
 			event: "user.created",
 			data: payload,
@@ -80,7 +80,7 @@ function runTest(dataName) {
 
 	bench1.add("Avro", () => {
 		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
-			ver:"3",
+			ver:"2",
 			sender: "node-100",
 			event: "user.created",
 			data: payload,
@@ -91,7 +91,7 @@ function runTest(dataName) {
 
 	bench1.add("MsgPack", () => {
 		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
-			ver:"3",
+			ver:"2",
 			sender: "node-100",
 			event: "user.created",
 			data: payload,
@@ -102,7 +102,7 @@ function runTest(dataName) {
 
 	bench1.add("ProtoBuf", () => {
 		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
-			ver:"3",
+			ver:"2",
 			sender: "node-100",
 			event: "user.created",
 			data: payload,
@@ -113,7 +113,7 @@ function runTest(dataName) {
 
 	bench1.add("Thrift", () => {
 		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
-			ver:"3",
+			ver:"2",
 			sender: "node-100",
 			event: "user.created",
 			data: payload,
@@ -124,7 +124,7 @@ function runTest(dataName) {
 
 	bench1.add("Notepack", () => {
 		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
-			ver:"3",
+			ver:"2",
 			sender: "node-100",
 			event: "user.created",
 			data: payload,

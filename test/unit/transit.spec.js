@@ -381,7 +381,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call _requestHandler if topic is 'REQ' ", () => {
 		transit._requestHandler = jest.fn();
 
-		let payload = { ver: "3", sender: "remote", action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456", timeout: 567 };
+		let payload = { ver: "4", sender: "remote", action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456", timeout: 567 };
 		transit.messageHandler("REQ", { payload });
 
 		expect(transit._requestHandler).toHaveBeenCalledTimes(1);
@@ -391,7 +391,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call _requestHandler if topic is 'REQ' && sender is itself", () => {
 		transit._requestHandler = jest.fn();
 
-		let payload = { ver: "3", sender: broker.nodeID, action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456", timeout: 567 };
+		let payload = { ver: "4", sender: broker.nodeID, action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456", timeout: 567 };
 		transit.messageHandler("REQ", { payload });
 
 		expect(transit._requestHandler).toHaveBeenCalledTimes(1);
@@ -401,7 +401,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call _responseHandler if topic is 'RES' ", () => {
 		transit._responseHandler = jest.fn();
 
-		let payload = { ver: "3", sender: "remote", id: "12345" };
+		let payload = { ver: "4", sender: "remote", id: "12345" };
 		transit.messageHandler("RES", { payload });
 
 		expect(transit._responseHandler).toHaveBeenCalledTimes(1);
@@ -411,7 +411,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call _responseHandler if topic is 'RES' && sender is itself", () => {
 		transit._responseHandler = jest.fn();
 
-		let payload = { ver: "3", sender: broker.nodeID, id: "12345" };
+		let payload = { ver: "4", sender: broker.nodeID, id: "12345" };
 		transit.messageHandler("RES", { payload });
 
 		expect(transit._responseHandler).toHaveBeenCalledTimes(1);
@@ -421,7 +421,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call __eventHandler if topic is 'EVENT' ", () => {
 		transit._eventHandler = jest.fn();
 
-		let payload = { ver: "3", sender: "remote", event: "user.created", data: "John Doe" };
+		let payload = { ver: "4", sender: "remote", event: "user.created", data: "John Doe" };
 		transit.messageHandler("EVENT", { payload });
 
 		expect(transit._eventHandler).toHaveBeenCalledTimes(1);
@@ -431,7 +431,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call __eventHandler if topic is 'EVENT' && sender is itself", () => {
 		transit._eventHandler = jest.fn();
 
-		let payload = { ver: "3", sender: broker.nodeID, event: "user.created", data: "John Doe" };
+		let payload = { ver: "4", sender: broker.nodeID, event: "user.created", data: "John Doe" };
 		transit.messageHandler("EVENT", { payload });
 
 		expect(transit._eventHandler).toHaveBeenCalledTimes(1);
@@ -442,7 +442,7 @@ describe("Test Transit.messageHandler", () => {
 		broker.registry.nodes.processNodeInfo = jest.fn();
 		transit.sendNodeInfo = jest.fn();
 
-		let payload = { ver: "3", sender: "remote", services: JSON.stringify([]) };
+		let payload = { ver: "4", sender: "remote", services: JSON.stringify([]) };
 		transit.messageHandler("DISCOVER", { payload });
 		expect(transit.sendNodeInfo).toHaveBeenCalledTimes(1);
 		expect(transit.sendNodeInfo).toHaveBeenCalledWith("remote");
@@ -451,7 +451,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call broker.registry.nodes.processNodeInfo if topic is 'INFO' ", () => {
 		broker.registry.nodes.processNodeInfo = jest.fn();
 
-		let payload = { ver: "3", sender: "remote", services: [] };
+		let payload = { ver: "4", sender: "remote", services: [] };
 		transit.messageHandler("INFO", { payload });
 
 		expect(broker.registry.nodes.processNodeInfo).toHaveBeenCalledTimes(1);
@@ -461,7 +461,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call broker.registry.nodes.disconnected if topic is 'DISCONNECT' ", () => {
 		broker.registry.nodes.disconnected = jest.fn();
 
-		let payload = { ver: "3", sender: "remote" };
+		let payload = { ver: "4", sender: "remote" };
 		transit.messageHandler("DISCONNECT", { payload });
 
 		expect(broker.registry.nodes.disconnected).toHaveBeenCalledTimes(1);
@@ -471,7 +471,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call broker.registry.nodes.heartbeat if topic is 'HEARTBEAT' ", () => {
 		broker.registry.nodes.heartbeat = jest.fn();
 
-		let payload = { ver: "3", sender: "remote", cpu: 100 };
+		let payload = { ver: "4", sender: "remote", cpu: 100 };
 		transit.messageHandler("HEARTBEAT", { payload });
 
 		expect(broker.registry.nodes.heartbeat).toHaveBeenCalledTimes(1);
@@ -481,7 +481,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call broker.registry.nodes.heartbeat if topic is 'PING' ", () => {
 		transit.sendPong = jest.fn();
 
-		let payload = { ver: "3", sender: "remote", time: 1234567 };
+		let payload = { ver: "4", sender: "remote", time: 1234567 };
 		transit.messageHandler("PING", { payload });
 
 		expect(transit.sendPong).toHaveBeenCalledTimes(1);
@@ -491,7 +491,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call broker.registry.nodes.heartbeat if topic is 'PONG' ", () => {
 		transit.processPong = jest.fn();
 
-		let payload = { ver: "3", sender: "remote", time: 1234567, arrived: 7654321 };
+		let payload = { ver: "4", sender: "remote", time: 1234567, arrived: 7654321 };
 		transit.messageHandler("PONG", { payload });
 
 		expect(transit.processPong).toHaveBeenCalledTimes(1);
@@ -501,7 +501,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should skip processing if sender is itself", () => {
 		transit.sendPong = jest.fn();
 
-		let payload = { ver: "3", sender: broker.nodeID, time: 1234567 };
+		let payload = { ver: "4", sender: broker.nodeID, time: 1234567 };
 		transit.messageHandler("PING", { payload });
 
 		expect(transit.sendPong).toHaveBeenCalledTimes(0);
@@ -535,7 +535,7 @@ describe("Test Transit._requestHandler", () => {
 	it("should call handler & sendResponse with result", () => {
 		broker._getLocalActionEndpoint = jest.fn(() => ep);
 
-		let payload = { ver: "3", sender: "remote", action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456", timeout: 567, stream: false };
+		let payload = { ver: "4", sender: "remote", action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456", timeout: 567, stream: false };
 
 		return transit._requestHandler(payload).catch(protectReject).then(() => {
 
@@ -570,7 +570,7 @@ describe("Test Transit._requestHandler", () => {
 		ep.action.handler = handler;
 		broker.options.requestTimeout = 2600;
 
-		let payload = { ver: "3", sender: "remote", action: "posts.create", id: "123", params: { title: "Hello" }, meta: { b: 100 } };
+		let payload = { ver: "4", sender: "remote", action: "posts.create", id: "123", params: { title: "Hello" }, meta: { b: 100 } };
 		return transit._requestHandler(payload).then(protectReject).catch(() => {
 
 			expect(handler).toHaveBeenCalledTimes(1);
@@ -596,7 +596,7 @@ describe("Test Transit._requestHandler", () => {
 		broker._getLocalActionEndpoint = jest.fn(() => { throw new E.ServiceNotFoundError("posts.find", broker.nodeID); });
 		broker._handleRemoteRequest = jest.fn(() => Promise.reject(new E.ValidationError("Not valid params")));
 
-		let payload = { ver: "3", sender: "remote", action: "posts.create", id: "123", params: { title: "Hello" }, meta: { b: 100 } };
+		let payload = { ver: "4", sender: "remote", action: "posts.create", id: "123", params: { title: "Hello" }, meta: { b: 100 } };
 		return transit._requestHandler(payload).then(protectReject).catch(() => {
 
 			expect(broker._handleRemoteRequest).toHaveBeenCalledTimes(0);
@@ -612,7 +612,7 @@ describe("Test Transit._requestHandler", () => {
 		transit.sendResponse.mockClear();
 		transit._handleIncomingRequestStream = jest.fn(() => null);
 
-		let payload = { ver: "3", sender: "remote", action: "posts.create", id: "123", params: { title: "Hello" }, meta: { b: 100 }, stream: true, seq: 3 };
+		let payload = { ver: "4", sender: "remote", action: "posts.create", id: "123", params: { title: "Hello" }, meta: { b: 100 }, stream: true, seq: 3 };
 		return transit._requestHandler(payload).then(protectReject).catch(() => {
 
 			expect(handler).toHaveBeenCalledTimes(0);
@@ -632,7 +632,7 @@ describe("Test Transit._requestHandler", () => {
 		broker._handleRemoteRequest.mockClear();
 		transit.sendResponse.mockClear();
 
-		let payload = { ver: "3", sender: "remote", action: "posts.create", id: "123", params: { title: "Hello" }, meta: { b: 100 } };
+		let payload = { ver: "4", sender: "remote", action: "posts.create", id: "123", params: { title: "Hello" }, meta: { b: 100 } };
 		return transit._requestHandler(payload).then(protectReject).catch(() => {
 			expect(broker._getLocalActionEndpoint).toHaveBeenCalledTimes(0);
 			expect(broker._handleRemoteRequest).toHaveBeenCalledTimes(0);
@@ -650,7 +650,7 @@ describe("Test Transit._handleIncomingRequestStream", () => {
 	broker.started = true;
 
 	describe("Test with non-stream data", () => {
-		const payload = { ver: "3", sender: "remote", action: "posts.import", id: "123" };
+		const payload = { ver: "4", sender: "remote", action: "posts.import", id: "123" };
 
 		it("should return false", () => {
 			const pass = transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: false, seq: 0 }));
@@ -670,7 +670,7 @@ describe("Test Transit._handleIncomingRequestStream", () => {
 
 	describe("Test with sequential chunks", () => {
 		let STORE = [];
-		const payload = { ver: "3", sender: "remote", action: "posts.import", id: "123" };
+		const payload = { ver: "4", sender: "remote", action: "posts.import", id: "123" };
 
 		it("should create new stream", () => {
 			const pass = transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, seq: 0 }));
@@ -707,7 +707,7 @@ describe("Test Transit._handleIncomingRequestStream", () => {
 
 	describe("Test with sequential chunks & error", () => {
 		let STORE = [];
-		const payload = { ver: "3", sender: "remote", action: "posts.import", id: "123" };
+		const payload = { ver: "4", sender: "remote", action: "posts.import", id: "123" };
 		const errorHandler = jest.fn(() => STORE.push("-- ERROR --"));
 
 		it("should create new stream", () => {
@@ -745,7 +745,7 @@ describe("Test Transit._handleIncomingRequestStream", () => {
 
 	describe("Test with random order inside chunks", () => {
 		let STORE = [];
-		const payload = { ver: "3", sender: "remote", action: "posts.import", id: "123" };
+		const payload = { ver: "4", sender: "remote", action: "posts.import", id: "123" };
 
 		it("should create new stream", () => {
 			const pass = transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, seq: 0 }));
@@ -780,7 +780,7 @@ describe("Test Transit._handleIncomingRequestStream", () => {
 
 	describe("Test with wrong first & last chunks orders", () => {
 		let STORE = [];
-		const payload = { ver: "3", sender: "remote", action: "posts.import", id: "124" };
+		const payload = { ver: "4", sender: "remote", action: "posts.import", id: "124" };
 
 		it("should create new stream", () => {
 			const pass = transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, seq: 1, params: "CHUNK-1" }));
@@ -824,7 +824,7 @@ describe("Test Transit._responseHandler", () => {
 
 	it("should not call resolve or reject if pending req is not exists", () => {
 		let req = { resolve: jest.fn(), reject: jest.fn() };
-		let payload = { ver: "3", sender: "remote", id };
+		let payload = { ver: "4", sender: "remote", id };
 
 		transit._responseHandler(payload);
 		expect(req.resolve).toHaveBeenCalledTimes(0);
@@ -843,7 +843,7 @@ describe("Test Transit._responseHandler", () => {
 		};
 		transit.pendingRequests.set(id, req);
 
-		let payload = { ver: "3", sender: "remote", id, success: true, data, stream: false };
+		let payload = { ver: "4", sender: "remote", id, success: true, data, stream: false };
 		transit._responseHandler(payload);
 		expect(req.resolve).toHaveBeenCalledTimes(1);
 		expect(req.resolve).toHaveBeenCalledWith(data);
@@ -867,7 +867,7 @@ describe("Test Transit._responseHandler", () => {
 		};
 		transit.pendingRequests.set(id, req);
 
-		let payload = { ver: "3", sender: "remote", id, success: false, error: {
+		let payload = { ver: "4", sender: "remote", id, success: false, error: {
 			name: "ValidationError",
 			code: 422,
 			retryable: true,
@@ -909,7 +909,7 @@ describe("Test Transit._responseHandler", () => {
 		};
 		transit.pendingRequests.set(id, req);
 
-		let payload = { ver: "3", sender: "remote", id, success: false, error: {
+		let payload = { ver: "4", sender: "remote", id, success: false, error: {
 			name: "MyCustomError",
 			code: 456,
 			retryable: true,
@@ -950,7 +950,7 @@ describe("Test Transit._responseHandler", () => {
 		};
 		transit.pendingRequests.set(id, req);
 
-		let payload = { ver: "3", sender: "remote", id, success: true, stream: true, seq: 5 };
+		let payload = { ver: "4", sender: "remote", id, success: true, stream: true, seq: 5 };
 		transit._responseHandler(payload);
 
 		expect(transit._handleIncomingResponseStream).toHaveBeenCalledTimes(1);
@@ -969,7 +969,7 @@ describe("Test Transit._handleIncomingResponseStream", () => {
 	broker.started = true;
 
 	describe("Test with non-stream data", () => {
-		const payload = { ver: "3", sender: "remote", id: "123" };
+		const payload = { ver: "4", sender: "remote", id: "123" };
 		let req = {
 			action: { name: "posts.find" },
 			ctx: { nodeID: null },
@@ -996,7 +996,7 @@ describe("Test Transit._handleIncomingResponseStream", () => {
 
 	describe("Test with sequential chunks", () => {
 		let STORE = [];
-		const payload = { ver: "3", sender: "remote", id: "124", success: true };
+		const payload = { ver: "4", sender: "remote", id: "124", success: true };
 		let req = {
 			action: { name: "posts.find" },
 			ctx: { nodeID: null },
@@ -1042,7 +1042,7 @@ describe("Test Transit._handleIncomingResponseStream", () => {
 
 	describe("Test with sequential chunks & error", () => {
 		let STORE = [];
-		const payload = { ver: "3", sender: "remote", id: "125", success: true };
+		const payload = { ver: "4", sender: "remote", id: "125", success: true };
 		let req = {
 			action: { name: "posts.find" },
 			ctx: { nodeID: null },
@@ -1089,7 +1089,7 @@ describe("Test Transit._handleIncomingResponseStream", () => {
 
 	describe("Test with random order inside chunks", () => {
 		let STORE = [];
-		const payload = { ver: "3", sender: "remote", id: "126", success: true };
+		const payload = { ver: "4", sender: "remote", id: "126", success: true };
 		let req = {
 			action: { name: "posts.find" },
 			ctx: { nodeID: null },
@@ -1134,7 +1134,7 @@ describe("Test Transit._handleIncomingResponseStream", () => {
 
 	describe("Test with wrong first & last chunks orders", () => {
 		let STORE = [];
-		const payload = { ver: "3", sender: "remote", id: "127", success: true };
+		const payload = { ver: "4", sender: "remote", id: "127", success: true };
 		let req = {
 			action: { name: "posts.find" },
 			ctx: { nodeID: null },
@@ -1576,7 +1576,7 @@ describe("Test packetLogFilter option", () => {
 		const broker = new ServiceBroker({ logger: () => logger, transit: { packetLogFilter: ["HEARTBEAT", "INFO"] }, logLevel: "debug", nodeID: "node1", transporter: new FakeTransporter() });
 		const transit = broker.transit;
 		broker.logger = jest.fn();
-		let payload = { ver: "3", sender: "remote", cpu: 100 };
+		let payload = { ver: "4", sender: "remote", cpu: 100 };
 
 		transit.messageHandler("DISCOVER", { payload });
 		expect(logger.debug).toHaveBeenCalledWith("<= Incoming DISCOVER packet from 'remote'");
@@ -1597,11 +1597,11 @@ describe("Test packetLogFilter option", () => {
 		const transit = broker.transit;
 		broker.logger = jest.fn();
 
-		let payload = { ver: "3", sender: "remote", services: JSON.stringify([]) };
+		let payload = { ver: "4", sender: "remote", services: JSON.stringify([]) };
 		transit.publish(new P.Packet("DISCOVER", "remote", { payload }));
 		expect(logger.debug).toHaveBeenCalledWith("=> Send DISCOVER packet to 'remote'");
 
-		payload = { ver: "3", sender: "remote", cpu: 100 };
+		payload = { ver: "4", sender: "remote", cpu: 100 };
 		transit.publish(new P.Packet("HEARTBEAT", "remote", payload));
 		expect(logger.debug).not.toHaveBeenCalledWith("=> Send HEARTBEAT packet to 'remote'");
 	});

@@ -527,7 +527,7 @@ declare namespace Moleculer {
 	}
 
 	namespace Packets {
-		type PROTOCOL_VERSION = "3";
+		type PROTOCOL_VERSION = "4";
 		type PACKET_UNKNOWN = "???";
 		type PACKET_EVENT = "EVENT";
 		type PACKET_REQUEST = "REQ";

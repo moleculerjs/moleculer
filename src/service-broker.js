@@ -1347,7 +1347,7 @@ ServiceBroker.prototype.MOLECULER_VERSION = ServiceBroker.MOLECULER_VERSION;
 /**
  * Version of Protocol
  */
-ServiceBroker.PROTOCOL_VERSION = "3";
+ServiceBroker.PROTOCOL_VERSION = "4";
 ServiceBroker.prototype.PROTOCOL_VERSION = ServiceBroker.PROTOCOL_VERSION;
 
 /**

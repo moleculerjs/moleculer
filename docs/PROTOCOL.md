@@ -1,4 +1,4 @@
-title: Protocol v3 (rev. 2)
+title: Protocol v4 (rev. 1)
 ---
 
 This documentation describes the communication protocol between Moleculer nodes. 
@@ -71,7 +71,7 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
-| `ver` | `string` | ✔ | Protocol version. Current: `'3'`. |
+| `ver` | `string` | ✔ | Protocol version. Current: `'4'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
 
 
@@ -86,7 +86,7 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
-| `ver` | `string` | ✔ | Protocol version. Current: `'3'`. |
+| `ver` | `string` | ✔ | Protocol version. Current: `'4'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `services` | `object` | ✔ | Services list. (*) |
 | `config` | `object` | ✔ | Client configuration. (*) |
@@ -97,7 +97,7 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 |   `client.version` | `string` | ✔ | Client (Moleculer) version |
 |   `client.langVersion` | `string` | ✔ | NodeJS/Java/Go version |
 
-> (*) In case of `ProtoBuf`, `Avro` or any other schema-based serializer, the field value is encoded to JSON string.
+> (*) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string.
 
 ### `HEARTBEAT`
 
@@ -109,7 +109,7 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
-| `ver` | `string` | ✔ | Protocol version. Current: `'3'`. |
+| `ver` | `string` | ✔ | Protocol version. Current: `'4'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `cpu` | `double` | ✔ | Current CPU utilization (percentage). |
 
@@ -125,7 +125,7 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
-| `ver` | `string` | ✔ | Protocol version. Current: `'3'`. |
+| `ver` | `string` | ✔ | Protocol version. Current: `'4'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `id` | `string` | ✔ | Context ID. |
 | `action` | `string` | ✔ | Action name. E.g.: `posts.find` |
@@ -137,8 +137,9 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `parentID` | `string` |  | Parent context ID. |
 | `requestID` | `string` |  | Request ID from `ctx.requestID`. |
 | `stream` | `boolean` | ✔ | Stream request. |
+| `seq` | `int32` |   | Stream sequence number. |
 
-> (*) In case of `ProtoBuf`, `Avro` or any other schema-based serializer, the field value is encoded to JSON string.
+> (*) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string.
 
 ### `RESPONSE`
 
@@ -150,7 +151,7 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
-| `ver` | `string` | ✔ | Protocol version. Current: `'3'`. |
+| `ver` | `string` | ✔ | Protocol version. Current: `'4'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `id` | `string` | ✔ | Context ID (from `REQUEST`). |
 | `success` | `boolean` | ✔ | Is it a success response? |
@@ -158,8 +159,9 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `error` | `object` |  | Error object if not success. (*) |
 | `meta` | `object` | ✔ | `ctx.meta` object. (*) |
 | `stream` | `boolean` | ✔ | Stream request. |
+| `seq` | `int32` |   | Stream sequence number. |
 
-> (*) In case of `ProtoBuf`, `Avro` or any other schema-based serializer, the field value is encoded to JSON string.
+> (*) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string.
 
 
 ### `EVENT`
@@ -173,14 +175,14 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
-| `ver` | `string` | ✔ | Protocol version. Current: `'3'`. |
+| `ver` | `string` | ✔ | Protocol version. Current: `'4'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `event` | `string` | ✔ | Event name. E.g.: `users.created` |
 | `data` | `object` |   | Event payload. (*) |
 | `groups` | `Array<string>` |   | Groups for balanced events. |
 | `broadcast` | `boolean` | ✔ | Broadcast event |
 
-> (*) In case of `ProtoBuf`, `Avro` or any other schema-based serializer, the field value is encoded to JSON string.
+> (*) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string.
 
 
 ### `PING`
@@ -194,8 +196,9 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
-| `ver` | `string` | ✔ | Protocol version. Current: `'3'`. |
+| `ver` | `string` | ✔ | Protocol version. Current: `'4'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
+| `id` | `string` | ✔ | Message ID. |
 | `time` | `int64` | ✔ | Time of sent. (*) |
 
 > (*) The number of milliseconds between 1 January 1970 00:00:00 UTC and the given date.
@@ -210,8 +213,9 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
-| `ver` | `string` | ✔ | Protocol version. Current: `'3'`. |
+| `ver` | `string` | ✔ | Protocol version. Current: `'4'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
+| `id` | `string` | ✔ | Message ID. |
 | `time` | `int64` | ✔ | Timestamp of sent. (*) |
 | `arrived` | `int64` | ✔ | Timestamp of arrived. (*) |
 
@@ -227,6 +231,6 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
-| `ver` | `string` | ✔ | Protocol version. Current: `'3'`. |
+| `ver` | `string` | ✔ | Protocol version. Current: `'4'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
 
