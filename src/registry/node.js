@@ -31,6 +31,7 @@ class Node {
 		this.port = null;
 		this.hostname = null;
 		this.udpAddress = null;
+		this.instanceID = null;
 
 		this.rawInfo = null;
 		this.services = [];
@@ -55,6 +56,7 @@ class Node {
 		this.hostname = payload.hostname;
 		this.port = payload.port;
 		this.client = payload.client || {};
+		this.instanceID = payload.instanceID;
 
 		// Process services & events
 		this.services = payload.services;

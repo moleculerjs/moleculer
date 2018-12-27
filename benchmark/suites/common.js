@@ -149,43 +149,43 @@ Platform info:
    Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
 
 Suite: Local call
-√ broker.call (normal)*             1,595,635 rps
-√ broker.call (with params)*        1,662,917 rps
+√ broker.call (normal)*             1,705,852 rps
+√ broker.call (with params)*        1,736,929 rps
 
-   broker.call (normal)* (#)            0%      (1,595,635 rps)   (avg: 626ns)
-   broker.call (with params)*       +4.22%      (1,662,917 rps)   (avg: 601ns)
+   broker.call (normal)* (#)            0%      (1,705,852 rps)   (avg: 586ns)
+   broker.call (with params)*       +1.82%      (1,736,929 rps)   (avg: 575ns)
 -----------------------------------------------------------------------
 
 Suite: Call with middlewares
-√ No middlewares*        1,621,427 rps
-√ 5 middlewares*           664,141 rps
+√ No middlewares*        1,675,912 rps
+√ 5 middlewares*           710,133 rps
 
-   No middlewares* (#)       0%      (1,621,427 rps)   (avg: 616ns)
-   5 middlewares*       -59.04%        (664,141 rps)   (avg: 1μs)
+   No middlewares* (#)       0%      (1,675,912 rps)   (avg: 596ns)
+   5 middlewares*       -57.63%        (710,133 rps)   (avg: 1μs)
 -----------------------------------------------------------------------
 
 Suite: Call with metrics
-√ No metrics*          1,546,373 rps
-√ With metrics*          486,737 rps
+√ No metrics*          1,615,240 rps
+√ With metrics*          504,892 rps
 
-   No metrics* (#)         0%      (1,546,373 rps)   (avg: 646ns)
-   With metrics*      -68.52%        (486,737 rps)   (avg: 2μs)
+   No metrics* (#)         0%      (1,615,240 rps)   (avg: 619ns)
+   With metrics*      -68.74%        (504,892 rps)   (avg: 1μs)
 -----------------------------------------------------------------------
 
 Suite: Remote call with FakeTransporter
-√ Remote call echo.reply*                         42,409 rps
-√ Remote call echo.reply with tracking*           45,739 rps
+√ Remote call echo.reply*                         42,118 rps
+√ Remote call echo.reply with tracking*           44,081 rps
 
-   Remote call echo.reply* (#)                     0%         (42,409 rps)   (avg: 23μs)
-   Remote call echo.reply with tracking*       +7.85%         (45,739 rps)   (avg: 21μs)
+   Remote call echo.reply* (#)                     0%         (42,118 rps)   (avg: 23μs)
+   Remote call echo.reply with tracking*       +4.66%         (44,081 rps)   (avg: 22μs)
 -----------------------------------------------------------------------
 
 Suite: Context tracking
-√ broker.call (without tracking)*        1,606,966 rps
-√ broker.call (with tracking)*           1,588,692 rps
+√ broker.call (without tracking)*        1,680,786 rps
+√ broker.call (with tracking)*           1,673,843 rps
 
-   broker.call (without tracking)* (#)       0%      (1,606,966 rps)   (avg: 622ns)
-   broker.call (with tracking)*          -1.14%      (1,588,692 rps)   (avg: 629ns)
+   broker.call (without tracking)* (#)       0%      (1,680,786 rps)   (avg: 594ns)
+   broker.call (with tracking)*          -0.41%      (1,673,843 rps)   (avg: 597ns)
 -----------------------------------------------------------------------
 
 */

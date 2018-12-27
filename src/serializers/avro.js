@@ -94,7 +94,8 @@ function createSchemas() {
 					{ name: "version", type: "string" },
 					{ name: "langVersion", type: "string" }
 				]
-			} }
+			} },
+			{ name: "instanceID", type: "string" }
 		]
 	});
 

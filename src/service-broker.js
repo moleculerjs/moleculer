@@ -143,6 +143,9 @@ class ServiceBroker {
 			// Self nodeID
 			this.nodeID = this.options.nodeID || utils.getNodeID();
 
+			// Instance ID
+			this.instanceID = utils.generateToken();
+
 			// Logger
 			this.logger = this.getLogger("broker");
 
@@ -480,7 +483,6 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	fatal(message, err, needExit = true) {
-
 		if (this.logger)
 			this.logger.fatal(message, err);
 		else

@@ -34,6 +34,7 @@ describe("Test Node", () => {
 			let payload = {
 				ipList: ["127.0.0.1"],
 				hostname: "host",
+				instanceID: "123456",
 				port: 1234,
 				client: {},
 				services: [{}],

@@ -1391,6 +1391,7 @@ $root.packets = (function() {
          * @property {Array.<string>|null} [ipList] PacketInfo ipList
          * @property {string} hostname PacketInfo hostname
          * @property {packets.PacketInfo.IClient} client PacketInfo client
+         * @property {string} instanceID PacketInfo instanceID
          */
 
 		/**
@@ -1466,6 +1467,14 @@ $root.packets = (function() {
 		PacketInfo.prototype.client = null;
 
 		/**
+         * PacketInfo instanceID.
+         * @member {string} instanceID
+         * @memberof packets.PacketInfo
+         * @instance
+         */
+		PacketInfo.prototype.instanceID = "";
+
+		/**
          * Creates a new PacketInfo instance using the specified properties.
          * @function create
          * @memberof packets.PacketInfo
@@ -1498,6 +1507,7 @@ $root.packets = (function() {
 					writer.uint32(/* id 5, wireType 2 =*/42).string(message.ipList[i]);
 			writer.uint32(/* id 6, wireType 2 =*/50).string(message.hostname);
 			$root.packets.PacketInfo.Client.encode(message.client, writer.uint32(/* id 7, wireType 2 =*/58).fork()).ldelim();
+			writer.uint32(/* id 8, wireType 2 =*/66).string(message.instanceID);
 			return writer;
 		};
 
@@ -1555,6 +1565,9 @@ $root.packets = (function() {
 					case 7:
 						message.client = $root.packets.PacketInfo.Client.decode(reader, reader.uint32());
 						break;
+					case 8:
+						message.instanceID = reader.string();
+						break;
 					default:
 						reader.skipType(tag & 7);
 						break;
@@ -1572,6 +1585,8 @@ $root.packets = (function() {
 				throw $util.ProtocolError("missing required 'hostname'", { instance: message });
 			if (!message.hasOwnProperty("client"))
 				throw $util.ProtocolError("missing required 'client'", { instance: message });
+			if (!message.hasOwnProperty("instanceID"))
+				throw $util.ProtocolError("missing required 'instanceID'", { instance: message });
 			return message;
 		};
 
@@ -1624,6 +1639,8 @@ $root.packets = (function() {
 				if (error)
 					return "client." + error;
 			}
+			if (!$util.isString(message.instanceID))
+				return "instanceID: string expected";
 			return null;
 		};
 
@@ -1661,6 +1678,8 @@ $root.packets = (function() {
 					throw TypeError(".packets.PacketInfo.client: object expected");
 				message.client = $root.packets.PacketInfo.Client.fromObject(object.client);
 			}
+			if (object.instanceID != null)
+				message.instanceID = String(object.instanceID);
 			return message;
 		};
 
@@ -1686,6 +1705,7 @@ $root.packets = (function() {
 				object.config = "";
 				object.hostname = "";
 				object.client = null;
+				object.instanceID = "";
 			}
 			if (message.ver != null && message.hasOwnProperty("ver"))
 				object.ver = message.ver;
@@ -1704,6 +1724,8 @@ $root.packets = (function() {
 				object.hostname = message.hostname;
 			if (message.client != null && message.hasOwnProperty("client"))
 				object.client = $root.packets.PacketInfo.Client.toObject(message.client, options);
+			if (message.instanceID != null && message.hasOwnProperty("instanceID"))
+				object.instanceID = message.instanceID;
 			return object;
 		};
 

@@ -71,6 +71,7 @@ describe("Test Avro serializer", () => {
 			],
 			config: {},
 			ipList: [ "127.0.0.1" ],
+			instanceID: "123456",
 			hostname: "test-server",
 			client: {
 				type: "nodejs",
@@ -79,7 +80,7 @@ describe("Test Avro serializer", () => {
 			},
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_INFO);
-		expect(s.length).toBe(177);
+		expect(s.length).toBe(184);
 
 		const res = serializer.deserialize(s, P.PACKET_INFO);
 		expect(res).not.toBe(obj);

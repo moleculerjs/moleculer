@@ -58,6 +58,7 @@ struct PacketInfo {
 	5: list<string> ipList,
 	6: string hostname,
 	7: Client client,
+	8: string instanceID,
 }
 
 struct PacketDisconnect {

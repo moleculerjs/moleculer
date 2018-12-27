@@ -49,6 +49,7 @@ describe("Test ServiceBroker constructor", () => {
 
 		expect(broker.namespace).toBe("");
 		expect(broker.nodeID).toBe("node-1234");
+		expect(broker.instanceID).toBe("1");
 
 		expect(broker.logger).toBeDefined();
 
@@ -186,6 +187,7 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.serializer).toBeInstanceOf(Serializers.JSON);
 		expect(broker.namespace).toBe("test");
 		expect(broker.nodeID).toBe("server-12");
+		expect(broker.instanceID).toBe("1");
 		expect(broker.call).toBe(broker.callWithoutBalancer);
 
 		expect(broker.getLocalService("$node")).not.toBeDefined();

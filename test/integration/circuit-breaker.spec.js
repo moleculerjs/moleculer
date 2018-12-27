@@ -66,7 +66,6 @@ describe("Test circuit breaker", () => {
 	});
 
 	it("should call 'happy' x5 without problem", () => {
-		debugger;
 		return master1.call("cb.happy")
 			.then(() => master1.call("cb.happy"))
 			.then(() => master1.call("cb.happy"))

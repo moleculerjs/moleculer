@@ -59,6 +59,8 @@ message PacketInfo {
 		required string version 		= 2;
 		required string langVersion 	= 3;
 	}
+
+	required string instanceID		= 8;
 }
 
 message PacketDisconnect {

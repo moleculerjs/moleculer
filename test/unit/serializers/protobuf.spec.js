@@ -70,6 +70,7 @@ describe("Test ProtoBuf serializer", () => {
 				} }
 			],
 			config: {},
+			instanceID: "123456",
 			ipList: [ "127.0.0.1" ],
 			hostname: "test-server",
 			client: {
@@ -79,7 +80,7 @@ describe("Test ProtoBuf serializer", () => {
 			},
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_INFO);
-		expect(s.length).toBe(185);
+		expect(s.length).toBe(193);
 
 		const res = serializer.deserialize(s, P.PACKET_INFO);
 		expect(res).not.toBe(obj);

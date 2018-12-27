@@ -38,6 +38,8 @@ class FakeTransporter extends Transporter {
 		// Local event bus
 		this.bus = global.bus;
 		this.hasBuiltInBalancer = true;
+
+		this.subscriptions = [];
 	}
 
 	/**
@@ -56,6 +58,7 @@ class FakeTransporter extends Transporter {
 	 */
 	disconnect() {
 		this.connected = false;
+		this.subscriptions.forEach(event => this.bus.removeAllListeners(event));
 		return Promise.resolve();
 	}
 
@@ -69,6 +72,8 @@ class FakeTransporter extends Transporter {
 	 */
 	subscribe(cmd, nodeID) {
 		const t = this.getTopicName(cmd, nodeID);
+		this.subscriptions.push(t);
+
 		this.bus.on(t, msg => this.incomingMessage(cmd, msg));
 		return Promise.resolve();
 	}

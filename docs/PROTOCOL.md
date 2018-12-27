@@ -90,6 +90,7 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `services` | `object` | ✔ | Services list. (*) |
 | `config` | `object` | ✔ | Client configuration. (*) |
+| `instanceID` | `[string]` | ✔ | Instance ID |
 | `ipList` | `[string]` | ✔ | IP address list of node |
 | `hostname` | `string` | ✔ | Hostname of node |
 | `client` | `object` | ✔ | Client information |

@@ -41,6 +41,7 @@ describe("Test serializer.serializeCustomFields", () => {
 			config: {
 				a: 5
 			},
+			instanceID: "123456",
 			client: {
 				version: 5
 			}
@@ -49,6 +50,7 @@ describe("Test serializer.serializeCustomFields", () => {
 				"version": 5
 			},
 			"config": "{\"a\":5}",
+			"instanceID": "123456",
 			"sender": "node-1",
 			"services": "[{\"name\":\"users\",\"settings\":{}}]"
 		});
@@ -176,6 +178,7 @@ describe("Test serializer.deserializeCustomFields", () => {
 				"version": 5
 			},
 			"config": "{\"a\":5}",
+			"instanceID": "123456",
 			"sender": "node-1",
 			"services": "[{\"name\":\"users\",\"settings\":{}}]"
 		})).toEqual({
@@ -183,6 +186,7 @@ describe("Test serializer.deserializeCustomFields", () => {
 			services: [
 				{ name: "users", settings: {} }
 			],
+			instanceID: "123456",
 			config: {
 				a: 5
 			},

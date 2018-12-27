@@ -11,7 +11,6 @@ let Q = thrift.Q;
 
 
 let ttypes = module.exports = {};
-/* istanbul ignore next */
 let PacketEvent = module.exports.PacketEvent = function(args) {
 	this.ver = null;
 	this.sender = null;
@@ -85,7 +84,7 @@ PacketEvent.prototype.read = function(input) {
 			case 5:
 				if (ftype == Thrift.Type.LIST) {
 					let _size0 = 0;
-					let _rtmp34;
+					var _rtmp34;
 					this.groups = [];
 					let _etype3 = 0;
 					_rtmp34 = input.readListBegin();
@@ -740,6 +739,7 @@ let PacketInfo = module.exports.PacketInfo = function(args) {
 	this.ipList = null;
 	this.hostname = null;
 	this.client = null;
+	this.instanceID = null;
 	if (args) {
 		if (args.ver !== undefined && args.ver !== null) {
 			this.ver = args.ver;
@@ -761,6 +761,9 @@ let PacketInfo = module.exports.PacketInfo = function(args) {
 		}
 		if (args.client !== undefined && args.client !== null) {
 			this.client = new ttypes.Client(args.client);
+		}
+		if (args.instanceID !== undefined && args.instanceID !== null) {
+			this.instanceID = args.instanceID;
 		}
 	}
 };
@@ -809,7 +812,7 @@ PacketInfo.prototype.read = function(input) {
 			case 5:
 				if (ftype == Thrift.Type.LIST) {
 					let _size8 = 0;
-					let _rtmp312;
+					var _rtmp312;
 					this.ipList = [];
 					let _etype11 = 0;
 					_rtmp312 = input.readListBegin();
@@ -837,6 +840,13 @@ PacketInfo.prototype.read = function(input) {
 				if (ftype == Thrift.Type.STRUCT) {
 					this.client = new ttypes.Client();
 					this.client.read(input);
+				} else {
+					input.skip(ftype);
+				}
+				break;
+			case 8:
+				if (ftype == Thrift.Type.STRING) {
+					this.instanceID = input.readString();
 				} else {
 					input.skip(ftype);
 				}
@@ -894,6 +904,11 @@ PacketInfo.prototype.write = function(output) {
 	if (this.client !== null && this.client !== undefined) {
 		output.writeFieldBegin("client", Thrift.Type.STRUCT, 7);
 		this.client.write(output);
+		output.writeFieldEnd();
+	}
+	if (this.instanceID !== null && this.instanceID !== undefined) {
+		output.writeFieldBegin("instanceID", Thrift.Type.STRING, 8);
+		output.writeString(this.instanceID);
 		output.writeFieldEnd();
 	}
 	output.writeFieldStop();

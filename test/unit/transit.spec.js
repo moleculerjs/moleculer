@@ -22,6 +22,7 @@ describe("Test Transporter constructor", () => {
 		expect(transit.opts).toBeDefined();
 		expect(transit.logger).toBeDefined();
 		expect(transit.nodeID).toBe(broker.nodeID);
+		expect(transit.instanceID).toBe(broker.instanceID);
 		expect(transit.pendingRequests).toBeInstanceOf(Map);
 		expect(transit.stat).toEqual({
 			packets: {

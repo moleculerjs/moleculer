@@ -111,6 +111,7 @@ class NodeCatalog {
 		const node = new Node(this.broker.nodeID);
 		node.local = true;
 		node.ipList = getIpList();
+		node.instanceID = this.broker.instanceID;
 		node.hostname = os.hostname();
 		node.client = {
 			type: "nodejs",

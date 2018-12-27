@@ -158,7 +158,7 @@ describe("Test Service throw GraceFulTimeoutError", () => {
 
 	const broker = new ServiceBroker({
 		logger: false,
-		nodeID: "node-1",
+		nodeID: "node-2",
 		tracking: {
 			enabled: true
 		},
@@ -214,7 +214,7 @@ describe("Test broker delayed shutdown with remote calls", () => {
 	const broker1 = new ServiceBroker({
 		transporter: "Fake",
 		logger: false,
-		nodeID: "node-1",
+		nodeID: "node-3",
 		tracking: {
 			enabled: true
 		},
@@ -225,7 +225,7 @@ describe("Test broker delayed shutdown with remote calls", () => {
 	const broker2 = new ServiceBroker({
 		transporter: "Fake",
 		logger: false,
-		nodeID: "node-2",
+		nodeID: "node-4",
 		tracking: {
 			enabled: true
 		},
@@ -280,7 +280,7 @@ describe("Test broker delayed throw GraceFulTimeoutError", () => {
 	const broker1 = new ServiceBroker({
 		transporter: "Fake",
 		logger: false,
-		nodeID: "node-1",
+		nodeID: "node-5",
 		tracking: {
 			enabled: true,
 			shutdownTimeout: 100
@@ -292,7 +292,7 @@ describe("Test broker delayed throw GraceFulTimeoutError", () => {
 	const broker2 = new ServiceBroker({
 		transporter: "Fake",
 		logger: false,
-		nodeID: "node-2",
+		nodeID: "node-6",
 		tracking: {
 			enabled: true,
 			shutdownTimeout: 200

@@ -12,7 +12,7 @@ let broker = new ServiceBroker({
 	nodeID: process.argv[2] || "server-" + process.pid,
 	//transporter: "nats://demo.nats.io:4222",
 	transporter: "NATS",
-	serializer: "Thrift",
+	//serializer: "Avro",
 
 	//disableBalancer: true,
 

@@ -526,6 +526,7 @@ describe("Test Registry.regenerateLocalRawInfo", () => {
 			"config": {},
 			"hostname": localNode.hostname,
 			"ipList": localNode.ipList,
+			"instanceID": localNode.instanceID,
 			"port": null,
 			"seq": 1,
 			"services": []
@@ -541,6 +542,7 @@ describe("Test Registry.regenerateLocalRawInfo", () => {
 			"config": {},
 			"hostname": localNode.hostname,
 			"ipList": localNode.ipList,
+			"instanceID": localNode.instanceID,
 			"port": null,
 			"seq": 2,
 			"services": []
@@ -555,6 +557,7 @@ describe("Test Registry.regenerateLocalRawInfo", () => {
 			"client": localNode.client,
 			"config": {},
 			"hostname": localNode.hostname,
+			"instanceID": localNode.instanceID,
 			"ipList": localNode.ipList,
 			"port": null,
 			"seq": 2,

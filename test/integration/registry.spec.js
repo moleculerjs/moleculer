@@ -188,9 +188,11 @@ describe("Test service registry", () => {
 
 		node2 = H.createNode("first", "node-2", [paymentModService, postService]);
 
+		debugger;
 		return node2.start().delay(100).then(() => {
 			let infoNode2 = H.getNode(master, "node-2");
 			expect(infoNode2).toBeDefined();
+			debugger;
 			expect(infoNode2.services.length).toBe(3);
 			expect(infoNode2.available).toBe(true);
 			expect(H.hasService(master, "payments")).toBe(true);

@@ -36,6 +36,7 @@ class Transit {
 		this.broker = broker;
 		this.logger = broker.getLogger("transit");
 		this.nodeID = broker.nodeID;
+		this.instanceID = broker.instanceID;
 		this.tx = transporter;
 		this.opts = opts;
 
@@ -258,8 +259,14 @@ class Transit {
 			}
 
 			// Skip own packets (if only built-in balancer disabled)
-			if (payload.sender === this.nodeID && (cmd !== P.PACKET_EVENT && cmd !== P.PACKET_REQUEST && cmd !== P.PACKET_RESPONSE))
-				return;
+			if (payload.sender === this.nodeID) {
+				if (cmd === P.PACKET_INFO && payload.instanceID !== this.instanceID) {
+					return this.broker.fatal("ServiceBroker has detected a nodeID conflict, use unique nodeIDs. ServiceBroker stopped.");
+				}
+
+				if (cmd !== P.PACKET_EVENT && cmd !== P.PACKET_REQUEST && cmd !== P.PACKET_RESPONSE)
+					return;
+			}
 
 			// log only if packet type was not disabled by options
 			if (!this.opts.packetLogFilter.includes(cmd)) {
@@ -992,6 +999,7 @@ class Transit {
 			hostname: info.hostname,
 			client: info.client,
 			config: info.config,
+			instanceID: this.broker.instanceID,
 			seq: info.seq
 		}))).catch(/* istanbul ignore next */ err => this.logger.error(`Unable to send INFO packet to '${nodeID}' node.`, err));
 
