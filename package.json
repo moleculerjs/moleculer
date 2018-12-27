@@ -15,6 +15,7 @@
     "lint:fix": "eslint --fix --ext=.js src test",
     "perf": "nodemon --allow-natives-syntax benchmark/perf-runner.js",
     "pperf": "node --inspect --expose-gc benchmark/perf-runner.js",
+    "memleak": "node benchmark/memleak-test.js",
     "proto": "pbjs -t static-module -w commonjs -o src/serializers/proto/packets.proto.js src/serializers/proto/packets.proto",
     "thrift": "thrift -gen js:node -o src\\serializers\\thrift src\\serializers\\thrift\\packets.thrift",
     "test": "jest --coverage --no-cache",
@@ -23,7 +24,9 @@
     "test:int": "jest --testMatch \"**/integration/**spec.js\" --coverage --no-cache",
     "test:amqp": "jest --testMatch \"**/transporters/amqp/**spc.js\" --runInBand",
     "test:trans": "jest --testMatch \"**/transporters/index.spc.js\"",
-    "test:ts": "tsc -p test/typescript/hello-world && ts-node -P test/typescript/hello-world/tsconfig.json test/typescript/hello-world/index.ts"
+    "test:ts": "tsc -p test/typescript/hello-world && ts-node -P test/typescript/hello-world/tsconfig.json test/typescript/hello-world/index.ts",
+    "release": "npm publish --access public && git push --tags",
+    "release:beta": "npm publish --tag next --access public && git push --tags"
   },
   "keywords": [
     "microservices",
@@ -47,7 +50,7 @@
     "@types/node": "10.12.12",
     "amqplib": "0.5.3",
     "avsc": "5.4.7",
-    "benchmarkify": "2.1.0",
+    "benchmarkify": "2.1.1",
     "bunyan": "1.8.12",
     "coveralls": "3.0.2",
     "dotenv": "6.2.0",
@@ -62,7 +65,7 @@
     "joi": "14.3.0",
     "kafka-node": "3.0.1",
     "lolex": "3.0.0",
-    "moleculer-repl": "0.5.3",
+    "moleculer-repl": "0.5.4",
     "mqtt": "2.18.8",
     "msgpack5": "4.2.1",
     "nats": "1.0.1",

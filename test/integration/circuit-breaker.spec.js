@@ -66,12 +66,14 @@ describe("Test circuit breaker", () => {
 	});
 
 	it("should call 'happy' x5 without problem", () => {
+		debugger;
 		return master1.call("cb.happy")
 			.then(() => master1.call("cb.happy"))
 			.then(() => master1.call("cb.happy"))
 			.then(() => master1.call("cb.happy"))
 			.then(() => master1.call("cb.happy"))
-			.then(res => expect(res).toBe("OK"));
+			.then(res => expect(res).toBe("OK"))
+			.catch(protectReject);
 	});
 
 	it("should call 'angry' and throw MoleculerError", () => {

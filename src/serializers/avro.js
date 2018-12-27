@@ -44,7 +44,8 @@ function createSchemas() {
 			{ name: "metrics", type: [ "null", "boolean"], default: null },
 			{ name: "parentID", type: [ "null", "string"], default: null },
 			{ name: "requestID", type: [ "null", "string"], default: null },
-			{ name: "stream", type: [ "null", "boolean"], default: null }
+			{ name: "stream", type: [ "null", "boolean"], default: null },
+			{ name: "seq", type: [ "null", "int"], default: null }
 		]
 	});
 
@@ -59,7 +60,8 @@ function createSchemas() {
 			{ name: "data", type: [ "null", "string", "bytes"], default: null },
 			{ name: "error", type: [ "null", "string"], default: null },
 			{ name: "meta", type: "string" },
-			{ name: "stream", type: [ "null", "boolean"], default: null }
+			{ name: "stream", type: [ "null", "boolean"], default: null },
+			{ name: "seq", type: [ "null", "int"], default: null }
 		]
 	});
 
@@ -121,7 +123,8 @@ function createSchemas() {
 		fields: [
 			{ name: "ver", type: "string" },
 			{ name: "sender", type: "string" },
-			{ name: "time", type: "long" }
+			{ name: "time", type: "long" },
+			{ name: "id", type: [ "null", "string"], default: null }
 		]
 	});
 
@@ -132,7 +135,8 @@ function createSchemas() {
 			{ name: "ver", type: "string" },
 			{ name: "sender", type: "string" },
 			{ name: "time", type: "long" },
-			{ name: "arrived", type: "long" }
+			{ name: "arrived", type: "long" },
+			{ name: "id", type: [ "null", "string"], default: null }
 		]
 	});
 
