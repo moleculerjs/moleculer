@@ -258,12 +258,14 @@ class Transit {
 				});
 			}
 
-			// Skip own packets (if only built-in balancer disabled)
 			if (payload.sender === this.nodeID) {
+
+				// Detect nodeID conflict
 				if (cmd === P.PACKET_INFO && payload.instanceID !== this.instanceID) {
 					return this.broker.fatal("ServiceBroker has detected a nodeID conflict, use unique nodeIDs. ServiceBroker stopped.");
 				}
 
+				// Skip own packets (if only built-in balancer disabled)
 				if (cmd !== P.PACKET_EVENT && cmd !== P.PACKET_REQUEST && cmd !== P.PACKET_RESPONSE)
 					return;
 			}

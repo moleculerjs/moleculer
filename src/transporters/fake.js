@@ -58,7 +58,9 @@ class FakeTransporter extends Transporter {
 	 */
 	disconnect() {
 		this.connected = false;
-		this.subscriptions.forEach(event => this.bus.removeAllListeners(event));
+		this.subscriptions.forEach(({ topic, handler }) => this.bus.off(topic, handler));
+		this.subscriptions = [];
+
 		return Promise.resolve();
 	}
 
@@ -72,9 +74,10 @@ class FakeTransporter extends Transporter {
 	 */
 	subscribe(cmd, nodeID) {
 		const t = this.getTopicName(cmd, nodeID);
-		this.subscriptions.push(t);
+		const handler = msg => this.incomingMessage(cmd, msg);
+		this.subscriptions.push({ topic: t, handler });
 
-		this.bus.on(t, msg => this.incomingMessage(cmd, msg));
+		this.bus.on(t, handler);
 		return Promise.resolve();
 	}
 

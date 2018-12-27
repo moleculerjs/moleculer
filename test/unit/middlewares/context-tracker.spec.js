@@ -207,7 +207,7 @@ describe("Test Service throw GraceFulTimeoutError", () => {
 	});
 });
 
-
+/* The result is not exact. Sometimes it's failed randomly on Travis CI
 describe("Test broker delayed shutdown with remote calls", () => {
 	const FLOW = [];
 
@@ -250,8 +250,7 @@ describe("Test broker delayed shutdown with remote calls", () => {
 
 	beforeAll(() => broker1.start().then(() => broker2.start()));
 
-	// The result is not exact. Sometimes it's failed randomly on Travis CI
-	it.skip("should called stopped", () => {
+	it("should called stopped", () => {
 		return broker1.Promise.resolve()
 			.then(() => {
 				broker1.call("delayed.test", {});
@@ -273,13 +272,14 @@ describe("Test broker delayed shutdown with remote calls", () => {
 			});
 	});
 });
+*/
 
 describe("Test broker delayed throw GraceFulTimeoutError", () => {
 	const FLOW = [];
 
 	const broker1 = new ServiceBroker({
 		transporter: "Fake",
-		logger: false,
+		logger: true,
 		nodeID: "node-5",
 		tracking: {
 			enabled: true,
@@ -291,7 +291,7 @@ describe("Test broker delayed throw GraceFulTimeoutError", () => {
 
 	const broker2 = new ServiceBroker({
 		transporter: "Fake",
-		logger: false,
+		logger: true,
 		nodeID: "node-6",
 		tracking: {
 			enabled: true,
@@ -336,6 +336,12 @@ describe("Test broker delayed throw GraceFulTimeoutError", () => {
 					"service-stop",
 					"broker2-stop",
 				]);
+				setTimeout(() => {
+					console.log("!!!!!!!!!!!!!!!!!!", process._getActiveHandles().length);
+					const handles = process._getActiveHandles();
+					handles.forEach(handler => broker1.logger.info(handler));
+
+				},5678);
 			});
 	});
 });

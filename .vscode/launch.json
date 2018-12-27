@@ -71,7 +71,7 @@
 			"request": "launch",
 			"name": "Jest",
 			"program": "${workspaceRoot}/node_modules/jest-cli/bin/jest.js",
-			"args": ["--runInBand"],
+			"args": ["--runInBand", "test/unit/middlewares/context-tracker.spec.js"],
 			"console": "internalConsole",
 			"cwd": "${workspaceRoot}",
 			"runtimeArgs": [

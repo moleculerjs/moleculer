@@ -68,7 +68,9 @@ function waitingForActiveContexts(list, logger, time, service) {
 		return Promise.resolve();
 
 	return new Promise((resolve) => {
+		let timedOut = false;
 		const timeout = setTimeout(() => {
+			timedOut = true;
 			logger.error(new GracefulStopTimeoutError({ service }));
 			resolve();
 		}, time);
@@ -83,7 +85,8 @@ function waitingForActiveContexts(list, logger, time, service) {
 					logger.warn(`Waiting for ${list.length} running context(s)...`);
 					first = false;
 				}
-				setTimeout(checkForContexts, 100);
+				if (!timedOut)
+					setTimeout(checkForContexts, 100);
 			}
 		};
 		setImmediate(checkForContexts);
