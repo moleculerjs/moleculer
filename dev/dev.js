@@ -1,8 +1,11 @@
 const ServiceBroker = require("../src/service-broker");
 
 const broker1 = new ServiceBroker({
-	nodeID: "broker-1",
+	nodeID: "broker-2",
 	transporter: "NATS",
+	transit: {
+		disableVersionCheck: true
+	}
 	//serializer: "Avro"
 });
 /*
