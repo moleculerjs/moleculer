@@ -15,7 +15,6 @@ const BaseCacher = require("./base");
  * @class RedisCacher
  */
 class RedisCacher extends BaseCacher {
-
 	/**
 	 * Creates an instance of RedisCacher.
 	 *
@@ -24,8 +23,7 @@ class RedisCacher extends BaseCacher {
 	 * @memberof RedisCacher
 	 */
 	constructor(opts) {
-		if (typeof opts === "string")
-			opts = { redis: opts };
+		if (typeof opts === "string") opts = { redis: opts };
 
 		super(opts);
 	}
@@ -45,7 +43,11 @@ class RedisCacher extends BaseCacher {
 			Redis = require("ioredis");
 		} catch (err) {
 			/* istanbul ignore next */
-			this.broker.fatal("The 'ioredis' package is missing. Please install it with 'npm install ioredis --save' command.", err, true);
+			this.broker.fatal(
+				"The 'ioredis' package is missing. Please install it with 'npm install ioredis --save' command.",
+				err,
+				true
+			);
 		}
 
 		this.client = new Redis(this.opts.redis);
@@ -54,7 +56,7 @@ class RedisCacher extends BaseCacher {
 			this.logger.info("Redis cacher connected.");
 		});
 
-		this.client.on("error", (err) => {
+		this.client.on("error", err => {
 			/* istanbul ignore next */
 			this.logger.error(err);
 		});
@@ -63,7 +65,7 @@ class RedisCacher extends BaseCacher {
 			/* istanbul ignore next */
 			this.client.monitor((err, monitor) => {
 				this.logger.debug("Redis cacher entering monitoring mode...");
-				monitor.on("monitor", (time, args/*, source, database*/) => {
+				monitor.on("monitor", (time, args /*, source, database*/) => {
 					this.logger.debug(args);
 				});
 			});
@@ -91,7 +93,7 @@ class RedisCacher extends BaseCacher {
 	 */
 	get(key) {
 		this.logger.debug(`GET ${key}`);
-		return this.client.get(this.prefix + key).then((data) => {
+		return this.client.get(this.prefix + key).then(data => {
 			if (data) {
 				this.logger.debug(`FOUND ${key}`);
 				try {
@@ -118,8 +120,7 @@ class RedisCacher extends BaseCacher {
 		data = JSON.stringify(data);
 		this.logger.debug(`SET ${key}`);
 
-		if (ttl == null)
-			ttl = this.opts.ttl;
+		if (ttl == null) ttl = this.opts.ttl;
 
 		if (ttl) {
 			return this.client.setex(this.prefix + key, ttl, data);
@@ -137,7 +138,9 @@ class RedisCacher extends BaseCacher {
 	 * @memberof Cacher
 	 */
 	del(deleteTargets) {
-		deleteTargets = Array.isArray(deleteTargets) ? deleteTargets : [deleteTargets];
+		deleteTargets = Array.isArray(deleteTargets)
+			? deleteTargets
+			: [deleteTargets];
 		const keysToDelete = deleteTargets.map(key => this.prefix + key);
 		this.logger.debug(`DELETE ${keysToDelete}`);
 		return this.client.del(keysToDelete).catch(err => {
@@ -158,14 +161,17 @@ class RedisCacher extends BaseCacher {
 	 */
 	clean(match = "*") {
 		const cleaningPatterns = Array.isArray(match) ? match : [match];
-		const normalizedPatterns = cleaningPatterns.map(match => this.prefix + match.replace(/\*\*/g, "*"));
+		const normalizedPatterns = cleaningPatterns.map(
+			match => this.prefix + match.replace(/\*\*/g, "*")
+		);
 		this.logger.debug(`CLEAN ${match}`);
-		return this._sequentialPromises(normalizedPatterns)
-			.catch((err) => {
-				this.logger.error(`Redis 'scanDel' error. Pattern: ${err.pattern}`, err);
-				throw err;
-			});
-
+		return this._sequentialPromises(normalizedPatterns).catch(err => {
+			this.logger.error(
+				`Redis 'scanDel' error. Pattern: ${err.pattern}`,
+				err
+			);
+			throw err;
+		});
 	}
 
 	_sequentialPromises(elements) {
@@ -180,20 +186,19 @@ class RedisCacher extends BaseCacher {
 				match: pattern,
 				count: 100
 			});
-			stream.on("data", (keys = []) => {
-				if (!keys.length) {
-					return;
-				}
-
+			stream.on("data", keys => {
 				stream.pause();
-				this.client.del(keys)
-					.then(() => {
-						stream.resume();
-					})
-					.catch((err) => {
-						err.pattern = pattern;
-						return reject(err);
-					});
+				keys.forEach(key => {
+					this.client
+						.del(key)
+						.then(() => {
+							stream.resume();
+						})
+						.catch(err => {
+							err.pattern = pattern;
+							return reject(err);
+						});
+				});
 			});
 			stream.on("end", () => {
 				resolve();
