@@ -246,7 +246,7 @@ class Transit {
 			}
 
 			// Check protocol version
-			if (payload.ver !== this.broker.PROTOCOL_VERSION) {
+			if (payload.ver !== this.broker.PROTOCOL_VERSION && !this.opts.disableVersionCheck) {
 				throw new E.ProtocolVersionMismatchError({
 					nodeID: payload.sender,
 					actual: this.broker.PROTOCOL_VERSION,

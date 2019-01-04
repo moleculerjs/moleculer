@@ -4,6 +4,9 @@ const broker = new ServiceBroker({
 	//namespace: "test",
 	nodeID: "broker-1",
 	transporter: "NATS",
+	transit: {
+		disableVersionCheck: true
+	} ,
 	middlewares: [
 		{
 			localCall: (next) => {
