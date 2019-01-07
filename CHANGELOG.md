@@ -1,4 +1,23 @@
 --------------------------------------------------
+<a name="0.14.0"></a>
+# [0.14.0](https://github.com/moleculerjs/moleculer/compare/v0.13.5...v0.14.0) (2019-xx-xx)
+
+## TODO
+- new built-in tracing solution with adapters (Zipkin, Jaeger)
+- new built-in JMX-like metrics
+- new `beforeCreated` service lifecycle event [#436](https://github.com/moleculerjs/moleculer/issues/436)
+- enhanced hot-reload middleware [#408](https://github.com/moleculerjs/moleculer/issues/408)
+- `ctx` access in Strategies `next` method (Kafka-like sharding strategy).
+- subscribe/unsubscribe event from codes and REPL.
+- caching with tags/labels
+
+## Done
+- communication protocol changed (`3` -> `4`)
+- handling conflict nodeIDs
+- ?
+
+
+--------------------------------------------------
 <a name="0.13.5"></a>
 # [0.13.5](https://github.com/moleculerjs/moleculer/compare/v0.13.4...v0.13.5) (2018-12-09)
 
