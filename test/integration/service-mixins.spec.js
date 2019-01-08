@@ -9,6 +9,8 @@ describe("Test Service mixins", () => {
 	let flowStarted = [];
 	let flowStopped = [];
 	let flowHooks = [];
+	let flowMixinBefore = [];
+	let flowMixinAfter = [];
 
 	let mixinL2 = {
 		name: "mixinL2",
@@ -84,7 +86,9 @@ describe("Test Service mixins", () => {
 
 		created: jest.fn(() => flowCreated.push("mixinL2")),
 		started: jest.fn(() => flowStarted.push("mixinL2")),
-		stopped: jest.fn(() => flowStopped.push("mixinL2"))
+		stopped: jest.fn(() => flowStopped.push("mixinL2")),
+		mixinBefore: jest.fn(() => flowMixinBefore.push("mixinL2")),
+		mixinAfter: jest.fn(() => flowMixinAfter.push("mixinL2"))
 	};
 
 	let mixin1L1 = {
@@ -148,7 +152,9 @@ describe("Test Service mixins", () => {
 		},
 
 		created: jest.fn(() => flowCreated.push("mixin1L1")),
-		stopped: jest.fn(() => flowStopped.push("mixin1L1"))
+		stopped: jest.fn(() => flowStopped.push("mixin1L1")),
+		mixinBefore: jest.fn(() => flowMixinBefore.push("mixin1L1")),
+		mixinAfter: jest.fn(() => flowMixinAfter.push("mixin1L1"))
 	};
 
 	let mixin2L1 = {
@@ -203,7 +209,9 @@ describe("Test Service mixins", () => {
 		},
 
 		created: jest.fn(() => flowCreated.push("mixin2L1")),
-		started: jest.fn(() => flowStarted.push("mixin2L1"))
+		started: jest.fn(() => flowStarted.push("mixin2L1")),
+		mixinBefore: jest.fn(() => flowMixinBefore.push("mixin2L1")),
+		mixinAfter: jest.fn(() => flowMixinAfter.push("mixin2L1"))
 	};
 
 	let mainSchema = {
@@ -308,6 +316,14 @@ describe("Test Service mixins", () => {
 		expect(mixin2L1.started).toHaveBeenCalledTimes(1);
 		expect(mixinL2.started).toHaveBeenCalledTimes(2);
 		expect(flowStarted.join("-")).toBe("mixinL2-mixin2L1-mixinL2-main");
+		expect(mixin1L1.mixinBefore).toHaveBeenCalledTimes(1);
+		expect(mixin1L1.mixinAfter).toHaveBeenCalledTimes(1);
+		expect(mixin2L1.mixinBefore).toHaveBeenCalledTimes(1);
+		expect(mixin2L1.mixinAfter).toHaveBeenCalledTimes(1);
+		expect(mixinL2.mixinBefore).toHaveBeenCalledTimes(2);
+		expect(mixinL2.mixinAfter).toHaveBeenCalledTimes(2);
+		expect(flowMixinBefore.join("-")).toBe("mixinL2-mixin2L1-mixinL2-mixin1L1");
+		expect(flowMixinAfter.join("-")).toBe("mixinL2-mixin2L1-mixinL2-mixin1L1");
 	});
 
 	it("should merge settings", () => {

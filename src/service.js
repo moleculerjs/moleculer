@@ -370,7 +370,18 @@ class Service {
 					if (mixin.mixins)
 						mixin = Service.applyMixins(mixin);
 
-					return s ? Service.mergeSchemas(s, mixin) : mixin;
+					if (_.isFunction(mixin.mixinBefore)) {
+						mixin.mixinBefore.call(mixin, schema);
+					} else if (Array.isArray(mixin.mixinBefore)) {
+						mixin.mixinBefore.forEach(fn => fn.call(mixin, schema));
+					}
+					mixin = s ? Service.mergeSchemas(s, mixin) : mixin;
+					if (_.isFunction(mixin.mixinAfter)) {
+						mixin.mixinAfter.call(mixin, schema);
+					} else if (Array.isArray(mixin.mixinAfter)) {
+						mixin.mixinAfter.forEach(fn => fn.call(mixin, schema));
+					}
+					return mixin;
 				}, null);
 
 				return Service.mergeSchemas(mixedSchema, schema);
