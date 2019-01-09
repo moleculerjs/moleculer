@@ -16,4 +16,6 @@ module.exports = {
 	Bulkhead: require("./bulkhead"),
 	Fallback: require("./fallback"),
 	ErrorHandler: require("./error-handler"),
+
+	HotReload: require("./hot-reload"),
 };

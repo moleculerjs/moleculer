@@ -398,7 +398,6 @@ declare namespace Moleculer {
 		fatal(message: string, err?: Error, needExit?: boolean): void;
 		loadServices(folder?: string, fileMask?: string): number;
 		loadService(filePath: string): Service;
-		watchService(service: Service): void;
 		hotReloadService(service: Service): Service;
 		createService(schema: ServiceSchema, schemaMods?: ServiceSchema): Service;
 		destroyService(service: Service): Bluebird<void>;

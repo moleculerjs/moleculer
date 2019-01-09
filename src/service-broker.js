@@ -10,6 +10,7 @@ const Promise 				= require("bluebird");
 const EventEmitter2 		= require("eventemitter2").EventEmitter2;
 const _ 					= require("lodash");
 const glob 					= require("glob");
+const chalk					= require("chalk");
 const path 					= require("path");
 const fs 					= require("fs");
 
@@ -269,6 +270,7 @@ class ServiceBroker {
 
 		if (this.options.internalMiddlewares) {
 			// Register internal middlewares
+
 			const prevCount = this.middlewares.count();
 
 			// 0. ActionHook
@@ -306,6 +308,11 @@ class ServiceBroker {
 			// 10. Metrics
 			this.middlewares.add(Middlewares.Metrics.call(this));
 
+			if (this.options.hotReload) {
+				// 11. Hot Reload
+				this.middlewares.add(Middlewares.HotReload.call(this));
+			}
+
 			this.logger.info(`Registered ${this.middlewares.count() - prevCount} internal middleware(s).`);
 		}
 
@@ -336,7 +343,7 @@ class ServiceBroker {
 				return Promise.reject(err);
 			})
 			.then(() => {
-				this.logger.info(`ServiceBroker with ${this.services.length} service(s) is started successfully.`);
+				this.logger.info(`✔ ServiceBroker with ${this.services.length} service(s) is started successfully.`);
 				this.started = true;
 
 				this.broadcastLocal("$broker.started");
@@ -570,33 +577,7 @@ class ServiceBroker {
 			svc.__filename = fName;
 		}
 
-		if (this.options.hotReload) {
-			this.watchService(svc || { __filename: fName, name: fName });
-		}
-
 		return svc;
-	}
-
-	/**
-	 * Watch a service file and hot reload if it's changed.
-	 *
-	 * @param {Service} service
-	 * @memberof ServiceBroker
-	 */
-	watchService(service) {
-		if (service.__filename) {
-			const debouncedHotReload = _.debounce(this.hotReloadService.bind(this), 500);
-
-			this.logger.debug(`Watching '${service.name}' service file...`);
-
-			// Better: https://github.com/paulmillr/chokidar
-			const watcher = fs.watch(service.__filename, (eventType, filename) => {
-				this.logger.info(`The ${filename} is changed. (Type: ${eventType})`);
-
-				watcher.close();
-				debouncedHotReload(service);
-			});
-		}
 	}
 
 	/**
@@ -608,7 +589,9 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	hotReloadService(service) {
-		this.logger.info(`Hot reload '${service.name}' service...`, service.__filename);
+		const relPath = path.relative(process.cwd(), service.__filename);
+
+		this.logger.info(`Hot reload '${service.name}' service...`, chalk.grey(relPath));
 
 		utils.clearRequireCache(service.__filename);
 
