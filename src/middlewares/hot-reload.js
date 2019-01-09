@@ -15,17 +15,26 @@ const { clearRequireCache } = require("../utils");
 
 module.exports = function HotReloadMiddleware() {
 
+	let broker;
 	const cache = new Map();
 
 	let projectFiles = new Map();
 	let prevProjectFiles = new Map();
 
+	function hotReloadService(service) {
+		const relPath = path.relative(process.cwd(), service.__filename);
+
+		broker.logger.info(`Hot reload '${service.name}' service...`, chalk.grey(relPath));
+
+		return broker.destroyService(service)
+			.then(() => broker.loadService(service.__filename));
+	}
+
 	/**
 	 * Detect service dependency graph & watch all dependent files & services.
 	 *
-	 * @param {ServiceBroker} broker
 	 */
-	function watchProjectFiles(broker) {
+	function watchProjectFiles() {
 
 		cache.clear();
 		prevProjectFiles = projectFiles;
@@ -35,7 +44,7 @@ module.exports = function HotReloadMiddleware() {
 		const mainModule = process.mainModule;
 
 		// Process the whole module tree
-		processModule(broker, mainModule, null, 0, mainModule.filename.indexOf("node_modules") === -1 ? [mainModule.filename] : null);
+		processModule(mainModule, null, 0, mainModule.filename.indexOf("node_modules") === -1 ? [mainModule.filename] : null);
 
 		const needToReload = new Set();
 
@@ -43,29 +52,25 @@ module.exports = function HotReloadMiddleware() {
 		const reloadServices = _.debounce(() => {
 			broker.logger.info(chalk.bgMagenta.white.bold(`Reload ${needToReload.size} service(s)`));
 
-			broker.Promise.all(Array.from(needToReload).map(svc => broker.hotReloadService(svc)))
-				.then(() => {
-					needToReload.clear();
+			needToReload.forEach(svc => hotReloadService(svc));
+			needToReload.clear();
 
-					// Recall processing
-					setTimeout(() => watchProjectFiles(broker), 1000);
-				});
 		}, 500);
 
 		// Close previous watchers
 		stopAllFileWatcher(prevProjectFiles);
 
 		// Watching project files
-		broker.logger.info("");
-		broker.logger.info(chalk.yellow.bold("Watching the following project files:"));
+		broker.logger.debug("");
+		broker.logger.debug(chalk.yellow.bold("Watching the following project files:"));
 		projectFiles.forEach((watchItem, fName) => {
 			const relPath = path.relative(process.cwd(), fName);
 			if (watchItem.brokerRestart)
-				broker.logger.info(`  ${relPath}:`, chalk.grey("restart broker."));
+				broker.logger.debug(`  ${relPath}:`, chalk.grey("restart broker."));
 			else if (watchItem.allServices)
-				broker.logger.info(`  ${relPath}:`, chalk.grey("reload all services."));
+				broker.logger.debug(`  ${relPath}:`, chalk.grey("reload all services."));
 			else if (watchItem.services.length > 0)
-				broker.logger.info(`  ${relPath}:`, chalk.grey(`reload ${watchItem.services.length} service(s) & ${watchItem.others.length} other(s).`)/*, watchItem.services, watchItem.others*/);
+				broker.logger.debug(`  ${relPath}:`, chalk.grey(`reload ${watchItem.services.length} service(s) & ${watchItem.others.length} other(s).`)/*, watchItem.services, watchItem.others*/);
 
 			// Create watcher
 			watchItem.watcher = fs.watch(fName, async (eventType) => {
@@ -81,7 +86,7 @@ module.exports = function HotReloadMiddleware() {
 				if (watchItem.brokerRestart) {
 					// TODO: it is not working properly. The ServiceBroker doesn't reload the config from the moleculer.config.js
 					// file because it is loaded by Moleculer Runner (with merged environment files)
-					broker.logger.info(chalk.bgMagenta.white.bold("Action: Stop all file watcher & restart broker..."));
+					broker.logger.info(chalk.bgMagenta.white.bold("Action: Restart broker..."));
 					stopAllFileWatcher(projectFiles);
 					// Clear the whole require cache
 					require.cache.length = 0;
@@ -107,6 +112,8 @@ module.exports = function HotReloadMiddleware() {
 		});
 
 	}
+
+	const debouncedWatchProjectFiles = _.debounce(watchProjectFiles, 2000);
 
 	/**
 	 * Stop all file watchers
@@ -145,19 +152,18 @@ module.exports = function HotReloadMiddleware() {
 	/**
 	 * Process module children modules.
 	 *
-	 * @param {ServiceBroker} broker
 	 * @param {*} mod
 	 * @param {*} service
 	 * @param {Number} level
 	 */
-	function processModule(broker, mod, service = null, level = 0, parents = null) {
+	function processModule(mod, service = null, level = 0, parents = null) {
 		const fName = mod.filename;
 
 		// Skip node_modules files, if there is parent project file
 		if ((service || parents) && fName.indexOf("node_modules") !== -1)
 			return;
 
-		console.log(fName);
+		//console.log(fName);
 
 		// Cache node_modules files to avoid cyclic dependencies
 		if (fName.indexOf("node_modules") !== -1) {
@@ -198,7 +204,7 @@ module.exports = function HotReloadMiddleware() {
 			} else if (parents) {
 				parents.push(fName);
 			}
-			mod.children.forEach(m => processModule(broker, m, service, service ? level + 1 : 0, parents));
+			mod.children.forEach(m => processModule(m, service, service ? level + 1 : 0, parents));
 		}
 	}
 
@@ -206,11 +212,23 @@ module.exports = function HotReloadMiddleware() {
 	 * Expose middleware
 	 */
 	return {
+		created(b) {
+			broker = b;
+		},
 
 		// After broker started
 		started(broker) {
-			if (broker.options.hotReload)
-				watchProjectFiles(broker);
+			if (broker.options.hotReload) {
+				broker.logger.info("Hot-reload is ACTIVE.");
+				watchProjectFiles();
+			}
+		},
+
+		serviceStarted() {
+			// Re-watch new services if broker has already started.
+			if (broker.started) {
+				debouncedWatchProjectFiles();
+			}
 		}
 	};
 
