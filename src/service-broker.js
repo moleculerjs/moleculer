@@ -533,7 +533,8 @@ class ServiceBroker {
 		this.logger.debug(`Load service '${path.basename(fName)}'...`);
 
 		try {
-			schema = require(fName);
+			const r = require(fName);
+			schema = r.default != null ? r.default : r;
 		} catch (e) {
 			this.logger.error(`Failed to load service '${fName}'`, e);
 			throw e;

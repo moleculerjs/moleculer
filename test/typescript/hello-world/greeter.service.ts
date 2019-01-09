@@ -7,7 +7,7 @@ type GreeterWelcomeParams = {
 	name: string
 };
 
-class GreeterService extends Service {
+export default class GreeterService extends Service {
 	constructor(broker) {
 		super(broker);
 
@@ -38,5 +38,3 @@ class GreeterService extends Service {
 		return `Welcome, ${ctx.params.name}!`;
 	}
 };
-
-module.exports = GreeterService;
