@@ -36,6 +36,8 @@ module.exports = function HotReloadMiddleware() {
 	 */
 	function watchProjectFiles() {
 
+		if (!broker.started || !process.mainModule) return;
+
 		cache.clear();
 		prevProjectFiles = projectFiles;
 		projectFiles = new Map();
