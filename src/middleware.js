@@ -113,12 +113,20 @@ class MiddlewareHandler {
 	 */
 	wrapBrokerMethods() {
 		this.broker.createService = this.wrapMethod("createService", this.broker.createService);
+		this.broker.registerLocalService = this.wrapMethod("registerLocalService", this.broker.registerLocalService);
 		this.broker.destroyService = this.wrapMethod("destroyService", this.broker.destroyService);
 		this.broker.call = this.wrapMethod("call", this.broker.call);
 		this.broker.mcall = this.wrapMethod("mcall", this.broker.mcall);
 		this.broker.emit = this.wrapMethod("emit", this.broker.emit);
 		this.broker.broadcast = this.wrapMethod("broadcast", this.broker.broadcast);
 		this.broker.broadcastLocal = this.wrapMethod("broadcastLocal", this.broker.broadcastLocal);
+
+		const transit = this.broker.transit;
+		if (transit) {
+			transit.publish = this.wrapMethod("transitPublish", transit.publish, transit);
+			transit.subscribe = this.wrapMethod("transitSubscribe", transit.subscribe, transit);
+			transit.messageHandler = this.wrapMethod("transitMessageHandler", transit.messageHandler, transit);
+		}
 	}
 
 	/**
@@ -132,7 +140,7 @@ class MiddlewareHandler {
 		if (this.list.length) {
 			const list = this.list.filter(mw => !!mw[method]);
 			if (list.length > 0) {
-				handler = list.reduce((next, mw) => mw[method].call(this.broker, next), handler.bind(bindTo));
+				handler = list.reduce((next, mw) => mw[method].call(bindTo, next), handler.bind(bindTo));
 			}
 		}
 
@@ -162,12 +170,17 @@ module.exports = MiddlewareHandler;
 	// Wrap local event handlers
 	localEvent(next, event) {
 
-	}
+	},
 
 	// Wrap broker.createService method
 	createService(next) {
 
-	}
+	},
+
+	// Wrap broker.registerLocalService method
+	registerLocalService(next) {
+
+	},
 
 	// Wrap broker.destroyService method
 	destroyService(next) {
@@ -198,6 +211,11 @@ module.exports = MiddlewareHandler;
     broadcastLocal(next) {
 
     },
+
+	// While a new local service creating (after mixins are mixed)
+	serviceCreating(service, schema) {
+
+	},
 
 	// After a new local service created
 	serviceCreated(service) {
@@ -244,6 +262,20 @@ module.exports = MiddlewareHandler;
 
     },
 
+	// When transit publishing a packet
+	transitPublish(next) {
+
+	},
+
+	// When transit subscribe to a topic
+	transitSubscribe(next) {
+
+	},
+
+	// When transit receives & handles a packet
+	transitMessageHandler(next) {
+
+	}
 }
 
 */

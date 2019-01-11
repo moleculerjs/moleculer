@@ -61,8 +61,10 @@ class Transit {
 		this.disconnecting = false;
 		this.isReady = false;
 
+		const wrappedMessageHandler = (cmd, packet) => this.messageHandler(cmd, packet);
+
 		if (this.tx) {
-			this.tx.init(this, this.messageHandler.bind(this), this.afterConnect.bind(this));
+			this.tx.init(this, wrappedMessageHandler, this.afterConnect.bind(this));
 		}
 
 		this.__connectResolve = null;

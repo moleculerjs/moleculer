@@ -261,7 +261,7 @@ class BaseTransporter {
 	 */
 	prepublish(packet) {
 		if (packet.type === P.PACKET_EVENT && packet.target == null && packet.payload.groups) {
-			let groups = packet.payload.groups;
+			const groups = packet.payload.groups;
 			// If the packet contains groups, we don't send the packet to
 			// the targetted node, but we push them to the event group queues
 			// and AMQP will load-balanced it.
@@ -315,6 +315,10 @@ class BaseTransporter {
 
 	}
 
+	/**
+	 * Increment sent statistics counters
+	 * @param {Number} len
+	 */
 	incStatSent(len) {
 		if (len > 0) {
 			this.transit.stat.packets.sent.count++;
@@ -322,6 +326,10 @@ class BaseTransporter {
 		}
 	}
 
+	/**
+	 * Increment received statistics counters
+	 * @param {Number} len
+	 */
 	incStatReceived(len) {
 		if (len > 0) {
 			this.transit.stat.packets.received.count++;
