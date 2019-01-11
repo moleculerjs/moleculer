@@ -75,7 +75,7 @@ module.exports = function HotReloadMiddleware() {
 				broker.logger.debug(`  ${relPath}:`, chalk.grey(`reload ${watchItem.services.length} service(s) & ${watchItem.others.length} other(s).`)/*, watchItem.services, watchItem.others*/);
 
 			// Create watcher
-			watchItem.watcher = fs.watch(fName, async (eventType) => {
+			watchItem.watcher = fs.watch(fName, (eventType) => {
 				const relPath = path.relative(process.cwd(), fName);
 				broker.logger.info(chalk.magenta.bold(`The '${relPath}' file is changed. (Event: ${eventType})`));
 
