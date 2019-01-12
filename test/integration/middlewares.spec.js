@@ -244,3 +244,12 @@ describe("Test middleware system", () => {
 	});
 
 });
+
+
+describe("Test middleware v2 system", () => {
+
+	it.skip("TODO!!!", () => {
+
+	});
+
+});

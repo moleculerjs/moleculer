@@ -4,17 +4,20 @@
 
 ## TODO
 - new built-in tracing solution with adapters (Zipkin, Jaeger)
-- new built-in JMX-like metrics
+- ? new built-in JMX-like metrics
 - new `beforeCreated` service lifecycle event [#436](https://github.com/moleculerjs/moleculer/issues/436)
-- enhanced hot-reload middleware [#408](https://github.com/moleculerjs/moleculer/issues/408)
 - `ctx` access in Strategies `next` method (Kafka-like sharding strategy).
 - subscribe/unsubscribe event from codes and REPL.
 - caching with tags/labels
+- new middleware hooks (`transporterSend`, `transporterReceive`)
 
 ## Done
 - communication protocol changed (`3` -> `4`)
 - handling conflict nodeIDs
-- ?
+- broker `metadata` option. It's transfered to other nodes.
+- new middleware hooks (`registerLocalService`, `serviceCreating`, `transitPublish`, `transitSubscribe`, `transitMessageHandler`)
+- enhanced hot-reload middleware [#408](https://github.com/moleculerjs/moleculer/issues/408)
+- ...etc
 
 
 --------------------------------------------------

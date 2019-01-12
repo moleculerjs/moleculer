@@ -90,13 +90,14 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `services` | `object` | ✔ | Services list. (*) |
 | `config` | `object` | ✔ | Client configuration. (*) |
-| `instanceID` | `[string]` | ✔ | Instance ID |
+| `instanceID` | `string` | ✔ | Instance ID |
 | `ipList` | `[string]` | ✔ | IP address list of node |
 | `hostname` | `string` | ✔ | Hostname of node |
 | `client` | `object` | ✔ | Client information |
 |   `client.type` | `string` | ✔ | Type of client implementation(`nodejs`, `java`, `go`) |
 |   `client.version` | `string` | ✔ | Client (Moleculer) version |
 |   `client.langVersion` | `string` | ✔ | NodeJS/Java/Go version |
+| `metadata` | `object` | ✔ | Node-specific metadata. (*) |
 
 > (*) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string.
 
