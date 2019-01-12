@@ -95,7 +95,8 @@ function createSchemas() {
 					{ name: "langVersion", type: "string" }
 				]
 			} },
-			{ name: "instanceID", type: "string" }
+			{ name: "instanceID", type: "string" },
+			{ name: "metadata", type: "string" }
 		]
 	});
 

@@ -61,6 +61,7 @@ message PacketInfo {
 	}
 
 	required string instanceID		= 8;
+	required string metadata		= 9;
 }
 
 message PacketDisconnect {

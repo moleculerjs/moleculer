@@ -1392,6 +1392,7 @@ $root.packets = (function() {
          * @property {string} hostname PacketInfo hostname
          * @property {packets.PacketInfo.IClient} client PacketInfo client
          * @property {string} instanceID PacketInfo instanceID
+         * @property {string} metadata PacketInfo metadata
          */
 
 		/**
@@ -1475,6 +1476,14 @@ $root.packets = (function() {
 		PacketInfo.prototype.instanceID = "";
 
 		/**
+         * PacketInfo metadata.
+         * @member {string} metadata
+         * @memberof packets.PacketInfo
+         * @instance
+         */
+		PacketInfo.prototype.metadata = "";
+
+		/**
          * Creates a new PacketInfo instance using the specified properties.
          * @function create
          * @memberof packets.PacketInfo
@@ -1508,6 +1517,7 @@ $root.packets = (function() {
 			writer.uint32(/* id 6, wireType 2 =*/50).string(message.hostname);
 			$root.packets.PacketInfo.Client.encode(message.client, writer.uint32(/* id 7, wireType 2 =*/58).fork()).ldelim();
 			writer.uint32(/* id 8, wireType 2 =*/66).string(message.instanceID);
+			writer.uint32(/* id 9, wireType 2 =*/74).string(message.metadata);
 			return writer;
 		};
 
@@ -1568,6 +1578,9 @@ $root.packets = (function() {
 					case 8:
 						message.instanceID = reader.string();
 						break;
+					case 9:
+						message.metadata = reader.string();
+						break;
 					default:
 						reader.skipType(tag & 7);
 						break;
@@ -1587,6 +1600,8 @@ $root.packets = (function() {
 				throw $util.ProtocolError("missing required 'client'", { instance: message });
 			if (!message.hasOwnProperty("instanceID"))
 				throw $util.ProtocolError("missing required 'instanceID'", { instance: message });
+			if (!message.hasOwnProperty("metadata"))
+				throw $util.ProtocolError("missing required 'metadata'", { instance: message });
 			return message;
 		};
 
@@ -1641,6 +1656,8 @@ $root.packets = (function() {
 			}
 			if (!$util.isString(message.instanceID))
 				return "instanceID: string expected";
+			if (!$util.isString(message.metadata))
+				return "metadata: string expected";
 			return null;
 		};
 
@@ -1680,6 +1697,8 @@ $root.packets = (function() {
 			}
 			if (object.instanceID != null)
 				message.instanceID = String(object.instanceID);
+			if (object.metadata != null)
+				message.metadata = String(object.metadata);
 			return message;
 		};
 
@@ -1706,6 +1725,7 @@ $root.packets = (function() {
 				object.hostname = "";
 				object.client = null;
 				object.instanceID = "";
+				object.metadata = "";
 			}
 			if (message.ver != null && message.hasOwnProperty("ver"))
 				object.ver = message.ver;
@@ -1726,6 +1746,8 @@ $root.packets = (function() {
 				object.client = $root.packets.PacketInfo.Client.toObject(message.client, options);
 			if (message.instanceID != null && message.hasOwnProperty("instanceID"))
 				object.instanceID = message.instanceID;
+			if (message.metadata != null && message.hasOwnProperty("metadata"))
+				object.metadata = message.metadata;
 			return object;
 		};
 

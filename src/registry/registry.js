@@ -324,7 +324,7 @@ class Registry {
 		if (incSeq)
 			node.seq++;
 
-		const rawInfo = _.pick(node, ["ipList", "hostname", "instanceID", "client", "config", "port", "seq"]);
+		const rawInfo = _.pick(node, ["ipList", "hostname", "instanceID", "client", "config", "port", "seq", "metadata"]);
 		if (this.broker.started)
 			rawInfo.services = this.services.getLocalNodeServices();
 		else

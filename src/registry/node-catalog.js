@@ -118,6 +118,7 @@ class NodeCatalog {
 			version: this.broker.MOLECULER_VERSION,
 			langVersion: process.version
 		};
+		node.metadata = this.broker.metadata;
 		node.seq = 1;
 
 		this.add(node.id, node);

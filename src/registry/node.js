@@ -21,6 +21,7 @@ class Node {
 	 */
 	constructor(id) {
 		this.id = id;
+		this.instanceID = null;
 		this.available = true;
 		this.local = false;
 		this.lastHeartbeatTime = Date.now();
@@ -52,6 +53,7 @@ class Node {
 	 */
 	update(payload, isReconnected) {
 		// Update properties
+		this.metadata = payload.metadata;
 		this.ipList = payload.ipList;
 		this.hostname = payload.hostname;
 		this.port = payload.port;

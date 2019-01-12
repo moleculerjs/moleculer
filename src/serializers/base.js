@@ -79,6 +79,8 @@ class Serializer {
 				obj.services = JSON.stringify(obj.services);
 				if (obj.config)
 					obj.config = JSON.stringify(obj.config);
+				if (obj.metadata)
+					obj.metadata = JSON.stringify(obj.metadata);
 				break;
 			}
 			case P.PACKET_EVENT: {
@@ -138,6 +140,8 @@ class Serializer {
 				obj.services = JSON.parse(obj.services);
 				if (obj.config)
 					obj.config = JSON.parse(obj.config);
+				if (obj.metadata)
+					obj.metadata = JSON.parse(obj.metadata);
 				break;
 			}
 			case P.PACKET_EVENT: {

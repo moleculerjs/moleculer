@@ -107,6 +107,8 @@ const defaultOptions = {
 
 	replCommands: null,
 
+	metadata: {},
+
 	// ServiceFactory: null,
 	// ContextFactory: null
 };
@@ -141,6 +143,9 @@ class ServiceBroker {
 
 			// Namespace
 			this.namespace = this.options.namespace || "";
+
+			// Metadata
+			this.metadata = this.options.metadata || {};
 
 			// Self nodeID
 			this.nodeID = this.options.nodeID || utils.getNodeID();

@@ -1004,6 +1004,7 @@ class Transit {
 			client: info.client,
 			config: info.config,
 			instanceID: this.broker.instanceID,
+			metadata: info.metadata,
 			seq: info.seq
 		}))).catch(/* istanbul ignore next */ err => this.logger.error(`Unable to send INFO packet to '${nodeID}' node.`, err));
 
