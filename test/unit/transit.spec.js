@@ -1390,7 +1390,11 @@ describe("Test Transit.sendNodeInfo", () => {
 	const transit = broker.transit;
 	broker.getLocalNodeInfo = jest.fn(() => ({
 		id: "node2",
-		services: []
+		services: [],
+		instanceID: "123456",
+		metadata: {
+			region: "eu-west1"
+		}
 	}));
 
 	transit.tx.makeBalancedSubscriptions = jest.fn(() => Promise.resolve());
@@ -1437,7 +1441,16 @@ describe("Test Transit.sendNodeInfo", () => {
 			expect(packet).toBeInstanceOf(P.Packet);
 			expect(packet.type).toBe(P.PACKET_INFO);
 			expect(packet.target).toBe();
-			expect(packet.payload.services).toEqual([]);
+			expect(packet.payload).toEqual({
+				"client": undefined,
+				"config": undefined,
+				"hostname": undefined,
+				"instanceID": broker.instanceID,
+				"ipList": undefined,
+				"metadata": { "region": "eu-west1" },
+				"seq": undefined,
+				"services": []
+			});
 		});
 	});
 

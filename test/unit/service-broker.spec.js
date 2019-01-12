@@ -53,6 +53,8 @@ describe("Test ServiceBroker constructor", () => {
 
 		expect(broker.logger).toBeDefined();
 
+		expect(broker.metadata).toEqual({});
+
 		expect(broker.localBus).toBeDefined();
 
 		expect(broker.services).toBeInstanceOf(Array);
@@ -112,7 +114,13 @@ describe("Test ServiceBroker constructor", () => {
 			},
 			validation: false,
 			internalServices: false,
-			hotReload: true });
+			hotReload: true,
+
+			metadata: {
+				region: "eu-west1"
+			}
+
+		});
 
 		expect(broker).toBeDefined();
 		expect(broker.options).toEqual({
@@ -178,7 +186,11 @@ describe("Test ServiceBroker constructor", () => {
 			internalMiddlewares: true,
 			hotReload: true,
 			middlewares: null,
-			replCommands: null
+			replCommands: null,
+
+			metadata: {
+				region: "eu-west1"
+			}
 		});
 
 		expect(broker.services).toBeInstanceOf(Array);

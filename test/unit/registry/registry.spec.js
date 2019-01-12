@@ -500,7 +500,7 @@ describe("Test Registry.unregisterEvent", () => {
 });
 
 describe("Test Registry.regenerateLocalRawInfo", () => {
-	let broker = new ServiceBroker({ logger: false, nodeID: "node-1" });
+	let broker = new ServiceBroker({ logger: false, nodeID: "node-1", metadata: { a: 5 } });
 	let registry = broker.registry;
 	let localNode = registry.nodes.localNode;
 
@@ -527,6 +527,7 @@ describe("Test Registry.regenerateLocalRawInfo", () => {
 			"hostname": localNode.hostname,
 			"ipList": localNode.ipList,
 			"instanceID": localNode.instanceID,
+			"metadata": localNode.metadata,
 			"port": null,
 			"seq": 1,
 			"services": []
@@ -543,6 +544,7 @@ describe("Test Registry.regenerateLocalRawInfo", () => {
 			"hostname": localNode.hostname,
 			"ipList": localNode.ipList,
 			"instanceID": localNode.instanceID,
+			"metadata": localNode.metadata,
 			"port": null,
 			"seq": 2,
 			"services": []
@@ -558,6 +560,7 @@ describe("Test Registry.regenerateLocalRawInfo", () => {
 			"config": {},
 			"hostname": localNode.hostname,
 			"instanceID": localNode.instanceID,
+			"metadata": localNode.metadata,
 			"ipList": localNode.ipList,
 			"port": null,
 			"seq": 2,

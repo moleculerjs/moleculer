@@ -418,7 +418,7 @@ describe("Test checkOfflineNodes", () => {
 });
 
 describe("Test NodeCatalog.list", () => {
-	let broker = new ServiceBroker({ logger: false, transporter: "fake" });
+	let broker = new ServiceBroker({ logger: false, transporter: "fake", metadata: { a: 5 } });
 	let catalog = new NodeCatalog(broker.registry, broker);
 	broker.transit.discoverNode = jest.fn();
 
@@ -447,6 +447,7 @@ describe("Test NodeCatalog.list", () => {
 				"offlineSince": null,
 				"seq": 1,
 				"local": true,
+				"metadata": { a: 5 },
 				"udpAddress": null
 			},
 			{
@@ -464,6 +465,7 @@ describe("Test NodeCatalog.list", () => {
 				"offlineSince": null,
 				"seq": 1,
 				"local": false,
+				"metadata": undefined,
 				"udpAddress": null
 			}
 		]);
@@ -489,6 +491,7 @@ describe("Test NodeCatalog.list", () => {
 				"offlineSince": null,
 				"seq": 1,
 				"services": [],
+				"metadata": { a: 5 },
 				"udpAddress": null
 			},
 			{
@@ -507,6 +510,7 @@ describe("Test NodeCatalog.list", () => {
 				"offlineSince": null,
 				"seq": 1,
 				"services": [],
+				"metadata": undefined,
 				"udpAddress": null
 			}
 		]);
@@ -532,6 +536,7 @@ describe("Test NodeCatalog.list", () => {
 				"local": true,
 				"offlineSince": null,
 				"seq": 1,
+				"metadata": { a: 5 },
 				"udpAddress": null
 			}
 		]);

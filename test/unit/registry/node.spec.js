@@ -20,6 +20,8 @@ describe("Test Node", () => {
 		expect(node.hostname).toBeNull();
 		expect(node.rawInfo).toBeNull();
 		expect(node.services).toEqual([]);
+		expect(node.instanceID).toBeNull();
+		expect(node.metadata).toBeNull();
 
 		expect(node.cpu).toBeNull();
 		expect(node.cpuSeq).toBeNull();
@@ -38,7 +40,10 @@ describe("Test Node", () => {
 				port: 1234,
 				client: {},
 				services: [{}],
-				seq: 6
+				seq: 6,
+				metadata: {
+					region: "eu-west1"
+				}
 			};
 			node.update(payload);
 
@@ -49,6 +54,10 @@ describe("Test Node", () => {
 
 			expect(node.services).toBe(payload.services);
 			expect(node.rawInfo).toBe(payload);
+			expect(node.instanceID).toBe("123456");
+			expect(node.metadata).toEqual({
+				region: "eu-west1"
+			});
 
 			expect(node.seq).toBe(6);
 		});

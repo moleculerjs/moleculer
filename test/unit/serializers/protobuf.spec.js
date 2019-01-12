@@ -78,9 +78,12 @@ describe("Test ProtoBuf serializer", () => {
 				version: "1.2.3",
 				langVersion: "6.10.2",
 			},
+			metadata: {
+				region: "eu-west1"
+			}
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_INFO);
-		expect(s.length).toBe(193);
+		expect(s.length).toBe(216);
 
 		const res = serializer.deserialize(s, P.PACKET_INFO);
 		expect(res).not.toBe(obj);

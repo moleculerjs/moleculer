@@ -27,6 +27,7 @@ class Node {
 		this.lastHeartbeatTime = Date.now();
 		this.config = {};
 		this.client = {};
+		this.metadata = null;
 
 		this.ipList = null;
 		this.port = null;

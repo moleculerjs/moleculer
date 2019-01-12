@@ -8,7 +8,8 @@ describe("Test internal services", () => {
 		nodeID: "node-master",
 		logger: false,
 		transporter: null,
-		internalServices: true
+		internalServices: true,
+		metadata: { a: 5 },
 	});
 
 	broker.createService({
@@ -77,6 +78,7 @@ describe("Test internal services", () => {
 				"port": null,
 				"seq": localNode.seq,
 				"local": true,
+				"metadata": { a: 5 },
 				"udpAddress": null
 			}]);
 		});

@@ -44,6 +44,9 @@ describe("Test serializer.serializeCustomFields", () => {
 			instanceID: "123456",
 			client: {
 				version: 5
+			},
+			metadata: {
+				region: "eu-west1"
 			}
 		})).toEqual({
 			"client": {
@@ -52,7 +55,8 @@ describe("Test serializer.serializeCustomFields", () => {
 			"config": "{\"a\":5}",
 			"instanceID": "123456",
 			"sender": "node-1",
-			"services": "[{\"name\":\"users\",\"settings\":{}}]"
+			"services": "[{\"name\":\"users\",\"settings\":{}}]",
+			"metadata": "{\"region\":\"eu-west1\"}"
 		});
 	});
 
@@ -180,7 +184,8 @@ describe("Test serializer.deserializeCustomFields", () => {
 			"config": "{\"a\":5}",
 			"instanceID": "123456",
 			"sender": "node-1",
-			"services": "[{\"name\":\"users\",\"settings\":{}}]"
+			"services": "[{\"name\":\"users\",\"settings\":{}}]",
+			"metadata": "{\"region\":\"eu-west1\"}"
 		})).toEqual({
 			sender: "node-1",
 			services: [
@@ -192,6 +197,9 @@ describe("Test serializer.deserializeCustomFields", () => {
 			},
 			client: {
 				version: 5
+			},
+			metadata: {
+				region: "eu-west1"
 			}
 		});
 	});
