@@ -272,11 +272,6 @@ class Transit {
 					return;
 			}
 
-			// log only if packet type was not disabled by options
-			if (!this.opts.packetLogFilter.includes(cmd)) {
-				this.logger.debug(`<= Incoming ${cmd} packet from '${payload.sender}'`);
-			}
-
 			// Request
 			if (cmd === P.PACKET_REQUEST) {
 				return this._requestHandler(payload);
@@ -1087,11 +1082,6 @@ class Transit {
 	 * @memberof Transit
 	 */
 	publish(packet) {
-		// log only if packet type was not disabled by options
-		if (!this.opts.packetLogFilter.includes(packet.type)) {
-			this.logger.debug(`=> Send ${packet.type} packet to '${packet.target || "<all nodes>"}'`);
-		}
-
 		if (this.subscribing) {
 			return this.subscribing
 				.then(() => {

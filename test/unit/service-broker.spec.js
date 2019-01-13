@@ -165,7 +165,6 @@ describe("Test ServiceBroker constructor", () => {
 
 			transit: {
 				disableReconnect: false,
-				packetLogFilter: [],
 				maxQueueSize: 50 * 1000,
 				disableVersionCheck: false
 			},

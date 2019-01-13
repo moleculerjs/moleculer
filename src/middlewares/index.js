@@ -24,8 +24,8 @@ module.exports = {
 		Compression: require("./transmit/compression")
 	},
 
-	/*Debugging: {
-		TransmitLogger: require("./debugging/transmit-logger"),
-		ActionLogger: require("./debugging/action-logger"),
-	}*/
+	Debugging: {
+		TransitLogger: require("./debugging/transit-logger"),
+		//ActionLogger: require("./debugging/action-logger"),
+	}
 };

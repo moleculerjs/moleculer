@@ -5,7 +5,7 @@ const _ = require("lodash");
 const chalk = require("chalk");
 const ServiceBroker = require("../src/service-broker");
 const { MoleculerError, MoleculerRetryableError } = require("../src/errors");
-const Middlewares = require("..").Middlewares;
+const Middlewares = require("../src/middlewares");
 
 // Create broker
 const broker = new ServiceBroker({
@@ -38,6 +38,7 @@ const broker = new ServiceBroker({
 	middlewares: [
 		Middlewares.Transmit.Encryption("moleculer", "aes-256-cbc"),
 		Middlewares.Transmit.Compression(),
+		Middlewares.Debugging.TransitLogger({ logPacketData: true })
 	]
 });
 
