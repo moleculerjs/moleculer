@@ -74,7 +74,7 @@ class FakeTransporter extends Transporter {
 	 */
 	subscribe(cmd, nodeID) {
 		const t = this.getTopicName(cmd, nodeID);
-		const handler = msg => this.incomingMessage(cmd, msg);
+		const handler = msg => this.receive(cmd, msg);
 		this.subscriptions.push({ topic: t, handler });
 
 		this.bus.on(t, handler);
