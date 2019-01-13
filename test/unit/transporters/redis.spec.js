@@ -136,7 +136,7 @@ describe("Test RedisTransporter subscribe & publish", () => {
 	it("check incoming message handler", () => {
 		// Test subscribe callback
 		const buf = Buffer.from("incoming data");
-		transporter.clientSub.onCallbacks.messageBuffer("prefix.event", buf);
+		transporter.clientSub.onCallbacks.messageBuffer("MOL-TEST.event", buf);
 		expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
 		expect(transporter.incomingMessage).toHaveBeenCalledWith("event", buf);
 	});
