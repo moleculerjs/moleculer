@@ -129,18 +129,6 @@ class StanTransporter extends Transporter {
 	}
 
 	/**
-	 * Reconnect to server after x seconds
-	 *
-	 * @memberof BaseTransporter
-	 */
-	/*reconnectAfterTime() {
-		//this.logger.info("Reconnecting after 5 sec...");
-		setTimeout(() => {
-			this.connect();
-		}, 5 * 1000);
-	}*/
-
-	/**
 	 * Subscribe to a command
 	 *
 	 * @param {String} cmd
@@ -154,7 +142,7 @@ class StanTransporter extends Transporter {
 		const opts = this.client.subscriptionOptions(); //.setStartWithLastReceived().setDurableName(cmd); //No need durable & receive old messages
 		const subscription = this.client.subscribe(t, opts);
 
-		subscription.on("message", msg => this.incomingMessage(cmd, msg.getRawData()));
+		subscription.on("message", msg => this.receive(cmd, msg.getRawData()));
 		return Promise.resolve();
 	}
 
@@ -171,7 +159,7 @@ class StanTransporter extends Transporter {
 		const opts = this.client.subscriptionOptions().setDeliverAllAvailable().setDurableName(PACKET_REQUEST + "B");
 		const subscription = this.client.subscribe(topic, queue, opts);
 
-		subscription.on("message", msg => this.incomingMessage(PACKET_REQUEST, msg.getRawData()));
+		subscription.on("message", msg => this.receive(PACKET_REQUEST, msg.getRawData()));
 		this.subscriptions.push(subscription);
 	}
 
@@ -188,7 +176,7 @@ class StanTransporter extends Transporter {
 		const opts = this.client.subscriptionOptions().setDeliverAllAvailable().setDurableName(PACKET_EVENT + "B");
 		const subscription = this.client.subscribe(topic, group, opts);
 
-		subscription.on("message", msg => this.incomingMessage(PACKET_EVENT, msg.getRawData()));
+		subscription.on("message", msg => this.receive(PACKET_EVENT, msg.getRawData()));
 		this.subscriptions.push(subscription);
 	}
 
@@ -208,61 +196,19 @@ class StanTransporter extends Transporter {
 	}
 
 	/**
-	 * Publish a packet
+	 * Send data buffer.
 	 *
-	 * @param {Packet} packet
+	 * @param {String} topic
+	 * @param {Buffer} data
+	 * @param {Object} meta
 	 *
-	 * @memberof StanTransporter
-	 */
-	publish(packet) {
-		/* istanbul ignore next*/
-		if (!this.client) return Promise.resolve();
-
-		return new Promise(resolve => {
-			let topic = this.getTopicName(packet.type, packet.target);
-			const data = this.serialize(packet);
-
-			this.incStatSent(data.length);
-			this.client.publish(topic, data, resolve);
-		});
-	}
-
-	/**
-	 * Publish a balanced EVENT packet to a balanced queue
-	 *
-	 * @param {Packet} packet
-	 * @param {String} group
 	 * @returns {Promise}
-	 * @memberof AmqpTransporter
 	 */
-	publishBalancedEvent(packet, group) {
+	send(topic, data) {
 		/* istanbul ignore next*/
 		if (!this.client) return Promise.resolve();
 
 		return new Promise(resolve => {
-			let topic = `${this.prefix}.${PACKET_EVENT}B.${group}.${packet.payload.event}`;
-			const data = this.serialize(packet);
-
-			this.incStatSent(data.length);
-			this.client.publish(topic, data, resolve);
-		});
-	}
-
-	/**
-	 * Publish a balanced REQ packet to a balanced queue
-	 *
-	 * @param {Packet} packet
-	 * @returns {Promise}
-	 * @memberof AmqpTransporter
-	 */
-	publishBalancedRequest(packet) {
-		/* istanbul ignore next*/
-		if (!this.client) return Promise.resolve();
-
-		return new Promise(resolve => {
-			const topic = `${this.prefix}.${PACKET_REQUEST}B.${packet.payload.action}`;
-			const data = this.serialize(packet);
-
 			this.incStatSent(data.length);
 			this.client.publish(topic, data, resolve);
 		});

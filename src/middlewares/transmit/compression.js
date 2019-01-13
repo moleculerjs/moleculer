@@ -9,8 +9,15 @@
 const zlib = require("zlib");
 const { promisify } = require("util");
 
+/**
+ * This is a transmission compression middleware. It supports
+ * the `deflate`, `deflateRaw` & `gzip` compression methods.
+ *
+ * @param {String} method
+ */
 module.exports = function CompressionMiddleware(method = "deflate") {
 	let compress, decompress;
+
 	switch(method) {
 		case "deflate":
 			compress = promisify(zlib.deflate);
@@ -33,24 +40,28 @@ module.exports = function CompressionMiddleware(method = "deflate") {
 
 	return {
 
+		created() {
+			this.logger.info(`The transmission is COMPRESSED by '${method}'.`);
+		},
+
 		transporterSend(next) {
-			return (topic, data) => {
+			return (topic, data, meta) => {
 				return compress(data)
 					.then(res => {
 						savingSent += data.length - res.length;
-						this.logger.info(`Packet '${topic}' compressed. Saving: ${Number((1 - (res.length / data.length)) * 100).toFixed(0)}%`, data.length, res.length);
-						return next(topic, res);
+						this.logger.debug(`Packet '${topic}' compressed. Saving: ${Number((1 - (res.length / data.length)) * 100).toFixed(0)}%`, data.length, res.length);
+						return next(topic, res, meta);
 					});
 			};
 		},
 
 		transporterReceive(next) {
-			return (cmd, data) => {
+			return (cmd, data, s) => {
 				return decompress(data)
 					.then(res => {
 						savingReceived += res.length - data.length;
-						//this.logger.info(`Packet '${cmd}' decompressed. Saving: ${Number((1 - (res.length / data.length)) * 100).toFixed(0)}%`, data.length, res.length);
-						return next(cmd, res);
+						this.logger.debug(`Packet '${cmd}' decompressed. Saving: ${Number((1 - (res.length / data.length)) * 100).toFixed(0)}%`, data.length, res.length);
+						return next(cmd, res, s);
 					});
 			};
 		}

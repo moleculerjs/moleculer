@@ -107,6 +107,7 @@ class FakeTransporter extends Transporter {
 	 *
 	 * @param {String} topic
 	 * @param {Buffer} data
+	 * @param {Object} meta
 	 *
 	 * @returns {Promise}
 	 */

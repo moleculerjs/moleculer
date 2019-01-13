@@ -82,8 +82,8 @@ class RedisTransporter extends Transporter {
 				});
 			});
 
-			clientSub.on("messageBuffer", (topicBuf, buf) => {
-				const topic = topicBuf.toString().substring(this.prefix.length + 1);
+			clientSub.on("messageBuffer", (rawTopic, buf) => {
+				const topic = rawTopic.toString().substring(this.prefix.length + 1);
 				const cmd = topic.split(".")[0];
 				this.receive(cmd, buf);
 			});
@@ -138,6 +138,7 @@ class RedisTransporter extends Transporter {
 	 *
 	 * @param {String} topic
 	 * @param {Buffer} data
+	 * @param {Object} meta
 	 *
 	 * @returns {Promise}
 	 */

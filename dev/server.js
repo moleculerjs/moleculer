@@ -11,8 +11,18 @@ const Middlewares = require("..").Middlewares;
 const broker = new ServiceBroker({
 	namespace: "",
 	nodeID: process.argv[2] || "server-" + process.pid,
-	//transporter: "nats://demo.nats.io:4222",
-	transporter: "Redis",
+	/*transporter: {
+		type: "TCP",
+		options: {
+			//udpDiscovery: false,
+			//urls: "file://./dev/nodes.json",
+			//debug: true
+		}
+	},
+	*/
+	//transporter: "kafka://192.168.0.181:9092",
+	//transporter: "amqp://192.168.0.181:5672",
+	transporter: "NATS",
 	//serializer: "Thrift",
 
 	//disableBalancer: true,

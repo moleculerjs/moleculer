@@ -191,7 +191,7 @@ class BaseTransporter {
 		const topic = this.getTopicName(packet.type, packet.target);
 		const data = this.serialize(packet);
 
-		return this.send(topic, data);
+		return this.send(topic, data, { packet });
 	}
 
 	/**
@@ -207,7 +207,7 @@ class BaseTransporter {
 		const topic = `${this.prefix}.${P.PACKET_EVENT}B.${group}.${packet.payload.event}`;
 		const data = this.serialize(packet);
 
-		return this.send(topic, data);
+		return this.send(topic, data, { packet, balanced: true });
 	}
 
 	/**
@@ -222,7 +222,7 @@ class BaseTransporter {
 		const topic = `${this.prefix}.${P.PACKET_REQUEST}B.${packet.payload.action}`;
 		const data = this.serialize(packet);
 
-		return this.send(topic, data);
+		return this.send(topic, data, { packet, balanced: true });
 	}
 
 	/**
@@ -230,10 +230,11 @@ class BaseTransporter {
 	 *
 	 * @param {String} topic
 	 * @param {Buffer} data
+	 * @param {Object} meta
 	 *
 	 * @returns {Promise}
 	 */
-	send(topic, data) {
+	send(/*topic, data, meta*/) {
 		throw new Error("Not implemented!");
 	}
 

@@ -261,7 +261,18 @@ class TcpTransporter extends Transporter {
 	 * @param {Socket} socket
 	 */
 	onIncomingMessage(type, message, socket) {
+		return this.receive(type, message, socket);
+	}
+
+	/**
+	 * Received data. It's a wrapper for middlewares.
+	 * @param {String} cmd
+	 * @param {Buffer} data
+	 */
+	receive(type, message, socket) {
 		//console.log("<<", type, message.toString());
+		this.incStatReceived(message.length);
+
 		switch(type) {
 			case P.PACKET_GOSSIP_HELLO: return this.processGossipHello(message, socket);
 			case P.PACKET_GOSSIP_REQ: return this.processGossipRequest(message);
@@ -733,9 +744,21 @@ class TcpTransporter extends Transporter {
 		].indexOf(packet.type) == -1)
 			return Promise.resolve();
 
-		const packetID = resolvePacketID(packet.type);
-		let data = this.serialize(packet);
+		const data = this.serialize(packet);
+		return this.send(packet.type, data, { packet });
+	}
 
+	/**
+	 * Send data buffer.
+	 *
+	 * @param {String} topic
+	 * @param {Buffer} data
+	 * @param {Object} meta
+	 *
+	 * @returns {Promise}
+	 */
+	send(topic, data, { packet }) {
+		const packetID = resolvePacketID(packet.type);
 		this.incStatSent(data.length);
 		return this.writer.send(packet.target, packetID, data)
 			.catch(err => {
@@ -743,7 +766,6 @@ class TcpTransporter extends Transporter {
 				throw err;
 			});
 	}
-
 }
 
 module.exports = TcpTransporter;

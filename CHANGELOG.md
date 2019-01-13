@@ -9,14 +9,16 @@
 - `ctx` access in Strategies `next` method (Kafka-like sharding strategy).
 - subscribe/unsubscribe event from codes and REPL.
 - caching with tags/labels
-- new middleware hooks (`transporterSend`, `transporterReceive`)
 
 ## Done
 - communication protocol changed (`3` -> `4`)
 - handling conflict nodeIDs
 - broker `metadata` option. It's transfered to other nodes.
-- new middleware hooks (`registerLocalService`, `serviceCreating`, `transitPublish`, `transitSubscribe`, `transitMessageHandler`)
+- new middleware hooks (`registerLocalService`, `serviceCreating`, `transitPublish`, `transitSubscribe`, `transitMessageHandler`, `transporterSend`, `transporterReceive`)
 - enhanced hot-reload middleware [#408](https://github.com/moleculerjs/moleculer/issues/408)
+- new Middlewares:
+    - `Transmit.Encryption`
+	- `Transmit.Compression`
 - ...etc
 
 
