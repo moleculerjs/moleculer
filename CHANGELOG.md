@@ -20,7 +20,7 @@
     - `Transmit.Encryption`
 	- `Transmit.Compression`
 - ...etc
-
+- Kafka transporter upgrade to support kafka-node@4
 
 --------------------------------------------------
 <a name="0.13.5"></a>
