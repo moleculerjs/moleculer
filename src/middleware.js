@@ -126,6 +126,11 @@ class MiddlewareHandler {
 			transit.publish = this.wrapMethod("transitPublish", transit.publish, transit);
 			transit.subscribe = this.wrapMethod("transitSubscribe", transit.subscribe, transit);
 			transit.messageHandler = this.wrapMethod("transitMessageHandler", transit.messageHandler, transit);
+
+			if (transit.tx) {
+				transit.tx.send = this.wrapMethod("transporterSend", transit.tx.send, transit.tx);
+				transit.tx.receive = this.wrapMethod("transporterReceive", transit.tx.receive, transit.tx, true);
+			}
 		}
 	}
 
@@ -136,9 +141,9 @@ class MiddlewareHandler {
 	 * @returns {Function}
 	 * @memberof MiddlewareHandler
 	 */
-	wrapMethod(method, handler, bindTo = this.broker) {
+	wrapMethod(method, handler, bindTo = this.broker, reverse = false) {
 		if (this.list.length) {
-			const list = this.list.filter(mw => !!mw[method]);
+			const list = (reverse ? Array.from(this.list).reverse() : this.list).filter(mw => !!mw[method]);
 			if (list.length > 0) {
 				handler = list.reduce((next, mw) => mw[method].call(bindTo, next), handler.bind(bindTo));
 			}
@@ -274,6 +279,16 @@ module.exports = MiddlewareHandler;
 
 	// When transit receives & handles a packet
 	transitMessageHandler(next) {
+
+	}
+
+	// When transporter send data
+	transporterSend(next) {
+
+	}
+
+	// When transporter received data
+	transporterReceive(next) {
 
 	}
 }

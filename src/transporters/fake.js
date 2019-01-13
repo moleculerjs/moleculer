@@ -103,44 +103,17 @@ class FakeTransporter extends Transporter {
 	}
 
 	/**
-	 * Publish a packet
+	 * Send data buffer.
 	 *
-	 * @param {Packet} packet
+	 * @param {String} topic
+	 * @param {Buffer} data
 	 *
-	 * @memberof FakeTransporter
-	 */
-	publish(packet) {
-		this.bus.emit(this.getTopicName(packet.type, packet.target), this.serialize(packet));
-		return Promise.resolve();
-	}
-
-	/**
-	 * Publish a balanced EVENT packet to a balanced queue
-	 *
-	 * @param {Packet} packet
-	 * @param {String} group
 	 * @returns {Promise}
-	 *
-	 * @memberof BaseTransporter
 	 */
-	publishBalancedEvent(/*packet, group*/) {
-		/* istanbul ignore next */
+	send(topic, data) {
+		this.bus.emit(topic, data);
 		return Promise.resolve();
 	}
-
-	/**
-	 * Publish a balanced REQ packet to a balanced queue
-	 *
-	 * @param {Packet} packet
-	 * @returns {Promise}
-	 *
-	 * @memberof BaseTransporter
-	 */
-	publishBalancedRequest(/*packet*/) {
-		/* istanbul ignore next */
-		return Promise.resolve();
-	}
-
 }
 
 module.exports = FakeTransporter;

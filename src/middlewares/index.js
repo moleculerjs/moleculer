@@ -18,4 +18,14 @@ module.exports = {
 	ErrorHandler: require("./error-handler"),
 
 	HotReload: require("./hot-reload"),
+
+	Transmit: {
+		Encryption: require("./transmit/encryption"),
+		Compression: require("./transmit/compression")
+	},
+
+	/*Debugging: {
+		TransmitLogger: require("./debugging/transmit-logger"),
+		ActionLogger: require("./debugging/action-logger"),
+	}*/
 };

@@ -1,18 +1,19 @@
 "use strict";
 
-let path = require("path");
-let _ = require("lodash");
-let chalk = require("chalk");
-let ServiceBroker = require("../src/service-broker");
-let { MoleculerError, MoleculerRetryableError } = require("../src/errors");
+const path = require("path");
+const _ = require("lodash");
+const chalk = require("chalk");
+const ServiceBroker = require("../src/service-broker");
+const { MoleculerError, MoleculerRetryableError } = require("../src/errors");
+const Middlewares = require("..").Middlewares;
 
 // Create broker
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
 	namespace: "",
 	nodeID: process.argv[2] || "server-" + process.pid,
 	//transporter: "nats://demo.nats.io:4222",
-	transporter: "NATS",
-	//serializer: "Avro",
+	transporter: "Redis",
+	//serializer: "Thrift",
 
 	//disableBalancer: true,
 
@@ -22,7 +23,12 @@ let broker = new ServiceBroker({
 
 	logger: console,
 	logLevel: "info",
-	logFormatter: "short"
+	logFormatter: "short",
+
+	middlewares: [
+		Middlewares.Transmit.Encryption("moleculer", "aes-256-cbc"),
+		Middlewares.Transmit.Compression(),
+	]
 });
 
 broker.createService({

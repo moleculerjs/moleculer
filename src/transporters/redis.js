@@ -83,9 +83,9 @@ class RedisTransporter extends Transporter {
 			});
 
 			clientSub.on("messageBuffer", (topicBuf, buf) => {
-				const topic = topicBuf.toString();
-				const cmd = topic.split(".")[1];
-				this.incomingMessage(cmd, buf);
+				const topic = topicBuf.toString().substring(this.prefix.length + 1);
+				const cmd = topic.split(".")[0];
+				this.receive(cmd, buf);
 			});
 
 			/* istanbul ignore next */
@@ -134,19 +134,18 @@ class RedisTransporter extends Transporter {
 	}
 
 	/**
-	 * Publish a packet
+	 * Send data buffer.
 	 *
-	 * @param {Packet} packet
+	 * @param {String} topic
+	 * @param {Buffer} data
 	 *
-	 * @memberof RedisTransporter
+	 * @returns {Promise}
 	 */
-	publish(packet) {
+	send(topic, data) {
 		/* istanbul ignore next*/
 		if (!this.clientPub) return Promise.reject(new MoleculerError("Redis Client is not available"));
 
-		const data = this.serialize(packet);
-		this.incStatSent(data.length);
-		this.clientPub.publish(this.getTopicName(packet.type, packet.target), data);
+		this.clientPub.publish(topic, data);
 		return Promise.resolve();
 	}
 

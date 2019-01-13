@@ -124,6 +124,16 @@ class BaseTransporter {
 	}
 
 	/**
+	 * Received data. It's a wrapper for middlewares.
+	 * @param {String} cmd
+	 * @param {Buffer} data
+	 */
+	receive(cmd, data) {
+		this.incStatReceived(data.length);
+		return this.incomingMessage(cmd, data);
+	}
+
+	/**
 	 * Subscribe to a command
 	 *
 	 * @param {String} cmd
@@ -177,9 +187,11 @@ class BaseTransporter {
 	 *
 	 * @memberof BaseTransporter
 	 */
-	publish(/*packet*/) {
-		/* istanbul ignore next */
-		throw new Error("Not implemented!");
+	publish(packet) {
+		const topic = this.getTopicName(packet.type, packet.target);
+		const data = this.serialize(packet);
+
+		return this.send(topic, data);
 	}
 
 	/**
@@ -191,9 +203,11 @@ class BaseTransporter {
 	 *
 	 * @memberof BaseTransporter
 	 */
-	publishBalancedEvent(/*packet, group*/) {
-		/* istanbul ignore next */
-		throw new Error("Not implemented!");
+	publishBalancedEvent(packet, group) {
+		const topic = `${this.prefix}.${P.PACKET_EVENT}B.${group}.${packet.payload.event}`;
+		const data = this.serialize(packet);
+
+		return this.send(topic, data);
 	}
 
 	/**
@@ -204,8 +218,22 @@ class BaseTransporter {
 	 *
 	 * @memberof BaseTransporter
 	 */
-	publishBalancedRequest(/*packet*/) {
-		/* istanbul ignore next */
+	publishBalancedRequest(packet) {
+		const topic = `${this.prefix}.${P.PACKET_REQUEST}B.${packet.payload.action}`;
+		const data = this.serialize(packet);
+
+		return this.send(topic, data);
+	}
+
+	/**
+	 * Send data buffer.
+	 *
+	 * @param {String} topic
+	 * @param {Buffer} data
+	 *
+	 * @returns {Promise}
+	 */
+	send(topic, data) {
 		throw new Error("Not implemented!");
 	}
 

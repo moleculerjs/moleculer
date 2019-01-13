@@ -1,19 +1,19 @@
 "use strict";
 
-let _ = require("lodash");
-let chalk = require("chalk");
-let { MoleculerError, MoleculerRetryableError } = require("../src/errors");
-let Strategies = require("../").Strategies;
+const _ = require("lodash");
+const chalk = require("chalk");
+const fs = require("fs");
+const { MoleculerError, MoleculerRetryableError } = require("../src/errors");
 const Middlewares = require("..").Middlewares;
 
-let ServiceBroker = require("../src/service-broker");
+const ServiceBroker = require("../src/service-broker");
 
 // Create broker
-let broker = new ServiceBroker({
+const broker = new ServiceBroker({
 	namespace: "",
 	nodeID: process.argv[2] || "client-" + process.pid,
 	transporter: {
-		type: "NATS",
+		type: "Redis",
 		options: {
 			//udpDiscovery: false,
 			//urls: "file://./dev/nodes.json",
@@ -22,7 +22,7 @@ let broker = new ServiceBroker({
 	},
 	//transporter: "kafka://192.168.51.29:2181",
 	//transporter: "amqp://192.168.0.181:5672",
-	serializer: "Thrift",
+	//serializer: "Thrift",
 	//requestTimeout: 1000,
 
 	//disableBalancer: true,
@@ -52,7 +52,12 @@ let broker = new ServiceBroker({
 	},
 	logger: console,
 	logLevel: "info",
-	logFormatter: "short"
+	logFormatter: "short",
+	middlewares: [
+		Middlewares.Transmit.Encryption("moleculer", "aes-256-cbc"),
+		Middlewares.Transmit.Compression(),
+	]
+
 });
 
 broker.createService({
@@ -81,9 +86,11 @@ broker.createService({
 	started() {
 		this.counter = 1;
 
+		const someData = JSON.parse(fs.readFileSync("./benchmark/data/10k.json", "utf8"));
+
 		setInterval(() => {
 			broker.logger.info(`>> Send echo event. Counter: ${this.counter}.`);
-			broker.emit("echo.event", { counter: this.counter++ });
+			broker.emit("echo.event", { counter: this.counter++, someData });
 
 			broker.ping("server").then(res => broker.logger.info(res));
 		}, 5000);
