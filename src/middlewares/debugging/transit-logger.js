@@ -7,9 +7,10 @@
 "use strict";
 
 const _ = require("lodash");
+const chalk = require("chalk");
 const fs = require("fs");
 const path = require("path");
-
+const { makeDirs } = require("../../utils");
 
 module.exports = function TransitLoggerMiddleware(opts) {
 	opts = _.defaultsDeep(opts, {
@@ -17,6 +18,10 @@ module.exports = function TransitLoggerMiddleware(opts) {
 		logLevel: "info",
 		logPacketData: false,
 		folder: null,
+		colors: {
+			receive: "grey",
+			send: "grey"
+		},
 		extension: ".json",
 		packetFilter: ["HEARTBEAT"]
 	});
@@ -30,16 +35,17 @@ module.exports = function TransitLoggerMiddleware(opts) {
 		fs.writeFile(path.join(targetFolder, filename), JSON.stringify(payload, null, 4), () => { /* Silent error */ });
 	}
 
+	const coloringSend = opts.colors && opts.colors.send ? opts.colors.send.split(".").reduce((a,b) => a[b], chalk) : s => s;
+	const coloringReceive = opts.colors && opts.colors.receive ? opts.colors.receive.split(".").reduce((a,b) => a[b], chalk) : s => s;
+
 	return {
 		created(broker) {
 			logger = opts.logger || broker.getLogger("debug");
 			nodeID = broker.nodeID;
 
 			if (opts.folder) {
-				// TODO recursive mkdir
 				targetFolder = path.join(opts.folder, nodeID);
-				if (!fs.existsSync(targetFolder))
-					fs.mkdirSync(targetFolder);
+				makeDirs(targetFolder);
 			}
 		},
 
@@ -52,7 +58,7 @@ module.exports = function TransitLoggerMiddleware(opts) {
 				const payload = packet.payload;
 
 				if (opts.logLevel) {
-					logger[opts.logLevel](`=> Send ${packet.type} packet to '${packet.target || "<all nodes>"}'`);
+					logger[opts.logLevel](coloringSend(`=> Send ${packet.type} packet to '${packet.target || "<all nodes>"}'`));
 					if (opts.logPacketData)
 						logger[opts.logLevel]("=>", payload);
 				}
@@ -73,7 +79,7 @@ module.exports = function TransitLoggerMiddleware(opts) {
 				const payload = packet.payload;
 
 				if (opts.logLevel) {
-					logger[opts.logLevel](`<= Receive ${cmd} packet from '${payload.sender}'`);
+					logger[opts.logLevel](coloringReceive(`<= Receive ${cmd} packet from '${payload.sender}'`));
 					if (opts.logPacketData)
 						logger[opts.logLevel]("<=", packet.payload);
 				}

@@ -9,6 +9,8 @@
 const Promise 	= require("bluebird");
 const chalk		= require("chalk");
 const os 	 	= require("os");
+const path 	 	= require("path");
+const fs 	 	= require("fs");
 
 const lut = [];
 for (let i=0; i<256; i++) { lut[i] = (i<16?"0":"")+(i).toString(16); }
@@ -224,8 +226,22 @@ const utils = {
 		}
 		obj[path] = value;
 		return obj;
-	}
+	},
 
+	/**
+	 * Make directories recursively
+	 * @param {String} p - directory path
+	 */
+	makeDirs(p) {
+		p.split(path.sep)
+			.reduce((prevPath, folder) => {
+				const currentPath = path.join(prevPath, folder, path.sep);
+				if (!fs.existsSync(currentPath)) {
+					fs.mkdirSync(currentPath);
+				}
+				return currentPath;
+			}, "");
+	}
 };
 
 module.exports = utils;

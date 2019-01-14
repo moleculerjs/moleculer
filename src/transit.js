@@ -72,7 +72,7 @@ class Transit {
 			this.tx.init(this, wrappedMessageHandler, this.afterConnect.bind(this));
 
 			this.tx.send = this.broker.wrapMethod("transporterSend", this.tx.send, this.tx);
-			this.tx.receive = this.broker.wrapMethod("transporterReceive", this.tx.receive, this.tx, true);
+			this.tx.receive = this.broker.wrapMethod("transporterReceive", this.tx.receive, this.tx, { reverse: true });
 		}
 
 		this.__connectResolve = null;

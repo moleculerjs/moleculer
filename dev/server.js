@@ -38,7 +38,8 @@ const broker = new ServiceBroker({
 	middlewares: [
 		Middlewares.Transmit.Encryption("moleculer", "aes-256-cbc"),
 		Middlewares.Transmit.Compression(),
-		Middlewares.Debugging.TransitLogger({ logPacketData: true })
+		//Middlewares.Debugging.TransitLogger({ logPacketData: false, /*folder: null, colors: { send: "magenta", receive: "blue"}*/ }),
+		Middlewares.Debugging.ActionLogger({ logPacketData: false, /*folder: null, colors: { send: "magenta", receive: "blue"}*/ }),
 	]
 });
 
@@ -47,12 +48,12 @@ broker.createService({
 
 	actions: {
 		add: {
-			fallback: (ctx, err) => ({ count: ctx.params.count, res: 999, fake: true }),
+			//fallback: (ctx, err) => ({ count: ctx.params.count, res: 999, fake: true }),
 			//fallback: "fakeResult",
 			handler(ctx) {
 				const wait = _.random(500, 1500);
 				this.logger.info(_.padEnd(`${ctx.params.count}. Add ${ctx.params.a} + ${ctx.params.b}`, 20), `(from: ${ctx.nodeID})`);
-				if (_.random(100) > 70)
+				if (_.random(100) > 80)
 					return this.Promise.reject(new MoleculerRetryableError("Random error!", 510));
 
 				return this.Promise.resolve()./*delay(wait).*/then(() => ({
