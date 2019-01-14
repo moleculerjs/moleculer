@@ -73,7 +73,7 @@ class Service {
 		if (!schema.name)
 			throw new ServiceSchemaError("Service name can't be empty! Maybe it is not a valid Service schema.");
 
-		this.broker.middlewares.callSyncHandlers("serviceCreating", [this, schema]);
+		this.broker.callMiddlewareHookSync("serviceCreating", [this, schema]);
 
 		this.name = schema.name;
 		this.version = schema.version;
@@ -178,7 +178,7 @@ class Service {
 
 		this.broker.addLocalService(this);
 
-		this.broker.middlewares.callSyncHandlers("serviceCreated", [this]);
+		this.broker.callMiddlewareHookSync("serviceCreated", [this]);
 	}
 
 	/**
@@ -191,7 +191,7 @@ class Service {
 	_start() {
 		return this.Promise.resolve()
 			.then(() => {
-				return this.broker.middlewares.callHandlers("serviceStarting", [this]);
+				return this.broker.callMiddlewareHook("serviceStarting", [this]);
 			})
 			.then(() => {
 				// Wait for dependent services
@@ -214,7 +214,7 @@ class Service {
 				return null;
 			})
 			.then(() => {
-				return this.broker.middlewares.callHandlers("serviceStarted", [this]);
+				return this.broker.callMiddlewareHook("serviceStarted", [this]);
 			});
 	}
 
@@ -228,7 +228,7 @@ class Service {
 	_stop() {
 		return this.Promise.resolve()
 			.then(() => {
-				return this.broker.middlewares.callHandlers("serviceStopping", [this], true);
+				return this.broker.callMiddlewareHook("serviceStopping", [this], { reverse: true });
 			})
 			.then(() => {
 				if (_.isFunction(this.schema.stopped))
@@ -244,7 +244,7 @@ class Service {
 				return this.Promise.resolve();
 			})
 			.then(() => {
-				return this.broker.middlewares.callHandlers("serviceStopped", [this], true);
+				return this.broker.callMiddlewareHook("serviceStopped", [this], { reverse: true });
 			});
 	}
 

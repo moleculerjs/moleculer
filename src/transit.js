@@ -63,11 +63,21 @@ class Transit {
 
 		const wrappedMessageHandler = (cmd, packet) => this.messageHandler(cmd, packet);
 
+		this.publish = this.broker.wrapMethod("transitPublish", this.publish, this);
+		this.subscribe = this.broker.wrapMethod("transitSubscribe", this.subscribe, this);
+		this.messageHandler = this.broker.wrapMethod("transitMessageHandler", this.messageHandler, this);
+
+
 		if (this.tx) {
 			this.tx.init(this, wrappedMessageHandler, this.afterConnect.bind(this));
+
+			this.tx.send = this.broker.wrapMethod("transporterSend", this.tx.send, this.tx);
+			this.tx.receive = this.broker.wrapMethod("transporterReceive", this.tx.receive, this.tx, true);
 		}
 
 		this.__connectResolve = null;
+
+
 	}
 
 	/**

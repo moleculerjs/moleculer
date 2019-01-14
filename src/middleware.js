@@ -57,13 +57,13 @@ class MiddlewareHandler {
 	 *
 	 * @param {String} method
 	 * @param {Array<any>} args
-	 * @param {Boolean} reverse
+	 * @param {Object} opts
 	 * @returns {Promise}
 	 * @memberof MiddlewareHandler
 	 */
-	callHandlers(method, args, reverse = false) {
+	callHandlers(method, args, opts = {}) {
 		if (this.list.length) {
-			const list = reverse ? Array.from(this.list).reverse() : this.list;
+			const list = opts.reverse ? Array.from(this.list).reverse() : this.list;
 			const arr = list
 				.filter(mw => _.isFunction(mw[method]))
 				.map(mw => mw[method]);
@@ -80,13 +80,13 @@ class MiddlewareHandler {
 	 *
 	 * @param {String} method
 	 * @param {Array<any>} args
-	 * @param {Boolean} reverse
+	 * @param {Object} opts
 	 * @returns
 	 * @memberof MiddlewareHandler
 	 */
-	callSyncHandlers(method, args, reverse = false) {
+	callSyncHandlers(method, args, opts = {}) {
 		if (this.list.length) {
-			const list = reverse ? Array.from(this.list).reverse() : this.list;
+			const list = opts.reverse ? Array.from(this.list).reverse() : this.list;
 			list
 				.filter(mw => _.isFunction(mw[method]))
 				.map(mw => mw[method])
@@ -106,44 +106,18 @@ class MiddlewareHandler {
 	}
 
 	/**
-	 * Wrap some broker method
-	 *
-	 * @param {*} broker
-	 * @memberof MiddlewareHandler
-	 */
-	wrapBrokerMethods() {
-		this.broker.createService = this.wrapMethod("createService", this.broker.createService);
-		this.broker.registerLocalService = this.wrapMethod("registerLocalService", this.broker.registerLocalService);
-		this.broker.destroyService = this.wrapMethod("destroyService", this.broker.destroyService);
-		this.broker.call = this.wrapMethod("call", this.broker.call);
-		this.broker.mcall = this.wrapMethod("mcall", this.broker.mcall);
-		this.broker.emit = this.wrapMethod("emit", this.broker.emit);
-		this.broker.broadcast = this.wrapMethod("broadcast", this.broker.broadcast);
-		this.broker.broadcastLocal = this.wrapMethod("broadcastLocal", this.broker.broadcastLocal);
-
-		const transit = this.broker.transit;
-		if (transit) {
-			transit.publish = this.wrapMethod("transitPublish", transit.publish, transit);
-			transit.subscribe = this.wrapMethod("transitSubscribe", transit.subscribe, transit);
-			transit.messageHandler = this.wrapMethod("transitMessageHandler", transit.messageHandler, transit);
-
-			if (transit.tx) {
-				transit.tx.send = this.wrapMethod("transporterSend", transit.tx.send, transit.tx);
-				transit.tx.receive = this.wrapMethod("transporterReceive", transit.tx.receive, transit.tx, true);
-			}
-		}
-	}
-
-	/**
-	 * Wrap a broker method
+	 * Wrap a method
 	 *
 	 * @param {string} method
+	 * @param {Function} handler
+	 * @param {any} bindTo
+	 * @param {Object} opts
 	 * @returns {Function}
 	 * @memberof MiddlewareHandler
 	 */
-	wrapMethod(method, handler, bindTo = this.broker, reverse = false) {
+	wrapMethod(method, handler, bindTo = this.broker, opts = {}) {
 		if (this.list.length) {
-			const list = (reverse ? Array.from(this.list).reverse() : this.list).filter(mw => !!mw[method]);
+			const list = (opts.reverse ? Array.from(this.list).reverse() : this.list).filter(mw => !!mw[method]);
 			if (list.length > 0) {
 				handler = list.reduce((next, mw) => mw[method].call(bindTo, next), handler.bind(bindTo));
 			}

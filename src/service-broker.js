@@ -155,6 +155,9 @@ class ServiceBroker {
 			// Logger
 			this.logger = this.getLogger("broker");
 
+			// Internal maps
+			this.services = [];
+
 			this.logger.info(`Moleculer v${this.MOLECULER_VERSION} is starting...`);
 			this.logger.info(`Node ID: ${this.nodeID}`);
 			this.logger.info(`Namespace: ${this.namespace || "<not defined>"}`);
@@ -165,14 +168,14 @@ class ServiceBroker {
 				maxListeners: 100
 			});
 
-			// Internal maps
-			this.services = [];
+			// Middleware handler
+			this.middlewares = new MiddlewareHandler(this);
+
+			// Register middlewares
+			this.registerMiddlewares(this.options.middlewares);
 
 			// Service registry
 			this.registry = new Registry(this);
-
-			// Middleware handler
-			this.middlewares = new MiddlewareHandler(this);
 
 			// Cacher
 			this.cacher = Cachers.resolve(this.options.cacher);
@@ -220,14 +223,11 @@ class ServiceBroker {
 				this.call = this.callWithoutBalancer;
 			}
 
-			// Register middlewares
-			this.registerMiddlewares(this.options.middlewares);
-
 			// Register internal actions
 			if (this.options.internalServices)
 				this.registerInternalServices();
 
-			this.middlewares.callSyncHandlers("created", [this]);
+			this.callMiddlewareHookSync("created", [this]);
 
 			// Call `created` event handler
 			if (_.isFunction(this.options.created))
@@ -320,7 +320,14 @@ class ServiceBroker {
 			this.logger.info(`Registered ${this.middlewares.count() - prevCount} internal middleware(s).`);
 		}
 
-		this.middlewares.wrapBrokerMethods();
+		this.createService = this.wrapMethod("createService", this.createService);
+		this.registerLocalService = this.wrapMethod("registerLocalService", this.registerLocalService);
+		this.destroyService = this.wrapMethod("destroyService", this.destroyService);
+		this.call = this.wrapMethod("call", this.call);
+		this.mcall = this.wrapMethod("mcall", this.mcall);
+		this.emit = this.wrapMethod("emit", this.emit);
+		this.broadcast = this.wrapMethod("broadcast", this.broadcast);
+		this.broadcastLocal = this.wrapMethod("broadcastLocal", this.broadcastLocal);
 	}
 
 	/**
@@ -331,7 +338,7 @@ class ServiceBroker {
 	start() {
 		return Promise.resolve()
 			.then(() => {
-				return this.middlewares.callHandlers("starting", [this]);
+				return this.callMiddlewareHook("starting", [this]);
 			})
 			.then(() => {
 				if (this.transit)
@@ -357,7 +364,7 @@ class ServiceBroker {
 					return this.transit.ready();
 			})
 			.then(() => {
-				return this.middlewares.callHandlers("started", [this]);
+				return this.callMiddlewareHook("started", [this]);
 			})
 			.then(() => {
 				if (_.isFunction(this.options.started))
@@ -381,7 +388,7 @@ class ServiceBroker {
 				}
 			})
 			.then(() => {
-				return this.middlewares.callHandlers("stopping", [this], true);
+				return this.callMiddlewareHook("stopping", [this], { reverse: true });
 			})
 			.then(() => {
 				// Call service `stopped` handlers
@@ -402,7 +409,7 @@ class ServiceBroker {
 				}
 			})
 			.then(() => {
-				return this.middlewares.callHandlers("stopped", [this], true);
+				return this.callMiddlewareHook("stopped", [this], { reverse: true });
 			})
 			.then(() => {
 				if (_.isFunction(this.options.stopped))
@@ -448,6 +455,49 @@ class ServiceBroker {
 
 		if (repl)
 			repl(this, this.options.replCommands);
+	}
+
+	/**
+	 * Wrap a method with middlewares
+	 *
+	 * @param {string} method
+	 * @param {Function} handler
+	 * @param {any} bindTo
+	 * @param {Object} opts
+	 * @returns {Function}
+	 *
+	 * @memberof ServiceBroker
+	 */
+	wrapMethod(name, handler, bindTo = this.broker, opts = {}) {
+		return this.middlewares.wrapMethod(name, handler, bindTo, opts);
+	}
+
+	/**
+	 * Call a handler asynchronously in all middlewares
+	 *
+	 * @param {String} method
+	 * @param {Array<any>} args
+	 * @param {Object} opts
+	 * @returns {Promise}
+	 *
+	 * @memberof ServiceBroker
+	 */
+	callMiddlewareHook(name, args, opts = {}) {
+		return this.middlewares.callHandlers(name, args, opts);
+	}
+
+	/**
+	 * Call a handler synchronously in all middlewares
+	 *
+	 * @param {String} method
+	 * @param {Array<any>} args
+	 * @param {Object} opts
+	 * @returns
+	 *
+	 * @memberof ServiceBroker
+	 */
+	callMiddlewareHookSync(name, args, opts = {}) {
+		return this.middlewares.callSyncHandlers(name, args, opts);
 	}
 
 	/**
