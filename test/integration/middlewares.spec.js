@@ -248,8 +248,293 @@ describe("Test middleware system", () => {
 
 describe("Test middleware v2 system", () => {
 
-	it.skip("TODO!!!", () => {
+	const FLOW = [];
 
+	const mw1 = {
+		// After broker is created
+		created(broker) {
+			FLOW.push("mw1-created");
+		},
+		/*
+		// Wrap local action handlers (legacy middleware handler)
+		localAction(next, action) {
+
+		},
+
+		// Wrap remote action handlers
+		remoteAction(next, action) {
+
+		},
+
+		// Wrap local event handlers
+		localEvent(next, event) {
+
+		},
+
+		// Wrap broker.createService method
+		createService(next) {
+
+		},
+
+		// Wrap broker.registerLocalService method
+		registerLocalService(next) {
+
+		},
+
+		// Wrap broker.destroyService method
+		destroyService(next) {
+
+		},
+
+		// Wrap broker.call method
+		call(next) {
+
+		},
+
+		// Wrap broker.mcall method
+		mcall(next) {
+
+		},
+
+		// Wrap broker.emit method
+		emit(next) {
+
+		},
+
+		// Wrap broker.broadcast method
+		broadcast(next) {
+
+		},
+
+		// Wrap broker.broadcastLocal method
+		broadcastLocal(next) {
+
+		},
+
+		// While a new local service creating (after mixins are mixed)
+		serviceCreating(service, schema) {
+
+		},
+
+		// After a new local service created
+		serviceCreated(service) {
+
+		},
+
+		// Before a local service started
+		serviceStarting(service) {
+
+		},
+
+		// After a local service started
+		serviceStarted(service) {
+
+		},
+
+		// Before a local service stopping
+		serviceStopping(service) {
+
+		},
+
+		// After a local service stopped
+		serviceStopped(service) {
+
+		},
+
+		// Before broker starting
+		starting(broker) {
+
+		},
+
+		// After broker started
+		started(broker) {
+
+		},
+
+		// Before broker stopping
+		stopping(broker) {
+
+		},
+
+		// After broker stopped
+		stopped(broker) {
+
+		},
+
+		// When transit publishing a packet
+		transitPublish(next) {
+
+		},
+
+		// When transit subscribe to a topic
+		transitSubscribe(next) {
+
+		},
+
+		// When transit receives & handles a packet
+		transitMessageHandler(next) {
+
+		},
+
+		// When transporter send data
+		transporterSend(next) {
+
+		},
+
+		// When transporter received data
+		transporterReceive(next) {
+
+		}
+*/
+	};
+
+	const mw2 = {
+		// After broker is created
+		created(broker) {
+			FLOW.push("mw2-created");
+		},
+		/*
+		// Wrap local action handlers (legacy middleware handler)
+		localAction(next, action) {
+
+		},
+
+		// Wrap remote action handlers
+		remoteAction(next, action) {
+
+		},
+
+		// Wrap local event handlers
+		localEvent(next, event) {
+
+		},
+
+		// Wrap broker.createService method
+		createService(next) {
+
+		},
+
+		// Wrap broker.registerLocalService method
+		registerLocalService(next) {
+
+		},
+
+		// Wrap broker.destroyService method
+		destroyService(next) {
+
+		},
+
+		// Wrap broker.call method
+		call(next) {
+
+		},
+
+		// Wrap broker.mcall method
+		mcall(next) {
+
+		},
+
+		// Wrap broker.emit method
+		emit(next) {
+
+		},
+
+		// Wrap broker.broadcast method
+		broadcast(next) {
+
+		},
+
+		// Wrap broker.broadcastLocal method
+		broadcastLocal(next) {
+
+		},
+
+		// While a new local service creating (after mixins are mixed)
+		serviceCreating(service, schema) {
+
+		},
+
+		// After a new local service created
+		serviceCreated(service) {
+
+		},
+
+		// Before a local service started
+		serviceStarting(service) {
+
+		},
+
+		// After a local service started
+		serviceStarted(service) {
+
+		},
+
+		// Before a local service stopping
+		serviceStopping(service) {
+
+		},
+
+		// After a local service stopped
+		serviceStopped(service) {
+
+		},
+
+		// Before broker starting
+		starting(broker) {
+
+		},
+
+		// After broker started
+		started(broker) {
+
+		},
+
+		// Before broker stopping
+		stopping(broker) {
+
+		},
+
+		// After broker stopped
+		stopped(broker) {
+
+		},
+
+		// When transit publishing a packet
+		transitPublish(next) {
+
+		},
+
+		// When transit subscribe to a topic
+		transitSubscribe(next) {
+
+		},
+
+		// When transit receives & handles a packet
+		transitMessageHandler(next) {
+
+		},
+
+		// When transporter send data
+		transporterSend(next) {
+
+		},
+
+		// When transporter received data
+		transporterReceive(next) {
+
+		}
+*/
+	};
+
+	let broker;
+
+	it("should call 'created' ", () => {
+		broker = new ServiceBroker({ nodeID: "mw2-test", logger: false, internalMiddlewares: false, middlewares: [mw1, mw2] });
+
+		expect(FLOW).toEqual([
+			"mw1-created",
+			"mw2-created",
+		]);
 	});
 
 });

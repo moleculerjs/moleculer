@@ -164,17 +164,17 @@ module.exports = MiddlewareHandler;
 	// Wrap broker.destroyService method
 	destroyService(next) {
 
-	}
+	},
 
 	// Wrap broker.call method
 	call(next) {
 
-	}
+	},
 
 	// Wrap broker.mcall method
 	mcall(next) {
 
-	}
+	},
 
     // Wrap broker.emit method
     emit(next) {
@@ -254,12 +254,12 @@ module.exports = MiddlewareHandler;
 	// When transit receives & handles a packet
 	transitMessageHandler(next) {
 
-	}
+	},
 
 	// When transporter send data
 	transporterSend(next) {
 
-	}
+	},
 
 	// When transporter received data
 	transporterReceive(next) {
