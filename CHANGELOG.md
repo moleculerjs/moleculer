@@ -10,6 +10,7 @@
 - subscribe/unsubscribe event from codes and REPL.
 - caching with tags/labels
 - test cover new features
+- rename `ctx.metrics` -> `ctx.tracing`
 
 ## Done
 - communication protocol changed (`3` -> `4`)

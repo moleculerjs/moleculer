@@ -34,6 +34,7 @@ class Transit {
 	 */
 	constructor(broker, transporter, opts) {
 		this.broker = broker;
+		this.Promise = broker.Promise;
 		this.logger = broker.getLogger("transit");
 		this.nodeID = broker.nodeID;
 		this.instanceID = broker.instanceID;
@@ -89,7 +90,7 @@ class Transit {
 	 * @memberof Transit
 	 */
 	afterConnect(wasReconnect) {
-		return Promise.resolve()
+		return this.Promise.resolve()
 
 			.then(() => {
 				if (!wasReconnect)
@@ -102,7 +103,7 @@ class Transit {
 			.then(() => {
 				this.connected = true;
 
-				this.broker.broadcastLocal("$transporter.connected");
+				this.broker.broadcastLocal("$transporter.connected", { wasReconnect: !!wasReconnect });
 
 				if (this.__connectResolve) {
 					this.__connectResolve();
@@ -118,7 +119,7 @@ class Transit {
 	 */
 	connect() {
 		this.logger.info("Connecting to the transporter...");
-		return new Promise(resolve => {
+		return new this.Promise(resolve => {
 			this.__connectResolve = resolve;
 
 			const doConnect = () => {
@@ -172,7 +173,7 @@ class Transit {
 
 		this.disconnecting = false;
 		/* istanbul ignore next */
-		return Promise.resolve();
+		return this.Promise.resolve();
 	}
 
 	/**
@@ -345,9 +346,61 @@ class Transit {
 
 		if (!this.broker.started) {
 			this.logger.warn(`Incoming '${payload.event}' event from '${payload.sender}' node is dropped, because broker is stopped.`);
+			return;
 		}
 
 		this.broker.emitLocalServices(payload.event, payload.data, payload.groups, payload.sender, payload.broadcast);
+	}
+
+	/**
+	 * Handle incoming request
+	 *
+	 * @param {Object} payload
+	 *
+	 * @memberof Transit
+	 */
+	_requestHandler(payload) {
+		this.logger.debug(`<= Request '${payload.action}' received from '${payload.sender}' node.`);
+
+		try {
+			if (!this.broker.started) {
+				this.logger.warn(`Incoming '${payload.action}' request from '${payload.sender}' node is dropped because broker is stopped.`);
+				throw new E.ServiceNotAvailableError({ action: payload.action, nodeID: this.nodeID });
+			}
+
+			let pass;
+			if (payload.stream !== undefined) {
+				pass = this._handleIncomingRequestStream(payload);
+				if (pass === null)
+					return this.Promise.resolve();
+			}
+
+			const endpoint = this.broker._getLocalActionEndpoint(payload.action);
+
+			// Recreate caller context
+			const ctx = new this.broker.ContextFactory(this.broker, endpoint);
+			ctx.id = payload.id;
+			ctx.setParams(pass ? pass : payload.params);
+			ctx.parentID = payload.parentID;
+			ctx.requestID = payload.requestID;
+			ctx.meta = payload.meta || {};
+			ctx.level = payload.level;
+			ctx.metrics = !!payload.metrics;
+			ctx.nodeID = payload.sender;
+
+			ctx.options.timeout = payload.timeout || this.broker.options.requestTimeout || 0;
+
+			const p = endpoint.action.handler(ctx);
+			// Pointer to Context
+			p.ctx = ctx;
+
+			return p
+				.then(res => this.sendResponse(payload.sender, payload.id, ctx.meta, res, null))
+				.catch(err => this.sendResponse(payload.sender, payload.id, ctx.meta, null, err));
+
+		} catch (err) {
+			return this.sendResponse(payload.sender, payload.id, payload.meta, null, err);
+		}
 	}
 
 	/**
@@ -391,6 +444,7 @@ class Transit {
 
 			// TODO: start timer.
 			// TODO: check length of pool.
+			// TODO: reset seq
 
 			return isNew ? pass : null;
 		}
@@ -437,57 +491,6 @@ class Transit {
 	}
 
 	/**
-	 * Handle incoming request
-	 *
-	 * @param {Object} payload
-	 *
-	 * @memberof Transit
-	 */
-	_requestHandler(payload) {
-		this.logger.debug(`<= Request '${payload.action}' received from '${payload.sender}' node.`);
-
-		try {
-			if (!this.broker.started) {
-				this.logger.warn(`Incoming '${payload.action}' request from '${payload.sender}' node is dropped because broker is stopped.`);
-				throw new E.ServiceNotAvailableError({ action: payload.action, nodeID: this.nodeID });
-			}
-
-			let pass;
-			if (payload.stream !== undefined) {
-				pass = this._handleIncomingRequestStream(payload);
-				if (pass === null)
-					return Promise.resolve();
-			}
-
-			const endpoint = this.broker._getLocalActionEndpoint(payload.action);
-
-			// Recreate caller context
-			const ctx = new this.broker.ContextFactory(this.broker, endpoint);
-			ctx.id = payload.id;
-			ctx.setParams(pass ? pass : payload.params);
-			ctx.parentID = payload.parentID;
-			ctx.requestID = payload.requestID;
-			ctx.meta = payload.meta || {};
-			ctx.level = payload.level;
-			ctx.metrics = !!payload.metrics;
-			ctx.nodeID = payload.sender;
-
-			ctx.options.timeout = payload.timeout || this.broker.options.requestTimeout || 0;
-
-			const p = endpoint.action.handler(ctx);
-			// Pointer to Context
-			p.ctx = ctx;
-
-			return p
-				.then(res => this.sendResponse(payload.sender, payload.id, ctx.meta, res, null))
-				.catch(err => this.sendResponse(payload.sender, payload.id, ctx.meta, null, err));
-
-		} catch (err) {
-			return this.sendResponse(payload.sender, payload.id, payload.meta, null, err);
-		}
-	}
-
-	/**
 	 * Create an Error instance from payload ata
 	 * @param {Object} error
 	 * @param {String} sender
@@ -508,6 +511,47 @@ class Transit {
 			err.stack = error.stack;
 
 		return err;
+	}
+
+	/**
+	 * Process incoming response of request
+	 *
+	 * @param {Object} packet
+	 *
+	 * @memberof Transit
+	 */
+	_responseHandler(packet) {
+		const id = packet.id;
+		const req = this.pendingRequests.get(id);
+
+		// If not exists (timed out), we skip response processing
+		if (req == null) {
+			this.logger.debug("Orphan response is received. Maybe the request is timed out earlier. ID:", packet.id, ", Sender:", packet.sender);
+			return;
+		}
+
+		this.logger.debug(`<= Response '${req.action.name}' is received from '${packet.sender}'.`);
+
+		// Update nodeID in context (if it uses external balancer)
+		req.ctx.nodeID = packet.sender;
+
+		// Merge response meta with original meta
+		_.assign(req.ctx.meta, packet.meta);
+
+		// Handle stream response
+		if (packet.stream != null) {
+			if (this._handleIncomingResponseStream(packet, req))
+				return;
+		}
+
+		// Remove pending request
+		this.removePendingRequest(id);
+
+		if (!packet.success) {
+			req.reject(this._createErrFromPayload(packet.error, packet.sender));
+		} else {
+			req.resolve(packet.data);
+		}
 	}
 
 	/**
@@ -547,6 +591,7 @@ class Transit {
 
 			// TODO: start timer.
 			// TODO: check length of pool.
+			// TODO: resetting seq.
 
 			return true;
 		}
@@ -592,46 +637,6 @@ class Transit {
 		return true;
 	}
 
-	/**
-	 * Process incoming response of request
-	 *
-	 * @param {Object} packet
-	 *
-	 * @memberof Transit
-	 */
-	_responseHandler(packet) {
-		const id = packet.id;
-		const req = this.pendingRequests.get(id);
-
-		// If not exists (timed out), we skip response processing
-		if (req == null) {
-			this.logger.debug("Orphan response is received. Maybe the request is timed out earlier. ID:", packet.id, ", Sender:", packet.sender);
-			return;
-		}
-
-		this.logger.debug(`<= Response '${req.action.name}' is received from '${packet.sender}'.`);
-
-		// Update nodeID in context (if it uses external balancer)
-		req.ctx.nodeID = packet.sender;
-
-		// Merge response meta with original meta
-		_.assign(req.ctx.meta, packet.meta);
-
-		// Handle stream response
-		if (packet.stream != null) {
-			if (this._handleIncomingResponseStream(packet, req))
-				return;
-		}
-
-		// Remove pending request
-		this.removePendingRequest(id);
-
-		if (!packet.success) {
-			req.reject(this._createErrFromPayload(packet.error, packet.sender));
-		} else {
-			req.resolve(packet.data);
-		}
-	}
 
 	/**
 	 * Send a request to a remote service. It returns a Promise
@@ -643,17 +648,17 @@ class Transit {
 	 * @memberof Transit
 	 */
 	request(ctx) {
-		if (this.opts.maxQueueSize && this.pendingRequests.size > this.opts.maxQueueSize)
+		if (this.opts.maxQueueSize && this.pendingRequests.size >= this.opts.maxQueueSize)
 			/* istanbul ignore next */
-			return Promise.reject(new E.QueueIsFullError({
+			return this.Promise.reject(new E.QueueIsFullError({
 				action: ctx.action.name,
 				nodeID: this.nodeID,
-				size: this.pendingRequests.length,
+				size: this.pendingRequests.size,
 				limit: this.opts.maxQueueSize
 			}));
 
 		// Expanded the code that v8 can optimize it.  (TryCatchStatement disable optimizing)
-		return new Promise((resolve, reject) => this._sendRequest(ctx, resolve, reject));
+		return new this.Promise((resolve, reject) => this._sendRequest(ctx, resolve, reject));
 	}
 
 	/**
@@ -994,14 +999,11 @@ class Transit {
 	 * @memberof Transit
 	 */
 	sendNodeInfo(nodeID) {
-		if (!this.connected || !this.isReady) return Promise.resolve();
+		if (!this.connected || !this.isReady) return this.Promise.resolve();
 
 		const info = this.broker.getLocalNodeInfo();
 
-		let p = Promise.resolve();
-		if (!nodeID)
-			p = this.tx.makeBalancedSubscriptions();
-
+		const p = !nodeID ? this.tx.makeBalancedSubscriptions() : this.Promise.resolve();
 		return p.then(() => this.publish(new Packet(P.PACKET_INFO, nodeID, {
 			services: info.services,
 			ipList: info.ipList,
