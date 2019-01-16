@@ -1,6 +1,7 @@
 "use strict";
 
 const { protectReject } = require("./utils");
+const Promise = require("bluebird");
 const ServiceBroker = require("../../src/service-broker");
 const Context = require("../../src/context");
 const Transit = require("../../src/transit");
@@ -8,6 +9,7 @@ const FakeTransporter = require("../../src/transporters/fake");
 const E = require("../../src/errors");
 const P = require("../../src/packets");
 const { Transform } = require("stream");
+const Stream = require("stream");
 
 const transitOptions = { packetLogFilter: [], disableReconnect: false };
 
@@ -1398,7 +1400,260 @@ describe("Test Transit.request", () => {
 
 });
 
-// : _sendRequest
+describe("Test Transit._sendRequest", () => {
+
+	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
+	const transit = broker.transit;
+	transit.publish = jest.fn(() => Promise.resolve());
+	const id = "12345";
+
+	describe("without Stream", () => {
+
+		let ctx = new Context(broker, { action: { name: "users.find" } });
+		ctx.nodeID = "remote";
+		ctx.params = { a: 5 };
+		ctx.meta = {
+			user: {
+				id: 5,
+				roles: [ "user" ]
+			}
+		},
+		ctx.options.timeout = 500;
+		ctx.id = "12345";
+		ctx.requestID = "1111";
+		ctx.parentID = "0000";
+		ctx.metrics = true;
+		ctx.level = 6;
+
+		const resolve = jest.fn();
+		const reject = jest.fn();
+
+		it("should create packet", () => {
+			return transit._sendRequest(ctx, resolve, reject).catch(protectReject).then(() => {
+				expect(transit.publish).toHaveBeenCalledTimes(1);
+				expect(transit.publish).toHaveBeenCalledWith({
+					type: "REQ",
+					target: "remote",
+					payload: {
+						action: "users.find",
+						id: "12345",
+						level: 6,
+						meta: { "user": { "id": 5, "roles": ["user"] } },
+						metrics: true,
+						params: { "a": 5 },
+						parentID: "0000",
+						requestID: "1111",
+						stream: false,
+						timeout: 500
+					}
+				});
+
+				expect(transit.pendingRequests.get(id)).toEqual({
+					action: {
+						name: "users.find"
+					},
+					nodeID: "remote",
+					ctx,
+					resolve,
+					reject,
+					stream: false
+				});
+			});
+		});
+
+	});
+
+	describe("with Stream", () => {
+
+		let ctx = new Context(broker, { action: { name: "users.find" } });
+		ctx.nodeID = "remote";
+		ctx.params = { a: 5 };
+		ctx.id = "12345";
+
+		const resolve = jest.fn();
+		const reject = jest.fn();
+
+		it("should send stream chunks", () => {
+			transit.publish.mockClear();
+
+			let stream = new Stream.Readable({
+				read() {}
+			});
+			ctx.params = stream;
+
+			return transit._sendRequest(ctx, resolve, reject).catch(protectReject).then(() => {
+				expect(transit.publish).toHaveBeenCalledTimes(1);
+				expect(transit.publish).toHaveBeenCalledWith({
+					type: "REQ",
+					target: "remote",
+					payload: {
+						action: "users.find",
+						id: "12345",
+						level: 1,
+						meta: {},
+						metrics: null,
+						params: null,
+						parentID: null,
+						requestID: null,
+						seq: 0,
+						stream: true,
+						timeout: null
+					}
+				});
+
+				transit.publish.mockClear();
+				stream.push("first chunk");
+				stream.push("second chunk");
+			}).delay(100).then(() => {
+
+				expect(transit.publish).toHaveBeenCalledTimes(2);
+				expect(transit.publish).toHaveBeenCalledWith({
+					type: "REQ",
+					target: "remote",
+					payload: {
+						action: "users.find",
+						id: "12345",
+						level: 1,
+						meta: {},
+						metrics: null,
+						params: Buffer.from("first chunk"),
+						parentID: null,
+						requestID: null,
+						seq: 1,
+						stream: true,
+						timeout: null
+					}
+				});
+
+				expect(transit.publish).toHaveBeenCalledWith({
+					type: "REQ",
+					target: "remote",
+					payload: {
+						action: "users.find",
+						id: "12345",
+						level: 1,
+						meta: {},
+						metrics: null,
+						params: Buffer.from("second chunk"),
+						parentID: null,
+						requestID: null,
+						seq: 2,
+						stream: true,
+						timeout: null
+					}
+				});
+
+				transit.publish.mockClear();
+				stream.emit("end");
+			}).delay(100).then(() => {
+
+				expect(transit.publish).toHaveBeenCalledWith({
+					type: "REQ",
+					target: "remote",
+					payload: {
+						action: "users.find",
+						id: "12345",
+						level: 1,
+						meta: {},
+						metrics: null,
+						params: null,
+						parentID: null,
+						requestID: null,
+						seq: 3,
+						stream: false,
+						timeout: null
+					}
+				});
+			});
+		});
+
+		it("should send stream error", () => {
+			transit.publish.mockClear();
+
+			let stream = new Stream.Readable({
+				read() {}
+			});
+			ctx.params = stream;
+
+			return transit._sendRequest(ctx, resolve, reject).catch(protectReject).then(() => {
+				expect(transit.publish).toHaveBeenCalledTimes(1);
+				expect(transit.publish).toHaveBeenCalledWith({
+					type: "REQ",
+					target: "remote",
+					payload: {
+						action: "users.find",
+						id: "12345",
+						level: 1,
+						meta: {},
+						metrics: null,
+						params: null,
+						parentID: null,
+						requestID: null,
+						seq: 0,
+						stream: true,
+						timeout: null
+					}
+				});
+
+				transit.publish.mockClear();
+				stream.push("first chunk");
+			}).delay(100).then(() => {
+
+				expect(transit.publish).toHaveBeenCalledTimes(1);
+				expect(transit.publish).toHaveBeenCalledWith({
+					type: "REQ",
+					target: "remote",
+					payload: {
+						action: "users.find",
+						id: "12345",
+						level: 1,
+						meta: {},
+						metrics: null,
+						params: Buffer.from("first chunk"),
+						parentID: null,
+						requestID: null,
+						seq: 1,
+						stream: true,
+						timeout: null
+					}
+				});
+
+				transit.publish.mockClear();
+				transit._createPayloadErrorField = jest.fn(() => ({ error: true }));
+
+				stream.emit("error", new Error("Something happened"));
+			}).delay(100).then(() => {
+
+				expect(transit.publish).toHaveBeenCalledTimes(1);
+				expect(transit.publish).toHaveBeenCalledWith({
+					type: "REQ",
+					target: "remote",
+					payload: {
+						action: "users.find",
+						id: "12345",
+						level: 1,
+						meta: {
+							$streamError: {
+								error: true
+							}
+						},
+						metrics: null,
+						params: null,
+						parentID: null,
+						requestID: null,
+						seq: 2,
+						stream: false,
+						timeout: null
+					}
+				});
+
+				expect(transit._createPayloadErrorField).toHaveBeenCalledTimes(1);
+			});
+		});
+
+	});
+
+});
 
 describe("Test Transit.sendBroadcastEvent", () => {
 
@@ -1571,7 +1826,6 @@ describe("Test Transit.removePendingRequestByNodeID", () => {
 
 });
 
-// : _createPayloadErrorField
 describe("Test Transit._createPayloadErrorField", () => {
 	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
@@ -1600,41 +1854,192 @@ describe("Test Transit.sendResponse", () => {
 	const transit = broker.transit;
 
 	transit.publish = jest.fn(() => Promise.resolve());
-
 	const meta = { headers: ["header"] };
-	it("should call publish with the data", () => {
-		const data = { id: 1, name: "John Doe" };
-		transit.sendResponse("node2", "12345", meta, data);
-		expect(transit.publish).toHaveBeenCalledTimes(1);
-		const packet = transit.publish.mock.calls[0][0];
-		expect(packet).toBeInstanceOf(P.Packet);
-		expect(packet.type).toBe(P.PACKET_RESPONSE);
-		expect(packet.target).toBe("node2");
-		expect(packet.payload.id).toBe("12345");
-		expect(packet.payload.meta).toBe(meta);
-		expect(packet.payload.success).toBe(true);
-		expect(packet.payload.data).toBe(data);
+
+	describe("without Stream", () => {
+
+		it("should call publish with the data", () => {
+			const data = { id: 1, name: "John Doe" };
+			transit.sendResponse("node2", "12345", meta, data);
+			expect(transit.publish).toHaveBeenCalledTimes(1);
+			const packet = transit.publish.mock.calls[0][0];
+			expect(packet).toBeInstanceOf(P.Packet);
+			expect(packet.type).toBe(P.PACKET_RESPONSE);
+			expect(packet.target).toBe("node2");
+			expect(packet.payload.id).toBe("12345");
+			expect(packet.payload.meta).toBe(meta);
+			expect(packet.payload.success).toBe(true);
+			expect(packet.payload.data).toBe(data);
+		});
+
+		it("should call publish with the error", () => {
+			transit.publish.mockClear();
+			transit.sendResponse("node2", "12345", meta, null, new E.ValidationError("Not valid params", "ERR_INVALID_A_PARAM", { a: "Too small" }));
+			expect(transit.publish).toHaveBeenCalledTimes(1);
+			const packet = transit.publish.mock.calls[0][0];
+			expect(packet).toBeInstanceOf(P.Packet);
+			expect(packet.type).toBe(P.PACKET_RESPONSE);
+			expect(packet.target).toBe("node2");
+			expect(packet.payload.id).toBe("12345");
+			expect(packet.payload.meta).toBe(meta);
+			expect(packet.payload.success).toBe(false);
+			expect(packet.payload.data).toBeNull();
+			expect(packet.payload.error).toBeDefined();
+			expect(packet.payload.error.name).toBe("ValidationError");
+			expect(packet.payload.error.message).toBe("Not valid params");
+			expect(packet.payload.error.code).toBe(422);
+			expect(packet.payload.error.type).toBe("ERR_INVALID_A_PARAM");
+			expect(packet.payload.error.nodeID).toBe("node1");
+			expect(packet.payload.error.data).toEqual({ a: "Too small" });
+		});
 	});
 
-	it("should call publish with the error", () => {
-		transit.publish.mockClear();
-		transit.sendResponse("node2", "12345", meta, null, new E.ValidationError("Not valid params", "ERR_INVALID_A_PARAM", { a: "Too small" }));
-		expect(transit.publish).toHaveBeenCalledTimes(1);
-		const packet = transit.publish.mock.calls[0][0];
-		expect(packet).toBeInstanceOf(P.Packet);
-		expect(packet.type).toBe(P.PACKET_RESPONSE);
-		expect(packet.target).toBe("node2");
-		expect(packet.payload.id).toBe("12345");
-		expect(packet.payload.meta).toBe(meta);
-		expect(packet.payload.success).toBe(false);
-		expect(packet.payload.data).toBeNull();
-		expect(packet.payload.error).toBeDefined();
-		expect(packet.payload.error.name).toBe("ValidationError");
-		expect(packet.payload.error.message).toBe("Not valid params");
-		expect(packet.payload.error.code).toBe(422);
-		expect(packet.payload.error.type).toBe("ERR_INVALID_A_PARAM");
-		expect(packet.payload.error.nodeID).toBe("node1");
-		expect(packet.payload.error.data).toEqual({ a: "Too small" });
+	describe("with Stream", () => {
+
+		it("should send stream chunks", () => {
+			transit.publish.mockClear();
+
+			let stream = new Stream.Readable({
+				read() {}
+			});
+
+			return transit.sendResponse("node2", "12345", meta, stream).then(() => {
+				expect(transit.publish).toHaveBeenCalledTimes(1);
+				expect(transit.publish).toHaveBeenLastCalledWith({
+					payload: {
+						data: null,
+						id: "12345",
+						meta,
+						seq: 0,
+						stream: true,
+						success: true
+					},
+					target: "node2",
+					type: "RES"
+				});
+
+				transit.publish.mockClear();
+				stream.push("first chunk");
+				stream.push("second chunk");
+			}).delay(100).then(() => {
+
+				expect(transit.publish).toHaveBeenCalledTimes(2);
+				expect(transit.publish).toHaveBeenCalledWith({
+					payload: {
+						data: Buffer.from("first chunk"),
+						id: "12345",
+						meta,
+						seq: 1,
+						stream: true,
+						success: true
+					},
+					target: "node2",
+					type: "RES"
+
+				});
+
+				expect(transit.publish).toHaveBeenCalledWith({
+					payload: {
+						data: Buffer.from("second chunk"),
+						id: "12345",
+						meta,
+						seq: 2,
+						stream: true,
+						success: true
+					},
+					target: "node2",
+					type: "RES"
+
+				});
+
+				transit.publish.mockClear();
+				stream.emit("end");
+			}).delay(100).then(() => {
+
+				expect(transit.publish).toHaveBeenCalledWith({
+					payload: {
+						data: null,
+						id: "12345",
+						meta,
+						seq: 3,
+						stream: false,
+						success: true
+					},
+					target: "node2",
+					type: "RES"
+				});
+
+			});
+
+		});
+
+		it("should send stream chunks", () => {
+			transit.publish.mockClear();
+
+			let stream = new Stream.Readable({
+				read() {}
+			});
+
+			return transit.sendResponse("node2", "12345", meta, stream).then(() => {
+				expect(transit.publish).toHaveBeenCalledTimes(1);
+				expect(transit.publish).toHaveBeenLastCalledWith({
+					payload: {
+						data: null,
+						id: "12345",
+						meta,
+						seq: 0,
+						stream: true,
+						success: true
+					},
+					target: "node2",
+					type: "RES"
+				});
+
+				transit.publish.mockClear();
+				stream.push("first chunk");
+			}).delay(100).then(() => {
+
+				expect(transit.publish).toHaveBeenCalledTimes(1);
+				expect(transit.publish).toHaveBeenCalledWith({
+					payload: {
+						data: Buffer.from("first chunk"),
+						id: "12345",
+						meta,
+						seq: 1,
+						stream: true,
+						success: true
+					},
+					target: "node2",
+					type: "RES"
+
+				});
+
+				transit.publish.mockClear();
+				transit._createPayloadErrorField = jest.fn(() => ({ error: true }));
+
+				stream.emit("error", new Error("Something happened"));
+			}).delay(100).then(() => {
+
+				expect(transit.publish).toHaveBeenCalledTimes(1);
+				expect(transit.publish).toHaveBeenCalledWith({
+					payload: {
+						data: null,
+						error: {
+							error: true
+						},
+						id: "12345",
+						meta,
+						seq: 2,
+						stream: false,
+						success: false
+					},
+					target: "node2",
+					type: "RES"
+				});
+
+			});
+
+		});
 	});
 
 });

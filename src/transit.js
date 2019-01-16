@@ -710,7 +710,7 @@ class Transit {
 		this.pendingRequests.set(ctx.id, request);
 
 		// Publish request
-		this.publish(packet)
+		return this.publish(packet)
 			.then(() => {
 				if (isStream) {
 					// Skip to send ctx.meta with chunks because it doesn't appear on the remote side.
