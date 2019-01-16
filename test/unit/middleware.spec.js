@@ -224,7 +224,7 @@ describe("Test MiddlewareHandler", () => {
 			FLOW = [];
 			const obj = {};
 
-			middlewares.callSyncHandlers("created", [obj], true);
+			middlewares.callSyncHandlers("created", [obj], { reverse: true });
 
 			expect(mw1.created).toHaveBeenCalledTimes(1);
 			expect(mw1.created).toHaveBeenCalledWith(obj);
@@ -265,7 +265,7 @@ describe("Test MiddlewareHandler", () => {
 
 			const obj = {};
 
-			return middlewares.callHandlers("started", [obj], true).catch(protectReject).then(() => {
+			return middlewares.callHandlers("started", [obj], { reverse: true }).catch(protectReject).then(() => {
 				expect(mw2.started).toHaveBeenCalledTimes(1);
 				expect(mw2.started).toHaveBeenCalledWith(obj);
 

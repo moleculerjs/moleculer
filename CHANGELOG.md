@@ -4,11 +4,12 @@
 
 ## TODO
 - new built-in tracing solution with adapters (Zipkin, Jaeger)
-- ? new built-in JMX-like metrics
+- ? new built-in JMX/Prometheus-like metrics
 - new `beforeCreated` service lifecycle event [#436](https://github.com/moleculerjs/moleculer/issues/436)
 - `ctx` access in Strategies `next` method (Kafka-like sharding strategy).
 - subscribe/unsubscribe event from codes and REPL.
 - caching with tags/labels
+- test cover new features
 
 ## Done
 - communication protocol changed (`3` -> `4`)
@@ -21,6 +22,10 @@
 	- `Transmit.Compression`
 - ...etc
 - Kafka transporter upgrade to support kafka-node@4
+
+## Other notable changes
+-
+-
 
 --------------------------------------------------
 <a name="0.13.5"></a>

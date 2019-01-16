@@ -171,9 +171,6 @@ class ServiceBroker {
 			// Middleware handler
 			this.middlewares = new MiddlewareHandler(this);
 
-			// Register middlewares
-			this.registerMiddlewares(this.options.middlewares);
-
 			// Service registry
 			this.registry = new Registry(this);
 
@@ -200,6 +197,9 @@ class ServiceBroker {
 					this.validator.init(this);
 				}
 			}
+
+			// Register middlewares
+			this.registerMiddlewares(this.options.middlewares);
 
 			// Transit & Transporter
 			if (this.options.transporter) {

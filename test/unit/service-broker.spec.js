@@ -277,37 +277,6 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.options.disableBalancer).toBe(false);
 	});
 
-	it("should load internal middlewares", () => {
-		let broker = new ServiceBroker({
-			logger: false
-		});
-
-		expect(broker.middlewares.count()).toBe(10);
-	});
-
-	it("should not load internal middlewares", () => {
-		let broker = new ServiceBroker({
-			logger: false,
-			internalMiddlewares: false
-		});
-
-		expect(broker.middlewares.count()).toBe(0);
-	});
-
-	it("should load middlewares", () => {
-		let mw1 = jest.fn(handler => handler);
-		let mw2 = jest.fn(handler => handler);
-		let broker = new ServiceBroker({
-			logger: false,
-			internalMiddlewares: false,
-			middlewares: [mw1, mw2]
-		});
-
-		expect(broker.middlewares.count()).toBe(2);
-		expect(mw1).toHaveBeenCalledTimes(6);
-		expect(mw2).toHaveBeenCalledTimes(6);
-	});
-
 	it("should call lifecycle handlers", () => {
 		let created = jest.fn();
 		let started = jest.fn();
@@ -340,7 +309,16 @@ describe("Test ServiceBroker constructor", () => {
 		});
 	});
 
-	it("should not register internal middlewares", () => {
+	it("should load internal middlewares", () => {
+		debugger;
+		let broker = new ServiceBroker({
+			logger: false
+		});
+
+		expect(broker.middlewares.count()).toBe(10);
+	});
+
+	it("should not load internal middlewares", () => {
 		let broker = new ServiceBroker({
 			logger: false,
 			internalMiddlewares: false
@@ -349,17 +327,18 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.middlewares.count()).toBe(0);
 	});
 
-	it("should register user middlewares", () => {
+	it("should load middlewares", () => {
+		let mw1 = jest.fn(handler => handler);
+		let mw2 = jest.fn(handler => handler);
 		let broker = new ServiceBroker({
 			logger: false,
 			internalMiddlewares: false,
-			middlewares: [
-				{},
-				{}
-			]
+			middlewares: [mw1, mw2]
 		});
 
 		expect(broker.middlewares.count()).toBe(2);
+		expect(mw1).toHaveBeenCalledTimes(6);
+		expect(mw2).toHaveBeenCalledTimes(6);
 	});
 
 	it("should register internal middlewares", () => {
