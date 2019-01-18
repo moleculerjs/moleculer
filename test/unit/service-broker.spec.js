@@ -1233,6 +1233,32 @@ describe("Test broker.waitForServices", () => {
 		return p;
 	});
 
+	it("should wait for service when service is passed as a versioned string", () => {
+		res = false;
+		broker.registry.hasService.mockClear();
+		let p = broker.waitForServices("v1.posts", 10 * 1000, 100).catch(protectReject).then(() => {
+			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
+			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts", 1);
+		});
+
+		setTimeout(() => res = true, 450);
+
+		return p;
+	});
+
+	it("should wait for service when service is passed as an array of versioned strings", () => {
+		res = false;
+		broker.registry.hasService.mockClear();
+		let p = broker.waitForServices(["v1.posts"], 10 * 1000, 100).catch(protectReject).then(() => {
+			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
+			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts", 1);
+		});
+
+		setTimeout(() => res = true, 450);
+
+		return p;
+	});
+
 	it("should not wait for service when service is passed as an array of object without name", () => {
 		res = false;
 		broker.registry.hasService.mockClear();
