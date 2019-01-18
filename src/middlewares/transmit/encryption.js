@@ -17,12 +17,15 @@ const crypto = require("crypto");
  * @param {String|Buffer?} iv
  */
 module.exports = function EncryptionMiddleware(password, algorithm = "aes-256-cbc", iv) {
-	if (!password || password.length == 0)
+	if (!password || password.length == 0) {
+		/* istanbul ignore next */
 		throw new Error("Must be set a password for encryption");
+	}
 
 	return {
 
 		created(broker) {
+			/* istanbul ignore next */
 			this.logger.info(`The transmission is ENCRYPTED by '${algorithm}'.`);
 		},
 

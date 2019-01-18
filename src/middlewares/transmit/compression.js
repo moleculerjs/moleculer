@@ -6,6 +6,7 @@
 
 "use strict";
 
+const { defaultsDeep } = require("lodash");
 const zlib = require("zlib");
 const { promisify } = require("util");
 
@@ -15,10 +16,12 @@ const { promisify } = require("util");
  *
  * @param {String} method
  */
-module.exports = function CompressionMiddleware(method = "deflate") {
+module.exports = function CompressionMiddleware(opts) {
+	opts = defaultsDeep(opts, { method: "deflate" });
+
 	let compress, decompress;
 
-	switch(method) {
+	switch(opts.method) {
 		case "deflate":
 			compress = promisify(zlib.deflate);
 			decompress = promisify(zlib.inflate);
@@ -32,7 +35,8 @@ module.exports = function CompressionMiddleware(method = "deflate") {
 			decompress = promisify(zlib.gunzip);
 			break;
 		default:
-			throw new Error("Unknow compression method: " + method);
+			/* istanbul ignore next */
+			throw new Error("Unknow compression method: " + opts.method);
 	}
 
 	let savingSent = 0;
@@ -41,7 +45,8 @@ module.exports = function CompressionMiddleware(method = "deflate") {
 	return {
 
 		created() {
-			this.logger.info(`The transmission is COMPRESSED by '${method}'.`);
+			/* istanbul ignore next */
+			this.logger.info(`The transmission is COMPRESSED by '${opts.method}'.`);
 		},
 
 		transporterSend(next) {
