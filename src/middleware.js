@@ -133,137 +133,162 @@ module.exports = MiddlewareHandler;
 {
     // After broker is created
     created(broker) {
-
+		return;
     },
 
     // Wrap local action handlers (legacy middleware handler)
     localAction(next, action) {
-
+		return ctx => {
+			return next(ctx);
+		};
     },
 
     // Wrap remote action handlers
     remoteAction(next, action) {
-
+		return ctx => {
+			return next(ctx);
+		};
     },
 
 	// Wrap local event handlers
 	localEvent(next, event) {
-
+		return (payload, sender, event) => {
+			return next(payload, sender, event);
+		};
 	},
 
 	// Wrap broker.createService method
 	createService(next) {
-
+		return (schema, schemaMods) => {
+			return next(schema, schemaMods);
+		};
 	},
 
 	// Wrap broker.registerLocalService method
 	registerLocalService(next) {
-
+		return (svc) => {
+			return next(svc);
+		};
 	},
 
 	// Wrap broker.destroyService method
 	destroyService(next) {
-
+		return (svc) => {
+			return next(svc);
+		};
 	},
 
 	// Wrap broker.call method
 	call(next) {
-
+		return (actionName, params, opts) => {
+			return next(actionName, params, opts);
+		};
 	},
 
 	// Wrap broker.mcall method
 	mcall(next) {
-
+		return (def) => {
+			return next(def);
+		};
 	},
 
     // Wrap broker.emit method
     emit(next) {
-
+		return (event, payload) => {
+			return next(event, payload);
+		};
     },
 
     // Wrap broker.broadcast method
     broadcast(next) {
-
+		return (event, payload) => {
+			return next(event, payload);
+		};
     },
 
     // Wrap broker.broadcastLocal method
     broadcastLocal(next) {
-
+		return (event, payload) => {
+			return next(event, payload);
+		};
     },
 
 	// While a new local service creating (after mixins are mixed)
 	serviceCreating(service, schema) {
-
+		return;
 	},
 
 	// After a new local service created
 	serviceCreated(service) {
-
+		return;
 	},
 
 	// Before a local service started
 	serviceStarting(service) {
-
+		return Promise.resolve();
 	},
 
 	// After a local service started
 	serviceStarted(service) {
-
+		return Promise.resolve();
 	},
 
 	// Before a local service stopping
 	serviceStopping(service) {
-
+		return Promise.resolve();
 	},
 
 	// After a local service stopped
 	serviceStopped(service) {
-
+		return Promise.resolve();
 	},
 
     // Before broker starting
     starting(broker) {
-
+		return Promise.resolve();
     },
 
     // After broker started
     started(broker) {
-
+		return Promise.resolve();
     },
 
     // Before broker stopping
     stopping(broker) {
-
+		return Promise.resolve();
     },
 
     // After broker stopped
     stopped(broker) {
-
+		return Promise.resolve();
     },
 
 	// When transit publishing a packet
 	transitPublish(next) {
-
-	},
-
-	// When transit subscribe to a topic
-	transitSubscribe(next) {
-
+		return (packet) => {
+			return next(packet);
+		};
 	},
 
 	// When transit receives & handles a packet
 	transitMessageHandler(next) {
-
+		return (cmd, packet) => {
+			return next(cmd, packet);
+		};
 	},
 
 	// When transporter send data
 	transporterSend(next) {
-
+		return (topic, data, meta) => {
+			return next(topic, data, meta);
+		};
 	},
 
 	// When transporter received data
 	transporterReceive(next) {
-
+		return (cmd, data, s) => {
+			return next(cmd, data, s);
+		};
 	}
 }
 

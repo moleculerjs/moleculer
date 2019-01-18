@@ -65,7 +65,6 @@ class Transit {
 		const wrappedMessageHandler = (cmd, packet) => this.messageHandler(cmd, packet);
 
 		this.publish = this.broker.wrapMethod("transitPublish", this.publish, this);
-		this.subscribe = this.broker.wrapMethod("transitSubscribe", this.subscribe, this);
 		this.messageHandler = this.broker.wrapMethod("transitMessageHandler", this.messageHandler, this);
 
 
@@ -1080,6 +1079,7 @@ class Transit {
 	 * @param {String} topic
 	 * @param {String=} nodeID
 	 *
+	 * @deprecated
 	 * @memberof Transit
 	 */
 	subscribe(topic, nodeID) {
