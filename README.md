@@ -44,7 +44,7 @@ Moleculer is a progressive microservices framework for Node.js.
 - pluggable serializers (JSON, Avro, MsgPack, Protocol Buffer, Thrift)
 - pluggable validator
 - multiple services on a node/server
-- all nodes are equal, no master/leader node
+- master-less architecture, all nodes are equal
 - parameter validation with [fastest-validator](https://github.com/icebob/fastest-validator)
 - built-in health monitoring & metrics
 - official [API gateway module](https://github.com/moleculerjs/moleculer-web) and many other modules...
@@ -135,7 +135,7 @@ Moleculer is available under the [MIT license](https://tldrlegal.com/license/mit
 [3rd party licenses](https://app.fossa.io/reports/09fc5b4f-d321-4f68-b859-8c61fe3eb6dc)
 
 # Contact
-Copyright (c) 2016-2018 MoleculerJS
+Copyright (c) 2016-2019 MoleculerJS
 
 [![@moleculerjs](https://img.shields.io/badge/github-moleculerjs-green.svg)](https://github.com/moleculerjs) [![@MoleculerJS](https://img.shields.io/badge/twitter-MoleculerJS-blue.svg)](https://twitter.com/MoleculerJS)
 
