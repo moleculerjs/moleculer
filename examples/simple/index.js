@@ -11,8 +11,11 @@ let broker = new ServiceBroker({
 // Load service
 broker.loadService(__dirname + "/../math.service.js");
 
-// Call actions
-broker.call("math.add", { a: 5, b: 3 }).then(res => broker.logger.info("  5 + 3 =", res))
+broker.start()
+	.then(() => {
+	// Call actions
+		return broker.call("math.add", { a: 5, b: 3 }).then(res => broker.logger.info("  5 + 3 =", res));
+	})
 	.then(() => {
 		return broker.call("math.sub", { a: 9, b: 2 }).then(res => broker.logger.info("  9 - 2 =", res));
 	})
@@ -23,7 +26,7 @@ broker.call("math.add", { a: 5, b: 3 }).then(res => broker.logger.info("  5 + 3 
 		return broker.call("math.div", { a: 8, b: 4 }).then(res => broker.logger.info("  8 / 4 =", res));
 	})
 	.then(() => {
-		// Divide by zero! Throw error...
+	// Divide by zero! Throw error...
 		return broker.call("math.div", { a: 5, b: 0 }).then(res => broker.logger.info("  5 / 0 =", res));
 	})
 	.catch(err => {

@@ -23,7 +23,11 @@ function wrapErrorHandler(handler) {
 
 				this.logger.debug(`The '${ctx.action.name}' request is rejected.`, { requestID: ctx.requestID }, err);
 
-				err.ctx = ctx;
+				Object.defineProperty(err, "ctx", {
+					value: ctx,
+					writable: false,
+					enumerable: false
+				});
 
 				return Promise.reject(err);
 			});
