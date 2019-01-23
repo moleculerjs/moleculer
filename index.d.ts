@@ -12,6 +12,14 @@ declare namespace Moleculer {
 		trace: (...args: any[]) => void;
 	}
 
+	interface LoggerBindings {
+  		nodeID: string;
+  		ns: string;
+  		mod: string;
+  		svc: string;
+  		ver: string | void;
+	}
+	
 	class LoggerInstance {
 		fatal(...args: any[]): void;
 		error(...args: any[]): void;
@@ -227,7 +235,7 @@ declare namespace Moleculer {
 		namespace?: string;
 		nodeID?: string;
 
-		logger?: Logger | boolean;
+		logger?: ((bindings: LoggerBindings) => Logger) | Logger | boolean;
 		logLevel?: LogLevels | LogLevelConfig;
 		logFormatter?: Function | string;
 		logObjectPrinter?: Function;
