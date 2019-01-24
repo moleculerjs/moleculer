@@ -8,10 +8,10 @@
 
 const C = require("../constants");
 
-const BaseMetric = require("./types/base");
-const CounterMetric = require("./types/counter");
-const GaugeMetric = require("./types/gauge");
-const HistrogramMetric = require("./types/histogram");
+const BaseMetric = require("./base");
+const CounterMetric = require("./counter");
+const GaugeMetric = require("./gauge");
+const HistrogramMetric = require("./histogram");
 
 module.exports = {
 	BaseMetric,

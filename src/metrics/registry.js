@@ -53,7 +53,6 @@ class MetricRegistry {
 		clearInterval(this.notifyTimer);
 	}
 
-
 	register(opts) {
 		if (!_.isPlainObject(opts))
 			throw new Error("Wrong argument. Must be an Object.");
@@ -90,7 +89,7 @@ class MetricRegistry {
 		return item;
 	}
 
-	incValue(name, labels, value = -1, timestamp) {
+	incValue(name, labels, value = 1, timestamp) {
 		const item = this.getMetric(name);
 		if (!item)
 			throw new Error(`Metric '${name}' is not exist.`);
@@ -128,12 +127,20 @@ class MetricRegistry {
 		return item.get(labels);
 	}
 
-	resetMetric(name, labels, timestamp) {
+	resetValue(name, labels, timestamp) {
 		const item = this.getMetric(name);
 		if (!item)
 			throw new Error(`Metric '${name}' is not exist.`);
 
 		item.reset(labels, timestamp);
+	}
+
+	resetMetric(name, timestamp) {
+		const item = this.getMetric(name);
+		if (!item)
+			throw new Error(`Metric '${name}' is not exist.`);
+
+		item.resetAll(timestamp);
 	}
 
 	timer(name, labels, timestamp) {
@@ -152,8 +159,12 @@ class MetricRegistry {
 			const delta = process.hrtime(start);
 			const duration = (delta[0] + delta[1] / 1e9) * 1000;
 
-			if (item)
-				item.add(duration, labels, timestamp);
+			if (item) {
+				if (item.type == C.METRIC_TYPE_HISTROGRAM)
+					item.observe(duration, labels, timestamp);
+				else if (item.type == C.METRIC_TYPE_GAUGE)
+					item.set(duration, labels, timestamp);
+			}
 
 			return duration;
 		};

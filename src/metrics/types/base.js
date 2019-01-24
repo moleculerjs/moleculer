@@ -10,18 +10,20 @@ const { pick } = require("lodash");
 
 class BaseMetric {
 
-	constructor({ name, description, labelNames, initialValue, unit }) {
-		if (!name)
+	constructor(type, opts) {
+		if (!type)
+			throw new Error("The type is mandatory");
+
+		if (!opts.name)
 			throw new Error("The name is mandatory");
 
-		this.name = name;
-		this.description = description;
-		this.value = initialValue;
-		this.labelNames = labelNames || [];
-		this.initialValue = initialValue || 0;
-		this.unit = unit;
+		this.type = type;
+		this.name = opts.name;
+		this.description = opts.description;
+		this.labelNames = opts.labelNames || [];
+		this.initialValue = opts.initialValue || 0;
+		this.unit = opts.unit;
 
-		this.reset();
 	}
 
 	set(value, labels, timestamp) {
@@ -48,29 +50,30 @@ class BaseMetric {
 		if (item)
 			return item.value;
 		else
-			return null;
+			return this.initialValue;
 	}
 
 	reset(labels, timestamp) {
-		if (labels)
-			return this.set(this.initialValue, labels, timestamp);
+		return this.set(this.initialValue, labels, timestamp);
+	}
 
+	resetAll(timestamp) {
 		// Reset the whole set
 		this.values = new Map();
 		if (this.initialValue != null) {
-			this.set(this.initialValue);
+			this.set(this.initialValue, null, timestamp);
 		}
 	}
 
 	hashingLabels(labels) {
-		if (this.labelNames.length == 0 || typeof labels !== "object") {
+		if (this.labelNames.length == 0 || labels == null || typeof labels !== "object") {
 			return "";
 		}
 
 		const parts = [];
 		for (let i = 0; i < this.labelNames.length; i++) {
 			const v = labels[this.labelNames[i]];
-			if (Number.isNumber(v))
+			if (typeof v == "number")
 				parts.push(v);
 			else if (typeof v === "string")
 				parts.push("\"" + v + "\"");
