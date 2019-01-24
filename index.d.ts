@@ -135,7 +135,14 @@ declare namespace Moleculer {
 
 	type ServiceMethods = { [key: string]: ((...args: any[]) => any) } & ThisType<Service>;
 
-	type Middleware = (handler: ActionHandler, action: Action) => any;
+	type Middleware = {
+		[name: string]:
+			| ((handler: ActionHandler, action: Action) => any)
+			| ((handler: ActionHandler, event: ServiceEvent) => any)
+			| ((handler: ActionHandler) => any)
+			| ((service: Service) => any)
+			| ((broker: ServiceBroker) => any)
+	}
 
 	interface MiddlewareHandler {
 		list: Middleware[];
