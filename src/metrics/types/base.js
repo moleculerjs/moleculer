@@ -6,63 +6,32 @@
 
 "use strict";
 
-const { pick } = require("lodash");
 
 class BaseMetric {
 
-	constructor(type, opts) {
-		if (!type)
-			throw new Error("The type is mandatory");
-
-		if (!opts.name)
-			throw new Error("The name is mandatory");
-
-		this.type = type;
+	constructor(opts) {
+		this.type = opts.type;
 		this.name = opts.name;
 		this.description = opts.description;
 		this.labelNames = opts.labelNames || [];
-		this.initialValue = opts.initialValue || 0;
 		this.unit = opts.unit;
-
-	}
-
-	set(value, labels, timestamp) {
-		const hash = this.hashingLabels(labels);
-		let item = this.values.get(hash);
-		if (item) {
-			item.value = value;
-			item.timestamp = timestamp == null ? Date.now() : timestamp;
-		} else {
-			item = {
-				value,
-				labels: pick(labels, this.labelNames),
-				timestamp: timestamp == null ? Date.now() : timestamp
-			};
-			this.values.set(hash, item);
-		}
-
-		return item;
 	}
 
 	get(labels) {
 		const hash = this.hashingLabels(labels);
-		const item = this.values.get(hash);
-		if (item)
-			return item.value;
-		else
-			return this.initialValue;
+		return this.values.get(hash);
 	}
 
-	reset(labels, timestamp) {
-		return this.set(this.initialValue, labels, timestamp);
+	reset(/*labels, timestamp*/) {
+		throw new Error("Not implemented");
 	}
 
-	resetAll(timestamp) {
-		// Reset the whole set
+	clear() {
 		this.values = new Map();
-		if (this.initialValue != null) {
-			this.set(this.initialValue, null, timestamp);
-		}
+	}
+
+	resetAll(/*timestamp*/) {
+		throw new Error("Not implemented");
 	}
 
 	hashingLabels(labels) {

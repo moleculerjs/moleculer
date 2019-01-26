@@ -6,27 +6,21 @@
 
 "use strict";
 
-const BaseMetric = require("./base");
+const GaugeMetric = require("./gauge");
 const { METRIC_TYPE_COUNTER } = require("../constants");
 
-class CounterMetric extends BaseMetric {
+class CounterMetric extends GaugeMetric {
 
 	constructor(opts) {
-		super(METRIC_TYPE_COUNTER, opts);
+		opts.type = METRIC_TYPE_COUNTER;
+		super(opts);
 
 		this.resetAll();
 	}
 
-	increment(labels, value, timestamp) {
-		if (value == null)
-			value = 1;
-
-		if (value < 0)
-			throw new Error("Counter can't be decreased");
-
-		return this.set(this.get(labels) + value, labels, timestamp);
+	decrement() {
+		throw new Error("Counter can't be decreased");
 	}
-
 }
 
 module.exports = CounterMetric;
