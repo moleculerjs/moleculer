@@ -47,11 +47,21 @@ class ParamValidator {
 					if (res === true)
 						return handler(ctx);
 					else
-						return Promise.reject(new ValidationError("Parameters validation error!", null, res));
+						return Promise.reject(new ValidationError("Parameters validation error!", null, this.setMeta(ctx, res)));
 				};
 			}
 			return handler;
 		}.bind(this);
+	}
+
+	/**
+	 * Set meta information for each data in result
+	 * @param ctx
+	 * @param res
+	 * @return {*}
+	 */
+	setMeta(ctx, res) {
+		return res.map(data => Object.assign(data, { nodeID: ctx.nodeID, action: ctx.action.name }));
 	}
 
 }
