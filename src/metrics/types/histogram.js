@@ -31,15 +31,15 @@ class HistogramMetric extends BaseMetric {
 			this.buckets.sort(sortAscending);
 		}
 
-		if (Array.isArray(opts.percentiles)) {
-			this.percentiles = Array.from(opts.percentiles);
-		} else if (opts.percentiles === true) {
-			this.percentiles = [0.01, 0.05, 0.5, 0.9, 0.95, 0.99, 0.999];
+		if (Array.isArray(opts.quantiles)) {
+			this.quantiles = Array.from(opts.quantiles);
+		} else if (opts.quantiles === true) {
+			this.quantiles = [0.5, 0.9, 0.95, 0.99, 0.999];
 		}
-		if (this.percentiles) {
-			this.percentiles.sort(sortAscending);
-			this.maxAgeSeconds = opts.maxAgeSeconds || 60 * 10;
-			this.ageBuckets = opts.ageBuckets || 5;
+		if (this.quantiles) {
+			this.quantiles.sort(sortAscending);
+			this.maxAgeSeconds = opts.maxAgeSeconds || 60; // 1 minute
+			this.ageBuckets = opts.ageBuckets || 10; // 10 secs per bucket
 		}
 
 		this.clear();
@@ -60,30 +60,29 @@ class HistogramMetric extends BaseMetric {
 				labels: _.pick(labels, this.labelNames),
 				timestamp: timestamp == null ? Date.now() : timestamp
 			};
+			item.sum = 0;
+			item.count = 0;
 
 			if (this.buckets) {
 				item.bucketValues = this.createBucketValues();
-				item.sum = 0;
-				item.count = 0;
 			}
 
-			if (this.percentiles) {
-				item.quantileValues = new TimeWindowQuantiles(this.percentiles, this.maxAgeSeconds, this.ageBuckets);
+			if (this.quantiles) {
+				item.quantileValues = new TimeWindowQuantiles(this.quantiles, this.maxAgeSeconds, this.ageBuckets);
 			}
 
 			this.values.set(hash, item);
 		}
 
 		item.timestamp = timestamp == null ? Date.now() : timestamp;
+		item.sum += value;
+		item.count++;
 
 		if (item.bucketValues) {
-			item.sum += value;
-			item.count++;
-
 			const len = this.buckets.length;
 			for (let i = 0; i < len; i++) {
 				if (value <= this.buckets[i]) {
-					item.bucketValues[i] += 1;
+					item.bucketValues[this.buckets[i]] += 1;
 					// break;
 				}
 			}
@@ -101,6 +100,36 @@ class HistogramMetric extends BaseMetric {
 			a[bound] = 0;
 			return a;
 		}, {});
+	}
+
+	toString() {
+		const item = this.get();
+		if (item) {
+			const s = [];
+			s.push(`Count: ${_.padStart(item.count, 5)}`);
+			//			s.push(`Sum: ${item.sum.toFixed(2)}`);
+
+			if (this.buckets) {
+				this.buckets.forEach((b, i) => {
+					s.push(`${b}: ${item.bucketValues[b] != null ? _.padStart(item.bucketValues[b], 5) : "-"}`);
+					//s.push(`+Inf: ${item.count}`);
+				});
+			}
+
+			if (this.quantiles) {
+				const res = item.quantileValues.snapshot();
+				s.push(`Min: ${_.padStart(res.min.toFixed(2), 5)}`);
+				s.push(`Mean: ${_.padStart(res.mean.toFixed(2), 5)}`);
+				s.push(`Var: ${_.padStart(res.variance.toFixed(2), 5)}`);
+				s.push(`StdDev: ${_.padStart(res.stdDev.toFixed(2), 5)}`);
+				s.push(`Max: ${_.padStart(res.max.toFixed(2), 5)}`);
+				this.quantiles.forEach((q, i) => {
+					s.push(`${q}: ${_.padStart(res.quantiles[i].toFixed(2), 5)}`);
+				});
+			}
+
+			return s.join(" | ");
+		}
 	}
 
 	static generateLinearBuckets(start, width, count) {
@@ -121,48 +150,64 @@ class HistogramMetric extends BaseMetric {
 }
 
 class TimeWindowQuantiles {
-	constructor(percentiles, maxAgeSeconds, ageBuckets) {
-		this.percentiles = Array.from(percentiles);
+	constructor(quantiles, maxAgeSeconds, ageBuckets) {
+		this.quantiles = Array.from(quantiles);
 		this.maxAgeSeconds = maxAgeSeconds;
 		this.ageBuckets = ageBuckets;
 		this.ringBuckets = [];
 		for(let i = 0; i < ageBuckets; i++) {
-			this.ringBuckets.push(new Bucket(percentiles));
+			this.ringBuckets.push(new Bucket());
 		}
 		this.currentBucket = -1;
 		this.rotate();
+
+		this.dirty = true;
+		this.lastSnapshot = null;
 	}
 
 	rotate() {
 		this.currentBucket = (this.currentBucket + 1) % this.ageBuckets;
 		this.ringBuckets[this.currentBucket].clear();
+		this.dirty = true;
 
 		setTimeout(() => this.rotate(), (this.maxAgeSeconds / this.ageBuckets) * 1000);
 	}
 
 	add(value) {
+		this.dirty = true;
 		this.ringBuckets[this.currentBucket].add(value);
 	}
 
-	calc() {
+	snapshot() {
+		if (!this.dirty && this.lastSnapshot)
+			return this.lastSnapshot;
+
 		const samples = this.ringBuckets.reduce((a, b) => a.concat(b.samples), []);
 		if (samples.length == 0)
 			return {};
 
 		samples.sort(sortAscending);
 
-		return {
+		const mean = samples.reduce((a, b) => a + b, 0) / samples.length;
+		const variance = samples.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / (samples.length - 1);
+		const stdDev = Math.sqrt(variance);
+
+		this.lastSnapshot = {
 			min: samples[0],
-			mean: samples.reduce((a, b) => a + b, 0) / samples.length,
+			mean,
+			variance,
+			stdDev,
 			max: samples[samples.length - 1],
-			percentiles: this.percentiles.map(p => samples[Math.ceil(p * samples.length) - 1])
+			quantiles: this.quantiles.map(p => samples[Math.ceil(p * samples.length) - 1])
 		};
+		this.dirty = false;
+
+		return this.lastSnapshot;
 	}
 }
 
 class Bucket {
-	constructor(percentiles) {
-		//this.percentiles = percentiles;
+	constructor() {
 		this.count = 0;
 		this.samples = [];
 	}

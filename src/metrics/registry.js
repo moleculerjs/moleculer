@@ -21,8 +21,10 @@ class MetricRegistry {
 	 */
 	constructor(opts) {
 		this.opts = _.defaultsDeep({}, opts, {
+			enabled: true,
+			collectProcessMetrics: true,
 			processInterval: 1 * 1000,
-			notifyInterval: 5 * 1000
+			//notifyInterval: 5 * 1000
 		});
 
 		this.store = new Map();
@@ -36,13 +38,17 @@ class MetricRegistry {
 	start(broker) {
 		this.broker = broker;
 
-		this.processTimer = setInterval(() => {
+		if (this.opts.enabled) {
+			this.processTimer = setInterval(() => {
 
-		}, this.opts.processInterval);
+			}, this.opts.processInterval);
 
-		this.notifyTimer = setInterval(() => {
+			/*this.notifyTimer = setInterval(() => {
 
-		}, this.opts.notifyInterval);
+			}, this.opts.notifyInterval);*/
+
+			this.registerProcessMetrics();
+		}
 	}
 
 	/**
@@ -67,9 +73,11 @@ class MetricRegistry {
 		if (!MetricClass)
 			throw new Error(`Invalid '${opts.type}' metric type`);
 
+		if (!this.opts.enabled)
+			return null;
+
 		const item = new MetricClass(opts);
 		this.store.set(opts.name, item);
-
 		return item;
 	}
 
@@ -82,6 +90,9 @@ class MetricRegistry {
 	}
 
 	getMetric(name) {
+		if (!this.opts.enabled)
+			return null;
+
 		const item = this.store.get(name);
 		if (!item)
 			throw new Error(`Metric '${name}' is not exist.`);
@@ -90,6 +101,9 @@ class MetricRegistry {
 	}
 
 	incValue(name, labels, value = 1, timestamp) {
+		if (!this.opts.enabled)
+			return null;
+
 		const item = this.getMetric(name);
 		if (!item)
 			throw new Error(`Metric '${name}' is not exist.`);
@@ -101,6 +115,9 @@ class MetricRegistry {
 	}
 
 	decValue(name, labels, value = -1, timestamp) {
+		if (!this.opts.enabled)
+			return null;
+
 		const item = this.getMetric(name);
 		if (!item)
 			throw new Error(`Metric '${name}' is not exist.`);
@@ -112,6 +129,9 @@ class MetricRegistry {
 	}
 
 	setValue(name, value, labels, timestamp) {
+		if (!this.opts.enabled)
+			return null;
+
 		const item = this.getMetric(name);
 		if (!item)
 			throw new Error(`Metric '${name}' is not exist.`);
@@ -119,7 +139,24 @@ class MetricRegistry {
 		return item.set(value, labels, timestamp);
 	}
 
+	observe(name, value, labels, timestamp) {
+		if (!this.opts.enabled)
+			return null;
+
+		const item = this.getMetric(name);
+		if (!item)
+			throw new Error(`Metric '${name}' is not exist.`);
+
+		if (!_.isFunction(item.observe))
+			throw new Error("Invalid metric type. Observing works only with histogram");
+
+		return item.observe(value, labels, timestamp);
+	}
+
 	getValue(name, labels) {
+		if (!this.opts.enabled)
+			return null;
+
 		const item = this.getMetric(name);
 		if (!item)
 			throw new Error(`Metric '${name}' is not exist.`);
@@ -128,6 +165,9 @@ class MetricRegistry {
 	}
 
 	resetValue(name, labels, timestamp) {
+		if (!this.opts.enabled)
+			return null;
+
 		const item = this.getMetric(name);
 		if (!item)
 			throw new Error(`Metric '${name}' is not exist.`);
@@ -136,6 +176,9 @@ class MetricRegistry {
 	}
 
 	resetMetric(name, timestamp) {
+		if (!this.opts.enabled)
+			return null;
+
 		const item = this.getMetric(name);
 		if (!item)
 			throw new Error(`Metric '${name}' is not exist.`);
@@ -145,7 +188,7 @@ class MetricRegistry {
 
 	timer(name, labels, timestamp) {
 		let item;
-		if (name) {
+		if (name && this.opts.enabled) {
 			item = this.getMetric(name);
 			if (!item)
 				throw new Error(`Metric '${name}' is not exist.`);
@@ -168,6 +211,10 @@ class MetricRegistry {
 
 			return duration;
 		};
+	}
+
+	registerProcessMetrics() {
+		// TODO
 	}
 }
 
