@@ -47,7 +47,9 @@ class ParamValidator {
 					if (res === true)
 						return handler(ctx);
 					else
-						return Promise.reject(new ValidationError("Parameters validation error!", null, res));
+						return Promise.reject(new ValidationError("Parameters validation error!", null, res.map(
+							data => Object.assign(data, { nodeID: ctx.nodeID, action: ctx.action.name })))
+						);
 				};
 			}
 			return handler;
