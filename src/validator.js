@@ -43,25 +43,17 @@ class ParamValidator {
 			if (action.params && typeof action.params === "object") {
 				const check = this.compile(action.params);
 				return function validateContextParams(ctx) {
-					const res = check(ctx.params);
+					let res = check(ctx.params);
 					if (res === true)
 						return handler(ctx);
-					else
-						return Promise.reject(new ValidationError("Parameters validation error!", null, this.setMeta(ctx, res)));
+					else {
+						res = res.map(data => Object.assign(data, { nodeID: ctx.nodeID, action: ctx.action.name }));
+						return Promise.reject(new ValidationError("Parameters validation error!", null, res);
+					}
 				};
 			}
 			return handler;
 		}.bind(this);
-	}
-
-	/**
-	 * Set meta information for each data in result
-	 * @param ctx
-	 * @param res
-	 * @return {*}
-	 */
-	setMeta(ctx, res) {
-		return res.map(data => Object.assign(data, { nodeID: ctx.nodeID, action: ctx.action.name }));
 	}
 
 }
