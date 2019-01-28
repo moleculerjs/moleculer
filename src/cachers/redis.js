@@ -48,6 +48,10 @@ class RedisCacher extends BaseCacher {
 			this.broker.fatal("The 'ioredis' package is missing. Please install it with 'npm install ioredis --save' command.", err, true);
 		}
 
+		/**
+		 * ioredis client instance
+		 * @memberof RedisCacher
+		 */
 		this.client = new Redis(this.opts.redis);
 		this.client.on("connect", () => {
 			/* istanbul ignore next */

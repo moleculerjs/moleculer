@@ -46,6 +46,7 @@
   "author": "Icebob",
   "license": "MIT",
   "devDependencies": {
+    "@types/ioredis": "4.0.6",
     "@types/node": "10.12.12",
     "amqplib": "0.5.3",
     "avsc": "5.4.7",
