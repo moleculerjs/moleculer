@@ -1,3 +1,5 @@
+import * as Ioredis from 'ioredis';
+
 declare namespace Moleculer {
 	type GenericObject = { [name: string]: any };
 
@@ -19,7 +21,7 @@ declare namespace Moleculer {
   		svc: string;
   		ver: string | void;
 	}
-	
+
 	class LoggerInstance {
 		fatal(...args: any[]): void;
 		error(...args: any[]): void;
@@ -397,7 +399,7 @@ declare namespace Moleculer {
 		namespace: string;
 		nodeID: string;
 		logger: LoggerInstance;
-		cacher?: Cacher;
+		cacher?: Cacher | RedisCacher;
 		serializer?: Serializer;
 		validator?: Validator;
 		transit: GenericObject;
@@ -622,6 +624,10 @@ declare namespace Moleculer {
 		clean(match?: string|Array<string>): PromiseLike<any>;
 	}
 
+	class RedisCacher extends Cacher {
+		client: Ioredis.Redis;
+	}
+
 	class Serializer {
 		constructor();
 		init(broker: ServiceBroker): void;
@@ -715,7 +721,7 @@ declare namespace Moleculer {
 
 	const Cachers: {
 		Memory: Cacher,
-		Redis: Cacher
+		Redis: RedisCacher
 	};
 	const Serializers: {
 		JSON: Serializer,
