@@ -32,13 +32,12 @@ class MetricRegistry {
 			enabled: true,
 			collectProcessMetrics: true,
 			collectInterval: 5 * 1000,
-			//notifyInterval: 5 * 1000
 		});
 
 		this.store = new Map();
 
 		if (this.opts.enabled)
-			this.logger.info("Metrics: ENABLED");
+			this.logger.info("Metrics: Enabled");
 		else
 			this.logger.info("Metrics: Disabled");
 	}
@@ -48,16 +47,14 @@ class MetricRegistry {
 	 */
 	init() {
 		if (this.opts.enabled) {
-			this.collectTimer = setInterval(() => {
+			if (this.opts.collectProcessMetrics) {
+				this.collectTimer = setInterval(() => {
+					this.updateCommonMetrics();
+				}, this.opts.collectInterval);
+
+				this.registerCommonMetrics();
 				this.updateCommonMetrics();
-			}, this.opts.collectInterval);
-
-			/*this.notifyTimer = setInterval(() => {
-
-			}, this.opts.notifyInterval);*/
-
-			this.registerCommonMetrics();
-			this.updateCommonMetrics();
+			}
 		}
 	}
 
@@ -67,8 +64,8 @@ class MetricRegistry {
 	 * TODO: need to call?
 	 */
 	stop() {
-		clearInterval(this.collectTimer);
-		//clearInterval(this.notifyTimer);
+		if (this.collectTimer)
+			clearInterval(this.collectTimer);
 	}
 
 	register(opts) {
@@ -322,6 +319,9 @@ class MetricRegistry {
 		this.set(METRIC.OS_CPU_LOAD_5, load[1]);
 		this.set(METRIC.OS_CPU_LOAD_15, load[2]);
 
+		this.increment(METRIC.MOLECULER_METRICS_COMMON_COLLECT_TOTAL);
+		const duration = end();
+
 		return Promise.resolve()
 			.then(() => this.measureEventLoopLag().then(lag => this.set(METRIC.PROCESS_EVENTLOOP_LAG, lag / 1000)))
 			.then(() => cpuUsage().then(res => {
@@ -337,9 +337,7 @@ class MetricRegistry {
 				}
 			}))
 			.then(() => {
-				this.increment(METRIC.MOLECULER_METRICS_COMMON_COLLECT_TOTAL);
-				const duration = end();
-				this.logger.debug(`Collected common metric values in ${duration} msec.`);
+				this.logger.debug(`Collected common metric values in ${duration.toFixed(3)} msec.`);
 				this.debugPrint();
 			});
 	}
@@ -370,6 +368,7 @@ class MetricRegistry {
 
 			return keys.map(key => `${key}: ${chalk.green(labels[key])}`).join(", ");
 		};
+		/* eslint-disable no-console */
 		const log = console.log;
 
 		log("------------------------------------------------------------------");
