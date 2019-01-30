@@ -6,11 +6,13 @@
 
 "use strict";
 
+const chalk = require("chalk");
 const Promise = require("bluebird");
 const _ = require("lodash");
-const C = require("./constants");
+const os = require("os");
+const METRIC = require("./constants");
 const Types = require("./types");
-
+const cpuUsage = require("../cpu-usage");
 /**
  * Metric Registry class
  */
@@ -19,44 +21,54 @@ class MetricRegistry {
 	/**
 	 * Constructor of MetricRegistry
 	 */
-	constructor(opts) {
+	constructor(broker, opts) {
+		this.broker = broker;
+		this.logger = broker.getLogger("metrics");
+
+		if (opts === true || opts === false)
+			opts = { enabled: opts };
+
 		this.opts = _.defaultsDeep({}, opts, {
 			enabled: true,
 			collectProcessMetrics: true,
-			processInterval: 1 * 1000,
+			collectInterval: 5 * 1000,
 			//notifyInterval: 5 * 1000
 		});
 
 		this.store = new Map();
+
+		if (this.opts.enabled)
+			this.logger.info("Metrics: ENABLED");
+		else
+			this.logger.info("Metrics: Disabled");
 	}
 
 	/**
 	 * Start Metric Registry
-	 *
-	 * @param {ServiceBroker} broker
 	 */
-	start(broker) {
-		this.broker = broker;
-
+	init() {
 		if (this.opts.enabled) {
-			this.processTimer = setInterval(() => {
-
-			}, this.opts.processInterval);
+			this.collectTimer = setInterval(() => {
+				this.updateCommonMetrics();
+			}, this.opts.collectInterval);
 
 			/*this.notifyTimer = setInterval(() => {
 
 			}, this.opts.notifyInterval);*/
 
-			this.registerProcessMetrics();
+			this.registerCommonMetrics();
+			this.updateCommonMetrics();
 		}
 	}
 
 	/**
 	 * Stop Metric Registry
+	 *
+	 * TODO: need to call?
 	 */
 	stop() {
-		clearInterval(this.processTimer);
-		clearInterval(this.notifyTimer);
+		clearInterval(this.collectTimer);
+		//clearInterval(this.notifyTimer);
 	}
 
 	register(opts) {
@@ -81,10 +93,6 @@ class MetricRegistry {
 		return item;
 	}
 
-	resetAll() {
-		this.store = new Map();
-	}
-
 	hasMetric(name) {
 		return this.store.has(name);
 	}
@@ -100,41 +108,35 @@ class MetricRegistry {
 		return item;
 	}
 
-	incValue(name, labels, value = 1, timestamp) {
+	increment(name, labels, value = 1, timestamp) {
 		if (!this.opts.enabled)
 			return null;
 
 		const item = this.getMetric(name);
-		if (!item)
-			throw new Error(`Metric '${name}' is not exist.`);
-
 		if (!_.isFunction(item.increment))
-			throw new Error("Invalid metric type. Incrementing works only with counters & gauges");
+			throw new Error("Invalid metric type. Incrementing works only with counter & gauge metric types");
 
 		return item.increment(labels, value, timestamp);
 	}
 
-	decValue(name, labels, value = -1, timestamp) {
+	decrement(name, labels, value = -1, timestamp) {
 		if (!this.opts.enabled)
 			return null;
 
 		const item = this.getMetric(name);
-		if (!item)
-			throw new Error(`Metric '${name}' is not exist.`);
-
 		if (!_.isFunction(item.decrement))
-			throw new Error("Invalid metric type. Decrementing works only with gauges");
+			throw new Error("Invalid metric type. Decrementing works only with gauge metric type");
 
 		return item.decrement(labels, value, timestamp);
 	}
 
-	setValue(name, value, labels, timestamp) {
+	set(name, value, labels, timestamp) {
 		if (!this.opts.enabled)
 			return null;
 
 		const item = this.getMetric(name);
-		if (!item)
-			throw new Error(`Metric '${name}' is not exist.`);
+		if (!_.isFunction(item.set))
+			throw new Error("Invalid metric type. Value setting works only with counter, gauge & info metric types");
 
 		return item.set(value, labels, timestamp);
 	}
@@ -144,45 +146,37 @@ class MetricRegistry {
 			return null;
 
 		const item = this.getMetric(name);
-		if (!item)
-			throw new Error(`Metric '${name}' is not exist.`);
-
 		if (!_.isFunction(item.observe))
-			throw new Error("Invalid metric type. Observing works only with histogram");
+			throw new Error("Invalid metric type. Observing works only with histogram metric type.");
 
 		return item.observe(value, labels, timestamp);
 	}
 
-	getValue(name, labels) {
+	get(name, labels) {
 		if (!this.opts.enabled)
 			return null;
 
 		const item = this.getMetric(name);
-		if (!item)
-			throw new Error(`Metric '${name}' is not exist.`);
-
 		return item.get(labels);
 	}
 
-	resetValue(name, labels, timestamp) {
+	reset(name, labels, timestamp) {
 		if (!this.opts.enabled)
 			return null;
 
 		const item = this.getMetric(name);
-		if (!item)
-			throw new Error(`Metric '${name}' is not exist.`);
-
 		item.reset(labels, timestamp);
 	}
 
-	resetMetric(name, timestamp) {
+	resetAll(name, timestamp) {
 		if (!this.opts.enabled)
 			return null;
 
-		const item = this.getMetric(name);
-		if (!item)
-			throw new Error(`Metric '${name}' is not exist.`);
+		if (!name) {
+			this.store.clear();
+		}
 
+		const item = this.getMetric(name);
 		item.resetAll(timestamp);
 	}
 
@@ -190,11 +184,8 @@ class MetricRegistry {
 		let item;
 		if (name && this.opts.enabled) {
 			item = this.getMetric(name);
-			if (!item)
-				throw new Error(`Metric '${name}' is not exist.`);
-
-			if (!_.isFunction(item.add))
-				throw new Error("Invalid metric type. Timing works only with histograms");
+			if (!_.isFunction(item.observe) && !_.isFunction(item.set))
+				throw new Error("Invalid metric type. Timing works only with histogram or gauge metric types");
 		}
 
 		const start = process.hrtime();
@@ -203,9 +194,9 @@ class MetricRegistry {
 			const duration = (delta[0] + delta[1] / 1e9) * 1000;
 
 			if (item) {
-				if (item.type == C.METRIC_TYPE_HISTROGRAM)
+				if (item.type == METRIC.TYPE_HISTOGRAM)
 					item.observe(duration, labels, timestamp);
-				else if (item.type == C.METRIC_TYPE_GAUGE)
+				else if (item.type == METRIC.TYPE_GAUGE)
 					item.set(duration, labels, timestamp);
 			}
 
@@ -213,8 +204,198 @@ class MetricRegistry {
 		};
 	}
 
-	registerProcessMetrics() {
-		// TODO
+	registerCommonMetrics() {
+		this.logger.debug("Registering common metrics...");
+
+		// --- METRICS SELF METRICS ---
+
+		this.register({ name: METRIC.MOLECULER_METRICS_COMMON_COLLECT_TOTAL, type: METRIC.TYPE_COUNTER }),
+		this.register({ name: METRIC.MOLECULER_METRICS_COMMON_COLLECT_TIME, type: METRIC.TYPE_GAUGE });
+
+		// --- PROCESS METRICS ---
+
+		this.register({ name: METRIC.PROCESS_ARGUMENTS, type: METRIC.TYPE_INFO }).set(process.argv);
+		this.register({ name: METRIC.PROCESS_PID, type: METRIC.TYPE_INFO }).set(process.pid);
+		this.register({ name: METRIC.PROCESS_PPID, type: METRIC.TYPE_INFO }).set(process.ppid);
+
+		this.register({ name: METRIC.PROCESS_EVENTLOOP_LAG, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_MILLISECONDS });
+
+		this.register({ name: METRIC.PROCESS_MEMORY_HEAP_SIZE_TOTAL, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE });
+		this.register({ name: METRIC.PROCESS_MEMORY_HEAP_SIZE_USED, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE });
+		this.register({ name: METRIC.PROCESS_MEMORY_RSS, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE });
+		this.register({ name: METRIC.PROCESS_MEMORY_EXTERNAL, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE });
+
+		this.register({ name: METRIC.PROCESS_MEMORY_HEAP_SPACE_SIZE_TOTAL, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE });
+		this.register({ name: METRIC.PROCESS_MEMORY_HEAP_SPACE_SIZE_USED, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE });
+		this.register({ name: METRIC.PROCESS_MEMORY_HEAP_SPACE_SIZE_AVAILABLE, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE });
+
+		this.register({ name: METRIC.PROCESS_UPTIME, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_SECONDS });
+		this.register({ name: METRIC.PROCESS_ACTIVE_HANDLES, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_HANDLE });
+		this.register({ name: METRIC.PROCESS_ACTIVE_REQUESTS, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_REQUEST });
+
+		// --- GARBAGE COLLECTOR METRICS ---
+
+		this.register({ name: METRIC.PROCESS_GC_TIME, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_MILLISECONDS });
+		this.register({ name: METRIC.PROCESS_GC_SCAVENGE, type: METRIC.TYPE_GAUGE, unit: null });
+		this.register({ name: METRIC.PROCESS_GC_MARKSWEEP, type: METRIC.TYPE_GAUGE, unit: null });
+
+		// --- OS METRICS ---
+
+		this.register({ name: METRIC.OS_MEMORY_FREE, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE });
+		this.register({ name: METRIC.OS_MEMORY_TOTAL, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE });
+		this.register({ name: METRIC.OS_CPU_TOTAL, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_CPU });
+		this.register({ name: METRIC.OS_UPTIME, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_SECONDS });
+		this.register({ name: METRIC.OS_TYPE, type: METRIC.TYPE_INFO }).set(os.type());
+		this.register({ name: METRIC.OS_RELEASE, type: METRIC.TYPE_INFO }).set(os.release());
+		this.register({ name: METRIC.OS_HOSTNAME, type: METRIC.TYPE_INFO }).set(os.hostname());
+		this.register({ name: METRIC.OS_ARCH, type: METRIC.TYPE_INFO }).set(os.arch());
+		this.register({ name: METRIC.OS_PLATFORM, type: METRIC.TYPE_INFO }).set(os.platform());
+
+		const userInfo = this.getUserInfo();
+		this.register({ name: METRIC.OS_USER_UID, type: METRIC.TYPE_INFO }).set(userInfo.uid);
+		this.register({ name: METRIC.OS_USER_GID, type: METRIC.TYPE_INFO }).set(userInfo.gid);
+		this.register({ name: METRIC.OS_USER_USERNAME, type: METRIC.TYPE_INFO }).set(userInfo.username);
+		this.register({ name: METRIC.OS_USER_HOMEDIR, type: METRIC.TYPE_INFO }).set(userInfo.homedir);
+
+		this.register({ name: METRIC.OS_DATETIME_UNIX, type: METRIC.TYPE_INFO });
+		this.register({ name: METRIC.OS_DATETIME_ISO, type: METRIC.TYPE_INFO });
+		this.register({ name: METRIC.OS_DATETIME_UTC, type: METRIC.TYPE_INFO });
+
+		this.register({ name: METRIC.OS_CPU_LOAD_1, type: METRIC.TYPE_GAUGE });
+		this.register({ name: METRIC.OS_CPU_LOAD_5, type: METRIC.TYPE_GAUGE });
+		this.register({ name: METRIC.OS_CPU_LOAD_15, type: METRIC.TYPE_GAUGE });
+		this.register({ name: METRIC.OS_CPU_UTILIZATION, type: METRIC.TYPE_GAUGE });
+
+		this.register({ name: METRIC.OS_CPU_USER, type: METRIC.TYPE_GAUGE });
+		this.register({ name: METRIC.OS_CPU_SYSTEM, type: METRIC.TYPE_GAUGE });
+
+		// TODO NETWORKS
+
+		this.logger.debug(`Registered ${this.store.size} common metrics.`);
+	}
+
+	updateCommonMetrics() {
+		this.logger.debug("Update common metric values...");
+		const end = this.timer(METRIC.MOLECULER_METRICS_COMMON_COLLECT_TIME);
+
+		// --- PROCESS METRICS ---
+
+		const procMem = process.memoryUsage();
+
+		this.set(METRIC.PROCESS_MEMORY_HEAP_SIZE_TOTAL, procMem.heapTotal);
+		this.set(METRIC.PROCESS_MEMORY_HEAP_SIZE_USED, procMem.heapUsed);
+		this.set(METRIC.PROCESS_MEMORY_RSS, procMem.rss);
+		this.set(METRIC.PROCESS_MEMORY_EXTERNAL, procMem.external);
+
+		this.set(METRIC.PROCESS_MEMORY_HEAP_SPACE_SIZE_TOTAL, null);
+		this.set(METRIC.PROCESS_MEMORY_HEAP_SPACE_SIZE_USED, null);
+		this.set(METRIC.PROCESS_MEMORY_HEAP_SPACE_SIZE_AVAILABLE, null);
+
+		this.set(METRIC.PROCESS_UPTIME, process.uptime());
+		this.set(METRIC.PROCESS_ACTIVE_HANDLES, process._getActiveHandles().length);
+		this.set(METRIC.PROCESS_ACTIVE_REQUESTS, process._getActiveRequests().length);
+
+		// --- GARBAGE COLLECTOR METRICS ---
+
+		//this.set(METRIC.PROCESS_GC_TIME, null);
+		//this.set(METRIC.PROCESS_GC_SCAVENGE, null);
+		//this.set(METRIC.PROCESS_GC_MARKSWEEP, null);
+
+		// --- OS METRICS ---
+
+		this.set(METRIC.OS_MEMORY_FREE, os.freemem());
+		this.set(METRIC.OS_MEMORY_TOTAL, os.totalmem());
+		this.set(METRIC.OS_CPU_TOTAL, os.cpus().length);
+		this.set(METRIC.OS_UPTIME, os.uptime());
+		this.set(METRIC.OS_TYPE, os.type());
+		this.set(METRIC.OS_RELEASE, os.release());
+		this.set(METRIC.OS_HOSTNAME, os.hostname());
+		this.set(METRIC.OS_ARCH, os.arch());
+		this.set(METRIC.OS_PLATFORM, os.platform());
+
+		this.set(METRIC.OS_DATETIME_UNIX, Date.now());
+		this.set(METRIC.OS_DATETIME_ISO, new Date().toISOString());
+		this.set(METRIC.OS_DATETIME_UTC, new Date().toUTCString());
+
+		const load = os.loadavg();
+		this.set(METRIC.OS_CPU_LOAD_1, load[0]);
+		this.set(METRIC.OS_CPU_LOAD_5, load[1]);
+		this.set(METRIC.OS_CPU_LOAD_15, load[2]);
+
+		return Promise.resolve()
+			.then(() => this.measureEventLoopLag().then(lag => this.set(METRIC.PROCESS_EVENTLOOP_LAG, lag / 1000)))
+			.then(() => cpuUsage().then(res => {
+				this.set(METRIC.OS_CPU_UTILIZATION, res.avg);
+
+				try {
+					const cpus = os.cpus();
+					this.set(METRIC.OS_CPU_USER, cpus.reduce((a,b) => a + b.times.user, 0));
+					this.set(METRIC.OS_CPU_SYSTEM, cpus.reduce((a,b) => a + b.times.sys, 0));
+
+				} catch(err) {
+					// silent
+				}
+			}))
+			.then(() => {
+				this.increment(METRIC.MOLECULER_METRICS_COMMON_COLLECT_TOTAL);
+				const duration = end();
+				this.logger.debug(`Collected common metric values in ${duration} msec.`);
+				this.debugPrint();
+			});
+	}
+
+	getUserInfo() {
+		try {
+			return os.userInfo();
+		} catch (e) {
+			return {};
+		}
+	}
+
+	measureEventLoopLag() {
+		return new Promise(resolve => {
+			const start = process.hrtime();
+			setImmediate(() => {
+				const delta = process.hrtime(start);
+				resolve(delta[0] * 1e9 + delta[1]);
+			});
+		});
+	}
+
+	debugPrint() {
+		const labelsToStr = labels => {
+			const keys = Object.keys(labels);
+			if (keys.length == 0)
+				return chalk.gray("<Not defined>");
+
+			return keys.map(key => `${key}: ${chalk.green(labels[key])}`).join(", ");
+		};
+		const log = console.log;
+
+		log("------------------------------------------------------------------");
+
+		this.store.forEach(item => {
+			log(`Name: ${chalk.cyan.bold(item.name)}, Type: ${item.type}`);
+			const values = item.values;
+			values.forEach((valueItem, hash) => {
+				let val;
+				switch(item.type) {
+					case METRIC.TYPE_COUNTER:
+					case METRIC.TYPE_GAUGE:
+					case METRIC.TYPE_INFO:
+						val = chalk.green.bold(valueItem.value);
+						break;
+					case METRIC.TYPE_HISTOGRAM:
+						val = chalk.green.bold(item.toString());
+						break;
+				}
+				log(`  Labels: ${labelsToStr(valueItem.labels)}, Value: ${val} ${item.unit ? chalk.gray(item.unit) : ""}`);
+			});
+			log("");
+		});
+
+
+		log("------------------------------------------------------------------");
 	}
 }
 

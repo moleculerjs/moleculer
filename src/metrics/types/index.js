@@ -6,7 +6,7 @@
 
 "use strict";
 
-const C = require("../constants");
+const METRIC = require("../constants");
 
 const BaseMetric = require("./base");
 const CounterMetric = require("./counter");
@@ -23,10 +23,10 @@ module.exports = {
 
 	getByType(type)	{
 		switch(type) {
-			case C.METRIC_TYPE_COUNTER: return CounterMetric;
-			case C.METRIC_TYPE_GAUGE: return GaugeMetric;
-			case C.METRIC_TYPE_HISTROGRAM: return HistrogramMetric;
-			case C.METRIC_TYPE_INFO: return InfoMetric;
+			case METRIC.TYPE_COUNTER: return CounterMetric;
+			case METRIC.TYPE_GAUGE: return GaugeMetric;
+			case METRIC.TYPE_HISTOGRAM: return HistrogramMetric;
+			case METRIC.TYPE_INFO: return InfoMetric;
 		}
 		return null;
 	}

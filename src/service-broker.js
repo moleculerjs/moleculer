@@ -21,6 +21,7 @@ const utils 				= require("./utils");
 const Logger 				= require("./logger");
 const Validator 			= require("./validator");
 
+const MetricRegistry		= require("./metrics").MetricRegistry;
 const Cachers 				= require("./cachers");
 const Transporters 			= require("./transporters");
 const Serializers 			= require("./serializers");
@@ -95,8 +96,9 @@ const defaultOptions = {
 
 	validation: true,
 	validator: null,
+
 	metrics: false,
-	metricsRate: 1,
+
 	internalServices: true,
 	internalMiddlewares: true,
 
@@ -167,6 +169,10 @@ class ServiceBroker {
 				wildcard: true,
 				maxListeners: 100
 			});
+
+			// Metrics Registry
+			this.metrics = new MetricRegistry(this, this.options.metrics);
+			this.metrics.init();
 
 			// Middleware handler
 			this.middlewares = new MiddlewareHandler(this);

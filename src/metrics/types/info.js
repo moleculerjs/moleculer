@@ -8,12 +8,12 @@
 
 const { pick } = require("lodash");
 const BaseMetric = require("./base");
-const { METRIC_TYPE_INFO } = require("../constants");
+const METRIC = require("../constants");
 
 class InfoMetric extends BaseMetric {
 
 	constructor(opts) {
-		opts.type = METRIC_TYPE_INFO;
+		opts.type = METRIC.TYPE_INFO;
 		super(opts);
 		this.initialValue = null;
 

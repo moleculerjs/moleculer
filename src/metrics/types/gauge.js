@@ -8,12 +8,13 @@
 
 const { pick } = require("lodash");
 const BaseMetric = require("./base");
-const { METRIC_TYPE_GAUGE } = require("../constants");
+const METRIC = require("../constants");
+
 
 class GaugeMetric extends BaseMetric {
 
 	constructor(opts) {
-		opts.type = METRIC_TYPE_GAUGE;
+		opts.type = METRIC.TYPE_GAUGE;
 		super(opts);
 		this.initialValue = opts.initialValue || 0;
 

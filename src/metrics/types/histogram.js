@@ -8,14 +8,14 @@
 
 const BaseMetric = require("./base");
 const _ = require("lodash");
-const { METRIC_TYPE_HISTROGRAM } = require("../constants");
+const METRIC = require("../constants");
 
 const sortAscending = (a, b) => a - b;
 
 class HistogramMetric extends BaseMetric {
 
 	constructor(opts) {
-		opts.type = METRIC_TYPE_HISTROGRAM;
+		opts.type = METRIC.TYPE_HISTOGRAM;
 		super(opts);
 
 		if (_.isPlainObject(opts.linearBuckets)) {
@@ -106,25 +106,25 @@ class HistogramMetric extends BaseMetric {
 		const item = this.get();
 		if (item) {
 			const s = [];
-			s.push(`Count: ${_.padStart(item.count, 5)}`);
+			s.push(`Count: ${item.count}`);
 			//			s.push(`Sum: ${item.sum.toFixed(2)}`);
 
 			if (this.buckets) {
 				this.buckets.forEach((b, i) => {
-					s.push(`${b}: ${item.bucketValues[b] != null ? _.padStart(item.bucketValues[b], 5) : "-"}`);
+					s.push(`${b}: ${item.bucketValues[b] != null ? item.bucketValues[b] : "-"}`);
 					//s.push(`+Inf: ${item.count}`);
 				});
 			}
 
 			if (this.quantiles) {
 				const res = item.quantileValues.snapshot();
-				s.push(`Min: ${_.padStart(res.min.toFixed(2), 5)}`);
-				s.push(`Mean: ${_.padStart(res.mean.toFixed(2), 5)}`);
-				s.push(`Var: ${_.padStart(res.variance.toFixed(2), 5)}`);
-				s.push(`StdDev: ${_.padStart(res.stdDev.toFixed(2), 5)}`);
-				s.push(`Max: ${_.padStart(res.max.toFixed(2), 5)}`);
+				s.push(`Min: ${res.min.toFixed(2)}`);
+				s.push(`Mean: ${res.mean.toFixed(2)}`);
+				s.push(`Var: ${res.variance.toFixed(2)}`);
+				s.push(`StdDev: ${res.stdDev.toFixed(2)}`);
+				s.push(`Max: ${res.max.toFixed(2)}`);
 				this.quantiles.forEach((q, i) => {
-					s.push(`${q}: ${_.padStart(res.quantiles[i].toFixed(2), 5)}`);
+					s.push(`${q}: ${res.quantiles[i].toFixed(2)}`);
 				});
 			}
 

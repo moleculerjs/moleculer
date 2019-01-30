@@ -15,6 +15,9 @@ class BaseMetric {
 		this.description = opts.description;
 		this.labelNames = opts.labelNames || [];
 		this.unit = opts.unit;
+		this.aggregator = opts.aggregator || "sum";
+
+		this.values = new Map();
 	}
 
 	get(labels) {

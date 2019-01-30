@@ -7,12 +7,12 @@
 "use strict";
 
 const GaugeMetric = require("./gauge");
-const { METRIC_TYPE_COUNTER } = require("../constants");
+const METRIC = require("../constants");
 
 class CounterMetric extends GaugeMetric {
 
 	constructor(opts) {
-		opts.type = METRIC_TYPE_COUNTER;
+		opts.type = METRIC.TYPE_COUNTER;
 		super(opts);
 
 		this.resetAll();

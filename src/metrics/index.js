@@ -6,18 +6,17 @@
 
 "use strict";
 
-const C = require("./constants");
+const METRIC = require("./constants");
 
 const MetricRegistry = require("./registry");
 const BaseMetric = require("./types/base");
 const CounterMetric = require("./types/counter");
 const GaugeMetric = require("./types/gauge");
 const HistrogramMetric = require("./types/histogram");
+const InfoMetric = require("./types/info");
 
 module.exports = {
-	METRIC_TYPE_COUNTER: C.METRIC_TYPE_COUNTER,
-	METRIC_TYPE_GAUGE: C.METRIC_TYPE_GAUGE,
-	METRIC_TYPE_HISTROGRAM: C.METRIC_TYPE_HISTROGRAM,
+	METRIC: METRIC,
 
 	MetricRegistry,
 
@@ -25,4 +24,5 @@ module.exports = {
 	CounterMetric,
 	GaugeMetric,
 	HistrogramMetric,
+	InfoMetric
 };
