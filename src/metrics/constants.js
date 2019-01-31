@@ -15,11 +15,10 @@ module.exports = {
 	TYPE_HISTOGRAM:  "histogram",
 	TYPE_INFO:  "info",
 
-	// --- METRICS SELF METRICS ---
+	// --- METRICREGISTRY METRICS ---
 
 	MOLECULER_METRICS_COMMON_COLLECT_TOTAL: "moleculer.metrics.common.collect.total",
 	MOLECULER_METRICS_COMMON_COLLECT_TIME: "moleculer.metrics.common.collect.time",
-
 
 	// --- PROCESS METRICS ---
 
@@ -28,6 +27,7 @@ module.exports = {
 	PROCESS_PID: "process.pid",
 	PROCESS_PPID: "process.ppid",
 
+	// TODO: https://github.com/bripkens/event-loop-stats
 	PROCESS_EVENTLOOP_LAG: "process.eventloop.lag", // msec
 
 	PROCESS_MEMORY_HEAP_SIZE_TOTAL: "process.memory.heap.size.total", // bytes
@@ -38,6 +38,17 @@ module.exports = {
 	PROCESS_MEMORY_HEAP_SPACE_SIZE_TOTAL: "process.memory.heap.space.size.total", // bytes
 	PROCESS_MEMORY_HEAP_SPACE_SIZE_USED: "process.memory.heap.space.size.used", // bytes
 	PROCESS_MEMORY_HEAP_SPACE_SIZE_AVAILABLE: "process.memory.heap.space.size.available", // bytes
+	PROCESS_MEMORY_HEAP_SPACE_SIZE_PHYSICAL: "process.memory.heap.space.size.physical", // bytes
+
+	PROCESS_MEMORY_HEAP_STAT_HEAP_SIZE_TOTAL: "process.memory.heap.stat.heap.size.total", // bytes
+	PROCESS_MEMORY_HEAP_STAT_EXECUTABLE_SIZE_TOTAL: "process.memory.heap.stat.executable.size.total", // bytes
+	PROCESS_MEMORY_HEAP_STAT_PHYSICAL_SIZE_TOTAL: "process.memory.heap.stat.physical.size.total", // bytes
+	PROCESS_MEMORY_HEAP_STAT_AVAILABLE_SIZE_TOTAL: "process.memory.heap.stat.available.size.total", // bytes
+	PROCESS_MEMORY_HEAP_STAT_USED_HEAP_SIZE: "process.memory.heap.stat.used.heap.size", // bytes
+	PROCESS_MEMORY_HEAP_STAT_HEAP_SIZE_LIMIT: "process.memory.heap.stat.heap.size.limit", // bytes
+	PROCESS_MEMORY_HEAP_STAT_MALLOCATED_MEMORY: "process.memory.heap.stat.mallocated.memory", // bytes
+	PROCESS_MEMORY_HEAP_STAT_PEAK_MALLOCATED_MEMORY: "process.memory.heap.stat.peak.mallocated.memory", // bytes
+	PROCESS_MEMORY_HEAP_STAT_ZAP_GARBAGE: "process.memory.heap.stat.zap.garbage",
 
 	PROCESS_UPTIME: "process.uptime", // seconds
 	PROCESS_ACTIVE_HANDLES: "process.active.handles",
@@ -45,15 +56,15 @@ module.exports = {
 
 	// --- GARBAGE COLLECTOR METRICS ---
 
-	PROCESS_GC_TIME: "metrics.process.gc.time",
-	PROCESS_GC_SCAVENGE: "metrics.process.gc.scavenge",
-	PROCESS_GC_MARKSWEEP: "metrics.process.gc.marksweep",
+	PROCESS_GC_TIME: "process.gc.time", // nanoseconds
+	PROCESS_GC_TOTAL_TIME: "process.gc.total.time", // milliseconds
+	PROCESS_GC_SCAVENGE: "process.gc.scavenge",
+	PROCESS_GC_MARKSWEEP: "process.gc.marksweep",
 
 	// --- OS METRICS ---
 
 	OS_MEMORY_FREE: "os.memory.free", // bytes
 	OS_MEMORY_TOTAL: "os.memory.total", // bytes
-	OS_CPU_TOTAL: "os.cpu.total",
 	OS_UPTIME: "os.uptime", // seconds
 	OS_TYPE: "os.type",
 	OS_RELEASE: "os.release",
@@ -68,8 +79,11 @@ module.exports = {
 	OS_DATETIME_UNIX: "os.datetime.unix",
 	OS_DATETIME_ISO: "os.datetime.iso",
 	OS_DATETIME_UTC: "os.datetime.utc",
+	OS_DATETIME_TZ_OFFSET: "os.datetime.tz.offset",
 
-	// TODO NETWORKS
+	OS_NETWORK_ADDRESS: "os.network.address",
+	OS_NETWORK_FAMILY: "os.network.family",
+	OS_NETWORK_MAC: "os.network.mac",
 
 	OS_CPU_LOAD_1: "os.cpu.load.1",
 	OS_CPU_LOAD_5: "os.cpu.load.5",
@@ -79,12 +93,17 @@ module.exports = {
 	OS_CPU_USER: "os.cpu.user", // seconds
 	OS_CPU_SYSTEM: "os.cpu.system", // seconds
 
+	OS_CPU_TOTAL: "os.cpu.total",
+	OS_CPU_INFO_MODEL: "os.cpu.info.model",
+	OS_CPU_INFO_SPEED: "os.cpu.info.speed",
+	OS_CPU_INFO_TIMES_USER: "os.cpu.info.times.user",
+	OS_CPU_INFO_TIMES_SYS: "os.cpu.info.times.sys",
+
 	// --- MOLECULER NODE METRICS ---
 
 	MOLECULER_NODE_TYPE: "moleculer.node.type",
 	MOLECULER_NODE_VERSIONS_MOLECULER: "moleculer.node.versions.moleculer",
 	MOLECULER_NODE_VERSIONS_LANG: "moleculer.node.versions.lang",
-
 
 	// --- MOLECULER BROKER METRICS ---
 
@@ -187,6 +206,7 @@ module.exports = {
 	// Process
 	UNIT_HANDLE: "handle",
 	UNIT_CPU: "cpu",
+	UNIT_GHZ: "GHz",
 
 	// Network
 	UNIT_REQUEST: "request",
