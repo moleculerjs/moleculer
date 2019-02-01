@@ -22,13 +22,10 @@ module.exports = {
 
 	// --- PROCESS METRICS ---
 
-	PROCESS_ARGUMENTS: "process.arguments", // INFO
+	PROCESS_ARGUMENTS: "process.arguments",
 
 	PROCESS_PID: "process.pid",
 	PROCESS_PPID: "process.ppid",
-
-	// TODO: https://github.com/bripkens/event-loop-stats
-	PROCESS_EVENTLOOP_LAG: "process.eventloop.lag", // msec
 
 	PROCESS_MEMORY_HEAP_SIZE_TOTAL: "process.memory.heap.size.total", // bytes
 	PROCESS_MEMORY_HEAP_SIZE_USED: "process.memory.heap.size.used", // bytes
@@ -51,15 +48,23 @@ module.exports = {
 	PROCESS_MEMORY_HEAP_STAT_ZAP_GARBAGE: "process.memory.heap.stat.zap.garbage",
 
 	PROCESS_UPTIME: "process.uptime", // seconds
-	PROCESS_ACTIVE_HANDLES: "process.active.handles",
-	PROCESS_ACTIVE_REQUESTS: "process.active.requests",
+	PROCESS_INTERNAL_ACTIVE_HANDLES: "process.internal.active.handles",
+	PROCESS_INTERNAL_ACTIVE_REQUESTS: "process.internal.active.requests",
+
+	PROCESS_VERSIONS_NODE: "process.versions.node",
+
+	// --- EVENT LOOP METRICS ---
+
+	PROCESS_EVENTLOOP_LAG_MIN: "process.eventloop.lag.min", // msec
+	PROCESS_EVENTLOOP_LAG_AVG: "process.eventloop.lag.avg", // msec
+	PROCESS_EVENTLOOP_LAG_MAX: "process.eventloop.lag.max", // msec
+	PROCESS_EVENTLOOP_LAG_COUNT: "process.eventloop.lag.count",
 
 	// --- GARBAGE COLLECTOR METRICS ---
 
 	PROCESS_GC_TIME: "process.gc.time", // nanoseconds
 	PROCESS_GC_TOTAL_TIME: "process.gc.total.time", // milliseconds
-	PROCESS_GC_SCAVENGE: "process.gc.scavenge",
-	PROCESS_GC_MARKSWEEP: "process.gc.marksweep",
+	PROCESS_GC_EXECUTED_TOTAL: "process.gc.executed.total",
 
 	// --- OS METRICS ---
 
@@ -104,36 +109,37 @@ module.exports = {
 	MOLECULER_NODE_TYPE: "moleculer.node.type",
 	MOLECULER_NODE_VERSIONS_MOLECULER: "moleculer.node.versions.moleculer",
 	MOLECULER_NODE_VERSIONS_LANG: "moleculer.node.versions.lang",
+	MOLECULER_NODE_VERSIONS_PROTOCOL: "moleculer.node.versions.protocol",
 
 	// --- MOLECULER BROKER METRICS ---
 
 	MOLECULER_BROKER_NAMESPACE: "moleculer.broker.namespace",
 	MOLECULER_BROKER_STARTED: "moleculer.broker.started",
-	MOLECULER_BROKER_SERVICES_TOTAL: "moleculer.broker.services.total",
+	MOLECULER_BROKER_LOCAL_SERVICES_TOTAL: "moleculer.broker.local.services.total",
 	MOLECULER_BROKER_MIDDLEWARES_TOTAL: "moleculer.broker.middlewares.total",
 
 	// --- MOLECULER REGISTRY METRICS ---
 
-	MOLECULER_REGISTRY_NODES_COUNT: "moleculer.registry.nodes.count",
-	MOLECULER_REGISTRY_SERVICES_COUNT: "moleculer.registry.services.count",
-	MOLECULER_REGISTRY_SERVICE_ENDPOINTS_COUNT: "moleculer.registry.service.endpoints.count",
-	MOLECULER_REGISTRY_ACTIONS_COUNT: "moleculer.registry.actions.count",
-	MOLECULER_REGISTRY_ACTION_ENDPOINTS_COUNT: "moleculer.registry.action.endpoints.count",
-	MOLECULER_REGISTRY_EVENTS_COUNT: "moleculer.registry.events.count",
-	MOLECULER_REGISTRY_EVENT_ENDPOINTS_COUNT: "moleculer.registry.event.endpoints.count",
+	MOLECULER_REGISTRY_NODES_TOTAL: "moleculer.registry.nodes.total",
+	MOLECULER_REGISTRY_NODES_ONLINE_TOTAL: "moleculer.registry.nodes.online.total",
+	MOLECULER_REGISTRY_SERVICES_TOTAL: "moleculer.registry.services.total",
+	MOLECULER_REGISTRY_SERVICE_ENDPOINTS_TOTAL: "moleculer.registry.service.endpoints.total",
+	MOLECULER_REGISTRY_ACTIONS_TOTAL: "moleculer.registry.actions.total",
+	MOLECULER_REGISTRY_ACTION_ENDPOINTS_TOTAL: "moleculer.registry.action.endpoints.total",
+	MOLECULER_REGISTRY_EVENTS_TOTAL: "moleculer.registry.events.total",
+	MOLECULER_REGISTRY_EVENT_ENDPOINTS_TOTAL: "moleculer.registry.event.endpoints.total",
 
 	// --- MOLECULER REQUEST METRICS ---
 
 	MOLECULER_REQUEST_TOTAL: "moleculer.request.total",
+	MOLECULER_REQUEST_LOCAL_TOTAL: "moleculer.request.local.total",
+	MOLECULER_REQUEST_REMOTE_TOTAL: "moleculer.request.remote.total",
 	MOLECULER_REQUEST_ERROR_TOTAL: "moleculer.request.error.total",
 	MOLECULER_REQUEST_DURATION: "moleculer.request.duration", //msec
-	MOLECULER_REQUEST_LEVELS: "moleculer.request.levels", //ctx.level histogram
+	MOLECULER_REQUEST_LEVELS: "moleculer.request.levels", //ctx.level
 	MOLECULER_REQUEST_OPRHAN_TOTAL: "moleculer.request.orphan.total",
 	MOLECULER_REQUEST_DIRECTCALL_TOTAL: "moleculer.request.directcall.total",
 	MOLECULER_REQUEST_MULTICALL_TOTAL: "moleculer.request.multicall.total",
-
-	MOLECULER_REQUEST_STREAMS_SENT_TOTAL: "moleculer.request.streams.sent.total",
-	MOLECULER_REQUEST_STREAMS_RECEIVED_TOTAL: "moleculer.request.streams.received.total",
 
 	// --- MOLECULER EVENTS METRICS ---
 
@@ -147,6 +153,8 @@ module.exports = {
 	MOLECULER_TRANSIT_PACKETS_SENT_BYTES: "moleculer.transit.packets.sent.bytes", // bytes
 	MOLECULER_TRANSIT_PACKETS_RECEIVED_TOTAL: "moleculer.transit.packets.received.total",
 	MOLECULER_TRANSIT_PACKETS_RECEIVED_BYTES: "moleculer.transit.packets.received.bytes", // bytes
+	MOLECULER_TRANSIT_STREAMS_SENT_TOTAL: "moleculer.transit.streams.sent.total",
+	MOLECULER_TRANSIT_STREAMS_RECEIVED_TOTAL: "moleculer.transit.streams.received.total",
 	MOLECULER_TRANSIT_PENDING_REQUESTS: "moleculer.transit.pending.requests",
 	MOLECULER_TRANSIT_READY: "moleculer.transit.ready", // true/false
 	MOLECULER_TRANSIT_CONNECTED: "moleculer.transit.connected", // true/false

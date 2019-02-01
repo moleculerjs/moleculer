@@ -161,6 +161,26 @@ class NodeCatalog {
 	}
 
 	/**
+	 * Get count of all registered nodes
+	 */
+	count() {
+		return this.nodes.size;
+	}
+
+	/**
+	 * Get count of online nodes
+	 */
+	onlineCount() {
+		let count = 0;
+		this.nodes.forEach(node => {
+			if (node.available)
+				count++;
+		});
+
+		return count;
+	}
+
+	/**
 	 * Process incoming INFO packet payload
 	 *
 	 * @param {any} payload

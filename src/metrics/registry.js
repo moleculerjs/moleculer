@@ -69,6 +69,10 @@ class MetricRegistry {
 			clearInterval(this.collectTimer);
 	}
 
+	isEnabled() {
+		return this.opts.enabled;
+	}
+
 	register(opts) {
 		if (!_.isPlainObject(opts))
 			throw new Error("Wrong argument. Must be an Object.");
@@ -216,6 +220,7 @@ class MetricRegistry {
 		log(chalk.gray("------------------- [ METRICS START ] -------------------"));
 
 		this.store.forEach(item => {
+			if (!item.name.startsWith("moleculer.")) return;
 			log("Name: " + chalk.cyan.bold(item.name) + " " + chalk.gray("(" + item.type + ")"));
 			const values = item.values;
 			values.forEach(valueItem => {
@@ -224,7 +229,7 @@ class MetricRegistry {
 					case METRIC.TYPE_COUNTER:
 					case METRIC.TYPE_GAUGE:
 					case METRIC.TYPE_INFO:
-						val = chalk.green.bold(valueItem.value);
+						val = valueItem.value === "" ? chalk.gray("<empty string>") : chalk.green.bold(valueItem.value);
 						break;
 					case METRIC.TYPE_HISTOGRAM:
 						val = chalk.green.bold(item.toString());

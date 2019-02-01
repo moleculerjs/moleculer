@@ -6,15 +6,16 @@
 
 "use strict";
 
-const Promise = require("bluebird");
-const _ = require("lodash");
+const Promise 			= require("bluebird");
+const _ 				= require("lodash");
 const { generateToken } = require("./utils");
 
-const P = require("./packets");
-const { Packet } = require("./packets");
-const E = require("./errors");
+const P 				= require("./packets");
+const { Packet } 		= require("./packets");
+const E 				= require("./errors");
 
-const { Transform } = require("stream");
+const { Transform } 	= require("stream");
+const { METRIC }		= require("./metrics");
 
 /**
  * Transit class
@@ -37,6 +38,7 @@ class Transit {
 		this.Promise = broker.Promise;
 		this.logger = broker.getLogger("transit");
 		this.nodeID = broker.nodeID;
+		this.metrics = broker.metrics;
 		this.instanceID = broker.instanceID;
 		this.tx = transporter;
 		this.opts = opts;
@@ -77,7 +79,25 @@ class Transit {
 
 		this.__connectResolve = null;
 
+		this.registerMoleculerMetrics();
+	}
 
+	/**
+	 * Register Moleculer Core metrics.
+	 */
+	registerMoleculerMetrics() {
+		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_PACKETS_SENT_TOTAL, type: METRIC.TYPE_GAUGE });
+		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_PACKETS_SENT_BYTES, type: METRIC.TYPE_GAUGE });
+		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_PACKETS_RECEIVED_TOTAL, type: METRIC.TYPE_GAUGE });
+		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_PACKETS_RECEIVED_BYTES, type: METRIC.TYPE_GAUGE });
+		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_STREAMS_SENT_TOTAL, type: METRIC.TYPE_GAUGE });
+		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_STREAMS_RECEIVED_TOTAL, type: METRIC.TYPE_GAUGE });
+		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_PENDING_REQUESTS, type: METRIC.TYPE_GAUGE });
+		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_READY, type: METRIC.TYPE_GAUGE });
+		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_CONNECTED, type: METRIC.TYPE_GAUGE });
+
+		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_PONG_TIME, type: METRIC.TYPE_HISTOGRAM, labelNames: ["targetNodeID"] });
+		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_PONG_SYSTIME_DIFF, type: METRIC.TYPE_GAUGE, labelNames: ["targetNodeID"] });
 	}
 
 	/**

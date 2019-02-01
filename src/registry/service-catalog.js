@@ -132,6 +132,24 @@ class ServiceCatalog {
 		return res;
 	}
 
+	getServicesWithNodes() {
+		let res = [];
+		this.services.forEach(service => {
+			let item = res.find(svc => svc.name == service.name && svc.version == service.version);
+			if (!item) {
+				item = {
+					name: service.name,
+					version: service.version,
+					nodes: []
+				};
+				res.push(item);
+			}
+			item.nodes.push(service.node.id);
+		});
+
+		return res;
+	}
+
 	/**
 	 * Get local service list for INFO packet
 	 *

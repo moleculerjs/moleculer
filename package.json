@@ -58,6 +58,7 @@
     "eslint-plugin-node": "8.0.1",
     "eslint-plugin-promise": "4.0.1",
     "eslint-plugin-security": "1.4.0",
+    "event-loop-stats": "1.1.0",
     "fakerator": "0.3.0",
     "gc-stats": "1.2.1",
     "ioredis": "4.3.0",

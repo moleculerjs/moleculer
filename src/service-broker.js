@@ -21,7 +21,6 @@ const utils 				= require("./utils");
 const Logger 				= require("./logger");
 const Validator 			= require("./validator");
 
-const MetricRegistry		= require("./metrics").MetricRegistry;
 const Cachers 				= require("./cachers");
 const Transporters 			= require("./transporters");
 const Serializers 			= require("./serializers");
@@ -29,6 +28,8 @@ const Middlewares			= require("./middlewares");
 const H 					= require("./health");
 const MiddlewareHandler		= require("./middleware");
 const cpuUsage 				= require("./cpu-usage");
+
+const { MetricRegistry, METRIC }	= require("./metrics");
 
 /**
  * Default broker options
@@ -173,6 +174,7 @@ class ServiceBroker {
 			// Metrics Registry
 			this.metrics = new MetricRegistry(this, this.options.metrics);
 			this.metrics.init();
+			this.registerMoleculerMetrics();
 
 			// Middleware handler
 			this.middlewares = new MiddlewareHandler(this);
@@ -334,6 +336,46 @@ class ServiceBroker {
 		this.emit = this.wrapMethod("emit", this.emit);
 		this.broadcast = this.wrapMethod("broadcast", this.broadcast);
 		this.broadcastLocal = this.wrapMethod("broadcastLocal", this.broadcastLocal);
+
+		this.metrics.set(METRIC.MOLECULER_BROKER_MIDDLEWARES_TOTAL,this.middlewares.count());
+	}
+
+	/**
+	 * Register Moleculer Core metrics.
+	 */
+	registerMoleculerMetrics() {
+
+		// --- MOLECULER NODE METRICS ---
+
+		this.metrics.register({ name: METRIC.MOLECULER_NODE_TYPE, type: METRIC.TYPE_INFO }).set("nodejs");
+		this.metrics.register({ name: METRIC.MOLECULER_NODE_VERSIONS_MOLECULER, type: METRIC.TYPE_INFO }).set(ServiceBroker.MOLECULER_VERSION);
+		this.metrics.register({ name: METRIC.MOLECULER_NODE_VERSIONS_MOLECULER, type: METRIC.TYPE_INFO }).set(ServiceBroker.MOLECULER_VERSION);
+		this.metrics.register({ name: METRIC.MOLECULER_NODE_VERSIONS_PROTOCOL, type: METRIC.TYPE_INFO }).set(ServiceBroker.PROTOCOL_VERSION);
+
+		// --- MOLECULER BROKER METRICS ---
+
+		this.metrics.register({ name: METRIC.MOLECULER_BROKER_NAMESPACE, type: METRIC.TYPE_INFO }).set(this.namespace);
+		this.metrics.register({ name: METRIC.MOLECULER_BROKER_STARTED, type: METRIC.TYPE_GAUGE }).set(0);
+		this.metrics.register({ name: METRIC.MOLECULER_BROKER_LOCAL_SERVICES_TOTAL, type: METRIC.TYPE_GAUGE }).set(0);
+		this.metrics.register({ name: METRIC.MOLECULER_BROKER_MIDDLEWARES_TOTAL, type: METRIC.TYPE_GAUGE }).set(0);
+
+		// --- MOLECULER REQUEST METRICS ---
+
+		this.metrics.register({ name: METRIC.MOLECULER_REQUEST_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["action"] });
+		this.metrics.register({ name: METRIC.MOLECULER_REQUEST_LOCAL_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["action"] });
+		this.metrics.register({ name: METRIC.MOLECULER_REQUEST_REMOTE_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["action"] });
+		this.metrics.register({ name: METRIC.MOLECULER_REQUEST_ERROR_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["action"] });
+		this.metrics.register({ name: METRIC.MOLECULER_REQUEST_DURATION, type: METRIC.TYPE_HISTOGRAM, labelNames: ["action"] });
+		this.metrics.register({ name: METRIC.MOLECULER_REQUEST_LEVELS, type: METRIC.TYPE_GAUGE, labelNames: ["action"] });
+		this.metrics.register({ name: METRIC.MOLECULER_REQUEST_OPRHAN_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["action"] });
+		this.metrics.register({ name: METRIC.MOLECULER_REQUEST_DIRECTCALL_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["action"] });
+		this.metrics.register({ name: METRIC.MOLECULER_REQUEST_MULTICALL_TOTAL, type: METRIC.TYPE_GAUGE });
+
+		// --- MOLECULER EVENTS METRICS ---
+
+		this.metrics.register({ name: METRIC.MOLECULER_EVENT_EMIT_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["event", "groups"] });
+		this.metrics.register({ name: METRIC.MOLECULER_EVENT_BROADCAST_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["event", "groups"] });
+		this.metrics.register({ name: METRIC.MOLECULER_EVENT_BROADCASTLOCAL_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["event", "groups"] });
 	}
 
 	/**
@@ -362,6 +404,7 @@ class ServiceBroker {
 			.then(() => {
 				this.logger.info(`✔ ServiceBroker with ${this.services.length} service(s) is started successfully.`);
 				this.started = true;
+				this.metrics.set(METRIC.MOLECULER_BROKER_STARTED, 1);
 
 				this.broadcastLocal("$broker.started");
 			})
@@ -427,6 +470,7 @@ class ServiceBroker {
 			})
 			.then(() => {
 				this.logger.info("ServiceBroker is stopped. Good bye.");
+				this.metrics.set(METRIC.MOLECULER_BROKER_STARTED, 0);
 
 				this.broadcastLocal("$broker.stopped");
 
@@ -539,6 +583,10 @@ class ServiceBroker {
 
 		// Create console logger
 		return Logger.createDefaultLogger(console, bindings, this.options.logLevel || "info", this.options.logFormatter, this.options.logObjectPrinter);
+	}
+
+	isMetricsEnabled() {
+		return this.MetricRegistry.isEnabled();
 	}
 
 	/**
@@ -710,6 +758,7 @@ class ServiceBroker {
 	 */
 	addLocalService(service) {
 		this.services.push(service);
+		this.metrics.set(METRIC.MOLECULER_BROKER_LOCAL_SERVICES_TOTAL, this.services.length);
 	}
 
 	/**
