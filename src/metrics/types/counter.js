@@ -11,9 +11,9 @@ const METRIC = require("../constants");
 
 class CounterMetric extends GaugeMetric {
 
-	constructor(opts) {
+	constructor(opts, registry) {
 		opts.type = METRIC.TYPE_COUNTER;
-		super(opts);
+		super(opts, registry);
 
 		this.resetAll();
 	}

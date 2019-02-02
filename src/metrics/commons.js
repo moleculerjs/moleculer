@@ -263,7 +263,6 @@ function updateCommonMetrics() {
 		}))
 		.then(() => {
 			this.logger.debug(`Collected common metric values in ${duration.toFixed(3)} msec.`);
-			this.debugPrint();
 		});
 }
 

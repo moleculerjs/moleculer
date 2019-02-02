@@ -132,58 +132,77 @@ module.exports = {
 	// --- MOLECULER REQUEST METRICS ---
 
 	MOLECULER_REQUEST_TOTAL: "moleculer.request.total",
-	MOLECULER_REQUEST_LOCAL_TOTAL: "moleculer.request.local.total",
-	MOLECULER_REQUEST_REMOTE_TOTAL: "moleculer.request.remote.total",
+	MOLECULER_REQUEST_ACTIVE: "moleculer.request.active",
 	MOLECULER_REQUEST_ERROR_TOTAL: "moleculer.request.error.total",
-	MOLECULER_REQUEST_DURATION: "moleculer.request.duration", //msec
-	MOLECULER_REQUEST_LEVELS: "moleculer.request.levels", //ctx.level
-	MOLECULER_REQUEST_OPRHAN_TOTAL: "moleculer.request.orphan.total",
-	MOLECULER_REQUEST_DIRECTCALL_TOTAL: "moleculer.request.directcall.total",
-	MOLECULER_REQUEST_MULTICALL_TOTAL: "moleculer.request.multicall.total",
+	MOLECULER_REQUEST_TIME: "moleculer.request.time", //msec
+	MOLECULER_REQUEST_LEVELS: "moleculer.request.levels",
+	//MOLECULER_REQUEST_DIRECTCALL_TOTAL: "moleculer.request.directcall.total",
+	//MOLECULER_REQUEST_MULTICALL_TOTAL: "moleculer.request.multicall.total",
 
 	// --- MOLECULER EVENTS METRICS ---
 
-	MOLECULER_EVENT_EMIT_TOTAL: "moleculer.event.emit.total", //msec
-	MOLECULER_EVENT_BROADCAST_TOTAL: "moleculer.event.broadcast.total", //msec
-	MOLECULER_EVENT_BROADCASTLOCAL_TOTAL: "moleculer.event.broadcastlocal.total", //msec
+	MOLECULER_EVENT_EMIT_TOTAL: "moleculer.event.emit.total",
+	MOLECULER_EVENT_BROADCAST_TOTAL: "moleculer.event.broadcast.total",
+	MOLECULER_EVENT_BROADCASTLOCAL_TOTAL: "moleculer.event.broadcastlocal.total",
+	MOLECULER_EVENT_RECEIVED_TOTAL: "moleculer.event.received.total",
 
 	// --- MOLECULER TRANSIT METRICS ---
 
-	MOLECULER_TRANSIT_PACKETS_SENT_TOTAL: "moleculer.transit.packets.sent.total",
-	MOLECULER_TRANSIT_PACKETS_SENT_BYTES: "moleculer.transit.packets.sent.bytes", // bytes
-	MOLECULER_TRANSIT_PACKETS_RECEIVED_TOTAL: "moleculer.transit.packets.received.total",
-	MOLECULER_TRANSIT_PACKETS_RECEIVED_BYTES: "moleculer.transit.packets.received.bytes", // bytes
-	MOLECULER_TRANSIT_STREAMS_SENT_TOTAL: "moleculer.transit.streams.sent.total",
-	MOLECULER_TRANSIT_STREAMS_RECEIVED_TOTAL: "moleculer.transit.streams.received.total",
-	MOLECULER_TRANSIT_PENDING_REQUESTS: "moleculer.transit.pending.requests",
+	MOLECULER_TRANSIT_PUBLISH_TOTAL: "moleculer.transit.publish.total",
+	MOLECULER_TRANSIT_RECEIVE_TOTAL: "moleculer.transit.receive.total",
+
+	MOLECULER_TRANSIT_REQUESTS_ACTIVE: "moleculer.transit.requests.active",
+	MOLECULER_TRANSIT_STREAMS_SEND_ACTIVE: "moleculer.transit.streams.send.active",
+	//MOLECULER_TRANSIT_STREAMS_RECEIVE_ACTIVE: "moleculer.transit.streams.receive.active",
 	MOLECULER_TRANSIT_READY: "moleculer.transit.ready", // true/false
 	MOLECULER_TRANSIT_CONNECTED: "moleculer.transit.connected", // true/false
 
 	MOLECULER_TRANSIT_PONG_TIME: "moleculer.transit.pong.time", // true/false
 	MOLECULER_TRANSIT_PONG_SYSTIME_DIFF: "moleculer.transit.pong.systime-diff", // true/false
 
+	MOLECULER_TRANSIT_ORPHAN_RESPONSE_TOTAL: "moleculer.transit.orphan.response.total",
+
+	// --- MOLECULER TRANSPORTER METRICS ---
+
+	MOLECULER_TRANSPORTER_PACKETS_SENT_TOTAL: "moleculer.transporter.packets.sent.total",
+	MOLECULER_TRANSPORTER_PACKETS_SENT_BYTES: "moleculer.transporter.packets.sent.bytes", // bytes
+	MOLECULER_TRANSPORTER_PACKETS_RECEIVED_TOTAL: "moleculer.transporter.packets.received.total",
+	MOLECULER_TRANSPORTER_PACKETS_RECEIVED_BYTES: "moleculer.transporter.packets.received.bytes", // bytes
+
 	// --- MOLECULER CIRCUIT BREAKER METRICS ---
 
-	MOLECULER_CIRCUIT_BREAKER_OPENED: "moleculer.circuit-breaker.opened",
-	MOLECULER_CIRCUIT_BREAKER_HALF_OPENED: "moleculer.circuit-breaker.half-opened",
+	MOLECULER_CIRCUIT_BREAKER_OPENED_ACTIVE: "moleculer.circuit-breaker.opened.active",
+	MOLECULER_CIRCUIT_BREAKER_OPENED_TOTAL: "moleculer.circuit-breaker.opened.total",
+	MOLECULER_CIRCUIT_BREAKER_HALF_OPENED_ACTIVE: "moleculer.circuit-breaker.half-opened.active",
 
 	// --- MOLECULER FALLBACK METRICS ---
 
-	MOLECULER_FALLBACK_TOTAL: "moleculer.fallback.total",
+	MOLECULER_REQUEST_FALLBACK_TOTAL: "moleculer.request.fallback.total",
+
+	// --- MOLECULER BULKHEAD METRICS ---
+
+	MOLECULER_REQUEST_BULKHEAD_INFLIGHT: "moleculer.request.bulkhead.inflight",
+
+	// --- MOLECULER RETRY METRICS ---
+
+	MOLECULER_REQUEST_RETRY_ATTEMPTS_TOTAL: "moleculer.request.retry.attempts.total",
+
+	// --- MOLECULER TIMEOUT METRICS ---
+
+	MOLECULER_REQUEST_TIMEOUT_TOTAL: "moleculer.request.timeout.total",
 
 	// --- MOLECULER CACHER METRICS ---
 
-	MOLECULER_CACHER_TYPE: "moleculer.cacher.type",
 	MOLECULER_CACHER_GET_TOTAL: "moleculer.cacher.get.total",
-	MOLECULER_CACHER_GET_DURATION: "moleculer.cacher.get.duration",
+	MOLECULER_CACHER_GET_TIME: "moleculer.cacher.get.time",
 	MOLECULER_CACHER_FOUND_TOTAL: "moleculer.cacher.found.total",
-	MOLECULER_CACHER_FOUND_DURATION: "moleculer.cacher.found.duration",
 	MOLECULER_CACHER_SET_TOTAL: "moleculer.cacher.set.total",
-	MOLECULER_CACHER_SET_DURATION: "moleculer.cacher.set.duration",
+	MOLECULER_CACHER_SET_TIME: "moleculer.cacher.set.time",
 	MOLECULER_CACHER_DEL_TOTAL: "moleculer.cacher.del.total",
-	MOLECULER_CACHER_DEL_DURATION: "moleculer.cacher.del.duration",
-	MOLECULER_CACHER_CLEAR_TOTAL: "moleculer.cacher.clear.total",
-	MOLECULER_CACHER_CLEAR_DURATION: "moleculer.cacher.clear.duration",
+	MOLECULER_CACHER_DEL_TIME: "moleculer.cacher.del.time",
+	MOLECULER_CACHER_CLEAN_TOTAL: "moleculer.cacher.clean.total",
+	MOLECULER_CACHER_CLEAN_TIME: "moleculer.cacher.clean.time",
+	MOLECULER_CACHER_EXPIRED_TOTAL: "moleculer.cacher.expired.total",
 
 
 	// --- COMMON UNITS ---

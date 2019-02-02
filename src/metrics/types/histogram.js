@@ -14,9 +14,9 @@ const sortAscending = (a, b) => a - b;
 
 class HistogramMetric extends BaseMetric {
 
-	constructor(opts) {
+	constructor(opts, registry) {
 		opts.type = METRIC.TYPE_HISTOGRAM;
-		super(opts);
+		super(opts, registry);
 
 		if (_.isPlainObject(opts.linearBuckets)) {
 			this.buckets = HistogramMetric.generateLinearBuckets(opts.linearBuckets.start, opts.linearBuckets.width, opts.linearBuckets.count);
@@ -25,7 +25,7 @@ class HistogramMetric extends BaseMetric {
 		} else if (Array.isArray(opts.buckets)) {
 			this.buckets = Array.from(opts.buckets);
 		} else if (opts.buckets === true) {
-			this.buckets = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10];
+			this.buckets = this.registry.opts.defaultBuckets;
 		}
 		if (this.buckets) {
 			this.buckets.sort(sortAscending);
@@ -34,12 +34,12 @@ class HistogramMetric extends BaseMetric {
 		if (Array.isArray(opts.quantiles)) {
 			this.quantiles = Array.from(opts.quantiles);
 		} else if (opts.quantiles === true) {
-			this.quantiles = [0.5, 0.9, 0.95, 0.99, 0.999];
+			this.quantiles = this.registry.opts.defaultQuantiles;
 		}
 		if (this.quantiles) {
 			this.quantiles.sort(sortAscending);
-			this.maxAgeSeconds = opts.maxAgeSeconds || 60; // 1 minute
-			this.ageBuckets = opts.ageBuckets || 10; // 10 secs per bucket
+			this.maxAgeSeconds = opts.maxAgeSeconds || this.registry.opts.defaultMaxAgeSeconds; // 1 minute
+			this.ageBuckets = opts.ageBuckets || this.registry.opts.defaultAgeBuckets; // 10 secs per bucket
 		}
 
 		this.clear();
@@ -102,8 +102,7 @@ class HistogramMetric extends BaseMetric {
 		}, {});
 	}
 
-	toString() {
-		const item = this.get();
+	toString(item) {
 		if (item) {
 			const s = [];
 			s.push(`Count: ${item.count}`);
@@ -118,13 +117,13 @@ class HistogramMetric extends BaseMetric {
 
 			if (this.quantiles) {
 				const res = item.quantileValues.snapshot();
-				s.push(`Min: ${res.min.toFixed(2)}`);
-				s.push(`Mean: ${res.mean.toFixed(2)}`);
-				s.push(`Var: ${res.variance.toFixed(2)}`);
-				s.push(`StdDev: ${res.stdDev.toFixed(2)}`);
-				s.push(`Max: ${res.max.toFixed(2)}`);
+				s.push(`Min: ${res.min != null ? res.min.toFixed(2) : "-"}`);
+				s.push(`Mean: ${res.mean != null ? res.mean.toFixed(2) : "-"}`);
+				s.push(`Var: ${res.variance != null ? res.variance.toFixed(2) : "-"}`);
+				s.push(`StdDev: ${res.stdDev != null ? res.stdDev.toFixed(2) : "-"}`);
+				s.push(`Max: ${res.max != null ? res.max.toFixed(2) : "-"}`);
 				this.quantiles.forEach((q, i) => {
-					s.push(`${q}: ${res.quantiles[i].toFixed(2)}`);
+					s.push(`${q}: ${res.quantiles && res.quantiles[i] != null ? res.quantiles[i].toFixed(2) : "-"}`);
 				});
 			}
 
@@ -188,9 +187,10 @@ class TimeWindowQuantiles {
 
 		samples.sort(sortAscending);
 
-		const mean = samples.reduce((a, b) => a + b, 0) / samples.length;
-		const variance = samples.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / (samples.length - 1);
-		const stdDev = Math.sqrt(variance);
+
+		const mean = samples.length ? samples.reduce((a, b) => a + b, 0) / samples.length : null;
+		const variance = samples.length > 1 ? samples.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / (samples.length - 1) : null;
+		const stdDev = variance ? Math.sqrt(variance) : null;
 
 		this.lastSnapshot = {
 			min: samples[0],

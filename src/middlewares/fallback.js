@@ -8,44 +8,58 @@
 
 const _ = require("lodash");
 const { MoleculerError } = require("../errors");
+const { METRIC }	= require("../metrics");
 
-function wrapFallbackMiddleware(handler, action) {
-	return function fallbackMiddleware(ctx) {
-		// Call the handler
-		return handler(ctx).catch(err => {
+module.exports = function FallbackMiddleware() {
+	let broker;
 
-			// Handle fallback response from calling options
-			if (ctx.options.fallbackResponse) {
-				this.logger.warn(`The '${ctx.action.name}' request is failed. Return fallback response.`, { requestID: ctx.requestID, err: err.message });
+	function wrapFallbackMiddleware(handler, action) {
+		return function fallbackMiddleware(ctx) {
+			// Call the handler
+			return handler(ctx).catch(err => {
 
-				if (_.isFunction(ctx.options.fallbackResponse))
-					return ctx.options.fallbackResponse(ctx, err);
-				else
-					return Promise.resolve(ctx.options.fallbackResponse);
-			}
+				// Handle fallback response from calling options
+				if (ctx.options.fallbackResponse) {
+					this.logger.warn(`The '${ctx.action.name}' request is failed. Return fallback response.`, { requestID: ctx.requestID, err: err.message });
+					broker.metrics.increment(METRIC.MOLECULER_REQUEST_FALLBACK_TOTAL, { action: action.name });
+					ctx.fallbackResult = true;
 
-			// Handle fallback from Action Definition (only locally)
-			if (action.fallback && action.service) {
-				const svc = action.service;
+					if (_.isFunction(ctx.options.fallbackResponse))
+						return ctx.options.fallbackResponse(ctx, err);
+					else
+						return Promise.resolve(ctx.options.fallbackResponse);
+				}
 
-				svc.logger.warn(`The '${ctx.action.name}' request is failed. Return fallback response.`, { requestID: ctx.requestID, err: err.message });
+				// Handle fallback from Action Definition (only locally)
+				if (action.fallback && action.service) {
+					const svc = action.service;
 
-				const fallback = _.isString(action.fallback) ? svc[action.fallback] : action.fallback;
-				if (_.isFunction(fallback)) {
+					const fallback = _.isString(action.fallback) ? svc[action.fallback] : action.fallback;
+					if (!_.isFunction(fallback)) {
+						/* istanbul ignore next */
+						throw new MoleculerError(`The 'fallback' of '${action.name}' action is not a Function or valid method name: ${action.fallback}`);
+					}
+
+					svc.logger.warn(`The '${ctx.action.name}' request is failed. Return fallback response.`, { requestID: ctx.requestID, err: err.message });
+					broker.metrics.increment(METRIC.MOLECULER_REQUEST_FALLBACK_TOTAL, { action: action.name });
+					ctx.fallbackResult = true;
+
 					return fallback.call(svc, ctx, err);
 				}
 
-				/* istanbul ignore next */
-				throw new MoleculerError(`The 'fallback' of '${action.name}' action is not a Function or valid method name: ${action.fallback}`);
-			}
-
-			return Promise.reject(err);
-		});
-	}.bind(this);
-}
-
-module.exports = function FallbackMiddleware() {
+				return Promise.reject(err);
+			});
+		}.bind(this);
+	}
 	return {
+		created(_broker) {
+			broker = _broker;
+
+			if (broker.isMetricsEnabled()) {
+				broker.metrics.register({ name: METRIC.MOLECULER_REQUEST_FALLBACK_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["action"] });
+			}
+		},
+
 		localAction: wrapFallbackMiddleware,
 		remoteAction: wrapFallbackMiddleware
 	};

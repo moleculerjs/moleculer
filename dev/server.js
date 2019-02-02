@@ -29,17 +29,32 @@ const broker = new ServiceBroker({
 
 	//trackContext: true,
 
-	metrics: true,
+	cacher: "Redis",
+
+	metrics: {
+		enabled: true,
+		reporter: {
+			type: "Console",
+			options: {
+				includes: "moleculer.request.**",
+				//excludes: ["moleculer.transit.publish.total", "moleculer.transit.receive.total"]
+			}
+		}
+		//defaultQuantiles: [0.1, 0.5, 0.9]
+	},
+	bulkhead: {
+		enabled: true
+	},
 
 	logger: console,
 	logLevel: "info",
 	logFormatter: "short",
 
 	middlewares: [
-		Middlewares.Transmit.Encryption("moleculer", "aes-256-cbc"),
-		Middlewares.Transmit.Compression(),
+		//Middlewares.Transmit.Encryption("moleculer", "aes-256-cbc"),
+		//Middlewares.Transmit.Compression(),
 		//Middlewares.Debugging.TransitLogger({ logPacketData: false, /*folder: null, colors: { send: "magenta", receive: "blue"}*/ }),
-		Middlewares.Debugging.ActionLogger({ logPacketData: false, /*folder: null, colors: { send: "magenta", receive: "blue"}*/ }),
+		//Middlewares.Debugging.ActionLogger({ logPacketData: false, /*folder: null, colors: { send: "magenta", receive: "blue"}*/ }),
 	]
 });
 
@@ -48,16 +63,19 @@ broker.createService({
 
 	actions: {
 		add: {
+			cache: {
+				keys: ["a", "b"],
+				ttl: 60
+			},
 			//fallback: (ctx, err) => ({ count: ctx.params.count, res: 999, fake: true }),
 			//fallback: "fakeResult",
 			handler(ctx) {
 				const wait = _.random(500, 1500);
-				this.logger.info(_.padEnd(`${ctx.params.count}. Add ${ctx.params.a} + ${ctx.params.b}`, 20), `(from: ${ctx.nodeID})`);
+				this.logger.info(_.padEnd(`${ctx.meta.count}. Add ${ctx.params.a} + ${ctx.params.b}`, 20), `(from: ${ctx.nodeID})`);
 				if (_.random(100) > 80)
 					return this.Promise.reject(new MoleculerRetryableError("Random error!", 510));
 
 				return this.Promise.resolve()./*delay(wait).*/then(() => ({
-					count: ctx.params.count,
 					res: Number(ctx.params.a) + Number(ctx.params.b)
 				}));
 			}
@@ -68,7 +86,6 @@ broker.createService({
 		fakeResult(ctx, err) {
 			//this.logger.info("fakeResult", err);
 			return {
-				count: ctx.params.count,
 				res: 999,
 				fake: true
 			};
@@ -108,6 +125,6 @@ broker.createService({
 broker.start()
 	.then(() => {
 		broker.repl();
-		//setInterval(() => broker.ping(), 10 * 1000);
+		setInterval(() => broker.ping(), 10 * 1000);
 		//setInterval(() => broker.broadcast("echo.broadcast"), 5 * 1000);
 	});

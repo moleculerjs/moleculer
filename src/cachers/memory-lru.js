@@ -11,6 +11,8 @@ const Promise 		= require("bluebird");
 const utils			= require("../utils");
 const BaseCacher  	= require("./base");
 const LRU 			= require("lru-cache");
+const { METRIC }	= require("../metrics");
+
 /**
  * Cacher factory for memory cache
  *
@@ -73,13 +75,20 @@ class MemoryLRUCacher extends BaseCacher {
 	 */
 	get(key) {
 		this.logger.debug(`GET ${key}`);
+		this.metrics.increment(METRIC.MOLECULER_CACHER_GET_TOTAL);
+		const timeEnd = this.metrics.timer(METRIC.MOLECULER_CACHER_GET_TIME);
 
 		if (this.cache.has(key)) {
 			this.logger.debug(`FOUND ${key}`);
+			this.metrics.increment(METRIC.MOLECULER_CACHER_FOUND_TOTAL);
 
 			let item = this.cache.get(key);
+			const res = this.clone ? this.clone(item) : item;
+			timeEnd();
 
-			return Promise.resolve(this.clone ? this.clone(item) : item);
+			return Promise.resolve(res);
+		} else {
+			timeEnd();
 		}
 		return Promise.resolve(null);
 	}
@@ -95,11 +104,17 @@ class MemoryLRUCacher extends BaseCacher {
 	 * @memberof MemoryLRUCacher
 	 */
 	set(key, data, ttl) {
+		this.metrics.increment(METRIC.MOLECULER_CACHER_SET_TOTAL);
+		const timeEnd = this.metrics.timer(METRIC.MOLECULER_CACHER_SET_TIME);
+
 		if (ttl == null)
 			ttl = this.opts.ttl;
 
 		this.cache.set(key, data, ttl ? ttl * 1000 : null);
+
+		timeEnd();
 		this.logger.debug(`SET ${key}`);
+
 		return Promise.resolve(data);
 	}
 
@@ -112,11 +127,16 @@ class MemoryLRUCacher extends BaseCacher {
 	 * @memberof MemoryLRUCacher
 	 */
 	del(keys) {
+		this.metrics.increment(METRIC.MOLECULER_CACHER_DEL_TOTAL);
+		const timeEnd = this.metrics.timer(METRIC.MOLECULER_CACHER_DEL_TIME);
+
 		keys = Array.isArray(keys) ? keys : [keys];
 		keys.forEach(key => {
 			this.cache.del(key);
 			this.logger.debug(`REMOVE ${key}`);
 		});
+		timeEnd();
+
 		return Promise.resolve();
 	}
 
@@ -128,6 +148,9 @@ class MemoryLRUCacher extends BaseCacher {
 	 * @memberof MemoryLRUCacher
 	 */
 	clean(match = "**") {
+		this.metrics.increment(METRIC.MOLECULER_CACHER_CLEAN_TOTAL);
+		const timeEnd = this.metrics.timer(METRIC.MOLECULER_CACHER_CLEAN_TIME);
+
 		const matches = Array.isArray(match) ? match : [match];
 		this.logger.debug(`CLEAN ${matches.join(", ")}`);
 
@@ -137,6 +160,7 @@ class MemoryLRUCacher extends BaseCacher {
 				this.cache.del(key);
 			}
 		});
+		timeEnd();
 
 		return Promise.resolve();
 	}

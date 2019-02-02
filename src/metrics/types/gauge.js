@@ -10,12 +10,19 @@ const { pick } = require("lodash");
 const BaseMetric = require("./base");
 const METRIC = require("../constants");
 
+/*
+	TODO:
+		- add EWMA rate
+			https://github.com/dropwizard/metrics/blob/4.1-development/metrics-core/src/main/java/com/codahale/metrics/EWMA.java
+			seconds based
+			rates: [1, 30, 60, 300] seconds like quantiles
+*/
 
 class GaugeMetric extends BaseMetric {
 
-	constructor(opts) {
+	constructor(opts, registry) {
 		opts.type = METRIC.TYPE_GAUGE;
-		super(opts);
+		super(opts, registry);
 		this.initialValue = opts.initialValue || 0;
 
 		this.clear();

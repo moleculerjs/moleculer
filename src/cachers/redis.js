@@ -6,8 +6,9 @@
 
 "use strict";
 
-const Promise = require("bluebird");
-const BaseCacher = require("./base");
+const Promise 		= require("bluebird");
+const BaseCacher 	= require("./base");
+const { METRIC }	= require("../metrics");
 
 /**
  * Cacher factory for Redis
@@ -91,15 +92,24 @@ class RedisCacher extends BaseCacher {
 	 */
 	get(key) {
 		this.logger.debug(`GET ${key}`);
+		this.metrics.increment(METRIC.MOLECULER_CACHER_GET_TOTAL);
+		const timeEnd = this.metrics.timer(METRIC.MOLECULER_CACHER_GET_TIME);
+
 		return this.client.get(this.prefix + key).then((data) => {
 			if (data) {
 				this.logger.debug(`FOUND ${key}`);
+				this.metrics.increment(METRIC.MOLECULER_CACHER_FOUND_TOTAL);
+
 				try {
-					return JSON.parse(data);
+					const res = JSON.parse(data);
+					timeEnd();
+
+					return res;
 				} catch (err) {
 					this.logger.error("Redis result parse error.", err, data);
 				}
 			}
+			timeEnd();
 			return null;
 		});
 	}
@@ -115,17 +125,31 @@ class RedisCacher extends BaseCacher {
 	 * @memberof Cacher
 	 */
 	set(key, data, ttl) {
+		this.metrics.increment(METRIC.MOLECULER_CACHER_SET_TOTAL);
+		const timeEnd = this.metrics.timer(METRIC.MOLECULER_CACHER_SET_TIME);
+
 		data = JSON.stringify(data);
 		this.logger.debug(`SET ${key}`);
 
 		if (ttl == null)
 			ttl = this.opts.ttl;
 
+		let p;
 		if (ttl) {
-			return this.client.setex(this.prefix + key, ttl, data);
+			p = this.client.setex(this.prefix + key, ttl, data);
 		} else {
-			return this.client.set(this.prefix + key, data);
+			p = this.client.set(this.prefix + key, data);
 		}
+
+		return p
+			.then(res => {
+				timeEnd();
+				return res;
+			})
+			.catch(err => {
+				timeEnd();
+				throw err;
+			});
 	}
 
 	/**
@@ -137,13 +161,22 @@ class RedisCacher extends BaseCacher {
 	 * @memberof Cacher
 	 */
 	del(deleteTargets) {
+		this.metrics.increment(METRIC.MOLECULER_CACHER_DEL_TOTAL);
+		const timeEnd = this.metrics.timer(METRIC.MOLECULER_CACHER_DEL_TIME);
+
 		deleteTargets = Array.isArray(deleteTargets) ? deleteTargets : [deleteTargets];
 		const keysToDelete = deleteTargets.map(key => this.prefix + key);
 		this.logger.debug(`DELETE ${keysToDelete}`);
-		return this.client.del(keysToDelete).catch(err => {
-			this.logger.error(`Redis 'del' error. Key: ${keysToDelete}`, err);
-			throw err;
-		});
+		return this.client.del(keysToDelete)
+			.then(res => {
+				timeEnd();
+				return res;
+			})
+			.catch(err => {
+				timeEnd();
+				this.logger.error(`Redis 'del' error. Key: ${keysToDelete}`, err);
+				throw err;
+			});
 	}
 
 	/**
@@ -157,11 +190,19 @@ class RedisCacher extends BaseCacher {
 	 * @memberof Cacher
 	 */
 	clean(match = "*") {
+		this.metrics.increment(METRIC.MOLECULER_CACHER_CLEAN_TOTAL);
+		const timeEnd = this.metrics.timer(METRIC.MOLECULER_CACHER_CLEAN_TIME);
+
 		const cleaningPatterns = Array.isArray(match) ? match : [match];
 		const normalizedPatterns = cleaningPatterns.map(match => this.prefix + match.replace(/\*\*/g, "*"));
 		this.logger.debug(`CLEAN ${match}`);
 		return this._sequentialPromises(normalizedPatterns)
+			.then(res => {
+				timeEnd();
+				return res;
+			})
 			.catch((err) => {
+				timeEnd();
 				this.logger.error(`Redis 'scanDel' error. Pattern: ${err.pattern}`, err);
 				throw err;
 			});

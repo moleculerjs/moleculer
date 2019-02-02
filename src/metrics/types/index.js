@@ -6,28 +6,40 @@
 
 "use strict";
 
-const METRIC = require("../constants");
+const _ = require("lodash");
+const { BrokerOptionsError } = require("../../errors");
 
-const BaseMetric = require("./base");
-const CounterMetric = require("./counter");
-const GaugeMetric = require("./gauge");
-const HistrogramMetric = require("./histogram");
-const InfoMetric = require("./info");
-
-module.exports = {
-	BaseMetric,
-	CounterMetric,
-	GaugeMetric,
-	HistrogramMetric,
-	InfoMetric,
-
-	getByType(type)	{
-		switch(type) {
-			case METRIC.TYPE_COUNTER: return CounterMetric;
-			case METRIC.TYPE_GAUGE: return GaugeMetric;
-			case METRIC.TYPE_HISTOGRAM: return HistrogramMetric;
-			case METRIC.TYPE_INFO: return InfoMetric;
-		}
-		return null;
-	}
+const Types = {
+	Base: require("./base"),
+	Counter: require("./counter"),
+	Gauge: require("./gauge"),
+	Histogram: require("./histogram"),
+	Info: require("./info"),
 };
+
+function getByName(name) {
+	/* istanbul ignore next */
+	if (!name)
+		return null;
+
+	let n = Object.keys(Types).find(n => n.toLowerCase() == name.toLowerCase());
+	if (n)
+		return Types[n];
+}
+
+/**
+ * Resolve metric type by name
+ *
+ * @param {string} type
+ * @returns {BaseMetric}
+ * @memberof ServiceBroker
+ */
+function resolve(type) {
+	const TypeClass = getByName(type);
+	if (!TypeClass)
+		throw new BrokerOptionsError(`Invalid metric type '${type}'.`, { type });
+
+	return TypeClass;
+}
+
+module.exports = Object.assign({ resolve }, Types);

@@ -358,24 +358,6 @@ class ServiceBroker {
 		this.metrics.register({ name: METRIC.MOLECULER_BROKER_STARTED, type: METRIC.TYPE_GAUGE }).set(0);
 		this.metrics.register({ name: METRIC.MOLECULER_BROKER_LOCAL_SERVICES_TOTAL, type: METRIC.TYPE_GAUGE }).set(0);
 		this.metrics.register({ name: METRIC.MOLECULER_BROKER_MIDDLEWARES_TOTAL, type: METRIC.TYPE_GAUGE }).set(0);
-
-		// --- MOLECULER REQUEST METRICS ---
-
-		this.metrics.register({ name: METRIC.MOLECULER_REQUEST_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["action"] });
-		this.metrics.register({ name: METRIC.MOLECULER_REQUEST_LOCAL_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["action"] });
-		this.metrics.register({ name: METRIC.MOLECULER_REQUEST_REMOTE_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["action"] });
-		this.metrics.register({ name: METRIC.MOLECULER_REQUEST_ERROR_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["action"] });
-		this.metrics.register({ name: METRIC.MOLECULER_REQUEST_DURATION, type: METRIC.TYPE_HISTOGRAM, labelNames: ["action"] });
-		this.metrics.register({ name: METRIC.MOLECULER_REQUEST_LEVELS, type: METRIC.TYPE_GAUGE, labelNames: ["action"] });
-		this.metrics.register({ name: METRIC.MOLECULER_REQUEST_OPRHAN_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["action"] });
-		this.metrics.register({ name: METRIC.MOLECULER_REQUEST_DIRECTCALL_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["action"] });
-		this.metrics.register({ name: METRIC.MOLECULER_REQUEST_MULTICALL_TOTAL, type: METRIC.TYPE_GAUGE });
-
-		// --- MOLECULER EVENTS METRICS ---
-
-		this.metrics.register({ name: METRIC.MOLECULER_EVENT_EMIT_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["event", "groups"] });
-		this.metrics.register({ name: METRIC.MOLECULER_EVENT_BROADCAST_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["event", "groups"] });
-		this.metrics.register({ name: METRIC.MOLECULER_EVENT_BROADCASTLOCAL_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["event", "groups"] });
 	}
 
 	/**
@@ -586,7 +568,7 @@ class ServiceBroker {
 	}
 
 	isMetricsEnabled() {
-		return this.MetricRegistry.isEnabled();
+		return this.metrics.isEnabled();
 	}
 
 	/**

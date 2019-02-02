@@ -15,6 +15,8 @@ const GaugeMetric = require("./types/gauge");
 const HistrogramMetric = require("./types/histogram");
 const InfoMetric = require("./types/info");
 
+const Reporters = require("./reporters");
+
 module.exports = {
 	METRIC: METRIC,
 
@@ -24,5 +26,7 @@ module.exports = {
 	CounterMetric,
 	GaugeMetric,
 	HistrogramMetric,
-	InfoMetric
+	InfoMetric,
+
+	Reporters
 };

@@ -6,12 +6,15 @@
 
 "use strict";
 
-const chalk = require("chalk");
 const Promise = require("bluebird");
 const _ = require("lodash");
 const METRIC = require("./constants");
 const Types = require("./types");
+const Reporters = require("./reporters");
 const { registerCommonMetrics, updateCommonMetrics } = require("./commons");
+
+const METRIC_NAME_REGEXP 	= /^[a-zA-Z_][a-zA-Z0-9-_:.]*$/;
+const METRIC_LABEL_REGEXP 	= /^[a-zA-Z_][a-zA-Z0-9-_.]*$/;
 
 /**
  * Metric Registry class
@@ -28,10 +31,18 @@ class MetricRegistry {
 		if (opts === true || opts === false)
 			opts = { enabled: opts };
 
-		this.opts = _.defaultsDeep({}, opts, {
+		this.opts = _.defaults({}, opts, {
 			enabled: true,
 			collectProcessMetrics: true,
 			collectInterval: 5 * 1000,
+
+			reporter: false,
+
+			defaultBuckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10],
+			defaultQuantiles: [0.5, 0.9, 0.95, 0.99, 0.999],
+			defaultMaxAgeSeconds: 60,
+			defaultAgeBuckets: 10,
+			defaultAggregator: "sum"
 		});
 
 		this.store = new Map();
@@ -47,6 +58,15 @@ class MetricRegistry {
 	 */
 	init() {
 		if (this.opts.enabled) {
+
+			// Create Reporter instance
+			// TODO: hanlde multiple reporters (Array)
+			if (_.isObject(this.opts.reporter)) {
+				this.reporter = Reporters.resolve(this.opts.reporter);
+				this.reporter.init(this);
+			}
+
+			// Start colllect timer
 			if (this.opts.collectProcessMetrics) {
 				this.collectTimer = setInterval(() => {
 					updateCommonMetrics.call(this);
@@ -78,19 +98,28 @@ class MetricRegistry {
 			throw new Error("Wrong argument. Must be an Object.");
 
 		if (!opts.type)
-			throw new Error("The 'type' property is mandatory");
+			throw new Error("The metric 'type' property is mandatory");
 
 		if (!opts.name)
-			throw new Error("The 'name' property is mandatory");
+			throw new Error("The metric 'name' property is mandatory");
 
-		const MetricClass = Types.getByType(opts.type);
-		if (!MetricClass)
-			throw new Error(`Invalid '${opts.type}' metric type`);
+		if (!METRIC_NAME_REGEXP.test(opts.name))
+			throw new Error("The metric 'name' is not valid: " + opts.name);
+
+		if (Array.isArray(opts.labelNames)) {
+			opts.labelNames.forEach(name => {
+				if (!METRIC_LABEL_REGEXP.test(name))
+					throw new Error(`The '${opts.name}' metric label name is not valid: ${name}`);
+
+			});
+		}
+
+		const MetricClass = Types.resolve(opts.type);
 
 		if (!this.opts.enabled)
 			return null;
 
-		const item = new MetricClass(opts);
+		const item = new MetricClass(opts, this);
 		this.store.set(opts.name, item);
 		return item;
 	}
@@ -121,7 +150,7 @@ class MetricRegistry {
 		return item.increment(labels, value, timestamp);
 	}
 
-	decrement(name, labels, value = -1, timestamp) {
+	decrement(name, labels, value = 1, timestamp) {
 		if (!this.opts.enabled)
 			return null;
 
@@ -206,43 +235,6 @@ class MetricRegistry {
 		};
 	}
 
-	debugPrint() {
-		const labelsToStr = labels => {
-			const keys = Object.keys(labels);
-			if (keys.length == 0)
-				return chalk.gray("{}");
-
-			return chalk.gray("{") + keys.map(key => `${chalk.gray(key)}: ${chalk.magenta(labels[key])}`).join(", ") + chalk.gray("}");
-		};
-		/* eslint-disable no-console */
-		const log = console.log;
-
-		log(chalk.gray("------------------- [ METRICS START ] -------------------"));
-
-		this.store.forEach(item => {
-			if (!item.name.startsWith("moleculer.")) return;
-			log("Name: " + chalk.cyan.bold(item.name) + " " + chalk.gray("(" + item.type + ")"));
-			const values = item.values;
-			values.forEach(valueItem => {
-				let val;
-				switch(item.type) {
-					case METRIC.TYPE_COUNTER:
-					case METRIC.TYPE_GAUGE:
-					case METRIC.TYPE_INFO:
-						val = valueItem.value === "" ? chalk.gray("<empty string>") : chalk.green.bold(valueItem.value);
-						break;
-					case METRIC.TYPE_HISTOGRAM:
-						val = chalk.green.bold(item.toString());
-						break;
-				}
-				log(`      ${labelsToStr(valueItem.labels)}: ${val} ${item.unit ? chalk.gray(item.unit) : ""}`);
-			});
-			log("");
-		});
-
-
-		log(chalk.gray("-------------------- [ METRICS END ] --------------------"));
-	}
 }
 
 module.exports = MetricRegistry;

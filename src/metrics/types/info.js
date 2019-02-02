@@ -12,9 +12,9 @@ const METRIC = require("../constants");
 
 class InfoMetric extends BaseMetric {
 
-	constructor(opts) {
+	constructor(opts, registry) {
 		opts.type = METRIC.TYPE_INFO;
-		super(opts);
+		super(opts, registry);
 		this.initialValue = null;
 
 		this.clear();

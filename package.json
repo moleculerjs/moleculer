@@ -10,7 +10,7 @@
     "demo": "node examples/index.js",
     "deps": "npm-check -u",
     "postdeps": "npm test",
-    "dev": "nodemon --inspect dev/index.js",
+    "dev": "nodemon dev/index.js",
     "lint": "eslint --ext=.js src test",
     "lint:fix": "eslint --fix --ext=.js src test",
     "perf": "nodemon --allow-natives-syntax benchmark/perf-runner.js",

@@ -9,13 +9,14 @@
 
 class BaseMetric {
 
-	constructor(opts) {
+	constructor(opts, registry) {
+		this.registry = registry;
 		this.type = opts.type;
 		this.name = opts.name;
 		this.description = opts.description;
 		this.labelNames = opts.labelNames || [];
 		this.unit = opts.unit;
-		this.aggregator = opts.aggregator || "sum";
+		this.aggregator = opts.aggregator || registry.opts.defaultAggregator;
 
 		this.values = new Map();
 	}
