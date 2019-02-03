@@ -11,13 +11,24 @@ const _ = require("lodash");
 const chalk = require("chalk");
 const METRIC = require("../constants");
 
-// https://www.dropwizard.io/1.0.0/docs/manual/configuration.html#polymorphic-configuration
+/**
+ * Console reporter for Moleculer Metrics
+ *
+ * @class ConsoleReporter
+ * @extends {BaseReporter}
+ */
 class ConsoleReporter extends BaseReporter {
 
+	/**
+	 * Creates an instance of ConsoleReporter.
+	 * @param {Object} opts
+	 * @memberof ConsoleReporter
+	 */
 	constructor(opts) {
 		super(opts);
 
 		this.opts = _.defaultsDeep(this.opts, {
+			interval: 5 * 1000,
 			logger: null
 		});
 
@@ -25,12 +36,24 @@ class ConsoleReporter extends BaseReporter {
 		this.logger = this.opts.logger || console.log;
 	}
 
+	/**
+	 * Initialize reporter
+	 * @param {MetricRegistry} registry
+	 * @memberof ConsoleReporter
+	 */
 	init(registry) {
 		super.init(registry);
 
 		setInterval(() => this.print(), this.opts.interval).unref();
 	}
 
+	/**
+	 * Convert labels to label string
+	 *
+	 * @param {Object} labels
+	 * @returns {String}
+	 * @memberof ConsoleReporter
+	 */
 	labelsToStr(labels) {
 		const keys = Object.keys(labels);
 		if (keys.length == 0)
@@ -39,6 +62,11 @@ class ConsoleReporter extends BaseReporter {
 		return chalk.gray("{") + keys.map(key => `${chalk.gray(this.formatLabelName(key))}: ${chalk.magenta(labels[key])}`).join(", ") + chalk.gray("}");
 	}
 
+	/**
+	 * Print metrics to the console.
+	 *
+	 * @memberof ConsoleReporter
+	 */
 	print() {
 		const store = this.registry.store;
 		this.logger(chalk.gray(`------------------- [ METRICS START (${store.size}) ] -------------------`));

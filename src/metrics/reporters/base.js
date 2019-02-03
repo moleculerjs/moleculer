@@ -9,12 +9,21 @@
 const _ = require("lodash");
 const { match } = require("../../utils");
 
+/**
+ * Metric reporter base class.
+ *
+ * @class BaseReporter
+ */
 class BaseReporter {
 
+	/**
+	 * Creates an instance of BaseReporter.
+	 *
+	 * @param {Object} opts
+	 * @memberof BaseReporter
+	 */
 	constructor(opts) {
 		this.opts = _.defaultsDeep(opts, {
-			interval: 5 * 1000,
-
 			includes: null,
 			excludes: null,
 
@@ -23,8 +32,6 @@ class BaseReporter {
 
 			metricNameFormatter: null,
 			labelNameFormatter: null,
-
-
 		});
 
 		if (_.isString(this.opts.includes))
@@ -34,11 +41,24 @@ class BaseReporter {
 			this.opts.excludes = [this.opts.excludes];
 	}
 
+	/**
+	 * Initialize reporter
+	 *
+	 * @param {MetricRegistry} registry
+	 * @memberof BaseReporter
+	 */
 	init(registry) {
 		this.registry = registry;
 		this.broker = this.registry.broker;
 	}
 
+	/**
+	 * Match the metric name. Check the `includes` & `excludes` patterns.
+	 *
+	 * @param {String} name
+	 * @returns {boolean}
+	 * @memberof BaseReporter
+	 */
 	matchMetricName(name) {
 		if (Array.isArray(this.opts.includes)) {
 			if (!this.opts.includes.some(pattern => match(name, pattern)))
@@ -53,6 +73,13 @@ class BaseReporter {
 		return true;
 	}
 
+	/**
+	 * Format metric name. Add prefix, suffix and call custom formatter.
+	 *
+	 * @param {String} name
+	 * @returns {String}
+	 * @memberof BaseReporter
+	 */
 	formatMetricName(name) {
 		name = (this.opts.metricNamePrefix ? this.opts.metricNamePrefix : "") + name + (this.opts.metricNameSuffix ? this.opts.metricNameSuffix : "");
 		if (this.opts.metricNameFormatter)
@@ -60,6 +87,13 @@ class BaseReporter {
 		return name;
 	}
 
+	/**
+	 * Format label name. Call custom formatter.
+	 *
+	 * @param {String} name
+	 * @returns {String}
+	 * @memberof BaseReporter
+	 */
 	formatLabelName(name) {
 		if (this.opts.labelNameFormatter)
 			return this.opts.labelNameFormatter(name);

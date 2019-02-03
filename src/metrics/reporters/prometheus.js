@@ -9,16 +9,40 @@
 const BaseReporter = require("./base");
 const _ = require("lodash");
 const http = require("http");
+const zlib = require("zlib");
 const { MoleculerError } = require("../../errors");
 const METRIC = require("../constants");
 
 /**
- * TODO:
- * 	- add gzip https://prometheus.io/docs/instrumenting/exposition_formats/#basic-info
+ * Prometheus reporter for Moleculer.
+ *
+ * 		https://prometheus.io/
+ *
+ * Running Prometheus & Grafana in Docker:
+ *
+ * 		git clone https://github.com/vegasbrianc/prometheus.git
+ * 		cd prometheus
+ *
+ * 	Please note, don't forget add your endpoint to static targets in prometheus/prometheus.yml file.
+ *  The default port is 3030.
+ *
+ *     static_configs:
+ *       - targets: ['localhost:9090', 'moleculer-hostname:3030']
+ *
+ *  Start containers:
+ *
+ * 		docker-compose up -d
+ *
+ * Grafana dashboard: http://<docker-ip>:3000
+ *
  */
-
 class PrometheusReporter extends BaseReporter {
 
+	/**
+	 * Constructor of PrometheusReporters
+	 * @param {Object} opts
+	 * @memberof PrometheusReporter
+	 */
 	constructor(opts) {
 		super(opts);
 
@@ -32,6 +56,11 @@ class PrometheusReporter extends BaseReporter {
 		});
 	}
 
+	/**
+	 * Initialize reporter
+	 * @param {MetricRegistry} registry
+	 * @memberof PrometheusReporter
+	 */
 	init(registry) {
 		super.init(registry);
 
@@ -47,22 +76,47 @@ class PrometheusReporter extends BaseReporter {
 	}
 
 	/**
+	 * HTTP request handler. Support GZip compressing.
 	 *
 	 * @param {IncomingMessage} req
 	 * @param {ServerResponse} res
+	 * @memberof PrometheusReporter
 	 */
 	handler(req, res) {
 		if (req.url == this.opts.path) {
-			res.writeHead(200, {
+			const resHeader = {
 				"Content-Type": "text/plain; version=0.0.4; charset=utf-8"
-			});
+			};
 
-			return res.end(this.generatePrometheusResponse());
+			const content = this.generatePrometheusResponse();
+			const compressing = req.headers["accept-encoding"] && req.headers["accept-encoding"].includes("gzip");
+			if (compressing) {
+				resHeader["Content-Encoding"] = "gzip";
+				zlib.gzip(content, (err, buffer) => {
+					if (err) {
+						this.registry.logger("Unable to compress response: " + err.message);
+						res.writeHead(500);
+						res.end(err.message);
+					} else {
+						res.writeHead(200, resHeader);
+						res.end(buffer);
+					}
+				});
+			} else {
+				res.writeHead(200, resHeader);
+				res.end(content);
+			}
+		} else {
+			res.writeHead(404, http.STATUS_CODES[404], {});
+			res.end();
 		}
-		res.writeHead(404, http.STATUS_CODES[404]);
-		res.end();
 	}
 
+	/**
+	 * Generate Prometheus response.
+	 * @returns {String}
+	 * @memberof PrometheusReporter
+	 */
 	generatePrometheusResponse() {
 		const content = [];
 
@@ -148,12 +202,26 @@ class PrometheusReporter extends BaseReporter {
 		return content.join("\n");
 	}
 
+	/**
+	 * Escape label value characters.
+	 * @param {String} str
+	 * @returns {String}
+	 * @memberof PrometheusReporter
+	 */
 	escapeLabelValue(str) {
 		if (typeof str == "string")
 			return str.replace(/\\/g, "\\\\").replace(/"/g, "\\\"");
 		return str;
 	}
 
+	/**
+	 * Convert labels to Prometheus label string
+	 *
+	 * @param {Object} itemLabels
+	 * @param {Object?} extraLabels
+	 * @returns {String}
+	 * @memberof PrometheusReporter
+	 */
 	labelsToStr(itemLabels, extraLabels) {
 		const labels = Object.assign({}, this.defaultLabels || {}, itemLabels || {}, extraLabels || {});
 		const keys = Object.keys(labels);

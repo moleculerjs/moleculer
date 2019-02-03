@@ -17,6 +17,12 @@ const Types = {
 	Info: require("./info"),
 };
 
+/**
+ * Get MetricType class by name.
+ *
+ * @param {String} name
+ * @returns
+ */
 function getByName(name) {
 	/* istanbul ignore next */
 	if (!name)

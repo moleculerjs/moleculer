@@ -22,7 +22,11 @@ const METRIC_LABEL_REGEXP 	= /^[a-zA-Z_][a-zA-Z0-9-_.]*$/;
 class MetricRegistry {
 
 	/**
-	 * Constructor of MetricRegistry
+	 *Creates an instance of MetricRegistry.
+
+	 * @param {ServiceBroker} broker
+	 * @param {Object} opts
+	 * @memberof MetricRegistry
 	 */
 	constructor(broker, opts) {
 		this.broker = broker;
@@ -55,16 +59,26 @@ class MetricRegistry {
 			this.logger.info("Metrics: Disabled");
 	}
 
+	/**
+	 * Set dirty flag.
+	 *
+	 * @memberof MetricRegistry
+	 */
 	setDirty() {
 		this.dirty = true;
 	}
 
+	/**
+	 * Clear dirty flag.
+	 *
+	 * @memberof MetricRegistry
+	 */
 	clearDirty() {
 		this.dirty = false;
 	}
 
 	/**
-	 * Start Metric Registry
+	 * Initialize Registry.
 	 */
 	init() {
 		if (this.opts.enabled) {
@@ -103,10 +117,23 @@ class MetricRegistry {
 			clearInterval(this.collectTimer);
 	}
 
+	/**
+	 * Check metric is enabled?
+	 *
+	 * @returns
+	 * @memberof MetricRegistry
+	 */
 	isEnabled() {
 		return this.opts.enabled;
 	}
 
+	/**
+	 * Register a new metric.
+	 *
+	 * @param {Object} opts
+	 * @returns {BaseMetric}
+	 * @memberof MetricRegistry
+	 */
 	register(opts) {
 		if (!_.isPlainObject(opts))
 			throw new Error("Wrong argument. Must be an Object.");
@@ -138,10 +165,24 @@ class MetricRegistry {
 		return item;
 	}
 
+	/**
+	 * Check a metric by name.
+	 *
+	 * @param {String} name
+	 * @returns {Boolean}
+	 * @memberof MetricRegistry
+	 */
 	hasMetric(name) {
 		return this.store.has(name);
 	}
 
+	/**
+	 * Get metric by name
+	 *
+	 * @param {String} name
+	 * @returns {BaseMetric}
+	 * @memberof MetricRegistry
+	 */
 	getMetric(name) {
 		if (!this.opts.enabled)
 			return null;
@@ -153,6 +194,16 @@ class MetricRegistry {
 		return item;
 	}
 
+	/**
+	 * Increment a metric value.
+	 *
+	 * @param {String} name
+	 * @param {Object?} labels
+	 * @param {number} [value=1]
+	 * @param {Number?} timestamp
+	 * @returns
+	 * @memberof MetricRegistry
+	 */
 	increment(name, labels, value = 1, timestamp) {
 		if (!this.opts.enabled)
 			return null;
@@ -164,6 +215,16 @@ class MetricRegistry {
 		return item.increment(labels, value, timestamp);
 	}
 
+	/**
+	 * Decrement a metric value.
+	 *
+	 * @param {String} name
+	 * @param {Object?} labels
+	 * @param {number} [value=1]
+	 * @param {Number?} timestamp
+	 * @returns
+	 * @memberof MetricRegistry
+	 */
 	decrement(name, labels, value = 1, timestamp) {
 		if (!this.opts.enabled)
 			return null;
@@ -175,6 +236,16 @@ class MetricRegistry {
 		return item.decrement(labels, value, timestamp);
 	}
 
+	/**
+	 * Set a metric value.
+	 *
+	 * @param {String} name
+	 * @param {*} value
+	 * @param {Object?} labels
+	 * @param {Number?} timestamp
+	 * @returns
+	 * @memberof MetricRegistry
+	 */
 	set(name, value, labels, timestamp) {
 		if (!this.opts.enabled)
 			return null;
@@ -186,6 +257,16 @@ class MetricRegistry {
 		return item.set(value, labels, timestamp);
 	}
 
+	/**
+	 * Observe a metric.
+	 *
+	 * @param {String} name
+	 * @param {Number} value
+	 * @param {Object?} labels
+	 * @param {Number?} timestamp
+	 * @returns
+	 * @memberof MetricRegistry
+	 */
 	observe(name, value, labels, timestamp) {
 		if (!this.opts.enabled)
 			return null;
@@ -197,14 +278,24 @@ class MetricRegistry {
 		return item.observe(value, labels, timestamp);
 	}
 
+	/*
 	get(name, labels) {
 		if (!this.opts.enabled)
 			return null;
 
 		const item = this.getMetric(name);
 		return item.get(labels);
-	}
+	}*/
 
+	/**
+	 * Reset metric values.
+	 *
+	 * @param {String} name
+	 * @param {Object?} labels
+	 * @param {Number?} timestamp
+	 * @returns
+	 * @memberof MetricRegistry
+	 */
 	reset(name, labels, timestamp) {
 		if (!this.opts.enabled)
 			return null;
@@ -213,6 +304,14 @@ class MetricRegistry {
 		item.reset(labels, timestamp);
 	}
 
+	/**
+	 * Reset metric all values.
+	 *
+	 * @param {String} name
+	 * @param {Number?} timestamp
+	 * @returns
+	 * @memberof MetricRegistry
+	 */
 	resetAll(name, timestamp) {
 		if (!this.opts.enabled)
 			return null;
@@ -225,6 +324,15 @@ class MetricRegistry {
 		item.resetAll(timestamp);
 	}
 
+	/**
+	 * Start a time & observe the elapsed time.
+	 *
+	 * @param {String} name
+	 * @param {Object?} labels
+	 * @param {Number?} timestamp
+	 * @returns {Function} `end`˙function.
+	 * @memberof MetricRegistry
+	 */
 	timer(name, labels, timestamp) {
 		let item;
 		if (name && this.opts.enabled) {

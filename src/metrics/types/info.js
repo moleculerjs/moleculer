@@ -10,8 +10,20 @@ const { pick } = require("lodash");
 const BaseMetric = require("./base");
 const METRIC = require("../constants");
 
+/**
+ * Information metric.
+ *
+ * @class InfoMetric
+ * @extends {BaseMetric}
+ */
 class InfoMetric extends BaseMetric {
 
+	/**
+	 * Creates an instance of InfoMetric.
+	 * @param {Object} opts
+	 * @param {MetricRegistry} registry
+	 * @memberof InfoMetric
+	 */
 	constructor(opts, registry) {
 		super(opts, registry);
 		this.type = METRIC.TYPE_INFO;
@@ -19,6 +31,15 @@ class InfoMetric extends BaseMetric {
 		this.clear();
 	}
 
+	/**
+	 * Set value.
+	 *
+	 * @param {*} value
+	 * @param {Object?} labels
+	 * @param {Number?} timestamp
+	 * @returns
+	 * @memberof InfoMetric
+	 */
 	set(value, labels, timestamp) {
 		const hash = this.hashingLabels(labels);
 		let item = this.values.get(hash);
@@ -38,10 +59,24 @@ class InfoMetric extends BaseMetric {
 		return item;
 	}
 
+	/**
+	 * Reset item by labels.
+	 *
+	 * @param {Object} labels
+	 * @param {Number?} timestamp
+	 * @returns
+	 * @memberof InfoMetric
+	 */
 	reset(labels, timestamp) {
 		return this.set(null, labels, timestamp);
 	}
 
+	/**
+	 * Reset all items.
+	 *
+	 * @param {Number?} timestamp
+	 * @memberof InfoMetric
+	 */
 	resetAll(timestamp) {
 		Object.keys(this.values).forEach(hash => {
 			this.values[hash].value = null;
@@ -50,8 +85,13 @@ class InfoMetric extends BaseMetric {
 		this.setDirty();
 	}
 
+	/**
+	 * Generate a snapshot.
+	 *
+	 * @returns {Array<Object>}
+	 * @memberof InfoMetric
+	 */
 	generateSnapshot() {
-
 		const snapshot = Array.from(this.values.values()).map(item => {
 			return {
 				value: item.value,

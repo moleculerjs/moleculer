@@ -13,24 +13,30 @@ const cpuUsage = require("../cpu-usage");
 
 let v8, gc, eventLoop;
 
+// Load `v8` module for heap metrics.
 try {
 	v8 = require("v8");
 } catch (e) {
 	// silent
 }
 
+// Load `gc-stats` module for GC metrics.
 try {
 	gc = (require("gc-stats"))();
 } catch (e) {
 	// silent
 }
 
+// Load `event-loop-stats` metric for Event-loop metrics.
 try {
 	eventLoop = require("event-loop-stats");
 } catch (e) {
 	// silent
 }
 
+/**
+ * Register common OS, process & Moleculer metrics.
+ */
 function registerCommonMetrics() {
 	this.logger.debug("Registering common metrics...");
 
@@ -129,6 +135,10 @@ function registerCommonMetrics() {
 	startGCWatcher.call(this);
 }
 
+/**
+ * Start GC watcher listener.
+ *
+ */
 function startGCWatcher() {
 	if (gc) {
 		gc.on("stats", stats => {
@@ -152,6 +162,11 @@ function startGCWatcher() {
 	}
 }
 
+/**
+ * Update common metric values.
+ *
+ * @returns {Promise}
+ */
 function updateCommonMetrics() {
 	this.logger.debug("Update common metric values...");
 	const end = this.timer(METRIC.MOLECULER_METRICS_COMMON_COLLECT_TIME);
@@ -266,6 +281,11 @@ function updateCommonMetrics() {
 		});
 }
 
+/**
+ * Get OS user info (safe-mode)
+ *
+ * @returns
+ */
 function getUserInfo() {
 	try {
 		return os.userInfo();
@@ -274,6 +294,11 @@ function getUserInfo() {
 	}
 }
 
+/**
+ * Measure event loop lag.
+ *
+ * @returns {Promise<Number>}
+ */
 function measureEventLoopLag() {
 	return new Promise(resolve => {
 		const start = process.hrtime();

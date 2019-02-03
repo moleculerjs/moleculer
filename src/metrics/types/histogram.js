@@ -16,8 +16,20 @@ const setProp = (o, k, v) => {
 	return o;
 };
 
+/**
+ * Histogram metric class.
+ *
+ * @class HistogramMetric
+ * @extends {BaseMetric}
+ */
 class HistogramMetric extends BaseMetric {
 
+	/**
+	 * Creates an instance of HistogramMetric.
+	 * @param {Object} opts
+	 * @param {MetricRegistry} registry
+	 * @memberof HistogramMetric
+	 */
 	constructor(opts, registry) {
 		super(opts, registry);
 		this.type = METRIC.TYPE_HISTOGRAM;
@@ -51,6 +63,15 @@ class HistogramMetric extends BaseMetric {
 		this.clear();
 	}
 
+	/**
+	 * Observe a value.
+	 *
+	 * @param {Number} value
+	 * @param {Object?} labels
+	 * @param {Number?} timestamp
+	 * @returns
+	 * @memberof HistogramMetric
+	 */
 	observe(value, labels, timestamp) {
 		const hash = this.hashingLabels(labels);
 		let item = this.values.get(hash);
@@ -82,7 +103,6 @@ class HistogramMetric extends BaseMetric {
 			for (let i = 0; i < len; i++) {
 				if (value <= this.buckets[i]) {
 					item.bucketValues[this.buckets[i]] += 1;
-					// break;
 				}
 			}
 		}
@@ -95,15 +115,33 @@ class HistogramMetric extends BaseMetric {
 		return item;
 	}
 
+	/**
+	 * Create new bucket values based on options.
+	 *
+	 * @returns {Object}
+	 * @memberof HistogramMetric
+	 */
 	createBucketValues() {
 		return this.buckets.reduce((a, bound) => setProp(a, bound, 0), {});
 	}
 
+	/**
+	 * Generate a snapshot
+	 *
+	 * @returns {Array<Object>}
+	 * @memberof HistogramMetric
+	 */
 	generateSnapshot() {
-		const snapshot = Array.from(this.values.values()).map(item => this.generateItemSnapshot(item));
-		return snapshot;
+		return Array.from(this.values.values()).map(item => this.generateItemSnapshot(item));
 	}
 
+	/**
+	 * Generate a snapshot for an item
+	 *
+	 * @param {Object} item
+	 * @returns {Object}
+	 * @memberof HistogramMetric
+	 */
 	generateItemSnapshot(item) {
 		if (!this.dirty && this.lastSnapshot)
 			return this.lastSnapshot;
@@ -124,10 +162,24 @@ class HistogramMetric extends BaseMetric {
 		return snapshot;
 	}
 
+	/**
+	 * Reset item by labels.
+	 *
+	 * @param {Object} labels
+	 * @param {Number?} timestamp
+	 * @returns
+	 * @memberof HistogramMetric
+	 */
 	reset(labels, timestamp) {
 		return this.set(null, labels, timestamp);
 	}
 
+	/**
+	 * Reset all items.
+	 *
+	 * @param {Number?} timestamp
+	 * @memberof HistogramMetric
+	 */
 	resetAll(timestamp) {
 		Object.keys(this.values).forEach(hash => {
 			this.values[hash].value = null;
@@ -136,6 +188,16 @@ class HistogramMetric extends BaseMetric {
 		this.setDirty();
 	}
 
+	/**
+	 * Generate linear buckets
+	 *
+	 * @static
+	 * @param {Number} start
+	 * @param {Number} width
+	 * @param {Number} count
+	 * @returns {Array<Number>}
+	 * @memberof HistogramMetric
+	 */
 	static generateLinearBuckets(start, width, count) {
 		const buckets = [];
 		for (let i = 0; i < count; i++)
@@ -144,6 +206,16 @@ class HistogramMetric extends BaseMetric {
 		return buckets;
 	}
 
+	/**
+	 * Generate exponential buckets
+	 *
+	 * @static
+	 * @param {Number} start
+	 * @param {Number} factor
+	 * @param {Number} count
+	 * @returns {Array<Number>}
+	 * @memberof HistogramMetric
+	 */
 	static generateExponentialBuckets(start, factor, count) {
 		const buckets = [];
 		for (let i = 0; i < count; i++)
@@ -153,7 +225,21 @@ class HistogramMetric extends BaseMetric {
 	}
 }
 
+/**
+ * Timewindow class for quantiles.
+ *
+ * @class TimeWindowQuantiles
+ */
 class TimeWindowQuantiles {
+
+	/**
+	 * Creates an instance of TimeWindowQuantiles.
+	 * @param {BaseMetric} metric
+	 * @param {Array<Number>} quantiles
+	 * @param {Number} maxAgeSeconds
+	 * @param {Number} ageBuckets
+	 * @memberof TimeWindowQuantiles
+	 */
 	constructor(metric, quantiles, maxAgeSeconds, ageBuckets) {
 		this.metric = metric;
 		this.quantiles = Array.from(quantiles);
@@ -172,15 +258,30 @@ class TimeWindowQuantiles {
 		this.setDirty();
 	}
 
+	/**
+	 * Set dirty flag.
+	 *
+	 * @memberof TimeWindowQuantiles
+	 */
 	setDirty() {
 		this.dirty = true;
 		this.metric.setDirty();
 	}
 
+	/**
+	 * Clear dirty flag.
+	 *
+	 * @memberof TimeWindowQuantiles
+	 */
 	clearDirty() {
 		this.dirty = false;
 	}
 
+	/**
+	 * Rotate the ring buckets.
+	 *
+	 * @memberof TimeWindowQuantiles
+	 */
 	rotate() {
 		this.currentBucket = (this.currentBucket + 1) % this.ageBuckets;
 		this.ringBuckets[this.currentBucket].clear();
@@ -189,11 +290,23 @@ class TimeWindowQuantiles {
 		setTimeout(() => this.rotate(), (this.maxAgeSeconds / this.ageBuckets) * 1000);
 	}
 
+	/**
+	 * Add a new value to the current bucket.
+	 *
+	 * @param {Number} value
+	 * @memberof TimeWindowQuantiles
+	 */
 	add(value) {
 		this.setDirty();
 		this.ringBuckets[this.currentBucket].add(value);
 	}
 
+	/**
+	 * Generate a snapshot from buckets and calculate min, max, mean, quantiles, variance & StdDev.
+	 *
+	 * @returns {Object}
+	 * @memberof TimeWindowQuantiles
+	 */
 	snapshot() {
 		if (!this.dirty && this.lastSnapshot)
 			return this.lastSnapshot;
@@ -220,17 +333,37 @@ class TimeWindowQuantiles {
 	}
 }
 
+/**
+ * Bucket class
+ *
+ * @class Bucket
+ */
 class Bucket {
+	/**
+	 * Creates an instance of Bucket.
+	 * @memberof Bucket
+	 */
 	constructor() {
 		this.count = 0;
 		this.samples = [];
 	}
 
+	/**
+	 * Add value to the bucket.
+	 *
+	 * @param {Number} value
+	 * @memberof Bucket
+	 */
 	add(value) {
 		this.samples.push(value);
 		this.count++;
 	}
 
+	/**
+	 * Clear bucket.
+	 *
+	 * @memberof Bucket
+	 */
 	clear() {
 		this.count = 0;
 		this.samples.length = 0;
