@@ -17,8 +17,14 @@ class BaseReporter {
 
 			includes: null,
 			excludes: null,
-			metricNameFormatter: null, // TODO
-			labelNameFormatter: null // TODO
+
+			metricNamePrefix: null,
+			metricNameSuffix: null,
+
+			metricNameFormatter: null,
+			labelNameFormatter: null,
+
+
 		});
 
 		if (_.isString(this.opts.includes))
@@ -45,6 +51,19 @@ class BaseReporter {
 		}
 
 		return true;
+	}
+
+	formatMetricName(name) {
+		name = (this.opts.metricNamePrefix ? this.opts.metricNamePrefix : "") + name + (this.opts.metricNameSuffix ? this.opts.metricNameSuffix : "");
+		if (this.opts.metricNameFormatter)
+			return this.opts.metricNameFormatter(name);
+		return name;
+	}
+
+	formatLabelName(name) {
+		if (this.opts.labelNameFormatter)
+			return this.opts.labelNameFormatter(name);
+		return name;
 	}
 }
 

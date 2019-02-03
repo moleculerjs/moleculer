@@ -31,7 +31,25 @@ const broker = new ServiceBroker({
 
 	cacher: true,
 
-	metrics: true,
+	metrics: {
+		enabled: true,
+		reporter: [
+			/*{
+				type: "Console",
+				options: {
+					includes: "moleculer.request.**",
+					//excludes: ["moleculer.transit.publish.total", "moleculer.transit.receive.total"]
+				}
+			},*/
+			{
+				type: "Prometheus",
+				options: {
+					port: 3031
+				}
+			}
+		]
+	},
+
 
 	transit: {
 		//maxQueueSize: 10
@@ -42,7 +60,7 @@ const broker = new ServiceBroker({
 	},
 
 	retryPolicy: {
-		enabled: true,
+		enabled: false,
 		retries: 3
 	},
 

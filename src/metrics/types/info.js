@@ -13,13 +13,11 @@ const METRIC = require("../constants");
 class InfoMetric extends BaseMetric {
 
 	constructor(opts, registry) {
-		opts.type = METRIC.TYPE_INFO;
 		super(opts, registry);
-		this.initialValue = null;
+		this.type = METRIC.TYPE_INFO;
 
 		this.clear();
 	}
-
 
 	set(value, labels, timestamp) {
 		const hash = this.hashingLabels(labels);
@@ -35,19 +33,34 @@ class InfoMetric extends BaseMetric {
 			};
 			this.values.set(hash, item);
 		}
+		this.setDirty();
 
 		return item;
 	}
 
 	reset(labels, timestamp) {
-		return this.set(this.initialValue, labels, timestamp);
+		return this.set(null, labels, timestamp);
 	}
 
 	resetAll(timestamp) {
 		Object.keys(this.values).forEach(hash => {
-			this.values[hash].value = this.initialValue;
+			this.values[hash].value = null;
 			this.values[hash].timestamp = timestamp == null ? Date.now() : timestamp;
 		});
+		this.setDirty();
+	}
+
+	generateSnapshot() {
+
+		const snapshot = Array.from(this.values.values()).map(item => {
+			return {
+				value: item.value,
+				labels: item.labels,
+				timestamp: item.timestamp
+			};
+		});
+
+		return snapshot;
 	}
 }
 

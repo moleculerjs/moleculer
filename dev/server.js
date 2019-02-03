@@ -33,14 +33,19 @@ const broker = new ServiceBroker({
 
 	metrics: {
 		enabled: true,
-		reporter: {
-			type: "Console",
-			options: {
-				includes: "moleculer.request.**",
-				//excludes: ["moleculer.transit.publish.total", "moleculer.transit.receive.total"]
+		reporter: [
+			/*{
+				type: "Console",
+				options: {
+					includes: "moleculer.request.**",
+					//excludes: ["moleculer.transit.publish.total", "moleculer.transit.receive.total"]
+				}
+			},*/
+			{
+				type: "Prometheus",
+				options: {}
 			}
-		}
-		//defaultQuantiles: [0.1, 0.5, 0.9]
+		]
 	},
 	bulkhead: {
 		enabled: true
@@ -73,7 +78,7 @@ broker.createService({
 				const wait = _.random(500, 1500);
 				this.logger.info(_.padEnd(`${ctx.meta.count}. Add ${ctx.params.a} + ${ctx.params.b}`, 20), `(from: ${ctx.nodeID})`);
 				if (_.random(100) > 80)
-					return this.Promise.reject(new MoleculerRetryableError("Random error!", 510));
+					return this.Promise.reject(new MoleculerRetryableError("Random error!", 510, "RANDOM_ERROR"));
 
 				return this.Promise.resolve()./*delay(wait).*/then(() => ({
 					res: Number(ctx.params.a) + Number(ctx.params.b)

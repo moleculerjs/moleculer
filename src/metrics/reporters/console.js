@@ -36,43 +36,65 @@ class ConsoleReporter extends BaseReporter {
 		if (keys.length == 0)
 			return chalk.gray("{}");
 
-		return chalk.gray("{") + keys.map(key => `${chalk.gray(key)}: ${chalk.magenta(labels[key])}`).join(", ") + chalk.gray("}");
+		return chalk.gray("{") + keys.map(key => `${chalk.gray(this.formatLabelName(key))}: ${chalk.magenta(labels[key])}`).join(", ") + chalk.gray("}");
 	}
 
 	print() {
 		const store = this.registry.store;
 		this.logger(chalk.gray(`------------------- [ METRICS START (${store.size}) ] -------------------`));
 
-		store.forEach(item => {
-			if (!this.matchMetricName(item.name)) return;
+		store.forEach(metric => {
+			if (!this.matchMetricName(metric.name)) return;
 
-			this.logger(chalk.cyan.bold(item.name) + " " + chalk.gray("(" + item.type + ")"));
-			const values = item.values;
-			if (values.size == 0) {
+			this.logger(chalk.cyan.bold(this.formatMetricName(metric.name)) + " " + chalk.gray("(" + metric.type + ")"));
+			const snapshot = metric.snapshot();
+			if (snapshot.size == 0) {
 				this.logger(chalk.gray("  <no values>"));
 			} else {
-				values.forEach(valueItem => {
+				const unit = metric.unit ? chalk.gray(metric.unit) : "";
+				snapshot.forEach(item => {
 					let val;
-					switch(item.type) {
+					const labelStr = this.labelsToStr(item.labels);
+					switch(metric.type) {
 						case METRIC.TYPE_COUNTER:
 						case METRIC.TYPE_GAUGE:
 						case METRIC.TYPE_INFO:
-							val = valueItem.value === "" ? chalk.gray("<empty string>") : chalk.green.bold(valueItem.value);
+							val = item.value === "" ? chalk.gray("<empty string>") : chalk.green.bold(item.value);
 							break;
-						case METRIC.TYPE_HISTOGRAM:
-							val = chalk.green.bold(item.toString(valueItem));
+						case METRIC.TYPE_HISTOGRAM: {
+							const s = [];
+							s.push(`Count: ${item.count}`);
+
+							if (item.buckets) {
+								Object.keys(item.buckets).forEach(b => {
+									s.push(`${b}: ${item.buckets[b] != null ? item.buckets[b] : "-"}`);
+								});
+							}
+
+							if (item.quantiles) {
+								s.push(`Min: ${item.min != null ? item.min.toFixed(2) : "-"}`);
+								s.push(`Mean: ${item.mean != null ? item.mean.toFixed(2) : "-"}`);
+								s.push(`Var: ${item.variance != null ? item.variance.toFixed(2) : "-"}`);
+								s.push(`StdDev: ${item.stdDev != null ? item.stdDev.toFixed(2) : "-"}`);
+								s.push(`Max: ${item.max != null ? item.max.toFixed(2) : "-"}`);
+
+								Object.keys(item.quantiles).forEach(key => {
+									s.push(`${key}: ${item.quantiles[key] != null ? item.quantiles[key].toFixed(2) : "-"}`);
+								});
+							}
+
+							val = chalk.green.bold(s.join(" | "));
 							break;
+						}
 					}
-					this.logger(`  ${this.labelsToStr(valueItem.labels)}: ${val} ${item.unit ? chalk.gray(item.unit) : ""}`);
+					this.logger(`  ${labelStr}: ${val} ${unit}`);
 				});
 			}
 			this.logger("");
 		});
 
-
 		this.logger(chalk.gray(`-------------------- [ METRICS END (${store.size}) ] --------------------`));
 	}
-
 }
 
 module.exports = ConsoleReporter;

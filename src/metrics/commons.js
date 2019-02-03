@@ -105,7 +105,7 @@ function registerCommonMetrics() {
 	this.register({ name: METRIC.OS_NETWORK_FAMILY, type: METRIC.TYPE_INFO, labelNames: ["interface"] });
 	this.register({ name: METRIC.OS_NETWORK_MAC, type: METRIC.TYPE_INFO, labelNames: ["interface"] });
 
-	this.register({ name: METRIC.OS_DATETIME_UNIX, type: METRIC.TYPE_INFO });
+	this.register({ name: METRIC.OS_DATETIME_UNIX, type: METRIC.TYPE_GAUGE });
 	this.register({ name: METRIC.OS_DATETIME_ISO, type: METRIC.TYPE_INFO });
 	this.register({ name: METRIC.OS_DATETIME_UTC, type: METRIC.TYPE_INFO });
 	this.register({ name: METRIC.OS_DATETIME_TZ_OFFSET, type: METRIC.TYPE_GAUGE });

@@ -18,7 +18,20 @@ class BaseMetric {
 		this.unit = opts.unit;
 		this.aggregator = opts.aggregator || registry.opts.defaultAggregator;
 
+		this.lastSnapshot = null;
+		this.dirty = false;
+		this.setDirty();
+
 		this.values = new Map();
+	}
+
+	setDirty() {
+		this.dirty = true;
+		this.registry.setDirty();
+	}
+
+	clearDirty() {
+		this.dirty = false;
 	}
 
 	get(labels) {
@@ -30,12 +43,13 @@ class BaseMetric {
 		throw new Error("Not implemented");
 	}
 
-	clear() {
-		this.values = new Map();
-	}
-
 	resetAll(/*timestamp*/) {
 		throw new Error("Not implemented");
+	}
+
+	clear() {
+		this.values = new Map();
+		this.setDirty();
 	}
 
 	hashingLabels(labels) {
@@ -54,6 +68,20 @@ class BaseMetric {
 				parts.push("");
 		}
 		return parts.join("|");
+	}
+
+	snapshot() {
+		if (!this.dirty && this.lastSnapshot)
+			return this.lastSnapshot;
+
+		this.lastSnapshot = this.generateSnapshot();
+		this.clearDirty();
+
+		return this.lastSnapshot;
+	}
+
+	generateSnapshot() {
+		throw new Error("Not implemented");
 	}
 }
 

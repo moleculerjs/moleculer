@@ -28,6 +28,8 @@ class MetricRegistry {
 		this.broker = broker;
 		this.logger = broker.getLogger("metrics");
 
+		this.dirty = true;
+
 		if (opts === true || opts === false)
 			opts = { enabled: opts };
 
@@ -53,17 +55,29 @@ class MetricRegistry {
 			this.logger.info("Metrics: Disabled");
 	}
 
+	setDirty() {
+		this.dirty = true;
+	}
+
+	clearDirty() {
+		this.dirty = false;
+	}
+
 	/**
 	 * Start Metric Registry
 	 */
 	init() {
 		if (this.opts.enabled) {
 
-			// Create Reporter instance
-			// TODO: hanlde multiple reporters (Array)
-			if (_.isObject(this.opts.reporter)) {
-				this.reporter = Reporters.resolve(this.opts.reporter);
-				this.reporter.init(this);
+			// Create Reporter instances
+			if (this.opts.reporter) {
+				const reporters = Array.isArray(this.opts.reporter) ? this.opts.reporter : [this.opts.reporter];
+
+				this.reporter = reporters.map(r => {
+					const reporter = Reporters.resolve(r);
+					reporter.init(this);
+					return reporter;
+				});
 			}
 
 			// Start colllect timer
@@ -234,7 +248,6 @@ class MetricRegistry {
 			return duration;
 		};
 	}
-
 }
 
 module.exports = MetricRegistry;

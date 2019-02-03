@@ -50,7 +50,7 @@ module.exports = function MetricsMiddleware() {
 				metrics.register({ name: METRIC.MOLECULER_REQUEST_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["action", "type"] });
 				metrics.register({ name: METRIC.MOLECULER_REQUEST_ACTIVE, type: METRIC.TYPE_GAUGE, labelNames: ["action", "type"] });
 				metrics.register({ name: METRIC.MOLECULER_REQUEST_ERROR_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["action", "errorName", "errorCode", "errorType"] });
-				metrics.register({ name: METRIC.MOLECULER_REQUEST_TIME, type: METRIC.TYPE_HISTOGRAM, labelNames: ["action"], quantiles: true, unit: METRIC.UNIT_MILLISECONDS });
+				metrics.register({ name: METRIC.MOLECULER_REQUEST_TIME, type: METRIC.TYPE_HISTOGRAM, labelNames: ["action"], quantiles: true, buckets: true, unit: METRIC.UNIT_MILLISECONDS });
 				metrics.register({ name: METRIC.MOLECULER_REQUEST_LEVELS, type: METRIC.TYPE_COUNTER, labelNames: ["level"] });
 				//metrics.register({ name: METRIC.MOLECULER_REQUEST_OPRHAN_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["action"] });
 				//metrics.register({ name: METRIC.MOLECULER_REQUEST_DIRECTCALL_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["action"] });
