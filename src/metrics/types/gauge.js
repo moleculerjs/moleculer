@@ -96,7 +96,7 @@ class GaugeMetric extends BaseMetric {
 			};
 			this.values.set(hash, item);
 		}
-		this.setDirty();
+		this.changed(labels);
 
 		return item;
 	}
@@ -124,7 +124,7 @@ class GaugeMetric extends BaseMetric {
 			item.value = 0;
 			item.timestamp = timestamp == null ? Date.now() : timestamp;
 		});
-		this.setDirty();
+		this.changed();
 	}
 
 	/**

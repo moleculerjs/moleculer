@@ -230,6 +230,7 @@ class PrometheusReporter extends BaseReporter {
 
 		return "{" + keys.map(key => `${this.formatLabelName(key)}="${this.escapeLabelValue(labels[key])}"`).join(",") + "}";
 	}
+
 }
 
 module.exports = PrometheusReporter;

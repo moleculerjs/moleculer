@@ -60,24 +60,6 @@ class MetricRegistry {
 	}
 
 	/**
-	 * Set dirty flag.
-	 *
-	 * @memberof MetricRegistry
-	 */
-	setDirty() {
-		this.dirty = true;
-	}
-
-	/**
-	 * Clear dirty flag.
-	 *
-	 * @memberof MetricRegistry
-	 */
-	clearDirty() {
-		this.dirty = false;
-	}
-
-	/**
 	 * Initialize Registry.
 	 */
 	init() {
@@ -325,7 +307,7 @@ class MetricRegistry {
 	}
 
 	/**
-	 * Start a time & observe the elapsed time.
+	 * Start a timer & observe the elapsed time.
 	 *
 	 * @param {String} name
 	 * @param {Object?} labels
@@ -355,6 +337,19 @@ class MetricRegistry {
 
 			return duration;
 		};
+	}
+
+	/**
+	 * Some metric has been changed.
+	 *
+	 * @param {BaseMetric} metric
+	 * @param {Object?} labels
+	 *
+	 * @memberof MetricRegistry
+	 */
+	changed(metric, labels) {
+		this.dirty = true;
+		this.reporter.forEach(reporter => reporter.metricChanged(metric, labels));
 	}
 }
 

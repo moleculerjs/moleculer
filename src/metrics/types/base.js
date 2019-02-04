@@ -29,8 +29,7 @@ class BaseMetric {
 		this.aggregator = opts.aggregator || registry.opts.defaultAggregator;
 
 		this.lastSnapshot = null;
-		this.dirty = false;
-		this.setDirty();
+		this.dirty = true;
 
 		this.values = new Map();
 	}
@@ -42,7 +41,6 @@ class BaseMetric {
 	 */
 	setDirty() {
 		this.dirty = true;
-		this.registry.setDirty();
 	}
 
 	/**
@@ -91,7 +89,7 @@ class BaseMetric {
 	 */
 	clear() {
 		this.values = new Map();
-		this.setDirty();
+		this.changed();
 	}
 
 	/**
@@ -142,6 +140,11 @@ class BaseMetric {
 	 */
 	generateSnapshot() {
 		throw new Error("Not implemented");
+	}
+
+	changed(labels) {
+		this.setDirty();
+		this.registry.changed(this, labels);
 	}
 }
 

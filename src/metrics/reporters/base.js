@@ -99,6 +99,18 @@ class BaseReporter {
 			return this.opts.labelNameFormatter(name);
 		return name;
 	}
+
+	/**
+	 * Some metric has been changed.
+	 *
+	 * @param {BaseMetric} metric
+	 * @param {Object?} labels
+	 *
+	 * @memberof BaseReporter
+	 */
+	metricChanged(/*metric, labels*/) {
+		// Not implemented. Abstract method
+	}
 }
 
 module.exports = BaseReporter;

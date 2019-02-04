@@ -110,7 +110,7 @@ class HistogramMetric extends BaseMetric {
 		if (item.quantileValues) {
 			item.quantileValues.add(value);
 		}
-		this.setDirty();
+		this.changed(labels);
 
 		return item;
 	}
@@ -143,9 +143,6 @@ class HistogramMetric extends BaseMetric {
 	 * @memberof HistogramMetric
 	 */
 	generateItemSnapshot(item) {
-		if (!this.dirty && this.lastSnapshot)
-			return this.lastSnapshot;
-
 		const snapshot = {
 			labels: item.labels,
 			count: item.count,
@@ -185,7 +182,7 @@ class HistogramMetric extends BaseMetric {
 			this.values[hash].value = null;
 			this.values[hash].timestamp = timestamp == null ? Date.now() : timestamp;
 		});
-		this.setDirty();
+		this.changed();
 	}
 
 	/**

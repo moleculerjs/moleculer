@@ -54,7 +54,7 @@ class InfoMetric extends BaseMetric {
 			};
 			this.values.set(hash, item);
 		}
-		this.setDirty();
+		this.changed(labels);
 
 		return item;
 	}
