@@ -86,13 +86,13 @@ class Transit {
 	 * Register Moleculer Transit Core metrics.
 	 */
 	registerMoleculerMetrics() {
-		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_READY, type: METRIC.TYPE_GAUGE }).set(0);
-		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_CONNECTED, type: METRIC.TYPE_GAUGE }).set(0);
+		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_READY, type: METRIC.TYPE_GAUGE, description: "Transit is ready" }).set(0);
+		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_CONNECTED, type: METRIC.TYPE_GAUGE, description: "Transit is connected" }).set(0);
 
-		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_PONG_TIME, type: METRIC.TYPE_GAUGE, labelNames: ["targetNodeID"] });
-		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_PONG_SYSTIME_DIFF, type: METRIC.TYPE_GAUGE, labelNames: ["targetNodeID"] });
+		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_PONG_TIME, type: METRIC.TYPE_GAUGE, labelNames: ["targetNodeID"], description: "Ping time" });
+		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_PONG_SYSTIME_DIFF, type: METRIC.TYPE_GAUGE, labelNames: ["targetNodeID"], description: "System time difference between nodes" });
 
-		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_ORPHAN_RESPONSE_TOTAL, type: METRIC.TYPE_COUNTER });
+		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_ORPHAN_RESPONSE_TOTAL, type: METRIC.TYPE_COUNTER, description: "Number of orphan responses" });
 	}
 
 	/**

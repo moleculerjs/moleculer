@@ -42,93 +42,93 @@ function registerCommonMetrics() {
 
 	// --- METRICS SELF METRICS ---
 
-	this.register({ name: METRIC.MOLECULER_METRICS_COMMON_COLLECT_TOTAL, type: METRIC.TYPE_COUNTER }),
-	this.register({ name: METRIC.MOLECULER_METRICS_COMMON_COLLECT_TIME, type: METRIC.TYPE_GAUGE });
+	this.register({ name: METRIC.MOLECULER_METRICS_COMMON_COLLECT_TOTAL, type: METRIC.TYPE_COUNTER, description: "Number of metric collections" });
+	this.register({ name: METRIC.MOLECULER_METRICS_COMMON_COLLECT_TIME, type: METRIC.TYPE_GAUGE, description: "Time of collecting metrics" });
 
 	// --- PROCESS METRICS ---
 
-	const item = this.register({ name: METRIC.PROCESS_ARGUMENTS, type: METRIC.TYPE_INFO, labelNames: ["index"] });
+	const item = this.register({ name: METRIC.PROCESS_ARGUMENTS, type: METRIC.TYPE_INFO, labelNames: ["index"], description: "Process arguments" });
 	process.argv.map((arg, index) => item.set(arg, { index }));
 
-	this.register({ name: METRIC.PROCESS_PID, type: METRIC.TYPE_INFO }).set(process.pid);
-	this.register({ name: METRIC.PROCESS_PPID, type: METRIC.TYPE_INFO }).set(process.ppid);
+	this.register({ name: METRIC.PROCESS_PID, type: METRIC.TYPE_INFO, description: "Process PID" }).set(process.pid);
+	this.register({ name: METRIC.PROCESS_PPID, type: METRIC.TYPE_INFO, description: "Process parent PID" }).set(process.ppid);
 
-	this.register({ name: METRIC.PROCESS_EVENTLOOP_LAG_MIN, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_MILLISECONDS });
-	this.register({ name: METRIC.PROCESS_EVENTLOOP_LAG_AVG, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_MILLISECONDS });
-	this.register({ name: METRIC.PROCESS_EVENTLOOP_LAG_MAX, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_MILLISECONDS });
-	this.register({ name: METRIC.PROCESS_EVENTLOOP_LAG_COUNT, type: METRIC.TYPE_GAUGE });
+	this.register({ name: METRIC.PROCESS_EVENTLOOP_LAG_MIN, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_MILLISECONDS, description: "Minimum of event loop lag" });
+	this.register({ name: METRIC.PROCESS_EVENTLOOP_LAG_AVG, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_MILLISECONDS, description: "Average of event loop lag" });
+	this.register({ name: METRIC.PROCESS_EVENTLOOP_LAG_MAX, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_MILLISECONDS, description: "Maximum of event loop lag" });
+	this.register({ name: METRIC.PROCESS_EVENTLOOP_LAG_COUNT, type: METRIC.TYPE_GAUGE, description: "Number of event loop lag samples." });
 
-	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_SIZE_TOTAL, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE });
-	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_SIZE_USED, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE });
-	this.register({ name: METRIC.PROCESS_MEMORY_RSS, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE });
-	this.register({ name: METRIC.PROCESS_MEMORY_EXTERNAL, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE });
+	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_SIZE_TOTAL, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE, description: "Process heap size" });
+	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_SIZE_USED, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE, description: "Process used heap size" });
+	this.register({ name: METRIC.PROCESS_MEMORY_RSS, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE, description: "Process RSS size" });
+	this.register({ name: METRIC.PROCESS_MEMORY_EXTERNAL, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE, description: "Process external memory size" });
 
-	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_SPACE_SIZE_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["space"], unit: METRIC.UNIT_BYTE });
-	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_SPACE_SIZE_USED, type: METRIC.TYPE_GAUGE, labelNames: ["space"], unit: METRIC.UNIT_BYTE });
-	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_SPACE_SIZE_AVAILABLE, type: METRIC.TYPE_GAUGE, labelNames: ["space"], unit: METRIC.UNIT_BYTE });
-	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_SPACE_SIZE_PHYSICAL, type: METRIC.TYPE_GAUGE, labelNames: ["space"], unit: METRIC.UNIT_BYTE });
+	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_SPACE_SIZE_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["space"], unit: METRIC.UNIT_BYTE, description: "Process total heap space size" });
+	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_SPACE_SIZE_USED, type: METRIC.TYPE_GAUGE, labelNames: ["space"], unit: METRIC.UNIT_BYTE, description: "Process used heap space size" });
+	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_SPACE_SIZE_AVAILABLE, type: METRIC.TYPE_GAUGE, labelNames: ["space"], unit: METRIC.UNIT_BYTE, description: "Process available heap space size" });
+	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_SPACE_SIZE_PHYSICAL, type: METRIC.TYPE_GAUGE, labelNames: ["space"], unit: METRIC.UNIT_BYTE, description: "Process physical heap space size" });
 
-	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_STAT_HEAP_SIZE_TOTAL, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE });
-	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_STAT_EXECUTABLE_SIZE_TOTAL, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE });
-	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_STAT_PHYSICAL_SIZE_TOTAL, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE });
-	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_STAT_AVAILABLE_SIZE_TOTAL, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE });
-	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_STAT_USED_HEAP_SIZE, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE });
-	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_STAT_HEAP_SIZE_LIMIT, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE });
-	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_STAT_MALLOCATED_MEMORY, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE });
-	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_STAT_PEAK_MALLOCATED_MEMORY, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE });
-	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_STAT_ZAP_GARBAGE, type: METRIC.TYPE_GAUGE });
+	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_STAT_HEAP_SIZE_TOTAL, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE, description: "Process heap stat size" });
+	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_STAT_EXECUTABLE_SIZE_TOTAL, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE, description: "Process heap stat executable size" });
+	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_STAT_PHYSICAL_SIZE_TOTAL, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE, description: "Process heap stat physical size" });
+	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_STAT_AVAILABLE_SIZE_TOTAL, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE, description: "Process heap stat available size" });
+	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_STAT_USED_HEAP_SIZE, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE, description: "Process heap stat used size" });
+	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_STAT_HEAP_SIZE_LIMIT, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE, description: "Process heap stat size limit" });
+	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_STAT_MALLOCATED_MEMORY, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE, description: "Process heap stat mallocated size" });
+	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_STAT_PEAK_MALLOCATED_MEMORY, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE, description: "Peak of process heap stat mallocated size" });
+	this.register({ name: METRIC.PROCESS_MEMORY_HEAP_STAT_ZAP_GARBAGE, type: METRIC.TYPE_GAUGE, description: "Process heap stat zap garbage" });
 
-	this.register({ name: METRIC.PROCESS_UPTIME, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_SECONDS });
-	this.register({ name: METRIC.PROCESS_INTERNAL_ACTIVE_HANDLES, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_HANDLE });
-	this.register({ name: METRIC.PROCESS_INTERNAL_ACTIVE_REQUESTS, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_REQUEST });
+	this.register({ name: METRIC.PROCESS_UPTIME, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_SECONDS, description: "Process uptime" });
+	this.register({ name: METRIC.PROCESS_INTERNAL_ACTIVE_HANDLES, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_HANDLE, description: "Number of active process handlers" });
+	this.register({ name: METRIC.PROCESS_INTERNAL_ACTIVE_REQUESTS, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_REQUEST, description: "Number of active process requests" });
 
-	this.register({ name: METRIC.PROCESS_VERSIONS_NODE, type: METRIC.TYPE_INFO }).set(process.versions.node);
+	this.register({ name: METRIC.PROCESS_VERSIONS_NODE, type: METRIC.TYPE_INFO, description: "Node version" }).set(process.versions.node);
 
 	// --- GARBAGE COLLECTOR METRICS ---
 
-	this.register({ name: METRIC.PROCESS_GC_TIME, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_NANOSECONDS });
-	this.register({ name: METRIC.PROCESS_GC_TOTAL_TIME, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_MILLISECONDS });
-	this.register({ name: METRIC.PROCESS_GC_EXECUTED_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["type"], unit: null });
+	this.register({ name: METRIC.PROCESS_GC_TIME, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_NANOSECONDS, description: "GC time" });
+	this.register({ name: METRIC.PROCESS_GC_TOTAL_TIME, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_MILLISECONDS, description: "Total time of GC" });
+	this.register({ name: METRIC.PROCESS_GC_EXECUTED_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["type"], unit: null, description: "Number of executed GC" });
 
 	// --- OS METRICS ---
 
-	this.register({ name: METRIC.OS_MEMORY_FREE, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE });
-	this.register({ name: METRIC.OS_MEMORY_TOTAL, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE });
-	this.register({ name: METRIC.OS_UPTIME, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_SECONDS });
-	this.register({ name: METRIC.OS_TYPE, type: METRIC.TYPE_INFO }).set(os.type());
-	this.register({ name: METRIC.OS_RELEASE, type: METRIC.TYPE_INFO }).set(os.release());
-	this.register({ name: METRIC.OS_HOSTNAME, type: METRIC.TYPE_INFO }).set(os.hostname());
-	this.register({ name: METRIC.OS_ARCH, type: METRIC.TYPE_INFO }).set(os.arch());
-	this.register({ name: METRIC.OS_PLATFORM, type: METRIC.TYPE_INFO }).set(os.platform());
+	this.register({ name: METRIC.OS_MEMORY_FREE, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE, description: "OS free memory size" });
+	this.register({ name: METRIC.OS_MEMORY_TOTAL, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_BYTE, description: "OS total memory size" });
+	this.register({ name: METRIC.OS_UPTIME, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_SECONDS, description: "OS uptime" });
+	this.register({ name: METRIC.OS_TYPE, type: METRIC.TYPE_INFO, description: "OS type" }).set(os.type());
+	this.register({ name: METRIC.OS_RELEASE, type: METRIC.TYPE_INFO, description: "OS release" }).set(os.release());
+	this.register({ name: METRIC.OS_HOSTNAME, type: METRIC.TYPE_INFO, description: "Hostname" }).set(os.hostname());
+	this.register({ name: METRIC.OS_ARCH, type: METRIC.TYPE_INFO, description: "OS architecture" }).set(os.arch());
+	this.register({ name: METRIC.OS_PLATFORM, type: METRIC.TYPE_INFO, description: "OS platform" }).set(os.platform());
 
 	const userInfo = getUserInfo();
-	this.register({ name: METRIC.OS_USER_UID, type: METRIC.TYPE_INFO }).set(userInfo.uid);
-	this.register({ name: METRIC.OS_USER_GID, type: METRIC.TYPE_INFO }).set(userInfo.gid);
-	this.register({ name: METRIC.OS_USER_USERNAME, type: METRIC.TYPE_INFO }).set(userInfo.username);
-	this.register({ name: METRIC.OS_USER_HOMEDIR, type: METRIC.TYPE_INFO }).set(userInfo.homedir);
+	this.register({ name: METRIC.OS_USER_UID, type: METRIC.TYPE_INFO, description: "UID" }).set(userInfo.uid);
+	this.register({ name: METRIC.OS_USER_GID, type: METRIC.TYPE_INFO, description: "GID" }).set(userInfo.gid);
+	this.register({ name: METRIC.OS_USER_USERNAME, type: METRIC.TYPE_INFO, description: "Username" }).set(userInfo.username);
+	this.register({ name: METRIC.OS_USER_HOMEDIR, type: METRIC.TYPE_INFO, description: "User's home directory" }).set(userInfo.homedir);
 
-	this.register({ name: METRIC.OS_NETWORK_ADDRESS, type: METRIC.TYPE_INFO, labelNames: ["interface"] });
-	this.register({ name: METRIC.OS_NETWORK_FAMILY, type: METRIC.TYPE_INFO, labelNames: ["interface"] });
-	this.register({ name: METRIC.OS_NETWORK_MAC, type: METRIC.TYPE_INFO, labelNames: ["interface"] });
+	this.register({ name: METRIC.OS_NETWORK_ADDRESS, type: METRIC.TYPE_INFO, labelNames: ["interface"], description: "Network address" });
+	this.register({ name: METRIC.OS_NETWORK_FAMILY, type: METRIC.TYPE_INFO, labelNames: ["interface"], description: "Network family" });
+	this.register({ name: METRIC.OS_NETWORK_MAC, type: METRIC.TYPE_INFO, labelNames: ["interface"], description: "MAC address" });
 
-	this.register({ name: METRIC.OS_DATETIME_UNIX, type: METRIC.TYPE_GAUGE });
-	this.register({ name: METRIC.OS_DATETIME_ISO, type: METRIC.TYPE_INFO });
-	this.register({ name: METRIC.OS_DATETIME_UTC, type: METRIC.TYPE_INFO });
-	this.register({ name: METRIC.OS_DATETIME_TZ_OFFSET, type: METRIC.TYPE_GAUGE });
+	this.register({ name: METRIC.OS_DATETIME_UNIX, type: METRIC.TYPE_GAUGE, description: "Current datetime in Unix format" });
+	this.register({ name: METRIC.OS_DATETIME_ISO, type: METRIC.TYPE_INFO, description: "Current datetime in ISO string" });
+	this.register({ name: METRIC.OS_DATETIME_UTC, type: METRIC.TYPE_INFO, description: "Current UTC datetime" });
+	this.register({ name: METRIC.OS_DATETIME_TZ_OFFSET, type: METRIC.TYPE_GAUGE, description: "Timezone offset" });
 
-	this.register({ name: METRIC.OS_CPU_LOAD_1, type: METRIC.TYPE_GAUGE });
-	this.register({ name: METRIC.OS_CPU_LOAD_5, type: METRIC.TYPE_GAUGE });
-	this.register({ name: METRIC.OS_CPU_LOAD_15, type: METRIC.TYPE_GAUGE });
-	this.register({ name: METRIC.OS_CPU_UTILIZATION, type: METRIC.TYPE_GAUGE });
+	this.register({ name: METRIC.OS_CPU_LOAD_1, type: METRIC.TYPE_GAUGE, description: "CPU load1" });
+	this.register({ name: METRIC.OS_CPU_LOAD_5, type: METRIC.TYPE_GAUGE, description: "CPU load5" });
+	this.register({ name: METRIC.OS_CPU_LOAD_15, type: METRIC.TYPE_GAUGE, description: "CPU load15" });
+	this.register({ name: METRIC.OS_CPU_UTILIZATION, type: METRIC.TYPE_GAUGE, description: "CPU utilization" });
 
-	this.register({ name: METRIC.OS_CPU_USER, type: METRIC.TYPE_GAUGE });
-	this.register({ name: METRIC.OS_CPU_SYSTEM, type: METRIC.TYPE_GAUGE });
+	this.register({ name: METRIC.OS_CPU_USER, type: METRIC.TYPE_GAUGE, description: "CPU user time" });
+	this.register({ name: METRIC.OS_CPU_SYSTEM, type: METRIC.TYPE_GAUGE, description: "CPU system time" });
 
-	this.register({ name: METRIC.OS_CPU_TOTAL, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_CPU });
-	this.register({ name: METRIC.OS_CPU_INFO_MODEL, type: METRIC.TYPE_INFO, labelNames: ["index"] });
-	this.register({ name: METRIC.OS_CPU_INFO_SPEED, type: METRIC.TYPE_GAUGE, labelNames: ["index"], unit: METRIC.UNIT_GHZ });
-	this.register({ name: METRIC.OS_CPU_INFO_TIMES_USER, type: METRIC.TYPE_GAUGE, labelNames: ["index"] });
-	this.register({ name: METRIC.OS_CPU_INFO_TIMES_SYS, type: METRIC.TYPE_GAUGE, labelNames: ["index"] });
+	this.register({ name: METRIC.OS_CPU_TOTAL, type: METRIC.TYPE_GAUGE, unit: METRIC.UNIT_CPU, description: "Number of CPUs" });
+	this.register({ name: METRIC.OS_CPU_INFO_MODEL, type: METRIC.TYPE_INFO, labelNames: ["index"], description: "CPU model" });
+	this.register({ name: METRIC.OS_CPU_INFO_SPEED, type: METRIC.TYPE_GAUGE, labelNames: ["index"], unit: METRIC.UNIT_GHZ, description: "CPU speed" });
+	this.register({ name: METRIC.OS_CPU_INFO_TIMES_USER, type: METRIC.TYPE_GAUGE, labelNames: ["index"], description: "CPU user time" });
+	this.register({ name: METRIC.OS_CPU_INFO_TIMES_SYS, type: METRIC.TYPE_GAUGE, labelNames: ["index"], description: "CPU system time" });
 
 	this.logger.debug(`Registered ${this.store.size} common metrics.`);
 

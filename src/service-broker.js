@@ -347,17 +347,16 @@ class ServiceBroker {
 
 		// --- MOLECULER NODE METRICS ---
 
-		this.metrics.register({ name: METRIC.MOLECULER_NODE_TYPE, type: METRIC.TYPE_INFO }).set("nodejs");
-		this.metrics.register({ name: METRIC.MOLECULER_NODE_VERSIONS_MOLECULER, type: METRIC.TYPE_INFO }).set(ServiceBroker.MOLECULER_VERSION);
-		this.metrics.register({ name: METRIC.MOLECULER_NODE_VERSIONS_MOLECULER, type: METRIC.TYPE_INFO }).set(ServiceBroker.MOLECULER_VERSION);
-		this.metrics.register({ name: METRIC.MOLECULER_NODE_VERSIONS_PROTOCOL, type: METRIC.TYPE_INFO }).set(ServiceBroker.PROTOCOL_VERSION);
+		this.metrics.register({ name: METRIC.MOLECULER_NODE_TYPE, type: METRIC.TYPE_INFO, description: "Moleculer implementation type" }).set("nodejs");
+		this.metrics.register({ name: METRIC.MOLECULER_NODE_VERSIONS_MOLECULER, type: METRIC.TYPE_INFO, description: "Moleculer version number" }).set(ServiceBroker.MOLECULER_VERSION);
+		this.metrics.register({ name: METRIC.MOLECULER_NODE_VERSIONS_PROTOCOL, type: METRIC.TYPE_INFO, description: "Moleculer protocol version" }).set(ServiceBroker.PROTOCOL_VERSION);
 
 		// --- MOLECULER BROKER METRICS ---
 
-		this.metrics.register({ name: METRIC.MOLECULER_BROKER_NAMESPACE, type: METRIC.TYPE_INFO }).set(this.namespace);
-		this.metrics.register({ name: METRIC.MOLECULER_BROKER_STARTED, type: METRIC.TYPE_GAUGE }).set(0);
-		this.metrics.register({ name: METRIC.MOLECULER_BROKER_LOCAL_SERVICES_TOTAL, type: METRIC.TYPE_GAUGE }).set(0);
-		this.metrics.register({ name: METRIC.MOLECULER_BROKER_MIDDLEWARES_TOTAL, type: METRIC.TYPE_GAUGE }).set(0);
+		this.metrics.register({ name: METRIC.MOLECULER_BROKER_NAMESPACE, type: METRIC.TYPE_INFO, description: "Moleculer namespace" }).set(this.namespace);
+		this.metrics.register({ name: METRIC.MOLECULER_BROKER_STARTED, type: METRIC.TYPE_GAUGE, description: "ServiceBroker started" }).set(0);
+		this.metrics.register({ name: METRIC.MOLECULER_BROKER_LOCAL_SERVICES_TOTAL, type: METRIC.TYPE_GAUGE, description: "Number of local services" }).set(0);
+		this.metrics.register({ name: METRIC.MOLECULER_BROKER_MIDDLEWARES_TOTAL, type: METRIC.TYPE_GAUGE, description: "Number of local middlewares" }).set(0);
 	}
 
 	/**
