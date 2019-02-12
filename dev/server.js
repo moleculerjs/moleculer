@@ -42,8 +42,10 @@ const broker = new ServiceBroker({
 				}
 			},*/
 			{
-				type: "Prometheus",
-				options: {}
+				type: "Datadog",
+				options: {
+					//includes: "process.memory.**"
+				}
 			}
 		]
 	},

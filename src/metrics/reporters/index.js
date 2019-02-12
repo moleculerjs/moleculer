@@ -15,6 +15,7 @@ const Reporters = {
 	CSV: require("./csv"),
 	Event: require("./event"),
 	Prometheus: require("./prometheus"),
+	Datadog: require("./datadog"),
 	UDP: require("./udp"),
 };
 
