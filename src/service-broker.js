@@ -1194,10 +1194,8 @@ class ServiceBroker {
 					groups = this.getEventGroups(eventName);
 				}
 
-				if (groups.length == 0)
-					return;
-
-				return this.transit.sendBroadcastEvent(null, eventName, payload, groups);
+				if (groups.length > 0)
+					this.transit.sendBroadcastEvent(null, eventName, payload, groups);
 			}
 		}
 

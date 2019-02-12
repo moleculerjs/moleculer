@@ -34,17 +34,23 @@ const broker = new ServiceBroker({
 	metrics: {
 		enabled: true,
 		reporter: [
-			/*{
+			{
 				type: "Console",
 				options: {
-					includes: "moleculer.request.**",
+					includes: "moleculer.circuit-breaker.**",
 					//excludes: ["moleculer.transit.publish.total", "moleculer.transit.receive.total"]
 				}
-			},*/
+			},
 			{
 				type: "Prometheus",
 				options: {
 					port: 3031
+				}
+			},
+			{
+				type: "Datadog",
+				options: {
+					//includes: "process.memory.**"
 				}
 			}
 		]
