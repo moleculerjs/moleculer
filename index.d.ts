@@ -33,7 +33,22 @@ declare namespace Moleculer {
 
 	type ActionHandler<T = any> = ((ctx: Context) => PromiseLike<T> | T) & ThisType<Service>;
 	type ActionParamSchema = { [key: string]: any };
-	type ActionParamTypes = "boolean" | "number" | "string" | "object" | "array" | ActionParamSchema;
+	type ActionParamTypes =
+		| "any"
+		| "array"
+		| "boolean"
+		| "custom"
+		| "date"
+		| "email"
+		| "enum"
+		| "forbidden"
+		| "function"
+		| "number"
+		| "object"
+		| "string"
+		| "url"
+		| "uuid"
+		| ActionParamSchema;
 	type ActionParams = { [key: string]: ActionParamTypes };
 
 	type MetricsParamsFuncType = (params: ActionParams) => any;
