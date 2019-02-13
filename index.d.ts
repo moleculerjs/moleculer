@@ -59,7 +59,7 @@ declare namespace Moleculer {
 		params?: ActionParams;
 		service?: Service;
 		cache?: boolean | ActionCacheOptions;
-		handler: ActionHandler;
+		handler?: ActionHandler;
 		metrics?: MetricsOptions;
 		bulkhead?: BulkheadOptions;
 		circuitBreaker?: BrokerCircuitBreakerOptions;
@@ -130,7 +130,7 @@ declare namespace Moleculer {
 	interface ServiceEvent {
 		name?: string;
 		group?: string;
-		handler: ServiceEventHandler;
+		handler?: ServiceEventHandler;
 	}
 
 	type ServiceEvents = { [key: string]: ServiceEventHandler | ServiceEvent };
