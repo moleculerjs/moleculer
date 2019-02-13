@@ -35,7 +35,7 @@ class DatadogReporter extends BaseReporter {
 		super(opts);
 
 		this.opts = _.defaultsDeep(this.opts, {
-			host: undefined,
+			host: os.hostname(),
 			apiVersion: "v1",
 			path: "/series",
 			apiKey: process.env.DATADOG_API_KEY,
@@ -99,6 +99,7 @@ class DatadogReporter extends BaseReporter {
 		const series = [];
 
 		const val = value => value == null ? "NaN" : value;
+		const now = this.posixTimestamp(Date.now());
 
 		this.registry.store.forEach(metric => {
 			// Filtering
@@ -135,7 +136,7 @@ class DatadogReporter extends BaseReporter {
 						series.push({
 							metric: this.formatMetricName(metric.name),
 							type: "gauge",
-							points: [[this.posixTimestamp(item.timestamp), item.value]],
+							points: [[now, item.value]],
 							tags: this.labelsToTags(item.labels),
 							host: this.opts.host
 						});
@@ -153,43 +154,102 @@ class DatadogReporter extends BaseReporter {
 					series.push("");
 
 					break;
-				}
+				}*/
 				case METRIC.TYPE_HISTOGRAM: {
-					series.push(`# HELP ${metricName} ${metricDesc}`);
-					series.push(`# TYPE ${metricName} ${metricType}`);
 					snapshot.forEach(item => {
-
 						if (item.buckets) {
 							Object.keys(item.buckets).forEach(le => {
-								const labelStr = this.labelsToStr(item.labels, { le });
-								series.push(`${metricName}_bucket${labelStr} ${val(item.buckets[le])}`);
+								series.push({
+									metric: this.formatMetricName(metric.name + ".bucket_" + le),
+									type: "rate",
+									points: [[now, item.buckets[le]]],
+									tags: this.labelsToTags(item.labels),
+									host: this.opts.host
+								});
 							});
 							// +Inf
-							const labelStr = this.labelsToStr(item.labels, { le: "+Inf" });
-							series.push(`${metricName}_bucket${labelStr} ${val(item.count)}`);
+							series.push({
+								metric: this.formatMetricName(metric.name + ".bucket_inf"),
+								type: "rate",
+								points: [[now, item.count]],
+								tags: this.labelsToTags(item.labels),
+								host: this.opts.host
+							});
 						}
 
 						if (item.quantiles) {
 
 							Object.keys(item.quantiles).forEach(key => {
-								const labelStr = this.labelsToStr(item.labels, { quantile: key });
-								series.push(`${metricName}${labelStr} ${val(item.quantiles[key])}`);
+								series.push({
+									metric: this.formatMetricName(metric.name + ".q" + key),
+									type: "rate",
+									points: [[now, item.quantiles[key]]],
+									tags: this.labelsToTags(item.labels),
+									host: this.opts.host
+								});
 							});
 
 							// Add other calculated values
-							const labelStr = this.labelsToStr(item.labels);
-							series.push(`${metricName}_sum${labelStr} ${val(item.sum)}`);
-							series.push(`${metricName}_count${labelStr} ${val(item.count)}`);
-							series.push(`${metricName}_min${labelStr} ${val(item.min)}`);
-							series.push(`${metricName}_mean${labelStr} ${val(item.mean)}`);
-							series.push(`${metricName}_variance${labelStr} ${val(item.variance)}`);
-							series.push(`${metricName}_stddev${labelStr} ${val(item.stdDev)}`);
-							series.push(`${metricName}_max${labelStr} ${val(item.max)}`);
+							series.push({
+								metric: this.formatMetricName(metric.name + ".sum"),
+								type: "rate",
+								points: [[now, item.sum]],
+								tags: this.labelsToTags(item.labels),
+								host: this.opts.host
+							});
+
+							series.push({
+								metric: this.formatMetricName(metric.name + ".count"),
+								type: "rate",
+								points: [[now, item.count]],
+								tags: this.labelsToTags(item.labels),
+								host: this.opts.host
+							});
+
+							series.push({
+								metric: this.formatMetricName(metric.name + ".min"),
+								type: "rate",
+								points: [[now, item.min]],
+								tags: this.labelsToTags(item.labels),
+								host: this.opts.host
+							});
+
+							series.push({
+								metric: this.formatMetricName(metric.name + ".mean"),
+								type: "rate",
+								points: [[now, item.mean]],
+								tags: this.labelsToTags(item.labels),
+								host: this.opts.host
+							});
+
+							series.push({
+								metric: this.formatMetricName(metric.name + ".variance"),
+								type: "rate",
+								points: [[now, item.variance]],
+								tags: this.labelsToTags(item.labels),
+								host: this.opts.host
+							});
+
+							series.push({
+								metric: this.formatMetricName(metric.name + ".stddev"),
+								type: "rate",
+								points: [[now, item.stdDev]],
+								tags: this.labelsToTags(item.labels),
+								host: this.opts.host
+							});
+
+							series.push({
+								metric: this.formatMetricName(metric.name + ".max"),
+								type: "rate",
+								points: [[now, item.max]],
+								tags: this.labelsToTags(item.labels),
+								host: this.opts.host
+							});
+
 						}
 					});
-					series.push("");
 					break;
-				}*/
+				}
 			}
 		});
 

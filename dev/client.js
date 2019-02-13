@@ -37,16 +37,16 @@ const broker = new ServiceBroker({
 			{
 				type: "Console",
 				options: {
-					includes: "moleculer.circuit-breaker.**",
+					includes: "moleculer.registry.**",
 					//excludes: ["moleculer.transit.publish.total", "moleculer.transit.receive.total"]
 				}
 			},
-			{
+			/*{
 				type: "Prometheus",
 				options: {
 					port: 3031
 				}
-			},
+			},*/
 			{
 				type: "Datadog",
 				options: {

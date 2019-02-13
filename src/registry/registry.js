@@ -80,15 +80,15 @@ class Registry {
 		// TODO use services.list({ grouping: true })
 		const services = this.services.getServicesWithNodes();
 		this.metrics.set(METRIC.MOLECULER_REGISTRY_SERVICES_TOTAL, services.length);
-		services.forEach(svc => this.metrics.set(METRIC.MOLECULER_REGISTRY_SERVICE_ENDPOINTS_TOTAL, svc.nodes.length, svc));
+		services.forEach(svc => this.metrics.set(METRIC.MOLECULER_REGISTRY_SERVICE_ENDPOINTS_TOTAL, svc.nodes ? svc.nodes.length : 0, svc));
 
 		const actions = this.actions.list({ withEndpoints: true });
 		this.metrics.set(METRIC.MOLECULER_REGISTRY_ACTIONS_TOTAL, actions.length);
-		actions.forEach(item => this.metrics.set(METRIC.MOLECULER_REGISTRY_ACTION_ENDPOINTS_TOTAL, item.endpoints.length, { name: item.name }));
+		actions.forEach(item => this.metrics.set(METRIC.MOLECULER_REGISTRY_ACTION_ENDPOINTS_TOTAL, item.endpoints ? item.endpoints.length : 0, { name: item.name }));
 
 		const events = this.events.list({ withEndpoints: true });
 		this.metrics.set(METRIC.MOLECULER_REGISTRY_EVENTS_TOTAL, events.length);
-		events.forEach(item => this.metrics.set(METRIC.MOLECULER_REGISTRY_EVENT_ENDPOINTS_TOTAL, item.endpoints.length, { name: item.name }));
+		events.forEach(item => this.metrics.set(METRIC.MOLECULER_REGISTRY_EVENT_ENDPOINTS_TOTAL, item.endpoints ? item.endpoints.length : 0, { name: item.name }));
 	}
 
 	/**
@@ -427,7 +427,8 @@ class Registry {
 	 * @memberof Registry
 	 */
 	nodeDisconnected(payload) {
-		return this.nodes.disconnected(payload.sender, false);
+		this.nodes.disconnected(payload.sender, false);
+		this.updateMetrics();
 	}
 
 	/**

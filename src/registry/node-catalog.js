@@ -217,9 +217,11 @@ class NodeCatalog {
 		if (isNew) {
 			this.broker.broadcastLocal("$node.connected", { node, reconnected: false });
 			this.logger.info(`Node '${nodeID}' connected.`);
+			this.registry.updateMetrics();
 		} else if (isReconnected) {
 			this.broker.broadcastLocal("$node.connected", { node, reconnected: true });
 			this.logger.info(`Node '${nodeID}' reconnected.`);
+			this.registry.updateMetrics();
 		} else {
 			this.broker.broadcastLocal("$node.updated", { node });
 			this.logger.debug(`Node '${nodeID}' updated.`);
@@ -243,6 +245,7 @@ class NodeCatalog {
 			if (now - (node.lastHeartbeatTime || 0) > this.broker.options.heartbeatTimeout * 1000) {
 				this.logger.warn(`Heartbeat is not received from '${node.id}' node.`);
 				this.disconnected(node.id, true);
+				this.registry.updateMetrics();
 			}
 		});
 	}
@@ -261,7 +264,8 @@ class NodeCatalog {
 
 			if (now - (node.lastHeartbeatTime || 0) > 10 * 60 * 1000) {
 				this.logger.warn(`Remove offline '${node.id}' node from registry because it hasn't submitted heartbeat signal for 10 minutes.`);
-				return this.nodes.delete(node.id);
+				this.nodes.delete(node.id);
+				this.registry.updateMetrics();
 			}
 		});
 	}
