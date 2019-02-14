@@ -15,7 +15,7 @@ const METRIC = require("../constants");
 		- add EWMA rate
 			https://github.com/dropwizard/metrics/blob/4.1-development/metrics-core/src/main/java/com/codahale/metrics/EWMA.java
 			seconds based
-			rates: [1, 30, 60, 300] seconds like quantiles
+			rates: [1, "30s", "1m", "5m", "1h"] like quantiles
 */
 
 /**

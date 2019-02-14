@@ -132,7 +132,7 @@ module.exports = function() {
 		item.cbTimer.unref();
 
 		const rate = item.count > 0 ? item.failures / item.count : 0;
-		logger.debug(`Circuit breaker has been opened on '${item.ep.name}' endpoint.`, { nodeID: item.ep.id, action: item.ep.action.name, failures: item.failures, count: item.count, rate });
+		logger.info(`Circuit breaker has been opened on '${item.ep.name}' endpoint.`, { nodeID: item.ep.id, action: item.ep.action.name, failures: item.failures, count: item.count, rate });
 		broker.broadcast("$circuit-breaker.opened", { nodeID: item.ep.id, action: item.ep.action.name, failures: item.failures, count: item.count, rate });
 	}
 
@@ -183,7 +183,7 @@ module.exports = function() {
 		item.failures = 0;
 		item.count = 0;
 
-		logger.debug(`Circuit breaker has been closed on '${item.ep.name}' endpoint.`, { nodeID: item.ep.id, action: item.ep.action.name });
+		logger.info(`Circuit breaker has been closed on '${item.ep.name}' endpoint.`, { nodeID: item.ep.id, action: item.ep.action.name });
 
 		broker.broadcast("$circuit-breaker.closed", { nodeID: item.ep.id, action: item.ep.action.name });
 

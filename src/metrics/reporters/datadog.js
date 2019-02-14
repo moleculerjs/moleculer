@@ -83,7 +83,7 @@ class DatadogReporter extends BaseReporter {
 
 			}
 		}).then(res => {
-			this.registry.logger.info("Metrics are uploaded to DataDog. Status: ", res.statusText);
+			this.registry.logger.debug("Metrics are uploaded to DataDog. Status: ", res.statusText);
 		}).catch(err => {
 			this.registry.logger.warn("Unable to upload metrics to Datadog server. Error:" + err.message, err);
 		});
