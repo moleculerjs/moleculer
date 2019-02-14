@@ -44,7 +44,7 @@ class DatadogReporter extends BaseReporter {
 				namespace: registry.broker.namespace,
 				nodeID: registry.broker.nodeID
 			}),
-			interval: 10
+			interval: 20
 		});
 
 		if (!this.opts.apiKey)
