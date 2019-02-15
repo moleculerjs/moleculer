@@ -244,7 +244,7 @@ function updateCommonMetrics() {
 	this.set(METRIC.OS_CPU_LOAD_5, load[1]);
 	this.set(METRIC.OS_CPU_LOAD_15, load[2]);
 
-	if (eventLoop.sense) {
+	if (eventLoop && eventLoop.sense) {
 		const stat = eventLoop.sense();
 		this.set(METRIC.PROCESS_EVENTLOOP_LAG_MIN, stat.min);
 		this.set(METRIC.PROCESS_EVENTLOOP_LAG_AVG, stat.num ? stat.sum / stat.num : 0);
