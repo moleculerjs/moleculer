@@ -398,7 +398,7 @@ class Service {
 		Object.keys(mods).forEach(key => {
 			if (key == "settings") {
 				// Merge with defaultsDeep
-				res[key] = Service.mergeSchemaSettings(mods[key], res[key]);
+				res[key] = Service.mergeSchemaSettings(mods[key], res[key] || {});
 
 			} else if (key == "metadata") {
 				// Merge with defaultsDeep
