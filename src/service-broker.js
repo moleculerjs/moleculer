@@ -827,7 +827,30 @@ class ServiceBroker {
 		if (!Array.isArray(serviceNames))
 			serviceNames = [serviceNames];
 
-		const serviceObjs = serviceNames.map(x => _.isPlainObject(x) ? x : { name: x }).filter(x => x.name);
+		const serviceObjs = serviceNames.map(x => {
+			if (_.isPlainObject(x)) {
+				return x;
+			}
+
+			if (_.isString(x)) {
+				// Parse versioned service identifier strings
+				const split = x.split(".");
+				if (
+					split.length === 2 &&
+					split[0].length > 0 &&
+					split[0].match(/^v\d+$/)
+				) {
+					return {
+						name: split[1],
+						version: Number(split[0].slice(1)),
+					};
+				}
+				// If not versioned, fall back to the existing default action to hopefully avoid breaking existing implementations
+			}
+
+			return { name: x };
+		}).filter(x => x.name);
+
 		if (serviceObjs.length == 0)
 			return Promise.resolve();
 
