@@ -1,0 +1,59 @@
+version: "3.0"
+
+services:
+
+  client:
+    image: node:8
+	volumes:
+	  - "../../:/moleculer"
+	working_dir: "/moleculer/examples/metrics"
+    depends_on:
+      - nats
+      - redis
+	command: "node client.js"
+
+  svc-add:
+    image: node:8
+	volumes:
+	  - "../../:/moleculer"
+	working_dir: "/moleculer/examples/metrics"
+    depends_on:
+      - nats
+      - redis
+	command: "node svc-add.js"
+
+  svc-sub:
+    image: node:8
+	volumes:
+	  - "../../:/moleculer"
+	working_dir: "/moleculer/examples/metrics"
+    depends_on:
+      - nats
+      - redis
+	command: "node svc-sub.js"
+
+  svc-mult:
+    image: node:8
+	volumes:
+	  - "../../:/moleculer"
+	working_dir: "/moleculer/examples/metrics"
+    depends_on:
+      - nats
+      - redis
+	command: "node svc-mult.js"
+
+  svc-div:
+    image: node:8
+	volumes:
+	  - "../../:/moleculer"
+	working_dir: "/moleculer/examples/metrics"
+    depends_on:
+      - nats
+      - redis
+	command: "node svc-div.js"
+
+  nats:
+    image: nats
+
+  redis:
+    image: redis:5.0.3-alpine
