@@ -113,6 +113,7 @@
       "/test/typescript/",
       "/test/unit/utils.js"
     ],
+    "transform": {},
     "testEnvironment": "node",
     "rootDir": "./src",
     "roots": [

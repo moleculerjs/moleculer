@@ -349,7 +349,8 @@ class MetricRegistry {
 	 */
 	changed(metric, labels) {
 		this.dirty = true;
-		this.reporter.forEach(reporter => reporter.metricChanged(metric, labels));
+		if (Array.isArray(this.reporter))
+			this.reporter.forEach(reporter => reporter.metricChanged(metric, labels));
 	}
 }
 

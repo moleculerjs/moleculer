@@ -86,6 +86,8 @@ class Transit {
 	 * Register Moleculer Transit Core metrics.
 	 */
 	registerMoleculerMetrics() {
+		if (!this.broker.isMetricsEnabled()) return;
+
 		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_READY, type: METRIC.TYPE_GAUGE, description: "Transit is ready" }).set(0);
 		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_CONNECTED, type: METRIC.TYPE_GAUGE, description: "Transit is connected" }).set(0);
 

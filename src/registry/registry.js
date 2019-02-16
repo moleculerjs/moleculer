@@ -60,6 +60,8 @@ class Registry {
 	 * Register Moleculer Core metrics.
 	 */
 	registerMoleculerMetrics() {
+		if (!this.broker.isMetricsEnabled()) return;
+
 		this.metrics.register({ name: METRIC.MOLECULER_REGISTRY_NODES_TOTAL, type: METRIC.TYPE_GAUGE, description: "Number of registered nodes" }).set(0);
 		this.metrics.register({ name: METRIC.MOLECULER_REGISTRY_NODES_ONLINE_TOTAL, type: METRIC.TYPE_GAUGE, description: "Number of online nodes" }).set(0);
 		this.metrics.register({ name: METRIC.MOLECULER_REGISTRY_SERVICES_TOTAL, type: METRIC.TYPE_GAUGE, description: "Number of registered services" }).set(0);
@@ -74,6 +76,8 @@ class Registry {
 	 * Update metrics.
 	 */
 	updateMetrics() {
+		if (!this.broker.isMetricsEnabled()) return;
+
 		this.metrics.set(METRIC.MOLECULER_REGISTRY_NODES_TOTAL, this.nodes.count());
 		this.metrics.set(METRIC.MOLECULER_REGISTRY_NODES_ONLINE_TOTAL, this.nodes.onlineCount());
 

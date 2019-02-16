@@ -310,7 +310,6 @@ describe("Test ServiceBroker constructor", () => {
 	});
 
 	it("should load internal middlewares", () => {
-		debugger;
 		let broker = new ServiceBroker({
 			logger: false
 		});

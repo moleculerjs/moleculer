@@ -344,6 +344,7 @@ class ServiceBroker {
 	 * Register Moleculer Core metrics.
 	 */
 	registerMoleculerMetrics() {
+		if (!this.isMetricsEnabled()) return;
 
 		// --- MOLECULER NODE METRICS ---
 
