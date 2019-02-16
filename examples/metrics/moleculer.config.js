@@ -1,9 +1,9 @@
 module.exports = {
 	namespace: "metric",
 
-	transporter: "NATS",
+	transporter: process.env.TRANSPORTER || "NATS",
 
-	cacher: "MemoryLRU",
+	cacher: process.env.CACHER || "MemoryLRU",
 
 	retryPolicy: {
 		enabled: false,

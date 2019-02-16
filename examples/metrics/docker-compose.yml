@@ -4,53 +4,58 @@ services:
 
   client:
     image: node:8
-	volumes:
-	  - "../../:/moleculer"
-	working_dir: "/moleculer/examples/metrics"
+    env_file: .env
+    volumes:
+      - "../../:/moleculer"
+    working_dir: "/moleculer/examples/metrics"
     depends_on:
       - nats
       - redis
-	command: "node client.js"
+    command: "node client.js"
 
   svc-add:
     image: node:8
-	volumes:
-	  - "../../:/moleculer"
-	working_dir: "/moleculer/examples/metrics"
+    env_file: .env
+    volumes:
+      - "../../:/moleculer"
+    working_dir: "/moleculer/examples/metrics"
     depends_on:
       - nats
       - redis
-	command: "node svc-add.js"
+    command: "node svc-add.js"
 
   svc-sub:
     image: node:8
-	volumes:
-	  - "../../:/moleculer"
-	working_dir: "/moleculer/examples/metrics"
+    env_file: .env
+    volumes:
+      - "../../:/moleculer"
+    working_dir: "/moleculer/examples/metrics"
     depends_on:
       - nats
       - redis
-	command: "node svc-sub.js"
+    command: "node svc-sub.js"
 
   svc-mult:
     image: node:8
-	volumes:
-	  - "../../:/moleculer"
-	working_dir: "/moleculer/examples/metrics"
+    env_file: .env
+    volumes:
+      - "../../:/moleculer"
+    working_dir: "/moleculer/examples/metrics"
     depends_on:
       - nats
       - redis
-	command: "node svc-mult.js"
+    command: "node svc-mult.js"
 
   svc-div:
     image: node:8
-	volumes:
-	  - "../../:/moleculer"
-	working_dir: "/moleculer/examples/metrics"
+    env_file: .env
+    volumes:
+      - "../../:/moleculer"
+    working_dir: "/moleculer/examples/metrics"
     depends_on:
       - nats
       - redis
-	command: "node svc-div.js"
+    command: "node svc-div.js"
 
   nats:
     image: nats
