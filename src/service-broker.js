@@ -12,7 +12,6 @@ const _ 					= require("lodash");
 const glob 					= require("glob");
 const chalk					= require("chalk");
 const path 					= require("path");
-const fs 					= require("fs");
 
 const Transit 				= require("./transit");
 const Registry 				= require("./registry");

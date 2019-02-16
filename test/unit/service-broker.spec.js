@@ -8,8 +8,6 @@ const H = require("../../src/health");
 H.getHealthStatus = jest.fn();
 
 const { protectReject } = require("./utils");
-const fs = require("fs");
-const utils = require("../../src/utils");
 const path = require("path");
 const Promise = require("bluebird");
 const lolex = require("lolex");
