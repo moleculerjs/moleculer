@@ -46,7 +46,6 @@
   "author": "Icebob",
   "license": "MIT",
   "devDependencies": {
-    "@types/ioredis": "4.0.6",
     "@types/node": "11.9.4",
     "amqplib": "0.5.3",
     "avsc": "5.4.7",
@@ -83,6 +82,7 @@
     "winston-context": "0.0.7"
   },
   "dependencies": {
+    "@types/ioredis": "4.0.6",
     "args": "^5.0.0",
     "bluebird": "^3.5.3",
     "chalk": "2.4.2",
