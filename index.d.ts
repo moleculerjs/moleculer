@@ -1,5 +1,3 @@
-import * as Ioredis from 'ioredis';
-
 declare namespace Moleculer {
 	type GenericObject = { [name: string]: any };
 
@@ -414,7 +412,7 @@ declare namespace Moleculer {
 		namespace: string;
 		nodeID: string;
 		logger: LoggerInstance;
-		cacher?: Cacher | RedisCacher;
+		cacher?: Cacher;
 		serializer?: Serializer;
 		validator?: Validator;
 		transit: GenericObject;
@@ -637,10 +635,7 @@ declare namespace Moleculer {
 		set(key: string, data: any, ttl?: number): PromiseLike<any>;
 		del(key: string|Array<string>): PromiseLike<any>;
 		clean(match?: string|Array<string>): PromiseLike<any>;
-	}
-
-	class RedisCacher extends Cacher {
-		client: Ioredis.Redis;
+		client?: any;
 	}
 
 	class Serializer {
@@ -736,7 +731,7 @@ declare namespace Moleculer {
 
 	const Cachers: {
 		Memory: Cacher,
-		Redis: RedisCacher
+		Redis: Cacher
 	};
 	const Serializers: {
 		JSON: Serializer,
