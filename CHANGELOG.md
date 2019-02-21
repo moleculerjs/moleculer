@@ -1,4 +1,11 @@
 --------------------------------------------------
+<a name="0.13.7"></a>
+# [0.13.7](https://github.com/moleculerjs/moleculer/compare/v0.13.6...v0.13.7) (2019-02-21)
+
+# Changes
+- fix ioredis dependency in typescript definition file [#476](https://github.com/moleculerjs/moleculer/pull/476)
+
+--------------------------------------------------
 <a name="0.13.6"></a>
 # [0.13.6](https://github.com/moleculerjs/moleculer/compare/v0.13.5...v0.13.6) (2019-02-15)
 
