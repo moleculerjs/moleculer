@@ -1,4 +1,5 @@
 .vscode/
+.github/
 benchmark/
 coverage/
 dev/
