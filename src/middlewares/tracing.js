@@ -18,10 +18,10 @@ let sampleCounter = 0;
  *
  * @memberof ServiceBroker
  */
-function shouldMetric(ctx) {
-	if (ctx.broker.options.metrics) {
+function shouldTracing(ctx) {
+	if (ctx.broker.options.tracing.enabled === true) {
 		sampleCounter++;
-		if (sampleCounter * ctx.broker.options.metricsRate >= 1.0) {
+		if (sampleCounter * ctx.broker.options.tracing.rate >= 1.0) {
 			sampleCounter = 0;
 			return true;
 		}
@@ -31,30 +31,30 @@ function shouldMetric(ctx) {
 }
 
 /**
- * Start metrics & send metric event.
+ * Start new Trace
  *
  * @param {Context} ctx
  *
  * @private
  */
-function metricStart(ctx) {
+function tracingStart(ctx) {
 	ctx.startTime = Date.now();
 	ctx.startHrTime = process.hrtime();
 	ctx.duration = 0;
 
-	if (ctx.metrics) {
-		const payload = generateMetricPayload(ctx);
-		ctx.broker.emit("metrics.trace.span.start", payload);
+	if (ctx.tracing) {
+		const payload = generateTracingPayload(ctx);
+		ctx.broker.emit("tracing.span.start", payload);
 	}
 }
 
 /**
- * Generate metrics payload
+ * Generate tracing payload
  *
  * @param {Context} ctx
  * @returns {Object}
  */
-function generateMetricPayload(ctx) {
+function generateTracingPayload(ctx) {
 	let payload = {
 		id: ctx.id,
 		requestID: ctx.requestID,
@@ -63,8 +63,8 @@ function generateMetricPayload(ctx) {
 		remoteCall: ctx.nodeID !== ctx.broker.nodeID
 	};
 
-	// Process extra metrics
-	processExtraMetrics(ctx, payload);
+	// Process extra tracing
+	processExtraTracing(ctx, payload);
 
 	if (ctx.action) {
 		payload.action = {
@@ -89,22 +89,22 @@ function generateMetricPayload(ctx) {
 }
 
 /**
- * Stop metrics & send finish metric event.
+ * Stop tracing & send finish metric event.
  *
  * @param {Context} ctx
  * @param {Error} error
  *
  * @private
  */
-function metricFinish(ctx, error) {
+function tracingFinish(ctx, error) {
 	if (ctx.startHrTime) {
 		let diff = process.hrtime(ctx.startHrTime);
 		ctx.duration = (diff[0] * 1e3) + (diff[1] / 1e6); // milliseconds
 	}
 	ctx.stopTime = ctx.startTime + ctx.duration;
 
-	if (ctx.metrics) {
-		const payload = generateMetricPayload(ctx);
+	if (ctx.tracing) {
+		const payload = generateTracingPayload(ctx);
 		payload.endTime = ctx.stopTime;
 		payload.duration = ctx.duration;
 		payload.fromCache = ctx.cachedResult;
@@ -118,12 +118,12 @@ function metricFinish(ctx, error) {
 			};
 		}
 
-		ctx.broker.emit("metrics.trace.span.finish", payload);
+		ctx.broker.emit("tracing.span.finish", payload);
 	}
 }
 
 /**
- * Assign extra metrics taking into account action definitions
+ * Assign extra tracing taking into account action definitions
  *
  * @param {Context} ctx
  * @param {string} name Field of the context to be assigned.
@@ -131,9 +131,9 @@ function metricFinish(ctx, error) {
  *
  * @private
  */
-function assignExtraMetrics(ctx, name, payload) {
-	let def = ctx.action.metrics[name];
-	// if metrics definitions is boolean do default, metrics=true
+function assignExtraTracing(ctx, name, payload) {
+	let def = ctx.action.tracing[name];
+	// if tracing definitions is boolean do default, tracing=true
 	if (def === true) {
 		payload[name] = ctx[name];
 	} else if (_.isArray(def)) {
@@ -144,40 +144,40 @@ function assignExtraMetrics(ctx, name, payload) {
 }
 
 /**
- * Decide and process extra metrics taking into account action definitions
+ * Decide and process extra tracing taking into account action definitions
  *
  * @param {Context} ctx
  * @param {any} payload Object for assignement.
  *
  * @private
  */
-function processExtraMetrics(ctx, payload) {
-	// extra metrics (params and meta)
-	if (_.isObject(ctx.action.metrics)) {
-		// custom metrics def
-		assignExtraMetrics(ctx, "params", payload);
-		assignExtraMetrics(ctx, "meta", payload);
+function processExtraTracing(ctx, payload) {
+	// extra tracing (params and meta)
+	if (_.isObject(ctx.action.tracing)) {
+		// custom tracing def
+		assignExtraTracing(ctx, "params", payload);
+		assignExtraTracing(ctx, "meta", payload);
 	}
 }
 
-function wrapLocalMetricsMiddleware(handler) {
+function wrapLocalTracingMiddleware(handler) {
 
-	if (this.options.metrics) {
-		return function metricsMiddleware(ctx) {
-			if (ctx.metrics == null) {
-				ctx.metrics = shouldMetric(ctx);
+	if (this.options.tracing) {
+		return function tracingMiddleware(ctx) {
+			if (ctx.tracing == null) {
+				ctx.tracing = shouldTracing(ctx);
 			}
 
-			if (ctx.metrics === true) {
+			if (ctx.tracing === true) {
 
-				metricStart(ctx);
+				tracingStart(ctx);
 
 				// Call the handler
 				return handler(ctx).then(res => {
-					metricFinish(ctx, null);
+					tracingFinish(ctx, null);
 					return res;
 				}).catch(err => {
-					metricFinish(ctx, err);
+					tracingFinish(ctx, err);
 					return this.Promise.reject(err);
 				});
 			}
@@ -190,12 +190,12 @@ function wrapLocalMetricsMiddleware(handler) {
 	return handler;
 }
 
-function wrapRemoteMetricsMiddleware(handler) {
+function wrapRemoteTracingMiddleware(handler) {
 
-	if (this.options.metrics) {
-		return function metricsMiddleware(ctx) {
-			if (ctx.metrics == null) {
-				ctx.metrics = shouldMetric(ctx);
+	if (this.options.tracing) {
+		return function tracingMiddleware(ctx) {
+			if (ctx.tracing == null) {
+				ctx.tracing = shouldTracing(ctx);
 			}
 			return handler(ctx);
 
@@ -205,9 +205,9 @@ function wrapRemoteMetricsMiddleware(handler) {
 	return handler;
 }
 
-module.exports = function MetricsMiddleware() {
+module.exports = function TracingMiddleware() {
 	return {
-		localAction: wrapLocalMetricsMiddleware,
-		remoteAction: wrapRemoteMetricsMiddleware
+		localAction: wrapLocalTracingMiddleware,
+		remoteAction: wrapRemoteTracingMiddleware
 	};
 };

@@ -41,7 +41,7 @@ function createSchemas() {
 			{ name: "meta", type: "string" },
 			{ name: "timeout", type: [ "null", "double"], default: null },
 			{ name: "level", type: "int" },
-			{ name: "metrics", type: [ "null", "boolean"], default: null },
+			{ name: "tracing", type: [ "null", "boolean"], default: null },
 			{ name: "parentID", type: [ "null", "string"], default: null },
 			{ name: "requestID", type: [ "null", "string"], default: null },
 			{ name: "stream", type: [ "null", "boolean"], default: null },

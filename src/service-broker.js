@@ -98,6 +98,7 @@ const defaultOptions = {
 	validator: null,
 
 	metrics: false,
+	tracing: false,
 
 	internalServices: true,
 	internalMiddlewares: true,

@@ -33,7 +33,7 @@ function mergeMeta(ctx, newMeta) {
  * @property {Action} action - Action definition
  * @property {String} [nodeID=null] - Node ID
  * @property {String} parentID - Parent Context ID
- * @property {Boolean} metrics - Need send metrics events
+ * @property {Boolean} tracing - Enable tracing
  * @property {Number} [level=1] - Level of context
  *
  * @class Context
@@ -69,7 +69,7 @@ class Context {
 
 		this.parentID = null;
 
-		this.metrics = null;
+		this.tracing = null;
 		this.level = 1;
 
 		this.params = {};
@@ -123,9 +123,9 @@ class Context {
 			ctx.level = opts.parentCtx.level + 1;
 		}
 
-		// Metrics
+		// Tracing
 		if (opts.parentCtx != null)
-			ctx.metrics = opts.parentCtx.metrics;
+			ctx.tracing = opts.parentCtx.tracing;
 
 		return ctx;
 	}

@@ -404,7 +404,7 @@ class Transit {
 			ctx.requestID = payload.requestID;
 			ctx.meta = payload.meta || {};
 			ctx.level = payload.level;
-			ctx.metrics = !!payload.metrics;
+			ctx.tracing = !!payload.tracing;
 			ctx.nodeID = payload.sender;
 
 			ctx.options.timeout = payload.timeout || this.broker.options.requestTimeout || 0;
@@ -709,7 +709,7 @@ class Transit {
 			meta: ctx.meta,
 			timeout: ctx.options.timeout,
 			level: ctx.level,
-			metrics: ctx.metrics,
+			tracing: ctx.tracing,
 			parentID: ctx.parentID,
 			requestID: ctx.requestID,
 			stream: isStream,
