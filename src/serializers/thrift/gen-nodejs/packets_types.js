@@ -85,7 +85,7 @@ PacketEvent.prototype.read = function(input) {
 			case 5:
 				if (ftype == Thrift.Type.LIST) {
 					let _size0 = 0;
-					let _rtmp34;
+					var _rtmp34;
 					this.groups = [];
 					let _etype3 = 0;
 					_rtmp34 = input.readListBegin();
@@ -173,7 +173,7 @@ let PacketRequest = module.exports.PacketRequest = function(args) {
 	this.meta = null;
 	this.timeout = null;
 	this.level = null;
-	this.metrics = null;
+	this.tracing = null;
 	this.parentID = null;
 	this.requestID = null;
 	this.stream = null;
@@ -203,8 +203,8 @@ let PacketRequest = module.exports.PacketRequest = function(args) {
 		if (args.level !== undefined && args.level !== null) {
 			this.level = args.level;
 		}
-		if (args.metrics !== undefined && args.metrics !== null) {
-			this.metrics = args.metrics;
+		if (args.tracing !== undefined && args.tracing !== null) {
+			this.tracing = args.tracing;
 		}
 		if (args.parentID !== undefined && args.parentID !== null) {
 			this.parentID = args.parentID;
@@ -292,7 +292,7 @@ PacketRequest.prototype.read = function(input) {
 				break;
 			case 9:
 				if (ftype == Thrift.Type.BOOL) {
-					this.metrics = input.readBool();
+					this.tracing = input.readBool();
 				} else {
 					input.skip(ftype);
 				}
@@ -376,9 +376,9 @@ PacketRequest.prototype.write = function(output) {
 		output.writeI32(this.level);
 		output.writeFieldEnd();
 	}
-	if (this.metrics !== null && this.metrics !== undefined) {
-		output.writeFieldBegin("metrics", Thrift.Type.BOOL, 9);
-		output.writeBool(this.metrics);
+	if (this.tracing !== null && this.tracing !== undefined) {
+		output.writeFieldBegin("tracing", Thrift.Type.BOOL, 9);
+		output.writeBool(this.tracing);
 		output.writeFieldEnd();
 	}
 	if (this.parentID !== null && this.parentID !== undefined) {
@@ -817,7 +817,7 @@ PacketInfo.prototype.read = function(input) {
 			case 5:
 				if (ftype == Thrift.Type.LIST) {
 					let _size8 = 0;
-					let _rtmp312;
+					var _rtmp312;
 					this.ipList = [];
 					let _etype11 = 0;
 					_rtmp312 = input.readListBegin();

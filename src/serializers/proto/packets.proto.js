@@ -348,7 +348,7 @@ $root.packets = (function() {
          * @property {string} meta PacketRequest meta
          * @property {number} timeout PacketRequest timeout
          * @property {number} level PacketRequest level
-         * @property {boolean|null} [metrics] PacketRequest metrics
+         * @property {boolean|null} [tracing] PacketRequest tracing
          * @property {string|null} [parentID] PacketRequest parentID
          * @property {string|null} [requestID] PacketRequest requestID
          * @property {boolean|null} [stream] PacketRequest stream
@@ -435,12 +435,12 @@ $root.packets = (function() {
 		PacketRequest.prototype.level = 0;
 
 		/**
-         * PacketRequest metrics.
-         * @member {boolean} metrics
+         * PacketRequest tracing.
+         * @member {boolean} tracing
          * @memberof packets.PacketRequest
          * @instance
          */
-		PacketRequest.prototype.metrics = false;
+		PacketRequest.prototype.tracing = false;
 
 		/**
          * PacketRequest parentID.
@@ -507,8 +507,8 @@ $root.packets = (function() {
 			writer.uint32(/* id 6, wireType 2 =*/50).string(message.meta);
 			writer.uint32(/* id 7, wireType 1 =*/57).double(message.timeout);
 			writer.uint32(/* id 8, wireType 0 =*/64).int32(message.level);
-			if (message.metrics != null && message.hasOwnProperty("metrics"))
-				writer.uint32(/* id 9, wireType 0 =*/72).bool(message.metrics);
+			if (message.tracing != null && message.hasOwnProperty("tracing"))
+				writer.uint32(/* id 9, wireType 0 =*/72).bool(message.tracing);
 			if (message.parentID != null && message.hasOwnProperty("parentID"))
 				writer.uint32(/* id 10, wireType 2 =*/82).string(message.parentID);
 			if (message.requestID != null && message.hasOwnProperty("requestID"))
@@ -576,7 +576,7 @@ $root.packets = (function() {
 						message.level = reader.int32();
 						break;
 					case 9:
-						message.metrics = reader.bool();
+						message.tracing = reader.bool();
 						break;
 					case 10:
 						message.parentID = reader.string();
@@ -656,9 +656,9 @@ $root.packets = (function() {
 				return "timeout: number expected";
 			if (!$util.isInteger(message.level))
 				return "level: integer expected";
-			if (message.metrics != null && message.hasOwnProperty("metrics"))
-				if (typeof message.metrics !== "boolean")
-					return "metrics: boolean expected";
+			if (message.tracing != null && message.hasOwnProperty("tracing"))
+				if (typeof message.tracing !== "boolean")
+					return "tracing: boolean expected";
 			if (message.parentID != null && message.hasOwnProperty("parentID"))
 				if (!$util.isString(message.parentID))
 					return "parentID: string expected";
@@ -705,8 +705,8 @@ $root.packets = (function() {
 				message.timeout = Number(object.timeout);
 			if (object.level != null)
 				message.level = object.level | 0;
-			if (object.metrics != null)
-				message.metrics = Boolean(object.metrics);
+			if (object.tracing != null)
+				message.tracing = Boolean(object.tracing);
 			if (object.parentID != null)
 				message.parentID = String(object.parentID);
 			if (object.requestID != null)
@@ -746,7 +746,7 @@ $root.packets = (function() {
 				object.meta = "";
 				object.timeout = 0;
 				object.level = 0;
-				object.metrics = false;
+				object.tracing = false;
 				object.parentID = "";
 				object.requestID = "";
 				object.stream = false;
@@ -768,8 +768,8 @@ $root.packets = (function() {
 				object.timeout = options.json && !isFinite(message.timeout) ? String(message.timeout) : message.timeout;
 			if (message.level != null && message.hasOwnProperty("level"))
 				object.level = message.level;
-			if (message.metrics != null && message.hasOwnProperty("metrics"))
-				object.metrics = message.metrics;
+			if (message.tracing != null && message.hasOwnProperty("tracing"))
+				object.tracing = message.tracing;
 			if (message.parentID != null && message.hasOwnProperty("parentID"))
 				object.parentID = message.parentID;
 			if (message.requestID != null && message.hasOwnProperty("requestID"))
