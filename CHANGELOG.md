@@ -1,6 +1,6 @@
 --------------------------------------------------
 <a name="0.14.0"></a>
-# [0.14.0](https://github.com/moleculerjs/moleculer/compare/v0.13.6...v0.14.0) (2019-xx-xx)
+# [0.14.0](https://github.com/moleculerjs/moleculer/compare/v0.13.7...v0.14.0) (2019-xx-xx)
 
 ## TODO
 - new built-in tracing solution with adapters (Zipkin, Jaeger)
@@ -28,6 +28,14 @@
 -
 -
 
+--------------------------------------------------
+<a name="0.13.7"></a>
+# [0.13.7](https://github.com/moleculerjs/moleculer/compare/v0.13.6...v0.13.7) (2019-02-21)
+
+# Changes
+- fix ioredis dependency in typescript definition file [#476](https://github.com/moleculerjs/moleculer/pull/476)
+
+--------------------------------------------------
 <a name="0.13.6"></a>
 # [0.13.6](https://github.com/moleculerjs/moleculer/compare/v0.13.5...v0.13.6) (2019-02-15)
 
@@ -58,6 +66,10 @@ module.exports = {
 };
 ```
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> master
 # Changes
 - fix `cacher.clean` issue [#435](https://github.com/moleculerjs/moleculer/pull/435)
 - add `disableVersionCheck` option for broker transit options. It can disable protocol version checking logic in Transit. Default: `false`
@@ -65,6 +77,10 @@ module.exports = {
 - waitForServices accept versioned service names (e.g.: `v2.posts`).
 - update dependencies (plus using semver ranges in dependencies)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> master
 --------------------------------------------------
 <a name="0.13.5"></a>
 # [0.13.5](https://github.com/moleculerjs/moleculer/compare/v0.13.4...v0.13.5) (2018-12-09)

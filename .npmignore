@@ -1,10 +1,10 @@
 .vscode/
+.github/
 benchmark/
 coverage/
 dev/
 docs/
 examples/
-typings/
+typings
 test/
 thrift.exe
-CHANGELOG.md
