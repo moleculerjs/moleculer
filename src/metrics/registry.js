@@ -22,8 +22,8 @@ const METRIC_LABEL_REGEXP 	= /^[a-zA-Z_][a-zA-Z0-9-_.]*$/;
 class MetricRegistry {
 
 	/**
-	 *Creates an instance of MetricRegistry.
-
+	 * Creates an instance of MetricRegistry.
+	 *
 	 * @param {ServiceBroker} broker
 	 * @param {Object} opts
 	 * @memberof MetricRegistry
