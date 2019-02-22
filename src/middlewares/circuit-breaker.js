@@ -120,6 +120,8 @@ module.exports = function() {
 	 * @param {Context} ctx
 	 */
 	function trip(item, ctx) {
+		if (item.state == C.CIRCUIT_OPEN) return;
+
 		item.state = C.CIRCUIT_OPEN;
 		item.ep.state = false;
 

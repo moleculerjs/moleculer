@@ -34,13 +34,13 @@ const broker = new ServiceBroker({
 	metrics: {
 		enabled: true,
 		reporter: [
-			{
+			/*{
 				type: "Console",
 				options: {
 					includes: "moleculer.registry.**",
 					//excludes: ["moleculer.transit.publish.total", "moleculer.transit.receive.total"]
 				}
-			},
+			},*/
 			/*{
 				type: "Prometheus",
 				options: {
