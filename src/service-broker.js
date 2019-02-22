@@ -12,7 +12,6 @@ const _ 					= require("lodash");
 const glob 					= require("glob");
 const chalk					= require("chalk");
 const path 					= require("path");
-const fs 					= require("fs");
 
 const Transit 				= require("./transit");
 const Registry 				= require("./registry");
@@ -28,6 +27,8 @@ const Middlewares			= require("./middlewares");
 const H 					= require("./health");
 const MiddlewareHandler		= require("./middleware");
 const cpuUsage 				= require("./cpu-usage");
+
+const { MetricRegistry, METRIC }	= require("./metrics");
 
 /**
  * Default broker options
@@ -95,8 +96,9 @@ const defaultOptions = {
 
 	validation: true,
 	validator: null,
+
 	metrics: false,
-	metricsRate: 1,
+
 	internalServices: true,
 	internalMiddlewares: true,
 
@@ -167,6 +169,11 @@ class ServiceBroker {
 				wildcard: true,
 				maxListeners: 100
 			});
+
+			// Metrics Registry
+			this.metrics = new MetricRegistry(this, this.options.metrics);
+			this.metrics.init();
+			this.registerMoleculerMetrics();
 
 			// Middleware handler
 			this.middlewares = new MiddlewareHandler(this);
@@ -328,6 +335,28 @@ class ServiceBroker {
 		this.emit = this.wrapMethod("emit", this.emit);
 		this.broadcast = this.wrapMethod("broadcast", this.broadcast);
 		this.broadcastLocal = this.wrapMethod("broadcastLocal", this.broadcastLocal);
+
+		this.metrics.set(METRIC.MOLECULER_BROKER_MIDDLEWARES_TOTAL,this.middlewares.count());
+	}
+
+	/**
+	 * Register Moleculer Core metrics.
+	 */
+	registerMoleculerMetrics() {
+		if (!this.isMetricsEnabled()) return;
+
+		// --- MOLECULER NODE METRICS ---
+
+		this.metrics.register({ name: METRIC.MOLECULER_NODE_TYPE, type: METRIC.TYPE_INFO, description: "Moleculer implementation type" }).set("nodejs");
+		this.metrics.register({ name: METRIC.MOLECULER_NODE_VERSIONS_MOLECULER, type: METRIC.TYPE_INFO, description: "Moleculer version number" }).set(ServiceBroker.MOLECULER_VERSION);
+		this.metrics.register({ name: METRIC.MOLECULER_NODE_VERSIONS_PROTOCOL, type: METRIC.TYPE_INFO, description: "Moleculer protocol version" }).set(ServiceBroker.PROTOCOL_VERSION);
+
+		// --- MOLECULER BROKER METRICS ---
+
+		this.metrics.register({ name: METRIC.MOLECULER_BROKER_NAMESPACE, type: METRIC.TYPE_INFO, description: "Moleculer namespace" }).set(this.namespace);
+		this.metrics.register({ name: METRIC.MOLECULER_BROKER_STARTED, type: METRIC.TYPE_GAUGE, description: "ServiceBroker started" }).set(0);
+		this.metrics.register({ name: METRIC.MOLECULER_BROKER_LOCAL_SERVICES_TOTAL, type: METRIC.TYPE_GAUGE, description: "Number of local services" }).set(0);
+		this.metrics.register({ name: METRIC.MOLECULER_BROKER_MIDDLEWARES_TOTAL, type: METRIC.TYPE_GAUGE, description: "Number of local middlewares" }).set(0);
 	}
 
 	/**
@@ -356,6 +385,7 @@ class ServiceBroker {
 			.then(() => {
 				this.logger.info(`✔ ServiceBroker with ${this.services.length} service(s) is started successfully.`);
 				this.started = true;
+				this.metrics.set(METRIC.MOLECULER_BROKER_STARTED, 1);
 
 				this.broadcastLocal("$broker.started");
 			})
@@ -421,6 +451,7 @@ class ServiceBroker {
 			})
 			.then(() => {
 				this.logger.info("ServiceBroker is stopped. Good bye.");
+				this.metrics.set(METRIC.MOLECULER_BROKER_STARTED, 0);
 
 				this.broadcastLocal("$broker.stopped");
 
@@ -533,6 +564,10 @@ class ServiceBroker {
 
 		// Create console logger
 		return Logger.createDefaultLogger(console, bindings, this.options.logLevel || "info", this.options.logFormatter, this.options.logObjectPrinter);
+	}
+
+	isMetricsEnabled() {
+		return this.metrics.isEnabled();
 	}
 
 	/**
@@ -704,6 +739,7 @@ class ServiceBroker {
 	 */
 	addLocalService(service) {
 		this.services.push(service);
+		this.metrics.set(METRIC.MOLECULER_BROKER_LOCAL_SERVICES_TOTAL, this.services.length);
 	}
 
 	/**
@@ -791,7 +827,30 @@ class ServiceBroker {
 		if (!Array.isArray(serviceNames))
 			serviceNames = [serviceNames];
 
-		const serviceObjs = serviceNames.map(x => _.isPlainObject(x) ? x : { name: x }).filter(x => x.name);
+		const serviceObjs = serviceNames.map(x => {
+			if (_.isPlainObject(x)) {
+				return x;
+			}
+
+			if (_.isString(x)) {
+				// Parse versioned service identifier strings
+				const split = x.split(".");
+				if (
+					split.length === 2 &&
+					split[0].length > 0 &&
+					split[0].match(/^v\d+$/)
+				) {
+					return {
+						name: split[1],
+						version: Number(split[0].slice(1)),
+					};
+				}
+				// If not versioned, fall back to the existing default action to hopefully avoid breaking existing implementations
+			}
+
+			return { name: x };
+		}).filter(x => x.name);
+
 		if (serviceObjs.length == 0)
 			return Promise.resolve();
 
@@ -1158,10 +1217,8 @@ class ServiceBroker {
 					groups = this.getEventGroups(eventName);
 				}
 
-				if (groups.length == 0)
-					return;
-
-				return this.transit.sendBroadcastEvent(null, eventName, payload, groups);
+				if (groups.length > 0)
+					this.transit.sendBroadcastEvent(null, eventName, payload, groups);
 			}
 		}
 

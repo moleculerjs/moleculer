@@ -15,6 +15,7 @@ const ServiceCatalog = require("./service-catalog");
 const EventCatalog = require("./event-catalog");
 const ActionCatalog = require("./action-catalog");
 const ActionEndpoint = require("./endpoint-action");
+const { METRIC }		= require("../metrics");
 
 /**
  * Service Registry
@@ -31,6 +32,7 @@ class Registry {
 	 */
 	constructor(broker) {
 		this.broker = broker;
+		this.metrics = broker.metrics;
 		this.logger = broker.getLogger("registry");
 
 		this.opts = Object.assign({}, broker.options.registry);
@@ -49,6 +51,48 @@ class Registry {
 				this.regenerateLocalRawInfo(true);
 			}
 		});
+
+		this.registerMoleculerMetrics();
+		this.updateMetrics();
+	}
+
+	/**
+	 * Register Moleculer Core metrics.
+	 */
+	registerMoleculerMetrics() {
+		if (!this.broker.isMetricsEnabled()) return;
+
+		this.metrics.register({ name: METRIC.MOLECULER_REGISTRY_NODES_TOTAL, type: METRIC.TYPE_GAUGE, description: "Number of registered nodes" }).set(0);
+		this.metrics.register({ name: METRIC.MOLECULER_REGISTRY_NODES_ONLINE_TOTAL, type: METRIC.TYPE_GAUGE, description: "Number of online nodes" }).set(0);
+		this.metrics.register({ name: METRIC.MOLECULER_REGISTRY_SERVICES_TOTAL, type: METRIC.TYPE_GAUGE, description: "Number of registered services" }).set(0);
+		this.metrics.register({ name: METRIC.MOLECULER_REGISTRY_SERVICE_ENDPOINTS_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["name", "version"], description: "Number of service endpoints" });
+		this.metrics.register({ name: METRIC.MOLECULER_REGISTRY_ACTIONS_TOTAL, type: METRIC.TYPE_GAUGE, description: "Number of registered actions" }).set(0);
+		this.metrics.register({ name: METRIC.MOLECULER_REGISTRY_ACTION_ENDPOINTS_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["name"], description: "Number of action endpoints" });
+		this.metrics.register({ name: METRIC.MOLECULER_REGISTRY_EVENTS_TOTAL, type: METRIC.TYPE_GAUGE, description: "Number of registered events" }).set(0);
+		this.metrics.register({ name: METRIC.MOLECULER_REGISTRY_EVENT_ENDPOINTS_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["name"], description: "Number of event endpoints" });
+	}
+
+	/**
+	 * Update metrics.
+	 */
+	updateMetrics() {
+		if (!this.broker.isMetricsEnabled()) return;
+
+		this.metrics.set(METRIC.MOLECULER_REGISTRY_NODES_TOTAL, this.nodes.count());
+		this.metrics.set(METRIC.MOLECULER_REGISTRY_NODES_ONLINE_TOTAL, this.nodes.onlineCount());
+
+		// TODO use services.list({ grouping: true })
+		const services = this.services.getServicesWithNodes();
+		this.metrics.set(METRIC.MOLECULER_REGISTRY_SERVICES_TOTAL, services.length);
+		services.forEach(svc => this.metrics.set(METRIC.MOLECULER_REGISTRY_SERVICE_ENDPOINTS_TOTAL, svc.nodes ? svc.nodes.length : 0, svc));
+
+		const actions = this.actions.list({ withEndpoints: true });
+		this.metrics.set(METRIC.MOLECULER_REGISTRY_ACTIONS_TOTAL, actions.length);
+		actions.forEach(item => this.metrics.set(METRIC.MOLECULER_REGISTRY_ACTION_ENDPOINTS_TOTAL, item.endpoints ? item.endpoints.length : 0, { name: item.name }));
+
+		const events = this.events.list({ withEndpoints: true });
+		this.metrics.set(METRIC.MOLECULER_REGISTRY_EVENTS_TOTAL, events.length);
+		events.forEach(item => this.metrics.set(METRIC.MOLECULER_REGISTRY_EVENT_ENDPOINTS_TOTAL, item.endpoints ? item.endpoints.length : 0, { name: item.name }));
 	}
 
 	/**
@@ -74,6 +118,7 @@ class Registry {
 			this.logger.info(`'${svc.name}' service is registered.`);
 
 			this.broker.servicesChanged(true);
+			this.updateMetrics();
 		}
 	}
 
@@ -145,6 +190,7 @@ class Registry {
 		});
 
 		this.broker.servicesChanged(false);
+		this.updateMetrics();
 	}
 
 	/**
@@ -385,7 +431,8 @@ class Registry {
 	 * @memberof Registry
 	 */
 	nodeDisconnected(payload) {
-		return this.nodes.disconnected(payload.sender, false);
+		this.nodes.disconnected(payload.sender, false);
+		this.updateMetrics();
 	}
 
 	/**

@@ -1,20 +1,21 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
-const Promise = require("bluebird");
-const _ = require("lodash");
+const Promise 			= require("bluebird");
+const _ 				= require("lodash");
 const { generateToken } = require("./utils");
 
-const P = require("./packets");
-const { Packet } = require("./packets");
-const E = require("./errors");
+const P 				= require("./packets");
+const { Packet } 		= require("./packets");
+const E 				= require("./errors");
 
-const { Transform } = require("stream");
+const { Transform } 	= require("stream");
+const { METRIC }		= require("./metrics");
 
 /**
  * Transit class
@@ -37,6 +38,7 @@ class Transit {
 		this.Promise = broker.Promise;
 		this.logger = broker.getLogger("transit");
 		this.nodeID = broker.nodeID;
+		this.metrics = broker.metrics;
 		this.instanceID = broker.instanceID;
 		this.tx = transporter;
 		this.opts = opts;
@@ -77,7 +79,22 @@ class Transit {
 
 		this.__connectResolve = null;
 
+		this.registerMoleculerMetrics();
+	}
 
+	/**
+	 * Register Moleculer Transit Core metrics.
+	 */
+	registerMoleculerMetrics() {
+		if (!this.broker.isMetricsEnabled()) return;
+
+		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_READY, type: METRIC.TYPE_GAUGE, description: "Transit is ready" }).set(0);
+		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_CONNECTED, type: METRIC.TYPE_GAUGE, description: "Transit is connected" }).set(0);
+
+		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_PONG_TIME, type: METRIC.TYPE_GAUGE, labelNames: ["targetNodeID"], description: "Ping time" });
+		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_PONG_SYSTIME_DIFF, type: METRIC.TYPE_GAUGE, labelNames: ["targetNodeID"], description: "System time difference between nodes" });
+
+		this.metrics.register({ name: METRIC.MOLECULER_TRANSIT_ORPHAN_RESPONSE_TOTAL, type: METRIC.TYPE_COUNTER, description: "Number of orphan responses" });
 	}
 
 	/**
@@ -101,6 +118,7 @@ class Transit {
 
 			.then(() => {
 				this.connected = true;
+				this.metrics.set(METRIC.MOLECULER_TRANSIT_CONNECTED, 1);
 
 				this.broker.broadcastLocal("$transporter.connected", { wasReconnect: !!wasReconnect });
 
@@ -161,6 +179,7 @@ class Transit {
 		this.connected = false;
 		this.isReady = false;
 		this.disconnecting = true;
+		this.metrics.set(METRIC.MOLECULER_TRANSIT_CONNECTED, 1);
 
 		this.broker.broadcastLocal("$transporter.disconnected", { graceFul: true });
 
@@ -182,6 +201,7 @@ class Transit {
 	ready() {
 		if (this.connected) {
 			this.isReady = true;
+			this.metrics.set(METRIC.MOLECULER_TRANSIT_READY, 1);
 			return this.sendNodeInfo();
 		}
 	}
@@ -370,7 +390,7 @@ class Transit {
 			let pass;
 			if (payload.stream !== undefined) {
 				pass = this._handleIncomingRequestStream(payload);
-				if (pass === null)
+				if (pass === null) // eslint-disable-line security/detect-possible-timing-attacks
 					return this.Promise.resolve();
 			}
 
@@ -526,6 +546,7 @@ class Transit {
 		// If not exists (timed out), we skip response processing
 		if (req == null) {
 			this.logger.debug("Orphan response is received. Maybe the request is timed out earlier. ID:", packet.id, ", Sender:", packet.sender);
+			this.metrics.increment(METRIC.MOLECULER_TRANSIT_ORPHAN_RESPONSE_TOTAL);
 			return;
 		}
 
@@ -1059,6 +1080,9 @@ class Transit {
 		// this.logger.debug(`PING-PONG from '${payload.sender}' - Time: ${elapsedTime}ms, Time difference: ${timeDiff}ms`);
 
 		this.broker.broadcastLocal("$node.pong", { nodeID: payload.sender, elapsedTime, timeDiff, id: payload.id });
+
+		this.metrics.set(METRIC.MOLECULER_TRANSIT_PONG_TIME, elapsedTime, { targetNodeID: payload.sender });
+		this.metrics.set(METRIC.MOLECULER_TRANSIT_PONG_SYSTIME_DIFF, timeDiff, { targetNodeID: payload.sender });
 	}
 
 	/**

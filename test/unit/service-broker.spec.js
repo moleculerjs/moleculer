@@ -8,8 +8,6 @@ const H = require("../../src/health");
 H.getHealthStatus = jest.fn();
 
 const { protectReject } = require("./utils");
-const fs = require("fs");
-const utils = require("../../src/utils");
 const path = require("path");
 const Promise = require("bluebird");
 const lolex = require("lolex");
@@ -310,7 +308,6 @@ describe("Test ServiceBroker constructor", () => {
 	});
 
 	it("should load internal middlewares", () => {
-		debugger;
 		let broker = new ServiceBroker({
 			logger: false
 		});
@@ -1192,6 +1189,32 @@ describe("Test broker.waitForServices", () => {
 		res = false;
 		broker.registry.hasService.mockClear();
 		let p = broker.waitForServices([{ name: "posts", version: 1, meta: true }], 10 * 1000, 100).catch(protectReject).then(() => {
+			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
+			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts", 1);
+		});
+
+		setTimeout(() => res = true, 450);
+
+		return p;
+	});
+
+	it("should wait for service when service is passed as a versioned string", () => {
+		res = false;
+		broker.registry.hasService.mockClear();
+		let p = broker.waitForServices("v1.posts", 10 * 1000, 100).catch(protectReject).then(() => {
+			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
+			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts", 1);
+		});
+
+		setTimeout(() => res = true, 450);
+
+		return p;
+	});
+
+	it("should wait for service when service is passed as an array of versioned strings", () => {
+		res = false;
+		broker.registry.hasService.mockClear();
+		let p = broker.waitForServices(["v1.posts"], 10 * 1000, 100).catch(protectReject).then(() => {
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
 			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts", 1);
 		});

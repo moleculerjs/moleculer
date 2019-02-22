@@ -6,8 +6,9 @@
 
 "use strict";
 
-const _ 		= require("lodash");
-const crypto	= require("crypto");
+const _ 			= require("lodash");
+const crypto		= require("crypto");
+const { METRIC }	= require("../metrics");
 
 /**
  * Abstract cacher class
@@ -40,6 +41,8 @@ class Cacher {
 	 */
 	init(broker) {
 		this.broker = broker;
+		this.metrics = broker.metrics;
+
 		if (this.broker) {
 			this.logger = broker.getLogger("cacher");
 
@@ -50,7 +53,30 @@ class Cacher {
 				if (this.broker.namespace)
 					this.prefix += this.broker.namespace + "-";
 			}
+
+			this.registerMoleculerMetrics();
 		}
+	}
+
+	/**
+	 * Register Moleculer Transit Core metrics.
+	 */
+	registerMoleculerMetrics() {
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_GET_TOTAL, type: METRIC.TYPE_COUNTER });
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_GET_TIME, type: METRIC.TYPE_HISTOGRAM, quantiles: true, unit: METRIC.UNIT_MILLISECONDS });
+
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_FOUND_TOTAL, type: METRIC.TYPE_COUNTER });
+
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_SET_TOTAL, type: METRIC.TYPE_COUNTER });
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_SET_TIME, type: METRIC.TYPE_HISTOGRAM, quantiles: true, unit: METRIC.UNIT_MILLISECONDS });
+
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_DEL_TOTAL, type: METRIC.TYPE_COUNTER });
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_DEL_TIME, type: METRIC.TYPE_HISTOGRAM, quantiles: true, unit: METRIC.UNIT_MILLISECONDS });
+
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_CLEAN_TOTAL, type: METRIC.TYPE_COUNTER });
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_CLEAN_TIME, type: METRIC.TYPE_HISTOGRAM, quantiles: true, unit: METRIC.UNIT_MILLISECONDS });
+
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_EXPIRED_TOTAL, type: METRIC.TYPE_COUNTER });
 	}
 
 	/**

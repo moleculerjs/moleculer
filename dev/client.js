@@ -31,7 +31,31 @@ const broker = new ServiceBroker({
 
 	cacher: true,
 
-	metrics: true,
+	metrics: {
+		enabled: true,
+		reporter: [
+			{
+				type: "Console",
+				options: {
+					includes: "moleculer.registry.**",
+					//excludes: ["moleculer.transit.publish.total", "moleculer.transit.receive.total"]
+				}
+			},
+			/*{
+				type: "Prometheus",
+				options: {
+					port: 3031
+				}
+			},*/
+			{
+				type: "Datadog",
+				options: {
+					//includes: "process.memory.**"
+				}
+			}
+		]
+	},
+
 
 	transit: {
 		//maxQueueSize: 10
@@ -42,7 +66,7 @@ const broker = new ServiceBroker({
 	},
 
 	retryPolicy: {
-		enabled: true,
+		enabled: false,
 		retries: 3
 	},
 
@@ -56,8 +80,8 @@ const broker = new ServiceBroker({
 	logLevel: "info",
 	logFormatter: "short",
 	middlewares: [
-		Middlewares.Transmit.Encryption("moleculer", "aes-256-cbc"),
-		Middlewares.Transmit.Compression(),
+		//Middlewares.Transmit.Encryption("moleculer", "aes-256-cbc"),
+		//Middlewares.Transmit.Compression(),
 		//Middlewares.Debugging.TransitLogger({ logPacketData: false, /*folder: null, colors: { send: "magenta", receive: "blue"}*/ }),
 		//Middlewares.Debugging.ActionLogger({ logParams: true, logResponse: true, /*folder: null, colors: { send: "magenta", receive: "blue"}*/ }),
 	]
@@ -138,24 +162,25 @@ broker.start()
 				pendingInfo = ` [${pendingReqs.join(",")}]`;
 			}
 
-			let payload = { a: _.random(0, 100), b: _.random(0, 100), count: ++reqCount };
-			pendingReqs.push(reqCount);
-			let p = broker.call("math.add", payload);
+			const payload = { a: _.random(0, 10), b: _.random(0, 10)};
+			const count = ++reqCount;
+			pendingReqs.push(count);
+			let p = broker.call("math.add", payload, { meta: { count }});
 			if (p.ctx) {
-				broker.logger.info(chalk.grey(`${reqCount}. Send request (${payload.a} + ${payload.b}) to ${p.ctx.nodeID ? p.ctx.nodeID : "some node"} (queue: ${broker.transit.pendingRequests.size})...`), chalk.yellow.bold(pendingInfo));
+				broker.logger.info(chalk.grey(`${count}. Send request (${payload.a} + ${payload.b}) to ${p.ctx.nodeID ? p.ctx.nodeID : "some node"} (queue: ${broker.transit.pendingRequests.size})...`), chalk.yellow.bold(pendingInfo));
 			}
 			p.then(r => {
-				broker.logger.info(_.padEnd(`${r.count}. ${payload.a} + ${payload.b} = ${r.res}`, 20), `(from: ${p.ctx.nodeID})`);
+				broker.logger.info(_.padEnd(`${count}. ${payload.a} + ${payload.b} = ${r.res}`, 20), `(from: ${p.ctx.nodeID})`);
 
 				// Remove from pending
-				if (pendingReqs.indexOf(r.count) !== -1)
-					pendingReqs = pendingReqs.filter(n => n != r.count);
+				if (pendingReqs.indexOf(count) !== -1)
+					pendingReqs = pendingReqs.filter(n => n != count);
 				else
-					broker.logger.warn(chalk.red.bold("Invalid coming request count: ", r.count));
+					broker.logger.warn(chalk.red.bold("Invalid coming request count: ", count));
 			}).catch(err => {
-				broker.logger.warn(chalk.red.bold(_.padEnd(`${payload.count}. ${payload.a} + ${payload.b} = ERROR! ${err.message}`)));
-				if (pendingReqs.indexOf(payload.count) !== -1)
-					pendingReqs = pendingReqs.filter(n => n != payload.count);
+				broker.logger.warn(chalk.red.bold(_.padEnd(`${count}. ${payload.a} + ${payload.b} = ERROR! ${err.message}`)));
+				if (pendingReqs.indexOf(count) !== -1)
+					pendingReqs = pendingReqs.filter(n => n != count);
 			});
 		}, 1000);
 

@@ -106,9 +106,6 @@ const getHealthStatus = (broker) => {
 		net: getNetworkInterfacesInfo(),
 		transit: getTransitStatus(broker),
 		time: getDateTimeInfo()
-
-		// TODO: event loop & GC info
-		// https://github.com/RisingStack/trace-nodejs/blob/master/lib/agent/metrics/apm/index.js
 	};
 };
 

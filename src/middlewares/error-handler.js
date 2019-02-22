@@ -25,7 +25,7 @@ function wrapErrorHandler(handler) {
 
 				Object.defineProperty(err, "ctx", {
 					value: ctx,
-					writable: false,
+					writable: true,
 					enumerable: false
 				});
 

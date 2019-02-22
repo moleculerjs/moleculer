@@ -40,5 +40,8 @@ module.exports = {
 		"no-trailing-spaces": [
 			"error"
 		],
+		"security/detect-possible-timing-attacks": [
+			"off"
+		]
 	}
 };
