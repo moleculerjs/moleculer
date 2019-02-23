@@ -127,7 +127,7 @@ function metricFinish(ctx, error) {
  *
  * @param {Context} ctx
  * @param {string} name Field of the context to be assigned.
- * @param {any} payload Object for assignement.
+ * @param {any} payload Object for assignment.
  *
  * @private
  */
@@ -147,7 +147,7 @@ function assignExtraMetrics(ctx, name, payload) {
  * Decide and process extra metrics taking into account action definitions
  *
  * @param {Context} ctx
- * @param {any} payload Object for assignement.
+ * @param {any} payload Object for assignment.
  *
  * @private
  */
