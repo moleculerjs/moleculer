@@ -30,7 +30,10 @@ class Tracer {
 
 		this.opts = _.defaults({}, opts, {
 			enabled: true,
-			sampleRate: 1.0,
+			sampling: {
+				rate: 1.0, // 0.0, 0.5
+				window: null // 1000msec (ratelimiting sampling https://opencensus.io/tracing/sampling/ratelimited/ )
+			},
 
 			actions: true,
 			methods: false,
@@ -48,7 +51,7 @@ class Tracer {
 	}
 
 	/**
-	 * Initialize Registry.
+	 * Initialize Tracer.
 	 */
 	init() {
 		if (this.opts.enabled) {

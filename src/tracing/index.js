@@ -10,5 +10,5 @@ module.exports = {
 	Tracer: require("./tracer"),
 	Trace: require("./trace"),
 	Span: require("./span"),
-	Reporters: require("./reporters"),
+	Exporters: require("./exporters"),
 };

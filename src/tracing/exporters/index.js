@@ -9,7 +9,7 @@
 const _ = require("lodash");
 const { BrokerOptionsError } = require("../../errors");
 
-const Reporters = {
+const Exporters = {
 	Base: require("./base"),
 	Console: require("./console"),
 	Datadog: require("./datadog"),
@@ -23,38 +23,38 @@ function getByName(name) {
 	if (!name)
 		return null;
 
-	let n = Object.keys(Reporters).find(n => n.toLowerCase() == name.toLowerCase());
+	let n = Object.keys(Exporters).find(n => n.toLowerCase() == name.toLowerCase());
 	if (n)
-		return Reporters[n];
+		return Exporters[n];
 }
 
 /**
- * Resolve reporter by name
+ * Resolve exporter by name
  *
  * @param {object|string} opt
- * @returns {Reporter}
+ * @returns {Exporter}
  * @memberof ServiceBroker
  */
 function resolve(opt) {
-	if (opt instanceof Reporters.Base) {
+	if (opt instanceof Exporters.Base) {
 		return opt;
 	} else if (_.isString(opt)) {
-		let ReporterClass = getByName(opt);
-		if (ReporterClass)
-			return new ReporterClass();
+		let ExporterClass = getByName(opt);
+		if (ExporterClass)
+			return new ExporterClass();
 		else
-			throw new BrokerOptionsError(`Invalid metric reporter type '${opt}'.`, { type: opt });
+			throw new BrokerOptionsError(`Invalid metric exporter type '${opt}'.`, { type: opt });
 
 	} else if (_.isObject(opt)) {
-		let ReporterClass = getByName(opt.type);
-		if (ReporterClass)
-			return new ReporterClass(opt.options);
+		let ExporterClass = getByName(opt.type);
+		if (ExporterClass)
+			return new ExporterClass(opt.options);
 		else
-			throw new BrokerOptionsError(`Invalid metric reporter type '${opt.type}'.`, { type: opt.type });
+			throw new BrokerOptionsError(`Invalid metric exporter type '${opt.type}'.`, { type: opt.type });
 	}
 
 	return null;
 }
 
-module.exports = Object.assign({ resolve }, Reporters);
+module.exports = Object.assign({ resolve }, Exporters);
 
