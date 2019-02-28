@@ -372,6 +372,7 @@ declare namespace Moleculer {
 		meta?: GenericObject;
 		parentCtx?: Context;
 		requestID?: string;
+		tracking?: boolean;
 	}
 
 	type CallDefinition<P extends GenericObject = GenericObject> = {
