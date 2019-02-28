@@ -8,7 +8,6 @@
 
 module.exports = {
 	Tracer: require("./tracer"),
-	Trace: require("./trace"),
 	Span: require("./span"),
 	Exporters: require("./exporters"),
 };

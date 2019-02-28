@@ -14,6 +14,7 @@ const Exporters = {
 	Console: require("./console"),
 	Datadog: require("./datadog"),
 	Event: require("./event"),
+	EventLegacy: require("./event-legacy"),
 	Jaeger: require("./jaeger"),
 	Zipkin: require("./zipkin"),
 };
@@ -32,7 +33,7 @@ function getByName(name) {
  * Resolve exporter by name
  *
  * @param {object|string} opt
- * @returns {Exporter}
+ * @returns {Exporters.Base}
  * @memberof ServiceBroker
  */
 function resolve(opt) {
@@ -43,14 +44,14 @@ function resolve(opt) {
 		if (ExporterClass)
 			return new ExporterClass();
 		else
-			throw new BrokerOptionsError(`Invalid metric exporter type '${opt}'.`, { type: opt });
+			throw new BrokerOptionsError(`Invalid tracing exporter type '${opt}'.`, { type: opt });
 
 	} else if (_.isObject(opt)) {
 		let ExporterClass = getByName(opt.type);
 		if (ExporterClass)
 			return new ExporterClass(opt.options);
 		else
-			throw new BrokerOptionsError(`Invalid metric exporter type '${opt.type}'.`, { type: opt.type });
+			throw new BrokerOptionsError(`Invalid tracing exporter type '${opt.type}'.`, { type: opt.type });
 	}
 
 	return null;

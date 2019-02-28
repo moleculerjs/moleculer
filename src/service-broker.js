@@ -29,6 +29,7 @@ const MiddlewareHandler		= require("./middleware");
 const cpuUsage 				= require("./cpu-usage");
 
 const { MetricRegistry, METRIC }	= require("./metrics");
+const { Tracer }			= require("./tracing");
 
 /**
  * Default broker options
@@ -205,6 +206,10 @@ class ServiceBroker {
 					this.validator.init(this);
 				}
 			}
+
+			// Tracing
+			this.tracer = new Tracer(this, this.options.tracing);
+			this.tracer.init();
 
 			// Register middlewares
 			this.registerMiddlewares(this.options.middlewares);
@@ -567,8 +572,24 @@ class ServiceBroker {
 		return Logger.createDefaultLogger(console, bindings, this.options.logLevel || "info", this.options.logFormatter, this.options.logObjectPrinter);
 	}
 
+	/**
+	 * Check metrics are enabled.
+	 *
+	 * @returns {boolean}
+	 * @memberof ServiceBroker
+	 */
 	isMetricsEnabled() {
 		return this.metrics.isEnabled();
+	}
+
+	/**
+	 * Check tracing is enabled.
+	 *
+	 * @returns {boolean}
+	 * @memberof ServiceBroker
+	 */
+	isTracingEnabled() {
+		return this.tracer.isEnabled();
 	}
 
 	/**

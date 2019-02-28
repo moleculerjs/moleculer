@@ -9,6 +9,8 @@
 const Promise = require("bluebird");
 const _ = require("lodash");
 
+const Span = require("./span");
+
 /**
  * Moleculer Tracer class
  */
@@ -32,7 +34,8 @@ class Tracer {
 			enabled: true,
 			sampling: {
 				rate: 1.0, // 0.0, 0.5
-				window: null // 1000msec (ratelimiting sampling https://opencensus.io/tracing/sampling/ratelimited/ )
+				//TODO: qps: 1.0 // 1 trace / 1 sec (ratelimiting sampling https://opencensus.io/tracing/sampling/ratelimited/ )
+				minPriority: null
 			},
 
 			actions: true,
@@ -43,6 +46,8 @@ class Tracer {
 
 			defaultTags: null,
 		});
+
+		this.sampleCounter = 0;
 
 		if (this.opts.enabled)
 			this.logger.info("Tracing: Enabled");
@@ -56,34 +61,56 @@ class Tracer {
 	init() {
 		if (this.opts.enabled) {
 
-			// Create Reporter instances
-			if (this.opts.reporter) {
-				const reporters = Array.isArray(this.opts.reporter) ? this.opts.reporter : [this.opts.reporter];
+			// Create Exporter instances
+			if (this.opts.exporter) {
+				const exporters = Array.isArray(this.opts.exporter) ? this.opts.exporter : [this.opts.exporter];
 
-				this.reporter = reporters.map(r => {
-					/*const reporter = Reporters.resolve(r);
-					reporter.init(this);
-					return reporter;
+				this.exporter = exporters.map(r => {
+					/*const exporter = Exporters.resolve(r);
+					exporter.init(this);
+					return exporter;
 					*/
 				});
 			}
 		}
 	}
 
-	startSpan(opts) {
-
+	/**
+	 * Check tracing is enabled
+	 *
+	 * @returns {boolean}
+	 * @memberof MetricRegistry
+	 */
+	isEnabled() {
+		return this.opts.enabled;
 	}
 
-	stopSpan(opts) {
+	shouldSample(span) {
+		if (this.opts.sampling.minPriority != null) {
+			if (span.priority < this.opts.sampling.minPriority)
+				return false;
+		}
 
+		if (this.opts.sampling.rate == 0)
+			return false;
+
+		if (this.opts.sampling.rate == 1)
+			return true;
+
+		if (this.sampleCounter * this.opts.sampling.rate >= 1.0) {
+			this.sampleCounter = 0;
+			return true;
+		}
 	}
 
-	extract() {
+	startSpan(name, opts) {
+		const span = new Span(this, name, Object.assign({
+			type: "custom"
+		}, opts));
 
-	}
+		span.start();
 
-	inject() {
-
+		return span;
 	}
 
 }
