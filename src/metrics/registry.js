@@ -6,7 +6,7 @@
 
 "use strict";
 
-const Promise = require("bluebird");
+const Promise = require("bluebird"); // eslint-disable-line no-unused-vars
 const _ = require("lodash");
 const METRIC = require("./constants");
 const Types = require("./types");
@@ -37,7 +37,7 @@ class MetricRegistry {
 		if (opts === true || opts === false)
 			opts = { enabled: opts };
 
-		this.opts = _.defaults({}, opts, {
+		this.opts = _.defaultsDeep({}, opts, {
 			enabled: true,
 			collectProcessMetrics: true,
 			collectInterval: 5 * 1000,

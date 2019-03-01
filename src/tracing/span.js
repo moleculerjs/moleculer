@@ -2,10 +2,24 @@
 
 const { generateToken } = require("../utils");
 
+/**
+ * Trace Span class
+ *
+ * @class Span
+ */
 class Span {
 
+	/**
+	 * Creates an instance of Span.
+	 * @param {Tracer} tracer
+	 * @param {String} name
+	 * @param {Object?} opts
+	 *
+	 * @memberof Span
+	 */
 	constructor(tracer, name, opts) {
 		this.tracer = tracer;
+		this.logger = this.tracer.logger;
 		this.name = name;
 		this.opts = opts || {};
 		this.rootSpanID = this.opts.rootSpanID;
@@ -21,28 +35,65 @@ class Span {
 		this.logs = [];
 		this.tags = {};
 
+		if (this.opts.defaultTags)
+			this.addTags(this.opts.defaultTags);
+
 		if (this.opts.tags)
 			this.addTags(this.opts.tags);
 	}
 
+	/**
+	 * Start span.
+	 *
+	 * @param {Number?} time
+	 * @returns {Span}
+	 * @memberof Span
+	 */
 	start(time) {
 		this.startTime = time || Date.now();
 		this.startHrTime = process.hrtime();
 
+		this.logger.debug(`[${this.id}] Span '${this.name}' is started.`);
+
+		this.tracer.invokeExporter("startSpan", [this]);
+
 		return this;
 	}
 
+	/**
+	 * Add tags. It will be merged with previous tags.
+	 *
+	 * @param {Object} obj
+	 * @returns {Span}
+	 *
+	 * @memberof Span
+	 */
 	addTags(obj) {
 		Object.assign(this.tags, obj);
 
 		return this;
 	}
 
+	/**
+	 * Get elapsed time from starting.
+	 *
+	 * @returns {Number} duration
+	 * @memberof Span
+	 */
 	getElapsedTime() {
 		const diff = process.hrtime(this.startHrTime);
 		return (diff[0] * 1e3) + (diff[1] / 1e6);
 	}
 
+	/**
+	 * Log a trace event.
+	 *
+	 * @param {String} name
+	 * @param {Object?} fields
+	 * @param {Number?} time
+	 * @returns {Span}
+	 * @memberof Span
+	 */
 	log(name, fields, time) {
 		const elapsed = time ? time - this.startTime : this.getElapsedTime();
 
@@ -53,9 +104,19 @@ class Span {
 			elapsed
 		});
 
+		this.logger.debug(`[${this.id}] Span '${this.name}' has a new log event: ${name}.`);
+
+
 		return this;
 	}
 
+	/**
+	 * Finish span.
+	 *
+	 * @param {Number?} time
+	 * @returns {Span}
+	 * @memberof Span
+	 */
 	finish(time) {
 		if (time) {
 			this.duration = time - this.startTime;
@@ -65,9 +126,21 @@ class Span {
 			this.stopTime = this.startTime + this.duration;
 		}
 
+		this.logger.debug(`[${this.id}] Span '${this.name}' is finished. Duration: ${Number(this.duration).toFixed(3)} ms`);
+
+		this.tracer.invokeExporter("finishSpan", [this]);
+
 		return this;
 	}
 
+	/**
+	 * Start a child span.
+	 *
+	 * @param {String} name
+	 * @param {Object?} opts
+	 * @returns {Span} Child span
+	 * @memberof Span
+	 */
 	startSpan(name, opts) {
 		const r = {
 			rootSpanID: this.id,

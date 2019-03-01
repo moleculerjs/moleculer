@@ -6,8 +6,9 @@
 
 "use strict";
 
-const Promise = require("bluebird");
+const Promise = require("bluebird"); // eslint-disable-line no-unused-vars
 const _ = require("lodash");
+const Exporters = require("./exporters");
 
 const Span = require("./span");
 
@@ -30,7 +31,7 @@ class Tracer {
 		if (opts === true || opts === false)
 			opts = { enabled: opts };
 
-		this.opts = _.defaults({}, opts, {
+		this.opts = _.defaultsDeep({}, opts, {
 			enabled: true,
 			sampling: {
 				rate: 1.0, // 0.0, 0.5
@@ -66,10 +67,9 @@ class Tracer {
 				const exporters = Array.isArray(this.opts.exporter) ? this.opts.exporter : [this.opts.exporter];
 
 				this.exporter = exporters.map(r => {
-					/*const exporter = Exporters.resolve(r);
+					const exporter = Exporters.resolve(r);
 					exporter.init(this);
 					return exporter;
-					*/
 				});
 			}
 		}
@@ -85,6 +85,13 @@ class Tracer {
 		return this.opts.enabled;
 	}
 
+	/**
+	 * Decide that span should be sampled.
+	 *
+	 * @param {Span} span
+	 * @returns {Boolean}
+	 * @memberof Tracer
+	 */
 	shouldSample(span) {
 		if (this.opts.sampling.minPriority != null) {
 			if (span.priority < this.opts.sampling.minPriority)
@@ -101,11 +108,23 @@ class Tracer {
 			this.sampleCounter = 0;
 			return true;
 		}
+
+		return false;
 	}
 
+	/**
+	 * Start a new Span.
+	 *
+	 * @param {String} name
+	 * @param {Object?} opts
+	 * @returns {Span}
+	 *
+	 * @memberof Tracer
+	 */
 	startSpan(name, opts) {
 		const span = new Span(this, name, Object.assign({
-			type: "custom"
+			type: "custom",
+			defaultTags: this.opts.defaultTags
 		}, opts));
 
 		span.start();
@@ -113,6 +132,18 @@ class Tracer {
 		return span;
 	}
 
+	/**
+	 * Invoke Exporter method.
+	 *
+	 * @param {String} method
+	 * @param {Array<any>} args
+	 * @memberof Tracer
+	 */
+	invokeExporter(method, args) {
+		if (this.exporter) {
+			this.exporter.forEach(exporter => exporter[method].apply(exporter, args));
+		}
+	}
 }
 
 module.exports = Tracer;
