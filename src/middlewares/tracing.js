@@ -8,46 +8,6 @@
 
 const _ = require("lodash");
 
-let sampleCounter = 0;
-
-/**
- * Check should metric the current context
- *
- * @param {Context} ctx
- * @returns {Boolean}
- *
- * @memberof ServiceBroker
- */
-function shouldTracing(ctx) {
-	if (ctx.broker.options.tracing.enabled === true) {
-		sampleCounter++;
-		if (sampleCounter * ctx.broker.options.tracing.rate >= 1.0) {
-			sampleCounter = 0;
-			return true;
-		}
-	}
-
-	return false;
-}
-
-/**
- * Start new Trace
- *
- * @param {Context} ctx
- *
- * @private
- */
-function tracingStart(ctx) {
-	ctx.startTime = Date.now();
-	ctx.startHrTime = process.hrtime();
-	ctx.duration = 0;
-
-	if (ctx.tracing) {
-		const payload = generateTracingPayload(ctx);
-		ctx.broker.emit("tracing.span.start", payload);
-	}
-}
-
 /**
  * Generate tracing payload
  *
@@ -162,27 +122,50 @@ function processExtraTracing(ctx, payload) {
 
 function wrapLocalTracingMiddleware(handler) {
 
-	if (this.options.tracing) {
+	if (this.isTracingEnabled()) {
 		return function tracingMiddleware(ctx) {
-			if (ctx.tracing == null) {
-				ctx.tracing = shouldTracing(ctx);
-			}
+			const span = ctx.broker.tracer.startSpan(`call '${ctx.action.name}' action`, {
+				id: ctx.id,
+				traceID: ctx.requestID,
+				parentID: ctx.parentID,
+				sampled: ctx.tracing,
+				tags: {
+					callingLevel: ctx.level,
+					action: ctx.action ? {
+						name: ctx.action.name
+					} : null,
+					service: ctx.service ? {
+						name: ctx.service.name,
+						version: ctx.service.version,
+					} : null,
+					remoteCall: ctx.nodeID !== ctx.broker.nodeID,
+					callerNodeID: ctx.nodeID,
+					options: {
+						timeout: ctx.options.timeout,
+						retries: ctx.options.retries
+					}
+				}
+			});
 
-			if (ctx.tracing === true) {
+			ctx.tracing = span.sampled;
+			ctx.span = span;
 
-				tracingStart(ctx);
+			// Call the handler
+			return handler(ctx).then(res => {
+				span.finish();
 
-				// Call the handler
-				return handler(ctx).then(res => {
-					tracingFinish(ctx, null);
-					return res;
-				}).catch(err => {
-					tracingFinish(ctx, err);
-					return this.Promise.reject(err);
+				//ctx.duration = span.duration;
+
+				return res;
+			}).catch(err => {
+				span.addTags({
+					error: err
 				});
-			}
 
-			return handler(ctx);
+				span.finish();
+
+				return this.Promise.reject(err);
+			});
 
 		}.bind(this);
 	}
@@ -190,6 +173,7 @@ function wrapLocalTracingMiddleware(handler) {
 	return handler;
 }
 
+/*
 function wrapRemoteTracingMiddleware(handler) {
 
 	if (this.options.tracing) {
@@ -203,11 +187,11 @@ function wrapRemoteTracingMiddleware(handler) {
 	}
 
 	return handler;
-}
+}*/
 
 module.exports = function TracingMiddleware() {
 	return {
 		localAction: wrapLocalTracingMiddleware,
-		remoteAction: wrapRemoteTracingMiddleware
+		//remoteAction: wrapRemoteTracingMiddleware
 	};
 };

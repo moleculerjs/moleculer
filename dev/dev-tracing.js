@@ -29,15 +29,14 @@ broker.createService({
 				}
 			},
 			handler(ctx) {
-				return `Hello ${ctx.params.name}!`;
+				const span = ctx.startSpan("templating", { tags: { params: ctx.params }});
+				const str = `Hello ${ctx.params.name}!`;
+				span.finish();
+				return str;
 			}
 		}
 	}
 });
-function getElapsedTime(start) {
-	const diff = process.hrtime(start);
-	return (diff[0] * 1e3) + (diff[1] / 1e6);
-}
 
 broker.loadService("./examples/post.service.js");
 
@@ -48,11 +47,7 @@ broker.start()
 		setInterval(async () => {
 			broker.logger.info("      ");
 			try {
-				const start = process.hrtime();
-				//const span = broker.tracer.startSpan("call 'greeter.hello' action");
 				const res = await broker.call("greeter.hello", { name: "Moleculer" });
-				//span.finish();
-				broker.logger.info("Time:", getElapsedTime(start).toFixed(3) + "ms");
 			} catch(err) {
 				broker.logger.error(err);
 			}

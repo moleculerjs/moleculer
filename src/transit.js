@@ -407,7 +407,8 @@ class Transit {
 			ctx.tracing = !!payload.tracing;
 			ctx.nodeID = payload.sender;
 
-			ctx.options.timeout = payload.timeout || this.broker.options.requestTimeout || 0;
+			if (payload.timeout != null)
+				ctx.options.timeout = payload.timeout;
 
 			const p = endpoint.action.handler(ctx);
 			// Pointer to Context

@@ -322,11 +322,14 @@ class ServiceBroker {
 			// 9. Error handler
 			this.middlewares.add(Middlewares.ErrorHandler.call(this));
 
-			// 10. Metrics
+			// 10. Tracing
+			this.middlewares.add(Middlewares.Tracing.call(this));
+
+			// 11. Metrics
 			this.middlewares.add(Middlewares.Metrics.call(this));
 
 			if (this.options.hotReload) {
-				// 11. Hot Reload
+				// 12. Hot Reload
 				this.middlewares.add(Middlewares.HotReload.call(this));
 			}
 

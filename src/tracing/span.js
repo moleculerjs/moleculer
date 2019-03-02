@@ -22,14 +22,16 @@ class Span {
 		this.logger = this.tracer.logger;
 		this.name = name;
 		this.opts = opts || {};
-		this.rootSpanID = this.opts.rootSpanID;
-		this.priority = this.opts.priority != null ? this.opts.priority : 5;
 		this.id = opts.id || generateToken();
+		this.traceID = this.opts.traceID || this.id;
+		this.parentID = this.opts.parentID;
+
+		this.priority = this.opts.priority != null ? this.opts.priority : 5;
 		this.sampled = this.opts.sampled != null ? this.opts.sampled : this.tracer.shouldSample(this);
 
 		this.startTime = null;
 		this.startHrTime = null;
-		this.finishMs = null;
+		this.finishTime = null;
 		this.duration = null;
 
 		this.logs = [];
@@ -50,10 +52,10 @@ class Span {
 	 * @memberof Span
 	 */
 	start(time) {
+		this.logger.debug(`[${this.id}] Span '${this.name}' is started.`);
+
 		this.startTime = time || Date.now();
 		this.startHrTime = process.hrtime();
-
-		this.logger.debug(`[${this.id}] Span '${this.name}' is started.`);
 
 		this.tracer.invokeExporter("startSpan", [this]);
 
@@ -120,13 +122,13 @@ class Span {
 	finish(time) {
 		if (time) {
 			this.duration = time - this.startTime;
-			this.stopTime = time;
+			this.finishTime = time;
 		} else {
 			this.duration = this.getElapsedTime();
-			this.stopTime = this.startTime + this.duration;
+			this.finishTime = this.startTime + this.duration;
 		}
 
-		this.logger.debug(`[${this.id}] Span '${this.name}' is finished. Duration: ${Number(this.duration).toFixed(3)} ms`);
+		this.logger.debug(`[${this.id}] Span '${this.name}' is finished. Duration: ${Number(this.duration).toFixed(3)} ms`, this.tags);
 
 		this.tracer.invokeExporter("finishSpan", [this]);
 
@@ -143,7 +145,8 @@ class Span {
 	 */
 	startSpan(name, opts) {
 		const r = {
-			rootSpanID: this.id,
+			traceID: this.traceID,
+			parentID: this.id,
 			sampled: this.sampled
 		};
 		return this.tracer.startSpan(name, opts ? Object.assign(r, opts) : r);

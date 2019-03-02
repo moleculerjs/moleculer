@@ -69,17 +69,20 @@ class Context {
 
 		this.parentID = null;
 
-		this.tracing = null;
 		this.level = 1;
 
 		this.params = {};
 		this.meta = {};
 
 		this.requestID = null;
-		this.startTime = null;
-		this.startHrTime = null;
-		this.stopTime = null;
-		this.duration = 0;
+
+		this.tracing = null;
+		this.span = null;
+
+		//this.startTime = null;
+		//his.startHrTime = null;
+		//this.stopTime = null;
+		//this.duration = null;
 
 		//this.error = null;
 		this.cachedResult = false;
@@ -252,6 +255,21 @@ class Context {
 	 */
 	broadcast(eventName, data, groups) {
 		return this.broker.broadcast(eventName, data, groups);
+	}
+
+	/**
+	 * Start a new child tracing span.
+	 *
+	 * @param {String} name
+	 * @param {Object?} opts
+	 * @returns {Span}
+	 * @memberof Context
+	 */
+	startSpan(name, opts) {
+		if (!this.span)
+			return this.broker.tracer.startSpan(name, opts);
+
+		return this.span.startSpan(name, opts);
 	}
 
 }
