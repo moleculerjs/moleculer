@@ -41,8 +41,7 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 	 * @memberof ConsoleTraceExporter
 	 */
 	init(tracer) {
-		this.tracer = tracer;
-		this.logger = this.opts.logger || this.tracer.logger;
+		super.init(tracer);
 	}
 
 	/**

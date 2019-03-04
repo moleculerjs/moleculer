@@ -10,12 +10,17 @@ let broker1 = new ServiceBroker({
 	logLevel: "info",
 	transporter: "NATS",
 	tracing: {
-		exporter: {
-			type: "Console",
-			options: {
-				logger: console
+		exporter: [
+			{
+				type: "Console",
+				options: {
+					logger: console
+				}
+			},
+			{
+				type: "Datadog"
 			}
-		}
+		]
 	}
 });
 

@@ -24,6 +24,7 @@ class BaseTraceExporter {
 	 */
 	init(tracer) {
 		this.tracer = tracer;
+		this.logger = this.opts.logger || this.tracer.logger;
 	}
 
 	/**

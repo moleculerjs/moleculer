@@ -12,8 +12,8 @@ const { BrokerOptionsError } = require("../../errors");
 const Exporters = {
 	Base: require("./base"),
 	Console: require("./console"),
-	/*Datadog: require("./datadog"),
-	Event: require("./event"),
+	Datadog: require("./datadog"),
+	/*Event: require("./event"),
 	EventLegacy: require("./event-legacy"),
 	Jaeger: require("./jaeger"),
 	Zipkin: require("./zipkin"),*/
