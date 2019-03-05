@@ -9,7 +9,7 @@ const randomService = () => SERVICES[_.random(SERVICES.length - 1)];
 
 // Create broker
 const broker = new ServiceBroker(_.defaultsDeep({
-	nodeID: "client-" + process.pid,
+	//nodeID: "client-" + process.pid,
 }, require("./moleculer.config.js")));
 
 let count = 0;

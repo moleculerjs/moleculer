@@ -9,9 +9,8 @@ const BaseTraceExporter 	= require("./base");
 fetch.Promise = Promise;
 
 /*
-	docker run -d --name dd-agent -v /var/run/docker.sock:/var/run/docker.sock:ro -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e DD_API_KEY=e4ab2debf4fa8ea00121259793d39150 -p 8126:8126 datadog/agent:latest
+	docker run -d --name dd-agent -v /var/run/docker.sock:/var/run/docker.sock:ro -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e DD_API_KEY=123456 -p 8126:8126 datadog/agent:latest
 */
-const BASE_URL = "http://192.168.0.181:8126/v0.3/traces";
 
 /**
  * Datadog Trace Exporter.
@@ -29,8 +28,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		super(opts);
 
 		this.opts = _.defaultsDeep(this.opts, {
-			apiKey: process.env.DATADOG_API_KEY,
-			appKey: process.env.DATADOG_APP_KEY,
+			agentUrl: "http://localhost:8126/v0.4/traces",
 			interval: 5
 		});
 
@@ -92,10 +90,11 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		if (this.queue.length == 0) return;
 
 		const data = this.generateDatadogTracingData();
+		this.queue.length = 0;
 
-		fetch(`${BASE_URL}`, {
+		fetch(this.opts.agentUrl, {
 			method: "post",
-			body: JSON.stringify({ data }),
+			body: JSON.stringify(data),
 			headers: {
 				"Content-Type": "application/json",
 
@@ -107,21 +106,33 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		});
 	}
 
+	convertIDToNumber(str) {
+		if (str == null)
+			return str;
+
+		try {
+			return parseInt(str.substring(0, 8), 16);
+		} catch(err) {
+			this.logger.warn(`Unable to convert '${str}' to number.`);
+			return null;
+		}
+	}
+
 	generateDatadogTracingData() {
 		const traces = this.queue.reduce((store, span) => {
 			const traceID = span.traceID;
 
 			const ddSpan = {
-				trace_id: traceID,
-				span_id: span.id,
-				parent_id: span.parentID,
+				trace_id: this.convertIDToNumber(traceID),
+				span_id: this.convertIDToNumber(span.id),
+				parent_id: this.convertIDToNumber(span.parentID),
 				name: span.name,
 				resource: span.tags.action ? span.tags.action.name : null,
 				service: span.tags.service ? span.tags.service.name : null,
 				type: "custom",
-				start: span.startTime * 1e6,
-				duration: span.duration * 1e6,
-				error: !!span.tags.error,
+				start: Math.round(span.startTime * 1e6),
+				duration: Math.round(span.duration * 1e6),
+				error: span.tags.error ? 1 : 0,
 				meta: this.flattenTags(span.tags)
 			};
 
@@ -144,7 +155,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 			if (_.isObject(o))
 				Object.assign(res, this.flattenTags(o, pp));
 			else
-				res[pp] = o;
+				res[pp] = String(o);
 
 			return res;
 		}, {});

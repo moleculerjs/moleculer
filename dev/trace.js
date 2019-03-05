@@ -44,12 +44,17 @@ let broker2 = new ServiceBroker({
 	logLevel: "info",
 	transporter: "NATS",
 	tracing: {
-		exporter: {
-			type: "Console",
-			options: {
-				logger: console
+		exporter: [
+			{
+				type: "Console",
+				options: {
+					logger: console
+				}
+			},
+			{
+				type: "Datadog"
 			}
-		}
+		]
 	}
 });
 
@@ -68,8 +73,8 @@ broker2.createService({
 		},
 
 		third(ctx) {
-			if (_.random(100) > 90)
-				return this.Promise.reject(new MoleculerError("Random error!", 510));
+			//if (_.random(100) > 90)
+			//	return this.Promise.reject(new MoleculerError("Random error!", 510));
 
 			return this.Promise.delay(_.random(25, 75)).then(() => "Hello from third!");
 		}

@@ -45,6 +45,17 @@ module.exports = {
 		]
 	},
 
+	tracing: {
+		exporter: [
+			{
+				type: "Datadog",
+				options: {
+					agentUrl: "http://192.168.0.130:8126/v0.4/traces"
+				}
+			}
+		]
+	},
+
 	nodeSettings: {
 		client: {
 			reqInterval: 1000
