@@ -17,9 +17,9 @@ let broker1 = new ServiceBroker({
 					logger: console
 				}
 			},
-			{
+			/*{
 				type: "Datadog"
-			}
+			}*/
 		]
 	}
 });
@@ -51,9 +51,9 @@ let broker2 = new ServiceBroker({
 					logger: console
 				}
 			},
-			{
+			/*{
 				type: "Datadog"
-			}
+			}*/
 		]
 	}
 });
@@ -73,8 +73,8 @@ broker2.createService({
 		},
 
 		third(ctx) {
-			//if (_.random(100) > 90)
-			//	return this.Promise.reject(new MoleculerError("Random error!", 510));
+			if (_.random(100) > 90)
+				return this.Promise.reject(new MoleculerError("Random error!", 510));
 
 			return this.Promise.delay(_.random(25, 75)).then(() => "Hello from third!");
 		}

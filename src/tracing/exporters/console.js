@@ -70,6 +70,7 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 	 * @memberof ConsoleTraceExporter
 	 */
 	finishSpan(span) {
+		//this.logger.info(span);
 		if (!this.spans[span.parentID]) {
 			this.printRequest(span.id);
 
@@ -132,7 +133,7 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 			caption += " *";
 		if (span.tags.remoteCall)
 			caption += " »";
-		if (span.tags.error)
+		if (span.error)
 			caption += " ×";
 
 		return caption;
@@ -144,9 +145,9 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 			c = chalk.yellow;
 		if (span.tags.remoteCall)
 			c = chalk.cyan;
-		if (span.tags.duration == null)
+		if (span.duration == null)
 			c = chalk.grey;
-		if (span.tags.error)
+		if (span.error)
 			c = chalk.red.bold;
 
 		return c;

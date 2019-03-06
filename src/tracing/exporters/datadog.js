@@ -29,7 +29,8 @@ class DatadogTraceExporter extends BaseTraceExporter {
 
 		this.opts = _.defaultsDeep(this.opts, {
 			agentUrl: "http://localhost:8126/v0.4/traces",
-			interval: 5
+			interval: 5,
+			defaultTags: null
 		});
 
 		/*if (!this.opts.apiKey)
@@ -50,6 +51,8 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		super.init(tracer);
 
 		this.timer = setInterval(() => this.flush(), this.opts.interval * 1000);
+
+		this.defaultTags = _.isFunction(this.opts.defaultTags) ? this.opts.defaultTags.call(this, tracer) : this.opts.defaultTags;
 	}
 
 	/**
@@ -133,7 +136,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 				start: Math.round(span.startTime * 1e6),
 				duration: Math.round(span.duration * 1e6),
 				error: span.tags.error ? 1 : 0,
-				meta: this.flattenTags(span.tags)
+				meta: Object.assign({}, this.defaultTags || {}, this.flattenTags(span.tags))
 			};
 
 			if (!store[traceID])

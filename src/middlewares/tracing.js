@@ -13,7 +13,7 @@ const _ = require("lodash");
  *
  * @param {Context} ctx
  * @returns {Object}
- */
+ *
 function generateTracingPayload(ctx) {
 	let payload = {
 		id: ctx.id,
@@ -47,6 +47,7 @@ function generateTracingPayload(ctx) {
 
 	return payload;
 }
+*/
 
 /**
  * Stop tracing & send finish metric event.
@@ -55,7 +56,7 @@ function generateTracingPayload(ctx) {
  * @param {Error} error
  *
  * @private
- */
+ *
 function tracingFinish(ctx, error) {
 	if (ctx.startHrTime) {
 		let diff = process.hrtime(ctx.startHrTime);
@@ -81,6 +82,7 @@ function tracingFinish(ctx, error) {
 		ctx.broker.emit("tracing.span.finish", payload);
 	}
 }
+*/
 
 /**
  * Assign extra tracing taking into account action definitions
@@ -90,7 +92,7 @@ function tracingFinish(ctx, error) {
  * @param {any} payload Object for assignement.
  *
  * @private
- */
+ *
 function assignExtraTracing(ctx, name, payload) {
 	let def = ctx.action.tracing[name];
 	// if tracing definitions is boolean do default, tracing=true
@@ -101,7 +103,7 @@ function assignExtraTracing(ctx, name, payload) {
 	} else if (_.isFunction(def)) {
 		payload[name] = def(ctx[name]);
 	}
-}
+}*/
 
 /**
  * Decide and process extra tracing taking into account action definitions
@@ -110,7 +112,7 @@ function assignExtraTracing(ctx, name, payload) {
  * @param {any} payload Object for assignement.
  *
  * @private
- */
+ *
 function processExtraTracing(ctx, payload) {
 	// extra tracing (params and meta)
 	if (_.isObject(ctx.action.tracing)) {
@@ -119,12 +121,13 @@ function processExtraTracing(ctx, payload) {
 		assignExtraTracing(ctx, "meta", payload);
 	}
 }
+*/
 
 function wrapLocalTracingMiddleware(handler) {
 
 	if (this.isTracingEnabled()) {
 		return function tracingMiddleware(ctx) {
-			const span = ctx.broker.tracer.startSpan(`call '${ctx.action.name}' action`, {
+			const span = ctx.broker.tracer.startSpan(`call '${ctx.action.name}'`, {
 				id: ctx.id,
 				traceID: ctx.requestID,
 				parentID: ctx.parentID,
@@ -152,17 +155,15 @@ function wrapLocalTracingMiddleware(handler) {
 
 			// Call the handler
 			return handler(ctx).then(res => {
-				span.finish();
+				span.addTags({
+					fromCache: ctx.cachedResult
+				}).finish();
 
 				//ctx.duration = span.duration;
 
 				return res;
 			}).catch(err => {
-				span.addTags({
-					error: err
-				});
-
-				span.finish();
+				span.setError(err).finish();
 
 				return this.Promise.reject(err);
 			});

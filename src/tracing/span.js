@@ -2,6 +2,14 @@
 
 const { generateToken } = require("../utils");
 
+function defProp(instance, propName, value, readOnly = false) {
+	Object.defineProperty(instance, propName, {
+		value,
+		writable: !!readOnly,
+		enumerable: false
+	});
+}
+
 /**
  * Trace Span class
  *
@@ -18,10 +26,11 @@ class Span {
 	 * @memberof Span
 	 */
 	constructor(tracer, name, opts) {
-		this.tracer = tracer;
-		this.logger = this.tracer.logger;
+		defProp(this, "tracer", tracer, true);
+		defProp(this, "logger", this.tracer.logger, true);
+		defProp(this, "opts", opts || {}, true);
+
 		this.name = name;
-		this.opts = opts || {};
 		this.id = opts.id || generateToken();
 		this.traceID = this.opts.traceID || this.id;
 		this.parentID = this.opts.parentID;
@@ -33,6 +42,8 @@ class Span {
 		this.startHrTime = null;
 		this.finishTime = null;
 		this.duration = null;
+
+		this.error = null;
 
 		this.logs = [];
 		this.tags = {};
@@ -108,6 +119,18 @@ class Span {
 
 		this.logger.debug(`[${this.id}] Span '${this.name}' has a new log event: ${name}.`);
 
+
+		return this;
+	}
+
+	/**
+	 * Set error span.
+	 *
+	 * @param {Error} err
+	 * @memberof Span
+	 */
+	setError(err) {
+		this.error = err != null ? err : true;
 
 		return this;
 	}
