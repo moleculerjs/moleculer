@@ -131,15 +131,15 @@ function wrapLocalTracingMiddleware(handler) {
 				id: ctx.id,
 				traceID: ctx.requestID,
 				parentID: ctx.parentID,
+				service: ctx.service ? {
+					name: ctx.service.name,
+					version: ctx.service.version,
+				} : null,
 				sampled: ctx.tracing,
 				tags: {
 					callingLevel: ctx.level,
 					action: ctx.action ? {
 						name: ctx.action.name
-					} : null,
-					service: ctx.service ? {
-						name: ctx.service.name,
-						version: ctx.service.version,
 					} : null,
 					remoteCall: ctx.nodeID !== ctx.broker.nodeID,
 					callerNodeID: ctx.nodeID,

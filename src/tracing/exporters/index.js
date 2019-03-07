@@ -15,8 +15,8 @@ const Exporters = {
 	Datadog: require("./datadog"),
 	/*Event: require("./event"),
 	EventLegacy: require("./event-legacy"),
-	Jaeger: require("./jaeger"),
-	Zipkin: require("./zipkin"),*/
+	Jaeger: require("./jaeger"),*/
+	Zipkin: require("./zipkin")
 };
 
 function getByName(name) {

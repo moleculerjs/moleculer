@@ -28,12 +28,14 @@ class Span {
 	constructor(tracer, name, opts) {
 		defProp(this, "tracer", tracer, true);
 		defProp(this, "logger", this.tracer.logger, true);
-		defProp(this, "opts", opts || {}, true);
+		defProp(this, "opts", opts || {});
 
 		this.name = name;
 		this.id = opts.id || generateToken();
 		this.traceID = this.opts.traceID || this.id;
 		this.parentID = this.opts.parentID;
+
+		this.service = this.opts.service;
 
 		this.priority = this.opts.priority != null ? this.opts.priority : 5;
 		this.sampled = this.opts.sampled != null ? this.opts.sampled : this.tracer.shouldSample(this);

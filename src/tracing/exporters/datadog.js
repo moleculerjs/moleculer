@@ -3,13 +3,13 @@
 const _ 					= require("lodash");
 const Promise 				= require("bluebird");
 const fetch 				= require("node-fetch");
-const { MoleculerError } 	= require("../../errors");
+//const { MoleculerError } 	= require("../../errors");
 const BaseTraceExporter 	= require("./base");
 
 fetch.Promise = Promise;
 
 /*
-	docker run -d --name dd-agent -v /var/run/docker.sock:/var/run/docker.sock:ro -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e DD_API_KEY=123456 -p 8126:8126 datadog/agent:latest
+	docker run -d --name dd-agent -v /var/run/docker.sock:/var/run/docker.sock:ro -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e DD_API_KEY=123456 -e DD_APM_ENABLED=true -e DD_APM_NON_LOCAL_TRAFFIC=true -p 8126:8126  datadog/agent:latest
 */
 
 /**
@@ -28,16 +28,11 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		super(opts);
 
 		this.opts = _.defaultsDeep(this.opts, {
-			agentUrl: "http://localhost:8126/v0.4/traces",
+			agentUrl: process.env.DD_AGENT_URL || "http://localhost:8126/v0.4/traces",
 			interval: 5,
 			defaultTags: null
 		});
 
-		/*if (!this.opts.apiKey)
-			throw new MoleculerError("Datadog API key is missing. Set DATADOG_API_KEY environment variable.");
-		if (!this.opts.appKey)
-			throw new MoleculerError("Datadog APP key is missing. Set DATADOG_APP_KEY environment variable.");
-		*/
 		this.queue = [];
 	}
 
@@ -53,25 +48,9 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		this.timer = setInterval(() => this.flush(), this.opts.interval * 1000);
 
 		this.defaultTags = _.isFunction(this.opts.defaultTags) ? this.opts.defaultTags.call(this, tracer) : this.opts.defaultTags;
-	}
-
-	/**
-	 * Span is started.
-	 *
-	 * @param {Span} span
-	 * @memberof DatadogTraceExporter
-	 */
-	startSpan(span) {
-		/*this.spans[span.id] = {
-			span,
-			children: []
-		};
-
-		if (span.parentID) {
-			const parentItem = this.spans[span.parentID];
-			if (parentItem)
-				parentItem.children.push(span.id);
-		}*/
+		if (this.defaultTags) {
+			this.defaultTags = this.flattenTags(this.defaultTags, true);
+		}
 	}
 
 	/**
@@ -103,12 +82,16 @@ class DatadogTraceExporter extends BaseTraceExporter {
 
 			}
 		}).then(res => {
-			this.logger.info("Metrics are uploaded to DataDog. Status: ", res.statusText);
+			this.logger.info(`Tracing spans (${data.length} spans) are uploaded to Datadog. Status: ${res.statusText}`);
 		}).catch(err => {
-			this.logger.warn("Unable to upload metrics to Datadog server. Error:" + err.message, err);
+			this.logger.warn("Unable to upload tracing spans to Datadog. Error:" + err.message, err);
 		});
 	}
 
+	/**
+	 * Convert traceID & spanID to number for Datadog Agent.
+	 * @param {String} str
+	 */
 	convertIDToNumber(str) {
 		if (str == null)
 			return str;
@@ -121,6 +104,12 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		}
 	}
 
+	/**
+	 * Generate tracing data for Datadog
+	 *
+	 * @returns {Array<Object>}
+	 * @memberof DatadogTraceExporter
+	 */
 	generateDatadogTracingData() {
 		const traces = this.queue.reduce((store, span) => {
 			const traceID = span.traceID;
@@ -131,12 +120,12 @@ class DatadogTraceExporter extends BaseTraceExporter {
 				parent_id: this.convertIDToNumber(span.parentID),
 				name: span.name,
 				resource: span.tags.action ? span.tags.action.name : null,
-				service: span.tags.service ? span.tags.service.name : null,
+				service: span.service ? span.service.name: null,
 				type: "custom",
 				start: Math.round(span.startTime * 1e6),
 				duration: Math.round(span.duration * 1e6),
-				error: span.tags.error ? 1 : 0,
-				meta: Object.assign({}, this.defaultTags || {}, this.flattenTags(span.tags))
+				error: span.error ? 1 : 0,
+				meta: Object.assign({}, this.defaultTags || {}, this.flattenTags(span.tags, true))
 			};
 
 			if (!store[traceID])
@@ -149,21 +138,6 @@ class DatadogTraceExporter extends BaseTraceExporter {
 
 		return Object.values(traces);
 	}
-
-	flattenTags(obj, path = "") {
-		return Object.keys(obj).reduce((res, k) => {
-			const o = obj[k];
-			const pp = (path ? path + "." : "") + k;
-
-			if (_.isObject(o))
-				Object.assign(res, this.flattenTags(o, pp));
-			else
-				res[pp] = String(o);
-
-			return res;
-		}, {});
-	}
-
 }
 
 module.exports = DatadogTraceExporter;

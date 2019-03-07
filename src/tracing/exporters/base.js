@@ -1,5 +1,7 @@
 "use strict";
 
+const _ 					= require("lodash");
+
 /**
  * Abstract Trace Exporter
  *
@@ -46,6 +48,46 @@ class BaseTraceExporter {
 	finishSpan(/*span*/) {
 		// Not implemented
 	}
+
+	/**
+	 * Flattening tags to one-level object.
+	 * E.g.
+	 *  **From:**
+	 * 	```js
+	 * 	{
+	 * 		error: {
+	 * 			name: "MoleculerError"
+	 * 		}
+	 * 	}
+	 *  ```
+	 *
+	 * 	**To:**
+	 * 	```js
+	 *  {
+	 * 		"error.name": "MoleculerError"
+	 *  }
+	 *  ```
+	 *
+	 * @param {Object} obj
+	 * @param {string} [path=""]
+	 * @returns {Object}
+	 * @memberof BaseTraceExporter
+	 */
+	flattenTags(obj, convertToString = false, path = "") {
+		return Object.keys(obj).reduce((res, k) => {
+			const o = obj[k];
+			const pp = (path ? path + "." : "") + k;
+
+			if (_.isObject(o))
+				Object.assign(res, this.flattenTags(o, convertToString, pp));
+			else {
+				res[pp] = convertToString ? String(o) : o;
+			}
+
+			return res;
+		}, {});
+	}
+
 }
 
 module.exports = BaseTraceExporter;
