@@ -92,7 +92,7 @@ class ZipkinTraceExporter extends BaseTraceExporter {
 	flush() {
 		if (this.queue.length == 0) return;
 
-		const data = this.generateZipkinTracingData();
+		const data = this.generateTracingData();
 		this.queue.length = 0;
 
 		fetch(`${this.opts.baseURL}/api/v2/spans`, {
@@ -110,29 +110,13 @@ class ZipkinTraceExporter extends BaseTraceExporter {
 	}
 
 	/**
-	 * Convert traceID & spanID to number for Datadog Agent.
-	 * @param {String} str
-	 */
-	convertIDToNumber(str) {
-		if (str == null)
-			return str;
-
-		try {
-			return parseInt(str.substring(0, 8), 16);
-		} catch(err) {
-			this.logger.warn(`Unable to convert '${str}' to number.`);
-			return null;
-		}
-	}
-
-	/**
-	 * Generate tracing data for Datadog
+	 * Generate tracing data for Zipkin
 	 *
 	 * @returns {Array<Object>}
 	 * @memberof ZipkinTraceExporter
 	 */
-	generateZipkinTracingData() {
-		return this.queue.map(span => this.makeZipkinPayloadV2(span));
+	generateTracingData() {
+		return this.queue.map(span => this.makePayload(span));
 	}
 
 	/**
@@ -141,7 +125,7 @@ class ZipkinTraceExporter extends BaseTraceExporter {
 	 * @param {Span} span
 	 * @returns {Object}
 	 */
-	makeZipkinPayloadV2(span) {
+	makePayload(span) {
 		const serviceName = span.service ? span.service.name : null;
 		const payload = {
 			name: span.name,

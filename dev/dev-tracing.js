@@ -20,7 +20,7 @@ const broker = new ServiceBroker({
 					logger: console
 				}
 			},
-			{
+			/*{
 				type: "Datadog",
 				options: {
 					agentUrl: "http://192.168.0.181:8126/v0.4/traces",
@@ -30,6 +30,12 @@ const broker = new ServiceBroker({
 				type: "Zipkin",
 				options: {
 					baseURL: "http://192.168.0.181:9411",
+				}
+			},*/
+			{
+				type: "Jaeger",
+				options: {
+					host: "192.168.0.181",
 				}
 			}
 		]

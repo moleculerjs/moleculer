@@ -69,6 +69,7 @@ class BaseTraceExporter {
 	 *  ```
 	 *
 	 * @param {Object} obj
+	 * @param {boolean} [convertToString=false]
 	 * @param {string} [path=""]
 	 * @returns {Object}
 	 * @memberof BaseTraceExporter

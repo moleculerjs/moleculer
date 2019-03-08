@@ -60,6 +60,7 @@
     "eslint-plugin-security": "1.4.0",
     "fakerator": "0.3.0",
     "ioredis": "4.6.2",
+    "jaeger-client": "3.14.4",
     "jest": "24.1.0",
     "jest-cli": "24.1.0",
     "joi": "14.3.1",

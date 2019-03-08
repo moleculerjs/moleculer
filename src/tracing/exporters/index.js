@@ -14,8 +14,8 @@ const Exporters = {
 	Console: require("./console"),
 	Datadog: require("./datadog"),
 	/*Event: require("./event"),
-	EventLegacy: require("./event-legacy"),
-	Jaeger: require("./jaeger"),*/
+	EventLegacy: require("./event-legacy"),*/
+	Jaeger: require("./jaeger"),
 	Zipkin: require("./zipkin")
 };
 
