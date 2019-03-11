@@ -66,7 +66,8 @@ class ZipkinTraceExporter extends BaseTraceExporter {
 	init(tracer) {
 		super.init(tracer);
 
-		this.timer = setInterval(() => this.flush(), this.opts.interval * 1000);
+		if (this.opts.interval > 0)
+			this.timer = setInterval(() => this.flush(), this.opts.interval * 1000);
 
 		this.defaultTags = _.isFunction(this.opts.defaultTags) ? this.opts.defaultTags.call(this, tracer) : this.opts.defaultTags;
 		if (this.defaultTags) {
@@ -103,7 +104,7 @@ class ZipkinTraceExporter extends BaseTraceExporter {
 
 			}
 		}).then(res => {
-			this.logger.info(`Tracing spans (${data.length} spans) are uploaded to Zipkin. Status: ${res.statusText}`);
+			this.logger.debug(`Tracing spans (${data.length} spans) are uploaded to Zipkin. Status: ${res.statusText}`);
 		}).catch(err => {
 			this.logger.warn("Unable to upload tracing spans to Zipkin. Error:" + err.message, err);
 		});

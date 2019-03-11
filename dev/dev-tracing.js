@@ -5,6 +5,7 @@ const ServiceBroker = require("../src/service-broker");
 
 const { MoleculerError } 	= require("../src/errors");
 const _ 					= require("lodash");
+const { inspect }			= require("util");
 
 const THROW_ERR = false;
 
@@ -12,6 +13,7 @@ const THROW_ERR = false;
 const broker = new ServiceBroker({
 	logger: console,
 	logLevel: "info",
+	logObjectPrinter: o => inspect(o, { showHidden: false, depth: 4, colors: true, breakLength: 50 }),
 	tracing: {
 		exporter: [
 			{
@@ -32,11 +34,19 @@ const broker = new ServiceBroker({
 					baseURL: "http://192.168.0.181:9411",
 				}
 			},*/
-			{
+			/*{
 				type: "Jaeger",
 				options: {
 					host: "192.168.0.181",
 				}
+			}*/
+			/*{
+				type: "Event",
+				options: {
+				}
+			}*/
+			{
+				type: "EventLegacy"
 			}
 		]
 	}
@@ -126,7 +136,7 @@ broker.createService({
 		count: {
 			metrics: {
 				params: ["userID"],
-				meta: false,
+				meta: true,
 			},
 			handler(ctx) {
 				if (THROW_ERR && ctx.params.userID == 1)
@@ -134,6 +144,21 @@ broker.createService({
 
 				return this.Promise.resolve().delay(10 + _.random(60)).then(() => ctx.params.userID * 3);
 			}
+		}
+	}
+});
+
+broker.createService({
+	name: "event-handler",
+	events: {
+		"$tracing.spans"(payload) {
+			this.logger.info("Tracing event received", payload);
+		},
+		"metrics.trace.span.start"(payload) {
+			this.logger.info("Legacy tracing start event received");
+		},
+		"metrics.trace.span.finish"(payload) {
+			this.logger.info("Legacy tracing finish event received", payload);
 		}
 	}
 });

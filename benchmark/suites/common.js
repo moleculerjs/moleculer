@@ -73,7 +73,24 @@ let bench3 = benchmark.createSuite("Call with metrics");
 })();
 
 // ----------------------------------------------------------------
-let bench4 = benchmark.createSuite("Remote call with FakeTransporter");
+let bench4 = benchmark.createSuite("Call with tracing");
+
+(function() {
+	let broker = createBroker();
+	bench4.ref("No tracing", done => {
+		return broker.call("users.empty").then(done);
+	});
+})();
+
+(function() {
+	let broker = createBroker({ tracing: true });
+	bench4.add("With tracing", done => {
+		return broker.call("users.empty").then(done);
+	});
+})();
+
+// ----------------------------------------------------------------
+let bench5 = benchmark.createSuite("Remote call with FakeTransporter");
 
 (function() {
 
@@ -108,31 +125,31 @@ let bench4 = benchmark.createSuite("Remote call with FakeTransporter");
 	b1.start().then(() => b2.start());
 
 	let c = 0;
-	bench4.ref("Remote call echo.reply", done => {
+	bench5.ref("Remote call echo.reply", done => {
 		return b1.call("echo.reply", { a: c++ }).then(done);
 	});
 
-	bench4.add("Remote call echo.reply with tracking", done => {
+	bench5.add("Remote call echo.reply with tracking", done => {
 		b2.options.trackContext = true;
 		return b1.call("echo.reply", { a: c++ }, { trackContext: true }).then(done);
 	});
 })();
 // ----------------------------------------------------------------
 
-let bench5 = benchmark.createSuite("Context tracking");
+let bench6 = benchmark.createSuite("Context tracking");
 (function() {
 	let broker = createBroker( { trackContext: true });
-	bench5.ref("broker.call (without tracking)", done => {
+	bench6.ref("broker.call (without tracking)", done => {
 		return broker.call("math.add", { a: 4, b: 2 }, { trackContext: false }).then(done);
 	});
 
-	bench5.add("broker.call (with tracking)", done => {
+	bench6.add("broker.call (with tracking)", done => {
 		return broker.call("math.add", { a: 4, b: 2 }, { trackContext: true }).then(done);
 	});
 
 })();
 
-module.exports = Promise.delay(1000).then(() => benchmark.run([bench1, bench2, bench3, bench4, bench5]));
+module.exports = Promise.delay(1000).then(() => benchmark.run([bench1, bench2, bench3, bench4, bench5, bench6]));
 
 
 /*

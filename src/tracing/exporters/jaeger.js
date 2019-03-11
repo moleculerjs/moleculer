@@ -6,12 +6,9 @@ const fetch 				= require("node-fetch");
 //const { MoleculerError } 	= require("../../errors");
 const BaseTraceExporter 	= require("./base");
 
-const Jaeger 						= require("jaeger-client");
-const GuaranteedThroughputSampler 	= require("jaeger-client/dist/src/samplers/guaranteed_throughput_sampler").default;
-const RemoteControlledSampler 		= require("jaeger-client/dist/src/samplers/remote_sampler").default;
-const UDPSender 					= require("jaeger-client/dist/src/reporters/udp_sender").default;
-
 fetch.Promise = Promise;
+
+let Jaeger, GuaranteedThroughputSampler, RemoteControlledSampler, UDPSender;
 
 /**
  * Trace Exporter for Jaeger.
@@ -70,6 +67,16 @@ class JaegerTraceExporter extends BaseTraceExporter {
 	 */
 	init(tracer) {
 		super.init(tracer);
+
+		try {
+			Jaeger						= require("jaeger-client");
+			GuaranteedThroughputSampler	= require("jaeger-client/dist/src/samplers/guaranteed_throughput_sampler").default;
+			RemoteControlledSampler		= require("jaeger-client/dist/src/samplers/remote_sampler").default;
+			UDPSender					= require("jaeger-client/dist/src/reporters/udp_sender").default;
+		} catch(err) {
+			/* istanbul ignore next */
+			this.tracer.broker.fatal("The 'jaeger-client' package is missing! Please install it with 'npm install jaeger-client --save' command!", err, true);
+		}
 
 		this.defaultTags = _.isFunction(this.opts.defaultTags) ? this.opts.defaultTags.call(this, tracer) : this.opts.defaultTags;
 		if (this.defaultTags) {
@@ -220,10 +227,9 @@ class JaegerTraceExporter extends BaseTraceExporter {
 	 * @returns {String}
 	 */
 	convertID(id) {
-		if (id) {
+		if (id)
 			return Buffer.from(id.replace(/-/g, "").substring(0, 16), "hex");
-			//return new Int64(id.replace(/-/g, "").substring(0, 16)).toBuffer();
-		}
+
 		return null;
 	}
 

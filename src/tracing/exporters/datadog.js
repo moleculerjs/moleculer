@@ -45,7 +45,8 @@ class DatadogTraceExporter extends BaseTraceExporter {
 	init(tracer) {
 		super.init(tracer);
 
-		this.timer = setInterval(() => this.flush(), this.opts.interval * 1000);
+		if (this.opts.interval > 0)
+			this.timer = setInterval(() => this.flush(), this.opts.interval * 1000);
 
 		this.defaultTags = _.isFunction(this.opts.defaultTags) ? this.opts.defaultTags.call(this, tracer) : this.opts.defaultTags;
 		if (this.defaultTags) {

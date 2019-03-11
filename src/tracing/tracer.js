@@ -117,15 +117,16 @@ class Tracer {
 	 *
 	 * @param {String} name
 	 * @param {Object?} opts
+	 * @param {Context} ctx
 	 * @returns {Span}
 	 *
 	 * @memberof Tracer
 	 */
-	startSpan(name, opts) {
+	startSpan(name, opts, ctx) {
 		const span = new Span(this, name, Object.assign({
 			type: "custom",
 			defaultTags: this.opts.defaultTags
-		}, opts));
+		}, opts), ctx);
 
 		span.start();
 

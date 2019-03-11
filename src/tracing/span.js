@@ -25,10 +25,11 @@ class Span {
 	 *
 	 * @memberof Span
 	 */
-	constructor(tracer, name, opts) {
+	constructor(tracer, name, opts, ctx) {
 		defProp(this, "tracer", tracer, true);
 		defProp(this, "logger", this.tracer.logger, true);
 		defProp(this, "opts", opts || {});
+		defProp(this, "ctx", ctx);
 
 		this.name = name;
 		this.id = opts.id || generateToken();

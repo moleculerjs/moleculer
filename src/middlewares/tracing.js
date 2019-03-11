@@ -148,7 +148,7 @@ function wrapLocalTracingMiddleware(handler) {
 						retries: ctx.options.retries
 					}
 				}
-			});
+			}, ctx);
 
 			ctx.tracing = span.sampled;
 			ctx.span = span;
