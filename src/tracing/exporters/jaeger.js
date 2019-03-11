@@ -125,7 +125,7 @@ class JaegerTraceExporter extends BaseTraceExporter {
 		if (this.tracers[serviceName])
 			return this.tracers[serviceName];
 
-		const sampler = this.getSampler();
+		const sampler = this.getSampler(serviceName);
 		const reporter = this.getReporter();
 
 		const tracer = new Jaeger.Tracer(serviceName, reporter, sampler, this.opts.tracerOptions);
@@ -151,7 +151,7 @@ class JaegerTraceExporter extends BaseTraceExporter {
 	 * @returns {Object}
 	 */
 	generateJaegerSpan(span) {
-		const serviceName = span.service ? span.service.name : null;
+		const serviceName = span.service ? span.service.fullName : null;
 		const tracer = this.getTracer(serviceName);
 
 		let parentCtx;

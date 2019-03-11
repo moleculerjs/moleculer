@@ -40,14 +40,14 @@ const broker = new ServiceBroker({
 					host: "192.168.0.181",
 				}
 			}*/
-			/*{
+			{
 				type: "Event",
 				options: {
 				}
-			}*/
-			{
-				type: "EventLegacy"
 			}
+			/*{
+				type: "EventLegacy"
+			}*/
 		]
 	}
 });
@@ -70,9 +70,6 @@ broker.createService({
 	name: "posts",
 	actions: {
 		find: {
-			metrics: {
-				params: true,
-			},
 			handler(ctx) {
 				const posts = _.cloneDeep(POSTS);
 
@@ -96,8 +93,8 @@ broker.createService({
 	name: "users",
 	actions: {
 		get: {
-			metrics: {
-				params: true,
+			tracing: {
+				tags: ["id", "#loggedIn.username"],
 			},
 			handler(ctx) {
 				return this.Promise.resolve()
@@ -119,9 +116,16 @@ broker.createService({
 	name: "votes",
 	actions: {
 		count: {
-			metrics: {
-				params: ["postID"],
-				meta: false,
+			tracing: {
+				tags: ctx => {
+					return {
+						params: ctx.params,
+						meta: ctx.meta,
+						custom: {
+							a: 5
+						}
+					};
+				}
 			},
 			handler(ctx) {
 				return this.Promise.resolve().delay(10 + _.random(30)).then(() => ctx.params.postID * 3);
@@ -134,10 +138,7 @@ broker.createService({
 	name: "friends",
 	actions: {
 		count: {
-			metrics: {
-				params: ["userID"],
-				meta: true,
-			},
+			tracing: false,
 			handler(ctx) {
 				if (THROW_ERR && ctx.params.userID == 1)
 					throw new MoleculerError("Friends is not found!", 404, "FRIENDS_NOT_FOUND", { userID: ctx.params.userID });
@@ -168,11 +169,11 @@ broker.start().then(() => {
 	broker.repl();
 
 	// Call action
-	setInterval(() => {
-		broker
-			.call("posts.find", { limit: 5 }, { meta: { loggedIn: { username: "Adam" } } })
-			.then(console.log)
-			.catch(console.error);
+	//setInterval(() => {
+	broker
+		.call("posts.find", { limit: 5 }, { meta: { loggedIn: { username: "Adam" } } })
+		.then(console.log)
+		.catch(console.error);
 
-	}, 5000);
+	//}, 5000);
 });

@@ -65,7 +65,6 @@ class EventLegacyTraceExporter extends BaseTraceExporter {
 	 * @returns {Object}
 	 */
 	generateMetricPayload(span) {
-		const ctx = span.ctx;
 		let payload = {
 			id: span.id,
 			requestID: span.traceID,
@@ -75,7 +74,8 @@ class EventLegacyTraceExporter extends BaseTraceExporter {
 		};
 
 		// Process extra metrics
-		this.processExtraMetrics(ctx, payload);
+		if (span.ctx)
+			this.processExtraMetrics(span.ctx, payload);
 
 		payload.action = span.tags.action;
 		payload.service = span.service;
@@ -83,7 +83,7 @@ class EventLegacyTraceExporter extends BaseTraceExporter {
 		if (span.parentID)
 			payload.parent = span.parentID;
 
-		payload.nodeID = ctx.broker.nodeID;
+		payload.nodeID = this.broker.nodeID;
 		if (payload.remoteCall)
 			payload.callerNodeID = span.tags.callerNodeID;
 

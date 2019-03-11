@@ -127,7 +127,7 @@ class ZipkinTraceExporter extends BaseTraceExporter {
 	 * @returns {Object}
 	 */
 	makePayload(span) {
-		const serviceName = span.service ? span.service.name : null;
+		const serviceName = span.service ? span.service.fullName : null;
 		const payload = {
 			name: span.name,
 			kind: "CONSUMER",

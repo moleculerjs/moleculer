@@ -121,7 +121,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 				parent_id: this.convertIDToNumber(span.parentID),
 				name: span.name,
 				resource: span.tags.action ? span.tags.action.name : null,
-				service: span.service ? span.service.name: null,
+				service: span.service ? span.service.fullName: null,
 				type: "custom",
 				start: Math.round(span.startTime * 1e6),
 				duration: Math.round(span.duration * 1e6),

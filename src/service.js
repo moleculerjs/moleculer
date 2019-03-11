@@ -286,9 +286,6 @@ class Service {
 		action.cache = action.cache !== undefined ? action.cache : (this.settings.$cache || false);
 		action.handler = this.Promise.method(handler.bind(this));
 
-		// action tracing options by default
-		action.tracing = _.defaultsDeep(action.tracing, { params: false, meta: true });
-
 		return action;
 	}
 
