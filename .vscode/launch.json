@@ -11,7 +11,7 @@
 			"program": "${workspaceRoot}/dev/index.js",
 			"cwd": "${workspaceRoot}",
 			"args": [
-				"dev-tracing"
+				"saga"
 			],
 		},
 		{
