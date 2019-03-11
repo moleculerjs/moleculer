@@ -20,7 +20,8 @@ function wrapLocalTracingMiddleware(handler, action) {
 			const tags = {
 				callingLevel: ctx.level,
 				action: ctx.action ? {
-					name: ctx.action.name
+					name: ctx.action.name,
+					rawName: ctx.action.rawName
 				} : null,
 				remoteCall: ctx.nodeID !== ctx.broker.nodeID,
 				callerNodeID: ctx.nodeID,
@@ -43,7 +44,7 @@ function wrapLocalTracingMiddleware(handler, action) {
 				});
 			}
 
-			const span = ctx.broker.tracer.startSpan(`call '${ctx.action.name}'`, {
+			const span = ctx.broker.tracer.startSpan(`action '${ctx.action.name}'`, {
 				id: ctx.id,
 				traceID: ctx.requestID,
 				parentID: ctx.parentID,
