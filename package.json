@@ -53,6 +53,7 @@
     "benchmarkify": "2.1.1",
     "bunyan": "1.8.12",
     "coveralls": "3.0.2",
+    "dd-trace": "0.10.0",
     "dotenv": "6.2.0",
     "eslint": "5.14.0",
     "eslint-plugin-node": "8.0.1",
