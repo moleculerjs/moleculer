@@ -164,7 +164,12 @@ class ZipkinTraceExporter extends BaseTraceExporter {
 			});
 		}
 
-		Object.assign(payload.tags, this.defaultTags || {}, this.flattenTags(span.tags, true));
+		Object.assign(
+			payload.tags,
+			this.defaultTags || {},
+			this.flattenTags(span.tags, true),
+			this.flattenTags(this.errorToObject(span.error), true, "error") || {}
+		);
 
 		return payload;
 	}

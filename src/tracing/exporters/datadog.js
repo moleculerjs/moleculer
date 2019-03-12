@@ -126,7 +126,12 @@ class DatadogTraceExporter extends BaseTraceExporter {
 				start: Math.round(span.startTime * 1e6),
 				duration: Math.round(span.duration * 1e6),
 				error: span.error ? 1 : 0,
-				meta: Object.assign({}, this.defaultTags || {}, this.flattenTags(span.tags, true))
+				meta: Object.assign(
+					{},
+					this.defaultTags || {},
+					this.flattenTags(span.tags, true),
+					this.flattenTags(this.errorToObject(span.error), true, "error") || {}
+				)
 			};
 
 			if (!store[traceID])

@@ -186,16 +186,7 @@ class JaegerTraceExporter extends BaseTraceExporter {
 
 		if (span.error) {
 			this.addTags(jaegerSpan, Jaeger.opentracing.Tags.ERROR, true);
-			this.addTags(jaegerSpan, "error.name", span.error.name);
-			this.addTags(jaegerSpan, "error.message", span.error.message);
-			this.addTags(jaegerSpan, "error.type", span.error.type);
-			this.addTags(jaegerSpan, "error.code", span.error.code);
-
-			if (span.error.data)
-				this.addTags(jaegerSpan, "error.data", span.error.data);
-
-			if (span.error.stack)
-				this.addTags(jaegerSpan, "error.stack", span.error.stack.toString());
+			this.addTags(jaegerSpan, "error", this.errorToObject(span.error));
 		}
 
 		jaegerSpan.finish(span.endTime);

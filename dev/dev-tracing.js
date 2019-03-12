@@ -15,6 +15,7 @@ const broker = new ServiceBroker({
 	logLevel: "info",
 	logObjectPrinter: o => inspect(o, { showHidden: false, depth: 4, colors: true, breakLength: 50 }),
 	tracing: {
+		stackTrace: true,
 		exporter: [
 			{
 				type: "Console",
@@ -22,7 +23,7 @@ const broker = new ServiceBroker({
 					logger: console
 				}
 			},
-			/*{
+			{
 				type: "Datadog",
 				options: {
 					agentUrl: "http://192.168.0.181:8126/v0.4/traces",
@@ -33,18 +34,18 @@ const broker = new ServiceBroker({
 				options: {
 					baseURL: "http://192.168.0.181:9411",
 				}
-			},*/
-			/*{
+			},
+			{
 				type: "Jaeger",
 				options: {
 					host: "192.168.0.181",
 				}
-			}*/
-			{
+			}
+			/*{
 				type: "Event",
 				options: {
 				}
-			}
+			}*/
 			/*{
 				type: "EventLegacy"
 			}*/

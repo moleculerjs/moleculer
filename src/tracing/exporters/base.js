@@ -75,6 +75,8 @@ class BaseTraceExporter {
 	 * @memberof BaseTraceExporter
 	 */
 	flattenTags(obj, convertToString = false, path = "") {
+		if (!obj) return obj;
+
 		return Object.keys(obj).reduce((res, k) => {
 			const o = obj[k];
 			const pp = (path ? path + "." : "") + k;
@@ -89,6 +91,18 @@ class BaseTraceExporter {
 		}, {});
 	}
 
+	/**
+	 * Convert Error to POJO.
+	 *
+	 * @param {Error} err
+	 * @returns {Object}
+	 * @memberof BaseTraceExporter
+	 */
+	errorToObject(err) {
+		if (!err) return null;
+
+		return _.pick(err, this.tracer.opts.errorFields);
+	}
 }
 
 module.exports = BaseTraceExporter;

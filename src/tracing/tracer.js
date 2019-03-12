@@ -43,10 +43,14 @@ class Tracer {
 			methods: false,
 			events: false,
 
+			errorFields: ["name", "message", "code", "type", "data"],
 			stackTrace: false,
 
 			defaultTags: null,
 		});
+
+		if (this.opts.stackTrace)
+			this.opts.errorFields.push("stack");
 
 		this.sampleCounter = 0;
 
