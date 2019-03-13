@@ -32,7 +32,11 @@ const broker = new ServiceBroker({
 			{
 				type: "Datadog2",
 				options: {
-					agentHost: "192.168.0.181",
+					agentUrl: "http://192.168.0.181:8126",
+					samplingPriority: "USER_KEEP",
+					tracerOptions: {
+						debug: true,
+					}
 				}
 			},
 			/*{
@@ -79,13 +83,13 @@ broker.createService({
 		find: {
 			handler(ctx) {
 				const posts = _.cloneDeep(POSTS);
-
-				return this.Promise.all(posts.map(post => {
+				/*return this.Promise.all(posts.map(post => {
 					return this.Promise.all([
 						ctx.call("users.get", { id: post.author }).then(author => post.author = author),
 						ctx.call("votes.count", { postID: post.id }).then(votes => post.votes = votes),
 					]);
-				})).then(() => posts);
+				})).then(() => posts);*/
+				return posts;
 			}
 		}
 	}
@@ -145,7 +149,7 @@ broker.createService({
 	name: "friends",
 	actions: {
 		count: {
-			tracing: false,
+			tracing: true,
 			handler(ctx) {
 				if (THROW_ERR && ctx.params.userID == 1)
 					throw new MoleculerError("Friends is not found!", 404, "FRIENDS_NOT_FOUND", { userID: ctx.params.userID });
@@ -171,16 +175,51 @@ broker.createService({
 	}
 });
 
+broker.createService({
+	name: "api",
+	actions: {
+		rest: {
+			handler(ctx) {
+				return ctx.call(ctx.params.action, ctx.params.params);
+			}
+		}
+	},
+	created() {
+		const http = require("http");
+		this.server = http.createServer();
+		this.server.on("request", async (req, res) => {
+			try {
+				const data = await this.broker.call("api.rest", {
+					action: "posts.find"
+				});
+				res.setHeader("Content-Type", "application/json; charset=utf-8");
+				res.end(JSON.stringify(data));
+			} catch(err) {
+				res.statusCode = 500;
+				res.end(err.message);
+			}
+		});
+	},
+
+	started() {
+		this.server.listen(3000);
+	},
+
+	stopped() {
+		this.server.close();
+	}
+});
+
 // Start server
 broker.start().then(() => {
 	broker.repl();
 
 	// Call action
 	//setInterval(() => {
-	broker
+	/*broker
 		.call("posts.find", { limit: 5 }, { meta: { loggedIn: { username: "Adam" } } })
 		.then(console.log)
 		.catch(console.error);
-
+*/
 	//}, 5000);
 });

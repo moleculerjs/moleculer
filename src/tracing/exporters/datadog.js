@@ -83,7 +83,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 
 			}
 		}).then(res => {
-			this.logger.info(`Tracing spans (${data.length} spans) are uploaded to Datadog. Status: ${res.statusText}`);
+			this.logger.info(`Tracing spans (${data.length} traces) are uploaded to Datadog. Status: ${res.statusText}`);
 		}).catch(err => {
 			this.logger.warn("Unable to upload tracing spans to Datadog. Error:" + err.message, err);
 		});
