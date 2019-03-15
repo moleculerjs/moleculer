@@ -5,7 +5,7 @@ describe("Test base Packet", () => {
 	it("create Packet without type", () => {
 		let packet = new P.Packet();
 		expect(packet).toBeDefined();
-		expect(packet.type).toBe(P.PACKET_UNKNOW);
+		expect(packet.type).toBe(P.PACKET_UNKNOWN);
 		expect(packet.target).toBeUndefined();
 		expect(packet.payload).toEqual({});
 	});

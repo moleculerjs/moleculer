@@ -12,7 +12,10 @@ let broker = new ServiceBroker({
 broker.loadService(__dirname + "/../math.service.js");
 
 // Call actions
-broker.call("math.add", { a: 5, b: 3 }).then(res => broker.logger.info("  5 + 3 =", res))
+broker.start()
+	.then(() => {
+		return broker.call("math.add", { a: 5, b: 3 }).then(res => broker.logger.info("  5 + 3 =", res));
+	})
 	.then(() => {
 		return broker.call("math.sub", { a: 9, b: 2 }).then(res => broker.logger.info("  9 - 2 =", res));
 	})

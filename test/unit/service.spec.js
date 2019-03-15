@@ -1168,10 +1168,33 @@ describe("Test $secureSettings", () => {
 		});
 	});
 
-
 	it("should handle undefined settings", () => {
 		delete schema.settings;
 		delete schema.mixins;
+
+		return createService(schema).catch(protectReject).then(svc => {
+			expect(svc.settings).toEqual({});
+
+			const list = broker.registry.services.list({ onlyLocal: true, skipInternal: true });
+			expect(list[0].settings).toEqual({});
+		});
+	});
+
+	it("should handle undefined & defined settings #1", () => {
+		schema.settings = {};
+		delete schema.mixins;
+
+		return createService(schema).catch(protectReject).then(svc => {
+			expect(svc.settings).toEqual({});
+
+			const list = broker.registry.services.list({ onlyLocal: true, skipInternal: true });
+			expect(list[0].settings).toEqual({});
+		});
+	});
+
+	it("should handle undefined & defined settings #1", () => {
+		delete schema.settings;
+		schema.mixins = {};
 
 		return createService(schema).catch(protectReject).then(svc => {
 			expect(svc.settings).toEqual({});

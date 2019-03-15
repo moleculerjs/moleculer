@@ -455,8 +455,8 @@ class Service {
 	 * @returns {Object} Merged schema
 	 */
 	static mergeSchemaSettings(src, target) {
-		if (target.$secureSettings || src.$secureSettings)
-			target.$secureSettings = _.uniq([].concat(src.$secureSettings, target.$secureSettings));
+		if ((target && target.$secureSettings) || (src && src.$secureSettings))
+			target.$secureSettings = _.uniq([].concat(src.$secureSettings || [], target.$secureSettings || []));
 
 		return _.defaultsDeep(src, target);
 	}

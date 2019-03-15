@@ -1,5 +1,3 @@
-import * as Ioredis from 'ioredis';
-
 declare namespace Moleculer {
 	type GenericObject = { [name: string]: any };
 
@@ -33,7 +31,22 @@ declare namespace Moleculer {
 
 	type ActionHandler<T = any> = ((ctx: Context) => PromiseLike<T> | T) & ThisType<Service>;
 	type ActionParamSchema = { [key: string]: any };
-	type ActionParamTypes = "boolean" | "number" | "string" | "object" | "array" | ActionParamSchema;
+	type ActionParamTypes =
+		| "any"
+		| "array"
+		| "boolean"
+		| "custom"
+		| "date"
+		| "email"
+		| "enum"
+		| "forbidden"
+		| "function"
+		| "number"
+		| "object"
+		| "string"
+		| "url"
+		| "uuid"
+		| ActionParamSchema;
 	type ActionParams = { [key: string]: ActionParamTypes };
 
 	type MetricsParamsFuncType = (params: ActionParams) => any;
@@ -59,7 +72,7 @@ declare namespace Moleculer {
 		params?: ActionParams;
 		service?: Service;
 		cache?: boolean | ActionCacheOptions;
-		handler: ActionHandler;
+		handler?: ActionHandler;
 		metrics?: MetricsOptions;
 		bulkhead?: BulkheadOptions;
 		circuitBreaker?: BrokerCircuitBreakerOptions;
@@ -130,7 +143,7 @@ declare namespace Moleculer {
 	interface ServiceEvent {
 		name?: string;
 		group?: string;
-		handler: ServiceEventHandler;
+		handler?: ServiceEventHandler;
 	}
 
 	type ServiceEvents = { [key: string]: ServiceEventHandler | ServiceEvent };
@@ -359,6 +372,7 @@ declare namespace Moleculer {
 		meta?: GenericObject;
 		parentCtx?: Context;
 		requestID?: string;
+		tracking?: boolean;
 	}
 
 	type CallDefinition<P extends GenericObject = GenericObject> = {
@@ -399,7 +413,7 @@ declare namespace Moleculer {
 		namespace: string;
 		nodeID: string;
 		logger: LoggerInstance;
-		cacher?: Cacher | RedisCacher;
+		cacher?: Cacher;
 		serializer?: Serializer;
 		validator?: Validator;
 		transit: GenericObject;
@@ -622,10 +636,7 @@ declare namespace Moleculer {
 		set(key: string, data: any, ttl?: number): PromiseLike<any>;
 		del(key: string|Array<string>): PromiseLike<any>;
 		clean(match?: string|Array<string>): PromiseLike<any>;
-	}
-
-	class RedisCacher extends Cacher {
-		client: Ioredis.Redis;
+		client?: any;
 	}
 
 	class Serializer {
@@ -721,7 +732,7 @@ declare namespace Moleculer {
 
 	const Cachers: {
 		Memory: Cacher,
-		Redis: RedisCacher
+		Redis: Cacher
 	};
 	const Serializers: {
 		JSON: Serializer,
