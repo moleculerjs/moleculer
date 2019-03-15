@@ -672,8 +672,7 @@ describe("Test middleware with lock enabled", () => {
 				expect(broker.cacher.lock).toHaveBeenCalledTimes(0);
 				expect(broker.cacher.tryLock).toHaveBeenCalledTimes(1);
 				expect(mockAction.handler).toHaveBeenCalledTimes(1);
-			}).then(()=>{
-				setTimeout(resolve, 1000)
+				setTimeout(resolve, 1000);
 			})
 		}).then(()=>expect(unlockFn).toHaveBeenCalledTimes(1)); //Should finally unlock the lock.
 	});
@@ -706,6 +705,49 @@ describe("Test middleware with lock enabled", () => {
 			expect(broker.cacher.tryLock).toHaveBeenCalledTimes(0);
 			expect(unlockFn).toHaveBeenCalledTimes(0);
 			expect(mockAction.handler).toHaveBeenCalledTimes(0);
-		})
-	})
+		});
+	});
+
+	it("should realse the lock when refreshing a key and an error throw", ()=>{
+		const err = new Error('wrong')
+    let mockAction = {
+  		name: "posts.find",
+  		cache: {
+        ttl: 30,
+        lock: {
+					staleTime: 10
+				}
+      },
+  		handler: jest.fn(ctx => Promise.reject(err))
+  	};
+
+		broker.cacher.get = jest.fn(() => Promise.resolve(cachedData));
+		broker.cacher.del = jest.fn(() => Promise.resolve());
+		broker.cacher.dogpile = jest.fn(() => Promise.resolve({ data: cachedData, ttl: 5 }))
+		broker.cacher.set = jest.fn(() => Promise.resolve());
+		const unlockFn = jest.fn(()=>Promise.resolve());
+		broker.cacher.lock = jest.fn(()=>Promise.resolve(unlockFn));
+		broker.cacher.tryLock = jest.fn(()=>Promise.resolve(unlockFn));
+		let cacheKey = cacher.getCacheKey(mockAction.name, params);
+		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+
+		const ctx = new Context();
+		ctx.setParams(params);
+		
+		return new Promise(function(resolve, reject) {
+			cachedHandler(ctx).then(response => {
+				expect(response).toBe(cachedData);
+				expect(broker.cacher.get).toHaveBeenCalledTimes(0);
+				expect(broker.cacher.dogpile).toHaveBeenCalledTimes(1);
+				expect(broker.cacher.lock).toHaveBeenCalledTimes(0);
+				expect(broker.cacher.tryLock).toHaveBeenCalledTimes(1);
+				expect(mockAction.handler).toHaveBeenCalledTimes(1);
+				setTimeout(resolve, 1000);
+			})
+		}).then(()=>{
+			expect(unlockFn).toHaveBeenCalledTimes(1); //Should finally unlock the lock.
+			expect(broker.cacher.del).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.del).toHaveBeenCalledWith(cacheKey);
+		});
+  });
 });

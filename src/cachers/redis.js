@@ -63,7 +63,7 @@ class RedisCacher extends BaseCacher {
 			redlockClients,
 			_.omit(this.opts.redlock, ['clients'])
 		);
-		this.redLockNonBlocking = new Redlock(
+		this.redlockNonBlocking = new Redlock(
 			redlockClients,
 			{
 				retryCount: 0
@@ -205,7 +205,7 @@ class RedisCacher extends BaseCacher {
 				return Promise.reject(err0)
 			}
 			if(err1){
-				return Promise.reject(error1)
+				return Promise.reject(err1)
 			}
 			if (data) {
 				this.logger.debug(`FOUND ${key}`);
@@ -231,13 +231,15 @@ class RedisCacher extends BaseCacher {
 	 * @memberof RedisCacher
 	 */
 	lock(key, ttl=15000) {
+		key = this.prefix + key + "-lock"
 		return this.redlock.lock(key, ttl).then(lock=>{
 			return ()=>lock.unlock()
 		})
 	}
 
 	tryLock(key, ttl=15000) {
-		return this.redLockNonBlocking.lock(key, ttl).then(lock=>{
+		key = this.prefix + key + "-lock"
+		return this.redlockNonBlocking.lock(key, ttl).then(lock=>{
 			return ()=>lock.unlock()
 		})
 	}

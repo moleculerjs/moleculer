@@ -260,12 +260,9 @@ class Cacher {
 											// Save the result to the cache and realse the lock.
 											return this.set(cacheKey, result, opts.ttl);
 										}).catch(err => {
-											return this.del(cacheKey, result, opts.ttl);
-										}).finally(()=>{
-											unlock()
-										})
+											return this.del(cacheKey);
+										}).finally(()=>{ unlock() })
 									}).catch(err=>{
-										console.error(err)
 										// The cache is refreshing on somewhere else.
 									})
 								}
@@ -286,7 +283,7 @@ class Cacher {
 										// Save the result to the cache and realse the lock.
 										this.set(cacheKey, result, opts.ttl);
 										return result;
-									}).finally(unlock)
+									}).finally(()=>{ unlock() })
 								});
 							});
 						})
