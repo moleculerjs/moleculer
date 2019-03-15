@@ -2,7 +2,6 @@ const ServiceBroker = require("../../../src/service-broker");
 const Cacher = require("../../../src/cachers/base");
 const Context = require("../../../src/context");
 
-
 describe("Test BaseCacher", () => {
 
 	it("check constructor", () => {
@@ -425,4 +424,288 @@ describe("Test middleware", () => {
 		});
 
 	});
+});
+
+describe("Test middleware with lock enabled", () => {
+	let cachedData = { num: 5 };
+
+	let cacher = new Cacher();
+	let broker = new ServiceBroker({
+		logger: false,
+		cacher
+	});
+
+	cacher.get = jest.fn(()=> Promise.resolve(cachedData));
+	cacher.set = jest.fn();
+	cacher.dogpile = jest.fn(()=> Promise.resolve({ data: cachedData, ttl: 15 }))
+
+
+	let mockAction = {
+		name: "posts.find",
+		cache: {
+			ttl: 60,
+			lock: true
+		},
+		handler: jest.fn()
+	};
+	let params = { id: 6, name: 'tiaod' };
+
+	it("should give back the cached data and not called the handler", () => {
+		let ctx = new Context();
+		ctx.setParams(params);
+
+		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+		expect(typeof cachedHandler).toBe("function");
+		let cacheKey = cacher.getCacheKey(mockAction.name, params);
+		return cachedHandler(ctx).then(response => {
+			expect(broker.cacher.get).toHaveBeenCalledTimes(0);
+
+			expect(broker.cacher.dogpile).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.dogpile).toHaveBeenCalledWith(cacheKey);
+
+			expect(broker.cacher.set).toHaveBeenCalledTimes(0);
+			expect(mockAction.handler).toHaveBeenCalledTimes(0);
+
+		});
+	});
+
+	it("should not give back cached data and should call the handler and call the 'cache.set' action with promise", () => {
+		let resData = [1,3,5];
+		let cacheKey = cacher.getCacheKey(mockAction.name, params);
+		broker.cacher.get = jest.fn(() => Promise.resolve(null));
+		broker.cacher.dogpile = jest.fn(() => Promise.resolve({ data: null, ttl: null }));
+		const unlockFn = jest.fn(()=>Promise.resolve())
+		broker.cacher.lock = jest.fn(()=> Promise.resolve(unlockFn))
+		mockAction.handler = jest.fn(() => Promise.resolve(resData));
+
+		let ctx = new Context();
+		ctx.setParams(params);
+
+		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+		return cachedHandler(ctx).then(response => {
+			expect(broker.cacher.dogpile).toHaveBeenCalledTimes(1); //Check the cache key and ttl
+
+			expect(broker.cacher.get).toHaveBeenCalledTimes(1); // Check the cache after acquired the lock
+			expect(broker.cacher.get).toHaveBeenCalledWith(cacheKey);
+
+			expect(broker.cacher.set).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.set).toHaveBeenCalledWith(cacheKey, resData, 60);
+			expect(response).toBe(resData)
+		})
+	})
+
+	it("should disable cache lock by defalut", () => {
+		let mockAction = {
+			name: "post.get",
+			cache: {
+				ttl: 30
+			}
+		}
+		broker.cacher.get = jest.fn(() => Promise.resolve(null));
+		broker.cacher.dogpile = jest.fn(() => Promise.resolve({ data: null, ttl: null }));
+		mockAction.handler = jest.fn(() => Promise.resolve());
+
+		let ctx = new Context();
+		ctx.setParams(params);
+
+		let cacheKey = cacher.getCacheKey(mockAction.name, params);
+		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+		return cachedHandler(ctx).then(response => {
+			expect(broker.cacher.dogpile).toHaveBeenCalledTimes(0);
+
+			expect(broker.cacher.get).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.get).toHaveBeenCalledWith(cacheKey);
+		});
+	});
+
+	it("should not call cacher.dogpile if cache.lock = false", () => {
+		let mockAction = {
+			name: "post.get",
+			cache: {
+				ttl: 30,
+				lock: false
+			}
+		}
+		broker.cacher.get = jest.fn(() => Promise.resolve(null));
+		broker.cacher.dogpile = jest.fn(() => Promise.resolve({ data: null, ttl: null }));
+		mockAction.handler = jest.fn(() => Promise.resolve());
+
+		let ctx = new Context();
+		ctx.setParams(params);
+
+		let cacheKey = cacher.getCacheKey(mockAction.name, params);
+		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+		return cachedHandler(ctx).then(response => {
+			expect(broker.cacher.dogpile).toHaveBeenCalledTimes(0);
+
+			expect(broker.cacher.get).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.get).toHaveBeenCalledWith(cacheKey);
+		});
+	});
+
+	it("should not call cacher.dogpile if cache.lock = { enabled: false }", () => {
+		let mockAction = {
+			name: "post.get",
+			cache: {
+				ttl: 30,
+				lock: {
+					enabled: false
+				}
+			}
+		}
+		broker.cacher.get = jest.fn(() => Promise.resolve(null));
+		broker.cacher.dogpile = jest.fn(() => Promise.resolve({ data: null, ttl: null }));
+		mockAction.handler = jest.fn(() => Promise.resolve());
+
+		let ctx = new Context();
+		ctx.setParams(params);
+
+		let cacheKey = cacher.getCacheKey(mockAction.name, params);
+		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+		return cachedHandler(ctx).then(response => {
+			expect(broker.cacher.dogpile).toHaveBeenCalledTimes(0);
+
+			expect(broker.cacher.get).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.get).toHaveBeenCalledWith(cacheKey);
+		});
+	})
+
+	it("should call the handler only once when concurrency call a cacher with lock", () => {
+		let resData = [6,6,6];
+		const MemoryCacher = require("../../../src/cachers/memory");
+		const cacher = new MemoryCacher();
+		const broker = new ServiceBroker({
+			logger: false,
+			cacher
+		});
+		let mockAction = {
+			name: "post.get",
+			cache: {
+				ttl: 30,
+				lock: true
+			}
+		}
+		const get = jest.spyOn(cacher, 'get')
+		const dogpile = jest.spyOn(cacher, 'dogpile')
+		const lock = jest.spyOn(cacher, 'lock')
+		mockAction.handler = jest.fn(() => {
+			return new Promise(function(resolve, reject) {
+				setTimeout(() => resolve(resData), 1000)
+			});
+		});
+
+		let ctx = new Context();
+		ctx.setParams(params);
+
+		let cacheKey = cacher.getCacheKey(mockAction.name, params);
+		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+
+		function call(){
+			let ctx = new Context();
+			ctx.setParams(params);
+			return cachedHandler(ctx)
+		}
+		// Concurrency 3
+    return Promise.all([
+      call(),
+      call(),
+      call()
+    ]).then(responses => {
+      for(let response of responses){
+        expect(response).toEqual(resData);
+      }
+      expect(mockAction.handler).toHaveBeenCalledTimes(1);
+			expect(get).toHaveBeenCalledTimes(3);
+			expect(dogpile).toHaveBeenCalledTimes(3);
+			expect(lock).toHaveBeenCalledTimes(3);
+    });
+	});
+
+	it("should realse the lock when an error throw", ()=>{
+		const err = new Error('wrong')
+    let mockAction = {
+  		name: "posts.find",
+  		cache: {
+        ttl: 30,
+        lock: true
+      },
+  		handler: jest.fn(function(ctx){
+        return Promise.reject(err);
+      })
+  	};
+		broker.cacher.get = jest.fn(() => Promise.resolve(null));
+		broker.cacher.dogpile = jest.fn(() => Promise.resolve({ data: null, ttl: null }));
+		const unlockFn = jest.fn(()=>Promise.resolve())
+		broker.cacher.lock = jest.fn(()=>Promise.resolve(unlockFn))
+    let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+    return cachedHandler(new Context()).catch(e=>{
+      expect(e).toBe(err);
+			expect(unlockFn).toHaveBeenCalledTimes(1);
+    });
+  });
+
+	it("should refresh a stale key of cache", () => {
+		let resData = [9,9,9];
+		let mockAction = {
+			name: "post.find",
+			cache: {
+				ttl: 30,
+				lock: {
+					staleTime: 10
+				}
+			},
+			handler: jest.fn(()=> Promise.resolve(resData))
+		}
+		broker.cacher.get = jest.fn(() => Promise.resolve(cachedData));
+		broker.cacher.dogpile = jest.fn(() => Promise.resolve({ data: cachedData, ttl: 5 }))
+		broker.cacher.set = jest.fn(() => Promise.resolve())
+		const unlockFn = jest.fn(()=>Promise.resolve())
+		broker.cacher.lock = jest.fn(()=>Promise.resolve(unlockFn))
+		broker.cacher.tryLock = jest.fn(()=>Promise.resolve(unlockFn))
+
+		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+		return new Promise(function(resolve, reject) {
+			cachedHandler(new Context()).then(response => {
+				expect(response).toBe(cachedData)
+				expect(broker.cacher.get).toHaveBeenCalledTimes(0);
+				expect(broker.cacher.dogpile).toHaveBeenCalledTimes(1);
+				expect(broker.cacher.lock).toHaveBeenCalledTimes(0);
+				expect(broker.cacher.tryLock).toHaveBeenCalledTimes(1);
+				expect(mockAction.handler).toHaveBeenCalledTimes(1);
+			}).then(()=>{
+				setTimeout(resolve, 1000)
+			})
+		}).then(()=>expect(unlockFn).toHaveBeenCalledTimes(1)); //Should finally unlock the lock.
+	});
+
+	it("should not call the handler if the cache is refreshed", ()=>{
+		let resData = [8,6,4];
+		let mockAction = {
+			name: "post.find",
+			cache: {
+				ttl: 30,
+				lock: {
+					staleTime: 10
+				}
+			},
+			handler: jest.fn(()=> Promise.resolve(resData))
+		}
+		broker.cacher.get = jest.fn(() => Promise.resolve(cachedData));
+		broker.cacher.dogpile = jest.fn(() => Promise.resolve({ data: cachedData, ttl: 25 }))
+		broker.cacher.set = jest.fn(() => Promise.resolve())
+		const unlockFn = jest.fn(()=>Promise.resolve())
+		broker.cacher.lock = jest.fn(()=>Promise.resolve(unlockFn))
+		broker.cacher.tryLock = jest.fn(()=>Promise.resolve(unlockFn))
+
+		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+		return cachedHandler(new Context()).then(response => {
+			expect(response).toBe(cachedData)
+			expect(broker.cacher.get).toHaveBeenCalledTimes(0);
+			expect(broker.cacher.dogpile).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.lock).toHaveBeenCalledTimes(0);
+			expect(broker.cacher.tryLock).toHaveBeenCalledTimes(0);
+			expect(unlockFn).toHaveBeenCalledTimes(0);
+			expect(mockAction.handler).toHaveBeenCalledTimes(0);
+		})
+	})
 });
