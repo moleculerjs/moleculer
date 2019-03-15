@@ -1,4 +1,51 @@
 --------------------------------------------------
+<a name="0.13.7"></a>
+# [0.13.7](https://github.com/moleculerjs/moleculer/compare/v0.13.6...v0.13.7) (2019-02-21)
+
+# Changes
+- fix ioredis dependency in typescript definition file [#476](https://github.com/moleculerjs/moleculer/pull/476)
+
+--------------------------------------------------
+<a name="0.13.6"></a>
+# [0.13.6](https://github.com/moleculerjs/moleculer/compare/v0.13.5...v0.13.6) (2019-02-15)
+
+# New
+
+## Secure service settings
+To protect your tokens & API keys, define a `$secureSettings: []` property in service settings and set the protected property keys.
+The protected settings won't be published to other nodes and it won't appear in Service Registry. They are only available under `this.settings` inside the service functions.
+
+**Example**
+```js
+// mail.service.js
+module.exports = {
+    name: "mailer",
+    settings: {
+        $secureSettings: ["transport.auth.user", "transport.auth.pass"],
+
+        from: "sender@moleculer.services",
+        transport: {
+            service: 'gmail',
+            auth: {
+                user: 'gmail.user@gmail.com',
+                pass: 'yourpass'
+            }
+        }
+    }        
+    // ...
+};
+```
+
+
+# Changes
+- fix `cacher.clean` issue [#435](https://github.com/moleculerjs/moleculer/pull/435)
+- add `disableVersionCheck` option for broker transit options. It can disable protocol version checking logic in Transit. Default: `false`
+- improve Typescript definition file. [#442](https://github.com/moleculerjs/moleculer/pull/442) [#454](https://github.com/moleculerjs/moleculer/pull/454)
+- waitForServices accept versioned service names (e.g.: `v2.posts`).
+- update dependencies (plus using semver ranges in dependencies)
+
+
+--------------------------------------------------
 <a name="0.13.5"></a>
 # [0.13.5](https://github.com/moleculerjs/moleculer/compare/v0.13.4...v0.13.5) (2018-12-09)
 
