@@ -436,7 +436,7 @@ describe("Test middleware with lock enabled", () => {
 	});
 
 	cacher.get = jest.fn(()=> Promise.resolve(cachedData));
-	cacher.set = jest.fn();
+	cacher.set = jest.fn(()=> Promise.resolve());
 	cacher.dogpile = jest.fn(()=> Promise.resolve({ data: cachedData, ttl: 15 }))
 
 
@@ -733,7 +733,7 @@ describe("Test middleware with lock enabled", () => {
 
 		const ctx = new Context();
 		ctx.setParams(params);
-		
+
 		return new Promise(function(resolve, reject) {
 			cachedHandler(ctx).then(response => {
 				expect(response).toBe(cachedData);

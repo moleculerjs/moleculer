@@ -258,10 +258,10 @@ class Cacher {
 									this.tryLock(cacheKey, opts.lock.ttl).then(unlock=>{
 										return handler(ctx).then(result => {
 											// Save the result to the cache and realse the lock.
-											return this.set(cacheKey, result, opts.ttl);
+											return this.set(cacheKey, result, opts.ttl).then(()=>unlock());
 										}).catch(err => {
-											return this.del(cacheKey);
-										}).finally(()=>{ unlock() })
+											return this.del(cacheKey).then(()=>unlock());
+										});
 									}).catch(err=>{
 										// The cache is refreshing on somewhere else.
 									})
@@ -281,9 +281,13 @@ class Cacher {
 									// Call the handler
 									return handler(ctx).then(result => {
 										// Save the result to the cache and realse the lock.
-										this.set(cacheKey, result, opts.ttl);
+										this.set(cacheKey, result, opts.ttl).then(()=>unlock());
 										return result;
-									}).finally(()=>{ unlock() })
+									}).catch(e => {
+										return unlock().then(() => {
+											return Promise.reject(e)
+										})
+									})
 								});
 							});
 						})
