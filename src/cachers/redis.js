@@ -8,7 +8,7 @@
 
 const Promise = require("bluebird");
 const BaseCacher = require("./base");
-
+const _ = require('lodash')
 /**
  * Cacher factory for Redis
  *
@@ -39,13 +39,18 @@ class RedisCacher extends BaseCacher {
 	 */
 	init(broker) {
 		super.init(broker);
-
-		let Redis;
+		let Redis, Redlock;
 		try {
 			Redis = require("ioredis");
 		} catch (err) {
 			/* istanbul ignore next */
 			this.broker.fatal("The 'ioredis' package is missing. Please install it with 'npm install ioredis --save' command.", err, true);
+		}
+		try {
+			Redlock = require('redlock');
+		} catch (err) {
+			/* istanbul ignore next */
+			this.broker.fatal("The 'redlock' package is missing. Please install it with 'npm install redlock --save' command.", err, true);
 		}
 
 		/**
@@ -53,6 +58,17 @@ class RedisCacher extends BaseCacher {
 		 * @memberof RedisCacher
 		 */
 		this.client = new Redis(this.opts.redis);
+		let redlockClients = (this.opts.redlock ? this.opts.redlock.clients : null) || [this.client]
+		this.redlock = new Redlock(
+			redlockClients,
+			_.omit(this.opts.redlock, ['clients'])
+		);
+		this.redLockNonBlocking = new Redlock(
+			redlockClients,
+			{
+				retryCount: 0
+			}
+		)
 		this.client.on("connect", () => {
 			/* istanbul ignore next */
 			this.logger.info("Redis cacher connected.");
@@ -170,6 +186,60 @@ class RedisCacher extends BaseCacher {
 				throw err;
 			});
 
+	}
+
+	/**
+	 * Get data and ttl from cache by key.
+	 *
+	 * @param {string|Array<string>} key
+	 * @returns {Promise}
+	 *
+	 * @memberof RedisCacher
+	 */
+
+	dogpile(key) {
+		return this.client.pipeline().get(this.prefix + key).ttl(this.prefix + key).exec().then((res) => {
+			let [err0, data] = res[0]
+			let [err1, ttl] = res[1]
+			if(err0){
+				return Promise.reject(err0)
+			}
+			if(err1){
+				return Promise.reject(error1)
+			}
+			if (data) {
+				this.logger.debug(`FOUND ${key}`);
+				try {
+					data = JSON.parse(data);
+				} catch (err) {
+					this.logger.error("Redis result parse error.", err, data);
+					data = null
+				}
+			}
+			return { data, ttl }
+		});
+	}
+
+
+	/**
+	 * Acquire a lock
+	 *
+	 * @param {string|Array<string>} key
+	 * @param {Number} ttl Optional Time-to-Live
+	 * @returns {Promise}
+	 *
+	 * @memberof RedisCacher
+	 */
+	lock(key, ttl=15000) {
+		return this.redlock.lock(key, ttl).then(lock=>{
+			return ()=>lock.unlock()
+		})
+	}
+
+	tryLock(key, ttl=15000) {
+		return this.redLockNonBlocking.lock(key, ttl).then(lock=>{
+			return ()=>lock.unlock()
+		})
 	}
 
 	_sequentialPromises(elements) {

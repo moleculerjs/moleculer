@@ -11,6 +11,7 @@ const Promise 		= require("bluebird");
 const utils			= require("../utils");
 const BaseCacher  	= require("./base");
 const LRU 			= require("lru-cache");
+const { Lock } = require('lock')
 /**
  * Cacher factory for memory cache
  *
@@ -34,7 +35,8 @@ class MemoryLRUCacher extends BaseCacher {
 			maxAge: this.opts.ttl ? this.opts.ttl * 1000 : null,
 			updateAgeOnGet: !!this.opts.ttl
 		});
-
+		// Async lock
+		this._lock = Lock()
 		// Start TTL timer
 		this.timer = setInterval(() => {
 			/* istanbul ignore next */
@@ -140,11 +142,79 @@ class MemoryLRUCacher extends BaseCacher {
 
 		return Promise.resolve();
 	}
+	/**
+	 * Get data and ttl from cache by key.
+	 *
+	 * @param {string|Array<string>} key
+	 * @returns {Promise}
+	 *
+	 * @memberof MemoryLRUCacher
+	 */
+	 dogpile(key){
+		// There are no way to get the ttl of LRU cache :(
+ 		return this.get(key).then(data=>{
+			return { data, ttl: null }
+		})
+	 }
+
+	/**
+	 * Acquire a lock
+	 *
+	 * @param {string|Array<string>} key
+	 * @param {Number} ttl Optional Time-to-Live
+	 * @returns {Promise}
+	 *
+	 * @memberof MemoryLRUCacher
+	 */
+
+	lock(key, ttl) {
+		key += "-lock"
+		return new Promise((resolve, reject) => {
+			this._lock(key, (done) => {
+				resolve(()=>new Promise(function(resolve, reject) {
+					done(err=>{
+						if(err)
+							return reject(err);
+						resolve();
+					})();
+				}));
+		    // Concurrency safe
+			})
+		});
+	}
+
+	/**
+	 * Try to acquire a lock
+	 *
+	 * @param {string|Array<string>} key
+	 * @param {Number} ttl Optional Time-to-Live
+	 * @returns {Promise}
+	 *
+	 * @memberof MemoryLRUCacher
+	 */
+	tryLock(key, ttl) {
+		key += "-lock"
+		return new Promise((resolve, reject) => {
+			if(this._lock.isLocked(key)){
+				return reject(new Error('Locked.'))
+			}
+			this._lock(key, (done) => {
+				resolve(()=>new Promise(function(resolve, reject) {
+					done(err=>{
+						if(err)
+							return reject(err);
+						resolve();
+					})();
+				}));
+		    // Concurrency safe
+			})
+		});
+	}
 
 	/**
 	 * Check & remove the expired cache items
 	 *
-	 * @memberof MemoryCacher
+	 * @memberof MemoryLRUCacher
 	 */
 	checkTTL() {
 		this.cache.prune();
