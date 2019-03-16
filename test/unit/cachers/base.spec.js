@@ -458,10 +458,11 @@ describe("Test middleware with lock enabled", () => {
 		expect(typeof cachedHandler).toBe("function");
 		let cacheKey = cacher.getCacheKey(mockAction.name, params);
 		return cachedHandler(ctx).then(response => {
-			expect(broker.cacher.get).toHaveBeenCalledTimes(0);
+			expect(broker.cacher.get).toHaveBeenCalledTimes(1);
+			expect(broker.cacher.get).toHaveBeenCalledWith(cacheKey);
 
-			expect(broker.cacher.dogpile).toHaveBeenCalledTimes(1);
-			expect(broker.cacher.dogpile).toHaveBeenCalledWith(cacheKey);
+			expect(broker.cacher.dogpile).toHaveBeenCalledTimes(0);
+
 
 			expect(broker.cacher.set).toHaveBeenCalledTimes(0);
 			expect(mockAction.handler).toHaveBeenCalledTimes(0);
@@ -483,9 +484,9 @@ describe("Test middleware with lock enabled", () => {
 
 		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
 		return cachedHandler(ctx).then(response => {
-			expect(broker.cacher.dogpile).toHaveBeenCalledTimes(1); //Check the cache key and ttl
+			expect(broker.cacher.dogpile).toHaveBeenCalledTimes(0); //Check the cache key and ttl
 
-			expect(broker.cacher.get).toHaveBeenCalledTimes(1); // Check the cache after acquired the lock
+			expect(broker.cacher.get).toHaveBeenCalledTimes(2); // Check the cache after acquired the lock
 			expect(broker.cacher.get).toHaveBeenCalledWith(cacheKey);
 
 			expect(broker.cacher.set).toHaveBeenCalledTimes(1);
@@ -503,6 +504,7 @@ describe("Test middleware with lock enabled", () => {
 		}
 		broker.cacher.get = jest.fn(() => Promise.resolve(null));
 		broker.cacher.dogpile = jest.fn(() => Promise.resolve({ data: null, ttl: null }));
+		broker.cacher.lock = jest.fn(() => Promise.resolve());
 		mockAction.handler = jest.fn(() => Promise.resolve());
 
 		let ctx = new Context();
@@ -511,14 +513,14 @@ describe("Test middleware with lock enabled", () => {
 		let cacheKey = cacher.getCacheKey(mockAction.name, params);
 		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
 		return cachedHandler(ctx).then(response => {
-			expect(broker.cacher.dogpile).toHaveBeenCalledTimes(0);
+			expect(broker.cacher.lock).toHaveBeenCalledTimes(0);
 
 			expect(broker.cacher.get).toHaveBeenCalledTimes(1);
 			expect(broker.cacher.get).toHaveBeenCalledWith(cacheKey);
 		});
 	});
 
-	it("should not call cacher.dogpile if cache.lock = false", () => {
+	it("should not call cacher.lock if cache.lock = false", () => {
 		let mockAction = {
 			name: "post.get",
 			cache: {
@@ -528,6 +530,8 @@ describe("Test middleware with lock enabled", () => {
 		}
 		broker.cacher.get = jest.fn(() => Promise.resolve(null));
 		broker.cacher.dogpile = jest.fn(() => Promise.resolve({ data: null, ttl: null }));
+		const unlockFn = jest.fn(()=>Promise.resolve())
+		broker.cacher.lock = jest.fn(()=> Promise.resolve(unlockFn))
 		mockAction.handler = jest.fn(() => Promise.resolve());
 
 		let ctx = new Context();
@@ -537,13 +541,13 @@ describe("Test middleware with lock enabled", () => {
 		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
 		return cachedHandler(ctx).then(response => {
 			expect(broker.cacher.dogpile).toHaveBeenCalledTimes(0);
-
+			expect(broker.cacher.lock).toHaveBeenCalledTimes(0);
 			expect(broker.cacher.get).toHaveBeenCalledTimes(1);
 			expect(broker.cacher.get).toHaveBeenCalledWith(cacheKey);
 		});
 	});
 
-	it("should not call cacher.dogpile if cache.lock = { enabled: false }", () => {
+	it("should not call cacher.lock if cache.lock = { enabled: false }", () => {
 		let mockAction = {
 			name: "post.get",
 			cache: {
@@ -554,6 +558,8 @@ describe("Test middleware with lock enabled", () => {
 			}
 		}
 		broker.cacher.get = jest.fn(() => Promise.resolve(null));
+		const unlockFn = jest.fn(()=>Promise.resolve())
+		broker.cacher.lock = jest.fn(()=> Promise.resolve(unlockFn))
 		broker.cacher.dogpile = jest.fn(() => Promise.resolve({ data: null, ttl: null }));
 		mockAction.handler = jest.fn(() => Promise.resolve());
 
@@ -564,7 +570,7 @@ describe("Test middleware with lock enabled", () => {
 		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
 		return cachedHandler(ctx).then(response => {
 			expect(broker.cacher.dogpile).toHaveBeenCalledTimes(0);
-
+			expect(broker.cacher.lock).toHaveBeenCalledTimes(0);
 			expect(broker.cacher.get).toHaveBeenCalledTimes(1);
 			expect(broker.cacher.get).toHaveBeenCalledWith(cacheKey);
 		});
@@ -615,8 +621,8 @@ describe("Test middleware with lock enabled", () => {
         expect(response).toEqual(resData);
       }
       expect(mockAction.handler).toHaveBeenCalledTimes(1);
-			expect(get).toHaveBeenCalledTimes(3);
-			expect(dogpile).toHaveBeenCalledTimes(3);
+			expect(get).toHaveBeenCalledTimes(6);
+			expect(dogpile).toHaveBeenCalledTimes(0);
 			expect(lock).toHaveBeenCalledTimes(3);
     });
 	});

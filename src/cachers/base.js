@@ -248,24 +248,34 @@ class Cacher {
 
 					const cacheKey = this.getCacheKey(action.name, ctx.params, ctx.meta, opts.keys);
 					// Using lock
-					if(opts.lock.enabled !== false && this.dogpile){
-						return this.dogpile(cacheKey).then(({ data, ttl }) => {
+					if(opts.lock.enabled !== false){
+						let cachePromise;
+						if(opts.lock.staleTime && this.dogpile){ // If enable cache refresh
+							cachePromise = this.dogpile(cacheKey).then(({ data, ttl }) => {
+								if (data != null) {
+									if(opts.lock.staleTime && ttl && ttl < opts.lock.staleTime){
+										// Cache is stale, try to refresh it.
+										this.tryLock(cacheKey, opts.lock.ttl).then(unlock=>{
+											return handler(ctx).then(result => {
+												// Save the result to the cache and realse the lock.
+												return this.set(cacheKey, result, opts.ttl).then(()=>unlock());
+											}).catch(err => {
+												return this.del(cacheKey).then(()=>unlock());
+											});
+										}).catch(err=>{
+											// The cache is refreshing on somewhere else.
+										})
+									}
+								}
+								return data;
+							});
+						} else {
+							cachePromise = this.get(cacheKey)
+						}
+						return cachePromise.then(data=>{
 							if (data != null) {
 								// Found in the cache! Don't call handler, return with the content
 								ctx.cachedResult = true;
-								if(opts.lock.staleTime && ttl && ttl < opts.lock.staleTime){
-									// Cache is stale, try to refresh it.
-									this.tryLock(cacheKey, opts.lock.ttl).then(unlock=>{
-										return handler(ctx).then(result => {
-											// Save the result to the cache and realse the lock.
-											return this.set(cacheKey, result, opts.ttl).then(()=>unlock());
-										}).catch(err => {
-											return this.del(cacheKey).then(()=>unlock());
-										});
-									}).catch(err=>{
-										// The cache is refreshing on somewhere else.
-									})
-								}
 								return data;
 							}
 							// Not found in the cache! Acquire a lock
