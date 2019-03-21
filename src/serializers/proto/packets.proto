@@ -51,8 +51,7 @@ message PacketInfo {
 	repeated string ipList			= 5;
 	required string hostname		= 6;
 	required Client client 			= 7;
-	required int32  seq 			= 8;
-
+	optional int32  seq 			= 8;
 
 	message Client {
 		required string type 			= 1;

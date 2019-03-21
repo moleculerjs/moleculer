@@ -7,9 +7,11 @@
 
 let thrift = require("thrift");
 let Thrift = thrift.Thrift;
+let Q = thrift.Q;
 
 
 let ttypes = module.exports = {};
+/* istanbul ignore next */
 let PacketEvent = module.exports.PacketEvent = function(args) {
 	this.ver = null;
 	this.sender = null;
@@ -41,51 +43,53 @@ let PacketEvent = module.exports.PacketEvent = function(args) {
 PacketEvent.prototype = {};
 PacketEvent.prototype.read = function(input) {
 	input.readStructBegin();
-	let continueLoop = true;
-	while (continueLoop)
+	while (true)
 	{
 		let ret = input.readFieldBegin();
+		let fname = ret.fname;
 		let ftype = ret.ftype;
 		let fid = ret.fid;
-		if (ftype === Thrift.Type.STOP) {
-			continueLoop = false;
+		if (ftype == Thrift.Type.STOP) {
+			break;
 		}
 		switch (fid)
 		{
 			case 1:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.ver = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 2:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.sender = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 3:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.event = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 4:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.data = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 5:
-				if (ftype === Thrift.Type.LIST) {
+				if (ftype == Thrift.Type.LIST) {
 					let _size0 = 0;
-					let _rtmp34;
+					var _rtmp34;
 					this.groups = [];
+					let _etype3 = 0;
 					_rtmp34 = input.readListBegin();
+					_etype3 = _rtmp34.etype;
 					_size0 = _rtmp34.size;
 					for (let _i5 = 0; _i5 < _size0; ++_i5)
 					{
@@ -99,7 +103,7 @@ PacketEvent.prototype.read = function(input) {
 				}
 				break;
 			case 6:
-				if (ftype === Thrift.Type.BOOL) {
+				if (ftype == Thrift.Type.BOOL) {
 					this.broadcast = input.readBool();
 				} else {
 					input.skip(ftype);
@@ -111,6 +115,7 @@ PacketEvent.prototype.read = function(input) {
 		input.readFieldEnd();
 	}
 	input.readStructEnd();
+	return;
 };
 
 PacketEvent.prototype.write = function(output) {
@@ -156,6 +161,7 @@ PacketEvent.prototype.write = function(output) {
 	}
 	output.writeFieldStop();
 	output.writeStructEnd();
+	return;
 };
 
 let PacketRequest = module.exports.PacketRequest = function(args) {
@@ -213,96 +219,96 @@ let PacketRequest = module.exports.PacketRequest = function(args) {
 PacketRequest.prototype = {};
 PacketRequest.prototype.read = function(input) {
 	input.readStructBegin();
-	let continueLoop = true;
-	while (continueLoop)
+	while (true)
 	{
 		let ret = input.readFieldBegin();
+		let fname = ret.fname;
 		let ftype = ret.ftype;
 		let fid = ret.fid;
-		if (ftype === Thrift.Type.STOP) {
-			continueLoop = false;
+		if (ftype == Thrift.Type.STOP) {
+			break;
 		}
 		switch (fid)
 		{
 			case 1:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.ver = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 2:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.sender = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 3:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.id = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 4:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.action = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 5:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.params = input.readBinary();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 6:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.meta = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 7:
-				if (ftype === Thrift.Type.DOUBLE) {
+				if (ftype == Thrift.Type.DOUBLE) {
 					this.timeout = input.readDouble();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 8:
-				if (ftype === Thrift.Type.I32) {
+				if (ftype == Thrift.Type.I32) {
 					this.level = input.readI32();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 9:
-				if (ftype === Thrift.Type.BOOL) {
+				if (ftype == Thrift.Type.BOOL) {
 					this.metrics = input.readBool();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 10:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.parentID = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 11:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.requestID = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 12:
-				if (ftype === Thrift.Type.BOOL) {
+				if (ftype == Thrift.Type.BOOL) {
 					this.stream = input.readBool();
 				} else {
 					input.skip(ftype);
@@ -314,6 +320,7 @@ PacketRequest.prototype.read = function(input) {
 		input.readFieldEnd();
 	}
 	input.readStructEnd();
+	return;
 };
 
 PacketRequest.prototype.write = function(output) {
@@ -380,6 +387,7 @@ PacketRequest.prototype.write = function(output) {
 	}
 	output.writeFieldStop();
 	output.writeStructEnd();
+	return;
 };
 
 let PacketResponse = module.exports.PacketResponse = function(args) {
@@ -421,68 +429,68 @@ let PacketResponse = module.exports.PacketResponse = function(args) {
 PacketResponse.prototype = {};
 PacketResponse.prototype.read = function(input) {
 	input.readStructBegin();
-	let continueLoop = true;
-	while (continueLoop)
+	while (true)
 	{
 		let ret = input.readFieldBegin();
+		let fname = ret.fname;
 		let ftype = ret.ftype;
 		let fid = ret.fid;
-		if (ftype === Thrift.Type.STOP) {
-			continueLoop = false;
+		if (ftype == Thrift.Type.STOP) {
+			break;
 		}
 		switch (fid)
 		{
 			case 1:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.ver = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 2:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.sender = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 3:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.id = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 4:
-				if (ftype === Thrift.Type.BOOL) {
+				if (ftype == Thrift.Type.BOOL) {
 					this.success = input.readBool();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 5:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.data = input.readBinary();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 6:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.error = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 7:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.meta = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 8:
-				if (ftype === Thrift.Type.BOOL) {
+				if (ftype == Thrift.Type.BOOL) {
 					this.stream = input.readBool();
 				} else {
 					input.skip(ftype);
@@ -494,6 +502,7 @@ PacketResponse.prototype.read = function(input) {
 		input.readFieldEnd();
 	}
 	input.readStructEnd();
+	return;
 };
 
 PacketResponse.prototype.write = function(output) {
@@ -540,6 +549,7 @@ PacketResponse.prototype.write = function(output) {
 	}
 	output.writeFieldStop();
 	output.writeStructEnd();
+	return;
 };
 
 let PacketDiscover = module.exports.PacketDiscover = function(args) {
@@ -557,26 +567,26 @@ let PacketDiscover = module.exports.PacketDiscover = function(args) {
 PacketDiscover.prototype = {};
 PacketDiscover.prototype.read = function(input) {
 	input.readStructBegin();
-	let continueLoop = true;
-	while (continueLoop)
+	while (true)
 	{
 		let ret = input.readFieldBegin();
+		let fname = ret.fname;
 		let ftype = ret.ftype;
 		let fid = ret.fid;
-		if (ftype === Thrift.Type.STOP) {
-			continueLoop = false;
+		if (ftype == Thrift.Type.STOP) {
+			break;
 		}
 		switch (fid)
 		{
 			case 1:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.ver = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 2:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.sender = input.readString();
 				} else {
 					input.skip(ftype);
@@ -588,6 +598,7 @@ PacketDiscover.prototype.read = function(input) {
 		input.readFieldEnd();
 	}
 	input.readStructEnd();
+	return;
 };
 
 PacketDiscover.prototype.write = function(output) {
@@ -604,6 +615,7 @@ PacketDiscover.prototype.write = function(output) {
 	}
 	output.writeFieldStop();
 	output.writeStructEnd();
+	return;
 };
 
 let Client = module.exports.Client = function(args) {
@@ -625,33 +637,33 @@ let Client = module.exports.Client = function(args) {
 Client.prototype = {};
 Client.prototype.read = function(input) {
 	input.readStructBegin();
-	let continueLoop = true;
-	while (continueLoop)
+	while (true)
 	{
 		let ret = input.readFieldBegin();
+		let fname = ret.fname;
 		let ftype = ret.ftype;
 		let fid = ret.fid;
-		if (ftype === Thrift.Type.STOP) {
-			continueLoop = false;
+		if (ftype == Thrift.Type.STOP) {
+			break;
 		}
 		switch (fid)
 		{
 			case 1:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.type = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 2:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.version = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 3:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.langVersion = input.readString();
 				} else {
 					input.skip(ftype);
@@ -663,6 +675,7 @@ Client.prototype.read = function(input) {
 		input.readFieldEnd();
 	}
 	input.readStructEnd();
+	return;
 };
 
 Client.prototype.write = function(output) {
@@ -684,6 +697,7 @@ Client.prototype.write = function(output) {
 	}
 	output.writeFieldStop();
 	output.writeStructEnd();
+	return;
 };
 
 let PacketInfo = module.exports.PacketInfo = function(args) {
@@ -694,6 +708,7 @@ let PacketInfo = module.exports.PacketInfo = function(args) {
 	this.ipList = null;
 	this.hostname = null;
 	this.client = null;
+	this.seq = null;
 	if (args) {
 		if (args.ver !== undefined && args.ver !== null) {
 			this.ver = args.ver;
@@ -716,56 +731,61 @@ let PacketInfo = module.exports.PacketInfo = function(args) {
 		if (args.client !== undefined && args.client !== null) {
 			this.client = new ttypes.Client(args.client);
 		}
+		if (args.seq !== undefined && args.seq !== null) {
+			this.seq = args.seq;
+		}
 	}
 };
 PacketInfo.prototype = {};
 PacketInfo.prototype.read = function(input) {
 	input.readStructBegin();
-	let continueLoop = true;
-	while (continueLoop)
+	while (true)
 	{
 		let ret = input.readFieldBegin();
+		let fname = ret.fname;
 		let ftype = ret.ftype;
 		let fid = ret.fid;
-		if (ftype === Thrift.Type.STOP) {
-			continueLoop = false;
+		if (ftype == Thrift.Type.STOP) {
+			break;
 		}
 		switch (fid)
 		{
 			case 1:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.ver = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 2:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.sender = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 3:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.services = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 4:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.config = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 5:
-				if (ftype === Thrift.Type.LIST) {
+				if (ftype == Thrift.Type.LIST) {
 					let _size8 = 0;
-					let _rtmp312;
+					var _rtmp312;
 					this.ipList = [];
+					let _etype11 = 0;
 					_rtmp312 = input.readListBegin();
+					_etype11 = _rtmp312.etype;
 					_size8 = _rtmp312.size;
 					for (let _i13 = 0; _i13 < _size8; ++_i13)
 					{
@@ -779,16 +799,23 @@ PacketInfo.prototype.read = function(input) {
 				}
 				break;
 			case 6:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.hostname = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 7:
-				if (ftype === Thrift.Type.STRUCT) {
+				if (ftype == Thrift.Type.STRUCT) {
 					this.client = new ttypes.Client();
 					this.client.read(input);
+				} else {
+					input.skip(ftype);
+				}
+				break;
+			case 8:
+				if (ftype == Thrift.Type.I32) {
+					this.seq = input.readI32();
 				} else {
 					input.skip(ftype);
 				}
@@ -799,6 +826,7 @@ PacketInfo.prototype.read = function(input) {
 		input.readFieldEnd();
 	}
 	input.readStructEnd();
+	return;
 };
 
 PacketInfo.prototype.write = function(output) {
@@ -847,8 +875,14 @@ PacketInfo.prototype.write = function(output) {
 		this.client.write(output);
 		output.writeFieldEnd();
 	}
+	if (this.seq !== null && this.seq !== undefined) {
+		output.writeFieldBegin("seq", Thrift.Type.I32, 8);
+		output.writeI32(this.seq);
+		output.writeFieldEnd();
+	}
 	output.writeFieldStop();
 	output.writeStructEnd();
+	return;
 };
 
 let PacketDisconnect = module.exports.PacketDisconnect = function(args) {
@@ -866,26 +900,26 @@ let PacketDisconnect = module.exports.PacketDisconnect = function(args) {
 PacketDisconnect.prototype = {};
 PacketDisconnect.prototype.read = function(input) {
 	input.readStructBegin();
-	let continueLoop = true;
-	while (continueLoop)
+	while (true)
 	{
 		let ret = input.readFieldBegin();
+		let fname = ret.fname;
 		let ftype = ret.ftype;
 		let fid = ret.fid;
-		if (ftype === Thrift.Type.STOP) {
-			continueLoop = false;
+		if (ftype == Thrift.Type.STOP) {
+			break;
 		}
 		switch (fid)
 		{
 			case 1:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.ver = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 2:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.sender = input.readString();
 				} else {
 					input.skip(ftype);
@@ -897,6 +931,7 @@ PacketDisconnect.prototype.read = function(input) {
 		input.readFieldEnd();
 	}
 	input.readStructEnd();
+	return;
 };
 
 PacketDisconnect.prototype.write = function(output) {
@@ -913,6 +948,7 @@ PacketDisconnect.prototype.write = function(output) {
 	}
 	output.writeFieldStop();
 	output.writeStructEnd();
+	return;
 };
 
 let PacketHeartbeat = module.exports.PacketHeartbeat = function(args) {
@@ -934,33 +970,33 @@ let PacketHeartbeat = module.exports.PacketHeartbeat = function(args) {
 PacketHeartbeat.prototype = {};
 PacketHeartbeat.prototype.read = function(input) {
 	input.readStructBegin();
-	let continueLoop = true;
-	while (continueLoop)
+	while (true)
 	{
 		let ret = input.readFieldBegin();
+		let fname = ret.fname;
 		let ftype = ret.ftype;
 		let fid = ret.fid;
-		if (ftype === Thrift.Type.STOP) {
-			continueLoop = false;
+		if (ftype == Thrift.Type.STOP) {
+			break;
 		}
 		switch (fid)
 		{
 			case 1:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.ver = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 2:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.sender = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 3:
-				if (ftype === Thrift.Type.DOUBLE) {
+				if (ftype == Thrift.Type.DOUBLE) {
 					this.cpu = input.readDouble();
 				} else {
 					input.skip(ftype);
@@ -972,6 +1008,7 @@ PacketHeartbeat.prototype.read = function(input) {
 		input.readFieldEnd();
 	}
 	input.readStructEnd();
+	return;
 };
 
 PacketHeartbeat.prototype.write = function(output) {
@@ -993,6 +1030,7 @@ PacketHeartbeat.prototype.write = function(output) {
 	}
 	output.writeFieldStop();
 	output.writeStructEnd();
+	return;
 };
 
 let PacketPing = module.exports.PacketPing = function(args) {
@@ -1014,33 +1052,33 @@ let PacketPing = module.exports.PacketPing = function(args) {
 PacketPing.prototype = {};
 PacketPing.prototype.read = function(input) {
 	input.readStructBegin();
-	let continueLoop = true;
-	while (continueLoop)
+	while (true)
 	{
 		let ret = input.readFieldBegin();
+		let fname = ret.fname;
 		let ftype = ret.ftype;
 		let fid = ret.fid;
-		if (ftype === Thrift.Type.STOP) {
-			continueLoop = false;
+		if (ftype == Thrift.Type.STOP) {
+			break;
 		}
 		switch (fid)
 		{
 			case 1:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.ver = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 2:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.sender = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 3:
-				if (ftype === Thrift.Type.I64) {
+				if (ftype == Thrift.Type.I64) {
 					this.time = input.readI64();
 				} else {
 					input.skip(ftype);
@@ -1052,6 +1090,7 @@ PacketPing.prototype.read = function(input) {
 		input.readFieldEnd();
 	}
 	input.readStructEnd();
+	return;
 };
 
 PacketPing.prototype.write = function(output) {
@@ -1073,6 +1112,7 @@ PacketPing.prototype.write = function(output) {
 	}
 	output.writeFieldStop();
 	output.writeStructEnd();
+	return;
 };
 
 let PacketPong = module.exports.PacketPong = function(args) {
@@ -1098,40 +1138,40 @@ let PacketPong = module.exports.PacketPong = function(args) {
 PacketPong.prototype = {};
 PacketPong.prototype.read = function(input) {
 	input.readStructBegin();
-	let continueLoop = true;
-	while (continueLoop)
+	while (true)
 	{
 		let ret = input.readFieldBegin();
+		let fname = ret.fname;
 		let ftype = ret.ftype;
 		let fid = ret.fid;
-		if (ftype === Thrift.Type.STOP) {
-			continueLoop = false;
+		if (ftype == Thrift.Type.STOP) {
+			break;
 		}
 		switch (fid)
 		{
 			case 1:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.ver = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 2:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.sender = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 3:
-				if (ftype === Thrift.Type.I64) {
+				if (ftype == Thrift.Type.I64) {
 					this.time = input.readI64();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 4:
-				if (ftype === Thrift.Type.I64) {
+				if (ftype == Thrift.Type.I64) {
 					this.arrived = input.readI64();
 				} else {
 					input.skip(ftype);
@@ -1143,6 +1183,7 @@ PacketPong.prototype.read = function(input) {
 		input.readFieldEnd();
 	}
 	input.readStructEnd();
+	return;
 };
 
 PacketPong.prototype.write = function(output) {
@@ -1169,6 +1210,7 @@ PacketPong.prototype.write = function(output) {
 	}
 	output.writeFieldStop();
 	output.writeStructEnd();
+	return;
 };
 
 let PacketGossipHello = module.exports.PacketGossipHello = function(args) {
@@ -1194,40 +1236,40 @@ let PacketGossipHello = module.exports.PacketGossipHello = function(args) {
 PacketGossipHello.prototype = {};
 PacketGossipHello.prototype.read = function(input) {
 	input.readStructBegin();
-	let continueLoop = true;
-	while (continueLoop)
+	while (true)
 	{
 		let ret = input.readFieldBegin();
+		let fname = ret.fname;
 		let ftype = ret.ftype;
 		let fid = ret.fid;
-		if (ftype === Thrift.Type.STOP) {
-			continueLoop = false;
+		if (ftype == Thrift.Type.STOP) {
+			break;
 		}
 		switch (fid)
 		{
 			case 1:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.ver = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 2:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.sender = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 3:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.host = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 4:
-				if (ftype === Thrift.Type.I32) {
+				if (ftype == Thrift.Type.I32) {
 					this.port = input.readI32();
 				} else {
 					input.skip(ftype);
@@ -1239,6 +1281,7 @@ PacketGossipHello.prototype.read = function(input) {
 		input.readFieldEnd();
 	}
 	input.readStructEnd();
+	return;
 };
 
 PacketGossipHello.prototype.write = function(output) {
@@ -1265,6 +1308,7 @@ PacketGossipHello.prototype.write = function(output) {
 	}
 	output.writeFieldStop();
 	output.writeStructEnd();
+	return;
 };
 
 let PacketGossipRequest = module.exports.PacketGossipRequest = function(args) {
@@ -1290,40 +1334,40 @@ let PacketGossipRequest = module.exports.PacketGossipRequest = function(args) {
 PacketGossipRequest.prototype = {};
 PacketGossipRequest.prototype.read = function(input) {
 	input.readStructBegin();
-	let continueLoop = true;
-	while (continueLoop)
+	while (true)
 	{
 		let ret = input.readFieldBegin();
+		let fname = ret.fname;
 		let ftype = ret.ftype;
 		let fid = ret.fid;
-		if (ftype === Thrift.Type.STOP) {
-			continueLoop = false;
+		if (ftype == Thrift.Type.STOP) {
+			break;
 		}
 		switch (fid)
 		{
 			case 1:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.ver = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 2:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.sender = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 3:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.online = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 4:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.offline = input.readString();
 				} else {
 					input.skip(ftype);
@@ -1335,6 +1379,7 @@ PacketGossipRequest.prototype.read = function(input) {
 		input.readFieldEnd();
 	}
 	input.readStructEnd();
+	return;
 };
 
 PacketGossipRequest.prototype.write = function(output) {
@@ -1361,6 +1406,7 @@ PacketGossipRequest.prototype.write = function(output) {
 	}
 	output.writeFieldStop();
 	output.writeStructEnd();
+	return;
 };
 
 let PacketGossipResponse = module.exports.PacketGossipResponse = function(args) {
@@ -1386,40 +1432,40 @@ let PacketGossipResponse = module.exports.PacketGossipResponse = function(args) 
 PacketGossipResponse.prototype = {};
 PacketGossipResponse.prototype.read = function(input) {
 	input.readStructBegin();
-	let continueLoop = true;
-	while (continueLoop)
+	while (true)
 	{
 		let ret = input.readFieldBegin();
+		let fname = ret.fname;
 		let ftype = ret.ftype;
 		let fid = ret.fid;
-		if (ftype === Thrift.Type.STOP) {
-			continueLoop = false;
+		if (ftype == Thrift.Type.STOP) {
+			break;
 		}
 		switch (fid)
 		{
 			case 1:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.ver = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 2:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.sender = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 3:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.online = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 4:
-				if (ftype === Thrift.Type.STRING) {
+				if (ftype == Thrift.Type.STRING) {
 					this.offline = input.readString();
 				} else {
 					input.skip(ftype);
@@ -1431,6 +1477,7 @@ PacketGossipResponse.prototype.read = function(input) {
 		input.readFieldEnd();
 	}
 	input.readStructEnd();
+	return;
 };
 
 PacketGossipResponse.prototype.write = function(output) {
@@ -1457,5 +1504,6 @@ PacketGossipResponse.prototype.write = function(output) {
 	}
 	output.writeFieldStop();
 	output.writeStructEnd();
+	return;
 };
 
