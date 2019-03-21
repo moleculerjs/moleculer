@@ -1346,7 +1346,7 @@ $root.packets = (function() {
          * @property {Array.<string>|null} [ipList] PacketInfo ipList
          * @property {string} hostname PacketInfo hostname
          * @property {packets.PacketInfo.IClient} client PacketInfo client
-         * @property {number} seq PacketInfo seq
+         * @property {number|null} [seq] PacketInfo seq
          */
 
         /**
@@ -1462,7 +1462,8 @@ $root.packets = (function() {
                     writer.uint32(/* id 5, wireType 2 =*/42).string(message.ipList[i]);
             writer.uint32(/* id 6, wireType 2 =*/50).string(message.hostname);
             $root.packets.PacketInfo.Client.encode(message.client, writer.uint32(/* id 7, wireType 2 =*/58).fork()).ldelim();
-            writer.uint32(/* id 8, wireType 0 =*/64).int32(message.seq);
+            if (message.seq != null && message.hasOwnProperty("seq"))
+                writer.uint32(/* id 8, wireType 0 =*/64).int32(message.seq);
             return writer;
         };
 
@@ -1540,8 +1541,6 @@ $root.packets = (function() {
                 throw $util.ProtocolError("missing required 'hostname'", { instance: message });
             if (!message.hasOwnProperty("client"))
                 throw $util.ProtocolError("missing required 'client'", { instance: message });
-            if (!message.hasOwnProperty("seq"))
-                throw $util.ProtocolError("missing required 'seq'", { instance: message });
             return message;
         };
 
@@ -1594,8 +1593,9 @@ $root.packets = (function() {
                 if (error)
                     return "client." + error;
             }
-            if (!$util.isInteger(message.seq))
-                return "seq: integer expected";
+            if (message.seq != null && message.hasOwnProperty("seq"))
+                if (!$util.isInteger(message.seq))
+                    return "seq: integer expected";
             return null;
         };
 
