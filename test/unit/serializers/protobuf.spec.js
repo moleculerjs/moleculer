@@ -62,15 +62,18 @@ describe("Test ProtoBuf serializer", () => {
 		const obj = {
 			ver: "3",
 			sender: "test-1",
+			seq: 1,
 			services: [
-				{ name: "users", version: "2", settings: {}, metadata: {}, actions: {
-					"users.create": {}
-				}, events: {
-					"user.created": {}
-				} }
+				{
+					name: "users", version: "2", settings: {}, metadata: {}, actions: {
+						"users.create": {}
+					}, events: {
+						"user.created": {}
+					}
+				}
 			],
 			config: {},
-			ipList: [ "127.0.0.1" ],
+			ipList: ["127.0.0.1"],
 			hostname: "test-server",
 			client: {
 				type: "nodejs",
@@ -79,7 +82,7 @@ describe("Test ProtoBuf serializer", () => {
 			},
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_INFO);
-		expect(s.length).toBe(185);
+		expect(s.length).toBe(187);
 
 		const res = serializer.deserialize(s, P.PACKET_INFO);
 		expect(res).not.toBe(obj);
@@ -151,7 +154,7 @@ describe("Test ProtoBuf serializer", () => {
 			meta: {
 				user: {
 					id: 1,
-					roles: [ "admin" ]
+					roles: ["admin"]
 				}
 			},
 			timeout: 1500,
@@ -179,7 +182,7 @@ describe("Test ProtoBuf serializer", () => {
 			meta: {
 				user: {
 					id: 1,
-					roles: [ "admin" ]
+					roles: ["admin"]
 				}
 			},
 			timeout: 1500,
@@ -211,7 +214,7 @@ describe("Test ProtoBuf serializer", () => {
 			meta: {
 				user: {
 					id: 1,
-					roles: [ "admin" ]
+					roles: ["admin"]
 				}
 			},
 			stream: false
@@ -234,7 +237,7 @@ describe("Test ProtoBuf serializer", () => {
 			meta: {
 				user: {
 					id: 1,
-					roles: [ "admin" ]
+					roles: ["admin"]
 				}
 			},
 			stream: true
@@ -268,7 +271,7 @@ describe("Test ProtoBuf serializer", () => {
 			meta: {
 				user: {
 					id: 1,
-					roles: [ "admin" ]
+					roles: ["admin"]
 				}
 			},
 			stream: false
