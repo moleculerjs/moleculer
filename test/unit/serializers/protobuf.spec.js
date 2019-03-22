@@ -86,7 +86,7 @@ describe("Test ProtoBuf serializer", () => {
 			}
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_INFO);
-		expect(s.length).toBe(216);
+		expect(s.length).toBe(218);
 
 		const res = serializer.deserialize(s, P.PACKET_INFO);
 		expect(res).not.toBe(obj);
