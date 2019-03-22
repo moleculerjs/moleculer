@@ -27,6 +27,12 @@
 ## Other notable changes
 -
 -
+--------------------------------------------------
+<a name="0.13.8"></a>
+# [0.13.8](https://github.com/moleculerjs/moleculer/compare/v0.13.7...v0.13.8) (2019-03-21)
+
+# Changes
+- fix missing field in ProtoBuf & Thrift serializers [#496](https://github.com/moleculerjs/moleculer/pull/496)
 
 --------------------------------------------------
 <a name="0.13.7"></a>

@@ -53,6 +53,9 @@ message PacketInfo {
 	repeated string ipList			= 5;
 	required string hostname		= 6;
 	required Client client 			= 7;
+	required int32  seq 			= 8;
+	required string instanceID		= 9;
+	required string metadata		= 10;
 
 	message Client {
 		required string type 			= 1;
@@ -60,8 +63,6 @@ message PacketInfo {
 		required string langVersion 	= 3;
 	}
 
-	required string instanceID		= 8;
-	required string metadata		= 9;
 }
 
 message PacketDisconnect {

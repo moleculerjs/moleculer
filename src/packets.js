@@ -7,7 +7,7 @@
 "use strict";
 
 // Packet types
-const PACKET_UNKNOW			= "???";
+const PACKET_UNKNOWN		= "???";
 const PACKET_EVENT 			= "EVENT";
 const PACKET_REQUEST 		= "REQ";
 const PACKET_RESPONSE		= "RES";
@@ -38,14 +38,14 @@ class Packet {
 	 * @memberof Packet
 	 */
 	constructor(type, target, payload) {
-		this.type = type || PACKET_UNKNOW;
+		this.type = type || PACKET_UNKNOWN;
 		this.target = target;
 		this.payload = payload || {};
 	}
 }
 
 module.exports = {
-	PACKET_UNKNOW,
+	PACKET_UNKNOWN,
 	PACKET_EVENT,
 	PACKET_REQUEST,
 	PACKET_RESPONSE,

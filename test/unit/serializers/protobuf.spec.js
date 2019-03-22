@@ -62,12 +62,15 @@ describe("Test ProtoBuf serializer", () => {
 		const obj = {
 			ver: "4",
 			sender: "test-1",
+			seq: 3,
 			services: [
-				{ name: "users", version: "2", settings: {}, metadata: {}, actions: {
-					"users.create": {}
-				}, events: {
-					"user.created": {}
-				} }
+				{
+					name: "users", version: "2", settings: {}, metadata: {}, actions: {
+						"users.create": {}
+					}, events: {
+						"user.created": {}
+					}
+				}
 			],
 			config: {},
 			instanceID: "123456",
@@ -155,7 +158,7 @@ describe("Test ProtoBuf serializer", () => {
 			meta: {
 				user: {
 					id: 1,
-					roles: [ "admin" ]
+					roles: ["admin"]
 				}
 			},
 			timeout: 1500,
@@ -184,7 +187,7 @@ describe("Test ProtoBuf serializer", () => {
 			meta: {
 				user: {
 					id: 1,
-					roles: [ "admin" ]
+					roles: ["admin"]
 				}
 			},
 			timeout: 1500,
@@ -217,7 +220,7 @@ describe("Test ProtoBuf serializer", () => {
 			meta: {
 				user: {
 					id: 1,
-					roles: [ "admin" ]
+					roles: ["admin"]
 				}
 			},
 			stream: false,
@@ -241,7 +244,7 @@ describe("Test ProtoBuf serializer", () => {
 			meta: {
 				user: {
 					id: 1,
-					roles: [ "admin" ]
+					roles: ["admin"]
 				}
 			},
 			stream: true,
@@ -276,7 +279,7 @@ describe("Test ProtoBuf serializer", () => {
 			meta: {
 				user: {
 					id: 1,
-					roles: [ "admin" ]
+					roles: ["admin"]
 				}
 			},
 			stream: false,

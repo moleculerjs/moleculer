@@ -14,7 +14,7 @@ const { isPromise }	= require("../utils");
 const {
 	PACKET_REQUEST,
 	PACKET_RESPONSE,
-	PACKET_UNKNOW,
+	PACKET_UNKNOWN,
 	PACKET_EVENT,
 	PACKET_DISCOVER,
 	PACKET_INFO,
@@ -285,7 +285,7 @@ class AmqpTransporter extends Transporter {
 				break;
 			case PACKET_DISCOVER:
 			case PACKET_DISCONNECT:
-			case PACKET_UNKNOW:
+			case PACKET_UNKNOWN:
 			case PACKET_INFO:
 			case PACKET_PING:
 			case PACKET_PONG:
@@ -342,7 +342,7 @@ class AmqpTransporter extends Transporter {
 	 * @memberof AmqpTransporter
 	 * @description Initialize queues and exchanges for all packet types except Request.
 	 *
-	 * All packets that should reach multiple nodes have a dedicated qeuue per node, and a single
+	 * All packets that should reach multiple nodes have a dedicated queue per node, and a single
 	 * exchange that routes each message to all queues. These packet types will not use
 	 * acknowledgements and have a set time-to-live. The time-to-live for EVENT packets can be
 	 * configured in options.
@@ -355,7 +355,7 @@ class AmqpTransporter extends Transporter {
 	 * RESPONSE: Each node has its own dedicated queue and acknowledgements will not be used.
 	 *
 	 * REQUEST: Each action has its own dedicated queue. This way if an action has multiple workers,
-	 * they can all pull from the same qeuue. This allows a message to be retried by a different node
+	 * they can all pull from the same queue. This allows a message to be retried by a different node
 	 * if one dies before responding.
 	 *
 	 * Note: Queue's for REQUEST packet types are not initialized in the subscribe method because the
