@@ -735,6 +735,7 @@ declare namespace Moleculer {
 		Redis: Cacher
 	};
 	const Serializers: {
+		Base: Serializer,		   
 		JSON: Serializer,
 		Avro: Serializer,
 		MsgPack: Serializer,
