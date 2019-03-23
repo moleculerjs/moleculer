@@ -7,7 +7,7 @@ describe("Test lock", () => {
 
     return lock.acquire(key).then(() => {
       expect(lock.isLocked(key)).toBeTruthy()
-      lock.release(key).then(() => {
+      return lock.release(key).then(() => {
         expect(lock.isLocked(key)).toBeFalsy()
       })
     });
