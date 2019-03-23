@@ -3,15 +3,6 @@ declare namespace Moleculer {
 
 	type LogLevels = "fatal" | "error" | "warn" | "info" | "debug" | "trace";
 
-	interface Logger {
-		fatal: (...args: any[]) => void;
-		error: (...args: any[]) => void;
-		warn: (...args: any[]) => void;
-		info: (...args: any[]) => void;
-		debug: (...args: any[]) => void;
-		trace: (...args: any[]) => void;
-	}
-
 	interface LoggerBindings {
   		nodeID: string;
   		ns: string;
@@ -20,7 +11,10 @@ declare namespace Moleculer {
   		ver: string | void;
 	}
 
-	class LoggerInstance {
+	class Logger {
+		static extend(logger: Partial<Logger>): Logger;
+		static createDefaultLogger(baseLogger: Logger, bindings: GenericObject, logLevel?: string, logFormatter?: Function): Logger;
+		static createDefaultLogger(bindings: GenericObject, logLevel?: string, logFormatter?: Function): Logger;
 		fatal(...args: any[]): void;
 		error(...args: any[]): void;
 		warn(...args: any[]): void;
@@ -200,7 +194,7 @@ declare namespace Moleculer {
 		dependencies: string | GenericObject | Array<string> | Array<GenericObject>;
 		schema: ServiceSchema;
 		broker: ServiceBroker;
-		logger: LoggerInstance;
+		logger: Logger;
 		actions?: ServiceActions;
 		Promise: PromiseConstructorLike;
 
@@ -412,7 +406,7 @@ declare namespace Moleculer {
 
 		namespace: string;
 		nodeID: string;
-		logger: LoggerInstance;
+		logger: Logger;
 		cacher?: Cacher;
 		serializer?: Serializer;
 		validator?: Validator;
@@ -424,7 +418,7 @@ declare namespace Moleculer {
 
 		repl(): void;
 
-		getLogger(module: string, props?: string | GenericObject): LoggerInstance;
+		getLogger(module: string, props?: string | GenericObject): Logger;
 		fatal(message: string, err?: Error, needExit?: boolean): void;
 		loadServices(folder?: string, fileMask?: string): number;
 		loadService(filePath: string): Service;
@@ -434,7 +428,7 @@ declare namespace Moleculer {
 		destroyService(service: Service): PromiseLike<void>;
 
 		getLocalService(serviceName: string, version?: string | number): Service;
-		waitForServices(serviceNames: string | Array<string> | Array<GenericObject>, timeout?: number, interval?: number, logger?: LoggerInstance): PromiseLike<void>;
+		waitForServices(serviceNames: string | Array<string> | Array<GenericObject>, timeout?: number, interval?: number, logger?: Logger): PromiseLike<void>;
 
 		/**
 		 *
@@ -651,12 +645,6 @@ declare namespace Moleculer {
 		init(broker: ServiceBroker): void;
 		compile(schema: GenericObject): Function;
 		validate(params: GenericObject, schema: GenericObject): boolean;
-	}
-
-	class LoggerHelper {
-		static extend(logger: LoggerInstance): LoggerInstance;
-		static createDefaultLogger(baseLogger: LoggerInstance, bindings: GenericObject, logLevel?: string, logFormatter?: Function): LoggerInstance;
-		static createDefaultLogger(bindings: GenericObject, logLevel?: string, logFormatter?: Function): LoggerInstance;
 	}
 
 	abstract class BaseStrategy {
