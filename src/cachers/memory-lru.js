@@ -154,7 +154,7 @@ class MemoryLRUCacher extends BaseCacher {
 	 *
 	 * @memberof MemoryLRUCacher
 	 */
-	 dogpile(key){
+	 getWithTTL(key){
 		// There are no way to get the ttl of LRU cache :(
  		return this.get(key).then(data=>{
 			return { data, ttl: null }

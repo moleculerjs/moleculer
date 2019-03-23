@@ -316,7 +316,7 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 	});
 });
 
-describe("Test RedisCacher dogpile method", () => {
+describe("Test RedisCacher getWithTTL method", () => {
 	const cachedData = { name: 'tiaod' };
 	const key = 'abcd134';
 	let broker = new ServiceBroker({ logger: false });
@@ -338,7 +338,7 @@ describe("Test RedisCacher dogpile method", () => {
 	});
 
 	it("should call the get and ttl using pipeline", () => {
-		return cacher.dogpile(key).then(res => {
+		return cacher.getWithTTL(key).then(res => {
 			expect(res.data).toEqual(cachedData);
 			expect(res.ttl).toBe(20);
 			expect(mockPipeline.get).toHaveBeenCalledTimes(1);
@@ -353,7 +353,7 @@ describe("Test RedisCacher dogpile method", () => {
 			[err, null],
 			[null, 20]
 		]))
-		return cacher.dogpile(key).catch(e => {
+		return cacher.getWithTTL(key).catch(e => {
 			expect(e).toBe(err);
 		});
 	});
@@ -364,7 +364,7 @@ describe("Test RedisCacher dogpile method", () => {
 			[null, cachedData],
 			[err, null]
 		]));
-		return cacher.dogpile(key).catch(e => {
+		return cacher.getWithTTL(key).catch(e => {
 			expect(e).toBe(err);
 		});
 	});
@@ -374,7 +374,7 @@ describe("Test RedisCacher dogpile method", () => {
 			[null, "{'some invalid JSON here."],
 			[null, 20]
 		]));
-		return cacher.dogpile(key).then(res => {
+		return cacher.getWithTTL(key).then(res => {
 			expect(res.data).toBeNull();
 		});
 	});
@@ -445,7 +445,7 @@ describe("Test RedisCacher lock method", () => {
 });
 
 describe("Test RedisCacher with opts.lock", () => {
-	
+
 	it("should create redlock clients when opts.lock==true", () => {
 		let broker = new ServiceBroker({ logger: false });
 		let cacher = new RedisCacher({

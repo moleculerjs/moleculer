@@ -153,7 +153,7 @@ class MemoryCacher extends BaseCacher {
 	 *
 	 * @memberof MemoryCacher
 	 */
-	 dogpile(key){
+	 getWithTTL(key){
  		this.logger.debug(`GET ${key}`);
 		let data = null;
 		let ttl = null;

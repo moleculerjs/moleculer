@@ -82,7 +82,7 @@ class Cacher {
 	 *
 	 * @memberof Cacher
 	 */
-	dogpile(/*key*/) {
+	getWithTTL(/*key*/) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
 	}
@@ -250,8 +250,8 @@ class Cacher {
 					// Using lock
 					if(opts.lock.enabled !== false){
 						let cachePromise;
-						if(opts.lock.staleTime && this.dogpile){ // If enable cache refresh
-							cachePromise = this.dogpile(cacheKey).then(({ data, ttl }) => {
+						if(opts.lock.staleTime && this.getWithTTL){ // If enable cache refresh
+							cachePromise = this.getWithTTL(cacheKey).then(({ data, ttl }) => {
 								if (data != null) {
 									if(opts.lock.staleTime && ttl && ttl < opts.lock.staleTime){
 										// Cache is stale, try to refresh it.

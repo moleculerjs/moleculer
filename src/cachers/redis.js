@@ -203,7 +203,7 @@ class RedisCacher extends BaseCacher {
 	 * @memberof RedisCacher
 	 */
 
-	dogpile(key) {
+	getWithTTL(key) {
 		return this.client.pipeline().get(this.prefix + key).ttl(this.prefix + key).exec().then((res) => {
 			let [err0, data] = res[0]
 			let [err1, ttl] = res[1]
