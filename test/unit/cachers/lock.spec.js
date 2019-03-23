@@ -11,20 +11,12 @@ describe("Test lock method", () => {
 				lock: true
 			})
 			let err = new Error('Can not acquire a lock.')
-			let unlockFn
-			cacher._lock = jest.fn((key, callback)=>{
-				let done = (cb)=>{
-					unlockFn = jest.fn(()=>{
-						cb(err);
-					});
-					return unlockFn;
-				}
-				callback(done);
-			});
-
+			cacher._lock.release = jest.fn(function(key){
+				return Promise.reject(err)
+			})
 			return cacher.lock('key').then(unlock => {
 				unlock().catch(e=>{
-					expect(unlockFn).toHaveBeenCalledTimes(1);
+					expect(cacher._lock.release).toHaveBeenCalledTimes(1);
 					expect(e).toBe(err);
 				});
 			});
@@ -82,7 +74,7 @@ describe("Test tryLock method", () => {
 			const key = '123fff'
 			const tryLock = jest.spyOn(cacher, 'tryLock')
 			return cacher.tryLock(key).then(unlock => {
-				expect(cacher._lock.isLocked(key + '-lock')).toBeTruthy()
+				expect(cacher._lock.isLocked(key)).toBeTruthy();
 				return unlock()
 			});
 		}))
@@ -100,7 +92,7 @@ describe("Test tryLock method", () => {
       });
 			const key = '123fff'
 			const tryLock = jest.spyOn(cacher, 'tryLock')
-			return cacher.tryLock(key).then(unlock => {
+			return cacher.tryLock(key).then(() => {
 				return cacher.tryLock(key).catch(e => {
 					expect(e.message).toEqual('Locked.')
 				});
@@ -116,20 +108,12 @@ describe("Test tryLock method", () => {
 			})
 			let err = new Error('Can not acquire a lock.')
 			let unlockFn;
-			cacher._lock = jest.fn((key, callback)=>{
-				let done = (cb)=>{
-					unlockFn = jest.fn(()=>{
-						cb(err);
-					})
-					return unlockFn;
-				}
-				callback(done);
-			})
-			cacher._lock.isLocked = jest.fn( key => false )
+			cacher._lock.release = jest.fn(()=> Promise.reject(err));
+			cacher._lock.isLocked = jest.fn( key => false );
 
 			return cacher.tryLock('key').then(unlock => {
 				unlock().catch(e=>{
-					expect(unlockFn).toHaveBeenCalledTimes(1);
+					expect(cacher._lock.release).toHaveBeenCalledTimes(1);
 					expect(e).toBe(err);
 				});
 			});

@@ -11,7 +11,7 @@ const Promise 		= require("bluebird");
 const utils			= require("../utils");
 const BaseCacher  	= require("./base");
 const LRU 			= require("lru-cache");
-const { Lock } = require('lock')
+const Lock = require("../lock")
 /**
  * Cacher factory for memory cache
  *
@@ -36,7 +36,7 @@ class MemoryLRUCacher extends BaseCacher {
 			updateAgeOnGet: !!this.opts.ttl
 		});
 		// Async lock
-		this._lock = Lock()
+		this._lock = new Lock()
 		// Start TTL timer
 		this.timer = setInterval(() => {
 			/* istanbul ignore next */
@@ -167,21 +167,11 @@ class MemoryLRUCacher extends BaseCacher {
 	 * @memberof MemoryLRUCacher
 	 */
 
-	lock(key, ttl) {
-		key += "-lock"
-		return new Promise((resolve, reject) => {
-			this._lock(key, (done) => {
-				resolve(()=>new Promise(function(resolve, reject) {
-					done(err=>{
-						if(err)
-							return reject(err);
-						resolve();
-					})();
-				}));
-		    // Concurrency safe
-			})
-		});
-	}
+	 lock(key, ttl) {
+  		return this._lock.acquire(key, ttl).then(()=> {
+ 				return ()=>this._lock.release(key)
+ 			})
+  	}
 
 	/**
 	 * Try to acquire a lock
@@ -192,24 +182,15 @@ class MemoryLRUCacher extends BaseCacher {
 	 *
 	 * @memberof MemoryLRUCacher
 	 */
-	tryLock(key, ttl) {
-		key += "-lock"
-		return new Promise((resolve, reject) => {
-			if(this._lock.isLocked(key)){
-				return reject(new Error('Locked.'))
-			}
-			this._lock(key, (done) => {
-				resolve(()=>new Promise(function(resolve, reject) {
-					done(err=>{
-						if(err)
-							return reject(err);
-						resolve();
-					})();
-				}));
-		    // Concurrency safe
-			})
-		});
-	}
+	 tryLock(key, ttl) {
+ 		if(this._lock.isLocked(key)){
+ 			return Promise.reject(new Error('Locked.'))
+ 		}
+ 		return this._lock.acquire(key, ttl).then(()=> {
+ 			return ()=>this._lock.release(key)
+ 		})
+ 	}
+
 
 	/**
 	 * Check & remove the expired cache items
