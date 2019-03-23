@@ -382,8 +382,8 @@ describe("Test RedisCacher dogpile method", () => {
 });
 
 describe("Test RedisCacher lock method", () => {
-	const cachedData = { name: 'tiaod' };
-	const key = 'abcd134';
+	const cachedData = { name: "tiaod" };
+	const key = "abcd134";
 	let broker = new ServiceBroker({ logger: false });
 	let cacher = new RedisCacher({
 		ttl: 30,
@@ -409,7 +409,7 @@ describe("Test RedisCacher lock method", () => {
 	it("should call redlock.lock when calling cacher.lock", () => {
 		return cacher.lock(key, 20).then( unlock => {
 			expect(cacher.redlock.lock).toHaveBeenCalledTimes(1);
-			expect(cacher.redlock.lock).toHaveBeenCalledWith(cacher.prefix + key + '-lock', 20);
+			expect(cacher.redlock.lock).toHaveBeenCalledWith(cacher.prefix + key + "-lock", 20);
 		});
 	});
 
@@ -424,12 +424,12 @@ describe("Test RedisCacher lock method", () => {
 	it("should call redlock.lock when calling cacher.tryLock", () => {
 		return cacher.tryLock(key, 20).then( unlock => {
 			expect(cacher.redlockNonBlocking.lock).toHaveBeenCalledTimes(1);
-			expect(cacher.redlockNonBlocking.lock).toHaveBeenCalledWith(cacher.prefix + key + '-lock', 20);
+			expect(cacher.redlockNonBlocking.lock).toHaveBeenCalledWith(cacher.prefix + key + "-lock", 20);
 		});
 	});
 
 	it("should call redlock.unlock when calling unlock callback", () => {
-		const err = new Error('Already locked.')
+		const err = new Error("Already locked.")
 		cacher.redlockNonBlocking.lock = jest.fn(()=>{
 			return Promise.reject(err);
 		})
@@ -441,6 +441,44 @@ describe("Test RedisCacher lock method", () => {
 	it("should failed to acquire a lock when redlock client throw an error", () => {
 		return cacher.tryLock(key, 20);
 	});
+
+});
+
+describe("Test RedisCacher with opts.lock", () => {
+	
+	it("should create redlock clients when opts.lock==true", () => {
+		let broker = new ServiceBroker({ logger: false });
+		let cacher = new RedisCacher({
+			ttl: 30,
+			lock: true
+		});
+		cacher.init(broker);
+		expect(cacher.redlock).toBeDefined();
+		expect(cacher.redlockNonBlocking).toBeDefined();
+	});
+
+	it("should not create redlock clients when opts.lock==false", () => {
+		let broker = new ServiceBroker({ logger: false });
+		let cacher = new RedisCacher({
+			ttl: 30,
+			lock: false
+		});
+		cacher.init(broker);
+		expect(cacher.redlock).toBeUndefined();
+		expect(cacher.redlockNonBlocking).toBeUndefined();
+	});
+
+	it("should not create redlock clients when opts.lock.enabled==false", () => {
+		let broker = new ServiceBroker({logger: false});
+		let cacher = new RedisCacher({
+			ttl: 30,
+			lock: { enabled: false }
+		});
+		cacher.init(broker);
+		expect(cacher.redlock).toBeUndefined();
+		expect(cacher.redlockNonBlocking).toBeUndefined();
+	});
+
 });
 
 describe("Test RedisCacher close", () => {

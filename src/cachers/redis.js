@@ -46,29 +46,11 @@ class RedisCacher extends BaseCacher {
 			/* istanbul ignore next */
 			this.broker.fatal("The 'ioredis' package is missing. Please install it with 'npm install ioredis --save' command.", err, true);
 		}
-		try {
-			Redlock = require('redlock');
-		} catch (err) {
-			/* istanbul ignore next */
-			this.broker.fatal("The 'redlock' package is missing. Please install it with 'npm install redlock --save' command.", err, true);
-		}
-
 		/**
 		 * ioredis client instance
 		 * @memberof RedisCacher
 		 */
 		this.client = new Redis(this.opts.redis);
-		let redlockClients = (this.opts.redlock ? this.opts.redlock.clients : null) || [this.client]
-		this.redlock = new Redlock(
-			redlockClients,
-			_.omit(this.opts.redlock, ['clients'])
-		);
-		this.redlockNonBlocking = new Redlock(
-			redlockClients,
-			{
-				retryCount: 0
-			}
-		)
 		this.client.on("connect", () => {
 			/* istanbul ignore next */
 			this.logger.info("Redis cacher connected.");
@@ -78,7 +60,31 @@ class RedisCacher extends BaseCacher {
 			/* istanbul ignore next */
 			this.logger.error(err);
 		});
+		if (this.opts.lock && this.opts.lock.enabled !== false) {
+			try {
+				Redlock = require('redlock');
+			} catch (err) {
+				/* istanbul ignore next */
+				this.broker.fatal("The 'redlock' package is missing. Please install it with 'npm install redlock --save' command.", err, true);
+			}
 
+			let redlockClients = (this.opts.redlock ? this.opts.redlock.clients : null) || [this.client]
+			/**
+			 * redlock client instance
+			 * @memberof RedisCacher
+			 */
+			this.redlock = new Redlock(
+				redlockClients,
+				_.omit(this.opts.redlock, ['clients'])
+			);
+			// Non-blocking redlock client, used for tryLock()
+			this.redlockNonBlocking = new Redlock(
+				redlockClients,
+				{
+					retryCount: 0
+				}
+			)
+		}
 		if (this.opts.monitor) {
 			/* istanbul ignore next */
 			this.client.monitor((err, monitor) => {
@@ -237,6 +243,15 @@ class RedisCacher extends BaseCacher {
 		})
 	}
 
+	/**
+	 * Try to acquire a lock
+	 *
+	 * @param {string|Array<string>} key
+	 * @param {Number} ttl Optional Time-to-Live
+	 * @returns {Promise}
+	 *
+	 * @memberof RedisCacher
+	 */
 	tryLock(key, ttl=15000) {
 		key = this.prefix + key + "-lock"
 		return this.redlockNonBlocking.lock(key, ttl).then(lock=>{
