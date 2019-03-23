@@ -8,7 +8,7 @@
 
 const Promise = require("bluebird");
 const BaseCacher = require("./base");
-
+const _ = require('lodash')
 /**
  * Cacher factory for Redis
  *
@@ -39,15 +39,13 @@ class RedisCacher extends BaseCacher {
 	 */
 	init(broker) {
 		super.init(broker);
-
-		let Redis;
+		let Redis, Redlock;
 		try {
 			Redis = require("ioredis");
 		} catch (err) {
 			/* istanbul ignore next */
 			this.broker.fatal("The 'ioredis' package is missing. Please install it with 'npm install ioredis --save' command.", err, true);
 		}
-
 		/**
 		 * ioredis client instance
 		 * @memberof RedisCacher
@@ -62,7 +60,31 @@ class RedisCacher extends BaseCacher {
 			/* istanbul ignore next */
 			this.logger.error(err);
 		});
+		if (this.opts.lock && this.opts.lock.enabled !== false) {
+			try {
+				Redlock = require('redlock');
+			} catch (err) {
+				/* istanbul ignore next */
+				this.broker.fatal("The 'redlock' package is missing. Please install it with 'npm install redlock --save' command.", err, true);
+			}
 
+			let redlockClients = (this.opts.redlock ? this.opts.redlock.clients : null) || [this.client]
+			/**
+			 * redlock client instance
+			 * @memberof RedisCacher
+			 */
+			this.redlock = new Redlock(
+				redlockClients,
+				_.omit(this.opts.redlock, ['clients'])
+			);
+			// Non-blocking redlock client, used for tryLock()
+			this.redlockNonBlocking = new Redlock(
+				redlockClients,
+				{
+					retryCount: 0
+				}
+			)
+		}
 		if (this.opts.monitor) {
 			/* istanbul ignore next */
 			this.client.monitor((err, monitor) => {
@@ -170,6 +192,71 @@ class RedisCacher extends BaseCacher {
 				throw err;
 			});
 
+	}
+
+	/**
+	 * Get data and ttl from cache by key.
+	 *
+	 * @param {string|Array<string>} key
+	 * @returns {Promise}
+	 *
+	 * @memberof RedisCacher
+	 */
+
+	getWithTTL(key) {
+		return this.client.pipeline().get(this.prefix + key).ttl(this.prefix + key).exec().then((res) => {
+			let [err0, data] = res[0]
+			let [err1, ttl] = res[1]
+			if(err0){
+				return Promise.reject(err0)
+			}
+			if(err1){
+				return Promise.reject(err1)
+			}
+			if (data) {
+				this.logger.debug(`FOUND ${key}`);
+				try {
+					data = JSON.parse(data);
+				} catch (err) {
+					this.logger.error("Redis result parse error.", err, data);
+					data = null
+				}
+			}
+			return { data, ttl }
+		});
+	}
+
+
+	/**
+	 * Acquire a lock
+	 *
+	 * @param {string|Array<string>} key
+	 * @param {Number} ttl Optional Time-to-Live
+	 * @returns {Promise}
+	 *
+	 * @memberof RedisCacher
+	 */
+	lock(key, ttl=15000) {
+		key = this.prefix + key + "-lock"
+		return this.redlock.lock(key, ttl).then(lock=>{
+			return ()=>lock.unlock()
+		})
+	}
+
+	/**
+	 * Try to acquire a lock
+	 *
+	 * @param {string|Array<string>} key
+	 * @param {Number} ttl Optional Time-to-Live
+	 * @returns {Promise}
+	 *
+	 * @memberof RedisCacher
+	 */
+	tryLock(key, ttl=15000) {
+		key = this.prefix + key + "-lock"
+		return this.redlockNonBlocking.lock(key, ttl).then(lock=>{
+			return ()=>lock.unlock()
+		})
 	}
 
 	_sequentialPromises(elements) {

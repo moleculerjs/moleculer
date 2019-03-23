@@ -74,6 +74,7 @@
     "npm-check": "5.9.0",
     "pino": "5.11.1",
     "protobufjs": "6.8.8",
+    "redlock": "^3.1.2",
     "thrift": "0.12.0",
     "ts-node": "8.0.2",
     "typescript": "3.3.3",
