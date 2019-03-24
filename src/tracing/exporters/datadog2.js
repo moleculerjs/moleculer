@@ -35,6 +35,8 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		});
 
 		this.ddTracer = null;
+
+		this.store = new Map();
 	}
 
 	/**
@@ -65,13 +67,93 @@ class DatadogTraceExporter extends BaseTraceExporter {
 	}
 
 	/**
+	 * Span is started.
+	 *
+	 * @param {Span} span
+	 * @memberof BaseTraceExporter
+	 */
+	startSpan(span) {
+		if (!this.ddTracer) return null;
+
+		const serviceName = span.service ? span.service.fullName : null;
+
+		let parentCtx;
+		if (span.parentID) {
+			parentCtx = new DatadogSpanContext({
+				traceId: this.convertID(span.traceID),
+				spanId: this.convertID(span.parentID),
+				parentId: this.convertID(span.parentID)
+			});
+		} else {
+			const scope = this.ddTracer.scope();
+			if (scope) {
+				const activeSpan = scope.active();
+				if (activeSpan) {
+					parentCtx = activeSpan.context();
+				}
+			}
+		}
+
+		const ddSpan = this.ddTracer.startSpan(span.name, {
+			startTime: span.startTime,
+			childOf: parentCtx,
+			tags: this.flattenTags(_.defaultsDeep({}, span.tags, {
+				service: span.service,
+				span: {
+					kind: "server",
+					type: "custom",
+				},
+				resource: span.tags.action,
+				"sampling.priority": this.opts.samplingPriority
+			}, this.defaultTags))
+		});
+
+		if (this.opts.env)
+			this.addTags(ddSpan, "env", this.opts.env);
+		this.addTags(ddSpan, "service", serviceName);
+
+		const sc = ddSpan.context();
+		sc._traceId = this.convertID(span.traceID);
+		sc._spanId = this.convertID(span.id);
+
+		const scope = this.ddTracer.scope();
+		scope.activate(ddSpan, () => {
+
+			let resolver;
+			const p = new Promise(r => {
+				resolver = r;
+			});
+			this.store.set(span.id, { span: ddSpan, resolver });
+
+			scope.bind(p);
+		});
+
+		return ddSpan;
+	}
+
+	/**
 	 * Span is finished.
 	 *
 	 * @param {Span} span
 	 * @memberof DatadogTraceExporter
 	 */
 	finishSpan(span) {
-		this.generateDatadogTraceSpan(span);
+		if (!this.ddTracer) return null;
+
+		const item = this.store.get(span.id);
+		if (!item) return null;
+
+		const ddSpan = item.span;
+
+		if (span.error) {
+			this.addTags(ddSpan, "error", this.errorToObject(span.error));
+		}
+
+		ddSpan.finish(span.endTime);
+
+		item.resolver();
+
+		return ddSpan;
 	}
 
 	/**
@@ -81,8 +163,9 @@ class DatadogTraceExporter extends BaseTraceExporter {
 	 * @memberof DatadogTraceExporter
 	 */
 	generateDatadogTraceSpan(span) {
-		const serviceName = span.service ? span.service.fullName : null;
 		if (!this.ddTracer) return null;
+
+		const serviceName = span.service ? span.service.fullName : null;
 
 		let parentCtx;
 		if (span.parentID) {
