@@ -446,37 +446,14 @@ describe("Test RedisCacher lock method", () => {
 
 describe("Test RedisCacher with opts.lock", () => {
 
-	it("should create redlock clients when opts.lock==true", () => {
+	it("should create redlock clients", () => {
 		let broker = new ServiceBroker({ logger: false });
 		let cacher = new RedisCacher({
-			ttl: 30,
-			lock: true
+			ttl: 30
 		});
 		cacher.init(broker);
 		expect(cacher.redlock).toBeDefined();
 		expect(cacher.redlockNonBlocking).toBeDefined();
-	});
-
-	it("should not create redlock clients when opts.lock==false", () => {
-		let broker = new ServiceBroker({ logger: false });
-		let cacher = new RedisCacher({
-			ttl: 30,
-			lock: false
-		});
-		cacher.init(broker);
-		expect(cacher.redlock).toBeUndefined();
-		expect(cacher.redlockNonBlocking).toBeUndefined();
-	});
-
-	it("should not create redlock clients when opts.lock.enabled==false", () => {
-		let broker = new ServiceBroker({logger: false});
-		let cacher = new RedisCacher({
-			ttl: 30,
-			lock: { enabled: false }
-		});
-		cacher.init(broker);
-		expect(cacher.redlock).toBeUndefined();
-		expect(cacher.redlockNonBlocking).toBeUndefined();
 	});
 
 });
