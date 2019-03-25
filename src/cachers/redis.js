@@ -60,14 +60,13 @@ class RedisCacher extends BaseCacher {
 			/* istanbul ignore next */
 			this.logger.error(err);
 		});
-		if (this.opts.lock && this.opts.lock.enabled !== false) {
-			try {
-				Redlock = require('redlock');
-			} catch (err) {
-				/* istanbul ignore next */
-				this.broker.fatal("The 'redlock' package is missing. Please install it with 'npm install redlock --save' command.", err, true);
-			}
-
+		try {
+			Redlock = require('redlock');
+		} catch (err) {
+			/* istanbul ignore next */
+			this.logger.warn("The 'redlock' package is missing. If you want to enable cache lock, please install it with 'npm install redlock --save' command.");
+		}
+		if (Redlock) {
 			let redlockClients = (this.opts.redlock ? this.opts.redlock.clients : null) || [this.client]
 			/**
 			 * redlock client instance
