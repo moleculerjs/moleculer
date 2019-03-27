@@ -117,7 +117,7 @@ describe("Test Context.create", () => {
 		expect(ctx.cachedResult).toBe(false);
 	});
 
-	it("test without opts", () => {
+	it("test with opts", () => {
 		const params = { a: 5 };
 		const opts = {
 			timeout: 2500,
@@ -222,10 +222,12 @@ describe("Test call method", () => {
 		ctx.level = 4;
 
 		let p = { id: 5 };
-		ctx.call("posts.find", p, { timeout: 2500 });
+		let opts = { timeout: 2500 };
+		ctx.call("posts.find", p, opts);
 
 		expect(broker.call).toHaveBeenCalledTimes(1);
 		expect(broker.call).toHaveBeenCalledWith("posts.find", p, { parentCtx: ctx, timeout: 2500 });
+		expect(broker.call.mock.calls[0][2]).not.toBe(opts);
 	});
 
 	it("should decrement the timeout with elapsed time", () => {
