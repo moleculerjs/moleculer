@@ -228,6 +228,7 @@ describe("Test call method", () => {
 		expect(broker.call).toHaveBeenCalledTimes(1);
 		expect(broker.call).toHaveBeenCalledWith("posts.find", p, { parentCtx: ctx, timeout: 2500 });
 		expect(broker.call.mock.calls[0][2]).not.toBe(opts);
+		expect(opts.parentCtx).toBeUndefined();
 	});
 
 	it("should decrement the timeout with elapsed time", () => {
