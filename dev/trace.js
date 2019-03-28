@@ -9,7 +9,19 @@ let broker1 = new ServiceBroker({
 	logger: true,
 	logLevel: "info",
 	transporter: "NATS",
-	metrics: true
+	tracing: {
+		exporter: [
+			{
+				type: "Console",
+				options: {
+					logger: console
+				}
+			},
+			/*{
+				type: "Datadog"
+			}*/
+		]
+	}
 });
 
 broker1.createService({
@@ -31,7 +43,19 @@ let broker2 = new ServiceBroker({
 	logger: true,
 	logLevel: "info",
 	transporter: "NATS",
-	metrics: true
+	tracing: {
+		exporter: [
+			{
+				type: "Console",
+				options: {
+					logger: console
+				}
+			},
+			/*{
+				type: "Datadog"
+			}*/
+		]
+	}
 });
 
 broker2.createService({
@@ -49,7 +73,7 @@ broker2.createService({
 		},
 
 		third(ctx) {
-			if (_.random(100) > 80)
+			if (_.random(100) > 90)
 				return this.Promise.reject(new MoleculerError("Random error!", 510));
 
 			return this.Promise.delay(_.random(25, 75)).then(() => "Hello from third!");
@@ -65,4 +89,5 @@ broker1.Promise.resolve()
 	.catch(err => broker1.logger.error(err))
 	.delay(1000)
 	.then(() => broker1.call("service1.first"))
+	.catch(err => broker1.logger.error(err))
 	.then(() => broker1.repl());

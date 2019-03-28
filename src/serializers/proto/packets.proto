@@ -20,7 +20,7 @@ message PacketRequest {
 	required string meta 		= 6;
 	required double timeout		= 7;
 	required int32 level 		= 8;
-	optional bool metrics 		= 9;
+	optional bool tracing 		= 9;
 	optional string parentID 	= 10;
 	optional string requestID 	= 11;
 	optional bool stream 		= 12;

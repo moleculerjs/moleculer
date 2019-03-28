@@ -26,7 +26,8 @@ function createBrokers(Transporter, opts) {
 		middlewares: [
 			//Middlewares.Transmit.Encryption("moleculer"),
 			//Middlewares.Transmit.Compression(),
-		]
+		],
+		//tracing: true
 	});
 
 	b2.createService({

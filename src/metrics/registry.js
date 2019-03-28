@@ -6,7 +6,7 @@
 
 "use strict";
 
-const Promise = require("bluebird");
+const Promise = require("bluebird"); // eslint-disable-line no-unused-vars
 const _ = require("lodash");
 const METRIC = require("./constants");
 const Types = require("./types");
@@ -22,8 +22,8 @@ const METRIC_LABEL_REGEXP 	= /^[a-zA-Z_][a-zA-Z0-9-_.]*$/;
 class MetricRegistry {
 
 	/**
-	 *Creates an instance of MetricRegistry.
-
+	 * Creates an instance of MetricRegistry.
+	 *
 	 * @param {ServiceBroker} broker
 	 * @param {Object} opts
 	 * @memberof MetricRegistry
@@ -37,7 +37,7 @@ class MetricRegistry {
 		if (opts === true || opts === false)
 			opts = { enabled: opts };
 
-		this.opts = _.defaults({}, opts, {
+		this.opts = _.defaultsDeep({}, opts, {
 			enabled: true,
 			collectProcessMetrics: true,
 			collectInterval: 5 * 1000,

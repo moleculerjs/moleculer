@@ -19,7 +19,7 @@ struct PacketRequest {
 	6: string meta,
 	7: double timeout,
 	8: i32 level,
-	9: optional bool metrics,
+	9: optional bool tracing,
 	10: optional string parentID,
 	11: optional string requestID,
 	12: optional bool stream,

@@ -11,8 +11,7 @@
 			"program": "${workspaceRoot}/dev/index.js",
 			"cwd": "${workspaceRoot}",
 			"args": [
-				"server",
-				"server"
+				"dev-tracing"
 			],
 		},
 		{
@@ -128,7 +127,7 @@
 			"type": "node",
 			"request": "attach",
 			"name": "Attach to Process",
-			"port": 5858
+			"port": 9229
 		}
 	]
 }

@@ -7,7 +7,7 @@ const SVC_NAME = "mult";
 
 // Create broker
 const broker = new ServiceBroker(_.defaultsDeep({
-	nodeID: `svc-${SVC_NAME}-${process.pid}`,
+	//nodeID: `svc-${SVC_NAME}-${process.pid}`,
 }, require("./moleculer.config.js")));
 
 broker.createService({

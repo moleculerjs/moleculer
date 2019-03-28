@@ -33,7 +33,7 @@ function mergeMeta(ctx, newMeta) {
  * @property {Action} action - Action definition
  * @property {String} [nodeID=null] - Node ID
  * @property {String} parentID - Parent Context ID
- * @property {Boolean} metrics - Need send metrics events
+ * @property {Boolean} tracing - Enable tracing
  * @property {Number} [level=1] - Level of context
  *
  * @class Context
@@ -69,17 +69,20 @@ class Context {
 
 		this.parentID = null;
 
-		this.metrics = null;
 		this.level = 1;
 
 		this.params = {};
 		this.meta = {};
 
 		this.requestID = null;
-		this.startTime = null;
-		this.startHrTime = null;
-		this.stopTime = null;
-		this.duration = 0;
+
+		this.tracing = null;
+		this.span = null;
+
+		//this.startTime = null;
+		//his.startHrTime = null;
+		//this.stopTime = null;
+		//this.duration = null;
 
 		//this.error = null;
 		this.cachedResult = false;
@@ -123,9 +126,9 @@ class Context {
 			ctx.level = opts.parentCtx.level + 1;
 		}
 
-		// Metrics
+		// Tracing
 		if (opts.parentCtx != null)
-			ctx.metrics = opts.parentCtx.metrics;
+			ctx.tracing = opts.parentCtx.tracing;
 
 		return ctx;
 	}
@@ -252,6 +255,21 @@ class Context {
 	 */
 	broadcast(eventName, data, groups) {
 		return this.broker.broadcast(eventName, data, groups);
+	}
+
+	/**
+	 * Start a new child tracing span.
+	 *
+	 * @param {String} name
+	 * @param {Object?} opts
+	 * @returns {Span}
+	 * @memberof Context
+	 */
+	startSpan(name, opts) {
+		if (!this.span)
+			return this.broker.tracer.startSpan(name, opts);
+
+		return this.span.startSpan(name, opts);
 	}
 
 }
