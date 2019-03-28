@@ -1,6 +1,6 @@
 --------------------------------------------------
 <a name="0.14.0"></a>
-# [0.14.0](https://github.com/moleculerjs/moleculer/compare/v0.13.7...v0.14.0) (2019-xx-xx)
+# [0.14.0](https://github.com/moleculerjs/moleculer/compare/v0.13.8...v0.14.0) (2019-xx-xx)
 
 ## TODO
 - new `beforeCreated` service lifecycle event [#436](https://github.com/moleculerjs/moleculer/issues/436)
@@ -27,6 +27,7 @@
 ## Other notable changes
 -
 -
+
 --------------------------------------------------
 <a name="0.13.8"></a>
 # [0.13.8](https://github.com/moleculerjs/moleculer/compare/v0.13.7...v0.13.8) (2019-03-21)
