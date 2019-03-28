@@ -740,6 +740,7 @@ let PacketInfo = module.exports.PacketInfo = function(args) {
 	this.ipList = null;
 	this.hostname = null;
 	this.client = null;
+	this.seq = null;
 	this.instanceID = null;
 	this.metadata = null;
 	if (args) {
@@ -763,6 +764,9 @@ let PacketInfo = module.exports.PacketInfo = function(args) {
 		}
 		if (args.client !== undefined && args.client !== null) {
 			this.client = new ttypes.Client(args.client);
+		}
+		if (args.seq !== undefined && args.seq !== null) {
+			this.seq = args.seq;
 		}
 		if (args.instanceID !== undefined && args.instanceID !== null) {
 			this.instanceID = args.instanceID;
@@ -850,13 +854,20 @@ PacketInfo.prototype.read = function(input) {
 				}
 				break;
 			case 8:
+				if (ftype == Thrift.Type.I32) {
+					this.seq = input.readI32();
+				} else {
+					input.skip(ftype);
+				}
+				break;
+			case 9:
 				if (ftype == Thrift.Type.STRING) {
 					this.instanceID = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
-			case 9:
+			case 10:
 				if (ftype == Thrift.Type.STRING) {
 					this.metadata = input.readString();
 				} else {
@@ -918,13 +929,18 @@ PacketInfo.prototype.write = function(output) {
 		this.client.write(output);
 		output.writeFieldEnd();
 	}
+	if (this.seq !== null && this.seq !== undefined) {
+		output.writeFieldBegin("seq", Thrift.Type.I32, 8);
+		output.writeI32(this.seq);
+		output.writeFieldEnd();
+	}
 	if (this.instanceID !== null && this.instanceID !== undefined) {
-		output.writeFieldBegin("instanceID", Thrift.Type.STRING, 8);
+		output.writeFieldBegin("instanceID", Thrift.Type.STRING, 9);
 		output.writeString(this.instanceID);
 		output.writeFieldEnd();
 	}
 	if (this.metadata !== null && this.metadata !== undefined) {
-		output.writeFieldBegin("metadata", Thrift.Type.STRING, 9);
+		output.writeFieldBegin("metadata", Thrift.Type.STRING, 10);
 		output.writeString(this.metadata);
 		output.writeFieldEnd();
 	}

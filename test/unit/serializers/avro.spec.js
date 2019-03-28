@@ -80,10 +80,11 @@ describe("Test Avro serializer", () => {
 			},
 			metadata: {
 				region: "eu-west1"
-			}
+			},
+			seq: 3
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_INFO);
-		expect(s.length).toBe(206);
+		expect(s.length).toBe(207);
 
 		const res = serializer.deserialize(s, P.PACKET_INFO);
 		expect(res).not.toBe(obj);

@@ -1391,6 +1391,7 @@ $root.packets = (function() {
          * @property {Array.<string>|null} [ipList] PacketInfo ipList
          * @property {string} hostname PacketInfo hostname
          * @property {packets.PacketInfo.IClient} client PacketInfo client
+         * @property {number} seq PacketInfo seq
          * @property {string} instanceID PacketInfo instanceID
          * @property {string} metadata PacketInfo metadata
          */
@@ -1468,6 +1469,14 @@ $root.packets = (function() {
 		PacketInfo.prototype.client = null;
 
 		/**
+         * PacketInfo seq.
+         * @member {number} seq
+         * @memberof packets.PacketInfo
+         * @instance
+         */
+		PacketInfo.prototype.seq = 0;
+
+		/**
          * PacketInfo instanceID.
          * @member {string} instanceID
          * @memberof packets.PacketInfo
@@ -1516,8 +1525,9 @@ $root.packets = (function() {
 					writer.uint32(/* id 5, wireType 2 =*/42).string(message.ipList[i]);
 			writer.uint32(/* id 6, wireType 2 =*/50).string(message.hostname);
 			$root.packets.PacketInfo.Client.encode(message.client, writer.uint32(/* id 7, wireType 2 =*/58).fork()).ldelim();
-			writer.uint32(/* id 8, wireType 2 =*/66).string(message.instanceID);
-			writer.uint32(/* id 9, wireType 2 =*/74).string(message.metadata);
+			writer.uint32(/* id 8, wireType 0 =*/64).int32(message.seq);
+			writer.uint32(/* id 9, wireType 2 =*/74).string(message.instanceID);
+			writer.uint32(/* id 10, wireType 2 =*/82).string(message.metadata);
 			return writer;
 		};
 
@@ -1576,9 +1586,12 @@ $root.packets = (function() {
 						message.client = $root.packets.PacketInfo.Client.decode(reader, reader.uint32());
 						break;
 					case 8:
-						message.instanceID = reader.string();
+						message.seq = reader.int32();
 						break;
 					case 9:
+						message.instanceID = reader.string();
+						break;
+					case 10:
 						message.metadata = reader.string();
 						break;
 					default:
@@ -1598,6 +1611,8 @@ $root.packets = (function() {
 				throw $util.ProtocolError("missing required 'hostname'", { instance: message });
 			if (!message.hasOwnProperty("client"))
 				throw $util.ProtocolError("missing required 'client'", { instance: message });
+			if (!message.hasOwnProperty("seq"))
+				throw $util.ProtocolError("missing required 'seq'", { instance: message });
 			if (!message.hasOwnProperty("instanceID"))
 				throw $util.ProtocolError("missing required 'instanceID'", { instance: message });
 			if (!message.hasOwnProperty("metadata"))
@@ -1654,6 +1669,8 @@ $root.packets = (function() {
 				if (error)
 					return "client." + error;
 			}
+			if (!$util.isInteger(message.seq))
+				return "seq: integer expected";
 			if (!$util.isString(message.instanceID))
 				return "instanceID: string expected";
 			if (!$util.isString(message.metadata))
@@ -1695,6 +1712,8 @@ $root.packets = (function() {
 					throw TypeError(".packets.PacketInfo.client: object expected");
 				message.client = $root.packets.PacketInfo.Client.fromObject(object.client);
 			}
+			if (object.seq != null)
+				message.seq = object.seq | 0;
 			if (object.instanceID != null)
 				message.instanceID = String(object.instanceID);
 			if (object.metadata != null)
@@ -1724,6 +1743,7 @@ $root.packets = (function() {
 				object.config = "";
 				object.hostname = "";
 				object.client = null;
+				object.seq = 0;
 				object.instanceID = "";
 				object.metadata = "";
 			}
@@ -1744,6 +1764,8 @@ $root.packets = (function() {
 				object.hostname = message.hostname;
 			if (message.client != null && message.hasOwnProperty("client"))
 				object.client = $root.packets.PacketInfo.Client.toObject(message.client, options);
+			if (message.seq != null && message.hasOwnProperty("seq"))
+				object.seq = message.seq;
 			if (message.instanceID != null && message.hasOwnProperty("instanceID"))
 				object.instanceID = message.instanceID;
 			if (message.metadata != null && message.hasOwnProperty("metadata"))
