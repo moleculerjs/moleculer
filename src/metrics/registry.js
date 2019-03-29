@@ -18,6 +18,10 @@ const METRIC_LABEL_REGEXP 	= /^[a-zA-Z_][a-zA-Z0-9-_.]*$/;
 
 /**
  * Metric Registry class
+ *
+ *
+ * TODO:
+ * 	- all changes store in a queue and process with timer (1 sec)
  */
 class MetricRegistry {
 
@@ -55,8 +59,6 @@ class MetricRegistry {
 
 		if (this.opts.enabled)
 			this.logger.info("Metrics: Enabled");
-		else
-			this.logger.info("Metrics: Disabled");
 	}
 
 	/**

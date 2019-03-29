@@ -39,9 +39,9 @@ class Tracer {
 				minPriority: null
 			},
 
-			actions: true,
-			methods: false,
-			events: false,
+			actions: true, // TODO
+			methods: false, // TODO
+			events: false, // TODO
 
 			errorFields: ["name", "message", "code", "type", "data"],
 			stackTrace: false,
@@ -49,15 +49,13 @@ class Tracer {
 			defaultTags: null,
 		});
 
-		if (this.opts.stackTrace)
+		if (this.opts.stackTrace && this.opts.errorFields.indexOf("stack") === -1)
 			this.opts.errorFields.push("stack");
 
 		this.sampleCounter = 0;
 
 		if (this.opts.enabled)
 			this.logger.info("Tracing: Enabled");
-		else
-			this.logger.info("Tracing: Disabled");
 	}
 
 	/**

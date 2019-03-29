@@ -52,8 +52,10 @@ class EventTraceExporter extends BaseTraceExporter {
 		super.init(tracer);
 		this.broker = tracer.broker;
 
-		if (this.opts.interval > 0)
+		if (this.opts.interval > 0) {
 			this.timer = setInterval(() => this.flush(), this.opts.interval * 1000);
+			this.timer.unref();
+		}
 
 		this.defaultTags = _.isFunction(this.opts.defaultTags) ? this.opts.defaultTags.call(this, tracer) : this.opts.defaultTags;
 	}
