@@ -102,7 +102,7 @@
     "node-fetch": "^2.3.0"
   },
   "engines": {
-    "node": ">= 6.x.x"
+    "node": ">= 8.x.x"
   },
   "tonicExampleFilename": "docs/runkit/simple.js",
   "typings": "./index.d.ts",
