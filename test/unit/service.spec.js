@@ -170,6 +170,7 @@ describe("Test action creation", () => {
 				expect(spec).toEqual({
 					name: "posts",
 					version: undefined,
+					fullName: "posts",
 					settings: {},
 					metadata: {},
 					actions: {

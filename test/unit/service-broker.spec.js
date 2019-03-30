@@ -1082,13 +1082,43 @@ describe("Test broker.registerInternalServices", () => {
 
 		expect(broker.createService).toHaveBeenCalledTimes(1);
 		expect(broker.createService).toHaveBeenCalledWith({ name: "$node", actions: {
-			list: jasmine.any(Object),
-			services: jasmine.any(Object),
-			actions: jasmine.any(Object),
-			events: jasmine.any(Object),
-			health: jasmine.any(Object),
-			options: jasmine.any(Object),
-		} });
+			list: expect.any(Object),
+			services: expect.any(Object),
+			actions: expect.any(Object),
+			events: expect.any(Object),
+			health: expect.any(Object),
+			options: expect.any(Object),
+		} }, undefined);
+	});
+
+	it("should register internal action with mixins", () => {
+		let broker = new ServiceBroker({
+			logger: false,
+			internalServices: false
+		});
+
+		broker.createService = jest.fn();
+		broker.registerInternalServices({
+			$node: {
+				metadata: {
+					a: 5
+				}
+			}
+		});
+
+		expect(broker.createService).toHaveBeenCalledTimes(1);
+		expect(broker.createService).toHaveBeenCalledWith({ name: "$node", actions: {
+			list: expect.any(Object),
+			services: expect.any(Object),
+			actions: expect.any(Object),
+			events: expect.any(Object),
+			health: expect.any(Object),
+			options: expect.any(Object),
+		} }, {
+			metadata: {
+				a: 5
+			}
+		});
 	});
 });
 

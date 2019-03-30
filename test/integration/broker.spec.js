@@ -98,7 +98,7 @@ describe("Test local call", () => {
 			roles: ["admin"],
 			verified: true
 		};
-		parentCtx.metrics = true;
+		parentCtx.tracing = true;
 		parentCtx.requestID = "12345";
 
 		return broker.call("posts.find", params, { parentCtx, meta }).then(ctx => {
@@ -106,7 +106,7 @@ describe("Test local call", () => {
 			expect(ctx.params).toBe(params);
 			expect(ctx.meta).toEqual({ user: "Jane", roles: ["admin"], status: true, verified: true });
 			expect(ctx.level).toBe(2);
-			expect(ctx.metrics).toBe(true);
+			expect(ctx.tracing).toBe(true);
 			expect(ctx.parentID).toBe(parentCtx.id);
 			expect(ctx.requestID).toBe("12345");
 		});
@@ -127,13 +127,13 @@ describe("Test local call", () => {
 			roles: ["admin"],
 			verified: true
 		};
-		ctx.metrics = true;
+		ctx.tracing = true;
 		ctx.requestID = "12345";
 
 		return ctx.call("posts.export", {}, { meta }).then(newCtx => {
 			expect(newCtx.id).not.toBe(ctx.id);
 			expect(newCtx.level).toBe(2);
-			expect(newCtx.metrics).toBe(true);
+			expect(newCtx.tracing).toBe(true);
 			expect(newCtx.parentID).toBe(ctx.id);
 			expect(newCtx.requestID).toBe("12345");
 
