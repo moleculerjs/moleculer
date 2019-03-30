@@ -7,6 +7,14 @@ chalk.enabled = false;
 const H = require("../../src/health");
 H.getHealthStatus = jest.fn();
 
+jest.mock("../../src/utils", () => ({
+	getNodeID() { return "node-1234"; },
+	generateToken() { return "1"; },
+	getIpList() { return []; },
+	safetyObject(obj) { return obj; },
+	isPromise(p) {return p && p.then != null; }
+}));
+
 const { protectReject } = require("./utils");
 const path = require("path");
 const Promise = require("bluebird");
@@ -22,14 +30,6 @@ const Transporters = require("../../src/transporters");
 const Strategies = require("../../src/strategies");
 const MiddlewareHandler = require("../../src/middleware");
 const { MoleculerError, ServiceNotFoundError, ServiceNotAvailableError } = require("../../src/errors");
-
-jest.mock("../../src/utils", () => ({
-	getNodeID() { return "node-1234"; },
-	generateToken() { return "1"; },
-	getIpList() { return []; },
-	safetyObject(obj) { return obj; },
-	isPromise(p) {return p && p.then != null; }
-}));
 
 describe("Test ServiceBroker constructor", () => {
 
@@ -54,6 +54,9 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.metadata).toEqual({});
 
 		expect(broker.localBus).toBeDefined();
+
+		expect(broker.metrics).toBeDefined();
+		expect(broker.tracer).toBeDefined();
 
 		expect(broker.services).toBeInstanceOf(Array);
 		expect(broker.registry).toBeInstanceOf(Registry);
@@ -81,8 +84,6 @@ describe("Test ServiceBroker constructor", () => {
 			nodeID: "server-12",
 			transporter: null,
 			heartbeatTimeout: 20,
-			metrics: true,
-			metricsRate: 0.5,
 			logLevel: "debug",
 			logFormatter: "simple",
 			retryPolicy: {
@@ -94,6 +95,14 @@ describe("Test ServiceBroker constructor", () => {
 
 			tracking: {
 				enabled: true,
+			},
+
+			metrics: {
+				enabled: true
+			},
+
+			tracing: {
+				enabled: true
 			},
 
 			disableBalancer: true,
@@ -131,13 +140,19 @@ describe("Test ServiceBroker constructor", () => {
 			cacher: null,
 			serializer: null,
 			transporter: null,
-			metrics: true,
-			metricsRate: 0.5,
 			heartbeatTimeout : 20,
 			heartbeatInterval: 5,
 			tracking: {
 				enabled: true,
 				shutdownTimeout: 5000,
+			},
+
+			metrics: {
+				enabled: true
+			},
+
+			tracing: {
+				enabled: true
 			},
 
 			disableBalancer: true,
@@ -312,7 +327,7 @@ describe("Test ServiceBroker constructor", () => {
 			logger: false
 		});
 
-		expect(broker.middlewares.count()).toBe(10);
+		expect(broker.middlewares.count()).toBe(11);
 	});
 
 	it("should not load internal middlewares", () => {
@@ -352,7 +367,7 @@ describe("Test ServiceBroker constructor", () => {
 			}
 		});
 
-		expect(broker.middlewares.count()).toBe(11);
+		expect(broker.middlewares.count()).toBe(12);
 	});
 });
 
@@ -680,7 +695,7 @@ describe("Test broker.getLogger", () => {
 		it("should call logger function with broker bindings", () => {
 			broker = new ServiceBroker({ internalServices: false, logger, namespace: "testing", nodeID: "test-pc", transporter: null, internalMiddlewares: false });
 
-			expect(logger).toHaveBeenCalledTimes(2);
+			expect(logger).toHaveBeenCalledTimes(4);
 			expect(logger).toHaveBeenCalledWith({ "mod": "broker", "nodeID": "test-pc", "ns": "testing" });
 		});
 
@@ -1556,7 +1571,7 @@ describe("Test broker.callWithoutBalancer", () => {
 		parentCtx.params = { a: 5 };
 		parentCtx.requestID = "555";
 		parentCtx.meta = { a: 123 };
-		parentCtx.metrics = true;
+		parentCtx.tracing = true;
 
 		let opts = { parentCtx, meta: { b: "Adam" } };
 		return broker.callWithoutBalancer("posts.find", { b: 10 }, opts).catch(protectReject).then(ctx => {
@@ -1569,7 +1584,7 @@ describe("Test broker.callWithoutBalancer", () => {
 			expect(ctx.action.name).toBe("posts.find");
 			expect(ctx.params).toEqual({ b: 10 });
 			expect(ctx.meta).toEqual({ a: 123, b: "Adam" });
-			expect(ctx.metrics).toBe(true);
+			expect(ctx.tracing).toBe(true);
 
 			expect(action.remoteHandler).toHaveBeenCalledTimes(1);
 			expect(action.remoteHandler).toHaveBeenCalledWith(ctx);
@@ -1971,7 +1986,8 @@ describe("Test broker broadcast", () => {
 
 		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledTimes(0);
 
-		expect(broker.broadcastLocal).toHaveBeenCalledTimes(0);
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
+		expect(broker.broadcastLocal).toHaveBeenCalledWith("$user.event", { name: "John" }, ["payments"]);
 	});
 
 });
