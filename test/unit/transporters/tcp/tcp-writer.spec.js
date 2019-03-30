@@ -7,9 +7,8 @@ const { protectReject } = require("../../utils");
 const C = require("../../../../src/transporters/tcp/constants");
 
 // const lolex = require("lolex");
-jest.mock("net");
-
 const net = require("net");
+jest.mock("net");
 
 const TcpWriter = require("../../../../src/transporters/tcp/tcp-writer");
 

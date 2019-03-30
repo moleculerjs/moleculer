@@ -3,19 +3,18 @@ const Transit = require("../../../src/transit");
 const RedisTransporter = require("../../../src/transporters/redis");
 const P = require("../../../src/packets");
 
-jest.mock("ioredis");
+jest.mock("ioredis", () => {
+	return jest.fn().mockImplementation(() => {
+		let onCallbacks = {};
+		return {
+			on: jest.fn((event, cb) => onCallbacks[event] = cb),
+			disconnect: jest.fn(),
+			subscribe: jest.fn(),
+			publish: jest.fn(),
 
-let Redis = require("ioredis");
-Redis.mockImplementation(() => {
-	let onCallbacks = {};
-	return {
-		on: jest.fn((event, cb) => onCallbacks[event] = cb),
-		disconnect: jest.fn(),
-		subscribe: jest.fn(),
-		publish: jest.fn(),
-
-		onCallbacks
-	};
+			onCallbacks
+		};
+	});
 });
 
 

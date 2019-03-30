@@ -1,24 +1,24 @@
 "use strict";
 
-const ServiceBroker = require("../../../../src/service-broker");
 const { protectReject } = require("../../utils");
 
 // const lolex = require("lolex");
-jest.mock("net");
-const net = require("net");
+jest.mock("../../../../src/transporters/tcp/parser", () => {
+	return jest.fn().mockImplementation(() => {
+		let callbacks = {};
+		let parser = {
+			on: jest.fn((type, cb) => callbacks[type] = cb),
+			__callbacks: callbacks
+		};
 
-jest.mock("../../../../src/transporters/tcp/parser");
-
-let Parser = require("../../../../src/transporters/tcp/parser");
-Parser.mockImplementation(() => {
-	let callbacks = {};
-	let parser = {
-		on: jest.fn((type, cb) => callbacks[type] = cb),
-		__callbacks: callbacks
-	};
-
-	return parser;
+		return parser;
+	});
 });
+
+const ServiceBroker = require("../../../../src/service-broker");
+
+const net = require("net");
+jest.mock("net");
 
 const TcpReader = require("../../../../src/transporters/tcp/tcp-reader");
 
