@@ -15,6 +15,7 @@ const broker = new ServiceBroker({
 	logLevel: "info",
 	logObjectPrinter: o => inspect(o, { showHidden: false, depth: 4, colors: true, breakLength: 50 }),
 	tracing: {
+		events: true,
 		stackTrace: true,
 		exporter: [
 			{
@@ -83,13 +84,13 @@ broker.createService({
 		find: {
 			handler(ctx) {
 				const posts = _.cloneDeep(POSTS);
-				/*return this.Promise.all(posts.map(post => {
+				return this.Promise.all(posts.map(post => {
 					return this.Promise.all([
 						ctx.call("users.get", { id: post.author }).then(author => post.author = author),
 						ctx.call("votes.count", { postID: post.id }).then(votes => post.votes = votes),
 					]);
-				})).then(() => posts);*/
-				return posts;
+				})).then(() => posts);
+				//return posts;
 			}
 		}
 	}
