@@ -97,6 +97,7 @@ class Service {
 		const serviceSpecification = {
 			name: this.name,
 			version: this.version,
+			fullName: this.fullName,
 			settings: this._getPublicSettings(this.settings),
 			metadata: this.metadata,
 			actions: {},

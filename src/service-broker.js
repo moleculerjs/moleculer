@@ -238,7 +238,7 @@ class ServiceBroker {
 
 			// Register internal actions
 			if (this.options.internalServices)
-				this.registerInternalServices();
+				this.registerInternalServices(this.options.internalServices);
 
 			this.callMiddlewareHookSync("created", [this]);
 
@@ -818,11 +818,13 @@ class ServiceBroker {
 
 	/**
 	 * Register internal services
+	 * @param {Object?} opts
 	 *
 	 * @memberof ServiceBroker
 	 */
-	registerInternalServices() {
-		this.createService(require("./internals")(this));
+	registerInternalServices(opts) {
+		opts = _.isObject(opts) ? opts : {};
+		this.createService(require("./internals")(this), opts["$node"]);
 	}
 
 	/**

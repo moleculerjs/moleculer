@@ -18,11 +18,32 @@
 - new Middlewares:
     - `Transmit.Encryption`
 	- `Transmit.Compression`
-- ...etc
+    - `Debugging.TransitLogger`
+    - `Debugging.ActionLogger`
+    - ...etc
+
 - Kafka transporter upgrade to support kafka-node@4
 - rename `ctx.metrics` -> `ctx.tracing`
-- new built-in tracing solution with adapters (Zipkin, Jaeger)
-- ? new built-in JMX/Prometheus-like metrics
+- new built-in tracing solution with exporters (Zipkin, Jaeger, Datadog)
+- new built-in metrics solution with reporters (Prometheus, Datadog, StatD)
+- extend internal services (`$node`)
+    ```js
+    // moleculer.config.js
+    module.exports = {
+        nodeID: "node-1",
+        logger: true,
+        internalServices: {
+            $node: {
+                actions: {
+                    // Call as `$node.hello`
+                    hello(ctx) {
+                        return `Hello Moleculer!`;
+                    }
+                }
+            }
+        }
+    };
+    ```
 
 ## Other notable changes
 -
