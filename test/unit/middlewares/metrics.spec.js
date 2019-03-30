@@ -4,7 +4,7 @@ const Context 					= require("../../../src/context");
 const Middleware 				= require("../../../src/middlewares").Metrics;
 const { protectReject }			= require("../utils");
 
-describe("Test MetricsMiddleware localAction", () => {
+describe.skip("Test MetricsMiddleware localAction", () => {
 	const broker = new ServiceBroker({ nodeID: "server-1", logger: false });
 	const handler = jest.fn(() => Promise.resolve("Result"));
 	const action = {
@@ -142,7 +142,7 @@ describe("Test MetricsMiddleware localAction", () => {
 	});
 });
 
-describe("Test MetricsMiddleware remoteAction", () => {
+describe.skip("Test MetricsMiddleware remoteAction", () => {
 	const broker = new ServiceBroker({ nodeID: "server-1", logger: false });
 	const handler = jest.fn(() => Promise.resolve("Result"));
 	const action = {
@@ -221,7 +221,7 @@ describe("Test MetricsMiddleware remoteAction", () => {
 });
 
 
-describe("Test params & meta in events", () => {
+describe.skip("Test params & meta in events", () => {
 	let broker = new ServiceBroker({ logger: false, metrics: true, nodeID: "master" });
 	broker.emit = jest.fn();
 

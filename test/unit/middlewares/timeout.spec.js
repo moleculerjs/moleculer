@@ -20,6 +20,7 @@ describe("Test TimeoutMiddleware", () => {
 	};
 
 	const mw = Middleware();
+	mw.created(broker);
 
 	it("should register hooks", () => {
 		expect(mw.localAction).toBeInstanceOf(Function);

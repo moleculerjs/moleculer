@@ -672,7 +672,7 @@ describe("Test Transit._requestHandler", () => {
 			parentID: "00000",
 			requestID: "12345-54321",
 			level: 3,
-			metrics: true,
+			tracing: true,
 			timeout: 230
 		};
 
@@ -695,7 +695,7 @@ describe("Test Transit._requestHandler", () => {
 			expect(ctx.requestID).toBe("12345-54321");
 			expect(ctx.meta).toEqual({ a: 5 });
 			expect(ctx.level).toBe(3);
-			expect(ctx.metrics).toBe(true);
+			expect(ctx.tracing).toBe(true);
 			expect(ctx.nodeID).toBe("node2");
 			expect(ctx.options.timeout).toBe(230);
 
@@ -722,7 +722,7 @@ describe("Test Transit._requestHandler", () => {
 			requestID: "12345-54321",
 			level: 3,
 			stream: false,
-			metrics: true,
+			tracing: true,
 			timeout: 230
 		};
 
@@ -746,7 +746,7 @@ describe("Test Transit._requestHandler", () => {
 			expect(ctx.requestID).toBe("12345-54321");
 			expect(ctx.meta).toEqual({ a: 5 });
 			expect(ctx.level).toBe(3);
-			expect(ctx.metrics).toBe(true);
+			expect(ctx.tracing).toBe(true);
 			expect(ctx.nodeID).toBe("node2");
 			expect(ctx.options.timeout).toBe(230);
 
@@ -1422,7 +1422,7 @@ describe("Test Transit._sendRequest", () => {
 		ctx.id = "12345";
 		ctx.requestID = "1111";
 		ctx.parentID = "0000";
-		ctx.metrics = true;
+		ctx.tracing = true;
 		ctx.level = 6;
 
 		const resolve = jest.fn();
@@ -1439,7 +1439,7 @@ describe("Test Transit._sendRequest", () => {
 						id: "12345",
 						level: 6,
 						meta: { "user": { "id": 5, "roles": ["user"] } },
-						metrics: true,
+						tracing: true,
 						params: { "a": 5 },
 						parentID: "0000",
 						requestID: "1111",
@@ -1491,7 +1491,7 @@ describe("Test Transit._sendRequest", () => {
 						id: "12345",
 						level: 1,
 						meta: {},
-						metrics: null,
+						tracing: null,
 						params: null,
 						parentID: null,
 						requestID: null,
@@ -1515,7 +1515,7 @@ describe("Test Transit._sendRequest", () => {
 						id: "12345",
 						level: 1,
 						meta: {},
-						metrics: null,
+						tracing: null,
 						params: Buffer.from("first chunk"),
 						parentID: null,
 						requestID: null,
@@ -1533,7 +1533,7 @@ describe("Test Transit._sendRequest", () => {
 						id: "12345",
 						level: 1,
 						meta: {},
-						metrics: null,
+						tracing: null,
 						params: Buffer.from("second chunk"),
 						parentID: null,
 						requestID: null,
@@ -1555,7 +1555,7 @@ describe("Test Transit._sendRequest", () => {
 						id: "12345",
 						level: 1,
 						meta: {},
-						metrics: null,
+						tracing: null,
 						params: null,
 						parentID: null,
 						requestID: null,
@@ -1585,7 +1585,7 @@ describe("Test Transit._sendRequest", () => {
 						id: "12345",
 						level: 1,
 						meta: {},
-						metrics: null,
+						tracing: null,
 						params: null,
 						parentID: null,
 						requestID: null,
@@ -1608,7 +1608,7 @@ describe("Test Transit._sendRequest", () => {
 						id: "12345",
 						level: 1,
 						meta: {},
-						metrics: null,
+						tracing: null,
 						params: Buffer.from("first chunk"),
 						parentID: null,
 						requestID: null,
@@ -1637,7 +1637,7 @@ describe("Test Transit._sendRequest", () => {
 								error: true
 							}
 						},
-						metrics: null,
+						tracing: null,
 						params: null,
 						parentID: null,
 						requestID: null,

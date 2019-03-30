@@ -198,6 +198,7 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 		cacher.client.del = jest.fn(() => Promise.resolve());
 		["error", "fatal", "debug"].forEach((level) => logger[level].mockClear());
 
+		cacher.client.setex = jest.fn(() => Promise.resolve());
 	});
 
 

@@ -77,7 +77,6 @@ class Context {
 		this.requestID = null;
 
 		this.tracing = null;
-		this.span = null;
 
 		//this.startTime = null;
 		//his.startHrTime = null;

@@ -26,17 +26,13 @@ describe("Test Context", () => {
 
 		expect(ctx.parentID).toBeNull();
 
-		expect(ctx.metrics).toBeNull();
+		expect(ctx.tracing).toBeNull();
 		expect(ctx.level).toBe(1);
 
 		expect(ctx.params).toEqual({});
 		expect(ctx.meta).toEqual({});
 
 		expect(ctx.requestID).toBeNull();
-		expect(ctx.startTime).toBeNull();
-		expect(ctx.startHrTime).toBeNull();
-		expect(ctx.stopTime).toBeNull();
-		expect(ctx.duration).toBe(0);
 
 		expect(ctx.cachedResult).toBe(false);
 
@@ -105,14 +101,10 @@ describe("Test Context.create", () => {
 
 		expect(ctx.parentID).toBeNull();
 
-		expect(ctx.metrics).toBeNull();
+		expect(ctx.tracing).toBeNull();
 		expect(ctx.level).toBe(1);
 
 		expect(ctx.requestID).toBe(ctx.id);
-		expect(ctx.startTime).toBeNull();
-		expect(ctx.startHrTime).toBeNull();
-		expect(ctx.stopTime).toBeNull();
-		expect(ctx.duration).toBe(0);
 
 		expect(ctx.cachedResult).toBe(false);
 	});
@@ -135,7 +127,7 @@ describe("Test Context.create", () => {
 					c: 100
 				},
 				requestID: "1234567890abcdef",
-				metrics: true,
+				tracing: true,
 			}
 		};
 
@@ -159,7 +151,7 @@ describe("Test Context.create", () => {
 
 		expect(ctx.parentID).toBe(100);
 
-		expect(ctx.metrics).toBe(true);
+		expect(ctx.tracing).toBe(true);
 		expect(ctx.level).toBe(6);
 
 		expect(ctx.requestID).toBe("1234567890abcdef");
