@@ -112,7 +112,9 @@
       "/node_modules/",
       "/test/services/",
       "/test/typescript/",
-      "/test/unit/utils.js"
+      "/test/unit/utils.js",
+      "/src/serializers/proto/",
+      "/src/serializers/thrift/"
     ],
     "transform": {},
     "testEnvironment": "node",
