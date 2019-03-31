@@ -184,8 +184,11 @@ class Context {
 	 *
 	 * @memberof Context
 	 */
-	call(actionName, params, opts = {}) {
-		opts.parentCtx = this;
+	call(actionName, params, _opts) {
+		const opts = Object.assign({
+			parentCtx: this
+		}, _opts);
+
 		if (this.options.timeout > 0 && this.startHrTime) {
 			// Distributed timeout handling. Decrementing the timeout value with the elapsed time.
 			// If the timeout below 0, skip the call.

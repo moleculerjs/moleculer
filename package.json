@@ -24,7 +24,7 @@
     "test:int": "jest --testMatch \"**/integration/**spec.js\" --coverage --no-cache",
     "test:amqp": "jest --testMatch \"**/transporters/amqp/**spc.js\" --runInBand",
     "test:trans": "jest --testMatch \"**/transporters/index.spc.js\"",
-    "test:ts": "tsc -p test/typescript/hello-world && ts-node -P test/typescript/hello-world/tsconfig.json test/typescript/hello-world/index.ts",
+    "test:ts": "tsd && tsc -p test/typescript/hello-world && ts-node -P test/typescript/hello-world/tsconfig.json test/typescript/hello-world/index.ts",
     "release": "npm publish --access public && git push --tags",
     "release:beta": "npm publish --tag next --access public && git push --tags"
   },
@@ -47,7 +47,9 @@
   "author": "Icebob",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "11.12.0",
+    "@types/bunyan": "1.8.6",
+    "@types/node": "11.12.2",
+    "@types/pino": "5.8.6",
     "amqplib": "0.5.3",
     "avsc": "5.4.7",
     "benchmarkify": "2.1.1",
@@ -55,7 +57,7 @@
     "coveralls": "3.0.3",
     "dd-trace": "0.10.2",
     "dotenv": "6.2.0",
-    "eslint": "5.15.3",
+    "eslint": "5.16.0",
     "eslint-plugin-node": "8.0.1",
     "eslint-plugin-promise": "4.0.1",
     "eslint-plugin-security": "1.4.0",
@@ -70,16 +72,18 @@
     "moleculer-repl": "0.5.7",
     "mqtt": "2.18.8",
     "msgpack5": "4.2.1",
-    "nats": "1.2.2",
-    "node-nats-streaming": "0.2.0",
+    "nats": "1.2.6",
+    "node-nats-streaming": "0.0.51",
     "nodemon": "1.18.10",
     "notepack.io": "2.2.0",
     "npm-check": "5.9.0",
     "pino": "5.12.0",
     "protobufjs": "6.8.8",
+    "redlock": "^3.1.2",
     "thrift": "0.12.0",
     "ts-node": "8.0.3",
-    "typescript": "3.3.4000",
+    "tsd": "0.7.1",
+    "typescript": "3.4.1",
     "v8-natives": "1.1.0",
     "winston": "3.2.1",
     "winston-context": "0.0.7"
@@ -105,7 +109,10 @@
     "node": ">= 8.x.x"
   },
   "tonicExampleFilename": "docs/runkit/simple.js",
-  "typings": "./index.d.ts",
+  "types": "./index.d.ts",
+  "tsd": {
+    "directory": "test/typescript/tsd"
+  },
   "jest": {
     "coverageDirectory": "../coverage",
     "coveragePathIgnorePatterns": [

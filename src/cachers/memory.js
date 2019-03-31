@@ -12,6 +12,7 @@ const utils			= require("../utils");
 const BaseCacher  	= require("./base");
 const { METRIC }	= require("../metrics");
 
+const Lock = require("../lock");
 /**
  * Cacher factory for memory cache
  *
@@ -31,7 +32,8 @@ class MemoryCacher extends BaseCacher {
 
 		// Cache container
 		this.cache = new Map();
-
+		// Async lock
+		this._lock = new Lock();
 		// Start TTL timer
 		this.timer = setInterval(() => {
 			/* istanbul ignore next */
@@ -165,6 +167,67 @@ class MemoryCacher extends BaseCacher {
 		timeEnd();
 
 		return Promise.resolve();
+	}
+
+	/**
+	 * Get data and ttl from cache by key.
+	 *
+	 * @param {string|Array<string>} key
+	 * @returns {Promise}
+	 *
+	 * @memberof MemoryCacher
+	 */
+	 getWithTTL(key){
+ 		this.logger.debug(`GET ${key}`);
+		let data = null;
+		let ttl = null;
+ 		if (this.cache.has(key)) {
+ 			this.logger.debug(`FOUND ${key}`);
+
+ 			let item = this.cache.get(key);
+			let now = Date.now();
+			ttl = (item.expire - now)/1000;
+			ttl = ttl > 0 ? ttl : null;
+ 			if (this.opts.ttl) {
+ 				// Update expire time (hold in the cache if we are using it)
+ 				item.expire = now + this.opts.ttl * 1000;
+ 			}
+			data = this.clone ? this.clone(item.data) : item.data;
+ 		}
+ 		return Promise.resolve({ data, ttl });
+	 }
+
+	/**
+	 * Acquire a lock
+	 *
+	 * @param {string|Array<string>} key
+	 * @param {Number} ttl Optional Time-to-Live
+	 * @returns {Promise}
+	 *
+	 * @memberof MemoryCacher
+	 */
+	lock(key, ttl) {
+ 		return this._lock.acquire(key, ttl).then(()=> {
+			return ()=>this._lock.release(key);
+		});
+ 	}
+
+	/**
+	 * Try to acquire a lock
+	 *
+	 * @param {string|Array<string>} key
+	 * @param {Number} ttl Optional Time-to-Live
+	 * @returns {Promise}
+	 *
+	 * @memberof MemoryCacher
+	 */
+	tryLock(key, ttl) {
+		if(this._lock.isLocked(key)){
+			return Promise.reject(new Error("Locked."));
+		}
+		return this._lock.acquire(key, ttl).then(()=> {
+			return ()=>this._lock.release(key);
+		});
 	}
 
 	/**

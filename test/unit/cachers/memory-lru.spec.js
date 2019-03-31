@@ -317,3 +317,26 @@ describe("Test MemoryLRUCacher expired method", () => {
 	});
 
 });
+
+describe("Test MemoryCacher getWithTTL method", ()=>{
+	const cacher = new MemoryLRUCacher({
+		ttl: 30,
+		lock: true
+	});
+	const broker = new ServiceBroker({
+		logger: false,
+		cacher
+	});
+	const get = jest.spyOn(cacher, 'get');
+	const getWithTTL = jest.spyOn(cacher, 'getWithTTL');
+	const lock = jest.spyOn(cacher, 'lock');
+	const key1 = 'abcd1234';
+	it("should return data and ttl", () => {
+		return cacher.set(key1, 'hello').then(() => {
+			return cacher.getWithTTL(key1).then(res => {
+				expect(res.data).toEqual('hello');
+				expect(res.ttl).toBeDefined();
+			});
+		});
+	});
+});

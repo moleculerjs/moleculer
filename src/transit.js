@@ -126,6 +126,8 @@ class Transit {
 					this.__connectResolve();
 					this.__connectResolve = null;
 				}
+
+				return null;
 			});
 	}
 

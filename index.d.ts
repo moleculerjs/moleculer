@@ -3,13 +3,12 @@ declare namespace Moleculer {
 
 	type LogLevels = "fatal" | "error" | "warn" | "info" | "debug" | "trace";
 
-	interface Logger {
-		fatal: (...args: any[]) => void;
-		error: (...args: any[]) => void;
-		warn: (...args: any[]) => void;
-		info: (...args: any[]) => void;
-		debug: (...args: any[]) => void;
-		trace: (...args: any[]) => void;
+	type LoggerExternal = Pick<LoggerInstance, "error" | "warn" | "info" | "debug">;
+
+	class Logger {
+		static extend(logger: LoggerExternal): LoggerInstance;
+		static createDefaultLogger(baseLogger: LoggerInstance, bindings: GenericObject, logLevel?: string, logFormatter?: Function): LoggerInstance;
+		static createDefaultLogger(bindings: GenericObject, logLevel?: string, logFormatter?: Function): LoggerInstance;
 	}
 
 	interface LoggerBindings {
@@ -256,7 +255,7 @@ declare namespace Moleculer {
 		namespace?: string;
 		nodeID?: string;
 
-		logger?: ((bindings: LoggerBindings) => Logger) | Logger | boolean;
+		logger?: ((bindings: LoggerBindings) => LoggerInstance) | LoggerInstance | boolean;
 		logLevel?: LogLevels | LogLevelConfig;
 		logFormatter?: Function | string;
 		logObjectPrinter?: Function;
@@ -651,12 +650,6 @@ declare namespace Moleculer {
 		validate(params: GenericObject, schema: GenericObject): boolean;
 	}
 
-	class LoggerHelper {
-		static extend(logger: LoggerInstance): LoggerInstance;
-		static createDefaultLogger(baseLogger: LoggerInstance, bindings: GenericObject, logLevel?: string, logFormatter?: Function): LoggerInstance;
-		static createDefaultLogger(bindings: GenericObject, logLevel?: string, logFormatter?: Function): LoggerInstance;
-	}
-
 	abstract class BaseStrategy {
 		init(broker: ServiceBroker): void;
 		select(list: any[]): any;
@@ -712,7 +705,7 @@ declare namespace Moleculer {
 			protected transit: Transit;
 			protected broker: ServiceBroker;
 			protected nodeID: string;
-			protected logger: Logger;
+			protected logger: LoggerInstance;
 			protected prefix: string;
 			protected messageHandler: MessageHandler;
 			protected afterConnect?: AfterConnectHandler;
@@ -733,6 +726,7 @@ declare namespace Moleculer {
 		Redis: RedisCacher
 	};
 	const Serializers: {
+		Base: Serializer,		   
 		JSON: Serializer,
 		Avro: Serializer,
 		MsgPack: Serializer,
