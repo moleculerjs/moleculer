@@ -1,5 +1,15 @@
 "use strict";
 
+global.tracer = require("dd-trace").init({
+	service: "moleculer", // shows up as Service in Datadog UI
+	//hostname: "agent", // references the `agent` service in docker-compose.yml
+	debug: true,
+	url: "http://192.168.0.181:8126",
+	samplingPriority: "USER_KEEP",
+});
+
+global.tracer.use("http");
+
 const ServiceBroker = require("../src/service-broker");
 "use strict";
 
@@ -84,13 +94,14 @@ broker.createService({
 		find: {
 			handler(ctx) {
 				const posts = _.cloneDeep(POSTS);
-				return this.Promise.all(posts.map(post => {
+				/*return this.Promise.all(posts.map(post => {
 					return this.Promise.all([
 						ctx.call("users.get", { id: post.author }).then(author => post.author = author),
 						ctx.call("votes.count", { postID: post.id }).then(votes => post.votes = votes),
 					]);
 				})).then(() => posts);
-				//return posts;
+				*/
+				return posts;
 			}
 		}
 	}

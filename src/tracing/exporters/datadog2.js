@@ -52,7 +52,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 			const ddTrace = require("dd-trace");
 			DatadogSpanContext = require("dd-trace/src/opentracing/span_context");
 			DatadogPlatform = require("dd-trace/src/platform");
-			this.ddTracer = ddTrace.init(_.defaultsDeep(this.opts.tracerOptions, {
+			this.ddTracer = global.tracer || ddTrace.init(_.defaultsDeep(this.opts.tracerOptions, {
 				url: this.opts.agentUrl
 			}));
 		} catch(err) {
@@ -63,6 +63,19 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		this.defaultTags = _.isFunction(this.opts.defaultTags) ? this.opts.defaultTags.call(this, tracer) : this.opts.defaultTags;
 		if (this.defaultTags) {
 			this.defaultTags = this.flattenTags(this.defaultTags, true);
+		}
+
+		this.tracer.contextWrappers.push(this.wrapContext.bind(this));
+	}
+
+	wrapContext(span, fn) {
+		if (span.$ddSpan) {
+			const scope = this.ddTracer.scope();
+			if (scope) {
+				scope.activate(span.$ddSpan, () => {
+					return fn();
+				});
+			}
 		}
 	}
 
@@ -77,7 +90,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 
 		const serviceName = span.service ? span.service.fullName : null;
 
-		let parentCtx;
+		let parentCtx, noConvert = false;
 		if (span.parentID) {
 			parentCtx = new DatadogSpanContext({
 				traceId: this.convertID(span.traceID),
@@ -90,6 +103,8 @@ class DatadogTraceExporter extends BaseTraceExporter {
 				const activeSpan = scope.active();
 				if (activeSpan) {
 					parentCtx = activeSpan.context();
+					span.traceID = parentCtx.toTraceId();
+					noConvert = true;
 				}
 			}
 		}
@@ -113,8 +128,12 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		this.addTags(ddSpan, "service", serviceName);
 
 		const sc = ddSpan.context();
-		sc._traceId = this.convertID(span.traceID);
+		sc._traceId = noConvert ? span.traceID : this.convertID(span.traceID);
 		sc._spanId = this.convertID(span.id);
+
+		Object.defineProperty(span, "$ddSpan", {
+			value: ddSpan
+		});
 
 		const scope = this.ddTracer.scope();
 		scope.activate(ddSpan, () => {

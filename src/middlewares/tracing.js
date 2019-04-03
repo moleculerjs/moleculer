@@ -62,19 +62,26 @@ function tracingLocalActionMiddleware(handler, action) {
 			ctx.tracing = span.sampled;
 			ctx.span = span;
 
-			// Call the handler
-			return handler(ctx).then(res => {
-				span.addTags({
-					fromCache: ctx.cachedResult
-				}).finish();
+			return new Promise((resolve, reject) => {
 
-				//ctx.duration = span.duration;
+				ctx.broker.tracer.wrappingContext(span, function() {
 
-				return res;
-			}).catch(err => {
-				span.setError(err).finish();
+					// Call the handler
+					return handler(ctx).then(res => {
+						span.addTags({
+							fromCache: ctx.cachedResult
+						}).finish();
 
-				return this.Promise.reject(err);
+						//ctx.duration = span.duration;
+
+						return resolve(res);
+					}).catch(err => {
+						span.setError(err).finish();
+
+						return reject(err);
+					});
+
+				});
 			});
 
 		}.bind(this);

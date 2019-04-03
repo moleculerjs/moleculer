@@ -54,6 +54,8 @@ class Tracer {
 
 		this.sampleCounter = 0;
 
+		this.contextWrappers = [];
+
 		if (this.opts.enabled)
 			this.logger.info("Tracing: Enabled");
 	}
@@ -75,6 +77,12 @@ class Tracer {
 				});
 			}
 		}
+	}
+
+	wrappingContext(span, fn) {
+		if (this.contextWrappers.length == 0) return fn();
+
+		return this.contextWrappers[0](span, fn);
 	}
 
 	/**
