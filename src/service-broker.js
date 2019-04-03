@@ -1244,8 +1244,10 @@ class ServiceBroker {
 					groups = this.getEventGroups(eventName);
 				}
 
-				if (groups.length > 0)
-					this.transit.sendBroadcastEvent(null, eventName, payload, groups);
+				if (groups.length == 0)
+					return;
+
+				return this.transit.sendBroadcastEvent(null, eventName, payload, groups); // Return here because balancer disabled, so we can't call the local services.
 			}
 		}
 
