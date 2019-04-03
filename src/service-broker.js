@@ -927,12 +927,13 @@ class ServiceBroker {
 	 *
 	 * @param {String} actionName
 	 * @param {Object?} opts
+	 * @param {Context?} ctx
 	 * @returns {Endpoint|Error}
 	 *
 	 * @performance-critical
 	 * @memberof ServiceBroker
 	 */
-	findNextActionEndpoint(actionName, opts) {
+	findNextActionEndpoint(actionName, opts, ctx) {
 		if (typeof actionName !== "string") {
 			return actionName;
 		} else {
@@ -955,7 +956,7 @@ class ServiceBroker {
 				}
 
 				// Get the next available endpoint
-				const endpoint = epList.next();
+				const endpoint = epList.next(ctx);
 				if (!endpoint) {
 					const errMsg = `Service '${actionName}' is not available.`;
 					this.logger.warn(errMsg);
@@ -978,21 +979,29 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	call(actionName, params, opts = {}) {
-		const endpoint = this.findNextActionEndpoint(actionName, opts);
-		if (endpoint instanceof Error)
-			return Promise.reject(endpoint);
-
 		// Create context
 		let ctx;
 		if (opts.ctx != null) {
+
+			const endpoint = this.findNextActionEndpoint(actionName, opts, ctx);
+			if (endpoint instanceof Error)
+				return Promise.reject(endpoint);
+
 			// Reused context
 			ctx = opts.ctx;
 			ctx.endpoint = endpoint;
 			ctx.nodeID = endpoint.id;
 			ctx.action = endpoint.action;
+			ctx.service = endpoint.action.service;
 		} else {
 			// New root context
-			ctx = this.ContextFactory.create(this, endpoint, params, opts);
+			ctx = this.ContextFactory.create(this, null, params, opts);
+
+			const endpoint = this.findNextActionEndpoint(actionName, opts, ctx);
+			if (endpoint instanceof Error)
+				return Promise.reject(endpoint);
+
+			ctx.setEndpoint(endpoint);
 		}
 
 		if (ctx.endpoint.local)
@@ -1000,7 +1009,7 @@ class ServiceBroker {
 		else
 			this.logger.debug("Call action on remote node.", { action: ctx.action.name, nodeID: ctx.nodeID, requestID: ctx.requestID });
 
-		let p = endpoint.action.handler(ctx);
+		let p = ctx.endpoint.action.handler(ctx);
 
 		// Pointer to Context
 		p.ctx = ctx;

@@ -24,12 +24,12 @@ describe("Test Service constructor", () => {
 		}).toThrowError("Must set a ServiceBroker instance!");
 
 		expect(() => {
-			const svc = new Service({});
+			const svc = new Service(broker);
 			svc.parseServiceSchema();
 		}).toThrowError("Must pass a service schema in constructor!");
 
 		expect(() => {
-			new Service({}, {});
+			new Service(broker, {});
 		}).toThrowError("Service name can't be empty! Maybe it is not a valid Service schema.");
 	});
 

@@ -18,7 +18,15 @@ class BaseStrategy {
 		this.broker = broker;
 	}
 
-	select(/*list*/) {
+	/**
+	 * Select an endpoint.
+	 *
+	 * @param {Array<Endpoint>} list
+	 * @param {Context?} ctx
+	 *
+	 * @memberof BaseStrategy
+	 */
+	select(/*list, ctx*/) {
 		/* istanbul ignore next */
 		throw new Error("Not implemented method!");
 	}

@@ -44,10 +44,11 @@ class Context {
 	 * Creates an instance of Context.
 	 *
 	 * @param {ServiceBroker} broker - Broker instance
+	 * @param {Endpoint} endpoint
 	 *
 	 * @memberof Context
 	 */
-	constructor(broker) {
+	constructor(broker, endpoint) {
 		this._id = null;
 
 		this.broker = broker;
@@ -57,9 +58,13 @@ class Context {
 		else
 			this.nodeID = null;
 
-		this.endpoint = null;
-		this.service = null;
-		this.action = null;
+		if (endpoint) {
+			this.setEndpoint(endpoint);
+		} else {
+			this.endpoint = null;
+			this.service = null;
+			this.action = null;
+		}
 
 		this.options = {
 			timeout: null,

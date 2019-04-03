@@ -14,7 +14,8 @@ const Strategies = {
 	RoundRobin: require("./round-robin"),
 	Random: require("./random"),
 	CpuUsage: require("./cpu-usage"),
-	Latency: require("./latency")
+	Latency: require("./latency"),
+	Shard: require("./shard")
 };
 
 function getByName(name) {
