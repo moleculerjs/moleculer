@@ -411,7 +411,7 @@ declare namespace Moleculer {
 		namespace: string;
 		nodeID: string;
 		logger: LoggerInstance;
-		cacher?: Cacher | RedisCacher;
+		cacher?: Cacher;
 		serializer?: Serializer;
 		validator?: Validator;
 		transit: GenericObject;
@@ -723,10 +723,10 @@ declare namespace Moleculer {
 
 	const Cachers: {
 		Memory: Cacher,
-		Redis: RedisCacher
+		Redis: Cacher
 	};
 	const Serializers: {
-		Base: Serializer,		   
+		Base: Serializer,
 		JSON: Serializer,
 		Avro: Serializer,
 		MsgPack: Serializer,
