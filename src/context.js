@@ -104,8 +104,12 @@ class Context {
 		if (endpoint != null)
 			ctx.setEndpoint(endpoint);
 
-		if (params != null)
-			ctx.setParams(params, broker ? broker.options.actionParamsCloning : undefined);
+		if (params != null) {
+			let cloning = broker ? broker.options.actionParamsCloning : false;
+			if (opts.paramsCloning != null)
+				cloning = opts.paramsCloning;
+			ctx.setParams(params, cloning);
+		}
 
 		//Object.assign(ctx.options, opts);
 		ctx.options = opts;
