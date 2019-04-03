@@ -2016,8 +2016,7 @@ describe("Test broker broadcast", () => {
 
 		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledTimes(0);
 
-		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
-		expect(broker.broadcastLocal).toHaveBeenCalledWith("$user.event", { name: "John" }, ["payments"]);
+		expect(broker.broadcastLocal).toHaveBeenCalledTimes(0);
 	});
 
 });
