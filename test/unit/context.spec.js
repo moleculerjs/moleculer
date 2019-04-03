@@ -15,7 +15,7 @@ describe("Test Context", () => {
 
 		expect(ctx._id).toBeNull();
 		expect(ctx.broker).not.toBeDefined();
-		expect(ctx.endpoint).not.toBeDefined();
+		expect(ctx.endpoint).toBeNull();
 		expect(ctx.action).toBeNull();
 		expect(ctx.service).toBeNull();
 		expect(ctx.nodeID).toBeNull();
@@ -45,25 +45,13 @@ describe("Test Context", () => {
 
 	it("test with constructor params", () => {
 
-		let broker = new ServiceBroker({ logger: false });
-		let endpoint = {
-			action: {
-				name: "posts.find",
-				service: {
-					name: "posts"
-				}
-			},
-			node: {
-				id: "server-123"
-			}
-		};
-
-		let ctx = new Context(broker, endpoint);
+		let broker = new ServiceBroker({ nodeID: "server-123", logger: false });
+		let ctx = new Context(broker);
 
 		expect(ctx.broker).toBe(broker);
-		expect(ctx.endpoint).toBe(endpoint);
-		expect(ctx.action).toBe(endpoint.action);
-		expect(ctx.service).toBe(endpoint.action.service);
+		expect(ctx.endpoint).toBeNull();
+		expect(ctx.action).toBeNull();
+		expect(ctx.service).toBeNull();
 		expect(ctx.nodeID).toBe("server-123");
 	});
 });

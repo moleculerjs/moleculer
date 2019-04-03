@@ -90,8 +90,9 @@ describe("Test ServiceBroker constructor", () => {
 				enabled: true,
 				retries: 3,
 			},
-			requestTimeout: 5000,
+			actionParamsCloning: true,
 			maxCallLevel: 10,
+			requestTimeout: 5000,
 
 			tracking: {
 				enabled: true,
@@ -192,6 +193,7 @@ describe("Test ServiceBroker constructor", () => {
 			},
 			requestTimeout: 5000,
 			maxCallLevel: 10,
+			actionParamsCloning: true,
 			validation: false,
 			validator: null,
 			internalServices: false,

@@ -70,10 +70,10 @@ class Service {
 			schema = Service.applyMixins(schema);
 		}
 
+		this.broker.callMiddlewareHookSync("serviceCreating", [this, schema]);
+
 		if (!schema.name)
 			throw new ServiceSchemaError("Service name can't be empty! Maybe it is not a valid Service schema.");
-
-		this.broker.callMiddlewareHookSync("serviceCreating", [this, schema]);
 
 		this.name = schema.name;
 		this.version = schema.version;

@@ -55,9 +55,11 @@ const defaultOptions = {
 		check: err => err && !!err.retryable
 	},
 
+	actionParamsCloning: false,
 	maxCallLevel: 0,
 	heartbeatInterval: 5,
 	heartbeatTimeout: 15,
+
 
 	tracking: {
 		enabled: false,

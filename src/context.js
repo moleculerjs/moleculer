@@ -21,7 +21,7 @@ const { RequestSkippedError, MaxCallLevelError } = require("./errors");
  */
 function mergeMeta(ctx, newMeta) {
 	if (newMeta)
-		_.assign(ctx.meta, newMeta);
+		Object.assign(ctx.meta, newMeta);
 	return ctx.meta;
 }
 
@@ -44,23 +44,22 @@ class Context {
 	 * Creates an instance of Context.
 	 *
 	 * @param {ServiceBroker} broker - Broker instance
-	 * @param {Endpoint} endpoint - Endpoint (action & nodeID)
 	 *
 	 * @memberof Context
 	 */
-	constructor(broker, endpoint) {
+	constructor(broker) {
 		this._id = null;
 
 		this.broker = broker;
-		this.endpoint = endpoint;
-		this.action = endpoint ? endpoint.action : null;
-		this.service = this.action ? this.action.service : null;
-		if (endpoint && endpoint.node)
-			this.nodeID = endpoint.node.id;
-		else if (this.broker)
+
+		if (this.broker)
 			this.nodeID = this.broker.nodeID;
 		else
 			this.nodeID = null;
+
+		this.endpoint = null;
+		this.service = null;
+		this.action = null;
 
 		this.options = {
 			timeout: null,
@@ -102,7 +101,11 @@ class Context {
 	static create(broker, endpoint, params, opts = {}) {
 		const ctx = new broker.ContextFactory(broker, endpoint);
 
-		ctx.setParams(params);
+		if (endpoint != null)
+			ctx.setEndpoint(endpoint);
+
+		if (params != null)
+			ctx.setParams(params, broker ? broker.options.actionParamsCloning : undefined);
 
 		//Object.assign(ctx.options, opts);
 		ctx.options = opts;
@@ -154,6 +157,20 @@ class Context {
 	 */
 	set id(val) {
 		this._id = val;
+	}
+
+	/**
+	 * Set endpoint of context
+	 *
+	 * @param {Endpoint} endpoint
+	 * @memberof Context
+	 */
+	setEndpoint(endpoint) {
+		this.endpoint = endpoint;
+		this.action = endpoint ? endpoint.action : null;
+		this.service = this.action ? this.action.service : null;
+		if (endpoint && endpoint.node)
+			this.nodeID = endpoint.node.id;
 	}
 
 	/**

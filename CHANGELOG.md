@@ -3,7 +3,6 @@
 # [0.14.0](https://github.com/moleculerjs/moleculer/compare/v0.13.8...v0.14.0) (2019-xx-xx)
 
 ## TODO
-- new `beforeCreated` service lifecycle event [#436](https://github.com/moleculerjs/moleculer/issues/436)
 - `ctx` access in Strategies `next` method (Kafka-like sharding strategy).
 - subscribe/unsubscribe event from codes and REPL.
 - caching with tags/labels
@@ -13,7 +12,7 @@
 - communication protocol changed (`3` -> `4`)
 - handling conflict nodeIDs
 - broker `metadata` option. It's transfered to other nodes.
-- new middleware hooks (`registerLocalService`, `serviceCreating`, `transitPublish`, `transitSubscribe`, `transitMessageHandler`, `transporterSend`, `transporterReceive`)
+- new middleware hooks (`registerLocalService`, `serviceCreating`, `transitPublish`, `transitSubscribe`, `transitMessageHandler`, `transporterSend`, `transporterReceive`) [#436](https://github.com/moleculerjs/moleculer/issues/436)
 - enhanced hot-reload middleware [#408](https://github.com/moleculerjs/moleculer/issues/408)
 - new Middlewares:
     - `Transmit.Encryption`
