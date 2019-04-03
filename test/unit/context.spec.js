@@ -197,6 +197,11 @@ describe("Test setParams", () => {
 describe("Test call method", () => {
 	let broker = new ServiceBroker({ logger: false, maxCallLevel: 5 });
 	broker.call = jest.fn(() => broker.Promise.resolve());
+	const clock = lolex.install();
+
+	afterAll(() => {
+		clock.uninstall();
+	});
 
 	it("should call broker.call method with itself", () => {
 		let ctx = new Context(broker);
@@ -226,7 +231,6 @@ describe("Test call method", () => {
 
 	it("should decrement the timeout with elapsed time", () => {
 		broker.call.mockClear();
-		const clock = lolex.install();
 
 		let ctx = new Context(broker);
 		ctx.startHrTime = process.hrtime();
@@ -238,7 +242,6 @@ describe("Test call method", () => {
 		expect(broker.call).toHaveBeenCalledTimes(1);
 		let opts = broker.call.mock.calls[0][2];
 		expect(opts.timeout).toBe(700);
-		clock.uninstall();
 	});
 
 	it("should throw RequestSkippedError", () => {
@@ -247,9 +250,8 @@ describe("Test call method", () => {
 		let ctx = new Context(broker);
 		ctx.startHrTime = process.hrtime();
 		ctx.options.timeout = 200;
-		return Promise.delay(300).then(() => {
-			return ctx.call("posts.find", {});
-		}).then(protectReject).catch(err => {
+		clock.tick(300);
+		return ctx.call("posts.find", {}).then(protectReject).catch(err => {
 			expect(broker.call).toHaveBeenCalledTimes(0);
 			expect(err).toBeInstanceOf(RequestSkippedError);
 			expect(err.data.action).toBe("posts.find");
