@@ -722,7 +722,9 @@ declare namespace Moleculer {
 	}
 
 	const Cachers: {
+		Base: Cacher,
 		Memory: Cacher,
+		MemoryLRU: Cacher,
 		Redis: Cacher
 	};
 	const Serializers: {
