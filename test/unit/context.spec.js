@@ -5,6 +5,7 @@ let Context = require("../../src/context");
 let ServiceBroker = require("../../src/service-broker");
 let { RequestSkippedError, MaxCallLevelError } = require("../../src/errors");
 const { protectReject } = require("./utils");
+const lolex = require("lolex");
 
 describe("Test Context", () => {
 
@@ -225,18 +226,19 @@ describe("Test call method", () => {
 
 	it("should decrement the timeout with elapsed time", () => {
 		broker.call.mockClear();
+		const clock = lolex.install();
 
 		let ctx = new Context(broker);
 		ctx.startHrTime = process.hrtime();
 		ctx.options.timeout = 1000;
-		return Promise.delay(300).catch(protectReject).then(() => {
-			ctx.call("posts.find", {});
+		clock.tick(300);
 
-			expect(broker.call).toHaveBeenCalledTimes(1);
-			let opts = broker.call.mock.calls[0][2];
-			expect(opts.timeout).toBeGreaterThan(500);
-			expect(opts.timeout).toBeLessThan(800);
-		});
+		ctx.call("posts.find", {});
+
+		expect(broker.call).toHaveBeenCalledTimes(1);
+		let opts = broker.call.mock.calls[0][2];
+		expect(opts.timeout).toBe(700);
+		clock.uninstall();
 	});
 
 	it("should throw RequestSkippedError", () => {
