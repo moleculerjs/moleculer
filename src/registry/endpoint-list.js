@@ -136,7 +136,7 @@ class EndpointList {
 		if (epList.length == 0)
 			return null;
 
-		return this.select(epList);
+		return this.select(epList, ctx);
 	}
 
 	/**

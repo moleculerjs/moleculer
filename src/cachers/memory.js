@@ -177,25 +177,25 @@ class MemoryCacher extends BaseCacher {
 	 *
 	 * @memberof MemoryCacher
 	 */
-	 getWithTTL(key){
- 		this.logger.debug(`GET ${key}`);
+	getWithTTL(key){
+		this.logger.debug(`GET ${key}`);
 		let data = null;
 		let ttl = null;
- 		if (this.cache.has(key)) {
- 			this.logger.debug(`FOUND ${key}`);
+		if (this.cache.has(key)) {
+			this.logger.debug(`FOUND ${key}`);
 
- 			let item = this.cache.get(key);
+			let item = this.cache.get(key);
 			let now = Date.now();
 			ttl = (item.expire - now)/1000;
 			ttl = ttl > 0 ? ttl : null;
- 			if (this.opts.ttl) {
- 				// Update expire time (hold in the cache if we are using it)
- 				item.expire = now + this.opts.ttl * 1000;
- 			}
+			if (this.opts.ttl) {
+				// Update expire time (hold in the cache if we are using it)
+				item.expire = now + this.opts.ttl * 1000;
+			}
 			data = this.clone ? this.clone(item.data) : item.data;
- 		}
- 		return Promise.resolve({ data, ttl });
-	 }
+		}
+		return Promise.resolve({ data, ttl });
+	}
 
 	/**
 	 * Acquire a lock
@@ -207,10 +207,10 @@ class MemoryCacher extends BaseCacher {
 	 * @memberof MemoryCacher
 	 */
 	lock(key, ttl) {
- 		return this._lock.acquire(key, ttl).then(()=> {
+		return this._lock.acquire(key, ttl).then(()=> {
 			return ()=>this._lock.release(key);
 		});
- 	}
+	}
 
 	/**
 	 * Try to acquire a lock
