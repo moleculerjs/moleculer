@@ -627,7 +627,7 @@ class ServiceBroker {
 
 		schema = this.normalizeSchemaConstructor(schema);
 		if (this.ServiceFactory.isPrototypeOf(schema)) {
-			service = new schema(this);
+			service = new schema(this, schemaMods);
 		} else {
 			let s = schema;
 			if (schemaMods)

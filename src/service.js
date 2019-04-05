@@ -39,11 +39,11 @@ class Service {
 	 * Creates an instance of Service by schema.
 	 *
 	 * @param {ServiceBroker} 	broker	broker of service
-	 * @param {Object} 			schema	schema of service
+	 * @param {Object=} 		schema	schema of service
 	 *
 	 * @memberof Service
 	 */
-	constructor(broker, schema) {
+	constructor(broker, schema = undefined) {
 		if (!_.isObject(broker))
 			throw new ServiceSchemaError("Must set a ServiceBroker instance!");
 
