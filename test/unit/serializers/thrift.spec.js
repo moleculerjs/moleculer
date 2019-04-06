@@ -225,6 +225,24 @@ describe("Test ProtoBuf serializer", () => {
 		expect(res).toEqual(Object.assign(obj, { error: null }));
 	});
 
+	it("should serialize the response packet with falsy data", () => {
+		const obj = {
+			ver: "3",
+			sender: "test-1",
+			id: "12345",
+			success: true,
+			data: false,
+			meta: {},
+			stream: false
+		};
+		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
+		expect(s.length).toBe(63);
+
+		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
+		expect(res).not.toBe(obj);
+		expect(res).toEqual(Object.assign(obj, { error: null }));
+	});
+
 	it("should serialize the response packet with buffer data", () => {
 		const obj = {
 			ver: "3",

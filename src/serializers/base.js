@@ -82,7 +82,7 @@ class Serializer {
 				break;
 			}
 			case P.PACKET_EVENT: {
-				if (obj.data)
+				if (obj.data != null)
 					obj.data = JSON.stringify(obj.data);
 				break;
 			}
@@ -95,7 +95,7 @@ class Serializer {
 			}
 			case P.PACKET_RESPONSE: {
 				obj.meta = JSON.stringify(obj.meta);
-				if (obj.data) {
+				if (obj.data != null) {
 					if (!obj.stream) {
 						obj.data = JSON.stringify(obj.data);
 					}
@@ -154,7 +154,7 @@ class Serializer {
 			}
 			case P.PACKET_RESPONSE: {
 				obj.meta = JSON.parse(obj.meta);
-				if (obj.data) {
+				if (obj.data != null) {
 					if (!obj.stream) {
 						obj.data = JSON.parse(obj.data);
 					}
