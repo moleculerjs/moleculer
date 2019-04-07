@@ -104,7 +104,7 @@ class ProtoBufSerializer extends BaseSerializer {
 					if (obj.data.length)
 						obj.data = obj.data.toString("utf8");
 					else
-						obj.data = undefined;
+						obj.data = null;
 				}
 				break;
 			}

@@ -82,7 +82,7 @@ class Serializer {
 				break;
 			}
 			case P.PACKET_EVENT: {
-				if (obj.data != null)
+				if (obj.data !== undefined)
 					obj.data = JSON.stringify(obj.data);
 				break;
 			}
@@ -95,7 +95,7 @@ class Serializer {
 			}
 			case P.PACKET_RESPONSE: {
 				obj.meta = JSON.stringify(obj.meta);
-				if (obj.data != null) {
+				if (obj.data != undefined) {
 					if (!obj.stream) {
 						obj.data = JSON.stringify(obj.data);
 					}
