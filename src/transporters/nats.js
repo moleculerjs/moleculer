@@ -175,7 +175,7 @@ class NatsTransporter extends Transporter {
 	 * @memberof NatsTransporter
 	 */
 	subscribeBalancedEvent(event, group) {
-		const topic = `${this.prefix}.${PACKET_EVENT}B.${group}.${event}`;
+		const topic = `${this.prefix}.${PACKET_EVENT}B.${group}.${event}`.replace(/\*\*/g, ">");
 
 		this.subscriptions.push(this.client.subscribe(topic, { queue: group }, (msg) => this.incomingMessage(PACKET_EVENT, msg)));
 	}
