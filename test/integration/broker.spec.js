@@ -1,4 +1,5 @@
 const ServiceBroker = require("../../src/service-broker");
+const Service = require("../../src/service");
 const MemoryCacher = require("../../src/cachers/memory");
 const Context = require("../../src/context");
 const { protectReject } = require("../unit/utils");
@@ -36,6 +37,72 @@ describe("Test load services", () => {
 			expect(broker.getLocalService("users")).toBeDefined();
 			expect(broker.getLocalService("test")).toBeDefined();
 		}).then(() => broker.stop());
+	});
+
+	it("should create service from ES6 instance without schema mods", () => {
+		const handler = jest.fn();
+
+		class ES6Service extends Service {
+			constructor(broker, schemaMods) {
+				super(broker);
+
+				this.name = "es6-without-schema-mods";
+				this.version = 2;
+				this.actions = {
+					send: handler
+				};
+
+				if (schemaMods && schemaMods.version) {
+					this.version = schemaMods.version;
+				}
+
+				this.parseServiceSchema(Object.assign({}, this));
+			}
+		}
+
+		broker.createService(ES6Service);
+
+		return broker.start().catch(protectReject).then(() => {
+			expect(broker.getLocalService("es6-without-schema-mods", 2)).toBeDefined();
+			expect(broker.registry.actions.isAvailable("v2.es6-without-schema-mods.send")).toBe(true);
+		}).then(() => {
+			return broker.call("v2.es6-without-schema-mods.send").then(() => {
+				expect(handler).toHaveBeenCalledTimes(1);
+			});
+		}).catch(protectReject).then(() => broker.stop());
+	});
+
+	it("should create service from ES6 instance with schema mods", () => {
+		const handler = jest.fn();
+
+		class ES6Service extends Service {
+			constructor(broker, schemaMods) {
+				super(broker);
+
+				this.name = "es6-with-schema-mods";
+				this.version = 2;
+				this.actions = {
+					send: handler
+				};
+
+				if (schemaMods && schemaMods.version) {
+					this.version = schemaMods.version;
+				}
+
+				this.parseServiceSchema(Object.assign({}, this));
+			}
+		}
+
+		broker.createService(ES6Service, { version: 3 });
+
+		return broker.start().catch(protectReject).then(() => {
+			expect(broker.getLocalService("es6-with-schema-mods", 3)).toBeDefined();
+			expect(broker.registry.actions.isAvailable("v3.es6-with-schema-mods.send")).toBe(true);
+		}).then(() => {
+			return broker.call("v3.es6-with-schema-mods.send").then(() => {
+				expect(handler).toHaveBeenCalledTimes(1);
+			});
+		}).catch(protectReject).then(() => broker.stop());
 	});
 });
 
