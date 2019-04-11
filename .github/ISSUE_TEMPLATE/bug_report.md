@@ -13,13 +13,13 @@ Please answer the following questions for yourself before submitting an issue.
 - [ ] I checked to make sure that this issue has not already been filed
 - [ ] I'm reporting the issue to the correct repository
 
-## Expected Behavior
-
-<!-- Please describe the behavior you are expecting -->
-
 ## Current Behavior
 
 <!-- What is the current behavior? -->
+
+## Expected Behavior
+
+<!-- Please describe the behavior you are expecting -->
 
 ## Failure Information
 
@@ -34,6 +34,9 @@ Please provide detailed steps for reproducing the issue.
 3. you get it...
 
 ### Reproduce code snippet
+<!-- You can use codesandbox.io to create a reproduce code.
+     Just fork it: https://codesandbox.io/embed/ky5lj09jv   -->
+
 ```js
 const broker = new ServiceBroker({
     logger: console,
