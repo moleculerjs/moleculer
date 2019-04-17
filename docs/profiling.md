@@ -48,9 +48,21 @@ https://www.slideshare.net/brendangregg/blazing-performance-with-flame-graphs
 
 For Windows: https://github.com/google/UIforETW/releases
 
+### 0x
+https://github.com/davidmarkclements/0x
+
+Installation:
+```
+npm install -g 0x
+```
+Usage:
+```
+0x -o index.js
+```
+
 ## Others
 
-http://mrale.ph/blog/2011/12/18/v8-optimization-checklist.html 
+http://mrale.ph/blog/2011/12/18/v8-optimization-checklist.html
 
 http://stackoverflow.com/a/31549736/129346
 
@@ -60,7 +72,6 @@ https://jsperf.com/let-compound-assignment
 
 https://gist.github.com/trevnorris/f0907b010c9d5e24ea97
 
-## Memory leak 
+## Memory leak
 
 https://www.youtube.com/watch?v=taADm6ndvVo&list=PLz6xH_GrBpquZgdVzEX4Bix0oxHQlZfwm&index=8
-

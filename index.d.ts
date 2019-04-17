@@ -181,9 +181,9 @@ declare namespace Moleculer {
 		methods?: ServiceMethods;
 
 		events?: ServiceEvents;
-		created?: () => void;
-		started?: () => PromiseLike<void>;
-		stopped?: () => PromiseLike<void>;
+		created?: (() => void) | Array<() => void>;
+		started?: (() => PromiseLike<void>) | Array<() => PromiseLike<void>>;
+		stopped?: (() => PromiseLike<void>) | Array<() => PromiseLike<void>>;
 		[name: string]: any;
 	}
 

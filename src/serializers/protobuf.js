@@ -75,7 +75,7 @@ class ProtoBufSerializer extends BaseSerializer {
 				break;
 			}
 			case P.PACKET_RESPONSE: {
-				if (obj.data && !obj.stream)
+				if (obj.data != null && !obj.stream)
 					obj.data = Buffer.from(obj.data);
 				break;
 			}
@@ -100,11 +100,11 @@ class ProtoBufSerializer extends BaseSerializer {
 				break;
 			}
 			case P.PACKET_RESPONSE: {
-				if (obj.data && !obj.stream) {
+				if (obj.data != null && !obj.stream) {
 					if (obj.data.length)
 						obj.data = obj.data.toString("utf8");
 					else
-						obj.data = undefined;
+						obj.data = null;
 				}
 				break;
 			}
