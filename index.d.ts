@@ -627,16 +627,24 @@ declare namespace Moleculer {
 		deserialize(type: string, data: Buffer): Packet;
 	}
 
-	class Cacher {
-		constructor(opts?: GenericObject);
-		init(broker: ServiceBroker): void;
-		close(): PromiseLike<any>;
-		get(key: string): PromiseLike<null | GenericObject>;
-		set(key: string, data: any, ttl?: number): PromiseLike<any>;
-		del(key: string|Array<string>): PromiseLike<any>;
-		clean(match?: string|Array<string>): PromiseLike<any>;
-		client?: any;
+	namespace Cachers {
+		class Base {
+			constructor(opts?: GenericObject);
+			init(broker: ServiceBroker): void;
+			close(): PromiseLike<any>;
+			get(key: string): PromiseLike<null | GenericObject>;
+			set(key: string, data: any, ttl?: number): PromiseLike<any>;
+			del(key: string|Array<string>): PromiseLike<any>;
+			clean(match?: string|Array<string>): PromiseLike<any>;
+		}
+
+		class Memory extends Base {}
+		class Redis extends Base {
+			client: any;
+		}
 	}
+
+	type Cacher<T extends Cachers.Base = Cachers.Base> = T;
 
 	class Serializer {
 		constructor();
@@ -723,10 +731,6 @@ declare namespace Moleculer {
 		class TCP extends Base { }
 	}
 
-	const Cachers: {
-		Memory: Cacher,
-		Redis: Cacher
-	};
 	const Serializers: {
 		Base: Serializer,
 		JSON: Serializer,
