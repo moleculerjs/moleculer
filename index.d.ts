@@ -65,7 +65,7 @@ declare namespace Moleculer {
 
 	type ActionVisibility = "published" | "public" | "protected" | "private"
 
-	interface Action {
+	interface ActionSchema {
 		name?: string;
 		visibility?: ActionVisibility;
 		params?: ActionParams;
@@ -81,6 +81,8 @@ declare namespace Moleculer {
 		[key: string]: any;
 	}
 
+	type ServiceActionsSchema = { [key: string]: ActionSchema | ActionHandler; };
+
 	interface BrokerNode {
 		id: string;
 		available: boolean;
@@ -88,16 +90,12 @@ declare namespace Moleculer {
 		hostname: boolean;
 	}
 
-	type ServiceActions = { [key: string]: Action | ActionHandler; };
-	type Actions = ServiceActions;
-
-
 	class Context<P = GenericObject, M = GenericObject> {
 		constructor(broker: ServiceBroker, endpoint: Endpoint);
 		id: string;
 		broker: ServiceBroker;
 		endpoint: Endpoint;
-		action: Action;
+		action: ActionSchema;
 		service?: Service;
 		nodeID?: string;
 
@@ -151,7 +149,7 @@ declare namespace Moleculer {
 
 	type Middleware = {
 		[name: string]:
-			| ((handler: ActionHandler, action: Action) => any)
+			| ((handler: ActionHandler, action: ActionSchema) => any)
 			| ((handler: ActionHandler, event: ServiceEvent) => any)
 			| ((handler: ActionHandler) => any)
 			| ((service: Service) => any)
@@ -176,7 +174,7 @@ declare namespace Moleculer {
 		settings?: ServiceSettingSchema;
 		dependencies?: string | GenericObject | Array<string> | Array<GenericObject>;
 		metadata?: GenericObject;
-		actions?: ServiceActions;
+		actions?: ServiceActionsSchema;
 		mixins?: Array<ServiceSchema>;
 		methods?: ServiceMethods;
 
@@ -185,6 +183,12 @@ declare namespace Moleculer {
 		started?: (() => PromiseLike<void>) | Array<() => PromiseLike<void>>;
 		stopped?: (() => PromiseLike<void>) | Array<() => PromiseLike<void>>;
 		[name: string]: any;
+	}
+
+	type ServiceAction<T = PromiseLike<any>, P extends GenericObject = GenericObject> = ((params?: P, opts?: CallingOptions) => T) & ThisType<Service>;
+
+	interface ServiceActions {
+		[name: string]: ServiceAction;
 	}
 
 	class Service implements ServiceSchema {
@@ -391,7 +395,7 @@ declare namespace Moleculer {
 
 	interface ActionEndpoint extends Endpoint {
 		service: Service;
-		action: Action;
+		action: ActionSchema;
 	}
 
 	interface PongResponse {
