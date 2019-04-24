@@ -3,6 +3,7 @@ sudo: false
 dist: xenial
 
 node_js:
+    - "12"
     - "10"
     - "8"
     - "6"
@@ -21,6 +22,7 @@ addons:
       - sourceline: 'ppa:mosquitto-dev/mosquitto-ppa'
     packages:
       - mosquitto
+      - rabbitmq-server
 
 before_script:
   # install NATS server
