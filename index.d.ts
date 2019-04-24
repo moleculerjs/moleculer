@@ -642,8 +642,11 @@ declare namespace Moleculer {
 		}
 
 		class Memory extends Base {}
-		class Redis extends Base {
-			client: any;
+
+		class MemoryLRU extends Base {}
+
+		class Redis<C = any> extends Base {
+			client: C;
 		}
 	}
 
