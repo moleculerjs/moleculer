@@ -155,6 +155,14 @@ class Tracer {
 			this.exporter.forEach(exporter => exporter[method].apply(exporter, args));
 		}
 	}
+
+	getCurrentTraceID() {
+		return null;
+	}
+
+	getParentSpanID() {
+		return null;
+	}
 }
 
 module.exports = Tracer;

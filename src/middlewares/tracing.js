@@ -19,6 +19,12 @@ function tracingLocalActionMiddleware(handler, action) {
 	if (opts.enabled) {
 		return function tracingMiddleware(ctx) {
 
+			if (!ctx.requestID)
+				ctx.requestID = ctx.broker.tracer.getCurrentTraceID();
+
+			if (!ctx.parentID)
+				ctx.parentID = ctx.broker.tracer.getParentSpanID();
+
 			const tags = {
 				callingLevel: ctx.level,
 				action: ctx.action ? {
@@ -27,6 +33,7 @@ function tracingLocalActionMiddleware(handler, action) {
 				} : null,
 				remoteCall: ctx.nodeID !== ctx.broker.nodeID,
 				callerNodeID: ctx.nodeID,
+				nodeID: ctx.broker.nodeID,
 				options: {
 					timeout: ctx.options.timeout,
 					retries: ctx.options.retries

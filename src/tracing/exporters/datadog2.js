@@ -66,6 +66,32 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		}
 
 		this.tracer.contextWrappers.push(this.wrapContext.bind(this));
+
+		this.tracer.getCurrentTraceID = () => {
+			const scope = this.ddTracer.scope();
+			if (scope) {
+				const span = scope.active();
+				if (span) {
+					const spanContext = span.context();
+					if (spanContext)
+						return spanContext.toTraceId();
+				}
+			}
+			return null;
+		};
+
+		this.tracer.getParentSpanID = () => {
+			const scope = this.ddTracer.scope();
+			if (scope) {
+				const span = scope.active();
+				if (span) {
+					const spanContext = span.context();
+					if (spanContext)
+						return spanContext.toSpanId();
+				}
+			}
+			return null;
+		};
 	}
 
 	wrapContext(span, fn) {
@@ -90,23 +116,23 @@ class DatadogTraceExporter extends BaseTraceExporter {
 
 		const serviceName = span.service ? span.service.fullName : null;
 
-		let parentCtx, noConvert = false;
+		let parentCtx;
 		if (span.parentID) {
 			parentCtx = new DatadogSpanContext({
 				traceId: this.convertID(span.traceID),
 				spanId: this.convertID(span.parentID),
 				parentId: this.convertID(span.parentID)
 			});
-		} else {
+		/*} else {
 			const scope = this.ddTracer.scope();
 			if (scope) {
 				const activeSpan = scope.active();
 				if (activeSpan) {
 					parentCtx = activeSpan.context();
 					span.traceID = parentCtx.toTraceId();
-					noConvert = true;
+					span.parentID = parentCtx.toSpanId();
 				}
-			}
+			}*/
 		}
 
 		const ddSpan = this.ddTracer.startSpan(span.name, {
@@ -128,7 +154,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		this.addTags(ddSpan, "service", serviceName);
 
 		const sc = ddSpan.context();
-		sc._traceId = noConvert ? span.traceID : this.convertID(span.traceID);
+		sc._traceId = this.convertID(span.traceID);
 		sc._spanId = this.convertID(span.id);
 
 		Object.defineProperty(span, "$ddSpan", {
@@ -259,8 +285,11 @@ class DatadogTraceExporter extends BaseTraceExporter {
 	 * @returns {String}
 	 */
 	convertID(id) {
-		if (id)
-			return new DatadogPlatform.Uint64BE(Buffer.from(id.replace(/-/g, "").substring(0, 16), "hex"));
+		if (id) {
+			if (id.indexOf("-") !== -1)
+				return new DatadogPlatform.Uint64BE(Buffer.from(id.replace(/-/g, "").substring(0, 16), "hex"));
+			return new DatadogPlatform.Uint64BE(id);
+		}
 
 		return null;
 	}

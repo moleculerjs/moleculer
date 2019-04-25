@@ -9,6 +9,7 @@ global.tracer = require("dd-trace").init({
 });
 
 global.tracer.use("http");
+global.tracer.use("ioredis");
 
 const ServiceBroker = require("../src/service-broker");
 "use strict";
@@ -21,9 +22,12 @@ const THROW_ERR = false;
 
 // Create broker
 const broker = new ServiceBroker({
+	nodeID: "node-1",
 	logger: console,
 	logLevel: "info",
 	logObjectPrinter: o => inspect(o, { showHidden: false, depth: 4, colors: true, breakLength: 50 }),
+	transporter: "redis://localhost:6379",
+	cacher: "redis://localhost:6379",
 	tracing: {
 		events: true,
 		stackTrace: true,
@@ -92,16 +96,17 @@ broker.createService({
 	name: "posts",
 	actions: {
 		find: {
+			//cache: true,
 			handler(ctx) {
 				const posts = _.cloneDeep(POSTS);
-				/*return this.Promise.all(posts.map(post => {
+				return this.Promise.all(posts.map(post => {
 					return this.Promise.all([
 						ctx.call("users.get", { id: post.author }).then(author => post.author = author),
 						ctx.call("votes.count", { postID: post.id }).then(votes => post.votes = votes),
 					]);
 				})).then(() => posts);
-				*/
-				return posts;
+
+				//return posts;
 			}
 		}
 	}
@@ -119,6 +124,7 @@ broker.createService({
 			tracing: {
 				tags: ["id", "#loggedIn.username"],
 			},
+			//cache: true,
 			handler(ctx) {
 				return this.Promise.resolve()
 					.then(() => {
@@ -156,7 +162,7 @@ broker.createService({
 		}
 	}
 });
-
+/*
 broker.createService({
 	name: "friends",
 	actions: {
@@ -170,7 +176,7 @@ broker.createService({
 			}
 		}
 	}
-});
+});*/
 
 broker.createService({
 	name: "event-handler",
