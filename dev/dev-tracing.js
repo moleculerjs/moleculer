@@ -26,7 +26,7 @@ const broker = new ServiceBroker({
 	logger: console,
 	logLevel: "info",
 	logObjectPrinter: o => inspect(o, { showHidden: false, depth: 4, colors: true, breakLength: 50 }),
-	transporter: "redis://localhost:6379",
+	//transporter: "redis://localhost:6379",
 	cacher: "redis://localhost:6379",
 	tracing: {
 		events: true,
@@ -162,7 +162,7 @@ broker.createService({
 		}
 	}
 });
-/*
+
 broker.createService({
 	name: "friends",
 	actions: {
@@ -176,7 +176,7 @@ broker.createService({
 			}
 		}
 	}
-});*/
+});
 
 broker.createService({
 	name: "event-handler",

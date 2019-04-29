@@ -27,7 +27,7 @@ function createBrokers(Transporter, opts) {
 			//Middlewares.Transmit.Encryption("moleculer"),
 			//Middlewares.Transmit.Compression(),
 		],
-		//tracing: true
+		tracing: true
 	});
 
 	b2.createService({
@@ -53,7 +53,7 @@ createBrokers(Transporters.Fake).then(([b1, b2]) => {
 	let count = 0;
 	function doRequest() {
 		count++;
-		return b1.call("echo.reply", { a: count }).then(res => {
+		return b2.call("echo.reply", { a: count }).then(res => {
 			if (count % 10000) {
 				// Fast cycle
 				doRequest();
