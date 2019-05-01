@@ -1,16 +1,17 @@
+/*
+ * moleculer
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * MIT Licensed
+ */
+
 "use strict";
 
-const util = require("util");
 const asyncHooks = require("async_hooks");
 const executionAsyncId = asyncHooks.executionAsyncId;
 
-function log(...args) {
-	process._rawDebug(`${util.format(...args)}`);
-}
-
 class AsyncStorage {
-	constructor() {
-		this.broker = null;
+	constructor(broker) {
+		this.broker = broker;
 
 		this.hook = asyncHooks.createHook({
 			init: this._init.bind(this),
@@ -25,9 +26,12 @@ class AsyncStorage {
 		this.store = new Map();
 	}
 
-	init(broker) {
-		this.broker = broker;
+	enable() {
 		this.hook.enable();
+	}
+
+	disable() {
+		this.hook.disable();
 	}
 
 	stop() {
@@ -73,5 +77,13 @@ class AsyncStorage {
 		}
 	}
 }
+
+/*
+const util = require("util");
+
+function log(...args) {
+	process._rawDebug(`${util.format(...args)}`);
+}
+*/
 
 module.exports = AsyncStorage;

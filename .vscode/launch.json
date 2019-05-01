@@ -12,7 +12,8 @@
 			"cwd": "${workspaceRoot}",
 			"args": [
 				//"dev-tracing"
-				"async-hook"
+				//"async-hook"
+				"dev"
 			],
 		},
 		{

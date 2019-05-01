@@ -1,12 +1,12 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
-module.exports = {
+const Middlewares = {
 	ActionHook: require("./action-hook"),
 	CircuitBreaker: require("./circuit-breaker"),
 	Metrics: require("./metrics"),
@@ -30,3 +30,5 @@ module.exports = {
 		ActionLogger: require("./debugging/action-logger"),
 	}
 };
+
+module.exports = Middlewares;

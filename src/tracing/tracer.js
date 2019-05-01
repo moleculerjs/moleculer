@@ -9,7 +9,7 @@
 const Promise = require("bluebird"); // eslint-disable-line no-unused-vars
 const _ = require("lodash");
 const Exporters = require("./exporters");
-
+const AsyncStorage = require("../async-storage");
 const Span = require("./span");
 
 /**
@@ -55,6 +55,9 @@ class Tracer {
 		this.sampleCounter = 0;
 
 		this.contextWrappers = [];
+
+		this.scope = new AsyncStorage(this.broker);
+		this.scope.enable();
 
 		if (this.opts.enabled)
 			this.logger.info("Tracing: Enabled");
@@ -154,6 +157,14 @@ class Tracer {
 		if (this.exporter) {
 			this.exporter.forEach(exporter => exporter[method].apply(exporter, args));
 		}
+	}
+
+	setCurrentSpan(span) {
+		this.scope.setSessionData(span);
+	}
+
+	getCurrentSpan() {
+		return this.scope.getSessionData();
 	}
 
 	getCurrentTraceID() {

@@ -1,4 +1,4 @@
-const AsyncStorage = require("../src/tracing/async-storage");
+const AsyncStorage = require("../src/async-storage");
 const scope = new AsyncStorage();
 scope.init();
 

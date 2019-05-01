@@ -19,6 +19,7 @@ const E 					= require("./errors");
 const utils 				= require("./utils");
 const Logger 				= require("./logger");
 const Validator 			= require("./validator");
+const AsyncStorage 			= require("./async-storage");
 
 const Cachers 				= require("./cachers");
 const Transporters 			= require("./transporters");
@@ -114,6 +115,8 @@ const defaultOptions = {
 
 	metadata: {},
 
+	skipProcessEventRegistration: false,
+
 	// ServiceFactory: null,
 	// ContextFactory: null
 };
@@ -165,14 +168,18 @@ class ServiceBroker {
 			this.services = [];
 
 			this.logger.info(`Moleculer v${this.MOLECULER_VERSION} is starting...`);
-			this.logger.info(`Node ID: ${this.nodeID}`);
 			this.logger.info(`Namespace: ${this.namespace || "<not defined>"}`);
+			this.logger.info(`Node ID: ${this.nodeID}`);
 
 			// Internal event bus
 			this.localBus = new EventEmitter2({
 				wildcard: true,
 				maxListeners: 100
 			});
+
+			// Async storage for Contexts
+			this.scope = new AsyncStorage(this);
+			this.scope.enable();
 
 			// Metrics Registry
 			this.metrics = new MetricRegistry(this, this.options.metrics);
@@ -190,7 +197,7 @@ class ServiceBroker {
 			if (this.cacher) {
 				this.cacher.init(this);
 
-				const name = this.cacher.constructor.name;
+				const name = this.getConstructorName(this.cacher);
 				this.logger.info(`Cacher: ${name}`);
 			}
 
@@ -198,7 +205,7 @@ class ServiceBroker {
 			this.serializer = Serializers.resolve(this.options.serializer);
 			this.serializer.init(this);
 
-			const serializerName = this.serializer.constructor.name;
+			const serializerName = this.getConstructorName(this.serializer);
 			this.logger.info(`Serializer: ${serializerName}`);
 
 			// Validation
@@ -221,7 +228,7 @@ class ServiceBroker {
 				const tx = Transporters.resolve(this.options.transporter);
 				this.transit = new Transit(this, tx, this.options.transit);
 
-				const txName = tx.constructor.name;
+				const txName = this.getConstructorName(tx);
 				this.logger.info(`Transporter: ${txName}`);
 
 				if (this.options.disableBalancer) {
@@ -257,12 +264,13 @@ class ServiceBroker {
 			};
 
 			process.setMaxListeners(0);
-			if ((this.options.skipProcessEventRegistration || false) !== true) {
+			if (this.options.skipProcessEventRegistration === false) {
 				process.on("beforeExit", this._closeFn);
 				process.on("exit", this._closeFn);
 				process.on("SIGINT", this._closeFn);
 				process.on("SIGTERM", this._closeFn);
 			}
+
 		} catch(err) {
 			if (this.logger)
 				this.fatal("Unable to create ServiceBroker.", err, true);
@@ -271,7 +279,6 @@ class ServiceBroker {
 				console.error("Unable to create ServiceBroker.", err);
 			}
 		}
-
 	}
 
 	/**
@@ -293,46 +300,52 @@ class ServiceBroker {
 			const prevCount = this.middlewares.count();
 
 			// 0. ActionHook
-			this.middlewares.add(Middlewares.ActionHook.call(this));
+			this.middlewares.add(Middlewares.ActionHook);
 
 			// 1. Validator
-			if (this.validator && _.isFunction(this.validator.middleware))
-				this.middlewares.add(this.validator.middleware());
+			if (this.validator && _.isFunction(this.validator.middleware)) {
+				this.middlewares.add({
+					localAction: this.validator.middleware()
+				});
+			}
 
 			// 2. Bulkhead
-			this.middlewares.add(Middlewares.Bulkhead.call(this));
+			this.middlewares.add(Middlewares.Bulkhead);
 
 			// 3. Cacher
-			if (this.cacher && _.isFunction(this.cacher.middleware))
-				this.middlewares.add(this.cacher.middleware());
+			if (this.cacher && _.isFunction(this.cacher.middleware)) {
+				this.middlewares.add({
+					localAction: this.cacher.middleware()
+				});
+			}
 
 			// 4. Context tracker
-			this.middlewares.add(Middlewares.ContextTracker.call(this));
+			this.middlewares.add(Middlewares.ContextTracker);
 
 			// 5. CircuitBreaker
-			this.middlewares.add(Middlewares.CircuitBreaker.call(this));
+			this.middlewares.add(Middlewares.CircuitBreaker);
 
 			// 6. Timeout
-			this.middlewares.add(Middlewares.Timeout.call(this));
+			this.middlewares.add(Middlewares.Timeout);
 
 			// 7. Retry
-			this.middlewares.add(Middlewares.Retry.call(this));
+			this.middlewares.add(Middlewares.Retry);
 
 			// 8. Fallback
-			this.middlewares.add(Middlewares.Fallback.call(this));
+			this.middlewares.add(Middlewares.Fallback);
 
 			// 9. Error handler
-			this.middlewares.add(Middlewares.ErrorHandler.call(this));
+			this.middlewares.add(Middlewares.ErrorHandler);
 
 			// 10. Tracing
-			this.middlewares.add(Middlewares.Tracing.call(this));
+			this.middlewares.add(Middlewares.Tracing);
 
 			// 11. Metrics
-			this.middlewares.add(Middlewares.Metrics.call(this));
+			this.middlewares.add(Middlewares.Metrics);
 
 			if (this.options.hotReload) {
 				// 12. Hot Reload
-				this.middlewares.add(Middlewares.HotReload.call(this));
+				this.middlewares.add(Middlewares.HotReload);
 			}
 
 			this.logger.info(`Registered ${this.middlewares.count() - prevCount} internal middleware(s).`);

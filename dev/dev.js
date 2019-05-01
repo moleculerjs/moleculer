@@ -1,12 +1,24 @@
 const ServiceBroker = require("../src/service-broker");
 
+const Middlewares = require("../src/middlewares");
+
+Middlewares.MyCustom = {
+	created(broker) {
+		broker.logger.info("My custom middleware is created!");
+	}
+};
+
+
 const broker1 = new ServiceBroker({
 	nodeID: "broker-1",
 	transporter: "NATS",
 	transit: {
 		disableVersionCheck: true
 	},
-	serializer: "Thrift"
+	serializer: "Thrift",
+	middlewares: [
+		"MyCustom"
+	]
 });
 
 const broker2 = new ServiceBroker({

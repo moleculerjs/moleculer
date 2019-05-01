@@ -6,8 +6,10 @@
 
 "use strict";
 
-const Promise = require("bluebird");
-const _ = require("lodash");
+const Promise 		= require("bluebird");
+const _ 			= require("lodash");
+const Middlewares 	= require("./middlewares");
+const { BrokerOptionsError } = require("./errors");
 
 class MiddlewareHandler {
 
@@ -21,13 +23,17 @@ class MiddlewareHandler {
 		if (!mw) return;
 
 		if (_.isFunction(mw)) {
-			// Backward compatibility
-			mw = {
-				localAction: mw
-			};
-		}
+			this.list.push(mw.call(this.broker));
+		} else if (_.isString(mw)) {
+			let item = _.get(Middlewares, mw);
+			if (item)
+				this.list.push(item);
+			else
+				throw new BrokerOptionsError(`Invalid built-in middleware type '${mw}'.`, { type: mw });
 
-		this.list.push(mw);
+		} else {
+			this.list.push(mw);
+		}
 	}
 
 	/**

@@ -7,6 +7,7 @@
 - subscribe/unsubscribe event from codes and REPL.
 - caching with tags/labels
 - test cover new features
+- global errorHandler in ServiceBroker
 
 ## Done
 - communication protocol changed (`3` -> `4`)
@@ -43,6 +44,28 @@
         }
     };
     ```
+
+- load middlewares by names
+    ```js
+        const { Middlewares } = require("moleculer");
+
+        // Extend with custom middlewares
+        Middlewares.MyCustom = {
+            created(broker) {
+                broker.logger.info("My custom middleware is created!");
+            }
+        };
+
+
+        const broker1 = new ServiceBroker({
+            logger: true,
+            middlewares: [
+                // Load by middleware name
+                "MyCustom"
+            ]
+        });    
+    ```
+- middleware must be `Object`. If `Function` it will be called with `broker`. Previous backward compatibility is dropped.
 
 ## Other notable changes
 -
