@@ -44,7 +44,7 @@ const broker = new ServiceBroker({
 					agentUrl: "http://192.168.0.181:8126/v0.4/traces",
 				}
 			},*/
-			{
+			/*{
 				type: "Datadog2",
 				options: {
 					agentUrl: "http://192.168.0.181:8126",
@@ -53,7 +53,7 @@ const broker = new ServiceBroker({
 						debug: true,
 					}
 				}
-			},
+			},*/
 			/*{
 				type: "Zipkin",
 				options: {
@@ -98,12 +98,19 @@ broker.createService({
 		find: {
 			//cache: true,
 			handler(ctx) {
+				const span1 = ctx.startSpan("cloning posts");
 				const posts = _.cloneDeep(POSTS);
+				span1.finish();
+
 				return this.Promise.all(posts.map(post => {
+					const span2 = ctx.startSpan("populate post #" + post.id);
 					return this.Promise.all([
 						ctx.call("users.get", { id: post.author }).then(author => post.author = author),
 						ctx.call("votes.count", { postID: post.id }).then(votes => post.votes = votes),
-					]);
+					]).then(res => {
+						span2.finish();
+						return res;
+					});
 				})).then(() => posts);
 
 				//return posts;
@@ -234,10 +241,10 @@ broker.start().then(() => {
 
 	// Call action
 	//setInterval(() => {
-	/*broker
+	broker
 		.call("posts.find", { limit: 5 }, { meta: { loggedIn: { username: "Adam" } } })
-		.then(console.log)
+		//.then(console.log)
 		.catch(console.error);
-*/
+
 	//}, 5000);
 });

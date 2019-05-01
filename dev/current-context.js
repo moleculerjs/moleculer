@@ -1,8 +1,5 @@
-const AsyncStorage = require("../src/async-storage");
-const scope = new AsyncStorage();
-scope.init();
-
 const { ServiceBroker } = require("../");
+
 const broker = new ServiceBroker({
 	logFormatter: "simple",
 	requestTimeout: 5000,
@@ -12,7 +9,7 @@ const broker = new ServiceBroker({
 	retryPolicy: {
 		enabled: true
 	},
-	middlewares: [
+	/*middlewares: [
 		{
 			localAction(handler, action) {
 				return async function (ctx) {
@@ -28,14 +25,14 @@ const broker = new ServiceBroker({
 				};
 			}
 		}
-	]
+	]*/
 });
 
 broker.createService({
 	name: "greeter",
 	actions: {
 		hello(ctx) {
-			this.logger.info("hello:      ", ctx.id, ` (${scope.getAsyncId()})`);
+			this.logger.info("hello:      ", ctx.id);
 			return this.Promise.resolve().delay(50)
 				.then(() => this.doSomething())
 				.then(() => this.logger.info(""));
@@ -44,22 +41,18 @@ broker.createService({
 	},
 	methods: {
 		doSomething() {
-			//const activeCtx = scope._active();
-			const activeCtx = scope.getSessionData();
-			this.logger.info("doSomething:", activeCtx ? activeCtx.id : "?", ` (${scope.getAsyncId()})`);
-
+			this.logger.info("doSomething:", this.currentContext ? this.currentContext.id : "?");
 			return this.Promise.resolve().delay(100);
 		}
 	}
 });
 
 broker.start().then(() => {
-	console.log(`getAsyncId after start: ${scope.getAsyncId()}`);
-	//setInterval(() => {
+	broker.getLocalService("greeter").doSomething();
+
 	broker
 		.call("greeter.hello", { name: "CodeSandbox" })
 		.then(() => broker.getLocalService("greeter").doSomething())
 		.catch(err => broker.logger.error(err.message));
 
-	//}, 2000);
 });

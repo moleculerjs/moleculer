@@ -1022,6 +1022,8 @@ class ServiceBroker {
 		else
 			this.logger.debug("Call action on remote node.", { action: ctx.action.name, nodeID: ctx.nodeID, requestID: ctx.requestID });
 
+		this.setCurrentContext(ctx);
+
 		let p = ctx.endpoint.action.handler(ctx);
 
 		// Pointer to Context
@@ -1421,6 +1423,26 @@ class ServiceBroker {
 	 */
 	emitLocalServices(event, payload, groups, sender, broadcast) {
 		return this.registry.events.emitLocalServices(event, payload, groups, sender, broadcast);
+	}
+
+	/**
+	 * Set the current Context to the async storage.
+	 *
+	 * @param {Context} ctx
+	 * @memberof ServiceBroker
+	 */
+	setCurrentContext(ctx) {
+		this.scope.setSessionData(ctx);
+	}
+
+	/**
+	 * Get the current Context from the async storage.
+	 *
+	 * @returns {Context?}
+	 * @memberof ServiceBroker
+	 */
+	getCurrentContext() {
+		return this.scope.getSessionData();
 	}
 
 	/**
