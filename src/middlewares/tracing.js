@@ -8,7 +8,7 @@
 
 const _ = require("lodash");
 
-let broker;
+let broker, tracer;
 
 function tracingLocalActionMiddleware(handler, action) {
 	let opts = action.tracing;
@@ -19,11 +19,11 @@ function tracingLocalActionMiddleware(handler, action) {
 	if (opts.enabled) {
 		return function tracingMiddleware(ctx) {
 
-			if (!ctx.requestID)
-				ctx.requestID = ctx.broker.tracer.getCurrentTraceID();
+			//if (!ctx.requestID)
+			ctx.requestID = tracer.getCurrentTraceID() || ctx.requestID;
 
-			if (!ctx.parentID)
-				ctx.parentID = ctx.broker.tracer.getParentSpanID();
+			//if (!ctx.parentID)
+			ctx.parentID = tracer.getParentSpanID() || ctx.parentID;
 
 			const tags = {
 				callingLevel: ctx.level,
@@ -53,7 +53,7 @@ function tracingLocalActionMiddleware(handler, action) {
 				});
 			}
 
-			const span = ctx.broker.tracer.startSpan(`action '${ctx.action.name}'`, {
+			const span = ctx.startSpan(`action '${ctx.action.name}'`, {
 				id: ctx.id,
 				traceID: ctx.requestID,
 				parentID: ctx.parentID,
@@ -71,7 +71,7 @@ function tracingLocalActionMiddleware(handler, action) {
 
 			return new Promise((resolve, reject) => {
 
-				ctx.broker.tracer.wrappingContext(span, function() {
+				tracer.wrappingContext(span, function() {
 
 					// Call the handler
 					return handler(ctx).then(res => {
@@ -171,7 +171,7 @@ function wrapRemoteTracingMiddleware(handler) {
 
 module.exports = function TracingMiddleware() {
 	broker = this;
-	const tracer = broker.tracer;
+	tracer = broker.tracer;
 
 	return {
 		localAction: broker.isTracingEnabled() && tracer.opts.actions ? tracingLocalActionMiddleware : null,

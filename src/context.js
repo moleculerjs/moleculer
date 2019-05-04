@@ -295,9 +295,9 @@ class Context {
 	 */
 	startSpan(name, opts) {
 		if (!this.span)
-			return this.broker.tracer.startSpan(name, opts);
+			return this.broker.tracer.startSpan(name, opts, this);
 
-		return this.span.startSpan(name, opts);
+		return this.span.startSpan(name, opts, this);
 	}
 
 }

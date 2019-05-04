@@ -7,7 +7,9 @@
 - subscribe/unsubscribe event from codes and REPL.
 - caching with tags/labels
 - test cover new features
-- global errorHandler in ServiceBroker
+- global errorHandler in ServiceBroker `errorHandler(err, broker, info) {}`
+    - in `info` can be reachable actual service or context or action or event...
+    - if the error handled, not printed to the console or throw further.
 
 ## Done
 - communication protocol changed (`3` -> `4`)
@@ -65,7 +67,7 @@
             ]
         });    
     ```
-- middleware must be `Object`. If `Function` it will be called with `broker`. Previous backward compatibility is dropped.
+- Please note: middleware must be `Object`. If `Function` it will be called with `broker`. Previous backward compatibility is dropped.
 
 ## Other notable changes
 -

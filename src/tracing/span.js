@@ -1,6 +1,7 @@
 "use strict";
 
 const { generateToken } = require("../utils");
+const asyncHooks = require("async_hooks");
 
 function defProp(instance, propName, value, readOnly = false) {
 	Object.defineProperty(instance, propName, {
@@ -31,7 +32,7 @@ class Span {
 		defProp(this, "opts", opts || {});
 		defProp(this, "ctx", ctx);
 
-		this.name = name;
+		this.name = `[${this.tracer.scope.getAsyncId()}] ` + name;
 		this.id = opts.id || generateToken();
 		this.traceID = this.opts.traceID || this.id;
 		this.parentID = this.opts.parentID;
@@ -156,6 +157,8 @@ class Span {
 
 		this.logger.debug(`[${this.id}] Span '${this.name}' is finished. Duration: ${Number(this.duration).toFixed(3)} ms`, this.tags);
 
+		this.tracer.removeCurrentSpan(this);
+
 		this.tracer.invokeExporter("finishSpan", [this]);
 
 		return this;
@@ -166,16 +169,17 @@ class Span {
 	 *
 	 * @param {String} name
 	 * @param {Object?} opts
+	 * @param {Context?} ctx
 	 * @returns {Span} Child span
 	 * @memberof Span
 	 */
-	startSpan(name, opts) {
+	startSpan(name, opts, ctx) {
 		const r = {
 			traceID: this.traceID,
 			parentID: this.id,
 			sampled: this.sampled
 		};
-		return this.tracer.startSpan(name, opts ? Object.assign(r, opts) : r);
+		return this.tracer.startSpan(name, opts ? Object.assign(r, opts) : r, ctx);
 	}
 
 }

@@ -1,9 +1,11 @@
 "use strict";
 
+const asyncHooks = require("async_hooks");
+
 global.tracer = require("dd-trace").init({
 	service: "moleculer", // shows up as Service in Datadog UI
 	//hostname: "agent", // references the `agent` service in docker-compose.yml
-	debug: true,
+	debug: false,
 	url: "http://192.168.0.181:8126",
 	samplingPriority: "USER_KEEP",
 });
@@ -44,16 +46,16 @@ const broker = new ServiceBroker({
 					agentUrl: "http://192.168.0.181:8126/v0.4/traces",
 				}
 			},*/
-			/*{
+			{
 				type: "Datadog2",
 				options: {
 					agentUrl: "http://192.168.0.181:8126",
 					samplingPriority: "USER_KEEP",
 					tracerOptions: {
-						debug: true,
+						debug: false,
 					}
 				}
-			},*/
+			},
 			/*{
 				type: "Zipkin",
 				options: {
@@ -95,25 +97,59 @@ const POSTS = [
 broker.createService({
 	name: "posts",
 	actions: {
+		sync: {
+			async handler(ctx) {
+				const span1 = ctx.startSpan("span-1");
+
+				const span2 = ctx.startSpan("span-1-2");
+
+				const span21 = ctx.startSpan("span-1-2-1");
+				await this.Promise.delay(10);
+				span21.finish();
+
+				const span22 = ctx.startSpan("span-1-2-2");
+				span22.finish();
+
+				span2.finish();
+
+				const span3 = ctx.startSpan("span-1-3");
+
+				const span31 = ctx.startSpan("span-1-3-1");
+				await this.Promise.delay(10);
+				span31.finish();
+
+				const span32 = ctx.startSpan("span-1-3-2");
+				span32.finish();
+
+				span3.finish();
+
+				span1.finish();
+			}
+		},
+
 		find: {
 			//cache: true,
-			handler(ctx) {
+			async handler(ctx) {
 				const span1 = ctx.startSpan("cloning posts");
 				const posts = _.cloneDeep(POSTS);
 				span1.finish();
 
-				return this.Promise.all(posts.map(post => {
-					const span2 = ctx.startSpan("populate post #" + post.id);
-					return this.Promise.all([
+				const span2 = ctx.startSpan("populate posts");
+				const res = await this.Promise.all(posts.map(async post => {
+					const span3 = span2.startSpan("populate #" + post.id);
+
+					const res = await this.Promise.all([
 						ctx.call("users.get", { id: post.author }).then(author => post.author = author),
 						ctx.call("votes.count", { postID: post.id }).then(votes => post.votes = votes),
-					]).then(res => {
-						span2.finish();
-						return res;
-					});
-				})).then(() => posts);
+					]);
 
-				//return posts;
+					span3.finish();
+
+					return res;
+				}));
+
+				span2.finish();
+				return posts;
 			}
 		}
 	}
@@ -131,18 +167,14 @@ broker.createService({
 			tracing: {
 				tags: ["id", "#loggedIn.username"],
 			},
-			//cache: true,
-			handler(ctx) {
-				return this.Promise.resolve()
-					.then(() => {
-						const user = USERS.find(user => user.id == ctx.params.id);
-						if (user) {
-							const res = _.cloneDeep(user);
-							return ctx.call("friends.count", { userID: user.id })
-								.then(friends => res.friends = friends)
-								.then(() => res);
-						}
-					});
+			cache: true,
+			async handler(ctx) {
+				const user = USERS.find(user => user.id == ctx.params.id);
+				if (user) {
+					const res = _.cloneDeep(user);
+					res.friends = await ctx.call("friends.count", { userID: user.id });
+					return res;
+				}
 			}
 		}
 	}
@@ -163,8 +195,9 @@ broker.createService({
 					};
 				}
 			},
-			handler(ctx) {
-				return this.Promise.resolve().delay(10 + _.random(30)).then(() => ctx.params.postID * 3);
+			async handler(ctx) {
+				await this.Promise.delay(10 + _.random(30));
+				return ctx.params.postID * 3;
 			}
 		}
 	}
@@ -175,11 +208,12 @@ broker.createService({
 	actions: {
 		count: {
 			tracing: true,
-			handler(ctx) {
+			async handler(ctx) {
 				if (THROW_ERR && ctx.params.userID == 1)
 					throw new MoleculerError("Friends is not found!", 404, "FRIENDS_NOT_FOUND", { userID: ctx.params.userID });
 
-				return this.Promise.resolve().delay(10 + _.random(60)).then(() => ctx.params.userID * 3);
+				await this.Promise.delay(10 + _.random(30));
+				return ctx.params.userID * 3;
 			}
 		}
 	}
@@ -241,10 +275,10 @@ broker.start().then(() => {
 
 	// Call action
 	//setInterval(() => {
-	broker
+/*	broker
 		.call("posts.find", { limit: 5 }, { meta: { loggedIn: { username: "Adam" } } })
 		//.then(console.log)
 		.catch(console.error);
-
+*/
 	//}, 5000);
 });

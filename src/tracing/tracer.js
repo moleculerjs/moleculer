@@ -144,6 +144,8 @@ class Tracer {
 			defaultTags: this.opts.defaultTags
 		}, opts), ctx);
 
+		//console.log(`Start span: ${this.scope.getAsyncId()} - ${name}`);
+
 		this.setCurrentSpan(span);
 
 		span.start();
@@ -165,19 +167,39 @@ class Tracer {
 	}
 
 	setCurrentSpan(span) {
-		this.scope.setSessionData(span);
+		const state = this.scope.getSessionData() || {
+			spans: []
+		};
+
+		state.spans.push(span);
+		this.scope.setSessionData(state);
+		//console.log(`Set data: ${this.scope.getAsyncId()}`);
+	}
+
+	removeCurrentSpan(span) {
+		//console.log(`Remove data: ${this.scope.getAsyncId()}`);
+		const state = this.scope.getSessionData();
+		if (state && state.spans.length > 0) {
+			const idx = state.spans.indexOf(span);
+			if (idx >= 0)
+				state.spans.splice(idx, 1);
+		}
 	}
 
 	getCurrentSpan() {
-		return this.scope.getSessionData();
+		//console.log(`Get data: ${this.scope.getAsyncId()}`);
+		const state = this.scope.getSessionData();
+		return state ? state.spans[state.spans.length - 1] : null;
 	}
 
 	getCurrentTraceID() {
-		return null;
+		const span = this.getCurrentSpan();
+		return span ? span.traceID : null;
 	}
 
 	getParentSpanID() {
-		return null;
+		const span = this.getCurrentSpan();
+		return span ? span.id : null;
 	}
 }
 
