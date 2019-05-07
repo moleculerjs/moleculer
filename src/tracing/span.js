@@ -32,7 +32,7 @@ class Span {
 		defProp(this, "opts", opts || {});
 		defProp(this, "ctx", ctx);
 
-		this.name = `[${this.tracer.scope.getAsyncId()}] ` + name;
+		this.name = name;
 		this.id = opts.id || generateToken();
 		this.traceID = this.opts.traceID || this.id;
 		this.parentID = this.opts.parentID;
@@ -123,7 +123,6 @@ class Span {
 
 		this.logger.debug(`[${this.id}] Span '${this.name}' has a new log event: ${name}.`);
 
-
 		return this;
 	}
 
@@ -157,9 +156,7 @@ class Span {
 
 		this.logger.debug(`[${this.id}] Span '${this.name}' is finished. Duration: ${Number(this.duration).toFixed(3)} ms`, this.tags);
 
-		this.tracer.removeCurrentSpan(this);
-
-		this.tracer.invokeExporter("finishSpan", [this]);
+		this.tracer.spanFinished(this);
 
 		return this;
 	}

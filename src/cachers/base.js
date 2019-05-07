@@ -290,13 +290,13 @@ class Cacher {
 											});
 										}).catch(err=>{
 											// The cache is refreshing on somewhere else.
-										})
+										});
 									}
 								}
 								return data;
 							});
 						} else {
-							cachePromise = this.get(cacheKey)
+							cachePromise = this.get(cacheKey);
 						}
 						return cachePromise.then(data=>{
 							if (data != null) {
@@ -312,7 +312,7 @@ class Cacher {
 										ctx.cachedResult = true;
 										return unlock().then(() => {
 											return content;
-										})
+										});
 									}
 									// Call the handler
 									return handler(ctx).then(result => {
@@ -321,12 +321,12 @@ class Cacher {
 										return result;
 									}).catch(e => {
 										return unlock().then(() => {
-											return Promise.reject(e)
-										})
-									})
+											return Promise.reject(e);
+										});
+									});
 								});
 							});
-						})
+						});
 					}
 					// Not using lock
 					return this.get(cacheKey).then(content => {

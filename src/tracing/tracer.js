@@ -201,6 +201,11 @@ class Tracer {
 		const span = this.getCurrentSpan();
 		return span ? span.id : null;
 	}
+
+	spanFinished(span) {
+		this.removeCurrentSpan(span);
+		this.invokeExporter("finishSpan", [span]);
+	}
 }
 
 module.exports = Tracer;

@@ -67,6 +67,19 @@ class DatadogTraceExporter extends BaseTraceExporter {
 
 		this.tracer.contextWrappers.push(this.wrapContext.bind(this));
 
+		this.tracer.getCurrentSpanID = () => {
+			const scope = this.ddTracer.scope();
+			if (scope) {
+				const span = scope.active();
+				if (span) {
+					const spanContext = span.context();
+					if (spanContext)
+						return spanContext.toSpanId();
+				}
+			}
+			return null;
+		};
+
 		const oldGetCurrentTraceID = this.tracer.getCurrentTraceID.bind(this.tracer);
 		this.tracer.getCurrentTraceID = () => {
 			const traceID = oldGetCurrentTraceID();
@@ -172,6 +185,16 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		});
 
 		const scope = this.ddTracer.scope();
+
+		let resolver;
+		const p = new Promise(r => {
+			resolver = r;
+		});
+		this.store.set(span.id, { span: ddSpan, resolver });
+
+		scope.activatePromise(ddSpan, p);
+
+		/*
 		scope.activate(ddSpan, () => {
 
 			let resolver;
@@ -180,8 +203,9 @@ class DatadogTraceExporter extends BaseTraceExporter {
 			});
 			this.store.set(span.id, { span: ddSpan, resolver });
 
-			scope.bind(p);
+			return p;
 		});
+		*/
 
 		return ddSpan;
 	}
