@@ -54,8 +54,6 @@ class Tracer {
 
 		this.sampleCounter = 0;
 
-		this.contextWrappers = [];
-
 		this.scope = new AsyncStorage(this.broker);
 		this.scope.enable();
 
@@ -80,12 +78,6 @@ class Tracer {
 				});
 			}
 		}
-	}
-
-	wrappingContext(span, fn) {
-		if (this.contextWrappers.length == 0) return fn();
-
-		return this.contextWrappers[0](span, fn);
 	}
 
 	/**
@@ -144,8 +136,6 @@ class Tracer {
 			defaultTags: this.opts.defaultTags
 		}, opts), ctx);
 
-		//console.log(`Start span: ${this.scope.getAsyncId()} - ${name}`);
-
 		this.setCurrentSpan(span);
 
 		span.start();
@@ -166,6 +156,12 @@ class Tracer {
 		}
 	}
 
+	/**
+	 * Set the active span
+	 *
+	 * @param {Span} span
+	 * @memberof Tracer
+	 */
 	setCurrentSpan(span) {
 		const state = this.scope.getSessionData() || {
 			spans: []
@@ -173,11 +169,15 @@ class Tracer {
 
 		state.spans.push(span);
 		this.scope.setSessionData(state);
-		//console.log(`Set data: ${this.scope.getAsyncId()}`);
 	}
 
+	/**
+	 * Remove the active span (because async block destroyed)
+	 *
+	 * @param {Span} span
+	 * @memberof Tracer
+	 */
 	removeCurrentSpan(span) {
-		//console.log(`Remove data: ${this.scope.getAsyncId()}`);
 		const state = this.scope.getSessionData();
 		if (state && state.spans.length > 0) {
 			const idx = state.spans.indexOf(span);
@@ -186,22 +186,45 @@ class Tracer {
 		}
 	}
 
+	/**
+	 * Get the current active span
+	 *
+	 * @returns {Span}
+	 * @memberof Tracer
+	 */
 	getCurrentSpan() {
-		//console.log(`Get data: ${this.scope.getAsyncId()}`);
 		const state = this.scope.getSessionData();
 		return state ? state.spans[state.spans.length - 1] : null;
 	}
 
+	/**
+	 * Get the current trace ID
+	 *
+	 * @returns
+	 * @memberof Tracer
+	 */
 	getCurrentTraceID() {
 		const span = this.getCurrentSpan();
 		return span ? span.traceID : null;
 	}
 
-	getParentSpanID() {
+	/**
+	 * Get the active span ID (for the next span as parent ID)
+	 *
+	 * @returns
+	 * @memberof Tracer
+	 */
+	getActiveSpanID() {
 		const span = this.getCurrentSpan();
 		return span ? span.id : null;
 	}
 
+	/**
+	 * Called when a span finished. Call exporters.
+	 *
+	 * @param {Span} span
+	 * @memberof Tracer
+	 */
 	spanFinished(span) {
 		this.removeCurrentSpan(span);
 		this.invokeExporter("finishSpan", [span]);

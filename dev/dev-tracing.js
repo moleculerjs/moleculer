@@ -135,7 +135,7 @@ broker.createService({
 				const something = await this.broker.cacher.get("something");
 				span1.finish();
 
-				/*const span2 = ctx.startSpan("populate posts");
+				const span2 = ctx.startSpan("populate posts");
 				const res = await this.Promise.all(posts.map(async post => {
 					const span3 = span2.startSpan("populate #" + post.id);
 
@@ -149,7 +149,7 @@ broker.createService({
 					return res;
 				}));
 
-				span2.finish();*/
+				span2.finish();
 				return posts;
 			}
 		}
@@ -197,7 +197,9 @@ broker.createService({
 				}
 			},
 			async handler(ctx) {
+				const span1 = ctx.startSpan("Fake delay");
 				await this.Promise.delay(10 + _.random(30));
+				span1.finish();
 				return ctx.params.postID * 3;
 			}
 		}

@@ -23,7 +23,7 @@ function tracingLocalActionMiddleware(handler, action) {
 			ctx.requestID = tracer.getCurrentTraceID() || ctx.requestID;
 
 			//if (!ctx.parentID)
-			ctx.parentID = tracer.getParentSpanID() || ctx.parentID;
+			ctx.parentID = tracer.getActiveSpanID() || ctx.parentID;
 
 			const tags = {
 				callingLevel: ctx.level,
@@ -69,26 +69,19 @@ function tracingLocalActionMiddleware(handler, action) {
 			ctx.tracing = span.sampled;
 			ctx.span = span;
 
-			return new Promise((resolve, reject) => {
+			// Call the handler
+			return handler(ctx).then(res => {
+				span.addTags({
+					fromCache: ctx.cachedResult
+				}).finish();
 
-				tracer.wrappingContext(span, function() {
+				//ctx.duration = span.duration;
 
-					// Call the handler
-					return handler(ctx).then(res => {
-						span.addTags({
-							fromCache: ctx.cachedResult
-						}).finish();
+				return res;
+			}).catch(err => {
+				span.setError(err).finish();
 
-						//ctx.duration = span.duration;
-
-						return resolve(res);
-					}).catch(err => {
-						span.setError(err).finish();
-
-						return reject(err);
-					});
-
-				});
+				throw err;
 			});
 
 		}.bind(this);

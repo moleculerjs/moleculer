@@ -3,6 +3,7 @@
 const _ 					= require("lodash");
 const Promise 				= require("bluebird");
 const BaseTraceExporter 	= require("./base");
+const asyncHooks			= require("async_hooks");
 
 /*
 	docker run -d --name dd-agent -v /var/run/docker.sock:/var/run/docker.sock:ro -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e DD_API_KEY=123456 -e DD_APM_ENABLED=true -e DD_APM_NON_LOCAL_TRAFFIC=true -p 8126:8126  datadog/agent:latest
@@ -65,20 +66,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 			this.defaultTags = this.flattenTags(this.defaultTags, true);
 		}
 
-		this.tracer.contextWrappers.push(this.wrapContext.bind(this));
-
-		this.tracer.getCurrentSpanID = () => {
-			const scope = this.ddTracer.scope();
-			if (scope) {
-				const span = scope.active();
-				if (span) {
-					const spanContext = span.context();
-					if (spanContext)
-						return spanContext.toSpanId();
-				}
-			}
-			return null;
-		};
+		this.ddScope = this.ddTracer.scope();
 
 		const oldGetCurrentTraceID = this.tracer.getCurrentTraceID.bind(this.tracer);
 		this.tracer.getCurrentTraceID = () => {
@@ -86,9 +74,8 @@ class DatadogTraceExporter extends BaseTraceExporter {
 			if (traceID)
 				return traceID;
 
-			const scope = this.ddTracer.scope();
-			if (scope) {
-				const span = scope.active();
+			if (this.ddScope) {
+				const span = this.ddScope.active();
 				if (span) {
 					const spanContext = span.context();
 					if (spanContext)
@@ -98,15 +85,14 @@ class DatadogTraceExporter extends BaseTraceExporter {
 			return null;
 		};
 
-		const oldGetParentSpanID = this.tracer.getParentSpanID.bind(this.tracer);
-		this.tracer.getParentSpanID = () => {
-			const spanID = oldGetParentSpanID();
+		const oldGetActiveSpanID = this.tracer.getActiveSpanID.bind(this.tracer);
+		this.tracer.getActiveSpanID = () => {
+			const spanID = oldGetActiveSpanID();
 			if (spanID)
 				return spanID;
 
-			const scope = this.ddTracer.scope();
-			if (scope) {
-				const span = scope.active();
+			if (this.ddScope) {
+				const span = this.ddScope.active();
 				if (span) {
 					const spanContext = span.context();
 					if (spanContext)
@@ -115,17 +101,6 @@ class DatadogTraceExporter extends BaseTraceExporter {
 			}
 			return null;
 		};
-	}
-
-	wrapContext(span, fn) {
-		if (span.$ddSpan) {
-			const scope = this.ddTracer.scope();
-			if (scope) {
-				scope.activate(span.$ddSpan, () => {
-					return fn();
-				});
-			}
-		}
 	}
 
 	/**
@@ -184,28 +159,13 @@ class DatadogTraceExporter extends BaseTraceExporter {
 			value: ddSpan
 		});
 
-		const scope = this.ddTracer.scope();
-
 		let resolver;
 		const p = new Promise(r => {
 			resolver = r;
 		});
 		this.store.set(span.id, { span: ddSpan, resolver });
 
-		scope.activatePromise(ddSpan, p);
-
-		/*
-		scope.activate(ddSpan, () => {
-
-			let resolver;
-			const p = new Promise(r => {
-				resolver = r;
-			});
-			this.store.set(span.id, { span: ddSpan, resolver });
-
-			return p;
-		});
-		*/
+		this.activatePromise(ddSpan, p);
 
 		return ddSpan;
 	}
@@ -233,6 +193,36 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		item.resolver();
 
 		return ddSpan;
+	}
+
+	activatePromise(span, promise) {
+		const asyncId = asyncHooks.executionAsyncId();
+		const oldSpan = this.ddScope._spans[asyncId];
+
+		this.ddScope._spans[asyncId] = span;
+
+		const finish = (err, data) => {
+			if (oldSpan) {
+				this.ddScope._spans[asyncId] = oldSpan;
+			} else {
+				this.ddScope._destroy(asyncId);
+			}
+			if (err) {
+				if (span && typeof span.addTags === "function") {
+					span.addTags({
+						"error.type": err.name,
+						"error.msg": err.message,
+						"error.stack": err.stack
+					});
+				}
+				throw err;
+			}
+			return data;
+		};
+
+		return promise
+			.then(res => finish(null, res))
+			.catch(err => finish(err));
 	}
 
 	/**
