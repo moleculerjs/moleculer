@@ -5,7 +5,7 @@ const asyncHooks = require("async_hooks");
 global.tracer = require("dd-trace").init({
 	service: "moleculer", // shows up as Service in Datadog UI
 	//hostname: "agent", // references the `agent` service in docker-compose.yml
-	debug: true,
+	debug: false,
 	url: "http://192.168.0.181:8126",
 	samplingPriority: "USER_KEEP",
 });
@@ -137,7 +137,9 @@ broker.createService({
 
 				const span2 = ctx.startSpan("populate posts");
 				const res = await this.Promise.all(posts.map(async post => {
-					const span3 = span2.startSpan("populate #" + post.id);
+					const span3 = span2.startSpan("populate #" + post.id, { tags: {
+						id: post.id
+					}});
 
 					const res = await this.Promise.all([
 						ctx.call("users.get", { id: post.author }).then(author => post.author = author),

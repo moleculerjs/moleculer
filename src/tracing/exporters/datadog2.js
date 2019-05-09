@@ -121,16 +121,6 @@ class DatadogTraceExporter extends BaseTraceExporter {
 				spanId: this.convertID(span.parentID),
 				parentId: this.convertID(span.parentID)
 			});
-		/*} else {
-			const scope = this.ddTracer.scope();
-			if (scope) {
-				const activeSpan = scope.active();
-				if (activeSpan) {
-					parentCtx = activeSpan.context();
-					span.traceID = parentCtx.toTraceId();
-					span.parentID = parentCtx.toSpanId();
-				}
-			}*/
 		}
 
 		const ddSpan = this.ddTracer.startSpan(span.name, {
@@ -195,6 +185,15 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		return ddSpan;
 	}
 
+	/**
+	 * Activate the current span inside `dd-trace` library.
+	 *
+	 * @param {DatadogSpan} span
+	 * @param {Promise} promise
+	 * @returns {Promise}
+	 *
+	 * @memberof DatadogTraceExporter
+	 */
 	activatePromise(span, promise) {
 		const asyncId = asyncHooks.executionAsyncId();
 		const oldSpan = this.ddScope._spans[asyncId];
@@ -224,66 +223,6 @@ class DatadogTraceExporter extends BaseTraceExporter {
 			.then(res => finish(null, res))
 			.catch(err => finish(err));
 	}
-
-	/**
-	 * Generate tracing data for Datadog
-	 *
-	 * @param {Span} span
-	 * @memberof DatadogTraceExporter
-	 */
-	generateDatadogTraceSpan(span) {
-		if (!this.ddTracer) return null;
-
-		const serviceName = span.service ? span.service.fullName : null;
-
-		let parentCtx;
-		if (span.parentID) {
-			parentCtx = new DatadogSpanContext({
-				traceId: this.convertID(span.traceID),
-				spanId: this.convertID(span.parentID),
-				parentId: this.convertID(span.parentID)
-			});
-		/*} else {
-			const scope = this.ddTracer.scope();
-			if (scope) {
-				const activeSpan = scope.active();
-				if (activeSpan) {
-					parentCtx = activeSpan.context();
-				}
-			}*/
-		}
-
-		const ddSpan = this.ddTracer.startSpan(span.name, {
-			startTime: span.startTime,
-			childOf: parentCtx,
-			tags: this.flattenTags(_.defaultsDeep({}, span.tags, {
-				service: span.service,
-				span: {
-					kind: "server",
-					type: "custom",
-				},
-				resource: span.tags.action,
-				"sampling.priority": this.opts.samplingPriority
-			}, this.defaultTags))
-		});
-
-		if (this.opts.env)
-			this.addTags(ddSpan, "env", this.opts.env);
-		this.addTags(ddSpan, "service", serviceName);
-
-		if (span.error) {
-			this.addTags(ddSpan, "error", this.errorToObject(span.error));
-		}
-
-		const sc = ddSpan.context();
-		sc._traceId = this.convertID(span.traceID);
-		sc._spanId = this.convertID(span.id);
-
-		ddSpan.finish(span.endTime);
-
-		return ddSpan;
-	}
-
 
 	/**
 	 * Add tags to span
