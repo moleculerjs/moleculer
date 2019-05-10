@@ -302,8 +302,8 @@ declare namespace Moleculer {
 		middlewares?: Array<Middleware>;
 		replCommands?: Array<GenericObject>;
 
-		ServiceFactory?: Service;
-		ContextFactory?: Context;
+		ServiceFactory?: typeof Service;
+		ContextFactory?: typeof Context;
 
 		created?: (broker: ServiceBroker) => void;
 		started?: (broker: ServiceBroker) => void;
