@@ -5,8 +5,8 @@ const asyncHooks = require("async_hooks");
 global.tracer = require("dd-trace").init({
 	service: "moleculer", // shows up as Service in Datadog UI
 	//hostname: "agent", // references the `agent` service in docker-compose.yml
-	debug: false,
-	url: "http://192.168.0.181:8126",
+	debug: true,
+	//url: "http://192.168.0.181:8126",
 	samplingPriority: "USER_KEEP",
 });
 
@@ -30,6 +30,7 @@ const broker = new ServiceBroker({
 	logObjectPrinter: o => inspect(o, { showHidden: false, depth: 4, colors: true, breakLength: 50 }),
 	//transporter: "redis://localhost:6379",
 	cacher: "redis://localhost:6379",
+
 	tracing: {
 		events: true,
 		stackTrace: true,
@@ -49,10 +50,10 @@ const broker = new ServiceBroker({
 			{
 				type: "Datadog2",
 				options: {
-					agentUrl: "http://192.168.0.181:8126",
+					//agentUrl: "http://192.168.0.181:8126",
 					samplingPriority: "USER_KEEP",
 					tracerOptions: {
-						debug: false,
+						debug: true,
 					}
 				}
 			},
@@ -136,10 +137,12 @@ broker.createService({
 				span1.finish();
 
 				const span2 = ctx.startSpan("populate posts");
-				const res = await this.Promise.all(posts.map(async post => {
+				//await this.Promise.delay(10);
+				const res = await this.Promise.map(posts, async post => {
 					const span3 = span2.startSpan("populate #" + post.id, { tags: {
 						id: post.id
 					}});
+					//await this.Promise.delay(15);
 
 					const res = await this.Promise.all([
 						ctx.call("users.get", { id: post.author }).then(author => post.author = author),
@@ -148,8 +151,8 @@ broker.createService({
 
 					span3.finish();
 
-					return res;
-				}));
+					//return res;
+				}, { concurrency: 1});
 
 				span2.finish();
 				return posts;
@@ -170,7 +173,10 @@ broker.createService({
 			tracing: {
 				tags: ["id", "#loggedIn.username"],
 			},
-			cache: true,
+			cache: {
+				enabled: true,
+				ttl: 5
+			},
 			async handler(ctx) {
 				const user = USERS.find(user => user.id == ctx.params.id);
 				if (user) {
@@ -200,7 +206,7 @@ broker.createService({
 			},
 			async handler(ctx) {
 				const span1 = ctx.startSpan("Fake delay");
-				await this.Promise.delay(10 + _.random(30));
+				//await this.Promise.delay(10 + _.random(30));
 				span1.finish();
 				return ctx.params.postID * 3;
 			}
@@ -217,7 +223,7 @@ broker.createService({
 				if (THROW_ERR && ctx.params.userID == 1)
 					throw new MoleculerError("Friends is not found!", 404, "FRIENDS_NOT_FOUND", { userID: ctx.params.userID });
 
-				await this.Promise.delay(10 + _.random(30));
+				await this.Promise.delay(_.random(10));
 				return ctx.params.userID * 3;
 			}
 		}

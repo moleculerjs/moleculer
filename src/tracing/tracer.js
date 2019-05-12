@@ -169,6 +169,8 @@ class Tracer {
 
 		state.spans.push(span);
 		this.scope.setSessionData(state);
+
+		span.meta.state = state;
 	}
 
 	/**
@@ -178,7 +180,7 @@ class Tracer {
 	 * @memberof Tracer
 	 */
 	removeCurrentSpan(span) {
-		const state = this.scope.getSessionData();
+		const state = span.meta.state || this.scope.getSessionData();
 		if (state && state.spans.length > 0) {
 			const idx = state.spans.indexOf(span);
 			if (idx >= 0)

@@ -64,7 +64,7 @@ function tracingLocalActionMiddleware(handler, action) {
 				} : null,
 				sampled: ctx.tracing,
 				tags
-			}, ctx);
+			});
 
 			ctx.tracing = span.sampled;
 			ctx.span = span;

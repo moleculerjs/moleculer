@@ -2,6 +2,7 @@
 
 const { generateToken } = require("../utils");
 const asyncHooks = require("async_hooks");
+const now = require("./now");
 
 function defProp(instance, propName, value, readOnly = false) {
 	Object.defineProperty(instance, propName, {
@@ -10,6 +11,8 @@ function defProp(instance, propName, value, readOnly = false) {
 		enumerable: false
 	});
 }
+
+
 
 /**
  * Trace Span class
@@ -26,11 +29,11 @@ class Span {
 	 *
 	 * @memberof Span
 	 */
-	constructor(tracer, name, opts, ctx) {
+	constructor(tracer, name, opts) {
 		defProp(this, "tracer", tracer, true);
 		defProp(this, "logger", this.tracer.logger, true);
 		defProp(this, "opts", opts || {});
-		defProp(this, "ctx", ctx);
+		defProp(this, "meta", {});
 
 		this.name = name;
 		this.id = opts.id || generateToken();
@@ -43,7 +46,6 @@ class Span {
 		this.sampled = this.opts.sampled != null ? this.opts.sampled : this.tracer.shouldSample(this);
 
 		this.startTime = null;
-		this.startHrTime = null;
 		this.finishTime = null;
 		this.duration = null;
 
@@ -69,8 +71,8 @@ class Span {
 	start(time) {
 		this.logger.debug(`[${this.id}] Span '${this.name}' is started.`);
 
-		this.startTime = time || Date.now();
-		this.startHrTime = process.hrtime();
+		this.startTime = time || now();
+		// console.log(`"${this.name}" start time: ${this.startTime}`);
 
 		this.tracer.invokeExporter("startSpan", [this]);
 
@@ -92,17 +94,6 @@ class Span {
 	}
 
 	/**
-	 * Get elapsed time from starting.
-	 *
-	 * @returns {Number} duration
-	 * @memberof Span
-	 */
-	getElapsedTime() {
-		const diff = process.hrtime(this.startHrTime);
-		return (diff[0] * 1e3) + (diff[1] / 1e6);
-	}
-
-	/**
 	 * Log a trace event.
 	 *
 	 * @param {String} name
@@ -112,13 +103,13 @@ class Span {
 	 * @memberof Span
 	 */
 	log(name, fields, time) {
-		const elapsed = time ? time - this.startTime : this.getElapsedTime();
+		time = time || now();
 
 		this.logs.push({
 			name,
 			fields: fields || {},
-			time: time || Date.now(),
-			elapsed
+			time,
+			elapsed: time - this.startTime
 		});
 
 		this.logger.debug(`[${this.id}] Span '${this.name}' has a new log event: ${name}.`);
@@ -146,13 +137,10 @@ class Span {
 	 * @memberof Span
 	 */
 	finish(time) {
-		if (time) {
-			this.duration = time - this.startTime;
-			this.finishTime = time;
-		} else {
-			this.duration = this.getElapsedTime();
-			this.finishTime = this.startTime + this.duration;
-		}
+		this.finishTime = time ? time : now();
+		this.duration = this.finishTime - this.startTime;
+
+		// console.log(`"${this.name}" stop time: ${this.finishTime}  Duration: ${this.duration}`);
 
 		this.logger.debug(`[${this.id}] Span '${this.name}' is finished. Duration: ${Number(this.duration).toFixed(3)} ms`, this.tags);
 
@@ -166,17 +154,16 @@ class Span {
 	 *
 	 * @param {String} name
 	 * @param {Object?} opts
-	 * @param {Context?} ctx
 	 * @returns {Span} Child span
 	 * @memberof Span
 	 */
-	startSpan(name, opts, ctx) {
+	startSpan(name, opts) {
 		const r = {
 			traceID: this.traceID,
 			parentID: this.id,
 			sampled: this.sampled
 		};
-		return this.tracer.startSpan(name, opts ? Object.assign(r, opts) : r, ctx);
+		return this.tracer.startSpan(name, opts ? Object.assign(r, opts) : r);
 	}
 
 }

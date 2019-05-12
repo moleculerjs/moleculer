@@ -6,7 +6,7 @@ const BaseTraceExporter 	= require("./base");
 const asyncHooks			= require("async_hooks");
 
 /*
-	docker run -d --name dd-agent -v /var/run/docker.sock:/var/run/docker.sock:ro -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e DD_API_KEY=123456 -e DD_APM_ENABLED=true -e DD_APM_NON_LOCAL_TRAFFIC=true -p 8126:8126  datadog/agent:latest
+	docker run -d --name dd-agent --restart unless-stopped -v /var/run/docker.sock:/var/run/docker.sock:ro -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e DD_API_KEY=123456 -e DD_APM_ENABLED=true -e DD_APM_NON_LOCAL_TRAFFIC=true -p 8126:8126  datadog/agent:latest
 */
 
 let DatadogSpanContext;
@@ -36,8 +36,6 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		});
 
 		this.ddTracer = null;
-
-		this.store = new Map();
 	}
 
 	/**
@@ -145,19 +143,17 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		sc._traceId = this.convertID(span.traceID);
 		sc._spanId = this.convertID(span.id);
 
-		Object.defineProperty(span, "$ddSpan", {
-			value: ddSpan
-		});
+		// Activate span in Datadog tracer
+		const asyncId = asyncHooks.executionAsyncId();
+		const oldSpan = this.ddScope._spans[asyncId];
 
-		let resolver;
-		const p = new Promise(r => {
-			resolver = r;
-		});
-		this.store.set(span.id, { span: ddSpan, resolver });
+		this.ddScope._spans[asyncId] = ddSpan;
 
-		this.activatePromise(ddSpan, p);
-
-		return ddSpan;
+		span.meta.datadog = {
+			span: ddSpan,
+			asyncId,
+			oldSpan
+		};
 	}
 
 	/**
@@ -169,7 +165,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 	finishSpan(span) {
 		if (!this.ddTracer) return null;
 
-		const item = this.store.get(span.id);
+		const item = span.meta.datadog;
 		if (!item) return null;
 
 		const ddSpan = item.span;
@@ -180,9 +176,11 @@ class DatadogTraceExporter extends BaseTraceExporter {
 
 		ddSpan.finish(span.endTime);
 
-		item.resolver();
-
-		return ddSpan;
+		if (item.oldSpan) {
+			this.ddScope._spans[item.asyncId] = item.oldSpan;
+		} else {
+			this.ddScope._destroy(item.asyncId);
+		}
 	}
 
 	/**
