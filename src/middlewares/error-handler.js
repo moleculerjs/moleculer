@@ -29,7 +29,12 @@ function wrapErrorHandler(handler) {
 					enumerable: false
 				});
 
-				return Promise.reject(err);
+				// Call global errorHandler
+				return ctx.broker.errorHandler(err, {
+					ctx,
+					service: ctx.service,
+					action: ctx.action
+				});
 			});
 
 	}.bind(this);

@@ -95,6 +95,8 @@ const defaultOptions = {
 		disableVersionCheck: false
 	},
 
+	errorHandler: null,
+
 	cacher: null,
 	serializer: null,
 
@@ -510,6 +512,22 @@ class ServiceBroker {
 
 		if (repl)
 			repl(this, this.options.replCommands);
+	}
+
+	/**
+	 * Global error handler.
+	 *
+	 * @param {Error} err
+	 * @param {object} info
+	 * @returns
+	 * @memberof ServiceBroker
+	 */
+	errorHandler(err, info) {
+		if (this.options.errorHandler) {
+			return this.options.errorHandler.call(this, err, info);
+		}
+
+		throw err;
 	}
 
 	/**

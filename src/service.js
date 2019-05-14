@@ -328,12 +328,24 @@ class Service {
 		event.service = this;
 		const self = this;
 		if (_.isFunction(handler)) {
+			// Call single handler
 			event.handler = function() {
-				return handler.apply(self, arguments);
+				return handler.apply(self, arguments).catch(err => self.broker.errorHandler(err, {
+					service: self,
+					event,
+					args: arguments
+				}));
 			};
 		} else if (Array.isArray(handler)) {
+			// Call multiple handler
 			event.handler = function() {
-				return Promise.all(handler.map(fn => fn.apply(self, arguments)));
+				return Promise.all(handler.map(fn => {
+					return fn.apply(self, arguments).catch(err => self.broker.errorHandler(err, {
+						service: self,
+						event,
+						args: arguments
+					}));
+				}));
 			};
 		}
 
