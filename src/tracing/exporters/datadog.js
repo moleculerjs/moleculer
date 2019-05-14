@@ -2,18 +2,18 @@
 
 const _ 					= require("lodash");
 const Promise 				= require("bluebird");
-const fetch 				= require("node-fetch");
-//const { MoleculerError } 	= require("../../errors");
 const BaseTraceExporter 	= require("./base");
-
-fetch.Promise = Promise;
+const asyncHooks			= require("async_hooks");
 
 /*
-	docker run -d --name dd-agent -v /var/run/docker.sock:/var/run/docker.sock:ro -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e DD_API_KEY=123456 -e DD_APM_ENABLED=true -e DD_APM_NON_LOCAL_TRAFFIC=true -p 8126:8126  datadog/agent:latest
+	docker run -d --name dd-agent --restart unless-stopped -v /var/run/docker.sock:/var/run/docker.sock:ro -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e DD_API_KEY=123456 -e DD_APM_ENABLED=true -e DD_APM_NON_LOCAL_TRAFFIC=true -p 8126:8126  datadog/agent:latest
 */
 
+let DatadogSpanContext;
+let DatadogPlatform;
+
 /**
- * Datadog Trace Exporter.
+ * Datadog Trace Exporter with 'dd-trace'.
  *
  * @class DatadogTraceExporter
  */
@@ -28,12 +28,14 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		super(opts);
 
 		this.opts = _.defaultsDeep(this.opts, {
-			agentUrl: process.env.DD_AGENT_URL || "http://localhost:8126/v0.4/traces",
-			interval: 5,
-			defaultTags: null
+			agentUrl: process.env.DD_AGENT_URL || "http://localhost:8126",
+			env: process.env.DD_ENVIRONMENT || null,
+			samplingPriority: "AUTO_KEEP",
+			defaultTags: null,
+			tracerOptions: null,
 		});
 
-		this.queue = [];
+		this.ddTracer = this.opts.tracer;
 	}
 
 	/**
@@ -45,15 +47,115 @@ class DatadogTraceExporter extends BaseTraceExporter {
 	init(tracer) {
 		super.init(tracer);
 
-		if (this.opts.interval > 0) {
-			this.timer = setInterval(() => this.flush(), this.opts.interval * 1000);
-			this.timer.unref();
+		try {
+			const ddTrace = require("dd-trace");
+			DatadogSpanContext = require("dd-trace/src/opentracing/span_context");
+			DatadogPlatform = require("dd-trace/src/platform");
+			if (!this.ddTracer) {
+				this.ddTracer = ddTrace.init(_.defaultsDeep(this.opts.tracerOptions, {
+					url: this.opts.agentUrl
+				}));
+			}
+		} catch(err) {
+			/* istanbul ignore next */
+			this.tracer.broker.fatal("The 'dd-trace' package is missing! Please install it with 'npm install dd-trace --save' command!", err, true);
 		}
 
 		this.defaultTags = _.isFunction(this.opts.defaultTags) ? this.opts.defaultTags.call(this, tracer) : this.opts.defaultTags;
 		if (this.defaultTags) {
 			this.defaultTags = this.flattenTags(this.defaultTags, true);
 		}
+
+		this.ddScope = this.ddTracer.scope();
+
+		const oldGetCurrentTraceID = this.tracer.getCurrentTraceID.bind(this.tracer);
+		this.tracer.getCurrentTraceID = () => {
+			const traceID = oldGetCurrentTraceID();
+			if (traceID)
+				return traceID;
+
+			if (this.ddScope) {
+				const span = this.ddScope.active();
+				if (span) {
+					const spanContext = span.context();
+					if (spanContext)
+						return spanContext.toTraceId();
+				}
+			}
+			return null;
+		};
+
+		const oldGetActiveSpanID = this.tracer.getActiveSpanID.bind(this.tracer);
+		this.tracer.getActiveSpanID = () => {
+			const spanID = oldGetActiveSpanID();
+			if (spanID)
+				return spanID;
+
+			if (this.ddScope) {
+				const span = this.ddScope.active();
+				if (span) {
+					const spanContext = span.context();
+					if (spanContext)
+						return spanContext.toSpanId();
+				}
+			}
+			return null;
+		};
+	}
+
+	/**
+	 * Span is started.
+	 *
+	 * @param {Span} span
+	 * @memberof BaseTraceExporter
+	 */
+	startSpan(span) {
+		if (!this.ddTracer) return null;
+
+		const serviceName = span.service ? span.service.fullName : null;
+
+		let parentCtx;
+		if (span.parentID) {
+			parentCtx = new DatadogSpanContext({
+				traceId: this.convertID(span.traceID),
+				spanId: this.convertID(span.parentID),
+				parentId: this.convertID(span.parentID)
+			});
+		}
+
+		const ddSpan = this.ddTracer.startSpan(span.name, {
+			startTime: span.startTime,
+			childOf: parentCtx,
+			tags: this.flattenTags(_.defaultsDeep({}, span.tags, {
+				service: span.service,
+				span: {
+					kind: "server",
+					type: "custom",
+				},
+				resource: span.tags.action,
+				"sampling.priority": this.opts.samplingPriority
+			}, this.defaultTags))
+		});
+
+		if (this.opts.env)
+			this.addTags(ddSpan, "env", this.opts.env);
+		this.addTags(ddSpan, "service", serviceName);
+
+		const sc = ddSpan.context();
+		sc._traceId = this.convertID(span.traceID);
+		sc._spanId = this.convertID(span.id);
+
+		// Activate span in Datadog tracer
+		const asyncId = asyncHooks.executionAsyncId();
+		const oldSpan = this.ddScope._spans[asyncId];
+
+		this.ddScope._spans[asyncId] = ddSpan;
+
+		span.meta.datadog = {
+			span: ddSpan,
+			asyncId,
+			oldSpan
+		};
 	}
 
 	/**
@@ -63,88 +165,96 @@ class DatadogTraceExporter extends BaseTraceExporter {
 	 * @memberof DatadogTraceExporter
 	 */
 	finishSpan(span) {
-		this.queue.push(span);
-	}
+		if (!this.ddTracer) return null;
 
-	/**
-	 * Flush tracing data to Datadog server
-	 *
-	 * @memberof DatadogTraceExporter
-	 */
-	flush() {
-		if (this.queue.length == 0) return;
+		const item = span.meta.datadog;
+		if (!item) return null;
 
-		const data = this.generateDatadogTracingData();
-		this.queue.length = 0;
+		const ddSpan = item.span;
 
-		fetch(this.opts.agentUrl, {
-			method: "post",
-			body: JSON.stringify(data),
-			headers: {
-				"Content-Type": "application/json",
+		if (span.error) {
+			this.addTags(ddSpan, "error", this.errorToObject(span.error));
+		}
 
-			}
-		}).then(res => {
-			this.logger.info(`Tracing spans (${data.length} traces) are uploaded to Datadog. Status: ${res.statusText}`);
-		}).catch(err => {
-			this.logger.warn("Unable to upload tracing spans to Datadog. Error:" + err.message, err);
-		});
-	}
+		ddSpan.finish(span.endTime);
 
-	/**
-	 * Convert traceID & spanID to number for Datadog Agent.
-	 * @param {String} str
-	 */
-	convertIDToNumber(str) {
-		if (str == null)
-			return str;
-
-		try {
-			return parseInt(str.substring(0, 8), 16);
-		} catch(err) {
-			this.logger.warn(`Unable to convert '${str}' to number.`);
-			return null;
+		if (item.oldSpan) {
+			this.ddScope._spans[item.asyncId] = item.oldSpan;
+		} else {
+			this.ddScope._destroy(item.asyncId);
 		}
 	}
 
 	/**
-	 * Generate tracing data for Datadog
+	 * Activate the current span inside `dd-trace` library.
 	 *
-	 * @returns {Array<Object>}
+	 * @param {DatadogSpan} span
+	 * @param {Promise} promise
+	 * @returns {Promise}
+	 *
 	 * @memberof DatadogTraceExporter
 	 */
-	generateDatadogTracingData() {
-		const traces = this.queue.reduce((store, span) => {
-			const traceID = span.traceID;
+	activatePromise(span, promise) {
+		const asyncId = asyncHooks.executionAsyncId();
+		const oldSpan = this.ddScope._spans[asyncId];
 
-			const ddSpan = {
-				trace_id: this.convertIDToNumber(traceID),
-				span_id: this.convertIDToNumber(span.id),
-				parent_id: this.convertIDToNumber(span.parentID),
-				name: span.name,
-				resource: span.tags.action ? span.tags.action.name : null,
-				service: span.service ? span.service.fullName: null,
-				type: "custom",
-				start: Math.round(span.startTime * 1e6),
-				duration: Math.round(span.duration * 1e6),
-				error: span.error ? 1 : 0,
-				meta: Object.assign(
-					{},
-					this.defaultTags || {},
-					this.flattenTags(span.tags, true),
-					this.flattenTags(this.errorToObject(span.error), true, "error") || {}
-				)
-			};
+		this.ddScope._spans[asyncId] = span;
 
-			if (!store[traceID])
-				store[traceID] = [ddSpan];
-			else
-				store[traceID].push(ddSpan);
+		const finish = (err, data) => {
+			if (oldSpan) {
+				this.ddScope._spans[asyncId] = oldSpan;
+			} else {
+				this.ddScope._destroy(asyncId);
+			}
+			if (err) {
+				if (span && typeof span.addTags === "function") {
+					span.addTags({
+						"error.type": err.name,
+						"error.msg": err.message,
+						"error.stack": err.stack
+					});
+				}
+				throw err;
+			}
+			return data;
+		};
 
-			return store;
-		}, {});
+		return promise
+			.then(res => finish(null, res))
+			.catch(err => finish(err));
+	}
 
-		return Object.values(traces);
+	/**
+	 * Add tags to span
+	 *
+	 * @param {Object} span
+	 * @param {String} key
+	 * @param {any} value
+	 * @param {String?} prefix
+	 */
+	addTags(span, key, value, prefix) {
+		const name = prefix ? `${prefix}.${key}` : key;
+		if (value != null && typeof value == "object") {
+			Object.keys(value).forEach(k => this.addTags(span, k, value[k], name));
+		} else {
+			span.setTag(name, value);
+		}
+	}
+
+	/**
+	 * Convert Trace/Span ID to Jaeger format
+	 *
+	 * @param {String} id
+	 * @returns {String}
+	 */
+	convertID(id) {
+		if (id) {
+			if (id.indexOf("-") !== -1)
+				return new DatadogPlatform.Uint64BE(Buffer.from(id.replace(/-/g, "").substring(0, 16), "hex"));
+			return new DatadogPlatform.Uint64BE(id);
+		}
+
+		return null;
 	}
 }
 

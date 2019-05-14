@@ -2,16 +2,15 @@
 
 const asyncHooks = require("async_hooks");
 
-global.tracer = require("dd-trace").init({
+const tracer = require("dd-trace").init({
 	service: "moleculer", // shows up as Service in Datadog UI
-	//hostname: "agent", // references the `agent` service in docker-compose.yml
-	debug: true,
 	//url: "http://192.168.0.181:8126",
+	debug: true,
 	samplingPriority: "USER_KEEP",
 });
 
-global.tracer.use("http");
-global.tracer.use("ioredis");
+tracer.use("http");
+tracer.use("ioredis");
 
 const ServiceBroker = require("../src/service-broker");
 "use strict";
@@ -41,20 +40,11 @@ const broker = new ServiceBroker({
 					logger: console
 				}
 			},
-			/*{
+			{
 				type: "Datadog",
 				options: {
-					agentUrl: "http://192.168.0.181:8126/v0.4/traces",
-				}
-			},*/
-			{
-				type: "Datadog2",
-				options: {
-					//agentUrl: "http://192.168.0.181:8126",
-					samplingPriority: "USER_KEEP",
-					tracerOptions: {
-						debug: true,
-					}
+					tracer,
+					samplingPriority: "USER_KEEP"
 				}
 			},
 			/*{
