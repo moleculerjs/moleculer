@@ -57,7 +57,7 @@
 			"request": "launch",
 			"name": "Launch benchmark",
 			"program": "${workspaceRoot}/benchmark/index.js",
-			"args": ["cachers"],
+			"args": ["common"],
 			"cwd": "${workspaceRoot}/benchmark"
 		},
 		{

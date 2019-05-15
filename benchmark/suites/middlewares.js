@@ -31,12 +31,12 @@ const bench = benchmark.createSuite("Middleware test");
 })();
 
 (function() {
+	const mw = {
+		localAction: handler => ctx => handler(ctx).then(res => res)
+	};
+
 	// Add middlewares
-	const broker = new ServiceBroker({ logger: false, middlewares: [
-		handler => {
-			return ctx => handler(ctx).then(res => res);
-		}
-	] });
+	const broker = new ServiceBroker({ logger: false, middlewares: [mw] });
 
 	broker.loadService(__dirname + "/../user.service");
 	broker.start();
@@ -47,8 +47,8 @@ const bench = benchmark.createSuite("Middleware test");
 })();
 
 (function() {
-	const mw = handler => {
-		return ctx => handler(ctx).then(res => res);
+	const mw = {
+		localAction: handler => ctx => handler(ctx).then(res => res)
 	};
 
 	// Add 10 middlewares

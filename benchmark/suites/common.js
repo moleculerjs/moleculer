@@ -42,8 +42,8 @@ let bench2 = benchmark.createSuite("Call with middlewares");
 })();
 
 (function() {
-	let mw1 = handler => {
-		return ctx => handler(ctx).then(res => res);
+	let mw1 = {
+		localAction: handler => ctx => handler(ctx).then(res => res)
 	};
 
 	const broker = createBroker({
