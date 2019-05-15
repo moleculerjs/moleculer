@@ -1015,8 +1015,9 @@ class ServiceBroker {
 		if (opts.ctx != null) {
 
 			const endpoint = this.findNextActionEndpoint(actionName, opts, ctx);
-			if (endpoint instanceof Error)
-				return Promise.reject(endpoint);
+			if (endpoint instanceof Error) {
+				return Promise.reject(endpoint).catch(err => this.errorHandler(err, { actionName, params, opts }));
+			}
 
 			// Reused context
 			ctx = opts.ctx;
@@ -1029,8 +1030,9 @@ class ServiceBroker {
 			ctx = this.ContextFactory.create(this, null, params, opts);
 
 			const endpoint = this.findNextActionEndpoint(actionName, opts, ctx);
-			if (endpoint instanceof Error)
-				return Promise.reject(endpoint);
+			if (endpoint instanceof Error) {
+				return Promise.reject(endpoint).catch(err => this.errorHandler(err, { actionName, params, opts }));
+			}
 
 			ctx.setEndpoint(endpoint);
 		}
@@ -1077,21 +1079,24 @@ class ServiceBroker {
 				endpoint = this.registry.getActionEndpointByNodeId(actionName, nodeID);
 				if (!endpoint) {
 					this.logger.warn(`Service '${actionName}' is not found on '${nodeID}' node.`);
-					return Promise.reject(new E.ServiceNotFoundError({ action: actionName, nodeID }));
+					return Promise.reject(new E.ServiceNotFoundError({ action: actionName, nodeID })).catch(err => this.errorHandler(err, { nodeID, actionName, params, opts }));
+
 				}
 			} else {
 				// Get endpoint list by action name
 				const epList = this.registry.getActionEndpoints(actionName);
 				if (epList == null) {
 					this.logger.warn(`Service '${actionName}' is not registered.`);
-					return Promise.reject(new E.ServiceNotFoundError({ action: actionName }));
+					return Promise.reject(new E.ServiceNotFoundError({ action: actionName })).catch(err => this.errorHandler(err, { actionName, params, opts }));
+
 				}
 
 				endpoint = epList.getFirst();
 				if (endpoint == null) {
 					const errMsg = `Service '${actionName}' is not available.`;
 					this.logger.warn(errMsg);
-					return Promise.reject(new E.ServiceNotAvailableError({ action: actionName }));
+					return Promise.reject(new E.ServiceNotAvailableError({ action: actionName })).catch(err => this.errorHandler(err, { actionName, params, opts }));
+
 				}
 			}
 		}

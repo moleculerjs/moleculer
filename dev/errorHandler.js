@@ -35,9 +35,8 @@ broker.createService({
 	await broker.start();
 
 	try {
-		//await broker.call("greeter.hello");
-		broker.broadcast("test.event", { a: 5 });
-		// broker.broadcastLocal("yo", "world");
+		await broker.call("greeter2.hello");
+		//broker.broadcast("test.event", { a: 5 });
 	} catch(err) {
 		broker.logger.error("Catched error", err);
 	}
