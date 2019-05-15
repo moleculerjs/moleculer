@@ -20,8 +20,8 @@ class TestService extends Service {
 }
 
 const testService = new TestService(broker);
-if (testService.actions) {
-	expectType<ServiceActions>(testService.actions);
-	expectType<ServiceAction>(testService.actions.foo);
-	expectType<ServiceAction>(testService.actions.bar);
-}
+
+expectType<ServiceActions>(testService.actions);
+expectType<ServiceAction>(testService.actions.foo);
+expectType<ServiceAction>(testService.actions.bar);
+

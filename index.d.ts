@@ -204,7 +204,7 @@ declare namespace Moleculer {
 		schema: ServiceSchema;
 		broker: ServiceBroker;
 		logger: LoggerInstance;
-		actions?: ServiceActions;
+		actions: ServiceActions;
 		Promise: PromiseConstructorLike;
 
 		waitForServices(serviceNames: string | Array<string> | Array<GenericObject>, timeout?: number, interval?: number): PromiseLike<void>;
