@@ -50,7 +50,20 @@ class RedisCacher extends BaseCacher {
 		 * ioredis client instance
 		 * @memberof RedisCacher
 		 */
-		this.client = new Redis(this.opts.redis);
+		if (this.opts.cluster) {
+			if (!this.opts.clusterConnectionDetails) {
+				throw new Error('No connection details defined for cluster')
+			}
+
+			this.logger.debug("Setting Redis.Cluster Cacher");
+
+			this.client = new Redis.Cluster(this.opts.clusterConnectionDetails, this.opts.clusterOptions);
+		} else {
+			this.logger.debug("Setting Redis Cacher");
+
+			this.client = new Redis(this.opts.redis);
+		}
+
 		this.client.on("connect", () => {
 			/* istanbul ignore next */
 			this.logger.info("Redis cacher connected.");
