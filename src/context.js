@@ -81,6 +81,7 @@ class Context {
 		this.requestID = null;
 
 		this.tracing = null;
+		this.span = null;
 
 		//this.startTime = null;
 		//his.startHrTime = null;
@@ -294,10 +295,13 @@ class Context {
 	 * @memberof Context
 	 */
 	startSpan(name, opts) {
-		if (!this.span)
-			return this.broker.tracer.startSpan(name, opts, this);
+		if (this.span) {
+			this.span = this.span.startSpan(name, opts);
+		} else {
+			this.span = this.broker.tracer.startSpan(name, opts);
+		}
 
-		return this.span.startSpan(name, opts, this);
+		return this.span;
 	}
 
 }

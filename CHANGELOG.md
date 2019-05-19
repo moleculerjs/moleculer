@@ -4,7 +4,7 @@
 
 ## TODO
 - `ctx` access in Strategies `next` method (Kafka-like sharding strategy).
-- subscribe/unsubscribe event from codes and REPL.
+- ~~subscribe/unsubscribe event from codes and REPL.~~
 - caching with tags/labels
 - test cover new features
 

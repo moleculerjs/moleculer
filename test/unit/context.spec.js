@@ -58,7 +58,7 @@ describe("Test Context", () => {
 
 describe("Test Context.create", () => {
 
-	let broker = new ServiceBroker({ logger: false });
+	let broker = new ServiceBroker({ nodeID: "node-1", logger: false });
 	let endpoint = {
 		action: {
 			name: "posts.find",
@@ -145,6 +145,38 @@ describe("Test Context.create", () => {
 
 		expect(ctx.requestID).toBe("1234567890abcdef");
 	});
+});
+
+describe("Test setEndpoint", () => {
+	let broker = new ServiceBroker({ nodeID: "node-1", logger: false });
+	let endpoint = {
+		action: {
+			name: "posts.find",
+			service: {
+				name: "posts"
+			}
+		},
+		node: {
+			id: "server-123"
+		}
+	};
+
+	it("should set internal variables from endpoint", () => {
+
+		let ctx = new Context(broker);
+		expect(ctx.endpoint).toBeNull();
+		expect(ctx.action).toBeNull();
+		expect(ctx.service).toBeNull();
+		expect(ctx.nodeID).toBe("node-1");
+
+		ctx.setEndpoint(endpoint);
+
+		expect(ctx.endpoint).toBe(endpoint);
+		expect(ctx.action).toBe(endpoint.action);
+		expect(ctx.service).toBe(endpoint.action.service);
+		expect(ctx.nodeID).toBe("server-123");
+	});
+
 });
 
 describe("Test setParams", () => {
@@ -366,3 +398,35 @@ describe("Test broadcast method", () => {
 
 });
 
+
+describe("Test startSpan method", () => {
+	let broker = new ServiceBroker({ logger: false, tracing: true });
+	const fakeSpan2 = { id: 456 };
+	const fakeSpan = { id: 123, startSpan: jest.fn(() => fakeSpan2) };
+	broker.tracer.startSpan = jest.fn(() => fakeSpan);
+
+	let ctx = new Context(broker);
+
+	it("should call tracer.startSpan", () => {
+		expect(ctx.span).toBeNull();
+
+		let opts = { a: 5 };
+		ctx.startSpan("custom span", opts);
+
+		expect(broker.tracer.startSpan).toHaveBeenCalledTimes(1);
+		expect(broker.tracer.startSpan).toHaveBeenCalledWith("custom span", opts);
+		expect(ctx.span).toBe(fakeSpan);
+	});
+
+	it("should call startSpan of current span", () => {
+		expect(ctx.span).toBeDefined();
+
+		let opts = { b: 3 };
+		ctx.startSpan("custom nested span", opts);
+
+		expect(fakeSpan.startSpan).toHaveBeenCalledTimes(1);
+		expect(fakeSpan.startSpan).toHaveBeenCalledWith("custom nested span", opts);
+		expect(ctx.span).toBe(fakeSpan2);
+	});
+
+});
