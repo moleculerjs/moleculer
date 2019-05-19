@@ -43,8 +43,6 @@ function resolve(opt) {
 		let ReporterClass = getByName(opt);
 		if (ReporterClass)
 			return new ReporterClass();
-		else
-			throw new BrokerOptionsError(`Invalid metric reporter type '${opt}'.`, { type: opt });
 
 	} else if (_.isObject(opt)) {
 		let ReporterClass = getByName(opt.type);
@@ -54,7 +52,7 @@ function resolve(opt) {
 			throw new BrokerOptionsError(`Invalid metric reporter type '${opt.type}'.`, { type: opt.type });
 	}
 
-	return null;
+	throw new BrokerOptionsError(`Invalid metric reporter type '${opt}'.`, { type: opt });
 }
 
 module.exports = Object.assign({ resolve }, Reporters);

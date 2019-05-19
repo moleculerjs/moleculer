@@ -6,7 +6,6 @@
 
 "use strict";
 
-const _ = require("lodash");
 const { BrokerOptionsError } = require("../../errors");
 
 const Types = {
