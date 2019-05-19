@@ -323,17 +323,16 @@ describe("Test MemoryCacher getWithTTL method", ()=>{
 		logger: false,
 		cacher
 	});
-	const get = jest.spyOn(cacher, 'get');
-	const getWithTTL = jest.spyOn(cacher, 'getWithTTL');
-	const lock = jest.spyOn(cacher, 'lock');
-	const key1 = 'abcd1234';
+	const get = jest.spyOn(cacher, "get");
+	const getWithTTL = jest.spyOn(cacher, "getWithTTL");
+	const lock = jest.spyOn(cacher, "lock");
+	const key1 = "abcd1234";
 	it("should return data and ttl", () => {
-		return cacher.set(key1, 'hello', 30).then(() => {
+		return cacher.set(key1, "hello", 30).then(() => {
 			return cacher.getWithTTL(key1).then(res => {
-				expect(res.data).toEqual('hello')
-				expect(res.ttl).toBeLessThanOrEqual(30)
-			})
-		})
-
-	})
-})
+				expect(res.data).toEqual("hello");
+				expect(res.ttl).toBeLessThanOrEqual(30);
+			});
+		});
+	});
+});

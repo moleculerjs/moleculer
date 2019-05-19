@@ -44,11 +44,10 @@ class MemoryLRUCacher extends BaseCacher {
 			/* istanbul ignore next */
 			this.checkTTL();
 		}, 30 * 1000);
+		this.timer.unref();
 
 		// Set cloning
 		this.clone = this.opts.clone === true ? _.cloneDeep : this.opts.clone;
-
-		this.timer.unref();
 	}
 
 	/**
@@ -178,12 +177,12 @@ class MemoryLRUCacher extends BaseCacher {
 	 *
 	 * @memberof MemoryLRUCacher
 	 */
-	 getWithTTL(key){
+	getWithTTL(key){
 		// There are no way to get the ttl of LRU cache :(
- 		return this.get(key).then(data=>{
+		return this.get(key).then(data=>{
 			return { data, ttl: null };
 		});
-	 }
+	}
 
 	/**
 	 * Acquire a lock
@@ -195,11 +194,11 @@ class MemoryLRUCacher extends BaseCacher {
 	 * @memberof MemoryLRUCacher
 	 */
 
-	 lock(key, ttl) {
-  		return this._lock.acquire(key, ttl).then(()=> {
- 				return ()=>this._lock.release(key);
- 			});
-  	}
+	lock(key, ttl) {
+		return this._lock.acquire(key, ttl).then(()=> {
+			return ()=>this._lock.release(key);
+		});
+	}
 
 	/**
 	 * Try to acquire a lock
@@ -210,14 +209,14 @@ class MemoryLRUCacher extends BaseCacher {
 	 *
 	 * @memberof MemoryLRUCacher
 	 */
-	 tryLock(key, ttl) {
- 		if(this._lock.isLocked(key)){
- 			return Promise.reject(new Error("Locked."));
- 		}
- 		return this._lock.acquire(key, ttl).then(()=> {
- 			return ()=>this._lock.release(key);
- 		});
- 	}
+	tryLock(key, ttl) {
+		if(this._lock.isLocked(key)){
+			return Promise.reject(new Error("Locked."));
+		}
+		return this._lock.acquire(key, ttl).then(()=> {
+			return ()=>this._lock.release(key);
+		});
+	}
 
 
 	/**

@@ -93,8 +93,6 @@ class MetricRegistry {
 
 	/**
 	 * Stop Metric Registry
-	 *
-	 * TODO: need to call?
 	 */
 	stop() {
 		if (this.collectTimer)

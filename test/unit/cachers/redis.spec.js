@@ -318,8 +318,8 @@ describe("Test RedisCacher set & get with namespace & ttl", () => {
 });
 
 describe("Test RedisCacher getWithTTL method", () => {
-	const cachedData = { name: 'tiaod' };
-	const key = 'abcd134';
+	const cachedData = { name: "tiaod" };
+	const key = "abcd134";
 	let broker = new ServiceBroker({ logger: false });
 	let cacher = new RedisCacher({
 		ttl: 30,
@@ -329,8 +329,8 @@ describe("Test RedisCacher getWithTTL method", () => {
 	let mockPipeline = {};
 
 	beforeEach(() => {
-		mockPipeline.get = jest.fn(() =>mockPipeline)
-		mockPipeline.ttl = jest.fn(() =>mockPipeline)
+		mockPipeline.get = jest.fn(() =>mockPipeline);
+		mockPipeline.ttl = jest.fn(() =>mockPipeline);
 		mockPipeline.exec = jest.fn(() => Promise.resolve([
 			[null, JSON.stringify(cachedData)],
 			[null, 20]
@@ -349,18 +349,18 @@ describe("Test RedisCacher getWithTTL method", () => {
 	});
 
 	it("should throw an error when get method return error", () => {
-		const err = new Error('get error.')
+		const err = new Error("get error.");
 		mockPipeline.exec = jest.fn(() => Promise.resolve([
 			[err, null],
 			[null, 20]
-		]))
+		]));
 		return cacher.getWithTTL(key).catch(e => {
 			expect(e).toBe(err);
 		});
 	});
 
 	it("should throw an error when ttl method return error", () => {
-		const err = new Error('ttl error.')
+		const err = new Error("ttl error.");
 		mockPipeline.exec = jest.fn(() => Promise.resolve([
 			[null, cachedData],
 			[err, null]
@@ -393,13 +393,13 @@ describe("Test RedisCacher lock method", () => {
 	cacher.init(broker); // for empty logger
 	let unlock1, unlock2;
 	beforeEach(() => {
-		unlock1 = jest.fn(()=>Promise.resolve())
-		unlock2 = jest.fn(()=>Promise.resolve())
+		unlock1 = jest.fn(()=>Promise.resolve());
+		unlock2 = jest.fn(()=>Promise.resolve());
 		cacher.redlock.lock = jest.fn(()=>{
 			return Promise.resolve({
 				unlock: unlock1
-			})
-		})
+			});
+		});
 		cacher.redlockNonBlocking.lock = jest.fn(()=>{
 			return Promise.resolve({
 				unlock: unlock2
@@ -430,10 +430,10 @@ describe("Test RedisCacher lock method", () => {
 	});
 
 	it("should call redlock.unlock when calling unlock callback", () => {
-		const err = new Error("Already locked.")
+		const err = new Error("Already locked.");
 		cacher.redlockNonBlocking.lock = jest.fn(()=>{
 			return Promise.reject(err);
-		})
+		});
 		return cacher.tryLock(key, 20).catch(e => {
 			expect(e).toBe(err);
 		});

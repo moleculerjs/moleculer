@@ -473,6 +473,11 @@ class ServiceBroker {
 				}
 			})
 			.then(() => {
+				if (this.metrics) {
+					return this.metrics.stop();
+				}
+			})
+			.then(() => {
 				return this.callMiddlewareHook("stopped", [this], { reverse: true });
 			})
 			.then(() => {
