@@ -15,16 +15,13 @@ class BaseMetric {
 
 	/**
 	 * Creates an instance of BaseMetric.
+	 *
 	 * @param {Object} opts
 	 * @param {MetricRegistry} registry
 	 * @memberof BaseMetric
 	 */
 	constructor(opts, registry) {
-		Object.defineProperty(this, "registry", {
-			enumerable: false,
-			value: registry
-		});
-		//this.registry = registry;
+		this.registry = registry;
 		this.type = opts.type;
 		this.name = opts.name;
 		this.description = opts.description;
@@ -115,6 +112,8 @@ class BaseMetric {
 				parts.push(v);
 			else if (typeof v === "string")
 				parts.push("\"" + v + "\"");
+			else if (typeof v === "boolean")
+				parts.push("" + v);
 			else
 				parts.push("");
 		}
