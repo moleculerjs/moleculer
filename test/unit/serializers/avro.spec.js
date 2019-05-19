@@ -256,10 +256,11 @@ describe("Test Avro serializer", () => {
 			success: true,
 			data: false,
 			meta: {},
-			stream: false
+			stream: false,
+			seq: 3
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(29);
+		expect(s.length).toBe(31);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).not.toBe(obj);
@@ -298,10 +299,11 @@ describe("Test Avro serializer", () => {
 			success: true,
 			data: null,
 			meta: {},
-			stream: false
+			stream: false,
+			seq: 3,
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(23);
+		expect(s.length).toBe(25);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).not.toBe(obj);

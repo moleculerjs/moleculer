@@ -29,13 +29,15 @@ describe("Test MiddlewareHandler", () => {
 		middlewares.add();
 		expect(middlewares.count()).toBe(1);
 
-		let mw2 = jest.fn();
+		let mw2 = { localAction: jest.fn() };
+		let mw2Wrap = jest.fn(() => mw2);
 
-		middlewares.add(mw2);
+		middlewares.add(mw2Wrap);
 		expect(middlewares.count()).toBe(2);
-		expect(middlewares.list[1]).toEqual({
-			localAction: mw2
-		});
+		expect(middlewares.list[1]).toEqual(mw2);
+
+		expect(mw2Wrap).toHaveBeenCalledTimes(1);
+		expect(mw2Wrap).toHaveBeenCalledWith(broker);
 	});
 
 	describe("Test wrapper", () => {

@@ -121,6 +121,7 @@ const defaultOptions = {
 
 	// ServiceFactory: null,
 	// ContextFactory: null
+	// Promise: null
 };
 
 /**
@@ -141,8 +142,15 @@ class ServiceBroker {
 		try {
 			this.options = _.defaultsDeep(options, defaultOptions);
 
-			// Promise constructor
-			this.Promise = Promise;
+			// Promise class
+			if (this.options.Promise) {
+				this.Promise = this.options.Promise;
+				utils.polyfillPromise(this.Promise);
+			} else {
+				// Use Bluebird
+				this.Promise = Promise;
+			}
+			ServiceBroker.Promise = this.Promise;
 
 			// Broker started flag
 			this.started = false;

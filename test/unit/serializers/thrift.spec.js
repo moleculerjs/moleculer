@@ -256,10 +256,11 @@ describe("Test ProtoBuf serializer", () => {
 			success: true,
 			data: false,
 			meta: {},
+			seq: 3,
 			stream: false
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(63);
+		expect(s.length).toBe(70);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).not.toBe(obj);
@@ -298,10 +299,11 @@ describe("Test ProtoBuf serializer", () => {
 			success: true,
 			data: null,
 			meta: {},
+			seq: 3,
 			stream: false
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(51);
+		expect(s.length).toBe(58);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).not.toBe(obj);

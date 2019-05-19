@@ -23,7 +23,7 @@ class MiddlewareHandler {
 		if (!mw) return;
 
 		if (_.isFunction(mw)) {
-			this.list.push(mw.call(this.broker));
+			this.list.push(mw.call(this.broker, this.broker));
 		} else if (_.isString(mw)) {
 			let item = _.get(Middlewares, mw);
 			if (item)

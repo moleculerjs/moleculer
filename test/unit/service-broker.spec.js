@@ -41,6 +41,7 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.options).toEqual(ServiceBroker.defaultOptions);
 
 		expect(broker.Promise).toBe(Promise);
+		expect(ServiceBroker.Promise).toBe(Promise);
 
 		expect(broker.ServiceFactory).toBe(Service);
 		expect(broker.ContextFactory).toBe(Context);
@@ -54,6 +55,8 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.metadata).toEqual({});
 
 		expect(broker.localBus).toBeDefined();
+
+		expect(broker.scope).toBeDefined();
 
 		expect(broker.metrics).toBeDefined();
 		expect(broker.tracer).toBeDefined();
@@ -106,6 +109,8 @@ describe("Test ServiceBroker constructor", () => {
 				enabled: true
 			},
 
+			errorHandler: err => console.log(err),
+
 			disableBalancer: true,
 			registry: {
 				strategy: Strategies.Random,
@@ -147,6 +152,8 @@ describe("Test ServiceBroker constructor", () => {
 				enabled: true,
 				shutdownTimeout: 5000,
 			},
+
+			errorHandler: expect.any(Function),
 
 			metrics: {
 				enabled: true
@@ -204,7 +211,9 @@ describe("Test ServiceBroker constructor", () => {
 
 			metadata: {
 				region: "eu-west1"
-			}
+			},
+
+			skipProcessEventRegistration: false
 		});
 
 		expect(broker.services).toBeInstanceOf(Array);
@@ -342,17 +351,20 @@ describe("Test ServiceBroker constructor", () => {
 	});
 
 	it("should load middlewares", () => {
-		let mw1 = jest.fn(handler => handler);
-		let mw2 = jest.fn(handler => handler);
+		let mw1 = { localAction: jest.fn(handler => handler) };
+		let mw2 = { localAction: jest.fn(handler => handler) };
 		let broker = new ServiceBroker({
 			logger: false,
 			internalMiddlewares: false,
-			middlewares: [mw1, mw2]
+			middlewares: [
+				mw1,
+				function() { return mw2; }
+			]
 		});
 
 		expect(broker.middlewares.count()).toBe(2);
-		expect(mw1).toHaveBeenCalledTimes(6);
-		expect(mw2).toHaveBeenCalledTimes(6);
+		expect(mw1.localAction).toHaveBeenCalledTimes(6);
+		expect(mw2.localAction).toHaveBeenCalledTimes(6);
 	});
 
 	it("should register internal middlewares", () => {
@@ -1405,7 +1417,8 @@ describe("Test broker.call", () => {
 	it("should create new Context & call handler", () => {
 		let context = {
 			action,
-			endpoint: ep
+			endpoint: ep,
+			setEndpoint: jest.fn()
 		};
 		broker.ContextFactory.create = jest.fn(() => context);
 
@@ -1414,10 +1427,13 @@ describe("Test broker.call", () => {
 			expect(ctx).toBe(context);
 
 			expect(broker.ContextFactory.create).toHaveBeenCalledTimes(1);
-			expect(broker.ContextFactory.create).toHaveBeenCalledWith(broker, ep, undefined, {});
+			expect(broker.ContextFactory.create).toHaveBeenCalledWith(broker, null, undefined, {});
+			expect(context.setEndpoint).toHaveBeenCalledWith(ep);
 
 			expect(action.handler).toHaveBeenCalledTimes(1);
 			expect(action.handler).toHaveBeenCalledWith(ctx);
+
+			context.setEndpoint.mockClear();
 		});
 	});
 
@@ -1430,7 +1446,8 @@ describe("Test broker.call", () => {
 		return p.catch(protectReject).then(ctx => {
 			expect(p.ctx).toBe(ctx);
 			expect(broker.ContextFactory.create).toHaveBeenCalledTimes(1);
-			expect(broker.ContextFactory.create).toHaveBeenCalledWith(broker, ep, undefined, {});
+			expect(broker.ContextFactory.create).toHaveBeenCalledWith(broker, null, undefined, {});
+			expect(ctx.setEndpoint).toHaveBeenCalledWith(ep);
 
 			expect(action.handler).toHaveBeenCalledTimes(1);
 			expect(action.handler).toHaveBeenCalledWith(ctx);

@@ -21,6 +21,9 @@ broker.createService({
 			},
 			() => { console.log("Called second handler"); },
 		]
+	},
+	started() {
+
 	}
 });
 
