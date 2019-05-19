@@ -7,31 +7,35 @@ describe("Test middleware system", () => {
 
 	describe("Test with sync & async middlewares", () => {
 		let flow = [];
-		let mw1Sync = handler => {
-			return ctx => {
-				flow.push("B1");
-				return handler(ctx).then(res => {
-					flow.push("A1");
-					return res;
-				});
-			};
+		let mw1Sync = {
+			localAction: handler => {
+				return ctx => {
+					flow.push("B1");
+					return handler(ctx).then(res => {
+						flow.push("A1");
+						return res;
+					});
+				};
+			}
 		};
 
-		let mw2Async = handler => {
-			return ctx => {
-				flow.push("B2");
-				return new Promise(resolve => {
-					setTimeout(() => {
-						flow.push("B2P");
-						resolve();
-					}, 10);
-				}).then(() => {
-					return handler(ctx);
-				}).then(res => {
-					flow.push("A2");
-					return res;
-				});
-			};
+		let mw2Async = {
+			localAction: handler => {
+				return ctx => {
+					flow.push("B2");
+					return new Promise(resolve => {
+						setTimeout(() => {
+							flow.push("B2P");
+							resolve();
+						}, 10);
+					}).then(() => {
+						return handler(ctx);
+					}).then(res => {
+						flow.push("A2");
+						return res;
+					});
+				};
+			}
 		};
 
 		let broker = new ServiceBroker({ logger: false, validation: false, internalMiddlewares: false, middlewares: [mw2Async, mw1Sync] });
@@ -69,32 +73,38 @@ describe("Test middleware system", () => {
 
 	describe("Test with SYNC break", () => {
 		let flow = [];
-		let mw1 = handler => {
-			return ctx => {
-				flow.push("B1");
-				return handler(ctx).then(res => {
-					flow.push("A1");
-					return res;
-				});
-			};
+		let mw1 = {
+			localAction: handler => {
+				return ctx => {
+					flow.push("B1");
+					return handler(ctx).then(res => {
+						flow.push("A1");
+						return res;
+					});
+				};
+			}
 		};
 
-		let mw2 = () => {
-			return () => {
-				flow.push("B2");
-				// Don't call handler, break the chain
-				return Promise.resolve({ user: "bobcsi" });
-			};
+		let mw2 = {
+			localAction: () => {
+				return () => {
+					flow.push("B2");
+					// Don't call handler, break the chain
+					return Promise.resolve({ user: "bobcsi" });
+				};
+			}
 		};
 
-		let mw3 = handler => {
-			return ctx => {
-				flow.push("B3");
-				return handler(ctx).then(res => {
-					flow.push("A3");
-					return res;
-				});
-			};
+		let mw3 = {
+			localAction: handler => {
+				return ctx => {
+					flow.push("B3");
+					return handler(ctx).then(res => {
+						flow.push("A3");
+						return res;
+					});
+				};
+			}
 		};
 
 		let master = jest.fn(() => {
@@ -131,42 +141,47 @@ describe("Test middleware system", () => {
 
 	describe("Test middleware system with ASYNC break", () => {
 		let flow = [];
-		let mw1 = handler => {
-			return ctx => {
-				flow.push("B1");
-				return handler(ctx).then(res => {
-					flow.push("A1");
-					return res;
-				});
-			};
+		let mw1 = {
+			localAction: handler => {
+				return ctx => {
+					flow.push("B1");
+					return handler(ctx).then(res => {
+						flow.push("A1");
+						return res;
+					});
+				};
+			}
 		};
 
-		let mw2 = () => {
-			return () => {
-				flow.push("B2");
-				return new Promise(resolve => {
-					setTimeout(() => {
-						flow.push("B2P");
-						resolve({ user: "bobcsi" });
-					}, 10);
-				});
-			};
+		let mw2 = {
+			localAction: () => {
+				return () => {
+					flow.push("B2");
+					return new Promise(resolve => {
+						setTimeout(() => {
+							flow.push("B2P");
+							resolve({ user: "bobcsi" });
+						}, 10);
+					});
+				};
+			}
 		};
 
-		let mw3 = handler => {
-			return ctx => {
-				flow.push("B3");
-				return handler(ctx).then(res => {
-					flow.push("A3");
-					return res;
-				});
-			};
+		let mw3 = {
+			localAction: handler => {
+				return ctx => {
+					flow.push("B3");
+					return handler(ctx).then(res => {
+						flow.push("A3");
+						return res;
+					});
+				};
+			}
 		};
 
 		let master = jest.fn(() => {
 			flow.push("MASTER");
 			return { user: "icebob" };
-
 		});
 
 		let broker = new ServiceBroker({ logger: false, validation: false, internalMiddlewares: false, middlewares: [mw3, mw2, mw1] });
@@ -198,21 +213,25 @@ describe("Test middleware system", () => {
 
 	describe("Test with Error", () => {
 		let flow = [];
-		let mw1 = handler => {
-			return ctx => {
-				flow.push("B1");
-				return handler(ctx).then(res => {
-					flow.push("A1");
-					return res;
-				});
-			};
+		let mw1 = {
+			localAction: handler => {
+				return ctx => {
+					flow.push("B1");
+					return handler(ctx).then(res => {
+						flow.push("A1");
+						return res;
+					});
+				};
+			}
 		};
 
-		let mw2 = () => {
-			return () => {
-				flow.push("B2");
-				return Promise.reject(new Error("Something happened in mw2"));
-			};
+		let mw2 = {
+			localAction: () => {
+				return () => {
+					flow.push("B2");
+					return Promise.reject(new Error("Something happened in mw2"));
+				};
+			}
 		};
 
 		let master = jest.fn(() => {
