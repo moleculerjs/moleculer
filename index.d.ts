@@ -116,12 +116,12 @@ declare namespace Moleculer {
 
 		setParams(newParams: P, cloning?: boolean): void;
 		call<T = any, P extends GenericObject = GenericObject>(actionName: string, params?: P, opts?: GenericObject): PromiseLike<T>;
-		emit(eventName: string, data: any, groups: Array<string>): void;
-		emit(eventName: string, data: any, groups: string): void;
-		emit(eventName: string, data: any): void;
-		broadcast(eventName: string, data: any, groups: Array<string>): void;
-		broadcast(eventName: string, data: any, groups: string): void;
-		broadcast(eventName: string, data: any): void;
+		emit<D = any>(eventName: string, data: D, groups: Array<string>): void;
+		emit<D = any>(eventName: string, data: D, groups: string): void;
+		emit<D = any>(eventName: string, data: D): void;
+		broadcast<D = any>(eventName: string, data: D, groups: Array<string>): void;
+		broadcast<D = any>(eventName: string, data: D, groups: string): void;
+		broadcast<D = any>(eventName: string, data: D): void;
 
 		static create(broker: ServiceBroker, endpoint: Endpoint, params: GenericObject, opts: GenericObject): Context;
 		static create(broker: ServiceBroker, endpoint: Endpoint, params: GenericObject): Context;
@@ -503,7 +503,7 @@ declare namespace Moleculer {
 		 *
 		 * @memberof ServiceBroker
 		 */
-		emit(eventName: string, payload?: any, groups?: string | Array<string>): void;
+		emit<P = any>(eventName: string, payload?: P, groups?: string | Array<string>): void;
 
 		/**
 		 * Emit an event for all local & remote services
@@ -515,7 +515,7 @@ declare namespace Moleculer {
 		 *
 		 * @memberof ServiceBroker
 		 */
-		broadcast(eventName: string, payload?: any, groups?: string | Array<string>): void
+		broadcast<P = any>(eventName: string, payload?: P, groups?: string | Array<string>): void
 
 		/**
 		 * Emit an event for all local services
@@ -527,7 +527,7 @@ declare namespace Moleculer {
 		 *
 		 * @memberof ServiceBroker
 		 */
-		broadcastLocal(eventName: string, payload?: any, groups?: string | Array<string>): void;
+		broadcastLocal<P = any>(eventName: string, payload?: P, groups?: string | Array<string>): void;
 
 		ping(): PromiseLike<PongResponses>;
 		ping(nodeID: string, timeout?: number): PromiseLike<PongResponse>;

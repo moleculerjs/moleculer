@@ -4,7 +4,6 @@ dist: xenial
 
 node_js:
     - "12"
-    - "11"
     - "10"
     - "8"
 

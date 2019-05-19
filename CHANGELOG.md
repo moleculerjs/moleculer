@@ -1,6 +1,6 @@
 --------------------------------------------------
 <a name="0.14.0"></a>
-# [0.14.0](https://github.com/moleculerjs/moleculer/compare/v0.13.8...v0.14.0) (2019-xx-xx)
+# [0.14.0](https://github.com/moleculerjs/moleculer/compare/v0.13.9...v0.14.0) (2019-xx-xx)
 
 ## TODO
 - `ctx` access in Strategies `next` method (Kafka-like sharding strategy).
@@ -73,6 +73,97 @@
 ## Other notable changes
 -
 -
+
+--------------------------------------------------
+<a name="0.13.9"></a>
+# [0.13.9](https://github.com/moleculerjs/moleculer/compare/v0.13.8...v0.13.9) (2019-04-18)
+
+# New
+
+## Cache locking feature by [@tiaod](https://github.com/tiaod) [#490](https://github.com/moleculerjs/moleculer/pull/490)
+
+**Example to enable cacher locking:**
+```js
+cacher: {
+  ttl: 60,
+  lock: true, // Set to true to enable cache locks. Default is disabled.
+}
+
+//  Or
+cacher: {
+  ttl: 60,
+  lock: {
+    ttl: 15, //the maximum amount of time you want the resource locked in seconds
+    staleTime: 10, // If the ttl is less than this number, means that the resources are staled
+  }
+}
+
+// Disable the lock
+cacher: {
+  ttl: 60,
+  lock: {
+    enable: false, // Set to false to disable.
+    ttl: 15, //the maximum amount of time you want the resource locked in seconds
+    staleTime: 10, // If the ttl is less than this number, means that the resources are staled
+  }
+}
+```
+
+**Example for Redis cacher with `redlock` library:**
+
+```js
+const broker = new ServiceBroker({
+  cacher: {
+    type: "Redis",
+    options: {
+      // Prefix for keys
+      prefix: "MOL",
+      // set Time-to-live to 30sec.
+      ttl: 30,
+      // Turns Redis client monitoring on.
+      monitor: false,
+      // Redis settings
+      redis: {
+        host: "redis-server",
+        port: 6379,
+        password: "1234",
+        db: 0
+      },
+      lock: {
+        ttl: 15, //the maximum amount of time you want the resource locked in seconds
+        staleTime: 10, // If the ttl is less than this number, means that the resources are staled
+      },
+      // Redlock settings
+      redlock: {
+        // Redis clients. Support node-redis or ioredis. By default will use the local client.
+        clients: [client1, client2, client3],
+        // the expected clock drift; for more details
+        // see http://redis.io/topics/distlock
+        driftFactor: 0.01, // time in ms
+
+        // the max number of times Redlock will attempt
+        // to lock a resource before erroring
+        retryCount: 10,
+
+        // the time in ms between attempts
+        retryDelay: 200, // time in ms
+
+        // the max time in ms randomly added to retries
+        // to improve performance under high contention
+        // see https://www.awsarchitectureblog.com/2015/03/backoff.html
+        retryJitter: 200 // time in ms
+      }
+    }
+  }
+});
+```
+
+# Changes
+- fix event wildcard handling in case of NATS transporter and disabled balancer [#517](https://github.com/moleculerjs/moleculer/pull/517)
+- update typescript d.ts file. [#501](https://github.com/moleculerjs/moleculer/pull/501) [#521](https://github.com/moleculerjs/moleculer/pull/521)
+- fix context calling options cloning.
+- service modification support for ES6 classes [#514](https://github.com/moleculerjs/moleculer/pull/514)
+- fix `null`, `0` & `false` return value issue in case of ProtoBuf serializer [#511](https://github.com/moleculerjs/moleculer/pull/511)
 
 --------------------------------------------------
 <a name="0.13.8"></a>
