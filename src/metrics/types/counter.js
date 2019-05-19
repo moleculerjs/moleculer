@@ -36,7 +36,7 @@ class CounterMetric extends GaugeMetric {
 	 * @memberof CounterMetric
 	 */
 	decrement() {
-		throw new Error("Counter can't be decreased");
+		throw new Error("Counter can't be decreased.");
 	}
 }
 

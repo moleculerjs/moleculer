@@ -132,6 +132,378 @@ describe("Test Metric Registry", () => {
 			expect(item).toBeInstanceOf(MetricTypes.Counter);
 			expect(metric.store.size).toBe(1);
 		});
+
+		it("should return null if metrics disabled", () => {
+			const metric = new MetricRegistry(broker, { enabled: false, collectProcessMetrics: false });
+			const item = metric.register({ type: "counter", name: "test" });
+			expect(item).toBeNull();
+			expect(metric.store.size).toBe(0);
+		});
+	});
+
+	describe("Test hasMetric method", () => {
+
+		const broker = new ServiceBroker({ logger: false });
+
+		it("should find the stored metrics if metrics enabled", () => {
+			const metric = new MetricRegistry(broker, { collectProcessMetrics: false });
+			metric.register({ name: "test.first", type: "counter" });
+			metric.register({ name: "test.second", type: "gauge" });
+
+			expect(metric.hasMetric("test.first")).toBe(true);
+			expect(metric.hasMetric("test.second")).toBe(true);
+			expect(metric.hasMetric("test.third")).toBe(false);
+		});
+
+		it("should not find if metrics disabled", () => {
+			const metric = new MetricRegistry(broker, { enabled: false, collectProcessMetrics: false });
+			metric.register({ name: "test.first", type: "counter" });
+			metric.register({ name: "test.second", type: "gauge" });
+
+			expect(metric.hasMetric("test.first")).toBe(false);
+			expect(metric.hasMetric("test.second")).toBe(false);
+			expect(metric.hasMetric("test.third")).toBe(false);
+		});
+
+	});
+
+	describe("Test getMetric method", () => {
+
+		const broker = new ServiceBroker({ logger: false });
+
+		it("should return the stored metrics if metrics enabled", () => {
+			const metric = new MetricRegistry(broker, { collectProcessMetrics: false });
+			metric.register({ name: "test.first", type: "counter" });
+			metric.register({ name: "test.second", type: "gauge" });
+
+			expect(metric.getMetric("test.first")).toBeDefined();
+			expect(metric.getMetric("test.second")).toBeDefined();
+			expect(metric.getMetric("test.third")).toBeNull();
+		});
+
+		it("should return null if metrics disabled", () => {
+			const metric = new MetricRegistry(broker, { enabled: false, collectProcessMetrics: false });
+			metric.register({ name: "test.first", type: "counter" });
+			metric.register({ name: "test.second", type: "gauge" });
+
+			expect(metric.getMetric("test.first")).toBeNull();
+			expect(metric.getMetric("test.second")).toBeNull();
+			expect(metric.getMetric("test.third")).toBeNull();
+		});
+
+	});
+
+	describe("Test increment method", () => {
+
+		const broker = new ServiceBroker({ logger: false });
+		const metric = new MetricRegistry(broker, { collectProcessMetrics: false });
+
+		const counter = metric.register({ type: "counter", name: "test.counter" });
+		counter.increment = jest.fn();
+
+		it("should call increment method without params", () => {
+			metric.increment("test.counter");
+
+			expect(counter.increment).toHaveBeenCalledTimes(1);
+			expect(counter.increment).toHaveBeenCalledWith(undefined, 1, undefined);
+		});
+
+		it("should call increment method with params", () => {
+			counter.increment.mockClear();
+			const now = Date.now();
+			metric.increment("test.counter", { a: 5 }, 3, now);
+
+			expect(counter.increment).toHaveBeenCalledTimes(1);
+			expect(counter.increment).toHaveBeenCalledWith({ a: 5 }, 3, now);
+		});
+
+		it("should not call increment method if metric disabled", () => {
+			counter.increment.mockClear();
+			metric.opts.enabled = false;
+
+			metric.increment("test.counter");
+
+			expect(counter.increment).toHaveBeenCalledTimes(0);
+		});
+
+	});
+
+	describe("Test decrement method", () => {
+
+		const broker = new ServiceBroker({ logger: false });
+		const metric = new MetricRegistry(broker, { collectProcessMetrics: false });
+
+		const gauge = metric.register({ type: "gauge", name: "test.gauge" });
+		gauge.decrement = jest.fn();
+
+		it("should call decrement method without params", () => {
+			metric.decrement("test.gauge");
+
+			expect(gauge.decrement).toHaveBeenCalledTimes(1);
+			expect(gauge.decrement).toHaveBeenCalledWith(undefined, 1, undefined);
+		});
+
+		it("should call decrement method with params", () => {
+			gauge.decrement.mockClear();
+			const now = Date.now();
+			metric.decrement("test.gauge", { a: 5 }, 3, now);
+
+			expect(gauge.decrement).toHaveBeenCalledTimes(1);
+			expect(gauge.decrement).toHaveBeenCalledWith({ a: 5 }, 3, now);
+		});
+
+		it("should throw error if metric has no decrement method", () => {
+			metric.register({ type: "counter", name: "test.counter" });
+
+			expect(() => metric.decrement("test.counter")).toThrow("Counter can't be decreased.");
+
+		});
+
+		it("should not call decrement method if metric disabled", () => {
+			gauge.decrement.mockClear();
+			metric.opts.enabled = false;
+
+			metric.decrement("test.gauge");
+
+			expect(gauge.decrement).toHaveBeenCalledTimes(0);
+		});
+
+	});
+
+	describe("Test set method", () => {
+
+		const broker = new ServiceBroker({ logger: false });
+		const metric = new MetricRegistry(broker, { collectProcessMetrics: false });
+
+		const info = metric.register({ type: "info", name: "test.info" });
+		info.set = jest.fn();
+
+		it("should call set method without params", () => {
+			metric.set("test.info", 8);
+
+			expect(info.set).toHaveBeenCalledTimes(1);
+			expect(info.set).toHaveBeenCalledWith(8, undefined, undefined);
+		});
+
+		it("should call set method with params", () => {
+			info.set.mockClear();
+			const now = Date.now();
+			metric.set("test.info", 8, { a: 5 }, now);
+
+			expect(info.set).toHaveBeenCalledTimes(1);
+			expect(info.set).toHaveBeenCalledWith(8, { a: 5 }, now);
+		});
+
+		it("should not call set method if metric disabled", () => {
+			info.set.mockClear();
+			metric.opts.enabled = false;
+
+			metric.set("test.info");
+
+			expect(info.set).toHaveBeenCalledTimes(0);
+		});
+
+	});
+
+	describe("Test observe method", () => {
+
+		const broker = new ServiceBroker({ logger: false });
+		const metric = new MetricRegistry(broker, { collectProcessMetrics: false });
+
+		const histogram = metric.register({ type: "histogram", name: "test.histogram" });
+		histogram.observe = jest.fn();
+
+		it("should call observe method without params", () => {
+			metric.observe("test.histogram", 8);
+
+			expect(histogram.observe).toHaveBeenCalledTimes(1);
+			expect(histogram.observe).toHaveBeenCalledWith(8, undefined, undefined);
+		});
+
+		it("should call observe method with params", () => {
+			histogram.observe.mockClear();
+			const now = Date.now();
+			metric.observe("test.histogram", 8, { a: 5 }, now);
+
+			expect(histogram.observe).toHaveBeenCalledTimes(1);
+			expect(histogram.observe).toHaveBeenCalledWith(8, { a: 5 }, now);
+		});
+
+		it("should not call observe method if metric disabled", () => {
+			histogram.observe.mockClear();
+			metric.opts.enabled = false;
+
+			metric.observe("test.histogram");
+
+			expect(histogram.observe).toHaveBeenCalledTimes(0);
+		});
+
+	});
+
+	describe("Test reset method", () => {
+
+		const broker = new ServiceBroker({ logger: false });
+		const metric = new MetricRegistry(broker, { collectProcessMetrics: false });
+
+		const histogram = metric.register({ type: "histogram", name: "test.histogram" });
+		histogram.reset = jest.fn();
+
+		it("should call reset method without params", () => {
+			metric.reset("test.histogram", 8);
+
+			expect(histogram.reset).toHaveBeenCalledTimes(1);
+			expect(histogram.reset).toHaveBeenCalledWith(8, undefined);
+		});
+
+		it("should call reset method with params", () => {
+			histogram.reset.mockClear();
+			metric.reset("test.histogram", 8, { a: 5 });
+
+			expect(histogram.reset).toHaveBeenCalledTimes(1);
+			expect(histogram.reset).toHaveBeenCalledWith(8, { a: 5 });
+		});
+
+		it("should not call reset method if metric disabled", () => {
+			histogram.reset.mockClear();
+			metric.opts.enabled = false;
+
+			metric.reset("test.histogram");
+
+			expect(histogram.reset).toHaveBeenCalledTimes(0);
+		});
+
+	});
+
+	describe("Test resetAll method", () => {
+
+		const broker = new ServiceBroker({ logger: false });
+		const metric = new MetricRegistry(broker, { collectProcessMetrics: false });
+
+		const histogram = metric.register({ type: "histogram", name: "test.histogram" });
+		histogram.resetAll = jest.fn();
+
+		it("should call resetAll method without params", () => {
+			metric.resetAll("test.histogram");
+
+			expect(histogram.resetAll).toHaveBeenCalledTimes(1);
+			expect(histogram.resetAll).toHaveBeenCalledWith(undefined);
+		});
+
+		it("should call resetAll method with params", () => {
+			histogram.resetAll.mockClear();
+			const now = Date.now();
+			metric.resetAll("test.histogram", now);
+
+			expect(histogram.resetAll).toHaveBeenCalledTimes(1);
+			expect(histogram.resetAll).toHaveBeenCalledWith(now);
+		});
+
+		it("should not call resetAll method if metric disabled", () => {
+			histogram.resetAll.mockClear();
+			metric.opts.enabled = false;
+
+			metric.resetAll("test.histogram");
+
+			expect(histogram.resetAll).toHaveBeenCalledTimes(0);
+		});
+
+	});
+
+	describe("Test timer method", () => {
+
+		const broker = new ServiceBroker({ logger: false });
+		const metric = new MetricRegistry(broker, { collectProcessMetrics: false });
+
+		const gauge = metric.register({ type: "gauge", name: "test.gauge" });
+		gauge.set = jest.fn();
+
+		const histogram = metric.register({ type: "histogram", name: "test.histogram" });
+		histogram.observe = jest.fn();
+
+		it("should call gauge.set method", () => {
+			const timeEnd = metric.timer("test.gauge");
+			expect(gauge.set).toHaveBeenCalledTimes(0);
+
+			const duration = timeEnd();
+			expect(duration).toBeGreaterThan(0.001);
+			expect(gauge.set).toHaveBeenCalledTimes(1);
+			expect(gauge.set).toHaveBeenCalledWith(expect.any(Number), undefined, undefined);
+		});
+
+		it("should call gauge.set method with params", () => {
+			gauge.set.mockClear();
+			const now = Date.now();
+			const timeEnd = metric.timer("test.gauge", { a: 5 }, now);
+			expect(gauge.set).toHaveBeenCalledTimes(0);
+
+			const duration = timeEnd();
+			expect(duration).toBeGreaterThan(0.001);
+			expect(gauge.set).toHaveBeenCalledTimes(1);
+			expect(gauge.set).toHaveBeenCalledWith(expect.any(Number), { a: 5 }, now);
+
+		});
+
+		it("should call histogram.observe method", () => {
+			const timeEnd = metric.timer("test.histogram");
+			expect(histogram.observe).toHaveBeenCalledTimes(0);
+
+			const duration = timeEnd();
+			expect(duration).toBeGreaterThan(0.001);
+			expect(histogram.observe).toHaveBeenCalledTimes(1);
+			expect(histogram.observe).toHaveBeenCalledWith(expect.any(Number), undefined, undefined);
+		});
+
+		it("should call histogram.observe method with params", () => {
+			histogram.observe.mockClear();
+			const now = Date.now();
+			const timeEnd = metric.timer("test.histogram", { a: 5 }, now);
+			expect(histogram.observe).toHaveBeenCalledTimes(0);
+
+			const duration = timeEnd();
+			expect(duration).toBeGreaterThan(0.001);
+			expect(histogram.observe).toHaveBeenCalledTimes(1);
+			expect(histogram.observe).toHaveBeenCalledWith(expect.any(Number), { a: 5 }, now);
+
+		});
+		it("should not call gauge.set method if metric disabled", () => {
+			gauge.set.mockClear();
+			metric.opts.enabled = false;
+
+			const timeEnd = metric.timer("test.gauge");
+			expect(gauge.set).toHaveBeenCalledTimes(0);
+
+			const duration = timeEnd();
+			expect(duration).toBeGreaterThan(0.001);
+			expect(gauge.set).toHaveBeenCalledTimes(0);
+		});
+
+	});
+
+
+	describe("Test changed method", () => {
+
+		const broker = new ServiceBroker({ logger: false });
+		const metric = new MetricRegistry(broker, {
+			reporter: ["Event", "CSV"],
+			collectProcessMetrics: false
+		});
+		metric.init();
+
+		metric.reporter[0].metricChanged = jest.fn();
+		metric.reporter[1].metricChanged = jest.fn();
+
+		const labels = { a: 5 };
+
+		it("should call metricChanged method of reporters", () => {
+			metric.changed("test.counter", labels);
+
+			expect(metric.reporter[0].metricChanged).toHaveBeenCalledTimes(1);
+			expect(metric.reporter[0].metricChanged).toHaveBeenCalledWith("test.counter", labels);
+
+			expect(metric.reporter[1].metricChanged).toHaveBeenCalledTimes(1);
+			expect(metric.reporter[1].metricChanged).toHaveBeenCalledWith("test.counter", labels);
+		});
+
 	});
 });
 

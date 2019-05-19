@@ -166,12 +166,9 @@ class MetricRegistry {
 	 * @memberof MetricRegistry
 	 */
 	getMetric(name) {
-		if (!this.opts.enabled)
-			return null;
-
 		const item = this.store.get(name);
 		if (!item)
-			throw new Error(`Metric '${name}' is not exist.`);
+			return null;
 
 		return item;
 	}
@@ -259,15 +256,6 @@ class MetricRegistry {
 
 		return item.observe(value, labels, timestamp);
 	}
-
-	/*
-	get(name, labels) {
-		if (!this.opts.enabled)
-			return null;
-
-		const item = this.getMetric(name);
-		return item.get(labels);
-	}*/
 
 	/**
 	 * Reset metric values.
