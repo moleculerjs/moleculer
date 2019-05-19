@@ -121,10 +121,10 @@ class MetricRegistry {
 			throw new Error("Wrong argument. Must be an Object.");
 
 		if (!opts.type)
-			throw new Error("The metric 'type' property is mandatory");
+			throw new Error("The metric 'type' property is mandatory.");
 
 		if (!opts.name)
-			throw new Error("The metric 'name' property is mandatory");
+			throw new Error("The metric 'name' property is mandatory.");
 
 		if (!METRIC_NAME_REGEXP.test(opts.name))
 			throw new Error("The metric 'name' is not valid: " + opts.name);

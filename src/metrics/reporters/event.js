@@ -11,7 +11,7 @@ const _ = require("lodash");
 const METRIC = require("../constants");
 
 class EventReporter extends BaseReporter {
-
+	// TODO
 }
 
 module.exports = EventReporter;

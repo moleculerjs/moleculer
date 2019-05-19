@@ -41,10 +41,25 @@ describe("Test BaseCacher", () => {
 		broker.on = jest.fn();
 		let cacher = new Cacher();
 
+		jest.spyOn(cacher, "registerMoleculerMetrics");
+
 		cacher.init(broker);
 		expect(cacher.broker).toBe(broker);
 		expect(cacher.logger).toBeDefined();
 		expect(cacher.prefix).toBe("MOL-");
+
+		expect(cacher.registerMoleculerMetrics).toHaveBeenCalledTimes(1);
+	});
+
+	it("check registerMoleculerMetrics", () => {
+		let broker = new ServiceBroker({ logger: false });
+		let cacher = new Cacher();
+		cacher.init(broker);
+
+		broker.metrics.register = jest.fn();
+
+		cacher.registerMoleculerMetrics();
+		expect(broker.metrics.register).toHaveBeenCalledTimes(10);
 	});
 
 	it("check init with namespace", () => {
