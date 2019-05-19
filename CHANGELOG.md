@@ -11,6 +11,7 @@
 ## Done
 - communication protocol changed (`3` -> `4`)
 - handling conflict nodeIDs
+- The `broker.use` deprecated method is removed. Use `middlewares: []` in the broker options instead.
 - broker `metadata` option. It's transfered to other nodes.
 - new middleware hooks (`registerLocalService`, `serviceCreating`, `transitPublish`, `transitSubscribe`, `transitMessageHandler`, `transporterSend`, `transporterReceive`) [#436](https://github.com/moleculerjs/moleculer/issues/436)
 - enhanced hot-reload middleware [#408](https://github.com/moleculerjs/moleculer/issues/408)

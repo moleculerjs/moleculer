@@ -954,19 +954,6 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Add a middleware to the broker
-	 *
-	 * @param {Function} mws
-	 *
-	 * @deprecated
-	 * @memberof ServiceBroker
-	 */
-	use(...mws) {
-		utils.deprecate("The 'broker.use()' has been deprecated since v0.13. Use 'middlewares: [...]' in broker options instead.");
-		mws.forEach(mw => this.middlewares.add(mw));
-	}
-
-	/**
 	 * Find the next available endpoint for action
 	 *
 	 * @param {String} actionName

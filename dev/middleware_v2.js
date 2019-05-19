@@ -182,8 +182,6 @@ const broker = new ServiceBroker({
 	middlewares: [MW]
 });
 
-//broker.use(() => {});
-
 
 broker.createService({
 	name: "test",
