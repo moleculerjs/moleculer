@@ -71,6 +71,7 @@ class BaseMetric {
 	 * @memberof BaseMetric
 	 */
 	reset(/*labels, timestamp*/) {
+		/* istanbul ignore next */
 		throw new Error("Not implemented");
 	}
 
@@ -80,6 +81,7 @@ class BaseMetric {
 	 * @memberof BaseMetric
 	 */
 	resetAll(/*timestamp*/) {
+		/* istanbul ignore next */
 		throw new Error("Not implemented");
 	}
 
@@ -142,6 +144,7 @@ class BaseMetric {
 	 * @memberof BaseMetric
 	 */
 	generateSnapshot() {
+		/* istanbul ignore next */
 		throw new Error("Not implemented");
 	}
 

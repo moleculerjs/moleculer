@@ -76,20 +76,9 @@ class HistogramMetric extends BaseMetric {
 		const hash = this.hashingLabels(labels);
 		let item = this.values.get(hash);
 		if (!item) {
-			item = {
-				labels: _.pick(labels, this.labelNames),
-				timestamp: timestamp == null ? Date.now() : timestamp
-			};
-			item.sum = 0;
-			item.count = 0;
-
-			if (this.buckets) {
-				item.bucketValues = this.createBucketValues();
-			}
-
-			if (this.quantiles) {
-				item.quantileValues = new TimeWindowQuantiles(this, this.quantiles, this.maxAgeSeconds, this.ageBuckets);
-			}
+			item = this.resetItem({
+				labels: _.pick(labels, this.labelNames)
+			});
 
 			this.values.set(hash, item);
 		}
@@ -160,6 +149,28 @@ class HistogramMetric extends BaseMetric {
 	}
 
 	/**
+	 * Reset value of item.
+	 *
+	 * @param {Object} item
+	 * @param {Number?} timestamp
+	 */
+	resetItem(item, timestamp) {
+		item.timestamp = timestamp == null ? Date.now() : timestamp;
+		item.sum = 0;
+		item.count = 0;
+
+		if (this.buckets) {
+			item.bucketValues = this.createBucketValues();
+		}
+
+		if (this.quantiles) {
+			item.quantileValues = new TimeWindowQuantiles(this, this.quantiles, this.maxAgeSeconds, this.ageBuckets);
+		}
+
+		return item;
+	}
+
+	/**
 	 * Reset item by labels.
 	 *
 	 * @param {Object} labels
@@ -168,7 +179,12 @@ class HistogramMetric extends BaseMetric {
 	 * @memberof HistogramMetric
 	 */
 	reset(labels, timestamp) {
-		return this.set(null, labels, timestamp);
+		const hash = this.hashingLabels(labels);
+		const item = this.values.get(hash);
+		if (item) {
+			this.resetItem(item, timestamp);
+			this.changed(labels);
+		}
 	}
 
 	/**
@@ -178,10 +194,7 @@ class HistogramMetric extends BaseMetric {
 	 * @memberof HistogramMetric
 	 */
 	resetAll(timestamp) {
-		Object.keys(this.values).forEach(hash => {
-			this.values[hash].value = null;
-			this.values[hash].timestamp = timestamp == null ? Date.now() : timestamp;
-		});
+		this.values.forEach(item => this.resetItem(item, timestamp));
 		this.changed();
 	}
 
@@ -366,5 +379,8 @@ class Bucket {
 		this.samples.length = 0;
 	}
 }
+
+HistogramMetric.Bucket = Bucket;
+HistogramMetric.TimeWindowQuantiles = TimeWindowQuantiles;
 
 module.exports = HistogramMetric;

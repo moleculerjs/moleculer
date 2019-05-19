@@ -1,3 +1,5 @@
+"use strict";
+
 const MetricCommons = require("../../../src/metrics/commons");
 jest.spyOn(MetricCommons, "registerCommonMetrics");
 jest.spyOn(MetricCommons, "updateCommonMetrics");

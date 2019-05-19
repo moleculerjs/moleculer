@@ -78,11 +78,11 @@ class InfoMetric extends BaseMetric {
 	 * @memberof InfoMetric
 	 */
 	resetAll(timestamp) {
-		Object.keys(this.values).forEach(hash => {
-			this.values[hash].value = null;
-			this.values[hash].timestamp = timestamp == null ? Date.now() : timestamp;
+		this.values.forEach(item => {
+			item.value = null;
+			item.timestamp = timestamp == null ? Date.now() : timestamp;
 		});
-		this.setDirty();
+		this.changed();
 	}
 
 	/**

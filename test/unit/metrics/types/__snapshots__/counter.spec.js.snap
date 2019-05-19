@@ -1,0 +1,32 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test Base Metric class Test generateSnapshot method should generate a snapshot 1`] = `
+Array [
+  Object {
+    "labels": Object {},
+    "timestamp": 1111,
+    "value": 3,
+  },
+  Object {
+    "labels": Object {
+      "a": 1,
+    },
+    "timestamp": 2222,
+    "value": 4,
+  },
+  Object {
+    "labels": Object {
+      "a": 5,
+    },
+    "timestamp": 3333,
+    "value": 5,
+  },
+  Object {
+    "labels": Object {
+      "a": "John",
+    },
+    "timestamp": 4444,
+    "value": 6,
+  },
+]
+`;

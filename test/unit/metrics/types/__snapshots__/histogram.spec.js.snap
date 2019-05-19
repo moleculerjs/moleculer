@@ -1,0 +1,56 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test Base Metric class Test generateSnapshot & generateItemSnapshot methods should generate snapshot 1`] = `
+Array [
+  Object {
+    "buckets": Object {
+      "1": 0,
+      "10": 5,
+      "2": 1,
+      "20": 5,
+      "5": 3,
+      "8": 5,
+    },
+    "count": 5,
+    "labels": Object {},
+    "max": 8,
+    "mean": 4.8,
+    "min": 2,
+    "quantiles": Object {
+      "0.1": 2,
+      "0.5": 5,
+      "0.9": 8,
+    },
+    "stdDev": 2.3874672772626644,
+    "sum": 24,
+    "timestamp": 1558295472803,
+    "variance": 5.7,
+  },
+  Object {
+    "buckets": Object {
+      "1": 1,
+      "10": 4,
+      "2": 3,
+      "20": 4,
+      "5": 4,
+      "8": 4,
+    },
+    "count": 4,
+    "labels": Object {
+      "a": 5,
+    },
+    "max": 4,
+    "mean": 2.25,
+    "min": 1,
+    "quantiles": Object {
+      "0.1": 1,
+      "0.5": 2,
+      "0.9": 4,
+    },
+    "stdDev": 1.2583057392117916,
+    "sum": 9,
+    "timestamp": 1558295472823,
+    "variance": 1.5833333333333333,
+  },
+]
+`;

@@ -1,4 +1,5 @@
-const MetricRegistry = require("../../../../src/metrics/registry");
+"use strict";
+
 const BaseMetric = require("../../../../src/metrics/types/base");
 
 describe("Test Base Metric class", () => {
@@ -146,7 +147,7 @@ describe("Test Base Metric class", () => {
 
 		const item = new BaseMetric({ type: "counter", name: "test.counter" }, registry);
 		item.generateSnapshot = jest.fn(() => "snapshot");
-		item.clearDirty = jest.fn();
+		jest.spyOn(item, "clearDirty");
 
 		it("should call generateSnapshot", () => {
 			expect(item.lastSnapshot).toBeNull();
@@ -162,8 +163,8 @@ describe("Test Base Metric class", () => {
 			item.clearDirty.mockClear();
 
 			expect(item.snapshot()).toBe("snapshot");
-			expect(item.generateSnapshot).toBeCalledTimes(1);
-			expect(item.clearDirty).toBeCalledTimes(1);
+			expect(item.generateSnapshot).toBeCalledTimes(0);
+			expect(item.clearDirty).toBeCalledTimes(0);
 			expect(item.lastSnapshot).toBe("snapshot");
 		});
 	});
