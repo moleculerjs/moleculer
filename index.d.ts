@@ -1,3 +1,5 @@
+import { Span } from "opentracing";
+
 declare namespace Moleculer {
 	type GenericObject = { [name: string]: any };
 
@@ -94,8 +96,8 @@ declare namespace Moleculer {
 		constructor(broker: ServiceBroker, endpoint: Endpoint);
 		id: string;
 		broker: ServiceBroker;
-		endpoint: Endpoint;
-		action: ActionSchema;
+		endpoint?: Endpoint;
+		action?: ActionSchema;
 		service?: Service;
 		nodeID?: string;
 
@@ -103,17 +105,19 @@ declare namespace Moleculer {
 
 		parentID?: string;
 
-		metrics?: boolean;
+		tracing?: boolean;
+		span: Span;
 		level: number;
 
 		params: P;
 		meta: M;
 
 		requestID?: string;
-		duration: number;
+		duration?: number;
 
 		cachedResult: boolean;
 
+		setEndpoint(endpoint: Endpoint): void;
 		setParams(newParams: P, cloning?: boolean): void;
 		call<T = any, P extends GenericObject = GenericObject>(actionName: string, params?: P, opts?: GenericObject): PromiseLike<T>;
 		emit<D = any>(eventName: string, data: D, groups: Array<string>): void;
@@ -122,16 +126,19 @@ declare namespace Moleculer {
 		broadcast<D = any>(eventName: string, data: D, groups: Array<string>): void;
 		broadcast<D = any>(eventName: string, data: D, groups: string): void;
 		broadcast<D = any>(eventName: string, data: D): void;
+		startSpan(name: string, opts: any): Span;
 
 		static create(broker: ServiceBroker, endpoint: Endpoint, params: GenericObject, opts: GenericObject): Context;
 		static create(broker: ServiceBroker, endpoint: Endpoint, params: GenericObject): Context;
 		static create(broker: ServiceBroker, endpoint: Endpoint): Context;
+		static create(broker: ServiceBroker): Context;
 	}
 
 	interface ServiceSettingSchema {
 		$noVersionPrefix?: boolean;
 		$noServiceNamePrefix?: boolean;
 		$dependencyTimeout?: number;
+		$secureSettings: Array<string>;
 		[name: string]: any;
 	}
 
@@ -268,6 +275,7 @@ declare namespace Moleculer {
 		requestTimeout?: number;
 		retryPolicy?: RetryPolicyOptions;
 
+		actionParamsCloning?: boolean;
 		maxCallLevel?: number;
 		heartbeatInterval?: number;
 		heartbeatTimeout?: number
@@ -287,13 +295,17 @@ declare namespace Moleculer {
 
 		transit?: BrokerTransitOptions;
 
+		errorHandler?: (err: Error, info: any) => void;
+
 		cacher?: Cacher | string | GenericObject;
 		serializer?: Serializer | string | GenericObject;
 
 		validation?: boolean;
 		validator?: Validator;
+
 		metrics?: boolean;
-		metricsRate?: number;
+		tracing?: boolean;
+
 		internalServices?: boolean;
 		internalMiddlewares?: boolean;
 
@@ -301,6 +313,8 @@ declare namespace Moleculer {
 
 		middlewares?: Array<Middleware>;
 		replCommands?: Array<GenericObject>;
+
+		metadata?: Array<GenericObject>;
 
 		ServiceFactory?: typeof Service;
 		ContextFactory?: typeof Context;
@@ -437,13 +451,6 @@ declare namespace Moleculer {
 
 		getLocalService(serviceName: string, version?: string | number): Service;
 		waitForServices(serviceNames: string | Array<string> | Array<GenericObject>, timeout?: number, interval?: number, logger?: LoggerInstance): PromiseLike<void>;
-
-		/**
-		 *
-		 * @param mws
-		 * @deprecated
-		 */
-		use(...mws: Array<Function>): void;
 
 		findNextActionEndpoint(actionName: string, opts?: GenericObject): ActionEndpoint | Errors.MoleculerRetryableError;
 

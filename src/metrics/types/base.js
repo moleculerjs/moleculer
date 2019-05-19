@@ -20,7 +20,11 @@ class BaseMetric {
 	 * @memberof BaseMetric
 	 */
 	constructor(opts, registry) {
-		this.registry = registry;
+		Object.defineProperty(this, "registry", {
+			enumerable: false,
+			value: registry
+		});
+		//this.registry = registry;
 		this.type = opts.type;
 		this.name = opts.name;
 		this.description = opts.description;

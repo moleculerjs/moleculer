@@ -217,6 +217,11 @@ describe("Test Metric Registry", () => {
 			expect(counter.increment).toHaveBeenCalledWith({ a: 5 }, 3, now);
 		});
 
+		it("should throw error if increment method is not exist", () => {
+			metric.register({ type: "histogram", name: "test.histogram" });
+			expect(() => metric.increment("test.histogram")).toThrow("Invalid metric type. Incrementing works only with counter & gauge metric types.");
+		});
+
 		it("should not call increment method if metric disabled", () => {
 			counter.increment.mockClear();
 			metric.opts.enabled = false;
@@ -256,7 +261,11 @@ describe("Test Metric Registry", () => {
 			metric.register({ type: "counter", name: "test.counter" });
 
 			expect(() => metric.decrement("test.counter")).toThrow("Counter can't be decreased.");
+		});
 
+		it("should throw error if decrement method is not exist", () => {
+			metric.register({ type: "histogram", name: "test.histogram" });
+			expect(() => metric.decrement("test.histogram")).toThrow("Invalid metric type. Decrementing works only with gauge metric type.");
 		});
 
 		it("should not call decrement method if metric disabled", () => {
@@ -294,6 +303,11 @@ describe("Test Metric Registry", () => {
 			expect(info.set).toHaveBeenCalledWith(8, { a: 5 }, now);
 		});
 
+		it("should throw error if set method is not exist", () => {
+			metric.register({ type: "histogram", name: "test.histogram" });
+			expect(() => metric.set("test.histogram")).toThrow("Invalid metric type. Value setting works only with counter, gauge & info metric types.");
+		});
+
 		it("should not call set method if metric disabled", () => {
 			info.set.mockClear();
 			metric.opts.enabled = false;
@@ -327,6 +341,11 @@ describe("Test Metric Registry", () => {
 
 			expect(histogram.observe).toHaveBeenCalledTimes(1);
 			expect(histogram.observe).toHaveBeenCalledWith(8, { a: 5 }, now);
+		});
+
+		it("should throw error if observe method is not exist", () => {
+			metric.register({ type: "counter", name: "test.counter" });
+			expect(() => metric.observe("test.counter")).toThrow("Invalid metric type. Observing works only with histogram metric type.");
 		});
 
 		it("should not call observe method if metric disabled", () => {
@@ -463,8 +482,8 @@ describe("Test Metric Registry", () => {
 			expect(duration).toBeGreaterThan(0.001);
 			expect(histogram.observe).toHaveBeenCalledTimes(1);
 			expect(histogram.observe).toHaveBeenCalledWith(expect.any(Number), { a: 5 }, now);
-
 		});
+
 		it("should not call gauge.set method if metric disabled", () => {
 			gauge.set.mockClear();
 			metric.opts.enabled = false;
@@ -505,5 +524,6 @@ describe("Test Metric Registry", () => {
 		});
 
 	});
+
 });
 

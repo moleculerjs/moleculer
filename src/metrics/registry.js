@@ -189,7 +189,7 @@ class MetricRegistry {
 
 		const item = this.getMetric(name);
 		if (!_.isFunction(item.increment))
-			throw new Error("Invalid metric type. Incrementing works only with counter & gauge metric types");
+			throw new Error("Invalid metric type. Incrementing works only with counter & gauge metric types.");
 
 		return item.increment(labels, value, timestamp);
 	}
@@ -210,7 +210,7 @@ class MetricRegistry {
 
 		const item = this.getMetric(name);
 		if (!_.isFunction(item.decrement))
-			throw new Error("Invalid metric type. Decrementing works only with gauge metric type");
+			throw new Error("Invalid metric type. Decrementing works only with gauge metric type.");
 
 		return item.decrement(labels, value, timestamp);
 	}
@@ -231,7 +231,7 @@ class MetricRegistry {
 
 		const item = this.getMetric(name);
 		if (!_.isFunction(item.set))
-			throw new Error("Invalid metric type. Value setting works only with counter, gauge & info metric types");
+			throw new Error("Invalid metric type. Value setting works only with counter, gauge & info metric types.");
 
 		return item.set(value, labels, timestamp);
 	}
@@ -286,10 +286,6 @@ class MetricRegistry {
 		if (!this.opts.enabled)
 			return null;
 
-		if (!name) {
-			this.store.clear();
-		}
-
 		const item = this.getMetric(name);
 		item.resetAll(timestamp);
 	}
@@ -307,8 +303,10 @@ class MetricRegistry {
 		let item;
 		if (name && this.opts.enabled) {
 			item = this.getMetric(name);
-			if (!_.isFunction(item.observe) && !_.isFunction(item.set))
+			if (!_.isFunction(item.observe) && !_.isFunction(item.set)) {
+				/* istanbul ignore next */
 				throw new Error("Invalid metric type. Timing works only with histogram or gauge metric types");
+			}
 		}
 
 		const start = process.hrtime();

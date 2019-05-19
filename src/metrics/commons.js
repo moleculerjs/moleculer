@@ -140,6 +140,7 @@ function registerCommonMetrics() {
  *
  */
 function startGCWatcher() {
+	/* istanbul ignore next */
 	if (gc) {
 		gc.on("stats", stats => {
 			this.set(METRIC.PROCESS_GC_TIME, stats.pause);
@@ -293,6 +294,7 @@ function getUserInfo() {
 	try {
 		return os.userInfo();
 	} catch (e) {
+		/* istanbul ignore next */
 		return {};
 	}
 }
@@ -301,7 +303,7 @@ function getUserInfo() {
  * Measure event loop lag.
  *
  * @returns {Promise<Number>}
- */
+ *
 function measureEventLoopLag() {
 	return new Promise(resolve => {
 		const start = process.hrtime();
@@ -310,7 +312,7 @@ function measureEventLoopLag() {
 			resolve(delta[0] * 1e9 + delta[1]);
 		});
 	});
-}
+}*/
 
 module.exports = {
 	registerCommonMetrics,
