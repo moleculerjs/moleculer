@@ -9,6 +9,8 @@
 const Promise = require("bluebird");
 const BaseCacher = require("./base");
 const _ = require('lodash')
+const { BrokerOptionsError } = require("../errors");
+
 /**
  * Cacher factory for Redis
  *
@@ -51,13 +53,13 @@ class RedisCacher extends BaseCacher {
 		 * @memberof RedisCacher
 		 */
 		if (this.opts.cluster) {
-			if (!this.opts.clusterConnectionDetails) {
-				throw new Error('No connection details defined for cluster')
+			if (!this.opts.cluster.nodes) {
+				throw new BrokerOptionsError('No connection details defined for cluster')
 			}
 
 			this.logger.info("Setting Redis.Cluster Cacher");
 
-			this.client = new Redis.Cluster(this.opts.clusterConnectionDetails, this.opts.clusterOptions);
+			this.client = new Redis.Cluster(this.opts.cluster.nodes, this.opts.cluster.options);
 		} else {
 			this.logger.info("Setting Redis Cacher");
 
