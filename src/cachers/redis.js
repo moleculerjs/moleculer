@@ -130,11 +130,6 @@ class RedisCacher extends BaseCacher {
 	 * @memberof Cacher
 	 */
 	get(key) {
-		if (!this.client || this.client.status !== 'ready') {
-			this.logger.info('Could not get from redis cacher at the moment')
-
-			return Promise.resolve();
-		}
 		this.logger.debug(`GET ${key}`);
 		return this.client.get(this.prefix + key).then((data) => {
 			if (data) {
