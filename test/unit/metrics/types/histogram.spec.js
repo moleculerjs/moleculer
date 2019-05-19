@@ -1,5 +1,6 @@
 "use strict";
 
+const lolex = require("lolex");
 const HistogramMetric = require("../../../../src/metrics/types/histogram");
 
 describe("Test Base Metric class", () => {
@@ -431,6 +432,100 @@ describe("Test Bucket class", () => {
 		bucket.clear();
 		expect(bucket.count).toBe(0);
 		expect(bucket.samples).toEqual([]);
+	});
+
+});
+
+describe("Test TimeWindowQuantiles class", () => {
+	const fakeMetric = {
+		setDirty: jest.fn()
+	};
+
+	let item, clock, snapshot;
+
+	beforeAll(() => clock = lolex.install());
+	afterAll(() => clock.uninstall());
+
+	it("should create variables", () => {
+		item = new HistogramMetric.TimeWindowQuantiles(fakeMetric, [0.1, 0.5, 0.9], 30, 3);
+
+		expect(item.metric).toBe(fakeMetric);
+		expect(item.quantiles).toEqual([0.1, 0.5, 0.9]);
+		expect(item.maxAgeSeconds).toBe(30);
+		expect(item.ageBuckets).toBe(3);
+		expect(item.ringBuckets.length).toBe(3);
+		expect(item.ringBuckets[0]).toBeInstanceOf(HistogramMetric.Bucket);
+		expect(item.dirty).toBe(true);
+		expect(item.currentBucket).toBe(0);
+		expect(item.lastSnapshot).toBe(null);
+
+		jest.spyOn(item, "rotate");
+	});
+
+	it("should set dirty flag", () => {
+		fakeMetric.setDirty.mockClear();
+		item.clearDirty();
+		expect(item.dirty).toBe(false);
+		item.setDirty();
+		expect(item.dirty).toBe(true);
+		expect(fakeMetric.setDirty).toBeCalledTimes(1);
+	});
+
+	it("should add value to the current bucket", () => {
+		item.add(3);
+		item.add(5);
+		item.add(1);
+		expect(item.ringBuckets[0].samples).toEqual([3, 5, 1]);
+	});
+
+	it("should call rotate after 10 secs", () => {
+		item.clearDirty();
+		expect(item.rotate).toBeCalledTimes(0);
+		clock.tick(11 * 1000);
+
+		expect(item.rotate).toBeCalledTimes(1);
+		expect(item.currentBucket).toBe(1);
+		expect(item.dirty).toBe(true);
+
+		item.add(2);
+		item.add(6);
+		item.add(0);
+
+		expect(item.ringBuckets[1].samples).toEqual([2, 6, 0]);
+
+	});
+
+	it("should increase bucket index", () => {
+		item.rotate();
+		expect(item.currentBucket).toBe(2);
+	});
+
+	it("should reset bucket index & samples", () => {
+		expect(item.ringBuckets[0].samples).toEqual([3, 5, 1]);
+		item.rotate();
+		expect(item.currentBucket).toBe(0);
+		expect(item.ringBuckets[0].samples).toEqual([]);
+
+		item.add(8);
+		item.add(5);
+		item.add(2);
+	});
+
+	it("should generate snapshot", () => {
+		expect(item.lastSnapshot).toBeNull();
+
+		snapshot = item.snapshot();
+
+		expect(item.lastSnapshot).toBe(snapshot);
+
+		expect(snapshot).toMatchSnapshot();
+	});
+
+	it("should not generate snapshot", () => {
+		jest.spyOn(item, "clearDirty");
+		expect(item.snapshot()).toBe(snapshot);
+
+		expect(item.clearDirty).toBeCalledTimes(0);
 	});
 
 });

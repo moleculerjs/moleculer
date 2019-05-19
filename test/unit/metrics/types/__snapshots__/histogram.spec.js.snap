@@ -54,3 +54,18 @@ Array [
   },
 ]
 `;
+
+exports[`Test TimeWindowQuantiles class should generate snapshot 1`] = `
+Object {
+  "max": 8,
+  "mean": 3.8333333333333335,
+  "min": 0,
+  "quantiles": Object {
+    "0.1": 0,
+    "0.5": 2,
+    "0.9": 8,
+  },
+  "stdDev": 2.9944392908634274,
+  "variance": 8.966666666666665,
+}
+`;

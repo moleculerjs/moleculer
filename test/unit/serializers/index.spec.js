@@ -1,4 +1,4 @@
-const { MoleculerError } = require("../../../src/errors");
+const { BrokerOptionsError } = require("../../../src/errors");
 const Serializers = require("../../../src/serializers");
 
 describe("Test Serializers resolver", () => {
@@ -26,11 +26,11 @@ describe("Test Serializers resolver", () => {
 	it("should throw error if type if not correct", () => {
 		expect(() => {
 			Serializers.resolve("xyz");
-		}).toThrowError(MoleculerError);
+		}).toThrowError(BrokerOptionsError);
 
 		expect(() => {
 			Serializers.resolve({ type: "xyz" });
-		}).toThrowError(MoleculerError);
+		}).toThrowError(BrokerOptionsError);
 	});
 
 });
