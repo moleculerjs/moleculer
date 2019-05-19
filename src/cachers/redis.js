@@ -55,11 +55,11 @@ class RedisCacher extends BaseCacher {
 				throw new Error('No connection details defined for cluster')
 			}
 
-			this.logger.debug("Setting Redis.Cluster Cacher");
+			this.logger.info("Setting Redis.Cluster Cacher");
 
 			this.client = new Redis.Cluster(this.opts.clusterConnectionDetails, this.opts.clusterOptions);
 		} else {
-			this.logger.debug("Setting Redis Cacher");
+			this.logger.info("Setting Redis Cacher");
 
 			this.client = new Redis(this.opts.redis);
 		}
