@@ -67,8 +67,10 @@ class PrometheusReporter extends BaseReporter {
 		this.server = http.createServer();
 		this.server.on("request", this.handler.bind(this));
 		this.server.listen(this.opts.port, err => {
-			if (err)
+			if (err) {
+				/* istanbul ignore next */
 				return this.registry.broker.fatal(new MoleculerError("Prometheus metric reporter listening error: " + err.message));
+			}
 
 			this.registry.logger.info(`Prometheus metric reporter listening on http://0.0.0.0:${this.opts.port}${this.opts.path} address.`);
 		});
@@ -93,6 +95,7 @@ class PrometheusReporter extends BaseReporter {
 			if (compressing) {
 				resHeader["Content-Encoding"] = "gzip";
 				zlib.gzip(content, (err, buffer) => {
+					/* istanbul ignore next */
 					if (err) {
 						this.registry.logger("Unable to compress response: " + err.message);
 						res.writeHead(500);

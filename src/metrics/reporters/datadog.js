@@ -76,7 +76,7 @@ class DatadogReporter extends BaseReporter {
 
 		if (series.length == 0) return;
 
-		fetch(`${BASE_URL}${this.opts.apiVersion}${this.opts.path}?api_key=${this.opts.apiKey}`, {
+		return fetch(`${BASE_URL}${this.opts.apiVersion}${this.opts.path}?api_key=${this.opts.apiKey}`, {
 			method: "post",
 			body: JSON.stringify({ series }),
 			headers: {
@@ -86,6 +86,7 @@ class DatadogReporter extends BaseReporter {
 		}).then(res => {
 			this.registry.logger.debug("Metrics are uploaded to DataDog. Status: ", res.statusText);
 		}).catch(err => {
+			/* istanbul ignore next */
 			this.registry.logger.warn("Unable to upload metrics to Datadog server. Error:" + err.message, err);
 		});
 	}
@@ -99,7 +100,6 @@ class DatadogReporter extends BaseReporter {
 	generateDatadogSeries() {
 		const series = [];
 
-		const val = value => value == null ? "NaN" : value;
 		const now = this.posixTimestamp(Date.now());
 
 		this.registry.store.forEach(metric => {

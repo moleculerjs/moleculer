@@ -1,0 +1,746 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test Datadog Reporter class Test generateDatadogSeries method should call generateDatadogSeries method but not fetch 1`] = `
+Array [
+  Object {
+    "host": "test-host",
+    "metric": "test.counter",
+    "points": Array [
+      Array [
+        12345678,
+        5,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+    ],
+    "type": "gauge",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.counter",
+    "points": Array [
+      Array [
+        12345678,
+        8,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+      "action:posts",
+    ],
+    "type": "gauge",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.gauge",
+    "points": Array [
+      Array [
+        12345678,
+        -8,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+      "action:users",
+    ],
+    "type": "gauge",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.bucket_1",
+    "points": Array [
+      Array [
+        12345678,
+        0,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.bucket_5",
+    "points": Array [
+      Array [
+        12345678,
+        2,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.bucket_10",
+    "points": Array [
+      Array [
+        12345678,
+        4,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.bucket_0.005",
+    "points": Array [
+      Array [
+        12345678,
+        0,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.bucket_0.01",
+    "points": Array [
+      Array [
+        12345678,
+        0,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.bucket_0.025",
+    "points": Array [
+      Array [
+        12345678,
+        0,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.bucket_0.05",
+    "points": Array [
+      Array [
+        12345678,
+        0,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.bucket_0.1",
+    "points": Array [
+      Array [
+        12345678,
+        0,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.bucket_0.25",
+    "points": Array [
+      Array [
+        12345678,
+        0,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.bucket_0.5",
+    "points": Array [
+      Array [
+        12345678,
+        0,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.bucket_2.5",
+    "points": Array [
+      Array [
+        12345678,
+        2,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.bucket_inf",
+    "points": Array [
+      Array [
+        12345678,
+        4,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.q0.5",
+    "points": Array [
+      Array [
+        12345678,
+        2,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.q0.9",
+    "points": Array [
+      Array [
+        12345678,
+        8,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.q0.95",
+    "points": Array [
+      Array [
+        12345678,
+        8,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.q0.99",
+    "points": Array [
+      Array [
+        12345678,
+        8,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.q0.999",
+    "points": Array [
+      Array [
+        12345678,
+        8,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.sum",
+    "points": Array [
+      Array [
+        12345678,
+        18,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.count",
+    "points": Array [
+      Array [
+        12345678,
+        4,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.min",
+    "points": Array [
+      Array [
+        12345678,
+        2,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.mean",
+    "points": Array [
+      Array [
+        12345678,
+        4.5,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.variance",
+    "points": Array [
+      Array [
+        12345678,
+        9,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.stddev",
+    "points": Array [
+      Array [
+        12345678,
+        3,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.max",
+    "points": Array [
+      Array [
+        12345678,
+        8,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.bucket_1",
+    "points": Array [
+      Array [
+        12345678,
+        1,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+      "action:auth",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.bucket_5",
+    "points": Array [
+      Array [
+        12345678,
+        2,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+      "action:auth",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.bucket_10",
+    "points": Array [
+      Array [
+        12345678,
+        3,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+      "action:auth",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.bucket_0.005",
+    "points": Array [
+      Array [
+        12345678,
+        0,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+      "action:auth",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.bucket_0.01",
+    "points": Array [
+      Array [
+        12345678,
+        0,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+      "action:auth",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.bucket_0.025",
+    "points": Array [
+      Array [
+        12345678,
+        0,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+      "action:auth",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.bucket_0.05",
+    "points": Array [
+      Array [
+        12345678,
+        0,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+      "action:auth",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.bucket_0.1",
+    "points": Array [
+      Array [
+        12345678,
+        0,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+      "action:auth",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.bucket_0.25",
+    "points": Array [
+      Array [
+        12345678,
+        0,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+      "action:auth",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.bucket_0.5",
+    "points": Array [
+      Array [
+        12345678,
+        0,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+      "action:auth",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.bucket_2.5",
+    "points": Array [
+      Array [
+        12345678,
+        1,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+      "action:auth",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.bucket_inf",
+    "points": Array [
+      Array [
+        12345678,
+        3,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+      "action:auth",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.q0.5",
+    "points": Array [
+      Array [
+        12345678,
+        3,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+      "action:auth",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.q0.9",
+    "points": Array [
+      Array [
+        12345678,
+        7,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+      "action:auth",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.q0.95",
+    "points": Array [
+      Array [
+        12345678,
+        7,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+      "action:auth",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.q0.99",
+    "points": Array [
+      Array [
+        12345678,
+        7,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+      "action:auth",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.q0.999",
+    "points": Array [
+      Array [
+        12345678,
+        7,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+      "action:auth",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.sum",
+    "points": Array [
+      Array [
+        12345678,
+        11,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+      "action:auth",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.count",
+    "points": Array [
+      Array [
+        12345678,
+        3,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+      "action:auth",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.min",
+    "points": Array [
+      Array [
+        12345678,
+        1,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+      "action:auth",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.mean",
+    "points": Array [
+      Array [
+        12345678,
+        3.6666666666666665,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+      "action:auth",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.variance",
+    "points": Array [
+      Array [
+        12345678,
+        9.333333333333334,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+      "action:auth",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.stddev",
+    "points": Array [
+      Array [
+        12345678,
+        3.0550504633038935,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+      "action:auth",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.max",
+    "points": Array [
+      Array [
+        12345678,
+        7,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+      "action:auth",
+    ],
+    "type": "rate",
+  },
+]
+`;
