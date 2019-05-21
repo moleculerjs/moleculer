@@ -10,8 +10,7 @@ const Promise = require("bluebird");
 const { QueueIsFullError } = require("../errors");
 const { METRIC }	= require("../metrics");
 
-module.exports = function bulkheadMiddleware() {
-	let broker;
+module.exports = function bulkheadMiddleware(broker) {
 
 	function wrapBulkheadMiddleware(handler, action) {
 		const opts = Object.assign({}, this.options.bulkhead || {}, action.bulkhead || {});
@@ -80,9 +79,7 @@ module.exports = function bulkheadMiddleware() {
 	}
 
 	return {
-		created(_broker) {
-			broker = _broker;
-
+		created(broker) {
 			if (broker.isMetricsEnabled()) {
 				broker.metrics.register({ name: METRIC.MOLECULER_REQUEST_BULKHEAD_INFLIGHT, type: METRIC.TYPE_GAUGE, labelNames: ["action"] });
 			}

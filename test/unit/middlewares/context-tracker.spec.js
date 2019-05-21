@@ -23,7 +23,7 @@ describe("Test ContextTrackerMiddleware", () => {
 		}
 	};
 
-	const mw = Middleware();
+	const mw = Middleware(broker);
 
 	it("should register hooks", () => {
 		expect(mw.localAction).toBeInstanceOf(Function);

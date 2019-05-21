@@ -13,9 +13,8 @@ const _ = require("lodash");
 
 const { clearRequireCache } = require("../utils");
 
-module.exports = function HotReloadMiddleware() {
+module.exports = function HotReloadMiddleware(broker) {
 
-	let broker;
 	const cache = new Map();
 
 	let projectFiles = new Map();
@@ -214,10 +213,6 @@ module.exports = function HotReloadMiddleware() {
 	 * Expose middleware
 	 */
 	return {
-		created(b) {
-			broker = b;
-		},
-
 		// After broker started
 		started(broker) {
 			if (broker.options.hotReload) {

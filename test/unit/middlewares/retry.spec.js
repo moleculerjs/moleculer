@@ -18,7 +18,7 @@ describe("Test RetryMiddleware", () => {
 		}
 	};
 
-	const mw = Middleware();
+	const mw = Middleware(broker);
 	mw.created(broker);
 
 	it("should register hooks", () => {

@@ -11,8 +11,7 @@ const { RequestTimeoutError } = require("../errors");
 const { METRIC }	= require("../metrics");
 
 
-module.exports = function() {
-	let broker;
+module.exports = function(broker) {
 
 	function wrapTimeoutMiddleware(handler) {
 		return function timeoutMiddleware(ctx) {
@@ -49,8 +48,7 @@ module.exports = function() {
 	}
 
 	return {
-		created(_broker) {
-			broker = _broker;
+		created(broker) {
 
 			if (broker.isMetricsEnabled()) {
 				broker.metrics.register({ name: METRIC.MOLECULER_REQUEST_TIMEOUT_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["action"] });

@@ -1,6 +1,7 @@
 "use strict";
 
 const Promise = require("bluebird");
+const Middlewares = require("../../src/middlewares");
 const MiddlewareHandler = require("../../src/middleware");
 const ServiceBroker = require("../../src/service-broker");
 const { protectReject } = require("./utils");
@@ -17,27 +18,53 @@ describe("Test MiddlewareHandler", () => {
 		expect(middlewares.list).toBeInstanceOf(Array);
 	});
 
-	it("test add method", () => {
-		let middlewares = new MiddlewareHandler(broker);
+	describe("Test add method", () => {
+		const middlewares = new MiddlewareHandler(broker);
 
-		let mw1 = {};
+		it("should not add item", () => {
+			middlewares.add();
+			expect(middlewares.count()).toBe(0);
+		});
 
-		middlewares.add(mw1);
-		expect(middlewares.count()).toBe(1);
-		expect(middlewares.list[0]).toBe(mw1);
+		it("should add a middleware", () => {
+			let mw1 = {};
 
-		middlewares.add();
-		expect(middlewares.count()).toBe(1);
+			middlewares.add(mw1);
+			expect(middlewares.count()).toBe(1);
+			expect(middlewares.list[0]).toBe(mw1);
+		});
 
-		let mw2 = { localAction: jest.fn() };
-		let mw2Wrap = jest.fn(() => mw2);
+		it("should call function and add middleware", () => {
+			let mw2 = { localAction: jest.fn() };
+			let mw2Wrap = jest.fn(() => mw2);
 
-		middlewares.add(mw2Wrap);
-		expect(middlewares.count()).toBe(2);
-		expect(middlewares.list[1]).toEqual(mw2);
+			middlewares.add(mw2Wrap);
+			expect(middlewares.count()).toBe(2);
+			expect(middlewares.list[1]).toEqual(mw2);
 
-		expect(mw2Wrap).toHaveBeenCalledTimes(1);
-		expect(mw2Wrap).toHaveBeenCalledWith(broker);
+			expect(mw2Wrap).toHaveBeenCalledTimes(1);
+			expect(mw2Wrap).toHaveBeenCalledWith(broker);
+		});
+
+		it("should add a built-in middleware by name", () => {
+			jest.spyOn(Middlewares, "Timeout");
+
+			middlewares.add("Timeout");
+			expect(middlewares.count()).toBe(3);
+			expect(middlewares.list[2]).toEqual({
+				created: expect.any(Function),
+				localAction: expect.any(Function),
+				remoteAction: expect.any(Function),
+			});
+		});
+
+		it("should throw error if built-in middleware is not found", () => {
+			expect(() => middlewares.add("NotExist")).toThrow("Invalid built-in middleware type 'NotExist'.");
+		});
+
+		it("should throw error if middleware type is not valid", () => {
+			expect(() => middlewares.add(5)).toThrow("Invalid middleware type 'number'. Accepted only Object of Function.");
+		});
 	});
 
 	describe("Test wrapper", () => {
@@ -281,5 +308,45 @@ describe("Test MiddlewareHandler", () => {
 			});
 		});
 	});
+
+	describe("Test wrapMethod", () => {
+
+		const middlewares = new MiddlewareHandler();
+
+		it("should wrap a method", () => {
+
+			const mw1 = {
+				myMethod: jest.fn(function(next) {
+					return str => next(`!${str}!`);
+				})
+			};
+
+			const mw2 = {
+				myMethod: jest.fn(function(next) {
+					return str => next([str, str].join("-"));
+				})
+			};
+
+			const target = {
+				myMethod(str) {
+					return str.toUpperCase();
+				}
+			};
+
+			middlewares.add(mw1);
+			middlewares.add(mw2);
+
+			expect(target.myMethod("Moleculer")).toBe("MOLECULER");
+
+			const wrappedMyMethod = middlewares.wrapMethod("myMethod", target.myMethod, target);
+			expect(wrappedMyMethod("Moleculer")).toBe("!MOLECULER-MOLECULER!");
+
+			const wrappedRevMyMethod = middlewares.wrapMethod("myMethod", target.myMethod, target, { reverse: true });
+			expect(wrappedRevMyMethod("Moleculer")).toBe("!MOLECULER!-!MOLECULER!");
+
+		});
+
+	});
+
 });
 

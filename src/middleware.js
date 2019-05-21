@@ -22,17 +22,19 @@ class MiddlewareHandler {
 	add(mw) {
 		if (!mw) return;
 
+		if (_.isString(mw)) {
+			const found = _.get(Middlewares, mw);
+			if (!found)
+				throw new BrokerOptionsError(`Invalid built-in middleware type '${mw}'.`, { type: mw });
+			mw = found;
+		}
+
 		if (_.isFunction(mw)) {
 			this.list.push(mw.call(this.broker, this.broker));
-		} else if (_.isString(mw)) {
-			let item = _.get(Middlewares, mw);
-			if (item)
-				this.list.push(item);
-			else
-				throw new BrokerOptionsError(`Invalid built-in middleware type '${mw}'.`, { type: mw });
-
-		} else {
+		} else if (_.isObject(mw)) {
 			this.list.push(mw);
+		} else {
+			throw new BrokerOptionsError(`Invalid middleware type '${typeof mw}'. Accepted only Object of Function.`, { type: typeof mw });
 		}
 	}
 

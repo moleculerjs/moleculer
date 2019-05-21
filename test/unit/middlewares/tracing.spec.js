@@ -1,10 +1,10 @@
 const ServiceBroker 			= require("../../../src/service-broker");
 const { MoleculerError }		= require("../../../src/errors");
 const Context 					= require("../../../src/context");
-const Middleware 				= require("../../../src/middlewares").Metrics;
+const Middleware 				= require("../../../src/middlewares").Tracing;
 const { protectReject }			= require("../utils");
 
-describe.skip("Test MetricsMiddleware localAction", () => {
+describe.skip("Test TracingMiddleware localAction", () => {
 	const broker = new ServiceBroker({ nodeID: "server-1", logger: false });
 	const handler = jest.fn(() => Promise.resolve("Result"));
 	const action = {
@@ -142,7 +142,7 @@ describe.skip("Test MetricsMiddleware localAction", () => {
 	});
 });
 
-describe.skip("Test MetricsMiddleware remoteAction", () => {
+describe.skip("Test TracingMiddleware remoteAction", () => {
 	const broker = new ServiceBroker({ nodeID: "server-1", logger: false });
 	const handler = jest.fn(() => Promise.resolve("Result"));
 	const action = {

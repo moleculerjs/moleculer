@@ -9,7 +9,10 @@ describe("Test ErrorHandlerMiddleware", () => {
 	const handler = jest.fn(() => Promise.resolve("Result"));
 	const action = {
 		name: "posts.find",
-		handler
+		handler,
+		service: {
+			name: "posts"
+		}
 	};
 	const endpoint = {
 		action,
@@ -18,7 +21,9 @@ describe("Test ErrorHandlerMiddleware", () => {
 		}
 	};
 
-	const mw = Middleware();
+	broker.errorHandler = jest.fn(err => Promise.reject(err));
+
+	const mw = Middleware(broker);
 
 	it("should register hooks", () => {
 		expect(mw.localAction).toBeInstanceOf(Function);
@@ -33,7 +38,27 @@ describe("Test ErrorHandlerMiddleware", () => {
 		expect(newHandler2).not.toBe(handler);
 	});
 
+	it("should call broker errorHandler", () => {
+		broker.errorHandler.mockClear();
+		const error = new MoleculerError("Something wrong");
+		let handler = jest.fn(() => Promise.reject(error));
+
+		const newHandler = mw.localAction.call(broker, handler, action);
+		const ctx = Context.create(broker, endpoint);
+
+		return newHandler(ctx).then(protectReject).catch(err => {
+			expect(err).toBeInstanceOf(MoleculerError);
+			expect(err.name).toBe("MoleculerError");
+			expect(err.message).toBe("Something wrong");
+			expect(err.ctx).toBe(ctx);
+
+			expect(broker.errorHandler).toBeCalledTimes(1);
+			expect(broker.errorHandler).toBeCalledWith(err, { ctx, service: action.service, action });
+		});
+	});
+
 	it("should convert if not Error", () => {
+		broker.errorHandler.mockClear();
 		let handler = jest.fn(() => Promise.reject("Something wrong"));
 
 		const newHandler = mw.localAction.call(broker, handler, action);
@@ -45,6 +70,9 @@ describe("Test ErrorHandlerMiddleware", () => {
 			expect(err.name).toBe("MoleculerError");
 			expect(err.message).toBe("Something wrong");
 			expect(err.ctx).toBe(ctx);
+
+			expect(broker.errorHandler).toBeCalledTimes(1);
+			expect(broker.errorHandler).toBeCalledWith(err, { ctx, service: action.service, action });
 		});
 	});
 

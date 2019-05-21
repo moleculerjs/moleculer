@@ -20,7 +20,7 @@ describe("Test CompressionMiddleware", () => {
 		const next = jest.fn();
 		const send = mw.transporterSend.call(broker, next);
 
-		return send("topic", Buffer.from("uncompressed data"), meta).then(() => {
+		return send("topic", Buffer.from("uncompressed data"), meta).catch(protectReject).then(() => {
 			expect(next).toHaveBeenCalledTimes(1);
 			expect(next).toHaveBeenCalledWith("topic", expect.any(Buffer), meta);
 			expect(next.mock.calls[0][1]).toEqual(zlib.deflateSync(Buffer.from("uncompressed data")));
@@ -35,7 +35,7 @@ describe("Test CompressionMiddleware", () => {
 		const receive = mw.transporterReceive.call(broker, next);
 		const compressedData = zlib.deflateSync(Buffer.from("compressed data"));
 
-		return receive("topic", compressedData, meta).then(() => {
+		return receive("topic", compressedData, meta).catch(protectReject).then(() => {
 			expect(next).toHaveBeenCalledTimes(1);
 			expect(next).toHaveBeenCalledWith("topic", Buffer.from("compressed data"), meta);
 		});
@@ -48,7 +48,7 @@ describe("Test CompressionMiddleware", () => {
 		const next = jest.fn();
 		const send = mw.transporterSend.call(broker, next);
 
-		return send("topic", Buffer.from("uncompressed data"), meta).then(() => {
+		return send("topic", Buffer.from("uncompressed data"), meta).catch(protectReject).then(() => {
 			expect(next).toHaveBeenCalledTimes(1);
 			expect(next).toHaveBeenCalledWith("topic", expect.any(Buffer), meta);
 			expect(next.mock.calls[0][1]).toEqual(zlib.deflateRawSync(Buffer.from("uncompressed data")));
@@ -63,7 +63,7 @@ describe("Test CompressionMiddleware", () => {
 		const receive = mw.transporterReceive.call(broker, next);
 		const compressedData = zlib.deflateRawSync(Buffer.from("compressed data"));
 
-		return receive("topic", compressedData, meta).then(() => {
+		return receive("topic", compressedData, meta).catch(protectReject).then(() => {
 			expect(next).toHaveBeenCalledTimes(1);
 			expect(next).toHaveBeenCalledWith("topic", Buffer.from("compressed data"), meta);
 		});
@@ -76,7 +76,7 @@ describe("Test CompressionMiddleware", () => {
 		const next = jest.fn();
 		const send = mw.transporterSend.call(broker, next);
 
-		return send("topic", Buffer.from("uncompressed data"), meta).then(() => {
+		return send("topic", Buffer.from("uncompressed data"), meta).catch(protectReject).then(() => {
 			expect(next).toHaveBeenCalledTimes(1);
 			expect(next).toHaveBeenCalledWith("topic", expect.any(Buffer), meta);
 			expect(next.mock.calls[0][1]).toEqual(zlib.gzipSync(Buffer.from("uncompressed data")));
@@ -91,7 +91,7 @@ describe("Test CompressionMiddleware", () => {
 		const receive = mw.transporterReceive.call(broker, next);
 		const compressedData = zlib.gzipSync(Buffer.from("compressed data"));
 
-		return receive("topic", compressedData, meta).then(() => {
+		return receive("topic", compressedData, meta).catch(protectReject).then(() => {
 			expect(next).toHaveBeenCalledTimes(1);
 			expect(next).toHaveBeenCalledWith("topic", Buffer.from("compressed data"), meta);
 		});

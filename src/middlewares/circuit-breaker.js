@@ -8,9 +8,8 @@
 
 const C = require("../constants");
 
-module.exports = function() {
+module.exports = function(broker) {
 
-	let broker;
 	let windowTimer;
 	const store = new Map();
 	let logger;
@@ -241,9 +240,8 @@ module.exports = function() {
 
 
 	return {
-		created(_broker) {
-			broker = _broker;
-			logger = _broker.getLogger("circuit-breaker");
+		created(broker) {
+			logger = broker.getLogger("circuit-breaker");
 
 			const opts = broker.options.circuitBreaker;
 			if (opts.enabled)

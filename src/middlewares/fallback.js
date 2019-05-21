@@ -10,8 +10,7 @@ const _ = require("lodash");
 const { MoleculerError } = require("../errors");
 const { METRIC }	= require("../metrics");
 
-module.exports = function FallbackMiddleware() {
-	let broker;
+module.exports = function FallbackMiddleware(broker) {
 
 	function wrapFallbackMiddleware(handler, action) {
 		return function fallbackMiddleware(ctx) {
@@ -52,9 +51,7 @@ module.exports = function FallbackMiddleware() {
 		}.bind(this);
 	}
 	return {
-		created(_broker) {
-			broker = _broker;
-
+		created(broker) {
 			if (broker.isMetricsEnabled()) {
 				broker.metrics.register({ name: METRIC.MOLECULER_REQUEST_FALLBACK_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["action"] });
 			}

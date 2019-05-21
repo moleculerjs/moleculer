@@ -162,8 +162,7 @@ function wrapRemoteTracingMiddleware(handler) {
 	return handler;
 }*/
 
-module.exports = function TracingMiddleware() {
-	broker = this;
+module.exports = function TracingMiddleware(broker) {
 	tracer = broker.tracer;
 
 	return {

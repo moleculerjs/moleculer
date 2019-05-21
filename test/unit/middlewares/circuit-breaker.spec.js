@@ -12,7 +12,7 @@ describe("Test CircuitBreakerMiddleware", () => {
 		handler
 	};
 
-	const mw = Middleware();
+	const mw = Middleware(broker);
 
 	it("should register hooks", () => {
 		expect(mw.created).toBeInstanceOf(Function);
@@ -66,7 +66,7 @@ describe("Test CircuitBreakerMiddleware logic", () => {
 	broker.broadcast = jest.fn();
 
 	let clock, newHandler;
-	const mw = Middleware();
+	const mw = Middleware(broker);
 	beforeAll(() => {
 		clock = lolex.install();
 		mw.created(broker);

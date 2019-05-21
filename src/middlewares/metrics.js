@@ -8,8 +8,8 @@
 
 const { METRIC }	= require("../metrics");
 
-module.exports = function MetricsMiddleware() {
-	let broker, metrics;
+module.exports = function MetricsMiddleware(broker) {
+	let metrics;
 
 	function getActionHandler(type, next) {
 		return function metricsMiddleware(ctx) {
@@ -42,7 +42,6 @@ module.exports = function MetricsMiddleware() {
 
 	return {
 		created(_broker) {
-			broker = _broker;
 			metrics = broker.metrics;
 			if (broker.isMetricsEnabled()) {
 

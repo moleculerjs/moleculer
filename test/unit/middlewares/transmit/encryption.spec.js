@@ -3,7 +3,6 @@ const crypto = require("crypto");
 const ServiceBroker = require("../../../../src/service-broker");
 const Middleware = require("../../../../src/middlewares").Transmit.Encryption;
 const { protectReject } = require("../../utils");
-const zlib = require("zlib");
 
 describe("Test EncryptionMiddleware", () => {
 	const broker = new ServiceBroker({ logger: false });
