@@ -37,7 +37,8 @@ module.exports = function ActionLoggerMiddleware(opts) {
 	let targetFolder;
 
 	function saveToFile(filename, payload) {
-		fs.writeFile(path.join(targetFolder, filename), JSON.stringify(payload, null, 4), () => { /* Silent error */ });
+		const data = JSON.stringify(payload, payload instanceof Error ? Object.getOwnPropertyNames(payload) : null, 4);
+		fs.writeFile(path.join(targetFolder, filename), data, () => { /* Silent error */ });
 	}
 
 	function isWhiteListed(actionName) {
@@ -65,35 +66,59 @@ module.exports = function ActionLoggerMiddleware(opts) {
 
 		call(next) {
 			return (actionName, params, callingOpts) => {
+				// Whitelist filtering
 				if (!isWhiteListed(_.isObject(actionName) ? actionName.action.name : actionName)) {
 					return next(actionName, params, callingOpts);
 				}
 
+				// Logging to logger
 				if (logFn) {
-					const msg = coloringRequest(`Calling ${actionName}` + (opts.logParams ? " with params:" : "."));
+					const msg = coloringRequest(`Calling '${actionName}'` + (opts.logParams ? " with params:" : "."));
 					opts.logParams ? logFn(msg, params) : logFn(msg);
+					if (opts.logMeta && callingOpts && callingOpts.meta) {
+						logFn("Meta:", callingOpts.meta);
+					}
 				}
 
-				if (targetFolder)
-					saveToFile(`${Date.now()}-call-${actionName}${opts.extension}`, params);
+				// Logging to file
+				if (targetFolder) {
+					if (opts.logParams) {
+						saveToFile(`${Date.now()}-call-${actionName}-request${opts.extension}`, params);
+					}
 
+					if (opts.logMeta && callingOpts && callingOpts.meta) {
+						saveToFile(`${Date.now()}-call-${actionName}-meta${opts.extension}`, callingOpts.meta);
+					}
+				}
+
+				// Call the original method
 				const p = next(actionName, params, callingOpts);
 
 				const p2 = p
-					.then(res => {
+					.then(response => {
 
+						// Log response to logger
 						if (logFn) {
-							const msg = coloringResponse(`Response for ${actionName} is received` + (opts.logResponse ? ":" : "."));
-							opts.logParams ? logFn(msg, params) : logFn(msg);
+							const msg = coloringResponse(`Response for '${actionName}' is received` + (opts.logResponse ? ":" : "."));
+							opts.logResponse ? logFn(msg, response) : logFn(msg);
 						}
 
-						return res;
+						// Log response to file
+						if (targetFolder && opts.logResponse)
+							saveToFile(`${Date.now()}-call-${actionName}-response${opts.extension}`, response);
+
+						return response;
 					})
 					.catch(err => {
 
+						// Log error to logger
 						if (logFn) {
-							logFn(coloringError(`Error for ${actionName} is received:`), _.omit(err, ["ctx"]));
+							logFn(coloringError(`Error for '${actionName}' is received:`), err);
 						}
+
+						// Logger error to file
+						if (targetFolder && opts.logResponse)
+							saveToFile(`${Date.now()}-call-${actionName}-error${opts.extension}`, err);
 
 						throw err;
 					});
