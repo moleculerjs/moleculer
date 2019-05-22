@@ -91,7 +91,7 @@ module.exports = function TransitLoggerMiddleware(opts) {
 
 				const payload = packet.payload;
 
-				if (opts.logLevel) {
+				if (logFn) {
 					logFn(coloringReceive(`<= Receive ${cmd} packet from '${payload.sender}'`));
 					if (opts.logPacketData) {
 						logFn("<=", packet.payload);
