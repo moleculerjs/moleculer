@@ -143,7 +143,7 @@ module.exports = {
 
 	MOLECULER_EVENT_EMIT_TOTAL: "moleculer.event.emit.total",
 	MOLECULER_EVENT_BROADCAST_TOTAL: "moleculer.event.broadcast.total",
-	MOLECULER_EVENT_BROADCASTLOCAL_TOTAL: "moleculer.event.broadcastlocal.total",
+	MOLECULER_EVENT_BROADCASTLOCAL_TOTAL: "moleculer.event.broadcast-local.total",
 	MOLECULER_EVENT_RECEIVED_TOTAL: "moleculer.event.received.total",
 
 	// --- MOLECULER TRANSIT METRICS ---

@@ -9,26 +9,29 @@
 const { METRIC }	= require("../metrics");
 
 module.exports = function MetricsMiddleware(broker) {
-	let metrics;
+	const metrics = broker.metrics;
 
-	function getActionHandler(type, next) {
+	function getActionHandler(type, actionDef, next) {
+		const action = actionDef.name;
+		const service = actionDef.service ? actionDef.service.name : null;
+
 		return function metricsMiddleware(ctx) {
-			const action = ctx.action.name;
-			// TODO: serviceFullName
-			metrics.increment(METRIC.MOLECULER_REQUEST_TOTAL, { action, type });
-			metrics.increment(METRIC.MOLECULER_REQUEST_ACTIVE, { action, type });
-			metrics.increment(METRIC.MOLECULER_REQUEST_LEVELS, { action, level: ctx.level });
-			const timeEnd = metrics.timer(METRIC.MOLECULER_REQUEST_TIME, { action });
+
+			metrics.increment(METRIC.MOLECULER_REQUEST_TOTAL, { service, action, type });
+			metrics.increment(METRIC.MOLECULER_REQUEST_ACTIVE, { service, action, type });
+			metrics.increment(METRIC.MOLECULER_REQUEST_LEVELS, { service, action, level: ctx.level });
+			const timeEnd = metrics.timer(METRIC.MOLECULER_REQUEST_TIME, { service, action });
 
 			// Call the next handler
 			return next(ctx).then(res => {
 				timeEnd();
-				metrics.decrement(METRIC.MOLECULER_REQUEST_ACTIVE, { action, type });
+				metrics.decrement(METRIC.MOLECULER_REQUEST_ACTIVE, { service, action, type });
 				return res;
 			}).catch(err => {
 				timeEnd();
-				metrics.decrement(METRIC.MOLECULER_REQUEST_ACTIVE, { action, type });
+				metrics.decrement(METRIC.MOLECULER_REQUEST_ACTIVE, { service, action, type });
 				metrics.increment(METRIC.MOLECULER_REQUEST_ERROR_TOTAL, {
+					service,
 					action,
 					errorName: err ? err.name : null,
 					errorCode: err ? err.code : null,
@@ -41,15 +44,13 @@ module.exports = function MetricsMiddleware(broker) {
 	}
 
 	return {
-		created(_broker) {
-			metrics = broker.metrics;
+		created() {
 			if (broker.isMetricsEnabled()) {
-
 				// --- MOLECULER REQUEST METRICS ---
-				metrics.register({ name: METRIC.MOLECULER_REQUEST_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["action", "type"], description: "Number of requests" });
-				metrics.register({ name: METRIC.MOLECULER_REQUEST_ACTIVE, type: METRIC.TYPE_GAUGE, labelNames: ["action", "type"], description: "Number of active requests" });
-				metrics.register({ name: METRIC.MOLECULER_REQUEST_ERROR_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["action", "errorName", "errorCode", "errorType"], description: "Number of request errors" });
-				metrics.register({ name: METRIC.MOLECULER_REQUEST_TIME, type: METRIC.TYPE_HISTOGRAM, labelNames: ["action"], quantiles: true, buckets: true, unit: METRIC.UNIT_MILLISECONDS, description: "Request times in milliseconds" });
+				metrics.register({ name: METRIC.MOLECULER_REQUEST_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["service", "action", "type"], description: "Number of requests" });
+				metrics.register({ name: METRIC.MOLECULER_REQUEST_ACTIVE, type: METRIC.TYPE_GAUGE, labelNames: ["service", "action", "type"], description: "Number of active requests" });
+				metrics.register({ name: METRIC.MOLECULER_REQUEST_ERROR_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["service", "action", "errorName", "errorCode", "errorType"], description: "Number of request errors" });
+				metrics.register({ name: METRIC.MOLECULER_REQUEST_TIME, type: METRIC.TYPE_HISTOGRAM, labelNames: ["service", "action"], quantiles: true, buckets: true, unit: METRIC.UNIT_MILLISECONDS, description: "Request times in milliseconds" });
 				metrics.register({ name: METRIC.MOLECULER_REQUEST_LEVELS, type: METRIC.TYPE_COUNTER, labelNames: ["level"], description: "Number of context levels" });
 				//metrics.register({ name: METRIC.MOLECULER_REQUEST_DIRECTCALL_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["action"], description: "Number of direct calls" });
 				//metrics.register({ name: METRIC.MOLECULER_REQUEST_MULTICALL_TOTAL, type: METRIC.TYPE_COUNTER, description: "Number of multicalls" });
@@ -58,7 +59,7 @@ module.exports = function MetricsMiddleware(broker) {
 				metrics.register({ name: METRIC.MOLECULER_EVENT_EMIT_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["event", "groups"], description: "Number of emitted events" });
 				metrics.register({ name: METRIC.MOLECULER_EVENT_BROADCAST_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["event", "groups"], description: "Number of broadcast events" });
 				metrics.register({ name: METRIC.MOLECULER_EVENT_BROADCASTLOCAL_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["event", "groups"], description: "Number of local broadcast events" });
-				metrics.register({ name: METRIC.MOLECULER_EVENT_RECEIVED_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["event"], description: "Number of received events" });
+				metrics.register({ name: METRIC.MOLECULER_EVENT_RECEIVED_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["service", "group", "event"], description: "Number of received events" });
 
 				// --- MOLECULER TRANSIT METRICS ---
 
@@ -100,25 +101,26 @@ module.exports = function MetricsMiddleware(broker) {
 			}
 		},
 
-		localAction(next) {
-			if (this.isMetricsEnabled())
-				return getActionHandler("local", next);
+		localAction(next, action) {
+			if (broker.isMetricsEnabled())
+				return getActionHandler("local", action, next);
 
 			return next;
 		},
 
-		remoteAction(next) {
-			if (this.isMetricsEnabled())
-				return getActionHandler("remote", next);
+		remoteAction(next, action) {
+			if (broker.isMetricsEnabled())
+				return getActionHandler("remote", action, next);
 
 			return next;
 		},
 
 		// Wrap local event handlers
 		localEvent(next, event) {
-			if (this.isMetricsEnabled()) {
+			const service = event.service ? event.service.name : null;
+			if (broker.isMetricsEnabled()) {
 				return function metricsMiddleware(/* payload, sender, event */) {
-					metrics.increment(METRIC.MOLECULER_EVENT_RECEIVED_TOTAL, { event: arguments[2] });
+					metrics.increment(METRIC.MOLECULER_EVENT_RECEIVED_TOTAL, { service, event: arguments[2], group: event.group });
 					return next.apply(this, arguments);
 				}.bind(this);
 			}
@@ -128,7 +130,7 @@ module.exports = function MetricsMiddleware(broker) {
 
 		// Wrap broker.emit method
 		emit(next) {
-			if (this.isMetricsEnabled()) {
+			if (broker.isMetricsEnabled()) {
 				return function metricsMiddleware(/* event, payload */) {
 					metrics.increment(METRIC.MOLECULER_EVENT_EMIT_TOTAL, { event: arguments[0] });
 					return next.apply(this, arguments);
@@ -139,7 +141,7 @@ module.exports = function MetricsMiddleware(broker) {
 
 		// Wrap broker.broadcast method
 		broadcast(next) {
-			if (this.isMetricsEnabled()) {
+			if (broker.isMetricsEnabled()) {
 				return function metricsMiddleware(/* event, payload */) {
 					metrics.increment(METRIC.MOLECULER_EVENT_BROADCAST_TOTAL, { event: arguments[0] });
 					return next.apply(this, arguments);
@@ -150,7 +152,7 @@ module.exports = function MetricsMiddleware(broker) {
 
 		// Wrap broker.broadcastLocal method
 		broadcastLocal(next) {
-			if (this.isMetricsEnabled()) {
+			if (broker.isMetricsEnabled()) {
 				return function metricsMiddleware(/* event, payload */) {
 					metrics.increment(METRIC.MOLECULER_EVENT_BROADCASTLOCAL_TOTAL, { event: arguments[0] });
 					return next.apply(this, arguments);
@@ -162,7 +164,7 @@ module.exports = function MetricsMiddleware(broker) {
 		// When transit publishing a packet
 		transitPublish(next) {
 			const transit = this;
-			if (this.broker.isMetricsEnabled()) {
+			if (broker.isMetricsEnabled()) {
 				return function metricsMiddleware(/* packet */) {
 					metrics.increment(METRIC.MOLECULER_TRANSIT_PUBLISH_TOTAL, { type: arguments[0].type });
 
@@ -180,7 +182,7 @@ module.exports = function MetricsMiddleware(broker) {
 
 		// When transit receives & handles a packet
 		transitMessageHandler(next) {
-			if (this.broker.isMetricsEnabled()) {
+			if (broker.isMetricsEnabled()) {
 				return function metricsMiddleware(/* cmd, packet */) {
 					metrics.increment(METRIC.MOLECULER_TRANSIT_RECEIVE_TOTAL, { type: arguments[0] });
 					return next.apply(this, arguments);
@@ -191,7 +193,7 @@ module.exports = function MetricsMiddleware(broker) {
 
 		// When transporter send data
 		transporterSend(next) {
-			if (this.broker.isMetricsEnabled()) {
+			if (broker.isMetricsEnabled()) {
 				return function metricsMiddleware(/* topic, data, meta */) {
 					const data = arguments[1];
 					metrics.increment(METRIC.MOLECULER_TRANSPORTER_PACKETS_SENT_TOTAL);
@@ -204,7 +206,7 @@ module.exports = function MetricsMiddleware(broker) {
 
 		// When transporter received data
 		transporterReceive(next) {
-			if (this.broker.isMetricsEnabled()) {
+			if (broker.isMetricsEnabled()) {
 				return function metricsMiddleware(/* cmd, data, s */) {
 					const data = arguments[1];
 					metrics.increment(METRIC.MOLECULER_TRANSPORTER_PACKETS_RECEIVED_TOTAL);

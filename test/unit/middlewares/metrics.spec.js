@@ -4,11 +4,15 @@ const Context 					= require("../../../src/context");
 const Middleware 				= require("../../../src/middlewares").Metrics;
 const { protectReject }			= require("../utils");
 
-describe.skip("Test MetricsMiddleware localAction", () => {
-	const broker = new ServiceBroker({ nodeID: "server-1", logger: false });
+describe("Test MetricsMiddleware", () => {
+	const broker = new ServiceBroker({ nodeID: "server-1", logger: false, metrics: true });
 	const handler = jest.fn(() => Promise.resolve("Result"));
+	const service = {
+		name: "posts"
+	};
 	const action = {
 		name: "posts.find",
+		service,
 		handler
 	};
 	const endpoint = {
@@ -20,411 +24,579 @@ describe.skip("Test MetricsMiddleware localAction", () => {
 
 	const mw = Middleware(broker);
 
+	jest.spyOn(broker.metrics, "register");
+	jest.spyOn(broker.metrics, "set");
+	jest.spyOn(broker.metrics, "increment");
+	jest.spyOn(broker.metrics, "decrement");
+	jest.spyOn(broker.metrics, "timer");
+	jest.spyOn(broker.localBus, "on");
+
 	it("should register hooks", () => {
+		expect(mw.created).toBeInstanceOf(Function);
 		expect(mw.localAction).toBeInstanceOf(Function);
+		expect(mw.remoteAction).toBeInstanceOf(Function);
+		expect(mw.localEvent).toBeInstanceOf(Function);
+		expect(mw.emit).toBeInstanceOf(Function);
+		expect(mw.broadcast).toBeInstanceOf(Function);
+		expect(mw.broadcastLocal).toBeInstanceOf(Function);
+		expect(mw.transitPublish).toBeInstanceOf(Function);
+		expect(mw.transitMessageHandler).toBeInstanceOf(Function);
+		expect(mw.transporterSend).toBeInstanceOf(Function);
+		expect(mw.transporterReceive).toBeInstanceOf(Function);
+	});
+
+	it("should register metrics & CB event handlers", () => {
+		mw.created(broker);
+		expect(broker.metrics.register).toBeCalledTimes(20);
+
+		expect(broker.localBus.on).toBeCalledTimes(3);
+		expect(broker.localBus.on).toHaveBeenNthCalledWith(1, "$circuit-breaker.opened", expect.any(Function));
+		expect(broker.localBus.on).toHaveBeenNthCalledWith(2, "$circuit-breaker.half-opened", expect.any(Function));
+		expect(broker.localBus.on).toHaveBeenNthCalledWith(3, "$circuit-breaker.closed", expect.any(Function));
 	});
 
 	it("should not wrap handler if metrics is disabled", () => {
-		broker.options.metrics = false;
+		broker.isMetricsEnabled = jest.fn(() => false);
 
 		const newHandler = mw.localAction.call(broker, handler, action);
 
 		expect(newHandler).toBe(handler);
-
-		const ctx = Context.create(broker, endpoint);
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(ctx.metrics).toBeNull();
-		});
-	});
-
-	it("should not wrap handler if metrics is disabled", () => {
-		broker.options.metrics = true;
-		broker.options.metricsRate = 0.01;
-
-		const newHandler = mw.localAction.call(broker, handler, action);
-
-		expect(newHandler).not.toBe(handler);
-
-		const ctx = Context.create(broker, endpoint);
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(ctx.metrics).toBe(false);
-		});
 	});
 
 	it("should wrap handler if metrics is enabled", () => {
-		broker.options.metrics = true;
-		broker.options.metricsRate = 1;
+		broker.isMetricsEnabled = jest.fn(() => true);
 
 		const newHandler = mw.localAction.call(broker, handler, action);
 		expect(newHandler).not.toBe(handler);
 
-		const ctx = Context.create(broker, endpoint);
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(ctx.metrics).toBe(true);
-		});
 	});
 
+	describe("Test localAction & remoteAction", () => {
 
-	it("should send metric events if handler is resolved", () => {
-		broker.options.metrics = true;
-		handler.mockClear();
-		const newHandler = mw.localAction.call(broker, handler, action);
-		broker.emit = jest.fn();
+		it("should update local request metrics events if handler is resolved", () => {
+			handler.mockClear();
+			broker.metrics.increment.mockClear();
+			broker.metrics.decrement.mockClear();
+			broker.metrics.timer.mockClear();
 
-		const ctx = Context.create(broker, endpoint);
+			const newHandler = mw.localAction.call(broker, handler, action);
+			const ctx = Context.create(broker, endpoint);
 
-		return newHandler(ctx).catch(protectReject).then(res => {
-			expect(res).toBe("Result");
+			return newHandler(ctx).catch(protectReject).then(res => {
+				expect(res).toBe("Result");
+
+				expect(broker.metrics.increment).toHaveBeenCalledTimes(3);
+				expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.request.total", { action : "posts.find", service: "posts",  type: "local" });
+				expect(broker.metrics.increment).toHaveBeenNthCalledWith(2, "moleculer.request.active", { action : "posts.find", service: "posts",  type: "local" });
+				expect(broker.metrics.increment).toHaveBeenNthCalledWith(3, "moleculer.request.levels", { action : "posts.find", service: "posts",  level: 1 });
+
+				expect(broker.metrics.timer).toHaveBeenCalledTimes(1);
+				expect(broker.metrics.timer).toHaveBeenNthCalledWith(1, "moleculer.request.time", { action : "posts.find", service: "posts" });
+
+				expect(handler).toHaveBeenCalledTimes(1);
+
+				expect(broker.metrics.decrement).toHaveBeenCalledTimes(1);
+				expect(broker.metrics.decrement).toHaveBeenNthCalledWith(1, "moleculer.request.active", { action : "posts.find", service: "posts",  type: "local" });
+			});
+		});
+
+		it("should update remote request metrics events if handler is resolved", () => {
+			handler.mockClear();
+			broker.metrics.increment.mockClear();
+			broker.metrics.decrement.mockClear();
+			broker.metrics.timer.mockClear();
+
+			const newHandler = mw.remoteAction.call(broker, handler, action);
+			const ctx = Context.create(broker, endpoint);
+
+			return newHandler(ctx).catch(protectReject).then(res => {
+				expect(res).toBe("Result");
+
+				expect(broker.metrics.increment).toHaveBeenCalledTimes(3);
+				expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.request.total", { action : "posts.find", service: "posts",  type: "remote" });
+				expect(broker.metrics.increment).toHaveBeenNthCalledWith(2, "moleculer.request.active", { action : "posts.find", service: "posts",  type: "remote" });
+				expect(broker.metrics.increment).toHaveBeenNthCalledWith(3, "moleculer.request.levels", { action : "posts.find", service: "posts",  level: 1 });
+
+				expect(broker.metrics.timer).toHaveBeenCalledTimes(1);
+				expect(broker.metrics.timer).toHaveBeenNthCalledWith(1, "moleculer.request.time", { action : "posts.find", service: "posts" });
+
+				expect(handler).toHaveBeenCalledTimes(1);
+
+				expect(broker.metrics.decrement).toHaveBeenCalledTimes(1);
+				expect(broker.metrics.decrement).toHaveBeenNthCalledWith(1, "moleculer.request.active", { action : "posts.find", service: "posts",  type: "remote" });
+			});
+		});
+
+		it("should update local request metrics events if handler is rejected", () => {
+			const error = new MoleculerError("Something went wrong", 503, "WENT_WRONG", { a: 5 });
+			const handler = jest.fn(() => Promise.reject(error));
+
+			broker.metrics.increment.mockClear();
+			broker.metrics.decrement.mockClear();
+			broker.metrics.timer.mockClear();
+
+			const newHandler = mw.localAction.call(broker, handler, action);
+			const ctx = Context.create(broker, endpoint);
+
+			return newHandler(ctx).then(protectReject).catch(err => {
+				expect(err).toBe(error);
+
+				expect(broker.metrics.increment).toHaveBeenCalledTimes(4);
+				expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.request.total", { action : "posts.find", service: "posts",  type: "local" });
+				expect(broker.metrics.increment).toHaveBeenNthCalledWith(2, "moleculer.request.active", { action : "posts.find", service: "posts",  type: "local" });
+				expect(broker.metrics.increment).toHaveBeenNthCalledWith(3, "moleculer.request.levels", { action : "posts.find", service: "posts",  level: 1 });
+
+				expect(broker.metrics.timer).toHaveBeenCalledTimes(1);
+				expect(broker.metrics.timer).toHaveBeenNthCalledWith(1, "moleculer.request.time", { action : "posts.find", service: "posts" });
+
+				expect(handler).toHaveBeenCalledTimes(1);
+
+				expect(broker.metrics.decrement).toHaveBeenCalledTimes(1);
+				expect(broker.metrics.decrement).toHaveBeenNthCalledWith(1, "moleculer.request.active", { action : "posts.find", service: "posts",  type: "local" });
+				expect(broker.metrics.increment).toHaveBeenNthCalledWith(4, "moleculer.request.error.total", {
+					action : "posts.find",
+					service: "posts",
+					errorName: "MoleculerError",
+					errorCode: 503,
+					errorType: "WENT_WRONG"
+				});
+			});
+		});
+
+		it("should update remote request metrics events if handler is rejected", () => {
+			const error = new MoleculerError("Something went wrong", 503, "WENT_WRONG", { a: 5 });
+			const handler = jest.fn(() => Promise.reject(error));
+
+			broker.metrics.increment.mockClear();
+			broker.metrics.decrement.mockClear();
+			broker.metrics.timer.mockClear();
+
+			const newHandler = mw.remoteAction.call(broker, handler, action);
+			const ctx = Context.create(broker, endpoint);
+
+			return newHandler(ctx).then(protectReject).catch(err => {
+				expect(err).toBe(error);
+
+				expect(broker.metrics.increment).toHaveBeenCalledTimes(4);
+				expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.request.total", { action : "posts.find", service: "posts",  type: "remote" });
+				expect(broker.metrics.increment).toHaveBeenNthCalledWith(2, "moleculer.request.active", { action : "posts.find", service: "posts",  type: "remote" });
+				expect(broker.metrics.increment).toHaveBeenNthCalledWith(3, "moleculer.request.levels", { action : "posts.find", service: "posts",  level: 1 });
+
+				expect(broker.metrics.timer).toHaveBeenCalledTimes(1);
+				expect(broker.metrics.timer).toHaveBeenNthCalledWith(1, "moleculer.request.time", { action : "posts.find", service: "posts" });
+
+				expect(handler).toHaveBeenCalledTimes(1);
+
+				expect(broker.metrics.decrement).toHaveBeenCalledTimes(1);
+				expect(broker.metrics.decrement).toHaveBeenNthCalledWith(1, "moleculer.request.active", { action : "posts.find", service: "posts",  type: "remote" });
+				expect(broker.metrics.increment).toHaveBeenNthCalledWith(4, "moleculer.request.error.total", {
+					action : "posts.find",
+					service: "posts",
+					errorName: "MoleculerError",
+					errorCode: 503,
+					errorType: "WENT_WRONG"
+				});
+			});
+		});
+
+	});
+
+	describe("Test localEvent", () => {
+		const handler = jest.fn();
+
+		const event = {
+			name: "user.created",
+			group: "users",
+			service
+		};
+
+		it("should update event handler metrics events", () => {
+			handler.mockClear();
+			broker.isMetricsEnabled = jest.fn(() => true);
+			broker.metrics.increment.mockClear();
+
+			const newHandler = mw.localEvent.call(broker, handler, event);
+
+			newHandler({ a: 5 }, "server-123", "user.created");
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
+			expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.event.received.total", { event : "user.created", service: "posts",  group: "users" });
+
 			expect(handler).toHaveBeenCalledTimes(1);
-
-			expect(broker.emit).toHaveBeenCalledTimes(2);
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
-				"id": ctx.id,
-				"nodeID": "server-1",
-				"action": { "name": "posts.find" },
-				"level": 1,
-				"remoteCall": false,
-				"requestID": ctx.requestID,
-				"startTime": ctx.startTime
-			});
-
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.finish", {
-				"id": ctx.id,
-				"nodeID": "server-1",
-				"action": { "name": "posts.find" },
-				"startTime": ctx.startTime,
-				"endTime": ctx.stopTime,
-				"duration": ctx.duration,
-				"fromCache": false,
-				"level": 1,
-				"remoteCall": false,
-				"requestID": ctx.requestID,
-			});
+			expect(handler).toHaveBeenCalledWith({ a: 5 }, "server-123", "user.created");
 		});
-	});
 
-	it("should send metric events if handler is rejected", () => {
-		let err = new MoleculerError("Some error", 502, "SOME_ERROR", { a: 5 });
-		let handler = jest.fn(() => Promise.reject(err));
-		const newHandler = mw.localAction.call(broker, handler, action);
-		broker.emit = jest.fn();
+		it("should not wrap handler if metrics is disabled", () => {
+			handler.mockClear();
+			broker.isMetricsEnabled = jest.fn(() => false);
+			broker.metrics.increment.mockClear();
 
-		const ctx = Context.create(broker, endpoint);
-		return newHandler(ctx).then(protectReject).catch(res => {
-			expect(res).toBe(err);
+			const newHandler = mw.localEvent.call(broker, handler, event);
+
+			newHandler({ a: 5 }, "server-123", "user.created");
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(0);
+
 			expect(handler).toHaveBeenCalledTimes(1);
-
-			expect(broker.emit).toHaveBeenCalledTimes(2);
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
-				"id": ctx.id,
-				"nodeID": "server-1",
-				"action": { "name": "posts.find" },
-				"level": 1,
-				"remoteCall": false,
-				"requestID": ctx.requestID,
-				"startTime": ctx.startTime
-			});
-
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.finish", {
-				"id": ctx.id,
-				"nodeID": "server-1",
-				"action": { "name": "posts.find" },
-				"startTime": ctx.startTime,
-				"endTime": ctx.stopTime,
-				"duration": ctx.duration,
-				"fromCache": false,
-				"level": 1,
-				"remoteCall": false,
-				"requestID": ctx.requestID,
-				"error": { "code": 502, "message": "Some error", "name": "MoleculerError", "type": "SOME_ERROR" }
-			});
-		});
-	});
-});
-
-describe.skip("Test MetricsMiddleware remoteAction", () => {
-	const broker = new ServiceBroker({ nodeID: "server-1", logger: false });
-	const handler = jest.fn(() => Promise.resolve("Result"));
-	const action = {
-		name: "posts.find",
-		handler
-	};
-	const endpoint = {
-		action,
-		node: {
-			id: broker.nodeID
-		}
-	};
-
-	const mw = Middleware();
-
-	it("should register hooks", () => {
-		expect(mw.remoteAction).toBeInstanceOf(Function);
-	});
-
-	it("should not set metrics if it's disabled", () => {
-		broker.options.metrics = false;
-
-		const newHandler = mw.remoteAction.call(broker, handler, action);
-
-		expect(newHandler).toBe(handler);
-
-		const ctx = Context.create(broker, endpoint);
-		ctx.metrics = null;
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(ctx.metrics).toBe(null);
+			expect(handler).toHaveBeenCalledWith({ a: 5 }, "server-123", "user.created");
 		});
 	});
 
-	it("should not set metrics if it's set earlier", () => {
-		broker.options.metrics = true;
+	describe("Test emit", () => {
+		const handler = jest.fn();
 
-		const newHandler = mw.remoteAction.call(broker, handler, action);
-
-		expect(newHandler).not.toBe(handler);
-
-		const ctx = Context.create(broker, endpoint);
-		ctx.metrics = false;
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(ctx.metrics).toBe(false);
-		});
-	});
-
-	it("should not set metrics if it's set earlier", () => {
-		broker.options.metrics = true;
-
-		const newHandler = mw.remoteAction.call(broker, handler, action);
-
-		expect(newHandler).not.toBe(handler);
-
-		const ctx = Context.create(broker, endpoint);
-		ctx.metrics = true;
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(ctx.metrics).toBe(true);
-		});
-	});
-
-	it("should set metrics if it's not set earlier", () => {
-		broker.options.metrics = true;
-
-		const newHandler = mw.remoteAction.call(broker, handler, action);
-
-		expect(newHandler).not.toBe(handler);
-
-		const ctx = Context.create(broker, endpoint);
-		ctx.metrics = null;
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(ctx.metrics).toBe(true);
-		});
-	});
-
-});
-
-
-describe.skip("Test params & meta in events", () => {
-	let broker = new ServiceBroker({ logger: false, metrics: true, nodeID: "master" });
-	broker.emit = jest.fn();
-
-	const mw = Middleware();
-	const action = { name: "users.get", metrics: false, service: { name: "users", version: 2 } };
-	const endpoint = { action, node: { id: broker.nodeID } };
-
-	const handler = jest.fn(() => Promise.resolve());
-	const newHandler = mw.localAction.call(broker, handler, action);
-
-	const ctx = Context.create(broker, endpoint);
-
-	it("should not inject params & meta to the payload", () => {
-		broker.emit.mockClear();
-		ctx.parentID = 123;
-		ctx.requestID = "abcdef";
-		ctx.nodeID = "remote-node";
-
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(broker.emit).toHaveBeenCalledTimes(2);
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
-				"id": ctx.id,
-				"service": { "name": "users", "version": 2 },
-				"action": { "name": "users.get" },
-				"level": 1,
-				"parent": 123,
-				"remoteCall": true,
-				"requestID": "abcdef",
-				"startTime": ctx.startTime,
-				"nodeID": broker.nodeID,
-				"callerNodeID": "remote-node"
-			});
-		});
-	});
-
-	it("should have been called with params and meta", () => {
-		broker.emit.mockClear();
-		ctx.action = {
-			name: "users.get",
-			params: { username: "string", pass: "string" },
-			metrics: { params: true, meta: true }
-		};
-		ctx.params = { username: "user", pass: "pass" };
-		ctx.meta = { user: { id: 4 } };
-
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(broker.emit).toHaveBeenCalledTimes(2);
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
-				"id": ctx.id,
-				"service": { "name": "users", "version": 2 },
-				"action": { "name": "users.get" },
-				"level": 1,
-				"parent": 123,
-				"remoteCall": true,
-				"requestID": "abcdef",
-				"startTime": ctx.startTime,
-				"nodeID": broker.nodeID,
-				"callerNodeID": "remote-node",
-				"params": { "pass": "pass", "username": "user" },
-				"meta": { user: { id: 4 } },
-			});
-		});
-	});
-
-	it("should have been called with params and without meta", () => {
-		broker.emit.mockClear();
-		ctx.action = {
-			name: "users.get", params: { username: "string", pass: "string" },
-			metrics: { params: true, meta: false }
+		const event = {
+			name: "user.created",
+			group: "users",
+			service
 		};
 
-		ctx.params = { username: "user", pass: "pass" };
-		ctx.meta = { user: { id: 4 } };
+		it("should update event handler metrics events", () => {
+			handler.mockClear();
+			broker.isMetricsEnabled = jest.fn(() => true);
+			broker.metrics.increment.mockClear();
 
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(broker.emit).toHaveBeenCalledTimes(2);
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
-				"id": ctx.id,
-				"service": { "name": "users", "version": 2 },
-				"action": { "name": "users.get" },
-				"level": 1,
-				"parent": 123,
-				"remoteCall": true,
-				"requestID": "abcdef",
-				"startTime": ctx.startTime,
-				"nodeID": broker.nodeID,
-				"callerNodeID": "remote-node",
-				"params": { "pass": "pass", "username": "user" }
-			});
+			const newHandler = mw.emit.call(broker, handler, event);
+
+			newHandler("user.created", { a: 5 }, ["payment", "mail"]);
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
+			expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.event.emit.total", { event : "user.created" });
+
+			expect(handler).toHaveBeenCalledTimes(1);
+			expect(handler).toHaveBeenCalledWith("user.created", { a: 5 }, ["payment", "mail"]);
+		});
+
+		it("should not wrap handler if metrics is disabled", () => {
+			handler.mockClear();
+			broker.isMetricsEnabled = jest.fn(() => false);
+			broker.metrics.increment.mockClear();
+
+			const newHandler = mw.emit.call(broker, handler, event);
+
+			newHandler("user.created", { a: 5 }, ["payment", "mail"]);
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(0);
+
+			expect(handler).toHaveBeenCalledTimes(1);
+			expect(handler).toHaveBeenCalledWith("user.created", { a: 5 }, ["payment", "mail"]);
 		});
 	});
 
-	it("should have been called with array of field params and without meta", () => {
-		broker.emit.mockClear();
-		ctx.action = {
-			name: "users.get", params: { username: "string", pass: "string" },
-			metrics: { params: ["username"], meta: false }
-		};
-		ctx.params = { username: "user", pass: "pass" };
+	describe("Test broadcast", () => {
+		const handler = jest.fn();
 
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(broker.emit).toHaveBeenCalledTimes(2);
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
-				"id": ctx.id,
-				"service": { "name": "users", "version": 2 },
-				"action": { "name": "users.get" },
-				"level": 1,
-				"parent": 123,
-				"remoteCall": true,
-				"requestID": "abcdef",
-				"startTime": ctx.startTime,
-				"nodeID": broker.nodeID,
-				"callerNodeID": "remote-node",
-				"params": { "username": "user" }
-			});
+		const event = {
+			name: "user.created",
+			group: "users",
+			service
+		};
+
+		it("should update event handler metrics events", () => {
+			handler.mockClear();
+			broker.isMetricsEnabled = jest.fn(() => true);
+			broker.metrics.increment.mockClear();
+
+			const newHandler = mw.broadcast.call(broker, handler, event);
+
+			newHandler("user.created", { a: 5 }, ["payment", "mail"]);
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
+			expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.event.broadcast.total", { event : "user.created" });
+
+			expect(handler).toHaveBeenCalledTimes(1);
+			expect(handler).toHaveBeenCalledWith("user.created", { a: 5 }, ["payment", "mail"]);
+		});
+
+		it("should not wrap handler if metrics is disabled", () => {
+			handler.mockClear();
+			broker.isMetricsEnabled = jest.fn(() => false);
+			broker.metrics.increment.mockClear();
+
+			const newHandler = mw.broadcast.call(broker, handler, event);
+
+			newHandler("user.created", { a: 5 }, ["payment", "mail"]);
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(0);
+
+			expect(handler).toHaveBeenCalledTimes(1);
+			expect(handler).toHaveBeenCalledWith("user.created", { a: 5 }, ["payment", "mail"]);
 		});
 	});
 
-	it("should have been called with array of field meta and without params", () => {
-		broker.emit.mockClear();
-		ctx.action = {
-			name: "users.get", params: { username: "string", pass: "string" },
-			metrics: { meta: ["user", "token"] }
-		};
-		ctx.params = { username: "user", pass: "pass" };
-		ctx.meta = {
-			user: "John",
-			token: 123456,
-			session: "00001"
+	describe("Test broadcastLocal", () => {
+		const handler = jest.fn();
+
+		const event = {
+			name: "user.created",
+			group: "users",
+			service
 		};
 
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(broker.emit).toHaveBeenCalledTimes(2);
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
-				"id": ctx.id,
-				"service": { "name": "users", "version": 2 },
-				"action": { "name": "users.get" },
-				"level": 1,
-				"parent": 123,
-				"remoteCall": true,
-				"requestID": "abcdef",
-				"startTime": ctx.startTime,
-				"nodeID": broker.nodeID,
-				"callerNodeID": "remote-node",
-				"meta": { user: "John", token: 123456 }
-			});
+		it("should update event handler metrics events", () => {
+			handler.mockClear();
+			broker.isMetricsEnabled = jest.fn(() => true);
+			broker.metrics.increment.mockClear();
+
+			const newHandler = mw.broadcastLocal.call(broker, handler, event);
+
+			newHandler("user.created", { a: 5 }, ["payment", "mail"]);
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
+			expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.event.broadcast-local.total", { event : "user.created" });
+
+			expect(handler).toHaveBeenCalledTimes(1);
+			expect(handler).toHaveBeenCalledWith("user.created", { a: 5 }, ["payment", "mail"]);
+		});
+
+		it("should not wrap handler if metrics is disabled", () => {
+			handler.mockClear();
+			broker.isMetricsEnabled = jest.fn(() => false);
+			broker.metrics.increment.mockClear();
+
+			const newHandler = mw.broadcastLocal.call(broker, handler, event);
+
+			newHandler("user.created", { a: 5 }, ["payment", "mail"]);
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(0);
+
+			expect(handler).toHaveBeenCalledTimes(1);
+			expect(handler).toHaveBeenCalledWith("user.created", { a: 5 }, ["payment", "mail"]);
 		});
 	});
 
-	it("should have been called with function map of params and without meta", () => {
-		broker.emit.mockClear();
-		ctx.action = {
-			name: "users.get", params: { username: "string", pass: "string" },
-			metrics: { params: (params) => { return params.username + "@" + params.pass; }, meta: false }
-		};
-		ctx.params = { username: "user", pass: "pass" };
+	describe("Test transitPublish", () => {
+		const handler = jest.fn(() => Promise.resolve);
 
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(broker.emit).toHaveBeenCalledTimes(2);
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
-				"id": ctx.id,
-				"service": { "name": "users", "version": 2 },
-				"action": { "name": "users.get" },
-				"level": 1,
-				"parent": 123,
-				"remoteCall": true,
-				"requestID": "abcdef",
-				"startTime": ctx.startTime,
-				"nodeID": broker.nodeID,
-				"callerNodeID": "remote-node",
-				"params": "user@pass"
-			});
+		const fakeTransit = {
+			pendingRequests: {
+				size: 3
+			},
+			pendingReqStreams: {
+				size: 1
+			},
+			pendingResStreams: {
+				size: 5
+			}
+		};
+
+		it("should update metrics values", () => {
+			handler.mockClear();
+			broker.isMetricsEnabled = jest.fn(() => true);
+			broker.metrics.increment.mockClear();
+
+			const newHandler = mw.transitPublish.call(fakeTransit, handler);
+
+			const packet = { type: "REQUEST" };
+
+			newHandler.call(fakeTransit, packet);
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(3);
+			expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.transit.publish.total", { type: "REQUEST" });
+			expect(broker.metrics.increment).toHaveBeenNthCalledWith(2, "moleculer.transit.requests.active", null, 3);
+			expect(broker.metrics.increment).toHaveBeenNthCalledWith(3, "moleculer.transit.streams.send.active", null, 6);
+
+			expect(handler).toHaveBeenCalledTimes(1);
+			expect(handler).toHaveBeenCalledWith(packet);
+		});
+
+		it("should not wrap handler if metrics is disabled", () => {
+			handler.mockClear();
+			broker.isMetricsEnabled = jest.fn(() => false);
+			broker.metrics.increment.mockClear();
+
+			const newHandler = mw.transitPublish.call(fakeTransit, handler);
+
+			const packet = { type: "REQUEST" };
+
+			newHandler(packet);
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(0);
+
+			expect(handler).toHaveBeenCalledTimes(1);
+			expect(handler).toHaveBeenCalledWith(packet);
 		});
 	});
 
-	it("should have been called without params & array of field meta", () => {
-		broker.emit.mockClear();
-		ctx.action = {
-			name: "users.get", params: { username: "string", pass: "string" },
-			metrics: { params: false, meta: (meta) => { return meta.token + "@" + meta.session; } }
-		};
-		ctx.params = { username: "user", pass: "pass" };
-		ctx.meta = {
-			user: "John",
-			token: 123456,
-			session: "00001"
-		};
+	describe("Test transitMessageHandler", () => {
+		const handler = jest.fn(() => Promise.resolve);
 
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(broker.emit).toHaveBeenCalledTimes(2);
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
-				"id": ctx.id,
-				"service": { "name": "users", "version": 2 },
-				"action": { "name": "users.get" },
-				"level": 1,
-				"parent": 123,
-				"remoteCall": true,
-				"requestID": "abcdef",
-				"startTime": ctx.startTime,
-				"nodeID": broker.nodeID,
-				"callerNodeID": "remote-node",
-				"meta": "123456@00001"
-			});
+		const fakeTransit = {};
+
+		it("should update metrics values", () => {
+			handler.mockClear();
+			broker.isMetricsEnabled = jest.fn(() => true);
+			broker.metrics.increment.mockClear();
+
+			const newHandler = mw.transitMessageHandler.call(fakeTransit, handler);
+
+			const packet = {};
+
+			newHandler.call(fakeTransit, "RESPONSE", packet);
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
+			expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.transit.receive.total", { type: "RESPONSE" });
+
+			expect(handler).toHaveBeenCalledTimes(1);
+			expect(handler).toHaveBeenCalledWith("RESPONSE", packet);
+		});
+
+		it("should not wrap handler if metrics is disabled", () => {
+			handler.mockClear();
+			broker.isMetricsEnabled = jest.fn(() => false);
+			broker.metrics.increment.mockClear();
+
+			const newHandler = mw.transitMessageHandler.call(fakeTransit, handler);
+
+			const packet = {};
+
+			newHandler.call(fakeTransit, "RESPONSE", packet);
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(0);
+
+			expect(handler).toHaveBeenCalledTimes(1);
+			expect(handler).toHaveBeenCalledWith("RESPONSE", packet);
 		});
 	});
+
+	describe("Test transporterSend", () => {
+		const handler = jest.fn(() => Promise.resolve);
+
+		const fakeTransit = {};
+
+		it("should update metrics values", () => {
+			handler.mockClear();
+			broker.isMetricsEnabled = jest.fn(() => true);
+			broker.metrics.increment.mockClear();
+
+			const newHandler = mw.transporterSend.call(fakeTransit, handler);
+
+			const data = { length: 200 };
+			const meta = { user: "John" };
+
+			newHandler.call(fakeTransit, "MOL-TOPIC", data, meta);
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(2);
+			expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.transporter.packets.sent.total");
+			expect(broker.metrics.increment).toHaveBeenNthCalledWith(2, "moleculer.transporter.packets.sent.bytes", null, 200);
+
+			expect(handler).toHaveBeenCalledTimes(1);
+			expect(handler).toHaveBeenCalledWith("MOL-TOPIC", data, meta);
+		});
+
+		it("should not wrap handler if metrics is disabled", () => {
+			handler.mockClear();
+			broker.isMetricsEnabled = jest.fn(() => false);
+			broker.metrics.increment.mockClear();
+
+			const newHandler = mw.transporterSend.call(fakeTransit, handler);
+
+			const data = { length: 200 };
+			const meta = { user: "John" };
+
+			newHandler.call(fakeTransit, "MOL-TOPIC", data, meta);
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(0);
+
+			expect(handler).toHaveBeenCalledTimes(1);
+			expect(handler).toHaveBeenCalledWith("MOL-TOPIC", data, meta);
+		});
+	});
+
+	describe("Test transporterReceive", () => {
+		const handler = jest.fn(() => Promise.resolve);
+
+		const fakeTransit = {};
+
+		it("should update metrics values", () => {
+			handler.mockClear();
+			broker.isMetricsEnabled = jest.fn(() => true);
+			broker.metrics.increment.mockClear();
+
+			const newHandler = mw.transporterReceive.call(fakeTransit, handler);
+
+			const data = { length: 200 };
+			const s = { user: "John" };
+
+			newHandler.call(fakeTransit, "MOL-TOPIC", data, s);
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(2);
+			expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.transporter.packets.received.total");
+			expect(broker.metrics.increment).toHaveBeenNthCalledWith(2, "moleculer.transporter.packets.received.bytes", null, 200);
+
+			expect(handler).toHaveBeenCalledTimes(1);
+			expect(handler).toHaveBeenCalledWith("MOL-TOPIC", data, s);
+		});
+
+		it("should not wrap handler if metrics is disabled", () => {
+			handler.mockClear();
+			broker.isMetricsEnabled = jest.fn(() => false);
+			broker.metrics.increment.mockClear();
+
+			const newHandler = mw.transporterReceive.call(fakeTransit, handler);
+
+			const data = { length: 200 };
+			const s = { user: "John" };
+
+			newHandler.call(fakeTransit, "MOL-TOPIC", data, s);
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(0);
+
+			expect(handler).toHaveBeenCalledTimes(1);
+			expect(handler).toHaveBeenCalledWith("MOL-TOPIC", data, s);
+		});
+	});
+
+	describe("Test circuit breaker event handlers", () => {
+
+		const broker = new ServiceBroker({ nodeID: "server-1", logger: false, metrics: true });
+		jest.spyOn(broker.metrics, "register");
+		jest.spyOn(broker.metrics, "set");
+		jest.spyOn(broker.metrics, "increment");
+		jest.spyOn(broker.metrics, "decrement");
+		jest.spyOn(broker.metrics, "timer");
+		jest.spyOn(broker.localBus, "on");
+
+		it("should update circuit-breaker opened metrics", ()=> {
+			broker.isMetricsEnabled = jest.fn(() => true);
+			broker.metrics.increment.mockClear();
+			broker.metrics.set.mockClear();
+
+			const payload = { nodeID: "server-2", action: "posts.find" };
+			broker.localBus.emit("$circuit-breaker.opened", payload);
+
+			expect(broker.metrics.set).toHaveBeenCalledTimes(1);
+			expect(broker.metrics.set).toHaveBeenNthCalledWith(1, "moleculer.circuit-breaker.opened.active", 1, { action: "posts.find", affectedNodeID: "server-2" });
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
+			expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.circuit-breaker.opened.total", { action: "posts.find", affectedNodeID: "server-2" });
+		});
+
+		it("should update circuit-breaker half-opened metrics", ()=> {
+			broker.isMetricsEnabled = jest.fn(() => true);
+			broker.metrics.increment.mockClear();
+			broker.metrics.set.mockClear();
+
+			const payload = { nodeID: "server-2", action: "posts.find" };
+			broker.localBus.emit("$circuit-breaker.half-opened", payload);
+
+			expect(broker.metrics.set).toHaveBeenCalledTimes(2);
+			expect(broker.metrics.set).toHaveBeenNthCalledWith(1, "moleculer.circuit-breaker.opened.active", 0, { action: "posts.find", affectedNodeID: "server-2" });
+			expect(broker.metrics.set).toHaveBeenNthCalledWith(2, "moleculer.circuit-breaker.half-opened.active", 1, { action: "posts.find", affectedNodeID: "server-2" });
+		});
+
+		it("should update circuit-breaker closed metrics", ()=> {
+			broker.isMetricsEnabled = jest.fn(() => true);
+			broker.metrics.increment.mockClear();
+			broker.metrics.set.mockClear();
+
+			const payload = { nodeID: "server-2", action: "posts.find" };
+			broker.localBus.emit("$circuit-breaker.closed", payload);
+
+			expect(broker.metrics.set).toHaveBeenCalledTimes(2);
+			expect(broker.metrics.set).toHaveBeenNthCalledWith(1, "moleculer.circuit-breaker.opened.active", 0, { action: "posts.find", affectedNodeID: "server-2" });
+			expect(broker.metrics.set).toHaveBeenNthCalledWith(2, "moleculer.circuit-breaker.half-opened.active", 0, { action: "posts.find", affectedNodeID: "server-2" });
+		});
+	});
+
 });
