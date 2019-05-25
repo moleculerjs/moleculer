@@ -51,6 +51,8 @@ module.exports = function FallbackMiddleware(broker) {
 		}.bind(this);
 	}
 	return {
+		name: "Fallback",
+
 		created(broker) {
 			if (broker.isMetricsEnabled()) {
 				broker.metrics.register({ name: METRIC.MOLECULER_REQUEST_FALLBACK_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["action"] });

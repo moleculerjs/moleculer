@@ -44,6 +44,8 @@ module.exports = function MetricsMiddleware(broker) {
 	}
 
 	return {
+		name: "Metrics",
+
 		created() {
 			if (broker.isMetricsEnabled()) {
 				// --- MOLECULER REQUEST METRICS ---

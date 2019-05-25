@@ -51,8 +51,9 @@ module.exports = function RetryMiddleware(broker) {
 	}
 
 	return {
-		created() {
+		name: "Retry",
 
+		created() {
 			if (broker.isMetricsEnabled()) {
 				broker.metrics.register({ name: METRIC.MOLECULER_REQUEST_RETRY_ATTEMPTS_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["action"] });
 			}

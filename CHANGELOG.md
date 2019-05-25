@@ -10,6 +10,7 @@
 ## Done
 - communication protocol changed (`3` -> `4`)
 - handling conflict nodeIDs
+- **Breaking**: `validation` broker options is removed. Use `validator` instead. If `validator` is defined or `true`, the validation is enabled. Otherwise, it is disabled.
 - `ctx` access in Strategies `next` method (Kafka-like sharding strategy).
 - The `broker.use` deprecated method is removed. Use `middlewares: []` in the broker options instead.
 - hooks inside action definitions, as well.

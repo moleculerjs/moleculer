@@ -297,21 +297,19 @@ declare namespace Moleculer {
 
 		errorHandler?: (err: Error, info: any) => void;
 
-		cacher?: Cacher | string | GenericObject;
+		cacher?: boolean | Cacher | string | GenericObject;
 		serializer?: Serializer | string | GenericObject;
-
-		validation?: boolean;
-		validator?: Validator;
+		validator?: boolean | Validator;
 
 		metrics?: boolean;
 		tracing?: boolean;
 
-		internalServices?: boolean;
+		internalServices?: boolean | GenericObject;
 		internalMiddlewares?: boolean;
 
 		hotReload?: boolean;
 
-		middlewares?: Array<Middleware>;
+		middlewares?: Array<Middleware | string>;
 		replCommands?: Array<GenericObject>;
 
 		metadata?: Array<GenericObject>;

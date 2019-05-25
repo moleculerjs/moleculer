@@ -125,7 +125,7 @@ describe("Test ServiceBroker constructor", () => {
 				enabled: true,
 				concurrency: 2,
 			},
-			validation: false,
+			validator: false,
 			internalServices: false,
 			hotReload: true,
 
@@ -201,8 +201,7 @@ describe("Test ServiceBroker constructor", () => {
 			requestTimeout: 5000,
 			maxCallLevel: 10,
 			actionParamsCloning: true,
-			validation: false,
-			validator: null,
+			validator: false,
 			internalServices: false,
 			internalMiddlewares: true,
 			hotReload: true,
@@ -224,6 +223,10 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.namespace).toBe("test");
 		expect(broker.nodeID).toBe("server-12");
 		expect(broker.instanceID).toBe("1");
+		expect(broker.metadata).toEqual({
+			region: "eu-west1"
+		});
+
 		expect(broker.call).toBe(broker.callWithoutBalancer);
 
 		expect(broker.getLocalService("$node")).not.toBeDefined();
@@ -271,10 +274,16 @@ describe("Test ServiceBroker constructor", () => {
 	it("should set validator", () => {
 		let broker = new ServiceBroker({ logger: false });
 		expect(broker.validator).toBeDefined();
+
+		broker = new ServiceBroker({ logger: false, validator: true });
+		expect(broker.validator).toBeDefined();
 	});
 
 	it("should not set validator", () => {
-		let broker = new ServiceBroker({ validation: false });
+		let broker = new ServiceBroker({ validator: false });
+		expect(broker.validator).toBeUndefined();
+
+		broker = new ServiceBroker({ validator: null });
 		expect(broker.validator).toBeUndefined();
 	});
 
@@ -350,7 +359,7 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.middlewares.count()).toBe(0);
 	});
 
-	it("should load middlewares", () => {
+	it("should load user middlewares", () => {
 		let mw1 = { localAction: jest.fn(handler => handler) };
 		let mw2 = { localAction: jest.fn(handler => handler) };
 		let broker = new ServiceBroker({
@@ -383,6 +392,26 @@ describe("Test ServiceBroker constructor", () => {
 
 		expect(broker.middlewares.count()).toBe(12);
 	});
+
+	it("should register moleculer metrics", () => {
+		let broker = new ServiceBroker({
+			logger: false,
+			metrics: false
+		});
+
+		const mockSet = jest.fn();
+		broker.metrics.register = jest.fn(() => ({ set: mockSet }));
+
+		broker.registerMoleculerMetrics();
+
+		expect(broker.metrics.register).toHaveBeenCalledTimes(0);
+
+		broker.isMetricsEnabled = jest.fn(() => true);
+		broker.registerMoleculerMetrics();
+
+		expect(broker.metrics.register).toHaveBeenCalledTimes(7);
+		expect(mockSet).toHaveBeenCalledTimes(7);
+	});
 });
 
 describe("Test broker.start", () => {
@@ -393,9 +422,12 @@ describe("Test broker.start", () => {
 			started: jest.fn()
 		};
 
+		const optStarted = jest.fn();
+
 		let broker = new ServiceBroker({
 			logger: false,
-			transporter: "fake"
+			transporter: "fake",
+			started: optStarted
 		});
 
 		broker.createService(schema);
@@ -403,16 +435,29 @@ describe("Test broker.start", () => {
 		broker.transit.connect = jest.fn(() => Promise.resolve());
 		broker.transit.ready = jest.fn(() => Promise.resolve());
 		broker.broadcastLocal = jest.fn();
+		broker.metrics.set = jest.fn();
+		broker.callMiddlewareHook = jest.fn();
+
 
 		beforeAll(() => broker.start());
 
 		it("should call started of services", () => {
+			expect(optStarted).toHaveBeenCalledTimes(1);
 			expect(schema.started).toHaveBeenCalledTimes(1);
 			expect(broker.transit.connect).toHaveBeenCalledTimes(1);
 			expect(broker.started).toBe(true);
+
 			expect(broker.broadcastLocal).toHaveBeenCalledTimes(3);
 			expect(broker.broadcastLocal).toHaveBeenCalledWith("$broker.started");
+
+			expect(broker.metrics.set).toHaveBeenCalledTimes(1);
+			expect(broker.metrics.set).toHaveBeenCalledWith("moleculer.broker.started", 1);
+
 			expect(broker.transit.ready).toHaveBeenCalledTimes(1);
+
+			expect(broker.callMiddlewareHook).toHaveBeenCalledTimes(6);
+			expect(broker.callMiddlewareHook).toHaveBeenCalledWith("starting", [broker]);
+			expect(broker.callMiddlewareHook).toHaveBeenCalledWith("started", [broker]);
 		});
 	});
 
@@ -422,9 +467,11 @@ describe("Test broker.start", () => {
 			started: jest.fn(() => Promise.resolve())
 		};
 
+		const optStarted = jest.fn();
 		let broker = new ServiceBroker({
 			logger: false,
-			transporter: "Fake"
+			transporter: "Fake",
+			started: optStarted
 		});
 
 		broker.createService(schema);
@@ -432,16 +479,28 @@ describe("Test broker.start", () => {
 		broker.transit.connect = jest.fn(() => Promise.resolve());
 		broker.transit.ready = jest.fn(() => Promise.resolve());
 		broker.broadcastLocal = jest.fn();
+		broker.metrics.set = jest.fn();
+		broker.callMiddlewareHook = jest.fn();
 
 		beforeAll(() => broker.start());
 
 		it("should call started of services", () => {
+			expect(optStarted).toHaveBeenCalledTimes(1);
 			expect(schema.started).toHaveBeenCalledTimes(1);
 			expect(broker.transit.connect).toHaveBeenCalledTimes(1);
 			expect(broker.started).toBe(true);
+
 			expect(broker.broadcastLocal).toHaveBeenCalledTimes(3);
 			expect(broker.broadcastLocal).toHaveBeenCalledWith("$broker.started");
+
+			expect(broker.metrics.set).toHaveBeenCalledTimes(1);
+			expect(broker.metrics.set).toHaveBeenCalledWith("moleculer.broker.started", 1);
+
 			expect(broker.transit.ready).toHaveBeenCalledTimes(1);
+
+			expect(broker.callMiddlewareHook).toHaveBeenCalledTimes(6);
+			expect(broker.callMiddlewareHook).toHaveBeenCalledWith("starting", [broker]);
+			expect(broker.callMiddlewareHook).toHaveBeenCalledWith("started", [broker]);
 		});
 	});
 
@@ -451,10 +510,12 @@ describe("Test broker.start", () => {
 			started: jest.fn(() => Promise.reject("Can't start!"))
 		};
 
+		const optStarted = jest.fn();
 		let broker = new ServiceBroker({
 			logger: false,
 			transporter: "Fake",
-			internalServices: false
+			internalServices: false,
+			started: optStarted
 		});
 
 		broker.createService(schema);
@@ -462,17 +523,26 @@ describe("Test broker.start", () => {
 		broker.transit.connect = jest.fn(() => Promise.resolve());
 		broker.transit.ready = jest.fn(() => Promise.resolve());
 		broker.localBus.emit = jest.fn();
+		broker.metrics.set = jest.fn();
+		broker.callMiddlewareHook = jest.fn();
 
 		it("should reject", () => {
 			return expect(broker.start()).rejects.toBeDefined();
 		});
 
-		it("should call started of services", () => {
+		it("should not call others", () => {
+			expect(optStarted).toHaveBeenCalledTimes(0);
 			expect(broker.transit.connect).toHaveBeenCalledTimes(1);
 			expect(schema.started).toHaveBeenCalledTimes(1);
 			expect(broker.started).toBe(false);
 			expect(broker.localBus.emit).toHaveBeenCalledTimes(0);
+
+			expect(broker.metrics.set).toHaveBeenCalledTimes(0);
+
 			expect(broker.transit.ready).toHaveBeenCalledTimes(0);
+
+			expect(broker.callMiddlewareHook).toHaveBeenCalledTimes(2);
+			expect(broker.callMiddlewareHook).toHaveBeenCalledWith("starting", [broker]);
 		});
 	});
 
@@ -481,42 +551,57 @@ describe("Test broker.start", () => {
 describe("Test broker.stop", () => {
 
 	describe("if stopped success", () => {
-		let broker;
-
 		let schema = {
 			name: "test",
 			stopped: jest.fn()
 		};
 
-		beforeAll(() => {
-			broker = new ServiceBroker({
-				logger: false,
-				transporter: "Fake"
-			});
+		const optStopped = jest.fn();
 
-			broker.createService(schema);
-
-			broker.transit.connect = jest.fn(() => Promise.resolve());
-			broker.transit.disconnect = jest.fn(() => Promise.resolve());
-			broker.broadcastLocal = jest.fn();
-
-			broker.cacher = {
-				close: jest.fn(() => Promise.resolve())
-			};
-
-			return broker.start();
+		let broker = new ServiceBroker({
+			logger: false,
+			transporter: "Fake",
+			stopped: optStopped
 		});
+
+		broker.createService(schema);
+
+		broker.transit.connect = jest.fn(() => Promise.resolve());
+		broker.transit.disconnect = jest.fn(() => Promise.resolve());
+		broker.callMiddlewareHook = jest.fn();
+		broker.broadcastLocal = jest.fn();
+		broker.metrics.set = jest.fn();
+		broker.metrics.stop = jest.fn();
+
+		broker.cacher = {
+			close: jest.fn(() => Promise.resolve())
+		};
+
+		beforeAll(() => broker.start());
 
 		it("should call stopped of services", () => {
 			broker.broadcastLocal.mockClear();
+			broker.metrics.set.mockClear();
+			broker.callMiddlewareHook.mockClear();
+
 			return broker.stop().then(() => {
+				expect(optStopped).toHaveBeenCalledTimes(1);
 				expect(schema.stopped).toHaveBeenCalledTimes(1);
 				expect(broker.transit.disconnect).toHaveBeenCalledTimes(1);
 				expect(broker.cacher.close).toHaveBeenCalledTimes(1);
+				expect(broker.metrics.stop).toHaveBeenCalledTimes(1);
+
+				expect(broker.callMiddlewareHook).toHaveBeenCalledTimes(6);
+				expect(broker.callMiddlewareHook).toHaveBeenCalledWith("stopping", [broker], { reverse: true });
+				expect(broker.callMiddlewareHook).toHaveBeenCalledWith("stopped", [broker], { reverse: true });
 
 				expect(broker.started).toBe(false);
+
 				expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 				expect(broker.broadcastLocal).toHaveBeenCalledWith("$broker.stopped");
+
+				expect(broker.metrics.set).toHaveBeenCalledTimes(1);
+				expect(broker.metrics.set).toHaveBeenCalledWith("moleculer.broker.started", 0);
 			});
 		});
 
@@ -530,17 +615,22 @@ describe("Test broker.stop", () => {
 			stopped: jest.fn(() => Promise.resolve())
 		};
 
+		const optStopped = jest.fn(() => Promise.resolve());
 		broker = new ServiceBroker({
 			logger: false,
 			metrics: true,
-			transporter: "Fake"
+			transporter: "Fake",
+			stopped: optStopped
 		});
 
 		broker.createService(schema);
 
 		broker.transit.connect = jest.fn(() => Promise.resolve());
 		broker.transit.disconnect = jest.fn(() => Promise.resolve());
+		broker.callMiddlewareHook = jest.fn();
 		broker.broadcastLocal = jest.fn();
+		broker.metrics.stop = jest.fn();
+		broker.metrics.set = jest.fn();
 
 		broker.cacher = {
 			close: jest.fn(() => Promise.resolve())
@@ -550,14 +640,27 @@ describe("Test broker.stop", () => {
 
 		it("should call stopped of services", () => {
 			broker.broadcastLocal.mockClear();
+			broker.metrics.set.mockClear();
+			broker.callMiddlewareHook.mockClear();
+
 			return broker.stop().then(() => {
+				expect(optStopped).toHaveBeenCalledTimes(1);
 				expect(schema.stopped).toHaveBeenCalledTimes(1);
 				expect(broker.transit.disconnect).toHaveBeenCalledTimes(1);
 				expect(broker.cacher.close).toHaveBeenCalledTimes(1);
+				expect(broker.metrics.stop).toHaveBeenCalledTimes(1);
+
+				expect(broker.callMiddlewareHook).toHaveBeenCalledTimes(6);
+				expect(broker.callMiddlewareHook).toHaveBeenCalledWith("stopping", [broker], { reverse: true });
+				expect(broker.callMiddlewareHook).toHaveBeenCalledWith("stopped", [broker], { reverse: true });
 
 				expect(broker.started).toBe(false);
+
 				expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 				expect(broker.broadcastLocal).toHaveBeenCalledWith("$broker.stopped");
+
+				expect(broker.metrics.set).toHaveBeenCalledTimes(1);
+				expect(broker.metrics.set).toHaveBeenCalledWith("moleculer.broker.started", 0);
 			});
 		});
 	});
@@ -570,10 +673,12 @@ describe("Test broker.stop", () => {
 			stopped: jest.fn(() => Promise.reject("Can't stop!"))
 		};
 
+		const optStopped = jest.fn();
 		broker = new ServiceBroker({
 			logger: false,
 			metrics: true,
-			transporter: "Fake"
+			transporter: "Fake",
+			stopped: optStopped
 		});
 
 		broker.createService(schema);
@@ -581,6 +686,9 @@ describe("Test broker.stop", () => {
 		broker.transit.connect = jest.fn(() => Promise.resolve());
 		broker.transit.disconnect = jest.fn(() => Promise.resolve());
 		broker.broadcastLocal = jest.fn();
+		broker.metrics.stop = jest.fn();
+		broker.metrics.set = jest.fn();
+		broker.callMiddlewareHook = jest.fn();
 
 		broker.cacher = {
 			close: jest.fn(() => Promise.resolve())
@@ -590,14 +698,26 @@ describe("Test broker.stop", () => {
 
 		it("should call stopped of services", () => {
 			broker.broadcastLocal.mockClear();
+			broker.callMiddlewareHook.mockClear();
+			broker.metrics.set.mockClear();
 			return broker.stop().then(() => {
+				expect(optStopped).toHaveBeenCalledTimes(1);
 				expect(schema.stopped).toHaveBeenCalledTimes(1);
 				expect(broker.transit.disconnect).toHaveBeenCalledTimes(1);
 				expect(broker.cacher.close).toHaveBeenCalledTimes(1);
+				expect(broker.metrics.stop).toHaveBeenCalledTimes(1);
+
+				expect(broker.callMiddlewareHook).toHaveBeenCalledTimes(5);
+				expect(broker.callMiddlewareHook).toHaveBeenCalledWith("stopping", [broker], { reverse: true });
+				expect(broker.callMiddlewareHook).toHaveBeenCalledWith("stopped", [broker], { reverse: true });
 
 				expect(broker.started).toBe(false);
+
 				expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 				expect(broker.broadcastLocal).toHaveBeenCalledWith("$broker.stopped");
+
+				expect(broker.metrics.set).toHaveBeenCalledTimes(1);
+				expect(broker.metrics.set).toHaveBeenCalledWith("moleculer.broker.started", 0);
 			});
 		});
 	});

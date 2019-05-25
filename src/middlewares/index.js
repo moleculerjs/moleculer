@@ -8,15 +8,15 @@
 
 const Middlewares = {
 	ActionHook: require("./action-hook"),
-	CircuitBreaker: require("./circuit-breaker"),
-	Metrics: require("./metrics"),
-	Tracing: require("./tracing"),
-	Retry: require("./retry"),
-	Timeout: require("./timeout"),
-	ContextTracker: require("./context-tracker"),
 	Bulkhead: require("./bulkhead"),
+	ContextTracker: require("./context-tracker"),
+	CircuitBreaker: require("./circuit-breaker"),
+	Timeout: require("./timeout"),
+	Retry: require("./retry"),
 	Fallback: require("./fallback"),
 	ErrorHandler: require("./error-handler"),
+	Metrics: require("./metrics"),
+	Tracing: require("./tracing"),
 
 	HotReload: require("./hot-reload"),
 

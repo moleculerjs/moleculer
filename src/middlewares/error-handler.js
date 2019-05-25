@@ -42,6 +42,8 @@ function wrapErrorHandler(handler) {
 
 module.exports = function() {
 	return {
+		name: "ErrorHandler",
+
 		localAction: wrapErrorHandler,
 		remoteAction: wrapErrorHandler
 	};

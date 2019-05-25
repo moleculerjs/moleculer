@@ -52,6 +52,7 @@ module.exports = function ActionLoggerMiddleware(opts) {
 	let logFn;
 
 	return {
+		name: "ActionLogger",
 		created(broker) {
 			logger = opts.logger || broker.getLogger("debug");
 			nodeID = broker.nodeID;

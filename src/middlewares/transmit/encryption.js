@@ -23,8 +23,9 @@ module.exports = function EncryptionMiddleware(password, algorithm = "aes-256-cb
 	}
 
 	return {
+		name: "Encryption",
 
-		created(broker) {
+		created() {
 			/* istanbul ignore next */
 			this.logger.info(`The transmission is ENCRYPTED by '${algorithm}'.`);
 		},

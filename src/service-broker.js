@@ -24,7 +24,6 @@ const AsyncStorage 			= require("./async-storage");
 const Cachers 				= require("./cachers");
 const Transporters 			= require("./transporters");
 const Serializers 			= require("./serializers");
-const Middlewares			= require("./middlewares");
 const H 					= require("./health");
 const MiddlewareHandler		= require("./middleware");
 const cpuUsage 				= require("./cpu-usage");
@@ -99,8 +98,7 @@ const defaultOptions = {
 	cacher: null,
 	serializer: null,
 
-	validation: true,
-	validator: null,
+	validator: true,
 
 	metrics: false,
 	tracing: false,
@@ -141,7 +139,7 @@ class ServiceBroker {
 		try {
 			this.options = _.defaultsDeep(options, defaultOptions);
 
-			// Promise class
+			// Promise class (TODO: work-in-progress)
 			if (this.options.Promise) {
 				this.Promise = this.options.Promise;
 				utils.polyfillPromise(this.Promise);
@@ -217,9 +215,9 @@ class ServiceBroker {
 			const serializerName = this.getConstructorName(this.serializer);
 			this.logger.info(`Serializer: ${serializerName}`);
 
-			// Validation
-			if (this.options.validation !== false) {
-				this.validator = this.options.validator ? this.options.validator : new Validator();
+			// Validator
+			if (this.options.validator) {
+				this.validator = this.options.validator === true ? new Validator() : this.options.validator;
 				if (this.validator) {
 					this.validator.init(this);
 				}
@@ -250,6 +248,7 @@ class ServiceBroker {
 				}
 			}
 
+			// Change the call method if balancer is disabled
 			if (this.options.disableBalancer) {
 				this.call = this.callWithoutBalancer;
 			}
@@ -258,9 +257,10 @@ class ServiceBroker {
 			if (this.options.internalServices)
 				this.registerInternalServices(this.options.internalServices);
 
+			// Call `created` event handler in middlewares
 			this.callMiddlewareHookSync("created", [this]);
 
-			// Call `created` event handler
+			// Call `created` event handler from options
 			if (_.isFunction(this.options.created))
 				this.options.created(this);
 
@@ -309,52 +309,56 @@ class ServiceBroker {
 			const prevCount = this.middlewares.count();
 
 			// 0. ActionHook
-			this.middlewares.add(Middlewares.ActionHook);
+			this.middlewares.add("ActionHook");
 
 			// 1. Validator
 			if (this.validator && _.isFunction(this.validator.middleware)) {
-				this.middlewares.add({
-					localAction: this.validator.middleware()
-				});
+				const mw = this.validator.middleware();
+				if (_.isPlainObject(mw))
+					this.middlewares.add(mw);
+				else
+					this.middlewares.add({ localAction: mw });
 			}
 
 			// 2. Bulkhead
-			this.middlewares.add(Middlewares.Bulkhead);
+			this.middlewares.add("Bulkhead");
 
 			// 3. Cacher
 			if (this.cacher && _.isFunction(this.cacher.middleware)) {
-				this.middlewares.add({
-					localAction: this.cacher.middleware()
-				});
+				const mw = this.cacher.middleware();
+				if (_.isPlainObject(mw))
+					this.middlewares.add(mw);
+				else
+					this.middlewares.add({ localAction: mw });
 			}
 
 			// 4. Context tracker
-			this.middlewares.add(Middlewares.ContextTracker);
+			this.middlewares.add("ContextTracker");
 
 			// 5. CircuitBreaker
-			this.middlewares.add(Middlewares.CircuitBreaker);
+			this.middlewares.add("CircuitBreaker");
 
 			// 6. Timeout
-			this.middlewares.add(Middlewares.Timeout);
+			this.middlewares.add("Timeout");
 
 			// 7. Retry
-			this.middlewares.add(Middlewares.Retry);
+			this.middlewares.add("Retry");
 
 			// 8. Fallback
-			this.middlewares.add(Middlewares.Fallback);
+			this.middlewares.add("Fallback");
 
 			// 9. Error handler
-			this.middlewares.add(Middlewares.ErrorHandler);
+			this.middlewares.add("ErrorHandler");
 
 			// 10. Tracing
-			this.middlewares.add(Middlewares.Tracing);
+			this.middlewares.add("Tracing");
 
 			// 11. Metrics
-			this.middlewares.add(Middlewares.Metrics);
+			this.middlewares.add("Metrics");
 
 			if (this.options.hotReload) {
 				// 12. Hot Reload
-				this.middlewares.add(Middlewares.HotReload);
+				this.middlewares.add("HotReload");
 			}
 
 			this.logger.info(`Registered ${this.middlewares.count() - prevCount} internal middleware(s).`);
@@ -364,6 +368,7 @@ class ServiceBroker {
 		this.registerLocalService = this.wrapMethod("registerLocalService", this.registerLocalService);
 		this.destroyService = this.wrapMethod("destroyService", this.destroyService);
 		this.call = this.wrapMethod("call", this.call);
+		this.callWithoutBalancer = this.wrapMethod("call", this.callWithoutBalancer);
 		this.mcall = this.wrapMethod("mcall", this.mcall);
 		this.emit = this.wrapMethod("emit", this.emit);
 		this.broadcast = this.wrapMethod("broadcast", this.broadcast);
@@ -408,12 +413,12 @@ class ServiceBroker {
 			})
 			.then(() => {
 				// Call service `started` handlers
-				return Promise.all(this.services.map(svc => svc._start.call(svc)));
-			})
-			.catch(err => {
-				/* istanbul ignore next */
-				this.logger.error("Unable to start all services.", err);
-				return Promise.reject(err);
+				return Promise.all(this.services.map(svc => svc._start.call(svc)))
+					.catch(err => {
+						/* istanbul ignore next */
+						this.logger.error("Unable to start all services.", err);
+						return Promise.reject(err);
+					});
 			})
 			.then(() => {
 				this.logger.info(`✔ ServiceBroker with ${this.services.length} service(s) is started successfully.`);
@@ -455,11 +460,11 @@ class ServiceBroker {
 			})
 			.then(() => {
 				// Call service `stopped` handlers
-				return Promise.all(this.services.map(svc => svc._stop.call(svc)));
-			})
-			.catch(err => {
-				/* istanbul ignore next */
-				this.logger.error("Unable to stop all services.", err);
+				return Promise.all(this.services.map(svc => svc._stop.call(svc)))
+					.catch(err => {
+						/* istanbul ignore next */
+						this.logger.error("Unable to stop all services.", err);
+					});
 			})
 			.then(() => {
 				if (this.transit) {

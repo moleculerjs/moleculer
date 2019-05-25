@@ -250,6 +250,8 @@ module.exports = function circuitBreakerMiddleware(broker) {
 
 
 	return {
+		name: "CircuitBreaker",
+
 		created(broker) {
 			logger = broker.getLogger("circuit-breaker");
 

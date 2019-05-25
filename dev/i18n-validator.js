@@ -48,7 +48,6 @@ class I18NValidator extends BaseValidator {
 
 let broker = new ServiceBroker({
 	logger: true,
-	validation: true,
 	validator: new I18NValidator({
 		"en": {
 			"string": "The '{field}' field must be a string!"

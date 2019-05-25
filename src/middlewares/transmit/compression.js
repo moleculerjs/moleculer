@@ -43,6 +43,7 @@ module.exports = function CompressionMiddleware(opts) {
 	let savingReceived = 0;
 
 	return {
+		name: "Compression",
 
 		created() {
 			/* istanbul ignore next */

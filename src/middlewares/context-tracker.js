@@ -96,6 +96,8 @@ function waitingForActiveContexts(list, logger, time, service) {
 
 module.exports = function ContextTrackerMiddleware() {
 	return {
+		name: "ContextTracker",
+
 		localAction: wrapTrackerMiddleware,
 		remoteAction: wrapTrackerMiddleware,
 

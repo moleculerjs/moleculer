@@ -122,6 +122,7 @@ module.exports = function actionHookMiddleware(broker) {
 	}
 
 	return {
+		name: "ActionHook",
 		localAction: wrapActionHookMiddleware
 	};
 };

@@ -213,6 +213,8 @@ module.exports = function HotReloadMiddleware(broker) {
 	 * Expose middleware
 	 */
 	return {
+		name: "HotReload",
+
 		// After broker started
 		started(broker) {
 			if (broker.options.hotReload) {

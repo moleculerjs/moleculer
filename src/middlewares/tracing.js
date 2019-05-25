@@ -166,6 +166,8 @@ module.exports = function TracingMiddleware(broker) {
 	tracer = broker.tracer;
 
 	return {
+		name: "Tracing",
+
 		localAction: broker.isTracingEnabled() && tracer.opts.actions ? tracingLocalActionMiddleware : null,
 		localEvent: broker.isTracingEnabled() && tracer.opts.events ? tracingLocalEventMiddleware : null,
 		//remoteAction: wrapRemoteTracingMiddleware

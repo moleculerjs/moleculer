@@ -79,6 +79,8 @@ module.exports = function bulkheadMiddleware(broker) {
 	}
 
 	return {
+		name: "Bulkhead",
+
 		created(broker) {
 			if (broker.isMetricsEnabled()) {
 				broker.metrics.register({ name: METRIC.MOLECULER_REQUEST_BULKHEAD_INFLIGHT, type: METRIC.TYPE_GAUGE, labelNames: ["action"] });

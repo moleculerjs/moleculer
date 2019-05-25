@@ -45,6 +45,7 @@ module.exports = function TransitLoggerMiddleware(opts) {
 	let logFn;
 
 	return {
+		name: "TransitLogger",
 		created(broker) {
 			logger = opts.logger || broker.getLogger("debug");
 			nodeID = broker.nodeID;
