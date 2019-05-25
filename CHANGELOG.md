@@ -3,7 +3,6 @@
 # [0.14.0](https://github.com/moleculerjs/moleculer/compare/v0.13.9...v0.14.0) (2019-xx-xx)
 
 ## TODO
-- `ctx` access in Strategies `next` method (Kafka-like sharding strategy).
 - ~~subscribe/unsubscribe event from codes and REPL.~~
 - caching with tags/labels
 - test cover new features
@@ -11,7 +10,64 @@
 ## Done
 - communication protocol changed (`3` -> `4`)
 - handling conflict nodeIDs
+- `ctx` access in Strategies `next` method (Kafka-like sharding strategy).
 - The `broker.use` deprecated method is removed. Use `middlewares: []` in the broker options instead.
+- hooks inside action definitions, as well.
+    ```js
+    broker.createService({
+        name: "greeter",
+        hooks: {
+            before: {
+                "*"(ctx) {
+                    broker.logger.info(chalk.cyan("Before all hook"));
+                },
+                hello(ctx) {
+                    broker.logger.info(chalk.magenta("  Before hook"));
+                }
+            },
+            after: {
+                "*"(ctx, res) {
+                    broker.logger.info(chalk.cyan("After all hook"));
+                    return res;
+                },
+                hello(ctx, res) {
+                    broker.logger.info(chalk.magenta("  After hook"));
+                    return res;
+                }
+            },
+        },
+
+        actions: {
+            hello: {
+                hooks: {
+                    before(ctx) {
+                        broker.logger.info(chalk.yellow.bold("    Before action hook"));
+                    },
+                    after(ctx, res) {
+                        broker.logger.info(chalk.yellow.bold("    After action hook"));
+                        return res;
+                    }
+                },
+
+                handler(ctx) {
+                    broker.logger.info(chalk.green.bold("      Action handler"));
+                    return `Hello ${ctx.params.name}`;
+                }
+            }
+        }
+    });    
+    ```
+
+    **Output**
+    ```
+    INFO  - Before all hook
+    INFO  -   Before hook
+    INFO  -     Before action hook
+    INFO  -       Action handler
+    INFO  -     After action hook
+    INFO  -   After hook
+    INFO  - After all hook
+    ```
 - broker `metadata` option. It's transfered to other nodes.
 - new middleware hooks (`registerLocalService`, `serviceCreating`, `transitPublish`, `transitSubscribe`, `transitMessageHandler`, `transporterSend`, `transporterReceive`) [#436](https://github.com/moleculerjs/moleculer/issues/436)
 - enhanced hot-reload middleware [#408](https://github.com/moleculerjs/moleculer/issues/408)
