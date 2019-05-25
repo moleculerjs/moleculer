@@ -129,7 +129,7 @@
     - if the error handled, not printed to the console or throw further.
     
 ## Other notable changes
--
+- `broker.hotReloadService` has been removed.
 -
 
 --------------------------------------------------

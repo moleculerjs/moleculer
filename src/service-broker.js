@@ -558,7 +558,7 @@ class ServiceBroker {
 	 *
 	 * @memberof ServiceBroker
 	 */
-	wrapMethod(name, handler, bindTo = this.broker, opts = {}) {
+	wrapMethod(name, handler, bindTo, opts) {
 		return this.middlewares.wrapMethod(name, handler, bindTo, opts);
 	}
 
@@ -572,7 +572,7 @@ class ServiceBroker {
 	 *
 	 * @memberof ServiceBroker
 	 */
-	callMiddlewareHook(name, args, opts = {}) {
+	callMiddlewareHook(name, args, opts) {
 		return this.middlewares.callHandlers(name, args, opts);
 	}
 
@@ -586,8 +586,28 @@ class ServiceBroker {
 	 *
 	 * @memberof ServiceBroker
 	 */
-	callMiddlewareHookSync(name, args, opts = {}) {
+	callMiddlewareHookSync(name, args, opts) {
 		return this.middlewares.callSyncHandlers(name, args, opts);
+	}
+
+	/**
+	 * Check metrics are enabled.
+	 *
+	 * @returns {boolean}
+	 * @memberof ServiceBroker
+	 */
+	isMetricsEnabled() {
+		return this.metrics.isEnabled();
+	}
+
+	/**
+	 * Check tracing is enabled.
+	 *
+	 * @returns {boolean}
+	 * @memberof ServiceBroker
+	 */
+	isTracingEnabled() {
+		return this.tracer.isEnabled();
 	}
 
 	/**
@@ -623,26 +643,6 @@ class ServiceBroker {
 
 		// Create console logger
 		return Logger.createDefaultLogger(console, bindings, this.options.logLevel || "info", this.options.logFormatter, this.options.logObjectPrinter);
-	}
-
-	/**
-	 * Check metrics are enabled.
-	 *
-	 * @returns {boolean}
-	 * @memberof ServiceBroker
-	 */
-	isMetricsEnabled() {
-		return this.metrics.isEnabled();
-	}
-
-	/**
-	 * Check tracing is enabled.
-	 *
-	 * @returns {boolean}
-	 * @memberof ServiceBroker
-	 */
-	isTracingEnabled() {
-		return this.tracer.isEnabled();
 	}
 
 	/**
@@ -745,25 +745,6 @@ class ServiceBroker {
 	}
 
 	/**
-	 * Hot reload a service
-	 *
-	 * @param {Service} service
-	 * @returns {Service} Reloaded service instance
-	 *
-	 * @memberof ServiceBroker
-	 */
-	hotReloadService(service) {
-		const relPath = path.relative(process.cwd(), service.__filename);
-
-		this.logger.info(`Hot reload '${service.name}' service...`, chalk.grey(relPath));
-
-		utils.clearRequireCache(service.__filename);
-
-		return this.destroyService(service)
-			.then(() => this.loadService(service.__filename));
-	}
-
-	/**
 	 * Create a new service by schema
 	 *
 	 * @param {any} schema	Schema of service or a Service class
@@ -786,7 +767,7 @@ class ServiceBroker {
 			service = new this.ServiceFactory(this, s);
 		}
 
-		// If broker is started, call the started lifecycle event of service
+		// If broker has started yet, call the started lifecycle event of service
 		if (this.started)
 			this._restartService(service);
 
@@ -847,6 +828,8 @@ class ServiceBroker {
 				this.logger.info(`Service '${service.name}' is stopped.`);
 				this.servicesChanged(true);
 
+				this.metrics.set(METRIC.MOLECULER_BROKER_LOCAL_SERVICES_TOTAL, this.services.length);
+
 				return Promise.resolve();
 			});
 	}
@@ -881,7 +864,7 @@ class ServiceBroker {
 	 * Get a local service by name
 	 *
 	 * @param {String} name
-	 * @param {String|Number} version
+	 * @param {String|Number?} version
 	 * @returns {Service}
 	 *
 	 * @memberof ServiceBroker
@@ -1018,7 +1001,7 @@ class ServiceBroker {
 		let ctx;
 		if (opts.ctx != null) {
 
-			const endpoint = this.findNextActionEndpoint(actionName, opts, ctx);
+			const endpoint = this.findNextActionEndpoint(actionName, opts, opts.ctx);
 			if (endpoint instanceof Error) {
 				return Promise.reject(endpoint).catch(err => this.errorHandler(err, { actionName, params, opts }));
 			}
@@ -1130,7 +1113,7 @@ class ServiceBroker {
 		return p;
 	}
 
-	_getLocalActionEndpoint(actionName) {
+	_getLocalActionEndpoint(actionName, ctx) {
 		// Find action by name
 		let epList = this.registry.getActionEndpoints(actionName);
 		if (epList == null || !epList.hasLocal()) {
@@ -1139,7 +1122,7 @@ class ServiceBroker {
 		}
 
 		// Get local endpoint
-		let endpoint = epList.nextLocal();
+		let endpoint = epList.nextLocal(ctx);
 		if (!endpoint) {
 			this.logger.warn(`Service '${actionName}' is not available locally.`);
 			throw new E.ServiceNotAvailableError({ action: actionName, nodeID: this.nodeID });
