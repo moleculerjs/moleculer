@@ -52,6 +52,7 @@ describe("Test MiddlewareHandler", () => {
 			middlewares.add("Timeout");
 			expect(middlewares.count()).toBe(3);
 			expect(middlewares.list[2]).toEqual({
+				name: "Timeout",
 				created: expect.any(Function),
 				localAction: expect.any(Function),
 				remoteAction: expect.any(Function),

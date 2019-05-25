@@ -5,6 +5,11 @@ const Context = require("../../src/context");
 const ServiceBroker = require("../../src/service-broker");
 const { protectReject } = require("./utils");
 
+/**
+ * TODO:
+ * 	Should rewrite some tests because many test integration test instead of unit test.
+ */
+
 describe("Test Service constructor", () => {
 
 	let broker = new ServiceBroker({ logger: false });
@@ -17,6 +22,8 @@ describe("Test Service constructor", () => {
 			cache: true
 		}
 	};
+
+	broker.callMiddlewareHookSync = jest.fn();
 
 	it("should throw exceptions if missing main properties", () => {
 		expect(() => {
@@ -34,7 +41,9 @@ describe("Test Service constructor", () => {
 	});
 
 	it("check local properties", () => {
+		broker.callMiddlewareHookSync.mockClear();
 		broker.getLogger = jest.fn(() => ({}));
+
 		let service = new Service(broker, schema);
 		expect(service.name).toBe("users");
 		expect(service.version).toBe(2);
@@ -43,6 +52,7 @@ describe("Test Service constructor", () => {
 		expect(service.metadata).toEqual({});
 		expect(service.schema).toBe(schema);
 		expect(service.broker).toBe(broker);
+		expect(service.Promise).toBe(broker.Promise);
 
 		expect(service.logger).toBeDefined();
 		expect(service.actions).toEqual({});
@@ -52,6 +62,10 @@ describe("Test Service constructor", () => {
 			svc: "users",
 			ver: 2
 		});
+
+		expect(broker.callMiddlewareHookSync).toHaveBeenCalledTimes(2);
+		expect(broker.callMiddlewareHookSync).toHaveBeenNthCalledWith(1, "serviceCreating", [service, schema]);
+		expect(broker.callMiddlewareHookSync).toHaveBeenNthCalledWith(2, "serviceCreated", [service]);
 	});
 
 	it("check local properties with metadata", () => {
@@ -128,6 +142,7 @@ describe("Test Service constructor", () => {
 
 describe("Test action creation", () => {
 	let broker = new ServiceBroker({ logger: false, internalServices: false });
+	broker.callMiddlewareHook = jest.fn();
 
 	let schema = {
 		name: "posts",
@@ -146,7 +161,6 @@ describe("Test action creation", () => {
 
 	it("should register service & actions", () => {
 		broker.addLocalService = jest.fn();
-		broker.registerLocalService = jest.fn();
 
 		const ep = {};
 		broker.registry.createPrivateActionEndpoint = jest.fn(() => ep);
@@ -163,9 +177,6 @@ describe("Test action creation", () => {
 		return service._start()
 			.catch(protectReject)
 			.then(() => {
-				expect(broker.registerLocalService).toHaveBeenCalledTimes(1);
-				expect(broker.registerLocalService.mock.calls[0][0]).toBe(service._serviceSpecification);
-
 				const spec = service._serviceSpecification;
 				expect(spec).toEqual({
 					name: "posts",
@@ -209,6 +220,129 @@ describe("Test action creation", () => {
 				}
 			});
 		}).toThrowError("Invalid action definition in 'hello' action in 'test' service!");
+	});
+
+});
+
+describe("Test service start", () => {
+
+	it("should start service with simple handler", () => {
+		let broker = new ServiceBroker({ logger: false, internalServices: false });
+		broker.callMiddlewareHook = jest.fn();
+		broker.registerLocalService = jest.fn();
+
+		let schema = {
+			name: "posts",
+			started: jest.fn()
+		};
+
+		let service = broker.createService(schema);
+
+		return service._start()
+			.catch(protectReject)
+			.then(() => {
+				expect(schema.started).toHaveBeenCalledTimes(1);
+
+				expect(broker.callMiddlewareHook).toHaveBeenCalledTimes(2);
+				expect(broker.callMiddlewareHook).toHaveBeenNthCalledWith(1, "serviceStarting", [service]);
+				expect(broker.callMiddlewareHook).toHaveBeenNthCalledWith(2, "serviceStarted", [service]);
+
+				expect(broker.registerLocalService).toHaveBeenCalledTimes(1);
+				expect(broker.registerLocalService.mock.calls[0][0]).toBe(service._serviceSpecification);
+
+			});
+	});
+
+	it("should start service with multiple handler", () => {
+		let broker = new ServiceBroker({ logger: false, internalServices: false });
+		broker.callMiddlewareHook = jest.fn();
+		broker.registerLocalService = jest.fn();
+
+		let schema = {
+			name: "posts",
+			started: [jest.fn(), jest.fn()]
+		};
+
+		let service = broker.createService(schema);
+
+		return service._start()
+			.catch(protectReject)
+			.then(() => {
+				expect(schema.started[0]).toHaveBeenCalledTimes(1);
+				expect(schema.started[1]).toHaveBeenCalledTimes(1);
+
+				expect(broker.callMiddlewareHook).toHaveBeenCalledTimes(2);
+				expect(broker.callMiddlewareHook).toHaveBeenNthCalledWith(1, "serviceStarting", [service]);
+				expect(broker.callMiddlewareHook).toHaveBeenNthCalledWith(2, "serviceStarted", [service]);
+
+				expect(broker.registerLocalService).toHaveBeenCalledTimes(1);
+				expect(broker.registerLocalService.mock.calls[0][0]).toBe(service._serviceSpecification);
+
+			});
+
+	});
+});
+
+describe("Test service stop", () => {
+
+	it("should stop service with simple handler", () => {
+		let broker = new ServiceBroker({ logger: false, internalServices: false });
+		broker.callMiddlewareHook = jest.fn();
+
+		let schema = {
+			name: "posts",
+			stopped: jest.fn()
+		};
+
+		let service = broker.createService(schema);
+
+		return service._start()
+			.catch(protectReject)
+			.then(() => {
+				broker.callMiddlewareHook.mockClear();
+
+				return service._stop()
+					.catch(protectReject)
+					.then(() => {
+						expect(schema.stopped).toHaveBeenCalledTimes(1);
+
+						expect(broker.callMiddlewareHook).toHaveBeenCalledTimes(2);
+						expect(broker.callMiddlewareHook).toHaveBeenNthCalledWith(1, "serviceStopping", [service], { reverse: true });
+						expect(broker.callMiddlewareHook).toHaveBeenNthCalledWith(2, "serviceStopped", [service], { reverse: true });
+
+					});
+			});
+	});
+
+	it("should stop service with multiple handler", () => {
+		let broker = new ServiceBroker({ logger: false, internalServices: false });
+		broker.callMiddlewareHook = jest.fn();
+
+		let schema = {
+			name: "posts",
+			stopped: [jest.fn(), jest.fn()]
+		};
+
+		let service = broker.createService(schema);
+
+		return service._start()
+			.catch(protectReject)
+			.then(() => {
+				broker.callMiddlewareHook.mockClear();
+
+				return service._stop()
+					.catch(protectReject)
+					.then(() => {
+						expect(schema.stopped[0]).toHaveBeenCalledTimes(1);
+						expect(schema.stopped[1]).toHaveBeenCalledTimes(1);
+
+						expect(broker.callMiddlewareHook).toHaveBeenCalledTimes(2);
+						expect(broker.callMiddlewareHook).toHaveBeenNthCalledWith(1, "serviceStopping", [service], { reverse: true });
+						expect(broker.callMiddlewareHook).toHaveBeenNthCalledWith(2, "serviceStopped", [service], { reverse: true });
+
+					});
+			});
+
 	});
 });
 
@@ -1203,5 +1337,35 @@ describe("Test $secureSettings", () => {
 			const list = broker.registry.services.list({ onlyLocal: true, skipInternal: true });
 			expect(list[0].settings).toEqual({});
 		});
+	});
+});
+
+describe("Test currentContext", () => {
+
+	it("should call broker methods", () => {
+		const broker = new ServiceBroker({ logger: false, internalServices: false });
+		const ctx = new Context(broker);
+		broker.getCurrentContext = jest.fn(() => ctx);
+		broker.setCurrentContext = jest.fn();
+
+		const schema = {
+			name: "posts"
+		};
+
+		const service = broker.createService(schema);
+
+		return service._start()
+			.catch(protectReject)
+			.then(() => {
+				service.currentContext = ctx;
+
+				expect(broker.setCurrentContext).toHaveBeenCalledTimes(1);
+				expect(broker.setCurrentContext).toHaveBeenCalledWith(ctx);
+
+				let res = service.currentContext;
+				expect(res).toBe(ctx);
+				expect(broker.getCurrentContext).toHaveBeenCalledTimes(1);
+				expect(broker.getCurrentContext).toHaveBeenCalledWith();
+			});
 	});
 });
