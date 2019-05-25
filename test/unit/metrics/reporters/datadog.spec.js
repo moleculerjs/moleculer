@@ -15,6 +15,7 @@ describe("Test Datadog Reporter class", () => {
 	describe("Test Constructor", () => {
 
 		it("should create with default options", () => {
+			process.env.DATADOG_API_KEY = "datadog-api-key";
 			const reporter = new DatadogReporter();
 
 			expect(reporter.opts).toEqual({
@@ -27,7 +28,7 @@ describe("Test Datadog Reporter class", () => {
 				metricNameFormatter: null,
 				labelNameFormatter: null,
 
-				apiKey: expect.any(String),
+				apiKey: "datadog-api-key",
 				path: "/series",
 				apiVersion: "v1",
 				defaultLabels: expect.any(Function),
@@ -84,7 +85,7 @@ describe("Test Datadog Reporter class", () => {
 				namespace: "test-ns"
 			};
 			const fakeRegistry = { broker: fakeBroker };
-			const reporter = new DatadogReporter({ interval: 5, apiKey: "12345" });
+			const reporter = new DatadogReporter({ interval: 5 });
 			reporter.flush = jest.fn();
 			reporter.init(fakeRegistry);
 
@@ -102,7 +103,7 @@ describe("Test Datadog Reporter class", () => {
 				namespace: "test-ns"
 			};
 			const fakeRegistry = { broker: fakeBroker };
-			const reporter = new DatadogReporter({ apiKey: "12345" });
+			const reporter = new DatadogReporter({});
 			reporter.init(fakeRegistry);
 
 			expect(reporter.defaultLabels).toStrictEqual({
@@ -115,7 +116,6 @@ describe("Test Datadog Reporter class", () => {
 			const fakeBroker = {};
 			const fakeRegistry = { broker: fakeBroker };
 			const reporter = new DatadogReporter({
-				apiKey: "12345",
 				defaultLabels: {
 					a: 5,
 					b: "John"
@@ -139,7 +139,7 @@ describe("Test Datadog Reporter class", () => {
 				namespace: "test-ns"
 			};
 			const fakeRegistry = { broker: fakeBroker };
-			const reporter = new DatadogReporter({ apiKey: "12345" });
+			const reporter = new DatadogReporter({});
 			reporter.init(fakeRegistry);
 
 			reporter.generateDatadogSeries = jest.fn(() => []);
@@ -190,7 +190,6 @@ describe("Test Datadog Reporter class", () => {
 		it("should call generateDatadogSeries method but not fetch", () => {
 
 			const reporter = new DatadogReporter({
-				apiKey: "12345",
 				host: "test-host",
 				defaultLabels: {
 					defLabel: "def\\Value-\"quote\""
