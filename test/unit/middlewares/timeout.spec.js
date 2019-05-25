@@ -19,8 +19,11 @@ describe("Test TimeoutMiddleware", () => {
 		}
 	};
 
+	broker.isMetricsEnabled = jest.fn(() => true);
+	broker.metrics.register = jest.fn();
+	broker.metrics.increment = jest.fn();
+
 	const mw = Middleware(broker);
-	mw.created(broker);
 
 	it("should register hooks", () => {
 		expect(mw.localAction).toBeInstanceOf(Function);
@@ -34,7 +37,14 @@ describe("Test TimeoutMiddleware", () => {
 		expect(newHandler).not.toBe(handler);
 	});
 
+	it("should register metrics", () => {
+		mw.created(broker);
+		expect(broker.metrics.register).toHaveBeenCalledTimes(1);
+		expect(broker.metrics.register).toHaveBeenCalledWith({ type: "counter", name: "moleculer.request.timeout.total", labelNames: ["action"] });
+	});
+
 	it("should not be timeout if requestTimeout is 0", () => {
+		broker.metrics.increment.mockClear();
 		broker.options.requestTimeout = 0;
 		const newHandler = mw.localAction.call(broker, handler, action);
 
@@ -44,12 +54,15 @@ describe("Test TimeoutMiddleware", () => {
 			expect(res).toBe("Result");
 			expect(ctx.options.timeout).toBeUndefined();
 			expect(handler).toHaveBeenCalledTimes(1);
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(0);
 		});
 	});
 
 	it("should handle timeout", () => {
 		const clock = lolex.install();
 
+		broker.metrics.increment.mockClear();
 		broker.options.requestTimeout = 5000;
 
 		let handler = jest.fn(() => broker.Promise.delay(10 * 1000));
@@ -66,6 +79,9 @@ describe("Test TimeoutMiddleware", () => {
 			expect(ctx.options.timeout).toBe(5000);
 			expect(handler).toHaveBeenCalledTimes(1);
 
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
+			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.timeout.total", { action: "posts.find" });
+
 			expect(err).toBeInstanceOf(Error);
 			expect(err).toBeInstanceOf(RequestTimeoutError);
 			expect(err.message).toBe("Request is timed out when call 'posts.find' action on 'server-1' node.");
@@ -76,6 +92,7 @@ describe("Test TimeoutMiddleware", () => {
 	});
 
 	it("should don't touch other errors", () => {
+		broker.metrics.increment.mockClear();
 		let err = new Error("Some error");
 		let handler = jest.fn(() => Promise.reject(err));
 
@@ -86,6 +103,8 @@ describe("Test TimeoutMiddleware", () => {
 		return newHandler(ctx).then(protectReject).catch(res => {
 			expect(ctx.options.timeout).toBe(5000);
 			expect(res).toBe(err);
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(0);
 		});
 	});
 });

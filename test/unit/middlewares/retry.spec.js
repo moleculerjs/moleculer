@@ -18,10 +18,14 @@ describe("Test RetryMiddleware", () => {
 		}
 	};
 
+	broker.isMetricsEnabled = jest.fn(() => true);
+	broker.metrics.register = jest.fn();
+	broker.metrics.increment = jest.fn();
+
 	const mw = Middleware(broker);
-	mw.created(broker);
 
 	it("should register hooks", () => {
+		expect(mw.created).toBeInstanceOf(Function);
 		expect(mw.localAction).toBeInstanceOf(Function);
 		expect(mw.remoteAction).toBeInstanceOf(Function);
 	});
@@ -45,7 +49,14 @@ describe("Test RetryMiddleware", () => {
 		expect(newHandler2).not.toBe(handler);
 	});
 
+	it("should register metrics", () => {
+		mw.created(broker);
+		expect(broker.metrics.register).toHaveBeenCalledTimes(1);
+		expect(broker.metrics.register).toHaveBeenCalledWith({ type: "counter", name: "moleculer.request.retry.attempts.total", labelNames: ["action"] });
+	});
+
 	it("should retry", () => {
+		broker.metrics.increment.mockClear();
 		broker.options.retryPolicy.enabled = true;
 		broker.options.retryPolicy.retries = 3;
 		broker.options.retryPolicy.check = jest.fn(() => true);
@@ -73,10 +84,14 @@ describe("Test RetryMiddleware", () => {
 
 			expect(broker.options.retryPolicy.check).toHaveBeenCalledTimes(1);
 			expect(broker.options.retryPolicy.check).toHaveBeenCalledWith(error);
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
+			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.retry.attempts.total", { action: "posts.find" });
 		});
 	});
 
 	it("should not retry if attempts reach the limit", () => {
+		broker.metrics.increment.mockClear();
 		broker.options.retryPolicy.enabled = true;
 		broker.options.retryPolicy.retries = 3;
 		broker.options.retryPolicy.check = jest.fn(() => true);
@@ -98,10 +113,14 @@ describe("Test RetryMiddleware", () => {
 			expect(handler).toHaveBeenCalledTimes(1);
 			expect(broker.call).toHaveBeenCalledTimes(0);
 			expect(broker.Promise.delay).toHaveBeenCalledTimes(0);
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
+			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.retry.attempts.total", { action: "posts.find" });
 		});
 	});
 
 	it("should not retry if check returns false", () => {
+		broker.metrics.increment.mockClear();
 		broker.options.retryPolicy.check = jest.fn(() => false);
 
 		let error = new MoleculerRetryableError("Retryable error");
@@ -120,6 +139,8 @@ describe("Test RetryMiddleware", () => {
 			expect(handler).toHaveBeenCalledTimes(1);
 			expect(broker.call).toHaveBeenCalledTimes(0);
 			expect(broker.Promise.delay).toHaveBeenCalledTimes(0);
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(0);
 		});
 	});
 

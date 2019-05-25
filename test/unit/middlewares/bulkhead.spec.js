@@ -23,6 +23,10 @@ describe("Test BulkheadMiddleware", () => {
 		}
 	};
 
+	jest.spyOn(broker.metrics, "increment");
+	jest.spyOn(broker.metrics, "decrement");
+	jest.spyOn(broker.metrics, "set");
+
 	const mw = Middleware(broker);
 	mw.created(broker);
 
@@ -61,6 +65,15 @@ describe("Test BulkheadMiddleware", () => {
 		expect(newHandler).toBe(handler);
 	});
 
+	it("should register metrics", () => {
+		broker.isMetricsEnabled = jest.fn(() => true);
+		broker.metrics.register = jest.fn();
+
+		mw.created.call(broker, broker);
+
+		expect(broker.metrics.register).toHaveBeenCalledTimes(1);
+		expect(broker.metrics.register).toHaveBeenCalledWith({ type: "gauge", name: "moleculer.request.bulkhead.inflight", labelNames: ["action"] });
+	});
 
 	it("should call 3 times immediately & 7 times after some delay (queueing)", () => {
 		action.bulkhead.enabled = true;
@@ -86,6 +99,12 @@ describe("Test BulkheadMiddleware", () => {
 		]));
 		expect(handler).toHaveBeenCalledTimes(3);
 
+		expect(broker.metrics.set).toHaveBeenCalledTimes(3);
+		expect(broker.metrics.set).toHaveBeenNthCalledWith(1, "moleculer.request.bulkhead.inflight", 1, { action: "posts.find" });
+		expect(broker.metrics.set).toHaveBeenNthCalledWith(2, "moleculer.request.bulkhead.inflight", 2, { action: "posts.find" });
+		expect(broker.metrics.set).toHaveBeenNthCalledWith(3, "moleculer.request.bulkhead.inflight", 3, { action: "posts.find" });
+		broker.metrics.set.mockClear();
+
 		FLOW = [];
 
 		return broker.Promise.delay(500).catch(protectReject).then(() => {
@@ -99,6 +118,8 @@ describe("Test BulkheadMiddleware", () => {
 				"handler-10",
 			]));
 			expect(handler).toHaveBeenCalledTimes(10);
+
+			expect(broker.metrics.set).toHaveBeenCalledTimes(10);
 		});
 	});
 
@@ -146,6 +167,7 @@ describe("Test BulkheadMiddleware", () => {
 		action.bulkhead.enabled = true;
 		action.bulkhead.concurrency = 3;
 		action.bulkhead.maxQueueSize = 10;
+		broker.metrics.set.mockClear();
 
 		let FLOW = [];
 
@@ -168,6 +190,9 @@ describe("Test BulkheadMiddleware", () => {
 			"handler-3",
 		]));
 		expect(handler).toHaveBeenCalledTimes(3);
+		expect(broker.metrics.set).toHaveBeenCalledTimes(3);
+
+		broker.metrics.set.mockClear();
 
 		FLOW = [];
 
@@ -184,6 +209,8 @@ describe("Test BulkheadMiddleware", () => {
 				"handler-10",
 			]));
 			expect(handler).toHaveBeenCalledTimes(10);
+
+			expect(broker.metrics.set).toHaveBeenCalledTimes(10);
 		});
 	});
 });
