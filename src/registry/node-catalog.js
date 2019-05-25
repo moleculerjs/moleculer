@@ -244,7 +244,6 @@ class NodeCatalog {
 			if (now - (node.lastHeartbeatTime || 0) > this.broker.options.heartbeatTimeout * 1000) {
 				this.logger.warn(`Heartbeat is not received from '${node.id}' node.`);
 				this.disconnected(node.id, true);
-				this.registry.updateMetrics();
 			}
 		});
 	}
@@ -264,7 +263,6 @@ class NodeCatalog {
 			if (now - (node.lastHeartbeatTime || 0) > 10 * 60 * 1000) {
 				this.logger.warn(`Remove offline '${node.id}' node from registry because it hasn't submitted heartbeat signal for 10 minutes.`);
 				this.nodes.delete(node.id);
-				this.registry.updateMetrics();
 			}
 		});
 	}
@@ -284,6 +282,8 @@ class NodeCatalog {
 			this.registry.unregisterServicesByNode(node.id);
 
 			this.broker.broadcastLocal("$node.disconnected", { node, unexpected: !!isUnexpected });
+
+			this.registry.updateMetrics();
 
 			this.logger.warn(`Node '${node.id}' disconnected${isUnexpected ? " unexpectedly" : ""}.`);
 

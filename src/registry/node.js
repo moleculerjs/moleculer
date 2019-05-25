@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -33,7 +33,6 @@ class Node {
 		this.port = null;
 		this.hostname = null;
 		this.udpAddress = null;
-		this.instanceID = null;
 
 		this.rawInfo = null;
 		this.services = [];

@@ -79,12 +79,12 @@ class ServiceCatalog {
 	/**
 	 * Get a filtered list of services with actions
 	 *
-	 * @param {Object} {onlyLocal = false,  onlyAvailable = false, skipInternal = false, withActions = false, withEvents = false}
+	 * @param {Object} {onlyLocal = false,  onlyAvailable = false, skipInternal = false, withActions = false, withEvents = false, grouping = false}
 	 * @returns {Array}
 	 *
 	 * @memberof Registry
 	 */
-	list({ onlyLocal = false, onlyAvailable = false, skipInternal = false, withActions = false, withEvents = false }) {
+	list({ onlyLocal = false, onlyAvailable = false, skipInternal = false, withActions = false, withEvents = false, grouping = false }) {
 		let res = [];
 		this.services.forEach(service => {
 			if (skipInternal && /^\$node/.test(service.name))
@@ -96,42 +96,56 @@ class ServiceCatalog {
 			if (onlyAvailable && !service.node.available)
 				return;
 
-			let item = {
-				name: service.name,
-				version: service.version,
-				settings: service.settings,
-				metadata: service.metadata,
-				nodeID: service.node.id,
-				available: service.node.available,
-			};
+			let item;
+			if (grouping)
+				item = res.find(svc => svc.name == service.name && svc.version == service.version);
 
-			if (withActions) {
-				item.actions = {};
+			if (!item) {
+				let item = {
+					name: service.name,
+					version: service.version,
+					settings: service.settings,
+					metadata: service.metadata,
+					available: service.node.available,
+				};
 
-				_.forIn(service.actions, action => {
-					if (action.protected) return;
+				if (grouping)
+					item.nodes = [service.node.id];
+				else
+					item.nodeID = service.node.id;
 
-					item.actions[action.name] = _.omit(action, ["handler", "remoteHandler", "service"]);
-				});
+				if (withActions) {
+					item.actions = {};
+
+					_.forIn(service.actions, action => {
+						if (action.protected) return;
+
+						item.actions[action.name] = _.omit(action, ["handler", "remoteHandler", "service"]);
+					});
+				}
+
+				if (withEvents) {
+					item.events = {};
+
+					_.forIn(service.events, event => {
+						// Skip internal event handlers
+						if (/^\$/.test(event.name)) return;
+
+						item.events[event.name] = _.omit(event, ["handler", "remoteHandler", "service"]);
+					});
+				}
+
+				res.push(item);
+
+			} else {
+				if (item.nodes.indexOf(service.node.id) === -1)
+					item.nodes.push(service.node.id);
 			}
-
-			if (withEvents) {
-				item.events = {};
-
-				_.forIn(service.events, event => {
-					// Skip internal event handlers
-					if (/^\$/.test(event.name)) return;
-
-					item.events[event.name] = _.omit(event, ["handler", "remoteHandler", "service"]);
-				});
-			}
-
-			res.push(item);
 		});
 
 		return res;
 	}
-
+	/*
 	getServicesWithNodes() {
 		let res = [];
 		this.services.forEach(service => {
@@ -144,12 +158,13 @@ class ServiceCatalog {
 				};
 				res.push(item);
 			}
-			item.nodes.push(service.node.id);
+			if (item.nodes.indexOf(service.node.id) === -1)
+				item.nodes.push(service.node.id);
 		});
 
 		return res;
 	}
-
+*/
 	/**
 	 * Get local service list for INFO packet
 	 *

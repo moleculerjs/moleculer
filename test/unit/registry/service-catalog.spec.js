@@ -22,7 +22,7 @@ describe("Test ServiceCatalog constructor", () => {
 });
 
 describe("Test ServiceCatalog methods", () => {
-	let broker = new ServiceBroker({ logger: false });
+	let broker = new ServiceBroker({ nodeID: "master", logger: false });
 	let catalog = new ServiceCatalog(broker.registry, broker);
 	let node = { id: "server-1" };
 	let svc;
@@ -124,6 +124,30 @@ describe("Test ServiceCatalog methods", () => {
 			"available": true
 		}]);
 
+		res = catalog.list({ grouping: true });
+		expect(res).toEqual([{
+			"name": "$node",
+			"settings": undefined,
+			"metadata": {},
+			"version": undefined,
+			"available": true,
+			nodes: [
+				"master",
+				"server-2"
+			]
+		}, {
+			"name": "posts",
+			"settings": {
+				"a": 5
+			},
+			"metadata": { priority: 5 },
+			"version": 2,
+			"available": true,
+			nodes: [
+				"server-2"
+			]
+		}]);
+
 		res = catalog.list({ onlyLocal: true });
 		expect(res).toEqual([{
 			"name": "$node",
@@ -170,6 +194,7 @@ describe("Test ServiceCatalog methods", () => {
 		}]);
 
 	});
+
 	it("should return with service list for info", () => {
 		let node2 = { id: "server-2", available: true };
 		catalog.add(node2, "$node", undefined);

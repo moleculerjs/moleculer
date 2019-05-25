@@ -59,13 +59,15 @@ describe("Test NodeCatalog constructor", () => {
 });
 
 describe("Test NodeCatalog localNode", () => {
-	let broker = new ServiceBroker({ logger: false });
+	const metadata = { region: "eu-west" };
+	let broker = new ServiceBroker({ logger: false, metadata });
 	let catalog = new NodeCatalog(broker.registry, broker);
 
 	it("should load local values", () => {
 		let node = catalog.localNode;
 
 		expect(node.id).toBe(broker.nodeID);
+		expect(node.instanceID).toBe(broker.instanceID);
 		expect(node.local).toBe(true);
 		expect(node.ipList).toBeInstanceOf(Array);
 		expect(node.hostname).toBeDefined();
@@ -75,6 +77,7 @@ describe("Test NodeCatalog localNode", () => {
 			langVersion: process.version
 		});
 		expect(node.seq).toBe(1);
+		expect(node.metadata).toBe(metadata);
 		expect(catalog.nodes.get(broker.nodeID)).toBe(node);
 	});
 
@@ -108,16 +111,22 @@ describe("Test NodeCatalog.processNodeInfo", () => {
 	let catalog = new NodeCatalog(broker.registry, broker);
 	broker.registry.registerServices = jest.fn();
 	broker.broadcastLocal = jest.fn();
+	jest.spyOn(broker.registry, "updateMetrics");
 
 	it("should add new nodes", () => {
 		let payload = {
 			sender: "node-12",
-			services: [{}, {}],
-			when: 123456
+			services: [{}, {}]
 		};
 
+		expect(catalog.count()).toBe(1);
+		expect(catalog.onlineCount()).toBe(1);
+
 		catalog.processNodeInfo(payload);
+
 		expect(catalog.nodes.size).toBe(2);
+		expect(catalog.count()).toBe(2);
+		expect(catalog.onlineCount()).toBe(2);
 
 		let node = catalog.get("node-12");
 		expect(node.id).toBe("node-12");
@@ -128,17 +137,19 @@ describe("Test NodeCatalog.processNodeInfo", () => {
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$node.connected", { node, reconnected: false });
 
+		expect(broker.registry.updateMetrics).toHaveBeenCalledTimes(1);
+
 		node.update = jest.fn(() => true);
 	});
 
 	it("should update exist node", () => {
 		broker.registry.registerServices.mockClear();
 		broker.broadcastLocal.mockClear();
+		broker.registry.updateMetrics.mockClear();
 
 		let payload = {
 			sender: "node-12",
-			services: [{}, {}, {}],
-			when: 123460
+			services: [{}, {}, {}]
 		};
 
 		let node = catalog.get("node-12");
@@ -151,19 +162,21 @@ describe("Test NodeCatalog.processNodeInfo", () => {
 
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$node.updated", { node });
+
+		expect(broker.registry.updateMetrics).toHaveBeenCalledTimes(0);
 	});
 
 	it("should not update node services", () => {
 		broker.registry.registerServices.mockClear();
 		broker.broadcastLocal.mockClear();
+		broker.registry.updateMetrics.mockClear();
 
 		let node = catalog.get("node-12");
 		node.update = jest.fn(() => false);
 
 		let payload = {
 			sender: "node-12",
-			services: [{}, {}, {}],
-			when: 123400
+			services: [{}, {}, {}]
 		};
 
 		catalog.processNodeInfo(payload);
@@ -174,12 +187,15 @@ describe("Test NodeCatalog.processNodeInfo", () => {
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$node.updated", { node });
 
+		expect(broker.registry.updateMetrics).toHaveBeenCalledTimes(0);
+
 		node.available = false;
 	});
 
 	it("should update exist node and send reconnected event", () => {
 		broker.registry.registerServices.mockClear();
 		broker.broadcastLocal.mockClear();
+		broker.registry.updateMetrics.mockClear();
 
 		let node = catalog.get("node-12");
 		node.update = jest.fn(() => true);
@@ -197,6 +213,8 @@ describe("Test NodeCatalog.processNodeInfo", () => {
 
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$node.connected", { node, reconnected: true });
+
+		expect(broker.registry.updateMetrics).toHaveBeenCalledTimes(1);
 	});
 });
 
@@ -207,6 +225,7 @@ describe("Test NodeCatalog.disconnected", () => {
 	broker.broadcastLocal = jest.fn();
 	broker.transit.removePendingRequestByNodeID = jest.fn();
 	broker.servicesChanged = jest.fn();
+	jest.spyOn(broker.registry, "updateMetrics");
 
 	let payload = {
 		sender: "node-11",
@@ -220,6 +239,7 @@ describe("Test NodeCatalog.disconnected", () => {
 	it("should call disconnected & unregister services", () => {
 		broker.broadcastLocal.mockClear();
 		broker.registry.unregisterServicesByNode.mockClear();
+		broker.registry.updateMetrics.mockClear();
 
 		catalog.disconnected("node-11", false);
 
@@ -228,6 +248,8 @@ describe("Test NodeCatalog.disconnected", () => {
 
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$node.disconnected", { node, unexpected: false });
+
+		expect(broker.registry.updateMetrics).toHaveBeenCalledTimes(1);
 
 		expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
 		expect(broker.servicesChanged).toHaveBeenCalledWith(false);
@@ -244,6 +266,7 @@ describe("Test NodeCatalog.disconnected", () => {
 		broker.registry.unregisterServicesByNode.mockClear();
 		node.disconnected.mockClear();
 		broker.servicesChanged.mockClear();
+		broker.registry.updateMetrics.mockClear();
 
 		catalog.disconnected("node-11", true);
 
@@ -252,6 +275,8 @@ describe("Test NodeCatalog.disconnected", () => {
 
 		expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 		expect(broker.broadcastLocal).toHaveBeenCalledWith("$node.disconnected", { node, unexpected: true });
+
+		expect(broker.registry.updateMetrics).toHaveBeenCalledTimes(1);
 
 		// expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
 		// expect(broker.servicesChanged).toHaveBeenCalledWith(false);

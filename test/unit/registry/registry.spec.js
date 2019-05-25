@@ -6,9 +6,9 @@ let Strategies = require("../../../src/strategies");
 const { protectReject } = require("../utils");
 
 describe("Test Registry constructor", () => {
-
 	let broker = new ServiceBroker({ logger: false });
 	broker.localBus.on = jest.fn();
+
 
 	it("test properties", () => {
 		let registry = new Registry(broker);
@@ -16,6 +16,7 @@ describe("Test Registry constructor", () => {
 		expect(registry).toBeDefined();
 		expect(registry.broker).toBe(broker);
 		expect(registry.logger).toBeDefined();
+		expect(registry.metrics).toBe(broker.metrics);
 
 		expect(registry.opts).toEqual({
 			preferLocal: true,
@@ -64,6 +65,23 @@ describe("Test Registry constructor", () => {
 		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(1);
 		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledWith(true);
 	});
+
+	it("should register metrics", () => {
+		broker.isMetricsEnabled = jest.fn(() => true);
+		jest.spyOn(broker.metrics, "register");
+		jest.spyOn(broker.metrics, "set");
+
+		let registry = new Registry(broker);
+
+		expect(broker.metrics.register).toHaveBeenCalledTimes(8);
+		expect(broker.metrics.set).toHaveBeenCalledTimes(5);
+
+		expect(broker.metrics.set).toHaveBeenNthCalledWith(1, "moleculer.registry.nodes.total", 1);
+		expect(broker.metrics.set).toHaveBeenNthCalledWith(2, "moleculer.registry.nodes.online.total", 1);
+		expect(broker.metrics.set).toHaveBeenNthCalledWith(3, "moleculer.registry.services.total", 0);
+		expect(broker.metrics.set).toHaveBeenNthCalledWith(4, "moleculer.registry.actions.total", 0);
+		expect(broker.metrics.set).toHaveBeenNthCalledWith(5, "moleculer.registry.events.total", 0);
+	});
 });
 
 describe("Test Registry.registerLocalService", () => {
@@ -78,6 +96,7 @@ describe("Test Registry.registerLocalService", () => {
 	registry.registerActions = jest.fn();
 	registry.registerEvents = jest.fn();
 	registry.regenerateLocalRawInfo = jest.fn();
+	registry.updateMetrics = jest.fn();
 	broker.servicesChanged = jest.fn();
 
 	it("should call register methods", () => {
@@ -108,6 +127,8 @@ describe("Test Registry.registerLocalService", () => {
 
 		expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
 		expect(broker.servicesChanged).toHaveBeenCalledWith(true);
+
+		expect(registry.updateMetrics).toHaveBeenCalledTimes(1);
 	});
 
 	it("should not call register methods, but increment seq", () => {
@@ -115,6 +136,8 @@ describe("Test Registry.registerLocalService", () => {
 		registry.registerActions.mockClear();
 		registry.registerEvents.mockClear();
 		registry.regenerateLocalRawInfo.mockClear();
+		registry.updateMetrics = jest.fn();
+
 		broker.servicesChanged.mockClear();
 
 		let svc = {
@@ -143,6 +166,8 @@ describe("Test Registry.registerLocalService", () => {
 
 			expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
 			expect(broker.servicesChanged).toHaveBeenCalledWith(true);
+
+			expect(registry.updateMetrics).toHaveBeenCalledTimes(1);
 		});
 	});
 });
@@ -151,6 +176,9 @@ describe("Test Registry.registerServices", () => {
 
 	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
+
+	broker.isMetricsEnabled = jest.fn(() => true);
+	jest.spyOn(broker.metrics, "set");
 
 	let node = { id: "node-11" };
 
@@ -166,6 +194,7 @@ describe("Test Registry.registerServices", () => {
 	registry.registerEvents = jest.fn();
 	registry.unregisterEvent = jest.fn();
 	broker.servicesChanged = jest.fn();
+	registry.updateMetrics = jest.fn();
 
 	it("should call services.add", () => {
 		let service = {
@@ -202,6 +231,8 @@ describe("Test Registry.registerServices", () => {
 
 		expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
 		expect(broker.servicesChanged).toHaveBeenCalledWith(false);
+
+		expect(registry.updateMetrics).toHaveBeenCalledTimes(1);
 	});
 
 	it("should update service, actions & events", () => {
@@ -228,6 +259,7 @@ describe("Test Registry.registerServices", () => {
 		registry.unregisterAction.mockClear();
 		registry.registerEvents.mockClear();
 		registry.unregisterEvent.mockClear();
+		registry.updateMetrics = jest.fn();
 		broker.servicesChanged.mockClear();
 
 		let service = {
@@ -272,6 +304,7 @@ describe("Test Registry.registerServices", () => {
 		expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
 		expect(broker.servicesChanged).toHaveBeenCalledWith(false);
 
+		expect(registry.updateMetrics).toHaveBeenCalledTimes(1);
 
 		// For next test
 		registry.services.services.push(serviceItem);
@@ -281,6 +314,7 @@ describe("Test Registry.registerServices", () => {
 		registry.services.get = jest.fn();
 		registry.services.add.mockClear();
 		registry.unregisterService.mockClear();
+		registry.updateMetrics = jest.fn();
 		broker.servicesChanged.mockClear();
 
 		let service = {
@@ -295,6 +329,7 @@ describe("Test Registry.registerServices", () => {
 		expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
 		expect(broker.servicesChanged).toHaveBeenCalledWith(false);
 
+		expect(registry.updateMetrics).toHaveBeenCalledTimes(1);
 	});
 
 });
@@ -675,6 +710,7 @@ describe("Test Registry.processNodeInfo", () => {
 describe("Test Registry.nodeDisconnected", () => {
 	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
+	registry.updateMetrics = jest.fn();
 
 	registry.nodes.disconnected = jest.fn();
 
@@ -684,6 +720,8 @@ describe("Test Registry.nodeDisconnected", () => {
 
 		expect(registry.nodes.disconnected).toHaveBeenCalledTimes(1);
 		expect(registry.nodes.disconnected).toHaveBeenCalledWith("node-2", false);
+
+		expect(registry.updateMetrics).toHaveBeenCalledTimes(1);
 	});
 });
 
