@@ -1,6 +1,8 @@
 const { BrokerOptionsError } = require("../../../../src/errors");
 const MetricReporters = require("../../../../src/metrics/reporters");
 
+process.env.DATADOG_API_KEY = "datadog-api-key";
+
 describe("Test MetricReporters resolver", () => {
 
 	it("should throw error", () => {

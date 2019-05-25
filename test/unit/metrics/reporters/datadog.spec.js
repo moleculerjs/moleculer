@@ -10,12 +10,13 @@ const DatadogReporter = require("../../../../src/metrics/reporters/datadog");
 const ServiceBroker = require("../../../../src/service-broker");
 const MetricRegistry = require("../../../../src/metrics/registry");
 
+process.env.DATADOG_API_KEY = "datadog-api-key";
+
 describe("Test Datadog Reporter class", () => {
 
 	describe("Test Constructor", () => {
 
 		it("should create with default options", () => {
-			process.env.DATADOG_API_KEY = "datadog-api-key";
 			const reporter = new DatadogReporter();
 
 			expect(reporter.opts).toEqual({
