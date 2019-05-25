@@ -76,28 +76,6 @@ module.exports = function MetricsMiddleware(broker) {
 				metrics.register({ name: METRIC.MOLECULER_TRANSPORTER_PACKETS_SENT_BYTES, type: METRIC.TYPE_COUNTER, unit: METRIC.UNIT_BYTE, description: "Number of sent bytes" });
 				metrics.register({ name: METRIC.MOLECULER_TRANSPORTER_PACKETS_RECEIVED_TOTAL, type: METRIC.TYPE_COUNTER, description: "Number of received packets" });
 				metrics.register({ name: METRIC.MOLECULER_TRANSPORTER_PACKETS_RECEIVED_BYTES, type: METRIC.TYPE_COUNTER, unit: METRIC.UNIT_BYTE, description: "Number of received packets" });
-
-				// --- MOLECULER CIRCUIT BREAKER METRICS ---
-
-				metrics.register({ name: METRIC.MOLECULER_CIRCUIT_BREAKER_OPENED_ACTIVE, type: METRIC.TYPE_GAUGE, labelNames: ["affectedNodeID", "action"], description: "Number of active opened circuit-breakers" });
-				metrics.register({ name: METRIC.MOLECULER_CIRCUIT_BREAKER_OPENED_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["affectedNodeID", "action"], description: "Number of opened circuit-breakers" });
-				metrics.register({ name: METRIC.MOLECULER_CIRCUIT_BREAKER_HALF_OPENED_ACTIVE, type: METRIC.TYPE_GAUGE, labelNames: ["affectedNodeID", "action"], description: "Number of active half-opened circuit-breakers" });
-
-				broker.localBus.on("$circuit-breaker.opened", function(payload) {
-
-					metrics.set(METRIC.MOLECULER_CIRCUIT_BREAKER_OPENED_ACTIVE, 1, { affectedNodeID: payload.nodeID, action: payload.action });
-					metrics.increment(METRIC.MOLECULER_CIRCUIT_BREAKER_OPENED_TOTAL, { affectedNodeID: payload.nodeID, action: payload.action });
-				});
-
-				broker.localBus.on("$circuit-breaker.half-opened", function(payload) {
-					metrics.set(METRIC.MOLECULER_CIRCUIT_BREAKER_OPENED_ACTIVE, 0, { affectedNodeID: payload.nodeID, action: payload.action });
-					metrics.set(METRIC.MOLECULER_CIRCUIT_BREAKER_HALF_OPENED_ACTIVE, 1, { affectedNodeID: payload.nodeID, action: payload.action });
-				});
-
-				broker.localBus.on("$circuit-breaker.closed", function(payload) {
-					metrics.set(METRIC.MOLECULER_CIRCUIT_BREAKER_OPENED_ACTIVE, 0, { affectedNodeID: payload.nodeID, action: payload.action });
-					metrics.set(METRIC.MOLECULER_CIRCUIT_BREAKER_HALF_OPENED_ACTIVE, 0, { affectedNodeID: payload.nodeID, action: payload.action });
-				});
 			}
 		},
 
