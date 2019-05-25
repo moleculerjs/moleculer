@@ -1,0 +1,488 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test ShardStrategy Test rebuild should build rings 1`] = `
+Array [
+  Object {
+    "key": 85899345,
+    "nodeID": "node-100",
+  },
+  Object {
+    "key": 171798690,
+    "nodeID": "node-200",
+  },
+  Object {
+    "key": 257698035,
+    "nodeID": "node-300",
+  },
+  Object {
+    "key": 343597380,
+    "nodeID": "node-400",
+  },
+  Object {
+    "key": 429496725,
+    "nodeID": "node-500",
+  },
+  Object {
+    "key": 515396070,
+    "nodeID": "node-100",
+  },
+  Object {
+    "key": 601295415,
+    "nodeID": "node-200",
+  },
+  Object {
+    "key": 687194760,
+    "nodeID": "node-300",
+  },
+  Object {
+    "key": 773094105,
+    "nodeID": "node-400",
+  },
+  Object {
+    "key": 858993450,
+    "nodeID": "node-500",
+  },
+  Object {
+    "key": 944892795,
+    "nodeID": "node-100",
+  },
+  Object {
+    "key": 1030792140,
+    "nodeID": "node-200",
+  },
+  Object {
+    "key": 1116691485,
+    "nodeID": "node-300",
+  },
+  Object {
+    "key": 1202590830,
+    "nodeID": "node-400",
+  },
+  Object {
+    "key": 1288490175,
+    "nodeID": "node-500",
+  },
+  Object {
+    "key": 1374389520,
+    "nodeID": "node-100",
+  },
+  Object {
+    "key": 1460288865,
+    "nodeID": "node-200",
+  },
+  Object {
+    "key": 1546188210,
+    "nodeID": "node-300",
+  },
+  Object {
+    "key": 1632087555,
+    "nodeID": "node-400",
+  },
+  Object {
+    "key": 1717986900,
+    "nodeID": "node-500",
+  },
+  Object {
+    "key": 1803886245,
+    "nodeID": "node-100",
+  },
+  Object {
+    "key": 1889785590,
+    "nodeID": "node-200",
+  },
+  Object {
+    "key": 1975684935,
+    "nodeID": "node-300",
+  },
+  Object {
+    "key": 2061584280,
+    "nodeID": "node-400",
+  },
+  Object {
+    "key": 2147483625,
+    "nodeID": "node-500",
+  },
+  Object {
+    "key": 2233382970,
+    "nodeID": "node-100",
+  },
+  Object {
+    "key": 2319282315,
+    "nodeID": "node-200",
+  },
+  Object {
+    "key": 2405181660,
+    "nodeID": "node-300",
+  },
+  Object {
+    "key": 2491081005,
+    "nodeID": "node-400",
+  },
+  Object {
+    "key": 2576980350,
+    "nodeID": "node-500",
+  },
+  Object {
+    "key": 2662879695,
+    "nodeID": "node-100",
+  },
+  Object {
+    "key": 2748779040,
+    "nodeID": "node-200",
+  },
+  Object {
+    "key": 2834678385,
+    "nodeID": "node-300",
+  },
+  Object {
+    "key": 2920577730,
+    "nodeID": "node-400",
+  },
+  Object {
+    "key": 3006477075,
+    "nodeID": "node-500",
+  },
+  Object {
+    "key": 3092376420,
+    "nodeID": "node-100",
+  },
+  Object {
+    "key": 3178275765,
+    "nodeID": "node-200",
+  },
+  Object {
+    "key": 3264175110,
+    "nodeID": "node-300",
+  },
+  Object {
+    "key": 3350074455,
+    "nodeID": "node-400",
+  },
+  Object {
+    "key": 3435973800,
+    "nodeID": "node-500",
+  },
+  Object {
+    "key": 3521873145,
+    "nodeID": "node-100",
+  },
+  Object {
+    "key": 3607772490,
+    "nodeID": "node-200",
+  },
+  Object {
+    "key": 3693671835,
+    "nodeID": "node-300",
+  },
+  Object {
+    "key": 3779571180,
+    "nodeID": "node-400",
+  },
+  Object {
+    "key": 3865470525,
+    "nodeID": "node-500",
+  },
+  Object {
+    "key": 3951369870,
+    "nodeID": "node-100",
+  },
+  Object {
+    "key": 4037269215,
+    "nodeID": "node-200",
+  },
+  Object {
+    "key": 4123168560,
+    "nodeID": "node-300",
+  },
+  Object {
+    "key": 4209067905,
+    "nodeID": "node-400",
+  },
+  Object {
+    "key": 4294967296,
+    "nodeID": "node-500",
+  },
+]
+`;
+
+exports[`Test ShardStrategy Test rebuild should build rings with custom options 1`] = `
+Array [
+  Object {
+    "key": 55,
+    "nodeID": "earth",
+  },
+  Object {
+    "key": 110,
+    "nodeID": "jupyter",
+  },
+  Object {
+    "key": 165,
+    "nodeID": "mars",
+  },
+  Object {
+    "key": 220,
+    "nodeID": "mercury",
+  },
+  Object {
+    "key": 275,
+    "nodeID": "neptunus",
+  },
+  Object {
+    "key": 330,
+    "nodeID": "saturn",
+  },
+  Object {
+    "key": 385,
+    "nodeID": "sun",
+  },
+  Object {
+    "key": 440,
+    "nodeID": "uranus",
+  },
+  Object {
+    "key": 495,
+    "nodeID": "venus",
+  },
+  Object {
+    "key": 550,
+    "nodeID": "earth",
+  },
+  Object {
+    "key": 605,
+    "nodeID": "jupyter",
+  },
+  Object {
+    "key": 660,
+    "nodeID": "mars",
+  },
+  Object {
+    "key": 715,
+    "nodeID": "mercury",
+  },
+  Object {
+    "key": 770,
+    "nodeID": "neptunus",
+  },
+  Object {
+    "key": 825,
+    "nodeID": "saturn",
+  },
+  Object {
+    "key": 880,
+    "nodeID": "sun",
+  },
+  Object {
+    "key": 935,
+    "nodeID": "uranus",
+  },
+  Object {
+    "key": 1000,
+    "nodeID": "venus",
+  },
+]
+`;
+
+exports[`Test ShardStrategy Test rebuild should build rings with random list 1`] = `
+Array [
+  Object {
+    "key": 85899345,
+    "nodeID": "node-100",
+  },
+  Object {
+    "key": 171798690,
+    "nodeID": "node-200",
+  },
+  Object {
+    "key": 257698035,
+    "nodeID": "node-300",
+  },
+  Object {
+    "key": 343597380,
+    "nodeID": "node-400",
+  },
+  Object {
+    "key": 429496725,
+    "nodeID": "node-500",
+  },
+  Object {
+    "key": 515396070,
+    "nodeID": "node-100",
+  },
+  Object {
+    "key": 601295415,
+    "nodeID": "node-200",
+  },
+  Object {
+    "key": 687194760,
+    "nodeID": "node-300",
+  },
+  Object {
+    "key": 773094105,
+    "nodeID": "node-400",
+  },
+  Object {
+    "key": 858993450,
+    "nodeID": "node-500",
+  },
+  Object {
+    "key": 944892795,
+    "nodeID": "node-100",
+  },
+  Object {
+    "key": 1030792140,
+    "nodeID": "node-200",
+  },
+  Object {
+    "key": 1116691485,
+    "nodeID": "node-300",
+  },
+  Object {
+    "key": 1202590830,
+    "nodeID": "node-400",
+  },
+  Object {
+    "key": 1288490175,
+    "nodeID": "node-500",
+  },
+  Object {
+    "key": 1374389520,
+    "nodeID": "node-100",
+  },
+  Object {
+    "key": 1460288865,
+    "nodeID": "node-200",
+  },
+  Object {
+    "key": 1546188210,
+    "nodeID": "node-300",
+  },
+  Object {
+    "key": 1632087555,
+    "nodeID": "node-400",
+  },
+  Object {
+    "key": 1717986900,
+    "nodeID": "node-500",
+  },
+  Object {
+    "key": 1803886245,
+    "nodeID": "node-100",
+  },
+  Object {
+    "key": 1889785590,
+    "nodeID": "node-200",
+  },
+  Object {
+    "key": 1975684935,
+    "nodeID": "node-300",
+  },
+  Object {
+    "key": 2061584280,
+    "nodeID": "node-400",
+  },
+  Object {
+    "key": 2147483625,
+    "nodeID": "node-500",
+  },
+  Object {
+    "key": 2233382970,
+    "nodeID": "node-100",
+  },
+  Object {
+    "key": 2319282315,
+    "nodeID": "node-200",
+  },
+  Object {
+    "key": 2405181660,
+    "nodeID": "node-300",
+  },
+  Object {
+    "key": 2491081005,
+    "nodeID": "node-400",
+  },
+  Object {
+    "key": 2576980350,
+    "nodeID": "node-500",
+  },
+  Object {
+    "key": 2662879695,
+    "nodeID": "node-100",
+  },
+  Object {
+    "key": 2748779040,
+    "nodeID": "node-200",
+  },
+  Object {
+    "key": 2834678385,
+    "nodeID": "node-300",
+  },
+  Object {
+    "key": 2920577730,
+    "nodeID": "node-400",
+  },
+  Object {
+    "key": 3006477075,
+    "nodeID": "node-500",
+  },
+  Object {
+    "key": 3092376420,
+    "nodeID": "node-100",
+  },
+  Object {
+    "key": 3178275765,
+    "nodeID": "node-200",
+  },
+  Object {
+    "key": 3264175110,
+    "nodeID": "node-300",
+  },
+  Object {
+    "key": 3350074455,
+    "nodeID": "node-400",
+  },
+  Object {
+    "key": 3435973800,
+    "nodeID": "node-500",
+  },
+  Object {
+    "key": 3521873145,
+    "nodeID": "node-100",
+  },
+  Object {
+    "key": 3607772490,
+    "nodeID": "node-200",
+  },
+  Object {
+    "key": 3693671835,
+    "nodeID": "node-300",
+  },
+  Object {
+    "key": 3779571180,
+    "nodeID": "node-400",
+  },
+  Object {
+    "key": 3865470525,
+    "nodeID": "node-500",
+  },
+  Object {
+    "key": 3951369870,
+    "nodeID": "node-100",
+  },
+  Object {
+    "key": 4037269215,
+    "nodeID": "node-200",
+  },
+  Object {
+    "key": 4123168560,
+    "nodeID": "node-300",
+  },
+  Object {
+    "key": 4209067905,
+    "nodeID": "node-400",
+  },
+  Object {
+    "key": 4294967296,
+    "nodeID": "node-500",
+  },
+]
+`;
