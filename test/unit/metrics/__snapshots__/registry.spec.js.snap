@@ -35,7 +35,7 @@ Object {
 exports[`Test Metric Registry Test Constructor should create with default options 1`] = `
 Object {
   "collectInterval": 5000,
-  "collectProcessMetrics": true,
+  "collectProcessMetrics": false,
   "defaultAgeBuckets": 10,
   "defaultAggregator": "sum",
   "defaultBuckets": Array [

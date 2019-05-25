@@ -559,6 +559,7 @@ declare namespace Moleculer {
 		static MOLECULER_VERSION: string;
 		static PROTOCOL_VERSION: string;
 		static defaultOptions: BrokerOptions;
+		static Promise: PromiseConstructorLike;
 	}
 
 	class Packet {

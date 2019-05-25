@@ -84,7 +84,7 @@ describe("Test Datadog Reporter class", () => {
 				namespace: "test-ns"
 			};
 			const fakeRegistry = { broker: fakeBroker };
-			const reporter = new DatadogReporter({ interval: 5 });
+			const reporter = new DatadogReporter({ interval: 5, apiKey: "12345" });
 			reporter.flush = jest.fn();
 			reporter.init(fakeRegistry);
 
@@ -102,7 +102,7 @@ describe("Test Datadog Reporter class", () => {
 				namespace: "test-ns"
 			};
 			const fakeRegistry = { broker: fakeBroker };
-			const reporter = new DatadogReporter();
+			const reporter = new DatadogReporter({ apiKey: "12345" });
 			reporter.init(fakeRegistry);
 
 			expect(reporter.defaultLabels).toStrictEqual({
@@ -115,6 +115,7 @@ describe("Test Datadog Reporter class", () => {
 			const fakeBroker = {};
 			const fakeRegistry = { broker: fakeBroker };
 			const reporter = new DatadogReporter({
+				apiKey: "12345",
 				defaultLabels: {
 					a: 5,
 					b: "John"
@@ -138,7 +139,7 @@ describe("Test Datadog Reporter class", () => {
 				namespace: "test-ns"
 			};
 			const fakeRegistry = { broker: fakeBroker };
-			const reporter = new DatadogReporter();
+			const reporter = new DatadogReporter({ apiKey: "12345" });
 			reporter.init(fakeRegistry);
 
 			reporter.generateDatadogSeries = jest.fn(() => []);
@@ -189,6 +190,7 @@ describe("Test Datadog Reporter class", () => {
 		it("should call generateDatadogSeries method but not fetch", () => {
 
 			const reporter = new DatadogReporter({
+				apiKey: "12345",
 				host: "test-host",
 				defaultLabels: {
 					defLabel: "def\\Value-\"quote\""
