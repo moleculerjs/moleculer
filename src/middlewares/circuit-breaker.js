@@ -253,6 +253,9 @@ module.exports = function circuitBreakerMiddleware(broker) {
 		created(broker) {
 			logger = broker.getLogger("circuit-breaker");
 
+			// Expose the internal state store.
+			broker.CircuitBreakerStore = store;
+
 			const opts = broker.options.circuitBreaker;
 			if (opts.enabled) {
 				createWindowTimer(opts.windowTime);
@@ -262,7 +265,6 @@ module.exports = function circuitBreakerMiddleware(broker) {
 					broker.metrics.register({ name: METRIC.MOLECULER_CIRCUIT_BREAKER_OPENED_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["affectedNodeID", "action"], description: "Number of opened circuit-breakers" });
 					broker.metrics.register({ name: METRIC.MOLECULER_CIRCUIT_BREAKER_HALF_OPENED_ACTIVE, type: METRIC.TYPE_GAUGE, labelNames: ["affectedNodeID", "action"], description: "Number of active half-opened circuit-breakers" });
 				}
-
 			}
 		},
 
@@ -274,6 +276,7 @@ module.exports = function circuitBreakerMiddleware(broker) {
 				clearInterval(windowTimer);
 			}
 
+			delete broker.CircuitBreakerStore;
 		}
 	};
 };

@@ -21,7 +21,7 @@ const METRIC_LABEL_REGEXP 	= /^[a-zA-Z_][a-zA-Z0-9-_.]*$/;
  *
  *
  * TODO:
- * 	- all changes store in a queue and process with timer (1 sec)
+ * 	- Idea: all changes store in a queue and process with timer (1 sec)
  */
 class MetricRegistry {
 
@@ -43,7 +43,7 @@ class MetricRegistry {
 
 		this.opts = _.defaultsDeep({}, opts, {
 			enabled: true,
-			collectProcessMetrics: true,
+			collectProcessMetrics: process.env.NODE_ENV !== "test",
 			collectInterval: 5 * 1000,
 
 			reporter: false,

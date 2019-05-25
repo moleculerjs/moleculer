@@ -47,12 +47,7 @@ describe("Test MetricsMiddleware", () => {
 
 	it("should register metrics & CB event handlers", () => {
 		mw.created(broker);
-		expect(broker.metrics.register).toBeCalledTimes(20);
-
-		expect(broker.localBus.on).toBeCalledTimes(3);
-		expect(broker.localBus.on).toHaveBeenNthCalledWith(1, "$circuit-breaker.opened", expect.any(Function));
-		expect(broker.localBus.on).toHaveBeenNthCalledWith(2, "$circuit-breaker.half-opened", expect.any(Function));
-		expect(broker.localBus.on).toHaveBeenNthCalledWith(3, "$circuit-breaker.closed", expect.any(Function));
+		expect(broker.metrics.register).toBeCalledTimes(17);
 	});
 
 	it("should not wrap handler if metrics is disabled", () => {
@@ -547,6 +542,7 @@ describe("Test MetricsMiddleware", () => {
 		});
 	});
 
+	/* Moved to CB middleware
 	describe("Test circuit breaker event handlers", () => {
 
 		const broker = new ServiceBroker({ nodeID: "server-1", logger: false, metrics: true });
@@ -598,5 +594,6 @@ describe("Test MetricsMiddleware", () => {
 			expect(broker.metrics.set).toHaveBeenNthCalledWith(2, "moleculer.circuit-breaker.half-opened.active", 0, { action: "posts.find", affectedNodeID: "server-2" });
 		});
 	});
+	*/
 
 });
