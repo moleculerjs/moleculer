@@ -5,13 +5,23 @@
 ## TODO
 - ~~subscribe/unsubscribe event from codes and REPL.~~
 - caching with tags/labels
-- test cover new features
 
 ## Done
 - communication protocol changed (`3` -> `4`)
 - handling conflict nodeIDs
 - **Breaking**: `validation` broker options is removed. Use `validator` instead. If `validator` is defined or `true`, the validation is enabled. Otherwise, it is disabled.
-- `ctx` access in Strategies `next` method (Kafka-like sharding strategy).
+- `ctx` access in Strategies `next` method.
+- Shard strategy is added.
+    ```js
+	const broker = new ServiceBroker({
+		registry: {
+			strategy: "Shard",
+			strategyOptions: {
+				shardKey: "name"
+			}
+		}
+	});
+    ```
 - The `broker.use` deprecated method is removed. Use `middlewares: []` in the broker options instead.
 - hooks inside action definitions, as well.
     ```js
