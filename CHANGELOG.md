@@ -1,17 +1,17 @@
+
 --------------------------------------------------
 <a name="0.14.0"></a>
 # [0.14.0](https://github.com/moleculerjs/moleculer/compare/v0.13.9...v0.14.0) (2019-xx-xx)
 
 ## TODO
-- ~~subscribe/unsubscribe event from codes and REPL.~~
 - caching with tags/labels
 - implement more metrics exporters
 - add service settings to broker options.
 
 # Breaking changes
 
-## Protocol has been changed
-The Moleculer communication protocol has been changed. The new version of protocol is `4`.
+## Communication protocol has been changed
+The Moleculer communication protocol has been changed. The new protocol version is `4`.
 It means the new Moleculer 0.14 nodes can't communicate with old <= 0.13 nodes.
 
 ## Validation settings changed
@@ -39,7 +39,9 @@ const broker = new ServiceBroker({
 ```
 
 ## The `broker.use` removed
-The `broker.use` has been deprecated in version 0.13 and now it is removed. Use `middleware: []` broker options to define middlewares. Loading middlewares after broker started is not available.
+The `broker.use` has been deprecated in version 0.13 and now it is removed. Use `middleware: []` broker options to define middlewares. 
+
+_Loading middlewares after broker started is not available._
 
 ## Middleware shorthand definition is dropped
 In previous versions you could define middleware which wraps the `localAction` hook with a simple `Function`.
@@ -86,12 +88,12 @@ Multiple reporters can be defined.
 **Enable metrics & define console reporter**
 ```js
 const broker = new ServiceBroker({
-	metrics: {
-		enabled: true,
-		reporter: [
-			"Console"
-		]
-	}
+    metrics: {
+        enabled: true,
+        reporter: [
+            "Console"
+        ]
+    }
 });
 ```
 
@@ -119,26 +121,29 @@ module.exports = {
 **Enable metrics & define Prometheus reporter with filtering**
 ```js
 const broker = new ServiceBroker({
-	metrics: {
-		enabled: true,
-		reporter: [
-			{
-				type: "Prometheus",
-				options: {
+    metrics: {
+        enabled: true,
+        reporter: [
+            {
+                type: "Prometheus",
+                options: {
                     port: 3030,
-					includes: ["moleculer.**"],
+                    includes: ["moleculer.**"],
                     excludes: ["moleculer.transit.**"]
-				}
-			}
-		]
-	}
+                }
+            }
+        ]
+    }
 });
 ```
 
 ### Supported metric types
 - `counter` - A counter is a cumulative metric that represents a single monotonically increasing counter whose value can only increase or be reset to zero. For example, you can use a counter to represent the number of requests served, tasks completed, or errors.
+
 - `gauge` - A gauge is a metric that represents a single numerical value that can arbitrarily go up and down. Gauges are typically used for measured values like current memory usage, but also "counts" that can go up and down, like the number of concurrent requests.
+
 - `histogram` - A histogram samples observations (usually things like request durations or response sizes) and counts them in configurable buckets. It also provides a sum of all observed values and calculates configurable quantiles over a sliding time window.
+
 - `info` - An info is a single string or number value like process arguments, hostname or version numbers.
 
 ### Internal metrics
@@ -252,7 +257,7 @@ const broker = new ServiceBroker({
 
 All reporters have the following options:
 ```js
-options: {
+{
     includes: null,
     excludes: null,
 
@@ -269,19 +274,19 @@ This is a debugging reporter which prints metrics to the console periodically.
 
 ```js
 const broker = new ServiceBroker({
-	metrics: {
-		enabled: true,
-		reporter: [
-			{
-				type: "Console",
-				options: {
+    metrics: {
+        enabled: true,
+        reporter: [
+            {
+                type: "Console",
+                options: {
                     interval: 5 * 1000,
                     logger: null
-				}
-			}
-		]
-	},
-	logLevel: "debug"
+                }
+            }
+        ]
+    },
+    logLevel: "debug"
 });
 ```
 
@@ -293,12 +298,12 @@ This reporter sends metrics to the [Datadog server](https://www.datadoghq.com/).
 
 ```js
 const broker = new ServiceBroker({
-	metrics: {
-		enabled: true,
-		reporter: [
-			{
-				type: "Datadog",
-				options: {
+    metrics: {
+        enabled: true,
+        reporter: [
+            {
+                type: "Datadog",
+                options: {
                     host: "my-host",
                     apiVersion: "v1",
                     path: "/series",
@@ -308,10 +313,10 @@ const broker = new ServiceBroker({
                         nodeID: registry.broker.nodeID
                     }),
                     interval: 10
-				}
-			}
-		]
-	}
+                }
+            }
+        ]
+    }
 });
 ```
 
@@ -323,27 +328,267 @@ This reporter publish metrics in Prometheus format. The [Prometheus](https://pro
 
 ```js
 const broker = new ServiceBroker({
-	metrics: {
-		enabled: true,
-		reporter: [
-			{
-				type: "Prometheus",
-				options: {
+    metrics: {
+        enabled: true,
+        reporter: [
+            {
+                type: "Prometheus",
+                options: {
                     port: 3030,
                     path: "/metrics",
-                    defaultLabels: (registry) => ({
+                    defaultLabels: registry => ({
                         namespace: registry.broker.namespace,
                         nodeID: registry.broker.nodeID
                     })
-				}
-			}
-		]
-	}
+                }
+            }
+        ]
+    }
 });
 ```
 
 #### UDP reporter
 >Not implemented yet.
+
+## New tracing feature
+An enhanced tracing middleware has been implemented in version 0.14. It support several exporters, custom tracing spans and integration with instrumentation libraries (like `dd-trace`).
+
+**Enable tracing**
+```js
+const broker = new ServiceBroker({
+    tracing: true
+});
+```
+
+**Tracing with console exporter**
+```js
+const broker = new ServiceBroker({
+    tracing: {
+        enabled: true,
+        exporter: [
+            {
+                type: "Console",
+                options: {
+                    logger: console
+                }
+            }
+        ]        
+    }
+});
+```
+
+**Tracing with Zipkin exporter**
+```js
+const broker = new ServiceBroker({
+    tracing: {
+        enabled: true,
+        exporter: [
+            {
+                type: "Zipkin",
+                options: {
+                    baseURL: "http://zipkin-server:9411",
+                }
+            }
+        ]        
+    }
+});
+```
+
+### Built-in exporters
+
+#### Console exporter
+This is a debugging exporter which prints the full local trace to the console.
+>Please note, it can't follow remote calls, only locals.
+
+```js
+const broker = new ServiceBroker({
+    tracing: {
+        enabled: true,
+        exporter: [
+            {
+                type: "Console",
+                options: {
+                    logger: null,
+                    colors: true,
+                    width: 100,
+                    gaugeWidth: 40
+                }
+            }
+        ]
+    }
+});
+```
+
+#### Datadog exporter
+It is a Datadog exporter which send tracing data to Datadog server via `dd-trace`. It is able to join tracing spans between instrumented Node.js modules and Moleculer modules.
+
+>TODO screenshot
+
+```js
+const broker = new ServiceBroker({
+    tracing: {
+        enabled: true,
+        exporter: [
+            {
+                type: "Datadog",
+                options: {
+                    agentUrl: process.env.DD_AGENT_URL || "http://localhost:8126",
+                    env: process.env.DD_ENVIRONMENT || null,
+                    samplingPriority: "AUTO_KEEP",
+                    defaultTags: null,
+                    tracerOptions: null,
+                }
+            }
+        ]
+    }
+});
+```
+
+#### Event exporter
+This exporter sends Moleculer events (`$tracing.spans`) with tracing data.
+```js
+const broker = new ServiceBroker({
+    tracing: {
+        enabled: true,
+        exporter: [
+            {
+                type: "Event",
+                options: {
+                    eventName: "$tracing.spans",
+
+                    sendStartSpan: false,
+                    sendFinishSpan: true,
+
+                    broadcast: false,
+
+                    groups: null,
+
+                    /** @type {Number} Batch send time interval. */
+                    interval: 5,
+
+                    spanConverter: null,
+
+                    /** @type {Object?} Default span tags */
+                    defaultTags: null
+
+                }
+            }
+        ]
+    }
+});
+```
+
+#### Event (legacy) exporter
+This is another event exporter which sends legacy moleculer events (`metrics.trace.span.start` & `metrics.trace.span.finish`). _It is compatible with <= 0.13 Moleculer metrics trace events._
+```js
+const broker = new ServiceBroker({
+    tracing: {
+        enabled: true,
+        exporter: [
+            "EventLegacy"
+        ]
+    }
+});
+```
+
+#### Jaeger exporter
+This exporter sends tracing spans information to a [Jaeger](https://www.jaegertracing.io) server.
+
+```js
+const broker = new ServiceBroker({
+    tracing: {
+        enabled: true,
+        exporter: [
+            {
+                type: "Jaeger",
+                options: {
+                    /** @type {String} UDP Sender host option. */
+                    host: "127.0.0.1",
+                    /** @type {Number?} UDP Sender port option. */
+                    port: 6832,
+
+                    /** @type {Object?} Sampler configuration. */
+                    sampler: {
+                        /** @type {String?} Sampler type */
+                        type: "Const",
+
+                        /** @type: {Object?} Sampler specific options. */
+                        options: {}
+                    },
+
+                    /** @type {Object?} Additional options for `Jaeger.Tracer` */
+                    tracerOptions: {},
+
+                    /** @type {Object?} Default span tags */
+                    defaultTags: null
+                }
+            }
+        ]
+    }
+});
+```
+
+#### Zipkin exporter
+This exporter sends tracing spans information to a [Zipkin](https://zipkin.apache.org/) server.
+
+```js
+const broker = new ServiceBroker({
+    tracing: {
+        enabled: true,
+        exporter: [
+            {
+                type: "Zipkin",
+                options: {
+                    /** @type {String} Base URL for Zipkin server. */
+                    baseURL: process.env.ZIPKIN_URL || "http://localhost:9411",
+
+                    /** @type {Number} Batch send time interval. */
+                    interval: 5,
+
+                    /** @type {Object} Additional payload options. */
+                    payloadOptions: {
+
+                        /** @type {Boolean} Set `debug` property in v2 payload. */
+                        debug: false,
+
+                        /** @type {Boolean} Set `shared` property in v2 payload. */
+                        shared: false
+                    },
+
+                    /** @type {Object?} Default span tags */
+                    defaultTags: null
+                }
+            }
+        ]
+    }
+});
+```
+
+### Custom tracing spans
+```js
+// posts.service.js
+module.exports = {
+    name: "posts",
+    actions: {
+        async find(ctx) {
+            const span1 = ctx.startSpan("get data from DB", {
+                tags: {
+                    ...ctx.params
+                }
+            }); 
+            const data = await this.getDataFromDB(ctx.params);
+            span1.finish;
+
+            const span2 = ctx.startSpan("populating");
+            const res = await this.populate(data);
+            span2.finish();
+
+            return res;
+        }
+    }
+};
+```
+
 
 ## NodeID conflict handling
 The ServiceBroker checks the nodeIDs of remote nodes because same nodeID in the same namespace can cause communication problems. If some node has the same nodeID, the broker will throw a fatal error and stop the process.
@@ -381,10 +626,10 @@ const broker = new ServiceBroker({
     registry: {
         strategy: "Shard",
         strategyOptions: {
-			shardKey: "#user.id",
-			vnodes: 10,
-			ringSize: 1000,
-			cacheSize: 1000
+            shardKey: "#user.id",
+            vnodes: 10,
+            ringSize: 1000,
+            cacheSize: 1000
         }
     }
 });
@@ -474,11 +719,11 @@ INFO  - After all hook
 There is a new `metadata` property in broker options to store custom values what you can use in your custom middlewares or strategies.
 ```js
 const broker2 = new ServiceBroker({
-	nodeID: "broker-2",
-	transporter: "NATS",
-	metadata: {
-		region: "eu-west1"
-	}
+    nodeID: "broker-2",
+    transporter: "NATS",
+    metadata: {
+        region: "eu-west1"
+    }
 });
 ```
 _This information is available in response of `$node.list` action._
@@ -497,11 +742,11 @@ It's called before local service instance registering.
 ```js
 // my-middleware.js
 module.exports = {
-	registerLocalService(next) {
-		return (svc) => {
-			return next(svc);
-		};
-	}
+    registerLocalService(next) {
+        return (svc) => {
+            return next(svc);
+        };
+    }
 }
 ```
 
@@ -512,10 +757,10 @@ It's called before a local service instance creating. At this point the service 
 ```js
 // my-middleware.js
 module.exports = {
-	serviceCreating(service, schema) {
+    serviceCreating(service, schema) {
         // Modify schema
         schema.myProp = "John";
-	}
+    }
 }
 ```
 
@@ -526,11 +771,11 @@ It's called before communication packet publishing.
 ```js
 // my-middleware.js
 module.exports = {
-	transitPublish(next) {
-		return (packet) => {
-			return next(packet);
-		};
-	},
+    transitPublish(next) {
+        return (packet) => {
+            return next(packet);
+        };
+    },
 }
 ```
 
@@ -541,11 +786,11 @@ It's called before transit receiving & processing an incoming message.
 ```js
 // my-middleware.js
 module.exports = {
-	transitMessageHandler(next) {
-		return (cmd, packet) => {
-			return next(cmd, packet);
-		};
-	}
+    transitMessageHandler(next) {
+        return (cmd, packet) => {
+            return next(cmd, packet);
+        };
+    }
 }
 ```
 
@@ -556,12 +801,12 @@ It's called before transporter send a communication packet (after serialization)
 ```js
 // my-middleware.js
 module.exports = {
-	transporterSend(next) {
-		return (topic, data, meta) => {
+    transporterSend(next) {
+        return (topic, data, meta) => {
             // Do something with data
-			return next(topic, data, meta);
-		};
-	}
+            return next(topic, data, meta);
+        };
+    }
 }
 ```
 
@@ -573,11 +818,11 @@ It's called after transporter received a communication packet (before serializat
 // my-middleware.js
 module.exports = {
     transporterReceive(next) {
-		return (cmd, data, s) => {
+        return (cmd, data, s) => {
             // Do something with data
-			return next(cmd, data, s);
-		};
-	}
+            return next(cmd, data, s);
+        };
+    }
 }
 ```
 
@@ -688,23 +933,27 @@ It catches unhandled errors in action & event handlers.
 **Catch, handle & log the error**
 ```js
 const broker = new ServiceBroker({
-	errorHandler(err, info) {
+    errorHandler(err, info) {
 
-		this.logger.warn("Error handled:", err);
-	}
+        this.logger.warn("Error handled:", err);
+    }
 });
 ```
 
 **Catch & throw further the error**
 ```js
 const broker = new ServiceBroker({
-	errorHandler(err, info) {
-		this.logger.warn("Error handled:", err);
+    errorHandler(err, info) {
+        this.logger.warn("Error handled:", err);
         throw err; // Throw further
-	}
+    }
 });
 ```
 >In `info` object can be reachable the broker instance, actual service instance, current context, action definition or event definition.
+
+## Async storage for current context
+TODO
+
 
 # Other notable changes
 - Kafka transporter upgrade to support kafka-node@4.
@@ -852,10 +1101,6 @@ module.exports = {
 };
 ```
 
-<<<<<<< HEAD
-=======
-
->>>>>>> master
 # Changes
 - fix `cacher.clean` issue [#435](https://github.com/moleculerjs/moleculer/pull/435)
 - add `disableVersionCheck` option for broker transit options. It can disable protocol version checking logic in Transit. Default: `false`
@@ -863,10 +1108,6 @@ module.exports = {
 - waitForServices accept versioned service names (e.g.: `v2.posts`).
 - update dependencies (plus using semver ranges in dependencies)
 
-<<<<<<< HEAD
-=======
-
->>>>>>> master
 --------------------------------------------------
 <a name="0.13.5"></a>
 # [0.13.5](https://github.com/moleculerjs/moleculer/compare/v0.13.4...v0.13.5) (2018-12-09)
