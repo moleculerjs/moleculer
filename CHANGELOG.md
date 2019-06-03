@@ -614,7 +614,7 @@ const broker = new ServiceBroker({
     registry: {
         strategy: "Shard",
         strategyOptions: {
-            shardKey: "user.id"
+            shardKey: "#user.id"
         }
     }
 });
