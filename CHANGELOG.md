@@ -5,142 +5,716 @@
 ## TODO
 - ~~subscribe/unsubscribe event from codes and REPL.~~
 - caching with tags/labels
+- implement more metrics exporters
+- add service settings to broker options.
+
+# Breaking changes
+
+## Protocol has been changed
+The Moleculer communication protocol has been changed. The new version of protocol is `4`.
+It means the new Moleculer 0.14 nodes can't communicate with old <= 0.13 nodes.
+
+## Validation settings changed
+The `validation: true` broker options are removed to follow other module configuration. Use `validator` option, instead.
+
+**Enable validation with built-in validator (default option)**
+```js
+const broker = new ServiceBroker({
+    validator: true
+});
+```
+
+**Disable validation/validator**
+```js
+const broker = new ServiceBroker({
+    validator: false
+});
+```
+
+**Use custom validation**
+```js
+const broker = new ServiceBroker({
+    validator: new MyCustomValidator()
+});
+```
+
+## The `broker.use` removed
+The `broker.use` has been deprecated in version 0.13 and now it is removed. Use `middleware: []` broker options to define middlewares. Loading middlewares after broker started is not available.
+
+## Middleware shorthand definition is dropped
+In previous versions you could define middleware which wraps the `localAction` hook with a simple `Function`.
+In version 0.14 this legacy shorthand is dropped. When you define a middleware as a `Function`, the middleware handler will call it as an initialization and pass the ServiceBroker instance as a parameter.
+
+**Old shorthand middleware definition as a `Function`**
+```js
+const MyMiddleware = function(next, action) {
+    return ctx => next(ctx);
+};
+
+const broker = new ServiceBroker({
+    middlewares: [MyMiddleware]
+});
+```
+
+**New middleware definition as a `Function`**
+```js
+const MyMiddleware = function(broker) {
+    // Create a custom named logger
+    const myLogger = broker.getLogger("MY-LOGGER");
+
+    return {
+        localAction: function(next, action) {
+            return ctx => {
+                myLogger.info(`${action.name} has been called`);
+                return next(ctx);
+            }
+        }
+    }
+};
+
+const broker = new ServiceBroker({
+    middlewares: [MyMiddleware]
+});
+```
+
+# New
+
+## New built-in metrics
+The Moleculer v0.14 comes with a brand-new entirely rewritten metrics built-in module. It collect a lot of internal moleculer & process metric values. You can easily define your custom metrics. There are several built-in metrics reporters like `Console`, `Prometheus`, `Datadog`, ...etc.
+Multiple reporters can be defined.
+
+**Enable metrics & define console reporter**
+```js
+const broker = new ServiceBroker({
+	metrics: {
+		enabled: true,
+		reporter: [
+			"Console"
+		]
+	}
+});
+```
+
+**Define custom metrics**
+```js
+// posts.service.js
+module.exports = {
+    name: "posts",
+
+    actions: {
+        get(ctx) {
+            // Update metrics
+            this.broker.metrics.increment("posts.get.total");
+            return posts;
+        }
+    },
+
+    created() {
+        // Register new custom metrics
+        this.broker.metrics.register({ type: "counter", name: "posts.get.total" });
+    }
+};
+```
+
+**Enable metrics & define Prometheus reporter with filtering**
+```js
+const broker = new ServiceBroker({
+	metrics: {
+		enabled: true,
+		reporter: [
+			{
+				type: "Prometheus",
+				options: {
+                    port: 3030,
+					includes: ["moleculer.**"],
+                    excludes: ["moleculer.transit.**"]
+				}
+			}
+		]
+	}
+});
+```
+
+### Supported metric types
+- `counter` - A counter is a cumulative metric that represents a single monotonically increasing counter whose value can only increase or be reset to zero. For example, you can use a counter to represent the number of requests served, tasks completed, or errors.
+- `gauge` - A gauge is a metric that represents a single numerical value that can arbitrarily go up and down. Gauges are typically used for measured values like current memory usage, but also "counts" that can go up and down, like the number of concurrent requests.
+- `histogram` - A histogram samples observations (usually things like request durations or response sizes) and counts them in configurable buckets. It also provides a sum of all observed values and calculates configurable quantiles over a sliding time window.
+- `info` - An info is a single string or number value like process arguments, hostname or version numbers.
+
+### Internal metrics
+
+**Process metrics**
+- `process.arguments` (info)
+- `process.pid` (info)
+- `process.ppid` (info)
+- `process.eventloop.lag.min` (gauge)
+- `process.eventloop.lag.avg` (gauge)
+- `process.eventloop.lag.max` (gauge)
+- `process.eventloop.lag.count` (gauge)
+- `process.memory.heap.size.total` (gauge)
+- `process.memory.heap.size.used` (gauge)
+- `process.memory.rss` (gauge)
+- `process.memory.external` (gauge)
+- `process.memory.heap.space.size.total` (gauge)
+- `process.memory.heap.space.size.used` (gauge)
+- `process.memory.heap.space.size.available` (gauge)
+- `process.memory.heap.space.size.physical` (gauge)
+- `process.memory.heap.stat.heap.size.total` (gauge)
+- `process.memory.heap.stat.executable.size.total` (gauge)
+- `process.memory.heap.stat.physical.size.total` (gauge)
+- `process.memory.heap.stat.available.size.total` (gauge)
+- `process.memory.heap.stat.used.heap.size` (gauge)
+- `process.memory.heap.stat.heap.size.limit` (gauge)
+- `process.memory.heap.stat.mallocated.memory` (gauge)
+- `process.memory.heap.stat.peak.mallocated.memory` (gauge)
+- `process.memory.heap.stat.zap.garbage` (gauge)
+- `process.uptime` (gauge)
+- `process.internal.active.handles` (gauge)
+- `process.internal.active.requests` (gauge)
+- `process.versions.node` (info)
+- `process.gc.time` (gauge)
+- `process.gc.total.time` (gauge)
+- `process.gc.executed.total` (gauge)
+
+**OS metrics**
+- `os.memory.free` (gauge)
+- `os.memory.total` (gauge)
+- `os.uptime` (gauge)
+- `os.type` (info)
+- `os.release` (info)
+- `os.hostname` (info)
+- `os.arch` (info)
+- `os.platform` (info)
+- `os.user.uid` (info)
+- `os.user.gid` (info)
+- `os.user.username` (info)
+- `os.user.homedir` (info)
+- `os.network.address` (info)
+- `os.network.family` (info)
+- `os.network.mac` (info)
+- `os.datetime.unix` (gauge)
+- `os.datetime.iso` (info)
+- `os.datetime.utc` (info)
+- `os.datetime.tz.offset` (gauge)
+- `os.cpu.load.1` (gauge)
+- `os.cpu.load.5` (gauge)
+- `os.cpu.load.15` (gauge)
+- `os.cpu.utilization` (gauge)
+- `os.cpu.user` (gauge)
+- `os.cpu.system` (gauge)
+- `os.cpu.total` (gauge)
+- `os.cpu.info.model` (info)
+- `os.cpu.info.speed` (gauge)
+- `os.cpu.info.times.user` (gauge)
+- `os.cpu.info.times.sys` (gauge)
+
+**Moleculer metrics**
+- `moleculer.metrics.common.collect.total` (counter)
+- `moleculer.metrics.common.collect.time` (gauge)
+- `moleculer.node.type` (info)
+- `moleculer.node.versions.moleculer` (info)
+- `moleculer.node.versions.protocol` (info)
+- `moleculer.broker.namespace` (info)
+- `moleculer.broker.started` (gauge)
+- `moleculer.broker.local.services.total` (gauge)
+- `moleculer.broker.middlewares.total` (gauge)
+- `moleculer.registry.nodes.total` (gauge)
+- `moleculer.registry.nodes.online.total` (gauge)
+- `moleculer.registry.services.total` (gauge)
+- `moleculer.registry.service.endpoints.total` (gauge)
+- `moleculer.registry.actions.total` (gauge)
+- `moleculer.registry.action.endpoints.total` (gauge)
+- `moleculer.registry.events.total` (gauge)
+- `moleculer.registry.event.endpoints.total` (gauge)
+- `moleculer.request.bulkhead.inflight` (gauge)
+- `moleculer.request.timeout.total` (counter)
+- `moleculer.request.retry.attempts.total` (counter)
+- `moleculer.request.fallback.total` (counter)
+- `moleculer.request.total` (counter)
+- `moleculer.request.active` (gauge)
+- `moleculer.request.error.total` (counter)
+- `moleculer.request.time` (histogram)
+- `moleculer.request.levels` (counter)
+- `moleculer.event.emit.total` (counter)
+- `moleculer.event.broadcast.total` (counter)
+- `moleculer.event.broadcast-local.total` (counter)
+- `moleculer.event.received.total` (counter)
+- `moleculer.transit.publish.total` (counter)
+- `moleculer.transit.receive.total` (counter)
+- `moleculer.transit.requests.active` (gauge)
+- `moleculer.transit.streams.send.active` (gauge)
+- `moleculer.transporter.packets.sent.total` (counter)
+- `moleculer.transporter.packets.sent.bytes` (counter)
+- `moleculer.transporter.packets.received.total` (counter)
+- `moleculer.transporter.packets.received.bytes` (counter)
+
+### Built-in reporters
+
+All reporters have the following options:
+```js
+options: {
+    includes: null,
+    excludes: null,
+
+    metricNamePrefix: null,
+    metricNameSuffix: null,
+
+    metricNameFormatter: null,
+    labelNameFormatter: null
+}
+```
+
+#### Console reporter
+This is a debugging reporter which prints metrics to the console periodically.
+
+```js
+const broker = new ServiceBroker({
+	metrics: {
+		enabled: true,
+		reporter: [
+			{
+				type: "Console",
+				options: {
+                    interval: 5 * 1000,
+                    logger: null
+				}
+			}
+		]
+	},
+	logLevel: "debug"
+});
+```
+
+#### CSV reporter
+>Not implemented yet.
+
+#### Datadog reporter
+This reporter sends metrics to the [Datadog server](https://www.datadoghq.com/).
+
+```js
+const broker = new ServiceBroker({
+	metrics: {
+		enabled: true,
+		reporter: [
+			{
+				type: "Datadog",
+				options: {
+                    host: "my-host",
+                    apiVersion: "v1",
+                    path: "/series",
+                    apiKey: process.env.DATADOG_API_KEY,
+                    defaultLabels: (registry) => ({
+                        namespace: registry.broker.namespace,
+                        nodeID: registry.broker.nodeID
+                    }),
+                    interval: 10
+				}
+			}
+		]
+	}
+});
+```
+
+#### Event reporter
+>Not implemented yet.
+
+#### Prometheus reporter
+This reporter publish metrics in Prometheus format. The [Prometheus](https://prometheus.io/) server can collect them. Default port is `3030`.
+
+```js
+const broker = new ServiceBroker({
+	metrics: {
+		enabled: true,
+		reporter: [
+			{
+				type: "Prometheus",
+				options: {
+                    port: 3030,
+                    path: "/metrics",
+                    defaultLabels: (registry) => ({
+                        namespace: registry.broker.namespace,
+                        nodeID: registry.broker.nodeID
+                    })
+				}
+			}
+		]
+	}
+});
+```
+
+#### UDP reporter
+>Not implemented yet.
+
+## NodeID conflict handling
+The ServiceBroker checks the nodeIDs of remote nodes because same nodeID in the same namespace can cause communication problems. If some node has the same nodeID, the broker will throw a fatal error and stop the process.
+
+## Sharding built-in strategy
+There is a new built-in shard invocation strategy. It uses a key value from context params or meta to route the request a specific node. It means the same key value will be route to the same node.
+
+**Example with shard key as `name` param in context**
+```js
+const broker = new ServiceBroker({
+    registry: {
+        strategy: "Shard",
+        strategyOptions: {
+            shardKey: "name"
+        }
+    }
+});
+```
+
+**Example with shard key as `user.id` meta value in context**
+```js
+const broker = new ServiceBroker({
+    registry: {
+        strategy: "Shard",
+        strategyOptions: {
+            shardKey: "user.id"
+        }
+    }
+});
+```
+
+**All available options of Shard strategy**
+```js
+const broker = new ServiceBroker({
+    registry: {
+        strategy: "Shard",
+        strategyOptions: {
+			shardKey: "#user.id",
+			vnodes: 10,
+			ringSize: 1000,
+			cacheSize: 1000
+        }
+    }
+});
+```
+
+## Extending internal services
+Now the internal services can be extended. You can define mixin schema for every internal service under `internalServices` broker option.
+
+```js
+// moleculer.config.js
+module.exports = {
+    nodeID: "node-1",
+    logger: true,
+    internalServices: {
+        $node: {
+            actions: {
+                // Call as `$node.hello`
+                hello(ctx) {
+                    return `Hello Moleculer!`;
+                }
+            }
+        }
+    }
+};
+```
+
+## Action hook inside action definition
+Sometimes it's better to define action hooks inside action definition instead of service `hooks` property.
+
+```js
+broker.createService({
+    name: "greeter",
+    hooks: {
+        before: {
+            "*"(ctx) {
+                broker.logger.info(chalk.cyan("Before all hook"));
+            },
+            hello(ctx) {
+                broker.logger.info(chalk.magenta("  Before hook"));
+            }
+        },
+        after: {
+            "*"(ctx, res) {
+                broker.logger.info(chalk.cyan("After all hook"));
+                return res;
+            },
+            hello(ctx, res) {
+                broker.logger.info(chalk.magenta("  After hook"));
+                return res;
+            }
+        },
+    },
+
+    actions: {
+        hello: {
+            hooks: {
+                before(ctx) {
+                    broker.logger.info(chalk.yellow.bold("    Before action hook"));
+                },
+                after(ctx, res) {
+                    broker.logger.info(chalk.yellow.bold("    After action hook"));
+                    return res;
+                }
+            },
+
+            handler(ctx) {
+                broker.logger.info(chalk.green.bold("      Action handler"));
+                return `Hello ${ctx.params.name}`;
+            }
+        }
+    }
+});    
+```
+
+**Output**
+```
+INFO  - Before all hook
+INFO  -   Before hook
+INFO  -     Before action hook
+INFO  -       Action handler
+INFO  -     After action hook
+INFO  -   After hook
+INFO  - After all hook
+```
+
+## Metadata store in broker options
+There is a new `metadata` property in broker options to store custom values what you can use in your custom middlewares or strategies.
+```js
+const broker2 = new ServiceBroker({
+	nodeID: "broker-2",
+	transporter: "NATS",
+	metadata: {
+		region: "eu-west1"
+	}
+});
+```
+_This information is available in response of `$node.list` action._
+
+
+## Enhanced hot-reload feature
+In version 0.14 the built-in hot-reload feature has been rewritten entirely. It can detect dependency-graph between service files and other loaded (with ˙require˙) files. It means if you load an other JS file in your service file and this JS files changed, the Hot-Reload middleware will detect it and reload your service file. What's more, if you uses this JS file in many services, it will reload all affected services.
+
+## New middleware hooks
+There are some new middleware hooks.
+
+### `registerLocalService`
+It's called before local service instance registering.
+
+**Signature**
+```js
+// my-middleware.js
+module.exports = {
+	registerLocalService(next) {
+		return (svc) => {
+			return next(svc);
+		};
+	}
+}
+```
+
+### `serviceCreating`
+It's called before a local service instance creating. At this point the service mixins are resolved, so the service schema is merged completely.
+
+**Signature**
+```js
+// my-middleware.js
+module.exports = {
+	serviceCreating(service, schema) {
+        // Modify schema
+        schema.myProp = "John";
+	}
+}
+```
+
+### `transitPublish`
+It's called before communication packet publishing.
+
+**Signature**
+```js
+// my-middleware.js
+module.exports = {
+	transitPublish(next) {
+		return (packet) => {
+			return next(packet);
+		};
+	},
+}
+```
+
+### `transitMessageHandler`
+It's called before transit receiving & processing an incoming message.
+
+**Signature**
+```js
+// my-middleware.js
+module.exports = {
+	transitMessageHandler(next) {
+		return (cmd, packet) => {
+			return next(cmd, packet);
+		};
+	}
+}
+```
+
+### `transporterSend`
+It's called before transporter send a communication packet (after serialization). Use it to encrypt or compress the packet buffer.
+
+**Signature**
+```js
+// my-middleware.js
+module.exports = {
+	transporterSend(next) {
+		return (topic, data, meta) => {
+            // Do something with data
+			return next(topic, data, meta);
+		};
+	}
+}
+```
+
+### `transporterReceive`
+It's called after transporter received a communication packet (before serialization). Use it to decrypt or decompress the packet buffer.
+
+**Signature**
+```js
+// my-middleware.js
+module.exports = {
+    transporterReceive(next) {
+		return (cmd, data, s) => {
+            // Do something with data
+			return next(cmd, data, s);
+		};
+	}
+}
+```
+
+## New built-in middlewares
+
+### Encryption
+AES encryption middleware protects all inter-services communications that use the transporter module.
+This middleware uses built-in Node [`crypto`](https://nodejs.org/api/crypto.html) library.
+
+```js
+const { Middlewares } = require("moleculer");
+
+// Create broker
+const broker = new ServiceBroker({
+    middlewares: [
+        Middlewares.Transmit.Encryption("secret-password", "aes-256-cbc", initVector) // "aes-256-cbc" is the default
+    ]
+});
+```
+### Compression
+Compression middleware reduces the size of messages that go through the transporter module.
+This middleware uses built-in Node [`zlib`](https://nodejs.org/api/zlib.html) library.
+```js
+const { Middlewares } = require("moleculer");
+
+// Create broker
+const broker = new ServiceBroker({
+    middlewares: [
+        Middlewares.Transmit.Compression("deflate") // or "deflateRaw" or "gzip"
+    ]
+});
+```
+
+### Transit Logger
+Transit logger middleware allows to easily track the messages that are exchanged between services.
+
+```js
+const { Middlewares } = require("moleculer");
+
+// Create broker
+const broker = new ServiceBroker({
+    middlewares: [
+        Middlewares.Debugging.TransitLogger({
+            logPacketData: false,
+            folder: null,
+            colors: {
+                send: "magenta",
+                receive: "blue"
+            },
+            packetFilter: ["HEARTBEAT"]
+        })
+    ]
+});
+```
+
+### Action Logger
+Action Logger middleware tracks "how" service actions were executed.
+
+```js
+const { Middlewares } = require("moleculer");
+
+// Create broker
+const broker = new ServiceBroker({
+    middlewares: [
+        Middlewares.Debugging.ActionLogger({
+            logParams: true,
+            logResponse: true,
+            folder: null,
+            colors: {
+                send: "magenta",
+                receive: "blue"
+            },
+            whitelist: ["**"]
+        })
+    ]
+});
+```
+
+## Load middlewares by names
+To load built-in middlewares, use its names in `middleware` broker option.
+
+```js
+const { Middlewares } = require("moleculer");
+
+// Extend with custom middlewares
+Middlewares.MyCustom = {
+    created(broker) {
+        broker.logger.info("My custom middleware is created!");
+    }
+};
+
+
+const broker1 = new ServiceBroker({
+    logger: true,
+    middlewares: [
+        // Load by middleware name
+        "MyCustom"
+    ]
+});    
+```
+
+>Please note: middleware must be `Object`. If `Function` it will be called with `broker`. Previous backward compatibility is dropped.
+
+## Global error handler
+There is a new global error handler in ServiceBroker. It can be defined in broker options as `errorHandler(err, info)`.
+It catches unhandled errors in action & event handlers.
+
+**Catch, handle & log the error**
+```js
+const broker = new ServiceBroker({
+	errorHandler(err, info) {
+
+		this.logger.warn("Error handled:", err);
+	}
+});
+```
+
+**Catch & throw further the error**
+```js
+const broker = new ServiceBroker({
+	errorHandler(err, info) {
+		this.logger.warn("Error handled:", err);
+        throw err; // Throw further
+	}
+});
+```
+>In `info` object can be reachable the broker instance, actual service instance, current context, action definition or event definition.
+
+# Other notable changes
+- Kafka transporter upgrade to support kafka-node@4.
+- rename `ctx.metrics` -> `ctx.tracing`
+- `broker.hotReloadService` method has been removed.
 
 ## Done
-- communication protocol changed (`3` -> `4`)
-- handling conflict nodeIDs
-- **Breaking**: `validation` broker options is removed. Use `validator` instead. If `validator` is defined or `true`, the validation is enabled. Otherwise, it is disabled.
-- `ctx` access in Strategies `next` method.
-- Shard strategy is added.
-    ```js
-	const broker = new ServiceBroker({
-		registry: {
-			strategy: "Shard",
-			strategyOptions: {
-				shardKey: "name"
-			}
-		}
-	});
-    ```
-- The `broker.use` deprecated method is removed. Use `middlewares: []` in the broker options instead.
-- hooks inside action definitions, as well.
-    ```js
-    broker.createService({
-        name: "greeter",
-        hooks: {
-            before: {
-                "*"(ctx) {
-                    broker.logger.info(chalk.cyan("Before all hook"));
-                },
-                hello(ctx) {
-                    broker.logger.info(chalk.magenta("  Before hook"));
-                }
-            },
-            after: {
-                "*"(ctx, res) {
-                    broker.logger.info(chalk.cyan("After all hook"));
-                    return res;
-                },
-                hello(ctx, res) {
-                    broker.logger.info(chalk.magenta("  After hook"));
-                    return res;
-                }
-            },
-        },
-
-        actions: {
-            hello: {
-                hooks: {
-                    before(ctx) {
-                        broker.logger.info(chalk.yellow.bold("    Before action hook"));
-                    },
-                    after(ctx, res) {
-                        broker.logger.info(chalk.yellow.bold("    After action hook"));
-                        return res;
-                    }
-                },
-
-                handler(ctx) {
-                    broker.logger.info(chalk.green.bold("      Action handler"));
-                    return `Hello ${ctx.params.name}`;
-                }
-            }
-        }
-    });    
-    ```
-
-    **Output**
-    ```
-    INFO  - Before all hook
-    INFO  -   Before hook
-    INFO  -     Before action hook
-    INFO  -       Action handler
-    INFO  -     After action hook
-    INFO  -   After hook
-    INFO  - After all hook
-    ```
-- broker `metadata` option. It's transfered to other nodes.
-- new middleware hooks (`registerLocalService`, `serviceCreating`, `transitPublish`, `transitSubscribe`, `transitMessageHandler`, `transporterSend`, `transporterReceive`) [#436](https://github.com/moleculerjs/moleculer/issues/436)
-- enhanced hot-reload middleware [#408](https://github.com/moleculerjs/moleculer/issues/408)
-- new Middlewares:
-    - `Transmit.Encryption`
-	- `Transmit.Compression`
-    - `Debugging.TransitLogger`
-    - `Debugging.ActionLogger`
-    - ...etc
-
-- Kafka transporter upgrade to support kafka-node@4
-- rename `ctx.metrics` -> `ctx.tracing`
 - new built-in tracing solution with exporters (Zipkin, Jaeger, Datadog)
 - new built-in metrics solution with reporters (Prometheus, Datadog, StatD)
-- extend internal services (`$node`)
-    ```js
-    // moleculer.config.js
-    module.exports = {
-        nodeID: "node-1",
-        logger: true,
-        internalServices: {
-            $node: {
-                actions: {
-                    // Call as `$node.hello`
-                    hello(ctx) {
-                        return `Hello Moleculer!`;
-                    }
-                }
-            }
-        }
-    };
-    ```
 
-- load middlewares by names
-    ```js
-        const { Middlewares } = require("moleculer");
-
-        // Extend with custom middlewares
-        Middlewares.MyCustom = {
-            created(broker) {
-                broker.logger.info("My custom middleware is created!");
-            }
-        };
-
-
-        const broker1 = new ServiceBroker({
-            logger: true,
-            middlewares: [
-                // Load by middleware name
-                "MyCustom"
-            ]
-        });    
-    ```
-- Please note: middleware must be `Object`. If `Function` it will be called with `broker`. Previous backward compatibility is dropped.
-
-- global errorHandler in ServiceBroker `errorHandler(err, info) {}`
-    - in `info` can be reachable actual service or context or action or event...
-    - if the error handled, not printed to the console or throw further.
-    
-## Other notable changes
-- `broker.hotReloadService` has been removed.
--
 
 --------------------------------------------------
 <a name="0.13.9"></a>
