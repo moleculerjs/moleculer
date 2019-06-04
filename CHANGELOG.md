@@ -15,7 +15,7 @@ The Moleculer communication protocol has been changed. The new protocol version 
 It means the new Moleculer 0.14 nodes can't communicate with old <= 0.13 nodes.
 
 ## Validation settings changed
-The `validation: true` broker options are removed to follow other module configuration. Use `validator` option, instead.
+The `validation: true` broker options was removed to follow other module configuration. Use `validator` option, instead.
 
 **Enable validation with built-in validator (default option)**
 ```js
@@ -41,7 +41,7 @@ const broker = new ServiceBroker({
 ## The `broker.use` removed
 The `broker.use` has been deprecated in version 0.13 and now it is removed. Use `middleware: []` broker options to define middlewares. 
 
-_Loading middlewares after broker started is not available._
+_loading middleware after the broker has started is no longer available._
 
 ## Middleware shorthand definition is dropped
 In previous versions you could define middleware which wraps the `localAction` hook with a simple `Function`.
@@ -715,8 +715,8 @@ INFO  -   After hook
 INFO  - After all hook
 ```
 
-## Metadata store in broker options
-There is a new `metadata` property in broker options to store custom values what you can use in your custom middlewares or strategies.
+## Metadata in broker options
+There is a new `metadata` property in broker options to store custom values. You can use the `metadata` property in your custom middlewares or strategies.
 ```js
 const broker2 = new ServiceBroker({
     nodeID: "broker-2",
@@ -736,7 +736,7 @@ In v0.14 the built-in hot-reload feature was entirely rewritten. Now, it can det
 There are some new middleware hooks.
 
 ### `registerLocalService`
-It's called before local service instance registering.
+It's called before registering a local service instance.
 
 **Signature**
 ```js
@@ -780,7 +780,7 @@ module.exports = {
 ```
 
 ### `transitMessageHandler`
-It's called before transit receiving & processing an incoming message.
+It's called before transit receives & parses an incoming message
 
 **Signature**
 ```js
@@ -924,8 +924,6 @@ const broker1 = new ServiceBroker({
 });    
 ```
 
->Please note: middleware must be `Object`. If `Function` it will be called with `broker`. Previous backward compatibility is dropped.
-
 ## Global error handler
 There is a new global error handler in ServiceBroker. It can be defined in broker options as `errorHandler(err, info)`.
 It catches unhandled errors in action & event handlers.
@@ -949,7 +947,7 @@ const broker = new ServiceBroker({
     }
 });
 ```
->In `info` object can be reachable the broker instance, actual service instance, current context, action definition or event definition.
+>The `info` object contains the broker and the service instances, the current context and the action or the event definition.
 
 ## Async storage for current context
 ServiceBroker has a continuous local storage in order to store the current context. It means you don't need to always pass the `ctx` from actions to service methods. You can get it with `this.currentContext`.
