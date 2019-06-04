@@ -72,7 +72,7 @@
 			"request": "launch",
 			"name": "Jest",
 			"program": "${workspaceRoot}/node_modules/jest-cli/bin/jest.js",
-			"args": ["--runInBand", "test/unit/middlewares/debugging/action-logger.spec.js"],
+			"args": ["--runInBand", "test/unit/tracing/span.spec.js"],
 			"console": "internalConsole",
 			"cwd": "${workspaceRoot}",
 			"runtimeArgs": [
