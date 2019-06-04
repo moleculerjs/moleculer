@@ -952,7 +952,27 @@ const broker = new ServiceBroker({
 >In `info` object can be reachable the broker instance, actual service instance, current context, action definition or event definition.
 
 ## Async storage for current context
-TODO
+ServiceBroker has a continuous local storage in order to store the current context. It means you don't need to always pass the `ctx` from actions to service methods. You can get it with `this.currentContext`.
+
+```js
+// greeter.service.js
+module.exports = {
+	name: "greeter",
+	actions: {
+		hello(ctx) {
+			return this.Promise.resolve()
+				.then(() => this.doSomething());
+
+		}
+	},
+	methods: {
+		doSomething() {
+            const ctx = this.currentContext;
+            return ctx.call("other.service");
+		}
+	}
+});
+```
 
 
 # Other notable changes
