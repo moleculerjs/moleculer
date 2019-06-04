@@ -189,7 +189,7 @@ class JaegerTraceExporter extends BaseTraceExporter {
 			this.addTags(jaegerSpan, "error", this.errorToObject(span.error));
 		}
 
-		jaegerSpan.finish(span.endTime);
+		jaegerSpan.finish(span.finishTime);
 
 		return jaegerSpan;
 	}

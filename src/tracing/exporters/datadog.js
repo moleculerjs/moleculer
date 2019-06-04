@@ -176,7 +176,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 			this.addTags(ddSpan, "error", this.errorToObject(span.error));
 		}
 
-		ddSpan.finish(span.endTime);
+		ddSpan.finish(span.finishTime);
 
 		if (item.oldSpan) {
 			this.ddScope._spans[item.asyncId] = item.oldSpan;
