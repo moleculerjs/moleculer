@@ -444,6 +444,8 @@ const broker = new ServiceBroker({
 });
 ```
 
+>To use this exporter, install the `dd-trace` module with `npm install dd-trace --save` command.
+
 #### Event exporter
 Event exporter sends Moleculer events (`$tracing.spans`) with tracing data.
 ```js
@@ -528,6 +530,9 @@ const broker = new ServiceBroker({
 });
 ```
 
+>To use this exporter, install the `jaeger-client` module with `npm install jaeger-client --save` command.
+
+
 #### Zipkin exporter
 Zipkin exporter sends tracing spans information to a [Zipkin](https://zipkin.apache.org/) server.
 
@@ -563,6 +568,7 @@ const broker = new ServiceBroker({
     }
 });
 ```
+
 
 ### Custom tracing spans
 ```js
