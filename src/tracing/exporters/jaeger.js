@@ -177,6 +177,8 @@ class JaegerTraceExporter extends BaseTraceExporter {
 			}, span.tags, this.defaultTags))
 		});
 
+		this.addLogs(jaegerSpan, span.logs);
+
 		this.addTags(jaegerSpan, "service", serviceName);
 		this.addTags(jaegerSpan, Jaeger.opentracing.Tags.SPAN_KIND, Jaeger.opentracing.Tags.SPAN_KIND_RPC_SERVER);
 
@@ -189,9 +191,24 @@ class JaegerTraceExporter extends BaseTraceExporter {
 			this.addTags(jaegerSpan, "error", this.errorToObject(span.error));
 		}
 
-		jaegerSpan.finish(span.endTime);
+		jaegerSpan.finish(span.finishTime);
 
 		return jaegerSpan;
+	}
+
+	/**
+	 * Add logs to span
+	 *
+	 * @param {Object} span
+	 * @param {Array} logs
+	 */
+	addLogs(span, logs) {
+		logs.forEach((log) => {
+			span.log({
+				event: log.name,
+				payload: log.fields,
+			}, log.time);
+		});
 	}
 
 	/**
