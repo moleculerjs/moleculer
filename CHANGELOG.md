@@ -82,7 +82,7 @@ const broker = new ServiceBroker({
 # New
 
 ## New built-in metrics
-The Moleculer v0.14 comes with a brand-new entirely rewritten metrics built-in module. It collect a lot of internal moleculer & process metric values. You can easily define your custom metrics. There are several built-in metrics reporters like `Console`, `Prometheus`, `Datadog`, ...etc.
+Moleculer v0.14 comes with a brand-new and entirely rewritten metrics module. It is now a built-in module. It collects a lot of internal Moleculer & process metric values. You can easily define your custom metrics. There are several built-in metrics reporters like `Console`, `Prometheus`, `Datadog`, ...etc.
 Multiple reporters can be defined.
 
 **Enable metrics & define console reporter**
@@ -294,7 +294,7 @@ const broker = new ServiceBroker({
 >Not implemented yet.
 
 #### Datadog reporter
-This reporter sends metrics to the [Datadog server](https://www.datadoghq.com/).
+Datadog reporter sends metrics to the [Datadog server](https://www.datadoghq.com/).
 
 ```js
 const broker = new ServiceBroker({
@@ -324,7 +324,7 @@ const broker = new ServiceBroker({
 >Not implemented yet.
 
 #### Prometheus reporter
-This reporter publish metrics in Prometheus format. The [Prometheus](https://prometheus.io/) server can collect them. Default port is `3030`.
+Prometheus reporter publishes metrics in Prometheus format. The [Prometheus](https://prometheus.io/) server can collect them. Default port is `3030`.
 
 ```js
 const broker = new ServiceBroker({
@@ -398,7 +398,7 @@ const broker = new ServiceBroker({
 
 #### Console exporter
 This is a debugging exporter which prints the full local trace to the console.
->Please note, it can't follow remote calls, only locals.
+>Please note that it can't follow remote calls, only locals.
 
 ```js
 const broker = new ServiceBroker({
@@ -420,7 +420,7 @@ const broker = new ServiceBroker({
 ```
 
 #### Datadog exporter
-It is a Datadog exporter which send tracing data to Datadog server via `dd-trace`. It is able to join tracing spans between instrumented Node.js modules and Moleculer modules.
+Datadog exporter sends tracing data to Datadog server via `dd-trace`. It is able to merge tracing spans between instrumented Node.js modules and Moleculer modules.
 
 >TODO screenshot
 
@@ -445,7 +445,7 @@ const broker = new ServiceBroker({
 ```
 
 #### Event exporter
-This exporter sends Moleculer events (`$tracing.spans`) with tracing data.
+Event exporter sends Moleculer events (`$tracing.spans`) with tracing data.
 ```js
 const broker = new ServiceBroker({
     tracing: {
@@ -492,7 +492,7 @@ const broker = new ServiceBroker({
 ```
 
 #### Jaeger exporter
-This exporter sends tracing spans information to a [Jaeger](https://www.jaegertracing.io) server.
+Jaeger exporter sends tracing spans information to a [Jaeger](https://www.jaegertracing.io) server.
 
 ```js
 const broker = new ServiceBroker({
@@ -529,7 +529,7 @@ const broker = new ServiceBroker({
 ```
 
 #### Zipkin exporter
-This exporter sends tracing spans information to a [Zipkin](https://zipkin.apache.org/) server.
+Zipkin exporter sends tracing spans information to a [Zipkin](https://zipkin.apache.org/) server.
 
 ```js
 const broker = new ServiceBroker({
@@ -577,7 +577,7 @@ module.exports = {
                 }
             }); 
             const data = await this.getDataFromDB(ctx.params);
-            span1.finish;
+            span1.finish();
 
             const span2 = ctx.startSpan("populating");
             const res = await this.populate(data);
@@ -591,7 +591,7 @@ module.exports = {
 
 
 ## NodeID conflict handling
-The ServiceBroker checks the nodeIDs of remote nodes because same nodeID in the same namespace can cause communication problems. If some node has the same nodeID, the broker will throw a fatal error and stop the process.
+Having remote nodes with same `nodeID` in the same `namespace` can cause communication problems. In v0.14 ServiceBroker checks the nodeIDs of remote nodes. If some node has the same nodeID, the broker will throw a fatal error and stop the process.
 
 ## Sharding built-in strategy
 There is a new built-in shard invocation strategy. It uses a key value from context params or meta to route the request a specific node. It means the same key value will be route to the same node.
@@ -730,7 +730,7 @@ _This information is available in response of `$node.list` action._
 
 
 ## Enhanced hot-reload feature
-In version 0.14 the built-in hot-reload feature has been rewritten entirely. It can detect dependency-graph between service files and other loaded (with ˙require˙) files. It means if you load an other JS file in your service file and this JS files changed, the Hot-Reload middleware will detect it and reload your service file. What's more, if you uses this JS file in many services, it will reload all affected services.
+In v0.14 the built-in hot-reload feature was entirely rewritten. Now, it can detect dependency-graph between service files and other loaded (with `require`) files. This means that the hot-reload mechanism now watches the service files and their dependencies. Every time a file change is detected the hot-reload mechanism will track the affected services and will restart them.
 
 ## New middleware hooks
 There are some new middleware hooks.
