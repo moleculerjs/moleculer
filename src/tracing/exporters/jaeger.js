@@ -8,7 +8,7 @@ const BaseTraceExporter 	= require("./base");
 
 fetch.Promise = Promise;
 
-let Jaeger, GuaranteedThroughputSampler, RemoteControlledSampler, UDPSender;
+let Jaeger, GuaranteedThroughputSampler, RemoteControlledSampler, UDPSender, HTTPSender;
 
 /**
  * Trace Exporter for Jaeger.
@@ -35,6 +35,8 @@ class JaegerTraceExporter extends BaseTraceExporter {
 
 		this.opts = _.defaultsDeep(this.opts, {
 
+			/** @type {String?} HTTP Reporter endpoint - is set, HTTP Reporter will be used. */
+			endpoint: null,
 			/** @type {String} UDP Sender host option. */
 			host: "127.0.0.1",
 			/** @type {Number?} UDP Sender port option. */
@@ -73,6 +75,7 @@ class JaegerTraceExporter extends BaseTraceExporter {
 			GuaranteedThroughputSampler	= require("jaeger-client/dist/src/samplers/guaranteed_throughput_sampler").default;
 			RemoteControlledSampler		= require("jaeger-client/dist/src/samplers/remote_sampler").default;
 			UDPSender					= require("jaeger-client/dist/src/reporters/udp_sender").default;
+			HTTPSender					= require("jaeger-client/dist/src/reporters/http_sender").default;
 		} catch(err) {
 			/* istanbul ignore next */
 			this.tracer.broker.fatal("The 'jaeger-client' package is missing! Please install it with 'npm install jaeger-client --save' command!", err, true);
@@ -89,7 +92,15 @@ class JaegerTraceExporter extends BaseTraceExporter {
 	 *
 	 */
 	getReporter() {
-		return new Jaeger.RemoteReporter(new UDPSender({ host: this.opts.host, port: this.opts.port }));
+		let reporter;
+
+		if (this.opts.endpoint) {
+			reporter = new HTTPSender({ endpoint: this.opts.endpoint });
+		} else {
+			reporter = new UDPSender({ host: this.opts.host, port: this.opts.port });
+		}
+
+		return new Jaeger.RemoteReporter(reporter);
 	}
 
 	/**
