@@ -33,6 +33,9 @@ class Tracer {
 
 		this.opts = _.defaultsDeep({}, opts, {
 			enabled: true,
+
+			exporters: null,
+
 			sampling: {
 				rate: 1.0, // 0.0, 0.5
 				//TODO: qps: 1.0 // 1 trace / 1 sec (ratelimiting sampling https://opencensus.io/tracing/sampling/ratelimited/ )
@@ -109,7 +112,7 @@ class Tracer {
 		if (this.opts.sampling.rate == 1)
 			return true;
 
-		if (this.sampleCounter * this.opts.sampling.rate >= 1.0) {
+		if (++this.sampleCounter * this.opts.sampling.rate >= 1.0) {
 			this.sampleCounter = 0;
 			return true;
 		}
