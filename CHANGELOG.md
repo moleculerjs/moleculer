@@ -394,10 +394,60 @@ const broker = new ServiceBroker({
 });
 ```
 
+### Add context values to span tags
+In action defintion you can define which Context params or meta values want to add to the span tags.
+
+**Example**
+```js
+// posts.service.js
+module.exports = {
+    name: "posts",
+    actions: {
+        get: {
+            tracing: {
+                // Add `ctx.params.id` and `ctx.meta.loggedIn.username` values
+                // to tracing span tags.
+                tags: ["id", "#loggedIn.username"],
+            },
+            async handler(ctx) {
+                // ...
+            }
+        }
+    }
+});
+```
+
+**Example with custom function**
+```js
+// posts.service.js
+module.exports = {
+    name: "posts",
+    actions: {
+        get: {
+            tracing: {
+                tags: ctx => {
+                    return {
+                        params: ctx.params,
+                        meta: ctx.meta,
+                        custom: {
+                            a: 5
+                        }
+                    };
+                }
+            },
+            async handler(ctx) {
+                // ...
+            }
+        }
+    }
+});
+```
+
 ### Built-in exporters
 
 #### Console exporter
 This is a debugging exporter which prints the full local trace to the console.
+
 >Please note that it can't follow remote calls, only locals.
 
 ```js
@@ -504,6 +554,8 @@ const broker = new ServiceBroker({
             {
                 type: "Jaeger",
                 options: {
+                    /** @type {String?} HTTP Reporter endpoint. If set, HTTP Reporter will be used. */
+                    endpoint: null,                    
                     /** @type {String} UDP Sender host option. */
                     host: "127.0.0.1",
                     /** @type {Number?} UDP Sender port option. */
@@ -961,20 +1013,20 @@ ServiceBroker has a continuous local storage in order to store the current conte
 ```js
 // greeter.service.js
 module.exports = {
-	name: "greeter",
-	actions: {
-		hello(ctx) {
-			return this.Promise.resolve()
-				.then(() => this.doSomething());
+    name: "greeter",
+    actions: {
+        hello(ctx) {
+            return this.Promise.resolve()
+                .then(() => this.doSomething());
 
-		}
-	},
-	methods: {
-		doSomething() {
+        }
+    },
+    methods: {
+        doSomething() {
             const ctx = this.currentContext;
             return ctx.call("other.service");
-		}
-	}
+        }
+    }
 });
 ```
 
