@@ -103,7 +103,6 @@ class ZipkinTraceExporter extends BaseTraceExporter {
 			body: JSON.stringify(data),
 			headers: {
 				"Content-Type": "application/json",
-
 			}
 		}).then(res => {
 			this.logger.debug(`Tracing spans (${data.length} spans) are uploaded to Zipkin. Status: ${res.statusText}`);
@@ -148,7 +147,7 @@ class ZipkinTraceExporter extends BaseTraceExporter {
 			],
 
 			timestamp: this.convertTime(span.startTime),
-			duration: Math.round(span.duration * 1000),
+			duration: this.convertTime(span.duration * 1000),
 
 			tags: {},
 
@@ -193,7 +192,7 @@ class ZipkinTraceExporter extends BaseTraceExporter {
 	 * @returns {Number}
 	 */
 	convertTime(ts) {
-		return Math.round(ts * 1000);
+		return ts != null ? Math.round(ts * 1000) : null;
 	}
 
 }

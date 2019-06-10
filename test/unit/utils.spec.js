@@ -27,17 +27,17 @@ describe("Test utils.humanize", () => {
 });
 
 describe("Test utils.generateToken", () => {
+	const REGEX_MATCHER = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/;
 
 	it("should generate unique token", () => {
 		let res1 = utils.generateToken();
-		expect(res1).toBeDefined();
 		expect(res1.length).toBe(36);
+		expect(res1).toMatch(REGEX_MATCHER);
 
 		let res2 = utils.generateToken();
-		expect(res2).toBeDefined();
+		expect(res2).toMatch(REGEX_MATCHER);
 		expect(res1).not.toEqual(res2);
 	});
-
 });
 
 
