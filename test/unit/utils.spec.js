@@ -1,5 +1,31 @@
 const utils = require("../../src/utils");
 
+describe("Test utils.humanize", () => {
+
+	it("should humanize elapsed milliseconds", () => {
+		expect(utils.humanize()).toBe("?");
+		expect(utils.humanize(1)).toBe("1ms");
+		expect(utils.humanize(10)).toBe("10ms");
+		expect(utils.humanize(100)).toBe("100ms");
+		expect(utils.humanize(1000)).toBe("1s");
+		expect(utils.humanize(10000)).toBe("10s");
+		expect(utils.humanize(100000)).toBe("1m");
+		expect(utils.humanize(1000000)).toBe("16m");
+		expect(utils.humanize(10000000)).toBe("2h");
+		expect(utils.humanize(100000000)).toBe("27h");
+
+		expect(utils.humanize(0)).toBe("now");
+		expect(utils.humanize(0.1)).toBe("100μs");
+		expect(utils.humanize(0.01)).toBe("10μs");
+		expect(utils.humanize(0.001)).toBe("1μs");
+		expect(utils.humanize(0.0001)).toBe("100ns");
+		expect(utils.humanize(0.00001)).toBe("10ns");
+		expect(utils.humanize(0.000001)).toBe("1ns");
+		expect(utils.humanize(0.0000001)).toBe("now");
+	});
+
+});
+
 describe("Test utils.generateToken", () => {
 
 	it("should generate unique token", () => {

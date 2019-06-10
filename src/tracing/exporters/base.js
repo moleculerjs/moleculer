@@ -75,7 +75,7 @@ class BaseTraceExporter {
 	 * @memberof BaseTraceExporter
 	 */
 	flattenTags(obj, convertToString = false, path = "") {
-		if (!obj) return obj;
+		if (!obj) return null;
 
 		return Object.keys(obj).reduce((res, k) => {
 			const o = obj[k];

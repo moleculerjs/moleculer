@@ -3,7 +3,7 @@
 const _ 			= require("lodash");
 const r 			= _.repeat;
 const chalk 		= require("chalk");
-const humanize 		= require("tiny-human-time").short;
+const { humanize }  = require("../../utils");
 const slice 		= require("slice-ansi");
 
 const BaseTraceExporter = require("./base");

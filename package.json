@@ -105,8 +105,7 @@
     "ipaddr.js": "^1.9.0",
     "lodash": "^4.17.11",
     "lru-cache": "^5.1.1",
-    "node-fetch": "^2.6.0",
-    "tiny-human-time": "^1.2.0"
+    "node-fetch": "^2.6.0"
   },
   "engines": {
     "node": ">= 8.x.x"

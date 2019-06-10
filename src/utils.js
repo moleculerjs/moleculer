@@ -38,7 +38,22 @@ function circularReplacer() {
 	};
 }
 
+const units = ["h", "m", "s", "ms", "μs", "ns"];
+const divisors = [60 * 60 * 1000, 60 * 1000, 1000, 1, 1e-3, 1e-6];
+
 const utils = {
+
+	humanize(milli) {
+		if (milli == null) return "?";
+
+		for (let i = 0; i < divisors.length; i++) {
+			const val = milli / divisors[i];
+			if (val >= 1.0)
+				return "" + Math.floor(val) + units[i];
+		}
+
+		return "now";
+	},
 
 	// Fast UUID generator: e7 https://jsperf.com/uuid-generator-opt/18
 	generateToken() {
