@@ -72,7 +72,7 @@ describe("Test Event tracing exporter class", () => {
 			exporter.flush = jest.fn();
 			exporter.init(fakeTracer);
 
-			expect(exporter.timer).toBeDefined();
+			expect(exporter.broker).toBe(broker);
 
 			expect(exporter.timer).toBeDefined();
 			expect(exporter.flush).toBeCalledTimes(0);

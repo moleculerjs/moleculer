@@ -75,8 +75,6 @@ describe("Test Zipkin tracing exporter class", () => {
 			exporter.init(fakeTracer);
 
 			expect(exporter.timer).toBeDefined();
-
-			expect(exporter.timer).toBeDefined();
 			expect(exporter.flush).toBeCalledTimes(0);
 
 			clock.tick(5500);

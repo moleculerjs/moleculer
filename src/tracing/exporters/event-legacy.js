@@ -21,8 +21,6 @@ class EventLegacyTraceExporter extends BaseTraceExporter {
 
 		this.opts = _.defaultsDeep(this.opts, {
 		});
-
-		this.queue = [];
 	}
 
 	/**
@@ -74,8 +72,9 @@ class EventLegacyTraceExporter extends BaseTraceExporter {
 		};
 
 		// Process extra metrics
-		if (span.ctx)
-			this.processExtraMetrics(span.ctx, payload);
+		const ctx = this.broker.getCurrentContext();
+		if (ctx)
+			this.processExtraMetrics(ctx, payload);
 
 		payload.action = span.tags.action;
 		payload.service = span.service;
