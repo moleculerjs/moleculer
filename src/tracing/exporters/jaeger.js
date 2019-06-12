@@ -1,12 +1,7 @@
 "use strict";
 
 const _ 					= require("lodash");
-const Promise 				= require("bluebird");
-const fetch 				= require("node-fetch");
-//const { MoleculerError } 	= require("../../errors");
 const BaseTraceExporter 	= require("./base");
-
-fetch.Promise = Promise;
 
 let Jaeger, GuaranteedThroughputSampler, RemoteControlledSampler, UDPSender, HTTPSender;
 
@@ -112,18 +107,20 @@ class JaegerTraceExporter extends BaseTraceExporter {
 			return this.opts.sampler;
 
 		if (this.opts.sampler.type == "RateLimiting")
-			return new Jaeger.RateLimitingSampler(this.opts.sampler.options.maxTracesPerSecond, this.opts.sampler.options.initBalance);
+			return new Jaeger.RateLimitingSampler(this.opts.sampler.options.maxTracesPerSecond,
+				this.opts.sampler.options.initBalance);
 
 		if (this.opts.sampler.type == "Probabilistic")
 			return new Jaeger.ProbabilisticSampler(this.opts.sampler.options.samplingRate);
 
 		if (this.opts.sampler.type == "GuaranteedThroughput")
-			return new GuaranteedThroughputSampler(this.opts.sampler.options.lowerBound, this.opts.sampler.options.samplingRate);
+			return new GuaranteedThroughputSampler(this.opts.sampler.options.lowerBound,
+				this.opts.sampler.options.samplingRate);
 
 		if (this.opts.sampler.type == "RemoteControlled")
 			return new RemoteControlledSampler(serviceName, this.opts.sampler.options);
 
-		return new Jaeger.ConstSampler(this.opts.sampler.options && this.opts.sampler.options.decision != null ? this.opts.sampler.options.decision : 1);
+		return new Jaeger.ConstSampler((this.opts.sampler.options && this.opts.sampler.options.decision != null) ? this.opts.sampler.options.decision : 1);
 	}
 
 	/**
@@ -214,12 +211,14 @@ class JaegerTraceExporter extends BaseTraceExporter {
 	 * @param {Array} logs
 	 */
 	addLogs(span, logs) {
-		logs.forEach((log) => {
-			span.log({
-				event: log.name,
-				payload: log.fields,
-			}, log.time);
-		});
+		if (Array.isArray(logs)) {
+			logs.forEach((log) => {
+				span.log({
+					event: log.name,
+					payload: log.fields,
+				}, log.time);
+			});
+		}
 	}
 
 	/**

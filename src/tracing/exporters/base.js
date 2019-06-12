@@ -1,6 +1,6 @@
 "use strict";
 
-const _ 					= require("lodash");
+const _ = require("lodash");
 
 /**
  * Abstract Trace Exporter

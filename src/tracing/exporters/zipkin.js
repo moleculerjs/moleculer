@@ -3,7 +3,6 @@
 const _ 					= require("lodash");
 const Promise 				= require("bluebird");
 const fetch 				= require("node-fetch");
-//const { MoleculerError } 	= require("../../errors");
 const BaseTraceExporter 	= require("./base");
 
 fetch.Promise = Promise;
