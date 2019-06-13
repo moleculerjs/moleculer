@@ -483,7 +483,7 @@ describe("Test Jaeger tracing exporter class", () => {
 		exporter.getTracer = jest.fn(() => fakeJaegerTracer);
 		Jaeger.SpanContext = jest.fn(() => fakeParentSpanContext);
 
-		it("should convert normal span to zipkin payload without parentID", () => {
+		it("should convert normal span to Jaeger payload without parentID", () => {
 			const span = {
 				name: "Test Span",
 				id: "abc-12345678901234567890",
@@ -545,7 +545,7 @@ describe("Test Jaeger tracing exporter class", () => {
 
 		});
 
-		it("should convert normal span to zipkin payload with parentID & logs", () => {
+		it("should convert normal span to Jaeger payload with parentID & logs", () => {
 			exporter.getTracer.mockClear();
 			Jaeger.SpanContext.mockClear();
 			fakeJaegerTracer.startSpan.mockClear();
@@ -633,7 +633,7 @@ describe("Test Jaeger tracing exporter class", () => {
 
 		});
 
-		it("should convert normal span to zipkin payload with error", () => {
+		it("should convert normal span to Jaeger payload with error", () => {
 			exporter.getTracer.mockClear();
 			Jaeger.SpanContext.mockClear();
 			fakeJaegerTracer.startSpan.mockClear();
