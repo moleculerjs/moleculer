@@ -1,7 +1,7 @@
 "use strict";
 
 const asyncHooks = require("async_hooks");
-
+/*
 const tracer = require("dd-trace").init({
 	service: "moleculer", // shows up as Service in Datadog UI
 	//url: "http://192.168.0.181:8126",
@@ -11,7 +11,7 @@ const tracer = require("dd-trace").init({
 
 tracer.use("http");
 tracer.use("ioredis");
-
+*/
 const ServiceBroker = require("../src/service-broker");
 "use strict";
 
@@ -37,16 +37,18 @@ const broker = new ServiceBroker({
 			{
 				type: "Console",
 				options: {
-					logger: console
+					width: 100,
+					gaugeWidth: 30,
+					logger: console.info
 				}
 			},
-			{
+			/*{
 				type: "Datadog",
 				options: {
 					tracer,
 					samplingPriority: "USER_KEEP"
 				}
-			},
+			},*/
 			/*{
 				type: "Zipkin",
 				options: {
@@ -276,10 +278,10 @@ broker.start().then(() => {
 
 	// Call action
 	//setInterval(() => {
-/*	broker
+	broker
 		.call("posts.find", { limit: 5 }, { meta: { loggedIn: { username: "Adam" } } })
 		//.then(console.log)
 		.catch(console.error);
-*/
+
 	//}, 5000);
 });

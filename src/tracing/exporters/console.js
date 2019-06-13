@@ -4,7 +4,6 @@ const _ 			= require("lodash");
 const r 			= _.repeat;
 const chalk 		= require("chalk");
 const { humanize }  = require("../../utils");
-const slice 		= require("slice-ansi");
 
 const BaseTraceExporter = require("./base");
 
@@ -29,7 +28,8 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 			width: 100,
 			gaugeWidth: 40
 		});
-		chalk.enabled = this.opts.colors;
+		if (!this.opts.colors)
+			chalk.level = 0;
 
 		this.spans = {};
 	}
@@ -70,7 +70,7 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 	 * @memberof ConsoleTraceExporter
 	 */
 	finishSpan(span) {
-		//this.logger.info(span);
+		//this.log(span);
 		if (!this.spans[span.parentID]) {
 			this.printRequest(span.id);
 
@@ -79,36 +79,33 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 	}
 
 	drawTableTop() {
-		return chalk.grey("┌" + r("─", this.opts.width - 2) + "┐");
+		this.log(chalk.grey("┌" + r("─", this.opts.width - 2) + "┐"));
 	}
 
 	drawHorizonalLine() {
-		return chalk.grey("├" + r("─", this.opts.width - 2) + "┤");
+		this.log(chalk.grey("├" + r("─", this.opts.width - 2) + "┤"));
 	}
 
 	drawLine(text) {
-		return chalk.grey("│ ") + text + chalk.grey(" │");
+		this.log(chalk.grey("│ ") + text + chalk.grey(" │"));
 	}
 
 	drawTableBottom() {
-		return chalk.grey("└" + r("─", this.opts.width - 2) + "┘");
+		this.log(chalk.grey("└" + r("─", this.opts.width - 2) + "┘"));
 	}
 
-	drawAlignedTexts(leftStr, rightStr, width) {
-		const ll = leftStr.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, "").length; // eslint-disable-line
-		const rl = rightStr.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, "").length; // eslint-disable-line
-
-		const space = width - rl;
+	getAlignedTexts(str, space) {
+		const len = str.length;
 
 		let left;
-		if (ll <= space)
-			left = leftStr + r(" ", space - ll);
+		if (len <= space)
+			left = str + r(" ", space - len);
 		else {
-			left = slice(leftStr, 0, Math.max(space - 3, 0));
+			left = str.slice(0, Math.max(space - 3, 0));
 			left += r(".", Math.min(3, space));
 		}
 
-		return left + rightStr;
+		return left;
 	}
 
 	drawGauge(gstart, gstop) {
@@ -185,7 +182,7 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 
 		const time = span.duration == null ? "?" : humanize(span.duration);
 		const caption = r("  ", level - 1) + this.getCaption(span);
-		const info = this.drawAlignedTexts(caption, " " + time, w - gw - 3);
+		const info = this.getAlignedTexts(caption, w - gw - 3 - time.length - 1) + " " + time;
 
 		const startTime = span.startTime || mainSpan.startTime;
 		const finishTime = span.finishTime || mainSpan.finishTime;
@@ -201,7 +198,7 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 			gstop = 100;
 
 		const c = this.getColor(span);
-		this.logger.info(this.drawLine(c(info + " " + this.drawGauge(gstart, gstop))));
+		this.drawLine(c(info + " " + this.drawGauge(gstart, gstop)));
 
 		if (spanItem.children.length > 0)
 			spanItem.children.forEach(spanID => this.printSpanTime(this.spans[spanID], mainItem, level + 1));
@@ -215,22 +212,29 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 	printRequest(id) {
 		const main = this.spans[id];
 		const margin = 2 * 2;
-		const w = (this.opts.width || 80) - margin;
+		const w = this.opts.width - margin;
 
-		this.logger.info(this.drawTableTop());
+		this.drawTableTop();
 
 		const { total, depth } = this.getTraceInfo(main);
 
-		const headerLeft = chalk.grey("ID: ") + chalk.bold(id);
-		const headerRight = chalk.grey("Depth: ") + chalk.bold(depth) + " " + chalk.grey("Total: ") + chalk.bold(total);
-		const line = this.drawAlignedTexts(headerLeft, " " + headerRight, w);
-		this.logger.info(this.drawLine(line));
+		const truncatedID = this.getAlignedTexts(id, w - "ID: ".length - "Depth: ".length - (""+depth).length - "Total: ".length - (""+total).length - 2);
+		const line = chalk.grey("ID: ") + chalk.bold(truncatedID) + " " + chalk.grey("Depth: ") + chalk.bold(depth) + " " + chalk.grey("Total: ") + chalk.bold(total);
+		this.drawLine(line);
 
-		this.logger.info(this.drawHorizonalLine());
+		this.drawHorizonalLine();
 
 		this.printSpanTime(main, main, 1);
 
-		this.logger.info(this.drawTableBottom());
+		this.drawTableBottom();
+	}
+
+	log(...args) {
+		if (_.isFunction(this.opts.logger)) {
+			return this.opts.logger(...args);
+		} else {
+			return this.logger.info(...args);
+		}
 	}
 }
 
