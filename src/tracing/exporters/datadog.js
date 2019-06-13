@@ -192,7 +192,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 	 * @returns {Promise}
 	 *
 	 * @memberof DatadogTraceExporter
-	 */
+	 *
 	activatePromise(span, promise) {
 		const asyncId = asyncHooks.executionAsyncId();
 		const oldSpan = this.ddScope._spans[asyncId];
@@ -222,6 +222,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 			.then(res => finish(null, res))
 			.catch(err => finish(err));
 	}
+	*/
 
 	/**
 	 * Add tags to span

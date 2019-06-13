@@ -16,6 +16,8 @@ fetch.Promise = Promise;
  *
  * @class DatadogTraceExporter
  */
+
+/* istanbul ignore next */
 class DatadogTraceExporter extends BaseTraceExporter {
 
 	/**

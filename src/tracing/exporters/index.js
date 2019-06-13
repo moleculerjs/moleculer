@@ -13,7 +13,7 @@ const Exporters = {
 	Base: require("./base"),
 	Console: require("./console"),
 	Datadog: require("./datadog"),
-	DatadogSimple: require("./datadog-simple"),
+	//DatadogSimple: require("./datadog-simple"),
 	Event: require("./event"),
 	EventLegacy: require("./event-legacy"),
 	Jaeger: require("./jaeger"),

@@ -13,6 +13,7 @@ const _ = require("lodash");
 
 const { clearRequireCache } = require("../utils");
 
+/* istanbul ignore next */
 module.exports = function HotReloadMiddleware(broker) {
 
 	const cache = new Map();
