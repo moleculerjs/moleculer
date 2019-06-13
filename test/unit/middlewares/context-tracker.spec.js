@@ -4,6 +4,8 @@ const Context = require("../../../src/context");
 const Middleware = require("../../../src/middlewares").ContextTracker;
 const { protectReject } = require("../utils");
 
+const lolex = require("lolex");
+
 describe("Test ContextTrackerMiddleware", () => {
 	const broker = new ServiceBroker({ nodeID: "server-1", logger: false });
 	const handler = jest.fn(() => Promise.resolve("Result"));
@@ -240,7 +242,7 @@ describe("Test broker delayed shutdown with remote calls", () => {
 		actions: {
 			test() {
 				FLOW.push("start");
-				return this.Promise.delay(200)
+				return this.Promise.delay(250)
 					.then(() => FLOW.push("end"));
 			}
 		},
@@ -255,7 +257,7 @@ describe("Test broker delayed shutdown with remote calls", () => {
 		return broker1.Promise.resolve()
 			.then(() => {
 				broker1.call("delayed.test", {});
-				return broker1.Promise.delay(10);
+				return broker1.Promise.delay(50);
 			})
 			.then(() => broker1.Promise.all([broker1.stop(), broker2.stop()]))
 			.catch(protectReject)
