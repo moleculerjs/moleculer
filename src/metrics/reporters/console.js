@@ -29,11 +29,12 @@ class ConsoleReporter extends BaseReporter {
 
 		this.opts = _.defaultsDeep(this.opts, {
 			interval: 5 * 1000,
-			logger: null
+			logger: null,
+			colors: true,
 		});
 
-		/* eslint-disable no-console */
-		this.logger = this.opts.logger || console.log;
+		if (!this.opts.colors)
+			chalk.level = 0;
 	}
 
 	/**
@@ -44,7 +45,10 @@ class ConsoleReporter extends BaseReporter {
 	init(registry) {
 		super.init(registry);
 
-		setInterval(() => this.print(), this.opts.interval).unref();
+		if (this.opts.interval > 0) {
+			this.timer = setInterval(() => this.print(), this.opts.interval);
+			this.timer.unref();
+		}
 	}
 
 	/**
@@ -69,15 +73,15 @@ class ConsoleReporter extends BaseReporter {
 	 */
 	print() {
 		const store = this.registry.store;
-		this.logger(chalk.gray(`------------------- [ METRICS START (${store.size}) ] -------------------`));
+		this.log(chalk.gray(`------------------- [ METRICS START (${store.size}) ] -------------------`));
 
 		store.forEach(metric => {
 			if (!this.matchMetricName(metric.name)) return;
 
-			this.logger(chalk.cyan.bold(this.formatMetricName(metric.name)) + " " + chalk.gray("(" + metric.type + ")"));
+			this.log(chalk.cyan.bold(this.formatMetricName(metric.name)) + " " + chalk.gray("(" + metric.type + ")"));
 			const snapshot = metric.snapshot();
 			if (snapshot.size == 0) {
-				this.logger(chalk.gray("  <no values>"));
+				this.log(chalk.gray("  <no values>"));
 			} else {
 				const unit = metric.unit ? chalk.gray(metric.unit) : "";
 				snapshot.forEach(item => {
@@ -115,13 +119,22 @@ class ConsoleReporter extends BaseReporter {
 							break;
 						}
 					}
-					this.logger(`  ${labelStr}: ${val} ${unit}`);
+					this.log(`  ${labelStr}: ${val} ${unit}`);
 				});
 			}
-			this.logger("");
+			this.log("");
 		});
 
-		this.logger(chalk.gray(`-------------------- [ METRICS END (${store.size}) ] --------------------`));
+		this.log(chalk.gray(`-------------------- [ METRICS END (${store.size}) ] --------------------`));
+	}
+
+
+	log(...args) {
+		if (_.isFunction(this.opts.logger)) {
+			return this.opts.logger(...args);
+		} else {
+			return this.logger.info(...args);
+		}
 	}
 }
 

@@ -50,6 +50,7 @@ class BaseReporter {
 	init(registry) {
 		this.registry = registry;
 		this.broker = this.registry.broker;
+		this.logger = this.registry.logger;
 	}
 
 	/**

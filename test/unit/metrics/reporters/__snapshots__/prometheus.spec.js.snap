@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Test Datadog Reporter class Test generatePrometheusResponse method should call generatePrometheusResponse method but not fetch 1`] = `
+exports[`Test Prometheus Reporter class Test generatePrometheusResponse method should call generatePrometheusResponse method but not fetch 1`] = `
 "# HELP test_info Test Info Metric
 # TYPE test_info gauge
 test_info{a=\\"5\\",value=\\"Test Value\\"} 1

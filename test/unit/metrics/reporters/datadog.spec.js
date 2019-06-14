@@ -34,7 +34,7 @@ describe("Test Datadog Reporter class", () => {
 				apiVersion: "v1",
 				defaultLabels: expect.any(Function),
 				host: os.hostname(),
-				interval: 10,
+				interval: 10000,
 			});
 		});
 
@@ -50,7 +50,7 @@ describe("Test Datadog Reporter class", () => {
 				apiKey: "12345",
 				apiVersion: "v2",
 				host: "custom-hostname",
-				interval: 5
+				interval: 5000
 			});
 
 			expect(reporter.opts).toEqual({
@@ -66,7 +66,7 @@ describe("Test Datadog Reporter class", () => {
 				apiVersion: "v2",
 				defaultLabels: expect.any(Function),
 				host: "custom-hostname",
-				interval: 5,
+				interval: 5000,
 			});
 		});
 
@@ -86,7 +86,7 @@ describe("Test Datadog Reporter class", () => {
 				namespace: "test-ns"
 			};
 			const fakeRegistry = { broker: fakeBroker };
-			const reporter = new DatadogReporter({ interval: 5 });
+			const reporter = new DatadogReporter({ interval: 5000 });
 			reporter.flush = jest.fn();
 			reporter.init(fakeRegistry);
 

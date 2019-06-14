@@ -72,7 +72,7 @@ class PrometheusReporter extends BaseReporter {
 				return this.registry.broker.fatal(new MoleculerError("Prometheus metric reporter listening error: " + err.message));
 			}
 
-			this.registry.logger.info(`Prometheus metric reporter listening on http://0.0.0.0:${this.opts.port}${this.opts.path} address.`);
+			this.logger.info(`Prometheus metric reporter listening on http://0.0.0.0:${this.opts.port}${this.opts.path} address.`);
 		});
 		this.defaultLabels = _.isFunction(this.opts.defaultLabels) ? this.opts.defaultLabels.call(this, registry) : this.opts.defaultLabels;
 	}
@@ -97,7 +97,7 @@ class PrometheusReporter extends BaseReporter {
 				zlib.gzip(content, (err, buffer) => {
 					/* istanbul ignore next */
 					if (err) {
-						this.registry.logger("Unable to compress response: " + err.message);
+						this.logger("Unable to compress response: " + err.message);
 						res.writeHead(500);
 						res.end(err.message);
 					} else {

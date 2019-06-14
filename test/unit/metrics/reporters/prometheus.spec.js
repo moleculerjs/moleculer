@@ -10,7 +10,7 @@ const MetricRegistry = require("../../../../src/metrics/registry");
 
 // TODO: call server.close in afters
 
-describe("Test Datadog Reporter class", () => {
+describe("Test Prometheus Reporter class", () => {
 
 	describe("Test Constructor", () => {
 

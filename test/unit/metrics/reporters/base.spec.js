@@ -47,12 +47,13 @@ describe("Test Base Reporter class", () => {
 
 		it("should set internal variables", () => {
 			const fakeBroker = {};
-			const fakeRegistry = { broker: fakeBroker };
+			const fakeRegistry = { broker: fakeBroker, logger: {} };
 			const reporter = new BaseReporter();
 			reporter.init(fakeRegistry);
 
 			expect(reporter.registry).toBe(fakeRegistry);
 			expect(reporter.broker).toBe(fakeBroker);
+			expect(reporter.logger).toBe(fakeRegistry.logger);
 		});
 
 	});

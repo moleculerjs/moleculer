@@ -44,7 +44,7 @@ class DatadogReporter extends BaseReporter {
 				namespace: registry.broker.namespace,
 				nodeID: registry.broker.nodeID
 			}),
-			interval: 10
+			interval: 10 * 1000
 		});
 
 		if (!this.opts.apiKey)
@@ -60,8 +60,10 @@ class DatadogReporter extends BaseReporter {
 	init(registry) {
 		super.init(registry);
 
-		this.timer = setInterval(() => this.flush(), this.opts.interval * 1000);
-		this.timer.unref();
+		if (this.opts.interval > 0) {
+			this.timer = setInterval(() => this.flush(), this.opts.interval);
+			this.timer.unref();
+		}
 
 		this.defaultLabels = _.isFunction(this.opts.defaultLabels) ? this.opts.defaultLabels.call(this, registry) : this.opts.defaultLabels;
 	}
@@ -84,10 +86,10 @@ class DatadogReporter extends BaseReporter {
 
 			}
 		}).then(res => {
-			this.registry.logger.debug("Metrics are uploaded to DataDog. Status: ", res.statusText);
+			this.logger.debug("Metrics are uploaded to DataDog. Status: ", res.statusText);
 		}).catch(err => {
 			/* istanbul ignore next */
-			this.registry.logger.warn("Unable to upload metrics to Datadog server. Error:" + err.message, err);
+			this.logger.warn("Unable to upload metrics to Datadog server. Error:" + err.message, err);
 		});
 	}
 
