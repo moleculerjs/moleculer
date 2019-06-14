@@ -411,7 +411,7 @@ module.exports = {
                 // to tracing span tags.
                 tags: {
                     params: ["id"],
-                    meta: ["#loggedIn.username"],
+                    meta: ["loggedIn.username"],
             },
             async handler(ctx) {
                 // ...
