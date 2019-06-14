@@ -281,7 +281,8 @@ const broker = new ServiceBroker({
                 type: "Console",
                 options: {
                     interval: 5 * 1000,
-                    logger: null
+                    logger: null,
+                    colors: true
                 }
             }
         ]
@@ -312,7 +313,7 @@ const broker = new ServiceBroker({
                         namespace: registry.broker.namespace,
                         nodeID: registry.broker.nodeID
                     }),
-                    interval: 10
+                    interval: 10 * 1000
                 }
             }
         ]
@@ -369,7 +370,8 @@ const broker = new ServiceBroker({
             {
                 type: "Console",
                 options: {
-                    logger: console
+                    width: 80,
+                    colors: true,
                 }
             }
         ]        
@@ -407,7 +409,30 @@ module.exports = {
             tracing: {
                 // Add `ctx.params.id` and `ctx.meta.loggedIn.username` values
                 // to tracing span tags.
-                tags: ["id", "#loggedIn.username"],
+                tags: {
+                    params: ["id"],
+                    meta: ["#loggedIn.username"],
+            },
+            async handler(ctx) {
+                // ...
+            }
+        }
+    }
+});
+```
+
+**Example with all properties of params without meta _(actually it is the default)_**
+```js
+// posts.service.js
+module.exports = {
+    name: "posts",
+    actions: {
+        get: {
+            tracing: {
+                // Add all params without meta
+                tags: {
+                    params: true,
+                    meta: false,
             },
             async handler(ctx) {
                 // ...
