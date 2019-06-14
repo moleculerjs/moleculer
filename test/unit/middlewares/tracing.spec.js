@@ -1,6 +1,5 @@
 const ServiceBroker 			= require("../../../src/service-broker");
 const { MoleculerError }		= require("../../../src/errors");
-const Context 					= require("../../../src/context");
 const Middleware 				= require("../../../src/middlewares").Tracing;
 const { protectReject }			= require("../utils");
 
@@ -12,12 +11,6 @@ describe("Test TracingMiddleware localAction", () => {
 		const action = {
 			name: "posts.find",
 			handler
-		};
-		const endpoint = {
-			action,
-			node: {
-				id: broker.nodeID
-			}
 		};
 
 		it("should not register hooks if tracing is disabled", () => {
@@ -32,11 +25,9 @@ describe("Test TracingMiddleware localAction", () => {
 			broker.tracer.opts.enabled = true;
 
 			const mw = Middleware(broker);
-
 			expect(mw.localAction).toBeInstanceOf(Function);
 
 			const newHandler = mw.localAction.call(broker, handler, action);
-
 			expect(newHandler).not.toBe(handler);
 		});
 
@@ -44,11 +35,9 @@ describe("Test TracingMiddleware localAction", () => {
 			action.tracing = false;
 
 			const mw = Middleware(broker);
-
 			expect(mw.localAction).toBeInstanceOf(Function);
 
 			const newHandler = mw.localAction.call(broker, handler, action);
-
 			expect(newHandler).toBe(handler);
 		});
 
@@ -56,11 +45,9 @@ describe("Test TracingMiddleware localAction", () => {
 			action.tracing = { enabled: false };
 
 			const mw = Middleware(broker);
-
 			expect(mw.localAction).toBeInstanceOf(Function);
 
 			const newHandler = mw.localAction.call(broker, handler, action);
-
 			expect(newHandler).toBe(handler);
 		});
 
@@ -68,11 +55,9 @@ describe("Test TracingMiddleware localAction", () => {
 			action.tracing = true;
 
 			const mw = Middleware(broker);
-
 			expect(mw.localAction).toBeInstanceOf(Function);
 
 			const newHandler = mw.localAction.call(broker, handler, action);
-
 			expect(newHandler).not.toBe(handler);
 		});
 
@@ -80,11 +65,9 @@ describe("Test TracingMiddleware localAction", () => {
 			action.tracing = { enabled: true };
 
 			const mw = Middleware(broker);
-
 			expect(mw.localAction).toBeInstanceOf(Function);
 
 			const newHandler = mw.localAction.call(broker, handler, action);
-
 			expect(newHandler).not.toBe(handler);
 		});
 
@@ -131,7 +114,7 @@ describe("Test TracingMiddleware localAction", () => {
 			},
 
 			params: {
-				a: 5,
+				a: 2,
 				b: "John",
 				c: {
 					d: 100,
@@ -164,6 +147,8 @@ describe("Test TracingMiddleware localAction", () => {
 
 			expect(res).toBe("Result");
 
+			ctx.params.a = 5;
+
 			expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(1);
 			expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(1);
 
@@ -189,7 +174,16 @@ describe("Test TracingMiddleware localAction", () => {
 						retries: 3,
 						timeout: 5
 					},
-					remoteCall: true
+					remoteCall: true,
+
+					params: {
+						a: 2,
+						b: "John",
+						c: {
+							d: 100,
+							e: true
+						}
+					}
 				},
 				sampled: true,
 			});
@@ -208,7 +202,10 @@ describe("Test TracingMiddleware localAction", () => {
 
 		it("should create a span with context tags & without service", async () => {
 			action.tracing = {
-				tags: ["a", "#user.name"]
+				tags: {
+					params: ["a", "c"],
+					meta: ["user.name"]
+				}
 			};
 
 			ctx.service = null;
@@ -252,8 +249,19 @@ describe("Test TracingMiddleware localAction", () => {
 					},
 					remoteCall: false,
 
-					a: 5,
-					"user.name": "Adam"
+					params: {
+						a: 5,
+						c:{
+							d: 100,
+							e: true
+						}
+					},
+
+					meta: {
+						user: {
+							name: "Adam"
+						}
+					}
 				},
 				sampled: true,
 			});
@@ -268,6 +276,108 @@ describe("Test TracingMiddleware localAction", () => {
 			expect(fakeSpan.finish).toHaveBeenCalledWith();
 
 			expect(fakeSpan.setError).toHaveBeenCalledTimes(0);
+		});
+
+		it("should create a span with cloned params & meta", async () => {
+			action.tracing = {
+				tags: {
+					params: true,
+					meta: true
+				}
+			};
+
+			const mw = Middleware(broker);
+			const newHandler = mw.localAction.call(broker, handler, action);
+
+			ctx.startSpan.mockClear();
+			fakeSpan.addTags.mockClear();
+			fakeSpan.setError.mockClear();
+			fakeSpan.finish.mockClear();
+
+			await newHandler(ctx);
+
+			ctx.params.a = 10;
+			ctx.meta.user.age = 35;
+
+			expect(ctx.startSpan).toHaveBeenCalledTimes(1);
+			expect(ctx.startSpan).toHaveBeenCalledWith("action 'posts.find'", {
+				id: "ctx-id",
+				traceID: "tracer-trace-id",
+				parentID: "tracer-span-id",
+				service: null,
+				tags: {
+					action: {
+						name: "posts.find",
+						rawName: "find"
+					},
+					callerNodeID: "server-1",
+					callingLevel: 3,
+					nodeID: "server-1",
+					options: {
+						retries: 3,
+						timeout: 5
+					},
+					remoteCall: false,
+
+					meta: {
+						user: {
+							age: 30,
+							name: "Adam"
+						}
+					},
+					params: {
+						a: 5,
+						b: "John",
+						c: {
+							d: 100,
+							e: true
+						}
+					}
+				},
+				sampled: true,
+			});
+		});
+
+		it("should create a span without params & meta", async () => {
+			action.tracing = {
+				tags: {
+					params: false,
+					meta: false
+				}
+			};
+
+			const mw = Middleware(broker);
+			const newHandler = mw.localAction.call(broker, handler, action);
+
+			ctx.startSpan.mockClear();
+			fakeSpan.addTags.mockClear();
+			fakeSpan.setError.mockClear();
+			fakeSpan.finish.mockClear();
+
+			await newHandler(ctx);
+
+			expect(ctx.startSpan).toHaveBeenCalledTimes(1);
+			expect(ctx.startSpan).toHaveBeenCalledWith("action 'posts.find'", {
+				id: "ctx-id",
+				traceID: "tracer-trace-id",
+				parentID: "tracer-span-id",
+				service: null,
+				tags: {
+					action: {
+						name: "posts.find",
+						rawName: "find"
+					},
+					callerNodeID: "server-1",
+					callingLevel: 3,
+					nodeID: "server-1",
+					options: {
+						retries: 3,
+						timeout: 5
+					},
+					remoteCall: false
+				},
+				sampled: true,
+			});
 		});
 
 		it("should create a span with custom tags function & error", () => {
@@ -326,12 +436,12 @@ describe("Test TracingMiddleware localAction", () => {
 						custom: {
 							meta: {
 								user: {
-									age: 30,
+									age: 35,
 									name: "Adam"
 								}
 							},
 							params: {
-								a: 5,
+								a: 10,
 								b: "John",
 								c: {
 									d: 100,
@@ -359,369 +469,4 @@ describe("Test TracingMiddleware localAction", () => {
 
 	});
 
-
-
-/*
-	it("should send metric events if handler is resolved", () => {
-		broker.options.metrics = true;
-		handler.mockClear();
-		const newHandler = mw.localAction.call(broker, handler, action);
-		broker.emit = jest.fn();
-
-		const ctx = Context.create(broker, endpoint);
-
-		return newHandler(ctx).catch(protectReject).then(res => {
-			expect(res).toBe("Result");
-			expect(handler).toHaveBeenCalledTimes(1);
-
-			expect(broker.emit).toHaveBeenCalledTimes(2);
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
-				"id": ctx.id,
-				"nodeID": "server-1",
-				"action": { "name": "posts.find" },
-				"level": 1,
-				"remoteCall": false,
-				"requestID": ctx.requestID,
-				"startTime": ctx.startTime
-			});
-
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.finish", {
-				"id": ctx.id,
-				"nodeID": "server-1",
-				"action": { "name": "posts.find" },
-				"startTime": ctx.startTime,
-				"endTime": ctx.stopTime,
-				"duration": ctx.duration,
-				"fromCache": false,
-				"level": 1,
-				"remoteCall": false,
-				"requestID": ctx.requestID,
-			});
-		});
-	});
-
-	it("should send metric events if handler is rejected", () => {
-		let err = new MoleculerError("Some error", 502, "SOME_ERROR", { a: 5 });
-		let handler = jest.fn(() => Promise.reject(err));
-		const newHandler = mw.localAction.call(broker, handler, action);
-		broker.emit = jest.fn();
-
-		const ctx = Context.create(broker, endpoint);
-		return newHandler(ctx).then(protectReject).catch(res => {
-			expect(res).toBe(err);
-			expect(handler).toHaveBeenCalledTimes(1);
-
-			expect(broker.emit).toHaveBeenCalledTimes(2);
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
-				"id": ctx.id,
-				"nodeID": "server-1",
-				"action": { "name": "posts.find" },
-				"level": 1,
-				"remoteCall": false,
-				"requestID": ctx.requestID,
-				"startTime": ctx.startTime
-			});
-
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.finish", {
-				"id": ctx.id,
-				"nodeID": "server-1",
-				"action": { "name": "posts.find" },
-				"startTime": ctx.startTime,
-				"endTime": ctx.stopTime,
-				"duration": ctx.duration,
-				"fromCache": false,
-				"level": 1,
-				"remoteCall": false,
-				"requestID": ctx.requestID,
-				"error": { "code": 502, "message": "Some error", "name": "MoleculerError", "type": "SOME_ERROR" }
-			});
-		});
-	});*/
-});
-
-describe.skip("Test TracingMiddleware remoteAction", () => {
-	const broker = new ServiceBroker({ nodeID: "server-1", logger: false });
-	const handler = jest.fn(() => Promise.resolve("Result"));
-	const action = {
-		name: "posts.find",
-		handler
-	};
-	const endpoint = {
-		action,
-		node: {
-			id: broker.nodeID
-		}
-	};
-
-	const mw = Middleware();
-
-	it("should register hooks", () => {
-		expect(mw.remoteAction).toBeInstanceOf(Function);
-	});
-
-	it("should not set metrics if it's disabled", () => {
-		broker.options.metrics = false;
-
-		const newHandler = mw.remoteAction.call(broker, handler, action);
-
-		expect(newHandler).toBe(handler);
-
-		const ctx = Context.create(broker, endpoint);
-		ctx.metrics = null;
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(ctx.metrics).toBe(null);
-		});
-	});
-
-	it("should not set metrics if it's set earlier", () => {
-		broker.options.metrics = true;
-
-		const newHandler = mw.remoteAction.call(broker, handler, action);
-
-		expect(newHandler).not.toBe(handler);
-
-		const ctx = Context.create(broker, endpoint);
-		ctx.metrics = false;
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(ctx.metrics).toBe(false);
-		});
-	});
-
-	it("should not set metrics if it's set earlier", () => {
-		broker.options.metrics = true;
-
-		const newHandler = mw.remoteAction.call(broker, handler, action);
-
-		expect(newHandler).not.toBe(handler);
-
-		const ctx = Context.create(broker, endpoint);
-		ctx.metrics = true;
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(ctx.metrics).toBe(true);
-		});
-	});
-
-	it("should set metrics if it's not set earlier", () => {
-		broker.options.metrics = true;
-
-		const newHandler = mw.remoteAction.call(broker, handler, action);
-
-		expect(newHandler).not.toBe(handler);
-
-		const ctx = Context.create(broker, endpoint);
-		ctx.metrics = null;
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(ctx.metrics).toBe(true);
-		});
-	});
-
-});
-
-
-describe.skip("Test params & meta in events", () => {
-	let broker = new ServiceBroker({ logger: false, metrics: true, nodeID: "master" });
-	broker.emit = jest.fn();
-
-	const mw = Middleware();
-	const action = { name: "users.get", metrics: false, service: { name: "users", version: 2 } };
-	const endpoint = { action, node: { id: broker.nodeID } };
-
-	const handler = jest.fn(() => Promise.resolve());
-	const newHandler = mw.localAction.call(broker, handler, action);
-
-	const ctx = Context.create(broker, endpoint);
-
-	it("should not inject params & meta to the payload", () => {
-		broker.emit.mockClear();
-		ctx.parentID = 123;
-		ctx.requestID = "abcdef";
-		ctx.nodeID = "remote-node";
-
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(broker.emit).toHaveBeenCalledTimes(2);
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
-				"id": ctx.id,
-				"service": { "name": "users", "version": 2 },
-				"action": { "name": "users.get" },
-				"level": 1,
-				"parent": 123,
-				"remoteCall": true,
-				"requestID": "abcdef",
-				"startTime": ctx.startTime,
-				"nodeID": broker.nodeID,
-				"callerNodeID": "remote-node"
-			});
-		});
-	});
-
-	it("should have been called with params and meta", () => {
-		broker.emit.mockClear();
-		ctx.action = {
-			name: "users.get",
-			params: { username: "string", pass: "string" },
-			metrics: { params: true, meta: true }
-		};
-		ctx.params = { username: "user", pass: "pass" };
-		ctx.meta = { user: { id: 4 } };
-
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(broker.emit).toHaveBeenCalledTimes(2);
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
-				"id": ctx.id,
-				"service": { "name": "users", "version": 2 },
-				"action": { "name": "users.get" },
-				"level": 1,
-				"parent": 123,
-				"remoteCall": true,
-				"requestID": "abcdef",
-				"startTime": ctx.startTime,
-				"nodeID": broker.nodeID,
-				"callerNodeID": "remote-node",
-				"params": { "pass": "pass", "username": "user" },
-				"meta": { user: { id: 4 } },
-			});
-		});
-	});
-
-	it("should have been called with params and without meta", () => {
-		broker.emit.mockClear();
-		ctx.action = {
-			name: "users.get", params: { username: "string", pass: "string" },
-			metrics: { params: true, meta: false }
-		};
-
-		ctx.params = { username: "user", pass: "pass" };
-		ctx.meta = { user: { id: 4 } };
-
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(broker.emit).toHaveBeenCalledTimes(2);
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
-				"id": ctx.id,
-				"service": { "name": "users", "version": 2 },
-				"action": { "name": "users.get" },
-				"level": 1,
-				"parent": 123,
-				"remoteCall": true,
-				"requestID": "abcdef",
-				"startTime": ctx.startTime,
-				"nodeID": broker.nodeID,
-				"callerNodeID": "remote-node",
-				"params": { "pass": "pass", "username": "user" }
-			});
-		});
-	});
-
-	it("should have been called with array of field params and without meta", () => {
-		broker.emit.mockClear();
-		ctx.action = {
-			name: "users.get", params: { username: "string", pass: "string" },
-			metrics: { params: ["username"], meta: false }
-		};
-		ctx.params = { username: "user", pass: "pass" };
-
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(broker.emit).toHaveBeenCalledTimes(2);
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
-				"id": ctx.id,
-				"service": { "name": "users", "version": 2 },
-				"action": { "name": "users.get" },
-				"level": 1,
-				"parent": 123,
-				"remoteCall": true,
-				"requestID": "abcdef",
-				"startTime": ctx.startTime,
-				"nodeID": broker.nodeID,
-				"callerNodeID": "remote-node",
-				"params": { "username": "user" }
-			});
-		});
-	});
-
-	it("should have been called with array of field meta and without params", () => {
-		broker.emit.mockClear();
-		ctx.action = {
-			name: "users.get", params: { username: "string", pass: "string" },
-			metrics: { meta: ["user", "token"] }
-		};
-		ctx.params = { username: "user", pass: "pass" };
-		ctx.meta = {
-			user: "John",
-			token: 123456,
-			session: "00001"
-		};
-
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(broker.emit).toHaveBeenCalledTimes(2);
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
-				"id": ctx.id,
-				"service": { "name": "users", "version": 2 },
-				"action": { "name": "users.get" },
-				"level": 1,
-				"parent": 123,
-				"remoteCall": true,
-				"requestID": "abcdef",
-				"startTime": ctx.startTime,
-				"nodeID": broker.nodeID,
-				"callerNodeID": "remote-node",
-				"meta": { user: "John", token: 123456 }
-			});
-		});
-	});
-
-	it("should have been called with function map of params and without meta", () => {
-		broker.emit.mockClear();
-		ctx.action = {
-			name: "users.get", params: { username: "string", pass: "string" },
-			metrics: { params: (params) => { return params.username + "@" + params.pass; }, meta: false }
-		};
-		ctx.params = { username: "user", pass: "pass" };
-
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(broker.emit).toHaveBeenCalledTimes(2);
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
-				"id": ctx.id,
-				"service": { "name": "users", "version": 2 },
-				"action": { "name": "users.get" },
-				"level": 1,
-				"parent": 123,
-				"remoteCall": true,
-				"requestID": "abcdef",
-				"startTime": ctx.startTime,
-				"nodeID": broker.nodeID,
-				"callerNodeID": "remote-node",
-				"params": "user@pass"
-			});
-		});
-	});
-
-	it("should have been called without params & array of field meta", () => {
-		broker.emit.mockClear();
-		ctx.action = {
-			name: "users.get", params: { username: "string", pass: "string" },
-			metrics: { params: false, meta: (meta) => { return meta.token + "@" + meta.session; } }
-		};
-		ctx.params = { username: "user", pass: "pass" };
-		ctx.meta = {
-			user: "John",
-			token: 123456,
-			session: "00001"
-		};
-
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(broker.emit).toHaveBeenCalledTimes(2);
-			expect(broker.emit).toHaveBeenCalledWith("metrics.trace.span.start", {
-				"id": ctx.id,
-				"service": { "name": "users", "version": 2 },
-				"action": { "name": "users.get" },
-				"level": 1,
-				"parent": 123,
-				"remoteCall": true,
-				"requestID": "abcdef",
-				"startTime": ctx.startTime,
-				"nodeID": broker.nodeID,
-				"callerNodeID": "remote-node",
-				"meta": "123456@00001"
-			});
-		});
-	});
 });

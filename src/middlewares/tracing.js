@@ -16,7 +16,7 @@ module.exports = function TracingMiddleware(broker) {
 		let opts = action.tracing;
 		if (opts === true || opts === false)
 			opts = { enabled: !!opts };
-		opts = _.defaultsDeep({}, opts, { enabled: true });
+		opts = _.defaultsDeep({}, opts, { enabled: true, tags: { params: true } });
 
 		if (opts.enabled) {
 			return function tracingMiddleware(ctx) {
@@ -43,13 +43,17 @@ module.exports = function TracingMiddleware(broker) {
 					const res = opts.tags.call(ctx.service, ctx);
 					if (res)
 						Object.assign(tags, res);
-				} else if (Array.isArray(opts.tags)) {
-					opts.tags.forEach(key => {
-						if (key.startsWith("#"))
-							tags[key.slice(1)] = _.get(ctx.meta, key.slice(1));
-						else
-							tags[key] = _.get(ctx.params, key);
-					});
+
+				} else if (_.isPlainObject(opts.tags)) {
+					if (opts.tags.params === true)
+						tags.params = _.cloneDeep(ctx.params);
+					else if (Array.isArray(opts.tags.params))
+						tags.params = _.pick(ctx.params, opts.tags.params);
+
+					if (opts.tags.meta === true)
+						tags.meta = _.cloneDeep(ctx.meta);
+					else if (Array.isArray(opts.tags.meta))
+						tags.meta = _.pick(ctx.meta, opts.tags.meta);
 				}
 
 				const span = ctx.startSpan(`action '${ctx.action.name}'`, {
