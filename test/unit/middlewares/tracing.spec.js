@@ -4,7 +4,7 @@ const Context 					= require("../../../src/context");
 const Middleware 				= require("../../../src/middlewares").Tracing;
 const { protectReject }			= require("../utils");
 
-describe.skip("Test TracingMiddleware localAction", () => {
+describe("Test TracingMiddleware localAction", () => {
 	const broker = new ServiceBroker({ nodeID: "server-1", logger: false });
 	const handler = jest.fn(() => Promise.resolve("Result"));
 	const action = {
@@ -18,53 +18,76 @@ describe.skip("Test TracingMiddleware localAction", () => {
 		}
 	};
 
-	const mw = Middleware(broker);
+	it("should not register hooks if tracing is disabled", () => {
+		const mw = Middleware(broker);
 
-	it("should register hooks", () => {
-		expect(mw.localAction).toBeInstanceOf(Function);
+		expect(mw.name).toBe("Tracing");
+		expect(mw.localAction).toBeNull();
 	});
 
-	it("should not wrap handler if metrics is disabled", () => {
-		broker.options.metrics = false;
+	it("should wrap handler if tracing is enabled", () => {
+		broker.options.tracing.enabled = true;
+		broker.tracer.opts.enabled = true;
+
+		const mw = Middleware(broker);
+
+		expect(mw.localAction).toBeInstanceOf(Function);
+
+		const newHandler = mw.localAction.call(broker, handler, action);
+
+		expect(newHandler).not.toBe(handler);
+	});
+
+	it("should not wrap handler if tracing is disabled in action definition", () => {
+		action.tracing = false;
+
+		const mw = Middleware(broker);
+
+		expect(mw.localAction).toBeInstanceOf(Function);
 
 		const newHandler = mw.localAction.call(broker, handler, action);
 
 		expect(newHandler).toBe(handler);
-
-		const ctx = Context.create(broker, endpoint);
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(ctx.metrics).toBeNull();
-		});
 	});
 
-	it("should not wrap handler if metrics is disabled", () => {
-		broker.options.metrics = true;
-		broker.options.metricsRate = 0.01;
+	it("should not wrap handler if tracing is disabled in action definition", () => {
+		action.tracing = { enabled: false };
+
+		const mw = Middleware(broker);
+
+		expect(mw.localAction).toBeInstanceOf(Function);
+
+		const newHandler = mw.localAction.call(broker, handler, action);
+
+		expect(newHandler).toBe(handler);
+	});
+
+	it("should wrap handler if tracing is enabled in action definition", () => {
+		action.tracing = true;
+
+		const mw = Middleware(broker);
+
+		expect(mw.localAction).toBeInstanceOf(Function);
 
 		const newHandler = mw.localAction.call(broker, handler, action);
 
 		expect(newHandler).not.toBe(handler);
-
-		const ctx = Context.create(broker, endpoint);
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(ctx.metrics).toBe(false);
-		});
 	});
 
-	it("should wrap handler if metrics is enabled", () => {
-		broker.options.metrics = true;
-		broker.options.metricsRate = 1;
+	it("should wrap handler if tracing is enabled in action definition", () => {
+		action.tracing = { enabled: true };
+
+		const mw = Middleware(broker);
+
+		expect(mw.localAction).toBeInstanceOf(Function);
 
 		const newHandler = mw.localAction.call(broker, handler, action);
-		expect(newHandler).not.toBe(handler);
 
-		const ctx = Context.create(broker, endpoint);
-		return newHandler(ctx).catch(protectReject).then(() => {
-			expect(ctx.metrics).toBe(true);
-		});
+		expect(newHandler).not.toBe(handler);
 	});
 
 
+/*
 	it("should send metric events if handler is resolved", () => {
 		broker.options.metrics = true;
 		handler.mockClear();
@@ -139,7 +162,7 @@ describe.skip("Test TracingMiddleware localAction", () => {
 				"error": { "code": 502, "message": "Some error", "name": "MoleculerError", "type": "SOME_ERROR" }
 			});
 		});
-	});
+	});*/
 });
 
 describe.skip("Test TracingMiddleware remoteAction", () => {
