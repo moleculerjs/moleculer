@@ -92,16 +92,17 @@ class CSVReporter extends BaseReporter {
 	 * @param {*} item
 	 */
 	getFilename(metric, item) {
+		const metricName = this.formatMetricName(metric.name);
 		if (this.opts.filenameFormatter)
-			return this.opts.filenameFormatter.call(this, metric, item);
+			return this.opts.filenameFormatter.call(this, metricName, metric, item);
 
 		switch (this.opts.mode) {
 			case MODE_METRIC: {
-				return path.join(this.folder, `${metric.name}.csv`);
+				return path.join(this.folder, `${metricName}.csv`);
 			}
 			case MODE_LABEL: {
 				const labelStr = this.labelsToStr(item.labels);
-				return path.join(this.folder, metric.name, `${metric.name}${labelStr ? "--" + labelStr : ""}.csv`);
+				return path.join(this.folder, metricName, `${metricName}${labelStr ? "--" + labelStr : ""}.csv`);
 			}
 		}
 	}
@@ -127,13 +128,14 @@ class CSVReporter extends BaseReporter {
 			metric.values.forEach(item => {
 				const filename = this.getFilename(metric, item);
 				makeDirs(path.dirname(filename));
+				const metricName = this.formatMetricName(metric.name);
 
 				// Check changes
 				const lastTimestamp = this.lastTimestampStore.get(filename + this.labelsToStr(item.labels));
 				if (lastTimestamp == item.timestamp) return;
 
 				let headers = ["Timestamp", "Metric"];
-				let data = [item.timestamp, metric.name];
+				let data = [item.timestamp, metricName];
 
 				metric.labelNames.forEach(label => {
 					headers.push("Label " + label);

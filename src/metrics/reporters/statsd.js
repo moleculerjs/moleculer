@@ -32,7 +32,6 @@ class StatsDReporter extends BaseReporter {
 			port: 8125,
 
 			maxPayloadSize: 1300,
-			prefix: null,
 
 			interval: 5 * 1000
 		});
@@ -132,7 +131,7 @@ class StatsDReporter extends BaseReporter {
 			metric.values.forEach(item => {
 				if (item.value == null) return;
 
-				const metricName = this.getMetricName(metric);
+				const metricName = this.formatMetricName(metric.name);
 
 				switch(metric.type) {
 					case METRIC.TYPE_COUNTER: {
@@ -288,10 +287,6 @@ class StatsDReporter extends BaseReporter {
 			return [];
 
 		return keys.map(key => `${this.formatLabelName(key)}:${this.escapeLabelValue(labels[key])}`).join(",");
-	}
-
-	getMetricName(metric) {
-		return (this.opts.prefix ? this.opts.prefix : "") + metric.name;
 	}
 
 }

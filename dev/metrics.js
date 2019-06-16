@@ -51,7 +51,7 @@ const broker = new ServiceBroker({
 				type: "StatsD",
 				options: {
 					host: "localhost",
-					prefix: "statsd.",
+					metricNamePrefix: "statsd.",
 					//includes: "moleculer.**",
 				}
 			}
