@@ -47,6 +47,7 @@ class Transit {
 		this.pendingReqStreams = new Map();
 		this.pendingResStreams = new Map();
 
+		/* deprecated */
 		this.stat = {
 			packets: {
 				sent: {
@@ -405,6 +406,7 @@ class Transit {
 			ctx.setParams(pass ? pass : payload.params, this.broker.options.actionParamsCloning);
 			ctx.parentID = payload.parentID;
 			ctx.requestID = payload.requestID;
+			ctx.caller = payload.caller;
 			ctx.meta = payload.meta || {};
 			ctx.level = payload.level;
 			ctx.tracing = !!payload.tracing;
@@ -716,6 +718,7 @@ class Transit {
 			tracing: ctx.tracing,
 			parentID: ctx.parentID,
 			requestID: ctx.requestID,
+			caller: ctx.caller,
 			stream: isStream,
 		};
 

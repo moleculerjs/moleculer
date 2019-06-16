@@ -180,11 +180,12 @@ describe("Test ProtoBuf serializer", () => {
 			tracing: true,
 			parentID: "999",
 			requestID: "12345",
+			caller: "users.list",
 			stream: false,
 			seq: null
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_REQUEST);
-		expect(s.length).toBe(154);
+		expect(s.length).toBe(171);
 
 		const res = serializer.deserialize(s, P.PACKET_REQUEST);
 		expect(res).not.toBe(obj);
@@ -209,6 +210,7 @@ describe("Test ProtoBuf serializer", () => {
 			tracing: true,
 			parentID: "999",
 			requestID: "12345",
+			caller: null,
 			stream: true,
 			seq: 6
 		};

@@ -72,6 +72,7 @@ class Context {
 		};
 
 		this.parentID = null;
+		this.caller = null;
 
 		this.level = 1;
 
@@ -132,10 +133,11 @@ class Context {
 		else if (opts.meta != null)
 			ctx.meta = opts.meta;
 
-		// ParentID, Level
+		// ParentID, Level, CallerAction
 		if (opts.parentCtx != null) {
 			ctx.parentID = opts.parentCtx.id;
 			ctx.level = opts.parentCtx.level + 1;
+			ctx.caller = opts.parentCtx.action ? opts.parentCtx.action.name : null;
 		}
 
 		// Tracing

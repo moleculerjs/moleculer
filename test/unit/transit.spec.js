@@ -308,7 +308,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call _requestHandler if topic is 'REQ' ", () => {
 		transit._requestHandler = jest.fn();
 
-		let payload = { ver: "4", sender: "remote", action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456", timeout: 567 };
+		let payload = { ver: "4", sender: "remote", action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", caller: null, level: 5, metrics: true, requestID: "123456", timeout: 567 };
 		transit.messageHandler("REQ", { payload });
 
 		expect(transit._requestHandler).toHaveBeenCalledTimes(1);
@@ -318,7 +318,7 @@ describe("Test Transit.messageHandler", () => {
 	it("should call _requestHandler if topic is 'REQ' && sender is itself", () => {
 		transit._requestHandler = jest.fn();
 
-		let payload = { ver: "4", sender: broker.nodeID, action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456", timeout: 567 };
+		let payload = { ver: "4", sender: broker.nodeID, action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", caller: null, level: 5, metrics: true, requestID: "123456", timeout: 567 };
 		transit.messageHandler("REQ", { payload });
 
 		expect(transit._requestHandler).toHaveBeenCalledTimes(1);
@@ -471,141 +471,6 @@ describe("Test Transit._eventHandler", () => {
 
 });
 
-/* old
-describe("Test Transit._requestHandler", () => {
-
-	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter(), trackContext: true });
-	const transit = broker.transit;
-	broker.started = true;
-
-	transit.sendResponse = jest.fn(() => Promise.resolve());
-	transit._handleIncomingRequestStream = jest.fn(() => false);
-
-	let handler = jest.fn(() => Promise.resolve([1, 5, 8]));
-	let ep = {
-		id: broker.nodeID,
-		local: true,
-		action: {
-			name: "posts.find",
-			service: {
-				name: "posts",
-				_addActiveContext: jest.fn()
-			},
-			handler
-		}
-	};
-
-	it("should call handler & sendResponse with result", () => {
-		broker._getLocalActionEndpoint = jest.fn(() => ep);
-
-		let payload = { ver: "4", sender: "remote", action: "posts.find", id: "123", params: { limit: 5 }, meta: { b: 100 }, parentID: "555", level: 5, metrics: true, requestID: "123456", timeout: 567, stream: false };
-
-		return transit._requestHandler(payload).catch(protectReject).then(() => {
-
-			expect(handler).toHaveBeenCalledTimes(1);
-			const ctx = handler.mock.calls[0][0];
-			expect(handler).toHaveBeenCalledWith(ctx);
-
-			expect(transit._handleIncomingRequestStream).toHaveBeenCalledTimes(1);
-			expect(transit._handleIncomingRequestStream).toHaveBeenCalledWith(payload);
-
-			// Check context props
-			expect(ctx).toBeInstanceOf(Context);
-			expect(ctx.id).toBe("123");
-			expect(ctx.parentID).toBe("555");
-			expect(ctx.requestID).toBe("123456");
-			expect(ctx.action.name).toBe("posts.find");
-			expect(ctx.params).toEqual({ limit: 5 });
-			expect(ctx.meta).toEqual({ b: 100 });
-			expect(ctx.metrics).toBe(true);
-			expect(ctx.level).toBe(5);
-			expect(ctx.options.timeout).toBe(567);
-
-			expect(transit.sendResponse).toHaveBeenCalledTimes(1);
-			expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", { b: 100 }, [1, 5, 8], null);
-		});
-	});
-
-	it("should call handler & sendResponse with error", () => {
-		transit.sendResponse.mockClear();
-		transit._handleIncomingRequestStream.mockClear();
-		handler = jest.fn(() => Promise.reject(new E.ValidationError("Not valid params")));
-		ep.action.handler = handler;
-		broker.options.requestTimeout = 2600;
-
-		let payload = { ver: "4", sender: "remote", action: "posts.create", id: "123", params: { title: "Hello" }, meta: { b: 100 } };
-		return transit._requestHandler(payload).then(protectReject).catch(() => {
-
-			expect(handler).toHaveBeenCalledTimes(1);
-			const ctx = handler.mock.calls[0][0];
-			expect(handler).toHaveBeenCalledWith(ctx);
-
-			expect(transit._handleIncomingRequestStream).toHaveBeenCalledTimes(0);
-
-			// Check context props
-			expect(ctx).toBeInstanceOf(Context);
-			expect(ctx.id).toBe("123");
-			expect(ctx.params).toEqual({ "title": "Hello" });
-			expect(ctx.meta).toEqual({ b: 100 });
-			expect(ctx.options.timeout).toBe(2600);
-
-			expect(transit.sendResponse).toHaveBeenCalledTimes(1);
-			expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", { b: 100 }, null, jasmine.any(E.ValidationError));
-		});
-	});
-
-	it("should call sendResponse with error if no endpoint", () => {
-		transit.sendResponse.mockClear();
-		broker._getLocalActionEndpoint = jest.fn(() => { throw new E.ServiceNotFoundError("posts.find", broker.nodeID); });
-		broker._handleRemoteRequest = jest.fn(() => Promise.reject(new E.ValidationError("Not valid params")));
-
-		let payload = { ver: "4", sender: "remote", action: "posts.create", id: "123", params: { title: "Hello" }, meta: { b: 100 } };
-		return transit._requestHandler(payload).then(protectReject).catch(() => {
-
-			expect(broker._handleRemoteRequest).toHaveBeenCalledTimes(0);
-			expect(transit.sendResponse).toHaveBeenCalledTimes(1);
-			expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", { b: 100 }, null, jasmine.any(E.ServiceNotFoundError));
-		});
-	});
-
-	it("should not call sendResponse if it is a stream chunk", () => {
-		handler.mockClear();
-		broker._getLocalActionEndpoint.mockClear();
-		broker._handleRemoteRequest.mockClear();
-		transit.sendResponse.mockClear();
-		transit._handleIncomingRequestStream = jest.fn(() => null);
-
-		let payload = { ver: "4", sender: "remote", action: "posts.create", id: "123", params: { title: "Hello" }, meta: { b: 100 }, stream: true, seq: 3 };
-		return transit._requestHandler(payload).then(protectReject).catch(() => {
-
-			expect(handler).toHaveBeenCalledTimes(0);
-
-			expect(transit._handleIncomingRequestStream).toHaveBeenCalledTimes(1);
-			expect(transit._handleIncomingRequestStream).toHaveBeenCalledWith(payload);
-
-			expect(broker._handleRemoteRequest).toHaveBeenCalledTimes(0);
-			expect(transit.sendResponse).toHaveBeenCalledTimes(0);
-		});
-	});
-
-	it("should call sendResponse with error if broker stopped", () => {
-		broker.started = false;
-
-		broker._getLocalActionEndpoint.mockClear();
-		broker._handleRemoteRequest.mockClear();
-		transit.sendResponse.mockClear();
-
-		let payload = { ver: "4", sender: "remote", action: "posts.create", id: "123", params: { title: "Hello" }, meta: { b: 100 } };
-		return transit._requestHandler(payload).then(protectReject).catch(() => {
-			expect(broker._getLocalActionEndpoint).toHaveBeenCalledTimes(0);
-			expect(broker._handleRemoteRequest).toHaveBeenCalledTimes(0);
-			expect(transit.sendResponse).toHaveBeenCalledTimes(1);
-			expect(transit.sendResponse).toHaveBeenCalledWith("remote", "123", { b: 100 }, null, jasmine.any(E.ServiceNotAvailableError));
-		});
-	});
-
-});
-*/
 describe("Test Transit._requestHandler", () => {
 
 	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
@@ -671,6 +536,7 @@ describe("Test Transit._requestHandler", () => {
 			params: { name: "John" },
 			parentID: "00000",
 			requestID: "12345-54321",
+			caller: "users.list",
 			level: 3,
 			tracing: true,
 			timeout: 230
@@ -693,6 +559,7 @@ describe("Test Transit._requestHandler", () => {
 			expect(ctx.params).toEqual({ name: "John" });
 			expect(ctx.parentID).toBe("00000");
 			expect(ctx.requestID).toBe("12345-54321");
+			expect(ctx.caller).toBe("users.list");
 			expect(ctx.meta).toEqual({ a: 5 });
 			expect(ctx.level).toBe(3);
 			expect(ctx.tracing).toBe(true);
@@ -720,6 +587,7 @@ describe("Test Transit._requestHandler", () => {
 			action: "posts.find",
 			parentID: "00000",
 			requestID: "12345-54321",
+			caller: null,
 			level: 3,
 			stream: false,
 			tracing: true,
@@ -744,6 +612,7 @@ describe("Test Transit._requestHandler", () => {
 			expect(ctx.params).toEqual({ streaming: true });
 			expect(ctx.parentID).toBe("00000");
 			expect(ctx.requestID).toBe("12345-54321");
+			expect(ctx.caller).toBeNull();
 			expect(ctx.meta).toEqual({ a: 5 });
 			expect(ctx.level).toBe(3);
 			expect(ctx.tracing).toBe(true);
@@ -1422,6 +1291,7 @@ describe("Test Transit._sendRequest", () => {
 		ctx.id = "12345";
 		ctx.requestID = "1111";
 		ctx.parentID = "0000";
+		ctx.caller = "posts.list",
 		ctx.tracing = true;
 		ctx.level = 6;
 
@@ -1443,6 +1313,7 @@ describe("Test Transit._sendRequest", () => {
 						params: { "a": 5 },
 						parentID: "0000",
 						requestID: "1111",
+						caller: "posts.list",
 						stream: false,
 						timeout: 500
 					}
@@ -1495,6 +1366,7 @@ describe("Test Transit._sendRequest", () => {
 						params: null,
 						parentID: null,
 						requestID: null,
+						caller: null,
 						seq: 0,
 						stream: true,
 						timeout: null
@@ -1519,6 +1391,7 @@ describe("Test Transit._sendRequest", () => {
 						params: Buffer.from("first chunk"),
 						parentID: null,
 						requestID: null,
+						caller: null,
 						seq: 1,
 						stream: true,
 						timeout: null
@@ -1537,6 +1410,7 @@ describe("Test Transit._sendRequest", () => {
 						params: Buffer.from("second chunk"),
 						parentID: null,
 						requestID: null,
+						caller: null,
 						seq: 2,
 						stream: true,
 						timeout: null
@@ -1559,6 +1433,7 @@ describe("Test Transit._sendRequest", () => {
 						params: null,
 						parentID: null,
 						requestID: null,
+						caller: null,
 						seq: 3,
 						stream: false,
 						timeout: null
@@ -1589,6 +1464,7 @@ describe("Test Transit._sendRequest", () => {
 						params: null,
 						parentID: null,
 						requestID: null,
+						caller: null,
 						seq: 0,
 						stream: true,
 						timeout: null
@@ -1612,6 +1488,7 @@ describe("Test Transit._sendRequest", () => {
 						params: Buffer.from("first chunk"),
 						parentID: null,
 						requestID: null,
+						caller: null,
 						seq: 1,
 						stream: true,
 						timeout: null
@@ -1641,6 +1518,7 @@ describe("Test Transit._sendRequest", () => {
 						params: null,
 						parentID: null,
 						requestID: null,
+						caller: null,
 						seq: 2,
 						stream: false,
 						timeout: null

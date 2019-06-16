@@ -175,6 +175,8 @@ class DatadogTraceExporter extends BaseTraceExporter {
 			this.addTags(ddSpan, "error", this.errorToObject(span.error));
 		}
 
+		this.addLogs(ddSpan, span.logs);
+
 		ddSpan.finish(span.finishTime);
 
 		if (item.oldSpan) {
@@ -240,6 +242,24 @@ class DatadogTraceExporter extends BaseTraceExporter {
 			span.setTag(name, value);
 		}
 	}
+
+	/**
+	 * Add logs to span
+	 *
+	 * @param {Object} span
+	 * @param {Array} logs
+	 */
+	addLogs(span, logs) {
+		if (Array.isArray(logs)) {
+			logs.forEach((log) => {
+				span.log({
+					event: log.name,
+					payload: log.fields,
+				}, log.time);
+			});
+		}
+	}
+
 
 	/**
 	 * Convert Trace/Span ID to Jaeger format

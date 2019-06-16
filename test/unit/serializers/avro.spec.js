@@ -180,11 +180,12 @@ describe("Test Avro serializer", () => {
 			tracing: true,
 			parentID: "999",
 			requestID: "12345",
+			caller: "users.list",
 			stream: false,
 			seq: null
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_REQUEST);
-		expect(s.length).toBe(97);
+		expect(s.length).toBe(109);
 
 		const res = serializer.deserialize(s, P.PACKET_REQUEST);
 		expect(res).not.toBe(obj);
@@ -209,12 +210,13 @@ describe("Test Avro serializer", () => {
 			tracing: true,
 			parentID: "999",
 			requestID: "12345",
+			caller: null,
 			stream: true,
 			seq: 6
 		};
 
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_REQUEST);
-		expect(s.length).toBe(101);
+		expect(s.length).toBe(102);
 
 		const res = serializer.deserialize(s, P.PACKET_REQUEST);
 		expect(res).not.toBe(obj);

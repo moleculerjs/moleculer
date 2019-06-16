@@ -26,6 +26,7 @@ describe("Test Context", () => {
 		});
 
 		expect(ctx.parentID).toBeNull();
+		expect(ctx.caller).toBeNull();
 
 		expect(ctx.tracing).toBeNull();
 		expect(ctx.level).toBe(1);
@@ -89,6 +90,7 @@ describe("Test Context.create", () => {
 		expect(ctx.options).toEqual({});
 
 		expect(ctx.parentID).toBeNull();
+		expect(ctx.caller).toBeNull();
 
 		expect(ctx.tracing).toBeNull();
 		expect(ctx.level).toBe(1);
@@ -117,6 +119,9 @@ describe("Test Context.create", () => {
 				},
 				requestID: "1234567890abcdef",
 				tracing: true,
+				action: {
+					name: "posts.list"
+				}
 			}
 		};
 
@@ -139,6 +144,7 @@ describe("Test Context.create", () => {
 		expect(ctx.options).toEqual(opts);
 
 		expect(ctx.parentID).toBe(100);
+		expect(ctx.caller).toBe("posts.list");
 
 		expect(ctx.tracing).toBe(true);
 		expect(ctx.level).toBe(6);

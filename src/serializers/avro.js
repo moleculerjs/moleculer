@@ -45,7 +45,8 @@ function createSchemas() {
 			{ name: "parentID", type: [ "null", "string"], default: null },
 			{ name: "requestID", type: [ "null", "string"], default: null },
 			{ name: "stream", type: [ "null", "boolean"], default: null },
-			{ name: "seq", type: [ "null", "int"], default: null }
+			{ name: "seq", type: [ "null", "int"], default: null },
+			{ name: "caller", type: [ "null", "string"], default: null },
 		]
 	});
 

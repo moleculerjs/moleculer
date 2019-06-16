@@ -178,6 +178,7 @@ let PacketRequest = module.exports.PacketRequest = function(args) {
 	this.requestID = null;
 	this.stream = null;
 	this.seq = null;
+	this.caller = null;
 	if (args) {
 		if (args.ver !== undefined && args.ver !== null) {
 			this.ver = args.ver;
@@ -217,6 +218,9 @@ let PacketRequest = module.exports.PacketRequest = function(args) {
 		}
 		if (args.seq !== undefined && args.seq !== null) {
 			this.seq = args.seq;
+		}
+		if (args.caller !== undefined && args.caller !== null) {
+			this.caller = args.caller;
 		}
 	}
 };
@@ -325,6 +329,13 @@ PacketRequest.prototype.read = function(input) {
 					input.skip(ftype);
 				}
 				break;
+			case 14:
+				if (ftype == Thrift.Type.STRING) {
+					this.caller = input.readString();
+				} else {
+					input.skip(ftype);
+				}
+				break;
 			default:
 				input.skip(ftype);
 		}
@@ -399,6 +410,11 @@ PacketRequest.prototype.write = function(output) {
 	if (this.seq !== null && this.seq !== undefined) {
 		output.writeFieldBegin("seq", Thrift.Type.I32, 13);
 		output.writeI32(this.seq);
+		output.writeFieldEnd();
+	}
+	if (this.caller !== null && this.caller !== undefined) {
+		output.writeFieldBegin("caller", Thrift.Type.STRING, 14);
+		output.writeString(this.caller);
 		output.writeFieldEnd();
 	}
 	output.writeFieldStop();

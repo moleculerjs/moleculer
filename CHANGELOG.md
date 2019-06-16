@@ -3,11 +3,6 @@
 <a name="0.14.0"></a>
 # [0.14.0](https://github.com/moleculerjs/moleculer/compare/v0.13.9...v0.14.0) (2019-xx-xx)
 
-## TODO
-- caching with tags/labels
-- implement more metrics exporters
-- add service settings to broker options.
-
 # Breaking changes
 
 ## Communication protocol has been changed
@@ -671,7 +666,20 @@ module.exports = {
     }
 };
 ```
+## Caller action
+There is a new `caller` property in Context. It contains the action name of the caller when you use `ctx.call` in action handlers.
 
+```js
+broker2.createService({
+	name: "greeter",
+	actions: {
+		hello(ctx) {
+			this.logger.info(`This action is called from '${ctx.caller}' on '${ctx.nodeID}'`);
+		}
+	}
+});
+
+```
 
 ## NodeID conflict handling
 Having remote nodes with same `nodeID` in the same `namespace` can cause communication problems. In v0.14 ServiceBroker checks the nodeIDs of remote nodes. If some node has the same nodeID, the broker will throw a fatal error and stop the process.
