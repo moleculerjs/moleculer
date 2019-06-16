@@ -16,20 +16,45 @@ const broker = new ServiceBroker({
 					//excludes: ["moleculer.transit.publish.total", "moleculer.transit.receive.total"]
 				}
 			},*/
-			{
+			/*{
 				type: "Event",
 				options: {
 					eventName: "$metrics.state",
 					includes: "moleculer.broker.**",
 					excludes: ["moleculer.request.error.**", "moleculer.request.fallback.**"]
 				}
-			}
+			},*/
+			/*{
+				type: "CSV",
+				options: {
+					folder: "./dev/trash/csv-metrics",
+					//includes: "os.network.family",
+					//excludes: ["moleculer.request.error.**", "moleculer.request.fallback.**"]
+					//types: "histogram",
+					//mode: "label",
+					delimiter: ";",
+					rowDelimiter: "\r\n",
+
+					rowFormatter(data) {
+						data[0] = new Date(data[0]).toISOString();
+						return data;
+					}
+				}
+			},*/
 			/*{
 				type: "Prometheus",
 				options: {
 					//includes: ["moleculer.transit.**"]
 				}
-			}*/
+			},*/
+			{
+				type: "StatsD",
+				options: {
+					host: "localhost",
+					prefix: "statsd.",
+					//includes: "moleculer.**",
+				}
+			}
 		]
 		//defaultQuantiles: [0.1, 0.5, 0.9]
 	},
@@ -48,9 +73,17 @@ broker.createService({
 });
 
 broker.start()
-	.then(() => broker.repl());
-/*	.delay(1000)
-	.then(() => broker.call("$node.metrics"))
-	.then(res => broker.logger.info(res))
-	.catch(err => broker.logger.error(err));
-*/
+	.then(() => {
+		broker.repl();
+
+		let c = 5;
+		const timer = setInterval(() => {
+			broker.call("$node.metrics")
+				.then(res => broker.logger.info("OK"))
+				.catch(err => broker.logger.error(err));
+			c--;
+			if (c <= 0)
+				clearInterval(timer);
+		}, 5000);
+
+	});

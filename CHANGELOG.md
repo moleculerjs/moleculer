@@ -190,7 +190,6 @@ const broker = new ServiceBroker({
 - `os.user.username` (info)
 - `os.user.homedir` (info)
 - `os.network.address` (info)
-- `os.network.family` (info)
 - `os.network.mac` (info)
 - `os.datetime.unix` (gauge)
 - `os.datetime.iso` (info)

@@ -8,8 +8,6 @@
 
 const BaseReporter = require("./base");
 const _ = require("lodash");
-const METRIC = require("../constants");
-
 
 /**
  * Event reporter for Moleculer Metrics
@@ -38,7 +36,8 @@ class EventReporter extends BaseReporter {
 	}
 
 	/**
-	 * Initialize reporter
+	 * Initialize reporter.
+	 *
 	 * @param {MetricRegistry} registry
 	 * @memberof EventReporter
 	 */

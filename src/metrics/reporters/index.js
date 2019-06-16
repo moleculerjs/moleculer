@@ -16,7 +16,7 @@ const Reporters = {
 	Event: require("./event"),
 	Prometheus: require("./prometheus"),
 	Datadog: require("./datadog"),
-	UDP: require("./udp"),
+	StatsD: require("./statsd"),
 };
 
 function getByName(name) {

@@ -87,7 +87,6 @@ module.exports = {
 	OS_DATETIME_TZ_OFFSET: "os.datetime.tz.offset",
 
 	OS_NETWORK_ADDRESS: "os.network.address",
-	OS_NETWORK_FAMILY: "os.network.family",
 	OS_NETWORK_MAC: "os.network.mac",
 
 	OS_CPU_LOAD_1: "os.cpu.load.1",

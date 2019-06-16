@@ -43,7 +43,7 @@ function registerCommonMetrics() {
 	// --- METRICS SELF METRICS ---
 
 	this.register({ name: METRIC.MOLECULER_METRICS_COMMON_COLLECT_TOTAL, type: METRIC.TYPE_COUNTER, description: "Number of metric collections" });
-	this.register({ name: METRIC.MOLECULER_METRICS_COMMON_COLLECT_TIME, type: METRIC.TYPE_GAUGE, description: "Time of collecting metrics" });
+	this.register({ name: METRIC.MOLECULER_METRICS_COMMON_COLLECT_TIME, type: METRIC.TYPE_GAUGE, description: "Time of collecting metrics", unit: METRIC.UNIT_MILLISECONDS });
 
 	// --- PROCESS METRICS ---
 
@@ -107,9 +107,8 @@ function registerCommonMetrics() {
 	this.register({ name: METRIC.OS_USER_USERNAME, type: METRIC.TYPE_INFO, description: "Username" }).set(userInfo.username);
 	this.register({ name: METRIC.OS_USER_HOMEDIR, type: METRIC.TYPE_INFO, description: "User's home directory" }).set(userInfo.homedir);
 
-	this.register({ name: METRIC.OS_NETWORK_ADDRESS, type: METRIC.TYPE_INFO, labelNames: ["interface"], description: "Network address" });
-	this.register({ name: METRIC.OS_NETWORK_FAMILY, type: METRIC.TYPE_INFO, labelNames: ["interface"], description: "Network family" });
-	this.register({ name: METRIC.OS_NETWORK_MAC, type: METRIC.TYPE_INFO, labelNames: ["interface"], description: "MAC address" });
+	this.register({ name: METRIC.OS_NETWORK_ADDRESS, type: METRIC.TYPE_INFO, labelNames: ["interface", "family"], description: "Network address" });
+	this.register({ name: METRIC.OS_NETWORK_MAC, type: METRIC.TYPE_INFO, labelNames: ["interface", "family"], description: "MAC address" });
 
 	this.register({ name: METRIC.OS_DATETIME_UNIX, type: METRIC.TYPE_GAUGE, description: "Current datetime in Unix format" });
 	this.register({ name: METRIC.OS_DATETIME_ISO, type: METRIC.TYPE_INFO, description: "Current datetime in ISO string" });
@@ -227,9 +226,8 @@ function updateCommonMetrics() {
 		for (let i in interfaces[iface]) {
 			const f = interfaces[iface][i];
 			if (!f.internal) {
-				this.set(METRIC.OS_NETWORK_ADDRESS, f.address, { interface: iface });
-				this.set(METRIC.OS_NETWORK_FAMILY, f.family, { interface: iface });
-				this.set(METRIC.OS_NETWORK_MAC, f.mac, { interface: iface });
+				this.set(METRIC.OS_NETWORK_ADDRESS, f.address, { interface: iface, family: f.family });
+				this.set(METRIC.OS_NETWORK_MAC, f.mac, { interface: iface, family: f.family });
 			}
 		}
 	}
