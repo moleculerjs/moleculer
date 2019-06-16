@@ -8,6 +8,7 @@
 
 const Promise = require("bluebird"); // eslint-disable-line no-unused-vars
 const _ = require("lodash");
+const { match } = require("../utils");
 const METRIC = require("./constants");
 const Types = require("./types");
 const Reporters = require("./reporters");
@@ -337,6 +338,34 @@ class MetricRegistry {
 		this.dirty = true;
 		if (Array.isArray(this.reporter))
 			this.reporter.forEach(reporter => reporter.metricChanged(metric, labels));
+	}
+
+	/**
+	 * List all registered metrics with labels & values.
+	 *
+	 * @param {Object?} opts
+	 */
+	list(opts = {}) {
+		const res = [];
+
+		const types = opts.types != null ? (_.isString(opts.types) ? [opts.types] : opts.types) : null;
+		const includes = opts.includes != null ? (_.isString(opts.includes) ? [opts.includes] : opts.includes) : null;
+		const excludes = opts.excludes != null ? (_.isString(opts.excludes) ? [opts.excludes] : opts.excludes) : null;
+
+		this.store.forEach(metric => {
+			if (types && !types.some(type => metric.type == type))
+				return;
+
+			if (includes && !includes.some(pattern => match(metric.name, pattern)))
+				return;
+
+			if (excludes && !excludes.every(pattern => !match(metric.name, pattern)))
+				return;
+
+			res.push(metric.toObject());
+		});
+
+		return res;
 	}
 }
 

@@ -192,4 +192,28 @@ describe("Test Base Metric class", () => {
 
 	});
 
+	describe("Test toObject method", () => {
+		const registry = {
+			changed: jest.fn(),
+			opts: {
+				defaultAggregator: "sum"
+			}
+		};
+
+		const item = new BaseMetric({ type: "counter", name: "test.counter", labelNames: ["a", "b"], description: "Test description", unit: "bytes" }, registry);
+		item.snapshot = jest.fn(() => "snapshot");
+
+		it("should call snapshot & generate POJO", () => {
+			expect(item.toObject()).toEqual({
+				type: "counter", name:
+				"test.counter",
+				labelNames: ["a", "b"],
+				description: "Test description",
+				unit: "bytes",
+				values: "snapshot"
+			});
+		});
+
+	});
+
 });

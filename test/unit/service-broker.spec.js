@@ -372,8 +372,8 @@ describe("Test ServiceBroker constructor", () => {
 		});
 
 		expect(broker.middlewares.count()).toBe(2);
-		expect(mw1.localAction).toHaveBeenCalledTimes(6);
-		expect(mw2.localAction).toHaveBeenCalledTimes(6);
+		expect(mw1.localAction).toHaveBeenCalledTimes(7);
+		expect(mw2.localAction).toHaveBeenCalledTimes(7);
 	});
 
 	it("should register internal middlewares", () => {
@@ -1353,6 +1353,7 @@ describe("Test broker.registerInternalServices", () => {
 			events: expect.any(Object),
 			health: expect.any(Object),
 			options: expect.any(Object),
+			metrics: expect.any(Object)
 		} }, undefined);
 	});
 
@@ -1379,6 +1380,7 @@ describe("Test broker.registerInternalServices", () => {
 			events: expect.any(Object),
 			health: expect.any(Object),
 			options: expect.any(Object),
+			metrics: expect.any(Object),
 		} }, {
 			metadata: {
 				a: 5

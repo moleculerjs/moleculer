@@ -9,6 +9,7 @@ describe("Test internal services", () => {
 		logger: false,
 		transporter: null,
 		internalServices: true,
+		metrics: true,
 		metadata: { a: 5 },
 	});
 
@@ -279,7 +280,7 @@ describe("Test internal services", () => {
 				"name": "$node.health"
 			}, {
 				"action": {
-					"cache": true,
+					"cache": false,
 					"name": "$node.options",
 					"rawName": "options",
 					"params": {}
@@ -288,6 +289,21 @@ describe("Test internal services", () => {
 				"count": 1,
 				"hasLocal": true,
 				"name": "$node.options"
+			}, {
+				"action": {
+					"cache": false,
+					"name": "$node.metrics",
+					"rawName": "metrics",
+					"params": {
+						types: [ { type: "string", optional: true }, { type: "array", optional: true, items: "string" } ],
+						includes: [ { type: "string", optional: true }, { type: "array", optional: true, items: "string" } ],
+						excludes: [ { type: "string", optional: true }, { type: "array", optional: true, items: "string" } ]
+					}
+				},
+				"available": true,
+				"count": 1,
+				"hasLocal": true,
+				"name": "$node.metrics"
 			}, {
 				"action": {
 					"cache": false,
@@ -478,6 +494,71 @@ describe("Test internal services", () => {
 			expect(res.time.now).toBeDefined();
 			expect(res.time.iso).toBeDefined();
 			expect(res.time.utc).toBeDefined();
+		});
+	});
+
+	it("should return metrics", () => {
+		return broker.call("$node.metrics", {
+			includes: ["moleculer.broker.**"]
+		}).then(res => {
+			expect(res).toEqual([
+				{
+					"description": "Moleculer namespace",
+					"labelNames": [],
+					"name": "moleculer.broker.namespace",
+					"type": "info",
+					"unit": undefined,
+					"values": [
+						{
+							"labels": {},
+							"timestamp": expect.any(Number),
+							"value": ""
+						}
+					]
+				},
+				{
+					"description": "ServiceBroker started",
+					"labelNames": [],
+					"name": "moleculer.broker.started",
+					"type": "gauge",
+					"unit": undefined,
+					"values": [
+						{
+							"labels": {},
+							"timestamp": expect.any(Number),
+							"value": 1
+						}
+					]
+				},
+				{
+					"description": "Number of local services",
+					"labelNames": [],
+					"name": "moleculer.broker.local.services.total",
+					"type": "gauge",
+					"unit": undefined,
+					"values": [
+						{
+							"labels": {},
+							"timestamp": expect.any(Number),
+							"value": 3
+						}
+					]
+				},
+				{
+					"description": "Number of local middlewares",
+					"labelNames": [],
+					"name": "moleculer.broker.middlewares.total",
+					"type": "gauge",
+					"unit": undefined,
+					"values": [
+						{
+							"labels": {},
+							"timestamp": expect.any(Number),
+							"value": 11
+						}
+					]
+				}
+			]);
 		});
 	});
 

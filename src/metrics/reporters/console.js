@@ -72,19 +72,20 @@ class ConsoleReporter extends BaseReporter {
 	 * @memberof ConsoleReporter
 	 */
 	print() {
-		const store = this.registry.store;
-		this.log(chalk.gray(`------------------- [ METRICS START (${store.size}) ] -------------------`));
+		const list = this.registry.list({
+			includes: this.opts.includes,
+			excludes: this.opts.excludes,
+		});
 
-		store.forEach(metric => {
-			if (!this.matchMetricName(metric.name)) return;
+		this.log(chalk.gray(`------------------- [ METRICS START (${list.length}) ] -------------------`));
 
+		list.forEach(metric => {
 			this.log(chalk.cyan.bold(this.formatMetricName(metric.name)) + " " + chalk.gray("(" + metric.type + ")"));
-			const snapshot = metric.snapshot();
-			if (snapshot.size == 0) {
+			if (metric.values.size == 0) {
 				this.log(chalk.gray("  <no values>"));
 			} else {
 				const unit = metric.unit ? chalk.gray(metric.unit) : "";
-				snapshot.forEach(item => {
+				metric.values.forEach(item => {
 					let val;
 					const labelStr = this.labelsToStr(item.labels);
 					switch(metric.type) {
@@ -125,7 +126,7 @@ class ConsoleReporter extends BaseReporter {
 			this.log("");
 		});
 
-		this.log(chalk.gray(`-------------------- [ METRICS END (${store.size}) ] --------------------`));
+		this.log(chalk.gray(`-------------------- [ METRICS END (${list.length}) ] --------------------`));
 	}
 
 

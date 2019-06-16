@@ -4,6 +4,7 @@ let ServiceBroker = require("../src/service-broker");
 
 // Create broker
 let broker = new ServiceBroker({
+	metrics: true,
 	internalServices: {
 		$node: {
 			actions: {

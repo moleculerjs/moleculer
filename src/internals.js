@@ -7,6 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
+const { MoleculerClientError } = require("./errors");
 
 module.exports = function() {
 	const schema = {
@@ -101,13 +102,28 @@ module.exports = function() {
 			},
 
 			options: {
-				cache: true,
+				cache: false,
 				params: {
 				},
 				handler() {
 					return _.cloneDeep(this.broker.options);
 				}
 			},
+
+			metrics: {
+				cache: false,
+				params: {
+					types: [ { type: "string", optional: true }, { type: "array", optional: true, items: "string" } ],
+					includes: [ { type: "string", optional: true }, { type: "array", optional: true, items: "string" } ],
+					excludes: [ { type: "string", optional: true }, { type: "array", optional: true, items: "string" } ]
+				},
+				handler(ctx) {
+					if (!this.broker.isMetricsEnabled())
+						return this.Promise.reject(new MoleculerClientError("Metrics feature is disabled", 400, "METRICS_DISABLED"));
+
+					return this.broker.metrics.list(ctx.params);
+				}
+			}
 		}
 	};
 

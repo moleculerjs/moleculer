@@ -1,8 +1,6 @@
 "use strict";
 
-const os = require("os");
 const lolex = require("lolex");
-const request = require("supertest");
 
 const ConsoleReporter = require("../../../../src/metrics/reporters/console");
 const ServiceBroker = require("../../../../src/service-broker");

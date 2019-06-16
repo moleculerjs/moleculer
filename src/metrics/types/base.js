@@ -148,9 +148,28 @@ class BaseMetric {
 		throw new Error("Not implemented");
 	}
 
+	/**
+	 * Metric has been changed.
+	 * @param {Object} labels
+	 */
 	changed(labels) {
 		this.setDirty();
 		this.registry.changed(this, labels);
+	}
+
+	/**
+	 * Export to a POJO.
+	 */
+	toObject() {
+		return {
+			type: this.type,
+			name: this.name,
+			description: this.description,
+			labelNames: this.labelNames,
+			unit: this.unit,
+
+			values: this.snapshot()
+		};
 	}
 }
 

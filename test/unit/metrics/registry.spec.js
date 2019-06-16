@@ -10,8 +10,6 @@ const MetricTypes = require("../../../src/metrics/types");
 const MetricReporters = require("../../../src/metrics/reporters");
 
 const lolex = require("lolex");
-const Promise = require("bluebird");
-
 
 describe("Test Metric Registry", () => {
 
@@ -523,6 +521,105 @@ describe("Test Metric Registry", () => {
 
 			expect(metric.reporter[1].metricChanged).toHaveBeenCalledTimes(1);
 			expect(metric.reporter[1].metricChanged).toHaveBeenCalledWith("test.counter", labels);
+		});
+
+	});
+
+	describe("Test list method", () => {
+
+		const broker = new ServiceBroker({ logger: false });
+		const registry = new MetricRegistry(broker, {
+			collectProcessMetrics: false
+		});
+		registry.init();
+
+		const mockToObject = function() {
+			return {
+				name: this.name,
+				type: this.type
+			};
+		};
+
+		registry.register({ name: "os.datetime.utc", type: "gauge" }).toObject = mockToObject;
+		registry.register({ name: "test.info", type: "info", description: "Test Info Metric" }).toObject = mockToObject;
+		registry.register({ name: "test.counter", type: "counter", labelNames: ["action"], description: "Test Counter Metric" }).toObject = mockToObject;
+		registry.register({ name: "test.gauge-total", type: "gauge", labelNames: ["action"], description: "Test Gauge Metric" }).toObject = mockToObject;
+		registry.register({ name: "test.histogram", type: "histogram", labelNames: ["action"], buckets: true, quantiles: true, unit: "bytes" }).toObject = mockToObject;
+
+		it("should list all metrics", () => {
+			const res = registry.list();
+
+			expect(res).toEqual([
+				{ "name": "os.datetime.utc", "type": "gauge" },
+				{ "name": "test.info", "type": "info" },
+				{ "name": "test.counter", "type": "counter" },
+				{ "name": "test.gauge-total", "type": "gauge" },
+				{ "name": "test.histogram", "type": "histogram" }
+			]);
+		});
+
+		it("should filtering type", () => {
+			const res = registry.list({ types: "counter" });
+
+			expect(res).toEqual([
+				{ "name": "test.counter", "type": "counter" },
+			]);
+		});
+
+		it("should filtering types", () => {
+			const res = registry.list({ types: ["counter", "histogram"] });
+
+			expect(res).toEqual([
+				{ "name": "test.counter", "type": "counter" },
+				{ "name": "test.histogram", "type": "histogram" }
+			]);
+		});
+
+		it("should filtering includes", () => {
+			const res = registry.list({ includes: "test.counter" });
+
+			expect(res).toEqual([
+				{ "name": "test.counter", "type": "counter" },
+			]);
+		});
+
+		it("should filtering multi includes", () => {
+			const res = registry.list({ includes: ["test.co**", "os.**"] });
+
+			expect(res).toEqual([
+				{ "name": "os.datetime.utc", "type": "gauge" },
+				{ "name": "test.counter", "type": "counter" },
+			]);
+		});
+
+		it("should filtering excludes", () => {
+			const res = registry.list({ excludes: "test.**" });
+
+			expect(res).toEqual([
+				{ "name": "os.datetime.utc", "type": "gauge" },
+			]);
+		});
+
+		it("should filtering multi excludes", () => {
+			const res = registry.list({ excludes: ["test.counter", "os.**"] });
+
+			expect(res).toEqual([
+				{ "name": "test.info", "type": "info" },
+				{ "name": "test.gauge-total", "type": "gauge" },
+				{ "name": "test.histogram", "type": "histogram" }
+			]);
+		});
+
+		it("should filtering all", () => {
+			const res = registry.list({
+				types: ["counter", "gauge"] ,
+				includes: "test.**" ,
+				excludes: ["test.counter"]
+			});
+
+			expect(res).toEqual([
+				{ "name": "test.gauge-total", "type": "gauge" },
+			]);
 		});
 
 	});

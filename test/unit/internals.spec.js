@@ -1,10 +1,11 @@
 "use strict";
 
 const ServiceBroker = require("../../src/service-broker");
+const { MoleculerClientError } = require("../../src/errors");
 const { protectReject } = require("./utils");
 
 describe("Test health status methods", () => {
-	const broker = new ServiceBroker({ logger: false, transporter: "fake" });
+	const broker = new ServiceBroker({ logger: false, transporter: "fake", metrics: true });
 
 	beforeAll(() => broker.start());
 	afterAll(() => broker.stop());
@@ -108,4 +109,33 @@ describe("Test health status methods", () => {
 			expect(res).toEqual(broker.options);
 		});
 	});
+
+	it("should call MetricsRegistry.list", () => {
+		broker.metrics.list = jest.fn();
+
+		let opts = { includes: "moleculer.**", excludes: ["process.**"], types: "info" };
+
+		return broker.call("$node.metrics", opts).catch(protectReject).then(() => {
+			expect(broker.metrics.list).toHaveBeenCalledTimes(1);
+			expect(broker.metrics.list).toHaveBeenCalledWith(opts);
+		});
+	});
+
+	it("should throw error if metrics is disabled", () => {
+		broker.isMetricsEnabled = jest.fn(() => false);
+		broker.metrics.list = jest.fn();
+
+		let opts = { includes: "moleculer.**", excludes: ["process.**"], types: "info" };
+
+		return broker.call("$node.metrics", opts).then(protectReject).catch(err => {
+			expect(err).toBeInstanceOf(MoleculerClientError);
+			expect(err.name).toBe("MoleculerClientError");
+			expect(err.type).toBe("METRICS_DISABLED");
+			expect(err.code).toBe(400);
+			expect(err.message).toBe("Metrics feature is disabled");
+
+			expect(broker.metrics.list).toHaveBeenCalledTimes(0);
+		});
+	});
+
 });
