@@ -368,9 +368,12 @@ describe("Test Datadog tracing exporter class", () => {
 		it("should finish", () => {
 			fakeDdSpan.finish.mockClear();
 			exporter.addTags = jest.fn();
+			exporter.addLogs = jest.fn();
 
 			const span = {
 				finishTime: 1050,
+
+				logs: [1,5],
 
 				meta: {
 					datadog: {
@@ -385,6 +388,9 @@ describe("Test Datadog tracing exporter class", () => {
 
 			expect(exporter.addTags).toHaveBeenCalledTimes(0);
 
+			expect(exporter.addLogs).toHaveBeenCalledTimes(1);
+			expect(exporter.addLogs).toHaveBeenCalledWith(fakeDdSpan, span.logs);
+
 			expect(fakeDdSpan.finish).toHaveBeenCalledTimes(1);
 			expect(fakeDdSpan.finish).toHaveBeenCalledWith(1050);
 
@@ -396,6 +402,7 @@ describe("Test Datadog tracing exporter class", () => {
 			fakeDdSpan.finish.mockClear();
 			fakeTracerScope._destroy.mockClear();
 			exporter.addTags = jest.fn();
+			exporter.addLogs = jest.fn();
 
 			const fakeOldSpan = { name: "old-span" };
 			fakeTracerScope._spans[asyncHooks.executionAsyncId()] = null;
@@ -404,6 +411,8 @@ describe("Test Datadog tracing exporter class", () => {
 
 			const span = {
 				finishTime: 1050,
+
+				logs: [],
 
 				error: err,
 
@@ -427,6 +436,9 @@ describe("Test Datadog tracing exporter class", () => {
 				retryable: true
 			});
 
+			expect(exporter.addLogs).toHaveBeenCalledTimes(1);
+			expect(exporter.addLogs).toHaveBeenCalledWith(fakeDdSpan, span.logs);
+
 			expect(fakeDdSpan.finish).toHaveBeenCalledTimes(1);
 			expect(fakeDdSpan.finish).toHaveBeenCalledWith(1050);
 
@@ -436,10 +448,11 @@ describe("Test Datadog tracing exporter class", () => {
 		});
 	});
 
-	/*
 	describe("Test addLogs method", () => {
 		const fakeTracer = {
-			logger: broker.logger
+			logger: broker.logger,
+			getCurrentTraceID: jest.fn(),
+			getActiveSpanID: jest.fn(),
 		};
 
 		const exporter = new DatadogTraceExporter();
@@ -461,7 +474,7 @@ describe("Test Datadog tracing exporter class", () => {
 		});
 
 	});
-*/
+
 	describe("Test addTags method", () => {
 		const fakeTracer = {
 			logger: broker.logger,

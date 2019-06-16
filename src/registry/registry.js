@@ -81,7 +81,6 @@ class Registry {
 		this.metrics.set(METRIC.MOLECULER_REGISTRY_NODES_TOTAL, this.nodes.count());
 		this.metrics.set(METRIC.MOLECULER_REGISTRY_NODES_ONLINE_TOTAL, this.nodes.onlineCount());
 
-		// TODO use services.list({ grouping: true })
 		const services = this.services.list({ grouping: true, onlyLocal: false, onlyAvailable: false, skipInternal: false, withActions: false, withEvents: false });
 		this.metrics.set(METRIC.MOLECULER_REGISTRY_SERVICES_TOTAL, services.length);
 		services.forEach(svc => this.metrics.set(METRIC.MOLECULER_REGISTRY_SERVICE_ENDPOINTS_TOTAL, svc.nodes ? svc.nodes.length : 0, svc));
@@ -144,7 +143,6 @@ class Registry {
 			//Register actions
 			if (svc.actions) {
 				this.registerActions(node, service, svc.actions);
-				// TODO: has changes?
 			}
 
 			// remove old actions which is not exist
