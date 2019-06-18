@@ -72,15 +72,15 @@ describe("Test MetricReporters resolver", () => {
 		expect(reporter.opts).toEqual(expect.objectContaining({ interval: 2000 }));
 	});
 
-	it("should resolve UDP metric reporter from string", () => {
-		let reporter = MetricReporters.resolve("UDP");
-		expect(reporter).toBeInstanceOf(MetricReporters.UDP);
+	it("should resolve StatsD metric reporter from string", () => {
+		let reporter = MetricReporters.resolve("StatsD");
+		expect(reporter).toBeInstanceOf(MetricReporters.StatsD);
 	});
 
-	it("should resolve UDP metric reporter from obj", () => {
+	it("should resolve StatsD metric reporter from obj", () => {
 		let options = { interval: 2000 };
-		let reporter = MetricReporters.resolve({ type: "UDP", options });
-		expect(reporter).toBeInstanceOf(MetricReporters.UDP);
+		let reporter = MetricReporters.resolve({ type: "StatsD", options });
+		expect(reporter).toBeInstanceOf(MetricReporters.StatsD);
 		expect(reporter.opts).toEqual(expect.objectContaining({ interval: 2000 }));
 	});
 
