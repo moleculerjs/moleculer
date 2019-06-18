@@ -150,11 +150,13 @@ class BaseMetric {
 
 	/**
 	 * Metric has been changed.
+	 * @param {any} value
 	 * @param {Object} labels
+	 * @param {Number?} timestamp
 	 */
-	changed(labels) {
+	changed(value, labels, timestamp) {
 		this.setDirty();
-		this.registry.changed(this, labels);
+		this.registry.changed(this, value, labels, timestamp);
 	}
 
 	/**

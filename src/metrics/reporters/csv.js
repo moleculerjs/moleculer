@@ -122,9 +122,6 @@ class CSVReporter extends BaseReporter {
 		this.logger.debug("Write metrics values to CSV files...");
 
 		list.forEach(metric => {
-			if (metric.values.size == 0)
-				return;
-
 			metric.values.forEach(item => {
 				const filename = this.getFilename(metric, item);
 				makeDirs(path.dirname(filename));

@@ -330,14 +330,16 @@ class MetricRegistry {
 	 * Some metric has been changed.
 	 *
 	 * @param {BaseMetric} metric
-	 * @param {Object?} labels
+	 * @param {any} value
+	 * @param {Object} labels
+	 * @param {Number?} timestamp
 	 *
 	 * @memberof MetricRegistry
 	 */
-	changed(metric, labels) {
+	changed(metric, value, labels, timestamp) {
 		this.dirty = true;
 		if (Array.isArray(this.reporter))
-			this.reporter.forEach(reporter => reporter.metricChanged(metric, labels));
+			this.reporter.forEach(reporter => reporter.metricChanged(metric, value, labels, timestamp));
 	}
 
 	/**

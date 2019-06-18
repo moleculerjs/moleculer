@@ -89,7 +89,7 @@ class GaugeMetric extends BaseMetric {
 			if (item.value != value) {
 				item.value = value;
 				item.timestamp = timestamp == null ? Date.now() : timestamp;
-				this.changed(labels);
+				this.changed(value, labels, timestamp);
 			}
 		} else {
 			item = {
@@ -98,7 +98,7 @@ class GaugeMetric extends BaseMetric {
 				timestamp: timestamp == null ? Date.now() : timestamp
 			};
 			this.values.set(hash, item);
-			this.changed(labels);
+			this.changed(value, labels, timestamp);
 		}
 
 		return item;

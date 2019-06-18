@@ -33,7 +33,7 @@ class StatsDReporter extends BaseReporter {
 
 			maxPayloadSize: 1300,
 
-			interval: 5 * 1000
+			//interval: 5 * 1000
 		});
 	}
 
@@ -46,10 +46,12 @@ class StatsDReporter extends BaseReporter {
 	init(registry) {
 		super.init(registry);
 
-		if (this.opts.interval > 0) {
+		/*if (this.opts.interval > 0) {
 			this.timer = setInterval(() => this.flush(), this.opts.interval);
 			this.timer.unref();
-		}
+		}*/
+
+		this.flush();
 	}
 
 	/**
@@ -103,6 +105,7 @@ class StatsDReporter extends BaseReporter {
 				this.logger.warn("Unable to send metrics to StatsD server. Error:" + err.message, err);
 			} else {
 				this.logger.debug("Metrics are uploaded to StatsD. Sent bytes:", bytes);
+				this.logger.info(buf.toString());
 			}
 
 			sock.close();
@@ -125,140 +128,68 @@ class StatsDReporter extends BaseReporter {
 		});
 
 		list.forEach(metric => {
-			if (metric.values.size == 0)
-				return;
-
 			metric.values.forEach(item => {
-				if (item.value == null) return;
-
-				const metricName = this.formatMetricName(metric.name);
-
-				switch(metric.type) {
-					case METRIC.TYPE_COUNTER: {
-						let line = `${metricName}:${item.value}|c`;
-						if (metric.labelNames.length > 0)
-							line += "|#" + this.labelsToTags(item.labels);
-						series.push(line);
-
-						break;
-					}
-					case METRIC.TYPE_GAUGE: {
-						let line = `${metricName}:${item.value}|g`;
-						if (metric.labelNames.length > 0)
-							line += "|#" + this.labelsToTags(item.labels);
-						series.push(line);
-
-						break;
-					}
-					case METRIC.TYPE_INFO: {
-						let line = `${metricName}:${_.isNumber(item.value) ? item.value : "\"" + item.value + "\""}|s`;
-						if (metric.labelNames.length > 0)
-							line += "|#" + this.labelsToTags(item.labels);
-						series.push(line);
-
-						break;
-					}
-					case METRIC.TYPE_HISTOGRAM: {
-						/*
-						if (item.buckets) {
-							Object.keys(item.buckets).forEach(le => {
-								series.push({
-									metric: this.formatMetricName(metric.name + ".bucket_" + le),
-									type: "rate",
-									points: [[now, item.buckets[le]]],
-									tags: this.labelsToTags(item.labels),
-									host: this.opts.host
-								});
-							});
-							// +Inf
-							series.push({
-								metric: this.formatMetricName(metric.name + ".bucket_inf"),
-								type: "rate",
-								points: [[now, item.count]],
-								tags: this.labelsToTags(item.labels),
-								host: this.opts.host
-							});
-						}
-
-						if (item.quantiles) {
-
-							Object.keys(item.quantiles).forEach(key => {
-								series.push({
-									metric: this.formatMetricName(metric.name + ".q" + key),
-									type: "rate",
-									points: [[now, item.quantiles[key]]],
-									tags: this.labelsToTags(item.labels),
-									host: this.opts.host
-								});
-							});
-
-							// Add other calculated values
-							series.push({
-								metric: this.formatMetricName(metric.name + ".sum"),
-								type: "rate",
-								points: [[now, item.sum]],
-								tags: this.labelsToTags(item.labels),
-								host: this.opts.host
-							});
-
-							series.push({
-								metric: this.formatMetricName(metric.name + ".count"),
-								type: "rate",
-								points: [[now, item.count]],
-								tags: this.labelsToTags(item.labels),
-								host: this.opts.host
-							});
-
-							series.push({
-								metric: this.formatMetricName(metric.name + ".min"),
-								type: "rate",
-								points: [[now, item.min]],
-								tags: this.labelsToTags(item.labels),
-								host: this.opts.host
-							});
-
-							series.push({
-								metric: this.formatMetricName(metric.name + ".mean"),
-								type: "rate",
-								points: [[now, item.mean]],
-								tags: this.labelsToTags(item.labels),
-								host: this.opts.host
-							});
-
-							series.push({
-								metric: this.formatMetricName(metric.name + ".variance"),
-								type: "rate",
-								points: [[now, item.variance]],
-								tags: this.labelsToTags(item.labels),
-								host: this.opts.host
-							});
-
-							series.push({
-								metric: this.formatMetricName(metric.name + ".stddev"),
-								type: "rate",
-								points: [[now, item.stdDev]],
-								tags: this.labelsToTags(item.labels),
-								host: this.opts.host
-							});
-
-							series.push({
-								metric: this.formatMetricName(metric.name + ".max"),
-								type: "rate",
-								points: [[now, item.max]],
-								tags: this.labelsToTags(item.labels),
-								host: this.opts.host
-							});
-
-						}
-*/
-						break;
-					}
-				}
+				const line = this.generateStatDLine(metric, item);
+				if (line)
+					series.push(line);
 			});
 		});
 
 		return series;
 	}
+
+	generateStatDLine(metric, item, lastValue) {
+		const metricName = this.formatMetricName(metric.name);
+
+		switch(metric.type) {
+			case METRIC.TYPE_COUNTER: {
+				let line = `${metricName}:${item.value}|c`;
+				if (metric.labelNames.length > 0)
+					line += "|#" + this.labelsToTags(item.labels);
+				return line;
+			}
+			case METRIC.TYPE_GAUGE: {
+				let line = `${metricName}:${item.value}|g`;
+				if (metric.labelNames.length > 0)
+					line += "|#" + this.labelsToTags(item.labels);
+				return line;
+			}
+			case METRIC.TYPE_INFO: {
+				let line = `${metricName}:${_.isNumber(item.value) ? item.value : "\"" + item.value + "\""}|s`;
+				if (metric.labelNames.length > 0)
+					line += "|#" + this.labelsToTags(item.labels);
+				return line;
+			}
+			case METRIC.TYPE_HISTOGRAM: {
+				if (lastValue != null) {
+					let line = `${metricName}:${lastValue}|ms`;
+					if (metric.labelNames.length > 0)
+						line += "|#" + this.labelsToTags(item.labels);
+					return line;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Some metric has been changed.
+	 *
+	 * @param {BaseMetric} metric
+	 * @param {any} value
+	 * @param {Object} labels
+	 * @param {Number?} timestamp
+	 *
+	 * @memberof BaseReporter
+	 */
+	metricChanged(metric, value, labels) {
+		if (!this.matchMetricName(metric.name)) return;
+
+		const line = this.generateStatDLine(metric, metric.get(labels), value);
+		if (line) {
+			this.send(Buffer.from(line));
+		}
+	}
+
 
 	/**
 	 * Escape label value characters.

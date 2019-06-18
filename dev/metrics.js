@@ -24,23 +24,23 @@ const broker = new ServiceBroker({
 					excludes: ["moleculer.request.error.**", "moleculer.request.fallback.**"]
 				}
 			},*/
-			/*{
+			{
 				type: "CSV",
 				options: {
 					folder: "./dev/trash/csv-metrics",
-					//includes: "os.network.family",
+					includes: "moleculer.request.time",
 					//excludes: ["moleculer.request.error.**", "moleculer.request.fallback.**"]
 					//types: "histogram",
 					//mode: "label",
-					delimiter: ";",
-					rowDelimiter: "\r\n",
+					//delimiter: ";",
+					//rowDelimiter: "\r\n",
 
-					rowFormatter(data) {
-						data[0] = new Date(data[0]).toISOString();
-						return data;
-					}
+					//rowFormatter(data) {
+					//	data[0] = new Date(data[0]).toISOString();
+					//	return data;
+					//}
 				}
-			},*/
+			},
 			/*{
 				type: "Prometheus",
 				options: {
@@ -52,7 +52,7 @@ const broker = new ServiceBroker({
 				options: {
 					host: "localhost",
 					metricNamePrefix: "statsd.",
-					//includes: "moleculer.**",
+					includes: "moleculer.request.time",
 				}
 			}
 		]

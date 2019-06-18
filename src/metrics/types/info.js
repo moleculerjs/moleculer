@@ -47,7 +47,7 @@ class InfoMetric extends BaseMetric {
 			if (value != item.value) {
 				item.value = value;
 				item.timestamp = timestamp == null ? Date.now() : timestamp;
-				this.changed(labels);
+				this.changed(value, labels, timestamp);
 			}
 		} else {
 			item = {
@@ -56,7 +56,7 @@ class InfoMetric extends BaseMetric {
 				timestamp: timestamp == null ? Date.now() : timestamp
 			};
 			this.values.set(hash, item);
-			this.changed(labels);
+			this.changed(value, labels, timestamp);
 		}
 
 		return item;

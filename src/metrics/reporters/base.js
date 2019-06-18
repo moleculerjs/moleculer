@@ -105,11 +105,13 @@ class BaseReporter {
 	 * Some metric has been changed.
 	 *
 	 * @param {BaseMetric} metric
-	 * @param {Object?} labels
+	 * @param {any} value
+	 * @param {Object} labels
+	 * @param {Number?} timestamp
 	 *
 	 * @memberof BaseReporter
 	 */
-	metricChanged(/*metric, labels*/) {
+	metricChanged(/*metric, value, labels, timestamp*/) {
 		// Not implemented. Abstract method
 	}
 }

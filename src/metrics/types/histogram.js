@@ -99,7 +99,7 @@ class HistogramMetric extends BaseMetric {
 		if (item.quantileValues) {
 			item.quantileValues.add(value);
 		}
-		this.changed(labels);
+		this.changed(value, labels, timestamp);
 
 		return item;
 	}
