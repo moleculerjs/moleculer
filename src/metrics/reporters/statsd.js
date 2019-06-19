@@ -195,7 +195,7 @@ class StatsDReporter extends BaseReporter {
 	}
 
 	/**
-	 * Convert labels to Prometheus label string
+	 * Convert labels to StatsD label string
 	 *
 	 * @param {Object} itemLabels
 	 * @returns {Array<String>}
@@ -206,7 +206,7 @@ class StatsDReporter extends BaseReporter {
 		const labels = Object.assign({}, this.defaultLabels || {}, itemLabels || {});
 		const keys = Object.keys(labels);
 		if (keys.length == 0)
-			return [];
+			return "";
 
 		return keys.map(key => `${this.formatLabelName(key)}:${this.escapeLabelValue(labels[key])}`).join(",");
 	}

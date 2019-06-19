@@ -72,7 +72,7 @@
 			"request": "launch",
 			"name": "Jest",
 			"program": "${workspaceRoot}/node_modules/jest-cli/bin/jest.js",
-			"args": ["--runInBand", "test/unit/metrics/reporters/csv.spec.js"],
+			"args": ["--runInBand", "test/unit/metrics/reporters/statsd.spec.js"],
 			"console": "internalConsole",
 			"cwd": "${workspaceRoot}",
 			"runtimeArgs": [

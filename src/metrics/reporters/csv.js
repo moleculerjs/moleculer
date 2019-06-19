@@ -204,6 +204,7 @@ class CSVReporter extends BaseReporter {
 			fs.appendFileSync(filename, fields.join(this.opts.delimiter) + this.opts.rowDelimiter);
 
 		} catch (err) {
+			/* istanbul ignore next */
 			this.logger.error(`Unable to write metrics values to the '${filename}' file. Error: ${err.message}`, fields, err);
 		}
 	}
@@ -219,6 +220,7 @@ class CSVReporter extends BaseReporter {
 	 * @memberof BaseReporter
 	 */
 	metricChanged(metric, value, labels) {
+		/* istanbul ignore next */
 		if (!this.matchMetricName(metric.name)) return;
 
 		this.lastChanges.add([metric.name, this.labelsToStr(labels)].join("|"));
