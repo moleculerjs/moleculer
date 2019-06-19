@@ -47,7 +47,7 @@ class CSVReporter extends BaseReporter {
 			rowFormatter: null,
 		});
 
-		this.lastTimestampStore = new Map();
+		this.lastChanges = new Set();
 	}
 
 	/**
@@ -119,17 +119,20 @@ class CSVReporter extends BaseReporter {
 			excludes: this.opts.excludes,
 		});
 
+		if (list.length == 0)
+			return;
+
 		this.logger.debug("Write metrics values to CSV files...");
 
 		list.forEach(metric => {
 			metric.values.forEach(item => {
+				// Is it changed?
+				if (!this.lastChanges.has([metric.name, this.labelsToStr(item.labels)].join("|")))
+					return;
+
 				const filename = this.getFilename(metric, item);
 				makeDirs(path.dirname(filename));
 				const metricName = this.formatMetricName(metric.name);
-
-				// Check changes
-				const lastTimestamp = this.lastTimestampStore.get(filename + this.labelsToStr(item.labels));
-				if (lastTimestamp == item.timestamp) return;
 
 				let headers = ["Timestamp", "Metric"];
 				let data = [item.timestamp, metricName];
@@ -181,11 +184,10 @@ class CSVReporter extends BaseReporter {
 					data = this.opts.rowFormatter.call(this, data, metric, item);
 
 				this.writeRow(filename, headers, data);
-
-				this.lastTimestampStore.set(filename + this.labelsToStr(item.labels), item.timestamp);
-
 			});
 		});
+
+		this.lastChanges.clear();
 	}
 
 	/**
@@ -203,6 +205,22 @@ class CSVReporter extends BaseReporter {
 		} catch (err) {
 			this.logger.error(`Unable to write metrics values to the '${filename}' file. Error: ${err.message}`, fields, err);
 		}
+	}
+
+	/**
+	 * Some metric has been changed.
+	 *
+	 * @param {BaseMetric} metric
+	 * @param {any} value
+	 * @param {Object} labels
+	 * @param {Number?} timestamp
+	 *
+	 * @memberof BaseReporter
+	 */
+	metricChanged(metric, value, labels) {
+		if (!this.matchMetricName(metric.name)) return;
+
+		this.lastChanges.add([metric.name, this.labelsToStr(labels)].join("|"));
 	}
 }
 

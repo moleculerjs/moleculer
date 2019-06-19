@@ -27,8 +27,6 @@ class InfoMetric extends BaseMetric {
 	constructor(opts, registry) {
 		super(opts, registry);
 		this.type = METRIC.TYPE_INFO;
-
-		this.clear();
 	}
 
 	/**

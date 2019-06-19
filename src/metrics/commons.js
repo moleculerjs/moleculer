@@ -42,8 +42,8 @@ function registerCommonMetrics() {
 
 	// --- METRICS SELF METRICS ---
 
-	this.register({ name: METRIC.MOLECULER_METRICS_COMMON_COLLECT_TOTAL, type: METRIC.TYPE_COUNTER, description: "Number of metric collections" });
-	this.register({ name: METRIC.MOLECULER_METRICS_COMMON_COLLECT_TIME, type: METRIC.TYPE_GAUGE, description: "Time of collecting metrics", unit: METRIC.UNIT_MILLISECONDS });
+	// this.register({ name: METRIC.MOLECULER_METRICS_COMMON_COLLECT_TOTAL, type: METRIC.TYPE_COUNTER, description: "Number of metric collections" });
+	// this.register({ name: METRIC.MOLECULER_METRICS_COMMON_COLLECT_TIME, type: METRIC.TYPE_GAUGE, description: "Time of collecting metrics", unit: METRIC.UNIT_MILLISECONDS });
 
 	// --- PROCESS METRICS ---
 
@@ -169,7 +169,7 @@ function startGCWatcher() {
  */
 function updateCommonMetrics() {
 	this.logger.debug("Update common metric values...");
-	const end = this.timer(METRIC.MOLECULER_METRICS_COMMON_COLLECT_TIME);
+	//const end = this.timer(METRIC.MOLECULER_METRICS_COMMON_COLLECT_TIME);
 
 	// --- PROCESS METRICS ---
 
@@ -251,8 +251,8 @@ function updateCommonMetrics() {
 		this.set(METRIC.PROCESS_EVENTLOOP_LAG_COUNT, stat.num);
 	}
 
-	this.increment(METRIC.MOLECULER_METRICS_COMMON_COLLECT_TOTAL);
-	const duration = end();
+	// this.increment(METRIC.MOLECULER_METRICS_COMMON_COLLECT_TOTAL);
+	// const duration = end();
 
 	return Promise.resolve()
 		.then(() => cpuUsage().then(res => {
@@ -279,7 +279,8 @@ function updateCommonMetrics() {
 			// silent this.logger.warn("Unable to collect CPU usage metrics.", err);
 		})
 		.then(() => {
-			this.logger.debug(`Collected common metric values in ${duration.toFixed(3)} msec.`);
+			this.logger.debug("Collected common metric values.");
+			//this.logger.debug(`Collected common metric values in ${duration.toFixed(3)} msec.`);
 		});
 }
 

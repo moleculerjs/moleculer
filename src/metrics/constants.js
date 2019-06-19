@@ -10,15 +10,15 @@ module.exports = {
 
 	// --- METRIC TYPES ---
 
-	TYPE_COUNTER:  "counter",
-	TYPE_GAUGE:  "gauge",
-	TYPE_HISTOGRAM:  "histogram",
-	TYPE_INFO:  "info",
+	TYPE_COUNTER:  	"counter",
+	TYPE_GAUGE:  	"gauge",
+	TYPE_HISTOGRAM: "histogram",
+	TYPE_INFO:  	"info",
 
 	// --- METRICREGISTRY METRICS ---
 
-	MOLECULER_METRICS_COMMON_COLLECT_TOTAL: "moleculer.metrics.common.collect.total",
-	MOLECULER_METRICS_COMMON_COLLECT_TIME: "moleculer.metrics.common.collect.time",
+	// MOLECULER_METRICS_COMMON_COLLECT_TOTAL: "moleculer.metrics.common.collect.total",
+	// MOLECULER_METRICS_COMMON_COLLECT_TIME: "moleculer.metrics.common.collect.time",
 
 	// --- PROCESS METRICS ---
 
@@ -225,7 +225,7 @@ module.exports = {
 	UNIT_MINUTE: "minute",
 	UNIT_HOUR: "hour",
 	UNIT_DAY: "day",
-	UNIT_WEEK: "wek",
+	UNIT_WEEK: "week",
 	UNIT_MONTH: "month",
 	UNIT_YEAR: "year",
 
@@ -239,4 +239,6 @@ module.exports = {
 	UNIT_CONNECTION: "connection",
 	UNIT_PACKET: "packet",
 	UNIT_MESSAGE: "message",
+	UNIT_STREAM: "stream",
+	UNIT_EVENT: "event",
 };

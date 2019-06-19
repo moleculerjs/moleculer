@@ -26,8 +26,6 @@ class CounterMetric extends GaugeMetric {
 	constructor(opts, registry) {
 		super(opts, registry);
 		this.type = METRIC.TYPE_COUNTER;
-
-		this.clear();
 	}
 
 	/**

@@ -59,8 +59,6 @@ class HistogramMetric extends BaseMetric {
 			this.maxAgeSeconds = opts.maxAgeSeconds || this.registry.opts.defaultMaxAgeSeconds; // 1 minute
 			this.ageBuckets = opts.ageBuckets || this.registry.opts.defaultAgeBuckets; // 10 secs per bucket
 		}
-
-		this.clear();
 	}
 
 	/**

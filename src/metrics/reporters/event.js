@@ -35,6 +35,8 @@ class EventReporter extends BaseReporter {
 
 			interval: 5 * 1000,
 		});
+
+		this.lastChanges = new Set();
 	}
 
 	/**
@@ -58,18 +60,43 @@ class EventReporter extends BaseReporter {
 	 * @memberof EventReporter
 	 */
 	sendEvent() {
-		const data = this.registry.list({
+		let list = this.registry.list({
 			includes: this.opts.includes,
 			excludes: this.opts.excludes,
 		});
 
+		if (this.opts.onlyChanges)
+			list = list.filter(metric => this.lastChanges.has(metric.name));
+
+		if (list.length == 0)
+			return;
+
 		if (this.opts.broadcast) {
-			this.logger.debug(`Send metrics.snapshot (${data.length} metrics) broadcast events.`);
-			this.broker.broadcast(this.opts.eventName, data, this.opts.groups);
+			this.logger.debug(`Send metrics.snapshot (${list.length} metrics) broadcast events.`);
+			this.broker.broadcast(this.opts.eventName, list, this.opts.groups);
 		} else {
-			this.logger.debug(`Send metrics.snapshot (${data.length} metrics) events.`);
-			this.broker.emit(this.opts.eventName, data, this.opts.groups);
+			this.logger.debug(`Send metrics.snapshot (${list.length} metrics) events.`);
+			this.broker.emit(this.opts.eventName, list, this.opts.groups);
 		}
+
+		this.lastChanges.clear();
+	}
+
+
+	/**
+	 * Some metric has been changed.
+	 *
+	 * @param {BaseMetric} metric
+	 * @param {any} value
+	 * @param {Object} labels
+	 * @param {Number?} timestamp
+	 *
+	 * @memberof BaseReporter
+	 */
+	metricChanged(metric) {
+		if (!this.matchMetricName(metric.name)) return;
+
+		this.lastChanges.add(metric.name);
 	}
 }
 

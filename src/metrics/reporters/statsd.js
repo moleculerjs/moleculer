@@ -32,8 +32,6 @@ class StatsDReporter extends BaseReporter {
 			port: 8125,
 
 			maxPayloadSize: 1300,
-
-			//interval: 5 * 1000
 		});
 	}
 
@@ -45,11 +43,6 @@ class StatsDReporter extends BaseReporter {
 	 */
 	init(registry) {
 		super.init(registry);
-
-		/*if (this.opts.interval > 0) {
-			this.timer = setInterval(() => this.flush(), this.opts.interval);
-			this.timer.unref();
-		}*/
 
 		this.flush();
 	}
@@ -105,7 +98,6 @@ class StatsDReporter extends BaseReporter {
 				this.logger.warn("Unable to send metrics to StatsD server. Error:" + err.message, err);
 			} else {
 				this.logger.debug("Metrics are uploaded to StatsD. Sent bytes:", bytes);
-				this.logger.info(buf.toString());
 			}
 
 			sock.close();
@@ -189,7 +181,6 @@ class StatsDReporter extends BaseReporter {
 			this.send(Buffer.from(line));
 		}
 	}
-
 
 	/**
 	 * Escape label value characters.

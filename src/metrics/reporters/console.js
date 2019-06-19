@@ -31,10 +31,13 @@ class ConsoleReporter extends BaseReporter {
 			interval: 5 * 1000,
 			logger: null,
 			colors: true,
+			onlyChanges: true,
 		});
 
 		if (!this.opts.colors)
 			chalk.level = 0;
+
+		this.lastChanges = new Set();
 	}
 
 	/**
@@ -72,10 +75,16 @@ class ConsoleReporter extends BaseReporter {
 	 * @memberof ConsoleReporter
 	 */
 	print() {
-		const list = this.registry.list({
+		let list = this.registry.list({
 			includes: this.opts.includes,
 			excludes: this.opts.excludes,
 		});
+
+		if (this.opts.onlyChanges)
+			list = list.filter(metric => this.lastChanges.has(metric.name));
+
+		if (list.length == 0)
+			return;
 
 		this.log(chalk.gray(`------------------- [ METRICS START (${list.length}) ] -------------------`));
 
@@ -84,7 +93,7 @@ class ConsoleReporter extends BaseReporter {
 			if (metric.values.size == 0) {
 				this.log(chalk.gray("  <no values>"));
 			} else {
-				const unit = metric.unit ? chalk.gray(metric.unit) : "";
+				const unit = metric.unit ? chalk.gray(this.pluralizeUnit(metric.unit)) : "";
 				metric.values.forEach(item => {
 					let val;
 					const labelStr = this.labelsToStr(item.labels);
@@ -127,15 +136,51 @@ class ConsoleReporter extends BaseReporter {
 		});
 
 		this.log(chalk.gray(`-------------------- [ METRICS END (${list.length}) ] --------------------`));
+
+		this.lastChanges.clear();
 	}
 
+	/**
+	 * Pluralize metric units.
+	 *
+	 * @param {String} unit
+	 * @returns {String}
+	 */
+	pluralizeUnit(unit) {
+		switch(unit) {
+			case METRIC.UNIT_GHZ:
+				return unit;
+		}
+		return unit + "s";
+	}
 
+	/**
+	 * Print messages
+	 *
+	 * @param  {...any} args
+	 */
 	log(...args) {
 		if (_.isFunction(this.opts.logger)) {
 			return this.opts.logger(...args);
 		} else {
 			return this.logger.info(...args);
 		}
+	}
+
+	/**
+	 * Some metric has been changed.
+	 *
+	 * @param {BaseMetric} metric
+	 * @param {any} value
+	 * @param {Object} labels
+	 * @param {Number?} timestamp
+	 *
+	 * @memberof BaseReporter
+	 */
+	metricChanged(metric) {
+		if (!this.matchMetricName(metric.name)) return;
+
+		this.lastChanges.add(metric.name);
 	}
 }
 

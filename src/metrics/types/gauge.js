@@ -35,8 +35,6 @@ class GaugeMetric extends BaseMetric {
 	constructor(opts, registry) {
 		super(opts, registry);
 		this.type = METRIC.TYPE_GAUGE;
-
-		this.clear();
 	}
 
 	/**
