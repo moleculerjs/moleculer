@@ -365,45 +365,6 @@ Array [
 ]
 `;
 
-exports[`Test CSVReporter class Test flush method should send changes only 1`] = `
-Array [
-  Array [
-    "d:\\\\Work\\\\moleculer\\\\moleculer\\\\reports\\\\metrics\\\\test.counter.csv",
-    Array [
-      "Timestamp",
-      "Metric",
-      "Label action",
-      "Value",
-      "MyField",
-    ],
-    Array [
-      12345678000,
-      "test.counter",
-      "",
-      "12",
-      "MyData",
-    ],
-  ],
-  Array [
-    "d:\\\\Work\\\\moleculer\\\\moleculer\\\\reports\\\\metrics\\\\test.gauge-total.csv",
-    Array [
-      "Timestamp",
-      "Metric",
-      "Label action",
-      "Value",
-      "MyField",
-    ],
-    Array [
-      12345678000,
-      "test.gauge-total",
-      "posts",
-      "-5",
-      "MyData",
-    ],
-  ],
-]
-`;
-
 exports[`Test CSVReporter class Test flush method should write changes only 1`] = `
 Array [
   Array [

@@ -5,6 +5,9 @@ const lolex = require("lolex");
 const utils = require("../../../../src/utils");
 utils.makeDirs = jest.fn();
 
+jest.mock("fs");
+const fs = require("fs");
+
 const path = require("path");
 
 const CSVReporter = require("../../../../src/metrics/reporters/csv");
@@ -182,6 +185,44 @@ describe("Test CSVReporter class", () => {
 
 			expect(reporter.opts.filenameFormatter).toHaveBeenCalledTimes(1);
 			expect(reporter.opts.filenameFormatter).toHaveBeenCalledWith("moleculer.request.total", metric, item);
+		});
+
+	});
+
+	describe("Test writeRow method", () => {
+		const broker = new ServiceBroker({ logger: false, nodeID: "node-123" });
+		const registry = new MetricRegistry(broker);
+		const reporter = new CSVReporter({ folder: "/metrics" });
+		reporter.init(registry);
+
+		const headers = ["header1", "header2"];
+		const data = ["data1", "data2"];
+
+		it("should create a new file with header & data", () => {
+			fs.existsSync = jest.fn(() => false);
+
+			reporter.writeRow("test.csv", headers, data);
+
+			expect(fs.writeFileSync).toHaveBeenCalledTimes(1);
+			expect(fs.writeFileSync).toHaveBeenCalledWith("test.csv", "header1,header2\n");
+
+			expect(fs.appendFileSync).toHaveBeenCalledTimes(1);
+			expect(fs.appendFileSync).toHaveBeenCalledWith("test.csv", "data1,data2\n");
+		});
+
+		it("should append data", () => {
+			reporter.opts.delimiter = ";";
+			reporter.opts.rowDelimiter = "\r\n";
+			fs.writeFileSync.mockClear();
+			fs.appendFileSync.mockClear();
+			fs.existsSync = jest.fn(() => true);
+
+			reporter.writeRow("test.csv", headers, data);
+
+			expect(fs.writeFileSync).toHaveBeenCalledTimes(0);
+
+			expect(fs.appendFileSync).toHaveBeenCalledTimes(1);
+			expect(fs.appendFileSync).toHaveBeenCalledWith("test.csv", "data1;data2\r\n");
 		});
 
 	});
