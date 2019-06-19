@@ -6,8 +6,6 @@ const EventReporter = require("../../../../src/metrics/reporters/event");
 const ServiceBroker = require("../../../../src/service-broker");
 const MetricRegistry = require("../../../../src/metrics/registry");
 
-// TODO: call server.close in afters
-
 describe("Test EventReporter class", () => {
 
 	describe("Test Constructor", () => {
@@ -90,6 +88,24 @@ describe("Test EventReporter class", () => {
 			clock.tick(2500);
 
 			expect(reporter.sendEvent).toBeCalledTimes(1);
+		});
+
+		it("should not start timer", () => {
+			const fakeBroker = {
+				nodeID: "node-123",
+				namespace: "test-ns"
+			};
+			const fakeRegistry = { broker: fakeBroker };
+			const reporter = new EventReporter({ interval: 0 });
+			reporter.sendEvent = jest.fn();
+			reporter.init(fakeRegistry);
+
+			expect(reporter.timer).toBeUndefined();
+			expect(reporter.sendEvent).toBeCalledTimes(0);
+
+			clock.tick(2500);
+
+			expect(reporter.sendEvent).toBeCalledTimes(0);
 		});
 
 	});
@@ -215,6 +231,8 @@ describe("Test EventReporter class", () => {
 			registry.increment("test.counter", null, 7);
 			registry.decrement("test.gauge-total", { action: "posts" }, 5);
 
+			expect(reporter.lastChanges.size).toBe(2);
+
 			reporter.sendEvent();
 
 			expect(broker.emit).toHaveBeenCalledTimes(0);
@@ -222,7 +240,7 @@ describe("Test EventReporter class", () => {
 			expect(broker.broadcast).toHaveBeenCalledWith("$metrics.custom", expect.any(Array), null);
 
 			expect(broker.broadcast.mock.calls[0][1]).toMatchSnapshot();
-
+			expect(reporter.lastChanges.size).toBe(0);
 		});
 
 	});

@@ -2,18 +2,21 @@
 
 const lolex = require("lolex");
 
-const ConsoleReporter = require("../../../../src/metrics/reporters/console");
+const utils = require("../../../../src/utils");
+utils.makeDirs = jest.fn();
+
+const path = require("path");
+
+const CSVReporter = require("../../../../src/metrics/reporters/csv");
 const ServiceBroker = require("../../../../src/service-broker");
 const MetricRegistry = require("../../../../src/metrics/registry");
 
-// TODO: call server.close in afters
-
-describe("Test Console Reporter class", () => {
+describe("Test CSVReporter class", () => {
 
 	describe("Test Constructor", () => {
 
 		it("should create with default options", () => {
-			const reporter = new ConsoleReporter();
+			const reporter = new CSVReporter();
 
 			expect(reporter.opts).toEqual({
 				includes: null,
@@ -25,15 +28,21 @@ describe("Test Console Reporter class", () => {
 				metricNameFormatter: null,
 				labelNameFormatter: null,
 
-				interval: 5000,
-				logger: null,
-				colors: true,
-				onlyChanges: true,
+				folder: "./reports/metrics",
+				delimiter: ",",
+				rowDelimiter: "\n",
+				mode: "metric",
+				types: null,
+				interval: 5 * 1000,
+				filenameFormatter: null,
+				rowFormatter: null,
 			});
+
+			expect(reporter.lastChanges).toBeInstanceOf(Set);
 		});
 
 		it("should create with custom options", () => {
-			const reporter = new ConsoleReporter({
+			const reporter = new CSVReporter({
 				metricNamePrefix: "mol-",
 				metricNameSuffix: ".data",
 				includes: "moleculer.**",
@@ -41,10 +50,12 @@ describe("Test Console Reporter class", () => {
 				metricNameFormatter: () => {},
 				labelNameFormatter: () => {},
 
-				interval: 10000,
-				logger: {},
-				colors: false,
-				onlyChanges: false,
+				folder: "./metrics",
+				delimiter: ";",
+				rowDelimiter: "\r\n",
+				mode: "label",
+				types: ["gauge", "counter"],
+				interval: 10 * 1000,
 			});
 
 			expect(reporter.opts).toEqual({
@@ -55,10 +66,15 @@ describe("Test Console Reporter class", () => {
 				metricNameFormatter: expect.any(Function),
 				labelNameFormatter: expect.any(Function),
 
-				interval: 10000,
-				logger: {},
-				colors: false,
-				onlyChanges: false,
+				folder: "./metrics",
+				delimiter: ";",
+				rowDelimiter: "\r\n",
+				mode: "label",
+				types: ["gauge", "counter"],
+				interval: 10 * 1000,
+
+				filenameFormatter: null,
+				rowFormatter: null,
 			});
 		});
 
@@ -69,102 +85,135 @@ describe("Test Console Reporter class", () => {
 		beforeAll(() => clock = lolex.install());
 		afterAll(() => clock.uninstall());
 
-		it("should start timer", () => {
+		it("should start timer & create directory", () => {
+			utils.makeDirs.mockClear();
+
 			const fakeBroker = {
 				nodeID: "node-123",
 				namespace: "test-ns"
 			};
 			const fakeRegistry = { broker: fakeBroker };
-			const reporter = new ConsoleReporter({ interval: 2000 });
-			reporter.print = jest.fn();
+			const reporter = new CSVReporter({ interval: 2000, folder: "/metrics" });
+			reporter.flush = jest.fn();
 			reporter.init(fakeRegistry);
 
 			expect(reporter.timer).toBeDefined();
-			expect(reporter.print).toBeCalledTimes(0);
+			expect(reporter.flush).toBeCalledTimes(0);
+
+			expect(utils.makeDirs).toHaveBeenCalledTimes(1);
+			expect(utils.makeDirs).toHaveBeenCalledWith(path.resolve("/metrics"));
 
 			clock.tick(2500);
 
-			expect(reporter.print).toBeCalledTimes(1);
+			expect(reporter.flush).toBeCalledTimes(1);
+		});
+
+		it("should not start timer but create directory", () => {
+			utils.makeDirs.mockClear();
+
+			const fakeBroker = {
+				nodeID: "node-123",
+				namespace: "test-ns"
+			};
+			const fakeRegistry = { broker: fakeBroker };
+			const reporter = new CSVReporter({ interval: 0, folder: "/metrics" });
+			reporter.flush = jest.fn();
+			reporter.init(fakeRegistry);
+
+			expect(reporter.timer).toBeUndefined();
+			expect(reporter.flush).toBeCalledTimes(0);
+
+			expect(utils.makeDirs).toHaveBeenCalledTimes(1);
+			expect(utils.makeDirs).toHaveBeenCalledWith(path.resolve("/metrics"));
+
+			clock.tick(2500);
+
+			expect(reporter.flush).toBeCalledTimes(0);
 		});
 
 	});
 
-	describe("Test print method", () => {
-		let clock;
-		beforeAll(() => clock = lolex.install({ now: 12345678000 }));
-		afterAll(() => clock.uninstall());
-
-		let LOG_STORE = [];
-		const logger = jest.fn((...args) => LOG_STORE.push(args.join(" ")));
-
+	describe("Test labelsToStr method", () => {
 		const broker = new ServiceBroker({ logger: false, nodeID: "node-123" });
 		const registry = new MetricRegistry(broker);
+		const reporter = new CSVReporter({});
+		reporter.init(registry);
 
-		it("should print lines to the logger", () => {
-
-			const reporter = new ConsoleReporter({
-				interval: 0,
-				colors: false,
-				onlyChanges: false,
-				logger
-			});
-			reporter.init(registry);
-
-			registry.register({ name: "os.datetime.utc", type: "gauge" }).set(123456);
-			registry.register({ name: "test.info", type: "info", description: "Test Info Metric" }).set("Test Value");
-
-			registry.register({ name: "test.counter", type: "counter", labelNames: ["action"], description: "Test Counter Metric" });
-			registry.increment("test.counter", null, 5);
-			registry.increment("test.counter", { action: "posts\\comments" }, 8);
-
-			registry.register({ name: "test.gauge-total", type: "gauge", labelNames: ["action"], description: "Test Gauge Metric" });
-			registry.decrement("test.gauge-total", { action: "users-\"John\"" }, 8);
-			registry.set("test.gauge-total", { action: "posts" }, null);
-
-			registry.register({ name: "test.histogram", type: "histogram", labelNames: ["action"], buckets: true, quantiles: true, unit: "byte" });
-			registry.observe("test.histogram", 8, null);
-			registry.observe("test.histogram", 2, null);
-			registry.observe("test.histogram", 6, null);
-			registry.observe("test.histogram", 2, null);
-
-			registry.observe("test.histogram", 1, { action: "auth" });
-			registry.observe("test.histogram", 3, { action: "auth" });
-			registry.observe("test.histogram", 7, { action: "auth" });
-
-			reporter.print();
-
-			expect(LOG_STORE).toMatchSnapshot();
+		it("should convert labels to filename compatible string", () => {
+			expect(reporter.labelsToStr()).toBe("");
+			expect(reporter.labelsToStr({})).toBe("");
+			expect(reporter.labelsToStr({
+				a: 5,
+				b: "John",
+				c: true,
+				d: null,
+				e: "%Hello . Mol:ec?uler/"
+			})).toBe("a=5--b=John--c=true--d=null--e=Hello_._Moleculer");
 		});
 
 	});
 
-	describe("Test print method with onlyChanges", () => {
-		let clock;
-		beforeAll(() => clock = lolex.install({ now: 12345678000 }));
-		afterAll(() => clock.uninstall());
+	describe("Test getFilename method", () => {
+		const broker = new ServiceBroker({ logger: false, nodeID: "node-123" });
+		const registry = new MetricRegistry(broker);
+		const reporter = new CSVReporter({ folder: "/metrics" });
+		reporter.init(registry);
 
-		let LOG_STORE = [];
-		const logger = jest.fn((...args) => LOG_STORE.push(args.join(" ")));
+		const metric = { name: "moleculer.request.total" };
+		const item = {
+			labels: {
+				a: 5,
+				b: "John Doe"
+			}
+		};
 
-		const broker = new ServiceBroker({
-			logger: false,
-			nodeID: "node-123",
-			metrics: {
-				reporter: {
-					type: "Console",
-					options: {
-						interval: 0,
-						colors: false,
-						onlyChanges: true,
-						logger
+		it("should create metric-based filename", () => {
+			expect(reporter.getFilename(metric, item)).toBe(path.resolve("/metrics", "moleculer.request.total.csv"));
+		});
+
+		it("should create label-based filename", () => {
+			reporter.opts.mode = "label";
+			expect(reporter.getFilename(metric, item)).toBe(path.resolve("/metrics", "moleculer.request.total", "moleculer.request.total--a=5--b=John_Doe.csv"));
+		});
+
+		it("should create metric-based filename", () => {
+			reporter.opts.filenameFormatter = jest.fn(() => "/xyz.csv");
+			expect(reporter.getFilename(metric, item)).toBe("/xyz.csv");
+
+			expect(reporter.opts.filenameFormatter).toHaveBeenCalledTimes(1);
+			expect(reporter.opts.filenameFormatter).toHaveBeenCalledWith("moleculer.request.total", metric, item);
+		});
+
+	});
+
+
+	describe("Test flush method", () => {
+		let clock, broker, registry, reporter;
+		let ROWS = [];
+
+		beforeAll(() => {
+			clock = lolex.install({ now: 12345678000 });
+
+			broker = new ServiceBroker({
+				logger: false,
+				nodeID: "node-123",
+				metrics: {
+					reporter: {
+						type: "CSV",
+						options: {
+						}
 					}
 				}
-			}
-		});
-		const registry = broker.metrics;
-		const reporter = registry.reporter[0];
+			});
 
-		it("should not print lines to the logger", () => {
+			registry = broker.metrics;
+			reporter = registry.reporter[0];
+			reporter.writeRow = jest.fn((...args) => ROWS.push(args));
+		});
+		afterAll(() => clock.uninstall());
+
+		it("should call broker emit with changes", () => {
+
 			registry.register({ name: "os.datetime.utc", type: "gauge" }).set(123456);
 			registry.register({ name: "test.info", type: "info", description: "Test Info Metric" }).set("Test Value");
 
@@ -186,20 +235,30 @@ describe("Test Console Reporter class", () => {
 			registry.observe("test.histogram", 3, { action: "auth" });
 			registry.observe("test.histogram", 7, { action: "auth" });
 
-			reporter.print();
+			reporter.flush();
 
-			expect(LOG_STORE).toMatchSnapshot();
+			expect(ROWS).toMatchSnapshot();
 		});
 
-		it("should print changes only", () => {
-			LOG_STORE = [];
+		it("should write changes only", () => {
+			ROWS = [];
+			reporter.opts.rowFormatter = jest.fn((data, headers, metric, item) => {
+				data.push("MyData");
+				headers.push("MyField");
+			});
+
+			expect(reporter.lastChanges.size).toBe(0);
 
 			registry.increment("test.counter", null, 7);
 			registry.decrement("test.gauge-total", { action: "posts" }, 5);
 
-			reporter.print();
+			expect(reporter.lastChanges.size).toBe(2);
 
-			expect(LOG_STORE).toMatchSnapshot();
+			reporter.flush();
+
+			expect(ROWS).toMatchSnapshot();
+			expect(reporter.lastChanges.size).toBe(0);
+
 		});
 
 	});

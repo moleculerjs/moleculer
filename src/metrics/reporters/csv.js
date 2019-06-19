@@ -76,14 +76,15 @@ class CSVReporter extends BaseReporter {
 	 * @memberof CSVReporter
 	 */
 	labelsToStr(labels) {
-		const keys = Object.keys(labels);
-		if (keys.length == 0)
-			return "";
+		if (labels == null) return "";
 
-		return keys.map(key => `${this.formatLabelName(key)}: ${labels[key]}`)
+		const keys = Object.keys(labels);
+		if (keys.length == 0) return "";
+
+		return keys.map(key => `${this.formatLabelName(key)}=${labels[key]}`)
 			.join("--")
 			.replace(/[\s]/g, "_")
-			.replace(/[|&:;$%@"<>()+,]/g, "");
+			.replace(/[|&:;$%@"<>()+,/?]/g, "");
 	}
 
 	/**
@@ -181,7 +182,7 @@ class CSVReporter extends BaseReporter {
 				}
 
 				if (this.opts.rowFormatter)
-					data = this.opts.rowFormatter.call(this, data, metric, item);
+					this.opts.rowFormatter.call(this, data, headers, metric, item);
 
 				this.writeRow(filename, headers, data);
 			});

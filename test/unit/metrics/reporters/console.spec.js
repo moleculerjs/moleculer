@@ -6,8 +6,6 @@ const ConsoleReporter = require("../../../../src/metrics/reporters/console");
 const ServiceBroker = require("../../../../src/service-broker");
 const MetricRegistry = require("../../../../src/metrics/registry");
 
-// TODO: call server.close in afters
-
 describe("Test ConsoleReporter class", () => {
 
 	describe("Test Constructor", () => {
@@ -86,6 +84,24 @@ describe("Test ConsoleReporter class", () => {
 			clock.tick(2500);
 
 			expect(reporter.print).toBeCalledTimes(1);
+		});
+
+		it("should not start timer", () => {
+			const fakeBroker = {
+				nodeID: "node-123",
+				namespace: "test-ns"
+			};
+			const fakeRegistry = { broker: fakeBroker };
+			const reporter = new ConsoleReporter({ interval: 0 });
+			reporter.print = jest.fn();
+			reporter.init(fakeRegistry);
+
+			expect(reporter.timer).toBeUndefined();
+			expect(reporter.print).toBeCalledTimes(0);
+
+			clock.tick(2500);
+
+			expect(reporter.print).toBeCalledTimes(0);
 		});
 
 	});
@@ -198,9 +214,12 @@ describe("Test ConsoleReporter class", () => {
 			registry.increment("test.counter", null, 7);
 			registry.decrement("test.gauge-total", { action: "posts" }, 5);
 
+			expect(reporter.lastChanges.size).toBe(2);
+
 			reporter.print();
 
 			expect(LOG_STORE).toMatchSnapshot();
+			expect(reporter.lastChanges.size).toBe(0);
 		});
 
 	});
