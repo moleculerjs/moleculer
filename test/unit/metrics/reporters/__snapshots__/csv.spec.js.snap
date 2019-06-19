@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Test ConsoleReporter class Test print method should print lines to the logger 1`] = `
+exports[`Test Console Reporter class Test print method should print lines to the logger 1`] = `
 Array [
   "------------------- [ METRICS START (5) ] -------------------",
   "os.datetime.utc (gauge)",
@@ -25,7 +25,7 @@ Array [
 ]
 `;
 
-exports[`Test ConsoleReporter class Test print method with onlyChanges should not print lines to the logger 1`] = `
+exports[`Test Console Reporter class Test print method with onlyChanges should not print lines to the logger 1`] = `
 Array [
   "------------------- [ METRICS START (17) ] -------------------",
   "moleculer.node.type (info)",
@@ -86,7 +86,7 @@ Array [
 ]
 `;
 
-exports[`Test ConsoleReporter class Test print method with onlyChanges should print changes only 1`] = `
+exports[`Test Console Reporter class Test print method with onlyChanges should print changes only 1`] = `
 Array [
   "------------------- [ METRICS START (2) ] -------------------",
   "test.counter (counter)",

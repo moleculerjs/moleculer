@@ -2,18 +2,18 @@
 
 const lolex = require("lolex");
 
-const ConsoleReporter = require("../../../../src/metrics/reporters/console");
+const EventReporter = require("../../../../src/metrics/reporters/event");
 const ServiceBroker = require("../../../../src/service-broker");
 const MetricRegistry = require("../../../../src/metrics/registry");
 
 // TODO: call server.close in afters
 
-describe("Test ConsoleReporter class", () => {
+describe("Test EventReporter class", () => {
 
 	describe("Test Constructor", () => {
 
 		it("should create with default options", () => {
-			const reporter = new ConsoleReporter();
+			const reporter = new EventReporter();
 
 			expect(reporter.opts).toEqual({
 				includes: null,
@@ -25,16 +25,18 @@ describe("Test ConsoleReporter class", () => {
 				metricNameFormatter: null,
 				labelNameFormatter: null,
 
-				interval: 5000,
-				logger: null,
-				colors: true,
-				onlyChanges: true,
+				eventName: "$metrics.snapshot",
+				broadcast: false,
+				groups: null,
+				onlyChanges: false,
+				interval: 5 * 1000,
 			});
+
 			expect(reporter.lastChanges).toBeInstanceOf(Set);
 		});
 
 		it("should create with custom options", () => {
-			const reporter = new ConsoleReporter({
+			const reporter = new EventReporter({
 				metricNamePrefix: "mol-",
 				metricNameSuffix: ".data",
 				includes: "moleculer.**",
@@ -42,10 +44,11 @@ describe("Test ConsoleReporter class", () => {
 				metricNameFormatter: () => {},
 				labelNameFormatter: () => {},
 
-				interval: 10000,
-				logger: {},
-				colors: false,
-				onlyChanges: false,
+				eventName: "$metrics.state",
+				broadcast: true,
+				groups: ["payments"],
+				onlyChanges: true,
+				interval: 10 * 1000,
 			});
 
 			expect(reporter.opts).toEqual({
@@ -56,10 +59,11 @@ describe("Test ConsoleReporter class", () => {
 				metricNameFormatter: expect.any(Function),
 				labelNameFormatter: expect.any(Function),
 
-				interval: 10000,
-				logger: {},
-				colors: false,
-				onlyChanges: false,
+				eventName: "$metrics.state",
+				broadcast: true,
+				groups: ["payments"],
+				onlyChanges: true,
+				interval: 10 * 1000,
 			});
 		});
 
@@ -76,38 +80,37 @@ describe("Test ConsoleReporter class", () => {
 				namespace: "test-ns"
 			};
 			const fakeRegistry = { broker: fakeBroker };
-			const reporter = new ConsoleReporter({ interval: 2000 });
-			reporter.print = jest.fn();
+			const reporter = new EventReporter({ interval: 2000 });
+			reporter.sendEvent = jest.fn();
 			reporter.init(fakeRegistry);
 
 			expect(reporter.timer).toBeDefined();
-			expect(reporter.print).toBeCalledTimes(0);
+			expect(reporter.sendEvent).toBeCalledTimes(0);
 
 			clock.tick(2500);
 
-			expect(reporter.print).toBeCalledTimes(1);
+			expect(reporter.sendEvent).toBeCalledTimes(1);
 		});
 
 	});
 
-	describe("Test print method", () => {
+	describe("Test sendEvent method", () => {
 		let clock;
 		beforeAll(() => clock = lolex.install({ now: 12345678000 }));
 		afterAll(() => clock.uninstall());
 
-		let LOG_STORE = [];
-		const logger = jest.fn((...args) => LOG_STORE.push(args.join(" ")));
-
 		const broker = new ServiceBroker({ logger: false, nodeID: "node-123" });
 		const registry = new MetricRegistry(broker);
 
-		it("should print lines to the logger", () => {
+		broker.broadcast = jest.fn();
+		broker.emit = jest.fn();
 
-			const reporter = new ConsoleReporter({
+		it("should call broker emit with changes", () => {
+
+			const reporter = new EventReporter({
 				interval: 0,
-				colors: false,
 				onlyChanges: false,
-				logger
+				broadcast: false
 			});
 			reporter.init(registry);
 
@@ -132,40 +135,49 @@ describe("Test ConsoleReporter class", () => {
 			registry.observe("test.histogram", 3, { action: "auth" });
 			registry.observe("test.histogram", 7, { action: "auth" });
 
-			reporter.print();
+			reporter.sendEvent();
 
-			expect(LOG_STORE).toMatchSnapshot();
+			expect(broker.broadcast).toHaveBeenCalledTimes(0);
+			expect(broker.emit).toHaveBeenCalledTimes(1);
+			expect(broker.emit).toHaveBeenCalledWith("$metrics.snapshot", expect.any(Array), null);
+
+			expect(broker.emit.mock.calls[0][1]).toMatchSnapshot();
 		});
 
 	});
 
-	describe("Test print method with onlyChanges", () => {
-		let clock;
-		beforeAll(() => clock = lolex.install({ now: 12345678000 }));
-		afterAll(() => clock.uninstall());
+	describe("Test sendEvent method with onlyChanges", () => {
+		let clock, broker, registry, reporter;
+		beforeAll(() => {
+			clock = lolex.install({ now: 12345678000 });
 
-		let LOG_STORE = [];
-		const logger = jest.fn((...args) => LOG_STORE.push(args.join(" ")));
-
-		const broker = new ServiceBroker({
-			logger: false,
-			nodeID: "node-123",
-			metrics: {
-				reporter: {
-					type: "Console",
-					options: {
-						interval: 0,
-						colors: false,
-						onlyChanges: true,
-						logger
+			broker = new ServiceBroker({
+				logger: false,
+				nodeID: "node-123",
+				metrics: {
+					reporter: {
+						type: "Event",
+						options: {
+							eventName: "$metrics.custom",
+							interval: 0,
+							onlyChanges: true,
+							broadcast: true
+						}
 					}
 				}
-			}
-		});
-		const registry = broker.metrics;
-		const reporter = registry.reporter[0];
+			});
 
-		it("should not print lines to the logger", () => {
+			broker.broadcast = jest.fn();
+			broker.emit = jest.fn();
+
+			registry = broker.metrics;
+			reporter = registry.reporter[0];
+		});
+		afterAll(() => clock.uninstall());
+
+		it("should call broker.broadcast", () => {
+			broker.emit.mockClear();
+
 			registry.register({ name: "os.datetime.utc", type: "gauge" }).set(123456);
 			registry.register({ name: "test.info", type: "info", description: "Test Info Metric" }).set("Test Value");
 
@@ -187,20 +199,30 @@ describe("Test ConsoleReporter class", () => {
 			registry.observe("test.histogram", 3, { action: "auth" });
 			registry.observe("test.histogram", 7, { action: "auth" });
 
-			reporter.print();
+			reporter.sendEvent();
 
-			expect(LOG_STORE).toMatchSnapshot();
+			expect(broker.emit).toHaveBeenCalledTimes(0);
+			expect(broker.broadcast).toHaveBeenCalledTimes(1);
+			expect(broker.broadcast).toHaveBeenCalledWith("$metrics.custom", expect.any(Array), null);
+
+			expect(broker.broadcast.mock.calls[0][1]).toMatchSnapshot();
+
 		});
 
-		it("should print changes only", () => {
-			LOG_STORE = [];
+		it("should send changes only", () => {
+			broker.broadcast.mockClear();
 
 			registry.increment("test.counter", null, 7);
 			registry.decrement("test.gauge-total", { action: "posts" }, 5);
 
-			reporter.print();
+			reporter.sendEvent();
 
-			expect(LOG_STORE).toMatchSnapshot();
+			expect(broker.emit).toHaveBeenCalledTimes(0);
+			expect(broker.broadcast).toHaveBeenCalledTimes(1);
+			expect(broker.broadcast).toHaveBeenCalledWith("$metrics.custom", expect.any(Array), null);
+
+			expect(broker.broadcast.mock.calls[0][1]).toMatchSnapshot();
+
 		});
 
 	});

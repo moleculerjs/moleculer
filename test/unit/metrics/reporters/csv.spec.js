@@ -8,7 +8,7 @@ const MetricRegistry = require("../../../../src/metrics/registry");
 
 // TODO: call server.close in afters
 
-describe("Test ConsoleReporter class", () => {
+describe("Test Console Reporter class", () => {
 
 	describe("Test Constructor", () => {
 
@@ -30,7 +30,6 @@ describe("Test ConsoleReporter class", () => {
 				colors: true,
 				onlyChanges: true,
 			});
-			expect(reporter.lastChanges).toBeInstanceOf(Set);
 		});
 
 		it("should create with custom options", () => {

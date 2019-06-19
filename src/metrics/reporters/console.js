@@ -93,7 +93,7 @@ class ConsoleReporter extends BaseReporter {
 			if (metric.values.size == 0) {
 				this.log(chalk.gray("  <no values>"));
 			} else {
-				const unit = metric.unit ? chalk.gray(this.pluralizeUnit(metric.unit)) : "";
+				const unit = metric.unit ? chalk.gray(this.registry.pluralizeUnit(metric.unit)) : "";
 				metric.values.forEach(item => {
 					let val;
 					const labelStr = this.labelsToStr(item.labels);
@@ -138,20 +138,6 @@ class ConsoleReporter extends BaseReporter {
 		this.log(chalk.gray(`-------------------- [ METRICS END (${list.length}) ] --------------------`));
 
 		this.lastChanges.clear();
-	}
-
-	/**
-	 * Pluralize metric units.
-	 *
-	 * @param {String} unit
-	 * @returns {String}
-	 */
-	pluralizeUnit(unit) {
-		switch(unit) {
-			case METRIC.UNIT_GHZ:
-				return unit;
-		}
-		return unit + "s";
 	}
 
 	/**

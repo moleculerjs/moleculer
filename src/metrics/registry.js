@@ -372,6 +372,21 @@ class MetricRegistry {
 
 		return res;
 	}
+
+
+	/**
+	 * Pluralize metric units.
+	 *
+	 * @param {String} unit
+	 * @returns {String}
+	 */
+	pluralizeUnit(unit) {
+		switch(unit) {
+			case METRIC.UNIT_GHZ:
+				return unit;
+		}
+		return unit + "s";
+	}
 }
 
 module.exports = MetricRegistry;

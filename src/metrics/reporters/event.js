@@ -31,7 +31,7 @@ class EventReporter extends BaseReporter {
 			broadcast: false,
 			groups: null,
 
-			onlyChanges: false, // TODO
+			onlyChanges: false,
 
 			interval: 5 * 1000,
 		});

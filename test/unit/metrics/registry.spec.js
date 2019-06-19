@@ -8,6 +8,7 @@ const ServiceBroker = require("../../../src/service-broker");
 const MetricRegistry = require("../../../src/metrics/registry");
 const MetricTypes = require("../../../src/metrics/types");
 const MetricReporters = require("../../../src/metrics/reporters");
+const METRIC = require("../../../src/metrics/constants");
 
 const lolex = require("lolex");
 
@@ -624,5 +625,18 @@ describe("Test Metric Registry", () => {
 
 	});
 
+	describe("Test pluralizeUnit method", () => {
+
+		const broker = new ServiceBroker({ logger: false });
+		const metric = new MetricRegistry(broker, {});
+		metric.init();
+
+		it("should pluralize units", () => {
+			expect(metric.pluralizeUnit(METRIC.UNIT_REQUEST)).toBe("requests");
+			expect(metric.pluralizeUnit(METRIC.UNIT_BYTE)).toBe("bytes");
+			expect(metric.pluralizeUnit(METRIC.UNIT_GHZ)).toBe("GHz");
+		});
+
+	});
 });
 
