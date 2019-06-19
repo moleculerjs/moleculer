@@ -45,6 +45,7 @@ declare namespace Moleculer {
 		| "string"
 		| "url"
 		| "uuid"
+		| boolean
 		| ActionParamSchema;
 	type ActionParams = { [key: string]: ActionParamTypes };
 
