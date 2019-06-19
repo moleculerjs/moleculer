@@ -125,7 +125,7 @@ class GaugeMetric extends BaseMetric {
 			item.value = 0;
 			item.timestamp = timestamp == null ? Date.now() : timestamp;
 		});
-		this.changed();
+		this.changed(null, null, timestamp);
 	}
 
 	/**

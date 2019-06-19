@@ -169,7 +169,7 @@ function startGCWatcher() {
  */
 function updateCommonMetrics() {
 	this.logger.debug("Update common metric values...");
-	//const end = this.timer(METRIC.MOLECULER_METRICS_COMMON_COLLECT_TIME);
+	const end = this.timer();
 
 	// --- PROCESS METRICS ---
 
@@ -252,7 +252,7 @@ function updateCommonMetrics() {
 	}
 
 	// this.increment(METRIC.MOLECULER_METRICS_COMMON_COLLECT_TOTAL);
-	// const duration = end();
+	const duration = end();
 
 	return Promise.resolve()
 		.then(() => cpuUsage().then(res => {
@@ -279,8 +279,7 @@ function updateCommonMetrics() {
 			// silent this.logger.warn("Unable to collect CPU usage metrics.", err);
 		})
 		.then(() => {
-			this.logger.debug("Collected common metric values.");
-			//this.logger.debug(`Collected common metric values in ${duration.toFixed(3)} msec.`);
+			this.logger.debug(`Collected common metric values in ${duration.toFixed(3)} msec.`);
 		});
 }
 

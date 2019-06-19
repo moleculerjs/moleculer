@@ -183,11 +183,11 @@ describe("Test Base Metric class", () => {
 
 		it("should call setDirty & registry.changed", () => {
 			const labels = { a: 6, b: "Jane" };
-			item.changed(labels);
+			item.changed(5.6, labels, 123456);
 
 			expect(item.setDirty).toBeCalledTimes(1);
 			expect(registry.changed).toBeCalledTimes(1);
-			expect(registry.changed).toBeCalledWith(item, labels);
+			expect(registry.changed).toBeCalledWith(item, 5.6, labels, 123456);
 		});
 
 	});

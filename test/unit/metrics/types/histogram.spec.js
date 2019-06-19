@@ -33,7 +33,7 @@ describe("Test Base Metric class", () => {
 			expect(item.maxAgeSeconds).toBeUndefined();
 			expect(item.ageBuckets).toBeUndefined();
 
-			expect(registry.changed).toBeCalledTimes(1);
+			expect(registry.changed).toBeCalledTimes(0);
 		});
 
 		describe("Test with buckets", () => {
@@ -129,8 +129,10 @@ describe("Test Base Metric class", () => {
 		describe("Test without buckets & quantiles", () => {
 
 			const item = new HistogramMetric({ type: "histogram", name: "test.histogram" }, registry);
+			jest.spyOn(item, "changed");
 
 			it("should store values", () => {
+				item.changed.mockClear();
 				const now = Date.now();
 				item.observe(100, null, now);
 				expect(item.values.get("")).toEqual({
@@ -139,9 +141,13 @@ describe("Test Base Metric class", () => {
 					sum: 100,
 					timestamp: now
 				});
+
+				expect(item.changed).toBeCalledTimes(1);
+				expect(item.changed).toBeCalledWith(100, null, now);
 			});
 
 			it("should sum values", () => {
+				item.changed.mockClear();
 				const now = Date.now();
 				item.observe(250, null, now);
 				expect(item.values.get("")).toEqual({
@@ -150,6 +156,9 @@ describe("Test Base Metric class", () => {
 					sum: 350,
 					timestamp: now
 				});
+
+				expect(item.changed).toBeCalledTimes(1);
+				expect(item.changed).toBeCalledWith(250, null, now);
 			});
 
 		});
@@ -157,8 +166,10 @@ describe("Test Base Metric class", () => {
 		describe("Test with buckets", () => {
 
 			const item = new HistogramMetric({ type: "histogram", name: "test.histogram", buckets: [1, 2, 5, 10, 20, 50] }, registry);
+			jest.spyOn(item, "changed");
 
 			it("should store values", () => {
+				item.changed.mockClear();
 				const now = Date.now();
 				item.observe(2, null, now);
 				expect(item.values.get("")).toEqual({
@@ -175,9 +186,14 @@ describe("Test Base Metric class", () => {
 						"50": 1,
 					}
 				});
+
+				expect(item.changed).toBeCalledTimes(1);
+				expect(item.changed).toBeCalledWith(2, null, now);
+
 			});
 
 			it("should sum values", () => {
+				item.changed.mockClear();
 				const now = Date.now();
 				item.observe(13, null, now);
 				expect(item.values.get("")).toEqual({
@@ -194,6 +210,9 @@ describe("Test Base Metric class", () => {
 						"50": 2,
 					}
 				});
+
+				expect(item.changed).toBeCalledTimes(1);
+				expect(item.changed).toBeCalledWith(13, null, now);
 			});
 
 		});
@@ -201,8 +220,10 @@ describe("Test Base Metric class", () => {
 		describe("Test with quantiles", () => {
 
 			const item = new HistogramMetric({ type: "histogram", name: "test.histogram", quantiles: [0.1, 0.5, 0.9] }, registry);
+			jest.spyOn(item, "changed");
 
 			it("should store values", () => {
+				item.changed.mockClear();
 				const now = Date.now();
 				item.observe(5, null, now);
 				expect(item.values.get("")).toEqual({
@@ -212,9 +233,13 @@ describe("Test Base Metric class", () => {
 					timestamp: now,
 					quantileValues: expect.any(HistogramMetric.TimeWindowQuantiles)
 				});
+
+				expect(item.changed).toBeCalledTimes(1);
+				expect(item.changed).toBeCalledWith(5, null, now);
 			});
 
 			it("should sum values", () => {
+				item.changed.mockClear();
 				const now = Date.now();
 				item.observe(13, null, now);
 				expect(item.values.get("")).toEqual({
@@ -224,6 +249,9 @@ describe("Test Base Metric class", () => {
 					timestamp: now,
 					quantileValues: expect.any(HistogramMetric.TimeWindowQuantiles)
 				});
+
+				expect(item.changed).toBeCalledTimes(1);
+				expect(item.changed).toBeCalledWith(13, null, now);
 			});
 
 		});
@@ -348,7 +376,7 @@ describe("Test Base Metric class", () => {
 				quantileValues: expect.any(HistogramMetric.TimeWindowQuantiles)
 			});
 			expect(item.changed).toBeCalledTimes(1);
-			expect(item.changed).toBeCalledWith({ a: 5 });
+			expect(item.changed).toBeCalledWith(null, { a: 5 }, 23456);
 			expect(item.values.size).toBe(2);
 		});
 

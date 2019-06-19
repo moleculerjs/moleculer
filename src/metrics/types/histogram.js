@@ -181,7 +181,7 @@ class HistogramMetric extends BaseMetric {
 		const item = this.values.get(hash);
 		if (item) {
 			this.resetItem(item, timestamp);
-			this.changed(labels);
+			this.changed(null, labels, timestamp);
 		}
 	}
 

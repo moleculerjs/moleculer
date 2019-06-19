@@ -24,7 +24,7 @@ describe("Test Base Metric class", () => {
 			expect(item.type).toBe("counter");
 			expect(item.name).toBe("test.counter");
 
-			expect(registry.changed).toBeCalledTimes(2);
+			expect(registry.changed).toBeCalledTimes(0);
 		});
 	});
 
@@ -77,7 +77,7 @@ describe("Test Base Metric class", () => {
 				value: 3
 			});
 			expect(item.changed).toBeCalledTimes(1);
-			expect(item.changed).toBeCalledWith(undefined);
+			expect(item.changed).toBeCalledWith(3, undefined, undefined);
 		});
 
 		it("should store a labeled value", () => {
@@ -91,7 +91,7 @@ describe("Test Base Metric class", () => {
 				value: 3
 			});
 			expect(item.changed).toBeCalledTimes(1);
-			expect(item.changed).toBeCalledWith({ a: 5 });
+			expect(item.changed).toBeCalledWith(3, { a: 5 }, undefined);
 		});
 
 		it("should update the labeled value", () => {
@@ -105,7 +105,7 @@ describe("Test Base Metric class", () => {
 				value: 8
 			});
 			expect(item.changed).toBeCalledTimes(1);
-			expect(item.changed).toBeCalledWith({ a: 5 });
+			expect(item.changed).toBeCalledWith(8, { a: 5 }, 12345);
 		});
 
 		it("should reset the labeled value", () => {
@@ -117,7 +117,7 @@ describe("Test Base Metric class", () => {
 				value: 0
 			});
 			expect(item.changed).toBeCalledTimes(1);
-			expect(item.changed).toBeCalledWith({ a: 5 });
+			expect(item.changed).toBeCalledWith(0, { a: 5 }, 23456);
 			expect(item.values.size).toBe(2);
 		});
 
@@ -137,7 +137,7 @@ describe("Test Base Metric class", () => {
 				value: 0
 			});
 			expect(item.changed).toBeCalledTimes(1);
-			expect(item.changed).toBeCalledWith();
+			expect(item.changed).toBeCalledWith(null, null, 34567);
 			expect(item.values.size).toBe(2);
 		});
 	});

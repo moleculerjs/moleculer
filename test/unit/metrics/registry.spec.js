@@ -514,13 +514,13 @@ describe("Test Metric Registry", () => {
 		const labels = { a: 5 };
 
 		it("should call metricChanged method of reporters", () => {
-			metric.changed("test.counter", labels);
+			metric.changed("test.counter", 5.3, labels, 123456);
 
 			expect(metric.reporter[0].metricChanged).toHaveBeenCalledTimes(1);
-			expect(metric.reporter[0].metricChanged).toHaveBeenCalledWith("test.counter", labels);
+			expect(metric.reporter[0].metricChanged).toHaveBeenCalledWith("test.counter", 5.3, labels, 123456);
 
 			expect(metric.reporter[1].metricChanged).toHaveBeenCalledTimes(1);
-			expect(metric.reporter[1].metricChanged).toHaveBeenCalledWith("test.counter", labels);
+			expect(metric.reporter[1].metricChanged).toHaveBeenCalledWith("test.counter", 5.3, labels, 123456);
 		});
 
 	});

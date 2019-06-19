@@ -28,6 +28,7 @@ describe("Test Console Reporter class", () => {
 				interval: 5000,
 				logger: null,
 				colors: true,
+				onlyChanges: true,
 			});
 		});
 
@@ -43,6 +44,7 @@ describe("Test Console Reporter class", () => {
 				interval: 10000,
 				logger: {},
 				colors: false,
+				onlyChanges: false,
 			});
 
 			expect(reporter.opts).toEqual({
@@ -56,6 +58,7 @@ describe("Test Console Reporter class", () => {
 				interval: 10000,
 				logger: {},
 				colors: false,
+				onlyChanges: false,
 			});
 		});
 
@@ -102,6 +105,7 @@ describe("Test Console Reporter class", () => {
 			const reporter = new ConsoleReporter({
 				interval: 0,
 				colors: false,
+				onlyChanges: false,
 				logger
 			});
 			reporter.init(registry);
@@ -117,7 +121,7 @@ describe("Test Console Reporter class", () => {
 			registry.decrement("test.gauge-total", { action: "users-\"John\"" }, 8);
 			registry.set("test.gauge-total", { action: "posts" }, null);
 
-			registry.register({ name: "test.histogram", type: "histogram", labelNames: ["action"], buckets: true, quantiles: true, unit: "bytes" });
+			registry.register({ name: "test.histogram", type: "histogram", labelNames: ["action"], buckets: true, quantiles: true, unit: "byte" });
 			registry.observe("test.histogram", 8, null);
 			registry.observe("test.histogram", 2, null);
 			registry.observe("test.histogram", 6, null);
