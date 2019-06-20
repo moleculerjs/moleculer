@@ -19,10 +19,6 @@ const METRIC_LABEL_REGEXP 	= /^[a-zA-Z_][a-zA-Z0-9-_.]*$/;
 
 /**
  * Metric Registry class
- *
- *
- * TODO:
- * 	- Idea: all changes store in a queue and process with timer (1 sec)
  */
 class MetricRegistry {
 

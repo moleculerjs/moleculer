@@ -9,6 +9,7 @@
 const _ = require("lodash");
 const BaseStrategy = require("./base");
 const crypto = require("crypto");
+const LRU = require("lru-cache");
 
 /**
  * Sharding invocation strategy
@@ -29,7 +30,11 @@ class ShardStrategy extends BaseStrategy {
 			cacheSize: 1000
 		});
 
-		this.cache = new Map();
+		this.cache = new LRU({
+			max: this.opts.cacheSize,
+			maxAge: null
+		});
+
 		this.needRebuild = true;
 		this.ring = [];
 
@@ -98,8 +103,6 @@ class ShardStrategy extends BaseStrategy {
 
 		if (found) {
 			this.cache.set(key, found.nodeID);
-			// TODO set cache limit
-
 			return found.nodeID;
 		}
 		return null;
@@ -125,7 +128,7 @@ class ShardStrategy extends BaseStrategy {
 	 * @memberof ShardStrategy
 	 */
 	rebuild(list) {
-		this.cache.clear();
+		this.cache.reset();
 		this.ring = [];
 
 		const arr = list

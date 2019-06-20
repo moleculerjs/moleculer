@@ -30,6 +30,8 @@ describe("Test ShardStrategy", () => {
 
 			expect(broker.localBus.on).toHaveBeenCalledTimes(1);
 			expect(broker.localBus.on).toHaveBeenCalledWith("$node.**", expect.any(Function));
+
+			expect(strategy.cache).toBeDefined();
 		});
 
 		it("test with options", () => {
@@ -55,6 +57,8 @@ describe("Test ShardStrategy", () => {
 
 			expect(broker.localBus.on).toHaveBeenCalledTimes(1);
 			expect(broker.localBus.on).toHaveBeenCalledWith("$node.**", expect.any(Function));
+
+			expect(strategy.cache).toBeDefined();
 		});
 
 		it("should set needRebuild = true if '$node.**' event received", () => {
@@ -360,9 +364,9 @@ describe("Test ShardStrategy", () => {
 		strategy.rebuild(list);
 
 		it("should find in rings and save to cache", () => {
-			expect(strategy.cache.size).toBe(0);
+			expect(strategy.cache.length).toBe(0);
 			expect(strategy.getNodeIDByKey(345)).toBe("node-300");
-			expect(strategy.cache.size).toBe(1);
+			expect(strategy.cache.length).toBe(1);
 		});
 
 		it("should give the last element", () => {
@@ -372,13 +376,13 @@ describe("Test ShardStrategy", () => {
 		it("should find in cache", () => {
 			strategy.ring.length = 0;
 			expect(strategy.getNodeIDByKey(345)).toBe("node-300");
-			expect(strategy.cache.size).toBe(2);
+			expect(strategy.cache.length).toBe(2);
 			expect(strategy.getNodeIDByKey(456)).toBe(null);
 		});
 
 		it("should clear cache when rebuild called", () => {
 			strategy.rebuild(list);
-			expect(strategy.cache.size).toBe(0);
+			expect(strategy.cache.length).toBe(0);
 		});
 
 	});

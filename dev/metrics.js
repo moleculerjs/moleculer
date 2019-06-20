@@ -6,18 +6,18 @@ const util = require("util");
 
 const broker = new ServiceBroker({
 	nodeID: "dev-metrics",// + process.pid,
-	//transporter: "NATS",
+	transporter: "TCP",
 	metrics: {
 		enabled: true,
 		reporter: [
-			/*{
+			{
 				type: "Console",
 				options: {
 					onlyChanges: true,
 					includes: "moleculer.**",
 					//excludes: ["moleculer.transit.publish.total", "moleculer.transit.receive.total"]
 				}
-			},*/
+			},
 			/*{
 				type: "Event",
 				options: {
@@ -55,12 +55,12 @@ const broker = new ServiceBroker({
 					includes: "moleculer.**",
 				}
 			},*/
-			{
+			/*{
 				type: "Datadog",
 				options: {
 					includes: "moleculer.**",
 				}
-			}
+			}*/
 		]
 		//defaultQuantiles: [0.1, 0.5, 0.9]
 	},
