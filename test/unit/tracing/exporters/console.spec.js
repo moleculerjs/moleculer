@@ -111,6 +111,7 @@ describe("Test Console tracing exporter class", () => {
 		const exporter = new ConsoleTraceExporter({});
 		exporter.init(fakeTracer);
 		exporter.printRequest = jest.fn();
+		exporter.removeSpanWithChildren = jest.fn();
 
 		const span1 = { id: "span1", parentID: "span3" };
 		exporter.startSpan(span1);
@@ -120,14 +121,54 @@ describe("Test Console tracing exporter class", () => {
 
 			expect(exporter.printRequest).toHaveBeenCalledTimes(1);
 			expect(exporter.printRequest).toHaveBeenCalledWith("span1");
+
+			expect(exporter.removeSpanWithChildren).toHaveBeenCalledTimes(1);
+			expect(exporter.removeSpanWithChildren).toHaveBeenCalledWith(span1);
 		});
 
 		it("should not call printRequest if has parent span", () => {
 			exporter.printRequest.mockClear();
+			exporter.removeSpanWithChildren.mockClear();
 
 			exporter.finishSpan({ id: "span2", parentID: "span1" });
 
 			expect(exporter.printRequest).toHaveBeenCalledTimes(0);
+			expect(exporter.removeSpanWithChildren).toHaveBeenCalledTimes(0);
+		});
+	});
+
+	describe("Test removeSpanWithChildren method", () => {
+		const fakeTracer = { broker, logger: broker.logger };
+		const exporter = new ConsoleTraceExporter({});
+		exporter.init(fakeTracer);
+
+		it("should clear printed spans", () => {
+			exporter.spans = {};
+
+			const span1 = { id: "span1", parentID: null };
+			const span2 = { id: "span2", parentID: "span1" };
+			const span3 = { id: "span3", parentID: "span2" };
+			const span4 = { id: "span4", parentID: "span3" };
+			const span5 = { id: "span5", parentID: "span1" };
+			const span6 = { id: "span6", parentID: null };
+
+			exporter.startSpan(span1);
+			exporter.startSpan(span2);
+			exporter.startSpan(span3);
+			exporter.startSpan(span4);
+			exporter.startSpan(span5);
+			exporter.startSpan(span6);
+
+			expect(exporter.spans).toMatchSnapshot();
+
+			exporter.removeSpanWithChildren("span1");
+
+			expect(exporter.spans).toEqual({
+				span6: {
+					children: [],
+					span: span6
+				}
+			});
 		});
 
 	});

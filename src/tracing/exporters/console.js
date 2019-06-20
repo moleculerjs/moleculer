@@ -75,6 +75,23 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 			this.printRequest(span.id);
 
 			// TODO: remove old printed requests
+			this.removeSpanWithChildren(span);
+		}
+	}
+
+	/**
+	 * Remove a finished span with children.
+	 *
+	 * @param {String} spanID
+	 * @memberof ConsoleTraceExporter
+	 */
+	removeSpanWithChildren(spanID) {
+		const span = this.spans[spanID];
+		if (span) {
+			if (span.children && span.children.length > 0) {
+				span.children.forEach(child => this.removeSpanWithChildren(child));
+			}
+			delete this.spans[spanID];
 		}
 	}
 
