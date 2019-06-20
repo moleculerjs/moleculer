@@ -16,14 +16,8 @@ jest.mock("../../../src/tracing/span", () => {
 	return jest.fn().mockImplementation(() => fakeSpan);
 });
 
-/*
-const utils = require("../../../src/utils");
-utils.generateToken = () => "12345678-abcdef";
-
-jest.mock("../../../src/tracing/now", () => {
-	return jest.fn().mockImplementation(() => 10203040);
-});
-const now = require("../../../src/tracing/now");*/
+jest.mock("../../../src/tracing/rate-limiter");
+const RateLimiter = require("../../../src/tracing/rate-limiter");
 
 const lolex = require("lolex");
 const ServiceBroker = require("../../../src/service-broker");
@@ -48,6 +42,7 @@ describe("Test Tracer", () => {
 
 				sampling: {
 					rate: 1.0,
+					tracesPerSecond: null,
 					minPriority: null
 				},
 
@@ -61,14 +56,18 @@ describe("Test Tracer", () => {
 				defaultTags: null,
 			});
 
+			expect(tracer.rateLimiter).toBeUndefined();
 			expect(tracer.sampleCounter).toBe(0);
 			expect(tracer.scope).toBeDefined();
+
+			expect(RateLimiter).toHaveBeenCalledTimes(0);
 		});
 
 		it("should use options", () => {
 			const tracer = new Tracer(broker, {
 				sampling: {
-					rate: 0.5
+					rate: 0.5,
+					tracesPerSecond: 0.2,
 				},
 
 				methods: true,
@@ -89,6 +88,7 @@ describe("Test Tracer", () => {
 
 				sampling: {
 					rate: 0.5,
+					tracesPerSecond: 0.2,
 					minPriority: null
 				},
 
@@ -103,6 +103,10 @@ describe("Test Tracer", () => {
 					a: 5
 				},
 			});
+
+			expect(tracer.rateLimiter).toBeInstanceOf(RateLimiter);
+			expect(RateLimiter).toHaveBeenCalledTimes(1);
+			expect(RateLimiter).toHaveBeenCalledWith({ tracesPerSecond: 0.2 });
 
 			expect(tracer.sampleCounter).toBe(0);
 			expect(tracer.scope).toBeDefined();
@@ -232,6 +236,25 @@ describe("Test Tracer", () => {
 			expect(tracer.shouldSample({ priority: 5 })).toBe(true);
 		});
 
+		it("should check the rate limiter sampling", () => {
+			const tracer = new Tracer(broker, {
+				enabled: true,
+				sampling: {
+					rate: 1,
+					tracesPerSecond: 0.1
+				}
+			});
+
+			tracer.init();
+
+			tracer.rateLimiter.check = jest.fn(() => true);
+
+			expect(tracer.shouldSample({ priority: 1 })).toBe(true);
+
+			expect(tracer.rateLimiter.check).toHaveBeenCalledTimes(1);
+			expect(tracer.rateLimiter.check).toHaveBeenCalledWith();
+		});
+
 		it("should check the sampling rate (1.0)", () => {
 			const tracer = new Tracer(broker, {
 				enabled: true,
@@ -298,7 +321,6 @@ describe("Test Tracer", () => {
 			tracer.init();
 
 			tracer.getCurrentSpan = jest.fn();
-			tracer.setCurrentSpan = jest.fn();
 
 			const span = tracer.startSpan("new-span", { tags: { a: 5 } });
 
@@ -315,9 +337,6 @@ describe("Test Tracer", () => {
 				parentID: null,
 				tags: { "a": 5 },
 			});
-
-			expect(tracer.setCurrentSpan).toHaveBeenCalledTimes(1);
-			expect(tracer.setCurrentSpan).toHaveBeenCalledWith(span);
 
 			expect(fakeSpan.start).toHaveBeenCalledTimes(1);
 		});
@@ -336,7 +355,6 @@ describe("Test Tracer", () => {
 			tracer.init();
 
 			tracer.getCurrentSpan = jest.fn(() => ({ id: "parent-123" }));
-			tracer.setCurrentSpan = jest.fn();
 
 			const span = tracer.startSpan("new-span", { tags: { a: 5 } });
 
@@ -353,9 +371,6 @@ describe("Test Tracer", () => {
 				parentID: "parent-123",
 				tags: { "a": 5 },
 			});
-
-			expect(tracer.setCurrentSpan).toHaveBeenCalledTimes(1);
-			expect(tracer.setCurrentSpan).toHaveBeenCalledWith(span);
 
 			expect(fakeSpan.start).toHaveBeenCalledTimes(1);
 		});
@@ -399,20 +414,56 @@ describe("Test Tracer", () => {
 
 	});
 
+	describe("Test spanStarted", () => {
+		const tracer = new Tracer(broker, {
+			enabled: true,
+			exporter: ["Exporter1", "Exporter2"]
+		});
+
+		tracer.init();
+
+		tracer.setCurrentSpan = jest.fn();
+		tracer.invokeExporter = jest.fn();
+
+		it("should call setCurrentSpan & invokeExporter", () => {
+			const span = { id: "span-111", sampled: true };
+			tracer.spanStarted(span);
+
+			expect(tracer.setCurrentSpan).toBeCalledTimes(1);
+			expect(tracer.setCurrentSpan).toHaveBeenCalledWith(span);
+
+			expect(tracer.invokeExporter).toBeCalledTimes(1);
+			expect(tracer.invokeExporter).toHaveBeenCalledWith("startSpan", [span]);
+		});
+
+		it("should not invokeExporter if not sampled", () => {
+			tracer.setCurrentSpan.mockClear();
+			tracer.invokeExporter.mockClear();
+
+			const span = { id: "span-111", sampled: false };
+			tracer.spanStarted(span);
+
+			expect(tracer.setCurrentSpan).toBeCalledTimes(1);
+			expect(tracer.setCurrentSpan).toHaveBeenCalledWith(span);
+
+			expect(tracer.invokeExporter).toBeCalledTimes(0);
+		});
+
+	});
+
 	describe("Test spanFinished", () => {
+		const tracer = new Tracer(broker, {
+			enabled: true,
+			exporter: ["Exporter1", "Exporter2"]
+		});
+
+		tracer.init();
+
+		tracer.removeCurrentSpan = jest.fn();
+		tracer.invokeExporter = jest.fn();
 
 		it("should call removeCurrentSpan & invokeExporter", () => {
-			const tracer = new Tracer(broker, {
-				enabled: true,
-				exporter: ["Exporter1", "Exporter2"]
-			});
-
-			tracer.init();
-
-			tracer.removeCurrentSpan = jest.fn();
-			tracer.invokeExporter = jest.fn();
-
-			const span = { id: "span-111" };
+			const span = { id: "span-111", sampled: true };
 			tracer.spanFinished(span);
 
 			expect(tracer.removeCurrentSpan).toBeCalledTimes(1);
@@ -420,6 +471,19 @@ describe("Test Tracer", () => {
 
 			expect(tracer.invokeExporter).toBeCalledTimes(1);
 			expect(tracer.invokeExporter).toHaveBeenCalledWith("finishSpan", [span]);
+		});
+
+		it("should not invokeExporter if not sampled", () => {
+			tracer.removeCurrentSpan.mockClear();
+			tracer.invokeExporter.mockClear();
+
+			const span = { id: "span-111", sampled: false };
+			tracer.spanFinished(span);
+
+			expect(tracer.removeCurrentSpan).toBeCalledTimes(1);
+			expect(tracer.removeCurrentSpan).toHaveBeenCalledWith(span);
+
+			expect(tracer.invokeExporter).toBeCalledTimes(0);
 		});
 
 	});

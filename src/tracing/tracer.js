@@ -156,8 +156,6 @@ class Tracer {
 			defaultTags: this.opts.defaultTags
 		}, opts));
 
-		this.setCurrentSpan(span);
-
 		span.start();
 
 		return span;
@@ -248,6 +246,8 @@ class Tracer {
 	 * @memberof Tracer
 	 */
 	spanStarted(span) {
+		this.setCurrentSpan(span);
+
 		if (span.sampled)
 			this.invokeExporter("startSpan", [span]);
 	}

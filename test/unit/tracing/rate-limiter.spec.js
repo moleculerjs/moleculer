@@ -189,6 +189,43 @@ describe("Test Tracing Rate Limiter", () => {
 			clock.tick(100);
 			expect(rate.check()).toBe(true);
 		});
+
+		it("should return 2 times per seconds", () => {
+
+			const rate = new RateLimiter({ tracesPerSecond: 3 });
+
+			expect(rate.check(2)).toBe(false);
+
+			clock.tick(100);
+			expect(rate.check(2)).toBe(false);
+
+			clock.tick(100);
+			expect(rate.check(2)).toBe(false);
+
+			clock.tick(100);
+			expect(rate.check(2)).toBe(false);
+
+			clock.tick(100);
+			expect(rate.check(2)).toBe(false);
+
+			clock.tick(100);
+			expect(rate.check(2)).toBe(false);
+
+			clock.tick(100);
+			expect(rate.check(2)).toBe(false);
+
+			clock.tick(100);
+			expect(rate.check(2)).toBe(true);
+
+			clock.tick(100);
+			expect(rate.check(2)).toBe(false);
+
+			clock.tick(100);
+			expect(rate.check(2)).toBe(false);
+
+			clock.tick(100);
+			expect(rate.check(1)).toBe(true);
+		});
 	});
 
 

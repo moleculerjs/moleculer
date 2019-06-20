@@ -109,7 +109,7 @@ describe("Test Tracing Span", () => {
 		const fakeTracer = {
 			logger: broker.logger,
 			shouldSample: jest.fn(() => true),
-			invokeExporter: jest.fn()
+			spanStarted: jest.fn()
 		};
 
 		it("should set current time as startTime", () => {
@@ -120,13 +120,13 @@ describe("Test Tracing Span", () => {
 			expect(span.startTime).toBe(10203040);
 
 			expect(now).toBeCalledTimes(1);
-			expect(fakeTracer.invokeExporter).toBeCalledTimes(1);
-			expect(fakeTracer.invokeExporter).toBeCalledWith("startSpan", [span]);
+			expect(fakeTracer.spanStarted).toBeCalledTimes(1);
+			expect(fakeTracer.spanStarted).toBeCalledWith(span);
 		});
 
 		it("should set the given time as startTime", () => {
 			now.mockClear();
-			fakeTracer.invokeExporter.mockClear();
+			fakeTracer.spanStarted.mockClear();
 
 			const span = new Span(fakeTracer, "start-2");
 			span.start(55555555);
@@ -134,8 +134,8 @@ describe("Test Tracing Span", () => {
 			expect(span.startTime).toBe(55555555);
 
 			expect(now).toBeCalledTimes(0);
-			expect(fakeTracer.invokeExporter).toBeCalledTimes(1);
-			expect(fakeTracer.invokeExporter).toBeCalledWith("startSpan", [span]);
+			expect(fakeTracer.spanStarted).toBeCalledTimes(1);
+			expect(fakeTracer.spanStarted).toBeCalledWith(span);
 		});
 
 	});
@@ -144,7 +144,7 @@ describe("Test Tracing Span", () => {
 		const fakeTracer = {
 			logger: broker.logger,
 			shouldSample: jest.fn(() => true),
-			invokeExporter: jest.fn()
+			spanStarted: jest.fn()
 		};
 
 		const span = new Span(fakeTracer, "start-3", {
@@ -197,7 +197,7 @@ describe("Test Tracing Span", () => {
 		const fakeTracer = {
 			logger: broker.logger,
 			shouldSample: jest.fn(() => true),
-			invokeExporter: jest.fn()
+			spanStarted: jest.fn()
 		};
 
 		const span = new Span(fakeTracer, "start-4");
@@ -261,7 +261,7 @@ describe("Test Tracing Span", () => {
 		const fakeTracer = {
 			logger: broker.logger,
 			shouldSample: jest.fn(() => true),
-			invokeExporter: jest.fn()
+			spanStarted: jest.fn()
 		};
 
 		const span = new Span(fakeTracer, "start-5");
@@ -283,7 +283,7 @@ describe("Test Tracing Span", () => {
 		const fakeTracer = {
 			logger: broker.logger,
 			shouldSample: jest.fn(() => true),
-			invokeExporter: jest.fn(),
+			spanStarted: jest.fn(),
 			spanFinished: jest.fn()
 		};
 
@@ -303,7 +303,7 @@ describe("Test Tracing Span", () => {
 
 		it("should set the given time as finishTime", () => {
 			now.mockClear();
-			fakeTracer.invokeExporter.mockClear();
+			fakeTracer.spanStarted.mockClear();
 			fakeTracer.spanFinished.mockClear();
 
 			const span = new Span(fakeTracer, "start-7");
@@ -325,7 +325,7 @@ describe("Test Tracing Span", () => {
 		const fakeTracer = {
 			logger: broker.logger,
 			shouldSample: jest.fn(() => true),
-			invokeExporter: jest.fn(),
+			spanStarted: jest.fn(),
 			spanFinished: jest.fn(),
 			startSpan: jest.fn(() => subSpan)
 		};
