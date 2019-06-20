@@ -208,8 +208,6 @@ const broker = new ServiceBroker({
 - `os.cpu.info.times.sys` (gauge)
 
 **Moleculer metrics**
-- `moleculer.metrics.common.collect.total` (counter)
-- `moleculer.metrics.common.collect.time` (gauge)
 - `moleculer.node.type` (info)
 - `moleculer.node.versions.moleculer` (info)
 - `moleculer.node.versions.protocol` (info)
@@ -276,17 +274,44 @@ const broker = new ServiceBroker({
                 options: {
                     interval: 5 * 1000,
                     logger: null,
-                    colors: true
+                    colors: true,
+                    onlyChanges: true
                 }
             }
         ]
-    },
-    logLevel: "debug"
+    }
 });
 ```
 
 #### CSV reporter
->Not implemented yet.
+CSV reporter saves changed to CSV file.
+
+```js
+const broker = new ServiceBroker({
+    metrics: {
+        enabled: true,
+        reporter: [
+            {
+                type: "CSV",
+                options: {
+                    folder: "./reports/metrics",
+                    delimiter: ",",
+                    rowDelimiter: "\n",
+
+                    mode: MODE_METRIC, // MODE_METRIC, MODE_LABEL
+
+                    types: null,
+
+                    interval: 5 * 1000,
+
+                    filenameFormatter: null,
+                    rowFormatter: null,
+                }
+            }
+        ]
+    }
+});
+```
 
 #### Datadog reporter
 Datadog reporter sends metrics to the [Datadog server](https://www.datadoghq.com/).
@@ -316,7 +341,30 @@ const broker = new ServiceBroker({
 ```
 
 #### Event reporter
->Not implemented yet.
+Event reporter sends Moleculer events with metric values.
+
+```js
+const broker = new ServiceBroker({
+    metrics: {
+        enabled: true,
+        reporter: [
+            {
+                type: "Event",
+                options: {
+                    eventName: "$metrics.snapshot",
+
+                    broadcast: false,
+                    groups: null,
+
+                    onlyChanges: false,
+
+                    interval: 5 * 1000,
+                }
+            }
+        ]
+    }
+});
+```
 
 #### Prometheus reporter
 Prometheus reporter publishes metrics in Prometheus format. The [Prometheus](https://prometheus.io/) server can collect them. Default port is `3030`.
@@ -342,8 +390,28 @@ const broker = new ServiceBroker({
 });
 ```
 
-#### UDP reporter
->Not implemented yet.
+#### StatsD reporter
+The StatsD reporter sends metric values to [StatsD](https://github.com/statsd/statsd) server via UDP.
+
+```js
+const broker = new ServiceBroker({
+    metrics: {
+        enabled: true,
+        reporter: [
+            {
+                type: "StatsD",
+                options: {
+                    protocol: "udp",
+                    host: "localhost",
+                    port: 8125,
+
+                    maxPayloadSize: 1300,
+                }
+            }
+        ]
+    }
+});
+```
 
 ## New tracing feature
 An enhanced tracing middleware has been implemented in version 0.14. It support several exporters, custom tracing spans and integration with instrumentation libraries (like `dd-trace`).
