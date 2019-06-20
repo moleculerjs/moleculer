@@ -3,7 +3,7 @@
 exports[`Test CSVReporter class Test flush method should call broker emit with changes 1`] = `
 Array [
   Array [
-    "d:\\\\Work\\\\moleculer\\\\moleculer\\\\reports\\\\metrics\\\\moleculer.node.type.csv",
+    "./reports/metrics/moleculer.node.type.csv",
     Array [
       "Timestamp",
       "Metric",
@@ -16,7 +16,7 @@ Array [
     ],
   ],
   Array [
-    "d:\\\\Work\\\\moleculer\\\\moleculer\\\\reports\\\\metrics\\\\moleculer.node.versions.moleculer.csv",
+    "./reports/metrics/moleculer.node.versions.moleculer.csv",
     Array [
       "Timestamp",
       "Metric",
@@ -29,7 +29,7 @@ Array [
     ],
   ],
   Array [
-    "d:\\\\Work\\\\moleculer\\\\moleculer\\\\reports\\\\metrics\\\\moleculer.node.versions.protocol.csv",
+    "./reports/metrics/moleculer.node.versions.protocol.csv",
     Array [
       "Timestamp",
       "Metric",
@@ -42,7 +42,7 @@ Array [
     ],
   ],
   Array [
-    "d:\\\\Work\\\\moleculer\\\\moleculer\\\\reports\\\\metrics\\\\moleculer.broker.namespace.csv",
+    "./reports/metrics/moleculer.broker.namespace.csv",
     Array [
       "Timestamp",
       "Metric",
@@ -55,7 +55,7 @@ Array [
     ],
   ],
   Array [
-    "d:\\\\Work\\\\moleculer\\\\moleculer\\\\reports\\\\metrics\\\\moleculer.broker.started.csv",
+    "./reports/metrics/moleculer.broker.started.csv",
     Array [
       "Timestamp",
       "Metric",
@@ -68,7 +68,7 @@ Array [
     ],
   ],
   Array [
-    "d:\\\\Work\\\\moleculer\\\\moleculer\\\\reports\\\\metrics\\\\moleculer.broker.local.services.total.csv",
+    "./reports/metrics/moleculer.broker.local.services.total.csv",
     Array [
       "Timestamp",
       "Metric",
@@ -81,7 +81,7 @@ Array [
     ],
   ],
   Array [
-    "d:\\\\Work\\\\moleculer\\\\moleculer\\\\reports\\\\metrics\\\\moleculer.broker.middlewares.total.csv",
+    "./reports/metrics/moleculer.broker.middlewares.total.csv",
     Array [
       "Timestamp",
       "Metric",
@@ -94,7 +94,7 @@ Array [
     ],
   ],
   Array [
-    "d:\\\\Work\\\\moleculer\\\\moleculer\\\\reports\\\\metrics\\\\moleculer.registry.nodes.total.csv",
+    "./reports/metrics/moleculer.registry.nodes.total.csv",
     Array [
       "Timestamp",
       "Metric",
@@ -107,7 +107,7 @@ Array [
     ],
   ],
   Array [
-    "d:\\\\Work\\\\moleculer\\\\moleculer\\\\reports\\\\metrics\\\\moleculer.registry.nodes.online.total.csv",
+    "./reports/metrics/moleculer.registry.nodes.online.total.csv",
     Array [
       "Timestamp",
       "Metric",
@@ -120,7 +120,7 @@ Array [
     ],
   ],
   Array [
-    "d:\\\\Work\\\\moleculer\\\\moleculer\\\\reports\\\\metrics\\\\moleculer.registry.services.total.csv",
+    "./reports/metrics/moleculer.registry.services.total.csv",
     Array [
       "Timestamp",
       "Metric",
@@ -133,7 +133,7 @@ Array [
     ],
   ],
   Array [
-    "d:\\\\Work\\\\moleculer\\\\moleculer\\\\reports\\\\metrics\\\\moleculer.registry.actions.total.csv",
+    "./reports/metrics/moleculer.registry.actions.total.csv",
     Array [
       "Timestamp",
       "Metric",
@@ -146,7 +146,7 @@ Array [
     ],
   ],
   Array [
-    "d:\\\\Work\\\\moleculer\\\\moleculer\\\\reports\\\\metrics\\\\moleculer.registry.events.total.csv",
+    "./reports/metrics/moleculer.registry.events.total.csv",
     Array [
       "Timestamp",
       "Metric",
@@ -159,7 +159,7 @@ Array [
     ],
   ],
   Array [
-    "d:\\\\Work\\\\moleculer\\\\moleculer\\\\reports\\\\metrics\\\\os.datetime.utc.csv",
+    "./reports/metrics/os.datetime.utc.csv",
     Array [
       "Timestamp",
       "Metric",
@@ -172,7 +172,7 @@ Array [
     ],
   ],
   Array [
-    "d:\\\\Work\\\\moleculer\\\\moleculer\\\\reports\\\\metrics\\\\test.info.csv",
+    "./reports/metrics/test.info.csv",
     Array [
       "Timestamp",
       "Metric",
@@ -185,7 +185,7 @@ Array [
     ],
   ],
   Array [
-    "d:\\\\Work\\\\moleculer\\\\moleculer\\\\reports\\\\metrics\\\\test.counter.csv",
+    "./reports/metrics/test.counter.csv",
     Array [
       "Timestamp",
       "Metric",
@@ -200,7 +200,7 @@ Array [
     ],
   ],
   Array [
-    "d:\\\\Work\\\\moleculer\\\\moleculer\\\\reports\\\\metrics\\\\test.counter.csv",
+    "./reports/metrics/test.counter.csv",
     Array [
       "Timestamp",
       "Metric",
@@ -215,7 +215,7 @@ Array [
     ],
   ],
   Array [
-    "d:\\\\Work\\\\moleculer\\\\moleculer\\\\reports\\\\metrics\\\\test.gauge-total.csv",
+    "./reports/metrics/test.gauge-total.csv",
     Array [
       "Timestamp",
       "Metric",
@@ -230,7 +230,7 @@ Array [
     ],
   ],
   Array [
-    "d:\\\\Work\\\\moleculer\\\\moleculer\\\\reports\\\\metrics\\\\test.gauge-total.csv",
+    "./reports/metrics/test.gauge-total.csv",
     Array [
       "Timestamp",
       "Metric",
@@ -245,7 +245,7 @@ Array [
     ],
   ],
   Array [
-    "d:\\\\Work\\\\moleculer\\\\moleculer\\\\reports\\\\metrics\\\\test.histogram.csv",
+    "./reports/metrics/test.histogram.csv",
     Array [
       "Timestamp",
       "Metric",
@@ -304,7 +304,7 @@ Array [
     ],
   ],
   Array [
-    "d:\\\\Work\\\\moleculer\\\\moleculer\\\\reports\\\\metrics\\\\test.histogram.csv",
+    "./reports/metrics/test.histogram.csv",
     Array [
       "Timestamp",
       "Metric",
@@ -368,7 +368,7 @@ Array [
 exports[`Test CSVReporter class Test flush method should write changes only 1`] = `
 Array [
   Array [
-    "d:\\\\Work\\\\moleculer\\\\moleculer\\\\reports\\\\metrics\\\\test.counter.csv",
+    "./reports/metrics/test.counter.csv",
     Array [
       "Timestamp",
       "Metric",
@@ -385,7 +385,7 @@ Array [
     ],
   ],
   Array [
-    "d:\\\\Work\\\\moleculer\\\\moleculer\\\\reports\\\\metrics\\\\test.gauge-total.csv",
+    "./reports/metrics/test.gauge-total.csv",
     Array [
       "Timestamp",
       "Metric",

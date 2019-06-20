@@ -8,7 +8,11 @@ utils.makeDirs = jest.fn();
 jest.mock("fs");
 const fs = require("fs");
 
-const path = require("path");
+jest.mock("path", () => ({
+	dirname: jest.fn(() => "some-dir"),
+	join: jest.fn((...args) => args.join("/")),
+	resolve: jest.fn((...args) => args.join("/"))
+}));
 
 const CSVReporter = require("../../../../src/metrics/reporters/csv");
 const ServiceBroker = require("../../../../src/service-broker");
@@ -104,7 +108,7 @@ describe("Test CSVReporter class", () => {
 			expect(reporter.flush).toBeCalledTimes(0);
 
 			expect(utils.makeDirs).toHaveBeenCalledTimes(1);
-			expect(utils.makeDirs).toHaveBeenCalledWith(path.resolve("/metrics"));
+			expect(utils.makeDirs).toHaveBeenCalledWith("/metrics");
 
 			clock.tick(2500);
 
@@ -127,7 +131,7 @@ describe("Test CSVReporter class", () => {
 			expect(reporter.flush).toBeCalledTimes(0);
 
 			expect(utils.makeDirs).toHaveBeenCalledTimes(1);
-			expect(utils.makeDirs).toHaveBeenCalledWith(path.resolve("/metrics"));
+			expect(utils.makeDirs).toHaveBeenCalledWith("/metrics");
 
 			clock.tick(2500);
 
@@ -171,12 +175,12 @@ describe("Test CSVReporter class", () => {
 		};
 
 		it("should create metric-based filename", () => {
-			expect(reporter.getFilename(metric, item)).toBe(path.resolve("/metrics", "moleculer.request.total.csv"));
+			expect(reporter.getFilename(metric, item)).toBe("/metrics/moleculer.request.total.csv");
 		});
 
 		it("should create label-based filename", () => {
 			reporter.opts.mode = "label";
-			expect(reporter.getFilename(metric, item)).toBe(path.resolve("/metrics", "moleculer.request.total", "moleculer.request.total--a=5--b=John_Doe.csv"));
+			expect(reporter.getFilename(metric, item)).toBe("/metrics/moleculer.request.total/moleculer.request.total--a=5--b=John_Doe.csv");
 		});
 
 		it("should create metric-based filename", () => {
