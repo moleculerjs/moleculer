@@ -11,7 +11,7 @@
 			"program": "${workspaceRoot}/dev/index.js",
 			"cwd": "${workspaceRoot}",
 			"args": [
-				"metrics"
+				"dev-tracing"
 				//"async-hook"
 			],
 		},
@@ -72,7 +72,7 @@
 			"request": "launch",
 			"name": "Jest",
 			"program": "${workspaceRoot}/node_modules/jest-cli/bin/jest.js",
-			"args": ["--runInBand", "test/unit/metrics/reporters/statsd.spec.js"],
+			"args": ["--runInBand", "test/unit/tracing/rate-limiter.spec.js"],
 			"console": "internalConsole",
 			"cwd": "${workspaceRoot}",
 			"runtimeArgs": [

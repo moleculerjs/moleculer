@@ -74,7 +74,7 @@ class Span {
 		this.startTime = time || now();
 		// console.log(`"${this.name}" start time: ${this.startTime}`);
 
-		this.tracer.invokeExporter("startSpan", [this]);
+		this.tracer.spanStarted(this);
 
 		return this;
 	}

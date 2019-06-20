@@ -10,6 +10,7 @@ const Promise = require("bluebird"); // eslint-disable-line no-unused-vars
 const _ = require("lodash");
 const Exporters = require("./exporters");
 const AsyncStorage = require("../async-storage");
+const RateLimiter = require("./rate-limiter");
 const Span = require("./span");
 
 /**
@@ -37,8 +38,12 @@ class Tracer {
 			exporters: null,
 
 			sampling: {
-				rate: 1.0, // 0.0, 0.5
-				//TODO: qps: 1.0 // 1 trace / 1 sec (ratelimiting sampling https://opencensus.io/tracing/sampling/ratelimited/ )
+				// Constants sampling
+				rate: 1.0, // 0.0 - Never, 1.0 > x > 0.0 - Fix, 1.0 - Always
+
+				// Ratelimiting sampling https://opencensus.io/tracing/sampling/ratelimited/
+				tracesPerSecond: null, // 1: 1 trace / sec, 5: 5 traces / sec, 0.1: 1 trace / 10 secs
+
 				minPriority: null
 			},
 
@@ -56,6 +61,12 @@ class Tracer {
 			this.opts.errorFields.push("stack");
 
 		this.sampleCounter = 0;
+
+		if (this.opts.sampling.tracesPerSecond != null && this.opts.sampling.tracesPerSecond > 0) {
+			this.rateLimiter = new RateLimiter({
+				tracesPerSecond: this.opts.sampling.tracesPerSecond
+			});
+		}
 
 		this.scope = new AsyncStorage(this.broker);
 		this.scope.enable();
@@ -107,6 +118,10 @@ class Tracer {
 		if (this.opts.sampling.minPriority != null) {
 			if (span.priority < this.opts.sampling.minPriority)
 				return false;
+		}
+
+		if (this.rateLimiter) {
+			return this.rateLimiter.check();
 		}
 
 		if (this.opts.sampling.rate == 0)
@@ -227,6 +242,17 @@ class Tracer {
 	}
 
 	/**
+	 * Called when a span started. Call exporters.
+	 *
+	 * @param {Span} span
+	 * @memberof Tracer
+	 */
+	spanStarted(span) {
+		if (span.sampled)
+			this.invokeExporter("startSpan", [span]);
+	}
+
+	/**
 	 * Called when a span finished. Call exporters.
 	 *
 	 * @param {Span} span
@@ -234,7 +260,9 @@ class Tracer {
 	 */
 	spanFinished(span) {
 		this.removeCurrentSpan(span);
-		this.invokeExporter("finishSpan", [span]);
+
+		if (span.sampled)
+			this.invokeExporter("finishSpan", [span]);
 	}
 }
 
