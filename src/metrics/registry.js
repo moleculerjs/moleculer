@@ -75,7 +75,7 @@ class MetricRegistry {
 				});
 
 				const reporterNames = this.reporter.map(reporter => this.broker.getConstructorName(reporter));
-				this.logger.info("Metric reporter(s):", reporterNames.join(", "));
+				this.logger.info(`Metric reporter${reporterNames.length > 1 ? "s" : ""}: ${reporterNames.join(", ")}`);
 			}
 
 			// Start colllect timer

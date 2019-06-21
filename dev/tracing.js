@@ -177,6 +177,7 @@ broker.createService({
 				ttl: 5
 			},
 			async handler(ctx) {
+				ctx.emit("user.access", ctx.params.id);
 				const user = USERS.find(user => user.id == ctx.params.id);
 				if (user) {
 					const res = _.cloneDeep(user);
@@ -240,6 +241,12 @@ broker.createService({
 		},
 		"metrics.trace.span.finish"(payload) {
 			this.logger.info("Legacy tracing finish event received", payload);
+		},
+		async "user.access"(payload) {
+			this.logger.info("User access event received. It is sampled in tracing!");
+			const span = this.broker.tracer.startSpan("work in event");
+			await this.Promise.delay(100);
+			span.finish();
 		}
 	}
 });

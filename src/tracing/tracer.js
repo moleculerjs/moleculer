@@ -92,7 +92,7 @@ class Tracer {
 				});
 
 				const exporterNames = this.exporter.map(exporter => this.broker.getConstructorName(exporter));
-				this.logger.info("Tracing exporter(s):", exporterNames.join(", "));
+				this.logger.info(`Tracing exporter${exporterNames.length > 1 ? "s": ""}: ${exporterNames.join(", ")}`);
 			}
 		}
 	}

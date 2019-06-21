@@ -19,7 +19,7 @@ module.exports = function TracingMiddleware(broker) {
 		opts = _.defaultsDeep({}, opts, { enabled: true, tags: { params: true } });
 
 		if (opts.enabled) {
-			return function tracingMiddleware(ctx) {
+			return function tracingLocalActionMiddleware(ctx) {
 
 				ctx.requestID = tracer.getCurrentTraceID() || ctx.requestID;
 				ctx.parentID = tracer.getActiveSpanID() || ctx.parentID;
@@ -92,20 +92,17 @@ module.exports = function TracingMiddleware(broker) {
 
 		return handler;
 	}
-	/*
+
 	function tracingLocalEventMiddleware(handler, event) {
 		const service = event.service;
+
 		let opts = event.tracing;
 		if (opts === true || opts === false)
 			opts = { enabled: !!opts };
-		opts = _.defaultsDeep({}, opts, { enabled: true });
+		opts = _.defaultsDeep({}, opts, { enabled: true, tags: { payload: true }  });
 
 		if (opts.enabled) {
-			return function tracingMiddleware() {
-				const payload = arguments[0];
-				const callerNodeID = arguments[1];
-				const eventName = arguments[2];
-
+			return function tracingLocalEventMiddleware(payload, callerNodeID, eventName) {
 				const tags = {
 					event: {
 						name: event.name,
@@ -113,25 +110,33 @@ module.exports = function TracingMiddleware(broker) {
 					},
 					eventName,
 					callerNodeID,
+					remoteCall: callerNodeID !== broker.nodeID,
+					nodeID: broker.nodeID
 				};
 
 				if (_.isFunction(opts.tags)) {
-					const res = opts.tags.call(service, payload);
+					const res = opts.tags.call(service, payload, callerNodeID, eventName);
 					if (res)
 						Object.assign(tags, res);
-				} else if (Array.isArray(opts.tags)) {
-					opts.tags.forEach(key => tags[key] = _.get(payload, key));
+
+				} else if (_.isPlainObject(opts.tags)) {
+					if (opts.tags.payload === true)
+						tags.payload = _.cloneDeep(payload);
+					else if (Array.isArray(opts.tags.payload))
+						tags.payload = _.pick(payload, opts.tags.payload);
 				}
 
 				const span = broker.tracer.startSpan(`event '${eventName}'`, {
 					// id: ctx.id,
 					// traceID: ctx.requestID,
 					// parentID: ctx.parentID,
+					parentID: null,
 					service: {
 						name: service.name,
 						version: service.version,
 						fullName: service.fullName,
 					},
+					//sampled: ctx.tracing,
 					tags
 				});
 
@@ -143,11 +148,11 @@ module.exports = function TracingMiddleware(broker) {
 					return service.Promise.reject(err);
 				});
 
-			};
+			}.bind(this);
 		}
 
 		return handler;
-	}*/
+	}
 
 	/*
 	function wrapRemoteTracingMiddleware(handler) {
@@ -168,7 +173,7 @@ module.exports = function TracingMiddleware(broker) {
 		name: "Tracing",
 
 		localAction: broker.isTracingEnabled() && tracer.opts.actions ? tracingLocalActionMiddleware : null,
-		//localEvent: broker.isTracingEnabled() && tracer.opts.events ? tracingLocalEventMiddleware : null,
+		localEvent: broker.isTracingEnabled() && tracer.opts.events ? tracingLocalEventMiddleware : null,
 		//remoteAction: wrapRemoteTracingMiddleware
 	};
 };
