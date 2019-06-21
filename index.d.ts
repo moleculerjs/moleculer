@@ -97,8 +97,8 @@ declare namespace Moleculer {
 		id: string;
 		broker: ServiceBroker;
 		endpoint?: Endpoint;
-		action?: ActionSchema;
-		service?: Service;
+		action?: ActionSchema | null;
+		service?: Service | null;
 		nodeID?: string;
 
 		options: CallingOptions;
