@@ -64,6 +64,7 @@ class Context {
 			this.endpoint = null;
 			this.service = null;
 			this.action = null;
+			this.event = null;
 		}
 
 		this.options = {
@@ -83,6 +84,8 @@ class Context {
 
 		this.tracing = null;
 		this.span = null;
+
+		this.needAck = null;
 
 		//this.startTime = null;
 		//his.startHrTime = null;
@@ -112,7 +115,7 @@ class Context {
 			ctx.setEndpoint(endpoint);
 
 		if (params != null) {
-			let cloning = broker ? broker.options.actionParamsCloning : false;
+			let cloning = broker ? broker.options.contextParamsCloning : false;
 			if (opts.paramsCloning != null)
 				cloning = opts.paramsCloning;
 			ctx.setParams(params, cloning);
@@ -133,11 +136,14 @@ class Context {
 		else if (opts.meta != null)
 			ctx.meta = opts.meta;
 
-		// ParentID, Level, CallerAction
+		// ParentID, Level, Caller
 		if (opts.parentCtx != null) {
 			ctx.parentID = opts.parentCtx.id;
 			ctx.level = opts.parentCtx.level + 1;
-			ctx.caller = opts.parentCtx.action ? opts.parentCtx.action.name : null;
+			if (opts.parentCtx.action)
+				ctx.caller = opts.parentCtx.action.name;
+			else if (opts.parentCtx.event)
+				ctx.caller = opts.parentCtx.event.name;
 		}
 
 		// Tracing
@@ -179,8 +185,16 @@ class Context {
 	 */
 	setEndpoint(endpoint) {
 		this.endpoint = endpoint;
-		this.action = endpoint ? endpoint.action : null;
-		this.service = this.action ? this.action.service : null;
+		if (endpoint && endpoint.action) {
+			this.action = endpoint.action;
+			this.service = this.action.service;
+			this.event = null;
+		} else if (endpoint && endpoint.event) {
+			this.event =  endpoint.event;
+			this.service = this.event.service;
+			this.action = null;
+		}
+
 		if (endpoint && endpoint.node)
 			this.nodeID = endpoint.node.id;
 	}

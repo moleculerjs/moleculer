@@ -651,7 +651,7 @@ declare namespace Moleculer {
 		requestTimeout?: number;
 		retryPolicy?: RetryPolicyOptions;
 
-		actionParamsCloning?: boolean;
+		contextParamsCloning?: boolean;
 		maxCallLevel?: number;
 		heartbeatInterval?: number;
 		heartbeatTimeout?: number

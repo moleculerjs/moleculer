@@ -403,7 +403,7 @@ class Transit {
 			const ctx = new this.broker.ContextFactory(this.broker);
 			ctx.setEndpoint(endpoint);
 			ctx.id = payload.id;
-			ctx.setParams(pass ? pass : payload.params, this.broker.options.actionParamsCloning);
+			ctx.setParams(pass ? pass : payload.params, this.broker.options.contextParamsCloning);
 			ctx.parentID = payload.parentID;
 			ctx.requestID = payload.requestID;
 			ctx.caller = payload.caller;

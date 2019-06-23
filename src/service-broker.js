@@ -55,7 +55,7 @@ const defaultOptions = {
 		check: err => err && !!err.retryable
 	},
 
-	actionParamsCloning: false,
+	contextParamsCloning: false,
 	maxCallLevel: 0,
 	heartbeatInterval: 5,
 	heartbeatTimeout: 15,

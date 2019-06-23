@@ -3,12 +3,22 @@ package packets;
 syntax = "proto3";
 
 message PacketEvent {
-	required string ver 	= 1;
-	required string sender 	= 2;
-	required string event 	= 3;
-	optional string data 	= 4;
-	repeated string groups 	= 5;
-	required bool broadcast	= 6;
+	required string ver 		= 1;
+	required string sender 		= 2;
+	required string id 			= 3;
+	required string event 		= 4;
+	optional string data 		= 5;
+	repeated string groups 		= 6;
+	required bool broadcast		= 7;
+	required string meta 		= 8;
+	required int32 level 		= 9;
+	optional bool tracing 		= 10;
+	optional string parentID 	= 11;
+	optional string requestID 	= 12;
+	optional bool stream 		= 13;
+	optional int32 seq 			= 14;
+	optional string caller 		= 15;
+	required bool needAck		= 16;
 }
 
 message PacketRequest {

@@ -17,6 +17,7 @@ describe("Test Context", () => {
 		expect(ctx.broker).not.toBeDefined();
 		expect(ctx.endpoint).toBeNull();
 		expect(ctx.action).toBeNull();
+		expect(ctx.event).toBeNull();
 		expect(ctx.service).toBeNull();
 		expect(ctx.nodeID).toBeNull();
 
@@ -28,13 +29,17 @@ describe("Test Context", () => {
 		expect(ctx.parentID).toBeNull();
 		expect(ctx.caller).toBeNull();
 
-		expect(ctx.tracing).toBeNull();
 		expect(ctx.level).toBe(1);
 
 		expect(ctx.params).toEqual({});
 		expect(ctx.meta).toEqual({});
 
 		expect(ctx.requestID).toBeNull();
+
+		expect(ctx.tracing).toBeNull();
+		expect(ctx.span).toBeNull();
+
+		expect(ctx.needAck).toBeNull();
 
 		expect(ctx.cachedResult).toBe(false);
 
@@ -52,6 +57,7 @@ describe("Test Context", () => {
 		expect(ctx.broker).toBe(broker);
 		expect(ctx.endpoint).toBeNull();
 		expect(ctx.action).toBeNull();
+		expect(ctx.event).toBeNull();
 		expect(ctx.service).toBeNull();
 		expect(ctx.nodeID).toBe("server-123");
 	});
@@ -82,6 +88,7 @@ describe("Test Context.create", () => {
 		expect(ctx.endpoint).toBe(endpoint);
 		expect(ctx.action).toBe(endpoint.action);
 		expect(ctx.service).toBe(endpoint.action.service);
+		expect(ctx.event).toBeNull();
 		expect(ctx.nodeID).toBe("server-123");
 
 		expect(ctx.params).toEqual({ a: 5 });
@@ -132,6 +139,72 @@ describe("Test Context.create", () => {
 		expect(ctx.endpoint).toBe(endpoint);
 		expect(ctx.action).toBe(endpoint.action);
 		expect(ctx.service).toBe(endpoint.action.service);
+		expect(ctx.event).toBeNull();
+		expect(ctx.nodeID).toBe("server-123");
+
+		expect(ctx.params).toEqual({ a: 5 });
+		expect(ctx.meta).toEqual({
+			token: "123456",
+			user: "John",
+			c: 200
+		});
+
+		expect(ctx.options).toEqual(opts);
+
+		expect(ctx.parentID).toBe(100);
+		expect(ctx.caller).toBe("posts.list");
+
+		expect(ctx.tracing).toBe(true);
+		expect(ctx.level).toBe(6);
+
+		expect(ctx.requestID).toBe("1234567890abcdef");
+	});
+
+	it("test with opts & event", () => {
+		const endpoint = {
+			event: {
+				name: "user.created",
+				service: {
+					name: "posts"
+				}
+			},
+			node: {
+				id: "server-123"
+			}
+		};
+
+		const params = { a: 5 };
+		const opts = {
+			timeout: 2500,
+			retries: 3,
+			fallbackResponse: "Hello",
+			meta: {
+				user: "John",
+				c: 200
+			},
+			parentCtx: {
+				id: 100,
+				level: 5,
+				meta: {
+					token: "123456",
+					c: 100
+				},
+				requestID: "1234567890abcdef",
+				tracing: true,
+				action: {
+					name: "posts.list"
+				}
+			}
+		};
+
+		let ctx = Context.create(broker, endpoint, params, opts);
+
+		expect(ctx.id).toBeDefined();
+		expect(ctx.broker).toBe(broker);
+		expect(ctx.endpoint).toBe(endpoint);
+		expect(ctx.action).toBeNull();
+		expect(ctx.event).toBe(endpoint.event);
+		expect(ctx.service).toBe(endpoint.event.service);
 		expect(ctx.nodeID).toBe("server-123");
 
 		expect(ctx.params).toEqual({ a: 5 });
@@ -155,23 +228,24 @@ describe("Test Context.create", () => {
 
 describe("Test setEndpoint", () => {
 	let broker = new ServiceBroker({ nodeID: "node-1", logger: false });
-	let endpoint = {
-		action: {
-			name: "posts.find",
-			service: {
-				name: "posts"
-			}
-		},
-		node: {
-			id: "server-123"
-		}
-	};
 
-	it("should set internal variables from endpoint", () => {
+	it("should set internal variables from action endpoint", () => {
+		let endpoint = {
+			action: {
+				name: "posts.find",
+				service: {
+					name: "posts"
+				}
+			},
+			node: {
+				id: "server-123"
+			}
+		};
 
 		let ctx = new Context(broker);
 		expect(ctx.endpoint).toBeNull();
 		expect(ctx.action).toBeNull();
+		expect(ctx.event).toBeNull();
 		expect(ctx.service).toBeNull();
 		expect(ctx.nodeID).toBe("node-1");
 
@@ -180,6 +254,36 @@ describe("Test setEndpoint", () => {
 		expect(ctx.endpoint).toBe(endpoint);
 		expect(ctx.action).toBe(endpoint.action);
 		expect(ctx.service).toBe(endpoint.action.service);
+		expect(ctx.event).toBeNull();
+		expect(ctx.nodeID).toBe("server-123");
+	});
+
+	it("should set internal variables from event endpoint", () => {
+		let endpoint = {
+			event: {
+				name: "user.created",
+				service: {
+					name: "posts"
+				}
+			},
+			node: {
+				id: "server-123"
+			}
+		};
+
+		let ctx = new Context(broker);
+		expect(ctx.endpoint).toBeNull();
+		expect(ctx.action).toBeNull();
+		expect(ctx.event).toBeNull();
+		expect(ctx.service).toBeNull();
+		expect(ctx.nodeID).toBe("node-1");
+
+		ctx.setEndpoint(endpoint);
+
+		expect(ctx.endpoint).toBe(endpoint);
+		expect(ctx.event).toBe(endpoint.event);
+		expect(ctx.service).toBe(endpoint.event.service);
+		expect(ctx.action).toBeNull();
 		expect(ctx.nodeID).toBe("server-123");
 	});
 
