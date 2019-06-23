@@ -38,6 +38,9 @@ The `broker.use` has been deprecated in version 0.13 and now it is removed. Use 
 
 _loading middleware after the broker has started is no longer available._
 
+## The `$node.health` response changed
+The `$node.health` action's response has been changed. The `transit` property is removed. To get transit metrics, use the new `$node.metrics` internal action.
+
 ## Middleware shorthand definition is dropped
 In previous versions you could define middleware which wraps the `localAction` hook with a simple `Function`.
 In version 0.14 this legacy shorthand is dropped. When you define a middleware as a `Function`, the middleware handler will call it as an initialization and pass the ServiceBroker instance as a parameter.
