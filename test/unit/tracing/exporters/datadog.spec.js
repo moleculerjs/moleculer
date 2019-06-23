@@ -3,12 +3,12 @@
 const asyncHooks			= require("async_hooks");
 
 //jest.mock("dd-trace");
-jest.mock("dd-trace/src/opentracing/span_context");
+jest.mock("dd-trace/packages/dd-trace/src/opentracing/span_context");
 //jest.mock("dd-trace/src/platform");
 
 const ddTrace = require("dd-trace");
-const DatadogSpanContext = require("dd-trace/src/opentracing/span_context");
-const DatadogPlatform = require("dd-trace/src/platform");
+const DatadogSpanContext = require("dd-trace/packages/dd-trace/src/opentracing/span_context");
+const DatadogPlatform = require("dd-trace/packages/dd-trace/src/platform");
 
 const fakeTracerScope = {
 	_spans: {},

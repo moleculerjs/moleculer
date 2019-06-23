@@ -48,8 +48,8 @@ class DatadogTraceExporter extends BaseTraceExporter {
 
 		try {
 			const ddTrace = require("dd-trace");
-			DatadogSpanContext = require("dd-trace/src/opentracing/span_context");
-			DatadogPlatform = require("dd-trace/src/platform");
+			DatadogSpanContext = require("dd-trace/packages/dd-trace/src/opentracing/span_context");
+			DatadogPlatform = require("dd-trace/packages/dd-trace/src/platform");
 			if (!this.ddTracer) {
 				this.ddTracer = ddTrace.init(_.defaultsDeep(this.opts.tracerOptions, {
 					url: this.opts.agentUrl
