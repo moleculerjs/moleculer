@@ -295,7 +295,7 @@ class TimeWindowQuantiles {
 		this.ringBuckets[this.currentBucket].clear();
 		this.setDirty();
 
-		setTimeout(() => this.rotate(), (this.maxAgeSeconds / this.ageBuckets) * 1000);
+		setTimeout(() => this.rotate(), (this.maxAgeSeconds / this.ageBuckets) * 1000).unref();
 	}
 
 	/**

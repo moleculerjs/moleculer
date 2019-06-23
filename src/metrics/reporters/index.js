@@ -14,8 +14,8 @@ const Reporters = {
 	Console: require("./console"),
 	CSV: require("./csv"),
 	Event: require("./event"),
-	Prometheus: require("./prometheus"),
 	Datadog: require("./datadog"),
+	Prometheus: require("./prometheus"),
 	StatsD: require("./statsd"),
 };
 

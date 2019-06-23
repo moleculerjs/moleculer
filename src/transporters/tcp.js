@@ -271,7 +271,6 @@ class TcpTransporter extends Transporter {
 	 */
 	receive(type, message, socket) {
 		//console.log("<<", type, message.toString());
-		this.incStatReceived(message.length);
 
 		switch(type) {
 			case P.PACKET_GOSSIP_HELLO: return this.processGossipHello(message, socket);
@@ -759,7 +758,6 @@ class TcpTransporter extends Transporter {
 	 */
 	send(topic, data, { packet }) {
 		const packetID = resolvePacketID(packet.type);
-		this.incStatSent(data.length);
 		return this.writer.send(packet.target, packetID, data)
 			.catch(err => {
 				this.nodes.disconnected(packet.target, true);

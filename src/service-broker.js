@@ -811,10 +811,19 @@ class ServiceBroker {
 	/**
 	 * Destroy a local service
 	 *
-	 * @param {Service} service
+	 * @param {Service|string|object} service
+	 * @returns Promise<void>
 	 * @memberof ServiceBroker
 	 */
 	destroyService(service) {
+		if (_.isString(service)) {
+			service = this.services.find(svc => svc.fullName == service);
+		} else if (_.isPlainObject(service)) {
+			service = this.services.find(svc => svc.name == service.name && svc.version == service.version);
+		}
+		if (!service)
+			return Promise.reject(new E.ServiceNotFoundError({ service }));
+
 		return Promise.resolve()
 			.then(() => service._stop())
 			.catch(err => {
@@ -863,13 +872,24 @@ class ServiceBroker {
 	/**
 	 * Get a local service by name
 	 *
-	 * @param {String} name
+	 * Example:
+	 * 	getLocalService("v2.posts");
+	 * 	getLocalService({ name: "posts", version: 2 });
+	 *
+	 * @param {String|ServiceSearchObj} name
 	 * @param {String|Number?} version
 	 * @returns {Service}
 	 *
 	 * @memberof ServiceBroker
 	 */
 	getLocalService(name, version) {
+		if (arguments.length == 1) {
+			if (_.isString(name))
+				return this.services.find(service => service.fullName == name);
+			else if (_.isPlainObject(name))
+				return this.services.find(service => service.name == name.name && service.version == name.version);
+		}
+		// Deprecated
 		return this.services.find(service => service.name == name && service.version == version);
 	}
 

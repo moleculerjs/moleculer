@@ -1231,6 +1231,9 @@ const broker = new ServiceBroker({
 - fix context calling options cloning.
 - service modification support for ES6 classes [#514](https://github.com/moleculerjs/moleculer/pull/514)
 - fix `null`, `0` & `false` return value issue in case of ProtoBuf serializer [#511](https://github.com/moleculerjs/moleculer/pull/511)
+- `destroyService(name: string | ServiceSearchObj);`
+- `getLocalService(name: string | ServiceSearchObj): Service;`
+
 
 --------------------------------------------------
 <a name="0.13.8"></a>

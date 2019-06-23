@@ -77,17 +77,6 @@ const getNetworkInterfacesInfo = () => {
 	};
 };
 
-const getTransitStatus = (broker) => {
-	if (broker.transit) {
-		return {
-			stat: _.cloneDeep(broker.transit.stat)
-		};
-	}
-
-	/* istanbul ignore next */
-	return null;
-};
-
 const getDateTimeInfo = () => {
 	return {
 		now: Date.now(),
@@ -104,7 +93,6 @@ const getHealthStatus = (broker) => {
 		process: getProcessInfo(),
 		client: getClientInfo(),
 		net: getNetworkInterfacesInfo(),
-		transit: getTransitStatus(broker),
 		time: getDateTimeInfo()
 	};
 };
@@ -117,6 +105,5 @@ module.exports = {
 	getProcessInfo,
 	getClientInfo,
 	getNetworkInterfacesInfo,
-	getTransitStatus,
 	getDateTimeInfo
 };

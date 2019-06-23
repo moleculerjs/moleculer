@@ -209,7 +209,6 @@ class StanTransporter extends Transporter {
 		if (!this.client) return Promise.resolve();
 
 		return new Promise(resolve => {
-			this.incStatSent(data.length);
 			this.client.publish(topic, data, resolve);
 		});
 	}

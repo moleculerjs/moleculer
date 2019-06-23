@@ -1,7 +1,6 @@
 "use strict";
 
 const { generateToken } = require("../utils");
-const asyncHooks = require("async_hooks");
 const now = require("./now");
 
 function defProp(instance, propName, value, readOnly = false) {
@@ -11,8 +10,6 @@ function defProp(instance, propName, value, readOnly = false) {
 		enumerable: false
 	});
 }
-
-
 
 /**
  * Trace Span class

@@ -244,8 +244,6 @@ class KafkaTransporter extends Transporter {
 		/* istanbul ignore next*/
 		if (!this.client) return Promise.resolve();
 
-		this.incStatSent(data.length);
-
 		return new Promise((resolve, reject) => {
 			this.producer.send([{
 				topic: this.getTopicName(packet.type, packet.target),

@@ -17,11 +17,12 @@ describe("Test RedisCacher constructor", () => {
 	});
 
 	it("should create a timer if set ttl option", () => {
-		let opts = { ttl: 500, maxParamsLength: 1024 };
+		let opts = { ttl: 500, maxParamsLength: 1024, prefix: "custom-" };
 		let cacher = new RedisCacher(opts);
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toEqual(opts);
 		expect(cacher.opts.ttl).toBe(500);
+		expect(cacher.opts.prefix).toBe("custom-");
 		expect(cacher.opts.maxParamsLength).toBe(1024);
 	});
 
@@ -32,6 +33,7 @@ describe("Test RedisCacher constructor", () => {
 		expect(cacher.opts).toEqual({
 			keygen: null,
 			ttl: null,
+			prefix: null,
 			maxParamsLength: null,
 			redis: opts
 		});

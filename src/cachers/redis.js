@@ -30,6 +30,10 @@ class RedisCacher extends BaseCacher {
 			opts = { redis: opts };
 
 		super(opts);
+
+		this.opts = _.defaultsDeep(this.opts, {
+			prefix: null
+		});
 	}
 
 	/**

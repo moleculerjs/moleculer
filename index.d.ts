@@ -972,7 +972,6 @@ declare namespace Moleculer {
 	}
 
 	type CacherOptions = {
-		prefix?: string;
 		ttl?: number;
 		keygen?: Function;
 		maxParamsLength?: number;
@@ -988,6 +987,7 @@ declare namespace Moleculer {
 	}
 
 	interface RedisCacherOptions extends CacherOptions {
+		prefix?: string;
 		redis?: GenericObject;
 		redlock?: GenericObject;
 		monitor?: boolean;

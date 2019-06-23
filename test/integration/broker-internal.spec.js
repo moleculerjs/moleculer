@@ -482,8 +482,6 @@ describe("Test internal services", () => {
 			expect(res.os.user).toBeDefined();
 			expect(res.net).toBeDefined();
 			expect(res.net.ip).toBeDefined();
-			expect(res.transit).toBeDefined();
-			//expect(res.transit.stat).toBeDefined();
 			expect(res.client).toBeDefined();
 			expect(res.process).toBeDefined();
 			expect(res.process.pid).toBeDefined();
