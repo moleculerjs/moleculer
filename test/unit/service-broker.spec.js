@@ -1257,15 +1257,18 @@ describe("Test broker.destroyService", () => {
 
 	let stopped = jest.fn();
 	let broker = new ServiceBroker({ logger: false, internalServices: false });
-	let service = broker.createService({
+	let schema = {
 		name: "greeter",
 		actions: {
 			hello() {},
 			welcome() {}
 		},
 		stopped
-	});
+	};
+	let service = broker.createService(schema);
+
 	broker.metrics.set = jest.fn();
+	jest.spyOn(broker, "getLocalService");
 
 	beforeAll(() => broker.start());
 	afterAll(() => broker.stop());
@@ -1280,6 +1283,39 @@ describe("Test broker.destroyService", () => {
 		return broker.destroyService(service).catch(protectReject).then(() => {
 
 			expect(stopped).toHaveBeenCalledTimes(1);
+
+			expect(broker.getLocalService).toHaveBeenCalledTimes(0);
+
+			expect(broker.registry.unregisterService).toHaveBeenCalledTimes(1);
+			expect(broker.registry.unregisterService).toHaveBeenCalledWith("greeter", undefined);
+
+			expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
+			expect(broker.servicesChanged).toHaveBeenCalledWith(true);
+
+			expect(broker.services.length).toBe(0);
+
+			expect(broker.metrics.set).toHaveBeenCalledTimes(1);
+			expect(broker.metrics.set).toHaveBeenCalledWith("moleculer.broker.local.services.total", 0);
+		});
+	});
+
+	it("should find service by name", () => {
+		broker.createService(schema);
+
+		broker.registry.unregisterService.mockClear();
+		broker.servicesChanged.mockClear();
+		broker.metrics.set.mockClear();
+		broker.getLocalService.mockClear();
+		schema.stopped.mockClear();
+
+		expect(broker.services.length).toBe(1);
+
+		return broker.destroyService("greeter").catch(protectReject).then(() => {
+
+			expect(stopped).toHaveBeenCalledTimes(1);
+
+			expect(broker.getLocalService).toHaveBeenCalledTimes(1);
+			expect(broker.getLocalService).toHaveBeenCalledWith("greeter");
 
 			expect(broker.registry.unregisterService).toHaveBeenCalledTimes(1);
 			expect(broker.registry.unregisterService).toHaveBeenCalledWith("greeter", undefined);
@@ -1415,11 +1451,21 @@ describe("Test broker.getLocalService", () => {
 			version: 2
 		});
 
-		it("should find the service by name", () => {
-			expect(broker.getLocalService("posts")).toBe(undefined);
+		it("should not find the service by name", () => {
+			expect(broker.getLocalService("posts")).toBeUndefined();
 		});
 
-		it("should find the service by name & version", () => {
+		it("should find the service by full name", () => {
+			expect(broker.getLocalService("v2.posts")).toBe(service2);
+		});
+
+		it("should find the service by obj", () => {
+			expect(broker.getLocalService({ name: "posts" })).toBeUndefined();
+			expect(broker.getLocalService({ name: "posts", version: 1 })).toBe(service1);
+			expect(broker.getLocalService({ name: "posts", version: 2 })).toBe(service2);
+		});
+
+		it("should find the service by name & version (deprecated)", () => {
 			expect(broker.getLocalService("posts", 2)).toBe(service2);
 			expect(broker.getLocalService("posts", 1)).toBe(service1);
 		});
