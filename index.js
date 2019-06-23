@@ -25,6 +25,9 @@ module.exports = {
 	Serializers: require("./src/serializers"),
 	Strategies: require("./src/strategies"),
 	Validator: require("./src/validator"),
+	TracerExporters: require("./src/tracing/exporters"),
+	MetricTypes: require("./src/metrics/types"),
+	MetricReporters: require("./src/metrics/reporters"),
 
 	Middlewares: require("./src/middlewares"),
 
