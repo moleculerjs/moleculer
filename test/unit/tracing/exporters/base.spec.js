@@ -58,7 +58,8 @@ describe("Test Base Reporter class", () => {
 					f: true,
 					g: 100,
 				},
-				h: null
+				h: null,
+				i: undefined
 			}
 		};
 

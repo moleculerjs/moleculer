@@ -516,6 +516,14 @@ describe("Test Datadog tracing exporter class", () => {
 			expect(datadogSpan.setTag).toHaveBeenCalledWith("c", null);
 		});
 
+		it("should not call span.setTag method with null", () => {
+			datadogSpan.setTag.mockClear();
+
+			exporter.addTags(datadogSpan, "c", undefined);
+
+			expect(datadogSpan.setTag).toHaveBeenCalledTimes(0);
+		});
+
 		it("should call span.setTag method with object", () => {
 			datadogSpan.setTag.mockClear();
 

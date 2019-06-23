@@ -146,7 +146,7 @@ class ZipkinTraceExporter extends BaseTraceExporter {
 			],
 
 			timestamp: this.convertTime(span.startTime),
-			duration: this.convertTime(span.duration * 1000),
+			duration: this.convertTime(span.duration),
 
 			tags: {},
 

@@ -32,7 +32,7 @@ const broker = new ServiceBroker({
 	cacher: "redis://localhost:6379",
 
 	tracing: {
-		events: true,
+		events: false,
 		stackTrace: true,
 		sampling: {
 			rate: 1,
@@ -54,7 +54,7 @@ const broker = new ServiceBroker({
 					samplingPriority: "USER_KEEP"
 				}
 			},*/
-			/*{
+			{
 				type: "Zipkin",
 				options: {
 					baseURL: "http://192.168.0.181:9411",
@@ -65,7 +65,7 @@ const broker = new ServiceBroker({
 				options: {
 					host: "192.168.0.181",
 				}
-			}*/
+			}
 			/*{
 				type: "Event",
 				options: {
@@ -231,6 +231,19 @@ broker.createService({
 });
 
 broker.createService({
+	name: "followers",
+	actions: {
+		count: {
+			tracing: true,
+			async handler(ctx) {
+				await this.Promise.delay(_.random(50));
+				return Math.round(Math.random() * 10);
+			}
+		}
+	}
+});
+
+broker.createService({
 	name: "event-handler",
 	events: {
 		"$tracing.spans"(payload) {
@@ -242,12 +255,13 @@ broker.createService({
 		"metrics.trace.span.finish"(payload) {
 			this.logger.info("Legacy tracing finish event received", payload);
 		},
-		async "user.access"(payload) {
+		/*async "user.access"(payload) {
 			this.logger.info("User access event received. It is sampled in tracing!");
 			const span = this.broker.tracer.startSpan("work in event");
 			await this.Promise.delay(100);
+			await this.broker.call("followers.count");
 			span.finish();
-		}
+		}*/
 	}
 });
 

@@ -417,6 +417,14 @@ describe("Test Jaeger tracing exporter class", () => {
 			expect(jaegerSpan.setTag).toHaveBeenCalledWith("c", null);
 		});
 
+		it("should not call span.setTag method with undefined", () => {
+			jaegerSpan.setTag.mockClear();
+
+			exporter.addTags(jaegerSpan, "c", undefined);
+
+			expect(jaegerSpan.setTag).toHaveBeenCalledTimes(0);
+		});
+
 		it("should call span.setTag method with object", () => {
 			jaegerSpan.setTag.mockClear();
 

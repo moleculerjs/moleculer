@@ -161,7 +161,8 @@ class Span {
 		const r = {
 			traceID: this.traceID,
 			parentID: this.id,
-			sampled: this.sampled
+			sampled: this.sampled,
+			service: this.service
 		};
 		return this.tracer.startSpan(name, opts ? Object.assign(r, opts) : r);
 	}

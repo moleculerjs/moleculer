@@ -159,7 +159,7 @@ class JaegerTraceExporter extends BaseTraceExporter {
 	 * @returns {Object}
 	 */
 	generateJaegerSpan(span) {
-		const serviceName = span.service ? span.service.fullName : null;
+		const serviceName = span.service ? span.service.fullName : "no-service";
 		const tracer = this.getTracer(serviceName);
 
 		let parentCtx;
@@ -233,7 +233,7 @@ class JaegerTraceExporter extends BaseTraceExporter {
 		const name = prefix ? `${prefix}.${key}` : key;
 		if (value != null && typeof value == "object") {
 			Object.keys(value).forEach(k => this.addTags(span, k, value[k], name));
-		} else {
+		} else if (value !== undefined) {
 			span.setTag(name, value);
 		}
 	}

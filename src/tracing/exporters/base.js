@@ -83,7 +83,7 @@ class BaseTraceExporter {
 
 			if (_.isObject(o))
 				Object.assign(res, this.flattenTags(o, convertToString, pp));
-			else {
+			else if (o !== undefined) {
 				res[pp] = convertToString ? String(o) : o;
 			}
 

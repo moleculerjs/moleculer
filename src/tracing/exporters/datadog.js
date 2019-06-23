@@ -238,7 +238,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		const name = prefix ? `${prefix}.${key}` : key;
 		if (value != null && typeof value == "object") {
 			Object.keys(value).forEach(k => this.addTags(span, k, value[k], name));
-		} else {
+		} else if (value !== undefined) {
 			span.setTag(name, value);
 		}
 	}

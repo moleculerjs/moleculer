@@ -22,7 +22,7 @@ Object {
     },
   ],
   "debug": false,
-  "duration": 50000000,
+  "duration": 50000,
   "id": "spanid1234567890",
   "kind": "CONSUMER",
   "localEndpoint": Object {
@@ -65,7 +65,7 @@ Object {
     },
   ],
   "debug": false,
-  "duration": 50000000,
+  "duration": 50000,
   "id": "spanid1234567890",
   "kind": "CONSUMER",
   "localEndpoint": Object {
