@@ -7,6 +7,7 @@
 "use strict";
 
 const _ 						= require("lodash");
+const functionArguments 		= require("fn-args");
 const { ServiceSchemaError } 	= require("./errors");
 
 /**
@@ -27,6 +28,11 @@ function wrapToHander(o) {
 function wrapToArray(o) {
 	return Array.isArray(o) ? o : [o];
 }
+
+function isNewSignature(args) {
+	return args.length > 0 && ["ctx", "context"].indexOf(args[0].toLowerCase()) !== -1;
+}
+
 
 /**
  * Service class
@@ -317,10 +323,18 @@ class Service {
 		}
 
 		let handler;
-		if (_.isFunction(event.handler))
+		if (_.isFunction(event.handler)) {
+			const args = functionArguments(event.handler);
 			handler = this.Promise.method(event.handler);
-		else if (Array.isArray(event.handler))
-			handler = event.handler.map(h => this.Promise.method(h));
+			handler.__newSignature = isNewSignature(args);
+		} else if (Array.isArray(event.handler)) {
+			handler = event.handler.map(h => {
+				const args = functionArguments(h);
+				h = this.Promise.method(h);
+				h.__newSignature = isNewSignature(args);
+				return h;
+			});
+		}
 
 		if (!event.name)
 			event.name = name;
@@ -329,21 +343,21 @@ class Service {
 		const self = this;
 		if (_.isFunction(handler)) {
 			// Call single handler
-			event.handler = function() {
-				return handler.apply(self, arguments).catch(err => self.broker.errorHandler(err, {
+			event.handler = function(ctx) {
+				return handler.apply(self, handler.__newSignature ? [ctx] : [ctx.params, ctx.nodeID, ctx.eventName, ctx]).catch(err => self.broker.errorHandler(err, {
 					service: self,
 					event,
-					args: arguments
+					ctx
 				}));
 			};
 		} else if (Array.isArray(handler)) {
 			// Call multiple handler
-			event.handler = function() {
+			event.handler = function(ctx) {
 				return Promise.all(handler.map(fn => {
-					return fn.apply(self, arguments).catch(err => self.broker.errorHandler(err, {
+					return fn.apply(self, fn.__newSignature ? [ctx] : [ctx.params, ctx.nodeID, ctx.eventName, ctx]).catch(err => self.broker.errorHandler(err, {
 						service: self,
 						event,
-						args: arguments
+						ctx
 					}));
 				}));
 			};

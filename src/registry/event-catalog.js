@@ -142,19 +142,25 @@ class EventCatalog {
 	 *
 	 * @memberof EventCatalog
 	 */
-	emitLocalServices(eventName, payload, groupNames, nodeID, broadcast) {
+	emitLocalServices(ctx) {
+		const isBroadcast = ctx.eventType == "broadcast";
+
 		this.events.forEach(list => {
-			if (!utils.match(eventName, list.name)) return;
-			if (groupNames == null || groupNames.length == 0 || groupNames.indexOf(list.group) !== -1) {
-				if (broadcast) {
+			if (!utils.match(ctx.eventName, list.name)) return;
+			if (ctx.eventGroups == null || ctx.eventGroups.length == 0 || ctx.eventGroups.indexOf(list.group) !== -1) {
+				if (isBroadcast) {
 					list.endpoints.forEach(ep => {
-						if (ep.local && ep.event.handler)
-							this.callEventHandler(ep.event.handler, payload, nodeID, eventName);
+						if (ep.local && ep.event.handler) {
+							const newCtx = ctx.copy(ep);
+							this.callEventHandler(newCtx);
+						}
 					});
 				} else {
 					const ep = list.nextLocal();
-					if (ep && ep.event.handler)
-						this.callEventHandler(ep.event.handler, payload, nodeID, eventName);
+					if (ep && ep.event.handler) {
+						const newCtx = ctx.copy(ep);
+						this.callEventHandler(newCtx);
+					}
 				}
 			}
 		});
@@ -163,17 +169,17 @@ class EventCatalog {
 	/**
 	 * Call local event handler and handles unhandled promise rejections.
 	 *
-	 * @param {Function} handler
-	 * @param {any} payload
-	 * @param {String} sender
-	 * @param {String} eventName
+	 * @param {Context} ctx
 	 *
 	 * @memberof EventCatalog
 	 */
-	callEventHandler(handler, payload, sender, eventName) {
-		const res = handler(payload, sender, eventName);
-		if (utils.isPromise(res))
+	callEventHandler(ctx) {
+		const res = ctx.endpoint.event.handler(ctx);
+		//const res = handler(payload, sender, eventName);
+		if (utils.isPromise(res)) {
+			// TODO: broker.eventHandler?
 			return res.catch(err => this.broker.logger.error(err));
+		}
 		return res;
 	}
 

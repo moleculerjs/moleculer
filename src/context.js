@@ -52,7 +52,6 @@ class Context {
 		this._id = null;
 
 		this.broker = broker;
-
 		if (this.broker)
 			this.nodeID = this.broker.nodeID;
 		else
@@ -66,6 +65,13 @@ class Context {
 			this.action = null;
 			this.event = null;
 		}
+
+		// The emitted event "user.created" because `ctx.event.name` can be "user.**"
+		this.eventName = null;
+		// Type of event ("emit" or "broadcast")
+		this.eventType = null;
+		// The groups of event
+		this.eventGroups = null;
 
 		this.options = {
 			timeout: null,
@@ -86,6 +92,7 @@ class Context {
 		this.span = null;
 
 		this.needAck = null;
+		this.ackID = null;
 
 		//this.startTime = null;
 		//his.startHrTime = null;
@@ -150,7 +157,43 @@ class Context {
 		if (opts.parentCtx != null)
 			ctx.tracing = opts.parentCtx.tracing;
 
+		// Event acknowledgement
+		if (opts.needAck) {
+			ctx.needAck = opts.needAck;
+		}
+
 		return ctx;
+	}
+
+	/**
+	 * Copy itself without ID.
+	 * @param {Endpoint} ep
+	 * @returns {Context}
+	 */
+	copy(ep) {
+		const newCtx = new this.constructor();
+
+		newCtx.broker = this.broker;
+		newCtx.nodeID = this.nodeID;
+		newCtx.setEndpoint(ep || this.endpoint);
+		newCtx.options = this.options;
+		newCtx.parentID = this.parentID;
+		newCtx.caller = this.caller;
+		newCtx.level = this.level;
+		newCtx.params = this.params;
+		newCtx.meta = this.meta;
+		newCtx.requestID = this.requestID;
+		newCtx.tracing = this.tracing;
+		newCtx.span = this.span;
+		newCtx.needAck = this.needAck;
+		newCtx.ackID = this.ackID;
+		newCtx.eventName = this.eventName;
+		newCtx.eventType = this.eventType;
+		newCtx.eventGroups = this.eventGroups;
+
+		newCtx.cachedResult = this.cachedResult;
+
+		return newCtx;
 	}
 
 	/**
@@ -282,7 +325,10 @@ class Context {
 	 * @memberof Context
 	 */
 	emit(eventName, data, groups) {
-		return this.broker.emit(eventName, data, groups);
+		return this.broker.emit(eventName, data, {
+			parentCtx: this,
+			groups
+		});
 	}
 
 	/**
@@ -299,7 +345,10 @@ class Context {
 	 * @memberof Context
 	 */
 	broadcast(eventName, data, groups) {
-		return this.broker.broadcast(eventName, data, groups);
+		return this.broker.broadcast(eventName, data, {
+			parentCtx: this,
+			groups
+		});
 	}
 
 	/**
@@ -318,6 +367,36 @@ class Context {
 		}
 
 		return this.span;
+	}
+
+	/**
+	 * Convert Context to a printable POJO object.
+	 */
+	toJSON() {
+		return _.pick(this, [
+			"_id",
+			"nodeID",
+			"action.name",
+			"event.name",
+			"service.name",
+			"service.version",
+			"service.fullName",
+			"options",
+			"parentID",
+			"caller",
+			"level",
+			"params",
+			"meta",
+			"requestID",
+			"tracing",
+			"span",
+			"needAck",
+			"ackID",
+			"eventName",
+			"eventType",
+			"eventGroups",
+			"cachedResult"
+		]);
 	}
 
 }
