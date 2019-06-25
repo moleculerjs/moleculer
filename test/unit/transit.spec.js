@@ -1558,7 +1558,7 @@ describe("Test Transit._sendRequest", () => {
 
 });
 
-describe("Test Transit.sendEventToGroups", () => {
+describe("Test Transit.sendEvent", () => {
 
 	const broker = new ServiceBroker({ logger: false, nodeID: "node1", transporter: new FakeTransporter() });
 	const transit = broker.transit;
@@ -1566,9 +1566,7 @@ describe("Test Transit.sendEventToGroups", () => {
 	transit.publish = jest.fn(() => Promise.resolve());
 
 	const ep = {
-		node: {
-			id: "node2"
-		},
+		id: "node2",
 		event: {
 			name: "user.**"
 		}

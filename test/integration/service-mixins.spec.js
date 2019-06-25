@@ -508,16 +508,16 @@ describe("Test Service mixins", () => {
 		broker.broadcastLocal("oxygen", payload);
 
 		expect(mainSchema.events.oxygen).toHaveBeenCalledTimes(1);
-		expect(mainSchema.events.oxygen).toHaveBeenCalledWith(payload, broker.nodeID, "oxygen");
+		expect(mainSchema.events.oxygen).toHaveBeenCalledWith(payload, broker.nodeID, "oxygen", expect.any(broker.ContextFactory));
 
 		expect(mixin1L1.events.oxygen).toHaveBeenCalledTimes(1);
-		expect(mixin1L1.events.oxygen).toHaveBeenCalledWith(payload, broker.nodeID, "oxygen");
+		expect(mixin1L1.events.oxygen).toHaveBeenCalledWith(payload, broker.nodeID, "oxygen", expect.any(broker.ContextFactory));
 
 		expect(mixin2L1.events.oxygen).toHaveBeenCalledTimes(1);
-		expect(mixin2L1.events.oxygen).toHaveBeenCalledWith(payload, broker.nodeID, "oxygen");
+		expect(mixin2L1.events.oxygen).toHaveBeenCalledWith(payload, broker.nodeID, "oxygen", expect.any(broker.ContextFactory));
 
 		expect(mixinL2.events.oxygen.handler).toHaveBeenCalledTimes(2);
-		expect(mixinL2.events.oxygen.handler).toHaveBeenCalledWith(payload, broker.nodeID, "oxygen");
+		expect(mixinL2.events.oxygen.handler).toHaveBeenCalledWith(payload, broker.nodeID, "oxygen", expect.any(broker.ContextFactory));
 	});
 
 	it("should call 'carbon' event handlers", () => {
@@ -525,7 +525,7 @@ describe("Test Service mixins", () => {
 		broker.broadcastLocal("carbon", payload);
 
 		expect(mainSchema.events.carbon).toHaveBeenCalledTimes(1);
-		expect(mainSchema.events.carbon).toHaveBeenCalledWith(payload, broker.nodeID, "carbon");
+		expect(mainSchema.events.carbon).toHaveBeenCalledWith(payload, broker.nodeID, "carbon", expect.any(broker.ContextFactory));
 	});
 
 	it("should call 'hydrogen' event handlers", () => {
@@ -533,10 +533,10 @@ describe("Test Service mixins", () => {
 		broker.broadcastLocal("hydrogen", payload);
 
 		expect(mixin1L1.events.hydrogen).toHaveBeenCalledTimes(1);
-		expect(mixin1L1.events.hydrogen).toHaveBeenCalledWith(payload, broker.nodeID, "hydrogen");
+		expect(mixin1L1.events.hydrogen).toHaveBeenCalledWith(payload, broker.nodeID, "hydrogen", expect.any(broker.ContextFactory));
 
 		expect(mixin2L1.events.hydrogen).toHaveBeenCalledTimes(1);
-		expect(mixin2L1.events.hydrogen).toHaveBeenCalledWith(payload, broker.nodeID, "hydrogen");
+		expect(mixin2L1.events.hydrogen).toHaveBeenCalledWith(payload, broker.nodeID, "hydrogen", expect.any(broker.ContextFactory));
 	});
 
 	it("should call 'nitrogen' event handlers without group", () => {
@@ -544,10 +544,10 @@ describe("Test Service mixins", () => {
 		broker.broadcastLocal("nitrogen", payload);
 
 		expect(mixin1L1.events.nitrogen.handler).toHaveBeenCalledTimes(1);
-		expect(mixin1L1.events.nitrogen.handler).toHaveBeenCalledWith(payload, broker.nodeID, "nitrogen");
+		expect(mixin1L1.events.nitrogen.handler).toHaveBeenCalledWith(payload, broker.nodeID, "nitrogen", expect.any(broker.ContextFactory));
 
 		expect(mainSchema.events.nitrogen).toHaveBeenCalledTimes(1);
-		expect(mainSchema.events.nitrogen).toHaveBeenCalledWith(payload, broker.nodeID, "nitrogen");
+		expect(mainSchema.events.nitrogen).toHaveBeenCalledWith(payload, broker.nodeID, "nitrogen", expect.any(broker.ContextFactory));
 	});
 
 	it("should call 'nitrogen' event handlers with group", () => {
@@ -558,10 +558,10 @@ describe("Test Service mixins", () => {
 		broker.broadcastLocal("nitrogen", payload, "pnictogen");
 
 		expect(mixin1L1.events.nitrogen.handler).toHaveBeenCalledTimes(1);
-		expect(mixin1L1.events.nitrogen.handler).toHaveBeenCalledWith(payload, broker.nodeID, "nitrogen");
+		expect(mixin1L1.events.nitrogen.handler).toHaveBeenCalledWith(payload, broker.nodeID, "nitrogen", expect.any(broker.ContextFactory));
 
 		expect(mainSchema.events.nitrogen).toHaveBeenCalledTimes(1);
-		expect(mainSchema.events.nitrogen).toHaveBeenCalledWith(payload, broker.nodeID, "nitrogen");
+		expect(mainSchema.events.nitrogen).toHaveBeenCalledWith(payload, broker.nodeID, "nitrogen", expect.any(broker.ContextFactory));
 	});
 
 	it("should call 'nitrogen' event handlers with wrong group", () => {

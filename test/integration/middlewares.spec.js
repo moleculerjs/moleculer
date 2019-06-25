@@ -306,9 +306,9 @@ describe("Test middleware v2 system", () => {
 			// Wrap local event handlers
 			localEvent(next, event) {
 				expect(event).toBeDefined();
-				return (payload, sender, event) => {
-					FLOW.push(`${mwName}-localEvent-${event}-${payload.name}`);
-					return next(payload, sender, event);
+				return (ctx) => {
+					FLOW.push(`${mwName}-localEvent-${ctx.eventName}-${ctx.params.name}`);
+					return next(ctx);
 				};
 			},
 
@@ -524,8 +524,8 @@ describe("Test middleware v2 system", () => {
 				}
 			},
 			events: {
-				"john.**"(payload, sender, event) {
-					FLOW.push(`svc-${event}-${payload.name}`);
+				"john.**"(ctx) {
+					FLOW.push(`svc-${ctx.eventName}-${ctx.params.name}`);
 				}
 			}
 		});

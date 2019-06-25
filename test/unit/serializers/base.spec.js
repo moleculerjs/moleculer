@@ -207,6 +207,7 @@ describe("Test serializer.deserializeCustomFields", () => {
 	it("check with PACKET_EVENT", () => {
 		expect(serializer.deserializeCustomFields(P.PACKET_EVENT, {
 			"data": "{\"id\":5}",
+			"meta": "{\"name\":\"John\"",
 			"event": "user.created",
 			"groups": ["mail"],
 			"sender": "node-1"
@@ -216,6 +217,7 @@ describe("Test serializer.deserializeCustomFields", () => {
 			data: {
 				id: 5
 			},
+			meta: { name: "John" },
 			groups: ["mail"]
 		});
 	});

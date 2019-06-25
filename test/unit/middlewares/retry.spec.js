@@ -77,7 +77,7 @@ describe("Test RetryMiddleware", () => {
 
 			expect(handler).toHaveBeenCalledTimes(1);
 			expect(broker.call).toHaveBeenCalledTimes(1);
-			expect(broker.call).toHaveBeenCalledWith("posts.find", {}, { ctx });
+			expect(broker.call).toHaveBeenCalledWith("posts.find", null, { ctx });
 
 			expect(broker.Promise.delay).toHaveBeenCalledTimes(1);
 			expect(broker.Promise.delay).toHaveBeenCalledWith(100);

@@ -71,7 +71,7 @@
 			"request": "launch",
 			"name": "Jest",
 			"program": "${workspaceRoot}/node_modules/jest-cli/bin/jest.js",
-			"args": ["--runInBand", "test/unit/serializers/protobuf.spec.js"],
+			"args": ["--runInBand", "test/integration/event-balancer.spec.js"],
 			"console": "internalConsole",
 			"cwd": "${workspaceRoot}",
 			"runtimeArgs": [

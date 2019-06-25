@@ -143,7 +143,7 @@ class EventCatalog {
 	 * @memberof EventCatalog
 	 */
 	emitLocalServices(ctx) {
-		const isBroadcast = ctx.eventType == "broadcast";
+		const isBroadcast = ["broadcast", "broadcastLocal"].indexOf(ctx.eventType) !== -1;
 
 		this.events.forEach(list => {
 			if (!utils.match(ctx.eventName, list.name)) return;
