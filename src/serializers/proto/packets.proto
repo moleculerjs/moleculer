@@ -7,7 +7,7 @@ message PacketEvent {
 	required string sender 		= 2;
 	required string id 			= 3;
 	required string event 		= 4;
-	optional string data 		= 5;
+	optional bytes data 		= 5;
 	repeated string groups 		= 6;
 	required bool broadcast		= 7;
 	required string meta 		= 8;

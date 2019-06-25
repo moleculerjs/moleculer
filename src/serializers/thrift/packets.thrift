@@ -6,7 +6,7 @@ struct PacketEvent {
 	2: string sender,
 	3: string id,
 	4: string event,
-	5: optional string data,
+	5: optional binary data,
 	6: list<string> groups,
 	7: bool broadcast,
 	8: string meta,

@@ -96,70 +96,106 @@ describe("Test ProtoBuf serializer", () => {
 		const obj = {
 			ver: "4",
 			sender: "test-1",
+			id: "event-id",
 			event: "user.created",
 			data: {
 				a: 5,
 				b: "Test"
 			},
-			broadcast: true
+			broadcast: true,
+			meta: { name: "John" },
+			level: 5,
+			tracing: true,
+			parentID: "parent-id",
+			requestID: "request-id",
+			caller: "posts.created",
+			needAck: true
+
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(70);
+		expect(s.length).toBe(175);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
-		expect(res).toEqual(Object.assign(obj, { groups: null }));
+		expect(res).toEqual(Object.assign(obj, { groups: null, seq: null, stream: null }));
 	});
 
 	it("should serialize the event packet with groups", () => {
 		const obj = {
 			ver: "4",
 			sender: "test-1",
+			id: "event-id",
 			event: "user.created",
 			data: {
 				a: 5,
 				b: "Test"
 			},
 			groups: ["users", "payments"],
-			broadcast: false
+			broadcast: false,
+			meta: { name: "John" },
+			level: 5,
+			tracing: true,
+			parentID: "parent-id",
+			requestID: "request-id",
+			caller: "posts.created",
+			needAck: true
+
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(99);
+		expect(s.length).toBe(204);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
-		expect(res).toEqual(obj);
+		expect(res).toEqual(Object.assign(obj, { seq: null, stream: null }));
 	});
 
 	it("should serialize the event packet null data", () => {
 		const obj = {
 			ver: "3",
 			sender: "test-1",
+			id: "event-id",
 			event: "user.created",
 			data: null,
-			broadcast: true
+			broadcast: true,
+			meta: { name: "John" },
+			level: 5,
+			tracing: true,
+			parentID: "parent-id",
+			requestID: "request-id",
+			caller: "posts.created",
+			needAck: true
+
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(56);
+		expect(s.length).toBe(150);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
-		expect(res).toEqual(Object.assign(obj, { groups: null }));
+		expect(res).toEqual(Object.assign(obj, { groups: null, seq: null, stream: null }));
 	});
 
 	it("should serialize the event packet without data", () => {
 		const obj = {
 			ver: "4",
 			sender: "test-1",
+			id: "event-id",
 			event: "user.created",
-			broadcast: true
+			broadcast: true,
+			meta: { name: "John" },
+			level: 5,
+			tracing: true,
+			parentID: "parent-id",
+			requestID: "request-id",
+			caller: "posts.created",
+			needAck: true
+
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(45);
+		expect(s.length).toBe(150);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
-		expect(res).toEqual(Object.assign(obj, { data: null, groups: null }));
+		expect(res).toEqual(Object.assign(obj, { data: null, groups: null, seq: null, stream: null }));
 	});
 
 	it("should serialize the request packet", () => {
@@ -186,6 +222,36 @@ describe("Test ProtoBuf serializer", () => {
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_REQUEST);
 		expect(s.length).toBe(171);
+
+		const res = serializer.deserialize(s, P.PACKET_REQUEST);
+		expect(res).not.toBe(obj);
+		expect(res).toEqual(obj);
+	});
+
+	it("should serialize the request packet without params", () => {
+		const obj = {
+			ver: "4",
+			sender: "test-1",
+			id: "100",
+			action: "posts.find",
+			params: null,
+			meta: {
+				user: {
+					id: 1,
+					roles: [ "admin" ]
+				}
+			},
+			timeout: 1500,
+			level: 4,
+			tracing: true,
+			parentID: "999",
+			requestID: "12345",
+			caller: "users.list",
+			stream: false,
+			seq: null
+		};
+		const s = serializer.serialize(cloneDeep(obj), P.PACKET_REQUEST);
+		expect(s.length).toBe(167);
 
 		const res = serializer.deserialize(s, P.PACKET_REQUEST);
 		expect(res).not.toBe(obj);

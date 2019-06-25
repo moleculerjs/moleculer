@@ -69,6 +69,11 @@ class ProtoBufSerializer extends BaseSerializer {
 		obj = super.serializeCustomFields(type, obj);
 
 		switch(type) {
+			case P.PACKET_EVENT: {
+				if (obj.data != null && !obj.stream)
+					obj.data = Buffer.from(obj.data);
+				break;
+			}
 			case P.PACKET_REQUEST: {
 				if (!obj.stream)
 					obj.params = Buffer.from(obj.params);
@@ -94,6 +99,15 @@ class ProtoBufSerializer extends BaseSerializer {
 	 */
 	deserializeCustomFields(type, obj) {
 		switch(type) {
+			case P.PACKET_EVENT: {
+				if (obj.data != null && !obj.stream) {
+					if (obj.data.length)
+						obj.data = obj.data.toString("utf8");
+					else
+						obj.data = null;
+				}
+				break;
+			}
 			case P.PACKET_REQUEST: {
 				if (!obj.stream)
 					obj.params = obj.params.toString("utf8");

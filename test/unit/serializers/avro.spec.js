@@ -96,70 +96,102 @@ describe("Test Avro serializer", () => {
 		const obj = {
 			ver: "2",
 			sender: "test-1",
+			id: "event-id",
 			event: "user.created",
 			data: {
 				a: 5,
 				b: "Test"
 			},
-			broadcast: true
+			broadcast: true,
+			meta: { name: "John" },
+			level: 5,
+			tracing: true,
+			parentID: "parent-id",
+			requestID: "request-id",
+			caller: "posts.created",
+			needAck: true
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(44);
+		expect(s.length).toBe(113);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
-		expect(res).toEqual(Object.assign(obj, { groups: null }));
+		expect(res).toEqual(Object.assign(obj, { groups: null, seq: null, stream: null }));
 	});
 
 	it("should serialize the event packet with groups", () => {
 		const obj = {
 			ver: "2",
 			sender: "test-1",
+			id: "event-id",
 			event: "user.created",
 			data: {
 				a: 5,
 				b: "Test"
 			},
 			groups: ["users", "payments"],
-			broadcast: false
+			broadcast: false,
+			meta: { name: "John" },
+			level: 5,
+			tracing: true,
+			parentID: "parent-id",
+			requestID: "request-id",
+			caller: "posts.created",
+			needAck: true
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(61);
+		expect(s.length).toBe(130);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
-		expect(res).toEqual(obj);
+		expect(res).toEqual(Object.assign(obj, { seq: null, stream: null }));
 	});
 
 	it("should serialize the event packet null data", () => {
 		const obj = {
 			ver: "3",
 			sender: "test-1",
+			id: "event-id",
 			event: "user.created",
 			data: null,
-			broadcast: true
+			broadcast: true,
+			meta: { name: "John" },
+			level: 5,
+			tracing: true,
+			parentID: "parent-id",
+			requestID: "request-id",
+			caller: "posts.created",
+			needAck: true
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(30);
+		expect(s.length).toBe(94);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
-		expect(res).toEqual(Object.assign(obj, { groups: null }));
+		expect(res).toEqual(Object.assign(obj, { groups: null, seq: null, stream: null }));
 	});
 
 	it("should serialize the event packet without data", () => {
 		const obj = {
 			ver: "2",
 			sender: "test-1",
+			id: "event-id",
 			event: "user.created",
-			broadcast: true
+			broadcast: true,
+			meta: { name: "John" },
+			level: 5,
+			tracing: true,
+			parentID: "parent-id",
+			requestID: "request-id",
+			caller: "posts.created",
+			needAck: true
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(25);
+		expect(s.length).toBe(94);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
-		expect(res).toEqual(Object.assign(obj, { groups: null, data: null }));
+		expect(res).toEqual(Object.assign(obj, { groups: null, data: null, seq: null, stream: null }));
 	});
 
 	it("should serialize the request packet", () => {
@@ -186,6 +218,36 @@ describe("Test Avro serializer", () => {
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_REQUEST);
 		expect(s.length).toBe(109);
+
+		const res = serializer.deserialize(s, P.PACKET_REQUEST);
+		expect(res).not.toBe(obj);
+		expect(res).toEqual(obj);
+	});
+
+	it("should serialize the request packet without params", () => {
+		const obj = {
+			ver: "2",
+			sender: "test-1",
+			id: "100",
+			action: "posts.find",
+			params: null,
+			meta: {
+				user: {
+					id: 1,
+					roles: [ "admin" ]
+				}
+			},
+			timeout: 1500,
+			level: 4,
+			tracing: true,
+			parentID: "999",
+			requestID: "12345",
+			caller: "users.list",
+			stream: false,
+			seq: null
+		};
+		const s = serializer.serialize(cloneDeep(obj), P.PACKET_REQUEST);
+		expect(s.length).toBe(105);
 
 		const res = serializer.deserialize(s, P.PACKET_REQUEST);
 		expect(res).not.toBe(obj);
