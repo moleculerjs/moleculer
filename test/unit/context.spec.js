@@ -21,6 +21,10 @@ describe("Test Context", () => {
 		expect(ctx.service).toBeNull();
 		expect(ctx.nodeID).toBeNull();
 
+		expect(ctx.eventName).toBeNull();
+		expect(ctx.eventType).toBeNull();
+		expect(ctx.eventGroups).toBeNull();
+
 		expect(ctx.options).toEqual({
 			timeout: null,
 			retries: null
@@ -40,6 +44,7 @@ describe("Test Context", () => {
 		expect(ctx.span).toBeNull();
 
 		expect(ctx.needAck).toBeNull();
+		expect(ctx.ackID).toBeNull();
 
 		expect(ctx.cachedResult).toBe(false);
 
@@ -91,6 +96,10 @@ describe("Test Context.create", () => {
 		expect(ctx.event).toBeNull();
 		expect(ctx.nodeID).toBe("server-123");
 
+		expect(ctx.eventName).toBeNull();
+		expect(ctx.eventType).toBeNull();
+		expect(ctx.eventGroups).toBeNull();
+
 		expect(ctx.params).toEqual({ a: 5 });
 		expect(ctx.meta).toEqual({});
 
@@ -101,6 +110,9 @@ describe("Test Context.create", () => {
 
 		expect(ctx.tracing).toBeNull();
 		expect(ctx.level).toBe(1);
+
+		expect(ctx.needAck).toBeNull();
+		expect(ctx.ackID).toBeNull();
 
 		expect(ctx.requestID).toBe(ctx.id);
 
@@ -142,6 +154,10 @@ describe("Test Context.create", () => {
 		expect(ctx.event).toBeNull();
 		expect(ctx.nodeID).toBe("server-123");
 
+		expect(ctx.eventName).toBeNull();
+		expect(ctx.eventType).toBeNull();
+		expect(ctx.eventGroups).toBeNull();
+
 		expect(ctx.params).toEqual({ a: 5 });
 		expect(ctx.meta).toEqual({
 			token: "123456",
@@ -156,6 +172,9 @@ describe("Test Context.create", () => {
 
 		expect(ctx.tracing).toBe(true);
 		expect(ctx.level).toBe(6);
+
+		expect(ctx.needAck).toBeNull();
+		expect(ctx.ackID).toBeNull();
 
 		expect(ctx.requestID).toBe("1234567890abcdef");
 	});
@@ -191,8 +210,8 @@ describe("Test Context.create", () => {
 				},
 				requestID: "1234567890abcdef",
 				tracing: true,
-				action: {
-					name: "posts.list"
+				event: {
+					name: "post.created"
 				}
 			}
 		};
@@ -207,6 +226,10 @@ describe("Test Context.create", () => {
 		expect(ctx.service).toBe(endpoint.event.service);
 		expect(ctx.nodeID).toBe("server-123");
 
+		expect(ctx.eventName).toBeNull();
+		expect(ctx.eventType).toBeNull();
+		expect(ctx.eventGroups).toBeNull();
+
 		expect(ctx.params).toEqual({ a: 5 });
 		expect(ctx.meta).toEqual({
 			token: "123456",
@@ -217,14 +240,147 @@ describe("Test Context.create", () => {
 		expect(ctx.options).toEqual(opts);
 
 		expect(ctx.parentID).toBe(100);
-		expect(ctx.caller).toBe("posts.list");
+		expect(ctx.caller).toBe("post.created");
 
 		expect(ctx.tracing).toBe(true);
 		expect(ctx.level).toBe(6);
 
+		expect(ctx.needAck).toBeNull();
+		expect(ctx.ackID).toBeNull();
+
 		expect(ctx.requestID).toBe("1234567890abcdef");
 	});
 });
+
+describe("Test copy", () => {
+	let broker = new ServiceBroker({ nodeID: "node-1", logger: false });
+
+	let endpoint = {
+		action: {
+			name: "posts.find",
+			service: {
+				name: "posts"
+			}
+		},
+		node: {
+			id: "server-123"
+		}
+	};
+
+	const baseCtx = Context.create(broker, endpoint, { a: 5 }, {
+		timeout: 2500,
+		retries: 3,
+		fallbackResponse: "Hello",
+		meta: {
+			user: "John",
+			c: 200
+		},
+		parentCtx: {
+			id: 100,
+			level: 5,
+			meta: {
+				token: "123456",
+				c: 100
+			},
+			requestID: "1234567890abcdef",
+			tracing: true,
+			event: {
+				name: "post.created"
+			}
+		}
+	});
+	baseCtx.id = "123456";
+
+	it("should copy all properties without endpoint", () => {
+
+		const ctx = baseCtx.copy();
+
+		expect(ctx._id).toBeNull();
+		expect(ctx.broker).toBe(broker);
+		expect(ctx.endpoint).toBe(endpoint);
+		expect(ctx.action).toBe(endpoint.action);
+		expect(ctx.service).toBe(endpoint.action.service);
+		expect(ctx.event).toBeNull();
+		expect(ctx.nodeID).toBe("server-123");
+
+		expect(ctx.eventName).toBeNull();
+		expect(ctx.eventType).toBeNull();
+		expect(ctx.eventGroups).toBeNull();
+
+		expect(ctx.params).toEqual(baseCtx.params);
+		expect(ctx.meta).toEqual(baseCtx.meta);
+
+		expect(ctx.options).toEqual(baseCtx.options);
+
+		expect(ctx.parentID).toEqual(baseCtx.parentID);
+		expect(ctx.caller).toEqual(baseCtx.caller);
+
+		expect(ctx.tracing).toEqual(baseCtx.tracing);
+		expect(ctx.level).toEqual(baseCtx.level);
+
+		expect(ctx.needAck).toEqual(baseCtx.needAck);
+		expect(ctx.ackID).toEqual(baseCtx.ackID);
+
+		expect(ctx.requestID).toBe(baseCtx.requestID);
+
+		expect(ctx.cachedResult).toBe(false);
+
+	});
+
+	it("should copy all properties with new endpoint", () => {
+
+		const newEndpoint = {
+			event: {
+				name: "post.created",
+				service: {
+					name: "posts"
+				}
+			},
+			node: {
+				id: "server-333"
+			}
+		};
+
+		baseCtx.eventName = "post.created";
+		baseCtx.eventType = "emit";
+		baseCtx.eventGroups = ["mail"];
+
+		const ctx = baseCtx.copy(newEndpoint);
+
+		expect(ctx._id).toBeNull();
+		expect(ctx.broker).toBe(broker);
+		expect(ctx.endpoint).toBe(newEndpoint);
+		expect(ctx.action).toBeNull();
+		expect(ctx.event).toBe(newEndpoint.event);
+		expect(ctx.service).toBe(newEndpoint.event.service);
+		expect(ctx.nodeID).toBe("server-333");
+
+		expect(ctx.eventName).toEqual("post.created");
+		expect(ctx.eventType).toEqual("emit");
+		expect(ctx.eventGroups).toEqual(["mail"]);
+
+		expect(ctx.params).toEqual(baseCtx.params);
+		expect(ctx.meta).toEqual(baseCtx.meta);
+
+		expect(ctx.options).toEqual(baseCtx.options);
+
+		expect(ctx.parentID).toEqual(baseCtx.parentID);
+		expect(ctx.caller).toEqual(baseCtx.caller);
+
+		expect(ctx.tracing).toEqual(baseCtx.tracing);
+		expect(ctx.level).toEqual(baseCtx.level);
+
+		expect(ctx.needAck).toEqual(baseCtx.needAck);
+		expect(ctx.ackID).toEqual(baseCtx.ackID);
+
+		expect(ctx.requestID).toBe(baseCtx.requestID);
+
+		expect(ctx.cachedResult).toBe(false);
+
+	});
+
+});
+
 
 describe("Test setEndpoint", () => {
 	let broker = new ServiceBroker({ nodeID: "node-1", logger: false });
@@ -450,64 +606,83 @@ describe("Test call with meta merge", () => {
 });
 
 describe("Test emit method", () => {
-	let broker = new ServiceBroker({ logger: false });
+	const broker = new ServiceBroker({ logger: false });
 	broker.emit = jest.fn();
 
-	let ctx = new Context(broker);
+	const ctx = new Context(broker);
 
 	it("should call broker.emit method with object param", () => {
-		let data = { id: 5 };
+		const data = { id: 5 };
 		ctx.emit("request.rest", data);
 
 		expect(broker.emit).toHaveBeenCalledTimes(1);
-		expect(broker.emit).toHaveBeenCalledWith("request.rest", data, undefined);
+		expect(broker.emit).toHaveBeenCalledWith("request.rest", data, { parentCtx: ctx, groups: undefined });
 	});
 
 	it("should call broker.emit method with string param", () => {
 		broker.emit.mockClear();
 		ctx.emit("request.rest", "string-data");
 		expect(broker.emit).toHaveBeenCalledTimes(1);
-		expect(broker.emit).toHaveBeenCalledWith("request.rest", "string-data", undefined);
+		expect(broker.emit).toHaveBeenCalledWith("request.rest", "string-data", { parentCtx: ctx, groups: undefined });
 	});
 
 	it("should call broker.emit method without payload & groups", () => {
 		broker.emit.mockClear();
 		ctx.emit("request.rest", null, ["mail"]);
 		expect(broker.emit).toHaveBeenCalledTimes(1);
-		expect(broker.emit).toHaveBeenCalledWith("request.rest", null, ["mail"]);
+		expect(broker.emit).toHaveBeenCalledWith("request.rest", null, { parentCtx: ctx, groups: ["mail"] });
+	});
+
+	it("should call broker.emit method with opts", () => {
+		const data = { id: 5 };
+		broker.emit.mockClear();
+		ctx.emit("request.rest", data, {
+			groups: ["mail"]
+		});
+		expect(broker.emit).toHaveBeenCalledTimes(1);
+		expect(broker.emit).toHaveBeenCalledWith("request.rest", data, { parentCtx: ctx, groups: ["mail"] });
 	});
 });
 
 describe("Test broadcast method", () => {
-	let broker = new ServiceBroker({ logger: false });
+	const broker = new ServiceBroker({ logger: false });
 	broker.broadcast = jest.fn();
 
-	let ctx = new Context(broker);
+	const ctx = new Context(broker);
 
 	it("should call broker.broadcast method with object param", () => {
-		let data = { id: 5 };
+		const data = { id: 5 };
 		ctx.broadcast("request.rest", data);
 
 		expect(broker.broadcast).toHaveBeenCalledTimes(1);
-		expect(broker.broadcast).toHaveBeenCalledWith("request.rest", data, undefined);
+		expect(broker.broadcast).toHaveBeenCalledWith("request.rest", data, { parentCtx: ctx, groups: undefined });
 	});
 
 	it("should call broker.broadcast method with string param", () => {
 		broker.broadcast.mockClear();
 		ctx.broadcast("request.rest", "string-data");
 		expect(broker.broadcast).toHaveBeenCalledTimes(1);
-		expect(broker.broadcast).toHaveBeenCalledWith("request.rest", "string-data", undefined);
+		expect(broker.broadcast).toHaveBeenCalledWith("request.rest", "string-data", { parentCtx: ctx, groups: undefined });
 	});
 
 	it("should call broker.broadcast method without payload & groups", () => {
 		broker.broadcast.mockClear();
 		ctx.broadcast("request.rest", null, ["mail"]);
 		expect(broker.broadcast).toHaveBeenCalledTimes(1);
-		expect(broker.broadcast).toHaveBeenCalledWith("request.rest", null, ["mail"]);
+		expect(broker.broadcast).toHaveBeenCalledWith("request.rest", null, { parentCtx: ctx, groups: ["mail"] });
+	});
+
+	it("should call broker.broadcast method without payload & groups", () => {
+		const data = { id: 5 };
+		broker.broadcast.mockClear();
+		ctx.broadcast("request.rest", data, {
+			groups: ["mail"]
+		});
+		expect(broker.broadcast).toHaveBeenCalledTimes(1);
+		expect(broker.broadcast).toHaveBeenCalledWith("request.rest", data, { parentCtx: ctx, groups: ["mail"] });
 	});
 
 });
-
 
 describe("Test startSpan method", () => {
 	let broker = new ServiceBroker({ logger: false, tracing: true });
@@ -537,6 +712,95 @@ describe("Test startSpan method", () => {
 		expect(fakeSpan.startSpan).toHaveBeenCalledTimes(1);
 		expect(fakeSpan.startSpan).toHaveBeenCalledWith("custom nested span", opts);
 		expect(ctx.span).toBe(fakeSpan2);
+	});
+
+});
+
+describe("Test toJSON method", () => {
+	const broker = new ServiceBroker({ logger: false, tracing: true });
+
+	const endpoint = {
+		action: {
+			name: "posts.find",
+			service: {
+				name: "posts",
+				version: 2,
+				fullName: "v2.posts"
+			}
+		},
+		node: {
+			id: "server-123"
+		}
+	};
+
+	const ctx = Context.create(broker, endpoint, { a: 5 }, {
+		timeout: 2500,
+		retries: 3,
+		fallbackResponse: "Hello",
+		meta: {
+			user: "John",
+			c: 200
+		},
+		parentCtx: {
+			id: 100,
+			level: 5,
+			meta: {
+				token: "123456",
+				c: 100
+			},
+			requestID: "1234567890abcdef",
+			tracing: true,
+			event: {
+				name: "post.created"
+			}
+		}
+	});
+	ctx.eventName = "post.created";
+	ctx.eventType = "emit";
+	ctx.eventGroups = ["users", "mail"];
+	ctx.needAck = true;
+	ctx.ackID = "ACK-123";
+
+	it("should generate POJO", () => {
+		expect(ctx.toJSON()).toEqual({
+			id: null,
+			nodeID: "server-123",
+			service: {
+				name: "posts",
+				version: 2,
+				fullName: "v2.posts"
+			},
+			action: {
+				name: "posts.find"
+			},
+
+			caller: "post.created",
+			eventName: "post.created",
+			eventType: "emit",
+			eventGroups: ["users", "mail"],
+			level: 6,
+			meta: {
+				token: "123456",
+				c: 200,
+				user: "John"
+			},
+			options: ctx.options,
+			params: {
+				a: 5
+			},
+			parentID: 100,
+			requestID: "1234567890abcdef",
+			span: null,
+			needAck: true,
+			ackID: "ACK-123",
+			tracing: true,
+			cachedResult: false,
+		});
+	});
+
+	it("should generate POJO with id", () => {
+		ctx.id = "123123123";
+		expect(ctx.toJSON().id).toBe("123123123");
 	});
 
 });

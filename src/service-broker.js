@@ -1209,7 +1209,7 @@ class ServiceBroker {
 	 */
 	emit(eventName, payload, opts = {}) {
 		if (Array.isArray(opts))
-			opts = { group: opts };
+			opts = { groups: opts };
 
 		if (opts.groups && !Array.isArray(opts.groups))
 			opts.groups = [opts.groups];
@@ -1301,7 +1301,7 @@ class ServiceBroker {
 	 */
 	broadcast(eventName, payload, opts = {}) {
 		if (Array.isArray(opts))
-			opts = { group: opts };
+			opts = { groups: opts };
 
 		if (opts.groups && !Array.isArray(opts.groups))
 			opts.groups = [opts.groups];
@@ -1358,7 +1358,7 @@ class ServiceBroker {
 	 */
 	broadcastLocal(eventName, payload, opts = {}) {
 		if (Array.isArray(opts))
-			opts = { group: opts };
+			opts = { groups: opts };
 
 		if (opts.groups && !Array.isArray(opts.groups))
 			opts.groups = [opts.groups];

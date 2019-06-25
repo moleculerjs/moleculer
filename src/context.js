@@ -324,11 +324,15 @@ class Context {
 	 *
 	 * @memberof Context
 	 */
-	emit(eventName, data, groups) {
-		return this.broker.emit(eventName, data, {
-			parentCtx: this,
-			groups
-		});
+	emit(eventName, data, opts = {}) {
+		if (Array.isArray(opts))
+			opts = { groups: opts };
+
+		if (opts.groups && !Array.isArray(opts.groups))
+			opts.groups = [opts.groups];
+
+		opts.parentCtx = this;
+		return this.broker.emit(eventName, data, opts);
 	}
 
 	/**
@@ -344,11 +348,15 @@ class Context {
 	 *
 	 * @memberof Context
 	 */
-	broadcast(eventName, data, groups) {
-		return this.broker.broadcast(eventName, data, {
-			parentCtx: this,
-			groups
-		});
+	broadcast(eventName, data, opts = {}) {
+		if (Array.isArray(opts))
+			opts = { groups: opts };
+
+		if (opts.groups && !Array.isArray(opts.groups))
+			opts.groups = [opts.groups];
+
+		opts.parentCtx = this;
+		return this.broker.broadcast(eventName, data, opts);
 	}
 
 	/**
