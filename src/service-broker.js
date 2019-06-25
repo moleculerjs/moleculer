@@ -1208,7 +1208,7 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	emit(eventName, payload, opts = {}) {
-		if (Array.isArray(opts))
+		if (Array.isArray(opts) || _.isString(opts))
 			opts = { groups: opts };
 
 		if (opts.groups && !Array.isArray(opts.groups))
@@ -1242,7 +1242,7 @@ class ServiceBroker {
 						// Remote service
 						const e = groupedEP[ep.id];
 						if (e)
-							e.push(group);
+							e.groups.push(group);
 						else
 							groupedEP[ep.id] = {
 								ep,
@@ -1266,7 +1266,7 @@ class ServiceBroker {
 				_.forIn(groupedEP, item => {
 					const newCtx = ctx.copy(item.ep);
 					newCtx.eventGroups = item.groups;
-					return this.sendEvent(newCtx);
+					return this.transit.sendEvent(newCtx);
 				});
 
 				return;
@@ -1300,7 +1300,7 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	broadcast(eventName, payload, opts = {}) {
-		if (Array.isArray(opts))
+		if (Array.isArray(opts) || _.isString(opts))
 			opts = { groups: opts };
 
 		if (opts.groups && !Array.isArray(opts.groups))
@@ -1357,7 +1357,7 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	broadcastLocal(eventName, payload, opts = {}) {
-		if (Array.isArray(opts))
+		if (Array.isArray(opts) || _.isString(opts))
 			opts = { groups: opts };
 
 		if (opts.groups && !Array.isArray(opts.groups))

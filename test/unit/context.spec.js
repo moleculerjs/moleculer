@@ -35,7 +35,7 @@ describe("Test Context", () => {
 
 		expect(ctx.level).toBe(1);
 
-		expect(ctx.params).toEqual({});
+		expect(ctx.params).toBeNull();
 		expect(ctx.meta).toEqual({});
 
 		expect(ctx.requestID).toBeNull();
@@ -78,9 +78,7 @@ describe("Test Context.create", () => {
 				name: "posts"
 			}
 		},
-		node: {
-			id: "server-123"
-		}
+		id: "server-123"
 	};
 
 	it("test without opts", () => {
@@ -187,9 +185,7 @@ describe("Test Context.create", () => {
 					name: "posts"
 				}
 			},
-			node: {
-				id: "server-123"
-			}
+			id: "server-123"
 		};
 
 		const params = { a: 5 };
@@ -262,9 +258,7 @@ describe("Test copy", () => {
 				name: "posts"
 			}
 		},
-		node: {
-			id: "server-123"
-		}
+		id: "server-123"
 	};
 
 	const baseCtx = Context.create(broker, endpoint, { a: 5 }, {
@@ -336,9 +330,7 @@ describe("Test copy", () => {
 					name: "posts"
 				}
 			},
-			node: {
-				id: "server-333"
-			}
+			id: "server-333"
 		};
 
 		baseCtx.eventName = "post.created";
@@ -393,9 +385,7 @@ describe("Test setEndpoint", () => {
 					name: "posts"
 				}
 			},
-			node: {
-				id: "server-123"
-			}
+			id: "server-123"
 		};
 
 		let ctx = new Context(broker);
@@ -422,9 +412,7 @@ describe("Test setEndpoint", () => {
 					name: "posts"
 				}
 			},
-			node: {
-				id: "server-123"
-			}
+			id: "server-123"
 		};
 
 		let ctx = new Context(broker);
@@ -626,11 +614,18 @@ describe("Test emit method", () => {
 		expect(broker.emit).toHaveBeenCalledWith("request.rest", "string-data", { parentCtx: ctx, groups: undefined });
 	});
 
-	it("should call broker.emit method without payload & groups", () => {
+	it("should call broker.emit method without payload & group", () => {
 		broker.emit.mockClear();
-		ctx.emit("request.rest", null, ["mail"]);
+		ctx.emit("request.rest", null, "mail");
 		expect(broker.emit).toHaveBeenCalledTimes(1);
 		expect(broker.emit).toHaveBeenCalledWith("request.rest", null, { parentCtx: ctx, groups: ["mail"] });
+	});
+
+	it("should call broker.emit method without payload & groups", () => {
+		broker.emit.mockClear();
+		ctx.emit("request.rest", null, ["mail", "users"]);
+		expect(broker.emit).toHaveBeenCalledTimes(1);
+		expect(broker.emit).toHaveBeenCalledWith("request.rest", null, { parentCtx: ctx, groups: ["mail", "users"] });
 	});
 
 	it("should call broker.emit method with opts", () => {
@@ -665,11 +660,18 @@ describe("Test broadcast method", () => {
 		expect(broker.broadcast).toHaveBeenCalledWith("request.rest", "string-data", { parentCtx: ctx, groups: undefined });
 	});
 
+	it("should call broker.broadcast method without payload & group", () => {
+		broker.broadcast.mockClear();
+		ctx.broadcast("request.rest", null, "users");
+		expect(broker.broadcast).toHaveBeenCalledTimes(1);
+		expect(broker.broadcast).toHaveBeenCalledWith("request.rest", null, { parentCtx: ctx, groups: ["users"] });
+	});
+
 	it("should call broker.broadcast method without payload & groups", () => {
 		broker.broadcast.mockClear();
-		ctx.broadcast("request.rest", null, ["mail"]);
+		ctx.broadcast("request.rest", null, ["mail", "users"]);
 		expect(broker.broadcast).toHaveBeenCalledTimes(1);
-		expect(broker.broadcast).toHaveBeenCalledWith("request.rest", null, { parentCtx: ctx, groups: ["mail"] });
+		expect(broker.broadcast).toHaveBeenCalledWith("request.rest", null, { parentCtx: ctx, groups: ["mail", "users"] });
 	});
 
 	it("should call broker.broadcast method without payload & groups", () => {
@@ -728,9 +730,7 @@ describe("Test toJSON method", () => {
 				fullName: "v2.posts"
 			}
 		},
-		node: {
-			id: "server-123"
-		}
+		id: "server-123"
 	};
 
 	const ctx = Context.create(broker, endpoint, { a: 5 }, {

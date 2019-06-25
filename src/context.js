@@ -83,7 +83,7 @@ class Context {
 
 		this.level = 1;
 
-		this.params = {};
+		this.params = null;
 		this.meta = {};
 
 		this.requestID = null;
@@ -238,8 +238,8 @@ class Context {
 			this.action = null;
 		}
 
-		if (endpoint && endpoint.node)
-			this.nodeID = endpoint.node.id;
+		if (endpoint)
+			this.nodeID = endpoint.id;
 	}
 
 	/**
@@ -254,7 +254,7 @@ class Context {
 		if (cloning && newParams)
 			this.params = Object.assign({}, newParams);
 		else
-			this.params = newParams || {};
+			this.params = newParams;
 	}
 
 	/**
@@ -325,7 +325,7 @@ class Context {
 	 * @memberof Context
 	 */
 	emit(eventName, data, opts = {}) {
-		if (Array.isArray(opts))
+		if (Array.isArray(opts) || _.isString(opts))
 			opts = { groups: opts };
 
 		if (opts.groups && !Array.isArray(opts.groups))
@@ -349,7 +349,7 @@ class Context {
 	 * @memberof Context
 	 */
 	broadcast(eventName, data, opts = {}) {
-		if (Array.isArray(opts))
+		if (Array.isArray(opts) || _.isString(opts))
 			opts = { groups: opts };
 
 		if (opts.groups && !Array.isArray(opts.groups))
