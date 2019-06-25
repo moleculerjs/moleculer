@@ -307,17 +307,17 @@ class Transit {
 
 			// Request
 			if (cmd === P.PACKET_REQUEST) {
-				return this._requestHandler(payload);
+				return this.requestHandler(payload);
 			}
 
 			// Response
 			else if (cmd === P.PACKET_RESPONSE) {
-				this._responseHandler(payload);
+				this.responseHandler(payload);
 			}
 
 			// Event
 			else if (cmd === P.PACKET_EVENT) {
-				this._eventHandler(payload);
+				this.eventHandler(payload);
 			}
 
 			// Discover
@@ -363,7 +363,7 @@ class Transit {
 	 * @param {any} payload
 	 * @memberof Transit
 	 */
-	_eventHandler(payload) {
+	eventHandler(payload) {
 		this.logger.debug(`Event '${payload.event}' received from '${payload.sender}' node` + (payload.groups ? ` in '${payload.groups.join(", ")}' group(s)` : "") + ".");
 
 		if (!this.broker.started) {
@@ -396,7 +396,7 @@ class Transit {
 	 *
 	 * @memberof Transit
 	 */
-	_requestHandler(payload) {
+	requestHandler(payload) {
 		this.logger.debug(`<= Request '${payload.action}' received from '${payload.sender}' node.`);
 
 		try {
@@ -523,7 +523,7 @@ class Transit {
 			const nextPacket = pass.$pool.get(nextSeq);
 			if (nextPacket) {
 				pass.$pool.delete(nextSeq);
-				setImmediate(() => this._requestHandler(nextPacket));
+				setImmediate(() => this.requestHandler(nextPacket));
 			}
 		}
 
@@ -560,7 +560,7 @@ class Transit {
 	 *
 	 * @memberof Transit
 	 */
-	_responseHandler(packet) {
+	responseHandler(packet) {
 		const id = packet.id;
 		const req = this.pendingRequests.get(id);
 
@@ -671,7 +671,7 @@ class Transit {
 			const nextPacket = pass.$pool.get(nextSeq);
 			if (nextPacket) {
 				pass.$pool.delete(nextSeq);
-				setImmediate(() => this._responseHandler(nextPacket));
+				setImmediate(() => this.responseHandler(nextPacket));
 			}
 		}
 

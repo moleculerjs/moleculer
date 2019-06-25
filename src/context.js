@@ -373,8 +373,7 @@ class Context {
 	 * Convert Context to a printable POJO object.
 	 */
 	toJSON() {
-		return _.pick(this, [
-			"_id",
+		const res = _.pick(this, [
 			"nodeID",
 			"action.name",
 			"event.name",
@@ -397,6 +396,9 @@ class Context {
 			"eventGroups",
 			"cachedResult"
 		]);
+
+		res.id = this._id ? this._id : null;
+		return res;
 	}
 
 }
