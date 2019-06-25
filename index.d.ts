@@ -1176,10 +1176,7 @@ declare namespace Moleculer {
 		makeSubscriptions(): PromiseLike<Array<void>>;
 		messageHandler(cmd: string, msg: GenericObject): boolean | PromiseLike<void> | undefined;
 		request(ctx: Context): PromiseLike<void>;
-		sendBroadcastEvent(nodeID: string, eventName: string, data: GenericObject, nodeGroups: GenericObject): void;
-		sendBalancedEvent(eventName: string, data: GenericObject, nodeGroups: GenericObject): void;
-		sendEventToGroups(eventName: string, data: GenericObject, groups: Array<string>): void;
-		sendEventToGroups(eventName: string, data: GenericObject): void;
+		sendEvent(ctx: Context): void;
 		removePendingRequest(id: string): void;
 		removePendingRequestByNodeID(nodeID: string): void;
 		sendResponse(nodeID: string, id: string, data: GenericObject, err: Error): PromiseLike<void>;

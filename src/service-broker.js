@@ -1263,7 +1263,13 @@ class ServiceBroker {
 
 			if (this.transit) {
 				// Remote service
-				return this.transit.sendBalancedEvent(ctx, groupedEP);
+				_.forIn(groupedEP, item => {
+					const newCtx = ctx.copy(item.ep);
+					newCtx.eventGroups = item.groups;
+					return this.sendEvent(newCtx);
+				});
+
+				return;
 			}
 
 		} else if (this.transit) {
@@ -1278,7 +1284,8 @@ class ServiceBroker {
 			if (groups.length == 0)
 				return;
 
-			return this.transit.sendEventToGroups(eventName, payload, opts, groups); // TODO
+			ctx.eventGroups = groups;
+			return this.transit.sendEvent(ctx);
 		}
 	}
 
@@ -1314,7 +1321,7 @@ class ServiceBroker {
 				endpoints.forEach(ep => {
 					if (ep.id != this.nodeID) {
 						const newCtx = ctx.copy(ep);
-						return this.transit.sendBroadcastEvent(newCtx);
+						return this.transit.sendEvent(newCtx);
 					}
 				});
 			} else {
@@ -1329,8 +1336,9 @@ class ServiceBroker {
 				if (groups.length == 0)
 					return;
 
-				const newCtx = ctx.copy(); // TODO
-				return this.transit.sendBroadcastEvent(newCtx); // Return here because balancer disabled, so we can't call the local services.
+				const newCtx = ctx.copy();
+				newCtx.eventGroups = groups;
+				return this.transit.sendEvent(newCtx); // Return here because balancer disabled, so we can't call the local services.
 			}
 		}
 

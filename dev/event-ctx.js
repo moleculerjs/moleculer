@@ -5,6 +5,7 @@ const chalk = require("chalk");
 
 const transporter = "NATS";
 const serializer = "JSON";
+const disableBalancer = true;
 
 // Create broker #1
 const broker1 = new ServiceBroker({
@@ -12,6 +13,7 @@ const broker1 = new ServiceBroker({
 	logFormatter: "short",
 	transporter,
 	serializer,
+	disableBalancer,
 });
 
 broker1.createService({
@@ -19,7 +21,7 @@ broker1.createService({
 	actions: {
 		emit(ctx) {
 			ctx.meta.a = "meta-value";
-			ctx.broadcast("user.created", { id: 5, name: "John" });
+			ctx.emit("user.created", { id: 5, name: "John" });
 
 			/*
 			this.logger.info(ctx.id, ctx.toJSON());
@@ -62,6 +64,7 @@ const broker2 = new ServiceBroker({
 	logFormatter: "short",
 	transporter,
 	serializer,
+	disableBalancer,
 });
 
 const mixin = {

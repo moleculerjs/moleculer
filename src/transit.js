@@ -806,22 +806,26 @@ class Transit {
 	}
 
 	/**
-	 * Send a broadcast event to a remote node
+	 * Send an event to a remote node.
+	 * The event is balanced by transporter
 	 *
 	 * @param {Context} ctx
-	 * @param {Array<String>} groups
 	 *
 	 * @memberof Transit
 	 */
-	sendBroadcastEvent(ctx) {
-		this.logger.debug(`=> Send '${ctx.eventName}' event to '${ctx.nodeID}' node` + (ctx.eventGroups ? ` in '${ctx.eventGroups.join(", ")}' group(s)` : "") + ".");
+	sendEvent(ctx) {
+		const groups = ctx.eventGroups;
+		if (ctx.endpoint)
+			this.logger.debug(`=> Send '${ctx.eventName}' event to '${ctx.nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
+		else
+			this.logger.debug(`=> Send '${ctx.eventName}' event to '${groups.join(", ")}' group(s).`);
 
-		this.publish(new Packet(P.PACKET_EVENT, ctx.nodeID, {
+		this.publish(new Packet(P.PACKET_EVENT, ctx.endpoint ? ctx.nodeID : null, {
 			id: ctx.id,
 			event: ctx.eventName,
 			data: ctx.params,
-			groups: ctx.eventGroups,
-			broadcast: true,
+			groups,
+			broadcast: ctx.eventType == "broadcast",
 			meta: ctx.meta,
 			level: ctx.level,
 			tracing: ctx.tracing,
@@ -829,59 +833,7 @@ class Transit {
 			requestID: ctx.requestID,
 			caller: ctx.caller,
 			needAck: ctx.needAck
-		})).catch(/* istanbul ignore next */ err => this.logger.error(`Unable to send '${ctx.eventName}' broadcast event to '${ctx.nodeID}' node.`, err));
-	}
-
-	/**
-	 * Send a grouped event to remote nodes.
-	 * The event is balanced internally.
-	 *
-	 * @param {Context} baseCtx
-	 * @param {Object} nodeGroups
-	 *
-	 * @memberof Transit
-	 */
-	sendBalancedEvent(baseCtx, nodeGroups) {
-		_.forIn(nodeGroups, (item, nodeID) => {
-			const ctx = baseCtx.copy(item.ep);
-			const groups = item.groups;
-			this.logger.debug(`=> Send '${ctx.eventName}' event to '${nodeID}' node` + (groups ? ` in '${groups.join(", ")}' group(s)` : "") + ".");
-
-			this.publish(new Packet(P.PACKET_EVENT, nodeID, {
-				id: ctx.id,
-				event: ctx.eventName,
-				data: ctx.params,
-				groups,
-				broadcast: false,
-				meta: ctx.meta,
-				level: ctx.level,
-				tracing: ctx.tracing,
-				parentID: ctx.parentID,
-				requestID: ctx.requestID,
-				caller: ctx.caller,
-				needAck: ctx.needAck
-			})).catch(/* istanbul ignore next */ err => this.logger.error(`Unable to send '${ctx.eventName}' event to '${nodeID}' node.`, err));
-		});
-	}
-
-	/**
-	 * Send an event to groups.
-	 * The event is balanced by transporter
-	 *
-	 * @param {String} event
-	 * @param {any} data
-	 * @param {Object} groups
-	 *
-	 * @memberof Transit
-	 */
-	sendEventToGroups(event, data, groups) {
-		this.logger.debug(`=> Send '${event}' event to '${groups.join(", ")}' group(s).`);
-		this.publish(new Packet(P.PACKET_EVENT, null, {
-			event,
-			data,
-			groups,
-			broadcast: false
-		})).catch(/* istanbul ignore next */ err => this.logger.error(`Unable to send '${event}' event to groups.`, err));
+		})).catch(/* istanbul ignore next */ err => this.logger.error(`Unable to send '${ctx.eventName}' event to groups.`, err));
 	}
 
 	/**
