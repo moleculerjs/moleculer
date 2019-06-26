@@ -144,6 +144,7 @@ class EventCatalog {
 	 */
 	emitLocalServices(ctx) {
 		const isBroadcast = ["broadcast", "broadcastLocal"].indexOf(ctx.eventType) !== -1;
+		const sender = ctx.nodeID;
 
 		this.events.forEach(list => {
 			if (!utils.match(ctx.eventName, list.name)) return;
@@ -152,6 +153,7 @@ class EventCatalog {
 					list.endpoints.forEach(ep => {
 						if (ep.local && ep.event.handler) {
 							const newCtx = ctx.copy(ep);
+							newCtx.nodeID = sender;
 							this.callEventHandler(newCtx);
 						}
 					});
@@ -159,6 +161,7 @@ class EventCatalog {
 					const ep = list.nextLocal();
 					if (ep && ep.event.handler) {
 						const newCtx = ctx.copy(ep);
+						newCtx.nodeID = sender;
 						this.callEventHandler(newCtx);
 					}
 				}
