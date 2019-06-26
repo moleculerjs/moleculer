@@ -455,7 +455,8 @@ describe("Test EventCatalog.emitLocalServices", () => {
 });
 
 describe("Test EventCatalog.callEventHandler", () => {
-	let broker = new ServiceBroker({ logger: false, nodeID: "node-1" });
+	const errorHandler = jest.fn();
+	let broker = new ServiceBroker({ logger: false, nodeID: "node-1", errorHandler });
 	let catalog = new EventCatalog(broker.registry, broker, Strategy);
 
 	const ctx = Context.create(broker, { id: "node-99", event: { name: "user.*" } }, { a: 5 });
@@ -471,6 +472,8 @@ describe("Test EventCatalog.callEventHandler", () => {
 
 		expect(ctx.endpoint.event.handler).toHaveBeenCalledTimes(1);
 		expect(ctx.endpoint.event.handler).toHaveBeenCalledWith(ctx);
+
+		expect(errorHandler).toHaveBeenCalledTimes(0);
 
 		resolver();
 
@@ -491,19 +494,10 @@ describe("Test EventCatalog.callEventHandler", () => {
 		rejecter(err);
 
 		return p.catch(protectReject).then(() => {
-			expect(broker.logger.error).toHaveBeenCalledTimes(1);
-			expect(broker.logger.error).toHaveBeenCalledWith(err);
+			expect(errorHandler).toHaveBeenCalledTimes(1);
+			expect(errorHandler).toHaveBeenCalledWith(err, { ctx, service: ctx.service, event: ctx.event });
 		});
 
-	});
-
-	it("should do nothing if result is not Promise", () => {
-		ctx.endpoint.event.handler = jest.fn(() => 5);
-		const res = catalog.callEventHandler(ctx);
-
-		expect(res).toBe(5);
-		expect(ctx.endpoint.event.handler).toHaveBeenCalledTimes(1);
-		expect(ctx.endpoint.event.handler).toHaveBeenCalledWith(ctx);
 	});
 });
 

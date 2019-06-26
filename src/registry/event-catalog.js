@@ -177,13 +177,12 @@ class EventCatalog {
 	 * @memberof EventCatalog
 	 */
 	callEventHandler(ctx) {
-		const res = ctx.endpoint.event.handler(ctx);
-		//const res = handler(payload, sender, eventName);
-		if (utils.isPromise(res)) {
-			// TODO: broker.eventHandler?
-			return res.catch(err => this.broker.logger.error(err));
-		}
-		return res;
+		return ctx.endpoint.event.handler(ctx)
+			.catch(err => this.broker.errorHandler(err, {
+				service: ctx.service,
+				event: ctx.event,
+				ctx
+			}));
 	}
 
 	/**

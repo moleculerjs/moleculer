@@ -322,6 +322,9 @@ class Service {
 			throw new ServiceSchemaError(`Missing event handler on '${name}' event in '${this.name}' service!`);
 		}
 
+		// Detect new or legacy parameter list of event handler
+		// Legacy: handler(payload, sender, eventName)
+		// New: handler(ctx)
 		let handler;
 		if (_.isFunction(event.handler)) {
 			const args = functionArguments(event.handler);
@@ -344,22 +347,12 @@ class Service {
 		if (_.isFunction(handler)) {
 			// Call single handler
 			event.handler = function(ctx) {
-				return handler.apply(self, handler.__newSignature ? [ctx] : [ctx.params, ctx.nodeID, ctx.eventName, ctx]).catch(err => self.broker.errorHandler(err, {
-					service: self,
-					event,
-					ctx
-				}));
+				return handler.apply(self, handler.__newSignature ? [ctx] : [ctx.params, ctx.nodeID, ctx.eventName, ctx]);
 			};
 		} else if (Array.isArray(handler)) {
 			// Call multiple handler
 			event.handler = function(ctx) {
-				return Promise.all(handler.map(fn => {
-					return fn.apply(self, fn.__newSignature ? [ctx] : [ctx.params, ctx.nodeID, ctx.eventName, ctx]).catch(err => self.broker.errorHandler(err, {
-						service: self,
-						event,
-						ctx
-					}));
-				}));
+				return Promise.all(handler.map(fn => fn.apply(self, fn.__newSignature ? [ctx] : [ctx.params, ctx.nodeID, ctx.eventName, ctx])));
 			};
 		}
 
