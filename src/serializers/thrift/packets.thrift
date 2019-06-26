@@ -4,10 +4,20 @@ namespace java services.moleculer.serializers.thrift
 struct PacketEvent {
 	1: string ver,
 	2: string sender,
-	3: string event,
-	4: optional string data,
-	5: list<string> groups,
-	6: bool broadcast,
+	3: string id,
+	4: string event,
+	5: optional binary data,
+	6: list<string> groups,
+	7: bool broadcast,
+	8: string meta,
+	9: i32 level,
+	10: optional bool tracing,
+	11: optional string parentID,
+	12: optional string requestID,
+	13: optional bool stream,
+	14: optional i32 seq,
+	15: optional string caller,
+	16: bool needAck,
 }
 
 struct PacketRequest {

@@ -73,7 +73,7 @@ describe("Test RPC", () => {
 	it("should emit & receive an event via transporter", () => {
 		return b1.call("echo.emitter", { a: 5 }).then(() => {
 			expect(eventHandler).toHaveBeenCalledTimes(1);
-			expect(eventHandler).toHaveBeenCalledWith({ a: 5 }, "node-2", "emitter.hello.event");
+			expect(eventHandler).toHaveBeenCalledWith({ a: 5 }, "node-2", "emitter.hello.event", expect.any(b1.ContextFactory));
 		});
 	});
 
@@ -90,5 +90,31 @@ describe("Test RPC", () => {
 		return b1.call("echo.slow", null, { timeout: 100, fallbackResponse }).then(res => {
 			expect(res).toBe("MAYBE");
 		});
+	});
+
+	it("should have event listener for emitter.some.thing", () => {
+		expect(b1.hasEventListener("emitter.some.thing")).toBe(true);
+		expect(b2.hasEventListener("emitter.some.thing")).toBe(true);
+
+		let res = b1.getEventListeners("emitter.some.thing");
+		expect(res.length).toBe(1);
+		expect(res[0].id).toBe("node-1");
+		expect(res[0].event.name).toBe("emitter.**");
+
+		res = b2.getEventListeners("emitter.some.thing");
+		expect(res.length).toBe(1);
+		expect(res[0].id).toBe("node-1");
+		expect(res[0].event.name).toBe("emitter.**");
+	});
+
+	it("should not have event listener for other.some.thing", () => {
+		expect(b1.hasEventListener("other.some.thing")).toBe(false);
+		expect(b2.hasEventListener("other.some.thing")).toBe(false);
+
+		let res = b1.getEventListeners("other.some.thing");
+		expect(res.length).toBe(0);
+
+		res = b2.getEventListeners("other.some.thing");
+		expect(res.length).toBe(0);
 	});
 });

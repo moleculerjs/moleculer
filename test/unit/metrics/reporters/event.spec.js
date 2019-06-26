@@ -126,7 +126,8 @@ describe("Test EventReporter class", () => {
 			const reporter = new EventReporter({
 				interval: 0,
 				onlyChanges: false,
-				broadcast: false
+				broadcast: false,
+				groups: ["mail", "stat"]
 			});
 			reporter.init(registry);
 
@@ -155,7 +156,7 @@ describe("Test EventReporter class", () => {
 
 			expect(broker.broadcast).toHaveBeenCalledTimes(0);
 			expect(broker.emit).toHaveBeenCalledTimes(1);
-			expect(broker.emit).toHaveBeenCalledWith("$metrics.snapshot", expect.any(Array), null);
+			expect(broker.emit).toHaveBeenCalledWith("$metrics.snapshot", expect.any(Array), { groups: ["mail", "stat"] });
 
 			expect(broker.emit.mock.calls[0][1]).toMatchSnapshot();
 		});
@@ -219,7 +220,7 @@ describe("Test EventReporter class", () => {
 
 			expect(broker.emit).toHaveBeenCalledTimes(0);
 			expect(broker.broadcast).toHaveBeenCalledTimes(1);
-			expect(broker.broadcast).toHaveBeenCalledWith("$metrics.custom", expect.any(Array), null);
+			expect(broker.broadcast).toHaveBeenCalledWith("$metrics.custom", expect.any(Array), { groups: null });
 
 			expect(broker.broadcast.mock.calls[0][1]).toMatchSnapshot();
 
@@ -237,10 +238,26 @@ describe("Test EventReporter class", () => {
 
 			expect(broker.emit).toHaveBeenCalledTimes(0);
 			expect(broker.broadcast).toHaveBeenCalledTimes(1);
-			expect(broker.broadcast).toHaveBeenCalledWith("$metrics.custom", expect.any(Array), null);
+			expect(broker.broadcast).toHaveBeenCalledWith("$metrics.custom", expect.any(Array), { groups: null });
 
 			expect(broker.broadcast.mock.calls[0][1]).toMatchSnapshot();
 			expect(reporter.lastChanges.size).toBe(0);
+		});
+
+		it("should send changes with groups", () => {
+			reporter.opts.groups = ["mail", "stat"];
+			broker.broadcast.mockClear();
+
+			registry.increment("test.counter", null, 7);
+			registry.decrement("test.gauge-total", { action: "posts" }, 5);
+
+			expect(reporter.lastChanges.size).toBe(2);
+
+			reporter.sendEvent();
+
+			expect(broker.emit).toHaveBeenCalledTimes(0);
+			expect(broker.broadcast).toHaveBeenCalledTimes(1);
+			expect(broker.broadcast).toHaveBeenCalledWith("$metrics.custom", expect.any(Array), { groups: ["mail", "stat"] });
 		});
 
 	});

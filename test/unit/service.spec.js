@@ -390,7 +390,7 @@ describe("Test events creation", () => {
 		let service = broker.createService({
 			name: "posts",
 			events: {
-				"user.*": [cb1, cb2],
+				"user.*": [cb1, ctx => cb2(ctx)],
 				"posts.updated": {
 					handler: cb3
 				}
@@ -411,12 +411,17 @@ describe("Test events creation", () => {
 				expect(spec.events["user.*"]).toBeDefined();
 				expect(spec.actions).toEqual({});
 
-				spec.events["posts.updated"].handler();
+				const ctx = { params: { a: 5 }, nodeID: "node-123", eventName: "posts.updated" };
+				spec.events["posts.updated"].handler(ctx);
 				expect(cb3).toHaveBeenCalledTimes(1);
+				expect(cb3).toHaveBeenCalledWith({ a: 5 }, "node-123", "posts.updated", ctx);
 
-				spec.events["user.*"].handler();
+				spec.events["user.*"].handler(ctx);
 				expect(cb1).toHaveBeenCalledTimes(1);
+				expect(cb1).toHaveBeenCalledWith({ a: 5 }, "node-123", "posts.updated", ctx);
+
 				expect(cb2).toHaveBeenCalledTimes(1);
+				expect(cb2).toHaveBeenCalledWith(ctx);
 			});
 	});
 

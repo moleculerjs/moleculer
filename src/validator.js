@@ -43,7 +43,7 @@ class ParamValidator {
 			if (action.params && typeof action.params === "object") {
 				const check = this.compile(action.params);
 				return function validateContextParams(ctx) {
-					let res = check(ctx.params);
+					let res = check(ctx.params != null ? ctx.params : {});
 					if (res === true)
 						return handler(ctx);
 					else {

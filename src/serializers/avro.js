@@ -19,13 +19,23 @@ function createSchemas() {
 		fields: [
 			{ name: "ver", type: "string" },
 			{ name: "sender", type: "string" },
+			{ name: "id", type: "string" },
 			{ name: "event", type: "string" },
 			{ name: "data", type: [ "null", "string"], default: null },
 			{ name: "groups", type: [ "null", {
 				type: "array",
 				items: "string"
 			}], default: null },
-			{ name: "broadcast", type: "boolean" }
+			{ name: "broadcast", type: "boolean" },
+			{ name: "meta", type: "string" },
+			{ name: "level", type: "int" },
+			{ name: "tracing", type: [ "null", "boolean"], default: null },
+			{ name: "parentID", type: [ "null", "string"], default: null },
+			{ name: "requestID", type: [ "null", "string"], default: null },
+			{ name: "stream", type: [ "null", "boolean"], default: null },
+			{ name: "seq", type: [ "null", "int"], default: null },
+			{ name: "caller", type: [ "null", "string"], default: null },
+			{ name: "needAck", type: "boolean" },
 		]
 	});
 

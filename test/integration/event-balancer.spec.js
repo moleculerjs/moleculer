@@ -404,6 +404,7 @@ describe("Test multiple handler in the same group balancing", () => {
 	});
 
 	it("broadcast a 'user.created' event to filtered groups", () => {
+		debugger;
 		master.broadcast("user.created", null, ["payment"]);
 		expect(flow).toEqual([
 			"pay-1-payment-uc",

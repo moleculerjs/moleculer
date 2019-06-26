@@ -27,10 +27,20 @@ $root.packets = (function() {
          * @interface IPacketEvent
          * @property {string} ver PacketEvent ver
          * @property {string} sender PacketEvent sender
+         * @property {string} id PacketEvent id
          * @property {string} event PacketEvent event
-         * @property {string|null} [data] PacketEvent data
+         * @property {Uint8Array|null} [data] PacketEvent data
          * @property {Array.<string>|null} [groups] PacketEvent groups
          * @property {boolean} broadcast PacketEvent broadcast
+         * @property {string} meta PacketEvent meta
+         * @property {number} level PacketEvent level
+         * @property {boolean|null} [tracing] PacketEvent tracing
+         * @property {string|null} [parentID] PacketEvent parentID
+         * @property {string|null} [requestID] PacketEvent requestID
+         * @property {boolean|null} [stream] PacketEvent stream
+         * @property {number|null} [seq] PacketEvent seq
+         * @property {string|null} [caller] PacketEvent caller
+         * @property {boolean} needAck PacketEvent needAck
          */
 
 		/**
@@ -66,6 +76,14 @@ $root.packets = (function() {
 		PacketEvent.prototype.sender = "";
 
 		/**
+         * PacketEvent id.
+         * @member {string} id
+         * @memberof packets.PacketEvent
+         * @instance
+         */
+		PacketEvent.prototype.id = "";
+
+		/**
          * PacketEvent event.
          * @member {string} event
          * @memberof packets.PacketEvent
@@ -75,11 +93,11 @@ $root.packets = (function() {
 
 		/**
          * PacketEvent data.
-         * @member {string} data
+         * @member {Uint8Array} data
          * @memberof packets.PacketEvent
          * @instance
          */
-		PacketEvent.prototype.data = "";
+		PacketEvent.prototype.data = $util.newBuffer([]);
 
 		/**
          * PacketEvent groups.
@@ -96,6 +114,78 @@ $root.packets = (function() {
          * @instance
          */
 		PacketEvent.prototype.broadcast = false;
+
+		/**
+         * PacketEvent meta.
+         * @member {string} meta
+         * @memberof packets.PacketEvent
+         * @instance
+         */
+		PacketEvent.prototype.meta = "";
+
+		/**
+         * PacketEvent level.
+         * @member {number} level
+         * @memberof packets.PacketEvent
+         * @instance
+         */
+		PacketEvent.prototype.level = 0;
+
+		/**
+         * PacketEvent tracing.
+         * @member {boolean} tracing
+         * @memberof packets.PacketEvent
+         * @instance
+         */
+		PacketEvent.prototype.tracing = false;
+
+		/**
+         * PacketEvent parentID.
+         * @member {string} parentID
+         * @memberof packets.PacketEvent
+         * @instance
+         */
+		PacketEvent.prototype.parentID = "";
+
+		/**
+         * PacketEvent requestID.
+         * @member {string} requestID
+         * @memberof packets.PacketEvent
+         * @instance
+         */
+		PacketEvent.prototype.requestID = "";
+
+		/**
+         * PacketEvent stream.
+         * @member {boolean} stream
+         * @memberof packets.PacketEvent
+         * @instance
+         */
+		PacketEvent.prototype.stream = false;
+
+		/**
+         * PacketEvent seq.
+         * @member {number} seq
+         * @memberof packets.PacketEvent
+         * @instance
+         */
+		PacketEvent.prototype.seq = 0;
+
+		/**
+         * PacketEvent caller.
+         * @member {string} caller
+         * @memberof packets.PacketEvent
+         * @instance
+         */
+		PacketEvent.prototype.caller = "";
+
+		/**
+         * PacketEvent needAck.
+         * @member {boolean} needAck
+         * @memberof packets.PacketEvent
+         * @instance
+         */
+		PacketEvent.prototype.needAck = false;
 
 		/**
          * Creates a new PacketEvent instance using the specified properties.
@@ -123,13 +213,29 @@ $root.packets = (function() {
 				writer = $Writer.create();
 			writer.uint32(/* id 1, wireType 2 =*/10).string(message.ver);
 			writer.uint32(/* id 2, wireType 2 =*/18).string(message.sender);
-			writer.uint32(/* id 3, wireType 2 =*/26).string(message.event);
+			writer.uint32(/* id 3, wireType 2 =*/26).string(message.id);
+			writer.uint32(/* id 4, wireType 2 =*/34).string(message.event);
 			if (message.data != null && message.hasOwnProperty("data"))
-				writer.uint32(/* id 4, wireType 2 =*/34).string(message.data);
+				writer.uint32(/* id 5, wireType 2 =*/42).bytes(message.data);
 			if (message.groups != null && message.groups.length)
 				for (var i = 0; i < message.groups.length; ++i)
-					writer.uint32(/* id 5, wireType 2 =*/42).string(message.groups[i]);
-			writer.uint32(/* id 6, wireType 0 =*/48).bool(message.broadcast);
+					writer.uint32(/* id 6, wireType 2 =*/50).string(message.groups[i]);
+			writer.uint32(/* id 7, wireType 0 =*/56).bool(message.broadcast);
+			writer.uint32(/* id 8, wireType 2 =*/66).string(message.meta);
+			writer.uint32(/* id 9, wireType 0 =*/72).int32(message.level);
+			if (message.tracing != null && message.hasOwnProperty("tracing"))
+				writer.uint32(/* id 10, wireType 0 =*/80).bool(message.tracing);
+			if (message.parentID != null && message.hasOwnProperty("parentID"))
+				writer.uint32(/* id 11, wireType 2 =*/90).string(message.parentID);
+			if (message.requestID != null && message.hasOwnProperty("requestID"))
+				writer.uint32(/* id 12, wireType 2 =*/98).string(message.requestID);
+			if (message.stream != null && message.hasOwnProperty("stream"))
+				writer.uint32(/* id 13, wireType 0 =*/104).bool(message.stream);
+			if (message.seq != null && message.hasOwnProperty("seq"))
+				writer.uint32(/* id 14, wireType 0 =*/112).int32(message.seq);
+			if (message.caller != null && message.hasOwnProperty("caller"))
+				writer.uint32(/* id 15, wireType 2 =*/122).string(message.caller);
+			writer.uint32(/* id 16, wireType 0 =*/128).bool(message.needAck);
 			return writer;
 		};
 
@@ -171,18 +277,48 @@ $root.packets = (function() {
 						message.sender = reader.string();
 						break;
 					case 3:
-						message.event = reader.string();
+						message.id = reader.string();
 						break;
 					case 4:
-						message.data = reader.string();
+						message.event = reader.string();
 						break;
 					case 5:
+						message.data = reader.bytes();
+						break;
+					case 6:
 						if (!(message.groups && message.groups.length))
 							message.groups = [];
 						message.groups.push(reader.string());
 						break;
-					case 6:
+					case 7:
 						message.broadcast = reader.bool();
+						break;
+					case 8:
+						message.meta = reader.string();
+						break;
+					case 9:
+						message.level = reader.int32();
+						break;
+					case 10:
+						message.tracing = reader.bool();
+						break;
+					case 11:
+						message.parentID = reader.string();
+						break;
+					case 12:
+						message.requestID = reader.string();
+						break;
+					case 13:
+						message.stream = reader.bool();
+						break;
+					case 14:
+						message.seq = reader.int32();
+						break;
+					case 15:
+						message.caller = reader.string();
+						break;
+					case 16:
+						message.needAck = reader.bool();
 						break;
 					default:
 						reader.skipType(tag & 7);
@@ -193,10 +329,18 @@ $root.packets = (function() {
 				throw $util.ProtocolError("missing required 'ver'", { instance: message });
 			if (!message.hasOwnProperty("sender"))
 				throw $util.ProtocolError("missing required 'sender'", { instance: message });
+			if (!message.hasOwnProperty("id"))
+				throw $util.ProtocolError("missing required 'id'", { instance: message });
 			if (!message.hasOwnProperty("event"))
 				throw $util.ProtocolError("missing required 'event'", { instance: message });
 			if (!message.hasOwnProperty("broadcast"))
 				throw $util.ProtocolError("missing required 'broadcast'", { instance: message });
+			if (!message.hasOwnProperty("meta"))
+				throw $util.ProtocolError("missing required 'meta'", { instance: message });
+			if (!message.hasOwnProperty("level"))
+				throw $util.ProtocolError("missing required 'level'", { instance: message });
+			if (!message.hasOwnProperty("needAck"))
+				throw $util.ProtocolError("missing required 'needAck'", { instance: message });
 			return message;
 		};
 
@@ -231,11 +375,13 @@ $root.packets = (function() {
 				return "ver: string expected";
 			if (!$util.isString(message.sender))
 				return "sender: string expected";
+			if (!$util.isString(message.id))
+				return "id: string expected";
 			if (!$util.isString(message.event))
 				return "event: string expected";
 			if (message.data != null && message.hasOwnProperty("data"))
-				if (!$util.isString(message.data))
-					return "data: string expected";
+				if (!(message.data && typeof message.data.length === "number" || $util.isString(message.data)))
+					return "data: buffer expected";
 			if (message.groups != null && message.hasOwnProperty("groups")) {
 				if (!Array.isArray(message.groups))
 					return "groups: array expected";
@@ -245,6 +391,30 @@ $root.packets = (function() {
 			}
 			if (typeof message.broadcast !== "boolean")
 				return "broadcast: boolean expected";
+			if (!$util.isString(message.meta))
+				return "meta: string expected";
+			if (!$util.isInteger(message.level))
+				return "level: integer expected";
+			if (message.tracing != null && message.hasOwnProperty("tracing"))
+				if (typeof message.tracing !== "boolean")
+					return "tracing: boolean expected";
+			if (message.parentID != null && message.hasOwnProperty("parentID"))
+				if (!$util.isString(message.parentID))
+					return "parentID: string expected";
+			if (message.requestID != null && message.hasOwnProperty("requestID"))
+				if (!$util.isString(message.requestID))
+					return "requestID: string expected";
+			if (message.stream != null && message.hasOwnProperty("stream"))
+				if (typeof message.stream !== "boolean")
+					return "stream: boolean expected";
+			if (message.seq != null && message.hasOwnProperty("seq"))
+				if (!$util.isInteger(message.seq))
+					return "seq: integer expected";
+			if (message.caller != null && message.hasOwnProperty("caller"))
+				if (!$util.isString(message.caller))
+					return "caller: string expected";
+			if (typeof message.needAck !== "boolean")
+				return "needAck: boolean expected";
 			return null;
 		};
 
@@ -264,10 +434,15 @@ $root.packets = (function() {
 				message.ver = String(object.ver);
 			if (object.sender != null)
 				message.sender = String(object.sender);
+			if (object.id != null)
+				message.id = String(object.id);
 			if (object.event != null)
 				message.event = String(object.event);
 			if (object.data != null)
-				message.data = String(object.data);
+				if (typeof object.data === "string")
+					$util.base64.decode(object.data, message.data = $util.newBuffer($util.base64.length(object.data)), 0);
+				else if (object.data.length)
+					message.data = object.data;
 			if (object.groups) {
 				if (!Array.isArray(object.groups))
 					throw TypeError(".packets.PacketEvent.groups: array expected");
@@ -277,6 +452,24 @@ $root.packets = (function() {
 			}
 			if (object.broadcast != null)
 				message.broadcast = Boolean(object.broadcast);
+			if (object.meta != null)
+				message.meta = String(object.meta);
+			if (object.level != null)
+				message.level = object.level | 0;
+			if (object.tracing != null)
+				message.tracing = Boolean(object.tracing);
+			if (object.parentID != null)
+				message.parentID = String(object.parentID);
+			if (object.requestID != null)
+				message.requestID = String(object.requestID);
+			if (object.stream != null)
+				message.stream = Boolean(object.stream);
+			if (object.seq != null)
+				message.seq = object.seq | 0;
+			if (object.caller != null)
+				message.caller = String(object.caller);
+			if (object.needAck != null)
+				message.needAck = Boolean(object.needAck);
 			return message;
 		};
 
@@ -298,18 +491,36 @@ $root.packets = (function() {
 			if (options.defaults) {
 				object.ver = "";
 				object.sender = "";
+				object.id = "";
 				object.event = "";
-				object.data = "";
+				if (options.bytes === String)
+					object.data = "";
+				else {
+					object.data = [];
+					if (options.bytes !== Array)
+						object.data = $util.newBuffer(object.data);
+				}
 				object.broadcast = false;
+				object.meta = "";
+				object.level = 0;
+				object.tracing = false;
+				object.parentID = "";
+				object.requestID = "";
+				object.stream = false;
+				object.seq = 0;
+				object.caller = "";
+				object.needAck = false;
 			}
 			if (message.ver != null && message.hasOwnProperty("ver"))
 				object.ver = message.ver;
 			if (message.sender != null && message.hasOwnProperty("sender"))
 				object.sender = message.sender;
+			if (message.id != null && message.hasOwnProperty("id"))
+				object.id = message.id;
 			if (message.event != null && message.hasOwnProperty("event"))
 				object.event = message.event;
 			if (message.data != null && message.hasOwnProperty("data"))
-				object.data = message.data;
+				object.data = options.bytes === String ? $util.base64.encode(message.data, 0, message.data.length) : options.bytes === Array ? Array.prototype.slice.call(message.data) : message.data;
 			if (message.groups && message.groups.length) {
 				object.groups = [];
 				for (var j = 0; j < message.groups.length; ++j)
@@ -317,6 +528,24 @@ $root.packets = (function() {
 			}
 			if (message.broadcast != null && message.hasOwnProperty("broadcast"))
 				object.broadcast = message.broadcast;
+			if (message.meta != null && message.hasOwnProperty("meta"))
+				object.meta = message.meta;
+			if (message.level != null && message.hasOwnProperty("level"))
+				object.level = message.level;
+			if (message.tracing != null && message.hasOwnProperty("tracing"))
+				object.tracing = message.tracing;
+			if (message.parentID != null && message.hasOwnProperty("parentID"))
+				object.parentID = message.parentID;
+			if (message.requestID != null && message.hasOwnProperty("requestID"))
+				object.requestID = message.requestID;
+			if (message.stream != null && message.hasOwnProperty("stream"))
+				object.stream = message.stream;
+			if (message.seq != null && message.hasOwnProperty("seq"))
+				object.seq = message.seq;
+			if (message.caller != null && message.hasOwnProperty("caller"))
+				object.caller = message.caller;
+			if (message.needAck != null && message.hasOwnProperty("needAck"))
+				object.needAck = message.needAck;
 			return object;
 		};
 

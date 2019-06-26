@@ -135,7 +135,7 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `meta` | `object` | ✔ | `ctx.meta` object. (*) |
 | `timeout` | `double` | ✔ | Request timeout (distributed) in milliseconds. |
 | `level` | `int32` | ✔ | Level of request. |
-| `metrics` | `boolean` | ✔ | Need to send metrics events. |
+| `tracing` | `boolean` | ✔ | Need to send tracing events. |
 | `parentID` | `string` |  | Parent context ID. |
 | `requestID` | `string` |  | Request ID from `ctx.requestID`. |
 | `caller` | `string` |  | Action name of the caller. |
@@ -180,8 +180,17 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | ----- | ---- | -------- | ----------- |
 | `ver` | `string` | ✔ | Protocol version. Current: `'4'`. |
 | `sender` | `string` | ✔ | Sender nodeID. |
+| `id` | `string` | ✔ | Context ID. |
 | `event` | `string` | ✔ | Event name. E.g.: `users.created` |
 | `data` | `object` |   | Event payload. (*) |
+| `meta` | `object` | ✔ | `ctx.meta` object. (*) |
+| `level` | `int32` | ✔ | Level of event. |
+| `tracing` | `boolean` | ✔ | Need to send tracing events. |
+| `parentID` | `string` |  | Parent context ID. |
+| `requestID` | `string` |  | Request ID from `ctx.requestID`. |
+| `caller` | `string` |  | Action/Event name of the caller. |
+| `stream` | `boolean` | ✔ | Stream request. |
+| `seq` | `int32` |   | Stream sequence number. |
 | `groups` | `Array<string>` |   | Groups for balanced events. |
 | `broadcast` | `boolean` | ✔ | Broadcast event |
 

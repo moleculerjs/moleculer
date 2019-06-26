@@ -14,9 +14,7 @@ describe("Test TimeoutMiddleware", () => {
 	};
 	const endpoint = {
 		action,
-		node: {
-			id: broker.nodeID
-		}
+		id: broker.nodeID
 	};
 
 	broker.isMetricsEnabled = jest.fn(() => true);

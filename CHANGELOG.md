@@ -79,6 +79,9 @@ const broker = new ServiceBroker({
 
 # New
 
+## Context-based event
+TODO
+
 ## New built-in metrics
 Moleculer v0.14 comes with a brand-new and entirely rewritten metrics module. It is now a built-in module. It collects a lot of internal Moleculer & process metric values. You can easily define your custom metrics. There are several built-in metrics reporters like `Console`, `Prometheus`, `Datadog`, ...etc.
 Multiple reporters can be defined.
@@ -1133,16 +1136,11 @@ module.exports = {
 });
 ```
 
-
 # Other notable changes
 - Kafka transporter upgrade to support kafka-node@4.
-- rename `ctx.metrics` -> `ctx.tracing`
+- rename `ctx.metrics` to `ctx.tracing`.
 - `broker.hotReloadService` method has been removed.
-
-## Done
-- new built-in tracing solution with exporters (Zipkin, Jaeger, Datadog)
-- new built-in metrics solution with reporters (Prometheus, Datadog, StatD)
-
+- new `hasEventListener` & `getEventListeners` broker method.
 
 --------------------------------------------------
 <a name="0.13.9"></a>

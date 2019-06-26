@@ -52,7 +52,6 @@ class Context {
 		this._id = null;
 
 		this.broker = broker;
-
 		if (this.broker)
 			this.nodeID = this.broker.nodeID;
 		else
@@ -64,7 +63,15 @@ class Context {
 			this.endpoint = null;
 			this.service = null;
 			this.action = null;
+			this.event = null;
 		}
+
+		// The emitted event "user.created" because `ctx.event.name` can be "user.**"
+		this.eventName = null;
+		// Type of event ("emit" or "broadcast")
+		this.eventType = null;
+		// The groups of event
+		this.eventGroups = null;
 
 		this.options = {
 			timeout: null,
@@ -76,13 +83,16 @@ class Context {
 
 		this.level = 1;
 
-		this.params = {};
+		this.params = null;
 		this.meta = {};
 
 		this.requestID = null;
 
 		this.tracing = null;
 		this.span = null;
+
+		this.needAck = null;
+		this.ackID = null;
 
 		//this.startTime = null;
 		//his.startHrTime = null;
@@ -112,7 +122,7 @@ class Context {
 			ctx.setEndpoint(endpoint);
 
 		if (params != null) {
-			let cloning = broker ? broker.options.actionParamsCloning : false;
+			let cloning = broker ? broker.options.contextParamsCloning : false;
 			if (opts.paramsCloning != null)
 				cloning = opts.paramsCloning;
 			ctx.setParams(params, cloning);
@@ -133,18 +143,57 @@ class Context {
 		else if (opts.meta != null)
 			ctx.meta = opts.meta;
 
-		// ParentID, Level, CallerAction
+		// ParentID, Level, Caller
 		if (opts.parentCtx != null) {
 			ctx.parentID = opts.parentCtx.id;
 			ctx.level = opts.parentCtx.level + 1;
-			ctx.caller = opts.parentCtx.action ? opts.parentCtx.action.name : null;
+			if (opts.parentCtx.action)
+				ctx.caller = opts.parentCtx.action.name;
+			else if (opts.parentCtx.event)
+				ctx.caller = opts.parentCtx.event.name;
 		}
 
 		// Tracing
 		if (opts.parentCtx != null)
 			ctx.tracing = opts.parentCtx.tracing;
 
+		// Event acknowledgement
+		if (opts.needAck) {
+			ctx.needAck = opts.needAck;
+		}
+
 		return ctx;
+	}
+
+	/**
+	 * Copy itself without ID.
+	 * @param {Endpoint} ep
+	 * @returns {Context}
+	 */
+	copy(ep) {
+		const newCtx = new this.constructor();
+
+		newCtx.broker = this.broker;
+		newCtx.nodeID = this.nodeID;
+		newCtx.setEndpoint(ep || this.endpoint);
+		newCtx.options = this.options;
+		newCtx.parentID = this.parentID;
+		newCtx.caller = this.caller;
+		newCtx.level = this.level;
+		newCtx.params = this.params;
+		newCtx.meta = this.meta;
+		newCtx.requestID = this.requestID;
+		newCtx.tracing = this.tracing;
+		newCtx.span = this.span;
+		newCtx.needAck = this.needAck;
+		newCtx.ackID = this.ackID;
+		newCtx.eventName = this.eventName;
+		newCtx.eventType = this.eventType;
+		newCtx.eventGroups = this.eventGroups;
+
+		newCtx.cachedResult = this.cachedResult;
+
+		return newCtx;
 	}
 
 	/**
@@ -179,10 +228,18 @@ class Context {
 	 */
 	setEndpoint(endpoint) {
 		this.endpoint = endpoint;
-		this.action = endpoint ? endpoint.action : null;
-		this.service = this.action ? this.action.service : null;
-		if (endpoint && endpoint.node)
-			this.nodeID = endpoint.node.id;
+		if (endpoint && endpoint.action) {
+			this.action = endpoint.action;
+			this.service = this.action.service;
+			this.event = null;
+		} else if (endpoint && endpoint.event) {
+			this.event =  endpoint.event;
+			this.service = this.event.service;
+			this.action = null;
+		}
+
+		if (endpoint)
+			this.nodeID = endpoint.id;
 	}
 
 	/**
@@ -197,7 +254,7 @@ class Context {
 		if (cloning && newParams)
 			this.params = Object.assign({}, newParams);
 		else
-			this.params = newParams || {};
+			this.params = newParams;
 	}
 
 	/**
@@ -258,8 +315,8 @@ class Context {
 	 * Emit an event (grouped & balanced global event)
 	 *
 	 * @param {string} eventName
-	 * @param {any} payload
-	 * @param {String|Array<String>=} groups
+	 * @param {any?} payload
+	 * @param {Object?} groups
 	 * @returns
 	 *
 	 * @example
@@ -267,16 +324,25 @@ class Context {
 	 *
 	 * @memberof Context
 	 */
-	emit(eventName, data, groups) {
-		return this.broker.emit(eventName, data, groups);
+	emit(eventName, data, opts) {
+		if (Array.isArray(opts) || _.isString(opts))
+			opts = { groups: opts };
+		else if (opts == null)
+			opts = {};
+
+		if (opts.groups && !Array.isArray(opts.groups))
+			opts.groups = [opts.groups];
+
+		opts.parentCtx = this;
+		return this.broker.emit(eventName, data, opts);
 	}
 
 	/**
 	 * Emit an event for all local & remote services
 	 *
 	 * @param {string} eventName
-	 * @param {any} payload
-	 * @param {String|Array<String>=} groups
+	 * @param {any?} payload
+	 * @param {Object?} groups
 	 * @returns
 	 *
 	 * @example
@@ -284,8 +350,17 @@ class Context {
 	 *
 	 * @memberof Context
 	 */
-	broadcast(eventName, data, groups) {
-		return this.broker.broadcast(eventName, data, groups);
+	broadcast(eventName, data, opts) {
+		if (Array.isArray(opts) || _.isString(opts))
+			opts = { groups: opts };
+		else if (opts == null)
+			opts = {};
+
+		if (opts.groups && !Array.isArray(opts.groups))
+			opts.groups = [opts.groups];
+
+		opts.parentCtx = this;
+		return this.broker.broadcast(eventName, data, opts);
 	}
 
 	/**
@@ -304,6 +379,38 @@ class Context {
 		}
 
 		return this.span;
+	}
+
+	/**
+	 * Convert Context to a printable POJO object.
+	 */
+	toJSON() {
+		const res = _.pick(this, [
+			"nodeID",
+			"action.name",
+			"event.name",
+			"service.name",
+			"service.version",
+			"service.fullName",
+			"options",
+			"parentID",
+			"caller",
+			"level",
+			"params",
+			"meta",
+			"requestID",
+			"tracing",
+			"span",
+			"needAck",
+			"ackID",
+			"eventName",
+			"eventType",
+			"eventGroups",
+			"cachedResult"
+		]);
+
+		res.id = this._id ? this._id : null;
+		return res;
 	}
 
 }

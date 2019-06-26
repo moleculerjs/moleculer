@@ -100,10 +100,10 @@ class EventTraceExporter extends BaseTraceExporter {
 
 		if (this.opts.broadcast) {
 			this.logger.debug(`Send tracing spans (${data.length} spans) broadcast events.`);
-			this.broker.broadcast(this.opts.eventName, data, this.opts.groups);
+			this.broker.broadcast(this.opts.eventName, data, { groups: this.opts.groups });
 		} else {
 			this.logger.debug(`Send tracing spans (${data.length} spans) events.`);
-			this.broker.emit(this.opts.eventName, data, this.opts.groups);
+			this.broker.emit(this.opts.eventName, data, { groups: this.opts.groups });
 		}
 	}
 

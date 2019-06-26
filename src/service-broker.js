@@ -55,7 +55,7 @@ const defaultOptions = {
 		check: err => err && !!err.retryable
 	},
 
-	actionParamsCloning: false,
+	contextParamsCloning: false,
 	maxCallLevel: 0,
 	heartbeatInterval: 5,
 	heartbeatTimeout: 15,
@@ -713,7 +713,7 @@ class ServiceBroker {
 
 		let svc;
 		schema = this.normalizeSchemaConstructor(schema);
-		if (this.ServiceFactory.isPrototypeOf(schema)) {
+		if (Object.prototype.isPrototypeOf.call(this.ServiceFactory, schema)) {
 			// Service implementation
 			svc = new schema(this);
 
@@ -757,7 +757,7 @@ class ServiceBroker {
 		let service;
 
 		schema = this.normalizeSchemaConstructor(schema);
-		if (this.ServiceFactory.isPrototypeOf(schema)) {
+		if (Object.prototype.isPrototypeOf.call(this.ServiceFactory, schema)) {
 			service = new schema(this, schemaMods);
 		} else {
 			let s = schema;
@@ -1015,6 +1015,9 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	call(actionName, params, opts = {}) {
+		if (params == null)
+			params = {}; // Backward compatibility
+
 		// Create context
 		let ctx;
 		if (opts.ctx != null) {
@@ -1201,17 +1204,27 @@ class ServiceBroker {
 	 * Emit an event (grouped & balanced global event)
 	 *
 	 * @param {string} eventName
-	 * @param {any} payload
-	 * @param {String|Array<String>=} groups
+	 * @param {any?} payload
+	 * @param {Object?} opts
 	 * @returns
 	 *
 	 * @memberof ServiceBroker
 	 */
-	emit(eventName, payload, groups) {
-		if (groups && !Array.isArray(groups))
-			groups = [groups];
+	emit(eventName, payload, opts) {
+		if (Array.isArray(opts) || _.isString(opts))
+			opts = { groups: opts };
+		else if (opts == null)
+			opts = {};
 
-		this.logger.debug(`Emit '${eventName}' event`+ (groups ? ` to '${groups.join(", ")}' group(s)` : "") + ".");
+		if (opts.groups && !Array.isArray(opts.groups))
+			opts.groups = [opts.groups];
+
+		const ctx = this.ContextFactory.create(this, null, payload, opts);
+		ctx.eventName = eventName;
+		ctx.eventType = "emit";
+		ctx.eventGroups = opts.groups;
+
+		this.logger.debug(`Emit '${eventName}' event`+ (opts.groups ? ` to '${opts.groups.join(", ")}' group(s)` : "") + ".");
 
 		// Call local/internal subscribers
 		if (/^\$/.test(eventName))
@@ -1219,39 +1232,43 @@ class ServiceBroker {
 
 		if (!this.options.disableBalancer) {
 
-			const endpoints = this.registry.events.getBalancedEndpoints(eventName, groups);
+			const endpoints = this.registry.events.getBalancedEndpoints(eventName, opts.groups);
 
 			// Grouping remote events (reduce the network traffic)
 			const groupedEP = {};
 
 			endpoints.forEach(([ep, group]) => {
-				if (ep) {
-					if (ep.id == this.nodeID) {
-						// Local service, call handler
-						this.registry.events.callEventHandler(ep.event.handler, payload, this.nodeID, eventName);
-					} else {
-						// Remote service
-						const e = groupedEP[ep.id];
-						if (e)
-							e.push(group);
-						else
-							groupedEP[ep.id] = [group];
-					}
+				if (ep.id == this.nodeID) {
+					// Local service, call handler
+					const newCtx = ctx.copy(ep);
+					this.registry.events.callEventHandler(newCtx);
 				} else {
-					if (groupedEP[null])
-						groupedEP[null].push(group);
+					// Remote service
+					const e = groupedEP[ep.id];
+					if (e)
+						e.groups.push(group);
 					else
-						groupedEP[null] = [group];
+						groupedEP[ep.id] = {
+							ep,
+							groups: [group]
+						};
 				}
 			});
 
 			if (this.transit) {
 				// Remote service
-				return this.transit.sendBalancedEvent(eventName, payload, groupedEP);
+				_.forIn(groupedEP, item => {
+					const newCtx = ctx.copy(item.ep);
+					newCtx.eventGroups = item.groups;
+					return this.transit.sendEvent(newCtx);
+				});
+
+				return;
 			}
 
 		} else if (this.transit) {
 			// Disabled balancer case
+			let groups = opts.groups;
 
 			if (!groups || groups.length == 0) {
 				// Apply to all groups
@@ -1261,7 +1278,8 @@ class ServiceBroker {
 			if (groups.length == 0)
 				return;
 
-			return this.transit.sendEventToGroups(eventName, payload, groups);
+			ctx.eventGroups = groups;
+			return this.transit.sendEvent(ctx);
 		}
 	}
 
@@ -1269,30 +1287,43 @@ class ServiceBroker {
 	 * Broadcast an event for all local & remote services
 	 *
 	 * @param {string} eventName
-	 * @param {any} payload
-	 * @param {String|Array<String>=} groups
+	 * @param {any?} payload
+	 * @param {Object?} groups
 	 * @returns
 	 *
 	 * @memberof ServiceBroker
 	 */
-	broadcast(eventName, payload, groups = null) {
-		if (groups && !Array.isArray(groups))
-			groups = [groups];
+	broadcast(eventName, payload, opts) {
+		if (Array.isArray(opts) || _.isString(opts))
+			opts = { groups: opts };
+		else if (opts == null)
+			opts = {};
 
-		this.logger.debug(`Broadcast '${eventName}' event`+ (groups ? ` to '${groups.join(", ")}' group(s)` : "") + ".");
+		if (opts.groups && !Array.isArray(opts.groups))
+			opts.groups = [opts.groups];
+
+		this.logger.debug(`Broadcast '${eventName}' event`+ (opts.groups ? ` to '${opts.groups.join(", ")}' group(s)` : "") + ".");
 
 		if (this.transit) {
+			const ctx = this.ContextFactory.create(this, null, payload, opts);
+			ctx.eventName = eventName;
+			ctx.eventType = "broadcast";
+			ctx.eventGroups = opts.groups;
+
 			if (!this.options.disableBalancer) {
-				const endpoints = this.registry.events.getAllEndpoints(eventName, groups);
+				const endpoints = this.registry.events.getAllEndpoints(eventName, opts.groups);
 
 				// Send to remote services
 				endpoints.forEach(ep => {
 					if (ep.id != this.nodeID) {
-						return this.transit.sendBroadcastEvent(ep.id, eventName, payload, groups);
+						const newCtx = ctx.copy(ep);
+						return this.transit.sendEvent(newCtx);
 					}
 				});
 			} else {
 				// Disabled balancer case
+				let groups = opts.groups;
+
 				if (!groups || groups.length == 0) {
 					// Apply to all groups
 					groups = this.getEventGroups(eventName);
@@ -1301,36 +1332,47 @@ class ServiceBroker {
 				if (groups.length == 0)
 					return;
 
-				return this.transit.sendBroadcastEvent(null, eventName, payload, groups); // Return here because balancer disabled, so we can't call the local services.
+				const newCtx = ctx.copy();
+				newCtx.eventGroups = groups;
+				return this.transit.sendEvent(newCtx); // Return here because balancer disabled, so we can't call the local services.
 			}
 		}
 
 		// Send to local services
-		return this.broadcastLocal(eventName, payload, groups);
+		return this.broadcastLocal(eventName, payload, opts);
 	}
 
 	/**
 	 * Broadcast an event for all local services
 	 *
 	 * @param {string} eventName
-	 * @param {any} payload
-	 * @param {Array<String>?} groups
-	 * @param {String?} nodeID
+	 * @param {any?} payload
+	 * @param {Object?} groups
 	 * @returns
 	 *
 	 * @memberof ServiceBroker
 	 */
-	broadcastLocal(eventName, payload, groups = null) {
-		if (groups && !Array.isArray(groups))
-			groups = [groups];
+	broadcastLocal(eventName, payload, opts) {
+		if (Array.isArray(opts) || _.isString(opts))
+			opts = { groups: opts };
+		else if (opts == null)
+			opts = {};
 
-		this.logger.debug(`Broadcast '${eventName}' local event`+ (groups ? ` to '${groups.join(", ")}' group(s)` : "") + ".");
+		if (opts.groups && !Array.isArray(opts.groups))
+			opts.groups = [opts.groups];
+
+		this.logger.debug(`Broadcast '${eventName}' local event`+ (opts.groups ? ` to '${opts.groups.join(", ")}' group(s)` : "") + ".");
 
 		// Call internal subscribers
 		if (/^\$/.test(eventName))
 			this.localBus.emit(eventName, payload);
 
-		return this.emitLocalServices(eventName, payload, groups, this.nodeID, true);
+		const ctx = this.ContextFactory.create(this, null, payload, opts);
+		ctx.eventName = eventName;
+		ctx.eventType = "broadcastLocal";
+		ctx.eventGroups = opts.groups;
+
+		return this.emitLocalServices(ctx);
 	}
 
 	/**
@@ -1438,19 +1480,35 @@ class ServiceBroker {
 	}
 
 	/**
+	 * Has registered event listener for an event name?
+	 *
+	 * @param {String} eventName
+	 * @returns {boolean}
+	 */
+	hasEventListener(eventName) {
+		return this.registry.events.getAllEndpoints(eventName).length > 0;
+	}
+
+	/**
+	 * Get all registered event listener for an event name.
+	 *
+	 * @param {String} eventName
+	 * @returns {Array<Object>}
+	 */
+	getEventListeners(eventName) {
+		return this.registry.events.getAllEndpoints(eventName);
+	}
+
+	/**
 	 * Emit event to local nodes. It is called from transit when a remote event received
 	 * or from `broadcastLocal`
 	 *
-	 * @param {String} event
-	 * @param {any} payload
-	 * @param {any} groups
-	 * @param {String} sender
-	 * @param {boolean} broadcast
+	 * @param {Context} ctx
 	 * @returns
 	 * @memberof ServiceBroker
 	 */
-	emitLocalServices(event, payload, groups, sender, broadcast) {
-		return this.registry.events.emitLocalServices(event, payload, groups, sender, broadcast);
+	emitLocalServices(ctx) {
+		return this.registry.events.emitLocalServices(ctx);
 	}
 
 	/**
@@ -1509,7 +1567,7 @@ class ServiceBroker {
 	 *
 	 */
 	normalizeSchemaConstructor(schema) {
-		if (this.ServiceFactory.isPrototypeOf(schema)){
+		if (Object.prototype.isPrototypeOf.call(this.ServiceFactory, schema)) {
 			return schema;
 		}
 		// Sometimes the schame was loaded from another node_module or is a object copy.
