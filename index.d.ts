@@ -409,6 +409,16 @@ declare namespace Moleculer {
 		[key: string]: any;
 	}
 
+	interface EventSchema {
+		name?: string;
+		group?: string;
+		service?: Service;
+		handler?: ActionHandler;
+		tracing?: boolean | TracingOptions;
+
+		[key: string]: any;
+	}
+
 	type ServiceActionsSchema = { [key: string]: ActionSchema | ActionHandler; };
 
 	class BrokerNode {
@@ -445,8 +455,13 @@ declare namespace Moleculer {
 		broker: ServiceBroker;
 		endpoint: Endpoint | null;
 		action: ActionSchema | null;
+		event: EventSchema | null;
 		service: Service | null;
 		nodeID: string | null;
+
+		eventName: string | null;
+		eventType: string | null;
+		eventGroups: Array<string> | null;
 
 		options: CallingOptions;
 
@@ -456,9 +471,12 @@ declare namespace Moleculer {
 		tracing: boolean | null;
 		span: Span | null;
 
+		needAck: boolean | null;
+		ackID: string | null;
+
 		level: number;
 
-		params: P;
+		params: P | null;
 		meta: M;
 
 		requestID: string | null;
@@ -469,17 +487,24 @@ declare namespace Moleculer {
 		setParams(newParams: P, cloning?: boolean): void;
 		call<T = any, P extends GenericObject = GenericObject>(actionName: string, params?: P, opts?: GenericObject): PromiseLike<T>;
 
+		emit<D = any>(eventName: string, data: D, opts: GenericObject): void;
 		emit<D = any>(eventName: string, data: D, groups: Array<string>): void;
 		emit<D = any>(eventName: string, data: D, groups: string): void;
 		emit<D = any>(eventName: string, data: D): void;
 		emit(eventName: string): void;
 
+		broadcast<D = any>(eventName: string, data: D, opts: GenericObject): void;
 		broadcast<D = any>(eventName: string, data: D, groups: Array<string>): void;
 		broadcast<D = any>(eventName: string, data: D, groups: string): void;
 		broadcast<D = any>(eventName: string, data: D): void;
 		broadcast(eventName: string): void;
 
+		copy(endpoint: Endpoint): Context;
+		copy(): Context;
+
 		startSpan(name: string, opts: GenericObject): Span;
+
+		toJSON(): GenericObject;
 
 		static create(broker: ServiceBroker, endpoint: Endpoint, params: GenericObject, opts: GenericObject): Context;
 		static create(broker: ServiceBroker, endpoint: Endpoint, params: GenericObject): Context;
@@ -784,6 +809,11 @@ declare namespace Moleculer {
 		action: ActionSchema;
 	}
 
+	interface EventEndpoint extends Endpoint {
+		service: Service;
+		event: EventSchema;
+	}
+
 	interface PongResponse {
 		nodeID: string;
 		elapsedTime: number;
@@ -865,9 +895,9 @@ declare namespace Moleculer {
 		call<T = any, P extends GenericObject = GenericObject>(actionName: string, params?: P, opts?: CallingOptions): PromiseLike<T>;
 		mcall<T = any>(def: Array<CallDefinition> | { [name: string]: CallDefinition }): PromiseLike<Array<T> | T>;
 
-		emit<P = any>(eventName: string, payload?: P, groups?: string | Array<string>): void;
-		broadcast<P = any>(eventName: string, payload?: P, groups?: string | Array<string>): void
-		broadcastLocal<P = any>(eventName: string, payload?: P, groups?: string | Array<string>): void;
+		emit<P = any>(eventName: string, payload?: P, groups?: string | Array<string> | GenericObject): void;
+		broadcast<P = any>(eventName: string, payload?: P, groups?: string | Array<string> | GenericObject): void
+		broadcastLocal<P = any>(eventName: string, payload?: P, groups?: string | Array<string> | GenericObject): void;
 
 		ping(): PromiseLike<PongResponses>;
 		ping(nodeID: string | Array<string>, timeout?: number): PromiseLike<PongResponse>;
@@ -878,6 +908,9 @@ declare namespace Moleculer {
 		currentContext: Context | null;
 
 		getCpuUsage(): PromiseLike<any>;
+
+		hasEventListener(eventName: string): boolean;
+		getEventListener(eventName: string): Array<EventEndpoint>;
 
 		getConstructorName(obj: any): string;
 
