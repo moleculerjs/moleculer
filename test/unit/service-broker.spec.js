@@ -3064,6 +3064,7 @@ describe("Test registry links", () => {
 
 	broker.registry.getLocalNodeInfo = jest.fn();
 	broker.registry.events.getGroups = jest.fn();
+	broker.registry.events.getAllEndpoints = jest.fn(() => ([{}]));
 	broker.registry.events.emitLocalServices = jest.fn();
 
 	it("should call registry.getLocalNodeInfo", () => {
@@ -3072,11 +3073,31 @@ describe("Test registry links", () => {
 		expect(broker.registry.getLocalNodeInfo).toHaveBeenCalledTimes(1);
 	});
 
-	it("should call registry.", () => {
+	it("should call registry.getGroups", () => {
 		broker.getEventGroups("event.name");
 
 		expect(broker.registry.events.getGroups).toHaveBeenCalledTimes(1);
 		expect(broker.registry.events.getGroups).toHaveBeenCalledWith("event.name");
+	});
+
+	it("should call registry.getAllEndpoints", () => {
+		const res = broker.hasEventListener("event.name");
+
+		expect(res).toBe(true);
+
+		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledTimes(1);
+		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledWith("event.name");
+	});
+
+	it("should call registry.getAllEndpoints", () => {
+		broker.registry.events.getAllEndpoints.mockClear();
+
+		const res = broker.getEventListeners("event.name");
+
+		expect(res).toEqual([{}]);
+
+		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledTimes(1);
+		expect(broker.registry.events.getAllEndpoints).toHaveBeenCalledWith("event.name");
 	});
 
 	it("should call registry.events.emitLocalServices", () => {

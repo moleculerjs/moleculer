@@ -41,9 +41,6 @@ _loading middleware after the broker has started is no longer available._
 ## The `$node.health` response changed
 The `$node.health` action's response has been changed. The `transit` property is removed. To get transit metrics, use the new `$node.metrics` internal action.
 
-## Context param changes
-In previous version when you passed `null` as `params` in action calling, ServiceBroker converted it to `{}` empty object. It was a wrong behavior. In version 0.14 it's fixed. It means you have to pay attention in action handlers because `ctx.params` can be `null`.
-
 ## Middleware shorthand definition is dropped
 In previous versions you could define middleware which wraps the `localAction` hook with a simple `Function`.
 In version 0.14 this legacy shorthand is dropped. When you define a middleware as a `Function`, the middleware handler will call it as an initialization and pass the ServiceBroker instance as a parameter.
@@ -1139,16 +1136,11 @@ module.exports = {
 });
 ```
 
-
 # Other notable changes
 - Kafka transporter upgrade to support kafka-node@4.
-- rename `ctx.metrics` -> `ctx.tracing`
+- rename `ctx.metrics` to `ctx.tracing`.
 - `broker.hotReloadService` method has been removed.
-
-## Done
-- new built-in tracing solution with exporters (Zipkin, Jaeger, Datadog)
-- new built-in metrics solution with reporters (Prometheus, Datadog, StatD)
-
+- new `hasEventListener` & `getEventListeners` broker method.
 
 --------------------------------------------------
 <a name="0.13.9"></a>

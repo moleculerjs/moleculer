@@ -1016,7 +1016,8 @@ class ServiceBroker {
 	 */
 	call(actionName, params, opts = {}) {
 		if (params == null)
-			params = {}; // TODO: need to remove
+			params = {}; // Backward compatibility
+
 		// Create context
 		let ctx;
 		if (opts.ctx != null) {
@@ -1237,31 +1238,20 @@ class ServiceBroker {
 			const groupedEP = {};
 
 			endpoints.forEach(([ep, group]) => {
-				if (ep) {
-					if (ep.id == this.nodeID) {
-						// Local service, call handler
-						const newCtx = ctx.copy(ep);
-						this.registry.events.callEventHandler(newCtx);
-					} else {
-						// Remote service
-						const e = groupedEP[ep.id];
-						if (e)
-							e.groups.push(group);
-						else
-							groupedEP[ep.id] = {
-								ep,
-								groups: [group]
-							};
-					}
+				if (ep.id == this.nodeID) {
+					// Local service, call handler
+					const newCtx = ctx.copy(ep);
+					this.registry.events.callEventHandler(newCtx);
 				} else {
-					// What happens here?
-					if (groupedEP[null]) {
-						groupedEP[null].groups.push(group);
-					} else {
-						groupedEP[null] = {
+					// Remote service
+					const e = groupedEP[ep.id];
+					if (e)
+						e.groups.push(group);
+					else
+						groupedEP[ep.id] = {
+							ep,
 							groups: [group]
 						};
-					}
 				}
 			});
 
@@ -1487,6 +1477,26 @@ class ServiceBroker {
 	 */
 	getEventGroups(eventName) {
 		return this.registry.events.getGroups(eventName);
+	}
+
+	/**
+	 * Has registered event listener for an event name?
+	 *
+	 * @param {String} eventName
+	 * @returns {boolean}
+	 */
+	hasEventListener(eventName) {
+		return this.registry.events.getAllEndpoints(eventName).length > 0;
+	}
+
+	/**
+	 * Get all registered event listener for an event name.
+	 *
+	 * @param {String} eventName
+	 * @returns {Array<Object>}
+	 */
+	getEventListeners(eventName) {
+		return this.registry.events.getAllEndpoints(eventName);
 	}
 
 	/**
