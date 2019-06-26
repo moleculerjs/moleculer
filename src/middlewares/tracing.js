@@ -99,44 +99,53 @@ module.exports = function TracingMiddleware(broker) {
 		let opts = event.tracing;
 		if (opts === true || opts === false)
 			opts = { enabled: !!opts };
-		opts = _.defaultsDeep({}, opts, { enabled: true, tags: { payload: true }  });
+		opts = _.defaultsDeep({}, opts, { enabled: true, tags: { params: true }  });
 
 		if (opts.enabled) {
-			return function tracingLocalEventMiddleware(payload, callerNodeID, eventName) {
+			return function tracingLocalEventMiddleware(ctx) {
+
+				// ctx.requestID = tracer.getCurrentTraceID() || ctx.requestID;
+				// ctx.parentID = tracer.getActiveSpanID() || ctx.parentID;
+
 				const tags = {
 					event: {
 						name: event.name,
 						group: event.group
 					},
-					eventName,
-					callerNodeID,
-					remoteCall: callerNodeID !== broker.nodeID,
+					eventName: ctx.eventName,
+					eventType: ctx.eventType,
+					callerNodeID: ctx.nodeID,
+					remoteCall: ctx.nodeID !== broker.nodeID,
 					nodeID: broker.nodeID
 				};
 
 				if (_.isFunction(opts.tags)) {
-					const res = opts.tags.call(service, payload, callerNodeID, eventName);
+					const res = opts.tags.call(service, ctx);
 					if (res)
 						Object.assign(tags, res);
 
 				} else if (_.isPlainObject(opts.tags)) {
-					if (opts.tags.payload === true)
-						tags.payload = _.cloneDeep(payload);
-					else if (Array.isArray(opts.tags.payload))
-						tags.payload = _.pick(payload, opts.tags.payload);
+					if (opts.tags.params === true)
+						tags.params = _.cloneDeep(ctx.params);
+					else if (Array.isArray(opts.tags.params))
+						tags.params = _.pick(ctx.params, opts.tags.params);
+
+					if (opts.tags.meta === true)
+						tags.meta = _.cloneDeep(ctx.meta);
+					else if (Array.isArray(opts.tags.meta))
+						tags.meta = _.pick(ctx.meta, opts.tags.meta);
 				}
 
-				const span = broker.tracer.startSpan(`event '${eventName}'`, {
-					// id: ctx.id,
-					// traceID: ctx.requestID,
-					// parentID: ctx.parentID,
-					parentID: null,
+				const span = broker.tracer.startSpan(`event '${ctx.eventName}'`, {
+					id: ctx.id,
+					traceID: ctx.requestID,
+					parentID: ctx.parentID,
 					service: {
 						name: service.name,
 						version: service.version,
 						fullName: service.fullName,
 					},
-					//sampled: ctx.tracing,
+					sampled: ctx.tracing,
 					tags
 				});
 

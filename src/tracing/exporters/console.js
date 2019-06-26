@@ -156,13 +156,13 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 	getColor(span) {
 		let c = chalk.bold;
 		if (span.tags.fromCache)
-			c = chalk.yellow;
+			c = c.yellow;
 		if (span.tags.remoteCall)
-			c = chalk.cyan;
+			c = c.cyan;
 		if (span.duration == null)
-			c = chalk.grey;
+			c = c.grey;
 		if (span.error)
-			c = chalk.red.bold;
+			c = c.red;
 
 		return c;
 	}

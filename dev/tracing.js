@@ -32,7 +32,7 @@ const broker = new ServiceBroker({
 	cacher: "redis://localhost:6379",
 
 	tracing: {
-		events: false,
+		events: true,
 		stackTrace: true,
 		sampling: {
 			rate: 1,
@@ -54,18 +54,18 @@ const broker = new ServiceBroker({
 					samplingPriority: "USER_KEEP"
 				}
 			},*/
-			{
+			/*{
 				type: "Zipkin",
 				options: {
 					baseURL: "http://192.168.0.181:9411",
 				}
-			},
-			{
+			},*/
+			/*{
 				type: "Jaeger",
 				options: {
 					host: "192.168.0.181",
 				}
-			}
+			}*/
 			/*{
 				type: "Event",
 				options: {
@@ -138,7 +138,7 @@ broker.createService({
 				const res = await this.Promise.map(posts, async post => {
 					const span3 = span2.startSpan("populate #" + post.id, { tags: {
 						id: post.id
-					}});
+					} });
 					//await this.Promise.delay(15);
 
 					span2.log("Populating", { postID: post.id });
@@ -151,7 +151,7 @@ broker.createService({
 					span3.finish();
 
 					//return res;
-				}, { concurrency: 1});
+				}, { concurrency: 1 });
 
 				span2.finish();
 				return posts;
@@ -255,13 +255,16 @@ broker.createService({
 		"metrics.trace.span.finish"(payload) {
 			this.logger.info("Legacy tracing finish event received", payload);
 		},
-		/*async "user.access"(payload) {
-			this.logger.info("User access event received. It is sampled in tracing!");
-			const span = this.broker.tracer.startSpan("work in event");
-			await this.Promise.delay(100);
-			await this.broker.call("followers.count");
-			span.finish();
-		}*/
+		"user.access": {
+			tracing: true,
+			async handler(payload) {
+				this.logger.info("User access event received. It is sampled in tracing!");
+				const span = this.broker.tracer.startSpan("work in event");
+				//await this.Promise.delay(10);
+				await this.broker.call("followers.count");
+				span.finish();
+			}
+		}
 	}
 });
 

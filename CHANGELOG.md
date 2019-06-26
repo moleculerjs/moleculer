@@ -77,6 +77,35 @@ const broker = new ServiceBroker({
 });
 ```
 
+## The `localEvent` middleware hook signature changed
+
+**Old signature**
+```js
+// my-middleware.js
+module.exports = {
+    // Wrap local event handlers
+	localEvent(next, event) {
+		return (payload, sender, event) => {
+			return next(payload, sender, event);
+		};
+	},
+};
+```
+
+**New context-based signature**
+```js
+// my-middleware.js
+module.exports = {
+    // Wrap local event handlers
+	localEvent(next, event) {
+		return (ctx) => {
+			return next(ctx);
+		};
+	},
+};
+```
+
+
 # New
 
 ## Context-based event
