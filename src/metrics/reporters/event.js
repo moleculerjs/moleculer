@@ -73,10 +73,10 @@ class EventReporter extends BaseReporter {
 
 		if (this.opts.broadcast) {
 			this.logger.debug(`Send metrics.snapshot (${list.length} metrics) broadcast events.`);
-			this.broker.broadcast(this.opts.eventName, list, this.opts.groups);
+			this.broker.broadcast(this.opts.eventName, list, { groups: this.opts.groups });
 		} else {
 			this.logger.debug(`Send metrics.snapshot (${list.length} metrics) events.`);
-			this.broker.emit(this.opts.eventName, list, this.opts.groups);
+			this.broker.emit(this.opts.eventName, list, { groups: this.opts.groups });
 		}
 
 		this.lastChanges.clear();

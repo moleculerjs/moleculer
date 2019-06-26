@@ -315,8 +315,8 @@ class Context {
 	 * Emit an event (grouped & balanced global event)
 	 *
 	 * @param {string} eventName
-	 * @param {any} payload
-	 * @param {String|Array<String>=} groups
+	 * @param {any?} payload
+	 * @param {Object?} groups
 	 * @returns
 	 *
 	 * @example
@@ -324,9 +324,11 @@ class Context {
 	 *
 	 * @memberof Context
 	 */
-	emit(eventName, data, opts = {}) {
+	emit(eventName, data, opts) {
 		if (Array.isArray(opts) || _.isString(opts))
 			opts = { groups: opts };
+		else if (opts == null)
+			opts = {};
 
 		if (opts.groups && !Array.isArray(opts.groups))
 			opts.groups = [opts.groups];
@@ -339,8 +341,8 @@ class Context {
 	 * Emit an event for all local & remote services
 	 *
 	 * @param {string} eventName
-	 * @param {any} payload
-	 * @param {String|Array<String>=} groups
+	 * @param {any?} payload
+	 * @param {Object?} groups
 	 * @returns
 	 *
 	 * @example
@@ -348,9 +350,11 @@ class Context {
 	 *
 	 * @memberof Context
 	 */
-	broadcast(eventName, data, opts = {}) {
+	broadcast(eventName, data, opts) {
 		if (Array.isArray(opts) || _.isString(opts))
 			opts = { groups: opts };
+		else if (opts == null)
+			opts = {};
 
 		if (opts.groups && !Array.isArray(opts.groups))
 			opts.groups = [opts.groups];

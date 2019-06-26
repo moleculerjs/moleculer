@@ -1760,7 +1760,7 @@ describe("Test broker.call", () => {
 			expect(ctx).toBe(context);
 
 			expect(broker.ContextFactory.create).toHaveBeenCalledTimes(1);
-			expect(broker.ContextFactory.create).toHaveBeenCalledWith(broker, null, undefined, {});
+			expect(broker.ContextFactory.create).toHaveBeenCalledWith(broker, null, {}, {});
 			expect(context.setEndpoint).toHaveBeenCalledWith(ep);
 
 			expect(broker.findNextActionEndpoint).toHaveBeenCalledTimes(1);
@@ -1783,7 +1783,7 @@ describe("Test broker.call", () => {
 		return p.catch(protectReject).then(ctx => {
 			expect(p.ctx).toBe(ctx);
 			expect(broker.ContextFactory.create).toHaveBeenCalledTimes(1);
-			expect(broker.ContextFactory.create).toHaveBeenCalledWith(broker, null, undefined, {});
+			expect(broker.ContextFactory.create).toHaveBeenCalledWith(broker, null, {}, {});
 			expect(ctx.setEndpoint).toHaveBeenCalledWith(ep);
 
 			expect(broker.findNextActionEndpoint).toHaveBeenCalledTimes(1);

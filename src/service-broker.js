@@ -1015,6 +1015,8 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	call(actionName, params, opts = {}) {
+		if (params == null)
+			params = {}; // TODO: need to remove
 		// Create context
 		let ctx;
 		if (opts.ctx != null) {
@@ -1201,15 +1203,17 @@ class ServiceBroker {
 	 * Emit an event (grouped & balanced global event)
 	 *
 	 * @param {string} eventName
-	 * @param {any} payload
+	 * @param {any?} payload
 	 * @param {Object?} opts
 	 * @returns
 	 *
 	 * @memberof ServiceBroker
 	 */
-	emit(eventName, payload, opts = {}) {
+	emit(eventName, payload, opts) {
 		if (Array.isArray(opts) || _.isString(opts))
 			opts = { groups: opts };
+		else if (opts == null)
+			opts = {};
 
 		if (opts.groups && !Array.isArray(opts.groups))
 			opts.groups = [opts.groups];
@@ -1293,15 +1297,17 @@ class ServiceBroker {
 	 * Broadcast an event for all local & remote services
 	 *
 	 * @param {string} eventName
-	 * @param {any} payload
+	 * @param {any?} payload
 	 * @param {Object?} groups
 	 * @returns
 	 *
 	 * @memberof ServiceBroker
 	 */
-	broadcast(eventName, payload, opts = {}) {
+	broadcast(eventName, payload, opts) {
 		if (Array.isArray(opts) || _.isString(opts))
 			opts = { groups: opts };
+		else if (opts == null)
+			opts = {};
 
 		if (opts.groups && !Array.isArray(opts.groups))
 			opts.groups = [opts.groups];
@@ -1350,15 +1356,17 @@ class ServiceBroker {
 	 * Broadcast an event for all local services
 	 *
 	 * @param {string} eventName
-	 * @param {any} payload
-	 * @param {Object} groups
+	 * @param {any?} payload
+	 * @param {Object?} groups
 	 * @returns
 	 *
 	 * @memberof ServiceBroker
 	 */
-	broadcastLocal(eventName, payload, opts = {}) {
+	broadcastLocal(eventName, payload, opts) {
 		if (Array.isArray(opts) || _.isString(opts))
 			opts = { groups: opts };
+		else if (opts == null)
+			opts = {};
 
 		if (opts.groups && !Array.isArray(opts.groups))
 			opts.groups = [opts.groups];

@@ -71,7 +71,7 @@
 			"request": "launch",
 			"name": "Jest",
 			"program": "${workspaceRoot}/node_modules/jest-cli/bin/jest.js",
-			"args": ["--runInBand", "test/integration/event-balancer.spec.js"],
+			"args": ["--runInBand"],
 			"console": "internalConsole",
 			"cwd": "${workspaceRoot}",
 			"runtimeArgs": [
@@ -81,17 +81,14 @@
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Jest transporter",
+			"name": "Jest single",
 			"program": "${workspaceRoot}/node_modules/jest-cli/bin/jest.js",
-			"args": ["--runInBand", "--testMatch", "**/transporters/**/**spc.js"],
-			"cwd": "${workspaceRoot}",
+			"args": ["--runInBand", "test/unit/metrics/registry.spec.js"],
 			"console": "internalConsole",
+			"cwd": "${workspaceRoot}",
 			"runtimeArgs": [
                 "--nolazy"
-            ],
-			"env": {
-				"AMQP_URI": "amqp://192.168.51.29:5672"
-			}
+            ]
 		},
 		{
 			"type": "node",
