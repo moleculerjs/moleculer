@@ -45,6 +45,7 @@ declare namespace Moleculer {
 		| "string"
 		| "url"
 		| "uuid"
+		| boolean
 		| ActionParamSchema;
 	type ActionParams = { [key: string]: ActionParamTypes };
 
@@ -170,10 +171,10 @@ declare namespace Moleculer {
 		wrapMethod(method: string, handler: ActionHandler, bindTo: any): typeof handler;
 	}
 
-	interface ServiceSchema {
+	interface ServiceSchema<S = ServiceSettingSchema> {
 		name: string;
 		version?: string | number;
-		settings?: ServiceSettingSchema;
+		settings?: S;
 		dependencies?: string | GenericObject | Array<string> | Array<GenericObject>;
 		metadata?: GenericObject;
 		actions?: ServiceActions;
@@ -187,17 +188,17 @@ declare namespace Moleculer {
 		[name: string]: any;
 	}
 
-	class Service implements ServiceSchema {
-		constructor(broker: ServiceBroker, schema?: ServiceSchema);
+	class Service<S = ServiceSettingSchema> implements ServiceSchema {
+		constructor(broker: ServiceBroker, schema?: ServiceSchema<S>);
 
-		protected parseServiceSchema(schema: ServiceSchema): void;
+		protected parseServiceSchema(schema: ServiceSchema<S>): void;
 
 		name: string;
 		version?: string | number;
-		settings: ServiceSettingSchema;
+		settings: S;
 		metadata: GenericObject;
 		dependencies: string | GenericObject | Array<string> | Array<GenericObject>;
-		schema: ServiceSchema;
+		schema: ServiceSchema<S>;
 		broker: ServiceBroker;
 		logger: LoggerInstance;
 		actions?: ServiceActions;
