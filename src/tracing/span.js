@@ -33,6 +33,7 @@ class Span {
 		defProp(this, "meta", {});
 
 		this.name = name;
+		this.type = this.opts.type || "custom";
 		this.id = this.opts.id || generateToken();
 		this.traceID = this.opts.traceID || this.id;
 		this.parentID = this.opts.parentID;

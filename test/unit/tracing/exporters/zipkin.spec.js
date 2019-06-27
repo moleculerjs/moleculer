@@ -240,6 +240,7 @@ describe("Test Zipkin tracing exporter class", () => {
 		it("should convert normal span to zipkin payload", () => {
 			const span = {
 				name: "Test Span",
+				type: "custom",
 				id: "span-id-12345678901234567890",
 				traceID: "trace-id-12345678901234567890",
 				parentID: "parent-id-12345678901234567890",
@@ -268,6 +269,7 @@ describe("Test Zipkin tracing exporter class", () => {
 
 			const span = {
 				name: "Test Span",
+				type: "action",
 				id: "span-id-12345678901234567890",
 				traceID: "trace-id-12345678901234567890",
 				parentID: "parent-id-12345678901234567890",

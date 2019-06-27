@@ -155,6 +155,7 @@ describe("Test TracingMiddleware localAction", () => {
 			expect(ctx.startSpan).toHaveBeenCalledTimes(1);
 			expect(ctx.startSpan).toHaveBeenCalledWith("action 'posts.find'", {
 				id: "ctx-id",
+				type: "action",
 				traceID: "request-id",
 				parentID: "parent-id",
 				service: {
@@ -232,6 +233,7 @@ describe("Test TracingMiddleware localAction", () => {
 			expect(ctx.startSpan).toHaveBeenCalledTimes(1);
 			expect(ctx.startSpan).toHaveBeenCalledWith("action 'posts.find'", {
 				id: "ctx-id",
+				type: "action",
 				traceID: "tracer-trace-id",
 				parentID: "tracer-span-id",
 				service: null,
@@ -302,6 +304,7 @@ describe("Test TracingMiddleware localAction", () => {
 			expect(ctx.startSpan).toHaveBeenCalledTimes(1);
 			expect(ctx.startSpan).toHaveBeenCalledWith("action 'posts.find'", {
 				id: "ctx-id",
+				type: "action",
 				traceID: "tracer-trace-id",
 				parentID: "tracer-span-id",
 				service: null,
@@ -359,6 +362,7 @@ describe("Test TracingMiddleware localAction", () => {
 			expect(ctx.startSpan).toHaveBeenCalledTimes(1);
 			expect(ctx.startSpan).toHaveBeenCalledWith("action 'posts.find'", {
 				id: "ctx-id",
+				type: "action",
 				traceID: "tracer-trace-id",
 				parentID: "tracer-span-id",
 				service: null,
@@ -416,6 +420,7 @@ describe("Test TracingMiddleware localAction", () => {
 				expect(ctx.startSpan).toHaveBeenCalledTimes(1);
 				expect(ctx.startSpan).toHaveBeenCalledWith("action 'posts.find'", {
 					id: "ctx-id",
+					type: "action",
 					traceID: "tracer-trace-id",
 					parentID: "tracer-span-id",
 					service: null,

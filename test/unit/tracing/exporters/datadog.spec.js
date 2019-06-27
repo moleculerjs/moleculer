@@ -199,6 +199,7 @@ describe("Test Datadog tracing exporter class", () => {
 			const span = {
 				name: "Test Span",
 				id: "abc-12345678901234567890",
+				type: "custom",
 				traceID: "cde-12345678901234567890",
 				//parentID: "def-12345678901234567890",
 
@@ -273,6 +274,7 @@ describe("Test Datadog tracing exporter class", () => {
 
 			const span = {
 				name: "Test Span",
+				type: "action",
 				id: "aaa-12345678901234567890",
 				traceID: "bbb-12345678901234567890",
 				parentID: "ccc-12345678901234567890",
@@ -321,7 +323,7 @@ describe("Test Datadog tracing exporter class", () => {
 					resource: undefined,
 					"sampling.priority": "AUTO_KEEP",
 					"span.kind": "server",
-					"span.type": "custom"
+					"span.type": "action"
 				}
 			});
 

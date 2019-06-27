@@ -494,6 +494,7 @@ describe("Test Jaeger tracing exporter class", () => {
 		it("should convert normal span to Jaeger payload without parentID", () => {
 			const span = {
 				name: "Test Span",
+				type: "action",
 				id: "abc-12345678901234567890",
 				traceID: "cde-12345678901234567890",
 				//parentID: "def-12345678901234567890",
@@ -533,7 +534,8 @@ describe("Test Jaeger tracing exporter class", () => {
 					c: true,
 					d: null,
 					def: "ault",
-					"service.fullName": "v1.posts"
+					"service.fullName": "v1.posts",
+					"span.type": "action"
 				}
 			});
 
@@ -564,6 +566,7 @@ describe("Test Jaeger tracing exporter class", () => {
 
 			const span = {
 				name: "Test Span",
+				type: "custom",
 				id: "aaa-12345678901234567890",
 				traceID: "bbb-12345678901234567890",
 				parentID: "ccc-12345678901234567890",
@@ -619,7 +622,8 @@ describe("Test Jaeger tracing exporter class", () => {
 					c: true,
 					d: null,
 					def: "ault",
-					"service.fullName": "v1.posts"
+					"service.fullName": "v1.posts",
+					"span.type": "custom"
 				}
 			});
 
@@ -654,6 +658,7 @@ describe("Test Jaeger tracing exporter class", () => {
 
 			const span = {
 				name: "Test Span",
+				type: "action",
 				id: "abc-12345678901234567890",
 				traceID: "cde-12345678901234567890",
 				//parentID: "def-12345678901234567890",
@@ -695,7 +700,8 @@ describe("Test Jaeger tracing exporter class", () => {
 					c: true,
 					d: null,
 					def: "ault",
-					"service.fullName": "v1.posts"
+					"service.fullName": "v1.posts",
+					"span.type": "action"
 				}
 			});
 

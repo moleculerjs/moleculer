@@ -58,6 +58,7 @@ module.exports = function TracingMiddleware(broker) {
 
 				const span = ctx.startSpan(`action '${ctx.action.name}'`, {
 					id: ctx.id,
+					type: "action",
 					traceID: ctx.requestID,
 					parentID: ctx.parentID,
 					service: ctx.service ? {
@@ -138,6 +139,7 @@ module.exports = function TracingMiddleware(broker) {
 
 				const span = broker.tracer.startSpan(`event '${ctx.eventName}'`, {
 					id: ctx.id,
+					type: "event",
 					traceID: ctx.requestID,
 					parentID: ctx.parentID,
 					service: {

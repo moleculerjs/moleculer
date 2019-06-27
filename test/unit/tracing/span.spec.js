@@ -31,6 +31,7 @@ describe("Test Tracing Span", () => {
 			expect(span.meta).toEqual({});
 
 			expect(span.name).toBe("test-123");
+			expect(span.type).toBe("custom");
 			expect(span.id).toBe("12345678-abcdef");
 			expect(span.traceID).toBe(span.id);
 			expect(span.parentID).toBeUndefined();
@@ -56,6 +57,7 @@ describe("Test Tracing Span", () => {
 
 			const opts = {
 				id: "my-id",
+				type: "web",
 				parentID: "parent-id",
 				service: {
 					name: "posts",
@@ -80,6 +82,7 @@ describe("Test Tracing Span", () => {
 			expect(span.meta).toEqual({});
 
 			expect(span.name).toBe("test-234");
+			expect(span.type).toBe("web");
 			expect(span.id).toBe("my-id");
 			expect(span.traceID).toBe(span.id);
 			expect(span.parentID).toBe("parent-id");

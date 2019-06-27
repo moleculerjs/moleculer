@@ -148,7 +148,9 @@ class ZipkinTraceExporter extends BaseTraceExporter {
 			timestamp: this.convertTime(span.startTime),
 			duration: this.convertTime(span.duration),
 
-			tags: {},
+			tags: {
+				"span.type": span.type
+			},
 
 			debug: this.opts.payloadOptions.debug,
 			shared: this.opts.payloadOptions.shared
