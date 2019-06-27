@@ -53,8 +53,8 @@ class RedisCacher extends BaseCacher {
 		 * @memberof RedisCacher
 		 */
 		if (this.opts.cluster) {
-			if (!this.opts.cluster.nodes) {
-				throw new BrokerOptionsError('No connection details defined for cluster')
+			if (!this.opts.cluster.nodes || this.opts.cluster.nodes.length === 0) {
+				throw new BrokerOptionsError('No nodes defined for cluster')
 			}
 
 			this.logger.info("Setting Redis.Cluster Cacher");
@@ -319,7 +319,7 @@ class RedisCacher extends BaseCacher {
 			});
 
 			stream.on("end", () => {
-				console.log('End deleting keys from node')
+	//			console.log('End deleting keys from node')
 				resolve();
 			});
 		})
