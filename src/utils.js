@@ -154,7 +154,8 @@ const utils = {
 		}
 
 		// Regex (eg. "prefix.ab?cd.*.foo")
-		let regex = RegexCache.get(pattern);
+		const origPattern = pattern;
+		let regex = RegexCache.get(origPattern);
 		if (regex == null) {
 			if (pattern.startsWith("$")) {
 				pattern = "\\" + pattern;
@@ -167,8 +168,8 @@ const utils = {
 			pattern = "^" + pattern + "$";
 
 			// eslint-disable-next-line security/detect-non-literal-regexp
-			regex = new RegExp(pattern, "g");
-			RegexCache.set(pattern, regex);
+			regex = new RegExp(pattern, "");
+			RegexCache.set(origPattern, regex);
 		}
 		return regex.test(text);
 	},
