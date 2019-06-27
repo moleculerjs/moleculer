@@ -235,6 +235,7 @@ describe("Test Datadog tracing exporter class", () => {
 					def: "ault",
 					"service.fullName": "v1.posts",
 
+					type: "custom",
 					resource: undefined,
 					"sampling.priority": "AUTO_KEEP",
 					"span.kind": "server",
@@ -320,6 +321,7 @@ describe("Test Datadog tracing exporter class", () => {
 					def: "ault",
 					"service.fullName": "v1.posts",
 
+					type: "action",
 					resource: undefined,
 					"sampling.priority": "AUTO_KEEP",
 					"span.kind": "server",

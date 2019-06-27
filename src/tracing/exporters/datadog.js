@@ -131,6 +131,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 					kind: "server",
 					type: span.type,
 				},
+				type: span.type,
 				resource: span.tags.action,
 				"sampling.priority": this.opts.samplingPriority
 			}, this.defaultTags))
