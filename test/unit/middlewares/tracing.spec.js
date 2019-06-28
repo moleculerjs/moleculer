@@ -768,8 +768,8 @@ describe("Test TracingMiddleware localEvent", () => {
 			/* eslint-disable-next-line */
 			ctx.params.a = 5;
 
-			//expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(1);
-			//expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(1);
+			expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(1);
+			expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(1);
 
 			expect(ctx.startSpan).toHaveBeenCalledTimes(1);
 			expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created'", {
@@ -841,15 +841,15 @@ describe("Test TracingMiddleware localEvent", () => {
 
 			await newHandler(ctx);
 
-			//expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(1);
-			//expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(1);
+			expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(1);
+			expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(1);
 
 			expect(ctx.startSpan).toHaveBeenCalledTimes(1);
 			expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created'", {
 				id: "ctx-id",
 				type: "event",
-				traceID: "request-id",
-				parentID: "parent-id",
+				traceID: "tracer-trace-id",
+				parentID: "tracer-span-id",
 				service: {
 					fullName: "v1.posts",
 					name: "posts",
@@ -922,8 +922,8 @@ describe("Test TracingMiddleware localEvent", () => {
 			expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created'", {
 				id: "ctx-id",
 				type: "event",
-				traceID: "request-id",
-				parentID: "parent-id",
+				traceID: "tracer-trace-id",
+				parentID: "tracer-span-id",
 				service: {
 					fullName: "v1.posts",
 					name: "posts",
@@ -989,8 +989,8 @@ describe("Test TracingMiddleware localEvent", () => {
 			expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created'", {
 				id: "ctx-id",
 				type: "event",
-				traceID: "request-id",
-				parentID: "parent-id",
+				traceID: "tracer-trace-id",
+				parentID: "tracer-span-id",
 				service: {
 					fullName: "v1.posts",
 					name: "posts",
@@ -1044,8 +1044,8 @@ describe("Test TracingMiddleware localEvent", () => {
 			expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created'", {
 				id: "ctx-id",
 				type: "event",
-				traceID: "request-id",
-				parentID: "parent-id",
+				traceID: "tracer-trace-id",
+				parentID: "tracer-span-id",
 				service: {
 					fullName: "v1.posts",
 					name: "posts",
@@ -1125,15 +1125,15 @@ describe("Test TracingMiddleware localEvent", () => {
 				expect(event.tracing.tags).toHaveBeenCalledTimes(1);
 				expect(event.tracing.tags).toHaveBeenCalledWith(ctx);
 
-				//expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(1);
-				//expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(1);
+				expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(1);
+				expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(1);
 
 				expect(ctx.startSpan).toHaveBeenCalledTimes(1);
 				expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created'", {
 					id: "ctx-id",
 					type: "event",
-					traceID: "request-id",
-					parentID: "parent-id",
+					traceID: "tracer-trace-id",
+					parentID: "tracer-span-id",
 					service: {
 						fullName: "v1.posts",
 						name: "posts",

@@ -119,8 +119,8 @@ module.exports = function TracingMiddleware(broker) {
 		if (opts.enabled) {
 			return function tracingLocalEventMiddleware(ctx) {
 
-				// ctx.requestID = tracer.getCurrentTraceID() || ctx.requestID;
-				// ctx.parentID = tracer.getActiveSpanID() || ctx.parentID;
+				ctx.requestID = tracer.getCurrentTraceID() || ctx.requestID;
+				ctx.parentID = tracer.getActiveSpanID() || ctx.parentID;
 
 				const tags = {
 					event: {
