@@ -84,11 +84,11 @@ const broker = new ServiceBroker({
 // my-middleware.js
 module.exports = {
     // Wrap local event handlers
-	localEvent(next, event) {
-		return (payload, sender, event) => {
-			return next(payload, sender, event);
-		};
-	},
+    localEvent(next, event) {
+        return (payload, sender, event) => {
+            return next(payload, sender, event);
+        };
+    },
 };
 ```
 
@@ -97,19 +97,38 @@ module.exports = {
 // my-middleware.js
 module.exports = {
     // Wrap local event handlers
-	localEvent(next, event) {
-		return (ctx) => {
-			return next(ctx);
-		};
-	},
+    localEvent(next, event) {
+        return (ctx) => {
+            return next(ctx);
+        };
+    },
 };
 ```
 
 
 # New
 
-## Context-based event
-TODO
+## Context-based events
+The new 0.14 version comes context-based event handler. It is very useful when you are using event-driven architecture and you would like to tracing the event. The Event Context is same as Action Context. They are the same properties except a few new properties related to the event.
+It doesn't mean you should rewrite all existing event handlers. Moleculer detects the signature if your event handler. If it finds that the signature is `"user.created(ctx) { ... }`, it will call it with Event Context. If not, it will call with old arguments & the 4th argument will be the Event Context, like `"user.created"(payload, sender, eventName, ctx) {...}`
+
+**Use Context-based event handler & emit a nested event**
+```js
+module.exports = {
+    name: "accounts",
+    events: {
+        "user.created"(ctx) {
+            console.log("Payload:", ctx.params);
+            console.log("Sender:", ctx.nodeID);
+            console.log("We have also metadata:", ctx.meta);
+            console.log("The called event name:", ctx.eventName);
+
+            ctx.emit("accounts.created", { user: ctx.params.user });
+        }
+    }
+};
+```
+
 
 ## New built-in metrics
 Moleculer v0.14 comes with a brand-new and entirely rewritten metrics module. It is now a built-in module. It collects a lot of internal Moleculer & process metric values. You can easily define your custom metrics. There are several built-in metrics reporters like `Console`, `Prometheus`, `Datadog`, ...etc.
@@ -568,6 +587,27 @@ module.exports = {
 });
 ```
 
+**Example with all properties of params in event definition**
+```js
+// posts.service.js
+module.exports = {
+    name: "posts",
+    events: {
+        "user.created": {
+            tracing: {
+                // Add all params without meta
+                tags: {
+                    params: true,
+                    meta: false,
+            },
+            async handler(ctx) {
+                // ...
+            }
+        }
+    }
+});
+```
+
 ### Built-in exporters
 
 #### Console exporter
@@ -776,12 +816,12 @@ There is a new `caller` property in Context. It contains the action name of the 
 
 ```js
 broker2.createService({
-	name: "greeter",
-	actions: {
-		hello(ctx) {
-			this.logger.info(`This action is called from '${ctx.caller}' on '${ctx.nodeID}'`);
-		}
-	}
+    name: "greeter",
+    actions: {
+        hello(ctx) {
+            this.logger.info(`This action is called from '${ctx.caller}' on '${ctx.nodeID}'`);
+        }
+    }
 });
 
 ```
