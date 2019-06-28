@@ -75,9 +75,23 @@ module.exports = function TracingMiddleware(broker) {
 
 				// Call the handler
 				return handler(ctx).then(res => {
-					span.addTags({
+					const tags = {
 						fromCache: ctx.cachedResult
-					}).finish();
+					};
+
+					if (_.isFunction(opts.tags)) {
+						const r = opts.tags.call(ctx.service, ctx, res);
+						if (r)
+							Object.assign(tags, r);
+
+					} else if (_.isPlainObject(opts.tags)) {
+						if (opts.tags.response === true)
+							tags.response = _.cloneDeep(res);
+						else if (Array.isArray(opts.tags.response))
+							tags.response = _.pick(res, opts.tags.response);
+					}
+
+					span.addTags(tags).finish();
 
 					//ctx.duration = span.duration;
 
@@ -116,6 +130,7 @@ module.exports = function TracingMiddleware(broker) {
 					eventName: ctx.eventName,
 					eventType: ctx.eventType,
 					callerNodeID: ctx.nodeID,
+					callingLevel: ctx.level,
 					remoteCall: ctx.nodeID !== broker.nodeID,
 					nodeID: broker.nodeID
 				};
@@ -137,7 +152,7 @@ module.exports = function TracingMiddleware(broker) {
 						tags.meta = _.pick(ctx.meta, opts.tags.meta);
 				}
 
-				const span = broker.tracer.startSpan(`event '${ctx.eventName}'`, {
+				const span = ctx.startSpan(`event '${ctx.eventName}'`, {
 					id: ctx.id,
 					type: "event",
 					traceID: ctx.requestID,
@@ -151,12 +166,14 @@ module.exports = function TracingMiddleware(broker) {
 					tags
 				});
 
+				ctx.tracing = span.sampled;
+
 				// Call the handler
 				return handler.apply(service, arguments).then(() => {
 					span.finish();
 				}).catch(err => {
 					span.setError(err).finish();
-					return service.Promise.reject(err);
+					throw err;
 				});
 
 			}.bind(this);

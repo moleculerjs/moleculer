@@ -139,12 +139,13 @@ declare namespace Moleculer {
 		startSpan(name: string, opts: GenericObject): Span;
 	}
 
-	type TracingTagsFuncType = (ctx: Context) => any;
+	type TracingTagsFuncType = (ctx: Context, response?: any) => any;
 	type TracingOptions = {
 		enabled?: boolean;
-		tags?: {
-			params?: boolean | string[] | TracingTagsFuncType;
-			meta?: boolean | string[] | TracingTagsFuncType;
+		tags?: TracingTagsFuncType | {
+			params?: boolean | string[];
+			meta?: boolean | string[];
+			response?: boolean | string[];
 		}
 	};
 

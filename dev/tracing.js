@@ -1,7 +1,7 @@
 "use strict";
 
 const asyncHooks = require("async_hooks");
-
+/*
 const tracer = require("dd-trace").init({
 	service: "moleculer", // shows up as Service in Datadog UI
 	//url: "http://192.168.0.181:8126",
@@ -11,7 +11,7 @@ const tracer = require("dd-trace").init({
 
 tracer.use("http");
 tracer.use("ioredis");
-
+*/
 
 const ServiceBroker = require("../src/service-broker");
 "use strict";
@@ -47,13 +47,13 @@ const broker = new ServiceBroker({
 					logger: console.info
 				}
 			},
-			{
+			/*{
 				type: "Datadog",
 				options: {
 					tracer,
 					samplingPriority: "USER_KEEP"
 				}
-			},
+			},*/
 			/*{
 				type: "Zipkin",
 				options: {
@@ -65,7 +65,7 @@ const broker = new ServiceBroker({
 				options: {
 					host: "192.168.0.181",
 				}
-			}
+			},
 			/*{
 				type: "Event",
 				options: {
@@ -77,14 +77,6 @@ const broker = new ServiceBroker({
 		]
 	}
 });
-
-// Load Zipkin service
-/*broker.createService({
-	mixins: [JaegerService],
-	settings: {
-		host: "192.168.0.181"
-	}
-});*/
 
 const POSTS = [
 	{ id: 1, title: "First post", content: "Content of first post", author: 2 },
@@ -170,7 +162,11 @@ broker.createService({
 	actions: {
 		get: {
 			tracing: {
-				tags: ["id", "#loggedIn.username"],
+				tags: {
+					params: ["id"],
+					meta: ["loggedIn.username"],
+					response: ["friends"]
+				}
 			},
 			cache: {
 				enabled: true,
