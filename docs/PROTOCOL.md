@@ -196,6 +196,26 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 
 > (*) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string.
 
+### `EVENTACK`
+___Not implemented yet.___
+
+**Topic name:**
+- `MOL.EVENTACK.node-1`
+- `MOL-dev.EVENTACK` (if namespace is `dev`)
+
+**Fields:**
+
+| Field | Type | Required | Description |
+| ----- | ---- | -------- | ----------- |
+| `ver` | `string` | ✔ | Protocol version. Current: `'4'`. |
+| `sender` | `string` | ✔ | Sender nodeID. |
+| `id` | `string` | ✔ | Event Context ID. |
+| `success` | `boolean` | ✔ | Is it successful? |
+| `group` | `string` |   | Group of event handler. |
+| `error` | `object` |  | Error object if not success. (*) |
+
+> (*) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string.
+
 
 ### `PING`
 
