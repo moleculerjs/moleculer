@@ -106,7 +106,7 @@ const MyMiddleware = function(broker) {
 };
 ```
 
-## 3. Use the new context-based event handler signature
+## 4. Use the new context-based event handler signature
 Moleculer detects the signature if your event handler. If it finds that the signature is `"user.created(ctx) { ... }`, it will call it with Event Context. If not, it will call with old arguments & the 4th argument will be the Event Context, like `"user.created"(payload, sender, eventName, ctx) {...}`
 
 **Legacy event handler signature**
@@ -164,8 +164,104 @@ module.exports = {
 };
 ```
 
-## 4. The `node.health` response changed
+## 5. The `node.health` response changed
 The `$node.health` action's response has been changed. The `transit` property is removed. To get transit metrics, use the new `$node.metrics` internal action.
+
+## 6. Use the new metrics & tracing features
+
+**Old broker options**
+```js
+// moleculer.config.js
+module.exports = {
+    metrics: true,
+    metricsRate: 1.0
+};
+```
+
+**New broker options**
+```js
+// moleculer.config.js
+module.exports = {
+    metrics: {
+        enabled: true,
+    },
+    tracing: {
+        enabled: true,
+
+        exporters: [
+            {
+                type: "Zipkin",
+                options: {
+                    baseURL: "http://zipkin-server:9411",
+                }
+            },
+            {
+                type: "Jaeger",
+                options: {
+                    host: "jaeger-server",
+                    port: 6832
+                }
+            }
+        ],
+
+        sampling: {
+            rate: 1.0, // 0.0 - Never, 1.0 > x > 0.0 - Fix, 1.0 - Always
+            tracesPerSecond: null, // 1: 1 trace / sec, 5: 5 traces / sec, 0.1: 1 trace / 10 secs
+            minPriority: null
+        },
+
+        actions: true,
+        events: false,
+
+        errorFields: ["name", "message", "code", "type", "data"],
+        stackTrace: false,
+
+        defaultTags: null,
+    }
+};
+```
+
+**Old way to add params & meta fields to tracing spans**
+```js
+// posts.service.js
+module.exports = {
+    name: "posts",
+    actions: {
+        get: {
+            metrics: {
+                params: ["id"],
+                meta: ["loggedIn.username"],
+            },
+            async handler(ctx) {
+                // ...
+            }
+        }
+    }
+});
+```
+
+**New way to add params, meta or response fields to tracing spans**
+```js
+// posts.service.js
+module.exports = {
+    name: "posts",
+    actions: {
+        get: {
+            tracing: {
+                tags: {
+                    params: ["id"],
+                    meta: ["loggedIn.username"],
+                    response: ["id", "title"] // add data to tags from the action response.
+            },
+            async handler(ctx) {
+                // ...
+            }
+        }
+    }
+});
+```
+
+
 
 **:tada: Well, you are done! :clap:**
 
