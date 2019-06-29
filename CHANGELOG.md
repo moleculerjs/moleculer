@@ -1208,6 +1208,10 @@ module.exports = {
 });
 ```
 
+## `Buffer` supporting improved in serializers
+In earlier version, if request, response or event data was a `Buffer`, the schema-based serializers convert it to JSON string which was not very efficient. In this version all schema-based serializers (ProtoBuf, Avro, Thrift) can detect the type of data & convert it based on the best option and send always as binary data.
+
+
 # Other notable changes
 - Kafka transporter upgrade to support kafka-node@4.
 - rename `ctx.metrics` to `ctx.tracing`.
