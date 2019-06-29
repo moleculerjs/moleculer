@@ -1,9 +1,12 @@
+const utils						= require("../../../../src/utils");
+utils.makeDirs = jest.fn();
+
+const fs						= require("fs");
+fs.writeFile = jest.fn();
+
 const ServiceBroker 			= require("../../../../src/service-broker");
 const Middleware 				= require("../../../../src/middlewares").Debugging.TransitLogger;
-const fs						= require("fs");
 const path						= require("path");
-
-fs.writeFile = jest.fn();
 
 describe("Test ActionLogger", () => {
 
@@ -80,6 +83,9 @@ describe("Test ActionLogger", () => {
 			fs.writeFile.mockClear();
 			Date.now = jest.fn(() => 123456);
 			const mw = createMW({ logger, colors: false, folder: "./logs", extension: ".log", logParams: true });
+
+			expect(utils.makeDirs).toBeCalledTimes(1);
+			expect(utils.makeDirs).toBeCalledWith(path.join("logs", "server-1"));
 
 			const next = jest.fn();
 			const packet = { type: "REQUEST", target: "server-2", payload: { a: 5 } };

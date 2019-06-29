@@ -1,10 +1,14 @@
+const utils						= require("../../../../src/utils");
+utils.makeDirs = jest.fn();
+
+const fs						= require("fs");
+fs.writeFile = jest.fn();
+
 const ServiceBroker 			= require("../../../../src/service-broker");
 const { MoleculerError }		= require("../../../../src/errors");
 const Middleware 				= require("../../../../src/middlewares").Debugging.ActionLogger;
-const fs						= require("fs");
 const path						= require("path");
 
-fs.writeFile = jest.fn();
 
 describe("Test ActionLogger", () => {
 	async function createMW(opts) {
@@ -143,6 +147,9 @@ describe("Test ActionLogger", () => {
 			fs.writeFile.mockClear();
 			Date.now = jest.fn(() => 123456);
 			const broker = await createMW({ logger, colors: false, folder: "./logs", extension: ".log" });
+
+			expect(utils.makeDirs).toBeCalledTimes(1);
+			expect(utils.makeDirs).toBeCalledWith(path.join("logs", "server-1"));
 
 			const res = await broker.call("test.ok", { a: 5 });
 			expect(res).toStrictEqual({ result: "ok" });

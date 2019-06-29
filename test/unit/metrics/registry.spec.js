@@ -1,5 +1,8 @@
 "use strict";
 
+const utils	= require("../../../src/utils");
+utils.makeDirs = jest.fn();
+
 const MetricCommons = require("../../../src/metrics/commons");
 jest.spyOn(MetricCommons, "registerCommonMetrics");
 jest.spyOn(MetricCommons, "updateCommonMetrics");

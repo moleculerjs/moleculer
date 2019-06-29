@@ -1,3 +1,6 @@
+const utils	= require("../../../../src/utils");
+utils.makeDirs = jest.fn();
+
 const { BrokerOptionsError } = require("../../../../src/errors");
 const MetricReporters = require("../../../../src/metrics/reporters");
 
