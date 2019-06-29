@@ -131,7 +131,8 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `id` | `string` | ✔ | Context ID. |
 | `action` | `string` | ✔ | Action name. E.g.: `posts.find` |
-| `params` | `object` | ✔ | `ctx.params` object. (*) |
+| `params` | `object` |   | `ctx.params` object. (**) |
+| `paramsType` | `enum` | ✔ | Data type of `ctx.params`. (***) |
 | `meta` | `object` | ✔ | `ctx.meta` object. (*) |
 | `timeout` | `double` | ✔ | Request timeout (distributed) in milliseconds. |
 | `level` | `int32` | ✔ | Level of request. |
@@ -143,6 +144,8 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `seq` | `int32` |   | Stream sequence number. |
 
 > (*) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string.
+> (**) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string and transferred as binary data.
+> (**) Used only in `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer to detect the original type of data.
 
 ### `RESPONSE`
 
@@ -158,14 +161,16 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `id` | `string` | ✔ | Context ID (from `REQUEST`). |
 | `success` | `boolean` | ✔ | Is it a success response? |
-| `data` | `object` |  | Response data if success. (*) |
+| `data` | `object` |  | Response data if success. (**) |
+| `dataType` | `enum` | ✔ | Data type of `ctx.params`. (***) |
 | `error` | `object` |  | Error object if not success. (*) |
 | `meta` | `object` | ✔ | `ctx.meta` object. (*) |
 | `stream` | `boolean` | ✔ | Stream request. |
 | `seq` | `int32` |   | Stream sequence number. |
 
 > (*) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string.
-
+> (**) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string and transferred as binary data.
+> (**) Used only in `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer to detect the original type of data.
 
 ### `EVENT`
 
@@ -182,7 +187,8 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `id` | `string` | ✔ | Context ID. |
 | `event` | `string` | ✔ | Event name. E.g.: `users.created` |
-| `data` | `object` |   | Event payload. (*) |
+| `data` | `object` |   | Event payload. (**) |
+| `dataType` | `enum` | ✔ | Data type of `ctx.params`. (***) |
 | `meta` | `object` | ✔ | `ctx.meta` object. (*) |
 | `level` | `int32` | ✔ | Level of event. |
 | `tracing` | `boolean` | ✔ | Need to send tracing events. |
@@ -195,6 +201,8 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `broadcast` | `boolean` | ✔ | Broadcast event |
 
 > (*) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string.
+> (**) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string and transferred as binary data.
+> (**) Used only in `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer to detect the original type of data.
 
 ### `EVENTACK`
 ___Not implemented yet.___
@@ -211,7 +219,7 @@ ___Not implemented yet.___
 | `sender` | `string` | ✔ | Sender nodeID. |
 | `id` | `string` | ✔ | Event Context ID. |
 | `success` | `boolean` | ✔ | Is it successful? |
-| `group` | `string` |   | Group of event handler. |
+| `group` | `string` |  | Group of event handler. |
 | `error` | `object` |  | Error object if not success. (*) |
 
 > (*) In case of `ProtoBuf`, `Avro`, `Thrift` or any other schema-based serializer, the field value is encoded to JSON string.
