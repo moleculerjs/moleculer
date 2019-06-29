@@ -17,7 +17,7 @@ describe("Test Event tracing exporter class", () => {
 			const exporter = new EventTraceExporter();
 
 			expect(exporter.opts).toEqual({
-				eventName: "moleculer.tracing.spans",
+				eventName: "$tracing.spans",
 				sendStartSpan: false,
 				sendFinishSpan: true,
 				broadcast: false,
@@ -178,7 +178,7 @@ describe("Test Event tracing exporter class", () => {
 			expect(exporter.queue.length).toEqual(0);
 			expect(broker.broadcast).toHaveBeenCalledTimes(0);
 			expect(broker.emit).toHaveBeenCalledTimes(1);
-			expect(broker.emit).toHaveBeenCalledWith("moleculer.tracing.spans", [{ a: 5 }], { groups: null });
+			expect(broker.emit).toHaveBeenCalledWith("$tracing.spans", [{ a: 5 }], { groups: null });
 		});
 
 		it("should generate & broadcast event with groups", () => {
@@ -195,7 +195,7 @@ describe("Test Event tracing exporter class", () => {
 			expect(exporter.queue.length).toEqual(0);
 			expect(broker.emit).toHaveBeenCalledTimes(0);
 			expect(broker.broadcast).toHaveBeenCalledTimes(1);
-			expect(broker.broadcast).toHaveBeenCalledWith("moleculer.tracing.spans", [{ a: 5 }], { groups: ["mail", "payment"] });
+			expect(broker.broadcast).toHaveBeenCalledWith("$tracing.spans", [{ a: 5 }], { groups: ["mail", "payment"] });
 		});
 
 	});

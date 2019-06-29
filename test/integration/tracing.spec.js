@@ -58,7 +58,7 @@ describe("Test Tracing feature with actions", () => {
 	const broker0 = H.createNode(_.defaultsDeep({ nodeID: "broker-0" }, COMMON_SETTINGS), [{
 		name: "tracing-collector",
 		events: {
-			"moleculer.tracing.spans"(ctx) {
+			"$tracing.spans"(ctx) {
 				STORE.push(...ctx.params);
 			}
 		}
@@ -127,7 +127,7 @@ describe("Test Tracing feature with actions", () => {
 		events: {
 			async "user.updated"(ctx) {
 				const span1 = ctx.startSpan("updating user");
-				// TODO: not perfect. It's parent is the event span and not span1
+				// TODO: not perfect. Its parent is the event span and not span1
 				await ctx.call("friends.count", { userID: 2 });
 				span1.finish();
 			}

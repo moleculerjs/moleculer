@@ -228,6 +228,9 @@ describe("Test ServiceCatalog methods", () => {
 			"events": {
 				"user.created": {
 					"name": "user.created"
+				},
+				"$services.changed": {
+					"name": "$services.changed"
 				}
 			},
 			"metadata": {

@@ -196,8 +196,8 @@ class ServiceCatalog {
 			item.events = {};
 
 			_.forIn(service.events, event => {
-				// Skip internal event handlers
-				if (/^\$/.test(event.name)) return;
+				// Leave internal event handlers, because it can be used for internal events.
+				//if (/^\$/.test(event.name)) return;
 
 				item.events[event.name] = _.omit(event, ["handler", "remoteHandler", "service"]);
 			});

@@ -20,7 +20,7 @@ class EventTraceExporter extends BaseTraceExporter {
 
 		this.opts = _.defaultsDeep(this.opts, {
 			/** @type {String} Base URL for Zipkin server. */
-			eventName: "moleculer.tracing.spans",
+			eventName: "$tracing.spans",
 
 			sendStartSpan: false,
 			sendFinishSpan: true,

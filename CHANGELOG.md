@@ -662,7 +662,7 @@ const broker = new ServiceBroker({
 >To use this exporter, install the `dd-trace` module with `npm install dd-trace --save` command.
 
 #### Event exporter
-Event exporter sends Moleculer events (`moleculer.tracing.spans`) with tracing data.
+Event exporter sends Moleculer events (`$tracing.spans`) with tracing data.
 ```js
 const broker = new ServiceBroker({
     tracing: {
@@ -671,7 +671,7 @@ const broker = new ServiceBroker({
             {
                 type: "Event",
                 options: {
-                    eventName: "moleculer.tracing.spans",
+                    eventName: "$tracing.spans",
 
                     sendStartSpan: false,
                     sendFinishSpan: true,
