@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -285,10 +285,10 @@ class Cacher {
 											return handler(ctx).then(result => {
 												// Save the result to the cache and realse the lock.
 												return this.set(cacheKey, result, opts.ttl).then(()=>unlock());
-											}).catch(err => {
+											}).catch((/*err*/) => {
 												return this.del(cacheKey).then(()=>unlock());
 											});
-										}).catch(err=>{
+										}).catch((/*err*/)=>{
 											// The cache is refreshing on somewhere else.
 										});
 									}

@@ -1,6 +1,5 @@
 "use strict";
 
-const os = require("os");
 const lolex = require("lolex");
 const request = require("supertest");
 

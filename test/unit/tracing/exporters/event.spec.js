@@ -4,8 +4,6 @@ const lolex = require("lolex");
 
 const EventTraceExporter = require("../../../../src/tracing/exporters/event");
 const ServiceBroker = require("../../../../src/service-broker");
-const Tracer = require("../../../../src/tracing/tracer");
-const { MoleculerRetryableError } = require("../../../../src/errors");
 
 const broker = new ServiceBroker({ logger: false });
 

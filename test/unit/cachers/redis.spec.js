@@ -52,11 +52,11 @@ describe("Test RedisCacher cluster", () => {
 			},
 			cluster: {
 				nodes: [{
-					host: 'localhost',
+					host: "localhost",
 					port: 6379
 				}]
 			}
-		}
+		};
 
 		let cacher = new RedisCacher(opts);
 		expect(cacher).toBeDefined();
@@ -73,11 +73,11 @@ describe("Test RedisCacher cluster", () => {
 			},
 			cluster: {
 				nodes: [{
-					host: 'localhost',
+					host: "localhost",
 					port: 6379
 				}]
 			}
-		}
+		};
 
 		let cacher = new RedisCacher(opts);
 		expect(cacher).toBeDefined();
@@ -97,12 +97,12 @@ describe("Test RedisCacher cluster", () => {
 			cluster: {
 				nodes: []
 			}
-		}
+		};
 
 		let cacher = new RedisCacher(opts);
 		expect(cacher).toBeDefined();
 		expect(cacher.opts).toEqual(opts);
-		expect(() => { cacher.init(broker); }).toThrowError('No nodes defined for cluster');
+		expect(() => { cacher.init(broker); }).toThrowError("No nodes defined for cluster");
 	});
 });
 

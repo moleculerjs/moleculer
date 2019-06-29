@@ -25,7 +25,7 @@ describe("Test Async Storage class", () => {
 			.then(() => {
 				expect(storage.getSessionData()).toBe(context);
 			});
-			/*.then(() => new Promise(resolve => setTimeout(resolve, 50)));
+		/*.then(() => new Promise(resolve => setTimeout(resolve, 50)));
 			.then(() => {
 				// TODO: need fix
 				expect(storage.getSessionData()).toBe(context);

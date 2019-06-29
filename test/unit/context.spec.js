@@ -1,9 +1,8 @@
 "use strict";
 
-let Promise = require("bluebird");
-let Context = require("../../src/context");
-let ServiceBroker = require("../../src/service-broker");
-let { RequestSkippedError, MaxCallLevelError } = require("../../src/errors");
+const Context = require("../../src/context");
+const ServiceBroker = require("../../src/service-broker");
+const { RequestSkippedError, MaxCallLevelError } = require("../../src/errors");
 const { protectReject } = require("./utils");
 const lolex = require("lolex");
 

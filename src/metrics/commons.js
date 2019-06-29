@@ -275,7 +275,7 @@ function updateCommonMetrics() {
 				// silent
 			}
 		}))
-		.catch(err => {
+		.catch(() => {
 			// silent this.logger.warn("Unable to collect CPU usage metrics.", err);
 		})
 		.then(() => {

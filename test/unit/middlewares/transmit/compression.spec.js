@@ -1,4 +1,3 @@
-const _ = require("lodash");
 const ServiceBroker = require("../../../../src/service-broker");
 const Middleware = require("../../../../src/middlewares").Transmit.Compression;
 const { protectReject } = require("../../utils");

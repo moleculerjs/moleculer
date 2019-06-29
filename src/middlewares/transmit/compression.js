@@ -39,9 +39,6 @@ module.exports = function CompressionMiddleware(opts) {
 			throw new Error("Unknow compression method: " + opts.method);
 	}
 
-	let savingSent = 0;
-	let savingReceived = 0;
-
 	return {
 		name: "Compression",
 
@@ -54,7 +51,6 @@ module.exports = function CompressionMiddleware(opts) {
 			return (topic, data, meta) => {
 				return compress(data)
 					.then(res => {
-						savingSent += data.length - res.length;
 						this.logger.debug(`Packet '${topic}' compressed. Saving: ${Number((1 - (res.length / data.length)) * 100).toFixed(0)}%`, data.length, res.length);
 						return next(topic, res, meta);
 					});
@@ -65,7 +61,6 @@ module.exports = function CompressionMiddleware(opts) {
 			return (cmd, data, s) => {
 				return decompress(data)
 					.then(res => {
-						savingReceived += res.length - data.length;
 						this.logger.debug(`Packet '${cmd}' decompressed. Saving: ${Number((1 - (res.length / data.length)) * 100).toFixed(0)}%`, data.length, res.length);
 						return next(cmd, res, s);
 					});

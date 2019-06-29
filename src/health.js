@@ -1,13 +1,12 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
 const os = require("os");
-const _ = require("lodash");
 const { getIpList } = require("./utils");
 const MOLECULER_VERSION = require("../package.json").version;
 
@@ -85,7 +84,7 @@ const getDateTimeInfo = () => {
 	};
 };
 
-const getHealthStatus = (broker) => {
+const getHealthStatus = (/*broker*/) => {
 	return {
 		cpu: getCpuInfo(),
 		mem: getMemoryInfo(),

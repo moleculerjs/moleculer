@@ -19,7 +19,6 @@ jest.mock("../../../src/tracing/span", () => {
 jest.mock("../../../src/tracing/rate-limiter");
 const RateLimiter = require("../../../src/tracing/rate-limiter");
 
-const lolex = require("lolex");
 const ServiceBroker = require("../../../src/service-broker");
 const Tracer = require("../../../src/tracing/tracer");
 const Span = require("../../../src/tracing/span");

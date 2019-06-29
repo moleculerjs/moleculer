@@ -1,11 +1,7 @@
 "use strict";
 
-const lolex = require("lolex");
-
 const ConsoleTraceExporter = require("../../../../src/tracing/exporters/console");
 const ServiceBroker = require("../../../../src/service-broker");
-const Tracer = require("../../../../src/tracing/tracer");
-const { MoleculerRetryableError } = require("../../../../src/errors");
 
 const broker = new ServiceBroker({ logger: false });
 

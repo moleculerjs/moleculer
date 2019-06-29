@@ -1,10 +1,7 @@
 "use strict";
 
-const lolex = require("lolex");
-
 const EventLegacyTraceExporter = require("../../../../src/tracing/exporters/event-legacy");
 const ServiceBroker = require("../../../../src/service-broker");
-const Tracer = require("../../../../src/tracing/tracer");
 const { MoleculerRetryableError } = require("../../../../src/errors");
 
 const broker = new ServiceBroker({ logger: false, nodeID: "node-123" });

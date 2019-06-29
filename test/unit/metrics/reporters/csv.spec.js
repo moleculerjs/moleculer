@@ -287,7 +287,7 @@ describe("Test CSVReporter class", () => {
 
 		it("should write changes only", () => {
 			ROWS = [];
-			reporter.opts.rowFormatter = jest.fn((data, headers, metric, item) => {
+			reporter.opts.rowFormatter = jest.fn((data, headers/*, metric, item*/) => {
 				data.push("MyData");
 				headers.push("MyField");
 			});

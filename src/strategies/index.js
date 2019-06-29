@@ -36,7 +36,7 @@ function getByName(name) {
  * @memberof ServiceBroker
  */
 function resolve(opt) {
-	if (Strategies.Base.isPrototypeOf(opt)) {
+	if (Object.prototype.isPrototypeOf.call(Strategies.Base, opt)) {
 		return opt;
 	} else if (_.isString(opt)) {
 		let SerializerClass = getByName(opt);

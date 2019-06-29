@@ -8,7 +8,6 @@ jest.mock("../../../src/tracing/now", () => {
 });
 const now = require("../../../src/tracing/now");
 
-const lolex = require("lolex");
 const ServiceBroker = require("../../../src/service-broker");
 const Span = require("../../../src/tracing/span");
 

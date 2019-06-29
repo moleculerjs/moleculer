@@ -2,10 +2,6 @@
 
 const Promise = require("bluebird");
 const _ = require("lodash");
-
-const ServiceBroker = require("../../src/service-broker");
-const { MoleculerError } = require("../../src/errors");
-const { protectReject } = require("../unit/utils");
 const H = require("./helpers");
 
 const POSTS = [
@@ -73,7 +69,7 @@ describe("Test Tracing feature with actions", () => {
 
 					await Promise.all(posts.map(async post => {
 						const author = await ctx.call("users.get", { id: post.author });
-						post.author = author;
+						post.author = author; //eslint-disable-line
 						return post;
 					}));
 

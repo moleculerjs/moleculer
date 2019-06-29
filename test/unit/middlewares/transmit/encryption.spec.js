@@ -1,8 +1,6 @@
-const _ = require("lodash");
 const crypto = require("crypto");
 const ServiceBroker = require("../../../../src/service-broker");
 const Middleware = require("../../../../src/middlewares").Transmit.Encryption;
-const { protectReject } = require("../../utils");
 
 describe("Test EncryptionMiddleware", () => {
 	const broker = new ServiceBroker({ logger: false });

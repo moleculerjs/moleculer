@@ -35,7 +35,6 @@ RemoteControlledSampler.mockImplementation(() => fakeRemoteControlledSampler);
 
 const JaegerTraceExporter = require("../../../../src/tracing/exporters/jaeger");
 const ServiceBroker = require("../../../../src/service-broker");
-const Tracer = require("../../../../src/tracing/tracer");
 const { MoleculerRetryableError } = require("../../../../src/errors");
 
 const broker = new ServiceBroker({ logger: false });

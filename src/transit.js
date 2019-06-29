@@ -6,7 +6,7 @@
 
 "use strict";
 
-const Promise 			= require("bluebird");
+const Promise 			= require("bluebird"); // eslint-disable-line
 const _ 				= require("lodash");
 
 const P 				= require("./packets");

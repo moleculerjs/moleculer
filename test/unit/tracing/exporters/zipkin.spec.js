@@ -8,7 +8,6 @@ fetch.mockImplementation(() => Promise.resolve({ statusText: "" }));
 
 const ZipkinTraceExporter = require("../../../../src/tracing/exporters/zipkin");
 const ServiceBroker = require("../../../../src/service-broker");
-const Tracer = require("../../../../src/tracing/tracer");
 const { MoleculerRetryableError } = require("../../../../src/errors");
 
 const broker = new ServiceBroker({ logger: false });
