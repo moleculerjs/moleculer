@@ -4,6 +4,7 @@ const { protectReject } = require("../utils");
 jest.mock("ioredis");
 
 const RedisCacher = require("../../../src/cachers/redis");
+let Redis = require("ioredis");
 
 
 describe("Test RedisCacher constructor", () => {
@@ -39,6 +40,70 @@ describe("Test RedisCacher constructor", () => {
 		});
 	});
 
+});
+
+describe("Test RedisCacher cluster", () => {
+
+	it("should create with redis opts", () => {
+		let opts = {
+			type: "Redis",
+			options: {
+				ttl: 30
+			},
+			cluster: {
+				nodes: [{
+					host: 'localhost',
+					port: 6379
+				}]
+			}
+		}
+
+		let cacher = new RedisCacher(opts);
+		expect(cacher).toBeDefined();
+		expect(cacher.opts).toEqual(opts);
+	});
+
+	it("should init redis cluster", () => {
+		let broker = new ServiceBroker({ logger: false });
+
+		let opts = {
+			type: "Redis",
+			options: {
+				ttl: 30
+			},
+			cluster: {
+				nodes: [{
+					host: 'localhost',
+					port: 6379
+				}]
+			}
+		}
+
+		let cacher = new RedisCacher(opts);
+		expect(cacher).toBeDefined();
+		expect(cacher.opts).toEqual(opts);
+		cacher.init(broker);
+		expect(cacher.client).toBeInstanceOf(Redis.Cluster);
+	});
+
+	it("should fail to init redis cluster without nodes", () => {
+		let broker = new ServiceBroker({ logger: false });
+
+		let opts = {
+			type: "Redis",
+			options: {
+				ttl: 30
+			},
+			cluster: {
+				nodes: []
+			}
+		}
+
+		let cacher = new RedisCacher(opts);
+		expect(cacher).toBeDefined();
+		expect(cacher.opts).toEqual(opts);
+		expect(() => { cacher.init(broker); }).toThrowError('No nodes defined for cluster');
+	});
 });
 
 describe("Test RedisCacher set & get without prefix", () => {
