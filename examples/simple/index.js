@@ -26,7 +26,7 @@ broker.start()
 		return broker.call("math.div", { a: 8, b: 4 }).then(res => broker.logger.info("  8 / 4 =", res));
 	})
 	.then(() => {
-	// Divide by zero! Throw error...
+		// Divide by zero! Throw error...
 		return broker.call("math.div", { a: 5, b: 0 }).then(res => broker.logger.info("  5 / 0 =", res));
 	})
 	.catch(err => {
@@ -37,4 +37,4 @@ broker.start()
 
 //broker.repl();
 
-// Please note, the process will exit because we didn't define transporter or API gateway.
+// Please note, the process will exit because we didn't define transporter or API gateway which can keep-alive the event-loop.
