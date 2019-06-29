@@ -86,15 +86,15 @@ const mailService = {
 
 describe("Test service registry", () => {
 	const servicesChanged = jest.fn();
-	const master = H.createNode("first", "master", [{
+	const master = H.createNode({ namespace: "first", nodeID: "master" }, [{
 		name: "watcher",
 		events: {
 			"$services.changed": servicesChanged
 		}
 	}]);
-	const node1 = H.createNode("first", "node-1", [userService]);
+	const node1 = H.createNode({ namespace: "first", nodeID: "node-1" }, [userService]);
 
-	let node2 = H.createNode("first", "node-2", [userService, paymentService]);
+	let node2 = H.createNode({ namespace: "first", nodeID: "node-2" }, [userService, paymentService]);
 
 	beforeAll(() => master.start());
 	afterAll(() => master.stop());
@@ -186,7 +186,7 @@ describe("Test service registry", () => {
 	it("node2 recreate with posts, paymentMod", () => {
 		servicesChanged.mockClear();
 
-		node2 = H.createNode("first", "node-2", [paymentModService, postService]);
+		node2 = H.createNode({ namespace: "first", nodeID: "node-2" }, [paymentModService, postService]);
 
 		return node2.start().delay(100).then(() => {
 			let infoNode2 = H.getNode(master, "node-2");
@@ -234,8 +234,8 @@ describe("Test service registry", () => {
 });
 
 describe("Test action visibilities", () => {
-	const master = H.createNode("second", "master", []);
-	const node1 = H.createNode("second", "node-1", [userService]);
+	const master = H.createNode({ namespace: "second", nodeID: "master" }, []);
+	const node1 = H.createNode({ namespace: "second", nodeID: "node-1" }, [userService]);
 
 	beforeAll(() => Promise.all([master.start(), node1.start()]));
 	afterAll(() => Promise.all([master.stop(), node1.stop()]));

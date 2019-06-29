@@ -144,10 +144,9 @@ describe("Test circuit breaker", () => {
 			.catch(protectReject);
 	});
 
-	/*
-		TODO: Not working because timer created before lolex install.
+	// TODO: Not working because timer created before lolex install.
 
-	it("should reset values by window timer", () => {
+	it.skip("should reset values by window timer", () => {
 		return master1.call("cb.angry")
 			.then(protectReject)
 			.catch(err => expect(err.name).toBe("MoleculerError"))
@@ -197,6 +196,5 @@ describe("Test circuit breaker", () => {
 			});
 	});
 
-*/
 });
 
