@@ -84,27 +84,18 @@ class Serializer {
 				break;
 			}
 			case P.PACKET_EVENT: {
-				if (obj.data != null && !obj.stream)
-					obj.data = JSON.stringify(obj.data);
-
+				this.convertDataToTransport(obj, "data", "dataType");
 				obj.meta = JSON.stringify(obj.meta);
 				break;
 			}
 			case P.PACKET_REQUEST: {
-				if (!obj.stream) {
-					obj.params = JSON.stringify(obj.params);
-				}
+				this.convertDataToTransport(obj, "params", "paramsType");
 				obj.meta = JSON.stringify(obj.meta);
 				break;
 			}
 			case P.PACKET_RESPONSE: {
+				this.convertDataToTransport(obj, "data", "dataType");
 				obj.meta = JSON.stringify(obj.meta);
-				if (obj.data != undefined) {
-					if (!obj.stream) {
-						obj.data = JSON.stringify(obj.data);
-					}
-
-				}
 				if (obj.error)
 					obj.error = JSON.stringify(obj.error);
 				break;
@@ -147,26 +138,18 @@ class Serializer {
 				break;
 			}
 			case P.PACKET_EVENT: {
-				if (obj.data != null && !obj.stream)
-					obj.data = JSON.parse(obj.data);
-
+				this.convertDataFromTransport(obj, "data", "dataType");
 				obj.meta = JSON.parse(obj.meta);
 				break;
 			}
 			case P.PACKET_REQUEST: {
-				if (!obj.stream) {
-					obj.params = JSON.parse(obj.params);
-				}
+				this.convertDataFromTransport(obj, "params", "paramsType");
 				obj.meta = JSON.parse(obj.meta);
 				break;
 			}
 			case P.PACKET_RESPONSE: {
+				this.convertDataFromTransport(obj, "data", "dataType");
 				obj.meta = JSON.parse(obj.meta);
-				if (obj.data != null) {
-					if (!obj.stream) {
-						obj.data = JSON.parse(obj.data);
-					}
-				}
 				if (obj.error)
 					obj.error = JSON.parse(obj.error);
 				break;
@@ -188,6 +171,46 @@ class Serializer {
 		}
 
 		return obj;
+	}
+
+	convertDataToTransport(obj, field, fieldType) {
+		if (obj[field] === undefined) {
+			obj[fieldType] = P.DATATYPE_UNDEFINED;
+		} else if (obj[field] === null) {
+			obj[fieldType] = P.DATATYPE_NULL;
+		} else if (Buffer.isBuffer(obj[field])) {
+			obj[fieldType] = P.DATATYPE_BUFFER;
+		} else {
+			// JSON
+			obj[fieldType] = P.DATATYPE_JSON;
+			obj[field] = Buffer.from(JSON.stringify(obj[field]));
+		}
+	}
+
+	convertDataFromTransport(obj, field, fieldType) {
+		const type = obj[fieldType];
+		switch(type) {
+			case P.DATATYPE_UNDEFINED: {
+				obj[field] = undefined;
+				break;
+			}
+			case P.DATATYPE_NULL: {
+				obj[field] = null;
+				break;
+			}
+			case P.DATATYPE_BUFFER: {
+				if (!Buffer.isBuffer(obj[field]))
+					obj[field] = Buffer.from(obj[field]);
+				break;
+			}
+			default: {
+				// JSON
+				obj[field] = JSON.parse(obj[field]);
+				break;
+			}
+		}
+
+		delete obj[fieldType];
 	}
 }
 

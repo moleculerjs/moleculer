@@ -114,7 +114,7 @@ describe("Test ProtoBuf serializer", () => {
 			needAck: true
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(119);
+		expect(s.length).toBe(122);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
@@ -142,7 +142,7 @@ describe("Test ProtoBuf serializer", () => {
 			needAck: true
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(136);
+		expect(s.length).toBe(139);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
@@ -166,7 +166,7 @@ describe("Test ProtoBuf serializer", () => {
 			needAck: true
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(99);
+		expect(s.length).toBe(102);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
@@ -189,11 +189,11 @@ describe("Test ProtoBuf serializer", () => {
 			needAck: true
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(99);
+		expect(s.length).toBe(102);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
-		expect(res).toEqual(Object.assign(obj, { groups: [], data: null }));
+		expect(res).toEqual(Object.assign(obj, { groups: [], data: undefined }));
 	});
 
 	it("should serialize the request packet", () => {
@@ -219,7 +219,7 @@ describe("Test ProtoBuf serializer", () => {
 			seq: null
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_REQUEST);
-		expect(s.length).toBe(114);
+		expect(s.length).toBe(116);
 
 		const res = serializer.deserialize(s, P.PACKET_REQUEST);
 		expect(res).not.toBe(obj);
@@ -249,7 +249,7 @@ describe("Test ProtoBuf serializer", () => {
 			seq: null
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_REQUEST);
-		expect(s.length).toBe(110);
+		expect(s.length).toBe(106);
 
 		const res = serializer.deserialize(s, P.PACKET_REQUEST);
 		expect(res).not.toBe(obj);
@@ -280,7 +280,7 @@ describe("Test ProtoBuf serializer", () => {
 		};
 
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_REQUEST);
-		expect(s.length).toBe(107);
+		expect(s.length).toBe(109);
 
 		const res = serializer.deserialize(s, P.PACKET_REQUEST);
 		expect(res).not.toBe(obj);
@@ -307,7 +307,7 @@ describe("Test ProtoBuf serializer", () => {
 			seq: null
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(108);
+		expect(s.length).toBe(110);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).not.toBe(obj);
@@ -325,7 +325,7 @@ describe("Test ProtoBuf serializer", () => {
 			stream: false
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(33);
+		expect(s.length).toBe(35);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).not.toBe(obj);
@@ -349,7 +349,7 @@ describe("Test ProtoBuf serializer", () => {
 			seq: 6
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(74);
+		expect(s.length).toBe(76);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).not.toBe(obj);
@@ -367,7 +367,7 @@ describe("Test ProtoBuf serializer", () => {
 			stream: false
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(26);
+		expect(s.length).toBe(28);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).not.toBe(obj);
@@ -402,11 +402,11 @@ describe("Test ProtoBuf serializer", () => {
 			seq: null
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(227);
+		expect(s.length).toBe(229);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).not.toBe(obj);
-		expect(res).toEqual(Object.assign(obj, { data: null, seq: undefined }));
+		expect(res).toEqual(Object.assign(obj, { seq: undefined }));
 	});
 
 	it("should serialize the ping packet", () => {

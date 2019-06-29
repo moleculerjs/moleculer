@@ -11,6 +11,12 @@ let Q = thrift.Q;
 
 
 let ttypes = module.exports = {};
+ttypes.DataType = {
+	"DATATYPE_UNDEFINED" : 0,
+	"DATATYPE_NULL" : 1,
+	"DATATYPE_JSON" : 2,
+	"DATATYPE_BUFFER" : 3
+};
 
 /* istanbul ignore next */
 let PacketEvent = module.exports.PacketEvent = function(args) {
@@ -19,6 +25,7 @@ let PacketEvent = module.exports.PacketEvent = function(args) {
 	this.id = null;
 	this.event = null;
 	this.data = null;
+	this.dataType = null;
 	this.groups = null;
 	this.broadcast = null;
 	this.meta = null;
@@ -45,6 +52,9 @@ let PacketEvent = module.exports.PacketEvent = function(args) {
 		}
 		if (args.data !== undefined && args.data !== null) {
 			this.data = args.data;
+		}
+		if (args.dataType !== undefined && args.dataType !== null) {
+			this.dataType = args.dataType;
 		}
 		if (args.groups !== undefined && args.groups !== null) {
 			this.groups = Thrift.copyList(args.groups, [null]);
@@ -128,6 +138,13 @@ PacketEvent.prototype.read = function(input) {
 				}
 				break;
 			case 6:
+				if (ftype == Thrift.Type.I32) {
+					this.dataType = input.readI32();
+				} else {
+					input.skip(ftype);
+				}
+				break;
+			case 7:
 				if (ftype == Thrift.Type.LIST) {
 					this.groups = [];
 					let _rtmp31 = input.readListBegin();
@@ -142,70 +159,70 @@ PacketEvent.prototype.read = function(input) {
 					input.skip(ftype);
 				}
 				break;
-			case 7:
+			case 8:
 				if (ftype == Thrift.Type.BOOL) {
 					this.broadcast = input.readBool();
 				} else {
 					input.skip(ftype);
 				}
 				break;
-			case 8:
+			case 9:
 				if (ftype == Thrift.Type.STRING) {
 					this.meta = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
-			case 9:
+			case 10:
 				if (ftype == Thrift.Type.I32) {
 					this.level = input.readI32();
 				} else {
 					input.skip(ftype);
 				}
 				break;
-			case 10:
+			case 11:
 				if (ftype == Thrift.Type.BOOL) {
 					this.tracing = input.readBool();
 				} else {
 					input.skip(ftype);
 				}
 				break;
-			case 11:
+			case 12:
 				if (ftype == Thrift.Type.STRING) {
 					this.parentID = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
-			case 12:
+			case 13:
 				if (ftype == Thrift.Type.STRING) {
 					this.requestID = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
-			case 13:
+			case 14:
 				if (ftype == Thrift.Type.BOOL) {
 					this.stream = input.readBool();
 				} else {
 					input.skip(ftype);
 				}
 				break;
-			case 14:
+			case 15:
 				if (ftype == Thrift.Type.I32) {
 					this.seq = input.readI32();
 				} else {
 					input.skip(ftype);
 				}
 				break;
-			case 15:
+			case 16:
 				if (ftype == Thrift.Type.STRING) {
 					this.caller = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
-			case 16:
+			case 17:
 				if (ftype == Thrift.Type.BOOL) {
 					this.needAck = input.readBool();
 				} else {
@@ -248,8 +265,13 @@ PacketEvent.prototype.write = function(output) {
 		output.writeBinary(this.data);
 		output.writeFieldEnd();
 	}
+	if (this.dataType !== null && this.dataType !== undefined) {
+		output.writeFieldBegin("dataType", Thrift.Type.I32, 6);
+		output.writeI32(this.dataType);
+		output.writeFieldEnd();
+	}
 	if (this.groups !== null && this.groups !== undefined) {
-		output.writeFieldBegin("groups", Thrift.Type.LIST, 6);
+		output.writeFieldBegin("groups", Thrift.Type.LIST, 7);
 		output.writeListBegin(Thrift.Type.STRING, this.groups.length);
 		for (let iter4 in this.groups) {
 			if (this.groups.hasOwnProperty(iter4)) {
@@ -261,52 +283,52 @@ PacketEvent.prototype.write = function(output) {
 		output.writeFieldEnd();
 	}
 	if (this.broadcast !== null && this.broadcast !== undefined) {
-		output.writeFieldBegin("broadcast", Thrift.Type.BOOL, 7);
+		output.writeFieldBegin("broadcast", Thrift.Type.BOOL, 8);
 		output.writeBool(this.broadcast);
 		output.writeFieldEnd();
 	}
 	if (this.meta !== null && this.meta !== undefined) {
-		output.writeFieldBegin("meta", Thrift.Type.STRING, 8);
+		output.writeFieldBegin("meta", Thrift.Type.STRING, 9);
 		output.writeString(this.meta);
 		output.writeFieldEnd();
 	}
 	if (this.level !== null && this.level !== undefined) {
-		output.writeFieldBegin("level", Thrift.Type.I32, 9);
+		output.writeFieldBegin("level", Thrift.Type.I32, 10);
 		output.writeI32(this.level);
 		output.writeFieldEnd();
 	}
 	if (this.tracing !== null && this.tracing !== undefined) {
-		output.writeFieldBegin("tracing", Thrift.Type.BOOL, 10);
+		output.writeFieldBegin("tracing", Thrift.Type.BOOL, 11);
 		output.writeBool(this.tracing);
 		output.writeFieldEnd();
 	}
 	if (this.parentID !== null && this.parentID !== undefined) {
-		output.writeFieldBegin("parentID", Thrift.Type.STRING, 11);
+		output.writeFieldBegin("parentID", Thrift.Type.STRING, 12);
 		output.writeString(this.parentID);
 		output.writeFieldEnd();
 	}
 	if (this.requestID !== null && this.requestID !== undefined) {
-		output.writeFieldBegin("requestID", Thrift.Type.STRING, 12);
+		output.writeFieldBegin("requestID", Thrift.Type.STRING, 13);
 		output.writeString(this.requestID);
 		output.writeFieldEnd();
 	}
 	if (this.stream !== null && this.stream !== undefined) {
-		output.writeFieldBegin("stream", Thrift.Type.BOOL, 13);
+		output.writeFieldBegin("stream", Thrift.Type.BOOL, 14);
 		output.writeBool(this.stream);
 		output.writeFieldEnd();
 	}
 	if (this.seq !== null && this.seq !== undefined) {
-		output.writeFieldBegin("seq", Thrift.Type.I32, 14);
+		output.writeFieldBegin("seq", Thrift.Type.I32, 15);
 		output.writeI32(this.seq);
 		output.writeFieldEnd();
 	}
 	if (this.caller !== null && this.caller !== undefined) {
-		output.writeFieldBegin("caller", Thrift.Type.STRING, 15);
+		output.writeFieldBegin("caller", Thrift.Type.STRING, 16);
 		output.writeString(this.caller);
 		output.writeFieldEnd();
 	}
 	if (this.needAck !== null && this.needAck !== undefined) {
-		output.writeFieldBegin("needAck", Thrift.Type.BOOL, 16);
+		output.writeFieldBegin("needAck", Thrift.Type.BOOL, 17);
 		output.writeBool(this.needAck);
 		output.writeFieldEnd();
 	}
@@ -321,6 +343,7 @@ let PacketRequest = module.exports.PacketRequest = function(args) {
 	this.id = null;
 	this.action = null;
 	this.params = null;
+	this.paramsType = null;
 	this.meta = null;
 	this.timeout = null;
 	this.level = null;
@@ -345,6 +368,9 @@ let PacketRequest = module.exports.PacketRequest = function(args) {
 		}
 		if (args.params !== undefined && args.params !== null) {
 			this.params = args.params;
+		}
+		if (args.paramsType !== undefined && args.paramsType !== null) {
+			this.paramsType = args.paramsType;
 		}
 		if (args.meta !== undefined && args.meta !== null) {
 			this.meta = args.meta;
@@ -422,62 +448,69 @@ PacketRequest.prototype.read = function(input) {
 				}
 				break;
 			case 6:
+				if (ftype == Thrift.Type.I32) {
+					this.paramsType = input.readI32();
+				} else {
+					input.skip(ftype);
+				}
+				break;
+			case 7:
 				if (ftype == Thrift.Type.STRING) {
 					this.meta = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
-			case 7:
+			case 8:
 				if (ftype == Thrift.Type.DOUBLE) {
 					this.timeout = input.readDouble();
 				} else {
 					input.skip(ftype);
 				}
 				break;
-			case 8:
+			case 9:
 				if (ftype == Thrift.Type.I32) {
 					this.level = input.readI32();
 				} else {
 					input.skip(ftype);
 				}
 				break;
-			case 9:
+			case 10:
 				if (ftype == Thrift.Type.BOOL) {
 					this.tracing = input.readBool();
 				} else {
 					input.skip(ftype);
 				}
 				break;
-			case 10:
+			case 11:
 				if (ftype == Thrift.Type.STRING) {
 					this.parentID = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
-			case 11:
+			case 12:
 				if (ftype == Thrift.Type.STRING) {
 					this.requestID = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
-			case 12:
+			case 13:
 				if (ftype == Thrift.Type.BOOL) {
 					this.stream = input.readBool();
 				} else {
 					input.skip(ftype);
 				}
 				break;
-			case 13:
+			case 14:
 				if (ftype == Thrift.Type.I32) {
 					this.seq = input.readI32();
 				} else {
 					input.skip(ftype);
 				}
 				break;
-			case 14:
+			case 15:
 				if (ftype == Thrift.Type.STRING) {
 					this.caller = input.readString();
 				} else {
@@ -520,48 +553,53 @@ PacketRequest.prototype.write = function(output) {
 		output.writeBinary(this.params);
 		output.writeFieldEnd();
 	}
+	if (this.paramsType !== null && this.paramsType !== undefined) {
+		output.writeFieldBegin("paramsType", Thrift.Type.I32, 6);
+		output.writeI32(this.paramsType);
+		output.writeFieldEnd();
+	}
 	if (this.meta !== null && this.meta !== undefined) {
-		output.writeFieldBegin("meta", Thrift.Type.STRING, 6);
+		output.writeFieldBegin("meta", Thrift.Type.STRING, 7);
 		output.writeString(this.meta);
 		output.writeFieldEnd();
 	}
 	if (this.timeout !== null && this.timeout !== undefined) {
-		output.writeFieldBegin("timeout", Thrift.Type.DOUBLE, 7);
+		output.writeFieldBegin("timeout", Thrift.Type.DOUBLE, 8);
 		output.writeDouble(this.timeout);
 		output.writeFieldEnd();
 	}
 	if (this.level !== null && this.level !== undefined) {
-		output.writeFieldBegin("level", Thrift.Type.I32, 8);
+		output.writeFieldBegin("level", Thrift.Type.I32, 9);
 		output.writeI32(this.level);
 		output.writeFieldEnd();
 	}
 	if (this.tracing !== null && this.tracing !== undefined) {
-		output.writeFieldBegin("tracing", Thrift.Type.BOOL, 9);
+		output.writeFieldBegin("tracing", Thrift.Type.BOOL, 10);
 		output.writeBool(this.tracing);
 		output.writeFieldEnd();
 	}
 	if (this.parentID !== null && this.parentID !== undefined) {
-		output.writeFieldBegin("parentID", Thrift.Type.STRING, 10);
+		output.writeFieldBegin("parentID", Thrift.Type.STRING, 11);
 		output.writeString(this.parentID);
 		output.writeFieldEnd();
 	}
 	if (this.requestID !== null && this.requestID !== undefined) {
-		output.writeFieldBegin("requestID", Thrift.Type.STRING, 11);
+		output.writeFieldBegin("requestID", Thrift.Type.STRING, 12);
 		output.writeString(this.requestID);
 		output.writeFieldEnd();
 	}
 	if (this.stream !== null && this.stream !== undefined) {
-		output.writeFieldBegin("stream", Thrift.Type.BOOL, 12);
+		output.writeFieldBegin("stream", Thrift.Type.BOOL, 13);
 		output.writeBool(this.stream);
 		output.writeFieldEnd();
 	}
 	if (this.seq !== null && this.seq !== undefined) {
-		output.writeFieldBegin("seq", Thrift.Type.I32, 13);
+		output.writeFieldBegin("seq", Thrift.Type.I32, 14);
 		output.writeI32(this.seq);
 		output.writeFieldEnd();
 	}
 	if (this.caller !== null && this.caller !== undefined) {
-		output.writeFieldBegin("caller", Thrift.Type.STRING, 14);
+		output.writeFieldBegin("caller", Thrift.Type.STRING, 15);
 		output.writeString(this.caller);
 		output.writeFieldEnd();
 	}
@@ -576,6 +614,7 @@ let PacketResponse = module.exports.PacketResponse = function(args) {
 	this.id = null;
 	this.success = null;
 	this.data = null;
+	this.dataType = null;
 	this.error = null;
 	this.meta = null;
 	this.stream = null;
@@ -595,6 +634,9 @@ let PacketResponse = module.exports.PacketResponse = function(args) {
 		}
 		if (args.data !== undefined && args.data !== null) {
 			this.data = args.data;
+		}
+		if (args.dataType !== undefined && args.dataType !== null) {
+			this.dataType = args.dataType;
 		}
 		if (args.error !== undefined && args.error !== null) {
 			this.error = args.error;
@@ -657,27 +699,34 @@ PacketResponse.prototype.read = function(input) {
 				}
 				break;
 			case 6:
-				if (ftype == Thrift.Type.STRING) {
-					this.error = input.readString();
+				if (ftype == Thrift.Type.I32) {
+					this.dataType = input.readI32();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 7:
 				if (ftype == Thrift.Type.STRING) {
-					this.meta = input.readString();
+					this.error = input.readString();
 				} else {
 					input.skip(ftype);
 				}
 				break;
 			case 8:
+				if (ftype == Thrift.Type.STRING) {
+					this.meta = input.readString();
+				} else {
+					input.skip(ftype);
+				}
+				break;
+			case 9:
 				if (ftype == Thrift.Type.BOOL) {
 					this.stream = input.readBool();
 				} else {
 					input.skip(ftype);
 				}
 				break;
-			case 9:
+			case 10:
 				if (ftype == Thrift.Type.I32) {
 					this.seq = input.readI32();
 				} else {
@@ -720,23 +769,28 @@ PacketResponse.prototype.write = function(output) {
 		output.writeBinary(this.data);
 		output.writeFieldEnd();
 	}
+	if (this.dataType !== null && this.dataType !== undefined) {
+		output.writeFieldBegin("dataType", Thrift.Type.I32, 6);
+		output.writeI32(this.dataType);
+		output.writeFieldEnd();
+	}
 	if (this.error !== null && this.error !== undefined) {
-		output.writeFieldBegin("error", Thrift.Type.STRING, 6);
+		output.writeFieldBegin("error", Thrift.Type.STRING, 7);
 		output.writeString(this.error);
 		output.writeFieldEnd();
 	}
 	if (this.meta !== null && this.meta !== undefined) {
-		output.writeFieldBegin("meta", Thrift.Type.STRING, 7);
+		output.writeFieldBegin("meta", Thrift.Type.STRING, 8);
 		output.writeString(this.meta);
 		output.writeFieldEnd();
 	}
 	if (this.stream !== null && this.stream !== undefined) {
-		output.writeFieldBegin("stream", Thrift.Type.BOOL, 8);
+		output.writeFieldBegin("stream", Thrift.Type.BOOL, 9);
 		output.writeBool(this.stream);
 		output.writeFieldEnd();
 	}
 	if (this.seq !== null && this.seq !== undefined) {
-		output.writeFieldBegin("seq", Thrift.Type.I32, 9);
+		output.writeFieldBegin("seq", Thrift.Type.I32, 10);
 		output.writeI32(this.seq);
 		output.writeFieldEnd();
 	}

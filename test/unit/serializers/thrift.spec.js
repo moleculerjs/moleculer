@@ -113,7 +113,7 @@ describe("Test ProtoBuf serializer", () => {
 
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(175);
+		expect(s.length).toBe(182);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
@@ -142,7 +142,7 @@ describe("Test ProtoBuf serializer", () => {
 
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(204);
+		expect(s.length).toBe(211);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
@@ -167,7 +167,7 @@ describe("Test ProtoBuf serializer", () => {
 
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(150);
+		expect(s.length).toBe(157);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
@@ -191,11 +191,11 @@ describe("Test ProtoBuf serializer", () => {
 
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(150);
+		expect(s.length).toBe(157);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
-		expect(res).toEqual(Object.assign(obj, { data: null, groups: null, seq: null, stream: null }));
+		expect(res).toEqual(Object.assign(obj, { groups: null, seq: null, stream: null }));
 	});
 
 	it("should serialize the request packet", () => {
@@ -221,7 +221,7 @@ describe("Test ProtoBuf serializer", () => {
 			seq: null
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_REQUEST);
-		expect(s.length).toBe(171);
+		expect(s.length).toBe(178);
 
 		const res = serializer.deserialize(s, P.PACKET_REQUEST);
 		expect(res).not.toBe(obj);
@@ -251,7 +251,7 @@ describe("Test ProtoBuf serializer", () => {
 			seq: null
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_REQUEST);
-		expect(s.length).toBe(167);
+		expect(s.length).toBe(163);
 
 		const res = serializer.deserialize(s, P.PACKET_REQUEST);
 		expect(res).not.toBe(obj);
@@ -282,7 +282,7 @@ describe("Test ProtoBuf serializer", () => {
 		};
 
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_REQUEST);
-		expect(s.length).toBe(164);
+		expect(s.length).toBe(171);
 
 		const res = serializer.deserialize(s, P.PACKET_REQUEST);
 		expect(res).not.toBe(obj);
@@ -309,7 +309,7 @@ describe("Test ProtoBuf serializer", () => {
 			seq: null
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(138);
+		expect(s.length).toBe(145);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).not.toBe(obj);
@@ -328,7 +328,7 @@ describe("Test ProtoBuf serializer", () => {
 			stream: false
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(70);
+		expect(s.length).toBe(77);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).not.toBe(obj);
@@ -352,7 +352,7 @@ describe("Test ProtoBuf serializer", () => {
 			seq: 6
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(109);
+		expect(s.length).toBe(116);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).not.toBe(obj);
@@ -371,7 +371,7 @@ describe("Test ProtoBuf serializer", () => {
 			stream: false
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(58);
+		expect(s.length).toBe(65);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).not.toBe(obj);
@@ -406,11 +406,11 @@ describe("Test ProtoBuf serializer", () => {
 			seq: 0
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(263);
+		expect(s.length).toBe(270);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).not.toBe(obj);
-		expect(res).toEqual(Object.assign(obj, { data: null }));
+		expect(res).toEqual(obj);
 	});
 
 	it("should serialize the ping packet", () => {

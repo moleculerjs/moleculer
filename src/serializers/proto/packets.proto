@@ -2,40 +2,49 @@
 package packets;
 syntax = "proto3";
 
+enum DataType {
+	DATATYPE_UNDEFINED = 0;
+	DATATYPE_NULL = 1;
+	DATATYPE_JSON = 2;
+	DATATYPE_BUFFER = 3;
+}
+
 message PacketEvent {
 	required string ver 		= 1;
 	required string sender 		= 2;
 	required string id 			= 3;
 	required string event 		= 4;
 	optional bytes data 		= 5;
-	repeated string groups 		= 6;
-	required bool broadcast		= 7;
-	required string meta 		= 8;
-	required int32 level 		= 9;
-	optional bool tracing 		= 10;
-	optional string parentID 	= 11;
-	optional string requestID 	= 12;
-	optional bool stream 		= 13;
-	optional int32 seq 			= 14;
-	optional string caller 		= 15;
-	required bool needAck		= 16;
+	required DataType dataType  = 6;
+	repeated string groups 		= 7;
+	required bool broadcast		= 8;
+	required string meta 		= 9;
+	required int32 level 		= 10;
+	optional bool tracing 		= 11;
+	optional string parentID 	= 12;
+	optional string requestID 	= 13;
+	optional bool stream 		= 14;
+	optional int32 seq 			= 15;
+	optional string caller 		= 16;
+	required bool needAck		= 17;
 }
 
 message PacketRequest {
-	required string ver 		= 1;
-	required string sender 		= 2;
-	required string id 			= 3;
-	required string action 		= 4;
-	optional bytes params 		= 5;
-	required string meta 		= 6;
-	required double timeout		= 7;
-	required int32 level 		= 8;
-	optional bool tracing 		= 9;
-	optional string parentID 	= 10;
-	optional string requestID 	= 11;
-	optional bool stream 		= 12;
-	optional int32 seq 			= 13;
-	optional string caller 		= 14;
+	required string ver 			= 1;
+	required string sender 			= 2;
+	required string id 				= 3;
+	required string action 			= 4;
+	optional bytes params 			= 5;
+	required DataType paramsType  	= 6;
+	required string meta 			= 7;
+	required double timeout			= 8;
+	required int32 level 			= 9;
+	optional bool tracing 			= 10;
+	optional string parentID 		= 11;
+	optional string requestID 		= 12;
+	optional bool stream 			= 13;
+	optional int32 seq 				= 14;
+	optional string caller 			= 15;
 }
 
 message PacketResponse {
@@ -44,10 +53,11 @@ message PacketResponse {
 	required string id 			= 3;
 	required bool success 		= 4;
 	optional bytes data 		= 5;
-	optional string error 		= 6;
-	required string meta 		= 7;
-	optional bool stream 		= 8;
-	optional int32 seq 			= 9;
+	required DataType dataType  = 6;
+	optional string error 		= 7;
+	required string meta 		= 8;
+	optional bool stream 		= 9;
+	optional int32 seq 			= 10;
 }
 
 message PacketDiscover {

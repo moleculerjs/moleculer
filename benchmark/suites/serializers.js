@@ -5,6 +5,7 @@ const ServiceBroker = require("../../src/service-broker");
 const Serializers = require("../../src/serializers");
 const P = require("../../src/packets");
 const crypto = require("crypto");
+const _ = require("lodash");
 
 const { getDataFile } = require("../utils");
 
@@ -38,18 +39,26 @@ function runTest(dataName) {
 	const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
 		ver:"4",
 		sender: "node-100",
+		id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 		event: "user.created",
 		data: payload,
-		broadcast: true
+		broadcast: true,
+		meta: {},
+		level: 1,
+		needAck: false
 	});
 
 	bench1.ref("JSON", () => {
 		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
 			ver:"4",
 			sender: "node-100",
+			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",
 			data: payload,
-			broadcast: true
+			broadcast: true,
+			meta: {},
+			level: 1,
+			needAck: false
 		});
 		return JsonSer.serialize(packet.payload, packet.type);
 	});
@@ -71,9 +80,14 @@ function runTest(dataName) {
 		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
 			ver:"4",
 			sender: "node-100",
+			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",
 			data: payload,
-			broadcast: true
+			broadcast: true,
+			meta: {},
+			level: 1,
+			needAck: false
+
 		});
 		return circularSerialize(packet.payload, packet.type);
 	});*/
@@ -82,9 +96,13 @@ function runTest(dataName) {
 		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
 			ver:"4",
 			sender: "node-100",
+			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",
 			data: payload,
-			broadcast: true
+			broadcast: true,
+			meta: {},
+			level: 1,
+			needAck: false
 		});
 		return AvroSer.serialize(packet.payload, packet.type);
 	});
@@ -93,9 +111,13 @@ function runTest(dataName) {
 		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
 			ver:"4",
 			sender: "node-100",
+			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",
 			data: payload,
-			broadcast: true
+			broadcast: true,
+			meta: {},
+			level: 1,
+			needAck: false
 		});
 		return MsgPackSer.serialize(packet.payload, packet.type);
 	});
@@ -104,9 +126,13 @@ function runTest(dataName) {
 		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
 			ver:"4",
 			sender: "node-100",
+			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",
 			data: payload,
-			broadcast: true
+			broadcast: true,
+			meta: {},
+			level: 1,
+			needAck: false
 		});
 		return protoBufSer.serialize(packet.payload, packet.type);
 	});
@@ -115,9 +141,13 @@ function runTest(dataName) {
 		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
 			ver:"4",
 			sender: "node-100",
+			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",
 			data: payload,
-			broadcast: true
+			broadcast: true,
+			meta: {},
+			level: 1,
+			needAck: false
 		});
 		return thriftSer.serialize(packet.payload, packet.type);
 	});
@@ -126,19 +156,23 @@ function runTest(dataName) {
 		const packet = new P.Packet(P.PACKET_EVENT, "node-101", {
 			ver:"4",
 			sender: "node-100",
+			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",
 			data: payload,
-			broadcast: true
+			broadcast: true,
+			meta: {},
+			level: 1,
+			needAck: false
 		});
 		return notepackSer.serialize(packet.payload, packet.type);
 	});
 
-	console.log("JSON length:", JsonSer.serialize(packet.payload, packet.type).length);
-	console.log("Avro length:", AvroSer.serialize(packet.payload, packet.type).length);
-	console.log("MsgPack length:", MsgPackSer.serialize(packet.payload, packet.type).length);
-	console.log("ProtoBuf length:", protoBufSer.serialize(packet.payload, packet.type).length);
-	console.log("Thrift length:", thriftSer.serialize(packet.payload, packet.type).length);
-	console.log("Notepack length:", notepackSer.serialize(packet.payload, packet.type).length);
+	console.log("JSON length:", JsonSer.serialize(_.cloneDeep(packet.payload), packet.type).length);
+	console.log("Avro length:", AvroSer.serialize(_.cloneDeep(packet.payload), packet.type).length);
+	console.log("MsgPack length:", MsgPackSer.serialize(_.cloneDeep(packet.payload), packet.type).length);
+	console.log("ProtoBuf length:", protoBufSer.serialize(_.cloneDeep(packet.payload), packet.type).length);
+	console.log("Thrift length:", thriftSer.serialize(_.cloneDeep(packet.payload), packet.type).length);
+	console.log("Notepack length:", notepackSer.serialize(_.cloneDeep(packet.payload), packet.type).length);
 
 	return bench1.run()
 		.then(() => {
@@ -163,136 +197,136 @@ Platform info:
    V8: 6.2.414.50
    Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz × 8
 
-JSON length: 89
-Avro length: 38
-MsgPack length: 69
-ProtoBuf length: 45
-Thrift length: 76
-Notepack length: 81
+JSON length: 169
+Avro length: 87
+MsgPack length: 126
+ProtoBuf length: 90
+Thrift length: 134
+Notepack length: 126
 Suite: Serialize packet with 10bytes
-√ JSON               803,696 rps
-√ Avro               578,574 rps
-√ MsgPack             75,582 rps
-√ ProtoBuf           745,775 rps
-√ Thrift             110,671 rps
-√ Notepack           652,254 rps
+√ JSON               579,367 rps
+√ Avro               310,125 rps
+√ MsgPack             44,379 rps
+√ ProtoBuf           389,871 rps
+√ Thrift              62,683 rps
+√ Notepack           427,605 rps
 
-   JSON (#)            0%        (803,696 rps)   (avg: 1μs)
-   Avro           -28.01%        (578,574 rps)   (avg: 1μs)
-   MsgPack         -90.6%         (75,582 rps)   (avg: 13μs)
-   ProtoBuf        -7.21%        (745,775 rps)   (avg: 1μs)
-   Thrift         -86.23%        (110,671 rps)   (avg: 9μs)
-   Notepack       -18.84%        (652,254 rps)   (avg: 1μs)
+   JSON (#)            0%        (579,367 rps)   (avg: 1μs)
+   Avro           -46.47%        (310,125 rps)   (avg: 3μs)
+   MsgPack        -92.34%         (44,379 rps)   (avg: 22μs)
+   ProtoBuf       -32.71%        (389,871 rps)   (avg: 2μs)
+   Thrift         -89.18%         (62,683 rps)   (avg: 15μs)
+   Notepack       -26.19%        (427,605 rps)   (avg: 2μs)
 -----------------------------------------------------------------------
 
-JSON length: 1131
-Avro length: 1081
-MsgPack length: 1113
-ProtoBuf length: 1170
-Thrift length: 1364
-Notepack length: 1371
+JSON length: 1211
+Avro length: 1130
+MsgPack length: 1081
+ProtoBuf length: 1133
+Thrift length: 1176
+Notepack length: 1081
 Suite: Serialize packet with 1kbytes
-√ JSON               148,192 rps
-√ Avro               120,391 rps
-√ MsgPack             17,091 rps
-√ ProtoBuf           139,487 rps
-√ Thrift              56,970 rps
-√ Notepack            96,203 rps
+√ JSON               146,389 rps
+√ Avro               101,556 rps
+√ MsgPack             14,739 rps
+√ ProtoBuf           116,900 rps
+√ Thrift              45,601 rps
+√ Notepack           102,082 rps
 
-   JSON (#)            0%        (148,192 rps)   (avg: 6μs)
-   Avro           -18.76%        (120,391 rps)   (avg: 8μs)
-   MsgPack        -88.47%         (17,091 rps)   (avg: 58μs)
-   ProtoBuf        -5.87%        (139,487 rps)   (avg: 7μs)
-   Thrift         -61.56%         (56,970 rps)   (avg: 17μs)
-   Notepack       -35.08%         (96,203 rps)   (avg: 10μs)
+   JSON (#)            0%        (146,389 rps)   (avg: 6μs)
+   Avro           -30.63%        (101,556 rps)   (avg: 9μs)
+   MsgPack        -89.93%         (14,739 rps)   (avg: 67μs)
+   ProtoBuf       -20.14%        (116,900 rps)   (avg: 8μs)
+   Thrift         -68.85%         (45,601 rps)   (avg: 21μs)
+   Notepack       -30.27%        (102,082 rps)   (avg: 9μs)
 -----------------------------------------------------------------------
 
-JSON length: 50601
-Avro length: 50552
-MsgPack length: 50583
-ProtoBuf length: 54187
-Thrift length: 61472
-Notepack length: 61479
+JSON length: 50681
+Avro length: 50601
+MsgPack length: 46725
+ProtoBuf length: 50604
+Thrift length: 50646
+Notepack length: 46725
 Suite: Serialize packet with 50kbytes
-√ JSON                 4,056 rps
-√ Avro                 3,984 rps
-√ MsgPack                474 rps
-√ ProtoBuf             4,301 rps
-√ Thrift               3,370 rps
-√ Notepack             2,455 rps
+√ JSON                 4,337 rps
+√ Avro                 3,863 rps
+√ MsgPack                472 rps
+√ ProtoBuf             3,881 rps
+√ Thrift               3,671 rps
+√ Notepack             2,670 rps
 
-   JSON (#)            0%          (4,056 rps)   (avg: 246μs)
-   Avro            -1.79%          (3,984 rps)   (avg: 251μs)
-   MsgPack        -88.32%            (474 rps)   (avg: 2ms)
-   ProtoBuf        +6.05%          (4,301 rps)   (avg: 232μs)
-   Thrift         -16.91%          (3,370 rps)   (avg: 296μs)
-   Notepack       -39.48%          (2,455 rps)   (avg: 407μs)
+   JSON (#)            0%          (4,337 rps)   (avg: 230μs)
+   Avro           -10.92%          (3,863 rps)   (avg: 258μs)
+   MsgPack        -89.12%            (472 rps)   (avg: 2ms)
+   ProtoBuf       -10.51%          (3,881 rps)   (avg: 257μs)
+   Thrift         -15.34%          (3,671 rps)   (avg: 272μs)
+   Notepack       -38.44%          (2,670 rps)   (avg: 374μs)
 -----------------------------------------------------------------------
 
-JSON length: 101100
-Avro length: 101051
-MsgPack length: 101084
-ProtoBuf length: 108312
-Thrift length: 122849
-Notepack length: 122858
+JSON length: 101180
+Avro length: 101100
+MsgPack length: 93311
+ProtoBuf length: 101103
+Thrift length: 101145
+Notepack length: 93311
 Suite: Serialize packet with 100kbytes
-√ JSON                 2,045 rps
-√ Avro                 2,024 rps
-√ MsgPack                235 rps
-√ ProtoBuf             2,181 rps
-√ Thrift               1,733 rps
-√ Notepack             1,240 rps
+√ JSON                 2,213 rps
+√ Avro                 1,997 rps
+√ MsgPack                234 rps
+√ ProtoBuf             2,014 rps
+√ Thrift               1,954 rps
+√ Notepack             1,341 rps
 
-   JSON (#)            0%          (2,045 rps)   (avg: 489μs)
-   Avro            -1.02%          (2,024 rps)   (avg: 494μs)
-   MsgPack        -88.51%            (235 rps)   (avg: 4ms)
-   ProtoBuf        +6.65%          (2,181 rps)   (avg: 458μs)
-   Thrift         -15.26%          (1,733 rps)   (avg: 577μs)
-   Notepack       -39.38%          (1,240 rps)   (avg: 806μs)
+   JSON (#)            0%          (2,213 rps)   (avg: 451μs)
+   Avro            -9.78%          (1,997 rps)   (avg: 500μs)
+   MsgPack        -89.42%            (234 rps)   (avg: 4ms)
+   ProtoBuf        -8.99%          (2,014 rps)   (avg: 496μs)
+   Thrift         -11.71%          (1,954 rps)   (avg: 511μs)
+   Notepack       -39.43%          (1,341 rps)   (avg: 745μs)
 -----------------------------------------------------------------------
 
-JSON length: 36774
-Avro length: 36725
-MsgPack length: 36756
-ProtoBuf length: 36736
-Thrift length: 36773
-Notepack length: 36780
+JSON length: 36772
+Avro length: 10319
+MsgPack length: 10364
+ProtoBuf length: 10321
+Thrift length: 10364
+Notepack length: 10364
 Suite: Serialize packet with buf-10240bytes
-√ JSON                 2,059 rps
-√ Avro                 2,026 rps
-√ MsgPack             35,863 rps
-√ ProtoBuf             2,109 rps
-√ Thrift               1,905 rps
-√ Notepack           106,605 rps
+√ JSON                 2,222 rps
+√ Avro                88,351 rps
+√ MsgPack             29,847 rps
+√ ProtoBuf            91,665 rps
+√ Thrift              49,646 rps
+√ Notepack           115,223 rps
 
-   JSON (#)            0%          (2,059 rps)   (avg: 485μs)
-   Avro            -1.57%          (2,026 rps)   (avg: 493μs)
-   MsgPack       +1,641.94%         (35,863 rps)   (avg: 27μs)
-   ProtoBuf        +2.44%          (2,109 rps)   (avg: 474μs)
-   Thrift          -7.46%          (1,905 rps)   (avg: 524μs)
-   Notepack      +5,077.95%        (106,605 rps)   (avg: 9μs)
+   JSON (#)            0%          (2,222 rps)   (avg: 450μs)
+   Avro          +3,876.92%         (88,351 rps)   (avg: 11μs)
+   MsgPack       +1,243.49%         (29,847 rps)   (avg: 33μs)
+   ProtoBuf      +4,026.09%         (91,665 rps)   (avg: 10μs)
+   Thrift        +2,134.72%         (49,646 rps)   (avg: 20μs)
+   Notepack      +5,086.54%        (115,223 rps)   (avg: 8μs)
 -----------------------------------------------------------------------
 
-JSON length: 365859
-Avro length: 365810
-MsgPack length: 365843
-ProtoBuf length: 365821
-Thrift length: 365858
-Notepack length: 365867
+JSON length: 365804
+Avro length: 102479
+MsgPack length: 102526
+ProtoBuf length: 102482
+Thrift length: 102524
+Notepack length: 102526
 Suite: Serialize packet with buf-102400bytes
-√ JSON                   181 rps
-√ Avro                   185 rps
-√ MsgPack              7,451 rps
-√ ProtoBuf               187 rps
-√ Thrift                 172 rps
-√ Notepack            13,976 rps
+√ JSON                   202 rps
+√ Avro                13,727 rps
+√ MsgPack              7,190 rps
+√ ProtoBuf            14,791 rps
+√ Thrift              11,875 rps
+√ Notepack            14,714 rps
 
-   JSON (#)            0%            (181 rps)   (avg: 5ms)
-   Avro            +2.22%            (185 rps)   (avg: 5ms)
-   MsgPack       +4,022.8%          (7,451 rps)   (avg: 134μs)
-   ProtoBuf        +3.42%            (187 rps)   (avg: 5ms)
-   Thrift          -4.59%            (172 rps)   (avg: 5ms)
-   Notepack      +7,633.56%         (13,976 rps)   (avg: 71μs)
+   JSON (#)            0%            (202 rps)   (avg: 4ms)
+   Avro          +6,707.38%         (13,727 rps)   (avg: 72μs)
+   MsgPack       +3,465.35%          (7,190 rps)   (avg: 139μs)
+   ProtoBuf      +7,234.99%         (14,791 rps)   (avg: 67μs)
+   Thrift        +5,789.03%         (11,875 rps)   (avg: 84μs)
+   Notepack      +7,196.84%         (14,714 rps)   (avg: 67μs)
 -----------------------------------------------------------------------
 
 

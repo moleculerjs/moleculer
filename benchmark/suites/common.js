@@ -110,7 +110,8 @@ let bench5 = benchmark.createSuite("Remote call with FakeTransporter");
 		transporter: new Transporter(),
 		requestTimeout: 0,
 		serializer: new Serializer(),
-		nodeID: "node-2"
+		nodeID: "node-2",
+		trackContext: true
 	});
 
 	b2.createService({
@@ -130,8 +131,7 @@ let bench5 = benchmark.createSuite("Remote call with FakeTransporter");
 	});
 
 	bench5.add("Remote call echo.reply with tracking", done => {
-		b2.options.trackContext = true;
-		return b1.call("echo.reply", { a: c++ }, { trackContext: true }).then(done);
+		return b1.call("echo.reply", { a: c++ }).then(done);
 	});
 })();
 // ----------------------------------------------------------------

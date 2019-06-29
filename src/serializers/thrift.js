@@ -64,63 +64,6 @@ class ThriftSerializer extends BaseSerializer {
 		}
 	}
 
-
-	/**
-	 * Serialize custom fields (stringify)
-	 *
-	 * @param {String} type
-	 * @param {Packet} obj
-	 * @returns {Packet}
-	 * @memberof Serializer
-	 */
-	serializeCustomFields(type, obj) {
-		obj = super.serializeCustomFields(type, obj);
-
-		switch(type) {
-			case P.PACKET_REQUEST: {
-				if (!obj.stream)
-					obj.params = Buffer.from(obj.params);
-				break;
-			}
-			case P.PACKET_RESPONSE: {
-				if (obj.data && !obj.stream)
-					obj.data = Buffer.from(obj.data);
-				break;
-			}
-		}
-
-		return obj;
-	}
-
-	/**
-	 * Deserialize custom fields
-	 *
-	 * @param {String} type
-	 * @param {Packet} obj
-	 * @returns {Packet}
-	 * @memberof Serializer
-	 */
-	deserializeCustomFields(type, obj) {
-		switch(type) {
-			case P.PACKET_REQUEST: {
-				if (!obj.stream)
-					obj.params = obj.params.toString("utf8");
-				break;
-			}
-			case P.PACKET_RESPONSE: {
-				if (obj.data && !obj.stream) {
-					if (obj.data.length)
-						obj.data = obj.data.toString("utf8");
-					else
-						obj.data = undefined;
-				}
-				break;
-			}
-		}
-
-		return super.deserializeCustomFields(type, obj);
-	}
-
 	/**
 	 * Serializer a JS object to Buffer
 	 *

@@ -7,16 +7,15 @@ const path = require("path");
 const chalk = require("chalk");
 const crypto = require("crypto");
 
-const password = "moleculer";
+const transporter = "TCP";
+const serializer = "ProtoBuf";
 
 // Create broker #1
 const broker1 = new ServiceBroker({
 	namespace: "streaming",
 	nodeID: "client-" + process.pid,
-	transporter: "TCP",
-	serializer: "JSON",
-	logger: console,
-	logLevel: "info"
+	transporter,
+	serializer
 });
 
 
@@ -24,22 +23,23 @@ const broker1 = new ServiceBroker({
 const broker2 = new ServiceBroker({
 	namespace: "streaming",
 	nodeID: "encrypter-" + process.pid,
-	transporter: "TCP",
-	serializer: "JSON",
-	logger: console,
-	logLevel: "info"
+	transporter,
+	serializer
 });
+
+const pass = crypto.randomBytes(32);
+const iv = crypto.randomBytes(16);
 
 broker2.createService({
 	name: "aes",
 	actions: {
 		encrypt(ctx) {
-			const encrypt = crypto.createCipher("aes-256-ctr", password);
+			const encrypt = crypto.createCipheriv("aes-256-ctr", pass, iv);
 			return ctx.params.pipe(encrypt);
 		},
 
 		decrypt(ctx) {
-			const decrypt = crypto.createDecipher("aes-256-ctr", password);
+			const decrypt = crypto.createDecipheriv("aes-256-ctr", pass, iv);
 			return ctx.params.pipe(decrypt);
 		}
 	}
@@ -75,17 +75,15 @@ function callAES() {
 			const s = fs.createWriteStream(fileName2);
 			stream.pipe(s);
 			s.on("close", () => {
-				broker1.logger.info("Time:", Date.now() - startTime + "ms");
+				const duration = Date.now() - startTime;
 				getSHA(fileName2).then(hash => {
-					broker1.logger.info("Received SHA:", hash);
-
 					if (hash != origHash) {
-						broker1.logger.error(chalk.red.bold("Hash mismatch!"));
+						broker1.logger.error(chalk.red.bold("Hash mismatch! Time:", duration, "ms. Received SHA:", hash));
 					} else {
-						broker1.logger.info(chalk.green.bold("Hash OK!"));
+						broker1.logger.info(chalk.green.bold("Hash OK! Time:", duration, "ms. Received SHA:", hash));
 					}
 
-					setImmediate(() => callAES());
+					setTimeout(() => callAES(), 100);
 				});
 			});
 		})

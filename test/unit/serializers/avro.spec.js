@@ -112,7 +112,7 @@ describe("Test Avro serializer", () => {
 			needAck: true
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(113);
+		expect(s.length).toBe(114);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
@@ -140,7 +140,7 @@ describe("Test Avro serializer", () => {
 			needAck: true
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(130);
+		expect(s.length).toBe(131);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
@@ -164,7 +164,7 @@ describe("Test Avro serializer", () => {
 			needAck: true
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(94);
+		expect(s.length).toBe(95);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
@@ -187,11 +187,11 @@ describe("Test Avro serializer", () => {
 			needAck: true
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(94);
+		expect(s.length).toBe(95);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);
-		expect(res).toEqual(Object.assign(obj, { groups: null, data: null, seq: null, stream: null }));
+		expect(res).toEqual(Object.assign(obj, { groups: null, seq: null, stream: null }));
 	});
 
 	it("should serialize the request packet", () => {
@@ -217,7 +217,7 @@ describe("Test Avro serializer", () => {
 			seq: null
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_REQUEST);
-		expect(s.length).toBe(109);
+		expect(s.length).toBe(110);
 
 		const res = serializer.deserialize(s, P.PACKET_REQUEST);
 		expect(res).not.toBe(obj);
@@ -247,7 +247,7 @@ describe("Test Avro serializer", () => {
 			seq: null
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_REQUEST);
-		expect(s.length).toBe(105);
+		expect(s.length).toBe(101);
 
 		const res = serializer.deserialize(s, P.PACKET_REQUEST);
 		expect(res).not.toBe(obj);
@@ -278,7 +278,7 @@ describe("Test Avro serializer", () => {
 		};
 
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_REQUEST);
-		expect(s.length).toBe(102);
+		expect(s.length).toBe(103);
 
 		const res = serializer.deserialize(s, P.PACKET_REQUEST);
 		expect(res).not.toBe(obj);
@@ -305,7 +305,7 @@ describe("Test Avro serializer", () => {
 			seq: null
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(105);
+		expect(s.length).toBe(106);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).not.toBe(obj);
@@ -324,7 +324,7 @@ describe("Test Avro serializer", () => {
 			seq: 3
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(31);
+		expect(s.length).toBe(32);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).not.toBe(obj);
@@ -348,7 +348,7 @@ describe("Test Avro serializer", () => {
 			seq: 6
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(70);
+		expect(s.length).toBe(71);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).not.toBe(obj);
@@ -367,7 +367,7 @@ describe("Test Avro serializer", () => {
 			seq: 3,
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(25);
+		expect(s.length).toBe(26);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).not.toBe(obj);
@@ -402,11 +402,11 @@ describe("Test Avro serializer", () => {
 			seq: null
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_RESPONSE);
-		expect(s.length).toBe(224);
+		expect(s.length).toBe(225);
 
 		const res = serializer.deserialize(s, P.PACKET_RESPONSE);
 		expect(res).not.toBe(obj);
-		expect(res).toEqual(Object.assign(obj, { data: null }));
+		expect(res).toEqual(obj);
 	});
 
 	it("should serialize the ping packet", () => {

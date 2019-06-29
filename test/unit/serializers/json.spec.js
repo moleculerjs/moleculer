@@ -19,17 +19,21 @@ describe("Test JSONSerializer", () => {
 
 	it("should serialize the event packet", () => {
 		const obj = {
-			ver: "4",
-			sender: "test-1",
+			ver:"4",
+			sender: "node-100",
+			id: "8b3c7371-7f0a-4aa2-b734-70ede29e1bbb",
 			event: "user.created",
 			data: {
 				a: 5,
 				b: "Test"
 			},
-			broadcast: true
+			broadcast: true,
+			meta: {},
+			level: 1,
+			needAck: false
 		};
 		const s = serializer.serialize(cloneDeep(obj), P.PACKET_EVENT);
-		expect(s.length).toBe(95);
+		expect(s.length).toBe(177);
 
 		const res = serializer.deserialize(s, P.PACKET_EVENT);
 		expect(res).not.toBe(obj);

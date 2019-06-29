@@ -19,6 +19,24 @@ $root.packets = (function() {
      */
 	var packets = {};
 
+	/**
+     * DataType enum.
+     * @name packets.DataType
+     * @enum {string}
+     * @property {number} DATATYPE_UNDEFINED=0 DATATYPE_UNDEFINED value
+     * @property {number} DATATYPE_NULL=1 DATATYPE_NULL value
+     * @property {number} DATATYPE_JSON=2 DATATYPE_JSON value
+     * @property {number} DATATYPE_BUFFER=3 DATATYPE_BUFFER value
+     */
+	packets.DataType = (function() {
+		var valuesById = {}, values = Object.create(valuesById);
+		values[valuesById[0] = "DATATYPE_UNDEFINED"] = 0;
+		values[valuesById[1] = "DATATYPE_NULL"] = 1;
+		values[valuesById[2] = "DATATYPE_JSON"] = 2;
+		values[valuesById[3] = "DATATYPE_BUFFER"] = 3;
+		return values;
+	})();
+
 	packets.PacketEvent = (function() {
 
 		/**
@@ -30,6 +48,7 @@ $root.packets = (function() {
          * @property {string} id PacketEvent id
          * @property {string} event PacketEvent event
          * @property {Uint8Array|null} [data] PacketEvent data
+         * @property {packets.DataType} dataType PacketEvent dataType
          * @property {Array.<string>|null} [groups] PacketEvent groups
          * @property {boolean} broadcast PacketEvent broadcast
          * @property {string} meta PacketEvent meta
@@ -98,6 +117,14 @@ $root.packets = (function() {
          * @instance
          */
 		PacketEvent.prototype.data = $util.newBuffer([]);
+
+		/**
+         * PacketEvent dataType.
+         * @member {packets.DataType} dataType
+         * @memberof packets.PacketEvent
+         * @instance
+         */
+		PacketEvent.prototype.dataType = 0;
 
 		/**
          * PacketEvent groups.
@@ -217,25 +244,26 @@ $root.packets = (function() {
 			writer.uint32(/* id 4, wireType 2 =*/34).string(message.event);
 			if (message.data != null && message.hasOwnProperty("data"))
 				writer.uint32(/* id 5, wireType 2 =*/42).bytes(message.data);
+			writer.uint32(/* id 6, wireType 0 =*/48).int32(message.dataType);
 			if (message.groups != null && message.groups.length)
 				for (var i = 0; i < message.groups.length; ++i)
-					writer.uint32(/* id 6, wireType 2 =*/50).string(message.groups[i]);
-			writer.uint32(/* id 7, wireType 0 =*/56).bool(message.broadcast);
-			writer.uint32(/* id 8, wireType 2 =*/66).string(message.meta);
-			writer.uint32(/* id 9, wireType 0 =*/72).int32(message.level);
+					writer.uint32(/* id 7, wireType 2 =*/58).string(message.groups[i]);
+			writer.uint32(/* id 8, wireType 0 =*/64).bool(message.broadcast);
+			writer.uint32(/* id 9, wireType 2 =*/74).string(message.meta);
+			writer.uint32(/* id 10, wireType 0 =*/80).int32(message.level);
 			if (message.tracing != null && message.hasOwnProperty("tracing"))
-				writer.uint32(/* id 10, wireType 0 =*/80).bool(message.tracing);
+				writer.uint32(/* id 11, wireType 0 =*/88).bool(message.tracing);
 			if (message.parentID != null && message.hasOwnProperty("parentID"))
-				writer.uint32(/* id 11, wireType 2 =*/90).string(message.parentID);
+				writer.uint32(/* id 12, wireType 2 =*/98).string(message.parentID);
 			if (message.requestID != null && message.hasOwnProperty("requestID"))
-				writer.uint32(/* id 12, wireType 2 =*/98).string(message.requestID);
+				writer.uint32(/* id 13, wireType 2 =*/106).string(message.requestID);
 			if (message.stream != null && message.hasOwnProperty("stream"))
-				writer.uint32(/* id 13, wireType 0 =*/104).bool(message.stream);
+				writer.uint32(/* id 14, wireType 0 =*/112).bool(message.stream);
 			if (message.seq != null && message.hasOwnProperty("seq"))
-				writer.uint32(/* id 14, wireType 0 =*/112).int32(message.seq);
+				writer.uint32(/* id 15, wireType 0 =*/120).int32(message.seq);
 			if (message.caller != null && message.hasOwnProperty("caller"))
-				writer.uint32(/* id 15, wireType 2 =*/122).string(message.caller);
-			writer.uint32(/* id 16, wireType 0 =*/128).bool(message.needAck);
+				writer.uint32(/* id 16, wireType 2 =*/130).string(message.caller);
+			writer.uint32(/* id 17, wireType 0 =*/136).bool(message.needAck);
 			return writer;
 		};
 
@@ -286,38 +314,41 @@ $root.packets = (function() {
 						message.data = reader.bytes();
 						break;
 					case 6:
+						message.dataType = reader.int32();
+						break;
+					case 7:
 						if (!(message.groups && message.groups.length))
 							message.groups = [];
 						message.groups.push(reader.string());
 						break;
-					case 7:
+					case 8:
 						message.broadcast = reader.bool();
 						break;
-					case 8:
+					case 9:
 						message.meta = reader.string();
 						break;
-					case 9:
+					case 10:
 						message.level = reader.int32();
 						break;
-					case 10:
+					case 11:
 						message.tracing = reader.bool();
 						break;
-					case 11:
+					case 12:
 						message.parentID = reader.string();
 						break;
-					case 12:
+					case 13:
 						message.requestID = reader.string();
 						break;
-					case 13:
+					case 14:
 						message.stream = reader.bool();
 						break;
-					case 14:
+					case 15:
 						message.seq = reader.int32();
 						break;
-					case 15:
+					case 16:
 						message.caller = reader.string();
 						break;
-					case 16:
+					case 17:
 						message.needAck = reader.bool();
 						break;
 					default:
@@ -333,6 +364,8 @@ $root.packets = (function() {
 				throw $util.ProtocolError("missing required 'id'", { instance: message });
 			if (!message.hasOwnProperty("event"))
 				throw $util.ProtocolError("missing required 'event'", { instance: message });
+			if (!message.hasOwnProperty("dataType"))
+				throw $util.ProtocolError("missing required 'dataType'", { instance: message });
 			if (!message.hasOwnProperty("broadcast"))
 				throw $util.ProtocolError("missing required 'broadcast'", { instance: message });
 			if (!message.hasOwnProperty("meta"))
@@ -382,6 +415,15 @@ $root.packets = (function() {
 			if (message.data != null && message.hasOwnProperty("data"))
 				if (!(message.data && typeof message.data.length === "number" || $util.isString(message.data)))
 					return "data: buffer expected";
+			switch (message.dataType) {
+				default:
+					return "dataType: enum value expected";
+				case 0:
+				case 1:
+				case 2:
+				case 3:
+					break;
+			}
 			if (message.groups != null && message.hasOwnProperty("groups")) {
 				if (!Array.isArray(message.groups))
 					return "groups: array expected";
@@ -443,6 +485,24 @@ $root.packets = (function() {
 					$util.base64.decode(object.data, message.data = $util.newBuffer($util.base64.length(object.data)), 0);
 				else if (object.data.length)
 					message.data = object.data;
+			switch (object.dataType) {
+				case "DATATYPE_UNDEFINED":
+				case 0:
+					message.dataType = 0;
+					break;
+				case "DATATYPE_NULL":
+				case 1:
+					message.dataType = 1;
+					break;
+				case "DATATYPE_JSON":
+				case 2:
+					message.dataType = 2;
+					break;
+				case "DATATYPE_BUFFER":
+				case 3:
+					message.dataType = 3;
+					break;
+			}
 			if (object.groups) {
 				if (!Array.isArray(object.groups))
 					throw TypeError(".packets.PacketEvent.groups: array expected");
@@ -500,6 +560,7 @@ $root.packets = (function() {
 					if (options.bytes !== Array)
 						object.data = $util.newBuffer(object.data);
 				}
+				object.dataType = options.enums === String ? "DATATYPE_UNDEFINED" : 0;
 				object.broadcast = false;
 				object.meta = "";
 				object.level = 0;
@@ -521,6 +582,8 @@ $root.packets = (function() {
 				object.event = message.event;
 			if (message.data != null && message.hasOwnProperty("data"))
 				object.data = options.bytes === String ? $util.base64.encode(message.data, 0, message.data.length) : options.bytes === Array ? Array.prototype.slice.call(message.data) : message.data;
+			if (message.dataType != null && message.hasOwnProperty("dataType"))
+				object.dataType = options.enums === String ? $root.packets.DataType[message.dataType] : message.dataType;
 			if (message.groups && message.groups.length) {
 				object.groups = [];
 				for (var j = 0; j < message.groups.length; ++j)
@@ -574,6 +637,7 @@ $root.packets = (function() {
          * @property {string} id PacketRequest id
          * @property {string} action PacketRequest action
          * @property {Uint8Array|null} [params] PacketRequest params
+         * @property {packets.DataType} paramsType PacketRequest paramsType
          * @property {string} meta PacketRequest meta
          * @property {number} timeout PacketRequest timeout
          * @property {number} level PacketRequest level
@@ -639,6 +703,14 @@ $root.packets = (function() {
          * @instance
          */
 		PacketRequest.prototype.params = $util.newBuffer([]);
+
+		/**
+         * PacketRequest paramsType.
+         * @member {packets.DataType} paramsType
+         * @memberof packets.PacketRequest
+         * @instance
+         */
+		PacketRequest.prototype.paramsType = 0;
 
 		/**
          * PacketRequest meta.
@@ -742,21 +814,22 @@ $root.packets = (function() {
 			writer.uint32(/* id 4, wireType 2 =*/34).string(message.action);
 			if (message.params != null && message.hasOwnProperty("params"))
 				writer.uint32(/* id 5, wireType 2 =*/42).bytes(message.params);
-			writer.uint32(/* id 6, wireType 2 =*/50).string(message.meta);
-			writer.uint32(/* id 7, wireType 1 =*/57).double(message.timeout);
-			writer.uint32(/* id 8, wireType 0 =*/64).int32(message.level);
+			writer.uint32(/* id 6, wireType 0 =*/48).int32(message.paramsType);
+			writer.uint32(/* id 7, wireType 2 =*/58).string(message.meta);
+			writer.uint32(/* id 8, wireType 1 =*/65).double(message.timeout);
+			writer.uint32(/* id 9, wireType 0 =*/72).int32(message.level);
 			if (message.tracing != null && message.hasOwnProperty("tracing"))
-				writer.uint32(/* id 9, wireType 0 =*/72).bool(message.tracing);
+				writer.uint32(/* id 10, wireType 0 =*/80).bool(message.tracing);
 			if (message.parentID != null && message.hasOwnProperty("parentID"))
-				writer.uint32(/* id 10, wireType 2 =*/82).string(message.parentID);
+				writer.uint32(/* id 11, wireType 2 =*/90).string(message.parentID);
 			if (message.requestID != null && message.hasOwnProperty("requestID"))
-				writer.uint32(/* id 11, wireType 2 =*/90).string(message.requestID);
+				writer.uint32(/* id 12, wireType 2 =*/98).string(message.requestID);
 			if (message.stream != null && message.hasOwnProperty("stream"))
-				writer.uint32(/* id 12, wireType 0 =*/96).bool(message.stream);
+				writer.uint32(/* id 13, wireType 0 =*/104).bool(message.stream);
 			if (message.seq != null && message.hasOwnProperty("seq"))
-				writer.uint32(/* id 13, wireType 0 =*/104).int32(message.seq);
+				writer.uint32(/* id 14, wireType 0 =*/112).int32(message.seq);
 			if (message.caller != null && message.hasOwnProperty("caller"))
-				writer.uint32(/* id 14, wireType 2 =*/114).string(message.caller);
+				writer.uint32(/* id 15, wireType 2 =*/122).string(message.caller);
 			return writer;
 		};
 
@@ -807,30 +880,33 @@ $root.packets = (function() {
 						message.params = reader.bytes();
 						break;
 					case 6:
-						message.meta = reader.string();
+						message.paramsType = reader.int32();
 						break;
 					case 7:
-						message.timeout = reader.double();
+						message.meta = reader.string();
 						break;
 					case 8:
-						message.level = reader.int32();
+						message.timeout = reader.double();
 						break;
 					case 9:
-						message.tracing = reader.bool();
+						message.level = reader.int32();
 						break;
 					case 10:
-						message.parentID = reader.string();
+						message.tracing = reader.bool();
 						break;
 					case 11:
-						message.requestID = reader.string();
+						message.parentID = reader.string();
 						break;
 					case 12:
-						message.stream = reader.bool();
+						message.requestID = reader.string();
 						break;
 					case 13:
-						message.seq = reader.int32();
+						message.stream = reader.bool();
 						break;
 					case 14:
+						message.seq = reader.int32();
+						break;
+					case 15:
 						message.caller = reader.string();
 						break;
 					default:
@@ -846,6 +922,8 @@ $root.packets = (function() {
 				throw $util.ProtocolError("missing required 'id'", { instance: message });
 			if (!message.hasOwnProperty("action"))
 				throw $util.ProtocolError("missing required 'action'", { instance: message });
+			if (!message.hasOwnProperty("paramsType"))
+				throw $util.ProtocolError("missing required 'paramsType'", { instance: message });
 			if (!message.hasOwnProperty("meta"))
 				throw $util.ProtocolError("missing required 'meta'", { instance: message });
 			if (!message.hasOwnProperty("timeout"))
@@ -893,6 +971,15 @@ $root.packets = (function() {
 			if (message.params != null && message.hasOwnProperty("params"))
 				if (!(message.params && typeof message.params.length === "number" || $util.isString(message.params)))
 					return "params: buffer expected";
+			switch (message.paramsType) {
+				default:
+					return "paramsType: enum value expected";
+				case 0:
+				case 1:
+				case 2:
+				case 3:
+					break;
+			}
 			if (!$util.isString(message.meta))
 				return "meta: string expected";
 			if (typeof message.timeout !== "number")
@@ -945,6 +1032,24 @@ $root.packets = (function() {
 					$util.base64.decode(object.params, message.params = $util.newBuffer($util.base64.length(object.params)), 0);
 				else if (object.params.length)
 					message.params = object.params;
+			switch (object.paramsType) {
+				case "DATATYPE_UNDEFINED":
+				case 0:
+					message.paramsType = 0;
+					break;
+				case "DATATYPE_NULL":
+				case 1:
+					message.paramsType = 1;
+					break;
+				case "DATATYPE_JSON":
+				case 2:
+					message.paramsType = 2;
+					break;
+				case "DATATYPE_BUFFER":
+				case 3:
+					message.paramsType = 3;
+					break;
+			}
 			if (object.meta != null)
 				message.meta = String(object.meta);
 			if (object.timeout != null)
@@ -991,6 +1096,7 @@ $root.packets = (function() {
 					if (options.bytes !== Array)
 						object.params = $util.newBuffer(object.params);
 				}
+				object.paramsType = options.enums === String ? "DATATYPE_UNDEFINED" : 0;
 				object.meta = "";
 				object.timeout = 0;
 				object.level = 0;
@@ -1011,6 +1117,8 @@ $root.packets = (function() {
 				object.action = message.action;
 			if (message.params != null && message.hasOwnProperty("params"))
 				object.params = options.bytes === String ? $util.base64.encode(message.params, 0, message.params.length) : options.bytes === Array ? Array.prototype.slice.call(message.params) : message.params;
+			if (message.paramsType != null && message.hasOwnProperty("paramsType"))
+				object.paramsType = options.enums === String ? $root.packets.DataType[message.paramsType] : message.paramsType;
 			if (message.meta != null && message.hasOwnProperty("meta"))
 				object.meta = message.meta;
 			if (message.timeout != null && message.hasOwnProperty("timeout"))
@@ -1057,6 +1165,7 @@ $root.packets = (function() {
          * @property {string} id PacketResponse id
          * @property {boolean} success PacketResponse success
          * @property {Uint8Array|null} [data] PacketResponse data
+         * @property {packets.DataType} dataType PacketResponse dataType
          * @property {string|null} [error] PacketResponse error
          * @property {string} meta PacketResponse meta
          * @property {boolean|null} [stream] PacketResponse stream
@@ -1117,6 +1226,14 @@ $root.packets = (function() {
          * @instance
          */
 		PacketResponse.prototype.data = $util.newBuffer([]);
+
+		/**
+         * PacketResponse dataType.
+         * @member {packets.DataType} dataType
+         * @memberof packets.PacketResponse
+         * @instance
+         */
+		PacketResponse.prototype.dataType = 0;
 
 		/**
          * PacketResponse error.
@@ -1180,13 +1297,14 @@ $root.packets = (function() {
 			writer.uint32(/* id 4, wireType 0 =*/32).bool(message.success);
 			if (message.data != null && message.hasOwnProperty("data"))
 				writer.uint32(/* id 5, wireType 2 =*/42).bytes(message.data);
+			writer.uint32(/* id 6, wireType 0 =*/48).int32(message.dataType);
 			if (message.error != null && message.hasOwnProperty("error"))
-				writer.uint32(/* id 6, wireType 2 =*/50).string(message.error);
-			writer.uint32(/* id 7, wireType 2 =*/58).string(message.meta);
+				writer.uint32(/* id 7, wireType 2 =*/58).string(message.error);
+			writer.uint32(/* id 8, wireType 2 =*/66).string(message.meta);
 			if (message.stream != null && message.hasOwnProperty("stream"))
-				writer.uint32(/* id 8, wireType 0 =*/64).bool(message.stream);
+				writer.uint32(/* id 9, wireType 0 =*/72).bool(message.stream);
 			if (message.seq != null && message.hasOwnProperty("seq"))
-				writer.uint32(/* id 9, wireType 0 =*/72).int32(message.seq);
+				writer.uint32(/* id 10, wireType 0 =*/80).int32(message.seq);
 			return writer;
 		};
 
@@ -1237,15 +1355,18 @@ $root.packets = (function() {
 						message.data = reader.bytes();
 						break;
 					case 6:
-						message.error = reader.string();
+						message.dataType = reader.int32();
 						break;
 					case 7:
-						message.meta = reader.string();
+						message.error = reader.string();
 						break;
 					case 8:
-						message.stream = reader.bool();
+						message.meta = reader.string();
 						break;
 					case 9:
+						message.stream = reader.bool();
+						break;
+					case 10:
 						message.seq = reader.int32();
 						break;
 					default:
@@ -1261,6 +1382,8 @@ $root.packets = (function() {
 				throw $util.ProtocolError("missing required 'id'", { instance: message });
 			if (!message.hasOwnProperty("success"))
 				throw $util.ProtocolError("missing required 'success'", { instance: message });
+			if (!message.hasOwnProperty("dataType"))
+				throw $util.ProtocolError("missing required 'dataType'", { instance: message });
 			if (!message.hasOwnProperty("meta"))
 				throw $util.ProtocolError("missing required 'meta'", { instance: message });
 			return message;
@@ -1304,6 +1427,15 @@ $root.packets = (function() {
 			if (message.data != null && message.hasOwnProperty("data"))
 				if (!(message.data && typeof message.data.length === "number" || $util.isString(message.data)))
 					return "data: buffer expected";
+			switch (message.dataType) {
+				default:
+					return "dataType: enum value expected";
+				case 0:
+				case 1:
+				case 2:
+				case 3:
+					break;
+			}
 			if (message.error != null && message.hasOwnProperty("error"))
 				if (!$util.isString(message.error))
 					return "error: string expected";
@@ -1343,6 +1475,24 @@ $root.packets = (function() {
 					$util.base64.decode(object.data, message.data = $util.newBuffer($util.base64.length(object.data)), 0);
 				else if (object.data.length)
 					message.data = object.data;
+			switch (object.dataType) {
+				case "DATATYPE_UNDEFINED":
+				case 0:
+					message.dataType = 0;
+					break;
+				case "DATATYPE_NULL":
+				case 1:
+					message.dataType = 1;
+					break;
+				case "DATATYPE_JSON":
+				case 2:
+					message.dataType = 2;
+					break;
+				case "DATATYPE_BUFFER":
+				case 3:
+					message.dataType = 3;
+					break;
+			}
 			if (object.error != null)
 				message.error = String(object.error);
 			if (object.meta != null)
@@ -1379,6 +1529,7 @@ $root.packets = (function() {
 					if (options.bytes !== Array)
 						object.data = $util.newBuffer(object.data);
 				}
+				object.dataType = options.enums === String ? "DATATYPE_UNDEFINED" : 0;
 				object.error = "";
 				object.meta = "";
 				object.stream = false;
@@ -1394,6 +1545,8 @@ $root.packets = (function() {
 				object.success = message.success;
 			if (message.data != null && message.hasOwnProperty("data"))
 				object.data = options.bytes === String ? $util.base64.encode(message.data, 0, message.data.length) : options.bytes === Array ? Array.prototype.slice.call(message.data) : message.data;
+			if (message.dataType != null && message.hasOwnProperty("dataType"))
+				object.dataType = options.enums === String ? $root.packets.DataType[message.dataType] : message.dataType;
 			if (message.error != null && message.hasOwnProperty("error"))
 				object.error = message.error;
 			if (message.meta != null && message.hasOwnProperty("meta"))
