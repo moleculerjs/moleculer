@@ -662,7 +662,7 @@ const broker = new ServiceBroker({
 >To use this exporter, install the `dd-trace` module with `npm install dd-trace --save` command.
 
 #### Event exporter
-Event exporter sends Moleculer events (`$tracing.spans`) with tracing data.
+Event exporter sends Moleculer events (`moleculer.tracing.spans`) with tracing data.
 ```js
 const broker = new ServiceBroker({
     tracing: {
@@ -671,7 +671,7 @@ const broker = new ServiceBroker({
             {
                 type: "Event",
                 options: {
-                    eventName: "$tracing.spans",
+                    eventName: "moleculer.tracing.spans",
 
                     sendStartSpan: false,
                     sendFinishSpan: true,
@@ -1217,6 +1217,7 @@ In earlier version, if request, response or event data was a `Buffer`, the schem
 - rename `ctx.metrics` to `ctx.tracing`.
 - `broker.hotReloadService` method has been removed.
 - new `hasEventListener` & `getEventListeners` broker method.
+- new `uidGenerator` broker options to overwrite the default UUID generator code.
 
 --------------------------------------------------
 <a name="0.13.9"></a>

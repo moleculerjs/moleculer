@@ -148,7 +148,7 @@ describe("Test local call", () => {
 	});
 
 	it("should create a sub context of parent context", () => {
-		let parentCtx = new Context();
+		let parentCtx = new Context(broker);
 		parentCtx.params = {
 			a: 5,
 			b: 2

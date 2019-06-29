@@ -8,7 +8,6 @@
 
 //const Promise = require("bluebird");
 const _ = require("lodash");
-const { generateToken } = require("./utils");
 const { RequestSkippedError, MaxCallLevelError } = require("./errors");
 
 /**
@@ -204,7 +203,7 @@ class Context {
 	 */
 	get id() {
 		if (!this._id) {
-			this._id = generateToken();
+			this._id = this.broker.generateUid();
 			if (!this.requestID)
 				this.requestID = this._id;
 		}

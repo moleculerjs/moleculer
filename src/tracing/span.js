@@ -1,6 +1,5 @@
 "use strict";
 
-const { generateToken } = require("../utils");
 const now = require("./now");
 
 function defProp(instance, propName, value, readOnly = false) {
@@ -34,7 +33,7 @@ class Span {
 
 		this.name = name;
 		this.type = this.opts.type || "custom";
-		this.id = this.opts.id || generateToken();
+		this.id = this.opts.id || this.tracer.broker.generateUid();
 		this.traceID = this.opts.traceID || this.id;
 		this.parentID = this.opts.parentID;
 

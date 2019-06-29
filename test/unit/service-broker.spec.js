@@ -9,11 +9,12 @@ H.getHealthStatus = jest.fn();
 
 jest.mock("../../src/utils", () => ({
 	getNodeID() { return "node-1234"; },
-	generateToken() { return "1"; },
+	generateToken: jest.fn(() => "1"),
 	getIpList() { return []; },
 	safetyObject(obj) { return obj; },
 	isPromise(p) {return p && p.then != null; }
 }));
+const utils = require("../../src/utils");
 
 const { protectReject } = require("./utils");
 const path = require("path");
@@ -189,6 +190,8 @@ describe("Test ServiceBroker constructor", () => {
 				maxQueueSize: 50 * 1000,
 				disableVersionCheck: false
 			},
+
+			uidGenerator: null,
 
 			retryPolicy: {
 				enabled: true,
@@ -3056,6 +3059,39 @@ describe("Test broker getHealthStatus", () => {
 
 		expect(H.getHealthStatus).toHaveBeenCalledTimes(1);
 		expect(H.getHealthStatus).toHaveBeenCalledWith(broker);
+	});
+});
+
+describe("Test broker generateUid", () => {
+
+	it("should call the original generateToken", () => {
+		let broker = new ServiceBroker({ logger: false });
+		utils.generateToken.mockClear();
+
+		expect(broker.generateUid()).toBe("1");
+
+		expect(utils.generateToken).toHaveBeenCalledTimes(1);
+		expect(utils.generateToken).toHaveBeenCalledWith();
+	});
+
+	it("should call the original generateToken", () => {
+		let counter = 1;
+		const customUidGenerator = jest.fn(broker => `${broker.nodeID}-${counter++}`);
+		let broker = new ServiceBroker({ nodeID: "node-100", logger: false, uidGenerator: customUidGenerator });
+		utils.generateToken.mockClear();
+
+		expect(broker.generateUid()).toBe("node-100-1");
+
+		expect(utils.generateToken).toHaveBeenCalledTimes(0);
+		expect(customUidGenerator).toHaveBeenCalledTimes(1);
+		expect(customUidGenerator).toHaveBeenCalledWith(broker);
+
+		customUidGenerator.mockClear();
+		expect(broker.generateUid()).toBe("node-100-2");
+
+		expect(utils.generateToken).toHaveBeenCalledTimes(0);
+		expect(customUidGenerator).toHaveBeenCalledTimes(1);
+		expect(customUidGenerator).toHaveBeenCalledWith(broker);
 	});
 });
 

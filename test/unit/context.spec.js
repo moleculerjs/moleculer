@@ -10,6 +10,7 @@ const lolex = require("lolex");
 describe("Test Context", () => {
 
 	it("test with empty opts", () => {
+		let broker = new ServiceBroker({ nodeID: "server-123", logger: false });
 
 		let ctx = new Context();
 
@@ -49,6 +50,7 @@ describe("Test Context", () => {
 		expect(ctx.cachedResult).toBe(false);
 
 		// Test ID generator
+		ctx.broker = broker;
 		expect(ctx.id).toBeDefined();
 		expect(ctx.id).toBe(ctx._id);
 		expect(ctx.requestID).toBe(ctx.id);

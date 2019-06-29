@@ -695,6 +695,8 @@ declare namespace Moleculer {
 
 		transit?: BrokerTransitOptions;
 
+		uidGenerator?: () => string;
+
 		errorHandler?: (err: Error, info: any) => void;
 
 		cacher?: boolean | Cacher | string | GenericObject;
@@ -910,6 +912,7 @@ declare namespace Moleculer {
 		currentContext: Context | null;
 
 		getCpuUsage(): PromiseLike<any>;
+		generateUid(): string;
 
 		hasEventListener(eventName: string): boolean;
 		getEventListener(eventName: string): Array<EventEndpoint>;

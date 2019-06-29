@@ -17,6 +17,7 @@ describe("Test Tracing Span", () => {
 
 	describe("Test Constructor", () => {
 		const tracer = {
+			broker,
 			logger: {},
 			shouldSample: jest.fn(() => true)
 		};
@@ -110,6 +111,7 @@ describe("Test Tracing Span", () => {
 
 	describe("Test span starting", () => {
 		const fakeTracer = {
+			broker,
 			logger: broker.logger,
 			shouldSample: jest.fn(() => true),
 			spanStarted: jest.fn()
@@ -145,6 +147,7 @@ describe("Test Tracing Span", () => {
 
 	describe("Test span addTags", () => {
 		const fakeTracer = {
+			broker,
 			logger: broker.logger,
 			shouldSample: jest.fn(() => true),
 			spanStarted: jest.fn()
@@ -198,6 +201,7 @@ describe("Test Tracing Span", () => {
 
 	describe("Test log method", () => {
 		const fakeTracer = {
+			broker,
 			logger: broker.logger,
 			shouldSample: jest.fn(() => true),
 			spanStarted: jest.fn()
@@ -262,6 +266,7 @@ describe("Test Tracing Span", () => {
 
 	describe("Test setError method", () => {
 		const fakeTracer = {
+			broker,
 			logger: broker.logger,
 			shouldSample: jest.fn(() => true),
 			spanStarted: jest.fn()
@@ -284,6 +289,7 @@ describe("Test Tracing Span", () => {
 
 	describe("Test span finishing", () => {
 		const fakeTracer = {
+			broker,
 			logger: broker.logger,
 			shouldSample: jest.fn(() => true),
 			spanStarted: jest.fn(),
@@ -326,6 +332,7 @@ describe("Test Tracing Span", () => {
 	describe("Test span create sub-span", () => {
 		let subSpan;
 		const fakeTracer = {
+			broker,
 			logger: broker.logger,
 			shouldSample: jest.fn(() => true),
 			spanStarted: jest.fn(),

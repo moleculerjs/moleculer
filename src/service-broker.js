@@ -10,7 +10,6 @@ const Promise 				= require("bluebird");
 const EventEmitter2 		= require("eventemitter2").EventEmitter2;
 const _ 					= require("lodash");
 const glob 					= require("glob");
-const chalk					= require("chalk");
 const path 					= require("path");
 
 const Transit 				= require("./transit");
@@ -92,6 +91,8 @@ const defaultOptions = {
 		disableReconnect: false,
 		disableVersionCheck: false
 	},
+
+	uidGenerator: null,
 
 	errorHandler: null,
 
@@ -1539,6 +1540,18 @@ class ServiceBroker {
 	 */
 	getCpuUsage() {
 		return cpuUsage();
+	}
+
+	/**
+	 * Generate an UUID.
+	 *
+	 * @returns {String} uuid
+	 */
+	generateUid() {
+		if (this.options.uidGenerator)
+			return this.options.uidGenerator.call(this, this);
+
+		return utils.generateToken();
 	}
 
 
