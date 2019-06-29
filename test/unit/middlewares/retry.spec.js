@@ -68,6 +68,7 @@ describe("Test RetryMiddleware", () => {
 
 		const newHandler = mw.localAction.call(broker, handler, action);
 		const ctx = Context.create(broker, endpoint);
+		ctx.setParams({ offset: 10 });
 
 		broker.call = jest.fn(() => Promise.resolve("Next call"));
 
@@ -77,7 +78,7 @@ describe("Test RetryMiddleware", () => {
 
 			expect(handler).toHaveBeenCalledTimes(1);
 			expect(broker.call).toHaveBeenCalledTimes(1);
-			expect(broker.call).toHaveBeenCalledWith("posts.find", null, { ctx });
+			expect(broker.call).toHaveBeenCalledWith("posts.find", { offset: 10 }, { ctx });
 
 			expect(broker.Promise.delay).toHaveBeenCalledTimes(1);
 			expect(broker.Promise.delay).toHaveBeenCalledWith(100);
@@ -87,6 +88,59 @@ describe("Test RetryMiddleware", () => {
 
 			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
 			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.retry.attempts.total", { action: "posts.find" });
+		});
+	});
+
+	it("should retry private action", () => {
+		broker.metrics.increment.mockClear();
+		broker.options.retryPolicy.enabled = true;
+		broker.options.retryPolicy.retries = 3;
+		broker.options.retryPolicy.check = jest.fn(() => true);
+
+		let error = new MoleculerRetryableError("Retryable error");
+		let handler = jest.fn(() => Promise.reject(error));
+
+		broker.Promise.delay = jest.fn(() => Promise.resolve());
+
+		let action = {
+			name: "posts.list",
+			rawName: "list",
+			visibility: "private",
+			service: {
+				actions: {
+					list: jest.fn(() => Promise.resolve("Next direct call"))
+				}
+			}
+		};
+
+		const newHandler = mw.localAction.call(broker, handler, action);
+		const ctx = Context.create(broker, {
+			action,
+			node: {
+				id: broker.nodeID
+			}
+		});
+		ctx.setParams({ limit: 5 });
+
+		broker.call = jest.fn();
+
+		return newHandler(ctx).catch(protectReject).then(res => {
+			expect(res).toBe("Next direct call");
+			expect(ctx._retryAttempts).toBe(1);
+
+			expect(handler).toHaveBeenCalledTimes(1);
+			expect(broker.call).toHaveBeenCalledTimes(0);
+			expect(action.service.actions.list).toHaveBeenCalledTimes(1);
+			expect(action.service.actions.list).toHaveBeenCalledWith({ limit: 5 }, { ctx });
+
+			expect(broker.Promise.delay).toHaveBeenCalledTimes(1);
+			expect(broker.Promise.delay).toHaveBeenCalledWith(100);
+
+			expect(broker.options.retryPolicy.check).toHaveBeenCalledTimes(1);
+			expect(broker.options.retryPolicy.check).toHaveBeenCalledWith(error);
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
+			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.retry.attempts.total", { action: "posts.list" });
 		});
 	});
 

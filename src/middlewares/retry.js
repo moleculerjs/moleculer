@@ -33,11 +33,16 @@ module.exports = function RetryMiddleware(broker) {
 							// Calculate next delay
 							const delay = Math.min(opts.delay * Math.pow(opts.factor, ctx._retryAttempts - 1), opts.maxDelay);
 
-							this.logger.warn(`Retry to call '${actionName}' action after ${delay} ms...`, { requestID: ctx.requestID, attempts: ctx._retryAttempts });
+							broker.logger.warn(`Retry to call '${actionName}' action after ${delay} ms...`, { requestID: ctx.requestID, attempts: ctx._retryAttempts });
 
 							// Wait & recall
-							return this.Promise.delay(delay)
-								.then(() => this.call(actionName, ctx.params, { ctx }));
+							return broker.Promise.delay(delay)
+								.then(() => {
+									if (action.visibility == "private")
+										return ctx.service.actions[action.rawName](ctx.params, { ctx });
+
+									return broker.call(actionName, ctx.params, { ctx });
+								});
 						}
 					}
 

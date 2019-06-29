@@ -18,7 +18,8 @@ function wrapErrorHandler(handler) {
 
 				if (ctx.nodeID !== this.nodeID) {
 					// Remove pending request (the request didn't reach the target service)
-					this.transit.removePendingRequest(ctx.id);
+					if (this.transit)
+						this.transit.removePendingRequest(ctx.id);
 				}
 
 				this.logger.debug(`The '${ctx.action.name}' request is rejected.`, { requestID: ctx.requestID }, err);

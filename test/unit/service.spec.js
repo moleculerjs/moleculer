@@ -206,6 +206,17 @@ describe("Test action creation", () => {
 				expect(schema.actions.find).toHaveBeenCalledTimes(1);
 				expect(schema.actions.find).toHaveBeenCalledWith(ctx);
 
+				// ---
+				broker.ContextFactory.create.mockClear();
+				let prevCtx = new Context(broker, { action: service.schema.actions.get });
+				prevCtx.setParams({ id: 10 });
+				service.actions.get({ id: 20 }, { ctx: prevCtx });
+
+				expect(broker.ContextFactory.create).toHaveBeenCalledTimes(0);
+
+				expect(schema.actions.get.handler).toHaveBeenCalledTimes(1);
+				expect(schema.actions.get.handler).toHaveBeenCalledWith(prevCtx);
+
 				broker.ContextFactory.create = oldCreate;
 			});
 

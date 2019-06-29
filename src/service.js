@@ -125,7 +125,14 @@ class Service {
 				// Expose to be callable as `this.actions.find({ ...params })`
 				const ep = this.broker.registry.createPrivateActionEndpoint(innerAction);
 				this.actions[name] = (params, opts) => {
-					return wrappedHandler(this.broker.ContextFactory.create(this.broker, ep, params, opts || {}));
+					let ctx;
+					if (opts && opts.ctx) {
+						// Reused context (in case of retry)
+						ctx = opts.ctx;
+					} else {
+						ctx = this.broker.ContextFactory.create(this.broker, ep, params, opts || {});
+					}
+					return wrappedHandler(ctx);
 				};
 
 			});
