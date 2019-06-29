@@ -12,6 +12,8 @@ const BaseCacher 				= require("./base");
 const { METRIC }				= require("../metrics");
 const { BrokerOptionsError } 	= require("../errors");
 
+let Redis, Redlock;
+
 /**
  * Cacher factory for Redis
  *
@@ -46,7 +48,6 @@ class RedisCacher extends BaseCacher {
 	 */
 	init(broker) {
 		super.init(broker);
-		let Redis, Redlock;
 		try {
 			Redis = require("ioredis");
 		} catch (err) {
@@ -359,20 +360,18 @@ class RedisCacher extends BaseCacher {
 			});
 
 			stream.on("error", (err) => {
-				console.error("Error occured while deleting keys from node");
+				this.logger.error(`Error occured while deleting keys '${pattern}' from node.`, err);
 				reject(err);
 			});
 
 			stream.on("end", () => {
-				//			console.log('End deleting keys from node')
+				// End deleting keys from node
 				resolve();
 			});
 		});
 	}
 
 	_scanDel(pattern) {
-		let Redis = require("ioredis");
-
 		if (this.client instanceof Redis.Cluster) {
 			return this._clusterScanDel(pattern);
 		} else {
