@@ -413,6 +413,7 @@ class Context {
 		return res;
 	}
 
+	/* istanbul ignore next */
 	[util.inspect.custom](depth, options) {
 		// https://nodejs.org/docs/latest-v8.x/api/util.html#util_custom_inspection_functions_on_objects
 		if (depth < 0) {
