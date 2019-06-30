@@ -46,12 +46,12 @@ module.exports = function TracingMiddleware(broker) {
 
 				} else if (_.isPlainObject(opts.tags)) {
 					if (opts.tags.params === true)
-						tags.params = _.cloneDeep(ctx.params);
+						tags.params = ctx.params != null ? Object.assign({}, ctx.params) : ctx.params;
 					else if (Array.isArray(opts.tags.params))
 						tags.params = _.pick(ctx.params, opts.tags.params);
 
 					if (opts.tags.meta === true)
-						tags.meta = _.cloneDeep(ctx.meta);
+						tags.meta = ctx.meta != null ? Object.assign({}, ctx.meta) : ctx.meta;
 					else if (Array.isArray(opts.tags.meta))
 						tags.meta = _.pick(ctx.meta, opts.tags.meta);
 				}
@@ -86,7 +86,7 @@ module.exports = function TracingMiddleware(broker) {
 
 					} else if (_.isPlainObject(opts.tags)) {
 						if (opts.tags.response === true)
-							tags.response = _.cloneDeep(res);
+							tags.response = res != null ? Object.assign({}, res) : res;
 						else if (Array.isArray(opts.tags.response))
 							tags.response = _.pick(res, opts.tags.response);
 					}
@@ -142,12 +142,12 @@ module.exports = function TracingMiddleware(broker) {
 
 				} else if (_.isPlainObject(opts.tags)) {
 					if (opts.tags.params === true)
-						tags.params = _.cloneDeep(ctx.params);
+						tags.params = ctx.params != null ? Object.assign({}, ctx.params) : ctx.params;
 					else if (Array.isArray(opts.tags.params))
 						tags.params = _.pick(ctx.params, opts.tags.params);
 
 					if (opts.tags.meta === true)
-						tags.meta = _.cloneDeep(ctx.meta);
+						tags.meta = ctx.meta != null ? Object.assign({}, ctx.meta) : ctx.meta;
 					else if (Array.isArray(opts.tags.meta))
 						tags.meta = _.pick(ctx.meta, opts.tags.meta);
 				}

@@ -341,7 +341,7 @@ describe("Test TracingMiddleware localAction", () => {
 
 					meta: {
 						user: {
-							age: 30,
+							age: 35,
 							name: "Adam"
 						}
 					},
@@ -943,7 +943,7 @@ describe("Test TracingMiddleware localEvent", () => {
 
 					meta: {
 						user: {
-							age: 30,
+							age: 35,
 							name: "Adam"
 						}
 					},

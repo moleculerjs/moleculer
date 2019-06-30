@@ -461,7 +461,10 @@ class ServiceBroker {
 			})
 			.then(() => {
 				// Call service `stopped` handlers
-				return Promise.all(this.services.map(svc => svc._stop.call(svc)))
+				return Promise.all(this.services.map(svc => {
+					this.logger.info(`Stopping '${svc.fullName}' service...`);
+					return svc._stop.call(svc);
+				}))
 					.catch(err => {
 						/* istanbul ignore next */
 						this.logger.error("Unable to stop all services.", err);
@@ -499,7 +502,7 @@ class ServiceBroker {
 
 				this.broadcastLocal("$broker.stopped");
 
-				if ((this.options.skipProcessEventRegistration || false) !== true) {
+				if (this.options.skipProcessEventRegistration === false) {
 					process.removeListener("beforeExit", this._closeFn);
 					process.removeListener("exit", this._closeFn);
 					process.removeListener("SIGINT", this._closeFn);
