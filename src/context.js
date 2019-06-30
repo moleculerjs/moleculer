@@ -7,6 +7,7 @@
 "use strict";
 
 //const Promise = require("bluebird");
+const util = require("util");
 const _ = require("lodash");
 const { RequestSkippedError, MaxCallLevelError } = require("./errors");
 
@@ -412,6 +413,15 @@ class Context {
 		return res;
 	}
 
+	[util.inspect.custom](depth, options) {
+		// https://nodejs.org/docs/latest-v8.x/api/util.html#util_custom_inspection_functions_on_objects
+		if (depth < 0) {
+			return options.stylize("[Context]", "special");
+		}
+
+		const inner = util.inspect(this.toJSON(), options);
+		return `${options.stylize("Context", "special")}< ${inner} >`;
+	}
 }
 
 module.exports = Context;
