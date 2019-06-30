@@ -42,6 +42,15 @@ let bench2 = benchmark.createSuite("Call with middlewares");
 })();
 
 (function() {
+	let broker = createBroker({
+		internalMiddlewares: false
+	});
+	bench2.ref("No internal middlewares", done => {
+		return broker.call("users.empty").then(done);
+	});
+})();
+
+(function() {
 	let mw1 = {
 		localAction: handler => ctx => handler(ctx).then(res => res)
 	};

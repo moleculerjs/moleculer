@@ -63,8 +63,7 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch perf",
-			"program": "${workspaceRoot}/benchmark/perf-runner.js",
-			"cwd": "${workspaceRoot}/benchmark"
+			"program": "${workspaceRoot}/benchmark/perf-runner.js"
 		},
 		{
 			"type": "node",

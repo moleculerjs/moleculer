@@ -14,6 +14,7 @@ function createBrokers(Transporter, opts) {
 	const b1 = new ServiceBroker({
 		nodeID: "node-1",
 		transporter: new Transporter(opts),
+		//internalMiddlewares: false,
 		middlewares: [
 			//Middlewares.Transmit.Encryption("moleculer"),
 			//Middlewares.Transmit.Compression(),
@@ -23,11 +24,11 @@ function createBrokers(Transporter, opts) {
 	const b2 = new ServiceBroker({
 		nodeID: "node-2",
 		transporter: new Transporter(opts),
+		//internalMiddlewares: false,
 		middlewares: [
 			//Middlewares.Transmit.Encryption("moleculer"),
 			//Middlewares.Transmit.Compression(),
-		],
-		tracing: true
+		]
 	});
 
 	b2.createService({
