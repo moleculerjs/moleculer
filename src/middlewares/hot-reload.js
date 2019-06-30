@@ -167,13 +167,12 @@ module.exports = function HotReloadMiddleware(broker) {
 
 		//console.log(fName);
 
-		// Cache node_modules files to avoid cyclic dependencies
-		if (fName.indexOf("node_modules") !== -1) {
-			if (cache.get(fName))
-				return;
+		// Cache files to avoid cyclic dependencies
+		if (cache.get(fName))
+			return;
 
-			cache.set(fName, mod);
-		}
+		cache.set(fName, mod);
+
 
 		if (!service) {
 			service = broker.services.find(svc => svc.__filename == fName);
