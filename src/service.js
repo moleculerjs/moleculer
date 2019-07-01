@@ -184,6 +184,7 @@ class Service {
 	 * @memberof Service
 	 */
 	_init() {
+		this.logger.debug(`Service '${this.fullName}' is creating...`);
 		if (_.isFunction(this.schema.created)) {
 			this.schema.created.call(this);
 		} else if (Array.isArray(this.schema.created)) {
@@ -193,6 +194,8 @@ class Service {
 		this.broker.addLocalService(this);
 
 		this.broker.callMiddlewareHookSync("serviceCreated", [this]);
+
+		this.logger.debug(`Service '${this.fullName}' created.`);
 	}
 
 	/**
@@ -203,6 +206,7 @@ class Service {
 	 * @memberof Service
 	 */
 	_start() {
+		this.logger.debug(`Service '${this.fullName}' is starting...`);
 		return this.Promise.resolve()
 			.then(() => {
 				return this.broker.callMiddlewareHook("serviceStarting", [this]);
@@ -229,7 +233,8 @@ class Service {
 			})
 			.then(() => {
 				return this.broker.callMiddlewareHook("serviceStarted", [this]);
-			});
+			})
+			.then(() => this.logger.debug(`Service '${this.fullName}' started.`));
 	}
 
 	/**
@@ -240,6 +245,7 @@ class Service {
 	 * @memberof Service
 	 */
 	_stop() {
+		this.logger.debug(`Service '${this.fullName}' is stopping...`);
 		return this.Promise.resolve()
 			.then(() => {
 				return this.broker.callMiddlewareHook("serviceStopping", [this], { reverse: true });
@@ -259,7 +265,8 @@ class Service {
 			})
 			.then(() => {
 				return this.broker.callMiddlewareHook("serviceStopped", [this], { reverse: true });
-			});
+			})
+			.then(() => this.logger.debug(`Service '${this.fullName}' stopped.`));
 	}
 
 	/**
