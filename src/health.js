@@ -19,12 +19,13 @@ const getClientInfo = () => {
 };
 
 const getCpuInfo = () => {
+	const cpus = os.cpus();
 	const load = os.loadavg();
 	const cpu = {
 		load1: load[0],
 		load5: load[1],
 		load15: load[2],
-		cores: os.cpus().length,
+		cores: Array.isArray(cpus) ? os.cpus().length : null,
 	};
 	cpu.utilization = Math.min(Math.floor(load[0] * 100 / cpu.cores), 100);
 

@@ -32,9 +32,11 @@ describe("Test Service constructor", () => {
 		}).toThrowError("Must set a ServiceBroker instance!");
 
 		expect(() => {
+			/* eslint-disable-next-line */
+			console.error = jest.fn();
 			const svc = new Service(broker);
 			svc.parseServiceSchema();
-		}).toThrowError("Must pass a service schema in constructor!");
+		}).toThrowError("Must pass a service schema in constructor. Maybe is it not a service schema?");
 
 		expect(() => {
 			new Service(broker, {});
