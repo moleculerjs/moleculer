@@ -10,6 +10,7 @@ let broker = new ServiceBroker({
 
 // Load service
 broker.loadService(__dirname + "/../math.service.js");
+//broker.loadService(__dirname + "/../dummy.service.js");
 
 // Call actions
 broker.start()

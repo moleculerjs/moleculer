@@ -70,7 +70,7 @@ class Service {
 	 */
 	parseServiceSchema(schema) {
 		if (!_.isObject(schema))
-			throw new ServiceSchemaError("Must pass a service schema in constructor!");
+			throw new ServiceSchemaError("Must pass a service schema in constructor. Maybe is it not a service schema?");
 
 		if (schema.mixins) {
 			schema = Service.applyMixins(schema);
@@ -78,8 +78,11 @@ class Service {
 
 		this.broker.callMiddlewareHookSync("serviceCreating", [this, schema]);
 
-		if (!schema.name)
-			throw new ServiceSchemaError("Service name can't be empty! Maybe it is not a valid Service schema.");
+		if (!schema.name) {
+			/* eslint-disable-next-line */
+			console.error("Service name can't be empty! Maybe it is not a valid Service schema. Maybe is it not a service schema?", { schema });
+			throw new ServiceSchemaError("Service name can't be empty! Maybe it is not a valid Service schema. Maybe is it not a service schema?", { schema });
+		}
 
 		this.name = schema.name;
 		this.version = schema.version;
