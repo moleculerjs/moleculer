@@ -1,4 +1,5 @@
 {
 	"eslint.enable": true,
-	"typescript.surveys.enabled": false
+   "typescript.surveys.enabled": false,
+   "typescript.tsdk": "node_modules/typescript/lib"
 }

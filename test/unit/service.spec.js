@@ -24,6 +24,7 @@ describe("Test Service constructor", () => {
 	};
 
 	broker.callMiddlewareHookSync = jest.fn();
+	jest.spyOn(broker, "getLogger");
 
 	it("should throw exceptions if missing main properties", () => {
 		expect(() => {
@@ -42,8 +43,7 @@ describe("Test Service constructor", () => {
 
 	it("check local properties", () => {
 		broker.callMiddlewareHookSync.mockClear();
-		broker.getLogger = jest.fn(() => ({}));
-
+		broker.getLogger.mockClear();
 		let service = new Service(broker, schema);
 		expect(service.name).toBe("users");
 		expect(service.version).toBe(2);
@@ -95,7 +95,7 @@ describe("Test Service constructor", () => {
 	});
 
 	it("check logger with string version", () => {
-		broker.getLogger = jest.fn();
+		broker.getLogger.mockClear();
 		const service = new Service(broker, {
 			name: "posts",
 			version: "stage"
@@ -109,7 +109,7 @@ describe("Test Service constructor", () => {
 	});
 
 	it("check logger with string version but disabled versionPrefix", () => {
-		broker.getLogger = jest.fn();
+		broker.getLogger.mockClear();
 		const service = new Service(broker, {
 			name: "posts",
 			version: "stage",
@@ -126,7 +126,7 @@ describe("Test Service constructor", () => {
 	});
 
 	it("check logger without version", () => {
-		broker.getLogger = jest.fn();
+		broker.getLogger.mockClear();
 		const service = new Service(broker, {
 			name: "likes"
 		});
