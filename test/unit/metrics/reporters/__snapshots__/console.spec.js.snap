@@ -32,7 +32,7 @@ Array [
   "  {}: nodejs ",
   "",
   "moleculer.node.versions.moleculer (info)",
-  "  {}: 0.13.9 ",
+  "  {}: 0.14.0-beta1 ",
   "",
   "moleculer.node.versions.protocol (info)",
   "  {}: 4 ",

@@ -182,7 +182,7 @@ Array [
       Object {
         "labels": Object {},
         "timestamp": 12345678000,
-        "value": "0.13.9",
+        "value": "0.14.0-beta1",
       },
     ],
   },
