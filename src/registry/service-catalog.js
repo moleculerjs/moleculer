@@ -104,6 +104,7 @@ class ServiceCatalog {
 				let item = {
 					name: service.name,
 					version: service.version,
+					fullName: service.fullName,
 					settings: service.settings,
 					metadata: service.metadata,
 					available: service.node.available,
@@ -180,6 +181,7 @@ class ServiceCatalog {
 			let item = {
 				name: service.name,
 				version: service.version,
+				fullName: service.fullName,
 				settings: service.settings,
 				metadata: service.metadata,
 				dependencies: service.dependencies
