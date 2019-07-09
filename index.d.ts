@@ -1,6 +1,4 @@
-import { GetEffectiveTypeRootsHost } from "typescript";
 import { EventEmitter2 } from "eventemitter2";
-import generate from "@babel/generator";
 
 declare namespace Moleculer {
 	type GenericObject = { [name: string]: any };
