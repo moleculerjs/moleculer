@@ -178,7 +178,8 @@ describe("Test EventReporter class", () => {
 							eventName: "$metrics.custom",
 							interval: 0,
 							onlyChanges: true,
-							broadcast: true
+							broadcast: true,
+							excludes: ["moleculer.node.versions.moleculer"]
 						}
 					}
 				}

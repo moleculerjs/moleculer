@@ -173,20 +173,6 @@ Array [
     ],
   },
   Object {
-    "description": "Moleculer version number",
-    "labelNames": Array [],
-    "name": "moleculer.node.versions.moleculer",
-    "type": "info",
-    "unit": undefined,
-    "values": Array [
-      Object {
-        "labels": Object {},
-        "timestamp": 12345678000,
-        "value": "0.14.0-beta2",
-      },
-    ],
-  },
-  Object {
     "description": "Moleculer protocol version",
     "labelNames": Array [],
     "name": "moleculer.node.versions.protocol",

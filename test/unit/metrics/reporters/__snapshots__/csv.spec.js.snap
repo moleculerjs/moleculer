@@ -16,19 +16,6 @@ Array [
     ],
   ],
   Array [
-    "./reports/metrics/moleculer.node.versions.moleculer.csv",
-    Array [
-      "Timestamp",
-      "Metric",
-      "Value",
-    ],
-    Array [
-      12345678000,
-      "moleculer.node.versions.moleculer",
-      "0.14.0-beta2",
-    ],
-  ],
-  Array [
     "./reports/metrics/moleculer.node.versions.protocol.csv",
     Array [
       "Timestamp",

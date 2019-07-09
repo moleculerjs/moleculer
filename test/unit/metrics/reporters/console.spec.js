@@ -173,7 +173,8 @@ describe("Test ConsoleReporter class", () => {
 						interval: 0,
 						colors: false,
 						onlyChanges: true,
-						logger
+						logger,
+						excludes: ["moleculer.node.versions.moleculer"]
 					}
 				}
 			}

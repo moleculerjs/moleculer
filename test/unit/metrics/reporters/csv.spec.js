@@ -246,6 +246,7 @@ describe("Test CSVReporter class", () => {
 					reporter: {
 						type: "CSV",
 						options: {
+							excludes: ["moleculer.node.versions.moleculer"]
 						}
 					}
 				}

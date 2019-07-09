@@ -27,12 +27,9 @@ Array [
 
 exports[`Test ConsoleReporter class Test print method with onlyChanges should not print lines to the logger 1`] = `
 Array [
-  "------------------- [ METRICS START (17) ] -------------------",
+  "------------------- [ METRICS START (16) ] -------------------",
   "moleculer.node.type (info)",
   "  {}: nodejs ",
-  "",
-  "moleculer.node.versions.moleculer (info)",
-  "  {}: 0.14.0-beta2 ",
   "",
   "moleculer.node.versions.protocol (info)",
   "  {}: 4 ",
@@ -82,7 +79,7 @@ Array [
   "  {}: Count: 4 | 1: 0 | 5: 2 | 10: 4 | 0.005: 0 | 0.01: 0 | 0.025: 0 | 0.05: 0 | 0.1: 0 | 0.25: 0 | 0.5: 0 | 2.5: 2 | Min: 2.00 | Mean: 4.50 | Var: 9.00 | StdDev: 3.00 | Max: 8.00 | 0.5: 2.00 | 0.9: 8.00 | 0.95: 8.00 | 0.99: 8.00 | 0.999: 8.00 bytes",
   "  {action: auth}: Count: 3 | 1: 1 | 5: 2 | 10: 3 | 0.005: 0 | 0.01: 0 | 0.025: 0 | 0.05: 0 | 0.1: 0 | 0.25: 0 | 0.5: 0 | 2.5: 1 | Min: 1.00 | Mean: 3.67 | Var: 9.33 | StdDev: 3.06 | Max: 7.00 | 0.5: 3.00 | 0.9: 7.00 | 0.95: 7.00 | 0.99: 7.00 | 0.999: 7.00 bytes",
   "",
-  "-------------------- [ METRICS END (17) ] --------------------",
+  "-------------------- [ METRICS END (16) ] --------------------",
 ]
 `;
 
