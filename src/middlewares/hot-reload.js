@@ -71,9 +71,11 @@ module.exports = function HotReloadMiddleware(broker) {
 				broker.logger.debug(`  ${relPath}:`, chalk.grey("restart broker."));
 			else if (watchItem.allServices)
 				broker.logger.debug(`  ${relPath}:`, chalk.grey("reload all services."));
-			else if (watchItem.services.length > 0)
+			else if (watchItem.services.length > 0) {
 				broker.logger.debug(`  ${relPath}:`, chalk.grey(`reload ${watchItem.services.length} service(s) & ${watchItem.others.length} other(s).`)/*, watchItem.services, watchItem.others*/);
-
+				watchItem.services.forEach(svcFullname => broker.logger.debug(chalk.grey(`    ${svcFullname}`)));
+				watchItem.others.forEach(filename => broker.logger.debug(chalk.grey(`    ${path.relative(process.cwd(), filename)}`)));
+			}
 			// Create watcher
 			watchItem.watcher = fs.watch(fName, (eventType) => {
 				const relPath = path.relative(process.cwd(), fName);
@@ -168,11 +170,11 @@ module.exports = function HotReloadMiddleware(broker) {
 		//console.log(fName);
 
 		// Cache files to avoid cyclic dependencies
-		if (cache.get(fName))
-			return;
+		if (fName.indexOf("node_modules") !== -1) {
+			if (cache.get(fName)) return;
 
-		cache.set(fName, mod);
-
+			cache.set(fName, mod);
+		}
 
 		if (!service) {
 			service = broker.services.find(svc => svc.__filename == fName);
