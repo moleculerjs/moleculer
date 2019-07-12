@@ -37,6 +37,7 @@ describe("Test Context", () => {
 
 		expect(ctx.params).toBeNull();
 		expect(ctx.meta).toEqual({});
+		expect(ctx.locals).toEqual({});
 
 		expect(ctx.requestID).toBeNull();
 
@@ -270,6 +271,9 @@ describe("Test copy", () => {
 			user: "John",
 			c: 200
 		},
+		locals: {
+			entity: "entity"
+		},
 		parentCtx: {
 			id: 100,
 			level: 5,
@@ -304,6 +308,7 @@ describe("Test copy", () => {
 
 		expect(ctx.params).toEqual(baseCtx.params);
 		expect(ctx.meta).toEqual(baseCtx.meta);
+		expect(ctx.locals).toEqual(baseCtx.locals);
 
 		expect(ctx.options).toEqual(baseCtx.options);
 
@@ -741,6 +746,9 @@ describe("Test toJSON method", () => {
 		meta: {
 			user: "John",
 			c: 200
+		},
+		locals: {
+			entity: "entity"
 		},
 		parentCtx: {
 			id: 100,

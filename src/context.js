@@ -85,6 +85,7 @@ class Context {
 
 		this.params = null;
 		this.meta = {};
+		this.locals = {};
 
 		this.requestID = null;
 
@@ -182,6 +183,7 @@ class Context {
 		newCtx.level = this.level;
 		newCtx.params = this.params;
 		newCtx.meta = this.meta;
+		newCtx.locals = this.locals;
 		newCtx.requestID = this.requestID;
 		newCtx.tracing = this.tracing;
 		newCtx.span = this.span;
@@ -398,6 +400,7 @@ class Context {
 			"level",
 			"params",
 			"meta",
+			//"locals",
 			"requestID",
 			"tracing",
 			"span",
