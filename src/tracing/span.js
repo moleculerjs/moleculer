@@ -147,6 +147,15 @@ class Span {
 	}
 
 	/**
+	 * Check the span is active or finished.
+	 *
+	 * @returns {boolean}
+	 */
+	isActive() {
+		return this.finishTime == null;
+	}
+
+	/**
 	 * Start a child span.
 	 *
 	 * @param {String} name

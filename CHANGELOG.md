@@ -800,11 +800,11 @@ module.exports = {
                 }
             }); 
             const data = await this.getDataFromDB(ctx.params);
-            span1.finish();
+            ctx.finishSpan(span1);
 
             const span2 = ctx.startSpan("populating");
             const res = await this.populate(data);
-            span2.finish();
+            ctx.finishSpan(span2);
 
             return res;
         }

@@ -210,6 +210,9 @@ describe("Test Context.create", () => {
 				tracing: true,
 				event: {
 					name: "post.created"
+				},
+				span: {
+					id: 300
 				}
 			}
 		};
@@ -237,7 +240,7 @@ describe("Test Context.create", () => {
 
 		expect(ctx.options).toEqual(opts);
 
-		expect(ctx.parentID).toBe(100);
+		expect(ctx.parentID).toBe(300);
 		expect(ctx.caller).toBe("post.created");
 
 		expect(ctx.tracing).toBe(true);
@@ -692,16 +695,17 @@ describe("Test broadcast method", () => {
 
 });
 
-describe("Test startSpan method", () => {
+describe("Test startSpan, finishSpan method", () => {
 	let broker = new ServiceBroker({ logger: false, tracing: true });
-	const fakeSpan2 = { id: 456 };
-	const fakeSpan = { id: 123, startSpan: jest.fn(() => fakeSpan2) };
+	const fakeSpan2 = { id: 456, isActive: jest.fn(() => true), finish: jest.fn() };
+	const fakeSpan = { id: 123, isActive: jest.fn(() => false), startSpan: jest.fn(() => fakeSpan2), finish: jest.fn() };
 	broker.tracer.startSpan = jest.fn(() => fakeSpan);
 
 	let ctx = new Context(broker);
 
 	it("should call tracer.startSpan", () => {
 		expect(ctx.span).toBeNull();
+		expect(ctx._spanStack).toEqual([]);
 
 		let opts = { a: 5 };
 		ctx.startSpan("custom span", opts);
@@ -709,10 +713,12 @@ describe("Test startSpan method", () => {
 		expect(broker.tracer.startSpan).toHaveBeenCalledTimes(1);
 		expect(broker.tracer.startSpan).toHaveBeenCalledWith("custom span", opts);
 		expect(ctx.span).toBe(fakeSpan);
+		expect(ctx._spanStack).toEqual([fakeSpan]);
 	});
 
 	it("should call startSpan of current span", () => {
 		expect(ctx.span).toBeDefined();
+		expect(ctx._spanStack).toEqual([fakeSpan]);
 
 		let opts = { b: 3 };
 		ctx.startSpan("custom nested span", opts);
@@ -720,6 +726,45 @@ describe("Test startSpan method", () => {
 		expect(fakeSpan.startSpan).toHaveBeenCalledTimes(1);
 		expect(fakeSpan.startSpan).toHaveBeenCalledWith("custom nested span", opts);
 		expect(ctx.span).toBe(fakeSpan2);
+		expect(ctx._spanStack).toEqual([fakeSpan, fakeSpan2]);
+	});
+
+	it("should call finish of current span", () => {
+		expect(ctx.span).toBe(fakeSpan2);
+		expect(ctx._spanStack).toEqual([fakeSpan, fakeSpan2]);
+
+		ctx.finishSpan(fakeSpan2);
+
+		expect(fakeSpan2.isActive).toHaveBeenCalledTimes(1);
+
+		expect(fakeSpan2.finish).toHaveBeenCalledTimes(1);
+		expect(fakeSpan2.finish).toHaveBeenCalledWith(undefined);
+		expect(ctx.span).toBe(fakeSpan);
+		expect(ctx._spanStack).toEqual([fakeSpan]);
+	});
+
+
+	it("should not call finish of current spanif is not active", () => {
+		ctx.finishSpan(fakeSpan);
+
+		expect(fakeSpan.isActive).toHaveBeenCalledTimes(1);
+
+		expect(fakeSpan.finish).toHaveBeenCalledTimes(0);
+		expect(ctx.span).toBe(fakeSpan);
+		expect(ctx._spanStack).toEqual([fakeSpan]);
+	});
+
+	it("should call finish of current spanif is not active", () => {
+		fakeSpan.isActive = jest.fn(() => true);
+
+		ctx.finishSpan(fakeSpan, 1234);
+
+		expect(fakeSpan.isActive).toHaveBeenCalledTimes(1);
+
+		expect(fakeSpan.finish).toHaveBeenCalledTimes(1);
+		expect(fakeSpan.finish).toHaveBeenCalledWith(1234);
+		expect(ctx.span).toBeUndefined();
+		expect(ctx._spanStack).toEqual([]);
 	});
 
 });

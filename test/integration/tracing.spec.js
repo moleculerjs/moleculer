@@ -81,11 +81,11 @@ describe("Test Tracing feature with actions", () => {
 			"comments.removed"(ctx) {
 				const span1 = ctx.startSpan("update posts");
 				ctx.broadcast("post.updated");
-				span1.finish();
+				ctx.finishSpan(span1);
 
 				const span2 = ctx.startSpan("update others");
 				ctx.broadcast("user.updated");
-				span2.finish();
+				ctx.finishSpan(span2);
 			},
 
 			"post.updated"(ctx) {
@@ -112,7 +112,7 @@ describe("Test Tracing feature with actions", () => {
 						} });
 						user = _.cloneDeep(user);
 						Promise.delay(5);
-						span.finish();
+						ctx.finishSpan(span);
 
 						user.friends = await ctx.call("friends.count", { id: user.id });
 					}
@@ -125,7 +125,7 @@ describe("Test Tracing feature with actions", () => {
 				const span1 = ctx.startSpan("updating user");
 				// TODO: not perfect. Its parent is the event span and not span1
 				await ctx.call("friends.count", { userID: 2 });
-				span1.finish();
+				ctx.finishSpan(span1);
 			}
 		}
 	}]);

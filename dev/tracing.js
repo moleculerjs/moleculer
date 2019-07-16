@@ -29,7 +29,7 @@ const broker = new ServiceBroker({
 	logLevel: "info",
 	logObjectPrinter: o => inspect(o, { showHidden: false, depth: 4, colors: true, breakLength: 50 }),
 	//transporter: "redis://localhost:6379",
-	cacher: "redis://localhost:6379",
+	cacher: true, //"redis://localhost:6379",
 
 	tracing: {
 		events: true,
@@ -60,12 +60,12 @@ const broker = new ServiceBroker({
 					baseURL: "http://192.168.0.181:9411",
 				}
 			},*/
-			{
+			/*{
 				type: "Jaeger",
 				options: {
 					host: "192.168.0.181",
 				}
-			},
+			},*/
 			/*{
 				type: "Event",
 				options: {
@@ -78,6 +78,23 @@ const broker = new ServiceBroker({
 	}
 });
 
+const ConfigMixin = {
+	/*dependencies: ["config"],
+
+	async started() {
+		this.config = await this.broker.call("config.get");
+	}*/
+};
+
+broker.createService({
+	name: "config",
+	actions: {
+		get(ctx) {
+			return {};
+		}
+	}
+});
+
 const POSTS = [
 	{ id: 1, title: "First post", content: "Content of first post", author: 2 },
 	{ id: 2, title: "Second post", content: "Content of second post", author: 1 },
@@ -86,6 +103,8 @@ const POSTS = [
 
 broker.createService({
 	name: "posts",
+	mixins: [ConfigMixin],
+
 	actions: {
 		sync: {
 			async handler(ctx) {
@@ -123,12 +142,12 @@ broker.createService({
 				const span1 = ctx.startSpan("cloning posts");
 				const posts = _.cloneDeep(POSTS);
 				const something = await this.broker.cacher.get("something");
-				span1.finish();
+				ctx.finishSpan(span1);
 
 				const span2 = ctx.startSpan("populate posts");
 				//await this.Promise.delay(10);
 				const res = await this.Promise.map(posts, async post => {
-					const span3 = span2.startSpan("populate #" + post.id, { tags: {
+					const span3 = ctx.startSpan("populate #" + post.id, { tags: {
 						id: post.id
 					} });
 					//await this.Promise.delay(15);
@@ -140,12 +159,16 @@ broker.createService({
 						ctx.call("votes.count", { postID: post.id }).then(votes => post.votes = votes),
 					]);
 
-					span3.finish();
+					ctx.finishSpan(span3);
 
 					//return res;
 				}, { concurrency: 1 });
 
-				span2.finish();
+				ctx.finishSpan(span2);
+
+				const span4 = ctx.startSpan("sorting");
+				posts.sort((a,b) => a.id - b.id);
+				ctx.finishSpan(span4);
 				return posts;
 			}
 		}
@@ -159,6 +182,8 @@ const USERS = [
 
 broker.createService({
 	name: "users",
+	mixins: [ConfigMixin],
+
 	actions: {
 		get: {
 			tracing: {
@@ -187,6 +212,8 @@ broker.createService({
 
 broker.createService({
 	name: "votes",
+	mixins: [ConfigMixin],
+
 	actions: {
 		count: {
 			tracing: {
@@ -203,7 +230,7 @@ broker.createService({
 			async handler(ctx) {
 				const span1 = ctx.startSpan("Fake delay");
 				//await this.Promise.delay(10 + _.random(30));
-				span1.finish();
+				ctx.finishSpan(span1);
 				return ctx.params.postID * 3;
 			}
 		}
@@ -212,6 +239,8 @@ broker.createService({
 
 broker.createService({
 	name: "friends",
+	mixins: [ConfigMixin],
+
 	actions: {
 		count: {
 			tracing: true,
@@ -228,11 +257,28 @@ broker.createService({
 
 broker.createService({
 	name: "followers",
+	mixins: [ConfigMixin],
+
 	actions: {
 		count: {
 			tracing: true,
 			async handler(ctx) {
-				await this.Promise.delay(_.random(50));
+				//await this.Promise.delay(_.random(50));
+				return Math.round(Math.random() * 10);
+			}
+		}
+	}
+});
+
+broker.createService({
+	name: "favorites",
+	mixins: [ConfigMixin],
+
+	actions: {
+		count: {
+			tracing: true,
+			async handler(ctx) {
+				//await this.Promise.delay(_.random(50));
 				return Math.round(Math.random() * 10);
 			}
 		}
@@ -242,23 +288,27 @@ broker.createService({
 broker.createService({
 	name: "event-handler",
 	events: {
-		"$tracing.spans"(payload) {
-			this.logger.info("Tracing event received", payload);
+		"$tracing.spans"(ctx) {
+			this.logger.info("Tracing event received", ctx.params);
 		},
-		"metrics.trace.span.start"(payload) {
+		"metrics.trace.span.start"(ctx) {
 			this.logger.info("Legacy tracing start event received");
 		},
-		"metrics.trace.span.finish"(payload) {
-			this.logger.info("Legacy tracing finish event received", payload);
+		"metrics.trace.span.finish"(ctx) {
+			this.logger.info("Legacy tracing finish event received", ctx.params);
 		},
 		"user.access": {
 			tracing: true,
-			async handler(payload) {
+			async handler(ctx) {
 				this.logger.info("User access event received. It is sampled in tracing!");
-				const span = this.broker.tracer.startSpan("work in event");
+				const span = ctx.startSpan("get followers in event");
 				//await this.Promise.delay(10);
-				await this.broker.call("followers.count");
-				span.finish();
+				await ctx.call("followers.count");
+				ctx.finishSpan(span);
+
+				const span2 = ctx.startSpan("get favorites in event");
+				await ctx.call("favorites.count");
+				ctx.finishSpan(span2);
 			}
 		}
 	}
@@ -309,6 +359,6 @@ broker.start().then(() => {
 		.call("posts.find", { limit: 5 }, { meta: { loggedIn: { username: "Adam" } } })
 		//.then(console.log)
 		.catch(console.error);
-
 	//}, 5000);
+
 });

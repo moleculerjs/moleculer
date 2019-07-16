@@ -21,8 +21,8 @@ module.exports = function TracingMiddleware(broker) {
 		if (opts.enabled) {
 			return function tracingLocalActionMiddleware(ctx) {
 
-				ctx.requestID = tracer.getCurrentTraceID() || ctx.requestID;
-				ctx.parentID = tracer.getActiveSpanID() || ctx.parentID;
+				ctx.requestID = ctx.requestID || tracer.getCurrentTraceID();
+				ctx.parentID = ctx.parentID || tracer.getActiveSpanID();
 
 				const tags = {
 					callingLevel: ctx.level,
@@ -71,7 +71,6 @@ module.exports = function TracingMiddleware(broker) {
 				});
 
 				ctx.tracing = span.sampled;
-				ctx.span = span;
 
 				// Call the handler
 				return handler(ctx).then(res => {
@@ -91,13 +90,15 @@ module.exports = function TracingMiddleware(broker) {
 							tags.response = _.pick(res, opts.tags.response);
 					}
 
-					span.addTags(tags).finish();
+					span.addTags(tags);
+					ctx.finishSpan(span);
 
 					//ctx.duration = span.duration;
 
 					return res;
 				}).catch(err => {
-					span.setError(err).finish();
+					span.setError(err);
+					ctx.finishSpan(span);
 
 					throw err;
 				});
@@ -119,8 +120,8 @@ module.exports = function TracingMiddleware(broker) {
 		if (opts.enabled) {
 			return function tracingLocalEventMiddleware(ctx) {
 
-				ctx.requestID = tracer.getCurrentTraceID() || ctx.requestID;
-				ctx.parentID = tracer.getActiveSpanID() || ctx.parentID;
+				ctx.requestID = ctx.requestID || tracer.getCurrentTraceID();
+				ctx.parentID = ctx.parentID || tracer.getActiveSpanID();
 
 				const tags = {
 					event: {
@@ -170,9 +171,10 @@ module.exports = function TracingMiddleware(broker) {
 
 				// Call the handler
 				return handler.apply(service, arguments).then(() => {
-					span.finish();
+					ctx.finishSpan(span);
 				}).catch(err => {
-					span.setError(err).finish();
+					span.setError(err);
+					ctx.finishSpan(span);
 					throw err;
 				});
 

@@ -159,7 +159,7 @@ Array [
     "id": "broker-1-7",
     "logs": Array [],
     "name": "action 'users.get'",
-    "parentID": "broker-1-2",
+    "parentID": "broker-1-1",
     "priority": 5,
     "sampled": true,
     "service": Object {
@@ -213,7 +213,7 @@ Array [
     "id": "broker-2-11",
     "logs": Array [],
     "name": "action 'friends.count'",
-    "parentID": "broker-2-6",
+    "parentID": "broker-1-7",
     "priority": 5,
     "sampled": true,
     "service": Object {
@@ -251,7 +251,7 @@ Array [
     "id": "broker-1-12",
     "logs": Array [],
     "name": "action 'users.get'",
-    "parentID": "broker-1-7",
+    "parentID": "broker-1-1",
     "priority": 5,
     "sampled": true,
     "service": Object {
@@ -305,7 +305,7 @@ Array [
     "id": "broker-2-16",
     "logs": Array [],
     "name": "action 'friends.count'",
-    "parentID": "broker-2-11",
+    "parentID": "broker-1-12",
     "priority": 5,
     "sampled": true,
     "service": Object {
@@ -425,7 +425,7 @@ Array [
     "id": "broker-1-6",
     "logs": Array [],
     "name": "update others",
-    "parentID": "broker-1-2",
+    "parentID": "broker-1-1",
     "priority": 5,
     "sampled": true,
     "service": Object {
@@ -441,7 +441,7 @@ Array [
     "id": "broker-2-8",
     "logs": Array [],
     "name": "event 'user.updated'",
-    "parentID": "broker-1-1",
+    "parentID": "broker-1-6",
     "priority": 5,
     "sampled": true,
     "service": Object {
@@ -484,7 +484,7 @@ Array [
     "id": "broker-2-10",
     "logs": Array [],
     "name": "action 'friends.count'",
-    "parentID": "broker-2-8",
+    "parentID": "broker-2-9",
     "priority": 5,
     "sampled": true,
     "service": Object {

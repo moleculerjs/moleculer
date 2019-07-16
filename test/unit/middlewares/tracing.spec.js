@@ -135,7 +135,8 @@ describe("Test TracingMiddleware localAction", () => {
 				}
 			},
 
-			startSpan: jest.fn(() => fakeSpan)
+			startSpan: jest.fn(() => fakeSpan),
+			finishSpan: jest.fn()
 		};
 
 		it("should create a span", async () => {
@@ -156,8 +157,8 @@ describe("Test TracingMiddleware localAction", () => {
 			/* eslint-disable-next-line */
 			ctx.params.a = 5;
 
-			expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(1);
-			expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(1);
+			expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(0);
+			expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(0);
 
 			expect(ctx.startSpan).toHaveBeenCalledTimes(1);
 			expect(ctx.startSpan).toHaveBeenCalledWith("action 'posts.find'", {
@@ -196,14 +197,12 @@ describe("Test TracingMiddleware localAction", () => {
 				sampled: true,
 			});
 
-			expect(ctx.span).toBe(fakeSpan);
+			expect(ctx.finishSpan).toHaveBeenCalledTimes(1);
+			expect(ctx.finishSpan).toHaveBeenCalledWith(fakeSpan);
 			expect(ctx.tracing).toBe(true);
 
 			expect(fakeSpan.addTags).toHaveBeenCalledTimes(1);
 			expect(fakeSpan.addTags).toHaveBeenCalledWith({ fromCache: false });
-
-			expect(fakeSpan.finish).toHaveBeenCalledTimes(1);
-			expect(fakeSpan.finish).toHaveBeenCalledWith();
 
 			expect(fakeSpan.setError).toHaveBeenCalledTimes(0);
 		});
@@ -227,6 +226,7 @@ describe("Test TracingMiddleware localAction", () => {
 			const newHandler = mw.localAction.call(broker, handler, action);
 
 			ctx.startSpan.mockClear();
+			ctx.finishSpan.mockClear();
 			fakeSpan.addTags.mockClear();
 			fakeSpan.setError.mockClear();
 			fakeSpan.finish.mockClear();
@@ -235,15 +235,15 @@ describe("Test TracingMiddleware localAction", () => {
 
 			expect(res).toBe(result);
 
-			expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(1);
-			expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(1);
+			expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(0);
+			expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(0);
 
 			expect(ctx.startSpan).toHaveBeenCalledTimes(1);
 			expect(ctx.startSpan).toHaveBeenCalledWith("action 'posts.find'", {
 				id: "ctx-id",
 				type: "action",
-				traceID: "tracer-trace-id",
-				parentID: "tracer-span-id",
+				traceID: "request-id",
+				parentID: "parent-id",
 				service: null,
 				tags: {
 					action: {
@@ -276,7 +276,8 @@ describe("Test TracingMiddleware localAction", () => {
 				sampled: true,
 			});
 
-			expect(ctx.span).toBe(fakeSpan);
+			expect(ctx.finishSpan).toHaveBeenCalledTimes(1);
+			expect(ctx.finishSpan).toHaveBeenCalledWith(fakeSpan);
 			expect(ctx.tracing).toBe(true);
 
 			expect(fakeSpan.addTags).toHaveBeenCalledTimes(1);
@@ -287,9 +288,6 @@ describe("Test TracingMiddleware localAction", () => {
 					title: "Post title"
 				}
 			});
-
-			expect(fakeSpan.finish).toHaveBeenCalledTimes(1);
-			expect(fakeSpan.finish).toHaveBeenCalledWith();
 
 			expect(fakeSpan.setError).toHaveBeenCalledTimes(0);
 		});
@@ -307,6 +305,7 @@ describe("Test TracingMiddleware localAction", () => {
 			const newHandler = mw.localAction.call(broker, handler, action);
 
 			ctx.startSpan.mockClear();
+			ctx.finishSpan.mockClear();
 			fakeSpan.addTags.mockClear();
 			fakeSpan.setError.mockClear();
 			fakeSpan.finish.mockClear();
@@ -322,8 +321,8 @@ describe("Test TracingMiddleware localAction", () => {
 			expect(ctx.startSpan).toHaveBeenCalledWith("action 'posts.find'", {
 				id: "ctx-id",
 				type: "action",
-				traceID: "tracer-trace-id",
-				parentID: "tracer-span-id",
+				traceID: "request-id",
+				parentID: "parent-id",
 				service: null,
 				tags: {
 					action: {
@@ -363,8 +362,8 @@ describe("Test TracingMiddleware localAction", () => {
 				response: result
 			});
 
-			expect(fakeSpan.finish).toHaveBeenCalledTimes(1);
-			expect(fakeSpan.finish).toHaveBeenCalledWith();
+			expect(ctx.finishSpan).toHaveBeenCalledTimes(1);
+			expect(ctx.finishSpan).toHaveBeenCalledWith(fakeSpan);
 
 			expect(fakeSpan.setError).toHaveBeenCalledTimes(0);
 		});
@@ -382,6 +381,7 @@ describe("Test TracingMiddleware localAction", () => {
 			const newHandler = mw.localAction.call(broker, handler, action);
 
 			ctx.startSpan.mockClear();
+			ctx.finishSpan.mockClear();
 			fakeSpan.addTags.mockClear();
 			fakeSpan.setError.mockClear();
 			fakeSpan.finish.mockClear();
@@ -392,8 +392,8 @@ describe("Test TracingMiddleware localAction", () => {
 			expect(ctx.startSpan).toHaveBeenCalledWith("action 'posts.find'", {
 				id: "ctx-id",
 				type: "action",
-				traceID: "tracer-trace-id",
-				parentID: "tracer-span-id",
+				traceID: "request-id",
+				parentID: "parent-id",
 				service: null,
 				tags: {
 					action: {
@@ -417,8 +417,8 @@ describe("Test TracingMiddleware localAction", () => {
 				fromCache: false
 			});
 
-			expect(fakeSpan.finish).toHaveBeenCalledTimes(1);
-			expect(fakeSpan.finish).toHaveBeenCalledWith();
+			expect(ctx.finishSpan).toHaveBeenCalledTimes(1);
+			expect(ctx.finishSpan).toHaveBeenCalledWith(fakeSpan);
 
 			expect(fakeSpan.setError).toHaveBeenCalledTimes(0);
 		});
@@ -438,6 +438,7 @@ describe("Test TracingMiddleware localAction", () => {
 			const newHandler = mw.localAction.call(broker, handler, action);
 
 			ctx.startSpan.mockClear();
+			ctx.finishSpan.mockClear();
 			fakeSpan.addTags.mockClear();
 			fakeSpan.setError.mockClear();
 			fakeSpan.finish.mockClear();
@@ -448,8 +449,8 @@ describe("Test TracingMiddleware localAction", () => {
 			expect(ctx.startSpan).toHaveBeenCalledWith("action 'posts.find'", {
 				id: "ctx-id",
 				type: "action",
-				traceID: "tracer-trace-id",
-				parentID: "tracer-span-id",
+				traceID: "request-id",
+				parentID: "parent-id",
 				service: null,
 				tags: {
 					action: {
@@ -511,8 +512,8 @@ describe("Test TracingMiddleware localAction", () => {
 				}
 			});
 
-			expect(fakeSpan.finish).toHaveBeenCalledTimes(1);
-			expect(fakeSpan.finish).toHaveBeenCalledWith();
+			expect(ctx.finishSpan).toHaveBeenCalledTimes(1);
+			expect(ctx.finishSpan).toHaveBeenCalledWith(fakeSpan);
 
 			expect(fakeSpan.setError).toHaveBeenCalledTimes(0);
 		});
@@ -532,6 +533,9 @@ describe("Test TracingMiddleware localAction", () => {
 
 			fakeSpan.sampled = false;
 
+			ctx.requestID = null;
+			ctx.parentID = null;
+
 			tracer.getCurrentTraceID = jest.fn(() => "tracer-trace-id");
 			tracer.getActiveSpanID = jest.fn(() => "tracer-span-id");
 
@@ -539,6 +543,7 @@ describe("Test TracingMiddleware localAction", () => {
 			const newHandler = mw.localAction.call(broker, action.handler, action);
 
 			ctx.startSpan.mockClear();
+			ctx.finishSpan.mockClear();
 			fakeSpan.addTags.mockClear();
 			fakeSpan.setError.mockClear();
 			fakeSpan.finish.mockClear();
@@ -595,13 +600,12 @@ describe("Test TracingMiddleware localAction", () => {
 					sampled: true,
 				});
 
-				expect(ctx.span).toBe(fakeSpan);
 				expect(ctx.tracing).toBe(false);
 
 				expect(fakeSpan.addTags).toHaveBeenCalledTimes(0);
 
-				expect(fakeSpan.finish).toHaveBeenCalledTimes(1);
-				expect(fakeSpan.finish).toHaveBeenCalledWith();
+				expect(ctx.finishSpan).toHaveBeenCalledTimes(1);
+				expect(ctx.finishSpan).toHaveBeenCalledWith(fakeSpan);
 
 				expect(fakeSpan.setError).toHaveBeenCalledTimes(1);
 				expect(fakeSpan.setError).toHaveBeenCalledWith(err);
@@ -749,7 +753,8 @@ describe("Test TracingMiddleware localEvent", () => {
 				}
 			},
 
-			startSpan: jest.fn(() => fakeSpan)
+			startSpan: jest.fn(() => fakeSpan),
+			finishSpan: jest.fn()
 		};
 
 		it("should create a span", async () => {
@@ -759,6 +764,7 @@ describe("Test TracingMiddleware localEvent", () => {
 			tracer.getCurrentTraceID.mockClear();
 			tracer.getActiveSpanID.mockClear();
 			ctx.startSpan.mockClear();
+			ctx.finishSpan.mockClear();
 			fakeSpan.addTags.mockClear();
 			fakeSpan.setError.mockClear();
 			fakeSpan.finish.mockClear();
@@ -768,8 +774,8 @@ describe("Test TracingMiddleware localEvent", () => {
 			/* eslint-disable-next-line */
 			ctx.params.a = 5;
 
-			expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(1);
-			expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(1);
+			expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(0);
+			expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(0);
 
 			expect(ctx.startSpan).toHaveBeenCalledTimes(1);
 			expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created'", {
@@ -811,8 +817,8 @@ describe("Test TracingMiddleware localEvent", () => {
 
 			expect(fakeSpan.addTags).toHaveBeenCalledTimes(0);
 
-			expect(fakeSpan.finish).toHaveBeenCalledTimes(1);
-			expect(fakeSpan.finish).toHaveBeenCalledWith();
+			expect(ctx.finishSpan).toHaveBeenCalledTimes(1);
+			expect(ctx.finishSpan).toHaveBeenCalledWith(fakeSpan);
 
 			expect(fakeSpan.setError).toHaveBeenCalledTimes(0);
 		});
@@ -835,21 +841,22 @@ describe("Test TracingMiddleware localEvent", () => {
 			const newHandler = mw.localEvent.call(broker, handler, event);
 
 			ctx.startSpan.mockClear();
+			ctx.finishSpan.mockClear();
 			fakeSpan.addTags.mockClear();
 			fakeSpan.setError.mockClear();
 			fakeSpan.finish.mockClear();
 
 			await newHandler(ctx);
 
-			expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(1);
-			expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(1);
+			expect(tracer.getCurrentTraceID).toHaveBeenCalledTimes(0);
+			expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(0);
 
 			expect(ctx.startSpan).toHaveBeenCalledTimes(1);
 			expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created'", {
 				id: "ctx-id",
 				type: "event",
-				traceID: "tracer-trace-id",
-				parentID: "tracer-span-id",
+				traceID: "request-id",
+				parentID: "parent-id",
 				service: {
 					fullName: "v1.posts",
 					name: "posts",
@@ -889,8 +896,8 @@ describe("Test TracingMiddleware localEvent", () => {
 
 			expect(fakeSpan.addTags).toHaveBeenCalledTimes(0);
 
-			expect(fakeSpan.finish).toHaveBeenCalledTimes(1);
-			expect(fakeSpan.finish).toHaveBeenCalledWith();
+			expect(ctx.finishSpan).toHaveBeenCalledTimes(1);
+			expect(ctx.finishSpan).toHaveBeenCalledWith(fakeSpan);
 
 			expect(fakeSpan.setError).toHaveBeenCalledTimes(0);
 		});
@@ -907,6 +914,7 @@ describe("Test TracingMiddleware localEvent", () => {
 			const newHandler = mw.localEvent.call(broker, handler, event);
 
 			ctx.startSpan.mockClear();
+			ctx.finishSpan.mockClear();
 			fakeSpan.addTags.mockClear();
 			fakeSpan.setError.mockClear();
 			fakeSpan.finish.mockClear();
@@ -922,8 +930,8 @@ describe("Test TracingMiddleware localEvent", () => {
 			expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created'", {
 				id: "ctx-id",
 				type: "event",
-				traceID: "tracer-trace-id",
-				parentID: "tracer-span-id",
+				traceID: "request-id",
+				parentID: "parent-id",
 				service: {
 					fullName: "v1.posts",
 					name: "posts",
@@ -961,8 +969,8 @@ describe("Test TracingMiddleware localEvent", () => {
 
 			expect(fakeSpan.addTags).toHaveBeenCalledTimes(0);
 
-			expect(fakeSpan.finish).toHaveBeenCalledTimes(1);
-			expect(fakeSpan.finish).toHaveBeenCalledWith();
+			expect(ctx.finishSpan).toHaveBeenCalledTimes(1);
+			expect(ctx.finishSpan).toHaveBeenCalledWith(fakeSpan);
 
 			expect(fakeSpan.setError).toHaveBeenCalledTimes(0);
 		});
@@ -979,6 +987,7 @@ describe("Test TracingMiddleware localEvent", () => {
 			const newHandler = mw.localEvent.call(broker, handler, event);
 
 			ctx.startSpan.mockClear();
+			ctx.finishSpan.mockClear();
 			fakeSpan.addTags.mockClear();
 			fakeSpan.setError.mockClear();
 			fakeSpan.finish.mockClear();
@@ -989,8 +998,8 @@ describe("Test TracingMiddleware localEvent", () => {
 			expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created'", {
 				id: "ctx-id",
 				type: "event",
-				traceID: "tracer-trace-id",
-				parentID: "tracer-span-id",
+				traceID: "request-id",
+				parentID: "parent-id",
 				service: {
 					fullName: "v1.posts",
 					name: "posts",
@@ -1013,8 +1022,8 @@ describe("Test TracingMiddleware localEvent", () => {
 
 			expect(fakeSpan.addTags).toHaveBeenCalledTimes(0);
 
-			expect(fakeSpan.finish).toHaveBeenCalledTimes(1);
-			expect(fakeSpan.finish).toHaveBeenCalledWith();
+			expect(ctx.finishSpan).toHaveBeenCalledTimes(1);
+			expect(ctx.finishSpan).toHaveBeenCalledWith(fakeSpan);
 
 			expect(fakeSpan.setError).toHaveBeenCalledTimes(0);
 		});
@@ -1034,6 +1043,7 @@ describe("Test TracingMiddleware localEvent", () => {
 			const newHandler = mw.localEvent.call(broker, handler, event);
 
 			ctx.startSpan.mockClear();
+			ctx.finishSpan.mockClear();
 			fakeSpan.addTags.mockClear();
 			fakeSpan.setError.mockClear();
 			fakeSpan.finish.mockClear();
@@ -1044,8 +1054,8 @@ describe("Test TracingMiddleware localEvent", () => {
 			expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created'", {
 				id: "ctx-id",
 				type: "event",
-				traceID: "tracer-trace-id",
-				parentID: "tracer-span-id",
+				traceID: "request-id",
+				parentID: "parent-id",
 				service: {
 					fullName: "v1.posts",
 					name: "posts",
@@ -1086,8 +1096,8 @@ describe("Test TracingMiddleware localEvent", () => {
 
 			expect(fakeSpan.addTags).toHaveBeenCalledTimes(0);
 
-			expect(fakeSpan.finish).toHaveBeenCalledTimes(1);
-			expect(fakeSpan.finish).toHaveBeenCalledWith();
+			expect(ctx.finishSpan).toHaveBeenCalledTimes(1);
+			expect(ctx.finishSpan).toHaveBeenCalledWith(fakeSpan);
 
 			expect(fakeSpan.setError).toHaveBeenCalledTimes(0);
 		});
@@ -1106,6 +1116,9 @@ describe("Test TracingMiddleware localEvent", () => {
 
 			fakeSpan.sampled = false;
 
+			ctx.requestID = null;
+			ctx.parentID = null;
+
 			tracer.getCurrentTraceID = jest.fn(() => "tracer-trace-id");
 			tracer.getActiveSpanID = jest.fn(() => "tracer-span-id");
 
@@ -1113,6 +1126,7 @@ describe("Test TracingMiddleware localEvent", () => {
 			const newHandler = mw.localEvent.call(broker, event.handler, event);
 
 			ctx.startSpan.mockClear();
+			ctx.finishSpan.mockClear();
 			fakeSpan.addTags.mockClear();
 			fakeSpan.setError.mockClear();
 			fakeSpan.finish.mockClear();
@@ -1176,8 +1190,8 @@ describe("Test TracingMiddleware localEvent", () => {
 
 				expect(fakeSpan.addTags).toHaveBeenCalledTimes(0);
 
-				expect(fakeSpan.finish).toHaveBeenCalledTimes(1);
-				expect(fakeSpan.finish).toHaveBeenCalledWith();
+				expect(ctx.finishSpan).toHaveBeenCalledTimes(1);
+				expect(ctx.finishSpan).toHaveBeenCalledWith(fakeSpan);
 
 				expect(fakeSpan.setError).toHaveBeenCalledTimes(1);
 				expect(fakeSpan.setError).toHaveBeenCalledWith(err);

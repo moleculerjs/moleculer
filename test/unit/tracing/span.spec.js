@@ -263,6 +263,29 @@ describe("Test Tracing Span", () => {
 
 	});
 
+	describe("Test isActive method", () => {
+		const fakeTracer = {
+			broker,
+			logger: broker.logger,
+			shouldSample: jest.fn(() => true),
+			spanStarted: jest.fn(),
+			spanFinished: jest.fn()
+		};
+
+		const span = new Span(fakeTracer, "start-5");
+		span.start();
+
+		it("should return true", () => {
+			expect(span.isActive()).toBe(true);
+		});
+
+		it("should return false", () => {
+			span.finish();
+			expect(span.isActive()).toBe(false);
+		});
+
+	});
+
 	describe("Test setError method", () => {
 		const fakeTracer = {
 			broker,

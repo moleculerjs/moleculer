@@ -91,6 +91,7 @@ class Context {
 
 		this.tracing = null;
 		this.span = null;
+		this._spanStack = [];
 
 		this.needAck = null;
 		this.ackID = null;
@@ -144,19 +145,21 @@ class Context {
 		else if (opts.meta != null)
 			ctx.meta = opts.meta;
 
-		// ParentID, Level, Caller
+		// ParentID, Level, Caller, Tracing
 		if (opts.parentCtx != null) {
-			ctx.parentID = opts.parentCtx.id;
+			ctx.tracing = opts.parentCtx.tracing;
 			ctx.level = opts.parentCtx.level + 1;
+
+			if (opts.parentCtx.span)
+				ctx.parentID = opts.parentCtx.span.id;
+			else
+				ctx.parentID = opts.parentCtx.id;
+
 			if (opts.parentCtx.action)
 				ctx.caller = opts.parentCtx.action.name;
 			else if (opts.parentCtx.event)
 				ctx.caller = opts.parentCtx.event.name;
 		}
-
-		// Tracing
-		if (opts.parentCtx != null)
-			ctx.tracing = opts.parentCtx.tracing;
 
 		// Event acknowledgement
 		if (opts.needAck) {
@@ -374,13 +377,38 @@ class Context {
 	 * @memberof Context
 	 */
 	startSpan(name, opts) {
+		let span;
 		if (this.span) {
-			this.span = this.span.startSpan(name, opts);
+			span = this.span.startSpan(name, opts);
 		} else {
-			this.span = this.broker.tracer.startSpan(name, opts);
+			span = this.broker.tracer.startSpan(name, opts);
 		}
 
-		return this.span;
+		this._spanStack.push(span);
+		this.span = span;
+
+		return span;
+	}
+
+	/**
+	 * Finish an active span.
+	 *
+	 * @param {Span} span
+	 * @param {Number?} time
+	 */
+	finishSpan(span, time) {
+		if (!span.isActive()) return;
+
+		span.finish(time);
+
+		const idx = this._spanStack.findIndex(sp => sp == span);
+		if (idx !== -1) {
+			this._spanStack.splice(idx, 1);
+			this.span = this._spanStack[this._spanStack.length - 1];
+		} else {
+			/* istanbul ignore next */
+			this.service.logger.warn("This span is not assigned to this context", span);
+		}
 	}
 
 	/**
