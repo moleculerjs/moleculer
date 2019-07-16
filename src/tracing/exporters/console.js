@@ -74,7 +74,7 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 		if (!this.spans[span.parentID]) {
 			this.printRequest(span.id);
 
-			// TODO: remove old printed requests
+			// remove old printed requests
 			this.removeSpanWithChildren(span);
 		}
 	}
@@ -170,18 +170,43 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 	getTraceInfo(main) {
 		let depth = 0;
 		let total = 0;
-		let check = (item, level) => {
+		let check = (item, level, parents) => {
+			item.level = level;
+			item.parents = parents || [];
 			total++;
 			if (level > depth)
 				depth = level;
 
-			if (item.children.length > 0)
-				item.children.forEach(spanID => check(this.spans[spanID], level + 1));
+			if (item.children.length > 0) {
+				item.children.forEach((spanID, idx) => {
+					const span = this.spans[spanID];
+					span.first = idx == 0;
+					span.last = idx == item.children.length - 1;
+					check(span, item.level + 1, [].concat(item.parents, [item]));
+				});
+			}
 		};
 
 		check(main, 1);
 
 		return { depth, total };
+	}
+
+	getSpanIndent(spanItem) {
+		if (spanItem.level > 1) {
+			let s = spanItem.parents.map((item, idx) => {
+				if (idx > 0)
+					return item.last ? "  " : "│ ";
+
+				return "";
+			}).join("");
+
+			s += spanItem.last ? "└─" : "├─";
+
+			return s + (spanItem.children.length > 0 ? "┬─" : "──") + " ";
+		}
+
+		return "";
 	}
 
 	/**
@@ -198,8 +223,9 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 		const gw = this.opts.gaugeWidth || 40;
 
 		const time = span.duration == null ? "?" : humanize(span.duration);
-		const caption = r("  ", level - 1) + this.getCaption(span);
-		const info = this.getAlignedTexts(caption, w - gw - 3 - time.length - 1) + " " + time;
+		const indent = this.getSpanIndent(spanItem);
+		const caption = this.getCaption(span);
+		const info = chalk.grey(indent) + this.getAlignedTexts(caption, w - gw - 3 - time.length - 1 - indent.length) + " " + time;
 
 		const startTime = span.startTime || mainSpan.startTime;
 		const finishTime = span.finishTime || mainSpan.finishTime;
@@ -218,7 +244,12 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 		this.drawLine(c(info + " " + this.drawGauge(gstart, gstop)));
 
 		if (spanItem.children.length > 0)
-			spanItem.children.forEach(spanID => this.printSpanTime(this.spans[spanID], mainItem, level + 1));
+			spanItem.children.forEach((spanID, idx) =>
+				this.printSpanTime(this.spans[spanID], mainItem, level + 1, spanItem, {
+					first: idx == 0,
+					last: idx == spanItem.children.length - 1
+				})
+			);
 	}
 
 	/**
@@ -241,7 +272,7 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 
 		this.drawHorizonalLine();
 
-		this.printSpanTime(main, main, 1);
+		this.printSpanTime(main, main, 1, null, {});
 
 		this.drawTableBottom();
 	}
