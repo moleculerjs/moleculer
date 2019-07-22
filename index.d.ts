@@ -1034,8 +1034,6 @@ declare namespace Moleculer {
 			constructor(opts?: CacherOptions);
 			opts: CacherOptions;
 
-			prefix?: string;
-
 			init(broker: ServiceBroker): void;
 			close(): PromiseLike<any>;
 			get(key: string): PromiseLike<null | GenericObject>;
