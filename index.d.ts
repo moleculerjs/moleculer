@@ -1061,6 +1061,7 @@ declare namespace Moleculer {
 			opts: RedisCacherOptions;
 
 			client: C;
+			prefix: string | null;
 		}
 	}
 
