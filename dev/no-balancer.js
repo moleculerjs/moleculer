@@ -1,5 +1,5 @@
 const ServiceBroker = require("../src/service-broker");
-const chalk = require("chalk");
+const kleur = require("kleur");
 const NATS = require("nats");
 
 const broker = new ServiceBroker({
@@ -11,7 +11,7 @@ const broker = new ServiceBroker({
 
 broker.start().then(() => {
 	setInterval(() => {
-		broker.logger.info(chalk.yellow("Send..."));
+		broker.logger.info(kleur.yellow("Send..."));
 		//broker.emit("test.event", { ddata: "this is test data" }, ["group"]);
 		broker.broadcast("test.event", { data: "this is test data" }, ["group"]);
 		//broker.call("some.thing");
@@ -25,7 +25,7 @@ const nats1 = NATS.connect({
 });
 
 nats1.subscribe("MOL.EVENTB.group.test.event", /*{ queue: "group" },*/ message => {
-	broker.logger.info(chalk.green.bold("nodejs-subscriber1: Test event received with payload:"), message);
+	broker.logger.info(kleur.green().bold("nodejs-subscriber1: Test event received with payload:"), message);
 });
 
 const nats2 = NATS.connect({
@@ -34,5 +34,5 @@ const nats2 = NATS.connect({
 });
 
 nats2.subscribe("MOL.EVENTB.group.test.event", /*{ queue: "group" },*/ message => {
-	broker.logger.info(chalk.magenta.bold("nodejs-subscriber2: Test event received with payload:"), message);
+	broker.logger.info(kleur.magenta().bold("nodejs-subscriber2: Test event received with payload:"), message);
 });

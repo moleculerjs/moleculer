@@ -3,7 +3,7 @@
 "use strict";
 
 let path = require("path");
-let chalk = require("chalk");
+let kleur = require("kleur");
 
 let ServiceBroker = require("../../src/service-broker");
 
@@ -11,9 +11,9 @@ function middleware1() {
 	return function (handler) {
 
 		return function mw1(ctx) {
-			broker.logger.info(chalk.yellow("mw1 before", ctx.action.name));
+			broker.logger.info(kleur.yellow("mw1 before", ctx.action.name));
 			return handler(ctx).then(res => {
-				broker.logger.info(chalk.yellow("mw1 after", ctx.action.name));
+				broker.logger.info(kleur.yellow("mw1 after", ctx.action.name));
 				return res;
 			});
 		};
@@ -26,17 +26,17 @@ function middleware2() {
 	return function (handler) {
 
 		return function mw2(ctx) {
-			broker.logger.info(chalk.magenta("mw2 before-promise", ctx.action.name));
+			broker.logger.info(kleur.magenta("mw2 before-promise", ctx.action.name));
 			return new broker.Promise(resolve => {
 				setTimeout(() => {
-					broker.logger.info(chalk.magenta("mw2 before", ctx.action.name));
+					broker.logger.info(kleur.magenta("mw2 before", ctx.action.name));
 					//resolve("data from mw2");
 					resolve();
 				}, 300);
 			}).then(() => {
 				return handler(ctx);
 			}).then(res => {
-				broker.logger.info(chalk.magenta("mw2 after", ctx.action.name));
+				broker.logger.info(kleur.magenta("mw2 after", ctx.action.name));
 				return res;
 			});
 		};
@@ -48,10 +48,10 @@ function middleware3() {
 	return function mw3(handler) {
 
 		return async function mw3(ctx) {
-			broker.logger.info(chalk.cyan("mw3 before", ctx.action.name));
+			broker.logger.info(kleur.cyan("mw3 before", ctx.action.name));
 			//return broker.Promise.resolve("data from mw3");
 			const res = await handler(ctx);
-			broker.logger.info(chalk.cyan("mw3 after", ctx.action.name));
+			broker.logger.info(kleur.cyan("mw3 after", ctx.action.name));
 			if (res) {
 				if (ctx.action.name == "users.get")
 					delete res.gravatar;
@@ -94,7 +94,7 @@ broker.start().then(() => {
 
 	return broker.call("posts.get", { id: 3 }).then(res => broker.logger.info(res))
 		.then(() => {
-			console.log(chalk.bold("\n--- NEXT CALL FROM CACHE ---\n"));
+			console.log(kleur.bold("\n--- NEXT CALL FROM CACHE ---\n"));
 			return broker.call("posts.get", { id: 3 }).then(res => broker.logger.info(res));
 		});
 

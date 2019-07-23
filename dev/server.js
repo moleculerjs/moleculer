@@ -2,7 +2,7 @@
 
 let path = require("path");
 let _ = require("lodash");
-let chalk = require("chalk");
+let kleur = require("kleur");
 let ServiceBroker = require("../src/service-broker");
 let { MoleculerError, MoleculerRetryableError } = require("../src/errors");
 
@@ -76,10 +76,10 @@ broker.createService({
 			this.logger.info(`PING '${nodeID}' - Time: ${elapsedTime}ms, Time difference: ${timeDiff}ms`);
 		},
 		/*"metrics.circuit-breaker.opened"(payload, sender) {
-			this.logger.warn(chalk.yellow.bold(`---  Circuit breaker opened on '${sender} -> ${payload.nodeID}:${payload.action} action'!`));
+			this.logger.warn(kleur.yellow().bold(`---  Circuit breaker opened on '${sender} -> ${payload.nodeID}:${payload.action} action'!`));
 		},
 		"metrics.circuit-breaker.closed"(payload, sender) {
-			this.logger.warn(chalk.green.bold(`---  Circuit breaker closed on '${sender} -> ${payload.nodeID}:${payload.action} action'!`));
+			this.logger.warn(kleur.green().bold(`---  Circuit breaker closed on '${sender} -> ${payload.nodeID}:${payload.action} action'!`));
 		},
 		"metrics.trace.span.finish"(payload) {
 			this.logger.info("Metrics event", payload.action.name, payload.nodeID, Number(payload.duration).toFixed(3) + " ms");

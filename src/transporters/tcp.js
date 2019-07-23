@@ -10,7 +10,7 @@ const Promise		= require("bluebird");
 const Transporter 	= require("./base");
 const _ 			= require("lodash");
 const fs 			= require("fs");
-const chalk 		= require("chalk");
+const kleur 		= require("kleur");
 
 const Node 			= require("../registry/node");
 const P 			= require("../packets");
@@ -109,7 +109,7 @@ class TcpTransporter extends Transporter {
 	 * @memberof TcpTransporter
 	 */
 	connect() {
-		this.logger.warn(chalk.yellow.bold("TCP Transporter is an EXPERIMENTAL transporter. Do NOT use it in production yet!"));
+		this.logger.warn(kleur.yellow().bold("TCP Transporter is an EXPERIMENTAL transporter. Do NOT use it in production yet!"));
 
 		return Promise.resolve()
 			.then(() => {
@@ -359,7 +359,7 @@ class TcpTransporter extends Transporter {
 			port: localNode.port,
 		});
 
-		if (this.GOSSIP_DEBUG) this.logger.info(chalk.bgCyan.black(`----- HELLO ${this.nodeID} -> ${nodeID} -----`), packet.payload);
+		if (this.GOSSIP_DEBUG) this.logger.info(kleur.bgCyan().black(`----- HELLO ${this.nodeID} -> ${nodeID} -----`), packet.payload);
 
 		return this.publish(packet).catch(() => {
 			this.logger.debug(`Unable to send Gossip HELLO packet to ${nodeID}.`);
@@ -466,7 +466,7 @@ class TcpTransporter extends Transporter {
 				this.logger.debug(`Unable to send Gossip packet to ${ep.id}.`);
 			});
 
-			if (this.GOSSIP_DEBUG) this.logger.info(chalk.bgYellow.black(`----- REQUEST ${this.nodeID} -> ${ep.id} -----`), packet.payload);
+			if (this.GOSSIP_DEBUG) this.logger.info(kleur.bgYellow().black(`----- REQUEST ${this.nodeID} -> ${ep.id} -----`), packet.payload);
 		}
 	}
 
@@ -575,9 +575,9 @@ class TcpTransporter extends Transporter {
 				const rspPacket = new P.Packet(P.PACKET_GOSSIP_RES, sender.id, response);
 				this.publish(rspPacket).catch(() => {});
 
-				if (this.GOSSIP_DEBUG) this.logger.info(chalk.bgMagenta.black(`----- RESPONSE ${this.nodeID} -> ${sender.id} -----`), rspPacket.payload);
+				if (this.GOSSIP_DEBUG) this.logger.info(kleur.bgMagenta().black(`----- RESPONSE ${this.nodeID} -> ${sender.id} -----`), rspPacket.payload);
 			} else {
-				if (this.GOSSIP_DEBUG) this.logger.info(chalk.bgBlue.white(`----- EMPTY RESPONSE ${this.nodeID} -> ${payload.sender} -----`));
+				if (this.GOSSIP_DEBUG) this.logger.info(kleur.bgBlue().white(`----- EMPTY RESPONSE ${this.nodeID} -> ${payload.sender} -----`));
 			}
 
 		} catch(err) {

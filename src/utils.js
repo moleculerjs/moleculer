@@ -7,7 +7,7 @@
 "use strict";
 
 const Promise 	= require("bluebird");
-const chalk		= require("chalk");
+const kleur		= require("kleur");
 const os 	 	= require("os");
 
 const lut = [];
@@ -185,7 +185,7 @@ const utils = {
 
 		if (deprecateList.indexOf(prop) === -1) {
 			// eslint-disable-next-line no-console
-			console.warn(chalk.yellow.bold(`DeprecationWarning: ${msg}`));
+			console.warn(kleur.yellow().bold(`DeprecationWarning: ${msg}`));
 			deprecateList.push(prop);
 		}
 	},

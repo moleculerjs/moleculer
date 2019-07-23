@@ -17,7 +17,7 @@ const _ 			= require("lodash");
 const Args 			= require("args");
 const os			= require("os");
 const cluster		= require("cluster");
-const chalk			= require("chalk");
+const kleur			= require("kleur");
 
 const stopSignals = [
 	"SIGHUP", "SIGINT", "SIGQUIT", "SIGILL", "SIGTRAP", "SIGABRT",
@@ -39,13 +39,13 @@ let broker;
  */
 const logger = {
 	info(message) {
-		console.log(chalk.green.bold(message));
+		console.log(kleur.green().bold(message));
 	},
 	error(err) {
 		if (err instanceof Error)
-			console.error(chalk.red.bold(err.message), err);
+			console.error(kleur.red().bold(err.message), err);
 		else
-			console.error(chalk.red.bold(err));
+			console.error(kleur.red().bold(err));
 	}
 };
 
@@ -328,7 +328,7 @@ function loadServices() {
 				if (isDirectory(svcPath)) {
 					files = glob(svcPath + "/" + fileMask, { absolute: true });
 					if (files.length == 0)
-						return broker.logger.warn(chalk.yellow.bold(`There is no service files in directory: '${svcPath}'`));
+						return broker.logger.warn(kleur.yellow().bold(`There is no service files in directory: '${svcPath}'`));
 				} else if (isServiceFile(svcPath)) {
 					files = [svcPath.replace(/\\/g, "/")];
 				} else if (isServiceFile(svcPath + ".service.js")) {
@@ -337,7 +337,7 @@ function loadServices() {
 					// Load with glob
 					files = glob(p, { cwd: svcDir, absolute: true });
 					if (files.length == 0)
-						broker.logger.warn(chalk.yellow.bold(`There is no matched file for pattern: '${p}'`));
+						broker.logger.warn(kleur.yellow().bold(`There is no matched file for pattern: '${p}'`));
 				}
 
 				if (files && files.length > 0) {

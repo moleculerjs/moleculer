@@ -1,6 +1,6 @@
 "use strict";
 
-let chalk = require("chalk");
+let kleur = require("kleur");
 let ServiceBroker = require("../src/service-broker");
 
 // Create broker
@@ -34,15 +34,15 @@ broker.createService({
 
 	events: {
 		"$circuit-breaker.opened"(payload) {
-			broker.logger.warn(chalk.yellow.bold(`---  Circuit breaker opened on '${payload.nodeID}'!`));
+			broker.logger.warn(kleur.yellow().bold(`---  Circuit breaker opened on '${payload.nodeID}'!`));
 		},
 
 		"$circuit-breaker.half-opened"(payload) {
-			broker.logger.warn(chalk.green(`---  Circuit breaker half-opened on '${payload.nodeID}'!`));
+			broker.logger.warn(kleur.green(`---  Circuit breaker half-opened on '${payload.nodeID}'!`));
 		},
 
 		"$circuit-breaker.closed"(payload) {
-			broker.logger.warn(chalk.green.bold(`---  Circuit breaker closed on '${payload.nodeID}'!`));
+			broker.logger.warn(kleur.green().bold(`---  Circuit breaker closed on '${payload.nodeID}'!`));
 		},
 	}
 });
