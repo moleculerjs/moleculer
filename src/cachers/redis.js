@@ -9,6 +9,8 @@
 const Promise = require("bluebird");
 const BaseCacher = require("./base");
 const _ = require('lodash')
+const { BrokerOptionsError } = require("../errors");
+
 /**
  * Cacher factory for Redis
  *
@@ -50,7 +52,20 @@ class RedisCacher extends BaseCacher {
 		 * ioredis client instance
 		 * @memberof RedisCacher
 		 */
-		this.client = new Redis(this.opts.redis);
+		if (this.opts.cluster) {
+			if (!this.opts.cluster.nodes || this.opts.cluster.nodes.length === 0) {
+				throw new BrokerOptionsError('No nodes defined for cluster')
+			}
+
+			this.logger.info("Setting Redis.Cluster Cacher");
+
+			this.client = new Redis.Cluster(this.opts.cluster.nodes, this.opts.cluster.options);
+		} else {
+			this.logger.info("Setting Redis Cacher");
+
+			this.client = new Redis(this.opts.redis);
+		}
+
 		this.client.on("connect", () => {
 			/* istanbul ignore next */
 			this.logger.info("Redis cacher connected.");
@@ -264,19 +279,31 @@ class RedisCacher extends BaseCacher {
 		}, Promise.resolve());
 	}
 
-	_scanDel(pattern) {
+	_clusterScanDel(pattern) {
+		const scanDelPromises = []
+		const nodes = this.client.nodes();
+
+		nodes.forEach(node => {
+			scanDelPromises.push(this._nodeScanDel(node, pattern));
+		});
+
+		return Promise.all(scanDelPromises);
+	}
+
+	_nodeScanDel(node, pattern) {
 		return new Promise((resolve, reject) => {
-			const stream = this.client.scanStream({
+			const stream = node.scanStream({
 				match: pattern,
 				count: 100
 			});
+
 			stream.on("data", (keys = []) => {
 				if (!keys.length) {
 					return;
 				}
 
 				stream.pause();
-				this.client.del(keys)
+				node.del(keys)
 					.then(() => {
 						stream.resume();
 					})
@@ -285,10 +312,27 @@ class RedisCacher extends BaseCacher {
 						return reject(err);
 					});
 			});
+
+			stream.on("error", (err) => {
+				console.error('Error occured while deleting keys from node')
+				reject(err);
+			});
+
 			stream.on("end", () => {
+	//			console.log('End deleting keys from node')
 				resolve();
 			});
-		});
+		})
+	}
+
+	_scanDel(pattern) {
+		let Redis = require("ioredis");
+
+		if (this.client instanceof Redis.Cluster) {
+			return this._clusterScanDel(pattern)
+		} else {
+			return this._nodeScanDel(this.client, pattern)
+		}
 	}
 }
 
