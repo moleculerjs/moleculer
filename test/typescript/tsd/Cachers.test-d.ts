@@ -27,6 +27,8 @@ expectType<Cacher>(new Cachers.Redis());
 expectType<Cacher<Cachers.Redis>>(new Cachers.Redis());
 expectType<Cachers.Redis>(new Cachers.Redis());
 expectType<Cachers.Base>(new Cachers.Redis());
+expectType<string|null>(new Cachers.Redis().prefix);
+expectType<string|null>(new Cachers.Redis({ prefix: "foo" }).prefix);
 const redisBroker = new ServiceBroker({ cacher: new Cachers.Redis() });
 expectType<Cachers.Redis>(redisBroker.cacher as Cachers.Redis);
 
