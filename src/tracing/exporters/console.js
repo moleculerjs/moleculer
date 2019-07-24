@@ -28,8 +28,8 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 			width: 100,
 			gaugeWidth: 40
 		});
-		if (!this.opts.colors)
-			kleur.enabled = false;
+
+		kleur.enabled = !!this.opts.colorse;
 
 		this.spans = {};
 	}

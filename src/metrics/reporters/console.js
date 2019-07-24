@@ -34,8 +34,7 @@ class ConsoleReporter extends BaseReporter {
 			onlyChanges: true,
 		});
 
-		if (!this.opts.colors)
-			kleur.enabled = false;
+		kleur.enabled = !!this.opts.colors;
 
 		this.lastChanges = new Set();
 	}

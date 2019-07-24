@@ -1,8 +1,6 @@
 "use strict";
 
-let path = require("path");
 let _ = require("lodash");
-let kleur = require("kleur");
 let ServiceBroker = require("../src/service-broker");
 let { MoleculerRetryableError } = require("../src/errors");
 
