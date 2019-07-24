@@ -4,7 +4,7 @@ const ServiceBroker = require("../src/service-broker");
 const fs = require("fs");
 const Promise = require("bluebird");
 const path = require("path");
-const chalk = require("chalk");
+const kleur = require("kleur");
 const crypto = require("crypto");
 
 
@@ -33,7 +33,7 @@ broker.start()
 		stream.pipe(s);
 		s.on("close", () => {
 			broker.logger.info("Time:", Date.now() - startTime + "ms");
-			broker.logger.info(chalk.green.bold("File received OK!"));
+			broker.logger.info(kleur.green().bold("File received OK!"));
 			broker.stop();
 		});
 	});
@@ -60,9 +60,9 @@ broker.start()
 					broker.logger.info("Received SHA:", digest);
 
 					if (digest != origHash) {
-						broker.logger.error(chalk.red.bold("Hash mismatch!"));
+						broker.logger.error(kleur.red().bold("Hash mismatch!"));
 					} else {
-						broker.logger.info(chalk.green.bold("Hash OK!"));
+						broker.logger.info(kleur.green().bold("Hash OK!"));
 					}
 
 					broker.stop();
@@ -97,9 +97,9 @@ broker.start()
 							broker.logger.info("Received SHA:", hash);
 
 							if (hash != origHash) {
-								broker.logger.error(chalk.red.bold("Hash mismatch!"));
+								broker.logger.error(kleur.red().bold("Hash mismatch!"));
 							} else {
-								broker.logger.info(chalk.green.bold("Hash OK!"));
+								broker.logger.info(kleur.green().bold("Hash OK!"));
 							}
 						});
 

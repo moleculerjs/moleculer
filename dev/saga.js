@@ -1,7 +1,7 @@
 "use strict";
 
 const _ = require("lodash");
-const chalk = require("chalk");
+const kleur = require("kleur");
 const Promise = require("bluebird");
 const ServiceBroker = require("../src/service-broker");
 const { MoleculerError } = require("../src/errors");
@@ -38,7 +38,7 @@ const SagaMiddleware = function() {
 						.catch(err => {
 							if (action.saga === true) {
 								// Start compensating
-								ctx.service.logger.warn(chalk.red.bold("Some error occured. Start compensating..."));
+								ctx.service.logger.warn(kleur.red().bold("Some error occured. Start compensating..."));
 								ctx.service.logger.info(ctx.meta.$saga.compensations);
 								if (ctx.meta.$saga && Array.isArray(ctx.meta.$saga.compensations)) {
 									return Promise.map(ctx.meta.$saga.compensations, item => {
@@ -79,7 +79,7 @@ broker.createService({
 				}
 			},
 			handler(ctx) {
-				this.logger.info(chalk.cyan.bold("Car is reserved."));
+				this.logger.info(kleur.cyan().bold("Car is reserved."));
 				return {
 					id: 5,
 					name: "Honda Civic"
@@ -89,7 +89,7 @@ broker.createService({
 
 		cancel: {
 			handler(ctx) {
-				this.logger.info(chalk.yellow.bold(`Cancel car reservation of ID: ${ctx.params.id}`));
+				this.logger.info(kleur.yellow().bold(`Cancel car reservation of ID: ${ctx.params.id}`));
 			}
 		}
 	}
@@ -107,7 +107,7 @@ broker.createService({
 				}
 			},
 			handler(ctx) {
-				this.logger.info(chalk.cyan.bold("Hotel is booked."));
+				this.logger.info(kleur.cyan().bold("Hotel is booked."));
 				return {
 					id: 8,
 					name: "Holiday Inn",
@@ -119,7 +119,7 @@ broker.createService({
 
 		cancel: {
 			handler(ctx) {
-				this.logger.info(chalk.yellow.bold(`Cancel hotel reservation of ID: ${ctx.params.id}`));
+				this.logger.info(kleur.yellow().bold(`Cancel hotel reservation of ID: ${ctx.params.id}`));
 			}
 		}
 	}
@@ -139,7 +139,7 @@ broker.createService({
 			handler(ctx) {
 				return this.Promise.reject(new MoleculerError("Unable to book flight!"));
 
-				this.logger.info(chalk.cyan.bold("Flight is booked."));
+				this.logger.info(kleur.cyan().bold("Flight is booked."));
 				return {
 					id: 2,
 					number: "SQ318",
@@ -151,7 +151,7 @@ broker.createService({
 
 		cancel: {
 			handler(ctx) {
-				this.logger.info(chalk.yellow.bold(`Cancel flight ticket of ID: ${ctx.params.id}`));
+				this.logger.info(kleur.yellow().bold(`Cancel flight ticket of ID: ${ctx.params.id}`));
 			}
 		}
 	}
@@ -168,9 +168,9 @@ broker.createService({
 					const car = await ctx.call("cars.reserve");
 					const hotel = await ctx.call("hotels.book");
 					const flight = await ctx.call("flights.book");
-					this.logger.info(chalk.green.bold("Trip is created successfully: "), { car, flight, hotel });
+					this.logger.info(kleur.green().bold("Trip is created successfully: "), { car, flight, hotel });
 				} catch(err) {
-					this.logger.error(chalk.red.bold("Trip couldn't be created. Reason: "), err.message);
+					this.logger.error(kleur.red().bold("Trip couldn't be created. Reason: "), err.message);
 					throw err;
 				}
 			}

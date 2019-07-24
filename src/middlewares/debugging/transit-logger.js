@@ -7,7 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
-const chalk = require("chalk");
+const kleur = require("kleur");
 const fs = require("fs");
 const path = require("path");
 const { makeDirs } = require("../../utils");

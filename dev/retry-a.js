@@ -2,7 +2,7 @@
 
 let path = require("path");
 let _ = require("lodash");
-let chalk = require("chalk");
+let kleur = require("kleur");
 let ServiceBroker = require("../src/service-broker");
 let { MoleculerRetryableError } = require("../src/errors");
 

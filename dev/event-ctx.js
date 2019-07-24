@@ -1,7 +1,7 @@
 "use strict";
 
 const ServiceBroker = require("../src/service-broker");
-const chalk = require("chalk");
+const kleur = require("kleur");
 
 const transporter = "NATS";
 const serializer = "JSON";
@@ -33,10 +33,10 @@ broker1.createService({
 
 	events: {
 		/*"user.created"(payload, sender, eventName, ctx) {
-			this.logger.info(chalk.yellow(`${this.broker.nodeID}:${this.fullName}: Event '${eventName}' received. Payload:`), ctx ? ctx.id : null);
+			this.logger.info(kleur.yellow(`${this.broker.nodeID}:${this.fullName}: Event '${eventName}' received. Payload:`), ctx ? ctx.id : null);
 		}*/
 		"user.created"(ctx) {
-			this.logger.info(chalk.yellow(`${this.broker.nodeID}:${this.fullName}: Event '${ctx.eventName}' received. Payload:`), ctx.params, ctx.meta);
+			this.logger.info(kleur.yellow(`${this.broker.nodeID}:${this.fullName}: Event '${ctx.eventName}' received. Payload:`), ctx.params, ctx.meta);
 		}
 	}
 });
@@ -45,14 +45,14 @@ broker1.createService({
 	name: "local-handler",
 	events: {
 		"user.created"(payload, sender, eventName, ctx) {
-			this.logger.info(chalk.cyan(`${this.broker.nodeID}:${this.fullName}: Event '${eventName}' received. Payload:`), payload, ctx.meta);
+			this.logger.info(kleur.cyan(`${this.broker.nodeID}:${this.fullName}: Event '${eventName}' received. Payload:`), payload, ctx.meta);
 		},
 		/*"user.created"(ctx) {
-			this.logger.info(chalk.cyan(`${this.broker.nodeID}:${this.fullName}: Event '${ctx.eventName}' received. Payload:`), ctx.params, ctx.meta);
+			this.logger.info(kleur.cyan(`${this.broker.nodeID}:${this.fullName}: Event '${ctx.eventName}' received. Payload:`), ctx.params, ctx.meta);
 		},*/
 
 		"mail.sent"(ctx) {
-			this.logger.info(chalk.cyan(`${this.broker.nodeID}:${this.fullName}: Event '${ctx.eventName}' received. Payload:`), ctx.params, ctx.meta);
+			this.logger.info(kleur.cyan(`${this.broker.nodeID}:${this.fullName}: Event '${ctx.eventName}' received. Payload:`), ctx.params, ctx.meta);
 		}
 	}
 });
@@ -70,10 +70,10 @@ const broker2 = new ServiceBroker({
 const mixin = {
 	events: {
 		/*"user.created"(payload, sender, eventName, ctx) {
-			this.logger.info(chalk.magenta(`${this.broker.nodeID}:${this.fullName}:mixin: Event '${eventName}' received. Payload:`), ctx ? ctx.id : null);
+			this.logger.info(kleur.magenta(`${this.broker.nodeID}:${this.fullName}:mixin: Event '${eventName}' received. Payload:`), ctx ? ctx.id : null);
 		}*/
 		"user.created"(ctx) {
-			this.logger.info(chalk.magenta(`${this.broker.nodeID}:${this.fullName}:mixin: Event '${ctx.eventName}' received. Payload:`), ctx.params, ctx.meta);
+			this.logger.info(kleur.magenta(`${this.broker.nodeID}:${this.fullName}:mixin: Event '${ctx.eventName}' received. Payload:`), ctx.params, ctx.meta);
 		}
 	}
 };
@@ -83,10 +83,10 @@ broker2.createService({
 	mixins: [mixin],
 	events: {
 		/*"user.created"(payload, sender, eventName, ctx) {
-			this.logger.info(chalk.green(`${this.broker.nodeID}:${this.fullName}: Event '${eventName}' received. Payload:`), ctx ? ctx.id : null);
+			this.logger.info(kleur.green(`${this.broker.nodeID}:${this.fullName}: Event '${eventName}' received. Payload:`), ctx ? ctx.id : null);
 		}*/
 		"user.created"(ctx) {
-			this.logger.info(chalk.green(`${this.broker.nodeID}:${this.fullName}: Event '${ctx.eventName}' received. Payload:`), ctx.params, ctx.meta);
+			this.logger.info(kleur.green(`${this.broker.nodeID}:${this.fullName}: Event '${ctx.eventName}' received. Payload:`), ctx.params, ctx.meta);
 			ctx.broadcast("mail.sent", { status: "OK" });
 		}
 	}

@@ -3,7 +3,7 @@
 const { ServiceBroker } = require("../");
 const fs = require("fs");
 const path = require("path");
-const chalk = require("chalk");
+const kleur = require("kleur");
 const crypto = require("crypto");
 const { Transform } = require("stream");
 

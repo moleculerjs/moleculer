@@ -6,7 +6,7 @@
 
 "use strict";
 
-const chalk 	= require("chalk");
+const kleur 	= require("kleur");
 const _ 		= require("lodash");
 const util 		= require("util");
 const { match }	= require("./utils");
@@ -54,12 +54,12 @@ module.exports = {
 
 		const getColor = type => {
 			switch(type) {
-				case "fatal": return chalk.red.inverse;
-				case "error": return chalk.red;
-				case "warn": return chalk.yellow;
-				case "debug": return chalk.magenta;
-				case "trace": return chalk.gray;
-				default: return chalk.green;
+				case "fatal": return kleur.red().inverse;
+				case "error": return kleur.red;
+				case "warn": return kleur.yellow;
+				case "debug": return kleur.magenta;
+				case "trace": return kleur.gray;
+				default: return kleur.green;
 			}
 		};
 		const getType = type => getColor(type)(_.padEnd(type.toUpperCase(), 5));
@@ -109,7 +109,7 @@ module.exports = {
 				if (_.isFunction(format))
 					return method.call(baseLogger, logFormatter(type, args, bindings));
 
-				const defaultLogObjectPrinter = o => util.inspect(o, { showHidden: false, depth: 2, colors: chalk.enabled, breakLength: Number.POSITIVE_INFINITY });
+				const defaultLogObjectPrinter = o => util.inspect(o, { showHidden: false, depth: 2, colors: kleur.enabled, breakLength: Number.POSITIVE_INFINITY });
 
 				// Format arguments (inspect & colorize the objects & array)
 				let pargs = args.map(p => {
@@ -121,9 +121,9 @@ module.exports = {
 				if (format == "simple") {
 					method.call(baseLogger, getType(type), "-", ...pargs);
 				} else if (format == "short") {
-					method.call(baseLogger, chalk.grey(`[${new Date().toISOString().substr(11)}]`), getType(type), chalk.grey(mod + ":"), ...pargs);
+					method.call(baseLogger, kleur.grey(`[${new Date().toISOString().substr(11)}]`), getType(type), kleur.grey(mod + ":"), ...pargs);
 				} else {
-					method.call(baseLogger, chalk.grey(`[${new Date().toISOString()}]`), getType(type), chalk.grey(moduleName + ":"), ...pargs);
+					method.call(baseLogger, kleur.grey(`[${new Date().toISOString()}]`), getType(type), kleur.grey(moduleName + ":"), ...pargs);
 				}
 
 			}.bind(baseLogger);

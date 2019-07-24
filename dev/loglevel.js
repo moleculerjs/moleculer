@@ -2,7 +2,7 @@
 
 const ServiceBroker = require("../src/service-broker");
 const { extend } = require("../src/logger");
-const chalk = require("chalk");
+const kleur = require("kleur");
 
 const broker = new ServiceBroker({
 	logger: console,

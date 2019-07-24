@@ -1,6 +1,6 @@
 const crypto = require("crypto");
 const _ = require("lodash");
-const chalk = require("chalk");
+const kleur = require("kleur");
 
 const ServiceBroker = require("../src/service-broker");
 const E = require("../src/errors");
@@ -39,9 +39,9 @@ broker1.start()
 		//broker1.logger.info("Received back: ", res.length);
 		if (Buffer.compare(params, res) == 0) {
 		//if (_.isEqual(params, res)) {
-			broker1.logger.info(chalk.green.bold("EQUALS"));
+			broker1.logger.info(kleur.green().bold("EQUALS"));
 		} else {
-			broker1.logger.info(chalk.red.bold("NOT EQUALS"));
+			broker1.logger.info(kleur.red().bold("NOT EQUALS"));
 		}
 	})
 	.catch(err => broker1.logger.error(err.message));

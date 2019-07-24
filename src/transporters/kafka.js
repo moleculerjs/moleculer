@@ -7,7 +7,7 @@
 "use strict";
 
 const { defaultsDeep } 	= require("lodash");
-const chalk				= require("chalk");
+const kleur				= require("kleur");
 const Promise			= require("bluebird");
 const Transporter 		= require("./base");
 
@@ -74,7 +74,7 @@ class KafkaTransporter extends Transporter {
 	 * @memberof KafkaTransporter
 	 */
 	connect() {
-		this.logger.warn(chalk.yellow.bold("Kafka Transporter is an EXPERIMENTAL transporter. Do NOT use it in production yet!"));
+		this.logger.warn(kleur.yellow().bold("Kafka Transporter is an EXPERIMENTAL transporter. Do NOT use it in production yet!"));
 
 		return new Promise((resolve, reject) => {
 			let Kafka;

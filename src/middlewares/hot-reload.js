@@ -7,7 +7,7 @@
 "use strict";
 
 const fs = require("fs");
-const chalk = require("chalk");
+const kleur = require("kleur");
 const path = require("path");
 const _ = require("lodash");
 
@@ -24,7 +24,7 @@ module.exports = function HotReloadMiddleware(broker) {
 	function hotReloadService(service) {
 		const relPath = path.relative(process.cwd(), service.__filename);
 
-		broker.logger.info(`Hot reload '${service.name}' service...`, chalk.grey(relPath));
+		broker.logger.info(`Hot reload '${service.name}' service...`, kleur.grey(relPath));
 
 		return broker.destroyService(service)
 			.then(() => broker.loadService(service.__filename));
@@ -52,7 +52,7 @@ module.exports = function HotReloadMiddleware(broker) {
 
 		// Debounced Service reloader function
 		const reloadServices = _.debounce(() => {
-			broker.logger.info(chalk.bgMagenta.white.bold(`Reload ${needToReload.size} service(s)`));
+			broker.logger.info(kleur.bgMagenta().white().bold(`Reload ${needToReload.size} service(s)`));
 
 			needToReload.forEach(svc => hotReloadService(svc));
 			needToReload.clear();
@@ -64,22 +64,22 @@ module.exports = function HotReloadMiddleware(broker) {
 
 		// Watching project files
 		broker.logger.debug("");
-		broker.logger.debug(chalk.yellow.bold("Watching the following project files:"));
+		broker.logger.debug(kleur.yellow().bold("Watching the following project files:"));
 		projectFiles.forEach((watchItem, fName) => {
 			const relPath = path.relative(process.cwd(), fName);
 			if (watchItem.brokerRestart)
-				broker.logger.debug(`  ${relPath}:`, chalk.grey("restart broker."));
+				broker.logger.debug(`  ${relPath}:`, kleur.grey("restart broker."));
 			else if (watchItem.allServices)
-				broker.logger.debug(`  ${relPath}:`, chalk.grey("reload all services."));
+				broker.logger.debug(`  ${relPath}:`, kleur.grey("reload all services."));
 			else if (watchItem.services.length > 0) {
-				broker.logger.debug(`  ${relPath}:`, chalk.grey(`reload ${watchItem.services.length} service(s) & ${watchItem.others.length} other(s).`)/*, watchItem.services, watchItem.others*/);
-				watchItem.services.forEach(svcFullname => broker.logger.debug(chalk.grey(`    ${svcFullname}`)));
-				watchItem.others.forEach(filename => broker.logger.debug(chalk.grey(`    ${path.relative(process.cwd(), filename)}`)));
+				broker.logger.debug(`  ${relPath}:`, kleur.grey(`reload ${watchItem.services.length} service(s) & ${watchItem.others.length} other(s).`)/*, watchItem.services, watchItem.others*/);
+				watchItem.services.forEach(svcFullname => broker.logger.debug(kleur.grey(`    ${svcFullname}`)));
+				watchItem.others.forEach(filename => broker.logger.debug(kleur.grey(`    ${path.relative(process.cwd(), filename)}`)));
 			}
 			// Create watcher
 			watchItem.watcher = fs.watch(fName, (eventType) => {
 				const relPath = path.relative(process.cwd(), fName);
-				broker.logger.info(chalk.magenta.bold(`The '${relPath}' file is changed. (Event: ${eventType})`));
+				broker.logger.info(kleur.magenta().bold(`The '${relPath}' file is changed. (Event: ${eventType})`));
 
 				// Clear from require cache
 				clearRequireCache(fName);
@@ -90,7 +90,7 @@ module.exports = function HotReloadMiddleware(broker) {
 				if (watchItem.brokerRestart) {
 					// TODO: it is not working properly. The ServiceBroker doesn't reload the config from the moleculer.config.js
 					// file because it is loaded by Moleculer Runner (with merged environment files)
-					broker.logger.info(chalk.bgMagenta.white.bold("Action: Restart broker..."));
+					broker.logger.info(kleur.bgMagenta().white().bold("Action: Restart broker..."));
 					stopAllFileWatcher(projectFiles);
 					// Clear the whole require cache
 					require.cache.length = 0;

@@ -1,7 +1,7 @@
 "use strict";
 
 const _ = require("lodash");
-const chalk = require("chalk");
+const kleur = require("kleur");
 const fs = require("fs");
 const { MoleculerError, MoleculerRetryableError } = require("../src/errors");
 const Middlewares = require("..").Middlewares;
@@ -92,15 +92,15 @@ broker.createService({
 	name: "event-handler",
 	events: {
 		"$circuit-breaker.opened"(payload) {
-			broker.logger.warn(chalk.yellow.bold(`---  Circuit breaker opened on '${payload.nodeID}'! (${payload.rate})`));
+			broker.logger.warn(kleur.yellow().bold(`---  Circuit breaker opened on '${payload.nodeID}'! (${payload.rate})`));
 		},
 
 		"$circuit-breaker.half-opened"(payload) {
-			broker.logger.warn(chalk.green(`---  Circuit breaker half-opened on '${payload.nodeID}'!`));
+			broker.logger.warn(kleur.green(`---  Circuit breaker half-opened on '${payload.nodeID}'!`));
 		},
 
 		"$circuit-breaker.closed"(payload) {
-			broker.logger.warn(chalk.green.bold(`---  Circuit breaker closed on '${payload.nodeID}'!`));
+			broker.logger.warn(kleur.green().bold(`---  Circuit breaker closed on '${payload.nodeID}'!`));
 		},
 
 		"reply.event"(data, sender) {
@@ -151,7 +151,7 @@ broker.start()
 		setInterval(() => {
 			/* Overload protection
 			if (broker.transit.pendingRequests.size > 10) {
-				broker.logger.warn(chalk.yellow.bold(`Queue is big (${broker.transit.pendingRequests.size})! Waiting...`));
+				broker.logger.warn(kleur.yellow().bold(`Queue is big (${broker.transit.pendingRequests.size})! Waiting...`));
 				return;
 			}*/
 
@@ -167,7 +167,7 @@ broker.start()
 			pendingReqs.push(count);
 			let p = broker.call("math.add", payload, { meta: { count }});
 			if (p.ctx) {
-				broker.logger.info(chalk.grey(`${count}. Send request (${payload.a} + ${payload.b}) to ${p.ctx.nodeID ? p.ctx.nodeID : "some node"} (queue: ${broker.transit.pendingRequests.size})...`), chalk.yellow.bold(pendingInfo));
+				broker.logger.info(kleur.grey(`${count}. Send request (${payload.a} + ${payload.b}) to ${p.ctx.nodeID ? p.ctx.nodeID : "some node"} (queue: ${broker.transit.pendingRequests.size})...`), kleur.yellow().bold(pendingInfo));
 			}
 			p.then(r => {
 				broker.logger.info(_.padEnd(`${count}. ${payload.a} + ${payload.b} = ${r.res}`, 20), `(from: ${p.ctx.nodeID})`);
@@ -176,9 +176,9 @@ broker.start()
 				if (pendingReqs.indexOf(count) !== -1)
 					pendingReqs = pendingReqs.filter(n => n != count);
 				else
-					broker.logger.warn(chalk.red.bold("Invalid coming request count: ", count));
+					broker.logger.warn(kleur.red().bold("Invalid coming request count: ", count));
 			}).catch(err => {
-				broker.logger.warn(chalk.red.bold(_.padEnd(`${count}. ${payload.a} + ${payload.b} = ERROR! ${err.message}`)));
+				broker.logger.warn(kleur.red().bold(_.padEnd(`${count}. ${payload.a} + ${payload.b} = ERROR! ${err.message}`)));
 				if (pendingReqs.indexOf(count) !== -1)
 					pendingReqs = pendingReqs.filter(n => n != count);
 			});

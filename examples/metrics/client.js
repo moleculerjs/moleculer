@@ -1,7 +1,7 @@
 "use strict";
 
 const _ = require("lodash");
-const chalk = require("chalk");
+const kleur = require("kleur");
 const ServiceBroker = require("../../src/service-broker");
 
 const SERVICES = ["add", "sub", "mult", "div"];
@@ -26,9 +26,9 @@ broker.start()
 			const msg = `${count}. Call '${svc}' with ${payload.a} + ${payload.b} = `;
 			const p = broker.call(svc, payload, { requestID: `${broker.nodeID}-${count}` });
 			p.then(({ res }) => {
-				broker.logger.info(_.padEnd(msg + Number(res).toFixed(0), 40), chalk.green.bold("OK")/*, chalk.grey(`(${p.ctx.duration} ms)`)*/);
+				broker.logger.info(_.padEnd(msg + Number(res).toFixed(0), 40), kleur.green().bold("OK")/*, kleur.grey(`(${p.ctx.duration} ms)`)*/);
 			}).catch(err => {
-				broker.logger.info(_.padEnd(msg, 40), chalk.red.bold(`ERROR! ${err.message}`));
+				broker.logger.info(_.padEnd(msg, 40), kleur.red().bold(`ERROR! ${err.message}`));
 				//if (err.type != "RANDOM_ERROR")
 				//	broker.logger.error(err);
 			});

@@ -1,7 +1,7 @@
 "use strict";
 
 const _ = require("lodash");
-const chalk = require("chalk");
+const kleur = require("kleur");
 const ServiceBroker = require("../src/service-broker");
 const Promise = require("bluebird");
 
@@ -98,7 +98,7 @@ function printStatuses() {
 
 	const duration = Math.floor((Date.now() - startTime) / 1000);
 
-	const sCov = coverage == 100 ? chalk.green.bold(coverage + "%") : chalk.bold(coverage + "%");
+	const sCov = coverage == 100 ? kleur.green().bold(coverage + "%") : kleur.bold(coverage + "%");
 	console.log("Time: " + _.padStart(duration, 5), "sec    Coverage:", _.padStart(sCov, 13));
 }
 
@@ -112,7 +112,7 @@ function getMaxSeq(nodeID) {
 
 function printBrokerStatus({ nodeID, broker }) {
 	let count = 0;
-	let s = _.padEnd(broker ? chalk.green(nodeID) : chalk.red(nodeID), 20);
+	let s = _.padEnd(broker ? kleur.green(nodeID) : kleur.red(nodeID), 20);
 
 	if (broker) {
 		const list = broker.registry.nodes.toArray();
@@ -124,14 +124,14 @@ function printBrokerStatus({ nodeID, broker }) {
 			const node = list.find(node => node.id == search);
 			if (node) {
 				if (node.available) {
-					s += chalk.green.bold("█");
+					s += kleur.green().bold("█");
 					count++;
 				} else if (node.seq == 0)
-					s += chalk.yellow("█");
+					s += kleur.yellow("█");
 				else
-					s += chalk.red.bold("█");
+					s += kleur.red().bold("█");
 			} else {
-				s += chalk.red.bold("█");
+				s += kleur.red().bold("█");
 			}
 		}
 		s += "│";

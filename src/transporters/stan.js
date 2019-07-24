@@ -6,7 +6,7 @@
 
 "use strict";
 
-const chalk				= require("chalk");
+const kleur				= require("kleur");
 const Promise			= require("bluebird");
 const Transporter 		= require("./base");
 const {
@@ -59,7 +59,7 @@ class StanTransporter extends Transporter {
 	 * @memberof StanTransporter
 	 */
 	connect() {
-		this.logger.warn(chalk.yellow.bold("NATS Streaming Transporter is an EXPERIMENTAL transporter. Do NOT use it in production yet!"));
+		this.logger.warn(kleur.yellow().bold("NATS Streaming Transporter is an EXPERIMENTAL transporter. Do NOT use it in production yet!"));
 
 		return new Promise((resolve, reject) => {
 			let Stan;

@@ -2,7 +2,7 @@
 
 const _ 			= require("lodash");
 const r 			= _.repeat;
-const chalk 		= require("chalk");
+const kleur 		= require("kleur");
 const { humanize }  = require("../../utils");
 
 const BaseTraceExporter = require("./base");
@@ -29,7 +29,7 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 			gaugeWidth: 40
 		});
 		if (!this.opts.colors)
-			chalk.level = 0;
+			kleur.enabled = false;
 
 		this.spans = {};
 	}
@@ -96,19 +96,19 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 	}
 
 	drawTableTop() {
-		this.log(chalk.grey("┌" + r("─", this.opts.width - 2) + "┐"));
+		this.log(kleur.grey("┌" + r("─", this.opts.width - 2) + "┐"));
 	}
 
 	drawHorizonalLine() {
-		this.log(chalk.grey("├" + r("─", this.opts.width - 2) + "┤"));
+		this.log(kleur.grey("├" + r("─", this.opts.width - 2) + "┤"));
 	}
 
 	drawLine(text) {
-		this.log(chalk.grey("│ ") + text + chalk.grey(" │"));
+		this.log(kleur.grey("│ ") + text + kleur.grey(" │"));
 	}
 
 	drawTableBottom() {
-		this.log(chalk.grey("└" + r("─", this.opts.width - 2) + "┘"));
+		this.log(kleur.grey("└" + r("─", this.opts.width - 2) + "┘"));
 	}
 
 	getAlignedTexts(str, space) {
@@ -132,11 +132,11 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 		const p3 = Math.max(gw - (p1 + p2), 0);
 
 		return [
-			chalk.grey("["),
-			chalk.grey(r(".", p1)),
+			kleur.grey("["),
+			kleur.grey(r(".", p1)),
 			r("■", p2),
-			chalk.grey(r(".", p3)),
-			chalk.grey("]")
+			kleur.grey(r(".", p3)),
+			kleur.grey("]")
 		].join("");
 	}
 
@@ -154,15 +154,15 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 	}
 
 	getColor(span) {
-		let c = chalk.bold;
+		let c = kleur.bold;
 		if (span.tags.fromCache)
-			c = c.yellow;
+			c = c().yellow;
 		if (span.tags.remoteCall)
-			c = c.cyan;
+			c = c().cyan;
 		if (span.duration == null)
-			c = c.grey;
+			c = c().grey;
 		if (span.error)
-			c = c.red;
+			c = c().red;
 
 		return c;
 	}
@@ -225,7 +225,7 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 		const time = span.duration == null ? "?" : humanize(span.duration);
 		const indent = this.getSpanIndent(spanItem);
 		const caption = this.getCaption(span);
-		const info = chalk.grey(indent) + this.getAlignedTexts(caption, w - gw - 3 - time.length - 1 - indent.length) + " " + time;
+		const info = kleur.grey(indent) + this.getAlignedTexts(caption, w - gw - 3 - time.length - 1 - indent.length) + " " + time;
 
 		const startTime = span.startTime || mainSpan.startTime;
 		const finishTime = span.finishTime || mainSpan.finishTime;
@@ -267,7 +267,7 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 		const { total, depth } = this.getTraceInfo(main);
 
 		const truncatedID = this.getAlignedTexts(id, w - "ID: ".length - "Depth: ".length - (""+depth).length - "Total: ".length - (""+total).length - 2);
-		const line = chalk.grey("ID: ") + chalk.bold(truncatedID) + " " + chalk.grey("Depth: ") + chalk.bold(depth) + " " + chalk.grey("Total: ") + chalk.bold(total);
+		const line = kleur.grey("ID: ") + kleur.bold(truncatedID) + " " + kleur.grey("Depth: ") + kleur.bold(depth) + " " + kleur.grey("Total: ") + kleur.bold(total);
 		this.drawLine(line);
 
 		this.drawHorizonalLine();

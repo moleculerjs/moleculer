@@ -2,7 +2,7 @@
 
 "use strict";
 
-const chalk = require("chalk");
+const kleur = require("kleur");
 const Promise = require("bluebird");
 const memwatch = require("memwatch-next");
 const ServiceBroker = require("../src/service-broker");
@@ -62,14 +62,14 @@ Promise.all([broker1.start(), broker2.start()]).then(() => {
 			const diff = hd.end();
 			//broker1.logger.warn('Heap diff:', util.inspect(diff, false, 8, true));
 			broker1.logger.warn("===========================================");
-			broker1.logger.warn(chalk.red.bold(`MEMORY LEAK DETECTED! Diff: ${diff.change.size}`));
-			broker1.logger.warn(chalk.red.bold(`REASON: ${info.reason}`));
+			broker1.logger.warn(kleur.red().bold(`MEMORY LEAK DETECTED! Diff: ${diff.change.size}`));
+			broker1.logger.warn(kleur.red().bold(`REASON: ${info.reason}`));
 			const details = diff.change.details;
 			details.sort((a, b) => b.size_bytes - a.size_bytes);
 			details
 				.filter(o => o.size_bytes > 10 * 1024)
 				.forEach(o => {
-					broker1.logger.info(chalk.yellow.bold(`Leak info: Type: ${o.what}, Size: ${o.size}, +:${o["+"]}, -:${o["-"]}`));
+					broker1.logger.info(kleur.yellow().bold(`Leak info: Type: ${o.what}, Size: ${o.size}, +:${o["+"]}, -:${o["-"]}`));
 				});
 			broker1.logger.warn("===========================================\n");
 
@@ -79,7 +79,7 @@ Promise.all([broker1.start(), broker2.start()]).then(() => {
 
 	memwatch.on("stats", stats => {
 		if (stats.usage_trend > 0) {
-			broker1.logger.warn(chalk.cyan.bold("MEMWATCH STAT:"), stats);
+			broker1.logger.warn(kleur.cyan().bold("MEMWATCH STAT:"), stats);
 		}
 	});
 

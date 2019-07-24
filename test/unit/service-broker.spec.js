@@ -1,8 +1,8 @@
 /*eslint-disable no-console */
 "use strict";
 
-const chalk = require("chalk");
-chalk.enabled = false;
+const kleur = require("kleur");
+kleur.enabled = false;
 
 const H = require("../../src/health");
 H.getHealthStatus = jest.fn();
