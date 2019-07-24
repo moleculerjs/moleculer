@@ -39,8 +39,8 @@ module.exports = function TransitLoggerMiddleware(opts) {
 		fs.writeFile(path.join(targetFolder, filename), data, () => { /* Silent error */ });
 	}
 
-	const coloringSend = opts.colors && opts.colors.send ? opts.colors.send.split(".").reduce((a,b) => a[b], chalk) : s => s;
-	const coloringReceive = opts.colors && opts.colors.receive ? opts.colors.receive.split(".").reduce((a,b) => a[b], chalk) : s => s;
+	const coloringSend = opts.colors && opts.colors.send ? opts.colors.send.split(".").reduce((a,b) => a[b] || a()[b], kleur) : s => s;
+	const coloringReceive = opts.colors && opts.colors.receive ? opts.colors.receive.split(".").reduce((a,b) => a[b] || a()[b], kleur) : s => s;
 
 	let logFn;
 
