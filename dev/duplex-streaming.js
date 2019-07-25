@@ -4,7 +4,7 @@ const ServiceBroker = require("../src/service-broker");
 const fs = require("fs");
 const Promise = require("bluebird");
 const path = require("path");
-const chalk = require("chalk");
+const kleur = require("kleur");
 const crypto = require("crypto");
 
 const transporter = "TCP";
@@ -78,9 +78,9 @@ function callAES() {
 				const duration = Date.now() - startTime;
 				getSHA(fileName2).then(hash => {
 					if (hash != origHash) {
-						broker1.logger.error(chalk.red.bold("Hash mismatch! Time:", duration, "ms. Received SHA:", hash));
+						broker1.logger.error(kleur.red().bold("Hash mismatch! Time:", duration, "ms. Received SHA:", hash));
 					} else {
-						broker1.logger.info(chalk.green.bold("Hash OK! Time:", duration, "ms. Received SHA:", hash));
+						broker1.logger.info(kleur.green().bold("Hash OK! Time:", duration, "ms. Received SHA:", hash));
 					}
 
 					setTimeout(() => callAES(), 100);

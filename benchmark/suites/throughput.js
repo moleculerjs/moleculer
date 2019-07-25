@@ -3,7 +3,7 @@
 "use strict";
 
 //let _ = require("lodash");
-let chalk = require("chalk");
+let kleur = require("kleur");
 let ServiceBroker = require("../../src/service-broker");
 let Promise = require("bluebird");
 
@@ -25,7 +25,7 @@ function done() {
 
 	let mps = parseInt(MAX / ((endTime - startTime) / 1000));
 	console.log("Messages  : " + received.toLocaleString("en-US", {maximumFractionDigits: 0}) + " msgs");
-	console.log("Throughput: " + chalk.green.bold(mps.toLocaleString("en-US", {maximumFractionDigits: 0})) + " msgs/sec");
+	console.log("Throughput: " + kleur.green().bold(mps.toLocaleString("en-US", {maximumFractionDigits: 0})) + " msgs/sec");
 	console.log("");
 
 	resolve();
@@ -69,8 +69,8 @@ function measureTP(transporter, dataName) {
 	received = 0;
 
 
-	console.log(chalk.cyan.bold(`'${transporter}' transporter with ${dataName}bytes payload:`));
-	console.log(chalk.cyan.bold("==============================================="));
+	console.log(kleur.cyan().bold(`'${transporter}' transporter with ${dataName}bytes payload:`));
+	console.log(kleur.cyan().bold("==============================================="));
 
 	let data = getDataFile(dataName + ".json");
 	let payload = JSON.parse(data);

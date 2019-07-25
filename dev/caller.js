@@ -1,6 +1,6 @@
 "use strict";
 
-const chalk = require("chalk");
+const kleur = require("kleur");
 const ServiceBroker = require("../src/service-broker");
 
 const transporter = "NATS";
@@ -17,7 +17,7 @@ broker1.createService({
 	name: "galaxy",
 	actions: {
 		hello(ctx) {
-			this.logger.info(`The '${chalk.cyan.bold(ctx.action.name)}' action is called from '${chalk.yellow.bold(ctx.caller)}' of '${ctx.nodeID}'`);
+			this.logger.info(`The '${kleur.cyan().bold(ctx.action.name)}' action is called from '${kleur.yellow().bold(ctx.caller)}' of '${ctx.nodeID}'`);
 			return ctx.call("solar.hello");
 		},
 	}
@@ -34,7 +34,7 @@ broker2.createService({
 	name: "solar",
 	actions: {
 		hello(ctx) {
-			this.logger.info(`The '${chalk.cyan.bold(ctx.action.name)}' action is called from '${chalk.yellow.bold(ctx.caller)}' of '${ctx.nodeID}'`);
+			this.logger.info(`The '${kleur.cyan().bold(ctx.action.name)}' action is called from '${kleur.yellow().bold(ctx.caller)}' of '${ctx.nodeID}'`);
 			return ctx.call("planet.hello");
 		},
 	}
@@ -44,7 +44,7 @@ broker2.createService({
 	name: "planet",
 	actions: {
 		hello(ctx) {
-			this.logger.info(`The '${chalk.cyan.bold(ctx.action.name)}' action is called from '${chalk.yellow.bold(ctx.caller)}' of '${ctx.nodeID}'`);
+			this.logger.info(`The '${kleur.cyan().bold(ctx.action.name)}' action is called from '${kleur.yellow().bold(ctx.caller)}' of '${ctx.nodeID}'`);
 		},
 	}
 });

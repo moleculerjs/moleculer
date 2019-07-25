@@ -1,11 +1,6 @@
 "use strict";
 
 const { ServiceBroker } = require("../");
-const fs = require("fs");
-const path = require("path");
-const chalk = require("chalk");
-const crypto = require("crypto");
-const { Transform } = require("stream");
 
 const broker = new ServiceBroker({
 	//namespace: "streaming",

@@ -1,8 +1,8 @@
 "use strict";
 
-const chalk = require("chalk");
+const kleur = require("kleur");
 const util = require("util");
-chalk.enabled = false;
+kleur.enabled = false;
 
 const { extend, createDefaultLogger } = require("../../src/logger");
 const lolex = require("lolex");

@@ -2,7 +2,7 @@
 
 const ServiceBroker = require("../src/service-broker");
 const { extend } = require("../src/logger");
-const chalk = require("chalk");
+const kleur = require("kleur");
 
 function logging(module) {
 	module.logger.trace("Trace message");
@@ -31,7 +31,7 @@ function createBroker(options) {
 }
 
 (function() {
-	console.log(chalk.yellow.bold("\n--- CONSOLE ---"));
+	console.log(kleur.yellow().bold("\n--- CONSOLE ---"));
 	const broker = createBroker({
 		logger: console,
 		logLevel: "debug",
@@ -46,7 +46,7 @@ function createBroker(options) {
 })();
 
 (function() {
-	console.log(chalk.yellow.bold("\n--- PINO ---"));
+	console.log(kleur.yellow().bold("\n--- PINO ---"));
 	const pino = require("pino")({ level: "debug" });
 	const broker = createBroker({
 		logger: bindings => pino.child(bindings),
@@ -58,7 +58,7 @@ function createBroker(options) {
 })();
 
 (function() {
-	console.log(chalk.yellow.bold("\n--- BUNYAN ---"));
+	console.log(kleur.yellow().bold("\n--- BUNYAN ---"));
 	const bunyan = require("bunyan");
 	const logger = bunyan.createLogger({ name: "moleculer", level: "debug" });
 	const broker = createBroker({
@@ -72,7 +72,7 @@ function createBroker(options) {
 })();
 
 (function() {
-	console.log(chalk.yellow.bold("\n--- WINSTON ---"));
+	console.log(kleur.yellow().bold("\n--- WINSTON ---"));
 	const winston = require("winston");
 	const broker = createBroker({
 		logger: bindings => extend(winston.createLogger({
@@ -93,7 +93,7 @@ function createBroker(options) {
 })();
 /*
 (function() {
-	console.log(chalk.yellow.bold("\n--- WINSTON CONTEXT ---"));
+	console.log(kleur.yellow().bold("\n--- WINSTON CONTEXT ---"));
 	const WinstonContext = require("winston-context");
 	const winston = require("winston");
 	const broker = createBroker({
@@ -114,4 +114,4 @@ function createBroker(options) {
 })();
 
 */
-console.log(chalk.yellow.bold("-----------------\n"));
+console.log(kleur.yellow().bold("-----------------\n"));

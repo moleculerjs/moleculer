@@ -1,7 +1,6 @@
 "use strict";
 
 const ServiceBroker = require("../src/service-broker");
-const chalk = require("chalk");
 
 // Create broker #1
 const broker = new ServiceBroker({

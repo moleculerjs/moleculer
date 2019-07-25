@@ -7,7 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
-const chalk = require("chalk");
+const kleur = require("kleur");
 const fs = require("fs");
 const path = require("path");
 const { makeDirs, match } = require("../../utils");
@@ -45,9 +45,9 @@ module.exports = function ActionLoggerMiddleware(opts) {
 		return !!opts.whitelist.find(pattern => match(actionName, pattern));
 	}
 
-	const coloringRequest = opts.colors && opts.colors.request ? opts.colors.request.split(".").reduce((a,b) => a[b], chalk) : s => s;
-	const coloringResponse = opts.colors && opts.colors.response ? opts.colors.response.split(".").reduce((a,b) => a[b], chalk) : s => s;
-	const coloringError = opts.colors && opts.colors.error ? opts.colors.error.split(".").reduce((a,b) => a[b], chalk) : s => s;
+	const coloringRequest = opts.colors && opts.colors.request ? opts.colors.request.split(".").reduce((a,b) => a[b] || a()[b], kleur) : s => s;
+	const coloringResponse = opts.colors && opts.colors.response ? opts.colors.response.split(".").reduce((a,b) => a[b] || a()[b], kleur) : s => s;
+	const coloringError = opts.colors && opts.colors.error ? opts.colors.error.split(".").reduce((a,b) => a[b] || a()[b], kleur) : s => s;
 
 	let logFn;
 

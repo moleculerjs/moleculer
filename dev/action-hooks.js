@@ -1,6 +1,6 @@
 "use strict";
 
-let chalk = require("chalk");
+let kleur = require("kleur");
 let ServiceBroker = require("../src/service-broker");
 
 // Create broker
@@ -11,19 +11,19 @@ broker.createService({
 	hooks: {
 		before: {
 			"*"(ctx) {
-				broker.logger.info(chalk.cyan("Before all hook"));
+				broker.logger.info(kleur.cyan("Before all hook"));
 			},
 			hello(ctx) {
-				broker.logger.info(chalk.magenta("  Before hook"));
+				broker.logger.info(kleur.magenta("  Before hook"));
 			}
 		},
 		after: {
 			"*"(ctx, res) {
-				broker.logger.info(chalk.cyan("After all hook"));
+				broker.logger.info(kleur.cyan("After all hook"));
 				return res;
 			},
 			hello(ctx, res) {
-				broker.logger.info(chalk.magenta("  After hook"));
+				broker.logger.info(kleur.magenta("  After hook"));
 				return res;
 			}
 		},
@@ -33,16 +33,16 @@ broker.createService({
 		hello: {
 			hooks: {
 				before(ctx) {
-					broker.logger.info(chalk.yellow.bold("    Before action hook"));
+					broker.logger.info(kleur.yellow().bold("    Before action hook"));
 				},
 				after(ctx, res) {
-					broker.logger.info(chalk.yellow.bold("    After action hook"));
+					broker.logger.info(kleur.yellow().bold("    After action hook"));
 					return res;
 				}
 			},
 
 			handler(ctx) {
-				broker.logger.info(chalk.green.bold("      Action handler"));
+				broker.logger.info(kleur.green().bold("      Action handler"));
 				return `Hello ${ctx.params.name}`;
 			}
 		}

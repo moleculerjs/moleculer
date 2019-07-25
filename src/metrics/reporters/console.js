@@ -8,7 +8,7 @@
 
 const BaseReporter = require("./base");
 const _ = require("lodash");
-const chalk = require("chalk");
+const kleur = require("kleur");
 const METRIC = require("../constants");
 
 /**
@@ -35,7 +35,7 @@ class ConsoleReporter extends BaseReporter {
 		});
 
 		if (!this.opts.colors)
-			chalk.level = 0;
+			kleur.enabled = false;
 
 		this.lastChanges = new Set();
 	}
@@ -64,9 +64,9 @@ class ConsoleReporter extends BaseReporter {
 	labelsToStr(labels) {
 		const keys = Object.keys(labels);
 		if (keys.length == 0)
-			return chalk.gray("{}");
+			return kleur.gray("{}");
 
-		return chalk.gray("{") + keys.map(key => `${chalk.gray(this.formatLabelName(key))}: ${chalk.magenta(labels[key])}`).join(", ") + chalk.gray("}");
+		return kleur.gray("{") + keys.map(key => `${kleur.gray(this.formatLabelName(key))}: ${kleur.magenta(labels[key])}`).join(", ") + kleur.gray("}");
 	}
 
 	/**
@@ -86,14 +86,14 @@ class ConsoleReporter extends BaseReporter {
 		if (list.length == 0)
 			return;
 
-		this.log(chalk.gray(`------------------- [ METRICS START (${list.length}) ] -------------------`));
+		this.log(kleur.gray(`------------------- [ METRICS START (${list.length}) ] -------------------`));
 
 		list.forEach(metric => {
-			this.log(chalk.cyan.bold(this.formatMetricName(metric.name)) + " " + chalk.gray("(" + metric.type + ")"));
+			this.log(kleur.cyan().bold(this.formatMetricName(metric.name)) + " " + kleur.gray("(" + metric.type + ")"));
 			if (metric.values.size == 0) {
-				this.log(chalk.gray("  <no values>"));
+				this.log(kleur.gray("  <no values>"));
 			} else {
-				const unit = metric.unit ? chalk.gray(this.registry.pluralizeUnit(metric.unit)) : "";
+				const unit = metric.unit ? kleur.gray(this.registry.pluralizeUnit(metric.unit)) : "";
 				metric.values.forEach(item => {
 					let val;
 					const labelStr = this.labelsToStr(item.labels);
@@ -101,7 +101,7 @@ class ConsoleReporter extends BaseReporter {
 						case METRIC.TYPE_COUNTER:
 						case METRIC.TYPE_GAUGE:
 						case METRIC.TYPE_INFO:
-							val = item.value === "" ? chalk.gray("<empty string>") : chalk.green.bold(item.value);
+							val = item.value === "" ? kleur.gray("<empty string>") : kleur.green().bold(item.value);
 							break;
 						case METRIC.TYPE_HISTOGRAM: {
 							const s = [];
@@ -125,7 +125,7 @@ class ConsoleReporter extends BaseReporter {
 								});
 							}
 
-							val = chalk.green.bold(s.join(" | "));
+							val = kleur.green().bold(s.join(" | "));
 							break;
 						}
 					}
@@ -135,7 +135,7 @@ class ConsoleReporter extends BaseReporter {
 			this.log("");
 		});
 
-		this.log(chalk.gray(`-------------------- [ METRICS END (${list.length}) ] --------------------`));
+		this.log(kleur.gray(`-------------------- [ METRICS END (${list.length}) ] --------------------`));
 
 		this.lastChanges.clear();
 	}
