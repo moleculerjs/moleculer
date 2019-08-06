@@ -25,6 +25,8 @@ const stopSignals = [
 ];
 const production = process.env.NODE_ENV === "production";
 
+const pathWatchers = [];
+
 let flags;
 let configFile;
 let config;
@@ -303,6 +305,9 @@ function loadServices() {
 			// Load all services from directory (from subfolders too)
 			broker.loadServices(svcDir, fileMask);
 
+			if (config.hotReload) {
+				pathWatchers.push({ path: svcDir });
+			}
 		} else if (process.env.SERVICES) {
 			// Load services from env list
 			patterns = Array.isArray(process.env.SERVICES) ? process.env.SERVICES : process.env.SERVICES.split(",");
@@ -326,6 +331,9 @@ function loadServices() {
 				const svcPath = path.isAbsolute(p) ? p : path.resolve(svcDir, p);
 				// Check is it a directory?
 				if (isDirectory(svcPath)) {
+					if (config.hotReload) {
+						pathWatchers.push({ path: svcPath });
+					}
 					files = glob(svcPath + "/" + fileMask, { absolute: true });
 					if (files.length == 0)
 						return broker.logger.warn(kleur.yellow().bold(`There is no service files in directory: '${svcPath}'`));
@@ -413,6 +421,35 @@ function startBroker() {
 	if (worker) {
 		Object.assign(config, {
 			nodeID: (config.nodeID || utils.getNodeID()) + "-" + worker.id
+		});
+	}
+
+	// Watch a services folders and load if it's add files.
+	if (config.hotReload) {
+		config.middlewares = config.middlewares || [];
+		config.middlewares.push({
+			starting(broker) {
+				broker.logger.info("Start watching services in folders...");
+				pathWatchers.filter((folder) => folder.path).map((folder) => {
+					broker.logger.debug(`Watching in '${folder.path}'`);
+					// Better: https://github.com/paulmillr/chokidar
+					fs.mkdirSync(folder.path, { recursive: true });
+					folder.watcher = fs.watch(folder.path, { recursive: true }, (eventType, filename) => {
+						if (eventType === "rename" && filename.endsWith(".service.js")) {
+							if (!broker.services.some(svc => svc.__filename && path.basename(svc.__filename) === filename)) {
+								broker.logger.debug(`Service '${filename}' service`);
+								broker.loadService(path.join(folder.path, filename));
+							}
+						}
+					});
+				});
+			},
+			stopping(broker) {
+				broker.logger.info("Stop watching services in folders...");
+				pathWatchers.filter((item) => item.watcher)
+					.forEach((item) => item.watcher.close())
+				;
+			},
 		});
 	}
 
