@@ -27,7 +27,12 @@ module.exports = function HotReloadMiddleware(broker) {
 		broker.logger.info(`Hot reload '${service.name}' service...`, kleur.grey(relPath));
 
 		return broker.destroyService(service)
-			.then(() => broker.loadService(service.__filename));
+			.then(() => {
+				if (fs.existsSync(service.__filename)) {
+					return broker.loadService(service.__filename);
+				}
+			});
+
 	}
 
 	/**
