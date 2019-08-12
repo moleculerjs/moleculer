@@ -6,8 +6,7 @@ let ServiceBroker = require("../src/service-broker");
 let broker = new ServiceBroker({
 	nodeID: "hot",
 	transporter: "TCP",
-	logger: console,
-	//logLevel: "debug",
+	logLevel: "debug",
 	hotReload: true
 });
 

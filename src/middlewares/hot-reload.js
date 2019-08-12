@@ -46,7 +46,8 @@ module.exports = function HotReloadMiddleware(broker) {
 		const mainModule = process.mainModule;
 
 		// Process the whole module tree
-		processModule(mainModule, null, 0, mainModule.filename.indexOf("node_modules") === -1 ? [mainModule.filename] : null);
+		//processModule(mainModule, null, 0, mainModule.filename.indexOf("node_modules") === -1 ? [mainModule.filename] : null);
+		processModule(mainModule, null, 0, null);
 
 		const needToReload = new Set();
 
