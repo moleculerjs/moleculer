@@ -16,6 +16,6 @@
 module.exports = {
 	namespace: "",
 	logger: true,
-	logLevel: "info",
-	transporter: "TCP"
+	logLevel: "debug",
+	//transporter: "TCP"
 };

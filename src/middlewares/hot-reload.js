@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -11,7 +11,7 @@ const kleur = require("kleur");
 const path = require("path");
 const _ = require("lodash");
 
-const { clearRequireCache } = require("../utils");
+const { clearRequireCache, makeDirs } = require("../utils");
 
 /* istanbul ignore next */
 module.exports = function HotReloadMiddleware(broker) {
@@ -51,7 +51,6 @@ module.exports = function HotReloadMiddleware(broker) {
 		const mainModule = process.mainModule;
 
 		// Process the whole module tree
-		//processModule(mainModule, null, 0, mainModule.filename.indexOf("node_modules") === -1 ? [mainModule.filename] : null);
 		processModule(mainModule, null, 0, null);
 
 		const needToReload = new Set();
@@ -120,6 +119,9 @@ module.exports = function HotReloadMiddleware(broker) {
 				}
 			});
 		});
+
+		if (projectFiles.size == 0)
+			broker.logger.debug(kleur.grey("  No files."));
 
 	}
 
@@ -220,6 +222,56 @@ module.exports = function HotReloadMiddleware(broker) {
 		}
 	}
 
+	const folderWatchers = [];
+
+	function watchProjectFolders() {
+		if (broker.runner && Array.isArray(broker.runner.folders)) {
+			const folders = broker.runner.folders;
+			if (folders.length > 0) {
+				folderWatchers.length = 0;
+
+				broker.logger.debug("");
+				broker.logger.debug(kleur.yellow().bold("Watching the following folder(s):"));
+
+				folders.forEach(folder => {
+					makeDirs(folder);
+					broker.logger.debug(`  ${path.relative(process.cwd(), folder)}/`);
+					folderWatchers.push({
+						path: folder,
+						watcher: fs.watch(folder, { recursive: true }, (eventType, filename) => {
+							broker.logger.info(`There is changes in '${folder}' folder: `, kleur.bgMagenta().white(eventType), filename);
+							if (filename.endsWith(".service.js") || filename.endsWith(".service.ts")) {
+								const fullPath = path.join(folder, filename);
+								const isLoaded = broker.services.some(svc => svc.__filename == fullPath);
+
+								if (eventType === "rename" && !isLoaded) {
+									// This is a new file. We should wait for the file fully copied.
+									setTimeout(() => {
+										try {
+											broker.loadService(fullPath);
+										} catch(err) {
+											broker.logger.error(`Failed to load service '${fullPath}'`, err);
+										}
+									}, 500);
+								} else if (eventType == "change" && !isLoaded) {
+									// This can be a file which is exist but not loaded correctly (e.g. schema error if the file is empty yet)
+									// TODO: It also receives 2 times after "rename"
+
+								}
+							}
+						})
+					});
+				});
+			}
+		}
+	}
+
+	function stopProjectFolderWatchers() {
+		broker.logger.debug("");
+		broker.logger.debug("Stop watching folders.");
+		folderWatchers.forEach(item => item.watcher && item.watcher.close());
+	}
+
 	/**
 	 * Expose middleware
 	 */
@@ -231,14 +283,20 @@ module.exports = function HotReloadMiddleware(broker) {
 			if (broker.options.hotReload) {
 				broker.logger.info("Hot-reload is ACTIVE.");
 				watchProjectFiles();
+
+				watchProjectFolders();
 			}
 		},
 
 		serviceStarted() {
-			// Re-watch new services if broker has already started.
+			// Re-watch new services if broker has already started and a new service started.
 			if (broker.started) {
 				debouncedWatchProjectFiles();
 			}
+		},
+
+		stopped() {
+			stopProjectFolderWatchers();
 		}
 	};
 

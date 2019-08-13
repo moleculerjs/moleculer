@@ -25,7 +25,7 @@ const stopSignals = [
 ];
 const production = process.env.NODE_ENV === "production";
 
-const pathWatchers = [];
+const watchFolders = [];
 
 let flags;
 let configFile;
@@ -306,7 +306,7 @@ function loadServices() {
 			broker.loadServices(svcDir, fileMask);
 
 			if (config.hotReload) {
-				pathWatchers.push({ path: svcDir });
+				watchFolders.push(svcDir);
 			}
 		} else if (process.env.SERVICES) {
 			// Load services from env list
@@ -332,7 +332,7 @@ function loadServices() {
 				// Check is it a directory?
 				if (isDirectory(svcPath)) {
 					if (config.hotReload) {
-						pathWatchers.push({ path: svcPath });
+						watchFolders.push(svcPath);
 					}
 					files = glob(svcPath + "/" + fileMask, { absolute: true });
 					if (files.length == 0)
@@ -424,51 +424,17 @@ function startBroker() {
 		});
 	}
 
-	// Watch a services folders and load if it's add files.
-	if (config.hotReload) {
-		config.middlewares = config.middlewares || [];
-		config.middlewares.push({
-			starting(broker) {
-				broker.logger.info("Start watching services in folders...");
-				pathWatchers.filter((folder) => folder.path).map((folder) => {
-					broker.logger.debug(`Watching in '${folder.path}'`);
-					utils.makeDirs(folder.path);
-					folder.watcher = fs.watch(folder.path, { recursive: true }, (eventType, filename) => {
-						broker.logger.info(`There is changes in '${folder.path}' folder: `, kleur.bgMagenta().white(eventType), filename);
-						if (filename.endsWith(".service.js") || filename.endsWith(".service.ts")) {
-							const fullPath = path.join(folder.path, filename);
-							const isLoaded = broker.services.some(svc => svc.__filename == fullPath);
-
-							if (eventType === "rename" && !isLoaded) {
-								// This is a new file. We should wait for the file fully copied.
-								setTimeout(() => {
-									try {
-										broker.loadService(fullPath);
-									} catch(err) {
-										broker.logger.error(`Failed to load service '${fullPath}'`, err);
-									}
-								}, 500);
-							} else if (eventType == "change" && !isLoaded) {
-								// This can be a file which is exist but not loaded correctly (e.g. schema error if the file is empty yet)
-								// TODO: It also receives 2 times after "rename"
-
-							}
-						}
-					});
-				});
-			},
-
-			stopping(broker) {
-				broker.logger.info("Stop watching services in folders...");
-				pathWatchers.forEach(item => item.watcher && item.watcher.close());
-			},
-		});
-	}
-
 	// Create service broker
 	broker = new Moleculer.ServiceBroker(Object.assign({}, config));
+	broker.runner = {
+		flags,
+		worker
+	};
 
 	loadServices();
+
+	if (watchFolders.length > 0)
+		broker.runner.folders = watchFolders;
 
 	return broker.start()
 		.then(() => {
