@@ -92,14 +92,14 @@ module.exports = function HotReloadMiddleware(broker) {
 					watchItem.others.forEach(f => clearRequireCache(f));
 				}
 
-				if (watchItem.brokerRestart) {
+				if (watchItem.brokerRestart && broker.runner && _.isFunction(broker.runner.restartBroker)) {
 					// TODO: it is not working properly. The ServiceBroker doesn't reload the config from the moleculer.config.js
 					// file because it is loaded by Moleculer Runner (with merged environment files)
 					broker.logger.info(kleur.bgMagenta().white().bold("Action: Restart broker..."));
 					stopAllFileWatcher(projectFiles);
 					// Clear the whole require cache
 					require.cache.length = 0;
-					broker.restart();
+					return broker.runner.restartBroker();
 
 				} else if (watchItem.allServices) {
 					// Reload all services
@@ -161,6 +161,12 @@ module.exports = function HotReloadMiddleware(broker) {
 		return watchItem;
 	}
 
+	function isMoleculerConfig(fName) {
+		return fName.endsWith("moleculer.config.js")
+			|| fName.endsWith("moleculer.config.ts")
+			|| fName.endsWith("moleculer.config.json");
+	}
+
 	/**
 	 * Process module children modules.
 	 *
@@ -179,7 +185,7 @@ module.exports = function HotReloadMiddleware(broker) {
 		if (parents && parents.indexOf(fName) !== -1)
 			return;
 
-		//console.log(fName);
+		// console.log(fName);
 
 		// Cache files to avoid cyclic dependencies in node_modules
 		if (fName.indexOf("node_modules") !== -1) {
@@ -199,6 +205,9 @@ module.exports = function HotReloadMiddleware(broker) {
 
 			watchItem.others = _.uniq([].concat(watchItem.others, parents || []));
 
+		} else if (isMoleculerConfig(fName)) {
+			const watchItem = getWatchItem(fName);
+			watchItem.brokerRestart = true;
 		} else {
 			// It is not a service dependency, it is a global middleware. We should reload all services if this file has changed.
 			if (parents) {
@@ -211,10 +220,10 @@ module.exports = function HotReloadMiddleware(broker) {
 		if (mod.children && mod.children.length > 0) {
 			if (service) {
 				parents = parents ? parents.concat([fName]) : [fName];
-			} else if (fName.endsWith("moleculer.config.js")) {
+			} else if (isMoleculerConfig(fName)) {
 				parents = [];
-				//const watchItem = getWatchItem(fName);
-				//watchItem.brokerRestart = true;
+				// const watchItem = getWatchItem(fName);
+				// watchItem.brokerRestart = true;
 			} else if (parents) {
 				parents.push(fName);
 			}

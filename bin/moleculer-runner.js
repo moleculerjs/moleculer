@@ -292,6 +292,7 @@ function isServiceFile(p) {
  *
  */
 function loadServices() {
+	watchFolders.length = 0;
 	const fileMask = flags.mask || "**/*.service.js";
 
 	const serviceDir = process.env.SERVICEDIR || "";
@@ -428,7 +429,8 @@ function startBroker() {
 	broker = new Moleculer.ServiceBroker(Object.assign({}, config));
 	broker.runner = {
 		flags,
-		worker
+		worker,
+		restartBroker
 	};
 
 	loadServices();
@@ -456,6 +458,18 @@ function run() {
 			logger.error(err);
 			process.exit(1);
 		});
+}
+
+function restartBroker() {
+	if (broker && broker.started) {
+		return broker.stop()
+			.catch(err => {
+				logger.error("Error while stopping ServiceBroker", err);
+			})
+			.then(() => run());
+	} else {
+		return run();
+	}
 }
 
 Promise.resolve()
