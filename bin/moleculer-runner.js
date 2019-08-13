@@ -389,11 +389,11 @@ function startWorkers(instances) {
 		cluster.fork();
 	}
 
-	stopSignals.forEach(function (signal) {
+	stopSignals.forEach(function(signal) {
 		process.on(signal, () => {
 			logger.info(`Got ${signal}, stopping workers...`);
 			stopping = true;
-			cluster.disconnect(function () {
+			cluster.disconnect(function() {
 				logger.info("All workers stopped, exiting.");
 				process.exit(0);
 			});
@@ -432,23 +432,35 @@ function startBroker() {
 				broker.logger.info("Start watching services in folders...");
 				pathWatchers.filter((folder) => folder.path).map((folder) => {
 					broker.logger.debug(`Watching in '${folder.path}'`);
-					// Better: https://github.com/paulmillr/chokidar
-					fs.mkdirSync(folder.path, { recursive: true });
+					utils.makeDirs(folder.path);
 					folder.watcher = fs.watch(folder.path, { recursive: true }, (eventType, filename) => {
-						if (eventType === "rename" && filename.endsWith(".service.js")) {
-							if (!broker.services.some(svc => svc.__filename && path.basename(svc.__filename) === filename)) {
-								broker.logger.debug(`Service '${filename}' service`);
-								broker.loadService(path.join(folder.path, filename));
+						broker.logger.info(`There is changes in '${folder.path}' folder: `, kleur.bgMagenta().white(eventType), filename);
+						if (filename.endsWith(".service.js") || filename.endsWith(".service.ts")) {
+							const fullPath = path.join(folder.path, filename);
+							const isLoaded = broker.services.some(svc => svc.__filename == fullPath);
+
+							if (eventType === "rename" && !isLoaded) {
+								// This is a new file. We should wait for the file fully copied.
+								setTimeout(() => {
+									try {
+										broker.loadService(fullPath);
+									} catch(err) {
+										broker.logger.error(`Failed to load service '${fullPath}'`, err);
+									}
+								}, 500);
+							} else if (eventType == "change" && !isLoaded) {
+								// This can be a file which is exist but not loaded correctly (e.g. schema error if the file is empty yet)
+								// TODO: It also receives 2 times after "rename"
+
 							}
 						}
 					});
 				});
 			},
+
 			stopping(broker) {
 				broker.logger.info("Stop watching services in folders...");
-				pathWatchers.filter((item) => item.watcher)
-					.forEach((item) => item.watcher.close())
-				;
+				pathWatchers.forEach(item => item.watcher && item.watcher.close());
 			},
 		});
 	}
