@@ -702,50 +702,51 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	loadService(filePath) {
-		let fName = path.resolve(filePath);
-		let schema;
-
-		this.logger.debug(`Load service '${path.basename(fName)}'...`);
+		let fName, schema;
 
 		try {
+			fName = require.resolve(path.resolve(filePath));
+			this.logger.debug(`Load service '${path.basename(fName)}'...`);
+
 			const r = require(fName);
 			schema = r.default != null ? r.default : r;
-		} catch (e) {
-			this.logger.error(`Failed to load service '${fName}'`, e);
-			throw e;
-		}
 
-		let svc;
-		schema = this.normalizeSchemaConstructor(schema);
-		if (Object.prototype.isPrototypeOf.call(this.ServiceFactory, schema)) {
-			// Service implementation
-			svc = new schema(this);
+			let svc;
+			schema = this.normalizeSchemaConstructor(schema);
+			if (Object.prototype.isPrototypeOf.call(this.ServiceFactory, schema)) {
+				// Service implementation
+				svc = new schema(this);
 
-			// If broker is started, call the started lifecycle event of service
-			if (this.started)
-				this._restartService(svc);
-
-		} else if (_.isFunction(schema)) {
-			// Function
-			svc = schema(this);
-			if (!(svc instanceof this.ServiceFactory)) {
-				svc = this.createService(svc);
-			} else {
 				// If broker is started, call the started lifecycle event of service
 				if (this.started)
 					this._restartService(svc);
+
+			} else if (_.isFunction(schema)) {
+				// Function
+				svc = schema(this);
+				if (!(svc instanceof this.ServiceFactory)) {
+					svc = this.createService(svc);
+				} else {
+					// If broker is started, call the started lifecycle event of service
+					if (this.started)
+						this._restartService(svc);
+				}
+
+			} else if (schema) {
+				// Schema object
+				svc = this.createService(schema);
 			}
 
-		} else if (schema) {
-			// Schema object
-			svc = this.createService(schema);
-		}
+			if (svc) {
+				svc.__filename = fName;
+			}
 
-		if (svc) {
-			svc.__filename = fName;
-		}
+			return svc;
 
-		return svc;
+		} catch (e) {
+			this.logger.error(`Failed to load service '${filePath}'`, e);
+			throw e;
+		}
 	}
 
 	/**

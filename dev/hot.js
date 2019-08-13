@@ -5,7 +5,7 @@ let ServiceBroker = require("../src/service-broker");
 // Create broker
 let broker = new ServiceBroker({
 	nodeID: "hot",
-	transporter: "TCP",
+	//transporter: "TCP",
 	logLevel: "debug",
 	hotReload: true
 });
@@ -39,7 +39,8 @@ broker.start().then(() => {
 	}, 20000);
 
 */
-	broker.loadService("./examples/hot.service.js");
+	broker.loadService("./examples/hot.service");
+	broker.loadService("./dev/empty.service");
 	//broker.loadService("./examples/math.service.js");
 	//broker.loadService("./examples/user.service.js");
 
