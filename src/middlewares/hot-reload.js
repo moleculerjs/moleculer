@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -11,7 +11,7 @@ const kleur = require("kleur");
 const path = require("path");
 const _ = require("lodash");
 
-const { clearRequireCache } = require("../utils");
+const { clearRequireCache, makeDirs } = require("../utils");
 
 /* istanbul ignore next */
 module.exports = function HotReloadMiddleware(broker) {
@@ -27,7 +27,12 @@ module.exports = function HotReloadMiddleware(broker) {
 		broker.logger.info(`Hot reload '${service.name}' service...`, kleur.grey(relPath));
 
 		return broker.destroyService(service)
-			.then(() => broker.loadService(service.__filename));
+			.then(() => {
+				if (fs.existsSync(service.__filename)) {
+					return broker.loadService(service.__filename);
+				}
+			});
+
 	}
 
 	/**
@@ -46,7 +51,6 @@ module.exports = function HotReloadMiddleware(broker) {
 		const mainModule = process.mainModule;
 
 		// Process the whole module tree
-		//processModule(mainModule, null, 0, mainModule.filename.indexOf("node_modules") === -1 ? [mainModule.filename] : null);
 		processModule(mainModule, null, 0, null);
 
 		const needToReload = new Set();
@@ -88,14 +92,12 @@ module.exports = function HotReloadMiddleware(broker) {
 					watchItem.others.forEach(f => clearRequireCache(f));
 				}
 
-				if (watchItem.brokerRestart) {
-					// TODO: it is not working properly. The ServiceBroker doesn't reload the config from the moleculer.config.js
-					// file because it is loaded by Moleculer Runner (with merged environment files)
+				if (watchItem.brokerRestart && broker.runner && _.isFunction(broker.runner.restartBroker)) {
 					broker.logger.info(kleur.bgMagenta().white().bold("Action: Restart broker..."));
 					stopAllFileWatcher(projectFiles);
 					// Clear the whole require cache
 					require.cache.length = 0;
-					broker.restart();
+					return broker.runner.restartBroker();
 
 				} else if (watchItem.allServices) {
 					// Reload all services
@@ -115,6 +117,9 @@ module.exports = function HotReloadMiddleware(broker) {
 				}
 			});
 		});
+
+		if (projectFiles.size == 0)
+			broker.logger.debug(kleur.grey("  No files."));
 
 	}
 
@@ -154,6 +159,12 @@ module.exports = function HotReloadMiddleware(broker) {
 		return watchItem;
 	}
 
+	function isMoleculerConfig(fName) {
+		return fName.endsWith("moleculer.config.js")
+			|| fName.endsWith("moleculer.config.ts")
+			|| fName.endsWith("moleculer.config.json");
+	}
+
 	/**
 	 * Process module children modules.
 	 *
@@ -172,7 +183,7 @@ module.exports = function HotReloadMiddleware(broker) {
 		if (parents && parents.indexOf(fName) !== -1)
 			return;
 
-		//console.log(fName);
+		// console.log(fName);
 
 		// Cache files to avoid cyclic dependencies in node_modules
 		if (fName.indexOf("node_modules") !== -1) {
@@ -192,6 +203,9 @@ module.exports = function HotReloadMiddleware(broker) {
 
 			watchItem.others = _.uniq([].concat(watchItem.others, parents || []));
 
+		} else if (isMoleculerConfig(fName)) {
+			const watchItem = getWatchItem(fName);
+			watchItem.brokerRestart = true;
 		} else {
 			// It is not a service dependency, it is a global middleware. We should reload all services if this file has changed.
 			if (parents) {
@@ -204,15 +218,78 @@ module.exports = function HotReloadMiddleware(broker) {
 		if (mod.children && mod.children.length > 0) {
 			if (service) {
 				parents = parents ? parents.concat([fName]) : [fName];
-			} else if (fName.endsWith("moleculer.config.js")) {
+			} else if (isMoleculerConfig(fName)) {
 				parents = [];
-				//const watchItem = getWatchItem(fName);
-				//watchItem.brokerRestart = true;
+				// const watchItem = getWatchItem(fName);
+				// watchItem.brokerRestart = true;
 			} else if (parents) {
 				parents.push(fName);
 			}
 			mod.children.forEach(m => processModule(m, service, service ? level + 1 : 0, parents));
 		}
+	}
+
+	const folderWatchers = [];
+
+	function watchProjectFolders() {
+		// Debounced Service loader function
+		const needToLoad = new Set();
+		const loadServices = _.debounce(() => {
+			broker.logger.info(kleur.bgMagenta().white().bold(`Load ${needToLoad.size} service(s)...`));
+
+			needToLoad.forEach(filename => {
+				try {
+					broker.loadService(filename);
+				} catch(err) {
+					broker.logger.error(`Failed to load service '${filename}'`, err);
+					clearRequireCache(filename);
+				}
+			});
+			needToLoad.clear();
+
+		}, 500);
+
+
+		if (broker.runner && Array.isArray(broker.runner.folders)) {
+			const folders = broker.runner.folders;
+			if (folders.length > 0) {
+				folderWatchers.length = 0;
+
+				broker.logger.debug("");
+				broker.logger.debug(kleur.yellow().bold("Watching the following folder(s):"));
+
+				folders.forEach(folder => {
+					makeDirs(folder);
+					broker.logger.debug(`  ${path.relative(process.cwd(), folder)}/`);
+					folderWatchers.push({
+						path: folder,
+						watcher: fs.watch(folder, { recursive: true }, (eventType, filename) => {
+							broker.logger.info(`There is changes in '${folder}' folder: `, kleur.bgMagenta().white(eventType), filename);
+							if (filename.endsWith(".service.js") || filename.endsWith(".service.ts")) {
+								const fullPath = path.join(folder, filename);
+								const isLoaded = broker.services.some(svc => svc.__filename == fullPath);
+
+								if (eventType === "rename" && !isLoaded) {
+									// This is a new file. We should wait for the file fully copied.
+									needToLoad.add(fullPath);
+									loadServices();
+								} else if (eventType == "change" && !isLoaded) {
+									// This can be a file which is exist but not loaded correctly (e.g. schema error if the file is empty yet)
+									needToLoad.add(fullPath);
+									loadServices();
+								}
+							}
+						})
+					});
+				});
+			}
+		}
+	}
+
+	function stopProjectFolderWatchers() {
+		broker.logger.debug("");
+		broker.logger.debug("Stop watching folders.");
+		folderWatchers.forEach(item => item.watcher && item.watcher.close());
 	}
 
 	/**
@@ -226,14 +303,20 @@ module.exports = function HotReloadMiddleware(broker) {
 			if (broker.options.hotReload) {
 				broker.logger.info("Hot-reload is ACTIVE.");
 				watchProjectFiles();
+
+				watchProjectFolders();
 			}
 		},
 
 		serviceStarted() {
-			// Re-watch new services if broker has already started.
+			// Re-watch new services if broker has already started and a new service started.
 			if (broker.started) {
 				debouncedWatchProjectFiles();
 			}
+		},
+
+		stopped() {
+			stopProjectFolderWatchers();
 		}
 	};
 

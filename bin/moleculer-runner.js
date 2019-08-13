@@ -25,6 +25,8 @@ const stopSignals = [
 ];
 const production = process.env.NODE_ENV === "production";
 
+const watchFolders = [];
+
 let flags;
 let configFile;
 let config;
@@ -290,6 +292,7 @@ function isServiceFile(p) {
  *
  */
 function loadServices() {
+	watchFolders.length = 0;
 	const fileMask = flags.mask || "**/*.service.js";
 
 	const serviceDir = process.env.SERVICEDIR || "";
@@ -303,6 +306,9 @@ function loadServices() {
 			// Load all services from directory (from subfolders too)
 			broker.loadServices(svcDir, fileMask);
 
+			if (config.hotReload) {
+				watchFolders.push(svcDir);
+			}
 		} else if (process.env.SERVICES) {
 			// Load services from env list
 			patterns = Array.isArray(process.env.SERVICES) ? process.env.SERVICES : process.env.SERVICES.split(",");
@@ -326,6 +332,9 @@ function loadServices() {
 				const svcPath = path.isAbsolute(p) ? p : path.resolve(svcDir, p);
 				// Check is it a directory?
 				if (isDirectory(svcPath)) {
+					if (config.hotReload) {
+						watchFolders.push(svcPath);
+					}
 					files = glob(svcPath + "/" + fileMask, { absolute: true });
 					if (files.length == 0)
 						return broker.logger.warn(kleur.yellow().bold(`There is no service files in directory: '${svcPath}'`));
@@ -381,11 +390,11 @@ function startWorkers(instances) {
 		cluster.fork();
 	}
 
-	stopSignals.forEach(function (signal) {
+	stopSignals.forEach(function(signal) {
 		process.on(signal, () => {
 			logger.info(`Got ${signal}, stopping workers...`);
 			stopping = true;
-			cluster.disconnect(function () {
+			cluster.disconnect(function() {
 				logger.info("All workers stopped, exiting.");
 				process.exit(0);
 			});
@@ -418,8 +427,16 @@ function startBroker() {
 
 	// Create service broker
 	broker = new Moleculer.ServiceBroker(Object.assign({}, config));
+	broker.runner = {
+		flags,
+		worker,
+		restartBroker
+	};
 
 	loadServices();
+
+	if (watchFolders.length > 0)
+		broker.runner.folders = watchFolders;
 
 	return broker.start()
 		.then(() => {
@@ -441,6 +458,18 @@ function run() {
 			logger.error(err);
 			process.exit(1);
 		});
+}
+
+function restartBroker() {
+	if (broker && broker.started) {
+		return broker.stop()
+			.catch(err => {
+				logger.error("Error while stopping ServiceBroker", err);
+			})
+			.then(() => run());
+	} else {
+		return run();
+	}
 }
 
 Promise.resolve()

@@ -110,14 +110,17 @@
 			"request": "launch",
 			"name": "Moleculer-runner",
 			"program": "${workspaceRoot}/bin/moleculer-runner.js",
-			"cwd": "${workspaceRoot}",
-			"env": {
+			"cwd": "${workspaceRoot}/examples/runner",
+			/*"env": {
 				"NAMESPACE": "test",
 				"MOLECULER_NAMESPACE": "long",
 				"MOLECULER_LOG_LEVEL": "debug",
 				"MOLECULER_REGISTRY__STRATEGY": "random"
-			},
+			},*/
 			"args": [
+				"--hot",
+				"--repl",
+				"svc/"
 			]
 		},
 		{
