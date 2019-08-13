@@ -93,8 +93,6 @@ module.exports = function HotReloadMiddleware(broker) {
 				}
 
 				if (watchItem.brokerRestart && broker.runner && _.isFunction(broker.runner.restartBroker)) {
-					// TODO: it is not working properly. The ServiceBroker doesn't reload the config from the moleculer.config.js
-					// file because it is loaded by Moleculer Runner (with merged environment files)
 					broker.logger.info(kleur.bgMagenta().white().bold("Action: Restart broker..."));
 					stopAllFileWatcher(projectFiles);
 					// Clear the whole require cache
