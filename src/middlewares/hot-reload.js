@@ -234,6 +234,24 @@ module.exports = function HotReloadMiddleware(broker) {
 	const folderWatchers = [];
 
 	function watchProjectFolders() {
+		// Debounced Service loader function
+		const needToLoad = new Set();
+		const loadServices = _.debounce(() => {
+			broker.logger.info(kleur.bgMagenta().white().bold(`Load ${needToLoad.size} service(s)...`));
+
+			needToLoad.forEach(filename => {
+				try {
+					broker.loadService(filename);
+				} catch(err) {
+					broker.logger.error(`Failed to load service '${filename}'`, err);
+					clearRequireCache(filename);
+				}
+			});
+			needToLoad.clear();
+
+		}, 500);
+
+
 		if (broker.runner && Array.isArray(broker.runner.folders)) {
 			const folders = broker.runner.folders;
 			if (folders.length > 0) {
@@ -255,17 +273,12 @@ module.exports = function HotReloadMiddleware(broker) {
 
 								if (eventType === "rename" && !isLoaded) {
 									// This is a new file. We should wait for the file fully copied.
-									setTimeout(() => {
-										try {
-											broker.loadService(fullPath);
-										} catch(err) {
-											broker.logger.error(`Failed to load service '${fullPath}'`, err);
-										}
-									}, 500);
+									needToLoad.add(fullPath);
+									loadServices();
 								} else if (eventType == "change" && !isLoaded) {
 									// This can be a file which is exist but not loaded correctly (e.g. schema error if the file is empty yet)
-									// TODO: It also receives 2 times after "rename"
-
+									needToLoad.add(fullPath);
+									loadServices();
 								}
 							}
 						})
