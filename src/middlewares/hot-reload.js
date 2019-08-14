@@ -264,8 +264,8 @@ module.exports = function HotReloadMiddleware(broker) {
 					folderWatchers.push({
 						path: folder,
 						watcher: fs.watch(folder, { recursive: true }, (eventType, filename) => {
-							broker.logger.info(`There is changes in '${folder}' folder: `, kleur.bgMagenta().white(eventType), filename);
 							if (filename.endsWith(".service.js") || filename.endsWith(".service.ts")) {
+								broker.logger.debug(`There is changes in '${folder}' folder: `, kleur.bgMagenta().white(eventType), filename);
 								const fullPath = path.join(folder, filename);
 								const isLoaded = broker.services.some(svc => svc.__filename == fullPath);
 
