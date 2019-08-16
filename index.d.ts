@@ -9,8 +9,7 @@ declare namespace Moleculer {
 
 	class Logger {
 		static extend(logger: LoggerExternal): LoggerInstance;
-		static createDefaultLogger(baseLogger: LoggerInstance, bindings: GenericObject, logLevel?: string, logFormatter?: Function): LoggerInstance;
-		static createDefaultLogger(bindings: GenericObject, logLevel?: string, logFormatter?: Function): LoggerInstance;
+		static createDefaultLogger(broker: ServiceBroker, baseLogger: LoggerInstance, bindings: GenericObject, logLevel?: string): LoggerInstance;
 	}
 
 	interface LoggerBindings {

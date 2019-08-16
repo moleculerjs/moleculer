@@ -4,6 +4,7 @@ const kleur = require("kleur");
 const util = require("util");
 kleur.enabled = false;
 
+const ServiceBroker = require("../../src/service-broker");
 const { extend, createDefaultLogger } = require("../../src/logger");
 const lolex = require("lolex");
 
@@ -61,6 +62,8 @@ describe("Test createDefaultLogger", () => {
 	});
 
 	it("should create a full logger with moduleName", () => {
+		let broker = new ServiceBroker({ logger: false });
+
 		let con = {
 			debug: jest.fn(),
 			info: jest.fn(),
@@ -74,7 +77,7 @@ describe("Test createDefaultLogger", () => {
 			ns: "testing"
 		};
 
-		let logger = createDefaultLogger(con, bindings, "trace");
+		let logger = createDefaultLogger(broker, con, bindings, "trace");
 		expect(logger.fatal).toBeInstanceOf(Function);
 		expect(logger.error).toBeInstanceOf(Function);
 		expect(logger.warn).toBeInstanceOf(Function);
@@ -100,6 +103,8 @@ describe("Test createDefaultLogger", () => {
 	});
 
 	it("should create a full logger with versioned service name", () => {
+		let broker = new ServiceBroker({ logger: false });
+
 		let con = {
 			info: jest.fn()
 		};
@@ -112,7 +117,7 @@ describe("Test createDefaultLogger", () => {
 			ns: ""
 		};
 
-		let logger = createDefaultLogger(con, bindings, "info");
+		let logger = createDefaultLogger(broker, con, bindings, "info");
 		expect(logger.fatal).toBeInstanceOf(Function);
 		expect(logger.error).toBeInstanceOf(Function);
 		expect(logger.warn).toBeInstanceOf(Function);
@@ -127,6 +132,8 @@ describe("Test createDefaultLogger", () => {
 	});
 
 	it("should create a logger with simple log formatter", () => {
+		let broker = new ServiceBroker({ logger: false, logFormatter: "simple" });
+
 		let con = {
 			info: jest.fn()
 		};
@@ -137,13 +144,15 @@ describe("Test createDefaultLogger", () => {
 			ns: ""
 		};
 
-		let logger = createDefaultLogger(con, bindings, "info", "simple");
+		let logger = createDefaultLogger(broker, con, bindings, "info");
 		callLogMethods(logger);
 		expect(con.info).toHaveBeenCalledTimes(4);
 		expect(con.info).toHaveBeenCalledWith("INFO ", "-", "info level");
 	});
 
 	it("should create a logger with short log formatter", () => {
+		let broker = new ServiceBroker({ logger: false, logFormatter: "short" });
+
 		let con = {
 			info: jest.fn()
 		};
@@ -154,13 +163,14 @@ describe("Test createDefaultLogger", () => {
 			ns: ""
 		};
 
-		let logger = createDefaultLogger(con, bindings, "info", "short");
+		let logger = createDefaultLogger(broker, con, bindings, "info");
 		callLogMethods(logger);
 		expect(con.info).toHaveBeenCalledTimes(4);
 		expect(con.info).toHaveBeenCalledWith("[00:00:00.000Z]", "INFO ", "BROKER:", "info level");
 	});
 
 	it("should create a full logger with logFormatter", () => {
+
 		let con = {
 			info: jest.fn()
 		};
@@ -173,8 +183,9 @@ describe("Test createDefaultLogger", () => {
 		};
 
 		let logFormatter = jest.fn();
+		let broker = new ServiceBroker({ logger: false, logFormatter });
 
-		let logger = createDefaultLogger(con, bindings, "info", logFormatter);
+		let logger = createDefaultLogger(broker, con, bindings, "info");
 
 		logger.info("info level");
 
@@ -183,6 +194,7 @@ describe("Test createDefaultLogger", () => {
 	});
 
 	it("should create a filtered-level logger (module error)", () => {
+		let broker = new ServiceBroker({ logger: false });
 		let con = {
 			trace: jest.fn(),
 			debug: jest.fn(),
@@ -191,7 +203,7 @@ describe("Test createDefaultLogger", () => {
 			error: jest.fn(),
 			fatal: jest.fn(),
 		};
-		let logger = createDefaultLogger(con, {
+		let logger = createDefaultLogger(broker, con, {
 			mod: "CTX"
 		}, {
 			"*": "debug",
@@ -207,6 +219,7 @@ describe("Test createDefaultLogger", () => {
 	});
 
 	it("should create a filtered-level logger ('*' info)", () => {
+		let broker = new ServiceBroker({ logger: false });
 		let con = {
 			trace: jest.fn(),
 			debug: jest.fn(),
@@ -215,7 +228,7 @@ describe("Test createDefaultLogger", () => {
 			error: jest.fn(),
 			fatal: jest.fn(),
 		};
-		let logger = createDefaultLogger(con, {
+		let logger = createDefaultLogger(broker, con, {
 			mod: "OTHER"
 		}, {
 			"*": "info",
@@ -232,6 +245,7 @@ describe("Test createDefaultLogger", () => {
 	});
 
 	it("should create an empty logger (false with wildcard)", () => {
+		let broker = new ServiceBroker({ logger: false });
 		let con = {
 			trace: jest.fn(),
 			debug: jest.fn(),
@@ -240,7 +254,7 @@ describe("Test createDefaultLogger", () => {
 			error: jest.fn(),
 			fatal: jest.fn()
 		};
-		let logger = createDefaultLogger(con, {
+		let logger = createDefaultLogger(broker, con, {
 			mod: "SVC.POSTS.OTHER"
 		}, {
 			"SVC.**": false,
@@ -257,6 +271,7 @@ describe("Test createDefaultLogger", () => {
 	});
 
 	it("should use default logObjectPrinter", () => {
+		let broker = new ServiceBroker({ logger: false });
 		let con = {
 			info: jest.fn()
 		};
@@ -269,7 +284,7 @@ describe("Test createDefaultLogger", () => {
 			ns: ""
 		};
 
-		let logger = createDefaultLogger(con, bindings, "info");
+		let logger = createDefaultLogger(broker, con, bindings, "info");
 		const obj = { a: "a".repeat(20), b: "b".repeat(20), c: "c".repeat(20) };
 
 		logger.info("with object", obj);
@@ -300,7 +315,9 @@ describe("Test createDefaultLogger", () => {
 			};
 
 			let logObjectPrinter =  o => util.inspect(o, { depth: 4, colors: false, breakLength: 5 });
-			let logger = createDefaultLogger(con, bindings, "info", undefined, logObjectPrinter);
+			let broker = new ServiceBroker({ logger: false, logObjectPrinter });
+
+			let logger = createDefaultLogger(broker, con, bindings, "info");
 			const obj = { a: "a".repeat(20), b: "b".repeat(20), c: "c".repeat(20) };
 
 			logger.info("with object", obj);
