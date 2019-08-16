@@ -643,10 +643,10 @@ class ServiceBroker {
 
 		// Disable logging
 		if (this.options.logger === false)
-			return Logger.createDefaultLogger();
+			return Logger.createDefaultLogger(this);
 
 		// Create console logger
-		return Logger.createDefaultLogger(console, bindings, this.options.logLevel || "info", this.options.logFormatter, this.options.logObjectPrinter);
+		return Logger.createDefaultLogger(this, console, bindings, this.options.logLevel || "info");
 	}
 
 	/**

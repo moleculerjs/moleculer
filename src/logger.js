@@ -46,8 +46,9 @@ module.exports = {
 	 * @param {Function?} logObjectPrinter Custom object formatter function
 	 * @returns {Object} logger
 	 */
-	createDefaultLogger(baseLogger, bindings, logLevel, logFormatter, logObjectPrinter) {
+	createDefaultLogger(broker, baseLogger, bindings, logLevel) {
 		const noop = function() {};
+		const defaultLogObjectPrinter = o => util.inspect(o, { showHidden: false, depth: 2, colors: kleur.enabled, breakLength: Number.POSITIVE_INFINITY });
 
 		const mod = (bindings && bindings.mod) ? bindings.mod.toUpperCase() : "";
 		const moduleName = bindings ? bindings.nodeID + "/" + mod : "";
@@ -92,7 +93,7 @@ module.exports = {
 			let method = baseLogger[type];
 
 			/* istanbul ignore next */
-			if (baseLogger === console && process.versions.node.split(".")[0] >= 8 && type === "debug")
+			if (baseLogger === console && type === "debug" && process.versions.node.split(".")[0] >= 8)
 				method = null;
 
 			if (!method) {
@@ -105,26 +106,28 @@ module.exports = {
 
 			// Wrap the original method
 			logger[type] = function(...args) {
-				const format = logFormatter;
-				if (_.isFunction(format))
-					return method.call(baseLogger, logFormatter(type, args, bindings));
-
-				const defaultLogObjectPrinter = o => util.inspect(o, { showHidden: false, depth: 2, colors: kleur.enabled, breakLength: Number.POSITIVE_INFINITY });
-
-				// Format arguments (inspect & colorize the objects & array)
-				let pargs = args.map(p => {
-					if (_.isObject(p) || _.isArray(p))
-						return _.isFunction(logObjectPrinter) ? logObjectPrinter(p) : defaultLogObjectPrinter(p);
-					return p;
-				});
-
-				if (format == "simple") {
-					method.call(baseLogger, getType(type), "-", ...pargs);
-				} else if (format == "short") {
-					method.call(baseLogger, kleur.grey(`[${new Date().toISOString().substr(11)}]`), getType(type), kleur.grey(mod + ":"), ...pargs);
+				const format = broker.options.logFormatter;
+				if (_.isFunction(format)) {
+					method.call(baseLogger, format(type, args, bindings));
 				} else {
-					method.call(baseLogger, kleur.grey(`[${new Date().toISOString()}]`), getType(type), kleur.grey(moduleName + ":"), ...pargs);
+					// Format arguments (inspect & colorize the objects & array)
+					let pargs = args.map(p => {
+						if (_.isObject(p) || _.isArray(p))
+							return _.isFunction(broker.options.logObjectPrinter) ? broker.options.logObjectPrinter(p) : defaultLogObjectPrinter(p);
+						return p;
+					});
+
+					if (format == "simple") {
+						method.call(baseLogger, getType(type), "-", ...pargs);
+					} else if (format == "short") {
+						method.call(baseLogger, kleur.grey(`[${new Date().toISOString().substr(11)}]`), getType(type), kleur.grey(mod + ":"), ...pargs);
+					} else {
+						method.call(baseLogger, kleur.grey(`[${new Date().toISOString()}]`), getType(type), kleur.grey(moduleName + ":"), ...pargs);
+					}
 				}
+
+				if (broker.middlewares)
+					broker.middlewares.newLogEntry(type, args, bindings);
 
 			}.bind(baseLogger);
 
