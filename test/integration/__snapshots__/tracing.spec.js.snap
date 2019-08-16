@@ -85,7 +85,7 @@ Array [
       "nodeID": "broker-2",
       "options": Object {
         "retries": null,
-        "timeout": null,
+        "timeout": 0,
       },
       "params": Object {
         "id": 3,
@@ -144,7 +144,7 @@ Array [
       "nodeID": "broker-3",
       "options": Object {
         "retries": null,
-        "timeout": null,
+        "timeout": 0,
       },
       "params": Object {
         "id": 3,
@@ -177,7 +177,7 @@ Array [
       "nodeID": "broker-2",
       "options": Object {
         "retries": null,
-        "timeout": null,
+        "timeout": 0,
       },
       "params": Object {
         "id": 1,
@@ -236,7 +236,7 @@ Array [
       "nodeID": "broker-3",
       "options": Object {
         "retries": null,
-        "timeout": null,
+        "timeout": 0,
       },
       "params": Object {
         "id": 1,
@@ -269,7 +269,7 @@ Array [
       "nodeID": "broker-2",
       "options": Object {
         "retries": null,
-        "timeout": null,
+        "timeout": 0,
       },
       "params": Object {
         "id": 2,
@@ -328,7 +328,7 @@ Array [
       "nodeID": "broker-3",
       "options": Object {
         "retries": null,
-        "timeout": null,
+        "timeout": 0,
       },
       "params": Object {
         "id": 2,
@@ -507,7 +507,7 @@ Array [
       "nodeID": "broker-3",
       "options": Object {
         "retries": null,
-        "timeout": null,
+        "timeout": 0,
       },
       "params": Object {
         "userID": 2,

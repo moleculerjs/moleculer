@@ -1208,6 +1208,46 @@ module.exports = {
 });
 ```
 
+## Timeout setting in action definitions
+Timeout can be set in action definition, as well. It overwrites the global broker `requestTimeout` option, but not the `timeout` in calling options.
+
+```js
+// moleculer.config.js
+module.exports = {
+    nodeID: "node-1",
+    requestTimeout: 3000
+};
+
+// greeter.service.js
+module.exports = {
+    name: "greeter",
+    actions: {
+        normal: {
+            handler(ctx) {
+                return "Normal";
+            }
+        },
+
+        slow: {
+            timeout: 5000, // 5 secs
+            handler(ctx) {
+                return "Slow";
+            }
+        }
+    },
+```
+
+```js
+// It uses the global 3000 timeout
+await broker.call("greeter.normal");
+
+// It uses the 5000 timeout from action definition
+await broker.call("greeter.slow");
+
+// It uses 1000 timeout from calling option
+await broker.call("greeter.slow", null, { timeout: 1000 });
+```
+
 ## `Buffer` supporting improved in serializers
 In earlier version, if request, response or event data was a `Buffer`, the schema-based serializers convert it to JSON string which was not very efficient. In this version all schema-based serializers (ProtoBuf, Avro, Thrift) can detect the type of data & convert it based on the best option and send always as binary data.
 

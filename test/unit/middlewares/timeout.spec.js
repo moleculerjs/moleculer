@@ -50,14 +50,14 @@ describe("Test TimeoutMiddleware", () => {
 
 		return newHandler(ctx).catch(protectReject).then(res => {
 			expect(res).toBe("Result");
-			expect(ctx.options.timeout).toBeUndefined();
+			expect(ctx.options.timeout).toBe(0);
 			expect(handler).toHaveBeenCalledTimes(1);
 
 			expect(broker.metrics.increment).toHaveBeenCalledTimes(0);
 		});
 	});
 
-	it("should handle timeout", () => {
+	it("should handle timeout from global setting", () => {
 		const clock = lolex.install();
 
 		broker.metrics.increment.mockClear();
@@ -89,6 +89,73 @@ describe("Test TimeoutMiddleware", () => {
 		});
 	});
 
+	it("should handle timeout from action setting", () => {
+		const clock = lolex.install();
+
+		broker.metrics.increment.mockClear();
+		broker.options.requestTimeout = 5000;
+		action.timeout = 4000;
+
+		let handler = jest.fn(() => broker.Promise.delay(10 * 1000));
+		const newHandler = mw.localAction.call(broker, handler, action);
+
+		const ctx = Context.create(broker, endpoint);
+
+		const p = newHandler(ctx);
+
+		clock.tick(5500);
+
+		return p.then(protectReject).catch(err => {
+			expect(ctx.startHrTime).toBeDefined();
+			expect(ctx.options.timeout).toBe(4000);
+			expect(handler).toHaveBeenCalledTimes(1);
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
+			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.timeout.total", { action: "posts.find" });
+
+			expect(err).toBeInstanceOf(Error);
+			expect(err).toBeInstanceOf(RequestTimeoutError);
+			expect(err.message).toBe("Request is timed out when call 'posts.find' action on 'server-1' node.");
+			expect(err.data).toEqual({ action: "posts.find", nodeID: "server-1" });
+
+			clock.uninstall();
+		});
+	});
+
+	it("should handle timeout from Context setting", () => {
+		const clock = lolex.install();
+
+		broker.metrics.increment.mockClear();
+		broker.options.requestTimeout = 5000;
+		action.timeout = 4000;
+
+		let handler = jest.fn(() => broker.Promise.delay(10 * 1000));
+		const newHandler = mw.localAction.call(broker, handler, action);
+
+		const ctx = Context.create(broker, endpoint);
+		ctx.options.timeout = 2000;
+
+		const p = newHandler(ctx);
+
+		clock.tick(5500);
+
+		return p.then(protectReject).catch(err => {
+			expect(ctx.startHrTime).toBeDefined();
+			expect(ctx.options.timeout).toBe(2000);
+			expect(handler).toHaveBeenCalledTimes(1);
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
+			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.timeout.total", { action: "posts.find" });
+
+			expect(err).toBeInstanceOf(Error);
+			expect(err).toBeInstanceOf(RequestTimeoutError);
+			expect(err.message).toBe("Request is timed out when call 'posts.find' action on 'server-1' node.");
+			expect(err.data).toEqual({ action: "posts.find", nodeID: "server-1" });
+
+			clock.uninstall();
+		});
+	});
+
 	it("should don't touch other errors", () => {
 		broker.metrics.increment.mockClear();
 		let err = new Error("Some error");
@@ -99,7 +166,7 @@ describe("Test TimeoutMiddleware", () => {
 		const ctx = Context.create(broker, endpoint);
 
 		return newHandler(ctx).then(protectReject).catch(res => {
-			expect(ctx.options.timeout).toBe(5000);
+			expect(ctx.options.timeout).toBe(4000);
 			expect(res).toBe(err);
 
 			expect(broker.metrics.increment).toHaveBeenCalledTimes(0);

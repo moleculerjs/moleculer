@@ -13,12 +13,18 @@ const { METRIC }	= require("../metrics");
 
 module.exports = function(broker) {
 
-	function wrapTimeoutMiddleware(handler) {
+	function wrapTimeoutMiddleware(handler, action) {
+		const actionTimeout = action.timeout;
+
 		return function timeoutMiddleware(ctx) {
 
 			// Load opts with default values
-			if (ctx.options.timeout == null && this.options.requestTimeout)
-				ctx.options.timeout = this.options.requestTimeout || 0;
+			if (ctx.options.timeout == null) {
+				if (actionTimeout != null)
+					ctx.options.timeout = actionTimeout;
+				else
+					ctx.options.timeout = this.options.requestTimeout;
+			}
 
 			if (ctx.options.timeout > 0 && !ctx.startHrTime) {
 			// For distributed timeout calculation need to be set
