@@ -1,106 +1,106 @@
 // packets.proto
-package packets;
 syntax = "proto3";
+package packets;
 
 message PacketEvent {
-	required string ver 	= 1;
-	required string sender 	= 2;
-	required string event 	= 3;
-	optional string data 	= 4;
+	 string ver 	= 1;
+	 string sender 	= 2;
+	 string event 	= 3;
+	 string data 	= 4;
 	repeated string groups 	= 5;
-	required bool broadcast	= 6;
+	 bool broadcast	= 6;
 }
 
 message PacketRequest {
-	required string ver 		= 1;
-	required string sender 		= 2;
-	required string id 			= 3;
-	required string action 		= 4;
-	optional bytes params 		= 5;
-	required string meta 		= 6;
-	required double timeout		= 7;
-	required int32 level 		= 8;
-	optional bool metrics 		= 9;
-	optional string parentID 	= 10;
-	optional string requestID 	= 11;
-	optional bool stream 		= 12;
+	 string ver 		= 1;
+	 string sender 		= 2;
+	 string id 			= 3;
+	 string action 		= 4;
+	 bytes params 		= 5;
+	 string meta 		= 6;
+	 double timeout		= 7;
+	 int32 level 		= 8;
+	 bool metrics 		= 9;
+	 string parentID 	= 10;
+	 string requestID 	= 11;
+	 bool stream 		= 12;
 }
 
 message PacketResponse {
-	required string ver 		= 1;
-	required string sender 		= 2;
-	required string id 			= 3;
-	required bool success 		= 4;
-	optional bytes data 		= 5;
-	optional string error 		= 6;
-	required string meta 		= 7;
-	optional bool stream 		= 8;
+	 string ver 		= 1;
+	 string sender 		= 2;
+	 string id 			= 3;
+	 bool success 		= 4;
+	 bytes data 		= 5;
+	 string error 		= 6;
+	 string meta 		= 7;
+	 bool stream 		= 8;
 }
 
 message PacketDiscover {
-	required string ver 		= 1;
-	required string sender 		= 2;
+	 string ver 		= 1;
+	 string sender 		= 2;
 }
 
 message PacketInfo {
-	required string ver 			= 1;
-	required string sender 			= 2;
-	required string services		= 3;
-	required string config			= 4;
+	 string ver 			= 1;
+	 string sender 			= 2;
+	 string services		= 3;
+	 string config			= 4;
 
 	repeated string ipList			= 5;
-	required string hostname		= 6;
-	required Client client 			= 7;
-	optional int32  seq 			= 8;
+	 string hostname		= 6;
+	 Client client 			= 7;
+	 int32  seq 			= 8;
 
 	message Client {
-		required string type 			= 1;
-		required string version 		= 2;
-		required string langVersion 	= 3;
+		 string type 			= 1;
+		 string version 		= 2;
+		 string langVersion 	= 3;
 	}
 }
 
 message PacketDisconnect {
-	required string ver 	= 1;
-	required string sender 	= 2;
+	 string ver 	= 1;
+	 string sender 	= 2;
 }
 
 message PacketHeartbeat {
-	required string ver 		= 1;
-	required string sender 		= 2;
-	required double cpu 		= 3;
+	 string ver 		= 1;
+	 string sender 		= 2;
+	 double cpu 		= 3;
 }
 
 message PacketPing {
-	required string ver 		= 1;
-	required string sender 		= 2;
-	required int64 time 		= 3;
+	 string ver 		= 1;
+	 string sender 		= 2;
+	 int64 time 		= 3;
 }
 
 message PacketPong {
-	required string ver 		= 1;
-	required string sender 		= 2;
-	required int64 time 		= 3;
-	required int64 arrived 		= 4;
+	 string ver 		= 1;
+	 string sender 		= 2;
+	 int64 time 		= 3;
+	 int64 arrived 		= 4;
 }
 
 message PacketGossipHello {
-	required string ver 		= 1;
-	required string sender 		= 2;
-	required string host 		= 3;
-	required int32 port 		= 4;
+	 string ver 		= 1;
+	 string sender 		= 2;
+	 string host 		= 3;
+	 int32 port 		= 4;
 }
 
 message PacketGossipRequest {
-	required string ver 			= 1;
-	required string sender 			= 2;
-	optional string online			= 3;
-	optional string offline			= 4;
+	 string ver 			= 1;
+	 string sender 			= 2;
+	 string online			= 3;
+	 string offline			= 4;
 }
 
 message PacketGossipResponse {
-	required string ver 			= 1;
-	required string sender 			= 2;
-	optional string online			= 3;
-	optional string offline			= 4;
+	 string ver 			= 1;
+	 string sender 			= 2;
+	 string online			= 3;
+	 string offline			= 4;
 }
