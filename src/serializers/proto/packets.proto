@@ -1,6 +1,6 @@
 // packets.proto
-package packets;
 syntax = "proto3";
+package packets;
 
 message PacketEvent {
 	required string ver 	= 1;
