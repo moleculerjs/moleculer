@@ -271,8 +271,8 @@ class DatadogTraceExporter extends BaseTraceExporter {
 	convertID(id) {
 		if (id) {
 			if (id.indexOf("-") !== -1)
-				return new DatadogPlatform.Uint64BE(Buffer.from(id.replace(/-/g, "").substring(0, 16), "hex"));
-			return new DatadogPlatform.Uint64BE(id);
+				return DatadogPlatform.id(Buffer.from(id.replace(/-/g, ""), "hex"));
+			return DatadogPlatform.id(id);
 		}
 
 		return null;
