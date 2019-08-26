@@ -1,4 +1,68 @@
 --------------------------------------------------
+<a name="Unreleased"></a>
+# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.13.10...master)
+
+--------------------------------------------------
+<a name="0.13.10"></a>
+# [0.13.10](https://github.com/moleculerjs/moleculer/compare/v0.13.9...v0.13.10) (2019-08-26)
+
+# New
+
+## Customizable serializer for Redis cacher by [@shawnmcknight](https://github.com/shawnmcknight) [#589](https://github.com/moleculerjs/moleculer/pull/589)
+The default serializer is the JSON Serializer but you can change it in Redis cacher options. 
+
+_You can use any built-in Moleculer serializer or use a custom one._
+
+**Example to set the built-in MessagePack serializer:**
+```js
+const broker = new ServiceBroker({
+    nodeID: "node-123",
+    cacher: {
+        type: "Redis",
+        options: {
+            ttl: 30,
+
+            // Using MessagePack serializer to store data.
+            serializer: "MsgPack",
+
+            redis: {
+                host: "my-redis"
+            }
+        }
+    }
+});
+```
+
+## Cluster mode of Redis cacher by [Gadi-Manor](https://github.com/Gadi-Manor) [#539](https://github.com/moleculerjs/moleculer/pull/539)
+Redis cacher supports cluster mode.
+
+**Example**
+```js
+const broker = new ServiceBroker({
+    cacher: {
+        type: "Redis",
+        options: {
+            ttl: 30, 
+
+            cluster: {
+                nodes: [
+                    { port: 6380, host: "127.0.0.1" },
+                    { port: 6381, host: "127.0.0.1" },
+                    { port: 6382, host: "127.0.0.1" }
+                ],
+                options: { /* More information: https://github.com/luin/ioredis#cluster */ }
+            }	
+        }
+    }
+});
+```
+
+# Changes
+- update dependencies.
+- update Typescript definitions by [@shawnmcknight](https://github.com/shawnmcknight).
+- fix Protocol Buffer definitions by [@fugufish](https://github.com/fugufish).
+
+--------------------------------------------------
 <a name="0.13.9"></a>
 # [0.13.9](https://github.com/moleculerjs/moleculer/compare/v0.13.8...v0.13.9) (2019-04-18)
 
