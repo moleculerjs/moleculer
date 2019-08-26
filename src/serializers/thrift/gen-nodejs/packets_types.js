@@ -17,8 +17,6 @@ ttypes.DataType = {
 	"DATATYPE_JSON" : 2,
 	"DATATYPE_BUFFER" : 3
 };
-
-/* istanbul ignore next */
 let PacketEvent = module.exports.PacketEvent = function(args) {
 	this.ver = null;
 	this.sender = null;

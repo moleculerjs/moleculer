@@ -6,13 +6,13 @@
 
 "use strict";
 
-const _ 						= require("lodash");
-const Promise 					= require("bluebird");
-const BaseCacher 				= require("./base");
-const { METRIC }				= require("../metrics");
-const { BrokerOptionsError } 	= require("../errors");
-
 let Redis, Redlock;
+const Promise = require("bluebird");
+const BaseCacher = require("./base");
+const _ = require("lodash");
+const { METRIC } = require("../metrics");
+const { BrokerOptionsError } = require("../errors");
+const Serializers = require("../serializers");
 
 /**
  * Cacher factory for Redis
@@ -115,6 +115,9 @@ class RedisCacher extends BaseCacher {
 			});
 		}
 
+		// create an instance of serializer (default to JSON)
+		this.serializer = Serializers.resolve(this.opts.serializer);
+
 		this.logger.debug("Redis Cacher created. Prefix: " + this.prefix);
 	}
 
@@ -140,13 +143,13 @@ class RedisCacher extends BaseCacher {
 		this.metrics.increment(METRIC.MOLECULER_CACHER_GET_TOTAL);
 		const timeEnd = this.metrics.timer(METRIC.MOLECULER_CACHER_GET_TIME);
 
-		return this.client.get(this.prefix + key).then((data) => {
+		return this.client.getBuffer(this.prefix + key).then((data) => {
 			if (data) {
 				this.logger.debug(`FOUND ${key}`);
 				this.metrics.increment(METRIC.MOLECULER_CACHER_FOUND_TOTAL);
 
 				try {
-					const res = JSON.parse(data);
+					const res = this.serializer.deserialize(data);
 					timeEnd();
 
 					return res;
@@ -173,7 +176,7 @@ class RedisCacher extends BaseCacher {
 		this.metrics.increment(METRIC.MOLECULER_CACHER_SET_TOTAL);
 		const timeEnd = this.metrics.timer(METRIC.MOLECULER_CACHER_SET_TIME);
 
-		data = JSON.stringify(data);
+		data = this.serializer.serialize(data);
 		this.logger.debug(`SET ${key}`);
 
 		if (ttl == null)
@@ -262,9 +265,8 @@ class RedisCacher extends BaseCacher {
 	 *
 	 * @memberof RedisCacher
 	 */
-
 	getWithTTL(key) {
-		return this.client.pipeline().get(this.prefix + key).ttl(this.prefix + key).exec().then((res) => {
+		return this.client.pipeline().getBuffer(this.prefix + key).ttl(this.prefix + key).exec().then((res) => {
 			let [err0, data] = res[0];
 			let [err1, ttl] = res[1];
 			if(err0){
@@ -276,7 +278,7 @@ class RedisCacher extends BaseCacher {
 			if (data) {
 				this.logger.debug(`FOUND ${key}`);
 				try {
-					data = JSON.parse(data);
+					data = this.serializer.deserialize(data);
 				} catch (err) {
 					this.logger.error("Redis result parse error.", err, data);
 					data = null;
