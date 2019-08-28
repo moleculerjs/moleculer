@@ -153,7 +153,7 @@ module.exports = function TracingMiddleware(broker) {
 						tags.meta = _.pick(ctx.meta, opts.tags.meta);
 				}
 
-				const span = ctx.startSpan(`event '${ctx.eventName}'`, {
+				const span = ctx.startSpan(`event '${ctx.eventName}' in '${service.fullName}'`, {
 					id: ctx.id,
 					type: "event",
 					traceID: ctx.requestID,
