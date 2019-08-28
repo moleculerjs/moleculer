@@ -260,6 +260,8 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 	 */
 	printRequest(id) {
 		const main = this.spans[id];
+		if (!main) return ; // Async span
+
 		const margin = 2 * 2;
 		const w = this.opts.width - margin;
 
