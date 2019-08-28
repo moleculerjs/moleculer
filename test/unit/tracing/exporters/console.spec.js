@@ -119,7 +119,7 @@ describe("Test Console tracing exporter class", () => {
 			expect(exporter.printRequest).toHaveBeenCalledWith("span1");
 
 			expect(exporter.removeSpanWithChildren).toHaveBeenCalledTimes(1);
-			expect(exporter.removeSpanWithChildren).toHaveBeenCalledWith(span1);
+			expect(exporter.removeSpanWithChildren).toHaveBeenCalledWith("span1");
 		});
 
 		it("should not call printRequest if has parent span", () => {

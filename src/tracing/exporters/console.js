@@ -76,7 +76,7 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 			this.printRequest(span.id);
 
 			// remove old printed requests
-			this.removeSpanWithChildren(span);
+			this.removeSpanWithChildren(span.id);
 		}
 	}
 
