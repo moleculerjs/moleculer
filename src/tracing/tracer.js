@@ -147,14 +147,18 @@ class Tracer {
 	 *
 	 * @memberof Tracer
 	 */
-	startSpan(name, opts) {
-		const currentSpan = null; // TODO: this.getCurrentSpan();
+	startSpan(name, opts = {}) {
+		let parentOpts = {};
+		if (opts.parentSpan) {
+			parentOpts.traceID = opts.parentSpan.traceID;
+			parentOpts.parentID = opts.parentSpan.id;
+			parentOpts.sampled = opts.parentSpan.sampled;
+		}
 
 		const span = new Span(this, name, Object.assign({
 			type: "custom",
-			parentID: currentSpan ? currentSpan.id : null,
 			defaultTags: this.opts.defaultTags
-		}, opts));
+		}, parentOpts, opts, { parentSpan: undefined }));
 
 		span.start();
 
@@ -225,10 +229,8 @@ class Tracer {
 	 */
 	getCurrentTraceID() {
 		return null;
-		/* TODO:
-		const span = this.getCurrentSpan();
-		return span ? span.traceID : null;
-		*/
+		//const span = this.getCurrentSpan();
+		//return span ? span.traceID : null;
 	}
 
 	/**
@@ -238,10 +240,9 @@ class Tracer {
 	 * @memberof Tracer
 	 */
 	getActiveSpanID() {
-		/* TODO:
-		const span = this.getCurrentSpan();
-		return span ? span.id : null;
-		*/
+		return null;
+		//const span = this.getCurrentSpan();
+		//return span ? span.id : null;
 	}
 
 	/**

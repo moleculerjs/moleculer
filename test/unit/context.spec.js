@@ -251,6 +251,38 @@ describe("Test Context.create", () => {
 
 		expect(ctx.requestID).toBe("1234567890abcdef");
 	});
+
+	it("test with parentSpan", () => {
+		const params = { a: 5 };
+		const opts = {
+			timeout: 2500,
+			parentSpan: {
+				id: 111,
+				traceID: 222,
+				sampled: true
+			}
+		};
+
+		let ctx = Context.create(broker, endpoint, params, opts);
+
+		expect(ctx.id).toBeDefined();
+		expect(ctx.broker).toBe(broker);
+		expect(ctx.endpoint).toBe(endpoint);
+
+		expect(ctx.params).toEqual({ a: 5 });
+
+		expect(ctx.options).toEqual(opts);
+
+		expect(ctx.parentID).toBe(111);
+
+		expect(ctx.tracing).toBe(true);
+		expect(ctx.level).toBe(1);
+
+		expect(ctx.needAck).toBeNull();
+		expect(ctx.ackID).toBeNull();
+
+		expect(ctx.requestID).toBe(222);
+	});
 });
 
 describe("Test copy", () => {

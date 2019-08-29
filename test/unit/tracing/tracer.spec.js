@@ -319,13 +319,9 @@ describe("Test Tracer", () => {
 
 			tracer.init();
 
-			tracer.getCurrentSpan = jest.fn();
-
 			const span = tracer.startSpan("new-span", { tags: { a: 5 } });
 
 			expect(span).toBe(fakeSpan);
-
-			expect(tracer.getCurrentSpan).toHaveBeenCalledTimes(1);
 
 			expect(Span).toHaveBeenCalledTimes(1);
 			expect(Span).toHaveBeenCalledWith(tracer, "new-span", {
@@ -333,7 +329,6 @@ describe("Test Tracer", () => {
 				defaultTags: {
 					"def": "ault"
 				},
-				parentID: null,
 				tags: { "a": 5 },
 			});
 
@@ -353,13 +348,15 @@ describe("Test Tracer", () => {
 
 			tracer.init();
 
-			tracer.getCurrentSpan = jest.fn(() => ({ id: "parent-123" }));
+			const parentSpan = {
+				id: "parent-123",
+				traceID: "trace-123",
+				sampled: true
+			};
 
-			const span = tracer.startSpan("new-span", { tags: { a: 5 } });
+			const span = tracer.startSpan("new-span", { tags: { a: 5 }, parentSpan });
 
 			expect(span).toBe(fakeSpan);
-
-			expect(tracer.getCurrentSpan).toHaveBeenCalledTimes(1);
 
 			expect(Span).toHaveBeenCalledTimes(1);
 			expect(Span).toHaveBeenCalledWith(tracer, "new-span", {
@@ -368,6 +365,8 @@ describe("Test Tracer", () => {
 					"def": "ault"
 				},
 				parentID: "parent-123",
+				traceID: "trace-123",
+				sampled: true,
 				tags: { "a": 5 },
 			});
 
@@ -598,6 +597,22 @@ describe("Test Tracer", () => {
 
 	describe("Test getCurrentTraceID & getActiveSpanID", () => {
 
+		it("should return null", () => {
+			const tracer = new Tracer(broker, true);
+			tracer.init();
+			jest.spyOn(tracer, "getCurrentSpan");
+
+			expect(tracer.getCurrentTraceID()).toBeNull();
+			expect(tracer.getCurrentSpan).toBeCalledTimes(0);
+
+			expect(tracer.getActiveSpanID()).toBeNull();
+			expect(tracer.getCurrentSpan).toBeCalledTimes(0);
+		});
+
+	});
+	/*
+	describe("Test getCurrentTraceID & getActiveSpanID", () => {
+
 		it("should return IDs", () => {
 			const tracer = new Tracer(broker, true);
 			tracer.init();
@@ -627,5 +642,6 @@ describe("Test Tracer", () => {
 		});
 
 	});
+	*/
 });
 

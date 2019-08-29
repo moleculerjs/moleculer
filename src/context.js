@@ -161,6 +161,13 @@ class Context {
 				ctx.caller = opts.parentCtx.event.name;
 		}
 
+		// Parent span
+		if (opts.parentSpan != null) {
+			ctx.parentID = opts.parentSpan.id;
+			ctx.requestID = opts.parentSpan.traceID;
+			ctx.tracing = opts.parentSpan.sampled;
+		}
+
 		// Event acknowledgement
 		if (opts.needAck) {
 			ctx.needAck = opts.needAck;
