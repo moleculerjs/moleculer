@@ -148,7 +148,7 @@ class Tracer {
 	 * @memberof Tracer
 	 */
 	startSpan(name, opts) {
-		const currentSpan = this.getCurrentSpan();
+		const currentSpan = null; // TODO: this.getCurrentSpan();
 
 		const span = new Span(this, name, Object.assign({
 			type: "custom",
@@ -224,8 +224,11 @@ class Tracer {
 	 * @memberof Tracer
 	 */
 	getCurrentTraceID() {
+		return null;
+		/* TODO:
 		const span = this.getCurrentSpan();
 		return span ? span.traceID : null;
+		*/
 	}
 
 	/**
@@ -235,8 +238,10 @@ class Tracer {
 	 * @memberof Tracer
 	 */
 	getActiveSpanID() {
+		/* TODO:
 		const span = this.getCurrentSpan();
 		return span ? span.id : null;
+		*/
 	}
 
 	/**
