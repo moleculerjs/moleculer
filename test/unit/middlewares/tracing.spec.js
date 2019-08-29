@@ -778,7 +778,7 @@ describe("Test TracingMiddleware localEvent", () => {
 			expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(0);
 
 			expect(ctx.startSpan).toHaveBeenCalledTimes(1);
-			expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created'", {
+			expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created' in 'v1.posts'", {
 				id: "ctx-id",
 				type: "event",
 				traceID: "request-id",
@@ -852,7 +852,7 @@ describe("Test TracingMiddleware localEvent", () => {
 			expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(0);
 
 			expect(ctx.startSpan).toHaveBeenCalledTimes(1);
-			expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created'", {
+			expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created' in 'v1.posts'", {
 				id: "ctx-id",
 				type: "event",
 				traceID: "request-id",
@@ -927,7 +927,7 @@ describe("Test TracingMiddleware localEvent", () => {
 			ctx.meta.user.age = 35;
 
 			expect(ctx.startSpan).toHaveBeenCalledTimes(1);
-			expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created'", {
+			expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created' in 'v1.posts'", {
 				id: "ctx-id",
 				type: "event",
 				traceID: "request-id",
@@ -995,7 +995,7 @@ describe("Test TracingMiddleware localEvent", () => {
 			await newHandler(ctx);
 
 			expect(ctx.startSpan).toHaveBeenCalledTimes(1);
-			expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created'", {
+			expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created' in 'v1.posts'", {
 				id: "ctx-id",
 				type: "event",
 				traceID: "request-id",
@@ -1051,7 +1051,7 @@ describe("Test TracingMiddleware localEvent", () => {
 			await newHandler(ctx);
 
 			expect(ctx.startSpan).toHaveBeenCalledTimes(1);
-			expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created'", {
+			expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created' in 'v1.posts'", {
 				id: "ctx-id",
 				type: "event",
 				traceID: "request-id",
@@ -1143,7 +1143,7 @@ describe("Test TracingMiddleware localEvent", () => {
 				expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(1);
 
 				expect(ctx.startSpan).toHaveBeenCalledTimes(1);
-				expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created'", {
+				expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created' in 'v1.posts'", {
 					id: "ctx-id",
 					type: "event",
 					traceID: "tracer-trace-id",
