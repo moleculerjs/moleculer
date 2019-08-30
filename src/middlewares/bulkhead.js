@@ -75,7 +75,7 @@ module.exports = function bulkheadMiddleware(broker) {
 				}
 
 				// Check whether the queue is full
-				if (queue.length >= opts.maxQueueSize) {
+				if (opts.maxQueueSize && queue.length >= opts.maxQueueSize) {
 					return Promise.reject(new QueueIsFullError({ action: ctx.action.name, nodeID: ctx.nodeID }));
 				}
 
@@ -154,8 +154,8 @@ module.exports = function bulkheadMiddleware(broker) {
 				}
 
 				// Check whether the queue is full
-				if (queue.length >= opts.maxQueueSize) {
-					return Promise.reject(new QueueIsFullError({ event: ctx.event.name, service: service.fullName, nodeID: ctx.nodeID }));
+				if (opts.maxQueueSize && queue.length >= opts.maxQueueSize) {
+					return Promise.reject(new QueueIsFullError({ event: ctx.eventName, service: service.fullName, nodeID: ctx.nodeID }));
 				}
 
 				// Store the request in the queue
