@@ -11,21 +11,32 @@ const broker = new ServiceBroker({
 		"*.GREETER": "debug",
 		"**": "debug",
 	},
-	logFormatter: "short",
+	//logFormatter: "short",
 	transporter: "NATS",
 	cacher: "Memory"
 });
 
-broker.createService({
-	name: "greeter",
-	version: 2,
+const schema = {
 	created() {
 		this.logger.debug("Service created!");
 	},
 	started() {
 		this.logger.info("Service started!");
 	}
-});
+};
+
+broker.createService({
+	name: "greeter",
+	version: 2
+}, schema);
+
+broker.createService({
+	name: "test"
+}, schema);
+
+broker.createService({
+	name: "hello"
+}, schema);
 
 const myLogger = broker.getLogger("my.custom.module");
 
