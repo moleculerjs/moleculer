@@ -1062,6 +1062,21 @@ module.exports = {
 }
 ```
 
+### `newLogEntry`
+It's called when a new logger entry created by the default console logger. It's not called when using external custom logger like (Pino, Winston, Bunyan...etc).
+
+**Signature**
+```js
+// my-middleware.js
+module.exports = {
+    newLogEntry(type, args, bindings) {
+		// e.g. collect & send log entries to a central server.
+	},
+}
+```
+
+_Please note: it's not called during broker is starting because logger is created early before middleware initialization._
+
 ## New built-in middlewares
 
 ### Encryption

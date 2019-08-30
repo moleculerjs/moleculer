@@ -134,17 +134,6 @@ class MiddlewareHandler {
 		return handler;
 	}
 
-	/**
-	 * TODO:
-	 *
-	 * @param {*} type
-	 * @param {*} args
-	 * @param {*} bindings
-	 */
-	newLogEntry(type, args, bindings) {
-		//console.log(type, args, bindings);
-		return ;
-	}
 }
 
 module.exports = MiddlewareHandler;

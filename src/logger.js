@@ -138,7 +138,7 @@ module.exports = {
 				}
 
 				if (broker.middlewares)
-					broker.middlewares.newLogEntry(type, args, bindings);
+					broker.middlewares.callSyncHandlers("newLogEntry", [type, args, bindings], {});
 
 			}.bind(baseLogger);
 
