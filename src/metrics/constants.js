@@ -181,6 +181,10 @@ module.exports = {
 	// --- MOLECULER BULKHEAD METRICS ---
 
 	MOLECULER_REQUEST_BULKHEAD_INFLIGHT: "moleculer.request.bulkhead.inflight",
+	MOLECULER_REQUEST_BULKHEAD_QUEUE_SIZE: "moleculer.request.bulkhead.queue.size",
+
+	MOLECULER_EVENT_BULKHEAD_INFLIGHT: "moleculer.event.bulkhead.inflight",
+	MOLECULER_EVENT_BULKHEAD_QUEUE_SIZE: "moleculer.event.bulkhead.queue.size",
 
 	// --- MOLECULER RETRY METRICS ---
 

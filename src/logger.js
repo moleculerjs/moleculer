@@ -13,6 +13,14 @@ const { match }	= require("./utils");
 
 const LOG_LEVELS = ["fatal", "error", "warn", "info", "debug", "trace"];
 
+const COLORS = ["cyan", "yellow", "green", "magenta", "red", "blue", "white", "grey"/*,
+	"bold.cyan", "bold.yellow", "bold.green", "bold.magenta", "bold.red", "bold.blue", "bold.white", "bold.grey"*/ ];
+
+let colorCnt = 0;
+function getNextColor() {
+	return COLORS[colorCnt++ % COLORS.length];
+}
+
 module.exports = {
 
 	/**
@@ -50,8 +58,11 @@ module.exports = {
 		const noop = function() {};
 		const defaultLogObjectPrinter = o => util.inspect(o, { showHidden: false, depth: 2, colors: kleur.enabled, breakLength: Number.POSITIVE_INFINITY });
 
+		const c = getNextColor();
+
 		const mod = (bindings && bindings.mod) ? bindings.mod.toUpperCase() : "";
-		const moduleName = bindings ? bindings.nodeID + "/" + mod : "";
+		const modColorName = c.split(".").reduce((a,b) => a[b] || a()[b], kleur)(mod);
+		const moduleColorName = bindings ? kleur.grey(bindings.nodeID + "/") + modColorName : "";
 
 		const getColor = type => {
 			switch(type) {
@@ -120,14 +131,14 @@ module.exports = {
 					if (format == "simple") {
 						method.call(baseLogger, getType(type), "-", ...pargs);
 					} else if (format == "short") {
-						method.call(baseLogger, kleur.grey(`[${new Date().toISOString().substr(11)}]`), getType(type), kleur.grey(mod + ":"), ...pargs);
+						method.call(baseLogger, kleur.grey(`[${new Date().toISOString().substr(11)}]`), getType(type), modColorName + kleur.grey(":"), ...pargs);
 					} else {
-						method.call(baseLogger, kleur.grey(`[${new Date().toISOString()}]`), getType(type), kleur.grey(moduleName + ":"), ...pargs);
+						method.call(baseLogger, kleur.grey(`[${new Date().toISOString()}]`), getType(type), moduleColorName + kleur.grey(":"), ...pargs);
 					}
 				}
 
 				if (broker.middlewares)
-					broker.middlewares.newLogEntry(type, args, bindings);
+					broker.middlewares.callSyncHandlers("newLogEntry", [type, args, bindings], {});
 
 			}.bind(baseLogger);
 

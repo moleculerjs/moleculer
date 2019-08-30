@@ -33,6 +33,7 @@ function createBroker(options) {
 (function() {
 	console.log(kleur.yellow().bold("\n--- CONSOLE ---"));
 	const broker = createBroker({
+		nodeID: "console",
 		logger: console,
 		logLevel: "debug",
 		/*logFormatter(level, args, meta) {
@@ -49,6 +50,7 @@ function createBroker(options) {
 	console.log(kleur.yellow().bold("\n--- PINO ---"));
 	const pino = require("pino")({ level: "debug" });
 	const broker = createBroker({
+		nodeID: "pino",
 		logger: bindings => pino.child(bindings),
 		transporter: "NATS",
 		cacher: "Memory"
@@ -62,6 +64,7 @@ function createBroker(options) {
 	const bunyan = require("bunyan");
 	const logger = bunyan.createLogger({ name: "moleculer", level: "debug" });
 	const broker = createBroker({
+		nodeID: "bunyan",
 		logger: bindings => logger.child(bindings),
 		transporter: "NATS",
 		cacher: "Memory"
@@ -75,6 +78,7 @@ function createBroker(options) {
 	console.log(kleur.yellow().bold("\n--- WINSTON ---"));
 	const winston = require("winston");
 	const broker = createBroker({
+		nodeID: "winston",
 		logger: bindings => extend(winston.createLogger({
 			format: winston.format.combine(
 				winston.format.label({ label: bindings }),

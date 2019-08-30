@@ -171,7 +171,12 @@ const MW = {
 			console.log(`Incoming ${packet.type} packet.`, packet.payload);
 			return next(cmd, packet);
 		};
-	}
+	},
+
+	// When a new log entry created
+	newLogEntry(type, args, bindings) {
+		console.log(`:: New ${type} log entry:: `, args, bindings);
+	},
 };
 
 const broker = new ServiceBroker({
