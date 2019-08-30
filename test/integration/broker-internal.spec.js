@@ -167,6 +167,7 @@ describe("Test internal services", () => {
 			expect(res).toEqual([{
 				"action": {
 					"cache": false,
+					"tracing": false,
 					"name": "$node.list",
 					"rawName": "list",
 					"params": {
@@ -187,6 +188,7 @@ describe("Test internal services", () => {
 			}, {
 				"action": {
 					"cache": false,
+					"tracing": false,
 					"name": "$node.services",
 					"rawName": "services",
 					"params": {
@@ -215,6 +217,7 @@ describe("Test internal services", () => {
 			}, {
 				"action": {
 					"cache": false,
+					"tracing": false,
 					"name": "$node.actions",
 					"rawName": "actions",
 					"params": {
@@ -243,6 +246,7 @@ describe("Test internal services", () => {
 			}, {
 				"action": {
 					"cache": false,
+					"tracing": false,
 					"name": "$node.events",
 					"rawName": "events",
 					"params": {
@@ -271,6 +275,7 @@ describe("Test internal services", () => {
 			}, {
 				"action": {
 					"cache": false,
+					"tracing": false,
 					"name": "$node.health",
 					"rawName": "health",
 				},
@@ -281,6 +286,7 @@ describe("Test internal services", () => {
 			}, {
 				"action": {
 					"cache": false,
+					"tracing": false,
 					"name": "$node.options",
 					"rawName": "options",
 					"params": {}
@@ -292,6 +298,7 @@ describe("Test internal services", () => {
 			}, {
 				"action": {
 					"cache": false,
+					"tracing": false,
 					"name": "$node.metrics",
 					"rawName": "metrics",
 					"params": {

@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -16,6 +16,7 @@ module.exports = function() {
 		actions: {
 			list: {
 				cache: false,
+				tracing: false,
 				params: {
 					withServices: { type: "boolean", optional: true },
 					onlyAvailable: { type: "boolean", optional: true },
@@ -27,6 +28,7 @@ module.exports = function() {
 
 			services: {
 				cache: false,
+				tracing: false,
 				params: {
 					onlyLocal: { type: "boolean", optional: true },
 					skipInternal: { type: "boolean", optional: true },
@@ -70,6 +72,7 @@ module.exports = function() {
 
 			actions: {
 				cache: false,
+				tracing: false,
 				params: {
 					onlyLocal: { type: "boolean", optional: true },
 					skipInternal: { type: "boolean", optional: true },
@@ -83,6 +86,7 @@ module.exports = function() {
 
 			events: {
 				cache: false,
+				tracing: false,
 				params: {
 					onlyLocal: { type: "boolean", optional: true },
 					skipInternal: { type: "boolean", optional: true },
@@ -96,6 +100,7 @@ module.exports = function() {
 
 			health: {
 				cache: false,
+				tracing: false,
 				handler() {
 					return this.broker.getHealthStatus();
 				}
@@ -103,6 +108,7 @@ module.exports = function() {
 
 			options: {
 				cache: false,
+				tracing: false,
 				params: {
 				},
 				handler() {
@@ -112,6 +118,7 @@ module.exports = function() {
 
 			metrics: {
 				cache: false,
+				tracing: false,
 				params: {
 					types: [ { type: "string", optional: true }, { type: "array", optional: true, items: "string" } ],
 					includes: [ { type: "string", optional: true }, { type: "array", optional: true, items: "string" } ],
