@@ -23,7 +23,7 @@ module.exports = function(broker) {
 				if (actionTimeout != null)
 					ctx.options.timeout = actionTimeout;
 				else
-					ctx.options.timeout = this.options.requestTimeout;
+					ctx.options.timeout = broker.options.requestTimeout;
 			}
 
 			if (ctx.options.timeout > 0 && !ctx.startHrTime) {
