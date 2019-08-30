@@ -4,7 +4,13 @@ const ServiceBroker = require("../src/service-broker");
 const { extend } = require("../src/logger");
 
 const broker = new ServiceBroker({
-	logger: console,
+	logger: {
+		type: "Console",
+		options: {
+			//level: "warn"
+			//formatter: (type, args, bindings) => [].concat(args, bindings)
+		}
+	},
 	logLevel: {
 		"MY.**": false,
 		"TRANS*": "warn",
@@ -40,6 +46,10 @@ broker.createService({
 
 const myLogger = broker.getLogger("my.custom.module");
 
+myLogger.trace("Test");
+myLogger.debug("Test");
 myLogger.info("Test");
+myLogger.warn("Test");
+myLogger.error("Test");
 
 broker.start();

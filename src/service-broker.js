@@ -16,7 +16,7 @@ const Transit 				= require("./transit");
 const Registry 				= require("./registry");
 const E 					= require("./errors");
 const utils 				= require("./utils");
-const Logger 				= require("./logger");
+const LogFactory			= require("./logger");
 const Validator 			= require("./validator");
 const AsyncStorage 			= require("./async-storage");
 
@@ -169,6 +169,10 @@ class ServiceBroker {
 			// Instance ID
 			this.instanceID = utils.generateToken();
 
+			// Log Factory
+			this.logFactory = new LogFactory(this);
+			this.logFactory.init(this.options.logger);
+
 			// Logger
 			this.logger = this.getLogger("broker");
 
@@ -287,6 +291,7 @@ class ServiceBroker {
 			else {
 				/* eslint-disable-next-line no-console */
 				console.error("Unable to create ServiceBroker.", err);
+				process.exit(1);
 			}
 		}
 	}
@@ -617,36 +622,23 @@ class ServiceBroker {
 	/**
 	 * Get a custom logger for sub-modules (service, transporter, cacher, context...etc)
 	 *
-	 * @param {String} module	Name of module
+	 * @param {String} mod	Name of module
 	 * @param {String|object} props	Module properties (service name, version, ...etc
-	 * @returns {Logger}
+	 * @returns {ModuleLogger}
 	 *
 	 * @memberof ServiceBroker
 	 */
-	getLogger(module, props) {
+	getLogger(mod, props) {
 		if (_.isString(props))
 			props = { mod: props };
 
 		let bindings = Object.assign({
 			nodeID: this.nodeID,
 			ns: this.namespace,
-			mod: module
+			mod
 		}, props);
 
-		// Call logger creator
-		if (_.isFunction(this.options.logger))
-			return this.options.logger.call(this, bindings);
-
-		// External logger
-		if (_.isObject(this.options.logger) && this.options.logger !== console)
-			return Logger.extend(this.options.logger);
-
-		// Disable logging
-		if (this.options.logger === false)
-			return Logger.createDefaultLogger(this);
-
-		// Create console logger
-		return Logger.createDefaultLogger(this, console, bindings, this.options.logLevel || "info");
+		return this.logFactory.getLogger(bindings);
 	}
 
 	/**
