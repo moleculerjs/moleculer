@@ -3,7 +3,6 @@
 const _ = require("lodash");
 const ServiceBroker = require("../src/service-broker");
 const E = require("../src/errors");
-const BulkHeadMiddleware = require("../src/middlewares/bulkhead");
 
 const broker = new ServiceBroker({
 	logFormatter: "short",
@@ -12,9 +11,17 @@ const broker = new ServiceBroker({
 		concurrency: 3,
 		maxQueueSize: 100,
 	},
-	middlewares: [
-		BulkHeadMiddleware()
-	]
+	metrics: {
+		enabled: true,
+		reporter: {
+			type: "Console",
+			options: {
+				onlyChanges: true,
+				includes: "moleculer.**.bulkhead.**",
+
+			}
+		}
+	}
 });
 
 broker.createService({
@@ -49,6 +56,28 @@ broker.createService({
 				return ctx.params;
 			}
 		},
+	},
+
+	events: {
+		"user.created": {
+			bulkhead: {
+				enabled: true,
+				concurrency: 1
+			},
+			async handler(ctx) {
+				this.logger.info("Event received.", ctx.params);
+				await this.Promise.delay(_.random(500, 2500));
+				this.logger.info("User created.", ctx.params);
+			}
+		},
+
+		"post.created": {
+			async handler(ctx) {
+				this.logger.info("Event received.", ctx.params);
+				await this.Promise.delay(_.random(500, 2500));
+				this.logger.info("Post created.", ctx.params);
+			}
+		}
 	}
 });
 
@@ -58,6 +87,7 @@ broker.start()
 	.then(() => {
 		return broker.Promise.all(_.times(10, id => {
 			return broker.call("test.second", { id });
+			//return broker.emit("user.created", { id });
 		}));
 	})
 	/*.then(() => {

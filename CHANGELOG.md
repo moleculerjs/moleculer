@@ -278,6 +278,9 @@ const broker = new ServiceBroker({
 - `moleculer.registry.events.total` (gauge)
 - `moleculer.registry.event.endpoints.total` (gauge)
 - `moleculer.request.bulkhead.inflight` (gauge)
+- `moleculer.request.bulkhead.queue.size` (gauge)
+- `moleculer.event.bulkhead.inflight` (gauge)
+- `moleculer.event.bulkhead.queue.size` (gauge)
 - `moleculer.request.timeout.total` (counter)
 - `moleculer.request.retry.attempts.total` (counter)
 - `moleculer.request.fallback.total` (counter)
@@ -823,8 +826,30 @@ broker2.createService({
         }
     }
 });
-
 ```
+
+## Bulkhead supports events
+Bulkhead feature supports service event handlers, as well.
+
+```js
+// my.service.js
+module.exports = {
+    name: "my-service",
+    events: {
+		"user.created": {
+			bulkhead: {
+				enabled: true,
+				concurrency: 1
+			},
+			async handler(ctx) {
+				// Do something.
+			}
+		}
+    }
+}
+```
+_Use `async/await` or return `Promise` in event handlers._
+
 
 ## NodeID conflict handling
 Having remote nodes with same `nodeID` in the same `namespace` can cause communication problems. In v0.14 ServiceBroker checks the nodeIDs of remote nodes. If some node has the same nodeID, the broker will throw a fatal error and stop the process.
