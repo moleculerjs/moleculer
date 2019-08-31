@@ -12,6 +12,8 @@ const _ = require("lodash");
 /**
  * Bunyan logger for Moleculer
  *
+ * https://github.com/trentm/node-bunyan
+ *
  * @class BunyanLogger
  * @extends {BaseLogger}
  */

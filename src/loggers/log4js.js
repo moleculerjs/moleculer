@@ -10,19 +10,19 @@ const BaseLogger = require("./base");
 const _ = require("lodash");
 
 /**
- * Debug logger for Moleculer
+ * Log4Js logger for Moleculer
  *
- * https://github.com/visionmedia/debug
+ * https://github.com/log4js-node/log4js-node
  *
- * @class DebugLogger
+ * @class Log4JsLogger
  * @extends {BaseLogger}
  */
-class DebugLogger extends BaseLogger {
+class Log4JsLogger extends BaseLogger {
 
 	/**
-	 * Creates an instance of DebugLogger.
+	 * Creates an instance of Log4JsLogger.
 	 * @param {Object} opts
-	 * @memberof DebugLogger
+	 * @memberof Log4JsLogger
 	 */
 	constructor(opts) {
 		super(opts);
@@ -32,4 +32,4 @@ class DebugLogger extends BaseLogger {
 
 }
 
-module.exports = DebugLogger;
+module.exports = Log4JsLogger;

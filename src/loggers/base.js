@@ -31,10 +31,23 @@ class BaseLogger {
 		this.opts = _.defaultsDeep(opts, {
 			level: "info",
 		});
+
+	}
+
+	/**
+	 * Initialize logger.
+	 *
+	 * @param {LogFactory} logFactory
+	 */
+	init(logFactory)  {
+		this.logFactory = logFactory;
+		this.broker = this.logFactory.broker;
 	}
 
 
 	getLogLevel(mod) {
+		mod = mod ? mod.toUpperCase() : "";
+
 		const level = this.opts.level;
 		if (_.isString(level))
 			return level;
@@ -44,9 +57,12 @@ class BaseLogger {
 				return level[mod];
 
 			// Find with matching
-			const key = Object.keys(level).find(m => match(mod, m));
+			const key = Object.keys(level).find(m => match(mod, m) && m !== "**");
 			if (key)
 				return level[key];
+			else if (level["**"]) {
+				return level["**"];
+			}
 		}
 
 		return null;

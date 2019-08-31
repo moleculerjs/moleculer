@@ -7,7 +7,7 @@
 "use strict";
 
 const _ 		= require("lodash");
-const { match }	= require("./utils");
+//const { match }	= require("./utils");
 const { BrokerOptionsError } = require("./errors");
 const Loggers = require("./loggers");
 
@@ -59,6 +59,9 @@ class LogFactory {
 			// Invalid options
 			throw new BrokerOptionsError("Invalid logger configuration.", { opts: this.opts });
 		}
+
+		// Initialize appenders
+		this.appenders.forEach(app => app.init(this));
 	}
 
 
@@ -75,10 +78,8 @@ class LogFactory {
 		if (logger) return logger;
 
 		logger = {};
-		const self = this;
 		const broker = this.broker;
 		const appenders = this.appenders;
-		const mod = bindings.mod;
 
 		const logHandlers = _.compact(appenders.map(app => app.getLogHandler(bindings)));
 
@@ -93,11 +94,27 @@ class LogFactory {
 			};
 		});
 
+		/*logger.log = function(type, ...args) {
+			if (broker.middlewares)
+				broker.middlewares.callSyncHandlers("newLogEntry", [type, args, bindings], {});
+
+			if (logHandlers.length == 0) return;
+
+			logHandlers.forEach(fn => fn(type, args));
+		};*/
+
+
 		this.cache.set(this.getBindingsKey(bindings), logger);
 
 		return logger;
 	}
 
+	/**
+	 * Create a key from bindings for logger caching.
+	 *
+	 * @param {object} bindings
+	 * @returns {String}
+	 */
 	getBindingsKey(bindings) {
 		return ["nodeID", "ns", "mod"]
 			.map(key => bindings[key])

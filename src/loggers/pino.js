@@ -12,6 +12,8 @@ const _ = require("lodash");
 /**
  * Pino logger for Moleculer
  *
+ * https://github.com/pinojs/pino
+ *
  * @class PinoLogger
  * @extends {BaseLogger}
  */
@@ -25,7 +27,45 @@ class PinoLogger extends BaseLogger {
 	constructor(opts) {
 		super(opts);
 
-		this.opts = _.defaultsDeep(this.opts, {});
+		this.opts = _.defaultsDeep(this.opts, {
+			// http://getpino.io/#/docs/api?id=options-object
+			options: null,
+			// http://getpino.io/#/docs/api?id=destination-sonicboom-writablestream-string
+			destination: null,
+
+			createLogger: null
+		});
+	}
+
+	/**
+	 * Initialize logger.
+	 *
+	 * @param {LogFactory} logFactory
+	 */
+	init(logFactory) {
+		super.init(logFactory);
+
+		try {
+			const Pino = require("pino");
+			this.pino = Pino(this.opts.options ? this.opts.options : undefined, this.opts.destination ? this.opts.destination : null);
+		} catch(err) {
+			/* istanbul ignore next */
+			this.broker.fatal("The 'pino' package is missing! Please install it with 'npm install pino --save' command!", err, true);
+		}
+	}
+
+	/**
+	 *
+	 * @param {object} bindings
+	 */
+	getLogHandler(bindings) {
+		let level = this.getLogLevel(bindings ? bindings.mod : null);
+		if (!level)
+			level = "silent";
+
+		const logger = _.isFunction(this.opts.createLogger) ? this.opts.createLogger(level, bindings) : this.pino.child({ level, ...bindings });
+
+		return (type, args) => logger[type](...args);
 	}
 
 }

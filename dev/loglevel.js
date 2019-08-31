@@ -4,19 +4,33 @@ const ServiceBroker = require("../src/service-broker");
 const { extend } = require("../src/logger");
 
 const broker = new ServiceBroker({
-	logger: {
-		type: "Console",
-		options: {
-			//level: "warn"
-			//formatter: (type, args, bindings) => [].concat(args, bindings)
+	logger: [
+		{
+			type: "Console",
+			options: {
+				//level: "error",
+				//formatter: (type, args, bindings) => [].concat(args, bindings)
+				//formatter: "simple",
+				moduleColors: true
+			}
+		},
+		{
+			type: "Pino",
+			options: {
+				options: {
+					base: null
+				}
+				//destination: "d:/pino.log"
+			}
 		}
-	},
-	logLevel: {
+	],
+	/*logLevel: {
 		"MY.**": false,
 		"TRANS*": "warn",
 		"*.GREETER": "debug",
 		"**": "debug",
-	},
+	},*/
+	logLevel: "info",
 	//logFormatter: "short",
 	transporter: "NATS",
 	cacher: "Memory"
@@ -46,10 +60,14 @@ broker.createService({
 
 const myLogger = broker.getLogger("my.custom.module");
 
-myLogger.trace("Test");
-myLogger.debug("Test");
-myLogger.info("Test");
-myLogger.warn("Test");
-myLogger.error("Test");
+myLogger.trace("Trace test");
+myLogger.debug("Debug test");
+myLogger.info("Info test");
+myLogger.warn("Warn test");
+myLogger.error("Error test");
+
+myLogger.info("Object test - after", { a: 5, b: { c: "John" } });
+myLogger.info({ a: 5, b: { c: "John" } }, "Object test - before");
+
 
 broker.start();

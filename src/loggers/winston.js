@@ -12,6 +12,8 @@ const _ = require("lodash");
 /**
  * Winston logger for Moleculer
  *
+ * https://github.com/winstonjs/winston
+ *
  * @class WinstonLogger
  * @extends {BaseLogger}
  */
