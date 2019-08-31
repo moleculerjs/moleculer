@@ -3,10 +3,11 @@
 const ServiceBroker = require("../src/service-broker");
 const { extend } = require("../src/logger");
 const winston = require("winston");
+const { MoleculerClientError } = require("../src/errors");
 
 const broker = new ServiceBroker({
 	logger: [
-		/*{
+		{
 			type: "Console",
 			options: {
 				//level: "error",
@@ -15,7 +16,16 @@ const broker = new ServiceBroker({
 				moduleColors: true,
 				//autoPadding: true
 			}
-		},*/
+		},
+		{
+			type: "File",
+			options: {
+				folder: "d:/logs",
+				filename: "moleculer-{date}.log",
+				format: "{timestamp} {level} {nodeID}/{mod}: {msg}"
+			}
+
+		},
 		/*{
 			type: "Pino",
 			options: {
@@ -52,7 +62,7 @@ const broker = new ServiceBroker({
 
 			}
 		},*/
-		{
+		/*{
 			type: "Log4js",
 			options: {
 				log4js: {
@@ -64,10 +74,10 @@ const broker = new ServiceBroker({
 					}
 				}
 			}
-		}
+		}*/
 	],
 	logLevel: {
-		"MY.**": "warn",
+		"MY.**": "trace",
 		"TRANS*": "warn",
 		"*.GREETER": "debug",
 		"**": "debug",
@@ -84,6 +94,13 @@ const schema = {
 	},
 	started() {
 		this.logger.info("Service started!");
+		this.timer = setInterval(() => {
+			this.logger.info("Timer...");
+		}, 1000);
+	},
+
+	stopped() {
+		clearInterval(this.timer);
 	}
 };
 
@@ -106,7 +123,7 @@ myLogger.trace("Trace test");
 myLogger.debug("Debug test");
 myLogger.info("Info test");
 myLogger.warn("Warn test");
-myLogger.error("Error test");
+myLogger.error("Error test", new MoleculerClientError("Something happened", 404));
 
 myLogger.info("Object test - after", { a: 5, b: { c: "John" } });
 myLogger.info({ a: 5, b: { c: "John" } }, "Object test - before");
