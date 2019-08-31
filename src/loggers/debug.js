@@ -27,9 +27,7 @@ class DebugLogger extends BaseLogger {
 	constructor(opts) {
 		super(opts);
 
-		this.opts = _.defaultsDeep(this.opts, {
-			createLogger: null
-		});
+		this.opts = _.defaultsDeep(this.opts, {});
 	}
 
 	/**

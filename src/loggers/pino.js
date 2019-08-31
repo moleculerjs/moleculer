@@ -33,9 +33,7 @@ class PinoLogger extends BaseLogger {
 				options: null,
 				// http://getpino.io/#/docs/api?id=destination-sonicboom-writablestream-string
 				destination: null,
-			},
-
-			createLogger: null
+			}
 		});
 	}
 

@@ -169,6 +169,15 @@ class ServiceBroker {
 			// Instance ID
 			this.instanceID = utils.generateToken();
 
+			// Internal maps
+			this.services = [];
+
+			// Internal event bus
+			this.localBus = new EventEmitter2({
+				wildcard: true,
+				maxListeners: 100
+			});
+
 			// Log Factory
 			this.logFactory = new LogFactory(this);
 			this.logFactory.init(this.options.logger);
@@ -176,18 +185,9 @@ class ServiceBroker {
 			// Logger
 			this.logger = this.getLogger("broker");
 
-			// Internal maps
-			this.services = [];
-
 			this.logger.info(`Moleculer v${this.MOLECULER_VERSION} is starting...`);
 			this.logger.info(`Namespace: ${this.namespace || "<not defined>"}`);
 			this.logger.info(`Node ID: ${this.nodeID}`);
-
-			// Internal event bus
-			this.localBus = new EventEmitter2({
-				wildcard: true,
-				maxListeners: 100
-			});
 
 			// Async storage for Contexts
 			this.scope = new AsyncStorage(this);

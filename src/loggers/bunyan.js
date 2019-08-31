@@ -30,8 +30,7 @@ class BunyanLogger extends BaseLogger {
 		this.opts = _.defaultsDeep(this.opts, {
 			bunyan: {
 				name: "moleculer"
-			},
-			createLogger: null
+			}
 		});
 	}
 

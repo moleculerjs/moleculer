@@ -30,8 +30,7 @@ class WinstonLogger extends BaseLogger {
 		this.opts = _.defaultsDeep(this.opts, {
 			winston: {
 				level: "silly",
-			},
-			createLogger: null
+			}
 		});
 	}
 

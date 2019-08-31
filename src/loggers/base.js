@@ -30,6 +30,7 @@ class BaseLogger {
 
 		this.opts = _.defaultsDeep(opts, {
 			level: "info",
+			createLogger: null
 		});
 
 	}

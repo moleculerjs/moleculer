@@ -6,7 +6,7 @@ const winston = require("winston");
 
 const broker = new ServiceBroker({
 	logger: [
-		{
+		/*{
 			type: "Console",
 			options: {
 				//level: "error",
@@ -15,7 +15,7 @@ const broker = new ServiceBroker({
 				moduleColors: true,
 				//autoPadding: true
 			}
-		},
+		},*/
 		/*{
 			type: "Pino",
 			options: {
@@ -51,10 +51,23 @@ const broker = new ServiceBroker({
 			options: {
 
 			}
-		}*/
+		},*/
+		{
+			type: "Log4js",
+			options: {
+				log4js: {
+					appenders: {
+						app: { type: "file", filename: "d:/log4js.log" }
+					},
+					categories: {
+						default: { appenders: [ "app" ], level: "debug" }
+					}
+				}
+			}
+		}
 	],
 	logLevel: {
-		//"MY.**": false,
+		"MY.**": "warn",
 		"TRANS*": "warn",
 		"*.GREETER": "debug",
 		"**": "debug",
@@ -100,3 +113,4 @@ myLogger.info({ a: 5, b: { c: "John" } }, "Object test - before");
 
 
 broker.start();
+broker.repl();
