@@ -5,7 +5,7 @@ const { extend } = require("../src/logger");
 
 const broker = new ServiceBroker({
 	logger: [
-		{
+		/*{
 			type: "Console",
 			options: {
 				//level: "error",
@@ -13,14 +13,22 @@ const broker = new ServiceBroker({
 				//formatter: "simple",
 				moduleColors: true
 			}
-		},
-		{
+		},*/
+		/*{
 			type: "Pino",
 			options: {
 				options: {
 					base: null
 				}
 				//destination: "d:/pino.log"
+			}
+		},*/
+		{
+			type: "Bunyan",
+			options: {
+				bunyan: {
+					name: "my-app"
+				}
 			}
 		}
 	],

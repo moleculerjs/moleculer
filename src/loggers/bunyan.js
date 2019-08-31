@@ -27,7 +27,41 @@ class BunyanLogger extends BaseLogger {
 	constructor(opts) {
 		super(opts);
 
-		this.opts = _.defaultsDeep(this.opts, {});
+		this.opts = _.defaultsDeep(this.opts, {
+			bunyan: {
+				name: "moleculer"
+			},
+			createLogger: null
+		});
+	}
+	/**
+	 * Initialize logger.
+	 *
+	 * @param {LogFactory} logFactory
+	 */
+	init(logFactory) {
+		super.init(logFactory);
+
+		try {
+			this.bunyan = require("bunyan").createLogger(this.opts.bunyan);
+		} catch(err) {
+			/* istanbul ignore next */
+			this.broker.fatal("The 'bunyan' package is missing! Please install it with 'npm install bunyan --save' command!", err, true);
+		}
+	}
+
+	/**
+	 *
+	 * @param {object} bindings
+	 */
+	getLogHandler(bindings) {
+		let level = this.getLogLevel(bindings ? bindings.mod : null);
+		if (!level)
+			level = "silent";
+
+		const logger = _.isFunction(this.opts.createLogger) ? this.opts.createLogger(level, bindings) : this.bunyan.child({ level, ...bindings });
+
+		return (type, args) => logger[type](...args);
 	}
 
 }
