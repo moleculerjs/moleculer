@@ -11,9 +11,9 @@ const broker = new ServiceBroker({
 			options: {
 				//level: "error",
 				//formatter: (type, args, bindings) => [].concat(args, bindings)
-				//formatter: "simple",
+				//formatter: "short",
 				moduleColors: true,
-				autoPadding: true
+				//autoPadding: true
 			}
 		},
 		/*{
