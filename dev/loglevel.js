@@ -2,43 +2,64 @@
 
 const ServiceBroker = require("../src/service-broker");
 const { extend } = require("../src/logger");
+const winston = require("winston");
 
 const broker = new ServiceBroker({
 	logger: [
-		/*{
+		{
 			type: "Console",
 			options: {
 				//level: "error",
 				//formatter: (type, args, bindings) => [].concat(args, bindings)
 				//formatter: "simple",
-				moduleColors: true
+				moduleColors: true,
+				autoPadding: true
 			}
-		},*/
+		},
 		/*{
 			type: "Pino",
 			options: {
-				options: {
-					base: null
+				pino: {
+					options: {
+						base: null
+					},
+					//destination: "d:/pino.log"
 				}
-				//destination: "d:/pino.log"
 			}
 		},*/
-		{
+		/*{
 			type: "Bunyan",
 			options: {
 				bunyan: {
 					name: "my-app"
 				}
 			}
-		}
+		},*/
+		/*{
+			type: "Winston",
+			options: {
+				winston: {
+					transports: [
+						new winston.transports.Console(),
+						new winston.transports.File({ filename: "d:/winston.log" })
+					]
+				}
+			}
+		},*/
+		/*{
+			type: "Debug",
+			options: {
+
+			}
+		}*/
 	],
-	/*logLevel: {
-		"MY.**": false,
+	logLevel: {
+		//"MY.**": false,
 		"TRANS*": "warn",
 		"*.GREETER": "debug",
 		"**": "debug",
-	},*/
-	logLevel: "info",
+	},
+	//logLevel: "info",
 	//logFormatter: "short",
 	transporter: "NATS",
 	cacher: "Memory"

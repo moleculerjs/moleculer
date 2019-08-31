@@ -103,6 +103,8 @@ class LogFactory {
 			logHandlers.forEach(fn => fn(type, args));
 		};*/
 
+		logger.appenders = appenders;
+
 
 		this.cache.set(this.getBindingsKey(bindings), logger);
 

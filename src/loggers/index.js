@@ -16,6 +16,7 @@ const Loggers = {
 	Console: require("./console"),
 	Debug: require("./debug"),
 	File: require("./file"),
+	Log4js: require("./log4js"),
 	Pino: require("./pino"),
 	Winston: require("./winston"),
 

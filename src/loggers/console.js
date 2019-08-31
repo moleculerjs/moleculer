@@ -46,7 +46,8 @@ class ConsoleLogger extends BaseLogger {
 			colors: true,
 			moduleColors: false,
 			formatter: null,
-			objectPrinter: null
+			objectPrinter: null,
+			autoPadding: false
 		});
 	}
 
@@ -65,18 +66,30 @@ class ConsoleLogger extends BaseLogger {
 		}, {});
 
 		if (this.opts.colors && this.opts.moduleColors === true) {
-			this.opts.moduleColors = ["cyan", "yellow", "green", "magenta", "red", "blue", "white", "grey",
-				"bold.cyan", "bold.yellow", "bold.green", "bold.magenta", "bold.red", "bold.blue", "bold.white", "bold.grey"];
+			this.opts.moduleColors = ["cyan", "yellow", "green", "magenta", "red", "blue", "grey", /*"white,"*/
+				"bold.cyan", "bold.yellow", "bold.green", "bold.magenta", "bold.red", "bold.blue", "bold.grey"];
 		}
 		this.colorCnt = 0;
 	}
 
 	/**
-	 *
+	 * Get a color for the module name.
 	 */
-	getNextColor() {
-		if (this.opts.colors && Array.isArray(this.opts.moduleColors))
-			return this.opts.moduleColors[this.colorCnt++ % this.opts.moduleColors.length];
+	getNextColor(mod) {
+		if (this.opts.colors && Array.isArray(this.opts.moduleColors)) {
+			// Credits: "visionmedia/debug" https://github.com/visionmedia/debug/blob/master/src/common.js#L45
+			let hash = 0;
+
+			for (let i = 0; i < mod.length; i++) {
+				hash = ((hash << 5) - hash) + mod.charCodeAt(i);
+				hash |= 0; // Convert to 32bit integer
+			}
+
+			return this.opts.moduleColors[Math.abs(hash) % this.opts.moduleColors.length];
+
+
+			//return this.opts.moduleColors[this.colorCnt++ % this.opts.moduleColors.length];
+		}
 
 		return "grey";
 	}
@@ -90,9 +103,8 @@ class ConsoleLogger extends BaseLogger {
 		if (_.isFunction(formatter))
 			return (type, args) => formatter(type, args, bindings);
 
-		const c = this.getNextColor();
-
 		const mod = (bindings && bindings.mod) ? bindings.mod.toUpperCase() : "";
+		const c = this.getNextColor(mod);
 		const modColorName = c.split(".").reduce((a,b) => a[b] || a()[b], kleur)(mod);
 		const moduleColorName = bindings ? kleur.grey(bindings.nodeID + "/") + modColorName : "";
 
@@ -121,10 +133,12 @@ class ConsoleLogger extends BaseLogger {
 	 * @param {object} bindings
 	 */
 	getLogHandler(bindings) {
-		const formatter = this.getFormatter(bindings);
-
 		const level = this.getLogLevel(bindings ? bindings.mod : null);
-		const levelIdx = level ? BaseLogger.LEVELS.indexOf(level) : -1;
+		if (!level)
+			return null;
+
+		const levelIdx = BaseLogger.LEVELS.indexOf(level);
+		const formatter = this.getFormatter(bindings);
 
 		return (type, args) => {
 			const typeIdx = BaseLogger.LEVELS.indexOf(type);

@@ -34,6 +34,7 @@ class BunyanLogger extends BaseLogger {
 			createLogger: null
 		});
 	}
+
 	/**
 	 * Initialize logger.
 	 *
@@ -57,7 +58,7 @@ class BunyanLogger extends BaseLogger {
 	getLogHandler(bindings) {
 		let level = this.getLogLevel(bindings ? bindings.mod : null);
 		if (!level)
-			level = "silent";
+			return null;
 
 		const logger = _.isFunction(this.opts.createLogger) ? this.opts.createLogger(level, bindings) : this.bunyan.child({ level, ...bindings });
 
