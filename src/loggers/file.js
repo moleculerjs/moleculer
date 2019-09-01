@@ -32,7 +32,7 @@ class FileLogger extends BaseLogger {
 		super(opts);
 
 		this.opts = _.defaultsDeep(this.opts, {
-			folder: "./logs/{nodeID}",
+			folder: "./logs",
 			filename: "moleculer-{date}.log",
 			format: "json",
 			eol: os.EOL,
@@ -98,8 +98,12 @@ class FileLogger extends BaseLogger {
 				return p;
 			});
 		};
+		const levelIdx = BaseLogger.LEVELS.indexOf(level);
 
 		return (type, args) => {
+			const typeIdx = BaseLogger.LEVELS.indexOf(type);
+			if (typeIdx > levelIdx) return;
+
 			this.queue.push({ ts: Date.now(), level: type, msg: printArgs(args).join(" "), ...bindings });
 			if (!this.opts.interval) this.flush();
 		};
@@ -109,27 +113,41 @@ class FileLogger extends BaseLogger {
 		if (this.queue.length > 0) {
 			// Check filename
 			const filename = this.getFilename();
-			if (filename != this.currentFilename) {
+			/*if (filename != this.currentFilename) {
 				this.changeFile(filename);
-			}
+			}*/
 
 			const rows = Array.from(this.queue);
 			this.queue.length = 0;
 
+			/*
 			rows.forEach(row => this.writeRow(row));
+			*/
+
+			const buf = rows.map(row => this.renderRow(row)).join(this.opts.eol) + this.opts.eol;
+
+			fs.appendFile(filename, buf, (err) => {
+				if (err) {
+					// eslint-disable-next-line no-console
+					console.debug("Unable to write log file:", filename);
+				}
+			});
 		}
 	}
 
-	writeRow(row) {
+	renderRow(row) {
 		if (this.opts.format == "json") {
-			this.fs.write(JSON.stringify(row) + this.opts.eol);
+			return JSON.stringify(row);
 		} else {
-			const str = this.render(this.opts.format, {
+			return this.render(this.opts.format, {
 				...row,
 				timestamp: new Date(row.ts).toISOString()
 			});
-			this.fs.write(str + this.opts.eol);
 		}
+	}
+
+	/*writeRow(row) {
+		this.fs.write(this.renderRow(row) + this.opts.eol);
 	}
 
 	changeFile(newFilename) {
@@ -145,7 +163,7 @@ class FileLogger extends BaseLogger {
 		this.fs.on("close", () => console.warn("File closed"));
 		this.fs.on("finish", () => console.warn("File finished"));
 	}
-
+	*/
 }
 
 module.exports = FileLogger;

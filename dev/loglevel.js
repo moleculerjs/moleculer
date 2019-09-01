@@ -26,6 +26,16 @@ const broker = new ServiceBroker({
 			}
 
 		},
+		{
+			type: "File",
+			options: {
+				level: "error",
+				folder: "d:/logs",
+				filename: "moleculer-errors-{date}.log",
+				format: "{timestamp} {level} {nodeID}/{mod}: {msg}"
+			}
+
+		},
 		/*{
 			type: "Pino",
 			options: {
@@ -88,15 +98,18 @@ const broker = new ServiceBroker({
 	cacher: "Memory"
 });
 
+let c = 0;
 const schema = {
 	created() {
 		this.logger.debug("Service created!");
 	},
 	started() {
 		this.logger.info("Service started!");
-		this.timer = setInterval(() => {
-			this.logger.info("Timer...");
-		}, 1000);
+		/*this.timer = setInterval(() => {
+			this.logger.info(`Timer ${c++}...`);
+			this.logger.info(`Timer ${c++}...`);
+			this.logger.info(`Timer ${c++}...`);
+		}, 1000);*/
 	},
 
 	stopped() {
