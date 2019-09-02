@@ -57,7 +57,7 @@ class Log4jsLogger extends BaseLogger {
 	 * @param {object} bindings
 	 */
 	getLogHandler(bindings) {
-		let level = this.getLogLevel(bindings ? bindings.mod : null);
+		let level = bindings ? this.getLogLevel(bindings.mod) : null;
 		if (!level)
 			return null;
 
