@@ -49,7 +49,7 @@ class PinoLogger extends BaseLogger {
 			const Pino = require("pino");
 			this.pino = Pino(
 				this.opts.pino && this.opts.pino.options ? this.opts.pino.options : undefined,
-				this.opts.pino && this.opts.pino.destination ? this.opts.pino.destination : null);
+				this.opts.pino && this.opts.pino.destination ? this.opts.pino.destination : undefined);
 		} catch(err) {
 			/* istanbul ignore next */
 			this.broker.fatal("The 'pino' package is missing! Please install it with 'npm install pino --save' command!", err, true);
