@@ -1,53 +1,40 @@
 "use strict";
 
-jest.mock("pino");
+jest.mock("log4js");
 
-const Pino = require("pino");
+const Log4js = require("log4js");
 
-const childFakeLogger = { warn: jest.fn() };
-const fakeLogger = {
-	child: jest.fn(() => childFakeLogger)
-};
-Pino.mockImplementation(() => fakeLogger);
-
-const PinoLogger = require("../../../src/loggers/pino");
+const Log4jsLogger = require("../../../src/loggers/log4js");
 const ServiceBroker = require("../../../src/service-broker");
 const LoggerFactory = require("../../../src/logger-factory");
 
+const childFakeLogger = { warn: jest.fn() };
+Log4js.getLogger = jest.fn(() => childFakeLogger);
+
 const broker = new ServiceBroker({ logger: false });
 
-describe("Test Pino logger class", () => {
+describe("Test Log4js logger class", () => {
 
 	describe("Test Constructor", () => {
 
 		it("should create with default options", () => {
-			const logger = new PinoLogger();
+			const logger = new Log4jsLogger();
 
 			expect(logger.opts).toEqual({
-				pino: {
-					options: null,
-					destination: null
-				},
 				createLogger: null,
 				level: "info"
 			});
 		});
 
 		it("should create with custom options", () => {
-			const logger = new PinoLogger({
-				pino: {
-					options: { a: 5 },
-					destination: "/logs"
-				},
+			const logger = new Log4jsLogger({
+				a: 5,
 				createLogger: jest.fn(),
 				level: "debug"
 			});
 
 			expect(logger.opts).toEqual({
-				pino: {
-					options: { a: 5 },
-					destination: "/logs"
-				},
+				a: 5,
 				createLogger: expect.any(Function),
 				level: "debug"
 			});
@@ -57,33 +44,38 @@ describe("Test Pino logger class", () => {
 
 	describe("Test init method", () => {
 		const loggerFactory = new LoggerFactory(broker);
+		let stopCb;
+		broker.localBus.on = jest.fn((name, fn) => stopCb = fn);
 
-		it("should create a default logger", () => {
-			const logger = new PinoLogger();
+		it("should create a default logger without config", () => {
+			const logger = new Log4jsLogger();
 
 			logger.init(loggerFactory);
 
-			expect(logger.pino).toBe(fakeLogger);
+			expect(logger.log4js).toBe(Log4js);
 
-			expect(Pino).toHaveBeenCalledTimes(1);
-			expect(Pino).toHaveBeenCalledWith(undefined, undefined);
+			expect(Log4js.configure).toHaveBeenCalledTimes(0);
+			expect(broker.localBus.on).toHaveBeenCalledTimes(1);
+			expect(broker.localBus.on).toHaveBeenCalledWith("broker.stopped", expect.any(Function));
+
+			stopCb();
+			expect(Log4js.shutdown).toHaveBeenCalledTimes(1);
+			expect(Log4js.shutdown).toHaveBeenCalledWith();
 		});
 
-		it("should create a default logger with custom options", () => {
-			Pino.mockClear();
-			const logger = new PinoLogger({
-				pino: {
-					options: { a: 5 },
-					destination: "/logs"
-				},
+		it("should create a default logger with config", () => {
+			const logger = new Log4jsLogger({
+				log4js: {
+					a: 5
+				}
 			});
 
 			logger.init(loggerFactory);
 
-			expect(logger.pino).toBe(fakeLogger);
+			expect(logger.log4js).toBe(Log4js);
 
-			expect(Pino).toHaveBeenCalledTimes(1);
-			expect(Pino).toHaveBeenCalledWith({ a: 5 }, "/logs");
+			expect(Log4js.configure).toHaveBeenCalledTimes(1);
+			expect(Log4js.configure).toHaveBeenCalledWith({ a: 5 });
 		});
 
 	});
@@ -92,17 +84,13 @@ describe("Test Pino logger class", () => {
 		const loggerFactory = new LoggerFactory(broker);
 
 		it("should create a child logger", () => {
-			const logger = new PinoLogger();
+			const logger = new Log4jsLogger();
 			logger.init(loggerFactory);
 
 			const logHandler = logger.getLogHandler({ mod: "my-service", nodeID: "node-1" });
 			expect(logHandler).toBeInstanceOf(Function);
-			expect(logger.pino.child).toHaveBeenCalledTimes(1);
-			expect(logger.pino.child).toHaveBeenCalledWith({
-				level: "info",
-				mod: "my-service",
-				nodeID: "node-1"
-			});
+			expect(logger.log4js.getLogger).toHaveBeenCalledTimes(1);
+			expect(logger.log4js.getLogger).toHaveBeenCalledWith("MY-SERVICE");
 
 			logHandler("warn", ["message", { a: 5 }]);
 			expect(childFakeLogger.warn).toHaveBeenCalledTimes(1);
@@ -110,18 +98,18 @@ describe("Test Pino logger class", () => {
 		});
 
 		it("should call the createLogger function", () => {
-			fakeLogger.child.mockClear();
+			Log4js.getLogger.mockClear();
 			childFakeLogger.warn.mockClear();
 
 			const mockFn = jest.fn(() => childFakeLogger);
-			const logger = new PinoLogger({
+			const logger = new Log4jsLogger({
 				createLogger: mockFn
 			});
 			logger.init(loggerFactory);
 
 			const logHandler = logger.getLogHandler({ mod: "my-service", nodeID: "node-1" });
 			expect(logHandler).toBeInstanceOf(Function);
-			expect(logger.pino.child).toHaveBeenCalledTimes(0);
+			expect(logger.log4js.getLogger).toHaveBeenCalledTimes(0);
 			expect(mockFn).toHaveBeenCalledTimes(1);
 			expect(mockFn).toHaveBeenCalledWith("info", {
 				mod: "my-service",
@@ -134,10 +122,10 @@ describe("Test Pino logger class", () => {
 		});
 
 		it("should not create child logger if level is null", () => {
-			fakeLogger.child.mockClear();
+			Log4js.getLogger.mockClear();
 			childFakeLogger.warn.mockClear();
 
-			const logger = new PinoLogger();
+			const logger = new Log4jsLogger();
 			logger.init(loggerFactory);
 
 			logger.getLogLevel = jest.fn();
@@ -149,10 +137,10 @@ describe("Test Pino logger class", () => {
 		});
 
 		it("should not create child logger if bindings is null", () => {
-			fakeLogger.child.mockClear();
+			Log4js.getLogger.mockClear();
 			childFakeLogger.warn.mockClear();
 
-			const logger = new PinoLogger();
+			const logger = new Log4jsLogger();
 			logger.init(loggerFactory);
 
 			logger.getLogLevel = jest.fn();
