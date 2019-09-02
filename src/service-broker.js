@@ -16,7 +16,7 @@ const Transit 				= require("./transit");
 const Registry 				= require("./registry");
 const E 					= require("./errors");
 const utils 				= require("./utils");
-const LogFactory			= require("./logger");
+const LoggerFactory			= require("./logger-factory");
 const Validator 			= require("./validator");
 const AsyncStorage 			= require("./async-storage");
 
@@ -37,10 +37,8 @@ const defaultOptions = {
 	namespace: "",
 	nodeID: null,
 
-	logger: null,
+	logger: true,
 	logLevel: null,
-	logFormatter: "default",
-	logObjectPrinter: null,
 
 	transporter: null, //"TCP",
 
@@ -179,8 +177,8 @@ class ServiceBroker {
 			});
 
 			// Log Factory
-			this.logFactory = new LogFactory(this);
-			this.logFactory.init(this.options.logger);
+			this.loggerFactory = new LoggerFactory(this);
+			this.loggerFactory.init(this.options.logger);
 
 			// Logger
 			this.logger = this.getLogger("broker");
@@ -629,16 +627,13 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	getLogger(mod, props) {
-		if (_.isString(props))
-			props = { mod: props };
-
 		let bindings = Object.assign({
 			nodeID: this.nodeID,
 			ns: this.namespace,
 			mod
 		}, props);
 
-		return this.logFactory.getLogger(bindings);
+		return this.loggerFactory.getLogger(bindings);
 	}
 
 	/**

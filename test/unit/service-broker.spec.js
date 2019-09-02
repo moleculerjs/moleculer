@@ -22,6 +22,7 @@ const Promise = require("bluebird");
 const lolex = require("lolex");
 const ServiceBroker = require("../../src/service-broker");
 const Service = require("../../src/service");
+const LoggerFactory = require("../../src/logger-factory");
 const Registry = require("../../src/registry");
 const Context = require("../../src/context");
 const Transit = require("../../src/transit");
@@ -35,7 +36,7 @@ const { MoleculerError, ServiceNotFoundError, ServiceNotAvailableError } = requi
 describe("Test ServiceBroker constructor", () => {
 
 	it("should set default options", () => {
-		console.info = jest.fn();
+		console.log = jest.fn();
 
 		let broker = new ServiceBroker();
 		expect(broker).toBeDefined();
@@ -51,6 +52,7 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.nodeID).toBe("node-1234");
 		expect(broker.instanceID).toBe("1");
 
+		expect(broker.loggerFactory).toBeInstanceOf(LoggerFactory);
 		expect(broker.logger).toBeDefined();
 
 		expect(broker.metadata).toEqual({});
@@ -88,8 +90,13 @@ describe("Test ServiceBroker constructor", () => {
 			nodeID: "server-12",
 			transporter: null,
 			heartbeatTimeout: 20,
-			logLevel: "debug",
-			logFormatter: "simple",
+			logger: {
+				type: "Console",
+				options: {
+					level: "error",
+					formatter: "simple"
+				}
+			},
 			retryPolicy: {
 				enabled: true,
 				retries: 3,
@@ -140,10 +147,14 @@ describe("Test ServiceBroker constructor", () => {
 		expect(broker.options).toEqual({
 			namespace: "test",
 			nodeID: "server-12",
-			logger: null,
-			logLevel: "debug",
-			logFormatter: "simple",
-			logObjectPrinter: null,
+			logger: {
+				type: "Console",
+				options: {
+					level: "error",
+					formatter: "simple"
+				}
+			},
+			logLevel: null,
 			cacher: null,
 			serializer: null,
 			transporter: null,
@@ -283,10 +294,10 @@ describe("Test ServiceBroker constructor", () => {
 	});
 
 	it("should not set validator", () => {
-		let broker = new ServiceBroker({ validator: false });
+		let broker = new ServiceBroker({ logger: false, validator: false });
 		expect(broker.validator).toBeUndefined();
 
-		broker = new ServiceBroker({ validator: null });
+		broker = new ServiceBroker({ logger: false, validator: null });
 		expect(broker.validator).toBeUndefined();
 	});
 
@@ -877,6 +888,38 @@ describe("Test isTracingEnabled", () => {
 });
 
 describe("Test broker.getLogger", () => {
+	let broker = new ServiceBroker({ namespace: "test-ns", logger: false });
+
+	it("should call loggerFactory with module name", () => {
+		broker.loggerFactory.getLogger = jest.fn();
+
+		broker.getLogger("svc-1");
+
+		expect(broker.loggerFactory.getLogger).toHaveBeenCalledTimes(1);
+		expect(broker.loggerFactory.getLogger).toHaveBeenCalledWith({
+			mod: "svc-1",
+			nodeID: "node-1234",
+			ns: "test-ns"
+		});
+	});
+
+	it("should call loggerFactory with props", () => {
+		broker.loggerFactory.getLogger = jest.fn();
+
+		broker.getLogger("svc-2", { ver: 2, other: "a" });
+
+		expect(broker.loggerFactory.getLogger).toHaveBeenCalledTimes(1);
+		expect(broker.loggerFactory.getLogger).toHaveBeenCalledWith({
+			mod: "svc-2",
+			nodeID: "node-1234",
+			ns: "test-ns",
+			ver: 2,
+			other: "a"
+		});
+	});
+});
+
+describe.skip("Test broker.getLogger", () => {
 	let clock;
 	beforeAll(() => clock = lolex.install());
 	afterAll(() => clock.uninstall());

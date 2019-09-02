@@ -1,7 +1,7 @@
 "use strict";
 
 const ServiceBroker = require("../src/service-broker");
-const { extend } = require("../src/logger");
+const winston = require("winston");
 const kleur = require("kleur");
 
 function logging(module) {
@@ -34,12 +34,14 @@ function createBroker(options) {
 	console.log(kleur.yellow().bold("\n--- CONSOLE ---"));
 	const broker = createBroker({
 		nodeID: "console",
-		logger: console,
+		logger: {
+			type: "Console",
+			options: {
+				moduleColors: true
+			}
+		},
 		logLevel: "debug",
-		/*logFormatter(level, args, meta) {
-			return level.toUpperCase() + " " + meta.nodeID + ": " + args.join(" ");
-		},*/
-		transporter: "NATS",
+		//transporter: "NATS",
 		cacher: "Memory"
 	});
 	logging(broker);
@@ -48,11 +50,13 @@ function createBroker(options) {
 
 (function() {
 	console.log(kleur.yellow().bold("\n--- PINO ---"));
-	const pino = require("pino")({ level: "debug" });
 	const broker = createBroker({
 		nodeID: "pino",
-		logger: bindings => pino.child(bindings),
-		transporter: "NATS",
+		logger: {
+			type: "Pino",
+		},
+		logLevel: "debug",
+		//transporter: "NATS",
 		cacher: "Memory"
 	});
 	logging(broker);
@@ -65,8 +69,15 @@ function createBroker(options) {
 	const logger = bunyan.createLogger({ name: "moleculer", level: "debug" });
 	const broker = createBroker({
 		nodeID: "bunyan",
-		logger: bindings => logger.child(bindings),
-		transporter: "NATS",
+		logger: {
+			type: "Bunyan",
+			options: {
+				bunyan: {
+					name: "my-app"
+				}
+			}
+		},
+		// transporter: "NATS",
 		cacher: "Memory"
 	});
 
@@ -79,43 +90,26 @@ function createBroker(options) {
 	const winston = require("winston");
 	const broker = createBroker({
 		nodeID: "winston",
-		logger: bindings => extend(winston.createLogger({
-			format: winston.format.combine(
-				winston.format.label({ label: bindings }),
-				winston.format.timestamp(),
-				winston.format.json(),
-			),
-			transports: [
-				new winston.transports.Console()
-			]
-		})),
-		transporter: "NATS",
-		cacher: "Memory"
-	});
-	logging(broker);
-	broker.start();
-})();
-/*
-(function() {
-	console.log(kleur.yellow().bold("\n--- WINSTON CONTEXT ---"));
-	const WinstonContext = require("winston-context");
-	const winston = require("winston");
-	const broker = createBroker({
-		logger: bindings => extend(new WinstonContext(winston.createLogger({
-			transports: [
-				new winston.transports.Console({
-					timestamp: true,
-					colorize: true,
-					prettyPrint: true
-				})
-			]
-		}), "", bindings)),
-		transporter: "NATS",
+		logger: {
+			type: "Winston",
+			options: {
+				winston: {
+					format: winston.format.combine(
+						//winston.format.label({ label: bindings }),
+						winston.format.timestamp(),
+						winston.format.json(),
+					),
+					transports: [
+						new winston.transports.Console()
+					]
+				}
+			}
+		},
+		// transporter: "NATS",
 		cacher: "Memory"
 	});
 	logging(broker);
 	broker.start();
 })();
 
-*/
 console.log(kleur.yellow().bold("-----------------\n"));

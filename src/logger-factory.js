@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -15,12 +15,12 @@ const Loggers = require("./loggers");
 /**
  * Log factory class.
  *
- * @class LogFactory
+ * @class LoggerFactory
  */
-class LogFactory {
+class LoggerFactory {
 
 	/**
-	 * Constructor of LogFactory
+	 * Constructor of LoggerFactory
 	 */
 	constructor(broker) {
 		this.broker = broker;
@@ -51,10 +51,10 @@ class LogFactory {
 
 		} else if (_.isPlainObject(this.opts) || _.isString(this.opts)) {
 			// One logger
-			this.appenders = [Loggers.resolve(_.defaultsDeep(this.opts, { options: { level: globalLogLevel } }))];
+			this.appenders = [Loggers.resolve(_.defaultsDeep({}, this.opts, { options: { level: globalLogLevel } }))];
 		} else if (Array.isArray(this.opts)) {
 			// Multiple loggers
-			this.appenders = this.opts.map(o => Loggers.resolve(_.defaultsDeep(o, { options: { level: globalLogLevel } })));
+			this.appenders = this.opts.map(o => Loggers.resolve(_.defaultsDeep({}, o, { options: { level: globalLogLevel } })));
 		} else {
 			// Invalid options
 			throw new BrokerOptionsError("Invalid logger configuration.", { opts: this.opts });
@@ -125,4 +125,4 @@ class LogFactory {
 
 }
 
-module.exports = LogFactory;
+module.exports = LoggerFactory;

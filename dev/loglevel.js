@@ -1,7 +1,6 @@
 "use strict";
 
 const ServiceBroker = require("../src/service-broker");
-const { extend } = require("../src/logger");
 const winston = require("winston");
 const { MoleculerClientError } = require("../src/errors");
 
