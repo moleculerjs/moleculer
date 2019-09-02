@@ -63,6 +63,7 @@ class BaseLogger {
 			}
 		}
 
+		/* istanbul ignore next */
 		return null;
 	}
 
