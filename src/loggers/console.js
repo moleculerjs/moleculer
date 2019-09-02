@@ -53,8 +53,8 @@ class ConsoleLogger extends BaseLogger {
 		this.maxPrefixLength = 0;
 	}
 
-	init(logFactory) {
-		super.init(logFactory);
+	init(loggerFactory) {
+		super.init(loggerFactory);
 
 		if (!this.opts.colors)
 			kleur.enabled = false;

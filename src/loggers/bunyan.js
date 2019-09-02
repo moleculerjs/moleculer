@@ -37,10 +37,10 @@ class BunyanLogger extends BaseLogger {
 	/**
 	 * Initialize logger.
 	 *
-	 * @param {LogFactory} logFactory
+	 * @param {LoggerFactory} loggerFactory
 	 */
-	init(logFactory) {
-		super.init(logFactory);
+	init(loggerFactory) {
+		super.init(loggerFactory);
 
 		try {
 			this.bunyan = require("bunyan").createLogger(this.opts.bunyan);

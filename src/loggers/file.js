@@ -47,10 +47,10 @@ class FileLogger extends BaseLogger {
 	/**
 	 * Initialize logger.
 	 *
-	 * @param {LogFactory} logFactory
+	 * @param {LoggerFactory} loggerFactory
 	 */
-	init(logFactory) {
-		super.init(logFactory);
+	init(loggerFactory) {
+		super.init(loggerFactory);
 
 		this.logFolder = path.resolve(this.render(this.opts.folder, {
 			nodeID: this.broker.nodeID,

@@ -37,10 +37,10 @@ class WinstonLogger extends BaseLogger {
 	/**
 	 * Initialize logger.
 	 *
-	 * @param {LogFactory} logFactory
+	 * @param {LoggerFactory} loggerFactory
 	 */
-	init(logFactory) {
-		super.init(logFactory);
+	init(loggerFactory) {
+		super.init(loggerFactory);
 
 		try {
 			this.winston = require("winston").createLogger(this.opts.winston);

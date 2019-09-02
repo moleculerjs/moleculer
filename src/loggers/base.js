@@ -22,12 +22,9 @@ class BaseLogger {
 	 * Creates an instance of BaseLogger.
 	 *
 	 * @param {Object} opts
-	 * @param {LogFactory} logFactory
 	 * @memberof BaseLogger
 	 */
 	constructor(opts) {
-		//this.logFactory = logFactory;
-
 		this.opts = _.defaultsDeep(opts, {
 			level: "info",
 			createLogger: null
@@ -38,11 +35,11 @@ class BaseLogger {
 	/**
 	 * Initialize logger.
 	 *
-	 * @param {LogFactory} logFactory
+	 * @param {LoggerFactory} loggerFactory
 	 */
-	init(logFactory)  {
-		this.logFactory = logFactory;
-		this.broker = this.logFactory.broker;
+	init(loggerFactory)  {
+		this.loggerFactory = loggerFactory;
+		this.broker = this.loggerFactory.broker;
 	}
 
 
@@ -71,27 +68,6 @@ class BaseLogger {
 
 	getLogHandler(/*bindings*/) {
 		return null;
-	}
-
-	/**
-	 * Extend a logger class if missing common log level methods
-	 *
-	 * @param {Object} logger
-	 * @returns {Object} logger
-	 */
-	extend(logger) {
-		LEVELS.forEach(type => {
-			let method = logger[type];
-			if (!method) {
-				switch(type) {
-					case "fatal":method = logger["error"] || logger["info"]; break;
-					case "trace": method = logger["debug"] || logger["info"]; break;
-					default: method = logger["info"];
-				}
-				logger[type] = method.bind(logger);
-			}
-		});
-		return logger;
 	}
 }
 

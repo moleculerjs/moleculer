@@ -33,10 +33,10 @@ class DebugLogger extends BaseLogger {
 	/**
 	 * Initialize logger.
 	 *
-	 * @param {LogFactory} logFactory
+	 * @param {LoggerFactory} loggerFactory
 	 */
-	init(logFactory) {
-		super.init(logFactory);
+	init(loggerFactory) {
+		super.init(loggerFactory);
 
 		try {
 			this.debug = require("debug")("moleculer");
