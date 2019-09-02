@@ -7,7 +7,6 @@
 "use strict";
 
 const _ 		= require("lodash");
-//const { match }	= require("./utils");
 const { BrokerOptionsError } = require("./errors");
 const Loggers = require("./loggers");
 
@@ -49,12 +48,17 @@ class LoggerFactory {
 				}
 			})];
 
+		} else if (_.isString(this.opts)) {
+			// One logger
+			this.appenders = [Loggers.resolve({ type: this.opts, options: { level: globalLogLevel } })];
 		} else if (_.isPlainObject(this.opts) || _.isString(this.opts)) {
 			// One logger
 			this.appenders = [Loggers.resolve(_.defaultsDeep({}, this.opts, { options: { level: globalLogLevel } }))];
 		} else if (Array.isArray(this.opts)) {
 			// Multiple loggers
-			this.appenders = this.opts.map(o => Loggers.resolve(_.defaultsDeep({}, o, { options: { level: globalLogLevel } })));
+			this.appenders = this.opts
+				.map(o => _.isString(o) ? { type: o } : o)
+				.map(o => Loggers.resolve(_.defaultsDeep({}, o, { options: { level: globalLogLevel } })));
 		} else {
 			// Invalid options
 			throw new BrokerOptionsError("Invalid logger configuration.", { opts: this.opts });
@@ -118,6 +122,8 @@ class LoggerFactory {
 	 * @returns {String}
 	 */
 	getBindingsKey(bindings) {
+		if (!bindings) return "";
+
 		return ["nodeID", "ns", "mod"]
 			.map(key => bindings[key])
 			.join("|");
