@@ -34,6 +34,7 @@ describe("Test File logger class", () => {
 				folder: "./logs",
 				filename: "moleculer-{date}.log",
 				formatter: "json",
+				objectPrinter: null,
 				eol: os.EOL,
 				interval: 1 * 1000
 			});
@@ -60,6 +61,7 @@ describe("Test File logger class", () => {
 				folder: "/my-log",
 				filename: "moleculer-{ns}-{date}.json",
 				formatter: "{timestamp} {level} {nodeID}/{mod}: {msg}",
+				objectPrinter: null,
 				eol: "/",
 				interval: 5 * 1000
 			});

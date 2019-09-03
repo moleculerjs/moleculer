@@ -35,6 +35,7 @@ class FileLogger extends BaseLogger {
 			folder: "./logs",
 			filename: "moleculer-{date}.log",
 			formatter: "json",
+			objectPrinter: null,
 			eol: os.EOL,
 			interval: 1 * 1000
 		});

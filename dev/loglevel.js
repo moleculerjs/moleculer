@@ -21,7 +21,7 @@ const broker = new ServiceBroker({
 			options: {
 				folder: "d:/logs",
 				filename: "moleculer-{date}.log",
-				format: "{timestamp} {level} {nodeID}/{mod}: {msg}"
+				formatter: "{timestamp} {level} {nodeID}/{mod}: {msg}"
 			}
 
 		},
@@ -31,9 +31,8 @@ const broker = new ServiceBroker({
 				level: "error",
 				folder: "d:/logs",
 				filename: "moleculer-errors-{date}.log",
-				format: "{timestamp} {level} {nodeID}/{mod}: {msg}"
+				formatter: "json"
 			}
-
 		},*/
 		/*{
 			type: "Pino",
