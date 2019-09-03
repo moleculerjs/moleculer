@@ -1,7 +1,16 @@
 "use strict";
 
+const utils = require("../../../src/utils");
+utils.makeDirs = jest.fn();
+
 jest.mock("path");
 jest.mock("fs");
+
+const path = require("path");
+const fs = require("fs");
+
+path.join = jest.fn((...args) => args.join("/"));
+path.resolve = jest.fn((...args) => args.join("/"));
 
 const os = require("os");
 const FileLogger = require("../../../src/loggers/file");
@@ -10,7 +19,7 @@ const LoggerFactory = require("../../../src/logger-factory");
 
 const lolex = require("lolex");
 
-const broker = new ServiceBroker({ logger: false });
+const broker = new ServiceBroker({ logger: false, nodeID: "node-123", namespace: "test-ns" });
 
 describe("Test File logger class", () => {
 
@@ -57,7 +66,7 @@ describe("Test File logger class", () => {
 		});
 
 	});
-/*
+
 	describe("Test init method", () => {
 		const loggerFactory = new LoggerFactory(broker);
 
@@ -66,162 +75,138 @@ describe("Test File logger class", () => {
 
 			logger.init(loggerFactory);
 
-			expect(logger.objectPrinter).toBeInstanceOf(Function);
-			expect(logger.levelColorStr).toEqual({
-				"debug": "DEBUG",
-				"error": "ERROR",
-				"fatal": "FATAL",
-				"info": "INFO ",
-				"trace": "TRACE",
-				"warn": "WARN ",
-			});
-			expect(logger.opts.moduleColors).toBe(false);
-
+			expect(logger.logFolder).toBe("./logs");
+			expect(logger.timer).toBeDefined();
 		});
 
 		it("should init the logger with custom options", () => {
+			utils.makeDirs.mockClear();
+
+			const logger = new FileLogger({
+				folder: "/logs/{namespace}/{nodeID}",
+				interval: 0
+			});
+
+			logger.init(loggerFactory);
+
+			expect(logger.logFolder).toBe("/logs/test-ns/node-123");
+			expect(logger.timer).toBeNull();
+
+			expect(utils.makeDirs).toHaveBeenCalledTimes(1);
+			expect(utils.makeDirs).toHaveBeenCalledWith("/logs/test-ns/node-123");
+		});
+
+		it("should use custom objectPrinter", () => {
 			const objectPrinter = jest.fn();
 			const logger = new FileLogger({
-				moduleColors: true,
 				objectPrinter
 			});
 
 			logger.init(loggerFactory);
 
 			expect(logger.objectPrinter).toBe(objectPrinter);
-			expect(logger.opts.moduleColors).toEqual(["cyan", "yellow", "green", "magenta", "red", "blue", "grey", "bold.cyan", "bold.yellow", "bold.green", "bold.magenta", "bold.red", "bold.blue", "bold.grey"]);
-
 		});
 
 	});
 
-	describe("Test getNextColor method", () => {
+	describe("Test render method", () => {
 		const loggerFactory = new LoggerFactory(broker);
 
-		it("should return a default color for module name", () => {
-			const logger = new FileLogger({ moduleColors: true });
-
-			logger.init(loggerFactory);
-
-			expect(logger.getNextColor("broker")).toBe("yellow");
-			expect(logger.getNextColor("registry")).toBe("bold.cyan");
-			expect(logger.getNextColor("my-service")).toBe("bold.yellow");
-
-			expect(logger.getNextColor("broker")).toBe("yellow");
-			expect(logger.getNextColor("my-service")).toBe("bold.yellow");
-		});
-
-		it("should return the default grey color for module name if disabled", () => {
+		it("should return interpolated string", () => {
 			const logger = new FileLogger();
 
 			logger.init(loggerFactory);
 
-			expect(logger.getNextColor("broker")).toBe("grey");
-			expect(logger.getNextColor("registry")).toBe("grey");
-			expect(logger.getNextColor("my-service")).toBe("grey");
+			expect(logger.render("/logs/test")).toBe("/logs/test");
+			expect(logger.render("/logs-{namespace}/{nodeID}-{namespace}", {
+				namespace: "test-ns",
+				nodeID: "server-1"
+			})).toBe("/logs-test-ns/server-1-test-ns");
 
-			expect(logger.getNextColor("broker")).toBe("grey");
-			expect(logger.getNextColor("my-service")).toBe("grey");
+		});
+	});
+
+	describe("Test getFilename method", () => {
+		const loggerFactory = new LoggerFactory(broker);
+
+		let clock;
+
+		beforeAll(() => {
+			clock = lolex.install();
 		});
 
-		it("should return a custom color for module name", () => {
-			const logger = new FileLogger({ moduleColors: ["magenta", "green", "red", "blue"] });
+		afterAll(() => {
+			clock.uninstall();
+		});
+
+		it("should return interpolated filename", () => {
+			const logger = new FileLogger();
 
 			logger.init(loggerFactory);
 
-			expect(logger.getNextColor("broker")).toBe("blue");
-			expect(logger.getNextColor("registry")).toBe("blue");
-			expect(logger.getNextColor("my-service")).toBe("magenta");
-
-			expect(logger.getNextColor("broker")).toBe("blue");
-			expect(logger.getNextColor("my-service")).toBe("magenta");
+			expect(logger.getFilename()).toBe("./logs/moleculer-1970-01-01.log");
 		});
-
 	});
 
 	describe("Test getLogHandler method", () => {
 		const loggerFactory = new LoggerFactory(broker);
-		console.error = jest.fn();
-		console.warn = jest.fn();
-		console.log = jest.fn();
+		let clock;
+
+		beforeAll(() => {
+			clock = lolex.install();
+		});
+
+		afterAll(() => {
+			clock.uninstall();
+		});
 
 		it("should create a child logger", () => {
 			const logger = new FileLogger({ level: "trace" });
 			logger.init(loggerFactory);
-			logger.getFormatter = jest.fn(() => (type, args) => args);
+			logger.flush = jest.fn();
 
 			const logHandler = logger.getLogHandler({ mod: "my-service", nodeID: "node-1" });
 			expect(logHandler).toBeInstanceOf(Function);
-			expect(logger.getFormatter).toHaveBeenCalledTimes(1);
-			expect(logger.getFormatter).toHaveBeenCalledWith({ mod: "my-service", nodeID: "node-1" });
 
 			logHandler("fatal", ["message", { a: 5 }]);
-			expect(console.error).toHaveBeenCalledTimes(1);
-			expect(console.error).toHaveBeenCalledWith("message", { a: 5 });
-
-			console.error.mockClear();
 			logHandler("error", ["message", { a: 5 }]);
-			expect(console.error).toHaveBeenCalledTimes(1);
-			expect(console.error).toHaveBeenCalledWith("message", { a: 5 });
-
-			console.warn.mockClear();
 			logHandler("warn", ["message", { a: 5 }]);
-			expect(console.warn).toHaveBeenCalledTimes(1);
-			expect(console.warn).toHaveBeenCalledWith("message", { a: 5 });
-
-			console.log.mockClear();
 			logHandler("info", ["message", { a: 5 }]);
-			expect(console.log).toHaveBeenCalledTimes(1);
-			expect(console.log).toHaveBeenCalledWith("message", { a: 5 });
-
-			console.log.mockClear();
 			logHandler("debug", ["message", { a: 5 }]);
-			expect(console.log).toHaveBeenCalledTimes(1);
-			expect(console.log).toHaveBeenCalledWith("message", { a: 5 });
-
-			console.log.mockClear();
 			logHandler("trace", ["message", { a: 5 }]);
-			expect(console.log).toHaveBeenCalledTimes(1);
-			expect(console.log).toHaveBeenCalledWith("message", { a: 5 });
+
+			expect(logger.queue).toEqual([
+				{ "level": "fatal", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 },
+				{ "level": "error", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 },
+				{ "level": "warn", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 },
+				{ "level": "info", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 },
+				{ "level": "debug", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 },
+				{ "level": "trace", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 }
+			]);
+
+			expect(logger.flush).toHaveBeenCalledTimes(0);
 		});
 
 		it("should not call console if level is lower", () => {
 			const logger = new FileLogger({ level: "info" });
 			logger.init(loggerFactory);
-			logger.getFormatter = jest.fn(() => (type, args) => args);
 
 			const logHandler = logger.getLogHandler({ mod: "my-service", nodeID: "node-1" });
 			expect(logHandler).toBeInstanceOf(Function);
-			expect(logger.getFormatter).toHaveBeenCalledTimes(1);
-			expect(logger.getFormatter).toHaveBeenCalledWith({ mod: "my-service", nodeID: "node-1" });
 
-			console.error.mockClear();
 			logHandler("fatal", ["message", { a: 5 }]);
-			expect(console.error).toHaveBeenCalledTimes(1);
-			expect(console.error).toHaveBeenCalledWith("message", { a: 5 });
-
-			console.error.mockClear();
 			logHandler("error", ["message", { a: 5 }]);
-			expect(console.error).toHaveBeenCalledTimes(1);
-			expect(console.error).toHaveBeenCalledWith("message", { a: 5 });
-
-			console.warn.mockClear();
 			logHandler("warn", ["message", { a: 5 }]);
-			expect(console.warn).toHaveBeenCalledTimes(1);
-			expect(console.warn).toHaveBeenCalledWith("message", { a: 5 });
-
-			console.log.mockClear();
 			logHandler("info", ["message", { a: 5 }]);
-			expect(console.log).toHaveBeenCalledTimes(1);
-			expect(console.log).toHaveBeenCalledWith("message", { a: 5 });
-
-			console.log.mockClear();
 			logHandler("debug", ["message", { a: 5 }]);
-			expect(console.log).toHaveBeenCalledTimes(0);
-
-			console.log.mockClear();
 			logHandler("trace", ["message", { a: 5 }]);
-			expect(console.log).toHaveBeenCalledTimes(0);
+
+			expect(logger.queue).toEqual([
+				{ "level": "fatal", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 },
+				{ "level": "error", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 },
+				{ "level": "warn", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 },
+				{ "level": "info", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 },
+			]);
 		});
 
 		it("should not create child logger if level is null", () => {
@@ -247,11 +232,29 @@ describe("Test File logger class", () => {
 			expect(logger.getLogLevel).toHaveBeenCalledTimes(0);
 		});
 
+		it("should call flush if not interval", () => {
+			const logger = new FileLogger({ level: "trace", interval: 0 });
+			logger.init(loggerFactory);
+			logger.flush = jest.fn();
+
+			const logHandler = logger.getLogHandler({ mod: "my-service", nodeID: "node-1" });
+			expect(logHandler).toBeInstanceOf(Function);
+
+			logHandler("fatal", ["message", { a: 5 }]);
+			logHandler("error", ["message", { a: 5 }]);
+
+			expect(logger.queue).toEqual([
+				{ "level": "fatal", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 },
+				{ "level": "error", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 },
+			]);
+
+			expect(logger.flush).toHaveBeenCalledTimes(2);
+		});
+
 	});
 
-	describe("Test getFormatter method", () => {
+	describe("Test flush method", () => {
 		const loggerFactory = new LoggerFactory(broker);
-
 
 		let clock;
 
@@ -263,92 +266,87 @@ describe("Test File logger class", () => {
 			clock.uninstall();
 		});
 
-		describe("Test getFormatter method without padding ", () => {
-			it("should create default formatter", () => {
-				const logger = new FileLogger({ level: "trace" });
-				logger.init(loggerFactory);
+		it("should do nothing if queue is empty", () => {
+			const logger = new FileLogger({ level: "trace", interval: 0 });
+			logger.init(loggerFactory);
 
-				const formatter = logger.getFormatter({ mod: "my-service", nodeID: "node-1" });
-				expect(formatter("debug", ["message", { a: 5 }])).toEqual(["[1970-01-01T00:00:00.000Z]", "DEBUG", "node-1/MY-SERVICE:", "message", "{ a: 5 }"]);
-			});
+			logger.renderRow = jest.fn();
+			fs.appendFile.mockClear();
 
-			it("should create simple formatter", () => {
-				const logger = new FileLogger({ level: "trace", formatter: "simple" });
-				logger.init(loggerFactory);
+			logger.flush();
 
-				const formatter = logger.getFormatter({ mod: "my-service", nodeID: "node-1" });
-				expect(formatter("debug", ["message", { a: 5 }])).toEqual(["DEBUG", "-", "message", "{ a: 5 }"]);
-			});
-
-			it("should create short formatter", () => {
-				const logger = new FileLogger({ level: "trace", formatter: "short" });
-				logger.init(loggerFactory);
-
-				const formatter = logger.getFormatter({ mod: "my-service", nodeID: "node-1" });
-				expect(formatter("debug", ["message", { a: 5 }])).toEqual(["[00:00:00.000Z]", "DEBUG", "MY-SERVICE:", "message", "{ a: 5 }"]);
-			});
-
-			it("should use custom formatter", () => {
-				const myFormatter = jest.fn((type, args, bindings) => args);
-				const logger = new FileLogger({ level: "trace", formatter: myFormatter });
-				logger.init(loggerFactory);
-
-				const formatter = logger.getFormatter({ mod: "my-service", nodeID: "node-1" });
-				expect(formatter("debug", ["message", { a: 5 }])).toEqual(["message", { a: 5 }]);
-				expect(myFormatter).toHaveBeenCalledTimes(1);
-				expect(myFormatter).toHaveBeenCalledWith("debug", ["message", { a: 5 }], { mod: "my-service", nodeID: "node-1" });
-			});
-
+			expect(logger.renderRow).toHaveBeenCalledTimes(0);
+			expect(fs.appendFile).toHaveBeenCalledTimes(0);
 		});
 
-		describe("Test getFormatter method with autoPadding", () => {
-			it("should create default formatter", () => {
-				const logger = new FileLogger({ level: "trace", autoPadding: true });
-				logger.init(loggerFactory);
+		it("should render rows and call appendFile", () => {
+			const logger = new FileLogger({ level: "trace", eol: "\n" });
+			logger.init(loggerFactory);
 
-				const formatter = logger.getFormatter({ mod: "my-service", nodeID: "node-1" });
-				expect(formatter("debug", ["message", { a: 5 }])).toEqual(["[1970-01-01T00:00:00.000Z]", "DEBUG", "node-1/MY-SERVICE:", "message", "{ a: 5 }"]);
+			const logHandler = logger.getLogHandler({ mod: "my-service", nodeID: "node-1" });
+			logHandler("fatal", ["message", { a: 5 }]);
+			logHandler("error", ["message", { a: 5 }]);
 
-				const formatter2 = logger.getFormatter({ mod: "short", nodeID: "n-2" });
-				expect(formatter2("debug", ["message2"])).toEqual(["[1970-01-01T00:00:00.000Z]", "DEBUG", "n-2/SHORT        :", "message2"]);
-			});
+			logger.renderRow = jest.fn(() => "rendered");
+			fs.appendFile.mockClear();
 
-			it("should create short formatter", () => {
-				const logger = new FileLogger({ level: "trace", formatter: "short", autoPadding: true });
-				logger.init(loggerFactory);
+			logger.flush();
 
-				const formatter = logger.getFormatter({ mod: "my-service", nodeID: "node-1" });
-				expect(formatter("debug", ["message", { a: 5 }])).toEqual(["[00:00:00.000Z]", "DEBUG", "MY-SERVICE:", "message", "{ a: 5 }"]);
+			expect(logger.renderRow).toHaveBeenCalledTimes(2);
+			expect(logger.renderRow).toHaveBeenNthCalledWith(1, { "level": "fatal", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 });
+			expect(logger.renderRow).toHaveBeenNthCalledWith(2, { "level": "error", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 });
 
-				const formatter2 = logger.getFormatter({ mod: "short", nodeID: "n-2" });
-				expect(formatter2("debug", ["message2"])).toEqual(["[00:00:00.000Z]", "DEBUG", "SHORT     :", "message2"]);
-			});
+			expect(fs.appendFile).toHaveBeenCalledTimes(1);
+			expect(fs.appendFile).toHaveBeenCalledWith("./logs/moleculer-1970-01-01.log", "rendered\nrendered\n", expect.any(Function));
 		});
 
-		describe("Test getFormatter objectPrinter", () => {
+		it("should call flush after interval", () => {
+			const logger = new FileLogger({ level: "trace", interval: 2000 });
+			logger.init(loggerFactory);
+			logger.flush = jest.fn();
 
-			it("should use the default objectPrinter", () => {
-				const logger = new FileLogger({});
-				logger.init(loggerFactory);
+			const logHandler = logger.getLogHandler({ mod: "my-service", nodeID: "node-1" });
+			logHandler("fatal", ["message", { a: 5 }]);
+			logHandler("error", ["message", { a: 5 }]);
 
-				const formatter = logger.getFormatter({ mod: "my-service", nodeID: "node-1" });
-				expect(formatter("debug", ["message", { a: 5 }, ["John", "Doe"], true, 123])).toEqual(["[1970-01-01T00:00:00.000Z]", "DEBUG", "node-1/MY-SERVICE:", "message", "{ a: 5 }", "[ 'John', 'Doe' ]", true, 123]);
-			});
+			expect(logger.flush).toHaveBeenCalledTimes(0);
 
-			it("should use a custom objectPrinter", () => {
-				const objectPrinter = jest.fn(() => "printed");
-				const logger = new FileLogger({ objectPrinter });
-				logger.init(loggerFactory);
+			clock.tick(2100);
 
-				const formatter = logger.getFormatter({ mod: "my-service", nodeID: "node-1" });
-				expect(formatter("debug", ["message", { a: 5 }, ["John", "Doe"], true, 123])).toEqual(["[1970-01-01T00:00:00.000Z]", "DEBUG", "node-1/MY-SERVICE:", "message", "printed", "printed", true, 123]);
-
-				expect(objectPrinter).toHaveBeenCalledTimes(2);
-				expect(objectPrinter).toHaveBeenCalledWith({ a: 5 });
-				expect(objectPrinter).toHaveBeenCalledWith(["John", "Doe"]);
-			});
+			expect(logger.flush).toHaveBeenCalledTimes(1);
 		});
 
 	});
-*/
+
+	describe("Test renderRow method", () => {
+		const loggerFactory = new LoggerFactory(broker);
+
+		let clock;
+
+		beforeAll(() => {
+			clock = lolex.install();
+		});
+
+		afterAll(() => {
+			clock.uninstall();
+		});
+
+		it("should render row to JSON", () => {
+			const logger = new FileLogger({ level: "trace", format: "json" });
+			logger.init(loggerFactory);
+
+			const json = logger.renderRow({ "level": "fatal", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 });
+			expect(json).toBe("{\"level\":\"fatal\",\"mod\":\"my-service\",\"msg\":\"message { a: 5 }\",\"nodeID\":\"node-1\",\"ts\":0}");
+		});
+
+		it("should render row to custom string", () => {
+			const logger = new FileLogger({ level: "trace", format: "{timestamp} {level} {nodeID}/{mod}: {msg}" });
+			logger.init(loggerFactory);
+
+			const str = logger.renderRow({ "level": "fatal", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 });
+			expect(str).toBe("1970-01-01T00:00:00.000Z fatal node-1/my-service: message { a: 5 }");
+		});
+
+	});
+
 });

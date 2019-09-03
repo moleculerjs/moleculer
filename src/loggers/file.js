@@ -40,6 +40,7 @@ class FileLogger extends BaseLogger {
 		});
 
 		this.queue = [];
+		this.timer = null;
 		this.currentFilename = null;
 		this.fs = null;
 	}
@@ -58,6 +59,8 @@ class FileLogger extends BaseLogger {
 		}));
 
 		makeDirs(this.logFolder);
+
+		this.objectPrinter = this.opts.objectPrinter ? this.opts.objectPrinter : o => util.inspect(o, { showHidden: false, depth: 2, colors: false, breakLength: Number.POSITIVE_INFINITY });
 
 		if (this.opts.interval > 0) {
 			this.timer = setInterval(() => this.flush(), this.opts.interval);
@@ -86,15 +89,14 @@ class FileLogger extends BaseLogger {
 	 * @param {object} bindings
 	 */
 	getLogHandler(bindings) {
-		let level = this.getLogLevel(bindings ? bindings.mod : null);
+		let level = bindings ? this.getLogLevel(bindings.mod) : null;
 		if (!level)
 			return null;
 
-		const objectPrinter = o => util.inspect(o, { showHidden: false, depth: 2, colors: false, breakLength: Number.POSITIVE_INFINITY });
 		const printArgs = args => {
 			return args.map(p => {
 				if (_.isObject(p) || _.isArray(p))
-					return objectPrinter(p);
+					return this.objectPrinter(p);
 				return p;
 			});
 		};
