@@ -146,7 +146,7 @@ class ConsoleLogger extends BaseLogger {
 	 * @param {object} bindings
 	 */
 	getLogHandler(bindings) {
-		const level = this.getLogLevel(bindings ? bindings.mod : null);
+		const level = bindings ? this.getLogLevel(bindings.mod) : null;
 		if (!level)
 			return null;
 
