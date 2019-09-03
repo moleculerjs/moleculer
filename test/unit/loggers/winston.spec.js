@@ -5,8 +5,10 @@ jest.mock("winston");
 const Winston = require("winston");
 
 const childFakeLogger = {
+	info: jest.fn(),
 	error: jest.fn(),
 	warn: jest.fn(),
+	debug: jest.fn(),
 	log: jest.fn(),
 };
 const fakeLogger = {
@@ -106,17 +108,55 @@ describe("Test Winston logger class", () => {
 				nodeID: "node-1"
 			});
 
-			logHandler("warn", ["message", { a: 5 }]);
-			expect(childFakeLogger.warn).toHaveBeenCalledTimes(1);
-			expect(childFakeLogger.warn).toHaveBeenCalledWith("message", { a: 5 });
+			logHandler("info", ["message", { a: 5 }]);
+			expect(childFakeLogger.info).toHaveBeenCalledTimes(1);
+			expect(childFakeLogger.info).toHaveBeenCalledWith("message", { a: 5 });
 
 			logHandler("fatal", ["message", { a: 5 }]);
 			expect(childFakeLogger.error).toHaveBeenCalledTimes(1);
 			expect(childFakeLogger.error).toHaveBeenCalledWith("message", { a: 5 });
 
+			childFakeLogger.error.mockClear();
+			logHandler("error", ["message", { a: 5 }]);
+			expect(childFakeLogger.error).toHaveBeenCalledTimes(1);
+			expect(childFakeLogger.error).toHaveBeenCalledWith("message", { a: 5 });
+
+			logHandler("warn", ["message", { a: 5 }]);
+			expect(childFakeLogger.warn).toHaveBeenCalledTimes(1);
+			expect(childFakeLogger.warn).toHaveBeenCalledWith("message", { a: 5 });
+
+			logHandler("debug", ["message", { a: 5 }]);
+			expect(childFakeLogger.debug).toHaveBeenCalledTimes(1);
+			expect(childFakeLogger.debug).toHaveBeenCalledWith("message", { a: 5 });
+
 			logHandler("trace", ["message", { a: 5 }]);
 			expect(childFakeLogger.log).toHaveBeenCalledTimes(1);
 			expect(childFakeLogger.log).toHaveBeenCalledWith("silly", "message", { a: 5 });
+		});
+
+		it("should not call logger if level is lower", () => {
+			fakeLogger.child.mockClear();
+			childFakeLogger.info.mockClear();
+			childFakeLogger.debug.mockClear();
+
+			const logger = new WinstonLogger({ level: "info" });
+			logger.init(loggerFactory);
+
+			const logHandler = logger.getLogHandler({ mod: "my-service", nodeID: "node-1" });
+			expect(logHandler).toBeInstanceOf(Function);
+			expect(logger.winston.child).toHaveBeenCalledTimes(1);
+			expect(logger.winston.child).toHaveBeenCalledWith({
+				level: "info",
+				mod: "my-service",
+				nodeID: "node-1"
+			});
+
+			logHandler("info", ["message", { a: 5 }]);
+			expect(childFakeLogger.info).toHaveBeenCalledTimes(1);
+			expect(childFakeLogger.info).toHaveBeenCalledWith("message", { a: 5 });
+
+			logHandler("debug", ["message", { a: 5 }]);
+			expect(childFakeLogger.debug).toHaveBeenCalledTimes(0);
 		});
 
 		it("should call the createLogger function", () => {

@@ -75,9 +75,11 @@ class WinstonLogger extends BaseLogger {
 				case "debug": return logger.debug(...args);
 				case "trace": return logger.log("silly", ...args);
 				default: {
+					/* istanbul ignore next*/
 					if (logger[type])
 						return logger[type](...args);
 
+					/* istanbul ignore next*/
 					return logger.info(...args);
 				}
 			}

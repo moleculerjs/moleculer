@@ -129,6 +129,7 @@ class FileLogger extends BaseLogger {
 			const buf = rows.map(row => this.renderRow(row)).join(this.opts.eol) + this.opts.eol;
 
 			fs.appendFile(filename, buf, (err) => {
+				/* istanbul ignore next */
 				if (err) {
 					// eslint-disable-next-line no-console
 					console.debug("Unable to write log file:", filename);
