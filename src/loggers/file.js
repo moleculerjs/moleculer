@@ -13,7 +13,7 @@ const fs = require("fs");
 const path = require("path");
 const os = require("os");
 const util = require("util");
-const { makeDirs, match } = require("../utils");
+const { makeDirs } = require("../utils");
 
 /**
  * File logger for Moleculer
@@ -34,7 +34,7 @@ class FileLogger extends BaseLogger {
 		this.opts = _.defaultsDeep(this.opts, {
 			folder: "./logs",
 			filename: "moleculer-{date}.log",
-			format: "json",
+			formatter: "json",
 			eol: os.EOL,
 			interval: 1 * 1000
 		});
@@ -62,20 +62,50 @@ class FileLogger extends BaseLogger {
 
 		this.objectPrinter = this.opts.objectPrinter ? this.opts.objectPrinter : o => util.inspect(o, { showHidden: false, depth: 2, colors: false, breakLength: Number.POSITIVE_INFINITY });
 
+		this.formatter = this.getFormatter();
+
 		if (this.opts.interval > 0) {
 			this.timer = setInterval(() => this.flush(), this.opts.interval);
 			this.timer.unref();
 		}
 	}
 
+	/**
+	 * Get formatter based on options
+	 */
+	getFormatter() {
+		if (_.isFunction(this.opts.formatter))
+			return this.opts.formatter;
+
+		if (this.opts.formatter == "json")
+			return row => JSON.stringify(row);
+
+		if (_.isString(this.opts.formatter)) {
+			return row => this.render(this.opts.formatter, {
+				...row,
+				timestamp: new Date(row.ts).toISOString()
+			});
+		}
+	}
+
+	/**
+	 * Interpolate a text.
+	 *
+	 * @param {Strimg} str
+	 * @param {Object} obj
+	 * @returns {String}
+	 */
 	render(str, obj) {
 		return str.replace(/\{\s?(\w+)\s?\}/g, (match, v) => obj[v] || "");
 	}
 
+	/**
+	 * Get the current filename.
+	 */
 	getFilename() {
 		const now = new Date();
 		//const date = `${now.getFullYear()}-${_.padStart(now.getMonth() + 1, 2, "0")}-${_.padStart(now.getDate(), 2, "0")}`;
-		const date = now.toISOString().substr(0, 10).replace(/:/g, "_");
+		const date = now.toISOString().substr(0, 10);
 
 		return path.join(this.logFolder, this.render(this.opts.filename, {
 			date,
@@ -85,6 +115,7 @@ class FileLogger extends BaseLogger {
 	}
 
 	/**
+	 * Generate a new log handler.
 	 *
 	 * @param {object} bindings
 	 */
@@ -111,6 +142,9 @@ class FileLogger extends BaseLogger {
 		};
 	}
 
+	/**
+	 * Flush queued log entries to the file.
+	 */
 	flush() {
 		if (this.queue.length > 0) {
 			// Check filename
@@ -126,7 +160,7 @@ class FileLogger extends BaseLogger {
 			rows.forEach(row => this.writeRow(row));
 			*/
 
-			const buf = rows.map(row => this.renderRow(row)).join(this.opts.eol) + this.opts.eol;
+			const buf = rows.map(row => this.formatter(row)).join(this.opts.eol) + this.opts.eol;
 
 			fs.appendFile(filename, buf, (err) => {
 				/* istanbul ignore next */
@@ -134,17 +168,6 @@ class FileLogger extends BaseLogger {
 					// eslint-disable-next-line no-console
 					console.debug("Unable to write log file:", filename);
 				}
-			});
-		}
-	}
-
-	renderRow(row) {
-		if (this.opts.format == "json") {
-			return JSON.stringify(row);
-		} else {
-			return this.render(this.opts.format, {
-				...row,
-				timestamp: new Date(row.ts).toISOString()
 			});
 		}
 	}

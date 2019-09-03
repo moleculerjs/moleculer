@@ -11,12 +11,12 @@ const broker = new ServiceBroker({
 			options: {
 				//level: "error",
 				//formatter: (type, args, bindings) => [].concat(args, bindings)
-				//formatter: "short",
+				//formatter: "json",
 				moduleColors: true,
 				//autoPadding: true
 			}
 		},
-		{
+		/*{
 			type: "File",
 			options: {
 				folder: "d:/logs",
@@ -34,7 +34,7 @@ const broker = new ServiceBroker({
 				format: "{timestamp} {level} {nodeID}/{mod}: {msg}"
 			}
 
-		},
+		},*/
 		/*{
 			type: "Pino",
 			options: {

@@ -125,7 +125,10 @@ class ConsoleLogger extends BaseLogger {
 			});
 		};
 
-		if (formatter == "simple") {
+		if (formatter == "json") {
+			// INFO  - Moleculer v0.14.0-beta3 is starting...
+			return (type, args) => [JSON.stringify({ ts: Date.now(), level: type, msg: printArgs(args).join(" "), ...bindings })];
+		} else if (formatter == "simple") {
 			// INFO  - Moleculer v0.14.0-beta3 is starting...
 			return (type, args) => [this.levelColorStr[type], "-", ...printArgs(args)];
 		} else if (formatter == "short") {
