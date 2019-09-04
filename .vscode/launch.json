@@ -83,7 +83,7 @@
 			"request": "launch",
 			"name": "Jest single",
 			"program": "${workspaceRoot}/node_modules/jest-cli/bin/jest.js",
-			"args": ["--runInBand", "test/integration/tracing.spec.js"],
+			"args": ["--runInBand", "${fileBasenameNoExtension}"],
 			"console": "internalConsole",
 			"cwd": "${workspaceRoot}",
 			"runtimeArgs": [

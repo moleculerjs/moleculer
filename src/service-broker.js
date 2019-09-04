@@ -16,7 +16,7 @@ const Transit 				= require("./transit");
 const Registry 				= require("./registry");
 const E 					= require("./errors");
 const utils 				= require("./utils");
-const Logger 				= require("./logger");
+const LoggerFactory			= require("./logger-factory");
 const Validator 			= require("./validator");
 const AsyncStorage 			= require("./async-storage");
 
@@ -37,10 +37,8 @@ const defaultOptions = {
 	namespace: "",
 	nodeID: null,
 
-	logger: null,
+	logger: true,
 	logLevel: null,
-	logFormatter: "default",
-	logObjectPrinter: null,
 
 	transporter: null, //"TCP",
 
@@ -169,21 +167,25 @@ class ServiceBroker {
 			// Instance ID
 			this.instanceID = utils.generateToken();
 
-			// Logger
-			this.logger = this.getLogger("broker");
-
 			// Internal maps
 			this.services = [];
-
-			this.logger.info(`Moleculer v${this.MOLECULER_VERSION} is starting...`);
-			this.logger.info(`Namespace: ${this.namespace || "<not defined>"}`);
-			this.logger.info(`Node ID: ${this.nodeID}`);
 
 			// Internal event bus
 			this.localBus = new EventEmitter2({
 				wildcard: true,
 				maxListeners: 100
 			});
+
+			// Log Factory
+			this.loggerFactory = new LoggerFactory(this);
+			this.loggerFactory.init(this.options.logger);
+
+			// Logger
+			this.logger = this.getLogger("broker");
+
+			this.logger.info(`Moleculer v${this.MOLECULER_VERSION} is starting...`);
+			this.logger.info(`Namespace: ${this.namespace || "<not defined>"}`);
+			this.logger.info(`Node ID: ${this.nodeID}`);
 
 			// Async storage for Contexts
 			this.scope = new AsyncStorage(this);
@@ -287,6 +289,7 @@ class ServiceBroker {
 			else {
 				/* eslint-disable-next-line no-console */
 				console.error("Unable to create ServiceBroker.", err);
+				process.exit(1);
 			}
 		}
 	}
@@ -617,36 +620,20 @@ class ServiceBroker {
 	/**
 	 * Get a custom logger for sub-modules (service, transporter, cacher, context...etc)
 	 *
-	 * @param {String} module	Name of module
+	 * @param {String} mod	Name of module
 	 * @param {String|object} props	Module properties (service name, version, ...etc
-	 * @returns {Logger}
+	 * @returns {ModuleLogger}
 	 *
 	 * @memberof ServiceBroker
 	 */
-	getLogger(module, props) {
-		if (_.isString(props))
-			props = { mod: props };
-
+	getLogger(mod, props) {
 		let bindings = Object.assign({
 			nodeID: this.nodeID,
 			ns: this.namespace,
-			mod: module
+			mod
 		}, props);
 
-		// Call logger creator
-		if (_.isFunction(this.options.logger))
-			return this.options.logger.call(this, bindings);
-
-		// External logger
-		if (_.isObject(this.options.logger) && this.options.logger !== console)
-			return Logger.extend(this.options.logger);
-
-		// Disable logging
-		if (this.options.logger === false)
-			return Logger.createDefaultLogger(this);
-
-		// Create console logger
-		return Logger.createDefaultLogger(this, console, bindings, this.options.logLevel || "info");
+		return this.loggerFactory.getLogger(bindings);
 	}
 
 	/**
