@@ -303,7 +303,7 @@ module.exports = {
 };
 ```
 
->[Read more about new logging feature](https://moleculer.services/docs/0.14/logging.html)
+>[Read more about new logging feature and all supported loggers.](https://moleculer.services/docs/0.14/logging.html)
 
 **:tada: Well, you are done! :clap:**
 
