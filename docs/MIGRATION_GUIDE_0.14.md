@@ -261,7 +261,7 @@ module.exports = {
 });
 ```
 
-## 6. Use the new built-in logger instead of custom logger.
+## 6. Use a new built-in logger instead of a custom logger.
 The whole logging function has been rewritten in this version. It means, it has a lot of new features, but the configuration of loggers has contains breaking changes.
 
 **Old way to use an external logger**
