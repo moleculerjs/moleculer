@@ -261,7 +261,49 @@ module.exports = {
 });
 ```
 
+## 6. Use the new built-in logger instead of custom logger.
+The whole logging function has been rewritten in this version. It means, it has a lot of new features, but the configuration of loggers has contains breaking changes.
 
+**Old way to use an external logger**
+```js
+// moleculer.config.js
+module.exports = {
+    logger: bindings => pino.child(bindings),
+};
+```
+
+**New way to use external logger**
+```js
+// moleculer.config.js
+module.exports = {
+    logger: "Pino",
+};
+```
+
+or
+
+```js
+// moleculer.config.js
+module.exports = {
+    logger: {
+        type: "Pino",
+        options: {
+            // Logging level
+            level: "info",
+
+            pino: {
+                // More info: http://getpino.io/#/docs/api?id=options-object
+                options: null,
+
+                // More info: http://getpino.io/#/docs/api?id=destination-sonicboom-writablestream-string
+                destination: "/logs/moleculer.log",
+            }
+        }
+    }
+};
+```
+
+>[Read more about new logging feature](https://moleculer.services/docs/0.14/logging.html)
 
 **:tada: Well, you are done! :clap:**
 
