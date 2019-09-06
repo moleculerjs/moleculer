@@ -14,6 +14,7 @@ const Loggers = {
 	Base,
 	Bunyan: require("./bunyan"),
 	Console: require("./console"),
+	Datadog: require("./datadog"),
 	Debug: require("./debug"),
 	File: require("./file"),
 	Log4js: require("./log4js"),

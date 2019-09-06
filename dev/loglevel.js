@@ -82,7 +82,12 @@ const broker = new ServiceBroker({
 					}
 				}
 			}
-		}*/
+		},*/
+		{
+			type: "Datadog",
+			options: {
+			}
+		}
 	],
 	logLevel: {
 		"MY.**": "trace",
