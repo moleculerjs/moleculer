@@ -497,6 +497,9 @@ module.exports = {
 
 # New
 
+## Experimental transporters have become stable
+The Kafka, NATS Streaming & TCP transporter have become stable because we didn't find and receive any issue about them.
+
 ## Context-based events
 The new 0.14 version comes context-based event handler. It is very useful when you are using event-driven architecture and you would like to tracing the event. The Event Context is same as Action Context. They are the same properties except a few new properties related to the event.
 It doesn't mean you should rewrite all existing event handlers. Moleculer detects the signature if your event handler. If it finds that the signature is `"user.created(ctx) { ... }`, it will call it with Event Context. If not, it will call with old arguments & the 4th argument will be the Event Context, like `"user.created"(payload, sender, eventName, ctx) {...}`
