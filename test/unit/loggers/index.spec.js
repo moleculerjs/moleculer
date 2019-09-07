@@ -42,12 +42,12 @@ describe("Test Loggers resolver", () => {
 		expect(logger.opts).toEqual(expect.objectContaining({ moduleColors: true }));
 	});
 
-	it("should resolve Datadog logger from string", () => {
+	it.skip("should resolve Datadog logger from string", () => {
 		let logger = Loggers.resolve("Datadog");
 		expect(logger).toBeInstanceOf(Loggers.Datadog);
 	});
 
-	it("should resolve Datadog logger from obj", () => {
+	it.skip("should resolve Datadog logger from obj", () => {
 		let options = { a: 5 };
 		let logger = Loggers.resolve({ type: "Datadog", options });
 		expect(logger).toBeInstanceOf(Loggers.Datadog);
