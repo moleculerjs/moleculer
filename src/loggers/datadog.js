@@ -14,7 +14,6 @@ fetch.Promise = Promise;
 const { MoleculerError } = require("../errors");
 
 const util = require("util");
-const { makeDirs } = require("../utils");
 
 /*
 	docker run -d --name dd-agent --restart unless-stopped -v /var/run/docker.sock:/var/run/docker.sock:ro -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e DD_API_KEY=123456 -e DD_APM_ENABLED=true -e DD_APM_NON_LOCAL_TRAFFIC=true -p 8126:8126  datadog/agent:latest
@@ -42,6 +41,7 @@ class DatadogLogger extends BaseLogger {
 			ddSource: "moleculer",
 			env: undefined,
 			hostname: os.hostname(),
+			objectPrinter: null,
 			interval: 10 * 1000
 		});
 
@@ -97,12 +97,16 @@ class DatadogLogger extends BaseLogger {
 	}
 
 	getTags(row) {
-		return [
+		const tags = [
 			{ name: "env", value: this.opts.env || "" },
 			{ name: "nodeID", value: row.bindings.nodeID },
-			{ name: "namespace", value: row.bindings.ns },
-		]
-			.map(row => `${row.name}:${row.value}`).join(",");
+			{ name: "namespace", value: row.bindings.ns }
+		];
+
+		if (row.bindings.svc)
+			tags.push({ name: "service", value: row.bindings.svc });
+
+		return tags.map(row => `${row.name}:${row.value}`).join(",");
 	}
 
 	/**
