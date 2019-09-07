@@ -7,6 +7,8 @@ class MyLogger extends Loggers.Base {
 	}
 }
 
+process.env.DATADOG_API_KEY = "datadog-api-key";
+
 describe("Test Loggers resolver", () => {
 
 	it("should throw error", () => {
