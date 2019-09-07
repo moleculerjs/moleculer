@@ -45,7 +45,7 @@ class ConsoleLogger extends BaseLogger {
 		this.opts = _.defaultsDeep(this.opts, {
 			colors: true,
 			moduleColors: false,
-			formatter: null,
+			formatter: "full",
 			objectPrinter: null,
 			autoPadding: false
 		});
@@ -136,12 +136,37 @@ class ConsoleLogger extends BaseLogger {
 			const prefixLen = 23 + bindings.mod.length;
 			this.maxPrefixLength = Math.max(prefixLen, this.maxPrefixLength);
 			return (type, args) => [kleur.grey(`[${new Date().toISOString().substr(11)}]`), this.levelColorStr[type], modColorName + this.padLeft(prefixLen) + kleur.grey(":"), ...printArgs(args)];
-		} else {
+		} else if (formatter == "full") {
 			// [2019-08-31T08:40:53.481Z] INFO  bobcsi-pc-7100/BROKER: Moleculer v0.14.0-beta3 is starting...
 			const prefixLen = 35 + bindings.nodeID.length + bindings.mod.length;
 			this.maxPrefixLength = Math.max(prefixLen, this.maxPrefixLength);
 			return (type, args) => [kleur.grey(`[${new Date().toISOString()}]`), this.levelColorStr[type], moduleColorName + this.padLeft(prefixLen) + kleur.grey(":"), ...printArgs(args)];
+		} else {
+			// [{timestamp}] {level} {nodeID}/{mod}: {msg}
+
+			return (type, args) => {
+				const timestamp = new Date().toISOString();
+				return [this.render(formatter, {
+					timestamp: kleur.grey(timestamp),
+					time: kleur.grey(timestamp.substr(11)),
+
+					level: this.levelColorStr[type],
+					nodeID: kleur.grey(bindings.nodeID),
+					mod: modColorName
+				}), ...printArgs(args)];
+			};
 		}
+	}
+
+	/**
+	 * Interpolate a text.
+	 *
+	 * @param {Strimg} str
+	 * @param {Object} obj
+	 * @returns {String}
+	 */
+	render(str, obj) {
+		return str.replace(/\{\s?(\w+)\s?\}/g, (match, v) => obj[v] || "");
 	}
 
 	/**

@@ -365,13 +365,38 @@ describe("Test File logger class", () => {
 			expect(json).toBe("{\"level\":\"fatal\",\"mod\":\"my-service\",\"msg\":\"message { a: 5 }\",\"nodeID\":\"node-1\",\"ts\":0}");
 		});
 
+		it("should render row to full format", () => {
+			const logger = new FileLogger({ level: "trace", formatter: "full" });
+			logger.init(loggerFactory);
+
+			const str = logger.formatter({ "level": "fatal", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 });
+			expect(str).toBe("[1970-01-01T00:00:00.000Z] FATAL node-1/MY-SERVICE: message { a: 5 }");
+		});
+
+		it("should render row to simple format", () => {
+			const logger = new FileLogger({ level: "trace", formatter: "simple" });
+			logger.init(loggerFactory);
+
+			const str = logger.formatter({ "level": "fatal", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 });
+			expect(str).toBe("FATAL - message { a: 5 }");
+		});
+
+		it("should render row to short format", () => {
+			const logger = new FileLogger({ level: "trace", formatter: "short" });
+			logger.init(loggerFactory);
+
+			const str = logger.formatter({ "level": "fatal", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 });
+			expect(str).toBe("[00:00:00.000Z] FATAL MY-SERVICE: message { a: 5 }");
+		});
+
 		it("should render row to custom string", () => {
 			const logger = new FileLogger({ level: "trace", formatter: "{timestamp} {level} {nodeID}/{mod}: {msg}" });
 			logger.init(loggerFactory);
 
 			const str = logger.formatter({ "level": "fatal", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 });
-			expect(str).toBe("1970-01-01T00:00:00.000Z fatal node-1/my-service: message { a: 5 }");
+			expect(str).toBe("1970-01-01T00:00:00.000Z FATAL node-1/MY-SERVICE: message { a: 5 }");
 		});
+
 		it("should call custom formatter", () => {
 			const myFormatter = jest.fn(row => "formatted");
 

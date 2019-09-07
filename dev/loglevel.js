@@ -2,6 +2,7 @@
 
 const ServiceBroker = require("../src/service-broker");
 const winston = require("winston");
+const kleur = require("kleur");
 const { MoleculerClientError } = require("../src/errors");
 
 const broker = new ServiceBroker({
@@ -12,20 +13,19 @@ const broker = new ServiceBroker({
 			options: {
 				//level: "error",
 				//formatter: (level, args, bindings) => [`[${level.toUpperCase()}]`, ...args],
-				//formatter: "simple",
+				//formatter: "[{time}] {level} <{nodeID}:{mod}> ->",
 				moduleColors: true,
 				//autoPadding: true
 			}
 		},
-		/*{
+		{
 			type: "File",
 			options: {
 				folder: "d:/logs",
 				filename: "moleculer-{date}.log",
-				formatter: "{timestamp} {level} {nodeID}/{mod}: {msg}",
-				interval: 10 * 1000
+				formatter: "full"
 			}
-		},*/
+		},
 		/*{
 			type: "File",
 			options: {
@@ -138,7 +138,7 @@ const myLogger = broker.getLogger("my.custom.module");
 
 myLogger.trace("Trace test");
 myLogger.debug("Debug test");
-myLogger.info("Info test");
+myLogger.info("Info test", kleur.yellow().bold("with colors"));
 myLogger.warn("Warn test");
 myLogger.error("Error test", new MoleculerClientError("Something happened", 404));
 
@@ -149,4 +149,4 @@ myLogger.info({ a: 5, b: { c: "John" } }, "Object test - before");
 broker.start();
 broker.repl();
 
-setTimeout(() => broker.stop(), 4000);
+//setTimeout(() => broker.stop(), 4000);

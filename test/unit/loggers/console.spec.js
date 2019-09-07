@@ -24,7 +24,7 @@ describe("Test Console logger class", () => {
 				level: "info",
 				colors: true,
 				moduleColors: false,
-				formatter: null,
+				formatter: "full",
 				objectPrinter: null,
 				autoPadding: false
 			});
@@ -86,6 +86,25 @@ describe("Test Console logger class", () => {
 
 		});
 
+	});
+
+	describe("Test render method", () => {
+		const loggerFactory = new LoggerFactory(broker);
+
+		it("should return interpolated string", () => {
+			const logger = new ConsoleLogger();
+
+			logger.init(loggerFactory);
+
+			expect(logger.render("[{timestamp}] {level} {nodeID}/{mod}: {msg}", {
+				timestamp: "2019-09-07",
+				level: "INFO",
+				mod: "broker",
+				nodeID: "server-1",
+				msg: "Message"
+			})).toBe("[2019-09-07] INFO server-1/broker: Message");
+
+		});
 	});
 
 	describe("Test getNextColor method", () => {
@@ -257,7 +276,7 @@ describe("Test Console logger class", () => {
 		});
 
 		describe("Test getFormatter method without padding ", () => {
-			it("should create default formatter", () => {
+			it("should create default full formatter", () => {
 				const logger = new ConsoleLogger({ level: "trace" });
 				logger.init(loggerFactory);
 
@@ -286,7 +305,19 @@ describe("Test Console logger class", () => {
 				logger.init(loggerFactory);
 
 				const formatter = logger.getFormatter({ mod: "my-service", nodeID: "node-1" });
-				expect(formatter("debug", ["{\"ts\":0,\"level\":\"debug\",\"msg\":\"message { a: 5 }\",\"mod\":\"my-service\",\"nodeID\":\"node-1\"}"]));
+				expect(formatter("debug", ["message", { a: 5 }])).toEqual(["{\"ts\":1234567899990,\"level\":\"debug\",\"msg\":\"message { a: 5 }\",\"mod\":\"my-service\",\"nodeID\":\"node-1\"}"]);
+			});
+
+			it("should create a custom template formatter", () => {
+				const logger = new ConsoleLogger({ level: "trace", formatter: "[{time}] {level} <{nodeID}:{mod}> ->" });
+				logger.init(loggerFactory);
+
+				const formatter = logger.getFormatter({ mod: "my-service", nodeID: "node-1" });
+				expect(formatter("debug", ["message", { a: 5 }])).toEqual([
+					"[23:31:39.990Z] DEBUG <node-1:MY-SERVICE> ->",
+					"message",
+					"{ a: 5 }"
+				]);
 			});
 
 			it("should use custom formatter", () => {

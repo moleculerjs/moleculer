@@ -69,8 +69,8 @@ module.exports = {
             colors: true,
             // Print module names with different colors (like docker-compose for containers)
             moduleColors: false,
-            // Set formatter. It can be "json", "short", "simple", "full" or a custom `Function`
-            formatter: null,
+            // Line formatter. It can be "json", "short", "simple", "full", a `Function` or a template string like "{timestamp} {level} {nodeID}/{mod}: {msg}"
+            formatter: "full",
             // Custom object printer. If not defined, it uses the `util.inspect` method.
             objectPrinter: null,
             // Auto-padding the module name in order to messages begin at the same column.
@@ -105,7 +105,7 @@ module.exports = {
             folder: "./logs",
             // Filename template. You can use {date}, {nodeID} & {namespace} variables.
             filename: "moleculer-{date}.log",
-            // Formatter. It can be "json" or a format string like "{timestamp} {level} {nodeID}/{mod}: {msg}"
+            // Line formatter. It can be "json", "short", "simple", "full", a `Function` or a template string like "{timestamp} {level} {nodeID}/{mod}: {msg}"
             formatter: "json",
             // Custom object printer. If not defined, it uses the `util.inspect` method.
             objectPrinter: null,

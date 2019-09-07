@@ -89,6 +89,11 @@ class FileLogger extends BaseLogger {
 	 * Get formatter based on options
 	 */
 	getFormatter() {
+		this.padLevels = BaseLogger.LEVELS.reduce((a, level) => {
+			a[level] = _.padEnd(level.toUpperCase(), 5);
+			return a;
+		}, {});
+
 		if (_.isFunction(this.opts.formatter))
 			return this.opts.formatter;
 
@@ -96,10 +101,25 @@ class FileLogger extends BaseLogger {
 			return row => JSON.stringify(row);
 
 		if (_.isString(this.opts.formatter)) {
-			return row => this.render(this.opts.formatter, {
-				...row,
-				timestamp: new Date(row.ts).toISOString()
-			});
+			let format = this.opts.formatter;
+			if (this.opts.formatter == "full")
+				format = "[{timestamp}] {level} {nodeID}/{mod}: {msg}";
+			else if (this.opts.formatter == "simple")
+				format = "{level} - {msg}";
+			else if (this.opts.formatter == "short")
+				format = "[{time}] {level} {mod}: {msg}";
+
+			return row => {
+				const timestamp = new Date(row.ts).toISOString();
+				return this.render(format, {
+					...row,
+					timestamp,
+					time: timestamp.substr(11),
+
+					level: this.padLevels[row.level],
+					mod: row && row.mod ? row.mod.toUpperCase() : ""
+				});
+			};
 		}
 	}
 
@@ -139,20 +159,15 @@ class FileLogger extends BaseLogger {
 		if (!level)
 			return null;
 
-		const printArgs = args => {
-			return args.map(p => {
-				if (_.isObject(p) || _.isArray(p))
-					return this.objectPrinter(p);
-				return p;
-			});
-		};
 		const levelIdx = BaseLogger.LEVELS.indexOf(level);
+		const printArgs = args => args.map(p => (_.isObject(p) || _.isArray(p)) ? this.objectPrinter(p) : p);
 
 		return (type, args) => {
 			const typeIdx = BaseLogger.LEVELS.indexOf(type);
 			if (typeIdx > levelIdx) return;
 
-			this.queue.push({ ts: Date.now(), level: type, msg: printArgs(args).join(" "), ...bindings });
+			const msg = printArgs(args).join(" ").replace(/\u001b\[.*?m/g, ""); // eslint-disable-line no-control-regex
+			this.queue.push({ ts: Date.now(), level: type, msg, ...bindings });
 			if (!this.opts.interval) this.flush();
 		};
 	}
