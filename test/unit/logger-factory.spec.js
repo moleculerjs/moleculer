@@ -189,6 +189,38 @@ describe("Test LoggerFactory", () => {
 		});
 	});
 
+	describe("Test stop method", () => {
+		const loggerFactory = new LoggerFactory(broker);
+
+		it("should add multiple appenders", async () => {
+			loggerFactory.init([
+				{
+					type: "Console",
+					options: {
+						moduleColors: true
+					}
+				},
+				{
+					type: "File",
+					options: {
+						folder: "./my-logs"
+					}
+				}
+			]);
+			expect(loggerFactory.appenders.length).toBe(2);
+
+			const appenders = Array.from(loggerFactory.appenders);
+
+			appenders[0].stop = jest.fn();
+			appenders[1].stop = jest.fn();
+
+			await loggerFactory.stop();
+
+			expect(appenders[0].stop).toHaveBeenCalledTimes(1);
+			expect(appenders[1].stop).toHaveBeenCalledTimes(1);
+		});
+	});
+
 	describe("Test getLogger method", () => {
 		const loggerFactory = new LoggerFactory(broker);
 

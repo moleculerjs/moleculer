@@ -49,6 +49,17 @@ describe("Test Bunyan logger class", () => {
 
 	});
 
+	describe("Test stop method", () => {
+		const loggerFactory = new LoggerFactory(broker);
+
+		it("should create a default logger", async () => {
+			const logger = new BaseLogger();
+
+			await logger.stop();
+		});
+
+	});
+
 	describe("Test getLogLevel method", () => {
 
 		it("should find the correct log level if logLevel is string", () => {

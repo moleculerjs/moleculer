@@ -44,8 +44,6 @@ describe("Test Log4js logger class", () => {
 
 	describe("Test init method", () => {
 		const loggerFactory = new LoggerFactory(broker);
-		let stopCb;
-		broker.localBus.on = jest.fn((name, fn) => stopCb = fn);
 
 		it("should create a default logger without config", () => {
 			const logger = new Log4jsLogger();
@@ -55,12 +53,6 @@ describe("Test Log4js logger class", () => {
 			expect(logger.log4js).toBe(Log4js);
 
 			expect(Log4js.configure).toHaveBeenCalledTimes(0);
-			expect(broker.localBus.on).toHaveBeenCalledTimes(1);
-			expect(broker.localBus.on).toHaveBeenCalledWith("broker.stopped", expect.any(Function));
-
-			stopCb();
-			expect(Log4js.shutdown).toHaveBeenCalledTimes(1);
-			expect(Log4js.shutdown).toHaveBeenCalledWith();
 		});
 
 		it("should create a default logger with config", () => {
@@ -76,6 +68,25 @@ describe("Test Log4js logger class", () => {
 
 			expect(Log4js.configure).toHaveBeenCalledTimes(1);
 			expect(Log4js.configure).toHaveBeenCalledWith({ a: 5 });
+		});
+
+	});
+
+	describe("Test stop method", () => {
+		const loggerFactory = new LoggerFactory(broker);
+
+		it("should create a default logger", async () => {
+			const logger = new Log4jsLogger({
+				log4js: {}
+			});
+
+			logger.init(loggerFactory);
+
+			logger.log4js.shutdown = jest.fn(cb => cb());
+
+			await logger.stop();
+
+			expect(logger.log4js.shutdown).toHaveBeenCalledTimes(1);
 		});
 
 	});

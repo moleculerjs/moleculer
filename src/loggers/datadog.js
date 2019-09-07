@@ -75,6 +75,7 @@ class DatadogLogger extends BaseLogger {
 	stop() {
 		if (this.timer) {
 			clearInterval(this.timer);
+			this.timer = null;
 		}
 
 		return this.flush();

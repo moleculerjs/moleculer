@@ -586,6 +586,7 @@ describe("Test broker.stop", () => {
 		broker.broadcastLocal = jest.fn();
 		broker.metrics.set = jest.fn();
 		broker.metrics.stop = jest.fn();
+		broker.loggerFactory.stop = jest.fn();
 
 		broker.cacher = {
 			close: jest.fn(() => Promise.resolve())
@@ -604,6 +605,7 @@ describe("Test broker.stop", () => {
 				expect(broker.transit.disconnect).toHaveBeenCalledTimes(1);
 				expect(broker.cacher.close).toHaveBeenCalledTimes(1);
 				expect(broker.metrics.stop).toHaveBeenCalledTimes(1);
+				expect(broker.loggerFactory.stop).toHaveBeenCalledTimes(1);
 
 				expect(broker.callMiddlewareHook).toHaveBeenCalledTimes(6);
 				expect(broker.callMiddlewareHook).toHaveBeenCalledWith("stopping", [broker], { reverse: true });
@@ -645,6 +647,7 @@ describe("Test broker.stop", () => {
 		broker.broadcastLocal = jest.fn();
 		broker.metrics.stop = jest.fn();
 		broker.metrics.set = jest.fn();
+		broker.loggerFactory.stop = jest.fn();
 
 		broker.cacher = {
 			close: jest.fn(() => Promise.resolve())
@@ -663,6 +666,7 @@ describe("Test broker.stop", () => {
 				expect(broker.transit.disconnect).toHaveBeenCalledTimes(1);
 				expect(broker.cacher.close).toHaveBeenCalledTimes(1);
 				expect(broker.metrics.stop).toHaveBeenCalledTimes(1);
+				expect(broker.loggerFactory.stop).toHaveBeenCalledTimes(1);
 
 				expect(broker.callMiddlewareHook).toHaveBeenCalledTimes(6);
 				expect(broker.callMiddlewareHook).toHaveBeenCalledWith("stopping", [broker], { reverse: true });
@@ -702,6 +706,7 @@ describe("Test broker.stop", () => {
 		broker.broadcastLocal = jest.fn();
 		broker.metrics.stop = jest.fn();
 		broker.metrics.set = jest.fn();
+		broker.loggerFactory.stop = jest.fn();
 		broker.callMiddlewareHook = jest.fn();
 
 		broker.cacher = {
@@ -720,6 +725,7 @@ describe("Test broker.stop", () => {
 				expect(broker.transit.disconnect).toHaveBeenCalledTimes(1);
 				expect(broker.cacher.close).toHaveBeenCalledTimes(1);
 				expect(broker.metrics.stop).toHaveBeenCalledTimes(1);
+				expect(broker.loggerFactory.stop).toHaveBeenCalledTimes(1);
 
 				expect(broker.callMiddlewareHook).toHaveBeenCalledTimes(5);
 				expect(broker.callMiddlewareHook).toHaveBeenCalledWith("stopping", [broker], { reverse: true });
@@ -917,137 +923,6 @@ describe("Test broker.getLogger", () => {
 			other: "a"
 		});
 	});
-});
-
-describe.skip("Test broker.getLogger", () => {
-	let clock;
-	beforeAll(() => clock = lolex.install());
-	afterAll(() => clock.uninstall());
-
-	console.info = jest.fn();
-	console.error = jest.fn();
-
-	it("should not use any logger", () => {
-		let broker = new ServiceBroker({ logger: false });
-
-		console.info.mockClear();
-		broker.logger.info("Teszt");
-
-		expect(console.info).toHaveBeenCalledTimes(0);
-	});
-
-	it("should create default console logger", () => {
-		let broker = new ServiceBroker();
-
-		console.info.mockClear();
-		broker.logger.info("Teszt");
-
-		expect(console.info).toHaveBeenCalledTimes(1);
-		expect(console.info).toHaveBeenCalledWith("[1970-01-01T00:00:00.000Z]", "INFO ", "node-1234/BROKER:", "Teszt");
-	});
-
-	it("should create default console logger", () => {
-		let broker = new ServiceBroker({ logger: console });
-
-		console.info.mockClear();
-		broker.logger.info("Teszt");
-
-		expect(console.info).toHaveBeenCalledTimes(1);
-		expect(console.info).toHaveBeenCalledWith("[1970-01-01T00:00:00.000Z]", "INFO ", "node-1234/BROKER:", "Teszt");
-	});
-
-	it("should create default console logger with logLevel", () => {
-		let broker = new ServiceBroker({ logger: true, logLevel: "error" });
-
-		console.info.mockClear();
-		console.error.mockClear();
-		broker.logger.info("Teszt");
-		broker.logger.error("Error", { a: 5 });
-
-		expect(console.info).toHaveBeenCalledTimes(0);
-		expect(console.error).toHaveBeenCalledTimes(1);
-		expect(console.error).toHaveBeenCalledWith("[1970-01-01T00:00:00.000Z]", "ERROR", "node-1234/BROKER:", "Error", "{ a: 5 }");
-	});
-
-	it("should create default console logger with simple logFormatter", () => {
-		let broker = new ServiceBroker({ internalServices: false, logger: true, logFormatter: "simple" });
-
-		console.info.mockClear();
-		broker.logger.info("Teszt", { a: 5 });
-
-		expect(console.info).toHaveBeenCalledTimes(1);
-		expect(console.info).toHaveBeenCalledWith("INFO ", "-", "Teszt", "{ a: 5 }");
-	});
-
-	it("should create default console logger with logFormatter", () => {
-		let logFormatter = jest.fn();
-		let broker = new ServiceBroker({ internalServices: false, logger: true, logFormatter });
-
-		logFormatter.mockClear();
-		broker.logger.info("Teszt", { a: 5 });
-
-		expect(logFormatter).toHaveBeenCalledTimes(1);
-		expect(logFormatter).toHaveBeenCalledWith("info", ["Teszt", { a: 5 }], { "mod": "broker", "nodeID": "node-1234", "ns": "" });
-	});
-
-	describe("Test logger creator", () => {
-		let logger = jest.fn(() => ({ info: jest.fn() }));
-		let broker;
-
-		it("should call logger function with broker bindings", () => {
-			broker = new ServiceBroker({ internalServices: false, logger, namespace: "testing", nodeID: "test-pc", transporter: null, internalMiddlewares: false });
-
-			expect(logger).toHaveBeenCalledTimes(4);
-			expect(logger).toHaveBeenCalledWith({ "mod": "broker", "nodeID": "test-pc", "ns": "testing" });
-		});
-
-		it("should call creator function with custom module", () => {
-			logger.mockClear();
-			broker.getLogger("my-module");
-
-			expect(logger).toHaveBeenCalledTimes(1);
-			expect(logger).toHaveBeenCalledWith({ "mod": "my-module", "nodeID": "test-pc", "ns": "testing" });
-		});
-
-		it("should call creator function with versioned service bindings", () => {
-			logger.mockClear();
-			broker.getLogger("v1.posts", { svc: "posts", ver: 2 });
-
-			expect(logger).toHaveBeenCalledTimes(1);
-			expect(logger).toHaveBeenCalledWith({ "mod": "v1.posts", "svc": "posts", "ver": 2, "nodeID": "test-pc", "ns": "testing" });
-		});
-
-		it("should call creator function with versioned service bindings", () => {
-			logger.mockClear();
-			broker.getLogger("my.module.network.io", { custom: "abc" });
-
-			expect(logger).toHaveBeenCalledTimes(1);
-			expect(logger).toHaveBeenCalledWith({ "mod": "my.module.network.io", "custom": "abc", "nodeID": "test-pc", "ns": "testing" });
-		});
-
-	});
-
-	it("should extend an external logger", () => {
-		let logger = {
-			info: jest.fn()
-		};
-		let broker = new ServiceBroker({ internalServices: false, logger });
-
-		logger.info.mockClear();
-
-		expect(logger.fatal).toBeDefined();
-		expect(logger.error).toBeDefined();
-		expect(logger.warn).toBeDefined();
-		expect(logger.info).toBeDefined();
-		expect(logger.debug).toBeDefined();
-		expect(logger.trace).toBeDefined();
-
-		broker.logger.info("Info message");
-		broker.logger.error("Error message");
-
-		expect(logger.info).toHaveBeenCalledTimes(2);
-	});
-
 });
 
 describe("Test broker.fatal", () => {

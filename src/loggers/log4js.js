@@ -44,8 +44,6 @@ class Log4jsLogger extends BaseLogger {
 			if (this.opts.log4js) {
 				this.log4js.configure(this.opts.log4js);
 			}
-
-			this.broker.localBus.on("broker.stopped", () => this.log4js.shutdown());
 		} catch(err) {
 			/* istanbul ignore next */
 			this.broker.fatal("The 'log4js' package is missing! Please install it with 'npm install log4js --save' command!", err, true);
@@ -56,10 +54,6 @@ class Log4jsLogger extends BaseLogger {
 	 * Stopping logger
 	 */
 	stop() {
-		if (this.timer) {
-			clearInterval(this.timer);
-		}
-
 		if (this.log4js) {
 			return new Promise(resolve => this.log4js.shutdown(resolve));
 		}

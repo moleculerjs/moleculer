@@ -116,6 +116,25 @@ describe("Test File logger class", () => {
 
 	});
 
+	describe("Test stop method", () => {
+		const loggerFactory = new LoggerFactory(broker);
+
+		it("should create a default logger", async () => {
+			const logger = new FileLogger();
+
+			logger.init(loggerFactory);
+
+			expect(logger.timer).toBeDefined();
+			logger.flush = jest.fn();
+
+			await logger.stop();
+
+			expect(logger.flush).toHaveBeenCalledTimes(1);
+			expect(logger.timer).toBeNull();
+		});
+
+	});
+
 	describe("Test render method", () => {
 		const loggerFactory = new LoggerFactory(broker);
 

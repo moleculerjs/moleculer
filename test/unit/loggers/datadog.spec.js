@@ -4,7 +4,7 @@ jest.mock("node-fetch");
 const fetch = require("node-fetch");
 fetch.mockImplementation(() => Promise.resolve({ statusText: "" }));
 
-const DatalogLogger = require("../../../src/loggers/datadog");
+const DatadogLogger = require("../../../src/loggers/datadog");
 
 const ServiceBroker = require("../../../src/service-broker");
 const LoggerFactory = require("../../../src/logger-factory");
@@ -21,7 +21,7 @@ describe("Test Datadog logger class", () => {
 	describe("Test Constructor", () => {
 
 		it("should create with default options", () => {
-			const logger = new DatalogLogger();
+			const logger = new DatadogLogger();
 
 			expect(logger.opts).toEqual({
 				createLogger: null,
@@ -40,7 +40,7 @@ describe("Test Datadog logger class", () => {
 		});
 
 		it("should create with custom options", () => {
-			const logger = new DatalogLogger({
+			const logger = new DatadogLogger({
 				createLogger: jest.fn(),
 				level: "debug",
 				ddSource: "my-app",
@@ -64,7 +64,7 @@ describe("Test Datadog logger class", () => {
 		});
 
 		it("should throw error if apiKey is not defined", () => {
-			expect(() => new DatalogLogger({ apiKey: "" })).toThrow("Datadog API key is missing. Set DATADOG_API_KEY environment variable.");
+			expect(() => new DatadogLogger({ apiKey: "" })).toThrow("Datadog API key is missing. Set DATADOG_API_KEY environment variable.");
 		});
 
 	});
@@ -73,7 +73,7 @@ describe("Test Datadog logger class", () => {
 		const loggerFactory = new LoggerFactory(broker);
 
 		it("should init the logger", () => {
-			const logger = new DatalogLogger();
+			const logger = new DatadogLogger();
 			logger.init(loggerFactory);
 
 			expect(logger.objectPrinter).toBeDefined();
@@ -81,7 +81,7 @@ describe("Test Datadog logger class", () => {
 		});
 
 		it("should init the logger with custom options", () => {
-			const logger = new DatalogLogger({
+			const logger = new DatadogLogger({
 				interval: 0
 			});
 			logger.init(loggerFactory);
@@ -91,7 +91,7 @@ describe("Test Datadog logger class", () => {
 
 		it("should use custom objectPrinter", () => {
 			const objectPrinter = jest.fn();
-			const logger = new DatalogLogger({
+			const logger = new DatadogLogger({
 				objectPrinter
 			});
 
@@ -102,11 +102,30 @@ describe("Test Datadog logger class", () => {
 
 	});
 
+	describe("Test stop method", () => {
+		const loggerFactory = new LoggerFactory(broker);
+
+		it("should create a default logger", async () => {
+			const logger = new DatadogLogger();
+
+			logger.init(loggerFactory);
+
+			expect(logger.timer).toBeDefined();
+			logger.flush = jest.fn();
+
+			await logger.stop();
+
+			expect(logger.flush).toHaveBeenCalledTimes(1);
+			expect(logger.timer).toBeNull();
+		});
+
+	});
+
 	describe("Test getTags method", () => {
 		const loggerFactory = new LoggerFactory(broker);
 
 		it("should return tags from row", () => {
-			const logger = new DatalogLogger({
+			const logger = new DatadogLogger({
 				env: "production"
 			});
 
@@ -136,7 +155,7 @@ describe("Test Datadog logger class", () => {
 		});
 
 		it("should create a child logger", () => {
-			const logger = new DatalogLogger({ level: "trace" });
+			const logger = new DatadogLogger({ level: "trace" });
 			logger.init(loggerFactory);
 			logger.flush = jest.fn();
 
@@ -163,7 +182,7 @@ describe("Test Datadog logger class", () => {
 		});
 
 		it("should not call console if level is lower", () => {
-			const logger = new DatalogLogger({ level: "info" });
+			const logger = new DatadogLogger({ level: "info" });
 			logger.init(loggerFactory);
 
 			const logHandler = logger.getLogHandler({ mod: "my-service", nodeID: "node-1" });
@@ -185,7 +204,7 @@ describe("Test Datadog logger class", () => {
 		});
 
 		it("should not create child logger if level is null", () => {
-			const logger = new DatalogLogger();
+			const logger = new DatadogLogger();
 			logger.init(loggerFactory);
 
 			logger.getLogLevel = jest.fn();
@@ -197,7 +216,7 @@ describe("Test Datadog logger class", () => {
 		});
 
 		it("should not create child logger if bindings is null", () => {
-			const logger = new DatalogLogger();
+			const logger = new DatadogLogger();
 			logger.init(loggerFactory);
 
 			logger.getLogLevel = jest.fn();
@@ -208,7 +227,7 @@ describe("Test Datadog logger class", () => {
 		});
 
 		it("should call flush if not interval", () => {
-			const logger = new DatalogLogger({ level: "trace", interval: 0 });
+			const logger = new DatadogLogger({ level: "trace", interval: 0 });
 			logger.init(loggerFactory);
 			logger.flush = jest.fn();
 
@@ -242,7 +261,7 @@ describe("Test Datadog logger class", () => {
 		});
 
 		it("should do nothing if queue is empty", () => {
-			const logger = new DatalogLogger({ level: "trace", interval: 0 });
+			const logger = new DatadogLogger({ level: "trace", interval: 0 });
 			logger.init(loggerFactory);
 
 			fetch.mockClear();
@@ -253,7 +272,7 @@ describe("Test Datadog logger class", () => {
 		});
 
 		it("should render rows and call appendFile", () => {
-			const logger = new DatalogLogger({ level: "trace", eol: "\n" });
+			const logger = new DatadogLogger({ level: "trace", eol: "\n" });
 			logger.init(loggerFactory);
 
 			const logHandler = logger.getLogHandler({ mod: "my-service", nodeID: "node-1" });
@@ -275,7 +294,7 @@ describe("Test Datadog logger class", () => {
 		});
 
 		it("should call flush after interval", () => {
-			const logger = new DatalogLogger({ level: "trace", interval: 2000 });
+			const logger = new DatadogLogger({ level: "trace", interval: 2000 });
 			logger.init(loggerFactory);
 			logger.flush = jest.fn();
 

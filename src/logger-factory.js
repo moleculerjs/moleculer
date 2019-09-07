@@ -72,7 +72,7 @@ class LoggerFactory {
 	 * Stopping all appenders
 	 */
 	stop() {
-		return Promise.all(this.appenders.map(appender => appender.stop()));
+		return this.broker.Promise.all(this.appenders.map(appender => appender.stop()));
 	}
 
 	/**
