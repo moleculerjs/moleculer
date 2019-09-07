@@ -16,7 +16,7 @@ const os = require("os");
 
 const broker = new ServiceBroker({ logger: false, nodeID: "node-123", namespace: "test-ns" });
 
-describe("Test Datadog logger class", () => {
+describe.skip("Test Datadog logger class", () => {
 
 	describe("Test Constructor", () => {
 
