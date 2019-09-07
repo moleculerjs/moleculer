@@ -53,6 +53,21 @@ class Log4jsLogger extends BaseLogger {
 	}
 
 	/**
+	 * Stopping logger
+	 */
+	stop() {
+		if (this.timer) {
+			clearInterval(this.timer);
+		}
+
+		if (this.log4js) {
+			return new Promise(resolve => this.log4js.shutdown(resolve));
+		}
+
+		return Promise.resolve();
+	}
+
+	/**
 	 *
 	 * @param {object} bindings
 	 */

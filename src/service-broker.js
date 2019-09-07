@@ -511,6 +511,12 @@ class ServiceBroker {
 					process.removeListener("SIGINT", this._closeFn);
 					process.removeListener("SIGTERM", this._closeFn);
 				}
+			})
+			.then(() => {
+				return this.loggerFactory.stop();
+			})
+			.catch(() => {
+				// Silent
 			});
 	}
 

@@ -6,6 +6,7 @@
 
 "use strict";
 
+const Promise = require("bluebird");
 const BaseLogger = require("./base");
 const _ = require("lodash");
 const os = require("os");
@@ -66,6 +67,17 @@ class DatadogLogger extends BaseLogger {
 			this.timer = setInterval(() => this.flush(), this.opts.interval);
 			this.timer.unref();
 		}
+	}
+
+	/**
+	 * Stopping logger
+	 */
+	stop() {
+		if (this.timer) {
+			clearInterval(this.timer);
+		}
+
+		return this.flush();
 	}
 
 	/**
@@ -148,6 +160,8 @@ class DatadogLogger extends BaseLogger {
 				console.warn("Unable to upload logs to Datadog server. Error:" + err.message, err); // eslint-disable-line no-console
 			});
 		}
+
+		return Promise.resolve();
 	}
 }
 

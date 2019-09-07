@@ -68,6 +68,12 @@ class LoggerFactory {
 		this.appenders.forEach(app => app.init(this));
 	}
 
+	/**
+	 * Stopping all appenders
+	 */
+	stop() {
+		return Promise.all(this.appenders.map(appender => appender.stop()));
+	}
 
 	/**
 	 * Get a logger for a module (service, transporter, cacher, context...etc)

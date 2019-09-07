@@ -5,13 +5,14 @@ const winston = require("winston");
 const { MoleculerClientError } = require("../src/errors");
 
 const broker = new ServiceBroker({
+	nodeID: "my-node",
 	logger: [
 		{
 			type: "Console",
 			options: {
 				//level: "error",
-				//formatter: (type, args, bindings) => [].concat(args, bindings)
-				//formatter: "json",
+				//formatter: (level, args, bindings) => [`[${level.toUpperCase()}]`, ...args],
+				//formatter: "simple",
 				moduleColors: true,
 				//autoPadding: true
 			}
@@ -21,11 +22,11 @@ const broker = new ServiceBroker({
 			options: {
 				folder: "d:/logs",
 				filename: "moleculer-{date}.log",
-				formatter: "{timestamp} {level} {nodeID}/{mod}: {msg}"
+				formatter: "{timestamp} {level} {nodeID}/{mod}: {msg}",
+				interval: 10 * 1000
 			}
-
-		},
-		{
+		},*/
+		/*{
 			type: "File",
 			options: {
 				level: "error",
@@ -83,11 +84,11 @@ const broker = new ServiceBroker({
 				}
 			}
 		},*/
-		{
+		/*{
 			type: "Datadog",
 			options: {
 			}
-		}
+		}*/
 	],
 	logLevel: {
 		"MY.**": "trace",
@@ -147,3 +148,5 @@ myLogger.info({ a: 5, b: { c: "John" } }, "Object test - before");
 
 broker.start();
 broker.repl();
+
+setTimeout(() => broker.stop(), 4000);

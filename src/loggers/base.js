@@ -6,6 +6,7 @@
 
 "use strict";
 
+const Promise = require("bluebird");
 const _ = require("lodash");
 const { match }	= require("../utils");
 
@@ -42,6 +43,12 @@ class BaseLogger {
 		this.broker = this.loggerFactory.broker;
 	}
 
+	/**
+	 * Stopping logger
+	 */
+	stop() {
+		return Promise.resolve();
+	}
 
 	getLogLevel(mod) {
 		mod = mod ? mod.toUpperCase() : "";

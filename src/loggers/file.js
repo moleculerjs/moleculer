@@ -15,6 +15,8 @@ const os = require("os");
 const util = require("util");
 const { makeDirs } = require("../utils");
 
+const appendFile = util.promisify(fs.appendFile);
+
 /**
  * File logger for Moleculer
  *
@@ -69,6 +71,17 @@ class FileLogger extends BaseLogger {
 			this.timer = setInterval(() => this.flush(), this.opts.interval);
 			this.timer.unref();
 		}
+	}
+
+	/**
+	 * Stopping logger
+	 */
+	stop() {
+		if (this.timer) {
+			clearInterval(this.timer);
+		}
+
+		return this.flush();
 	}
 
 	/**
@@ -163,14 +176,13 @@ class FileLogger extends BaseLogger {
 
 			const buf = rows.map(row => this.formatter(row)).join(this.opts.eol) + this.opts.eol;
 
-			fs.appendFile(filename, buf, (err) => {
+			return appendFile(filename, buf).catch((err) => {
 				/* istanbul ignore next */
-				if (err) {
-					// eslint-disable-next-line no-console
-					console.debug("Unable to write log file:", filename);
-				}
+				console.debug("Unable to write log file:", filename, err); // eslint-disable-line no-console
 			});
 		}
+
+		return Promise.resolve();
 	}
 
 	/*writeRow(row) {
