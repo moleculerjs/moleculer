@@ -272,7 +272,7 @@ describe("Test Datadog logger class", () => {
 		});
 
 		it("should render rows and call appendFile", () => {
-			const logger = new DatadogLogger({ level: "trace", eol: "\n" });
+			const logger = new DatadogLogger({ level: "trace", eol: "\n", hostname: "my-host" });
 			logger.init(loggerFactory);
 
 			const logHandler = logger.getLogHandler({ mod: "my-service", nodeID: "node-1" });
@@ -289,7 +289,7 @@ describe("Test Datadog logger class", () => {
 				headers: {
 					"Content-Type": "application/json"
 				},
-				body: "[{\"timestamp\":0,\"level\":\"fatal\",\"message\":\"message { a: 5 }\",\"nodeID\":\"node-1\",\"ddsource\":\"moleculer\",\"ddtags\":\"env:,nodeID:node-1,namespace:undefined\",\"hostname\":\"Bobcsi-PC\"},{\"timestamp\":0,\"level\":\"error\",\"message\":\"message { a: 5 }\",\"nodeID\":\"node-1\",\"ddsource\":\"moleculer\",\"ddtags\":\"env:,nodeID:node-1,namespace:undefined\",\"hostname\":\"Bobcsi-PC\"}]"
+				body: "[{\"timestamp\":0,\"level\":\"fatal\",\"message\":\"message { a: 5 }\",\"nodeID\":\"node-1\",\"ddsource\":\"moleculer\",\"ddtags\":\"env:,nodeID:node-1,namespace:undefined\",\"hostname\":\"my-host\"},{\"timestamp\":0,\"level\":\"error\",\"message\":\"message { a: 5 }\",\"nodeID\":\"node-1\",\"ddsource\":\"moleculer\",\"ddtags\":\"env:,nodeID:node-1,namespace:undefined\",\"hostname\":\"my-host\"}]"
 			});
 		});
 
