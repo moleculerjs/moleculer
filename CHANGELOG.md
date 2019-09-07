@@ -289,6 +289,48 @@ module.exports = {
 
 > To use this logger please install the `log4js` module with `npm install log4js --save` command.
 
+### Datadog logger
+This logger uploads log messages to the [Datadog](https://www.datadoghq.com/) server.
+
+> Please note, this logger doesn't print any messages to the console, just collects & uploads. Use it beside another logger which also prints the messages.
+
+**Shorthand configuration with default options**
+```js
+// moleculer.config.js
+module.exports = {
+    logger: "Datadog",
+};
+```
+
+**Full configuration**
+```js
+// moleculer.config.js
+module.exports = {
+    logger: {
+        type: "Datadog",
+        options: {
+            // Logging level
+            level: "info",
+
+            // Datadog server endpoint. https://docs.datadoghq.com/api/?lang=bash#send-logs-over-http
+            url: "https://http-intake.logs.datadoghq.com/v1/input/",
+            // Datadog API key
+            apiKey: process.env.DATADOG_API_KEY,
+            // Datadog source variable
+            ddSource: "moleculer",
+            // Datadog env variable
+            env: undefined,
+            // Datadog hostname variable
+            hostname: os.hostname(),
+            // Custom object printer function for `Object` & `Ąrray`
+            objectPrinter: null,
+            // Data uploading interval
+            interval: 10 * 1000
+        }
+    }
+};
+```
+
 ### Multiple loggers
 This new logger configuration admits to use multiple loggers even from the same logger type and different logging levels.
 
