@@ -13,6 +13,7 @@ const someData = JSON.parse(fs.readFileSync("./benchmark/data/10k.json", "utf8")
 function createBrokers(Transporter, opts) {
 	const b1 = new ServiceBroker({
 		nodeID: "node-1",
+		logger: false,
 		transporter: new Transporter(opts),
 		//internalMiddlewares: false,
 		middlewares: [
@@ -23,6 +24,7 @@ function createBrokers(Transporter, opts) {
 
 	const b2 = new ServiceBroker({
 		nodeID: "node-2",
+		logger: false,
 		transporter: new Transporter(opts),
 		//internalMiddlewares: false,
 		middlewares: [

@@ -10,6 +10,7 @@ const _ 		= require("lodash");
 const { BrokerOptionsError } = require("./errors");
 const Loggers = require("./loggers");
 
+const noop = () => {};
 
 /**
  * Log factory class.
@@ -94,13 +95,17 @@ class LoggerFactory {
 		const logHandlers = _.compact(appenders.map(app => app.getLogHandler(bindings)));
 
 		Loggers.LEVELS.forEach((type) => {
+			if (logHandlers.length == 0)
+				return logger[type] = noop;
+
 			logger[type] = function(...args) {
+				if (logHandlers.length == 0) return;
+
 				if (broker.middlewares)
 					broker.middlewares.callSyncHandlers("newLogEntry", [type, args, bindings], {});
 
-				if (logHandlers.length == 0) return;
-
-				logHandlers.forEach(fn => fn(type, args));
+				for(let i = 0; i < logHandlers.length; i++)
+					logHandlers[i](type, args);
 			};
 		});
 
