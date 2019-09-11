@@ -79,11 +79,11 @@ class MemoryCacher extends BaseCacher {
 			this.metrics.increment(METRIC.MOLECULER_CACHER_FOUND_TOTAL);
 
 			let item = this.cache.get(key);
-			let now = Date.now();
-			if (item.expire && item.expire < now) {
+			if (item.expire && item.expire < Date.now()) {
 				this.logger.debug(`EXPIRED ${key}`);
 				this.metrics.increment(METRIC.MOLECULER_CACHER_EXPIRED_TOTAL);
 				this.cache.delete(key);
+				timeEnd();
 				return Promise.resolve(null);
 			}
 			const res = this.clone ? this.clone(item.data) : item.data;
