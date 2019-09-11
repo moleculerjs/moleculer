@@ -86,6 +86,69 @@ describe("Test MemoryCacher set & get", () => {
 
 });
 
+describe("Test MemoryCacher get() with expire", () => {
+
+	let broker = new ServiceBroker({ logger: false });
+	let cacher = new MemoryCacher();
+	cacher.init(broker);
+
+	let key = "tst123";
+	let data1 = {
+		a: 1,
+		b: false,
+		c: "Test",
+		d: {
+			e: 55
+		},
+	};
+
+	// Expire in less that 30 secs due to https://github.com/moleculerjs/moleculer/issues/576
+	const expire = 15;
+	const currentTime = 1487076708000;
+
+	// Solution from: https://stackoverflow.com/a/47781245/11798560
+	let dateNowSpy;
+	beforeAll(() => {
+		// Lock Time
+		dateNowSpy = jest.spyOn(Date, "now");
+	});
+
+	afterAll(() => {
+		// Unlock Time
+		dateNowSpy.mockRestore();
+	});
+
+	it("should save the data with key and an expire value", () => {
+		// setting expire date -> will be called by cacher.set()
+		dateNowSpy.mockImplementationOnce(() => currentTime);
+
+		cacher.set(key, data1, expire);
+		const entry = cacher.cache.get(key);
+		expect(entry).toBeDefined();
+		expect(entry.data).toBe(data1);
+		expect(entry.expire).toBe(currentTime + 15 * 1000);
+	});
+
+	it("should give back the data after 14 secs", () => {
+		// date.now() in cacher.get() will advance by 14 secs
+		dateNowSpy.mockImplementationOnce(() => currentTime + 14 * 1000);
+
+		return cacher.get(key).then(obj => {
+			expect(obj).toBeDefined();
+			expect(obj).toEqual(data1);
+		});
+	});
+
+	it("should remove the entry after 15 secs", () => {
+		// date.now() in cacher.get() will advance by 16 secs
+		dateNowSpy.mockImplementationOnce(() => currentTime + 16 * 1000);
+
+		return cacher.get(key).then(obj => {
+			expect(obj).toBeNull();
+		});
+	});
+});
+
 describe("Test MemoryCacher set & get with default cloning", () => {
 
 	let broker = new ServiceBroker({ logger: false });
