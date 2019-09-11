@@ -102,8 +102,7 @@ describe("Test MemoryCacher get() with expire", () => {
 		},
 	};
 
-	// Expire in less that 30 secs due to https://github.com/moleculerjs/moleculer/issues/576
-	const expire = 15;
+	const ttlValue = 15;
 	const currentTime = 1487076708000;
 
 	// Solution from: https://stackoverflow.com/a/47781245/11798560
@@ -118,15 +117,15 @@ describe("Test MemoryCacher get() with expire", () => {
 		dateNowSpy.mockRestore();
 	});
 
-	it("should save the data with key and an expire value", () => {
+	it("should save the data with key and a TTL value", () => {
 		// setting expire date -> will be called by cacher.set()
 		dateNowSpy.mockImplementationOnce(() => currentTime);
 
-		cacher.set(key, data1, expire);
+		cacher.set(key, data1, ttlValue);
 		const entry = cacher.cache.get(key);
 		expect(entry).toBeDefined();
 		expect(entry.data).toBe(data1);
-		expect(entry.expire).toBe(currentTime + 15 * 1000);
+		expect(entry.expire).toBe(currentTime + ttlValue * 1000);
 	});
 
 	it("should give back the data after 14 secs", () => {
