@@ -18,7 +18,7 @@
     "memleak": "node benchmark/memleak-test.js",
     "proto": "pbjs -t static-module -w commonjs -o src/serializers/proto/packets.proto.js src/serializers/proto/packets.proto",
     "thrift": "thrift -gen js:node -o src\\serializers\\thrift src\\serializers\\thrift\\packets.thrift",
-    "test": "node --max-old-space-size=4096 ./node_modules/.bin/jest --coverage --all --forceExit --logHeapUsage",
+    "test": "node --max-old-space-size=4096 ./node_modules/jest-cli/bin/jest.js --coverage --all --forceExit --logHeapUsage",
     "test:travis": "npm test && npm run test:trans && npm run test:amqp && npm run test:ts",
     "test:unit": "jest --testMatch \"**/unit/**spec.js\" --coverage",
     "test:int": "jest --testMatch \"**/integration/**spec.js\" --coverage",
