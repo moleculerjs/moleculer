@@ -596,6 +596,58 @@ describe("Test Transit.requestHandler", () => {
 		});
 	});
 
+	it("should call sendResponse with correct tracing property", () => {
+		transit.sendResponse.mockClear();
+		transit.broker._getLocalActionEndpoint.mockClear();
+		transit._handleIncomingRequestStream.mockClear();
+		ep.action.handler.mockClear();
+
+		let data = { id: 5, name: "John" };
+		ep.action.handler = jest.fn(() => Promise.resolve(data));
+
+		const payload = {
+			sender: "node2",
+			id,
+			meta: { a: 5 },
+			action: "posts.find",
+			params: { name: "John" },
+			parentID: "00000",
+			requestID: "12345-54321",
+			caller: "users.list",
+			level: 3,
+			tracing: null,
+			timeout: 230
+		};
+
+		return transit.requestHandler(payload).catch(protectReject).then(() => {
+			expect(transit._handleIncomingRequestStream).toHaveBeenCalledTimes(0);
+
+			expect(transit.broker._getLocalActionEndpoint).toHaveBeenCalledTimes(1);
+			expect(transit.broker._getLocalActionEndpoint).toHaveBeenCalledWith("posts.find");
+
+			expect(ep.action.handler).toHaveBeenCalledTimes(1);
+			expect(ep.action.handler).toHaveBeenCalledWith(expect.any(Context));
+			const ctx = ep.action.handler.mock.calls[0][0];
+
+			expect(ctx).toBeInstanceOf(Context);
+			expect(ctx.id).toBe(id);
+			expect(ctx.endpoint).toBe(ep);
+			expect(ctx.action).toBe(ep.action);
+			expect(ctx.params).toEqual({ name: "John" });
+			expect(ctx.parentID).toBe("00000");
+			expect(ctx.requestID).toBe("12345-54321");
+			expect(ctx.caller).toBe("users.list");
+			expect(ctx.meta).toEqual({ a: 5 });
+			expect(ctx.level).toBe(3);
+			expect(ctx.tracing).toBeNull();
+			expect(ctx.nodeID).toBe("node2");
+			expect(ctx.options.timeout).toBe(230);
+
+			expect(transit.sendResponse).toHaveBeenCalledTimes(1);
+			expect(transit.sendResponse).toHaveBeenCalledWith("node2", id, { a: 5 }, data, null);
+		});
+	});
+
 	it("should call sendResponse with error", () => {
 		transit.sendResponse.mockClear();
 		broker._getLocalActionEndpoint.mockClear();
