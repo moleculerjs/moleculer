@@ -423,7 +423,7 @@ class Transit {
 			ctx.caller = payload.caller;
 			ctx.meta = payload.meta || {};
 			ctx.level = payload.level;
-			ctx.tracing = !!payload.tracing;
+			ctx.tracing = payload.tracing;
 			ctx.nodeID = payload.sender;
 
 			if (payload.timeout != null)
