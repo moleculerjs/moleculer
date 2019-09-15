@@ -41,11 +41,11 @@ const broker1 = new ServiceBroker({
 broker1.start()
 	.then(() => {
 		console.log("invoker started");
-		setTimeout(() => {
-			broker1.call("service1.ping")
-				.then((res) => {
-					console.log(res);
-				});
+		setTimeout(async () => {
+			const span = broker1.tracer.startSpan("Invoke service1.ping");
+			const res = await broker1.call("service1.ping", null, { parentSpan: span });
+			console.log(res);
+			span.finish();
 		}, 5000);
 
 	});
