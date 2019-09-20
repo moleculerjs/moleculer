@@ -99,8 +99,8 @@ module.exports = function MetricsMiddleware(broker) {
 		localEvent(next, event) {
 			const service = event.service ? event.service.name : null;
 			if (broker.isMetricsEnabled()) {
-				return function metricsMiddleware(/* payload, sender, event */) {
-					metrics.increment(METRIC.MOLECULER_EVENT_RECEIVED_TOTAL, { service, event: arguments[2], group: event.group });
+				return function metricsMiddleware(ctx) {
+					metrics.increment(METRIC.MOLECULER_EVENT_RECEIVED_TOTAL, { service, event: ctx.eventName, group: event.group || service });
 					return next.apply(this, arguments);
 				}.bind(this);
 			}

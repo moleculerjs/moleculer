@@ -212,13 +212,17 @@ describe("Test MetricsMiddleware", () => {
 
 			const newHandler = mw.localEvent.call(broker, handler, event);
 
-			newHandler({ a: 5 }, "server-123", "user.created");
+			const ctx = Context.create(broker, {}, { a: 5 });
+			ctx.eventName = "user.created";
+			ctx.eventGroup = "";
+
+			newHandler(ctx);
 
 			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
 			expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.event.received.total", { event : "user.created", service: "posts",  group: "users" });
 
 			expect(handler).toHaveBeenCalledTimes(1);
-			expect(handler).toHaveBeenCalledWith({ a: 5 }, "server-123", "user.created");
+			expect(handler).toHaveBeenCalledWith(ctx);
 		});
 
 		it("should not wrap handler if metrics is disabled", () => {
@@ -228,12 +232,16 @@ describe("Test MetricsMiddleware", () => {
 
 			const newHandler = mw.localEvent.call(broker, handler, event);
 
-			newHandler({ a: 5 }, "server-123", "user.created");
+			const ctx = Context.create(broker, {}, { a: 5 });
+			ctx.eventName = "user.created";
+			ctx.eventGroup = "";
+
+			newHandler(ctx);
 
 			expect(broker.metrics.increment).toHaveBeenCalledTimes(0);
 
 			expect(handler).toHaveBeenCalledTimes(1);
-			expect(handler).toHaveBeenCalledWith({ a: 5 }, "server-123", "user.created");
+			expect(handler).toHaveBeenCalledWith(ctx);
 		});
 	});
 

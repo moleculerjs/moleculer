@@ -66,7 +66,7 @@ class ConsoleReporter extends BaseReporter {
 		if (keys.length == 0)
 			return kleur.gray("{}");
 
-		return kleur.gray("{") + keys.map(key => `${kleur.gray(this.formatLabelName(key))}: ${kleur.magenta(labels[key])}`).join(", ") + kleur.gray("}");
+		return kleur.gray("{") + keys.map(key => `${kleur.gray(this.formatLabelName(key))}: ${kleur.magenta("" + labels[key])}`).join(", ") + kleur.gray("}");
 	}
 
 	/**
