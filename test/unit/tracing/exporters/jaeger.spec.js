@@ -1,6 +1,7 @@
 "use strict";
 
 jest.mock("jaeger-client");
+jest.mock("jaeger-client/dist/src/samplers/const_sampler");
 jest.mock("jaeger-client/dist/src/samplers/guaranteed_throughput_sampler");
 jest.mock("jaeger-client/dist/src/samplers/remote_sampler");
 jest.mock("jaeger-client/dist/src/reporters/udp_sender");
