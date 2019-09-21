@@ -23,8 +23,8 @@ const H = {
 		});
 	},
 
-	hasService(broker, name, nodeID, version) {
-		return broker.registry.services.has(name, version, nodeID);
+	hasService(broker, fullName, nodeID) {
+		return broker.registry.services.has(fullName, nodeID);
 	},
 
 	hasAction(broker, name) {

@@ -65,7 +65,7 @@ class Registry {
 		this.metrics.register({ name: METRIC.MOLECULER_REGISTRY_NODES_TOTAL, type: METRIC.TYPE_GAUGE, description: "Number of registered nodes" });
 		this.metrics.register({ name: METRIC.MOLECULER_REGISTRY_NODES_ONLINE_TOTAL, type: METRIC.TYPE_GAUGE, description: "Number of online nodes" });
 		this.metrics.register({ name: METRIC.MOLECULER_REGISTRY_SERVICES_TOTAL, type: METRIC.TYPE_GAUGE, description: "Number of registered services" });
-		this.metrics.register({ name: METRIC.MOLECULER_REGISTRY_SERVICE_ENDPOINTS_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["name", "version"], description: "Number of service endpoints" });
+		this.metrics.register({ name: METRIC.MOLECULER_REGISTRY_SERVICE_ENDPOINTS_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["name"], description: "Number of service endpoints" });
 		this.metrics.register({ name: METRIC.MOLECULER_REGISTRY_ACTIONS_TOTAL, type: METRIC.TYPE_GAUGE, description: "Number of registered actions" });
 		this.metrics.register({ name: METRIC.MOLECULER_REGISTRY_ACTION_ENDPOINTS_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["name"], description: "Number of action endpoints" });
 		this.metrics.register({ name: METRIC.MOLECULER_REGISTRY_EVENTS_TOTAL, type: METRIC.TYPE_GAUGE, description: "Number of registered events" });
@@ -83,7 +83,7 @@ class Registry {
 
 		const services = this.services.list({ grouping: true, onlyLocal: false, onlyAvailable: false, skipInternal: false, withActions: false, withEvents: false });
 		this.metrics.set(METRIC.MOLECULER_REGISTRY_SERVICES_TOTAL, services.length);
-		services.forEach(svc => this.metrics.set(METRIC.MOLECULER_REGISTRY_SERVICE_ENDPOINTS_TOTAL, svc.nodes ? svc.nodes.length : 0, svc));
+		services.forEach(svc => this.metrics.set(METRIC.MOLECULER_REGISTRY_SERVICE_ENDPOINTS_TOTAL, svc.nodes ? svc.nodes.length : 0, { name: svc.fullName }));
 
 		const actions = this.actions.list({ withEndpoints: true });
 		this.metrics.set(METRIC.MOLECULER_REGISTRY_ACTIONS_TOTAL, actions.length);
@@ -101,7 +101,7 @@ class Registry {
 	 * @memberof Registry
 	 */
 	registerLocalService(svc) {
-		if (!this.services.has(svc.name, svc.version, this.broker.nodeID)) {
+		if (!this.services.has(svc.fullName, this.broker.nodeID)) {
 			const service = this.services.add(this.nodes.localNode, svc, true);
 
 			if (svc.actions)
@@ -177,13 +177,13 @@ class Registry {
 
 			let exist = false;
 			serviceList.forEach(svc => {
-				if (service.equals(svc.name, svc.version))
+				if (service.equals(svc.fullName))
 					exist = true;
 			});
 
 			// This service is removed on remote node!
 			if (!exist) {
-				this.unregisterService(service.name, service.version, node.id);
+				this.unregisterService(service.fullName, node.id);
 			}
 		});
 

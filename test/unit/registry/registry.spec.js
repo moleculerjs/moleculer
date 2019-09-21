@@ -112,7 +112,7 @@ describe("Test Registry.registerLocalService", () => {
 		registry.registerLocalService(svc);
 
 		expect(registry.services.add).toHaveBeenCalledTimes(1);
-		expect(registry.services.add).toHaveBeenCalledWith(registry.nodes.localNode, "users", 2, svc.settings, svc.metadata);
+		expect(registry.services.add).toHaveBeenCalledWith(registry.nodes.localNode, svc, true);
 
 		expect(registry.registerActions).toHaveBeenCalledTimes(1);
 		expect(registry.registerActions).toHaveBeenCalledWith(registry.nodes.localNode, service, svc.actions);
@@ -155,7 +155,7 @@ describe("Test Registry.registerLocalService", () => {
 			registry.registerLocalService(svc);
 
 			expect(registry.services.add).toHaveBeenCalledTimes(1);
-			expect(registry.services.add).toHaveBeenCalledWith(registry.nodes.localNode, "users", 2, svc.settings, svc.metadata);
+			expect(registry.services.add).toHaveBeenCalledWith(registry.nodes.localNode, svc, true);
 
 			expect(registry.registerActions).toHaveBeenCalledTimes(0);
 
@@ -214,7 +214,7 @@ describe("Test Registry.registerServices", () => {
 		registry.registerServices(node, [service]);
 
 		expect(registry.services.add).toHaveBeenCalledTimes(1);
-		expect(registry.services.add).toHaveBeenCalledWith(node, "users", 2, service.settings, undefined);
+		expect(registry.services.add).toHaveBeenCalledWith(node, service, false);
 		expect(serviceItem.update).toHaveBeenCalledTimes(0);
 
 		expect(registry.registerActions).toHaveBeenCalledTimes(1);
@@ -238,6 +238,7 @@ describe("Test Registry.registerServices", () => {
 	it("should update service, actions & events", () => {
 		let serviceItem = {
 			name: "users",
+			fullName: "v2.users",
 			version: 2,
 			metadata: {},
 			node,
@@ -264,6 +265,7 @@ describe("Test Registry.registerServices", () => {
 
 		let service = {
 			name: "users",
+			fullName: "v2.users",
 			version: 2,
 			settings: { b: 3 },
 			metadata: { priority: 3 },
@@ -282,7 +284,7 @@ describe("Test Registry.registerServices", () => {
 		expect(registry.services.add).toHaveBeenCalledTimes(0);
 
 		expect(registry.services.get).toHaveBeenCalledTimes(1);
-		expect(registry.services.get).toHaveBeenCalledWith("users", 2, node.id);
+		expect(registry.services.get).toHaveBeenCalledWith("v2.users", node.id);
 
 		expect(serviceItem.update).toHaveBeenCalledTimes(1);
 		expect(serviceItem.update).toHaveBeenCalledWith(service);
@@ -324,7 +326,7 @@ describe("Test Registry.registerServices", () => {
 		registry.registerServices(node, [service]);
 
 		expect(registry.unregisterService).toHaveBeenCalledTimes(1);
-		expect(registry.unregisterService).toHaveBeenCalledWith("users", 2, "node-11");
+		expect(registry.unregisterService).toHaveBeenCalledWith("v2.users", "node-11");
 
 		expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
 		expect(broker.servicesChanged).toHaveBeenCalledWith(false);
@@ -350,10 +352,10 @@ describe("Test Registry.unregisterService & unregisterServicesByNode", () => {
 	it("should call services remove method", () => {
 		registry.regenerateLocalRawInfo.mockClear();
 
-		registry.unregisterService("posts", 2, "node-11");
+		registry.unregisterService("v2.posts", "node-11");
 
 		expect(registry.services.remove).toHaveBeenCalledTimes(1);
-		expect(registry.services.remove).toHaveBeenCalledWith("posts", 2, "node-11");
+		expect(registry.services.remove).toHaveBeenCalledWith("v2.posts", "node-11");
 
 		expect(registry.nodes.localNode.seq).toBe(seq);
 		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(0);
@@ -363,10 +365,10 @@ describe("Test Registry.unregisterService & unregisterServicesByNode", () => {
 		registry.regenerateLocalRawInfo.mockClear();
 		registry.services.remove.mockClear();
 
-		registry.unregisterService("posts", 2);
+		registry.unregisterService("v2.posts");
 
 		expect(registry.services.remove).toHaveBeenCalledTimes(1);
-		expect(registry.services.remove).toHaveBeenCalledWith("posts", 2, broker.nodeID);
+		expect(registry.services.remove).toHaveBeenCalledWith("v2.posts", broker.nodeID);
 
 		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledTimes(1);
 		expect(registry.regenerateLocalRawInfo).toHaveBeenCalledWith(true);
@@ -413,8 +415,8 @@ describe("Test Registry.registerActions", () => {
 		expect(service.addAction).toHaveBeenCalledWith({ "name": "users.save" });
 
 		expect(broker.middlewares.wrapHandler).toHaveBeenCalledTimes(2);
-		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("remoteAction", jasmine.any(Function), { "name": "users.find" });
-		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("remoteAction", jasmine.any(Function), { "name": "users.save" });
+		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("remoteAction", jasmine.any(Function), { "name": "users.find", handler: jasmine.any(Function), service });
+		expect(broker.middlewares.wrapHandler).toHaveBeenCalledWith("remoteAction", jasmine.any(Function), { "name": "users.save", handler: jasmine.any(Function), service });
 	});
 
 	it("should not call actions add & service addAction methods if has visibility", () => {
@@ -824,9 +826,17 @@ describe("Test Registry.hasService", () => {
 	registry.services.has = jest.fn();
 
 	it("should call registry.services.has method", () => {
-		registry.hasService("posts", 2);
+		registry.hasService("v2.posts");
 
 		expect(registry.services.has).toHaveBeenCalledTimes(1);
-		expect(registry.services.has).toHaveBeenCalledWith("posts", 2, undefined);
+		expect(registry.services.has).toHaveBeenCalledWith("v2.posts", undefined);
+	});
+
+	it("should call registry.services.has method with nodeID", () => {
+		registry.services.has.mockClear();
+		registry.hasService("v2.posts", "node-123");
+
+		expect(registry.services.has).toHaveBeenCalledTimes(1);
+		expect(registry.services.has).toHaveBeenCalledWith("v2.posts", "node-123");
 	});
 });
