@@ -9,6 +9,7 @@
 const BaseMetric = require("./base");
 const _ = require("lodash");
 const METRIC = require("../constants");
+const MetricRate = require("../rates");
 
 const sortAscending = (a, b) => a - b;
 const setProp = (o, k, v) => {
@@ -59,6 +60,8 @@ class HistogramMetric extends BaseMetric {
 			this.maxAgeSeconds = opts.maxAgeSeconds || this.registry.opts.defaultMaxAgeSeconds; // 1 minute
 			this.ageBuckets = opts.ageBuckets || this.registry.opts.defaultAgeBuckets; // 10 secs per bucket
 		}
+
+		this.rate = opts.rate;
 	}
 
 	/**
@@ -77,6 +80,9 @@ class HistogramMetric extends BaseMetric {
 			item = this.resetItem({
 				labels: _.pick(labels, this.labelNames)
 			});
+
+			if (this.rate)
+				item.rate = new MetricRate(this, item, 1);
 
 			this.values.set(hash, item);
 		}
@@ -97,6 +103,10 @@ class HistogramMetric extends BaseMetric {
 		if (item.quantileValues) {
 			item.quantileValues.add(value);
 		}
+
+		if (item.rate)
+			item.rate.update(item.count);
+
 		this.changed(value, labels, timestamp);
 
 		return item;
@@ -142,6 +152,9 @@ class HistogramMetric extends BaseMetric {
 
 		if (this.quantiles)
 			Object.assign(snapshot, item.quantileValues.snapshot());
+
+		if (item.rate)
+			snapshot.rate = item.rate.rate;
 
 		return snapshot;
 	}

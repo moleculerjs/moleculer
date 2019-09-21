@@ -22,7 +22,7 @@ const broker = new ServiceBroker({
 				options: {
 					onlyChanges: true,
 					//interval: 1000,
-					includes: "moleculer.**.total",
+					includes: "moleculer.request.*",
 					//excludes: ["moleculer.transit.publish.total", "moleculer.transit.receive.total"]
 				}
 			},
