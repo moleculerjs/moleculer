@@ -103,6 +103,7 @@ describe("Test circuit breaker", () => {
 				expect(cbOpenedHandler).toHaveBeenCalledTimes(1);
 				expect(cbOpenedHandler).toHaveBeenCalledWith({
 					nodeID: "slave-1",
+					service: "cb",
 					action: "cb.angry",
 					failures: 3,
 					count: 5,
@@ -125,6 +126,7 @@ describe("Test circuit breaker", () => {
 				expect(cbOpenedHandler).toHaveBeenCalledTimes(1);
 				expect(cbOpenedHandler).toHaveBeenCalledWith({
 					nodeID: "slave-1",
+					service: "cb",
 					action: "cb.angry",
 					failures: 4,
 					count: 6,

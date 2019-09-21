@@ -9,6 +9,9 @@ describe("Test CircuitBreakerMiddleware", () => {
 	const broker = new ServiceBroker({ nodeID: "server-1", logger: false });
 	const handler = jest.fn(() => Promise.resolve("Result"));
 	const action = {
+		service: {
+			fullName: "v2.likes"
+		},
 		handler
 	};
 
@@ -48,9 +51,9 @@ describe("Test CircuitBreakerMiddleware", () => {
 		mw.created.call(broker, broker);
 
 		expect(broker.metrics.register).toHaveBeenCalledTimes(3);
-		expect(broker.metrics.register).toHaveBeenCalledWith({ type: "gauge", name: "moleculer.circuit-breaker.opened.active", labelNames: ["affectedNodeID", "action"], description: expect.any(String) });
-		expect(broker.metrics.register).toHaveBeenCalledWith({ type: "counter", name: "moleculer.circuit-breaker.opened.total", labelNames: ["affectedNodeID", "action"], description: expect.any(String) });
-		expect(broker.metrics.register).toHaveBeenCalledWith({ type: "gauge", name: "moleculer.circuit-breaker.half-opened.active", labelNames: ["affectedNodeID", "action"], description: expect.any(String) });
+		expect(broker.metrics.register).toHaveBeenCalledWith({ type: "gauge", name: "moleculer.circuit-breaker.opened.active", labelNames: ["affectedNodeID", "service", "action"], description: expect.any(String) });
+		expect(broker.metrics.register).toHaveBeenCalledWith({ type: "counter", name: "moleculer.circuit-breaker.opened.total", labelNames: ["affectedNodeID", "service", "action"], description: expect.any(String) });
+		expect(broker.metrics.register).toHaveBeenCalledWith({ type: "gauge", name: "moleculer.circuit-breaker.half-opened.active", labelNames: ["affectedNodeID", "service", "action"], description: expect.any(String) });
 	});
 
 });
@@ -71,6 +74,9 @@ describe("Test CircuitBreakerMiddleware logic", () => {
 	});
 	const handler = jest.fn(ctx => ctx.params.crash ? Promise.reject(new MoleculerError("Crashed")) : Promise.resolve("Result"));
 	const action = {
+		service: {
+			fullName: "v2.likes"
+		},
 		name: "likes.count",
 		handler
 	};
@@ -110,14 +116,14 @@ describe("Test CircuitBreakerMiddleware logic", () => {
 			newHandler(Context.create(broker, endpoint, { crash: false })).catch(protectReject).then(res => expect(res).toBe("Result")),
 		]).catch(protectReject).then(() => {
 			expect(broker.broadcast).toHaveBeenCalledTimes(1);
-			expect(broker.broadcast).toHaveBeenCalledWith("$circuit-breaker.opened", { action: "likes.count", count: 5, failures: 3, nodeID: broker.nodeID, rate: 0.6 });
+			expect(broker.broadcast).toHaveBeenCalledWith("$circuit-breaker.opened", { service: "v2.likes", action: "likes.count", count: 5, failures: 3, nodeID: broker.nodeID, rate: 0.6 });
 			expect(endpoint.state).toBe(false);
 
 			expect(broker.metrics.set).toHaveBeenCalledTimes(1);
-			expect(broker.metrics.set).toHaveBeenCalledWith("moleculer.circuit-breaker.opened.active", 1, { affectedNodeID: "server-1", action: "likes.count" });
+			expect(broker.metrics.set).toHaveBeenCalledWith("moleculer.circuit-breaker.opened.active", 1, { affectedNodeID: "server-1", service: "v2.likes", action: "likes.count" });
 
 			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
-			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.circuit-breaker.opened.total", { affectedNodeID: "server-1", action: "likes.count" });
+			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.circuit-breaker.opened.total", { affectedNodeID: "server-1", service: "v2.likes", action: "likes.count" });
 		});
 	});
 
@@ -128,11 +134,11 @@ describe("Test CircuitBreakerMiddleware logic", () => {
 		clock.tick(12 * 1000);
 		expect(endpoint.state).toBe(true);
 		expect(broker.broadcast).toHaveBeenCalledTimes(1);
-		expect(broker.broadcast).toHaveBeenCalledWith("$circuit-breaker.half-opened", { action: "likes.count", nodeID: broker.nodeID });
+		expect(broker.broadcast).toHaveBeenCalledWith("$circuit-breaker.half-opened", { service: "v2.likes", action: "likes.count", nodeID: broker.nodeID });
 
 		expect(broker.metrics.set).toHaveBeenCalledTimes(2);
-		expect(broker.metrics.set).toHaveBeenNthCalledWith(1, "moleculer.circuit-breaker.opened.active", 0, { affectedNodeID: "server-1", action: "likes.count" });
-		expect(broker.metrics.set).toHaveBeenNthCalledWith(2, "moleculer.circuit-breaker.half-opened.active", 1, { affectedNodeID: "server-1", action: "likes.count" });
+		expect(broker.metrics.set).toHaveBeenNthCalledWith(1, "moleculer.circuit-breaker.opened.active", 0, { affectedNodeID: "server-1", service: "v2.likes", action: "likes.count" });
+		expect(broker.metrics.set).toHaveBeenNthCalledWith(2, "moleculer.circuit-breaker.half-opened.active", 1, { affectedNodeID: "server-1", service: "v2.likes", action: "likes.count" });
 	});
 
 	it("should reopen CB", () => {
@@ -144,14 +150,14 @@ describe("Test CircuitBreakerMiddleware logic", () => {
 			newHandler(Context.create(broker, endpoint, { crash: true })).then(protectReject).catch(err => expect(err.message).toBe("Crashed")),
 		]).catch(protectReject).then(() => {
 			expect(broker.broadcast).toHaveBeenCalledTimes(1);
-			expect(broker.broadcast).toHaveBeenCalledWith("$circuit-breaker.opened", { action: "likes.count", count: 6, failures: 4, nodeID: broker.nodeID, rate: 0.6666666666666666 });
+			expect(broker.broadcast).toHaveBeenCalledWith("$circuit-breaker.opened", { service: "v2.likes", action: "likes.count", count: 6, failures: 4, nodeID: broker.nodeID, rate: 0.6666666666666666 });
 			expect(endpoint.state).toBe(false);
 
 			expect(broker.metrics.set).toHaveBeenCalledTimes(1);
-			expect(broker.metrics.set).toHaveBeenNthCalledWith(1, "moleculer.circuit-breaker.opened.active", 1, { affectedNodeID: "server-1", action: "likes.count" });
+			expect(broker.metrics.set).toHaveBeenNthCalledWith(1, "moleculer.circuit-breaker.opened.active", 1, { affectedNodeID: "server-1", service: "v2.likes", action: "likes.count" });
 
 			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
-			expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.circuit-breaker.opened.total", { affectedNodeID: "server-1", action: "likes.count" });
+			expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.circuit-breaker.opened.total", { affectedNodeID: "server-1", service: "v2.likes", action: "likes.count" });
 
 		});
 	});
@@ -163,11 +169,11 @@ describe("Test CircuitBreakerMiddleware logic", () => {
 		clock.tick(11 * 1000);
 		expect(endpoint.state).toBe(true);
 		expect(broker.broadcast).toHaveBeenCalledTimes(1);
-		expect(broker.broadcast).toHaveBeenCalledWith("$circuit-breaker.half-opened", { action: "likes.count", nodeID: broker.nodeID });
+		expect(broker.broadcast).toHaveBeenCalledWith("$circuit-breaker.half-opened", { service: "v2.likes", action: "likes.count", nodeID: broker.nodeID });
 
 		expect(broker.metrics.set).toHaveBeenCalledTimes(2);
-		expect(broker.metrics.set).toHaveBeenNthCalledWith(1, "moleculer.circuit-breaker.opened.active", 0, { affectedNodeID: "server-1", action: "likes.count" });
-		expect(broker.metrics.set).toHaveBeenNthCalledWith(2, "moleculer.circuit-breaker.half-opened.active", 1, { affectedNodeID: "server-1", action: "likes.count" });
+		expect(broker.metrics.set).toHaveBeenNthCalledWith(1, "moleculer.circuit-breaker.opened.active", 0, { affectedNodeID: "server-1", service: "v2.likes", action: "likes.count" });
+		expect(broker.metrics.set).toHaveBeenNthCalledWith(2, "moleculer.circuit-breaker.half-opened.active", 1, { affectedNodeID: "server-1", service: "v2.likes", action: "likes.count" });
 
 	});
 
@@ -180,12 +186,12 @@ describe("Test CircuitBreakerMiddleware logic", () => {
 			newHandler(Context.create(broker, endpoint, { crash: false })).catch(protectReject).then(res => expect(res).toBe("Result")),
 		]).catch(protectReject).then(() => {
 			expect(broker.broadcast).toHaveBeenCalledTimes(1);
-			expect(broker.broadcast).toHaveBeenCalledWith("$circuit-breaker.closed", { action: "likes.count", nodeID: broker.nodeID });
+			expect(broker.broadcast).toHaveBeenCalledWith("$circuit-breaker.closed", { service: "v2.likes", action: "likes.count", nodeID: broker.nodeID });
 			expect(endpoint.state).toBe(true);
 
 			expect(broker.metrics.set).toHaveBeenCalledTimes(2);
-			expect(broker.metrics.set).toHaveBeenNthCalledWith(1, "moleculer.circuit-breaker.opened.active", 0, { affectedNodeID: "server-1", action: "likes.count" });
-			expect(broker.metrics.set).toHaveBeenNthCalledWith(2, "moleculer.circuit-breaker.half-opened.active", 0, { affectedNodeID: "server-1", action: "likes.count" });
+			expect(broker.metrics.set).toHaveBeenNthCalledWith(1, "moleculer.circuit-breaker.opened.active", 0, { affectedNodeID: "server-1", service: "v2.likes", action: "likes.count" });
+			expect(broker.metrics.set).toHaveBeenNthCalledWith(2, "moleculer.circuit-breaker.half-opened.active", 0, { affectedNodeID: "server-1", service: "v2.likes", action: "likes.count" });
 		});
 	});
 

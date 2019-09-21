@@ -102,7 +102,7 @@ class Registry {
 	 */
 	registerLocalService(svc) {
 		if (!this.services.has(svc.name, svc.version, this.broker.nodeID)) {
-			const service = this.services.add(this.nodes.localNode, svc.name, svc.version, svc.settings, svc.metadata);
+			const service = this.services.add(this.nodes.localNode, svc, true);
 
 			if (svc.actions)
 				this.registerActions(this.nodes.localNode, service, svc.actions);
@@ -131,9 +131,9 @@ class Registry {
 	registerServices(node, serviceList) {
 		serviceList.forEach(svc => {
 			let prevActions, prevEvents;
-			let service = this.services.get(svc.name, svc.version, node.id);
+			let service = this.services.get(svc.fullName, node.id);
 			if (!service) {
-				service = this.services.add(node, svc.name, svc.version, svc.settings, svc.metadata);
+				service = this.services.add(node, svc, false);
 			} else {
 				prevActions = Object.assign({}, service.actions);
 				prevEvents = Object.assign({}, service.events);
@@ -232,10 +232,10 @@ class Registry {
 			if (node.local) {
 				action.handler = this.broker.middlewares.wrapHandler("localAction", action.handler, action);
 			} else {
-				action.handler = this.broker.middlewares.wrapHandler("remoteAction", this.broker.transit.request.bind(this.broker.transit), action);
+				action.handler = this.broker.middlewares.wrapHandler("remoteAction", this.broker.transit.request.bind(this.broker.transit), { ...action, service });
 			}
 			if (this.broker.options.disableBalancer)
-				action.remoteHandler = this.broker.middlewares.wrapHandler("remoteAction", this.broker.transit.request.bind(this.broker.transit), action);
+				action.remoteHandler = this.broker.middlewares.wrapHandler("remoteAction", this.broker.transit.request.bind(this.broker.transit), { ...action, service });
 
 			this.actions.add(node, service, action);
 			service.addAction(action);
@@ -256,14 +256,13 @@ class Registry {
 	/**
 	 * Check the service is exist
 	 *
-	 * @param {String} name
-	 * @param {any} version
+	 * @param {String} fullName
 	 * @param {String} nodeID
 	 * @returns {Boolean}
 	 * @memberof Registry
 	 */
-	hasService(name, version, nodeID) {
-		return this.services.has(name, version, nodeID);
+	hasService(fullName, nodeID) {
+		return this.services.has(fullName, nodeID);
 	}
 
 	/**
@@ -294,13 +293,12 @@ class Registry {
 	/**
 	 * Unregister service
 	 *
-	 * @param {String} name
-	 * @param {any} version
+	 * @param {String} fullName
 	 * @param {String?} nodeID
 	 * @memberof Registry
 	 */
-	unregisterService(name, version, nodeID) {
-		this.services.remove(name, version, nodeID || this.broker.nodeID);
+	unregisterService(fullName, nodeID) {
+		this.services.remove(fullName, nodeID || this.broker.nodeID);
 
 		if (!nodeID || nodeID == this.broker.nodeID) {
 			this.regenerateLocalRawInfo(true);

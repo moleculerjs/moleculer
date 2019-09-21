@@ -35,17 +35,15 @@ class ServiceCatalog {
 	 * Add a new service
 	 *
 	 * @param {Node} node
-	 * @param {String} name
-	 * @param {any} version
-	 * @param {Object} settings
-	 * @param {Object} metadata
+	 * @param {Object} service
+	 * @param {Boolean} local
 	 *
 	 * @returns {ServiceItem}
 	 *
 	 * @memberof ServiceCatalog
 	 */
-	add(node, name, version, settings, metadata) {
-		const item = new ServiceItem(node, name, version, settings, metadata, node.id == this.broker.nodeID);
+	add(node, service, local) {
+		const item = new ServiceItem(node, service, local);
 		this.services.push(item);
 		return item;
 	}
@@ -53,27 +51,25 @@ class ServiceCatalog {
 	/**
 	 * Check the service is exist
 	 *
-	 * @param {String} name
-	 * @param {any} version
+	 * @param {String} fullName
 	 * @param {String} nodeID
 	 * @returns
 	 * @memberof ServiceCatalog
 	 */
-	has(name, version, nodeID) {
-		return this.services.find(svc => svc.equals(name, version, nodeID)) != null;
+	has(fullName, nodeID) {
+		return this.services.find(svc => svc.equals(fullName, nodeID)) != null;
 	}
 
 	/**
-	 * Get a service by name, version & nodeID
+	 * Get a service by fullName & nodeID
 	 *
-	 * @param {String} name
-	 * @param {any} version
+	 * @param {String} fullName
 	 * @param {String} nodeID
 	 * @returns
 	 * @memberof ServiceCatalog
 	 */
-	get(name, version, nodeID) {
-		return this.services.find(svc => svc.equals(name, version, nodeID));
+	get(fullName, nodeID) {
+		return this.services.find(svc => svc.equals(fullName, nodeID));
 	}
 
 	/**
@@ -98,7 +94,7 @@ class ServiceCatalog {
 
 			let item;
 			if (grouping)
-				item = res.find(svc => svc.name == service.name && svc.version == service.version);
+				item = res.find(svc => svc.fullName == service.fullName);
 
 			if (!item) {
 				let item = {
@@ -227,15 +223,14 @@ class ServiceCatalog {
 	}
 
 	/**
-	 * Remove endpoint by name, version & nodeID
+	 * Remove endpoint by fullName & nodeID
 	 *
-	 * @param {String} name
-	 * @param {any} version
+	 * @param {String} fullName
 	 * @param {String} nodeID
 	 * @memberof ServiceCatalog
 	 */
-	remove(name, version, nodeID) {
-		let service = this.get(name, version, nodeID);
+	remove(fullName, nodeID) {
+		let service = this.get(fullName, nodeID);
 		if (service) {
 			this.registry.actions.removeByService(service);
 			this.registry.events.removeByService(service);

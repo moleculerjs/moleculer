@@ -51,14 +51,16 @@ module.exports = function circuitBreakerMiddleware(broker) {
 	 * Get Endpoint state from store. If not exists, create it.
 	 *
 	 * @param {Endpoint} ep
+	 * @param {Service} service
 	 * @param {Object} opts
 	 * @returns {Object}
 	 */
-	function getEpState(ep, opts) {
+	function getEpState(ep, service, opts) {
 		let item = store.get(ep.name);
 		if (!item) {
 			item = {
 				ep,
+				service,
 				opts,
 				count: 0,
 				failures: 0,
@@ -134,7 +136,7 @@ module.exports = function circuitBreakerMiddleware(broker) {
 		item.cbTimer.unref();
 
 		const action = item.ep.action;
-		const service = action.service.fullName;
+		const service = item.service.fullName;
 
 		const rate = item.count > 0 ? item.failures / item.count : 0;
 		logger.debug(`Circuit breaker has been opened on '${item.ep.name}' endpoint.`, { nodeID: item.ep.id, service, action: action.name, failures: item.failures, count: item.count, rate });
@@ -155,7 +157,7 @@ module.exports = function circuitBreakerMiddleware(broker) {
 		item.ep.state = true;
 
 		const action = item.ep.action;
-		const service = action.service.fullName;
+		const service = item.service.fullName;
 
 		logger.debug(`Circuit breaker has been half-opened on '${item.ep.name}' endpoint.`, { nodeID: item.ep.id, service, action: action.name });
 
@@ -198,7 +200,7 @@ module.exports = function circuitBreakerMiddleware(broker) {
 		item.count = 0;
 
 		const action = item.ep.action;
-		const service = action.service.fullName;
+		const service = item.service.fullName;
 
 		logger.debug(`Circuit breaker has been closed on '${item.ep.name}' endpoint.`, { nodeID: item.ep.id, service, action: action.name });
 
@@ -221,13 +223,14 @@ module.exports = function circuitBreakerMiddleware(broker) {
 	 * @returns {Function}
 	 */
 	function wrapCBMiddleware(handler, action) {
+		const service = action.service;
 		// Merge action option and broker options
 		const opts = Object.assign({}, this.options.circuitBreaker || {}, action.circuitBreaker || {});
 		if (opts.enabled) {
 			return function circuitBreakerMiddleware(ctx) {
 				// Get endpoint state item
 				const ep = ctx.endpoint;
-				const item = getEpState(ep, opts);
+				const item = getEpState(ep, service, opts);
 
 				// Handle half-open state in circuit breaker
 				if (item.state == C.CIRCUIT_HALF_OPEN) {
@@ -236,7 +239,7 @@ module.exports = function circuitBreakerMiddleware(broker) {
 
 				// Call the handler
 				return handler(ctx).then(res => {
-					const item = getEpState(ep, opts);
+					const item = getEpState(ep, service, opts);
 					success(item, ctx);
 
 					return res;
@@ -244,7 +247,7 @@ module.exports = function circuitBreakerMiddleware(broker) {
 					if (opts.check && opts.check(err)) {
 						// Failure if error is created locally (not came from a 3rd node error)
 						if (item && (!err.nodeID || err.nodeID == ctx.nodeID)) {
-							const item = getEpState(ep, opts);
+							const item = getEpState(ep, service, opts);
 							failure(item, err, ctx);
 						}
 					}
