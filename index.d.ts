@@ -418,7 +418,7 @@ declare namespace Moleculer {
 		[key: string]: any;
 	}
 
-	type ServiceActionsSchema = { [key: string]: ActionSchema | ActionHandler; };
+	type ServiceActionsSchema = { [key: string]: ActionSchema | ActionHandler | boolean; };
 
 	class BrokerNode {
 		id: string;
