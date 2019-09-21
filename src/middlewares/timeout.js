@@ -15,6 +15,8 @@ module.exports = function(broker) {
 
 	function wrapTimeoutMiddleware(handler, action) {
 		const actionTimeout = action.timeout;
+		const actionName = action.name;
+		const service = action.service ? action.service.fullName : null;
 
 		return function timeoutMiddleware(ctx) {
 
@@ -37,12 +39,11 @@ module.exports = function(broker) {
 				return p.timeout(ctx.options.timeout)
 					.catch(err => {
 						if (err instanceof Promise.TimeoutError) {
-							const actionName = ctx.action.name;
 							const nodeID = ctx.nodeID;
 							this.logger.warn(`Request '${actionName}' is timed out.`, { requestID: ctx.requestID, nodeID, timeout: ctx.options.timeout });
 							err = new RequestTimeoutError({ action: actionName, nodeID });
 
-							broker.metrics.increment(METRIC.MOLECULER_REQUEST_TIMEOUT_TOTAL, { action: actionName });
+							broker.metrics.increment(METRIC.MOLECULER_REQUEST_TIMEOUT_TOTAL, { service, action: actionName });
 						}
 						return this.Promise.reject(err);
 					});
@@ -58,7 +59,7 @@ module.exports = function(broker) {
 
 		created(broker) {
 			if (broker.isMetricsEnabled()) {
-				broker.metrics.register({ name: METRIC.MOLECULER_REQUEST_TIMEOUT_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["action"] });
+				broker.metrics.register({ name: METRIC.MOLECULER_REQUEST_TIMEOUT_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["service", "action"], rate: true });
 			}
 		},
 

@@ -9,6 +9,7 @@
 const { pick } = require("lodash");
 const BaseMetric = require("./base");
 const METRIC = require("../constants");
+const MetricRate = require("../rates");
 
 /*
 	TODO:
@@ -35,6 +36,7 @@ class GaugeMetric extends BaseMetric {
 	constructor(opts, registry) {
 		super(opts, registry);
 		this.type = METRIC.TYPE_GAUGE;
+		this.rate = opts.rate;
 	}
 
 	/**
@@ -87,15 +89,25 @@ class GaugeMetric extends BaseMetric {
 			if (item.value != value) {
 				item.value = value;
 				item.timestamp = timestamp == null ? Date.now() : timestamp;
+
+				if (item.rate)
+					item.rate.update(value);
+
 				this.changed(value, labels, timestamp);
 			}
 		} else {
 			item = {
 				value,
 				labels: pick(labels, this.labelNames),
-				timestamp: timestamp == null ? Date.now() : timestamp
+				timestamp: timestamp == null ? Date.now() : timestamp,
 			};
 			this.values.set(hash, item);
+
+			if (this.rate) {
+				item.rate = new MetricRate(this, item, 1);
+				item.rate.update(value);
+			}
+
 			this.changed(value, labels, timestamp);
 		}
 
@@ -136,11 +148,16 @@ class GaugeMetric extends BaseMetric {
 	 */
 	generateSnapshot() {
 		const snapshot = Array.from(this.values.values()).map(item => {
-			return {
+			const res = {
 				value: item.value,
 				labels: item.labels,
 				timestamp: item.timestamp
 			};
+
+			if (item.rate)
+				res.rate = item.rate.rate;
+
+			return res;
 		});
 
 		return snapshot;

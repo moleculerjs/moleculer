@@ -6,6 +6,13 @@ const util = require("util");
 
 const broker = new ServiceBroker({
 	nodeID: "dev-metrics",// + process.pid,
+	logger: {
+		type: "Console",
+		options: {
+			formatter: "short"
+		}
+	},
+
 	transporter: "TCP",
 	metrics: {
 		enabled: true,
@@ -14,7 +21,8 @@ const broker = new ServiceBroker({
 				type: "Console",
 				options: {
 					onlyChanges: true,
-					includes: "moleculer.**",
+					//interval: 1000,
+					includes: "moleculer.**.total",
 					//excludes: ["moleculer.transit.publish.total", "moleculer.transit.receive.total"]
 				}
 			},
@@ -69,6 +77,15 @@ const broker = new ServiceBroker({
 });
 
 broker.createService({
+	name: "greeter",
+	actions: {
+		hello(ctx) {
+			return "Hello Metrics";
+		}
+	}
+});
+
+broker.createService({
 	name: "event-handler",
 	events: {
 		"$metrics.state"(payload) {
@@ -82,7 +99,7 @@ broker.start()
 	.then(() => {
 		broker.repl();
 
-		let c = 5;
+		let c = 20;
 		const timer = setInterval(() => {
 			broker.call("$node.metrics")
 				.then(res => broker.logger.info("OK"))
@@ -90,6 +107,6 @@ broker.start()
 			c--;
 			if (c <= 0)
 				clearInterval(timer);
-		}, 5000);
+		}, 1000);
 
 	});

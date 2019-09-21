@@ -101,7 +101,19 @@ class ConsoleReporter extends BaseReporter {
 						case METRIC.TYPE_COUNTER:
 						case METRIC.TYPE_GAUGE:
 						case METRIC.TYPE_INFO:
-							val = item.value === "" ? kleur.gray("<empty string>") : kleur.green().bold(item.value);
+							val = item.value === "" ? kleur.grey("<empty string>") : kleur.green().bold(item.value);
+							if (item.rate != null) {
+								/*const s = [];
+								Object.keys(item.rates).forEach(b => {
+									s.push(`Rate${b}: ${item.rates[b] != null ? item.rates[b].toFixed(2) : "-"}`);
+								});
+
+								val = kleur.green().bold(`Value: ${val} | ` + s.join(" | "));
+								*/
+
+								val = val + kleur.grey(" | Rate: ") + (item.rate != null ? kleur.green().bold(item.rate.toFixed(2)) : "-");
+							}
+
 							break;
 						case METRIC.TYPE_HISTOGRAM: {
 							const s = [];
@@ -124,6 +136,9 @@ class ConsoleReporter extends BaseReporter {
 									s.push(`${key}: ${item.quantiles[key] != null ? item.quantiles[key].toFixed(2) : "-"}`);
 								});
 							}
+
+							if (item.rate != null)
+								s.push(`Rate: ${item.rate != null ? item.rate.toFixed(2) : "-"}`);
 
 							val = kleur.green().bold(s.join(" | "));
 							break;

@@ -11,6 +11,7 @@ describe("Test FallbackMiddleware", () => {
 		name: "posts.find",
 		handler,
 		service: {
+			fullName: "posts",
 			logger: broker.getLogger(),
 			someFallbackMethod: jest.fn(() => "Fallback response from method")
 		}
@@ -42,7 +43,7 @@ describe("Test FallbackMiddleware", () => {
 	it("should register metrics", () => {
 		mw.created(broker);
 		expect(broker.metrics.register).toHaveBeenCalledTimes(1);
-		expect(broker.metrics.register).toHaveBeenCalledWith({ type: "counter", name: "moleculer.request.fallback.total", labelNames: ["action"] });
+		expect(broker.metrics.register).toHaveBeenCalledWith({ type: "counter", name: "moleculer.request.fallback.total", labelNames: ["service", "action"], rate: true });
 	});
 
 	it("should call fallback Function and return", () => {
@@ -61,7 +62,7 @@ describe("Test FallbackMiddleware", () => {
 			expect(action.fallback).toHaveBeenCalledWith(ctx, error);
 
 			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
-			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.fallback.total", { action: "posts.find" });
+			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.fallback.total", { service: "posts", action: "posts.find" });
 		});
 	});
 
@@ -82,7 +83,7 @@ describe("Test FallbackMiddleware", () => {
 			expect(action.service.someFallbackMethod).toHaveBeenCalledWith(ctx, error);
 
 			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
-			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.fallback.total", { action: "posts.find" });
+			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.fallback.total", { service: "posts", action: "posts.find" });
 		});
 	});
 

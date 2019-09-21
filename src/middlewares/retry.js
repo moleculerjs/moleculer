@@ -11,7 +11,9 @@ const { METRIC }	= require("../metrics");
 module.exports = function RetryMiddleware(broker) {
 
 	function wrapRetryMiddleware(handler, action) {
-	// Merge action option and broker options
+		const actionName = action.name;
+		const service = action.service ? action.service.fullName : null;
+		// Merge action option and broker options
 		const opts = Object.assign({}, this.options.retryPolicy, action.retryPolicy || {});
 		if (opts.enabled) {
 			return function retryMiddleware(ctx) {
@@ -24,11 +26,10 @@ module.exports = function RetryMiddleware(broker) {
 
 					if (opts.check(err)) {
 						ctx._retryAttempts++;
-						broker.metrics.increment(METRIC.MOLECULER_REQUEST_RETRY_ATTEMPTS_TOTAL, { action: action.name });
+						broker.metrics.increment(METRIC.MOLECULER_REQUEST_RETRY_ATTEMPTS_TOTAL, { service, action: action.name });
 
 						if (ctx._retryAttempts < attempts) {
 						// Retry call
-							const actionName = ctx.action.name;
 
 							// Calculate next delay
 							const delay = Math.min(opts.delay * Math.pow(opts.factor, ctx._retryAttempts - 1), opts.maxDelay);
@@ -60,7 +61,7 @@ module.exports = function RetryMiddleware(broker) {
 
 		created() {
 			if (broker.isMetricsEnabled()) {
-				broker.metrics.register({ name: METRIC.MOLECULER_REQUEST_RETRY_ATTEMPTS_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["action"] });
+				broker.metrics.register({ name: METRIC.MOLECULER_REQUEST_RETRY_ATTEMPTS_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["service", "action"], rate: true });
 			}
 		},
 

@@ -40,7 +40,7 @@ module.exports = function FallbackMiddleware(broker) {
 					}
 
 					svc.logger.warn(`The '${ctx.action.name}' request is failed. Return fallback response.`, { requestID: ctx.requestID, err: err.message });
-					broker.metrics.increment(METRIC.MOLECULER_REQUEST_FALLBACK_TOTAL, { action: action.name });
+					broker.metrics.increment(METRIC.MOLECULER_REQUEST_FALLBACK_TOTAL, { service: svc.fullName, action: action.name });
 					ctx.fallbackResult = true;
 
 					return fallback.call(svc, ctx, err);
@@ -55,7 +55,7 @@ module.exports = function FallbackMiddleware(broker) {
 
 		created(broker) {
 			if (broker.isMetricsEnabled()) {
-				broker.metrics.register({ name: METRIC.MOLECULER_REQUEST_FALLBACK_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["action"] });
+				broker.metrics.register({ name: METRIC.MOLECULER_REQUEST_FALLBACK_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["service", "action"], rate: true });
 			}
 		},
 

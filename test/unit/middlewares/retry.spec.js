@@ -9,6 +9,9 @@ describe("Test RetryMiddleware", () => {
 	const handler = jest.fn(() => Promise.resolve("Result"));
 	const action = {
 		name: "posts.find",
+		service: {
+			fullName: "posts"
+		},
 		handler
 	};
 	const endpoint = {
@@ -52,7 +55,7 @@ describe("Test RetryMiddleware", () => {
 	it("should register metrics", () => {
 		mw.created(broker);
 		expect(broker.metrics.register).toHaveBeenCalledTimes(1);
-		expect(broker.metrics.register).toHaveBeenCalledWith({ type: "counter", name: "moleculer.request.retry.attempts.total", labelNames: ["action"] });
+		expect(broker.metrics.register).toHaveBeenCalledWith({ type: "counter", name: "moleculer.request.retry.attempts.total", labelNames: ["service", "action"], rate: true });
 	});
 
 	it("should retry", () => {
@@ -87,7 +90,7 @@ describe("Test RetryMiddleware", () => {
 			expect(broker.options.retryPolicy.check).toHaveBeenCalledWith(error);
 
 			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
-			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.retry.attempts.total", { action: "posts.find" });
+			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.retry.attempts.total", { service: "posts", action: "posts.find" });
 		});
 	});
 
@@ -107,6 +110,7 @@ describe("Test RetryMiddleware", () => {
 			rawName: "list",
 			visibility: "private",
 			service: {
+				fullName: "posts",
 				actions: {
 					list: jest.fn(() => Promise.resolve("Next direct call"))
 				}
@@ -140,7 +144,7 @@ describe("Test RetryMiddleware", () => {
 			expect(broker.options.retryPolicy.check).toHaveBeenCalledWith(error);
 
 			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
-			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.retry.attempts.total", { action: "posts.list" });
+			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.retry.attempts.total", { service: "posts", action: "posts.list" });
 		});
 	});
 
@@ -169,7 +173,7 @@ describe("Test RetryMiddleware", () => {
 			expect(broker.Promise.delay).toHaveBeenCalledTimes(0);
 
 			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
-			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.retry.attempts.total", { action: "posts.find" });
+			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.retry.attempts.total", { service: "posts", action: "posts.find" });
 		});
 	});
 

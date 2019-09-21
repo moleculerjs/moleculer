@@ -10,6 +10,9 @@ describe("Test TimeoutMiddleware", () => {
 	const handler = jest.fn(() => Promise.resolve("Result"));
 	const action = {
 		name: "posts.find",
+		service: {
+			fullName: "posts"
+		},
 		handler
 	};
 	const endpoint = {
@@ -38,7 +41,7 @@ describe("Test TimeoutMiddleware", () => {
 	it("should register metrics", () => {
 		mw.created(broker);
 		expect(broker.metrics.register).toHaveBeenCalledTimes(1);
-		expect(broker.metrics.register).toHaveBeenCalledWith({ type: "counter", name: "moleculer.request.timeout.total", labelNames: ["action"] });
+		expect(broker.metrics.register).toHaveBeenCalledWith({ type: "counter", name: "moleculer.request.timeout.total", labelNames: ["service", "action"], rate: true });
 	});
 
 	it("should not be timeout if requestTimeout is 0", () => {
@@ -78,7 +81,7 @@ describe("Test TimeoutMiddleware", () => {
 			expect(handler).toHaveBeenCalledTimes(1);
 
 			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
-			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.timeout.total", { action: "posts.find" });
+			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.timeout.total", { service: "posts", action: "posts.find" });
 
 			expect(err).toBeInstanceOf(Error);
 			expect(err).toBeInstanceOf(RequestTimeoutError);
@@ -111,7 +114,7 @@ describe("Test TimeoutMiddleware", () => {
 			expect(handler).toHaveBeenCalledTimes(1);
 
 			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
-			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.timeout.total", { action: "posts.find" });
+			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.timeout.total", { service: "posts", action: "posts.find" });
 
 			expect(err).toBeInstanceOf(Error);
 			expect(err).toBeInstanceOf(RequestTimeoutError);
@@ -145,7 +148,7 @@ describe("Test TimeoutMiddleware", () => {
 			expect(handler).toHaveBeenCalledTimes(1);
 
 			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
-			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.timeout.total", { action: "posts.find" });
+			expect(broker.metrics.increment).toHaveBeenCalledWith("moleculer.request.timeout.total", { service: "posts", action: "posts.find" });
 
 			expect(err).toBeInstanceOf(Error);
 			expect(err).toBeInstanceOf(RequestTimeoutError);

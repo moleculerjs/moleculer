@@ -62,21 +62,21 @@ class Cacher {
 	 * Register Moleculer Transit Core metrics.
 	 */
 	registerMoleculerMetrics() {
-		this.metrics.register({ name: METRIC.MOLECULER_CACHER_GET_TOTAL, type: METRIC.TYPE_COUNTER });
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_GET_TOTAL, type: METRIC.TYPE_COUNTER, rate: true });
 		this.metrics.register({ name: METRIC.MOLECULER_CACHER_GET_TIME, type: METRIC.TYPE_HISTOGRAM, quantiles: true, unit: METRIC.UNIT_MILLISECONDS });
 
-		this.metrics.register({ name: METRIC.MOLECULER_CACHER_FOUND_TOTAL, type: METRIC.TYPE_COUNTER });
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_FOUND_TOTAL, type: METRIC.TYPE_COUNTER, rate: true });
 
-		this.metrics.register({ name: METRIC.MOLECULER_CACHER_SET_TOTAL, type: METRIC.TYPE_COUNTER });
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_SET_TOTAL, type: METRIC.TYPE_COUNTER, rate: true });
 		this.metrics.register({ name: METRIC.MOLECULER_CACHER_SET_TIME, type: METRIC.TYPE_HISTOGRAM, quantiles: true, unit: METRIC.UNIT_MILLISECONDS });
 
-		this.metrics.register({ name: METRIC.MOLECULER_CACHER_DEL_TOTAL, type: METRIC.TYPE_COUNTER });
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_DEL_TOTAL, type: METRIC.TYPE_COUNTER, rate: true });
 		this.metrics.register({ name: METRIC.MOLECULER_CACHER_DEL_TIME, type: METRIC.TYPE_HISTOGRAM, quantiles: true, unit: METRIC.UNIT_MILLISECONDS });
 
-		this.metrics.register({ name: METRIC.MOLECULER_CACHER_CLEAN_TOTAL, type: METRIC.TYPE_COUNTER });
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_CLEAN_TOTAL, type: METRIC.TYPE_COUNTER, rate: true });
 		this.metrics.register({ name: METRIC.MOLECULER_CACHER_CLEAN_TIME, type: METRIC.TYPE_HISTOGRAM, quantiles: true, unit: METRIC.UNIT_MILLISECONDS });
 
-		this.metrics.register({ name: METRIC.MOLECULER_CACHER_EXPIRED_TOTAL, type: METRIC.TYPE_COUNTER });
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_EXPIRED_TOTAL, type: METRIC.TYPE_COUNTER, rate: true });
 	}
 
 	/**
