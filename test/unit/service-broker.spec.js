@@ -1408,7 +1408,7 @@ describe("Test broker.waitForServices", () => {
 		broker.registry.hasService.mockClear();
 		let p = broker.waitForServices("posts", 10 * 1000, 100).catch(protectReject).then(() => {
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
-			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts", undefined);
+			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts");
 		});
 
 		clock.tick(450);
@@ -1423,7 +1423,7 @@ describe("Test broker.waitForServices", () => {
 		broker.registry.hasService.mockClear();
 		let p = broker.waitForServices(["posts"], 10 * 1000, 100).catch(protectReject).then(() => {
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
-			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts", undefined);
+			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts");
 		});
 
 		clock.tick(450);
@@ -1438,7 +1438,7 @@ describe("Test broker.waitForServices", () => {
 		broker.registry.hasService.mockClear();
 		let p = broker.waitForServices([{ name: "posts" }], 10 * 1000, 100).catch(protectReject).then(() => {
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
-			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts", undefined);
+			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts");
 		});
 
 		clock.tick(450);
@@ -1453,7 +1453,7 @@ describe("Test broker.waitForServices", () => {
 		broker.registry.hasService.mockClear();
 		let p = broker.waitForServices({ name: "posts" }, 10 * 1000, 100).catch(protectReject).then(() => {
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
-			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts", undefined);
+			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts");
 		});
 
 		clock.tick(450);
@@ -1468,7 +1468,7 @@ describe("Test broker.waitForServices", () => {
 		broker.registry.hasService.mockClear();
 		let p = broker.waitForServices([{ name: "posts", version: 1 }], 10 * 1000, 100).catch(protectReject).then(() => {
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
-			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts", 1);
+			expect(broker.registry.hasService).toHaveBeenLastCalledWith("v1.posts");
 		});
 
 		clock.tick(450);
@@ -1483,7 +1483,7 @@ describe("Test broker.waitForServices", () => {
 		broker.registry.hasService.mockClear();
 		let p = broker.waitForServices([{ name: "posts", version: 1, meta: true }], 10 * 1000, 100).catch(protectReject).then(() => {
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
-			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts", 1);
+			expect(broker.registry.hasService).toHaveBeenLastCalledWith("v1.posts");
 		});
 
 		clock.tick(450);
@@ -1498,7 +1498,7 @@ describe("Test broker.waitForServices", () => {
 		broker.registry.hasService.mockClear();
 		let p = broker.waitForServices("v1.posts", 10 * 1000, 100).catch(protectReject).then(() => {
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
-			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts", 1);
+			expect(broker.registry.hasService).toHaveBeenLastCalledWith("v1.posts");
 		});
 
 		clock.tick(450);
@@ -1513,7 +1513,23 @@ describe("Test broker.waitForServices", () => {
 		broker.registry.hasService.mockClear();
 		let p = broker.waitForServices(["v1.posts"], 10 * 1000, 100).catch(protectReject).then(() => {
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(6);
-			expect(broker.registry.hasService).toHaveBeenLastCalledWith("posts", 1);
+			expect(broker.registry.hasService).toHaveBeenLastCalledWith("v1.posts");
+		});
+
+		clock.tick(450);
+		res = true;
+		clock.tick(150);
+
+		return p;
+	});
+
+	it("should skip duplicated services", () => {
+		res = false;
+		broker.registry.hasService.mockClear();
+		let p = broker.waitForServices(["v2.posts", "users", { name: "posts", version: 2 }], 10 * 1000, 100).catch(protectReject).then(() => {
+			expect(broker.registry.hasService).toHaveBeenCalledTimes(12);
+			expect(broker.registry.hasService).toHaveBeenCalledWith("v2.posts");
+			expect(broker.registry.hasService).toHaveBeenCalledWith("users");
 		});
 
 		clock.tick(450);
@@ -1527,20 +1543,6 @@ describe("Test broker.waitForServices", () => {
 		res = false;
 		broker.registry.hasService.mockClear();
 		let p = broker.waitForServices([{ svcName: "posts", version: 1, meta: true }], 10 * 1000, 100).catch(protectReject).then(() => {
-			expect(broker.registry.hasService).toHaveBeenCalledTimes(0);
-		});
-
-		clock.tick(450);
-		res = true;
-		clock.tick(150);
-
-		return p;
-	});
-
-	it("should not wait for service when passed an empty object", () => {
-		res = false;
-		broker.registry.hasService.mockClear();
-		let p = broker.waitForServices({}, 10 * 1000, 100).catch(protectReject).then(() => {
 			expect(broker.registry.hasService).toHaveBeenCalledTimes(0);
 		});
 

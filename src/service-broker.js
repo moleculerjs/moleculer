@@ -903,48 +903,32 @@ class ServiceBroker {
 		if (!Array.isArray(serviceNames))
 			serviceNames = [serviceNames];
 
-		const serviceObjs = serviceNames.map(x => {
-			if (_.isPlainObject(x)) {
+		serviceNames = _.uniq(_.compact(serviceNames.map(x => {
+			if (_.isPlainObject(x) && x.name)
+				return this.ServiceFactory.getVersionedFullName(x.name, x.version);
+
+			if (_.isString(x))
 				return x;
-			}
+		})));
 
-			if (_.isString(x)) {
-				// Parse versioned service identifier strings
-				const split = x.split(".");
-				if (
-					split.length === 2 &&
-					split[0].length > 0 &&
-					split[0].match(/^v\d+$/)
-				) {
-					return {
-						name: split[1],
-						version: Number(split[0].slice(1)),
-					};
-				}
-				// If not versioned, fall back to the existing default action to hopefully avoid breaking existing implementations
-			}
-
-			return { name: x };
-		}).filter(x => x.name);
-
-		if (serviceObjs.length == 0)
+		if (serviceNames.length == 0)
 			return Promise.resolve();
 
-		logger.info(`Waiting for service(s) '${_.map(serviceObjs, "name").join(", ")}'...`);
+		logger.info(`Waiting for service(s) '${serviceNames.join(", ")}'...`);
 
 		const startTime = Date.now();
 		return new Promise((resolve, reject) => {
 			const check = () => {
-				const count = serviceObjs.filter(svcObj => {
-					return this.registry.hasService(svcObj.name, svcObj.version);
+				const count = serviceNames.filter(fullName => {
+					return this.registry.hasService(fullName);
 				});
 
-				if (count.length == serviceObjs.length) {
-					logger.info(`Service(s) '${_.map(serviceObjs, "name").join(", ")}' are available.`);
+				if (count.length == serviceNames.length) {
+					logger.info(`Service(s) '${_.map(serviceNames, "name").join(", ")}' are available.`);
 					return resolve();
 				}
 
-				logger.debug(`${count.length} of ${serviceObjs.length} services are available. Waiting further...`);
+				logger.debug(`${count.length} of ${serviceNames.length} services are available. Waiting further...`);
 
 				if (timeout && Date.now() - startTime > timeout)
 					return reject(new E.MoleculerServerError("Services waiting is timed out.", 500, "WAITFOR_SERVICES", { services: serviceNames }));

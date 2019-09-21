@@ -64,6 +64,18 @@ class Service {
 	}
 
 	/**
+	 * Return a versioned full service name.
+	 * @param {String} name
+	 * @param {String|Number?} version
+	 */
+	static getVersionedFullName(name, version) {
+		if (version != null)
+			return (typeof(version) == "number" ? "v" + version : version) + "." + name;
+
+		return name;
+	}
+
+	/**
 	 * Parse Service schema & register as local service
 	 *
 	 * @param {Object} schema of Service
@@ -90,10 +102,7 @@ class Service {
 		this.metadata = schema.metadata || {};
 		this.schema = schema;
 
-		if (this.version != null && this.settings.$noVersionPrefix !== true)
-			this.fullName = (typeof(this.version) == "number" ? "v" + this.version : this.version) + "." + this.name;
-		else
-			this.fullName = this.name;
+		this.fullName = Service.getVersionedFullName(this.name, this.settings.$noVersionPrefix !== true ? this.version : undefined);
 
 		this.logger = this.broker.getLogger(this.fullName, {
 			svc: this.name,
