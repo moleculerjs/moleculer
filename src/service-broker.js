@@ -1182,16 +1182,24 @@ class ServiceBroker {
 	 * @throws MoleculerServerError - If the `def` is not an `Array` and not an `Object`.
 	 * @memberof ServiceBroker
 	 */
-	mcall(def) {
+	mcall(def, opts) {
 		if (Array.isArray(def)) {
-			return Promise.all(def.map(item => this.call(item.action, item.params, item.options)));
+			return Promise.all(def.map(item => this.call(item.action, item.params, opts || item.options)));
 
 		} else if (_.isObject(def)) {
 			let results = {};
-			return Promise.all(Object.keys(def).map(name => {
+			let promises = Object.keys(def).map(name => {
 				const item = def[name];
-				return this.call(item.action, item.params, item.options).then(res => results[name] = res);
-			})).then(() => results);
+				const options = item.options || opts;
+				return this.call(item.action, item.params, options).then(res => results[name] = res);
+			});
+
+			let p = Promise.all(promises);
+
+			// Pointer to Context
+			p.ctx = promises.map(promise => promise.ctx);
+
+			return p.then(() => results);
 		} else {
 			throw new E.MoleculerServerError("Invalid calling definition.", 500, "INVALID_PARAMETERS");
 		}
