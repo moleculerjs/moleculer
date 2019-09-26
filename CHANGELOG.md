@@ -1249,7 +1249,7 @@ module.exports = {
 };
 ```
 ## Caller action
-There is a new `caller` property in Context. It contains the action name of the caller when you use `ctx.call` in action handlers.
+There is a new `caller` property in Context. It contains the service name of the caller when you use `ctx.call` in action or event handlers.
 
 ```js
 broker2.createService({

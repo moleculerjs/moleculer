@@ -140,6 +140,9 @@ describe("Test Context.create", () => {
 				tracing: true,
 				action: {
 					name: "posts.list"
+				},
+				service: {
+					fullName: "posts"
 				}
 			}
 		};
@@ -168,7 +171,7 @@ describe("Test Context.create", () => {
 		expect(ctx.options).toEqual(opts);
 
 		expect(ctx.parentID).toBe(100);
-		expect(ctx.caller).toBe("posts.list");
+		expect(ctx.caller).toBe("posts");
 
 		expect(ctx.tracing).toBe(true);
 		expect(ctx.level).toBe(6);
@@ -208,8 +211,8 @@ describe("Test Context.create", () => {
 				},
 				requestID: "1234567890abcdef",
 				tracing: true,
-				event: {
-					name: "post.created"
+				service: {
+					fullName: "posts"
 				},
 				span: {
 					id: 300
@@ -241,7 +244,7 @@ describe("Test Context.create", () => {
 		expect(ctx.options).toEqual(opts);
 
 		expect(ctx.parentID).toBe(300);
-		expect(ctx.caller).toBe("post.created");
+		expect(ctx.caller).toBe("posts");
 
 		expect(ctx.tracing).toBe(true);
 		expect(ctx.level).toBe(6);
@@ -836,8 +839,8 @@ describe("Test toJSON method", () => {
 			},
 			requestID: "1234567890abcdef",
 			tracing: true,
-			event: {
-				name: "post.created"
+			service: {
+				fullName: "posts"
 			}
 		}
 	});
@@ -860,7 +863,7 @@ describe("Test toJSON method", () => {
 				name: "posts.find"
 			},
 
-			caller: "post.created",
+			caller: "posts",
 			eventName: "post.created",
 			eventType: "emit",
 			eventGroups: ["users", "mail"],

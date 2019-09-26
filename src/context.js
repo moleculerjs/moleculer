@@ -155,10 +155,8 @@ class Context {
 			else
 				ctx.parentID = opts.parentCtx.id;
 
-			if (opts.parentCtx.action)
-				ctx.caller = opts.parentCtx.action.name;
-			else if (opts.parentCtx.event)
-				ctx.caller = opts.parentCtx.event.name;
+			if (opts.parentCtx.service)
+				ctx.caller = opts.parentCtx.service.fullName;
 		}
 
 		// Parent span

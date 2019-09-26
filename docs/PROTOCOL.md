@@ -139,7 +139,7 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `tracing` | `boolean` | ✔ | Need to send tracing events. |
 | `parentID` | `string` |  | Parent context ID. |
 | `requestID` | `string` |  | Request ID from `ctx.requestID`. |
-| `caller` | `string` |  | Action name of the caller. |
+| `caller` | `string` |  | Service name of the caller. |
 | `stream` | `boolean` | ✔ | Stream request. |
 | `seq` | `int32` |   | Stream sequence number. |
 
@@ -194,7 +194,7 @@ When a node is stopping, it broadcasts a `DISCONNECT` packet to all nodes.
 | `tracing` | `boolean` | ✔ | Need to send tracing events. |
 | `parentID` | `string` |  | Parent context ID. |
 | `requestID` | `string` |  | Request ID from `ctx.requestID`. |
-| `caller` | `string` |  | Action/Event name of the caller. |
+| `caller` | `string` |  | Service name of the caller. |
 | `stream` | `boolean` | ✔ | Stream request. |
 | `seq` | `int32` |   | Stream sequence number. |
 | `groups` | `Array<string>` |   | Groups for balanced events. |
