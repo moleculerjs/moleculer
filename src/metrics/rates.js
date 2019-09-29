@@ -10,6 +10,7 @@ const INTERVAL = 5;
 const SECONDS_PER_MINUTE = 60.0;
 
 // https://github.com/dropwizard/metrics/blob/4.0-maintenance/metrics-core/src/main/java/com/codahale/metrics/EWMA.java
+/* istanbul ignore next */
 function getAlpha(min) {
 	return 1 - Math.exp(-INTERVAL / SECONDS_PER_MINUTE / min);
 }
