@@ -259,6 +259,7 @@ describe("Test LoggerFactory", () => {
 		});
 
 		it("should call log handlers middlewares", () => {
+			broker.middlewares.add({ newLogEntry: jest.fn() });
 			broker.middlewares.callSyncHandlers = jest.fn();
 
 			const handler1 = jest.fn();
