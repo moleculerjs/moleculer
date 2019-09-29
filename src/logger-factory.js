@@ -6,7 +6,7 @@
 
 "use strict";
 
-const _ 		= require("lodash");
+const _ = require("lodash");
 const { BrokerOptionsError } = require("./errors");
 const Loggers = require("./loggers");
 
@@ -99,10 +99,10 @@ class LoggerFactory {
 				return logger[type] = noop;
 
 			logger[type] = function(...args) {
-				if (logHandlers.length == 0) return;
-
-				if (broker.middlewares)
+				if (broker.middlewares && broker.middlewares.registeredHooks.newLogEntry)
 					broker.middlewares.callSyncHandlers("newLogEntry", [type, args, bindings], {});
+
+				if (logHandlers.length == 0) return;
 
 				for(let i = 0; i < logHandlers.length; i++)
 					logHandlers[i](type, args);

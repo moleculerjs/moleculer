@@ -29,7 +29,7 @@ const broker = new ServiceBroker({
 
 	//trackContext: true,
 
-	cacher: "Redis",
+	//cacher: "Redis",
 
 	metrics: {
 		enabled: true,

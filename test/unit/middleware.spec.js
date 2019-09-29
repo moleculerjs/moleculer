@@ -16,6 +16,7 @@ describe("Test MiddlewareHandler", () => {
 
 		expect(middlewares.broker).toBe(broker);
 		expect(middlewares.list).toBeInstanceOf(Array);
+		expect(middlewares.registeredHooks).toBeInstanceOf(Object);
 	});
 
 	describe("Test add method", () => {
@@ -24,6 +25,7 @@ describe("Test MiddlewareHandler", () => {
 		it("should not add item", () => {
 			middlewares.add();
 			expect(middlewares.count()).toBe(0);
+			expect(middlewares.registeredHooks).toEqual({});
 		});
 
 		it("should add a middleware", () => {
@@ -32,6 +34,7 @@ describe("Test MiddlewareHandler", () => {
 			middlewares.add(mw1);
 			expect(middlewares.count()).toBe(1);
 			expect(middlewares.list[0]).toBe(mw1);
+			expect(middlewares.registeredHooks).toEqual({});
 		});
 
 		it("should call function and add middleware", () => {
@@ -44,6 +47,8 @@ describe("Test MiddlewareHandler", () => {
 
 			expect(mw2Wrap).toHaveBeenCalledTimes(1);
 			expect(mw2Wrap).toHaveBeenCalledWith(broker);
+
+			expect(middlewares.registeredHooks).toEqual({ localAction: [mw2.localAction] });
 		});
 
 		it("should add a built-in middleware by name", () => {
@@ -56,6 +61,12 @@ describe("Test MiddlewareHandler", () => {
 				created: expect.any(Function),
 				localAction: expect.any(Function),
 				remoteAction: expect.any(Function),
+			});
+
+			expect(middlewares.registeredHooks).toEqual({
+				created: [expect.any(Function)],
+				localAction: [expect.any(Function), expect.any(Function)],
+				remoteAction: [expect.any(Function)],
 			});
 		});
 
