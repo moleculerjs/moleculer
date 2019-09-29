@@ -4,6 +4,7 @@ exports[`Test Base Metric class Test generateSnapshot method should generate a s
 Array [
   Object {
     "labels": Object {},
+    "rate": 123,
     "timestamp": 1111,
     "value": 3,
   },
@@ -11,6 +12,7 @@ Array [
     "labels": Object {
       "a": 1,
     },
+    "rate": 123,
     "timestamp": 2222,
     "value": 4,
   },
@@ -18,6 +20,7 @@ Array [
     "labels": Object {
       "a": 5,
     },
+    "rate": 123,
     "timestamp": 3333,
     "value": 5,
   },
@@ -25,6 +28,7 @@ Array [
     "labels": Object {
       "a": "John",
     },
+    "rate": 123,
     "timestamp": 4444,
     "value": 6,
   },

@@ -1,7 +1,16 @@
 "use strict";
 
 const lolex = require("lolex");
+jest.mock("../../../../src/metrics/rates");
+const MetricRate = require("../../../../src/metrics/rates");
+
 const HistogramMetric = require("../../../../src/metrics/types/histogram");
+
+const rateUpdate = jest.fn();
+MetricRate.mockImplementation(() => ({
+	update: rateUpdate,
+	rate: 123
+}));
 
 describe("Test Base Metric class", () => {
 
@@ -122,6 +131,16 @@ describe("Test Base Metric class", () => {
 
 		});
 
+		it("should create with rates", () => {
+			registry.changed.mockClear();
+			const item = new HistogramMetric({
+				type: "histogram",
+				name: "test.histogram",
+				rate: true
+			}, registry);
+
+			expect(item.rate).toBe(true);
+		});
 	});
 
 	describe("Test observe method", () => {
@@ -256,6 +275,59 @@ describe("Test Base Metric class", () => {
 
 		});
 
+		describe("Test with rate", () => {
+
+			const item = new HistogramMetric({ type: "histogram", name: "test.histogram", rate: true }, registry);
+			jest.spyOn(item, "changed");
+
+			it("should store values", () => {
+				item.changed.mockClear();
+				const now = Date.now();
+				item.observe(100, null, now);
+				expect(item.values.get("")).toEqual({
+					count: 1,
+					labels: {},
+					sum: 100,
+					rate: expect.anything(),
+					timestamp: now
+				});
+
+				expect(MetricRate).toBeCalledTimes(1);
+				expect(MetricRate).toBeCalledWith(item, item.values.get(""), 1);
+
+				expect(rateUpdate).toBeCalledTimes(1);
+				expect(rateUpdate).toBeCalledWith(1);
+
+				expect(item.changed).toBeCalledTimes(1);
+				expect(item.changed).toBeCalledWith(100, null, now);
+			});
+
+			it("should sum values", () => {
+				MetricRate.mockClear();
+				rateUpdate.mockClear();
+				item.changed.mockClear();
+
+				const now = Date.now();
+				item.observe(250, null, now);
+				expect(item.values.get("")).toEqual({
+					count: 2,
+					labels: {},
+					sum: 350,
+					rate: expect.anything(),
+					timestamp: now
+				});
+
+				expect(MetricRate).toBeCalledTimes(0);
+
+				expect(rateUpdate).toBeCalledTimes(1);
+				expect(rateUpdate).toBeCalledWith(2);
+
+				expect(item.changed).toBeCalledTimes(1);
+				expect(item.changed).toBeCalledWith(250, null, now);
+			});
+
+		});
+
 	});
 
 	describe("Test createBucketValues method", () => {
@@ -281,7 +353,8 @@ describe("Test Base Metric class", () => {
 			name: "test.histogram",
 			labelNames: ["a"],
 			buckets: [1, 2, 5, 8, 10, 20],
-			quantiles: [0.1, 0.5, 0.9]
+			quantiles: [0.1, 0.5, 0.9],
+			rate: true
 		}, registry);
 
 		it("should generate snapshot", () => {
