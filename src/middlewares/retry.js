@@ -31,11 +31,11 @@ module.exports = function RetryMiddleware(broker) {
 
 					// Check the error's `retryable` property.
 					if (opts.check(err)) {
-						ctx._retryAttempts++;
 						broker.metrics.increment(METRIC.MOLECULER_REQUEST_RETRY_ATTEMPTS_TOTAL, { service, action: action.name });
 
 						if (ctx._retryAttempts < attempts) {
-						// Retry call
+							// Retry call
+							ctx._retryAttempts++;
 
 							// Calculate next delay
 							const delay = Math.min(opts.delay * Math.pow(opts.factor, ctx._retryAttempts - 1), opts.maxDelay);
