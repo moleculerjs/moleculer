@@ -2,8 +2,6 @@
 
 let ServiceBroker = require("../src/service-broker");
 
-// --- INVOKER
-
 const broker1 = new ServiceBroker({
 	nodeID: "broker1",
 	transporter: "NATS",

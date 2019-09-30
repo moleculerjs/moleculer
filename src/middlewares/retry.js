@@ -24,6 +24,12 @@ module.exports = function RetryMiddleware(broker) {
 				// Call the handler
 				return handler(ctx).catch(err => {
 
+					// Skip retry if it is a remote call. The retry logic will run on the caller node
+					// because the Retry middleware wrap the `remoteAction` hook, as well.
+					if (ctx.nodeID != broker.nodeID && ctx.endpoint.local)
+						return Promise.reject(err);
+
+					// Check the error's `retryable` property.
 					if (opts.check(err)) {
 						ctx._retryAttempts++;
 						broker.metrics.increment(METRIC.MOLECULER_REQUEST_RETRY_ATTEMPTS_TOTAL, { service, action: action.name });
