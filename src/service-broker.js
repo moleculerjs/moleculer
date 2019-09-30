@@ -924,7 +924,7 @@ class ServiceBroker {
 				});
 
 				if (count.length == serviceNames.length) {
-					logger.info(`Service(s) '${_.map(serviceNames.join(", ")}' are available.`);
+					logger.info(`Service(s) '${serviceNames.join(", ")}' are available.`);
 					return resolve();
 				}
 
