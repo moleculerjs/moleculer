@@ -8,7 +8,8 @@
 
 function wrapRetryMiddleware(handler, action) {
 	// Merge action option and broker options
-	const opts = Object.assign({}, this.options.retryPolicy, action.retryPolicy || {});
+	const broker = this;
+	const opts = Object.assign({}, broker.options.retryPolicy, action.retryPolicy || {});
 	if (opts.enabled) {
 		return function retryMiddleware(ctx) {
 			const attempts = typeof ctx.options.retries === "number" ? ctx.options.retries : opts.retries;
@@ -17,6 +18,11 @@ function wrapRetryMiddleware(handler, action) {
 
 			// Call the handler
 			return handler(ctx).catch(err => {
+				// Skip retry if it is a remote call. The retry logic will run on the caller node
+				// because the Retry middleware wrap the `remoteAction` hook, as well.
+				if (ctx.nodeID != broker.nodeID && ctx.endpoint.local)
+					return Promise.reject(err);
+
 				if (ctx._retryAttempts++ < attempts && opts.check(err)) {
 					// Retry call
 					const actionName = ctx.action.name;
