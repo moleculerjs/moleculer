@@ -202,5 +202,35 @@ describe("Test RetryMiddleware", () => {
 		});
 	});
 
+	it("should not retry if the call is a remote received call from other node", () => {
+		broker.metrics.increment.mockClear();
+		broker.options.retryPolicy.enabled = true;
+		broker.options.retryPolicy.retries = 3;
+		broker.options.retryPolicy.check = jest.fn(() => true);
+
+		let error = new MoleculerRetryableError("Retryable error");
+		let handler = jest.fn(() => Promise.reject(error));
+
+		broker.Promise.delay = jest.fn(() => Promise.resolve());
+
+		const newHandler = mw.localAction.call(broker, handler, action);
+		endpoint.local = true;
+		const ctx = Context.create(broker, endpoint);
+		ctx.nodeID = "server-2";
+		ctx.setParams({ offset: 10 });
+
+		broker.call = jest.fn(() => Promise.resolve("Next call"));
+
+		return newHandler(ctx).then(protectReject).catch(err => {
+			expect(err).toBe(error);
+
+			expect(handler).toHaveBeenCalledTimes(1);
+			expect(broker.call).toHaveBeenCalledTimes(0);
+			expect(broker.Promise.delay).toHaveBeenCalledTimes(0);
+
+			expect(broker.metrics.increment).toHaveBeenCalledTimes(0);
+		});
+	});
+
 
 });
