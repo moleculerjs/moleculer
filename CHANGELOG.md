@@ -1735,8 +1735,12 @@ In earlier version, if request, response or event data was a `Buffer`, the schem
 - new `ctx.locals` property to store local variables in hooks or actions.
 
 --------------------------------------------------
-<a name="Unreleased"></a>
-# [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.13.10...master)
+<a name="0.13.11"></a>
+# [0.13.11](https://github.com/moleculerjs/moleculer/compare/v0.13.10...v0.13.11) (2019-09-30)
+
+# Changes
+- fix retry issue in case of remote calls & disabled preferLocal options. [#599](https://github.com/moleculerjs/moleculer/issues/598)
+- update dependencies.
 
 --------------------------------------------------
 <a name="0.13.10"></a>
