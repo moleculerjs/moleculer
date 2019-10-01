@@ -1552,6 +1552,7 @@ const broker = new ServiceBroker({
     ]
 });
 ```
+
 ### Compression
 Compression middleware reduces the size of messages that go through the transporter module.
 This middleware uses built-in Node [`zlib`](https://nodejs.org/api/zlib.html) library.
@@ -1609,6 +1610,42 @@ const broker = new ServiceBroker({
         })
     ]
 });
+```
+
+### Throttle
+Throttling is a straightforward reduction of the trigger rate. It will cause the event listener to ignore some portion of the events while still firing the listeners at a constant (but reduced) rate. Same functionality as lodash's `_.throttle`.
+
+```js
+//my.service.js
+module.exports = {
+    name: "my",
+
+    events: {
+        "config.changed": {
+            throttle: 3000,
+            // It won't be invoked again in 3 seconds.
+            handler(ctx) { /* ... */}
+        }
+    }
+};
+```
+
+### Debounce
+Unlike throttling, debouncing is a technique of keeping the trigger rate at exactly 0 until a period of calm, and then triggering the listener exactly once. Same functionality as lodash's `_.debounce`.
+
+```js
+//my.service.js
+module.exports = {
+    name: "my",
+
+    events: {
+        "config.changed": {
+            debounce: 5000,
+            // Handler will be invoked when events are not received in 5 seconds.
+            handler(ctx) { /* ... */}
+        }
+    }
+};
 ```
 
 ## Load middlewares by names

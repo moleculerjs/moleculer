@@ -44,7 +44,7 @@ Array [
   "  {}: 1 ",
   "",
   "moleculer.broker.middlewares.total (gauge)",
-  "  {}: 11 ",
+  "  {}: 13 ",
   "",
   "moleculer.registry.nodes.total (gauge)",
   "  {}: 1 ",

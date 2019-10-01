@@ -238,7 +238,7 @@ Array [
       Object {
         "labels": Object {},
         "timestamp": 12345678000,
-        "value": 11,
+        "value": 13,
       },
     ],
   },

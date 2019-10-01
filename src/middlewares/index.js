@@ -18,6 +18,9 @@ const Middlewares = {
 	Metrics: require("./metrics"),
 	Tracing: require("./tracing"),
 
+	Debounce: require("./debounce"),
+	Throttle: require("./throttle"),
+
 	HotReload: require("./hot-reload"),
 
 	Transmit: {

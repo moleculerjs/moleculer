@@ -360,8 +360,14 @@ class ServiceBroker {
 			// 11. Metrics
 			this.middlewares.add("Metrics");
 
+			// 12. Debounce
+			this.middlewares.add("Debounce");
+
+			// 13. Throttle
+			this.middlewares.add("Throttle");
+
 			if (this.options.hotReload) {
-				// 12. Hot Reload
+				// 14. Hot Reload
 				this.middlewares.add("HotReload");
 			}
 

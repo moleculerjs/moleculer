@@ -361,7 +361,7 @@ describe("Test ServiceBroker constructor", () => {
 			logger: false
 		});
 
-		expect(broker.middlewares.count()).toBe(11);
+		expect(broker.middlewares.count()).toBe(13);
 	});
 
 	it("should not load internal middlewares", () => {
@@ -404,7 +404,7 @@ describe("Test ServiceBroker constructor", () => {
 			}
 		});
 
-		expect(broker.middlewares.count()).toBe(12);
+		expect(broker.middlewares.count()).toBe(14);
 	});
 
 	it("should register moleculer metrics", () => {

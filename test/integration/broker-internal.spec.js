@@ -559,7 +559,7 @@ describe("Test internal services", () => {
 						{
 							"labels": {},
 							"timestamp": expect.any(Number),
-							"value": 11
+							"value": 13
 						}
 					]
 				}
