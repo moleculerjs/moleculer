@@ -484,7 +484,7 @@ declare namespace Moleculer {
 
 		setEndpoint(endpoint: Endpoint): void;
 		setParams(newParams: P, cloning?: boolean): void;
-		call<T, P>(actionName: string, params?: P, opts?: GenericObject): PromiseLike<T>;
+		call<T>(actionName: string): PromiseLike<T>;
 		call<T, P>(actionName: string, params?: P, opts?: GenericObject): PromiseLike<T>;
 
 		emit<D>(eventName: string, data: D, opts: GenericObject): void;
