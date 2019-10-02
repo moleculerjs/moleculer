@@ -1670,7 +1670,57 @@ describe("Test broker.call", () => {
 	beforeAll(() => oldContextCreate = broker.ContextFactory.create);
 	afterAll(() => broker.ContextFactory.create = oldContextCreate);
 
+	it("should default params on context to empty object if undefined", () => {
+		let context = {
+			action,
+			endpoint: ep,
+			setEndpoint: jest.fn()
+		};
+		broker.ContextFactory.create = jest.fn(() => context);
+
+		let p = broker.call("posts.find");
+		return p.catch(protectReject).then(() => {
+			expect(broker.ContextFactory.create).toHaveBeenCalledWith(broker, null, {}, {});
+			context.setEndpoint.mockClear();
+		});
+	});
+
+	it("should set params on context to passed in value", () => {
+		let context = {
+			action,
+			endpoint: ep,
+			setEndpoint: jest.fn()
+		};
+		broker.ContextFactory.create = jest.fn(() => context);
+
+		let params = { userId: "userId-value" };
+		let p = broker.call("posts.find", params );
+		return p.catch(protectReject).then(() => {
+			expect(broker.ContextFactory.create).toHaveBeenCalledWith(broker, null, params, {});
+			context.setEndpoint.mockClear();
+		});
+	});
+
+	it("should set params on context to null if passed in value is null", () => {
+		let context = {
+			action,
+			endpoint: ep,
+			setEndpoint: jest.fn()
+		};
+		broker.ContextFactory.create = jest.fn(() => context);
+
+		let p = broker.call("posts.find", null);
+		return p.catch(protectReject).then(() => {
+			expect(broker.ContextFactory.create).toHaveBeenCalledWith(broker, null, null, {});
+			context.setEndpoint.mockClear();
+		});
+	});
+
 	it("should create new Context & call handler", () => {
+		action.handler.mockClear();
+		broker.ContextFactory.create.mockClear();
+		broker.findNextActionEndpoint.mockClear();
+
 		let context = {
 			action,
 			endpoint: ep,
