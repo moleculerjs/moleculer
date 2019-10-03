@@ -1,5 +1,5 @@
 declare namespace Moleculer {
-	type GenericObject = { [name: string]: any };
+	type GenericObject = any;
 
 	type LogLevels = "fatal" | "error" | "warn" | "info" | "debug" | "trace";
 
