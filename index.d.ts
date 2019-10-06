@@ -5,11 +5,14 @@ declare namespace Moleculer {
 
 	type LogLevels = "fatal" | "error" | "warn" | "info" | "debug" | "trace";
 
-	type LoggerExternal = Pick<LoggerInstance, "error" | "warn" | "info" | "debug">;
+	class LoggerFactory {
+		constructor(broker: ServiceBroker);
+		init(opts: LoggerConfig | Array<LoggerConfig>): void;
+		stop(): void;
+		getLogger(bindings: GenericObject): LoggerInstance;
+		getBindingsKey(bindings: GenericObject): String;
 
-	class Logger {
-		static extend(logger: LoggerExternal): LoggerInstance;
-		static createDefaultLogger(broker: ServiceBroker, baseLogger: LoggerInstance, bindings: GenericObject, logLevel?: string): LoggerInstance;
+		broker: ServiceBroker;
 	}
 
 	interface LoggerBindings {
@@ -412,8 +415,9 @@ declare namespace Moleculer {
 		name?: string;
 		group?: string;
 		service?: Service;
-		handler?: ActionHandler;
 		tracing?: boolean | TracingOptions;
+		bulkhead?: BulkheadOptions;
+		handler?: ActionHandler;
 
 		[key: string]: any;
 	}
@@ -663,11 +667,16 @@ declare namespace Moleculer {
 		[module: string]: boolean | LogLevels;
 	}
 
+	interface LoggerConfig {
+		type: string,
+		options?: GenericObject
+	}
+
 	interface BrokerOptions {
 		namespace?: string;
 		nodeID?: string;
 
-		logger?: ((bindings: LoggerBindings) => LoggerInstance) | LoggerInstance | boolean;
+		logger?: LoggerConfig | Array<LoggerConfig> | boolean;
 		logLevel?: LogLevels | LogLevelConfig;
 		logFormatter?: Function | string;
 		logObjectPrinter?: Function;
@@ -881,7 +890,7 @@ declare namespace Moleculer {
 		isMetricsEnabled(): boolean;
 		isTracingEnabled(): boolean;
 
-		getLogger(module: string, props?: string | GenericObject): LoggerInstance;
+		getLogger(module: string, props?: GenericObject): LoggerInstance;
 		fatal(message: string, err?: Error, needExit?: boolean): void;
 
 		loadServices(folder?: string, fileMask?: string): number;

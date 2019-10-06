@@ -633,7 +633,7 @@ class ServiceBroker {
 	 * Get a custom logger for sub-modules (service, transporter, cacher, context...etc)
 	 *
 	 * @param {String} mod	Name of module
-	 * @param {String|object} props	Module properties (service name, version, ...etc
+	 * @param {Object} props	Module properties (service name, version, ...etc
 	 * @returns {ModuleLogger}
 	 *
 	 * @memberof ServiceBroker
