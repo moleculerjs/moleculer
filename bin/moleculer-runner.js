@@ -174,8 +174,8 @@ function loadConfigFile() {
 function mergeOptions() {
 
 	config = _.defaultsDeep(configFile, Moleculer.ServiceBroker.defaultOptions);
-	if (config.logger == null && !flags.silent)
-		config.logger = console;
+	if (flags.silent)
+		config.logger = false;
 
 	function normalizeEnvValue(value) {
 		if (value.toLowerCase() === "true" || value.toLowerCase() === "false") {
@@ -362,7 +362,7 @@ function loadServices() {
 	}
 }
 
-/*
+/**
  * Start cluster workers
  */
 function startWorkers(instances) {
