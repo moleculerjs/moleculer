@@ -33,7 +33,7 @@ class EventReporter extends BaseReporter {
 
 			onlyChanges: false,
 
-			interval: 5 * 1000,
+			interval: 5,
 		});
 
 		this.lastChanges = new Set();
@@ -49,7 +49,7 @@ class EventReporter extends BaseReporter {
 		super.init(registry);
 
 		if (this.opts.interval > 0) {
-			this.timer = setInterval(() => this.sendEvent(), this.opts.interval);
+			this.timer = setInterval(() => this.sendEvent(), this.opts.interval * 1000);
 			this.timer.unref();
 		}
 	}

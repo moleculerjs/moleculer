@@ -28,7 +28,7 @@ class ConsoleReporter extends BaseReporter {
 		super(opts);
 
 		this.opts = _.defaultsDeep(this.opts, {
-			interval: 5 * 1000,
+			interval: 5,
 			logger: null,
 			colors: true,
 			onlyChanges: true,
@@ -49,7 +49,7 @@ class ConsoleReporter extends BaseReporter {
 		super.init(registry);
 
 		if (this.opts.interval > 0) {
-			this.timer = setInterval(() => this.print(), this.opts.interval);
+			this.timer = setInterval(() => this.print(), this.opts.interval * 1000);
 			this.timer.unref();
 		}
 	}

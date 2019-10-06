@@ -41,7 +41,7 @@ class MetricRegistry {
 		this.opts = _.defaultsDeep({}, opts, {
 			enabled: true,
 			collectProcessMetrics: process.env.NODE_ENV !== "test",
-			collectInterval: 5 * 1000,
+			collectInterval: 5,
 
 			reporter: false,
 
@@ -82,7 +82,7 @@ class MetricRegistry {
 			if (this.opts.collectProcessMetrics) {
 				this.collectTimer = setInterval(() => {
 					updateCommonMetrics.call(this);
-				}, this.opts.collectInterval);
+				}, this.opts.collectInterval * 1000);
 				this.collectTimer.unref();
 
 				registerCommonMetrics.call(this);

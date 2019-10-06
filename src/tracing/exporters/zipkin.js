@@ -36,7 +36,7 @@ class ZipkinTraceExporter extends BaseTraceExporter {
 			/** @type {String} Zipkin REST API version. */
 			//version: "v2",
 
-			/** @type {Number} Batch send time interval. */
+			/** @type {Number} Batch send time interval in seconds. */
 			interval: 5,
 
 			/** @type {Object} Additional payload options. */

@@ -27,7 +27,7 @@ describe("Test EventReporter class", () => {
 				broadcast: false,
 				groups: null,
 				onlyChanges: false,
-				interval: 5 * 1000,
+				interval: 5,
 			});
 
 			expect(reporter.lastChanges).toBeInstanceOf(Set);
@@ -46,7 +46,7 @@ describe("Test EventReporter class", () => {
 				broadcast: true,
 				groups: ["payments"],
 				onlyChanges: true,
-				interval: 10 * 1000,
+				interval: 10,
 			});
 
 			expect(reporter.opts).toEqual({
@@ -61,7 +61,7 @@ describe("Test EventReporter class", () => {
 				broadcast: true,
 				groups: ["payments"],
 				onlyChanges: true,
-				interval: 10 * 1000,
+				interval: 10,
 			});
 		});
 
@@ -78,7 +78,7 @@ describe("Test EventReporter class", () => {
 				namespace: "test-ns"
 			};
 			const fakeRegistry = { broker: fakeBroker };
-			const reporter = new EventReporter({ interval: 2000 });
+			const reporter = new EventReporter({ interval: 2 });
 			reporter.sendEvent = jest.fn();
 			reporter.init(fakeRegistry);
 

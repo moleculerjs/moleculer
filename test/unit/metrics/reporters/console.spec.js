@@ -23,7 +23,7 @@ describe("Test ConsoleReporter class", () => {
 				metricNameFormatter: null,
 				labelNameFormatter: null,
 
-				interval: 5000,
+				interval: 5,
 				logger: null,
 				colors: true,
 				onlyChanges: true,
@@ -40,7 +40,7 @@ describe("Test ConsoleReporter class", () => {
 				metricNameFormatter: () => {},
 				labelNameFormatter: () => {},
 
-				interval: 10000,
+				interval: 10,
 				logger: {},
 				colors: false,
 				onlyChanges: false,
@@ -54,7 +54,7 @@ describe("Test ConsoleReporter class", () => {
 				metricNameFormatter: expect.any(Function),
 				labelNameFormatter: expect.any(Function),
 
-				interval: 10000,
+				interval: 10,
 				logger: {},
 				colors: false,
 				onlyChanges: false,
@@ -74,7 +74,7 @@ describe("Test ConsoleReporter class", () => {
 				namespace: "test-ns"
 			};
 			const fakeRegistry = { broker: fakeBroker };
-			const reporter = new ConsoleReporter({ interval: 2000 });
+			const reporter = new ConsoleReporter({ interval: 2 });
 			reporter.print = jest.fn();
 			reporter.init(fakeRegistry);
 

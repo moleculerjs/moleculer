@@ -40,7 +40,7 @@ describe("Test CSVReporter class", () => {
 				rowDelimiter: "\n",
 				mode: "metric",
 				types: null,
-				interval: 5 * 1000,
+				interval: 5,
 				filenameFormatter: null,
 				rowFormatter: null,
 			});
@@ -62,7 +62,7 @@ describe("Test CSVReporter class", () => {
 				rowDelimiter: "\r\n",
 				mode: "label",
 				types: ["gauge", "counter"],
-				interval: 10 * 1000,
+				interval: 10,
 			});
 
 			expect(reporter.opts).toEqual({
@@ -78,7 +78,7 @@ describe("Test CSVReporter class", () => {
 				rowDelimiter: "\r\n",
 				mode: "label",
 				types: ["gauge", "counter"],
-				interval: 10 * 1000,
+				interval: 10,
 
 				filenameFormatter: null,
 				rowFormatter: null,
@@ -100,7 +100,7 @@ describe("Test CSVReporter class", () => {
 				namespace: "test-ns"
 			};
 			const fakeRegistry = { broker: fakeBroker };
-			const reporter = new CSVReporter({ interval: 2000, folder: "/metrics" });
+			const reporter = new CSVReporter({ interval: 2, folder: "/metrics" });
 			reporter.flush = jest.fn();
 			reporter.init(fakeRegistry);
 

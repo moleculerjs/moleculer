@@ -2,7 +2,7 @@
 
 exports[`Test Metric Registry Test Constructor should create with custom options 1`] = `
 Object {
-  "collectInterval": 5000,
+  "collectInterval": 5,
   "collectProcessMetrics": false,
   "defaultAgeBuckets": 10,
   "defaultAggregator": "sum",
@@ -34,7 +34,7 @@ Object {
 
 exports[`Test Metric Registry Test Constructor should create with default options 1`] = `
 Object {
-  "collectInterval": 5000,
+  "collectInterval": 5,
   "collectProcessMetrics": false,
   "defaultAgeBuckets": 10,
   "defaultAggregator": "sum",

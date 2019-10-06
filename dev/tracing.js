@@ -5,7 +5,7 @@ const asyncHooks = require("async_hooks");
 const tracer = require("dd-trace").init({
 	service: "moleculer", // shows up as Service in Datadog UI
 	//url: "http://192.168.0.181:8126",
-	debug: true,
+	//debug: true,
 	samplingPriority: "USER_KEEP",
 });
 
@@ -50,22 +50,21 @@ const broker = new ServiceBroker({
 			{
 				type: "Datadog",
 				options: {
-					tracer,
-					samplingPriority: "USER_KEEP"
+					tracer
 				}
 			},
-			/*{
+			{
 				type: "Zipkin",
 				options: {
 					baseURL: "http://192.168.0.181:9411",
 				}
-			},*/
-			/*{
+			},
+			{
 				type: "Jaeger",
 				options: {
 					host: "192.168.0.181",
 				}
-			},*/
+			},
 			/*{
 				type: "Event",
 				options: {

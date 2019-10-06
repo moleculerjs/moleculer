@@ -103,7 +103,7 @@ describe("Test Metric Registry", () => {
 			expect(MetricCommons.registerCommonMetrics).toHaveBeenCalledTimes(1);
 			expect(MetricCommons.updateCommonMetrics).toHaveBeenCalledTimes(1);
 
-			clock.tick(metric.opts.collectInterval + 100);
+			clock.tick(metric.opts.collectInterval * 1000 + 100);
 
 			expect(MetricCommons.registerCommonMetrics).toHaveBeenCalledTimes(1);
 			expect(MetricCommons.updateCommonMetrics).toHaveBeenCalledTimes(2);

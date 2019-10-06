@@ -44,7 +44,7 @@ class DatadogReporter extends BaseReporter {
 				namespace: registry.broker.namespace,
 				nodeID: registry.broker.nodeID
 			}),
-			interval: 10 * 1000
+			interval: 10
 		});
 
 		if (!this.opts.apiKey)
@@ -61,7 +61,7 @@ class DatadogReporter extends BaseReporter {
 		super.init(registry);
 
 		if (this.opts.interval > 0) {
-			this.timer = setInterval(() => this.flush(), this.opts.interval);
+			this.timer = setInterval(() => this.flush(), this.opts.interval * 1000);
 			this.timer.unref();
 		}
 
