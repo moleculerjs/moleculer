@@ -35,7 +35,7 @@ class Tracer {
 		this.opts = _.defaultsDeep({}, opts, {
 			enabled: true,
 
-			exporters: null,
+			exporter: null,
 
 			sampling: {
 				// Constants sampling
@@ -47,9 +47,9 @@ class Tracer {
 				minPriority: null
 			},
 
-			actions: true, // TODO
-			methods: false, // TODO
-			events: false, // TODO
+			actions: true,
+			// methods: false, // TODO: not implemented yet
+			events: false,
 
 			errorFields: ["name", "message", "code", "type", "data"],
 			stackTrace: false,

@@ -32,7 +32,6 @@ describe("Test StatsDReporter class", () => {
 				metricNameFormatter: null,
 				labelNameFormatter: null,
 
-				protocol: "udp",
 				host: "localhost",
 				port: 8125,
 
@@ -49,7 +48,6 @@ describe("Test StatsDReporter class", () => {
 				metricNameFormatter: () => {},
 				labelNameFormatter: () => {},
 
-				protocol: "udp",
 				host: "localhost",
 				port: 8888,
 
@@ -64,7 +62,6 @@ describe("Test StatsDReporter class", () => {
 				metricNameFormatter: expect.any(Function),
 				labelNameFormatter: expect.any(Function),
 
-				protocol: "udp",
 				host: "localhost",
 				port: 8888,
 

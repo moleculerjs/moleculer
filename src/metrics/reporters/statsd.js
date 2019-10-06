@@ -27,7 +27,6 @@ class StatsDReporter extends BaseReporter {
 		super(opts);
 
 		this.opts = _.defaultsDeep(this.opts, {
-			protocol: "udp",
 			host: "localhost",
 			port: 8125,
 
