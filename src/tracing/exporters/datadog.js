@@ -108,7 +108,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 	 * @param {Span} span
 	 * @memberof BaseTraceExporter
 	 */
-	startSpan(span) {
+	spanStarted(span) {
 		if (!this.ddTracer) return null;
 
 		const serviceName = span.service ? span.service.fullName : null;
@@ -164,7 +164,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 	 * @param {Span} span
 	 * @memberof DatadogTraceExporter
 	 */
-	finishSpan(span) {
+	spanFinished(span) {
 		if (!this.ddTracer) return null;
 
 		const item = span.meta.datadog;

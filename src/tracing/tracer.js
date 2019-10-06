@@ -255,7 +255,7 @@ class Tracer {
 		this.setCurrentSpan(span);
 
 		if (span.sampled)
-			this.invokeExporter("startSpan", [span]);
+			this.invokeExporter("spanStarted", [span]);
 	}
 
 	/**
@@ -268,7 +268,7 @@ class Tracer {
 		this.removeCurrentSpan(span);
 
 		if (span.sampled)
-			this.invokeExporter("finishSpan", [span]);
+			this.invokeExporter("spanFinished", [span]);
 	}
 }
 

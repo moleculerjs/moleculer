@@ -65,7 +65,7 @@ class EventTraceExporter extends BaseTraceExporter {
 	 * @param {Span} span
 	 * @memberof BaseTraceExporter
 	 */
-	startSpan(span) {
+	spanStarted(span) {
 		if (this.opts.sendStartSpan) {
 			this.queue.push(span);
 			if (!this.timer)
@@ -79,7 +79,7 @@ class EventTraceExporter extends BaseTraceExporter {
 	 * @param {Span} span
 	 * @memberof EventTraceExporter
 	 */
-	finishSpan(span) {
+	spanFinished(span) {
 		if (this.opts.sendFinishSpan) {
 			this.queue.push(span);
 			if (!this.timer)

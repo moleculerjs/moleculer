@@ -180,7 +180,7 @@ describe("Test Datadog tracing exporter class", () => {
 
 	});
 
-	describe("Test startSpan method", () => {
+	describe("Test spanStarted method", () => {
 		const fakeTracer = {
 			logger: broker.logger,
 			opts: {
@@ -222,7 +222,7 @@ describe("Test Datadog tracing exporter class", () => {
 				meta: {}
 			};
 
-			exporter.startSpan(span);
+			exporter.spanStarted(span);
 
 			expect(exporter.ddTracer.startSpan).toHaveBeenCalledTimes(1);
 			expect(exporter.ddTracer.startSpan).toHaveBeenCalledWith("Test Span", {
@@ -304,7 +304,7 @@ describe("Test Datadog tracing exporter class", () => {
 				meta: {}
 			};
 
-			exporter.startSpan(span);
+			exporter.spanStarted(span);
 
 			expect(exporter.ddTracer.startSpan).toHaveBeenCalledTimes(1);
 			expect(exporter.ddTracer.startSpan).toHaveBeenCalledWith("Test Span", {
@@ -354,7 +354,7 @@ describe("Test Datadog tracing exporter class", () => {
 		});
 	});
 
-	describe("Test finishSpan method", () => {
+	describe("Test spanFinished method", () => {
 		const fakeTracer = {
 			logger: broker.logger,
 			opts: {
@@ -389,7 +389,7 @@ describe("Test Datadog tracing exporter class", () => {
 				}
 			};
 
-			exporter.finishSpan(span);
+			exporter.spanFinished(span);
 
 			expect(exporter.addTags).toHaveBeenCalledTimes(0);
 
@@ -430,7 +430,7 @@ describe("Test Datadog tracing exporter class", () => {
 				}
 			};
 
-			exporter.finishSpan(span);
+			exporter.spanFinished(span);
 
 			expect(exporter.addTags).toHaveBeenCalledTimes(1);
 			expect(exporter.addTags).toHaveBeenCalledWith(fakeDdSpan, "error", {

@@ -32,7 +32,7 @@ describe("Test Event Legacy tracing exporter class", () => {
 
 	});
 
-	describe("Test startSpan method", () => {
+	describe("Test spanStarted method", () => {
 		const fakeTracer = { broker, logger: broker.logger };
 		broker.emit = jest.fn();
 
@@ -44,7 +44,7 @@ describe("Test Event Legacy tracing exporter class", () => {
 
 			const span1 = {};
 
-			exporter.startSpan(span1);
+			exporter.spanStarted(span1);
 
 			expect(exporter.generateMetricPayload).toHaveBeenCalledTimes(1);
 			expect(exporter.generateMetricPayload).toHaveBeenCalledWith(span1);
@@ -55,7 +55,7 @@ describe("Test Event Legacy tracing exporter class", () => {
 
 	});
 
-	describe("Test finishSpan method", () => {
+	describe("Test spanFinished method", () => {
 		const fakeTracer = { broker, logger: broker.logger };
 		broker.emit = jest.fn();
 
@@ -67,7 +67,7 @@ describe("Test Event Legacy tracing exporter class", () => {
 
 			const span1 = {};
 
-			exporter.finishSpan(span1);
+			exporter.spanFinished(span1);
 
 			expect(exporter.generateMetricPayload).toHaveBeenCalledTimes(1);
 			expect(exporter.generateMetricPayload).toHaveBeenCalledWith(span1);

@@ -35,7 +35,7 @@ class BaseTraceExporter {
 	 * @param {Span} span
 	 * @memberof BaseTraceExporter
 	 */
-	startSpan(/*span*/) {
+	spanStarted(/*span*/) {
 		// Not implemented
 	}
 
@@ -45,7 +45,7 @@ class BaseTraceExporter {
 	 * @param {Span} span
 	 * @memberof BaseTraceExporter
 	 */
-	finishSpan(/*span*/) {
+	spanFinished(/*span*/) {
 		// Not implemented
 	}
 

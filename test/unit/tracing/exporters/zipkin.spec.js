@@ -117,7 +117,7 @@ describe("Test Zipkin tracing exporter class", () => {
 
 	});
 
-	describe("Test finishSpan method", () => {
+	describe("Test spanFinished method", () => {
 		const fakeTracer = { logger: broker.logger };
 		const exporter = new ZipkinTraceExporter({});
 		exporter.init(fakeTracer);
@@ -128,8 +128,8 @@ describe("Test Zipkin tracing exporter class", () => {
 			const span1 = {};
 			const span2 = {};
 
-			exporter.finishSpan(span1);
-			exporter.finishSpan(span2);
+			exporter.spanFinished(span1);
+			exporter.spanFinished(span2);
 
 			expect(exporter.queue).toEqual([span1, span2]);
 		});
@@ -155,7 +155,7 @@ describe("Test Zipkin tracing exporter class", () => {
 		});
 
 		it("should generate & send data if queue is not empty", () => {
-			exporter.finishSpan({});
+			exporter.spanFinished({});
 
 			exporter.flush();
 
@@ -182,8 +182,8 @@ describe("Test Zipkin tracing exporter class", () => {
 		exporter.makePayload = jest.fn(span => span);
 
 		it("should call makePayload", () => {
-			exporter.finishSpan({ a: 5 });
-			exporter.finishSpan({ b: 10 });
+			exporter.spanFinished({ a: 5 });
+			exporter.spanFinished({ b: 10 });
 
 			const res = exporter.generateTracingData();
 

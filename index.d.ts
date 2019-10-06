@@ -154,8 +154,8 @@ declare namespace Moleculer {
 		constructor(opts: GenericObject);
 		init(tracer: Tracer): void;
 
-		startSpan(span: Span): void;
-		finishSpan(span: Span): void;
+		spanStarted(span: Span): void;
+		spanFinished(span: Span): void;
 
 		flattenTags(obj: GenericObject, convertToString?: boolean, path?: string): GenericObject;
 		errorToObject(err: Error): GenericObject;

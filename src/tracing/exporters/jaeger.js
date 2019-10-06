@@ -148,7 +148,7 @@ class JaegerTraceExporter extends BaseTraceExporter {
 	 * @param {Span} span
 	 * @memberof JaegerTraceExporter
 	 */
-	finishSpan(span) {
+	spanFinished(span) {
 		this.generateJaegerSpan(span);
 	}
 

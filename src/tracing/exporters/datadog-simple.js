@@ -63,7 +63,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 	 * @param {Span} span
 	 * @memberof DatadogTraceExporter
 	 */
-	finishSpan(span) {
+	spanFinished(span) {
 		this.queue.push(span);
 	}
 

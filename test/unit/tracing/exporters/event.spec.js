@@ -115,7 +115,7 @@ describe("Test Event tracing exporter class", () => {
 
 	});
 
-	describe("Test finishSpan method", () => {
+	describe("Test spanFinished method", () => {
 		const fakeTracer = { broker, logger: broker.logger };
 
 		it("should push spans to the queue", () => {
@@ -127,8 +127,8 @@ describe("Test Event tracing exporter class", () => {
 			const span1 = {};
 			const span2 = {};
 
-			exporter.finishSpan(span1);
-			exporter.finishSpan(span2);
+			exporter.spanFinished(span1);
+			exporter.spanFinished(span2);
 
 			expect(exporter.queue).toEqual([span1, span2]);
 		});
@@ -142,8 +142,8 @@ describe("Test Event tracing exporter class", () => {
 			const span1 = {};
 			const span2 = {};
 
-			exporter.finishSpan(span1);
-			exporter.finishSpan(span2);
+			exporter.spanFinished(span1);
+			exporter.spanFinished(span2);
 
 			expect(exporter.queue.length).toBe(0);
 		});
@@ -168,7 +168,7 @@ describe("Test Event tracing exporter class", () => {
 		});
 
 		it("should generate & emit event", () => {
-			exporter.finishSpan({});
+			exporter.spanFinished({});
 
 			exporter.flush();
 
@@ -185,7 +185,7 @@ describe("Test Event tracing exporter class", () => {
 
 			exporter.opts.broadcast = true;
 			exporter.opts.groups = ["mail", "payment"];
-			exporter.finishSpan({});
+			exporter.spanFinished({});
 
 			exporter.flush();
 
@@ -242,30 +242,30 @@ describe("Test Event tracing exporter class", () => {
 		});
 	});
 
-	describe("Test startSpan & finishSpan method", () => {
+	describe("Test spanStarted & spanFinished method", () => {
 		const fakeTracer = {
 			broker,
 			logger: broker.logger
 		};
 
-		it("should push into queue only finishSpan", () => {
+		it("should push into queue only spanFinished", () => {
 			const exporter = new EventTraceExporter({});
 			exporter.init(fakeTracer);
 
-			exporter.startSpan({ a: 5 });
-			exporter.finishSpan({ b: 10 });
+			exporter.spanStarted({ a: 5 });
+			exporter.spanFinished({ b: 10 });
 
 			expect(exporter.queue).toEqual([
 				{ b: 10 }
 			]);
 		});
 
-		it("should push into queue only startSpan", () => {
+		it("should push into queue only spanStarted", () => {
 			const exporter = new EventTraceExporter({ sendStartSpan: true, sendFinishSpan: false });
 			exporter.init(fakeTracer);
 
-			exporter.startSpan({ a: 5 });
-			exporter.finishSpan({ b: 10 });
+			exporter.spanStarted({ a: 5 });
+			exporter.spanFinished({ b: 10 });
 
 			expect(exporter.queue).toEqual([
 				{ a: 5 }
@@ -276,8 +276,8 @@ describe("Test Event tracing exporter class", () => {
 			const exporter = new EventTraceExporter({ sendFinishSpan: false });
 			exporter.init(fakeTracer);
 
-			exporter.startSpan({ a: 5 });
-			exporter.finishSpan({ b: 10 });
+			exporter.spanStarted({ a: 5 });
+			exporter.spanFinished({ b: 10 });
 
 			expect(exporter.queue).toEqual([]);
 		});
@@ -287,8 +287,8 @@ describe("Test Event tracing exporter class", () => {
 			exporter.flush = jest.fn();
 			exporter.init(fakeTracer);
 
-			exporter.startSpan({ a: 5 });
-			exporter.finishSpan({ b: 10 });
+			exporter.spanStarted({ a: 5 });
+			exporter.spanFinished({ b: 10 });
 
 			expect(exporter.queue).toEqual([
 				{ a: 5 },

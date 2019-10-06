@@ -82,7 +82,7 @@ class ZipkinTraceExporter extends BaseTraceExporter {
 	 * @param {Span} span
 	 * @memberof ZipkinTraceExporter
 	 */
-	finishSpan(span) {
+	spanFinished(span) {
 		this.queue.push(span);
 	}
 

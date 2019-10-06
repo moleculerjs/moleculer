@@ -51,7 +51,7 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 	 * @param {Span} span
 	 * @memberof ConsoleTraceExporter
 	 */
-	startSpan(span) {
+	spanStarted(span) {
 		this.spans[span.id] = {
 			span,
 			children: []
@@ -70,7 +70,7 @@ class ConsoleTraceExporter extends BaseTraceExporter {
 	 * @param {Span} span
 	 * @memberof ConsoleTraceExporter
 	 */
-	finishSpan(span) {
+	spanFinished(span) {
 		//this.log(span);
 		if (!this.spans[span.parentID]) {
 			this.printRequest(span.id);

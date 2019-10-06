@@ -52,7 +52,7 @@ describe("Test Console tracing exporter class", () => {
 
 	});
 
-	describe("Test startSpan method", () => {
+	describe("Test spanStarted method", () => {
 		const fakeTracer = { broker, logger: broker.logger };
 		const exporter = new ConsoleTraceExporter({});
 		exporter.init(fakeTracer);
@@ -64,8 +64,8 @@ describe("Test Console tracing exporter class", () => {
 		it("should push spans to the store", () => {
 			expect(exporter.spans).toEqual({});
 
-			exporter.startSpan(span1);
-			exporter.startSpan(span2);
+			exporter.spanStarted(span1);
+			exporter.spanStarted(span2);
 
 			expect(exporter.spans).toEqual({
 				span1: {
@@ -80,7 +80,7 @@ describe("Test Console tracing exporter class", () => {
 		});
 
 		it("should set child for parent", () => {
-			exporter.startSpan(span3);
+			exporter.spanStarted(span3);
 
 			expect(exporter.spans).toEqual({
 				span1: {
@@ -102,7 +102,7 @@ describe("Test Console tracing exporter class", () => {
 
 	});
 
-	describe("Test finishSpan method", () => {
+	describe("Test spanFinished method", () => {
 		const fakeTracer = { broker, logger: broker.logger };
 		const exporter = new ConsoleTraceExporter({});
 		exporter.init(fakeTracer);
@@ -110,10 +110,10 @@ describe("Test Console tracing exporter class", () => {
 		exporter.removeSpanWithChildren = jest.fn();
 
 		const span1 = { id: "span1", parentID: "span3" };
-		exporter.startSpan(span1);
+		exporter.spanStarted(span1);
 
 		it("should call printRequest if no parent span", () => {
-			exporter.finishSpan(span1);
+			exporter.spanFinished(span1);
 
 			expect(exporter.printRequest).toHaveBeenCalledTimes(1);
 			expect(exporter.printRequest).toHaveBeenCalledWith("span1");
@@ -126,7 +126,7 @@ describe("Test Console tracing exporter class", () => {
 			exporter.printRequest.mockClear();
 			exporter.removeSpanWithChildren.mockClear();
 
-			exporter.finishSpan({ id: "span2", parentID: "span1" });
+			exporter.spanFinished({ id: "span2", parentID: "span1" });
 
 			expect(exporter.printRequest).toHaveBeenCalledTimes(0);
 			expect(exporter.removeSpanWithChildren).toHaveBeenCalledTimes(0);
@@ -148,12 +148,12 @@ describe("Test Console tracing exporter class", () => {
 			const span5 = { id: "span5", parentID: "span1" };
 			const span6 = { id: "span6", parentID: null };
 
-			exporter.startSpan(span1);
-			exporter.startSpan(span2);
-			exporter.startSpan(span3);
-			exporter.startSpan(span4);
-			exporter.startSpan(span5);
-			exporter.startSpan(span6);
+			exporter.spanStarted(span1);
+			exporter.spanStarted(span2);
+			exporter.spanStarted(span3);
+			exporter.spanStarted(span4);
+			exporter.spanStarted(span5);
+			exporter.spanStarted(span6);
 
 			expect(exporter.spans).toMatchSnapshot();
 
@@ -238,15 +238,15 @@ describe("Test Console tracing exporter class", () => {
 		};
 
 		it("should print full trace", () => {
-			exporter.startSpan(span1);
-			exporter.startSpan(span2);
-			exporter.startSpan(span22);
-			exporter.startSpan(span3);
+			exporter.spanStarted(span1);
+			exporter.spanStarted(span2);
+			exporter.spanStarted(span22);
+			exporter.spanStarted(span3);
 
-			exporter.finishSpan(span3);
-			exporter.finishSpan(span22);
-			exporter.finishSpan(span2);
-			exporter.finishSpan(span1);
+			exporter.spanFinished(span3);
+			exporter.spanFinished(span22);
+			exporter.spanFinished(span2);
+			exporter.spanFinished(span1);
 
 			expect(LOG_STORE).toMatchSnapshot();
 		});
@@ -260,15 +260,15 @@ describe("Test Console tracing exporter class", () => {
 				message: "Something happened"
 			};
 
-			exporter.startSpan(span1);
-			exporter.startSpan(span2);
-			exporter.startSpan(span22);
-			exporter.startSpan(span3);
+			exporter.spanStarted(span1);
+			exporter.spanStarted(span2);
+			exporter.spanStarted(span22);
+			exporter.spanStarted(span3);
 
-			exporter.finishSpan(span3);
-			exporter.finishSpan(span22);
-			exporter.finishSpan(span2);
-			exporter.finishSpan(span1);
+			exporter.spanFinished(span3);
+			exporter.spanFinished(span22);
+			exporter.spanFinished(span2);
+			exporter.spanFinished(span1);
 
 			expect(LOG_STORE).toMatchSnapshot();
 		});
@@ -281,15 +281,15 @@ describe("Test Console tracing exporter class", () => {
 			span22.name = "Span #22";
 			span22.error = null;
 
-			exporter.startSpan(span1);
-			exporter.startSpan(span2);
-			exporter.startSpan(span22);
-			exporter.startSpan(span3);
+			exporter.spanStarted(span1);
+			exporter.spanStarted(span2);
+			exporter.spanStarted(span22);
+			exporter.spanStarted(span3);
 
-			exporter.finishSpan(span3);
-			exporter.finishSpan(span22);
-			exporter.finishSpan(span2);
-			exporter.finishSpan(span1);
+			exporter.spanFinished(span3);
+			exporter.spanFinished(span22);
+			exporter.spanFinished(span2);
+			exporter.spanFinished(span1);
 
 			expect(LOG_STORE).toMatchSnapshot();
 		});

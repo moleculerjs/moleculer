@@ -337,7 +337,7 @@ describe("Test Jaeger tracing exporter class", () => {
 
 	});
 
-	describe("Test finishSpan method", () => {
+	describe("Test spanFinished method", () => {
 		const fakeTracer = { logger: broker.logger };
 		const exporter = new JaegerTraceExporter({});
 		exporter.init(fakeTracer);
@@ -345,7 +345,7 @@ describe("Test Jaeger tracing exporter class", () => {
 
 		it("should push spans to the queue", () => {
 			const span1 = { id: "span-1" };
-			exporter.finishSpan(span1);
+			exporter.spanFinished(span1);
 
 			expect(exporter.generateJaegerSpan).toHaveBeenCalledTimes(1);
 			expect(exporter.generateJaegerSpan).toHaveBeenCalledWith(span1);

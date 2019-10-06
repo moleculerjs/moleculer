@@ -431,7 +431,7 @@ describe("Test Tracer", () => {
 			expect(tracer.setCurrentSpan).toHaveBeenCalledWith(span);
 
 			expect(tracer.invokeExporter).toBeCalledTimes(1);
-			expect(tracer.invokeExporter).toHaveBeenCalledWith("startSpan", [span]);
+			expect(tracer.invokeExporter).toHaveBeenCalledWith("spanStarted", [span]);
 		});
 
 		it("should not invokeExporter if not sampled", () => {
@@ -468,7 +468,7 @@ describe("Test Tracer", () => {
 			expect(tracer.removeCurrentSpan).toHaveBeenCalledWith(span);
 
 			expect(tracer.invokeExporter).toBeCalledTimes(1);
-			expect(tracer.invokeExporter).toHaveBeenCalledWith("finishSpan", [span]);
+			expect(tracer.invokeExporter).toHaveBeenCalledWith("spanFinished", [span]);
 		});
 
 		it("should not invokeExporter if not sampled", () => {

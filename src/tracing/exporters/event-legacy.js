@@ -39,7 +39,7 @@ class EventLegacyTraceExporter extends BaseTraceExporter {
 	 * @param {Span} span
 	 * @memberof BaseTraceExporter
 	 */
-	startSpan(span) {
+	spanStarted(span) {
 		const payload = this.generateMetricPayload(span);
 		this.broker.emit("metrics.trace.span.start", payload);
 	}
@@ -50,7 +50,7 @@ class EventLegacyTraceExporter extends BaseTraceExporter {
 	 * @param {Span} span
 	 * @memberof EventLegacyTraceExporter
 	 */
-	finishSpan(span) {
+	spanFinished(span) {
 		const payload = this.generateMetricPayload(span);
 		this.broker.emit("metrics.trace.span.finish", payload);
 	}
