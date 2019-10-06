@@ -56,7 +56,7 @@ Array [
       "fromCache": false,
       "nodeID": "broker-1",
       "options": Object {},
-      "params": Object {},
+      "params": null,
       "remoteCall": false,
     },
     "traceID": "broker-1-1",

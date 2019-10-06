@@ -448,7 +448,7 @@ declare namespace Moleculer {
 		disconnected(): void;
 	}
 
-	class Context<P = GenericObject, M = GenericObject> {
+	class Context<P = {}, M extends object = {}> {
 		constructor(broker: ServiceBroker, endpoint: Endpoint);
 		id: string;
 		broker: ServiceBroker;
@@ -475,7 +475,7 @@ declare namespace Moleculer {
 
 		level: number;
 
-		params: P | null;
+		params: P;
 		meta: M;
 
 		requestID: string | null;
@@ -484,18 +484,19 @@ declare namespace Moleculer {
 
 		setEndpoint(endpoint: Endpoint): void;
 		setParams(newParams: P, cloning?: boolean): void;
-		call<T = any, P extends GenericObject = GenericObject>(actionName: string, params?: P, opts?: GenericObject): PromiseLike<T>;
+		call<T>(actionName: string): PromiseLike<T>;
+		call<T, P>(actionName: string, params?: P, opts?: GenericObject): PromiseLike<T>;
 
-		emit<D = any>(eventName: string, data: D, opts: GenericObject): void;
-		emit<D = any>(eventName: string, data: D, groups: Array<string>): void;
-		emit<D = any>(eventName: string, data: D, groups: string): void;
-		emit<D = any>(eventName: string, data: D): void;
+		emit<D>(eventName: string, data: D, opts: GenericObject): void;
+		emit<D>(eventName: string, data: D, groups: Array<string>): void;
+		emit<D>(eventName: string, data: D, groups: string): void;
+		emit<D>(eventName: string, data: D): void;
 		emit(eventName: string): void;
 
-		broadcast<D = any>(eventName: string, data: D, opts: GenericObject): void;
-		broadcast<D = any>(eventName: string, data: D, groups: Array<string>): void;
-		broadcast<D = any>(eventName: string, data: D, groups: string): void;
-		broadcast<D = any>(eventName: string, data: D): void;
+		broadcast<D>(eventName: string, data: D, opts: GenericObject): void;
+		broadcast<D>(eventName: string, data: D, groups: Array<string>): void;
+		broadcast<D>(eventName: string, data: D, groups: string): void;
+		broadcast<D>(eventName: string, data: D): void;
 		broadcast(eventName: string): void;
 
 		copy(endpoint: Endpoint): Context;

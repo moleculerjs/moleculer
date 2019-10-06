@@ -1003,7 +1003,7 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	call(actionName, params, opts = {}) {
-		if (params == null)
+		if (params === undefined)
 			params = {}; // Backward compatibility
 
 		// Create context
