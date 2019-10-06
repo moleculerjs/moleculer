@@ -88,7 +88,7 @@ describe("Test MetricsMiddleware", () => {
 				expect(broker.metrics.increment).toHaveBeenNthCalledWith(3, "moleculer.request.levels", { action : "posts.find", service: "v2.posts", level: 1, caller: "users.list" });
 
 				expect(broker.metrics.timer).toHaveBeenCalledTimes(1);
-				expect(broker.metrics.timer).toHaveBeenNthCalledWith(1, "moleculer.request.time", { action : "posts.find", service: "v2.posts", caller: "users.list" });
+				expect(broker.metrics.timer).toHaveBeenNthCalledWith(1, "moleculer.request.time", { action : "posts.find", service: "v2.posts", type: "local", caller: "users.list" });
 
 				expect(handler).toHaveBeenCalledTimes(1);
 
@@ -116,7 +116,7 @@ describe("Test MetricsMiddleware", () => {
 				expect(broker.metrics.increment).toHaveBeenNthCalledWith(3, "moleculer.request.levels", { action : "posts.find", service: "v2.posts",  level: 1, caller: "users.list" });
 
 				expect(broker.metrics.timer).toHaveBeenCalledTimes(1);
-				expect(broker.metrics.timer).toHaveBeenNthCalledWith(1, "moleculer.request.time", { action : "posts.find", service: "v2.posts", caller: "users.list" });
+				expect(broker.metrics.timer).toHaveBeenNthCalledWith(1, "moleculer.request.time", { action : "posts.find", service: "v2.posts", type: "remote", caller: "users.list" });
 
 				expect(handler).toHaveBeenCalledTimes(1);
 
@@ -146,7 +146,7 @@ describe("Test MetricsMiddleware", () => {
 				expect(broker.metrics.increment).toHaveBeenNthCalledWith(3, "moleculer.request.levels", { action : "posts.find", service: "v2.posts", caller: "users.list", level: 1 });
 
 				expect(broker.metrics.timer).toHaveBeenCalledTimes(1);
-				expect(broker.metrics.timer).toHaveBeenNthCalledWith(1, "moleculer.request.time", { action : "posts.find", service: "v2.posts", caller: "users.list" });
+				expect(broker.metrics.timer).toHaveBeenNthCalledWith(1, "moleculer.request.time", { action : "posts.find", service: "v2.posts", caller: "users.list", type: "local" });
 
 				expect(handler).toHaveBeenCalledTimes(1);
 
@@ -185,7 +185,7 @@ describe("Test MetricsMiddleware", () => {
 				expect(broker.metrics.increment).toHaveBeenNthCalledWith(3, "moleculer.request.levels", { action : "posts.find", service: "v2.posts", caller: "users.list", level: 1 });
 
 				expect(broker.metrics.timer).toHaveBeenCalledTimes(1);
-				expect(broker.metrics.timer).toHaveBeenNthCalledWith(1, "moleculer.request.time", { action : "posts.find", service: "v2.posts", caller: "users.list" });
+				expect(broker.metrics.timer).toHaveBeenNthCalledWith(1, "moleculer.request.time", { action : "posts.find", service: "v2.posts", caller: "users.list", type: "remote" });
 
 				expect(handler).toHaveBeenCalledTimes(1);
 

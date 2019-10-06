@@ -21,7 +21,7 @@ module.exports = function MetricsMiddleware(broker) {
 			metrics.increment(METRIC.MOLECULER_REQUEST_TOTAL, { service, action, caller, type });
 			metrics.increment(METRIC.MOLECULER_REQUEST_ACTIVE, { service, action, caller, type });
 			metrics.increment(METRIC.MOLECULER_REQUEST_LEVELS, { service, action, caller, level: ctx.level });
-			const timeEnd = metrics.timer(METRIC.MOLECULER_REQUEST_TIME, { service, action, caller });
+			const timeEnd = metrics.timer(METRIC.MOLECULER_REQUEST_TIME, { service, action, caller, type });
 
 			// Call the next handler
 			return next(ctx).then(res => {
@@ -55,7 +55,7 @@ module.exports = function MetricsMiddleware(broker) {
 				metrics.register({ name: METRIC.MOLECULER_REQUEST_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["service", "action", "type", "caller"], unit: METRIC.UNIT_REQUEST, description: "Number of requests", rate: true });
 				metrics.register({ name: METRIC.MOLECULER_REQUEST_ACTIVE, type: METRIC.TYPE_GAUGE, labelNames: ["service", "action", "type", "caller"], unit: METRIC.UNIT_REQUEST, description: "Number of active requests" });
 				metrics.register({ name: METRIC.MOLECULER_REQUEST_ERROR_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["service", "action", "type", "caller", "errorName", "errorCode", "errorType"], unit: METRIC.UNIT_REQUEST, description: "Number of request errors", rate: true });
-				metrics.register({ name: METRIC.MOLECULER_REQUEST_TIME, type: METRIC.TYPE_HISTOGRAM, labelNames: ["service", "action", "caller"], quantiles: true, buckets: true, unit: METRIC.UNIT_MILLISECONDS, description: "Request times in milliseconds", rate: true });
+				metrics.register({ name: METRIC.MOLECULER_REQUEST_TIME, type: METRIC.TYPE_HISTOGRAM, labelNames: ["service", "action", "type", "caller"], quantiles: true, buckets: true, unit: METRIC.UNIT_MILLISECONDS, description: "Request times in milliseconds", rate: true });
 				metrics.register({ name: METRIC.MOLECULER_REQUEST_LEVELS, type: METRIC.TYPE_COUNTER, labelNames: ["level"], unit: METRIC.UNIT_REQUEST, description: "Number of requests by context level" });
 				//metrics.register({ name: METRIC.MOLECULER_REQUEST_DIRECTCALL_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["action"], unit: METRIC.UNIT_REQUEST, description: "Number of direct calls", rate: true });
 				//metrics.register({ name: METRIC.MOLECULER_REQUEST_MULTICALL_TOTAL, type: METRIC.TYPE_COUNTER, unit: METRIC.UNIT_REQUEST, description: "Number of multicalls", rate: true });
