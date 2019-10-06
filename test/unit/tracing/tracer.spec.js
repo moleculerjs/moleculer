@@ -37,7 +37,7 @@ describe("Test Tracer", () => {
 			expect(tracer.opts).toEqual({
 				enabled: true,
 
-				exporters: null,
+				exporter: null,
 
 				sampling: {
 					rate: 1.0,
@@ -46,7 +46,7 @@ describe("Test Tracer", () => {
 				},
 
 				actions: true,
-				methods: false,
+				//methods: false,
 				events: false,
 
 				errorFields: ["name", "message", "code", "type", "data"],
@@ -69,7 +69,7 @@ describe("Test Tracer", () => {
 					tracesPerSecond: 0.2,
 				},
 
-				methods: true,
+				events: true,
 
 				stackTrace: true,
 
@@ -83,7 +83,7 @@ describe("Test Tracer", () => {
 			expect(tracer.opts).toEqual({
 				enabled: true,
 
-				exporters: null,
+				exporter: null,
 
 				sampling: {
 					rate: 0.5,
@@ -92,8 +92,8 @@ describe("Test Tracer", () => {
 				},
 
 				actions: true,
-				methods: true,
-				events: false,
+				//methods: true,
+				events: true,
 
 				errorFields: ["name", "message", "code", "type", "data", "stack"],
 				stackTrace: true,
