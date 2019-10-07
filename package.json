@@ -49,7 +49,7 @@
   "devDependencies": {
     "@types/bunyan": "^1.8.6",
     "@types/ioredis": "^4.0.18",
-    "@types/node": "^12.7.11",
+    "@types/node": "^12.7.8",
     "@types/pino": "^5.8.10",
     "amqplib": "^0.5.5",
     "avsc": "^5.4.13",
@@ -59,7 +59,7 @@
     "dd-trace": "^0.15.3",
     "debug": "^4.1.1",
     "dotenv": "^8.1.0",
-    "eslint": "^6.5.1",
+    "eslint": "^6.5.0",
     "eslint-plugin-node": "^10.0.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-security": "^1.4.0",
