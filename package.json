@@ -92,10 +92,6 @@
     "winston": "^3.2.1",
     "winston-context": "^0.0.7"
   },
-  "optionalDependencies": {
-    "event-loop-stats": "^1.2.0",
-    "gc-stats": "^1.4.0"
-  },
   "dependencies": {
     "args": "^5.0.1",
     "bluebird": "^3.5.5",
