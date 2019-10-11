@@ -1770,6 +1770,7 @@ In earlier version, if request, response or event data was a `Buffer`, the schem
 - new `hasEventListener` & `getEventListeners` broker method.
 - new `uidGenerator` broker options to overwrite the default UUID generator code.
 - new `ctx.locals` property to store local variables in hooks or actions.
+- Context tracking watches local event handlers, as well.
 
 --------------------------------------------------
 <a name="0.13.11"></a>
