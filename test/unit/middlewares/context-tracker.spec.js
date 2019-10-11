@@ -30,6 +30,7 @@ describe("Test ContextTrackerMiddleware", () => {
 	it("should register hooks", () => {
 		expect(mw.localAction).toBeInstanceOf(Function);
 		expect(mw.remoteAction).toBeInstanceOf(Function);
+		expect(mw.localEvent).toBeInstanceOf(Function);
 	});
 
 	it("should not wrap handler if tracking is disabled", () => {
@@ -47,7 +48,7 @@ describe("Test ContextTrackerMiddleware", () => {
 		expect(newHandler).not.toBe(handler);
 	});
 
-	it("should not track if tracking if false in calling options", () => {
+	it("should not track if tracking is false in calling options", () => {
 		let resolve;
 		const handler = jest.fn(() => new Promise(r => resolve = r));
 		const newHandler = mw.localAction.call(broker, handler, action);
@@ -138,6 +139,58 @@ describe("Test Service stopping with delayed shutdown", () => {
 		return broker.start()
 			.then(() => {
 				broker.call("delayed.test", {});
+				return service.Promise.delay(10);
+			})
+			.then(() => broker.stop())
+			.catch(protectReject)
+			.then(() => {
+				expect(FLOW).toEqual([
+					"service-start",
+					"broker-start",
+					"start",
+					"end",
+					"service-stop",
+					"broker-stop"
+				]);
+				expect(schema.stopped).toHaveBeenCalledTimes(1);
+			});
+	});
+});
+
+describe("Test Service stopping with delayed shutdown & event", () => {
+	const FLOW = [];
+
+	const broker = new ServiceBroker({
+		logger: false,
+		nodeID: "node-1",
+		tracking: {
+			enabled: true
+		},
+		started: () => FLOW.push("broker-start"),
+		stopped: () => FLOW.push("broker-stop")
+	});
+
+
+	const schema = {
+		name: "delayed",
+
+		events: {
+			async test() {
+				FLOW.push("start");
+				await this.Promise.delay(80);
+				FLOW.push("end");
+			}
+		},
+
+		started: jest.fn(() => FLOW.push("service-start")),
+		stopped: jest.fn(() => FLOW.push("service-stop"))
+	};
+
+	it("should called stopped", () => {
+		const service = broker.createService(schema);
+		return broker.start()
+			.then(() => {
+				broker.emit("test");
 				return service.Promise.delay(10);
 			})
 			.then(() => broker.stop())
@@ -276,7 +329,7 @@ describe.skip("Test broker delayed shutdown with remote calls", () => {
 	});
 });
 
-describe.skip("Test broker delayed throw GraceFulTimeoutError", () => {
+describe.skip("Test broker delayed throw GraceFulTimeoutError with remote calls", () => {
 	const FLOW = [];
 
 	const broker1 = new ServiceBroker({
