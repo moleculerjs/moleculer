@@ -12,6 +12,17 @@ const { METRIC }	= require("../metrics");
 
 module.exports = function FallbackMiddleware(broker) {
 
+	function handleContextFallback(ctx, err) {
+		broker.logger.warn(`The '${ctx.action.name}' request is failed. Return fallback response.`, { requestID: ctx.requestID, err: err.message });
+		broker.metrics.increment(METRIC.MOLECULER_REQUEST_FALLBACK_TOTAL, { action: ctx.action.name });
+		ctx.fallbackResult = true;
+
+		if (_.isFunction(ctx.options.fallbackResponse))
+			return ctx.options.fallbackResponse(ctx, err);
+		else
+			return Promise.resolve(ctx.options.fallbackResponse);
+	}
+
 	function wrapFallbackMiddleware(handler, action) {
 		return function fallbackMiddleware(ctx) {
 			// Call the handler
@@ -19,14 +30,7 @@ module.exports = function FallbackMiddleware(broker) {
 
 				// Handle fallback response from calling options
 				if (ctx.options.fallbackResponse) {
-					this.logger.warn(`The '${ctx.action.name}' request is failed. Return fallback response.`, { requestID: ctx.requestID, err: err.message });
-					broker.metrics.increment(METRIC.MOLECULER_REQUEST_FALLBACK_TOTAL, { action: action.name });
-					ctx.fallbackResult = true;
-
-					if (_.isFunction(ctx.options.fallbackResponse))
-						return ctx.options.fallbackResponse(ctx, err);
-					else
-						return Promise.resolve(ctx.options.fallbackResponse);
+					return handleContextFallback(ctx, err);
 				}
 
 				// Handle fallback from Action Definition (only locally)
@@ -50,6 +54,7 @@ module.exports = function FallbackMiddleware(broker) {
 			});
 		}.bind(this);
 	}
+
 	return {
 		name: "Fallback",
 
@@ -60,6 +65,17 @@ module.exports = function FallbackMiddleware(broker) {
 		},
 
 		localAction: wrapFallbackMiddleware,
-		remoteAction: wrapFallbackMiddleware
+		remoteAction: wrapFallbackMiddleware,
+
+		/*call(next) {
+			return (actionName, params, opts) => {
+				return next(actionName, params, opts).catch(err => {
+					if (opts.fallbackResponse) {
+						return handleContextFallback(null, err);
+					}
+					throw err;
+				});
+			};
+		},*/
 	};
 };
