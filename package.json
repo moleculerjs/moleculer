@@ -9,9 +9,10 @@
     "coverall": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "demo": "node examples/index.js",
     "deps": "npm-check -u",
-    "postdeps": "npm test",
+    "postdeps": "npm run lint:fix && npm test",
     "dev": "nodemon dev/index.js",
     "lint": "eslint --ext=.js src test/unit test/integration",
+    "lint:lock": "lockfile-lint --path package-lock.json --type npm --validate-https --allowed-hosts npm",
     "lint:fix": "eslint --fix --ext=.js src test/unit test/integration",
     "perf": "nodemon --allow-natives-syntax benchmark/perf-runner.js",
     "pperf": "node --inspect --expose-gc benchmark/perf-runner.js",
@@ -29,13 +30,15 @@
     "release:beta": "npm publish --tag next --access public && git push --tags"
   },
   "keywords": [
-    "microservices",
     "microservice",
+    "microservices",
+    "messagebus",
     "rpc",
     "services",
     "micro",
     "pubsub",
-    "scalable"
+    "scalable",
+    "distributed"
   ],
   "repository": {
     "type": "git",
@@ -70,6 +73,7 @@
     "jest-cli": "^24.9.0",
     "joi": "^14.3.1",
     "kafka-node": "^4.1.3",
+    "lockfile-lint": "^2.1.2",
     "log4js": "^5.2.0",
     "lolex": "^4.2.0",
     "moleculer-repl": "^0.6.1",
