@@ -83,31 +83,28 @@ broker.start()
     .then(res => console.log("5 + 3 =", res))
     .catch(err => console.error(`Error occurred! ${err.message}`));
 ```
-[Try it on Runkit](https://runkit.com/icebob/moleculer-quick-example)
+[Try it in your browser](https://codesandbox.io/s/ky5lj09jv?fontsize=14)
 
 # Create a Moleculer project
 Use the Moleculer CLI tool to create a new Moleculer based microservices project.
 
-1. Install [moleculer-cli](https://github.com/moleculerjs/moleculer-cli) globally
+1. Create a new project (named `moleculer-demo`)
     ```bash
-    $ npm install moleculer-cli -g
-    ```
-2. Create a new project (named `first-demo`)
-    ```bash
-    $ moleculer init project first-demo
+    $ npx moleculer init project moleculer-demo
     ```
     > Press Y on API Gateway & `npm install`
     
-3. Open project folder
+2. Open project folder
     ```bash
-    $ cd first-demo
+    $ cd moleculer-demo
     ```
     
-4. Start project
+3. Start project
     ```bash
     $ npm run dev
     ```
-5. Open the [http://localhost:3000/](http://localhost:3000/) link in your browser. It shows a start page which contains two links to call the `greeter` service via [API gateway](https://github.com/moleculerjs/moleculer-web).
+
+4. Open the [http://localhost:3000/](http://localhost:3000/) link in your browser. It shows a start page which contains two links to call the `greeter` service via [API gateway](https://github.com/moleculerjs/moleculer-web).
 
 :tada:**Congratulations! Your first Moleculer based microservices project is created. Read our [documentation](https://moleculer.services/docs) to learn more about Moleculer.**
 
