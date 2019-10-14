@@ -1184,7 +1184,7 @@ class ServiceBroker {
 	 */
 	mcall(def, opts) {
 		if (Array.isArray(def)) {
-			return Promise.all(def.map(item => this.call(item.action, item.params, opts || item.options)));
+			return Promise.all(def.map(item => this.call(item.action, item.params, item.options || opts)));
 
 		} else if (_.isObject(def)) {
 			let results = {};
