@@ -321,6 +321,48 @@ class Context {
 		});
 	}
 
+	mcall(def, _opts) {
+		const opts = Object.assign({
+			parentCtx: this
+		}, _opts);
+
+		if (this.options.timeout > 0 && this.startHrTime) {
+			// Distributed timeout handling. Decrementing the timeout value with the elapsed time.
+			// If the timeout below 0, skip the call.
+			const diff = process.hrtime(this.startHrTime);
+			const duration = (diff[0] * 1e3) + (diff[1] / 1e6);
+			const distTimeout = this.options.timeout - duration;
+
+			if (distTimeout <= 0) {
+				const action = (Array.isArray(def) ? def : Object.values(def)).map(d => d.action).join(", ");
+				return Promise.reject(new RequestSkippedError({ action, nodeID: this.broker.nodeID }));
+			}
+
+			if (!opts.timeout || distTimeout < opts.timeout)
+				opts.timeout = distTimeout;
+		}
+
+		// Max calling level check to avoid calling loops
+		if (this.broker.options.maxCallLevel > 0 && this.level >= this.broker.options.maxCallLevel) {
+			return Promise.reject(new MaxCallLevelError({ nodeID: this.broker.nodeID, level: this.level }));
+		}
+
+		let p = this.broker.mcall(def, opts);
+
+		// Merge metadata with sub context metadata
+		return p.then(res => {
+			if (Array.isArray(p.ctx) && p.ctx.length)
+				p.ctx.forEach(ctx => mergeMeta(this, ctx.meta));
+
+			return res;
+		}).catch(err => {
+			if (Array.isArray(p.ctx) && p.ctx.length)
+				p.ctx.forEach(ctx => mergeMeta(this, ctx.meta));
+
+			return Promise.reject(err);
+		});
+	}
+
 	/**
 	 * Emit an event (grouped & balanced global event)
 	 *
