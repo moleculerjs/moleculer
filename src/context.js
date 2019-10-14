@@ -336,7 +336,8 @@ class Context {
 			const distTimeout = this.options.timeout - duration;
 
 			if (distTimeout <= 0) {
-				return Promise.reject(new RequestSkippedError({ action: def.map(d => d.action).join(", "), nodeID: this.broker.nodeID }));
+				const action = (Array.isArray(def) ? def : Object.values(def)).map(d => d.action).join(", ");
+				return Promise.reject(new RequestSkippedError({ action, nodeID: this.broker.nodeID }));
 			}
 
 			if (!opts.timeout || distTimeout < opts.timeout)
