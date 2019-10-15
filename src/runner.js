@@ -433,6 +433,8 @@ class MoleculerRunner {
 			.then(() => {
 				if (this.flags.repl && (!this.worker || this.worker.id === 1))
 					this.broker.repl();
+
+				return this.broker;
 			});
 	}
 
