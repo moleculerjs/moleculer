@@ -31,7 +31,7 @@ const Serializers = require("../../src/serializers");
 const Transporters = require("../../src/transporters");
 const Strategies = require("../../src/strategies");
 const MiddlewareHandler = require("../../src/middleware");
-const { MoleculerError, ServiceNotFoundError, ServiceNotAvailableError } = require("../../src/errors");
+const { MoleculerError, MoleculerServerError, ServiceNotFoundError, ServiceNotAvailableError } = require("../../src/errors");
 
 describe("Test ServiceBroker constructor", () => {
 
@@ -2041,12 +2041,12 @@ describe("Test broker.mcall", () => {
 		return broker.mcall([
 			{ action: "posts.find", params: { limit: 2, offset: 0 }, options: { timeout: 500 } },
 			{ action: "users.find", params: { limit: 2, sort: "username" } }
-		]).catch(protectReject).then(res => {
+		], { timeout: 200 }).catch(protectReject).then(res => {
 			expect(res).toEqual(["posts.find", "users.find"]);
 
 			expect(broker.call).toHaveBeenCalledTimes(2);
 			expect(broker.call).toHaveBeenCalledWith("posts.find", { limit: 2, offset: 0 }, { timeout: 500 });
-			expect(broker.call).toHaveBeenCalledWith("users.find", { limit: 2, sort: "username" }, undefined);
+			expect(broker.call).toHaveBeenCalledWith("users.find", { limit: 2, sort: "username" }, { timeout: 200 });
 		});
 	});
 
@@ -2056,19 +2056,19 @@ describe("Test broker.mcall", () => {
 		return broker.mcall({
 			posts: { action: "posts.find", params: { limit: 2, offset: 0 }, options: { timeout: 500 } },
 			users: { action: "users.find", params: { limit: 2, sort: "username" } }
-		}).catch(protectReject).then(res => {
+		}, { timeout: 200 }).catch(protectReject).then(res => {
 			expect(res).toEqual({ posts: "posts.find", users: "users.find" });
 
 			expect(broker.call).toHaveBeenCalledTimes(2);
 			expect(broker.call).toHaveBeenCalledWith("posts.find", { limit: 2, offset: 0 }, { timeout: 500 });
-			expect(broker.call).toHaveBeenCalledWith("users.find", { limit: 2, sort: "username" }, undefined);
+			expect(broker.call).toHaveBeenCalledWith("users.find", { limit: 2, sort: "username" }, { timeout: 200 });
 		});
 	});
 
 	it("should throw error", () => {
 		expect(() => {
 			return broker.mcall(6);
-		}).toThrowError(MoleculerError);
+		}).toThrowError(MoleculerServerError);
 	});
 });
 

@@ -154,7 +154,7 @@ class DatadogLogger extends BaseLogger {
 				headers: {
 					"Content-Type": "application/json",
 				}
-			}).then(res => {
+			}).then((/*res*/) => {
 				// console.info("Logs are uploaded to DataDog. Status: ", res.statusText);
 			}).catch(err => {
 				/* istanbul ignore next */

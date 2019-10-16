@@ -3,8 +3,13 @@ const ServiceBroker = require("../src/service-broker");
 
 const broker = new ServiceBroker({
 	nodeID: "broker-1",
-	transporter: "TCP",
-	logLevel: "info"
+	transporter: {
+		type: "NATS",
+		options: {
+			user: "icebob",
+			pass: "password"
+		}
+	}
 });
 
 async function start() {

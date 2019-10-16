@@ -33,6 +33,7 @@ module.exports = {
 
 	Errors: require("./src/errors"),
 
+	Runner: require("./src/runner"),
 	Utils: require("./src/utils"),
 
 	CIRCUIT_CLOSE,

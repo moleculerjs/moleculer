@@ -7,7 +7,6 @@
 "use strict";
 
 const { defaultsDeep } 	= require("lodash");
-const kleur				= require("kleur");
 const Promise			= require("bluebird");
 const Transporter 		= require("./base");
 

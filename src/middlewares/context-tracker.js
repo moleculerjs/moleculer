@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -100,6 +100,8 @@ module.exports = function ContextTrackerMiddleware() {
 
 		localAction: wrapTrackerMiddleware,
 		remoteAction: wrapTrackerMiddleware,
+
+		localEvent: wrapTrackerMiddleware,
 
 		// After the broker created
 		created(broker) {

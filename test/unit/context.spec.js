@@ -515,11 +515,10 @@ describe("Test setParams", () => {
 describe("Test call method", () => {
 	let broker = new ServiceBroker({ logger: false, maxCallLevel: 5 });
 	broker.call = jest.fn(() => broker.Promise.resolve());
-	const clock = lolex.install();
 
-	afterAll(() => {
-		clock.uninstall();
-	});
+	let clock;
+	beforeAll(()=> clock = lolex.install());
+	afterAll(() => clock.uninstall());
 
 	it("should call broker.call method with itself", () => {
 		let ctx = new Context(broker);
@@ -633,6 +632,205 @@ describe("Test call with meta merge", () => {
 			expect(e).toBe(err);
 			expect(broker.call).toHaveBeenCalledTimes(1);
 			expect(ctx.meta).toEqual({ a: "Hello", b: 5 });
+		});
+	});
+});
+
+describe("Test mcall method", () => {
+	let broker = new ServiceBroker({ logger: false, maxCallLevel: 5 });
+	broker.mcall = jest.fn(() => broker.Promise.resolve());
+
+	let clock;
+	beforeAll(()=> clock = lolex.install());
+	afterAll(() => clock.uninstall());
+
+	it("should call broker.mcall method with itself", () => {
+		let ctx = new Context(broker);
+
+		let p = { id: 5 };
+		let a = [
+			{ action: "posts.find", params: p },
+			{ action: "posts.list", params: p }
+		];
+
+		ctx.mcall(a);
+
+		expect(broker.mcall).toHaveBeenCalledTimes(1);
+		expect(broker.mcall).toHaveBeenCalledWith(a, { parentCtx: ctx });
+	});
+
+	it("should call broker.call method with options", () => {
+		broker.mcall.mockClear();
+
+		let ctx = new Context(broker);
+		ctx.level = 4;
+
+		let p = { id: 5 };
+		let a = [
+			{ action: "posts.find", params: p },
+			{ action: "posts.list", params: p }
+		];
+		let opts = { timeout: 2500 };
+
+		ctx.mcall(a, opts);
+
+		expect(broker.mcall).toHaveBeenCalledTimes(1);
+		expect(broker.mcall).toHaveBeenCalledWith(a, { parentCtx: ctx, timeout: 2500 });
+		expect(broker.mcall.mock.calls[0][2]).not.toBe(opts);
+		expect(opts.parentCtx).toBeUndefined();
+	});
+
+	it("should call broker.call method with object", () => {
+		broker.mcall.mockClear();
+
+		let ctx = new Context(broker);
+		ctx.level = 4;
+
+		let p = { id: 5 };
+		let a = {
+			find: { action: "posts.find", params: p },
+			list: { action: "posts.list", params: p }
+		};
+		let opts = { timeout: 2500 };
+
+		ctx.mcall(a, opts);
+
+		expect(broker.mcall).toHaveBeenCalledTimes(1);
+		expect(broker.mcall).toHaveBeenCalledWith(a, { parentCtx: ctx, timeout: 2500 });
+		expect(broker.mcall.mock.calls[0][2]).not.toBe(opts);
+		expect(opts.parentCtx).toBeUndefined();
+	});
+
+	it("should decrement the timeout with elapsed time", () => {
+		broker.mcall.mockClear();
+
+		let ctx = new Context(broker);
+		ctx.startHrTime = process.hrtime();
+		ctx.options.timeout = 1000;
+		clock.tick(300);
+
+		let p = { id: 5 };
+		let a = [
+			{ action: "posts.find", params: p },
+			{ action: "posts.list", params: p }
+		];
+		let opts = {};
+
+		ctx.mcall(a, opts);
+
+		expect(broker.mcall).toHaveBeenCalledTimes(1);
+		let bopts = broker.mcall.mock.calls[0][1];
+		expect(bopts.timeout).toBe(700);
+	});
+
+	it("should throw RequestSkippedError with array", () => {
+		broker.mcall.mockClear();
+
+		let ctx = new Context(broker);
+		ctx.startHrTime = process.hrtime();
+		ctx.options.timeout = 200;
+		clock.tick(300);
+
+		let p = { id: 5 };
+		let a = [
+			{ action: "posts.find", params: p },
+			{ action: "posts.list", params: p }
+		];
+		let opts = {};
+
+		return ctx.mcall(a, opts).then(protectReject).catch(err => {
+			expect(broker.mcall).toHaveBeenCalledTimes(0);
+			expect(err).toBeInstanceOf(RequestSkippedError);
+			expect(err.data.action).toBe("posts.find, posts.list");
+		});
+	});
+
+	it("should throw RequestSkippedError with object", () => {
+		broker.mcall.mockClear();
+
+		let ctx = new Context(broker);
+		ctx.startHrTime = process.hrtime();
+		ctx.options.timeout = 200;
+		clock.tick(300);
+
+		let p = { id: 5 };
+		let a = {
+			find: { action: "posts.find", params: p },
+			list: { action: "posts.list", params: p }
+		};
+		let opts = {};
+
+		return ctx.mcall(a, opts).then(protectReject).catch(err => {
+			expect(broker.mcall).toHaveBeenCalledTimes(0);
+			expect(err).toBeInstanceOf(RequestSkippedError);
+			expect(err.data.action).toBe("posts.find, posts.list");
+		});
+	});
+
+	it("should throw Error if reached the 'maxCallLevel'", () => {
+		broker.mcall.mockClear();
+
+		let ctx = new Context(broker);
+		ctx.level = 5;
+		return ctx.mcall([
+			{ action: "posts.find", params: {} },
+			{ action: "posts.list", params: {} }
+		]).then(protectReject).catch(err => {
+			expect(broker.mcall).toHaveBeenCalledTimes(0);
+			expect(err).toBeInstanceOf(MaxCallLevelError);
+			expect(err.code).toBe(500);
+			expect(err.data).toEqual({ nodeID: broker.nodeID, level: 5 });
+		});
+	});
+});
+
+describe("Test mcall with meta merge", () => {
+	let broker = new ServiceBroker({ logger: false, maxCallLevel: 5 });
+	let err = new Error("Subcall error");
+
+	broker.mcall = jest.fn()
+		.mockImplementationOnce(() => {
+			const p = broker.Promise.resolve();
+			p.ctx = [
+				{ meta: { b: 5 } },
+				{ meta: { c: 3 } }
+			];
+			return p;
+		})
+		.mockImplementationOnce(() => {
+			const p = broker.Promise.reject(err);
+			p.ctx = [
+				{ meta: { b: 5 } },
+				{ meta: { c: 3 } }
+			];
+			return p;
+		});
+
+	it("should merge meta from sub-context if resolved", () => {
+		let ctx = new Context(broker);
+		ctx.meta.a = "Hello";
+		ctx.meta.b = 1;
+		return ctx.mcall([
+			{ action: "posts.find", params: {} },
+			{ action: "posts.list", params: {} }
+		]).catch(protectReject).then(() => {
+			expect(broker.mcall).toHaveBeenCalledTimes(1);
+			expect(ctx.meta).toEqual({ a: "Hello", b: 5, c: 3 });
+		});
+	});
+
+	it("should merge meta from sub-context if rejected", () => {
+		broker.mcall.mockClear();
+		let ctx = new Context(broker);
+		ctx.meta.a = "Hello";
+		ctx.meta.b = 1;
+		return ctx.mcall([
+			{ action: "posts.find", params: {} },
+			{ action: "posts.list", params: {} }
+		]).then(protectReject).catch(e => {
+			expect(e).toBe(err);
+			expect(broker.mcall).toHaveBeenCalledTimes(1);
+			expect(ctx.meta).toEqual({ a: "Hello", b: 5, c: 3 });
 		});
 	});
 });

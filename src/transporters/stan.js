@@ -6,7 +6,6 @@
 
 "use strict";
 
-const kleur				= require("kleur");
 const Promise			= require("bluebird");
 const Transporter 		= require("./base");
 const {
