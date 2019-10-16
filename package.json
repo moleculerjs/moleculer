@@ -98,7 +98,7 @@
   },
   "dependencies": {
     "args": "^5.0.1",
-    "bluebird": "^3.5.5",
+    "bluebird": "^3.7.1",
     "es6-error": "^4.1.1",
     "eventemitter2": "^5.0.1",
     "fastest-validator": "^0.6.18",
