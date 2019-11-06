@@ -244,6 +244,7 @@ declare namespace Moleculer {
 		maxQueueSize?: number;
 		packetLogFilter?: Array<string>;
 		disableReconnect?: boolean;
+		disableVersionCheck?: boolean;
 	}
 
 	interface BrokerTrackingOptions {
