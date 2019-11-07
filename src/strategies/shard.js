@@ -96,7 +96,7 @@ class ShardStrategy extends BaseStrategy {
 		const cached = this.cache.get(key);
 		if (cached) return cached;
 
-		let found = this.ring.find(o => key < o.key);
+		let found = this.ring.find(o => key <= o.key);
 		if (!found && this.ring.length > 0) {
 			found = this.ring[this.ring.length - 1];
 		}
