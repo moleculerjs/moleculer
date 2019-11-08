@@ -74,9 +74,7 @@ class ShardStrategy extends BaseStrategy {
 			if (this.needRebuild)
 				this.rebuild(list);
 
-			const hash = this.getHash(key.toString());
-
-			const nodeID = this.getNodeIDByKey(hash);
+			const nodeID = this.getNodeIDByKey(key);
 			if (nodeID)
 				return list.find(ep => ep.id == nodeID);
 		}
@@ -93,16 +91,25 @@ class ShardStrategy extends BaseStrategy {
 	 * @memberof ShardStrategy
 	 */
 	getNodeIDByKey(key) {
-		const cached = this.cache.get(key);
-		if (cached) return cached;
+		if (this.cache) {
+			const cached = this.cache.get(key);
+			if (cached) return cached;
+		}
 
-		let found = this.ring.find(o => key <= o.key);
-		if (!found && this.ring.length > 0) {
-			found = this.ring[this.ring.length - 1];
+		const hashNum = this.getHash(key.toString());
+
+		let found;
+		const ringLen = this.ring.length;
+		for(let i = 0; i < ringLen; i++) {
+			if (hashNum <= this.ring[i].key) {
+				found = this.ring[i];
+				break;
+			}
 		}
 
 		if (found) {
-			this.cache.set(key, found.nodeID);
+			if (this.cache)
+				this.cache.set(key, found.nodeID);
 			return found.nodeID;
 		}
 		return null;
