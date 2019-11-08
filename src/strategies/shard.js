@@ -96,7 +96,7 @@ class ShardStrategy extends BaseStrategy {
 		const cached = this.cache.get(key);
 		if (cached) return cached;
 
-		let found = this.ring.find(o => key < o.key);
+		let found = this.ring.find(o => key <= o.key);
 		if (!found && this.ring.length > 0) {
 			found = this.ring[this.ring.length - 1];
 		}
@@ -137,13 +137,13 @@ class ShardStrategy extends BaseStrategy {
 
 		const total = arr.length * this.opts.vnodes;
 		const ringSize = this.opts.ringSize ? this.opts.ringSize : Math.pow(2, 32);
-		const slice = Math.floor(ringSize / total);
+		const slice = ringSize / total;
 
 		for (let j = 0; j < this.opts.vnodes; j++) {
 			for (let i = 0; i < arr.length; i++) {
 				const nodeID = arr[i];
 				this.ring.push({
-					key: slice * (this.ring.length + 1),
+					key: Math.floor(slice * (this.ring.length + 1)),
 					nodeID: nodeID
 				});
 			}
