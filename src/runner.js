@@ -147,8 +147,15 @@ class MoleculerRunner {
 				case ".json":
 				case ".js":
 				case ".ts": {
-					this.configFile = require(filePath);
-					break;
+					const content = require(filePath);
+					return Promise.resolve()
+						.then(() => {
+							if (_.isFunction(content))
+								return content.call(this);
+							else
+								return content;
+						})
+						.then(res => this.configFile = res);
 				}
 				default: return Promise.reject(new Error(`Not supported file extension: ${ext}`));
 			}
