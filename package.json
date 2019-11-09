@@ -44,6 +44,10 @@
     "type": "git",
     "url": "https://github.com/moleculerjs/moleculer.git"
   },
+  "funding": {
+    "type": "patreon",
+    "url": "https://www.patreon.com/moleculer"
+  },
   "bin": {
     "moleculer-runner": "./bin/moleculer-runner.js"
   },

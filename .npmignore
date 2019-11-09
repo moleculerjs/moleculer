@@ -8,3 +8,4 @@ examples/
 typings
 test/
 thrift.exe
+CHANGELOG.md
