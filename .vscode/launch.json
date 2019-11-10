@@ -120,6 +120,8 @@
 			"args": [
 				"--hot",
 				"--repl",
+				"-c",
+				"moleculer.config.async.js",
 				"svc/"
 			]
 		},
