@@ -66,6 +66,15 @@ class PrometheusReporter extends BaseReporter {
 
 		this.server = http.createServer();
 		this.server.on("request", this.handler.bind(this));
+		this.server.on('error', (err) => {
+			// Someone else is using the address
+			if (err.code === 'EADDRINUSE' && !err.stack.includes('PrometheusReporter.init')) {
+				throw err
+			}
+			// Silently swallow the error
+			// Hot reload doesn't stop the server
+			// We're going to reuse the one that was initially created
+		});
 		this.server.listen(this.opts.port, err => {
 			if (err) {
 				/* istanbul ignore next */
@@ -139,7 +148,7 @@ class PrometheusReporter extends BaseReporter {
 			if (snapshot.length == 0)
 				return;
 
-			switch(metric.type) {
+			switch (metric.type) {
 				case METRIC.TYPE_COUNTER:
 				case METRIC.TYPE_GAUGE: {
 					content.push(`# HELP ${metricName} ${metricDesc}`);
