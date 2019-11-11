@@ -120,8 +120,10 @@ describe("Test Metric Registry", () => {
 			});
 
 			metric.init();
+			metric.reporter[0].stop = jest.fn(() => Promise.resolve());
 
 			expect(metric.stop()).toBeInstanceOf(broker.Promise);
+			expect(metric.reporter[0].stop).toHaveBeenCalledTimes(1);
 		});
 
 	});
