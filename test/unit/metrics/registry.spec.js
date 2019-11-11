@@ -111,6 +111,23 @@ describe("Test Metric Registry", () => {
 
 	});
 
+	describe("Test stop method", () => {
+		it("should stop reporters", () => {
+			const broker = new ServiceBroker({ logger: false });
+			const metric = new MetricRegistry(broker, {
+				collectProcessMetrics: true,
+				reporter: "Event"
+			});
+
+			metric.init();
+			metric.reporter[0].stop = jest.fn(() => Promise.resolve());
+
+			expect(metric.stop()).toBeInstanceOf(broker.Promise);
+			expect(metric.reporter[0].stop).toHaveBeenCalledTimes(1);
+		});
+
+	});
+
 	describe("Test register method", () => {
 
 		const broker = new ServiceBroker({ logger: false });

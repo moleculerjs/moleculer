@@ -78,6 +78,22 @@ class PrometheusReporter extends BaseReporter {
 	}
 
 	/**
+	 * Stop reporter
+	 *
+	 * @memberof PrometheusReporter
+	 */
+	stop() {
+		return new Promise((resolve, reject) => {
+			this.server.close(err => {
+				/* istanbul ignore next */
+				if (err) reject(err);
+
+				resolve();
+			});
+		});
+	}
+
+	/**
 	 * HTTP request handler. Support GZip compressing.
 	 *
 	 * @param {IncomingMessage} req
@@ -139,7 +155,7 @@ class PrometheusReporter extends BaseReporter {
 			if (snapshot.length == 0)
 				return;
 
-			switch(metric.type) {
+			switch (metric.type) {
 				case METRIC.TYPE_COUNTER:
 				case METRIC.TYPE_GAUGE: {
 					content.push(`# HELP ${metricName} ${metricDesc}`);
