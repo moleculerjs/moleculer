@@ -97,10 +97,10 @@ class MetricRegistry {
 	stop() {
 		if (this.collectTimer) {
 			clearInterval(this.collectTimer);
-		}	
+		}
 
 		if (this.reporter) {
-			return Promise.all(this.reporter.map(r => r.stop()))
+			return Promise.all(this.reporter.map(r => r.stop()));
 		}
 	}
 

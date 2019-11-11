@@ -59,7 +59,7 @@ class BaseReporter {
 	 * @memberof BaseReporter
 	 */
 	stop() {
-		return Promise.resolve()
+		return Promise.resolve();
 	}
 
 	/**

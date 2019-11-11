@@ -58,8 +58,8 @@ describe("Test Base Reporter class", () => {
 
 		it("stop - should return a promise", () => {
 			const reporter = new BaseReporter();
-			expect(reporter.stop()).toBeInstanceOf(Promise)
-		})
+			expect(reporter.stop()).toBeInstanceOf(Promise);
+		});
 	});
 
 	describe("Test matchMetricName method", () => {

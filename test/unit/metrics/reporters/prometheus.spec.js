@@ -112,10 +112,10 @@ describe("Test Prometheus Reporter class", () => {
 			reporter.init(registry);
 
 			reporter.stop().then(() => {
-				expect(reporter.server.listening).toBe(false)
-			})
-		})
-	})
+				expect(reporter.server.listening).toBe(false);
+			});
+		});
+	});
 
 	describe("Test HTTP handler method", () => {
 
