@@ -95,8 +95,13 @@ class MetricRegistry {
 	 * Stop Metric Registry
 	 */
 	stop() {
-		if (this.collectTimer)
+		if (this.collectTimer) {
 			clearInterval(this.collectTimer);
+		}	
+
+		if (this.reporter) {
+			return Promise.all(this.reporter.map(r => r.stop()))
+		}
 	}
 
 	/**

@@ -104,6 +104,19 @@ describe("Test Prometheus Reporter class", () => {
 
 	});
 
+	describe("Test stop method", () => {
+		it("should stop HTTP server", () => {
+			const broker = new ServiceBroker({ logger: false, nodeID: "test-node", namespace: "test-ns" });
+			const registry = new MetricRegistry(broker);
+			const reporter = new PrometheusReporter({ port: 0 });
+			reporter.init(registry);
+
+			reporter.stop().then(() => {
+				expect(reporter.server.listening).toBe(false)
+			})
+		})
+	})
+
 	describe("Test HTTP handler method", () => {
 
 		const broker = new ServiceBroker({ logger: false, nodeID: "node-123" });

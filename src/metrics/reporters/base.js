@@ -54,6 +54,15 @@ class BaseReporter {
 	}
 
 	/**
+	 * Stop reporter
+	 *
+	 * @memberof BaseReporter
+	 */
+	stop() {
+		return Promise.resolve()
+	}
+
+	/**
 	 * Match the metric name. Check the `includes` & `excludes` patterns.
 	 *
 	 * @param {String} name

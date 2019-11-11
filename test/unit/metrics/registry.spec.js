@@ -111,6 +111,21 @@ describe("Test Metric Registry", () => {
 
 	});
 
+	describe("Test stop method", () => {
+		it("should stop reporters", () => {
+			const broker = new ServiceBroker({ logger: false });
+			const metric = new MetricRegistry(broker, {
+				collectProcessMetrics: true,
+				reporter: "Event"
+			});
+
+			metric.init();
+
+			expect(metric.stop()).toBeInstanceOf(broker.Promise);
+		});
+
+	});
+
 	describe("Test register method", () => {
 
 		const broker = new ServiceBroker({ logger: false });

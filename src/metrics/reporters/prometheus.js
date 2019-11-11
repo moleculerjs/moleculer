@@ -66,15 +66,6 @@ class PrometheusReporter extends BaseReporter {
 
 		this.server = http.createServer();
 		this.server.on("request", this.handler.bind(this));
-		this.server.on('error', (err) => {
-			// Someone else is using the address
-			if (err.code === 'EADDRINUSE' && !err.stack.includes('PrometheusReporter.init')) {
-				throw err
-			}
-			// Silently swallow the error
-			// Hot reload doesn't stop the server
-			// We're going to reuse the one that was initially created
-		});
 		this.server.listen(this.opts.port, err => {
 			if (err) {
 				/* istanbul ignore next */
@@ -84,6 +75,22 @@ class PrometheusReporter extends BaseReporter {
 			this.logger.info(`Prometheus metric reporter listening on http://0.0.0.0:${this.opts.port}${this.opts.path} address.`);
 		});
 		this.defaultLabels = _.isFunction(this.opts.defaultLabels) ? this.opts.defaultLabels.call(this, registry) : this.opts.defaultLabels;
+	}
+
+	/**
+	 * Stop reporter
+	 *
+	 * @memberof PrometheusReporter
+	 */
+	stop() {
+		return new Promise((resolve, reject) => {
+			this.server.close(err => {
+				/* istanbul ignore next */
+				if (err) reject(err)
+
+				resolve()
+			})
+		})
 	}
 
 	/**

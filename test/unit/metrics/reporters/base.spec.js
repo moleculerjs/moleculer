@@ -43,9 +43,9 @@ describe("Test Base Reporter class", () => {
 
 	});
 
-	describe("Test init method", () => {
+	describe("Test init & stop methods", () => {
 
-		it("should set internal variables", () => {
+		it("init - should set internal variables", () => {
 			const fakeBroker = {};
 			const fakeRegistry = { broker: fakeBroker, logger: {} };
 			const reporter = new BaseReporter();
@@ -56,6 +56,10 @@ describe("Test Base Reporter class", () => {
 			expect(reporter.logger).toBe(fakeRegistry.logger);
 		});
 
+		it("stop - should return a promise", () => {
+			const reporter = new BaseReporter();
+			expect(reporter.stop()).toBeInstanceOf(Promise)
+		})
 	});
 
 	describe("Test matchMetricName method", () => {
