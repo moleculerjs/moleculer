@@ -8,7 +8,7 @@ jest.mock("dd-trace/packages/dd-trace/src/noop/span_context");
 //jest.mock("dd-trace/src/platform");
 
 const DatadogSpanContext = require("dd-trace/packages/dd-trace/src/opentracing/span_context");
-const DatadogPlatform = require("dd-trace/packages/dd-trace/src/platform");
+const DatadogID = require("dd-trace/packages/dd-trace/src/id");
 const ddTrace = require("dd-trace");
 
 const fakeTracerScope = {
@@ -250,10 +250,10 @@ describe("Test Datadog tracing exporter class", () => {
 			expect(fakeDdSpan.context).toHaveBeenCalledTimes(1);
 
 			//expect(fakeSpanContext._traceId).toBeInstanceOf("Identifier");
-			//expect(fakeSpanContext._spanId).toBeInstanceOf(DatadogPlatform.Identifier);
+			//expect(fakeSpanContext._spanId).toBeInstanceOf(DatadogID.Identifier);
 
-			expect(fakeSpanContext._traceId.toString()).toEqual("cde1234567890123456789");
-			expect(fakeSpanContext._spanId.toString()).toEqual("abc1234567890123456789");
+			expect(fakeSpanContext._traceId.toString()).toEqual("cde123456789012345678900");
+			expect(fakeSpanContext._spanId.toString()).toEqual("abc123456789012345678900");
 
 			expect(span.meta.datadog).toEqual({
 				span: fakeDdSpan,
@@ -564,7 +564,7 @@ describe("Test Datadog tracing exporter class", () => {
 			expect(exporter.convertID("")).toBeNull();
 			expect(exporter.convertID("12345678").toString()).toEqual("12345678");
 			expect(exporter.convertID("123456789-0123456").toString()).toEqual("1234567890123456");
-			expect(exporter.convertID("123456789-0123456789-abcdef").toString()).toEqual("1234567890123456789abcde");
+			expect(exporter.convertID("123456789-0123456789-abcdef").toString()).toEqual("1234567890123456789abcde0f");
 			expect(exporter.convertID("abc-def").toString()).toEqual("abcdef");
 			expect(exporter.convertID("abc-def-abc-def-abc-def").toString()).toEqual("abcdefabcdefabcdef");
 		});

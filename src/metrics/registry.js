@@ -6,7 +6,7 @@
 
 "use strict";
 
-const Promise = require("bluebird"); // eslint-disable-line no-unused-vars
+const Promise = require("bluebird");
 const _ = require("lodash");
 const { match } = require("../utils");
 const METRIC = require("./constants");

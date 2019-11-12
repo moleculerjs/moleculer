@@ -53,7 +53,7 @@ const broker = new ServiceBroker({
 					tracer
 				}
 			},
-			{
+			/*{
 				type: "Zipkin",
 				options: {
 					baseURL: "http://192.168.0.181:9411",
@@ -64,7 +64,7 @@ const broker = new ServiceBroker({
 				options: {
 					host: "192.168.0.181",
 				}
-			},
+			},*/
 			/*{
 				type: "Event",
 				options: {

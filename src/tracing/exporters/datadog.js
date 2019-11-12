@@ -9,7 +9,7 @@ const asyncHooks			= require("async_hooks");
 */
 
 let DatadogSpanContext;
-let DatadogPlatform;
+let DatadogID;
 
 /**
  * Datadog Trace Exporter with 'dd-trace'.
@@ -49,7 +49,7 @@ class DatadogTraceExporter extends BaseTraceExporter {
 		try {
 			const ddTrace = require("dd-trace");
 			DatadogSpanContext = require("dd-trace/packages/dd-trace/src/opentracing/span_context");
-			DatadogPlatform = require("dd-trace/packages/dd-trace/src/platform");
+			DatadogID = require("dd-trace/packages/dd-trace/src/id");
 			if (!this.ddTracer) {
 				this.ddTracer = ddTrace.init(_.defaultsDeep(this.opts.tracerOptions, {
 					url: this.opts.agentUrl
@@ -271,8 +271,8 @@ class DatadogTraceExporter extends BaseTraceExporter {
 	convertID(id) {
 		if (id) {
 			if (id.indexOf("-") !== -1)
-				return DatadogPlatform.id(Buffer.from(id.replace(/-/g, ""), "hex"));
-			return DatadogPlatform.id(id);
+				return DatadogID(id.replace(/-/g, ""));
+			return DatadogID(id);
 		}
 
 		return null;

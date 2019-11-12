@@ -1779,7 +1779,7 @@ module.exports = async function() {
 
 
 # Other notable changes
-- Kafka transporter upgrade to support kafka-node@4.
+- Kafka transporter upgrade to support kafka-node@5.
 - rename `ctx.metrics` to `ctx.tracing`.
 - `broker.hotReloadService` method has been removed.
 - new `hasEventListener` & `getEventListeners` broker method.
