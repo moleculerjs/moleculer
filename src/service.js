@@ -355,12 +355,12 @@ class Service {
 		if (_.isFunction(event.handler)) {
 			const args = functionArguments(event.handler);
 			handler = this.Promise.method(event.handler);
-			handler.__newSignature = isNewSignature(args);
+			handler.__newSignature = event.context === true || isNewSignature(args);
 		} else if (Array.isArray(event.handler)) {
 			handler = event.handler.map(h => {
 				const args = functionArguments(h);
 				h = this.Promise.method(h);
-				h.__newSignature = isNewSignature(args);
+				h.__newSignature = event.context === true || isNewSignature(args);
 				return h;
 			});
 		}
@@ -378,7 +378,7 @@ class Service {
 		} else if (Array.isArray(handler)) {
 			// Call multiple handler
 			event.handler = function(ctx) {
-				return Promise.all(handler.map(fn => fn.apply(self, fn.__newSignature ? [ctx] : [ctx.params, ctx.nodeID, ctx.eventName, ctx])));
+				return self.Promise.all(handler.map(fn => fn.apply(self, fn.__newSignature ? [ctx] : [ctx.params, ctx.nodeID, ctx.eventName, ctx])));
 			};
 		}
 

@@ -5,7 +5,7 @@ const kleur = require("kleur");
 
 const transporter = "NATS";
 const serializer = "JSON";
-const disableBalancer = true;
+const disableBalancer = false;
 
 // Create broker #1
 const broker1 = new ServiceBroker({
@@ -35,8 +35,11 @@ broker1.createService({
 		/*"user.created"(payload, sender, eventName, ctx) {
 			this.logger.info(kleur.yellow(`${this.broker.nodeID}:${this.fullName}: Event '${eventName}' received. Payload:`), ctx ? ctx.id : null);
 		}*/
-		"user.created"(ctx) {
-			this.logger.info(kleur.yellow(`${this.broker.nodeID}:${this.fullName}: Event '${ctx.eventName}' received. Payload:`), ctx.params, ctx.meta);
+		"user.created": {
+			context: true,
+			handler(other) {
+				this.logger.info(kleur.yellow(`${this.broker.nodeID}:${this.fullName}: Event '${other.eventName}' received. Payload:`), other.params, other.meta);
+			}
 		}
 	}
 });

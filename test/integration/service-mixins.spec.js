@@ -276,7 +276,10 @@ describe("Test Service mixins", () => {
 		},
 
 		events: {
-			"oxygen": jest.fn(),
+			"oxygen": {
+				context: true,
+				handler: jest.fn()
+			},
 			"carbon": jest.fn(),
 			"nitrogen": jest.fn()
 		},
@@ -507,17 +510,17 @@ describe("Test Service mixins", () => {
 		let payload = { a: 5 };
 		broker.broadcastLocal("oxygen", payload);
 
-		expect(mainSchema.events.oxygen).toHaveBeenCalledTimes(1);
-		expect(mainSchema.events.oxygen).toHaveBeenCalledWith(payload, broker.nodeID, "oxygen", expect.any(broker.ContextFactory));
+		expect(mainSchema.events.oxygen.handler).toHaveBeenCalledTimes(1);
+		expect(mainSchema.events.oxygen.handler).toHaveBeenCalledWith(expect.any(broker.ContextFactory));
 
 		expect(mixin1L1.events.oxygen).toHaveBeenCalledTimes(1);
-		expect(mixin1L1.events.oxygen).toHaveBeenCalledWith(payload, broker.nodeID, "oxygen", expect.any(broker.ContextFactory));
+		expect(mixin1L1.events.oxygen).toHaveBeenCalledWith(expect.any(broker.ContextFactory));
 
 		expect(mixin2L1.events.oxygen).toHaveBeenCalledTimes(1);
-		expect(mixin2L1.events.oxygen).toHaveBeenCalledWith(payload, broker.nodeID, "oxygen", expect.any(broker.ContextFactory));
+		expect(mixin2L1.events.oxygen).toHaveBeenCalledWith(expect.any(broker.ContextFactory));
 
 		expect(mixinL2.events.oxygen.handler).toHaveBeenCalledTimes(2);
-		expect(mixinL2.events.oxygen.handler).toHaveBeenCalledWith(payload, broker.nodeID, "oxygen", expect.any(broker.ContextFactory));
+		expect(mixinL2.events.oxygen.handler).toHaveBeenCalledWith(expect.any(broker.ContextFactory));
 	});
 
 	it("should call 'carbon' event handlers", () => {
