@@ -563,6 +563,21 @@ module.exports = {
 };
 ```
 
+If you want to use different variable name, or the service can't detect properly the signature, use `context: true` in the event definition:
+```js
+module.exports = {
+    name: "accounts",
+    events: {
+        "user.created": {
+            context: true,
+            handler({ params, nodeID}) {
+                console.log("Payload:", ctx.params);
+                console.log("Sender:", ctx.nodeID);
+            }
+        }
+    }
+};
+```
 
 ## New built-in metrics
 Moleculer v0.14 comes with a brand-new and entirely rewritten metrics module. It is now a built-in module. It collects a lot of internal Moleculer & process metric values. You can easily define your custom metrics. There are several built-in metrics reporters like `Console`, `Prometheus`, `Datadog`, ...etc.
