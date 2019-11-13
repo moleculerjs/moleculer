@@ -189,7 +189,6 @@ class ServiceBroker {
 
 			// Async storage for Contexts
 			this.scope = new AsyncStorage(this);
-			this.scope.enable();
 
 			// Metrics Registry
 			this.metrics = new MetricRegistry(this, this.options.metrics);
@@ -415,6 +414,10 @@ class ServiceBroker {
 	start() {
 		return Promise.resolve()
 			.then(() => {
+				this.tracer.restartScope();
+				this.scope.enable();
+			})
+			.then(() => {
 				return this.callMiddlewareHook("starting", [this]);
 			})
 			.then(() => {
@@ -500,6 +503,10 @@ class ServiceBroker {
 			.then(() => {
 				if (_.isFunction(this.options.stopped))
 					return this.options.stopped(this);
+			})
+			.then(() => {
+				this.tracer.stopAndClearScope();
+				this.scope.stop();
 			})
 			.catch(err => {
 				/* istanbul ignore next */

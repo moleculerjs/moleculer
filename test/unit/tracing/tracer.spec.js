@@ -19,11 +19,27 @@ jest.mock("../../../src/tracing/span", () => {
 jest.mock("../../../src/tracing/rate-limiter");
 const RateLimiter = require("../../../src/tracing/rate-limiter");
 
+const fakeScope = {
+	enable: jest.fn(),
+	stop: jest.fn(),
+};
+
+jest.mock("../../../src/async-storage", () => {
+	return jest.fn().mockImplementation(() => {
+		return fakeScope;
+	});
+});
+
 const ServiceBroker = require("../../../src/service-broker");
 const Tracer = require("../../../src/tracing/tracer");
 const Span = require("../../../src/tracing/span");
 
 describe("Test Tracer", () => {
+	beforeEach(() => {
+		fakeScope.enable.mockClear();
+		fakeScope.stop.mockClear();
+	});
+
 	const broker = new ServiceBroker({ logger: false });
 
 	describe("Test Constructor", () => {
@@ -213,6 +229,42 @@ describe("Test Tracer", () => {
 			expect(tracer.isEnabled()).toBe(true);
 		});
 
+	});
+
+	describe("Test stopAndClearScope", () => {
+
+		it("should stop the scope by calling its stop method", () => {
+			const tracer = new Tracer(broker);
+			tracer.stopAndClearScope();
+			expect(fakeScope.stop).toHaveBeenCalledTimes(1);
+		});
+
+		it("should not stop the scope if already stopped", () => {
+			const tracer = new Tracer(broker);
+			tracer.stopAndClearScope();
+			tracer.stopAndClearScope();
+			expect(fakeScope.stop).toHaveBeenCalledTimes(1);
+		});
+	});
+
+	describe("Test restartScope", () => {
+
+		it("should restart the scope if stopped", () => {
+			const tracer = new Tracer(broker);
+			// called in constructor
+			expect(fakeScope.enable).toHaveBeenCalledTimes(1);
+			tracer.stopAndClearScope();
+			tracer.restartScope();
+			expect(fakeScope.enable).toHaveBeenCalledTimes(2);
+		});
+
+		it("should not attempt to start the scope if enabled", () => {
+			const tracer = new Tracer(broker);
+			// called in constructor
+			expect(fakeScope.enable).toHaveBeenCalledTimes(1);
+			tracer.restartScope();
+			expect(fakeScope.enable).toHaveBeenCalledTimes(1);
+		});
 	});
 
 	describe("Test shouldSample", () => {

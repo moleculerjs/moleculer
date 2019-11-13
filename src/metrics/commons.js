@@ -20,13 +20,6 @@ try {
 	// silent
 }
 
-// Load `gc-stats` module for GC metrics.
-try {
-	gc = (require("gc-stats"))();
-} catch (e) {
-	// silent
-}
-
 // Load `event-loop-stats` metric for Event-loop metrics.
 try {
 	eventLoop = require("event-loop-stats");
@@ -139,6 +132,13 @@ function registerCommonMetrics() {
  *
  */
 function startGCWatcher() {
+// Load `gc-stats` module for GC metrics.
+	try {
+		gc = (require("gc-stats"))();
+	} catch (e) {
+	// silent
+	}
+
 	/* istanbul ignore next */
 	if (gc) {
 		gc.on("stats", stats => {

@@ -70,6 +70,7 @@ class Tracer {
 
 		this.scope = new AsyncStorage(this.broker);
 		this.scope.enable();
+		this._scopeEnabled = true;
 
 		if (this.opts.enabled)
 			this.logger.info("Tracing: Enabled");
@@ -105,6 +106,30 @@ class Tracer {
 	 */
 	isEnabled() {
 		return this.opts.enabled;
+	}
+
+	/**
+	 * Disable trace hooks and clear the store - noop if scope is already stopped
+	 *
+	 * @memberof Tracer
+	 */
+	stopAndClearScope() {
+		if (this._scopeEnabled) {
+			this.scope.stop();
+			this._scopeEnabled = false;
+		}
+	}
+
+	/**
+	 * Renable the trace hooks - noop if scope is already enabled
+	 *
+	 * @memberof Tracer
+	 */
+	restartScope() {
+		if (!this._scopeEnabled) {
+			this.scope.enable();
+			this._scopeEnabled = true;
+		}
 	}
 
 	/**
