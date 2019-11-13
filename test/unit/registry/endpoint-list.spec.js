@@ -11,13 +11,13 @@ describe("Test EndpointList constructor", () => {
 
 	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
-	registry.opts.strategyOptions = { count: 5 };
+	const strategyOptions = { count: 5 };
 	let list;
 
 	it("should create a new list", () => {
 		Strategy.mockClear();
 
-		list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
+		list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy, strategyOptions);
 
 		expect(list).toBeDefined();
 		expect(list.registry).toBe(registry);
@@ -32,7 +32,7 @@ describe("Test EndpointList constructor", () => {
 		expect(list.localEndpoints).toEqual([]);
 
 		expect(Strategy).toHaveBeenCalledTimes(1);
-		expect(Strategy).toHaveBeenCalledWith(registry, broker, registry.opts.strategyOptions);
+		expect(Strategy).toHaveBeenCalledWith(registry, broker, strategyOptions);
 	});
 
 	it("should set internal flag", () => {
@@ -99,6 +99,25 @@ describe("Test EndpointList.add", () => {
 		expect(list.endpoints.length).toBe(2);
 	});
 
+
+});
+
+describe("Test EndpointList.getFirst", () => {
+	let broker = new ServiceBroker({ logger: false });
+	let registry = broker.registry;
+	let ep = {};
+	let select = jest.fn(() => ep);
+
+	let list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
+
+	it("should return null if empty", () => {
+		expect(list.getFirst()).toBeNull();
+	});
+
+	it("should return the first endpoint", () => {
+		list.endpoints = [{ a: 5 }, { b: 10 }];
+		expect(list.getFirst()).toBe(list.endpoints[0]);
+	});
 
 });
 

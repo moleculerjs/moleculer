@@ -2,6 +2,7 @@
 
 let Context = require("../../../src/context");
 let Strategy = require("../../../src/strategies").RoundRobin;
+let CpuStrategy = require("../../../src/strategies").CpuUsage;
 let EventCatalog = require("../../../src/registry/event-catalog");
 let EndpointList = require("../../../src/registry/endpoint-list");
 let EventEndpoint = require("../../../src/registry/endpoint-event");
@@ -501,3 +502,32 @@ describe("Test EventCatalog.callEventHandler", () => {
 	});
 });
 
+describe("Test EventCatalog add method", () => {
+	let broker = new ServiceBroker({ logger: false });
+	let catalog = new EventCatalog(broker.registry, broker, Strategy);
+	let list;
+	let service = { name: "test" };
+
+	it("should create an EndpointList and add to 'events'", () => {
+		let node = { id: "server-1" };
+		let event = { name: "hello" };
+
+		list = catalog.add(node, service, event);
+
+		expect(list).toBeInstanceOf(EndpointList);
+		expect(list.strategy).toBeInstanceOf(Strategy);
+		expect(list.strategy.opts).toEqual({});
+	});
+
+	it("should create an EndpointList with custom strategy", () => {
+		let node = { id: "server-1" };
+		let event = { name: "welcome", strategy: "CpuUsage", strategyOptions: { sampleCount: 6 } };
+
+		list = catalog.add(node, service, event);
+
+		expect(list).toBeInstanceOf(EndpointList);
+		expect(list.strategy).toBeInstanceOf(CpuStrategy);
+		expect(list.strategy.opts).toEqual({ sampleCount: 6, lowCpuUsage: 10 });
+	});
+
+});
