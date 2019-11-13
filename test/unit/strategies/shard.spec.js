@@ -1,9 +1,9 @@
 "use strict";
 
-let ShardStrategy = require("../../../src/strategies/shard");
-let ServiceBroker = require("../../../src/service-broker");
-let Context = require("../../../src/context");
-let { extendExpect } = require("../utils");
+const ShardStrategy = require("../../../src/strategies/shard");
+const ServiceBroker = require("../../../src/service-broker");
+const Context = require("../../../src/context");
+const { extendExpect } = require("../utils");
 
 extendExpect(expect);
 
@@ -15,11 +15,7 @@ describe("Test ShardStrategy", () => {
 
 		it("test with empty opts", () => {
 
-			let strategy = new ShardStrategy({
-				opts: {
-					strategyOptions: {}
-				}
-			}, broker);
+			let strategy = new ShardStrategy(broker.registry, broker);
 
 			expect(strategy.opts).toEqual({
 				shardKey: null,
@@ -37,16 +33,12 @@ describe("Test ShardStrategy", () => {
 		it("test with options", () => {
 			broker.localBus.on.mockClear();
 
-			let strategy = new ShardStrategy({
-				opts: {
-					strategyOptions: {
-						shardKey: "#branchID",
-						vnodes: 20,
-						ringSize: 100,
-						cacheSize: 2000
-					}
-				}
-			}, broker);
+			let strategy = new ShardStrategy(broker.registry, broker, {
+				shardKey: "#branchID",
+				vnodes: 20,
+				ringSize: 100,
+				cacheSize: 2000
+			});
 
 			expect(strategy.opts).toEqual({
 				shardKey: "#branchID",
@@ -92,50 +84,34 @@ describe("Test ShardStrategy", () => {
 
 		it("should get null if shardKey is not defined", () => {
 
-			let strategy = new ShardStrategy({
-				opts: {
-					strategyOptions: {}
-				}
-			}, broker);
+			let strategy = new ShardStrategy(broker.registry, broker, {});
 
 			expect(strategy.getKeyFromContext(ctx)).toBeNull();
 		});
 
 		it("should get param value", () => {
 
-			let strategy = new ShardStrategy({
-				opts: {
-					strategyOptions: {
-						shardKey: "a.b"
-					}
-				}
-			}, broker);
+			let strategy = new ShardStrategy(broker.registry, broker, {
+				shardKey: "a.b"
+			});
 
 			expect(strategy.getKeyFromContext(ctx)).toBe(5);
 		});
 
 		it("should get meta value", () => {
 
-			let strategy = new ShardStrategy({
-				opts: {
-					strategyOptions: {
-						shardKey: "#user.name"
-					}
-				}
-			}, broker);
+			let strategy = new ShardStrategy(broker.registry, broker, {
+				shardKey: "#user.name"
+			});
 
 			expect(strategy.getKeyFromContext(ctx)).toBe("John");
 		});
 
 		it("should call custom shardKey function", () => {
 			const shardKey = jest.fn(() => "12345");
-			let strategy = new ShardStrategy({
-				opts: {
-					strategyOptions: {
-						shardKey
-					}
-				}
-			}, broker);
+			let strategy = new ShardStrategy(broker.registry, broker, {
+				shardKey
+			});
 
 			expect(strategy.getKeyFromContext(ctx)).toBe("12345");
 			expect(shardKey).toHaveBeenCalledTimes(1);
@@ -147,11 +123,7 @@ describe("Test ShardStrategy", () => {
 		const broker = new ServiceBroker({ logger: false });
 
 		it("should calc hash", () => {
-			let strategy = new ShardStrategy({
-				opts: {
-					strategyOptions: {}
-				}
-			}, broker);
+			let strategy = new ShardStrategy(broker.registry, broker, {});
 
 			expect(strategy.getHash("John")).toBe(1631623841);
 			expect(strategy.getHash("Jane")).toBe(731224371);
@@ -163,13 +135,9 @@ describe("Test ShardStrategy", () => {
 		});
 
 		it("should calc hash", () => {
-			let strategy = new ShardStrategy({
-				opts: {
-					strategyOptions: {
-						ringSize: 1000
-					}
-				}
-			}, broker);
+			let strategy = new ShardStrategy(broker.registry, broker, {
+				ringSize: 1000
+			});
 
 			expect(strategy.getHash("John")).toBe(841);
 			expect(strategy.getHash("Jane")).toBe(371);
@@ -181,11 +149,7 @@ describe("Test ShardStrategy", () => {
 		});
 
 		it("should calc hash (moleculer-java compatibility check)", () => {
-			let strategy = new ShardStrategy({
-				opts: {
-					strategyOptions: {}
-				}
-			}, broker);
+			let strategy = new ShardStrategy(broker.registry, broker, {});
 
 			expect(strategy.getHash("0")).toBe(3486326916);
 			expect(strategy.getHash("4a6b07269c41b0")).toBe(724397302);
@@ -294,11 +258,7 @@ describe("Test ShardStrategy", () => {
 		const broker = new ServiceBroker({ logger: false });
 		let prevRing;
 		it("should build rings", () => {
-			let strategy = new ShardStrategy({
-				opts: {
-					strategyOptions: {}
-				}
-			}, broker);
+			let strategy = new ShardStrategy(broker.registry, broker, {});
 
 			const list = [
 				{ id: "node-100" },
@@ -314,11 +274,7 @@ describe("Test ShardStrategy", () => {
 		});
 
 		it("should build rings with random list", () => {
-			let strategy = new ShardStrategy({
-				opts: {
-					strategyOptions: {}
-				}
-			}, broker);
+			let strategy = new ShardStrategy(broker.registry, broker, {});
 
 			const list = [
 				{ id: "node-400" },
@@ -334,14 +290,10 @@ describe("Test ShardStrategy", () => {
 		});
 
 		it("should build rings with custom options", () => {
-			let strategy = new ShardStrategy({
-				opts: {
-					strategyOptions: {
-						vnodes: 2,
-						ringSize: 1000
-					}
-				}
-			}, broker);
+			let strategy = new ShardStrategy(broker.registry, broker, {
+				vnodes: 2,
+				ringSize: 1000
+			});
 
 			const list = [
 				{ id: "sun" },
@@ -369,11 +321,7 @@ describe("Test ShardStrategy", () => {
 		const broker = new ServiceBroker({ logger: false });
 		const ctx = new Context();
 
-		const strategy = new ShardStrategy({
-			opts: {
-				strategyOptions: {}
-			}
-		}, broker);
+		const strategy = new ShardStrategy(broker.registry, broker, {});
 
 		strategy.getKeyFromContext = jest.fn(() => null);
 		strategy.rebuild = jest.fn();
@@ -446,13 +394,9 @@ describe("Test ShardStrategy", () => {
 	describe("Test getNodeIDByKey", () => {
 		const broker = new ServiceBroker({ logger: false });
 
-		const strategy = new ShardStrategy({
-			opts: {
-				strategyOptions: {
-					ringSize: 1000
-				}
-			}
-		}, broker);
+		const strategy = new ShardStrategy(broker.registry, broker, {
+			ringSize: 1000
+		});
 
 		const list = [
 			{ id: "node-100" },
@@ -491,14 +435,10 @@ describe("Test ShardStrategy", () => {
 	describe("Test getNodeIDByKey by keys (moleculer-java compatibility check)", () => {
 		const broker = new ServiceBroker({ logger: false });
 
-		const strategy = new ShardStrategy({
-			opts: {
-				strategyOptions: {
-					vnodes: 7,
-					ringSize: 3001
-				}
-			}
-		}, broker);
+		const strategy = new ShardStrategy(broker.registry, broker, {
+			vnodes: 7,
+			ringSize: 3001
+		});
 
 		const list = [
 			{ id: "node0" },

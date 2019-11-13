@@ -7,6 +7,7 @@
 "use strict";
 
 const _ = require("lodash");
+const Strategies = require("../strategies");
 const EndpointList = require("./endpoint-list");
 const ActionEndpoint = require("./endpoint-action");
 
@@ -47,8 +48,10 @@ class ActionCatalog {
 	add(node, service, action) {
 		let list = this.actions.get(action.name);
 		if (!list) {
+			const strategyFactory = action.strategy ? (Strategies.resolve(action.strategy) || this.StrategyFactory) : this.StrategyFactory;
+			const strategyOptions = action.strategyOptions ? action.strategyOptions : this.registry.opts.strategyOptions;
 			// Create a new EndpointList
-			list = new EndpointList(this.registry, this.broker, action.name, null, this.EndpointFactory, this.StrategyFactory);
+			list = new EndpointList(this.registry, this.broker, action.name, null, this.EndpointFactory, strategyFactory, strategyOptions);
 			this.actions.set(action.name, list);
 		}
 

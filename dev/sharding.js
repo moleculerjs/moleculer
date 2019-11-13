@@ -6,10 +6,7 @@ function createBroker(opts) {
 		transporter: "NATS",
 		logLevel: "warn",
 		registry: {
-			strategy: "Shard",
-			strategyOptions: {
-				shardKey: "name"
-			}
+			strategy: "RoundRobin"
 		}
 	}));
 
@@ -17,9 +14,17 @@ function createBroker(opts) {
 		broker.createService({
 			name: "users",
 			actions: {
-				getAge(ctx) {
-					this.logger.warn(`Called '${this.broker.nodeID}' with '${ctx.params.name}'`);
-					return 20 + _.random(60);
+				getAge: {
+					strategy: "Shard",
+					strategyOptions: {
+						shardKey: "name",
+						ringSize: 100,
+						vnodes: 12
+					},
+					handler(ctx) {
+						this.logger.warn(`Called '${this.broker.nodeID}' with '${ctx.params.name}'`);
+						return 20 + _.random(60);
+					}
 				}
 			}
 		});

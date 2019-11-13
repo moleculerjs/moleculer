@@ -1,7 +1,8 @@
 "use strict";
 
+jest.mock("../../../src/strategies/round-robin");
+let Strategy = require("../../../src/strategies/round-robin");
 let { MoleculerError } = require("../../../src/errors");
-let Strategy = require("../../../src/strategies").RoundRobin;
 let EndpointList = require("../../../src/registry/endpoint-list");
 let ActionEndpoint = require("../../../src/registry/endpoint-action");
 let ServiceBroker = require("../../../src/service-broker");
@@ -10,9 +11,12 @@ describe("Test EndpointList constructor", () => {
 
 	let broker = new ServiceBroker({ logger: false });
 	let registry = broker.registry;
+	registry.opts.strategyOptions = { count: 5 };
 	let list;
 
 	it("should create a new list", () => {
+		Strategy.mockClear();
+
 		list = new EndpointList(registry, broker, "listName", "groupName", ActionEndpoint, Strategy);
 
 		expect(list).toBeDefined();
@@ -26,6 +30,9 @@ describe("Test EndpointList constructor", () => {
 		expect(list.EndPointFactory).toBe(ActionEndpoint);
 		expect(list.endpoints).toBeInstanceOf(Array);
 		expect(list.localEndpoints).toEqual([]);
+
+		expect(Strategy).toHaveBeenCalledTimes(1);
+		expect(Strategy).toHaveBeenCalledWith(registry, broker, registry.opts.strategyOptions);
 	});
 
 	it("should set internal flag", () => {

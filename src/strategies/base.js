@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -13,9 +13,17 @@
  */
 class BaseStrategy {
 
-	constructor(registry, broker) {
+	/**
+	 * Constructor
+	 *
+	 * @param {ServiceRegistry} registry
+	 * @param {ServiceBroker} broker
+	 * @param {Object?} opts
+	 */
+	constructor(registry, broker, opts) {
 		this.registry = registry;
 		this.broker = broker;
+		this.opts = opts || {};
 	}
 
 	/**

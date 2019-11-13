@@ -23,14 +23,15 @@ class EndpointList {
 	 * @param {String} name
 	 * @param {String} group
 	 * @param {EndPointClass} EndPointFactory
-	 * @param {Strategy} StrategyFactory
+	 * @param {StrategyClass} StrategyFactory
+	 * @param {Object?} strategyOptions
 	 * @memberof EndpointList
 	 */
-	constructor(registry, broker, name, group, EndPointFactory, StrategyFactory) {
+	constructor(registry, broker, name, group, EndPointFactory, StrategyFactory, strategyOptions) {
 		this.registry = registry;
 		this.broker = broker;
 		this.logger = registry.logger;
-		this.strategy = new StrategyFactory(registry, broker);
+		this.strategy = new StrategyFactory(registry, broker, strategyOptions);
 		this.name = name;
 		this.group = group;
 		this.internal = name.startsWith("$");
@@ -40,7 +41,6 @@ class EndpointList {
 		this.endpoints = [];
 
 		this.localEndpoints = [];
-		this.localStrategy = new StrategyFactory(registry, broker);
 	}
 
 	/**

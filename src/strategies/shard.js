@@ -20,10 +20,10 @@ const LRU = require("lru-cache");
  */
 class ShardStrategy extends BaseStrategy {
 
-	constructor(registry, broker) {
-		super(registry, broker);
+	constructor(registry, broker, opts) {
+		super(registry, broker, opts);
 
-		this.opts = _.defaultsDeep(registry.opts.strategyOptions, {
+		this.opts = _.defaultsDeep(opts, {
 			shardKey: null,
 			vnodes: 10,
 			ringSize: null,

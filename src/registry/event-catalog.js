@@ -8,6 +8,7 @@
 
 const _ 			= require("lodash");
 const utils			= require("../utils");
+const Strategies 	= require("../strategies");
 const EndpointList 	= require("./endpoint-list");
 const EventEndpoint = require("./endpoint-event");
 
@@ -51,8 +52,10 @@ class EventCatalog {
 		const groupName = event.group || service.name;
 		let list = this.get(eventName, groupName);
 		if (!list) {
+			const strategyFactory = event.strategy ? (Strategies.resolve(event.strategy) || this.StrategyFactory) : this.StrategyFactory;
+			const strategyOptions = event.strategyOptions ? event.strategyOptions : this.registry.opts.strategyOptions;
 			// Create a new EndpointList
-			list = new EndpointList(this.registry, this.broker, eventName, groupName, this.EndpointFactory, this.StrategyFactory);
+			list = new EndpointList(this.registry, this.broker, eventName, groupName, this.EndpointFactory, strategyFactory, strategyOptions);
 			this.events.push(list);
 		}
 
