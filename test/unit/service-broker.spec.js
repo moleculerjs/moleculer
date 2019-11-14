@@ -1306,7 +1306,7 @@ describe("Test broker.destroyService", () => {
 		beforeAll(() => broker.start());
 		afterAll(() => broker.stop());
 
-		it("should destroy service", () => {
+		it("should destroy service by providing service instance", () => {
 			broker.registry.unregisterService = jest.fn();
 			broker.servicesChanged = jest.fn();
 			broker.metrics.set.mockClear();
@@ -1332,7 +1332,7 @@ describe("Test broker.destroyService", () => {
 			});
 		});
 
-		it("should find service by name", () => {
+		it("should destroy service by providing full service name", () => {
 			broker.createService(schema);
 
 			broker.registry.unregisterService.mockClear();
@@ -1363,6 +1363,40 @@ describe("Test broker.destroyService", () => {
 			});
 		});
 
+		it("should NOT find service by string name", () => {
+			broker.createService(schema);
+
+			return broker.destroyService("greeter").catch((err)=>  {
+				expect(err).toBeInstanceOf(ServiceNotFoundError);
+				expect(err.message).toBe("Service 'greeter' not found.");
+				// remove service for next tests
+				return broker.destroyService("v2.greeter");
+			});
+		});
+
+		it("should NOT find service by object with name", () => {
+			broker.createService(schema);
+
+			return broker.destroyService({ name: "greeter" }).catch((err)=>  {
+				expect(err).toBeInstanceOf(ServiceNotFoundError);
+				expect(err.message).toBe("Service 'greeter' not found.");
+
+				// remove service for next tests
+				return broker.destroyService({ name: "greeter", version: 2 });
+			});
+		});
+
+		it("should NOT find service by object with name", () => {
+			broker.createService(schema);
+
+			return broker.destroyService({ name: "greeter", version: 123 }).catch((err)=>  {
+				expect(err).toBeInstanceOf(ServiceNotFoundError);
+				expect(err.message).toBe("Service '123.greeter' not found.");
+
+				// remove service for next tests
+				return broker.destroyService({ name: "greeter", version: 2 });
+			});
+		});
 	});
 });
 

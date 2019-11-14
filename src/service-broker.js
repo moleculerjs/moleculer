@@ -827,11 +827,20 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	destroyService(service) {
-		if (_.isString(service) || _.isPlainObject(service)) {
+		let serviceName;
+		let serviceVersion;
+		if (_.isString(service)) {
+			serviceName = service;
 			service = this.getLocalService(service);
+		} else if (_.isPlainObject(service)) {
+			serviceName = service.name;
+			serviceVersion  = service.version;
+			service = this.getLocalService(service.name, service.version);
 		}
-		if (!service)
-			return Promise.reject(new E.ServiceNotFoundError({ service }));
+
+		if (!service) {
+			return Promise.reject(new E.ServiceNotFoundError({ service: serviceName, version: serviceVersion }));
+		}
 
 		return Promise.resolve()
 			.then(() => service._stop())
