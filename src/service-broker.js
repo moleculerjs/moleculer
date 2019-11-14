@@ -827,23 +827,32 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	destroyService(service) {
-		if (_.isString(service) || _.isPlainObject(service)) {
+		let serviceName;
+		let serviceVersion;
+		if (_.isString(service)) {
+			serviceName = service;
 			service = this.getLocalService(service);
+		} else if (_.isPlainObject(service)) {
+			serviceName = service.name;
+			serviceVersion  = service.version;
+			service = this.getLocalService(service.name, service.version);
 		}
-		if (!service)
-			return Promise.reject(new E.ServiceNotFoundError({ service }));
+
+		if (!service) {
+			return Promise.reject(new E.ServiceNotFoundError({ service: serviceName, version: serviceVersion }));
+		}
 
 		return Promise.resolve()
 			.then(() => service._stop())
 			.catch(err => {
 				/* istanbul ignore next */
-				this.logger.error(`Unable to stop '${service.name}' service.`, err);
+				this.logger.error(`Unable to stop '${service.fullName}' service.`, err);
 			})
 			.then(() => {
 				_.remove(this.services, svc => svc == service);
-				this.registry.unregisterService(service.name, service.version);
+				this.registry.unregisterService(service.fullName, this.nodeID);
 
-				this.logger.info(`Service '${service.name}' is stopped.`);
+				this.logger.info(`Service '${service.fullName}' is stopped.`);
 				this.servicesChanged(true);
 
 				this.metrics.set(METRIC.MOLECULER_BROKER_LOCAL_SERVICES_TOTAL, this.services.length);
