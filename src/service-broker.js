@@ -837,13 +837,13 @@ class ServiceBroker {
 			.then(() => service._stop())
 			.catch(err => {
 				/* istanbul ignore next */
-				this.logger.error(`Unable to stop '${service.name}' service.`, err);
+				this.logger.error(`Unable to stop '${service.fullName}' service.`, err);
 			})
 			.then(() => {
 				_.remove(this.services, svc => svc == service);
-				this.registry.unregisterService(service.name, service.version);
+				this.registry.unregisterService(service.fullName, this.nodeID);
 
-				this.logger.info(`Service '${service.name}' is stopped.`);
+				this.logger.info(`Service '${service.fullName}' is stopped.`);
 				this.servicesChanged(true);
 
 				this.metrics.set(METRIC.MOLECULER_BROKER_LOCAL_SERVICES_TOTAL, this.services.length);

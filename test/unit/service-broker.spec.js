@@ -1238,7 +1238,7 @@ describe("Test broker.destroyService", () => {
 			expect(broker.getLocalService).toHaveBeenCalledTimes(0);
 
 			expect(broker.registry.unregisterService).toHaveBeenCalledTimes(1);
-			expect(broker.registry.unregisterService).toHaveBeenCalledWith("greeter", undefined);
+			expect(broker.registry.unregisterService).toHaveBeenCalledWith("greeter", "node-1234");
 
 			expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
 			expect(broker.servicesChanged).toHaveBeenCalledWith(true);
@@ -1269,7 +1269,7 @@ describe("Test broker.destroyService", () => {
 			expect(broker.getLocalService).toHaveBeenCalledWith("greeter");
 
 			expect(broker.registry.unregisterService).toHaveBeenCalledTimes(1);
-			expect(broker.registry.unregisterService).toHaveBeenCalledWith("greeter", undefined);
+			expect(broker.registry.unregisterService).toHaveBeenCalledWith("greeter", "node-1234");
 
 			expect(broker.servicesChanged).toHaveBeenCalledTimes(1);
 			expect(broker.servicesChanged).toHaveBeenCalledWith(true);
