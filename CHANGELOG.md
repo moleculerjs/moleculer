@@ -1351,6 +1351,38 @@ const broker = new ServiceBroker({
 });
 ```
 
+## Different strategy for actions/events
+The global invocation strategy can be overwritten in the action/event definitions.
+
+**Using 'Shard' strategy for 'hello' service instead of global 'RoundRobin'**
+```js
+// moleculer.config.js
+module.exports = {
+    registry: {
+        strategy: "RoundRobin"
+    }
+});
+
+// greeter.service.js
+module.exports = {
+    name: "greeter",
+    actions: {
+        hello: {
+            params: {
+                name: "string"
+            },
+            strategy: "Shard",
+            strategyOptions: {
+                shardKey: "name"
+            }            
+            handler(ctx) {
+                return `Hello ${ctx.params.name}`;
+            }
+        }
+    }
+};
+```
+
 ## Extending internal services
 Now the internal services can be extended. You can define mixin schema for every internal service under `internalServices` broker option.
 
