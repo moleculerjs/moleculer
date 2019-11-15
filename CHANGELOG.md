@@ -9,6 +9,10 @@
 The Moleculer communication protocol has been changed. The new protocol version is `4`.
 It means the new Moleculer 0.14 nodes can't communicate with old <= 0.13 nodes.
 
+## Fastest validator upgraded to 1.x.x
+fastest-validator, the default validation has been upgraded to the 1.0.0 version. It means breaking changes but the new version more faster and contains many sanitization functions.
+If you use custom rules, you should upgrade your codes. [Check the changes here.](https://github.com/icebob/fastest-validator/blob/master/CHANGELOG.md#100-2019-11-xx)
+
 ## Logger settings changed
 The whole logging function has been rewritten in this version. It means, it has a lot of new features, but the configuration of loggers has contains breaking changes. You can't use some old custom logger configuration form. The new configuration same as the other Moleculer module configurations. This new version supports all famous loggers like [Pino](https://github.com/pinojs/pino), [Winston](https://github.com/winstonjs/winston), [Bunyan](https://github.com/trentm/node-bunyan), [Debug](https://github.com/visionmedia/debug) & [Log4js](https://github.com/log4js-node/log4js-node).
 
@@ -544,7 +548,7 @@ The Kafka, NATS Streaming & TCP transporter have become stable because we didn't
 
 ## Context-based events
 The new 0.14 version comes context-based event handler. It is very useful when you are using event-driven architecture and you would like to tracing the event. The Event Context is same as Action Context. They are the same properties except a few new properties related to the event.
-It doesn't mean you should rewrite all existing event handlers. Moleculer detects the signature if your event handler. If it finds that the signature is `"user.created(ctx) { ... }`, it will call it with Event Context. If not, it will call with old arguments & the 4th argument will be the Event Context, like `"user.created"(payload, sender, eventName, ctx) {...}`
+It doesn't mean you should rewrite all existing event handlers. Moleculer detects the signature of your event handler. If it finds that the signature is `"user.created(ctx) { ... }`, it will call it with Event Context. If not, it will call with old arguments & the 4th argument will be the Event Context, like `"user.created"(payload, sender, eventName, ctx) {...}`
 
 **Use Context-based event handler & emit a nested event**
 ```js
@@ -563,14 +567,14 @@ module.exports = {
 };
 ```
 
-If you want to use different variable name, or the service can't detect properly the signature, use `context: true` in the event definition:
+If you want to use different variable name or the service can't detect properly the signature, use `context: true` in the event definition:
 ```js
 module.exports = {
     name: "accounts",
     events: {
         "user.created": {
             context: true,
-            handler({ params, nodeID}) {
+            handler({ params, nodeID }) {
                 console.log("Payload:", ctx.params);
                 console.log("Sender:", ctx.nodeID);
             }
@@ -750,6 +754,8 @@ const broker = new ServiceBroker({
 - `moleculer.transporter.packets.sent.bytes` (counter)
 - `moleculer.transporter.packets.received.total` (counter)
 - `moleculer.transporter.packets.received.bytes` (counter)
+
+>To use the GC & Event loop metrics you should install the `gc-stats` and `event-loop-stats` packages manually.
 
 ### Built-in reporters
 

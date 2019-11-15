@@ -70,7 +70,9 @@
     "eslint-plugin-node": "^10.0.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-security": "^1.4.0",
+    "event-loop-stats": "^1.2.0",
     "fakerator": "^0.3.0",
+    "gc-stats": "^1.4.0",
     "ioredis": "^4.14.1",
     "jaeger-client": "^3.17.1",
     "jest": "^24.9.0",
@@ -100,16 +102,12 @@
     "winston": "^3.2.1",
     "winston-context": "^0.0.7"
   },
-  "optionalDependencies": {
-    "event-loop-stats": "^1.2.0",
-    "gc-stats": "^1.4.0"
-  },
   "dependencies": {
     "args": "^5.0.1",
     "bluebird": "^3.5.5",
     "es6-error": "^4.1.1",
     "eventemitter2": "^5.0.1",
-    "fastest-validator": "^0.6.19",
+    "fastest-validator": "^1.0.0-beta1",
     "fn-args": "^5.0.0",
     "glob": "^7.1.6",
     "ipaddr.js": "^1.9.1",
