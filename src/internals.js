@@ -120,9 +120,9 @@ module.exports = function() {
 				cache: false,
 				tracing: false,
 				params: {
-					types: [ { type: "string", optional: true }, { type: "array", optional: true, items: "string" } ],
-					includes: [ { type: "string", optional: true }, { type: "array", optional: true, items: "string" } ],
-					excludes: [ { type: "string", optional: true }, { type: "array", optional: true, items: "string" } ]
+					types: { type: "multi", optional: true, rules: [ { type: "string" }, { type: "array", items: "string" } ] },
+					includes: { type: "multi", optional: true, rules: [ { type: "string" }, { type: "array", items: "string" } ] },
+					excludes: { type: "multi", optional: true, rules: [ { type: "string" }, { type: "array", items: "string" } ] }
 				},
 				handler(ctx) {
 					if (!this.broker.isMetricsEnabled())

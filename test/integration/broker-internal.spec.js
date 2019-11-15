@@ -302,9 +302,9 @@ describe("Test internal services", () => {
 					"name": "$node.metrics",
 					"rawName": "metrics",
 					"params": {
-						types: [ { type: "string", optional: true }, { type: "array", optional: true, items: "string" } ],
-						includes: [ { type: "string", optional: true }, { type: "array", optional: true, items: "string" } ],
-						excludes: [ { type: "string", optional: true }, { type: "array", optional: true, items: "string" } ]
+						types: { type: "multi", optional: true, rules: [ { type: "string" }, { type: "array", items: "string" } ] },
+						includes: { type: "multi", optional: true, rules: [ { type: "string" }, { type: "array", items: "string" } ] },
+						excludes: { type: "multi", optional: true, rules: [ { type: "string" }, { type: "array", items: "string" } ] }
 					}
 				},
 				"available": true,
