@@ -11,7 +11,7 @@ It means the new Moleculer 0.14 nodes can't communicate with old <= 0.13 nodes.
 
 ## Fastest validator upgraded to 1.x.x
 fastest-validator, the default validation has been upgraded to the 1.0.0 version. It means breaking changes but the new version more faster and contains many sanitization functions.
-If you use custom rules, you should upgrade your codes. [Check the changes here.](https://github.com/icebob/fastest-validator/blob/master/CHANGELOG.md#100-2019-11-xx)
+If you use custom rules, you should upgrade your codes. [Check the changes here.](https://github.com/icebob/fastest-validator/releases/tag/v1.0.0-beta1)
 
 ## Logger settings changed
 The whole logging function has been rewritten in this version. It means, it has a lot of new features, but the configuration of loggers has contains breaking changes. You can't use some old custom logger configuration form. The new configuration same as the other Moleculer module configurations. This new version supports all famous loggers like [Pino](https://github.com/pinojs/pino), [Winston](https://github.com/winstonjs/winston), [Bunyan](https://github.com/trentm/node-bunyan), [Debug](https://github.com/visionmedia/debug) & [Log4js](https://github.com/log4js-node/log4js-node).
