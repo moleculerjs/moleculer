@@ -182,19 +182,26 @@ describe("Test Prometheus Reporter class", () => {
 			registry.increment("test.counter", null, 5);
 			registry.increment("test.counter", { action: "posts\\comments" }, 8);
 
-			registry.register({ name: "test.gauge-total", type: "gauge", labelNames: ["action"], description: "Test Gauge Metric" });
+			registry.register({ name: "test.gauge-total", type: "gauge", labelNames: ["action"], description: "Test Gauge Metric", rate: true });
+			registry.increment("test.gauge-total", { action: "users-\"John\"" }, 10);
+			clock.tick(100);
 			registry.decrement("test.gauge-total", { action: "users-\"John\"" }, 8);
-			registry.set("test.gauge-total", { action: "posts" }, null);
+			registry.set("test.gauge-total", null, { action: "posts" });
 
-			registry.register({ name: "test.histogram", type: "histogram", labelNames: ["action"], buckets: true, quantiles: true, unit: "bytes" });
+			registry.register({ name: "test.histogram", type: "histogram", labelNames: ["action"], buckets: true, quantiles: true, unit: "bytes", rate: true });
 			registry.observe("test.histogram", 8, null);
 			registry.observe("test.histogram", 2, null);
+			clock.tick(500);
 			registry.observe("test.histogram", 6, null);
 			registry.observe("test.histogram", 2, null);
 
+
 			registry.observe("test.histogram", 1, { action: "auth" });
 			registry.observe("test.histogram", 3, { action: "auth" });
+			clock.tick(500);
 			registry.observe("test.histogram", 7, { action: "auth" });
+
+			clock.tick(10 * 1000);
 
 			const res = reporter.generatePrometheusResponse();
 

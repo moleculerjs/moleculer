@@ -102,28 +102,36 @@ class PrometheusReporter extends BaseReporter {
 	 */
 	handler(req, res) {
 		if (req.url == this.opts.path) {
-			const resHeader = {
-				"Content-Type": "text/plain; version=0.0.4; charset=utf-8"
-			};
+			try {
+				const content = this.generatePrometheusResponse();
 
-			const content = this.generatePrometheusResponse();
-			const compressing = req.headers["accept-encoding"] && req.headers["accept-encoding"].includes("gzip");
-			if (compressing) {
-				resHeader["Content-Encoding"] = "gzip";
-				zlib.gzip(content, (err, buffer) => {
-					/* istanbul ignore next */
-					if (err) {
-						this.logger("Unable to compress response: " + err.message);
-						res.writeHead(500);
-						res.end(err.message);
-					} else {
-						res.writeHead(200, resHeader);
-						res.end(buffer);
-					}
-				});
-			} else {
-				res.writeHead(200, resHeader);
-				res.end(content);
+				const resHeader = {
+					"Content-Type": "text/plain; version=0.0.4; charset=utf-8"
+				};
+
+				const compressing = req.headers["accept-encoding"] && req.headers["accept-encoding"].includes("gzip");
+				if (compressing) {
+					resHeader["Content-Encoding"] = "gzip";
+					zlib.gzip(content, (err, buffer) => {
+						/* istanbul ignore next */
+						if (err) {
+							this.logger("Unable to compress response: " + err.message);
+							res.writeHead(500);
+							res.end(err.message);
+						} else {
+							res.writeHead(200, resHeader);
+							res.end(buffer);
+						}
+					});
+				} else {
+					res.writeHead(200, resHeader);
+					res.end(content);
+				}
+
+			} catch(err) {
+				this.logger.error("Unable to generate Prometheus response", err);
+				res.writeHead(500, http.STATUS_CODES[500], {});
+				res.end();
 			}
 		} else {
 			res.writeHead(404, http.STATUS_CODES[404], {});
@@ -163,6 +171,11 @@ class PrometheusReporter extends BaseReporter {
 					snapshot.forEach(item => {
 						const labelStr = this.labelsToStr(item.labels);
 						content.push(`${metricName}${labelStr} ${val(item.value)}`);
+
+						if (item.rate) {
+							content.push(`${metricName}_rate${labelStr} ${val(item.rate)}`);
+						}
+
 					});
 					content.push("");
 
@@ -210,6 +223,11 @@ class PrometheusReporter extends BaseReporter {
 							content.push(`${metricName}_variance${labelStr} ${val(item.variance)}`);
 							content.push(`${metricName}_stddev${labelStr} ${val(item.stdDev)}`);
 							content.push(`${metricName}_max${labelStr} ${val(item.max)}`);
+						}
+
+						if (item.rate) {
+							const labelStr = this.labelsToStr(item.labels);
+							content.push(`${metricName}_rate${labelStr} ${val(item.rate)}`);
 						}
 					});
 					content.push("");

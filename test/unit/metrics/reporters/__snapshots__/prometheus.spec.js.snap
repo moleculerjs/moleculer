@@ -12,8 +12,9 @@ test_counter{a=\\"5\\",action=\\"posts\\\\\\\\comments\\"} 8
 
 # HELP test_gauge_total Test Gauge Metric
 # TYPE test_gauge_total gauge
-test_gauge_total{a=\\"5\\",action=\\"users-\\\\\\"John\\\\\\"\\"} -8
-test_gauge_total{a=\\"5\\"} [object Object]
+test_gauge_total{a=\\"5\\",action=\\"users-\\\\\\"John\\\\\\"\\"} 2
+test_gauge_total_rate{a=\\"5\\",action=\\"users-\\\\\\"John\\\\\\"\\"} 6
+test_gauge_total{a=\\"5\\",action=\\"posts\\"} NaN
 
 # HELP test_histogram test.histogram (bytes)
 # TYPE test_histogram histogram
@@ -41,6 +42,7 @@ test_histogram_mean{a=\\"5\\"} 4.5
 test_histogram_variance{a=\\"5\\"} 9
 test_histogram_stddev{a=\\"5\\"} 3
 test_histogram_max{a=\\"5\\"} 8
+test_histogram_rate{a=\\"5\\"} 12
 test_histogram_bucket{a=\\"5\\",action=\\"auth\\",le=\\"1\\"} 1
 test_histogram_bucket{a=\\"5\\",action=\\"auth\\",le=\\"5\\"} 2
 test_histogram_bucket{a=\\"5\\",action=\\"auth\\",le=\\"10\\"} 3
@@ -65,5 +67,6 @@ test_histogram_mean{a=\\"5\\",action=\\"auth\\"} 3.6666666666666665
 test_histogram_variance{a=\\"5\\",action=\\"auth\\"} 9.333333333333334
 test_histogram_stddev{a=\\"5\\",action=\\"auth\\"} 3.0550504633038935
 test_histogram_max{a=\\"5\\",action=\\"auth\\"} 7
+test_histogram_rate{a=\\"5\\",action=\\"auth\\"} 9
 "
 `;
