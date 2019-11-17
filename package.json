@@ -107,7 +107,7 @@
     "bluebird": "^3.5.5",
     "es6-error": "^4.1.1",
     "eventemitter2": "^5.0.1",
-    "fastest-validator": "^1.0.0-beta2",
+    "fastest-validator": "^1.0.0-beta3",
     "fn-args": "^5.0.0",
     "glob": "^7.1.6",
     "ipaddr.js": "^1.9.1",
