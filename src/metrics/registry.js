@@ -350,9 +350,13 @@ class MetricRegistry {
 	 * List all registered metrics with labels & values.
 	 *
 	 * @param {Object?} opts
+	 * @param {String|Array<String>|null} opts.types
+	 * @param {String|Array<String>|null} opts.includes
+	 * @param {String|Array<String>|null} opts.excludes
 	 */
-	list(opts = {}) {
+	list(opts) {
 		const res = [];
+		opts = opts || {};
 
 		const types = opts.types != null ? (_.isString(opts.types) ? [opts.types] : opts.types) : null;
 		const includes = opts.includes != null ? (_.isString(opts.includes) ? [opts.includes] : opts.includes) : null;
