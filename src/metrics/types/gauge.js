@@ -139,8 +139,10 @@ class GaugeMetric extends BaseMetric {
 	 * @memberof GaugeMetric
 	 */
 	generateSnapshot() {
-		const snapshot = Array.from(this.values.values()).map(item => {
+		const snapshot = Array.from(this.values.keys()).map(key => {
+			const item = this.values.get(key);
 			const res = {
+				key,
 				value: item.value,
 				labels: item.labels,
 				timestamp: item.timestamp

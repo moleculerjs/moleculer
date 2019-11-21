@@ -93,8 +93,10 @@ class InfoMetric extends BaseMetric {
 	 * @memberof InfoMetric
 	 */
 	generateSnapshot() {
-		const snapshot = Array.from(this.values.values()).map(item => {
+		const snapshot = Array.from(this.values.keys()).map(key => {
+			const item = this.values.get(key);
 			return {
+				key,
 				value: item.value,
 				labels: item.labels,
 				timestamp: item.timestamp

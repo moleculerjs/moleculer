@@ -12,6 +12,7 @@ Array [
       "8": 5,
     },
     "count": 5,
+    "key": "",
     "labels": Object {},
     "max": 8,
     "mean": 4.8,
@@ -37,6 +38,7 @@ Array [
       "8": 4,
     },
     "count": 4,
+    "key": "5",
     "labels": Object {
       "a": 5,
     },

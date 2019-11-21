@@ -10,6 +10,7 @@ Array [
     "unit": undefined,
     "values": Array [
       Object {
+        "key": "",
         "labels": Object {},
         "timestamp": 12345678000,
         "value": 123456,
@@ -24,6 +25,7 @@ Array [
     "unit": undefined,
     "values": Array [
       Object {
+        "key": "",
         "labels": Object {},
         "timestamp": 12345678000,
         "value": "Test Value",
@@ -40,11 +42,13 @@ Array [
     "unit": undefined,
     "values": Array [
       Object {
+        "key": "",
         "labels": Object {},
         "timestamp": 12345678000,
         "value": 5,
       },
       Object {
+        "key": "\\"posts\\\\comments\\"",
         "labels": Object {
           "action": "posts\\\\comments",
         },
@@ -63,6 +67,7 @@ Array [
     "unit": undefined,
     "values": Array [
       Object {
+        "key": "\\"users-\\"John\\"\\"",
         "labels": Object {
           "action": "users-\\"John\\"",
         },
@@ -70,6 +75,7 @@ Array [
         "value": -8,
       },
       Object {
+        "key": "",
         "labels": Object {},
         "timestamp": 12345678000,
         "value": Object {
@@ -102,6 +108,7 @@ Array [
           "5": 2,
         },
         "count": 4,
+        "key": "",
         "labels": Object {},
         "max": 8,
         "mean": 4.5,
@@ -133,6 +140,7 @@ Array [
           "5": 2,
         },
         "count": 3,
+        "key": "\\"auth\\"",
         "labels": Object {
           "action": "auth",
         },
@@ -166,6 +174,7 @@ Array [
     "unit": undefined,
     "values": Array [
       Object {
+        "key": "",
         "labels": Object {},
         "timestamp": 12345678000,
         "value": "nodejs",
@@ -180,6 +189,7 @@ Array [
     "unit": undefined,
     "values": Array [
       Object {
+        "key": "",
         "labels": Object {},
         "timestamp": 12345678000,
         "value": "4",
@@ -194,6 +204,7 @@ Array [
     "unit": undefined,
     "values": Array [
       Object {
+        "key": "",
         "labels": Object {},
         "timestamp": 12345678000,
         "value": "",
@@ -208,6 +219,7 @@ Array [
     "unit": undefined,
     "values": Array [
       Object {
+        "key": "",
         "labels": Object {},
         "timestamp": 12345678000,
         "value": 0,
@@ -222,6 +234,7 @@ Array [
     "unit": undefined,
     "values": Array [
       Object {
+        "key": "",
         "labels": Object {},
         "timestamp": 12345678000,
         "value": 1,
@@ -236,6 +249,7 @@ Array [
     "unit": undefined,
     "values": Array [
       Object {
+        "key": "",
         "labels": Object {},
         "timestamp": 12345678000,
         "value": 13,
@@ -250,6 +264,7 @@ Array [
     "unit": undefined,
     "values": Array [
       Object {
+        "key": "",
         "labels": Object {},
         "timestamp": 12345678000,
         "value": 1,
@@ -264,6 +279,7 @@ Array [
     "unit": undefined,
     "values": Array [
       Object {
+        "key": "",
         "labels": Object {},
         "timestamp": 12345678000,
         "value": 1,
@@ -278,6 +294,7 @@ Array [
     "unit": undefined,
     "values": Array [
       Object {
+        "key": "",
         "labels": Object {},
         "timestamp": 12345678000,
         "value": 0,
@@ -292,6 +309,7 @@ Array [
     "unit": undefined,
     "values": Array [
       Object {
+        "key": "",
         "labels": Object {},
         "timestamp": 12345678000,
         "value": 0,
@@ -306,6 +324,7 @@ Array [
     "unit": undefined,
     "values": Array [
       Object {
+        "key": "",
         "labels": Object {},
         "timestamp": 12345678000,
         "value": 0,
@@ -320,6 +339,7 @@ Array [
     "unit": undefined,
     "values": Array [
       Object {
+        "key": "",
         "labels": Object {},
         "timestamp": 12345678000,
         "value": 123456,
@@ -334,6 +354,7 @@ Array [
     "unit": undefined,
     "values": Array [
       Object {
+        "key": "",
         "labels": Object {},
         "timestamp": 12345678000,
         "value": "Test Value",
@@ -350,11 +371,13 @@ Array [
     "unit": undefined,
     "values": Array [
       Object {
+        "key": "",
         "labels": Object {},
         "timestamp": 12345678000,
         "value": 5,
       },
       Object {
+        "key": "\\"posts\\\\comments\\"",
         "labels": Object {
           "action": "posts\\\\comments",
         },
@@ -373,6 +396,7 @@ Array [
     "unit": undefined,
     "values": Array [
       Object {
+        "key": "\\"users-\\"John\\"\\"",
         "labels": Object {
           "action": "users-\\"John\\"",
         },
@@ -380,6 +404,7 @@ Array [
         "value": -8,
       },
       Object {
+        "key": "",
         "labels": Object {},
         "timestamp": 12345678000,
         "value": Object {
@@ -412,6 +437,7 @@ Array [
           "5": 2,
         },
         "count": 4,
+        "key": "",
         "labels": Object {},
         "max": 8,
         "mean": 4.5,
@@ -443,6 +469,7 @@ Array [
           "5": 2,
         },
         "count": 3,
+        "key": "\\"auth\\"",
         "labels": Object {
           "action": "auth",
         },
@@ -478,11 +505,13 @@ Array [
     "unit": undefined,
     "values": Array [
       Object {
+        "key": "",
         "labels": Object {},
         "timestamp": 12345678000,
         "value": 12,
       },
       Object {
+        "key": "\\"posts\\\\comments\\"",
         "labels": Object {
           "action": "posts\\\\comments",
         },
@@ -501,6 +530,7 @@ Array [
     "unit": undefined,
     "values": Array [
       Object {
+        "key": "\\"users-\\"John\\"\\"",
         "labels": Object {
           "action": "users-\\"John\\"",
         },
@@ -508,6 +538,7 @@ Array [
         "value": -8,
       },
       Object {
+        "key": "",
         "labels": Object {},
         "timestamp": 12345678000,
         "value": Object {
@@ -515,6 +546,7 @@ Array [
         },
       },
       Object {
+        "key": "\\"posts\\"",
         "labels": Object {
           "action": "posts",
         },

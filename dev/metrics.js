@@ -26,15 +26,15 @@ const broker = new ServiceBroker({
 					//excludes: ["moleculer.transit.publish.total", "moleculer.transit.receive.total"]
 				}
 			},
-			/*{
+			{
 				type: "Event",
 				options: {
 					onlyChanges: false,
 					eventName: "$metrics.state",
-					includes: "moleculer.**",
+					includes: "moleculer.request.**",
 					excludes: ["moleculer.request.error.**", "moleculer.request.fallback.**"]
 				}
-			},*/
+			},
 			/*new CSVReporter({
 				folder: "./dev/trash/csv-metrics",
 				includes: "moleculer.request.time",

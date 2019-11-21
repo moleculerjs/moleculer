@@ -129,18 +129,20 @@ class HistogramMetric extends BaseMetric {
 	 * @memberof HistogramMetric
 	 */
 	generateSnapshot() {
-		return Array.from(this.values.values()).map(item => this.generateItemSnapshot(item));
+		return Array.from(this.values.keys()).map(key => this.generateItemSnapshot(this.values.get(key), key));
 	}
 
 	/**
 	 * Generate a snapshot for an item
 	 *
 	 * @param {Object} item
+	 * @param {String} key
 	 * @returns {Object}
 	 * @memberof HistogramMetric
 	 */
-	generateItemSnapshot(item) {
+	generateItemSnapshot(item, key) {
 		const snapshot = {
+			key,
 			labels: item.labels,
 			count: item.count,
 			sum: item.sum,

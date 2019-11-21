@@ -3,11 +3,13 @@
 exports[`Test Base Metric class Test generateSnapshot method should generate a snapshot 1`] = `
 Array [
   Object {
+    "key": "",
     "labels": Object {},
     "timestamp": 1111,
     "value": 3,
   },
   Object {
+    "key": "1",
     "labels": Object {
       "a": 1,
     },
@@ -15,6 +17,7 @@ Array [
     "value": 4,
   },
   Object {
+    "key": "5",
     "labels": Object {
       "a": 5,
     },
@@ -22,6 +25,7 @@ Array [
     "value": 5,
   },
   Object {
+    "key": "\\"John\\"",
     "labels": Object {
       "a": "John",
     },

@@ -515,6 +515,7 @@ describe("Test internal services", () => {
 					"unit": undefined,
 					"values": [
 						{
+							"key": "",
 							"labels": {},
 							"timestamp": expect.any(Number),
 							"value": ""
@@ -529,6 +530,7 @@ describe("Test internal services", () => {
 					"unit": undefined,
 					"values": [
 						{
+							"key": "",
 							"labels": {},
 							"timestamp": expect.any(Number),
 							"value": 1
@@ -543,6 +545,7 @@ describe("Test internal services", () => {
 					"unit": undefined,
 					"values": [
 						{
+							"key": "",
 							"labels": {},
 							"timestamp": expect.any(Number),
 							"value": 3
@@ -557,6 +560,7 @@ describe("Test internal services", () => {
 					"unit": undefined,
 					"values": [
 						{
+							"key": "",
 							"labels": {},
 							"timestamp": expect.any(Number),
 							"value": 13
