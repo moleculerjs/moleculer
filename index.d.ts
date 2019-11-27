@@ -524,15 +524,20 @@ declare namespace Moleculer {
 		[name: string]: any;
 	}
 
-	type ServiceEventHandler = ((payload: any, sender: string, eventName: string) => void) & ThisType<Service>;
+	type ServiceEventOldHandler = ((payload: any, sender: string, eventName: string, ctx: Context) => void) & ThisType<Service>;
+
+	type ServiceEventHandler = ((ctx: Context) => void) & ThisType<Service>;
 
 	interface ServiceEvent {
 		name?: string;
 		group?: string;
-		handler?: ServiceEventHandler;
+		context?: boolean;
+		debounce?: number;
+		throttle?: number;
+		handler?: ServiceEventHandler | ServiceEventOldHandler;
 	}
 
-	type ServiceEvents = { [key: string]: ServiceEventHandler | ServiceEvent };
+	type ServiceEvents = { [key: string]: ServiceEventHandler | ServiceEventOldHandler | ServiceEvent };
 
 	type ServiceMethods = { [key: string]: ((...args: any[]) => any) } & ThisType<Service>;
 
