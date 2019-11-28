@@ -534,10 +534,10 @@ declare namespace Moleculer {
 		context?: boolean;
 		debounce?: number;
 		throttle?: number;
-		handler?: ServiceEventHandler | ServiceEventOldHandler;
+		handler?: ServiceEventHandler | ServiceEventLegacyHandler;
 	}
 
-	type ServiceEvents = { [key: string]: ServiceEventHandler | ServiceEventOldHandler | ServiceEvent };
+	type ServiceEvents = { [key: string]: ServiceEventHandler | ServiceEventLegacyHandler | ServiceEvent };
 
 	type ServiceMethods = { [key: string]: ((...args: any[]) => any) } & ThisType<Service>;
 
