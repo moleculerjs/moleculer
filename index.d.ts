@@ -524,7 +524,7 @@ declare namespace Moleculer {
 		[name: string]: any;
 	}
 
-	type ServiceEventOldHandler = ((payload: any, sender: string, eventName: string, ctx: Context) => void) & ThisType<Service>;
+	type ServiceEventLegacyHandler = ((payload: any, sender: string, eventName: string, ctx: Context) => void) & ThisType<Service>;
 
 	type ServiceEventHandler = ((ctx: Context) => void) & ThisType<Service>;
 
