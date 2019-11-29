@@ -536,7 +536,6 @@ declare namespace Moleculer {
 
 	type ServiceMethods = { [key: string]: ((...args: any[]) => any) } & ThisType<Service>;
 
-	type CallMiddlewareHandler = (actionName: string, params: any, opts: CallingOptions) => PromiseLike<any>;
 	type Middleware = {
 		[name: string]:
 			| ((handler: ActionHandler, action: ActionSchema) => any)
@@ -544,7 +543,6 @@ declare namespace Moleculer {
 			| ((handler: ActionHandler) => any)
 			| ((service: Service) => any)
 			| ((broker: ServiceBroker) => any)
-			| ((handler: CallMiddlewareHandler) => CallMiddlewareHandler)
 	}
 
 	type MiddlewareInit = (broker: ServiceBroker) => Middleware & ThisType<ServiceBroker>;
