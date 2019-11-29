@@ -1051,7 +1051,7 @@ declare namespace Moleculer {
 			del(key: string|Array<string>): PromiseLike<any>;
 			clean(match?: string|Array<string>): PromiseLike<any>;
 			getCacheKey(actionName: string, params: object, meta: object, keys: Array<string> | null) : string;
-			defaultKeygen(actionName: string, params: object | null, meta: object, keys: Array<string> | null): string;
+			defaultKeygen(actionName: string, params: object | null, meta: object | null, keys: Array<string> | null): string;
 		}
 
 		class Memory extends Base {
