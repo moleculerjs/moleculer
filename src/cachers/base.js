@@ -1,13 +1,14 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
-const _ 		= require("lodash");
-const crypto	= require("crypto");
+const _ 			= require("lodash");
+const crypto		= require("crypto");
+const { METRIC }	= require("../metrics");
 
 /**
  * Abstract cacher class
@@ -40,6 +41,8 @@ class Cacher {
 	 */
 	init(broker) {
 		this.broker = broker;
+		this.metrics = broker.metrics;
+
 		if (this.broker) {
 			this.logger = broker.getLogger("cacher");
 
@@ -50,7 +53,30 @@ class Cacher {
 				if (this.broker.namespace)
 					this.prefix += this.broker.namespace + "-";
 			}
+
+			this.registerMoleculerMetrics();
 		}
+	}
+
+	/**
+	 * Register Moleculer Transit Core metrics.
+	 */
+	registerMoleculerMetrics() {
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_GET_TOTAL, type: METRIC.TYPE_COUNTER, rate: true });
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_GET_TIME, type: METRIC.TYPE_HISTOGRAM, quantiles: true, unit: METRIC.UNIT_MILLISECONDS });
+
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_FOUND_TOTAL, type: METRIC.TYPE_COUNTER, rate: true });
+
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_SET_TOTAL, type: METRIC.TYPE_COUNTER, rate: true });
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_SET_TIME, type: METRIC.TYPE_HISTOGRAM, quantiles: true, unit: METRIC.UNIT_MILLISECONDS });
+
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_DEL_TOTAL, type: METRIC.TYPE_COUNTER, rate: true });
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_DEL_TIME, type: METRIC.TYPE_HISTOGRAM, quantiles: true, unit: METRIC.UNIT_MILLISECONDS });
+
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_CLEAN_TOTAL, type: METRIC.TYPE_COUNTER, rate: true });
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_CLEAN_TIME, type: METRIC.TYPE_HISTOGRAM, quantiles: true, unit: METRIC.UNIT_MILLISECONDS });
+
+		this.metrics.register({ name: METRIC.MOLECULER_CACHER_EXPIRED_TOTAL, type: METRIC.TYPE_COUNTER, rate: true });
 	}
 
 	/**
@@ -259,18 +285,18 @@ class Cacher {
 											return handler(ctx).then(result => {
 												// Save the result to the cache and realse the lock.
 												return this.set(cacheKey, result, opts.ttl).then(()=>unlock());
-											}).catch(err => {
+											}).catch((/*err*/) => {
 												return this.del(cacheKey).then(()=>unlock());
 											});
-										}).catch(err=>{
+										}).catch((/*err*/)=>{
 											// The cache is refreshing on somewhere else.
-										})
+										});
 									}
 								}
 								return data;
 							});
 						} else {
-							cachePromise = this.get(cacheKey)
+							cachePromise = this.get(cacheKey);
 						}
 						return cachePromise.then(data=>{
 							if (data != null) {
@@ -286,7 +312,7 @@ class Cacher {
 										ctx.cachedResult = true;
 										return unlock().then(() => {
 											return content;
-										})
+										});
 									}
 									// Call the handler
 									return handler(ctx).then(result => {
@@ -295,12 +321,12 @@ class Cacher {
 										return result;
 									}).catch(e => {
 										return unlock().then(() => {
-											return Promise.reject(e)
-										})
-									})
+											return Promise.reject(e);
+										});
+									});
 								});
 							});
-						})
+						});
 					}
 					// Not using lock
 					return this.get(cacheKey).then(content => {

@@ -1,12 +1,13 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
 const _ = require("lodash");
+const { MoleculerClientError } = require("./errors");
 
 module.exports = function() {
 	const schema = {
@@ -15,6 +16,7 @@ module.exports = function() {
 		actions: {
 			list: {
 				cache: false,
+				tracing: false,
 				params: {
 					withServices: { type: "boolean", optional: true },
 					onlyAvailable: { type: "boolean", optional: true },
@@ -26,6 +28,7 @@ module.exports = function() {
 
 			services: {
 				cache: false,
+				tracing: false,
 				params: {
 					onlyLocal: { type: "boolean", optional: true },
 					skipInternal: { type: "boolean", optional: true },
@@ -69,6 +72,7 @@ module.exports = function() {
 
 			actions: {
 				cache: false,
+				tracing: false,
 				params: {
 					onlyLocal: { type: "boolean", optional: true },
 					skipInternal: { type: "boolean", optional: true },
@@ -82,6 +86,7 @@ module.exports = function() {
 
 			events: {
 				cache: false,
+				tracing: false,
 				params: {
 					onlyLocal: { type: "boolean", optional: true },
 					skipInternal: { type: "boolean", optional: true },
@@ -95,19 +100,37 @@ module.exports = function() {
 
 			health: {
 				cache: false,
+				tracing: false,
 				handler() {
 					return this.broker.getHealthStatus();
 				}
 			},
 
 			options: {
-				cache: true,
+				cache: false,
+				tracing: false,
 				params: {
 				},
 				handler() {
 					return _.cloneDeep(this.broker.options);
 				}
 			},
+
+			metrics: {
+				cache: false,
+				tracing: false,
+				params: {
+					types: { type: "multi", optional: true, rules: [ { type: "string" }, { type: "array", items: "string" } ] },
+					includes: { type: "multi", optional: true, rules: [ { type: "string" }, { type: "array", items: "string" } ] },
+					excludes: { type: "multi", optional: true, rules: [ { type: "string" }, { type: "array", items: "string" } ] }
+				},
+				handler(ctx) {
+					if (!this.broker.isMetricsEnabled())
+						return this.Promise.reject(new MoleculerClientError("Metrics feature is disabled", 400, "METRICS_DISABLED"));
+
+					return this.broker.metrics.list(ctx.params);
+				}
+			}
 		}
 	};
 

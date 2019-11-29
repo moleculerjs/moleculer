@@ -44,15 +44,15 @@ module.exports = function getCpuUsage(sampleTime = 100) {
 								usages
 							});
 						} catch (err) {
-							reject();
+							reject(err);
 						}
 					}, sampleTime);
 				} catch (err) {
-					reject();
+					reject(err);
 				}
 			}, sampleTime);
 		} catch (err) {
-			reject();
+			reject(err);
 		}
 	});
 };

@@ -84,9 +84,10 @@ class MqttTransporter extends Transporter {
 				this.logger.warn("MQTT client is reconnecting...");
 			});
 
-			client.on("message", (topic, msg) => {
-				const cmd = topic.split(this.topicSeparator)[1];
-				this.incomingMessage(cmd, msg);
+			client.on("message", (rawTopic, buf) => {
+				const topic = rawTopic.substring(this.prefix.length + this.topicSeparator.length);
+				const cmd = topic.split(this.topicSeparator)[0];
+				this.receive(cmd, buf);
 			});
 
 			/* istanbul ignore next */
@@ -138,7 +139,7 @@ class MqttTransporter extends Transporter {
 				if (err)
 					return reject(err);
 
-				this.logger.info("MQTT server granted", granted);
+				this.logger.debug("MQTT server granted", granted);
 
 				resolve();
 			});
@@ -146,20 +147,19 @@ class MqttTransporter extends Transporter {
 	}
 
 	/**
-	 * Publish a packet
+	 * Send data buffer.
 	 *
-	 * @param {Packet} packet
+	 * @param {String} topic
+	 * @param {Buffer} data
+	 * @param {Object} meta
 	 *
-	 * @memberof MqttTransporter
+	 * @returns {Promise}
 	 */
-	publish(packet) {
+	send(topic, data) {
 		/* istanbul ignore next*/
 		if (!this.client) return;
 
 		return new Promise((resolve, reject) => {
-			const data = this.serialize(packet);
-			this.incStatSent(data.length);
-			const topic = this.getTopicName(packet.type, packet.target);
 			this.client.publish(topic, data, { qos: this.qos }, err => {
 				/* istanbul ignore next*/
 				if (err)

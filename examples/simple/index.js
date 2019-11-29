@@ -10,6 +10,7 @@ let broker = new ServiceBroker({
 
 // Load service
 broker.loadService(__dirname + "/../math.service.js");
+//broker.loadService(__dirname + "/../dummy.service.js");
 
 // Call actions
 broker.start()
@@ -37,4 +38,4 @@ broker.start()
 
 //broker.repl();
 
-// Please note, the process will exit because we didn't define transporter or API gateway.
+// Please note, the process will exit because we didn't define transporter or API gateway which can keep-alive the event-loop.

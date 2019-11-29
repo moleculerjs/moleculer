@@ -7,24 +7,30 @@ describe("Test Node", () => {
 	it("should create a new Node", () => {
 		let node = new Node("node-1");
 
-		expect(node).toBeDefined();
-		expect(node.id).toBe("node-1");
-		expect(node.available).toBe(true);
-		expect(node.local).toBe(false);
-		expect(node.lastHeartbeatTime).toBeDefined();
-		expect(node.config).toEqual({});
-		expect(node.client).toEqual({});
+		expect(node).toEqual({
+			id: "node-1",
+			instanceID: null,
+			available: true,
+			local: false,
+			lastHeartbeatTime: expect.any(Number),
+			config: {},
+			client: {},
+			metadata: null,
 
-		expect(node.ipList).toBeNull();
-		expect(node.port).toBeNull();
-		expect(node.hostname).toBeNull();
-		expect(node.rawInfo).toBeNull();
-		expect(node.services).toEqual([]);
+			ipList: null,
+			port: null,
+			hostname: null,
+			udpAddress: null,
 
-		expect(node.cpu).toBeNull();
-		expect(node.cpuSeq).toBeNull();
-		expect(node.seq).toBe(0);
-		expect(node.offlineSince).toBeNull();
+			rawInfo: null,
+			services: [],
+
+			cpu: null,
+			cpuSeq: null,
+
+			seq: 0,
+			offlineSince: null
+		});
 	});
 
 	describe("Test update", () => {
@@ -34,10 +40,14 @@ describe("Test Node", () => {
 			let payload = {
 				ipList: ["127.0.0.1"],
 				hostname: "host",
+				instanceID: "123456",
 				port: 1234,
 				client: {},
 				services: [{}],
-				seq: 6
+				seq: 6,
+				metadata: {
+					region: "eu-west1"
+				}
 			};
 			node.update(payload);
 
@@ -48,6 +58,10 @@ describe("Test Node", () => {
 
 			expect(node.services).toBe(payload.services);
 			expect(node.rawInfo).toBe(payload);
+			expect(node.instanceID).toBe("123456");
+			expect(node.metadata).toEqual({
+				region: "eu-west1"
+			});
 
 			expect(node.seq).toBe(6);
 		});

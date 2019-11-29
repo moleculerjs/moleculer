@@ -18,14 +18,24 @@ function wrapErrorHandler(handler) {
 
 				if (ctx.nodeID !== this.nodeID) {
 					// Remove pending request (the request didn't reach the target service)
-					this.transit.removePendingRequest(ctx.id);
+					if (this.transit)
+						this.transit.removePendingRequest(ctx.id);
 				}
 
 				this.logger.debug(`The '${ctx.action.name}' request is rejected.`, { requestID: ctx.requestID }, err);
 
-				err.ctx = ctx;
+				Object.defineProperty(err, "ctx", {
+					value: ctx,
+					writable: true,
+					enumerable: false
+				});
 
-				return Promise.reject(err);
+				// Call global errorHandler
+				return ctx.broker.errorHandler(err, {
+					ctx,
+					service: ctx.service,
+					action: ctx.action
+				});
 			});
 
 	}.bind(this);
@@ -33,6 +43,8 @@ function wrapErrorHandler(handler) {
 
 module.exports = function() {
 	return {
+		name: "ErrorHandler",
+
 		localAction: wrapErrorHandler,
 		remoteAction: wrapErrorHandler
 	};

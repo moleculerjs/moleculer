@@ -3,10 +3,10 @@ sudo: false
 dist: xenial
 
 node_js:
+    - "13"
     - "12"
     - "10"
     - "8"
-    - "6"
 
 cache:
   directories:
@@ -26,9 +26,9 @@ addons:
 
 before_script:
   # install NATS server
-  - wget https://github.com/nats-io/gnatsd/releases/download/v1.3.0/gnatsd-v1.3.0-linux-amd64.zip -qO gnatsd.zip
-  - unzip gnatsd.zip
-  - ./gnatsd-v1.3.0-linux-amd64/gnatsd &
+  - wget https://github.com/nats-io/nats-server/releases/download/v2.0.0/nats-server-v2.0.0-linux-amd64.zip -qO nats-server.zip
+  - unzip nats-server.zip
+  - ./nats-server-v2.0.0-linux-amd64/nats-server &
 
 script:
   - npm run test:travis

@@ -2,32 +2,35 @@
 
 "use strict";
 
-let ServiceBroker = require("../src/service-broker");
-let Transporters = require("../src/transporters");
+const fs = require("fs");
+
+const ServiceBroker = require("../src/service-broker");
+const Transporters = require("../src/transporters");
+const Middlewares = require("../src/middlewares");
+
+const someData = JSON.parse(fs.readFileSync("./benchmark/data/10k.json", "utf8"));
 
 function createBrokers(Transporter, opts) {
-	let b1 = new ServiceBroker({
-		transporter: new Transporter(opts),
-		//requestTimeout: 0,
-		//logger: console,
-		//logLevel: "debug",
+	const b1 = new ServiceBroker({
 		nodeID: "node-1",
+		logger: true,
+		transporter: new Transporter(opts),
+		//internalMiddlewares: false,
+		middlewares: [
+			//Middlewares.Transmit.Encryption("moleculer"),
+			//Middlewares.Transmit.Compression(),
+		]
 	});
 
-	let b2 = new ServiceBroker({
-		transporter: new Transporter(opts),
-		// cacher: "memory",
-		// requestTimeout: 1000,
-		// retryPolicy: {
-		// 	enabled: true
-		// },
-		// circuitBreaker: {
-		// 	enabled: true
-		// },
-		// logger: console,
-		// logLevel: "debug",
-		//metrics: true,
+	const b2 = new ServiceBroker({
 		nodeID: "node-2",
+		logger: true,
+		transporter: new Transporter(opts),
+		//internalMiddlewares: false,
+		middlewares: [
+			//Middlewares.Transmit.Encryption("moleculer"),
+			//Middlewares.Transmit.Compression(),
+		]
 	});
 
 	b2.createService({
@@ -36,43 +39,8 @@ function createBrokers(Transporter, opts) {
 			reply(ctx) {
 				return ctx.params;
 			},
-			get: {
-				cache: {
-					keys: ["id"]
-				},
-				handler() {
-					return {
-						name: "User"
-					};
-				}
-			}
-		}
-	});
-
-	let b3 = new ServiceBroker({
-		transporter: new Transporter(opts),
-		//cacher: "memory",
-		//requestTimeout: 0,
-		//logger: console,
-		//logLevel: "debug",
-		nodeID: "node-3"
-	});
-
-	b3.createService({
-		name: "echo",
-		actions: {
-			reply(ctx) {
-				return ctx.params;
-			},
-			get: {
-				cache: {
-					keys: ["id"]
-				},
-				handler() {
-					return {
-						name: "User"
-					};
-				}
+			big(ctx) {
+				return someData;
 			}
 		}
 	});
@@ -80,8 +48,7 @@ function createBrokers(Transporter, opts) {
 	return Promise.all([
 		b1.start(),
 		b2.start(),
-		//b3.start(),
-	]).then(() => [b1, b2/*, b3*/]);
+	]).then(() => [b1, b2]);
 }
 
 createBrokers(Transporters.Fake).then(([b1, b2]) => {
@@ -90,7 +57,6 @@ createBrokers(Transporters.Fake).then(([b1, b2]) => {
 	function doRequest() {
 		count++;
 		return b2.call("echo.reply", { a: count }).then(res => {
-		//return b2.call("echo.get", { id: 5 }).then(res => {
 			if (count % 10000) {
 				// Fast cycle
 				doRequest();
@@ -110,7 +76,7 @@ createBrokers(Transporters.Fake).then(([b1, b2]) => {
 
 		setInterval(() => {
 			let rps = count / ((Date.now() - startTime) / 1000);
-			console.log("RPS:", rps.toLocaleString("hu-HU", {maximumFractionDigits: 0}), "req/s");
+			console.log("RPS:", rps.toLocaleString("hu-HU", { maximumFractionDigits: 0 }), "req/s");
 			count = 0;
 			startTime = Date.now();
 		}, 1000);

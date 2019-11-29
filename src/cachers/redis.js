@@ -6,9 +6,11 @@
 
 "use strict";
 
+let Redis, Redlock;
 const Promise = require("bluebird");
 const BaseCacher = require("./base");
 const _ = require("lodash");
+const { METRIC } = require("../metrics");
 const { BrokerOptionsError } = require("../errors");
 const Serializers = require("../serializers");
 
@@ -31,6 +33,10 @@ class RedisCacher extends BaseCacher {
 			opts = { redis: opts };
 
 		super(opts);
+
+		this.opts = _.defaultsDeep(this.opts, {
+			prefix: null
+		});
 	}
 
 	/**
@@ -42,7 +48,6 @@ class RedisCacher extends BaseCacher {
 	 */
 	init(broker) {
 		super.init(broker);
-		let Redis, Redlock;
 		try {
 			Redis = require("ioredis");
 		} catch (err) {
@@ -135,15 +140,24 @@ class RedisCacher extends BaseCacher {
 	 */
 	get(key) {
 		this.logger.debug(`GET ${key}`);
+		this.metrics.increment(METRIC.MOLECULER_CACHER_GET_TOTAL);
+		const timeEnd = this.metrics.timer(METRIC.MOLECULER_CACHER_GET_TIME);
+
 		return this.client.getBuffer(this.prefix + key).then((data) => {
 			if (data) {
 				this.logger.debug(`FOUND ${key}`);
+				this.metrics.increment(METRIC.MOLECULER_CACHER_FOUND_TOTAL);
+
 				try {
-					return this.serializer.deserialize(data);
+					const res = this.serializer.deserialize(data);
+					timeEnd();
+
+					return res;
 				} catch (err) {
 					this.logger.error("Redis result parse error.", err, data);
 				}
 			}
+			timeEnd();
 			return null;
 		});
 	}
@@ -159,18 +173,31 @@ class RedisCacher extends BaseCacher {
 	 * @memberof Cacher
 	 */
 	set(key, data, ttl) {
-		data = this.serializer.serialize(data);
+		this.metrics.increment(METRIC.MOLECULER_CACHER_SET_TOTAL);
+		const timeEnd = this.metrics.timer(METRIC.MOLECULER_CACHER_SET_TIME);
 
+		data = this.serializer.serialize(data);
 		this.logger.debug(`SET ${key}`);
 
 		if (ttl == null)
 			ttl = this.opts.ttl;
 
+		let p;
 		if (ttl) {
-			return this.client.setex(this.prefix + key, ttl, data);
+			p = this.client.setex(this.prefix + key, ttl, data);
 		} else {
-			return this.client.set(this.prefix + key, data);
+			p = this.client.set(this.prefix + key, data);
 		}
+
+		return p
+			.then(res => {
+				timeEnd();
+				return res;
+			})
+			.catch(err => {
+				timeEnd();
+				throw err;
+			});
 	}
 
 	/**
@@ -182,13 +209,22 @@ class RedisCacher extends BaseCacher {
 	 * @memberof Cacher
 	 */
 	del(deleteTargets) {
+		this.metrics.increment(METRIC.MOLECULER_CACHER_DEL_TOTAL);
+		const timeEnd = this.metrics.timer(METRIC.MOLECULER_CACHER_DEL_TIME);
+
 		deleteTargets = Array.isArray(deleteTargets) ? deleteTargets : [deleteTargets];
 		const keysToDelete = deleteTargets.map(key => this.prefix + key);
 		this.logger.debug(`DELETE ${keysToDelete}`);
-		return this.client.del(keysToDelete).catch(err => {
-			this.logger.error(`Redis 'del' error. Key: ${keysToDelete}`, err);
-			throw err;
-		});
+		return this.client.del(keysToDelete)
+			.then(res => {
+				timeEnd();
+				return res;
+			})
+			.catch(err => {
+				timeEnd();
+				this.logger.error(`Redis 'del' error. Key: ${keysToDelete}`, err);
+				throw err;
+			});
 	}
 
 	/**
@@ -202,11 +238,19 @@ class RedisCacher extends BaseCacher {
 	 * @memberof Cacher
 	 */
 	clean(match = "*") {
+		this.metrics.increment(METRIC.MOLECULER_CACHER_CLEAN_TOTAL);
+		const timeEnd = this.metrics.timer(METRIC.MOLECULER_CACHER_CLEAN_TIME);
+
 		const cleaningPatterns = Array.isArray(match) ? match : [match];
 		const normalizedPatterns = cleaningPatterns.map(match => this.prefix + match.replace(/\*\*/g, "*"));
 		this.logger.debug(`CLEAN ${match}`);
 		return this._sequentialPromises(normalizedPatterns)
+			.then(res => {
+				timeEnd();
+				return res;
+			})
 			.catch((err) => {
+				timeEnd();
 				this.logger.error(`Redis 'scanDel' error. Pattern: ${err.pattern}`, err);
 				throw err;
 			});
@@ -221,7 +265,6 @@ class RedisCacher extends BaseCacher {
 	 *
 	 * @memberof RedisCacher
 	 */
-
 	getWithTTL(key) {
 		return this.client.pipeline().getBuffer(this.prefix + key).ttl(this.prefix + key).exec().then((res) => {
 			let [err0, data] = res[0];
@@ -319,21 +362,18 @@ class RedisCacher extends BaseCacher {
 			});
 
 			stream.on("error", (err) => {
-				// eslint-disable-next-line no-console
-				console.error("Error occured while deleting keys from node");
+				this.logger.error(`Error occured while deleting keys '${pattern}' from node.`, err);
 				reject(err);
 			});
 
 			stream.on("end", () => {
-				//			console.log('End deleting keys from node')
+				// End deleting keys from node
 				resolve();
 			});
 		});
 	}
 
 	_scanDel(pattern) {
-		let Redis = require("ioredis");
-
 		if (this.client instanceof Redis.Cluster) {
 			return this._clusterScanDel(pattern);
 		} else {

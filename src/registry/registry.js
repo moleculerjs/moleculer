@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -15,6 +15,7 @@ const ServiceCatalog = require("./service-catalog");
 const EventCatalog = require("./event-catalog");
 const ActionCatalog = require("./action-catalog");
 const ActionEndpoint = require("./endpoint-action");
+const { METRIC }		= require("../metrics");
 
 /**
  * Service Registry
@@ -31,6 +32,7 @@ class Registry {
 	 */
 	constructor(broker) {
 		this.broker = broker;
+		this.metrics = broker.metrics;
 		this.logger = broker.getLogger("registry");
 
 		this.opts = Object.assign({}, broker.options.registry);
@@ -49,6 +51,47 @@ class Registry {
 				this.regenerateLocalRawInfo(true);
 			}
 		});
+
+		this.registerMoleculerMetrics();
+		this.updateMetrics();
+	}
+
+	/**
+	 * Register Moleculer Core metrics.
+	 */
+	registerMoleculerMetrics() {
+		if (!this.broker.isMetricsEnabled()) return;
+
+		this.metrics.register({ name: METRIC.MOLECULER_REGISTRY_NODES_TOTAL, type: METRIC.TYPE_GAUGE, description: "Number of registered nodes" });
+		this.metrics.register({ name: METRIC.MOLECULER_REGISTRY_NODES_ONLINE_TOTAL, type: METRIC.TYPE_GAUGE, description: "Number of online nodes" });
+		this.metrics.register({ name: METRIC.MOLECULER_REGISTRY_SERVICES_TOTAL, type: METRIC.TYPE_GAUGE, description: "Number of registered services" });
+		this.metrics.register({ name: METRIC.MOLECULER_REGISTRY_SERVICE_ENDPOINTS_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["service"], description: "Number of service endpoints" });
+		this.metrics.register({ name: METRIC.MOLECULER_REGISTRY_ACTIONS_TOTAL, type: METRIC.TYPE_GAUGE, description: "Number of registered actions" });
+		this.metrics.register({ name: METRIC.MOLECULER_REGISTRY_ACTION_ENDPOINTS_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["action"], description: "Number of action endpoints" });
+		this.metrics.register({ name: METRIC.MOLECULER_REGISTRY_EVENTS_TOTAL, type: METRIC.TYPE_GAUGE, description: "Number of registered events" });
+		this.metrics.register({ name: METRIC.MOLECULER_REGISTRY_EVENT_ENDPOINTS_TOTAL, type: METRIC.TYPE_GAUGE, labelNames: ["event"], description: "Number of event endpoints" });
+	}
+
+	/**
+	 * Update metrics.
+	 */
+	updateMetrics() {
+		if (!this.broker.isMetricsEnabled()) return;
+
+		this.metrics.set(METRIC.MOLECULER_REGISTRY_NODES_TOTAL, this.nodes.count());
+		this.metrics.set(METRIC.MOLECULER_REGISTRY_NODES_ONLINE_TOTAL, this.nodes.onlineCount());
+
+		const services = this.services.list({ grouping: true, onlyLocal: false, onlyAvailable: false, skipInternal: false, withActions: false, withEvents: false });
+		this.metrics.set(METRIC.MOLECULER_REGISTRY_SERVICES_TOTAL, services.length);
+		services.forEach(svc => this.metrics.set(METRIC.MOLECULER_REGISTRY_SERVICE_ENDPOINTS_TOTAL, svc.nodes ? svc.nodes.length : 0, { service: svc.fullName }));
+
+		const actions = this.actions.list({ withEndpoints: true });
+		this.metrics.set(METRIC.MOLECULER_REGISTRY_ACTIONS_TOTAL, actions.length);
+		actions.forEach(item => this.metrics.set(METRIC.MOLECULER_REGISTRY_ACTION_ENDPOINTS_TOTAL, item.endpoints ? item.endpoints.length : 0, { action: item.name }));
+
+		const events = this.events.list({ withEndpoints: true });
+		this.metrics.set(METRIC.MOLECULER_REGISTRY_EVENTS_TOTAL, events.length);
+		events.forEach(item => this.metrics.set(METRIC.MOLECULER_REGISTRY_EVENT_ENDPOINTS_TOTAL, item.endpoints ? item.endpoints.length : 0, { event: item.name }));
 	}
 
 	/**
@@ -58,8 +101,8 @@ class Registry {
 	 * @memberof Registry
 	 */
 	registerLocalService(svc) {
-		if (!this.services.has(svc.name, svc.version, this.broker.nodeID)) {
-			const service = this.services.add(this.nodes.localNode, svc.name, svc.version, svc.settings, svc.metadata);
+		if (!this.services.has(svc.fullName, this.broker.nodeID)) {
+			const service = this.services.add(this.nodes.localNode, svc, true);
 
 			if (svc.actions)
 				this.registerActions(this.nodes.localNode, service, svc.actions);
@@ -74,6 +117,7 @@ class Registry {
 			this.logger.info(`'${svc.name}' service is registered.`);
 
 			this.broker.servicesChanged(true);
+			this.updateMetrics();
 		}
 	}
 
@@ -87,9 +131,9 @@ class Registry {
 	registerServices(node, serviceList) {
 		serviceList.forEach(svc => {
 			let prevActions, prevEvents;
-			let service = this.services.get(svc.name, svc.version, node.id);
+			let service = this.services.get(svc.fullName, node.id);
 			if (!service) {
-				service = this.services.add(node, svc.name, svc.version, svc.settings, svc.metadata);
+				service = this.services.add(node, svc, false);
 			} else {
 				prevActions = Object.assign({}, service.actions);
 				prevEvents = Object.assign({}, service.events);
@@ -99,7 +143,6 @@ class Registry {
 			//Register actions
 			if (svc.actions) {
 				this.registerActions(node, service, svc.actions);
-				// TODO: has changes?
 			}
 
 			// remove old actions which is not exist
@@ -134,17 +177,18 @@ class Registry {
 
 			let exist = false;
 			serviceList.forEach(svc => {
-				if (service.equals(svc.name, svc.version))
+				if (service.equals(svc.fullName))
 					exist = true;
 			});
 
 			// This service is removed on remote node!
 			if (!exist) {
-				this.unregisterService(service.name, service.version, node.id);
+				this.unregisterService(service.fullName, node.id);
 			}
 		});
 
 		this.broker.servicesChanged(false);
+		this.updateMetrics();
 	}
 
 	/**
@@ -188,10 +232,10 @@ class Registry {
 			if (node.local) {
 				action.handler = this.broker.middlewares.wrapHandler("localAction", action.handler, action);
 			} else {
-				action.handler = this.broker.middlewares.wrapHandler("remoteAction", this.broker.transit.request.bind(this.broker.transit), action);
+				action.handler = this.broker.middlewares.wrapHandler("remoteAction", this.broker.transit.request.bind(this.broker.transit), { ...action, service });
 			}
 			if (this.broker.options.disableBalancer)
-				action.remoteHandler = this.broker.middlewares.wrapHandler("remoteAction", this.broker.transit.request.bind(this.broker.transit), action);
+				action.remoteHandler = this.broker.middlewares.wrapHandler("remoteAction", this.broker.transit.request.bind(this.broker.transit), { ...action, service });
 
 			this.actions.add(node, service, action);
 			service.addAction(action);
@@ -212,14 +256,13 @@ class Registry {
 	/**
 	 * Check the service is exist
 	 *
-	 * @param {String} name
-	 * @param {any} version
+	 * @param {String} fullName
 	 * @param {String} nodeID
 	 * @returns {Boolean}
 	 * @memberof Registry
 	 */
-	hasService(name, version, nodeID) {
-		return this.services.has(name, version, nodeID);
+	hasService(fullName, nodeID) {
+		return this.services.has(fullName, nodeID);
 	}
 
 	/**
@@ -250,13 +293,12 @@ class Registry {
 	/**
 	 * Unregister service
 	 *
-	 * @param {String} name
-	 * @param {any} version
+	 * @param {String} fullName
 	 * @param {String?} nodeID
 	 * @memberof Registry
 	 */
-	unregisterService(name, version, nodeID) {
-		this.services.remove(name, version, nodeID || this.broker.nodeID);
+	unregisterService(fullName, nodeID) {
+		this.services.remove(fullName, nodeID || this.broker.nodeID);
 
 		if (!nodeID || nodeID == this.broker.nodeID) {
 			this.regenerateLocalRawInfo(true);
@@ -324,7 +366,7 @@ class Registry {
 		if (incSeq)
 			node.seq++;
 
-		const rawInfo = _.pick(node, ["ipList", "hostname", "client", "config", "port", "seq"]);
+		const rawInfo = _.pick(node, ["ipList", "hostname", "instanceID", "client", "config", "port", "seq", "metadata"]);
 		if (this.broker.started)
 			rawInfo.services = this.services.getLocalNodeServices();
 		else
@@ -385,7 +427,8 @@ class Registry {
 	 * @memberof Registry
 	 */
 	nodeDisconnected(payload) {
-		return this.nodes.disconnected(payload.sender, false);
+		this.nodes.disconnected(payload.sender, false);
+		this.updateMetrics();
 	}
 
 	/**

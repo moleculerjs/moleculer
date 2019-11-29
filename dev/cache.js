@@ -1,6 +1,6 @@
 "use strict";
 
-let chalk = require("chalk");
+let kleur = require("kleur");
 let ServiceBroker = require("../src/service-broker");
 
 // Create broker
@@ -25,7 +25,7 @@ broker.createService({
 				enabled: ctx => ctx.params.noCache !== true
 			},
 			handler(ctx) {
-				this.logger.debug(chalk.yellow("Execute handler"));
+				this.logger.debug(kleur.yellow("Execute handler"));
 				return `Hello ${ctx.params.name}`;
 			}
 		}

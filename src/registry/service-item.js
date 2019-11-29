@@ -17,19 +17,18 @@ class ServiceItem {
 	 * Creates an instance of ServiceItem.
 	 *
 	 * @param {Node} node
-	 * @param {String} name
-	 * @param {any} version
-	 * @param {Object} settings
-	 * @param {Object} metadata
+	 * @param {Object} service
 	 * @param {Boolean} local
 	 * @memberof ServiceItem
 	 */
-	constructor(node, name, version, settings, metadata, local) {
+	constructor(node, service, local) {
 		this.node = node;
-		this.name = name;
-		this.version = version;
-		this.settings = settings;
-		this.metadata = metadata || {};
+		this.name = service.name;
+		this.fullName = service.fullName;
+		this.version = service.version;
+		this.settings = service.settings;
+		this.metadata = service.metadata || {};
+
 		this.local = local;
 
 		this.actions = {};
@@ -39,14 +38,13 @@ class ServiceItem {
 	/**
 	 * Check the service equals params
 	 *
-	 * @param {String} name
-	 * @param {any} version
+	 * @param {String} fullName
 	 * @param {String} nodeID
 	 * @returns
 	 * @memberof ServiceItem
 	 */
-	equals(name, version, nodeID) {
-		return this.name == name && this.version == version && (nodeID == null || this.node.id == nodeID);
+	equals(fullName, nodeID) {
+		return this.fullName == fullName && (nodeID == null || this.node.id == nodeID);
 	}
 
 	/**
@@ -56,9 +54,10 @@ class ServiceItem {
 	 * @memberof ServiceItem
 	 */
 	update(svc) {
+		this.fullName = svc.fullName;
 		this.version = svc.version;
 		this.settings = svc.settings;
-		this.metadata = svc.metadata;
+		this.metadata = svc.metadata || {};
 	}
 
 	/**

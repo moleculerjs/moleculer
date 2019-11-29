@@ -75,7 +75,6 @@ describe("Test BaseTransporter", () => {
 	it("check incomingMessage", () => {
 		let transporter = new BaseTransporter();
 		let p = {};
-		transporter.incStatReceived = jest.fn();
 		transporter.deserialize = jest.fn(() => p);
 		transporter.messageHandler = jest.fn();
 
@@ -86,9 +85,6 @@ describe("Test BaseTransporter", () => {
 
 		expect(transporter.messageHandler).toHaveBeenCalledTimes(1);
 		expect(transporter.messageHandler).toHaveBeenCalledWith("MOL.DISCOVER", p);
-
-		expect(transporter.incStatReceived).toHaveBeenCalledTimes(1);
-		expect(transporter.incStatReceived).toHaveBeenCalledWith(3);
 	});
 
 	it("check getTopicName", () => {
@@ -293,7 +289,7 @@ describe("Test BaseTransporter", () => {
 			let packet = new P.Packet(P.PACKET_EVENT);
 			expect(transporter.serialize(packet)).toBe("serialized");
 			expect(broker.serializer.serialize).toHaveBeenCalledTimes(1);
-			expect(broker.serializer.serialize).toHaveBeenCalledWith({ "sender": "server1", "ver": "3" }, P.PACKET_EVENT);
+			expect(broker.serializer.serialize).toHaveBeenCalledWith({ "sender": "server1", "ver": "4" }, P.PACKET_EVENT);
 		});
 	});
 

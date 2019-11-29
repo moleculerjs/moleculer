@@ -1,12 +1,13 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
 const _ 						= require("lodash");
+const functionArguments 		= require("fn-args");
 const { ServiceSchemaError } 	= require("./errors");
 
 /**
@@ -27,6 +28,11 @@ function wrapToHander(o) {
 function wrapToArray(o) {
 	return Array.isArray(o) ? o : [o];
 }
+
+function isNewSignature(args) {
+	return args.length > 0 && ["ctx", "context"].indexOf(args[0].toLowerCase()) !== -1;
+}
+
 
 /**
  * Service class
@@ -58,20 +64,37 @@ class Service {
 	}
 
 	/**
+	 * Return a versioned full service name.
+	 * @param {String} name
+	 * @param {String|Number?} version
+	 */
+	static getVersionedFullName(name, version) {
+		if (version != null)
+			return (typeof(version) == "number" ? "v" + version : version) + "." + name;
+
+		return name;
+	}
+
+	/**
 	 * Parse Service schema & register as local service
 	 *
 	 * @param {Object} schema of Service
 	 */
 	parseServiceSchema(schema) {
 		if (!_.isObject(schema))
-			throw new ServiceSchemaError("Must pass a service schema in constructor!");
+			throw new ServiceSchemaError("Must pass a service schema in constructor. Maybe is it not a service schema?");
 
 		if (schema.mixins) {
 			schema = Service.applyMixins(schema);
 		}
 
-		if (!schema.name)
-			throw new ServiceSchemaError("Service name can't be empty! Maybe it is not a valid Service schema.");
+		this.broker.callMiddlewareHookSync("serviceCreating", [this, schema]);
+
+		if (!schema.name) {
+			/* eslint-disable-next-line */
+			console.error("Service name can't be empty! Maybe it is not a valid Service schema. Maybe is it not a service schema?", { schema });
+			throw new ServiceSchemaError("Service name can't be empty! Maybe it is not a valid Service schema. Maybe is it not a service schema?", { schema });
+		}
 
 		this.name = schema.name;
 		this.version = schema.version;
@@ -79,10 +102,7 @@ class Service {
 		this.metadata = schema.metadata || {};
 		this.schema = schema;
 
-		if (this.version != null && this.settings.$noVersionPrefix !== true)
-			this.fullName = (typeof(this.version) == "number" ? "v" + this.version : this.version) + "." + this.name;
-		else
-			this.fullName = this.name;
+		this.fullName = Service.getVersionedFullName(this.name, this.settings.$noVersionPrefix !== true ? this.version : undefined);
 
 		this.logger = this.broker.getLogger(this.fullName, {
 			svc: this.name,
@@ -95,6 +115,7 @@ class Service {
 		const serviceSpecification = {
 			name: this.name,
 			version: this.version,
+			fullName: this.fullName,
 			settings: this._getPublicSettings(this.settings),
 			metadata: this.metadata,
 			actions: {},
@@ -116,7 +137,14 @@ class Service {
 				// Expose to be callable as `this.actions.find({ ...params })`
 				const ep = this.broker.registry.createPrivateActionEndpoint(innerAction);
 				this.actions[name] = (params, opts) => {
-					return wrappedHandler(this.broker.ContextFactory.create(this.broker, ep, params, opts || {}));
+					let ctx;
+					if (opts && opts.ctx) {
+						// Reused context (in case of retry)
+						ctx = opts.ctx;
+					} else {
+						ctx = this.broker.ContextFactory.create(this.broker, ep, params, opts || {});
+					}
+					return wrappedHandler(ctx);
 				};
 
 			});
@@ -168,6 +196,7 @@ class Service {
 	 * @memberof Service
 	 */
 	_init() {
+		this.logger.debug(`Service '${this.fullName}' is creating...`);
 		if (_.isFunction(this.schema.created)) {
 			this.schema.created.call(this);
 		} else if (Array.isArray(this.schema.created)) {
@@ -176,7 +205,9 @@ class Service {
 
 		this.broker.addLocalService(this);
 
-		this.broker.middlewares.callSyncHandlers("serviceCreated", [this]);
+		this.broker.callMiddlewareHookSync("serviceCreated", [this]);
+
+		this.logger.debug(`Service '${this.fullName}' created.`);
 	}
 
 	/**
@@ -187,9 +218,10 @@ class Service {
 	 * @memberof Service
 	 */
 	_start() {
+		this.logger.debug(`Service '${this.fullName}' is starting...`);
 		return this.Promise.resolve()
 			.then(() => {
-				return this.broker.middlewares.callHandlers("serviceStarting", [this]);
+				return this.broker.callMiddlewareHook("serviceStarting", [this]);
 			})
 			.then(() => {
 				// Wait for dependent services
@@ -212,8 +244,9 @@ class Service {
 				return null;
 			})
 			.then(() => {
-				return this.broker.middlewares.callHandlers("serviceStarted", [this]);
-			});
+				return this.broker.callMiddlewareHook("serviceStarted", [this]);
+			})
+			.then(() => this.logger.debug(`Service '${this.fullName}' started.`));
 	}
 
 	/**
@@ -224,9 +257,10 @@ class Service {
 	 * @memberof Service
 	 */
 	_stop() {
+		this.logger.debug(`Service '${this.fullName}' is stopping...`);
 		return this.Promise.resolve()
 			.then(() => {
-				return this.broker.middlewares.callHandlers("serviceStopping", [this], true);
+				return this.broker.callMiddlewareHook("serviceStopping", [this], { reverse: true });
 			})
 			.then(() => {
 				if (_.isFunction(this.schema.stopped))
@@ -242,8 +276,9 @@ class Service {
 				return this.Promise.resolve();
 			})
 			.then(() => {
-				return this.broker.middlewares.callHandlers("serviceStopped", [this], true);
-			});
+				return this.broker.callMiddlewareHook("serviceStopped", [this], { reverse: true });
+			})
+			.then(() => this.logger.debug(`Service '${this.fullName}' stopped.`));
 	}
 
 	/**
@@ -284,9 +319,6 @@ class Service {
 		action.cache = action.cache !== undefined ? action.cache : (this.settings.$cache || false);
 		action.handler = this.Promise.method(handler.bind(this));
 
-		// action metrics options by default
-		action.metrics = _.defaultsDeep(action.metrics, { params: false, meta: true });
-
 		return action;
 	}
 
@@ -316,11 +348,22 @@ class Service {
 			throw new ServiceSchemaError(`Missing event handler on '${name}' event in '${this.name}' service!`);
 		}
 
+		// Detect new or legacy parameter list of event handler
+		// Legacy: handler(payload, sender, eventName)
+		// New: handler(ctx)
 		let handler;
-		if (_.isFunction(event.handler))
+		if (_.isFunction(event.handler)) {
+			const args = functionArguments(event.handler);
 			handler = this.Promise.method(event.handler);
-		else if (Array.isArray(event.handler))
-			handler = event.handler.map(h => this.Promise.method(h));
+			handler.__newSignature = event.context === true || isNewSignature(args);
+		} else if (Array.isArray(event.handler)) {
+			handler = event.handler.map(h => {
+				const args = functionArguments(h);
+				h = this.Promise.method(h);
+				h.__newSignature = event.context === true || isNewSignature(args);
+				return h;
+			});
+		}
 
 		if (!event.name)
 			event.name = name;
@@ -328,16 +371,37 @@ class Service {
 		event.service = this;
 		const self = this;
 		if (_.isFunction(handler)) {
-			event.handler = function() {
-				return handler.apply(self, arguments);
+			// Call single handler
+			event.handler = function(ctx) {
+				return handler.apply(self, handler.__newSignature ? [ctx] : [ctx.params, ctx.nodeID, ctx.eventName, ctx]);
 			};
 		} else if (Array.isArray(handler)) {
-			event.handler = function() {
-				return Promise.all(handler.map(fn => fn.apply(self, arguments)));
+			// Call multiple handler
+			event.handler = function(ctx) {
+				return self.Promise.all(handler.map(fn => fn.apply(self, fn.__newSignature ? [ctx] : [ctx.params, ctx.nodeID, ctx.eventName, ctx])));
 			};
 		}
 
 		return event;
+	}
+
+	/**
+	 * Getter of current Context.
+	 * @returns {Context?}
+	 *
+	 * @memberof Service
+	 */
+	get currentContext() {
+		return this.broker.getCurrentContext();
+	}
+
+	/**
+	 * Setter of current Context
+	 *
+	 * @memberof Service
+	 */
+	set currentContext(ctx) {
+		this.broker.setCurrentContext(ctx);
 	}
 
 	/**

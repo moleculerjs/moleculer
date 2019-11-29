@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -68,8 +68,11 @@ function waitingForActiveContexts(list, logger, time, service) {
 		return Promise.resolve();
 
 	return new Promise((resolve) => {
+		let timedOut = false;
 		const timeout = setTimeout(() => {
+			timedOut = true;
 			logger.error(new GracefulStopTimeoutError({ service }));
+			list.length = 0; // Clear pointers
 			resolve();
 		}, time);
 
@@ -83,7 +86,8 @@ function waitingForActiveContexts(list, logger, time, service) {
 					logger.warn(`Waiting for ${list.length} running context(s)...`);
 					first = false;
 				}
-				setTimeout(checkForContexts, 100);
+				if (!timedOut)
+					setTimeout(checkForContexts, 100);
 			}
 		};
 		setImmediate(checkForContexts);
@@ -92,8 +96,12 @@ function waitingForActiveContexts(list, logger, time, service) {
 
 module.exports = function ContextTrackerMiddleware() {
 	return {
+		name: "ContextTracker",
+
 		localAction: wrapTrackerMiddleware,
 		remoteAction: wrapTrackerMiddleware,
+
+		localEvent: wrapTrackerMiddleware,
 
 		// After the broker created
 		created(broker) {

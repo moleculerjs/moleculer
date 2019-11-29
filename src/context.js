@@ -7,8 +7,8 @@
 "use strict";
 
 //const Promise = require("bluebird");
+const util = require("util");
 const _ = require("lodash");
-const { generateToken } = require("./utils");
 const { RequestSkippedError, MaxCallLevelError } = require("./errors");
 
 /**
@@ -21,7 +21,7 @@ const { RequestSkippedError, MaxCallLevelError } = require("./errors");
  */
 function mergeMeta(ctx, newMeta) {
 	if (newMeta)
-		_.assign(ctx.meta, newMeta);
+		Object.assign(ctx.meta, newMeta);
 	return ctx.meta;
 }
 
@@ -33,7 +33,7 @@ function mergeMeta(ctx, newMeta) {
  * @property {Action} action - Action definition
  * @property {String} [nodeID=null] - Node ID
  * @property {String} parentID - Parent Context ID
- * @property {Boolean} metrics - Need send metrics events
+ * @property {Boolean} tracing - Enable tracing
  * @property {Number} [level=1] - Level of context
  *
  * @class Context
@@ -44,7 +44,7 @@ class Context {
 	 * Creates an instance of Context.
 	 *
 	 * @param {ServiceBroker} broker - Broker instance
-	 * @param {Endpoint} endpoint - Endpoint (action & nodeID)
+	 * @param {Endpoint} endpoint
 	 *
 	 * @memberof Context
 	 */
@@ -52,15 +52,26 @@ class Context {
 		this._id = null;
 
 		this.broker = broker;
-		this.endpoint = endpoint;
-		this.action = endpoint ? endpoint.action : null;
-		this.service = this.action ? this.action.service : null;
-		if (endpoint && endpoint.node)
-			this.nodeID = endpoint.node.id;
-		else if (this.broker)
+		if (this.broker)
 			this.nodeID = this.broker.nodeID;
 		else
 			this.nodeID = null;
+
+		if (endpoint) {
+			this.setEndpoint(endpoint);
+		} else {
+			this.endpoint = null;
+			this.service = null;
+			this.action = null;
+			this.event = null;
+		}
+
+		// The emitted event "user.created" because `ctx.event.name` can be "user.**"
+		this.eventName = null;
+		// Type of event ("emit" or "broadcast")
+		this.eventType = null;
+		// The groups of event
+		this.eventGroups = null;
 
 		this.options = {
 			timeout: null,
@@ -68,18 +79,27 @@ class Context {
 		};
 
 		this.parentID = null;
+		this.caller = null;
 
-		this.metrics = null;
 		this.level = 1;
 
-		this.params = {};
+		this.params = null;
 		this.meta = {};
+		this.locals = {};
 
 		this.requestID = null;
-		this.startTime = null;
-		this.startHrTime = null;
-		this.stopTime = null;
-		this.duration = 0;
+
+		this.tracing = null;
+		this.span = null;
+		this._spanStack = [];
+
+		this.needAck = null;
+		this.ackID = null;
+
+		//this.startTime = null;
+		//his.startHrTime = null;
+		//this.stopTime = null;
+		//this.duration = null;
 
 		//this.error = null;
 		this.cachedResult = false;
@@ -100,7 +120,15 @@ class Context {
 	static create(broker, endpoint, params, opts = {}) {
 		const ctx = new broker.ContextFactory(broker, endpoint);
 
-		ctx.setParams(params);
+		if (endpoint != null)
+			ctx.setEndpoint(endpoint);
+
+		if (params != null) {
+			let cloning = broker ? broker.options.contextParamsCloning : false;
+			if (opts.paramsCloning != null)
+				cloning = opts.paramsCloning;
+			ctx.setParams(params, cloning);
+		}
 
 		//Object.assign(ctx.options, opts);
 		ctx.options = opts;
@@ -117,17 +145,65 @@ class Context {
 		else if (opts.meta != null)
 			ctx.meta = opts.meta;
 
-		// ParentID, Level
+		// ParentID, Level, Caller, Tracing
 		if (opts.parentCtx != null) {
-			ctx.parentID = opts.parentCtx.id;
+			ctx.tracing = opts.parentCtx.tracing;
 			ctx.level = opts.parentCtx.level + 1;
+
+			if (opts.parentCtx.span)
+				ctx.parentID = opts.parentCtx.span.id;
+			else
+				ctx.parentID = opts.parentCtx.id;
+
+			if (opts.parentCtx.service)
+				ctx.caller = opts.parentCtx.service.fullName;
 		}
 
-		// Metrics
-		if (opts.parentCtx != null)
-			ctx.metrics = opts.parentCtx.metrics;
+		// Parent span
+		if (opts.parentSpan != null) {
+			ctx.parentID = opts.parentSpan.id;
+			ctx.requestID = opts.parentSpan.traceID;
+			ctx.tracing = opts.parentSpan.sampled;
+		}
+
+		// Event acknowledgement
+		if (opts.needAck) {
+			ctx.needAck = opts.needAck;
+		}
 
 		return ctx;
+	}
+
+	/**
+	 * Copy itself without ID.
+	 * @param {Endpoint} ep
+	 * @returns {Context}
+	 */
+	copy(ep) {
+		const newCtx = new this.constructor();
+
+		newCtx.broker = this.broker;
+		newCtx.nodeID = this.nodeID;
+		newCtx.setEndpoint(ep || this.endpoint);
+		newCtx.options = this.options;
+		newCtx.parentID = this.parentID;
+		newCtx.caller = this.caller;
+		newCtx.level = this.level;
+		newCtx.params = this.params;
+		newCtx.meta = this.meta;
+		newCtx.locals = this.locals;
+		newCtx.requestID = this.requestID;
+		newCtx.tracing = this.tracing;
+		newCtx.span = this.span;
+		newCtx.needAck = this.needAck;
+		newCtx.ackID = this.ackID;
+		newCtx.eventName = this.eventName;
+		newCtx.eventType = this.eventType;
+		newCtx.eventGroups = this.eventGroups;
+
+		newCtx.cachedResult = this.cachedResult;
+
+		return newCtx;
 	}
 
 	/**
@@ -138,7 +214,7 @@ class Context {
 	 */
 	get id() {
 		if (!this._id) {
-			this._id = generateToken();
+			this._id = this.broker.generateUid();
 			if (!this.requestID)
 				this.requestID = this._id;
 		}
@@ -155,6 +231,28 @@ class Context {
 	}
 
 	/**
+	 * Set endpoint of context
+	 *
+	 * @param {Endpoint} endpoint
+	 * @memberof Context
+	 */
+	setEndpoint(endpoint) {
+		this.endpoint = endpoint;
+		if (endpoint && endpoint.action) {
+			this.action = endpoint.action;
+			this.service = this.action.service;
+			this.event = null;
+		} else if (endpoint && endpoint.event) {
+			this.event =  endpoint.event;
+			this.service = this.event.service;
+			this.action = null;
+		}
+
+		if (endpoint)
+			this.nodeID = endpoint.id;
+	}
+
+	/**
 	 * Set params of context
 	 *
 	 * @param {Object} newParams
@@ -166,7 +264,7 @@ class Context {
 		if (cloning && newParams)
 			this.params = Object.assign({}, newParams);
 		else
-			this.params = newParams || {};
+			this.params = newParams;
 	}
 
 	/**
@@ -223,12 +321,54 @@ class Context {
 		});
 	}
 
+	mcall(def, _opts) {
+		const opts = Object.assign({
+			parentCtx: this
+		}, _opts);
+
+		if (this.options.timeout > 0 && this.startHrTime) {
+			// Distributed timeout handling. Decrementing the timeout value with the elapsed time.
+			// If the timeout below 0, skip the call.
+			const diff = process.hrtime(this.startHrTime);
+			const duration = (diff[0] * 1e3) + (diff[1] / 1e6);
+			const distTimeout = this.options.timeout - duration;
+
+			if (distTimeout <= 0) {
+				const action = (Array.isArray(def) ? def : Object.values(def)).map(d => d.action).join(", ");
+				return Promise.reject(new RequestSkippedError({ action, nodeID: this.broker.nodeID }));
+			}
+
+			if (!opts.timeout || distTimeout < opts.timeout)
+				opts.timeout = distTimeout;
+		}
+
+		// Max calling level check to avoid calling loops
+		if (this.broker.options.maxCallLevel > 0 && this.level >= this.broker.options.maxCallLevel) {
+			return Promise.reject(new MaxCallLevelError({ nodeID: this.broker.nodeID, level: this.level }));
+		}
+
+		let p = this.broker.mcall(def, opts);
+
+		// Merge metadata with sub context metadata
+		return p.then(res => {
+			if (Array.isArray(p.ctx) && p.ctx.length)
+				p.ctx.forEach(ctx => mergeMeta(this, ctx.meta));
+
+			return res;
+		}).catch(err => {
+			if (Array.isArray(p.ctx) && p.ctx.length)
+				p.ctx.forEach(ctx => mergeMeta(this, ctx.meta));
+
+			return Promise.reject(err);
+		});
+	}
+
 	/**
 	 * Emit an event (grouped & balanced global event)
 	 *
 	 * @param {string} eventName
-	 * @param {any} payload
-	 * @param {String|Array<String>=} groups
+	 * @param {any?} payload
+	 * @param {Object?} groups
 	 * @returns
 	 *
 	 * @example
@@ -236,16 +376,25 @@ class Context {
 	 *
 	 * @memberof Context
 	 */
-	emit(eventName, data, groups) {
-		return this.broker.emit(eventName, data, groups);
+	emit(eventName, data, opts) {
+		if (Array.isArray(opts) || _.isString(opts))
+			opts = { groups: opts };
+		else if (opts == null)
+			opts = {};
+
+		if (opts.groups && !Array.isArray(opts.groups))
+			opts.groups = [opts.groups];
+
+		opts.parentCtx = this;
+		return this.broker.emit(eventName, data, opts);
 	}
 
 	/**
 	 * Emit an event for all local & remote services
 	 *
 	 * @param {string} eventName
-	 * @param {any} payload
-	 * @param {String|Array<String>=} groups
+	 * @param {any?} payload
+	 * @param {Object?} groups
 	 * @returns
 	 *
 	 * @example
@@ -253,10 +402,105 @@ class Context {
 	 *
 	 * @memberof Context
 	 */
-	broadcast(eventName, data, groups) {
-		return this.broker.broadcast(eventName, data, groups);
+	broadcast(eventName, data, opts) {
+		if (Array.isArray(opts) || _.isString(opts))
+			opts = { groups: opts };
+		else if (opts == null)
+			opts = {};
+
+		if (opts.groups && !Array.isArray(opts.groups))
+			opts.groups = [opts.groups];
+
+		opts.parentCtx = this;
+		return this.broker.broadcast(eventName, data, opts);
 	}
 
+	/**
+	 * Start a new child tracing span.
+	 *
+	 * @param {String} name
+	 * @param {Object?} opts
+	 * @returns {Span}
+	 * @memberof Context
+	 */
+	startSpan(name, opts) {
+		let span;
+		if (this.span) {
+			span = this.span.startSpan(name, opts);
+		} else {
+			span = this.broker.tracer.startSpan(name, opts);
+		}
+
+		this._spanStack.push(span);
+		this.span = span;
+
+		return span;
+	}
+
+	/**
+	 * Finish an active span.
+	 *
+	 * @param {Span} span
+	 * @param {Number?} time
+	 */
+	finishSpan(span, time) {
+		if (!span.isActive()) return;
+
+		span.finish(time);
+
+		const idx = this._spanStack.findIndex(sp => sp == span);
+		if (idx !== -1) {
+			this._spanStack.splice(idx, 1);
+			this.span = this._spanStack[this._spanStack.length - 1];
+		} else {
+			/* istanbul ignore next */
+			this.service.logger.warn("This span is not assigned to this context", span);
+		}
+	}
+
+	/**
+	 * Convert Context to a printable POJO object.
+	 */
+	toJSON() {
+		const res = _.pick(this, [
+			"nodeID",
+			"action.name",
+			"event.name",
+			"service.name",
+			"service.version",
+			"service.fullName",
+			"options",
+			"parentID",
+			"caller",
+			"level",
+			"params",
+			"meta",
+			//"locals",
+			"requestID",
+			"tracing",
+			"span",
+			"needAck",
+			"ackID",
+			"eventName",
+			"eventType",
+			"eventGroups",
+			"cachedResult"
+		]);
+
+		res.id = this._id ? this._id : null;
+		return res;
+	}
+
+	/* istanbul ignore next */
+	[util.inspect.custom](depth, options) {
+		// https://nodejs.org/docs/latest-v8.x/api/util.html#util_custom_inspection_functions_on_objects
+		if (depth < 0) {
+			return options.stylize("[Context]", "special");
+		}
+
+		const inner = util.inspect(this.toJSON(), options);
+		return `${options.stylize("Context", "special")}< ${inner} >`;
+	}
 }
 
 module.exports = Context;

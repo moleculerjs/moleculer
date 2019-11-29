@@ -4,7 +4,7 @@
 
 let { times, random, padStart } = require("lodash");
 
-let chalk = require("chalk");
+let kleur = require("kleur");
 let ServiceBroker = require("../../src/service-broker");
 const humanize 			= require("tiny-human-time").short;
 
@@ -82,11 +82,11 @@ callCount = 0;
 function color(text, pad, value, green, red) {
 	let c;
 	if (value <= green)
-		c = chalk.green.bold;
+		c = kleur.green().bold;
 	else if (value >= red)
-		c = chalk.red.bold;
+		c = kleur.red().bold;
 	else
-		c = chalk.yellow.bold;
+		c = kleur.yellow().bold;
 	return c(padStart(text, pad));
 }
 

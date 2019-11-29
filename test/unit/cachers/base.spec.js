@@ -41,10 +41,25 @@ describe("Test BaseCacher", () => {
 		broker.on = jest.fn();
 		let cacher = new Cacher();
 
+		jest.spyOn(cacher, "registerMoleculerMetrics");
+
 		cacher.init(broker);
 		expect(cacher.broker).toBe(broker);
 		expect(cacher.logger).toBeDefined();
 		expect(cacher.prefix).toBe("MOL-");
+
+		expect(cacher.registerMoleculerMetrics).toHaveBeenCalledTimes(1);
+	});
+
+	it("check registerMoleculerMetrics", () => {
+		let broker = new ServiceBroker({ logger: false });
+		let cacher = new Cacher();
+		cacher.init(broker);
+
+		broker.metrics.register = jest.fn();
+
+		cacher.registerMoleculerMetrics();
+		expect(broker.metrics.register).toHaveBeenCalledTimes(10);
 	});
 
 	it("check init with namespace", () => {
@@ -437,7 +452,7 @@ describe("Test middleware with lock enabled", () => {
 
 	cacher.get = jest.fn(()=> Promise.resolve(cachedData));
 	cacher.set = jest.fn(()=> Promise.resolve());
-	cacher.getWithTTL = jest.fn(()=> Promise.resolve({ data: cachedData, ttl: 15 }))
+	cacher.getWithTTL = jest.fn(()=> Promise.resolve({ data: cachedData, ttl: 15 }));
 
 
 	let mockAction = {
@@ -448,7 +463,7 @@ describe("Test middleware with lock enabled", () => {
 		},
 		handler: jest.fn()
 	};
-	let params = { id: 6, name: 'tiaod' };
+	let params = { id: 6, name: "tiaod" };
 
 	it("should give back the cached data and not called the handler", () => {
 		let ctx = new Context();
@@ -475,8 +490,8 @@ describe("Test middleware with lock enabled", () => {
 		let cacheKey = cacher.getCacheKey(mockAction.name, params);
 		broker.cacher.get = jest.fn(() => Promise.resolve(null));
 		broker.cacher.getWithTTL = jest.fn(() => Promise.resolve({ data: null, ttl: null }));
-		const unlockFn = jest.fn(()=>Promise.resolve())
-		broker.cacher.lock = jest.fn(()=> Promise.resolve(unlockFn))
+		const unlockFn = jest.fn(()=>Promise.resolve());
+		broker.cacher.lock = jest.fn(()=> Promise.resolve(unlockFn));
 		mockAction.handler = jest.fn(() => Promise.resolve(resData));
 
 		let ctx = new Context();
@@ -491,9 +506,9 @@ describe("Test middleware with lock enabled", () => {
 
 			expect(broker.cacher.set).toHaveBeenCalledTimes(1);
 			expect(broker.cacher.set).toHaveBeenCalledWith(cacheKey, resData, 60);
-			expect(response).toBe(resData)
-		})
-	})
+			expect(response).toBe(resData);
+		});
+	});
 
 	it("should disable cache lock by defalut", () => {
 		let mockAction = {
@@ -501,7 +516,7 @@ describe("Test middleware with lock enabled", () => {
 			cache: {
 				ttl: 30
 			}
-		}
+		};
 		broker.cacher.get = jest.fn(() => Promise.resolve(null));
 		broker.cacher.getWithTTL = jest.fn(() => Promise.resolve({ data: null, ttl: null }));
 		broker.cacher.lock = jest.fn(() => Promise.resolve());
@@ -527,11 +542,11 @@ describe("Test middleware with lock enabled", () => {
 				ttl: 30,
 				lock: false
 			}
-		}
+		};
 		broker.cacher.get = jest.fn(() => Promise.resolve(null));
 		broker.cacher.getWithTTL = jest.fn(() => Promise.resolve({ data: null, ttl: null }));
-		const unlockFn = jest.fn(()=>Promise.resolve())
-		broker.cacher.lock = jest.fn(()=> Promise.resolve(unlockFn))
+		const unlockFn = jest.fn(()=>Promise.resolve());
+		broker.cacher.lock = jest.fn(()=> Promise.resolve(unlockFn));
 		mockAction.handler = jest.fn(() => Promise.resolve());
 
 		let ctx = new Context();
@@ -556,10 +571,10 @@ describe("Test middleware with lock enabled", () => {
 					enabled: false
 				}
 			}
-		}
+		};
 		broker.cacher.get = jest.fn(() => Promise.resolve(null));
-		const unlockFn = jest.fn(()=>Promise.resolve())
-		broker.cacher.lock = jest.fn(()=> Promise.resolve(unlockFn))
+		const unlockFn = jest.fn(()=>Promise.resolve());
+		broker.cacher.lock = jest.fn(()=> Promise.resolve(unlockFn));
 		broker.cacher.getWithTTL = jest.fn(() => Promise.resolve({ data: null, ttl: null }));
 		mockAction.handler = jest.fn(() => Promise.resolve());
 
@@ -574,7 +589,7 @@ describe("Test middleware with lock enabled", () => {
 			expect(broker.cacher.get).toHaveBeenCalledTimes(1);
 			expect(broker.cacher.get).toHaveBeenCalledWith(cacheKey);
 		});
-	})
+	});
 
 	it("should call the handler only once when concurrency call a cacher with lock", () => {
 		let resData = [6,6,6];
@@ -590,13 +605,13 @@ describe("Test middleware with lock enabled", () => {
 				ttl: 30,
 				lock: true
 			}
-		}
-		const get = jest.spyOn(cacher, 'get')
-		const getWithTTL = jest.spyOn(cacher, 'getWithTTL')
-		const lock = jest.spyOn(cacher, 'lock')
+		};
+		const get = jest.spyOn(cacher, "get");
+		const getWithTTL = jest.spyOn(cacher, "getWithTTL");
+		const lock = jest.spyOn(cacher, "lock");
 		mockAction.handler = jest.fn(() => {
 			return new Promise(function(resolve, reject) {
-				setTimeout(() => resolve(resData), 1000)
+				setTimeout(() => resolve(resData), 1000);
 			});
 		});
 
@@ -609,46 +624,46 @@ describe("Test middleware with lock enabled", () => {
 		function call(){
 			let ctx = new Context();
 			ctx.setParams(params);
-			return cachedHandler(ctx)
+			return cachedHandler(ctx);
 		}
 		// Concurrency 3
-    return Promise.all([
-      call(),
-      call(),
-      call()
-    ]).then(responses => {
-      for(let response of responses){
-        expect(response).toEqual(resData);
-      }
-      expect(mockAction.handler).toHaveBeenCalledTimes(1);
+		return Promise.all([
+			call(),
+			call(),
+			call()
+		]).then(responses => {
+			for(let response of responses){
+				expect(response).toEqual(resData);
+			}
+			expect(mockAction.handler).toHaveBeenCalledTimes(1);
 			expect(get).toHaveBeenCalledTimes(6);
 			expect(getWithTTL).toHaveBeenCalledTimes(0);
 			expect(lock).toHaveBeenCalledTimes(3);
-    });
+		});
 	});
 
 	it("should realse the lock when an error throw", ()=>{
-		const err = new Error('wrong')
-    let mockAction = {
-  		name: "posts.find",
-  		cache: {
-        ttl: 30,
-        lock: true
-      },
-  		handler: jest.fn(function(ctx){
-        return Promise.reject(err);
-      })
-  	};
+		const err = new Error("wrong");
+		let mockAction = {
+			name: "posts.find",
+			cache: {
+				ttl: 30,
+				lock: true
+			},
+			handler: jest.fn(function(ctx){
+				return Promise.reject(err);
+			})
+		};
 		broker.cacher.get = jest.fn(() => Promise.resolve(null));
 		broker.cacher.getWithTTL = jest.fn(() => Promise.resolve({ data: null, ttl: null }));
-		const unlockFn = jest.fn(()=>Promise.resolve())
-		broker.cacher.lock = jest.fn(()=>Promise.resolve(unlockFn))
-    let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
-    return cachedHandler(new Context()).catch(e=>{
-      expect(e).toBe(err);
+		const unlockFn = jest.fn(()=>Promise.resolve());
+		broker.cacher.lock = jest.fn(()=>Promise.resolve(unlockFn));
+		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
+		return cachedHandler(new Context()).catch(e=>{
+			expect(e).toBe(err);
 			expect(unlockFn).toHaveBeenCalledTimes(1);
-    });
-  });
+		});
+	});
 
 	it("should refresh a stale key of cache", () => {
 		let resData = [9,9,9];
@@ -661,25 +676,25 @@ describe("Test middleware with lock enabled", () => {
 				}
 			},
 			handler: jest.fn(()=> Promise.resolve(resData))
-		}
+		};
 		broker.cacher.get = jest.fn(() => Promise.resolve(cachedData));
-		broker.cacher.getWithTTL = jest.fn(() => Promise.resolve({ data: cachedData, ttl: 5 }))
-		broker.cacher.set = jest.fn(() => Promise.resolve())
-		const unlockFn = jest.fn(()=>Promise.resolve())
-		broker.cacher.lock = jest.fn(()=>Promise.resolve(unlockFn))
-		broker.cacher.tryLock = jest.fn(()=>Promise.resolve(unlockFn))
+		broker.cacher.getWithTTL = jest.fn(() => Promise.resolve({ data: cachedData, ttl: 5 }));
+		broker.cacher.set = jest.fn(() => Promise.resolve());
+		const unlockFn = jest.fn(()=>Promise.resolve());
+		broker.cacher.lock = jest.fn(()=>Promise.resolve(unlockFn));
+		broker.cacher.tryLock = jest.fn(()=>Promise.resolve(unlockFn));
 
 		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
 		return new Promise(function(resolve, reject) {
 			cachedHandler(new Context()).then(response => {
-				expect(response).toBe(cachedData)
+				expect(response).toBe(cachedData);
 				expect(broker.cacher.get).toHaveBeenCalledTimes(0);
 				expect(broker.cacher.getWithTTL).toHaveBeenCalledTimes(1);
 				expect(broker.cacher.lock).toHaveBeenCalledTimes(0);
 				expect(broker.cacher.tryLock).toHaveBeenCalledTimes(1);
 				expect(mockAction.handler).toHaveBeenCalledTimes(1);
 				setTimeout(resolve, 1000);
-			})
+			});
 		}).then(()=>expect(unlockFn).toHaveBeenCalledTimes(1)); //Should finally unlock the lock.
 	});
 
@@ -694,17 +709,17 @@ describe("Test middleware with lock enabled", () => {
 				}
 			},
 			handler: jest.fn(()=> Promise.resolve(resData))
-		}
+		};
 		broker.cacher.get = jest.fn(() => Promise.resolve(cachedData));
-		broker.cacher.getWithTTL = jest.fn(() => Promise.resolve({ data: cachedData, ttl: 25 }))
-		broker.cacher.set = jest.fn(() => Promise.resolve())
-		const unlockFn = jest.fn(()=>Promise.resolve())
-		broker.cacher.lock = jest.fn(()=>Promise.resolve(unlockFn))
-		broker.cacher.tryLock = jest.fn(()=>Promise.resolve(unlockFn))
+		broker.cacher.getWithTTL = jest.fn(() => Promise.resolve({ data: cachedData, ttl: 25 }));
+		broker.cacher.set = jest.fn(() => Promise.resolve());
+		const unlockFn = jest.fn(()=>Promise.resolve());
+		broker.cacher.lock = jest.fn(()=>Promise.resolve(unlockFn));
+		broker.cacher.tryLock = jest.fn(()=>Promise.resolve(unlockFn));
 
 		let cachedHandler = cacher.middleware()(mockAction.handler, mockAction);
 		return cachedHandler(new Context()).then(response => {
-			expect(response).toBe(cachedData)
+			expect(response).toBe(cachedData);
 			expect(broker.cacher.get).toHaveBeenCalledTimes(0);
 			expect(broker.cacher.getWithTTL).toHaveBeenCalledTimes(1);
 			expect(broker.cacher.lock).toHaveBeenCalledTimes(0);
@@ -715,21 +730,21 @@ describe("Test middleware with lock enabled", () => {
 	});
 
 	it("should realse the lock when refreshing a key and an error throw", ()=>{
-		const err = new Error('wrong')
-    let mockAction = {
-  		name: "posts.find",
-  		cache: {
-        ttl: 30,
-        lock: {
+		const err = new Error("wrong");
+		let mockAction = {
+			name: "posts.find",
+			cache: {
+				ttl: 30,
+				lock: {
 					staleTime: 10
 				}
-      },
-  		handler: jest.fn(ctx => Promise.reject(err))
-  	};
+			},
+			handler: jest.fn(ctx => Promise.reject(err))
+		};
 
 		broker.cacher.get = jest.fn(() => Promise.resolve(cachedData));
 		broker.cacher.del = jest.fn(() => Promise.resolve());
-		broker.cacher.getWithTTL = jest.fn(() => Promise.resolve({ data: cachedData, ttl: 5 }))
+		broker.cacher.getWithTTL = jest.fn(() => Promise.resolve({ data: cachedData, ttl: 5 }));
 		broker.cacher.set = jest.fn(() => Promise.resolve());
 		const unlockFn = jest.fn(()=>Promise.resolve());
 		broker.cacher.lock = jest.fn(()=>Promise.resolve(unlockFn));
@@ -749,11 +764,11 @@ describe("Test middleware with lock enabled", () => {
 				expect(broker.cacher.tryLock).toHaveBeenCalledTimes(1);
 				expect(mockAction.handler).toHaveBeenCalledTimes(1);
 				setTimeout(resolve, 1000);
-			})
+			});
 		}).then(()=>{
 			expect(unlockFn).toHaveBeenCalledTimes(1); //Should finally unlock the lock.
 			expect(broker.cacher.del).toHaveBeenCalledTimes(1);
 			expect(broker.cacher.del).toHaveBeenCalledWith(cacheKey);
 		});
-  });
+	});
 });

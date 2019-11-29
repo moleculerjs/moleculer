@@ -126,9 +126,7 @@ describe("Test Transporter resolver", () => {
 			expect(trans.opts).toEqual({
 				"host": "localhost:2181",
 				"client": {
-					"noAckBatchOptions": undefined,
-					"sslOptions": undefined,
-					"zkOptions": undefined
+					"kafkaHost": "localhost:2181",
 				},
 				"consumer": {},
 				"customPartitioner": undefined,
@@ -152,9 +150,7 @@ describe("Test Transporter resolver", () => {
 			expect(trans.opts).toEqual({
 				"host": "localhost:2181",
 				"client": {
-					"noAckBatchOptions": undefined,
-					"sslOptions": undefined,
-					"zkOptions": undefined
+					"kafkaHost": "localhost:2181",
 				},
 				"consumer": {},
 				"customPartitioner": undefined,

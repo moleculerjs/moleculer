@@ -43,11 +43,13 @@ class ParamValidator {
 			if (action.params && typeof action.params === "object") {
 				const check = this.compile(action.params);
 				return function validateContextParams(ctx) {
-					const res = check(ctx.params);
+					let res = check(ctx.params != null ? ctx.params : {});
 					if (res === true)
 						return handler(ctx);
-					else
+					else {
+						res = res.map(data => Object.assign(data, { nodeID: ctx.nodeID, action: ctx.action.name }));
 						return Promise.reject(new ValidationError("Parameters validation error!", null, res));
+					}
 				};
 			}
 			return handler;

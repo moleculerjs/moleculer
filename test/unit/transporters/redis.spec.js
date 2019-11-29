@@ -3,19 +3,18 @@ const Transit = require("../../../src/transit");
 const RedisTransporter = require("../../../src/transporters/redis");
 const P = require("../../../src/packets");
 
-jest.mock("ioredis");
+jest.mock("ioredis", () => {
+	return jest.fn().mockImplementation(() => {
+		let onCallbacks = {};
+		return {
+			on: jest.fn((event, cb) => onCallbacks[event] = cb),
+			disconnect: jest.fn(),
+			subscribe: jest.fn(),
+			publish: jest.fn(),
 
-let Redis = require("ioredis");
-Redis.mockImplementation(() => {
-	let onCallbacks = {};
-	return {
-		on: jest.fn((event, cb) => onCallbacks[event] = cb),
-		disconnect: jest.fn(),
-		subscribe: jest.fn(),
-		publish: jest.fn(),
-
-		onCallbacks
-	};
+			onCallbacks
+		};
+	});
 });
 
 
@@ -136,7 +135,7 @@ describe("Test RedisTransporter subscribe & publish", () => {
 	it("check incoming message handler", () => {
 		// Test subscribe callback
 		const buf = Buffer.from("incoming data");
-		transporter.clientSub.onCallbacks.messageBuffer("prefix.event", buf);
+		transporter.clientSub.onCallbacks.messageBuffer("MOL-TEST.event", buf);
 		expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
 		expect(transporter.incomingMessage).toHaveBeenCalledWith("event", buf);
 	});

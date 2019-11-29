@@ -1,6 +1,6 @@
 "use strict";
 
-const chalk = require("chalk");
+const kleur = require("kleur");
 const ServiceBroker = require("../src/service-broker");
 
 const broker = new ServiceBroker({
@@ -14,9 +14,9 @@ broker.createService({
 		this.logger.info("Call add...");
 		try {
 			const res = await this.broker.call("second.add", { a: 5, b: 4 });
-			this.logger.info(chalk.green.bold(`Res: ${res}`));
+			this.logger.info(kleur.green().bold(`Res: ${res}`));
 		} catch(err) {
-			this.logger.error(chalk.red.bold(err.message));
+			this.logger.error(kleur.red().bold(err.message));
 		}
 	}
 });
@@ -31,11 +31,11 @@ broker.createService({
 	},
 
 	async started() {
-		this.logger.info(chalk.yellow.bold(`Starting '${this.name}' service...`));
+		this.logger.info(kleur.yellow().bold(`Starting '${this.name}' service...`));
 		await this.Promise.delay(2 * 1000);
 		this.calc = (a, b) => Number(a) + Number(b);
 
-		this.logger.info(chalk.yellow.bold(`Started '${this.name}' service.`));
+		this.logger.info(kleur.yellow().bold(`Started '${this.name}' service.`));
 	}
 });
 

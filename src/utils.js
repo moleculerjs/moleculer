@@ -6,9 +6,12 @@
 
 "use strict";
 
+const _ 		= require("lodash");
 const Promise 	= require("bluebird");
-const chalk		= require("chalk");
+const kleur		= require("kleur");
 const os 	 	= require("os");
+const path 	 	= require("path");
+const fs 	 	= require("fs");
 
 const lut = [];
 for (let i=0; i<256; i++) { lut[i] = (i<16?"0":"")+(i).toString(16); }
@@ -16,6 +19,10 @@ for (let i=0; i<256; i++) { lut[i] = (i<16?"0":"")+(i).toString(16); }
 const RegexCache = new Map();
 
 const deprecateList = [];
+
+class TimeoutError extends Error {
+
+}
 
 function circularReplacer() {
 	const seen = new WeakSet();
@@ -31,7 +38,22 @@ function circularReplacer() {
 	};
 }
 
+const units = ["h", "m", "s", "ms", "μs", "ns"];
+const divisors = [60 * 60 * 1000, 60 * 1000, 1000, 1, 1e-3, 1e-6];
+
 const utils = {
+
+	humanize(milli) {
+		if (milli == null) return "?";
+
+		for (let i = 0; i < divisors.length; i++) {
+			const val = milli / divisors[i];
+			if (val >= 1.0)
+				return "" + Math.floor(val) + units[i];
+		}
+
+		return "now";
+	},
 
 	// Fast UUID generator: e7 https://jsperf.com/uuid-generator-opt/18
 	generateToken() {
@@ -75,17 +97,6 @@ const utils = {
 	},
 
 	/**
-	 * Delay for Promises
-	 *
-	 * @param {any} ms
-	 * @returns
-	 */
-	delay(ms) {
-		/* istanbul ignore next */
-		return () => new Promise((resolve) => setTimeout(resolve, ms));
-	},
-
-	/**
 	 * Check the param is a Promise instance
 	 *
 	 * @param {any} p
@@ -93,6 +104,56 @@ const utils = {
 	 */
 	isPromise(p) {
 		return (p != null && typeof p.then === "function");
+	},
+
+	/**
+	 * Polyfill a Promise library with missing Bluebird features.
+	 *
+	 * NOT USED & NOT TESTED YET !!!
+	 *
+	 * @param {PromiseClass} P
+	 */
+	polyfillPromise(P) {
+		if (!_.isFunction(P.method)) {
+			// Based on https://github.com/petkaantonov/bluebird/blob/master/src/method.js#L8
+			P.method = function(fn) {
+				return function() {
+					return new Promise.resolve()
+						.then(() => fn.apply(this, arguments));
+				};
+			};
+		}
+
+		if (!_.isFunction(P.delay)) {
+			// Based on https://github.com/petkaantonov/bluebird/blob/master/src/timers.js#L15
+			P.delay = function(ms) {
+				return new P(resolve => setTimeout(resolve, +ms));
+			};
+		}
+
+		if (!_.isFunction(P.timeout)) {
+			P.TimeoutError = TimeoutError;
+
+			P.prototype.timeout = function(ms, message) {
+				let timer;
+				const timeout = new P((resolve, reject) => {
+					timer = setTimeout(() => reject(new P.TimeoutError(message)), +ms);
+				});
+
+				return P.race([
+					timeout,
+					this
+						.then(value => {
+							clearTimeout(timer);
+							return value;
+						})
+						.catch(err => {
+							clearTimeout(timer);
+							throw err;
+						})
+				]);
+			};
+		}
 	},
 
 	/**
@@ -186,7 +247,7 @@ const utils = {
 
 		if (deprecateList.indexOf(prop) === -1) {
 			// eslint-disable-next-line no-console
-			console.warn(chalk.yellow.bold(`DeprecationWarning: ${msg}`));
+			console.warn(kleur.yellow().bold(`DeprecationWarning: ${msg}`));
 			deprecateList.push(prop);
 		}
 	},
@@ -225,8 +286,22 @@ const utils = {
 		}
 		obj[path] = value;
 		return obj;
-	}
+	},
 
+	/**
+	 * Make directories recursively
+	 * @param {String} p - directory path
+	 */
+	makeDirs(p) {
+		p.split(path.sep)
+			.reduce((prevPath, folder) => {
+				const currentPath = path.join(prevPath, folder, path.sep);
+				if (!fs.existsSync(currentPath)) {
+					fs.mkdirSync(currentPath);
+				}
+				return currentPath;
+			}, "");
+	}
 };
 
 module.exports = utils;

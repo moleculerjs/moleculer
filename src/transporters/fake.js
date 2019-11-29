@@ -38,6 +38,8 @@ class FakeTransporter extends Transporter {
 		// Local event bus
 		this.bus = global.bus;
 		this.hasBuiltInBalancer = true;
+
+		this.subscriptions = [];
 	}
 
 	/**
@@ -56,6 +58,9 @@ class FakeTransporter extends Transporter {
 	 */
 	disconnect() {
 		this.connected = false;
+		this.subscriptions.forEach(({ topic, handler }) => this.bus.off(topic, handler));
+		this.subscriptions = [];
+
 		return Promise.resolve();
 	}
 
@@ -69,7 +74,10 @@ class FakeTransporter extends Transporter {
 	 */
 	subscribe(cmd, nodeID) {
 		const t = this.getTopicName(cmd, nodeID);
-		this.bus.on(t, msg => this.incomingMessage(cmd, msg));
+		const handler = msg => this.receive(cmd, msg);
+		this.subscriptions.push({ topic: t, handler });
+
+		this.bus.on(t, handler);
 		return Promise.resolve();
 	}
 
@@ -95,44 +103,18 @@ class FakeTransporter extends Transporter {
 	}
 
 	/**
-	 * Publish a packet
+	 * Send data buffer.
 	 *
-	 * @param {Packet} packet
+	 * @param {String} topic
+	 * @param {Buffer} data
+	 * @param {Object} meta
 	 *
-	 * @memberof FakeTransporter
-	 */
-	publish(packet) {
-		this.bus.emit(this.getTopicName(packet.type, packet.target), this.serialize(packet));
-		return Promise.resolve();
-	}
-
-	/**
-	 * Publish a balanced EVENT packet to a balanced queue
-	 *
-	 * @param {Packet} packet
-	 * @param {String} group
 	 * @returns {Promise}
-	 *
-	 * @memberof BaseTransporter
 	 */
-	publishBalancedEvent(/*packet, group*/) {
-		/* istanbul ignore next */
+	send(topic, data) {
+		this.bus.emit(topic, data);
 		return Promise.resolve();
 	}
-
-	/**
-	 * Publish a balanced REQ packet to a balanced queue
-	 *
-	 * @param {Packet} packet
-	 * @returns {Promise}
-	 *
-	 * @memberof BaseTransporter
-	 */
-	publishBalancedRequest(/*packet*/) {
-		/* istanbul ignore next */
-		return Promise.resolve();
-	}
-
 }
 
 module.exports = FakeTransporter;

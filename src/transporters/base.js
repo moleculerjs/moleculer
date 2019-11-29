@@ -114,13 +114,21 @@ class BaseTransporter {
 	incomingMessage(cmd, msg) {
 		if (!msg) return;
 		try {
-			this.incStatReceived(msg.length);
 			const packet = this.deserialize(cmd, msg);
 			return this.messageHandler(cmd, packet);
 		} catch(err) {
 			this.logger.warn("Invalid incoming packet. Type:", cmd, err);
 			this.logger.debug("Content:", msg.toString ? msg.toString() : msg);
 		}
+	}
+
+	/**
+	 * Received data. It's a wrapper for middlewares.
+	 * @param {String} cmd
+	 * @param {Buffer} data
+	 */
+	receive(cmd, data) {
+		return this.incomingMessage(cmd, data);
 	}
 
 	/**
@@ -177,9 +185,11 @@ class BaseTransporter {
 	 *
 	 * @memberof BaseTransporter
 	 */
-	publish(/*packet*/) {
-		/* istanbul ignore next */
-		throw new Error("Not implemented!");
+	publish(packet) {
+		const topic = this.getTopicName(packet.type, packet.target);
+		const data = this.serialize(packet);
+
+		return this.send(topic, data, { packet });
 	}
 
 	/**
@@ -191,9 +201,11 @@ class BaseTransporter {
 	 *
 	 * @memberof BaseTransporter
 	 */
-	publishBalancedEvent(/*packet, group*/) {
-		/* istanbul ignore next */
-		throw new Error("Not implemented!");
+	publishBalancedEvent(packet, group) {
+		const topic = `${this.prefix}.${P.PACKET_EVENT}B.${group}.${packet.payload.event}`;
+		const data = this.serialize(packet);
+
+		return this.send(topic, data, { packet, balanced: true });
 	}
 
 	/**
@@ -204,8 +216,23 @@ class BaseTransporter {
 	 *
 	 * @memberof BaseTransporter
 	 */
-	publishBalancedRequest(/*packet*/) {
-		/* istanbul ignore next */
+	publishBalancedRequest(packet) {
+		const topic = `${this.prefix}.${P.PACKET_REQUEST}B.${packet.payload.action}`;
+		const data = this.serialize(packet);
+
+		return this.send(topic, data, { packet, balanced: true });
+	}
+
+	/**
+	 * Send data buffer.
+	 *
+	 * @param {String} topic
+	 * @param {Buffer} data
+	 * @param {Object} meta
+	 *
+	 * @returns {Promise}
+	 */
+	send(/*topic, data, meta*/) {
 		throw new Error("Not implemented!");
 	}
 
@@ -261,7 +288,7 @@ class BaseTransporter {
 	 */
 	prepublish(packet) {
 		if (packet.type === P.PACKET_EVENT && packet.target == null && packet.payload.groups) {
-			let groups = packet.payload.groups;
+			const groups = packet.payload.groups;
 			// If the packet contains groups, we don't send the packet to
 			// the targetted node, but we push them to the event group queues
 			// and AMQP will load-balanced it.
@@ -313,20 +340,6 @@ class BaseTransporter {
 		const msg = this.broker.serializer.deserialize(buf, type);
 		return new P.Packet(type, null, msg);
 
-	}
-
-	incStatSent(len) {
-		if (len > 0) {
-			this.transit.stat.packets.sent.count++;
-			this.transit.stat.packets.sent.bytes += len;
-		}
-	}
-
-	incStatReceived(len) {
-		if (len > 0) {
-			this.transit.stat.packets.received.count++;
-			this.transit.stat.packets.received.bytes += len;
-		}
 	}
 }
 

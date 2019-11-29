@@ -10,7 +10,7 @@ const Promise		= require("bluebird");
 const Transporter 	= require("./base");
 const _ 			= require("lodash");
 const fs 			= require("fs");
-const chalk 		= require("chalk");
+const kleur 		= require("kleur");
 
 const Node 			= require("../registry/node");
 const P 			= require("../packets");
@@ -109,8 +109,6 @@ class TcpTransporter extends Transporter {
 	 * @memberof TcpTransporter
 	 */
 	connect() {
-		this.logger.warn(chalk.yellow.bold("TCP Transporter is an EXPERIMENTAL transporter. Do NOT use it in production yet!"));
-
 		return Promise.resolve()
 			.then(() => {
 				// Load offline nodes
@@ -261,7 +259,17 @@ class TcpTransporter extends Transporter {
 	 * @param {Socket} socket
 	 */
 	onIncomingMessage(type, message, socket) {
+		return this.receive(type, message, socket);
+	}
+
+	/**
+	 * Received data. It's a wrapper for middlewares.
+	 * @param {String} cmd
+	 * @param {Buffer} data
+	 */
+	receive(type, message, socket) {
 		//console.log("<<", type, message.toString());
+
 		switch(type) {
 			case P.PACKET_GOSSIP_HELLO: return this.processGossipHello(message, socket);
 			case P.PACKET_GOSSIP_REQ: return this.processGossipRequest(message);
@@ -359,7 +367,7 @@ class TcpTransporter extends Transporter {
 			port: localNode.port,
 		});
 
-		if (this.GOSSIP_DEBUG) this.logger.info(chalk.bgCyan.black(`----- HELLO ${this.nodeID} -> ${nodeID} -----`), packet.payload);
+		if (this.GOSSIP_DEBUG) this.logger.info(kleur.bgCyan().black(`----- HELLO ${this.nodeID} -> ${nodeID} -----`), packet.payload);
 
 		return this.publish(packet).catch(() => {
 			this.logger.debug(`Unable to send Gossip HELLO packet to ${nodeID}.`);
@@ -466,7 +474,7 @@ class TcpTransporter extends Transporter {
 				this.logger.debug(`Unable to send Gossip packet to ${ep.id}.`);
 			});
 
-			if (this.GOSSIP_DEBUG) this.logger.info(chalk.bgYellow.black(`----- REQUEST ${this.nodeID} -> ${ep.id} -----`), packet.payload);
+			if (this.GOSSIP_DEBUG) this.logger.info(kleur.bgYellow().black(`----- REQUEST ${this.nodeID} -> ${ep.id} -----`), packet.payload);
 		}
 	}
 
@@ -575,9 +583,9 @@ class TcpTransporter extends Transporter {
 				const rspPacket = new P.Packet(P.PACKET_GOSSIP_RES, sender.id, response);
 				this.publish(rspPacket).catch(() => {});
 
-				if (this.GOSSIP_DEBUG) this.logger.info(chalk.bgMagenta.black(`----- RESPONSE ${this.nodeID} -> ${sender.id} -----`), rspPacket.payload);
+				if (this.GOSSIP_DEBUG) this.logger.info(kleur.bgMagenta().black(`----- RESPONSE ${this.nodeID} -> ${sender.id} -----`), rspPacket.payload);
 			} else {
-				if (this.GOSSIP_DEBUG) this.logger.info(chalk.bgBlue.white(`----- EMPTY RESPONSE ${this.nodeID} -> ${payload.sender} -----`));
+				if (this.GOSSIP_DEBUG) this.logger.info(kleur.bgBlue().white(`----- EMPTY RESPONSE ${this.nodeID} -> ${payload.sender} -----`));
 			}
 
 		} catch(err) {
@@ -733,17 +741,27 @@ class TcpTransporter extends Transporter {
 		].indexOf(packet.type) == -1)
 			return Promise.resolve();
 
-		const packetID = resolvePacketID(packet.type);
-		let data = this.serialize(packet);
+		const data = this.serialize(packet);
+		return this.send(packet.type, data, { packet });
+	}
 
-		this.incStatSent(data.length);
+	/**
+	 * Send data buffer.
+	 *
+	 * @param {String} topic
+	 * @param {Buffer} data
+	 * @param {Object} meta
+	 *
+	 * @returns {Promise}
+	 */
+	send(topic, data, { packet }) {
+		const packetID = resolvePacketID(packet.type);
 		return this.writer.send(packet.target, packetID, data)
 			.catch(err => {
 				this.nodes.disconnected(packet.target, true);
 				throw err;
 			});
 	}
-
 }
 
 module.exports = TcpTransporter;

@@ -1,0 +1,559 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test EventReporter class Test sendEvent method should call broker emit with changes 1`] = `
+Array [
+  Object {
+    "description": undefined,
+    "labelNames": Array [],
+    "name": "os.datetime.utc",
+    "type": "gauge",
+    "unit": undefined,
+    "values": Array [
+      Object {
+        "key": "",
+        "labels": Object {},
+        "timestamp": 12345678000,
+        "value": 123456,
+      },
+    ],
+  },
+  Object {
+    "description": "Test Info Metric",
+    "labelNames": Array [],
+    "name": "test.info",
+    "type": "info",
+    "unit": undefined,
+    "values": Array [
+      Object {
+        "key": "",
+        "labels": Object {},
+        "timestamp": 12345678000,
+        "value": "Test Value",
+      },
+    ],
+  },
+  Object {
+    "description": "Test Counter Metric",
+    "labelNames": Array [
+      "action",
+    ],
+    "name": "test.counter",
+    "type": "counter",
+    "unit": undefined,
+    "values": Array [
+      Object {
+        "key": "",
+        "labels": Object {},
+        "timestamp": 12345678000,
+        "value": 5,
+      },
+      Object {
+        "key": "\\"posts\\\\comments\\"",
+        "labels": Object {
+          "action": "posts\\\\comments",
+        },
+        "timestamp": 12345678000,
+        "value": 8,
+      },
+    ],
+  },
+  Object {
+    "description": "Test Gauge Metric",
+    "labelNames": Array [
+      "action",
+    ],
+    "name": "test.gauge-total",
+    "type": "gauge",
+    "unit": undefined,
+    "values": Array [
+      Object {
+        "key": "\\"users-\\"John\\"\\"",
+        "labels": Object {
+          "action": "users-\\"John\\"",
+        },
+        "timestamp": 12345678000,
+        "value": -8,
+      },
+      Object {
+        "key": "",
+        "labels": Object {},
+        "timestamp": 12345678000,
+        "value": Object {
+          "action": "posts",
+        },
+      },
+    ],
+  },
+  Object {
+    "description": undefined,
+    "labelNames": Array [
+      "action",
+    ],
+    "name": "test.histogram",
+    "type": "histogram",
+    "unit": "byte",
+    "values": Array [
+      Object {
+        "buckets": Object {
+          "0.005": 0,
+          "0.01": 0,
+          "0.025": 0,
+          "0.05": 0,
+          "0.1": 0,
+          "0.25": 0,
+          "0.5": 0,
+          "1": 0,
+          "10": 4,
+          "2.5": 2,
+          "5": 2,
+        },
+        "count": 4,
+        "key": "",
+        "labels": Object {},
+        "max": 8,
+        "mean": 4.5,
+        "min": 2,
+        "quantiles": Object {
+          "0.5": 2,
+          "0.9": 8,
+          "0.95": 8,
+          "0.99": 8,
+          "0.999": 8,
+        },
+        "stdDev": 3,
+        "sum": 18,
+        "timestamp": 12345678000,
+        "variance": 9,
+      },
+      Object {
+        "buckets": Object {
+          "0.005": 0,
+          "0.01": 0,
+          "0.025": 0,
+          "0.05": 0,
+          "0.1": 0,
+          "0.25": 0,
+          "0.5": 0,
+          "1": 1,
+          "10": 3,
+          "2.5": 1,
+          "5": 2,
+        },
+        "count": 3,
+        "key": "\\"auth\\"",
+        "labels": Object {
+          "action": "auth",
+        },
+        "max": 7,
+        "mean": 3.6666666666666665,
+        "min": 1,
+        "quantiles": Object {
+          "0.5": 3,
+          "0.9": 7,
+          "0.95": 7,
+          "0.99": 7,
+          "0.999": 7,
+        },
+        "stdDev": 3.0550504633038935,
+        "sum": 11,
+        "timestamp": 12345678000,
+        "variance": 9.333333333333334,
+      },
+    ],
+  },
+]
+`;
+
+exports[`Test EventReporter class Test sendEvent method with onlyChanges should call broker.broadcast 1`] = `
+Array [
+  Object {
+    "description": "Moleculer implementation type",
+    "labelNames": Array [],
+    "name": "moleculer.node.type",
+    "type": "info",
+    "unit": undefined,
+    "values": Array [
+      Object {
+        "key": "",
+        "labels": Object {},
+        "timestamp": 12345678000,
+        "value": "nodejs",
+      },
+    ],
+  },
+  Object {
+    "description": "Moleculer protocol version",
+    "labelNames": Array [],
+    "name": "moleculer.node.versions.protocol",
+    "type": "info",
+    "unit": undefined,
+    "values": Array [
+      Object {
+        "key": "",
+        "labels": Object {},
+        "timestamp": 12345678000,
+        "value": "4",
+      },
+    ],
+  },
+  Object {
+    "description": "Moleculer namespace",
+    "labelNames": Array [],
+    "name": "moleculer.broker.namespace",
+    "type": "info",
+    "unit": undefined,
+    "values": Array [
+      Object {
+        "key": "",
+        "labels": Object {},
+        "timestamp": 12345678000,
+        "value": "",
+      },
+    ],
+  },
+  Object {
+    "description": "ServiceBroker started",
+    "labelNames": Array [],
+    "name": "moleculer.broker.started",
+    "type": "gauge",
+    "unit": undefined,
+    "values": Array [
+      Object {
+        "key": "",
+        "labels": Object {},
+        "timestamp": 12345678000,
+        "value": 0,
+      },
+    ],
+  },
+  Object {
+    "description": "Number of local services",
+    "labelNames": Array [],
+    "name": "moleculer.broker.local.services.total",
+    "type": "gauge",
+    "unit": undefined,
+    "values": Array [
+      Object {
+        "key": "",
+        "labels": Object {},
+        "timestamp": 12345678000,
+        "value": 1,
+      },
+    ],
+  },
+  Object {
+    "description": "Number of local middlewares",
+    "labelNames": Array [],
+    "name": "moleculer.broker.middlewares.total",
+    "type": "gauge",
+    "unit": undefined,
+    "values": Array [
+      Object {
+        "key": "",
+        "labels": Object {},
+        "timestamp": 12345678000,
+        "value": 13,
+      },
+    ],
+  },
+  Object {
+    "description": "Number of registered nodes",
+    "labelNames": Array [],
+    "name": "moleculer.registry.nodes.total",
+    "type": "gauge",
+    "unit": undefined,
+    "values": Array [
+      Object {
+        "key": "",
+        "labels": Object {},
+        "timestamp": 12345678000,
+        "value": 1,
+      },
+    ],
+  },
+  Object {
+    "description": "Number of online nodes",
+    "labelNames": Array [],
+    "name": "moleculer.registry.nodes.online.total",
+    "type": "gauge",
+    "unit": undefined,
+    "values": Array [
+      Object {
+        "key": "",
+        "labels": Object {},
+        "timestamp": 12345678000,
+        "value": 1,
+      },
+    ],
+  },
+  Object {
+    "description": "Number of registered services",
+    "labelNames": Array [],
+    "name": "moleculer.registry.services.total",
+    "type": "gauge",
+    "unit": undefined,
+    "values": Array [
+      Object {
+        "key": "",
+        "labels": Object {},
+        "timestamp": 12345678000,
+        "value": 0,
+      },
+    ],
+  },
+  Object {
+    "description": "Number of registered actions",
+    "labelNames": Array [],
+    "name": "moleculer.registry.actions.total",
+    "type": "gauge",
+    "unit": undefined,
+    "values": Array [
+      Object {
+        "key": "",
+        "labels": Object {},
+        "timestamp": 12345678000,
+        "value": 0,
+      },
+    ],
+  },
+  Object {
+    "description": "Number of registered events",
+    "labelNames": Array [],
+    "name": "moleculer.registry.events.total",
+    "type": "gauge",
+    "unit": undefined,
+    "values": Array [
+      Object {
+        "key": "",
+        "labels": Object {},
+        "timestamp": 12345678000,
+        "value": 0,
+      },
+    ],
+  },
+  Object {
+    "description": undefined,
+    "labelNames": Array [],
+    "name": "os.datetime.utc",
+    "type": "gauge",
+    "unit": undefined,
+    "values": Array [
+      Object {
+        "key": "",
+        "labels": Object {},
+        "timestamp": 12345678000,
+        "value": 123456,
+      },
+    ],
+  },
+  Object {
+    "description": "Test Info Metric",
+    "labelNames": Array [],
+    "name": "test.info",
+    "type": "info",
+    "unit": undefined,
+    "values": Array [
+      Object {
+        "key": "",
+        "labels": Object {},
+        "timestamp": 12345678000,
+        "value": "Test Value",
+      },
+    ],
+  },
+  Object {
+    "description": "Test Counter Metric",
+    "labelNames": Array [
+      "action",
+    ],
+    "name": "test.counter",
+    "type": "counter",
+    "unit": undefined,
+    "values": Array [
+      Object {
+        "key": "",
+        "labels": Object {},
+        "timestamp": 12345678000,
+        "value": 5,
+      },
+      Object {
+        "key": "\\"posts\\\\comments\\"",
+        "labels": Object {
+          "action": "posts\\\\comments",
+        },
+        "timestamp": 12345678000,
+        "value": 8,
+      },
+    ],
+  },
+  Object {
+    "description": "Test Gauge Metric",
+    "labelNames": Array [
+      "action",
+    ],
+    "name": "test.gauge-total",
+    "type": "gauge",
+    "unit": undefined,
+    "values": Array [
+      Object {
+        "key": "\\"users-\\"John\\"\\"",
+        "labels": Object {
+          "action": "users-\\"John\\"",
+        },
+        "timestamp": 12345678000,
+        "value": -8,
+      },
+      Object {
+        "key": "",
+        "labels": Object {},
+        "timestamp": 12345678000,
+        "value": Object {
+          "action": "posts",
+        },
+      },
+    ],
+  },
+  Object {
+    "description": undefined,
+    "labelNames": Array [
+      "action",
+    ],
+    "name": "test.histogram",
+    "type": "histogram",
+    "unit": "byte",
+    "values": Array [
+      Object {
+        "buckets": Object {
+          "0.005": 0,
+          "0.01": 0,
+          "0.025": 0,
+          "0.05": 0,
+          "0.1": 0,
+          "0.25": 0,
+          "0.5": 0,
+          "1": 0,
+          "10": 4,
+          "2.5": 2,
+          "5": 2,
+        },
+        "count": 4,
+        "key": "",
+        "labels": Object {},
+        "max": 8,
+        "mean": 4.5,
+        "min": 2,
+        "quantiles": Object {
+          "0.5": 2,
+          "0.9": 8,
+          "0.95": 8,
+          "0.99": 8,
+          "0.999": 8,
+        },
+        "stdDev": 3,
+        "sum": 18,
+        "timestamp": 12345678000,
+        "variance": 9,
+      },
+      Object {
+        "buckets": Object {
+          "0.005": 0,
+          "0.01": 0,
+          "0.025": 0,
+          "0.05": 0,
+          "0.1": 0,
+          "0.25": 0,
+          "0.5": 0,
+          "1": 1,
+          "10": 3,
+          "2.5": 1,
+          "5": 2,
+        },
+        "count": 3,
+        "key": "\\"auth\\"",
+        "labels": Object {
+          "action": "auth",
+        },
+        "max": 7,
+        "mean": 3.6666666666666665,
+        "min": 1,
+        "quantiles": Object {
+          "0.5": 3,
+          "0.9": 7,
+          "0.95": 7,
+          "0.99": 7,
+          "0.999": 7,
+        },
+        "stdDev": 3.0550504633038935,
+        "sum": 11,
+        "timestamp": 12345678000,
+        "variance": 9.333333333333334,
+      },
+    ],
+  },
+]
+`;
+
+exports[`Test EventReporter class Test sendEvent method with onlyChanges should send changes only 1`] = `
+Array [
+  Object {
+    "description": "Test Counter Metric",
+    "labelNames": Array [
+      "action",
+    ],
+    "name": "test.counter",
+    "type": "counter",
+    "unit": undefined,
+    "values": Array [
+      Object {
+        "key": "",
+        "labels": Object {},
+        "timestamp": 12345678000,
+        "value": 12,
+      },
+      Object {
+        "key": "\\"posts\\\\comments\\"",
+        "labels": Object {
+          "action": "posts\\\\comments",
+        },
+        "timestamp": 12345678000,
+        "value": 8,
+      },
+    ],
+  },
+  Object {
+    "description": "Test Gauge Metric",
+    "labelNames": Array [
+      "action",
+    ],
+    "name": "test.gauge-total",
+    "type": "gauge",
+    "unit": undefined,
+    "values": Array [
+      Object {
+        "key": "\\"users-\\"John\\"\\"",
+        "labels": Object {
+          "action": "users-\\"John\\"",
+        },
+        "timestamp": 12345678000,
+        "value": -8,
+      },
+      Object {
+        "key": "",
+        "labels": Object {},
+        "timestamp": 12345678000,
+        "value": Object {
+          "action": "posts",
+        },
+      },
+      Object {
+        "key": "\\"posts\\"",
+        "labels": Object {
+          "action": "posts",
+        },
+        "timestamp": 12345678000,
+        "value": -5,
+      },
+    ],
+  },
+]
+`;

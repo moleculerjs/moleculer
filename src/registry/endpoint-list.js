@@ -23,14 +23,15 @@ class EndpointList {
 	 * @param {String} name
 	 * @param {String} group
 	 * @param {EndPointClass} EndPointFactory
-	 * @param {Strategy} StrategyFactory
+	 * @param {StrategyClass} StrategyFactory
+	 * @param {Object?} strategyOptions
 	 * @memberof EndpointList
 	 */
-	constructor(registry, broker, name, group, EndPointFactory, StrategyFactory) {
+	constructor(registry, broker, name, group, EndPointFactory, StrategyFactory, strategyOptions) {
 		this.registry = registry;
 		this.broker = broker;
 		this.logger = registry.logger;
-		this.strategy = new StrategyFactory(registry, broker);
+		this.strategy = new StrategyFactory(registry, broker, strategyOptions);
 		this.name = name;
 		this.group = group;
 		this.internal = name.startsWith("$");
@@ -40,7 +41,6 @@ class EndpointList {
 		this.endpoints = [];
 
 		this.localEndpoints = [];
-		this.localStrategy = new StrategyFactory(registry, broker);
 	}
 
 	/**
@@ -83,11 +83,13 @@ class EndpointList {
 	/**
 	 * Select next endpoint with balancer strategy
 	 *
-	 * @returns
+	 * @param {Array<Endpoint>} list
+	 * @param {Context} ctx
+	 * @returns {Endpoint}
 	 * @memberof EndpointList
 	 */
-	select(list) {
-		const ret = this.strategy.select(list);
+	select(list, ctx) {
+		const ret = this.strategy.select(list, ctx);
 		if (!ret) {
 			/* istanbul ignore next */
 			throw new MoleculerServerError("Strategy returned an invalid endpoint.", 500, "INVALID_ENDPOINT", { strategy: typeof(this.strategy) });
@@ -98,10 +100,11 @@ class EndpointList {
 	/**
 	 * Get next endpoint
 	 *
+	 * @param {Context} ctx
 	 * @returns
 	 * @memberof EndpointList
 	 */
-	next() {
+	next(ctx) {
 		// No items
 		if (this.endpoints.length === 0) {
 			return null;
@@ -124,7 +127,7 @@ class EndpointList {
 
 		// Search local item
 		if (this.registry.opts.preferLocal === true && this.hasLocal()) {
-			const ep = this.nextLocal();
+			const ep = this.nextLocal(ctx);
 			if (ep && ep.isAvailable)
 				return ep;
 		}
@@ -133,16 +136,17 @@ class EndpointList {
 		if (epList.length == 0)
 			return null;
 
-		return this.select(epList);
+		return this.select(epList, ctx);
 	}
 
 	/**
 	 * Get next local endpoint
 	 *
+	 * @param {Context} ctx
 	 * @returns
 	 * @memberof EndpointList
 	 */
-	nextLocal() {
+	nextLocal(ctx) {
 		// No items
 		if (this.localEndpoints.length === 0) {
 			return null;
@@ -162,7 +166,7 @@ class EndpointList {
 		if (epList.length == 0)
 			return null;
 
-		return this.select(epList);
+		return this.select(epList, ctx);
 	}
 
 	/**

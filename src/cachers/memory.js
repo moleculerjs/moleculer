@@ -10,7 +10,9 @@ const _ 			= require("lodash");
 const Promise 		= require("bluebird");
 const utils			= require("../utils");
 const BaseCacher  	= require("./base");
-const Lock = require("../lock")
+const { METRIC }	= require("../metrics");
+
+const Lock = require("../lock");
 /**
  * Cacher factory for memory cache
  *
@@ -31,17 +33,16 @@ class MemoryCacher extends BaseCacher {
 		// Cache container
 		this.cache = new Map();
 		// Async lock
-		this._lock = new Lock()
+		this._lock = new Lock();
 		// Start TTL timer
 		this.timer = setInterval(() => {
 			/* istanbul ignore next */
 			this.checkTTL();
 		}, 30 * 1000);
+		this.timer.unref();
 
 		// Set cloning
 		this.clone = this.opts.clone === true ? _.cloneDeep : this.opts.clone;
-
-		this.timer.unref();
 	}
 
 	/**
@@ -70,17 +71,27 @@ class MemoryCacher extends BaseCacher {
 	 */
 	get(key) {
 		this.logger.debug(`GET ${key}`);
+		this.metrics.increment(METRIC.MOLECULER_CACHER_GET_TOTAL);
+		const timeEnd = this.metrics.timer(METRIC.MOLECULER_CACHER_GET_TIME);
 
 		if (this.cache.has(key)) {
 			this.logger.debug(`FOUND ${key}`);
+			this.metrics.increment(METRIC.MOLECULER_CACHER_FOUND_TOTAL);
 
 			let item = this.cache.get(key);
-
-			if (this.opts.ttl) {
-				// Update expire time (hold in the cache if we are using it)
-				item.expire = Date.now() + this.opts.ttl * 1000;
+			if (item.expire && item.expire < Date.now()) {
+				this.logger.debug(`EXPIRED ${key}`);
+				this.metrics.increment(METRIC.MOLECULER_CACHER_EXPIRED_TOTAL);
+				this.cache.delete(key);
+				timeEnd();
+				return Promise.resolve(null);
 			}
-			return Promise.resolve(this.clone ? this.clone(item.data) : item.data);
+			const res = this.clone ? this.clone(item.data) : item.data;
+			timeEnd();
+
+			return Promise.resolve(res);
+		} else {
+			timeEnd();
 		}
 		return Promise.resolve(null);
 	}
@@ -96,6 +107,9 @@ class MemoryCacher extends BaseCacher {
 	 * @memberof MemoryCacher
 	 */
 	set(key, data, ttl) {
+		this.metrics.increment(METRIC.MOLECULER_CACHER_SET_TOTAL);
+		const timeEnd = this.metrics.timer(METRIC.MOLECULER_CACHER_SET_TIME);
+
 		if (ttl == null)
 			ttl = this.opts.ttl;
 
@@ -103,7 +117,10 @@ class MemoryCacher extends BaseCacher {
 			data,
 			expire: ttl ? Date.now() + ttl * 1000 : null
 		});
+
+		timeEnd();
 		this.logger.debug(`SET ${key}`);
+
 		return Promise.resolve(data);
 	}
 
@@ -116,11 +133,16 @@ class MemoryCacher extends BaseCacher {
 	 * @memberof MemoryCacher
 	 */
 	del(keys) {
+		this.metrics.increment(METRIC.MOLECULER_CACHER_DEL_TOTAL);
+		const timeEnd = this.metrics.timer(METRIC.MOLECULER_CACHER_DEL_TIME);
+
 		keys = Array.isArray(keys) ? keys : [keys];
 		keys.forEach(key => {
 			this.cache.delete(key);
 			this.logger.debug(`REMOVE ${key}`);
 		});
+		timeEnd();
+
 		return Promise.resolve();
 	}
 
@@ -132,6 +154,9 @@ class MemoryCacher extends BaseCacher {
 	 * @memberof MemoryCacher
 	 */
 	clean(match = "**") {
+		this.metrics.increment(METRIC.MOLECULER_CACHER_CLEAN_TOTAL);
+		const timeEnd = this.metrics.timer(METRIC.MOLECULER_CACHER_CLEAN_TIME);
+
 		const matches = Array.isArray(match) ? match : [match];
 		this.logger.debug(`CLEAN ${matches.join(", ")}`);
 
@@ -141,6 +166,7 @@ class MemoryCacher extends BaseCacher {
 				this.cache.delete(key);
 			}
 		});
+		timeEnd();
 
 		return Promise.resolve();
 	}
@@ -153,25 +179,25 @@ class MemoryCacher extends BaseCacher {
 	 *
 	 * @memberof MemoryCacher
 	 */
-	 getWithTTL(key){
- 		this.logger.debug(`GET ${key}`);
+	getWithTTL(key){
+		this.logger.debug(`GET ${key}`);
 		let data = null;
 		let ttl = null;
- 		if (this.cache.has(key)) {
- 			this.logger.debug(`FOUND ${key}`);
+		if (this.cache.has(key)) {
+			this.logger.debug(`FOUND ${key}`);
 
- 			let item = this.cache.get(key);
+			let item = this.cache.get(key);
 			let now = Date.now();
-			ttl = (item.expire - now)/1000
+			ttl = (item.expire - now)/1000;
 			ttl = ttl > 0 ? ttl : null;
- 			if (this.opts.ttl) {
- 				// Update expire time (hold in the cache if we are using it)
- 				item.expire = now + this.opts.ttl * 1000;
- 			}
-			data = this.clone ? this.clone(item.data) : item.data
- 		}
- 		return Promise.resolve({ data, ttl });
-	 }
+			if (this.opts.ttl) {
+				// Update expire time (hold in the cache if we are using it)
+				item.expire = now + this.opts.ttl * 1000;
+			}
+			data = this.clone ? this.clone(item.data) : item.data;
+		}
+		return Promise.resolve({ data, ttl });
+	}
 
 	/**
 	 * Acquire a lock
@@ -183,10 +209,10 @@ class MemoryCacher extends BaseCacher {
 	 * @memberof MemoryCacher
 	 */
 	lock(key, ttl) {
- 		return this._lock.acquire(key, ttl).then(()=> {
-			return ()=>this._lock.release(key)
-		})
- 	}
+		return this._lock.acquire(key, ttl).then(()=> {
+			return ()=>this._lock.release(key);
+		});
+	}
 
 	/**
 	 * Try to acquire a lock
@@ -199,11 +225,11 @@ class MemoryCacher extends BaseCacher {
 	 */
 	tryLock(key, ttl) {
 		if(this._lock.isLocked(key)){
-			return Promise.reject(new Error('Locked.'))
+			return Promise.reject(new Error("Locked."));
 		}
 		return this._lock.acquire(key, ttl).then(()=> {
-			return ()=>this._lock.release(key)
-		})
+			return ()=>this._lock.release(key);
+		});
 	}
 
 	/**
@@ -218,6 +244,7 @@ class MemoryCacher extends BaseCacher {
 
 			if (item.expire && item.expire < now) {
 				this.logger.debug(`EXPIRED ${key}`);
+				this.metrics.increment(METRIC.MOLECULER_CACHER_EXPIRED_TOTAL);
 				this.cache.delete(key);
 			}
 		});

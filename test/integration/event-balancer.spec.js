@@ -10,8 +10,8 @@ let userService = {
 		"user.created"() {
 			flow.push(`${this.broker.nodeID}-${this.name}-uc`);
 		},
-		"$local.user.event"() {
-			flow.push(`${this.broker.nodeID}-${this.name}-$lue`);
+		"$internal.user.event"() {
+			flow.push(`${this.broker.nodeID}-${this.name}-$iue`);
 		}
 	}
 };
@@ -64,7 +64,7 @@ function createNodes(ns) {
 
 	const nodeUser1 = new ServiceBroker({ namespace: ns, nodeID: "user-1", transporter: "Fake", logger });
 	nodeUser1.createService(_.cloneDeep(userService));
-	nodeUser1.localBus.on("$local.user.event", () => flow.push("nodeUser1-on-$lue"));
+	nodeUser1.localBus.on("$internal.user.event", () => flow.push("nodeUser1-on-$iue"));
 
 
 	const nodeUser2 = new ServiceBroker({ namespace: ns, nodeID: "user-2", transporter: "Fake", logger });
@@ -270,32 +270,38 @@ describe("Test event balancing", () => {
 
 	// --- LOCAL EVENTS ---
 
-	it("broadcast a '$local.user.event' event on master", () => {
-		master.broadcast("$local.user.event");
-		expect(flow).toEqual([]);
-	});
-
-	it("broadcast a '$local.user.event' event on node1", () => {
-		nodeUser1.broadcast("$local.user.event");
+	it("broadcast a '$internal.user.event' event on master", () => {
+		master.broadcast("$internal.user.event");
 		expect(flow).toEqual([
-			"nodeUser1-on-$lue",
-			"user-1-users-$lue"
+			"user-1-users-$iue",
+			"user-2-users-$iue",
+			"user-3-users-$iue",
 		]);
 	});
 
-	it("broadcastLocal a '$local.user.event' event on node1", () => {
-		nodeUser1.broadcastLocal("$local.user.event");
+	it("broadcast a '$internal.user.event' event on node1", () => {
+		nodeUser1.broadcast("$internal.user.event");
 		expect(flow).toEqual([
-			"nodeUser1-on-$lue",
-			"user-1-users-$lue"
+			"user-2-users-$iue",
+			"user-3-users-$iue",
+			"nodeUser1-on-$iue",
+			"user-1-users-$iue"
 		]);
 	});
 
-	it("emit a '$local.user.event' event on node1", () => {
-		nodeUser1.emit("$local.user.event");
+	it("broadcastLocal a '$internal.user.event' event on node1", () => {
+		nodeUser1.broadcastLocal("$internal.user.event");
 		expect(flow).toEqual([
-			"nodeUser1-on-$lue",
-			"user-1-users-$lue"
+			"nodeUser1-on-$iue",
+			"user-1-users-$iue"
+		]);
+	});
+
+	it("emit a '$internal.user.event' event on node1", () => {
+		nodeUser1.emit("$internal.user.event");
+		expect(flow).toEqual([
+			"nodeUser1-on-$iue",
+			"user-1-users-$iue"
 		]);
 	});
 });

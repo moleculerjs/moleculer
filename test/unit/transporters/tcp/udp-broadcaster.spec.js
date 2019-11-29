@@ -7,8 +7,8 @@ const lolex = require("lolex");
 
 const os = require("os");
 
-jest.mock("dgram");
 const dgram = require("dgram");
+jest.mock("dgram");
 
 const UdpServer = require("../../../../src/transporters/tcp/udp-broadcaster");
 

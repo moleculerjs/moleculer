@@ -57,6 +57,14 @@ broker2.createService({
 			await this.Promise.delay(10 * 1000);
 			this.logger.info(`${ctx.action.name} end.   ID: ${c2}`);
 		}
+	},
+
+	events: {
+		async "slow-5"(ctx) {
+			this.logger.info(`${ctx.event.name} begin. ID: ${++c2}`);
+			await this.Promise.delay(5 * 1000);
+			this.logger.info(`${ctx.event.name} end.   ID: ${c2}`);
+		}
 	}
 });
 
@@ -67,7 +75,8 @@ broker1.Promise.all([
 	//broker1.repl();
 
 	//broker1.call("first.5");
-	broker1.call("slow.5");
+	//broker1.call("slow.5");
+	broker1.emit("slow-5");
 
 	await broker1.Promise.delay(2 * 1000);
 

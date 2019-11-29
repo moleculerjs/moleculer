@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 "use strict";
@@ -37,10 +37,10 @@ const BaseStrategy = require("./base");
  */
 class LatencyStrategy extends BaseStrategy {
 
-	constructor(registry, broker) {
-		super(registry, broker);
+	constructor(registry, broker, opts) {
+		super(registry, broker, opts);
 
-		this.opts = _.defaultsDeep(registry.opts.strategyOptions, {
+		this.opts = _.defaultsDeep(opts, {
 			sampleCount: 5,
 			lowLatency: 10,
 			collectCount: 5,

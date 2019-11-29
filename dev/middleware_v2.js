@@ -38,6 +38,14 @@ const MW = {
 		};
 	},
 
+	// Wrap broker.registerLocalService method
+	registerLocalService(next) {
+		return function(svcItem) {
+			console.log("MW registerLocalService is fired.", svcItem.name);
+			return next(svcItem);
+		};
+	},
+
 	// Wrap broker.destroyService method
 	destroyService(next) {
 		return function() {
@@ -91,14 +99,29 @@ const MW = {
 		};
 	},
 
+	// While a new local service creating (after mixins are mixed)
+	serviceCreating(service, schema) {
+		console.log("MW serviceCreating is fired", schema);
+	},
+
 	// After a new local service created
 	serviceCreated(service) {
 		console.log("MW serviceCreated is fired", service.name);
 	},
 
+	// Before a local service started
+	serviceStarting(service) {
+		console.log("MW serviceStarting is fired", service.name);
+	},
+
 	// After a local service started
 	serviceStarted(service) {
 		console.log("MW serviceStarted is fired", service.name);
+	},
+
+	// Before a local service stopping
+	serviceStopping(service) {
+		console.log("MW serviceStopping is fired", service.name);
 	},
 
 	// After a local service stopped
@@ -125,6 +148,35 @@ const MW = {
 	stopped(broker) {
 		console.log("MW stopped is fired.");
 	},
+
+	// When transit publishing a packet
+	transitPublish(next) {
+		return packet => {
+			console.log(`Publish ${packet.type} packet.`);
+			return next(packet);
+		};
+	},
+
+	// When transit subscribe to a topic
+	transitSubscribe(next) {
+		return (topic, nodeID) => {
+			console.log(`Subscribe to ${topic}.`);
+			return next(topic, nodeID);
+		};
+	},
+
+	// When transit receives & handles a packet
+	transitMessageHandler(next) {
+		return (cmd, packet) => {
+			console.log(`Incoming ${packet.type} packet.`, packet.payload);
+			return next(cmd, packet);
+		};
+	},
+
+	// When a new log entry created
+	newLogEntry(type, args, bindings) {
+		console.log(`:: New ${type} log entry:: `, args, bindings);
+	},
 };
 
 const broker = new ServiceBroker({
@@ -134,8 +186,6 @@ const broker = new ServiceBroker({
 	logFormatter: "short",
 	middlewares: [MW]
 });
-
-//broker.use(() => {});
 
 
 broker.createService({

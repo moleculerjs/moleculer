@@ -108,10 +108,15 @@ class ServiceNotFoundError extends MoleculerRetryableError {
 	 */
 	constructor(data = {}) {
 		let msg;
-		if (data.nodeID)
+		if (data.nodeID && data.action)
 			msg = `Service '${data.action}' is not found on '${data.nodeID}' node.`;
-		else
+		else if (data.action)
 			msg = `Service '${data.action}' is not found.`;
+		
+		if (data.service && data.version)
+			msg = `Service '${data.version}.${data.service}' not found.`;
+		else if (data.service)
+			msg = `Service '${data.service}' not found.`;
 
 		super(msg, 404, "SERVICE_NOT_FOUND", data);
 	}

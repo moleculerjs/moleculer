@@ -124,7 +124,7 @@ describe("Test MqttTransporter subscribe & publish", () => {
 
 	it("check incoming message handler", () => {
 		// Test subscribe callback
-		transporter.client.onCallbacks.message("prefix.event.name", "incoming data");
+		transporter.client.onCallbacks.message("MOL-TEST.event.name", "incoming data");
 		expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
 		expect(transporter.incomingMessage).toHaveBeenCalledWith("event", "incoming data");
 	});
@@ -217,7 +217,7 @@ describe("Test MqttTransporter subscribe & publish with different topicSeparator
 
 	it("check incoming message handler", () => {
 		// Test subscribe callback
-		transporter.client.onCallbacks.message("prefix/event/name", "incoming data");
+		transporter.client.onCallbacks.message("MOL-TEST/event/name", "incoming data");
 		expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
 		expect(transporter.incomingMessage).toHaveBeenCalledWith("event", "incoming data");
 	});

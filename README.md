@@ -44,7 +44,7 @@ Moleculer is a progressive microservices framework for Node.js.
 - pluggable serializers (JSON, Avro, MsgPack, Protocol Buffer, Thrift)
 - pluggable validator
 - multiple services on a node/server
-- all nodes are equal, no master/leader node
+- master-less architecture, all nodes are equal
 - parameter validation with [fastest-validator](https://github.com/icebob/fastest-validator)
 - built-in health monitoring & metrics
 - official [API gateway module](https://github.com/moleculerjs/moleculer-web) and many other modules...
@@ -83,31 +83,28 @@ broker.start()
     .then(res => console.log("5 + 3 =", res))
     .catch(err => console.error(`Error occurred! ${err.message}`));
 ```
-[Try it on Runkit](https://runkit.com/icebob/moleculer-quick-example)
+[Try it in your browser](https://codesandbox.io/s/ky5lj09jv?fontsize=14)
 
 # Create a Moleculer project
 Use the Moleculer CLI tool to create a new Moleculer based microservices project.
 
-1. Install [moleculer-cli](https://github.com/moleculerjs/moleculer-cli) globally
+1. Create a new project (named `moleculer-demo`)
     ```bash
-    $ npm install moleculer-cli -g
-    ```
-2. Create a new project (named `first-demo`)
-    ```bash
-    $ moleculer init project first-demo
+    $ npx moleculer init project moleculer-demo
     ```
     > Press Y on API Gateway & `npm install`
     
-3. Open project folder
+2. Open project folder
     ```bash
-    $ cd first-demo
+    $ cd moleculer-demo
     ```
     
-4. Start project
+3. Start project
     ```bash
     $ npm run dev
     ```
-5. Open the [http://localhost:3000/](http://localhost:3000/) link in your browser. It shows a start page which contains two links to call the `greeter` service via [API gateway](https://github.com/moleculerjs/moleculer-web).
+
+4. Open the [http://localhost:3000/](http://localhost:3000/) link in your browser. It shows a start page which contains two links to call the `greeter` service via [API gateway](https://github.com/moleculerjs/moleculer-web).
 
 :tada:**Congratulations! Your first Moleculer based microservices project is created. Read our [documentation](https://moleculer.services/docs) to learn more about Moleculer.**
 
@@ -115,7 +112,7 @@ Use the Moleculer CLI tool to create a new Moleculer based microservices project
 We have many official modules for Moleculer. [Check our list!](https://moleculer.services/modules.html)
 
 # Supporting
-Moleculer is an open source project. It is free to use for your personal or commercial projects. However, developing it takes up all my free time to make it better and better on a daily basis. If you like Moleculer framework, **[please support it](https://moleculer.services/support.html)**.
+Moleculer is an open source project. It is free to use for your personal or commercial projects. However, developing it takes up all our free time to make it better and better on a daily basis. If you like Moleculer framework, **[please support it](https://moleculer.services/support.html)**.
 
 Thank you very much!
 
@@ -135,7 +132,7 @@ Moleculer is available under the [MIT license](https://tldrlegal.com/license/mit
 [3rd party licenses](https://app.fossa.io/reports/09fc5b4f-d321-4f68-b859-8c61fe3eb6dc)
 
 # Contact
-Copyright (c) 2016-2018 MoleculerJS
+Copyright (c) 2016-2019 MoleculerJS
 
 [![@moleculerjs](https://img.shields.io/badge/github-moleculerjs-green.svg)](https://github.com/moleculerjs) [![@MoleculerJS](https://img.shields.io/badge/twitter-MoleculerJS-blue.svg)](https://twitter.com/MoleculerJS)
 

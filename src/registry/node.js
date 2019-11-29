@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -21,11 +21,13 @@ class Node {
 	 */
 	constructor(id) {
 		this.id = id;
+		this.instanceID = null;
 		this.available = true;
 		this.local = false;
 		this.lastHeartbeatTime = Date.now();
 		this.config = {};
 		this.client = {};
+		this.metadata = null;
 
 		this.ipList = null;
 		this.port = null;
@@ -51,10 +53,12 @@ class Node {
 	 */
 	update(payload, isReconnected) {
 		// Update properties
+		this.metadata = payload.metadata;
 		this.ipList = payload.ipList;
 		this.hostname = payload.hostname;
 		this.port = payload.port;
 		this.client = payload.client || {};
+		this.instanceID = payload.instanceID;
 
 		// Process services & events
 		this.services = payload.services;

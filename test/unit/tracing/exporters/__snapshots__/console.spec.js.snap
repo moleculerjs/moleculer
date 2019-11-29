@@ -1,0 +1,94 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test Console tracing exporter class Test removeSpanWithChildren method should clear printed spans 1`] = `
+Object {
+  "span1": Object {
+    "children": Array [
+      "span2",
+      "span5",
+    ],
+    "span": Object {
+      "id": "span1",
+      "parentID": null,
+    },
+  },
+  "span2": Object {
+    "children": Array [
+      "span3",
+    ],
+    "span": Object {
+      "id": "span2",
+      "parentID": "span1",
+    },
+  },
+  "span3": Object {
+    "children": Array [
+      "span4",
+    ],
+    "span": Object {
+      "id": "span3",
+      "parentID": "span2",
+    },
+  },
+  "span4": Object {
+    "children": Array [],
+    "span": Object {
+      "id": "span4",
+      "parentID": "span3",
+    },
+  },
+  "span5": Object {
+    "children": Array [],
+    "span": Object {
+      "id": "span5",
+      "parentID": "span1",
+    },
+  },
+  "span6": Object {
+    "children": Array [],
+    "span": Object {
+      "id": "span6",
+      "parentID": null,
+    },
+  },
+}
+`;
+
+exports[`Test Console tracing exporter class Test spans printing should print full trace 1`] = `
+Array [
+  "┌──────────────────────────────────────────────────────────────────────────────┐",
+  "│ ID: span-1                                                 Depth: 3 Total: 4 │",
+  "├──────────────────────────────────────────────────────────────────────────────┤",
+  "│ Span #1                     100ms [■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■] │",
+  "│ ├─┬─ Span #2 *               50ms [........■■■■■■■■■■■■■■■■■■■■............] │",
+  "│ │ └─── Span #22 (with lon... 25ms [..........■■■■■■■■■■....................] │",
+  "│ └─── Span #3                 75ms [......■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■....] │",
+  "└──────────────────────────────────────────────────────────────────────────────┘",
+]
+`;
+
+exports[`Test Console tracing exporter class Test spans printing should print full trace with error 1`] = `
+Array [
+  "┌──────────────────────────────────────────────────────────────────────────────┐",
+  "│ ID: span-1                                                 Depth: 3 Total: 4 │",
+  "├──────────────────────────────────────────────────────────────────────────────┤",
+  "│ Span #1                     100ms [■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■] │",
+  "│ ├─┬─ Span #2 *               50ms [........■■■■■■■■■■■■■■■■■■■■............] │",
+  "│ │ └─── Span #22 » ×          25ms [..........■■■■■■■■■■....................] │",
+  "│ └─── Span #3                 75ms [......■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■....] │",
+  "└──────────────────────────────────────────────────────────────────────────────┘",
+]
+`;
+
+exports[`Test Console tracing exporter class Test spans printing should print to the default logger 1`] = `
+Array [
+  "┌──────────────────────────────────────────────────────────────────────────────┐",
+  "│ ID: span-1                                                 Depth: 3 Total: 4 │",
+  "├──────────────────────────────────────────────────────────────────────────────┤",
+  "│ Span #1                     100ms [■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■] │",
+  "│ ├─┬─ Span #2 *               50ms [........■■■■■■■■■■■■■■■■■■■■............] │",
+  "│ │ └─── Span #22 »            25ms [..........■■■■■■■■■■....................] │",
+  "│ └─── Span #3                 75ms [......■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■....] │",
+  "└──────────────────────────────────────────────────────────────────────────────┘",
+]
+`;

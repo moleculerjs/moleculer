@@ -8,6 +8,7 @@
 
 const _ 			= require("lodash");
 const utils			= require("../utils");
+const Strategies 	= require("../strategies");
 const EndpointList 	= require("./endpoint-list");
 const EventEndpoint = require("./endpoint-event");
 
@@ -51,8 +52,10 @@ class EventCatalog {
 		const groupName = event.group || service.name;
 		let list = this.get(eventName, groupName);
 		if (!list) {
+			const strategyFactory = event.strategy ? (Strategies.resolve(event.strategy) || this.StrategyFactory) : this.StrategyFactory;
+			const strategyOptions = event.strategyOptions ? event.strategyOptions : this.registry.opts.strategyOptions;
 			// Create a new EndpointList
-			list = new EndpointList(this.registry, this.broker, eventName, groupName, this.EndpointFactory, this.StrategyFactory);
+			list = new EndpointList(this.registry, this.broker, eventName, groupName, this.EndpointFactory, strategyFactory, strategyOptions);
 			this.events.push(list);
 		}
 
@@ -142,19 +145,28 @@ class EventCatalog {
 	 *
 	 * @memberof EventCatalog
 	 */
-	emitLocalServices(eventName, payload, groupNames, nodeID, broadcast) {
+	emitLocalServices(ctx) {
+		const isBroadcast = ["broadcast", "broadcastLocal"].indexOf(ctx.eventType) !== -1;
+		const sender = ctx.nodeID;
+
 		this.events.forEach(list => {
-			if (!utils.match(eventName, list.name)) return;
-			if (groupNames == null || groupNames.length == 0 || groupNames.indexOf(list.group) !== -1) {
-				if (broadcast) {
+			if (!utils.match(ctx.eventName, list.name)) return;
+			if (ctx.eventGroups == null || ctx.eventGroups.length == 0 || ctx.eventGroups.indexOf(list.group) !== -1) {
+				if (isBroadcast) {
 					list.endpoints.forEach(ep => {
-						if (ep.local && ep.event.handler)
-							this.callEventHandler(ep.event.handler, payload, nodeID, eventName);
+						if (ep.local && ep.event.handler) {
+							const newCtx = ctx.copy(ep);
+							newCtx.nodeID = sender;
+							this.callEventHandler(newCtx);
+						}
 					});
 				} else {
 					const ep = list.nextLocal();
-					if (ep && ep.event.handler)
-						this.callEventHandler(ep.event.handler, payload, nodeID, eventName);
+					if (ep && ep.event.handler) {
+						const newCtx = ctx.copy(ep);
+						newCtx.nodeID = sender;
+						this.callEventHandler(newCtx);
+					}
 				}
 			}
 		});
@@ -163,18 +175,17 @@ class EventCatalog {
 	/**
 	 * Call local event handler and handles unhandled promise rejections.
 	 *
-	 * @param {Function} handler
-	 * @param {any} payload
-	 * @param {String} sender
-	 * @param {String} eventName
+	 * @param {Context} ctx
 	 *
 	 * @memberof EventCatalog
 	 */
-	callEventHandler(handler, payload, sender, eventName) {
-		const res = handler(payload, sender, eventName);
-		if (utils.isPromise(res))
-			return res.catch(err => this.broker.logger.error(err));
-		return res;
+	callEventHandler(ctx) {
+		return ctx.endpoint.event.handler(ctx)
+			.catch(err => this.broker.errorHandler(err, {
+				service: ctx.service,
+				event: ctx.event,
+				ctx
+			}));
 	}
 
 	/**

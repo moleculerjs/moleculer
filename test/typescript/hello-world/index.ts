@@ -4,7 +4,21 @@ import * as path from "path";
 import { ServiceBroker } from "../../../";
 
 const broker = new ServiceBroker({
-	logger: true
+	logger: true,
+	metrics: {
+		enabled: true,
+	},
+	tracing: {
+		enabled: true,
+		exporter: [
+			{
+				type: "Console",
+				options: {
+					colors: true
+				}
+			}
+		]
+	}
 });
 
 broker.loadService(path.join(__dirname, "greeter.service.ts"));

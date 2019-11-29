@@ -71,7 +71,8 @@ describe("Test circuit breaker", () => {
 			.then(() => master1.call("cb.happy"))
 			.then(() => master1.call("cb.happy"))
 			.then(() => master1.call("cb.happy"))
-			.then(res => expect(res).toBe("OK"));
+			.then(res => expect(res).toBe("OK"))
+			.catch(protectReject);
 	});
 
 	it("should call 'angry' and throw MoleculerError", () => {
@@ -102,6 +103,7 @@ describe("Test circuit breaker", () => {
 				expect(cbOpenedHandler).toHaveBeenCalledTimes(1);
 				expect(cbOpenedHandler).toHaveBeenCalledWith({
 					nodeID: "slave-1",
+					service: "cb",
 					action: "cb.angry",
 					failures: 3,
 					count: 5,
@@ -124,6 +126,7 @@ describe("Test circuit breaker", () => {
 				expect(cbOpenedHandler).toHaveBeenCalledTimes(1);
 				expect(cbOpenedHandler).toHaveBeenCalledWith({
 					nodeID: "slave-1",
+					service: "cb",
 					action: "cb.angry",
 					failures: 4,
 					count: 6,
@@ -143,10 +146,9 @@ describe("Test circuit breaker", () => {
 			.catch(protectReject);
 	});
 
-	/*
-		TODO: Not working because timer created before lolex install.
+	// TODO: Not working because timer created before lolex install.
 
-	it("should reset values by window timer", () => {
+	it.skip("should reset values by window timer", () => {
 		return master1.call("cb.angry")
 			.then(protectReject)
 			.catch(err => expect(err.name).toBe("MoleculerError"))
@@ -196,6 +198,5 @@ describe("Test circuit breaker", () => {
 			});
 	});
 
-*/
 });
 

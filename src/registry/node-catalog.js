@@ -63,7 +63,6 @@ class NodeCatalog {
 
 		if (typeof this.heartbeatTimer === "number") throw new Error("heartbeatTimer should not be a number. See issue [#362] for details.");
 
-
 		this.heartbeatTimer.unref();
 
 		/* istanbul ignore next */
@@ -111,12 +110,14 @@ class NodeCatalog {
 		const node = new Node(this.broker.nodeID);
 		node.local = true;
 		node.ipList = getIpList();
+		node.instanceID = this.broker.instanceID;
 		node.hostname = os.hostname();
 		node.client = {
 			type: "nodejs",
 			version: this.broker.MOLECULER_VERSION,
 			langVersion: process.version
 		};
+		node.metadata = this.broker.metadata;
 		node.seq = 1;
 
 		this.add(node.id, node);
@@ -159,6 +160,26 @@ class NodeCatalog {
 	}
 
 	/**
+	 * Get count of all registered nodes
+	 */
+	count() {
+		return this.nodes.size;
+	}
+
+	/**
+	 * Get count of online nodes
+	 */
+	onlineCount() {
+		let count = 0;
+		this.nodes.forEach(node => {
+			if (node.available)
+				count++;
+		});
+
+		return count;
+	}
+
+	/**
 	 * Process incoming INFO packet payload
 	 *
 	 * @param {any} payload
@@ -195,9 +216,11 @@ class NodeCatalog {
 		if (isNew) {
 			this.broker.broadcastLocal("$node.connected", { node, reconnected: false });
 			this.logger.info(`Node '${nodeID}' connected.`);
+			this.registry.updateMetrics();
 		} else if (isReconnected) {
 			this.broker.broadcastLocal("$node.connected", { node, reconnected: true });
 			this.logger.info(`Node '${nodeID}' reconnected.`);
+			this.registry.updateMetrics();
 		} else {
 			this.broker.broadcastLocal("$node.updated", { node });
 			this.logger.debug(`Node '${nodeID}' updated.`);
@@ -239,7 +262,7 @@ class NodeCatalog {
 
 			if (now - (node.lastHeartbeatTime || 0) > 10 * 60 * 1000) {
 				this.logger.warn(`Remove offline '${node.id}' node from registry because it hasn't submitted heartbeat signal for 10 minutes.`);
-				return this.nodes.delete(node.id);
+				this.nodes.delete(node.id);
 			}
 		});
 	}
@@ -259,6 +282,8 @@ class NodeCatalog {
 			this.registry.unregisterServicesByNode(node.id);
 
 			this.broker.broadcastLocal("$node.disconnected", { node, unexpected: !!isUnexpected });
+
+			this.registry.updateMetrics();
 
 			this.logger.warn(`Node '${node.id}' disconnected${isUnexpected ? " unexpectedly" : ""}.`);
 

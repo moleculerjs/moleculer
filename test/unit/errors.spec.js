@@ -293,6 +293,57 @@ describe("Test Errors.recreateError", () => {
 		expect(err.data).toEqual({ a: 5 });
 	});
 
+	it("should recreate MoleculerRetryableError", () => {
+		let err = errors.recreateError({
+			name: "MoleculerRetryableError",
+			message: "Something went wrong",
+			code: 501,
+			type: "SOMETHING_ERROR",
+			data: { a: 5 }
+		});
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(errors.MoleculerRetryableError);
+		expect(err.name).toBe("MoleculerRetryableError");
+		expect(err.message).toBe("Something went wrong");
+		expect(err.code).toBe(501);
+		expect(err.type).toBe("SOMETHING_ERROR");
+		expect(err.data).toEqual({ a: 5 });
+	});
+
+	it("should recreate MoleculerServerError", () => {
+		let err = errors.recreateError({
+			name: "MoleculerServerError",
+			message: "Something went wrong",
+			code: 501,
+			type: "SOMETHING_ERROR",
+			data: { a: 5 }
+		});
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(errors.MoleculerServerError);
+		expect(err.name).toBe("MoleculerServerError");
+		expect(err.message).toBe("Something went wrong");
+		expect(err.code).toBe(501);
+		expect(err.type).toBe("SOMETHING_ERROR");
+		expect(err.data).toEqual({ a: 5 });
+	});
+
+	it("should recreate MoleculerClientError", () => {
+		let err = errors.recreateError({
+			name: "MoleculerClientError",
+			message: "Something went wrong",
+			code: 404,
+			type: "SOMETHING_ERROR",
+			data: { a: 5 }
+		});
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(errors.MoleculerClientError);
+		expect(err.name).toBe("MoleculerClientError");
+		expect(err.message).toBe("Something went wrong");
+		expect(err.code).toBe(404);
+		expect(err.type).toBe("SOMETHING_ERROR");
+		expect(err.data).toEqual({ a: 5 });
+	});
+
 	it("should recreate ValidationError", () => {
 		let err = errors.recreateError({
 			name: "ValidationError",
@@ -321,6 +372,145 @@ describe("Test Errors.recreateError", () => {
 		expect(err.code).toBe(404);
 		expect(err.type).toBe("SERVICE_NOT_FOUND");
 		expect(err.data).toEqual({ action: "posts.find", nodeID: "node-2" });
+	});
+
+	it("should recreate ServiceNotAvailableError", () => {
+		let err = errors.recreateError({
+			name: "ServiceNotAvailableError",
+			data: { action: "posts.find", nodeID: "node-2" }
+		});
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(errors.ServiceNotAvailableError);
+		expect(err.name).toBe("ServiceNotAvailableError");
+		expect(err.message).toBe("Service 'posts.find' is not available on 'node-2' node.");
+		expect(err.code).toBe(404);
+		expect(err.type).toBe("SERVICE_NOT_AVAILABLE");
+		expect(err.data).toEqual({ action: "posts.find", nodeID: "node-2" });
+	});
+
+	it("should recreate RequestTimeoutError", () => {
+		let err = errors.recreateError({
+			name: "RequestTimeoutError",
+			data: { action: "posts.find", nodeID: "node-2" }
+		});
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(errors.RequestTimeoutError);
+		expect(err.name).toBe("RequestTimeoutError");
+		expect(err.message).toBe("Request is timed out when call 'posts.find' action on 'node-2' node.");
+		expect(err.code).toBe(504);
+		expect(err.type).toBe("REQUEST_TIMEOUT");
+		expect(err.data).toEqual({ action: "posts.find", nodeID: "node-2" });
+	});
+
+	it("should recreate RequestSkippedError", () => {
+		let err = errors.recreateError({
+			name: "RequestSkippedError",
+			data: { action: "posts.find", nodeID: "node-2" }
+		});
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(errors.RequestSkippedError);
+		expect(err.name).toBe("RequestSkippedError");
+		expect(err.message).toBe("Calling 'posts.find' is skipped because timeout reached on 'node-2' node.");
+		expect(err.code).toBe(514);
+		expect(err.type).toBe("REQUEST_SKIPPED");
+		expect(err.data).toEqual({ action: "posts.find", nodeID: "node-2" });
+	});
+
+	it("should recreate RequestRejectedError", () => {
+		let err = errors.recreateError({
+			name: "RequestRejectedError",
+			data: { action: "posts.find", nodeID: "node-2" }
+		});
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(errors.RequestRejectedError);
+		expect(err.name).toBe("RequestRejectedError");
+		expect(err.message).toBe("Request is rejected when call 'posts.find' action on 'node-2' node.");
+		expect(err.code).toBe(503);
+		expect(err.type).toBe("REQUEST_REJECTED");
+		expect(err.data).toEqual({ action: "posts.find", nodeID: "node-2" });
+	});
+
+	it("should recreate QueueIsFullError", () => {
+		let err = errors.recreateError({
+			name: "QueueIsFullError",
+			data: { action: "posts.find", nodeID: "node-2" }
+		});
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(errors.QueueIsFullError);
+		expect(err.name).toBe("QueueIsFullError");
+		expect(err.message).toBe("Queue is full. Request 'posts.find' action on 'node-2' node is rejected.");
+		expect(err.code).toBe(429);
+		expect(err.type).toBe("QUEUE_FULL");
+		expect(err.data).toEqual({ action: "posts.find", nodeID: "node-2" });
+	});
+
+	it("should recreate MaxCallLevelError", () => {
+		let err = errors.recreateError({
+			name: "MaxCallLevelError",
+			data: { level: 3, nodeID: "node-2" }
+		});
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(errors.MaxCallLevelError);
+		expect(err.name).toBe("MaxCallLevelError");
+		expect(err.message).toBe("Request level is reached the limit (3) on 'node-2' node.");
+		expect(err.code).toBe(500);
+		expect(err.type).toBe("MAX_CALL_LEVEL");
+		expect(err.data).toEqual({ level: 3, nodeID: "node-2" });
+	});
+
+	it("should recreate GracefulStopTimeoutError", () => {
+		let err = errors.recreateError({
+			name: "GracefulStopTimeoutError"
+		});
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(errors.GracefulStopTimeoutError);
+		expect(err.name).toBe("GracefulStopTimeoutError");
+		expect(err.message).toBe("Unable to stop ServiceBroker gracefully.");
+		expect(err.code).toBe(500);
+		expect(err.type).toBe("GRACEFUL_STOP_TIMEOUT");
+	});
+
+	it("should recreate ProtocolVersionMismatchError", () => {
+		let err = errors.recreateError({
+			name: "ProtocolVersionMismatchError",
+			data: { a: 5 }
+		});
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(errors.ProtocolVersionMismatchError);
+		expect(err.name).toBe("ProtocolVersionMismatchError");
+		expect(err.message).toBe("Protocol version mismatch.");
+		expect(err.code).toBe(500);
+		expect(err.type).toBe("PROTOCOL_VERSION_MISMATCH");
+		expect(err.data).toEqual({ a: 5 });
+	});
+
+	it("should recreate InvalidPacketDataError", () => {
+		let err = errors.recreateError({
+			name: "InvalidPacketDataError",
+			data: { a: 5 }
+		});
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(errors.InvalidPacketDataError);
+		expect(err.name).toBe("InvalidPacketDataError");
+		expect(err.message).toBe("Invalid packet data.");
+		expect(err.code).toBe(500);
+		expect(err.type).toBe("INVALID_PACKET_DATA");
+		expect(err.data).toEqual({ a: 5 });
+	});
+
+	it("should recreate ServiceSchemaError", () => {
+		let err = errors.recreateError({
+			name: "ServiceSchemaError",
+			message: "Something wrong in broker options",
+			data: { a: 5 }
+		});
+		expect(err).toBeDefined();
+		expect(err).toBeInstanceOf(errors.ServiceSchemaError);
+		expect(err.name).toBe("ServiceSchemaError");
+		expect(err.message).toBe("Something wrong in broker options");
+		expect(err.code).toBe(500);
+		expect(err.type).toBe("SERVICE_SCHEMA_ERROR");
+		expect(err.data).toEqual({ a: 5 });
 	});
 
 	it("should recreate BrokerOptionsError", () => {
