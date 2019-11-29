@@ -32,7 +32,7 @@ declare namespace Moleculer {
 		trace(...args: any[]): void;
 	}
 
-	type ActionHandler<T = any> = ((ctx: Context) => PromiseLike<T> | T) & ThisType<Service>;
+	type ActionHandler<T = any> = ((ctx: Context<any, any>) => PromiseLike<T> | T) & ThisType<Service>;
 	type ActionParamSchema = { [key: string]: any };
 	type ActionParamTypes =
 		| "any"
@@ -452,7 +452,7 @@ declare namespace Moleculer {
 		disconnected(): void;
 	}
 
-	class Context<P = {}, M extends object = {}> {
+	class Context<P = unknown, M extends object = {}> {
 		constructor(broker: ServiceBroker, endpoint: Endpoint);
 		id: string;
 		broker: ServiceBroker;
@@ -1053,6 +1053,7 @@ declare namespace Moleculer {
 			del(key: string|Array<string>): PromiseLike<any>;
 			clean(match?: string|Array<string>): PromiseLike<any>;
 			getCacheKey(actionName: string, params: object, meta: object, keys: Array<string> | null) : string;
+			defaultKeygen(actionName: string, params: object | null, meta: object, keys: Array<string> | null): string;
 		}
 
 		class Memory extends Base {
