@@ -301,6 +301,52 @@ class Amqp10Transporter extends Transporter {
       }
     })
   }
+
+  /**
+   * Subscribe to balanced action commands
+   *
+   * @param {String} action
+   * @memberof AmqpTransporter
+   */
+  subscribeBalancedRequest(action) {
+    const queue = `${this.prefix}.${PACKET_REQUEST}B.${action}`
+
+    const receiver = this.connection.open_receiver(Object.assign({ address: queue }, this._getQueueOptions(PACKET_REQUEST, true)))
+
+    receiver.on('message', this._consumeCB(PACKET_REQUEST, true))
+
+    receiver.on('receiver_open', () => {
+      resolve()
+    })
+
+    receiver.on('receiver_error', () => {
+      reject(receiver.error)
+    })
+  }
+
+  /**
+   * Subscribe to balanced event command
+   *
+   * @param {String} event
+   * @param {String} group
+   * @memberof AmqpTransporter
+   */
+  subscribeBalancedEvent(event, group) {
+    const queue = `${this.prefix}.${PACKET_EVENT}B.${group}.${event}`
+    const receiver = this.connection.open_receiver(
+      Object.assign({ address: queue }, this._getQueueOptions(PACKET_REQUEST + 'LB', true))
+    )
+
+    receiver.on('message', this._consumeCB(PACKET_REQUEST, true))
+
+    receiver.on('receiver_open', () => {
+      resolve()
+    })
+
+    receiver.on('receiver_error', () => {
+      reject(receiver.error)
+    })
+  }
 }
 
 module.exports = Amqp10Transporter
