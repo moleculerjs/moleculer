@@ -126,6 +126,8 @@ class ServiceBroker {
 	 */
 	constructor(options) {
 		try {
+			// eslint-disable-next-line no-console
+			console.log("sdfsdfsdfsdf");
 			this.options = _.defaultsDeep(options, defaultOptions);
 
 			// Promise constructor

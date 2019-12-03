@@ -95,7 +95,8 @@
     "glob": "^7.1.4",
     "ipaddr.js": "^1.9.1",
     "lodash": "^4.17.15",
-    "lru-cache": "^5.1.1"
+    "lru-cache": "^5.1.1",
+    "rhea": "^1.0.13"
   },
   "engines": {
     "node": ">= 6.x.x"
