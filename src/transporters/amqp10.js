@@ -347,6 +347,79 @@ class Amqp10Transporter extends Transporter {
       reject(receiver.error)
     })
   }
+
+  /**
+   * Publish a packet
+   *
+   * @param {Packet} packet
+   *
+   * @memberof AmqpTransporter
+   * @description Send packets to their intended queues / exchanges.
+   *
+   * Reasonings documented in the subscribe method.
+   */
+  publish(packet) {
+    /* istanbul ignore next*/
+    if (!this.connection) return Promise.resolve()
+
+    let topic = this.getTopicName(packet.type, packet.target)
+    const data = this.serialize(packet)
+
+    const message = Object.assign({ body: data, to: topic }, this.opts.messageOptions)
+
+    this.incStatSent(data.length)
+    if (packet.target != null) {
+      this.connection.send(message)
+    } else {
+      //TODO how do we handle this??
+    }
+
+    return Promise.resolve()
+  }
+
+  /**
+   * Publish a balanced EVENT packet to a balanced queue
+   *
+   * @param {Packet} packet
+   * @param {String} group
+   * @returns {Promise}
+   * @memberof AmqpTransporter
+   */
+  publishBalancedEvent(packet, group) {
+    /* istanbul ignore next*/
+    if (!this.connection) return Promise.resolve()
+
+    let queue = `${this.prefix}.${PACKET_EVENT}B.${group}.${packet.payload.event}`
+    const data = this.serialize(packet)
+    this.incStatSent(data.length)
+
+    const message = Object.assign({ body: data, to: topic }, this.opts.messageOptions)
+    this.connection.send(message)
+
+    return Promise.resolve()
+  }
+
+  /**
+   * Publish a balanced REQ packet to a balanced queue
+   *
+   * @param {Packet} packet
+   * @returns {Promise}
+   * @memberof AmqpTransporter
+   */
+  publishBalancedRequest(packet) {
+    /* istanbul ignore next*/
+    if (!this.channel) return Promise.resolve()
+
+    const topic = `${this.prefix}.${PACKET_REQUEST}B.${packet.payload.action}`
+
+    const data = this.serialize(packet)
+    this.incStatSent(data.length)
+
+    const message = Object.assign({ body: data, to: topic }, this.opts.messageOptions)
+    this.connection.send(message)
+
+    return Promise.resolve()
+  }
 }
 
 module.exports = Amqp10Transporter
