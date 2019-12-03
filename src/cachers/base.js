@@ -173,7 +173,7 @@ class Cacher {
 	 * Default cache key generator
 	 *
 	 * @param {String} actionName
-	 * @param {Object} params
+	 * @param {Object|null} params
 	 * @param {Object} meta
 	 * @param {Array|null} keys
 	 * @returns {String}
