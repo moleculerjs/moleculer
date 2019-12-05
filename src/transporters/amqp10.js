@@ -228,27 +228,49 @@ class Amqp10Transporter extends Transporter {
 				port: urlParsed.port
 			});
 
-			rhea.on("connection_open", context => {
+			rhea.on("connection_open", () => {
 				this.logger.info("AMQP10 is connected.");
-				resolve();
-				// context.connection.open_receiver("examples");
-				// context.connection.open_sender("examples");
+
+				return resolve();
 			});
 
-			rhea.on("connection_close", context => {
+			rhea.on("connection_close", () => {
 				this.logger.info("AMQP10 is disconnected.");
-				resolve();
-				// context.connection.open_receiver("examples");
-				// context.connection.open_sender("examples");
+				this.connected = false;
+
+				return resolve();
 			});
 
-			rhea.on("connection_error", context => {
+			rhea.on("connection_error", (context) => {
 				this.logger.error("AMQP10 connection error.", context.error);
-				reject();
-				// context.connection.open_receiver("examples");
-				// context.connection.open_sender("examples");
+				this.connected = false;
+
+				return reject(context.error);
 			});
 		});
+	}
+
+	/**
+	 * Disconnect from an AMQP10 server
+	 *
+	 * @memberof Amqp10Transporter
+	 */
+	disconnect() {
+		if (this.connection) {
+			return Promise.all(this.bindings.map(binding => this.channel.unbindQueue(...binding)))
+				.then(() => {
+					this.channelDisconnecting = this.transit.disconnecting;
+					this.connectionDisconnecting = this.transit.disconnecting;
+				})
+				.then(() => this.channel.close())
+				.then(() => this.connection.close())
+				.then(() => {
+					this.bindings = [];
+					this.channel = null;
+					this.connection = null;
+				})
+				.catch(err => this.logger.warn(err));
+		}
 	}
 
 	subscribe(cmd, nodeID) {
