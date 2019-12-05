@@ -260,26 +260,13 @@ class Amqp10Transporter extends Transporter {
 	 */
 	disconnect() {
 		if (this.connection) {
-			return Promise.all(this.bindings.map(binding => this.channel.unbindQueue(...binding)))
-				.then(() => {
-					this.channelDisconnecting = this.transit.disconnecting;
-					this.connectionDisconnecting = this.transit.disconnecting;
-				})
-				.then(() => this.channel.close())
-				.then(() => this.connection.close())
-				.then(() => {
-					this.bindings = [];
-					this.channel = null;
-					this.connection = null;
-				})
-				.catch(err => this.logger.warn(err));
+			this.connection.close();
+			return Promise.resolve();
 		}
 	}
 
 	subscribe(cmd, nodeID) {
 		if (!this.connection) return;
-
-		console.log("subscribe");
 
 		const topic = this.getTopicName(cmd, nodeID);
 
