@@ -40,7 +40,7 @@ class Amqp10Transporter extends Transporter {
 	 *
 	 * @memberof Amqp10Transporter
 	 */
-	constructor(opts) {
+	constructor (opts) {
 		if (typeof opts === "string") opts = { url: opts };
 		else if (opts == null) opts = {};
 
@@ -84,7 +84,7 @@ class Amqp10Transporter extends Transporter {
 	 *
 	 * @memberof AmqpTransporter
 	 */
-	_getQueueOptions(packetType, balancedQueue) {
+	_getQueueOptions (packetType, balancedQueue) {
 		let packetOptions;
 		switch (packetType) {
 			// Requests and responses don't expire.
@@ -130,7 +130,7 @@ class Amqp10Transporter extends Transporter {
 	 *
 	 * @memberof AmqpTransporter
 	 */
-	_getMessageOptions(packetType, balancedQueue) {
+	_getMessageOptions (packetType, balancedQueue) {
 		let messageOptions;
 		switch (packetType) {
 			case PACKET_REQUEST:
@@ -163,7 +163,7 @@ class Amqp10Transporter extends Transporter {
 	 *
 	 * @memberof AmqpTransporter
 	 */
-	_consumeCB(cmd, needAck = false) {
+	_consumeCB (cmd, needAck = false) {
 		return (msg, delivery) => {
 			const result = this.incomingMessage(cmd, msg.content);
 
@@ -194,7 +194,7 @@ class Amqp10Transporter extends Transporter {
 	 *
 	 * @memberof Amqp10Transporter
 	 */
-	connect(errorCallback) {
+	connect (errorCallback) {
 		return new Promise((_resolve, _reject) => {
 			let _isResolved = false;
 			const resolve = () => {
@@ -230,8 +230,8 @@ class Amqp10Transporter extends Transporter {
 
 			rhea.on("connection_open", () => {
 				this.logger.info("AMQP10 is connected.");
-
-				return resolve();
+				return this.onConnected()
+					.then(resolve);
 			});
 
 			rhea.on("connection_close", () => {
@@ -255,7 +255,7 @@ class Amqp10Transporter extends Transporter {
 	 *
 	 * @memberof Amqp10Transporter
 	 */
-	disconnect() {
+	disconnect () {
 		if (this.connection) {
 			return Promise.all(this.bindings.map(binding => this.channel.unbindQueue(...binding)))
 				.then(() => {
@@ -273,7 +273,7 @@ class Amqp10Transporter extends Transporter {
 		}
 	}
 
-	subscribe(cmd, nodeID) {
+	subscribe (cmd, nodeID) {
 		if (!this.connection) return;
 
 		const topic = this.getTopicName(cmd, nodeID);
@@ -330,7 +330,7 @@ class Amqp10Transporter extends Transporter {
 	 * @param {String} action
 	 * @memberof AmqpTransporter
 	 */
-	subscribeBalancedRequest(action) {
+	subscribeBalancedRequest (action) {
 		const queue = `${this.prefix}.${PACKET_REQUEST}B.${action}`;
 
 		const receiver = this.connection.open_receiver(Object.assign({ address: queue }, this._getQueueOptions(PACKET_REQUEST, true)));
@@ -353,7 +353,7 @@ class Amqp10Transporter extends Transporter {
 	 * @param {String} group
 	 * @memberof AmqpTransporter
 	 */
-	subscribeBalancedEvent(event, group) {
+	subscribeBalancedEvent (event, group) {
 		const queue = `${this.prefix}.${PACKET_EVENT}B.${group}.${event}`;
 		const receiver = this.connection.open_receiver(
 			Object.assign({ address: queue }, this._getQueueOptions(PACKET_REQUEST + "LB", true))
@@ -380,7 +380,7 @@ class Amqp10Transporter extends Transporter {
 	 *
 	 * Reasonings documented in the subscribe method.
 	 */
-	publish(packet) {
+	publish (packet) {
 		/* istanbul ignore next*/
 		if (!this.connection) return Promise.resolve();
 
@@ -407,7 +407,7 @@ class Amqp10Transporter extends Transporter {
 	 * @returns {Promise}
 	 * @memberof AmqpTransporter
 	 */
-	publishBalancedEvent(packet, group) {
+	publishBalancedEvent (packet, group) {
 		/* istanbul ignore next*/
 		if (!this.connection) return Promise.resolve();
 
@@ -428,7 +428,7 @@ class Amqp10Transporter extends Transporter {
 	 * @returns {Promise}
 	 * @memberof AmqpTransporter
 	 */
-	publishBalancedRequest(packet) {
+	publishBalancedRequest (packet) {
 		/* istanbul ignore next*/
 		if (!this.channel) return Promise.resolve();
 
