@@ -426,7 +426,7 @@ class Amqp10Transporter extends Transporter {
 		const data = this.serialize(packet);
 		this.incStatSent(data.length);
 
-		const message = Object.assign({ body: data, to: topic }, this.opts.messageOptions);
+		const message = Object.assign({ body: data, to: queue }, this.opts.messageOptions);
 		this.connection.send(message);
 
 		return Promise.resolve();
