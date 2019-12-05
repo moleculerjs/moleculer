@@ -275,7 +275,13 @@ class Amqp10Transporter extends Transporter {
 			if (nodeID != null) {
 				const needAck = [PACKET_REQUEST].indexOf(cmd) !== -1;
 
-				const receiver = this.connection.open_receiver(Object.assign({ address: topic }, this._getQueueOptions(cmd)));
+				console.log(
+					"==> open receiver",
+					JSON.stringify(Object.assign({ source: { address: topic } }, this._getQueueOptions(cmd)))
+				);
+				const receiver = this.connection.open_receiver(
+					Object.assign({ source: { address: topic } }, this._getQueueOptions(cmd))
+				);
 
 				receiver.on("message", this._consumeCB(cmd, needAck));
 
@@ -285,7 +291,7 @@ class Amqp10Transporter extends Transporter {
 				});
 
 				receiver.on("receiver_error", () => {
-					console.log("==> receiver_error", topic, receiver.error);
+					console.log("==> receiver_error", topic, JSON.stringify(receiver.error));
 					reject(receiver.error);
 				});
 			} else {
@@ -296,15 +302,19 @@ class Amqp10Transporter extends Transporter {
 				// const bindingArgs = [queueName, topic, '']
 				// this.bindings.push(bindingArgs)
 
-				const receiver = this.connection.open_receiver(Object.assign({ address: queueName }, this._getQueueOptions(cmd)));
+				const receiver = this.connection.open_receiver(
+					Object.assign({ source: { address: queueName } }, this._getQueueOptions(cmd))
+				);
 
 				receiver.on("message", this._consumeCB(cmd, false));
 
 				receiver.on("receiver_open", () => {
+					console.log("==> receiver_open", topic);
 					resolve();
 				});
 
 				receiver.on("receiver_error", () => {
+					console.log("==> receiver_error", topic, JSON.stringify(receiver.error));
 					reject(receiver.error);
 				});
 				// this.channel
