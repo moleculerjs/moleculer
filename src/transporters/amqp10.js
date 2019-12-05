@@ -279,9 +279,8 @@ class Amqp10Transporter extends Transporter {
 	subscribe(cmd, nodeID) {
 		if (!this.connection) return;
 
-		console.log("subscribe");
-
 		const topic = this.getTopicName(cmd, nodeID);
+		console.log("==> Subscribe", topic);
 
 		return new Promise((resolve, reject) => {
 			if (nodeID != null) {
@@ -292,10 +291,12 @@ class Amqp10Transporter extends Transporter {
 				receiver.on("message", this._consumeCB(cmd, needAck));
 
 				receiver.on("receiver_open", () => {
+					console.log("==> receiver_open", topic);
 					resolve();
 				});
 
 				receiver.on("receiver_error", () => {
+					console.log("==> receiver_error", topic, receiver.error);
 					reject(receiver.error);
 				});
 			} else {
