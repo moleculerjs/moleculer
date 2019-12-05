@@ -131,7 +131,7 @@ class Amqp10Transporter extends Transporter {
 	 * @memberof AmqpTransporter
 	 */
 	_getMessageOptions(packetType, balancedQueue) {
-		let messageOptions;
+		let messageOptions = {};
 		switch (packetType) {
 			case PACKET_REQUEST:
 			case PACKET_RESPONSE:
@@ -164,8 +164,10 @@ class Amqp10Transporter extends Transporter {
 	 * @memberof AmqpTransporter
 	 */
 	_consumeCB(cmd, needAck = false) {
-		return (msg, delivery) => {
-			const result = this.incomingMessage(cmd, msg.content);
+		return ({ message, delivery }) => {
+			console.log("==>  GOT MESSAGE", cmd);
+			cmd = cmd.replace("topic://", "");
+			const result = this.incomingMessage(cmd, message.body);
 
 			// If a promise is returned, acknowledge the message after it has resolved.
 			// This means that if a worker dies after receiving a message but before responding, the
@@ -268,18 +270,14 @@ class Amqp10Transporter extends Transporter {
 	subscribe(cmd, nodeID) {
 		if (!this.connection) return;
 
-		console.log("subscribe");
-
 		const topic = this.getTopicName(cmd, nodeID);
+		console.log("==> subscribe", cmd, nodeID);
 
 		return new Promise((resolve, reject) => {
 			if (nodeID != null) {
 				const needAck = [PACKET_REQUEST].indexOf(cmd) !== -1;
 
-				console.log(
-					"==> open receiver",
-					JSON.stringify(Object.assign({ source: { address: topic } }, this._getQueueOptions(cmd)))
-				);
+				console.log("==> open receiver nodeID != null", topic);
 				const receiver = this.connection.open_receiver(
 					Object.assign({ source: { address: topic } }, this._getQueueOptions(cmd))
 				);
@@ -287,6 +285,7 @@ class Amqp10Transporter extends Transporter {
 				receiver.on("message", this._consumeCB(cmd, needAck));
 
 				receiver.on("receiver_open", () => {
+					console.log("==> receiver_open", topic);
 					resolve();
 				});
 
@@ -302,6 +301,9 @@ class Amqp10Transporter extends Transporter {
 				// const bindingArgs = [queueName, topic, '']
 				// this.bindings.push(bindingArgs)
 
+				console.log("==> open receiver", queueName);
+				const needAck = [PACKET_REQUEST].indexOf(cmd) !== -1;
+
 				const receiver = this.connection.open_receiver(
 					Object.assign({ source: { address: queueName } }, this._getQueueOptions(cmd))
 				);
@@ -309,14 +311,33 @@ class Amqp10Transporter extends Transporter {
 				receiver.on("message", this._consumeCB(cmd, false));
 
 				receiver.on("receiver_open", () => {
-					console.log("==> receiver_open", topic);
+					console.log("==> receiver_open", queueName);
 					resolve();
 				});
 
 				receiver.on("receiver_error", () => {
-					console.log("==> receiver_error", topic, JSON.stringify(receiver.error));
+					console.log("==> receiver_error", queueName, JSON.stringify(receiver.error));
 					reject(receiver.error);
 				});
+
+				console.log("==> open receiver", "topic://" + topic);
+
+				const receiver2 = this.connection.open_receiver(
+					Object.assign({ source: { address: "topic://" + topic } }, this._getQueueOptions(cmd))
+				);
+
+				receiver2.on("message", this._consumeCB(cmd, false));
+
+				receiver2.on("receiver_open", () => {
+					console.log("==> receiver_open", "topic://" + topic);
+					resolve();
+				});
+
+				receiver2.on("receiver_error", () => {
+					console.log("==> receiver_error", "topic://" + topic, JSON.stringify(receiver.error));
+					reject(receiver.error);
+				});
+
 				// this.channel
 				//   .assertQueue(queueName, this._getQueueOptions(cmd))
 				//   .then(() =>
@@ -398,13 +419,19 @@ class Amqp10Transporter extends Transporter {
 		let topic = this.getTopicName(packet.type, packet.target);
 		const data = this.serialize(packet);
 
-		const message = Object.assign({ body: data, to: topic }, this.opts.messageOptions);
+		console.log("==> publish topic", packet.type);
+		console.log("==> publish target", packet.target);
+		const message = Object.assign(
+			{ body: data, to: packet.target ? topic : "topic://" + topic },
+			this._getMessageOptions(packet.type)
+		);
 
 		this.incStatSent(data.length);
 		if (packet.target != null) {
 			this.connection.send(message);
 		} else {
 			//TODO how do we handle this??
+			this.connection.send(message);
 		}
 
 		return Promise.resolve();
