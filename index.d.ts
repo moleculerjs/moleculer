@@ -998,6 +998,7 @@ declare namespace Moleculer {
 		init(transit: Transit, messageHandler: (cmd: string, msg: string) => void, afterConnect: (wasReconnect: boolean) => void): void;
 		connect(): PromiseLike<any>;
 		disconnect(): PromiseLike<any>;
+		onConnected(wasReconnect?: boolean): PromiseLike<any>;
 
 		makeSubscriptions(topics: Array<GenericObject>): PromiseLike<void>;
 		subscribe(cmd: string, nodeID?: string): PromiseLike<void>;
