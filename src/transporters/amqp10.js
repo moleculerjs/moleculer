@@ -181,7 +181,8 @@ class Amqp10Transporter extends Transporter {
 			port: urlParsed.port,
 			container_id: rhea.generate_uuid()
 		};
-		const connection = new rhea.Connection(connectionOptions);
+		const container = new rhea.Container();
+		const connection = container.createConnection(connectionOptions);
 		try {
 			this.connection = await connection.open();
 			this.logger.info("AMQP10 is connected.");
@@ -232,6 +233,7 @@ class Amqp10Transporter extends Transporter {
 					}
 				}
 			});
+
 		if (nodeID) {
 			const needAck = [PACKET_REQUEST].indexOf(cmd) !== -1;
 			Object.assign(receiverOptions, {
@@ -241,9 +243,9 @@ class Amqp10Transporter extends Transporter {
 				}
 			});
 
-			const receiver = await this.connection.createReceiver(receiverOptions)
+			const receiver = await this.connection.createReceiver(receiverOptions);
 			receiver.on("message", (context) => {
-				this._consumeCB(cmd, needAck);
+				this._consumeCB(cmd, needAck)(context);
 			});
 			receiver.on("receiver_error", (context) => {
 				const receiverError = context.receiver && context.receiver.error;
@@ -262,7 +264,7 @@ class Amqp10Transporter extends Transporter {
 					address: "topic://" + topic
 				}
 			});
-			const receiver = await this.connection.createReceiver(receiverOptions)
+			const receiver = await this.connection.createReceiver(receiverOptions);
 
 			receiver.on("message", (context) => {
 				this._consumeCB(cmd, false)(context);
