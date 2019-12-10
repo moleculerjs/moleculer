@@ -41,50 +41,15 @@ class Amqp10Transporter extends Transporter {
 	 * @memberof Amqp10Transporter
 	 */
 	constructor(opts) {
-		if (typeof opts === "string") opts = { url: opts };
-		else if (opts == null) opts = {};
-
-		// Number of requests a broker will handle concurrently
-		if (typeof opts.prefetch !== "number") opts.prefetch = 1;
-
-		// Number of milliseconds before an event expires
-		if (typeof opts.eventTimeToLive !== "number") opts.eventTimeToLive = 1000;
-
-		if (typeof opts.heartbeatTimeToLive !== "number") opts.heartbeatTimeToLive = null;
-
-		if (typeof opts.queueOptions !== "object") opts.queueOptions = {};
-
-		if (typeof opts.exchangeOptions !== "object") opts.exchangeOptions = {};
-
-		if (typeof opts.messageOptions !== "object") opts.messageOptions = {};
-
-		if (typeof opts.consumeOptions !== "object") opts.consumeOptions = {};
-
-		opts.autoDeleteQueues =
-			typeof opts.autoDeleteQueues === "number" ? (opts.autoDeleteQueues >= 0 ? true : false) : opts.autoDeleteQueues;
-
-		// Support for multiple URLs (clusters)
-		opts.url = Array.isArray(opts.url) ? opts.url : !opts.url ? [""] : opts.url.split(";").filter(s => !!s);
+		if (typeof opts == "string")
+			opts = { url: opts };
 
 		super(opts);
 
-		this.hasBuiltInBalancer = true;
-		this.connection = null;
-		this.channel = null;
-		this.bindings = [];
-		this.receivers = [];
-
-		this.channelDisconnecting = false;
-		this.connectionDisconnecting = false;
+		if (!this.opts)
+			this.opts = {};
 	}
 
-	/**
-	 * Get assertQueue options by packet type.
-	 *
-	 * @param {String} packetType
-	 *
-	 * @memberof AmqpTransporter
-	 */
 	_getQueueOptions(packetType, balancedQueue) {
 		let packetOptions = {};
 		switch (packetType) {
@@ -120,13 +85,6 @@ class Amqp10Transporter extends Transporter {
 		return Object.assign(packetOptions, this.opts.queueOptions);
 	}
 
-	/**
-	 * Get assertQueue options by packet type.
-	 *
-	 * @param {String} packetType
-	 *
-	 * @memberof AmqpTransporter
-	 */
 	_getMessageOptions(packetType, balancedQueue) {
 		let messageOptions = {};
 		switch (packetType) {
@@ -166,9 +124,6 @@ class Amqp10Transporter extends Transporter {
 
 			const result = this.incomingMessage(cmd, message.body);
 
-			// If a promise is returned, acknowledge the message after it has resolved.
-			// This means that if a worker dies after receiving a message but before responding, the
-			// message won't be lost and it can be retried.
 			if (needAck) {
 				if (isPromise(result)) {
 					return result
@@ -193,63 +148,53 @@ class Amqp10Transporter extends Transporter {
 	 *
 	 * @memberof Amqp10Transporter
 	 */
-	connect(errorCallback) {
-		return new Promise((_resolve, _reject) => {
-			let _isResolved = false;
-			const resolve = () => {
-				_isResolved = true;
-				_resolve();
-			};
-			const reject = err => {
-				_reject(err);
-				if (_isResolved) errorCallback(err);
-			};
+	async connect(errorCallback) {
+		let rhea;
 
-			let rhea;
+		try {
+			rhea = require("rhea-promise");
+		} catch (err) {
+			/* istanbul ignore next */
+			this.broker.fatal(
+				"The 'rhea-promise' package is missing. Please install it with 'npm install rhea-promise --save' command.",
+				err,
+				true
+			);
+		}
 
-			try {
-				rhea = require("rhea");
-			} catch (err) {
-				/* istanbul ignore next */
-				this.broker.fatal(
-					"The 'rhea' package is missing. Please install it with 'npm install rhea --save' command.",
-					err,
-					true
-				);
+		if (!rhea) {
+			this.broker.fatal(
+				"Missing rhea package",
+				new Error("Missing rhea package"),
+				true
+			);
+		}
+
+		// Pick url
+		const uri = this.opts.url;
+		const urlParsed = url.parse(uri);
+		const connectionOptions = {
+			host: urlParsed.hostname,
+			hostname: urlParsed.hostname,
+			username: "admin",
+			password: "admin",
+			port: urlParsed.port,
+			reconnect: this.opts.reconnect
+		};
+		const connection = new rhea.Connection(connectionOptions);
+		try {
+			this.connection = await connection.open();
+			this.logger.info("AMQP10 is connected.");
+			this.connected = true;
+			return
+		} catch (e) {
+			this.logger.info("AMQP10 is disconnected.");
+			this.connected = false;
+
+			if (e) {
+				this.logger.error(e);
 			}
-
-			// Pick url
-			this.connectAttempt = (this.connectAttempt || 0) + 1;
-			const urlIndex = (this.connectAttempt - 1) % this.opts.url.length;
-			const uri = this.opts.url[urlIndex];
-			const urlParsed = url.parse(uri);
-			this.connection = rhea.connect({
-				username: "admin",
-				password: "admin",
-				host: urlParsed.hostname,
-				port: urlParsed.port,
-				container_id: rhea.generate_uuid()
-			});
-
-			rhea.on("connection_open", () => {
-				this.logger.info("AMQP10 is connected.");
-				return this.onConnected().then(resolve);
-			});
-
-			rhea.on("connection_close", () => {
-				this.logger.info("AMQP10 is disconnected.");
-				this.connected = false;
-
-				return reject();
-			});
-
-			rhea.on("connection_error", context => {
-				this.logger.error("AMQP10 connection error.", context.error);
-				this.connected = false;
-
-				return reject(context.error);
-			});
-		});
+		}
 	}
 
 	/**
@@ -257,101 +202,103 @@ class Amqp10Transporter extends Transporter {
 	 *
 	 * @memberof Amqp10Transporter
 	 */
-	disconnect() {
-		if (this.connection) {
-			this.receivers.forEach(receiver => {
-				receiver.removeAllListeners();
-				receiver.close();
-			});
-			this.connection.removeAllListeners();
-			this.connection.close();
-			this.connection = null;
-			this.receivers = [];
-			return Promise.resolve();
+	async disconnect() {
+		try {
+			if (this.connection) {
+				this.receivers.forEach(async receiver => {
+					await receiver.close();
+				});
+				await this.connection.close();
+				this.connection = null;
+				this.receivers = [];
+			}
+		} catch (error) {
+			this.logger.error(error);
 		}
 	}
 
 	subscribe(cmd, nodeID) {
-		if (!this.connection) return;
-
-		const topic = this.getTopicName(cmd, nodeID);
-
 		return new Promise((resolve, reject) => {
+			if (!this.connection) return;
+
+			const topic = this.getTopicName(cmd, nodeID);
+			let receiverOptions = Object.assign({},
+				this._getQueueOptions(cmd),
+				{
+					onSessionError: (context) => {
+						const sessionError = context.session && context.session.error;
+						if (sessionError) {
+							this.logger.error(">>>>> [%s] An error occurred for session of receiver '%s': %O.",
+								this.connection.id, topic, sessionError);
+						}
+					}
+				});
+
 			if (nodeID) {
 				const needAck = [PACKET_REQUEST].indexOf(cmd) !== -1;
-
-				const receiver = this.connection.open_receiver(
-					Object.assign({ source: { address: topic } }, this._getQueueOptions(cmd))
-				);
-
-				receiver.on("message", this._consumeCB(cmd, needAck));
-
-				receiver.on("receiver_open", () => {
-					this.logger.info(`SUBSCRIBE to ${topic}`);
-					resolve();
+				Object.assign(receiverOptions, {
+					name: topic,
+					source: {
+						address: topic
+					}
 				});
 
-				receiver.on("receiver_error", () => {
-					this.logger.info(`SUBSCRIBE to ${topic} FAILED - ${JSON.stringify(receiver.error)}`);
-					reject(receiver.error);
+				this.connection.createReceiver(receiverOptions).then(receiver => {
+					receiver.on("message", (context) => {
+						this.logger.info("Received message: %O", context.message);
+						this._consumeCB(cmd, needAck);
+					});
+
+					receiver.on("receiver_open", () => {
+						this.logger.info(`Receiver open to ${topic}`);
+						resolve();
+					});
+
+					receiver.on("receiver_error", (context) => {
+						const receiverError = context.receiver && context.receiver.error;
+
+						if (receiverError) {
+							this.logger.error(">>>>> [%s] An error occurred for receiver '%s': %O.",
+								this.connection.id, topic, receiverError);
+						}
+
+						reject(receiverError);
+					});
+
+					this.receivers.push(receiver);
 				});
-				this.receivers.push(receiver);
 			} else {
-				// Create a queue specific to this nodeID so that this node can receive broadcasted messages.
-				// const queueName = `${this.prefix}.${cmd}.${this.nodeID}`;
-
-				// Save binding arguments for easy unbinding later.
-				// const bindingArgs = [queueName, topic, '']
-				// this.bindings.push(bindingArgs)
-
-				// const needAck = [PACKET_REQUEST].indexOf(cmd) !== -1;
-
-				// const receiver = this.connection.open_receiver(
-				// 	Object.assign({ source: { address: queueName } }, this._getQueueOptions(cmd))
-				// );
-
-				// receiver.on("message", this._consumeCB(cmd, needAck));
-
-				// const promises = [Promise.defer(), Promise.defer()];
-
-				// receiver.on("receiver_open", () => {
-				// 	this.logger.info(`SUBSCRIBE to ${queueName}`);
-				// 	promises[0].resolve();
-				// });
-
-				// receiver.on("receiver_error", () => {
-				// 	this.logger.info(`SUBSCRIBE to ${queueName} FAILED - ${JSON.stringify(receiver.error)}`);
-				// 	reject(receiver.error);
-				// });
-
-				const receiver2 = this.connection.open_receiver(
-					Object.assign({ source: { address: "topic://" + topic } }, this._getQueueOptions(cmd))
-				);
-
-				receiver2.on("message", this._consumeCB(cmd, false));
-
-				receiver2.on("receiver_open", () => {
-					this.logger.info(`SUBSCRIBE to ${"topic://" + topic}`);
-					resolve();
+				Object.assign(receiverOptions, {
+					name: "topic://" + topic,
+					source: {
+						address: "topic://" + topic
+					}
 				});
 
-				receiver2.on("receiver_error", () => {
-					this.logger.info(`SUBSCRIBE to ${"topic://" + topic} Failed - ${JSON.stringify(receiver.error)}`);
-					reject(receiver2.error);
+				this.connection.createReceiver(receiverOptions).then(receiver => {
+					receiver.on("message", (context) => {
+						this.logger.info("Received message: %O", context.message);
+						this._consumeCB(cmd, false)(context);
+					});
+
+					receiver.on("receiver_open", () => {
+						this.logger.info(`Receiver open to ${topic}`);
+						resolve();
+					});
+
+					receiver.on("receiver_error", (context) => {
+						const receiverError = context.receiver && context.receiver.error;
+
+						if (receiverError) {
+							this.logger.error(">>>>> [%s] An error occurred for receiver '%s': %O.",
+								this.connection.id, topic, receiverError);
+						}
+
+						reject(receiverError);
+					});
+
+					this.receivers.push(receiver);
 				});
-				// this.receivers.push(receiver);
-				this.receivers.push(receiver2);
-
-				// return Promise.all(promises).then(resolve);
-
-				// this.channel
-				//   .assertQueue(queueName, this._getQueueOptions(cmd))
-				//   .then(() =>
-				//     Promise.all([
-				//       this.channel.bindQueue(...bindingArgs),
-				//       this.channel.consume(queueName, this._consumeCB(cmd), Object.assign({ noAck: true }, this.opts.consumeOptions))
-				//     ])
-				//   )
 			}
 		});
 	}
@@ -421,29 +368,43 @@ class Amqp10Transporter extends Transporter {
 	 *
 	 * @param {Packet} packet
 	 *
-	 * @memberof AmqpTransporter
+	 * @memberof Amqp10Transporter
 	 * @description Send packets to their intended queues / exchanges.
 	 *
 	 * Reasonings documented in the subscribe method.
 	 */
-	publish(packet) {
+	async publish(packet) {
 		/* istanbul ignore next*/
-		if (!this.connection) return Promise.resolve();
+		if (!this.connection) return;
 
 		let topic = this.getTopicName(packet.type, packet.target);
-		this.logger.warn("KUSOMO", packet.target, packet.target ? topic : "topic://" + topic);
 
 		const data = this.serialize(packet);
 		const message = Object.assign(
-			{ body: data, to: packet.target ? topic : "topic://" + topic },
+			{ body: data },
 			this._getMessageOptions(packet.type)
 		);
-
-		this.incStatSent(data.length);
-		this.logger.info(`PUBLISH to ${message.to}, ${JSON.stringify(packet)}`);
-		this.connection.send(message);
-
-		return Promise.resolve();
+		const awaitableSenderOptions = {
+			target: {
+				address: packet.target ? topic : "topic://" + topic
+			},
+		};
+		try {
+			const sender = await this.connection.createAwaitableSender(
+				awaitableSenderOptions
+			);
+			const delivery = await sender.send(message);
+			this.logger.info(
+				"[%s] await sendMessage -> Delivery id: %d, settled: %s",
+				this.connection.id,
+				delivery.id,
+				delivery.settled
+			);
+			this.incStatSent(data.length);
+			await sender.close();
+		} catch (error) {
+			this.logger.error(error);
+		}
 	}
 
 	/**
@@ -452,22 +413,39 @@ class Amqp10Transporter extends Transporter {
 	 * @param {Packet} packet
 	 * @param {String} group
 	 * @returns {Promise}
-	 * @memberof AmqpTransporter
+	 * @memberof Amqp10Transporter
 	 */
-	publishBalancedEvent(packet, group) {
-		this.logger.warn("KUSOMO_BALANCED");
+	async publishBalancedEvent(packet, group) {
 		/* istanbul ignore next*/
-		if (!this.connection) return Promise.resolve();
+		if (!this.connection) return;
 
 		let queue = `${this.prefix}.${PACKET_EVENT}B.${group}.${packet.payload.event}`;
 		const data = this.serialize(packet);
-		this.incStatSent(data.length);
-
-		const message = Object.assign({ body: data, to: queue }, this.opts.messageOptions);
-		this.logger.info(`PUBLISH_BALANCED to ${message.to}`);
-		this.connection.send(message);
-
-		return Promise.resolve();
+		const message = Object.assign(
+			{ body: data },
+			this.opts.messageOptions
+		);
+		const awaitableSenderOptions = {
+			target: {
+				address: queue
+			},
+		};
+		try {
+			const sender = await this.connection.createAwaitableSender(
+				awaitableSenderOptions
+			);
+			const delivery = await sender.send(message);
+			this.logger.info(
+				"[%s] await sendMessage -> Delivery id: %d, settled: %s",
+				this.connection.id,
+				delivery.id,
+				delivery.settled
+			);
+			this.incStatSent(data.length);
+			await sender.close();
+		} catch (error) {
+			this.logger.error(error);
+		}
 	}
 
 	/**
@@ -477,23 +455,38 @@ class Amqp10Transporter extends Transporter {
 	 * @returns {Promise}
 	 * @memberof AmqpTransporter
 	 */
-	publishBalancedRequest(packet) {
-		this.logger.warn("KUSOMO_BALANCED");
-
+	async publishBalancedRequest(packet) {
 		/* istanbul ignore next*/
 		if (!this.connection) return Promise.resolve();
 
 		const topic = `${this.prefix}.${PACKET_REQUEST}B.${packet.payload.action}`;
 
 		const data = this.serialize(packet);
-		this.incStatSent(data.length);
-
-		const message = Object.assign({ body: data, to: topic }, this.opts.messageOptions);
-
-		this.logger.info(`PUBLISH_BALANCED to ${message.to}`);
-		this.connection.send(message);
-
-		return Promise.resolve();
+		const message = Object.assign(
+			{ body: data },
+			this.opts.messageOptions
+		);
+		const awaitableSenderOptions = {
+			target: {
+				address: topic
+			},
+		};
+		try {
+			const sender = await this.connection.createAwaitableSender(
+				awaitableSenderOptions
+			);
+			const delivery = await sender.send(message);
+			this.logger.info(
+				"[%s] await sendMessage -> Delivery id: %d, settled: %s",
+				this.connection.id,
+				delivery.id,
+				delivery.settled
+			);
+			this.incStatSent(data.length);
+			await sender.close();
+		} catch (error) {
+			this.logger.error(error);
+		}
 	}
 }
 
