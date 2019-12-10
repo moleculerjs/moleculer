@@ -48,6 +48,8 @@ class Amqp10Transporter extends Transporter {
 
 		if (!this.opts)
 			this.opts = {};
+
+		this.receivers = [];
 	}
 
 	_getQueueOptions(packetType, balancedQueue) {
@@ -186,7 +188,7 @@ class Amqp10Transporter extends Transporter {
 			this.connection = await connection.open();
 			this.logger.info("AMQP10 is connected.");
 			this.connected = true;
-			return
+			await this.onConnected()
 		} catch (e) {
 			this.logger.info("AMQP10 is disconnected.");
 			this.connected = false;
