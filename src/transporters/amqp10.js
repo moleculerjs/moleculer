@@ -185,6 +185,8 @@ class Amqp10Transporter extends Transporter {
 		const connection = container.createConnection(connectionOptions);
 		try {
 			this.connection = await connection.open();
+			this.session = await this.connection.createSession();
+			this.session.setMaxListeners(30);
 			this.logger.info("AMQP10 is connected.");
 			this.connected = true;
 			await this.onConnected();
@@ -219,12 +221,13 @@ class Amqp10Transporter extends Transporter {
 	}
 
 	async subscribe (cmd, nodeID) {
-		if (!this.connection) return;
+		if (!this.session) return;
 
 		const topic = this.getTopicName(cmd, nodeID);
 		let receiverOptions = Object.assign({},
 			this._getQueueOptions(cmd),
 			{
+				session: this.session,
 				onSessionError: (context) => {
 					const sessionError = context.session && context.session.error;
 					if (sessionError) {
