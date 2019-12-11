@@ -50,6 +50,7 @@ class Amqp10Transporter extends Transporter {
 			this.opts = {};
 
 		this.receivers = [];
+		this.hasBuiltInBalancer = true;
 	}
 
 	_getQueueOptions (packetType, balancedQueue) {
@@ -128,14 +129,20 @@ class Amqp10Transporter extends Transporter {
 				if (isPromise(result)) {
 					return result
 						.then(() => {
-							delivery.accept();
+							if (this.connection) {
+								delivery.accept();
+							}
 						})
 						.catch(err => {
 							this.logger.error("Message handling error.", err);
-							delivery.reject();
+							if (this.connection) {
+								delivery.release();
+							}
 						});
 				} else {
-					delivery.accept();
+					if (this.connection) {
+						delivery.accept();
+					}
 				}
 			}
 
@@ -240,6 +247,7 @@ class Amqp10Transporter extends Transporter {
 		if (nodeID) {
 			const needAck = [PACKET_REQUEST].indexOf(cmd) !== -1;
 			Object.assign(receiverOptions, {
+				autoaccept: false,
 				name: topic,
 				source: {
 					address: topic
@@ -261,10 +269,11 @@ class Amqp10Transporter extends Transporter {
 
 			this.receivers.push(receiver);
 		} else {
+			const topicName = "Consumer." + this.nodeID + ".VirtualTopic." + topic;
 			Object.assign(receiverOptions, {
-				name: "topic://" + topic,
+				name: topicName,
 				source: {
-					address: "topic://" + topic
+					address: topicName
 				}
 			});
 			const receiver = await this.connection.createReceiver(receiverOptions);
@@ -291,28 +300,36 @@ class Amqp10Transporter extends Transporter {
 	 * @param {String} action
 	 * @memberof AmqpTransporter
 	 */
-	subscribeBalancedRequest (action) {
-		return new Promise((resolve, reject) => {
-			const queue = `${this.prefix}.${PACKET_REQUEST}B.${action}`;
-
-			const receiver = this.connection.open_receiver(
-				Object.assign({ source: { address: queue } }, this._getQueueOptions(PACKET_REQUEST, true))
-			);
-
-			receiver.on("message", this._consumeCB(PACKET_REQUEST, true));
-
-			receiver.on("receiver_open", () => {
-				this.logger.info(`SUBSCRIBE_BALANCED to ${queue}`);
-				resolve();
+	async subscribeBalancedRequest (action) {
+		const queue = `${this.prefix}.${PACKET_REQUEST}B.${action}`;
+		const receiverOptions = Object.assign({},
+			{
+				source: { address: queue },
+				autoaccept: false
+			},
+			this._getQueueOptions(PACKET_REQUEST, true),
+			{
+				session: this.session,
+				onSessionError: (context) => {
+					const sessionError = context.session && context.session.error;
+					if (sessionError) {
+						this.logger.error(">>>>> [%s] An error occurred for session of receiver '%s': %O.",
+							this.connection.id, queue, sessionError);
+					}
+				}
 			});
+		const receiver = await this.connection.createReceiver(receiverOptions);
+		receiver.on("message", this._consumeCB(PACKET_REQUEST, true));
+		receiver.on("receiver_error", (context) => {
+			const receiverError = context.receiver && context.receiver.error;
 
-			receiver.on("receiver_error", () => {
-				this.logger.info(`SUBSCRIBE_BALANCED to ${queue} FAILED - ${JSON.stringify(receiver.error)}`);
-				reject(receiver.error);
-			});
-
-			this.receivers.push(receiver);
+			if (receiverError) {
+				this.logger.error(">>>>> [%s] An error occurred for receiver '%s': %O.",
+					this.connection.id, queue, receiverError);
+			}
 		});
+
+		this.receivers.push(receiver);
 	}
 
 	/**
@@ -322,27 +339,33 @@ class Amqp10Transporter extends Transporter {
 	 * @param {String} group
 	 * @memberof AmqpTransporter
 	 */
-	subscribeBalancedEvent (event, group) {
-		return new Promise((resolve, reject) => {
-			const queue = `${this.prefix}.${PACKET_EVENT}B.${group}.${event}`;
-			const receiver = this.connection.open_receiver(
-				Object.assign({ source: { address: queue } }, this._getQueueOptions(PACKET_REQUEST + "LB", true))
-			);
-
-			receiver.on("message", this._consumeCB(PACKET_REQUEST, true));
-
-			receiver.on("receiver_open", () => {
-				this.logger.info(`SUBSCRIBE_BALANCED to ${queue}`);
-				resolve();
+	async subscribeBalancedEvent (event, group) {
+		const queue = `${this.prefix}.${PACKET_EVENT}B.${group}.${event}`;
+		const receiverOptions = Object.assign({},
+			{ source: { address: queue } },
+			this._getQueueOptions(PACKET_EVENT + "LB", true),
+			{
+				session: this.session,
+				onSessionError: (context) => {
+					const sessionError = context.session && context.session.error;
+					if (sessionError) {
+						this.logger.error(">>>>> [%s] An error occurred for session of receiver '%s': %O.",
+							this.connection.id, queue, sessionError);
+					}
+				}
 			});
+		const receiver = await this.connection.createReceiver(receiverOptions);
+		receiver.on("message", this._consumeCB(PACKET_EVENT, true));
+		receiver.on("receiver_error", (context) => {
+			const receiverError = context.receiver && context.receiver.error;
 
-			receiver.on("receiver_error", () => {
-				this.logger.info(`SUBSCRIBE_BALANCED to ${queue} FAILED - ${JSON.stringify(receiver.error)}`);
-				reject(receiver.error);
-			});
-
-			this.receivers.push(receiver);
+			if (receiverError) {
+				this.logger.error(">>>>> [%s] An error occurred for receiver '%s': %O.",
+					this.connection.id, queue, receiverError);
+			}
 		});
+
+		this.receivers.push(receiver);
 	}
 
 	/**
@@ -368,20 +391,14 @@ class Amqp10Transporter extends Transporter {
 		);
 		const awaitableSenderOptions = {
 			target: {
-				address: packet.target ? topic : "topic://" + topic
+				address: packet.target ? topic : "topic://VirtualTopic." + topic
 			},
 		};
 		try {
 			const sender = await this.connection.createAwaitableSender(
 				awaitableSenderOptions
 			);
-			const delivery = await sender.send(message);
-			/* this.logger.info(
-				"[%s] await sendMessage -> Delivery id: %d, settled: %s",
-				this.connection.id,
-				delivery.id,
-				delivery.settled
-			); */
+			await sender.send(message);
 			this.incStatSent(data.length);
 			await sender.close();
 		} catch (error) {
@@ -416,13 +433,7 @@ class Amqp10Transporter extends Transporter {
 			const sender = await this.connection.createAwaitableSender(
 				awaitableSenderOptions
 			);
-			const delivery = await sender.send(message);
-			/* this.logger.info(
-				"[%s] await sendMessage -> Delivery id: %d, settled: %s",
-				this.connection.id,
-				delivery.id,
-				delivery.settled
-			); */
+			await sender.send(message);
 			this.incStatSent(data.length);
 			await sender.close();
 		} catch (error) {
@@ -452,17 +463,22 @@ class Amqp10Transporter extends Transporter {
 			target: {
 				address: topic
 			},
+			// autosettle: false
 		};
 		try {
 			const sender = await this.connection.createAwaitableSender(
 				awaitableSenderOptions
 			);
 			const delivery = await sender.send(message);
+			const { remote_settled, remote_state, sent, settled, id, state } = delivery;
 			this.logger.info(
-				"[%s] await sendMessage -> Delivery id: %d, settled: %s",
-				this.connection.id,
-				delivery.id,
-				delivery.settled
+				"publishBalancedRequest =======> \n",
+				"remote_settled", remote_settled,
+				"remote_state", remote_state,
+				"sent", sent,
+				"settled", settled,
+				"id", id,
+				"state", state,
 			);
 			this.incStatSent(data.length);
 			await sender.close();
