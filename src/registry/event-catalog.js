@@ -180,12 +180,7 @@ class EventCatalog {
 	 * @memberof EventCatalog
 	 */
 	callEventHandler(ctx) {
-		return ctx.endpoint.event.handler(ctx)
-			.catch(err => this.broker.errorHandler(err, {
-				service: ctx.service,
-				event: ctx.event,
-				ctx
-			}));
+		return ctx.endpoint.event.handler(ctx);
 	}
 
 	/**
