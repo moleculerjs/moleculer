@@ -61,7 +61,7 @@ function wrapEventErrorHandler(handler) {
 				return ctx.broker.errorHandler(err, {
 					ctx,
 					service: ctx.service,
-					action: ctx.action
+					event: ctx.event
 				});
 			}).catch(err => {
 				// No global error Handler, or thrown further, so we handle it because it's an event handler.
