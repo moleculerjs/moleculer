@@ -122,6 +122,18 @@ class Service {
 			events: {}
 		};
 
+		// Register methods
+		if (_.isObject(schema.methods)) {
+
+			_.forIn(schema.methods, (method, name) => {
+				/* istanbul ignore next */
+				if (["name", "version", "settings", "metadata", "dependencies", "schema", "broker", "actions", "logger", "created", "started", "stopped", "_start", "_stop", "_init"].indexOf(name) != -1) {
+					throw new ServiceSchemaError(`Invalid method name '${name}' in '${this.name}' service!`);
+				}
+				this[name] = method.bind(this);
+			});
+		}
+
 		// Register actions
 		if (_.isObject(schema.actions)) {
 			_.forIn(schema.actions, (action, name) => {
@@ -155,18 +167,6 @@ class Service {
 			_.forIn(schema.events, (event, name) => {
 				const innerEvent = this._createEvent(event, name);
 				serviceSpecification.events[innerEvent.name] = innerEvent;
-			});
-		}
-
-		// Register methods
-		if (_.isObject(schema.methods)) {
-
-			_.forIn(schema.methods, (method, name) => {
-				/* istanbul ignore next */
-				if (["name", "version", "settings", "metadata", "dependencies", "schema", "broker", "actions", "logger", "created", "started", "stopped", "_start", "_stop", "_init"].indexOf(name) != -1) {
-					throw new ServiceSchemaError(`Invalid method name '${name}' in '${this.name}' service!`);
-				}
-				this[name] = method.bind(this);
 			});
 		}
 
