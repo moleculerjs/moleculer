@@ -192,8 +192,6 @@ class Amqp10Transporter extends Transporter {
 		const connection = container.createConnection(connectionOptions);
 		try {
 			this.connection = await connection.open();
-			this.session = await this.connection.createSession();
-			this.session.setMaxListeners(30);
 			this.logger.info("AMQP10 is connected.");
 			this.connected = true;
 			await this.onConnected();
@@ -228,13 +226,12 @@ class Amqp10Transporter extends Transporter {
 	}
 
 	async subscribe (cmd, nodeID) {
-		if (!this.session) return;
+		if (!this.connection) return;
 
 		const topic = this.getTopicName(cmd, nodeID);
 		let receiverOptions = Object.assign({},
 			this._getQueueOptions(cmd),
 			{
-				session: this.session,
 				onSessionError: (context) => {
 					const sessionError = context.session && context.session.error;
 					if (sessionError) {
@@ -304,10 +301,10 @@ class Amqp10Transporter extends Transporter {
 		const receiverOptions = Object.assign({},
 			{
 				source: { address: queue },
+				autoaccept: false
 			},
 			this._getQueueOptions(PACKET_REQUEST, true),
 			{
-				session: this.session,
 				onSessionError: (context) => {
 					const sessionError = context.session && context.session.error;
 					if (sessionError) {
@@ -343,7 +340,6 @@ class Amqp10Transporter extends Transporter {
 			{ source: { address: queue } },
 			this._getQueueOptions(PACKET_EVENT + "LB", true),
 			{
-				session: this.session,
 				onSessionError: (context) => {
 					const sessionError = context.session && context.session.error;
 					if (sessionError) {
@@ -388,7 +384,6 @@ class Amqp10Transporter extends Transporter {
 			this._getMessageOptions(packet.type)
 		);
 		const awaitableSenderOptions = {
-			session: this.session,
 			target: {
 				address: packet.target ? topic : "topic://VirtualTopic." + topic
 			},
@@ -424,7 +419,6 @@ class Amqp10Transporter extends Transporter {
 			this.opts.messageOptions
 		);
 		const awaitableSenderOptions = {
-			session: this.session,
 			target: {
 				address: queue
 			},
@@ -460,11 +454,9 @@ class Amqp10Transporter extends Transporter {
 			this.opts.messageOptions
 		);
 		const awaitableSenderOptions = {
-			session: this.session,
 			target: {
 				address: queue
 			},
-			// autosettle: false
 		};
 		try {
 			const sender = await this.connection.createAwaitableSender(
