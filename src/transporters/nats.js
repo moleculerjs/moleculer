@@ -163,7 +163,13 @@ class NatsTransporter extends Transporter {
 	 * @memberof NatsTransporter
 	 */
 	subscribeBalancedEvent(event, group) {
-		const topic = `${this.prefix}.${PACKET_EVENT}B.${group}.${event}`.replace(/\*\*/g, ">");
+		let topic = `${this.prefix}.${PACKET_EVENT}B.${group}.${event}`.replace(/\*\*/g, ">");
+
+		// Multi matching token must be at the end
+		// More info: https://docs.nats.io/nats-concepts/subjects#matching-multiple-tokens
+		if (topic.includes(">")) {
+			topic = topic.substring(0, topic.indexOf(">") + 1);
+		}
 
 		this.subscriptions.push(this.client.subscribe(topic, { queue: group }, (msg) => this.receive(PACKET_EVENT, msg)));
 	}
