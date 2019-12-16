@@ -136,7 +136,7 @@ class Amqp10Transporter extends Transporter {
 						.catch(err => {
 							this.logger.error("Message handling error.", err);
 							if (this.connection) {
-								delivery.release();
+								delivery.reject();
 							}
 						});
 				} else {
@@ -247,7 +247,6 @@ class Amqp10Transporter extends Transporter {
 		if (nodeID) {
 			const needAck = [PACKET_REQUEST].indexOf(cmd) !== -1;
 			Object.assign(receiverOptions, {
-				autoaccept: false,
 				name: topic,
 				source: {
 					address: topic
@@ -305,7 +304,6 @@ class Amqp10Transporter extends Transporter {
 		const receiverOptions = Object.assign({},
 			{
 				source: { address: queue },
-				autoaccept: false
 			},
 			this._getQueueOptions(PACKET_REQUEST, true),
 			{
@@ -390,6 +388,7 @@ class Amqp10Transporter extends Transporter {
 			this._getMessageOptions(packet.type)
 		);
 		const awaitableSenderOptions = {
+			session: this.session,
 			target: {
 				address: packet.target ? topic : "topic://VirtualTopic." + topic
 			},
@@ -425,6 +424,7 @@ class Amqp10Transporter extends Transporter {
 			this.opts.messageOptions
 		);
 		const awaitableSenderOptions = {
+			session: this.session,
 			target: {
 				address: queue
 			},
@@ -452,7 +452,7 @@ class Amqp10Transporter extends Transporter {
 		/* istanbul ignore next*/
 		if (!this.connection) return Promise.resolve();
 
-		const topic = `${this.prefix}.${PACKET_REQUEST}B.${packet.payload.action}`;
+		const queue = `${this.prefix}.${PACKET_REQUEST}B.${packet.payload.action}`;
 
 		const data = this.serialize(packet);
 		const message = Object.assign(
@@ -460,8 +460,9 @@ class Amqp10Transporter extends Transporter {
 			this.opts.messageOptions
 		);
 		const awaitableSenderOptions = {
+			session: this.session,
 			target: {
-				address: topic
+				address: queue
 			},
 			// autosettle: false
 		};
