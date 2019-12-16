@@ -337,7 +337,10 @@ class Amqp10Transporter extends Transporter {
 	async subscribeBalancedEvent (event, group) {
 		const queue = `${this.prefix}.${PACKET_EVENT}B.${group}.${event}`;
 		const receiverOptions = Object.assign({},
-			{ source: { address: queue } },
+			{
+				source: { address: queue },
+				autoaccept: false
+			},
 			this._getQueueOptions(PACKET_EVENT + "LB", true),
 			{
 				onSessionError: (context) => {
