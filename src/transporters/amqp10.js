@@ -171,12 +171,11 @@ class Amqp10Transporter extends Transporter {
 			this.broker.fatal("Missing rhea package", new Error("Missing rhea package"), true);
 		}
 
-		const username = urlParsed.auth ? urlParsed.auth.split(":")[0] : undefined;
-		const password = urlParsed.auth ? urlParsed.auth.split(":")[1] : undefined;
-
 		// Pick url
 		const uri = this.opts.url;
 		const urlParsed = url.parse(uri);
+		const username = urlParsed.auth ? urlParsed.auth.split(":")[0] : undefined;
+		const password = urlParsed.auth ? urlParsed.auth.split(":")[1] : undefined;
 		const connectionOptions = {
 			host: urlParsed.hostname,
 			hostname: urlParsed.hostname,
