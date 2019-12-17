@@ -235,37 +235,6 @@ describe("Test NatsTransporter subscribe & publish", () => {
 		});
 	});
 
-	/*it("check subscribeBalancedEvent", () => {
-		let subCb;
-		transporter.client.subscribe = jest.fn((name, opts, cb) => {
-			subCb = cb;
-			return 125;
-		});
-		transporter.incomingMessage = jest.fn();
-
-		transporter.subscribeBalancedEvent("user.created", "mail");
-
-		expect(transporter.client.subscribe).toHaveBeenCalledTimes(1);
-		expect(transporter.client.subscribe).toHaveBeenCalledWith("MOL-TEST.EVENTB.mail.user.created", { queue: "mail" }, jasmine.any(Function));
-
-		// Test subscribe callback
-		subCb("{ sender: \"node1\" }");
-		expect(transporter.incomingMessage).toHaveBeenCalledTimes(1);
-		expect(transporter.incomingMessage).toHaveBeenCalledWith("EVENT", "{ sender: \"node1\" }");
-		expect(transporter.subscriptions).toEqual([125]);
-
-		// Test unsubscribeFromBalancedCommands
-		transporter.client.unsubscribe = jest.fn();
-		transporter.client.flush = jest.fn(cb => cb());
-
-		return transporter.unsubscribeFromBalancedCommands().catch(protectReject).then(() => {
-			expect(transporter.subscriptions).toEqual([]);
-			expect(transporter.client.unsubscribe).toHaveBeenCalledTimes(1);
-			expect(transporter.client.unsubscribe).toHaveBeenCalledWith(125);
-			expect(transporter.client.flush).toHaveBeenCalledTimes(1);
-		});
-	});*/
-
 	it("check publish with target", () => {
 		transporter.serialize = jest.fn(() => Buffer.from("json data"));
 		transporter.client.publish = jest.fn((topic, payload, resolve) => resolve());
