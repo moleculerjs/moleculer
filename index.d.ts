@@ -353,6 +353,8 @@ declare namespace Moleculer {
 
 		metricNameFormatter?: (name: string) => string;
 		labelNameFormatter?: (name: string) => string;
+
+		[key: string]: any;
 	}
 
 	class MetricBaseReporter {
