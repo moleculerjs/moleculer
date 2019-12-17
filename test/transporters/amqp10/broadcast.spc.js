@@ -3,7 +3,6 @@
 const Promise = require("bluebird");
 const { ServiceBroker } = require("../../..");
 let { extendExpect, protectReject } = require("../../unit/utils");
-const purge = require("./purge");
 
 extendExpect(expect);
 
@@ -35,11 +34,11 @@ function createNode(name, disableBalancer = false) {
 
 describe("Test AMQPTransporter Broadcast", () => {
 	// Delete all queues and exchanges before and after suite
-	beforeAll(() => purge(purgeList, true));
-	afterAll(() => purge(purgeList, true));
+	// beforeAll(() => purge(purgeList, true));
+	// afterAll(() => purge(purgeList, true));
 
-	// Clear all queues between each test.
-	afterEach(() => purge(purgeList));
+	// // Clear all queues between each test.
+	// afterEach(() => purge(purgeList));
 
 	describe("Test AMQPTransporter event broadcast with built-in balancer", () => {
 		const pub = createNode("pub");
