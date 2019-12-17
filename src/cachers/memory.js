@@ -75,11 +75,12 @@ class MemoryCacher extends BaseCacher {
 			this.logger.debug(`FOUND ${key}`);
 
 			let item = this.cache.get(key);
-
-			if (this.opts.ttl) {
-				// Update expire time (hold in the cache if we are using it)
-				item.expire = Date.now() + this.opts.ttl * 1000;
+			if (item.expire && item.expire < Date.now()) {
+				this.logger.debug(`EXPIRED ${key}`);
+				this.cache.delete(key);
+				return Promise.resolve(null);
 			}
+
 			return Promise.resolve(this.clone ? this.clone(item.data) : item.data);
 		}
 		return Promise.resolve(null);
