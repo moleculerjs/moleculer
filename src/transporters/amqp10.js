@@ -266,7 +266,7 @@ class Amqp10Transporter extends Transporter {
 
 			this.receivers.push(receiver);
 		} else {
-			const topicName = "Consumer." + this.nodeID + ".VirtualTopic." + topic;
+			const topicName = `topic://${topic}`;
 			Object.assign(receiverOptions, {
 				name: topicName,
 				source: {
@@ -401,7 +401,7 @@ class Amqp10Transporter extends Transporter {
 		const message = Object.assign({ body: data }, this._getMessageOptions(packet.type));
 		const awaitableSenderOptions = {
 			target: {
-				address: packet.target ? topic : "topic://VirtualTopic." + topic
+				address: packet.target ? topic : `topic://${topic}`
 			}
 		};
 		try {
