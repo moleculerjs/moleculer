@@ -1012,7 +1012,7 @@ class Transit {
 
 		const info = this.broker.getLocalNodeInfo();
 
-		const p = !nodeID ? this.tx.makeBalancedSubscriptions() : this.Promise.resolve();
+		const p = !nodeID && this.broker.options.disableBalancer ? this.tx.makeBalancedSubscriptions() : this.Promise.resolve();
 		return p.then(() => this.publish(new Packet(P.PACKET_INFO, nodeID, {
 			services: info.services,
 			ipList: info.ipList,
