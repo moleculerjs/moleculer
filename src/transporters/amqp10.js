@@ -199,6 +199,7 @@ class Amqp10Transporter extends Transporter {
 
 			if (e) {
 				this.logger.error(e);
+				errorCallback(e);
 			}
 		}
 	}
