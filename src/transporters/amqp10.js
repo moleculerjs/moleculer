@@ -41,71 +41,52 @@ class Amqp10Transporter extends Transporter {
 	 * @memberof Amqp10Transporter
 	 */
 	constructor(opts) {
-		if (typeof opts === "string") opts = { url: opts };
-		else if (opts == null) opts = {};
+		if (typeof opts == "string") opts = { url: opts };
+
+		super(opts);
+
+		/* istanbul ignore next*/
+		if (!this.opts) this.opts = {};
 
 		// Number of requests a broker will handle concurrently
 		if (typeof opts.prefetch !== "number") opts.prefetch = 1;
 
 		// Number of milliseconds before an event expires
-		if (typeof opts.eventTimeToLive !== "number") opts.eventTimeToLive = 1000;
+		if (typeof opts.eventTimeToLive !== "number") opts.eventTimeToLive = null;
 
 		if (typeof opts.heartbeatTimeToLive !== "number") opts.heartbeatTimeToLive = null;
 
 		if (typeof opts.queueOptions !== "object") opts.queueOptions = {};
 
-		if (typeof opts.exchangeOptions !== "object") opts.exchangeOptions = {};
-
 		if (typeof opts.messageOptions !== "object") opts.messageOptions = {};
 
-		if (typeof opts.consumeOptions !== "object") opts.consumeOptions = {};
-
-		opts.autoDeleteQueues =
-			typeof opts.autoDeleteQueues === "number" ? (opts.autoDeleteQueues >= 0 ? true : false) : opts.autoDeleteQueues;
-
-		// Support for multiple URLs (clusters)
-		opts.url = Array.isArray(opts.url) ? opts.url : !opts.url ? [""] : opts.url.split(";").filter(s => !!s);
-
-		super(opts);
-
+		this.receivers = [];
 		this.hasBuiltInBalancer = true;
 		this.connection = null;
-		this.channel = null;
-		this.bindings = [];
-		this.receivers = [];
-
-		this.channelDisconnecting = false;
-		this.connectionDisconnecting = false;
 	}
 
-	/**
-	 * Get assertQueue options by packet type.
-	 *
-	 * @param {String} packetType
-	 *
-	 * @memberof AmqpTransporter
-	 */
 	_getQueueOptions(packetType, balancedQueue) {
 		let packetOptions = {};
 		switch (packetType) {
 			// Requests and responses don't expire.
 			case PACKET_REQUEST:
-				packetOptions = this.opts.autoDeleteQueues && !balancedQueue ? { dynamic: this.opts.autoDeleteQueues } : {};
+				// TODO: auto delete
 				break;
 			case PACKET_RESPONSE:
-				packetOptions = this.opts.autoDeleteQueues ? { dynamic: this.opts.autoDeleteQueues } : {};
+				// TODO: auto delete
 				break;
 
 			// Consumers can decide how long events live
 			// Load-balanced/grouped events
 			case PACKET_EVENT + "LB":
 			case PACKET_EVENT:
-				packetOptions = this.opts.autoDeleteQueues ? { dynamic: this.opts.autoDeleteQueues } : {};
+				// TODO: auto delete
 				break;
 
 			// Packet types meant for internal use
 			case PACKET_HEARTBEAT:
-				packetOptions = { autoDelete: true };
+				// TODO: auto delete
+				// packetOptions = {};
 				break;
 			case PACKET_DISCOVER:
 			case PACKET_DISCONNECT:
@@ -113,21 +94,14 @@ class Amqp10Transporter extends Transporter {
 			case PACKET_INFO:
 			case PACKET_PING:
 			case PACKET_PONG:
-				packetOptions = { dynamic: true };
+				// TODO: auto delete
 				break;
 		}
 
 		return Object.assign(packetOptions, this.opts.queueOptions);
 	}
 
-	/**
-	 * Get assertQueue options by packet type.
-	 *
-	 * @param {String} packetType
-	 *
-	 * @memberof AmqpTransporter
-	 */
-	_getMessageOptions(packetType, balancedQueue) {
+	_getMessageOptions(packetType) {
 		let messageOptions = {};
 		switch (packetType) {
 			case PACKET_REQUEST:
@@ -158,29 +132,30 @@ class Amqp10Transporter extends Transporter {
 	 * @param {String} cmd
 	 * @param {Boolean} needAck
 	 *
-	 * @memberof AmqpTransporter
+	 * @memberof Amqp10Transporter
 	 */
 	_consumeCB(cmd, needAck = false) {
-		return ({ message, delivery }) => {
-			this.logger.info(`GOT MESSAGE ${cmd}`);
-
+		return async ({ message, delivery }) => {
 			const result = this.incomingMessage(cmd, message.body);
 
-			// If a promise is returned, acknowledge the message after it has resolved.
-			// This means that if a worker dies after receiving a message but before responding, the
-			// message won't be lost and it can be retried.
 			if (needAck) {
 				if (isPromise(result)) {
 					return result
 						.then(() => {
-							delivery.accept();
+							if (this.connection) {
+								delivery.accept();
+							}
 						})
 						.catch(err => {
 							this.logger.error("Message handling error.", err);
-							delivery.reject();
+							if (this.connection) {
+								delivery.reject();
+							}
 						});
 				} else {
-					delivery.accept();
+					if (this.connection) {
+						delivery.accept();
+					}
 				}
 			}
 
@@ -193,227 +168,195 @@ class Amqp10Transporter extends Transporter {
 	 *
 	 * @memberof Amqp10Transporter
 	 */
-	connect(errorCallback) {
-		return new Promise((_resolve, _reject) => {
-			let _isResolved = false;
-			const resolve = () => {
-				_isResolved = true;
-				_resolve();
-			};
-			const reject = err => {
-				_reject(err);
-				if (_isResolved) errorCallback(err);
-			};
+	async connect(errorCallback) {
+		let rhea;
 
-			let rhea;
+		try {
+			rhea = require("rhea-promise");
+		} catch (err) {
+			/* istanbul ignore next */
+			this.broker.fatal(
+				"The 'rhea-promise' package is missing. Please install it with 'npm install rhea-promise --save' command.",
+				err,
+				true
+			);
+		}
 
-			try {
-				rhea = require("rhea");
-			} catch (err) {
-				/* istanbul ignore next */
-				this.broker.fatal(
-					"The 'rhea' package is missing. Please install it with 'npm install rhea --save' command.",
-					err,
-					true
-				);
-			}
+		if (!rhea) {
+			/* istanbul ignore next*/
+			this.broker.fatal("Missing rhea package", new Error("Missing rhea package"), true);
+		}
 
-			// Pick url
-			this.connectAttempt = (this.connectAttempt || 0) + 1;
-			const urlIndex = (this.connectAttempt - 1) % this.opts.url.length;
-			const uri = this.opts.url[urlIndex];
-			const urlParsed = url.parse(uri);
-			this.connection = rhea.connect({
-				username: "admin",
-				password: "admin",
-				host: urlParsed.hostname,
-				port: urlParsed.port,
-				container_id: rhea.generate_uuid()
-			});
-
-			rhea.on("connection_open", () => {
-				this.logger.info("AMQP10 is connected.");
-				return this.onConnected().then(resolve);
-			});
-
-			rhea.on("connection_close", () => {
-				this.logger.info("AMQP10 is disconnected.");
-				this.connected = false;
-
-				return reject();
-			});
-
-			rhea.on("connection_error", context => {
-				this.logger.error("AMQP10 connection error.", context.error);
-				this.connected = false;
-
-				return reject(context.error);
-			});
-		});
-	}
-
-	/**
-	 * Disconnect from an AMQP10 server
-	 *
-	 * @memberof Amqp10Transporter
-	 */
-	disconnect() {
-		if (this.connection) {
-			this.receivers.forEach(receiver => {
-				receiver.removeAllListeners();
-				receiver.close();
-			});
-			this.connection.removeAllListeners();
-			this.connection.close();
+		// Pick url
+		const uri = this.opts.url;
+		const urlParsed = url.parse(uri);
+		const username = urlParsed.auth ? urlParsed.auth.split(":")[0] : undefined;
+		const password = urlParsed.auth ? urlParsed.auth.split(":")[1] : undefined;
+		const connectionOptions = {
+			host: urlParsed.hostname,
+			hostname: urlParsed.hostname,
+			username,
+			password,
+			port: urlParsed.port || 5672,
+			container_id: rhea.generate_uuid()
+		};
+		const container = new rhea.Container();
+		const connection = container.createConnection(connectionOptions);
+		try {
+			this.connection = await connection.open();
+			this.logger.info("AMQP10 is connected.");
+			this.connection._connection.setMaxListeners(100);
+			await this.onConnected();
+		} catch (e) {
+			this.logger.info("AMQP10 is disconnected.");
+			this.connected = false;
 			this.connection = null;
-			this.receivers = [];
-			return Promise.resolve();
+			this.logger.error(e);
+			errorCallback && errorCallback(e);
 		}
 	}
 
-	subscribe(cmd, nodeID) {
+	/**
+	 * Disconnect from an AMQP 1.0 server
+	 * Close every receiver on the connections and the close the connection
+	 * @memberof Amqp10Transporter
+	 */
+	async disconnect() {
+		try {
+			if (this.connection) {
+				for (const receiver of this.receivers) {
+					await receiver.close();
+				}
+				await this.connection.close();
+				this.connection = null;
+				this.connected = false;
+				this.receivers = [];
+			}
+		} catch (error) {
+			this.logger.error(error);
+		}
+	}
+
+	/**
+	 * Subscribe to a command
+	 *
+	 * @param {String} cmd
+	 * @param {String} nodeID
+	 *
+	 * @memberof Amqp10Transporter
+	 * @description Initialize queues and topics for all packet types.
+	 *
+	 * All packets that should reach multiple nodes have a dedicated topic for that command
+	 * These packet types will not use acknowledgements.
+	 * The time-to-live for EVENT packets can be configured in options.
+	 * Examples: INFO, DISCOVER, DISCONNECT, HEARTBEAT, PING, PONG, EVENT
+	 *
+	 * Other Packets are headed towards a specific queue. These don't need topics and
+	 * packets of this type will not expire.
+	 * Examples: REQUEST, RESPONSE
+	 *
+	 * RESPONSE: Each node has its own dedicated queue and acknowledgements will not be used.
+	 *
+	 * REQUEST: Each action has its own dedicated queue. This way if an action has multiple workers,
+	 * they can all pull from the same queue. This allows a message to be retried by a different node
+	 * if one dies before responding.
+	 *
+	 */
+	async subscribe(cmd, nodeID) {
 		if (!this.connection) return;
 
 		const topic = this.getTopicName(cmd, nodeID);
+		let receiverOptions = this._getQueueOptions(cmd);
 
-		return new Promise((resolve, reject) => {
-			if (nodeID) {
-				const needAck = [PACKET_REQUEST].indexOf(cmd) !== -1;
+		if (nodeID) {
+			const needAck = [PACKET_REQUEST].indexOf(cmd) !== -1;
+			Object.assign(receiverOptions, {
+				credit_window: 0,
+				autoaccept: !needAck,
+				name: topic,
+				source: {
+					address: topic
+				}
+			});
 
-				const receiver = this.connection.open_receiver(
-					Object.assign({ source: { address: topic } }, this._getQueueOptions(cmd))
-				);
+			const receiver = await this.connection.createReceiver(receiverOptions);
+			receiver.addCredit(this.opts.prefetch);
 
-				receiver.on("message", this._consumeCB(cmd, needAck));
+			receiver.on("message", async context => {
+				await this._consumeCB(cmd, needAck)(context);
+				receiver.addCredit(1);
+			});
 
-				receiver.on("receiver_open", () => {
-					this.logger.info(`SUBSCRIBE to ${topic}`);
-					resolve();
-				});
+			this.receivers.push(receiver);
+		} else {
+			const topicName = `topic://${topic}`;
+			Object.assign(receiverOptions, {
+				name: topicName,
+				source: {
+					address: topicName
+				}
+			});
+			const receiver = await this.connection.createReceiver(receiverOptions);
 
-				receiver.on("receiver_error", () => {
-					this.logger.info(`SUBSCRIBE to ${topic} FAILED - ${JSON.stringify(receiver.error)}`);
-					reject(receiver.error);
-				});
-				this.receivers.push(receiver);
-			} else {
-				// Create a queue specific to this nodeID so that this node can receive broadcasted messages.
-				// const queueName = `${this.prefix}.${cmd}.${this.nodeID}`;
+			receiver.on("message", context => {
+				this._consumeCB(cmd, false)(context);
+			});
 
-				// Save binding arguments for easy unbinding later.
-				// const bindingArgs = [queueName, topic, '']
-				// this.bindings.push(bindingArgs)
-
-				// const needAck = [PACKET_REQUEST].indexOf(cmd) !== -1;
-
-				// const receiver = this.connection.open_receiver(
-				// 	Object.assign({ source: { address: queueName } }, this._getQueueOptions(cmd))
-				// );
-
-				// receiver.on("message", this._consumeCB(cmd, needAck));
-
-				// const promises = [Promise.defer(), Promise.defer()];
-
-				// receiver.on("receiver_open", () => {
-				// 	this.logger.info(`SUBSCRIBE to ${queueName}`);
-				// 	promises[0].resolve();
-				// });
-
-				// receiver.on("receiver_error", () => {
-				// 	this.logger.info(`SUBSCRIBE to ${queueName} FAILED - ${JSON.stringify(receiver.error)}`);
-				// 	reject(receiver.error);
-				// });
-
-				const receiver2 = this.connection.open_receiver(
-					Object.assign({ source: { address: "topic://" + topic } }, this._getQueueOptions(cmd))
-				);
-
-				receiver2.on("message", this._consumeCB(cmd, false));
-
-				receiver2.on("receiver_open", () => {
-					this.logger.info(`SUBSCRIBE to ${"topic://" + topic}`);
-					resolve();
-				});
-
-				receiver2.on("receiver_error", () => {
-					this.logger.info(`SUBSCRIBE to ${"topic://" + topic} Failed - ${JSON.stringify(receiver.error)}`);
-					reject(receiver2.error);
-				});
-				// this.receivers.push(receiver);
-				this.receivers.push(receiver2);
-
-				// return Promise.all(promises).then(resolve);
-
-				// this.channel
-				//   .assertQueue(queueName, this._getQueueOptions(cmd))
-				//   .then(() =>
-				//     Promise.all([
-				//       this.channel.bindQueue(...bindingArgs),
-				//       this.channel.consume(queueName, this._consumeCB(cmd), Object.assign({ noAck: true }, this.opts.consumeOptions))
-				//     ])
-				//   )
-			}
-		});
+			this.receivers.push(receiver);
+		}
 	}
 
 	/**
 	 * Subscribe to balanced action commands
+	 * For REQB command types
+	 * These queues will be used when the "disableBalancer" set to true
 	 *
 	 * @param {String} action
-	 * @memberof AmqpTransporter
+	 * @memberof Amqp10Transporter
 	 */
-	subscribeBalancedRequest(action) {
-		return new Promise((resolve, reject) => {
-			const queue = `${this.prefix}.${PACKET_REQUEST}B.${action}`;
+	async subscribeBalancedRequest(action) {
+		const queue = `${this.prefix}.${PACKET_REQUEST}B.${action}`;
+		const receiverOptions = Object.assign(
+			{
+				credit_window: 0,
+				source: { address: queue },
+				autoaccept: false
+			},
+			this._getQueueOptions(PACKET_REQUEST, true)
+		);
+		const receiver = await this.connection.createReceiver(receiverOptions);
+		receiver.addCredit(1);
 
-			const receiver = this.connection.open_receiver(
-				Object.assign({ source: { address: queue } }, this._getQueueOptions(PACKET_REQUEST, true))
-			);
-
-			receiver.on("message", this._consumeCB(PACKET_REQUEST, true));
-
-			receiver.on("receiver_open", () => {
-				this.logger.info(`SUBSCRIBE_BALANCED to ${queue}`);
-				resolve();
-			});
-
-			receiver.on("receiver_error", () => {
-				this.logger.info(`SUBSCRIBE_BALANCED to ${queue} FAILED - ${JSON.stringify(receiver.error)}`);
-				reject(receiver.error);
-			});
-
-			this.receivers.push(receiver);
+		receiver.on("message", async context => {
+			await this._consumeCB(PACKET_REQUEST, true)(context);
+			receiver.addCredit(1);
 		});
+
+		this.receivers.push(receiver);
 	}
 
 	/**
 	 * Subscribe to balanced event command
+	 * For EVENTB command types
+	 * These queues will be used when the "disableBalancer" set to true
 	 *
 	 * @param {String} event
 	 * @param {String} group
-	 * @memberof AmqpTransporter
+	 * @memberof Amqp10Transporter
 	 */
-	subscribeBalancedEvent(event, group) {
-		return new Promise((resolve, reject) => {
-			const queue = `${this.prefix}.${PACKET_EVENT}B.${group}.${event}`;
-			const receiver = this.connection.open_receiver(
-				Object.assign({ source: { address: queue } }, this._getQueueOptions(PACKET_REQUEST + "LB", true))
-			);
+	async subscribeBalancedEvent(event, group) {
+		const queue = `${this.prefix}.${PACKET_EVENT}B.${group}.${event}`;
+		const receiverOptions = Object.assign(
+			{
+				source: { address: queue },
+				autoaccept: false
+			},
+			this._getQueueOptions(PACKET_EVENT + "LB", true)
+		);
+		const receiver = await this.connection.createReceiver(receiverOptions);
+		receiver.on("message", this._consumeCB(PACKET_EVENT, true));
 
-			receiver.on("message", this._consumeCB(PACKET_REQUEST, true));
-
-			receiver.on("receiver_open", () => {
-				this.logger.info(`SUBSCRIBE_BALANCED to ${queue}`);
-				resolve();
-			});
-
-			receiver.on("receiver_error", () => {
-				this.logger.info(`SUBSCRIBE_BALANCED to ${queue} FAILED - ${JSON.stringify(receiver.error)}`);
-				reject(receiver.error);
-			});
-
-			this.receivers.push(receiver);
-		});
+		this.receivers.push(receiver);
 	}
 
 	/**
@@ -421,79 +364,92 @@ class Amqp10Transporter extends Transporter {
 	 *
 	 * @param {Packet} packet
 	 *
-	 * @memberof AmqpTransporter
-	 * @description Send packets to their intended queues / exchanges.
+	 * @memberof Amqp10Transporter
+	 * @description Send packets to their intended queues / topics.
 	 *
 	 * Reasonings documented in the subscribe method.
 	 */
-	publish(packet) {
+	async publish(packet) {
 		/* istanbul ignore next*/
-		if (!this.connection) return Promise.resolve();
+		if (!this.connection) return;
 
 		let topic = this.getTopicName(packet.type, packet.target);
-		this.logger.warn("KUSOMO", packet.target, packet.target ? topic : "topic://" + topic);
 
 		const data = this.serialize(packet);
-		const message = Object.assign(
-			{ body: data, to: packet.target ? topic : "topic://" + topic },
-			this._getMessageOptions(packet.type)
-		);
-
-		this.incStatSent(data.length);
-		this.logger.info(`PUBLISH to ${message.to}, ${JSON.stringify(packet)}`);
-		this.connection.send(message);
-
-		return Promise.resolve();
+		const message = Object.assign({ body: data }, this.opts.messageOptions, this._getMessageOptions(packet.type));
+		const awaitableSenderOptions = {
+			target: {
+				address: packet.target ? topic : `topic://${topic}`
+			}
+		};
+		try {
+			const sender = await this.connection.createAwaitableSender(awaitableSenderOptions);
+			await sender.send(message);
+			this.incStatSent(data.length);
+			await sender.close();
+		} catch (error) {
+			this.logger.error(error);
+		}
 	}
 
 	/**
-	 * Publish a balanced EVENT packet to a balanced queue
+	 * Publish a balanced EVENT(B) packet to a balanced queue
 	 *
 	 * @param {Packet} packet
 	 * @param {String} group
 	 * @returns {Promise}
-	 * @memberof AmqpTransporter
+	 * @memberof Amqp10Transporter
 	 */
-	publishBalancedEvent(packet, group) {
-		this.logger.warn("KUSOMO_BALANCED");
+	async publishBalancedEvent(packet, group) {
 		/* istanbul ignore next*/
-		if (!this.connection) return Promise.resolve();
+		if (!this.connection) return;
 
 		let queue = `${this.prefix}.${PACKET_EVENT}B.${group}.${packet.payload.event}`;
 		const data = this.serialize(packet);
-		this.incStatSent(data.length);
-
-		const message = Object.assign({ body: data, to: queue }, this.opts.messageOptions);
-		this.logger.info(`PUBLISH_BALANCED to ${message.to}`);
-		this.connection.send(message);
-
-		return Promise.resolve();
+		const message = Object.assign({ body: data }, this.opts.messageOptions, this._getMessageOptions(PACKET_EVENT, true));
+		const awaitableSenderOptions = {
+			target: {
+				address: queue
+			}
+		};
+		try {
+			const sender = await this.connection.createAwaitableSender(awaitableSenderOptions);
+			await sender.send(message);
+			this.incStatSent(data.length);
+			await sender.close();
+		} catch (error) {
+			this.logger.error(error);
+		}
 	}
 
 	/**
-	 * Publish a balanced REQ packet to a balanced queue
+	 * Publish a balanced REQ(B) packet to a balanced queue
 	 *
 	 * @param {Packet} packet
 	 * @returns {Promise}
-	 * @memberof AmqpTransporter
+	 * @memberof Amqp10Transporter
 	 */
-	publishBalancedRequest(packet) {
-		this.logger.warn("KUSOMO_BALANCED");
-
+	async publishBalancedRequest(packet) {
 		/* istanbul ignore next*/
 		if (!this.connection) return Promise.resolve();
 
-		const topic = `${this.prefix}.${PACKET_REQUEST}B.${packet.payload.action}`;
+		const queue = `${this.prefix}.${PACKET_REQUEST}B.${packet.payload.action}`;
 
 		const data = this.serialize(packet);
-		this.incStatSent(data.length);
-
-		const message = Object.assign({ body: data, to: topic }, this.opts.messageOptions);
-
-		this.logger.info(`PUBLISH_BALANCED to ${message.to}`);
-		this.connection.send(message);
-
-		return Promise.resolve();
+		const message = Object.assign({ body: data }, this.opts.messageOptions, this._getMessageOptions(PACKET_REQUEST, true));
+		const awaitableSenderOptions = {
+			target: {
+				address: queue
+			}
+		};
+		try {
+			const sender = await this.connection.createAwaitableSender(awaitableSenderOptions);
+			await sender.send(message);
+			this.incStatSent(data.length);
+			await sender.close();
+		} catch (error) {
+			this.logger.error(error);
+		}
 	}
 }
 
