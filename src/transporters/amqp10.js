@@ -45,6 +45,7 @@ class Amqp10Transporter extends Transporter {
 
 		super(opts);
 
+		/* istanbul ignore next*/
 		if (!this.opts) this.opts = {};
 
 		// Number of requests a broker will handle concurrently
@@ -131,7 +132,7 @@ class Amqp10Transporter extends Transporter {
 	 * @param {String} cmd
 	 * @param {Boolean} needAck
 	 *
-	 * @memberof AmqpTransporter
+	 * @memberof Amqp10Transporter
 	 */
 	_consumeCB(cmd, needAck = false) {
 		return async ({ message, delivery }) => {
@@ -182,6 +183,7 @@ class Amqp10Transporter extends Transporter {
 		}
 
 		if (!rhea) {
+			/* istanbul ignore next*/
 			this.broker.fatal("Missing rhea package", new Error("Missing rhea package"), true);
 		}
 
@@ -209,17 +211,14 @@ class Amqp10Transporter extends Transporter {
 			this.logger.info("AMQP10 is disconnected.");
 			this.connected = false;
 			this.connection = null;
-
-			if (e) {
-				this.logger.error(e);
-				errorCallback && errorCallback(e);
-			}
+			this.logger.error(e);
+			errorCallback && errorCallback(e);
 		}
 	}
 
 	/**
-	 * Disconnect from an AMQP10 server
-	 *
+	 * Disconnect from an AMQP 1.0 server
+	 * Close every receiver on the connections and the close the connection
 	 * @memberof Amqp10Transporter
 	 */
 	async disconnect() {
@@ -238,6 +237,31 @@ class Amqp10Transporter extends Transporter {
 		}
 	}
 
+	/**
+	 * Subscribe to a command
+	 *
+	 * @param {String} cmd
+	 * @param {String} nodeID
+	 *
+	 * @memberof Amqp10Transporter
+	 * @description Initialize queues and topics for all packet types.
+	 *
+	 * All packets that should reach multiple nodes have a dedicated topic for that command
+	 * These packet types will not use acknowledgements.
+	 * The time-to-live for EVENT packets can be configured in options.
+	 * Examples: INFO, DISCOVER, DISCONNECT, HEARTBEAT, PING, PONG, EVENT
+	 *
+	 * Other Packets are headed towards a specific queue. These don't need topics and
+	 * packets of this type will not expire.
+	 * Examples: REQUEST, RESPONSE
+	 *
+	 * RESPONSE: Each node has its own dedicated queue and acknowledgements will not be used.
+	 *
+	 * REQUEST: Each action has its own dedicated queue. This way if an action has multiple workers,
+	 * they can all pull from the same queue. This allows a message to be retried by a different node
+	 * if one dies before responding.
+	 *
+	 */
 	async subscribe(cmd, nodeID) {
 		if (!this.connection) return;
 
@@ -284,9 +308,11 @@ class Amqp10Transporter extends Transporter {
 
 	/**
 	 * Subscribe to balanced action commands
+	 * For REQB command types
+	 * These queues will be used when the "disableBalancer" set to true
 	 *
 	 * @param {String} action
-	 * @memberof AmqpTransporter
+	 * @memberof Amqp10Transporter
 	 */
 	async subscribeBalancedRequest(action) {
 		const queue = `${this.prefix}.${PACKET_REQUEST}B.${action}`;
@@ -311,10 +337,12 @@ class Amqp10Transporter extends Transporter {
 
 	/**
 	 * Subscribe to balanced event command
+	 * For EVENTB command types
+	 * These queues will be used when the "disableBalancer" set to true
 	 *
 	 * @param {String} event
 	 * @param {String} group
-	 * @memberof AmqpTransporter
+	 * @memberof Amqp10Transporter
 	 */
 	async subscribeBalancedEvent(event, group) {
 		const queue = `${this.prefix}.${PACKET_EVENT}B.${group}.${event}`;
@@ -337,7 +365,7 @@ class Amqp10Transporter extends Transporter {
 	 * @param {Packet} packet
 	 *
 	 * @memberof Amqp10Transporter
-	 * @description Send packets to their intended queues / exchanges.
+	 * @description Send packets to their intended queues / topics.
 	 *
 	 * Reasonings documented in the subscribe method.
 	 */
@@ -365,7 +393,7 @@ class Amqp10Transporter extends Transporter {
 	}
 
 	/**
-	 * Publish a balanced EVENT packet to a balanced queue
+	 * Publish a balanced EVENT(B) packet to a balanced queue
 	 *
 	 * @param {Packet} packet
 	 * @param {String} group
@@ -395,11 +423,11 @@ class Amqp10Transporter extends Transporter {
 	}
 
 	/**
-	 * Publish a balanced REQ packet to a balanced queue
+	 * Publish a balanced REQ(B) packet to a balanced queue
 	 *
 	 * @param {Packet} packet
 	 * @returns {Promise}
-	 * @memberof AmqpTransporter
+	 * @memberof Amqp10Transporter
 	 */
 	async publishBalancedRequest(packet) {
 		/* istanbul ignore next*/
