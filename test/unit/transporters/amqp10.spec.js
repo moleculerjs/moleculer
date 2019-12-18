@@ -15,6 +15,7 @@ rhea.Connection.prototype._connection = {
 rhea.Connection.prototype.createReceiver = jest.fn(() => Promise.resolve(new rhea.Receiver()));
 rhea.Connection.prototype.createAwaitableSender = jest.fn(() => Promise.resolve(new rhea.AwaitableSender()));
 rhea.Receiver.prototype.close = jest.fn(() => Promise.resolve());
+rhea.AwaitableSender.send = jest.fn(() => Promise.resolve());
 
 const Amqp10Transporter = require("../../../src/transporters/amqp10");
 
@@ -42,7 +43,7 @@ describe("Test AmqpTransporter constructor", () => {
 
 	it("check constructor with options", () => {
 		let opts = {
-			url: "amqp10://localhost",
+			url: "amqp10://admin:admin@localhost:5672",
 			prefetch: 3
 			// eventTimeToLive: 10000,
 			// heartbeatTimeToLive: 30000,
@@ -80,6 +81,19 @@ describe("Test AmqpTransporter connect & disconnect", () => {
 				// expect(transporter.connection.on).toHaveBeenCalledWith("close", jasmine.any(Function));
 				// expect(transporter.connection.on).toHaveBeenCalledWith("blocked", jasmine.any(Function));
 				// expect(transporter.connection.on).toHaveBeenCalledWith("unblocked", jasmine.any(Function));
+			});
+	});
+
+	it("check failed connect", () => {
+		rhea.Connection.prototype.open = jest.fn(() => Promise.reject());
+
+		return transporter
+			.connect()
+			.catch(protectReject)
+			.then(() => {
+				expect(transporter.connection).toBeNull();
+				expect(transporter.connected).toEqual(false);
+				rhea.Connection.prototype.open = jest.fn(() => Promise.resolve(new rhea.Connection()));
 			});
 	});
 
@@ -216,9 +230,8 @@ describe("Test AmqpTransporter subscribe", () => {
 				);
 
 				expect(transporter.receivers[0].addCredit).toHaveBeenCalledTimes(1);
-				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(2);
+				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(1);
 				expect(transporter.receivers[0].on).toHaveBeenCalledWith("message", expect.any(Function));
-				expect(transporter.receivers[0].on).toHaveBeenCalledWith("receiver_error", expect.any(Function));
 
 				const consumeCb = transporter.receivers[0].on.mock.calls[0][1];
 				const delivery = { accept: jest.fn(), reject: jest.fn() };
@@ -240,11 +253,10 @@ describe("Test AmqpTransporter subscribe", () => {
 				);
 
 				expect(transporter.receivers[0].addCredit).toHaveBeenCalledTimes(1);
-				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(4);
+				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(2);
 				expect(transporter.receivers[0].on).toHaveBeenCalledWith("message", expect.any(Function));
-				expect(transporter.receivers[0].on).toHaveBeenCalledWith("receiver_error", expect.any(Function));
 
-				const consumeCb = transporter.receivers[0].on.mock.calls[2][1];
+				const consumeCb = transporter.receivers[0].on.mock.calls[1][1];
 				const delivery = { accept: jest.fn(), reject: jest.fn() };
 				consumeCb({ message: { body: Buffer.from("data") }, delivery });
 
@@ -264,11 +276,10 @@ describe("Test AmqpTransporter subscribe", () => {
 				);
 
 				expect(transporter.receivers[0].addCredit).toHaveBeenCalledTimes(1);
-				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(6);
+				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(3);
 				expect(transporter.receivers[0].on).toHaveBeenCalledWith("message", expect.any(Function));
-				expect(transporter.receivers[0].on).toHaveBeenCalledWith("receiver_error", expect.any(Function));
 
-				const consumeCb = transporter.receivers[0].on.mock.calls[4][1];
+				const consumeCb = transporter.receivers[0].on.mock.calls[2][1];
 				const delivery = { accept: jest.fn(), reject: jest.fn() };
 				consumeCb({ message: { body: Buffer.from("data") }, delivery });
 
@@ -288,11 +299,10 @@ describe("Test AmqpTransporter subscribe", () => {
 				);
 
 				expect(transporter.receivers[0].addCredit).toHaveBeenCalledTimes(1);
-				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(8);
+				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(4);
 				expect(transporter.receivers[0].on).toHaveBeenCalledWith("message", expect.any(Function));
-				expect(transporter.receivers[0].on).toHaveBeenCalledWith("receiver_error", expect.any(Function));
 
-				const consumeCb = transporter.receivers[0].on.mock.calls[6][1];
+				const consumeCb = transporter.receivers[0].on.mock.calls[3][1];
 				const delivery = { accept: jest.fn(), reject: jest.fn() };
 				consumeCb({ message: { body: Buffer.from("data") }, delivery });
 
@@ -312,11 +322,10 @@ describe("Test AmqpTransporter subscribe", () => {
 						expect.objectContaining({ source: { address: `topic://MOL-TEST.${type}` } })
 					);
 
-					expect(transporter.receivers[0].on).toHaveBeenCalledTimes(10 + i * 2);
+					expect(transporter.receivers[0].on).toHaveBeenCalledTimes(5 + i);
 					expect(transporter.receivers[0].on).toHaveBeenCalledWith("message", expect.any(Function));
-					expect(transporter.receivers[0].on).toHaveBeenCalledWith("receiver_error", expect.any(Function));
 
-					const consumeCb = transporter.receivers[0].on.mock.calls[8 + i * 2][1];
+					const consumeCb = transporter.receivers[0].on.mock.calls[4 + i][1];
 					const delivery = { accept: jest.fn(), reject: jest.fn() };
 					consumeCb({ message: { body: Buffer.from("data") }, delivery });
 
@@ -336,11 +345,10 @@ describe("Test AmqpTransporter subscribe", () => {
 					expect.objectContaining({ source: { address: "MOL-TEST.REQB.posts.find" } })
 				);
 
-				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(18);
+				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(9);
 				expect(transporter.receivers[0].on).toHaveBeenCalledWith("message", expect.any(Function));
-				expect(transporter.receivers[0].on).toHaveBeenCalledWith("receiver_error", expect.any(Function));
 
-				const consumeCb = transporter.receivers[0].on.mock.calls[16][1];
+				const consumeCb = transporter.receivers[0].on.mock.calls[8][1];
 				const delivery = { accept: jest.fn(), reject: jest.fn() };
 				consumeCb({ message: { body: Buffer.from("data") }, delivery });
 
@@ -359,11 +367,10 @@ describe("Test AmqpTransporter subscribe", () => {
 					expect.objectContaining({ source: { address: "MOL-TEST.EVENTB.posts.cache.clear" } })
 				);
 
-				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(20);
+				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(10);
 				expect(transporter.receivers[0].on).toHaveBeenCalledWith("message", expect.any(Function));
-				expect(transporter.receivers[0].on).toHaveBeenCalledWith("receiver_error", expect.any(Function));
 
-				const consumeCb = transporter.receivers[0].on.mock.calls[18][1];
+				const consumeCb = transporter.receivers[0].on.mock.calls[9][1];
 				const delivery = { accept: jest.fn(), reject: jest.fn() };
 				consumeCb({ message: { body: Buffer.from("data") }, delivery });
 
