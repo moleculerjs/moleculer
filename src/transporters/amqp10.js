@@ -60,22 +60,25 @@ class Amqp10Transporter extends Transporter {
 		switch (packetType) {
 			// Requests and responses don't expire.
 			case PACKET_REQUEST:
-				packetOptions = this.opts.autoDeleteQueues && !balancedQueue ? { source: { dynamic: this.opts.autoDeleteQueues } } : {};
+				// TODO: auto delete
+				packetOptions = this.opts.autoDeleteQueues && !balancedQueue ? {} : {};
 				break;
 			case PACKET_RESPONSE:
-				packetOptions = this.opts.autoDeleteQueues ? { source: { dynamic: this.opts.autoDeleteQueues } } : {};
+				// TODO: auto delete
+				packetOptions = this.opts.autoDeleteQueues ? {} : {};
 				break;
 
 			// Consumers can decide how long events live
 			// Load-balanced/grouped events
 			case PACKET_EVENT + "LB":
 			case PACKET_EVENT:
-				packetOptions = this.opts.autoDeleteQueues ? { source: { dynamic: this.opts.autoDeleteQueues } } : {};
+				packetOptions = this.opts.autoDeleteQueues ? {} : {};
 				break;
 
 			// Packet types meant for internal use
 			case PACKET_HEARTBEAT:
-				packetOptions = { source: { dynamic: true } };
+				// TODO: auto delete
+				packetOptions = {};
 				break;
 			case PACKET_DISCOVER:
 			case PACKET_DISCONNECT:
@@ -83,7 +86,8 @@ class Amqp10Transporter extends Transporter {
 			case PACKET_INFO:
 			case PACKET_PING:
 			case PACKET_PONG:
-				packetOptions = { source: { dynamic: true } };
+				// TODO: auto delete
+				packetOptions = {};
 				break;
 		}
 
@@ -193,12 +197,12 @@ class Amqp10Transporter extends Transporter {
 		try {
 			this.connection = await connection.open();
 			this.logger.info("AMQP10 is connected.");
-			this.connected = true;
 			this.connection._connection.setMaxListeners(100);
 			await this.onConnected();
 		} catch (e) {
 			this.logger.info("AMQP10 is disconnected.");
 			this.connected = false;
+			this.connection = null;
 
 			if (e) {
 				this.logger.error(e);
@@ -215,11 +219,12 @@ class Amqp10Transporter extends Transporter {
 	async disconnect() {
 		try {
 			if (this.connection) {
-				this.receivers.forEach(async receiver => {
+				for (const receiver of this.receivers) {
 					await receiver.close();
-				});
+				}
 				await this.connection.close();
 				this.connection = null;
+				this.connected = false;
 				this.receivers = [];
 			}
 		} catch (error) {
