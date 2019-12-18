@@ -50,6 +50,15 @@ class Amqp10Transporter extends Transporter {
 		// Number of requests a broker will handle concurrently
 		if (typeof opts.prefetch !== "number") opts.prefetch = 1;
 
+		// Number of milliseconds before an event expires
+		if (typeof opts.eventTimeToLive !== "number") opts.eventTimeToLive = null;
+
+		if (typeof opts.heartbeatTimeToLive !== "number") opts.heartbeatTimeToLive = null;
+
+		if (typeof opts.queueOptions !== "object") opts.queueOptions = {};
+
+		if (typeof opts.messageOptions !== "object") opts.messageOptions = {};
+
 		this.receivers = [];
 		this.hasBuiltInBalancer = true;
 		this.connection = null;
@@ -61,24 +70,22 @@ class Amqp10Transporter extends Transporter {
 			// Requests and responses don't expire.
 			case PACKET_REQUEST:
 				// TODO: auto delete
-				packetOptions = this.opts.autoDeleteQueues && !balancedQueue ? {} : {};
 				break;
 			case PACKET_RESPONSE:
 				// TODO: auto delete
-				packetOptions = this.opts.autoDeleteQueues ? {} : {};
 				break;
 
 			// Consumers can decide how long events live
 			// Load-balanced/grouped events
 			case PACKET_EVENT + "LB":
 			case PACKET_EVENT:
-				packetOptions = this.opts.autoDeleteQueues ? {} : {};
+				// TODO: auto delete
 				break;
 
 			// Packet types meant for internal use
 			case PACKET_HEARTBEAT:
 				// TODO: auto delete
-				packetOptions = {};
+				// packetOptions = {};
 				break;
 			case PACKET_DISCOVER:
 			case PACKET_DISCONNECT:
@@ -87,14 +94,13 @@ class Amqp10Transporter extends Transporter {
 			case PACKET_PING:
 			case PACKET_PONG:
 				// TODO: auto delete
-				packetOptions = {};
 				break;
 		}
 
 		return Object.assign(packetOptions, this.opts.queueOptions);
 	}
 
-	_getMessageOptions(packetType, balancedQueue) {
+	_getMessageOptions(packetType) {
 		let messageOptions = {};
 		switch (packetType) {
 			case PACKET_REQUEST:
