@@ -205,7 +205,7 @@ class Amqp10Transporter extends Transporter {
 		try {
 			this.connection = await connection.open();
 			this.logger.info("AMQP10 is connected.");
-			this.connection._connection.setMaxListeners(100);
+			this.connection._connection.setMaxListeners(0);
 			await this.onConnected();
 		} catch (e) {
 			this.logger.info("AMQP10 is disconnected.");
