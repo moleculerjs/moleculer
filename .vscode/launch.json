@@ -117,28 +117,6 @@
 			"request": "attach",
 			"name": "Attach to Process",
 			"port": 5858
-		},
-		{
-			"type": "node",
-			"request": "launch",
-			"name": "Jest TEST",
-			"program": "${workspaceFolder}/node_modules/.bin/jest",
-			"args": [
-				"--runInBand",
-				"--testMatch",
-				"${workspaceFolder}/test/transporters/amqp10/**spc.js",
-				"-t",
-				"Test AMQPTransporter Broadcast",
-				"--verbose",
-				"--detectOpenHandles"
-			],
-			// "env": { "DEBUG": "rhea*" },
-			"console": "integratedTerminal",
-			"internalConsoleOptions": "neverOpen",
-			"disableOptimisticBPs": true,
-			"windows": {
-				"program": "${workspaceFolder}/node_modules/jest/bin/jest"
-			}
 		}
 	]
 }
