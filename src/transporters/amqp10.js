@@ -60,6 +60,8 @@ class Amqp10Transporter extends Transporter {
 
 		if (typeof opts.messageOptions !== "object") opts.messageOptions = {};
 
+		if (typeof opts.topicPrefix !== "string") opts.topicPrefix = "topic://";
+
 		this.receivers = [];
 		this.hasBuiltInBalancer = true;
 		this.connection = null;
@@ -204,7 +206,7 @@ class Amqp10Transporter extends Transporter {
 		const connection = container.createConnection(connectionOptions);
 		try {
 			this.connection = await connection.open();
-			this.logger.info("AMQP10 is connected.");
+			this.logger.info("AMQP10 is connected");
 			this.connection._connection.setMaxListeners(0);
 			await this.onConnected();
 		} catch (e) {
@@ -289,7 +291,7 @@ class Amqp10Transporter extends Transporter {
 
 			this.receivers.push(receiver);
 		} else {
-			const topicName = `topic://${topic}`;
+			const topicName = `${this.opts.topicPrefix}${topic}`;
 			Object.assign(receiverOptions, {
 				name: topicName,
 				source: {
@@ -379,7 +381,7 @@ class Amqp10Transporter extends Transporter {
 		const message = Object.assign({ body: data }, this.opts.messageOptions, this._getMessageOptions(packet.type));
 		const awaitableSenderOptions = {
 			target: {
-				address: packet.target ? topic : `topic://${topic}`
+				address: packet.target ? topic : `${this.opts.topicPrefix}${topic}`
 			}
 		};
 		try {
