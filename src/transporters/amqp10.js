@@ -58,6 +58,8 @@ class Amqp10Transporter extends Transporter {
 
 		if (typeof opts.queueOptions !== "object") opts.queueOptions = {};
 
+		if (typeof opts.topicOptions !== "object") opts.topicOptions = {};
+
 		if (typeof opts.messageOptions !== "object") opts.messageOptions = {};
 
 		if (typeof opts.topicPrefix !== "string") opts.topicPrefix = "topic://";
@@ -272,7 +274,7 @@ class Amqp10Transporter extends Transporter {
 
 		if (nodeID) {
 			const needAck = [PACKET_REQUEST].indexOf(cmd) !== -1;
-			Object.assign(receiverOptions, {
+			Object.assign(receiverOptions, this.opts.queueOptions, {
 				credit_window: 0,
 				autoaccept: !needAck,
 				name: topic,
@@ -292,7 +294,7 @@ class Amqp10Transporter extends Transporter {
 			this.receivers.push(receiver);
 		} else {
 			const topicName = `${this.opts.topicPrefix}${topic}`;
-			Object.assign(receiverOptions, {
+			Object.assign(receiverOptions, this.opts.topicOptions, {
 				name: topicName,
 				source: {
 					address: topicName
