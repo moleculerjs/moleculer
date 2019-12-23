@@ -3,6 +3,8 @@
 <a name="0.14.0"></a>
 # [0.14.0](https://github.com/moleculerjs/moleculer/compare/v0.13.9...v0.14.0) (2019-xx-xx)
 
+[**Migration guide from 0.13 to 0.14**](https://github.com/moleculerjs/moleculer/blob/next/docs/MIGRATION_GUIDE_0.14.md)
+
 # Breaking changes
 
 ## Communication protocol has been changed
