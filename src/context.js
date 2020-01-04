@@ -49,13 +49,14 @@ class Context {
 	 * @memberof Context
 	 */
 	constructor(broker, endpoint) {
-		this._id = null;
 
 		this.broker = broker;
-		if (this.broker)
+		if (this.broker) {
 			this.nodeID = this.broker.nodeID;
-		else
+			this.id = this.broker.generateUid();
+		} else {
 			this.nodeID = null;
+		}
 
 		if (endpoint) {
 			this.setEndpoint(endpoint);
@@ -87,7 +88,7 @@ class Context {
 		this.meta = {};
 		this.locals = {};
 
-		this.requestID = null;
+		this.requestID = this.id;
 
 		this.tracing = null;
 		this.span = null;
@@ -180,9 +181,8 @@ class Context {
 	 * @returns {Context}
 	 */
 	copy(ep) {
-		const newCtx = new this.constructor();
+		const newCtx = new this.constructor(this.broker);
 
-		newCtx.broker = this.broker;
 		newCtx.nodeID = this.nodeID;
 		newCtx.setEndpoint(ep || this.endpoint);
 		newCtx.options = this.options;
@@ -207,30 +207,6 @@ class Context {
 	}
 
 	/**
-	 * Context ID getter
-	 *
-	 * @readonly
-	 * @memberof Context
-	 */
-	get id() {
-		if (!this._id) {
-			this._id = this.broker.generateUid();
-			if (!this.requestID)
-				this.requestID = this._id;
-		}
-		return this._id;
-	}
-
-	/**
-	 * Context ID setter
-	 *
-	 * @memberof Context
-	 */
-	set id(val) {
-		this._id = val;
-	}
-
-	/**
 	 * Set endpoint of context
 	 *
 	 * @param {Endpoint} endpoint
@@ -238,18 +214,18 @@ class Context {
 	 */
 	setEndpoint(endpoint) {
 		this.endpoint = endpoint;
-		if (endpoint && endpoint.action) {
-			this.action = endpoint.action;
-			this.service = this.action.service;
-			this.event = null;
-		} else if (endpoint && endpoint.event) {
-			this.event =  endpoint.event;
-			this.service = this.event.service;
-			this.action = null;
-		}
-
-		if (endpoint)
+		if (endpoint) {
 			this.nodeID = endpoint.id;
+			if (endpoint.action) {
+				this.action = endpoint.action;
+				this.service = this.action.service;
+				this.event = null;
+			} else if (endpoint.event) {
+				this.event =  endpoint.event;
+				this.service = this.event.service;
+				this.action = null;
+			}
+		}
 	}
 
 	/**
@@ -463,6 +439,7 @@ class Context {
 	 */
 	toJSON() {
 		const res = _.pick(this, [
+			"id",
 			"nodeID",
 			"action.name",
 			"event.name",
@@ -487,7 +464,6 @@ class Context {
 			"cachedResult"
 		]);
 
-		res.id = this._id ? this._id : null;
 		return res;
 	}
 

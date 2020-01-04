@@ -100,7 +100,7 @@ Array [
   },
   Object {
     "error": null,
-    "id": "broker-2-3",
+    "id": "broker-2-4",
     "logs": Array [],
     "name": "cloning",
     "parentID": "broker-1-2",
@@ -118,7 +118,7 @@ Array [
   },
   Object {
     "error": null,
-    "id": "broker-2-6",
+    "id": "broker-2-9",
     "logs": Array [],
     "name": "action 'friends.count'",
     "parentID": "broker-1-2",
@@ -156,7 +156,7 @@ Array [
   },
   Object {
     "error": null,
-    "id": "broker-1-7",
+    "id": "broker-1-11",
     "logs": Array [],
     "name": "action 'users.get'",
     "parentID": "broker-1-1",
@@ -192,10 +192,10 @@ Array [
   },
   Object {
     "error": null,
-    "id": "broker-2-8",
+    "id": "broker-2-13",
     "logs": Array [],
     "name": "cloning",
-    "parentID": "broker-1-7",
+    "parentID": "broker-1-11",
     "priority": 5,
     "sampled": true,
     "service": Object {
@@ -210,10 +210,10 @@ Array [
   },
   Object {
     "error": null,
-    "id": "broker-2-11",
+    "id": "broker-2-18",
     "logs": Array [],
     "name": "action 'friends.count'",
-    "parentID": "broker-1-7",
+    "parentID": "broker-1-11",
     "priority": 5,
     "sampled": true,
     "service": Object {
@@ -248,7 +248,7 @@ Array [
   },
   Object {
     "error": null,
-    "id": "broker-1-12",
+    "id": "broker-1-20",
     "logs": Array [],
     "name": "action 'users.get'",
     "parentID": "broker-1-1",
@@ -284,10 +284,10 @@ Array [
   },
   Object {
     "error": null,
-    "id": "broker-2-13",
+    "id": "broker-2-22",
     "logs": Array [],
     "name": "cloning",
-    "parentID": "broker-1-12",
+    "parentID": "broker-1-20",
     "priority": 5,
     "sampled": true,
     "service": Object {
@@ -302,10 +302,10 @@ Array [
   },
   Object {
     "error": null,
-    "id": "broker-2-16",
+    "id": "broker-2-27",
     "logs": Array [],
     "name": "action 'friends.count'",
-    "parentID": "broker-1-12",
+    "parentID": "broker-1-20",
     "priority": 5,
     "sampled": true,
     "service": Object {
@@ -345,7 +345,7 @@ exports[`Test Tracing feature with actions should generate event spans 1`] = `
 Array [
   Object {
     "error": null,
-    "id": "broker-1-1",
+    "id": "broker-1-2",
     "logs": Array [],
     "name": "event 'comments.removed' in 'posts'",
     "parentID": null,
@@ -372,10 +372,10 @@ Array [
   },
   Object {
     "error": null,
-    "id": "broker-1-2",
+    "id": "broker-1-3",
     "logs": Array [],
     "name": "update posts",
-    "parentID": "broker-1-1",
+    "parentID": "broker-1-2",
     "priority": 5,
     "sampled": true,
     "service": Object {
@@ -388,7 +388,7 @@ Array [
   },
   Object {
     "error": null,
-    "id": "broker-1-3",
+    "id": "broker-1-6",
     "logs": Array [
       Object {
         "fields": Object {
@@ -398,7 +398,7 @@ Array [
       },
     ],
     "name": "event 'post.updated' in 'posts'",
-    "parentID": "broker-1-2",
+    "parentID": "broker-1-3",
     "priority": 5,
     "sampled": true,
     "service": Object {
@@ -422,10 +422,10 @@ Array [
   },
   Object {
     "error": null,
-    "id": "broker-1-6",
+    "id": "broker-1-11",
     "logs": Array [],
     "name": "update others",
-    "parentID": "broker-1-1",
+    "parentID": "broker-1-2",
     "priority": 5,
     "sampled": true,
     "service": Object {
@@ -438,10 +438,10 @@ Array [
   },
   Object {
     "error": null,
-    "id": "broker-2-8",
+    "id": "broker-2-15",
     "logs": Array [],
     "name": "event 'user.updated' in 'users'",
-    "parentID": "broker-1-6",
+    "parentID": "broker-1-11",
     "priority": 5,
     "sampled": true,
     "service": Object {
@@ -465,10 +465,10 @@ Array [
   },
   Object {
     "error": null,
-    "id": "broker-2-9",
+    "id": "broker-2-16",
     "logs": Array [],
     "name": "updating user",
-    "parentID": "broker-2-8",
+    "parentID": "broker-2-15",
     "priority": 5,
     "sampled": true,
     "service": Object {
@@ -481,10 +481,10 @@ Array [
   },
   Object {
     "error": null,
-    "id": "broker-2-10",
+    "id": "broker-2-17",
     "logs": Array [],
     "name": "action 'friends.count'",
-    "parentID": "broker-2-9",
+    "parentID": "broker-2-16",
     "priority": 5,
     "sampled": true,
     "service": Object {

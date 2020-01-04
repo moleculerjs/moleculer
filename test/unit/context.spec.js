@@ -11,15 +11,15 @@ describe("Test Context", () => {
 	it("test with empty opts", () => {
 		let broker = new ServiceBroker({ nodeID: "server-123", logger: false });
 
-		let ctx = new Context();
+		let ctx = new Context(broker);
 
-		expect(ctx._id).toBeNull();
-		expect(ctx.broker).not.toBeDefined();
+		expect(ctx.id).toBeDefined();
+		expect(ctx.broker).toBeDefined();
 		expect(ctx.endpoint).toBeNull();
 		expect(ctx.action).toBeNull();
 		expect(ctx.event).toBeNull();
 		expect(ctx.service).toBeNull();
-		expect(ctx.nodeID).toBeNull();
+		expect(ctx.nodeID).toBe("server-123");
 
 		expect(ctx.eventName).toBeNull();
 		expect(ctx.eventType).toBeNull();
@@ -39,7 +39,7 @@ describe("Test Context", () => {
 		expect(ctx.meta).toEqual({});
 		expect(ctx.locals).toEqual({});
 
-		expect(ctx.requestID).toBeNull();
+		expect(ctx.requestID).toBe(ctx.id);
 
 		expect(ctx.tracing).toBeNull();
 		expect(ctx.span).toBeNull();
@@ -48,12 +48,6 @@ describe("Test Context", () => {
 		expect(ctx.ackID).toBeNull();
 
 		expect(ctx.cachedResult).toBe(false);
-
-		// Test ID generator
-		ctx.broker = broker;
-		expect(ctx.id).toBeDefined();
-		expect(ctx.id).toBe(ctx._id);
-		expect(ctx.requestID).toBe(ctx.id);
 	});
 
 	it("test with constructor params", () => {
@@ -332,7 +326,7 @@ describe("Test copy", () => {
 
 		const ctx = baseCtx.copy();
 
-		expect(ctx._id).toBeNull();
+		expect(ctx.id).not.toBe(baseCtx.id);
 		expect(ctx.broker).toBe(broker);
 		expect(ctx.endpoint).toBe(endpoint);
 		expect(ctx.action).toBe(endpoint.action);
@@ -383,7 +377,7 @@ describe("Test copy", () => {
 
 		const ctx = baseCtx.copy(newEndpoint);
 
-		expect(ctx._id).toBeNull();
+		expect(ctx.id).not.toBe(baseCtx.id);
 		expect(ctx.broker).toBe(broker);
 		expect(ctx.endpoint).toBe(newEndpoint);
 		expect(ctx.action).toBeNull();
@@ -1050,7 +1044,7 @@ describe("Test toJSON method", () => {
 
 	it("should generate POJO", () => {
 		expect(ctx.toJSON()).toEqual({
-			id: null,
+			id: ctx.id,
 			nodeID: "server-123",
 			service: {
 				name: "posts",
