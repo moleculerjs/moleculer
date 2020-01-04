@@ -29,6 +29,10 @@ const {
  *
  * More info: https://www.amqp.org/resources/specifications
  *
+ * For test:
+ *
+ * 	 docker run -p 61616:61616 -p 8161:8161 -p 5672:5672 --rm -d --name=activemq rmohr/activemq
+ *
  * @class Amqp10Transporter
  * @extends {Transporter}
  */

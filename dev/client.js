@@ -12,17 +12,17 @@ let ServiceBroker = require("../src/service-broker");
 let broker = new ServiceBroker({
 	namespace: "",
 	nodeID: process.argv[2] || "client-" + process.pid,
-	transporter: {
+	/*transporter: {
 		type: "NATS",
 		options: {
 			//udpDiscovery: false,
 			//urls: "file://./dev/nodes.json",
 			//debug: true
 		}
-	},
+	},*/
 	//transporter: "kafka://192.168.51.29:2181",
-	//transporter: "amqp://192.168.0.181:5672",
-	serializer: "Thrift",
+	transporter: "amqp10://admin:admin@192.168.0.181:5672",
+	serializer: "JSON",
 	//requestTimeout: 1000,
 
 	//disableBalancer: true,
