@@ -185,7 +185,7 @@ describe("Test KafkaTransporter makeSubscriptions", () => {
 		expect(Kafka.ConsumerGroup).toHaveBeenCalledWith( {
 			"encoding": "buffer",
 			"fromOffset": "latest",
-			"groupId": "node-1",
+			"groupId": transporter.broker.instanceID,
 			"kafkaHost": "kafka-server:1234",
 			"id": "default-kafka-consumer"
 		}, ["MOL-TEST.REQ.node", "MOL-TEST.RES.node"]);
