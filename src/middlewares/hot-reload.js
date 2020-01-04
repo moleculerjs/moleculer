@@ -59,7 +59,12 @@ module.exports = function HotReloadMiddleware(broker) {
 		const reloadServices = _.debounce(() => {
 			broker.logger.info(kleur.bgMagenta().white().bold(`Reload ${needToReload.size} service(s)`));
 
-			needToReload.forEach(svc => hotReloadService(svc));
+			needToReload.forEach(svc => {
+				if (typeof svc == "string")
+					return broker.loadService(svc);
+
+				return hotReloadService(svc);
+			});
 			needToReload.clear();
 
 		}, 500);
@@ -113,6 +118,14 @@ module.exports = function HotReloadMiddleware(broker) {
 						if (watchItem.services.indexOf(svc.fullName) !== -1)
 							needToReload.add(svc);
 					});
+
+					if (needToReload.size == 0) {
+						// It means, it's a crashed reloaded service, so we
+						// didn't find it in the loaded services because
+						// the previous hot-reload failed. We should load it
+						// broker.loadService
+						needToReload.add(relPath);
+					}
 					reloadServices();
 				}
 			});
