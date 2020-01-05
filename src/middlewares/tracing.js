@@ -56,7 +56,19 @@ module.exports = function TracingMiddleware(broker) {
 						tags.meta = _.pick(ctx.meta, opts.tags.meta);
 				}
 
-				const span = ctx.startSpan(`action '${ctx.action.name}'`, {
+				let spanName = `action '${ctx.action.name}'`;
+				if (opts.spanName) {
+					switch(typeof opts.spanName) {
+						case "string":
+							spanName = opts.spanName;
+							break;
+						case "function":
+							spanName = opts.spanName.call(ctx.service, ctx);
+							break;
+					}
+				}
+
+				const span = ctx.startSpan(spanName, {
 					id: ctx.id,
 					type: "action",
 					traceID: ctx.requestID,
@@ -153,7 +165,19 @@ module.exports = function TracingMiddleware(broker) {
 						tags.meta = _.pick(ctx.meta, opts.tags.meta);
 				}
 
-				const span = ctx.startSpan(`event '${ctx.eventName}' in '${service.fullName}'`, {
+				let spanName = `event '${ctx.eventName}' in '${service.fullName}'`;
+				if (opts.spanName) {
+					switch(typeof opts.spanName) {
+						case "string":
+							spanName = opts.spanName;
+							break;
+						case "function":
+							spanName = opts.spanName.call(service, ctx);
+							break;
+					}
+				}
+
+				const span = ctx.startSpan(spanName, {
 					id: ctx.id,
 					type: "event",
 					traceID: ctx.requestID,
