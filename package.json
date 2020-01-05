@@ -119,7 +119,7 @@
     "node-fetch": "^2.6.0"
   },
   "engines": {
-    "node": ">= 8.x.x"
+    "node": ">= 10.x.x"
   },
   "types": "./index.d.ts",
   "tsd": {
