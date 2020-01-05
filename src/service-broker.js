@@ -316,7 +316,7 @@ class ServiceBroker {
 
 			// 1. Validator
 			if (this.validator && _.isFunction(this.validator.middleware)) {
-				const mw = this.validator.middleware();
+				const mw = this.validator.middleware(this);
 				if (_.isPlainObject(mw))
 					this.middlewares.add(mw);
 				else

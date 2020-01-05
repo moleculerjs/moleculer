@@ -7,6 +7,9 @@
 
 # Breaking changes
 
+## Minimum Node version is 10
+The Node version 8 LTS lifecycle has been ended on December 31, 2019, so the minimum required Node version is 10.
+
 ## Communication protocol has been changed
 The Moleculer communication protocol has been changed. The new protocol version is `4`.
 It means the new Moleculer 0.14 nodes can't communicate with old <= 0.13 nodes.
@@ -584,6 +587,31 @@ module.exports = {
     }
 };
 ```
+
+## Event parameter validation
+Similar to action parameter validation, the event parameter validation is supported.
+Like in action definition, you should define `params` in even definition and the built-in `Validator` validates the parameters in events.
+
+```js
+// mailer.service.js
+module.exports = {
+	name: "mailer",
+	events: {
+		"send.mail": {
+            // Validation schema
+			params: {
+				from: "string|optional",
+				to: "email",
+				subject: "string"
+			},
+			handler(ctx) {
+				this.logger.info("Event received, parameters OK!", ctx.params);
+			}
+		}
+	}
+};
+```
+>The validation errors are not sent back to the caller, they are logged or you can catch them with the new [global error handler](#global-error-handler).
 
 ## New built-in metrics
 Moleculer v0.14 comes with a brand-new and entirely rewritten metrics module. It is now a built-in module. It collects a lot of internal Moleculer & process metric values. You can easily define your custom metrics. There are several built-in metrics reporters like `Console`, `Prometheus`, `Datadog`, ...etc.
