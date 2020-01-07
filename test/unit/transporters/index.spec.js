@@ -108,7 +108,7 @@ describe("Test Transporter resolver", () => {
 				messageOptions: {},
 				queueOptions: {},
 				consumeOptions: {},
-				autoDeleteQueues: -1
+				autoDeleteQueues: 120000
 			});
 		});
 	});

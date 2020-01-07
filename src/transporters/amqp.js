@@ -74,11 +74,15 @@ class AmqpTransporter extends Transporter {
 		if (typeof opts.consumeOptions !== "object")
 			opts.consumeOptions = {};
 
+		// The default behavior is to delete the queues after they haven't had any
+		// connected consumers for 2 minutes.
+		const autoDeleteQueuesAfterDefault = 2*60*1000;
+
 		opts.autoDeleteQueues =
-			opts.autoDeleteQueues === true ? 2*60*1000 :
+			opts.autoDeleteQueues === true ? autoDeleteQueuesAfterDefault :
 				typeof opts.autoDeleteQueues === "number" ? opts.autoDeleteQueues :
 					opts.autoDeleteQueues === false ? -1 :
-						-1; // Eventually we could change default
+						autoDeleteQueuesAfterDefault;
 
 		// Support for multiple URLs (clusters)
 		opts.url = Array.isArray(opts.url)

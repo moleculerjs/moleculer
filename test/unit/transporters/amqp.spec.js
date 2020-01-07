@@ -61,7 +61,7 @@ describe("Test AmqpTransporter constructor", () => {
 			messageOptions: {},
 			queueOptions: {},
 			consumeOptions: {},
-			autoDeleteQueues: -1
+			autoDeleteQueues: 120000
 		});
 		expect(transporter.connected).toBe(false);
 		expect(transporter.hasBuiltInBalancer).toBe(true);
@@ -80,7 +80,7 @@ describe("Test AmqpTransporter constructor", () => {
 			messageOptions: { expiration: 120000, persistent: true, mandatory: true },
 			queueOptions: { deadLetterExchange: "dlx", maxLength: 100 },
 			consumeOptions: { priority: 5 },
-			autoDeleteQueues: -1
+			autoDeleteQueues: 31337
 		};
 		let transporter = new AmqpTransporter(opts);
 		expect(transporter.opts).toEqual(opts);
@@ -253,7 +253,7 @@ describe("Test AmqpTransporter subscribe", () => {
 				expect(transporter.channel.assertQueue).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.consume).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.assertQueue)
-					.toHaveBeenCalledWith("MOL-TEST.RES.node", {});
+					.toHaveBeenCalledWith("MOL-TEST.RES.node", { expires: 120000 });
 				expect(transporter.channel.consume)
 					.toHaveBeenCalledWith("MOL-TEST.RES.node", jasmine.any(Function), { noAck: true });
 
@@ -292,7 +292,7 @@ describe("Test AmqpTransporter subscribe", () => {
 				expect(transporter.channel.assertQueue).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.consume).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.assertQueue)
-					.toHaveBeenCalledWith("MOL-TEST.REQ.node", {});
+					.toHaveBeenCalledWith("MOL-TEST.REQ.node", { expires: 120000 });
 				expect(transporter.channel.consume)
 					.toHaveBeenCalledWith("MOL-TEST.REQ.node", jasmine.any(Function), { noAck: false });
 
@@ -313,7 +313,7 @@ describe("Test AmqpTransporter subscribe", () => {
 				expect(transporter.channel.consume).toHaveBeenCalledTimes(1);
 
 				expect(transporter.channel.assertQueue)
-					.toHaveBeenCalledWith("MOL-TEST.EVENT.node", { messageTtl: 3000 }); // use ttl option
+					.toHaveBeenCalledWith("MOL-TEST.EVENT.node", { expires: 120000, messageTtl: 3000 }); // use ttl option
 				expect(transporter.channel.consume)
 					.toHaveBeenCalledWith("MOL-TEST.EVENT.node", jasmine.any(Function), { noAck: true });
 
@@ -410,7 +410,7 @@ describe("Test AmqpTransporter subscribe", () => {
 				expect(transporter.channel.consume).toHaveBeenCalledTimes(1);
 				expect(transporter.channel.assertQueue)
 					.toHaveBeenCalledWith("MOL-TEST.EVENTB.posts.cache.clear",
-						{ messageTtl: 3000 });
+						{ expires: 120000, messageTtl: 3000 });
 				expect(transporter.channel.consume)
 					.toHaveBeenCalledWith("MOL-TEST.EVENTB.posts.cache.clear", jasmine.any(Function), {});
 
