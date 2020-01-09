@@ -595,20 +595,20 @@ Like in action definition, you should define `params` in even definition and the
 ```js
 // mailer.service.js
 module.exports = {
-	name: "mailer",
-	events: {
-		"send.mail": {
+    name: "mailer",
+    events: {
+        "send.mail": {
             // Validation schema
-			params: {
-				from: "string|optional",
-				to: "email",
-				subject: "string"
-			},
-			handler(ctx) {
-				this.logger.info("Event received, parameters OK!", ctx.params);
-			}
-		}
-	}
+            params: {
+                from: "string|optional",
+                to: "email",
+                subject: "string"
+            },
+            handler(ctx) {
+                this.logger.info("Event received, parameters OK!", ctx.params);
+            }
+        }
+    }
 };
 ```
 >The validation errors are not sent back to the caller, they are logged or you can catch them with the new [global error handler](#global-error-handler).
@@ -1855,8 +1855,8 @@ The Moleculer Runner supports asynchronous configuration files. In this case you
 const fetch = require("node-fetch");
 
 module.exports = async function() {
-	const res = await fetch("https://pastebin.com/raw/SLZRqfHX");
-	return await res.json();
+    const res = await fetch("https://pastebin.com/raw/SLZRqfHX");
+    return await res.json();
 };
 ```
 
