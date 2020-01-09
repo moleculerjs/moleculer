@@ -211,7 +211,8 @@ describe("Test Context.create", () => {
 				span: {
 					id: 300
 				}
-			}
+			},
+			caller: "api"
 		};
 
 		let ctx = Context.create(broker, endpoint, params, opts);
@@ -238,7 +239,7 @@ describe("Test Context.create", () => {
 		expect(ctx.options).toEqual(opts);
 
 		expect(ctx.parentID).toBe(300);
-		expect(ctx.caller).toBe("posts");
+		expect(ctx.caller).toBe("api");
 
 		expect(ctx.tracing).toBe(true);
 		expect(ctx.level).toBe(6);

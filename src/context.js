@@ -160,6 +160,11 @@ class Context {
 				ctx.caller = opts.parentCtx.service.fullName;
 		}
 
+		// caller
+		if (opts.caller) {
+			ctx.caller = opts.caller;
+		}
+
 		// Parent span
 		if (opts.parentSpan != null) {
 			ctx.parentID = opts.parentSpan.id;

@@ -805,6 +805,7 @@ declare namespace Moleculer {
 		requestID?: string;
 		tracking?: boolean;
 		paramsCloning?: boolean;
+		caller?: string;
 	}
 
 	type CallDefinition<P extends GenericObject = GenericObject> = {
