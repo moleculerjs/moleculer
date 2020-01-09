@@ -1,12 +1,11 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
-const Promise		= require("bluebird");
 const Transporter 	= require("./base");
 const {
 	PACKET_REQUEST,
@@ -58,7 +57,7 @@ class NatsTransporter extends Transporter {
 	 * @memberof NatsTransporter
 	 */
 	connect() {
-		return new Promise((resolve, reject) => {
+		return new this.broker.Promise((resolve, reject) => {
 			let Nats;
 			try {
 				Nats = require("nats");
@@ -139,7 +138,7 @@ class NatsTransporter extends Transporter {
 
 		this.client.subscribe(t, msg => this.receive(cmd, msg));
 
-		return Promise.resolve();
+		return this.broker.Promise.resolve();
 	}
 
 	/**
@@ -174,7 +173,7 @@ class NatsTransporter extends Transporter {
 	 * @memberof BaseTransporter
 	 */
 	unsubscribeFromBalancedCommands() {
-		return new Promise(resolve => {
+		return new this.broker.Promise(resolve => {
 			this.subscriptions.forEach(uid => this.client.unsubscribe(uid));
 			this.subscriptions = [];
 
@@ -193,9 +192,9 @@ class NatsTransporter extends Transporter {
 	 */
 	send(topic, data) {
 		/* istanbul ignore next*/
-		if (!this.client) return Promise.resolve();
+		if (!this.client) return this.broker.Promise.resolve();
 
-		return new Promise(resolve => {
+		return new this.broker.Promise(resolve => {
 			this.client.publish(topic, data, resolve);
 		});
 	}

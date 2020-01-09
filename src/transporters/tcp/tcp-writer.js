@@ -8,7 +8,6 @@
 
 const net 			= require("net");
 const EventEmitter 	= require("events");
-const Promise		= require("bluebird");
 
 const { MoleculerError } = require("../../errors");
 const { PACKET_GOSSIP_REQ_ID, PACKET_GOSSIP_RES_ID, PACKET_GOSSIP_HELLO_ID } = require("./constants");
@@ -37,6 +36,7 @@ class TcpWriter extends EventEmitter {
 		this.opts = opts;
 
 		this.transporter = transporter;
+		this.Promise = transporter.broker.Promise;
 		this.logger = transporter.logger;
 	}
 
@@ -48,14 +48,14 @@ class TcpWriter extends EventEmitter {
 	connect(nodeID) {
 		const node = this.transporter.getNode(nodeID);
 		if (!node)
-			return Promise.reject(new MoleculerError(`Missing node info for '${nodeID}'!`));
+			return this.Promise.reject(new MoleculerError(`Missing node info for '${nodeID}'!`));
 
 		const host = this.transporter.getNodeAddress(node);
 		const port = node.port;
 
 		this.logger.debug(`Connecting to '${nodeID}' via ${host}:${port}`);
 
-		return new Promise((resolve, reject) => {
+		return new this.Promise((resolve, reject) => {
 			try {
 				const socket = net.connect({ host, port }, () => {
 					socket.nodeID = nodeID;
@@ -110,7 +110,7 @@ class TcpWriter extends EventEmitter {
 	 * @param {Buffer} data
 	 */
 	send(nodeID, type, data) {
-		return Promise.resolve()
+		return this.Promise.resolve()
 			.then(() => {
 				let socket = this.sockets.get(nodeID);
 				if (socket && !socket.destroyed)
@@ -122,7 +122,7 @@ class TcpWriter extends EventEmitter {
 				if ([PACKET_GOSSIP_REQ_ID, PACKET_GOSSIP_RES_ID, PACKET_GOSSIP_HELLO_ID].indexOf(type) == -1)
 					socket.lastUsed = Date.now();
 
-				return new Promise((resolve, reject) => {
+				return new this.Promise((resolve, reject) => {
 
 					// Create binary payload
 					const header = Buffer.alloc(HEADER_SIZE);

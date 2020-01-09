@@ -6,7 +6,6 @@
 
 "use strict";
 
-const Promise 		= require("bluebird");
 const _ 			= require("lodash");
 const Middlewares 	= require("./middlewares");
 const { BrokerOptionsError } = require("./errors");
@@ -80,10 +79,10 @@ class MiddlewareHandler {
 	callHandlers(method, args, opts = {}) {
 		if (this.registeredHooks[method] && this.registeredHooks[method].length) {
 			const list = opts.reverse ? Array.from(this.registeredHooks[method]).reverse() : this.registeredHooks[method];
-			return list.reduce((p, fn) => p.then(() => fn.apply(this.broker, args)), Promise.resolve());
+			return list.reduce((p, fn) => p.then(() => fn.apply(this.broker, args)), this.broker.Promise.resolve());
 		}
 
-		return Promise.resolve();
+		return this.broker.Promise.resolve();
 	}
 
 	/**

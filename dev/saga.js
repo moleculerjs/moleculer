@@ -2,7 +2,6 @@
 
 const _ = require("lodash");
 const kleur = require("kleur");
-const Promise = require("bluebird");
 const ServiceBroker = require("../src/service-broker");
 const { MoleculerError } = require("../src/errors");
 

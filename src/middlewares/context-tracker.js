@@ -6,7 +6,6 @@
 
 "use strict";
 
-const Promise = require("bluebird");
 const { GracefulStopTimeoutError } = require("../errors");
 
 function addContext(ctx) {
@@ -53,7 +52,7 @@ function wrapTrackerMiddleware(handler) {
 				return res;
 			}).catch(err => {
 				removeContext(ctx);
-				return Promise.reject(err);
+				throw err;
 			});
 
 			return p;
@@ -65,9 +64,9 @@ function wrapTrackerMiddleware(handler) {
 
 function waitingForActiveContexts(list, logger, time, service) {
 	if (!list || list.length === 0)
-		return Promise.resolve();
+		return Promise.resolve(); // TODO broker.Promise
 
-	return new Promise((resolve) => {
+	return new Promise((resolve) => { // TODO broker.Promise
 		let timedOut = false;
 		const timeout = setTimeout(() => {
 			timedOut = true;

@@ -1,6 +1,5 @@
 "use strict";
 
-const Promise = require("bluebird");
 const _ = require("lodash");
 const H = require("./helpers");
 

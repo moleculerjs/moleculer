@@ -1,18 +1,16 @@
 "use strict";
 
-//let _ = require("lodash");
-let ServiceBroker = require("../../src/service-broker");
-let Promise = require("bluebird");
+const ServiceBroker = require("../../src/service-broker");
 
-let { getDataFile } = require("../utils");
+const { getDataFile } = require("../utils");
 
-let Benchmarkify = require("benchmarkify");
-let benchmark = new Benchmarkify("Transporters benchmark").printHeader();
+const Benchmarkify = require("benchmarkify");
+const benchmark = new Benchmarkify("Transporters benchmark").printHeader();
 
-let dataFiles = ["10"];//, "150", "1k", "10k", "50k", "100k", "1M"];
+const dataFiles = ["10"];//, "150", "1k", "10k", "50k", "100k", "1M"];
 
 function createBrokers(transporter) {
-	let b1 = new ServiceBroker({
+	const b1 = new ServiceBroker({
 		transporter,
 		//requestTimeout: 0,
 		logger: false,
@@ -20,7 +18,7 @@ function createBrokers(transporter) {
 		nodeID: "node-1"
 	});
 
-	let b2 = new ServiceBroker({
+	const b2 = new ServiceBroker({
 		transporter,
 		//requestTimeout: 0,
 		logger: false,
@@ -45,9 +43,9 @@ function createBrokers(transporter) {
 
 function runTest(dataName) {
 
-	let bench = benchmark.createSuite(`Transport with ${dataName}bytes`);
-	let data = getDataFile(dataName + ".json");
-	let payload = JSON.parse(data);
+	const bench = benchmark.createSuite(`Transport with ${dataName}bytes`);
+	const data = getDataFile(dataName + ".json");
+	const payload = JSON.parse(data);
 
 	Promise.all([
 		createBrokers("Fake"),

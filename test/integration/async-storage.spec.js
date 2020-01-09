@@ -1,5 +1,4 @@
 const AsyncStorage = require("../../src/async-storage");
-const Promise = require("bluebird");
 
 describe("Test Async Storage class", () => {
 

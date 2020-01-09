@@ -1,4 +1,3 @@
-const Promise = require("bluebird");
 const E = require("../../src/errors");
 const H = require("./helpers");
 const { protectReject } = require("../unit/utils");

@@ -1,6 +1,5 @@
 "use strict";
 
-const Promise = require("bluebird");
 const Middlewares = require("../../src/middlewares");
 const MiddlewareHandler = require("../../src/middleware");
 const ServiceBroker = require("../../src/service-broker");

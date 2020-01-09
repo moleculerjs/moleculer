@@ -3,7 +3,6 @@
 const LatencyStrategy = require("../../../src/strategies/latency");
 const { extendExpect, protectReject } = require("../utils");
 const ServiceBroker = require("../../../src/service-broker");
-const Promise = require("bluebird");
 
 const lolex = require("lolex");
 

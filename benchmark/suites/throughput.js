@@ -2,17 +2,15 @@
 
 "use strict";
 
-//let _ = require("lodash");
-let kleur = require("kleur");
-let ServiceBroker = require("../../src/service-broker");
-let Promise = require("bluebird");
+const kleur = require("kleur");
+const ServiceBroker = require("../../src/service-broker");
 
-let { getDataFile } = require("../utils");
+const { getDataFile } = require("../utils");
 
-let Benchmarkify = require("benchmarkify");
-let benchmark = new Benchmarkify("Throughput benchmark").printHeader();
+const Benchmarkify = require("benchmarkify");
+const benchmark = new Benchmarkify("Throughput benchmark").printHeader();
 
-let dataFiles = ["10"];//, "150", "1k", "10k", "50k", "100k", "1M"];
+const dataFiles = ["10"];//, "150", "1k", "10k", "50k", "100k", "1M"];
 
 const MAX = 20 * 1000;
 let received = 0;
@@ -24,8 +22,8 @@ function done() {
 	endTime = Date.now();
 
 	let mps = parseInt(MAX / ((endTime - startTime) / 1000));
-	console.log("Messages  : " + received.toLocaleString("en-US", {maximumFractionDigits: 0}) + " msgs");
-	console.log("Throughput: " + kleur.green().bold(mps.toLocaleString("en-US", {maximumFractionDigits: 0})) + " msgs/sec");
+	console.log("Messages  : " + received.toLocaleString("en-US", { maximumFractionDigits: 0 }) + " msgs");
+	console.log("Throughput: " + kleur.green().bold(mps.toLocaleString("en-US", { maximumFractionDigits: 0 })) + " msgs/sec");
 	console.log("");
 
 	resolve();
@@ -96,7 +94,7 @@ function runTest(dataName) {
 			"Redis",
 			"MQTT",
 			"TCP"
-		], transporter => measureTP(transporter, dataName), { concurrency: 1}))
+		], transporter => measureTP(transporter, dataName), { concurrency: 1 }))
 		.then(() => {
 			if (dataFiles.length > 0)
 				runTest(dataFiles.shift());

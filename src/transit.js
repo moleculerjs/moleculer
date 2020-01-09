@@ -6,7 +6,6 @@
 
 "use strict";
 
-const Promise 			= require("bluebird"); // eslint-disable-line
 const _ 				= require("lodash");
 
 const P 				= require("./packets");
@@ -682,8 +681,8 @@ class Transit {
 	 * Send a request to a remote service. It returns a Promise
 	 * what will be resolved when the response received.
 	 *
-	 * @param {<Context>} ctx            Context of request
-	 * @returns    {Promise}
+	 * @param {<Context>} ctx Context of request
+	 * @returns {Promise}
 	 *
 	 * @memberof Transit
 	 */
@@ -704,8 +703,8 @@ class Transit {
 	/**
 	 * Send a remote request
 	 *
-	 * @param {<Context>} ctx        Context of request
-	 * @param {Function} resolve    Resolve of Promise
+	 * @param {<Context>} ctx      Context of request
+	 * @param {Function} resolve   Resolve of Promise
 	 * @param {Function} reject    Reject of Promise
 	 *
 	 * @memberof Transit

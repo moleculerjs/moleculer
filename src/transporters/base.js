@@ -1,13 +1,12 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
-const Promise		= require("bluebird");
-const _				= require("lodash");
+const _	= require("lodash");
 const P = require("../packets");
 
 /**
@@ -79,7 +78,7 @@ class BaseTransporter {
 			return this.afterConnect(wasReconnect);
 		}
 
-		return Promise.resolve();
+		return this.broker.Promise.resolve();
 	}
 
 	/**
@@ -100,7 +99,7 @@ class BaseTransporter {
 	 * @memberof BaseTransporter
 	 */
 	makeSubscriptions(topics) {
-		return Promise.all(topics.map(({ cmd, nodeID }) => this.subscribe(cmd, nodeID)));
+		return this.broker.Promise.all(topics.map(({ cmd, nodeID }) => this.subscribe(cmd, nodeID)));
 	}
 
 	/**
@@ -174,7 +173,7 @@ class BaseTransporter {
 	 */
 	unsubscribeFromBalancedCommands() {
 		/* istanbul ignore next */
-		return Promise.resolve();
+		return this.broker.Promise.resolve();
 	}
 
 	/**
@@ -254,11 +253,11 @@ class BaseTransporter {
 	 * @memberof AmqpTransporter
 	 */
 	makeBalancedSubscriptions() {
-		if (!this.hasBuiltInBalancer) return Promise.resolve();
+		if (!this.hasBuiltInBalancer) return this.broker.Promise.resolve();
 
 		return this.unsubscribeFromBalancedCommands().then(() => {
 			const services = this.broker.getLocalNodeInfo().services;
-			return Promise.all(services.map(service => {
+			return this.broker.Promise.all(services.map(service => {
 				const p = [];
 
 				// Service actions queues
@@ -274,7 +273,7 @@ class BaseTransporter {
 					}));
 				}
 
-				return Promise.all(_.compact(_.flatten(p, true)));
+				return this.broker.Promise.all(_.compact(_.flatten(p, true)));
 			}));
 		});
 	}
@@ -298,7 +297,7 @@ class BaseTransporter {
 					packet.payload.groups = [group];
 					this.publishBalancedEvent(packet, group);
 				});
-				return Promise.resolve();
+				return this.broker.Promise.resolve();
 			}
 			// If it's not contain, then it is a broadcasted event,
 			// we sent it in the normal way (exchange)

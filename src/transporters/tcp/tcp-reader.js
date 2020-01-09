@@ -8,7 +8,6 @@
 
 const net 			= require("net");
 const EventEmitter 	= require("events");
-const Promise		= require("bluebird");
 const Parser		= require("./parser");
 
 /**
@@ -32,6 +31,7 @@ class TcpReader extends EventEmitter {
 		this.server = null;
 		this.opts = opts;
 		this.transporter = transporter;
+		this.Promise = transporter.broker.Promise;
 		this.logger = transporter.logger;
 
 		this.sockets = [];
@@ -44,7 +44,7 @@ class TcpReader extends EventEmitter {
 	 * @memberof TcpReader
 	 */
 	listen() {
-		return new Promise((resolve, reject) => {
+		return new this.Promise((resolve, reject) => {
 
 			const server = net.createServer(socket => this.onTcpClientConnected(socket));
 

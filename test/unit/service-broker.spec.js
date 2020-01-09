@@ -18,7 +18,6 @@ const utils = require("../../src/utils");
 
 const { protectReject } = require("./utils");
 const path = require("path");
-const Promise = require("bluebird");
 const lolex = require("lolex");
 const ServiceBroker = require("../../src/service-broker");
 const Service = require("../../src/service");

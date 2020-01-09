@@ -6,7 +6,6 @@
 
 "use strict";
 
-const Promise = require("bluebird"); // eslint-disable-line no-unused-vars
 const _ = require("lodash");
 const Exporters = require("./exporters");
 const AsyncStorage = require("../async-storage");

@@ -1,6 +1,5 @@
 /* eslint-disable no-console */
 
-const Promise 							= require("bluebird");
 const _ 								= require("lodash");
 const fs 								= require("fs");
 //const { ServiceBroker } 				= require("../../../");

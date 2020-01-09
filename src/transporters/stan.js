@@ -1,12 +1,11 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
-const Promise			= require("bluebird");
 const Transporter 		= require("./base");
 const {
 	PACKET_REQUEST,
@@ -58,7 +57,7 @@ class StanTransporter extends Transporter {
 	 * @memberof StanTransporter
 	 */
 	connect() {
-		return new Promise((resolve, reject) => {
+		return new this.broker.Promise((resolve, reject) => {
 			let Stan;
 			try {
 				Stan = require("node-nats-streaming");
@@ -140,7 +139,7 @@ class StanTransporter extends Transporter {
 		const subscription = this.client.subscribe(t, opts);
 
 		subscription.on("message", msg => this.receive(cmd, msg.getRawData()));
-		return Promise.resolve();
+		return this.broker.Promise.resolve();
 	}
 
 	/**
@@ -183,7 +182,7 @@ class StanTransporter extends Transporter {
 	 * @memberof BaseTransporter
 	 */
 	unsubscribeFromBalancedCommands() {
-		return new Promise(resolve => {
+		return new this.broker.Promise(resolve => {
 			this.subscriptions.forEach(sub => sub.unsubscribe());
 			this.subscriptions = [];
 
@@ -203,9 +202,9 @@ class StanTransporter extends Transporter {
 	 */
 	send(topic, data) {
 		/* istanbul ignore next*/
-		if (!this.client) return Promise.resolve();
+		if (!this.client) return this.broker.Promise.resolve();
 
-		return new Promise(resolve => {
+		return new this.broker.Promise(resolve => {
 			this.client.publish(topic, data, resolve);
 		});
 	}

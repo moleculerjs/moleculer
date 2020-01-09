@@ -1,7 +1,6 @@
 "use strict";
 
 const ServiceBroker = require("../src/service-broker");
-const Promise = require("bluebird");
 
 let serializer = null;
 
@@ -37,7 +36,7 @@ server.createService({
 	name: "server",
 	actions: {
 		getABigBuffer(ctx) {
-			const {size = 128 * 1024} = ctx.params;
+			const { size = 128 * 1024 } = ctx.params;
 			return Buffer.allocUnsafe(size);
 		}
 	}
@@ -69,7 +68,7 @@ const client = new ServiceBroker({
 Promise.all([server.start(), client.start()])
 	.then(() => client.waitForServices("server"))
 	.then(() => {
-		client.call("server.getABigBuffer", {size: 128 * 1024}).then((res) => {
+		client.call("server.getABigBuffer", { size: 128 * 1024 }).then((res) => {
 			client.logger.info("got", inspect(res));
 		});
 	});

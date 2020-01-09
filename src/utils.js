@@ -7,7 +7,6 @@
 "use strict";
 
 const _ 		= require("lodash");
-const Promise 	= require("bluebird");
 const kleur		= require("kleur");
 const os 	 	= require("os");
 const path 	 	= require("path");
@@ -28,6 +27,7 @@ const byteMultipliers = {
 	tb: Math.pow(1024, 4),
 	pb: Math.pow(1024, 5),
 };
+// eslint-disable-next-line security/detect-unsafe-regex
 const parseByteStringRe = /^((-|\+)?(\d+(?:\.\d+)?)) *(kb|mb|gb|tb|pb)$/i;
 
 class TimeoutError extends Error {
@@ -128,8 +128,25 @@ const utils = {
 			// Based on https://github.com/petkaantonov/bluebird/blob/master/src/method.js#L8
 			P.method = function(fn) {
 				return function() {
-					return new Promise.resolve()
+					const val = fn.apply(this, arguments);
+					if (val && typeof val.then === "function")
+						return val;
+					else
+						return P.resolve(val);
+
+					/*return new P((resolve, reject) => {
+						try {
+							resolve(fn.apply(this, arguments));
+						} catch(err) {
+							reject(err);
+						}
+					});
+					*/
+
+					/*
+					return P.resolve()
 						.then(() => fn.apply(this, arguments));
+					*/
 				};
 			};
 		}
@@ -139,6 +156,7 @@ const utils = {
 			P.delay = function(ms) {
 				return new P(resolve => setTimeout(resolve, +ms));
 			};
+			P.prototype.delay = P.delay;
 		}
 
 		if (!_.isFunction(P.timeout)) {
