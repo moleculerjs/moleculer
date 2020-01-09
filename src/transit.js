@@ -463,6 +463,7 @@ class Transit {
 
 			// Create a new pass stream
 			pass = new Transform({
+			        objectMode: payload.objectMode,
 				transform: function(chunk, encoding, done) {
 					this.push(chunk);
 					return done();
@@ -609,6 +610,7 @@ class Transit {
 			this.logger.debug(`<= New stream is received from '${packet.sender}'. Seq: ${packet.seq}`);
 
 			pass = new Transform({
+			        objectMode: packet.objectMode,
 				transform: function(chunk, encoding, done) {
 					this.push(chunk);
 					return done();
@@ -737,6 +739,7 @@ class Transit {
 		};
 
 		if (payload.stream) {
+		        payload.objectMode = ctx.params.readableObjectMode === true || (ctx.params._readableState && ctx.params._readableState.objectMode === true);
 			payload.seq = 0;
 		}
 
@@ -777,6 +780,7 @@ class Transit {
 						copy.seq = ++payload.seq;
 						copy.params = null;
 						copy.stream = false;
+						delete copy.objectMode;
 
 						this.logger.debug(`=> Send stream closing to ${nodeName} node. Seq: ${copy.seq}`);
 
@@ -788,6 +792,7 @@ class Transit {
 						const copy = Object.assign({}, payload);
 						copy.seq = ++payload.seq;
 						copy.stream = false;
+						delete copy.objectMode;
 						copy.meta["$streamError"] = this._createPayloadErrorField(err);
 						copy.params = null;
 
@@ -922,6 +927,7 @@ class Transit {
 		if (data && data.readable === true && typeof data.on === "function" && typeof data.pipe === "function") {
 			// Streaming response
 			payload.stream = true;
+			payload.objectMode = data.readableObjectMode === true || (data._readableState && data._readableState.objectMode === true);
 			payload.seq = 0;
 
 			const stream = data;
@@ -944,6 +950,7 @@ class Transit {
 			stream.on("end", () => {
 				const copy = Object.assign({}, payload);
 				copy.stream = false;
+				delete copy.objectMode;
 				copy.seq = ++payload.seq;
 				copy.data = null;
 
@@ -956,6 +963,7 @@ class Transit {
 			stream.on("error", err => {
 				const copy = Object.assign({}, payload);
 				copy.stream = false;
+				delete copy.objectMode;
 				copy.seq = ++payload.seq;
 				if (err) {
 					copy.success = false;

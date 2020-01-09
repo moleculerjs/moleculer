@@ -541,6 +541,7 @@ describe("Test Transit.requestHandler", () => {
 			meta: { a: 5 },
 			action: "posts.find",
 			stream: true,
+			objectMode: false,
 			seq: 4
 		};
 
@@ -738,7 +739,7 @@ describe("Test Transit._handleIncomingRequestStream", () => {
 		const payload = { ver: "4", sender: "remote", action: "posts.import", id: "123" };
 
 		it("should create new stream", () => {
-			const pass = transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, seq: 0 }));
+			const pass = transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 0 }));
 			expect(pass).toBeInstanceOf(Transform);
 			pass.on("data", data => STORE.push(data.toString()));
 			pass.on("error", () => STORE.push("-- ERROR --"));
@@ -746,9 +747,9 @@ describe("Test Transit._handleIncomingRequestStream", () => {
 		});
 
 		it("should add chunks", () => {
-			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, seq: 1, params: "CHUNK-1" }))).toBeNull();
-			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, seq: 2, params: "CHUNK-2" }))).toBeNull();
-			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, seq: 3, params: "CHUNK-3" }))).toBeNull();
+			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 1, params: "CHUNK-1" }))).toBeNull();
+			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 2, params: "CHUNK-2" }))).toBeNull();
+			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 3, params: "CHUNK-3" }))).toBeNull();
 			expect(STORE).toEqual([
 				"CHUNK-1",
 				"CHUNK-2",
@@ -776,7 +777,7 @@ describe("Test Transit._handleIncomingRequestStream", () => {
 		const errorHandler = jest.fn(() => STORE.push("-- ERROR --"));
 
 		it("should create new stream", () => {
-			const pass = transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, seq: 0 }));
+			const pass = transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 0 }));
 			expect(pass).toBeInstanceOf(Transform);
 			pass.on("data", data => STORE.push(data.toString()));
 			pass.on("error", errorHandler);
@@ -784,8 +785,8 @@ describe("Test Transit._handleIncomingRequestStream", () => {
 		});
 
 		it("should add chunks", () => {
-			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, seq: 1, params: "CHUNK-1" }))).toBeNull();
-			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, seq: 2, params: "CHUNK-2" }))).toBeNull();
+			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 1, params: "CHUNK-1" }))).toBeNull();
+			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 2, params: "CHUNK-2" }))).toBeNull();
 			expect(STORE).toEqual([
 				"CHUNK-1",
 				"CHUNK-2"
@@ -813,7 +814,7 @@ describe("Test Transit._handleIncomingRequestStream", () => {
 		const payload = { ver: "4", sender: "remote", action: "posts.import", id: "123" };
 
 		it("should create new stream", () => {
-			const pass = transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, seq: 0 }));
+			const pass = transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 0 }));
 			expect(pass).toBeInstanceOf(Transform);
 			pass.on("data", data => STORE.push(data.toString()));
 			pass.on("error", () => STORE.push("-- ERROR --"));
@@ -821,12 +822,12 @@ describe("Test Transit._handleIncomingRequestStream", () => {
 		});
 
 		it("should reorder chunks", () => {
-			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, seq: 1, params: "CHUNK-1" }))).toBeNull();
-			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, seq: 4, params: "CHUNK-4" }))).toBeNull();
-			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, seq: 3, params: "CHUNK-3" }))).toBeNull();
-			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, seq: 2, params: "CHUNK-2" }))).toBeNull();
-			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, seq: 6, params: "CHUNK-6" }))).toBeNull();
-			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, seq: 5, params: "CHUNK-5" }))).toBeNull();
+			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 1, params: "CHUNK-1" }))).toBeNull();
+			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 4, params: "CHUNK-4" }))).toBeNull();
+			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 3, params: "CHUNK-3" }))).toBeNull();
+			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 2, params: "CHUNK-2" }))).toBeNull();
+			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 6, params: "CHUNK-6" }))).toBeNull();
+			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 5, params: "CHUNK-5" }))).toBeNull();
 			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: false, seq: 7 }))).toBeNull();
 
 			return broker.Promise.delay(100).then(() => {
@@ -848,7 +849,7 @@ describe("Test Transit._handleIncomingRequestStream", () => {
 		const payload = { ver: "4", sender: "remote", action: "posts.import", id: "124" };
 
 		it("should create new stream", () => {
-			const pass = transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, seq: 1, params: "CHUNK-1" }));
+			const pass = transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 1, params: "CHUNK-1" }));
 			expect(pass).toBeInstanceOf(Transform);
 			pass.on("data", data => STORE.push(data.toString()));
 			pass.on("error", () => STORE.push("-- ERROR --"));
@@ -856,13 +857,13 @@ describe("Test Transit._handleIncomingRequestStream", () => {
 		});
 
 		it("should reorder chunks", () => {
-			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, seq: 0 }))).toBeNull();
-			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, seq: 4, params: "CHUNK-4" }))).toBeNull();
-			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, seq: 3, params: "CHUNK-3" }))).toBeNull();
-			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, seq: 2, params: "CHUNK-2" }))).toBeNull();
+			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 0 }))).toBeNull();
+			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 4, params: "CHUNK-4" }))).toBeNull();
+			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 3, params: "CHUNK-3" }))).toBeNull();
+			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 2, params: "CHUNK-2" }))).toBeNull();
 			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: false, seq: 7 }))).toBeNull();
-			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, seq: 6, params: "CHUNK-6" }))).toBeNull();
-			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, seq: 5, params: "CHUNK-5" }))).toBeNull();
+			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 6, params: "CHUNK-6" }))).toBeNull();
+			expect(transit._handleIncomingRequestStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 5, params: "CHUNK-5" }))).toBeNull();
 
 			return broker.Promise.delay(100).then(() => {
 				expect(STORE).toEqual([
@@ -1084,7 +1085,7 @@ describe("Test Transit.responseHandler", () => {
 		};
 		transit.pendingRequests.set(id, req);
 
-		let payload = { ver: "4", sender: "remote", id, success: true, stream: true, seq: 5 };
+		let payload = { ver: "4", sender: "remote", id, success: true, stream: true, objectMode: false, seq: 5 };
 		transit.responseHandler(payload);
 
 		expect(transit._handleIncomingResponseStream).toHaveBeenCalledTimes(1);
@@ -1140,7 +1141,7 @@ describe("Test Transit._handleIncomingResponseStream", () => {
 		transit.pendingRequests.set("124", req);
 
 		it("should create new stream", () => {
-			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, seq: 0 }), req)).toBe(true);
+			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 0 }), req)).toBe(true);
 			expect(req.resolve).toHaveBeenCalledTimes(1);
 			const pass = req.resolve.mock.calls[0][0];
 			expect(pass).toBeInstanceOf(Transform);
@@ -1150,9 +1151,9 @@ describe("Test Transit._handleIncomingResponseStream", () => {
 		});
 
 		it("should add chunks", () => {
-			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, seq: 1, data: "CHUNK-1" }), req)).toBe(true);
-			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, seq: 2, data: "CHUNK-2" }), req)).toBe(true);
-			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, seq: 3, data: "CHUNK-3" }), req)).toBe(true);
+			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 1, data: "CHUNK-1" }), req)).toBe(true);
+			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 2, data: "CHUNK-2" }), req)).toBe(true);
+			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 3, data: "CHUNK-3" }), req)).toBe(true);
 			expect(STORE).toEqual([
 				"CHUNK-1",
 				"CHUNK-2",
@@ -1187,7 +1188,7 @@ describe("Test Transit._handleIncomingResponseStream", () => {
 		transit.pendingRequests.set("125", req);
 
 		it("should create new stream", () => {
-			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, seq: 0 }), req)).toBe(true);
+			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 0 }), req)).toBe(true);
 			expect(req.resolve).toHaveBeenCalledTimes(1);
 			const pass = req.resolve.mock.calls[0][0];
 			expect(pass).toBeInstanceOf(Transform);
@@ -1197,8 +1198,8 @@ describe("Test Transit._handleIncomingResponseStream", () => {
 		});
 
 		it("should add chunks", () => {
-			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, seq: 1, data: "CHUNK-1" }), req)).toBe(true);
-			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, seq: 2, data: "CHUNK-2" }), req)).toBe(true);
+			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 1, data: "CHUNK-1" }), req)).toBe(true);
+			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 2, data: "CHUNK-2" }), req)).toBe(true);
 			expect(STORE).toEqual([
 				"CHUNK-1",
 				"CHUNK-2"
@@ -1234,7 +1235,7 @@ describe("Test Transit._handleIncomingResponseStream", () => {
 		const errorHandler = jest.fn(() => STORE.push("-- ERROR --"));
 
 		it("should create new stream", () => {
-			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, seq: 0 }), req)).toBe(true);
+			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 0 }), req)).toBe(true);
 			expect(req.resolve).toHaveBeenCalledTimes(1);
 			const pass = req.resolve.mock.calls[0][0];
 			expect(pass).toBeInstanceOf(Transform);
@@ -1244,12 +1245,12 @@ describe("Test Transit._handleIncomingResponseStream", () => {
 		});
 
 		it("should reorder chunks", () => {
-			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, seq: 1, data: "CHUNK-1" }), req)).toBe(true);
-			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, seq: 4, data: "CHUNK-4" }), req)).toBe(true);
-			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, seq: 3, data: "CHUNK-3" }), req)).toBe(true);
-			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, seq: 2, data: "CHUNK-2" }), req)).toBe(true);
-			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, seq: 6, data: "CHUNK-6" }), req)).toBe(true);
-			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, seq: 5, data: "CHUNK-5" }), req)).toBe(true);
+			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 1, data: "CHUNK-1" }), req)).toBe(true);
+			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 4, data: "CHUNK-4" }), req)).toBe(true);
+			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 3, data: "CHUNK-3" }), req)).toBe(true);
+			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 2, data: "CHUNK-2" }), req)).toBe(true);
+			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 6, data: "CHUNK-6" }), req)).toBe(true);
+			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 5, data: "CHUNK-5" }), req)).toBe(true);
 			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: false, seq: 7 }), req)).toBe(true);
 
 			return broker.Promise.delay(100).then(() => {
@@ -1279,7 +1280,7 @@ describe("Test Transit._handleIncomingResponseStream", () => {
 		const errorHandler = jest.fn(() => STORE.push("-- ERROR --"));
 
 		it("should create new stream", () => {
-			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, seq: 1, data: "CHUNK-1" }), req)).toBe(true);
+			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 1, data: "CHUNK-1" }), req)).toBe(true);
 			expect(req.resolve).toHaveBeenCalledTimes(1);
 			const pass = req.resolve.mock.calls[0][0];
 			expect(pass).toBeInstanceOf(Transform);
@@ -1289,13 +1290,13 @@ describe("Test Transit._handleIncomingResponseStream", () => {
 		});
 
 		it("should reorder chunks", () => {
-			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, seq: 0 }), req)).toBe(true);
-			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, seq: 4, data: "CHUNK-4" }), req)).toBe(true);
-			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, seq: 3, data: "CHUNK-3" }), req)).toBe(true);
-			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, seq: 2, data: "CHUNK-2" }), req)).toBe(true);
+			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 0 }), req)).toBe(true);
+			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 4, data: "CHUNK-4" }), req)).toBe(true);
+			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 3, data: "CHUNK-3" }), req)).toBe(true);
+			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 2, data: "CHUNK-2" }), req)).toBe(true);
 			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: false, seq: 7 }), req)).toBe(true);
-			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, seq: 6, data: "CHUNK-6" }), req)).toBe(true);
-			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, seq: 5, data: "CHUNK-5" }), req)).toBe(true);
+			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 6, data: "CHUNK-6" }), req)).toBe(true);
+			expect(transit._handleIncomingResponseStream(Object.assign({}, payload, { stream: true, objectMode: false, seq: 5, data: "CHUNK-5" }), req)).toBe(true);
 
 			return broker.Promise.delay(100).then(() => {
 				expect(STORE).toEqual([
@@ -1447,6 +1448,7 @@ describe("Test Transit._sendRequest", () => {
 						level: 1,
 						meta: {},
 						tracing: null,
+						objectMode: false,
 						params: null,
 						parentID: null,
 						requestID: "req-12345",
@@ -1472,6 +1474,7 @@ describe("Test Transit._sendRequest", () => {
 						level: 1,
 						meta: {},
 						tracing: null,
+						objectMode: false,
 						params: Buffer.from("first chunk"),
 						parentID: null,
 						requestID: "req-12345",
@@ -1491,6 +1494,7 @@ describe("Test Transit._sendRequest", () => {
 						level: 1,
 						meta: {},
 						tracing: null,
+						objectMode: false,
 						params: Buffer.from("second chunk"),
 						parentID: null,
 						requestID: "req-12345",
@@ -1545,6 +1549,7 @@ describe("Test Transit._sendRequest", () => {
 						level: 1,
 						meta: {},
 						tracing: null,
+						objectMode: false,
 						params: null,
 						parentID: null,
 						requestID: "req-12345",
@@ -1569,6 +1574,7 @@ describe("Test Transit._sendRequest", () => {
 						level: 1,
 						meta: {},
 						tracing: null,
+						objectMode: false,
 						params: Buffer.from("first chunk"),
 						parentID: null,
 						requestID: "req-12345",
@@ -1854,6 +1860,7 @@ describe("Test Transit.sendResponse", () => {
 						data: null,
 						id: "12345",
 						meta,
+						objectMode: false,
 						seq: 0,
 						stream: true,
 						success: true
@@ -1873,6 +1880,7 @@ describe("Test Transit.sendResponse", () => {
 						data: Buffer.from("first chunk"),
 						id: "12345",
 						meta,
+						objectMode: false,
 						seq: 1,
 						stream: true,
 						success: true
@@ -1886,6 +1894,7 @@ describe("Test Transit.sendResponse", () => {
 					payload: {
 						data: Buffer.from("second chunk"),
 						id: "12345",
+						objectMode: false,
 						meta,
 						seq: 2,
 						stream: true,
@@ -1931,6 +1940,7 @@ describe("Test Transit.sendResponse", () => {
 						data: null,
 						id: "12345",
 						meta,
+						objectMode: false,
 						seq: 0,
 						stream: true,
 						success: true
@@ -1949,6 +1959,7 @@ describe("Test Transit.sendResponse", () => {
 						data: Buffer.from("first chunk"),
 						id: "12345",
 						meta,
+						objectMode: false,
 						seq: 1,
 						stream: true,
 						success: true
