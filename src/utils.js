@@ -128,25 +128,12 @@ const utils = {
 			// Based on https://github.com/petkaantonov/bluebird/blob/master/src/method.js#L8
 			P.method = function(fn) {
 				return function() {
-					const val = fn.apply(this, arguments);
-					if (val && typeof val.then === "function")
-						return val;
-					else
+					try {
+						const val = fn.apply(this, arguments);
 						return P.resolve(val);
-
-					/*return new P((resolve, reject) => {
-						try {
-							resolve(fn.apply(this, arguments));
-						} catch(err) {
-							reject(err);
-						}
-					});
-					*/
-
-					/*
-					return P.resolve()
-						.then(() => fn.apply(this, arguments));
-					*/
+					} catch (err) {
+						return P.reject(err);
+					}
 				};
 			};
 		}

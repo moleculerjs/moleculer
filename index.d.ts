@@ -89,7 +89,7 @@ declare namespace Moleculer {
 
 		startSpan(name: string, opts: GenericObject): Span;
 
-		getCurrentSpan(): Span | null;
+		//getCurrentSpan(): Span | null;
 		getCurrentTraceID(): string | null;
 		getActiveSpanID(): string | null;
 	}
@@ -608,7 +608,7 @@ declare namespace Moleculer {
 		logger: LoggerInstance;
 		actions: ServiceActions;
 		Promise: PromiseConstructorLike;
-		currentContext: Context | null;
+		//currentContext: Context | null;
 
 		_init(): void;
 		_start(): PromiseLike<void>;
@@ -923,8 +923,6 @@ declare namespace Moleculer {
 
 		getHealthStatus(): NodeHealthStatus;
 		getLocalNodeInfo(): BrokerNode;
-
-		currentContext: Context | null;
 
 		getCpuUsage(): PromiseLike<any>;
 		generateUid(): string;

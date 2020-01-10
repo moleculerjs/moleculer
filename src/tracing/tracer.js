@@ -8,7 +8,7 @@
 
 const _ = require("lodash");
 const Exporters = require("./exporters");
-const AsyncStorage = require("../async-storage");
+//const AsyncStorage = require("../async-storage");
 const RateLimiter = require("./rate-limiter");
 const Span = require("./span");
 
@@ -67,9 +67,9 @@ class Tracer {
 			});
 		}
 
-		this.scope = new AsyncStorage(this.broker);
-		this.scope.enable();
-		this._scopeEnabled = true;
+		//this.scope = new AsyncStorage(this.broker);
+		//this.scope.enable();
+		//this._scopeEnabled = true;
 
 		if (this.opts.enabled)
 			this.logger.info("Tracing: Enabled");
@@ -111,25 +111,25 @@ class Tracer {
 	 * Disable trace hooks and clear the store - noop if scope is already stopped
 	 *
 	 * @memberof Tracer
-	 */
+	 *
 	stopAndClearScope() {
 		if (this._scopeEnabled) {
 			this.scope.stop();
 			this._scopeEnabled = false;
 		}
-	}
+	}*/
 
 	/**
 	 * Renable the trace hooks - noop if scope is already enabled
 	 *
 	 * @memberof Tracer
-	 */
+	 *
 	restartScope() {
 		if (!this._scopeEnabled) {
 			this.scope.enable();
 			this._scopeEnabled = true;
 		}
-	}
+	}*/
 
 	/**
 	 * Decide that span should be sampled.
@@ -207,7 +207,7 @@ class Tracer {
 	 *
 	 * @param {Span} span
 	 * @memberof Tracer
-	 */
+	 *
 	setCurrentSpan(span) {
 		const state = this.scope.getSessionData() || {
 			spans: []
@@ -217,14 +217,14 @@ class Tracer {
 		this.scope.setSessionData(state);
 
 		span.meta.state = state;
-	}
+	}*/
 
 	/**
 	 * Remove the active span (because async block destroyed)
 	 *
 	 * @param {Span} span
 	 * @memberof Tracer
-	 */
+	 *
 	removeCurrentSpan(span) {
 		const state = span.meta.state || this.scope.getSessionData();
 		if (state && state.spans.length > 0) {
@@ -232,18 +232,18 @@ class Tracer {
 			if (idx >= 0)
 				state.spans.splice(idx, 1);
 		}
-	}
+	}*/
 
 	/**
 	 * Get the current active span
 	 *
 	 * @returns {Span}
 	 * @memberof Tracer
-	 */
+	 *
 	getCurrentSpan() {
 		const state = this.scope.getSessionData();
 		return state ? state.spans[state.spans.length - 1] : null;
-	}
+	}*/
 
 	/**
 	 * Get the current trace ID
@@ -276,7 +276,7 @@ class Tracer {
 	 * @memberof Tracer
 	 */
 	spanStarted(span) {
-		this.setCurrentSpan(span);
+		//this.setCurrentSpan(span);
 
 		if (span.sampled)
 			this.invokeExporter("spanStarted", [span]);
@@ -289,7 +289,7 @@ class Tracer {
 	 * @memberof Tracer
 	 */
 	spanFinished(span) {
-		this.removeCurrentSpan(span);
+		//this.removeCurrentSpan(span);
 
 		if (span.sampled)
 			this.invokeExporter("spanFinished", [span]);

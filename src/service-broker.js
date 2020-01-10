@@ -17,7 +17,7 @@ const E 					= require("./errors");
 const utils 				= require("./utils");
 const LoggerFactory			= require("./logger-factory");
 const Validator 			= require("./validator");
-const AsyncStorage 			= require("./async-storage");
+//const AsyncStorage 			= require("./async-storage");
 
 const Cachers 				= require("./cachers");
 const Transporters 			= require("./transporters");
@@ -187,7 +187,7 @@ class ServiceBroker {
 			this.logger.info(`Node ID: ${this.nodeID}`);
 
 			// Async storage for Contexts
-			this.scope = new AsyncStorage(this);
+			//this.scope = new AsyncStorage(this);
 
 			// Metrics Registry
 			this.metrics = new MetricRegistry(this, this.options.metrics);
@@ -413,8 +413,8 @@ class ServiceBroker {
 	start() {
 		return this.Promise.resolve()
 			.then(() => {
-				this.tracer.restartScope();
-				this.scope.enable();
+				//this.tracer.restartScope();
+				//this.scope.enable();
 			})
 			.then(() => {
 				return this.callMiddlewareHook("starting", [this]);
@@ -503,8 +503,8 @@ class ServiceBroker {
 					return this.options.stopped(this);
 			})
 			.then(() => {
-				this.tracer.stopAndClearScope();
-				this.scope.stop();
+				//this.tracer.stopAndClearScope();
+				//this.scope.stop();
 			})
 			.catch(err => {
 				/* istanbul ignore next */
@@ -1050,7 +1050,7 @@ class ServiceBroker {
 		else
 			this.logger.debug("Call action on remote node.", { action: ctx.action.name, nodeID: ctx.nodeID, requestID: ctx.requestID });
 
-		this.setCurrentContext(ctx);
+		//this.setCurrentContext(ctx);
 
 		let p = ctx.endpoint.action.handler(ctx);
 
@@ -1524,20 +1524,20 @@ class ServiceBroker {
 	 *
 	 * @param {Context} ctx
 	 * @memberof ServiceBroker
-	 */
+	 *
 	setCurrentContext(ctx) {
 		this.scope.setSessionData(ctx);
-	}
+	}*/
 
 	/**
 	 * Get the current Context from the async storage.
 	 *
 	 * @returns {Context?}
 	 * @memberof ServiceBroker
-	 */
+	 *
 	getCurrentContext() {
 		return this.scope.getSessionData();
-	}
+	}*/
 
 	/**
 	 * Get node overall CPU usage
