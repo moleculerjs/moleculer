@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -166,7 +166,7 @@ class KafkaTransporter extends Transporter {
 				const consumerOptions = Object.assign({
 					id: "default-kafka-consumer",
 					kafkaHost: this.opts.host,
-					groupId: this.nodeID,
+					groupId: this.broker.instanceID, //this.nodeID,
 					fromOffset: "latest",
 					encoding: "buffer",
 				}, this.opts.consumer);

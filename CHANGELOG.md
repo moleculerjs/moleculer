@@ -3,7 +3,12 @@
 <a name="0.14.0"></a>
 # [0.14.0](https://github.com/moleculerjs/moleculer/compare/v0.13.9...v0.14.0) (2019-xx-xx)
 
+[**Migration guide from 0.13 to 0.14**](https://github.com/moleculerjs/moleculer/blob/next/docs/MIGRATION_GUIDE_0.14.md)
+
 # Breaking changes
+
+## Minimum Node version is 10
+The Node version 8 LTS lifecycle has been ended on December 31, 2019, so the minimum required Node version is 10.
 
 ## Communication protocol has been changed
 The Moleculer communication protocol has been changed. The new protocol version is `4`.
@@ -582,6 +587,31 @@ module.exports = {
     }
 };
 ```
+
+## Event parameter validation
+Similar to action parameter validation, the event parameter validation is supported.
+Like in action definition, you should define `params` in even definition and the built-in `Validator` validates the parameters in events.
+
+```js
+// mailer.service.js
+module.exports = {
+    name: "mailer",
+    events: {
+        "send.mail": {
+            // Validation schema
+            params: {
+                from: "string|optional",
+                to: "email",
+                subject: "string"
+            },
+            handler(ctx) {
+                this.logger.info("Event received, parameters OK!", ctx.params);
+            }
+        }
+    }
+};
+```
+>The validation errors are not sent back to the caller, they are logged or you can catch them with the new [global error handler](#global-error-handler).
 
 ## New built-in metrics
 Moleculer v0.14 comes with a brand-new and entirely rewritten metrics module. It is now a built-in module. It collects a lot of internal Moleculer & process metric values. You can easily define your custom metrics. There are several built-in metrics reporters like `Console`, `Prometheus`, `Datadog`, ...etc.
@@ -1825,8 +1855,8 @@ The Moleculer Runner supports asynchronous configuration files. In this case you
 const fetch = require("node-fetch");
 
 module.exports = async function() {
-	const res = await fetch("https://pastebin.com/raw/SLZRqfHX");
-	return await res.json();
+    const res = await fetch("https://pastebin.com/raw/SLZRqfHX");
+    return await res.json();
 };
 ```
 
@@ -1842,11 +1872,21 @@ module.exports = async function() {
 - new `ctx.mcall` method to make multiple calls.
 
 --------------------------------------------------
+<a name="0.13.12"></a>
+# [0.13.12](https://github.com/moleculerjs/moleculer/compare/v0.13.11...v0.13.12) (2019-12-17)
+
+# Changes
+- fix expire time updating issue in MemoryCacher. [#630](https://github.com/moleculerjs/moleculer/issues/630)
+- fix action hook calling issue in mixins. [#631](https://github.com/moleculerjs/moleculer/issues/631)
+- fix NATS transporter "Invalid Subject" issue. [#620](https://github.com/moleculerjs/moleculer/issues/620)
+- update dependencies.
+
+--------------------------------------------------
 <a name="0.13.11"></a>
 # [0.13.11](https://github.com/moleculerjs/moleculer/compare/v0.13.10...v0.13.11) (2019-09-30)
 
 # Changes
-- fix retry issue in case of remote calls & disabled preferLocal options. [#599](https://github.com/moleculerjs/moleculer/issues/598)
+- fix retry issue in case of remote calls & disabled preferLocal options. [#598](https://github.com/moleculerjs/moleculer/issues/598)
 - update dependencies.
 
 --------------------------------------------------

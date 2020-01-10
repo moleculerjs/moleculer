@@ -99,6 +99,7 @@ describe("Test Tracing feature with actions", () => {
 		actions: {
 			get: {
 				tracing: {
+					spanName: ctx => `Get user by ID: ${ctx.params.id}`,
 					tags: {
 						response: ["name"]
 					}
@@ -121,11 +122,16 @@ describe("Test Tracing feature with actions", () => {
 			}
 		},
 		events: {
-			async "user.updated"(ctx) {
-				const span1 = ctx.startSpan("updating user");
-				// TODO: not perfect. Its parent is the event span and not span1
-				await ctx.call("friends.count", { userID: 2 });
-				ctx.finishSpan(span1);
+			"user.updated": {
+				tracing: {
+					spanName: "User updated event"
+				},
+				async handler(ctx) {
+					const span1 = ctx.startSpan("updating user");
+					// TODO: not perfect. Its parent is the event span and not span1
+					await ctx.call("friends.count", { userID: 2 });
+					ctx.finishSpan(span1);
+				}
 			}
 		}
 	}]);

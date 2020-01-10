@@ -32,7 +32,7 @@ declare namespace Moleculer {
 		trace(...args: any[]): void;
 	}
 
-	type ActionHandler<T = any> = ((ctx: Context) => PromiseLike<T> | T) & ThisType<Service>;
+	type ActionHandler<T = any> = ((ctx: Context<any, any>) => PromiseLike<T> | T) & ThisType<Service>;
 	type ActionParamSchema = { [key: string]: any };
 	type ActionParamTypes =
 		| "any"
@@ -353,6 +353,8 @@ declare namespace Moleculer {
 
 		metricNameFormatter?: (name: string) => string;
 		labelNameFormatter?: (name: string) => string;
+
+		[key: string]: any;
 	}
 
 	class MetricBaseReporter {
@@ -452,7 +454,7 @@ declare namespace Moleculer {
 		disconnected(): void;
 	}
 
-	class Context<P = {}, M extends object = {}> {
+	class Context<P = unknown, M extends object = {}> {
 		constructor(broker: ServiceBroker, endpoint: Endpoint);
 		id: string;
 		broker: ServiceBroker;
@@ -524,19 +526,23 @@ declare namespace Moleculer {
 		[name: string]: any;
 	}
 
-	type ServiceEventHandler = ((payload: any, sender: string, eventName: string) => void) & ThisType<Service>;
+	type ServiceEventLegacyHandler = ((payload: any, sender: string, eventName: string, ctx: Context) => void) & ThisType<Service>;
+
+	type ServiceEventHandler = ((ctx: Context) => void) & ThisType<Service>;
 
 	interface ServiceEvent {
 		name?: string;
 		group?: string;
-		handler?: ServiceEventHandler;
+		context?: boolean;
+		debounce?: number;
+		throttle?: number;
+		handler?: ServiceEventHandler | ServiceEventLegacyHandler;
 	}
 
-	type ServiceEvents = { [key: string]: ServiceEventHandler | ServiceEvent };
+	type ServiceEvents = { [key: string]: ServiceEventHandler | ServiceEventLegacyHandler | ServiceEvent };
 
 	type ServiceMethods = { [key: string]: ((...args: any[]) => any) } & ThisType<Service>;
 
-	type CallMiddlewareHandler = (actionName: string, params: any, opts: CallingOptions) => PromiseLike<any>;
 	type Middleware = {
 		[name: string]:
 			| ((handler: ActionHandler, action: ActionSchema) => any)
@@ -544,7 +550,6 @@ declare namespace Moleculer {
 			| ((handler: ActionHandler) => any)
 			| ((service: Service) => any)
 			| ((broker: ServiceBroker) => any)
-			| ((handler: CallMiddlewareHandler) => CallMiddlewareHandler)
 	}
 
 	type MiddlewareInit = (broker: ServiceBroker) => Middleware & ThisType<ServiceBroker>;
@@ -800,6 +805,7 @@ declare namespace Moleculer {
 		requestID?: string;
 		tracking?: boolean;
 		paramsCloning?: boolean;
+		caller?: string;
 	}
 
 	type CallDefinition<P extends GenericObject = GenericObject> = {
@@ -995,6 +1001,7 @@ declare namespace Moleculer {
 		init(transit: Transit, messageHandler: (cmd: string, msg: string) => void, afterConnect: (wasReconnect: boolean) => void): void;
 		connect(): PromiseLike<any>;
 		disconnect(): PromiseLike<any>;
+		onConnected(wasReconnect?: boolean): PromiseLike<any>;
 
 		makeSubscriptions(topics: Array<GenericObject>): PromiseLike<void>;
 		subscribe(cmd: string, nodeID?: string): PromiseLike<void>;
@@ -1053,6 +1060,7 @@ declare namespace Moleculer {
 			del(key: string|Array<string>): PromiseLike<any>;
 			clean(match?: string|Array<string>): PromiseLike<any>;
 			getCacheKey(actionName: string, params: object, meta: object, keys: Array<string> | null) : string;
+			defaultKeygen(actionName: string, params: object | null, meta: object | null, keys: Array<string> | null): string;
 		}
 
 		class Memory extends Base {

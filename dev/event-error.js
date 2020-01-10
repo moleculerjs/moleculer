@@ -4,18 +4,10 @@ const ServiceBroker = require("../src/service-broker");
 
 // Create broker #1
 const broker = new ServiceBroker({
-	middlewares: [{
-		localEvent(next, handler) {
-			return ctx => {
-				this.logger.info("Middleware called", ctx.eventName);
-				return next(ctx);/*.catch(err => {
-					this.logger.info("Middleware catch error", err.message);
-				});*/
-			};
-		}
-	}],
-	errorHandler(err, info) {
-		broker.logger.error("Errorhandler:", err);
+	logLevel: "debug",
+	__errorHandler(err, info) {
+		broker.logger.error("Errorhandler:", err.message);
+		throw err;
 	}
 });
 
@@ -30,6 +22,8 @@ broker.createService({
 
 broker.start()
 	.then(() => {
+		broker.repl();
+
 		return broker.emit("very.danger");
 	})
 	.catch(err => broker.logger.error("Demo error", err));

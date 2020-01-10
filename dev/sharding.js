@@ -7,7 +7,19 @@ function createBroker(opts) {
 		logLevel: "warn",
 		registry: {
 			strategy: "RoundRobin"
-		}
+		},
+
+		middlewares: [
+			{
+				name: "CallingLogger",
+				remoteAction(handler, action) {
+					return ctx => {
+						this.logger.warn(`===========> Calling ${action.name} on ${ctx.nodeID} ===========>`);
+						return handler(ctx);
+					};
+				}
+			}
+		]
 	}));
 
 	if (broker.nodeID != "main") {
@@ -22,7 +34,7 @@ function createBroker(opts) {
 						vnodes: 12
 					},
 					handler(ctx) {
-						this.logger.warn(`Called '${this.broker.nodeID}' with '${ctx.params.name}'`);
+						//this.logger.warn(`Called '${this.broker.nodeID}' with '${ctx.params.name}'`);
 						return 20 + _.random(60);
 					}
 				}

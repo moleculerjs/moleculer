@@ -494,11 +494,9 @@ describe("Test EventCatalog.callEventHandler", () => {
 		const err = new Error("Something went wrong");
 		rejecter(err);
 
-		return p.catch(protectReject).then(() => {
-			expect(errorHandler).toHaveBeenCalledTimes(1);
-			expect(errorHandler).toHaveBeenCalledWith(err, { ctx, service: ctx.service, event: ctx.event });
+		return p.then(protectReject).catch(e => {
+			expect(e).toBe(err);
 		});
-
 	});
 });
 

@@ -209,6 +209,7 @@ describe("Test TracingMiddleware localAction", () => {
 
 		it("should create a span with context tags & without service", async () => {
 			action.tracing = {
+				spanName: "static text",
 				tags: {
 					params: ["a", "c"],
 					meta: ["user.name"],
@@ -239,7 +240,7 @@ describe("Test TracingMiddleware localAction", () => {
 			expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(0);
 
 			expect(ctx.startSpan).toHaveBeenCalledTimes(1);
-			expect(ctx.startSpan).toHaveBeenCalledWith("action 'posts.find'", {
+			expect(ctx.startSpan).toHaveBeenCalledWith("static text", {
 				id: "ctx-id",
 				type: "action",
 				traceID: "request-id",
@@ -294,6 +295,7 @@ describe("Test TracingMiddleware localAction", () => {
 
 		it("should create a span with cloned params & meta", async () => {
 			action.tracing = {
+				spanName: ctx => `The ${ctx.action.name} action called`,
 				tags: {
 					params: true,
 					meta: true,
@@ -318,7 +320,7 @@ describe("Test TracingMiddleware localAction", () => {
 			ctx.meta.user.age = 35;
 
 			expect(ctx.startSpan).toHaveBeenCalledTimes(1);
-			expect(ctx.startSpan).toHaveBeenCalledWith("action 'posts.find'", {
+			expect(ctx.startSpan).toHaveBeenCalledWith("The posts.find action called", {
 				id: "ctx-id",
 				type: "action",
 				traceID: "request-id",
@@ -825,6 +827,7 @@ describe("Test TracingMiddleware localEvent", () => {
 
 		it("should create a span with context tags & without service", async () => {
 			event.tracing = {
+				spanName: "static text",
 				tags: {
 					params: ["a", "c"],
 					meta: ["user.name"]
@@ -852,7 +855,7 @@ describe("Test TracingMiddleware localEvent", () => {
 			expect(tracer.getActiveSpanID).toHaveBeenCalledTimes(0);
 
 			expect(ctx.startSpan).toHaveBeenCalledTimes(1);
-			expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created' in 'v1.posts'", {
+			expect(ctx.startSpan).toHaveBeenCalledWith("static text", {
 				id: "ctx-id",
 				type: "event",
 				traceID: "request-id",
@@ -904,6 +907,7 @@ describe("Test TracingMiddleware localEvent", () => {
 
 		it("should create a span with cloned params & meta", async () => {
 			event.tracing = {
+				spanName: ctx => `The ${ctx.eventName} triggered`,
 				tags: {
 					params: true,
 					meta: true
@@ -927,7 +931,7 @@ describe("Test TracingMiddleware localEvent", () => {
 			ctx.meta.user.age = 35;
 
 			expect(ctx.startSpan).toHaveBeenCalledTimes(1);
-			expect(ctx.startSpan).toHaveBeenCalledWith("event 'user.created' in 'v1.posts'", {
+			expect(ctx.startSpan).toHaveBeenCalledWith("The user.created triggered", {
 				id: "ctx-id",
 				type: "event",
 				traceID: "request-id",

@@ -237,3 +237,39 @@ describe("Test utils.dotSet", () => {
 	});
 
 });
+
+describe("Test utils.parseByteString", () => {
+
+	it("should parse byte string to number of bytes", () => {
+		expect(utils.parseByteString()).toBe(null);
+		expect(utils.parseByteString(null)).toBe(null);
+		expect(utils.parseByteString(0)).toBe(0);
+		expect(utils.parseByteString(1000)).toBe(1000);
+		expect(utils.parseByteString(10000)).toBe(10000);
+		expect(utils.parseByteString(100000000)).toBe(100000000);
+
+		expect(utils.parseByteString("")).toBe(null);
+		expect(utils.parseByteString("0")).toBe(0);
+		expect(utils.parseByteString("1")).toBe(1);
+		expect(utils.parseByteString("10")).toBe(10);
+		expect(utils.parseByteString("100")).toBe(100);
+		expect(utils.parseByteString("1000")).toBe(1000);
+		expect(utils.parseByteString("a")).toBe(null);
+		expect(utils.parseByteString("b")).toBe(null);
+		expect(utils.parseByteString("B")).toBe(null);
+
+		expect(utils.parseByteString("1b")).toBe(1);
+		expect(utils.parseByteString("5B")).toBe(5);
+		expect(utils.parseByteString("100b")).toBe(100);
+		expect(utils.parseByteString("1000b")).toBe(1000);
+		expect(utils.parseByteString("0kb")).toBe(0);
+		expect(utils.parseByteString("1kb")).toBe(1024);
+		expect(utils.parseByteString("100kb")).toBe(102400);
+		expect(utils.parseByteString("512kb")).toBe(524288);
+		expect(utils.parseByteString("1mb")).toBe(1048576);
+		expect(utils.parseByteString("5mb")).toBe(5242880);
+		expect(utils.parseByteString("2.56GB")).toBe(2748779069);
+		expect(utils.parseByteString("2.8TB")).toBe(3078632557772);
+	});
+
+});

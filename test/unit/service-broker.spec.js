@@ -2250,7 +2250,7 @@ describe("Test broker.emit", () => {
 		const ctx = broker.registry.events.callEventHandler.mock.calls[0][0];
 		expect(broker.registry.events.callEventHandler).toHaveBeenCalledWith(ctx);
 		expect(ctx.toJSON()).toEqual({
-			id: null,
+			id: "1",
 			ackID: null,
 			cachedResult: false,
 			caller: null,
@@ -2264,7 +2264,7 @@ describe("Test broker.emit", () => {
 			options: {},
 			params: null,
 			parentID: null,
-			requestID: null,
+			requestID: "1",
 			span: null,
 			tracing: null
 		});
@@ -2281,7 +2281,7 @@ describe("Test broker.emit", () => {
 		const ctx = broker.registry.events.callEventHandler.mock.calls[0][0];
 		expect(broker.registry.events.callEventHandler).toHaveBeenCalledWith(ctx);
 		expect(ctx.toJSON()).toEqual({
-			id: null,
+			id: "1",
 			ackID: null,
 			cachedResult: false,
 			caller: null,
@@ -2295,7 +2295,7 @@ describe("Test broker.emit", () => {
 			options: {},
 			params: { a: 5 },
 			parentID: null,
-			requestID: null,
+			requestID: "1",
 			span: null,
 			tracing: null
 		});
@@ -2317,7 +2317,7 @@ describe("Test broker.emit", () => {
 		const ctx = broker.registry.events.callEventHandler.mock.calls[0][0];
 		expect(broker.registry.events.callEventHandler).toHaveBeenCalledWith(ctx);
 		expect(ctx.toJSON()).toEqual({
-			id: null,
+			id: "1",
 			ackID: null,
 			cachedResult: false,
 			caller: null,
@@ -2331,7 +2331,7 @@ describe("Test broker.emit", () => {
 			options: {},
 			params: { a: 5 },
 			parentID: null,
-			requestID: null,
+			requestID: "1",
 			span: null,
 			tracing: null
 		});
@@ -2353,7 +2353,7 @@ describe("Test broker.emit", () => {
 		const ctx = broker.registry.events.callEventHandler.mock.calls[0][0];
 		expect(broker.registry.events.callEventHandler).toHaveBeenCalledWith(ctx);
 		expect(ctx.toJSON()).toEqual({
-			id: null,
+			id: "1",
 			ackID: null,
 			cachedResult: false,
 			caller: null,
@@ -2369,7 +2369,7 @@ describe("Test broker.emit", () => {
 			},
 			params: { a: 5 },
 			parentID: null,
-			requestID: null,
+			requestID: "1",
 			span: null,
 			tracing: null
 		});
@@ -2388,7 +2388,7 @@ describe("Test broker.emit", () => {
 		const ctx = broker.registry.events.callEventHandler.mock.calls[0][0];
 		expect(broker.registry.events.callEventHandler).toHaveBeenCalledWith(ctx);
 		expect(ctx.toJSON()).toEqual({
-			id: null,
+			id: "1",
 			ackID: null,
 			cachedResult: false,
 			caller: null,
@@ -2404,7 +2404,7 @@ describe("Test broker.emit", () => {
 			},
 			params: { a: 5 },
 			parentID: null,
-			requestID: null,
+			requestID: "1",
 			span: null,
 			tracing: null
 		});
@@ -2423,7 +2423,7 @@ describe("Test broker.emit", () => {
 		const ctx = broker.registry.events.callEventHandler.mock.calls[0][0];
 		expect(broker.registry.events.callEventHandler).toHaveBeenCalledWith(ctx);
 		expect(ctx.toJSON()).toEqual({
-			id: null,
+			id: "1",
 			ackID: null,
 			cachedResult: false,
 			caller: null,
@@ -2440,7 +2440,7 @@ describe("Test broker.emit", () => {
 			},
 			params: { a: 5 },
 			parentID: null,
-			requestID: null,
+			requestID: "1",
 			span: null,
 			tracing: null
 		});
@@ -2478,7 +2478,7 @@ describe("Test broker.emit with transporter", () => {
 		let ctx = broker.registry.events.callEventHandler.mock.calls[0][0];
 		expect(broker.registry.events.callEventHandler).toHaveBeenCalledWith(ctx);
 		expect(ctx.toJSON()).toEqual({
-			id: null,
+			id: "1",
 			ackID: null,
 			cachedResult: false,
 			caller: null,
@@ -2492,7 +2492,7 @@ describe("Test broker.emit with transporter", () => {
 			options: {},
 			params: { name: "John" },
 			parentID: null,
-			requestID: null,
+			requestID: "1",
 			span: null,
 			tracing: null
 		});
@@ -2501,7 +2501,7 @@ describe("Test broker.emit with transporter", () => {
 		ctx = broker.transit.sendEvent.mock.calls[0][0];
 		expect(broker.transit.sendEvent).toHaveBeenNthCalledWith(1, ctx);
 		expect(ctx.toJSON()).toEqual({
-			id: null,
+			id: "1",
 			ackID: null,
 			cachedResult: false,
 			caller: null,
@@ -2515,7 +2515,7 @@ describe("Test broker.emit with transporter", () => {
 			options: {},
 			params: { name: "John" },
 			parentID: null,
-			requestID: null,
+			requestID: "1",
 			span: null,
 			tracing: null
 		});
@@ -2523,7 +2523,7 @@ describe("Test broker.emit with transporter", () => {
 		ctx = broker.transit.sendEvent.mock.calls[1][0];
 		expect(broker.transit.sendEvent).toHaveBeenNthCalledWith(2, ctx);
 		expect(ctx.toJSON()).toEqual({
-			id: null,
+			id: "1",
 			ackID: null,
 			cachedResult: false,
 			caller: null,
@@ -2537,7 +2537,7 @@ describe("Test broker.emit with transporter", () => {
 			options: {},
 			params: { name: "John" },
 			parentID: null,
-			requestID: null,
+			requestID: "1",
 			span: null,
 			tracing: null
 		});
@@ -2565,7 +2565,7 @@ describe("Test broker.emit with transporter", () => {
 		const ctx = broker.transit.sendEvent.mock.calls[0][0];
 		expect(broker.transit.sendEvent).toHaveBeenCalledWith(ctx);
 		expect(ctx.toJSON()).toEqual({
-			id: null,
+			id: "1",
 			ackID: null,
 			cachedResult: false,
 			caller: null,
@@ -2579,7 +2579,7 @@ describe("Test broker.emit with transporter", () => {
 			options: {},
 			params: { name: "John" },
 			parentID: null,
-			requestID: null,
+			requestID: "1",
 			span: null,
 			tracing: null
 		});
@@ -2605,7 +2605,7 @@ describe("Test broker.emit with transporter", () => {
 		const ctx = broker.transit.sendEvent.mock.calls[0][0];
 		expect(broker.transit.sendEvent).toHaveBeenCalledWith(ctx);
 		expect(ctx.toJSON()).toEqual({
-			id: null,
+			id: "1",
 			ackID: null,
 			cachedResult: false,
 			caller: null,
@@ -2621,7 +2621,7 @@ describe("Test broker.emit with transporter", () => {
 			},
 			params: { name: "John" },
 			parentID: null,
-			requestID: null,
+			requestID: "1",
 			span: null,
 			tracing: null
 		});
@@ -2648,7 +2648,7 @@ describe("Test broker.emit with transporter", () => {
 		const ctx = broker.transit.sendEvent.mock.calls[0][0];
 		expect(broker.transit.sendEvent).toHaveBeenCalledWith(ctx);
 		expect(ctx.toJSON()).toEqual({
-			id: null,
+			id: "1",
 			ackID: null,
 			cachedResult: false,
 			caller: null,
@@ -2664,7 +2664,7 @@ describe("Test broker.emit with transporter", () => {
 			},
 			params: { name: "John" },
 			parentID: null,
-			requestID: null,
+			requestID: "1",
 			span: null,
 			tracing: null
 		});
@@ -2695,7 +2695,7 @@ describe("Test broker broadcast", () => {
 		let ctx = broker.transit.sendEvent.mock.calls[0][0];
 		expect(broker.transit.sendEvent).toHaveBeenNthCalledWith(1, ctx);
 		expect(ctx.toJSON()).toEqual({
-			id: null,
+			id: "1",
 			ackID: null,
 			cachedResult: false,
 			caller: null,
@@ -2709,7 +2709,7 @@ describe("Test broker broadcast", () => {
 			options: {},
 			params: null,
 			parentID: null,
-			requestID: null,
+			requestID: "1",
 			span: null,
 			tracing: null
 		});
@@ -2717,7 +2717,7 @@ describe("Test broker broadcast", () => {
 		ctx = broker.transit.sendEvent.mock.calls[1][0];
 		expect(broker.transit.sendEvent).toHaveBeenNthCalledWith(2, ctx);
 		expect(ctx.toJSON()).toEqual({
-			id: null,
+			id: "1",
 			ackID: null,
 			cachedResult: false,
 			caller: null,
@@ -2731,7 +2731,7 @@ describe("Test broker broadcast", () => {
 			options: {},
 			params: null,
 			parentID: null,
-			requestID: null,
+			requestID: "1",
 			span: null,
 			tracing: null
 		});
@@ -2754,7 +2754,7 @@ describe("Test broker broadcast", () => {
 		let ctx = broker.transit.sendEvent.mock.calls[0][0];
 		expect(broker.transit.sendEvent).toHaveBeenNthCalledWith(1, ctx);
 		expect(ctx.toJSON()).toEqual({
-			id: null,
+			id: "1",
 			ackID: null,
 			cachedResult: false,
 			caller: null,
@@ -2768,7 +2768,7 @@ describe("Test broker broadcast", () => {
 			options: {},
 			params: { name: "John" },
 			parentID: null,
-			requestID: null,
+			requestID: "1",
 			span: null,
 			tracing: null
 		});
@@ -2776,7 +2776,7 @@ describe("Test broker broadcast", () => {
 		ctx = broker.transit.sendEvent.mock.calls[1][0];
 		expect(broker.transit.sendEvent).toHaveBeenNthCalledWith(2, ctx);
 		expect(ctx.toJSON()).toEqual({
-			id: null,
+			id: "1",
 			ackID: null,
 			cachedResult: false,
 			caller: null,
@@ -2790,7 +2790,7 @@ describe("Test broker broadcast", () => {
 			options: {},
 			params: { name: "John" },
 			parentID: null,
-			requestID: null,
+			requestID: "1",
 			span: null,
 			tracing: null
 		});
@@ -2812,7 +2812,7 @@ describe("Test broker broadcast", () => {
 		let ctx = broker.transit.sendEvent.mock.calls[0][0];
 		expect(broker.transit.sendEvent).toHaveBeenNthCalledWith(1, ctx);
 		expect(ctx.toJSON()).toEqual({
-			id: null,
+			id: "1",
 			ackID: null,
 			cachedResult: false,
 			caller: null,
@@ -2826,7 +2826,7 @@ describe("Test broker broadcast", () => {
 			options: { groups: ["mail", "payment"] },
 			params: { name: "John" },
 			parentID: null,
-			requestID: null,
+			requestID: "1",
 			span: null,
 			tracing: null
 		});
@@ -2834,7 +2834,7 @@ describe("Test broker broadcast", () => {
 		ctx = broker.transit.sendEvent.mock.calls[1][0];
 		expect(broker.transit.sendEvent).toHaveBeenNthCalledWith(2, ctx);
 		expect(ctx.toJSON()).toEqual({
-			id: null,
+			id: "1",
 			ackID: null,
 			cachedResult: false,
 			caller: null,
@@ -2848,7 +2848,7 @@ describe("Test broker broadcast", () => {
 			options: { groups: ["mail", "payment"] },
 			params: { name: "John" },
 			parentID: null,
-			requestID: null,
+			requestID: "1",
 			span: null,
 			tracing: null
 		});
@@ -2871,7 +2871,7 @@ describe("Test broker broadcast", () => {
 		let ctx = broker.transit.sendEvent.mock.calls[0][0];
 		expect(broker.transit.sendEvent).toHaveBeenNthCalledWith(1, ctx);
 		expect(ctx.toJSON()).toEqual({
-			id: null,
+			id: "1",
 			ackID: null,
 			cachedResult: false,
 			caller: null,
@@ -2885,7 +2885,7 @@ describe("Test broker broadcast", () => {
 			options: {},
 			params: { name: "John" },
 			parentID: null,
-			requestID: null,
+			requestID: "1",
 			span: null,
 			tracing: null
 		});
@@ -2893,7 +2893,7 @@ describe("Test broker broadcast", () => {
 		ctx = broker.transit.sendEvent.mock.calls[1][0];
 		expect(broker.transit.sendEvent).toHaveBeenNthCalledWith(2, ctx);
 		expect(ctx.toJSON()).toEqual({
-			id: null,
+			id: "1",
 			ackID: null,
 			cachedResult: false,
 			caller: null,
@@ -2907,7 +2907,7 @@ describe("Test broker broadcast", () => {
 			options: {},
 			params: { name: "John" },
 			parentID: null,
-			requestID: null,
+			requestID: "1",
 			span: null,
 			tracing: null
 		});
@@ -2934,7 +2934,7 @@ describe("Test broker broadcast", () => {
 		let ctx = broker.transit.sendEvent.mock.calls[0][0];
 		expect(broker.transit.sendEvent).toHaveBeenNthCalledWith(1, ctx);
 		expect(ctx.toJSON()).toEqual({
-			id: null,
+			id: "1",
 			ackID: null,
 			cachedResult: false,
 			caller: null,
@@ -2948,7 +2948,7 @@ describe("Test broker broadcast", () => {
 			options: {},
 			params: { name: "John" },
 			parentID: null,
-			requestID: null,
+			requestID: "1",
 			span: null,
 			tracing: null
 		});
@@ -2973,7 +2973,7 @@ describe("Test broker broadcastLocal", () => {
 		const ctx = broker.emitLocalServices.mock.calls[0][0];
 		expect(broker.emitLocalServices).toHaveBeenNthCalledWith(1, ctx);
 		expect(ctx.toJSON()).toEqual({
-			id: null,
+			id: "1",
 			ackID: null,
 			cachedResult: false,
 			caller: null,
@@ -2987,7 +2987,7 @@ describe("Test broker broadcastLocal", () => {
 			options: {},
 			params: null,
 			parentID: null,
-			requestID: null,
+			requestID: "1",
 			span: null,
 			tracing: null
 		});
@@ -3005,7 +3005,7 @@ describe("Test broker broadcastLocal", () => {
 		const ctx = broker.emitLocalServices.mock.calls[0][0];
 		expect(broker.emitLocalServices).toHaveBeenNthCalledWith(1, ctx);
 		expect(ctx.toJSON()).toEqual({
-			id: null,
+			id: "1",
 			ackID: null,
 			cachedResult: false,
 			caller: null,
@@ -3019,7 +3019,7 @@ describe("Test broker broadcastLocal", () => {
 			options: {},
 			params: { name: "John" },
 			parentID: null,
-			requestID: null,
+			requestID: "1",
 			span: null,
 			tracing: null
 		});
@@ -3037,7 +3037,7 @@ describe("Test broker broadcastLocal", () => {
 		const ctx = broker.emitLocalServices.mock.calls[0][0];
 		expect(broker.emitLocalServices).toHaveBeenNthCalledWith(1, ctx);
 		expect(ctx.toJSON()).toEqual({
-			id: null,
+			id: "1",
 			ackID: null,
 			cachedResult: false,
 			caller: null,
@@ -3051,7 +3051,7 @@ describe("Test broker broadcastLocal", () => {
 			options: {},
 			params: { name: "John" },
 			parentID: null,
-			requestID: null,
+			requestID: "1",
 			span: null,
 			tracing: null
 		});
