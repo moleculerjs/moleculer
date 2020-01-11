@@ -54,6 +54,7 @@ describe("Test Bunyan logger class", () => {
 
 		it("should create a default logger", async () => {
 			const logger = new BaseLogger();
+			logger.init(loggerFactory);
 
 			await logger.stop();
 		});

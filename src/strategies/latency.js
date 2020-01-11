@@ -101,7 +101,7 @@ class LatencyStrategy extends BaseStrategy {
 			Although, if that particular node on the host is overloaded,
 			the measurement may be skewed.
 		*/
-		let hosts = this.hostMap.values();
+		const hosts = Array.from(this.hostMap.values());
 
 		return this.broker.Promise.all(hosts.map(host => { // TODO: missing concurency: 5, here was bluebird Promise.map
 			// Select a nodeID randomly

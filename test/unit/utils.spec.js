@@ -366,17 +366,18 @@ describe("Test utils.polyfillPromise", () => {
 		});
 	});
 
-	describe.skip("Test Promise.timeout", () => {
-		let clock;
+	describe("Test Promise.timeout", () => {
+		/*let clock;
 
 		beforeAll(() => clock = lolex.install());
 		afterAll(() => clock.uninstall());
+		*/
 
 		it("should be resolved", () => {
-			let p = Promise.delay(2000).then(() => "OK").timeout(2500);
+			let p = Promise.delay(200).then(() => "OK").timeout(250);
 
-			clock.tick(2200);
-			clock.tick(3000);
+			//clock.tick(2200);
+			//clock.tick(3000);
 
 			return p.catch(protectReject).then(res => {
 				expect(res).toBe("OK");
@@ -384,10 +385,10 @@ describe("Test utils.polyfillPromise", () => {
 		});
 
 		it("should be resolved", () => {
-			let p = Promise.resolve().delay(2000).then(() => "OK").timeout(2500);
+			let p = Promise.resolve().delay(200).then(() => "OK").timeout(250);
 
-			clock.tick(2200);
-			clock.tick(3000);
+			//clock.tick(2200);
+			//clock.tick(3000);
 
 			return p.catch(protectReject).then(res => {
 				expect(res).toBe("OK");
@@ -395,9 +396,9 @@ describe("Test utils.polyfillPromise", () => {
 		});
 
 		it("should be timed out", () => {
-			let p = Promise.resolve().delay(2000).then(() => "OK").timeout(1500);
+			let p = Promise.resolve().delay(200).then(() => "OK").timeout(150);
 
-			clock.tick(1700);
+			//clock.tick(1700);
 
 			return p.then(protectReject).catch(err => {
 				expect(err).toBeInstanceOf(Promise.TimeoutError);
@@ -405,9 +406,9 @@ describe("Test utils.polyfillPromise", () => {
 		});
 
 		it("should be timed out", () => {
-			let p = Promise.resolve().delay(2000).then(() => "OK").timeout(1500);
+			let p = Promise.resolve().delay(200).then(() => "OK").timeout(150);
 
-			clock.tick(2500);
+			//clock.tick(2500);
 
 			return p.then(protectReject).catch(err => {
 				expect(err).toBeInstanceOf(Promise.TimeoutError);

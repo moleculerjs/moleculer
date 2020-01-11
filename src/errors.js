@@ -112,7 +112,7 @@ class ServiceNotFoundError extends MoleculerRetryableError {
 			msg = `Service '${data.action}' is not found on '${data.nodeID}' node.`;
 		else if (data.action)
 			msg = `Service '${data.action}' is not found.`;
-		
+
 		if (data.service && data.version)
 			msg = `Service '${data.version}.${data.service}' not found.`;
 		else if (data.service)

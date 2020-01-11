@@ -160,15 +160,15 @@ const utils = {
 				return P.race([
 					timeout,
 					this
-						.then(value => {
-							clearTimeout(timer);
-							return value;
-						})
-						.catch(err => {
-							clearTimeout(timer);
-							throw err;
-						})
-				]);
+				])
+					.then(value => {
+						clearTimeout(timer);
+						return value;
+					})
+					.catch(err => {
+						clearTimeout(timer);
+						throw err;
+					});
 			};
 		}
 
