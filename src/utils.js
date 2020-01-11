@@ -146,7 +146,7 @@ const utils = {
 			P.prototype.delay = P.delay;
 		}
 
-		if (!_.isFunction(P.timeout)) {
+		if (!_.isFunction(P.prototype.timeout)) {
 			P.TimeoutError = TimeoutError;
 
 			P.prototype.timeout = function(ms, message) {
@@ -167,6 +167,24 @@ const utils = {
 							throw err;
 						})
 				]);
+			};
+		}
+
+		if (!_.isFunction(P.mapSeries)) {
+
+			P.mapSeries = function(arr, fn) {
+				const promFn = Promise.method(fn);
+				const res = [];
+
+				return arr.reduce((p, item, i) => {
+					return p.then(r => {
+						res[i] = r;
+						return promFn(item, i);
+					});
+				}, P.resolve()).then(r => {
+					res[arr.length] = r;
+					return res.slice(1);
+				});
 			};
 		}
 	},

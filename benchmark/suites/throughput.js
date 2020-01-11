@@ -88,13 +88,13 @@ function measureTP(transporter, dataName) {
 
 function runTest(dataName) {
 	return Promise.resolve()
-		.then(() => Promise.map([
+		.then(() => Promise.mapSeries([
 			"Fake",
 			"NATS",
 			"Redis",
 			"MQTT",
 			"TCP"
-		], transporter => measureTP(transporter, dataName), { concurrency: 1 }))
+		], transporter => measureTP(transporter, dataName)))
 		.then(() => {
 			if (dataFiles.length > 0)
 				runTest(dataFiles.shift());

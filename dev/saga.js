@@ -40,7 +40,7 @@ const SagaMiddleware = function() {
 								ctx.service.logger.warn(kleur.red().bold("Some error occured. Start compensating..."));
 								ctx.service.logger.info(ctx.meta.$saga.compensations);
 								if (ctx.meta.$saga && Array.isArray(ctx.meta.$saga.compensations)) {
-									return Promise.map(ctx.meta.$saga.compensations, item => {
+									return Promise.mapSeries(ctx.meta.$saga.compensations, item => {
 										return ctx.call(item.action, item.params);
 									}).then(() => {
 										throw err;
