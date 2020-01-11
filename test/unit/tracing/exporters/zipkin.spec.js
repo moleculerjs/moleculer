@@ -62,7 +62,7 @@ describe("Test Zipkin tracing exporter class", () => {
 	});
 
 	describe("Test init method", () => {
-		const fakeTracer = { logger: broker.logger };
+		const fakeTracer = { logger: broker.logger, broker };
 
 		let clock;
 		beforeAll(() => clock = lolex.install());
@@ -118,7 +118,7 @@ describe("Test Zipkin tracing exporter class", () => {
 	});
 
 	describe("Test spanFinished method", () => {
-		const fakeTracer = { logger: broker.logger };
+		const fakeTracer = { logger: broker.logger, broker };
 		const exporter = new ZipkinTraceExporter({});
 		exporter.init(fakeTracer);
 
@@ -138,7 +138,8 @@ describe("Test Zipkin tracing exporter class", () => {
 
 	describe("Test flush method", () => {
 		const fakeTracer = {
-			logger: broker.logger
+			logger: broker.logger,
+			broker
 		};
 
 		const exporter = new ZipkinTraceExporter({
@@ -173,7 +174,8 @@ describe("Test Zipkin tracing exporter class", () => {
 
 	describe("Test generateTracingData method", () => {
 		const fakeTracer = {
-			logger: broker.logger
+			logger: broker.logger,
+			broker
 		};
 
 		const exporter = new ZipkinTraceExporter({});
@@ -199,7 +201,7 @@ describe("Test Zipkin tracing exporter class", () => {
 	});
 
 	describe("Test convertID & convertTime methods", () => {
-		const fakeTracer = { logger: broker.logger };
+		const fakeTracer = { logger: broker.logger, broker };
 		const exporter = new ZipkinTraceExporter({});
 		exporter.init(fakeTracer);
 
@@ -222,6 +224,7 @@ describe("Test Zipkin tracing exporter class", () => {
 	describe("Test makePayload", () => {
 		const fakeTracer = {
 			logger: broker.logger,
+			broker,
 			opts: {
 				errorFields: ["name", "message", "retryable", "data", "code"]
 			}

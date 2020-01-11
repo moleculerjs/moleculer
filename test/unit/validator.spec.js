@@ -2,6 +2,7 @@ const ServiceBroker = require("../../src/service-broker");
 const Validator = require("../../src/validator");
 const { ValidationError } = require("../../src/errors");
 
+const broker = new ServiceBroker({ logger: false });
 
 describe("Test constructor", () => {
 
@@ -14,7 +15,6 @@ describe("Test constructor", () => {
 	});
 
 	it("should save the broker in init", () => {
-		let broker = new ServiceBroker({ logger: false });
 		let v = new Validator();
 
 		v.init(broker);
@@ -61,6 +61,7 @@ describe("Test middleware localAction", () => {
 	let __checkBad = jest.fn(() => []);
 	v.compile = jest.fn().mockImplementationOnce(() => __checkGood).mockImplementationOnce(() => __checkBad);
 	v.validate = jest.fn();
+	v.init(broker);
 
 	it("should return a middleware object", () => {
 		let mw = v.middleware();
@@ -72,7 +73,7 @@ describe("Test middleware localAction", () => {
 	});
 
 	it("should call validator & handler", () => {
-		let mw = v.middleware();
+		let mw = v.middleware(broker);
 
 		let mockAction = {
 			name: "posts.find",
@@ -103,7 +104,7 @@ describe("Test middleware localAction", () => {
 	});
 
 	it("should call validator & throw error & not call handler", () => {
-		let mw = v.middleware();
+		let mw = v.middleware(broker);
 
 		let mockAction = {
 			name: "posts.find",
@@ -148,6 +149,7 @@ describe("Test middleware localAction", () => {
 
 describe("Test middleware localEvent", () => {
 	let v = new Validator();
+	v.init(broker);
 	let __checkGood = jest.fn(() => true);
 	let __checkBad = jest.fn(() => []);
 	v.compile = jest.fn().mockImplementationOnce(() => __checkGood).mockImplementationOnce(() => __checkBad);
@@ -163,7 +165,7 @@ describe("Test middleware localEvent", () => {
 	});
 
 	it("should call validator & handler", () => {
-		let mw = v.middleware();
+		let mw = v.middleware(broker);
 
 		let mockEvent = {
 			name: "posts.find",
@@ -194,7 +196,7 @@ describe("Test middleware localEvent", () => {
 	});
 
 	it("should call validator & throw error & not call handler", () => {
-		let mw = v.middleware();
+		let mw = v.middleware(broker);
 
 		let mockEvent = {
 			name: "posts.find",

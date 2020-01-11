@@ -342,13 +342,13 @@ describe("Test utils.polyfillPromise", () => {
 		});
 	});
 
-	describe("Test Promise.delay", () => {
+	describe.skip("Test Promise.delay", () => {
 		let clock;
 
 		beforeAll(() => clock = lolex.install());
 		afterAll(() => clock.uninstall());
 
-		it.skip("should wait the given time", () => {
+		it("should wait the given time", () => {
 			let done = false;
 			return new Promise(resolve => {
 				const p = Promise.delay(2500).then(() => done = true);
@@ -366,16 +366,28 @@ describe("Test utils.polyfillPromise", () => {
 		});
 	});
 
-	describe("Test Promise.timeout", () => {
+	describe.skip("Test Promise.timeout", () => {
 		let clock;
 
 		beforeAll(() => clock = lolex.install());
 		afterAll(() => clock.uninstall());
 
 		it("should be resolved", () => {
+			let p = Promise.delay(2000).then(() => "OK").timeout(2500);
+
+			clock.tick(2200);
+			clock.tick(3000);
+
+			return p.catch(protectReject).then(res => {
+				expect(res).toBe("OK");
+			});
+		});
+
+		it("should be resolved", () => {
 			let p = Promise.resolve().delay(2000).then(() => "OK").timeout(2500);
 
 			clock.tick(2200);
+			clock.tick(3000);
 
 			return p.catch(protectReject).then(res => {
 				expect(res).toBe("OK");

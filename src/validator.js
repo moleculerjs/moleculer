@@ -50,7 +50,7 @@ class ParamValidator {
 							return handler(ctx);
 						else {
 							res = res.map(data => Object.assign(data, { nodeID: ctx.nodeID, action: ctx.action.name }));
-							return this.broker.Promise.reject(new ValidationError("Parameters validation error!", null, res));
+							return broker.Promise.reject(new ValidationError("Parameters validation error!", null, res));
 						}
 					};
 				}
@@ -67,7 +67,7 @@ class ParamValidator {
 							return handler(ctx);
 						else {
 							res = res.map(data => Object.assign(data, { nodeID: ctx.nodeID, event: ctx.event.name }));
-							return this.broker.Promise.reject(new ValidationError("Parameters validation error!", null, res));
+							return broker.Promise.reject(new ValidationError("Parameters validation error!", null, res));
 						}
 					};
 				}

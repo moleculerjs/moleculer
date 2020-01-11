@@ -11,6 +11,7 @@ const kleur		= require("kleur");
 const os 	 	= require("os");
 const path 	 	= require("path");
 const fs 	 	= require("fs");
+const ExtendableError = require("es6-error");
 
 const lut = [];
 for (let i=0; i<256; i++) { lut[i] = (i<16?"0":"")+(i).toString(16); }
@@ -30,9 +31,7 @@ const byteMultipliers = {
 // eslint-disable-next-line security/detect-unsafe-regex
 const parseByteStringRe = /^((-|\+)?(\d+(?:\.\d+)?)) *(kb|mb|gb|tb|pb)$/i;
 
-class TimeoutError extends Error {
-
-}
+class TimeoutError extends ExtendableError {}
 
 function circularReplacer() {
 	const seen = new WeakSet();
@@ -143,7 +142,10 @@ const utils = {
 			P.delay = function(ms) {
 				return new P(resolve => setTimeout(resolve, +ms));
 			};
-			P.prototype.delay = P.delay;
+			P.prototype.delay = function(ms) {
+				return this.then(res => P.delay(ms).then(() => res));
+				//return this.then(res => new P(resolve => setTimeout(() => resolve(res), +ms)));
+			};
 		}
 
 		if (!_.isFunction(P.prototype.timeout)) {
