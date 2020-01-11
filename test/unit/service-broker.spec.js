@@ -7,13 +7,19 @@ kleur.enabled = false;
 const H = require("../../src/health");
 H.getHealthStatus = jest.fn();
 
+let polyfillPromise;
 jest.mock("../../src/utils", () => ({
 	getNodeID() { return "node-1234"; },
 	generateToken: jest.fn(() => "1"),
 	getIpList() { return []; },
 	safetyObject(obj) { return obj; },
-	isPromise(p) {return p && p.then != null; }
+	isPromise(p) {return p && p.then != null; },
+	polyfillPromise(p) {
+		return polyfillPromise(p);
+	}
 }));
+polyfillPromise = jest.requireActual("../../src/utils").polyfillPromise;
+
 const utils = require("../../src/utils");
 
 const { protectReject } = require("./utils");
@@ -58,7 +64,7 @@ describe("Test ServiceBroker constructor", () => {
 
 		expect(broker.localBus).toBeDefined();
 
-		expect(broker.scope).toBeDefined();
+		//expect(broker.scope).toBeDefined();
 
 		expect(broker.metrics).toBeDefined();
 		expect(broker.tracer).toBeDefined();
@@ -450,15 +456,15 @@ describe("Test broker.start", () => {
 		broker.broadcastLocal = jest.fn();
 		broker.metrics.set = jest.fn();
 		broker.callMiddlewareHook = jest.fn();
-		broker.scope.enable = jest.fn();
-		broker.tracer.restartScope = jest.fn();
+		//broker.scope.enable = jest.fn();
+		//broker.tracer.restartScope = jest.fn();
 
 
 		beforeAll(() =>	broker.start());
 
 		it("should call started of services", () => {
-			expect(broker.scope.enable).toHaveBeenCalledTimes(1);
-			expect(broker.tracer.restartScope).toHaveBeenCalledTimes(1);
+			//expect(broker.scope.enable).toHaveBeenCalledTimes(1);
+			//expect(broker.tracer.restartScope).toHaveBeenCalledTimes(1);
 
 			expect(optStarted).toHaveBeenCalledTimes(1);
 			expect(schema.started).toHaveBeenCalledTimes(1);
@@ -499,14 +505,14 @@ describe("Test broker.start", () => {
 		broker.broadcastLocal = jest.fn();
 		broker.metrics.set = jest.fn();
 		broker.callMiddlewareHook = jest.fn();
-		broker.scope.enable = jest.fn();
-		broker.tracer.restartScope = jest.fn();
+		//broker.scope.enable = jest.fn();
+		//broker.tracer.restartScope = jest.fn();
 
 		beforeAll(() => broker.start());
 
 		it("should call started of services", () => {
-			expect(broker.scope.enable).toHaveBeenCalledTimes(1);
-			expect(broker.tracer.restartScope).toHaveBeenCalledTimes(1);
+			//expect(broker.scope.enable).toHaveBeenCalledTimes(1);
+			//expect(broker.tracer.restartScope).toHaveBeenCalledTimes(1);
 
 			expect(optStarted).toHaveBeenCalledTimes(1);
 			expect(schema.started).toHaveBeenCalledTimes(1);
@@ -548,16 +554,16 @@ describe("Test broker.start", () => {
 		broker.localBus.emit = jest.fn();
 		broker.metrics.set = jest.fn();
 		broker.callMiddlewareHook = jest.fn();
-		broker.scope.enable = jest.fn();
-		broker.tracer.restartScope = jest.fn();
+		// broker.scope.enable = jest.fn();
+		// broker.tracer.restartScope = jest.fn();
 
 		it("should reject", () => {
 			return expect(broker.start()).rejects.toBeDefined();
 		});
 
 		it("should not call others", () => {
-			expect(broker.scope.enable).toHaveBeenCalledTimes(1);
-			expect(broker.tracer.restartScope).toHaveBeenCalledTimes(1);
+			// expect(broker.scope.enable).toHaveBeenCalledTimes(1);
+			// expect(broker.tracer.restartScope).toHaveBeenCalledTimes(1);
 
 			expect(optStarted).toHaveBeenCalledTimes(0);
 			expect(broker.transit.connect).toHaveBeenCalledTimes(1);
@@ -601,8 +607,8 @@ describe("Test broker.stop", () => {
 		broker.metrics.set = jest.fn();
 		broker.metrics.stop = jest.fn();
 		broker.loggerFactory.stop = jest.fn();
-		broker.scope.stop = jest.fn();
-		broker.tracer.stopAndClearScope = jest.fn();
+		// broker.scope.stop = jest.fn();
+		// broker.tracer.stopAndClearScope = jest.fn();
 
 		broker.cacher = {
 			close: jest.fn(() => Promise.resolve())
@@ -632,8 +638,8 @@ describe("Test broker.stop", () => {
 				expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 				expect(broker.broadcastLocal).toHaveBeenCalledWith("$broker.stopped");
 
-				expect(broker.scope.stop).toHaveBeenCalledTimes(1);
-				expect(broker.tracer.stopAndClearScope).toHaveBeenCalledTimes(1);
+				// expect(broker.scope.stop).toHaveBeenCalledTimes(1);
+				// expect(broker.tracer.stopAndClearScope).toHaveBeenCalledTimes(1);
 
 				expect(broker.metrics.set).toHaveBeenCalledTimes(1);
 				expect(broker.metrics.set).toHaveBeenCalledWith("moleculer.broker.started", 0);
@@ -667,8 +673,8 @@ describe("Test broker.stop", () => {
 		broker.metrics.stop = jest.fn();
 		broker.metrics.set = jest.fn();
 		broker.loggerFactory.stop = jest.fn();
-		broker.scope.stop = jest.fn();
-		broker.tracer.stopAndClearScope = jest.fn();
+		// broker.scope.stop = jest.fn();
+		// broker.tracer.stopAndClearScope = jest.fn();
 
 		broker.cacher = {
 			close: jest.fn(() => Promise.resolve())
@@ -698,8 +704,8 @@ describe("Test broker.stop", () => {
 				expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 				expect(broker.broadcastLocal).toHaveBeenCalledWith("$broker.stopped");
 
-				expect(broker.scope.stop).toHaveBeenCalledTimes(1);
-				expect(broker.tracer.stopAndClearScope).toHaveBeenCalledTimes(1);
+				// expect(broker.scope.stop).toHaveBeenCalledTimes(1);
+				// expect(broker.tracer.stopAndClearScope).toHaveBeenCalledTimes(1);
 
 				expect(broker.metrics.set).toHaveBeenCalledTimes(1);
 				expect(broker.metrics.set).toHaveBeenCalledWith("moleculer.broker.started", 0);
@@ -732,8 +738,8 @@ describe("Test broker.stop", () => {
 		broker.metrics.set = jest.fn();
 		broker.loggerFactory.stop = jest.fn();
 		broker.callMiddlewareHook = jest.fn();
-		broker.scope.stop = jest.fn();
-		broker.tracer.stopAndClearScope = jest.fn();
+		// broker.scope.stop = jest.fn();
+		// broker.tracer.stopAndClearScope = jest.fn();
 
 		broker.cacher = {
 			close: jest.fn(() => Promise.resolve())
@@ -762,8 +768,8 @@ describe("Test broker.stop", () => {
 				expect(broker.broadcastLocal).toHaveBeenCalledTimes(1);
 				expect(broker.broadcastLocal).toHaveBeenCalledWith("$broker.stopped");
 
-				expect(broker.scope.stop).toHaveBeenCalledTimes(1);
-				expect(broker.tracer.stopAndClearScope).toHaveBeenCalledTimes(1);
+				// expect(broker.scope.stop).toHaveBeenCalledTimes(1);
+				// expect(broker.tracer.stopAndClearScope).toHaveBeenCalledTimes(1);
 
 				expect(broker.metrics.set).toHaveBeenCalledTimes(1);
 				expect(broker.metrics.set).toHaveBeenCalledWith("moleculer.broker.started", 0);
@@ -2213,9 +2219,9 @@ describe("Test broker.mcall", () => {
 	});
 
 	it("should throw error", () => {
-		expect(() => {
-			return broker.mcall(6);
-		}).toThrowError(MoleculerServerError);
+		return broker.mcall(6).catch(err => {
+			expect(err).toBeInstanceOf(MoleculerServerError);
+		});
 	});
 });
 
@@ -3262,7 +3268,7 @@ describe("Test registry links", () => {
 	});
 });
 
-
+/*
 describe("Test setCurrentContext & getCurrentContext", () => {
 
 	let broker = new ServiceBroker({ logger: false, internalServices: false });
@@ -3290,4 +3296,4 @@ describe("Test setCurrentContext & getCurrentContext", () => {
 
 });
 
-
+*/
