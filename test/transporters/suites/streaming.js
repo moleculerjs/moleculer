@@ -55,6 +55,7 @@ module.exports = function(transporter, serializer)  {
 
 		it("should encode & decode the data and send as streams", () => {
 			return master.waitForServices("aes")
+				.delay(500)
 				.then(() => Promise.all(_.times(1, () => {
 					const s1 = fs.createReadStream(filename);
 					return master.call("aes.encrypt", s1)
