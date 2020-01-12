@@ -6,7 +6,6 @@
 
 "use strict";
 
-const Promise = require("bluebird");
 const os = require("os");
 const METRIC = require("./constants");
 const cpuUsage = require("../cpu-usage");
@@ -257,7 +256,7 @@ function updateCommonMetrics() {
 	// this.increment(METRIC.MOLECULER_METRICS_COMMON_COLLECT_TOTAL);
 	const duration = end();
 
-	return Promise.resolve()
+	return Promise.resolve() // TODO broker.Promise
 		.then(() => cpuUsage().then(res => {
 			this.set(METRIC.OS_CPU_UTILIZATION, res.avg);
 

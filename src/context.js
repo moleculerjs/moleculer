@@ -6,7 +6,6 @@
 
 "use strict";
 
-//const Promise = require("bluebird");
 const util = require("util");
 const _ = require("lodash");
 const { RequestSkippedError, MaxCallLevelError } = require("./errors");
@@ -274,7 +273,7 @@ class Context {
 			const distTimeout = this.options.timeout - duration;
 
 			if (distTimeout <= 0) {
-				return Promise.reject(new RequestSkippedError({ action: actionName, nodeID: this.broker.nodeID }));
+				return this.broker.Promise.reject(new RequestSkippedError({ action: actionName, nodeID: this.broker.nodeID }));
 			}
 
 			if (!opts.timeout || distTimeout < opts.timeout)
@@ -283,7 +282,7 @@ class Context {
 
 		// Max calling level check to avoid calling loops
 		if (this.broker.options.maxCallLevel > 0 && this.level >= this.broker.options.maxCallLevel) {
-			return Promise.reject(new MaxCallLevelError({ nodeID: this.broker.nodeID, level: this.level }));
+			return this.broker.Promise.reject(new MaxCallLevelError({ nodeID: this.broker.nodeID, level: this.level }));
 		}
 
 		let p = this.broker.call(actionName, params, opts);
@@ -298,7 +297,7 @@ class Context {
 			if (p.ctx)
 				mergeMeta(this, p.ctx.meta);
 
-			return Promise.reject(err);
+			return this.broker.Promise.reject(err);
 		});
 	}
 
@@ -316,7 +315,7 @@ class Context {
 
 			if (distTimeout <= 0) {
 				const action = (Array.isArray(def) ? def : Object.values(def)).map(d => d.action).join(", ");
-				return Promise.reject(new RequestSkippedError({ action, nodeID: this.broker.nodeID }));
+				return this.broker.Promise.reject(new RequestSkippedError({ action, nodeID: this.broker.nodeID }));
 			}
 
 			if (!opts.timeout || distTimeout < opts.timeout)
@@ -325,7 +324,7 @@ class Context {
 
 		// Max calling level check to avoid calling loops
 		if (this.broker.options.maxCallLevel > 0 && this.level >= this.broker.options.maxCallLevel) {
-			return Promise.reject(new MaxCallLevelError({ nodeID: this.broker.nodeID, level: this.level }));
+			return this.broker.Promise.reject(new MaxCallLevelError({ nodeID: this.broker.nodeID, level: this.level }));
 		}
 
 		let p = this.broker.mcall(def, opts);
@@ -340,7 +339,7 @@ class Context {
 			if (Array.isArray(p.ctx) && p.ctx.length)
 				p.ctx.forEach(ctx => mergeMeta(this, ctx.meta));
 
-			return Promise.reject(err);
+			return this.broker.Promise.reject(err);
 		});
 	}
 

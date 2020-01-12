@@ -149,7 +149,7 @@ broker.createService({
 
 				const span2 = ctx.startSpan("populate posts");
 				//await this.Promise.delay(10);
-				const res = await this.Promise.map(posts, async post => {
+				const res = await this.Promise.mapSeries(posts, async post => {
 					const span3 = ctx.startSpan("populate #" + post.id, { tags: {
 						id: post.id
 					} });
@@ -165,7 +165,7 @@ broker.createService({
 					ctx.finishSpan(span3);
 
 					//return res;
-				}, { concurrency: 1 });
+				});
 
 				ctx.finishSpan(span2);
 

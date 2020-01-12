@@ -1,7 +1,5 @@
 "use strict";
 
-let Promise	= require("bluebird");
-
 const Benchmarkify = require("benchmarkify");
 const benchmark = new Benchmarkify("Broker call benchmarks").printHeader();
 
@@ -161,7 +159,9 @@ const bench6 = benchmark.createSuite("Call with tracing");
 	});
 })();
 
-Promise.delay(1000).then(() => benchmark.run([bench1, bench2, bench3, bench4, bench5, bench6]));
+setTimeout(() => {
+	benchmark.run([bench1, bench2, bench3, bench4, bench5, bench6]);
+}, 1000);
 
 /*
 

@@ -1358,6 +1358,7 @@ describe("Test $secureSettings", () => {
 	});
 });
 
+/*
 describe("Test currentContext", () => {
 
 	it("should call broker methods", () => {
@@ -1387,3 +1388,4 @@ describe("Test currentContext", () => {
 			});
 	});
 });
+*/

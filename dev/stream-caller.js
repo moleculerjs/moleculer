@@ -2,7 +2,6 @@
 
 const ServiceBroker = require("../src/service-broker");
 const fs = require("fs");
-const Promise = require("bluebird");
 const path = require("path");
 const kleur = require("kleur");
 const crypto = require("crypto");

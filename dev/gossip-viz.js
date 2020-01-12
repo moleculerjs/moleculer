@@ -3,7 +3,6 @@
 const _ = require("lodash");
 const kleur = require("kleur");
 const ServiceBroker = require("../src/service-broker");
-const Promise = require("bluebird");
 
 const COUNT = process.argv[2] ? Number(process.argv[2]) : 20;
 const nodePrefix = process.argv[3] || "node";

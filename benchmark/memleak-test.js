@@ -3,7 +3,6 @@
 "use strict";
 
 const kleur = require("kleur");
-const Promise = require("bluebird");
 const memwatch = require("memwatch-next");
 const ServiceBroker = require("../src/service-broker");
 

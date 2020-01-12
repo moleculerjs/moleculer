@@ -7,7 +7,6 @@
 "use strict";
 
 const _ 			= require("lodash");
-const Promise 		= require("bluebird");
 const utils			= require("../utils");
 const BaseCacher  	= require("./base");
 const LRU 			= require("lru-cache");
@@ -91,11 +90,11 @@ class MemoryLRUCacher extends BaseCacher {
 			const res = this.clone ? this.clone(item) : item;
 			timeEnd();
 
-			return Promise.resolve(res);
+			return this.broker.Promise.resolve(res);
 		} else {
 			timeEnd();
 		}
-		return Promise.resolve(null);
+		return this.broker.Promise.resolve(null);
 	}
 
 	/**
@@ -120,7 +119,7 @@ class MemoryLRUCacher extends BaseCacher {
 		timeEnd();
 		this.logger.debug(`SET ${key}`);
 
-		return Promise.resolve(data);
+		return this.broker.Promise.resolve(data);
 	}
 
 	/**
@@ -142,7 +141,7 @@ class MemoryLRUCacher extends BaseCacher {
 		});
 		timeEnd();
 
-		return Promise.resolve();
+		return this.broker.Promise.resolve();
 	}
 
 	/**
@@ -167,7 +166,7 @@ class MemoryLRUCacher extends BaseCacher {
 		});
 		timeEnd();
 
-		return Promise.resolve();
+		return this.broker.Promise.resolve();
 	}
 	/**
 	 * Get data and ttl from cache by key.
@@ -211,7 +210,7 @@ class MemoryLRUCacher extends BaseCacher {
 	 */
 	tryLock(key, ttl) {
 		if(this._lock.isLocked(key)){
-			return Promise.reject(new Error("Locked."));
+			return this.broker.Promise.reject(new Error("Locked."));
 		}
 		return this._lock.acquire(key, ttl).then(()=> {
 			return ()=>this._lock.release(key);

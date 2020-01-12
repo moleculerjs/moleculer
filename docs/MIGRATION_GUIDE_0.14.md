@@ -305,6 +305,22 @@ module.exports = {
 
 >[Read more about new logging feature and all supported loggers.](https://moleculer.services/docs/0.14/logging.html)
 
+## 7. Bluebird is dropped
+The Bluebird Promise library has been dropped from the project because as of Node 10, the native `Promise` implementation is [faster (2x)](https://github.com/icebob/js-perf-benchmark/blob/95803284dcb46c403eb71f2f114b76bf669189ce/suites/promise.js#L123-L133) than Bluebird.
+
+If you want to use Bluebird instead of native Promise, just set the `Promise` broker options.
+
+```js
+const BluebirdPromise = require("bluebird");
+
+// moleculer.config.js
+module.exports = {
+    Promise: BluebirdPromise
+};
+```
+>Please note, the given Promise library will be polyfilled with `delay`, `method`, `timeout` and `mapSeries` methods (which are used inside Moleculer modules).
+
+
 **:tada: Well, you are done! :clap:**
 
 Happy coding in your up-to-date Moleculer project. If you need help, join to [Discord chat](https://discord.gg/j5cJYdu) and don't hesitate to ask Moleculer community.

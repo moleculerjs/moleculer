@@ -6,7 +6,6 @@
 
 "use strict";
 
-const Promise = require("bluebird");
 const Validator = require("fastest-validator");
 const { ValidationError } = require("./errors");
 
@@ -51,7 +50,7 @@ class ParamValidator {
 							return handler(ctx);
 						else {
 							res = res.map(data => Object.assign(data, { nodeID: ctx.nodeID, action: ctx.action.name }));
-							return Promise.reject(new ValidationError("Parameters validation error!", null, res));
+							return broker.Promise.reject(new ValidationError("Parameters validation error!", null, res));
 						}
 					};
 				}
@@ -68,7 +67,7 @@ class ParamValidator {
 							return handler(ctx);
 						else {
 							res = res.map(data => Object.assign(data, { nodeID: ctx.nodeID, event: ctx.event.name }));
-							return Promise.reject(new ValidationError("Parameters validation error!", null, res));
+							return broker.Promise.reject(new ValidationError("Parameters validation error!", null, res));
 						}
 					};
 				}

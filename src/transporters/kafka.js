@@ -7,7 +7,6 @@
 "use strict";
 
 const { defaultsDeep } 	= require("lodash");
-const Promise			= require("bluebird");
 const Transporter 		= require("./base");
 
 /**
@@ -73,7 +72,7 @@ class KafkaTransporter extends Transporter {
 	 * @memberof KafkaTransporter
 	 */
 	connect() {
-		return new Promise((resolve, reject) => {
+		return new this.broker.Promise((resolve, reject) => {
 			let Kafka;
 			try {
 				Kafka = require("kafka-node");
@@ -154,7 +153,7 @@ class KafkaTransporter extends Transporter {
 	makeSubscriptions(topics) {
 		topics = topics.map(({ cmd, nodeID }) => this.getTopicName(cmd, nodeID));
 
-		return new Promise((resolve, reject) => {
+		return new this.broker.Promise((resolve, reject) => {
 
 			this.producer.createTopics(topics, true, (err) => {
 				/* istanbul ignore next */
@@ -209,7 +208,7 @@ class KafkaTransporter extends Transporter {
 		const topic = this.getTopicName(cmd, nodeID);
 		this.topics.push(topic);
 
-		return new Promise((resolve, reject) => {
+		return new this.broker.Promise((resolve, reject) => {
 			this.producer.createTopics([topic], true, (err, data) => {
 				if (err) {
 					this.logger.error("Unable to create topics!", topic, err);
@@ -239,9 +238,9 @@ class KafkaTransporter extends Transporter {
 	 */
 	send(topic, data, { packet }) {
 		/* istanbul ignore next*/
-		if (!this.client) return Promise.resolve();
+		if (!this.client) return this.broker.Promise.resolve();
 
-		return new Promise((resolve, reject) => {
+		return new this.broker.Promise((resolve, reject) => {
 			this.producer.send([{
 				topic: this.getTopicName(packet.type, packet.target),
 				messages: [data],

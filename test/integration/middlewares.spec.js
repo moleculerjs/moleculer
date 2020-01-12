@@ -1,5 +1,4 @@
 const ServiceBroker = require("../../src/service-broker");
-const Promise = require("bluebird");
 const utils = require("../../src/utils");
 const { protectReject } = require("../unit/utils");
 

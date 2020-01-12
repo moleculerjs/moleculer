@@ -1,11 +1,8 @@
 "use strict";
 
 const _ 					= require("lodash");
-const Promise 				= require("bluebird");
 const fetch 				= require("node-fetch");
 const BaseTraceExporter 	= require("./base");
-
-fetch.Promise = Promise;
 
 /*
 	docker run -d --name dd-agent --restart unless-stopped -v /var/run/docker.sock:/var/run/docker.sock:ro -v /proc/:/host/proc/:ro -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e DD_API_KEY=123456 -e DD_APM_ENABLED=true -e DD_APM_NON_LOCAL_TRAFFIC=true -p 8126:8126  datadog/agent:latest
@@ -45,6 +42,8 @@ class DatadogTraceExporter extends BaseTraceExporter {
 	 */
 	init(tracer) {
 		super.init(tracer);
+
+		fetch.Promise = this.broker.Promise;
 
 		if (this.opts.interval > 0) {
 			this.timer = setInterval(() => this.flush(), this.opts.interval * 1000);

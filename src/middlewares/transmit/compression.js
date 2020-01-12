@@ -9,7 +9,7 @@
 const { defaultsDeep } = require("lodash");
 const { parseByteString } = require("../../utils");
 const zlib = require("zlib");
-const Promise = require("bluebird");
+const { promisify } = require("util");
 
 /**
  * This is a transmission compression middleware. It supports
@@ -25,16 +25,16 @@ module.exports = function CompressionMiddleware(opts) {
 
 	switch(opts.method) {
 		case "deflate":
-			compress = Promise.promisify(zlib.deflate);
-			decompress = Promise.promisify(zlib.inflate);
+			compress = promisify(zlib.deflate);
+			decompress = promisify(zlib.inflate);
 			break;
 		case "deflateRaw":
-			compress = Promise.promisify(zlib.deflateRaw);
-			decompress = Promise.promisify(zlib.inflateRaw);
+			compress = promisify(zlib.deflateRaw);
+			decompress = promisify(zlib.inflateRaw);
 			break;
 		case "gzip":
-			compress = Promise.promisify(zlib.gzip);
-			decompress = Promise.promisify(zlib.gunzip);
+			compress = promisify(zlib.gzip);
+			decompress = promisify(zlib.gunzip);
 			break;
 		default:
 			/* istanbul ignore next */

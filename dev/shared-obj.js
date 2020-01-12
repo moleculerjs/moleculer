@@ -3,7 +3,6 @@
 // !!! WORK-IN-PROGRESS !!!
 
 const ServiceBroker = require("../src/service-broker");
-const Promise = require("bluebird");
 const _ = require("lodash");
 const ObservableSlim = require("observable-slim");
 

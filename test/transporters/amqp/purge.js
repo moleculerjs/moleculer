@@ -3,7 +3,6 @@
 "use strict";
 
 const amqp = require("amqplib");
-const Promise = require("bluebird");
 
 const URI = process.env.AMQP_URI || "amqp://guest:guest@localhost:5672";
 
