@@ -1,17 +1,12 @@
 const ServiceBroker = require("../src/service-broker");
+const Promise = require("bluebird");
 
-const broker = new ServiceBroker({
-	nodeID: "broker-1",
-	transporter: {
-		type: "NATS"
-	},
-	metrics: true
-});
+const broker = new ServiceBroker(/*{ Promise }*/);
 
-async function start() {
-	await broker.start();
-
-	broker.repl();
-}
-
-start();
+broker.start()
+	.then(() => broker.repl())
+	.then(() => broker.logger.info("1"))
+	.delay(3000)
+	.timeout(2500)
+	.then(() => broker.logger.info("2"))
+	.catch(err => broker.logger.error(err));

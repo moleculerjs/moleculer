@@ -1,15 +1,13 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
-const Promise = require("bluebird");
 const { RequestTimeoutError } = require("../errors");
 const { METRIC }	= require("../metrics");
-
 
 module.exports = function(broker) {
 
@@ -38,14 +36,14 @@ module.exports = function(broker) {
 			if (ctx.options.timeout > 0 && p.timeout) {
 				return p.timeout(ctx.options.timeout)
 					.catch(err => {
-						if (err instanceof Promise.TimeoutError) {
+						if (err instanceof broker.Promise.TimeoutError) {
 							const nodeID = ctx.nodeID;
 							this.logger.warn(`Request '${actionName}' is timed out.`, { requestID: ctx.requestID, nodeID, timeout: ctx.options.timeout });
 							err = new RequestTimeoutError({ action: actionName, nodeID });
 
 							broker.metrics.increment(METRIC.MOLECULER_REQUEST_TIMEOUT_TOTAL, { service, action: actionName });
 						}
-						return this.Promise.reject(err);
+						throw err;
 					});
 			}
 

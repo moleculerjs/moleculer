@@ -7,7 +7,6 @@
 "use strict";
 
 const EventEmitter 	= require("events");
-const Promise		= require("bluebird");
 const os 			= require("os");
 const dgram 		= require("dgram");
 const ipaddr 		= require("ipaddr.js");
@@ -38,6 +37,7 @@ class UdpServer extends EventEmitter {
 		this.logger = transporter.logger;
 		this.nodeID = transporter.nodeID;
 		this.namespace = transporter.broker.namespace;
+		this.Promise = transporter.broker.Promise;
 
 		this.counter = 0;
 	}
@@ -51,10 +51,10 @@ class UdpServer extends EventEmitter {
 	bind() {
 		if (this.opts.udpDiscovery === false) {
 			this.logger.info("UDP Discovery is disabled.");
-			return Promise.resolve();
+			return this.Promise.resolve();
 		}
 
-		return Promise.resolve()
+		return this.Promise.resolve()
 			.then(() => {
 				// Start multicast listener
 				if (this.opts.udpMulticast) {
@@ -64,7 +64,7 @@ class UdpServer extends EventEmitter {
 
 					// Binding all interfaces
 					const ipList = this.getInterfaceAddresses();
-					return Promise.all(ipList.map(ip => this.startServer(ip, this.opts.udpPort, this.opts.udpMulticast, this.opts.udpMulticastTTL)));
+					return this.Promise.all(ipList.map(ip => this.startServer(ip, this.opts.udpPort, this.opts.udpMulticast, this.opts.udpMulticastTTL)));
 				}
 			})
 			.then(() => {
@@ -89,7 +89,7 @@ class UdpServer extends EventEmitter {
 	 * @param {Number?} ttl
 	 */
 	startServer(host, port, multicastAddress, ttl) {
-		return new Promise(resolve => {
+		return new this.Promise(resolve => {
 			try {
 				const server = dgram.createSocket({ type: "udp4", reuseAddr: this.opts.udpReuseAddr });
 

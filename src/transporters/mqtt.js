@@ -1,12 +1,11 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
-const Promise = require("bluebird");
 const Transporter = require("./base");
 const { isObject } = require("lodash");
 
@@ -51,7 +50,7 @@ class MqttTransporter extends Transporter {
 	 * @memberof MqttTransporter
 	 */
 	connect() {
-		return new Promise((resolve, reject) => {
+		return new this.broker.Promise((resolve, reject) => {
 			let mqtt;
 			try {
 				mqtt = require("mqtt");
@@ -105,7 +104,7 @@ class MqttTransporter extends Transporter {
 	 */
 	disconnect() {
 		if (this.client) {
-			return new Promise(resolve => {
+			return new this.broker.Promise(resolve => {
 				this.client.end(false, resolve);
 				this.client = null;
 			});
@@ -133,7 +132,7 @@ class MqttTransporter extends Transporter {
 	 * @memberof MqttTransporter
 	 */
 	subscribe(cmd, nodeID) {
-		return new Promise((resolve, reject) => {
+		return new this.broker.Promise((resolve, reject) => {
 			const topic = this.getTopicName(cmd, nodeID);
 			this.client.subscribe(topic, { qos: this.qos }, (err, granted) => {
 				if (err)
@@ -159,7 +158,7 @@ class MqttTransporter extends Transporter {
 		/* istanbul ignore next*/
 		if (!this.client) return;
 
-		return new Promise((resolve, reject) => {
+		return new this.broker.Promise((resolve, reject) => {
 			this.client.publish(topic, data, { qos: this.qos }, err => {
 				/* istanbul ignore next*/
 				if (err)

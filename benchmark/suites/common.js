@@ -1,12 +1,9 @@
 "use strict";
 
-//let _ = require("lodash");
-let Promise	= require("bluebird");
+const Benchmarkify = require("benchmarkify");
+const benchmark = new Benchmarkify("Moleculer common benchmarks").printHeader();
 
-let Benchmarkify = require("benchmarkify");
-let benchmark = new Benchmarkify("Moleculer common benchmarks").printHeader();
-
-let ServiceBroker = require("../../src/service-broker");
+const ServiceBroker = require("../../src/service-broker");
 
 function createBroker(opts = {}) {
 	// Create broker
@@ -18,9 +15,9 @@ function createBroker(opts = {}) {
 	return broker;
 }
 
-let bench1 = benchmark.createSuite("Local call");
+const bench1 = benchmark.createSuite("Local call");
 (function() {
-	let broker = createBroker();
+	const broker = createBroker();
 	bench1.ref("broker.call (normal)", done => {
 		return broker.call("users.empty").then(done);
 	});
@@ -32,17 +29,17 @@ let bench1 = benchmark.createSuite("Local call");
 })();
 
 // ----------------------------------------------------------------
-let bench2 = benchmark.createSuite("Call with middlewares");
+const bench2 = benchmark.createSuite("Call with middlewares");
 
 (function() {
-	let broker = createBroker();
+	const broker = createBroker();
 	bench2.ref("No middlewares", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
 
 (function() {
-	let broker = createBroker({
+	const broker = createBroker({
 		internalMiddlewares: false
 	});
 	bench2.ref("No internal middlewares", done => {
@@ -51,7 +48,7 @@ let bench2 = benchmark.createSuite("Call with middlewares");
 })();
 
 (function() {
-	let mw1 = {
+	const mw1 = {
 		localAction: handler => ctx => handler(ctx).then(res => res)
 	};
 
@@ -65,48 +62,48 @@ let bench2 = benchmark.createSuite("Call with middlewares");
 })();
 
 // ----------------------------------------------------------------
-let bench3 = benchmark.createSuite("Call with metrics");
+const bench3 = benchmark.createSuite("Call with metrics");
 
 (function() {
-	let broker = createBroker();
+	const broker = createBroker();
 	bench3.ref("No metrics", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
 
 (function() {
-	let broker = createBroker({ metrics: true });
+	const broker = createBroker({ metrics: true });
 	bench3.add("With metrics", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
 
 // ----------------------------------------------------------------
-let bench4 = benchmark.createSuite("Call with tracing");
+const bench4 = benchmark.createSuite("Call with tracing");
 
 (function() {
-	let broker = createBroker();
+	const broker = createBroker();
 	bench4.ref("No tracing", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
 
 (function() {
-	let broker = createBroker({ tracing: true });
+	const broker = createBroker({ tracing: true });
 	bench4.add("With tracing", done => {
 		return broker.call("users.empty").then(done);
 	});
 })();
 
 // ----------------------------------------------------------------
-let bench5 = benchmark.createSuite("Remote call with FakeTransporter");
+const bench5 = benchmark.createSuite("Remote call with FakeTransporter");
 
 (function() {
 
-	let Transporter = require("../../src/transporters/fake");
-	let Serializer = require("../../src/serializers/json");
+	const Transporter = require("../../src/transporters/fake");
+	const Serializer = require("../../src/serializers/json");
 
-	let b1 = new ServiceBroker({
+	const b1 = new ServiceBroker({
 		logger: false,
 		transporter: new Transporter(),
 		requestTimeout: 0,
@@ -114,7 +111,7 @@ let bench5 = benchmark.createSuite("Remote call with FakeTransporter");
 		nodeID: "node-1"
 	});
 
-	let b2 = new ServiceBroker({
+	const b2 = new ServiceBroker({
 		logger: false,
 		transporter: new Transporter(),
 		requestTimeout: 0,
@@ -158,8 +155,9 @@ let bench6 = benchmark.createSuite("Context tracking");
 
 })();
 
-module.exports = Promise.delay(1000).then(() => benchmark.run([bench1, bench2, bench3, bench4, bench5, bench6]));
-
+module.exports = Promise.resolve()
+	.then(() => new Promise(resolve => setTimeout(resolve, 1000)))
+	.then(() => benchmark.run([bench1, bench2, bench3, bench4, bench5, bench6]));
 
 /*
 

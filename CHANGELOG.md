@@ -10,12 +10,28 @@
 ## Minimum Node version is 10
 The Node version 8 LTS lifecycle has been ended on December 31, 2019, so the minimum required Node version is 10.
 
+## Bluebird dropped
+The Bluebird Promise library has been dropped from the project because as of Node 10 the native `Promise` implementation is [faster (2x)](https://github.com/icebob/js-perf-benchmark/blob/95803284dcb46c403eb71f2f114b76bf669189ce/suites/promise.js#L123-L133) than Bluebird.
+
+Nonetheless you can use your desired Promise library, just set the `Promise` broker options.
+
+**Using Bluebird**
+```js
+const BluebirdPromise = require("bluebird");
+
+// moleculer.config.js
+module.exports = {
+    Promise: BluebirdPromise
+};
+```
+>Please note, the given Promise library will be polyfilled with `delay`, `method`, `timeout` and `mapSeries` methods (which are used inside Moleculer modules).
+
 ## Communication protocol has been changed
 The Moleculer communication protocol has been changed. The new protocol version is `4`.
 It means the new Moleculer 0.14 nodes can't communicate with old <= 0.13 nodes.
 
 ## Fastest validator upgraded to 1.x.x
-fastest-validator, the default validation has been upgraded to the 1.0.0 version. It means breaking changes but the new version more faster and contains many sanitization functions.
+Fastest-validator, the default validation has been upgraded to the 1.0.0 version. It means breaking changes but the new version more faster and contains many sanitization functions.
 If you use custom rules, you should upgrade your codes. [Check the changes here.](https://github.com/icebob/fastest-validator/releases/tag/v1.0.0-beta1)
 
 ## Logger settings changed
@@ -595,20 +611,20 @@ Like in action definition, you should define `params` in even definition and the
 ```js
 // mailer.service.js
 module.exports = {
-	name: "mailer",
-	events: {
-		"send.mail": {
+    name: "mailer",
+    events: {
+        "send.mail": {
             // Validation schema
-			params: {
-				from: "string|optional",
-				to: "email",
-				subject: "string"
-			},
-			handler(ctx) {
-				this.logger.info("Event received, parameters OK!", ctx.params);
-			}
-		}
-	}
+            params: {
+                from: "string|optional",
+                to: "email",
+                subject: "string"
+            },
+            handler(ctx) {
+                this.logger.info("Event received, parameters OK!", ctx.params);
+            }
+        }
+    }
 };
 ```
 >The validation errors are not sent back to the caller, they are logged or you can catch them with the new [global error handler](#global-error-handler).
@@ -956,7 +972,7 @@ const broker = new ServiceBroker({
 ```
 
 ## New tracing feature
-An enhanced tracing middleware has been implemented in version 0.14. It support several exporters, custom tracing spans and integration with instrumentation libraries (like `dd-trace`).
+An enhanced tracing middleware has been implemented in version 0.14. It support several exporters and custom tracing spans.
 
 **Enable tracing**
 ```js
@@ -1016,7 +1032,8 @@ module.exports = {
                 tags: {
                     params: ["id"],
                     meta: ["loggedIn.username"],
-                    response: ["id", "title"] // add data to tags from the action response.
+                    response: ["id", "title"] // add response data values to tags
+                }
             },
             async handler(ctx) {
                 // ...
@@ -1124,8 +1141,6 @@ const broker = new ServiceBroker({
 
 #### Datadog exporter
 Datadog exporter sends tracing data to Datadog server via `dd-trace`. It is able to merge tracing spans between instrumented Node.js modules and Moleculer modules.
-
->TODO screenshot
 
 ```js
 const broker = new ServiceBroker({
@@ -1312,6 +1327,7 @@ broker2.createService({
     }
 });
 ```
+>If you cann an action with `broker.call`, the caller will be `null`. In this case, you can set the `caller` manually in the calling options.
 
 ## Bulkhead supports events
 Bulkhead feature supports service event handlers, as well.
@@ -1779,29 +1795,6 @@ const broker = new ServiceBroker({
 ```
 >The `info` object contains the broker and the service instances, the current context and the action or the event definition.
 
-## Async storage for current context
-ServiceBroker has a continuous local storage in order to store the current context. It means you don't need to always pass the `ctx` from actions to service methods. You can get it with `this.currentContext`.
-
-```js
-// greeter.service.js
-module.exports = {
-    name: "greeter",
-    actions: {
-        hello(ctx) {
-            return this.Promise.resolve()
-                .then(() => this.doSomething());
-
-        }
-    },
-    methods: {
-        doSomething() {
-            const ctx = this.currentContext;
-            return ctx.call("other.service");
-        }
-    }
-});
-```
-
 ## Timeout setting in action definitions
 Timeout can be set in action definition, as well. It overwrites the global broker `requestTimeout` option, but not the `timeout` in calling options.
 
@@ -1855,8 +1848,8 @@ The Moleculer Runner supports asynchronous configuration files. In this case you
 const fetch = require("node-fetch");
 
 module.exports = async function() {
-	const res = await fetch("https://pastebin.com/raw/SLZRqfHX");
-	return await res.json();
+    const res = await fetch("https://pastebin.com/raw/SLZRqfHX");
+    return await res.json();
 };
 ```
 

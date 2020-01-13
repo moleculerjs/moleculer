@@ -6,7 +6,6 @@
 
 "use strict";
 
-const Promise = require("bluebird");
 const { QueueIsFullError } = require("../errors");
 const { METRIC }	= require("../metrics");
 
@@ -70,13 +69,13 @@ module.exports = function bulkheadMiddleware(broker) {
 							broker.metrics.set(METRIC.MOLECULER_REQUEST_BULKHEAD_INFLIGHT, currentInFlight, { action: action.name, service: service.fullName });
 							broker.metrics.set(METRIC.MOLECULER_REQUEST_BULKHEAD_QUEUE_SIZE, queue.length, { action: action.name, service: service.fullName });
 							callNext();
-							return Promise.reject(err);
+							return broker.Promise.reject(err);
 						});
 				}
 
 				// Check whether the queue is full
 				if (opts.maxQueueSize && queue.length >= opts.maxQueueSize) {
-					return Promise.reject(new QueueIsFullError({ action: ctx.action.name, nodeID: ctx.nodeID }));
+					return broker.Promise.reject(new QueueIsFullError({ action: ctx.action.name, nodeID: ctx.nodeID }));
 				}
 
 				// Store the request in the queue
@@ -149,13 +148,13 @@ module.exports = function bulkheadMiddleware(broker) {
 							broker.metrics.set(METRIC.MOLECULER_EVENT_BULKHEAD_INFLIGHT, currentInFlight, { event: event.name, service: service.fullName });
 							broker.metrics.set(METRIC.MOLECULER_EVENT_BULKHEAD_QUEUE_SIZE, queue.length, { event: event.name, service: service.fullName });
 							callNext();
-							return Promise.reject(err);
+							return broker.Promise.reject(err);
 						});
 				}
 
 				// Check whether the queue is full
 				if (opts.maxQueueSize && queue.length >= opts.maxQueueSize) {
-					return Promise.reject(new QueueIsFullError({ event: ctx.eventName, service: service.fullName, nodeID: ctx.nodeID }));
+					return broker.Promise.reject(new QueueIsFullError({ event: ctx.eventName, service: service.fullName, nodeID: ctx.nodeID }));
 				}
 
 				// Store the request in the queue

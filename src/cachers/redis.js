@@ -7,7 +7,6 @@
 "use strict";
 
 let Redis, Redlock;
-const Promise = require("bluebird");
 const BaseCacher = require("./base");
 const _ = require("lodash");
 const { METRIC } = require("../metrics");
@@ -270,10 +269,10 @@ class RedisCacher extends BaseCacher {
 			let [err0, data] = res[0];
 			let [err1, ttl] = res[1];
 			if(err0){
-				return Promise.reject(err0);
+				return this.broker.Promise.reject(err0);
 			}
 			if(err1){
-				return Promise.reject(err1);
+				return this.broker.Promise.reject(err1);
 			}
 			if (data) {
 				this.logger.debug(`FOUND ${key}`);
@@ -324,7 +323,7 @@ class RedisCacher extends BaseCacher {
 	_sequentialPromises(elements) {
 		return elements.reduce((chain, element) => {
 			return chain.then(() => this._scanDel(element));
-		}, Promise.resolve());
+		}, this.broker.Promise.resolve());
 	}
 
 	_clusterScanDel(pattern) {
@@ -335,7 +334,7 @@ class RedisCacher extends BaseCacher {
 			scanDelPromises.push(this._nodeScanDel(node, pattern));
 		});
 
-		return Promise.all(scanDelPromises);
+		return this.broker.Promise.all(scanDelPromises);
 	}
 
 	_nodeScanDel(node, pattern) {

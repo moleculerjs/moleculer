@@ -6,7 +6,6 @@
 
 "use strict";
 
-const Promise = require("bluebird");
 const BaseLogger = require("./base");
 const _ = require("lodash");
 const os = require("os");
@@ -162,7 +161,7 @@ class DatadogLogger extends BaseLogger {
 			});
 		}
 
-		return Promise.resolve();
+		return this.broker.Promise.resolve();
 	}
 }
 

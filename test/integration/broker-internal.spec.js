@@ -1,5 +1,4 @@
 const ServiceBroker = require("../../src/service-broker");
-const Promise = require("bluebird");
 const { hostname } = require("os");
 
 describe("Test internal services", () => {

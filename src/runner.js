@@ -7,7 +7,6 @@
 
 const ServiceBroker	= require("./service-broker");
 const utils			= require("./utils");
-const Promise		= require("bluebird");
 const fs 			= require("fs");
 const path 			= require("path");
 const glob 			= require("glob").sync;

@@ -1,12 +1,11 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
-const Promise		= require("bluebird");
 const Transporter 	= require("./base");
 const _ 			= require("lodash");
 const fs 			= require("fs");
@@ -109,7 +108,7 @@ class TcpTransporter extends Transporter {
 	 * @memberof TcpTransporter
 	 */
 	connect() {
-		return Promise.resolve()
+		return this.broker.Promise.resolve()
 			.then(() => {
 				// Load offline nodes
 				if (this.opts.urls)
@@ -182,11 +181,11 @@ class TcpTransporter extends Transporter {
 
 	loadUrls() {
 		if (!this.opts.urls)
-			return Promise.resolve();
+			return this.broker.Promise.resolve();
 		if (Array.isArray(this.opts.urls) && this.opts.urls.length == 0)
-			return Promise.resolve();
+			return this.broker.Promise.resolve();
 
-		return Promise.resolve(this.opts.urls)
+		return this.broker.Promise.resolve(this.opts.urls)
 			.then(str => {
 				if (_.isString(str) && str.startsWith("file://")) {
 					const fName = str.replace("file://", "");
@@ -359,7 +358,7 @@ class TcpTransporter extends Transporter {
 	sendHello(nodeID) {
 		const node = this.getNode(nodeID);
 		if (!node)
-			return Promise.reject(new MoleculerServerError(`Missing node info for '${nodeID}'`));
+			return this.broker.Promise.reject(new MoleculerServerError(`Missing node info for '${nodeID}'`));
 
 		const localNode = this.nodes.localNode;
 		const packet = new P.Packet(P.PACKET_GOSSIP_HELLO, nodeID, {
@@ -718,7 +717,7 @@ class TcpTransporter extends Transporter {
 	 */
 	subscribe(/*cmd, nodeID*/) {
 		/* istanbul ignore next */
-		return Promise.resolve();
+		return this.broker.Promise.resolve();
 	}
 
 	/**
@@ -739,7 +738,7 @@ class TcpTransporter extends Transporter {
 			P.PACKET_GOSSIP_RES,
 			P.PACKET_GOSSIP_HELLO
 		].indexOf(packet.type) == -1)
-			return Promise.resolve();
+			return this.broker.Promise.resolve();
 
 		const data = this.serialize(packet);
 		return this.send(packet.type, data, { packet });

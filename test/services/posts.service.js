@@ -1,8 +1,7 @@
-let _ = require("lodash");
-let fakerator = require("fakerator")();
-const Promise = require("bluebird");
+const _ = require("lodash");
+const fakerator = require("fakerator")();
 
-let { delay } = require("../../src/utils");
+const { delay } = require("../../src/utils");
 
 module.exports = function() {
 	let posts = fakerator.times(fakerator.entity.post, 10);

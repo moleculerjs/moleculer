@@ -1,7 +1,6 @@
 "use strict";
 
 const { protectReject } = require("./utils");
-const Promise = require("bluebird");
 const ServiceBroker = require("../../src/service-broker");
 const Context = require("../../src/context");
 const Transit = require("../../src/transit");

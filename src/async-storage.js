@@ -78,12 +78,4 @@ class AsyncStorage {
 	}
 }
 
-/*
-const util = require("util");
-
-function log(...args) {
-	process._rawDebug(`${util.format(...args)}`);
-}
-*/
-
 module.exports = AsyncStorage;

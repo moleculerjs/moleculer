@@ -1,4 +1,3 @@
-const Promise = require("bluebird");
 const ServiceBroker = require("../../src/service-broker");
 const FakeTransporter = require("../../src/transporters/fake");
 const { MoleculerError } = require("../../src/errors");

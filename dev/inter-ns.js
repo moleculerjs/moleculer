@@ -2,7 +2,6 @@
 
 const { ServiceBroker } = require("../");
 const _ = require("lodash");
-const Promise = require("bluebird");
 
 // --- INTER-NAMESPACE MIDDLEWARE ---
 const InterNamespaceMiddleware = function(opts) {

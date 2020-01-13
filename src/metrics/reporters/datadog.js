@@ -9,12 +9,9 @@
 const BaseReporter = require("./base");
 const _ = require("lodash");
 const os = require("os");
-const Promise = require("bluebird");
 const fetch = require("node-fetch");
 const { MoleculerError } = require("../../errors");
 const METRIC = require("../constants");
-
-fetch.Promise = Promise;
 
 const BASE_URL = "https://api.datadoghq.com/api/";
 
@@ -59,6 +56,8 @@ class DatadogReporter extends BaseReporter {
 	 */
 	init(registry) {
 		super.init(registry);
+
+		fetch.Promise = this.broker.Promise;
 
 		if (this.opts.interval > 0) {
 			this.timer = setInterval(() => this.flush(), this.opts.interval * 1000);

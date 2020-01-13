@@ -3,6 +3,7 @@
 "use strict";
 
 const fs = require("fs");
+//const Promise = require("bluebird");
 
 const ServiceBroker = require("../src/service-broker");
 const Transporters = require("../src/transporters");
@@ -19,7 +20,8 @@ function createBrokers(Transporter, opts) {
 		middlewares: [
 			//Middlewares.Transmit.Encryption("moleculer"),
 			//Middlewares.Transmit.Compression(),
-		]
+		],
+		//Promise
 	});
 
 	const b2 = new ServiceBroker({
@@ -30,7 +32,8 @@ function createBrokers(Transporter, opts) {
 		middlewares: [
 			//Middlewares.Transmit.Encryption("moleculer"),
 			//Middlewares.Transmit.Compression(),
-		]
+		],
+		//Promise
 	});
 
 	b2.createService({
@@ -45,7 +48,7 @@ function createBrokers(Transporter, opts) {
 		}
 	});
 
-	return Promise.all([
+	return b1.Promise.all([
 		b1.start(),
 		b2.start(),
 	]).then(() => [b1, b2]);

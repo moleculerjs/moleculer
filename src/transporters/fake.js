@@ -1,12 +1,11 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
-const Promise		= require("bluebird");
 const Transporter 	= require("./base");
 
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
@@ -61,7 +60,7 @@ class FakeTransporter extends Transporter {
 		this.subscriptions.forEach(({ topic, handler }) => this.bus.off(topic, handler));
 		this.subscriptions = [];
 
-		return Promise.resolve();
+		return this.broker.Promise.resolve();
 	}
 
 	/**
@@ -78,7 +77,7 @@ class FakeTransporter extends Transporter {
 		this.subscriptions.push({ topic: t, handler });
 
 		this.bus.on(t, handler);
-		return Promise.resolve();
+		return this.broker.Promise.resolve();
 	}
 
 	/**
@@ -88,7 +87,7 @@ class FakeTransporter extends Transporter {
 	 * @memberof AmqpTransporter
 	 */
 	subscribeBalancedRequest(/*action*/) {
-		return Promise.resolve();
+		return this.broker.Promise.resolve();
 	}
 
 	/**
@@ -99,7 +98,7 @@ class FakeTransporter extends Transporter {
 	 * @memberof AmqpTransporter
 	 */
 	subscribeBalancedEvent(/*event, group*/) {
-		return Promise.resolve();
+		return this.broker.Promise.resolve();
 	}
 
 	/**
@@ -113,7 +112,7 @@ class FakeTransporter extends Transporter {
 	 */
 	send(topic, data) {
 		this.bus.emit(topic, data);
-		return Promise.resolve();
+		return this.broker.Promise.resolve();
 	}
 }
 

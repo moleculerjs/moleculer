@@ -1,8 +1,5 @@
 "use strict";
 
-const Promise	= require("bluebird");
-const _ = require("lodash");
-
 const Benchmarkify = require("benchmarkify");
 const benchmark = new Benchmarkify("Middleware benchmark").printHeader();
 

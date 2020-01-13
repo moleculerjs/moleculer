@@ -7,7 +7,6 @@
 "use strict";
 
 const _ 			= require("lodash");
-const Promise 		= require("bluebird");
 const utils			= require("../utils");
 const BaseCacher  	= require("./base");
 const { METRIC }	= require("../metrics");
@@ -84,16 +83,16 @@ class MemoryCacher extends BaseCacher {
 				this.metrics.increment(METRIC.MOLECULER_CACHER_EXPIRED_TOTAL);
 				this.cache.delete(key);
 				timeEnd();
-				return Promise.resolve(null);
+				return this.broker.Promise.resolve(null);
 			}
 			const res = this.clone ? this.clone(item.data) : item.data;
 			timeEnd();
 
-			return Promise.resolve(res);
+			return this.broker.Promise.resolve(res);
 		} else {
 			timeEnd();
 		}
-		return Promise.resolve(null);
+		return this.broker.Promise.resolve(null);
 	}
 
 	/**
@@ -121,7 +120,7 @@ class MemoryCacher extends BaseCacher {
 		timeEnd();
 		this.logger.debug(`SET ${key}`);
 
-		return Promise.resolve(data);
+		return this.broker.Promise.resolve(data);
 	}
 
 	/**
@@ -143,7 +142,7 @@ class MemoryCacher extends BaseCacher {
 		});
 		timeEnd();
 
-		return Promise.resolve();
+		return this.broker.Promise.resolve();
 	}
 
 	/**
@@ -168,7 +167,7 @@ class MemoryCacher extends BaseCacher {
 		});
 		timeEnd();
 
-		return Promise.resolve();
+		return this.broker.Promise.resolve();
 	}
 
 	/**
@@ -196,7 +195,7 @@ class MemoryCacher extends BaseCacher {
 			}
 			data = this.clone ? this.clone(item.data) : item.data;
 		}
-		return Promise.resolve({ data, ttl });
+		return this.broker.Promise.resolve({ data, ttl });
 	}
 
 	/**
@@ -225,7 +224,7 @@ class MemoryCacher extends BaseCacher {
 	 */
 	tryLock(key, ttl) {
 		if(this._lock.isLocked(key)){
-			return Promise.reject(new Error("Locked."));
+			return this.broker.Promise.reject(new Error("Locked."));
 		}
 		return this._lock.acquire(key, ttl).then(()=> {
 			return ()=>this._lock.release(key);

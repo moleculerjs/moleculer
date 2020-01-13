@@ -6,7 +6,6 @@
 
 "use strict";
 
-const Promise 				= require("bluebird");
 const EventEmitter2 		= require("eventemitter2").EventEmitter2;
 const _ 					= require("lodash");
 const glob 					= require("glob");
@@ -18,7 +17,7 @@ const E 					= require("./errors");
 const utils 				= require("./utils");
 const LoggerFactory			= require("./logger-factory");
 const Validator 			= require("./validator");
-const AsyncStorage 			= require("./async-storage");
+//const AsyncStorage 			= require("./async-storage");
 
 const Cachers 				= require("./cachers");
 const Transporters 			= require("./transporters");
@@ -138,14 +137,14 @@ class ServiceBroker {
 		try {
 			this.options = _.defaultsDeep(options, defaultOptions);
 
-			// Promise class (TODO: work-in-progress)
+			// Custom Promise lib
 			if (this.options.Promise) {
 				this.Promise = this.options.Promise;
-				utils.polyfillPromise(this.Promise);
 			} else {
-				// Use Bluebird
+				// Use native Promise lib
 				this.Promise = Promise;
 			}
+			utils.polyfillPromise(this.Promise);
 			ServiceBroker.Promise = this.Promise;
 
 			// Broker started flag
@@ -188,7 +187,7 @@ class ServiceBroker {
 			this.logger.info(`Node ID: ${this.nodeID}`);
 
 			// Async storage for Contexts
-			this.scope = new AsyncStorage(this);
+			//this.scope = new AsyncStorage(this);
 
 			// Metrics Registry
 			this.metrics = new MetricRegistry(this, this.options.metrics);
@@ -412,10 +411,10 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	start() {
-		return Promise.resolve()
+		return this.Promise.resolve()
 			.then(() => {
-				this.tracer.restartScope();
-				this.scope.enable();
+				//this.tracer.restartScope();
+				//this.scope.enable();
 			})
 			.then(() => {
 				return this.callMiddlewareHook("starting", [this]);
@@ -426,11 +425,11 @@ class ServiceBroker {
 			})
 			.then(() => {
 				// Call service `started` handlers
-				return Promise.all(this.services.map(svc => svc._start.call(svc)))
+				return this.Promise.all(this.services.map(svc => svc._start.call(svc)))
 					.catch(err => {
 						/* istanbul ignore next */
 						this.logger.error("Unable to start all services.", err);
-						return Promise.reject(err);
+						throw err;
 					});
 			})
 			.then(() => {
@@ -460,7 +459,7 @@ class ServiceBroker {
 	 */
 	stop() {
 		this.started = false;
-		return Promise.resolve()
+		return this.Promise.resolve()
 			.then(() => {
 				if (this.transit) {
 					this.registry.regenerateLocalRawInfo(true);
@@ -473,14 +472,13 @@ class ServiceBroker {
 			})
 			.then(() => {
 				// Call service `stopped` handlers
-				return Promise.all(this.services.map(svc => {
+				return this.Promise.all(this.services.map(svc => {
 					this.logger.info(`Stopping '${svc.fullName}' service...`);
 					return svc._stop.call(svc);
-				}))
-					.catch(err => {
-						/* istanbul ignore next */
-						this.logger.error("Unable to stop all services.", err);
-					});
+				})).catch(err => {
+					/* istanbul ignore next */
+					this.logger.error("Unable to stop all services.", err);
+				});
 			})
 			.then(() => {
 				if (this.transit) {
@@ -505,8 +503,8 @@ class ServiceBroker {
 					return this.options.stopped(this);
 			})
 			.then(() => {
-				this.tracer.stopAndClearScope();
-				this.scope.stop();
+				//this.tracer.stopAndClearScope();
+				//this.scope.stop();
 			})
 			.catch(err => {
 				/* istanbul ignore next */
@@ -839,10 +837,10 @@ class ServiceBroker {
 		}
 
 		if (!service) {
-			return Promise.reject(new E.ServiceNotFoundError({ service: serviceName, version: serviceVersion }));
+			return this.Promise.reject(new E.ServiceNotFoundError({ service: serviceName, version: serviceVersion }));
 		}
 
-		return Promise.resolve()
+		return this.Promise.resolve()
 			.then(() => service._stop())
 			.catch(err => {
 				/* istanbul ignore next */
@@ -856,8 +854,6 @@ class ServiceBroker {
 				this.servicesChanged(true);
 
 				this.metrics.set(METRIC.MOLECULER_BROKER_LOCAL_SERVICES_TOTAL, this.services.length);
-
-				return Promise.resolve();
 			});
 	}
 
@@ -934,12 +930,12 @@ class ServiceBroker {
 		})));
 
 		if (serviceNames.length == 0)
-			return Promise.resolve();
+			return this.Promise.resolve();
 
 		logger.info(`Waiting for service(s) '${serviceNames.join(", ")}'...`);
 
 		const startTime = Date.now();
-		return new Promise((resolve, reject) => {
+		return new this.Promise((resolve, reject) => {
 			const check = () => {
 				const count = serviceNames.filter(fullName => {
 					return this.registry.hasService(fullName);
@@ -1028,7 +1024,7 @@ class ServiceBroker {
 
 			const endpoint = this.findNextActionEndpoint(actionName, opts, opts.ctx);
 			if (endpoint instanceof Error) {
-				return Promise.reject(endpoint).catch(err => this.errorHandler(err, { actionName, params, opts }));
+				return this.Promise.reject(endpoint).catch(err => this.errorHandler(err, { actionName, params, opts }));
 			}
 
 			// Reused context
@@ -1043,7 +1039,7 @@ class ServiceBroker {
 
 			const endpoint = this.findNextActionEndpoint(actionName, opts, ctx);
 			if (endpoint instanceof Error) {
-				return Promise.reject(endpoint).catch(err => this.errorHandler(err, { actionName, params, opts }));
+				return this.Promise.reject(endpoint).catch(err => this.errorHandler(err, { actionName, params, opts }));
 			}
 
 			ctx.setEndpoint(endpoint);
@@ -1054,7 +1050,7 @@ class ServiceBroker {
 		else
 			this.logger.debug("Call action on remote node.", { action: ctx.action.name, nodeID: ctx.nodeID, requestID: ctx.requestID });
 
-		this.setCurrentContext(ctx);
+		//this.setCurrentContext(ctx);
 
 		let p = ctx.endpoint.action.handler(ctx);
 
@@ -1091,7 +1087,7 @@ class ServiceBroker {
 				endpoint = this.registry.getActionEndpointByNodeId(actionName, nodeID);
 				if (!endpoint) {
 					this.logger.warn(`Service '${actionName}' is not found on '${nodeID}' node.`);
-					return Promise.reject(new E.ServiceNotFoundError({ action: actionName, nodeID })).catch(err => this.errorHandler(err, { nodeID, actionName, params, opts }));
+					return this.Promise.reject(new E.ServiceNotFoundError({ action: actionName, nodeID })).catch(err => this.errorHandler(err, { nodeID, actionName, params, opts }));
 
 				}
 			} else {
@@ -1099,7 +1095,7 @@ class ServiceBroker {
 				const epList = this.registry.getActionEndpoints(actionName);
 				if (epList == null) {
 					this.logger.warn(`Service '${actionName}' is not registered.`);
-					return Promise.reject(new E.ServiceNotFoundError({ action: actionName })).catch(err => this.errorHandler(err, { actionName, params, opts }));
+					return this.Promise.reject(new E.ServiceNotFoundError({ action: actionName })).catch(err => this.errorHandler(err, { actionName, params, opts }));
 
 				}
 
@@ -1107,7 +1103,7 @@ class ServiceBroker {
 				if (endpoint == null) {
 					const errMsg = `Service '${actionName}' is not available.`;
 					this.logger.warn(errMsg);
-					return Promise.reject(new E.ServiceNotAvailableError({ action: actionName })).catch(err => this.errorHandler(err, { actionName, params, opts }));
+					return this.Promise.reject(new E.ServiceNotAvailableError({ action: actionName })).catch(err => this.errorHandler(err, { actionName, params, opts }));
 
 				}
 			}
@@ -1190,7 +1186,7 @@ class ServiceBroker {
 	 */
 	mcall(def, opts) {
 		if (Array.isArray(def)) {
-			return Promise.all(def.map(item => this.call(item.action, item.params, item.options || opts)));
+			return this.Promise.all(def.map(item => this.call(item.action, item.params, item.options || opts)));
 
 		} else if (_.isObject(def)) {
 			let results = {};
@@ -1200,14 +1196,14 @@ class ServiceBroker {
 				return this.call(item.action, item.params, options).then(res => results[name] = res);
 			});
 
-			let p = Promise.all(promises);
+			let p = this.Promise.all(promises);
 
 			// Pointer to Context
 			p.ctx = promises.map(promise => promise.ctx);
 
 			return p.then(() => results);
 		} else {
-			throw new E.MoleculerServerError("Invalid calling definition.", 500, "INVALID_PARAMETERS");
+			return this.Promise.reject(new E.MoleculerServerError("Invalid calling definition.", 500, "INVALID_PARAMETERS"));
 		}
 	}
 
@@ -1399,7 +1395,7 @@ class ServiceBroker {
 		if (this.transit && this.transit.connected) {
 			if (_.isString(nodeID)) {
 				// Ping a single node
-				return new Promise(resolve => {
+				return new this.Promise(resolve => {
 
 					const timer = setTimeout(() => {
 						this.localBus.off("$node.pong", handler);
@@ -1432,7 +1428,7 @@ class ServiceBroker {
 				const processing = new Set(nodes);
 
 				// Ping multiple nodes
-				return new Promise(resolve => {
+				return new this.Promise(resolve => {
 
 					const timer = setTimeout(() => {
 						this.localBus.off("$node.pong", handler);
@@ -1528,20 +1524,20 @@ class ServiceBroker {
 	 *
 	 * @param {Context} ctx
 	 * @memberof ServiceBroker
-	 */
+	 *
 	setCurrentContext(ctx) {
 		this.scope.setSessionData(ctx);
-	}
+	}*/
 
 	/**
 	 * Get the current Context from the async storage.
 	 *
 	 * @returns {Context?}
 	 * @memberof ServiceBroker
-	 */
+	 *
 	getCurrentContext() {
 		return this.scope.getSessionData();
-	}
+	}*/
 
 	/**
 	 * Get node overall CPU usage

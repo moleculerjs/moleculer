@@ -6,7 +6,6 @@
 
 "use strict";
 
-const Promise = require("bluebird");
 const _ = require("lodash");
 const { match } = require("../utils");
 const METRIC = require("./constants");
@@ -100,7 +99,7 @@ class MetricRegistry {
 		}
 
 		if (this.reporter) {
-			return Promise.all(this.reporter.map(r => r.stop()));
+			return this.broker.Promise.all(this.reporter.map(r => r.stop()));
 		}
 	}
 

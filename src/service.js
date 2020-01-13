@@ -390,19 +390,19 @@ class Service {
 	 * @returns {Context?}
 	 *
 	 * @memberof Service
-	 */
+	 *
 	get currentContext() {
 		return this.broker.getCurrentContext();
-	}
+	}*/
 
 	/**
 	 * Setter of current Context
 	 *
 	 * @memberof Service
-	 */
+	 *
 	set currentContext(ctx) {
 		this.broker.setCurrentContext(ctx);
-	}
+	}*/
 
 	/**
 	 * Wait for other services

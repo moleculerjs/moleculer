@@ -1,7 +1,6 @@
 "use strict";
 
 const ServiceBroker = require("../src/service-broker");
-const Promise = require("bluebird");
 
 const broker = new ServiceBroker({
 	namespace: "projectA",

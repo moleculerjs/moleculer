@@ -1,12 +1,11 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
-const Promise				= require("bluebird");
 const { MoleculerError } 	= require("../errors");
 const Transporter 			= require("./base");
 
@@ -38,11 +37,11 @@ class RedisTransporter extends Transporter {
 	 * @memberof RedisTransporter
 	 */
 	connect() {
-		return new Promise((resolve, reject) => {
+		return new this.broker.Promise((resolve, reject) => {
 			let Redis;
 			try {
 				Redis = require("ioredis");
-				Redis.Promise = Promise;
+				Redis.Promise = this.broker.Promise;
 			} catch(err) {
 				/* istanbul ignore next */
 				this.broker.fatal("The 'ioredis' package is missing. Please install it with 'npm install ioredis --save' command.", err, true);
@@ -130,7 +129,7 @@ class RedisTransporter extends Transporter {
 	 */
 	subscribe(cmd, nodeID) {
 		this.clientSub.subscribe(this.getTopicName(cmd, nodeID));
-		return Promise.resolve();
+		return this.broker.Promise.resolve();
 	}
 
 	/**
@@ -144,10 +143,10 @@ class RedisTransporter extends Transporter {
 	 */
 	send(topic, data) {
 		/* istanbul ignore next*/
-		if (!this.clientPub) return Promise.reject(new MoleculerError("Redis Client is not available"));
+		if (!this.clientPub) return this.broker.Promise.reject(new MoleculerError("Redis Client is not available"));
 
 		this.clientPub.publish(topic, data);
-		return Promise.resolve();
+		return this.broker.Promise.resolve();
 	}
 
 }
