@@ -8,7 +8,7 @@
 
 const _ 						= require("lodash");
 const functionArguments 		= require("fn-args");
-const { ServiceSchemaError } 	= require("./errors");
+const { ServiceSchemaError, MoleculerError } 	= require("./errors");
 
 /**
  * Wrap a handler Function to an object with a `handler` property.
@@ -55,9 +55,8 @@ class Service {
 
 		this.broker = broker;
 
-		if (broker) {
+		if (broker)
 			this.Promise = broker.Promise;
-		}
 
 		if (schema)
 			this.parseServiceSchema(schema);
@@ -83,6 +82,8 @@ class Service {
 	parseServiceSchema(schema) {
 		if (!_.isObject(schema))
 			throw new ServiceSchemaError("Must pass a service schema in constructor. Maybe is it not a service schema?");
+
+		this.originalSchema = _.cloneDeep(schema);
 
 		if (schema.mixins) {
 			schema = Service.applyMixins(schema);
@@ -110,6 +111,7 @@ class Service {
 		});
 
 		this.actions = {}; // external access to actions
+		this.events = {}; // external access to event handlers.
 
 		// Service item for Registry
 		const serviceSpecification = {
@@ -167,6 +169,26 @@ class Service {
 			_.forIn(schema.events, (event, name) => {
 				const innerEvent = this._createEvent(event, name);
 				serviceSpecification.events[innerEvent.name] = innerEvent;
+
+				// Expose to be callable as `this.events[''](params, opts);
+				this.events[innerEvent.name] = (params, opts) => {
+					let ctx;
+					if (opts && opts.ctx) {
+						// Reused context (in case of retry)
+						ctx = opts.ctx;
+					} else {
+						const ep = {
+							id: this.broker.nodeID,
+							event: innerEvent
+						};
+						ctx = this.broker.ContextFactory.create(this.broker, ep, params, opts || {});
+					}
+					ctx.eventName = name;
+					ctx.eventType = "emit";
+					ctx.eventGroups = [innerEvent.group || this.name];
+
+					return innerEvent.handler(ctx);
+				};
 			});
 		}
 
@@ -383,6 +405,20 @@ class Service {
 		}
 
 		return event;
+	}
+
+	/**
+	 * Call a local event handler. Useful for unit tests.
+	 *
+	 * @param {String} eventName
+	 * @param {any?} params
+	 * @param {Object?} opts
+	 */
+	emitLocalEventHandler(eventName, params, opts) {
+		if (!this.events[eventName])
+			return Promise.reject(new MoleculerError(`No '${eventName} registered local event handler'`, 500, "NO_EVENT_HANDLER", { eventName }));
+
+		return this.events[eventName](params, opts);
 	}
 
 	/**
@@ -641,11 +677,11 @@ class Service {
 			const modEvent = wrapToHander(src[k]);
 			const resEvent = wrapToHander(target[k]);
 
-			const handler = _.compact(_.flatten([resEvent ? resEvent.handler : null, modEvent ? modEvent.handler : null]));
+			let handler = _.compact(_.flatten([resEvent ? resEvent.handler : null, modEvent ? modEvent.handler : null]));
+			if (handler.length == 1) handler = handler[0];
 
 			target[k] = _.defaultsDeep(modEvent, resEvent);
 			target[k].handler = handler;
-
 		});
 
 		return target;

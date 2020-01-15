@@ -25,6 +25,7 @@
     "test:int": "jest --testMatch \"**/integration/**spec.js\" --coverage",
     "test:amqp": "jest --testMatch \"**/transporters/amqp/**spc.js\" --runInBand",
     "test:trans": "jest --testMatch \"**/transporters/index.spc.js\"",
+    "test:project": "jest --testMatch \"**/project/**/*.spec.js\"",
     "test:ts": "tsd && tsc -p test/typescript/hello-world && ts-node -P test/typescript/hello-world/tsconfig.json test/typescript/hello-world/index.ts",
     "release": "npm publish --access public && git push --tags",
     "release:beta": "npm publish --tag next --access public && git push --tags"

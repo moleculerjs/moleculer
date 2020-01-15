@@ -1835,7 +1835,7 @@ await broker.call("greeter.slow");
 await broker.call("greeter.slow", null, { timeout: 1000 });
 ```
 
-## `Buffer` supporting improved in serializers
+## `Buffer` handling improved in serializers
 In earlier version, if request, response or event data was a `Buffer`, the schema-based serializers convert it to JSON string which was not very efficient. In this version all schema-based serializers (ProtoBuf, Avro, Thrift) can detect the type of data & convert it based on the best option and send always as binary data.
 
 ## Runner support asynchronous configurations
@@ -1853,6 +1853,46 @@ module.exports = async function() {
 };
 ```
 
+## Better service event handler testing
+Service class has a new `emitLocalEventHandler` method in order to call a service event handler directly. It can be useful in Unit Tests because you don't need to emit an event with `broker.emit`.
+
+**Example**
+
+```js
+// posts.service.js
+module.exports = {
+    name: "posts",
+
+    events: {
+        async "user.created"(ctx) {
+            this.myMethod(ctx.params);
+        }
+    }
+};
+```
+
+```js
+// posts.service.spec.js
+describe("Test events", () => {
+    const broker = new ServiceBroker({ logger: false });
+    const svc = broker.createService(PostService);
+
+    beforeAll(() => broker.start());
+    afterAll(() => broker.stop());
+
+    describe("Test 'user.created' event", () => {
+        beforeAll(() => svc.myMethod = jest.fn());
+        afterAll(() => svc.myMethod.mockRestore());
+
+        it("should call the event handler", async () => {
+            await svc.emitLocalEventHandler("branch.closed", { a: 5 });
+
+            expect(svc.myMethod).toBeCalledTimes(1);
+            expect(svc.myMethod).toBeCalledWith({ a: 5 });
+        });
+    });
+});
+```
 
 # Other notable changes
 - Kafka transporter upgrade to support kafka-node@5.
