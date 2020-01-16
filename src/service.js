@@ -629,8 +629,8 @@ class Service {
 	 * Merge `actions` property in schema
 	 *
 	 * @static
-	 * @param {Object} src Source schema property
-	 * @param {Object} target Target schema property
+	 * @param {Object} src Source schema property (real schema)
+	 * @param {Object} target Target schema property (mixin schema)
 	 *
 	 * @returns {Object} Merged schema
 	 */
@@ -641,10 +641,19 @@ class Service {
 				return;
 			}
 
-			const modAction = wrapToHander(src[k]);
-			const resAction = wrapToHander(target[k]);
+			const srcAction = wrapToHander(src[k]);
+			const targetAction = wrapToHander(target[k]);
 
-			target[k] = _.defaultsDeep(modAction, resAction);
+			if (srcAction.hooks && targetAction.hooks) {
+				Object.keys(srcAction.hooks).forEach(k => {
+					const modHook = wrapToArray(srcAction.hooks[k]);
+					const resHook = wrapToArray(targetAction.hooks[k]);
+
+					srcAction.hooks[k] = _.compact(_.flatten(k == "before" ? [resHook, modHook] : [modHook, resHook]));
+				});
+			}
+
+			target[k] = _.defaultsDeep(srcAction, targetAction);
 		});
 
 		return target;
