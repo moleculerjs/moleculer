@@ -12,9 +12,9 @@ const { protectReject } = require("./utils");
 
 describe("Test Service constructor", () => {
 
-	let broker = new ServiceBroker({ logger: false });
+	const broker = new ServiceBroker({ logger: false });
 
-	let schema = {
+	const schema = {
 		name: "users",
 		version: 2,
 		settings: {
@@ -46,7 +46,9 @@ describe("Test Service constructor", () => {
 	it("check local properties", () => {
 		broker.callMiddlewareHookSync.mockClear();
 		broker.getLogger.mockClear();
-		let service = new Service(broker, schema);
+
+		const service = new Service(broker, schema);
+
 		expect(service.name).toBe("users");
 		expect(service.version).toBe(2);
 		expect(service.fullName).toBe("v2.users");
@@ -74,7 +76,9 @@ describe("Test Service constructor", () => {
 		schema.metadata = {
 			scalable: true
 		};
-		let service = new Service(broker, schema);
+
+		const service = new Service(broker, schema);
+
 		expect(service.name).toBe("users");
 		expect(service.version).toBe(2);
 		expect(service.settings).toBe(schema.settings);
@@ -84,14 +88,18 @@ describe("Test Service constructor", () => {
 
 		expect(service.logger).toBeDefined();
 		expect(service.actions).toEqual({});
+
+		expect(service.originalSchema).toEqual(schema);
+		expect(service.originalSchema).not.toBe(schema);
 	});
 
 	it("check empty properties", () => {
-		let service = new Service(broker, {
+		const service = new Service(broker, {
 			name: "empty",
 			mixins: [],
 			dependencies: []
 		});
+
 		expect(service.name).toBe("empty");
 		expect(service.broker).toBe(broker);
 	});
@@ -143,10 +151,10 @@ describe("Test Service constructor", () => {
 });
 
 describe("Test action creation", () => {
-	let broker = new ServiceBroker({ logger: false, internalServices: false });
+	const broker = new ServiceBroker({ logger: false, internalServices: false });
 	broker.callMiddlewareHook = jest.fn();
 
-	let schema = {
+	const schema = {
 		name: "posts",
 		actions: {
 			find: jest.fn(),
@@ -361,11 +369,11 @@ describe("Test service stop", () => {
 
 describe("Test events creation", () => {
 	it("should register event handler to broker", () => {
-		let broker = new ServiceBroker({ logger: false, internalServices: false });
+		const broker = new ServiceBroker({ logger: false, internalServices: false });
 		broker.registerLocalService = jest.fn();
 		broker.addLocalService = jest.fn();
 
-		let service = broker.createService({
+		const service = broker.createService({
 			name: "posts",
 			events: {
 				"user.*": jest.fn(),
@@ -397,10 +405,10 @@ describe("Test events creation", () => {
 		broker.addLocalService = jest.fn();
 		broker.registerLocalService = jest.fn();
 
-		let cb1 = jest.fn();
-		let cb2 = jest.fn();
-		let cb3 = jest.fn();
-		let service = broker.createService({
+		const cb1 = jest.fn();
+		const cb2 = jest.fn();
+		const cb3 = jest.fn();
+		const service = broker.createService({
 			name: "posts",
 			events: {
 				"user.*": [cb1, ctx => cb2(ctx)],
@@ -448,6 +456,108 @@ describe("Test events creation", () => {
 				}
 			});
 		}).toThrowError("Missing event handler on 'register.node' event in 'test' service!");
+	});
+
+	it("should call event handlers directly", () => {
+		const broker = new ServiceBroker({ logger: false, internalServices: false });
+		broker.registerLocalService = jest.fn();
+		broker.addLocalService = jest.fn();
+
+		const userEventHandler = jest.fn();
+		const postEventHandler = jest.fn(() => Promise.resolve());
+		const service = broker.createService({
+			name: "posts",
+			events: {
+				"user.*": userEventHandler,
+				"posts.updated": {
+					context: true,
+					handler: postEventHandler
+				}
+			}
+		});
+
+		expect(service).toBeDefined();
+		expect(service.events).toEqual({
+			"user.*": expect.any(Function),
+			"posts.updated": expect.any(Function),
+		});
+
+		expect(broker.addLocalService).toHaveBeenCalledTimes(1);
+
+		return service._start()
+			.catch(protectReject)
+			.then(() => service.events["user.*"]({ a: 5 }))
+			.catch(protectReject)
+			.then(() => {
+				expect(userEventHandler).toHaveBeenCalledTimes(1);
+				expect(userEventHandler).toHaveBeenCalledWith({ a: 5 }, broker.nodeID, "user.*", expect.any(Context));
+				expect(userEventHandler.mock.calls[0][3].params).toEqual({ a: 5 });
+				expect(userEventHandler.mock.calls[0][3].eventName).toEqual("user.*");
+				expect(userEventHandler.mock.calls[0][3].eventGroups).toEqual(["posts"]);
+				expect(userEventHandler.mock.calls[0][3].eventType).toEqual("emit");
+			})
+
+			.then(() => service.events["posts.updated"]({ b: "John" }, { requestID: "12345" }))
+			.then(() => {
+				expect(postEventHandler).toHaveBeenCalledTimes(1);
+				expect(postEventHandler).toHaveBeenCalledWith(expect.any(Context));
+				expect(postEventHandler.mock.calls[0][0].params).toEqual({ b: "John" });
+				expect(postEventHandler.mock.calls[0][0].eventName).toEqual("posts.updated");
+				expect(postEventHandler.mock.calls[0][0].eventGroups).toEqual(["posts"]);
+				expect(postEventHandler.mock.calls[0][0].eventType).toEqual("emit");
+				expect(postEventHandler.mock.calls[0][0].requestID).toEqual("12345");
+			});
+	});
+
+	it("should call event handlers directly with emitLocalEventHandler", () => {
+		const broker = new ServiceBroker({ logger: false, internalServices: false });
+		broker.registerLocalService = jest.fn();
+		broker.addLocalService = jest.fn();
+
+		const userEventHandler = jest.fn();
+		const postEventHandler = jest.fn(() => Promise.resolve());
+		const service = broker.createService({
+			name: "posts",
+			events: {
+				"user.*": userEventHandler,
+				"posts.updated": {
+					context: true,
+					handler: postEventHandler
+				}
+			}
+		});
+
+		expect(service).toBeDefined();
+		expect(service.events).toEqual({
+			"user.*": expect.any(Function),
+			"posts.updated": expect.any(Function),
+		});
+
+		expect(broker.addLocalService).toHaveBeenCalledTimes(1);
+
+		return service._start()
+			.catch(protectReject)
+			.then(() => service.emitLocalEventHandler("user.*", { a: 5 }))
+			.catch(protectReject)
+			.then(() => {
+				expect(userEventHandler).toHaveBeenCalledTimes(1);
+				expect(userEventHandler).toHaveBeenCalledWith({ a: 5 }, broker.nodeID, "user.*", expect.any(Context));
+				expect(userEventHandler.mock.calls[0][3].params).toEqual({ a: 5 });
+				expect(userEventHandler.mock.calls[0][3].eventName).toEqual("user.*");
+				expect(userEventHandler.mock.calls[0][3].eventGroups).toEqual(["posts"]);
+				expect(userEventHandler.mock.calls[0][3].eventType).toEqual("emit");
+			})
+
+			.then(() => service.emitLocalEventHandler("posts.updated", { b: "John" }, { requestID: "12345" }))
+			.then(() => {
+				expect(postEventHandler).toHaveBeenCalledTimes(1);
+				expect(postEventHandler).toHaveBeenCalledWith(expect.any(Context));
+				expect(postEventHandler.mock.calls[0][0].params).toEqual({ b: "John" });
+				expect(postEventHandler.mock.calls[0][0].eventName).toEqual("posts.updated");
+				expect(postEventHandler.mock.calls[0][0].eventGroups).toEqual(["posts"]);
+				expect(postEventHandler.mock.calls[0][0].eventType).toEqual("emit");
+				expect(postEventHandler.mock.calls[0][0].requestID).toEqual("12345");
+			});
 	});
 });
 
@@ -636,12 +746,12 @@ describe("Test _createAction function", () => {
 
 
 describe("Test constructor with mixins", () => {
-	let broker = new ServiceBroker({ logger: false });
+	const broker = new ServiceBroker({ logger: false });
 
-	let mixin1 = { name: "mixin1" };
-	let mixin2 = { name: "mixin2" };
+	const mixin1 = { name: "mixin1" };
+	const mixin2 = { name: "mixin2" };
 
-	let schema = {
+	const schema = {
 		name: "posts",
 		mixins: [
 			mixin1,
@@ -653,7 +763,7 @@ describe("Test constructor with mixins", () => {
 		let oldApply = Service.applyMixins;
 		Service.applyMixins = jest.fn(schema => schema);
 
-		new Service(broker, schema);
+		const svc = new Service(broker, schema);
 
 		expect(Service.applyMixins).toHaveBeenCalledTimes(1);
 		expect(Service.applyMixins).toHaveBeenCalledWith(schema);
@@ -1091,7 +1201,7 @@ describe("Test mergeSchemas", () => {
 		expect(res.events.removed.handler[1]).toBe(newSchema.events.removed);
 		expect(res.events.removed.group).toBe("mail");
 
-		expect(res.events.cleared.handler[0]).toBe(newSchema.events.cleared);
+		expect(res.events.cleared.handler).toBe(newSchema.events.cleared);
 
 		expect(res.events.inserted.handler).toBeInstanceOf(Array);
 		expect(res.events.inserted.handler[0]).toBe(origSchema.events.inserted);
