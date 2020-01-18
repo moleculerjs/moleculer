@@ -83,7 +83,7 @@ class ServiceCatalog {
 	list({ onlyLocal = false, onlyAvailable = false, skipInternal = false, withActions = false, withEvents = false, grouping = false }) {
 		let res = [];
 		this.services.forEach(service => {
-			if (skipInternal && /^\$node/.test(service.name))
+			if (skipInternal && /^\$/.test(service.name))
 				return;
 
 			if (onlyLocal && !service.local)

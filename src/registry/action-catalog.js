@@ -123,7 +123,7 @@ class ActionCatalog {
 		let res = [];
 
 		this.actions.forEach((list, key) => {
-			if (skipInternal && /^\$node/.test(key))
+			if (skipInternal && /^\$/.test(key))
 				return;
 
 			if (onlyLocal && !list.hasLocal())
