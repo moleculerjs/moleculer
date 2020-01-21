@@ -64,7 +64,7 @@ module.exports = function MetricsMiddleware(broker) {
 				metrics.register({ name: METRIC.MOLECULER_EVENT_EMIT_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["event", "groups"], unit: METRIC.UNIT_EVENT, description: "Number of emitted events", rate: true });
 				metrics.register({ name: METRIC.MOLECULER_EVENT_BROADCAST_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["event", "groups"], unit: METRIC.UNIT_EVENT, description: "Number of broadcast events", rate: true });
 				metrics.register({ name: METRIC.MOLECULER_EVENT_BROADCASTLOCAL_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["event", "groups"], unit: METRIC.UNIT_EVENT, description: "Number of local broadcast events", rate: true });
-				metrics.register({ name: METRIC.MOLECULER_EVENT_RECEIVED_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["service", "group", "event"], unit: METRIC.UNIT_EVENT, description: "Number of received events", rate: true });
+				metrics.register({ name: METRIC.MOLECULER_EVENT_RECEIVED_TOTAL, type: METRIC.TYPE_COUNTER, labelNames: ["service", "group", "event", "caller"], unit: METRIC.UNIT_EVENT, description: "Number of received events", rate: true });
 
 				// --- MOLECULER TRANSIT METRICS ---
 
@@ -103,7 +103,7 @@ module.exports = function MetricsMiddleware(broker) {
 			const service = event.service ? event.service.name : null;
 			if (broker.isMetricsEnabled()) {
 				return function metricsMiddleware(ctx) {
-					metrics.increment(METRIC.MOLECULER_EVENT_RECEIVED_TOTAL, { service, event: ctx.eventName, group: event.group || service });
+					metrics.increment(METRIC.MOLECULER_EVENT_RECEIVED_TOTAL, { service, event: ctx.eventName, group: event.group || service, caller: ctx.caller });
 					return next.apply(this, arguments);
 				}.bind(this);
 			}

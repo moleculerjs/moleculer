@@ -224,11 +224,12 @@ describe("Test MetricsMiddleware", () => {
 			const ctx = Context.create(broker, {}, { a: 5 });
 			ctx.eventName = "user.created";
 			ctx.eventGroup = "";
+			ctx.caller = "posts";
 
 			newHandler(ctx);
 
 			expect(broker.metrics.increment).toHaveBeenCalledTimes(1);
-			expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.event.received.total", { event : "user.created", service: "posts",  group: "users" });
+			expect(broker.metrics.increment).toHaveBeenNthCalledWith(1, "moleculer.event.received.total", { event : "user.created", service: "posts",  group: "users", caller: "posts" });
 
 			expect(handler).toHaveBeenCalledTimes(1);
 			expect(handler).toHaveBeenCalledWith(ctx);
