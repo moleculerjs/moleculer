@@ -289,14 +289,18 @@ class Amqp10Transporter extends Transporter {
 			});
 
 			return this.connection.createReceiver(receiverOptions).then(receiver => {
-				receiver.addCredit(this.opts.prefetch);
+				if (this.opts.prefetch !== 0) {
+					receiver.addCredit(this.opts.prefetch);
+				}
 
 				receiver.on("message", context => {
 					const cb = this._consumeCB(cmd, needAck)(context);
-					if (isPromise(cb)) {
+					if (isPromise(cb) && this.opts.prefetch !== 0) {
 						return cb.then(() => receiver.addCredit(1));
 					}
-					receiver.addCredit(1);
+					if (this.opts.prefetch !== 0) {
+						receiver.addCredit(1);
+					}
 				});
 
 				this.receivers.push(receiver);
@@ -338,14 +342,18 @@ class Amqp10Transporter extends Transporter {
 			this._getQueueOptions(PACKET_REQUEST, true)
 		);
 		return this.connection.createReceiver(receiverOptions).then(receiver => {
-			receiver.addCredit(this.opts.prefetch);
+			if (this.opts.prefetch !== 0) {
+				receiver.addCredit(this.opts.prefetch);
+			}
 
 			receiver.on("message", context => {
 				const cb = this._consumeCB(PACKET_REQUEST, true)(context);
-				if (isPromise(cb)) {
+				if (isPromise(cb) && this.opts.prefetch !== 0) {
 					return cb.then(() => receiver.addCredit(1));
 				}
-				receiver.addCredit(1);
+				if (this.opts.prefetch !== 0) {
+					receiver.addCredit(1);
+				}
 			});
 
 			this.receivers.push(receiver);
@@ -372,8 +380,6 @@ class Amqp10Transporter extends Transporter {
 		);
 
 		return this.connection.createReceiver(receiverOptions).then(receiver => {
-			receiver.addCredit(this.opts.prefetch);
-
 			receiver.on("message", this._consumeCB(PACKET_EVENT, true));
 
 			this.receivers.push(receiver);
