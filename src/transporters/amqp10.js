@@ -280,7 +280,7 @@ class Amqp10Transporter extends Transporter {
 		if (nodeID) {
 			const needAck = [PACKET_REQUEST].indexOf(cmd) !== -1;
 			Object.assign(receiverOptions, this.opts.queueOptions, {
-				credit_window: 0,
+				credit_window: this.opts.prefetch !== 0 ? 0 : undefined,
 				autoaccept: !needAck,
 				name: topic,
 				source: {
@@ -335,7 +335,7 @@ class Amqp10Transporter extends Transporter {
 		const queue = `${this.prefix}.${PACKET_REQUEST}B.${action}`;
 		const receiverOptions = Object.assign(
 			{
-				credit_window: 0,
+				credit_window: this.opts.prefetch !== 0 ? 0 : undefined,
 				source: { address: queue },
 				autoaccept: false
 			},
