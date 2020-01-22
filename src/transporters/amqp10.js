@@ -139,7 +139,7 @@ class Amqp10Transporter extends Transporter {
 	 * @memberof Amqp10Transporter
 	 */
 	_consumeCB(cmd, needAck = false) {
-		return async ({ message, delivery }) => {
+		return ({ message, delivery }) => {
 			const result = this.incomingMessage(cmd, message.body);
 
 			if (needAck) {
@@ -172,7 +172,7 @@ class Amqp10Transporter extends Transporter {
 	 *
 	 * @memberof Amqp10Transporter
 	 */
-	async connect(errorCallback) {
+	connect(errorCallback) {
 		let rhea;
 
 		try {
@@ -186,11 +186,6 @@ class Amqp10Transporter extends Transporter {
 			);
 		}
 
-		if (!rhea) {
-			/* istanbul ignore next*/
-			this.broker.fatal("Missing rhea package", new Error("Missing rhea package"), true);
-		}
-
 		// Pick url
 		const uri = this.opts.url;
 		const urlParsed = url.parse(uri);
@@ -202,22 +197,25 @@ class Amqp10Transporter extends Transporter {
 			username,
 			password,
 			port: urlParsed.port || 5672,
-			container_id: rhea.generate_uuid()
+			container_id: this.broker.instanceID
 		};
 		const container = new rhea.Container();
 		const connection = container.createConnection(connectionOptions);
-		try {
-			this.connection = await connection.open();
-			this.logger.info("AMQP10 is connected");
-			this.connection._connection.setMaxListeners(0);
-			await this.onConnected();
-		} catch (e) {
-			this.logger.info("AMQP10 is disconnected.");
-			this.connected = false;
-			this.connection = null;
-			this.logger.error(e);
-			errorCallback && errorCallback(e);
-		}
+		connection
+			.open()
+			.then(connection => {
+				this.connection = connection;
+				this.logger.info("AMQP10 is connected");
+				this.connection._connection.setMaxListeners(0);
+				return this.onConnected();
+			})
+			.catch(e => {
+				this.logger.info("AMQP10 is disconnected.");
+				this.connected = false;
+				this.connection = null;
+				this.logger.error(e);
+				errorCallback && errorCallback(e);
+			});
 	}
 
 	/**
@@ -225,19 +223,16 @@ class Amqp10Transporter extends Transporter {
 	 * Close every receiver on the connections and the close the connection
 	 * @memberof Amqp10Transporter
 	 */
-	async disconnect() {
-		try {
-			if (this.connection) {
-				for (const receiver of this.receivers) {
-					await receiver.close();
-				}
-				await this.connection.close();
-				this.connection = null;
-				this.connected = false;
-				this.receivers = [];
-			}
-		} catch (error) {
-			this.logger.error(error);
+	disconnect() {
+		if (this.connection) {
+			return Promise.all(this.receivers.map(receiver => receiver.close()))
+				.then(this.connection.close)
+				.then(() => {
+					this.connection = null;
+					this.connected = false;
+					this.receivers = [];
+				})
+				.catch(error => this.logger.error(error));
 		}
 	}
 
@@ -266,7 +261,7 @@ class Amqp10Transporter extends Transporter {
 	 * if one dies before responding.
 	 *
 	 */
-	async subscribe(cmd, nodeID) {
+	subscribe(cmd, nodeID) {
 		if (!this.connection) return;
 
 		const topic = this.getTopicName(cmd, nodeID);
@@ -283,15 +278,19 @@ class Amqp10Transporter extends Transporter {
 				}
 			});
 
-			const receiver = await this.connection.createReceiver(receiverOptions);
-			receiver.addCredit(this.opts.prefetch);
+			this.connection.createReceiver(receiverOptions).then(receiver => {
+				receiver.addCredit(this.opts.prefetch);
 
-			receiver.on("message", async context => {
-				await this._consumeCB(cmd, needAck)(context);
-				receiver.addCredit(1);
+				receiver.on("message", context => {
+					const cb = this._consumeCB(cmd, needAck)(context);
+					if (isPromise(cb)) {
+						return cb.then(() => receiver.addCredit(1));
+					}
+					receiver.addCredit(1);
+				});
+
+				this.receivers.push(receiver);
 			});
-
-			this.receivers.push(receiver);
 		} else {
 			const topicName = `${this.opts.topicPrefix}${topic}`;
 			Object.assign(receiverOptions, this.opts.topicOptions, {
@@ -300,13 +299,13 @@ class Amqp10Transporter extends Transporter {
 					address: topicName
 				}
 			});
-			const receiver = await this.connection.createReceiver(receiverOptions);
+			this.connection.createReceiver(receiverOptions).then(receiver => {
+				receiver.on("message", context => {
+					this._consumeCB(cmd, false)(context);
+				});
 
-			receiver.on("message", context => {
-				this._consumeCB(cmd, false)(context);
+				this.receivers.push(receiver);
 			});
-
-			this.receivers.push(receiver);
 		}
 	}
 
@@ -318,7 +317,7 @@ class Amqp10Transporter extends Transporter {
 	 * @param {String} action
 	 * @memberof Amqp10Transporter
 	 */
-	async subscribeBalancedRequest(action) {
+	subscribeBalancedRequest(action) {
 		const queue = `${this.prefix}.${PACKET_REQUEST}B.${action}`;
 		const receiverOptions = Object.assign(
 			{
@@ -328,15 +327,19 @@ class Amqp10Transporter extends Transporter {
 			},
 			this._getQueueOptions(PACKET_REQUEST, true)
 		);
-		const receiver = await this.connection.createReceiver(receiverOptions);
-		receiver.addCredit(1);
+		this.connection.createReceiver(receiverOptions).then(receiver => {
+			receiver.addCredit(this.opts.prefetch);
 
-		receiver.on("message", async context => {
-			await this._consumeCB(PACKET_REQUEST, true)(context);
-			receiver.addCredit(1);
+			receiver.on("message", context => {
+				const cb = this._consumeCB(PACKET_REQUEST, true)(context);
+				if (isPromise(cb)) {
+					return cb.then(() => receiver.addCredit(1));
+				}
+				receiver.addCredit(1);
+			});
+
+			this.receivers.push(receiver);
 		});
-
-		this.receivers.push(receiver);
 	}
 
 	/**
@@ -348,7 +351,7 @@ class Amqp10Transporter extends Transporter {
 	 * @param {String} group
 	 * @memberof Amqp10Transporter
 	 */
-	async subscribeBalancedEvent(event, group) {
+	subscribeBalancedEvent(event, group) {
 		const queue = `${this.prefix}.${PACKET_EVENT}B.${group}.${event}`;
 		const receiverOptions = Object.assign(
 			{
@@ -357,10 +360,14 @@ class Amqp10Transporter extends Transporter {
 			},
 			this._getQueueOptions(PACKET_EVENT + "LB", true)
 		);
-		const receiver = await this.connection.createReceiver(receiverOptions);
-		receiver.on("message", this._consumeCB(PACKET_EVENT, true));
 
-		this.receivers.push(receiver);
+		this.connection.createReceiver(receiverOptions).then(receiver => {
+			receiver.addCredit(this.opts.prefetch);
+
+			receiver.on("message", this._consumeCB(PACKET_EVENT, true));
+
+			this.receivers.push(receiver);
+		});
 	}
 
 	/**
@@ -373,7 +380,7 @@ class Amqp10Transporter extends Transporter {
 	 *
 	 * Reasonings documented in the subscribe method.
 	 */
-	async publish(packet) {
+	publish(packet) {
 		/* istanbul ignore next*/
 		if (!this.connection) return;
 
@@ -386,14 +393,18 @@ class Amqp10Transporter extends Transporter {
 				address: packet.target ? topic : `${this.opts.topicPrefix}${topic}`
 			}
 		};
-		try {
-			const sender = await this.connection.createAwaitableSender(awaitableSenderOptions);
-			await sender.send(message);
-			this.incStatSent(data.length);
-			await sender.close();
-		} catch (error) {
-			this.logger.error(error);
-		}
+		return this.connection
+			.createAwaitableSender(awaitableSenderOptions)
+			.then(sender => {
+				sender.send(message);
+				return sender;
+			})
+			.then(sender => {
+				this.incStatSent(data.length);
+				return sender;
+			})
+			.then(sender => sender.close())
+			.catch(this.logger.error);
 	}
 
 	/**
@@ -404,7 +415,7 @@ class Amqp10Transporter extends Transporter {
 	 * @returns {Promise}
 	 * @memberof Amqp10Transporter
 	 */
-	async publishBalancedEvent(packet, group) {
+	publishBalancedEvent(packet, group) {
 		/* istanbul ignore next*/
 		if (!this.connection) return;
 
@@ -416,14 +427,18 @@ class Amqp10Transporter extends Transporter {
 				address: queue
 			}
 		};
-		try {
-			const sender = await this.connection.createAwaitableSender(awaitableSenderOptions);
-			await sender.send(message);
-			this.incStatSent(data.length);
-			await sender.close();
-		} catch (error) {
-			this.logger.error(error);
-		}
+		return this.connection
+			.createAwaitableSender(awaitableSenderOptions)
+			.then(sender => {
+				sender.send(message);
+				return sender;
+			})
+			.then(sender => {
+				this.incStatSent(data.length);
+				return sender;
+			})
+			.then(sender => sender.close())
+			.catch(this.logger.error);
 	}
 
 	/**
@@ -433,7 +448,7 @@ class Amqp10Transporter extends Transporter {
 	 * @returns {Promise}
 	 * @memberof Amqp10Transporter
 	 */
-	async publishBalancedRequest(packet) {
+	publishBalancedRequest(packet) {
 		/* istanbul ignore next*/
 		if (!this.connection) return Promise.resolve();
 
@@ -446,14 +461,18 @@ class Amqp10Transporter extends Transporter {
 				address: queue
 			}
 		};
-		try {
-			const sender = await this.connection.createAwaitableSender(awaitableSenderOptions);
-			await sender.send(message);
-			this.incStatSent(data.length);
-			await sender.close();
-		} catch (error) {
-			this.logger.error(error);
-		}
+		return this.connection
+			.createAwaitableSender(awaitableSenderOptions)
+			.then(sender => {
+				sender.send(message);
+				return sender;
+			})
+			.then(sender => {
+				this.incStatSent(data.length);
+				return sender;
+			})
+			.then(sender => sender.close())
+			.catch(this.logger.error);
 	}
 }
 
