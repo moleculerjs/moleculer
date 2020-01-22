@@ -60,6 +60,8 @@ class Amqp10Transporter extends Transporter {
 
 		if (typeof opts.heartbeatTimeToLive !== "number") opts.heartbeatTimeToLive = null;
 
+		if (typeof opts.connectionOptions !== "object") opts.connectionOptions = {};
+
 		if (typeof opts.queueOptions !== "object") opts.queueOptions = {};
 
 		if (typeof opts.topicOptions !== "object") opts.topicOptions = {};
@@ -195,14 +197,18 @@ class Amqp10Transporter extends Transporter {
 		const urlParsed = url.parse(uri);
 		const username = urlParsed.auth ? urlParsed.auth.split(":")[0] : undefined;
 		const password = urlParsed.auth ? urlParsed.auth.split(":")[1] : undefined;
-		const connectionOptions = {
-			host: urlParsed.hostname,
-			hostname: urlParsed.hostname,
-			username,
-			password,
-			port: urlParsed.port || 5672,
-			container_id: this.broker.instanceID
-		};
+		const connectionOptions = Object.assign(
+			{
+				host: urlParsed.hostname,
+				hostname: urlParsed.hostname,
+				username,
+				password,
+				port: urlParsed.port || 5672,
+				container_id: this.broker.instanceID
+			},
+			this.opts.connectionOptions
+		);
+
 		const container = new rhea.Container();
 		const connection = container.createConnection(connectionOptions);
 		connection
