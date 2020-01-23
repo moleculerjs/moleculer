@@ -234,7 +234,6 @@ describe("Test Datadog tracing exporter class", () => {
 					c: true,
 					d: null,
 					def: "ault",
-					"service.fullName": "v1.posts",
 
 					type: "custom",
 					resource: undefined,
@@ -320,7 +319,6 @@ describe("Test Datadog tracing exporter class", () => {
 					c: true,
 					d: null,
 					def: "ault",
-					"service.fullName": "v1.posts",
 
 					type: "action",
 					resource: undefined,

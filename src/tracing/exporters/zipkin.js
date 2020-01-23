@@ -153,10 +153,7 @@ class ZipkinTraceExporter extends BaseTraceExporter {
 
 			tags: {
 				service: serviceName,
-				...this.flattenTags({
-					"span.type": span.type,
-					service: span.service
-				}, true)
+				"span.type": span.type,
 			},
 
 			debug: this.opts.payloadOptions.debug,

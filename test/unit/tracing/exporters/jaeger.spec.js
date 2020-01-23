@@ -534,7 +534,6 @@ describe("Test Jaeger tracing exporter class", () => {
 					c: true,
 					d: null,
 					def: "ault",
-					"service.fullName": "v1.posts",
 					"span.type": "action"
 				}
 			});
@@ -622,7 +621,6 @@ describe("Test Jaeger tracing exporter class", () => {
 					c: true,
 					d: null,
 					def: "ault",
-					"service.fullName": "v1.posts",
 					"span.type": "custom"
 				}
 			});
@@ -700,7 +698,6 @@ describe("Test Jaeger tracing exporter class", () => {
 					c: true,
 					d: null,
 					def: "ault",
-					"service.fullName": "v1.posts",
 					"span.type": "action"
 				}
 			});

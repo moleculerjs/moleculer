@@ -126,7 +126,6 @@ class DatadogTraceExporter extends BaseTraceExporter {
 			startTime: span.startTime,
 			childOf: parentCtx,
 			tags: this.flattenTags(_.defaultsDeep({}, span.tags, {
-				service: span.service,
 				span: {
 					kind: "server",
 					type: span.type,

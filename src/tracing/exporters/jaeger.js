@@ -181,7 +181,6 @@ class JaegerTraceExporter extends BaseTraceExporter {
 			startTime: span.startTime,
 			childOf: parentCtx,
 			tags: this.flattenTags(_.defaultsDeep({
-				service: span.service,
 				"span.type": span.type
 			}, span.tags, this.defaultTags))
 		});
