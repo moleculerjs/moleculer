@@ -172,11 +172,13 @@ describe("Test internal services", () => {
 					"params": {
 						"onlyAvailable": {
 							"optional": true,
-							"type": "boolean"
+							"type": "boolean",
+							"convert": true
 						},
 						"withServices": {
 							"optional": true,
-							"type": "boolean"
+							"type": "boolean",
+							"convert": true
 						}
 					}
 				},
@@ -193,19 +195,23 @@ describe("Test internal services", () => {
 					"params": {
 						"onlyLocal": {
 							"optional": true,
-							"type": "boolean"
+							"type": "boolean",
+							"convert": true
 						},
 						"onlyAvailable": {
 							"optional": true,
-							"type": "boolean"
+							"type": "boolean",
+							"convert": true
 						},
 						"skipInternal": {
 							"optional": true,
-							"type": "boolean"
+							"type": "boolean",
+							"convert": true
 						},
 						"withActions": {
 							"optional": true,
-							"type": "boolean"
+							"type": "boolean",
+							"convert": true
 						}
 					}
 				},
@@ -222,19 +228,23 @@ describe("Test internal services", () => {
 					"params": {
 						"onlyLocal": {
 							"optional": true,
-							"type": "boolean"
+							"type": "boolean",
+							"convert": true
 						},
 						"onlyAvailable": {
 							"optional": true,
-							"type": "boolean"
+							"type": "boolean",
+							"convert": true
 						},
 						"skipInternal": {
 							"optional": true,
-							"type": "boolean"
+							"type": "boolean",
+							"convert": true
 						},
 						"withEndpoints": {
 							"optional": true,
-							"type": "boolean"
+							"type": "boolean",
+							"convert": true
 						}
 					}
 				},
@@ -251,19 +261,23 @@ describe("Test internal services", () => {
 					"params": {
 						"onlyLocal": {
 							"optional": true,
-							"type": "boolean"
+							"type": "boolean",
+							"convert": true
 						},
 						"onlyAvailable": {
 							"optional": true,
-							"type": "boolean"
+							"type": "boolean",
+							"convert": true
 						},
 						"skipInternal": {
 							"optional": true,
-							"type": "boolean"
+							"type": "boolean",
+							"convert": true
 						},
 						"withEndpoints": {
 							"optional": true,
-							"type": "boolean"
+							"type": "boolean",
+							"convert": true
 						}
 					}
 				},

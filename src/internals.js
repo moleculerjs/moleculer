@@ -18,8 +18,8 @@ module.exports = function() {
 				cache: false,
 				tracing: false,
 				params: {
-					withServices: { type: "boolean", optional: true },
-					onlyAvailable: { type: "boolean", optional: true },
+					withServices: { type: "boolean", optional: true, convert: true },
+					onlyAvailable: { type: "boolean", optional: true, convert: true },
 				},
 				handler(ctx) {
 					return this.broker.registry.getNodeList(ctx.params);
@@ -30,10 +30,10 @@ module.exports = function() {
 				cache: false,
 				tracing: false,
 				params: {
-					onlyLocal: { type: "boolean", optional: true },
-					skipInternal: { type: "boolean", optional: true },
-					withActions: { type: "boolean", optional: true },
-					onlyAvailable: { type: "boolean", optional: true },
+					onlyLocal: { type: "boolean", optional: true, convert: true },
+					skipInternal: { type: "boolean", optional: true, convert: true },
+					withActions: { type: "boolean", optional: true, convert: true },
+					onlyAvailable: { type: "boolean", optional: true, convert: true },
 				},
 				handler(ctx) {
 					let res = [];
@@ -74,10 +74,10 @@ module.exports = function() {
 				cache: false,
 				tracing: false,
 				params: {
-					onlyLocal: { type: "boolean", optional: true },
-					skipInternal: { type: "boolean", optional: true },
-					withEndpoints: { type: "boolean", optional: true },
-					onlyAvailable: { type: "boolean", optional: true },
+					onlyLocal: { type: "boolean", optional: true, convert: true },
+					skipInternal: { type: "boolean", optional: true, convert: true },
+					withEndpoints: { type: "boolean", optional: true, convert: true },
+					onlyAvailable: { type: "boolean", optional: true, convert: true },
 				},
 				handler(ctx) {
 					return this.broker.registry.getActionList(ctx.params);
@@ -88,10 +88,10 @@ module.exports = function() {
 				cache: false,
 				tracing: false,
 				params: {
-					onlyLocal: { type: "boolean", optional: true },
-					skipInternal: { type: "boolean", optional: true },
-					withEndpoints: { type: "boolean", optional: true },
-					onlyAvailable: { type: "boolean", optional: true },
+					onlyLocal: { type: "boolean", optional: true, convert: true },
+					skipInternal: { type: "boolean", optional: true, convert: true },
+					withEndpoints: { type: "boolean", optional: true, convert: true },
+					onlyAvailable: { type: "boolean", optional: true, convert: true },
 				},
 				handler(ctx) {
 					return this.broker.registry.getEventList(ctx.params);
