@@ -73,11 +73,7 @@ module.exports = function TracingMiddleware(broker) {
 					type: "action",
 					traceID: ctx.requestID,
 					parentID: ctx.parentID,
-					service: ctx.service ? {
-						name: ctx.service.name,
-						version: ctx.service.version,
-						fullName: ctx.service.fullName,
-					} : null,
+					service: ctx.service,
 					sampled: ctx.tracing,
 					tags
 				});
@@ -182,11 +178,7 @@ module.exports = function TracingMiddleware(broker) {
 					type: "event",
 					traceID: ctx.requestID,
 					parentID: ctx.parentID,
-					service: {
-						name: service.name,
-						version: service.version,
-						fullName: service.fullName,
-					},
+					service,
 					sampled: ctx.tracing,
 					tags
 				});

@@ -103,7 +103,11 @@ class ZipkinTraceExporter extends BaseTraceExporter {
 				"Content-Type": "application/json",
 			}
 		}).then(res => {
-			this.logger.debug(`Tracing spans (${data.length} spans) are uploaded to Zipkin. Status: ${res.statusText}`);
+			if (res.status >= 400) {
+				this.logger.warn(`Unable to upload tracing spans to Zipkin. Status: ${res.status} ${res.statusText}`);
+			} else {
+				this.logger.debug(`Tracing spans (${data.length} spans) are uploaded to Zipkin. Status: ${res.statusText}`);
+			}
 		}).catch(err => {
 			this.logger.warn("Unable to upload tracing spans to Zipkin. Error:" + err.message, err);
 		});
@@ -148,7 +152,11 @@ class ZipkinTraceExporter extends BaseTraceExporter {
 			duration: this.convertTime(span.duration),
 
 			tags: {
-				"span.type": span.type
+				service: serviceName,
+				...this.flattenTags({
+					"span.type": span.type,
+					service: span.service
+				}, true)
 			},
 
 			debug: this.opts.payloadOptions.debug,

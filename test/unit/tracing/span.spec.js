@@ -61,7 +61,8 @@ describe("Test Tracing Span", () => {
 				parentID: "parent-id",
 				service: {
 					name: "posts",
-					version: 2
+					version: 2,
+					fullName: "v2.posts"
 				},
 				priority: 4,
 				sampled: false,
@@ -86,7 +87,61 @@ describe("Test Tracing Span", () => {
 			expect(span.id).toBe("my-id");
 			expect(span.traceID).toBe(span.id);
 			expect(span.parentID).toBe("parent-id");
-			expect(span.service).toBe(opts.service);
+			expect(span.service).toEqual(opts.service);
+
+			expect(span.priority).toBe(4);
+			expect(span.sampled).toBe(false);
+
+			expect(span.startTime).toBeNull();
+			expect(span.finishTime).toBeNull();
+			expect(span.duration).toBeNull();
+			expect(span.error).toBeNull();
+
+			expect(span.logs).toEqual([]);
+			expect(span.tags).toEqual({
+				a: 5,
+				b: "Jane",
+				c: 1000
+			});
+
+			expect(tracer.shouldSample).toBeCalledTimes(0);
+		});
+
+		it("should use options and service as string", () => {
+			tracer.shouldSample.mockClear();
+
+			const opts = {
+				id: "my-id",
+				type: "web",
+				parentID: "parent-id",
+				service: "v2.posts",
+				priority: 4,
+				sampled: false,
+				defaultTags: {
+					a: 5,
+					b: "John",
+				},
+				tags: {
+					b: "Jane",
+					c: 1000
+				}
+			};
+			const span = new Span(tracer, "test-234", opts);
+
+			expect(span.tracer).toBe(tracer);
+			expect(span.logger).toBe(tracer.logger);
+			expect(span.opts).toEqual(opts);
+			expect(span.meta).toEqual({});
+
+			expect(span.name).toBe("test-234");
+			expect(span.type).toBe("web");
+			expect(span.id).toBe("my-id");
+			expect(span.traceID).toBe(span.id);
+			expect(span.parentID).toBe("parent-id");
+			expect(span.service).toEqual({
+				name: "v2.posts",
+				fullName: "v2.posts",
+			});
 
 			expect(span.priority).toBe(4);
 			expect(span.sampled).toBe(false);

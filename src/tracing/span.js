@@ -37,7 +37,20 @@ class Span {
 		this.traceID = this.opts.traceID || this.id;
 		this.parentID = this.opts.parentID;
 
-		this.service = this.opts.service;
+		if (this.opts.service) {
+			if (typeof this.opts.service == "string") {
+				this.service = {
+					name: this.opts.service,
+					fullName: this.opts.service,
+				};
+			} else {
+				this.service = {
+					name: this.opts.service.name,
+					version: this.opts.service.version,
+					fullName: this.opts.service.fullName,
+				};
+			}
+		}
 
 		this.priority = this.opts.priority != null ? this.opts.priority : 5;
 		this.sampled = this.opts.sampled != null ? this.opts.sampled : this.tracer.shouldSample(this);
