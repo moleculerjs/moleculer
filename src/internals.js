@@ -54,7 +54,7 @@ module.exports = function() {
 							});
 
 						} else {
-							item = _.pick(svc, ["name", "version", "settings", "metadata"]);
+							item = _.pick(svc, ["name", "fullName", "version", "settings", "metadata", "local", "available"]);
 							item.nodes = [svc.nodeID];
 							item.actions = {};
 							_.forIn(svc.actions, (action, name) => {

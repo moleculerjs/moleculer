@@ -29,7 +29,7 @@ class ServiceItem {
 		this.settings = service.settings;
 		this.metadata = service.metadata || {};
 
-		this.local = local;
+		this.local = !!local;
 
 		this.actions = {};
 		this.events = {};

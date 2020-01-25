@@ -103,6 +103,8 @@ class ServiceCatalog {
 					fullName: service.fullName,
 					settings: service.settings,
 					metadata: service.metadata,
+
+					local: service.local,
 					available: service.node.available,
 				};
 
@@ -142,26 +144,7 @@ class ServiceCatalog {
 
 		return res;
 	}
-	/*
-	getServicesWithNodes() {
-		let res = [];
-		this.services.forEach(service => {
-			let item = res.find(svc => svc.name == service.name && svc.version == service.version);
-			if (!item) {
-				item = {
-					name: service.name,
-					version: service.version,
-					nodes: []
-				};
-				res.push(item);
-			}
-			if (item.nodes.indexOf(service.node.id) === -1)
-				item.nodes.push(service.node.id);
-		});
 
-		return res;
-	}
-*/
 	/**
 	 * Get local service list for INFO packet
 	 *

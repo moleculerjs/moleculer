@@ -92,7 +92,10 @@ describe("Test internal services", () => {
 				"nodes": ["node-master"],
 				"settings": {},
 				"metadata": {},
-				"version": undefined
+				"version": undefined,
+				"fullName": "$node",
+				"local": true,
+				"available": true
 			}, {
 				"actions": {},
 				"name": "greeter",
@@ -103,14 +106,20 @@ describe("Test internal services", () => {
 				"metadata": {
 					"scaling": true
 				},
-				"version": undefined
+				"version": undefined,
+				"fullName": "greeter",
+				"local": true,
+				"available": true
 			}, {
 				"actions": {},
 				"name": "echo",
 				"nodes": ["node-master"],
 				"settings": {},
 				"metadata": {},
-				"version": "alpha"
+				"version": "alpha",
+				"fullName": "alpha.echo",
+				"local": true,
+				"available": true
 			}]);
 		});
 	});
@@ -143,7 +152,10 @@ describe("Test internal services", () => {
 				"metadata": {
 					"scaling": true
 				},
-				"version": undefined
+				"version": undefined,
+				"fullName": "greeter",
+				"local": true,
+				"available": true
 			}, {
 				"actions": {
 					"alpha.echo.reply": {
@@ -156,7 +168,10 @@ describe("Test internal services", () => {
 				"nodes": ["node-master"],
 				"settings": {},
 				"metadata": {},
-				"version": "alpha"
+				"version": "alpha",
+				"fullName": "alpha.echo",
+				"local": true,
+				"available": true
 			}]);
 		});
 	});

@@ -106,7 +106,8 @@ describe("Test ServiceCatalog methods", () => {
 			"settings": undefined,
 			"metadata": {},
 			"version": undefined,
-			"available": true
+			"available": true,
+			"local": true
 		}, {
 			"name": "$node",
 			"fullName": "$node",
@@ -114,7 +115,8 @@ describe("Test ServiceCatalog methods", () => {
 			"settings": undefined,
 			"metadata": {},
 			"version": undefined,
-			"available": true
+			"available": true,
+			"local": false
 		}, {
 			"name": "posts",
 			"fullName": "v2.posts",
@@ -124,7 +126,8 @@ describe("Test ServiceCatalog methods", () => {
 			},
 			"metadata": { priority: 5 },
 			"version": 2,
-			"available": true
+			"available": true,
+			"local": false
 		}]);
 
 		res = catalog.list({ grouping: true });
@@ -135,6 +138,7 @@ describe("Test ServiceCatalog methods", () => {
 			"metadata": {},
 			"version": undefined,
 			"available": true,
+			"local": true,
 			nodes: [
 				"master",
 				"server-2"
@@ -148,6 +152,7 @@ describe("Test ServiceCatalog methods", () => {
 			"metadata": { priority: 5 },
 			"version": 2,
 			"available": true,
+			"local": false,
 			nodes: [
 				"server-2"
 			]
@@ -161,7 +166,8 @@ describe("Test ServiceCatalog methods", () => {
 			"settings": undefined,
 			"metadata": {},
 			"version": undefined,
-			"available": true
+			"available": true,
+			"local": true
 		}]);
 
 		res = catalog.list({ skipInternal: true, withActions: true, withEvents: true });
@@ -186,7 +192,8 @@ describe("Test ServiceCatalog methods", () => {
 				"priority": 5
 			},
 			"version": 2,
-			"available": true
+			"available": true,
+			"local": false
 		}]);
 
 		svc.node.available = false;
@@ -198,7 +205,8 @@ describe("Test ServiceCatalog methods", () => {
 			"settings": undefined,
 			"metadata": {},
 			"version": undefined,
-			"available": true
+			"available": true,
+			"local": true
 		}]);
 
 	});

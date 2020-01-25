@@ -90,11 +90,11 @@ Array [
   },
   Object {
     "host": "test-host",
-    "metric": "test.histogram.bucket_0.005",
+    "metric": "test.histogram.bucket_25",
     "points": Array [
       Array [
         12345678,
-        0,
+        4,
       ],
     ],
     "tags": Array [
@@ -104,11 +104,11 @@ Array [
   },
   Object {
     "host": "test-host",
-    "metric": "test.histogram.bucket_0.01",
+    "metric": "test.histogram.bucket_50",
     "points": Array [
       Array [
         12345678,
-        0,
+        4,
       ],
     ],
     "tags": Array [
@@ -118,11 +118,11 @@ Array [
   },
   Object {
     "host": "test-host",
-    "metric": "test.histogram.bucket_0.025",
+    "metric": "test.histogram.bucket_100",
     "points": Array [
       Array [
         12345678,
-        0,
+        4,
       ],
     ],
     "tags": Array [
@@ -132,11 +132,11 @@ Array [
   },
   Object {
     "host": "test-host",
-    "metric": "test.histogram.bucket_0.05",
+    "metric": "test.histogram.bucket_250",
     "points": Array [
       Array [
         12345678,
-        0,
+        4,
       ],
     ],
     "tags": Array [
@@ -146,11 +146,11 @@ Array [
   },
   Object {
     "host": "test-host",
-    "metric": "test.histogram.bucket_0.1",
+    "metric": "test.histogram.bucket_500",
     "points": Array [
       Array [
         12345678,
-        0,
+        4,
       ],
     ],
     "tags": Array [
@@ -160,11 +160,11 @@ Array [
   },
   Object {
     "host": "test-host",
-    "metric": "test.histogram.bucket_0.25",
+    "metric": "test.histogram.bucket_1000",
     "points": Array [
       Array [
         12345678,
-        0,
+        4,
       ],
     ],
     "tags": Array [
@@ -174,11 +174,11 @@ Array [
   },
   Object {
     "host": "test-host",
-    "metric": "test.histogram.bucket_0.5",
+    "metric": "test.histogram.bucket_2500",
     "points": Array [
       Array [
         12345678,
-        0,
+        4,
       ],
     ],
     "tags": Array [
@@ -188,11 +188,25 @@ Array [
   },
   Object {
     "host": "test-host",
-    "metric": "test.histogram.bucket_2.5",
+    "metric": "test.histogram.bucket_5000",
     "points": Array [
       Array [
         12345678,
-        2,
+        4,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.bucket_10000",
+    "points": Array [
+      Array [
+        12345678,
+        4,
       ],
     ],
     "tags": Array [
@@ -429,11 +443,11 @@ Array [
   },
   Object {
     "host": "test-host",
-    "metric": "test.histogram.bucket_0.005",
+    "metric": "test.histogram.bucket_25",
     "points": Array [
       Array [
         12345678,
-        0,
+        3,
       ],
     ],
     "tags": Array [
@@ -444,11 +458,11 @@ Array [
   },
   Object {
     "host": "test-host",
-    "metric": "test.histogram.bucket_0.01",
+    "metric": "test.histogram.bucket_50",
     "points": Array [
       Array [
         12345678,
-        0,
+        3,
       ],
     ],
     "tags": Array [
@@ -459,11 +473,11 @@ Array [
   },
   Object {
     "host": "test-host",
-    "metric": "test.histogram.bucket_0.025",
+    "metric": "test.histogram.bucket_100",
     "points": Array [
       Array [
         12345678,
-        0,
+        3,
       ],
     ],
     "tags": Array [
@@ -474,11 +488,11 @@ Array [
   },
   Object {
     "host": "test-host",
-    "metric": "test.histogram.bucket_0.05",
+    "metric": "test.histogram.bucket_250",
     "points": Array [
       Array [
         12345678,
-        0,
+        3,
       ],
     ],
     "tags": Array [
@@ -489,11 +503,11 @@ Array [
   },
   Object {
     "host": "test-host",
-    "metric": "test.histogram.bucket_0.1",
+    "metric": "test.histogram.bucket_500",
     "points": Array [
       Array [
         12345678,
-        0,
+        3,
       ],
     ],
     "tags": Array [
@@ -504,11 +518,11 @@ Array [
   },
   Object {
     "host": "test-host",
-    "metric": "test.histogram.bucket_0.25",
+    "metric": "test.histogram.bucket_1000",
     "points": Array [
       Array [
         12345678,
-        0,
+        3,
       ],
     ],
     "tags": Array [
@@ -519,11 +533,11 @@ Array [
   },
   Object {
     "host": "test-host",
-    "metric": "test.histogram.bucket_0.5",
+    "metric": "test.histogram.bucket_2500",
     "points": Array [
       Array [
         12345678,
-        0,
+        3,
       ],
     ],
     "tags": Array [
@@ -534,11 +548,26 @@ Array [
   },
   Object {
     "host": "test-host",
-    "metric": "test.histogram.bucket_2.5",
+    "metric": "test.histogram.bucket_5000",
     "points": Array [
       Array [
         12345678,
-        1,
+        3,
+      ],
+    ],
+    "tags": Array [
+      "defLabel:def\\\\\\\\Value-\\\\\\"quote\\\\\\"",
+      "action:auth",
+    ],
+    "type": "rate",
+  },
+  Object {
+    "host": "test-host",
+    "metric": "test.histogram.bucket_10000",
+    "points": Array [
+      Array [
+        12345678,
+        3,
       ],
     ],
     "tags": Array [
