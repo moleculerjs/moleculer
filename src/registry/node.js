@@ -58,6 +58,7 @@ class Node {
 		this.hostname = payload.hostname;
 		this.port = payload.port;
 		this.client = payload.client || {};
+		this.config = payload.config || {};
 		this.instanceID = payload.instanceID;
 
 		// Process services & events
