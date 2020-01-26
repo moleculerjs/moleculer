@@ -828,7 +828,7 @@ class Transit {
 		else
 			this.logger.debug(`=> Send '${ctx.eventName}' event to '${groups.join(", ")}' group(s).`);
 
-		this.publish(new Packet(P.PACKET_EVENT, ctx.endpoint ? ctx.nodeID : null, {
+		return this.publish(new Packet(P.PACKET_EVENT, ctx.endpoint ? ctx.nodeID : null, {
 			id: ctx.id,
 			event: ctx.eventName,
 			data: ctx.params,
