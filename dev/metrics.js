@@ -20,13 +20,13 @@ const broker = new ServiceBroker({
 			{
 				type: "Console",
 				options: {
-					onlyChanges: true,
+					onlyChanges: false,
 					//interval: 1000,
 					includes: "moleculer.request.*",
 					//excludes: ["moleculer.transit.publish.total", "moleculer.transit.receive.total"]
 				}
 			},
-			{
+			/*{
 				type: "Event",
 				options: {
 					onlyChanges: false,
@@ -34,7 +34,7 @@ const broker = new ServiceBroker({
 					includes: "moleculer.request.**",
 					excludes: ["moleculer.request.error.**", "moleculer.request.fallback.**"]
 				}
-			},
+			},*/
 			/*new CSVReporter({
 				folder: "./dev/trash/csv-metrics",
 				includes: "moleculer.request.time",
@@ -79,7 +79,8 @@ const broker = new ServiceBroker({
 broker.createService({
 	name: "greeter",
 	actions: {
-		hello(ctx) {
+		async hello(ctx) {
+			await this.Promise.delay(Math.random() * 100);
 			return "Hello Metrics";
 		}
 	}
@@ -101,7 +102,7 @@ broker.start()
 
 		let c = 20;
 		const timer = setInterval(() => {
-			broker.call("$node.metrics")
+			broker.call("greeter.hello")
 				.then(res => broker.logger.info("OK"))
 				.catch(err => broker.logger.error(err));
 			c--;

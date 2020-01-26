@@ -8,12 +8,12 @@
 # Breaking changes
 
 ## Minimum Node version is 10
-The Node version 8 LTS lifecycle has been ended on December 31, 2019, so the minimum required Node version is 10.
+The Node version 6 & 8 LTS lifecycle has been ended on December 31, 2019, so the minimum required Node version is 10.
 
 ## Bluebird dropped
 The Bluebird Promise library has been dropped from the project because as of Node 10 the native `Promise` implementation is [faster (2x)](https://github.com/icebob/js-perf-benchmark/blob/95803284dcb46c403eb71f2f114b76bf669189ce/suites/promise.js#L123-L133) than Bluebird.
 
-Nonetheless you can use your desired Promise library, just set the `Promise` broker options.
+Nonetheless, you can use your desired Promise library, just set the `Promise` broker options.
 
 **Using Bluebird**
 ```js
@@ -24,7 +24,7 @@ module.exports = {
     Promise: BluebirdPromise
 };
 ```
->Please note, the given Promise library will be polyfilled with `delay`, `method`, `timeout` and `mapSeries` methods (which are used inside Moleculer modules).
+>Please note, the given Promise library will be polyfilled with `delay`, `method`, `timeout` and `mapSeries` methods (which are used inside Moleculer core modules).
 
 ## Communication protocol has been changed
 The Moleculer communication protocol has been changed. The new protocol version is `4`.
