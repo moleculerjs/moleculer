@@ -357,27 +357,27 @@ describe("Test to send stream in objectMode as ctx.param", () => {
 		return b1.Promise.resolve()
 			.then(() => b1.call("data.store", stream))
 			.then(res => expect(res).toBe("OK"))
-			.then(() => stream.push({"id": 123, data: "first record"}))
+			.then(() => stream.push({ "id": 123, data: "first record" }))
 			.delay(100)
 			.then(() => {
 				expect(FLOW).toEqual([
-					{"id": 123, data: "first record"}
+					{ "id": 123, data: "first record" }
 				]);
-				stream.push({"id": 786, data: "second record"});
+				stream.push({ "id": 786, data: "second record" });
 			})
 			.delay(100)
 			.then(() => {
 				expect(FLOW).toEqual([
-					{"id": 123, data: "first record"},
-					{"id": 786, data: "second record"}
+					{ "id": 123, data: "first record" },
+					{ "id": 786, data: "second record" }
 				]);
 				stream.emit("end");
 			})
 			.delay(100)
 			.then(() => {
 				expect(FLOW).toEqual([
-					{"id": 123, data: "first record"},
-					{"id": 786, data: "second record"},
+					{ "id": 123, data: "first record" },
+					{ "id": 786, data: "second record" },
 					"<END>"
 				]);
 			});
@@ -393,18 +393,18 @@ describe("Test to send stream in objectMode as ctx.param", () => {
 		return b1.Promise.resolve()
 			.then(() => b1.call("data.store", stream))
 			.then(res => expect(res).toBe("OK"))
-			.then(() => stream.push({"id": 123, data: "first record"}))
+			.then(() => stream.push({ "id": 123, data: "first record" }))
 			.delay(100)
 			.then(() => {
 				expect(FLOW).toEqual([
-					{"id": 123, data: "first record"}
+					{ "id": 123, data: "first record" }
 				]);
 				stream.emit("error", new Error("Something happened"));
 			})
 			.delay(100)
 			.then(() => {
 				expect(FLOW).toEqual([
-					{"id": 123, data: "first record"},
+					{ "id": 123, data: "first record" },
 					"<ERROR:Something happened>",
 					"<END>"
 				]);
@@ -457,27 +457,27 @@ describe("Test to receive a stream in objectMode as response", () => {
 				res.on("error", err => FLOW.push("<ERROR:" + err.message + ">"));
 				res.on("end", () => FLOW.push("<END>"));
 			})
-			.then(() => stream.push({"id": 123, data: "first record"}))
+			.then(() => stream.push({ "id": 123, data: "first record" }))
 			.delay(100)
 			.then(() => {
 				expect(FLOW).toEqual([
-					{"id": 123, data: "first record"}
+					{ "id": 123, data: "first record" }
 				]);
-				stream.push({"id": 786, data: "second record"});
+				stream.push({ "id": 786, data: "second record" });
 			})
 			.delay(100)
 			.then(() => {
 				expect(FLOW).toEqual([
-					{"id": 123, data: "first record"},
-					{"id": 786, data: "second record"}
+					{ "id": 123, data: "first record" },
+					{ "id": 786, data: "second record" }
 				]);
 				stream.emit("end");
 			})
 			.delay(100)
 			.then(() => {
 				expect(FLOW).toEqual([
-					{"id": 123, data: "first record"},
-					{"id": 786, data: "second record"},
+					{ "id": 123, data: "first record" },
+					{ "id": 786, data: "second record" },
 					"<END>"
 				]);
 			});
@@ -494,18 +494,18 @@ describe("Test to receive a stream in objectMode as response", () => {
 				res.on("error", err => FLOW.push("<ERROR:" + err.message + ">"));
 				res.on("end", () => FLOW.push("<END>"));
 			})
-			.then(() => stream.push({"id": 123, data: "first record"}))
+			.then(() => stream.push({ "id": 123, data: "first record" }))
 			.delay(100)
 			.then(() => {
 				expect(FLOW).toEqual([
-					{"id": 123, data: "first record"}
+					{ "id": 123, data: "first record" }
 				]);
 				stream.emit("error", new Error("Something happened"));
 			})
 			.delay(100)
 			.then(() => {
 				expect(FLOW).toEqual([
-					{"id": 123, data: "first record"},
+					{ "id": 123, data: "first record" },
 					"<ERROR:Something happened>",
 					"<END>"
 				]);
@@ -534,14 +534,14 @@ describe("Test duplex streaming, result in objectMode", () => {
 		name: "csv",
 		actions: {
 			parse(ctx) {
-		                const pass = new Stream.Readable({
+				const pass = new Stream.Readable({
 					objectMode: true,
-		                        read() {}
+					read() {}
 				});
 
 				// this fake parser only works if each chunk is exactly one line
 				let line=0;
-				ctx.params.on("data", msg => pass.push({line:++line,data:msg.toString().split(";")}));
+				ctx.params.on("data", msg => pass.push({ line: ++line, data: msg }));
 				ctx.params.on("end", () => pass.emit("end"));
 				ctx.params.on("error", err => pass.emit("error", err));
 				return pass;
@@ -555,6 +555,7 @@ describe("Test duplex streaming, result in objectMode", () => {
 	it("should send & receive stream in objectMode", () => {
 		const FLOW = [];
 		const stream = new Stream.Readable({
+			objectMode: true,
 			read() {}
 		});
 
@@ -567,27 +568,27 @@ describe("Test duplex streaming, result in objectMode", () => {
 				res.on("error", err => FLOW.push("<ERROR:" + err.message + ">"));
 				res.on("end", () => FLOW.push("<END>"));
 			})
-			.then(() => stream.push("123;first record"))
+			.then(() => stream.push({ "id": 123, data: "first record" }))
 			.delay(100)
 			.then(() => {
 				expect(FLOW).toEqual([
-					{line: 1, data: ["123","first record"]}
+					{ line: 1, data: { "id": 123, data: "first record" } }
 				]);
-				stream.push(Buffer.from("786;second record"));
+				stream.push({ "id": 786, data: "second record" });
 			})
 			.delay(100)
 			.then(() => {
 				expect(FLOW).toEqual([
-					{line: 1, data: ["123","first record"]},
-					{line: 2, data: ["786","second record"]}
+					{ line: 1, data: { "id": 123, data: "first record" } },
+					{ line: 2, data: { "id": 786, data: "second record" } }
 				]);
 				stream.emit("end");
 			})
 			.delay(100)
 			.then(() => {
 				expect(FLOW).toEqual([
-					{line: 1, data: ["123","first record"]},
-					{line: 2, data: ["786","second record"]},
+					{ line: 1, data: { "id": 123, data: "first record" } },
+					{ line: 2, data: { "id": 786, data: "second record" } },
 					"<END>"
 				]);
 			});
@@ -596,29 +597,30 @@ describe("Test duplex streaming, result in objectMode", () => {
 	it("should receive stream in objectMode & handle error", () => {
 		const FLOW = [];
 		const stream = new Stream.Readable({
+			objectMode: true,
 			read() {}
 		});
 		return b1.Promise.resolve()
 			.then(() => b1.call("csv.parse", stream))
 			.then(res => {
 				expect(res).toBeInstanceOf(Stream.Readable);
-                                expect(res.readableObjectMode === true || (res._readableState && res._readableState.objectMode === true)).toBe(true);
+				expect(res.readableObjectMode === true || (res._readableState && res._readableState.objectMode === true)).toBe(true);
 				res.on("data", msg => FLOW.push(msg));
 				res.on("error", err => FLOW.push("<ERROR:" + err.message + ">"));
 				res.on("end", () => FLOW.push("<END>"));
 			})
-			.then(() => stream.push("123;first record"))
+			.then(() => stream.push({ "id": 123, data: "first record" }))
 			.delay(100)
 			.then(() => {
 				expect(FLOW).toEqual([
-					{line: 1, data: ["123","first record"]}
+					{ line: 1, data: { "id": 123, data: "first record" } }
 				]);
 				stream.emit("error", new Error("Something happened"));
 			})
 			.delay(100)
 			.then(() => {
 				expect(FLOW).toEqual([
-					{line: 1, data: ["123","first record"]},
+					{ line: 1, data: { "id": 123, data: "first record" } },
 					"<ERROR:Something happened>",
 					"<END>"
 				]);

@@ -462,7 +462,7 @@ class Transit {
 
 			// Create a new pass stream
 			pass = new Transform({
-			        objectMode: payload.meta && payload.meta["$streamObjectMode"],
+				objectMode: payload.meta && payload.meta["$streamObjectMode"],
 				transform: function(chunk, encoding, done) {
 					this.push(chunk);
 					return done();
@@ -609,7 +609,7 @@ class Transit {
 			this.logger.debug(`<= New stream is received from '${packet.sender}'. Seq: ${packet.seq}`);
 
 			pass = new Transform({
-			        objectMode: packet.meta && packet.meta["$streamObjectMode"],
+				objectMode: packet.meta && packet.meta["$streamObjectMode"],
 				transform: function(chunk, encoding, done) {
 					this.push(chunk);
 					return done();
@@ -738,9 +738,9 @@ class Transit {
 		};
 
 		if (payload.stream) {
-		        if (ctx.params.readableObjectMode === true || (ctx.params._readableState && ctx.params._readableState.objectMode === true)) {
+			if (ctx.params.readableObjectMode === true || (ctx.params._readableState && ctx.params._readableState.objectMode === true)) {
 				payload.meta = payload.meta || {};
-			        payload.meta["$streamObjectMode"] = true;
+				payload.meta["$streamObjectMode"] = true;
 			}
 			payload.seq = 0;
 		}
