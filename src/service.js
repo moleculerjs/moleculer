@@ -268,7 +268,7 @@ class Service {
 			.then(() => {
 				return this.broker.callMiddlewareHook("serviceStarted", [this]);
 			})
-			.then(() => this.logger.debug(`Service '${this.fullName}' started.`));
+			.then(() => this.logger.info(`Service '${this.fullName}' started.`));
 	}
 
 	/**
@@ -300,7 +300,7 @@ class Service {
 			.then(() => {
 				return this.broker.callMiddlewareHook("serviceStopped", [this], { reverse: true });
 			})
-			.then(() => this.logger.debug(`Service '${this.fullName}' stopped.`));
+			.then(() => this.logger.info(`Service '${this.fullName}' stopped.`));
 	}
 
 	/**

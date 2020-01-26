@@ -142,12 +142,15 @@ class EventCatalog {
 	 * @param {Array<String>?} groupNames
 	 * @param {String} nodeID
 	 * @param {boolean} broadcast
+	 * @returns {Promise<any>}
 	 *
 	 * @memberof EventCatalog
 	 */
 	emitLocalServices(ctx) {
 		const isBroadcast = ["broadcast", "broadcastLocal"].indexOf(ctx.eventType) !== -1;
 		const sender = ctx.nodeID;
+
+		const promises = [];
 
 		this.events.forEach(list => {
 			if (!utils.match(ctx.eventName, list.name)) return;
@@ -157,7 +160,7 @@ class EventCatalog {
 						if (ep.local && ep.event.handler) {
 							const newCtx = ctx.copy(ep);
 							newCtx.nodeID = sender;
-							this.callEventHandler(newCtx);
+							promises.push(this.callEventHandler(newCtx));
 						}
 					});
 				} else {
@@ -165,11 +168,13 @@ class EventCatalog {
 					if (ep && ep.event.handler) {
 						const newCtx = ctx.copy(ep);
 						newCtx.nodeID = sender;
-						this.callEventHandler(newCtx);
+						promises.push(this.callEventHandler(newCtx));
 					}
 				}
 			}
 		});
+
+		return this.broker.Promise.all(promises);
 	}
 
 	/**

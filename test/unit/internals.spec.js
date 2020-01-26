@@ -1,5 +1,6 @@
 "use strict";
 
+const _ = require("lodash");
 const ServiceBroker = require("../../src/service-broker");
 const { MoleculerClientError } = require("../../src/errors");
 const { protectReject } = require("./utils");
@@ -57,7 +58,10 @@ describe("Test health status methods", () => {
 
 	it("should return broker.options", () => {
 		return broker.call("$node.options").catch(protectReject).then(res => {
-			expect(res).toEqual(broker.options);
+			const opts = _.cloneDeep(broker.options);
+			delete opts.circuitBreaker.check;
+			delete opts.retryPolicy.check;
+			expect(res).toEqual(opts);
 		});
 	});
 

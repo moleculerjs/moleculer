@@ -348,8 +348,8 @@ class Context {
 	 *
 	 * @param {string} eventName
 	 * @param {any?} payload
-	 * @param {Object?} groups
-	 * @returns
+	 * @param {Object?} opts
+	 * @returns {Promise}
 	 *
 	 * @example
 	 * ctx.emit("user.created", { entity: user, creator: ctx.meta.user });
@@ -374,8 +374,8 @@ class Context {
 	 *
 	 * @param {string} eventName
 	 * @param {any?} payload
-	 * @param {Object?} groups
-	 * @returns
+	 * @param {Object?} opts
+	 * @returns {Promise}
 	 *
 	 * @example
 	 * ctx.broadcast("user.created", { entity: user, creator: ctx.meta.user });

@@ -1976,7 +1976,7 @@ describe("Test broker.callWithoutBalancer", () => {
 			expect(ctx.nodeID).toBe("node-11");
 			expect(ctx.level).toBe(1);
 			expect(ctx.action.name).toBe("posts.find");
-			expect(ctx.params).toEqual(null);
+			expect(ctx.params).toEqual({});
 
 			expect(action.remoteHandler).toHaveBeenCalledTimes(1);
 			expect(action.remoteHandler).toHaveBeenCalledWith(ctx);
@@ -2018,7 +2018,7 @@ describe("Test broker.callWithoutBalancer", () => {
 			expect(ctx.nodeID).toBe(null);
 			expect(ctx.level).toBe(1);
 			expect(ctx.action.name).toBe("posts.find");
-			expect(ctx.params).toEqual(null);
+			expect(ctx.params).toEqual({});
 
 			expect(action.remoteHandler).toHaveBeenCalledTimes(1);
 			expect(action.remoteHandler).toHaveBeenCalledWith(ctx);

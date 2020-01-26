@@ -6,8 +6,8 @@
 
 "use strict";
 
-const _ = require("lodash");
 const { MoleculerClientError } = require("./errors");
+const utils = require("./utils");
 
 module.exports = function() {
 	const schema = {
@@ -83,7 +83,7 @@ module.exports = function() {
 				tracing: false,
 				params: {},
 				handler() {
-					return _.cloneDeep(this.broker.options);
+					return utils.safetyObject(this.broker.options);
 				}
 			},
 
