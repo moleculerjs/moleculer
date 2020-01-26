@@ -1894,6 +1894,33 @@ describe("Test events", () => {
 });
 ```
 
+## Stream `objectMode` support
+Thanks for [@artur-krueger](https://github.com/artur-krueger), the request & response streams support `objectMode`, as well. You can also send Javascript objects via streams.
+
+**Example**
+
+```js
+// posts.service.js
+module.exports = {
+    name: "posts",
+
+    actions: {
+        list(ctx) {
+            const pass = new Stream.Readable({
+                objectMode: true,
+                read() {}
+            });
+
+            pass.push({ id: 1, title: "First post" });
+            pass.push({ id: 2, title: "Second post" });
+            pass.push({ id: 3, title: "Third post" });
+            
+            return pass;
+        }
+    }
+};
+```
+
 # Other notable changes
 - Kafka transporter upgrade to support kafka-node@5.
 - rename `ctx.metrics` to `ctx.tracing`.
@@ -1903,6 +1930,11 @@ describe("Test events", () => {
 - new `ctx.locals` property to store local variables in hooks or actions.
 - Context tracking watches local event handlers, as well.
 - new `ctx.mcall` method to make multiple calls.
+- new `withEvents & grouping` parameters for `$node.services` action.
+- `$node` internal service parameters has default value & conversion.
+- the Promise chaining improved in event emitting methods.
+- the heartbeat logic can be disabled by `heartbeatInterval: 0` broker option.
+- in Service instances the original schema (before applying mixins) is available via `this.originalSchema`.
 
 --------------------------------------------------
 <a name="0.13.12"></a>

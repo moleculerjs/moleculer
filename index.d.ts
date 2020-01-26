@@ -606,6 +606,7 @@ declare namespace Moleculer {
 		metadata: GenericObject;
 		dependencies: string | GenericObject | Array<string> | Array<GenericObject>;
 		schema: ServiceSchema<S>;
+		originalSchema: ServiceSchema<S>;
 		broker: ServiceBroker;
 		logger: LoggerInstance;
 		actions: ServiceActions;
@@ -1233,7 +1234,7 @@ declare namespace Moleculer {
 		makeSubscriptions(): PromiseLike<Array<void>>;
 		messageHandler(cmd: string, msg: GenericObject): boolean | PromiseLike<void> | undefined;
 		request(ctx: Context): PromiseLike<void>;
-		sendEvent(ctx: Context): void;
+		sendEvent(ctx: Context): PromiseLike<void>;
 		removePendingRequest(id: string): void;
 		removePendingRequestByNodeID(nodeID: string): void;
 		sendResponse(nodeID: string, id: string, data: GenericObject, err: Error): PromiseLike<void>;
