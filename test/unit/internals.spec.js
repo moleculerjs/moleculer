@@ -19,61 +19,12 @@ describe("Test health status methods", () => {
 	});
 
 	it("should call getServiceList", () => {
-		broker.registry.getServiceList = jest.fn(() => [
-			{
-				name: "users",
-				nodeID: "node-1",
-				actions: {
-					find() {},
-					get() {},
-					protected: { protected: true }
-				}
-			},
-			{
-				name: "users",
-				nodeID: "node-2",
-				actions: {
-					find() {},
-					get() {},
-					login: {
-						protected: true
-					},
-					logout: {}
-				}
-			},
-			{
-				name: "posts",
-				version: 2,
-				nodeID: "node-3",
-				actions: {
-					find() {},
-					get() {}
-				}
-			},
-		]);
+		broker.registry.getServiceList = jest.fn();
 
 		let opts = { skipInternal: true, withActions: true };
 		return broker.call("$node.services", opts).catch(protectReject).then(res => {
 			expect(broker.registry.getServiceList).toHaveBeenCalledTimes(1);
-			expect(broker.registry.getServiceList).toHaveBeenCalledWith(opts);
-
-			expect(res).toEqual([{
-				"actions": {
-					"find": {},
-					"get": {},
-					"logout": {}
-				},
-				"name": "users",
-				"nodes": ["node-1", "node-2"]
-			}, {
-				"actions": {
-					"find": {},
-					"get": {}
-				},
-				"name": "posts",
-				"nodes": ["node-3"],
-				"version": 2
-			}]);
+			expect(broker.registry.getServiceList).toHaveBeenCalledWith({ grouping: true, onlyAvailable: false, onlyLocal: false, skipInternal: true, withActions: true, withEvents: false });
 		});
 	});
 
@@ -83,7 +34,7 @@ describe("Test health status methods", () => {
 		let opts = { skipInternal: true };
 		return broker.call("$node.actions", opts).catch(protectReject).then(() => {
 			expect(broker.registry.getActionList).toHaveBeenCalledTimes(1);
-			expect(broker.registry.getActionList).toHaveBeenCalledWith(opts);
+			expect(broker.registry.getActionList).toHaveBeenCalledWith({ skipInternal: true, onlyAvailable: false, onlyLocal: false, withEndpoints: false });
 		});
 	});
 
@@ -93,7 +44,7 @@ describe("Test health status methods", () => {
 		let opts = { skipInternal: true };
 		return broker.call("$node.events", opts).catch(protectReject).then(() => {
 			expect(broker.registry.getEventList).toHaveBeenCalledTimes(1);
-			expect(broker.registry.getEventList).toHaveBeenCalledWith(opts);
+			expect(broker.registry.getEventList).toHaveBeenCalledWith({ skipInternal: true, onlyAvailable: false, onlyLocal: false, withEndpoints: false });
 		});
 	});
 
@@ -117,7 +68,7 @@ describe("Test health status methods", () => {
 
 		return broker.call("$node.metrics", opts).catch(protectReject).then(() => {
 			expect(broker.metrics.list).toHaveBeenCalledTimes(1);
-			expect(broker.metrics.list).toHaveBeenCalledWith(opts);
+			expect(broker.metrics.list).toHaveBeenCalledWith({ includes: "moleculer.**", excludes: ["process.**"], types: "info" });
 		});
 	});
 

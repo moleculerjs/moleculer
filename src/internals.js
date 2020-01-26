@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -18,8 +18,8 @@ module.exports = function() {
 				cache: false,
 				tracing: false,
 				params: {
-					withServices: { type: "boolean", optional: true, convert: true },
-					onlyAvailable: { type: "boolean", optional: true, convert: true },
+					withServices: { type: "boolean", optional: true, convert: true, default: false },
+					onlyAvailable: { type: "boolean", optional: true, convert: true, default: false },
 				},
 				handler(ctx) {
 					return this.broker.registry.getNodeList(ctx.params);
@@ -30,43 +30,15 @@ module.exports = function() {
 				cache: false,
 				tracing: false,
 				params: {
-					onlyLocal: { type: "boolean", optional: true, convert: true },
-					skipInternal: { type: "boolean", optional: true, convert: true },
-					withActions: { type: "boolean", optional: true, convert: true },
-					onlyAvailable: { type: "boolean", optional: true, convert: true },
+					onlyLocal: { type: "boolean", optional: true, convert: true, default: false },
+					skipInternal: { type: "boolean", optional: true, convert: true, default: false },
+					withActions: { type: "boolean", optional: true, convert: true, default: false },
+					withEvents: { type: "boolean", optional: true, convert: true, default: false },
+					onlyAvailable: { type: "boolean", optional: true, convert: true, default: false },
+					grouping: { type: "boolean", optional: true, convert: true, default: true },
 				},
 				handler(ctx) {
-					let res = [];
-
-					const services = this.broker.registry.getServiceList(ctx.params);
-
-					// Pre-process list, group services by nodes.
-					services.forEach(svc => {
-						let item = res.find(o => o.name == svc.name && o.version == svc.version);
-						if (item) {
-							item.nodes.push(svc.nodeID);
-							// Merge services
-							_.forIn(svc.actions, (action, name) => {
-								if (action.protected === true) return;
-
-								if (!item.actions[name])
-									item.actions[name] = _.omit(action, ["handler", "service"]);
-							});
-
-						} else {
-							item = _.pick(svc, ["name", "fullName", "version", "settings", "metadata", "local", "available"]);
-							item.nodes = [svc.nodeID];
-							item.actions = {};
-							_.forIn(svc.actions, (action, name) => {
-								if (action.protected === true) return;
-
-								item.actions[name] = _.omit(action, ["handler", "service"]);
-							});
-							res.push(item);
-						}
-					});
-
-					return res;
+					return this.broker.registry.getServiceList(ctx.params);
 				}
 			},
 
@@ -74,10 +46,10 @@ module.exports = function() {
 				cache: false,
 				tracing: false,
 				params: {
-					onlyLocal: { type: "boolean", optional: true, convert: true },
-					skipInternal: { type: "boolean", optional: true, convert: true },
-					withEndpoints: { type: "boolean", optional: true, convert: true },
-					onlyAvailable: { type: "boolean", optional: true, convert: true },
+					onlyLocal: { type: "boolean", optional: true, convert: true, default: false },
+					skipInternal: { type: "boolean", optional: true, convert: true, default: false },
+					withEndpoints: { type: "boolean", optional: true, convert: true, default: false },
+					onlyAvailable: { type: "boolean", optional: true, convert: true, default: false },
 				},
 				handler(ctx) {
 					return this.broker.registry.getActionList(ctx.params);
@@ -88,10 +60,10 @@ module.exports = function() {
 				cache: false,
 				tracing: false,
 				params: {
-					onlyLocal: { type: "boolean", optional: true, convert: true },
-					skipInternal: { type: "boolean", optional: true, convert: true },
-					withEndpoints: { type: "boolean", optional: true, convert: true },
-					onlyAvailable: { type: "boolean", optional: true, convert: true },
+					onlyLocal: { type: "boolean", optional: true, convert: true, default: false },
+					skipInternal: { type: "boolean", optional: true, convert: true, default: false },
+					withEndpoints: { type: "boolean", optional: true, convert: true, default: false },
+					onlyAvailable: { type: "boolean", optional: true, convert: true, default: false },
 				},
 				handler(ctx) {
 					return this.broker.registry.getEventList(ctx.params);
@@ -109,8 +81,7 @@ module.exports = function() {
 			options: {
 				cache: false,
 				tracing: false,
-				params: {
-				},
+				params: {},
 				handler() {
 					return _.cloneDeep(this.broker.options);
 				}

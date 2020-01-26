@@ -87,7 +87,6 @@ describe("Test internal services", () => {
 	it("should return service list", () => {
 		return broker.call("$node.services").then(res => {
 			expect(res).toEqual([{
-				"actions": {},
 				"name": "$node",
 				"nodes": ["node-master"],
 				"settings": {},
@@ -97,7 +96,6 @@ describe("Test internal services", () => {
 				"local": true,
 				"available": true
 			}, {
-				"actions": {},
 				"name": "greeter",
 				"nodes": ["node-master"],
 				"settings": {
@@ -111,7 +109,6 @@ describe("Test internal services", () => {
 				"local": true,
 				"available": true
 			}, {
-				"actions": {},
 				"name": "echo",
 				"nodes": ["node-master"],
 				"settings": {},
@@ -188,12 +185,14 @@ describe("Test internal services", () => {
 						"onlyAvailable": {
 							"optional": true,
 							"type": "boolean",
-							"convert": true
+							"convert": true,
+							"default": false
 						},
 						"withServices": {
 							"optional": true,
 							"type": "boolean",
-							"convert": true
+							"convert": true,
+							"default": false
 						}
 					}
 				},
@@ -211,22 +210,38 @@ describe("Test internal services", () => {
 						"onlyLocal": {
 							"optional": true,
 							"type": "boolean",
-							"convert": true
+							"convert": true,
+							"default": false
 						},
 						"onlyAvailable": {
 							"optional": true,
 							"type": "boolean",
-							"convert": true
+							"convert": true,
+							"default": false
 						},
 						"skipInternal": {
 							"optional": true,
 							"type": "boolean",
-							"convert": true
+							"convert": true,
+							"default": false
 						},
 						"withActions": {
 							"optional": true,
 							"type": "boolean",
-							"convert": true
+							"convert": true,
+							"default": false
+						},
+						"withEvents": {
+							"optional": true,
+							"type": "boolean",
+							"convert": true,
+							"default": false
+						},
+						"grouping": {
+							"optional": true,
+							"type": "boolean",
+							"convert": true,
+							"default": true
 						}
 					}
 				},
@@ -244,22 +259,26 @@ describe("Test internal services", () => {
 						"onlyLocal": {
 							"optional": true,
 							"type": "boolean",
-							"convert": true
+							"convert": true,
+							"default": false
 						},
 						"onlyAvailable": {
 							"optional": true,
 							"type": "boolean",
-							"convert": true
+							"convert": true,
+							"default": false
 						},
 						"skipInternal": {
 							"optional": true,
 							"type": "boolean",
-							"convert": true
+							"convert": true,
+							"default": false
 						},
 						"withEndpoints": {
 							"optional": true,
 							"type": "boolean",
-							"convert": true
+							"convert": true,
+							"default": false
 						}
 					}
 				},
@@ -277,22 +296,26 @@ describe("Test internal services", () => {
 						"onlyLocal": {
 							"optional": true,
 							"type": "boolean",
-							"convert": true
+							"convert": true,
+							"default": false
 						},
 						"onlyAvailable": {
 							"optional": true,
 							"type": "boolean",
-							"convert": true
+							"convert": true,
+							"default": false
 						},
 						"skipInternal": {
 							"optional": true,
 							"type": "boolean",
-							"convert": true
+							"convert": true,
+							"default": false
 						},
 						"withEndpoints": {
 							"optional": true,
 							"type": "boolean",
-							"convert": true
+							"convert": true,
+							"default": false
 						}
 					}
 				},
