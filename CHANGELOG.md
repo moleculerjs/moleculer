@@ -8,7 +8,7 @@
 # Breaking changes
 
 ## Minimum Node version is 10
-The Node version 6 & 8 LTS lifecycle has been ended on December 31, 2019, so the minimum required Node version is 10.
+The Node version 8 LTS lifecycle has been ended on December 31, 2019, so the minimum required Node version is 10.
 
 ## Bluebird dropped
 The Bluebird Promise library has been dropped from the project because as of Node 10 the native `Promise` implementation is [faster (2x)](https://github.com/icebob/js-perf-benchmark/blob/95803284dcb46c403eb71f2f114b76bf669189ce/suites/promise.js#L123-L133) than Bluebird.

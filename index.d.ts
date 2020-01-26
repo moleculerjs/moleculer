@@ -395,7 +395,13 @@ declare namespace Moleculer {
 		};
 	}
 
-	type ActionVisibility = "published" | "public" | "protected" | "private"
+	type ActionVisibility = "published" | "public" | "protected" | "private";
+
+	interface ActionHooks {
+		before?: (ctx: Context<any, any>) => PromiseLike<void> | void;
+		after?: (ctx: Context<any, any>, res: any) => PromiseLike<any> | any;
+		error?: (ctx: Context<any, any>, err: Error) => PromiseLike<void> | void;
+	}
 
 	interface ActionSchema {
 		name?: string;
@@ -409,6 +415,7 @@ declare namespace Moleculer {
 		circuitBreaker?: BrokerCircuitBreakerOptions;
 		retryPolicy?: RetryPolicyOptions;
 		fallback?: string | FallbackHandler;
+		hooks?: ActionHooks;
 
 		[key: string]: any;
 	}
@@ -570,6 +577,18 @@ declare namespace Moleculer {
 		wrapMethod(method: string, handler: ActionHandler, bindTo: any, opts: MiddlewareCallHandlerOptions): typeof handler;
 	}
 
+	interface ServiceHooks {
+		before?: {
+			[key: string]: (ctx: Context<any, any>) => PromiseLike<void> | void
+		},
+		after?: {
+			[key: string]: (ctx: Context<any, any>, res: any) => PromiseLike<any> | any
+		},
+		error?: {
+			[key: string]: (ctx: Context<any, any>, err: Error) => PromiseLike<void> | void
+		},
+	}
+
 	interface ServiceSchema<S = ServiceSettingSchema> {
 		name: string;
 		version?: string | number;
@@ -579,6 +598,7 @@ declare namespace Moleculer {
 		actions?: ServiceActionsSchema;
 		mixins?: Array<ServiceSchema>;
 		methods?: ServiceMethods;
+		hooks?: ServiceHooks;
 
 		events?: ServiceEvents;
 		created?: (() => void) | Array<() => void>;

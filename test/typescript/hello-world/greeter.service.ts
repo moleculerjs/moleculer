@@ -13,6 +13,13 @@ export default class GreeterService extends Service {
 
 		this.parseServiceSchema({
 			name: "greeter",
+			hooks: {
+				before: {
+					welcome(ctx: Context<GreeterWelcomeParams>) {
+						ctx.params.name = ctx.params.name.toUpperCase();
+					}
+				}
+			},
 			actions: {
 				hello: this.hello,
 				welcome: this.welcome
@@ -35,6 +42,6 @@ export default class GreeterService extends Service {
 	 * @param {String} name - User name
 	 */
 	welcome(ctx: Context<GreeterWelcomeParams>) {
-		return `Welcome, ${ctx.params ? ctx.params.name : "Anonymous"}!`;
+		return `Welcome, ${ctx.params.name}!`;
 	}
 };

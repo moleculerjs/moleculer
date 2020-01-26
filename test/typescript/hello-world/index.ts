@@ -31,7 +31,7 @@ broker.loadService(path.join(__dirname, "greeter.service.ts"));
 		broker.logger.info("");
 		broker.logger.info("Result: ", res);
 		broker.logger.info("");
-		if (res != "Welcome, Typescript!")
+		if (res != "Welcome, TYPESCRIPT!")
 			throw new Error("Result is mismatch!");
 		else
 			await broker.stop();
