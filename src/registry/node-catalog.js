@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2018 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -52,30 +52,29 @@ class NodeCatalog {
 	 * @memberof NodeCatalog
 	 */
 	startHeartbeatTimers() {
-		/* istanbul ignore next */
-		this.heartbeatTimer = setInterval(() => {
-			this.localNode.updateLocalInfo(this.broker.getCpuUsage).then(() => {
-				if (this.broker.transit)
-					this.broker.transit.sendHeartbeat(this.localNode);
-			});
+		if (this.broker.options.heartbeatInterval > 0) {
+			/* istanbul ignore next */
+			this.heartbeatTimer = setInterval(() => {
+				this.localNode.updateLocalInfo(this.broker.getCpuUsage).then(() => {
+					if (this.broker.transit)
+						this.broker.transit.sendHeartbeat(this.localNode);
+				});
 
-		}, this.broker.options.heartbeatInterval * 1000);
+			}, this.broker.options.heartbeatInterval * 1000);
+			this.heartbeatTimer.unref();
 
-		if (typeof this.heartbeatTimer === "number") throw new Error("heartbeatTimer should not be a number. See issue [#362] for details.");
+			/* istanbul ignore next */
+			this.checkNodesTimer = setInterval(() => {
+				this.checkRemoteNodes();
+			}, this.broker.options.heartbeatTimeout * 1000);
+			this.checkNodesTimer.unref();
 
-		this.heartbeatTimer.unref();
-
-		/* istanbul ignore next */
-		this.checkNodesTimer = setInterval(() => {
-			this.checkRemoteNodes();
-		}, this.broker.options.heartbeatTimeout * 1000);
-		this.checkNodesTimer.unref();
-
-		/* istanbul ignore next */
-		this.offlineTimer = setInterval(() => {
-			this.checkOfflineNodes();
-		}, 30 * 1000); // 30 secs
-		this.offlineTimer.unref();
+			/* istanbul ignore next */
+			this.offlineTimer = setInterval(() => {
+				this.checkOfflineNodes();
+			}, 30 * 1000); // 30 secs
+			this.offlineTimer.unref();
+		}
 	}
 
 	/**
