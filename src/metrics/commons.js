@@ -256,7 +256,7 @@ function updateCommonMetrics() {
 	// this.increment(METRIC.MOLECULER_METRICS_COMMON_COLLECT_TOTAL);
 	const duration = end();
 
-	return Promise.resolve() // TODO broker.Promise
+	return this.broker.Promise.resolve()
 		.then(() => cpuUsage().then(res => {
 			this.set(METRIC.OS_CPU_UTILIZATION, res.avg);
 

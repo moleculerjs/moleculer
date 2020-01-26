@@ -47,7 +47,6 @@ class Tracer {
 			},
 
 			actions: true,
-			// methods: false, // TODO: not implemented yet
 			events: false,
 
 			errorFields: ["name", "message", "code", "type", "data"],
