@@ -462,6 +462,7 @@ class Transit {
 
 			// Create a new pass stream
 			pass = new Transform({
+				objectMode: payload.meta && payload.meta["$streamObjectMode"],
 				transform: function(chunk, encoding, done) {
 					this.push(chunk);
 					return done();
@@ -608,6 +609,7 @@ class Transit {
 			this.logger.debug(`<= New stream is received from '${packet.sender}'. Seq: ${packet.seq}`);
 
 			pass = new Transform({
+				objectMode: packet.meta && packet.meta["$streamObjectMode"],
 				transform: function(chunk, encoding, done) {
 					this.push(chunk);
 					return done();
@@ -736,6 +738,10 @@ class Transit {
 		};
 
 		if (payload.stream) {
+			if (ctx.params.readableObjectMode === true || (ctx.params._readableState && ctx.params._readableState.objectMode === true)) {
+				payload.meta = payload.meta || {};
+				payload.meta["$streamObjectMode"] = true;
+			}
 			payload.seq = 0;
 		}
 
@@ -755,6 +761,10 @@ class Transit {
 				if (isStream) {
 					// Skip to send ctx.meta with chunks because it doesn't appear on the remote side.
 					payload.meta = {};
+					// Still send information about objectMode in case of packets are received in wrong order
+					if (ctx.params.readableObjectMode === true || (ctx.params._readableState && ctx.params._readableState.objectMode === true)) {
+						payload.meta["$streamObjectMode"] = true;
+					}
 
 					const stream = ctx.params;
 					stream.on("data", chunk => {
@@ -921,6 +931,10 @@ class Transit {
 		if (data && data.readable === true && typeof data.on === "function" && typeof data.pipe === "function") {
 			// Streaming response
 			payload.stream = true;
+			if (data.readableObjectMode === true || (data._readableState && data._readableState.objectMode === true)) {
+				payload.meta = payload.meta || {};
+				payload.meta["$streamObjectMode"] = true;
+			}
 			payload.seq = 0;
 
 			const stream = data;

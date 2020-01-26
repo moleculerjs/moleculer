@@ -1612,6 +1612,105 @@ describe("Test Transit._sendRequest", () => {
 			});
 		});
 
+		it("should send stream objects", () => {
+			transit.publish.mockClear();
+
+			let stream = new Stream.Readable({
+				objectMode: true,
+				read() {}
+			});
+			ctx.params = stream;
+
+			return transit._sendRequest(ctx, resolve, reject).catch(protectReject).then(() => {
+				expect(transit.publish).toHaveBeenCalledTimes(1);
+				expect(transit.publish).toHaveBeenCalledWith({
+					type: "REQ",
+					target: "remote",
+					payload: {
+						action: "users.find",
+						id: "12345",
+						level: 1,
+						meta: { $streamObjectMode: true },
+						tracing: null,
+						params: null,
+						parentID: null,
+						requestID: "req-12345",
+						caller: null,
+						seq: 0,
+						stream: true,
+						timeout: null
+					}
+				});
+
+				transit.publish.mockClear();
+				stream.push({id:0});
+				stream.push({id:1});
+			}).delay(100).then(() => {
+
+				expect(transit.publish).toHaveBeenCalledTimes(2);
+				expect(transit.publish).toHaveBeenCalledWith({
+					type: "REQ",
+					target: "remote",
+					payload: {
+						action: "users.find",
+						id: "12345",
+						level: 1,
+						meta: { $streamObjectMode: true },
+						tracing: null,
+						params: {id:0},
+						parentID: null,
+						requestID: "req-12345",
+						caller: null,
+						seq: 1,
+						stream: true,
+						timeout: null
+					}
+				});
+
+				expect(transit.publish).toHaveBeenCalledWith({
+					type: "REQ",
+					target: "remote",
+					payload: {
+						action: "users.find",
+						id: "12345",
+						level: 1,
+						meta: { $streamObjectMode: true },
+						tracing: null,
+						params: {id:1},
+						parentID: null,
+						requestID: "req-12345",
+						caller: null,
+						seq: 2,
+						stream: true,
+						timeout: null
+					}
+				});
+
+				transit.publish.mockClear();
+				stream.emit("end");
+			}).delay(100).then(() => {
+
+				expect(transit.publish).toHaveBeenCalledWith({
+					type: "REQ",
+					target: "remote",
+					payload: {
+						action: "users.find",
+						id: "12345",
+						level: 1,
+						meta: { $streamObjectMode: true },
+						tracing: null,
+						params: null,
+						parentID: null,
+						requestID: "req-12345",
+						caller: null,
+						seq: 3,
+						stream: false,
+						timeout: null
+					}
+				});
+			});
+		});
+
 	});
 
 });
