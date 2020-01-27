@@ -618,6 +618,8 @@ describe("Test Service class", () => {
 				expect(this).toBe(svc);
 				return "Hello";
 			});
+			svc.Promise.method.mockClear();
+
 			const res = svc._createAction(handler, "list");
 
 			expect(res).toEqual({
@@ -627,7 +629,9 @@ describe("Test Service class", () => {
 				service: svc
 			});
 
-			expect.assertions(3);
+			expect.assertions(4);
+
+			expect(svc.Promise.method).toBeCalledTimes(1);
 
 			return res.handler().then(res => expect(res).toBe("Hello"));
 		});
@@ -710,6 +714,183 @@ describe("Test Service class", () => {
 				handler: expect.any(Function),
 				service: svc,
 				cache: false
+			});
+		});
+	});
+
+	describe("Test _createEvent", () => {
+		const broker = new ServiceBroker({ logger: false });
+
+		const svc = new Service(broker);
+		svc.parseServiceSchema({ name: "posts", version: 2 });
+
+		jest.spyOn(svc.Promise, "method");
+
+		it("should throw error if event schema is invalid", () => {
+			expect(() => { svc._createEvent(null, "user.created"); }).toThrowError("Invalid event definition in 'user.created' event in 'v2.posts' service!");
+			expect(() => { svc._createEvent("schema", "user.created"); }).toThrowError("Invalid event definition in 'user.created' event in 'v2.posts' service!");
+		});
+
+		it("should throw error if event handler is not defined", () => {
+			expect(() => { svc._createEvent({}, "user.created"); })
+				.toThrowError("Missing event handler on 'user.created' event in 'v2.posts' service!");
+			expect(() => { svc._createEvent({ handler: null }, "user.created"); })
+				.toThrowError("Missing event handler on 'user.created' event in 'v2.posts' service!");
+			expect(() => { svc._createEvent({ handler: "wrong" }, "user.created"); })
+				.toThrowError("Missing event handler on 'user.created' event in 'v2.posts' service!");
+		});
+
+		it("should create event definition from a shorthand handler", () => {
+			const handler = jest.fn(function() {
+				expect(this).toBe(svc);
+				return "Hello";
+			});
+			const res = svc._createEvent(handler, "user.created");
+
+			expect(res).toEqual({
+				name: "user.created",
+				handler: expect.any(Function),
+				service: svc
+			});
+
+			expect.assertions(3);
+
+			return res.handler({}).then(res => expect(res).toBe("Hello"));
+		});
+
+		it("should create event definition from event schema", () => {
+			svc.Promise.method.mockClear();
+			const handler = jest.fn(function() {
+				expect(this).toBe(svc);
+				return "Hello";
+			});
+			const res = svc._createEvent({
+				name: "user.updated",
+				handler,
+				etc: "etc"
+			}, "other");
+
+			expect(res).toEqual({
+				name: "user.updated",
+				handler: expect.any(Function),
+				service: svc,
+				etc: "etc"
+			});
+
+			expect.assertions(4);
+
+			expect(svc.Promise.method).toBeCalledTimes(1);
+
+			return res.handler({}).then(res => expect(res).toBe("Hello"));
+		});
+
+		it("should create event definition with multiple handlers", () => {
+			const handler1 = jest.fn(function() {
+				expect(this).toBe(svc);
+				return "Hello1";
+			});
+			const handler2 = jest.fn(function() {
+				expect(this).toBe(svc);
+				return "Hello2";
+			});
+
+			const res = svc._createEvent({
+				handler: [handler1, handler2]
+			}, "user.updated");
+
+			expect(res).toEqual({
+				name: "user.updated",
+				handler: expect.any(Function),
+				service: svc
+			});
+
+			expect.assertions(4);
+
+			return res.handler({}).then(res => expect(res).toEqual(["Hello1", "Hello2"]));
+		});
+
+		it("should call handler with legacy arguments", () => {
+			const handler = function(payload, nodeID, eventName, ctx) {
+				expect(this).toBe(svc);
+				return { payload, nodeID, eventName, ctx };
+			};
+
+			const res = svc._createEvent({
+				handler
+			}, "user.updated");
+
+			expect.assertions(5);
+
+			const ctx = {
+				params: { a: 5 },
+				nodeID: "node-100",
+				eventName: "user.removed"
+			};
+			return res.handler(ctx).then(res => {
+				expect(res.payload).toEqual({ a: 5 });
+				expect(res.nodeID).toEqual("node-100");
+				expect(res.eventName).toEqual("user.removed");
+				expect(res.ctx).toBe(ctx);
+			});
+		});
+
+		it("should call handler with context", () => {
+			const handler = function(ctx) {
+				expect(this).toBe(svc);
+				return { ctx };
+			};
+
+			const res = svc._createEvent({
+				handler
+			}, "user.updated");
+
+			expect.assertions(5);
+
+			const ctx = {
+				params: { a: 5 },
+				nodeID: "node-100",
+				eventName: "user.removed"
+			};
+			return res.handler(ctx).then(res => {
+				expect(res.payload).toBeUndefined();
+				expect(res.nodeID).toBeUndefined();
+				expect(res.eventName).toBeUndefined();
+				expect(res.ctx).toBe(ctx);
+			});
+		});
+
+		it("should call handler with multiple times", () => {
+			const handler1 = function(ctx) {
+				expect(this).toBe(svc);
+				return { ctx };
+			};
+
+			const handler2 = function(payload, nodeID, eventName, ctx) {
+				expect(this).toBe(svc);
+				return { payload, nodeID, eventName, ctx };
+			};
+
+			const res = svc._createEvent({
+				handler: [handler1, handler2]
+			}, "user.updated");
+
+			//expect.assertions(5);
+
+			const ctx = {
+				params: { a: 5 },
+				nodeID: "node-100",
+				eventName: "user.removed"
+			};
+			return res.handler(ctx).then(([res1, res2]) => {
+				expect(res1.payload).toBeUndefined();
+				expect(res1.nodeID).toBeUndefined();
+				expect(res1.eventName).toBeUndefined();
+				expect(res1.ctx).toBe(ctx);
+
+				expect(res2.payload).toEqual({ a: 5 });
+				expect(res2.nodeID).toEqual("node-100");
+				expect(res2.eventName).toEqual("user.removed");
+				expect(res2.ctx).toBe(ctx);
 			});
 		});
 	});

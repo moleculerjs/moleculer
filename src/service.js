@@ -354,11 +354,11 @@ class Service {
 		} else if (_.isObject(eventDef)) {
 			event = _.cloneDeep(eventDef);
 		} else {
-			throw new ServiceSchemaError(`Invalid event definition in '${name}' event in '${this.name}' service!`);
+			throw new ServiceSchemaError(`Invalid event definition in '${name}' event in '${this.fullName}' service!`);
 		}
 
-		if (!event.handler) {
-			throw new ServiceSchemaError(`Missing event handler on '${name}' event in '${this.name}' service!`);
+		if (!_.isFunction(event.handler) && !Array.isArray(event.handler)) {
+			throw new ServiceSchemaError(`Missing event handler on '${name}' event in '${this.fullName}' service!`);
 		}
 
 		// Detect new or legacy parameter list of event handler
