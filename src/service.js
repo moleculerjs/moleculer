@@ -644,7 +644,7 @@ class Service {
 			const srcAction = wrapToHander(src[k]);
 			const targetAction = wrapToHander(target[k]);
 
-			if (srcAction.hooks && targetAction.hooks) {
+			if (srcAction && srcAction.hooks && targetAction && targetAction.hooks) {
 				Object.keys(srcAction.hooks).forEach(k => {
 					const modHook = wrapToArray(srcAction.hooks[k]);
 					const resHook = wrapToArray(targetAction.hooks[k]);

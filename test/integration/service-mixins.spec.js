@@ -188,6 +188,14 @@ describe("Test Service mixins", () => {
 				cache: {
 					keys: ["name"]
 				}
+			},
+			victor: {
+				hooks: {
+					after(ctx, res) {
+						flowHooks.push("mixin2L1-action-before-victor");
+						return res;
+					}
+				}
 			}
 		},
 
@@ -256,6 +264,17 @@ describe("Test Service mixins", () => {
 		},
 
 		actions: {
+			beta: {
+				hooks: {
+					before() {
+						flowHooks.push("main-action-before-beta");
+					},
+					after(ctx, res) {
+						flowHooks.push("main-action-after-beta");
+						return res;
+					}
+				}
+			},
 			tango() {
 				return "From main";
 			},
@@ -266,6 +285,22 @@ describe("Test Service mixins", () => {
 			},
 			zulu() {
 				throw new MoleculerError("Zulu error");
+			},
+
+			sierra: {
+				hooks: {
+					before() {
+						flowHooks.push("main-action-before-sierra");
+					}
+				},
+				handler() {
+					return "Sierra in main";
+				}
+			},
+
+			victor() {
+				flowHooks.push("handler");
+				return "Victory!";
 			},
 
 			foxtrot: false
@@ -354,6 +389,8 @@ describe("Test Service mixins", () => {
 				"mixinL2-before-beta",
 				"mixinL2-before-beta",
 				"main-before-beta",
+				"main-action-before-beta",
+				"main-action-after-beta",
 				"main-after-beta",
 				"mixin1L1-after-beta",
 				"mixinsL2-after-beta",
@@ -471,6 +508,35 @@ describe("Test Service mixins", () => {
 				"main-error-all",
 				"mixin2L1-error-all-1",
 				"mixin2L1-error-all-2",
+			]);
+		});
+	});
+
+	it("should call 'sierra' action", () => {
+		flowHooks = [];
+		return broker.call("main.sierra").catch(protectReject).then(res => {
+			expect(res).toBe("Sierra in main");
+			expect(flowHooks).toEqual([
+				"mixinL2-before-all",
+				"mixinL2-before-all",
+				"main-before-all",
+				"main-action-before-sierra",
+				"mixin1L1-after-all"
+			]);
+		});
+	});
+
+	it("should call 'victor' action", () => {
+		flowHooks = [];
+		return broker.call("main.victor").catch(protectReject).then(res => {
+			expect(res).toBe("Victory!");
+			expect(flowHooks).toEqual([
+				"mixinL2-before-all",
+				"mixinL2-before-all",
+				"main-before-all",
+				"handler",
+				"mixin2L1-action-before-victor",
+				"mixin1L1-after-all"
 			]);
 		});
 	});
