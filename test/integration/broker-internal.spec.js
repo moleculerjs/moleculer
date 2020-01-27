@@ -126,7 +126,6 @@ describe("Test internal services", () => {
 			expect(res).toEqual([{
 				"actions": {
 					"greeter.hello": {
-						"cache": false,
 						"name": "greeter.hello",
 						"rawName": "hello",
 					},
@@ -156,7 +155,6 @@ describe("Test internal services", () => {
 			}, {
 				"actions": {
 					"alpha.echo.reply": {
-						"cache": false,
 						"name": "alpha.echo.reply",
 						"rawName": "reply",
 					}
@@ -177,8 +175,8 @@ describe("Test internal services", () => {
 		return broker.call("$node.actions").then(res => {
 			expect(res).toEqual([{
 				"action": {
-					"cache": false,
 					"tracing": false,
+					"cache": false,
 					"name": "$node.list",
 					"rawName": "list",
 					"params": {
@@ -202,8 +200,8 @@ describe("Test internal services", () => {
 				"name": "$node.list"
 			}, {
 				"action": {
-					"cache": false,
 					"tracing": false,
+					"cache": false,
 					"name": "$node.services",
 					"rawName": "services",
 					"params": {
@@ -251,8 +249,8 @@ describe("Test internal services", () => {
 				"name": "$node.services"
 			}, {
 				"action": {
-					"cache": false,
 					"tracing": false,
+					"cache": false,
 					"name": "$node.actions",
 					"rawName": "actions",
 					"params": {
@@ -288,8 +286,8 @@ describe("Test internal services", () => {
 				"name": "$node.actions"
 			}, {
 				"action": {
-					"cache": false,
 					"tracing": false,
+					"cache": false,
 					"name": "$node.events",
 					"rawName": "events",
 					"params": {
@@ -325,8 +323,8 @@ describe("Test internal services", () => {
 				"name": "$node.events"
 			}, {
 				"action": {
-					"cache": false,
 					"tracing": false,
+					"cache": false,
 					"name": "$node.health",
 					"rawName": "health",
 				},
@@ -336,8 +334,8 @@ describe("Test internal services", () => {
 				"name": "$node.health"
 			}, {
 				"action": {
-					"cache": false,
 					"tracing": false,
+					"cache": false,
 					"name": "$node.options",
 					"rawName": "options",
 					"params": {}
@@ -348,8 +346,8 @@ describe("Test internal services", () => {
 				"name": "$node.options"
 			}, {
 				"action": {
-					"cache": false,
 					"tracing": false,
+					"cache": false,
 					"name": "$node.metrics",
 					"rawName": "metrics",
 					"params": {
@@ -364,7 +362,6 @@ describe("Test internal services", () => {
 				"name": "$node.metrics"
 			}, {
 				"action": {
-					"cache": false,
 					"name": "greeter.hello",
 					"rawName": "hello",
 				},
@@ -389,7 +386,6 @@ describe("Test internal services", () => {
 				"name": "greeter.welcome"
 			}, {
 				"action": {
-					"cache": false,
 					"name": "alpha.echo.reply",
 					"rawName": "reply",
 				},
@@ -405,7 +401,6 @@ describe("Test internal services", () => {
 		return broker.call("$node.actions", { skipInternal: true, withEndpoints: true }).then(res => {
 			expect(res).toEqual([{
 				"action": {
-					"cache": false,
 					"name": "greeter.hello",
 					"rawName": "hello",
 				},
@@ -440,7 +435,6 @@ describe("Test internal services", () => {
 				"name": "greeter.welcome"
 			}, {
 				"action": {
-					"cache": false,
 					"name": "alpha.echo.reply",
 					"rawName": "reply",
 				},
