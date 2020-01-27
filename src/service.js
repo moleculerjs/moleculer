@@ -407,7 +407,7 @@ class Service {
 	 */
 	emitLocalEventHandler(eventName, params, opts) {
 		if (!this.events[eventName])
-			return Promise.reject(new MoleculerError(`No '${eventName} registered local event handler'`, 500, "NO_EVENT_HANDLER", { eventName }));
+			return Promise.reject(new MoleculerError(`No '${eventName}' registered local event handler`, 500, "NOT_FOUND_EVENT", { eventName }));
 
 		return this.events[eventName](params, opts);
 	}
@@ -487,7 +487,10 @@ class Service {
 		const mods = _.cloneDeep(svcSchema);
 
 		Object.keys(mods).forEach(key => {
-			if (key == "settings") {
+			if (["name", "version"].indexOf(key) !== -1 && mods[key] !== undefined) {
+				// Simple overwrite
+				res[key] = mods[key];
+			} else if (key == "settings") {
 				// Merge with defaultsDeep
 				res[key] = Service.mergeSchemaSettings(mods[key], res[key]);
 
@@ -517,14 +520,14 @@ class Service {
 
 			} else if (key == "mixins") {
 				// Concat mixins
-				res[key] = Service.mergeSchemaMixins(mods[key], res[key]);
+				res[key] = Service.mergeSchemaUniqArray(mods[key], res[key]);
 
 			} else if (key == "dependencies") {
 				// Concat mixins
-				res[key] = Service.mergeSchemaMixins(mods[key], res[key]);
+				res[key] = Service.mergeSchemaUniqArray(mods[key], res[key]);
 
 			} else {
-				const customFnName = "mergeSchema" + _.capitalize(key);
+				const customFnName = "mergeSchema" + key.replace(/./, key[0].toUpperCase()); // capitalize first letter
 				if (_.isFunction(Service[customFnName])) {
 					res[key] = Service[customFnName](mods[key], res[key]);
 				} else {
@@ -574,7 +577,7 @@ class Service {
 	 *
 	 * @returns {Object} Merged schema
 	 */
-	static mergeSchemaMixins(src, target) {
+	static mergeSchemaUniqArray(src, target) {
 		return _.uniqWith(_.compact(_.flatten([src, target])), _.isEqual);
 	}
 
@@ -588,7 +591,7 @@ class Service {
 	 * @returns {Object} Merged schema
 	 */
 	static mergeSchemaDependencies(src, target) {
-		return _.uniqWith(_.compact(_.flatten([src, target])), _.isEqual);
+		return Service.mergeSchemaUniqArray(src, target);
 	}
 
 	/**
@@ -664,9 +667,9 @@ class Service {
 	}
 
 	/**
+	 * Merge `events` property in schema
 	 *
 	 * @static
-	 * Merge `events` property in schema
 	 * @param {Object} src Source schema property
 	 * @param {Object} target Target schema property
 	 *

@@ -480,7 +480,6 @@ describe("Test Service mixins", () => {
 		return broker.call("main.echo", { id: "1" }).catch(protectReject).then(res => {
 			expect(res.msg).toBe("From mixin1L1");
 			expect(res.action).toEqual({
-				cache: false,
 				name: "main.echo",
 				rawName: "echo",
 				params: {
