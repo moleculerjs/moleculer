@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -63,25 +63,13 @@ class Service {
 	}
 
 	/**
-	 * Return a versioned full service name.
-	 * @param {String} name
-	 * @param {String|Number?} version
-	 */
-	static getVersionedFullName(name, version) {
-		if (version != null)
-			return (typeof(version) == "number" ? "v" + version : version) + "." + name;
-
-		return name;
-	}
-
-	/**
 	 * Parse Service schema & register as local service
 	 *
 	 * @param {Object} schema of Service
 	 */
 	parseServiceSchema(schema) {
 		if (!_.isObject(schema))
-			throw new ServiceSchemaError("Must pass a service schema in constructor. Maybe is it not a service schema?");
+			throw new ServiceSchemaError("The service schema can't be null. Maybe is it not a service schema?");
 
 		this.originalSchema = _.cloneDeep(schema);
 
@@ -257,7 +245,7 @@ class Service {
 				if (Array.isArray(this.schema.started)) {
 					return this.schema.started
 						.map(fn => this.Promise.method(fn.bind(this)))
-						.reduce((p, fn) => p.then(fn), this.Promise.resolve());
+						.reduce((p, fn) => p.then(() => fn()), this.Promise.resolve());
 				}
 			})
 			.then(() => {
@@ -292,7 +280,7 @@ class Service {
 					const arr = Array.from(this.schema.stopped).reverse();
 					return arr
 						.map(fn => this.Promise.method(fn.bind(this)))
-						.reduce((p, fn) => p.then(fn), this.Promise.resolve());
+						.reduce((p, fn) => p.then(() => fn()), this.Promise.resolve());
 				}
 
 				return this.Promise.resolve();
@@ -323,12 +311,12 @@ class Service {
 		} else if (_.isObject(actionDef)) {
 			action = _.cloneDeep(actionDef);
 		} else {
-			throw new ServiceSchemaError(`Invalid action definition in '${name}' action in '${this.name}' service!`);
+			throw new ServiceSchemaError(`Invalid action definition in '${name}' action in '${this.fullName}' service!`);
 		}
 
 		let handler = action.handler;
 		if (!_.isFunction(handler)) {
-			throw new ServiceSchemaError(`Missing action handler on '${name}' action in '${this.name}' service!`);
+			throw new ServiceSchemaError(`Missing action handler on '${name}' action in '${this.fullName}' service!`);
 		}
 
 		action.rawName = action.name || name;
@@ -337,8 +325,11 @@ class Service {
 		else
 			action.name = action.rawName;
 
+		if (action.cache === undefined && this.settings.$cache !== undefined) {
+			action.cache = this.settings.$cache;
+		}
+
 		action.service = this;
-		action.cache = action.cache !== undefined ? action.cache : (this.settings.$cache || false);
 		action.handler = this.Promise.method(handler.bind(this));
 
 		return action;
@@ -724,6 +715,19 @@ class Service {
 
 		return target;
 	}
+
+	/**
+	 * Return a versioned full service name.
+	 * @param {String} name
+	 * @param {String|Number?} version
+	 */
+	static getVersionedFullName(name, version) {
+		if (version != null)
+			return (typeof(version) == "number" ? "v" + version : version) + "." + name;
+
+		return name;
+	}
+
 }
 
 module.exports = Service;
