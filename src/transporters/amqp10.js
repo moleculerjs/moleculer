@@ -211,6 +211,17 @@ class Amqp10Transporter extends Transporter {
 
 		const container = new rhea.Container();
 		const connection = container.createConnection(connectionOptions);
+
+		connection.on("disconnected", e => {
+			this.logger.info("AMQP10 disconnected.");
+			this.connected = false;
+			this.connection = null;
+			if (e) {
+				this.logger.error("AMQP10 connection error.", e && e.message);
+				errorCallback && errorCallback(e);
+			}
+		});
+
 		return connection
 			.open()
 			.then(connection => {
@@ -220,10 +231,10 @@ class Amqp10Transporter extends Transporter {
 				return this.onConnected();
 			})
 			.catch(e => {
+				this.logger.error("AMQP10 connection error.", e && e.message);
 				this.logger.info("AMQP10 is disconnected.");
 				this.connected = false;
 				this.connection = null;
-				this.logger.error(e);
 				errorCallback && errorCallback(e);
 			});
 	}
