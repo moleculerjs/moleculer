@@ -244,7 +244,7 @@ describe("Test Datadog tracing exporter class", () => {
 			});
 
 			expect(fakeDdSpan.setTag).toHaveBeenCalledTimes(1);
-			expect(fakeDdSpan.setTag).toHaveBeenCalledWith("service", "v1.posts");
+			expect(fakeDdSpan.setTag).toHaveBeenCalledWith("service.name", "v1.posts");
 
 			expect(fakeDdSpan.context).toHaveBeenCalledTimes(1);
 
@@ -330,7 +330,7 @@ describe("Test Datadog tracing exporter class", () => {
 
 			expect(fakeDdSpan.setTag).toHaveBeenCalledTimes(2);
 			expect(fakeDdSpan.setTag).toHaveBeenNthCalledWith(1,"env", "testing");
-			expect(fakeDdSpan.setTag).toHaveBeenNthCalledWith(2,"service", "v1.posts");
+			expect(fakeDdSpan.setTag).toHaveBeenNthCalledWith(2,"service.name", "v1.posts");
 
 			expect(fakeDdSpan.context).toHaveBeenCalledTimes(1);
 

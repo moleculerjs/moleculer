@@ -131,14 +131,14 @@ class DatadogTraceExporter extends BaseTraceExporter {
 					type: span.type,
 				},
 				type: span.type,
-				resource: span.tags.action,
+				resource: span.tags.action ? span.tags.action.name : undefined,
 				"sampling.priority": this.opts.samplingPriority
 			}, this.defaultTags))
 		});
 
 		if (this.opts.env)
 			this.addTags(ddSpan, "env", this.opts.env);
-		this.addTags(ddSpan, "service", serviceName);
+		this.addTags(ddSpan, "service.name", serviceName);
 
 		const sc = ddSpan.context();
 		sc._traceId = this.convertID(span.traceID);

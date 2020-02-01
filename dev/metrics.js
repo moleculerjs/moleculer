@@ -63,12 +63,12 @@ const broker = new ServiceBroker({
 					includes: "moleculer.**",
 				}
 			},*/
-			/*{
+			{
 				type: "Datadog",
 				options: {
 					includes: "moleculer.**",
 				}
-			}*/
+			}
 		]
 		//defaultQuantiles: [0.1, 0.5, 0.9]
 	},
