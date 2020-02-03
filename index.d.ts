@@ -579,13 +579,13 @@ declare namespace Moleculer {
 
 	interface ServiceHooks {
 		before?: {
-			[key: string]: (ctx: Context<any, any>) => PromiseLike<void> | void
+			[key: string]: ((ctx: Context<any, any>) => PromiseLike<void> | void) | string
 		},
 		after?: {
-			[key: string]: (ctx: Context<any, any>, res: any) => PromiseLike<any> | any
+			[key: string]: ((ctx: Context<any, any>, res: any) => PromiseLike<any> | any) | string
 		},
 		error?: {
-			[key: string]: (ctx: Context<any, any>, err: Error) => PromiseLike<void> | void
+			[key: string]: ((ctx: Context<any, any>, err: Error) => PromiseLike<void> | void) | string
 		},
 	}
 
