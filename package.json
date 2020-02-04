@@ -78,14 +78,14 @@
 		"pino": "^5.13.4",
 		"protobufjs": "6.8.8",
 		"redlock": "4.0.0",
+		"rhea-promise": "^1.0.0",
 		"thrift": "0.12.0",
 		"ts-node": "^8.4.1",
 		"tsd": "0.7.4",
 		"typescript": "^3.6.3",
 		"v8-natives": "1.1.0",
 		"winston": "3.2.1",
-		"winston-context": "0.0.7",
-		"rhea-promise": "^1.0.0"
+		"winston-context": "0.0.7"
 	},
 	"dependencies": {
 		"args": "^5.0.1",
