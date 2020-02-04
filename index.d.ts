@@ -28,7 +28,7 @@ declare namespace Moleculer {
 		trace(...args: any[]): void;
 	}
 
-	type ActionHandler<T = any> = ((ctx: Context) => PromiseLike<T> | T) & ThisType<Service>;
+	type ActionHandler<T = any> = ((ctx: Context<any, any>) => PromiseLike<T> | T) & ThisType<Service>;
 	type ActionParamSchema = { [key: string]: any };
 	type ActionParamTypes =
 		| "any"
