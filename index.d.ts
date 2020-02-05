@@ -589,11 +589,16 @@ declare namespace Moleculer {
 		},
 	}
 
+	interface ServiceDependency {
+		name: string;
+		version?: string | number;
+	}
+
 	interface ServiceSchema<S = ServiceSettingSchema> {
 		name: string;
 		version?: string | number;
 		settings?: S;
-		dependencies?: string | GenericObject | Array<string> | Array<GenericObject>;
+		dependencies?: string | ServiceDependency | Array<string> | Array<ServiceDependency>;
 		metadata?: GenericObject;
 		actions?: ServiceActionsSchema;
 		mixins?: Array<ServiceSchema>;
@@ -624,7 +629,7 @@ declare namespace Moleculer {
 		version?: string | number;
 		settings: S;
 		metadata: GenericObject;
-		dependencies: string | GenericObject | Array<string> | Array<GenericObject>;
+		dependencies: string | ServiceDependency | Array<string> | Array<ServiceDependency>;
 		schema: ServiceSchema<S>;
 		originalSchema: ServiceSchema<S>;
 		broker: ServiceBroker;
