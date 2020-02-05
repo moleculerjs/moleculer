@@ -8,12 +8,19 @@ jest.mock("rhea-promise");
 let rhea = require("rhea-promise");
 
 rhea.Container.prototype.createConnection = jest.fn(() => new rhea.Connection());
+
 rhea.Connection.prototype.open = jest.fn(() => Promise.resolve(new rhea.Connection()));
 rhea.Connection.prototype._connection = {
 	setMaxListeners: jest.fn()
 };
 rhea.Connection.prototype.createReceiver = jest.fn(() => Promise.resolve(new rhea.Receiver()));
 rhea.Connection.prototype.createAwaitableSender = jest.fn(() => Promise.resolve(new rhea.AwaitableSender()));
+
+rhea.Connection.prototype.createSession = jest.fn(() => Promise.resolve(new rhea.Session()));
+rhea.Session.prototype._session = {
+	setMaxListeners: jest.fn()
+};
+
 rhea.Receiver.prototype.close = jest.fn(() => Promise.resolve());
 rhea.AwaitableSender.send = jest.fn(() => Promise.resolve());
 
@@ -30,7 +37,10 @@ describe("Test AmqpTransporter constructor", () => {
 			eventTimeToLive: null,
 			heartbeatTimeToLive: null,
 			messageOptions: {},
-			queueOptions: {}
+			queueOptions: {},
+			connectionOptions: {},
+			topicOptions: {},
+			topicPrefix: "topic://"
 		});
 		expect(transporter.connected).toBe(false);
 		expect(transporter.hasBuiltInBalancer).toBe(true);
@@ -224,10 +234,10 @@ describe("Test AmqpTransporter subscribe", () => {
 				);
 
 				expect(transporter.receivers[0].addCredit).toHaveBeenCalledTimes(1);
-				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(1);
+				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(10);
 				expect(transporter.receivers[0].on).toHaveBeenCalledWith("message", expect.any(Function));
 
-				const consumeCb = transporter.receivers[0].on.mock.calls[0][1];
+				const consumeCb = transporter.receivers[0].on.mock.calls[9][1];
 				const delivery = { accept: jest.fn(), reject: jest.fn() };
 				consumeCb({ message: { body: Buffer.from("data") }, delivery });
 
@@ -247,10 +257,10 @@ describe("Test AmqpTransporter subscribe", () => {
 				);
 
 				expect(transporter.receivers[0].addCredit).toHaveBeenCalledTimes(1);
-				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(2);
+				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(12);
 				expect(transporter.receivers[0].on).toHaveBeenCalledWith("message", expect.any(Function));
 
-				const consumeCb = transporter.receivers[0].on.mock.calls[1][1];
+				const consumeCb = transporter.receivers[0].on.mock.calls[11][1];
 				const delivery = { accept: jest.fn(), reject: jest.fn() };
 				consumeCb({ message: { body: Buffer.from("data") }, delivery });
 
@@ -270,10 +280,10 @@ describe("Test AmqpTransporter subscribe", () => {
 				);
 
 				expect(transporter.receivers[0].addCredit).toHaveBeenCalledTimes(1);
-				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(3);
+				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(14);
 				expect(transporter.receivers[0].on).toHaveBeenCalledWith("message", expect.any(Function));
 
-				const consumeCb = transporter.receivers[0].on.mock.calls[2][1];
+				const consumeCb = transporter.receivers[0].on.mock.calls[13][1];
 				const delivery = { accept: jest.fn(), reject: jest.fn() };
 				consumeCb({ message: { body: Buffer.from("data") }, delivery });
 
@@ -293,10 +303,10 @@ describe("Test AmqpTransporter subscribe", () => {
 				);
 
 				expect(transporter.receivers[0].addCredit).toHaveBeenCalledTimes(1);
-				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(4);
+				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(16);
 				expect(transporter.receivers[0].on).toHaveBeenCalledWith("message", expect.any(Function));
 
-				const consumeCb = transporter.receivers[0].on.mock.calls[3][1];
+				const consumeCb = transporter.receivers[0].on.mock.calls[15][1];
 				const delivery = { accept: jest.fn(), reject: jest.fn() };
 				consumeCb({ message: { body: Buffer.from("data") }, delivery });
 
@@ -316,10 +326,10 @@ describe("Test AmqpTransporter subscribe", () => {
 						expect.objectContaining({ source: { address: `topic://MOL-TEST.${type}` } })
 					);
 
-					expect(transporter.receivers[0].on).toHaveBeenCalledTimes(5 + i);
+					expect(transporter.receivers[0].on).toHaveBeenCalledTimes(18 + i * 2);
 					expect(transporter.receivers[0].on).toHaveBeenCalledWith("message", expect.any(Function));
 
-					const consumeCb = transporter.receivers[0].on.mock.calls[4 + i][1];
+					const consumeCb = transporter.receivers[0].on.mock.calls[17 + i * 2][1];
 					const delivery = { accept: jest.fn(), reject: jest.fn() };
 					consumeCb({ message: { body: Buffer.from("data") }, delivery });
 
@@ -339,10 +349,10 @@ describe("Test AmqpTransporter subscribe", () => {
 					expect.objectContaining({ source: { address: "MOL-TEST.REQB.posts.find" } })
 				);
 
-				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(9);
+				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(26);
 				expect(transporter.receivers[0].on).toHaveBeenCalledWith("message", expect.any(Function));
 
-				const consumeCb = transporter.receivers[0].on.mock.calls[8][1];
+				const consumeCb = transporter.receivers[0].on.mock.calls[25][1];
 				const delivery = { accept: jest.fn(), reject: jest.fn() };
 				consumeCb({ message: { body: Buffer.from("data") }, delivery });
 
@@ -361,10 +371,10 @@ describe("Test AmqpTransporter subscribe", () => {
 					expect.objectContaining({ source: { address: "MOL-TEST.EVENTB.posts.cache.clear" } })
 				);
 
-				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(10);
+				expect(transporter.receivers[0].on).toHaveBeenCalledTimes(28);
 				expect(transporter.receivers[0].on).toHaveBeenCalledWith("message", expect.any(Function));
 
-				const consumeCb = transporter.receivers[0].on.mock.calls[9][1];
+				const consumeCb = transporter.receivers[0].on.mock.calls[27][1];
 				const delivery = { accept: jest.fn(), reject: jest.fn() };
 				consumeCb({ message: { body: Buffer.from("data") }, delivery });
 
