@@ -328,7 +328,8 @@ class Amqp10Transporter extends Transporter {
 				name: topicName,
 				source: {
 					address: topicName
-				}
+				},
+				session: this.session
 			});
 			return this.connection.createReceiver(receiverOptions).then(receiver => {
 				receiver.on("message", context => {
