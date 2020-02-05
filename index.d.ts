@@ -529,6 +529,7 @@ declare namespace Moleculer {
 		$noVersionPrefix?: boolean;
 		$noServiceNamePrefix?: boolean;
 		$dependencyTimeout?: number;
+		$shutdownTimeout?: number;
 		$secureSettings?: Array<string>;
 		[name: string]: any;
 	}
