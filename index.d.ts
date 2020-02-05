@@ -598,7 +598,7 @@ declare namespace Moleculer {
 		name: string;
 		version?: string | number;
 		settings?: S;
-		dependencies?: string | ServiceDependency | Array<string> | Array<ServiceDependency>;
+		dependencies?: string | ServiceDependency | Array<string | ServiceDependency>;
 		metadata?: GenericObject;
 		actions?: ServiceActionsSchema;
 		mixins?: Array<ServiceSchema>;
@@ -629,7 +629,7 @@ declare namespace Moleculer {
 		version?: string | number;
 		settings: S;
 		metadata: GenericObject;
-		dependencies: string | ServiceDependency | Array<string> | Array<ServiceDependency>;
+		dependencies: string | ServiceDependency | Array<string | ServiceDependency>;
 		schema: ServiceSchema<S>;
 		originalSchema: ServiceSchema<S>;
 		broker: ServiceBroker;
