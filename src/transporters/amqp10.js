@@ -73,6 +73,7 @@ class Amqp10Transporter extends Transporter {
 		this.receivers = [];
 		this.hasBuiltInBalancer = true;
 		this.connection = null;
+		this.session = null;
 	}
 
 	_getQueueOptions(packetType, balancedQueue) {
@@ -215,9 +216,8 @@ class Amqp10Transporter extends Transporter {
 		connection.on("disconnected", e => {
 			this.logger.info("AMQP10 disconnected.");
 			this.connected = false;
-			this.connection = null;
 			if (e) {
-				this.logger.error("AMQP10 connection error.", e && e.message);
+				this.logger.error("AMQP10 connection error.", (this.connection && this.connection.error) || "");
 				errorCallback && errorCallback(e);
 			}
 		});
@@ -226,15 +226,18 @@ class Amqp10Transporter extends Transporter {
 			.open()
 			.then(connection => {
 				this.connection = connection;
-				this.logger.info("AMQP10 is connected");
-				this.connection._connection.setMaxListeners(0);
-				return this.onConnected();
+				this.connection.createSession().then(session => {
+					this.session = session;
+					this.logger.info("AMQP10 is connected");
+					this.connection._connection.setMaxListeners(0);
+					this.session._session.setMaxListeners(0);
+					return this.onConnected();
+				});
 			})
 			.catch(e => {
-				this.logger.error("AMQP10 connection error.", e && e.message);
+				this.logger.error("AMQP10 connection error.", (this.connection && this.connection.error) || "");
 				this.logger.info("AMQP10 is disconnected.");
 				this.connected = false;
-				this.connection = null;
 				errorCallback && errorCallback(e);
 			});
 	}
@@ -251,6 +254,7 @@ class Amqp10Transporter extends Transporter {
 				.then(() => {
 					this.connection = null;
 					this.connected = false;
+					this.session = null;
 					this.receivers = [];
 				})
 				.catch(error => this.logger.error(error));
@@ -296,7 +300,8 @@ class Amqp10Transporter extends Transporter {
 				name: topic,
 				source: {
 					address: topic
-				}
+				},
+				session: this.session
 			});
 
 			return this.connection.createReceiver(receiverOptions).then(receiver => {
@@ -348,7 +353,8 @@ class Amqp10Transporter extends Transporter {
 			{
 				credit_window: this.opts.prefetch !== 0 ? 0 : undefined,
 				source: { address: queue },
-				autoaccept: false
+				autoaccept: false,
+				session: this.session
 			},
 			this._getQueueOptions(PACKET_REQUEST, true)
 		);
@@ -385,7 +391,8 @@ class Amqp10Transporter extends Transporter {
 		const receiverOptions = Object.assign(
 			{
 				source: { address: queue },
-				autoaccept: false
+				autoaccept: false,
+				session: this.session
 			},
 			this._getQueueOptions(PACKET_EVENT + "LB", true)
 		);
@@ -418,7 +425,8 @@ class Amqp10Transporter extends Transporter {
 		const awaitableSenderOptions = {
 			target: {
 				address: packet.target ? topic : `${this.opts.topicPrefix}${topic}`
-			}
+			},
+			session: this.session
 		};
 		return this.connection
 			.createAwaitableSender(awaitableSenderOptions)
@@ -430,7 +438,7 @@ class Amqp10Transporter extends Transporter {
 			})
 			.then(sender => {
 				this.incStatSent(data.length);
-				return sender.close();
+				return sender.close({ closeSession: false });
 			})
 			.catch(error => this.logger.error(error));
 	}
@@ -453,7 +461,8 @@ class Amqp10Transporter extends Transporter {
 		const awaitableSenderOptions = {
 			target: {
 				address: queue
-			}
+			},
+			session: this.session
 		};
 		return this.connection
 			.createAwaitableSender(awaitableSenderOptions)
@@ -465,7 +474,7 @@ class Amqp10Transporter extends Transporter {
 			})
 			.then(sender => {
 				this.incStatSent(data.length);
-				return sender.close();
+				return sender.close({ closeSession: false });
 			})
 			.catch(error => this.logger.error(error));
 	}
@@ -488,7 +497,8 @@ class Amqp10Transporter extends Transporter {
 		const awaitableSenderOptions = {
 			target: {
 				address: queue
-			}
+			},
+			session: this.session
 		};
 		return this.connection
 			.createAwaitableSender(awaitableSenderOptions)
@@ -500,7 +510,7 @@ class Amqp10Transporter extends Transporter {
 			})
 			.then(sender => {
 				this.incStatSent(data.length);
-				return sender.close();
+				return sender.close({ closeSession: false });
 			})
 			.catch(error => this.logger.error(error));
 	}
