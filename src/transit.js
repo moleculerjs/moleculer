@@ -864,11 +864,8 @@ class Transit {
 		if (!this.connected || !this.isReady) return Promise.resolve();
 
 		const info = this.broker.getLocalNodeInfo();
-
-		let p = Promise.resolve();
-		if (!nodeID)
-			p = this.tx.makeBalancedSubscriptions();
-
+		
+		const p = !nodeID && this.broker.options.disableBalancer ? this.tx.makeBalancedSubscriptions() : Promise.resolve();
 		return p.then(() => this.publish(new Packet(P.PACKET_INFO, nodeID, {
 			services: info.services,
 			ipList: info.ipList,

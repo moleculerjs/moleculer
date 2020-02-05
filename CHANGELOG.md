@@ -3,11 +3,21 @@
 # [Unreleased](https://github.com/moleculerjs/moleculer/compare/v0.13.11...master)
 
 --------------------------------------------------
+<a name="0.13.12"></a>
+# [0.13.12](https://github.com/moleculerjs/moleculer/compare/v0.13.11...v0.13.12) (2019-12-17)
+
+# Changes
+- fix expire time updating issue in MemoryCacher. [#630](https://github.com/moleculerjs/moleculer/issues/630)
+- fix action hook calling issue in mixins. [#631](https://github.com/moleculerjs/moleculer/issues/631)
+- fix NATS transporter "Invalid Subject" issue. [#620](https://github.com/moleculerjs/moleculer/issues/620)
+- update dependencies.
+
+--------------------------------------------------
 <a name="0.13.11"></a>
 # [0.13.11](https://github.com/moleculerjs/moleculer/compare/v0.13.10...v0.13.11) (2019-09-30)
 
 # Changes
-- fix retry issue in case of remote calls & disabled preferLocal options. [#599](https://github.com/moleculerjs/moleculer/issues/598)
+- fix retry issue in case of remote calls & disabled preferLocal options. [#598](https://github.com/moleculerjs/moleculer/issues/598)
 - update dependencies.
 
 --------------------------------------------------
