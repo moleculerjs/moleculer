@@ -1,6 +1,6 @@
 import { EventEmitter2 } from "eventemitter2";
 
-declare module "moleculer" {
+declare namespace Moleculer {
 	/**
 	 * Moleculer uses global.Promise as the default promise library
 	 * If you are using a third-party promise library (e.g. Bluebird), you will need to
@@ -1337,3 +1337,5 @@ declare module "moleculer" {
 	const CIRCUIT_HALF_OPEN: string;
 	const CIRCUIT_OPEN: string;
 }
+
+export = Moleculer;
