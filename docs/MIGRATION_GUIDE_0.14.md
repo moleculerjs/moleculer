@@ -320,6 +320,16 @@ module.exports = {
 ```
 >Please note, the given Promise library will be polyfilled with `delay`, `method`, `timeout` and `mapSeries` methods (which are used inside Moleculer modules).
 
+If you are using Typescript you will need to augment the moleculer declarations to override the returned promise type from Bluebird.  You will need to have a .d.ts file with the following code when you compile:
+```ts
+import Bluebird from "bluebird";
+declare module "moleculer" {
+  type Promise<T> = Bluebird<T>;
+}
+```
+
+Additionally, if you were using `PromiseLike<T>` as a type for anything being returned by moleculer, this will need to be converted to `Promise<T>`, regardless of whether you are using native promises or third-party promises.
+
 ## 8. Typescript definitions more strict
 The 0.13 release was very loose on the typings for `params` and `meta` for the `Context` class and the `call`, `emit`, and `broadcast` methods from the `Context` and `ServiceBroker` classes.  If Generics were not provided to these types, the default behavior would return `any`:
 ```ts

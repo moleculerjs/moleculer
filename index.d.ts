@@ -1,6 +1,17 @@
 import { EventEmitter2 } from "eventemitter2";
 
 declare namespace Moleculer {
+	/**
+	 * Moleculer uses global.Promise as the default promise library
+	 * If you are using a third-party promise library (e.g. Bluebird), you will need to
+	 * assign type definitions to use for your promise library.  You will need to have a .d.ts file
+	 * with the following code when you compile:
+	 *
+	 * - import Bluebird from "bluebird";
+	 *   declare module "moleculer" {
+	 *     type Promise<T> = Bluebird<T>;
+	 *   }
+	 */
 	type GenericObject = { [name: string]: any };
 
 	type LogLevels = "fatal" | "error" | "warn" | "info" | "debug" | "trace";
@@ -32,7 +43,7 @@ declare namespace Moleculer {
 		trace(...args: any[]): void;
 	}
 
-	type ActionHandler<T = any> = ((ctx: Context<any, any>) => PromiseLike<T> | T) & ThisType<Service>;
+	type ActionHandler<T = any> = ((ctx: Context<any, any>) => Promise<T> | T) & ThisType<Service>;
 	type ActionParamSchema = { [key: string]: any };
 	type ActionParamTypes =
 		| "any"
@@ -53,12 +64,12 @@ declare namespace Moleculer {
 		| ActionParamSchema;
 	type ActionParams = { [key: string]: ActionParamTypes };
 
-	type TracerExporterOptions = {
+	interface TracerExporterOptions {
 		type: string;
 		options?: GenericObject;
-	};
+	}
 
-	type TracerOptions = {
+	interface TracerOptions {
 		enabled?: boolean;
 		exporter?: TracerExporterOptions | Array<TracerExporterOptions> | null;
 		sampling?: {
@@ -74,7 +85,7 @@ declare namespace Moleculer {
 		events?: boolean;
 
 		defaultTags?: GenericObject | Function | null;
-	};
+	}
 
 	class Tracer {
 		constructor(broker: ServiceBroker, opts: TracerOptions | boolean);
@@ -95,12 +106,12 @@ declare namespace Moleculer {
 		getActiveSpanID(): string | null;
 	}
 
-	type SpanLogEntry = {
+	interface SpanLogEntry {
 		name: string;
 		fields: GenericObject;
 		time: number;
 		elapsed: number;
-	};
+	}
 
 	class Span {
 		constructor(tracer: Tracer, name: string, opts: GenericObject);
@@ -141,14 +152,14 @@ declare namespace Moleculer {
 	}
 
 	type TracingTagsFuncType = (ctx: Context, response?: any) => any;
-	type TracingOptions = {
+	interface TracingOptions {
 		enabled?: boolean;
 		tags?: TracingTagsFuncType | {
 			params?: boolean | string[];
 			meta?: boolean | string[];
 			response?: boolean | string[];
 		}
-	};
+	}
 
 	class BaseTraceExporter {
 		opts: GenericObject;
@@ -175,12 +186,12 @@ declare namespace Moleculer {
 		class Zipkin extends BaseTraceExporter {}
 	}
 
-	type MetricsReporterOptions = {
+	interface MetricsReporterOptions {
 		type: string;
 		options?: MetricReporterOptions;
-	};
+	}
 
-	type MetricRegistryOptions = {
+	interface MetricRegistryOptions {
 		enabled?: boolean;
 		collectProcessMetrics?: boolean;
 		collectInterval?: number;
@@ -190,17 +201,17 @@ declare namespace Moleculer {
 		defaultMaxAgeSeconds?: number;
 		defaultAgeBuckets?: number;
 		defaultAggregator?: number;
-	};
+	}
 
 	type MetricSnapshot = GaugeMetricSnapshot | InfoMetricSnapshot | HistogramMetricSnapshot;
-	type BaseMetricPOJO = {
+	interface BaseMetricPOJO {
 		type: string;
 		name: string;
 		description?: string;
 		labelNames: Array<string>;
 		unit?: string;
 		values: Array<MetricSnapshot>;
-	};
+	}
 
 	class BaseMetric {
 		type: string;
@@ -228,11 +239,11 @@ declare namespace Moleculer {
 		toObject(): BaseMetricPOJO;
 	}
 
-	type GaugeMetricSnapshot = {
+	interface GaugeMetricSnapshot {
 		value: number;
 		labels: GenericObject;
 		timestamp: number;
-	};
+	}
 
 	class GaugeMetric extends BaseMetric {
 		increment(labels?: GenericObject, value?: number, timestamp?: number): void;
@@ -247,18 +258,18 @@ declare namespace Moleculer {
 		generateSnapshot(): Array<GaugeMetricSnapshot>;
 	}
 
-	type InfoMetricSnapshot = {
+	interface InfoMetricSnapshot {
 		value: any;
 		labels: GenericObject;
 		timestamp: number;
-	};
+	}
 
 	class InfoMetric extends BaseMetric {
 		set(value: any | null, labels?: GenericObject, timestamp?: number): void;
 		generateSnapshot(): Array<InfoMetricSnapshot>;
 	}
 
-	type HistogramMetricSnapshot = {
+	interface HistogramMetricSnapshot {
 		labels: GenericObject;
 		count: number;
 		sum: number;
@@ -276,7 +287,7 @@ declare namespace Moleculer {
 		quantiles?: {
 			[key: string]: number;
 		}
-	};
+	}
 
 	class HistogramMetric extends BaseMetric {
 		buckets: Array<number>;
@@ -299,7 +310,7 @@ declare namespace Moleculer {
 		class Info extends InfoMetric {}
 	}
 
-	type BaseMetricOptions = {
+	interface BaseMetricOptions {
 		type: string;
 		name: string;
 		description?: string;
@@ -345,7 +356,7 @@ declare namespace Moleculer {
 		list(opts?: MetricListOptions): Array<BaseMetricPOJO>;
 	}
 
-	type MetricReporterOptions = {
+	interface MetricReporterOptions {
 		includes?: string | Array<string>;
 		excludes?: string | Array<string>;
 
@@ -399,9 +410,9 @@ declare namespace Moleculer {
 	type ActionVisibility = "published" | "public" | "protected" | "private";
 
 	interface ActionHooks {
-		before?: (ctx: Context<any, any>) => PromiseLike<void> | void;
-		after?: (ctx: Context<any, any>, res: any) => PromiseLike<any> | any;
-		error?: (ctx: Context<any, any>, err: Error) => PromiseLike<void> | void;
+		before?: (ctx: Context<any, any>) => Promise<void> | void;
+		after?: (ctx: Context<any, any>, res: any) => Promise<any> | any;
+		error?: (ctx: Context<any, any>, err: Error) => Promise<void> | void;
 	}
 
 	interface ActionSchema {
@@ -498,20 +509,20 @@ declare namespace Moleculer {
 
 		setEndpoint(endpoint: Endpoint): void;
 		setParams(newParams: P, cloning?: boolean): void;
-		call<T>(actionName: string): PromiseLike<T>;
-		call<T, P>(actionName: string, params: P, opts?: CallingOptions): PromiseLike<T>;
+		call<T>(actionName: string): Promise<T>;
+		call<T, P>(actionName: string, params: P, opts?: CallingOptions): Promise<T>;
 
-		emit<D>(eventName: string, data: D, opts: GenericObject): PromiseLike<void>;
-		emit<D>(eventName: string, data: D, groups: Array<string>): PromiseLike<void>;
-		emit<D>(eventName: string, data: D, groups: string): PromiseLike<void>;
-		emit<D>(eventName: string, data: D): PromiseLike<void>;
-		emit(eventName: string): PromiseLike<void>;
+		emit<D>(eventName: string, data: D, opts: GenericObject): Promise<void>;
+		emit<D>(eventName: string, data: D, groups: Array<string>): Promise<void>;
+		emit<D>(eventName: string, data: D, groups: string): Promise<void>;
+		emit<D>(eventName: string, data: D): Promise<void>;
+		emit(eventName: string): Promise<void>;
 
-		broadcast<D>(eventName: string, data: D, opts: GenericObject): PromiseLike<void>;
-		broadcast<D>(eventName: string, data: D, groups: Array<string>): PromiseLike<void>;
-		broadcast<D>(eventName: string, data: D, groups: string): PromiseLike<void>;
-		broadcast<D>(eventName: string, data: D): PromiseLike<void>;
-		broadcast(eventName: string): PromiseLike<void>;
+		broadcast<D>(eventName: string, data: D, opts: GenericObject): Promise<void>;
+		broadcast<D>(eventName: string, data: D, groups: Array<string>): Promise<void>;
+		broadcast<D>(eventName: string, data: D, groups: string): Promise<void>;
+		broadcast<D>(eventName: string, data: D): Promise<void>;
+		broadcast(eventName: string): Promise<void>;
 
 		copy(endpoint: Endpoint): Context;
 		copy(): Context;
@@ -552,7 +563,7 @@ declare namespace Moleculer {
 
 	type ServiceMethods = { [key: string]: ((...args: any[]) => any) } & ThisType<Service>;
 
-	type CallMiddlewareHandler = (actionName: string, params: any, opts: CallingOptions) => PromiseLike<any>;
+	type CallMiddlewareHandler = (actionName: string, params: any, opts: CallingOptions) => Promise<any>;
 	type Middleware = {
 		[name: string]:
 			| ((handler: ActionHandler, action: ActionSchema) => any)
@@ -564,7 +575,7 @@ declare namespace Moleculer {
 	}
 
 	type MiddlewareInit = (broker: ServiceBroker) => Middleware & ThisType<ServiceBroker>;
-	type MiddlewareCallHandlerOptions = {
+	interface MiddlewareCallHandlerOptions {
 		reverse?: boolean
 	}
 
@@ -581,13 +592,13 @@ declare namespace Moleculer {
 
 	interface ServiceHooks {
 		before?: {
-			[key: string]: ((ctx: Context<any, any>) => PromiseLike<void> | void) | string
+			[key: string]: ((ctx: Context<any, any>) => Promise<void> | void) | string
 		},
 		after?: {
-			[key: string]: ((ctx: Context<any, any>, res: any) => PromiseLike<any> | any) | string
+			[key: string]: ((ctx: Context<any, any>, res: any) => Promise<any> | any) | string
 		},
 		error?: {
-			[key: string]: ((ctx: Context<any, any>, err: Error) => PromiseLike<void> | void) | string
+			[key: string]: ((ctx: Context<any, any>, err: Error) => Promise<void> | void) | string
 		},
 	}
 
@@ -609,13 +620,13 @@ declare namespace Moleculer {
 
 		events?: ServiceEvents;
 		created?: (() => void) | Array<() => void>;
-		started?: (() => PromiseLike<void>) | Array<() => PromiseLike<void>>;
-		stopped?: (() => PromiseLike<void>) | Array<() => PromiseLike<void>>;
+		started?: (() => Promise<void>) | Array<() => Promise<void>>;
+		stopped?: (() => Promise<void>) | Array<() => Promise<void>>;
 
 		[name: string]: any;
 	}
 
-	type ServiceAction<T = PromiseLike<any>, P extends GenericObject = GenericObject> = ((params?: P, opts?: CallingOptions) => T) & ThisType<Service>;
+	type ServiceAction<T = Promise<any>, P extends GenericObject = GenericObject> = ((params?: P, opts?: CallingOptions) => T) & ThisType<Service>;
 
 	interface ServiceActions {
 		[name: string]: ServiceAction;
@@ -641,10 +652,10 @@ declare namespace Moleculer {
 		//currentContext: Context | null;
 
 		_init(): void;
-		_start(): PromiseLike<void>;
-		_stop(): PromiseLike<void>;
+		_start(): Promise<void>;
+		_stop(): Promise<void>;
 
-		waitForServices(serviceNames: string | Array<string> | Array<GenericObject>, timeout?: number, interval?: number): PromiseLike<void>;
+		waitForServices(serviceNames: string | Array<string> | Array<GenericObject>, timeout?: number, interval?: number): Promise<void>;
 
 
 		[name: string]: any;
@@ -821,9 +832,9 @@ declare namespace Moleculer {
 		};
 	}
 
-	type FallbackHandler = (ctx: Context, err: Errors.MoleculerError) => PromiseLike<any>;
+	type FallbackHandler = (ctx: Context, err: Errors.MoleculerError) => Promise<any>;
 	type FallbackResponse = string | number | GenericObject;
-	type FallbackResponseHandler = (ctx: Context, err: Errors.MoleculerError) => PromiseLike<any>;
+	type FallbackResponseHandler = (ctx: Context, err: Errors.MoleculerError) => Promise<any>;
 
 	interface CallingOptions {
 		timeout?: number;
@@ -838,10 +849,10 @@ declare namespace Moleculer {
 		caller?: string;
 	}
 
-	type CallDefinition<P extends GenericObject = GenericObject> = {
+	interface CallDefinition<P extends GenericObject = GenericObject> {
 		action: string;
 		params: P;
-	};
+	}
 
 	interface Endpoint {
 		broker: ServiceBroker;
@@ -914,8 +925,8 @@ declare namespace Moleculer {
 
 		transit?: Transit;
 
-		start(): PromiseLike<void>;
-		stop(): PromiseLike<void>;
+		start(): Promise<void>;
+		stop(): Promise<void>;
 
 		repl(): void;
 
@@ -934,43 +945,43 @@ declare namespace Moleculer {
 		loadServices(folder?: string, fileMask?: string): number;
 		loadService(filePath: string): Service;
 		createService(schema: ServiceSchema, schemaMods?: ServiceSchema): Service;
-		destroyService(service: Service | string | ServiceSearchObj): PromiseLike<void>;
+		destroyService(service: Service | string | ServiceSearchObj): Promise<void>;
 
 		getLocalService(name: string | ServiceSearchObj): Service;
-		waitForServices(serviceNames: string | Array<string> | Array<ServiceSearchObj>, timeout?: number, interval?: number, logger?: LoggerInstance): PromiseLike<void>;
+		waitForServices(serviceNames: string | Array<string> | Array<ServiceSearchObj>, timeout?: number, interval?: number, logger?: LoggerInstance): Promise<void>;
 
 		findNextActionEndpoint(actionName: string, opts?: GenericObject, ctx?: Context): ActionEndpoint | Errors.MoleculerRetryableError;
 
-		call<T>(actionName: string): PromiseLike<T>;
-		call<T, P>(actionName: string, params: P, opts?: CallingOptions): PromiseLike<T>;
+		call<T>(actionName: string): Promise<T>;
+		call<T, P>(actionName: string, params: P, opts?: CallingOptions): Promise<T>;
 
-		mcall<T>(def: Array<CallDefinition> | { [name: string]: CallDefinition }): PromiseLike<Array<T> | T>;
+		mcall<T>(def: Array<CallDefinition> | { [name: string]: CallDefinition }): Promise<Array<T> | T>;
 
-		emit<D>(eventName: string, data: D, opts: GenericObject): PromiseLike<void>;
-		emit<D>(eventName: string, data: D, groups: Array<string>): PromiseLike<void>;
-		emit<D>(eventName: string, data: D, groups: string): PromiseLike<void>;
-		emit<D>(eventName: string, data: D): PromiseLike<void>;
-		emit(eventName: string): PromiseLike<void>;
+		emit<D>(eventName: string, data: D, opts: GenericObject): Promise<void>;
+		emit<D>(eventName: string, data: D, groups: Array<string>): Promise<void>;
+		emit<D>(eventName: string, data: D, groups: string): Promise<void>;
+		emit<D>(eventName: string, data: D): Promise<void>;
+		emit(eventName: string): Promise<void>;
 
-		broadcast<D>(eventName: string, data: D, opts: GenericObject): PromiseLike<void>;
-		broadcast<D>(eventName: string, data: D, groups: Array<string>): PromiseLike<void>;
-		broadcast<D>(eventName: string, data: D, groups: string): PromiseLike<void>;
-		broadcast<D>(eventName: string, data: D): PromiseLike<void>;
-		broadcast(eventName: string): PromiseLike<void>;
+		broadcast<D>(eventName: string, data: D, opts: GenericObject): Promise<void>;
+		broadcast<D>(eventName: string, data: D, groups: Array<string>): Promise<void>;
+		broadcast<D>(eventName: string, data: D, groups: string): Promise<void>;
+		broadcast<D>(eventName: string, data: D): Promise<void>;
+		broadcast(eventName: string): Promise<void>;
 
-		broadcastLocal<D>(eventName: string, data: D, opts: GenericObject): PromiseLike<void>;
-		broadcastLocal<D>(eventName: string, data: D, groups: Array<string>): PromiseLike<void>;
-		broadcastLocal<D>(eventName: string, data: D, groups: string): PromiseLike<void>;
-		broadcastLocal<D>(eventName: string, data: D): PromiseLike<void>;
-		broadcastLocal(eventName: string): PromiseLike<void>;
+		broadcastLocal<D>(eventName: string, data: D, opts: GenericObject): Promise<void>;
+		broadcastLocal<D>(eventName: string, data: D, groups: Array<string>): Promise<void>;
+		broadcastLocal<D>(eventName: string, data: D, groups: string): Promise<void>;
+		broadcastLocal<D>(eventName: string, data: D): Promise<void>;
+		broadcastLocal(eventName: string): Promise<void>;
 
-		ping(): PromiseLike<PongResponses>;
-		ping(nodeID: string | Array<string>, timeout?: number): PromiseLike<PongResponse>;
+		ping(): Promise<PongResponses>;
+		ping(nodeID: string | Array<string>, timeout?: number): Promise<PongResponse>;
 
 		getHealthStatus(): NodeHealthStatus;
 		getLocalNodeInfo(): BrokerNode;
 
-		getCpuUsage(): PromiseLike<any>;
+		getCpuUsage(): Promise<any>;
 		generateUid(): string;
 
 		hasEventListener(eventName: string): boolean;
@@ -1043,33 +1054,33 @@ declare namespace Moleculer {
 		hasBuiltInBalancer: boolean;
 
 		init(transit: Transit, messageHandler: (cmd: string, msg: string) => void, afterConnect: (wasReconnect: boolean) => void): void;
-		connect(): PromiseLike<any>;
-		disconnect(): PromiseLike<any>;
-		onConnected(wasReconnect?: boolean): PromiseLike<any>;
+		connect(): Promise<any>;
+		disconnect(): Promise<any>;
+		onConnected(wasReconnect?: boolean): Promise<any>;
 
-		makeSubscriptions(topics: Array<GenericObject>): PromiseLike<void>;
-		subscribe(cmd: string, nodeID?: string): PromiseLike<void>;
-		subscribeBalancedRequest(action: string): PromiseLike<void>;
-		subscribeBalancedEvent(event: string, group: string): PromiseLike<void>;
-		unsubscribeFromBalancedCommands(): PromiseLike<void>;
+		makeSubscriptions(topics: Array<GenericObject>): Promise<void>;
+		subscribe(cmd: string, nodeID?: string): Promise<void>;
+		subscribeBalancedRequest(action: string): Promise<void>;
+		subscribeBalancedEvent(event: string, group: string): Promise<void>;
+		unsubscribeFromBalancedCommands(): Promise<void>;
 
-		incomingMessage(cmd: string, msg: Buffer): PromiseLike<void>;
-		receive(cmd: string, data: Buffer): PromiseLike<void>;
+		incomingMessage(cmd: string, msg: Buffer): Promise<void>;
+		receive(cmd: string, data: Buffer): Promise<void>;
 
-		prepublish(packet: Packet): PromiseLike<void>;
-		publish(packet: Packet): PromiseLike<void>;
-		publishBalancedEvent(packet: Packet, group: string): PromiseLike<void>;
-		publishBalancedRequest(packet: Packet): PromiseLike<void>;
-		send(topic: string, data: Buffer, meta: GenericObject): PromiseLike<void>;
+		prepublish(packet: Packet): Promise<void>;
+		publish(packet: Packet): Promise<void>;
+		publishBalancedEvent(packet: Packet, group: string): Promise<void>;
+		publishBalancedRequest(packet: Packet): Promise<void>;
+		send(topic: string, data: Buffer, meta: GenericObject): Promise<void>;
 
 		getTopicName(cmd: string, nodeID?: string): string;
-		makeBalancedSubscriptions(): PromiseLike<void>;
+		makeBalancedSubscriptions(): Promise<void>;
 
 		serialize(packet: Packet): Buffer;
 		deserialize(type: string, data: Buffer): Packet;
 	}
 
-	type CacherOptions = {
+	interface CacherOptions {
 		ttl?: number;
 		keygen?: Function;
 		maxParamsLength?: number;
@@ -1097,12 +1108,12 @@ declare namespace Moleculer {
 			opts: CacherOptions;
 
 			init(broker: ServiceBroker): void;
-			close(): PromiseLike<any>;
-			get(key: string): PromiseLike<null | GenericObject>;
-			getWithTTL(key: string): PromiseLike<null | GenericObject>;
-			set(key: string, data: any, ttl?: number): PromiseLike<any>;
-			del(key: string|Array<string>): PromiseLike<any>;
-			clean(match?: string|Array<string>): PromiseLike<any>;
+			close(): Promise<any>;
+			get(key: string): Promise<null | GenericObject>;
+			getWithTTL(key: string): Promise<null | GenericObject>;
+			set(key: string, data: any, ttl?: number): Promise<any>;
+			del(key: string|Array<string>): Promise<any>;
+			clean(match?: string|Array<string>): Promise<any>;
 			getCacheKey(actionName: string, params: object, meta: object, keys: Array<string> | null) : string;
 			defaultKeygen(actionName: string, params: object | null, meta: object | null, keys: Array<string> | null): string;
 		}
@@ -1269,28 +1280,28 @@ declare namespace Moleculer {
 		isReady: boolean;
 		tx: Transporter
 
-		afterConnect(wasReconnect: boolean): PromiseLike<void>;
-		connect(): PromiseLike<void>;
-		disconnect(): PromiseLike<void>;
-		ready(): PromiseLike<void>;
-		sendDisconnectPacket(): PromiseLike<void>;
-		makeSubscriptions(): PromiseLike<Array<void>>;
-		messageHandler(cmd: string, msg: GenericObject): boolean | PromiseLike<void> | undefined;
-		request(ctx: Context): PromiseLike<void>;
-		sendEvent(ctx: Context): PromiseLike<void>;
+		afterConnect(wasReconnect: boolean): Promise<void>;
+		connect(): Promise<void>;
+		disconnect(): Promise<void>;
+		ready(): Promise<void>;
+		sendDisconnectPacket(): Promise<void>;
+		makeSubscriptions(): Promise<Array<void>>;
+		messageHandler(cmd: string, msg: GenericObject): boolean | Promise<void> | undefined;
+		request(ctx: Context): Promise<void>;
+		sendEvent(ctx: Context): Promise<void>;
 		removePendingRequest(id: string): void;
 		removePendingRequestByNodeID(nodeID: string): void;
-		sendResponse(nodeID: string, id: string, data: GenericObject, err: Error): PromiseLike<void>;
-		sendResponse(nodeID: string, id: string, data: GenericObject): PromiseLike<void>;
-		discoverNodes(): PromiseLike<void>;
-		discoverNode(nodeID: string): PromiseLike<void>;
-		sendNodeInfo(nodeID: string): PromiseLike<void | Array<void>>;
-		sendPing(nodeID: string, id?: string): PromiseLike<void>;
-		sendPong(payload: GenericObject): PromiseLike<void>;
+		sendResponse(nodeID: string, id: string, data: GenericObject, err: Error): Promise<void>;
+		sendResponse(nodeID: string, id: string, data: GenericObject): Promise<void>;
+		discoverNodes(): Promise<void>;
+		discoverNode(nodeID: string): Promise<void>;
+		sendNodeInfo(nodeID: string): Promise<void | Array<void>>;
+		sendPing(nodeID: string, id?: string): Promise<void>;
+		sendPong(payload: GenericObject): Promise<void>;
 		processPong(payload: GenericObject): void;
-		sendHeartbeat(localNode: BrokerNode): PromiseLike<void>;
-		subscribe(topic: string, nodeID: string): PromiseLike<void>;
-		publish(packet: Packet): PromiseLike<void>;
+		sendHeartbeat(localNode: BrokerNode): Promise<void>;
+		subscribe(topic: string, nodeID: string): Promise<void>;
+		publish(packet: Packet): Promise<void>;
 	}
 
 	class ServiceRegistry {
