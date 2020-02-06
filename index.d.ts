@@ -499,7 +499,7 @@ declare namespace Moleculer {
 		setEndpoint(endpoint: Endpoint): void;
 		setParams(newParams: P, cloning?: boolean): void;
 		call<T>(actionName: string): PromiseLike<T>;
-		call<T, P>(actionName: string, params: P, opts?: GenericObject): PromiseLike<T>;
+		call<T, P>(actionName: string, params: P, opts?: CallingOptions): PromiseLike<T>;
 
 		emit<D>(eventName: string, data: D, opts: GenericObject): PromiseLike<void>;
 		emit<D>(eventName: string, data: D, groups: Array<string>): PromiseLike<void>;
@@ -942,7 +942,7 @@ declare namespace Moleculer {
 		findNextActionEndpoint(actionName: string, opts?: GenericObject, ctx?: Context): ActionEndpoint | Errors.MoleculerRetryableError;
 
 		call<T>(actionName: string): PromiseLike<T>;
-		call<T, P>(actionName: string, params: P, opts?: GenericObject): PromiseLike<T>;
+		call<T, P>(actionName: string, params: P, opts?: CallingOptions): PromiseLike<T>;
 
 		mcall<T>(def: Array<CallDefinition> | { [name: string]: CallDefinition }): PromiseLike<Array<T> | T>;
 
