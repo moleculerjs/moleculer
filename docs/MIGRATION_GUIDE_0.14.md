@@ -320,6 +320,60 @@ module.exports = {
 ```
 >Please note, the given Promise library will be polyfilled with `delay`, `method`, `timeout` and `mapSeries` methods (which are used inside Moleculer modules).
 
+## 8. Typescript definitions more strict
+The 0.13 release was very loose on the typings for `params` and `meta` for the `Context` class and the `call`, `emit`, and `broadcast` methods from the `Context` and `ServiceBroker` classes.  If Generics were not provided to these types, the default behavior would return `any`:
+```ts
+type GenericObject = { [name: string]: any };
+...
+class Context<P = GenericObject, M = GenericObject> {
+  ...
+  params: P;
+  meta: M;
+  ...
+  call<T = any, P extends GenericObject = GenericObject>(actionName: string, params?: P, opts?: GenericObject): PromiseLike<T>;
+  emit<D = any>(eventName: string, data: D, groups: Array<string>): void;
+  emit<D = any>(eventName: string, data: D, groups: string): void;
+  emit<D = any>(eventName: string, data: D): void;
+  broadcast<D = any>(eventName: string, data: D, groups: Array<string>): void;
+  broadcast<D = any>(eventName: string, data: D, groups: string): void;
+  broadcast<D = any>(eventName: string, data: D): void;
+```
+
+Without providing generic overrides, these types afforded absolutely no type safety because your incoming `params` and `meta` in `Context` were all typed as `any`, the return value from `call` would be typed as `any`, the parameters provided to `call` would allow for any object, and the payload provided to `emit` and `broadcast` could be `any`.
+
+In 0.14, the default signature has been tightened up as the following:
+```ts
+class Context<P = unknown, M extends object = {}> {
+  ...
+  params: P;
+  meta: M;
+  ...
+  call<T>(actionName: string): PromiseLike<T>;
+  call<T, P>(actionName: string, params: P, opts?: GenericObject): PromiseLike<T>;
+
+  emit<D>(eventName: string, data: D, opts: GenericObject): PromiseLike<void>;
+  emit<D>(eventName: string, data: D, groups: Array<string>): PromiseLike<void>;
+  emit<D>(eventName: string, data: D, groups: string): PromiseLike<void>;
+  emit<D>(eventName: string, data: D): PromiseLike<void>;
+  emit(eventName: string): PromiseLike<void>;
+
+  broadcast<D>(eventName: string, data: D, opts: GenericObject): PromiseLike<void>;
+  broadcast<D>(eventName: string, data: D, groups: Array<string>): PromiseLike<void>;
+  broadcast<D>(eventName: string, data: D, groups: string): PromiseLike<void>;
+  broadcast<D>(eventName: string, data: D): PromiseLike<void>;
+  broadcast(eventName: string): PromiseLike<void>;
+```
+
+Effectively, if generics are not provided then `params` will be typed as `unknown` and `meta` will be typed as an empty object.  The `return` value of `call` will be `unknown`.  You could pass any payload to `emit` and `broadcast` without any validation.  Since moleculer is calling services and passing parameters over the wire, it cannot discern what the type of params and called action return values is without guidance.  The generics provide that guidance and allow for type safety in your application.
+
+If you've already been providing generics to these types then congratulations(!), there is nothing you need to do.  If you have not been providing generics to these types then you are likely to find that you will be getting type errors because values that were previously typed as `any` will now be `unknown`.  You will need to update your types to provide types for these generics to avoid the type errors.
+
+There are a couple approaches to remedying these type issues:
+1. (**recommended**) Provided proper types for these generics in `Context`, `call`, `emit`, and `broadcast`.  You will now have type safety for your `ctx.params`, `ctx.meta`, return values from `call`, `params` passed to `call`, and payloads passed to `emit` and `broadcast`.
+2. (not recommended) Augment the moleculer module with your own local TS definitions that revert these types to their previous behavior.  This will make your code work exactly as it was previously, with no type safety afforded.
+3. (not recommended) Replace all uses of the `Context` type in your application with `Context<GenericObject, GenericObject>`, `call` with `call<any, GenericObject>`, `emit` with `emit<any>` and `broadcast` with `broadcast<any>`.  As with #2, you will still not have type safety, but it may represent a quick and dirty approach.
+
+**NOTE:** The examples above show the changes to the `Context` class but similar changes were made to the `ServiceBroker` class as well.  Any changes that you need to make for `Context` will be needed for `ServiceBroker` as well.
 
 **:tada: Well, you are done! :clap:**
 

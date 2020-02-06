@@ -71,6 +71,7 @@ declare namespace Moleculer {
 
 		errorFields?: Array<string>;
 		stackTrace?: boolean;
+		events?: boolean;
 
 		defaultTags?: GenericObject | Function | null;
 	};
@@ -498,7 +499,7 @@ declare namespace Moleculer {
 		setEndpoint(endpoint: Endpoint): void;
 		setParams(newParams: P, cloning?: boolean): void;
 		call<T>(actionName: string): PromiseLike<T>;
-		call<T, P>(actionName: string, params?: P, opts?: GenericObject): PromiseLike<T>;
+		call<T, P>(actionName: string, params: P, opts?: CallingOptions): PromiseLike<T>;
 
 		emit<D>(eventName: string, data: D, opts: GenericObject): PromiseLike<void>;
 		emit<D>(eventName: string, data: D, groups: Array<string>): PromiseLike<void>;
@@ -940,12 +941,28 @@ declare namespace Moleculer {
 
 		findNextActionEndpoint(actionName: string, opts?: GenericObject, ctx?: Context): ActionEndpoint | Errors.MoleculerRetryableError;
 
-		call<T = any, P extends GenericObject = GenericObject>(actionName: string, params?: P, opts?: CallingOptions): PromiseLike<T>;
-		mcall<T = any>(def: Array<CallDefinition> | { [name: string]: CallDefinition }): PromiseLike<Array<T> | T>;
+		call<T>(actionName: string): PromiseLike<T>;
+		call<T, P>(actionName: string, params: P, opts?: CallingOptions): PromiseLike<T>;
 
-		emit<P = any>(eventName: string, payload?: P, groups?: string | Array<string> | GenericObject): PromiseLike<void>;
-		broadcast<P = any>(eventName: string, payload?: P, groups?: string | Array<string> | GenericObject): PromiseLike<void>;
-		broadcastLocal<P = any>(eventName: string, payload?: P, groups?: string | Array<string> | GenericObject): PromiseLike<void>;
+		mcall<T>(def: Array<CallDefinition> | { [name: string]: CallDefinition }): PromiseLike<Array<T> | T>;
+
+		emit<D>(eventName: string, data: D, opts: GenericObject): PromiseLike<void>;
+		emit<D>(eventName: string, data: D, groups: Array<string>): PromiseLike<void>;
+		emit<D>(eventName: string, data: D, groups: string): PromiseLike<void>;
+		emit<D>(eventName: string, data: D): PromiseLike<void>;
+		emit(eventName: string): PromiseLike<void>;
+
+		broadcast<D>(eventName: string, data: D, opts: GenericObject): PromiseLike<void>;
+		broadcast<D>(eventName: string, data: D, groups: Array<string>): PromiseLike<void>;
+		broadcast<D>(eventName: string, data: D, groups: string): PromiseLike<void>;
+		broadcast<D>(eventName: string, data: D): PromiseLike<void>;
+		broadcast(eventName: string): PromiseLike<void>;
+
+		broadcastLocal<D>(eventName: string, data: D, opts: GenericObject): PromiseLike<void>;
+		broadcastLocal<D>(eventName: string, data: D, groups: Array<string>): PromiseLike<void>;
+		broadcastLocal<D>(eventName: string, data: D, groups: string): PromiseLike<void>;
+		broadcastLocal<D>(eventName: string, data: D): PromiseLike<void>;
+		broadcastLocal(eventName: string): PromiseLike<void>;
 
 		ping(): PromiseLike<PongResponses>;
 		ping(nodeID: string | Array<string>, timeout?: number): PromiseLike<PongResponse>;
