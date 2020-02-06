@@ -4,7 +4,7 @@ const LatencyStrategy = require("../../../src/strategies/latency");
 const { extendExpect, protectReject } = require("../utils");
 const ServiceBroker = require("../../../src/service-broker");
 
-const lolex = require("lolex");
+const lolex = require("@sinonjs/fake-timers");
 
 extendExpect(expect);
 

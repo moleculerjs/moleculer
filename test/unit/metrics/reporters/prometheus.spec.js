@@ -1,6 +1,6 @@
 "use strict";
 
-const lolex = require("lolex");
+const lolex = require("@sinonjs/fake-timers");
 const request = require("supertest");
 
 const PrometheusReporter = require("../../../../src/metrics/reporters/prometheus");

@@ -1,6 +1,6 @@
 "use strict";
 
-const lolex = require("lolex");
+const lolex = require("@sinonjs/fake-timers");
 
 const utils = require("../../../../src/utils");
 utils.makeDirs = jest.fn();

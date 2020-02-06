@@ -13,7 +13,7 @@ const MetricTypes = require("../../../src/metrics/types");
 const MetricReporters = require("../../../src/metrics/reporters");
 const METRIC = require("../../../src/metrics/constants");
 
-const lolex = require("lolex");
+const lolex = require("@sinonjs/fake-timers");
 
 describe("Test Metric Registry", () => {
 

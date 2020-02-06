@@ -1,6 +1,6 @@
 const utils = require("../../src/utils");
 const { protectReject } = require("./utils");
-const lolex = require("lolex");
+const lolex = require("@sinonjs/fake-timers");
 
 describe("Test utils.humanize", () => {
 

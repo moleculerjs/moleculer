@@ -1,6 +1,6 @@
 "use strict";
 
-const lolex = require("lolex");
+const lolex = require("@sinonjs/fake-timers");
 
 const EventReporter = require("../../../../src/metrics/reporters/event");
 const ServiceBroker = require("../../../../src/service-broker");

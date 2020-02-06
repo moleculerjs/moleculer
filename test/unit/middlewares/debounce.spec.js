@@ -1,7 +1,7 @@
 const ServiceBroker = require("../../../src/service-broker");
 const Context = require("../../../src/context");
 const Middleware = require("../../../src/middlewares").Debounce;
-const lolex = require("lolex");
+const lolex = require("@sinonjs/fake-timers");
 
 describe("Test DebounceMiddleware", () => {
 	const broker = new ServiceBroker({ logger: false });

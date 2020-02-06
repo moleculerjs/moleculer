@@ -1,7 +1,7 @@
 jest.mock("fs");
 const fs = require("fs");
 
-// const lolex = require("lolex");
+// const lolex = require("@sinonjs/fake-timers");
 jest.mock("../../../src/transporters/tcp/tcp-reader");
 
 let TcpReader = require("../../../src/transporters/tcp/tcp-reader");

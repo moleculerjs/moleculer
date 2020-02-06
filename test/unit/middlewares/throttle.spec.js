@@ -1,7 +1,7 @@
 const ServiceBroker = require("../../../src/service-broker");
 const Context = require("../../../src/context");
 const Middleware = require("../../../src/middlewares").Throttle;
-const lolex = require("lolex");
+const lolex = require("@sinonjs/fake-timers");
 
 describe("Test ThrottleMiddleware", () => {
 	const broker = new ServiceBroker({ logger: false });

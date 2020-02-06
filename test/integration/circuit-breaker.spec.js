@@ -3,7 +3,7 @@ const FakeTransporter = require("../../src/transporters/fake");
 const { MoleculerError } = require("../../src/errors");
 const { protectReject } = require("../unit/utils");
 
-const lolex = require("lolex");
+const lolex = require("@sinonjs/fake-timers");
 
 describe("Test circuit breaker", () => {
 	let clock;

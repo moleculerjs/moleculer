@@ -6,7 +6,7 @@ const E = require("../../../../src/errors");
 const { protectReject } = require("../../utils");
 const C = require("../../../../src/transporters/tcp/constants");
 
-// const lolex = require("lolex");
+// const lolex = require("@sinonjs/fake-timers");
 const net = require("net");
 jest.mock("net");
 

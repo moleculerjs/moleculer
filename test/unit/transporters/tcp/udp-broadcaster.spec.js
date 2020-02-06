@@ -3,7 +3,7 @@
 const ServiceBroker = require("../../../../src/service-broker");
 const { protectReject } = require("../../utils");
 
-const lolex = require("lolex");
+const lolex = require("@sinonjs/fake-timers");
 
 const os = require("os");
 

@@ -2,7 +2,7 @@ const ServiceBroker 		= require("../../../src/service-broker");
 const Context 				= require("../../../src/context");
 const { MoleculerError } 	= require("../../../src/errors");
 const Middleware 			= require("../../../src/middlewares").CircuitBreaker;
-const lolex 				= require("lolex");
+const lolex 				= require("@sinonjs/fake-timers");
 const { protectReject } 	= require("../utils");
 
 describe("Test CircuitBreakerMiddleware", () => {

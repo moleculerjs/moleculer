@@ -11,7 +11,7 @@ const LoggerFactory = require("../../../src/logger-factory");
 
 process.env.DATADOG_API_KEY = "datadog-api-key";
 
-const lolex = require("lolex");
+const lolex = require("@sinonjs/fake-timers");
 const os = require("os");
 
 const broker = new ServiceBroker({ logger: false, nodeID: "node-123", namespace: "test-ns" });

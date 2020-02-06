@@ -1,6 +1,6 @@
 const ServiceBroker = require("../../../src/service-broker");
 const MemoryLRUCacher = require("../../../src/cachers/memory-lru");
-const lolex = require("lolex");
+const lolex = require("@sinonjs/fake-timers");
 
 describe("Test MemoryLRUCacher constructor", () => {
 

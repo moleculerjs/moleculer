@@ -2,7 +2,7 @@
 
 const { protectReject } = require("../../utils");
 
-// const lolex = require("lolex");
+// const lolex = require("@sinonjs/fake-timers");
 jest.mock("../../../../src/transporters/tcp/parser", () => {
 	return jest.fn().mockImplementation(() => {
 		let callbacks = {};

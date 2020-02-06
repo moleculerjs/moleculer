@@ -1,6 +1,6 @@
 "use strict";
 
-const lolex = require("lolex");
+const lolex = require("@sinonjs/fake-timers");
 jest.mock("../../../../src/metrics/rates");
 const MetricRate = require("../../../../src/metrics/rates");
 

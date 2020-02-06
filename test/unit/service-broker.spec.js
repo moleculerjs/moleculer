@@ -25,7 +25,7 @@ const utils = require("../../src/utils");
 
 const { protectReject } = require("./utils");
 const path = require("path");
-const lolex = require("lolex");
+const lolex = require("@sinonjs/fake-timers");
 const ServiceBroker = require("../../src/service-broker");
 const Service = require("../../src/service");
 const LoggerFactory = require("../../src/logger-factory");

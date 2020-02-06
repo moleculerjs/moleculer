@@ -1,7 +1,7 @@
 "use strict";
 
 const os = require("os");
-const lolex = require("lolex");
+const lolex = require("@sinonjs/fake-timers");
 jest.mock("node-fetch");
 const fetch = require("node-fetch");
 fetch.mockImplementation(() => Promise.resolve({ statusText: "" }));

@@ -4,7 +4,7 @@ const Context = require("../../../src/context");
 const Middleware = require("../../../src/middlewares").ContextTracker;
 const { protectReject } = require("../utils");
 
-const lolex = require("lolex");
+const lolex = require("@sinonjs/fake-timers");
 
 describe("Test ContextTrackerMiddleware", () => {
 	const broker = new ServiceBroker({ nodeID: "server-1", logger: false });

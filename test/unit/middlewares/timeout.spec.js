@@ -3,7 +3,7 @@ const { RequestTimeoutError }	= require("../../../src/errors");
 const Context 					= require("../../../src/context");
 const Middleware 				= require("../../../src/middlewares").Timeout;
 const { protectReject } 		= require("../utils");
-const lolex 					= require("lolex");
+const lolex 					= require("@sinonjs/fake-timers");
 
 describe("Test TimeoutMiddleware", () => {
 	const broker = new ServiceBroker({ nodeID: "server-1", logger: false });

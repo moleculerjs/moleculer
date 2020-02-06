@@ -17,7 +17,7 @@ const FileLogger = require("../../../src/loggers/file");
 const ServiceBroker = require("../../../src/service-broker");
 const LoggerFactory = require("../../../src/logger-factory");
 
-const lolex = require("lolex");
+const lolex = require("@sinonjs/fake-timers");
 
 const broker = new ServiceBroker({ logger: false, nodeID: "node-123", namespace: "test-ns" });
 
