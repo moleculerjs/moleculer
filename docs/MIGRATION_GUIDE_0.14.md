@@ -328,6 +328,8 @@ declare module "moleculer" {
 }
 ```
 
+Additionally, if you were using `PromiseLike<T>` as a type for anything being returned by moleculer, this will need to be converted to `Promise<T>`, regardless of whether you are using native promises or third-party promises.
+
 ## 8. Typescript definitions more strict
 The 0.13 release was very loose on the typings for `params` and `meta` for the `Context` class and the `call`, `emit`, and `broadcast` methods from the `Context` and `ServiceBroker` classes.  If Generics were not provided to these types, the default behavior would return `any`:
 ```ts
