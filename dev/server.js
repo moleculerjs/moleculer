@@ -41,12 +41,12 @@ const broker = new ServiceBroker({
 					//excludes: ["moleculer.transit.publish.total", "moleculer.transit.receive.total"]
 				}
 			},*/
-			{
+			/*{
 				type: "Datadog",
 				options: {
 					//includes: "process.memory.**"
 				}
-			}
+			}*/
 		]
 	},
 	bulkhead: {

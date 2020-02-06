@@ -411,6 +411,8 @@ class ServiceBroker {
 	 * @memberof ServiceBroker
 	 */
 	start() {
+		const startTime = Date.now();
+
 		return this.Promise.resolve()
 			.then(() => {
 				//this.tracer.restartScope();
@@ -433,10 +435,8 @@ class ServiceBroker {
 					});
 			})
 			.then(() => {
-				this.logger.info(`✔ ServiceBroker with ${this.services.length} service(s) is started successfully.`);
 				this.started = true;
 				this.metrics.set(METRIC.MOLECULER_BROKER_STARTED, 1);
-
 				this.broadcastLocal("$broker.started");
 			})
 			.then(() => {
@@ -449,6 +449,10 @@ class ServiceBroker {
 			.then(() => {
 				if (_.isFunction(this.options.started))
 					return this.options.started(this);
+			})
+			.then(() => {
+				const duration = Date.now() - startTime;
+				this.logger.info(`✔ ServiceBroker with ${this.services.length} service(s) is started successfully in ${utils.humanize(duration)}.`);
 			});
 	}
 
