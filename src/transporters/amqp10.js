@@ -231,6 +231,7 @@ class Amqp10Transporter extends Transporter {
 					this.logger.info("AMQP10 is connected");
 					this.connection._connection.setMaxListeners(0);
 					this.session._session.setMaxListeners(0);
+					this.session.setMaxListeners(0);
 					this.connected = true;
 					return this.onConnected();
 				});
