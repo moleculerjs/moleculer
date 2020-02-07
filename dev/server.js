@@ -10,9 +10,17 @@ let { MoleculerError, MoleculerRetryableError } = require("../src/errors");
 let broker = new ServiceBroker({
 	namespace: "",
 	nodeID: process.argv[2] || "server-" + process.pid,
-	//transporter: "nats://demo.nats.io:4222",
-	transporter: "NATS",
-	serializer: "Thrift",
+	/*transporter: {
+		type: "NATS",
+		options: {
+			//udpDiscovery: false,
+			//urls: "file://./dev/nodes.json",
+			//debug: true
+		}
+	},*/
+	//transporter: "kafka://192.168.51.29:2181",
+	transporter: "amqp10://admin:admin@192.168.0.181:5672",
+	serializer: "JSON",
 
 	//disableBalancer: true,
 

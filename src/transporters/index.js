@@ -16,6 +16,7 @@ const Transporters = {
 	MQTT: require("./mqtt"),
 	Redis: require("./redis"),
 	AMQP: require("./amqp"),
+	AMQP10: require("./amqp10"),
 	Kafka: require("./kafka"),
 	STAN: require("./stan"),
 	TCP: require("./tcp")
@@ -53,6 +54,8 @@ function resolve(opt) {
 			TransporterClass = Transporters.Redis;
 		else if (opt.startsWith("amqp://") || opt.startsWith("amqps://"))
 			TransporterClass = Transporters.AMQP;
+		else if (opt.startsWith("amqp10://"))
+			TransporterClass = Transporters.AMQP10;
 		else if (opt.startsWith("kafka://"))
 			TransporterClass = Transporters.Kafka;
 		else if (opt.startsWith("stan://"))

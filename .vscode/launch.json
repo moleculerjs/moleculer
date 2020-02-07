@@ -10,9 +10,7 @@
 			"name": "Launch dev",
 			"program": "${workspaceRoot}/dev/index.js",
 			"cwd": "${workspaceRoot}",
-			"args": [
-				"event-wildcard"
-			],
+			"args": ["event-wildcard"]
 		},
 		{
 			"type": "node",
@@ -47,9 +45,7 @@
 			"env": {
 				"TRANSPORTER": "TCP"
 			},
-			"args": [
-				"client-debug"
-			]
+			"args": ["client-debug"]
 		},
 		{
 			"type": "node",
@@ -74,9 +70,7 @@
 			"args": ["--runInBand"],
 			"console": "internalConsole",
 			"cwd": "${workspaceRoot}",
-			"runtimeArgs": [
-                "--nolazy"
-            ]
+			"runtimeArgs": ["--nolazy"]
 		},
 		{
 			"type": "node",
@@ -86,9 +80,7 @@
 			"args": ["--runInBand", "--testMatch", "**/transporters/**/**spc.js"],
 			"cwd": "${workspaceRoot}",
 			"console": "internalConsole",
-			"runtimeArgs": [
-                "--nolazy"
-            ],
+			"runtimeArgs": ["--nolazy"],
 			"env": {
 				"AMQP_URI": "amqp://192.168.51.29:5672"
 			}
@@ -101,9 +93,7 @@
 			"args": ["--runInBand", "--testMatch", "**/integration/transporters/**/**spc.js"],
 			"cwd": "${workspaceRoot}",
 			"console": "internalConsole",
-			"runtimeArgs": [
-                "--nolazy"
-            ],
+			"runtimeArgs": ["--nolazy"],
 			"env": {
 				"AMQP_URI": "amqp://192.168.51.29:5672"
 			}
@@ -120,8 +110,7 @@
 				"MOLECULER_LOG_LEVEL": "debug",
 				"MOLECULER_REGISTRY__STRATEGY": "random"
 			},
-			"args": [
-			]
+			"args": []
 		},
 		{
 			"type": "node",
