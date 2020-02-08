@@ -162,10 +162,10 @@ broker.start()
 				pendingInfo = ` [${pendingReqs.join(",")}]`;
 			}
 
-			const payload = { a: _.random(0, 10), b: _.random(0, 10)};
+			const payload = { a: _.random(0, 10), b: _.random(0, 10) };
 			const count = ++reqCount;
 			pendingReqs.push(count);
-			let p = broker.call("math.add", payload, { meta: { count }});
+			let p = broker.call("math.add", payload, { meta: { count } });
 			if (p.ctx) {
 				broker.logger.info(kleur.grey(`${count}. Send request (${payload.a} + ${payload.b}) to ${p.ctx.nodeID ? p.ctx.nodeID : "some node"} (queue: ${broker.transit.pendingRequests.size})...`), kleur.yellow().bold(pendingInfo));
 			}

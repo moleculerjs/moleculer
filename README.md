@@ -128,6 +128,10 @@ You can find here [the documentation](https://moleculer.services/docs).
 # Changelog
 See [CHANGELOG.md](CHANGELOG.md).
 
+# Security contact information
+To report a security vulnerability, please use the [Tidelift security contact](https://tidelift.com/security).
+Tidelift will coordinate the fix and disclosure.
+
 # Contributions
 We welcome you to join to the development of Moleculer. Please read our [contribution guide](http://moleculer.services/docs/contributing.html).
 <a href="https://github.com/moleculerjs/moleculer/graphs/contributors"><img src="https://opencollective.com/moleculer/contributors.svg?width=890&button=false" /></a>

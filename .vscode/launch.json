@@ -48,9 +48,7 @@
 			"env": {
 				"TRANSPORTER": "TCP"
 			},
-			"args": [
-				"client-debug"
-			]
+			"args": ["client-debug"]
 		},
 		{
 			"type": "node",
@@ -74,9 +72,7 @@
 			"args": ["--runInBand"],
 			"console": "internalConsole",
 			"cwd": "${workspaceRoot}",
-			"runtimeArgs": [
-                "--nolazy"
-            ]
+			"runtimeArgs": ["--nolazy"]
 		},
 		{
 			"type": "node",
@@ -98,9 +94,7 @@
 			"args": ["--runInBand", "--testMatch", "**/integration/transporters/**/**spc.js"],
 			"cwd": "${workspaceRoot}",
 			"console": "internalConsole",
-			"runtimeArgs": [
-                "--nolazy"
-            ],
+			"runtimeArgs": ["--nolazy"],
 			"env": {
 				"AMQP_URI": "amqp://192.168.51.29:5672"
 			}
