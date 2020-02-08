@@ -147,7 +147,7 @@ describe("Test Jaeger tracing exporter class", () => {
 
 			expect(res).toBe(fakeRemoteReporter);
 			expect(UDPSender).toHaveBeenCalledTimes(1);
-			expect(UDPSender).toHaveBeenCalledWith({ host: "jaeger-host", port: 4567 });
+			expect(UDPSender).toHaveBeenCalledWith({ host: "jaeger-host", port: 4567, logger: exporter.logger });
 
 			expect(HTTPSender).toHaveBeenCalledTimes(0);
 
@@ -168,7 +168,7 @@ describe("Test Jaeger tracing exporter class", () => {
 
 			expect(res).toBe(fakeRemoteReporter);
 			expect(HTTPSender).toHaveBeenCalledTimes(1);
-			expect(HTTPSender).toHaveBeenCalledWith({ endpoint: "http://jaeger-host:9411" });
+			expect(HTTPSender).toHaveBeenCalledWith({ endpoint: "http://jaeger-host:9411", logger: exporter.logger });
 
 			expect(UDPSender).toHaveBeenCalledTimes(0);
 
@@ -314,7 +314,7 @@ describe("Test Jaeger tracing exporter class", () => {
 			expect(exporter.getReporter).toHaveBeenCalledTimes(1);
 
 			expect(Jaeger.Tracer).toHaveBeenCalledTimes(1);
-			expect(Jaeger.Tracer).toHaveBeenCalledWith("posts", fakeReporter, fakeSampler, { b: "John" });
+			expect(Jaeger.Tracer).toHaveBeenCalledWith("posts", fakeReporter, fakeSampler, { b: "John", logger: exporter.logger });
 		});
 
 		it("should return an existing tracer", () => {
