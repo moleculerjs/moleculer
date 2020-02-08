@@ -180,7 +180,7 @@ describe("Test Tracer", () => {
 			fakeExporter.init.mockClear();
 
 			const tracer = new Tracer(broker, {
-				exporter: ["Exporter1", {
+				exporter: ["Exporter1", null, {
 					type: "Datadog",
 					options: {
 						a: 5

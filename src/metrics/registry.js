@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -67,7 +67,7 @@ class MetricRegistry {
 			if (this.opts.reporter) {
 				const reporters = Array.isArray(this.opts.reporter) ? this.opts.reporter : [this.opts.reporter];
 
-				this.reporter = reporters.map(r => {
+				this.reporter = _.compact(reporters).map(r => {
 					const reporter = Reporters.resolve(r);
 					reporter.init(this);
 					return reporter;

@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -57,7 +57,7 @@ class LoggerFactory {
 			this.appenders = [Loggers.resolve(_.defaultsDeep({}, this.opts, { options: { level: globalLogLevel } }))];
 		} else if (Array.isArray(this.opts)) {
 			// Multiple loggers
-			this.appenders = this.opts
+			this.appenders = _.compact(this.opts)
 				.map(o => _.isString(o) ? { type: o } : o)
 				.map(o => Loggers.resolve(_.defaultsDeep({}, o, { options: { level: globalLogLevel } })));
 		} else {

@@ -87,7 +87,7 @@ describe("Test Metric Registry", () => {
 			expect(MetricCommons.updateCommonMetrics).toHaveBeenCalledTimes(0);
 		});
 
-		it("should create timers & reporters", () => {
+		it("should create timers & reporter", () => {
 			const metric = new MetricRegistry(broker, {
 				collectProcessMetrics: true,
 				reporter: "Event"
@@ -107,6 +107,28 @@ describe("Test Metric Registry", () => {
 
 			expect(MetricCommons.registerCommonMetrics).toHaveBeenCalledTimes(1);
 			expect(MetricCommons.updateCommonMetrics).toHaveBeenCalledTimes(2);
+		});
+
+		it("should create multiple reporters", () => {
+			const metric = new MetricRegistry(broker, {
+				collectProcessMetrics: false,
+				reporter: [
+					"Event",
+					null,
+					{
+						type: "Console"
+					}
+				]
+			});
+			MetricCommons.registerCommonMetrics.mockClear();
+			MetricCommons.updateCommonMetrics.mockClear();
+
+			metric.init();
+
+			expect(metric.reporter).toBeInstanceOf(Array);
+			expect(metric.reporter.length).toBe(2);
+			expect(metric.reporter[0]).toBeInstanceOf(MetricReporters.Event);
+			expect(metric.reporter[1]).toBeInstanceOf(MetricReporters.Console);
 		});
 
 	});

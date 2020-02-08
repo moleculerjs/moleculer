@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -84,7 +84,7 @@ class Tracer {
 			if (this.opts.exporter) {
 				const exporters = Array.isArray(this.opts.exporter) ? this.opts.exporter : [this.opts.exporter];
 
-				this.exporter = exporters.map(r => {
+				this.exporter = _.compact(exporters).map(r => {
 					const exporter = Exporters.resolve(r);
 					exporter.init(this);
 					return exporter;

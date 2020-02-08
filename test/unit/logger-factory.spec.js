@@ -129,6 +129,7 @@ describe("Test LoggerFactory", () => {
 						moduleColors: true
 					}
 				},
+				null,
 				{
 					type: "File",
 					options: {
