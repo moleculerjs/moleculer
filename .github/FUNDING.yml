@@ -4,5 +4,5 @@
 patreon: moleculer
 open_collective: moleculer
 #ko_fi: # Replace with a single Ko-fi username
-#tidelift: # Replace with a single Tidelift platform-name/package-name e.g., npm/babel
+tidelift: "npm/moleculer"
 #custom: # Replace with a single custom sponsorship URL
