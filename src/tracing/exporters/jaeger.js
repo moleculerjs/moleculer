@@ -1,3 +1,9 @@
+/*
+ * moleculer
+ * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * MIT Licensed
+ */
+
 "use strict";
 
 const _ 					= require("lodash");
@@ -90,9 +96,9 @@ class JaegerTraceExporter extends BaseTraceExporter {
 		let reporter;
 
 		if (this.opts.endpoint) {
-			reporter = new HTTPSender({ endpoint: this.opts.endpoint });
+			reporter = new HTTPSender({ endpoint: this.opts.endpoint, logger: this.logger });
 		} else {
-			reporter = new UDPSender({ host: this.opts.host, port: this.opts.port });
+			reporter = new UDPSender({ host: this.opts.host, port: this.opts.port, logger: this.logger });
 		}
 
 		return new Jaeger.RemoteReporter(reporter);
@@ -136,7 +142,7 @@ class JaegerTraceExporter extends BaseTraceExporter {
 		const sampler = this.getSampler(serviceName);
 		const reporter = this.getReporter();
 
-		const tracer = new Jaeger.Tracer(serviceName, reporter, sampler, this.opts.tracerOptions);
+		const tracer = new Jaeger.Tracer(serviceName, reporter, sampler, Object.assign({ logger: this.logger }, this.opts.tracerOptions));
 		this.tracers[serviceName] = tracer;
 
 		return tracer;
