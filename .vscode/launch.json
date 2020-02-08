@@ -105,12 +105,13 @@
 			"name": "Moleculer-runner",
 			"program": "${workspaceRoot}/bin/moleculer-runner.js",
 			"cwd": "${workspaceRoot}/examples/runner",
-			/*"env": {
+			"env": {
 				"NAMESPACE": "test",
-				"MOLECULER_NAMESPACE": "long",
-				"MOLECULER_LOG_LEVEL": "debug",
-				"MOLECULER_REGISTRY__STRATEGY": "random"
-			},*/
+				"MOL_NAMESPACE": "long",
+				"MOL_LOG_LEVEL": "debug",
+				"MOL_REGISTRY__STRATEGY": "random",
+				"MOL_CACHER__OPTIONS__PREFIX": "MOL"
+			},
 			"args": [
 				"--hot",
 				"--repl",

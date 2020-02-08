@@ -309,7 +309,9 @@ const utils = {
 		const parts = path.split(".");
 		const part = parts.shift();
 		if (parts.length > 0) {
-			if (!(part in obj)) {
+			if (!Object.prototype.hasOwnProperty.call(obj, part)) {
+				obj[part] = {};
+			} else if (obj[part] == null) {
 				obj[part] = {};
 			} else {
 				if (typeof obj[part] !== "object") {

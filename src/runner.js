@@ -185,32 +185,35 @@ class MoleculerRunner {
 				obj[key] = this.overwriteFromEnv(obj[key], (prefix ? prefix + "_" : "") + key);
 		});
 
-		const moleculerPrefix = "MOL_";
-		Object.keys(process.env)
-			.filter(key => key.startsWith(moleculerPrefix))
-			.map(key => ({
-				key,
-				withoutPrefix: key.substr(moleculerPrefix.length)
-			}))
-			.forEach(variable => {
-				const dotted = variable.withoutPrefix
-					.split("__")
-					.map(level => level.toLocaleLowerCase())
-					.map(level =>
-						level
-							.split("_")
-							.map((value, index) => {
-								if (index == 0) {
-									return value;
-								} else {
-									return value[0].toUpperCase() + value.substring(1);
-								}
-							})
-							.join("")
-					)
-					.join(".");
-				obj = utils.dotSet(obj, dotted, this.normalizeEnvValue(process.env[variable.key]));
-			});
+		// Process MOL_ env vars only the root level
+		if (prefix == null) {
+			const moleculerPrefix = "MOL_";
+			Object.keys(process.env)
+				.filter(key => key.startsWith(moleculerPrefix))
+				.map(key => ({
+					key,
+					withoutPrefix: key.substr(moleculerPrefix.length)
+				}))
+				.forEach(variable => {
+					const dotted = variable.withoutPrefix
+						.split("__")
+						.map(level => level.toLocaleLowerCase())
+						.map(level =>
+							level
+								.split("_")
+								.map((value, index) => {
+									if (index == 0) {
+										return value;
+									} else {
+										return value[0].toUpperCase() + value.substring(1);
+									}
+								})
+								.join("")
+						)
+						.join(".");
+					obj = utils.dotSet(obj, dotted, this.normalizeEnvValue(process.env[variable.key]));
+				});
+		}
 
 		return obj;
 	}
@@ -243,6 +246,8 @@ class MoleculerRunner {
 
 		if (this.flags.hot)
 			this.config.hotReload = true;
+
+		// console.log("Merged configuration", this.config);
 	}
 
 	/**
