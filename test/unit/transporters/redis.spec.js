@@ -104,7 +104,7 @@ describe("Test RedisTransporter subscribe & publish", () => {
 });
 
 clusterMode = true;
-describe("Test RedisTransporter subscribe & publish", () => {
+describe("Test RedisTransporter subscribe & publish cluster mode", () => {
 	itShouldTestRedisTransportPublishSubscribe(clusterMode);
 });
 
