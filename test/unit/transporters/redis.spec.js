@@ -2,11 +2,24 @@ const ServiceBroker = require("../../../src/service-broker");
 const Transit = require("../../../src/transit");
 const RedisTransporter = require("../../../src/transporters/redis");
 const P = require("../../../src/packets");
+const { BrokerOptionsError } = require("../../../src/errors");
 
 jest.mock("ioredis");
 
 let Redis = require("ioredis");
 Redis.mockImplementation(() => {
+	let onCallbacks = {};
+	return {
+		on: jest.fn((event, cb) => onCallbacks[event] = cb),
+		disconnect: jest.fn(),
+		subscribe: jest.fn(),
+		publish: jest.fn(),
+
+		onCallbacks
+	};
+});
+
+Redis.Cluster.mockImplementation(() => {
 	let onCallbacks = {};
 	return {
 		on: jest.fn((event, cb) => onCallbacks[event] = cb),
@@ -40,16 +53,81 @@ describe("Test RedisTransporter constructor", () => {
 		let transporter = new RedisTransporter(opts);
 		expect(transporter.opts).toBe(opts);
 	});
+
+	it("check constructor with cluster options", () => {
+		let opts = {
+			cluster: {
+				nodes: [
+					{ host: "localhost", port: 1234 },
+					{ host: "localhost", port: 12345 }
+				]
+			}
+		};
+		let transporter = new RedisTransporter(opts);
+		expect(transporter.opts).toBe(opts);
+	});
 });
 
+let clusterMode = false;
 describe("Test RedisTransporter connect & disconnect", () => {
+	itShouldTestRedisTransportConnectDisconnect(clusterMode);
+});
+
+clusterMode = true;
+describe("Test RedisTransporter connect & disconnect cluster mode", () => {
+	itShouldTestRedisTransportConnectDisconnect(clusterMode);
+});
+
+describe("Test RedisTransporter connect & disconnect cluster without nodes", () => {
+	let opts = {
+		cluster: {
+			clusterOptions: {
+				redisOptions: {
+					password: "12345"
+				}
+			}
+		}
+	};
+	let transporter;
+	transporter = new RedisTransporter(opts);
+	transporter.connect().then(() => {
+		expect(transporter.clientSub).toBeDefined();
+	}).catch((error) => {
+		expect(error instanceof BrokerOptionsError).toEqual(true);
+	});
+	expect(transporter.opts).toBe(opts);
+});
+
+clusterMode = false;
+describe("Test RedisTransporter subscribe & publish", () => {
+	itShouldTestRedisTransportPublishSubscribe(clusterMode);
+});
+
+clusterMode = true;
+describe("Test RedisTransporter subscribe & publish cluster mode", () => {
+	itShouldTestRedisTransportPublishSubscribe(clusterMode);
+});
+
+function itShouldTestRedisTransportConnectDisconnect(clusterMode = false) {
+
 	let broker = new ServiceBroker({ logger: false });
 	let transit = new Transit(broker);
 	let msgHandler = jest.fn();
 	let transporter;
 
 	beforeEach(() => {
-		transporter = new RedisTransporter();
+		if (clusterMode) {
+			transporter = new RedisTransporter({
+				cluster: {
+					nodes: [
+						{ host: "127.0.0.1", port: 1234 },
+						{ host: "127.0.0.1", port: 2345 }
+					]
+				}
+			});
+		} else {
+			transporter = new RedisTransporter();
+		}
 		transporter.init(transit, msgHandler);
 	});
 
@@ -104,17 +182,26 @@ describe("Test RedisTransporter connect & disconnect", () => {
 		transporter._clientPub.onCallbacks.connect(); // Trigger the `resolve`
 		return p;
 	});
+}
 
-});
-
-
-describe("Test RedisTransporter subscribe & publish", () => {
+function itShouldTestRedisTransportPublishSubscribe(clusterMode = false) {
 	let transporter;
 	let msgHandler;
 
 	beforeEach(() => {
 		msgHandler = jest.fn();
-		transporter = new RedisTransporter();
+		if (clusterMode) {
+			transporter = new RedisTransporter({
+				cluster: {
+					nodes: [
+						{ host: "127.0.0.1", port: 1234 },
+						{ host: "127.0.0.1", port: 2345 }
+					]
+				}
+			});
+		} else {
+			transporter = new RedisTransporter();
+		}
 		transporter.init(new Transit(new ServiceBroker({ logger: false, namespace: "TEST" })), msgHandler);
 		transporter.serialize = jest.fn(() => "json data");
 		transporter.incomingMessage = jest.fn();
@@ -153,4 +240,4 @@ describe("Test RedisTransporter subscribe & publish", () => {
 		expect(transporter.serialize).toHaveBeenCalledTimes(1);
 		expect(transporter.serialize).toHaveBeenCalledWith(packet);
 	});
-});
+}

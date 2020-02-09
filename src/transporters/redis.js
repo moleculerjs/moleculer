@@ -6,9 +6,11 @@
 
 "use strict";
 
-const Promise				= require("bluebird");
-const { MoleculerError } 	= require("../errors");
-const Transporter 			= require("./base");
+const Promise				 = require("bluebird");
+const { MoleculerError } 	 = require("../errors");
+const Transporter 			 = require("./base");
+const { BrokerOptionsError } = require("../errors");
+
 
 /**
  * Transporter for Redis
@@ -39,22 +41,13 @@ class RedisTransporter extends Transporter {
 	 */
 	connect() {
 		return new Promise((resolve, reject) => {
-			let Redis;
-			try {
-				Redis = require("ioredis");
-				Redis.Promise = Promise;
-			} catch(err) {
-				/* istanbul ignore next */
-				this.broker.fatal("The 'ioredis' package is missing. Please install it with 'npm install ioredis --save' command.", err, true);
-			}
-
-			const clientSub = new Redis(this.opts);
+			let clientSub = this.getRedisClient(this.opts);
 			this._clientSub = clientSub; // For tests
 
 			clientSub.on("connect", () => {
 				this.logger.info("Redis-sub client is connected.");
 
-				const clientPub = new Redis(this.opts);
+				let clientPub = this.getRedisClient(this.opts);
 				this._clientPub = clientPub; // For tests
 
 				clientPub.on("connect", () => {
@@ -148,6 +141,36 @@ class RedisTransporter extends Transporter {
 		this.incStatSent(data.length);
 		this.clientPub.publish(this.getTopicName(packet.type, packet.target), data);
 		return Promise.resolve();
+	}
+
+	/**
+	 * Return redis or redis.cluster client
+	 *
+	 * @param {any} opts
+	 *
+	 * @memberof RedisTransporter
+	 */
+	getRedisClient(opts) {
+		let client;
+		let Redis;
+		try {
+			Redis = require("ioredis");
+			Redis.Promise = Promise;
+		} catch(err) {
+			/* istanbul ignore next */
+			this.broker.fatal("The 'ioredis' package is missing. Please install it with 'npm install ioredis --save' command.", err, true);
+		}
+		if (opts && opts.cluster) {
+			if (!opts.cluster.nodes || opts.cluster.nodes.length === 0) {
+				throw new BrokerOptionsError("No nodes defined for cluster");
+			}
+			this.logger.info("Setting Redis.Cluster transporter");
+			client = new Redis.Cluster(opts.cluster.nodes, opts.cluster.clusterOptions);
+		} else {
+			this.logger.info("Setting Redis transporter");
+			client = new Redis(opts);
+		}
+		return client;
 	}
 
 }
