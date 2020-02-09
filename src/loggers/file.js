@@ -1,12 +1,12 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
 "use strict";
 
-const BaseLogger = require("./base");
+const FormattedLogger 	= require("./formatted");
 const _ = require("lodash");
 
 const fs = require("fs");
@@ -21,9 +21,9 @@ const appendFile = util.promisify(fs.appendFile);
  * File logger for Moleculer
  *
  * @class FileLogger
- * @extends {BaseLogger}
+ * @extends {FormattedLogger}
  */
-class FileLogger extends BaseLogger {
+class FileLogger extends FormattedLogger {
 
 	/**
 	 * Creates an instance of FileLogger.
@@ -36,8 +36,6 @@ class FileLogger extends BaseLogger {
 		this.opts = _.defaultsDeep(this.opts, {
 			folder: "./logs",
 			filename: "moleculer-{date}.log",
-			formatter: "json",
-			objectPrinter: null,
 			eol: os.EOL,
 			interval: 1 * 1000
 		});
@@ -63,10 +61,6 @@ class FileLogger extends BaseLogger {
 
 		makeDirs(this.logFolder);
 
-		this.objectPrinter = this.opts.objectPrinter ? this.opts.objectPrinter : o => util.inspect(o, { showHidden: false, depth: 2, colors: false, breakLength: Number.POSITIVE_INFINITY });
-
-		this.formatter = this.getFormatter();
-
 		if (this.opts.interval > 0) {
 			this.timer = setInterval(() => this.flush(), this.opts.interval);
 			this.timer.unref();
@@ -87,9 +81,9 @@ class FileLogger extends BaseLogger {
 
 	/**
 	 * Get formatter based on options
-	 */
+	 *
 	getFormatter() {
-		this.padLevels = BaseLogger.LEVELS.reduce((a, level) => {
+		this.padLevels = FormattedLogger.LEVELS.reduce((a, level) => {
 			a[level] = _.padEnd(level.toUpperCase(), 5);
 			return a;
 		}, {});
@@ -121,18 +115,7 @@ class FileLogger extends BaseLogger {
 				});
 			};
 		}
-	}
-
-	/**
-	 * Interpolate a text.
-	 *
-	 * @param {Strimg} str
-	 * @param {Object} obj
-	 * @returns {String}
-	 */
-	render(str, obj) {
-		return str.replace(/\{\s?(\w+)\s?\}/g, (match, v) => obj[v] || "");
-	}
+	}*/
 
 	/**
 	 * Get the current filename.
@@ -154,20 +137,45 @@ class FileLogger extends BaseLogger {
 	 *
 	 * @param {object} bindings
 	 */
-	getLogHandler(bindings) {
+	_getLogHandler(bindings) {
 		let level = bindings ? this.getLogLevel(bindings.mod) : null;
 		if (!level)
 			return null;
 
-		const levelIdx = BaseLogger.LEVELS.indexOf(level);
+		const levelIdx = FormattedLogger.LEVELS.indexOf(level);
 		const printArgs = args => args.map(p => (_.isObject(p) || _.isArray(p)) ? this.objectPrinter(p) : p);
 
 		return (type, args) => {
-			const typeIdx = BaseLogger.LEVELS.indexOf(type);
+			const typeIdx = FormattedLogger.LEVELS.indexOf(type);
 			if (typeIdx > levelIdx) return;
 
 			const msg = printArgs(args).join(" ").replace(/\u001b\[.*?m/g, ""); // eslint-disable-line no-control-regex
 			this.queue.push({ ts: Date.now(), level: type, msg, ...bindings });
+			if (!this.opts.interval) this.flush();
+		};
+	}
+
+	/**
+	 * Get a log handler.
+	 *
+	 * @param {object} bindings
+	 */
+	getLogHandler(bindings) {
+		const level = bindings ? this.getLogLevel(bindings.mod) : null;
+		if (!level)
+			return null;
+
+		const levelIdx = FormattedLogger.LEVELS.indexOf(level);
+		const formatter = this.getFormatter(bindings);
+
+		return (type, args) => {
+			const typeIdx = FormattedLogger.LEVELS.indexOf(type);
+			if (typeIdx > levelIdx) return;
+
+			const pargs = formatter(type, args);
+			const msg = pargs.join(" ").replace(/\u001b\[.*?m/g, ""); // eslint-disable-line no-control-regex
+
+			this.queue.push(msg);
 			if (!this.opts.interval) this.flush();
 		};
 	}
@@ -190,7 +198,7 @@ class FileLogger extends BaseLogger {
 			rows.forEach(row => this.writeRow(row));
 			*/
 
-			const buf = rows.map(row => this.formatter(row)).join(this.opts.eol) + this.opts.eol;
+			const buf = rows.join(this.opts.eol) + this.opts.eol;
 
 			return appendFile(filename, buf).catch((err) => {
 				/* istanbul ignore next */

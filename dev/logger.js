@@ -46,22 +46,33 @@ Promise.resolve()
 		console.log(kleur.yellow().bold("\n--- CONSOLE LOGGER ---"));
 		const broker = createBroker({
 			nodeID: "console",
-			logger: {
-				type: "Console",
-				options: {
-					level: "trace",
-					//formatter: "short",
-					moduleColors: true,
-					//autoPadding: true
-				}
-			}
+			logger: [
+				{
+					type: "Console",
+					options: {
+						level: "trace",
+						formatter: "jsonext",
+						moduleColors: true,
+						//autoPadding: true
+					}
+				},
+				{
+					type: "File",
+					options: {
+						level: "trace",
+						formatter: "jsonext",
+						folder: "d:/logs",
+						filename: "moleculer-{date}.log",
+					}
+				},
+			]
 		});
 		await broker.start();
 
 		logging(broker);
 
 		brk = broker;
-	})
+	})/*
 	.then(async function() {
 		console.log(kleur.yellow().bold("\n--- BUNYAN LOGGER ---"));
 		const broker = createBroker({
@@ -145,20 +156,20 @@ Promise.resolve()
 				type: "Log4js",
 				options: {
 					level: "trace",
-					/*log4js: {
+					_log4js: {
 						appenders: {
 							app: { type: "file", filename: "./logs/log4js.log" }
 						},
 						categories: {
 							default: { appenders: [ "app" ], level: "debug" }
 						}
-					}*/
+					}
 				}
 			}
 		});
 		await broker.start();
 
 		logging(broker);
-	})
+	})*/
 	.then(() => console.log(kleur.yellow().bold("-----------------\n")))
 	.then(() => brk.repl());
