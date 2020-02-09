@@ -40,6 +40,8 @@ class FileLogger extends FormattedLogger {
 			interval: 1 * 1000
 		});
 
+		this.opts.colors = false;
+
 		this.queue = [];
 		this.timer = null;
 		this.currentFilename = null;
@@ -136,7 +138,7 @@ class FileLogger extends FormattedLogger {
 	 * Generate a new log handler.
 	 *
 	 * @param {object} bindings
-	 */
+	 *
 	_getLogHandler(bindings) {
 		let level = bindings ? this.getLogLevel(bindings.mod) : null;
 		if (!level)
@@ -153,7 +155,7 @@ class FileLogger extends FormattedLogger {
 			this.queue.push({ ts: Date.now(), level: type, msg, ...bindings });
 			if (!this.opts.interval) this.flush();
 		};
-	}
+	}*/
 
 	/**
 	 * Get a log handler.

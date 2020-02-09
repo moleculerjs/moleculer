@@ -29,12 +29,15 @@ describe("Test File logger class", () => {
 			const logger = new FileLogger();
 
 			expect(logger.opts).toEqual({
+				autoPadding: false,
+				colors: false,
 				createLogger: null,
 				level: "info",
 				folder: "./logs",
 				filename: "moleculer-{date}.log",
-				formatter: "json",
+				formatter: "full",
 				objectPrinter: null,
+				moduleColors: false,
 				eol: os.EOL,
 				interval: 1 * 1000
 			});
@@ -56,12 +59,15 @@ describe("Test File logger class", () => {
 			});
 
 			expect(logger.opts).toEqual({
+				autoPadding: false,
+				colors: false,
 				createLogger: expect.any(Function),
 				level: "debug",
 				folder: "/my-log",
 				filename: "moleculer-{ns}-{date}.json",
 				formatter: "{timestamp} {level} {nodeID}/{mod}: {msg}",
 				objectPrinter: null,
+				moduleColors: false,
 				eol: "/",
 				interval: 5 * 1000
 			});
@@ -74,16 +80,11 @@ describe("Test File logger class", () => {
 
 		it("should init the logger", () => {
 			const logger = new FileLogger();
-			const mockFormatter = {};
-			logger.getFormatter = jest.fn(()=> mockFormatter);
 
 			logger.init(loggerFactory);
 
 			expect(logger.logFolder).toBe("./logs");
 			expect(logger.timer).toBeDefined();
-			expect(logger.formatter).toBe(mockFormatter);
-
-			expect(logger.getFormatter).toHaveBeenCalledTimes(1);
 		});
 
 		it("should init the logger with custom options", () => {
@@ -101,17 +102,6 @@ describe("Test File logger class", () => {
 
 			expect(utils.makeDirs).toHaveBeenCalledTimes(1);
 			expect(utils.makeDirs).toHaveBeenCalledWith("/logs/test-ns/node-123");
-		});
-
-		it("should use custom objectPrinter", () => {
-			const objectPrinter = jest.fn();
-			const logger = new FileLogger({
-				objectPrinter
-			});
-
-			logger.init(loggerFactory);
-
-			expect(logger.objectPrinter).toBe(objectPrinter);
 		});
 
 	});
@@ -133,23 +123,6 @@ describe("Test File logger class", () => {
 			expect(logger.timer).toBeNull();
 		});
 
-	});
-
-	describe("Test render method", () => {
-		const loggerFactory = new LoggerFactory(broker);
-
-		it("should return interpolated string", () => {
-			const logger = new FileLogger();
-
-			logger.init(loggerFactory);
-
-			expect(logger.render("/logs/test")).toBe("/logs/test");
-			expect(logger.render("/logs-{namespace}/{nodeID}-{namespace}", {
-				namespace: "test-ns",
-				nodeID: "server-1"
-			})).toBe("/logs-test-ns/server-1-test-ns");
-
-		});
 	});
 
 	describe("Test getFilename method", () => {
@@ -202,12 +175,12 @@ describe("Test File logger class", () => {
 			logHandler("trace", ["message", { a: 5 }]);
 
 			expect(logger.queue).toEqual([
-				{ "level": "fatal", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 },
-				{ "level": "error", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 },
-				{ "level": "warn", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 },
-				{ "level": "info", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 },
-				{ "level": "debug", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 },
-				{ "level": "trace", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 }
+				"[1970-01-01T00:00:00.000Z] FATAL node-1/MY-SERVICE: message { a: 5 }",
+				"[1970-01-01T00:00:00.000Z] ERROR node-1/MY-SERVICE: message { a: 5 }",
+				"[1970-01-01T00:00:00.000Z] WARN  node-1/MY-SERVICE: message { a: 5 }",
+				"[1970-01-01T00:00:00.000Z] INFO  node-1/MY-SERVICE: message { a: 5 }",
+				"[1970-01-01T00:00:00.000Z] DEBUG node-1/MY-SERVICE: message { a: 5 }",
+				"[1970-01-01T00:00:00.000Z] TRACE node-1/MY-SERVICE: message { a: 5 }",
 			]);
 
 			expect(logger.flush).toHaveBeenCalledTimes(0);
@@ -228,10 +201,10 @@ describe("Test File logger class", () => {
 			logHandler("trace", ["message", { a: 5 }]);
 
 			expect(logger.queue).toEqual([
-				{ "level": "fatal", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 },
-				{ "level": "error", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 },
-				{ "level": "warn", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 },
-				{ "level": "info", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 },
+				"[1970-01-01T00:00:00.000Z] FATAL node-1/MY-SERVICE: message { a: 5 }",
+				"[1970-01-01T00:00:00.000Z] ERROR node-1/MY-SERVICE: message { a: 5 }",
+				"[1970-01-01T00:00:00.000Z] WARN  node-1/MY-SERVICE: message { a: 5 }",
+				"[1970-01-01T00:00:00.000Z] INFO  node-1/MY-SERVICE: message { a: 5 }",
 			]);
 		});
 
@@ -270,8 +243,8 @@ describe("Test File logger class", () => {
 			logHandler("error", ["message", { a: 5 }]);
 
 			expect(logger.queue).toEqual([
-				{ "level": "fatal", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 },
-				{ "level": "error", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 },
+				"[1970-01-01T00:00:00.000Z] FATAL node-1/MY-SERVICE: message { a: 5 }",
+				"[1970-01-01T00:00:00.000Z] ERROR node-1/MY-SERVICE: message { a: 5 }",
 			]);
 
 			expect(logger.flush).toHaveBeenCalledTimes(2);
@@ -318,12 +291,8 @@ describe("Test File logger class", () => {
 
 			logger.flush();
 
-			expect(logger.formatter).toHaveBeenCalledTimes(2);
-			expect(logger.formatter).toHaveBeenNthCalledWith(1, { "level": "fatal", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 });
-			expect(logger.formatter).toHaveBeenNthCalledWith(2, { "level": "error", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 });
-
 			expect(fs.appendFile).toHaveBeenCalledTimes(1);
-			expect(fs.appendFile).toHaveBeenCalledWith("./logs/moleculer-1970-01-01.log", "rendered\nrendered\n", expect.any(Function));
+			expect(fs.appendFile).toHaveBeenCalledWith("./logs/moleculer-1970-01-01.log", "[1970-01-01T00:00:00.000Z] FATAL node-1/MY-SERVICE: message { a: 5 }\n[1970-01-01T00:00:00.000Z] ERROR node-1/MY-SERVICE: message { a: 5 }\n", expect.any(Function));
 		});
 
 		it("should call flush after interval", () => {
@@ -340,75 +309,6 @@ describe("Test File logger class", () => {
 			clock.tick(2100);
 
 			expect(logger.flush).toHaveBeenCalledTimes(1);
-		});
-
-	});
-
-	describe("Test getFormatter method", () => {
-		const loggerFactory = new LoggerFactory(broker);
-
-		let clock;
-
-		beforeAll(() => {
-			clock = lolex.install();
-		});
-
-		afterAll(() => {
-			clock.uninstall();
-		});
-
-		it("should render row to JSON", () => {
-			const logger = new FileLogger({ level: "trace", formatter: "json" });
-			logger.init(loggerFactory);
-
-			const json = logger.formatter({ "level": "fatal", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 });
-			expect(json).toBe("{\"level\":\"fatal\",\"mod\":\"my-service\",\"msg\":\"message { a: 5 }\",\"nodeID\":\"node-1\",\"ts\":0}");
-		});
-
-		it("should render row to full format", () => {
-			const logger = new FileLogger({ level: "trace", formatter: "full" });
-			logger.init(loggerFactory);
-
-			const str = logger.formatter({ "level": "fatal", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 });
-			expect(str).toBe("[1970-01-01T00:00:00.000Z] FATAL node-1/MY-SERVICE: message { a: 5 }");
-		});
-
-		it("should render row to simple format", () => {
-			const logger = new FileLogger({ level: "trace", formatter: "simple" });
-			logger.init(loggerFactory);
-
-			const str = logger.formatter({ "level": "fatal", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 });
-			expect(str).toBe("FATAL - message { a: 5 }");
-		});
-
-		it("should render row to short format", () => {
-			const logger = new FileLogger({ level: "trace", formatter: "short" });
-			logger.init(loggerFactory);
-
-			const str = logger.formatter({ "level": "fatal", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 });
-			expect(str).toBe("[00:00:00.000Z] FATAL MY-SERVICE: message { a: 5 }");
-		});
-
-		it("should render row to custom string", () => {
-			const logger = new FileLogger({ level: "trace", formatter: "{timestamp} {level} {nodeID}/{mod}: {msg}" });
-			logger.init(loggerFactory);
-
-			const str = logger.formatter({ "level": "fatal", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 });
-			expect(str).toBe("1970-01-01T00:00:00.000Z FATAL node-1/MY-SERVICE: message { a: 5 }");
-		});
-
-		it("should call custom formatter", () => {
-			const myFormatter = jest.fn(row => "formatted");
-
-			const logger = new FileLogger({ level: "trace", formatter: myFormatter });
-			logger.init(loggerFactory);
-
-			const row = { "level": "fatal", "mod": "my-service", "msg": "message { a: 5 }", "nodeID": "node-1", "ts": 0 };
-			const str = logger.formatter(row);
-			expect(str).toBe("formatted");
-
-			expect(myFormatter).toHaveBeenCalledTimes(1);
-			expect(myFormatter).toHaveBeenCalledWith(row);
 		});
 
 	});
