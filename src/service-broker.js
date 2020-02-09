@@ -300,7 +300,7 @@ class ServiceBroker {
 	registerMiddlewares(userMiddlewares) {
 		// Register user middlewares
 		if (Array.isArray(userMiddlewares) && userMiddlewares.length > 0) {
-			userMiddlewares.forEach(mw => this.middlewares.add(mw));
+			_.compact(userMiddlewares).forEach(mw => this.middlewares.add(mw));
 
 			this.logger.info(`Registered ${this.middlewares.count()} custom middleware(s).`);
 		}

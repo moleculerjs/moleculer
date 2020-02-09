@@ -37,7 +37,7 @@ describe("Test middleware system", () => {
 			}
 		};
 
-		let broker = new ServiceBroker({ logger: false, validator: false, internalMiddlewares: false, middlewares: [mw2Async, mw1Sync] });
+		let broker = new ServiceBroker({ logger: false, validator: false, internalMiddlewares: false, middlewares: [mw2Async, null, mw1Sync] });
 
 		let master = jest.fn(() => {
 			flow.push("MASTER");
