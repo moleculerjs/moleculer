@@ -435,6 +435,7 @@ declare namespace Moleculer {
 	interface EventSchema {
 		name?: string;
 		group?: string;
+		params?: ActionParams;
 		service?: Service;
 		tracing?: boolean | TracingOptions;
 		bulkhead?: BulkheadOptions;
