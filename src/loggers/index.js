@@ -1,6 +1,6 @@
 /*
  * moleculer
- * Copyright (c) 2019 MoleculerJS (https://github.com/moleculerjs/moleculer)
+ * Copyright (c) 2020 MoleculerJS (https://github.com/moleculerjs/moleculer)
  * MIT Licensed
  */
 
@@ -12,6 +12,8 @@ const Base = require("./base");
 
 const Loggers = {
 	Base,
+	Formatted: require("./formatted"),
+
 	Bunyan: require("./bunyan"),
 	Console: require("./console"),
 	Datadog: require("./datadog"),
