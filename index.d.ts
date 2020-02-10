@@ -627,7 +627,7 @@ declare namespace Moleculer {
 		[name: string]: any;
 	}
 
-	type ServiceAction<T = Promise<any>, P extends GenericObject = GenericObject> = ((params?: P, opts?: CallingOptions) => T) & ThisType<Service>;
+	type ServiceAction = (<T = Promise<any>, P extends GenericObject = GenericObject>(params?: P, opts?: CallingOptions) => T) & ThisType<Service>;
 
 	interface ServiceActions {
 		[name: string]: ServiceAction;
