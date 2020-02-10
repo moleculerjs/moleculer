@@ -440,6 +440,7 @@ declare namespace Moleculer {
 		tracing?: boolean | TracingOptions;
 		bulkhead?: BulkheadOptions;
 		handler?: ActionHandler;
+		context?: boolean;
 
 		[key: string]: any;
 	}
